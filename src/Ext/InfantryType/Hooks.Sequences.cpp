@@ -158,19 +158,22 @@ static void ReadSequence(DoControls* pDoInfo, FakeInfantryTypeClass* pInf, CCINI
 
 				pInf->_GetExtData()->SquenceRates[i] = pINI->ReadInteger(section, (basename + ".Rate").c_str(), Sequences_Master[i].Rate);
 
-				char bufferFacing[4];
-				if (sscanf(sequenceData, "%d,%d,%d,%s",
+				char bufferFacing[32] = {};
+				int itemsRead = sscanf(sequenceData, "%d,%d,%d,%31s",
 					&data.StartFrame,
 					&data.CountFrames,
 					&data.FacingMultiplier,
 					bufferFacing
-				) > 3)
+				);
+				
+				if (itemsRead >= 4)
 				{
 					for (size_t a = 0; a < EnumFunctions::FacingType_to_strings.size(); ++a)
 					{
 						if (IS_SAME_STR_(EnumFunctions::FacingType_to_strings[a], bufferFacing))
 						{
 							data.Facing = DoTypeFacing(a);
+							break;
 						}
 					}
 				}

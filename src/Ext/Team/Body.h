@@ -88,8 +88,7 @@ public:
 		PreviousScript(nullptr),
 		BridgeRepairHuts()
 	{
-		if (pObj && pObj->Type)
-			this->Name = pObj->Type->ID;
+		this->Name = pObj->Type->ID;
 		this->AbsType = TeamClass::AbsID;
 	}
 

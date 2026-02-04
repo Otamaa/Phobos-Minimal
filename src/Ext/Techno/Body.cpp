@@ -349,7 +349,7 @@ void TechnoExtData::TogglePassiveAcquireMode(PassiveAcquireMode newMode)
 			const auto& voiceList = pTechnoType->VoiceAttack.Count ? pTechnoType->VoiceAttack : pTechnoType->VoiceMove;
 
 			if (const auto count = voiceList.Count)
-				voiceIndex = voiceList.operator[](Random2Class::Global().Random() % count);
+				voiceIndex = voiceList.operator[](Random2Class::Global->Random() % count);
 		}
 	}
 
@@ -390,7 +390,7 @@ int TechnoExtData::GetJumpjetIntensity(FootClass* pThis)
 
 	int levelIntensity = 0;
 	int cellIntensity = 1000;
-	GetLevelIntensity(pThis, level, levelIntensity, cellIntensity, RulesExtData::Instance()->JumpjetLevelLightMultiplier, IsOnBridge(pThis));
+	GetLevelIntensity(pThis, level, levelIntensity, cellIntensity, RulesExtData::Instance()->JumpjetLevelLightMultiplier, 0.0, IsOnBridge(pThis));
 
 	return levelIntensity + cellIntensity;
 }
@@ -678,7 +678,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5F40, FakeTechnoClass::__HowManySurvivors)
 bool __fastcall FakeTechnoClass::__ShouldSelfHealOneStep(TechnoClass* pThis)
 {
 	auto const nAmount = TechnoExt_ExtData::GetSelfHealAmount(pThis);
-	return nAmount > 0 || nAmount != 0;
+	return nAmount != 0;
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x70BE80, FakeTechnoClass::__ShouldSelfHealOneStep)
@@ -4028,7 +4028,7 @@ bool TechnoExtData::TechnoTargetAllowFiring(TechnoClass* pThis, TechnoClass* pTa
 
 	if (!EnumFunctions::IsTechnoEligible(pTarget, pWeaponExt->CanTarget, false) ||
 		!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner, pTarget->Owner) ||
-		pWeaponExt->IsVeterancyInThreshold(pTarget) ||
+		!pWeaponExt->IsVeterancyInThreshold(pTarget) ||
 		!pWeaponExt->HasRequiredAttachedEffects(pThis, pTarget))
 	{
 		return false;

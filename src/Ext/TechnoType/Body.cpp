@@ -712,7 +712,7 @@ void TechnoTypeExtData::ParseVoiceWeaponAttacks(INI_EX& exINI, const char* pSect
 
 		NullableIdx<VocClass> VoiceEliteAttack;
 		IMPL_SNPRNINTF(tempBuff, sizeof(tempBuff), "VoiceEliteWeapon%dAttack", index + 1);
-		VoiceAttack.Read(exINI, pSection, tempBuff);
+		VoiceEliteAttack.Read(exINI, pSection, tempBuff);
 
 		if (int(n.size()) > index) {
 			n[index] = VoiceAttack.Get(n[index]);
@@ -819,13 +819,13 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->AutoDeath_Nonexist_AllowLimboed.Read(exINI, pSection, "AutoDeath.TechnosDontExist.AllowLimboed");
 
 		this->AutoDeath_Exist.Read(exINI, pSection, "AutoDeath.Exist");
-		this->AutoDeath_Exist.Read(exINI, pSection, "AutoDeath.TechnosDontExist");
+		this->AutoDeath_Exist.Read(exINI, pSection, "AutoDeath.TechnosExist");
 		this->AutoDeath_Exist_Any.Read(exINI, pSection, "AutoDeath.Exist.Any");
-		this->AutoDeath_Exist_Any.Read(exINI, pSection, "AutoDeath.TechnosDontExist.Any");
+		this->AutoDeath_Exist_Any.Read(exINI, pSection, "AutoDeath.TechnosExist.Any");
 		this->AutoDeath_Exist_House.Read(exINI, pSection, "AutoDeath.Exist.House");
-		this->AutoDeath_Exist_House.Read(exINI, pSection, "AutoDeath.TechnosDontExist.House");
+		this->AutoDeath_Exist_House.Read(exINI, pSection, "AutoDeath.TechnosExist.House");
 		this->AutoDeath_Exist_AllowLimboed.Read(exINI, pSection, "AutoDeath.Exist.AllowLimboed");
-		this->AutoDeath_Exist_AllowLimboed.Read(exINI, pSection, "AutoDeath.TechnosDontExist.AllowLimboed");
+		this->AutoDeath_Exist_AllowLimboed.Read(exINI, pSection, "AutoDeath.TechnosExist.AllowLimboed");
 		this->AutoDeath_VanishAnimation.Read(exINI, pSection, "AutoDeath.VanishAnimation");
 
 		this->Convert_AutoDeath.Read(exINI, pSection, "Convert.AutoDeath");
