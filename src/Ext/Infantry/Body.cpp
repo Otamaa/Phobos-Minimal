@@ -251,12 +251,13 @@ void ProcessStandardDeathType(FakeInfantryClass* pThis, WarheadTypeClass* warhea
 
 				if (GroundType::Get(pCell->LandType)->Cost[0] == 0.0 && !pThis->OnBridge)
 				{
+					bool fail = false;
 					if (!pThis->PlayAnim(DoType::Die2, true, false)) {
-						FinalizeInfantryDeath(pThis, source);
-						return;
+						pThis->UnInit();//fail
+						fail = true;
 					}
 
-					if (!isCyborgDeath) {
+					if (!isCyborgDeath || fail) {
 						return;
 					}
 					else break;
@@ -267,12 +268,13 @@ void ProcessStandardDeathType(FakeInfantryClass* pThis, WarheadTypeClass* warhea
 
 				if (!closest.IsValid())
 				{
+					bool fail = false;
 					if (!pThis->PlayAnim(DoType::Die2, true, false)) {
-						FinalizeInfantryDeath(pThis, source);
-						return;
+						pThis->UnInit();//fail
+						fail = true;
 					}
 
-					if (!isCyborgDeath) {
+					if (!isCyborgDeath || fail) {
 						return;
 					}
 					else break;
@@ -280,12 +282,14 @@ void ProcessStandardDeathType(FakeInfantryClass* pThis, WarheadTypeClass* warhea
 
 				if (Hasbuilding)
 				{
+					bool fail = false;
+
 					if (!pThis->PlayAnim(DoType::Die2, true, false)) {
-						FinalizeInfantryDeath(pThis, source);
-						return;
+						pThis->UnInit();//fail
+						fail = true;
 					}
 
-					if (!isCyborgDeath) {
+					if (!isCyborgDeath || fail) {
 						return;
 					}
 					else break;

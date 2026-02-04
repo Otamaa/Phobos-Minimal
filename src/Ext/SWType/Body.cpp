@@ -84,11 +84,14 @@ Action SWTypeExtData::GetAction(SuperWeaponTypeClass* pSuper, CellStruct* pTarge
 	if (!pExt->SW_FireToShroud)
 	{
 		CellClass* pCell = MapClass::Instance->GetCellAt(pTarget);
-		CoordStruct Crd = pCell->GetCoords();
-
-		if (MapClass::Instance->IsLocationShrouded(Crd))
+		if (pCell)
 		{
-			result = PhobosNewActionType::SuperWeaponDisallowed;
+			CoordStruct Crd = pCell->GetCoords();
+
+			if (MapClass::Instance->IsLocationShrouded(Crd))
+			{
+				result = PhobosNewActionType::SuperWeaponDisallowed;
+			}
 		}
 	}
 

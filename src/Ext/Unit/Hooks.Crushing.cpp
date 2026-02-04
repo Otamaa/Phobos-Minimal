@@ -45,20 +45,16 @@ ASMJIT_PATCH(0x0741941, UnitClass_OverrunSquare_TiltWhenCrushes, 0x6)
 	if (!pTypeExt->TiltsWhenCrushes_Vehicles.Get(pThis->Type->TiltsWhenCrushes))
 		return SkipGameCode;
 
-	if (pTypeExt->CrushForwardTiltPerFrame.isset())
-	{
-		if (AdvancedDriveLocomotionClass::IsReversing(pThis))
-			pThis->RockingForwardsPerFrame -= static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Get());
-		else
-			pThis->RockingForwardsPerFrame += static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Get());
+	if (pTypeExt->CrushForwardTiltPerFrame.isset()) {
+		if(pThis->RockingForwardsPerFrame == 0.0)
+			pThis->RockingForwardsPerFrame = static_cast<float>(pTypeExt->CrushForwardTiltPerFrame);
 	}
+
+	if (AdvancedDriveLocomotionClass::IsReversing(pThis))
+		pThis->RockingForwardsPerFrame -= static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Get(-0.05));
 	else
-	{
-		if (AdvancedDriveLocomotionClass::IsReversing(pThis))
-			pThis->RockingForwardsPerFrame -= static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Get(-0.05));
-		else
-			pThis->RockingForwardsPerFrame += static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Get(-0.05));
-	}
+		pThis->RockingForwardsPerFrame += static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Get(-0.05));
+
 
 	return SkipGameCode;
 }

@@ -124,14 +124,12 @@ int FakeAircraftClass::_Mission_Attack()
 				if (v17.X == v16.X && v17.Y == v16.Y) {
 					fac.Raw = 0;
 				}
-				else
-				{
-					auto v18 = std::atan2(double(v16.Y - v17.Y), double(v16.X - v17.X));
-					auto v19 = Math::DEG90_AS_RAD;
-					auto v20 = v18 - v19;
-					auto v21 = Math::BINARY_ANGLE_MAGIC;
-					fac.Raw = unsigned short(v20 * v21);
-				}
+
+				auto v18 = std::atan2(double(v17.Y - v16.Y), double(v16.X - v17.X));
+				auto v19 = Math::DEG90_AS_RAD;
+				auto v20 = v18 - v19;
+				auto v21 = Math::BINARY_ANGLE_MAGIC;
+				fac.Raw = unsigned short(v20 * v21);
 				this->SecondaryFacing.Set_Desired(fac);
 				return 1;
 			}
@@ -446,7 +444,7 @@ int FakeAircraftClass::_Mission_Attack()
 				this->Fire(this->Target, this->SelectWeapon(this->Target));
 				MapClass::Instance->GetCellAt(this->Target->GetCoords())->ScatterContent(this->Location, true, false, false);
 				this->MissionStatus = (int)AirAttackStatus::FlyToPosition;
-				return (this->GetWeapon(0)->WeaponType->Range + 1024) / this->Type->Speed;
+				return this->GetWeapon(0)->WeaponType->Range + 1024 / this->Type->Speed;
 			default:
 				if (!this->Ammo) {
 					this->MissionStatus = (int)AirAttackStatus::ReturnToBase;

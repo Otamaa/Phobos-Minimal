@@ -101,10 +101,7 @@ struct DroppodProperties_
 		const auto pExt = TechnoExtContainer::Instance.Find(pFoot);
 		const auto defaultres = condition ? make_iterator(SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->DroppodProp.Droppod_GroundPodAnim) : make_iterator(RulesClass::Instance->DropPod);
 		const auto result = pTypeExt->DropPodProp.Droppod_GroundPodAnim.GetElements(defaultres);
-		if (result.empty() || result.size() < 2)
-			return nullptr;
-		const size_t index = (State == 0 && result.size() > 2) ? ScenarioClass::Instance->Random.RandomFromMax(result.size()-1) : static_cast<size_t>(MinImpl(State, static_cast<int>(result.size()) - 1));
-		return result[index];
+		return result.empty() || result.size() < 2 ? nullptr : result[State == 0 && result.size() > 2 ? ScenarioClass::Instance->Random.RandomFromMax(result.size()-1) : State];
 	}
 
 	static AnimTypeClass* GetAtmosphereEntry(TechnoTypeClass* pType, FootClass* pFoot, bool condition)

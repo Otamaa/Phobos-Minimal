@@ -54,7 +54,7 @@ public:
 		Stm.Process(this->Convert_Deploy_Delay);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) override
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<UnitExtData*>(this)->FootExtData::SaveToStream(Stm);
 		Stm.Process(this->AltOccupation);

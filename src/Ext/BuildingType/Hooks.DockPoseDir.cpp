@@ -31,15 +31,13 @@ FacingType NOINLINE BuildingExtData::GetPoseDir(AircraftClass* pAir , BuildingCl
 			const int nIdx = pBld->FindLinkIndex(pAir);
 			const auto dir = &pBldTypeExt->DockPoseDir;
 
-			// Use DockPoseDir if valid index exists, otherwise fall back to building's LandingDir
-			if (nIdx >= 0 && (size_t)nIdx < dir->size())
-			{
-				return (*dir)[nIdx];
-			}
-			else
+			if (nIdx <= -1 || (size_t)nIdx >= dir->size() || ret < FacingType::Min)
 			{
 				return pBldTypeExt->LandingDir.Get(FacingType((((pBld->PrimaryFacing.Current().Raw >> 12) + 1) >> 1) & 7));
+
 			}
+			else
+				return (*dir)[nIdx];
 		}
 	}
 

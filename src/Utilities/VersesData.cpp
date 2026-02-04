@@ -20,5 +20,5 @@ void VersesData::Parse_NoCheck(const char* str)
 		return;
 
 	this->Verses = Conversions::Str2Armor(str, &this->Flags);
-	//this->LastParseIsValid = true;
+	this->LastParseIsValid = true;
 }
