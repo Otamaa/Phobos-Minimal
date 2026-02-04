@@ -239,3 +239,12 @@ ASMJIT_PATCH(0x5218C2, InfantryClass_UnmarkAllOccupationBits_ResetOwnerIdx, 0x6)
 }
 
 #pragma endregion
+
+ASMJIT_PATCH(0x7185DA, TeleportLocomotionClass_MakeRoom_DestFix, 0x6)
+{
+	enum { ReturnTrue = 0x71878F };
+
+	GET(CellStruct*, pCellAt, EAX);
+
+	return *pCellAt == CellStruct::Empty ? ReturnTrue : 0;
+}

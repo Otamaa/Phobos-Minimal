@@ -1020,8 +1020,6 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->DrainMoney_Display_Offset.Read(exINI, pSection, "DrainMoneyDisplay.Offset");
 		this->DrainMoney_Display_Offset.Read(exINI, pSection, "DrainMoney.Display.Offset");
 		this->DrainAnimationType.Read(exINI, pSection, GameStrings::DrainAnimationType());
-	this-
-
 		this->TalkBubbleTime.Read(exINI, pSection, GameStrings::TalkBubbleTime());
 
 		//pipshape
