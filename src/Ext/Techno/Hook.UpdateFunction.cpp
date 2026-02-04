@@ -230,7 +230,7 @@ void FakeTechnoClass::__HandleHiddenState(TechnoClass* pThis)
 		.Y = cellPos.Y
 	};
 
-	pThis->DrawBehind(&pos, nullptr);
+	pThis->DrawBehindMark(&pos, nullptr);
 }
 
 void FakeTechnoClass::__ClearInvalidAllyTarget(TechnoClass* pThis)
