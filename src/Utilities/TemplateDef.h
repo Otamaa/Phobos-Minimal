@@ -471,10 +471,17 @@ namespace detail
 	template <>
 	OPTIONALINLINE bool read<ReversePartialVector3D<int>>(ReversePartialVector3D<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		value.ValueCount = parser.Read3IntegerAndCount(pSection, pKey, (int*)&value);
+		// ReversePartialVector3D has Z,Y,X memory layout, so we need to read into a temp buffer
+		// and then assign in the correct order
+		int buffer[3] = { 0, 0, 0 };
+		value.ValueCount = parser.Read3IntegerAndCount(pSection, pKey, buffer);
 
-		if (value.ValueCount > 0)
+		if (value.ValueCount > 0) {
+			value.X = buffer[0];
+			value.Y = buffer[1];
+			value.Z = buffer[2];
 			return true;
+		}
 
 		return false;
 	}
@@ -493,7 +500,7 @@ namespace detail
 	template <>
 	OPTIONALINLINE bool read<PartialVector3D<float>>(PartialVector3D<float>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		value.ValueCount = parser.Read3Float(pSection, pKey, (float*)&value);
+		value.ValueCount = parser.Read3FloatAndCount(pSection, pKey, (float*)&value);
 
 		if (value.ValueCount > 0)
 			return true;
@@ -934,15 +941,15 @@ namespace detail
 			{
 				bool found = false;
 				for (const auto& [val, name] : EnumFunctions::AttachedAnimPosition_ToStrings) {
-					if (PhobosCRT::iequals(parser.value(), name)) {
+					if (PhobosCRT::iequals(cur, name)) {
 						resultData |= val;
 						found = true;
 						break;
 					}
 				}
 
-				if(!found && IS_SAME_STR_(parser.value(), "centre")) {
-					value |= AttachedAnimPosition::Center;
+				if(!found && IS_SAME_STR_(cur, "centre")) {
+					resultData |= AttachedAnimPosition::Center;
 					found = true;
 				}
 
@@ -952,6 +959,7 @@ namespace detail
 				}
 			}
 
+			value = resultData;
 			return true;
 		}
 
@@ -1409,6 +1417,10 @@ namespace detail
 					case 2: resultData |= DiscardCondition::Move; break;
 					case 3: resultData |= DiscardCondition::Stationary; break;
 					case 4: resultData |= DiscardCondition::Drain; break;
+					case 5: resultData |= DiscardCondition::InRange; break;
+					case 6: resultData |= DiscardCondition::OutOfRange; break;
+					case 7: resultData |= DiscardCondition::InvokerDeleted; break;
+					case 8: resultData |= DiscardCondition::Firing; break;
 					}
 				}
 			}
@@ -1457,9 +1469,7 @@ namespace detail
 					case 2: resultData |= ExpireWeaponCondition::Remove; break;
 					case 3: resultData |= ExpireWeaponCondition::Death; break;
 					case 4: resultData |= ExpireWeaponCondition::Discard; break;
-					case 5: resultData = ExpireWeaponCondition::All;
-						break;//switch break
-						break;//loop break
+					case 5: resultData = ExpireWeaponCondition::All; break;
 					}
 				}
 			}

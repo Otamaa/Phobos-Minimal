@@ -96,7 +96,7 @@ Action SWTypeExtData::GetAction(SuperWeaponTypeClass* pSuper, CellStruct* pTarge
 	{
 		auto pNewType = SWTypeHandler::get_Handler(pExt->HandledType);
 
-		if (!pNewType->CanFireAt(pExt, HouseClass::CurrentPlayer, *pTarget, true)) {
+		if (pNewType && !pNewType->CanFireAt(pExt, HouseClass::CurrentPlayer, *pTarget, true)) {
 			result = PhobosNewActionType::SuperWeaponDisallowed;
 		}
 	}
@@ -128,6 +128,9 @@ SuperWeaponTarget SWTypeExtData::GetAIRequiredTarget() const
 	const size_t index = static_cast<size_t>(this->SW_AITargetingMode.Get());
 
 	static_assert(std::size(AITargetingModes) <= ((int)SuperWeaponAITargetingMode::IonCannon + 1), "Invalid Size !");
+	if (index >= std::size(AITargetingModes)) {
+		return SuperWeaponTarget::None;
+	}
 	return AITargetingModes[index].Target;
 }
 
@@ -140,6 +143,9 @@ AffectedHouse SWTypeExtData::GetAIRequiredHouse() const
 	const size_t index = static_cast<size_t>(this->SW_AITargetingMode.Get());
 
 	static_assert(std::size(AITargetingModes) <= ((int)SuperWeaponAITargetingMode::IonCannon + 1), "Invalid Size !");
+	if (index >= std::size(AITargetingModes)) {
+		return AffectedHouse::None;
+	}
 	return AITargetingModes[index].House;
 }
 
@@ -151,6 +157,9 @@ std::pair<TargetingConstraints, bool> SWTypeExtData::GetAITargetingConstraints()
 	const size_t index = static_cast<size_t>(this->SW_AITargetingMode.Get());
 
 	static_assert(std::size(AITargetingModes) <= ((int)SuperWeaponAITargetingMode::IonCannon + 1), "Invalid Size !");
+	if (index >= std::size(AITargetingModes)) {
+		return { TargetingConstraints::None, false };
+	}
 	return { AITargetingModes[index].Constraints , false };
 }
 
@@ -162,6 +171,9 @@ TargetingPreference SWTypeExtData::GetAITargetingPreference() const
 	const size_t index = static_cast<size_t>(this->SW_AITargetingMode.Get());
 
 	static_assert(std::size(AITargetingModes) <= ((int)SuperWeaponAITargetingMode::IonCannon + 1), "Invalid Size !");
+	if (index >= std::size(AITargetingModes)) {
+		return TargetingPreference::None;
+	}
 	return AITargetingModes[index].Preference;
 }
 
@@ -618,10 +630,22 @@ struct TargetingFuncs
 					}
 
 					if(!RandomiedCloaked){
-						value = pTypeExt->AIIonCannonValue.isset() ?
-							pTypeExt->AIIonCannonValue->at(pTargeting->Owner->GetAIDifficultyIndex())
-							:
-							pTechno->GetIonCannonValue(pTargeting->Owner->AIDifficulty);
+						if (pTypeExt->AIIonCannonValue.isset() && pTargeting->Owner) {
+							const auto diffIndex = pTargeting->Owner->GetAIDifficultyIndex();
+							// PartialVector3D: X=Hard(2), Y=Normal(1), Z=Easy(0)
+							if (diffIndex < pTypeExt->AIIonCannonValue->ValueCount) {
+								if (diffIndex == 0) // Easy
+									value = pTypeExt->AIIonCannonValue->Z;
+								else if (diffIndex == 1) // Normal
+									value = pTypeExt->AIIonCannonValue->Y;
+								else // diffIndex == 2 (Hard)
+									value = pTypeExt->AIIonCannonValue->X;
+							} else {
+								value = pTechno->GetIonCannonValue(pTargeting->Owner->AIDifficulty);
+							}
+						} else {
+							value = pTechno->GetIonCannonValue(pTargeting->Owner->AIDifficulty);
+						}
 					}
 
 					// do not do heavy lifting on objects that
@@ -1888,6 +1912,10 @@ std::vector<int> SWTypeExtData::WeightedRollsHandler(std::vector<float>* rolls, 
 	size_t weightsSize = weights->size();
 	int index = 0;
 
+	// Safety check: if weights is empty, return empty result
+	if (weightsSize == 0 || size == 0)
+		return nResult;
+
 	// if no RollChances are supplied, do only one roll
 	if (rollsSize == 0)
 	{
@@ -1907,7 +1935,7 @@ std::vector<int> SWTypeExtData::WeightedRollsHandler(std::vector<float>* rolls, 
 
 		// If modder provides more weights than there are objects and we hit one of these, ignore it
 		// otherwise add
-		if (size_t(index) < size)
+		if (index >= 0 && size_t(index) < size)
 			nResult.push_back(index);
 	}
 

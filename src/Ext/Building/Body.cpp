@@ -308,9 +308,9 @@ int BuildingExtData::GetFirstSuperWeaponIndex(BuildingClass* pThis)
 
 SuperClass* BuildingExtData::GetFirstSuperWeapon(BuildingClass* pThis)
 {
-	const size_t idx = GetFirstSuperWeaponIndex(pThis);
+	const int idx = GetFirstSuperWeaponIndex(pThis);
 
-	if (idx < (size_t)pThis->Owner->Supers.Count)
+	if (idx >= 0 && idx < pThis->Owner->Supers.Count)
 	{
 		return pThis->Owner->Supers[idx];
 	}
@@ -562,7 +562,8 @@ void BuildingExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(this->CurrentAirFactory, ptr, bRemoved);
 	AnnounceInvalidPointer<TechnoClass*>(this->RegisteredJammers, ptr, bRemoved);
 
-	this->MyPrismForwarding->InvalidatePointer(ptr, bRemoved);
+	if (this->MyPrismForwarding)
+		this->MyPrismForwarding->InvalidatePointer(ptr, bRemoved);
 }
 
 void BuildingExtData::StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType)

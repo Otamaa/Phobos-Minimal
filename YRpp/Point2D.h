@@ -52,7 +52,7 @@ public:
 	COMPILETIMEEVAL Point2D& operator-=(const Point2D& that) { X -= that.X; Y -= that.Y; return *this; }
 
 	COMPILETIMEEVAL Point2D operator*(const Point2D& that) const { return {X * that.X, Y * that.Y};}
-	COMPILETIMEEVAL Point2D operator*=(const Point2D& that) { X *= that.X; Y *= that.Y; return *this; }
+	COMPILETIMEEVAL Point2D& operator*=(const Point2D& that) { X *= that.X; Y *= that.Y; return *this; }
 	COMPILETIMEEVAL Point2D operator*(int factor) const { return {X * factor, Y * factor};}
 	COMPILETIMEEVAL Point2D& operator*=(int factor) { X *= factor; Y *= factor; return *this; }
 
@@ -60,17 +60,17 @@ public:
 	COMPILETIMEEVAL Point2D& operator*=(double factor) { X = static_cast<int>(X * factor); Y = static_cast<int>(Y * factor); return *this; }
 
 	COMPILETIMEEVAL Point2D operator/(const Point2D& that) const { return {X / that.X, Y / that.Y};}
-	COMPILETIMEEVAL Point2D operator/=(const Point2D& that) { X /= that.X; Y /= that.Y; return *this; }
+	COMPILETIMEEVAL Point2D& operator/=(const Point2D& that) { X /= that.X; Y /= that.Y; return *this; }
 	COMPILETIMEEVAL Point2D operator/(int factor) const { return {X / factor, Y / factor};}
 	COMPILETIMEEVAL Point2D& operator/=(int factor) { X /= factor; Y /= factor; return *this; }
 
 	COMPILETIMEEVAL Point2D operator%(const Point2D& that) const { return {X % that.X, Y % that.Y};}
-	COMPILETIMEEVAL Point2D operator%=(const Point2D& that) { X %= that.X; Y %= that.Y; return *this; }
+	COMPILETIMEEVAL Point2D& operator%=(const Point2D& that) { X %= that.X; Y %= that.Y; return *this; }
 	COMPILETIMEEVAL Point2D operator%(int factor) const { return {X % factor, Y % factor};}
 	COMPILETIMEEVAL Point2D& operator%=(int factor) { X %= factor; Y %= factor; return *this; }
 
 	COMPILETIMEEVAL Point2D operator&(const Point2D& that) const { return {X & that.X, Y & that.Y};}
-	COMPILETIMEEVAL Point2D operator&=(const Point2D& that) { X &= that.X; Y &= that.Y; return *this; }
+	COMPILETIMEEVAL Point2D& operator&=(const Point2D& that) { X &= that.X; Y &= that.Y; return *this; }
 	COMPILETIMEEVAL Point2D operator&(int factor) const { return {X & factor, Y & factor};}
 	COMPILETIMEEVAL Point2D& operator&=(int factor) { X &= factor; Y &= factor; return *this; }
 
@@ -87,7 +87,7 @@ public:
 		MagnitudeSquared = pow
 	*/
 	COMPILETIMEEVAL double pow() const {
-		return double(X * X) + double(Y * Y);
+		return double(X) * double(X) + double(Y) * double(Y);
 	}
 
 	OPTIONALINLINE double Length() const {

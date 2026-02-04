@@ -103,4 +103,4 @@ public:
 	bool _ReadFromINI(CCINIClass* pINI);
 };
 
-static_assert(sizeof(FakeAircraftTypeClass) == sizeof(FakeAircraftTypeClass), "Invalid Size !");
+static_assert(sizeof(FakeAircraftTypeClass) == sizeof(AircraftTypeClass), "Invalid Size !");

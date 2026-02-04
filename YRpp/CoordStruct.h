@@ -73,7 +73,7 @@ public:
 		*this = tmp;
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE CellStruct TocellStruct()
+	COMPILETIMEEVAL FORCEDINLINE CellStruct TocellStruct() const
 	{
 		return { static_cast<short>(X / 256) ,static_cast<short>(Y / 256) };
 	}
@@ -93,15 +93,10 @@ public:
 	COMPILETIMEEVAL CoordStruct operator+(const CoordStruct& nThat) const
 	{ return { X + nThat.X, Y + nThat.Y, Z + nThat.Z }; }
 
-	COMPILETIMEEVAL CoordStruct operator+(const CoordStruct& nThat)
-	{
-		return { X + nThat.X, Y + nThat.Y, Z + nThat.Z };
-	}
-
 	COMPILETIMEEVAL CoordStruct operator+(int nThat ) const
 	{ return { X + nThat, Y + nThat, Z + nThat }; }
 
-	COMPILETIMEEVAL CoordStruct operator+=(int nThat)
+	COMPILETIMEEVAL CoordStruct& operator+=(int nThat)
 	{
 		X += nThat;
 		Y += nThat;
@@ -209,7 +204,7 @@ public:
 
 //=============================Special cases=========================================
 	COMPILETIMEEVAL FORCEDINLINE double powXY() const {
-		return double(X * X) + double(Y * Y);
+		return double(X) * double(X) + double(Y) * double(Y);
 	}
 
 	OPTIONALINLINE double LengthXY() const {
@@ -229,7 +224,7 @@ public:
 		MagnitudeSquared = pow
 	*/
 	COMPILETIMEEVAL FORCEDINLINE double pow() const {
-		return (double)(X * X) + (double)(Y * Y) + (double)(Z * Z);
+		return double(X) * double(X) + double(Y) * double(Y) + double(Z) * double(Z);
 	}
 
 	OPTIONALINLINE double Length() const {

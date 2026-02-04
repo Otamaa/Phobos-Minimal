@@ -105,7 +105,19 @@ void DroppodStateMachine::PlaceUnits(SuperClass* pSuper , double veterancy , Ite
 		if (!status && retrycount)
 		{
 			// get a random type from the list and create an instance
-			TechnoTypeClass* pType = Types[needRandom ? ScenarioClass::Instance->Random.RandomFromMax(Types.size() - 1) : 0];
+			if (Types.empty()) {
+				continue;
+			}
+
+			const auto typeIndex = needRandom ? ScenarioClass::Instance->Random.RandomFromMax(Types.size() - 1) : 0;
+			if (typeIndex >= Types.size()) {
+				continue;
+			}
+
+			TechnoTypeClass* pType = Types[typeIndex];
+			if (!pType) {
+				continue;
+			}
 
 			FootClass* pFoot = static_cast<FootClass*>(pType->CreateObject(pSuper->Owner));
 			// update veterancy only if higher

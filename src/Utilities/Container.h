@@ -174,7 +174,7 @@ public:
 			auto iter = std::ranges::find(Array, Item);
 
 			if(iter != Array.end())
-				Array.erase(iter, Array.end());
+				Array.erase(iter);
 
 			ContainerExtHandler<T>::RemoveExtOf(key, Item);
 		}

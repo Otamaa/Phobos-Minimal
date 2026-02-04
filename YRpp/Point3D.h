@@ -39,17 +39,17 @@ public:
 	COMPILETIMEEVAL Point3D& operator-=(const Point3D& that) { X -= that.X; Y -= that.Y; Z -= that.Z; return *this; }
 
 	COMPILETIMEEVAL Point3D operator*(const Point3D& that) const { return {X * that.X, Y * that.Y, Z * that.Z};}
-	COMPILETIMEEVAL Point3D operator*=(const Point3D& that) { X *= that.X; Y *= that.Y; Z *= that.Z; return *this; }
+	COMPILETIMEEVAL Point3D& operator*=(const Point3D& that) { X *= that.X; Y *= that.Y; Z *= that.Z; return *this; }
 	COMPILETIMEEVAL Point3D operator*(int factor) const { return {X * factor, Y * factor, Z * factor};}
 	COMPILETIMEEVAL Point3D& operator*=(int factor) { X *= factor; Y *= factor; Z *= factor; return *this; }
 
 	COMPILETIMEEVAL Point3D operator%(const Point3D& that) const { return {X % that.X, Y % that.Y, Z % that.Z};}
-	COMPILETIMEEVAL Point3D operator%=(const Point3D& that) { X %= that.X; Y %= that.Y; Z %= that.Z; return *this; }
+	COMPILETIMEEVAL Point3D& operator%=(const Point3D& that) { X %= that.X; Y %= that.Y; Z %= that.Z; return *this; }
 	COMPILETIMEEVAL Point3D operator%(int factor) const { return {X % factor, Y % factor, Z % factor};}
 	COMPILETIMEEVAL Point3D& operator%=(int factor) { X %= factor; Y %= factor; Z %= factor; return *this; }
 
 	COMPILETIMEEVAL Point3D operator&(const Point3D& that) const { return {X & that.X, Y & that.Y, Z & that.Z};}
-	COMPILETIMEEVAL Point3D operator&=(const Point3D& that) { X &= that.X; Y &= that.Y; Z &= that.Z; return *this; }
+	COMPILETIMEEVAL Point3D& operator&=(const Point3D& that) { X &= that.X; Y &= that.Y; Z &= that.Z; return *this; }
 	COMPILETIMEEVAL Point3D operator&(int factor) const { return {X & factor, Y & factor, Z & factor};}
 	COMPILETIMEEVAL Point3D& operator&=(int factor) { X &= factor; Y &= factor; Z &= factor; return *this; }
 
@@ -57,7 +57,7 @@ public:
 
 //=============================Special cases=========================================
 	COMPILETIMEEVAL double powXY() const {
-		return double(X * X) + double(Y * Y);
+		return double(X) * double(X) + double(Y) * double(Y);
 	}
 
 	OPTIONALINLINE double LengthXY() const {
@@ -77,7 +77,7 @@ public:
 		MagnitudeSquared = pow
 	*/
 	COMPILETIMEEVAL double pow() const {
-		return double(X * X) + double(Y * Y) + double (Z * Z);
+		return double(X) * double(X) + double(Y) * double(Y) + double(Z) * double(Z);
 	}
 
 	OPTIONALINLINE double Length() const {
