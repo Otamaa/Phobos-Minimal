@@ -174,7 +174,7 @@ NOINLINE bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool alli
 	{
 		for (auto pObject : *TechnoClass::Array)
 		{
-			if (!IsValidTechno(pObject)) continue;
+			if (!IsValidTechno(pObject) || !pObject->Owner) continue;
 
 			if (((!allies && pObject->Owner == pHouse) || (allies && pHouse != pObject->Owner && pHouse->IsAlliedWith(pObject->Owner)))
 				&& !pObject->Owner->Type->MultiplayPassive
@@ -198,7 +198,7 @@ NOINLINE bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool alli
 
 	for (auto pObject : *TechnoClass::Array)
 	{
-		if (!IsValidTechno(pObject)) continue;
+		if (!IsValidTechno(pObject) || !pObject->Owner) continue;
 
 		if (((!allies && pObject->Owner == pHouse) || (allies && pHouse != pObject->Owner && pHouse->IsAlliedWith(pObject->Owner)))
 			&& !pObject->Owner->Type->MultiplayPassive
@@ -224,10 +224,10 @@ NOINLINE bool EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClas
 
 	for (auto const pObject : *TechnoClass::Array)
 	{
-		if (!IsValidTechno(pObject)) continue;
+		if (!IsValidTechno(pObject) || !pObject->Owner) continue;
 
 		if (pObject->Owner != pHouse
-			&& (!pEnemy || (pEnemy && !pHouse->IsAlliedWith(pEnemy)))
+			&& (!pEnemy || !pHouse->IsAlliedWith(pObject->Owner))
 			&& !pObject->Owner->Type->MultiplayPassive
 			&& OwnStuffs(pItem, pObject))
 		{
@@ -252,10 +252,10 @@ NOINLINE bool EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClas
 	{
 		for (auto const pObject : *TechnoClass::Array)
 		{
-			if (!IsValidTechno(pObject)) continue;
+			if (!IsValidTechno(pObject) || !pObject->Owner) continue;
 
 			if (pObject->Owner != pHouse
-				&& (!pEnemy || (pEnemy && !pHouse->IsAlliedWith(pEnemy)))
+				&& (!pEnemy || !pHouse->IsAlliedWith(pObject->Owner))
 				&& !pObject->Owner->Type->MultiplayPassive
 				&& OwnStuffs(pItem, pObject))
 			{
@@ -279,7 +279,7 @@ NOINLINE bool NeutralOwns(AITriggerTypeClass* pThis, std::vector<TechnoTypeClass
 	{
 		for (auto const pObject : *TechnoClass::Array)
 		{
-			if (!IsValidTechno(pObject)) continue;
+			if (!IsValidTechno(pObject) || !pObject->Owner) continue;
 
 			if (pObject->Owner == pCiv && OwnStuffs(pItem, pObject))
 				counter++;
@@ -298,7 +298,7 @@ NOINLINE bool NeutralOwns(AITriggerTypeClass* pThis, TechnoTypeClass* pItem)
 
 	for (auto const pObject : *TechnoClass::Array)
 	{
-		if (!IsValidTechno(pObject)) continue;
+		if (!IsValidTechno(pObject) || !pObject->Owner) continue;
 
 		if (pObject->Owner == pCiv && GET_TECHNOTYPE(pObject) == pItem)
 			counter++;
@@ -323,7 +323,7 @@ NOINLINE bool HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, std::v
 
 		for (auto const pObject : *TechnoClass::Array)
 		{
-			if (!IsValidTechno(pObject)) continue;
+			if (!IsValidTechno(pObject) || !pObject->Owner) continue;
 
 			if (pObject->Owner == pHouse && GET_TECHNOTYPE(pObject) == pItem)
 				counter++;
@@ -353,10 +353,10 @@ NOINLINE bool EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseC
 
 		for (auto const pObject : *TechnoClass::Array)
 		{
-			if (!IsValidTechno(pObject)) continue;
+			if (!IsValidTechno(pObject) || !pObject->Owner) continue;
 
 			if (pObject->Owner != pHouse
-				&& (!pEnemy || (pEnemy && !pHouse->IsAlliedWith(pEnemy)))
+				&& (!pEnemy || !pHouse->IsAlliedWith(pObject->Owner))
 				&& !pObject->Owner->Type->MultiplayPassive
 				&& GET_TECHNOTYPE(pObject) == pItem)
 			{
@@ -383,7 +383,7 @@ NOINLINE bool NeutralOwnsAll(AITriggerTypeClass* pThis, std::vector<TechnoTypeCl
 
 		for (auto const pObject : *TechnoClass::Array)
 		{
-			if (!IsValidTechno(pObject)) continue;
+			if (!IsValidTechno(pObject) || !pObject->Owner) continue;
 
 			if (pObject->Owner == pCiv && GET_TECHNOTYPE(pObject) == pItem)
 				counter++;

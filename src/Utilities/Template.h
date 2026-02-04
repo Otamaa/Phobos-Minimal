@@ -271,7 +271,7 @@ public:
 	}
 
 	template <typename Val, typename = std::enable_if_t<std::is_assignable<T&, Val&&>::value>>
-	COMPILETIMEEVAL void Reset(Val ndefault) const
+	COMPILETIMEEVAL void Set(Val ndefault)
 	{
 		this->Value = std::move(ndefault); // set the value to args
 		this->HasValue = true;
@@ -420,25 +420,16 @@ public:
 	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const;
 
 private:
-	COMPILETIMEEVAL FORCEDINLINE T GetValue(Rank rank) {
+	COMPILETIMEEVAL FORCEDINLINE const T& GetValue(Rank rank) const {
 		if (rank == Rank::Elite) {
-			if COMPILETIMEEVAL (std::is_pointer<T>::type())
-				return &this->Elite;
-			else
-				return this->Elite;
+			return this->Elite;
 		}
 
 		if (rank == Rank::Veteran) {
-			if COMPILETIMEEVAL (std::is_pointer<T>::type())
-				return &this->Veteran;
-			else
-				return this->Veteran;
+			return this->Veteran;
 		}
 
-		if COMPILETIMEEVAL (std::is_pointer<T>::type())
-			return &this->Rookie;
-		else
-			return this->Rookie;
+		return this->Rookie;
 	}
 };
 
@@ -757,7 +748,12 @@ public:
 
 	COMPILETIMEEVAL const T& Get(TechnoClass* pTechno) const noexcept
 	{
-		return Get(pTechno->GetHealthPercentage());
+		return Get(pTechno->GetHealthPercentage(), RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed);
+	}
+
+	COMPILETIMEEVAL const T& Get(double ratio) const noexcept
+	{
+		return Get(ratio, RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed);
 	}
 
 	COMPILETIMEEVAL const T& Get(double ratio, double conditionYellow , double conditionRed) const noexcept
@@ -994,14 +990,22 @@ public:
 		Timer.Start(duration);
 	}
 
-	COMPILETIMEEVAL TimedWarheadValue(T const& value, int duration, AffectedHouse applyToHouses)
+	COMPILETIMEEVAL TimedWarheadValue(T const& value, int duration, AffectedHouse applyToHouses) :
+		Value { value }
+		, Timer {}
+		, ApplyToHouses { applyToHouses }
+		, SourceWarhead { nullptr }
 	{
-		TimedWarheadValue(value, duration, applyToHouses, nullptr);
+		Timer.Start(duration);
 	}
 
-	COMPILETIMEEVAL TimedWarheadValue(T const& value, int duration)
+	COMPILETIMEEVAL TimedWarheadValue(T const& value, int duration) :
+		Value { value }
+		, Timer {}
+		, ApplyToHouses { AffectedHouse::All }
+		, SourceWarhead { nullptr }
 	{
-		TimedWarheadValue(value, duration, AffectedHouse::All, nullptr);
+		Timer.Start(duration);
 	}
 
 	COMPILETIMEEVAL ~TimedWarheadValue() = default;

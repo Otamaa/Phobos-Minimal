@@ -103,7 +103,7 @@ public:
 		MagnitudeSquared = pow
 	*/
 	COMPILETIMEEVAL   double pow() const {
-		return (double)(X * X) + (double)(Y * Y);
+		return double(X) * double(X) + double(Y) * double(Y);
 	}
 
 	OPTIONALINLINE double Length() const {
@@ -265,7 +265,7 @@ public:
 //=============================Special cases=========================================
 
 	COMPILETIMEEVAL   double powXY() const {
-		return double(X * X) + double(Y * Y);
+		return double(X) * double(X) + double(Y) * double(Y);
 	}
 
 	OPTIONALINLINE double LengthXY() const {
@@ -285,7 +285,7 @@ public:
 		MagnitudeSquared = pow
 	*/
 	COMPILETIMEEVAL double pow() const {
-		return double(X * X) + double(Y * Y) + double(Z * Z);
+		return double(X) * double(X) + double(Y) * double(Y) + double(Z) * double(Z);
 	}
 
 	OPTIONALINLINE double Length() const {
@@ -426,7 +426,7 @@ public:
 		MagnitudeSquared = pow
 	*/
 	COMPILETIMEEVAL   double pow() const {
-		return double(X * X) + double(Y * Y) + double(Z * Z) + double(W * W);
+		return double(X) * double(X) + double(Y) * double(Y) + double(Z) * double(Z) + double(W) * double(W);
 	}
 
 	OPTIONALINLINE double Length() const {

@@ -160,7 +160,7 @@ static NOINLINE const char* ToStrings(PhobosScripts from)
 	case PhobosScripts::ModifyHateHousesList:
 		return "ModifyHateHousesList";
 	case PhobosScripts::ModifyHateHousesList1Random:
-		return "ModifyHateHousesList1Randoms";
+		return "ModifyHateHousesList1Random";
 	case PhobosScripts::SetTheMostHatedHouseMinorNoRandom:
 		return "SetTheMostHatedHouseMinorNoRandom";
 	case PhobosScripts::SetTheMostHatedHouseMajorNoRandom:

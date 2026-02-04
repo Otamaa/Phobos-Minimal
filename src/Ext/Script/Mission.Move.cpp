@@ -463,6 +463,12 @@ void ScriptExtData::Mission_Move_List1Random(TeamClass* pTeam, DistanceMode calc
 
 		// Still no random target selected
 		if (!RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].empty()) {
+			
+			if (!pTeam->FirstUnit) {
+				pTeam->StepCompleted = true;
+				return;
+			}
+			
 			// Finding the objects from the list that actually exists in the map
 			TechnoClass::Array->for_each([&](TechnoClass* pTechno)
 			{

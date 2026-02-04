@@ -38,7 +38,7 @@ public:
 	COMPILETIMEEVAL CellStruct operator+(short nThat) const
 	{ return { short(X + nThat), short(Y + nThat) }; }
 
-	COMPILETIMEEVAL CellStruct operator+=(short nThat)
+	COMPILETIMEEVAL CellStruct& operator+=(short nThat)
 	{
 		X += nThat;
 		Y += nThat;
@@ -82,14 +82,18 @@ public:
 		return *this;
 	}
 
-	COMPILETIMEEVAL CellStruct operator--(int) { return --(*this); }
+	COMPILETIMEEVAL CellStruct operator--(int) { CellStruct orig = *this; --(*this); return orig; }
+
+	COMPILETIMEEVAL FORCEDINLINE bool operator!=(const CellStruct& a) const {
+		return (X != a.X || Y != a.Y);
+	}
 
 //=============================Most cases================================================
 	/*
 		MagnitudeSquared = pow
 	*/
 	COMPILETIMEEVAL FORCEDINLINE double pow() const {
-		return (double)(X * X) + (double)(Y * Y);
+		return double(X) * double(X) + double(Y) * double(Y);
 	}
 
 	OPTIONALINLINE double Length() const {

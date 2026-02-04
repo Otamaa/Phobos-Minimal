@@ -62,7 +62,7 @@ ASMJIT_PATCH(0x723CA1, TeamMissionClass_FillIn_StringsSupport_and_id_masks, 0xB)
 	char* endptr;
 
 	char buff[256];
-	if (sscanf(scriptActionLine, "%d,%s", &action, buff) != 2) {
+	if (sscanf(scriptActionLine, "%d,%255s", &action, buff) != 2) {
 		node->Action = (TeamMissionType)action;
 		node->Argument = argument;
 		R->ECX(node);
@@ -116,7 +116,7 @@ ASMJIT_PATCH(0x723CA1, TeamMissionClass_FillIn_StringsSupport_and_id_masks, 0xB)
 			// Note: action "26" is currently impossible without an expert Phobos developer declaring the Movies class... in that case I could code the right FindIndex(textArgument) so sadly I'll skip "26" for now :-(
 			action = 26;
 				for(int i = 0; i < MovieInfoArray->Count; ++i){
-					if(MovieInfoArray[i] == buff){
+					if(MovieInfoArray->Items[i] == buff){
 						index = i;
 						break;
 					}
@@ -156,7 +156,7 @@ ASMJIT_PATCH(0x723CA1, TeamMissionClass_FillIn_StringsSupport_and_id_masks, 0xB)
 			char id[sizeof(AbstractTypeClass::ID)] = { 0 };
 			char bwp[20] = { 0 };
 
-			if (sscanf(buff, "%s,%[^\n]", id, bwp) == 2)
+			if (sscanf(buff, "%23[^,],%19[^\n]", id, bwp) == 2)
 			{
 				index = BuildingTypeClass::FindIndexById(id);
 

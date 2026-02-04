@@ -68,12 +68,16 @@ void RadSiteExtData::CreateLight()
 	const auto nLightFactor = std::clamp(nRadLevelFactor , 1.0 , 2000.0 );
 	const auto nDuration = (double)pThis->RadDuration;
 
-	pThis->RadLevelTimer.Start(nLevelDelay);
-	pThis->RadLightTimer.Start(nLightDelay);
+	// Validate delays to prevent division by zero
+	const int safeLevelDelay = (nLevelDelay > 0) ? nLevelDelay : 1;
+	const int safeLightDelay = (nLightDelay > 0) ? nLightDelay : 1;
+
+	pThis->RadLevelTimer.Start(safeLevelDelay);
+	pThis->RadLightTimer.Start(safeLightDelay);
 	pThis->Intensity = int(nLightFactor);
-	pThis->LevelSteps = int(nDuration / (double)nLevelDelay);
-	pThis->IntensitySteps = int(nDuration / (double)nLightDelay);
-	pThis->IntensityDecrement = int(nLightFactor / (nDuration / (double)nLightDelay));
+	pThis->LevelSteps = int(nDuration / (double)safeLevelDelay);
+	pThis->IntensitySteps = int(nDuration / (double)safeLightDelay);
+	pThis->IntensityDecrement = (nDuration > 0.0) ? int(nLightFactor / (nDuration / (double)safeLightDelay)) : 0;
 	const TintStruct nTintBuffer { nRadcolor  , nTintFactor };
 
 	pThis->Tint = nTintBuffer;
@@ -101,7 +105,12 @@ void RadSiteExtData::Add(int amount)
 {
 	const auto pThis = this->This();
 	pThis->Deactivate();
-	const auto nInput = int(double(pThis->RadLevel * pThis->RadTimeLeft) / (double)pThis->RadDuration) + amount;
+	// Calculate remaining radiation, avoiding division by zero
+	int remainingRad = 0;
+	if (pThis->RadDuration > 0) {
+		remainingRad = int(double(pThis->RadLevel * pThis->RadTimeLeft) / (double)pThis->RadDuration);
+	}
+	const auto nInput = remainingRad + amount;
 	pThis->RadLevel = nInput;
 	const auto nInput_2 = nInput * this->Type->GetDurationMultiple();
 	pThis->RadDuration = nInput_2;
@@ -140,24 +149,29 @@ const double RadSiteExtData::GetRadLevelAt(double distance)
 	//  will produce `-nan(ind)` result if both dist and max is zero
 	// and used on formula below this check
 	// ,.. -Otamaa
-	if (distance && nMax) {
-
-		//distance is too far
-		if (distance > nMax) {
-			return 0.0;
-		}
-		else {
-			radLevel = (nMax - distance) / nMax * pThis->RadLevel;
-		}
+	if (nMax <= 0.0) {
+		return 0.0;
 	}
+
+	if (distance <= 0.0) {
+		return radLevel;
+	}
+
+	//distance is too far
+	if (distance > nMax) {
+		return 0.0;
+	}
+
+	radLevel = (nMax - distance) / nMax * pThis->RadLevel;
 
 	// Vanilla YR stores & updates the decremented RadLevel on CellClass.
 	// Because we're not storing multiple radiation site data on CellClass (yet?)
 	// we need to fully recalculate this stuff every time we need the radiation level for a cell coord - Starkku
 	const auto frame_Step = (Unsorted::CurrentFrame - this->CreationFrame);
-	const int stepCount = frame_Step ? frame_Step / this->Type->GetLevelDelay() : 0;
+	const int levelDelay = this->Type->GetLevelDelay();
+	const int stepCount = (frame_Step && levelDelay > 0) ? frame_Step / levelDelay : 0;
 
-	if(radLevel && pThis->LevelSteps)
+	if(radLevel > 0.0 && pThis->LevelSteps > 0)
 		radLevel -= (radLevel / pThis->LevelSteps) * stepCount;
 
 	return radLevel;
@@ -347,11 +361,14 @@ void PopulateCellRadVector(FakeRadSiteClass* pRad, CellStruct* cell, int distanc
 
 			if constexpr (!reduce)
 			{
+				if (max <= 0) return; // Prevent division by zero
+
 				const int amount = int(static_cast<double>(max - distance) / max * pRad->RadLevel);
 
-
-				if (it != pCellExt->RadLevels.end())
-					it->Level += MinImpl(it->Level + amount, RadSiteExtContainer::Instance.Find(pRad)->Type->GetLevelMax());
+				if (it != pCellExt->RadLevels.end()) {
+					// Fix: Use MinImpl to cap the new level value, not add the cap to it
+					it->Level = MinImpl(it->Level + amount, RadSiteExtContainer::Instance.Find(pRad)->Type->GetLevelMax());
+				}
 				else
 					pCellExt->RadLevels.emplace_back(pRad, amount);
 			}
@@ -359,7 +376,10 @@ void PopulateCellRadVector(FakeRadSiteClass* pRad, CellStruct* cell, int distanc
 			{
 				if (it != pCellExt->RadLevels.end())
 				{
-					it->Level -= int(static_cast<double>(max - distance) / max * pRad->RadLevel / pRad->LevelSteps * timeParam);
+					// Prevent division by zero
+					if (max > 0 && pRad->LevelSteps > 0) {
+						it->Level -= int(static_cast<double>(max - distance) / max * pRad->RadLevel / pRad->LevelSteps * timeParam);
+					}
 				}
 			}
 		}
@@ -555,9 +575,11 @@ void FakeRadSiteClass::ForEachCellInRadiationArea(Func&& callback)
 			if (distance <= this->SpreadInLeptons)
 			{
 				// Radiation decreases linearly with distance from center
-				int distanceFromEdge = this->SpreadInLeptons - distance;
-				double normalizedDistance = static_cast<double>(distanceFromEdge) / this->SpreadInLeptons;
-				radiationAmount = normalizedDistance * this->RadLevel;
+				if (this->SpreadInLeptons > 0) {
+					int distanceFromEdge = this->SpreadInLeptons - distance;
+					double normalizedDistance = static_cast<double>(distanceFromEdge) / this->SpreadInLeptons;
+					radiationAmount = normalizedDistance * this->RadLevel;
+				}
 			}
 
 			// Call the callback with the cell and calculated radiation amount
@@ -570,7 +592,8 @@ void FakeRadSiteClass::__Reduce_In_Area()
 {
 	// Calculate reduction multiplier based on frames elapsed
 	auto pExt = this->_GetExtData();
-	int reductionMultiplier = (this->RadTimeLeft / pExt->Type->GetLevelDelay()) + 1;
+	const int levelDelay = pExt->Type->GetLevelDelay();
+	int reductionMultiplier = (levelDelay > 0 && this->RadTimeLeft > 0) ? (this->RadTimeLeft / levelDelay) + 1 : 1;
 
 	ForEachCellInRadiationArea([this, reductionMultiplier](CellClass* cell, double radiationAmount, int distance) {
 		// Apply reduction multiplier and current level decrement
@@ -578,7 +601,8 @@ void FakeRadSiteClass::__Reduce_In_Area()
 		if (radiationAmount <= 0)
 			radiationAmount = 1;
 
-		double reductionAmount = (radiationAmount / this->LevelSteps) * reductionMultiplier;
+		// Prevent division by zero
+		double reductionAmount = (this->LevelSteps > 0) ? (radiationAmount / this->LevelSteps) * reductionMultiplier : 0.0;
 		PopulateCellRadVector<true>(this, &cell->MapCoords, distance, reductionMultiplier);
 		cell->RadLevel_Decrease(reductionAmount);
 	});
@@ -598,7 +622,8 @@ void FakeRadSiteClass::__Reduce_Radiation() {
 		// Apply current level decrement to calculate reduction amount
 		// This makes radiation fade faster as time goes on
 		PopulateCellRadVector<true>(this, &cell->MapCoords, distance, 0);
-		double reductionAmount = radiationAmount / this->LevelSteps;
+		// Prevent division by zero
+		double reductionAmount = (this->LevelSteps > 0) ? radiationAmount / this->LevelSteps : 0.0;
 		cell->RadLevel_Decrease(reductionAmount);
 	});
 }
@@ -625,6 +650,10 @@ double FakeRadSiteClass::__Radiation_At(CellStruct* cell) const
 
 	// Calculate radiation strength at this distance
 	// Radiation decreases linearly with distance from center
+	if (this->SpreadInLeptons <= 0) {
+		return 0.0;
+	}
+
 	int distanceFromEdge = this->SpreadInLeptons - distance;
 	double normalizedDistance = static_cast<double>(distanceFromEdge) / this->SpreadInLeptons;
 
@@ -652,11 +681,17 @@ void FakeRadSiteClass::__AI()
 	{
 		// Calculate current light intensity based on remaining radiation
 		// Light fades proportionally as radiation decays
-		TintStruct tintIntensity(
-			this->RadTimeLeft * this->Tint.Red / this->RadDuration,
-			this->RadTimeLeft * this->Tint.Green / this->RadDuration,
-			this->RadTimeLeft * this->Tint.Blue / this->RadDuration
-		);
+		// Prevent division by zero
+		TintStruct tintIntensity;
+		if (this->RadDuration > 0) {
+			tintIntensity = TintStruct(
+				this->RadTimeLeft * this->Tint.Red / this->RadDuration,
+				this->RadTimeLeft * this->Tint.Green / this->RadDuration,
+				this->RadTimeLeft * this->Tint.Blue / this->RadDuration
+			);
+		} else {
+			tintIntensity = TintStruct(0, 0, 0);
+		}
 
 		// Update light source with new color values
 		// CurrentLightStage is subtracted from the base color

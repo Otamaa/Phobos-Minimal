@@ -418,11 +418,16 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 		if (auto it = pData->Weather_Bolts.GetElements(
 			RulesClass::Instance->WeatherConBolts))
 		{
-			if(auto const pAnimType = it.at(ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1))) {
-				if(pAnimType->GetImage()) {
-				 auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
-				 AnimExtData::SetAnimOwnerHouseKind(pAnim, Super->Owner, nullptr, Invoker, false, false);
-				 BoltsPresent.push_back(pAnim);
+			if (!it.empty()) {
+				auto const randIndex = ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1);
+				if (randIndex < it.size() && it[randIndex]) {
+					if (auto const pAnimType = it[randIndex]) {
+						if(pAnimType->GetImage()) {
+						 auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
+						 AnimExtData::SetAnimOwnerHouseKind(pAnim, Super->Owner, nullptr, Invoker, false, false);
+						 BoltsPresent.push_back(pAnim);
+						}
+					}
 				}
 			}
 		}
@@ -431,8 +436,12 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 		if (auto const it = pData->Weather_Sounds.GetElements(
 			RulesClass::Instance->LightningSounds))
 		{
-			auto const rnd = ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1);
-			VocClass::SafeImmedietelyPlayAt(it.at(rnd), &coords, nullptr);
+			if (!it.empty()) {
+				auto const rnd = ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1);
+				if (rnd < it.size()) {
+					VocClass::SafeImmedietelyPlayAt(it[rnd], &coords, nullptr);
+				}
+			}
 		}
 
 		auto debris = false;
@@ -505,13 +514,18 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 					pData->Weather_DebrisMin, pData->Weather_DebrisMax);
 
 				for (int i = 0; i < count; ++i) {
-					if(auto const pAnimType = it.at(ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1))){
-						AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coords),
-							Super->Owner,
-							nullptr,
-							Invoker,
-							false, false
-						);
+					if (!it.empty()) {
+						auto const randIndex = ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1);
+						if (randIndex < it.size() && it[randIndex]) {
+							if (auto const pAnimType = it[randIndex]) {
+								AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coords),
+									Super->Owner,
+									nullptr,
+									Invoker,
+									false, false
+								);
+							}
+						}
 					}
 				}
 			}
@@ -537,19 +551,26 @@ bool CloneableLighningStormStateMachine::Strike(CellStruct const& nCell)
 		if (pExt->Weather_CloudHeight < 0) {
 			if (auto const itBolts = pExt->Weather_Bolts.GetElements(
 				RulesClass::Instance->WeatherConBolts)) {
-				pExt->Weather_CloudHeight = GeneralUtils::GetLSAnimHeightFactor(itBolts[0], pCell, false);
+				if (!itBolts.empty() && itBolts[0]) {
+					pExt->Weather_CloudHeight = GeneralUtils::GetLSAnimHeightFactor(itBolts[0], pCell, false);
+				}
 			}
 		}
 
 		coords.Z += pExt->Weather_CloudHeight;
 
-		if(auto const pAnimType = itClouds.at(ScenarioClass::Instance->Random.RandomFromMax(itClouds.size() - 1))) {
-			if (pAnimType->GetImage()) {
-				// create the cloud and do some book keeping.
-				auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
-				AnimExtData::SetAnimOwnerHouseKind(pAnim, Super->Owner, nullptr, Invoker, false, false);
-				CloudsManifest.push_back(pAnim);
-				CloudsPresent.push_back(pAnim);
+		if (!itClouds.empty()) {
+			auto const randIndex = ScenarioClass::Instance->Random.RandomFromMax(itClouds.size() - 1);
+			if (randIndex < itClouds.size() && itClouds[randIndex]) {
+				if (auto const pAnimType = itClouds[randIndex]) {
+					if (pAnimType->GetImage()) {
+						// create the cloud and do some book keeping.
+						auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
+						AnimExtData::SetAnimOwnerHouseKind(pAnim, Super->Owner, nullptr, Invoker, false, false);
+						CloudsManifest.push_back(pAnim);
+						CloudsPresent.push_back(pAnim);
+					}
+				}
 			}
 		}
 	}
