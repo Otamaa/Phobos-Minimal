@@ -194,7 +194,7 @@ ASMJIT_PATCH(0x6FA726, TechnoClass_AI_MCOverload, 0x6)
 	// this replaces the call to pThis->ShouldSelfHealOneStep()
 	const auto nAmount = TechnoExt_ExtData::GetSelfHealAmount(pThis);
 	bool wasDamaged = pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
-	if (nAmount > 0 || nAmount != 0)
+	if (nAmount != 0)
 	{
 		pThis->Health += nAmount;
 	}

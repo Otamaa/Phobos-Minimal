@@ -121,7 +121,7 @@ ASMJIT_PATCH(0x4492D7, BuildingClass_SetOwningHouse_Upgrades, 0x5)
 				pOld->UnitsSelfHeal = 0;
 
 			if (!pNew->Type->MultiplayPassive)
-				pNew->InfantrySelfHeal += pUnitSelfHeal;
+				pNew->UnitsSelfHeal += pUnitSelfHeal;
 		}
 	}
 

@@ -188,7 +188,7 @@ ASMJIT_PATCH(0x708FC0, TechnoClass_ResponseMove_Pickup, 0x5)
 			if (!pTypeExt->VoicePickup.empty())
 			{
 
-				pThis->QueueVoice(pTypeExt->VoicePickup[Random2Class::NonCriticalRandomNumber->Random() & pTypeExt->VoicePickup.size()]);
+				pThis->QueueVoice(pTypeExt->VoicePickup[Random2Class::NonCriticalRandomNumber->Random() % pTypeExt->VoicePickup.size()]);
 
 				R->EAX(1);
 				return SkipResponse;
