@@ -239,6 +239,7 @@ ASMJIT_PATCH(0x5218C2, InfantryClass_UnmarkAllOccupationBits_ResetOwnerIdx, 0x6)
 }
 
 #pragma endregion
+/*
 #include <Locomotor/TeleportLocomotionClass.h>
 
 ASMJIT_PATCH(0x7185DA, TeleportLocomotionClass_MakeRoom_DestFix, 0x6)
@@ -264,7 +265,7 @@ ASMJIT_PATCH(0x7184CE, TeleportLocomotionClass_MakeRoom_GetMovement_CellFix, 0x7
 	R->Stack(STACK_OFFSET(0x38, -0x18), MapClass::Instance->GetCellAt(coords));
 	return 0;
 }
-
+*/
 #include <Ext/WeaponType/Body.h>
 
 ASMJIT_PATCH(0x6F755A, TechnoClass_IsCloseEnough_CylinderRangefinding, 0x7)

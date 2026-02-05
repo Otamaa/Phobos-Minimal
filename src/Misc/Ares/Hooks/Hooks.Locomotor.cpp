@@ -40,7 +40,7 @@
 //
 //	return 0x0;
 //}
-
+/*
 ASMJIT_PATCH(0x718275 ,TeleportLocomotionClass_MakeRoom, 9)
 {
 	LEA_STACK(CoordStruct*, pCoord, 0x3C);
@@ -97,7 +97,7 @@ ASMJIT_PATCH(0x718275 ,TeleportLocomotionClass_MakeRoom, 9)
 	R->EAX(true);
 	return 0x7184CE;
 }
-
+*/
 
 ASMJIT_PATCH(0x514E97, HoverLocomotionClass_ILocomotion_MoveTo, 0x7)
 {
