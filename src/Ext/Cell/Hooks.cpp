@@ -565,15 +565,15 @@ bool FakeCellClass::_CanPlaceVeins()
 							}
 						}
 
-						if (adjacent_cell->LandType != LandType::Water
-							&& adjacent_cell->LandType != LandType::Rock
-							&& adjacent_cell->LandType != LandType::Ice
-							&& adjacent_cell->LandType != LandType::Beach)
+						if (adjacent_cell->LandType == LandType::Water
+							|| adjacent_cell->LandType == LandType::Rock
+							|| adjacent_cell->LandType == LandType::Ice
+							|| adjacent_cell->LandType == LandType::Beach)
 						{
 							return false;
 						}
 
-						if (adjacent_cell->OverlayTypeIndex != -1 || !OverlayTypeClass::Array->Items[adjacent_cell->OverlayTypeIndex]->IsVeins)
+						if (adjacent_cell->OverlayTypeIndex != -1 && !OverlayTypeClass::Array->Items[adjacent_cell->OverlayTypeIndex]->IsVeins)
 						{
 							return false;
 						}
