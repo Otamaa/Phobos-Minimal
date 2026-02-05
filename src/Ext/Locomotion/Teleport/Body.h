@@ -50,6 +50,21 @@ public:
 		const CoordStruct& destCoord,
 		int mark);
 
+	/**
+	 * TeleportLocomotionClass_InternalMark - Wrapper matching original __thiscall signature
+	 * This is the actual function that gets hooked at 0x718260
+	 *
+	 * Original signature: bool __thiscall (TeleportLocomotionClass* this, int x, int y, int z, int mark)
+	 * Return: 1 if occupation bits were set, 0 if destination was changed
+	 */
+	static bool __fastcall TeleportLocomotionClass_InternalMark(
+		TeleportLocomotionClass* pThis,
+		void* edx_unused,
+		int destX,
+		int destY,
+		int destZ,
+		int mark);
+
 private:
 	/**
 	 * ClearOccupyBit - Helper to clear occupation at a location
@@ -116,19 +131,4 @@ private:
 	 * Fly -> Normal, Destroyer -> Normal, AmphibiousDestroyer -> Amphibious
 	 */
 	static MovementZone AdjustMovementZone(MovementZone mzone);
-
-	/**
-	 * TeleportLocomotionClass_InternalMark - Wrapper matching original __thiscall signature
-	 * This is the actual function that gets hooked at 0x718260
-	 *
-	 * Original signature: bool __thiscall (TeleportLocomotionClass* this, int x, int y, int z, int mark)
-	 * Return: 1 if occupation bits were set, 0 if destination was changed
-	 */
-	static bool __fastcall TeleportLocomotionClass_InternalMark(
-		TeleportLocomotionClass* pThis,
-		void* edx_unused,
-		int destX,
-		int destY,
-		int destZ,
-		int mark);
 };

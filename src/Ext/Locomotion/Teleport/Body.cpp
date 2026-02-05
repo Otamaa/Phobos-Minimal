@@ -5,6 +5,7 @@
 #include <TechnoTypeClass.h>
 #include <WarheadTypeClass.h>
 #include <Helpers/Macro.h>
+#include <Utilities/Debug.h>
 
 /**
  * FakeTeleportLocomotionClass - Backported and improved implementation of
@@ -261,15 +262,15 @@ void FakeTeleportLocomotionClass::FinalizeDestination(TeleportLocomotionClass* p
 	// Handle bridge adjustment
 	CellClass* pDestCell = MapClass::Instance->GetCellAt(pLoco->LastCoords);
 
-	if (!pDestCell->ContainsBridge() || pLinkedTo->IsOnBridge)
+	if (!pDestCell->ContainsBridge() || pLinkedTo->OnBridge)
 	{
 		// No bridge at destination, or unit was already on a bridge
-		pLinkedTo->IsOnBridge = false;
+		pLinkedTo->OnBridge = false;
 	}
 	else
 	{
 		// There's a bridge at destination - put unit on it
-		pLinkedTo->IsOnBridge = true;
+		pLinkedTo->OnBridge = true;
 		pLoco->LastCoords.Z += CellClass::BridgeHeight;
 	}
 
@@ -348,6 +349,15 @@ bool __fastcall FakeTeleportLocomotionClass::TeleportLocomotionClass_InternalMar
 	int destZ,
 	int mark)
 {
+	// This function is called INTERNALLY by TeleportLocomotionClass during:
+	// 1. Process() when actively teleporting (calls with mark=0 to check collisions, then mark=1 to finalize)
+	// 2. When the Chronosphere or ChronoWarp superweapon activates
+	// 3. When units with Locomotor={4A582747-9839-11d1-B709-00A024DDAFD1} (Teleport) move
+	
+	Debug::Log("[Phobos] TeleportLocomotion backport @ 0x718260 - Coords: (%d, %d, %d), Mark: %d, Unit: %s\n", 
+		destX, destY, destZ, mark, 
+		pThis && pThis->LinkedTo ? pThis->LinkedTo->GetTechnoType()->get_ID() : "NULL");
+	
 	CoordStruct destCoord { destX, destY, destZ };
 	return Mark_All_Occupation_Bits(pThis, destCoord, mark);
 }
