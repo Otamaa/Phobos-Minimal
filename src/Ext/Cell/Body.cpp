@@ -17,8 +17,8 @@
 
 int FakeCellClass::_Reduce_Tiberium(int levels)
 {
-	if (!MapClass::Instance || !TiberiumClass::Array)
-		return 0;
+	//if (!MapClass::Instance || !TiberiumClass::Array)
+		//return 0;
 
 	RectangleStruct dirty = RectangleStruct::Union(this->Overlay_Render_Rect(), this->Overlay_Shadow_Render_Rect());
 	dirty.Y -= DSurface::ViewBounds->Y;
@@ -26,7 +26,8 @@ int FakeCellClass::_Reduce_Tiberium(int levels)
 	int tibtype = this->GetContainedTiberiumIndex();
 	int reducer = levels;
 
-	if (levels > 0 && tibtype != -1 && tibtype < TiberiumClass::Array->Count)
+	//if (levels > 0 && tibtype != -1 && tibtype < TiberiumClass::Array->Count)
+	if (levels > 0 && tibtype != -1)
 	{
 		TiberiumClass* tiberium = TiberiumClass::Array->Items[tibtype];
 		if (this->OverlayData == 11)
@@ -74,8 +75,8 @@ int FakeCellClass::_Reduce_Tiberium(int levels)
 
 TiberiumClass* CellExtData::GetTiberium(CellClass* pCell)
 {
-	if (!pCell)
-		return nullptr;
+	//if (!pCell)
+		//return nullptr;
 
 	int overlay_ = CellExtData::GetTiberiumType(pCell->OverlayTypeIndex);
 
@@ -88,8 +89,8 @@ TiberiumClass* CellExtData::GetTiberium(CellClass* pCell)
 
 int CellExtData::GetOverlayIndex(CellClass* pCell, TiberiumClass* pTiberium)
 {
-		if (!pCell || !pTiberium || !pTiberium->Image)
-			return 0;
+		//if (!pCell || !pTiberium || !pTiberium->Image)
+			//return 0;
 
 		return (pCell->SlopeIndex > 0) ?
 			(pCell->SlopeIndex + pTiberium->Image->ArrayIndex + pTiberium->NumImages - 1) : (pTiberium->Image->ArrayIndex + pCell->MapCoords.X * pCell->MapCoords.Y % pTiberium->NumImages)
@@ -243,7 +244,8 @@ bool FakeCellClass::_SpreadTiberium_2(TerrainClass* pTerrain, bool force)
 	int tib_ = pTerrainTypeExt->SpawnsTiberium_Type;
 
 	// Check for invalid tiberium type
-	if (tib_ < 0 || tib_ >= TiberiumClass::Array->Count)
+	//if (tib_ < 0 || tib_ >= TiberiumClass::Array->Count)
+	if (tib_ >= TiberiumClass::Array->Count)
 		tib_ = CellExtData::GetTiberiumType(this->OverlayTypeIndex);
 
 	if (!force)
@@ -253,7 +255,8 @@ bool FakeCellClass::_SpreadTiberium_2(TerrainClass* pTerrain, bool force)
 			return false;
 		}
 
-		if (tib_ < 0 || tib_ >= TiberiumClass::Array->Count || (TiberiumClass::Array->Items[tib_]->SlopeFrames <= 0 && this->SlopeIndex))
+		//if (tib_ < 0 || tib_ >= TiberiumClass::Array->Count || (TiberiumClass::Array->Items[tib_]->SlopeFrames <= 0 && this->SlopeIndex))
+		if (tib_ >= TiberiumClass::Array->Count || (TiberiumClass::Array->Items[tib_]->SlopeFrames <= 0 && this->SlopeIndex))
 			return false;
 
 		if (TiberiumClass::Array->Items[tib_]->SpreadPercentage < 0.00001
@@ -265,15 +268,16 @@ bool FakeCellClass::_SpreadTiberium_2(TerrainClass* pTerrain, bool force)
 	}
 	else
 	{
-		if (tib_ < 0 || tib_ >= TiberiumClass::Array->Count)
+		//if (tib_ < 0 || tib_ >= TiberiumClass::Array->Count)
+		if (tib_ >= TiberiumClass::Array->Count)
 		{
 			tib_ = 0;
 		}
 	}
 
 	// Final validation before use
-	if (tib_ < 0 || tib_ >= TiberiumClass::Array->Count)
-		return false;
+	//if (tib_ < 0 || tib_ >= TiberiumClass::Array->Count)
+		//return false;
 
 	auto pTib = TiberiumClass::Array->Items[tib_];
 	auto pTerrainExt = TerrainExtContainer::Instance.Find(pTerrain);
@@ -552,7 +556,7 @@ CellStruct* FakeMapClass::__NearByLocation(
 	bool skipFirstCheck,
 	bool checkBuildable)
 {
-	Debug::Log("FakeMapClass::__NearByLocation called at position (%d, %d)\n", pPosition->X, pPosition->Y);
+	//Debug::Log("FakeMapClass::__NearByLocation called at position (%d, %d)\n", pPosition->X, pPosition->Y);
 
 	const int posX = pPosition->X;
 	const int posY = pPosition->Y;
@@ -891,3 +895,102 @@ CellStruct* FakeMapClass::__NearByLocation(
 
 // Hook to replace the original function at 0x56DC20
 DEFINE_FUNCTION_JUMP(LJMP, 0x56DC20, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x41A2C0, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x41A36B, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x41A4D4, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x443957, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4443DC, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x446A14, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x446CCD, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x446E10, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x44DAF0, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x458D2D, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4597E3, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x482366, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4CD16F, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4CEA57, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4D3B76, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4D3DD8, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4D44BC, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4D69E3, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4D6CE1, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4D7ABE, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4D7BD3, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4DCB57, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4DE528, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4DF76A, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4FBFED, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4FD2C0, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x5002E5, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x504931, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x504B4C, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x504D70, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x506193, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x509D9A, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x50C999, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x51D41D, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x54B36F, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x54B5DF, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x56BE76, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x56BF69, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x65E11D, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x65E94F, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x65EEBB, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x65EF5A, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x6885B5, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x6B0417, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x6CD375, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x6CD5B6, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EC944, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EE557, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EE78D, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EEA59, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EF98A, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EFC3A, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x70369C, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x7185D5, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x71900D, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x719185, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x728CE5, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x728D3D, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x7296C1, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x729726, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x73841E, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x738EC8, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x738F40, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x73D7B0, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x73DADD, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x73ED75, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x742042, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x7430EE, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x743C6B, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x744964, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x7449B2, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x744B39, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x744C81, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x744D12, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x744E4D, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x744F36, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x74501B, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745069, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745182, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745247, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x7452D8, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x7453DF, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x74547E, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x7454F9, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x7455F4, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745697, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745712, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x7457E3, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745831, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x74594A, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745A0F, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745AA0, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745B77, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745C06, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745CB0, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745CFE, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745E4F, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745F14, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745FA5, FakeMapClass::__NearByLocation);
