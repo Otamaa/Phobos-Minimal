@@ -29,6 +29,7 @@
     <ClCompile Include="src\Ext\Techno\Hook.Pip.cpp" />
     <ClCompile Include="src\Ext\Cell\Body.cpp" />
     <ClCompile Include="src\Ext\Ebolt\Body.cpp" />
+    <ClCompile Include="src\Ext\Locomotion\Teleport\Body.cpp" />
     <ClCompile Include="src\Ext\Scenario\Hooks.Message.cpp" />
     <ClCompile Include="src\Ext\Sidebar\Hooks.TacticalButton.cpp" />
     <ClCompile Include="src\Ext\SWType\Hook.Psydom.cpp" />
@@ -654,6 +655,7 @@
     <ClInclude Include="src\Ext\AbstractType\Body.h" />
     <ClInclude Include="src\Ext\Ebolt\Body.h" />
     <ClInclude Include="src\Ext\Foot\Body.h" />
+    <ClInclude Include="src\Ext\Locomotion\Teleport\Body.h" />
     <ClInclude Include="src\Ext\Mission\Body.h" />
     <ClInclude Include="src\Ext\ObjectType\Body.h" />
     <ClInclude Include="src\Ext\Object\Body.h" />
