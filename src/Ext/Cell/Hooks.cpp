@@ -565,15 +565,15 @@ bool FakeCellClass::_CanPlaceVeins()
 							}
 						}
 
-						if (adjacent_cell->LandType != LandType::Water
-							&& adjacent_cell->LandType != LandType::Rock
-							&& adjacent_cell->LandType != LandType::Ice
-							&& adjacent_cell->LandType != LandType::Beach)
+						if (adjacent_cell->LandType == LandType::Water
+							|| adjacent_cell->LandType == LandType::Rock
+							|| adjacent_cell->LandType == LandType::Ice
+							|| adjacent_cell->LandType == LandType::Beach)
 						{
 							return false;
 						}
 
-						if (adjacent_cell->OverlayTypeIndex != -1 || !OverlayTypeClass::Array->Items[adjacent_cell->OverlayTypeIndex]->IsVeins)
+						if (adjacent_cell->OverlayTypeIndex != -1 && !OverlayTypeClass::Array->Items[adjacent_cell->OverlayTypeIndex]->IsVeins)
 						{
 							return false;
 						}
@@ -705,125 +705,3 @@ bool FakeCellClass::_CanPlaceVeins()
 //	R->EDX(SpawnTiberiumTreeConvert.get());
 //	return 0x71C29A;
 //}
-
-#include <MapClass.h>
-
-class NOVTABLE FakeMapClass : public MapClass
-{
-	CellStruct* OriginalNearByLocation(CellStruct& outBuffer, const CellStruct& position, SpeedType SpeedType, ZoneType a5, MovementZone MovementZone, bool alt, int SpaceSizeX, int SpaceSizeY, bool disallowOverlay, bool a11, bool requireBurrowable, bool allowBridge, const CellStruct& closeTo, bool a15, bool buildable)
-	{ JMP_THIS(0x56DC20); }
-
-public:
-
-	CellStruct* __NearByLocation(CellStruct& outBuffer, const CellStruct& position, SpeedType SpeedType, ZoneType a5, MovementZone MovementZone, bool alt, int SpaceSizeX, int SpaceSizeY, bool disallowOverlay, bool a11, bool requireBurrowable, bool allowBridge, const CellStruct& closeTo, bool a15, bool buildable)
-	{ 
-		auto result = this->OriginalNearByLocation(outBuffer, position,SpeedType,a5, MovementZone, alt, SpaceSizeX, SpaceSizeY, disallowOverlay, a11, requireBurrowable, allowBridge, closeTo, a15, buildable);
-		
-		if(!outBuffer.IsValid())
-			Debug::FatalError("FakeMapClass::__NearByLocation failed to find a valid location");
-
-		return result;
-	}
-};
-
-
-//DEFINE_FUNCTION_JUMP(LJMP, 0x56DC20, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x41A2C0, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x41A36B, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x41A4D4, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x443957, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4443DC, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x446A14, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x446CCD, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x446E10, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x44DAF0, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x458D2D, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4597E3, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x482366, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4CD16F, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4CEA57, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4D3B76, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4D3DD8, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4D44BC, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4D69E3, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4D6CE1, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4D7ABE, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4D7BD3, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4DCB57, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4DE528, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4DF76A, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4FBFED, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4FD2C0, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x5002E5, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x504931, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x504B4C, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x504D70, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x506193, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x509D9A, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x50C999, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x51D41D, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x54B36F, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x54B5DF, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x56BE76, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x56BF69, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x65E11D, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x65E94F, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x65EEBB, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x65EF5A, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x6885B5, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x6B0417, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x6CD375, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x6CD5B6, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x6EC944, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x6EE557, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x6EE78D, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x6EEA59, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x6EF98A, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x6EFC3A, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x70369C, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x7185D5, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x71900D, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x719185, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x728CE5, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x728D3D, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x7296C1, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x729726, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x73841E, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x738EC8, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x738F40, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x73D7B0, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x73DADD, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x73ED75, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x742042, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x7430EE, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x743C6B, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x744964, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x7449B2, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x744B39, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x744C81, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x744D12, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x744E4D, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x744F36, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x74501B, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745069, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745182, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745247, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x7452D8, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x7453DF, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x74547E, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x7454F9, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x7455F4, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745697, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745712, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x7457E3, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745831, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x74594A, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745A0F, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745AA0, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745B77, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745C06, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745CB0, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745CFE, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745E4F, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745F14, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745FA5, FakeMapClass::__NearByLocation);
