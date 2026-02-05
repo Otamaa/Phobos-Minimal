@@ -1106,6 +1106,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->UnitsUnsellable.Read(exINI, GameStrings::General, "UnitsUnsellable");
 	this->ParadropMission.Read(exINI, GameStrings::General, "ParadropMission");
 	this->AIParadropMission.Read(exINI, GameStrings::General, "AIParadropMission");
+	this->CylinderRangefinding.Read(exINI, GameStrings::General, "CylinderRangefinding");
+	this->DefaultToGuardArea.Read(exINI, GameStrings::General, "DefaultToGuardArea");
 	#pragma endregion
 
 	#pragma region CombatDamage
@@ -1862,6 +1864,9 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->DrainMoneyDisplay_Houses)
 		.Process(this->DrainMoneyDisplay_OnTarget)
 		.Process(this->DrainMoneyDisplay_OnTarget_UseDisplayIncome)
+
+		.Process(this->CylinderRangefinding)
+		.Process(this->DefaultToGuardArea)
 		;
 }
 

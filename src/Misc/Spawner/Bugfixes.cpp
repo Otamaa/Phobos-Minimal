@@ -239,12 +239,52 @@ ASMJIT_PATCH(0x5218C2, InfantryClass_UnmarkAllOccupationBits_ResetOwnerIdx, 0x6)
 }
 
 #pragma endregion
+#include <Locomotor/TeleportLocomotionClass.h>
 
 ASMJIT_PATCH(0x7185DA, TeleportLocomotionClass_MakeRoom_DestFix, 0x6)
 {
 	enum { ReturnTrue = 0x71878F };
 
 	GET(CellStruct*, pCellAt, EAX);
+	GET(LocomotionClass*, pLoco, EBP);
 
-	return *pCellAt == CellStruct::Empty ? ReturnTrue : 0;
+	if (*pCellAt == CellStruct::Empty)
+	{
+		// cannot find location ? dont move
+		pLoco->LinkedTo->ChronoDestCoords = pLoco->LinkedTo->Location;
+		return ReturnTrue;
+	}
+	return 0;
+}
+
+ASMJIT_PATCH(0x7184CE, TeleportLocomotionClass_MakeRoom_GetMovement_CellFix, 0x7)
+{
+	REF_STACK(CoordStruct, coords, STACK_OFFSET(0x5C, 0x4));
+
+	R->Stack(STACK_OFFSET(0x38, -0x18), MapClass::Instance->GetCellAt(coords));
+	return 0;
+}
+
+#include <Ext/WeaponType/Body.h>
+
+ASMJIT_PATCH(0x6F755A, TechnoClass_IsCloseEnough_CylinderRangefinding, 0x7)
+{
+	GET_BASE(WeaponTypeClass* const, pWeaponType, 0x10);
+	GET(CoordStruct* const, pCoord, ESI);
+	GET(TechnoClass* const, pThis, EDI);
+	const bool cylinder = WeaponTypeExtContainer::Instance.Find(pWeaponType)->CylinderRangefinding.Get(RulesExtData::Instance()->CylinderRangefinding);
+	R->EAX(pCoord->X);
+	return (cylinder || pThis->WhatAmI() == AbstractType::Aircraft) ? 0x6F75B2 : 0x6F7568;
+}
+
+ASMJIT_PATCH(0x71153C, TechnoTypeClass_DefaultToGuardArea_GlobalDefault, 0x6)
+{
+	GET(TechnoTypeClass*, pThis, ESI);
+
+	if (RulesExtData::Instance()->DefaultToGuardArea.isset())
+		pThis->DefaultToGuardArea = RulesExtData::Instance()->DefaultToGuardArea.Get();
+	else
+		pThis->DefaultToGuardArea = false;
+
+	return 0x711542;
 }

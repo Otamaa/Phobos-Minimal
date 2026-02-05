@@ -285,6 +285,7 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Anim_Update.Read(exINI, pSection, "Anim.Update");
 	this->CanTarget_IronCurtained.Read(exINI, pSection, "CanTarget.IronCurtained");
 	this->AutoTarget_IronCurtained.Read(exINI, pSection, "AutoTarget.IronCurtained");
+	this->CylinderRangefinding.Read(exINI, pSection, "CylinderRangefinding");
 
 	this->SkipWeaponPicking = true;
 	if (this->CanTarget != AffectedTarget::All ||
@@ -639,6 +640,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->Anim_Update)
 		.Process(this->CanTarget_IronCurtained)
 		.Process(this->AutoTarget_IronCurtained)
+		.Process(this->CylinderRangefinding)
 		.Process(this->MyAttachFireDatas)
 		
 		;
