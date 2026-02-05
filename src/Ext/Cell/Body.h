@@ -161,3 +161,24 @@ public:
 
 };
 static_assert(sizeof(FakeCellClass) == sizeof(CellClass), "Missmathc size !");
+
+class NOVTABLE FakeMapClass : public MapClass
+{
+public:
+	CellStruct* __NearByLocation(
+		CellStruct* pOutBuffer,
+		const CellStruct* pPosition,
+		SpeedType speed,
+		int zone,
+		MovementZone movementZone,
+		bool alt,
+		int spaceSizeX,
+		int spaceSizeY,
+		bool disallowOverlay,
+		bool checkLevel,
+		bool requireBurrowable,
+		bool allowBridge,
+		const CellStruct* pCloseTo,
+		bool skipFirstCheck,
+		bool checkBuildable);
+};

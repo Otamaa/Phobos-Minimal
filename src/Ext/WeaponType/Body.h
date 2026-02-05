@@ -215,6 +215,8 @@ public:
 	Nullable<bool> Anim_Update;
 	Nullable<bool> CanTarget_IronCurtained;
 	Nullable<bool> AutoTarget_IronCurtained;
+
+	Nullable<bool> CylinderRangefinding;
 #pragma endregion
 
 public:
@@ -362,7 +364,8 @@ public:
 		AttackNoThreatBuildings(),
 		Anim_Update (),
 		CanTarget_IronCurtained {},
-		AutoTarget_IronCurtained {}
+		AutoTarget_IronCurtained {}, 
+		CylinderRangefinding {}
 	{
 		this->AbsType = WeaponTypeClass::AbsID;
 		this->Initialize();
