@@ -603,6 +603,9 @@ public:
 	Valueable<AffectedHouse> DrainMoneyDisplay_Houses { AffectedHouse::All };
 	Valueable<bool> DrainMoneyDisplay_OnTarget  { false };
 	Valueable<bool> DrainMoneyDisplay_OnTarget_UseDisplayIncome { true };
+
+	Valueable<bool> CylinderRangefinding { false };
+	Nullable<bool> DefaultToGuardArea {} ;
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
