@@ -5,18 +5,28 @@
 #include <Utilities/Macro.h>
 #include <Ext/Tiberium/Body.h>
 #include <TacticalClass.h>
+#include <IsometricTileTypeClass.h>
+#include <BuildingClass.h>
+#include <TerrainClass.h>
+#include <ScenarioClass.h>
 
 #include <Phobos.SaveGame.h>
 
+#include <cmath>
+#include <algorithm>
+
 int FakeCellClass::_Reduce_Tiberium(int levels)
 {
+	if (!MapClass::Instance || !TiberiumClass::Array)
+		return 0;
+
 	RectangleStruct dirty = RectangleStruct::Union(this->Overlay_Render_Rect(), this->Overlay_Shadow_Render_Rect());
 	dirty.Y -= DSurface::ViewBounds->Y;
 
 	int tibtype = this->GetContainedTiberiumIndex();
 	int reducer = levels;
 
-	if (levels > 0 && tibtype != -1)
+	if (levels > 0 && tibtype != -1 && tibtype < TiberiumClass::Array->Count)
 	{
 		TiberiumClass* tiberium = TiberiumClass::Array->Items[tibtype];
 		if (this->OverlayData == 11)
@@ -64,6 +74,9 @@ int FakeCellClass::_Reduce_Tiberium(int levels)
 
 TiberiumClass* CellExtData::GetTiberium(CellClass* pCell)
 {
+	if (!pCell)
+		return nullptr;
+
 	int overlay_ = CellExtData::GetTiberiumType(pCell->OverlayTypeIndex);
 
 	if (overlay_ != -1)
@@ -75,6 +88,9 @@ TiberiumClass* CellExtData::GetTiberium(CellClass* pCell)
 
 int CellExtData::GetOverlayIndex(CellClass* pCell, TiberiumClass* pTiberium)
 {
+		if (!pCell || !pTiberium || !pTiberium->Image)
+			return 0;
+
 		return (pCell->SlopeIndex > 0) ?
 			(pCell->SlopeIndex + pTiberium->Image->ArrayIndex + pTiberium->NumImages - 1) : (pTiberium->Image->ArrayIndex + pCell->MapCoords.X * pCell->MapCoords.Y % pTiberium->NumImages)
 			;
@@ -120,7 +136,7 @@ int FakeCellClass::_GetTiberiumType()
 	}
 
 	//Debug::LogInfo("Overlay [%s - %s] not really tiberium[%d]", pOverlay->ID , pOverlay->Name , 0);
-	return 0;
+	return -1;
 }
 
 bool FakeCellClass::_SpreadTiberium(bool force)
@@ -214,7 +230,7 @@ int __fastcall CellExtData::GetTiberiumType(int Overlay)
 	}
 
 	//Debug::LogInfo("Overlay [%s - %s] not really tiberium[%d]", pOverlay->ID , pOverlay->Name , 0);
-	return 0;
+	return -1;
 }
 
 bool FakeCellClass::_SpreadTiberium_2(TerrainClass* pTerrain, bool force)
@@ -224,9 +240,10 @@ bool FakeCellClass::_SpreadTiberium_2(TerrainClass* pTerrain, bool force)
 
 	auto pTerrainTypeExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
 
-	size_t tib_ = (size_t)pTerrainTypeExt->SpawnsTiberium_Type;
+	int tib_ = pTerrainTypeExt->SpawnsTiberium_Type;
 
-	if (tib_ >= (size_t)TiberiumClass::Array->Count)
+	// Check for invalid tiberium type
+	if (tib_ < 0 || tib_ >= TiberiumClass::Array->Count)
 		tib_ = CellExtData::GetTiberiumType(this->OverlayTypeIndex);
 
 	if (!force)
@@ -236,7 +253,7 @@ bool FakeCellClass::_SpreadTiberium_2(TerrainClass* pTerrain, bool force)
 			return false;
 		}
 
-		if (tib_ >= (size_t)TiberiumClass::Array->Count || (TiberiumClass::Array->Items[tib_]->SlopeFrames <= 0 && this->SlopeIndex))
+		if (tib_ < 0 || tib_ >= TiberiumClass::Array->Count || (TiberiumClass::Array->Items[tib_]->SlopeFrames <= 0 && this->SlopeIndex))
 			return false;
 
 		if (TiberiumClass::Array->Items[tib_]->SpreadPercentage < 0.00001
@@ -248,11 +265,15 @@ bool FakeCellClass::_SpreadTiberium_2(TerrainClass* pTerrain, bool force)
 	}
 	else
 	{
-		if (tib_ >= (size_t)TiberiumClass::Array->Count)
+		if (tib_ < 0 || tib_ >= TiberiumClass::Array->Count)
 		{
 			tib_ = 0;
 		}
 	}
+
+	// Final validation before use
+	if (tib_ < 0 || tib_ >= TiberiumClass::Array->Count)
+		return false;
 
 	auto pTib = TiberiumClass::Array->Items[tib_];
 	auto pTerrainExt = TerrainExtContainer::Instance.Find(pTerrain);
@@ -407,3 +428,466 @@ ASMJIT_PATCH(0x47BB60, CellClass_DTOR, 0x6) {
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F14, FakeCellClass::_Invalidate);
+
+// =============================
+// FakeMapClass::__NearByLocation implementation
+// Backport of MapClass::NearByLocation (0x56DC20)
+
+// Maximum number of candidate cells to collect
+static constexpr int MaxCandidates = 24;
+
+/**
+ * Reimplementation of CellClass_can_enter_cell at 0x486FF0
+ * Checks if a cell can be entered for burrowing/subterranean purposes.
+ */
+static bool CanEnterCell(CellClass* pCell)
+{
+	if (!pCell)
+		return false;
+
+	// Check 1: If not in radar/usable area, cell is "enterable"
+	if (!MapClass::Instance->IsWithinUsableArea(pCell, true))
+		return true;
+
+	// Check 2: TileType and AllowBurrowing
+	int tileType = pCell->IsoTileTypeIndex;
+	if (tileType >= 0 && tileType < IsometricTileTypeClass::Array->Count)
+	{
+		IsometricTileTypeClass* pTile = IsometricTileTypeClass::Array->Items[tileType];
+		if (pTile && !pTile->AllowBurrowing)
+			return false;
+	}
+
+	// Check 3: Ramp (SlopeIndex)
+	if (pCell->SlopeIndex != 0)
+		return false;
+
+	// Check 4: Flags check (Bridge and other flags)
+	if ((pCell->UINTFlags & 0x500) != 0)
+		return false;
+
+	// Check 5: GameActive - if game not running, allow entry
+	if (!Game::IsActive)
+		return true;
+
+	// Check 6: Loop through occupiers looking for buildings
+	for (ObjectClass* pObj = pCell->FirstObject; pObj != nullptr; pObj = pObj->NextObject)
+	{
+		if (pObj->WhatAmI() == AbstractType::Building)
+			return false;
+	}
+
+	// Check 7: GameActive again
+	if (!Game::IsActive)
+		return true;
+
+	// Check 8: Loop through occupiers looking for terrain
+	for (ObjectClass* pObj = pCell->FirstObject; pObj != nullptr; pObj = pObj->NextObject)
+	{
+		if (pObj->WhatAmI() == AbstractType::Terrain)
+			return false;
+	}
+
+	return true;
+}
+
+// Check if foundation rect is buildable
+static bool IsBuildableRect(MapClass* pMap, const CellStruct& cell, int sizeX, int sizeY)
+{
+	for (int x = 0; x < sizeX; ++x)
+	{
+		for (int y = 0; y < sizeY; ++y)
+		{
+			CellStruct checkCell = {
+				static_cast<short>(cell.X + x),
+				static_cast<short>(cell.Y + y)
+			};
+
+			auto pCheckCell = pMap->TryGetCellAt(checkCell);
+			if (!pCheckCell)
+				return false;
+
+			if (pCheckCell->GetBuilding())
+				return false;
+
+			if (pCheckCell->GetTerrain(false))
+				return false;
+		}
+	}
+	return true;
+}
+
+// Check if a cell is visible on the tactical screen
+static bool IsCellOnScreen(TacticalClass* pTactical, const CellStruct& cell)
+{
+	if (!pTactical)
+		return true;
+
+	CoordStruct worldCoord = {
+		(cell.X << 8) + 128,
+		(cell.Y << 8) + 128,
+		0
+	};
+
+	CellStruct result;
+	pTactical->CoordsToCell(&result, &worldCoord);
+
+	return (result.X == cell.X && result.Y == cell.Y);
+}
+
+CellStruct* FakeMapClass::__NearByLocation(
+	CellStruct* pOutBuffer,
+	const CellStruct* pPosition,
+	SpeedType speed,
+	int zone,
+	MovementZone movementZone,
+	bool alt,
+	int spaceSizeX,
+	int spaceSizeY,
+	bool disallowOverlay,
+	bool checkLevel,
+	bool requireBurrowable,
+	bool allowBridge,
+	const CellStruct* pCloseTo,
+	bool skipFirstCheck,
+	bool checkBuildable)
+{
+	Debug::Log("FakeMapClass::__NearByLocation called at position (%d, %d)\n", pPosition->X, pPosition->Y);
+
+	const int posX = pPosition->X;
+	const int posY = pPosition->Y;
+
+	// Handle zone type - 0xFFFF means None (-1)
+	if (zone == 0xFFFF)
+		zone = -1;
+
+	// Get the starting cell and its level
+	CellClass* pStartCell = this->GetCellAt(*pPosition);
+	int baseLevel = pStartCell->Level;
+
+	// If alt flag set and cell has bridge, add bridge levels
+	if (alt)
+	{
+		CellClass* pAltCell = this->GetCellAt(*pPosition);
+		if (pAltCell->ContainsBridge())
+		{
+			baseLevel += Unsorted::BridgeLevels;
+		}
+	}
+
+	// Calculate maximum search radius (map dimensions, capped at 32)
+	int maxRadius = this->MapSize->Width + this->MapSize->Height;
+	if (maxRadius > 32)
+		maxRadius = 32;
+
+	if (maxRadius <= 0)
+	{
+		*pOutBuffer = CellStruct::Empty;
+		return pOutBuffer;
+	}
+
+	// Storage for candidate cells
+	CellStruct candidates[MaxCandidates];
+	int candidateCount = 0;
+	bool foundVisibleCell = false;
+
+	// Search in expanding squares around the center
+	for (int radius = 0; radius < maxRadius && candidateCount < MaxCandidates && !foundVisibleCell; ++radius)
+	{
+		// Top and bottom edges
+		for (int dx = -radius; dx <= radius && candidateCount < MaxCandidates; ++dx)
+		{
+			// Top edge: (posX + dx, posY - radius)
+			if (!skipFirstCheck)
+			{
+				CellStruct testCell = {
+					static_cast<short>(posX + dx),
+					static_cast<short>(posY - radius)
+				};
+
+				CellClass* pTestCell = this->GetCellAt(testCell);
+
+				if (this->IsWithinUsableArea(pTestCell, true))
+				{
+					if (this->CanMoveHere(testCell, spaceSizeX, spaceSizeY, speed, zone, movementZone, -1, alt, disallowOverlay))
+					{
+						bool passLevelCheck = true;
+
+						if (checkLevel)
+						{
+							int cellLevel = pTestCell->Level;
+							if (pTestCell->ContainsBridge())
+								cellLevel += Unsorted::BridgeLevels;
+
+							int levelDiff = baseLevel - cellLevel;
+							if (levelDiff < 0)
+								levelDiff = -levelDiff;
+
+							if (levelDiff >= 2)
+								passLevelCheck = false;
+						}
+
+						if (passLevelCheck)
+						{
+							if (!requireBurrowable || CanEnterCell(pTestCell))
+							{
+								if (allowBridge || !pTestCell->ContainsBridge())
+								{
+									if (!checkBuildable || IsBuildableRect(this, testCell, spaceSizeX, spaceSizeY))
+									{
+										candidates[candidateCount++] = testCell;
+
+										if (alt || IsCellOnScreen(TacticalClass::Instance, testCell))
+										{
+											foundVisibleCell = true;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			if (candidateCount >= MaxCandidates)
+				break;
+
+			if (skipFirstCheck && dx <= -radius)
+				continue;
+
+			// Bottom edge: (posX + dx, posY + radius)
+			{
+				CellStruct testCell = {
+					static_cast<short>(posX + dx),
+					static_cast<short>(posY + radius)
+				};
+
+				CellClass* pTestCell = this->GetCellAt(testCell);
+
+				if (this->IsWithinUsableArea(pTestCell, true))
+				{
+					if (this->CanMoveHere(testCell, spaceSizeX, spaceSizeY, speed, zone, movementZone, -1, alt, disallowOverlay))
+					{
+						bool passLevelCheck = true;
+						if (checkLevel)
+						{
+							int cellLevel = pTestCell->Level;
+							if (pTestCell->ContainsBridge())
+								cellLevel += Unsorted::BridgeLevels;
+
+							int levelDiff = baseLevel - cellLevel;
+							if (levelDiff < 0)
+								levelDiff = -levelDiff;
+
+							if (levelDiff >= 2)
+								passLevelCheck = false;
+						}
+
+						if (passLevelCheck)
+						{
+							if (!requireBurrowable || CanEnterCell(pTestCell))
+							{
+								if (allowBridge || !pTestCell->ContainsBridge())
+								{
+									if (!checkBuildable || IsBuildableRect(this, testCell, spaceSizeX, spaceSizeY))
+									{
+										candidates[candidateCount++] = testCell;
+
+										if (alt || IsCellOnScreen(TacticalClass::Instance, testCell))
+										{
+											foundVisibleCell = true;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (candidateCount >= MaxCandidates)
+			break;
+
+		// Left and right edges (excluding corners already covered)
+		for (int dy = 1 - radius; dy <= radius - 1 && candidateCount < MaxCandidates; ++dy)
+		{
+			// Left edge: (posX - radius, posY + dy)
+			if (!skipFirstCheck)
+			{
+				CellStruct testCell = {
+					static_cast<short>(posX - radius),
+					static_cast<short>(posY + dy)
+				};
+
+				CellClass* pTestCell = this->GetCellAt(testCell);
+
+				if (this->IsWithinUsableArea(pTestCell, true))
+				{
+					if (this->CanMoveHere(testCell, spaceSizeX, spaceSizeY, speed, zone, movementZone, -1, alt, disallowOverlay))
+					{
+						bool passLevelCheck = true;
+						if (checkLevel)
+						{
+							int cellLevel = pTestCell->Level;
+							if (pTestCell->ContainsBridge())
+								cellLevel += Unsorted::BridgeLevels;
+
+							int levelDiff = baseLevel - cellLevel;
+							if (levelDiff < 0)
+								levelDiff = -levelDiff;
+
+							if (levelDiff >= 2)
+								passLevelCheck = false;
+						}
+
+						if (passLevelCheck)
+						{
+							if (!requireBurrowable || CanEnterCell(pTestCell))
+							{
+								if (allowBridge || !pTestCell->ContainsBridge())
+								{
+									if (!checkBuildable || IsBuildableRect(this, testCell, spaceSizeX, spaceSizeY))
+									{
+										candidates[candidateCount++] = testCell;
+
+										if (alt || IsCellOnScreen(TacticalClass::Instance, testCell))
+										{
+											foundVisibleCell = true;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			if (candidateCount >= MaxCandidates)
+				break;
+
+			// Right edge: (posX + radius, posY + dy)
+			{
+				CellStruct testCell = {
+					static_cast<short>(posX + radius),
+					static_cast<short>(posY + dy)
+				};
+
+				CellClass* pTestCell = this->GetCellAt(testCell);
+
+				if (this->IsWithinUsableArea(pTestCell, true))
+				{
+					if (this->CanMoveHere(testCell, spaceSizeX, spaceSizeY, speed, zone, movementZone, -1, alt, disallowOverlay))
+					{
+						bool passLevelCheck = true;
+						if (checkLevel)
+						{
+							int cellLevel = pTestCell->Level;
+							if (pTestCell->ContainsBridge())
+								cellLevel += Unsorted::BridgeLevels;
+
+							int levelDiff = baseLevel - cellLevel;
+							if (levelDiff < 0)
+								levelDiff = -levelDiff;
+
+							if (levelDiff >= 2)
+								passLevelCheck = false;
+						}
+
+						if (passLevelCheck)
+						{
+							if (!requireBurrowable || CanEnterCell(pTestCell))
+							{
+								if (allowBridge || !pTestCell->ContainsBridge())
+								{
+									if (!checkBuildable || IsBuildableRect(this, testCell, spaceSizeX, spaceSizeY))
+									{
+										candidates[candidateCount++] = testCell;
+
+										if (alt || IsCellOnScreen(TacticalClass::Instance, testCell))
+										{
+											foundVisibleCell = true;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// No candidates found - return default cell
+	if (candidateCount <= 0)
+	{
+		*pOutBuffer = CellStruct::Empty;
+		return pOutBuffer;
+	}
+
+	// Phase 2: Separate candidates into visible and off-screen lists
+	CellStruct visibleCells[MaxCandidates];
+	CellStruct offscreenCells[MaxCandidates];
+	int visibleCount = 0;
+	int offscreenCount = 0;
+
+	for (int i = 0; i < candidateCount; ++i)
+	{
+		const CellStruct& cell = candidates[i];
+
+		if (IsCellOnScreen(TacticalClass::Instance, cell))
+		{
+			visibleCells[visibleCount++] = cell;
+		}
+		else
+		{
+			offscreenCells[offscreenCount++] = cell;
+		}
+	}
+
+	// Prefer visible cells
+	CellStruct* selectedList = (visibleCount > 0) ? visibleCells : offscreenCells;
+	int selectedCount = (visibleCount > 0) ? visibleCount : offscreenCount;
+
+	if (selectedCount <= 0)
+	{
+		*pOutBuffer = CellStruct::Empty;
+		return pOutBuffer;
+	}
+
+	// Phase 3: Select final cell
+	if (pCloseTo->X == CellStruct::Empty.X && pCloseTo->Y == CellStruct::Empty.Y)
+	{
+		// Random selection based on current frame
+		int index = Unsorted::CurrentFrame % selectedCount;
+		*pOutBuffer = selectedList[index];
+	}
+	else
+	{
+		// Find closest cell to closeTo point
+		double minDist = 1e30;
+		CellStruct closestCell = selectedList[0];
+
+		for (int i = 0; i < selectedCount; ++i)
+		{
+			const CellStruct& cell = selectedList[i];
+			int dx = cell.X - pCloseTo->X;
+			int dy = cell.Y - pCloseTo->Y;
+			double distSq = static_cast<double>(dx * dx + dy * dy);
+			double dist = std::sqrt(distSq);
+
+			if (dist < minDist)
+			{
+				minDist = dist;
+				closestCell = cell;
+			}
+		}
+
+		*pOutBuffer = closestCell;
+	}
+
+	return pOutBuffer;
+}
+
+// Hook to replace the original function at 0x56DC20
+DEFINE_FUNCTION_JUMP(LJMP, 0x56DC20, FakeMapClass::__NearByLocation);
