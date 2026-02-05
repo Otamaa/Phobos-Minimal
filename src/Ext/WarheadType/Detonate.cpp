@@ -291,9 +291,9 @@ void WarheadTypeExtData::ApplyAttachTag(TechnoClass* pTarget) const
 		AllowType = this->AttachTag_Types.Contains(pType);
 	}
 
-	if (!this->AttachTag_Types.empty())
+	if (!this->AttachTag_Ignore.empty())
 	{
-		IgnoreType = this->AttachTag_Types.Contains(pType);
+		IgnoreType = this->AttachTag_Ignore.Contains(pType);
 	}
 
 	if (!AllowType || IgnoreType)

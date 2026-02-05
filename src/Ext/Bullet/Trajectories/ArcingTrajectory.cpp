@@ -63,10 +63,28 @@ void ArcingTrajectory::CalculateVelocity(BulletClass* pBullet, double elevation,
 	double Z = pBullet->TargetCoords.Z - pBullet->SourceCoords.Z;
 	double g = BulletTypeExtData::GetAdjustedGravity(pBullet->Type);
 
+	// Handle edge case where source and target are at the same XY position (FullDistance == 0)
+	// In this case, just fire straight up/down
+	if (FullDistance < 1e-10)
+	{
+		pBullet->Velocity.X = 0.0;
+		pBullet->Velocity.Y = 0.0;
+		pBullet->Velocity.Z = (Z >= 0) ? 1.0 : -1.0;
+		return;
+	}
+
 	if (elevation > DBL_EPSILON)
 	{
 		double LifeTime = Math::sqrt(2 / g * (elevation * FullDistance - Z));
 
+		// Guard against zero or invalid LifeTime
+		if (LifeTime < 1e-10)
+		{
+			pBullet->Velocity.X = 0.0;
+			pBullet->Velocity.Y = 0.0;
+			pBullet->Velocity.Z = 1.0;
+			return;
+		}
 
 		double Velocity_XY = FullDistance / LifeTime;
 		double ratio = Velocity_XY / FullDistance;
@@ -99,6 +117,15 @@ void ArcingTrajectory::CalculateVelocity(BulletClass* pBullet, double elevation,
 			int isLobber = lobber ? 1 : -1;
 			double LifeTimeSquare = (-B + isLobber * Math::sqrt(delta)) / (2 * A);
 			double LifeTime = Math::sqrt(LifeTimeSquare);
+
+			// Guard against zero LifeTime (can happen if A is very small or LifeTimeSquare is zero)
+			if (LifeTime < 1e-10)
+			{
+				pBullet->Velocity.X = 0.0;
+				pBullet->Velocity.Y = 0.0;
+				pBullet->Velocity.Z = S;
+				return;
+			}
 
 			double Velocity_XY = FullDistance / LifeTime;
 			double ratio = Velocity_XY / FullDistance;

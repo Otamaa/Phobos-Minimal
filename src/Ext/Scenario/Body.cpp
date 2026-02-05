@@ -63,8 +63,8 @@ void ScenarioExtData::LoadVariablesToFile(bool isGlobal)
 	ini.ReadCCFile(&file);
 
 	const auto variables = ScenarioExtData::GetVariables(isGlobal);
-	std::ranges::for_each(*variables, [&](const auto& variable) {
-		ini.ReadInteger(isGlobal ? "GlobalVariables" : ScenarioClass::Instance()->FileName, variable.second.Name, variable.second.Value);
+	std::ranges::for_each(*variables, [&](auto& variable) {
+		variable.second.Value = ini.ReadInteger(isGlobal ? "GlobalVariables" : ScenarioClass::Instance()->FileName, variable.second.Name, variable.second.Value);
 	});
 }
 
@@ -126,7 +126,7 @@ void ScenarioExtData::ReadVariables(const bool IsGlobal, CCINIClass* pINI)
 		const auto pKey = pINI->GetKeyName(pVariableNames, i);
 		int nIndex = -1;
 
-		if (sscanf_s(pKey, "%d", &nIndex) == 1)
+		if (sscanf_s(pKey, "%d", &nIndex) == 1 && nIndex >= 0)  // Added validation for non-negative index
 		{
 			auto& var = (*ScenarioExtData::GetVariables(IsGlobal))[nIndex];
 			pINI->ReadString(pVariableNames, pKey, pKey, Phobos::readBuffer);

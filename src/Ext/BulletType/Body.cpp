@@ -10,10 +10,10 @@
 #include <Phobos.SaveGame.h>
 
 BulletTypeClass* BulletTypeExtData::GetDefaultBulletType() {
-	if(!RulesExtData::Instance()->DefautBulletType)
-		RulesExtData::Instance()->DefautBulletType = BulletTypeClass::Find(DEFAULT_STR2);
+	if(!RulesExtData::Instance()->DefaultBulletType)
+		RulesExtData::Instance()->DefaultBulletType = BulletTypeClass::Find(DEFAULT_STR2);
 
-	return RulesExtData::Instance()->DefautBulletType;
+	return RulesExtData::Instance()->DefaultBulletType;
 }
 
 CoordStruct BulletTypeExtData::CalculateInaccurate(BulletTypeClass* pBulletType) {

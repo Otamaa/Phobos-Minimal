@@ -79,7 +79,16 @@ void ArtilleryTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocit
 	CoordStruct TempSourceLocation = pBullet->SourceCoords;
 	TempSourceLocation.Z = 0;
 	double distance = TempTargetLocation.DistanceFrom(TempSourceLocation);
-	double fix = (((this->Height - pBullet->TargetCoords.Z) * distance) / (2 * this->Height - pBullet->SourceCoords.Z - pBullet->TargetCoords.Z)) / (this->Height - pBullet->TargetCoords.Z);
+
+	// Guard against division by zero
+	double divisor = 2 * this->Height - pBullet->SourceCoords.Z - pBullet->TargetCoords.Z;
+	double heightDiff = this->Height - pBullet->TargetCoords.Z;
+	double fix = 0.0;
+
+	if (Math::abs(divisor) > 1e-10 && Math::abs(heightDiff) > 1e-10)
+	{
+		fix = ((heightDiff * distance) / divisor) / heightDiff;
+	}
 
 	double DirectionAngel = std::atan2((double)(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y), (double)(pBullet->TargetCoords.X - pBullet->SourceCoords.X)) + (Math::GAME_PI / 2);
 
@@ -94,7 +103,20 @@ void ArtilleryTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocit
 	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
 	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
 	pBullet->Velocity.Z = static_cast<double>(pBullet->TargetCoords.Z - pBullet->SourceCoords.Z);
-	pBullet->Velocity *= (this->GetTrajectorySpeed() / pBullet->Velocity.Length());
+
+	// Guard against division by zero when velocity length is zero
+	double velocityLength = pBullet->Velocity.Length();
+	if (velocityLength > 1e-10)
+	{
+		pBullet->Velocity *= (this->GetTrajectorySpeed() / velocityLength);
+	}
+	else
+	{
+		// Set a default forward velocity
+		pBullet->Velocity.X = this->GetTrajectorySpeed();
+		pBullet->Velocity.Y = 0.0;
+		pBullet->Velocity.Z = 0.0;
+	}
 }
 
 void ArtilleryTrajectory::OnAIPreDetonate() { }

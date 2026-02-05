@@ -655,6 +655,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		if (!weight.isset())
 			weight = 1;
 
+		this->SpawnsCrate_Types.emplace_back(Idx);
 		this->SpawnsCrate_Weights.emplace_back(weight);
 	}
 

@@ -256,14 +256,20 @@ CoordStruct BombardTrajectory::CalculateMiddleCoords()
 	else
 	{
 		const double vectorModule = Math::sqrt(vectorX * vectorX + vectorY * vectorY);
-		scatterX = vectorY / vectorModule * length;
-		scatterY = -(vectorX / vectorModule * length);
 
-		if (ScenarioClass::Instance->Random.RandomRanged(0, 1))
+		// Guard against division by zero when source and target are at the same XY position
+		if (vectorModule > 1e-10)
 		{
-			scatterX = -scatterX;
-			scatterY = -scatterY;
+			scatterX = vectorY / vectorModule * length;
+			scatterY = -(vectorX / vectorModule * length);
+
+			if (ScenarioClass::Instance->Random.RandomRanged(0, 1))
+			{
+				scatterX = -scatterX;
+				scatterY = -scatterY;
+			}
 		}
+		// else: scatterX and scatterY remain 0.0
 	}
 
 	return CoordStruct

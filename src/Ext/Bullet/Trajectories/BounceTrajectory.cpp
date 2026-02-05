@@ -93,7 +93,20 @@ void BounceTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 	//pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
 	//pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
 	//pBullet->Velocity.Z = static_cast<double>(pBullet->TargetCoords.Z - pBullet->SourceCoords.Z);
-	pBullet->Velocity *= (this->GetTrajectorySpeed() / pBullet->Velocity.Length());
+
+	// Guard against division by zero when velocity length is zero
+	double velocityLength = pBullet->Velocity.Length();
+	if (velocityLength > 1e-10)
+	{
+		pBullet->Velocity *= (this->GetTrajectorySpeed() / velocityLength);
+	}
+	else
+	{
+		// Set a default forward velocity
+		pBullet->Velocity.X = this->GetTrajectorySpeed();
+		pBullet->Velocity.Y = 0.0;
+		pBullet->Velocity.Z = 0.0;
+	}
 }
 
 // Some early checks on each game frame here.

@@ -1668,7 +1668,7 @@ void RulesExtData::Serialize(T& Stm)
 
 		.Process(this->PrimaryFactoryIndicator)
 		.Process(this->PrimaryFactoryIndicator_Palette)
-		.Process(this->DefautBulletType)
+		.Process(this->DefaultBulletType)
 		.Process(this->AIChronoSphereSW)
 		.Process(this->AIChronoWarpSW)
 		.Process(this->DamageOwnerMultiplier)
@@ -1980,8 +1980,8 @@ ASMJIT_PATCH(0x668D86, RulesData_Process_PreFillTypeListData, 0x6)
 		}
 	}
 
-	RulesExtData::Instance()->DefautBulletType = BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
-	if(!RulesExtData::Instance()->DefautBulletType)
+	RulesExtData::Instance()->DefaultBulletType = BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
+	if(!RulesExtData::Instance()->DefaultBulletType)
 		Debug::FatalError("Uneable to Allocate {} BulletType ! " , DEFAULT_STR2);
 
 	for (int nn = 0; nn < pINI->GetKeyCount("WeaponTypes"); ++nn)

@@ -134,14 +134,15 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 				{
 					// Do random cells for amount matching Cluster.
 					int count = 0;
-					int targetCount = targets.size();
+					int targetCount = static_cast<int>(targets.size());
 
 					while (count < cluster)
 					{
 						int index = ScenarioClass::Instance->Random.RandomFromMax(targetCount - 1);
 						auto const pTarget = targets[index];
 
-						if (count > targetCount || newTargets.find(pTarget)  == newTargets.end()) {
+						// Add target if we've exhausted unique targets OR if target is not already in the list
+						if (count >= targetCount || newTargets.find(pTarget) == newTargets.end()) {
 							newTargets.push_back(pTarget);
 							count++;
 						}
@@ -436,8 +437,10 @@ bool BulletExtData::AllowShrapnel(BulletClass* pThis, CellClass* pCell)
 {
 	auto const pData = BulletTypeExtContainer::Instance.Find(pThis->Type);
 
+	// Shrapnel_Chance is the probability of shrapnel being allowed (0.0 = never, 1.0 = always)
+	// If chance is set and random roll fails (random > chance), deny shrapnel
 	if (pData->Shrapnel_Chance.isset()
-		&& ScenarioClass::Instance->Random.RandomDouble() < Math::abs(pData->Shrapnel_Chance.Get())) {
+		&& ScenarioClass::Instance->Random.RandomDouble() >= Math::abs(pData->Shrapnel_Chance.Get())) {
 			return false;
 	}
 
