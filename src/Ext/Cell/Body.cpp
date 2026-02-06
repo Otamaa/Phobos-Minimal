@@ -17,16 +17,12 @@
 
 int FakeCellClass::_Reduce_Tiberium(int levels)
 {
-	//if (!MapClass::Instance || !TiberiumClass::Array)
-		//return 0;
-
 	RectangleStruct dirty = RectangleStruct::Union(this->Overlay_Render_Rect(), this->Overlay_Shadow_Render_Rect());
 	dirty.Y -= DSurface::ViewBounds->Y;
 
 	int tibtype = this->GetContainedTiberiumIndex();
 	int reducer = levels;
 
-	//if (levels > 0 && tibtype != -1 && tibtype < TiberiumClass::Array->Count)
 	if (levels > 0 && tibtype != -1)
 	{
 		TiberiumClass* tiberium = TiberiumClass::Array->Items[tibtype];
@@ -75,9 +71,6 @@ int FakeCellClass::_Reduce_Tiberium(int levels)
 
 TiberiumClass* CellExtData::GetTiberium(CellClass* pCell)
 {
-	//if (!pCell)
-		//return nullptr;
-
 	int overlay_ = CellExtData::GetTiberiumType(pCell->OverlayTypeIndex);
 
 	if (overlay_ != -1)
@@ -89,9 +82,6 @@ TiberiumClass* CellExtData::GetTiberium(CellClass* pCell)
 
 int CellExtData::GetOverlayIndex(CellClass* pCell, TiberiumClass* pTiberium)
 {
-		//if (!pCell || !pTiberium || !pTiberium->Image)
-			//return 0;
-
 		return (pCell->SlopeIndex > 0) ?
 			(pCell->SlopeIndex + pTiberium->Image->ArrayIndex + pTiberium->NumImages - 1) : (pTiberium->Image->ArrayIndex + pCell->MapCoords.X * pCell->MapCoords.Y % pTiberium->NumImages)
 			;
@@ -137,7 +127,7 @@ int FakeCellClass::_GetTiberiumType()
 	}
 
 	//Debug::LogInfo("Overlay [%s - %s] not really tiberium[%d]", pOverlay->ID , pOverlay->Name , 0);
-	return -1;
+	return 0;
 }
 
 bool FakeCellClass::_SpreadTiberium(bool force)
@@ -231,7 +221,7 @@ int __fastcall CellExtData::GetTiberiumType(int Overlay)
 	}
 
 	//Debug::LogInfo("Overlay [%s - %s] not really tiberium[%d]", pOverlay->ID , pOverlay->Name , 0);
-	return -1;
+	return 0;
 }
 
 bool FakeCellClass::_SpreadTiberium_2(TerrainClass* pTerrain, bool force)
@@ -241,11 +231,9 @@ bool FakeCellClass::_SpreadTiberium_2(TerrainClass* pTerrain, bool force)
 
 	auto pTerrainTypeExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
 
-	int tib_ = pTerrainTypeExt->SpawnsTiberium_Type;
+	size_t tib_ = pTerrainTypeExt->SpawnsTiberium_Type;
 
-	// Check for invalid tiberium type
-	//if (tib_ < 0 || tib_ >= TiberiumClass::Array->Count)
-	if (tib_ >= TiberiumClass::Array->Count)
+	if (tib_ >= (size_t)TiberiumClass::Array->Count)
 		tib_ = CellExtData::GetTiberiumType(this->OverlayTypeIndex);
 
 	if (!force)
@@ -255,8 +243,7 @@ bool FakeCellClass::_SpreadTiberium_2(TerrainClass* pTerrain, bool force)
 			return false;
 		}
 
-		//if (tib_ < 0 || tib_ >= TiberiumClass::Array->Count || (TiberiumClass::Array->Items[tib_]->SlopeFrames <= 0 && this->SlopeIndex))
-		if (tib_ >= TiberiumClass::Array->Count || (TiberiumClass::Array->Items[tib_]->SlopeFrames <= 0 && this->SlopeIndex))
+		if (tib_ >= (size_t)TiberiumClass::Array->Count || (TiberiumClass::Array->Items[tib_]->SlopeFrames <= 0 && this->SlopeIndex))
 			return false;
 
 		if (TiberiumClass::Array->Items[tib_]->SpreadPercentage < 0.00001
@@ -268,16 +255,11 @@ bool FakeCellClass::_SpreadTiberium_2(TerrainClass* pTerrain, bool force)
 	}
 	else
 	{
-		//if (tib_ < 0 || tib_ >= TiberiumClass::Array->Count)
-		if (tib_ >= TiberiumClass::Array->Count)
+		if (tib_ >= (size_t)TiberiumClass::Array->Count)
 		{
 			tib_ = 0;
 		}
 	}
-
-	// Final validation before use
-	//if (tib_ < 0 || tib_ >= TiberiumClass::Array->Count)
-		//return false;
 
 	auto pTib = TiberiumClass::Array->Items[tib_];
 	auto pTerrainExt = TerrainExtContainer::Instance.Find(pTerrain);
