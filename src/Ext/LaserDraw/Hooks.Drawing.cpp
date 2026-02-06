@@ -1,3 +1,4 @@
+/*/
 #include <Helpers/Macro.h>
 
 #include <LaserDrawClass.h>
@@ -470,3 +471,4 @@ void FakeLaserDrawClaass::__DrawInHouseColor()
 }
 
 DEFINE_FUNCTION_JUMP(CALL, 0x55027B, FakeLaserDrawClaass::__DrawInHouseColor);
+*/

@@ -600,6 +600,10 @@ public:
 	void _UpdateSpySat();
 	void _Attacked(BuildingClass* source, WarheadTypeClass* warhead);
 
+	// Backported from HouseClass::init_laser_color (0x50BA00-0x50BC90)
+	// Normalizes this->Color into this->LaserColor for laser rendering
+	void _InitLaserColor();
+
 	HouseExtData* _GetExtData() {
 		return *reinterpret_cast<HouseExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
