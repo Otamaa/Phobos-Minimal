@@ -354,9 +354,9 @@ bool __fastcall FakeTeleportLocomotionClass::TeleportLocomotionClass_InternalMar
 	// 2. When the Chronosphere or ChronoWarp superweapon activates
 	// 3. When units with Locomotor={4A582747-9839-11d1-B709-00A024DDAFD1} (Teleport) move
 	
-	Debug::Log("[Phobos] TeleportLocomotion backport @ 0x718260 - Coords: (%d, %d, %d), Mark: %d, Unit: %s\n", 
-		destX, destY, destZ, mark, 
-		pThis && pThis->LinkedTo ? pThis->LinkedTo->GetTechnoType()->get_ID() : "NULL");
+	//Debug::Log("[Phobos] TeleportLocomotion backport @ 0x718260 - Coords: (%d, %d, %d), Mark: %d, Unit: %s\n", 
+	//	destX, destY, destZ, mark, 
+	//	pThis && pThis->LinkedTo ? pThis->LinkedTo->GetTechnoType()->get_ID() : "NULL");
 	
 	CoordStruct destCoord { destX, destY, destZ };
 	return Mark_All_Occupation_Bits(pThis, destCoord, mark);
