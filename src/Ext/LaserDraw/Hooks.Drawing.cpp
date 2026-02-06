@@ -103,7 +103,7 @@ static int Calculate_Intensity_Ratio(const LaserDrawClass* laser)
 {
 	float intensity = 1.0f;
 
-	if (laser->Fades && laser->Duration > 0)
+	if (laser->Fades)
 	{
 		const int elapsed = laser->Duration - laser->Progress.Stage;
 		const float delta = laser->StartIntensity - laser->EndIntensity;
@@ -249,7 +249,7 @@ void FakeLaserDrawClaass::__DrawInHouseColor()
 	const int ratio = Calculate_Intensity_Ratio(this);
 	float intensity = 1.0f;
 
-	if (Fades && Duration > 0)
+	if (Fades)
 	{
 		const int elapsed = Duration - Progress.Stage;
 		const float delta = StartIntensity - EndIntensity;

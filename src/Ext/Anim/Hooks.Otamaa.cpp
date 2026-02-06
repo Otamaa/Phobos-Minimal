@@ -833,16 +833,14 @@ int FakeAnimClass::_BounceAI()
 
 		const auto pCell = MapClass::Instance->GetCellAt(_coord);
 
-		if (pCell) {
-			for (auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject) {
-				auto _objCoord = pObject->GetCoords();
-				const int nDist = Math::abs(_coord.Y - _objCoord.Y) + Math::abs(_coord.X - _objCoord.X);
+		for (auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject) {
+			auto _objCoord = pObject->GetCoords();
+			const int nDist = Math::abs(_coord.Y - _objCoord.Y) + Math::abs(_coord.X - _objCoord.X);
 
-				if (nDist <= this->Type->DamageRadius) {
-					auto nDamage = (int)this->Type->Damage;
-					pObject->ReceiveDamage(&nDamage, Game::AdjustHeight(nDist), this->Type->Warhead,
-								  pTechnoInvoker, false, false, pTechnoInvoker ? pTechnoInvoker->Owner : this->Owner);
-				}
+		if (nDist <= this->Type->DamageRadius) {
+			auto nDamage = (int)this->Type->Damage;
+			pObject->ReceiveDamage(&nDamage, Game::AdjustHeight(nDist), this->Type->Warhead,
+						  pTechnoInvoker, false, false, pTechnoInvoker ? pTechnoInvoker->Owner : this->Owner);
 			}
 		}
 	}

@@ -330,7 +330,7 @@ static TechnoClass* CreateFoot(
 		if (rtti != AbstractType::AircraftType && parachuteIfInAir && !alwaysOnGround && inAir) {
 			parachuted = true;
 			success = pTechno->SpawnParachuted(location);
-		} else if (!pCell || !pCell->GetBuilding() || !checkPathfinding) {
+		} else if (!pCell->GetBuilding() || !checkPathfinding) {
 			++Unsorted::ScenarioInit;
 			success = pTechno->Unlimbo(location, facing);
 			--Unsorted::ScenarioInit;
@@ -350,7 +350,7 @@ static TechnoClass* CreateFoot(
 					if (auto const pFlyLoco = locomotion_cast<FlyLocomotionClass*>(pTechno->Locomotor))
 					{
 						pTechno->SetLocation(location);
-						if(pType->Speed != 0 && pCell) {
+						if(pType->Speed != 0) {
 							bool airportBound = rtti == AbstractType::AircraftType && static_cast<AircraftTypeClass*>(pType)->AirportBound;
 							if (pCell->GetContent() || airportBound)
 								pTechno->EnterIdleMode(false, true);

@@ -201,20 +201,7 @@ void FakeDiskLaserClass::__AI()
 	auto pTarget = this->Target;
 	auto pWeapon = this->Weapon;
 
-	if (!pFirer || !pTarget || !pWeapon) {
-		this->DrawRateCounter = -1;
-		if (AbstractClass::Array2)
-			AbstractClass::Array2->erase(this);
-		return;
-	}
-
 	auto pTypeExt = GET_TECHNOTYPEEXT(pFirer);
-	if (!pTypeExt) {
-		this->DrawRateCounter = -1;
-		if (AbstractClass::Array2)
-			AbstractClass::Array2->erase(this);
-		return;
-	}
 
 	// Get firer center coordinates
 	CoordStruct firerCoords = pFirer->GetCoords();
@@ -357,7 +344,7 @@ void FakeDiskLaserClass::__AI()
 		{
 			auto const pWarhead = pWeapon->Warhead;
 
-			if (pWarhead && RulesExtData::Instance()->DiskLaserAnimEnabled) {
+			if (RulesExtData::Instance()->DiskLaserAnimEnabled) {
 				auto const pAnimType = MapClass::SelectDamageAnimation(
 					this->Damage,
 					pWarhead,
@@ -377,9 +364,7 @@ void FakeDiskLaserClass::__AI()
 				}
 			}
 
-			if (pWarhead && MapClass::Instance) {
-				MapClass::FlashbangWarheadAt(this->Damage, pWarhead, laserEnd);
-			}
+			MapClass::FlashbangWarheadAt(this->Damage, pWarhead, laserEnd);
 		}
 		// ============================================================
 
@@ -461,19 +446,16 @@ void FakeDiskLaserClass::__Fire(TechnoClass* pFirer, AbstractClass* pTarget, Wea
 	// Validate all required parameters
 	if (!pFirer) {
 		this->DrawRateCounter = -1;
-		AbstractClass::Array2->push_back(this);
 		return;
 	}
 
 	if (!pTarget) {
 		this->DrawRateCounter = -1;
-		AbstractClass::Array2->push_back(this);
 		return;
 	}
 
 	if (!pWeapon) {
 		this->DrawRateCounter = -1;
-		AbstractClass::Array2->push_back(this);
 		return;
 	}
 
@@ -502,17 +484,15 @@ void FakeDiskLaserClass::__Fire(TechnoClass* pFirer, AbstractClass* pTarget, Wea
 	// Calculate starting offset for laser animation
 	// Extract lower 16 bits, then calculate index
 	unsigned short const angleWord = static_cast<unsigned short>(binaryAngle);
-	int offset = (((((angleWord >> 11) + 1) >> 1) & 0xF) + 8);
+	const int offset = (((((angleWord >> 11) + 1) >> 1) & 0xF) + 8);
 
-	// Use proper modulo for positive result
-	const int coordSize = static_cast<int>(std::size(DiscLaserCoords));
-	offset = offset % coordSize;
-	if (offset < 0)
-		offset += coordSize;
-
-	this->Facing = offset;
+	// Use signed mod 16 for final value
+	this->Facing = offset % std::size(DiscLaserCoords);
 	this->DrawRateCounter = 0;
 	this->DrawCounter = 0;
+
+	// Add to the array for AI processing
+	AbstractClass::Array2->push_back(this);
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x4A71A0, FakeDiskLaserClass::__Fire)

@@ -126,29 +126,14 @@ void FakeBombClass::__Detonate() {
 			// Also adjust detonation coordinate.
 			auto pExt = this->_GetExtData();
 
-			if (!pExt || !pExt->Weapon) {
-				return;
-			}
-
 			CoordStruct coords = pExt->Weapon->Ivan_AttachToCenter.Get(RulesExtData::Instance()->IvanBombAttachToCenter) ?
 				pTarget->GetCenterCoords() : pTarget->Location;
 
-			if (!RulesClass::Instance) {
-				return;
-			}
-
 			const auto pBombWH = pExt->Weapon->Ivan_WH.Get(RulesClass::Instance->IvanWarhead);
-			if (!pBombWH) {
-				return;
-			}
 
 			const auto nDamage = pExt->Weapon->Ivan_Damage.Get(RulesClass::Instance->IvanDamage);
 			const auto OwningHouse = this->GetOwningHouse();
-
-			if (!MapClass::Instance) {
-				return;
-			}
-
+			
 			/*WarheadTypeExtData::DetonateAt(pBombWH, pTarget, coords, pThis->Owner, nDamage);*/
 			DamageArea::Apply(&coords, nDamage, this->Owner, pBombWH, pBombWH->Tiberium, OwningHouse);
 			MapClass::Instance->FlashbangWarheadAt(nDamage, pBombWH, coords);
@@ -214,14 +199,10 @@ void FakeBombClass::__Detonate() {
 int FakeBombClass::__GetBombFrame()
 {
 	const auto ext = this->_GetExtData();
-	if (!ext || !ext->Weapon)
-		return 0;
 
 	const auto pData = ext->Weapon;
 
 	const SHPStruct* shp = pData->Ivan_Image.Get(RulesClass::Instance->BOMBCURS_SHP);
-	if (!shp)
-		return 0;
 
 	const int frames = shp->Frames;
 
