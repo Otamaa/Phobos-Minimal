@@ -134,7 +134,7 @@ void NOINLINE FakeAnimClass::_Start()
 						auto SpawnLoc = gCoords;
 						SpawnLoc.Z += 10;
 
-						auto pSpawn = GameCreate<AnimClass>(tiberium->Debris[ScenarioClass::Instance->Random.RandomFromMax(tiberium->Debris.size() - 1)], SpawnLoc);
+						auto pSpawn = GameCreate<AnimClass>(tiberium->Debris[ScenarioClass::Instance->Random.RandomFromMax((int)tiberium->Debris.size() - 1)], SpawnLoc);
 						pSpawn->LightConvert = ColorScheme::Array->Items[tiberium->Color]->LightConvert;
 						pSpawn->TintColor = cptr->Color1.Red;
 					}
@@ -476,7 +476,7 @@ void NOINLINE FakeAnimClass::_CreateFoot()
 
 		const auto& toInf = RulesClass::Instance->AnimToInfantry;
 
-		if ((size_t)this->Type->MakeInfantry < toInf.size()) {
+if ((size_t)this->Type->MakeInfantry < toInf.size() && toInf.Items[this->Type->MakeInfantry]) {
 
 
 			if (HouseClass* pInfOwner = !this->Owner || this->Owner->Defeated ?
@@ -837,10 +837,10 @@ int FakeAnimClass::_BounceAI()
 			auto _objCoord = pObject->GetCoords();
 			const int nDist = Math::abs(_coord.Y - _objCoord.Y) + Math::abs(_coord.X - _objCoord.X);
 
-			if (nDist <= this->Type->DamageRadius) {
-				auto nDamage = (int)this->Type->Damage;
-				pObject->ReceiveDamage(&nDamage, Game::AdjustHeight(nDist), this->Type->Warhead,
-							  pTechnoInvoker, false, false, pTechnoInvoker ? pTechnoInvoker->Owner : this->Owner);
+		if (nDist <= this->Type->DamageRadius) {
+			auto nDamage = (int)this->Type->Damage;
+			pObject->ReceiveDamage(&nDamage, Game::AdjustHeight(nDist), this->Type->Warhead,
+						  pTechnoInvoker, false, false, pTechnoInvoker ? pTechnoInvoker->Owner : this->Owner);
 			}
 		}
 	}

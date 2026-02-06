@@ -89,8 +89,8 @@ bool IsometricTileTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	//this->Palette.Read(exINI, buffer.data() , "CustomPalette");
 
 	this->AllowedTiberiums.Read(exINI, this->TileSetName.c_str(), "AllowedTiberiums");
-	this->AllowVeins.Read(exINI, this->TileSetName.c_str(), "AlloweVeins");
-	this->AllowedSmudges.Read(exINI, this->TileSetName.c_str(), "AllowedSmudgess");
+	this->AllowVeins.Read(exINI, this->TileSetName.c_str(), "AllowVeins");
+	this->AllowedSmudges.Read(exINI, this->TileSetName.c_str(), "AllowedSmudges");
 	return true;
 }
 

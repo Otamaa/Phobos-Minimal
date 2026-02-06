@@ -40,7 +40,7 @@ bool FakeCaptureManagerClass::__FreeUnit(TechnoClass* pTarget, bool bSilent)
 
 				if (!bSilent)
 				{
-					int nSound = GET_TECHNOTYPE(pTarget)->MindClearedSound;
+				int nSound = GET_TECHNOTYPE(pTarget)->MindClearedSound;
 
 					if (nSound == -1)
 						nSound = RulesClass::Instance->MindClearedSound;
@@ -59,10 +59,9 @@ bool FakeCaptureManagerClass::__FreeUnit(TechnoClass* pTarget, bool bSilent)
 				this->__DecideUnitFate(pTarget, false);
 				pTarget->MindControlledBy = nullptr;
 
-				if (this->ControlNodes.erase_at(i))
-				{
-					GameDelete<false, false>(pNode);
-				}
+				// Erase the node and delete it
+				this->ControlNodes.erase_at(i);
+				GameDelete<false, false>(pNode);
 
 				return true;
 			}
@@ -417,8 +416,10 @@ int FakeCaptureManagerClass::__GetControlledTotalSize() {
 	int totalSize = 0;
 
 	for (const auto& pNode : this->ControlNodes) {
-		if (const auto pTechno = pNode->Unit) {
-			totalSize += GET_TECHNOTYPEEXT(pTechno)->MindControlSize;
+		if (pNode) {
+			if (const auto pTechno = pNode->Unit) {
+				totalSize += GET_TECHNOTYPEEXT(pTechno)->MindControlSize;
+			}
 		}
 	}
 
@@ -437,7 +438,7 @@ bool FakeCaptureManagerClass::__IsOverloading(bool* isIt)
 
 bool FakeCaptureManagerClass::__CanControlMore()
 {
-	return !this->InfiniteMindControl && this->__GetControlledCount() >= this->MaxControlNodes;
+	return this->InfiniteMindControl || this->__GetControlledCount() < this->MaxControlNodes;
 }
 
 bool FakeCaptureManagerClass::__CanCapture(TechnoClass* pTarget)
