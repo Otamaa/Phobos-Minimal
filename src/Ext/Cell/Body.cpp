@@ -570,11 +570,8 @@ CellStruct* FakeMapClass::__NearByLocation(
 	int baseLevel = pStartCell->Level;
 
 	// If alt flag set and cell has bridge, add bridge levels
-	if (alt)
-	{
-		CellClass* pAltCell = this->GetCellAt(*pPosition);
-		if (pAltCell->ContainsBridge())
-		{
+	if (alt) {
+		if (pStartCell->ContainsBridge()) {
 			baseLevel += Unsorted::BridgeLevels;
 		}
 	}
@@ -586,6 +583,7 @@ CellStruct* FakeMapClass::__NearByLocation(
 
 	if (maxRadius <= 0)
 	{
+		Debug::Log("MapClass::NearByLocation: No candidate cells found.\n");
 		*pOutBuffer = CellStruct::Empty;
 		return pOutBuffer;
 	}
@@ -823,8 +821,8 @@ CellStruct* FakeMapClass::__NearByLocation(
 	}
 
 	// No candidates found - return default cell
-	if (candidateCount <= 0)
-	{
+	if (candidateCount <= 0) {
+		Debug::Log("MapClass::NearByLocation: No candidate cells found.\n");
 		*pOutBuffer = CellStruct::Empty;
 		return pOutBuffer;
 	}
@@ -855,6 +853,7 @@ CellStruct* FakeMapClass::__NearByLocation(
 
 	if (selectedCount <= 0)
 	{
+		Debug::Log("MapClass::NearByLocation: No candidate cells found.\n");
 		*pOutBuffer = CellStruct::Empty;
 		return pOutBuffer;
 	}
@@ -875,10 +874,7 @@ CellStruct* FakeMapClass::__NearByLocation(
 		for (int i = 0; i < selectedCount; ++i)
 		{
 			const CellStruct& cell = selectedList[i];
-			int dx = cell.X - pCloseTo->X;
-			int dy = cell.Y - pCloseTo->Y;
-			double distSq = static_cast<double>(dx * dx + dy * dy);
-			double dist = std::sqrt(distSq);
+			double dist = cell.operator-(*pCloseTo).Length();
 
 			if (dist < minDist)
 			{
