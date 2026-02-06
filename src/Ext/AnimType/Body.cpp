@@ -149,15 +149,14 @@ bool AnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 			int nCount = 0;
 			char* context = nullptr;
 			for (char* cur = strtok_s(exINI.value(), Phobos::readDelims, &context);
-				cur;
+				cur && nCount < nBaseSize;
 				cur = strtok_s(nullptr, Phobos::readDelims, &context))
 			{
 				int buffer { 1 };
 				if (Parser<int>::TryParse(cur, &buffer))
 					this->SpawnsMultiple_amouts[nCount] = buffer;
 
-				if (++nCount >= nBaseSize)
-					break;
+				nCount++;
 			}
 		}
 	}
@@ -236,11 +235,14 @@ void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 
 		auto pCell = pThis->GetCell();
 
+		if (!pCell)
+			return;
+
 		bool allowBridges = pExt->WasOnBridge || GroundType::GetCost(LandType::Clear, pUnit->SpeedType) > 0.0;
 		bool isBridge = allowBridges && pCell->ContainsBridge();
 
 		if (c_type->ConsiderPathfinding
-			&& (!pCell || !pCell->IsClearToMove(pUnit->SpeedType, false, false, ZoneType::None, pUnit->MovementZone, -1, isBridge)))
+			&& !pCell->IsClearToMove(pUnit->SpeedType, false, false, ZoneType::None, pUnit->MovementZone, -1, isBridge))
 		{
 			const auto nCell = MapClass::Instance->NearByLocation(CellClass::Coord2Cell(Location),
 				pUnit->SpeedType, ZoneType::None, pUnit->MovementZone, isBridge, 1, 1, true,
@@ -282,7 +284,7 @@ static HouseClass* GetOwnerForSpawned(AnimClass* pThis)
 
 	if (!pThis->Owner || pThis->Owner->Defeated)
 	{
-		if (c_type->RequireOwner)
+		if (c_type && c_type->RequireOwner)
 			return nullptr;
 
 		return HouseExtData::FindFirstCivilianHouse();

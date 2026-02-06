@@ -40,7 +40,7 @@
 //
 //	return 0x0;
 //}
-
+/*
 ASMJIT_PATCH(0x718275 ,TeleportLocomotionClass_MakeRoom, 9)
 {
 	LEA_STACK(CoordStruct*, pCoord, 0x3C);
@@ -88,14 +88,16 @@ ASMJIT_PATCH(0x718275 ,TeleportLocomotionClass_MakeRoom, 9)
 		}
 	}
 
-	if ((pCell->Flags & CellFlags(0x300)) == CellFlags(100))
+	// Check if bridge exists (0x100) but body is destroyed (0x200 not set)
+	// Original: (Flags & 0x300) == 0x100 means bridge head present without body
+	if ((pCell->Flags & CellFlags(0x300)) == CellFlags(0x100))
 		R->Stack(0x48, true);
 
 	R->Stack(0x20 , pLoco->LinkedTo->GetCellAgain());
 	R->EAX(true);
 	return 0x7184CE;
 }
-
+*/
 
 ASMJIT_PATCH(0x514E97, HoverLocomotionClass_ILocomotion_MoveTo, 0x7)
 {

@@ -446,19 +446,16 @@ void FakeDiskLaserClass::__Fire(TechnoClass* pFirer, AbstractClass* pTarget, Wea
 	// Validate all required parameters
 	if (!pFirer) {
 		this->DrawRateCounter = -1;
-		AbstractClass::Array2->push_back(this);
 		return;
 	}
 
 	if (!pTarget) {
 		this->DrawRateCounter = -1;
-		AbstractClass::Array2->push_back(this);
 		return;
 	}
 
 	if (!pWeapon) {
 		this->DrawRateCounter = -1;
-		AbstractClass::Array2->push_back(this);
 		return;
 	}
 
@@ -493,6 +490,9 @@ void FakeDiskLaserClass::__Fire(TechnoClass* pFirer, AbstractClass* pTarget, Wea
 	this->Facing = offset % std::size(DiscLaserCoords);
 	this->DrawRateCounter = 0;
 	this->DrawCounter = 0;
+
+	// Add to the array for AI processing
+	AbstractClass::Array2->push_back(this);
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x4A71A0, FakeDiskLaserClass::__Fire)
