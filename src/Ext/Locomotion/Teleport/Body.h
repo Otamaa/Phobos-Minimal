@@ -31,7 +31,7 @@ class FakeTeleportLocomotionClass
 public:
 	// Default coordinate value used to check if LastCoords has been initialized
 	// In the original game, this is a static constant at TeleportLocoCoord::default
-	static constexpr CoordStruct DefaultCoords { -1, -1, -1 };
+	static constexpr CoordStruct DefaultCoords { 0, 0, 0 };
 
 	/**
 	 * Mark_All_Occupation_Bits - Main teleportation occupation bit handler
