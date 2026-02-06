@@ -76,7 +76,20 @@ void SpiralTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 	pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X);
 	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
 	pBullet->Velocity.Z = static_cast<double>(pBullet->TargetCoords.Z - pBullet->SourceCoords.Z);
-	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Length();
+
+	// Guard against division by zero when velocity length is zero (source equals target)
+	double velocityLength = pBullet->Velocity.Length();
+	if (velocityLength > 1e-10)
+	{
+		pBullet->Velocity *= this->GetTrajectorySpeed() / velocityLength;
+	}
+	else
+	{
+		// Set a default forward velocity
+		pBullet->Velocity.X = this->GetTrajectorySpeed();
+		pBullet->Velocity.Y = 0.0;
+		pBullet->Velocity.Z = 0.0;
+	}
 }
 
 bool SpiralTrajectory::OnAI()
@@ -129,12 +142,19 @@ void SpiralTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosit
 	CoordStruct target = pBullet->TargetCoords;
 	target.Z = 0;
 
-	if (center.DistanceFrom(target) > type->Length)
+	double length = type->Length.Get();
+
+	// Guard against division by zero when Length is zero or very small
+	if (length < 1e-10)
+		return;
+
+	if (center.DistanceFrom(target) > length)
 	{
 		if (this->CurrentRadius < type->MaxRadius)
 		{
 			double speed = Math::sqrt(Math::pow(pSpeed->X, 2.0) + Math::pow(pSpeed->Y, 2.0));
-			this->CurrentRadius += type->MaxRadius / (type->Length / speed);
+			if (speed > 1e-10)
+				this->CurrentRadius += type->MaxRadius / (length / speed);
 		}
 	}
 	else
@@ -142,7 +162,8 @@ void SpiralTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosit
 		if (this->CurrentRadius > 0)
 		{
 			double speed = Math::sqrt(Math::pow(pSpeed->X, 2.0) + Math::pow(pSpeed->Y, 2.0));
-			this->CurrentRadius -= type->MaxRadius / (type->Length / speed);
+			if (speed > 1e-10)
+				this->CurrentRadius -= type->MaxRadius / (length / speed);
 		}
 		else if (!this->close)
 		{

@@ -45,7 +45,7 @@ EBolt* EboltExtData::_CreateOneOf(WeaponTypeClass * pWeapon, TechnoClass * pFire
 	return ret;
 }
 
-EBolt* EboltExtData::_CreateOneOf(bool disable1 , bool disable2 , bool dosable3 , bool alternateColor, int arch , int lifetime, Nullable<ColorStruct>& clr1, Nullable<ColorStruct>& clr2, Nullable<ColorStruct>& clr3) {
+EBolt* EboltExtData::_CreateOneOf(bool disable1 , bool disable2 , bool disable3 , bool alternateColor, int arch , int lifetime, Nullable<ColorStruct>& clr1, Nullable<ColorStruct>& clr2, Nullable<ColorStruct>& clr3) {
 
 	auto ret = GameCreate<EBolt>();
 
@@ -56,6 +56,9 @@ EBolt* EboltExtData::_CreateOneOf(bool disable1 , bool disable2 , bool dosable3 
 
 	map->pSys = RulesClass::Instance->DefaultSparkSystem;
 	map->Arcs = arch;
+	map->Disable[0] = disable1;
+	map->Disable[1] = disable2;
+	map->Disable[2] = disable3;
 
 	EboltExtData::GetColors(map->Color , ret, clr1, clr2, clr3);
 

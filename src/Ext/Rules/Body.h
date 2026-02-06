@@ -132,7 +132,7 @@ public:
 	// 8-byte aligned: Plain pointers
 	// ============================================================
 	AnimTypeClass* DefaultAircraftDamagedSmoke { nullptr };
-	BulletTypeClass* DefautBulletType { nullptr };  // typo: should be "DefaultBulletType"
+	BulletTypeClass* DefaultBulletType { nullptr };
 	AnimTypeClass* XGRYMED1_ {};
 	AnimTypeClass* XGRYMED2_ {};
 	AnimTypeClass* XGRYSML1_ {};
