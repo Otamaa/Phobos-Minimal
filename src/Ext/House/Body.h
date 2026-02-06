@@ -23,7 +23,7 @@ class TActionClass;
 
 struct LauchData
 {
-	int LastFrame { Unsorted::CurrentFrame };
+	int LastFrame { -1 };  // -1 indicates uninitialized; use CurrentFrame() at runtime
 	int Count { 0 };
 
 	COMPILETIMEEVAL void Update()

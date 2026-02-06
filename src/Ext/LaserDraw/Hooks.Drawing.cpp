@@ -103,7 +103,7 @@ static int Calculate_Intensity_Ratio(const LaserDrawClass* laser)
 {
 	float intensity = 1.0f;
 
-	if (laser->Fades)
+	if (laser->Fades && laser->Duration > 0)
 	{
 		const int elapsed = laser->Duration - laser->Progress.Stage;
 		const float delta = laser->StartIntensity - laser->EndIntensity;
@@ -189,25 +189,6 @@ static COMPILETIMEEVAL double Calculate_Smooth_Falloff(int thickness, int curren
 }
 
 // ============================================================================
-// [HOOK MODIFIED] Calculate layer color with smooth falloff
-// ORIGINAL: color >>= 1 each layer (harsh 50% steps)
-// NEW: smooth exponential falloff based on thickness
-// ============================================================================
-static void Calculate_Layer_Color(
-	unsigned char* out_color,
-	const ColorStruct& max_color,
-	int thickness,
-	int current_layer,
-	bool use_high_quality)
-{
-	const double mult = Calculate_Smooth_Falloff(thickness, current_layer);
-
-	out_color[0] = static_cast<unsigned char>(mult * max_color.R);
-	out_color[1] = static_cast<unsigned char>(mult * max_color.G);
-	out_color[2] = static_cast<unsigned char>(mult * max_color.B);
-}
-
-// ============================================================================
 // [HOOK MODIFIED] Check color threshold
 // ORIGINAL: checked after halving
 // NEW: threshold still used but colors calculated differently
@@ -268,7 +249,7 @@ void FakeLaserDrawClaass::__DrawInHouseColor()
 	const int ratio = Calculate_Intensity_Ratio(this);
 	float intensity = 1.0f;
 
-	if (Fades)
+	if (Fades && Duration > 0)
 	{
 		const int elapsed = Duration - Progress.Stage;
 		const float delta = StartIntensity - EndIntensity;

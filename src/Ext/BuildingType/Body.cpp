@@ -954,7 +954,7 @@ int BuildingTypeExtData::GetBuildingAnimTypeIndex(BuildingClass* pThis, const Bu
 
 		{
 			const auto nIndex = pThis->Occupants[0]->Owner->Type->ArrayIndex;
-			if (nIndex != -1)
+			if (nIndex >= 0)
 			{
 
 				AnimTypeClass* pDecidedAnim = nullptr;
@@ -962,19 +962,24 @@ int BuildingTypeExtData::GetBuildingAnimTypeIndex(BuildingClass* pThis, const Bu
 				switch (nSlot)
 				{
 				case BuildingAnimSlot::Active:
-					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveOne[nIndex];
+					if ((size_t)nIndex < pBuildingExt->GarrisonAnim_ActiveOne.size())
+						pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveOne[nIndex];
 					break;
 				case BuildingAnimSlot::ActiveTwo:
-					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveTwo[nIndex];
+					if ((size_t)nIndex < pBuildingExt->GarrisonAnim_ActiveTwo.size())
+						pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveTwo[nIndex];
 					break;
 				case BuildingAnimSlot::ActiveThree:
-					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveThree[nIndex];
+					if ((size_t)nIndex < pBuildingExt->GarrisonAnim_ActiveThree.size())
+						pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveThree[nIndex];
 					break;
 				case BuildingAnimSlot::ActiveFour:
-					pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveFour[nIndex];
+					if ((size_t)nIndex < pBuildingExt->GarrisonAnim_ActiveFour.size())
+						pDecidedAnim = pBuildingExt->GarrisonAnim_ActiveFour[nIndex];
 					break;
 				case BuildingAnimSlot::Idle:
-					pDecidedAnim = pBuildingExt->GarrisonAnim_idle[nIndex];
+					if ((size_t)nIndex < pBuildingExt->GarrisonAnim_idle.size())
+						pDecidedAnim = pBuildingExt->GarrisonAnim_idle[nIndex];
 					break;
 				default:
 					break;
@@ -1015,7 +1020,7 @@ int BuildingTypeExtData::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* 
 	auto const pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 	for (const auto& [pBldType, nCount] : pHouseExt->PowerPlantEnhancerBuildings) {
 		const auto pExt = BuildingTypeExtContainer::Instance.Find(pBldType);
-		if (!pExt->PowerPlantEnhancer_Buildings.empty() && (pExt->PowerPlantEnhancer_Amount != 0 || pExt->PowerPlantEnhancer_Factor != 1.0f))
+		if (pExt->PowerPlantEnhancer_Buildings.empty() || (pExt->PowerPlantEnhancer_Amount == 0 && pExt->PowerPlantEnhancer_Factor == 1.0f))
 			continue;
 
 		fFactor *= float(Math::pow((double)pExt->PowerPlantEnhancer_Factor, (double)nCount));
@@ -1065,7 +1070,7 @@ float BuildingTypeExtData::GetPurifierBonusses(HouseClass* pHouse)
 
 double BuildingTypeExtData::GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseClass* pOwner)
 {
-	double fFactor = 0.0;
+	double fFactor = 1.0;
 
 	if (!pWhat || !pOwner || pOwner->Defeated || pOwner->IsNeutral() || HouseExtData::IsObserverPlayer(pOwner))
 		return fFactor;

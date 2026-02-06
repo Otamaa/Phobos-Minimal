@@ -264,7 +264,7 @@ bool HouseTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	if (!this->SettingsInherited
 		&& *pThis->ParentCountry
-		&& IS_SAME_STR_(pThis->ParentCountry, pThis->ID))
+		&& !IS_SAME_STR_(pThis->ParentCountry, pThis->ID))
 	{
 		this->InheritSettings(pThis);
 	}

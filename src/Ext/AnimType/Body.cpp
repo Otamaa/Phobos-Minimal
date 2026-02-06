@@ -149,15 +149,14 @@ bool AnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 			int nCount = 0;
 			char* context = nullptr;
 			for (char* cur = strtok_s(exINI.value(), Phobos::readDelims, &context);
-				cur;
+				cur && nCount < nBaseSize;
 				cur = strtok_s(nullptr, Phobos::readDelims, &context))
 			{
 				int buffer { 1 };
 				if (Parser<int>::TryParse(cur, &buffer))
 					this->SpawnsMultiple_amouts[nCount] = buffer;
 
-				if (++nCount >= nBaseSize)
-					break;
+				nCount++;
 			}
 		}
 	}
@@ -236,11 +235,14 @@ void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 
 		auto pCell = pThis->GetCell();
 
+		if (!pCell)
+			return;
+
 		bool allowBridges = pExt->WasOnBridge || GroundType::GetCost(LandType::Clear, pUnit->SpeedType) > 0.0;
 		bool isBridge = allowBridges && pCell->ContainsBridge();
 
 		if (c_type->ConsiderPathfinding
-			&& (!pCell || !pCell->IsClearToMove(pUnit->SpeedType, false, false, ZoneType::None, pUnit->MovementZone, -1, isBridge)))
+			&& !pCell->IsClearToMove(pUnit->SpeedType, false, false, ZoneType::None, pUnit->MovementZone, -1, isBridge))
 		{
 			const auto nCell = MapClass::Instance->NearByLocation(CellClass::Coord2Cell(Location),
 				pUnit->SpeedType, ZoneType::None, pUnit->MovementZone, isBridge, 1, 1, true,
@@ -282,7 +284,7 @@ static HouseClass* GetOwnerForSpawned(AnimClass* pThis)
 
 	if (!pThis->Owner || pThis->Owner->Defeated)
 	{
-		if (c_type->RequireOwner)
+		if (c_type && c_type->RequireOwner)
 			return nullptr;
 
 		return HouseExtData::FindFirstCivilianHouse();
@@ -328,7 +330,7 @@ static TechnoClass* CreateFoot(
 		if (rtti != AbstractType::AircraftType && parachuteIfInAir && !alwaysOnGround && inAir) {
 			parachuted = true;
 			success = pTechno->SpawnParachuted(location);
-		} else if (!pCell->GetBuilding() || !checkPathfinding) {
+		} else if (!pCell || !pCell->GetBuilding() || !checkPathfinding) {
 			++Unsorted::ScenarioInit;
 			success = pTechno->Unlimbo(location, facing);
 			--Unsorted::ScenarioInit;
@@ -348,7 +350,7 @@ static TechnoClass* CreateFoot(
 					if (auto const pFlyLoco = locomotion_cast<FlyLocomotionClass*>(pTechno->Locomotor))
 					{
 						pTechno->SetLocation(location);
-						if(pType->Speed != 0) {
+						if(pType->Speed != 0 && pCell) {
 							bool airportBound = rtti == AbstractType::AircraftType && static_cast<AircraftTypeClass*>(pType)->AirportBound;
 							if (pCell->GetContent() || airportBound)
 								pTechno->EnterIdleMode(false, true);

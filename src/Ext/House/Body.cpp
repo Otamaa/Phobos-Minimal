@@ -507,12 +507,39 @@ CanBuildResult HouseExtData::PrereqValidate(
 		return CanBuildResult::Buildable;
 	}
 
-	const auto builtLimitResult = static_cast<CanBuildResult>(HouseExtData::CheckBuildLimit(pHouse, pItem, includeQueued));
+	const auto buildLimitStatus = HouseExtData::CheckBuildLimit(pHouse, pItem, includeQueued);
+
+	// Convert BuildLimitStatus to CanBuildResult (they have different semantics!)
+	// BuildLimitStatus::ReachedPermanently (-1) -> CanBuildResult::Unbuildable (0) - remove cameo
+	// BuildLimitStatus::ReachedTemporarily (0) -> CanBuildResult::TemporarilyUnbuildable (-1) - black out cameo
+	// BuildLimitStatus::NotReached (1) -> CanBuildResult::Buildable (1) - can build
+	CanBuildResult builtLimitResult;
+	switch (buildLimitStatus) {
+	case BuildLimitStatus::ReachedPermanently:
+		builtLimitResult = CanBuildResult::Unbuildable;
+		break;
+	case BuildLimitStatus::ReachedTemporarily:
+		builtLimitResult = CanBuildResult::TemporarilyUnbuildable;
+		break;
+	case BuildLimitStatus::NotReached:
+	default:
+		builtLimitResult = CanBuildResult::Buildable;
+		break;
+	}
 
 	if (builtLimitResult == CanBuildResult::Buildable
 		&& pItem->WhatAmI() == BuildingTypeClass::AbsID
 		&& !BuildingTypeExtContainer::Instance.Find((BuildingTypeClass*)pItem)->PowersUp_Buildings.empty()) {
-		return static_cast<CanBuildResult>(HouseExtData::CheckBuildingBuildLimit(pHouse, (BuildingTypeClass*)pItem, includeQueued));
+		// CheckBuildingBuildLimit returns int with same layout as BuildLimitStatus
+		const int buildingLimitStatus = HouseExtData::CheckBuildingBuildLimit(pHouse, (BuildingTypeClass*)pItem, includeQueued);
+		switch (buildingLimitStatus) {
+		case -1: // ReachedPermanently
+			return CanBuildResult::Unbuildable;
+		case 0: // ReachedTemporarily
+			return CanBuildResult::TemporarilyUnbuildable;
+		default: // NotReached (1)
+			return CanBuildResult::Buildable;
+		}
 	}
 
 	return builtLimitResult;
@@ -833,12 +860,15 @@ void HouseExtData::ApplyAcademy(
 		switch (considerAs)
 		{
 		case AbstractType::Infantry:
+		case AbstractType::InfantryType:
 			pmBonus = &BuildingTypeExtData::AcademyInfantry;
 			break;
 		case AbstractType::Aircraft:
+		case AbstractType::AircraftType:
 			pmBonus = &BuildingTypeExtData::AcademyAircraft;
 			break;
 		case AbstractType::Unit:
+		case AbstractType::UnitType:
 			pmBonus = &BuildingTypeExtData::AcademyVehicle;
 			break;
 		default:
@@ -940,7 +970,9 @@ NOINLINE TunnelData* HouseExtData::GetTunnelVector(HouseClass* pHouse, size_t nT
 
 	while (pHouseExt->Tunnels.size() < TunnelTypeClass::Array.size())
 	{
-		pHouseExt->Tunnels.emplace_back(TunnelTypeClass::Array[nTunnelIdx]->Passengers);
+		// Use current size as the index to get the correct MaxCap for each tunnel type
+		size_t currentIdx = pHouseExt->Tunnels.size();
+		pHouseExt->Tunnels.emplace_back(TunnelTypeClass::Array[currentIdx]->Passengers);
 	}
 
 	return pHouseExt->Tunnels.data() + nTunnelIdx;
@@ -1559,6 +1591,7 @@ void HouseExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	TunnelsBuildings.InvalidatePointer(ptr, bRemoved);
 	RestrictedFactoryPlants.InvalidatePointer(ptr, bRemoved);
 	OwnedCountedHarvesters.InvalidatePointer(ptr, bRemoved);
+	AnnounceInvalidPointer<UnitClass*>(OwnedDeployingUnits, ptr, bRemoved);
 
 	for (auto& nTun : Tunnels){
 		AnnounceInvalidPointer<FootClass*>(nTun.Vector, ptr, bRemoved);

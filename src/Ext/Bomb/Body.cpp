@@ -126,12 +126,28 @@ void FakeBombClass::__Detonate() {
 			// Also adjust detonation coordinate.
 			auto pExt = this->_GetExtData();
 
+			if (!pExt || !pExt->Weapon) {
+				return;
+			}
+
 			CoordStruct coords = pExt->Weapon->Ivan_AttachToCenter.Get(RulesExtData::Instance()->IvanBombAttachToCenter) ?
 				pTarget->GetCenterCoords() : pTarget->Location;
 
+			if (!RulesClass::Instance) {
+				return;
+			}
+
 			const auto pBombWH = pExt->Weapon->Ivan_WH.Get(RulesClass::Instance->IvanWarhead);
+			if (!pBombWH) {
+				return;
+			}
+
 			const auto nDamage = pExt->Weapon->Ivan_Damage.Get(RulesClass::Instance->IvanDamage);
 			const auto OwningHouse = this->GetOwningHouse();
+
+			if (!MapClass::Instance) {
+				return;
+			}
 
 			/*WarheadTypeExtData::DetonateAt(pBombWH, pTarget, coords, pThis->Owner, nDamage);*/
 			DamageArea::Apply(&coords, nDamage, this->Owner, pBombWH, pBombWH->Tiberium, OwningHouse);
@@ -198,9 +214,15 @@ void FakeBombClass::__Detonate() {
 int FakeBombClass::__GetBombFrame()
 {
 	const auto ext = this->_GetExtData();
+	if (!ext || !ext->Weapon)
+		return 0;
+
 	const auto pData = ext->Weapon;
 
 	const SHPStruct* shp = pData->Ivan_Image.Get(RulesClass::Instance->BOMBCURS_SHP);
+	if (!shp)
+		return 0;
+
 	const int frames = shp->Frames;
 
 	int result = 0;
@@ -215,20 +237,35 @@ int FakeBombClass::__GetBombFrame()
 			const int elapsed = Unsorted::CurrentFrame - this->PlantingFrame;
 
 			const int half = frames / 2;
+			if (half <= 0)
+				return 0;
+
 			int capped = half - 1;
 
 			if (flickerRate <= 0) {
 				// no flicker: use only half the frames
-				int frame = elapsed / (delay / (2 * half));
+				int divisor = delay / (2 * half);
+				if (divisor <= 0)
+					divisor = 1;
+				int frame = elapsed / divisor;
 				if (frame > capped) frame = capped;
+				if (frame < 0) frame = 0;
 				result = frame;
 			} else {
 				// flicker: use full even/odd pattern
-				int frame = elapsed / (delay / half);
+				int divisor = delay / half;
+				if (divisor <= 0)
+					divisor = 1;
+				int frame = elapsed / divisor;
 				if (frame > capped) frame = capped;
+				if (frame < 0) frame = 0;
 
 				int even = frame * 2;
 				int odd = even + 1;
+
+				// Bounds check for even/odd frames
+				if (even >= frames) even = frames - 1;
+				if (odd >= frames) odd = frames - 1;
 
 				bool flick = (Unsorted::CurrentFrame % (2 * flickerRate)) < flickerRate;
 				result = flick ? even : odd;

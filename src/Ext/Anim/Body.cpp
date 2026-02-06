@@ -30,13 +30,13 @@ void AnimExtData::OnInit(AnimClass* pThis, CoordStruct* pCoord)
 
 	const auto pTypeExt = ((FakeAnimTypeClass*)pThis->Type)->_GetExtData();
 
-	if (pTypeExt->ConcurrentChance.Get() >= 1.0 && !pTypeExt->ConcurrentAnim.empty())
+	if (pTypeExt->ConcurrentChance.Get() > 0.0 && !pTypeExt->ConcurrentAnim.empty())
 	{
 		if (ScenarioClass::Instance->Random.RandomDouble() <= pTypeExt->ConcurrentChance.Get())
 		{
 
 			auto const nIdx = pTypeExt->ConcurrentAnim.size() == 1 ?
-				0 : ScenarioClass::Instance->Random.RandomFromMax(pTypeExt->ConcurrentAnim.size() - 1);
+				0 : ScenarioClass::Instance->Random.RandomFromMax((int)pTypeExt->ConcurrentAnim.size() - 1);
 
 			if (auto pType = pTypeExt->ConcurrentAnim[nIdx])
 			{
@@ -58,7 +58,7 @@ void AnimExtData::CreateRandomAnim(Iterator<AnimTypeClass*> AnimList, CoordStruc
 	if (AnimList.empty() || !pTechno)
 		return;
 
-	auto const pAnimType = AnimList[AnimList.size() > 1 ? ScenarioClass::Instance->Random.RandomRanged(0, AnimList.size() - 1) : 0];
+	auto const pAnimType = AnimList[AnimList.size() > 1 ? ScenarioClass::Instance->Random.RandomRanged(0, (int)AnimList.size() - 1) : 0];
 
 	if (!pAnimType)
 		return;
@@ -342,14 +342,15 @@ bool AnimExtData::OnMiddle(AnimClass* pThis)
 						const auto nMin = pAnimTypeExt->ParticleRangeMin.Get();
 						const auto nMax = pAnimTypeExt->ParticleRangeMax.Get();
 
-						if (nMin || nMax) {
+						if (nMin > 0.0 || nMax > 0.0) {
 
 							double rad = Math::GAME_TWOPI / numParticle;
 							double start_distance = 0.0;
 
 							for (; numParticle > 0; --numParticle) {
 
-								int rand = Math::abs(ScenarioClass::Instance->Random.RandomRanged((int)nMin, (int)nMax));
+								int rand = ScenarioClass::Instance->Random.RandomRanged((int)nMin, (int)nMax);
+								if (rand < 0) rand = -rand;
 								double randDouble = ScenarioClass::Instance->Random.RandomDouble() * rad + start_distance;
 								CoordStruct dest {
 									InitialCoord.X + int(rand * Math::cos(randDouble)),
@@ -650,7 +651,7 @@ void AnimExtData::SpawnFireAnims(AnimClass* pThis)
 				else
 					pAnimType = defaultAnimType;
 
-				if (distances->size() > 0 && distances->size() < i)
+				if (distances->size() > 0 && distances->size() > i)
 					distance = static_cast<int>((*distances)[i] * Unsorted::LeptonsPerCell);
 				else if (distances->size() > 0)
 					distance = static_cast<int>((*distances)[distances->size() - 1] * Unsorted::LeptonsPerCell);
