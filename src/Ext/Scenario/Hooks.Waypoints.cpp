@@ -51,7 +51,10 @@ ASMJIT_PATCH(0x68BDC0, ScenarioClass_ReadWaypoints, 0x8)
 		const auto pName = pINI->GetKeyName(GameStrings::Waypoints(), i);
 		int id;
 		if (sscanf_s(pName, "%d", &id) != 1 || id < 0)
+		{
 			Debug::LogInfo("[Phobos Developer Warning] Failed to parse waypoint {}.", pName);
+			continue;  // Skip invalid waypoint
+		}
 
 		int nCoord = pINI->ReadInteger(GameStrings::Waypoints(), pName, 0);
 
@@ -68,7 +71,10 @@ ASMJIT_PATCH(0x68BDC0, ScenarioClass_ReadWaypoints, 0x8)
 				Debug::LogInfo("[Phobos Developer Warning] Can not get waypoint {} : [{}, {}]!", id, buffer.X, buffer.Y);
 		}
 		else
+		{
 			Debug::LogInfo("[Phobos Developer Warning] Invalid waypoint {}!", id);
+			continue;  // Skip invalid coordinate
+		}
 
 
 		//Debug::LogInfo("Parse waypoint Result [%d][%d, %d] ! ", id, buffer.X, buffer.Y);
@@ -122,7 +128,7 @@ ASMJIT_PATCH(0x68BF74, ScenarioClass_Get_Waypoint_Cell, 0x7)
 
 ASMJIT_PATCH(0x763610, Waypoint_To_String, 0x5)
 {
-	char buffer[8] { '\0' };
+	static char buffer[16] { '\0' };  // Increased size to 16 to handle larger waypoint numbers safely
 	GET(int, nWaypoint, ECX);
 
 	if (nWaypoint < 0)
@@ -132,8 +138,8 @@ ASMJIT_PATCH(0x763610, Waypoint_To_String, 0x5)
 	else
 	{
 		++nWaypoint;
-		int pos = 7;
-		while (nWaypoint > 0)
+		int pos = 15;  // Adjusted for larger buffer
+		while (nWaypoint > 0 && pos > 0)  // Added bounds check to prevent underflow
 		{
 			--pos;
 			char m = nWaypoint % 26;
@@ -152,10 +158,27 @@ ASMJIT_PATCH(0x763690, String_To_Waypoint, 0x7)
 
 	int n = 0;
 	int len = strlen(pString);
+	
+	// Limit string length to prevent overflow (26^7 is already > INT_MAX)
+	if (len > 7) {
+		R->EAX(-1);
+		return 0x7636DF;
+	}
+	
 	for (int i = len - 1, j = 1; i >= 0; i--, j *= 26)
 	{
 		int c = std::toupper(pString[i]);
-		if (c < 'A' || c > 'Z') return 0;
+		if (c < 'A' || c > 'Z') {
+			R->EAX(-1);  // Return -1 for invalid input instead of 0
+			return 0x7636DF;
+		}
+		
+		// Check for potential overflow before multiplication
+		if (n > (INT_MAX - ((c - 64) * j)) / 26) {
+			R->EAX(INT_MAX - 1);  // Return max safe value on overflow
+			return 0x7636DF;
+		}
+		
 		n += ((int)c - 64) * j;
 	}
 	R->EAX(n - 1);

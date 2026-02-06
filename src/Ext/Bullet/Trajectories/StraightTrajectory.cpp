@@ -150,7 +150,20 @@ void StraightTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity
 	pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y);
 	pBullet->Velocity.Z = this->GetVelocityZ(pBullet->SourceCoords) //pBullet->Owner && pBullet->Owner->IsInAir() ?  0 : this->GetVelocityZ(pBullet->SourceCoords)
 		;
-	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Length();
+
+	// Guard against division by zero when velocity length is zero (source equals target)
+	double velocityLength = pBullet->Velocity.Length();
+	if (velocityLength > 1e-10)
+	{
+		pBullet->Velocity *= this->GetTrajectorySpeed() / velocityLength;
+	}
+	else
+	{
+		// Set a default forward velocity
+		pBullet->Velocity.X = this->GetTrajectorySpeed();
+		pBullet->Velocity.Y = 0.0;
+		pBullet->Velocity.Z = 0.0;
+	}
 }
 
 bool StraightTrajectory::OnAI()
@@ -258,7 +271,19 @@ void StraightTrajectoryVarianB::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pV
 		pBullet->Velocity.Z = this->GetVelocityZ(pBullet->SourceCoords);
 	}
 
-	pBullet->Velocity *= this->GetTrajectorySpeed() / pBullet->Velocity.Length();
+	// Guard against division by zero when velocity length is zero (source equals target)
+	double velocityLength = pBullet->Velocity.Length();
+	if (velocityLength > 1e-10)
+	{
+		pBullet->Velocity *= this->GetTrajectorySpeed() / velocityLength;
+	}
+	else
+	{
+		// Set a default forward velocity
+		pBullet->Velocity.X = this->GetTrajectorySpeed();
+		pBullet->Velocity.Y = 0.0;
+		pBullet->Velocity.Z = 0.0;
+	}
 }
 
 bool StraightTrajectoryVarianB::OnAI()
