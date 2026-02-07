@@ -183,7 +183,7 @@ void MapRevealer::Process1(CellClass* const pCell, bool fog, bool add) const
 		}
 	} else {
 		if (this->IsCellAllowed(pCell->MapCoords)) {
-			MouseClass::Instance->RevealFogShroud(pCell->MapCoords, HouseClass::CurrentPlayer, add);
+			MouseClass::Instance->RevealFogShroud(pCell->MapCoords, HouseClass::CurrentPlayer(), add);
 		}
 	}
 }

@@ -86,7 +86,7 @@ public:
 	// Actually do the allocation. Use the stack buffer if nobody has used it yet
 	// and the size requested fits. Otherwise, fall through to the standard
 	// allocator.
-	pointer allocate(size_type n, void* hint = 0)
+	pointer allocate(size_type n)
 	{
 		if (source_ != NULL && !source_->used_stack_buffer_
 			&& n <= stack_capacity)
@@ -96,7 +96,7 @@ public:
 		}
 		else
 		{
-			return std::allocator<T>::allocate(n, hint);
+			return std::allocator<T>::allocate(n);
 		}
 	}
 	// Free: when trying to free the stack buffer, just mark it as free. For

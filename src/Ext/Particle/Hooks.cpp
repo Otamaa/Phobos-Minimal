@@ -122,10 +122,10 @@ static CoordStruct GetFLHAbsoluteCoords(CoordStruct nFLH, CoordStruct nCurLoc)
 //
 //	if (value_Y >= minDriftSpeedY->Y) {
 //		if (value_Y > minDriftSpeedY->X) {
-//			pParticle->GasVelocity.X = minDriftSpeedY->X;
+//			pParticle->GasVelocity.Y = minDriftSpeedY->X;
 //		}
 //	} else {
-//		pParticle->GasVelocity.X = minDriftSpeedY->Y;
+//		pParticle->GasVelocity.Y = minDriftSpeedY->Y;
 //	}
 //
 //	return 0x62BE60;

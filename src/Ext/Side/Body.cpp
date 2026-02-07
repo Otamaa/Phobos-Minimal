@@ -107,7 +107,9 @@ bool SideExtData::isNODSidebar()
 		return !SideExtContainer::Instance.Find(pSide)->Sidebar_GDIPositions.Get(PlayerSideIndex == 0);
 	}
 
-	return PlayerSideIndex == 0;
+	// Fallback: Allied (index 0) uses GDI positions, so NOT NOD sidebar
+	// NOD sidebar is for Soviet/Yuri (index != 0)
+	return PlayerSideIndex != 0;
 }
 
 int SideExtData::GetSurvivorDivisor() const {

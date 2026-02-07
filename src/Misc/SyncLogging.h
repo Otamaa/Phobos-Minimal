@@ -28,7 +28,7 @@ private:
 	std::array<T, size> Data {};
 	int LastWritePosition { 0 };
 	int LastReadPosition { -1 };
-	bool HasBeenFilled { true };
+	bool HasBeenFilled { false };
 
 public:
 
@@ -51,7 +51,7 @@ public:
 	COMPILETIMEEVAL T* Get()
 	{
 		if (!LastWritePosition && LastReadPosition == -1 && !HasBeenFilled)
-			return nullptr; // this will never executed , because the HasBeenFilled will always default to true ,...
+			return nullptr;
 
 		if (LastReadPosition == -1 && HasBeenFilled)
 			LastReadPosition = LastWritePosition;

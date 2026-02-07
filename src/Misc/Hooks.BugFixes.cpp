@@ -2098,6 +2098,9 @@ DEFINE_JUMP(LJMP, 0x65B3F7, 0x65B416);//RadSite, no effect
 
 #pragma region TeamCloseRangeFix
 
+  // Dead code: _CoordinateMove is LJMP-replaced at 0x6EBAD0 by FakeTeamClass::_CoordinateMove
+  // The jumpjet 2D distance fix is integrated via FakeObjectClass::_GetDistanceOfObj usage
+#if 0
   static int __fastcall Check2DDistanceInsteadOf3D(ObjectClass* pSource, void* _, AbstractClass* pTarget)
   {
   	return (pSource->IsInAir() && pSource->WhatAmI() != AbstractType::Aircraft) // Jumpjets or sth in the air
@@ -2105,6 +2108,7 @@ DEFINE_JUMP(LJMP, 0x65B3F7, 0x65B416);//RadSite, no effect
   		: pSource->DistanceFromSquared(pTarget); // 3D distance (vanilla)
   }
   DEFINE_FUNCTION_JUMP(CALL, 0x6EBCC9, Check2DDistanceInsteadOf3D);
+#endif
 
 #pragma endregion
 

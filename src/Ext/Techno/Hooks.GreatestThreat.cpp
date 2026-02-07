@@ -298,7 +298,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* pThis,
 	}
 
 	// Scan aircraft in range
-	if (!RulesExtData::Instance()->AIAirTargetingFix && method & ThreatType::Air)
+	if (method & ThreatType::Air)
 	{
 
 		AircraftTrackerClass::Instance->FillCurrentVector(MapClass::Instance->GetCellAt(centerCell), cellRange);
@@ -321,8 +321,18 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* pThis,
 			if (!aircraft->IsOnMap)
 				continue;
 
-			if (aircraft->InWhichLayer() == Layer::Ground)
-				continue;
+			if (RulesExtData::Instance()->AIAirTargetingFix)
+			{
+				// With fix: skip only if underground
+				if (aircraft->InWhichLayer() == Layer::Underground)
+					continue;
+			}
+			else
+			{
+				// Original behavior: skip if not in air
+				if (aircraft->InWhichLayer() == Layer::Ground)
+					continue;
+			}
 
 			if (onlyEnemy && aircraft->Owner->ArrayIndex != pOwner->EnemyHouseIndex)
 				continue;

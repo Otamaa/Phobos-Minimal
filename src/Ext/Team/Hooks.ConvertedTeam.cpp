@@ -21,6 +21,9 @@ ASMJIT_PATCH(0x509697, HouseClass_CanInstansiateTeam_CompareType_Convert, 0xA)
 		ContinueCheck : ContinueLoop;
 }
 
+// Dead code: _Remove is LJMP-replaced at 0x6EA870 by FakeTeamClass::_Remove
+// The IsEligible check is integrated into the backported _Remove function
+#if 0
 ASMJIT_PATCH(0x6EA8FA, TeamClass_Remove_CompareType_Convert, 0x6)
 {
 	enum
@@ -39,7 +42,11 @@ ASMJIT_PATCH(0x6EA8FA, TeamClass_Remove_CompareType_Convert, 0x6)
 		|| TeamExtData::IsEligible(pTeam, pTaskForceTeam)
 		? jz_ : advance;
 }
+#endif
 
+// Dead code: _Can_Add is LJMP-replaced at 0x6EA610 by FakeTeamClass::_Can_Add
+// The IsEligible check is integrated into the backported _Can_Add function
+#if 0
 ASMJIT_PATCH(0x6EAD86, TeamClass_CanAdd_CompareType_Convert_UnitType, 0x7) //6
 {
 	enum
@@ -61,7 +68,11 @@ ASMJIT_PATCH(0x6EAD86, TeamClass_CanAdd_CompareType_Convert_UnitType, 0x7) //6
 		?
 		ContinueCheck : ContinueLoop;
 }
+#endif
 
+// Dead code: _Can_Add is LJMP-replaced at 0x6EA610 by FakeTeamClass::_Can_Add
+// The IsEligible check is integrated into the backported _Can_Add function
+#if 0
 ASMJIT_PATCH(0x6EA6D3, TeamClass_CanAdd_ReplaceLoop, 0x7)
 {
 	GET(TechnoClass*, pGoingToBeRecuited, ESI);
@@ -80,3 +91,4 @@ ASMJIT_PATCH(0x6EA6D3, TeamClass_CanAdd_ReplaceLoop, 0x7)
 		//|| TeamExtData::GroupAllowed(pForce->Entries[idx].Type, TechnoExtContainer::Instance.Find(pGoingToBeRecuited)->Type)
 		? Conditionmet : ContinueLoop;
 }
+#endif

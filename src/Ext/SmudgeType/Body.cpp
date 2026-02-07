@@ -152,7 +152,12 @@ bool FakeSmudgeTypeClass::_CanPlaceHere(CellStruct* origin, bool underbuildings)
 		{
 			CellStruct trycell = *origin + CellStruct(w, h);
 			CellClass* cell = MapClass::Instance->TryGetCellAt(trycell);
-			if (!!MapClass::Instance->IsWithinUsableArea(trycell, true))
+			if (!MapClass::Instance->IsWithinUsableArea(trycell, true))
+			{
+				return false;
+			}
+
+			if (!cell)  // Added null check for cell pointer
 			{
 				return false;
 			}

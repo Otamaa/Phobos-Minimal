@@ -100,13 +100,18 @@ int WINAPI Tunnel::SendTo(
 	int addrlen
 )
 {
-	char TempBuf[1024 + 4];
+	constexpr size_t MAX_PACKET_SIZE = 1024;
+	char TempBuf[MAX_PACKET_SIZE + 4];
 	uint16_t* BufFrom = reinterpret_cast<uint16_t*>(TempBuf);
 	uint16_t* BufTo = reinterpret_cast<uint16_t*>(TempBuf + 2);
 
 	// no processing if no tunnel
 	if (!Tunnel::Port)
 		return sendto(sockfd, buf, len, flags, (struct sockaddr*)dest_addr, addrlen);
+
+	// validate packet size to prevent buffer overflow
+	if (len > MAX_PACKET_SIZE)
+		return -1;
 
 	// copy packet to our buffer
 	memcpy(TempBuf + 4, buf, len);
@@ -130,7 +135,8 @@ int WINAPI Tunnel::RecvFrom(
 	int* addrlen
 )
 {
-	char TempBuf[1024 + 4];
+	constexpr size_t MAX_PACKET_SIZE = 1024;
+	char TempBuf[MAX_PACKET_SIZE + 4];
 	uint16_t* BufFrom = reinterpret_cast<uint16_t*>(TempBuf);
 	uint16_t* BufTo = reinterpret_cast<uint16_t*>(TempBuf + 2);
 
@@ -145,10 +151,15 @@ int WINAPI Tunnel::RecvFrom(
 	if (ret < 5 || *BufTo != Tunnel::Id)
 		return -1;
 
-	memcpy(buf, TempBuf + 4, ret - 4);
+	// validate that we don't write past the destination buffer
+	size_t dataLen = static_cast<size_t>(ret - 4);
+	if (dataLen > len)
+		dataLen = len;
+
+	memcpy(buf, TempBuf + 4, dataLen);
 
 	src_addr->sin_port = *BufFrom;
 	src_addr->sin_addr.s_addr = 0;
 
-	return ret - 4;
+	return static_cast<int>(dataLen);
 }

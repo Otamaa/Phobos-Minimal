@@ -51,7 +51,7 @@ void SuperExtData::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 						{
 							const auto idxSW = pUpgradeExt->GetSuperWeaponIndex(i);
 
-							if (idxSW >= 0)
+							if (idxSW >= 0 && idxSW < pHouse->Supers.Count)
 							{
 								const auto pSuperExt = SuperExtContainer::Instance.Find(pHouse->Supers[idxSW]);
 								auto& status = pSuperExt->Statusses;
@@ -313,7 +313,11 @@ int FakeSuperClass::_GetAnimStage()
 		} else {
 			// Charging state
 			int divisor = (customRechargeTime == -1) ? pType->RechargeTime : customRechargeTime;
-			progress = (double)(rechargeTime - delayTime) / divisor;
+			if (divisor > 0) {
+				progress = (double)(rechargeTime - delayTime) / divisor;
+			} else {
+				progress = 0.0;
+			}
 		}
 	}
 	else
@@ -325,7 +329,11 @@ int FakeSuperClass::_GetAnimStage()
 
 		// Normal charging
 		int divisor = (customRechargeTime == -1) ? pType->RechargeTime : customRechargeTime;
-		progress = (double)(rechargeTime - delayTime) / divisor;
+		if (divisor > 0) {
+			progress = (double)(rechargeTime - delayTime) / divisor;
+		} else {
+			progress = 0.0;
+		}
 	}
 
 	// Convert to stage

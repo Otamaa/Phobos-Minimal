@@ -4634,6 +4634,9 @@ ASMJIT_PATCH(0x467C2E, BulletClass_AI_FuseCheck, 0x7)
 	return 0x467C3A;
 }
 
+// Dead code: _Coordinate_Do is LJMP-replaced at 0x6ED7E0 by FakeTeamClass::_Coordinate_Do
+// The Harvest fix is integrated into the backported _Coordinate_Do function
+#if 0
 ASMJIT_PATCH(0x6EDA50, Team_DoMission_Harvest, 0x5)
 {
 	GET(Mission, setTo, EBX);
@@ -4647,6 +4650,7 @@ ASMJIT_PATCH(0x6EDA50, Team_DoMission_Harvest, 0x5)
 
 	return 0x0;
 }
+#endif
 
 #ifndef ASTAR_HOOKS
 
@@ -5078,7 +5082,7 @@ static void PriorityQueue_Clear_Safe(PriorityQueueClass_AStarHierarchical* queue
 		return;
 
 	int clearCount = std::min(queue->Count + 1, queue->Capacity);
-	for (int i = 0; i <= clearCount; ++i)
+	for (int i = 0; i < clearCount; ++i)
 	{
 		queue->Heap[i] = nullptr;
 	}
@@ -7012,13 +7016,15 @@ ASMJIT_PATCH(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
 
 #else
 DEFINE_FUNCTION_JUMP(LJMP, 0x5F6500, FakeObjectClass::_GetDistanceOfObj);
-DEFINE_FUNCTION_JUMP(CALL, 0x6EB2DC, FakeObjectClass::_GetDistanceOfObj);
+// Dead: 0x6EB2DC is inside _Calc_Center (LJMP'd at 0x6EAEE0), logic integrated into backport
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EB2DC, FakeObjectClass::_GetDistanceOfObj);
 DEFINE_FUNCTION_JUMP(CALL, 0x4DEFF4, FakeObjectClass::_GetDistanceOfObj);
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x5F6560, FakeObjectClass::_GetDistanceOfCoord);
-DEFINE_FUNCTION_JUMP(CALL, 0x6EABCB, FakeObjectClass::_GetDistanceOfCoord);
-DEFINE_FUNCTION_JUMP(CALL, 0x6EAC96, FakeObjectClass::_GetDistanceOfCoord);
-DEFINE_FUNCTION_JUMP(CALL, 0x6EAD4B, FakeObjectClass::_GetDistanceOfCoord);
+// Dead: 0x6EABCB, 0x6EAC96, 0x6EAD4B are inside _Recruit (LJMP'd at 0x6EAA90), logic integrated into backport
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EABCB, FakeObjectClass::_GetDistanceOfCoord);
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EAC96, FakeObjectClass::_GetDistanceOfCoord);
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EAD4B, FakeObjectClass::_GetDistanceOfCoord);
 DEFINE_FUNCTION_JUMP(CALL, 0x741801, FakeObjectClass::_GetDistanceOfCoord);
 
 #endif

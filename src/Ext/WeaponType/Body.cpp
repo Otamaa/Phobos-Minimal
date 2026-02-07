@@ -307,7 +307,10 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 bool WeaponTypeExtData::IsVeterancyInThreshold(TechnoClass* pTarget) const
 {
-	return !EnumFunctions::CanTargetVeterancy(this->CanTargetVeterancy, pTarget);
+	if (this->CanTargetVeterancy == AffectedVeterancy::All)
+		return true;
+
+	return EnumFunctions::CanTargetVeterancy(this->CanTargetVeterancy, pTarget);
 }
 
 int WeaponTypeExtData::GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass* pFirer, std::optional<int> fallback)
@@ -380,13 +383,14 @@ int WeaponTypeExtData::GetTechnoKeepRange(WeaponTypeClass* pThis, TechnoClass* p
 	if (pFirer->RearmTimer.GetTimeLeft() < pExt->KeepRange_EarlyStopFrame)
 		return 0;
 
+	// Only check spawn manager for units that have spawns
+	const auto spawnsNumber = GET_TECHNOTYPE(pFirer)->SpawnsNumber;
+	if (spawnsNumber > 0)
 	{
 		const auto spawnManager = pFirer->SpawnManager;
 
 		if (!spawnManager || spawnManager->Status != SpawnManagerStatus::CoolDown)
 			return 0;
-
-		const auto spawnsNumber = GET_TECHNOTYPE(pFirer)->SpawnsNumber;
 
 		for (int i = 0; i < spawnsNumber; i++)
 		{

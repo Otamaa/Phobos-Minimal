@@ -210,6 +210,7 @@ BSurface* PNGFile::Read(FileClass* name, unsigned char* palette, void* buff, lon
 		return nullptr;
 	}
 
+	unsigned char* png_image_ptr = png_image; // Save original pointer for freeing later
 	for (int y = 0; y < pic->Height; ++y)
 	{
 
@@ -217,9 +218,9 @@ BSurface* PNGFile::Read(FileClass* name, unsigned char* palette, void* buff, lon
 		for (int x = 0; x < pic->Width; ++x)
 		{
 
-			int r = *png_image++; // & 0xFF;
-			int g = *png_image++; // & 0xFF;
-			int b = *png_image++; // & 0xFF;
+			int r = *png_image_ptr++; // & 0xFF;
+			int g = *png_image_ptr++; // & 0xFF;
+			int b = *png_image_ptr++; // & 0xFF;
 
 			*buffptr++ = (unsigned short)DSurface::RGBA_To_Pixel(r, g, b);
 		}
@@ -228,6 +229,7 @@ BSurface* PNGFile::Read(FileClass* name, unsigned char* palette, void* buff, lon
 	}
 
 	::free(png_buffer);
+	::free(png_image); // Free the original png_image pointer
 	lodepng_state_cleanup(&state);
 	if (file_opened)
 	{

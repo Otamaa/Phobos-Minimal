@@ -45,10 +45,10 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
 	{
-		const_cast<OverlayTypeExtData*>(this)->ObjectTypeExtData::SaveToStream(Stm);
-		const_cast<OverlayTypeExtData*>(this)->Serialize(Stm);
+		this->ObjectTypeExtData::SaveToStream(Stm);
+		this->Serialize(Stm);
 	}
 
 	virtual AbstractType WhatIam() const { return base_type::AbsID; }
