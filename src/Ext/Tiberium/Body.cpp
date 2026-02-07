@@ -25,7 +25,11 @@ void TiberiumExtData::Spread_AI()
 	if (!SpreadQueue.empty() && This()->SpreadPercentage > 0.00001)
 	{
 		int count = std::clamp((int)(SpreadQueue.size() * This()->SpreadPercentage), 5, 300);
-		count = ScenarioClass::Instance->Random.RandomRanged(1, count);
+		if (count > 0) {
+			count = ScenarioClass::Instance->Random.RandomRanged(1, count);
+		} else {
+			count = 1;
+		}
 
 		for (int index = 0; index < count && !SpreadQueue.empty();)
 		{
@@ -118,7 +122,11 @@ void TiberiumExtData::Growth_AI()
 	if (!GrowthQueue.empty() && This()->GrowthPercentage > 0.00001)
 	{
 		int count = std::clamp((int)(GrowthQueue.size() * This()->GrowthPercentage), 5, 300);
-		count = ScenarioClass::Instance->Random.RandomRanged(1, count);
+		if (count > 0) {
+			count = ScenarioClass::Instance->Random.RandomRanged(1, count);
+		} else {
+			count = 1;
+		}
 
 		for (int index = 0; index < count && !GrowthQueue.empty(); index++)
 		{

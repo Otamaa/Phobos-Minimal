@@ -95,7 +95,7 @@ public:
 		return TRange(s, e);
 	}
 	//! Add new value to range.
-	TRange& operator += (T v) const
+	TRange& operator += (T v)
 	{
 		if (v < start)
 		{

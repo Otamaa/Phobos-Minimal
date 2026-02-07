@@ -21,7 +21,7 @@ public:
 		this->AbstractTypeExtData::Internal_LoadFromStream(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
 	{
 		this->AbstractTypeExtData::Internal_SaveToStream(Stm);
 	}

@@ -19,10 +19,11 @@ class Registration
 public:
 	static bool Register(std::wstring dllPath)
 	{
-		STARTUPINFO startupInfo = { sizeof(STARTUPINFO) };
+		STARTUPINFOW startupInfo = { sizeof(STARTUPINFOW) };
 		PROCESS_INFORMATION processInfo;
 
-		if (CreateProcess((LPCSTR)Registration::RegAsm, (LPSTR)(L" " + GetSafePath(dllPath)).data(), NULL, NULL, FALSE, 0, NULL, NULL, &startupInfo, &processInfo))
+		std::wstring cmdLine = L" " + GetSafePath(dllPath);
+		if (CreateProcessW(Registration::RegAsm, cmdLine.data(), NULL, NULL, FALSE, 0, NULL, NULL, &startupInfo, &processInfo))
 		{
 			WaitForSingleObject(processInfo.hProcess, INFINITE);
 			DWORD exitCode;
@@ -36,24 +37,17 @@ public:
 				}
 				else
 				{
-					Debug::fata
-					ShowErrorAndExit(L"Register Dynamic Patcher failed.");
+					Debug::FatalError("Register Dynamic Patcher failed. Exit code: %d", exitCode);
 				}
 			}
 			else
 			{
-				std::wstring error (L"GetExitCodeProcess() failed: %ld");
-				error += std::to_wstring(GetLastError());
-
-				ShowErrorAndExit(error);
+				Debug::FatalError("GetExitCodeProcess() failed: %ld", GetLastError());
 			}
 		}
 		else
 		{
-			std::wstring error = L"CreateProcess() failed: %ld";
-			error += std::to_wstring(GetLastError());
-
-			ShowErrorAndExit(error);
+			Debug::FatalError("CreateProcess() failed: %ld", GetLastError());
 		}
 
 		return false;
@@ -61,10 +55,11 @@ public:
 
 	static bool Unregister(std::wstring dllPath)
 	{
-		STARTUPINFO startupInfo = { sizeof(STARTUPINFO) };
+		STARTUPINFOW startupInfo = { sizeof(STARTUPINFOW) };
 		PROCESS_INFORMATION processInfo;
 
-		if (CreateProcess(RegAsm, (L" /u " + GetSafePath(dllPath)).data(), NULL, NULL, FALSE, 0, NULL, NULL, &startupInfo, &processInfo))
+		std::wstring cmdLine = L" /u " + GetSafePath(dllPath);
+		if (CreateProcessW(RegAsm, cmdLine.data(), NULL, NULL, FALSE, 0, NULL, NULL, &startupInfo, &processInfo))
 		{
 			WaitForSingleObject(processInfo.hProcess, INFINITE);
 			DWORD exitCode;

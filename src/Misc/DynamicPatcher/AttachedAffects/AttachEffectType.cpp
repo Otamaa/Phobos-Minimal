@@ -127,16 +127,16 @@ void AttachEffectType::LoadFromINI(CCINIClass* pINI)
 	StandTypeData.IsOnWorld.Read(exINI, pSection, "Stand.IsOnWorld");
 	StandTypeData.DrawLayer.Read(exINI, pSection, "Stand.DrawLayer");
 	StandTypeData.ZOffset.Read(exINI, pSection, "Stand.ZOffset");
-	StandTypeData.Powered.Read(exINI, pSection, "Stand.SameHouse");
-	StandTypeData.SameHouse.Read(exINI, pSection, "Stand.SameTarget");
-	StandTypeData. SameTarget.Read(exINI, pSection, "Stand.SameLoseTarget");
-	StandTypeData. SameLoseTarget.Read(exINI, pSection, "Stand.ForceAttackMaster");
-	StandTypeData. ForceAttackMaster.Read(exINI, pSection, "Stand.MobileFire");
-	StandTypeData. MobileFire.Read(exINI, pSection, "Stand.Powered");
-	StandTypeData. Explodes.Read(exINI, pSection, "Stand.Explodes");
-	StandTypeData. ExplodesWithMaster.Read(exINI, pSection, "Stand.ExplodesWithMaster");
-	StandTypeData. RemoveAtSinking.Read(exINI, pSection, "Stand.RemoveAtSinking");
-	StandTypeData. PromoteFormMaster.Read(exINI, pSection, "Stand.PromoteFormMaster");
+	StandTypeData.Powered.Read(exINI, pSection, "Stand.Powered");
+	StandTypeData.SameHouse.Read(exINI, pSection, "Stand.SameHouse");
+	StandTypeData.SameTarget.Read(exINI, pSection, "Stand.SameTarget");
+	StandTypeData.SameLoseTarget.Read(exINI, pSection, "Stand.SameLoseTarget");
+	StandTypeData.ForceAttackMaster.Read(exINI, pSection, "Stand.ForceAttackMaster");
+	StandTypeData.MobileFire.Read(exINI, pSection, "Stand.MobileFire");
+	StandTypeData.Explodes.Read(exINI, pSection, "Stand.Explodes");
+	StandTypeData.ExplodesWithMaster.Read(exINI, pSection, "Stand.ExplodesWithMaster");
+	StandTypeData.RemoveAtSinking.Read(exINI, pSection, "Stand.RemoveAtSinking");
+	StandTypeData.PromoteFormMaster.Read(exINI, pSection, "Stand.PromoteFormMaster");
 	double experienceToMaster = 0.0;
 	StandTypeData.ExperienceToMaster.Read(exINI, pSection, "Stand.ExperienceToMaster");
 	if (StandTypeData.ExperienceToMaster > 1.0)

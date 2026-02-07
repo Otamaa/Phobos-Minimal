@@ -135,6 +135,10 @@ COMPILETIMEEVAL void ModifyOperand(bool& result, int counter, AITriggerCondition
 	}
 }
 
+// NOTE: These ownership check functions (HouseOwns, EnemyOwns, NeutralOwns, etc.) are similar to
+// the ones in Body.cpp but include additional deploy/undeploy conversion checks via OwnStuffs().
+// Consider consolidating these into a shared utility in the future to reduce code duplication.
+
 bool OwnStuffs(TechnoTypeClass* pItem, TechnoClass* list) {
 	if (auto pItemUnit = type_cast<UnitTypeClass*, false>(pItem)) {
 		if (auto pListBld = cast_to<BuildingClass*, false>(list))

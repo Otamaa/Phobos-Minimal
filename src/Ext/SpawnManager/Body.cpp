@@ -102,9 +102,9 @@ void FakeSpawnManagerClass::_DetachB(AbstractClass* pTarget, bool removed)
 				|| pSpawnee->Unit->IsKamikaze))
 //				|| pSpawnee->IsSpawnMissile == 1
 				) {
-				this->SpawnedNodes.Items[max]->Unit = nullptr;
-				this->SpawnedNodes.Items[max]->NodeSpawnTimer.Start(this->RegenRate);
-				this->SpawnedNodes.Items[max]->Status = SpawnNodeStatus::Dead;
+				pSpawnee->Unit = nullptr;
+				pSpawnee->NodeSpawnTimer.Start(this->RegenRate);
+				pSpawnee->Status = SpawnNodeStatus::Dead;
 			}
 		}
 	}

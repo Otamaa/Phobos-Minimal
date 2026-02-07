@@ -46,13 +46,13 @@ void FakeWaveClass::_DamageCell(CoordStruct* pLoc){
             }
         }
 
-		if(pCell->OverlayTypeIndex != -1){
+		if(pCell->OverlayTypeIndex != -1 && pCell->OverlayTypeIndex < OverlayTypeClass::Array->Count){
 			auto pOverlay = OverlayTypeClass::Array->Items[pCell->OverlayTypeIndex];
-			if(pOverlay->ChainReaction){
+			if(pOverlay && pOverlay->ChainReaction){
 				FakeCellClass::_ChainReaction(&pCell->MapCoords);
 			}
 
-			if(pOverlay->Wall && pWH->Wall) {
+			if(pOverlay && pOverlay->Wall && pWH->Wall) {
 				pCell->ReduceWall(pWpn->Damage);
 			}
 		}

@@ -28,7 +28,7 @@ void SidebarExtData::DrawProducingProgress()
 {
 	const auto pPlayer = HouseClass::CurrentPlayer();
 
-	if (HouseExtData::IsObserverPlayer(pPlayer))
+	if (!pPlayer || HouseExtData::IsObserverPlayer(pPlayer))  // Added null check for pPlayer
 		return;
 
 	if (Phobos::UI::ShowProducingProgress) {
@@ -60,8 +60,7 @@ void SidebarExtData::DrawProducingProgress()
 				if(pFactory) {
 
 					int idxFrame = (int)(((double)pFactory->GetProgress() / 54) * (pSHP->Frames - 1)) ;
-					idxFrame = idxFrame > pSHP->Frames  ? pSHP->Frames: idxFrame;
-
+				idxFrame = idxFrame >= pSHP->Frames  ? pSHP->Frames - 1 : idxFrame;
 					Point2D vPos = { XBase + i * XOffset, YBase };
 					RectangleStruct sidebarRect = DSurface::Sidebar()->Get_Rect();
 

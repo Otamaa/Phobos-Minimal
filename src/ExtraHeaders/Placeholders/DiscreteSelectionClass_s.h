@@ -87,7 +87,7 @@ public:
 protected: 
 	bool ValidIndex(int nIdx) const
 	{
-		return nIdx > 0 && nIdx < (int)Items.size();
+		return nIdx >= 0 && nIdx < (int)Items.size();
 	}
 
 private:

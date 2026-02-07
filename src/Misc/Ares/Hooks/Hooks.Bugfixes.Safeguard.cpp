@@ -18,10 +18,10 @@ ASMJIT_PATCH(0x547043, IsometricTileTypeClass_ReadFromFile, 0x6)
 
 	if (FileSize == 0)
 	{
-		auto what = (pTileType->ID + strlen(pTileType->ID) + 1 - pTileType->ID);
+		const size_t nameLength = strlen(pTileType->ID);
 		auto pFileName = pFile->FileName;
 
-		if (what > 9) {
+		if (nameLength > 9) {
 			Debug::FatalErrorAndExit("Maximum allowed length for tile names, excluding the extension, is 9 characters.\n"
 					"The tileset using filename '%s - %s' exceeds this limit - the game cannot proceed.", pTileType->ID , pFileName);
 		}

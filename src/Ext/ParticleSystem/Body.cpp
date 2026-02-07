@@ -30,7 +30,7 @@ ParticleSystemExtData::ParticleSystemExtData(ParticleSystemClass* pObj) : Object
 	this->AbsType = ParticleSystemClass::AbsID;
 	auto pType = pObj->Type;
 	{
-		if (!ParticleSystemTypeExtContainer::Instance.Find(pType)->ApplyOptimization || (size_t)pType->HoldsWhat >= ParticleTypeClass::Array->size())
+		if (!ParticleSystemTypeExtContainer::Instance.Find(pType)->ApplyOptimization || pType->HoldsWhat < 0 || (size_t)pType->HoldsWhat >= ParticleTypeClass::Array->size())
 			return;
 		this->HeldType = ParticleTypeClass::Array->Items[pType->HoldsWhat];
 		if (!this->HeldType->UseLineTrail && !this->HeldType->AlphaImage)
@@ -149,10 +149,16 @@ void ParticleSystemExtData::UpdateState()
 
 void ParticleSystemExtData::UpdateColor()
 {
-	if (!this->HeldType || this->HeldType->ColorList.Count < 2)
+	if (!this->HeldType)
 	{
-		return;  // Safety: Need valid particle type with at least 2 colors
+		return;  // Safety: Need valid particle type
 	}
+
+	if (this->HeldType->ColorList.Count < 2)
+	{
+		return;  // Need at least 2 colors
+	}
+
 	const int maxColorIndex = this->HeldType->ColorList.Count - 2;
 
 	for (auto& particle : this->OtherParticleData)
@@ -319,11 +325,16 @@ void  ParticleSystemExtData::UpdateRailgun()
 			Difference_X = -differeceCoordsLXYLength;
 		}
 
+		if (differeceCoordsLXYLength == 0 || differeceCoordsLXYZLength == 0) {
+			pThis->TimeToDie = true;
+			return;
+		}
+
 		const auto ParticlePerCoords = differeceCoordsLXYZLength * pThis->Type->ParticlesPerCoord;
 		Matrix3D mtx = Matrix3D::GetIdentity();
 		const auto acos = Math::acos((double)Difference_X / (double)differeceCoordsLXYLength);
 		mtx.PreRotateZ(float(acos < 0 ? -acos : acos));
-		const auto theta = Math::asin((double)Difference_Z / (double)differeceCoordsLXYLength);
+		const auto theta = Math::asin((double)Difference_Z / (double)differeceCoordsLXYZLength);
 		mtx.PreRotateX(float(theta));
 
 		auto pHeldType = this->HeldType;

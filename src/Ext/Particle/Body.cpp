@@ -86,7 +86,7 @@ bool IsUnderwaterAtBridge(CoordStruct& pos, int newZ)
 	CellClass* cell = MapClass::Instance->GetCellAt(pos);
 
 	// Check if cell has bridge
-	if (!cell->ContainsBridgeHead()) {
+	if (!cell || !cell->ContainsBridgeHead()) {
 		return false;
 	}
 
@@ -189,9 +189,6 @@ void FakeParticleClass::ApplySmokeDrift(CoordStruct& pos)
 		descentRate = std::min(descentRate, 2); // Max 2 leptons per frame
 		pos.Z -= descentRate;
 	}
-
-	// Apply gas drift
-	pos += this->GasVelocity;
 
 	// Ensure smoke stays above ground
 	const int newTerrainHeight = MapClass::Instance->GetZPos(&pos);
@@ -433,11 +430,11 @@ void FakeParticleClass::ApplyRandomDrift()
 
 	if (driftInY)
 	{
-		this->GasVelocity.Y = std::clamp(this->GasVelocity.Y + drift, -5, 5);
+		this->GasVelocity.Y = std::clamp<int>(this->GasVelocity.Y + drift, -5, 5);
 	}
 	else
 	{
-		this->GasVelocity.X = std::clamp(this->GasVelocity.X + drift, -5, 5);
+		this->GasVelocity.X = std::clamp<int>(this->GasVelocity.X + drift, -5, 5);
 	}
 }
 
@@ -611,12 +608,12 @@ void FakeParticleClass::UpdateGasMovement()
 
 	const auto pExt = this->_GetTypeExtData();
 
-	const auto maxDriftSpeedX = &pExt->Gas_DriftSpeedX.Get();
-	const auto minDriftSpeedY = &pExt->Gas_DriftSpeedY.Get();
+	const auto driftSpeedX = &pExt->Gas_DriftSpeedX.Get();
+	const auto driftSpeedY = &pExt->Gas_DriftSpeedY.Get();
 
 	// Update and clamp gas movement vector
-	this->GasVelocity.X = std::clamp(this->GasVelocity.X + deltaX, maxDriftSpeedX->Min, maxDriftSpeedX->Max);
-	this->GasVelocity.Y = std::clamp(this->GasVelocity.Y + deltaY, minDriftSpeedY->Min, minDriftSpeedY->Max);
+	this->GasVelocity.X = std::clamp(this->GasVelocity.X + deltaX, driftSpeedX->Min, driftSpeedX->Max);
+	this->GasVelocity.Y = std::clamp(this->GasVelocity.Y + deltaY, driftSpeedY->Min, driftSpeedY->Max);
 }
 
 void FakeParticleClass::UpdateGasHeight()
@@ -841,7 +838,7 @@ void FakeParticleClass::__Smoke_AI() {
 
 	// Apply ramp matrix rotation if needed
 	if (needsMatrixRotation) {
-		ReflectOffSurface(nextPos, this->SmokeVelocity, this->SmokeVelocity);
+		ReflectOffSurface(nextPos, this->Spark10C, this->Spark10C);
 	}
 
 	// Update gas height based on particle height
@@ -1025,7 +1022,7 @@ void FakeParticleClass::__Spark_AI() {
 
 	// Apply ramp matrix rotation if needed
 	if (needsMatrixRotation) {
-		ReflectOffSurface(nextPos, this->SmokeVelocity, this->SmokeVelocity);
+		ReflectOffSurface(nextPos, this->Spark10C, this->Spark10C);
 		this->TimeToDelete = true;
 	}
 

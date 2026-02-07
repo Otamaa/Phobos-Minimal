@@ -58,7 +58,7 @@ void HandleBuildingDestruction(TemporalClass* pTemporal, BuildingClass* building
 		) {
 		for (auto i = 0; i < building->RadioLinks.Capacity; ++i) {
 			if (auto const pAir = cast_to<AircraftClass*>(building->RadioLinks[i])) {
-				if (pAir->IsAlive && !pAir->InLimbo && !pAir->TemporalTargetingMe) {
+				if (pAir->IsAlive && !pAir->InLimbo && !pAir->TemporalTargetingMe && pAir->Type) {
 					const auto pExt = TechnoTypeExtContainer::Instance.Find(pAir->Type);
 
 					if (pAir->IsInAir() || !AircraftTypeExtContainer::Instance.Find(pAir->Type)->ExtendedAircraftMissions_FastScramble
@@ -285,7 +285,7 @@ void FakeTemporalClass::_Detonate(TechnoClass* pTarget) 	{
 					}
 
 				} else if (pBuilding) {
-					if (!pBuilding->Type->Insignificant && !pBuilding->IsStrange()) {
+					if (pTargetOwner && !pBuilding->Type->Insignificant && !pBuilding->IsStrange()) {
 						((FakeHouseClass*)pTargetOwner)->_Attacked(pBuilding, pWeapon->Warhead);
 					}
 

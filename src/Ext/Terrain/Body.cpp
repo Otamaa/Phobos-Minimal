@@ -67,7 +67,7 @@ void TerrainExtData::InitializeAnim()
 
 		if (pAnimType)
 		{
-			auto const Coords = this->AttachedAnim->GetCoords();
+			auto const Coords = This()->GetCoords();
 
 			AttachedAnim.reset(GameCreate<AnimClass>(pAnimType, Coords));
 		}

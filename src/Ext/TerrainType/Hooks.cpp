@@ -100,7 +100,7 @@ ASMJIT_PATCH(0x71C812, TerrainClass_AI_Crumbling, 0x6)
 	}
 
 	int animationLength = pTypeExt->AnimationLength.Get(pThis->Type->GetImage()->Frames / (2 * (pTypeExt->HasDamagedFrames + 1)));
-	int currentStage = pThis->Animation.Stage + (pThis->Type->IsAnimated ? animationLength * (pTypeExt->HasDamagedFrames + 1) : 0 + pTypeExt->HasDamagedFrames);
+	int currentStage = pThis->Animation.Stage + (pThis->Type->IsAnimated ? animationLength * (pTypeExt->HasDamagedFrames + 1) : (0 + pTypeExt->HasDamagedFrames));
 
 	if (currentStage + 1 == pThis->Type->GetImage()->Frames / 2)
 	{

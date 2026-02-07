@@ -8447,9 +8447,9 @@ void CRTHooks::ApplyftolHooks() {
 	Patch::Apply_CALL(0x5081BF, ftol_safe);
 	Patch::Apply_CALL(0x5081FE, ftol_safe);
 	Patch::Apply_CALL(0x50823C, ftol_safe);
-	Patch::Apply_CALL(0x50BC66, ftol_safe);
-	Patch::Apply_CALL(0x50BC75, ftol_safe);
-	Patch::Apply_CALL(0x50BC80, ftol_safe);
+	Patch::Apply_CALL(0x50BC66, ftol_safe); // inside init_laser_color (0x50BA00) - dead code due to LJMP
+	Patch::Apply_CALL(0x50BC75, ftol_safe); // inside init_laser_color (0x50BA00) - dead code due to LJMP
+	Patch::Apply_CALL(0x50BC80, ftol_safe); // inside init_laser_color (0x50BA00) - dead code due to LJMP
 	Patch::Apply_CALL(0x50DD2B, ftol_safe);
 	Patch::Apply_CALL(0x50DD95, ftol_safe);
 	Patch::Apply_CALL(0x50DE06, ftol_safe);
@@ -11287,8 +11287,8 @@ void CRTHooks::ApplyMathHooks()
 	Patch::Apply_CALL(0x5063F1, PhobosMath::sqrtd);
 	Patch::Apply_CALL(0x506E3A, PhobosMath::sqrtd);
 	Patch::Apply_CALL(0x50B94D, PhobosMath::sqrtd);
-	Patch::Apply_CALL(0x50BA64, PhobosMath::sqrtd);
-	Patch::Apply_CALL(0x50BBA8, PhobosMath::sqrtd);
+	Patch::Apply_CALL(0x50BA64, PhobosMath::sqrtd); // inside init_laser_color (0x50BA00) - dead code due to LJMP
+	Patch::Apply_CALL(0x50BBA8, PhobosMath::sqrtd); // inside init_laser_color (0x50BA00) - dead code due to LJMP
 	Patch::Apply_CALL(0x50DD23, PhobosMath::sqrtd);
 	Patch::Apply_CALL(0x50DD8D, PhobosMath::sqrtd);
 	Patch::Apply_CALL(0x50DDFE, PhobosMath::sqrtd);
