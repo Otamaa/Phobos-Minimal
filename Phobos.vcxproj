@@ -281,6 +281,7 @@
     <ClCompile Include="src\Ext\Infantry\Body.cpp" />
     <ClCompile Include="src\Ext\IsometricTileType\Body.cpp" />
     <ClCompile Include="src\Ext\LaserDraw\Hooks.Drawing.cpp" />
+    <ClCompile Include="src\Ext\LaserDraw\Body.cpp" />
     <ClCompile Include="src\Ext\OverlayType\Body.cpp" />
     <ClCompile Include="src\Ext\OverlayType\Hooks.cpp" />
     <ClCompile Include="src\Ext\Parasite\Body.cpp" />
@@ -963,6 +964,7 @@
     <ClInclude Include="src\Ext\CaptureManager\Body.h" />
     <ClInclude Include="src\Ext\Cell\Body.h" />
     <ClInclude Include="src\Ext\DiskLaser\Body.h" />
+    <ClInclude Include="src\Ext\LaserDraw\Body.h" />
     <ClInclude Include="src\Ext\HouseType\Body.h" />
     <ClInclude Include="src\Ext\InfantryType\Body.h" />
     <ClInclude Include="src\Ext\Infantry\Body.h" />
