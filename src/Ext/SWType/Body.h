@@ -179,6 +179,7 @@ public:
 	ValueableVector<int> LimboDelivery_IDs;
 	ValueableVector<float> LimboDelivery_RollChances;
 	ValueableVector<int> LimboKill_IDs;
+	ValueableVector<int> LimboKill_Counts;
 	ValueableIdxVector<SuperWeaponTypeClass*> SW_Next;
 	ValueableVector<float> SW_Next_RollChances;
 	ValueableVector<TechnoTypeClass*> SW_Inhibitors;
@@ -539,6 +540,7 @@ public:
 		, LimboDelivery_IDs()
 		, LimboDelivery_RollChances()
 		, LimboKill_IDs()
+		, LimboKill_Counts()
 		, SW_Next()
 		, SW_Next_RollChances()
 		, SW_Inhibitors()

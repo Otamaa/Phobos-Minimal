@@ -6161,7 +6161,7 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, 
 	if (auto pBld = cast_to<BuildingClass*, false>(pThis)) {
 		auto pBldExt = BuildingExtContainer::Instance.Find(pBld);
 
-		if (pBldExt->LimboID != -1) {
+		if (pBldExt->LimboID >= 0) {
 			BuildingExtData::LimboKill(pBld);
 			return;
 		}

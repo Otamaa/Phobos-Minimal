@@ -535,7 +535,7 @@ void ShieldClass::OnUpdate()
 
 	if (this->Techno->WhatAmI() == BuildingClass::AbsID)
 	{
-		if (BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(this->Techno))->LimboID != -1)
+		if (BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(this->Techno))->LimboID >= 0)
 			return;
 	}
 

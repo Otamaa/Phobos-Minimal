@@ -853,7 +853,8 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 		}
 	}
 
-	GiftBoxFunctional::TakeDamage(pExt, pTypeExt, warhead, _res);
+	if(!pThis->Transporter)
+		GiftBoxFunctional::TakeDamage(pExt, pTypeExt, warhead, _res);
 
 	if (source && !pWHExt->Nonprovocative) {
 		pThis->Owner->UpdateAngerNodes((int)(pType->GetCost() * ((double)*damage / pType->Strength)),sourceHouse);
@@ -1275,7 +1276,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 
 	if (pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow)
 	{
-		if (_res == DamageState::NowYellow || _res == DamageState::NowRed)
+		if ((_res == DamageState::NowYellow || _res == DamageState::NowRed) && !pThis->Transporter)
 		{
 			StackVector<ParticleSystemTypeClass*, 15u> _Particles {};
 			const auto allowAny = pTypeExt->ParticleSystems_DamageSmoke.HasValue();
@@ -1615,7 +1616,8 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 		}
 	}
 
-	GiftBoxFunctional::TakeDamage(pExt, pTypeExt, args.WH, _res);
+	if(!pThis->Transporter)
+		GiftBoxFunctional::TakeDamage(pExt, pTypeExt, args.WH, _res);
 
 	if (args.Attacker && !pWHExt->Nonprovocative)
 	{
@@ -2054,7 +2056,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 	if (pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow)
 	{
-		if (_res == DamageState::NowYellow || _res == DamageState::NowRed)
+		if ((_res == DamageState::NowYellow || _res == DamageState::NowRed) && !pThis->Transporter)
 		{
 			StackVector<ParticleSystemTypeClass*, 15u> _Particles {};
 			const auto allowAny = pTypeExt->ParticleSystems_DamageSmoke.HasValue();

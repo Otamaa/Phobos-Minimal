@@ -192,7 +192,8 @@ public:
 	static bool HandleInfiltrate(BuildingClass* pBuilding, HouseClass* pInfiltratorHouse);
 	static void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID);
 	static void LimboKill(BuildingClass* pBld);
-	static void ApplyLimboKill(ValueableVector<int>& LimboIDs, Valueable<AffectedHouse>& Affects, HouseClass* pTargetHouse, HouseClass* pAttackerHouse);
+
+	static void ApplyLimboKill(int LimboID, int count, Valueable<AffectedHouse>& Affects, HouseClass* pTargetHouse, HouseClass* pAttackerHouse);
 
 	static int GetFirstSuperWeaponIndex(BuildingClass* pThis);
 	static SuperClass* GetFirstSuperWeapon(BuildingClass* pThis);

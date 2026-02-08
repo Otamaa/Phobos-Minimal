@@ -1453,7 +1453,7 @@ bool TechnoExt_ExtData::CloneBuildingEligible(BuildingClass* pBuilding, bool req
 		pBuilding->TemporalTargetingMe ||
 		pBuilding->IsBeingWarpedOut() ||
 		BuildingExtContainer::Instance.Find(pBuilding)->AboutToChronoshift ||
-		BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1
+		BuildingExtContainer::Instance.Find(pBuilding)->LimboID >= 0
 	)
 	{
 		return false;
@@ -2258,7 +2258,7 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 			|| pSource->GetHeight() < -10
 			|| pSource->IsDisguised() && (pDisguise = pSource->GetDisguise(true)) && pDisguise->WhatAmI() == AbstractType::TerrainType
 			|| what == BuildingClass::AbsID && (pSource->GetCurrentMission() != Mission::Construction && !((BuildingClass*)pSource)->IsPowerOnline()
-				|| BuildingExtContainer::Instance.Find(((BuildingClass*)pSource))->LimboID != -1)
+				|| BuildingExtContainer::Instance.Find(((BuildingClass*)pSource))->LimboID >= 0)
 			)
 	)
 	{
@@ -7437,7 +7437,7 @@ bool TunnelFuncs::FindSameTunnel(BuildingClass* pTunnel)
 
 			if (pTunnel != pBld && pBld->Health > 0 && !pBld->InLimbo && pBld->IsOnMap)
 			{
-				if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
+				if (BuildingExtContainer::Instance.Find(pBld)->LimboID >= 0)
 					return false;
 
 				const auto nCurMission = pBld->CurrentMission;
@@ -7885,7 +7885,7 @@ void AresHouseExt::UpdateTogglePower(HouseClass* pThis)
 
 		for (auto const& pBld : pThis->Buildings)
 		{
-			if (pBld->InLimbo || BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
+			if (pBld->InLimbo || BuildingExtContainer::Instance.Find(pBld)->LimboID >= 0)
 				continue;
 
 			auto pType = pBld->Type;

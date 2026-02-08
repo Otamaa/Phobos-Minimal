@@ -458,7 +458,7 @@ ASMJIT_PATCH(0x6FA2CF, TechnoClass_AI_DrawBehindAnim, 0x9) //was 4
 
 	if (const auto pBld = cast_to<BuildingClass*, false>(pThis))
 	{
-		if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
+		if (BuildingExtContainer::Instance.Find(pBld)->LimboID >= 0)
 		{
 			return 0x6FA30C;
 		}

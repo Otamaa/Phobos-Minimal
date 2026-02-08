@@ -135,7 +135,7 @@ CellStruct SW_HunterSeeker::GetLaunchCell(SWTypeExtData* pSWType, BuildingClass*
 	const auto pBldExt = BuildingExtContainer::Instance.Find(pBuilding);
 	CellStruct cell;
 
-	if (pBldExt->LimboID != -1)
+	if (pBldExt->LimboID >= 0)
 	{
 		//Get edge (direction for hunterseeker to come from)
 		const auto edge = pBuilding->Owner->GetHouseEdge();

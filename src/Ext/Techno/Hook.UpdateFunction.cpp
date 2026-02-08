@@ -201,7 +201,7 @@ void FakeTechnoClass::__HandleHiddenState(TechnoClass* pThis)
 		return;
 
 	if (const auto pBld = cast_to<BuildingClass*, false>(pThis)) {
-		if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1) {
+		if (BuildingExtContainer::Instance.Find(pBld)->LimboID >= 0) {
 			return;
 		}
 	}
@@ -549,14 +549,14 @@ void FakeTechnoClass::__HandleCloaking(TechnoClass* pThis)
 
 	// Handle uncloaking in cloaked cells
 	if (pThis->CloakState == CloakState::Uncloaking) {
-		if (cell->CellClass_cloak_4870B0(pThis->Owner->ArrayIndex)) {
+		if (cell->CellClass_cloak_4870B0((char)pThis->Owner->ArrayIndex)) {
 			pThis->Sensed();
 		}
 	}
 
 	// Handle cloaking in non-cloaked cells
 	if (pThis->CloakState == CloakState::Cloaked) {
-		if (!cell->CellClass_cloak_4870B0(pThis->Owner->ArrayIndex)) {
+		if (!cell->CellClass_cloak_4870B0((char)pThis->Owner->ArrayIndex)) {
 			pThis->Sensed();
 		}
 	}

@@ -2507,7 +2507,7 @@ void FakeTeamClass::_Regroup()
 		BuildingExtData* pExt = BuildingExtContainer::Instance.Find(building);
 
 		// Skip invalid or limbo buildings, or armed buildings
-		if (pExt->LimboID != -1 || building->InLimbo || !building->IsAlive)
+		if (pExt->LimboID >= 0 || building->InLimbo || !building->IsAlive)
 			continue;
 
 		if (building->IsArmed())
@@ -3316,7 +3316,7 @@ void FakeTeamClass::_TMission_Scout(ScriptActionNode* nNode, bool arg3)
 						return false;
 
 					const auto pExt = BuildingExtContainer::Instance.Find(pBld);
-					if (pExt->LimboID != -1)
+					if (pExt->LimboID >= 0)
 						return false;
 
 					if (pBld->Type->InvisibleInGame)
@@ -5145,7 +5145,7 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 			this->_AssignMissionTarget(pTarget);
 		}
 		
-		auto pirst = this->FirstUnit;
+		//auto pirst = this->FirstUnit;
 
 		if (this->QueuedFocus && this->_Does_Any_Member_Have_Ammo()) {
 			this->_Coordinate_Attack();
@@ -5294,7 +5294,7 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 
 }
 
-DEFINE_HOOK(0x6E944B, TeamClass_AI_test, 0x6)
+ASMJIT_PATCH(0x6E944B, TeamClass_AI_test, 0x6)
 {
 	GET(FakeTeamClass*, pThis, ESI);
 	GET(ScriptActionNode*, pNode, ECX);

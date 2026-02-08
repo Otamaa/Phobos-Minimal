@@ -561,7 +561,7 @@ struct TargetingFuncs
 	static bool IgnoreThis(TechnoClass* pTechno)
 	{
 		if (const auto pBld = cast_to<BuildingClass*>(pTechno)) {
-			if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
+			if (BuildingExtContainer::Instance.Find(pBld)->LimboID >= 0)
 				return true;
 		}
 
@@ -1620,6 +1620,7 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->LimboKill_Affected.Read(exINI, pSection, "LimboKill.Affected");
 	this->LimboKill_Affected.Read(exINI, pSection, "LimboKill.AffectsHouse");
 	this->LimboKill_IDs.Read(exINI, pSection, "LimboKill.IDs");
+	this->LimboKill_Counts.Read(exINI, pSection, "LimboKill.Counts");
 
 	// inhibitor related
 	this->SW_Inhibitors_Houses.Read(exINI, pSection, "SW.Inhibitors.Houses");
@@ -1980,17 +1981,23 @@ void SWTypeExtData::ApplyLimboDelivery(HouseClass* pHouse)
 
 void SWTypeExtData::ApplyLimboKill(HouseClass* pHouse)
 {
-	if (this->LimboKill_IDs.empty())
+	size_t amout = this->LimboKill_IDs.size();
+
+	if (!amout)
 		return;
 
-	if(this->LimboKill_Affected == AffectedHouse::Owner && !pHouse->Type->MultiplayPassive) {
-		BuildingExtData::ApplyLimboKill(this->LimboKill_IDs, this->LimboKill_Affected, pHouse, pHouse);
-	} else if (this->LimboKill_Affected != AffectedHouse::None){
-		for (HouseClass* pTargetHouse : *HouseClass::Array()) {
-			if (pTargetHouse->Type->MultiplayPassive)
-				continue;
+	for(int i = 0; i < (int)amout; i++) {
+		int count = this->LimboKill_Counts.empty() || this->LimboKill_Counts.size() <= (size_t)i ? 1 : this->LimboKill_Counts[i];
 
-			BuildingExtData::ApplyLimboKill(this->LimboKill_IDs, this->LimboKill_Affected, pTargetHouse, pHouse);
+		if(this->LimboKill_Affected == AffectedHouse::Owner) {
+			BuildingExtData::ApplyLimboKill(this->LimboKill_IDs[i], count, this->LimboKill_Affected, pHouse, pHouse);
+		} else {
+			for (HouseClass* pTargetHouse : *HouseClass::Array()) {
+				if (pTargetHouse->Type->MultiplayPassive)
+					continue;
+
+				BuildingExtData::ApplyLimboKill(this->LimboKill_IDs[i], count , this->LimboKill_Affected, pTargetHouse, pHouse);
+			}
 		}
 	}
 }
@@ -2085,7 +2092,7 @@ void SWTypeExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const C
 		ApplyLimboDelivery(pHouse);
 
 	if (!this->LimboKill_IDs.empty())
-		ApplyLimboKill(pHouse);
+		this->ApplyLimboKill(pHouse);
 
 	if (this->Detonate_Warhead || this->Detonate_Weapon)
 		this->ApplyDetonation(pSW , pSW->Owner, *pCell);
@@ -2533,6 +2540,7 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->LimboDelivery_RollChances)
 		.Process(this->LimboKill_Affected)
 		.Process(this->LimboKill_IDs)
+		.Process(this->LimboKill_Counts)
 		.Process(this->RandomBuffer)
 
 		.Process(this->SW_Next)

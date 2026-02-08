@@ -112,7 +112,7 @@ void SW_NuclearMissile::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 bool SW_NuclearMissile::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
 	const auto pBldExt = BuildingExtContainer::Instance.Find(pBuilding);
-	if(pBldExt->LimboID != -1)
+	if(pBldExt->LimboID >= 0)
 		return false;
 
 	if(!this->IsLaunchsiteAlive(pBuilding))

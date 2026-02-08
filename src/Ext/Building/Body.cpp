@@ -263,28 +263,36 @@ bool BuildingExtData::ReverseEngineer(BuildingClass* pBuilding, TechnoClass* Vic
 	return pBldOwnerExt->ReverseEngineer(Victim);
 }
 
-void BuildingExtData::ApplyLimboKill(ValueableVector<int>& LimboIDs, Valueable<AffectedHouse>& Affects, HouseClass* pTargetHouse, HouseClass* pAttackerHouse)
+#include <Utilities/Helpers.h>
+
+void BuildingExtData::ApplyLimboKill(int LimboID,int count, Valueable<AffectedHouse>& Affects, HouseClass* pTargetHouse, HouseClass* pAttackerHouse)
 {
-	if (!pAttackerHouse || !pTargetHouse || LimboIDs.empty())
+	if (!pAttackerHouse || !pTargetHouse || LimboID < 0 || !count)
 		return;
 
 	if (!EnumFunctions::CanTargetHouse(Affects.Get(), pAttackerHouse, pTargetHouse))
 		return;
 
 	StackVector<BuildingClass*, 20> LimboedID {};
-	for (const auto& pBuilding : pTargetHouse->Buildings)
-	{
-		const auto pBuildingExt = BuildingExtContainer::Instance.Find(pBuilding);
+	if(count > 0) { 
+		Helpers::Alex::for_each_if_n(pTargetHouse->Buildings.begin(), pTargetHouse->Buildings.end(), count,
+			[LimboID](BuildingClass* pBuilding) { const auto pBuildingExt = BuildingExtContainer::Instance.Find(pBuilding); return pBuildingExt->LimboID >= 0 && pBuildingExt->LimboID == LimboID; },
+			[&LimboedID](BuildingClass* pBuilding) {
+			LimboedID->push_back(pBuilding);
+		});
+	} else {
+		for (const auto& pBuilding : pTargetHouse->Buildings) {
+			const auto pBuildingExt = BuildingExtContainer::Instance.Find(pBuilding);
 
-		if (pBuildingExt->LimboID <= -1 || !LimboIDs.Contains(pBuildingExt->LimboID))
-			continue;
+			if (pBuildingExt->LimboID < 0 || pBuildingExt->LimboID != LimboID)
+				continue;
 
-		LimboedID->push_back(pBuilding); // we cant do it immedietely since the array will me modified
-		// we need to fetch the eligible building first before really killing it
+			LimboedID->push_back(pBuilding); // we cant do it immedietely since the array will me modified
+			// we need to fetch the eligible building first before really killing it
+		}
 	}
 
-	for (auto& pLimboBld : LimboedID.container())
-	{
+	for (auto& pLimboBld : LimboedID.container()) {
 		BuildingExtData::LimboKill(pLimboBld);
 	}
 }
@@ -366,7 +374,7 @@ void BuildingExtData::UpdateSpyEffecAnimDisplay()
 	auto const pThis = This();
 	auto const nMission = pThis->GetCurrentMission();
 
-	if (pThis->InLimbo || !pThis->IsOnMap || this->LimboID != -1 || nMission == Mission::Selling)
+	if (pThis->InLimbo || !pThis->IsOnMap || this->LimboID >= 0 || nMission == Mission::Selling)
 		return;
 
 	if (this->SpyEffectAnim)
@@ -396,7 +404,7 @@ void BuildingExtData::UpdateAutoSellTimer()
 	auto const pThis = (BuildingClass*)this->This();
 	auto const nMission = pThis->GetCurrentMission();
 
-	if (pThis->InLimbo || !pThis->IsOnMap || this->LimboID != -1 || nMission == Mission::Selling)
+	if (pThis->InLimbo || !pThis->IsOnMap || this->LimboID >= 0 || nMission == Mission::Selling)
 		return;
 
 	if (!pThis->Type->Unsellable && pThis->Type->TechLevel != -1)
@@ -1130,8 +1138,8 @@ void FakeBuildingClass::UnloadOccupants(bool assignMission, bool killIfStuck)
 			return;
 		}
 
-		fallbackCell.X = originCell.X + width - 1;
-		fallbackCell.Y = originCell.Y + height - 1;
+		fallbackCell.X = short(originCell.X + width - 1);
+		fallbackCell.Y = short(originCell.Y + height - 1);
 	}
 
 	// Unload logic begins
@@ -1515,9 +1523,9 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		// Recalculate direction if needed
 		DirStruct legal;
 		const bool canReach = pThis->CanReachTarget(pExt->idxSlot_EMPulse);
-		if (!Game::func_48A8D0_Legal(canReach, speed, xyDist, dz, gravity, &legal))
+		if (!Game::func_48A8D0_Legal(canReach, speed, (int)xyDist, (int)dz, gravity, &legal))
 		{
-			if (!Game::func_48A8D0_Legal(canReach, (10 * speed) / 8, xyDist, dz, gravity, &legal))
+			if (!Game::func_48A8D0_Legal(canReach, (10 * speed) / 8, (int)xyDist, (int)dz, gravity, &legal))
 			{
 				legal = DirStruct((unsigned short)-1536);
 			}
@@ -1898,7 +1906,7 @@ void FakeBuildingClass::_DrawVisible(Point2D* pLocation, RectangleStruct* pBound
 
 void FakeBuildingClass::_DrawExtras(Point2D* pLocation, RectangleStruct* pBounds)
 {
-	if (this->IsSelected && this->IsOnMap && this->_GetExtData()->LimboID <= -1) {
+	if (this->IsSelected && this->IsOnMap && this->_GetExtData()->LimboID < 0) {
 		const int foundationHeight = this->Type->GetFoundationHeight(0);
 		const int typeHeight = this->Type->Height;
 		const int yOffest = (Unsorted::CellHeightInPixels * (foundationHeight + typeHeight)) >> 2;
@@ -2409,7 +2417,7 @@ void FakeBuildingClass::_DrawRadialIndicator(int val)
 
 		// second ring: scaled pulse effect
 		const float amplitude =
-			(static_cast<float>(radius) + 0.5f) / Math::SQRT_TWO * 60.0f;
+			(static_cast<float>(radius) + 0.5f) / float(Math::SQRT_TWO * 60.0f);
 
 		unsigned scaled = (wave * static_cast<unsigned>(amplitude)) >> 10;
 
@@ -2585,7 +2593,7 @@ ASMJIT_PATCH(0x43D874, BuildingClass_Draw_BuildupBibShape, 0x6)
 			pBuilding->Anims[(int)BuildingAnimSlot::SpecialThree]))
 		return 0x43D9D5;
 
- 	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ? 0x43D9D5 : 0x0;
+ 	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID >= 0 ? 0x43D9D5 : 0x0;
  }
 
 

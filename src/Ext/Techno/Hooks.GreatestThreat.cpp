@@ -17,6 +17,27 @@ namespace SelectAutoTarget_Context
 	bool AU = false;
 }
 
+static int GetMultiWeaponRange(TechnoClass* pThis)
+{
+	int range = -1;
+	const auto pType = pThis->GetTechnoType();
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	if (pTypeExt->MultiWeapon) {
+		int selectCount = MinImpl(pType->WeaponCount, pTypeExt->MultiWeapon_SelectCount);
+		range = 0;
+
+		for (int index = selectCount - 1; index >= 0; --index) {
+			int weaponRange = pThis->GetWeaponRange(index);
+
+			if (weaponRange > range)
+				range = weaponRange;
+		}
+	}
+
+	return range;
+}
+
 AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* pThis, discard_t, ThreatType method, CoordStruct* coord, bool onlyEnemy)
 {
 	++TechnoClass::TargetScanCounter();
@@ -267,22 +288,19 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* pThis,
 	// If no range, calculate from weapon range
 	if (threatRange == 0)
 	{
-
 		int weaponRange {};
-
-		if (pType->HasTurret() && !pType->IsGattling)
-		{
-			weaponRange = pThis->GetWeaponRange(pThis->CurrentWeaponNumber);
-		}
-		else if (pType->Underwater && pType->Organic && pType->SelfHealing)
-		{
-			weaponRange = pType->GuardRange;
-		}
-		else
-		{
-			const int range0 = pThis->GetWeaponRange(0);
-			const int range1 = pThis->GetWeaponRange(1);
-			weaponRange = (range0 > range1) ? range0 : range1;
+		if(!pType->HasTurret() || pType->IsGattling){
+			if (pType->Underwater && pType->Organic && pType->SelfHealing) {
+					weaponRange = pType->GuardRange;
+				} else {
+					if(int MultiWeaponrange = GetMultiWeaponRange(pThis); MultiWeaponrange != -1) {
+					    weaponRange =MultiWeaponrange;
+					} else {
+						const int range0 = pThis->GetWeaponRange(0);
+						const int range1 = pThis->GetWeaponRange(1);
+						weaponRange = (range0 > range1) ? range0 : range1;
+				}
+			}
 		}
 
 		cellRange = weaponRange / 256 + pType->AirRangeBonus / 256 + 1;

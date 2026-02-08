@@ -1286,6 +1286,7 @@ public:
 
 	Nullable<Mission> ParadropMission;
 	Nullable<Mission> AIParadropMission;
+	Nullable<Leptons> AreaGuardRange;
 
 	int TintColorAirstrike;
 #pragma endregion
@@ -2142,7 +2143,8 @@ public:
 		, OpenTransport_DamageMultiplier { 1.0 }
 		, ParadropMission {}
 		, AIParadropMission {}
-		, TintColorAirstrike()
+		, AreaGuardRange{}
+		, TintColorAirstrike{}
 		{
 		}
 
@@ -3190,6 +3192,7 @@ private:
 			.Process(this->OpenTransport_DamageMultiplier)
 			.Process(this->ParadropMission)
 			.Process(this->AIParadropMission)
+			.Process(this->AreaGuardRange)
 			.Process(this->TintColorAirstrike)
 			;
 	}

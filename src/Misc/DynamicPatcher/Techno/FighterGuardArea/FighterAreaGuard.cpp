@@ -384,7 +384,7 @@ void FighterAreaGuard::OnUpdate()
 										if (const auto pBuilding = cast_to<BuildingClass* , false>(pTech))
 										{
 											IsBuilding = true;
-											if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1)
+											if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID >= 0)
 												continue;
 
 										}else if(TechnoExtData::IsChronoDelayDamageImmune(static_cast<FootClass*>(pTech)))
@@ -665,7 +665,7 @@ bool FighterAreaGuard::CheckTarget(TechnoClass* pTarget)
 
 	if (const auto pBuildingTarget = cast_to<BuildingClass*>(pTarget))
 	{
-		if (BuildingExtContainer::Instance.Find(pBuildingTarget)->LimboID != -1)
+		if (BuildingExtContainer::Instance.Find(pBuildingTarget)->LimboID >= 0)
 			return false;
 	}
 	else if (pTarget->AbstractFlags & AbstractFlags::Foot)

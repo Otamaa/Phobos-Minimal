@@ -165,7 +165,7 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 
 	auto getTurretMatrix = [=, &mtx]() -> Matrix3D
 	{
-		auto mtxTurret = mtx;
+		Matrix3D mtxTurret = mtx;
 		pDrawTypeExt->ApplyTurretOffset(&mtxTurret, Game::Pixel_Per_Lepton());
 		mtxTurret.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>()));
 
@@ -174,7 +174,8 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 
 		return mtxTurret;
 	};
-	auto mtxTurret = shouldRedraw ? getTurretMatrix() : mtx;
+
+	Matrix3D mtxTurret = shouldRedraw ? getTurretMatrix() : mtx;
 	constexpr BlitterFlags blit = BlitterFlags::Alpha | BlitterFlags::Flat;
 
 	// Only when there is a barrel will its calculation and drawing be considered
@@ -188,7 +189,7 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 
 			auto getBarrelMatrix = [=, &mtxTurret, &mtx]() -> Matrix3D
 			{
-				auto mtxBarrel = mtxTurret;
+				Matrix3D mtxBarrel = mtxTurret;
 				mtxBarrel.Translate(-mtx.Row[0].W, -mtx.Row[1].W, -mtx.Row[2].W);
 				mtxBarrel.RotateY(static_cast<float>(-pThis->BarrelFacing.Current().GetRadian<32>()));
 
@@ -198,7 +199,7 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 				mtxBarrel.Translate(mtx.Row[0].W, mtx.Row[1].W, mtx.Row[2].W);
 				return mtxBarrel;
 			};
-			auto mtxBarrel = shouldRedraw ? getBarrelMatrix() : mtx;
+			Matrix3D mtxBarrel = shouldRedraw ? getBarrelMatrix() : mtx;
 
 			auto getBarrelVoxel = [pDrawType, notChargeTurret, currentTurretNumber]() -> VoxelStruct*
 			{
@@ -996,41 +997,113 @@ ASMJIT_PATCH(0x6F398E, TechnoClass_CombatDamage_MultiWeapon, 0x7)
 	return ReturnDamage;
 }
 
-ASMJIT_PATCH(0x707ED0, TechnoClass_GetGuardRange_MultiWeapon, 0x6)
+static int GetMultiWeaponRange(TechnoClass* pThis)
 {
-	enum { ReturnRange = 0x707F08 };
-
-	GET(TechnoClass*, pThis, ESI);
-
-	const auto pType = GET_TECHNOTYPE(pThis);
-	const bool specialWeapon = !pType->IsGattling && (!pType->HasMultipleTurrets() || !pType->Gunner);
-
-	if (!pType->IsGattling && pType->TurretCount > 0
-		&& (pType->Gunner || !specialWeapon)
-		&& pThis->WhatAmI() == AbstractType::Unit)
-	{
-		R->EAX(pThis->GetWeaponRange(pThis->CurrentWeaponNumber));
-		return ReturnRange;
-	}
-
+	int range = -1;
+	const auto pType = pThis->GetTechnoType();
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-	if (pTypeExt->MultiWeapon && specialWeapon)
-	{
-		const int selectCount = MinImpl(pType->WeaponCount, pTypeExt->MultiWeapon_SelectCount);
-		int range = 0;
+	if (pTypeExt->MultiWeapon) {
+		int selectCount = MinImpl(pType->WeaponCount, pTypeExt->MultiWeapon_SelectCount);
+		range = 0;
 
-		for (int index = selectCount - 1; index >= 0; --index)
-		{
-			const auto weaponRange = pThis->GetWeaponRange(index);
+		for (int index = selectCount - 1; index >= 0; --index) {
+			int weaponRange = pThis->GetWeaponRange(index);
 
 			if (weaponRange > range)
 				range = weaponRange;
 		}
-
-		R->EAX(range);
-		return ReturnRange;
 	}
 
-	return 0;
+	return range;
+}
+
+static int GetGuardRange(TechnoClass* pThis, int control)
+{
+	if (control == -1)
+		return -1;
+
+	auto const pType = pThis->GetTechnoType();
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	int range = pType->GuardRange;
+
+	if (pThis->CurrentMission == Mission::Area_Guard && pTypeExt->AreaGuardRange.isset())
+		range = pTypeExt->AreaGuardRange.Get();
+
+	if (!control) // Control = 0, used for ThreatType=Range target acquisition.
+	{
+		if (range && !pThis->IsEngineer())
+			return range;
+
+		return 0;
+	}
+
+	// Set range from weapon range if GuardRange is not set.
+	if (!range)
+	{
+		// Handle special weapon configurations.
+		if (!pType->IsGattling && (pType->HasMultipleTurrets() || pTypeExt->MultiWeapon))
+		{
+			if (pType->HasMultipleTurrets())
+				range = pThis->GetWeaponRange(pThis->CurrentWeaponNumber);
+			else
+				range = GetMultiWeaponRange(pThis);
+		}
+		else
+		{
+			int weaponRange0 = pThis->GetWeaponRange(0);
+			int weaponRange1 = pThis->GetWeaponRange(1);
+
+			if (weaponRange0 < weaponRange1)
+				range = weaponRange1;
+			else
+				range = weaponRange0;
+		}
+	}
+
+	//int maxRange = 4096; // Game caps the guard range in certain cases, but this is disabled here.
+	range *= 2; // Uncertain why the range gets doubled here, but it doesn't seem to reflect to the actual target scan range.
+
+	if (control == 2) // Control = 2, used for Patrol mission.
+	{
+		range = range < 1792 ? 1792 : range;
+
+		/*
+		int patrolMinRange = 1792;
+
+		if (range >= patrolMinRange)
+		{
+			if (range > maxRange)
+				range = maxRange;
+		}
+		else
+		{
+			range = patrolMinRange;
+		*/
+	}
+	else // Control = 1 and other values, used for Area Guard, ThreatType != Range threat scans etc.
+	{
+		range = range < 0 ? 0 : range;
+
+		/*
+		if (range < 0)
+			range = 0;
+		else if (range > maxRange)
+			range = maxRange;
+		*/
+	}
+
+	return range;
+}
+
+ASMJIT_PATCH(0x707E63, TechnoClass_GetGuardRange, 0x7)
+{
+	enum { SkipGameCode = 0x707F4B };
+
+	GET(TechnoClass*, pThis, ESI);
+	GET(int, control, EDI);
+
+	R->EAX(GetGuardRange(pThis, control));
+
+	return SkipGameCode;
 }

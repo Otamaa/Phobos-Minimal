@@ -471,7 +471,7 @@ DamageState FakeUnitClass::_Take_Damage(int* damage,
 			pBunker->ClearBunker();
 		}
 
-		if (pType->DeathFrames <= 0)
+		if (pType->DeathFrames <= 0 && !this->Transporter)
 		{
 			bool ShouldSink = pType->Weight > RulesClass::Instance->ShipSinkingWeight && pType->Naval && !pType->Underwater && !pType->Organic;
 
@@ -538,19 +538,21 @@ DamageState FakeUnitClass::_Take_Damage(int* damage,
 		if (pType->OpenTopped)
 			this->MarkPassengersAsExited();
 
-		TechnoExt_ExtData::SpawnSurvivors(this, source, selected, ignoreDefenses, PreventsPassengerEscape);
+		if(!this->Transporter){
+			TechnoExt_ExtData::SpawnSurvivors(this, source, selected, ignoreDefenses, PreventsPassengerEscape);
 
-		if (GameModeOptionsClass::Instance->Crates)
-		{
-			if (pType->CrateGoodie
-			  && (ScenarioClass::Instance->TruckCrate && !pType->IsTrain
-				  || ScenarioClass::Instance->TrainCrate && pType->IsTrain))
+			if (GameModeOptionsClass::Instance->Crates)
 			{
-
-				const auto crate_cell = MapClass::Instance->NearByLocation(this->GetMapCoords(), SpeedType::Track, ZoneType::None, MovementZone::Normal, 0, 1, 1, true, false, false, true, CellStruct::Empty, false, false);
-				if (crate_cell.IsValid())
+				if (pType->CrateGoodie
+				  && (ScenarioClass::Instance->TruckCrate && !pType->IsTrain
+					  || ScenarioClass::Instance->TrainCrate && pType->IsTrain))
 				{
-					MapClass::Instance->Place_Crate(crate_cell, PowerupEffects(0x14));
+
+					const auto crate_cell = MapClass::Instance->NearByLocation(this->GetMapCoords(), SpeedType::Track, ZoneType::None, MovementZone::Normal, 0, 1, 1, true, false, false, true, CellStruct::Empty, false, false);
+					if (crate_cell.IsValid())
+					{
+						MapClass::Instance->Place_Crate(crate_cell, PowerupEffects(0x14));
+					}
 				}
 			}
 		}

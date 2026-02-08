@@ -854,13 +854,9 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 			return;
 	}
 
-	if (!this->LimboKill_IDs.empty()) {
-		BuildingExtData::ApplyLimboKill(this->LimboKill_IDs, this->LimboKill_Affected, pTarget->Owner, pHouse);
-
-		if (!pTarget->IsAlive)
-			return;
+	for(auto& id : this->LimboKill_IDs){
+		BuildingExtData::ApplyLimboKill(id, -1 ,this->LimboKill_Affected, pTarget->Owner, pHouse);
 	}
-
 
 	//if (this->DirectionalArmor.Get())
 	//	this->ApplyDirectional(pBullet, pTarget);

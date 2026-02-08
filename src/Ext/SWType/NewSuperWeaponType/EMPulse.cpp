@@ -70,7 +70,7 @@ bool SW_EMPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 			// need to validate this before set
 			if (auto pWNStruct = pBld->GetWeapon(pData->EMPulse_WeaponIndex)) {
 				if (auto pWeapon = pWNStruct->WeaponType) {
-					TechnoExtContainer::Instance.Find(pBld)->idxSlot_EMPulse = pData->EMPulse_WeaponIndex;
+					TechnoExtContainer::Instance.Find(pBld)->idxSlot_EMPulse = (BYTE)pData->EMPulse_WeaponIndex;
 				}
 			}
 
@@ -137,7 +137,7 @@ void SW_EMPulse::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 bool SW_EMPulse::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
 	const auto pBldExt = BuildingExtContainer::Instance.Find(pBuilding);
-	if(pBldExt->LimboID != -1)
+	if(pBldExt->LimboID >= 0)
 		return false;
 
 	if(!this->IsLaunchsiteAlive(pBuilding))

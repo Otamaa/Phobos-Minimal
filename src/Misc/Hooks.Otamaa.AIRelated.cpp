@@ -88,7 +88,7 @@ ASMJIT_PATCH(0x4FAD64, HouseClass_SpecialWeapon_Update, 0x7)
 	GET(HouseClass*, pThis, EDI);
 	GET(FakeBuildingClass*, pThat, ESI);
 
-	if (!pThat->IsAlive || pThat->_GetExtData()->LimboID != -1)
+	if (!pThat->IsAlive || pThat->_GetExtData()->LimboID >= 0)
 		return 0x4FADD9;
 
 	return pThis->IsAlliedWith(pThat->GetOwningHouse()) ? 0x4FADD9 : 0x4FAD9E;
@@ -229,7 +229,7 @@ BuildingClass* __fastcall Find_Enemy_Building(
 			continue;
 		}
 
-		if (pBld->InLimbo || BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
+		if (pBld->InLimbo || BuildingExtContainer::Instance.Find(pBld)->LimboID >= 0)
 			continue;
 
 		switch (find_type)
@@ -303,7 +303,7 @@ BuildingClass* __fastcall Find_Own_Building(
 		int v10 = -1;
 
 		if (pBld->Type == type){
-			if (!pBld->InLimbo && BuildingExtContainer::Instance.Find(pBld)->LimboID <= -1) {
+			if (!pBld->InLimbo && BuildingExtContainer::Instance.Find(pBld)->LimboID < 0) {
 				switch (find_type)
 				{
 				case 0:
@@ -359,7 +359,7 @@ ASMJIT_PATCH(0x6EEC6D, FindTargetBuilding_LimboDelivered, 0x6)
 	if (!pBuilding->IsAlive)
 		return advance;
 
-	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ?
+	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID >= 0 ?
 		advance : ret;
 }
 
@@ -372,7 +372,7 @@ ASMJIT_PATCH(0x6EEEF2, FindOwnBuilding_LimboDelivered, 0xA)
 	if (pBuilding->InLimbo || !pBuilding->IsAlive)
 		return advance;
 
-	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ?
+	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID >= 0 ?
 		advance : ret;
 }
 

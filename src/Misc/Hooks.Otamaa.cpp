@@ -605,7 +605,7 @@ ASMJIT_PATCH(0x508CE6, HouseClass_UpdatePower_LimboDeliver, 0x6)
 {
 	GET(BuildingClass*, pBld, EDI);
 
-	if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
+	if (BuildingExtContainer::Instance.Find(pBld)->LimboID >= 0)
 		return 0x508CEE; // add the power
 
 	return 0x0;
@@ -645,7 +645,7 @@ ASMJIT_PATCH(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 
 	if (pThis->WhatAmI() == BuildingClass::AbsID)
 	{
-		if (BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis))->LimboID != -1)
+		if (BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis))->LimboID >= 0)
 		{
 			return DoNotDrawRadar;
 		}
@@ -735,7 +735,7 @@ ASMJIT_PATCH(0x6D912B, TacticalClass_Render_BuildingInLimboDeliveryA, 0x9)
 
 	if (pTechno->WhatAmI() == BuildingClass::AbsID)
 	{
-		if (BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pTechno))->LimboID != -1)
+		if (BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pTechno))->LimboID >= 0)
 		{
 			return DoNotDraw;
 		}
@@ -752,7 +752,7 @@ ASMJIT_PATCH(0x6D966A, TacticalClass_Render_BuildingInLimboDeliveryB, 0x9)
 
 	if (pTechno->WhatAmI() == BuildingClass::AbsID)
 	{
-		if (BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pTechno))->LimboID != -1)
+		if (BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pTechno))->LimboID >= 0)
 		{
 			return DoNotDraw;
 		}
@@ -1745,7 +1745,7 @@ ASMJIT_PATCH(0x6E08DE, TActionClass_SellBack_LimboDelivered, 0x6)
 	enum { forbidden = 0x6E0907, allow = 0x0 };
 
 	GET(BuildingClass*, pBld, ESI);
-	return BuildingExtContainer::Instance.Find(pBld)->LimboID != -1 ?
+	return BuildingExtContainer::Instance.Find(pBld)->LimboID >= 0 ?
 		forbidden : allow;
 }
 
@@ -5970,7 +5970,7 @@ ASMJIT_PATCH(0x4CDCFD, FlyLocomotionClass_MovingUpdate_HoverAttack, 0x7)
 ASMJIT_PATCH(0x4FD95F, HouseClass_CheckFireSale_LimboID, 0x6)
 {
 	GET(BuildingClass*, pBld, EAX);
-	return BuildingExtContainer::Instance.Find(pBld)->LimboID != -1 ? 0x4FD983 : 0x0;
+	return BuildingExtContainer::Instance.Find(pBld)->LimboID >= 0 ? 0x4FD983 : 0x0;
 }
 
 // ASMJIT_PATCH(0x4C2A02, Ebolt_DTOR_TechnoIsNotTechno, 0x6)
@@ -7858,8 +7858,8 @@ public:
 			// Trivial accept
 			if (outcode0 == CODE_INSIDE && outcode1 == CODE_INSIDE)
 			{
-				point1.X = x0; point1.Y = y0;
-				point2.X = x1; point2.Y = y1;
+				point1.X = (int)x0; point1.Y = (int)y0;
+				point2.X = (int)x1; point2.Y = (int)y1;
 				return true;
 			}
 	

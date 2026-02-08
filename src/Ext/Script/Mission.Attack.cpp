@@ -695,7 +695,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 	{
 		IsBuilding = true;
 
-		if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1)
+		if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID >= 0)
 			return false;
 
 		buildingIsConsideredVehicle = pBuilding->Type->IsUndeployable();

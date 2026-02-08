@@ -3507,7 +3507,7 @@ void FakeHouseClass::_UpdateRadar() {
 
 				if (pRadar) {
 
-					if	(pBldExt->LimboID != -1) {
+					if	(pBldExt->LimboID >= 0) {
 						radarAvailable = true;
 						break;
 					}
@@ -3581,7 +3581,7 @@ void FakeHouseClass::_UpdateSpySat()
 		if (pBld && pBld->IsAlive && !pBld->InLimbo && pBld->IsOnMap)
 		{
 			const auto pExt = BuildingExtContainer::Instance.Find(pBld);
-			const bool IsLimboDelivered = pExt->LimboID != -1;
+			const bool IsLimboDelivered = pExt->LimboID >= 0;
 
 			if (pBld->GetCurrentMission() == Mission::Selling || pBld->QueuedMission == Mission::Selling)
 				continue;

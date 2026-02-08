@@ -473,7 +473,7 @@ void HandleInfantryDeath(FakeInfantryClass* pThis, WarheadTypeClass* warhead,
 	pThis->NextMission();
 	pThis->KillPassengers(source);
 
-	if (!pThis->_GetExtData()->GarrisonedIn) {
+	if (!pThis->_GetExtData()->GarrisonedIn && !pThis->Transporter) {
 
 		// Check if special cyborg death
 		bool isCyborgDeath = false;

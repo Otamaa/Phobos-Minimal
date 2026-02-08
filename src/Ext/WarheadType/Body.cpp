@@ -995,7 +995,7 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool S
 		{
 			auto const pBldExt = BuildingExtContainer::Instance.Find(pBld);
 
-			if (this->LimboKill_IDs.empty() && pBldExt->LimboID != -1)
+			if (this->LimboKill_IDs.empty() && pBldExt->LimboID >= 0)
 			{
 				return false;
 			}
@@ -1669,7 +1669,6 @@ void WarheadTypeExtData::ApplyPenetratesTransport(TechnoClass* pTarget, TechnoCl
 	}
 	else
 	{
-
 		VocClass::SafeImmedietelyPlayAt(this->PenetratesTransport_CleanSound, coords);
 	}
 }

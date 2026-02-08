@@ -45,7 +45,7 @@ ASMJIT_PATCH(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 		return ReturnNegative;
 	}
 
-	if (!pThis->Owner->IsAlliedWith(pFrom) || pExt->LimboID != -1 || pThis->Owner->Type->MultiplayPassive)
+	if (!pThis->Owner->IsAlliedWith(pFrom) || pExt->LimboID >= 0 || pThis->Owner->Type->MultiplayPassive)
 		return ReturnStatic;
 
 	if (pThis->Type->Grinding) {

@@ -614,14 +614,14 @@ ASMJIT_PATCH(0x70133E, TechnoClass_GetWeaponRange_Demacroize, 0x5)
 	return 0x701388;
 }
 
-ASMJIT_PATCH(0x707EEA, TechnoClass_GetGuardRange_Demacroize, 0x6)
-{
-	GET(int, nVal1, EBX);
-	GET(int, nVal2, EAX);
+// ASMJIT_PATCH(0x707EEA, TechnoClass_GetGuardRange_Demacroize, 0x6)
+// {
+// 	GET(int, nVal1, EBX);
+// 	GET(int, nVal2, EAX);
 
-	R->EAX(nVal2 >= nVal1 ? nVal2 : nVal1);
-	return 0x707F08;
-}
+// 	R->EAX(nVal2 >= nVal1 ? nVal2 : nVal1);
+// 	return 0x707F08;
+// }
 
 // customizable berserk fire rate modification
 // ASMJIT_PATCH(0x6FF28F, TechnoClass_Fire_BerserkROFMultiplier, 6)
