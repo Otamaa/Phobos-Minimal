@@ -1042,15 +1042,12 @@ static int GetGuardRange(TechnoClass* pThis, int control)
 	if (!range)
 	{
 		// Handle special weapon configurations.
-		if (!pType->IsGattling && (pType->HasMultipleTurrets() || pTypeExt->MultiWeapon))
-		{
+		if (!pType->IsGattling && (pType->HasMultipleTurrets() || pTypeExt->MultiWeapon)) {
 			if (pType->HasMultipleTurrets())
 				range = pThis->GetWeaponRange(pThis->CurrentWeaponNumber);
 			else
 				range = GetMultiWeaponRange(pThis);
-		}
-		else
-		{
+		} else {
 			int weaponRange0 = pThis->GetWeaponRange(0);
 			int weaponRange1 = pThis->GetWeaponRange(1);
 
@@ -1061,49 +1058,34 @@ static int GetGuardRange(TechnoClass* pThis, int control)
 		}
 	}
 
-	//int maxRange = 4096; // Game caps the guard range in certain cases, but this is disabled here.
-	range *= 2; // Uncertain why the range gets doubled here, but it doesn't seem to reflect to the actual target scan range.
 
-	if (control == 2) // Control = 2, used for Patrol mission.
-	{
-		range = range < 1792 ? 1792 : range;
+	//TechnoClass_GetGuardRange_AreaGuardRange
+	const bool isPlayer = pThis->Owner->IsControlledByHuman();
+	const auto pRulesExt = RulesExtData::Instance();
 
-		/*
-		int patrolMinRange = 1792;
+	const auto& [multiplier, addend, max] = isPlayer
+		? std::make_tuple(pTypeExt->PlayerGuardModeGuardRangeMultiplier.Get(pRulesExt->PlayerGuardModeGuardRangeMultiplier)
+		, pTypeExt->PlayerGuardModeGuardRangeAddend.Get(pRulesExt->PlayerGuardModeGuardRangeAddend)
+		, pRulesExt->PlayerGuardModeGuardRangeMax.Get())
+		: std::make_tuple(pTypeExt->AIGuardModeGuardRangeMultiplier.Get(pRulesExt->AIGuardModeGuardRangeMultiplier)
+		, pTypeExt->AIGuardModeGuardRangeAddend.Get(pRulesExt->AIGuardModeGuardRangeAddend)
+		, pRulesExt->AIGuardModeGuardRangeMax.Get());
 
-		if (range >= patrolMinRange)
-		{
-			if (range > maxRange)
-				range = maxRange;
-		}
-		else
-		{
-			range = patrolMinRange;
-		*/
-	}
-	else // Control = 1 and other values, used for Area Guard, ThreatType != Range threat scans etc.
-	{
-		range = range < 0 ? 0 : range;
+	const int min = ((control == 2) ? 1792 : 0);
+	const int areaGuardRange = (static_cast<int>(range * multiplier + static_cast<int>(addend)));
+	//
 
-		/*
-		if (range < 0)
-			range = 0;
-		else if (range > maxRange)
-			range = maxRange;
-		*/
-	}
 
-	return range;
+	return std::clamp(areaGuardRange, min, (int)max);
 }
 
-ASMJIT_PATCH(0x707E63, TechnoClass_GetGuardRange, 0x7)
+ASMJIT_PATCH(0x707E60, TechnoClass_GetGuardRange, 0x7)
 {
 	enum { SkipGameCode = 0x707F4B };
 
-	GET(TechnoClass*, pThis, ESI);
-	GET(int, control, EDI);
+	GET(TechnoClass*, pThis, ECX);
+	GET_STACK(int, control, 0x4);
 
 	R->EAX(GetGuardRange(pThis, control));
-
-	return SkipGameCode;
+	return 0x707F4E;
 }

@@ -1863,29 +1863,29 @@ ASMJIT_PATCH(0x4D6E97, FootClass_MissionAreaGuard_Pursuit, 0x6)
 		: KeepTarget;
 }
 
-ASMJIT_PATCH(0x707F08, TechnoClass_GetGuardRange_AreaGuardRange, 0x5)
-{
-	enum { SkipGameCode = 0x707E70 };
+// ASMJIT_PATCH(0x707F08, TechnoClass_GetGuardRange_AreaGuardRange, 0x5)
+// {
+// 	enum { SkipGameCode = 0x707E70 };
 
-	GET(Leptons, guardRange, EAX);
-	GET(int, mode, EDI);
-	GET(TechnoClass* const, pThis, ESI);
+// 	GET(Leptons, guardRange, EAX);
+// 	GET(int, mode, EDI);
+// 	GET(TechnoClass* const, pThis, ESI);
 
-	const bool isPlayer = pThis->Owner->IsControlledByHuman();
-	const auto pRulesExt =RulesExtData::Instance();
-	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
+// 	const bool isPlayer = pThis->Owner->IsControlledByHuman();
+// 	const auto pRulesExt =RulesExtData::Instance();
+// 	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
-	const auto& [multiplier, addend, max] = isPlayer
-		? std::make_tuple(pTypeExt->PlayerGuardModeGuardRangeMultiplier.Get(pRulesExt->PlayerGuardModeGuardRangeMultiplier), pTypeExt->PlayerGuardModeGuardRangeAddend.Get(pRulesExt->PlayerGuardModeGuardRangeAddend), pRulesExt->PlayerGuardModeGuardRangeMax.Get())
-		: std::make_tuple(pTypeExt->AIGuardModeGuardRangeMultiplier.Get(pRulesExt->AIGuardModeGuardRangeMultiplier), pTypeExt->AIGuardModeGuardRangeAddend.Get(pRulesExt->AIGuardModeGuardRangeAddend), pRulesExt->AIGuardModeGuardRangeMax.Get());
+// 	const auto& [multiplier, addend, max] = isPlayer
+// 		? std::make_tuple(pTypeExt->PlayerGuardModeGuardRangeMultiplier.Get(pRulesExt->PlayerGuardModeGuardRangeMultiplier), pTypeExt->PlayerGuardModeGuardRangeAddend.Get(pRulesExt->PlayerGuardModeGuardRangeAddend), pRulesExt->PlayerGuardModeGuardRangeMax.Get())
+// 		: std::make_tuple(pTypeExt->AIGuardModeGuardRangeMultiplier.Get(pRulesExt->AIGuardModeGuardRangeMultiplier), pTypeExt->AIGuardModeGuardRangeAddend.Get(pRulesExt->AIGuardModeGuardRangeAddend), pRulesExt->AIGuardModeGuardRangeMax.Get());
 
-	const Leptons min = Leptons((mode == 2) ? (7 / Unsorted::LeptonsPerCell) : 0);
-	const Leptons areaGuardRange = Leptons(static_cast<int>(static_cast<int>(guardRange) * multiplier + static_cast<int>(addend)));
+// 	const Leptons min = Leptons((mode == 2) ? (7 / Unsorted::LeptonsPerCell) : 0);
+// 	const Leptons areaGuardRange = Leptons(static_cast<int>(static_cast<int>(guardRange) * multiplier + static_cast<int>(addend)));
 
-	R->EAX(std::clamp(areaGuardRange, min, max));
+// 	R->EAX(std::clamp(areaGuardRange, min, max));
 
-	return SkipGameCode;
-}
+// 	return SkipGameCode;
+// }
 
 ASMJIT_PATCH(0x42EBA2, BaseClass_GetBaseNodeIndex_AIAdjacentMax, 0x8)
 {
