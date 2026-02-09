@@ -11,6 +11,38 @@
 #include <Misc/Spawner/ProtocolZero.h>
 #include <IPXManagerClass.h>
 
+
+EventExt::ApproachObject::ApproachObject(FootClass* pThis, ObjectClass* pObject) : 
+	Whom { pThis }, Target { pObject } { }
+
+void EventExt::ApproachObject::Raise(FootClass* pThis, ObjectClass* pObject)
+{
+	EventClass Event {};
+	if (pThis->Owner->ArrayIndex >= 0) {
+		Event.Type = AsEventType();
+		Event.HouseIndex = byte(pThis->Owner->ArrayIndex);
+	}
+	EventExt::AddToEvent<true, true, ApproachObject>(Event, pThis, pObject);
+}
+
+void EventExt::ApproachObject::Respond(EventClass* Event)
+{
+
+	const auto pSource = Event->Data.nothing.As<ApproachObject>()->Whom.As_Foot();
+
+	if (!pSource || static_cast<char>(pSource->Owner->ArrayIndex) != Event->HouseIndex)
+		return;
+
+	const auto pObject = Event->Data.nothing.As<ApproachObject>()->Target.As_Object();
+
+	if (!pObject)
+		return;
+
+	const auto pOriginalTarget = std::exchange(pSource->Target, pObject);
+	pSource->ApproachTarget(0);
+	pSource->Target = pOriginalTarget;
+}
+
 EventExt::TogglePassiveAcquireMode::TogglePassiveAcquireMode(TechnoClass* pTechno, PassiveAcquireMode mode) : Who { pTechno } , Mode { mode }
 { }
 

@@ -3098,3 +3098,29 @@ ASMJIT_PATCH(0x441C76, BuildingClass_Destroy_Explode_RubbleFix, 0x5)
 	pThis->GoingToBlowTimer.Start(pThis->Type->Explodes);
 	return AfterSetC4Timer;
 }
+
+#include <Ext/Event/Body.h>
+
+// Fix the bug that techno in attack move will move to target if it cannot attack it
+ASMJIT_PATCH(0x4D77BD, FootClass_ObjectClickedAction_NoMove, 0x6)
+{
+	enum { ReturnFalse = 0x4D77EC, ReturnTrue = 0x4D7CC0 };
+
+	GET(ObjectClass*, pTarget, EBX);
+
+	const auto pTargetTechno = flag_cast_to<TechnoClass*>(pTarget);
+
+	if (!pTargetTechno)
+		return 0;
+
+	GET(FootClass*, pThis, ESI);
+
+	if (pThis->Owner->IsAlliedWith(pTargetTechno->Owner))
+		return 0;
+
+	if (!pThis->IsActive())
+		return ReturnFalse;
+
+	EventExt::ApproachObject::Raise(pThis, pTarget);
+	return ReturnTrue;
+}

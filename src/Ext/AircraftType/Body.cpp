@@ -2,6 +2,7 @@
 #include <Utilities/Macro.h>
 
 #include <Phobos.SaveGame.h>
+#include "Body.h"
 
 AircraftTypeExtContainer AircraftTypeExtContainer::Instance;
 

@@ -24,9 +24,10 @@ public:
 		ManualReload = 0x63,
 		TogglePassiveAcquireMode = 0x64,
 		TogglePlayerAutoRepair = 0x65,
+		ApproachObject = 0x66,
 
 		First = TrenchRedirectClick,
-		Last = TogglePassiveAcquireMode
+		Last = ApproachObject
 	};
 
 	template<bool timestamp, bool setData, class T, typename... ArgTypes>
@@ -53,6 +54,18 @@ public:
 
 		TargetClass Who;
 		PassiveAcquireMode Mode;
+	};
+
+	struct ApproachObject
+	{
+		ApproachObject(FootClass* pThis, ObjectClass* pObject);
+
+		SET_DEFAULT_PROP(ApproachObject)
+
+		static void Raise(FootClass* pThis, ObjectClass* pObject);
+
+		TargetClass Whom;
+		TargetClass Target;
 	};
 
 	struct ManualReload
@@ -140,6 +153,7 @@ public:
 			GET_SIZE_EV(ManualReload)
 			GET_SIZE_EV(TogglePassiveAcquireMode)
 			GET_SIZE_EV(TogglePlayerAutoRepair)
+			GET_SIZE_EV(ApproachObject)
 		default:
 			return 0;
 		}
@@ -158,6 +172,7 @@ public:
 			GET_NAME_EV(ManualReload)
 			GET_NAME_EV(TogglePassiveAcquireMode)
 			GET_NAME_EV(TogglePlayerAutoRepair)
+			GET_NAME_EV(ApproachObject)
 		default:
 			return "Unknown";
 		}
@@ -175,6 +190,7 @@ public:
 			RESPOND_TO_EV(ManualReload)
 			RESPOND_TO_EV(TogglePassiveAcquireMode)
 			RESPOND_TO_EV(TogglePlayerAutoRepair)
+			RESPOND_TO_EV(ApproachObject)
 		default:
 			break;
 		}
