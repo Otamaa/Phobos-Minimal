@@ -1967,27 +1967,26 @@ std::tuple<bool, bool, bool> TechnoExtData::CanBeAffectedByFakeEngineer(TechnoCl
 
 bool TechnoExtData::CannotMove(UnitClass* pThis)
 {
-	const auto pType = pThis->Type;
+const auto pType = pThis->Type;
 
 	if (pType->Speed <= 0)
 		return true;
 
-	if (!locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor))
-	{
-		LandType landType = pThis->GetCell()->LandType;
-		const LandType movementRestrictedTo = pType->MovementRestrictedTo;
+	const auto movementRestrictedTo = pType->MovementRestrictedTo;
 
-		if (pThis->OnBridge
-			&& (landType == LandType::Water || landType == LandType::Beach))
-		{
-			landType = LandType::Road;
-		}
+	if (movementRestrictedTo == LandType::None)
+		return false;
 
-		if (movementRestrictedTo != LandType::None && movementRestrictedTo != landType && landType != LandType::Tunnel)
-			return true;
-	}
+	auto landType = pThis->GetCell()->LandType;
 
-	return false;
+	if (landType == LandType::Tunnel)
+		return false;
+
+	if (pThis->OnBridge && (landType == LandType::Water || landType == LandType::Beach))
+		landType = LandType::Road;
+
+	if (movementRestrictedTo != landType)
+		return true;
 }
 
 // Check adjacent cells from the center
