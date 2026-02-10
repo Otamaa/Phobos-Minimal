@@ -45,7 +45,6 @@ struct AEProperties
 public:
 
 	static void Recalculate(TechnoClass* pTechno);
-	static void UpdateAEAnimLogic(TechnoClass* pTechno);
 
 public:
 

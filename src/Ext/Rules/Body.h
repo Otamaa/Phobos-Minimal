@@ -592,7 +592,7 @@ public:
 	Valueable<int> CombatAlert_Interval { 150 };
 	Valueable<bool> AllowBerzerkOnAllies { false };
 	Valueable<bool> UnitsUnsellable { false };
-
+	Valueable<bool> DisableOveroptimizationInTargeting { false };
 	// ============================================================
 	// Plain bool arrays and plain bools (at the very end)
 	// ============================================================

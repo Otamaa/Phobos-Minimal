@@ -69,7 +69,7 @@ public:
 		SpawnsTiberium_GrowthStage({ 3, 0 }),
 		SpawnsTiberium_CellsPerAnim({ 1, 0 }),
 		SpawnsTiberium_StageFalloff(),
-		SpawnsTiberium_Particle(),
+		SpawnsTiberium_Particle(-1),
 		DestroyAnim(),
 		DestroySound(-1),
 		Warhead(),

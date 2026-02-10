@@ -526,7 +526,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* pThis,
 		}
 
 		// Early exit if we found a target at certain radii
-		if (bestTarget)
+		if (bestTarget && !RulesExtData::Instance()->DisableOveroptimizationInTargeting)
 		{
 			if (radius == cellRange / 4 || radius == cellRange / 2)
 			{

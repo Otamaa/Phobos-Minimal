@@ -106,6 +106,12 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 			attachEffect->SetAnimationTunnelState(true);
 
 		attachEffect->AI();
+
+		if (attachEffect->NeedsRecalculateStat) {
+			altered = true;
+			attachEffect->NeedsRecalculateStat = false;
+		}
+
  		bool hasExpired = attachEffect->HasExpired();
 		bool shouldDiscard = attachEffect->IsActive() && attachEffect->ShouldBeDiscardedNow();
 
@@ -138,7 +144,6 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 
 	if(altered){
 		AEProperties::Recalculate(pTechno);
-		AEProperties::UpdateAEAnimLogic(pTechno);
 	}
 
 	if (markForRedraw)
@@ -278,7 +283,6 @@ void PhobosAEFunctions::UpdateSelfOwnedAttachEffects(TechnoClass* pTechno, Techn
 
 	if (altered && !count){
 		AEProperties::Recalculate(pTechno);
-		AEProperties::UpdateAEAnimLogic(pTechno);
 		markForRedraw = true;
 	}
 

@@ -8390,14 +8390,6 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 		pExt->Tints.Update();
 }
 
-void AEProperties::UpdateAEAnimLogic(TechnoClass* pTechno)
-{
-	for (auto const& attachEffect : TechnoExtContainer::Instance.Find(pTechno)->PhobosAE) {
-		if(attachEffect)
-			attachEffect->UpdateAnimLogic();
-	}
-}
-
 TechnoExtData::~TechnoExtData()
 {
 	auto pThis = This();

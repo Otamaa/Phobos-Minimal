@@ -73,7 +73,6 @@ void UpdateAEComponent<AEPropertiesArmorMult, StackVector<AEPropertiesArmorMult:
 namespace AEPropertiesHelper
 {
 	void Recalculate(TechnoClass* pTechno);
-	void UpdateAEAnimLogic(TechnoClass* pTechno);
 }
 
 void AEAccumulator::AccumulateWeaponRange(
@@ -388,14 +387,6 @@ void AEProperties::Recalculate(TechnoClass* pTechno)
 	if ((wasTint || acc.hasTint))
 	{
 		pExt->Tints.Update();
-	}
-}
-
-void AEProperties::UpdateAEAnimLogic(TechnoClass* pTechno)
-{
-	for (auto const& attachEffect : TechnoExtContainer::Instance.Find(pTechno)->PhobosAE) {
-		if(attachEffect)
-			attachEffect->UpdateAnimLogic();
 	}
 }
 

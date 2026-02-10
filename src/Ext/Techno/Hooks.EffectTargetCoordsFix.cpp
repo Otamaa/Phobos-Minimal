@@ -86,9 +86,9 @@ ASMJIT_PATCH(0x62B897, ParticleClass_CTOR_RailgunCoordAdjust, 0x5)
 	const auto pParticleSys = pThis->ParticleSystem;
 	const auto pParticleTypeExt = ParticleTypeExtContainer::Instance.Find(pThis->Type);
 
-	if(pParticleSys
-	&& (pParticleSys->Type->BehavesLike == ParticleSystemTypeBehavesLike::Railgun
-		|| pParticleSys->Type->BehavesLike == ParticleSystemTypeBehavesLike::Fire)
+	if(pParticleSys && pParticleSys->Type
+		&& (pParticleSys->Type->BehavesLike == ParticleSystemTypeBehavesLike::Railgun
+			|| pParticleSys->Type->BehavesLike == ParticleSystemTypeBehavesLike::Fire)
 	){
 		GET(CoordStruct*, pCoordBase, EDI);
 		LEA_STACK(CoordStruct* , pCoord, 0x10);

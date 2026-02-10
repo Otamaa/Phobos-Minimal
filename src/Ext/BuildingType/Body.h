@@ -234,7 +234,7 @@ public:
 	Valueable<int> RubbleIntactStrength;
 	Valueable<int> SpyEffect_Anim_Duration;
 	Valueable<int> FactoryPlant_MaxCount;
-	Valueable<int> Adjacent_Disallowed_ExtraDistance;
+	Valueable<int> Adjacent_Disallowed_ProhibitDistance;
 	Valueable<int> AutoBuilding_Gap;
 	Valueable<int> LimboBuildID;
 	Valueable<int> Overpower_KeepOnline;
@@ -358,7 +358,7 @@ public:
 	Valueable<bool> IsBarGate;
 	Valueable<bool> IsHideDuringSpecialAnim;
 	Valueable<bool> ApplyPerTargetEffectsOnDetonate;
-
+	Valueable<bool> Adjacent_Disallowed_Prohibit;
 	// ============================================================
 	// Plain bool (1 byte, at the very end)
 	// ============================================================
@@ -519,7 +519,7 @@ public:
 		, RubbleIntactStrength(-1)
 		, SpyEffect_Anim_Duration(-1)
 		, FactoryPlant_MaxCount(-1)
-		, Adjacent_Disallowed_ExtraDistance(0)
+		, Adjacent_Disallowed_ProhibitDistance(0)
 		, AutoBuilding_Gap(1)
 		, LimboBuildID(-1)
 		, Overpower_KeepOnline(2)
@@ -622,6 +622,7 @@ public:
 		, IsBarGate(false)
 		, IsHideDuringSpecialAnim(false)
 		, ApplyPerTargetEffectsOnDetonate(true)
+		, Adjacent_Disallowed_Prohibit(false)
 		// Plain bool
 		, IsCustom(false)
 	{

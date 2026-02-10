@@ -594,11 +594,10 @@ ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 
 	if (pExt->AE.flags.HasOnFireDiscardables) {
 		for (auto& attachEffect : pExt->PhobosAE) {
-				if(!attachEffect || attachEffect->ShouldBeDiscarded)
-					continue;
+			if(!attachEffect || attachEffect->ShouldBeDiscarded)
+				continue;
 
-			if(GeneralUtils::Contains<DiscardCondition>(attachEffect->GetType()->DiscardOn ,DiscardCondition::Firing))
-				attachEffect->ShouldBeDiscarded = true;
+			attachEffect->DiscardOnFire();
 		}
 	}
 

@@ -104,6 +104,12 @@ void PhobosAttachEffectClass::InvalidateAnimPointer(AnimClass* ptr)
 		this->Animation.release();
 }
 
+void PhobosAttachEffectClass::HandleEvent(TechnoClass* pTarget)
+{
+	if (const auto pTag = pTarget->AttachedTag)
+		pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::AttachedIsUnderAttachedEffect, pTarget, CellStruct::Empty);
+}
+
 // =============================
 // actual logic
 
@@ -138,6 +144,9 @@ void PhobosAttachEffectClass::AI()
 
 		if (this->Type->HasTint())
 			pTechno->MarkForRedraw();
+
+		this->NeedsRecalculateStat = true;
+		HandleEvent(pTechno);
 	}
 
 	if (this->CurrentDelay > 0)
@@ -157,7 +166,9 @@ void PhobosAttachEffectClass::AI()
 		if (!this->ShouldBeDiscardedNow())
 		{
 			this->RefreshDuration();
+			this->NeedsRecalculateStat = true;
 			this->NeedsDurationRefresh = false;
+			HandleEvent(this->Techno);
 		}
 
 		return;
@@ -173,8 +184,10 @@ void PhobosAttachEffectClass::AI()
 
 		this->CurrentDelay = this->Delay;
 
-		if (this->Delay > 0)
+		if (this->Delay > 0) {
 			this->KillAnim();
+			this->NeedsRecalculateStat = true;
+		}
 		else if (this->ShouldBeDiscardedNow())
 			this->RefreshDuration();
 		else
@@ -191,14 +204,7 @@ void PhobosAttachEffectClass::AI()
 
 	this->CloakCheck();
 	this->OnlineCheck();
-
-	if (!this->Animation && this->CanShowAnim())
-		this->CreateAnim();
-
-	this->UpdateAnimLogic();
-
-	if (auto pTag = this->Techno->AttachedTag)
-		pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::AttachedIsUnderAttachedEffect, this->Techno, CellStruct::Empty);
+	this->AnimCheck();
 }
 
 void PhobosAttachEffectClass::AI_Temporal()
@@ -208,10 +214,9 @@ void PhobosAttachEffectClass::AI_Temporal()
 	if (!this->IsUnderTemporal)
 	{
 		this->IsUnderTemporal = true;
-		this->CloakCheck();
 
-	if (!this->Animation && this->CanShowAnim())
-		this->CreateAnim();
+		this->CloakCheck();
+		this->AnimCheck();
 
 		if (this->Animation)
 		{
@@ -233,44 +238,47 @@ void PhobosAttachEffectClass::AI_Temporal()
 				this->Animation->UnderTemporal = true;
 				break;
 			}
-
-			this->UpdateAnimLogic();
 		}
 	}
 }
 
-void PhobosAttachEffectClass::UpdateAnimLogic()
+void PhobosAttachEffectClass::AnimCheck()
 {
-	//Debug::LogInfo(__FUNCTION__" Executed [%s - %s]", this->Techno->GetThisClassName(), this->Techno->get_ID());
-
 	if (!this->Type->Animation_HideIfAttachedWith.empty())
 	{
-		//auto const pTechnoExt = TechnoExtContainer::Instance.Find(this->Techno);
-
 		if (PhobosAEFunctions::HasAttachedEffects(this->Techno, this->Type->Animation_HideIfAttachedWith, false, false, nullptr, nullptr, nullptr, nullptr))
 		{
 			this->KillAnim();
 			this->IsAnimHidden = true;
-		}
-		else
-		{
-			this->IsAnimHidden = false;
-
-			if (!this->Animation && this->CanShowAnim())
-				this->CreateAnim();
+			return;
 		}
 	}
 
-	if (this->Animation && this->Type->Animation_DrawOffsets.size() > 0) {
+	if (this->Animation && this->Type->Animation_DrawOffsets.size() > 0)
+	{
 		auto const pAnimExt = AnimExtContainer::Instance.Find(this->Animation);
 		//auto const pTechnoExt = TechnoExtContainer::Instance.Find(this->Techno);
 		pAnimExt->AEDrawOffset = Point2D::Empty;
 
-		for (auto& drawOffset : this->Type->Animation_DrawOffsets) {
+		for (auto& drawOffset : this->Type->Animation_DrawOffsets)
+		{
 			if (drawOffset.RequiredTypes.size() < 1 || PhobosAEFunctions::HasAttachedEffects(this->Techno, drawOffset.RequiredTypes, false, false, nullptr, nullptr, nullptr, nullptr, true))
 				pAnimExt->AEDrawOffset += drawOffset.Offset;
 		}
 	}
+
+	this->IsAnimHidden = false;
+
+	if (!this->Animation && this->CanShowAnim())
+		this->CreateAnim();
+}
+
+void PhobosAttachEffectClass::DiscardOnFire()
+{ 
+	if (GeneralUtils::Contains<DiscardCondition>(
+		this->GetType()->DiscardOn,
+		DiscardCondition::Firing))
+		this->ShouldBeDiscarded = true;
 }
 
 void PhobosAttachEffectClass::UpdateCumulativeAnim(int count)
@@ -323,6 +331,11 @@ void PhobosAttachEffectClass::OnlineCheck()
 	}
 
 	this->IsOnline = isActive;
+
+	if (isActive != this->LastActiveStat) {
+		this->NeedsRecalculateStat = true;
+		this->LastActiveStat = isActive;
+	}
 
 	if (!this->Animation)
 		return;
@@ -389,13 +402,10 @@ void PhobosAttachEffectClass::CreateAnim()
 		pAnimType = this->SelectedAnim;
 	}
 
-	if (!pAnimType)
-		return;
-
 	if (this->IsCloaked && AnimTypeExtContainer::Instance.Find(pAnimType)->DetachOnCloak)
 		return;
 
-	if (!this->Animation) {
+	if (!this->Animation && pAnimType) {
 		this->Animation.reset(GameCreate<AnimClass>(pAnimType, this->Techno->Location));
 		this->Animation->SetOwnerObject(this->Techno);
 		this->Animation->Owner = this->Type->Animation_UseInvokerAsOwner ? InvokerHouse : this->Techno->Owner;
@@ -404,8 +414,6 @@ void PhobosAttachEffectClass::CreateAnim()
 		if (this->Type->Animation_UseInvokerAsOwner) {
 			pAnimExt->Invoker = Invoker;
 		}
-
-		AEProperties::UpdateAEAnimLogic(this->Techno);
 	}
 }
 
@@ -414,7 +422,6 @@ void PhobosAttachEffectClass::KillAnim()
 	//Debug::LogInfo(__FUNCTION__" Executed [%s - %s]", this->Techno->GetThisClassName(), this->Techno->get_ID());
 	if (this->Animation) {
 		this->Animation.detachptr();
-		AEProperties::UpdateAEAnimLogic(this->Techno);
 	}
 
 }
@@ -743,7 +750,6 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(
 	if (!currentTypeCount && cumulative && pType->CumulativeAnimations.size() > 0)
 		pAE->HasCumulativeAnim = true;
 
-	AEProperties::UpdateAEAnimLogic(pTarget);
 	return pAE;
 }
 
@@ -772,7 +778,6 @@ int PhobosAttachEffectClass::DetachTypes(TechnoClass* pTarget, AEAttachInfoTypeC
 
 	if (detachedCount > 0) {
 		AEProperties::Recalculate(pTarget);
-		AEProperties::UpdateAEAnimLogic(pTarget);
 	}
 
 	if (markForRedraw)
@@ -869,17 +874,18 @@ void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, Tech
 	//Debug::LogInfo(__FUNCTION__" Executed [%s - %s]", pTarget->GetThisClassName(), pTarget->get_ID());
 	const auto pSourceExt = TechnoExtContainer::Instance.Find(pSource);
 	const auto pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
-	int transferCount = 0;
 
 	for (auto it = pSourceExt->PhobosAE.begin(); it != pSourceExt->PhobosAE.end(); )
 	{
 		auto const attachEffect = it->get();
-		if(!attachEffect) {
+		if (!attachEffect)
+		{
 			it = pSourceExt->PhobosAE.erase(it);
 			continue;
 		}
 
-		if (attachEffect->IsSelfOwned()) {
+		if (attachEffect->IsSelfOwned())
+		{
 			++it;
 			continue;
 		}
@@ -888,10 +894,11 @@ void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, Tech
 		auto pTargetType = GET_TECHNOTYPE(pTarget);
 
 		const bool isValid = EnumFunctions::IsTechnoEligible(pTarget, type->AffectTargets, true)
-		&& (type->AffectTypes.empty() || type->AffectTypes.Contains(pTargetType))
-		&& !type->IgnoreTypes.Contains(pTargetType);
+			&& (type->AffectTypes.empty() || type->AffectTypes.Contains(pTargetType))
+			&& !type->IgnoreTypes.Contains(pTargetType);
 
-		if (!isValid) {
+		if (!isValid)
+		{
 			it = pSourceExt->PhobosAE.erase(it);
 			continue;
 		}
@@ -904,7 +911,7 @@ void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, Tech
 
 		for (auto const& aePtr : pTargetExt->PhobosAE)
 		{
-			if(!aePtr)
+			if (!aePtr)
 				continue;
 
 			auto const targetAttachEffect = aePtr.get();
@@ -912,10 +919,13 @@ void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, Tech
 			if (targetAttachEffect->GetType() == type)
 			{
 				currentTypeCount++;
-				if (!cumulative) {
+				if (!cumulative)
+				{
 					match = targetAttachEffect;
 					break;
-				} else if (targetAttachEffect->IsFromSource(attachEffect->Invoker, attachEffect->Source)) {
+				}
+				else if (targetAttachEffect->IsFromSource(attachEffect->Invoker, attachEffect->Source))
+				{
 					if (!match || targetAttachEffect->Duration < match->Duration)
 						sourceMatch = targetAttachEffect;
 				}
@@ -927,21 +937,17 @@ void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, Tech
 			if (!cumulative || (type->Cumulative_MaxCount >= 0 && currentTypeCount >= type->Cumulative_MaxCount))
 				match->Duration = MaxImpl(match->Duration, attachEffect->Duration);
 
-		} else {
+		}
+		else
+		{
 			AEAttachParams info {};
 			info.DurationOverride = attachEffect->DurationOverride;
 
-			if (auto const pAE = PhobosAttachEffectClass::CreateAndAttach(type, pTarget, pTargetExt->PhobosAE, attachEffect->InvokerHouse, attachEffect->Invoker, attachEffect->Source, info , false))
+			if (auto const pAE = PhobosAttachEffectClass::CreateAndAttach(type, pTarget, pTargetExt->PhobosAE, attachEffect->InvokerHouse, attachEffect->Invoker, attachEffect->Source, info, false))
 				pAE->Duration = attachEffect->Duration;
 		}
 
-		transferCount++;
 		it = pSourceExt->PhobosAE.erase(it);
-	}
-
-	if (transferCount) {
-		AEProperties::UpdateAEAnimLogic(pSource);
-		AEProperties::UpdateAEAnimLogic(pTarget);
 	}
 }
 
@@ -954,32 +960,37 @@ template <typename T>
 bool PhobosAttachEffectClass::Serialize(T& Stm)
 {
 	return Stm
-		.Process(this->Duration)
-		.Process(this->DurationOverride)
-		.Process(this->Delay)
-		.Process(this->CurrentDelay)
-		.Process(this->InitialDelay)
-		.Process(this->RecreationDelay)
-		.Process(this->Type, true)
-		.Process(this->Techno, true)
-		.Process(this->InvokerHouse, true)
-		.Process(this->Invoker, true)
-		.Process(this->Source, true)
-		.Process(this->Animation, true)
-		.Process(this->IsAnimHidden)
-		.Process(this->IsInTunnel)
-		.Process(this->IsUnderTemporal)
-		.Process(this->IsOnline)
-		.Process(this->IsCloaked)
-		.Process(this->HasInitialized)
-		.Process(this->SelectedAnim)
-		.Process(this->NeedsDurationRefresh)
-		.Process(this->HasCumulativeAnim)
-		.Process(this->ShouldBeDiscarded)
-		.Process(this->LastDiscardCheckFrame)
-		.Process(this->LastDiscardCheckValue)
-		.Process(this->LaserTrail)
-		.Success() && Stm.RegisterChange(this);
+	.Process(Duration)
+	.Process(DurationOverride)
+	.Process(Delay)
+	.Process(CurrentDelay)
+	.Process(InitialDelay)
+	.Process(RecreationDelay)
+	.Process(LastDiscardCheckFrame)
+	.Process(Type)
+	.Process(Techno)
+	.Process(InvokerHouse)
+	.Process(Invoker)
+	.Process(Source)
+	.Process(SelectedAnim)
+	.Process(LaserTrail)
+	.Process(Animation)
+	.Process(IsAnimHidden)
+	.Process(IsInTunnel)
+	.Process(IsUnderTemporal)
+	.Process(IsOnline)
+	.Process(IsCloaked)
+	.Process(HasInitialized)
+	.Process(NeedsDurationRefresh)
+	.Process(LastDiscardCheckValue)
+
+	.Process(LastActiveStat)
+	.Process(NeedsRecalculateStat)
+	.Process(ShouldBeDiscarded)
+	.Process(HasCumulativeAnim)
+
+	.Success() && Stm.RegisterChange(this)
+		;
 }
 
 bool PhobosAttachEffectClass::Load(PhobosStreamReader& Stm, bool RegisterForChange)

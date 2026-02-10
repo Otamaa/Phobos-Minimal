@@ -81,12 +81,14 @@ public:
 	static int Attach(TechnoClass* pTarget, HouseClass* pInvokerHouse, TechnoClass* pInvoker, AbstractClass* pSource, AEAttachInfoTypeClass* attachEffectInfo);
 	static int Detach(TechnoClass* pTarget, AEAttachInfoTypeClass* attachEffectInfo);
 	static int DetachByGroups(TechnoClass* pTarget, AEAttachInfoTypeClass* attachEffectInfo);
-
+	static void HandleEvent(TechnoClass* pTarget);
 	static void TransferAttachedEffects(TechnoClass* pSource, TechnoClass* pTarget);
 
 	void OnlineCheck();
 	void CloakCheck();
-	void UpdateAnimLogic();
+	void AnimCheck();
+
+	void DiscardOnFire();
 
 	static PhobosAttachEffectClass* CreateAndAttach(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, HelperedVector<std::unique_ptr<PhobosAttachEffectClass>>& targetAEs, HouseClass* pInvokerHouse, TechnoClass* pInvoker, AbstractClass* pSource, AEAttachParams const& attachInfo, bool checkCumulative = true);
 	static int DetachTypes(TechnoClass* pTarget, AEAttachInfoTypeClass* attachEffectInfo, std::vector<PhobosAttachEffectTypeClass*> const& types);
@@ -105,11 +107,14 @@ public:
 	int CurrentDelay { 0 };
 	int InitialDelay { 0 };
 	int RecreationDelay { -1 };
+	int LastDiscardCheckFrame { -1 };
 	PhobosAttachEffectTypeClass* Type { nullptr };
 	TechnoClass* Techno { nullptr };
 	HouseClass* InvokerHouse { nullptr };
 	TechnoClass* Invoker { nullptr };
 	AbstractClass* Source { nullptr };
+	AnimTypeClass* SelectedAnim { nullptr };
+	LaserTrailClass* LaserTrail {};
 	Handle<AnimClass*, UninitAnim> Animation { nullptr };
 	bool IsAnimHidden { false };
 	bool IsInTunnel { false };
@@ -118,12 +123,11 @@ public:
 	bool IsCloaked { false };
 	bool HasInitialized { false };
 	bool NeedsDurationRefresh { false };
-	AnimTypeClass* SelectedAnim { nullptr };
-	bool HasCumulativeAnim { false };
-	bool ShouldBeDiscarded { false };
-	int LastDiscardCheckFrame { -1 };
 	bool LastDiscardCheckValue {};
-	LaserTrailClass* LaserTrail {};
+	bool LastActiveStat { true };	
+	bool NeedsRecalculateStat { false };
+	bool ShouldBeDiscarded { false };
+	bool HasCumulativeAnim { false };
 };
 
 template <>

@@ -1108,6 +1108,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AIParadropMission.Read(exINI, GameStrings::General, "AIParadropMission");
 	this->CylinderRangefinding.Read(exINI, GameStrings::General, "CylinderRangefinding");
 	this->DefaultToGuardArea.Read(exINI, GameStrings::General, "DefaultToGuardArea");
+	this->DisableOveroptimizationInTargeting.Read(exINI, GameStrings::General, "DisableOveroptimizationInTargeting");
 	#pragma endregion
 
 	#pragma region CombatDamage
@@ -1867,6 +1868,7 @@ void RulesExtData::Serialize(T& Stm)
 
 		.Process(this->CylinderRangefinding)
 		.Process(this->DefaultToGuardArea)
+		.Process(this->DisableOveroptimizationInTargeting)
 		;
 }
 

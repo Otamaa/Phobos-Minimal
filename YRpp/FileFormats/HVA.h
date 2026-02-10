@@ -38,6 +38,12 @@ public:
 		}
 	}
 
+	COMPILETIMEEVAL Matrix3D const& GetLayerMatrix(int layer, unsigned frame) const
+	{
+		// inlined
+		return Matrixes[layer + LayerCount * (frame % FrameCount)];
+	}
+
 	static bool IsInvalid(const MotLib* pThis)
 		{ return !pThis || pThis->LoadedFailed; }
 
