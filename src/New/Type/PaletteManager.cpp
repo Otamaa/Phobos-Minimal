@@ -176,12 +176,12 @@ bool PaletteManager::LoadFromCachedName()
 
 void PaletteManager::LoadFromStream(PhobosStreamReader& Stm)
 {
-	static_assert("Not implemented!");
+	static_assert(!sizeof(PhobosStreamReader*), "Not implemented!");
 }
 
 void PaletteManager::SaveToStream(PhobosStreamWriter& Stm)
 {
-	static_assert("Not implemented!");
+	static_assert(!sizeof(PhobosStreamWriter*), "Not implemented!");
 }
 
 bool CustomPalette::Allocate(std::string name)
