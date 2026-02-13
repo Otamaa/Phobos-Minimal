@@ -3124,3 +3124,21 @@ ASMJIT_PATCH(0x4D77BD, FootClass_ObjectClickedAction_NoMove, 0x6)
 	EventExt::ApproachObject::Raise(pThis, pTarget);
 	return ReturnTrue;
 }
+
+// According to the code comments of the open-sourced RA1, I believe that the check of IsMovingNow here is to prevent foots from starting a new mission at an unstoppable position in the cell.
+// Then it is obvious that Jumpjet should not perform this check because Jumpjet's movement does not take the cell into account.
+ASMJIT_PATCH(0x7442D6, FootClass_ReadyToNextMission_MovingCheck, 0x6) // Unit
+{
+	GET(FootClass*, pThis, ESI);
+	auto pLoco = pThis->Locomotor.GetInterfacePtr();
+	R->AL(!locomotion_cast<JumpjetLocomotionClass*>(pLoco) && pLoco->Is_Moving_Now());
+	return R->Origin() + 0xF;
+}ASMJIT_PATCH_AGAIN(0x521BA7, FootClass_ReadyToNextMission_MovingCheck, 0x6); // Infantry
+
+// Although this may seem useless because locomotor also checks IsFallingDown. But just in case.
+ASMJIT_PATCH(0x7442AB, UnitClass_ReadyToNextMission_FallingDown, 0x6)
+{
+	enum { ReturnZero = 0x744383 };
+	GET(FootClass*, pThis, ESI);
+	return pThis->IsFallingDown ? ReturnZero : 0;
+}
