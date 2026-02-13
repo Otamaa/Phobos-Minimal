@@ -67,7 +67,7 @@ void Phobos_DoControls::ReadSequence(DoInfoStruct* pDoInfo, InfantryTypeClass* p
 
 bool InfantryTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	if (!this->TechnoTypeExtData::LoadFromINI(pINI, parseFailAddr))
+	if (!this->FootTypeExtData::LoadFromINI(pINI, parseFailAddr))
 		return false;
 
 	const char* pID = this->This()->ID;

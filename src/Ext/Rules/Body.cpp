@@ -1097,6 +1097,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->UnitsGainSelfHealCap.Read(exINI, GameStrings::General(), "UnitsGainSelfHealCap");
 	this->JumpjetClimbPredictHeight.Read(exINI, GameStrings::General, "JumpjetClimbPredictHeight");
 	this->JumpjetClimbWithoutCutOut.Read(exINI, GameStrings::General, "JumpjetClimbWithoutCutOut");
+	this->JumpjetClimbIgnoreBuilding.Read(exINI, GameStrings::General, "JumpjetClimbIgnoreBuilding");
 	this->RegroupWhenMCVDeploy.Read(exINI, GameStrings::General, "GatherWhenMCVDeploy");
 	this->AISellAllOnLastLegs.Read(exINI, GameStrings::General, "AIFireSale");
 	this->AISellAllDelay.Read(exINI, GameStrings::General, "AIFireSaleDelay");
@@ -1406,7 +1407,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->JumpjetCrash_Rotate)
 		.Process(this->JumpjetClimbPredictHeight)
 		.Process(this->JumpjetClimbWithoutCutOut)
-
+		.Process(this->JumpjetClimbIgnoreBuilding)
 		.Process(this->Storage_TiberiumIndex)
 		.Process(this->PlacementGrid_TranslucentLevel)
 		.Process(this->BuildingPlacementPreview_TranslucentLevel)

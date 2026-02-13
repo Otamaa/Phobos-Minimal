@@ -8,7 +8,7 @@ AircraftTypeExtContainer AircraftTypeExtContainer::Instance;
 
 bool AircraftTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	if (!this->TechnoTypeExtData::LoadFromINI(pINI, parseFailAddr))
+	if (!this->FootTypeExtData::LoadFromINI(pINI, parseFailAddr))
 		return false;
 
 	auto pThis = This();

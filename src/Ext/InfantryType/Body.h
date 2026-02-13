@@ -1,7 +1,7 @@
 #pragma once
 #include <InfantryTypeClass.h>
 
-#include <Ext/TechnoType/Body.h>
+#include <Ext/FootType/Body.h>
 
 #include <Phobos.SaveGame.h>
 
@@ -150,7 +150,7 @@ struct Phobos_DoControls
 	static void ReadSequence(DoInfoStruct* Desig, InfantryTypeClass* pInf, CCINIClass* pINI);
 };
 
-class InfantryTypeExtData final : public TechnoTypeExtData
+class InfantryTypeExtData final : public FootTypeExtData
 {
 public:
 	using base_type = InfantryTypeClass;
@@ -218,7 +218,7 @@ public:
 
 public:
 	InfantryTypeExtData(InfantryTypeClass* pObj)
-		: TechnoTypeExtData(pObj)
+		: FootTypeExtData(pObj)
 		// Large aggregates
 		, CrawlingWeaponDatas()
 		// Promotable
@@ -253,24 +253,24 @@ public:
 		this->Is_Cow = IS_SAME_STR_(pObj->ID, GameStrings::COW());
 	}
 
-	InfantryTypeExtData(InfantryTypeClass* pObj, noinit_t nn) : TechnoTypeExtData(pObj, nn) { }
+	InfantryTypeExtData(InfantryTypeClass* pObj, noinit_t nn) : FootTypeExtData(pObj, nn) { }
 
 	virtual ~InfantryTypeExtData() = default;
 
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
 	{
-		this->TechnoTypeExtData::InvalidatePointer(ptr, bRemoved);
+		this->FootTypeExtData::InvalidatePointer(ptr, bRemoved);
 	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
-		this->TechnoTypeExtData::LoadFromStream(Stm);
+		this->FootTypeExtData::LoadFromStream(Stm);
 		this->Serialize(Stm);
 	}
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
-		const_cast<InfantryTypeExtData*>(this)->TechnoTypeExtData::SaveToStream(Stm);
+		const_cast<InfantryTypeExtData*>(this)->FootTypeExtData::SaveToStream(Stm);
 		const_cast<InfantryTypeExtData*>(this)->Serialize(Stm);
 	}
 
@@ -279,7 +279,7 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const
 	{
-		this->TechnoTypeExtData::CalculateCRC(crc);
+		this->FootTypeExtData::CalculateCRC(crc);
 	}
 
 	InfantryTypeClass* This() const { return reinterpret_cast<InfantryTypeClass*>(this->AttachedToObject); }

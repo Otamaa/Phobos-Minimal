@@ -40,6 +40,7 @@
 #include <EBolt.h>
 
 #include <Ext/Radio/Body.h>
+#include <Ext/FootType/Body.h>
 
 class BulletClass;
 class TechnoTypeClass;
@@ -1468,7 +1469,8 @@ public:
 	static void SetMissionAfterBerzerk(TechnoClass* pThis, bool Immediete = false);
 
 	static AreaFireReturnFlag ApplyAreaFire(TechnoClass* pThis, CellClass*& pTargetCell, WeaponTypeClass* pWeapon);
-	static int GetThreadPosed(TechnoClass* pThis);
+	static int __fastcall GetThreadPosed(FootClass* pThis);
+	static int __fastcall GetBuildingThreadPosed(BuildingClass* pThis);
 
 	static bool IsReallyTechno(TechnoClass* pThis);
 
@@ -1620,3 +1622,4 @@ public:
 
 #define GET_TECHNOTYPE(techno) techno->GetTechnoType()
 #define GET_TECHNOTYPEEXT(techno) TechnoTypeExtContainer::Instance.Find(techno->GetTechnoType())
+#define GET_FOOTTYPEEXT(techno) FootTypeExtContainer::Instance.Find(techno->GetTechnoType())

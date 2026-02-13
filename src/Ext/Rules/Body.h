@@ -451,6 +451,7 @@ public:
 	Valueable<bool> JumpjetCrash_Rotate { true };
 	Valueable<bool> JumpjetClimbPredictHeight { false };
 	Valueable<bool> JumpjetClimbWithoutCutOut { false };
+	Valueable<bool> JumpjetClimbIgnoreBuilding { false };
 	Valueable<bool> EnemyInsignia { true };
 	Valueable<bool> DrawInsigniaOnlyOnSelected {};
 	Valueable<bool> DrawInsignia_UsePixelSelectionBracketDelta {};

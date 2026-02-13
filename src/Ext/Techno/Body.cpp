@@ -3861,7 +3861,7 @@ AreaFireReturnFlag TechnoExtData::ApplyAreaFire(TechnoClass* pThis, CellClass*& 
 	return AreaFireReturnFlag::ContinueAndReturn;
 }
 
-int TechnoExtData::GetThreadPosed(TechnoClass* pThis)
+int __fastcall TechnoExtData::GetThreadPosed(FootClass* pThis)
 {
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
@@ -3875,6 +3875,43 @@ int TechnoExtData::GetThreadPosed(TechnoClass* pThis)
 
 	return GET_TECHNOTYPE(pThis)->ThreatPosed;
 }
+
+int __fastcall TechnoExtData::GetBuildingThreadPosed(BuildingClass* pThis)
+{
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	int occupantCount = pThis->GetOccupantCount();
+
+	if (occupantCount > 0)
+		return RulesClass::Instance->ThreatPerOccupant * occupantCount;
+
+	if (auto const pLinked = pThis->BunkerLinkedItem)
+		return pLinked->GetThreatValue();
+
+	auto const pType = pThis->Type;
+
+	// Set threat value of uncaptured tech buildings to 0.
+	if (pType->NeedsEngineer && pThis->Owner->Type->MultiplayPassive)
+		return 0;
+
+	if (const auto pShieldData = pExt->GetShield()) {
+		if (pShieldData->IsActive()) {
+			auto const pShiedType = pShieldData->GetType();
+			if (pShiedType->ThreadPosed.isset())
+				return pShiedType->ThreadPosed.Get();
+		}
+	}
+
+	return GET_TECHNOTYPE(pThis)->ThreatPosed;
+}
+
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2564, TechnoExtData::GetThreadPosed);  // AircraftClass
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E8F54, TechnoExtData::GetThreadPosed);  // FootClass
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB318, TechnoExtData::GetThreadPosed);  // InfantryClass
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4C20, TechnoExtData::GetThreadPosed);  // TechnoClass
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5F30, TechnoExtData::GetThreadPosed);  // UnitClass
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E417C, TechnoExtData::GetBuildingThreadPosed);   // BuildingClass
 
 bool TechnoExtData::IsReallyTechno(TechnoClass* pThis)
 {

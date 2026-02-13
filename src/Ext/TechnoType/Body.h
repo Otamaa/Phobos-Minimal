@@ -1288,6 +1288,8 @@ public:
 	Nullable<Mission> AIParadropMission;
 	Nullable<Leptons> AreaGuardRange;
 
+	Nullable<bool> JumpjetClimbIgnoreBuilding;
+
 	int TintColorAirstrike;
 #pragma endregion
 
@@ -2144,6 +2146,7 @@ public:
 		, ParadropMission {}
 		, AIParadropMission {}
 		, AreaGuardRange{}
+		, JumpjetClimbIgnoreBuilding {}
 		, TintColorAirstrike{}
 		{
 		}
@@ -3193,6 +3196,7 @@ private:
 			.Process(this->ParadropMission)
 			.Process(this->AIParadropMission)
 			.Process(this->AreaGuardRange)
+			.Process(this->JumpjetClimbIgnoreBuilding)
 			.Process(this->TintColorAirstrike)
 			;
 	}

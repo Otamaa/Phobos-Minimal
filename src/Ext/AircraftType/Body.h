@@ -3,9 +3,9 @@
 #include <AircraftTypeClass.h>
 
 #include <Ext/Rules/Body.h>
-#include <Ext/TechnoType/Body.h>
+#include <Ext/FootType/Body.h>
 
-class AircraftTypeExtData final : public TechnoTypeExtData
+class AircraftTypeExtData final : public FootTypeExtData
 {
 public:
 	using base_type = AircraftTypeClass;
@@ -21,7 +21,7 @@ public:
 	Nullable<bool> ExtendedAircraftMissions_FastScramble;
 	Nullable<int> ExtendedAircraftMissions_UnlandDamage;
 
-	AircraftTypeExtData(AircraftTypeClass* pObj) : TechnoTypeExtData(pObj),
+	AircraftTypeExtData(AircraftTypeClass* pObj) : FootTypeExtData(pObj),
 		ExtendedAircraftMissions_SmoothMoving(),
 		ExtendedAircraftMissions_EarlyDescend(),
 		ExtendedAircraftMissions_RearApproach(),
@@ -32,18 +32,18 @@ public:
 		this->InitializeConstant();
 	}
 
-	AircraftTypeExtData(AircraftTypeClass* pObj, noinit_t nn) : TechnoTypeExtData(pObj, nn) { }
+	AircraftTypeExtData(AircraftTypeClass* pObj, noinit_t nn) : FootTypeExtData(pObj, nn) { }
 
 	virtual ~AircraftTypeExtData() = default;
 
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
 	{
-		this->TechnoTypeExtData::InvalidatePointer(ptr, bRemoved);
+		this->FootTypeExtData::InvalidatePointer(ptr, bRemoved);
 	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
-		this->TechnoTypeExtData::LoadFromStream(Stm);
+		this->FootTypeExtData::LoadFromStream(Stm);
 		Stm
 			.Process(this->ExtendedAircraftMissions_SmoothMoving)
 			.Process(this->ExtendedAircraftMissions_EarlyDescend)
@@ -70,7 +70,7 @@ public:
 	virtual int GetSize() const { return sizeof(*this); };
 
 	virtual void CalculateCRC(CRCEngine& crc) const {
-		this->TechnoTypeExtData::CalculateCRC(crc);
+		this->FootTypeExtData::CalculateCRC(crc);
 	}
 
 	AircraftTypeClass* This() const { return reinterpret_cast<AircraftTypeClass*>(this->AttachedToObject); }

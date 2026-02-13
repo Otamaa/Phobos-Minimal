@@ -712,7 +712,7 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 					{
 						auto pTechnoType = GET_TECHNOTYPE(pTechno);
 
-						enemyThreatValue[pTechno->Owner->ArrayIndex] += pTechnoType->ThreatPosed;
+						enemyThreatValue[pTechno->Owner->ArrayIndex] += pTechno->GetThreatValue();
 
 						if (pTechnoType->SpecialThreatValue > 0)
 							enemyThreatValue[pTechno->Owner->ArrayIndex] += pTechnoType->SpecialThreatValue * TargetSpecialThreatCoefficientDefault;

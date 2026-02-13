@@ -22,6 +22,7 @@
     <ClCompile Include="src\ExtraHeaders\AlignedMemory.cpp" />
     <ClCompile Include="src\ExtraHeaders\MemoryPool.cpp" />
     <ClCompile Include="src\Ext\AircraftType\Body.cpp" />
+    <ClCompile Include="src\Ext\FootType\Body.cpp" />
     <ClCompile Include="src\Ext\Sidebar\Hooks.Drawing.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Hover.cpp" />
     <ClCompile Include="src\Ext\Techno\Hook.ExitObject.cpp" />
@@ -655,6 +656,7 @@
     <ClInclude Include="src\ExtraHeaders\StackVector.h" />
     <ClInclude Include="src\Ext\AbstractType\Body.h" />
     <ClInclude Include="src\Ext\Ebolt\Body.h" />
+    <ClInclude Include="src\Ext\FootType\Body.h" />
     <ClInclude Include="src\Ext\Foot\Body.h" />
     <ClInclude Include="src\Ext\Locomotion\Teleport\Body.h" />
     <ClInclude Include="src\Ext\Mission\Body.h" />

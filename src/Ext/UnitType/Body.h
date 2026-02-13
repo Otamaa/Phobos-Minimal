@@ -1,7 +1,7 @@
 #pragma once
-#include <Ext/TechnoType/Body.h>
+#include <Ext/FootType/Body.h>
 
-class UnitTypeExtData : public TechnoTypeExtData
+class UnitTypeExtData : public FootTypeExtData
 {
 public:
 	using base_type = UnitTypeClass;
@@ -13,33 +13,33 @@ public:
 public:
 	SHPStruct* TurretShape;
 
-	UnitTypeExtData(UnitTypeClass* pObj) : TechnoTypeExtData(pObj)
+	UnitTypeExtData(UnitTypeClass* pObj) : FootTypeExtData(pObj)
 		, TurretShape { nullptr }
 	{
 		this->AbsType = UnitTypeClass::AbsID;
 		this->InitializeConstant();
 	}
-	UnitTypeExtData(UnitTypeClass* pObj, noinit_t nn) : TechnoTypeExtData(pObj, nn) { }
+	UnitTypeExtData(UnitTypeClass* pObj, noinit_t nn) : FootTypeExtData(pObj, nn) { }
 
 	virtual ~UnitTypeExtData() = default;
 
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
 	{
-		this->TechnoTypeExtData::InvalidatePointer(ptr, bRemoved);
+		this->FootTypeExtData::InvalidatePointer(ptr, bRemoved);
 	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
 		Stm.Process(this->TurretShape)
 			;
-		this->TechnoTypeExtData::LoadFromStream(Stm);
+		this->FootTypeExtData::LoadFromStream(Stm);
 	}
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		Stm.Process(this->TurretShape)
 			;
-		const_cast<UnitTypeExtData*>(this)->TechnoTypeExtData::SaveToStream(Stm);
+		const_cast<UnitTypeExtData*>(this)->FootTypeExtData::SaveToStream(Stm);
 	}
 
 	virtual AbstractType WhatIam() const { return base_type::AbsID; }
@@ -47,7 +47,7 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const
 	{
-		this->TechnoTypeExtData::CalculateCRC(crc);
+		this->FootTypeExtData::CalculateCRC(crc);
 	}
 
 	UnitTypeClass* This() const { return reinterpret_cast<UnitTypeClass*>(this->AttachedToObject); }
@@ -55,7 +55,7 @@ public:
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	{
-		if (!this->TechnoTypeExtData::LoadFromINI(pINI, parseFailAddr))
+		if (!this->FootTypeExtData::LoadFromINI(pINI, parseFailAddr))
 			return false;
 
 		return true;
