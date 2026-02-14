@@ -7,6 +7,38 @@
 
 #include <Phobos.SaveGame.h>
 
+
+bool OverlayTypeExtData::CanBeBuiltOn(int overlayTypeIndex, BuildingTypeClass* pBuildingType, bool requireToBeRemovable)
+{
+	auto const pOverlayType = OverlayTypeClass::Array->Items[overlayTypeIndex];
+	auto const pTypeExt = OverlayTypeExtContainer::Instance.Find(pOverlayType);
+
+	if (!pTypeExt->IsCanBeBuiltOn)
+		return false;
+
+	if (((pBuildingType && pBuildingType->Wall) || pOverlayType->Wall) && !pTypeExt->CanBeBuiltOn_Remove)
+		return false;
+
+	return requireToBeRemovable ? pTypeExt->CanBeBuiltOn_Remove : true;
+}
+
+void OverlayTypeExtData::RemoveOverlayFromCell(int overlayTypeIndex, CellClass* pCell, HouseClass* pSource)
+{
+	if (overlayTypeIndex != -1 && OverlayTypeClass::Array->Items[overlayTypeIndex]->Wall)
+	{
+		if (pSource && pCell->WallOwnerIndex == pSource->ArrayIndex)
+			pSource->SellWall(pCell->MapCoords, true);
+		else
+			pCell->ReduceWall(-1);
+	}
+	else
+	{
+		pCell->OverlayTypeIndex = -1;
+		pCell->OverlayData = 0;
+		pCell->RecalcAttributes(-1);
+	}
+}
+
 bool OverlayTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
 	if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr) || parseFailAddr)
@@ -16,10 +48,13 @@ bool OverlayTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	INI_EX exINI(pINI);
 
 	//auto const pArtINI = &CCINIClass::INI_Art();
-	auto pArtSection = pThis->ImageFile;
+	const char* pArtSection = pThis->ImageFile;
+	const char* pSection = pThis->ID;
 
 	this->Palette.Read(exINI , pArtSection, "Palette");
 	this->ZAdjust.Read(exINI, pArtSection, "ZAdjust");
+	this->IsCanBeBuiltOn.Read(exINI, pSection, "CanBeBuiltOn");
+	this->CanBeBuiltOn_Remove.Read(exINI, pSection, "CanBeBuiltOn.Remove");
 
 	return true;
 }
@@ -33,6 +68,8 @@ void OverlayTypeExtData::Serialize(T& Stm)
 	Stm
 		.Process(this->Palette)
 		.Process(this->ZAdjust)
+		.Process(this->IsCanBeBuiltOn)
+		.Process(this->CanBeBuiltOn_Remove)
 		;
 }
 

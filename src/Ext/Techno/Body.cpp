@@ -5900,6 +5900,19 @@ static int GetTotalSoylentOfPassengers(TechnoClass* pThis, PassengerDeletionType
 				nMoneyToGive += GetTotalSoylentOfPassengers(pThis, pDelType, pPassengerL2);
 			}
 
+			if (const auto pParasite = pPassenger->ParasiteEatingMe) {
+				nMoneyToGive += (int)(GET_TECHNOTYPE(pPassengerL2)->GetRefund(pParasite->Owner, true) * pDelType->SoylentMultiplier);
+				pParasite->ParasiteImUsing->SuppressionTimer.Start(50);
+				pParasite->ParasiteImUsing->ExitUnit();
+			}
+
+			const int hijack = pPassenger->HijackerInfantryType;
+
+			if (hijack != -1) {
+				const auto pHijackerType = InfantryTypeClass::Array->Items[hijack];
+				nMoneyToGive += (int)(pHijackerType->GetRefund(pPassenger->Owner, true) * pDelType->SoylentMultiplier);
+			}
+
 			pPassengerL2->KillPassengers(pSource);
 			pPassengerL2->RegisterDestruction(pSource);
 			pPassengerL2->UnInit();
@@ -6002,6 +6015,19 @@ void TechnoExtData::UpdateEatPassengers()
 
 						if (pPassenger->Passengers.NumPassengers > 0) {
 							nMoneyToGive += GetTotalSoylentOfPassengers(pThis, pDelType, pPassenger);
+						}
+
+						if (const auto pParasite = pCurrentPassenger->ParasiteEatingMe) {
+							nMoneyToGive += (int)(GET_TECHNOTYPE(pCurrentPassenger)->GetRefund(pParasite->Owner, true) * pDelType->SoylentMultiplier);
+							pParasite->ParasiteImUsing->SuppressionTimer.Start(50);
+							pParasite->ParasiteImUsing->ExitUnit();
+						}
+
+						const int hijack = pCurrentPassenger->HijackerInfantryType;
+
+						if (hijack != -1) {
+							const auto pHijackerType = InfantryTypeClass::Array->Items[hijack];
+							nMoneyToGive += (int)(pHijackerType->GetRefund(pThis->Owner, true) * pDelType->SoylentMultiplier);
 						}
 
 						if (nMoneyToGive)

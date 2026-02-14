@@ -21,12 +21,16 @@ public:
 #pragma region ClassMembeers
 	CustomPalette Palette;
 	Valueable<int> ZAdjust;
+	Valueable<bool> IsCanBeBuiltOn;
+	Valueable<bool> CanBeBuiltOn_Remove;
 #pragma endregion
 
 public:
 	OverlayTypeExtData(OverlayTypeClass* pObj) : ObjectTypeExtData(pObj),
 		Palette(CustomPalette::PaletteMode::Temperate),
-		ZAdjust(0)
+		ZAdjust(0),
+		IsCanBeBuiltOn { false },
+		CanBeBuiltOn_Remove { true }
 	{
 		this->AbsType = OverlayTypeClass::AbsID;
 	}
@@ -65,6 +69,9 @@ public:
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
 
+	static bool CanBeBuiltOn(int overlayTypeIndex, BuildingTypeClass* pBuildingType, bool requireToBeRemovable);
+	static void RemoveOverlayFromCell(int overlayTypeIndex, CellClass* pCell, HouseClass* pSource);
+	
 private:
 	template <typename T>
 	void Serialize(T& Stm);

@@ -1107,6 +1107,8 @@ public:
 	bool SetBusy(AbstractType rtti, bool naval, BuildCat cat) const
 		{ JMP_THIS(0x5005B0); }
 
+	void SellWall(CellStruct& cell, bool skipSound)
+		{ JMP_THIS(0x4FCE80); }
 	//Constructor
 	HouseClass(HouseTypeClass* pCountry) noexcept
 		: HouseClass(noinit_t())
