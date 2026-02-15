@@ -1457,12 +1457,12 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x7187A0, FakeTeleportLocomotionClass::Hook_Unwarp);
 DEFINE_FUNCTION_JUMP(LJMP, 0x718B70, FakeTeleportLocomotionClass::Hook_ComputeDestination);
 
 // __thiscall C++ virtuals in main vtable (0x7F50CC)
-// DISABLED: Hook_ProcessTimerCompletion causes crash with KeepTargetOnMove Teleport units.
-// The DWORD parameter from vt_entry_28 may have significance we don't yet understand,
-// and/or the timer/state logic differs from the original in a way that leaves units
-// in a broken state with dangling Target pointers.
-DEFINE_FUNCTION_JUMP(LJMP, 0x719BF0, FakeTeleportLocomotionClass::Hook_ProcessTimerCompletion);
-DEFINE_FUNCTION_JUMP(LJMP, 0x718090, FakeTeleportLocomotionClass::Hook_IsStill);
+// DISABLED: Hook_ProcessTimerCompletion crashes - pLinkedTo->GetTechnoType() hits
+// corrupted vtable (EAX=0x0824448B). The LinkedTo pointer appears to reference
+// freed/corrupted memory. Needs further investigation of the locomotion lifecycle
+// and how vt_entry_28 interacts with unit destruction during teleport.
+//DEFINE_FUNCTION_JUMP(LJMP, 0x719BF0, FakeTeleportLocomotionClass::Hook_ProcessTimerCompletion);
+//DEFINE_FUNCTION_JUMP(LJMP, 0x718090, FakeTeleportLocomotionClass::Hook_IsStill);
 
 // =====================================================
 // ILocomotion vtable functions (__stdcall via COM dispatch):
