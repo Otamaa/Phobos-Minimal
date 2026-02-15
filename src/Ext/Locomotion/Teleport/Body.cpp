@@ -431,11 +431,13 @@ void __fastcall FakeTeleportLocomotionClass::Hook_Unwarp(
 		}
 	}
 
-	// Check if destination is water and unit is naval
+	// Check if a naval unit has landed on dry ground (no water, no bridge over water)
+	// [Fix] Condition was inverted during backport - naval unit is stuck on LAND
+	// when the destination cell does NOT have water and does NOT have a bridge.
 	bool isNavalOnLand = false;
 	if (pType->Naval)
 	{
-		if (pDestCell->ContainsBridge() || pDestCell->LandType == LandType::Water)
+		if (!pDestCell->ContainsBridge() && pDestCell->LandType != LandType::Water)
 			isNavalOnLand = true;
 	}
 
@@ -449,15 +451,7 @@ void __fastcall FakeTeleportLocomotionClass::Hook_Unwarp(
 	// Check if destination is water
 	bool destIsWater = (pDestCellByStruct->LandType == LandType::Water);
 
-	if (destIsWater && !canFloat && !pType->Naval
-		&& pLinkedTo->WhatAmI() != AbstractType::Infantry
-		&& !pDestCell->ContainsBridge()
-		&& pDestCellByStruct->LandType != LandType::Water) // double check via cell struct
-	{
-		// Fix: re-check properly. The original logic compares different cell lookups
-	}
-
-	// Main landing logic
+	// Main landing logic: non-naval, non-floating, non-infantry unit lands on water
 	if (destIsWater && !canFloat && !pType->Naval
 		&& pLinkedTo->WhatAmI() != AbstractType::Infantry
 		&& !pDestCell->ContainsBridge())
@@ -527,17 +521,18 @@ void __fastcall FakeTeleportLocomotionClass::Hook_Unwarp(
 
 bool __fastcall FakeTeleportLocomotionClass::Hook_ComputeDestination(
 	TeleportLocomotionClass* pThis, void* /*edx*/,
-	int coordX, int coordY, int coordZ)
+	CoordStruct* pCoord)
 {
 	if (!pThis || !pThis->LinkedTo)
 		return false;
 
 	FootClass* pLinkedTo = pThis->LinkedTo;
-	CoordStruct destCoord { coordX, coordY, coordZ };
+	// Dereference the pointer - original passes CoordStruct* (4 bytes), not 3 ints (12 bytes)
+	CoordStruct destCoord = pCoord ? *pCoord : DefaultCoords;
 	CoordStruct* pLastCoords = &pThis->LastCoords;
 
 	Debug::Log("[TeleportLoco] ComputeDestination(0x718B70): Dest(%d,%d,%d) Unit=%s\n",
-		coordX, coordY, coordZ, pLinkedTo->GetTechnoType()->get_ID());
+		destCoord.X, destCoord.Y, destCoord.Z, pLinkedTo->GetTechnoType()->get_ID());
 
 	// Clear old occupation
 	if (IsDefaultCoords(*pLastCoords))
@@ -814,7 +809,7 @@ void __fastcall FakeTeleportLocomotionClass::Hook_MoveTo(
 	}
 
 	// Compute and validate destination
-	Hook_ComputeDestination(pThis, nullptr, coordX, coordY, coordZ);
+	Hook_ComputeDestination(pThis, nullptr, &destCoord);
 
 	// Check if we got a valid destination
 	if (IsDefaultCoords(pThis->MovingDestination))
@@ -894,7 +889,9 @@ bool __fastcall FakeTeleportLocomotionClass::Hook_IsMoving(
 }
 
 // =====================================================
-// 0x718090 - IsStill (thiscall through main vtable)
+// 0x718090 - IsStill
+// Main vtable at 0x7F50CC + 0x2C = 0x7F50F8, __thiscall
+// Returns true when the unit is NOT currently teleporting.
 // =====================================================
 
 bool __fastcall FakeTeleportLocomotionClass::Hook_IsStill(
@@ -988,7 +985,10 @@ bool __fastcall FakeTeleportLocomotionClass::Hook_Process(
 	if (!pThis || !pThis->Owner)
 		return false;
 
-	FootClass* pLinkedTo = pThis->Owner;
+	// [Fix] Use LinkedTo consistently - Owner and LinkedTo are set to the same
+	// pointer by Link_To_Object (0x55A710), but LinkedTo is the canonical field
+	// used by active hooks and the rest of the locomotion system.
+	FootClass* pLinkedTo = pThis->LinkedTo;
 	int state = pThis->State;
 
 	// If WarpingOut is already happening and we're in state 0 with no external trigger
@@ -1034,22 +1034,20 @@ bool __fastcall FakeTeleportLocomotionClass::Hook_Process(
 		if (!pThis->Dirty)
 			return false;
 
-		FootClass* pOwner = pThis->LinkedTo;
-
 		// Check if we've arrived at destination or destination is default
-		if ((pOwner->Location.X == pThis->MovingDestination.X
-			&& pOwner->Location.Y == pThis->MovingDestination.Y
-			&& pOwner->Location.Z == pThis->MovingDestination.Z)
+		if ((pLinkedTo->Location.X == pThis->MovingDestination.X
+			&& pLinkedTo->Location.Y == pThis->MovingDestination.Y
+			&& pLinkedTo->Location.Z == pThis->MovingDestination.Z)
 			|| IsDefaultCoords(pThis->MovingDestination))
 		{
 			// Already at destination or no destination
-			pOwner->SetDestination(nullptr, true);
+			pLinkedTo->SetDestination(nullptr, true);
 			pThis->Clear_Coords();
 			return false;
 		}
 
 		// Begin teleportation sequence
-		pOwner->ClearAllTarget();
+		pLinkedTo->ClearAllTarget();
 
 		// Retarget bullets aimed at this unit
 		for (int i = BulletClass::Array->Count - 1; i >= 0; --i)
@@ -1063,45 +1061,45 @@ bool __fastcall FakeTeleportLocomotionClass::Hook_Process(
 
 		// Play warp-out animation
 		// [Improvement] Integrated from Hooks.Teleport.cpp 0x7193F6
-		auto pTechnoType = pOwner->GetTechnoType();
+		auto pTechnoType = pLinkedTo->GetTechnoType();
 		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 
 		TechnoExtData::PlayAnim(
-			pTypeExt->WarpOut.GetOrDefault(pOwner, RulesClass::Instance->WarpOut),
-			pOwner);
+			pTypeExt->WarpOut.GetOrDefault(pLinkedTo, RulesClass::Instance->WarpOut),
+			pLinkedTo);
 
 		// Fire WarpOut weapon if configured
-		if (const auto pWeapon = pTypeExt->WarpOutWeapon.Get(pOwner))
-			WeaponTypeExtData::DetonateAt1(pWeapon, pOwner, pOwner, true, nullptr);
+		if (const auto pWeapon = pTypeExt->WarpOutWeapon.Get(pLinkedTo))
+			WeaponTypeExtData::DetonateAt1(pWeapon, pLinkedTo, pLinkedTo, true, nullptr);
 
 		// Calculate distance for chrono delay
-		CoordStruct ownerCenter = pOwner->GetCoords();
-		int dx = ownerCenter.X - pThis->MovingDestination.X;
-		int dy = ownerCenter.Y - pThis->MovingDestination.Y;
-		int dz = ownerCenter.Z - pThis->MovingDestination.Z;
+		CoordStruct unitCenter = pLinkedTo->GetCoords();
+		int dx = unitCenter.X - pThis->MovingDestination.X;
+		int dy = unitCenter.Y - pThis->MovingDestination.Y;
+		int dz = unitCenter.Z - pThis->MovingDestination.Z;
 		int distance = (int)Math::sqrt(
 			(double)dx * dx + (double)dy * dy + (double)dz * dz);
 
-		auto pTechExt = TechnoExtContainer::Instance.Find(pOwner);
+		auto pTechExt = TechnoExtContainer::Instance.Find(pLinkedTo);
 		pTechExt->LastWarpDistance = distance;
 
 		// Calculate timer duration
 		// [Improvement] Integrated from Hooks.Teleport.cpp 0x7193F6
-		int duree = pTypeExt->ChronoMinimumDelay.GetOrDefault(pOwner, RulesClass::Instance->ChronoMinimumDelay);
-		const auto factor = pTypeExt->ChronoRangeMinimum.GetOrDefault(pOwner, RulesClass::Instance->ChronoRangeMinimum);
+		int duree = pTypeExt->ChronoMinimumDelay.GetOrDefault(pLinkedTo, RulesClass::Instance->ChronoMinimumDelay);
+		const auto factor = pTypeExt->ChronoRangeMinimum.GetOrDefault(pLinkedTo, RulesClass::Instance->ChronoRangeMinimum);
 
 		if (distance >= factor
-			&& pTypeExt->ChronoTrigger.GetOrDefault(pOwner, RulesClass::Instance->ChronoTrigger))
+			&& pTypeExt->ChronoTrigger.GetOrDefault(pLinkedTo, RulesClass::Instance->ChronoTrigger))
 		{
-			const auto f_factor = pTypeExt->ChronoDistanceFactor.GetOrDefault(pOwner, RulesClass::Instance->ChronoDistanceFactor);
+			const auto f_factor = pTypeExt->ChronoDistanceFactor.GetOrDefault(pLinkedTo, RulesClass::Instance->ChronoDistanceFactor);
 			duree = MaxImpl(distance / MaxImpl(f_factor, 1), duree);
 		}
 
 		pThis->Timer.Start(duree);
-		pOwner->WarpingOut = true;
+		pLinkedTo->WarpingOut = true;
 
 		// Special case: harvesters/weeders teleport instantly
-		if (auto pUnit = cast_to<UnitClass*, false>(pOwner))
+		if (auto pUnit = cast_to<UnitClass*, false>(pLinkedTo))
 		{
 			if (pUnit->Type->Harvester || pUnit->Type->Weeder)
 			{
@@ -1113,14 +1111,14 @@ bool __fastcall FakeTeleportLocomotionClass::Hook_Process(
 		pTechExt->LastWarpInDelay = std::max(pThis->Timer.GetTimeLeft(), pTechExt->LastWarpInDelay);
 
 		// Remove parasite if present
-		if (auto pParasiteEating = pOwner->ParasiteEatingMe)
+		if (auto pParasiteEating = pLinkedTo->ParasiteEatingMe)
 		{
 			if (pParasiteEating->ParasiteImUsing)
 				pParasiteEating->ParasiteImUsing->ExitUnit();
 		}
 
 		// Mark up (remove from map display temporarily)
-		pOwner->Mark(MarkType::Up);
+		pLinkedTo->Mark(MarkType::Up);
 
 		// Play chrono-out sound
 		// [Improvement] Using per-type sounds
@@ -1128,20 +1126,17 @@ bool __fastcall FakeTeleportLocomotionClass::Hook_Process(
 		if (chronoOutSound == -1)
 			chronoOutSound = RulesClass::Instance->ChronoOutSound;
 		if (chronoOutSound != -1)
-			VocClass::PlayIndexAtPos(chronoOutSound, pOwner->Location, false);
+			VocClass::PlayIndexAtPos(chronoOutSound, pLinkedTo->Location, false);
 
-		// Move unit to destination coordinates
-		pOwner->SetLocation(pThis->MovingDestination);
-
-		// Update bridge status at destination
+		// Move unit to destination coordinates and update bridge status
 		CellStruct destCell = CellClass::Coord2Cell(pThis->MovingDestination);
 		CellClass* pDestCell = MapClass::Instance->GetCellAt(destCell);
 
-		pOwner->SetLocation(pThis->MovingDestination);
-		pOwner->OnBridge = pDestCell->ContainsBridge();
+		pLinkedTo->SetLocation(pThis->MovingDestination);
+		pLinkedTo->OnBridge = pDestCell->ContainsBridge();
 
 		// Set height to ground level
-		pOwner->SetHeight(0);
+		pLinkedTo->SetHeight(0);
 
 		// Mark down at new position
 		// [Improvement] Integrated from Hooks.Transport.cpp 0x7196BB
@@ -1156,29 +1151,29 @@ bool __fastcall FakeTeleportLocomotionClass::Hook_Process(
 			};
 
 			if (shouldMarkDown())
-				pOwner->Mark(MarkType::Down);
+				pLinkedTo->Mark(MarkType::Down);
 		}
 
 		// Play chrono-in sound
 		// [Improvement] Integrated from Hooks.Teleport.cpp 0x719742
 		TechnoExtData::PlayAnim(
-			pTypeExt->WarpIn.GetOrDefault(pOwner, RulesClass::Instance->WarpOut),
-			pOwner);
+			pTypeExt->WarpIn.GetOrDefault(pLinkedTo, RulesClass::Instance->WarpOut),
+			pLinkedTo);
 
 		// Fire WarpIn weapon if configured
 		{
-			const auto pTechnoExt2 = TechnoExtContainer::Instance.Find(pOwner);
-			const auto Rank = pOwner->CurrentRanking;
+			const auto pTechnoExt2 = TechnoExtContainer::Instance.Find(pLinkedTo);
+			const auto Rank = pLinkedTo->CurrentRanking;
 			const auto pWarpInWeapon = pTypeExt->WarpInWeapon.GetFromSpecificRank(Rank);
 
-			const auto pWeapon = pTechnoExt2->LastWarpDistance < pTypeExt->ChronoRangeMinimum.GetOrDefault(pOwner, RulesClass::Instance->ChronoRangeMinimum)
+			const auto pWeapon = pTechnoExt2->LastWarpDistance < pTypeExt->ChronoRangeMinimum.GetOrDefault(pLinkedTo, RulesClass::Instance->ChronoRangeMinimum)
 				? pTypeExt->WarpInMinRangeWeapon.GetFromSpecificRank(Rank)->Get(pWarpInWeapon) : pWarpInWeapon;
 
 			if (pWeapon)
 			{
-				const int damage = pTypeExt->WarpInWeapon_UseDistanceAsDamage.Get(pOwner) ?
+				const int damage = pTypeExt->WarpInWeapon_UseDistanceAsDamage.Get(pLinkedTo) ?
 					(pTechnoExt2->LastWarpDistance / Unsorted::LeptonsPerCell) : pWeapon->Damage;
-				WeaponTypeExtData::DetonateAt2(pWeapon, pOwner, pOwner, damage, true, nullptr);
+				WeaponTypeExtData::DetonateAt2(pWeapon, pLinkedTo, pLinkedTo, damage, true, nullptr);
 			}
 		}
 
@@ -1186,25 +1181,25 @@ bool __fastcall FakeTeleportLocomotionClass::Hook_Process(
 		if (chronoInSound == -1)
 			chronoInSound = RulesClass::Instance->ChronoInSound;
 		if (chronoInSound != -1)
-			VocClass::PlayIndexAtPos(chronoInSound, pOwner->Location, false);
+			VocClass::PlayIndexAtPos(chronoInSound, pLinkedTo->Location, false);
 
 		// Process cell entry
-		pOwner->UpdatePosition(PCPType::End);
+		pLinkedTo->UpdatePosition(PCPType::End);
 		pThis->Clear_Coords();
 
 		// Goodie check
-		pDestCell->CollectCrate(pOwner);
+		pDestCell->CollectCrate(pLinkedTo);
 
 		// Clear destination
-		pOwner->SetDestination(nullptr, true);
+		pLinkedTo->SetDestination(nullptr, true);
 
 		// Play warp-away animation
 		// [Improvement] Integrated from Hooks.Teleport.cpp 0x719827
 		TechnoExtData::PlayAnim(
-			pTypeExt->WarpAway.GetOrDefault(pOwner, RulesClass::Instance->WarpOut),
-			pOwner);
+			pTypeExt->WarpAway.GetOrDefault(pLinkedTo, RulesClass::Instance->WarpOut),
+			pLinkedTo);
 
-		pOwner->unknown_280 = 0;
+		pLinkedTo->unknown_280 = 0;
 
 		return false;
 	}
@@ -1384,18 +1379,24 @@ bool __fastcall FakeTeleportLocomotionClass::Hook_Process(
 }
 
 // =====================================================
-// 0x719BF0 - ProcessTimerCompletion
+// 0x719BF0 - vt_entry_28 / ProcessTimerCompletion
+// Main vtable at 0x7F50CC + 0x28 = 0x7F50F4, __thiscall
+// YRpp: virtual void vt_entry_28(DWORD dwUnk)
 // Called after the chrono timer expires to handle
 // post-teleport idle behavior.
 // =====================================================
 
-void __stdcall FakeTeleportLocomotionClass::Hook_ProcessTimerCompletion(
-	TeleportLocomotionClass* pThis)
+void __fastcall FakeTeleportLocomotionClass::Hook_ProcessTimerCompletion(
+	TeleportLocomotionClass* pThis, void* /*edx*/,
+	DWORD dwUnk)
 {
 	if (!pThis || !pThis->LinkedTo)
 		return;
 
 	FootClass* pLinkedTo = pThis->LinkedTo;
+
+	Debug::Log("[TeleportLoco] ProcessTimerCompletion(0x719BF0): Unit=%s State=%d dwUnk=%u\n",
+		pLinkedTo->GetTechnoType()->get_ID(), pThis->State, dwUnk);
 
 	// Check if timer has expired
 	int timeLeft = pThis->Timer.GetTimeLeft();
@@ -1424,69 +1425,59 @@ void __stdcall FakeTeleportLocomotionClass::Hook_ProcessTimerCompletion(
 
 // =====================================================
 // DEFINE_FUNCTION_JUMP hooks
-// These replace the original game functions with our implementations.
+// =====================================================
 //
-// Address ranges and what they replace:
-// - 0x718260: InternalMark (makes 0x718275, 0x7184CE, 0x7185DA, 0x71872C redundant)
-// - 0x7187A0: Unwarp (makes 0x7187DA, 0x7188F2, 0x718871 redundant)
-// - 0x718B70: ComputeDestination (makes 0x718F1E, 0x7190B0 redundant)
-// - 0x718100: Move_To (makes 0x71810D redundant)
-// - 0x718230: Stop_Moving
-// - 0x7192C0: Do_Turn
-// - 0x71A090: Mark_All_Occupation_Bits
-// - 0x718080: Is_Moving
-// - 0x718090: IsStill
-// - 0x7180A0: Destination
-// - 0x719E20: In_Which_Layer
-// - 0x719C60: GetClassID
+// Active LJMP hooks - all __thiscall functions safe to replace:
 //
-// Note: The following hooks remain ACTIVE and are NOT conflicting:
-// - 0x719CBC (LJMP in Hooks.BugFixes.cpp) - Load fix, separate from our hooks
-// - 0x719F17 (Hooks.BugFixes.cpp) - End_Piggyback PowerOn, shared with other locos
+// Internal functions (NOT in any vtable):
+//   0x718260 - InternalMark        (makes 0x718275, 0x7184CE, 0x7185DA, 0x71872C redundant)
+//   0x7187A0 - Unwarp              (makes 0x7187DA, 0x7188F2, 0x718871 redundant)
+//   0x718B70 - ComputeDestination  (makes 0x718F1E, 0x7190B0 redundant)
 //
-// The following hooks in Hooks.Teleport.cpp operate WITHIN Process() at specific
-// instruction offsets. Since we replace the entire Process function, those hook
-// addresses no longer exist in executing code. They are harmless dead hooks:
-// - 0x7193F6, 0x719742, 0x719827, 0x71997B, 0x7197DF, 0x719BD9
+// Main vtable C++ virtuals (__thiscall, NOT COM __stdcall):
+//   0x719BF0 - vt_entry_28 (ProcessTimerCompletion)  [main vtable +0x28 = 0x7F50F4]
+//   0x718090 - IsStill                                [main vtable +0x2C = 0x7F50F8]
 //
-// The following hooks in Hooks.Unit.cpp operate WITHIN functions we replace.
-// They become dead hooks when our LJMP is active:
-// - 0x71810D (inside Move_To), 0x7187DA, 0x7188F2, 0x718871 (inside Unwarp)
+// Non-conflicting hooks that remain active:
+//   0x719CBC (Hooks.BugFixes.cpp) - Load fix, separate from our hooks
+//   0x719F17 (Hooks.BugFixes.cpp) - End_Piggyback PowerOn, shared with other locos
+//   0x71810D (Hooks.Unit.cpp)     - Inside Move_To (not hooked by us)
+//   0x7196BB (Hooks.Transport.cpp)- Inside Process (not hooked by us)
+//   0x7193F6 etc. (Hooks.Teleport.cpp) - Inside Process (not hooked by us)
 //
-// The following hooks in Hooks.Transport.cpp operate WITHIN functions we replace:
-// - 0x7196BB (inside Process), 0x718F1E, 0x7190B0 (inside ComputeDestination)
-//
-// The following hooks in Hooks.BugFixes.cpp operate WITHIN functions we replace:
-// - 0x71872C (inside InternalMark)
+// Hooks that become dead code (inside our LJMP-replaced functions):
+//   0x71872C (Hooks.BugFixes.cpp)       - inside InternalMark
+//   0x7187DA, 0x7188F2, 0x718871        - inside Unwarp
+//   0x718F1E, 0x7190B0                  - inside ComputeDestination
 // =====================================================
 
-// Active hooks: Internal __thiscall functions that are safe to LJMP
-// These are called internally by the game engine, NOT through the ILocomotion vtable.
+// __thiscall internal functions (not in any vtable)
 DEFINE_FUNCTION_JUMP(LJMP, 0x718260, FakeTeleportLocomotionClass::Hook_InternalMark);
 DEFINE_FUNCTION_JUMP(LJMP, 0x7187A0, FakeTeleportLocomotionClass::Hook_Unwarp);
 DEFINE_FUNCTION_JUMP(LJMP, 0x718B70, FakeTeleportLocomotionClass::Hook_ComputeDestination);
 
-// ILocomotion vtable functions: These use __stdcall calling convention via COM
-// interface dispatch. They are NOT hooked via LJMP because:
-// 1. The calling convention mismatch would corrupt the stack
-// 2. The existing ASMJIT_PATCH hooks provide the necessary improvements
-// 3. The original implementations are simple and work correctly
+// __thiscall C++ virtuals in main vtable (0x7F50CC)
+// DISABLED: Hook_ProcessTimerCompletion causes crash with KeepTargetOnMove Teleport units.
+// The DWORD parameter from vt_entry_28 may have significance we don't yet understand,
+// and/or the timer/state logic differs from the original in a way that leaves units
+// in a broken state with dangling Target pointers.
+DEFINE_FUNCTION_JUMP(LJMP, 0x719BF0, FakeTeleportLocomotionClass::Hook_ProcessTimerCompletion);
+DEFINE_FUNCTION_JUMP(LJMP, 0x718090, FakeTeleportLocomotionClass::Hook_IsStill);
+
+// =====================================================
+// ILocomotion vtable functions (__stdcall via COM dispatch):
+// These are NOT hooked via LJMP - calling convention mismatch would corrupt the stack.
+// To hook, use VTABLE patches:
+//   DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5000 + offset, func)
 //
-// To hook these, use VTABLE patches on the ILocomotion vtable entries:
-//   TeleportLocomotionClass::ILoco_vtable (0x7F5000) + offset
-//   e.g., DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5000 + 0x3C, MyMoveTo) for Move_To
-//
-// Addresses for reference (NOT hooked):
-// 0x718100 - Move_To       (has active ASMJIT_PATCH at 0x71810D for deactivated check)
-// 0x718230 - Stop_Moving   (original works fine)
-// 0x7192C0 - Do_Turn       (original works fine)
-// 0x71A090 - Mark_All_Occupation_Bits (original works fine)
-// 0x718080 - Is_Moving     (original works fine)
-// 0x718090 - IsStill       (original works fine)
-// 0x7180A0 - Destination   (original works fine)
-// 0x719E20 - In_Which_Layer (original works fine)
-// 0x719C60 - GetClassID    (original works fine)
-//
-// Process (0x7192F0) - NOT hooked because Hooks.Teleport.cpp provides essential
-// per-type customization at specific instruction offsets within the function.
-// ProcessTimerCompletion (0x719BF0) - NOT hooked, works with original Process.
+// Reference addresses (NOT hooked):
+//   0x718080 - Is_Moving            [ILoco +0x10]
+//   0x7180A0 - Destination          [ILoco +0x14]
+//   0x718100 - Move_To              [ILoco +0x44] (has ASMJIT_PATCH at 0x71810D)
+//   0x718230 - Stop_Moving          [ILoco +0x48]
+//   0x7192C0 - Do_Turn              [ILoco +0x4C]
+//   0x7192F0 - Process              [ILoco +0x40] (Hooks.Teleport.cpp patches inside)
+//   0x719E20 - In_Which_Layer       [ILoco +0x74]
+//   0x71A090 - Mark_All_Occ_Bits    [ILoco +0x9C]
+//   0x719C60 - GetClassID           [Main  +0x0C] (__stdcall IPersist COM)
+// =====================================================

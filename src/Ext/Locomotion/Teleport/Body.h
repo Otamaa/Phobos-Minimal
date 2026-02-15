@@ -17,17 +17,55 @@
  * Replaces the original game code with equivalent C++ implementations
  * while integrating existing Phobos/Ares hooks and improvements.
  *
+ * VTable layout (from .rdata):
+ *
+ *   Main vtable (IPersistStream + C++) at 0x7F50CC:
+ *     +0x00  QueryInterface    __stdcall (COM)
+ *     +0x04  AddRef            __stdcall (COM)
+ *     +0x08  Release           __stdcall (COM)
+ *     +0x0C  GetClassID        __stdcall (IPersist)
+ *     +0x10  IsDirty           __stdcall (IPersistStream)
+ *     +0x14  Load              __stdcall (IPersistStream)
+ *     +0x18  Save              __stdcall (IPersistStream)
+ *     +0x1C  GetSizeMax        __stdcall (IPersistStream)
+ *     +0x20  ~destructor       __thiscall (C++)
+ *     +0x24  Size              __thiscall (C++)
+ *     +0x28  vt_entry_28       __thiscall (C++) -> 0x719BF0 (ProcessTimerCompletion)
+ *     +0x2C  IsStill           __thiscall (C++) -> 0x718090
+ *
+ *   ILocomotion vtable at 0x7F5000:
+ *     +0x10  Is_Moving         __stdcall -> 0x718080
+ *     +0x14  Destination       __stdcall -> 0x7180A0
+ *     +0x40  Process           __stdcall -> 0x7192F0
+ *     +0x44  Move_To           __stdcall -> 0x718100
+ *     +0x48  Stop_Moving       __stdcall -> 0x718230
+ *     +0x4C  Do_Turn           __stdcall -> 0x7192C0
+ *     +0x74  In_Which_Layer    __stdcall -> 0x719E20
+ *     +0x9C  Mark_All_Occ_Bits __stdcall -> 0x71A090
+ *     +0xB0  Clear_Coords      __stdcall
+ *
+ *   IPiggyback vtable at 0x7F4FDC:
+ *     +0x00  QueryInterface    __stdcall
+ *     +0x04  AddRef            __stdcall
+ *     +0x08  Release           __stdcall
+ *     +0x0C  Begin_Piggyback   __stdcall
+ *     +0x10  End_Piggyback     __stdcall
+ *     +0x14  Is_Ok_To_End      __stdcall
+ *     +0x18  Piggyback_CLSID   __stdcall
+ *     +0x1C  Is_Piggybacking   __stdcall
+ *
  * ACTIVE hooks (LJMP - replace entire function):
- *   - 0x718260 (InternalMark)           - Collision detection and cell occupation management
- *   - 0x7187A0 (Unwarp)                 - Post-teleport landing/damage handling
- *   - 0x718B70 (ComputeDestination)     - Destination validation and pathfinding
+ *   Internal __thiscall functions (no vtable or main vtable C++ entries):
+ *   - 0x718260 (InternalMark)           - Not in any vtable, __thiscall
+ *   - 0x7187A0 (Unwarp)                 - Not in any vtable, __thiscall
+ *   - 0x718B70 (ComputeDestination)     - Not in any vtable, __thiscall
+ *   - 0x719BF0 (vt_entry_28)            - Main vtable +0x28, __thiscall
+ *   - 0x718090 (IsStill)                - Main vtable +0x2C, __thiscall
  *
- * These three internal __thiscall functions are safely hooked via LJMP because
- * they are called directly by the game engine, NOT through the ILocomotion COM vtable.
- *
- * REFERENCE implementations (not hooked, ILocomotion vtable functions):
+ * REFERENCE implementations (not hooked):
+ *   ILocomotion vtable functions (__stdcall via COM dispatch):
  *   - Move_To, Stop_Moving, Do_Turn, Mark_All_Occupation_Bits
- *   - Is_Moving, IsStill, Destination, In_Which_Layer, GetClassID
+ *   - Is_Moving, Destination, In_Which_Layer, GetClassID
  *   - Process, ProcessTimerCompletion
  *
  * Active conflicting hooks integrated into our backport (become dead code):
@@ -56,10 +94,12 @@ public:
 
 	// =====================================================
 	// Active hook entry points (__thiscall via __fastcall)
+	// All of these are either internal functions (not in any vtable)
+	// or C++ virtuals in the main vtable (NOT ILocomotion/IPiggyback COM vtables).
 	// =====================================================
 
 	/**
-	 * 0x718260 - Internal mark/collision handler
+	 * 0x718260 - Internal mark/collision handler (NOT in any vtable)
 	 * Original: bool __thiscall (TeleportLocomotionClass*, int x, int y, int z, int mark)
 	 * Handles collision detection and cell occupation management during teleportation.
 	 * [Improvement] Integrates: 0x718275, 0x7184CE, 0x7185DA, 0x71872C, 0x7187DA
@@ -69,7 +109,7 @@ public:
 		int destX, int destY, int destZ, int mark);
 
 	/**
-	 * 0x7187A0 - Unwarp/landing handler
+	 * 0x7187A0 - Unwarp/landing handler (NOT in any vtable)
 	 * Original: void __thiscall (TeleportLocomotionClass*, CoordStruct)
 	 * Handles consequences of teleporting into a cell (water, iron curtain, sinking).
 	 * [Improvement] Integrates: 0x7187DA, 0x7188F2, 0x718871
@@ -79,67 +119,84 @@ public:
 		int coordX, int coordY, int coordZ);
 
 	/**
-	 * 0x718B70 - Compute/validate destination
+	 * 0x718B70 - Compute/validate destination (NOT in any vtable)
 	 * Original: bool __thiscall (TeleportLocomotionClass*, CoordStruct*)
 	 * Validates and computes the destination for teleportation with pathfinding.
 	 * [Improvement] Integrates: 0x718F1E, 0x7190B0
 	 * [Improvement] Better infantry sub-location and alternate cell finding
+	 *
+	 * IMPORTANT: Original takes CoordStruct* (4-byte pointer), NOT individual ints.
+	 * Using 3 ints here would cause ret 12 vs caller's push 4 = stack corruption.
 	 */
 	static bool __fastcall Hook_ComputeDestination(
 		TeleportLocomotionClass* pThis, void* edx_unused,
-		int coordX, int coordY, int coordZ);
+		CoordStruct* pCoord);
+
+	/**
+	 * 0x719BF0 - vt_entry_28 / ProcessTimerCompletion
+	 * Main vtable at 0x7F50CC + 0x28 = 0x7F50F4, __thiscall
+	 * YRpp: virtual void vt_entry_28(DWORD dwUnk)
+	 * Called after chrono timer expires to handle post-teleport idle behavior.
+	 */
+	static void __fastcall Hook_ProcessTimerCompletion(
+		TeleportLocomotionClass* pThis, void* edx_unused,
+		DWORD dwUnk);
+
+	/**
+	 * 0x718090 - IsStill
+	 * Main vtable at 0x7F50CC + 0x2C = 0x7F50F8, __thiscall
+	 * YRpp: virtual bool IsStill()
+	 * Returns true if the unit is NOT currently moving/teleporting.
+	 */
+	static bool __fastcall Hook_IsStill(
+		TeleportLocomotionClass* pThis, void* edx_unused);
 
 	// =====================================================
-	// Reference implementations (NOT hooked - ILocomotion vtable functions)
-	// These use __stdcall calling convention via COM interface dispatch.
-	// Kept for documentation and potential future VTABLE hooks.
+	// Reference implementations (NOT hooked)
+	// ILocomotion vtable entries use __stdcall via COM dispatch.
+	// Main vtable IPersistStream entries also use __stdcall.
+	// Cannot safely LJMP these; use VTABLE patches if needed:
+	//   DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5000 + offset, func) for ILocomotion
+	//   DEFINE_FUNCTION_JUMP(VTABLE, 0x7F50CC + offset, func) for main vtable COM
 	// =====================================================
 
-	// 0x718100 - ILocomotion::Move_To
+	// 0x718100 - ILocomotion vtable +0x44, __stdcall
 	static void __fastcall Hook_MoveTo(
 		TeleportLocomotionClass* pThis, void* edx_unused,
 		int coordX, int coordY, int coordZ);
 
-	// 0x7192F0 - ILocomotion::Process
+	// 0x7192F0 - ILocomotion vtable +0x40, __stdcall
 	static bool __fastcall Hook_Process(
 		TeleportLocomotionClass* pThis, void* edx_unused);
 
-	// 0x719BF0 - Timer completion / post-teleport idle
-	static void __stdcall Hook_ProcessTimerCompletion(
-		TeleportLocomotionClass* pThis);
-
-	// 0x718230 - ILocomotion::Stop_Moving
+	// 0x718230 - ILocomotion vtable +0x48, __stdcall
 	static void __fastcall Hook_StopMoving(
 		TeleportLocomotionClass* pThis, void* edx_unused);
 
-	// 0x7192C0 - ILocomotion::Do_Turn
+	// 0x7192C0 - ILocomotion vtable +0x4C, __stdcall
 	static bool __fastcall Hook_DoTurn(
 		TeleportLocomotionClass* pThis, void* edx_unused,
 		DirStruct dir);
 
-	// 0x71A090 - ILocomotion::Mark_All_Occupation_Bits
+	// 0x71A090 - ILocomotion vtable +0x9C, __stdcall
 	static void __fastcall Hook_MarkAllOccupationBits(
 		TeleportLocomotionClass* pThis, void* edx_unused,
 		int mark);
 
-	// 0x718080 - ILocomotion::Is_Moving
+	// 0x718080 - ILocomotion vtable +0x10, __stdcall
 	static bool __fastcall Hook_IsMoving(
 		TeleportLocomotionClass* pThis, void* edx_unused);
 
-	// 0x718090 - IsStill virtual
-	static bool __fastcall Hook_IsStill(
-		TeleportLocomotionClass* pThis, void* edx_unused);
-
-	// 0x7180A0 - ILocomotion::Destination
+	// 0x7180A0 - ILocomotion vtable +0x14, __stdcall
 	static CoordStruct* __fastcall Hook_Destination(
 		TeleportLocomotionClass* pThis, void* edx_unused,
 		CoordStruct* pOutBuffer);
 
-	// 0x719E20 - ILocomotion::In_Which_Layer
+	// 0x719E20 - ILocomotion vtable +0x74, __stdcall
 	static Layer __fastcall Hook_InWhichLayer(
 		TeleportLocomotionClass* pThis, void* edx_unused);
 
-	// 0x719C60 - IPersist::GetClassID
+	// 0x719C60 - Main vtable +0x0C, __stdcall (IPersist COM)
 	static HRESULT __fastcall Hook_GetClassID(
 		TeleportLocomotionClass* pThis, void* edx_unused,
 		CLSID* pClassID);
