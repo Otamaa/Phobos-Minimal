@@ -30,29 +30,7 @@ void SuperExtData::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 				auto pExt = SuperExtContainer::Instance.Find(pSuper);
 				pExt->Statusses.reset();
 
-				// Update stockpile max based on building count
 				auto pTypeExt = pExt->Type;
-
-				if (pTypeExt->SW_Stockpile > 0) {
-					if (pTypeExt->SW_Stockpile_TieToBuilding) {
-
-						int buildingCount = 0;
-						pHouse->Buildings.for_each([&](BuildingClass* pBld) {
-							 if (pBld->IsAlive && !pBld->InLimbo
-								 && BuildingExtContainer::Instance.Find(pBld)->HasSuperWeapon(pSuper->Type->ArrayIndex, true)
-								 ) {
-								 buildingCount++;
-							 }
-							});
-						pExt->StockpileMax = std::min(buildingCount, (int)pTypeExt->SW_Stockpile);
-					} else {
-						pExt->StockpileMax = pTypeExt->SW_Stockpile;
-					}
-
-					// Clamp if buildings destroyed
-					if (pExt->StockpileCount > pExt->StockpileMax)
-						pExt->StockpileCount = pExt->StockpileMax;
-				}
 
 				//if AlwaysGranted and SWAvaible
 				pExt->Statusses.PowerSourced = !pSuper->IsPowered();
@@ -165,15 +143,7 @@ void SuperExtData::Serialize(T& Stm) {
 		.Process(this->Temp_IsPlayer)
 		.Process(this->CameoFirstClickDone)
 		.Process(this->FirstClickAutoFireDone)
-		//.Process(this->Firer)
 		.Process(this->Statusses)
-
-		.Process(this->MusicTimer)
-		.Process(this->MusicActive)
-
-		.Process(this->StockpileCount)
-		.Process(this->StockpileMax)
-		.Process(this->LastLaunchBuildingIndex)
 		;
 }
 
@@ -247,21 +217,14 @@ SuperExtData::SuperExtData(SuperClass* pObj) : AbstractExtended(pObj)
 	// Large aggregates
 	, Name()
 	, Statusses()
-	, MusicTimer()
 	// Pointer
 	, Type(nullptr)
-	, SelectedFirer(nullptr)
-	// int
-	, StockpileCount(0)
-	, StockpileMax(-1)
-	, LastLaunchBuildingIndex(0)
 	// CellStruct
 	, Temp_CellStruct()
 	// bools
 	, Temp_IsPlayer(false)
 	, CameoFirstClickDone(false)
 	, FirstClickAutoFireDone(false)
-	, MusicActive(false)
 {
 	this->Type = SWTypeExtContainer::Instance.Find(pObj->Type);
 	this->Name = pObj->Type->ID;
@@ -423,30 +386,6 @@ int FakeSuperClass::_GetAnimStage()
 	}
 	else
 	{
-		// Non-ChargeDrain mode
-
-		// Stockpile: show progress toward NEXT charge, not just "full"
-		auto pTypeExt_ = SWTypeExtContainer::Instance.Find(pType);
-		if (pTypeExt_->SW_Stockpile > 0)
-		{
-			auto pSuperExt = SuperExtContainer::Instance.Find(this);
-			if (pSuperExt->StockpileCount >= pSuperExt->StockpileMax && pSuperExt->StockpileMax > 0)
-			{
-				return 54; // Full — all charges stocked
-			}
-			// Show progress toward next charge (timer is still running)
-			int divisor = (customRechargeTime == -1) ? pType->RechargeTime : customRechargeTime;
-			if (divisor > 0)
-			{
-				progress = (double)(rechargeTime - delayTime) / divisor;
-				int stage = (int)(progress * 54.0);
-				if (stage > 54) stage = 54;
-				if (stage < 0) stage = 0;
-				return stage;
-			}
-			return 0;
-		}
-
 		if (this->IsCharged)
 		{
 			return 54;
@@ -560,55 +499,7 @@ bool FakeSuperClass::_AI(bool isPlayer)
 
 	// === Hook: SuperClass_AI_UseWeeds (0x6CBD2C) ===
 	const auto pTypeExt = this->_GetTypeExtData();
-	const bool isStockpile = pTypeExt->SW_Stockpile > 0;
 	bool forceCharged = false;
-
-	// Stockpile handling
-	if (isStockpile)
-	{
-		auto pSuperExt = SuperExtContainer::Instance.Find(this);
-
-		if (pSuperExt->StockpileMax <= 0)
-			return false;
-
-		if (this->IsCharged)
-		{
-			if (pSuperExt->StockpileCount >= pSuperExt->StockpileMax)
-				return false;
-
-			// Accumulate next charge
-			if (pTypeExt->UseWeeds)
-			{
-				if (this->Owner->OwnedWeed.GetTotalAmount() >= pTypeExt->UseWeeds_Amount)
-				{
-					this->Owner->OwnedWeed.RemoveAmount(
-						static_cast<float>(pTypeExt->UseWeeds_Amount), 0);
-					pSuperExt->StockpileCount++;
-					return true;
-				}
-			}
-			else
-			{
-				if (this->RechargeTimer.GetTimeLeft() <= 0)
-				{
-					pSuperExt->StockpileCount++;
-					if (pSuperExt->StockpileCount < pSuperExt->StockpileMax)
-						this->RechargeTimer.Start(this->GetRechargeTime());
-					return true;
-				}
-			}
-
-			// Charge not ready yet — check cameo update
-			int animStage = this->GetCameoChargeState();
-			if (this->CameoChargeState != animStage)
-			{
-				this->CameoChargeState = animStage;
-				return true;
-			}
-			return false;
-		}
-		// Not yet charged — fall through to UseWeeds or vanilla timer
-	}
 
 	// UseWeeds: charge from weed storage instead of timer
 	if (pTypeExt->UseWeeds)
@@ -705,29 +596,22 @@ bool FakeSuperClass::_AI(bool isPlayer)
 }
 DEFINE_FUNCTION_JUMP(LJMP, 0x6CBCA0, FakeSuperClass::_AI)
 
+#include <ThemeClass.h>
+
+void FakeSuperClass::_GlobalAI()
+{
+	// if (!this->Granted)
+	// 	return;
+
+	// const auto pTypeExt = this->_GetTypeExtData();
+	// auto pSuperExt = this->_GetExtData();
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4044, FakeSuperClass::_GlobalAI)
+
 void FakeSuperClass::_SetCharge(int charge)
 {
 	const auto pTypeExt = this->_GetTypeExtData();
-
-	// When stockpile SW first becomes charged, init the stockpile count
-	// and restart the timer if we haven't reached max yet
-	if (pTypeExt->SW_Stockpile > 0)
-	{
-		auto pSuperExt = this->_GetExtData();
-
-		if (pSuperExt->StockpileCount <= 0)
-		{
-			pSuperExt->StockpileCount = 1;
-		}
-
-		// Keep charging for more stockpile
-		if (pSuperExt->StockpileCount < pSuperExt->StockpileMax) {
-			this->RechargeTimer.Start(this->GetRechargeTime());
-		}
-
-		// Let vanilla proceed to set IsCharged = true
-		// return 0;
-	}
 
 	if (pTypeExt->UseWeeds || !this->Granted || charge < 0 || charge > 100)
 		return;
@@ -985,6 +869,10 @@ bool FakeSuperClass::_Grant(bool oneTime, bool announce, bool onHold)
 	this->BlinkState = false;
 	this->unused_3C = pType->UIName; // UIName token
 
+	auto pExt = SuperExtContainer::Instance.Find(this);
+	auto pSuperExt = SWTypeExtContainer::Instance.Find(pType);
+	auto pHouseExt = HouseExtContainer::Instance.Find(this->Owner);
+
 	// Resume from suspended (on-hold) state
 	if (!oneTime && this->IsOnHold && this->CanHold)
 	{
@@ -1070,16 +958,6 @@ bool FakeSuperClass::_Grant(bool oneTime, bool announce, bool onHold)
 			if (pType->UseChargeDrain)
 				this->ChargeDrainState = ChargeDrainState::Charging;
 
-			auto pHouseExt = HouseExtContainer::Instance.Find(this->Owner);
-			const auto pSuperExt = SWTypeExtContainer::Instance.Find(pType);
-
-			if (pSuperExt->SW_Stockpile > 0)
-			{
-				auto pExt = SuperExtContainer::Instance.Find(this);
-				if (pExt->StockpileMax < 0)
-					pExt->StockpileMax = pSuperExt->SW_Stockpile;
-			}
-
 			auto const [frame, count] = pHouseExt->GetShotCount(pType);
 			const int nCharge = (!pSuperExt->SW_InitialReady || count)
 				? this->GetRechargeTime() : 0;
@@ -1095,6 +973,7 @@ bool FakeSuperClass::_Grant(bool oneTime, bool announce, bool onHold)
 					nFrame = frame;
 				}
 			}
+
 
 			if (nFrame != -1)
 			{

@@ -95,24 +95,7 @@ ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 	}
 
 	for(auto pSuper : *SuperClass::Array){
-		auto pSuperExt = SuperExtContainer::Instance.Find(pSuper);
-
-		if (pSuperExt->MusicActive && pSuperExt->MusicTimer.Completed()) {
-
-			int configuredTheme = pSuperExt->Type->Music_Theme.Get();
-
-			if (configuredTheme >= 0 && ThemeClass::Instance->CurrentTheme == configuredTheme) {
-				// stop only if same theme and local house is affected
-				AffectedHouse affected = pSuperExt->Type->Music_AffectedHouses;
-
-				if (EnumFunctions::CanTargetHouse(affected, pSuper->Owner, HouseClass::CurrentPlayer)) {
-					ThemeClass::Instance->Stop();
-				}
-			}
-
-			pSuperExt->MusicTimer.Stop();
-			pSuperExt->MusicActive = false;
-		}
+		pSuper->Update();
 	}
 
 	//auto pCellbegin = MapClass::Instance->Cells.Items;

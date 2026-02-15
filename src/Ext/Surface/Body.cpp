@@ -6,7 +6,7 @@
 #define ENABLE_OMP 0
 
 // https://www.peterkovesi.com/papers/FastGaussianSmoothing.pdf
-void SurfaceExt::BlurRect(const RectangleStruct& rect, float blurSize)
+void DSurfaceExt::BlurRect(const RectangleStruct& rect, float blurSize)
 {
 	if (CLOSE_ENOUGH(blurSize, 0))
 		return;

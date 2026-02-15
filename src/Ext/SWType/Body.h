@@ -341,7 +341,6 @@ public:
 	Valueable<int> SW_Shots;
 	Valueable<int> SW_AnimHeight;
 	Valueable<int> SW_MaxCount;
-	Valueable<int> SW_Stockpile;
 	Valueable<int> Dominator_FirstAnimHeight;
 	Valueable<int> Dominator_SecondAnimHeight;
 	Valueable<int> Droppod_RetryCount;
@@ -399,8 +398,6 @@ public:
 	Valueable<int> BattlePoints_DrainAmount;
 	Valueable<int> BattlePoints_DrainDelay;
 	Valueable<int> SuperWeaponSidebar_Significance;
-	Valueable<int> Music_Theme;
-	Valueable<int> Music_Duration;
 
 	// ============================================================
 	// DWORD (4 bytes each)
@@ -424,7 +421,6 @@ public:
 	Valueable<AffectedHouse> SW_TimerVisibility;
 	Valueable<OwnerHouseKind> SW_OwnerHouse;
 	Valueable<AffectedHouse> Weather_RadarOutageAffects;
-	Valueable<AffectedHouse> Music_AffectedHouses;
 	NewSuperType HandledType;
 	Action LastAction;
 
@@ -499,8 +495,6 @@ public:
 	Valueable<bool> SW_Link_Ready;
 	Valueable<bool> SW_Link_Reset;
 	Valueable<bool> CrateGoodies;
-	Valueable<bool> SW_Stockpile_TieToBuilding;
-	Valueable<bool> SW_Stockpile_Sequential;
 
 #pragma endregion
 
@@ -669,7 +663,6 @@ public:
 		, SW_Shots(-1)
 		, SW_AnimHeight(0)
 		, SW_MaxCount(-1)
-		, SW_Stockpile(-1)
 		, Dominator_FirstAnimHeight(1)
 		, Dominator_SecondAnimHeight(1)
 		, Droppod_RetryCount(3)
@@ -727,8 +720,6 @@ public:
 		, BattlePoints_DrainAmount(0)
 		, BattlePoints_DrainDelay(0)
 		, SuperWeaponSidebar_Significance(0)
-		, Music_Theme(-1)
-		, Music_Duration(0)
 		// DWORD
 		, SuperWeaponSidebar_PriorityHouses(0u)
 		, SuperWeaponSidebar_RequiredHouses(0xFFFFFFFFu)
@@ -746,7 +737,7 @@ public:
 		, SW_TimerVisibility(AffectedHouse::All)
 		, SW_OwnerHouse(OwnerHouseKind::Default)
 		, Weather_RadarOutageAffects(AffectedHouse::All)
-		, Music_AffectedHouses(AffectedHouse::All)
+
 		, HandledType(NewSuperType::Invalid)
 		, LastAction(Action::None)
 		// Valueable<bool>
@@ -818,8 +809,6 @@ public:
 		, SW_Link_Ready(false)
 		, SW_Link_Reset(false)
 		, CrateGoodies(false)
-		, SW_Stockpile_TieToBuilding(false)
-		, SW_Stockpile_Sequential(false)
 	{
 		this->AbsType = SuperWeaponTypeClass::AbsID;
 		this->Text_Ready = GameStrings::TXT_READY();

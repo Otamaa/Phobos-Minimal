@@ -1239,15 +1239,6 @@ void FakeTacticalClass::__DrawTimersSW(SuperClass* pSuper, int value, int interv
 	}
     buffer.push_back(L'\0');
 
-	// Append stockpile count if applicable
-	if (pTypeExt->SW_Stockpile > 0) {
-		buffer.resize(buffer.size() - 1); // remove trailing null
-		auto pSuperExt = SuperExtContainer::Instance.Find(pSuper);
-		fmt::format_to(std::back_inserter(buffer), L" [{}/{}]",
-			pSuperExt->StockpileCount, pSuperExt->StockpileMax);
-		buffer.push_back(L'\0');
-	}
-
 	static fmt::basic_memory_buffer<wchar_t> labe_buffer;
 	labe_buffer.clear();
 	fmt::format_to(std::back_inserter(labe_buffer), L"{}  ", !pSuper->Type->UIName ? L"" : pSuper->Type->UIName);

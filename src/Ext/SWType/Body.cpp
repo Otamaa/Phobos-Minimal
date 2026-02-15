@@ -1305,51 +1305,6 @@ Iterator<TechnoClass*> SWTypeExtData::GetPotentialAITargets(HouseClass* pTarget,
 bool SWTypeExtData::Launch(SWTypeHandler* pNewType, SuperClass* pSuper, CellStruct const cell, bool const isPlayer)
 {
 	auto pSuperExt = SuperExtContainer::Instance.Find(pSuper);
-
-	// Stockpile: select specific building for this launch (sequential or random)
-	if (this->SW_Stockpile > 0) {
-		std::vector<BuildingClass*> eligibleSites;
-		pSuperExt->SelectedFirer = nullptr;
-
-		// the quick way out: no range restriction at all
-		auto const& [minRange, maxRange] = std::make_pair(this->SW_RangeMinimum.Get(), this->SW_RangeMaximum.Get());
-
-		if (minRange > 0.0 || maxRange > 0.0)
-		{
-
-			pSuper->Owner->Buildings.for_each([&](BuildingClass* pBld) {
-			 if (pBld->IsAlive && !pBld->InLimbo
-				 && BuildingExtContainer::Instance.Find(pBld)->HasSuperWeapon(pSuper->Type->ArrayIndex, true)
-				 && this->IsLaunchSiteEligible(cell, pBld, false)
-				 )
-			 {
-				 eligibleSites.push_back(pBld);
-			 }
-			});
-
-		}else{
-
-
-			pSuper->Owner->Buildings.for_each([&](BuildingClass* pBld) {
-				if (pBld->IsAlive && !pBld->InLimbo
-					&& BuildingExtContainer::Instance.Find(pBld)->HasSuperWeapon(pSuper->Type->ArrayIndex, true))
-				{
-					eligibleSites.push_back(pBld);
-				}
-			});
-		}
-
-		if (!eligibleSites.empty()) {
-			if (this->SW_Stockpile_Sequential) {
-				pSuperExt->SelectedFirer = eligibleSites[pSuperExt->LastLaunchBuildingIndex % eligibleSites.size()];
-				pSuperExt->LastLaunchBuildingIndex++;
-			} else {
-				const int idx = ScenarioClass::Instance->Random.RandomFromMax(eligibleSites.size() - 1);
-				pSuperExt->SelectedFirer = eligibleSites[idx];
-			}
-		}
-	}
-
 	const auto nResult = pNewType->Activate(pSuper, cell, isPlayer);
 
 	if (!nResult)
@@ -1375,24 +1330,6 @@ bool SWTypeExtData::Launch(SWTypeHandler* pNewType, SuperClass* pSuper, CellStru
 
 	if (pSuper->OneTime || (pCurrentSWTypeData->SW_Shots >= 0 && HouseExtContainer::Instance.Find(pOwner)->GetShotCount(pSuper->Type).Count >= pCurrentSWTypeData->SW_Shots))
 		pOwner->RecheckTechTree = true;
-
-	// Stockpile: decrement charge count and manage ready state
-	if (pCurrentSWTypeData->SW_Stockpile > 0) {
-		auto pSuperExt = SuperExtContainer::Instance.Find(pSuper);
-
-		if (pSuperExt->StockpileCount > 0)
-			pSuperExt->StockpileCount--;
-
-		if (pSuperExt->StockpileCount > 0) {
-			// Still have charges — keep IsCharged so player can fire again
-			pSuper->IsCharged = true;
-			pSuper->ReadinessFrame = Unsorted::CurrentFrame();
-		} else {
-			// Depleted — restart timer from scratch
-			pSuper->IsCharged = false;
-			pSuper->RechargeTimer.Start(pSuper->GetRechargeTime());
-		}
-	}
 
 	const auto curSuperIdx = pOwner->Supers.find(pSuper);
 	if (!(flags & SuperWeaponFlags::PostClick) && !pData->SW_AutoFire) {
@@ -1812,10 +1749,6 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	this->SW_MaxCount.Read(exINI, pSection, "SW.MaxCount");
 
-	this->SW_Stockpile.Read(exINI, pSection, "SW.Stockpile");
-	this->SW_Stockpile_TieToBuilding.Read(exINI, pSection, "SW.Stockpile.TieToBuilding");
-	this->SW_Stockpile_Sequential.Read(exINI, pSection, "SW.Stockpile.Sequential");
-
 	IndexFinder<VoxClass>::getindex(pThis->ImpatientVoice , exINI, pSection, "EVA.Impatient");
 	this->EVA_InsufficientFunds.Read(exINI, pSection, "EVA.InsufficientFunds");
 	this->EVA_InsufficientBattlePoints.Read(exINI, pSection, "EVA.InsufficientBattlePoints");
@@ -1909,10 +1842,6 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		else
 			this->SW_Link_RandomWeightsData.push_back(std::move(weights3));
 	}
-
-	this->Music_Theme = pINI->ReadTheme(pSection, "Music.Theme", this->Music_Theme);
-	this->Music_Duration.Read(exINI, pSection, "Music.Duration");
-	this->Music_AffectedHouses.Read(exINI, pSection, "Music.AffectedHouses");
 
 	if(pThis->Type != SuperWeaponType::Invalid)
 	{
@@ -2139,22 +2068,6 @@ void SWTypeExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const C
 
 	// Music: play theme and start timer if configured
 	auto pSWExt = SuperExtContainer::Instance.Find(pSW);
-
-	if (this->Music_Theme.Get() >= 0)
-	{
-		const auto affected = this->Music_AffectedHouses.Get();
-		if (EnumFunctions::CanTargetHouse(affected, pHouse, HouseClass::CurrentPlayer))
-		{
-			ThemeClass::Instance->Play(this->Music_Theme);
-		}
-
-		const int duration = this->Music_Duration.Get();
-		if (duration > 0)
-		{
-			pSWExt->MusicTimer.Start(duration);
-			pSWExt->MusicActive = true;
-		}
-	}
 
 	if (!this->LimboDelivery_Types.empty())
 		ApplyLimboDelivery(pHouse);
@@ -2931,13 +2844,6 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->Message_LinkedSWAcquired)
 		.Process(this->EVA_LinkedSWAcquired)
 
-		.Process(this->Music_Theme)
-		.Process(this->Music_Duration)
-		.Process(this->Music_AffectedHouses)
-
-		.Process(this->SW_Stockpile)
-		.Process(this->SW_Stockpile_TieToBuilding)
-		.Process(this->SW_Stockpile_Sequential)
 		;
 
 }

@@ -674,7 +674,7 @@ void NAKED _CCToolTip_Draw2_FillRect_RET()
 
 ASMJIT_PATCH(0x478FDC, CCToolTip_Draw2_FillRect, 0x5)
 {
-	GET(SurfaceExt*, pThis, ESI);
+	GET(DSurfaceExt*, pThis, ESI);
 		//GET(int, color, EDI);
 	LEA_STACK(RectangleStruct*, pRect, STACK_OFFS(0x44, 0x10));
 

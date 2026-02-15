@@ -59,20 +59,15 @@ public:
 	// ============================================================
 	PhobosFixedString<0x18> Name;
 	SWStatus Statusses;
-	CDTimerClass MusicTimer;
 
 	// ============================================================
 	// 8-byte aligned: Pointer
 	// ============================================================
 	SWTypeExtData* Type;
-	TechnoClass* SelectedFirer; // Stockpile: building selected for this launch
 
 	// ============================================================
 	// 4-byte aligned: int
 	// ============================================================
-	int StockpileCount;
-	int StockpileMax;
-	int LastLaunchBuildingIndex;
 
 	// ============================================================
 	// 4-byte aligned: CellStruct (2 shorts = 4 bytes)
@@ -85,7 +80,6 @@ public:
 	bool Temp_IsPlayer;
 	bool CameoFirstClickDone;
 	bool FirstClickAutoFireDone;
-	bool MusicActive;
 	// 4 bools = 4 bytes, naturally aligned
 
 #pragma endregion
@@ -97,7 +91,6 @@ public:
 	virtual ~SuperExtData() = default;
 
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override {
-		AnnounceInvalidPointer(SelectedFirer, ptr, bRemoved);
 	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
@@ -158,7 +151,10 @@ public:
 	bool _Remove();
 	bool _IsToFlashTab();
 	void _SetCharge(int charge);
+	//Called by HouseClass mostly
 	bool _AI(bool isPlayer);
+	//Global update function that run per frame basis
+	void _GlobalAI();
 
 	SuperExtData* _GetExtData() {
 		return *reinterpret_cast<SuperExtData**>((DWORD)this + AbstractExtOffset);
