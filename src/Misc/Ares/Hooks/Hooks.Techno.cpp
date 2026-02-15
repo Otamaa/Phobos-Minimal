@@ -213,28 +213,26 @@ ASMJIT_PATCH(0x6FB306, TechnoClass_CreateGap_Optimize, 6)
 	return 0x6FB3BD;
 }
 
-ASMJIT_PATCH(0x6FB757, TechnoClass_UpdateCloak, 8)
-{
-	GET(TechnoClass*, pThis, ESI);
-	return !TechnoExt_ExtData::CloakDisallowed(pThis, false) ? 0x6FB7FD : 0x6FB75F;
-}
-
-ASMJIT_PATCH(0x6FBC90, TechnoClass_ShouldNotBeCloaked, 5)
-{
-	GET(TechnoClass*, pThis, ECX);
-	// the original code would not disallow cloaking as long as
-	// pThis->Cloakable is set, but this prevents CloakStop from
-	// working, because it overrides IsCloakable().
-	R->EAX(TechnoExt_ExtData::CloakDisallowed(pThis, true));
-	return 0x6FBDBC;
-}
-
-ASMJIT_PATCH(0x6FBDC0, TechnoClass_ShouldBeCloaked, 5)
-{
-	GET(TechnoClass*, pThis, ECX);
-	R->EAX(TechnoExt_ExtData::CloakAllowed(pThis));
-	return 0x6FBF93;
-}
+//ASMJIT_PATCH(0x6FB757, TechnoClass_UpdateCloak, 8)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//	return !TechnoExt_ExtData::CloakDisallowed(pThis, false) ? 0x6FB7FD : 0x6FB75F;
+//}
+//
+//ASMJIT_PATCH(0x6FBC90, TechnoClass_ShouldNotBeCloaked, 5)
+//{
+//	GET(TechnoClass*, pThis, ECX);
+//
+//	R->EAX(TechnoExt_ExtData::CloakDisallowed(pThis, true));
+//	return 0x6FBDBC;
+//}
+//
+//ASMJIT_PATCH(0x6FBDC0, TechnoClass_ShouldBeCloaked, 5)
+//{
+//	GET(TechnoClass*, pThis, ECX);
+//	R->EAX(TechnoExt_ExtData::CloakAllowed(pThis));
+//	return 0x6FBF93;
+//}
 
 ASMJIT_PATCH(0x6F6AC9, TechnoClass_Limbo_Early, 6)
 {
@@ -942,7 +940,7 @@ static inline bool CheckAttackMoveCanResetTarget(FootClass* pThis)
 
 	const auto pNewTarget = flag_cast_to<TechnoClass*>(pThis->GreatestThreat(ThreatType::Range, &pThis->Location, false));
 
-	if (!pNewTarget 
+	if (!pNewTarget
 		|| GET_TECHNOTYPE(pNewTarget) == GET_TECHNOTYPE(pTargetTechno))
 		return false;
 

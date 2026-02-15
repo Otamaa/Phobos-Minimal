@@ -2011,6 +2011,8 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->SellFrames)
 
 		.Process(this->IsCustom)
+		.Process(this->FoundationPowerTextShowLong)
+		.Process(this->FoundationPrimaryFactoryTextShowLong)
 		.Process(this->CustomWidth)
 		.Process(this->CustomHeight)
 		.Process(this->OutlineLength)
@@ -2116,6 +2118,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->ApplyPerTargetEffectsOnDetonate)
 		.Process(this->Adjacent_Disallowed_Prohibit)
 		.Process(this->RevealToAll_Radius)
+
 		;
 }
 #else
@@ -2568,6 +2571,8 @@ bool FakeBuildingTypeClass::_ReadFromINI(CCINIClass* pINI)
 
 	bool status = this->BuildingTypeClass::LoadFromINI(pINI);
 	BuildingTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	pExt->FoundationPowerTextShowLong = this->GetFoundationWidth() > 2 && this->GetFoundationHeight(false) > 2;
+	pExt->FoundationPrimaryFactoryTextShowLong = this->GetFoundationWidth() != 1;
 	return status;
 }
 

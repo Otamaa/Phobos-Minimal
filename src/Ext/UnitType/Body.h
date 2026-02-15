@@ -11,10 +11,7 @@ public:
 	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
-	SHPStruct* TurretShape;
-
 	UnitTypeExtData(UnitTypeClass* pObj) : FootTypeExtData(pObj)
-		, TurretShape { nullptr }
 	{
 		this->AbsType = UnitTypeClass::AbsID;
 		this->InitializeConstant();
@@ -30,15 +27,11 @@ public:
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
-		Stm.Process(this->TurretShape)
-			;
 		this->FootTypeExtData::LoadFromStream(Stm);
 	}
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
-		Stm.Process(this->TurretShape)
-			;
 		const_cast<UnitTypeExtData*>(this)->FootTypeExtData::SaveToStream(Stm);
 	}
 

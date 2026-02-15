@@ -637,7 +637,13 @@ TechnoClass* SWTypeHandler::GetFirer(SuperClass* pSW, const CellStruct& Coords, 
 {
 	TechnoClass* pFirer = nullptr;
 	auto const pData = SWTypeExtContainer::Instance.Find(pSW->Type);
-	//const auto pFirer_e = SuperExtContainer::Instance.Find(pSW)->Firer;
+
+	// Stockpile: use the pre-selected building from Launch()
+	if (pData->SW_Stockpile > 0) {
+		auto pSuperExt = SuperExtContainer::Instance.Find(pSW);
+		if (pSuperExt->SelectedFirer && pSuperExt->SelectedFirer->IsAlive)
+			return pSuperExt->SelectedFirer;
+	}
 
 	for (auto const& pBld : pSW->Owner->Buildings)
 	{
@@ -647,9 +653,6 @@ TechnoClass* SWTypeHandler::GetFirer(SuperClass* pSW, const CellStruct& Coords, 
 			break;
 		}
 	}
-
-	//if (!pFirer && pFirer_e)
-	//	pFirer = pFirer_e;
 
 	return pFirer;
 }

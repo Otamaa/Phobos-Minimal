@@ -341,6 +341,7 @@ public:
 	Valueable<int> SW_Shots;
 	Valueable<int> SW_AnimHeight;
 	Valueable<int> SW_MaxCount;
+	Valueable<int> SW_Stockpile;
 	Valueable<int> Dominator_FirstAnimHeight;
 	Valueable<int> Dominator_SecondAnimHeight;
 	Valueable<int> Droppod_RetryCount;
@@ -498,6 +499,8 @@ public:
 	Valueable<bool> SW_Link_Ready;
 	Valueable<bool> SW_Link_Reset;
 	Valueable<bool> CrateGoodies;
+	Valueable<bool> SW_Stockpile_TieToBuilding;
+	Valueable<bool> SW_Stockpile_Sequential;
 
 #pragma endregion
 
@@ -666,6 +669,7 @@ public:
 		, SW_Shots(-1)
 		, SW_AnimHeight(0)
 		, SW_MaxCount(-1)
+		, SW_Stockpile(-1)
 		, Dominator_FirstAnimHeight(1)
 		, Dominator_SecondAnimHeight(1)
 		, Droppod_RetryCount(3)
@@ -814,6 +818,8 @@ public:
 		, SW_Link_Ready(false)
 		, SW_Link_Reset(false)
 		, CrateGoodies(false)
+		, SW_Stockpile_TieToBuilding(false)
+		, SW_Stockpile_Sequential(false)
 	{
 		this->AbsType = SuperWeaponTypeClass::AbsID;
 		this->Text_Ready = GameStrings::TXT_READY();

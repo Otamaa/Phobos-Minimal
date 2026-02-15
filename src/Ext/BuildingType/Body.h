@@ -366,6 +366,8 @@ public:
 	// Total bools: 68 Valueable<bool> + 1 plain bool = 69 bytes
 	// Pads to 72 for 4-byte alignment
 
+	bool FoundationPowerTextShowLong;
+	bool FoundationPrimaryFactoryTextShowLong;
 #pragma endregion
 
 public:

@@ -1206,6 +1206,7 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x6D4B50, FakeTacticalClass::__DrawTimers);
 
 #include <New/Entity/BannerClass.h>
 #include <Ext/SWType/Body.h>
+#include <Ext/Super/Body.h>
 
 void FakeTacticalClass::__DrawTimersSW(SuperClass* pSuper, int value, int interval)
 {
@@ -1238,6 +1239,14 @@ void FakeTacticalClass::__DrawTimersSW(SuperClass* pSuper, int value, int interv
 	}
     buffer.push_back(L'\0');
 
+	// Append stockpile count if applicable
+	if (pTypeExt->SW_Stockpile > 0) {
+		buffer.resize(buffer.size() - 1); // remove trailing null
+		auto pSuperExt = SuperExtContainer::Instance.Find(pSuper);
+		fmt::format_to(std::back_inserter(buffer), L" [{}/{}]",
+			pSuperExt->StockpileCount, pSuperExt->StockpileMax);
+		buffer.push_back(L'\0');
+	}
 
 	static fmt::basic_memory_buffer<wchar_t> labe_buffer;
 	labe_buffer.clear();

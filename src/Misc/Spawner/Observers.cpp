@@ -62,8 +62,8 @@ ASMJIT_PATCH(0x658473, RadarClass_658330_SetObserverFlag, 0x5)
 		return 0;
 
 	GET(HouseClass*, pHouse, EBX);
-	if (pHouse->IsHumanPlayer 
-			&& pHouse->Defeated 
+	if (pHouse->IsHumanPlayer
+			&& pHouse->Defeated
 			&& pHouse->IsInitiallyObserver()
 		) {
 		R->ECX(-3);

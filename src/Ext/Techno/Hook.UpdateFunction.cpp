@@ -538,7 +538,7 @@ void FakeTechnoClass::__HandleSelfHealing(TechnoClass* pThis)
 
 void FakeTechnoClass::__HandleCloaking(TechnoClass* pThis)
 {
-	pThis->UpdateCloak();
+	FakeTechnoClass::_Cloaking_AI(pThis, discard_t(), false);
 
 	if (auto pSpawn = pThis->SpawnManager) {
 		pSpawn->Update();
@@ -952,7 +952,7 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 
 	// Mission and target management
 	__ClearTargetForInvalidMissions(pThis);
-	  
+
 	++pThis->MissionAccumulateTime;
 	pThis->MissionClass::Update();
 
@@ -988,6 +988,232 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 	pThis->RadarTrackingUpdate(false);
 	__HandleEMPEffect(pThis);
 }
+#pragma optimize("", off )
+void __fastcall FakeTechnoClass::_Cloaking_AI(TechnoClass* pThis, discard_t, bool something)
+{
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	if (pThis->CloakState != CloakState::Uncloaked)
+	{
+		// === Currently in a cloak state — tick stage counter ===
+		pThis->CloakProgress.Update();
+
+		if (pThis->CloakProgress.Stage < 0)
+			pThis->CloakProgress.Stage = 0;
+
+		switch (pThis->CloakState)
+		{
+		case CloakState::Cloaking: {
+			pThis->Mark(MarkType::Change);
+
+			// Kickstart cloak animation if Rate was zero
+			if (pThis->CloakProgress.Timer.Rate == 0) {
+				pThis->CloakProgress.Start(1);
+			}
+
+			VisualType visual = pThis->VisualCharacter(true, nullptr);
+
+			if (visual == VisualType::Darken) {
+				// Damaged units may spontaneously uncloak
+				if (pThis->IsRedHP()
+					&& ScenarioClass::Instance->Random.RandomRanged(0, 99) < 10) {
+					pThis->Uncloak(true);
+				}
+			}
+			else if (visual == VisualType::Shadowy || visual == VisualType::Hidden)
+			{
+				// Cloaking complete — transition to fully cloaked
+				pThis->CloakState = CloakState::Cloaked;
+				pThis->CloakProgress.Start(0, 0, 0);
+				pThis->Mark(MarkType::Change);
+
+				// Units carrying a captured flag can never fully cloak
+				if (pThis->WhatAmI() == AbstractType::Unit
+					&& ((UnitClass*)(pThis))->FlagHouseIndex != -1)
+				{
+					pThis->Reveal();
+				}
+				else
+				{
+					// Collect technos targeting us that can still sense us
+					DynamicVectorClass<TechnoClass*> retargetList;
+
+					for (int i = TechnoClass::Array->Count - 1; i >= 0; i--)
+					{
+						TechnoClass* pTechno = TechnoClass::Array->Items[i];
+
+						// === Hook: TechnoClass_CloakingAI_detachsensed (0x6FBB35) ===
+						// Extended validity checks replacing simple TarCom check
+						if (!pTechno
+							|| pTechno->Target != pThis
+							|| !pTechno->Owner)
+							continue;
+
+						if (!pTechno->IsAlive
+							|| pTechno->IsCrashing
+							|| pTechno->IsSinking)
+							continue;
+
+						int houseIdx = pTechno->Owner->ArrayIndex;
+						CoordStruct center = pThis->GetCoords();
+						CellClass* pCell = MapClass::Instance->GetCellAt(center);
+
+						if (pCell->Sensors_InclHouse(houseIdx)
+							|| pTechno->Owner == pThis->Owner)
+						{
+							retargetList.emplace_back(pTechno);
+						}
+					}
+
+					// === Hook: TechnoClass_Cloak_BeforeDetach (0x6FBBC3) ===
+
+					pExt->UpdateMindControlAnim();
+					pExt->IsDetachingForCloak = true;
+
+					pThis->AnnounceExpiredPointer(false);
+
+					// === Hook: TechnoClass_Cloak_AfterDetach (0x6FBBCE) ===
+					pExt->IsDetachingForCloak = false;
+
+					for (int j = retargetList.Count - 1; j >= 0; j--) {
+						retargetList[j]->SetTarget(pThis);
+					}
+				}
+
+				// === Hook: LJMP 0x6FBC0B → 0x6FBC80 ===
+				// AI scatter after cloaking removed entirely
+			}
+			break;
+		}
+
+		case CloakState::Cloaked:
+		{
+			if (pThis->ShouldNotBeCloaked())
+			{
+				pThis->Uncloak(false);
+			}
+			break;
+		}
+
+		case CloakState::Uncloaking:
+		{
+			pThis->Mark(MarkType::Change);
+
+			VisualType visual = pThis->VisualCharacter(true, nullptr);
+
+			if (visual == VisualType::Normal)
+			{
+				// Fully uncloaked — reset cloak device
+				pThis->CloakProgress.Start(0,0,0);
+				pThis->CloakState = CloakState::Uncloaked;
+
+				// === Hook: TechnoClass_Cloak_RestoreMCAnim (0x6FB9D7) ===
+				pExt->UpdateMindControlAnim();
+
+				// Start cloak delay timer
+				int cloakDelay = static_cast<int>(RulesClass::Instance->CloakDelay * TICKS_PER_MINUTE);
+				pThis->CloakDelayTimer.Start(cloakDelay);
+				pThis->Mark(MarkType::Change);
+			}
+			else if (visual == VisualType::Indistinct) {
+				if (pThis->IsReadyToCloak()) {
+					pThis->Cloak(true);
+				}
+			}
+			break;
+		}
+
+		default:
+			break;
+		}
+	}
+	else
+	{
+
+		// === Not cloaked — check if we should begin cloaking ===
+		// === Hook: TechnoClass_UpdateCloak (0x6FB757) ===
+		// Extension pre-check: if not disallowed, fast-path past all vanilla checks
+		bool canCloak = !TechnoExt_ExtData::CloakDisallowed(pThis, false);
+
+		if(!canCloak)
+		{
+
+			canCloak = !pThis->IsUnderEMP()
+				 && !pThis->IsParalyzed()
+				 && !pThis->IsBeingWarpedOut()
+				 && !pThis->IsWarpingIn();
+
+			// Veteran/Elite cloak ability override
+			if (!canCloak) {
+				canCloak = pThis->HasAbility(AbilityType::Cloak);
+				if (!canCloak)
+					return;
+			}
+		}
+
+		// Don't cloak while docked in a weapons factory
+		TechnoClass* contact = pThis->RadioLinks.Items[0];
+
+		if (contact != nullptr
+			&& contact->WhatAmI() == AbstractType::Building
+			&& static_cast<BuildingClass*>(contact)->Type->WeaponsFactory)
+		{
+			return;
+		}
+
+		// Tick stage counter
+		pThis->CloakProgress.Update();
+
+		// Initiate cloaking if ready and healthy enough
+		if (!pThis->IsReadyToCloak())
+			return;
+
+		if (!pThis->IsRedHP()) {
+			pThis->Cloak(false);
+		}
+		else if (ScenarioClass::Instance->Random.RandomRanged(0, 99) < 4) {
+			// Damaged units have a small chance to cloak anyway
+			pThis->Cloak(false);
+		}
+	}
+}
+#pragma optimize("", on )
+DEFINE_FUNCTION_JUMP(LJMP, 0x6FB740, FakeTechnoClass::_Cloaking_AI);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E26B4, FakeTechnoClass::_Cloaking_AI);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E90A4, FakeTechnoClass::_Cloaking_AI);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB468, FakeTechnoClass::_Cloaking_AI);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4D70, FakeTechnoClass::_Cloaking_AI);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6080, FakeTechnoClass::_Cloaking_AI);
+
+bool __fastcall FakeTechnoClass::_ShouldNotBeCloaked(TechnoClass* pThis)
+{
+	// the original code would not disallow cloaking as long as
+	// pThis->Cloakable is set, but this prevents CloakStop from
+	// working, because it overrides IsCloakable().
+	return TechnoExt_ExtData::CloakDisallowed(pThis, true);
+}
+DEFINE_FUNCTION_JUMP(LJMP, 0x6FBC90, FakeTechnoClass::_ShouldNotBeCloaked);
+DEFINE_FUNCTION_JUMP(CALL, 0x4578C9, FakeTechnoClass::_ShouldNotBeCloaked);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2548, FakeTechnoClass::_ShouldNotBeCloaked);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E8F38, FakeTechnoClass::_ShouldNotBeCloaked);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB2FC, FakeTechnoClass::_ShouldNotBeCloaked);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4C04, FakeTechnoClass::_ShouldNotBeCloaked);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5F14, FakeTechnoClass::_ShouldNotBeCloaked);
+//BuildingClass has it own implementation
+
+
+bool __fastcall FakeTechnoClass::_ShouldBeCloaked(TechnoClass * pThis)
+{
+	return TechnoExt_ExtData::CloakAllowed(pThis);
+}
+DEFINE_FUNCTION_JUMP(LJMP, 0x6FBDC0, FakeTechnoClass::_ShouldBeCloaked);
+DEFINE_FUNCTION_JUMP(CALL, 0x457779, FakeTechnoClass::_ShouldBeCloaked);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2544, FakeTechnoClass::_ShouldBeCloaked);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E8F34, FakeTechnoClass::_ShouldBeCloaked);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB2F8, FakeTechnoClass::_ShouldBeCloaked);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4C00, FakeTechnoClass::_ShouldBeCloaked);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5F10, FakeTechnoClass::_ShouldBeCloaked);
+//BuildingClass has it own implementation
 
 ASMJIT_PATCH(0x70E92F, TechnoClass_UpdateAirstrikeTint, 0x5)
 {

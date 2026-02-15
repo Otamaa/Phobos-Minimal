@@ -1895,14 +1895,8 @@ ASMJIT_PATCH(0x73C7AC, UnitClass_DrawAsSHP_DrawTurret_TintFix, 0x6)
 	REF_STACK(RectangleStruct, bounds, STACK_OFFSET(0x128, 0xC));
 	GET_STACK(const int, extraLight, STACK_OFFSET(0x128, 0x1C));
 
-	const auto pTurretShape = pType->_GetExtData()->TurretShape;
-	const int StartFrame = pTurretShape ? 0 : (pType->WalkFrames * pType->Facings);
-
 	const bool tooBigToFitUnderBridge = pType->TooBigToFitUnderBridge
 		&& pThis->sub_703B10() && !pThis->sub_703E70();
-
-	if (pTurretShape)
-		pShape = pTurretShape;
 
 	const int zAdjust = tooBigToFitUnderBridge ? -16 : 0;
 	const ZGradient zGradient = tooBigToFitUnderBridge ? ZGradient::Ground : pThis->GetZGradient();
@@ -1910,13 +1904,12 @@ ASMJIT_PATCH(0x73C7AC, UnitClass_DrawAsSHP_DrawTurret_TintFix, 0x6)
 	pThis->Draw_A_SHP(pShape, bodyFrameIdx, &location, &bounds, 0, 256, zAdjust, zGradient, 0, extraLight, 0, 0, 0, 0, 0, 0);
 
 	const auto secondaryDir = pThis->SecondaryFacing.Current();
-	const int frameIdx = secondaryDir.GetFacing<32>(4) + StartFrame;
+	const int frameIdx = secondaryDir.GetFacing<32>(4) + pType->WalkFrames * pType->Facings;
 
 	const auto primaryDir = pThis->PrimaryFacing.Current();
 	const double bodyRad = primaryDir.GetRadian<32>();
 	Matrix3D mtx = Matrix3D::GetIdentity();
 	mtx.RotateZ(static_cast<float>(bodyRad));
-
 
 	TechnoTypeExtContainer::Instance.Find(pThisType)->ApplyTurretOffset(&mtx, 1.0);
 
@@ -1931,25 +1924,6 @@ ASMJIT_PATCH(0x73C7AC, UnitClass_DrawAsSHP_DrawTurret_TintFix, 0x6)
 	pThis->Draw_A_SHP(pShape, frameIdx, &drawPoint, &bounds, 0, 256, static_cast<DWORD>(-32), zGradient, 0, extraLight, 0, 0, 0, 0, 0, 0);
 	Game::bDrawShadow = originalDrawShadow;
 	return SkipDrawCode;
-}
-
-ASMJIT_PATCH(0x73CCF4, UnitClass_DrawSHP_FacingsB_TurretShape, 0xA)
-{
-	enum { SkipGameCode = 0x73CD06 };
-
-	GET(UnitClass*, pThis, EBP);
-	GET(FakeUnitTypeClass*, pType, ECX);
-
-	const auto pTurretShape = pType->_GetExtData()->TurretShape;
-	const int StartFrame = pTurretShape ? 0 : (pType->WalkFrames * pType->Facings);
-	const int frameIdx = pThis->SecondaryFacing.Current().GetFacing<32>(4) + StartFrame;
-
-	if (pTurretShape)
-		R->EDI(pTurretShape);
-
-	R->ECX(pThis);
-	R->EAX(frameIdx);
-	return 0x73CD06;
 }
 
 
@@ -1969,8 +1943,6 @@ ASMJIT_PATCH(0x747A2E, UnitTypeClass_ReadINI_TurretShape, 0x6)
 			_snprintf_s(Buffer, sizeof(Buffer), "%sTUR.SHP", pArtSection);
 		}
 
-		if (const auto pShape = FileSystem::LoadSHPFile(Buffer))
-			pType->_GetExtData()->TurretShape = pShape;
 	}
 
 	return 0;

@@ -898,7 +898,7 @@ bool NOINLINE TechnoExt_ExtData::IsCloakable(TechnoClass* pThis, bool allowPassi
 	}
 
 	// check for active cloak
-	if (pThis->Cloakable || pThis->HasAbility(AbilityType::Cloak))
+	if (pThis->IsCloakable() || pThis->HasAbility(AbilityType::Cloak))
 	{
 		if (TechnoExt_ExtData::CanSelfCloakNow(pThis))
 		{
@@ -927,7 +927,7 @@ bool NOINLINE TechnoExt_ExtData::IsCloakable(TechnoClass* pThis, bool allowPassi
 }
 
 //confirmed
-bool NOINLINE TechnoExt_ExtData::CloakDisallowed(TechnoClass* pThis, bool allowPassive)
+bool TechnoExt_ExtData::CloakDisallowed(TechnoClass* pThis, bool allowPassive)
 {
 	if (TechnoExt_ExtData::IsCloakable(pThis, allowPassive))
 	{
@@ -943,7 +943,7 @@ bool NOINLINE TechnoExt_ExtData::CloakDisallowed(TechnoClass* pThis, bool allowP
 }
 
 //confirmed
-bool NOINLINE TechnoExt_ExtData::CloakAllowed(TechnoClass* pThis)
+bool TechnoExt_ExtData::CloakAllowed(TechnoClass* pThis)
 {
 	if (TechnoExt_ExtData::CloakDisallowed(pThis, true))
 	{

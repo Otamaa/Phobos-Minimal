@@ -102,7 +102,7 @@ public:
 	bool ShouldFlashTab() const // sidebar
 		{ JMP_THIS(0x6CE1A0); }
 
-	void ClickFire() const {
+	void ClickFire(bool IsPlayer) const {
 		JMP_THIS(0x6CC080);
 	}
 
@@ -130,7 +130,7 @@ public:
 	SuperWeaponTypeClass* Type;
 	HouseClass* Owner;
 	DECLARE_PROPERTY(CDTimerClass, RechargeTimer);
-	PROTECTED_PROPERTY(DWORD, unused_3C);
+	const wchar_t* unused_3C;
 	bool BlinkState;
 	PROTECTED_PROPERTY(BYTE, unused_41[7]);
 	LARGE_INTEGER BlinkTimer;

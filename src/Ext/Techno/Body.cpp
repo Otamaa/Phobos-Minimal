@@ -516,7 +516,7 @@ bool __fastcall FakeTechnoClass::__Is_Allowed_To_Retaliate(TechnoClass* pThis , 
 			if (bIsVeteran || bIsElite) {
 				if (bIsVeteran && pType->VeteranAbilities.C4)
 					return false;
-				
+
 				if (bIsElite && (pType->VeteranAbilities.C4 || pType->EliteAbilities.C4))
 					return false;
 			}
@@ -530,8 +530,8 @@ bool __fastcall FakeTechnoClass::__Is_Allowed_To_Retaliate(TechnoClass* pThis , 
 
 	// Player-controlled units without SmartDefense should only retaliate in guard missions
 	if (bIsPlayerControl && !RulesClass::Instance->Scatter && !pThisBld) {
-		if (pThis->CurrentMission != Mission::Area_Guard 
-			&& pThis->CurrentMission != Mission::Guard 
+		if (pThis->CurrentMission != Mission::Area_Guard
+			&& pThis->CurrentMission != Mission::Guard
 			&& pThis->CurrentMission != Mission::Patrol){
 			return false;
 		}
@@ -584,7 +584,7 @@ bool __fastcall FakeTechnoClass::__Is_Allowed_To_Retaliate(TechnoClass* pThis , 
 }
 
 void __fastcall FakeTechnoClass::__DoUncloak(TechnoClass* pThis, discard_t, char quiet)
-{ 
+{
 	auto state = pThis->CloakState;
 
 	if (state == CloakState::Cloaked || state == CloakState::Cloaking) {
@@ -592,7 +592,7 @@ void __fastcall FakeTechnoClass::__DoUncloak(TechnoClass* pThis, discard_t, char
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 		pThis->CloakState = CloakState::Uncloaking;
 		auto stages = pTypeExt->CloakStages.Get(RulesClass::Instance->CloakingStages);
-		pThis->CloakProgress.Start(pType->CloakingSpeed, -1, stages);
+		pThis->CloakProgress.Start(pType->CloakingSpeed, -1, stages - 1);
 
 		if (!quiet) {
 			const int nDefault = RulesExtData::Instance()->DecloakSound.Get(RulesClass::Instance->CloakSound);
@@ -610,14 +610,14 @@ void __fastcall FakeTechnoClass::__DoUncloak(TechnoClass* pThis, discard_t, char
 }
 
 void __fastcall FakeTechnoClass::__DoCloak(TechnoClass * pThis, discard_t, char quiet)
-{ 
+{
 	auto state = pThis->CloakState;
 
 	if (state == CloakState::Uncloaking || state == CloakState::Uncloaked) {
 		const auto pType = GET_TECHNOTYPE(pThis);
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 		pThis->CloakState = CloakState::Cloaking;
-		pThis->CloakProgress.Start(pType->CloakingSpeed, -1, 0);
+		pThis->CloakProgress.Start(pType->CloakingSpeed, 1, 0);
 
 		if (!quiet) {
 			VocClass::ImmedietelyPlayAt(pTypeExt->CloakSound.Get(RulesClass::Instance->CloakSound), pThis->Location);
@@ -3943,8 +3943,8 @@ int TechnoExtData::GetWeaponIndexAgainstWall(TechnoClass * pThis, OverlayTypeCla
 	auto pWeapon = TechnoExtData::GetCurrentWeapon(pThis, weaponIndex);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 
-	if ((pTechnoType->TurretCount > 0 && !pTechnoType->IsGattling) 
-			|| !pWallOverlayType 
+	if ((pTechnoType->TurretCount > 0 && !pTechnoType->IsGattling)
+			|| !pWallOverlayType
 			|| !pWallOverlayType->Wall
 			|| !pTypeExt->AllowWeaponSelectAgainstWalls.Get(RulesExtData::Instance()->AllowWeaponSelectAgainstWalls)
 		)
@@ -4932,7 +4932,7 @@ void TechnoExtData::DrawSelectBox(TechnoClass* pThis,Point2D* pLocation,Rectangl
 			outClient.Y += Game::AdjustHeight(pThis->GetHeight());
 		else
 			outClient += pFoot->Locomotor->Shadow_Point();
-			
+
 		if (visible && pGroundShape)
 		{
 			const auto pPalette = pSelectBox->GroundPalette.GetOrDefaultConvert(FileSystem::PALETTE_PAL);
@@ -6239,7 +6239,7 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, 
 	}break;
 	case KillMethod::Vanish:
 	{
-		if (pWhat == BuildingClass::vtable) {		
+		if (pWhat == BuildingClass::vtable) {
 			const auto pBld = static_cast<BuildingClass*>(pThis);
 
 			if (pThis->BunkerLinkedItem)
@@ -7745,7 +7745,7 @@ int TechnoExtData::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechn
 				return weaponIndexOne;
 
 			if (
-				(pTargetTechno && 
+				(pTargetTechno &&
 					(
 						!EnumFunctions::IsTechnoEligible(pTargetTechno, pSecondExt->CanTarget, false) ||
 						!EnumFunctions::CanTargetHouse(pSecondExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner) ||
@@ -7896,7 +7896,7 @@ bool TechnoExtData::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Sel
 			return false;
 		}
 	}
-	
+
 	--Unsorted::ScenarioInit;
 
 	Survivor->Transporter = nullptr;
@@ -8264,7 +8264,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	double Armor_Mult = _AEProp->ArmorMultiplier;
 	double Speed_Mult = _AEProp->SpeedMultiplier;
 
-	bool Cloak = GET_TECHNOTYPE(pTechno)->Cloakable 
+	bool Cloak = GET_TECHNOTYPE(pTechno)->Cloakable
 		|| pTechno->HasAbility(AbilityType::Cloak)
 		|| pExt->AE.flags.Cloakable;
 

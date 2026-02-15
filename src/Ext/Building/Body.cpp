@@ -274,7 +274,7 @@ void BuildingExtData::ApplyLimboKill(int LimboID,int count, Valueable<AffectedHo
 		return;
 
 	StackVector<BuildingClass*, 20> LimboedID {};
-	if(count > 0) { 
+	if(count > 0) {
 		Helpers::Alex::for_each_if_n(pTargetHouse->Buildings.begin(), pTargetHouse->Buildings.end(), count,
 			[LimboID](BuildingClass* pBuilding) { const auto pBuildingExt = BuildingExtContainer::Instance.Find(pBuilding); return pBuildingExt->LimboID >= 0 && pBuildingExt->LimboID == LimboID; },
 			[&LimboedID](BuildingClass* pBuilding) {
@@ -358,7 +358,7 @@ void BuildingExtData::UpdatePoweredKillSpawns() const
 			pManager->ResetTarget();
 
 			for (const auto& pItem : pManager->SpawnedNodes) {
-				if (pItem->Status == SpawnNodeStatus::Attacking 
+				if (pItem->Status == SpawnNodeStatus::Attacking
 					|| pItem->Status == SpawnNodeStatus::Returning) {
 					if (pItem->Unit && pItem->Unit->IsAlive)
 						pItem->Unit->ReceiveDamage(&pItem->Unit->GetType()->Strength, 0,
@@ -1973,7 +1973,7 @@ void FakeBuildingClass::_DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOrigi
 				auto pOutput = (int)pOwner->Power_Output();
 				//foundating check ,...
 				//can be optimized using stored bool instead checking them each frames
-				if (pType->GetFoundationWidth() > 2 && pType->GetFoundationHeight(false) > 2)
+				if (pTypeExt->FoundationPowerTextShowLong)
 				{
 					swprintf_s(pOutDrainFormat, StringTable::FetchString(GameStrings::TXT_POWER_DRAIN2()), pOutput, pDrain);
 				}
@@ -2031,7 +2031,7 @@ void FakeBuildingClass::_DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOrigi
 				}
 				else
 				{
-					DrawTheStuff(StringTable::FetchString((pType->GetFoundationWidth() != 1) ?
+					DrawTheStuff(StringTable::FetchString((pTypeExt->FoundationPrimaryFactoryTextShowLong) ?
 						GameStrings::TXT_PRIMARY() : GameStrings::TXT_PRI()));
 				}
 			}

@@ -3,6 +3,7 @@
 
 #include <Utilities/Container.h>
 #include <Utilities/PhobosFixedString.h>
+#include <Helpers/Template.h>
 
 // cache all super weapon statuses
 struct SWStatus
@@ -64,6 +65,14 @@ public:
 	// 8-byte aligned: Pointer
 	// ============================================================
 	SWTypeExtData* Type;
+	TechnoClass* SelectedFirer; // Stockpile: building selected for this launch
+
+	// ============================================================
+	// 4-byte aligned: int
+	// ============================================================
+	int StockpileCount;
+	int StockpileMax;
+	int LastLaunchBuildingIndex;
 
 	// ============================================================
 	// 4-byte aligned: CellStruct (2 shorts = 4 bytes)
@@ -87,7 +96,9 @@ public:
 
 	virtual ~SuperExtData() = default;
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override { }
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override {
+		AnnounceInvalidPointer(SelectedFirer, ptr, bRemoved);
+	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
@@ -136,6 +147,18 @@ class NOVTABLE FakeSuperClass : public SuperClass
 public:
 
 	int _GetAnimStage();
+
+	const wchar_t* _NameReadiness();
+	void _Place(CellStruct* cell, bool player);
+	void _Detach(AbstractClass* target, bool all);
+	bool _Grant(bool oneTime, bool announce, bool onHold);
+	bool _Suspend(bool on);
+	bool _Discharged(bool isPlayer, CellStruct* pCell);
+	void _Forced_Charge(bool isPlayer);
+	bool _Remove();
+	bool _IsToFlashTab();
+	void _SetCharge(int charge);
+	bool _AI(bool isPlayer);
 
 	SuperExtData* _GetExtData() {
 		return *reinterpret_cast<SuperExtData**>((DWORD)this + AbstractExtOffset);

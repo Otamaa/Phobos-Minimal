@@ -1530,6 +1530,7 @@ public:
 
 	static bool CanRetaliateICUnit(TechnoClass* pThis, FakeWeaponTypeClass* pWP, TechnoClass* pTarget);
 	static bool CanTargetICUnit(TechnoClass* pThis, FakeWeaponTypeClass* pWP, TechnoClass* pTarget);
+
 public:
 	static UnitClass* Deployer;
 
@@ -1618,6 +1619,9 @@ public:
 	static void __HandleDamageSparks(TechnoClass* pThis);
 	static void __HandleEMPEffect(TechnoClass* pThis);
 	static void __fastcall __AI(TechnoClass* pThis);
+	static void __fastcall _Cloaking_AI(TechnoClass* pThis, discard_t ,bool something);
+	static bool __fastcall _ShouldNotBeCloaked(TechnoClass* pThis);
+	static bool __fastcall _ShouldBeCloaked(TechnoClass* pThis);
 };
 
 #define GET_TECHNOTYPE(techno) techno->GetTechnoType()

@@ -199,7 +199,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno)
 	acc.FP_Mult = static_cast<double>(_AEProp->FirepowerMultiplier);
 	acc.Armor_Mult = static_cast<double>(_AEProp->ArmorMultiplier);
 	acc.Speed_Mult = static_cast<double>(_AEProp->SpeedMultiplier);
-	acc.Cloak = GET_TECHNOTYPE(pTechno)->Cloakable || pTechno->HasAbility(AbilityType::Cloak);
+	acc.Cloak = GET_TECHNOTYPE(pTechno)->Cloakable || pTechno->HasAbility(AbilityType::Cloak) || pExt->AE.flags.Cloakable;
 
 	if(_AresAE) {
 		// === Accumulate from Ares AE ===
