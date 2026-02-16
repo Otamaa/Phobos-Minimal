@@ -372,7 +372,7 @@ void FakeParasiteClass::__Grapple_AI()
 				CoordStruct splashCoord {
 					.X = int((offsetX * cosAngle - offsetY * sinAngle) + victimCoord.X),
 					.Y = int(victimCoord.Y + (offsetX * sinAngle + offsetY * cosAngle)),
-					.Z = victimCoord.Z 
+					.Z = victimCoord.Z
 				};
 
 				if (!MapClass::Instance->GetCellAt(splashCoord)->Tile_Is_Water())
@@ -461,7 +461,7 @@ void FakeParasiteClass::__Grapple_AI()
 	}
 }
 
-void NOINLINE TakeDamage(FootClass* pVictiom , FootClass* pOwner , WeaponTypeClass* pWeapon) {
+void NOINLINE TakeDamage(FootClass* pVictiom , FootClass* pOwner , WeaponTypeClass* pWeapon, bool killImmedietely) {
 
 	auto const pWarheadTypeExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
 
@@ -478,7 +478,7 @@ void NOINLINE TakeDamage(FootClass* pVictiom , FootClass* pOwner , WeaponTypeCla
 		return;
 	}
 
-	int weaponDamage = pVictiom->Health;
+	int weaponDamage = killImmedietely ? pVictiom->Health : pWeapon->Damage;
 	pVictiom->ReceiveDamage(&weaponDamage, 0, pWeapon->Warhead, pOwner, true, true, pOwner->Owner);
 }
 
@@ -522,7 +522,7 @@ void FakeParasiteClass::__AI()
 
 	// Handle infantry differently (direct damage to health)
 	if ((!isInfantry &&  WarheadTypeExtContainer::Instance.Find(weaponType->Warhead)->Parasite_DisableRocking.Get()) || InfantryInstantKill) {
-		TakeDamage(this->Victim, this->Owner, weaponType);
+		TakeDamage(this->Victim, this->Owner, weaponType, true);
 		return;
 	}
 
@@ -538,12 +538,12 @@ void FakeParasiteClass::__AI()
 	}
 
 	// Get victim facing direction
-	DirStruct facingDir = this->Victim->PrimaryFacing.Current();
+	const DirStruct facingDir = this->Victim->PrimaryFacing.Current();
 
 	// Create weapon animation if available
 	if (weaponType->Anim.Count > 0) {
-		int animIndex = (((facingDir.Raw >> 12) + 1) >> 1) & 7;
-		if (AnimTypeClass* animType = weaponType->Anim.Items[animIndex]) {
+		const int animIndex = (((facingDir.Raw >> 12) + 1) >> 1) & 7;
+		if (AnimTypeClass* animType = weaponType->Anim.get_or_default(animIndex)) {
 			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(animType, victimCoord, 0, 1, AnimFlag::AnimFlag_600, 0, 0),
 					this->Owner ? this->Owner->GetOwningHouse() : nullptr,
 					this->Victim ? this->Victim->GetOwningHouse() : nullptr,
@@ -555,11 +555,11 @@ void FakeParasiteClass::__AI()
 
 	// Calculate spread effect position
 	int randomOffset = ScenarioClass::Instance->Random.RandomBool() ? -4 : 2;
-	randomOffset = (randomOffset & 0xFC) + 2;
+		randomOffset = (randomOffset & 0xFC) + 2;
 
-	double facingRadians = (facingDir.Raw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC;
-	float cosAngle = Math::cos(facingRadians);
-	float sinAngle = Math::sin(facingRadians);
+	const double facingRadians = (facingDir.Raw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC;
+	const float cosAngle = Math::cos(facingRadians);
+	const float sinAngle = Math::sin(facingRadians);
 
 	CoordStruct spreadCoord {
 		.X = int(cosAngle * randomOffset + victimCoord.X),
@@ -570,10 +570,10 @@ void FakeParasiteClass::__AI()
 	this->Victim->RockByValue(&spreadCoord, 1.5f, 0);
 
 	// Apply weapon damage
-	TakeDamage(this->Victim, this->Owner, weaponType);
-	
+	TakeDamage(this->Victim, this->Owner, weaponType, false);
+
 	// Victim might have died from damage
-	if (!this->Victim) {
+	if (!this->Victim || !this->Victim->IsAlive) {
 		return;
 	}
 }
@@ -790,7 +790,7 @@ void FakeParasiteClass::__Infect(FootClass* target)
 	this->DamageDeliveryTimer.Start(0);
 
 	// Check if target can be infected
-	if (this->CanInfect(target)) //TODO 
+	if (this->CanInfect(target)) //TODO
 	{
 		// Force locomotion to target coordinates
 		this->Owner->Locomotor->Force_Track(-1, target->Location);
