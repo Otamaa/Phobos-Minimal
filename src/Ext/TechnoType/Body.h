@@ -778,6 +778,7 @@ public:
 	Valueable<bool> UseROFAsBurstDelays;
 
 	Valueable<bool> Chronoshift_Crushable;
+	Nullable<bool> Teleporter_TurnToDestination;
 	Valueable<bool> CanBeReversed;
 	Nullable<TechnoTypeClass*> ReversedAs;
 	Valueable<int> AssaulterLevel;
@@ -1769,6 +1770,7 @@ public:
 		ImmuneToAbduction(false),
 		UseROFAsBurstDelays(false),
 		Chronoshift_Crushable(true),
+		Teleporter_TurnToDestination(),
 		CanBeReversed(false),
 		ReversedAs(),
 		AssaulterLevel(0),
@@ -2784,6 +2786,7 @@ private:
 			.Process(this->ImmuneToAbduction)
 			.Process(this->UseROFAsBurstDelays)
 			.Process(this->Chronoshift_Crushable)
+			.Process(this->Teleporter_TurnToDestination)
 			.Process(this->CanBeReversed)
 			.Process(this->ReversedAs)
 			.Process(this->AssaulterLevel)

@@ -17,6 +17,12 @@
 	TechnoTypeClass* pType = GET_TECHNOTYPE(pOwner); \
 	TechnoTypeExtData *pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
+// NOTE: All ASMJIT_PATCHes below modify the ORIGINAL TeleportLocomotionClass::Process code.
+// When FakeTeleportLocomotionClass::Hook_Process is active (VTABLE hook at 0x7F5040),
+// the original Process function is never called, making these patches dead code.
+// They are intentionally kept active as a safety net: if the VTABLE hook is disabled,
+// the original function with these improvements resumes working automatically.
+
 ASMJIT_PATCH(0x7197DF, TeleportLocomotionClass_Process_ChronospherePreDelay, 0x5)
 {
 	//GET(TeleportLocomotionClass*, pThis, ESI);

@@ -1494,6 +1494,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->ImmuneToAbduction.Read(exINI, pSection, "ImmuneToAbduction");
 		this->UseROFAsBurstDelays.Read(exINI, pSection, "UseROFAsBurstDelays");
 		this->Chronoshift_Crushable.Read(exINI, pSection, "Chronoshift.Crushable");
+		this->Teleporter_TurnToDestination.Read(exINI, pSection, "Teleporter.TurnToDestination");
 
 		this->CanBeReversed.Read(exINI, pSection, "CanBeReversed");
 		this->ReversedAs.Read(exINI, pSection, "ReversedAs");

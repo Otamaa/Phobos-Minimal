@@ -376,6 +376,7 @@ public:
 	Valueable<int> WarheadAnimZAdjust { -15 };
 	Valueable<int> ChronoSpherePreDelay { 60 };
 	Valueable<int> ChronoSphereDelay { 0 };
+	Valueable<bool> Teleporter_TurnToDestination { false };
 
 	ValueableIdx<ColorScheme> AnimRemapDefaultColorScheme { 0 };
 	ValueableIdx<CursorTypeClass*> EngineerDamageCursor { 87 };

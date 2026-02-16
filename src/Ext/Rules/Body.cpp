@@ -1031,6 +1031,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AISuperWeaponDelay.Read(exINI, GameStrings::General, "AISuperWeaponDelay");
 	this->ChronoSpherePreDelay.Read(exINI, GameStrings::General, "ChronoSpherePreDelay");
 	this->ChronoSphereDelay.Read(exINI, GameStrings::General, "ChronoSphereDelay");
+	this->Teleporter_TurnToDestination.Read(exINI, GameStrings::General, "Teleporter.TurnToDestination");
 	this->AINormalTargetingDelay.Read(exINI, GameStrings::General, "AINormalTargetingDelay");
 	this->PlayerNormalTargetingDelay.Read(exINI, GameStrings::General, "PlayerNormalTargetingDelay");
 	this->AIGuardAreaTargetingDelay.Read(exINI, GameStrings::General, "AIGuardAreaTargetingDelay");
@@ -1739,6 +1740,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->AISuperWeaponDelay)
 		.Process(this->ChronoSpherePreDelay)
 		.Process(this->ChronoSphereDelay)
+		.Process(this->Teleporter_TurnToDestination)
 		.Process(this->EnablePowerSurplus)
 		.Process(this->ShakeScreenUseTSCalculation)
 		.Process(this->UnitIdleRotateTurret)

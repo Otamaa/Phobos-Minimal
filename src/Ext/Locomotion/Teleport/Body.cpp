@@ -979,9 +979,9 @@ HRESULT __fastcall FakeTeleportLocomotionClass::Hook_GetClassID(
 // [Improvement] Integrates hook: 0x7196BB (MarkDown fix for transports)
 // =====================================================
 
-bool __fastcall FakeTeleportLocomotionClass::Hook_Process(
-	TeleportLocomotionClass* pThis, void* /*edx*/)
+bool __stdcall FakeTeleportLocomotionClass::Hook_Process(ILocomotion* pLoco)
 {
+	auto pThis = static_cast<TeleportLocomotionClass*>(pLoco);
 	if (!pThis || !pThis->Owner)
 		return false;
 
@@ -994,8 +994,12 @@ bool __fastcall FakeTeleportLocomotionClass::Hook_Process(
 	// If WarpingOut is already happening and we're in state 0 with no external trigger
 	if (pLinkedTo->WarpingOut && state == 0 && !pLinkedTo->unknown_280)
 	{
-		// Jump to state 6 (waiting callback)
-		pThis->Piggybackee->Process();
+		// Delegate to piggybacked locomotion (e.g., DriveLocoClass) while waiting.
+		// Piggybackee is NULL when TeleportLocomotionClass IS the primary locomotion
+		// (units with Locomotor={TeleportLocoGUID}), as opposed to Chronosphere-warped
+		// units where TeleportLocoClass piggybacks on top of the original locomotion.
+		if (pThis->Piggybackee)
+			pThis->Piggybackee->Process();
 		return false;
 	}
 
@@ -1046,8 +1050,39 @@ bool __fastcall FakeTeleportLocomotionClass::Hook_Process(
 			return false;
 		}
 
+		// [Feature] Turn to face destination before teleporting
+		// Configurable per-TechnoType with fallback to [General] setting.
+		// Set_Desired is a no-op if already facing the right way.
+		// Is_Rotating() returns false when ROT=0, so non-turning units teleport immediately.
+		{
+			auto pTechnoType = pLinkedTo->GetTechnoType();
+			auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
+			bool turnToDestination = pTypeExt->Teleporter_TurnToDestination.Get(
+				RulesExtData::Instance()->Teleporter_TurnToDestination);
+
+			if (turnToDestination)
+			{
+				CoordStruct src = pLinkedTo->Location;
+				CoordStruct dest = pThis->MovingDestination;
+				DirStruct desiredDir;
+				desiredDir.GetDirOver(&src, &dest);
+				pLinkedTo->PrimaryFacing.Set_Desired(desiredDir);
+
+				if (pLinkedTo->PrimaryFacing.Is_Rotating())
+				{
+					Debug::Log("[TeleportLoco] Process: Unit=%s waiting to turn before teleport\n",
+						pTechnoType->get_ID());
+					return false; // Delay teleport until facing is correct
+				}
+			}
+		}
+
 		// Begin teleportation sequence
-		pLinkedTo->ClearAllTarget();
+		// [Fix] Original at 0x7193C7 calls ClearWhoTargetingThis (0x70D4A0),
+		// which tells OTHER objects to stop targeting this unit.
+		// ClearAllTarget() was incorrect - it clears the unit's OWN targets
+		// and queues Mission::Stop, which is not what the original does.
+		TechnoClass::ClearWhoTargetingThis(pLinkedTo);
 
 		// Retarget bullets aimed at this unit
 		for (int i = BulletClass::Array->Count - 1; i >= 0; --i)
@@ -1209,7 +1244,8 @@ bool __fastcall FakeTeleportLocomotionClass::Hook_Process(
 	{
 	case 1:
 		// State 1: Waiting - delegate to piggyback
-		pThis->Piggybackee->Process();
+		if (pThis->Piggybackee)
+			pThis->Piggybackee->Process();
 		return false;
 
 	case 2:
@@ -1338,7 +1374,8 @@ bool __fastcall FakeTeleportLocomotionClass::Hook_Process(
 
 	case 6:
 		// State 6: Waiting - delegate to piggyback
-		pThis->Piggybackee->Process();
+		if (pThis->Piggybackee)
+			pThis->Piggybackee->Process();
 		return false;
 
 	case 7:
@@ -1442,8 +1479,11 @@ void __fastcall FakeTeleportLocomotionClass::Hook_ProcessTimerCompletion(
 //   0x719CBC (Hooks.BugFixes.cpp) - Load fix, separate from our hooks
 //   0x719F17 (Hooks.BugFixes.cpp) - End_Piggyback PowerOn, shared with other locos
 //   0x71810D (Hooks.Unit.cpp)     - Inside Move_To (not hooked by us)
-//   0x7196BB (Hooks.Transport.cpp)- Inside Process (not hooked by us)
-//   0x7193F6 etc. (Hooks.Teleport.cpp) - Inside Process (not hooked by us)
+//
+// Dead code (inside VTABLE-replaced Process, kept as safety net):
+//   0x7193F6, 0x719742, 0x719827, 0x71997B, 0x7197DF, 0x719BD9
+//     (Hooks.Teleport.cpp) - Modify original Process code, unreachable via VTABLE
+//   0x7196BB (Hooks.Transport.cpp) - Inside original Process, unreachable via VTABLE
 //
 // Hooks that become dead code (inside our LJMP-replaced functions):
 //   0x71872C (Hooks.BugFixes.cpp)       - inside InternalMark
@@ -1465,18 +1505,27 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x718B70, FakeTeleportLocomotionClass::Hook_ComputeDe
 //DEFINE_FUNCTION_JUMP(LJMP, 0x718090, FakeTeleportLocomotionClass::Hook_IsStill);
 
 // =====================================================
-// ILocomotion vtable functions (__stdcall via COM dispatch):
-// These are NOT hooked via LJMP - calling convention mismatch would corrupt the stack.
-// To hook, use VTABLE patches:
-//   DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5000 + offset, func)
-//
+// ILocomotion VTABLE hooks (__stdcall via COM dispatch):
+// These CANNOT be LJMP-hooked due to calling convention mismatch.
+// Must use VTABLE patches: DEFINE_FUNCTION_JUMP(VTABLE, address, func)
+// =====================================================
+
+// Process (ILocomotion vtable +0x40 = 0x7F5040)
+// Replaces the entire Process function with our C++ backport.
+// The existing ASMJIT_PATCHes in Hooks.Teleport.cpp (0x7193F6, 0x719742,
+// 0x719827, 0x71997B, 0x7197DF, 0x719BD9) and Hooks.Transport.cpp (0x7196BB)
+// modify the ORIGINAL Process code which is now unreachable via vtable dispatch.
+// They are kept active as a safety net: if this VTABLE hook is disabled,
+// the original function with its ASMJIT improvements resumes working.
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5040, FakeTeleportLocomotionClass::Hook_Process);
+
+// =====================================================
 // Reference addresses (NOT hooked):
 //   0x718080 - Is_Moving            [ILoco +0x10]
 //   0x7180A0 - Destination          [ILoco +0x14]
 //   0x718100 - Move_To              [ILoco +0x44] (has ASMJIT_PATCH at 0x71810D)
 //   0x718230 - Stop_Moving          [ILoco +0x48]
 //   0x7192C0 - Do_Turn              [ILoco +0x4C]
-//   0x7192F0 - Process              [ILoco +0x40] (Hooks.Teleport.cpp patches inside)
 //   0x719E20 - In_Which_Layer       [ILoco +0x74]
 //   0x71A090 - Mark_All_Occ_Bits    [ILoco +0x9C]
 //   0x719C60 - GetClassID           [Main  +0x0C] (__stdcall IPersist COM)

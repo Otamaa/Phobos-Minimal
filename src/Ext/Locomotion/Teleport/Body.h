@@ -62,11 +62,17 @@
  *   - 0x719BF0 (vt_entry_28)            - Main vtable +0x28, __thiscall
  *   - 0x718090 (IsStill)                - Main vtable +0x2C, __thiscall
  *
+ * ACTIVE VTABLE hooks:
+ *   - 0x7F5040: Process (ILocomotion +0x40) -> Hook_Process
+ *     Replaces the original Process function entirely.
+ *     Existing ASMJIT_PATCHes inside the original function (Hooks.Teleport.cpp)
+ *     become dead code but are kept as a safety net.
+ *
  * REFERENCE implementations (not hooked):
  *   ILocomotion vtable functions (__stdcall via COM dispatch):
  *   - Move_To, Stop_Moving, Do_Turn, Mark_All_Occupation_Bits
  *   - Is_Moving, Destination, In_Which_Layer, GetClassID
- *   - Process, ProcessTimerCompletion
+ *   - ProcessTimerCompletion
  *
  * Active conflicting hooks integrated into our backport (become dead code):
  *   - 0x718275 (Hooks.Locomotor.cpp)      - Already commented out
@@ -80,10 +86,13 @@
  *
  * Non-conflicting hooks that remain active:
  *   - 0x71810D (Hooks.Unit.cpp)           - Inside Move_To (not hooked)
- *   - 0x7196BB (Hooks.Transport.cpp)      - Inside Process (not hooked)
  *   - 0x719CBC (Hooks.BugFixes.cpp)       - Inside Load (not hooked)
  *   - 0x719F17 (Hooks.BugFixes.cpp)       - End_Piggyback shared across locos
- *   - 0x7193F6 etc. (Hooks.Teleport.cpp)  - Inside Process (not hooked)
+ *
+ * Dead code (inside VTABLE-replaced Process, kept as safety net):
+ *   - 0x7193F6, 0x719742, 0x719827, 0x71997B, 0x7197DF, 0x719BD9
+ *     (Hooks.Teleport.cpp) - Modify original Process code, unreachable via VTABLE
+ *   - 0x7196BB (Hooks.Transport.cpp) - Inside Process, unreachable via VTABLE
  */
 class FakeTeleportLocomotionClass
 {
@@ -166,8 +175,9 @@ public:
 		int coordX, int coordY, int coordZ);
 
 	// 0x7192F0 - ILocomotion vtable +0x40, __stdcall
-	static bool __fastcall Hook_Process(
-		TeleportLocomotionClass* pThis, void* edx_unused);
+	// ACTIVE: Hooked via DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5040, ...)
+	// Receives ILocomotion* (COM this) on stack; static_cast adjusts to base class.
+	static bool __stdcall Hook_Process(ILocomotion* pLoco);
 
 	// 0x718230 - ILocomotion vtable +0x48, __stdcall
 	static void __fastcall Hook_StopMoving(
