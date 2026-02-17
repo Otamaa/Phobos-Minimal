@@ -11,7 +11,7 @@ MessageButtonClass::MessageButtonClass(int id, int x, int y, int width, int heig
 	this->Flags |= GadgetFlag::LeftHeld;
 }
 
-bool MessageButtonClass::Action(GadgetFlag flags, DWORD* pKey, KeyModifier modifier)
+bool MessageButtonClass::Action(GadgetFlag flags, WWKey* pKey, KeyModifier modifier)
 {
 	if (!this->Clicking)
 	{

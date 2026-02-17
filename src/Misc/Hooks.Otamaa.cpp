@@ -2074,7 +2074,7 @@ ASMJIT_PATCH(0x55B4E1, LogicClass_Update_Veinhole, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x711F60, TechnoTypeClass_GetSoylent_Disable, 0x8)
+ASMJIT_PATCH(0x711F60, TechnoTypeClass_RefundAmount_Disable, 0x8)
 {
 	GET(TechnoTypeClass*, pThis, ECX);
 

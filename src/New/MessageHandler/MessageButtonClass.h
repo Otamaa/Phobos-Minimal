@@ -13,7 +13,7 @@ public:
 
 	~MessageButtonClass() = default;
 
-	virtual bool Action(GadgetFlag flags, DWORD* pKey, KeyModifier modifier) override;
+	virtual bool Action(GadgetFlag flags, WWKey* pKey, KeyModifier modifier) override;
 
 	void DrawShape() const;
 public:

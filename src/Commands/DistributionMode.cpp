@@ -116,7 +116,7 @@ bool DistributionModeHoldDownCommandClass::ExtraTriggerCondition(WWKey eInput) c
 
 void DistributionModeHoldDownCommandClass::Execute(WWKey eInput) const
 {
-	if (eInput & WWKey::Release)
+	if (eInput & WWKey::WWKEY_RLS_BIT)
 		DistributionModeHoldDownCommandClass::DistributionModeOff((int)CommandBarTypes::DistributionMode);
 	else
 		DistributionModeHoldDownCommandClass::DistributionModeOn((int)CommandBarTypes::DistributionMode);

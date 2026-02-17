@@ -826,7 +826,6 @@ private:
 		debugProcess(this->DelayedFireTimer, "DelayedFireTimer");
 		debugProcess(this->DelayedFireWeaponIndex, "DelayedFireWeaponIndex");
 		debugProcess(this->CurrentDelayedFireAnim, "CurrentDelayedFireAnim");
-		debugProcess(this->CustomFiringOffset, "CustomFiringOffset");
 		debugProcess(this->LastWeaponType, "LastWeaponType");
 		debugProcess(this->AirstrikeTargetingMe, "AirstrikeTargetingMe");
 		debugProcess(this->RandomEMPTarget, "RandomEMPTarget");
@@ -903,7 +902,6 @@ public:
 	// ============================================================
 	// 8-byte aligned: std::optional
 	// ============================================================
-	std::optional<CoordStruct> CustomFiringOffset;
 
 	// ============================================================
 	// Large aggregates: Vectors (typically 24 bytes on x64)
@@ -1081,9 +1079,6 @@ public:
 		// OptionalStruct
 		CurrentLaserWeaponIndex(),
 		AdditionalRange(),
-
-		// std::optional
-		CustomFiringOffset(),
 
 		// Vectors
 		LaserTrails(),

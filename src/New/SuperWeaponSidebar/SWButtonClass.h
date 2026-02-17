@@ -21,7 +21,7 @@ public:
 	virtual bool Draw(bool forced) override;
 	virtual void OnMouseEnter() override;
 	virtual void OnMouseLeave() override;
-	virtual bool Action(GadgetFlag fags, DWORD* pKey, KeyModifier modifier) override;
+	virtual bool Action(GadgetFlag fags, WWKey* pKey, KeyModifier modifier) override;
 
 	COMPILETIMEEVAL void SetColumn(int column)
 	{

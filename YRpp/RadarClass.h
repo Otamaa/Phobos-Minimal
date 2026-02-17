@@ -23,6 +23,8 @@ public:
 	static COMPILETIMEEVAL reference<int, 0x880C78u> const Radar_dword1490_x{};
 	static COMPILETIMEEVAL reference<int, 0x880C7Cu> const Radar_dword1494_y{};
 	static COMPILETIMEEVAL reference<int, 0x880C80u> const Radar_dword1498_z{};
+	static COMPILETIMEEVAL reference<int, 0x880C94u> const Radar_controltype {};
+	static COMPILETIMEEVAL reference<int, 0x880C98u> const Radar_control {};
 	static COMPILETIMEEVAL reference<RectangleStruct, 0x880C84u> const Radar_Rect149C{};
 
 	static COMPILETIMEEVAL reference <Surface*, 0x880A04u> const RadarEvenSurface{};

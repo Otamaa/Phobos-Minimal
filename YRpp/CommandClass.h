@@ -27,7 +27,7 @@ public:
 																// return eInput & WWKey::Shift;
 
 	virtual bool ExtraTriggerCondition(WWKey eInput) const // Only with this key set to true will the game call the Execute
-		{ return !(eInput & WWKey::Release); }
+		{ return !(eInput & WWKey::WWKEY_RLS_BIT); }
 
 	virtual bool CheckLoop55E020(WWKey eInput) const // Stupid loop, I don't know what's it used for
 		{ return false; }

@@ -19,10 +19,7 @@ ASMJIT_PATCH(0x6F3AEB, TechnoClass_GetFLH, 0x6)
 
 	if (weaponIndex >= 0)
 	{
-		auto[found , _flh] =
-		!pExt->CustomFiringOffset.has_value() ?
-	 	TechnoExtData::GetBurstFLH(pThis, weaponIndex) :
-	 	std::make_pair(true , pExt->CustomFiringOffset.value());
+		auto[found , _flh] = TechnoExtData::GetBurstFLH(pThis, weaponIndex);
 
 		if (!found) {
 

@@ -64,7 +64,7 @@ void ToggleSWButtonClass::OnMouseLeave()
 	MouseClass::Instance->UpdateCursor(MouseCursorType::Default, false);
 }
 
-bool ToggleSWButtonClass::Action(GadgetFlag flags, DWORD* pKey, KeyModifier modifier)
+bool ToggleSWButtonClass::Action(GadgetFlag flags, WWKey* pKey, KeyModifier modifier)
 {
 	auto& columns = SWSidebarClass::Global()->Columns;
 

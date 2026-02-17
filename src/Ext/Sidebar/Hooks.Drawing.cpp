@@ -40,7 +40,7 @@ class FakeSelectClass : public SelectClass
 public:
 
 	int __Action(GadgetFlag flags,
-		DWORD* key,
+		WWKey* key,
 		KeyModifier a4);
 };
 
@@ -67,7 +67,7 @@ public:
     return 1
 
 int FakeSelectClass::__Action(GadgetFlag flags,
-	DWORD* key,
+	WWKey* key,
 	KeyModifier a4)
 {
 
@@ -89,7 +89,7 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 	}
 
 	if (buildableIdx < (int)cameos.size() && buildableIdx < strip->BuildableCount) {
-	
+
 		if (pBuild->ItemIndex >= 0) {
 			auto pCurrentFactory = pBuild->CurrentFactory;
 
@@ -100,13 +100,13 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 
 					if (flags & GadgetFlag::RightPress) {
 						if (pCurrentFactory) {
-					
+
 							if (Unsorted::PendingObject) {
 								const AbstractType abs = Unsorted::PendingObject->WhatAmI();
 
-								if (abs == AbstractType::Building 
-									|| abs == AbstractType::Aircraft 
-									|| abs == AbstractType::Unit 
+								if (abs == AbstractType::Building
+									|| abs == AbstractType::Aircraft
+									|| abs == AbstractType::Unit
 									|| abs == AbstractType::Infantry) {
 									Unsorted::PendingObject = nullptr;
 									Unsorted::CurrentBuildingType = nullptr;
@@ -227,7 +227,7 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 									if (!unable_to_comply && !ShouldDisableCameo) {
 										pBuild->Status = BuildState::Building;
 										strip->NeedsRedraw = true;
-										Techno_Type = TechnoTypeClass::FetchTechnoType(pBuild->ItemType, pBuild->ItemIndex);								
+										Techno_Type = TechnoTypeClass::FetchTechnoType(pBuild->ItemType, pBuild->ItemIndex);
 
 										if (Techno_Type) {
 											const double divisor = 53.822631;
@@ -239,7 +239,7 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 											if (PlayerPtr->Available_Money() >= corrected) {
 												if (Techno_Type->FindFactory(true, false, false, PlayerPtr)) {
 													int time = Techno_Type->GetBuildSpeed();
-													
+
 													bool IsAWall = false;
 
 													if (pBuild->ItemType == AbstractType::BuildingType) {
@@ -375,14 +375,14 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 							if(auto Object = pCurrentFactory->GetFactoryObject()) {
 								VocClass::PlayGlobal(RulesClass::Instance->GUIBuildSound, Panning::Center, 1.0, 0);
 								const auto nBuffer = HouseExtData::HasFactory(
-													Object->GetOwningHouse(), 
+													Object->GetOwningHouse(),
 									GET_TECHNOTYPE(Object),
 									false,
-									true, 
+									true,
 									false,
 									true
 								);
-								
+
 								if (nBuffer.first == NewFactoryState::Unpowered) {
 									this->ControlClass::Action(flags, key, KeyModifier::None);
 									return 1;
@@ -416,12 +416,12 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 									EventClass::AddEvent(&Event);
 
 									VoxClass::Play("EVA_UnableToComply");
-								} 
+								}
 							} else {
 								if (pCurrentFactory->SpecialItem != -1) {
 									Unsorted::CurrentSWType = 1;
 								}
-							} 
+							}
 						}
 					}
 
@@ -456,7 +456,7 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 
 #ifndef _backport
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F3048, FakeSelectClass::__Action)
-#else 
+#else
 ASMJIT_PATCH(0x6AAD2F, SelectClass_ProcessInput_LoadCameo1, 7)
 {
 	GET(int, CameoIndex, ESI);
@@ -581,7 +581,7 @@ ASMJIT_PATCH(0x6AB92F, SelectClass_ProcessInput_FixOffset9, 7)
 	R->EBX<byte*>(R->EBX<byte*>() + 0x6C);
 	return 0x6AB936;
 }
-#endif 
+#endif
 
 static COMPILETIMEEVAL reference<bool, 0xB0B518> const SidebarBlitRequested_FullRedraw {};
 static COMPILETIMEEVAL reference<int, 0xB0B4F8> const Sidebar_B0B4F8 {};
@@ -846,7 +846,7 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 					// HOOK: 0x6A9747 - StripClass_Draw_GetCameo (6 bytes)
 					// Replaces buildable lookup with MouseClassExt::TabCameos access
 					// Original: lea edx, [ecx+ecx*2] / lea eax, [ecx+edx*4] / mov ecx, [edi+eax*4+5Ch]
-					// Hook: 
+					// Hook:
 					//   auto& Item = MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex][CameoIndex];
 					//   Returns 0x6A9936 for SuperWeapon (AbstractType::Special)
 					//   Returns 0x6A9761 for Techno
@@ -946,9 +946,9 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 											shouldDisable = true;
 									}
 								}
-							} 
-							
-							{// 006A978C-006A97B2: Check if cameo should be disabled			
+							}
+
+							{// 006A978C-006A97B2: Check if cameo should be disabled
 								if (!pTechnoType->FindFactory(true, true, true, pPlayer)) {
 									shouldDisable = true;
 								} else {

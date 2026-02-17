@@ -370,6 +370,8 @@ static COMPILETIMEEVAL FORCEDINLINE void FillSecrets(DynamicVectorClass<T>& secr
 	}
 }
 
+#include <TerrainTypeClass.h>
+
 ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 {
 	// create an array of crew for faster lookup
@@ -911,10 +913,21 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	for (auto pAnim : *AnimTypeClass::Array) {
 
 		if (!pAnim->ID || !strlen(pAnim->ID))
-			Debug::FatalError("Empty name Anim [%x]! " , pAnim);
+			Debug::FatalError("Empty name Anim [%x]!" , pAnim);
 
 		if (!pAnim->GetImage()) {
 			Debug::LogInfo("Anim[{}] Has no proper Image!", pAnim->ID);
+			Debug::RegisterParserError();
+		}
+	}
+
+	for (auto pTerrain : *TerrainTypeClass::Array) {
+
+		if (!pTerrain->ID || !strlen(pTerrain->ID))
+			Debug::FatalError("Empty name Terrain [%x]!", pTerrain);
+
+		if (!pTerrain->GetImage()) {
+			Debug::LogInfo("Terrain [{} - {}] has no Image!", pTerrain->ID, (void*)pTerrain);
 			Debug::RegisterParserError();
 		}
 	}
@@ -962,7 +975,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	INI_EX exINI(pINI);
 
-	#pragma region General 
+	#pragma region General
 
 	exINI.Read3Bool(GameStrings::General, "CampaignAllowHarvesterScanUnderShroud", this->CampaignAllowHarvesterScanUnderShroud);
 	this->AttackMove_IgnoreWeaponCheck.Read(exINI, GameStrings::General, "AttackMove.IgnoreWeaponCheck");
@@ -1212,7 +1225,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	double AirShadowBaseScale = 0.0;
 	if (detail::read<double>(AirShadowBaseScale, exINI, GameStrings::AudioVisual, "AirShadowBaseScale") && AirShadowBaseScale > 0)
 		this->AirShadowBaseScale_log = -std::log(std::min(AirShadowBaseScale, 1.0));
-	
+
 	this->HeightShadowScaling.Read(exINI, GameStrings::AudioVisual, "HeightShadowScaling");
 
 	if (AirShadowBaseScale > 0.98 && this->HeightShadowScaling.Get())
@@ -1650,7 +1663,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->Promote_Elite_Anim)
 		.Process(this->Promote_Vet_PlaySpotlight)
 		.Process(this->Promote_Elite_PlaySpotlight)
-	
+
 		.Process(this->DefaultGlobalParticleInstance)
 
 		.Process(this->Shield_ConditionGreen)

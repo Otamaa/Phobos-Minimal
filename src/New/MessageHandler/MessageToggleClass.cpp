@@ -29,7 +29,7 @@ void MessageToggleClass::OnMouseLeave()
 	MessageColumnClass::Instance.MouseLeave(true);
 }
 
-bool MessageToggleClass::Action(GadgetFlag flags, DWORD* pKey, KeyModifier modifier)
+bool MessageToggleClass::Action(GadgetFlag flags, WWKey* pKey, KeyModifier modifier)
 {
 	if (!this->Clicking)
 	{

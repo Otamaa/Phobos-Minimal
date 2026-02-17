@@ -72,7 +72,7 @@ void SWColumnClass::OnMouseLeave()
 	MouseClass::Instance->UpdateCursor(MouseCursorType::Default, false);
 }
 
-bool SWColumnClass::Clicked(DWORD* pKey, GadgetFlag flags, int x, int y, KeyModifier modifier)
+bool SWColumnClass::Clicked(WWKey* pKey, GadgetFlag flags, int x, int y, KeyModifier modifier)
 {
 	return false;
 }

@@ -75,8 +75,8 @@ public:
 		DWORD dwUnk13, DWORD dwUnk14, DWORD dwUnk15, DWORD dwUnk16) RX;
 
 	virtual void Draw_A_VXL(
-		VoxelStruct* VXL, int HVAFrameIndex, int Flags, IndexClass<int, int>* Cache, RectangleStruct* Rectangle,
-		Point2D* CenterPoint, Matrix3D* Matrix, DWORD dwUnk8, DWORD DrawFlags, DWORD dwUnk10) RX;
+		VoxelStruct* VXL, int HVAFrameIndex, int Flags, IndexClass<VoxelIndexKey, VoxelCacheStruct*>* Cache, RectangleStruct* Rectangle,
+		Point2D* CenterPoint, Matrix3D* Matrix, int Brightness, BlitterFlags DrawFlags, DWORD dwUnk10) RX;
 
 	virtual void GoBerzerk() RX;
 	virtual void Panic() RX;

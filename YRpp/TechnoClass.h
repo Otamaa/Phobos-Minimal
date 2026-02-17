@@ -534,18 +534,11 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 		this->ArchiveTarget = pFocus;
 	}
 
-	void DrawVoxelShadow(VoxelStruct* vxl,
-			int shadow_index,
-			VoxelIndexKey vxl_index_key,
-			IndexClass<ShadowVoxelIndexKey, VoxelCacheStruct*>* shadow_cache,
-			RectangleStruct* bound,
-			Point2D* a3,
-			Matrix3D* matrix,
-			bool again,
-			Surface* surface,
-			Point2D shadow_point
-		)
-		{ JMP_THIS(0x706BD0); }
+	void DrawVoxelShadow(VoxelStruct* vxl, int shadow_index, VoxelIndexKey vxl_index_key, IndexClass<ShadowVoxelIndexKey, VoxelCacheStruct*>* shadow_cache,
+			RectangleStruct* bound, Point2D* a3, Matrix3D* matrix, bool again, Surface* surface, Point2D shadow_point)
+	{
+		JMP_THIS(0x706BD0);
+	}
 
 	//void DrawObject(SHPStruct* pSHP, int nFrame, Point2D* pLocation, RectangleStruct* pBounds,
 	//	int, int, int nZAdjust, ZGradient eZGradientDescIdx, int, int nBrightness, int TintColor,

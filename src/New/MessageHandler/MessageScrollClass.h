@@ -12,7 +12,7 @@ public:
 	virtual bool Draw(bool forced) override;
 	virtual void OnMouseEnter() override;
 	virtual void OnMouseLeave() override;
-	virtual bool Clicked(DWORD* pKey, GadgetFlag flags, int x, int y, KeyModifier modifier) override;
+	virtual bool Clicked(WWKey* pKey, GadgetFlag flags, int x, int y, KeyModifier modifier) override;
 
 	void DrawShape() const;
 

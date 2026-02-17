@@ -2143,29 +2143,23 @@ void TechnoExtData::ResetDelayedFireTimer()
 	}
 }
 
-void TechnoExtData::CreateDelayedFireAnim(AnimTypeClass* pAnimType, int weaponIndex, bool attach, bool center, bool removeOnNoDelay, bool useOffsetOverride, CoordStruct offsetOverride)
+void TechnoExtData::CreateDelayedFireAnim(AnimTypeClass* pAnimType, int weaponIndex, bool attach, bool center, bool removeOnNoDelay, bool onTurret, CoordStruct firingCoords)
 {
 	if (pAnimType)
 	{
 		auto coords = This()->GetCenterCoords();
 
-		if (useOffsetOverride)
-			this->CustomFiringOffset = offsetOverride;
-
 		if (!center)
-			This()->GetFLH(&coords, weaponIndex, coords);
-
-		if (useOffsetOverride)
-			this->CustomFiringOffset.reset();
+			coords = TechnoExtData::GetFLHAbsoluteCoords(This(), firingCoords, onTurret);
 
 		auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
 
 		if (attach)
 			pAnim->SetOwnerObject(This());
 
+		AnimExtData::SetAnimOwnerHouseKind(pAnim, This()->Owner,nullptr,This() , false, false);
+
 		auto const pAnimExt = AnimExtContainer::Instance.Find(pAnim);
-		pAnim->Owner = This()->Owner;
-		pAnimExt->Invoker = This();
 
 		if (attach)
 		{

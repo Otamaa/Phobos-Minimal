@@ -1282,6 +1282,11 @@ ASMJIT_PATCH(0x736F61, UnitClass_UpdateFiring_FireUp, 0x6)
 	GET(UnitClass*, pThis, ESI);
 	GET(int, weaponIndex, EDI);
 
+	enum {
+		SkipFiring = 0x737063,
+		ContineFiring = 0x0
+	};
+
 	const auto pType = pThis->Type;
 
 	if (pType->Turret || pType->Voxel || pThis->InLimbo)
@@ -1298,7 +1303,7 @@ ASMJIT_PATCH(0x736F61, UnitClass_UpdateFiring_FireUp, 0x6)
 		if (pThis->CurrentFiringFrame != -1)
 			pThis->CurrentFiringFrame = -1;
 
-		return 0x737063;
+		return SkipFiring;
 	}
 
 	const int firingFrames = pType->FiringFrames;
@@ -1344,20 +1349,20 @@ ASMJIT_PATCH(0x736F61, UnitClass_UpdateFiring_FireUp, 0x6)
 		const int firingFrame = fireUp + cumulativeDelay;
 
 		if (TechnoExtData::HandleDelayedFireWithPauseSequence(pThis, pWeapon, weaponIndex, frame, firingFrame))
-			return 0x736F73;
+			return SkipFiring;
 
 		if (frame != firingFrame) {
-			return 0x736F73;
+			return SkipFiring;
 		} else if (allowBurst) {
 			// If projected frame for firing next shot goes beyond the sequence frame count, cease firing after this shot and start rearm timer.
 			if (fireUp + projectedDelay > frames)
 				pExt->ForceFullRearmDelay = true;
 		}
 	} else if (TechnoExtData::HandleDelayedFireWithPauseSequence(pThis, pWeapon, weaponIndex, 0, -1)) {
-		return 0x736F73;
+		return SkipFiring;
 	}
 
-	return 0;
+	return ContineFiring;
 }
 
 ASMJIT_PATCH(0x70DE40, TechnoClass_GattlingValueRateDown_GattlingRateDownDelay, 0xA)

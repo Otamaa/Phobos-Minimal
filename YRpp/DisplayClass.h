@@ -51,9 +51,9 @@ public:
 
 	//Decides which mouse pointer to set and then does it.
 	//Mouse is over cell pMapCoords which is bShrouded and holds pObject.
-	virtual bool ConvertAction(const CellStruct& cell, bool bShrouded, ObjectClass* pObject, Action action, bool dwUnk) JMP_THIS(0x4AAE90);
+	virtual bool ConvertAction(const CellStruct& cell, bool bShrouded, ObjectClass* pObject, Action action, bool dwUnk) JMP_THIS(0x4AAE90); //Mouse_Left_Up
 	virtual void LeftMouseButtonDown(const Point2D& point) JMP_THIS(0x4AC380);
-	virtual void LeftMouseButtonUp(const CoordStruct& coords, const CellStruct& cell, ObjectClass* pObject, Action action, DWORD dwUnk2) JMP_THIS(0x4AB9B0);
+	virtual void LeftMouseButtonUp(const CoordStruct& coords, const CellStruct& cell, ObjectClass* pObject, Action action, DWORD dwUnk2) JMP_THIS(0x4AB9B0); //Mouse_Left_Release
 	virtual void RightMouseButtonUp(const Point2D& point) JMP_THIS(0x4AAD30);
 
 	//Non-virtual
@@ -119,6 +119,9 @@ public:
 
 	static TechnoClass* __fastcall SelectLeadingTechno(CellStruct* cellBuffer, ObjectClass* pObj)
 		{ JMP_FAST(0x5353D0); }
+
+	static int __fastcall PlanningManager_639DA0()
+		{ JMP_FAST(0x639DA0); }
 
 protected:
 	//Constructor

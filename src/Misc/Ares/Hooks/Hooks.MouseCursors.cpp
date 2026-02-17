@@ -21,18 +21,6 @@
 
 #include "Hooks.MouseCursors.h"
 
-ASMJIT_PATCH(0x653CA6, RadarClass_GetMouseAction_AllowMinimap, 5)
-{
-	GET(int, nAction, EAX);
-	enum { AllowMini = 0x653CC0  , DisAllowMini = 0x653CBA , ReConsiderAllowMini = 0x653CAB };
-	// + 1 because it get negative one and leaed
-	if (const MouseCursor* pCursor = MouseClassExt::GetCursorDataFromRawAction(Action(nAction + 1))) {
-		return pCursor->SmallFrame >= 0 ? AllowMini : DisAllowMini;
-	}
-
-	return nAction > (int)Action::PsychicReveal ? DisAllowMini : ReConsiderAllowMini;
-}
-
 void MouseHooker::Exec()
 {
 	//Patch_Jump(0x5BDDC0, &MouseClassExt::_Update);

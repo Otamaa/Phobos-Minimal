@@ -157,7 +157,7 @@ public:
 			IndexClass<VoxelIndexKey, VoxelCacheStruct*> Main;
 			IndexClass<VoxelIndexKey, VoxelCacheStruct*> TurretWeapon;
 			IndexClass<ShadowVoxelIndexKey, VoxelCacheStruct*> Shadow;
-			IndexClass<ShadowVoxelIndexKey, VoxelCacheStruct*> TurretBarrel;
+			IndexClass<VoxelIndexKey, VoxelCacheStruct*> TurretBarrel;
 		} VoxelCaches;
 
 		IndexClass<int, int> VoxelCaches_[4];

@@ -1040,7 +1040,7 @@ public:
 	Nullable<bool> AllowAirstrike;
 
 	Nullable<bool> ForbidParallelAIQueues;
-	
+
 	Valueable<bool> IgnoreForBaseCenter;
 
 	Nullable<AnimTypeClass*> Wake;
@@ -1301,8 +1301,8 @@ public:
 		HealthBar_Permanent(false),
 		HealthBar_Permanent_PipScale(false),
 		UIDescription(),
-		LowSelectionPriority(false), 
-		LowDeployPriority(false), 
+		LowSelectionPriority(false),
+		LowDeployPriority(false),
 		GroupAs(),
 		RadarJamRadius(0),
 		RadarJamHouses(AffectedHouse::Enemies),
@@ -3244,6 +3244,8 @@ public:
 	static WeaponStruct* __fastcall __GetWeapon(TechnoTypeClass* pThis , discard_t , int which);
 	static WeaponStruct* __fastcall __GetEliteWeapon(TechnoTypeClass* pThis , discard_t ,int which);
 	static int  __fastcall __GetWeaponTurretIndex(TechnoTypeClass* pThis , discard_t ,int which);
+	static SHPStruct* __fastcall __GetCameo(TechnoTypeClass* pThis);
+
 };
 
 class TechnoTypeExtContainer final //: public Container<TechnoTypeExtData>

@@ -32,7 +32,7 @@ void MessageScrollClass::OnMouseLeave()
 	MessageColumnClass::Instance.MouseLeave();
 }
 
-bool MessageScrollClass::Clicked(DWORD* pKey, GadgetFlag flags, int x, int y, KeyModifier modifier)
+bool MessageScrollClass::Clicked(WWKey* pKey, GadgetFlag flags, int x, int y, KeyModifier modifier)
 {
 	if (!MessageColumnClass::IsStickyButton(this))
 	{

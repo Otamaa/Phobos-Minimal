@@ -17,6 +17,9 @@
 
 #include <TacticalClass.h>
 
+#include <Locomotor/JumpjetLocomotionClass.h>
+#include <Locomotor/Cast.h>
+
 ASMJIT_PATCH(0x71532B, TechnoTypeClass_LoadFromINI_BarrelAnimData_Fix, 0x8)
 {
 	GET(TechnoTypeClass*, pThis, EBP);
@@ -123,6 +126,8 @@ ASMJIT_PATCH(0x73B780, UnitClass_DrawVXL_TurretMultiOffset, 0x6) //0
  	return 0x73BA68;
  }
 #else
+
+#ifdef Rewrite
 ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 {
 	enum { SkipGameCode = 0x73BEA4 };
@@ -167,7 +172,17 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 	{
 		Matrix3D mtxTurret = mtx;
 		pDrawTypeExt->ApplyTurretOffset(&mtxTurret, Game::Pixel_Per_Lepton());
-		mtxTurret.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>()));
+
+		FacingClass* pPrimaryFacing = &pThis->PrimaryFacing;
+		// Align with the jj Draw_Matrix calc changing.
+		if (auto pJJLoco = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor)) {
+			if (!pThis->IsAttackedByLocomotor)
+				pPrimaryFacing = &pJJLoco->Facing;
+		}
+
+		double primaryRad = pPrimaryFacing->Current().GetRadian<32>();
+
+		mtxTurret.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - primaryRad));
 
 		if (pThis->TurretRecoil.State != RecoilData::RecoilState::Inactive)
 			mtxTurret.TranslateX(-pThis->TurretRecoil.TravelSoFar);
@@ -239,6 +254,183 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 
 	return SkipGameCode;
 }
+#endif
+
+ASMJIT_PATCH(0x73C7AC, UnitClass_DrawAsSHP_DrawTurret_TintFix, 0x6)
+{
+	enum { SkipDrawCode = 0x73CE00 };
+
+	GET(UnitClass*, pThis, EBP);
+
+	const auto pThisType = pThis->Type;
+	const VoxelStruct barrelVoxel = pThisType->BarrelVoxel;
+
+	if (barrelVoxel.VXL && barrelVoxel.HVA)
+		return 0;
+
+	GET(UnitTypeClass*, pType, ECX);
+	GET(SHPStruct*, pShape, EDI);
+	GET(const int, bodyFrameIdx, EBX);
+	REF_STACK(Point2D, location, STACK_OFFSET(0x128, 0x4));
+	REF_STACK(RectangleStruct, bounds, STACK_OFFSET(0x128, 0xC));
+	GET_STACK(const int, extraLight, STACK_OFFSET(0x128, 0x1C));
+
+	const bool tooBigToFitUnderBridge = pType->TooBigToFitUnderBridge
+		&& pThis->sub_703B10() && !pThis->sub_703E70();
+	const int zAdjust = tooBigToFitUnderBridge ? -16 : 0;
+	const ZGradient zGradient = tooBigToFitUnderBridge ? ZGradient::Ground : pThis->GetZGradient();
+
+	pThis->Draw_A_SHP(pShape, bodyFrameIdx, &location, &bounds, 0, 256, zAdjust, zGradient, 0, extraLight, 0, 0, 0, 0, 0, 0);
+
+	const auto secondaryDir = pThis->SecondaryFacing.Current();
+	const int frameIdx = secondaryDir.GetFacing<32>(4) + pType->WalkFrames * pType->Facings;
+
+	const auto primaryDir = pThis->PrimaryFacing.Current();
+	const double bodyRad = primaryDir.GetRadian<32>();
+	Matrix3D mtx = Matrix3D::GetIdentity();
+	mtx.RotateZ(static_cast<float>(bodyRad));
+	TechnoTypeExtContainer::Instance.Find(pType)->ApplyTurretOffset(&mtx,Game::Pixel_Per_Lepton());
+	const double turretRad = pType->Turret ? secondaryDir.GetRadian<32>() : bodyRad;
+	mtx.RotateZ(static_cast<float>(turretRad - bodyRad));
+
+	const auto res = mtx.GetTranslation();
+	const auto offset = CoordStruct { static_cast<int>(res.X), static_cast<int>(-res.Y), static_cast<int>(res.Z) };
+	Point2D drawPoint = location + TacticalClass::Instance->CoordsToScreen(offset);
+
+	const bool originalDrawShadow = std::exchange(Game::bDrawShadow(), false);
+	pThis->Draw_A_SHP(pShape, frameIdx, &drawPoint, &bounds, 0, 256, static_cast<DWORD>(-32), zGradient, 0, extraLight, 0, 0, 0, 0, 0, 0);
+	Game::bDrawShadow = originalDrawShadow;
+	return SkipDrawCode;
+}
+
+ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
+{
+	enum { SkipGameCode = 0x73BEA4 };
+
+	GET(UnitClass* const, pThis, EBP);
+	GET(TechnoTypeClass* const, pDrawType, EBX);
+	GET_STACK(const bool, haveTurretCache, STACK_OFFSET(0x1C4, -0x1B3));
+	GET_STACK(const bool, haveBar, STACK_OFFSET(0x1C4, -0x1B2));
+	GET(const bool, haveBarrelCache, EAX);
+	REF_STACK(Matrix3D, drawMatrix, STACK_OFFSET(0x1C4, -0x130));
+	GET_STACK(const int, flags, STACK_OFFSET(0x1C4, -0x198));
+	GET_STACK(const int, brightness, STACK_OFFSET(0x1C4, 0x1C));
+	GET_STACK(const int, hvaFrameIdx, STACK_OFFSET(0x1C4, -0x18C));
+	GET_STACK(const int, currentTurretNumber, STACK_OFFSET(0x1C4, -0x1A8));
+	LEA_STACK(Point2D* const, center, STACK_OFFSET(0x1C4, -0x194));
+	LEA_STACK(RectangleStruct* const, rect, STACK_OFFSET(0x1C4, -0x164));
+
+	// base matrix
+	const auto mtx = Game::VoxelDefaultMatrix() * drawMatrix;
+
+	const auto pDrawTypeExt = TechnoTypeExtContainer::Instance.Find(pDrawType);
+	const bool notChargeTurret = pThis->Type->TurretCount <= 0 || pThis->Type->IsGattling;
+
+	auto getTurretVoxel = [pDrawType, notChargeTurret, currentTurretNumber]() -> VoxelStruct*
+		{
+			if (notChargeTurret)
+				return &pDrawType->TurretVoxel;
+
+			return TechnoTypeExtData::GetTurretsVoxel(pDrawType, currentTurretNumber);
+		};
+	const auto pTurretVoxel = getTurretVoxel();
+
+	// When in recoiling or have no cache, need to recalculate drawing matrix
+	const bool inRecoil = pDrawType->TurretRecoil && (pThis->TurretRecoil.State != RecoilData::RecoilState::Inactive || pThis->BarrelRecoil.State != RecoilData::RecoilState::Inactive);
+	const bool shouldRedraw = !haveTurretCache || haveBar && !haveBarrelCache || inRecoil;
+
+	// When in recoiling, need to bypass cache and draw without saving
+	const auto turKey = inRecoil ? -1 : flags;
+	const auto turCache = inRecoil ? nullptr : &pDrawType->VoxelCaches.TurretWeapon;
+
+	auto getTurretMatrix = [=, &mtx]() -> Matrix3D
+		{
+			Matrix3D mtxTurret = mtx;
+			pDrawTypeExt->ApplyTurretOffset(&mtxTurret, Game::Pixel_Per_Lepton());
+
+			FacingClass* pPrimaryFacing = &pThis->PrimaryFacing;
+			// Align with the jj Draw_Matrix calc changing.
+			if (auto pJJLoco = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor))
+			{
+				if (!pThis->IsAttackedByLocomotor)
+					pPrimaryFacing = &pJJLoco->Facing;
+			}
+
+			double primaryRad = pPrimaryFacing->Current().GetRadian<32>();
+
+			mtxTurret.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - primaryRad));
+
+			if (pThis->TurretRecoil.State != RecoilData::RecoilState::Inactive)
+				mtxTurret.TranslateX(-pThis->TurretRecoil.TravelSoFar);
+
+			return mtxTurret;
+		};
+
+	auto mtxTurret = shouldRedraw ? getTurretMatrix() : mtx;
+	constexpr BlitterFlags blit = BlitterFlags::Alpha | BlitterFlags::Flat;
+
+	// Only when there is a barrel will its calculation and drawing be considered
+	if (haveBar)
+	{
+		auto drawBarrel = [=, &mtxTurret, &mtx]()
+		{
+			// When in recoiling, need to bypass cache and draw without saving
+			const auto brlKey = inRecoil ? -1 : flags;
+			const auto brlCache = inRecoil ? nullptr : &pDrawType->VoxelCaches.TurretBarrel;
+
+			auto getBarrelMatrix = [=, &mtxTurret, &mtx]() -> Matrix3D
+			{
+				auto mtxBarrel = mtxTurret;
+				mtxBarrel.Translate(-mtx.Row[0].W, -mtx.Row[1].W, -mtx.Row[2].W);
+				mtxBarrel.RotateY(static_cast<float>(-pThis->BarrelFacing.Current().GetRadian<32>()));
+
+				if (pThis->BarrelRecoil.State != RecoilData::RecoilState::Inactive)
+					mtxBarrel.TranslateX(-pThis->BarrelRecoil.TravelSoFar);
+
+				mtxBarrel.Translate(mtx.Row[0].W, mtx.Row[1].W, mtx.Row[2].W);
+				return mtxBarrel;
+			};
+			auto mtxBarrel = shouldRedraw ? getBarrelMatrix() : mtx;
+
+			auto getBarrelVoxel = [pDrawType, notChargeTurret, currentTurretNumber]() -> VoxelStruct*
+				{
+					if (notChargeTurret)
+						return &pDrawType->BarrelVoxel;
+
+					return TechnoTypeExtData::GetBarrelsVoxel(pDrawType, currentTurretNumber);
+				};
+			const auto pBarrelVoxel = getBarrelVoxel();
+
+			// draw barrel
+			pThis->Draw_A_VXL(pBarrelVoxel, hvaFrameIdx, brlKey, brlCache, rect, center, &mtxBarrel, brightness, blit, 0);
+		};
+
+		const auto turretDir = pThis->SecondaryFacing.Current().GetFacing<4>();
+
+		// The orientation of the turret can affect the layer order of the barrel and turret
+		if (turretDir != 0 && turretDir != 3)
+		{
+			// draw turret
+			pThis->Draw_A_VXL(pTurretVoxel, hvaFrameIdx, turKey, turCache, rect, center, &mtxTurret, brightness, blit, 0);
+
+			drawBarrel();
+		}
+		else
+		{
+			drawBarrel();
+
+			// draw turret
+			pThis->Draw_A_VXL(pTurretVoxel, hvaFrameIdx, turKey, turCache, rect, center, &mtxTurret, brightness, blit, 0);
+		}
+	}
+	else
+	{
+		pThis->Draw_A_VXL(pTurretVoxel, hvaFrameIdx, turKey, turCache, rect, center, &mtxTurret, brightness, blit, 0);
+	}
+
+	return SkipGameCode;
+}
+
 #endif
 
 Matrix3D NOINLINE getTurretMatrix(const Matrix3D& mtx , UnitClass* pThis , TechnoTypeExtData* pDrawTypeExt) {

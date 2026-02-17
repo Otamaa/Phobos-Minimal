@@ -32,6 +32,8 @@ class NOVTABLE GadgetClass : public LinkClass
 public:
 	static COMPILETIMEEVAL reference<GadgetClass*, 0x8B3E90> Focused {};
 	static COMPILETIMEEVAL reference<GadgetClass*, 0x8B3E88> StickyButton {};
+	static COMPILETIMEEVAL reference<bool, 0xA8ED9Du> const DragSelectAborted {};
+
 	//Destructor
 	virtual ~GadgetClass() override { JMP_THIS(0x4E1390); }
 
@@ -41,7 +43,7 @@ public:
 	virtual GadgetClass* Remove() override JMP_THIS(0x4E1480);
 
 	//GadgetClass
-	virtual DWORD Input() JMP_THIS(0x4E1640);
+	virtual WWKey Input() JMP_THIS(0x4E1640);
 	virtual void DrawAll(bool forced) JMP_THIS(0x4E1570);
 	virtual void DeleteList() JMP_THIS(0x4E14C0);
 	virtual GadgetClass* ExtractGadget(unsigned int id) JMP_THIS(0x4E1920);
@@ -50,7 +52,7 @@ public:
 	virtual void Enable() JMP_THIS(0x4E1450);
 	virtual unsigned int const GetID() JMP_THIS(0x4AEBA0); //return 0;
 	virtual void MarkRedraw() JMP_THIS(0x4E1960);
-	virtual void PeerToPeer(unsigned int flags, DWORD* pKey, GadgetClass* pSendTo) JMP_THIS(0x48E650);
+	virtual void PeerToPeer(unsigned int flags, WWKey* pKey, GadgetClass* pSendTo) JMP_THIS(0x48E650);
 	virtual void SetArchiveTarget() JMP_THIS(0x4E19A0);
 	virtual void KillFocus() JMP_THIS(0x4E19D0);
 	virtual bool IsFocused() JMP_THIS(0x4E19FA);
@@ -62,8 +64,8 @@ public:
 	virtual void OnMouseEnter() JMP_THIS(0x4E1510);
 	virtual void OnMouseLeave() JMP_THIS(0x4E1520);
 	virtual void StickyProcess(GadgetFlag flags) JMP_THIS(0x4E1970);
-	virtual bool Action(GadgetFlag flags, DWORD* pKey, KeyModifier modifier) JMP_THIS(0x4E1530);
-	virtual bool Clicked(DWORD* pKey, GadgetFlag flags, int x, int y, KeyModifier modifier) JMP_THIS(0x4E13F0);
+	virtual bool Action(GadgetFlag flags, WWKey* pKey, KeyModifier modifier) JMP_THIS(0x4E1530);
+	virtual bool Clicked(WWKey* pKey, GadgetFlag flags, int x, int y, KeyModifier modifier) JMP_THIS(0x4E13F0);
 
 	//Non virtual
 	GadgetClass& operator=(GadgetClass& another) { JMP_THIS(0x4B5780); }

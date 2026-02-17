@@ -168,7 +168,7 @@ void SWButtonClass::OnMouseLeave()
 	CCToolTip::Instance->RestoreTimeDelay();
 }
 
-bool SWButtonClass::Action(GadgetFlag flags, DWORD* pKey, KeyModifier modifier)
+bool SWButtonClass::Action(GadgetFlag flags, WWKey* pKey, KeyModifier modifier)
 {
 	if (!SWSidebarClass::IsEnabled() || ScenarioClass::Instance->UserInputLocked)
 		return false;

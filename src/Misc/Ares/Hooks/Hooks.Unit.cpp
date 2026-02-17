@@ -1877,73 +1877,73 @@ ASMJIT_PATCH(0x73C141, UnitClass_DrawVXL_Deactivated, 7)
 
 #include <TacticalClass.h>
 
-ASMJIT_PATCH(0x73C7AC, UnitClass_DrawAsSHP_DrawTurret_TintFix, 0x6)
-{
-	enum { SkipDrawCode = 0x73CE00 };
+// ASMJIT_PATCH(0x73C7AC, UnitClass_DrawAsSHP_DrawTurret_TintFix, 0x6)
+// {
+// 	enum { SkipDrawCode = 0x73CE00 };
 
-	GET(UnitClass*, pThis, EBP);
+// 	GET(UnitClass*, pThis, EBP);
 
-	const auto pThisType = pThis->Type;
+// 	const auto pThisType = pThis->Type;
 
-	if (pThisType->BarrelVoxel.VXL && pThisType->BarrelVoxel.HVA)
-		return 0;
+// 	if (pThisType->BarrelVoxel.VXL && pThisType->BarrelVoxel.HVA)
+// 		return 0;
 
-	GET(FakeUnitTypeClass*, pType, ECX);
-	GET(SHPStruct*, pShape, EDI);
-	GET(const int, bodyFrameIdx, EBX);
-	REF_STACK(Point2D, location, STACK_OFFSET(0x128, 0x4));
-	REF_STACK(RectangleStruct, bounds, STACK_OFFSET(0x128, 0xC));
-	GET_STACK(const int, extraLight, STACK_OFFSET(0x128, 0x1C));
+// 	GET(FakeUnitTypeClass*, pType, ECX);
+// 	GET(SHPStruct*, pShape, EDI);
+// 	GET(const int, bodyFrameIdx, EBX);
+// 	REF_STACK(Point2D, location, STACK_OFFSET(0x128, 0x4));
+// 	REF_STACK(RectangleStruct, bounds, STACK_OFFSET(0x128, 0xC));
+// 	GET_STACK(const int, extraLight, STACK_OFFSET(0x128, 0x1C));
 
-	const bool tooBigToFitUnderBridge = pType->TooBigToFitUnderBridge
-		&& pThis->sub_703B10() && !pThis->sub_703E70();
+// 	const bool tooBigToFitUnderBridge = pType->TooBigToFitUnderBridge
+// 		&& pThis->sub_703B10() && !pThis->sub_703E70();
 
-	const int zAdjust = tooBigToFitUnderBridge ? -16 : 0;
-	const ZGradient zGradient = tooBigToFitUnderBridge ? ZGradient::Ground : pThis->GetZGradient();
+// 	const int zAdjust = tooBigToFitUnderBridge ? -16 : 0;
+// 	const ZGradient zGradient = tooBigToFitUnderBridge ? ZGradient::Ground : pThis->GetZGradient();
 
-	pThis->Draw_A_SHP(pShape, bodyFrameIdx, &location, &bounds, 0, 256, zAdjust, zGradient, 0, extraLight, 0, 0, 0, 0, 0, 0);
+// 	pThis->Draw_A_SHP(pShape, bodyFrameIdx, &location, &bounds, 0, 256, zAdjust, zGradient, 0, extraLight, 0, 0, 0, 0, 0, 0);
 
-	const auto secondaryDir = pThis->SecondaryFacing.Current();
-	const int frameIdx = secondaryDir.GetFacing<32>(4) + pType->WalkFrames * pType->Facings;
+// 	const auto secondaryDir = pThis->SecondaryFacing.Current();
+// 	const int frameIdx = secondaryDir.GetFacing<32>(4) + pType->WalkFrames * pType->Facings;
 
-	const auto primaryDir = pThis->PrimaryFacing.Current();
-	const double bodyRad = primaryDir.GetRadian<32>();
-	Matrix3D mtx = Matrix3D::GetIdentity();
-	mtx.RotateZ(static_cast<float>(bodyRad));
+// 	const auto primaryDir = pThis->PrimaryFacing.Current();
+// 	const double bodyRad = primaryDir.GetRadian<32>();
+// 	Matrix3D mtx = Matrix3D::GetIdentity();
+// 	mtx.RotateZ(static_cast<float>(bodyRad));
 
-	TechnoTypeExtContainer::Instance.Find(pThisType)->ApplyTurretOffset(&mtx, 1.0);
+// 	TechnoTypeExtContainer::Instance.Find(pThisType)->ApplyTurretOffset(&mtx, 1.0);
 
-	const double turretRad = pType->Turret ? secondaryDir.GetRadian<32>() : bodyRad;
-	mtx.RotateZ(static_cast<float>(turretRad - bodyRad));
+// 	const double turretRad = pType->Turret ? secondaryDir.GetRadian<32>() : bodyRad;
+// 	mtx.RotateZ(static_cast<float>(turretRad - bodyRad));
 
-	const auto res = mtx.GetTranslation();
-	const auto offset = CoordStruct { static_cast<int>(res.X), static_cast<int>(-res.Y), static_cast<int>(res.Z) };
-	Point2D drawPoint = location + TacticalClass::Instance->CoordsToScreen(offset);
+// 	const auto res = mtx.GetTranslation();
+// 	const auto offset = CoordStruct { static_cast<int>(res.X), static_cast<int>(-res.Y), static_cast<int>(res.Z) };
+// 	Point2D drawPoint = location + TacticalClass::Instance->CoordsToScreen(offset);
 
-	const bool originalDrawShadow = std::exchange(Game::bDrawShadow(), false);
-	pThis->Draw_A_SHP(pShape, frameIdx, &drawPoint, &bounds, 0, 256, static_cast<DWORD>(-32), zGradient, 0, extraLight, 0, 0, 0, 0, 0, 0);
-	Game::bDrawShadow = originalDrawShadow;
-	return SkipDrawCode;
-}
+// 	const bool originalDrawShadow = std::exchange(Game::bDrawShadow(), false);
+// 	pThis->Draw_A_SHP(pShape, frameIdx, &drawPoint, &bounds, 0, 256, static_cast<DWORD>(-32), zGradient, 0, extraLight, 0, 0, 0, 0, 0, 0);
+// 	Game::bDrawShadow = originalDrawShadow;
+// 	return SkipDrawCode;
+// }
 
 
-ASMJIT_PATCH(0x747A2E, UnitTypeClass_ReadINI_TurretShape, 0x6)
-{
-	GET(FakeUnitTypeClass*, pType, EDI);
+// ASMJIT_PATCH(0x747A2E, UnitTypeClass_ReadINI_TurretShape, 0x6)
+// {
+// 	GET(FakeUnitTypeClass*, pType, EDI);
 
-	if (!pType->Voxel && pType->Turret) {
-		char nameBuffer[0x19];
-		char Buffer[260];
-		const auto pArtSection = pType->ImageFile;
+// 	if (!pType->Voxel && pType->Turret) {
+// 		char nameBuffer[0x19];
+// 		char Buffer[260];
+// 		const auto pArtSection = pType->ImageFile;
 
-		if (Phobos::Config::ArtImageSwap &&
-			CCINIClass::INI_Art->ReadString(pArtSection, "Image", 0, nameBuffer, 0x19) != 0) {
-			_snprintf_s(Buffer, sizeof(Buffer), "%sTUR.SHP", nameBuffer);
-		} else {
-			_snprintf_s(Buffer, sizeof(Buffer), "%sTUR.SHP", pArtSection);
-		}
+// 		if (Phobos::Config::ArtImageSwap &&
+// 			CCINIClass::INI_Art->ReadString(pArtSection, "Image", 0, nameBuffer, 0x19) != 0) {
+// 			_snprintf_s(Buffer, sizeof(Buffer), "%sTUR.SHP", nameBuffer);
+// 		} else {
+// 			_snprintf_s(Buffer, sizeof(Buffer), "%sTUR.SHP", pArtSection);
+// 		}
 
-	}
+// 	}
 
-	return 0;
-}
+// 	return 0;
+// }

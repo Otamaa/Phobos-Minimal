@@ -807,6 +807,9 @@ public:
 	DWORD*  Clear_SubzoneTracking()
 	{ JMP_THIS(0x581F50); }
 
+	int Click_Cell_Calc_In_Radar(Point2D* a2, CellStruct* a3, ObjectClass** a4)
+	{ JMP_THIS(0x656750); }
+
 	//find_type 0 - 3 ,range and threadposed related
 	static BuildingClass* __fastcall FindEnemyBuilding(BuildingTypeClass* type, HouseClass* house, TechnoClass* attacker, int find_type, bool OnlyTargetHouseEnemy)
 		{ JMP_FAST(0x6EEBD0); }
