@@ -1255,13 +1255,17 @@ static int GetGuardRange(TechnoClass* pThis, int control)
 	const bool isPlayer = pThis->Owner->IsControlledByHuman();
 	const auto pRulesExt = RulesExtData::Instance();
 
-	const auto& [multiplier, addend, max] = isPlayer
-		? std::make_tuple(pTypeExt->PlayerGuardModeGuardRangeMultiplier.Get(pRulesExt->PlayerGuardModeGuardRangeMultiplier)
-		, pTypeExt->PlayerGuardModeGuardRangeAddend.Get(pRulesExt->PlayerGuardModeGuardRangeAddend)
-		, pRulesExt->PlayerGuardModeGuardRangeMax.Get())
-		: std::make_tuple(pTypeExt->AIGuardModeGuardRangeMultiplier.Get(pRulesExt->AIGuardModeGuardRangeMultiplier)
-		, pTypeExt->AIGuardModeGuardRangeAddend.Get(pRulesExt->AIGuardModeGuardRangeAddend)
-		, pRulesExt->AIGuardModeGuardRangeMax.Get());
+	double multiplier, addend, max = {};
+
+	if (isPlayer) {
+		multiplier = pTypeExt->PlayerGuardModeGuardRangeMultiplier.Get(pRulesExt->PlayerGuardModeGuardRangeMultiplier);
+		addend = pTypeExt->PlayerGuardModeGuardRangeAddend.Get(pRulesExt->PlayerGuardModeGuardRangeAddend);
+		max = pTypeExt->MaxGuardRange.Get(pRulesExt->PlayerGuardModeGuardRangeMax);
+	} else {
+		multiplier = pTypeExt->AIGuardModeGuardRangeMultiplier.Get(pRulesExt->AIGuardModeGuardRangeMultiplier);
+		addend = pTypeExt->AIGuardModeGuardRangeAddend.Get(pRulesExt->AIGuardModeGuardRangeAddend);
+		max = pTypeExt->MaxGuardRange.Get(pRulesExt->AIGuardModeGuardRangeMax);
+	}
 
 	const int min = ((control == 2) ? 1792 : 0);
 	const int areaGuardRange = (static_cast<int>(range * multiplier + static_cast<int>(addend)));

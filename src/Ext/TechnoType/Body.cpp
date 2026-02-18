@@ -2048,7 +2048,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->ParadropMission.Read(exINI, pSection, "ParadropMission");
 		this->AIParadropMission.Read(exINI, pSection, "AIParadropMission");
 		this->AreaGuardRange.Read(exINI, pSection, "AreaGuardRange");
-
+		this->MaxGuardRange.Read(exINI, pSection, "MaxGuardRange");
 		this->JumpjetClimbIgnoreBuilding.Read(exINI, pSection, "JumpjetClimbIgnoreBuilding");
 
 		for (int idx = 0; idx < pThis->WeaponCount; ++idx) {

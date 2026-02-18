@@ -1287,6 +1287,7 @@ public:
 	Nullable<Mission> ParadropMission;
 	Nullable<Mission> AIParadropMission;
 	Nullable<Leptons> AreaGuardRange;
+	Nullable<Leptons> MaxGuardRange;
 
 	Nullable<bool> JumpjetClimbIgnoreBuilding;
 
@@ -2146,6 +2147,7 @@ public:
 		, ParadropMission {}
 		, AIParadropMission {}
 		, AreaGuardRange{}
+		, MaxGuardRange  {}
 		, JumpjetClimbIgnoreBuilding {}
 		, TintColorAirstrike{}
 		{
@@ -3196,6 +3198,7 @@ private:
 			.Process(this->ParadropMission)
 			.Process(this->AIParadropMission)
 			.Process(this->AreaGuardRange)
+			.Process(this->MaxGuardRange)
 			.Process(this->JumpjetClimbIgnoreBuilding)
 			.Process(this->TintColorAirstrike)
 			;
