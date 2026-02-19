@@ -144,14 +144,20 @@ ASMJIT_PATCH(0x4C7518, EventClass_Execute_StopUnitDeployFire, 0x9)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
-	auto const pUnit = cast_to<UnitClass*, false>(pThis);
-	if (pUnit
-		&& pUnit->CurrentMission == Mission::Unload
+	if (auto const pUnit = cast_to<UnitClass*, false>(pThis)) {
+
+		if(pUnit->CurrentMission == Mission::Unload
 		&& pUnit->Type->DeployFire
 		&& !pUnit->Type->IsSimpleDeployer)
-	{
-		pUnit->SetTarget(nullptr);
-		pUnit->QueueMission(Mission::Guard, true);
+		{
+			pUnit->SetTarget(nullptr);
+			pUnit->QueueMission(Mission::Guard, true);
+		}
+
+		// Explicit stop command should reset subterranean harvester state machine.
+		auto const pExt = TechnoExtContainer::Instance.Find(pUnit);
+		pExt->CurrentSubterraneanHarvStatus = SubterraneanHarvStatus::None;
+		pExt->SubterraneanHarvRallyPoint = nullptr;
 	}
 
 	// Restore overridden instructions

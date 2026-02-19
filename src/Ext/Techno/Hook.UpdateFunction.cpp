@@ -864,8 +864,6 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 		return;
 	}
 
-	pExt->DepletedAmmoActions();
-
 	// Handle various AI subsystems
 	__HandleGattlingAudio(pThis);
 	pThis->UpdateIronCurtainTimer();

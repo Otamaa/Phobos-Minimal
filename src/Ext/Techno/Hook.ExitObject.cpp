@@ -501,8 +501,8 @@ static KickOutResult HandleAircraftExit(
 		pAircraft->MarkDownSetZ(0);
 		++Unsorted::ScenarioInit;
 
-		const KickOutResult result = ionStormActive ? 
-			  HandleAircraftIonStormExit(pBuilding, pAircraft, facing) 
+		const KickOutResult result = ionStormActive ?
+			  HandleAircraftIonStormExit(pBuilding, pAircraft, facing)
 			: HandleAircraftDockedExit(pBuilding, pAircraft, facing);
 
 		--Unsorted::ScenarioInit;
@@ -697,7 +697,7 @@ static CellStruct NOINLINE CalculateIntermediateCell(
 	}
 	// else: within building bounds (including edges) - no change
 
-	// Y-axis adjustment  
+	// Y-axis adjustment
 	if (exitCell.Y >= buildingCell.Y + buildingHeight)
 	{
 		// Exit cell is past building height - move back one
@@ -960,7 +960,6 @@ static KickOutResult HandleLandVehicleFactoryExit(
 	FakeBuildingClass* pBuilding,
 	TechnoClass* pObject)
 {
-	pObject->SetArchiveTarget(pBuilding->ArchiveTarget);
 
 	// Check if we should defer to another factory
 	if (CanDeferToAnotherFactory(pBuilding, pObject))
@@ -976,6 +975,18 @@ static KickOutResult HandleLandVehicleFactoryExit(
 		--Unsorted::ScenarioInit;
 		return KickOutResult::Failed;
 	}
+
+	auto pUnit = static_cast<UnitClass*>(pObject);
+
+	if ((pUnit->Type->Harvester || pUnit->Type->Weeder) && pUnit->Type->MovementZone == MovementZone::Subterrannean)
+	{
+		auto const pExt = TechnoExtContainer::Instance.Find(pObject);
+
+		pExt->CurrentSubterraneanHarvStatus = SubterraneanHarvStatus::Created;
+		pExt->SubterraneanHarvRallyPoint = pBuilding->ArchiveTarget;
+	} else
+		pObject->SetArchiveTarget(pBuilding->ArchiveTarget);
+
 
 	pObject->Mark(MarkType::Up);
 	pObject->SetLocation(exitCoord);

@@ -34,6 +34,13 @@
 
 #include <GeneralDefinitions.h>
 
+enum class SubterraneanHarvStatus : unsigned char
+{
+	None = 0,
+	Created = 1,
+	OutOfFactory = 2
+};
+
 enum class AffectedVeterancy : unsigned char
 {
 	None = 0x0,
@@ -460,7 +467,7 @@ enum class TargetZoneScanType : BYTE {
 };
 
 enum class DamageDelayTargetFlag : BYTE {
-	Cell , AttachedObject , Invoker 
+	Cell , AttachedObject , Invoker
 };
 
 enum class FullMapDetonateResult : int

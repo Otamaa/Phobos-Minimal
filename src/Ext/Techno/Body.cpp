@@ -817,7 +817,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E8FA0, FakeTechnoClass::__GetCrew)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB364, FakeTechnoClass::__GetCrew)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4C6C, FakeTechnoClass::__GetCrew)
 
-void  FakeTechnoClass:: __Activate(TechnoClass* pThis)
+void __fastcall FakeTechnoClass:: __Activate(TechnoClass* pThis)
 {
 	const auto pType = GET_TECHNOTYPE(pThis);
 
@@ -1062,8 +1062,65 @@ void __fastcall FakeTechnoClass::__Draw_Airstrike_Flare(TechnoClass* techno, dis
 		alpha -= 25;
 	}
 }
+
 DEFINE_FUNCTION_JUMP(CALL, 0x6D48F1, FakeTechnoClass::__Draw_Airstrike_Flare);
 DEFINE_FUNCTION_JUMP(LJMP, 0x705860, FakeTechnoClass::__Draw_Airstrike_Flare);
+
+CoordStruct* __fastcall FakeTechnoClass::__Get_FLH(TechnoClass* pThis, discard_t, CoordStruct* pBuffer, int weaponIndex, CoordStruct offset)
+{
+	auto const pType = pThis->GetTechnoType();
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	//auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+	bool allowOnTurret = true;
+	bool useBurstMirroring = true;
+	CoordStruct flh = CoordStruct::Empty;
+
+	if (weaponIndex >= 0)
+	{
+		auto [found, _flh] = TechnoExtData::GetBurstFLH(pThis, weaponIndex);
+
+		if (!found)
+		{
+
+			if (pThis->WhatAmI() == InfantryClass::AbsID)
+			{
+				auto res = TechnoExtData::GetInfantryFLH(reinterpret_cast<InfantryClass*>(pThis), weaponIndex);
+				found = res.first;
+				_flh = res.second;
+			}
+
+			if (!found)
+			{
+				_flh = pThis->GetWeapon(weaponIndex)->FLH;
+			}
+
+		}
+		else
+		{
+			useBurstMirroring = false;
+		}
+
+		flh = _flh;
+	}
+	else
+	{
+		int index = -weaponIndex - 1;
+		useBurstMirroring = false;
+
+		if ((size_t)index < pTypeExt->AlternateFLHs.size())
+			flh = pTypeExt->AlternateFLHs[index];
+
+		if (!pTypeExt->AlternateFLH_OnTurret)
+			allowOnTurret = false;
+	}
+
+	if (useBurstMirroring && pThis->CurrentBurstIndex % 2 != 0)
+		flh.Y = -flh.Y;
+
+	*pBuffer = TechnoExtData::GetFLHAbsoluteCoords(pThis, flh, allowOnTurret);
+	return pBuffer;
+}
+DEFINE_FUNCTION_JUMP(LJMP, 0x6F3AD0, FakeTechnoClass::__Get_FLH);
 
 int __fastcall FakeTechnoClass::__AdjustDamage(TechnoClass* pThis, discard_t,TechnoClass* pTarget, WeaponTypeClass* pWeapon)
 {
@@ -1967,7 +2024,7 @@ std::tuple<bool, bool, bool> TechnoExtData::CanBeAffectedByFakeEngineer(TechnoCl
 
 bool TechnoExtData::CannotMove(UnitClass* pThis)
 {
-const auto pType = pThis->Type;
+	const auto pType = pThis->Type;
 
 	if (pType->Speed <= 0)
 		return true;
@@ -1987,6 +2044,8 @@ const auto pType = pThis->Type;
 
 	if (movementRestrictedTo != landType)
 		return true;
+
+	return false;
 }
 
 // Check adjacent cells from the center

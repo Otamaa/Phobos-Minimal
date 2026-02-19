@@ -2829,15 +2829,25 @@ ASMJIT_PATCH(0x51AB5C, InfantryClass_SetDestination_JJInfFix, 0x6)
 }
 
 // Fix JJ vehicles can not stop correctly when assigned a target in range.
-ASMJIT_PATCH(0x741A66, UnitClass_SetDestination_JJVehFix, 0x5)
-{
+ASMJIT_PATCH(0x741A66, UnitClass_SetDestination_JJVehFix, 0x5) {
 	GET(UnitClass* const, pThis, EBP);
 
 	auto pJumpjetLoco = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor);
 
 	if (pJumpjetLoco && pThis->IsCloseEnoughToAttack(pThis->Target))
-	{
+ {
 		pThis->StopMoving();
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x741A96, UnitClass_SetDestination_ResetFiringFrame, 0x6) {
+	GET(UnitClass* const, pThis, EBP);
+
+	if (!pThis->Target && !pThis->Type->Turret
+		&& pThis->CurrentFiringFrame != -1) {
+		pThis->CurrentFiringFrame = -1;
 	}
 
 	return 0;

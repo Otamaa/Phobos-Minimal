@@ -1304,7 +1304,7 @@ Iterator<TechnoClass*> SWTypeExtData::GetPotentialAITargets(HouseClass* pTarget,
 
 bool SWTypeExtData::Launch(SWTypeHandler* pNewType, SuperClass* pSuper, CellStruct const cell, bool const isPlayer)
 {
-	auto pSuperExt = SuperExtContainer::Instance.Find(pSuper);
+	//auto pSuperExt = SuperExtContainer::Instance.Find(pSuper);
 	const auto nResult = pNewType->Activate(pSuper, cell, isPlayer);
 
 	if (!nResult)
@@ -2067,7 +2067,7 @@ void SWTypeExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const C
 	//Debug::LogInfo("Applying additional functionalities for sw[%s]", pSW->get_ID());
 
 	// Music: play theme and start timer if configured
-	auto pSWExt = SuperExtContainer::Instance.Find(pSW);
+	//auto pSWExt = SuperExtContainer::Instance.Find(pSW);
 
 	if (!this->LimboDelivery_Types.empty())
 		ApplyLimboDelivery(pHouse);

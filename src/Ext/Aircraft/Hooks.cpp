@@ -80,7 +80,6 @@ ASMJIT_PATCH(0x41A5C7, AircraftClass_Mission_Guard_StartAreaGuard, 0x6)
 	return SkipGameCode;
 }
 
-
 ASMJIT_PATCH(0x4CE42A, FlyLocomotionClass_StateUpdate_NoLanding, 0x6) // Prevent aircraft from hovering due to cyclic enter Guard and AreaGuard missions when above buildings
 {
 	enum { SkipGameCode = 0x4CE441 };
@@ -101,6 +100,33 @@ ASMJIT_PATCH(0x4CE42A, FlyLocomotionClass_StateUpdate_NoLanding, 0x6) // Prevent
 // Skip duplicated aircraft check
 DEFINE_PATCH(0x4CF033, 0x8B, 0x06, 0xEB, 0x18); // mov eax, [esi] ; jmp short loc_4CF04F ;
 DEFINE_JUMP(LJMP, 0x4179E2, 0x417B44);
+
+// If strafing weapon target is in air, consider the cell it is on as the firing position instead of the object itself if can fire at it.
+ASMJIT_PATCH(0x4197F3, AircraftClass_GetFireLocation_Strafing, 0x5)
+{
+	GET(AircraftClass*, pThis, EDI);
+	GET(AbstractClass*, pTarget, EAX);
+
+	if (!pTarget)
+		return 0;
+
+	auto const pObject = flag_cast_to<ObjectClass*, false>(pTarget);
+
+	if (!pObject || !pObject->IsInAir())
+		return 0;
+
+	auto const pExt = AircraftExtContainer::Instance.Find(pThis);
+	auto const fireError = pThis->GetFireError(pTarget, pExt->CurrentAircraftWeaponIndex, false);
+
+	if (fireError != FireError::OK)
+		return 0;
+
+	R->EAX(MapClass::Instance->GetCellAt(pObject->GetCoords()));
+
+	return 0;
+}
+
+#ifdef MI_ATTACK_HOOKS
 
 int __fastcall AircraftClass_MI_Attack_SelectWeapon_BeforeFiring(AircraftClass* pThis, discard_t, AbstractClass* pTarget)
 {
@@ -142,31 +168,6 @@ ASMJIT_PATCH(0x4180F4, AircraftClass_MI_Attack_WeaponRange, 0x5)
 
 	R->EAX(pThis->GetWeapon(AircraftExtContainer::Instance.Find(pThis)->CurrentAircraftWeaponIndex));
 	return SkipGameCode;
-}
-
-// If strafing weapon target is in air, consider the cell it is on as the firing position instead of the object itself if can fire at it.
-ASMJIT_PATCH(0x4197F3, AircraftClass_GetFireLocation_Strafing, 0x5)
-{
-	GET(AircraftClass*, pThis, EDI);
-	GET(AbstractClass*, pTarget, EAX);
-
-	if (!pTarget)
-		return 0;
-
-	auto const pObject = flag_cast_to<ObjectClass* , false>(pTarget);
-
-	if (!pObject || !pObject->IsInAir())
-		return 0;
-
-	auto const pExt = AircraftExtContainer::Instance.Find(pThis);
-	auto const fireError = pThis->GetFireError(pTarget, pExt->CurrentAircraftWeaponIndex, false);
-
-	if (fireError != FireError::OK)
-		return 0;
-
-	R->EAX(MapClass::Instance->GetCellAt(pObject->GetCoords()));
-
-	return 0;
 }
 
 ASMJIT_PATCH(0x4197FC, AircraftClass_MI_Attack_GoodFireLoc_Range, 0x6)
@@ -219,69 +220,6 @@ ASMJIT_PATCH(0x417FF1, AircraftClass_MI_Attack_StrafeShots, 0x6)
 
 #include <Ext/BulletType/Body.h>
 
-COMPILETIMEEVAL FORCEDINLINE bool AircraftCanStrafeWithWeapon(WeaponTypeClass* pWeapon)
-{
-	return pWeapon && WeaponTypeExtContainer::Instance.Find(pWeapon)->Strafing
-		.Get(pWeapon->Projectile->ROT <= 1
-			&& !pWeapon->Projectile->Inviso)
-			&& !BulletTypeExtContainer::Instance.Find(pWeapon->Projectile)->TrajectoryType;
-}
-
-bool FireWeapon(AircraftClass* pAir, AbstractClass* pTarget)
-{
-	const auto pExt = AircraftExtContainer::Instance.Find(pAir);
-	const int weaponIndex = pExt->CurrentAircraftWeaponIndex;
-	const bool Scatter = TechnoTypeExtContainer::Instance.Find(pAir->Type)->FiringForceScatter ;
-	auto pDecideTarget = (pExt->Strafe_TargetCell ? pExt->Strafe_TargetCell : pTarget);
-
-	if (const auto pWeaponStruct = pAir->GetWeapon(weaponIndex)) {
-		if (const auto weaponType = pWeaponStruct->WeaponType) {
-			auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(weaponType);
-			bool isStrafe = pAir->Is_Strafe();
-
-			if (weaponType->Burst > 0) {
-				for (int i = 0; i < weaponType->Burst; i++) {
-					if (isStrafe && weaponType->Burst < 2 && pWeaponExt->Strafing_SimulateBurst)
-						pAir->CurrentBurstIndex = pExt->Strafe_BombsDroppedThisRound % 2 == 0;
-
-					pAir->Fire(pDecideTarget, weaponIndex);
-				}
-
-				if (isStrafe) {
-					pExt->Strafe_BombsDroppedThisRound++;
-
-					if (pWeaponExt->Strafing_UseAmmoPerShot) {
-						pAir->Ammo--;
-						pAir->loseammo_6c8 = false;
-
-						if (!pAir->Ammo) {
-							pAir->SetTarget(nullptr);
-							pAir->SetDestination(nullptr, true);
-						}
-					}
-				}
-			}
-
-		}
-	}
-
-	if (pDecideTarget) {
-		if (Scatter) {
-
-			auto coord = pDecideTarget->GetCoords();
-
-			if (auto pCell = MapClass::Instance->TryGetCellAt(coord))
-			{
-				pCell->ScatterContent(coord, true, false, false);
-			}
-		}
-
-		return true;
-	}
-
-	return false;
-}
-
 ASMJIT_PATCH(0x4186B6, AircraftClass_MI_Attack_FireAt_Strafe_BurstFix, 0x6)
 {
 	GET(AircraftClass* const, pThis, ESI);
@@ -328,22 +266,6 @@ ASMJIT_PATCH(0x418403, AircraftClass_MI_Attack_FireAtTarget_BurstFix, 0x6) //8
 #undef Hook_AircraftBurstFix
 #endif
 
-static int GetDelay(AircraftClass* pThis, bool isLastShot)
-{
-	auto const pExt = AircraftExtContainer::Instance.Find(pThis);
-	auto const pWeapon = pThis->GetWeapon(pExt->CurrentAircraftWeaponIndex)->WeaponType;
-	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-	int delay = pWeapon->ROF;
-
-	if (isLastShot || pExt->Strafe_BombsDroppedThisRound == pWeaponExt->Strafing_Shots.Get(5) || (pWeaponExt->Strafing_UseAmmoPerShot && !pThis->Ammo))
-	{
-		pExt->Strafe_TargetCell = nullptr;
-		pThis->MissionStatus = (int)AirAttackStatus::FlyToPosition;
-		delay = pWeaponExt->Strafing_EndDelay.Get((pWeapon->Range + 1024) / pThis->Type->Speed);
-	}
-
-	return delay;
-}
 
 ASMJIT_PATCH(0x4184CC, AircraftClass_MI_Attack_Delay1A, 0x6)
 {
@@ -412,6 +334,35 @@ ASMJIT_PATCH(0x418B8A, AircraftClass_MI_Attack_Delay5, 0x6)
 	return 0x418BBA;
 }
 
+ASMJIT_PATCH(0x418CD1, AircraftClass_MI_Attack_ContinueFlyToDestination, 0x6)
+{
+	enum { Continue = 0x418C43, Return = 0x418CE8 };
+
+	GET(AircraftClass* const, pThis, ESI);
+
+	if (!pThis->Target)
+	{
+		if (!RulesExtData::Instance()->ExpandAircraftMission
+			|| !pThis->MegaMissionIsAttackMove()
+			|| !pThis->MegaDestination) // (!pThis->MegaMissionIsAttackMove() || !pThis->MegaDestination)
+			return Continue;
+
+		pThis->SetDestination(reinterpret_cast<AbstractClass*>(pThis->MegaDestination), false); // pThis->MegaDestination
+		pThis->QueueMission(Mission::Move, true);
+		pThis->QueueMission(Mission::Move, true);
+		pThis->HaveAttackMoveTarget = false; // pThis->HaveAttackMoveTarget
+	}
+	else
+	{
+		pThis->MissionStatus = 1;
+	}
+
+	R->EAX(1);
+	return Return;
+}
+
+#endif
+
 ASMJIT_PATCH(0x414F21, AircraftClass_AI_TrailerInheritOwner, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
@@ -468,22 +419,6 @@ ASMJIT_PATCH(0x4CF68D, FlyLocomotionClass_DrawMatrix_OnAirport, 0x5)
 
 	return 0;
 }
-
-long __stdcall AircraftClass_IFlyControl_IsStrafe(IFlyControl* ifly)
-{
-	auto pThis = static_cast<AircraftClass*>(ifly);
-	WeaponTypeClass* pWeapon = nullptr;
-	auto const pExt = AircraftExtContainer::Instance.Find(pThis);
-
-	pWeapon = pThis->GetWeapon(pExt->CurrentAircraftWeaponIndex)->WeaponType;
-
-	if (pWeapon)
-		return (long)AircraftCanStrafeWithWeapon(pWeapon);
-
-	return false;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2268, AircraftClass_IFlyControl_IsStrafe);
 
 static FORCEDINLINE bool CheckSpyPlaneCameraCount(AircraftClass* pThis ,WeaponTypeClass* pWeapon)
 {
@@ -688,7 +623,7 @@ ASMJIT_PATCH(0x416A0A, AircraftClass_Mission_Move_SmoothMoving, 0x5)
 	return EnterIdleAndReturn;
 }ASMJIT_PATCH_AGAIN(0x4168C7, AircraftClass_Mission_Move_SmoothMoving, 0x5)
 
- ASMJIT_PATCH(0x4DDD66, FootClass_IsLZClear_ReplaceHardcode, 0x6) // To avoid that the aircraft cannot fly towards the water surface normally
+ASMJIT_PATCH(0x4DDD66, FootClass_IsLZClear_ReplaceHardcode, 0x6) // To avoid that the aircraft cannot fly towards the water surface normally
  {
  	enum { SkipGameCode = 0x4DDD8A };
 
@@ -702,33 +637,6 @@ ASMJIT_PATCH(0x416A0A, AircraftClass_Mission_Move_SmoothMoving, 0x5)
  	R->AL(MapClass::Instance->GetCellAt(cell)->IsClearToMove(pType->SpeedType, false, false, ZoneType::None, pType->MovementZone, -1, true));
  	return SkipGameCode;
  }
-
-ASMJIT_PATCH(0x418CD1, AircraftClass_MI_Attack_ContinueFlyToDestination, 0x6)
-{
-	enum { Continue = 0x418C43, Return = 0x418CE8 };
-
-	GET(AircraftClass* const, pThis, ESI);
-
-	if (!pThis->Target)
-	{
-		if (!RulesExtData::Instance()->ExpandAircraftMission
-			|| !pThis->MegaMissionIsAttackMove()
-			|| !pThis->MegaDestination) // (!pThis->MegaMissionIsAttackMove() || !pThis->MegaDestination)
-			return Continue;
-
-		pThis->SetDestination(reinterpret_cast<AbstractClass*>(pThis->MegaDestination), false); // pThis->MegaDestination
-		pThis->QueueMission(Mission::Move, true);
-		pThis->QueueMission(Mission::Move, true);
-		pThis->HaveAttackMoveTarget = false; // pThis->HaveAttackMoveTarget
-	}
-	else
-	{
-		pThis->MissionStatus = 1;
-	}
-
-	R->EAX(1);
-	return Return;
-}
 
 // Idle: clear the target if no ammo
 ASMJIT_PATCH(0x414D36, AircraftClass_Update_ClearTarget, 0x6)

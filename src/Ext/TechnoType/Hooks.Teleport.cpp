@@ -83,18 +83,18 @@ ASMJIT_PATCH(0x7193F6, TeleportLocomotionClass_ILocomotion_Process_WarpoutAnim, 
 
 	}
 
-	pLocomotor->Timer.Start(duree);
 	pOwner->WarpingOut = true;
 
 	if (auto pUnit = cast_to<UnitClass*, false>(pOwner)) {
 		if (pUnit->Type->Harvester || pUnit->Type->Weeder) {
-			pLocomotor->Timer.Start(0);
+			duree = 0;
 			pUnit->WarpingOut = false;
 		}
 	}
 
 	auto const pLinkedExt = TechnoExtContainer::Instance.Find(pOwner);
-	pLinkedExt->LastWarpInDelay = std::max(pLocomotor->Timer.GetTimeLeft(), pLinkedExt->LastWarpInDelay);
+	pLocomotor->Timer.Start(duree);
+	pLinkedExt->LastWarpInDelay = std::max(duree, pLinkedExt->LastWarpInDelay);
 	return 0x7195BC;
 }
 

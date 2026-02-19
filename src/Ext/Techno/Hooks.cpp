@@ -504,9 +504,14 @@ ASMJIT_PATCH(0x4C7462, EventClass_Execute_KeepTargetOnMove, 0x5)
 	auto const pExt = TechnoExtContainer::Instance.Find(pTechno);
 	auto const pTypeExt = GET_TECHNOTYPEEXT(pTechno);
 
-	if ((mission == Mission::Move) && pTypeExt->KeepTargetOnMove && pTechno->Target && !pTarget)
+	if ((mission == Mission::Move))
 	{
-		if (pTechno->IsCloseEnoughToAttack(pTechno->Target))
+		// Explicitly reset subterranean harvester state machine.
+		pExt->CurrentSubterraneanHarvStatus = SubterraneanHarvStatus::None;
+		pExt->SubterraneanHarvRallyPoint = nullptr;
+
+
+		if (pTypeExt->KeepTargetOnMove && pTechno->Target && !pTarget && pTechno->IsCloseEnoughToAttack(pTechno->Target))
 		{
 			auto const pDestination = pThis->Data.MegaMission.Destination.As_Abstract();
 			pTechno->SetDestination(pDestination, true);
@@ -566,6 +571,65 @@ void UpdateKeepTargetOnMove(TechnoClass* pThis)
 	}
 }
 
+// Subterranean harvester factory exit state machine.
+void UpdateSubterraneanHarvester(UnitClass* pThis)
+{
+	// Unnecessary for AI players.
+	if (!pThis->Owner->IsControlledByHuman())
+		return;
+
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	switch (pExt->CurrentSubterraneanHarvStatus)
+	{
+		{
+	case SubterraneanHarvStatus::None: // No state to handle.
+		break;
+	case SubterraneanHarvStatus::Created: // Unit has been created.
+		// If we're still in the factory do not advance.
+		if (pThis->HasAnyLink())
+			break;
+
+		pThis->ClearNavQueue();
+
+		// If we have rally point available, move to it and advance to next state, otherwise end here.
+		if (pExt->SubterraneanHarvRallyPoint)
+		{
+			pThis->SetDestination(pExt->SubterraneanHarvRallyPoint, false);
+			pThis->QueueMission(Mission::Move, true);
+			pExt->SubterraneanHarvRallyPoint = nullptr;
+			pExt->CurrentSubterraneanHarvStatus = SubterraneanHarvStatus::OutOfFactory;
+			break;
+		}
+		else
+		{
+			pExt->CurrentSubterraneanHarvStatus = SubterraneanHarvStatus::None;
+		}
+
+		break;
+	case SubterraneanHarvStatus::OutOfFactory: // Out of factory and on move.
+		// If we're still moving don't start harvesting.
+		if (pThis->Destination || pThis->CurrentMission == Mission::Move)
+			break;
+
+		// If harvester stops moving and becomes anything except idle, reset the state machine.
+		if (pThis->CurrentMission != Mission::Guard)
+		{
+			pExt->CurrentSubterraneanHarvStatus = SubterraneanHarvStatus::None;
+			break;
+		}
+
+		// Go harvest ore.
+		pThis->ClearNavQueue();
+		pThis->QueueMission(Mission::Harvest, true);
+		pExt->CurrentSubterraneanHarvStatus = SubterraneanHarvStatus::None;
+		break;
+	default:
+		break;
+		}
+	}
+}
+
 // Reset the target if beyond weapon range.
 // This was originally in UnitClass::Mission_Move() but because that
 // is only checked every ~15 frames, it can cause responsiveness issues.
@@ -574,9 +638,11 @@ ASMJIT_PATCH(0x736480, UnitClass_AI_KeepTargetOnMove, 0x6)
 	GET(UnitClass*, pThis, ESI);
 
 	//auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-	//auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	UpdateKeepTargetOnMove(pThis);
+	pExt->DepletedAmmoActions();
+	UpdateSubterraneanHarvester(pThis);
 	//pExt->UpdateGattlingRateDownReset();
 
 	return 0;
@@ -1309,11 +1375,28 @@ ASMJIT_PATCH(0x736F61, UnitClass_UpdateFiring_FireUp, 0x6)
 	const int firingFrames = pType->FiringFrames;
 	const int frames = 2 * firingFrames - 1;
 
-	if (frames >= 0 && pThis->CurrentFiringFrame == -1)
-		pThis->CurrentFiringFrame = frames;
-
 	auto const pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType;
 	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+
+	if (frames >= 0)
+	{
+		bool updateFiringFrame = true;
+
+		if (!pTypeExt->IsSecondary(weaponIndex))
+		{
+			const int value = pThis->CurrentBurstIndex % pWeapon->Burst;
+			const int syncFrame = value >= 2 ? -1
+				: (value == 0 ? pType->FiringSyncFrame0 : pType->FiringSyncFrame1);
+
+			updateFiringFrame = syncFrame == -1;
+		}
+
+		if (pThis->CurrentFiringFrame == -1
+			|| (fireUp < 0 && updateFiringFrame))
+		{
+			pThis->CurrentFiringFrame = frames;
+		}
+	}
 
 	if (fireUp >= 0)
 	{

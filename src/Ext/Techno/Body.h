@@ -835,6 +835,7 @@ private:
 		debugProcess(this->IsSelected, "IsSelected");
 		debugProcess(this->UndergroundTracked, "UndergroundTracked");
 		debugProcess(this->PassiveAquireMode, "PassiveAquireMode");
+		debugProcess(this->CurrentSubterraneanHarvStatus, "CurrentSubterraneanHarvStatus");
 		debugProcess(this->UnitIdleAction, "UnitIdleAction");
 		debugProcess(this->UnitIdleActionSelected, "UnitIdleActionSelected");
 		debugProcess(this->UnitIdleIsSelected, "UnitIdleIsSelected");
@@ -867,7 +868,7 @@ public:
 	AnimTypeClass* MindControlRingAnimType;
 	AbstractClass* WebbyLastTarget;
 	CellClass* FiringObstacleCell;
-	CellClass* SubterraneanHarvRallyPoint;
+	AbstractClass* SubterraneanHarvRallyPoint;
 	TemporalClass* MyOriginalTemporal;
 	SuperClass* LinkedSW;
 	InfantryTypeClass* HijackerLastDisguiseType;
@@ -988,7 +989,7 @@ public:
 	Mission WebbyLastMission;
 	PowerupEffects DropCrateType;
 	PassiveAcquireMode PassiveAquireMode;
-
+	SubterraneanHarvStatus CurrentSubterraneanHarvStatus; // 0 = none, 1 = created, 2 = out from factory
 	// ============================================================
 	// 1-byte aligned: BYTE (group to fill padding)
 	// ============================================================
@@ -1151,6 +1152,7 @@ public:
 		WebbyLastMission(Mission::Sleep),
 		DropCrateType(PowerupEffects::Money),
 		PassiveAquireMode(PassiveAcquireMode::Normal),
+		CurrentSubterraneanHarvStatus(SubterraneanHarvStatus::None),
 
 		// BYTE
 		idxSlot_EMPulse(0),
@@ -1571,6 +1573,7 @@ public:
 	static void __fastcall  __Draw_Stuff_When_Selected(TechnoClass* pThis, discard_t, Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect);
 	static void __fastcall __DrawHealthBar_Selection(TechnoClass* techno, discard_t, Point2D* position, RectangleStruct* clipRect, bool unused);
 	static void __fastcall __Draw_Airstrike_Flare(TechnoClass* techno, discard_t, CoordStruct startCoord , CoordStruct endCoord);
+	static CoordStruct* __fastcall __Get_FLH(TechnoClass* pThis, discard_t,CoordStruct* pBuffer,  int weaponIndex, CoordStruct offset);
 
 	static DamageState __fastcall __Take_Damage(TechnoClass* pThis, discard_t, int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse);
 	static bool __fastcall __Is_Allowed_To_Retaliate(TechnoClass* pThis, discard_t, TechnoClass* pSource, WarheadTypeClass* pWarhead);

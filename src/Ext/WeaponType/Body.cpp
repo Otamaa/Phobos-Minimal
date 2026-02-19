@@ -281,7 +281,12 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->AttackFriendlies.Read(exINI, pSection, "AttackFriendlies");
 	this->AttackCursorOnFriendlies.Read(exINI, pSection, "AttackCursorOnFriendlies");
 	this->AttackNoThreatBuildings.Read(exINI, pSection, "AttackNoThreatBuildings");
+
+	this->ChasingExtraRange.Read(exINI, pSection, "ExtraRange.TargetMoving");
 	this->ExtraRange_FirerMoving.Read(exINI, pSection, "ExtraRange.FirerMoving");
+	this->PrefiringExtraRange.Read(exINI, GameStrings::General, "ExtraRange.Prefiring");
+	this->PrefiringExtraRange_IncludeBurst.Read(exINI, GameStrings::General, "ExtraRange.Prefiring.IncludeBurst");
+
 	this->Anim_Update.Read(exINI, pSection, "Anim.Update");
 	this->CanTarget_IronCurtained.Read(exINI, pSection, "CanTarget.IronCurtained");
 	this->AutoTarget_IronCurtained.Read(exINI, pSection, "AutoTarget.IronCurtained");

@@ -20,13 +20,15 @@ ASMJIT_PATCH(0x4D423A, FootClass_MissionMove_SubterraneanResourceGatherer, 0x6)
 	return 0x4D4248;
 }
 
-/*==================================================================== Author : Starkku
+#include <Utilities/Cast.h>
+
+//==================================================================== Author : Starkku
 // Allow scanning for docks in all map zones.
 ASMJIT_PATCH(0x4DEFC6, FootClass_FindDock_SubterraneanHarvester, 0x5)
 {
 	GET(TechnoTypeClass*, pTechnoType, EAX);
 
-	if (auto const pUnitType = specific_cast<UnitTypeClass*>(pTechnoType)) {
+	if (auto const pUnitType = type_cast<UnitTypeClass*>(pTechnoType)) {
 		if ((pUnitType->Harvester || pUnitType->Weeder) && pUnitType->MovementZone == MovementZone::Subterrannean)
 			R->ECX(MovementZone::Fly);
 	}
@@ -71,34 +73,10 @@ ASMJIT_PATCH(0x738A3E, UnitClass_EnterIdleMode_SubterraneanHarvester, 0x5)
 
 	if ((pType->Harvester || pType->Weeder) && pType->MovementZone == MovementZone::Subterrannean)
 	{
-		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+		auto const mission = pThis->CurrentMission;
 
-		if (pExt->SubterraneanHarvRallyPoint && pThis->GetMapCoords() == pExt->SubterraneanHarvRallyPoint->MapCoords)
-		{
-			pExt->SubterraneanHarvRallyPoint = nullptr;
-			pThis->SetDestination(nullptr, false);
-			pThis->ClearNavQueue();
-			pThis->SetArchiveTarget(nullptr);
-			pThis->ForceMission(Mission::Harvest);
+		if (mission == Mission::Unload || mission == Mission::Harvest)
 			return ReturnFromFunction;
-		}
-	}
-
-	return 0;
-}
-
-// Set rally point.
-ASMJIT_PATCH(0x44459A, BuildingClass_ExitObject_SubterraneanHarvester, 0x5)
-{
-	GET(TechnoClass*, pThis, EDI);
-
-	if (auto const pUnit = specific_cast<UnitClass*>(pThis))
-	{
-		auto const pType = pUnit->Type;
-
-		if ((pType->Harvester || pType->Weeder) && pType->MovementZone == MovementZone::Subterrannean) {
-			TechnoExtContainer::Instance.Find(pThis)->SubterraneanHarvRallyPoint = abstract_cast<CellClass*>(pThis->ArchiveTarget);
-		}
 	}
 
 	return 0;
@@ -113,4 +91,17 @@ ASMJIT_PATCH(0x73EDA1, UnitClass_Mission_Harvest_SubterraneanHarvester, 0x6)
 		TechnoExtContainer::Instance.Find(pThis)->SubterraneanHarvRallyPoint = nullptr;
 
 	return 0;
-}*/
+}
+
+// Apply same special rules on idle to player-owned subterranean harvesters as to Teleporter=yes ones.
+DEFINE_HOOK(0x740949, UnitClass_Mission_Guard_SubterraneanHarvester, 0x6)
+{
+	enum { Continue = 0x740957 };
+
+	GET(UnitTypeClass*, pType, ECX);
+
+	if (pType->MovementZone == MovementZone::Subterrannean)
+		return Continue;
+
+	return 0;
+}
