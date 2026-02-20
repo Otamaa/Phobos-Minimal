@@ -72,6 +72,9 @@ public :
 	static bool IsValidLandingZone(AircraftClass* pThis);
 
 	static bool PlaceReinforcementAircraft(AircraftClass* pThis, CellStruct edgeCell);
+
+	static bool FireWeapon(AircraftClass* pAir, AbstractClass* pTarget);
+	static int GetDelay(AircraftClass* pThis, bool isLastShot);
 };
 
 class AircraftExtContainer final : public Container<AircraftExtData>

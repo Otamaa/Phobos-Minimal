@@ -27,7 +27,7 @@ COMPILETIMEEVAL FORCEDINLINE bool AircraftCanStrafeWithWeapon(WeaponTypeClass* p
 		&& !BulletTypeExtContainer::Instance.Find(pWeapon->Projectile)->TrajectoryType;
 }
 
-bool FireWeapon(AircraftClass* pAir, AbstractClass* pTarget)
+bool AircraftExtData::FireWeapon(AircraftClass* pAir, AbstractClass* pTarget)
 {
 	const auto pExt = AircraftExtContainer::Instance.Find(pAir);
 	const int weaponIndex = pExt->CurrentAircraftWeaponIndex;
@@ -91,7 +91,7 @@ bool FireWeapon(AircraftClass* pAir, AbstractClass* pTarget)
 	return false;
 }
 
-int GetDelay(AircraftClass* pThis, bool isLastShot)
+int AircraftExtData::GetDelay(AircraftClass* pThis, bool isLastShot)
 {
 	auto const pExt = AircraftExtContainer::Instance.Find(pThis);
 	auto const pWeapon = pThis->GetWeapon(pExt->CurrentAircraftWeaponIndex)->WeaponType;
@@ -382,7 +382,7 @@ int FakeAircraftClass::_Mission_Attack()
 		case FireError::OK:
 		{
 			this->loseammo_6c8 = true; // 0x418403
-			FireWeapon(this, this->Target);
+			AircraftExtData::FireWeapon(this, this->Target);
 
 			if (this->Is_Strafe())
 			{
@@ -393,7 +393,7 @@ int FakeAircraftClass::_Mission_Attack()
 					pExt->Strafe_TargetCell = MapClass::Instance->GetCellAt(this->Target->GetCoords());
 				this->IsLocked = true;
 				this->MissionStatus = static_cast<int>(AirAttackStatus::FireAtTarget2_Strafe);
-				return GetDelay(this, false);
+				return AircraftExtData::GetDelay(this, false);
 			}
 
 			if (!this->Is_Locked())
@@ -407,7 +407,7 @@ int FakeAircraftClass::_Mission_Attack()
 			this->MissionStatus = this->Ammo > 0
 				? static_cast<int>(AirAttackStatus::PickAttackLocation)
 				: static_cast<int>(AirAttackStatus::ReturnToBase);
-			return GetDelay(this, false);
+			return AircraftExtData::GetDelay(this, false);
 		}
 		case FireError::FACING:
 		{
@@ -466,7 +466,7 @@ int FakeAircraftClass::_Mission_Attack()
 		{
 		case FireError::OK:
 		{
-			FireWeapon(this, this->Target); // 0x4186B6
+			AircraftExtData::FireWeapon(this, this->Target); // 0x4186B6
 			if (!this->Ammo)
 			{
 				this->MissionStatus = static_cast<int>(AirAttackStatus::ReturnToBase);
@@ -515,10 +515,10 @@ int FakeAircraftClass::_Mission_Attack()
         default:                                                            \
             return HandleOutOfRange();                                      \
         }                                                                   \
-        if (FireWeapon(this, this->Target))                                 \
+        if (AircraftExtData::FireWeapon(this, this->Target))                                 \
             this->SetDestination(this->Target, true);                      \
         this->MissionStatus = static_cast<int>(AirAttackStatus::NextState);\
-        return GetDelay(this, false);                                       \
+        return AircraftExtData::GetDelay(this, false);                                       \
     }
 
 	STRAFE_FIRE_CASE(FireAtTarget2_Strafe, FireAtTarget3_Strafe) // 0x418805 + 0x418883
@@ -539,8 +539,8 @@ int FakeAircraftClass::_Mission_Attack()
 		case FireError::FACING:
 		case FireError::RANGE:
 		case FireError::CLOAKED:
-			FireWeapon(this, this->Target); // 0x418B1F
-			return GetDelay(this, true);    // 0x418B8A isLastShot=true
+			AircraftExtData::FireWeapon(this, this->Target); // 0x418B1F
+			return AircraftExtData::GetDelay(this, true);    // 0x418B8A isLastShot=true
 		default:
 			return HandleOutOfRange();
 		}

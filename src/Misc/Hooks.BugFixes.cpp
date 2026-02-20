@@ -293,7 +293,7 @@ ASMJIT_PATCH(0x4CDA6F, FlyLocomotionClass_MovementAI_SpeedModifiers, 0x9)
 
 	if (const auto pLinked = pThis->LinkedTo)
 	{
-		const double currentSpeed = GET_TECHNOTYPE(pLinked)->Speed 
+		const double currentSpeed = GET_TECHNOTYPE(pLinked)->Speed
 			* pThis->CurrentSpeed *
 			TechnoExtData::GetCurrentSpeedMultiplier(pLinked);
 
@@ -310,7 +310,7 @@ ASMJIT_PATCH(0x4CE4B3, FlyLocomotionClass_4CE4B0_SpeedModifiers, 0x6)
 
 	if (const auto pLinked = pThis->LinkedTo)
 	{
-		const double currentSpeed = GET_TECHNOTYPE(pLinked)->Speed 
+		const double currentSpeed = GET_TECHNOTYPE(pLinked)->Speed
 			* pThis->CurrentSpeed *
 			TechnoExtData::GetCurrentSpeedMultiplier(pLinked);
 
@@ -581,7 +581,7 @@ ASMJIT_PATCH(0x4AC534, DisplayClass_ComputeStartPosition_IllegalCoords, 0x6)
 
 	GET(TechnoClass* const, pTechno, ECX);
 
-	if (!MapClass::Instance->CoordinatesLegal(pTechno->GetMapCoords()) 
+	if (!MapClass::Instance->CoordinatesLegal(pTechno->GetMapCoords())
 		|| TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType())->IgnoreForBaseCenter)
 		return SkipTechno;
 
@@ -2031,7 +2031,7 @@ ASMJIT_PATCH(0x4C75DA, EventClass_RespondToEvent_Stop, 0x6)
 		if (!pTechno->vt_entry_2B0() || pTechno->OnBridge || pTechno->IsInAir() || pTechno->GetCell()->SlopeIndex)
 		{
 			// To avoid foots stuck in Mission::Area_Guard
-			if (pTechno->CurrentMission == Mission::Area_Guard 
+			if (pTechno->CurrentMission == Mission::Area_Guard
 					&& !GET_TECHNOTYPE(pTechno)->DefaultToGuardArea)
 				pTechno->QueueMission(Mission::Guard, true);
 
@@ -3151,4 +3151,43 @@ ASMJIT_PATCH(0x7442AB, UnitClass_ReadyToNextMission_FallingDown, 0x6)
 	enum { ReturnZero = 0x744383 };
 	GET(FootClass*, pThis, ESI);
 	return pThis->IsFallingDown ? ReturnZero : 0;
+}
+
+// Fixes ambiguous sell-target selection when cursor overlap picks a non-building object first.
+// In Action::Sell path, force target to a building on clicked cell (if any) so SellUnit=false cannot
+// ASMJIT_PATCH sell unit/aircraft via building-sell action.
+ASMJIT_PATCH(0x4AC15A, DisplayClass_LeftMouseButtonUp_SellAction_RetargetBuilding, 0x4)
+{
+	enum { Continue = 0, SellCell = 0x4AC19A, SkipSellEvent = 0x4AC20C };
+
+	GET(ObjectClass*, pSellTarget, ESI);
+	const bool hadObjectTarget = (pSellTarget != nullptr);
+
+	if (pSellTarget && pSellTarget->WhatAmI() != AbstractType::Building)
+	{
+		GET_STACK(const CellStruct*, pClickedCell, 0x94);
+
+		pSellTarget = MapClass::Instance->GetCellAt(*pClickedCell)->GetBuilding();
+		R->ESI(pSellTarget);
+
+		// Ambiguous overlap case with object target but no building under clicked cell:
+		// do not emit Sell / SellCell events from this path.
+		if (!pSellTarget && hadObjectTarget)
+			return SkipSellEvent;
+	}
+
+	return pSellTarget ? Continue : SellCell;
+}
+
+// Disallow sell action on wall overlays if mouse cursor is hovering on another object.
+ASMJIT_PATCH(0x692AD6, ScrollClass_ChooseAction_SellWall, 0x6)
+{
+	enum { NoSell = 0x692AFE };
+
+	GET(ObjectClass*, pObject, ESI);
+
+	if (pObject)
+		return NoSell;
+
+	return 0;
 }
