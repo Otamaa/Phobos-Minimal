@@ -229,7 +229,7 @@ void DisperseTrajectory::InitializeBulletNotCurve(bool facing)
 	}
 	else
 	{
-		rotateAngle = std::atan2(double(pBullet->TargetCoords.Y - theSource.Y), double(pBullet->TargetCoords.X - theSource.X));
+		rotateAngle = Math::atan2(double(pBullet->TargetCoords.Y - theSource.Y), double(pBullet->TargetCoords.X - theSource.X));
 	}
 
 	const auto coordMult = (pType->ROT > 1e-10) ? (this->OriginalDistance / (32768 / pType->ROT)) : 1.0;
@@ -1258,7 +1258,7 @@ void DisperseTrajectory::DisperseBurstSubstitution(CoordStruct axis, double rota
 {
 	auto pBullet = this->AttachedTo;
 	const auto createBulletTargetToSource = pBullet->TargetCoords - pBullet->SourceCoords;
-	const auto rotateAngle = std::atan2((double)createBulletTargetToSource.Y, (double)createBulletTargetToSource.X);
+	const auto rotateAngle = Math::atan2((double)createBulletTargetToSource.Y, (double)createBulletTargetToSource.X);
 
 	VelocityClass rotationAxis
 	{

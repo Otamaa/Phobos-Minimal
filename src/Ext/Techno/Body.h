@@ -1294,6 +1294,11 @@ public:
 	void TogglePassiveAcquireMode(PassiveAcquireMode mode);
 	bool CanTogglePassiveAcquireMode();
 
+	static void InitializeRecoilData(TechnoClass* pThis, TechnoTypeClass* pType);
+
+	void UpdateRecoilData();
+	void RecordRecoilData();
+
 public:
 
 	static void InitializeUnitIdleAction(TechnoClass* pThis, TechnoTypeClass* pType);
@@ -1327,11 +1332,10 @@ public:
 	static bool IsHarvesting(TechnoClass* pThis);
 	static bool HasAvailableDock(TechnoClass* pThis);
 
-	static Matrix3D GetTransform(TechnoClass* pThis, VoxelIndexKey* pKey = nullptr);
-	static void TransformFLHForTurret(TechnoClass* pThis, Matrix3D& mtx, bool isOnTurret);
-	static Matrix3D GetFLHMatrix(TechnoClass* pThis, const CoordStruct& nCoord, bool isOnTurret);
-	static CoordStruct GetFLHAbsoluteCoordsB(TechnoClass* pThis, const CoordStruct& nCoord, bool isOnTurret);
-	static CoordStruct GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordStruct& flh, bool turretFLH = false, const CoordStruct& Overrider = CoordStruct::Empty);
+	static Matrix3D GetTransform(TechnoClass* pThis, VoxelIndexKey* pKey = nullptr, bool isShadow = false);
+	static void TransformFLHForTurret(TechnoClass* pThis, Matrix3D& mtx, bool isOnTurret, double factor = 1.0, int turIdx = -1);
+	static Matrix3D GetFLHMatrix(TechnoClass* pThis, const CoordStruct& nCoord, bool isOnTurret, double factor = 1.0, bool isShadow = false, int turIdx = -1);
+	static CoordStruct GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordStruct& flh, bool isOnTurret = false, int turIdx = -1);
 	static std::pair<bool, CoordStruct> GetBurstFLH(TechnoClass* pThis, int weaponIndex);
 	static std::pair<bool, CoordStruct> GetInfantryFLH(InfantryClass* pThis, int weaponInde);
 

@@ -213,20 +213,6 @@ ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 	return ContinueCheck;
 }
 
-ASMJIT_PATCH(0x6FC3A1, TechnoClass_CanFire_InBunkerRangeCheck, 0x5)
-{
-	enum { ContinueChecks = 0x6FC3C5, CannotFire = 0x6FC86A };
-
-	GET(TechnoClass*, pTarget, EBP);
-	GET(TechnoClass*, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EDI);
-
-	if (pTarget->WhatAmI() == AbstractType::Unit && WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis) < 384.0)
-		return CannotFire;
-
-	return ContinueChecks;
-}
-
 ASMJIT_PATCH(0x70CF6F, TechnoClass_ThreatCoefficients_WeaponRange, 0x6)
 {
 	enum { SkipGameCode = 0x70CF75 };

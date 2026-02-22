@@ -462,6 +462,58 @@ ASMJIT_PATCH(0x702E64, TechnoClass_RegisterDestruction_Bounty, 6)
 	return 0x0;
 }
 
+void TechnoExtData::InitializeRecoilData(TechnoClass* pThis, TechnoTypeClass* pType)
+{
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	if (!pType->TurretRecoil)
+		return;
+
+	if (pTypeExt->ExtraTurretCount)
+	{
+		if (static_cast<int>(pExt->ExtraTurretRecoil.size()) < pTypeExt->ExtraTurretCount)
+			pExt->ExtraTurretRecoil.resize(pTypeExt->ExtraTurretCount);
+
+		const auto& refData = pType->TurretAnimData;
+
+		for (auto& data : pExt->ExtraTurretRecoil)
+		{
+			data.Turret.Travel = refData.Travel;
+			data.Turret.CompressFrames = refData.CompressFrames;
+			data.Turret.RecoverFrames = refData.RecoverFrames;
+			data.Turret.HoldFrames = refData.HoldFrames;
+			data.TravelPerFrame = 0.0;
+			data.TravelSoFar = 0.0;
+			data.State = RecoilData::RecoilState::Inactive;
+			data.TravelFramesLeft = 0;
+		}
+	}
+
+	if (pTypeExt->ExtraTurretCount || pTypeExt->ExtraBarrelCount)
+	{
+		const auto dataCount = (pTypeExt->ExtraBarrelCount + 1) * (pTypeExt->ExtraTurretCount + 1) - 1;
+
+		if (static_cast<int>(pExt->ExtraBarrelRecoil.size()) < dataCount)
+			pExt->ExtraBarrelRecoil.resize(dataCount);
+
+		const auto& refData = pType->BarrelAnimData;
+
+		for (auto& data : pExt->ExtraBarrelRecoil)
+		{
+			data.Turret.Travel = refData.Travel;
+			data.Turret.CompressFrames = refData.CompressFrames;
+			data.Turret.RecoverFrames = refData.RecoverFrames;
+			data.Turret.HoldFrames = refData.HoldFrames;
+			data.TravelPerFrame = 0.0;
+			data.TravelSoFar = 0.0;
+			data.State = RecoilData::RecoilState::Inactive;
+			data.TravelFramesLeft = 0;
+		}
+	}
+}
+
+
 ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 {
 	GET(TechnoClass* , pThis, ESI);
@@ -549,6 +601,7 @@ ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 
 		TechnoExtData::InitializeItems(pThis, pType);
 		TechnoExtData::InitializeAttachEffects(pThis, pType);
+		TechnoExtData::InitializeRecoilData(pThis, pType);
 
 		const auto pPrimary = pThis->GetWeapon(0)->WeaponType;
 

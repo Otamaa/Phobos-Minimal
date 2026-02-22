@@ -161,48 +161,6 @@ ASMJIT_PATCH(0x50C8F4, HouseClass_Flag_To_Chear_Disable ,0x5)
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x6D8640, FakeTacticalClass::__ClampTacticalPos)
 
-// canEnter and ignoreForce should come before GetFireError().
-DEFINE_JUMP(LJMP, 0x70054D, 0x70056C)
-
-namespace WhatActionObjectTemp
-{
-	bool Skip = false;
-}
-
-#include <Ext/TechnoType/Body.h>
-
-ASMJIT_PATCH(0x700536, TechnoClass_WhatAction_Object_AllowAttack, 0x6)
-{
-	enum { CanAttack = 0x70055D, Continue = 0x700548 };
-
-	GET_STACK(bool, canEnter, STACK_OFFSET(0x1C, 0x4));
-	GET_STACK(bool, ignoreForce, STACK_OFFSET(0x1C, 0x8));
-	GET(TechnoClass*, pThis, ESI);
-
-	auto const pType = GET_TECHNOTYPE(pThis);
-
-	if(TechnoTypeExtContainer::Instance.Find(pType)
-		->NoManualFire)
-		return 0x70056Cu;
-
-	if (canEnter || ignoreForce)
-		return CanAttack;
-
-	GET(ObjectClass*, pObject, EDI);
-	GET_STACK(int, WeaponIndex, STACK_OFFSET(0x1C, -0x8));
-
-	WhatActionObjectTemp::Skip = true;
-	R->EAX(pThis->GetFireError(pObject, WeaponIndex, true));
-	WhatActionObjectTemp::Skip = false;
-
-	return Continue;
-}
-
-ASMJIT_PATCH(0x6FC8F5, TechnoClass_CanFire_SkipROF, 0x6)
-{
-	return WhatActionObjectTemp::Skip ? 0x6FC981 : 0;
-}
-
 DEFINE_PATCH_ADDR_OFFSET(DWORD , 0x7B8536, 6, 1);
 
 #pragma region InfBlockTreeFix

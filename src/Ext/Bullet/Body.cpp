@@ -977,7 +977,7 @@ void BulletExtData::SimulatedFiringAnim(BulletClass* pBullet, HouseClass* pHouse
 
 	const auto pFirer = pBullet->Owner;
 	const auto pAnimType = pWeapon->Anim[(animCounts % 8 == 0) // Have direction
-		? (static_cast<int>((std::atan2(pBullet->Velocity.Y, pBullet->Velocity.X) / Math::GAME_TWOPI + 1.5) * animCounts - (animCounts / 8) + 0.5) % animCounts) // Calculate direction
+		? (static_cast<int>((Math::atan2(pBullet->Velocity.Y, pBullet->Velocity.X) / Math::GAME_TWOPI + 1.5) * animCounts - (animCounts / 8) + 0.5) % animCounts) // Calculate direction
 		: ScenarioClass::Instance->Random.RandomRanged(0, animCounts - 1)]; // Simple random;
 	/*
 		const auto velocityRadian = std::atan2(pBullet->Velocity.Y , pBullet->Velocity.X);

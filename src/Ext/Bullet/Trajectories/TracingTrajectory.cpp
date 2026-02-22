@@ -225,33 +225,32 @@ TrajectoryCheckReturnType TracingTrajectory::OnAITechnoCheck(TechnoClass* pTechn
 
 void TracingTrajectory::GetTechnoFLHCoord(TechnoClass* pTechno)
 {
-#ifdef _WTF_IS_THIS_SHIT
-	const auto pExt = TechnoExtContainer::Instance.Find(pTechno);
+	// const auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 
-	if (!pExt || !pExt->LastWeaponType || pExt->LastWeaponType->Projectile != pBullet->Type)
-	{
-		this->NotMainWeapon = true;
-		return;
-	}
-	else if (pTechno->WhatAmI() == AbstractType::Building)
-	{
-		const auto pBuilding = static_cast<BuildingClass*>(pTechno);
-		Matrix3D mtx;
-		mtx.MakeIdentity();
+	// if (!pExt->LastWeaponType || pExt->LastWeaponType->Projectile != this->AttachedTo->Type)
+	// {
+	// 	this->NotMainWeapon = true;
+	// 	return;
+	// }
+	// else if (pTechno->WhatAmI() == AbstractType::Building)
+	// {
+	// 	const auto pBuilding = static_cast<BuildingClass*>(pTechno);
+	// 	Matrix3D mtx;
+	// 	mtx.MakeIdentity();
 
-		if (pTechno->HasTurret())
-		{
-			TechnoTypeExt::ApplyTurretOffset(pBuilding->Type, &mtx);
-			mtx.RotateZ(static_cast<float>(pTechno->TurretFacing().GetRadian<32>()));
-		}
+	// 	if (pTechno->HasTurret())
+	// 	{
+	// 		TechnoTypeExt::ApplyTurretOffset(pBuilding->Type, &mtx);
+	// 		mtx.RotateZ(static_cast<float>(pTechno->TurretFacing().GetRadian<32>()));
+	// 	}
 
-		mtx.Translate(static_cast<float>(pExt->LastWeaponFLH.X), static_cast<float>(pExt->LastWeaponFLH.Y), static_cast<float>(pExt->LastWeaponFLH.Z));
-		const auto result = mtx.GetTranslation();
-		this->BuildingCoord = pBullet->SourceCoords - pBuilding->GetCoords() - CoordStruct { static_cast<int>(result.X), -static_cast<int>(result.Y), static_cast<int>(result.Z) };
-	}
+	// 	mtx.Translate(static_cast<float>(pExt->LastWeaponFLH.X), static_cast<float>(pExt->LastWeaponFLH.Y), static_cast<float>(pExt->LastWeaponFLH.Z));
+	// 	const auto result = mtx.GetTranslation();
+	// 	this->BuildingCoord = this->AttachedTo->SourceCoords - pBuilding->GetCoords() - CoordStruct { static_cast<int>(result.X), -static_cast<int>(result.Y), static_cast<int>(result.Z) };
+	// }
 
-	this->FLHCoord = pExt->LastWeaponFLH;
-#endif
+	// this->FLHCoord = pExt->LastWeaponFLH;
+
 }
 
 void TracingTrajectory::SetSourceLocation()
@@ -264,7 +263,7 @@ void TracingTrajectory::SetSourceLocation()
 	{
 		const auto& theSource = pBullet->SourceCoords;
 		const auto& theTarget = pBullet->TargetCoords;
-		const auto rotateAngle = std::atan2(double(theTarget.Y - theSource.Y), double(theTarget.X - theSource.X));
+		const auto rotateAngle = Math::atan2(double(theTarget.Y - theSource.Y), double(theTarget.X - theSource.X));
 
 		theOffset.X = static_cast<int>(pType->CreateCoord->X * Math::cos(rotateAngle) + pType->CreateCoord->Y * Math::sin(rotateAngle));
 		theOffset.Y = static_cast<int>(pType->CreateCoord->X * Math::sin(rotateAngle) - pType->CreateCoord->Y * Math::cos(rotateAngle));
@@ -402,8 +401,8 @@ void TracingTrajectory::ChangeFacing()
 			return;
 		}
 
-		const auto current = std::atan2(pBullet->Velocity.Y, pBullet->Velocity.X);
-		const auto desired = std::atan2(desiredFacing.Y, desiredFacing.X);
+		const auto current = Math::atan2(pBullet->Velocity.Y, pBullet->Velocity.X);
+		const auto desired = Math::atan2(desiredFacing.Y, desiredFacing.X);
 		const auto rotate = pType->ROT * ratio;
 
 		const auto differenceP = desired - current;
@@ -427,7 +426,7 @@ void TracingTrajectory::ChangeFacing()
 	}
 	else
 	{
-		const auto radian = std::atan2(pBullet->Velocity.Y, pBullet->Velocity.X) + (pType->ROT * ratio);
+		const auto radian = Math::atan2(pBullet->Velocity.Y, pBullet->Velocity.X) + (pType->ROT * ratio);
 		pBullet->Velocity.X = Math::cos(radian);
 		pBullet->Velocity.Y = Math::sin(radian);
 		pBullet->Velocity.Z = 0;
@@ -444,8 +443,8 @@ bool TracingTrajectory::CheckFireFacing()
 
 	const auto& theBullet = pBullet->Location;
 	const auto& theTarget = pBullet->TargetCoords;
-	const auto targetDir = DirStruct { std::atan2(double(theTarget.Y - theBullet.Y), double(theTarget.X - theBullet.X)) };
-	const auto bulletDir = DirStruct { std::atan2(pBullet->Velocity.Y, pBullet->Velocity.X) };
+	const auto targetDir = DirStruct { Math::atan2(double(theTarget.Y - theBullet.Y), double(theTarget.X - theBullet.X)) };
+	const auto bulletDir = DirStruct { Math::atan2(pBullet->Velocity.Y, pBullet->Velocity.X) };
 
 	return Math::abs(static_cast<short>(static_cast<short>(targetDir.Raw) - static_cast<short>(bulletDir.Raw))) <= (2048 + (pType->ROT << 8));
 }
@@ -508,7 +507,7 @@ VelocityClass TracingTrajectory::ChangeVelocity()
 
 			if ((radius * 1.2) > Point2D { distanceCoords.X,distanceCoords.Y }.Length())
 			{
-				auto rotateAngle = std::atan2((double)distanceCoords.Y, (double)distanceCoords.X);
+				auto rotateAngle = Math::atan2((double)distanceCoords.Y, (double)distanceCoords.X);
 
 				if (Math::abs(radius) > 1e-10)
 					rotateAngle += float(pType->Trajectory_Speed / radius);
@@ -531,7 +530,7 @@ VelocityClass TracingTrajectory::ChangeVelocity()
 
 			if ((radius * 1.2) > Point2D { distanceCoords.X,distanceCoords.Y }.Length())
 			{
-				auto rotateAngle = std::atan2((double)distanceCoords.Y, (double)distanceCoords.X);
+				auto rotateAngle = Math::atan2((double)distanceCoords.Y, (double)distanceCoords.X);
 
 				if (Math::abs(radius) > 1e-10)
 					rotateAngle -= float(pType->Trajectory_Speed / radius);
@@ -552,7 +551,7 @@ VelocityClass TracingTrajectory::ChangeVelocity()
 			const auto& theSource = pBullet->SourceCoords;
 			const auto& theTarget = pBullet->TargetCoords;
 
-			const auto rotateAngle = std::atan2(double(theTarget.Y - theSource.Y), double(theTarget.X - theSource.X));
+			const auto rotateAngle = Math::atan2(double(theTarget.Y - theSource.Y), double(theTarget.X - theSource.X));
 
 			theOffset.X = static_cast<int>(pType->OffsetCoord->X * Math::cos(rotateAngle) + pType->OffsetCoord->Y * Math::sin(rotateAngle));
 			theOffset.Y = static_cast<int>(pType->OffsetCoord->X * Math::sin(rotateAngle) - pType->OffsetCoord->Y * Math::cos(rotateAngle));
@@ -587,7 +586,7 @@ AbstractClass* TracingTrajectory::GetBulletTarget(TechnoClass* pTechno, HouseCla
 	if (pType->Synchronize)
 		return pBullet->Target;
 	auto pWHExt = pWeapon->Warhead ? WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead) : nullptr;
- 
+
 	const auto vec = Helpers::Alex::getCellSpreadItems(pBullet->Location, (pWeapon->Range / 256.0),
 		true,
 		pWHExt ? pWHExt->CellSpread_Cylinder : false,
@@ -677,7 +676,7 @@ CoordStruct TracingTrajectory::GetWeaponFireCoord(TechnoClass* pTechno)
 	if (weaponCoord == CoordStruct::Empty)
 		return pBullet->Location;
 
-	const auto rotateRadian = std::atan2(double(pBullet->TargetCoords.Y - pBullet->Location.Y), double(pBullet->TargetCoords.X - pBullet->Location.X));
+	const auto rotateRadian = Math::atan2(double(pBullet->TargetCoords.Y - pBullet->Location.Y), double(pBullet->TargetCoords.X - pBullet->Location.X));
 	CoordStruct fireOffsetCoord
 	{
 		static_cast<int>(weaponCoord.X * Math::cos(rotateRadian) + weaponCoord.Y * Math::sin(rotateRadian)),

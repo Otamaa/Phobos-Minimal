@@ -22,7 +22,7 @@ FacingType NOINLINE BuildingExtData::GetPoseDir(AircraftClass* pAir , BuildingCl
 			}
 
 			if(!pBld && pAir->RadioLinks[0] && ret < FacingType::Min) { //spawner
-				return FacingType((((pAir->PrimaryFacing.Current().Raw >> 12) + 1) >> 1) & 7);
+				return FacingType(pAir->PrimaryFacing.Current().GetFacing<8>());
 			}
 		}
 
@@ -38,13 +38,13 @@ FacingType NOINLINE BuildingExtData::GetPoseDir(AircraftClass* pAir , BuildingCl
 			}
 			else
 			{
-				return pBldTypeExt->LandingDir.Get(FacingType((((pBld->PrimaryFacing.Current().Raw >> 12) + 1) >> 1) & 7));
+				return pBldTypeExt->LandingDir.Get(FacingType(pBld->PrimaryFacing.Current().GetFacing<8>()));
 			}
 		}
 	}
 
 	if (!pAir->Type->AirportBound && ret < FacingType::Min) {
-		return FacingType((((pAir->PrimaryFacing.Current().Raw >> 12) + 1) >> 1) & 7);
+		return FacingType(pAir->PrimaryFacing.Current().GetFacing<8>());
 	}
 
 	return FacingType((((((int)ret) >> 4) + 1) >> 1) & 7);
@@ -154,7 +154,7 @@ ASMJIT_PATCH(0x4CF190, FlyLocomotionClass_FlightUpdate_SetPrimaryFacing, 0x6) //
 		if (!RulesExtData::Instance()->ExpandAircraftMission || !pAircraft)
 		{
 			const auto footCoords = pFoot->GetCoords();
-			const auto desired = DirStruct(std::atan2((double)(footCoords.Y - destination.Y), (double)(destination.X - footCoords.X)));
+			const auto desired = DirStruct(Math::atan2((double)(footCoords.Y - destination.Y), (double)(destination.X - footCoords.X)));
 
 			if (!iFly || !iFly->Is_Strafe() || horizontalDistance(footCoords) > 768 // I don't know why it's 3 cells' length, but its vanilla, keep it
 				|| Math::abs(static_cast<short>(static_cast<short>(desired.Raw) - static_cast<short>(pFoot->PrimaryFacing.Current().Raw))) >= 8192)
@@ -177,7 +177,7 @@ ASMJIT_PATCH(0x4CF190, FlyLocomotionClass_FlightUpdate_SetPrimaryFacing, 0x6) //
 				const auto turningRadius = MaxImpl((pType->SlowdownDistance / 512), (8 / pType->ROT));
 
 				// The direction of the airport
-				const auto currentDir = DirStruct(std::atan2((double)footCoords.Y - destination.Y, double(destination.X - footCoords.X)));
+				const auto currentDir = DirStruct(Math::atan2((double)footCoords.Y - destination.Y, double(destination.X - footCoords.X)));
 
 				// Included angle's raw
 				const auto difference = static_cast<short>(static_cast<short>(currentDir.Raw) - static_cast<short>(landingDir.Raw));
@@ -198,7 +198,7 @@ ASMJIT_PATCH(0x4CF190, FlyLocomotionClass_FlightUpdate_SetPrimaryFacing, 0x6) //
 			}
 
 			if (footCoords.Y != destination.Y || footCoords.X != destination.X)
-				pAircraft->PrimaryFacing.Set_Desired(DirStruct(std::atan2(double(footCoords.Y - destination.Y), double(destination.X - footCoords.X))));
+				pAircraft->PrimaryFacing.Set_Desired(DirStruct(Math::atan2(double(footCoords.Y - destination.Y), double(destination.X - footCoords.X))));
 			else
 				pAircraft->PrimaryFacing.Set_Desired(landingDir);
 		}

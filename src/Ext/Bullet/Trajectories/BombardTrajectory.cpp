@@ -296,11 +296,11 @@ void BombardTrajectory::CalculateTargetCoords()
 	if (!pType->LeadTimeCalculate && theTargetCoords == theSourceCoords && pBullet->Owner) //For disperse.
 	{
 		const CoordStruct theOwnerCoords = pBullet->Owner->GetCoords();
-		this->RotateAngle = std::atan2(double(theTargetCoords.Y - theOwnerCoords.Y), double(theTargetCoords.X - theOwnerCoords.X));
+		this->RotateAngle = Math::atan2(double(theTargetCoords.Y - theOwnerCoords.Y), double(theTargetCoords.X - theOwnerCoords.X));
 	}
 	else
 	{
-		this->RotateAngle = std::atan2(double(theTargetCoords.Y - theSourceCoords.Y), double(theTargetCoords.X - theSourceCoords.X));
+		this->RotateAngle = Math::atan2(double(theTargetCoords.Y - theSourceCoords.Y), double(theTargetCoords.X - theSourceCoords.X));
 	}
 
 	if (this->OffsetCoord != CoordStruct::Empty)

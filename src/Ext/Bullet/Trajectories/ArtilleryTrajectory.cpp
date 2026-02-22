@@ -90,7 +90,7 @@ void ArtilleryTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocit
 		fix = ((heightDiff * distance) / divisor) / heightDiff;
 	}
 
-	double DirectionAngel = std::atan2((double)(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y), (double)(pBullet->TargetCoords.X - pBullet->SourceCoords.X)) + (Math::GAME_PI / 2);
+	double DirectionAngel = Math::atan2((double)(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y), (double)(pBullet->TargetCoords.X - pBullet->SourceCoords.X)) + (Math::GAME_PI / 2);
 
 	this->InitialTargetLocation.X += static_cast<int>((pBullet->TargetCoords.Z * fix * Math::cos(DirectionAngel)));
 	this->InitialTargetLocation.Y += static_cast<int>((pBullet->TargetCoords.Z * fix * Math::sin(DirectionAngel)));

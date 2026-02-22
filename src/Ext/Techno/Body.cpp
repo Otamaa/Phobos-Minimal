@@ -5838,12 +5838,17 @@ bool TechnoExtData::FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeapo
 	return true;
 }
 
-Matrix3D TechnoExtData::GetTransform(TechnoClass* pThis, VoxelIndexKey* pKey)
+Matrix3D TechnoExtData::GetTransform(TechnoClass* pThis, VoxelIndexKey* pKey, bool isShadow)
 {
 	Matrix3D Mtx {};
 	// Step 1: get body transform matrix
 	if (pThis && (pThis->AbstractFlags & AbstractFlags::Foot) && ((FootClass*)pThis)->Locomotor) {
-		((FootClass*)pThis)->Locomotor.GetInterfacePtr()->Draw_Matrix(&Mtx, pKey);
+
+		if(isShadow)
+			((FootClass*)pThis)->Locomotor.GetInterfacePtr()->Shadow_Matrix(&Mtx, pKey);
+		else
+			((FootClass*)pThis)->Locomotor.GetInterfacePtr()->Draw_Matrix(&Mtx, pKey);
+
 		return Mtx;
 	}
 
@@ -5852,14 +5857,14 @@ Matrix3D TechnoExtData::GetTransform(TechnoClass* pThis, VoxelIndexKey* pKey)
 }
 
 // reversed from 6F3D60
-CoordStruct TechnoExtData::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordStruct& pCoord, bool isOnTurret, const CoordStruct& Overrider)
+CoordStruct TechnoExtData::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordStruct& flh, bool isOnTurret, int turIdx)
 {
 	auto const pType = GET_TECHNOTYPE(pThis);
 	Matrix3D mtx = TechnoExtData::GetTransform(pThis);
 	auto pFoot = flag_cast_to<FootClass*>(pThis);
 
 	// Steps 2-3: turret offset and rotation
-	if (isOnTurret && ( pThis->HasTurret() || !pFoot))
+	if (isOnTurret && (pThis->HasTurret() || !pFoot))
 	{
 		TechnoTypeExtContainer::Instance.Find(pType)->ApplyTurretOffset(&mtx, 1.0);
 		double turretRad = pThis->TurretFacing().GetRadian<32>();
@@ -5871,11 +5876,11 @@ CoordStruct TechnoExtData::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordS
 	}
 
 	// Step 4: apply FLH offset
-	mtx.Translate(static_cast<float>(pCoord.X), static_cast<float>(pCoord.Y), static_cast<float>(pCoord.Z));
+	mtx.Translate(static_cast<float>(flh.X), static_cast<float>(flh.Y), static_cast<float>(flh.Z));
 
 	Vector3D<float> result {};
 	Matrix3D::MatrixMultiply(&result, &mtx, &Vector3D<float>::Empty);
-	 //Resulting coords are mirrored along X axis, so we mirror it back
+	//Resulting coords are mirrored along X axis, so we mirror it back
 	result.Y *= -1;
 
 	//auto result = mtx.GetTranslation();
@@ -7090,48 +7095,40 @@ void TechnoExtData::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rec
 	}
 }
 
-void TechnoExtData::TransformFLHForTurret(TechnoClass* pThis, Matrix3D& mtx, bool isOnTurret)
+void TechnoExtData::TransformFLHForTurret(TechnoClass* pThis, Matrix3D& mtx, bool isOnTurret, double factor, int turIdx)
 {
 	auto const pType = GET_TECHNOTYPE(pThis);
+	const bool isFoot = (pThis->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None;
 
 	// turret offset and rotation
-	if (isOnTurret && pThis->HasTurret())
-	{
-		static COMPILETIMEEVAL double PI_BY_SIXTEEN = Math::GAME_PI / 16;
-		TechnoTypeExtContainer::Instance.Find(pType)->ApplyTurretOffset(&mtx, TechnoTypeExtData::TurretMultiOffsetDefaultMult);
-		double turretRad = (pThis->TurretFacing().GetFacing<32>() - 8) * -(PI_BY_SIXTEEN);
-		double bodyRad = (pThis->PrimaryFacing.Current().GetFacing<32>() - 8) * -(PI_BY_SIXTEEN);
-		float angle = (float)(turretRad - bodyRad);
+	if (isOnTurret && (pType->Turret || !isFoot)) {
+		TechnoTypeExtContainer::Instance.Find(pType)->ApplyTurretOffset(&mtx, factor, turIdx);
+		float angle {};
+
+		if (isFoot) {
+			const double turretRad = (pThis->TurretFacing().GetFacing<32>() - 8) * -(Math::PI_BY_SIXTEEN);
+			const short facint_32 = pThis->PrimaryFacing.Current().GetFacing<32>();
+			const double bodyRad = (facint_32 - 8) * -(Math::PI_BY_SIXTEEN);
+			angle = (float)(turretRad - facint_32);
+		}else {
+			angle = float(pThis->TurretFacing().GetFacing<32>() - 8) * -(Math::PI_BY_SIXTEEN);
+		}
 
 		mtx.RotateZ(angle);
 	}
 }
 
-Matrix3D TechnoExtData::GetFLHMatrix(TechnoClass* pThis, const CoordStruct& nCoord, bool isOnTurret)
+Matrix3D TechnoExtData::GetFLHMatrix(TechnoClass* pThis, const CoordStruct& nCoord, bool isOnTurret, double factor, bool isShadow, int turIdx)
 {
-	Matrix3D nMTX = TechnoExtData::GetTransform(flag_cast_to<FootClass*, false>(pThis));
-	TechnoExtData::TransformFLHForTurret(pThis, nMTX, isOnTurret);
+	Matrix3D nMTX = TechnoExtData::GetTransform(pThis, nullptr, isOnTurret);
+	TechnoExtData::TransformFLHForTurret(pThis, nMTX, isOnTurret, factor, turIdx);
 
 	// apply FLH offset
 	nMTX.Translate((float)nCoord.X, (float)nCoord.Y, (float)nCoord.Z);
 
+
+
 	return nMTX;
-}
-
-CoordStruct TechnoExtData::GetFLHAbsoluteCoordsB(TechnoClass* pThis, const CoordStruct& nCoord, bool isOnTurret)
-{
-	Vector3D<float> result {};
-	Matrix3D mtx = TechnoExtData::GetFLHMatrix(pThis, nCoord, isOnTurret);
-	Matrix3D::MatrixMultiply(&result , &mtx , &Vector3D<float>::Empty);
-
-	// Resulting coords are mirrored along X axis, so we mirror it back
-	result.Y *= -1;
-
-	// apply as an offset to global object coords
-	CoordStruct location = pThis->GetCoords();
-	location += { std::lround(result.X), std::lround(result.Y), std::lround(result.Z) };
-
-	return location;
 }
 
 void TechnoExtData::UpdateSharedAmmo(TechnoClass* pThis)
@@ -8235,7 +8232,7 @@ void TechnoExtData::ManualIdleAction()
 		{
 			CoordStruct technoCoords = This()->GetCoords();
 			const int offset = -static_cast<int>(technoCoords.Z * ((Unsorted::LeptonsPerCell / 2.0) / Unsorted::LevelHeight));
-			const double nowRadian = std::atan2(double(technoCoords.Y + offset - mouseCoords.Y), double(mouseCoords.X - technoCoords.X - offset)) - 0.125;
+			const double nowRadian = Math::atan2(double(technoCoords.Y + offset - mouseCoords.Y), double(mouseCoords.X - technoCoords.X - offset)) - 0.125;
 			DirStruct unitIdleFacingDirection;
 			unitIdleFacingDirection.SetRadian<32>(nowRadian);
 			turret->Set_Desired(unitIdleFacingDirection);
@@ -8613,4 +8610,55 @@ ASMJIT_PATCH(0x710415, TechnoClass_AnimPointerExpired_add, 6)
 	}
 
 	return 0x0;
+}
+
+void TechnoExtData::RecordRecoilData()
+{
+	const auto pThis = this->This();
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	if (auto turretIndex = pTypeExt->BurstPerTurret
+		? ((pThis->CurrentBurstIndex / pTypeExt->BurstPerTurret) % (pTypeExt->ExtraTurretCount + 1))
+		: 0)
+	{
+		turretIndex -= 1;
+		this->ExtraTurretRecoil[turretIndex].TravelSoFar = 0.0;
+		this->ExtraTurretRecoil[turretIndex].Fire();
+	}
+	else
+	{
+		pThis->TurretRecoil.TravelSoFar = 0.0;
+		pThis->TurretRecoil.Fire();
+	}
+
+	if (auto barrelIndex = (pTypeExt->ExtraTurretCount || pTypeExt->ExtraBarrelCount)
+		? (pThis->CurrentBurstIndex % ((pTypeExt->ExtraBarrelCount + 1) * (pTypeExt->ExtraTurretCount + 1)))
+		: 0)
+	{
+		barrelIndex -= 1;
+		this->ExtraBarrelRecoil[barrelIndex].TravelSoFar = 0.0;
+		this->ExtraBarrelRecoil[barrelIndex].Fire();
+	}
+	else
+	{
+		pThis->BarrelRecoil.TravelSoFar = 0.0;
+		pThis->BarrelRecoil.Fire();
+	}
+}
+
+void TechnoExtData::UpdateRecoilData()
+{
+	const auto pThis = this->This();
+
+	if(pThis->GetTechnoType()->TurretRecoil)
+		return;
+
+	pThis->TurretRecoil.Update();
+	pThis->BarrelRecoil.Update();
+
+	for (auto& data : this->ExtraTurretRecoil)
+		data.Update();
+
+	for (auto& data : this->ExtraBarrelRecoil)
+		data.Update();
 }

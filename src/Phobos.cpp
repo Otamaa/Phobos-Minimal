@@ -109,6 +109,7 @@ bool Phobos::Config::HideWarning { false };
 bool Phobos::Config::ToolTipDescriptions { true };
 bool Phobos::Config::ToolTipBlur { false };
 bool Phobos::Config::PriorityDeployFiltering { true };
+bool Phobos::Config::TypeSelectUseIFVMode { true };
 bool Phobos::Config::PrioritySelectionFiltering { true };
 bool Phobos::Config::DevelopmentCommands { true };
 bool Phobos::Config::ArtImageSwap { false };

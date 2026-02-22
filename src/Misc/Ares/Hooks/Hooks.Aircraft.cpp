@@ -259,7 +259,7 @@ ASMJIT_PATCH(0x416C3A, AircraftClass_Carryall_Unload_Facing, 0x5)
 
 	const auto nFacing = pThis->TurretFacing();
 
-	if (!pCargo->Unlimbo(*pCoord, (DirType)(((nFacing.Raw >> 7) + 1) >> 1)))
+	if (!pCargo->Unlimbo(*pCoord, (DirType)(nFacing.GetFacing<256>()))) // convert 16-bit BAM to 8-directional facing
 		return RetFailed;
 
 	const auto pCargoType = GET_TECHNOTYPE(pCargo);

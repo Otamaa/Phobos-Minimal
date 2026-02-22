@@ -11,7 +11,7 @@
 
 #include <InfantryClass.h>
 
-#ifdef FUCK
+#ifdef ATTACHMENT
 
 ASMJIT_PATCH(0x707CB3, TechnoClass_KillCargo_HandleAttachments, 0x6)
 {

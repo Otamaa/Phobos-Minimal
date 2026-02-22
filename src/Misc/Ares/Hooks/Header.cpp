@@ -7641,7 +7641,7 @@ std::pair<bool, FootClass*> TunnelFuncs::UnlimboOne(std::vector<FootClass*>* pVe
 	auto pPassenger = pVector->back();
 	auto nCoord = pTunnel->GetCoords();
 
-	const auto nBldFacing = ((((short)pTunnel->PrimaryFacing.Current().Raw >> 7) + 1) >> 1);
+	const auto nBldFacing = pTunnel->PrimaryFacing.Current().GetFacing<256>();
 
 	pPassenger->OnBridge = pTunnel->OnBridge;
 	pPassenger->SetLocation(nCoord);

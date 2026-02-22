@@ -1559,7 +1559,7 @@ inline void AdvancedDriveLocomotionClass::UpdateForwardState(int desiredRaw)
 	// Check if we have a target to face
 	if (this->ForwardTo != CoordStruct::Empty) {
 		// Calculate angle to target
-		const DirStruct targetDir = DirStruct(std::atan2(
+		const DirStruct targetDir = DirStruct(Math::atan2(
 			double(pLinked->Location.Y - this->ForwardTo.Y),
 			double(this->ForwardTo.X - pLinked->Location.X)));
 

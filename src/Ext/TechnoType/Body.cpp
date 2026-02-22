@@ -463,9 +463,13 @@ bool TechnoTypeExtData::CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClas
 		|| pProductTypeExt->BuiltAt.Contains(pFactoryType);
 }
 
-void  TechnoTypeExtData::ApplyTurretOffset(Matrix3D* mtx, double factor)
+void  TechnoTypeExtData::ApplyTurretOffset(Matrix3D* mtx, double factor, int turIdx)
 {
-	mtx->Translate((float)(this->TurretOffset->X * factor), (float)(this->TurretOffset->Y * factor), (float)(this->TurretOffset->Z * factor));
+	const auto offset = (size_t)turIdx >= this->ExtraTurretOffsets .size() ?
+		// pick the first 12 bytes of the data and ignore the rest, since the offset is only 3 integers, and the struct may contain more data
+		reinterpret_cast<CoordStruct*>(this->TurretOffset.operator->()) : &this->ExtraTurretOffsets[turIdx];
+
+	mtx->Translate((float)(offset->X * factor), (float)(offset->Y * factor), (float)(offset->Z * factor));
 }
 
 AnimTypeClass* TechnoTypeExtData::GetSinkAnim(TechnoClass* pThis)
@@ -735,6 +739,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	const auto pArtIni = &CCINIClass::INI_Art();
 	const char* pSection = pThis->ID;
 	const char* pArtSection = pThis->ImageFile;
+	char tempBuffer[256];
 
 	if (!parseFailAddr)
 	{
@@ -1820,8 +1825,6 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 			RefinerySmokeParticleSystemFour = This()->RefinerySmokeParticleSystem;
 		}
 
-		char tempBuffer[256];
-
 		this->Convert_ToHouseOrCountry.clear();
 		Nullable<TechnoTypeClass*> technoType;
 		// put all sides into the map
@@ -1912,7 +1915,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->AdvancedDrive_Hover_Bob.Read(exINI, pSection, "AdvancedDrive.Hover.Bob");
 		this->Harvester_CanGuardArea.Read(exINI, pSection, "Harvester.CanGuardArea");
 		this->Harvester_CanGuardArea_RequireTarget.Read(exINI, pSection, "Harvester.CanGuardArea.RequireTarget");
-	
+
 		Nullable<int> transDelay {};
 		transDelay.Read(exINI, pSection, "TiberiumEater.TransDelay");
 
@@ -2055,6 +2058,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 			_snprintf_s(tempBuffer, sizeof(tempBuffer), "WeaponGroupAs%d", idx + 1);
 			this->WeaponGroupAs[idx].Read(pINI, pSection, tempBuffer);
 		}
+
 	}
 
 	this->TintColorAirstrike = GeneralUtils::GetColorFromColorAdd(this->LaserTargetColor.Get(RulesClass::Instance->LaserTargetColor));
@@ -2063,6 +2067,44 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	if (pArtIni && pArtIni->GetSection(pArtSection))
 	{
 		INI_EX exArtINI(pArtIni);
+
+		// Extra barrel/turret offsets
+		this->BarrelOverTurret.Read(exArtINI, pArtSection, "BarrelOverTurret");
+		this->BarrelOffset.Read(exArtINI, pArtSection, "BarrelOffset");
+		this->ExtraBarrelCount.Read(exArtINI, pArtSection, "ExtraBarrelCount");
+
+		if (this->ExtraBarrelCount > 0)
+		{
+			for (int i = 0; i < this->ExtraBarrelCount; ++i)
+			{
+				Valueable<int> extraBarrelOffset;
+				_snprintf_s(tempBuffer, sizeof(tempBuffer), "ExtraBarrelOffset%u", i);
+				extraBarrelOffset.Read(exArtINI, pArtSection, tempBuffer);
+				this->ExtraBarrelOffsets.emplace_back(extraBarrelOffset.Get());
+			}
+		}
+		else
+		{
+			this->ExtraBarrelCount = 0;
+		}
+
+		this->ExtraTurretCount.Read(exArtINI, pArtSection, "ExtraTurretCount");
+
+		if (this->ExtraTurretCount > 0)
+		{
+			for (int i = 0; i < this->ExtraTurretCount; ++i)
+			{
+				Valueable<CoordStruct> extraTurretOffset;
+				_snprintf_s(tempBuffer, sizeof(tempBuffer), "ExtraTurretOffset%u", i);
+				extraTurretOffset.Read(exArtINI, pArtSection, tempBuffer);
+				this->ExtraTurretOffsets.emplace_back(extraTurretOffset.Get());
+			}
+			this->BurstPerTurret.Read(exArtINI, pArtSection, "BurstPerTurret");
+		}
+		else
+		{
+			this->ExtraTurretCount = 0;
+		}
 
 		this->FireUp.Read(exArtINI, pArtSection, "FireUp");
 		this->FireUp_ResetInRetarget.Read(exArtINI, pArtSection, "FireUp.ResetInRetarget");

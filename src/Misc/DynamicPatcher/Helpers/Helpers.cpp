@@ -259,7 +259,7 @@ VelocityClass Helpers_DP::RecalculateVelocityClass(BulletClass* pBullet, CoordSt
 DirStruct Helpers_DP::Point2Dir(CoordStruct& sourcePos, CoordStruct& targetPos)
 {
 	// get angle
-	double radians = std::atan2(static_cast<double>(sourcePos.Y - targetPos.Y), static_cast<double>(targetPos.X - sourcePos.X));
+	double radians = Math::atan2(static_cast<double>(sourcePos.Y - targetPos.Y), static_cast<double>(targetPos.X - sourcePos.X));
 	// Magic form tomsons26
 	radians -= Math::deg2rad(90);
 	return DirStruct(static_cast<short>(radians / Math::BINARY_ANGLE_MAGIC));
@@ -389,7 +389,7 @@ DirStruct Helpers_DP::DirNormalized(int index, int facing)
 
 CoordStruct Helpers_DP::OneCellOffsetToTarget(CoordStruct& sourcePos, CoordStruct& targetPos)
 {
-	const double angle = std::atan2(static_cast<double>(targetPos.Y - sourcePos.Y), static_cast<double>(targetPos.X - sourcePos.X));
+	const double angle = Math::atan2(static_cast<double>(targetPos.Y - sourcePos.Y), static_cast<double>(targetPos.X - sourcePos.X));
 	int y = static_cast<int>(256.0 * std::tan(angle));
 	int x = static_cast<int>(256.0 / std::tan(angle));
 

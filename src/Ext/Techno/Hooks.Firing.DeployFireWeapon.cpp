@@ -101,24 +101,6 @@ ASMJIT_PATCH(0x73DCEF, UnitClass_Mission_Unload_DeployFire, 0x6)
 	return SkipGameCode;
 }
 
-ASMJIT_PATCH(0x741288, UnitClass_CanFire_DeployFire_DoNotErrorFacing, 0x6)
-{
-	GET(UnitClass*, pThis, ESI);
-
-	//const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-
-	if (pThis->Type->DeployFire
-		&& !pThis->Type->IsSimpleDeployer
-		&& !pThis->Deployed
-		&& pThis->CurrentMission == Mission::Unload
-	)
-	{
-		return 0x741327; //fireOK
-	}
-
-	return 0x0;
-}
-
 ASMJIT_PATCH(0x4C77E4, EventClass_Execute_UnitDeployFire, 0x6)
 {
 	enum { DoNotExecute = 0x4C8109 };

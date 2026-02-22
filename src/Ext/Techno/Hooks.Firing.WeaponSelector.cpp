@@ -487,40 +487,6 @@ ASMJIT_PATCH(0x70E1A0, TechnoClass_GetTurretWeapon_LaserWeapon, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6FC7EB, TechnoClass_CanFire_InterceptBullet, 0x7)
-{
-	enum { IgnoreAG = 0x6FC815, ContinueCheck = 0x6FC7F2 };
-
-	GET(AbstractClass*, pTarget, EBX);
-
-	if (pTarget->WhatAmI() == AbstractType::Bullet)
-		return IgnoreAG;
-
-	R->AL(pTarget->IsInAir());
-	return ContinueCheck;
-}
-
-ASMJIT_PATCH(0x6FC749, TechnoClass_CanFire_AntiUnderground, 0x5)
-{
-	enum { Illegal = 0x6FC86A, GoOtherChecks = 0x6FC762 };
-
-	GET(Layer, layer, EAX);
-	//GET(TechnoClass*, pThis, EBX);
-	GET(WeaponTypeClass*, pWeapon, EDI);
-
-	auto const pProj = pWeapon->Projectile;
-	auto const pProjExt = BulletTypeExtContainer::Instance.Find(pProj);
-
-	if (layer == Layer::Underground && !pProjExt->AU)
-		return Illegal;
-
-	if ((layer == Layer::Air || layer == Layer::Top) && !pProj->AA)
-		return Illegal;
-
-	return GoOtherChecks;
-}
-
-
 #pragma region AttackUnderGround
 
 ASMJIT_PATCH(0x70023B, TechnoClass_MouseOverObject_AttackUnderGround, 0x5)

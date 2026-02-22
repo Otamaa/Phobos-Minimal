@@ -53,7 +53,7 @@ public:
 		double horizontalLength = this->LengthXY();
 
 		// Pitch angle in radians (atan2 returns angle above/below horizontal)
-		double pitchAngleRad = std::atan2(this->Z, horizontalLength);
+		double pitchAngleRad = Math::atan2(this->Z, horizontalLength);
 
 		// Offset by -90° (engine defines 0° as vertical down)
 		double adjustedPitch = pitchAngleRad - Math::DEG90_AS_RAD;

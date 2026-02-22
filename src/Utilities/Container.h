@@ -131,7 +131,7 @@ class Container : public ContainerExtHandler<T> , public ContainerInterfaces
 {
 public:
 
-	//the container is not handling the memory 
+	//the container is not handling the memory
 	//the object has the extension handling the memory
 	std::vector<T*> Array;
 
@@ -186,7 +186,7 @@ public:
 	//	}
 	//}
 
-public : 
+public :
 
 	virtual void Clear() {
 		for (auto& _item : Array) {
@@ -196,6 +196,6 @@ public :
 		}
 
 		Array.clear();
-	}	
+	}
 };
 

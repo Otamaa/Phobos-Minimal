@@ -603,7 +603,7 @@ void ModernIonBlastClass::DrawRealTime()
 				continue;
 
 			// Calculate distortion offset
-			float angle = std::atan2((float)deltaY, (float)deltaX);
+			float angle = Math::atan2((float)deltaY, (float)deltaX);
 			Point2D offset = CalculateDistortionOffset(intensity, distance, angle, deltaX, deltaY);
 
 			// Apply offset to get source pixel

@@ -5688,12 +5688,6 @@ ASMJIT_PATCH(0x42CCC8, AStarClass_FindPath_Exit, 0x6)
 
 #endif
 
-ASMJIT_PATCH(0x7410D6, UnitClass_CanFire_Tethered, 0x7)
-{
-	GET(TechnoClass*, pLink, EAX);
-	return !pLink ? 0x7410DD : 0x0;
-}
-
 ASMJIT_PATCH(0x4FD203, HouseClass_RecalcCenter_Optimize, 0x6)
 {
 	GET(BuildingClass*, pBld, ESI);

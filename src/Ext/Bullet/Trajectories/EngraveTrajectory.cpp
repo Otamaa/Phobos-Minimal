@@ -187,7 +187,7 @@ void EngraveTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 		pBullet->Target = MapClass::Instance->TryGetCellAt(TheSourceCoords);
 	}
 
-	double RotateAngle = std::atan2(float(TheTargetCoords.Y - TheSourceCoords.Y), float(TheTargetCoords.X - TheSourceCoords.X));
+	double RotateAngle = Math::atan2(float(TheTargetCoords.Y - TheSourceCoords.Y), float(TheTargetCoords.X - TheSourceCoords.X));
 	if (this->SourceCoord.X != 0 || this->SourceCoord.Y != 0)
 	{
 		TheSourceCoords = TheTargetCoords;

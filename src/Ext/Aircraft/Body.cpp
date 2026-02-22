@@ -767,7 +767,7 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 			};
 
 			// Calculate yaw angle to face the target in XY plane
-			double yawRadians = std::atan2(-aimVector.Y, aimVector.X) - Math::DEG90_AS_RAD;
+			double yawRadians = Math::atan2(-aimVector.Y, aimVector.X) - Math::DEG90_AS_RAD;
 			int yawBinaryAngle = static_cast<int>(yawRadians * Math::BINARY_ANGLE_MAGIC);
 			int adjustedYaw = yawBinaryAngle - Math::BINARY_ANGLE_MASK;
 			double adjustedYawRad = adjustedYaw * Math::DIRECTION_FIXED_MAGIC;
@@ -785,7 +785,7 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 
 			// Calculate pitch angle from aim vector
 			double horizontalDistance = aimVector.LengthXY();
-			double pitchRadians = std::atan2(aimVector.Z, horizontalDistance) - Math::DEG90_AS_RAD;
+			double pitchRadians = Math::atan2(aimVector.Z, horizontalDistance) - Math::DEG90_AS_RAD;
 			int pitchBinaryAngle = static_cast<int>(pitchRadians * Math::BINARY_ANGLE_MAGIC);
 			int adjustedPitch = pitchBinaryAngle - Math::BINARY_ANGLE_MASK;
 			double adjustedPitchRad = adjustedPitch * Math::DIRECTION_FIXED_MAGIC;

@@ -475,24 +475,3 @@ ASMJIT_PATCH(0x4C72F2, EventClass_Execute__AircraftAreaGuard_Untether, 0x6)
 
 	return 0;
 }
-
-#include <Locomotor/RocketLocomotionClass.h>
-#include <Locomotor/Cast.h>
-
-ASMJIT_PATCH(0x66295A, RocketLocomotionClass_Process_IsHighEnoughForCruise, 0x8)
-{
-	GET(AircraftClass*, pLinkedTo, ECX);
-	GET(ILocomotion*, pThis, ESI);
-
-	auto pLoco = locomotion_cast<RocketLocomotionClass*>(pThis);
-	auto heightThis = pLinkedTo->GetHeight();
-	auto heightTarget = pLinkedTo->Location.Z - pLoco->MovingDestination.Z;
-
-	if (MapClass::Instance->GetCellAt(pLoco->MovingDestination)->ContainsBridge())
-		heightTarget -= CellClass::BridgeHeight;
-
-	R->EAX(MinImpl(heightThis, heightTarget));
-	//R->EAX(pLinkedTo->GetHeight()); Vanilla behavior
-
-	return R->Origin() + 0x8;
-}

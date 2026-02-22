@@ -59,6 +59,9 @@ namespace Math
 
 	static COMPILETIMEEVAL double TWO_BY_PI = std::bit_cast<double>(uint64_t { 0x3FC25E5374344960ull });
 
+	//π/16 , 0.1963495408493621
+	static COMPILETIMEEVAL double PI_BY_SIXTEEN = std::bit_cast<double>(uint64_t { 0x3FC921FB54442D18ull });
+
 	//0.78532625585357209119199168682098
 	static COMPILETIMEEVAL double PI_BY_FOUR_APPROX = std::bit_cast<double>(0x3FE921648732995Cull);
 
@@ -138,25 +141,25 @@ namespace Math
 	//~360° (wraps back to 0)
 	static COMPILETIMEEVAL  uint16_t BINARY_ANGLE_MASK = 0x3FFF;
 
-	//Generating std::cos(Math::DIRECTION_FIXED_MAGIC) : 
+	//Generating std::cos(Math::DIRECTION_FIXED_MAGIC) :
 	static COMPILETIMEEVAL double COS_DIRECTION_FIXED_MAGIC = std::bit_cast<double>(0x3FEFFFFFFD884E88ull);
-	//Generating std::sin(Math::DIRECTION_FIXED_MAGIC) : 
+	//Generating std::sin(Math::DIRECTION_FIXED_MAGIC) :
 	static COMPILETIMEEVAL double SIN_DIRECTION_FIXED_MAGIC = std::bit_cast<double>(0xBF19222D97F9FC90ull);
 	//Generating std::sqrt(10000.0) :
 	static COMPILETIMEEVAL double SQRT_TENTOUSAND = std::bit_cast<double>(0x4059000000000000ull);
-	//Generating std::sin(Math::PI_BY_FOUR_ACCURATE) : 
+	//Generating std::sin(Math::PI_BY_FOUR_ACCURATE) :
 	static COMPILETIMEEVAL double SIN_PI_BY_FOUR_ACCURATE = std::bit_cast<double>(0x3FE6A09E667F3BCCull);
-	//Generating std::cos(Math::PI_BY_FOUR_ACCURATE) : 
+	//Generating std::cos(Math::PI_BY_FOUR_ACCURATE) :
 	static COMPILETIMEEVAL double COS_PI_BY_FOUR_ACCURATE = std::bit_cast<double>(0x3FE6A09E667F3BCDull);
-	//Generating std::sin(Math::PI_BY_TWO_ACCURATE) : 
+	//Generating std::sin(Math::PI_BY_TWO_ACCURATE) :
 	static COMPILETIMEEVAL double SIN_PI_BY_TWO_ACCURATE = std::bit_cast<double>(0x3FF0000000000000ull);
-	//Generating std::cos(Math::PI_BY_TWO_ACCURATE) : 
+	//Generating std::cos(Math::PI_BY_TWO_ACCURATE) :
 	static COMPILETIMEEVAL double COS_PI_BY_TWO_ACCURATE = std::bit_cast<double>(0x3C91A60000000000ull);
 	//Generating std::sqrt(3) :
 	static COMPILETIMEEVAL double SQRT_THREE = std::bit_cast<double>(0x3FFBB67AE8584CAAull);
-	//Generating std::sqrt(5) : 
+	//Generating std::sqrt(5) :
 	static COMPILETIMEEVAL double SQRT_FIVE = std::bit_cast<double>(0x4001E3779B97F4A8ull);
-	//Generating std::sqrt(8) : 
+	//Generating std::sqrt(8) :
 	static COMPILETIMEEVAL double SQRT_EIGHT = std::bit_cast<double>(0x4006A09E667F3BCDull);
 
 	static OPTIONALINLINE COMPILETIMEEVAL double rad2deg(double rad) { return rad * 180.0 / GAME_PI; }
@@ -165,7 +168,7 @@ namespace Math
 	template<typename T> requires std::is_integral_v<T> || std::is_floating_point_v<T>
 	static COMPILETIMEEVAL float DEG_TO_RADF(T val) { return (((float)val) * GAME_PI / 180.0f); }
 
-	
+
 
 #ifndef Original
 
@@ -235,7 +238,7 @@ namespace Math
 	float FORCEDINLINE sqrt(int value) noexcept {
 		return Math::sqrt(static_cast<double>(value));
 	}
-#else 
+#else
 
 	float FORCEDINLINE sqrt(int value) noexcept {
 		return (float)std::sqrt((double)value);

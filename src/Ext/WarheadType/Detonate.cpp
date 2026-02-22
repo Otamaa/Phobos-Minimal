@@ -854,6 +854,14 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 			return;
 	}
 
+	if (this->Taunt && pOwner->IsAlive) {
+		pTarget->Override_Mission(Mission::Attack, pOwner, nullptr);
+
+		if (!pTarget->IsAlive)
+			return;
+	}
+
+
 	for(auto& id : this->LimboKill_IDs){
 		BuildingExtData::ApplyLimboKill(id, -1 ,this->LimboKill_Affected, pTarget->Owner, pHouse);
 	}

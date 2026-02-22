@@ -170,29 +170,6 @@ ASMJIT_PATCH(0x7415A9, UnitClass_ApproachTarget_SetWeaponIndex, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x741050, UnitClass_CanFire_DeployToFire, 0x6)
-{
-	enum { NoNeedToCheck = 0x74132B , SkipGameCode = 0x7410B7,  MustDeploy = 0x7410A8 };
-
-	GET(UnitClass*, pThis, ESI);
-
-	if (pThis->Type->DeployToFire
-		&& pThis->CanDeployNow()
-		&& !TechnoExtData::CanDeployIntoBuilding(pThis, true)
-		)
-	{
-		return MustDeploy;
-	}
-
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-
-	if (!pTypeExt->NoTurret_TrackTarget.Get(RulesExtData::Instance()->NoTurret_TrackTarget)) {
-		return NoNeedToCheck;
-	}
-
-	return SkipGameCode;
-}
-
 ASMJIT_PATCH(0x73891D, UnitClass_Active_Click_With_DisallowMoving, 0x6) {
 	GET(UnitClass*, pThis, ESI);
 

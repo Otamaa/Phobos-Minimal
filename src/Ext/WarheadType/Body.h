@@ -487,6 +487,7 @@ public:
 
 	Nullable<bool> AnimZAdjust;
 	Nullable<bool> ApplyPerTargetEffectsOnDetonate;
+	Valueable<bool> Taunt;
 
 	Valueable<WarheadTypeClass*> ReturnWarhead;
 	Valueable<int> ReturnWarhead_Damage;
@@ -854,6 +855,7 @@ public:
 		PlayAnimAboveSurface(false),
 		AnimZAdjust(),
 		ApplyPerTargetEffectsOnDetonate(),
+		Taunt { false },
 		ReturnWarhead {},
 		ReturnWarhead_Damage { 0 },
 		ReturnWarhead_Chance { 1.0 },

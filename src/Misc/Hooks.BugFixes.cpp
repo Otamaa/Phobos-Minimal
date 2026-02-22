@@ -1810,7 +1810,7 @@ ASMJIT_PATCH(0x72958E, TunnelLocomotionClass_ProcessDigging_SlowdownDistance, 0x
 	if (distance > currentSpeed)
 	{
 		REF_STACK(CoordStruct, newLoc, STACK_OFFSET(0x40, -0xC));
-		double angle = -std::atan2((float)(currLoc.Y - pLoco->_CoordsNow.Y), (float)(pLoco->_CoordsNow.X - currLoc.X));
+		double angle = -Math::atan2((float)(currLoc.Y - pLoco->_CoordsNow.Y), (float)(pLoco->_CoordsNow.X - currLoc.X));
 		newLoc = currLoc + CoordStruct { int((double)currentSpeed * Math::cos(angle)), int((double)currentSpeed * Math::sin(angle)), 0 };
 		return 0x7298D3;
 	}
@@ -2239,16 +2239,6 @@ ASMJIT_PATCH(0x6F4BB3, TechnoClass_ReceiveCommand_RequestUntether, 0x7)
 	}
 
 	return 0;
-}
-
-ASMJIT_PATCH(0x6FC617, TechnoClass_CanFire_AirCarrierSkipCheckNearBridge, 0x8)
-{
-	enum { ContinueCheck = 0x6FC61F, TemporaryCannotFire = 0x6FCD0E };
-
-	GET(TechnoClass* const, pThis, ESI);
-	GET(const bool, nearBridge, EAX);
-
-	return (nearBridge && !pThis->IsInAir()) ? TemporaryCannotFire : ContinueCheck;
 }
 
 // WW used SetDesired here, causing the barrel drawn incorrectly.
@@ -3089,15 +3079,6 @@ ASMJIT_PATCH(0x46954C, BulletClass_Logics_IsLocomotor_Bunker, 0x6)
 	return pTarget->BunkerLinkedItem ? CannotImbue : 0;
 }
 
-ASMJIT_PATCH(0x6FC3AE, TechnoClass_CanFire_TankInBunker_LocomotorWarhead, 0x6)
-{
-	enum { Illegal = 0x6FC86A };
-
-	GET(WeaponTypeClass*, pWeapon, EDI);
-
-	return pWeapon->Warhead && pWeapon->Warhead->IsLocomotor ? Illegal : 0;
-}
-
 // Fixed the bug that building with Explodes=yes use Ares's rubble logic will cause it's owner cannot defeat normally
 ASMJIT_PATCH(0x441C76, BuildingClass_Destroy_Explode_RubbleFix, 0x5)
 {
@@ -3190,4 +3171,23 @@ ASMJIT_PATCH(0x692AD6, ScrollClass_ChooseAction_SellWall, 0x6)
 		return NoSell;
 
 	return 0;
+}
+
+
+// Fixes a desync caused by a check for shrouding at a specific cell
+// Sets Session.MPGameMode->SkipCheatCheck() to true
+DEFINE_PATCH(0x5C0E30, 0xB0, 0x01)
+
+ASMJIT_PATCH(0x4D4203, FootClass_MissionMove_EndCheckFix1, 0x6)
+{
+	GET(FootClass*, pThis, ESI);
+	R->EAX(pThis->Destination && pThis->DistanceFrom(pThis->Destination) > Unsorted::LeptonsPerCell);
+	return 0x4D4209;
+}
+
+ASMJIT_PATCH(0x4D4221, FootClass_MissionMove_EndCheckFix2, 0x6)
+{
+	GET(FootClass*, pThis, ESI);
+	R->AL(pThis->Locomotor.GetInterfacePtr()->Is_Moving_Now());
+	return 0x4D422D;
 }

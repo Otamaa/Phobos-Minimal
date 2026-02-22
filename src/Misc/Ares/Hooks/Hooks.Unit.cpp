@@ -120,23 +120,6 @@ DEFINE_JUMP(LJMP, 0x7388EB, 0x7388FD);
 //UnitClass_DrawSHP_SkipTurretedShadow
 DEFINE_JUMP(LJMP, 0x73C733, 0x73C7AC);
 
-ASMJIT_PATCH(0x741206, UnitClass_CanFire, 0x6)
-{
-	GET(UnitClass*, pThis, ESI);
-	auto Type = pThis->Type;
-
-	if (!Type->TurretCount || Type->IsGattling)
-	{
-		return 0x741229;
-	}
-
-	const auto W = pThis->GetWeapon(pThis->SelectWeapon(nullptr));
-	return (W->WeaponType && W->WeaponType->Warhead->Temporal)
-		? 0x741210u
-		: 0x741229u
-		;
-}
-
 ASMJIT_PATCH(0x73C613, UnitClass_DrawSHP_FacingsA, 0x7)
 {
 	GET(UnitClass*, pThis, EBP);
@@ -371,50 +354,6 @@ bool NOINLINE TechnoExtData::CanTargetICUnit(TechnoClass* pThis , FakeWeaponType
 	const bool IsHuman = pThis->Owner->IsControlledByHuman();
 
 	return pTypeExt->AllowFire_IroncurtainedTarget.Get(IsHuman ? RulesExtData::Instance()->CanTarget_IronCurtained : RulesExtData::Instance()->CanTargetAI_IronCurtained);
-}
-
-ASMJIT_PATCH(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
-{
-	enum {
-		FireRange = 0x6FC0DF,  //keep targeting ?
-		FireIllegal = 0x6FCCDF , //cannot fire at all , ignore target
-		ContinueCheck = 0x0  //weeee
-	};
-
-	GET(TechnoClass*, pThis, ESI);
-	GET(AbstractClass*, pTarget, EBX);
-	GET_STACK(int, weaponIndex, STACK_OFFSET(0x20, 0x8));
-
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
-
-	// Force weapon check
-	const int newIndex = pTypeExt->SelectPhobosWeapon(pThis, pTarget);
-
-	if (newIndex >= 0) {
-		weaponIndex = newIndex;
-	}
-
-	pExt->CanFireWeaponType = pThis->GetWeapon(weaponIndex)->WeaponType;
-
-	if(pExt->CanFireWeaponType) {
-		if (pExt->DisableWeaponTimer.InProgress())
-			return FireRange;
-
-		if (pExt->AE.flags.DisableWeapons)
-			return FireRange;
-
-
-		if(auto const pTechnoT = flag_cast_to<TechnoClass*, false>(pTarget)) {
-			if(!TechnoExtData::CanTargetICUnit(pThis, (FakeWeaponTypeClass*)pExt->CanFireWeaponType, pTechnoT))
-			return FireIllegal;
-		}
-
-		return ContinueCheck;
-	}
-
-
-	return FireIllegal;
 }
 
 // stop command would still affect units going berzerk
@@ -995,36 +934,6 @@ DEFINE_JUMP(LJMP, 0x6F7FC5, 0x6F7FDF);
 
 // DEFINE_PATCH_ADDR_OFFSET(byte, 0x6F8F1F , 0x2, 0x3C);
 // DEFINE_PATCH_ADDR_OFFSET(byte, 0x6F8EE3 , 0x2, 0x3C);
-
-ASMJIT_PATCH(0x51C913, InfantryClass_CanFire_Heal, 7)
-{
-	enum { retFireIllegal = 0x51C939, retContinue = 0x51C947 };
-	GET(InfantryClass*, pThis, EBX);
-	GET(ObjectClass*, pTarget, EDI);
-	GET_STACK(int, nWeaponIdx, STACK_OFFSET(0x20, 0x8));
-
-	const auto pThatTechno = flag_cast_to<TechnoClass*>(pTarget);
-
-	if (!pThatTechno || pThatTechno->IsIronCurtained())
-	{
-		return retFireIllegal;
-	}
-
-	return  TechnoExt_ExtData::FiringAllowed(pThis, pThatTechno, pThis->GetWeapon(nWeaponIdx)->WeaponType) ?
-		retContinue : retFireIllegal;
-
-}
-
-ASMJIT_PATCH(0x741113, UnitClass_CanFire_Heal, 0xA)
-{
-	enum { retFireIllegal = 0x74113A, retContinue = 0x741149 };
-	GET(UnitClass*, pThis, ESI);
-	GET(TechnoClass*, pThatTechno, EDI);
-	GET_STACK(int, nWeaponIdx, STACK_OFFSET(0x1C, 0x8));
-
-	return !pThatTechno->IsIronCurtained() && TechnoExt_ExtData::FiringAllowed(pThis, pThatTechno, pThis->GetWeapon(nWeaponIdx)->WeaponType) ?
-		retContinue : retFireIllegal;
-}
 
 ASMJIT_PATCH(0x6F7F4F, TechnoClass_EvaluateObject_NegativeDamage, 0x7)
 {

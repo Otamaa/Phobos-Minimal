@@ -310,7 +310,7 @@ CoordStruct PhobosBulletObstacleHelper::AddFLHToSourceCoords(
 	const auto pCell = MapClass::Instance->GetCellAt(sourceCoords);
 	const auto source = pTechno->OnBridge ? pCell->GetCoordsWithBridge() : pCell->GetCoords();
 	// Predicted orientation
-	float radian = (float)(-std::atan2(float(targetCoords.Y - source.Y), float(targetCoords.X - source.X)));
+	float radian = (float)(-Math::atan2(float(targetCoords.Y - source.Y), float(targetCoords.X - source.X)));
 	mtx.RotateZ(radian);
 	// Offset of turret, directly substitute because it is impossible to predict the orientation of the techno when it reaches this position
 	// Only predict the situation when the techno is facing the target directly

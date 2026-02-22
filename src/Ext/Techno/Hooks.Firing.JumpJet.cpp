@@ -69,7 +69,7 @@ ASMJIT_PATCH(0x736E6E, UnitClass_UpdateFiring_OmniFireTurnToTarget, 0x9) {
 		{
 			CoordStruct& source = pThis->Location;
 			CoordStruct target = pThis->Target->GetCoords();
-			DirStruct tgtDir { std::atan2(double(source.Y - target.Y), double(target.X - source.X)) };
+			DirStruct tgtDir { Math::atan2(double(source.Y - target.Y), double(target.X - source.X)) };
 
 			if (pThis->GetRealFacing() != tgtDir)
 			{

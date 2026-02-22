@@ -14,11 +14,12 @@
 
 #include "DamageArea.h"
 
-#ifdef NEW
+#ifndef NEW
 /*
 *	Original Backport code author : ZivDero
 *	Otamaa : do some modification to adapt YRpp
 */
+
 struct _KamikazetrackerClass
 {
 	static void __fastcall Add(Kamikaze* pThis, DWORD, AircraftClass* pAir, AbstractClass* pTarget)
@@ -66,7 +67,7 @@ struct _KamikazetrackerClass
 		if (!pThis->Nodes.Count)
 			return;
 
-		auto removeIter = pThis->Nodes.remove_if([=](auto& item)
+		pThis->Nodes.erase_if([=](auto& item)
 		{
 			if (item->Item == pTarget)
 			{
@@ -83,8 +84,6 @@ struct _KamikazetrackerClass
 			return false;
 		});
 
-		pThis->Nodes.Reset(std::distance(pThis->Nodes.begin(), removeIter));
-
 	}
 
 	static void __fastcall Clear(Kamikaze* pThis, DWORD)
@@ -94,16 +93,23 @@ struct _KamikazetrackerClass
 			GameDelete<false, false>(pThis->Nodes[i]);
 		}
 
-		pThis->Nodes.Clear();
+		pThis->Nodes.clear();
 		pThis->UpdateTimer.Start(1);
 	}
 };
 
-//DEFINE_FUNCTION_JUMP(LJMP, 0x54E3B0, _KamikazetrackerClass::Add));
-//DEFINE_FUNCTION_JUMP(LJMP, 0x54E4D0, _KamikazetrackerClass::AI));
-//DEFINE_FUNCTION_JUMP(LJMP, 0x54E590, _KamikazetrackerClass::Detach));
-//DEFINE_FUNCTION_JUMP(LJMP, 0x54E6F0, _KamikazetrackerClass::Clear));
+DEFINE_FUNCTION_JUMP(LJMP, 0x54E3B0, _KamikazetrackerClass::Add);
+DEFINE_FUNCTION_JUMP(LJMP, 0x54E4D0, _KamikazetrackerClass::AI);
+DEFINE_FUNCTION_JUMP(LJMP, 0x54E590, _KamikazetrackerClass::Detach);
+DEFINE_FUNCTION_JUMP(LJMP, 0x54E6F0, _KamikazetrackerClass::Clear);
 
+// What offset is CurrentPitch in RocketLocomotionClass?
+static_assert(offsetof(RocketLocomotionClass, CurrentPitch) == 0x54, "wrong offset");
+static_assert(Math::PI_BY_SIXTEEN == 0.19634954084936207, "wrong constant");
+
+// What offset is Owner/LinkedTo?
+static_assert(offsetof(RocketLocomotionClass, LinkedTo) == 0x0C, "wrong offset");
+// ESI+8 in asm = RocketLocomotionClass+0xC (accounting for COM+4 offset)
 
 /*
 *	Original Backport code author : CCHyper & ZivDero
@@ -159,7 +165,7 @@ struct _RocketLocomotionClass
 
 		if (auto const& pWeapon = IsElite ? pTypeExt->CustomMissileEliteWeapon : pTypeExt->CustomMissileWeapon)
 		{
-			WeaponTypeExtData::DetonateAt(pWeapon, coords, pRocket, true, pRocket ? pRocket->Owner : nullptr);
+			WeaponTypeExtData::DetonateAt3(pWeapon, coords, pRocket, true, pRocket ? pRocket->Owner : nullptr);
 			return true;
 		}
 
@@ -192,36 +198,41 @@ struct _RocketLocomotionClass
 		return TechnoTypeExtContainer::Instance.Find(pType)->CustomMissileTrailerSeparation;
 	}
 
+	static COMPILETIMEEVAL short NOINLINE GetFacing(RocketLocomotionClass* pThis) {
+		return pThis->Owner->PrimaryFacing.Current().GetFacing<32>();
+	}
+
 	static Matrix3D* __stdcall _Draw_Matrix(ILocomotion* pThis, Matrix3D* result, VoxelIndexKey* key)
 	{
 		result->MakeIdentity();
-
 		auto pRocket = static_cast<RocketLocomotionClass*>(pThis);
 		const auto pAir = pRocket->Owner;
 
-		double angle = double((int)(pAir->PrimaryFacing.Current().GetFacing<32>() - 8) * Math::DIRECTION_FIXED_MAGIC);
+		// negative angle — matches original
+		double angle = double((GetFacing(pRocket) - 8) * -Math::PI_BY_SIXTEEN);
 		result->RotateZ((float)angle);
 
-		if (pRocket->CurrentPitch != 0.0)
+		if (pRocket->CurrentPitch != 0.0f)
 		{
-			result->RotateY((-pRocket->CurrentPitch));
+			result->RotateY(-pRocket->CurrentPitch);
 			const RocketStruct* rocket = GetRocketData(pAir->GetTechnoType());
 
 			if (key)
 			{
-				if (pRocket->CurrentPitch == float(rocket->PitchInitial * Math::DEG90_AS_RAD))
+				const float pitchInitial = float(rocket->PitchInitial * Math::DEG90_AS_RAD);
+				const float pitchFinal = float(rocket->PitchFinal * Math::DEG90_AS_RAD);
+
+				if (pRocket->CurrentPitch == pitchInitial)
 					*(int*)(key) |= 0x20;
-				else if (pRocket->CurrentPitch == float(rocket->PitchFinal * Math::DEG90_AS_RAD))
+				else if (pRocket->CurrentPitch == pitchFinal)
 					*(int*)(key) |= 0x40;
 				else
-					key->Invalidate();
+					*(int*)(key) = -1;
 			}
 		}
 
 		if (key)
-		{
-			*(int*)(key) |= pAir->PrimaryFacing.Current().GetFacing<32>();
-		}
+			*(int*)(key) |= GetFacing(pRocket);
 
 		return result;
 	}
@@ -296,7 +307,7 @@ struct _RocketLocomotionClass
 						  pAir->Owner,
 						  pAir->Target ? pAir->Target->GetOwningHouse() : nullptr,
 						  pAir,
-						  true);
+						  true, false);
 					}
 
 					pRocket->TrailerTimer.Start(24);
@@ -313,7 +324,8 @@ struct _RocketLocomotionClass
 
 			if (pRocket->MissionTimer.Expired())
 			{
-				pRocket->MissionState = !iscruise ? RocketMissionState::VerticalTakeOff : RocketMissionState::GainingAltitude;
+				pRocket->MissionState = iscruise ? RocketMissionState::VerticalTakeOff :
+												   RocketMissionState::Tilt;
 				pRocket->MissionTimer.Start(rocket->TiltFrames);
 			}
 			break;
@@ -345,10 +357,10 @@ struct _RocketLocomotionClass
 					  pAir->Owner,
 					  pAir->Target ? pAir->Target->GetOwningHouse() : nullptr,
 					  pAir,
-					  true);
+					  true, false);
 				}
 
-				VocClass::SafeImmedietelyPlayAtpAirType->AuxSound1, pAir->Location);
+				VocClass::SafeImmedietelyPlayAt(pAirType->AuxSound1, pAir->Location);
 			}
 
 			break;
@@ -365,8 +377,13 @@ struct _RocketLocomotionClass
 
 			pRocket->CurrentSpeed += rocket->Acceleration;
 			pRocket->CurrentSpeed = std::min(pRocket->CurrentSpeed, static_cast<double>(pAirType->Speed));
+			auto heightThis = pAir->GetHeight();
+			auto heightTarget = pAir->Location.Z - pRocket->MovingDestination.Z;
 
-			if (pAir->GetHeight() >= rocket->Altitude)
+			if (MapClass::Instance->GetCellAt(pRocket->MovingDestination)->ContainsBridge())
+				heightTarget -= CellClass::BridgeHeight;
+
+			if (MinImpl(heightThis, heightTarget) >= rocket->Altitude)
 			{
 				pRocket->MissionState = RocketMissionState::Flight;
 				Coordinate center_coord = pAir->GetCoords();
@@ -450,10 +467,10 @@ struct _RocketLocomotionClass
 					  pAir->Owner,
 					  pAir->Target ? pAir->Target->GetOwningHouse() : nullptr,
 					  pAir,
-					  true);
-
-					pRocket->TrailerTimer.Start(24);
+					  true, false);
 				}
+
+				pRocket->TrailerTimer.Start(24);
 			}
 
 			if (pRocket->MissionTimer.Percent_Expired() != 1.0)
@@ -470,7 +487,7 @@ struct _RocketLocomotionClass
 
 				if (Lastflight_coord == CellStruct::Empty)
 				{
-					VocClass::SafeImmedietelyPlayAtpAirType->AuxSound1, pAir->Location);
+					VocClass::SafeImmedietelyPlayAt(pAirType->AuxSound1, pAir->Location);
 					AircraftTrackerClass::Instance->Add(pAir);
 				}
 				pRocket->TrailerTimer.Start(0);
@@ -491,7 +508,7 @@ struct _RocketLocomotionClass
 					pAir->Owner,
 					pAir->Target ? pAir->Target->GetOwningHouse() : nullptr,
 					pAir,
-					true);
+					true, false);
 
 				pRocket->TrailerTimer.Start(GetTrailerSeparation(pAirType));
 			}
@@ -544,7 +561,7 @@ public:
 					pLinked->Owner,
 					pLinked->Target ? pLinked->Target->GetOwningHouse() : nullptr,
 					pLinked,
-					true
+					true , false
 				);
 			}
 
@@ -584,28 +601,30 @@ public:
 		const Coordinate left_to_go = pThis->MovingDestination - pThis->Owner->Location;
 		const double length = Vector2D<float> { static_cast<float>(left_to_go.X), static_cast<float>(left_to_go.Y) }.Length();
 
-		if (length > 0)
-			return Math::atan(double(left_to_go.Z / length));
+		if (length <= 0.0)
+			return -Math::DEG90_AS_RAD;
 
-		return -Math::DEG90_AS_RAD;
+		return Math::atan(double(left_to_go.Z / length));
 	}
 
 	static Coordinate Get_Next_Position(RocketLocomotionClass* pThis, double speed)
 	{
-		const double horizontal_speed = Math::cos((double)pThis->CurrentPitch) * speed;
-		const double horizontal_angle = pThis->Owner->PrimaryFacing.Current().GetRadian<65536>();
+		const double hSpeed = Math::cos(double(pThis->CurrentPitch)) * speed;
+		const double yaw = pThis->Owner->PrimaryFacing.Current().GetRadian<65536>();
 
+		const CoordStruct& loc = pThis->Owner->Location;
 		return {
-		int(pThis->Owner->Location.X + Math::cos(horizontal_angle) * horizontal_speed)
-		, int(pThis->Owner->Location.Y - Math::sin(horizontal_angle) * horizontal_speed)
-		, int(pThis->Owner->Location.Z + Math::sin((double)pThis->CurrentPitch) * speed) };
+			loc.X + int(Math::cos(yaw) * hSpeed),
+			loc.Y - int(Math::sin(yaw) * hSpeed),   // minus: game Y increases southward
+			loc.Z + int(Math::sin(double(pThis->CurrentPitch)) * speed)
+		};
 	}
 };
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0B60, _RocketLocomotionClass::_Move_To));
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0B40, _RocketLocomotionClass::_Draw_Matrix));
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0B9C, _RocketLocomotionClass::_Is_Moving_Now));
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0B5C, _RocketLocomotionClass::_Process));
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0B60, _RocketLocomotionClass::_Move_To);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0B40, _RocketLocomotionClass::_Draw_Matrix);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0B9C, _RocketLocomotionClass::_Is_Moving_Now);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0B5C, _RocketLocomotionClass::_Process);
 #else
 
 
@@ -769,6 +788,25 @@ ASMJIT_PATCH(0x662720, RocketLocomotionClass_ILocomotion_Process_Raise, 0x6)
 	}
 
 	return Continue;
+}
+
+
+ASMJIT_PATCH(0x66295A, RocketLocomotionClass_Process_IsHighEnoughForCruise, 0x8)
+{
+	GET(AircraftClass*, pLinkedTo, ECX);
+	GET(ILocomotion*, pThis, ESI);
+
+	auto pLoco = locomotion_cast<RocketLocomotionClass*>(pThis);
+	auto heightThis = pLinkedTo->GetHeight();
+	auto heightTarget = pLinkedTo->Location.Z - pLoco->MovingDestination.Z;
+
+	if (MapClass::Instance->GetCellAt(pLoco->MovingDestination)->ContainsBridge())
+		heightTarget -= CellClass::BridgeHeight;
+
+	R->EAX(MinImpl(heightThis, heightTarget));
+	//R->EAX(pLinkedTo->GetHeight()); Vanilla behavior
+
+	return R->Origin() + 0x8;
 }
 #pragma endregion
 

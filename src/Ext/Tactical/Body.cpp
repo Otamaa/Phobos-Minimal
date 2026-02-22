@@ -212,7 +212,7 @@ void NOINLINE DrawCollisionBox(FootClass* obj, DSurface* surface,
 	// Offset by viewport
 	Point2D screen = outClient + Point2D(bounds.X, bounds.Y);
 
-	//if (!obj->Spawned && !obj->InLimbo && 
+	//if (!obj->Spawned && !obj->InLimbo &&
 	//	(!MapClass::Instance->IsWithinUsableArea(tech_loc) || !MapClass::Instance->CoordinatesLegal(CellClass::Coord2Cell(tech_loc))))
 	//{
 	//	Debug::FatalError("Something[%s] not spawned is outside area !", obj->GetTechnoType()->ID);
@@ -349,7 +349,9 @@ void NOINLINE DrawLines()
 void FakeTacticalClass::_Render_Layer(bool arg)
 {
 	this->Render_Layer(arg);
-	this->DrawCollisionDebug();
+
+	if(Phobos::Otamaa::IsAdmin)
+		this->DrawCollisionDebug();
 }
 DEFINE_FUNCTION_JUMP(CALL, 0x6D465F, FakeTacticalClass::_Render_Layer)
 
@@ -908,7 +910,7 @@ void __fastcall FakeTacticalClass::__DrawTimersA(int value, ColorScheme* color, 
 	ColorStruct out = color->BaseColor;
 
 	TextDrawing::Simple_Text_Print_Wide(
-		&_temp, 
+		&_temp,
 		labe_buffer.data(),
 		pComposite,
 		&rect,
@@ -1221,7 +1223,7 @@ void FakeTacticalClass::__DrawTimersSW(SuperClass* pSuper, int value, int interv
 	static fmt::basic_memory_buffer<wchar_t> buffer;
 	buffer.clear();
 	if (pTypeExt->ChargeTimer) {
-		 
+
 		const auto percent = SWTypeExtData::GetSuperChargePercent(pSuper , pTypeExt->ChargeTimer_Backwards);
 
 		fmt::format_to(std::back_inserter(buffer), L"{:.2f} %", percent);
@@ -1319,7 +1321,7 @@ bool __fastcall FakeTacticalClass::TypeSelectFilter(TechnoClass* pTechno, Dynami
 		auto gunnerID = &pTypeExt->WeaponGroupAs[pTechno->CurrentWeaponNumber];
 
 		if (gunnerID->empty() || !GeneralUtils::IsValidString(gunnerID->c_str())) {
-			sprintf_s(gunnerID->data(), 0x20, "%d", pTechno->CurrentWeaponNumber + 1);
+			sprintf_s(gunnerID->data(), 0x20, "%d", RulesExtData::Instance()->TypeSelectUseIFVMode && Phobos::Config::TypeSelectUseIFVMode ? pTechno->CurrentWeaponNumber + 1 : 0);
 		}
 
 		if (std::ranges::none_of(TacticalExtData::IFVGroups, [gunnerID](const char* pID) {

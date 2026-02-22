@@ -15,10 +15,7 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x6D9FF0, FakeTacticalClass::Tactical_MakeFilteredSel
 
 ASMJIT_PATCH(0x73298D, TypeSelectExecute_UseIFVMode, 0x5) {
 
-	if (!RulesExtData::Instance()->TypeSelectUseIFVMode)
-		return 0;
-
-	TacticalExtData::IFVGroups.clear();
+	const bool useIFVMode = RulesExtData::Instance()->TypeSelectUseIFVMode && Phobos::Config::TypeSelectUseIFVMode;
 
 	for (const auto pObject : ObjectClass::CurrentObjects()) {
 		if (const auto pTechno = flag_cast_to<TechnoClass*, true>(pObject)){
@@ -31,7 +28,7 @@ ASMJIT_PATCH(0x73298D, TypeSelectExecute_UseIFVMode, 0x5) {
 			auto gunnerID = &pTypeExt->WeaponGroupAs[pTechno->CurrentWeaponNumber];
 
 			if (gunnerID->empty() || !GeneralUtils::IsValidString(gunnerID->c_str())){
-				sprintf_s(gunnerID->data(), 0x20, "%d", pTechno->CurrentWeaponNumber + 1);
+				sprintf_s(gunnerID->data(), 0x20, "%d", useIFVMode ? pTechno->CurrentWeaponNumber + 1 : 0);
 			}
 
 			if (std::ranges::none_of(TacticalExtData::IFVGroups, [gunnerID](const char* pID) { return IS_SAME_STR_(pID, gunnerID->c_str()); }))
@@ -39,5 +36,11 @@ ASMJIT_PATCH(0x73298D, TypeSelectExecute_UseIFVMode, 0x5) {
 		}
 	}
 
+	return 0;
+}
+
+ASMJIT_PATCH(0x732C06, TypeSelectExecute_Clear, 0x6)
+{
+	TacticalExtData::IFVGroups.clear();
 	return 0;
 }

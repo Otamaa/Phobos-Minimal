@@ -60,6 +60,7 @@ void Phobos::Config::Read_RA2MD(){
 	Phobos::Config::ToolTipBlur = pRA2MD->ReadBool(PHOBOS_STR, "ToolTipBlur", Phobos::Config::ToolTipBlur);
 	Phobos::Config::PrioritySelectionFiltering = pRA2MD->ReadBool(PHOBOS_STR, "PrioritySelectionFiltering", Phobos::Config::PrioritySelectionFiltering);
 	Phobos::Config::PriorityDeployFiltering = pRA2MD->ReadBool(PHOBOS_STR, "PriorityDeployFiltering", Phobos::Config::PriorityDeployFiltering);
+	Phobos::Config::TypeSelectUseIFVMode = pRA2MD->ReadBool(PHOBOS_STR, "TypeSelectUseIFVMode", Phobos::Config::TypeSelectUseIFVMode);
 	Phobos::Config::EnableBuildingPlacementPreview = pRA2MD->ReadBool(PHOBOS_STR, "ShowBuildingPlacementPreview", Phobos::Config::EnableBuildingPlacementPreview);
 	Phobos::Config::EnableSelectBox = pRA2MD->ReadBool(PHOBOS_STR, "EnableSelectBox", Phobos::Config::EnableSelectBox);
 

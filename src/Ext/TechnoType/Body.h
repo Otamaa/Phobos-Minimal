@@ -1291,6 +1291,15 @@ public:
 
 	Nullable<bool> JumpjetClimbIgnoreBuilding;
 
+	Nullable<bool> BarrelOverTurret;
+	Valueable<int> BarrelOffset;
+	Valueable<int> ExtraBarrelCount;
+	std::vector<int> ExtraBarrelOffsets;
+	Valueable<int> ExtraTurretCount;
+	std::vector<CoordStruct> ExtraTurretOffsets;
+	Valueable<int> BurstPerTurret;
+
+
 	int TintColorAirstrike;
 #pragma endregion
 
@@ -2149,6 +2158,13 @@ public:
 		, AreaGuardRange{}
 		, MaxGuardRange  {}
 		, JumpjetClimbIgnoreBuilding {}
+		, BarrelOverTurret { }
+		, BarrelOffset { 0 }
+		, ExtraBarrelCount { 0 }
+		, ExtraBarrelOffsets { }
+		, ExtraTurretCount { 0 }
+		, ExtraTurretOffsets { }
+		, BurstPerTurret { 0 }
 		, TintColorAirstrike{}
 		{
 		}
@@ -2207,7 +2223,7 @@ public:
 
 	bool IsGenericPrerequisite() const;
 
-	void ApplyTurretOffset(Matrix3D* mtx, double factor);
+	void ApplyTurretOffset(Matrix3D* mtx, double factor = 1.0, int turIdx = -1);
 
 	static WeaponStruct* GetWeaponStruct(TechnoTypeClass* pThis, int nWeaponIndex, bool isElite);
 
@@ -3200,6 +3216,13 @@ private:
 			.Process(this->AreaGuardRange)
 			.Process(this->MaxGuardRange)
 			.Process(this->JumpjetClimbIgnoreBuilding)
+			.Process(this->BarrelOverTurret)
+			.Process(this->BarrelOffset)
+			.Process(this->ExtraBarrelCount)
+			.Process(this->ExtraBarrelOffsets)
+			.Process(this->ExtraTurretCount)
+			.Process(this->ExtraTurretOffsets)
+			.Process(this->BurstPerTurret)
 			.Process(this->TintColorAirstrike)
 			;
 	}

@@ -527,7 +527,7 @@ public:
 		int deltaX = currentCoords.X - targetCoords.X;
 		int deltaY = targetCoords.Y - currentCoords.Y;
 
-		double atan = std::atan2((double)deltaY, (double)deltaX);
+		double atan = Math::atan2((double)deltaY, (double)deltaX);
 		double radians = (((atan - Math::PI_BY_TWO_ACCURATE) * (1.0 / Math::BINARY_ANGLE_MAGIC)) - 0X3FFF) * Math::BINARY_ANGLE_MAGIC;
 		int x = static_cast<int>(targetCoords.X + Math::cos(radians) * distance);
 		int y = static_cast<int>(targetCoords.Y - Math::sin(radians) * distance);
@@ -557,7 +557,7 @@ public:
 	static const DirStruct Desired_Facing(int x1, int y1, int x2, int y2)
 	{
 		DirStruct dir {};
-		unsigned short value = static_cast<short>(int((std::atan2(static_cast<double>(y2 - y1), static_cast<double>(x2 - x1)) - Math::deg2rad(-(360.0 / (USHRT_MAX - 1))))));
+		unsigned short value = static_cast<short>(int((Math::atan2(static_cast<double>(y2 - y1), static_cast<double>(x2 - x1)) - Math::deg2rad(-(360.0 / (USHRT_MAX - 1))))));
 		dir.SetValue<16>(value);
 		return dir;
 	}
@@ -569,7 +569,7 @@ public:
 
 	static const DirStruct Coord2DirSTruct(CoordStruct Loc1, CoordStruct Loc2)
 	{
-		auto angle = std::atan2((double)(Loc2.X - Loc1.X), (double)(Loc2.Y - Loc1.Y));
+		auto angle = Math::atan2((double)(Loc2.X - Loc1.X), (double)(Loc2.Y - Loc1.Y));
 		COMPILETIMEEVAL double DEG_180_BY_PI = 180.0 / Math::GAME_PI;
 		return DirStruct(angle * (DEG_180_BY_PI));
 	}

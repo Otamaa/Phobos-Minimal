@@ -372,11 +372,11 @@ void StraightTrajectoryVarianC::PrepareForOpenFire()
 	if (!pType->LeadTimeCalculate && theTargetCoords == theSourceCoords && pBullet->Owner) // For disperse.
 	{
 		const auto theOwnerCoords = pBullet->Owner->GetCoords();
-		rotateAngle = std::atan2((double)(theTargetCoords.Y - theOwnerCoords.Y), (double)(theTargetCoords.X - theOwnerCoords.X));
+		rotateAngle = Math::atan2((double)(theTargetCoords.Y - theOwnerCoords.Y), (double)(theTargetCoords.X - theOwnerCoords.X));
 	}
 	else
 	{
-		rotateAngle = std::atan2((double)(theTargetCoords.Y - theSourceCoords.Y), (double)(theTargetCoords.X - theSourceCoords.X));
+		rotateAngle = Math::atan2((double)(theTargetCoords.Y - theSourceCoords.Y), (double)(theTargetCoords.X - theSourceCoords.X));
 	}
 
 	if (this->OffsetCoord != CoordStruct::Empty)

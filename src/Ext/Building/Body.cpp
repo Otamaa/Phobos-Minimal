@@ -1489,7 +1489,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		double targetRadX = (targetCoord.X);
 		double targetRadY = (targetCoord.Y);
 
-		double angleToTarget = std::atan2(
+		double angleToTarget = Math::atan2(
 			((double)flhCoord.Y - targetRadY),
 			(targetRadX - (double)flhCoord.X)
 		);
@@ -1532,7 +1532,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		}
 
 		// --- Pitch adjustment ---
-		double pitch = std::atan2(vel.Z, vel.LengthXY()) - Math::DEG90_AS_RAD;
+		double pitch = Math::atan2(vel.Z, vel.LengthXY()) - Math::DEG90_AS_RAD;
 		int pitchBinary = (int)(pitch * Math::BINARY_ANGLE_MAGIC) - Math::BINARY_ANGLE_MASK;
 		double pitchRad = (double)pitchBinary * Math::DIRECTION_FIXED_MAGIC;
 

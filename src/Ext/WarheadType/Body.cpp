@@ -748,6 +748,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->BlockType->LoadFromINI(pINI, pSection);
 	this->AnimZAdjust.Read(exINI, pSection, "AnimZAdjust");
 	this->ApplyPerTargetEffectsOnDetonate.Read(exINI, pSection, "ApplyPerTargetEffectsOnDetonate");
+	this->Taunt.Read(exINI, pSection, "Taunt");
 
 	// Return warhead
 	this->ReturnWarhead.Read(exINI, pSection, "ReturnWarhead");
@@ -785,7 +786,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		//|| this->RemoveInflictedLocomotor
 		|| this->PenetratesTransport_Level > 0
 		|| this->IC_Duration != 0
-
+		|| this->Taunt
 		|| !this->PhobosAttachEffects.AttachTypes.empty()
 		|| !this->PhobosAttachEffects.RemoveTypes.empty()
 		|| !this->PhobosAttachEffects.RemoveGroups.empty()
@@ -2084,6 +2085,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->PlayAnimAboveSurface)
 		.Process(this->AnimZAdjust)
 		.Process(this->ApplyPerTargetEffectsOnDetonate)
+		.Process(this->Taunt)
 		.Process(this->ReturnWarhead)
 		.Process(this->ReturnWarhead_Damage)
 		.Process(this->ReturnWarhead_Chance)
