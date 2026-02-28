@@ -91,8 +91,7 @@ ASMJIT_PATCH(0x4C285D, EBolt_DrawAll_BurstIndex, 0x5)
 	if(isAllowed){
 		int burstIndex = pTechno->CurrentBurstIndex;
 		pTechno->CurrentBurstIndex = EboltExtData::Container[pThis].BurstIndex;
-		CoordStruct fireCoords {};
-		pTechno->GetFLH(&fireCoords, pThis->WeaponSlot, CoordStruct::Empty);
+		CoordStruct fireCoords = pTechno->GetFLH(pThis->WeaponSlot, CoordStruct::Empty);
 		pTechno->CurrentBurstIndex = burstIndex;
 		R->EAX(&fireCoords);
 		return SkipGameCode;

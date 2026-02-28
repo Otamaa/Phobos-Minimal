@@ -50,7 +50,7 @@ void ProximityFunctional::AI(BulletClass* pBullet)
 		return;
 
 	CoordStruct sourcePos = pBullet->Location;
-	BulletVelocity& velocity = pBullet->Velocity;
+	VelocityClass& velocity = pBullet->Velocity;
 
 	auto const BulletProxRange = pBulletExt->AnotherData.BulletProximityRange.get();
 	auto nBuff = CoordStruct{(int)velocity.X, (int)velocity.Y, (int)velocity.Z};

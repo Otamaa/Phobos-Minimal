@@ -39,6 +39,7 @@ public:
 
 	//ObjectClass
 	virtual Action MouseOverObject(ObjectClass const* pObject, bool ignoreForce = false) const override JMP_THIS(0x73FD50);
+	virtual CoordStruct GetFLH(int idxWeapon, CoordStruct BaseCoords) const override { JMP_THIS(0x6F3AD0); };
 	virtual DamageState ReceiveDamage(int* pDamage, int DistanceFromEpicenter, WarheadTypeClass* pWH,
 	ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseClass* pAttackingHouse) override JMP_THIS(0x737C90);
 

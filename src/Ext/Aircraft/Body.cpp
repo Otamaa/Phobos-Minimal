@@ -347,7 +347,7 @@ int FakeAircraftClass::_Mission_Attack()
 			}
 			else
 			{
-				double angle = Math::atan2(float(myPos.Y - navCenter.Y), navCenter.X - myPos.X);
+				double angle = Math::atan2(float(myPos.Y - navCenter.Y), float(navCenter.X - myPos.X));
 				dir.Raw = static_cast<short>((angle - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC);
 			}
 			this->SecondaryFacing.Set_Desired(dir);
@@ -564,7 +564,7 @@ int FakeAircraftClass::_Mission_Attack()
 				this->MissionStatus = static_cast<int>(AirAttackStatus::PickAttackLocation);
 				return 1;
 			}
-			if (RulesExtData::Instance()->ExpandAircraftMission
+			if (AircraftTypeExtData::ExtendedAircraftMissionsEnabled(this)
 				&& this->MegaMissionIsAttackMove()
 				&& this->MegaDestination)
 			{
@@ -594,7 +594,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E24B4, FakeAircraftClass::_Mission_Attack);
 
 AbstractClass* FakeAircraftClass::_GreatestThreat(ThreatType threatType, CoordStruct* pSelectCoords, bool onlyTargetHouseEnemy)
 {
-	if (RulesExtData::Instance()->ExpandAircraftMission && !this->Team && this->Ammo && !this->Airstrike && !this->Spawned)
+	if (AircraftTypeExtData::ExtendedAircraftMissionsEnabled(this) && !this->Team && this->Ammo && !this->Airstrike && !this->Spawned)
 	{
 		if (WeaponTypeClass* const pPrimaryWeapon = this->GetWeapon(0)->WeaponType)
 			threatType |= pPrimaryWeapon->AllowedThreats();
@@ -636,7 +636,7 @@ void FakeAircraftClass::_FootClass_Update_Wrapper()
 
 	if (this->IsAlive && this->Type->AirportBound && !this->Airstrike && !this->Spawned)
 	{
-		const bool extendedMissions = RulesExtData::Instance()->ExpandAircraftMission;
+		bool extendedMissions = AircraftTypeExtData::ExtendedAircraftMissionsEnabled(this);
 
 		if (extendedMissions)
 		{

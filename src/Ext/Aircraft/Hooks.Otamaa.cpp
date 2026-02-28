@@ -263,42 +263,6 @@ ASMJIT_PATCH(0x416FFD, AircraftClass_MI_Move_Carryall_AllowWater_LZClear, 0x6) /
 
 	return 0x41700E;
 }
-
-#ifdef MI_ATTACK_HOOKS
-
-ASMJIT_PATCH(0x4183C3, AircraftClass_CurleyShuffle_A, 0x6)
-{
-	GET(AircraftClass*, pThis, ESI);
-	GET(RulesClass*, pRules, ECX);
-	R->DL(TechnoTypeExtContainer::Instance.Find(pThis->Type)->CurleyShuffle.Get(pRules->CurleyShuffle));
-	return 0x4183C9;
-}
-
-ASMJIT_PATCH(0x418671, AircraftClass_CurleyShuffle_B, 0x6)
-{
-	GET(AircraftClass*, pThis, ESI);
-	GET(RulesClass*, pRules, EDX);
-	R->AL(TechnoTypeExtContainer::Instance.Find(pThis->Type)->CurleyShuffle.Get(pRules->CurleyShuffle));
-	return 0x418677;
-}
-
-ASMJIT_PATCH(0x418733, AircraftClass_CurleyShuffle_C, 0x6)
-{
-	GET(AircraftClass*, pThis, ESI);
-	GET(RulesClass*, pRules, EAX);
-	R->CL(TechnoTypeExtContainer::Instance.Find(pThis->Type)->CurleyShuffle.Get(pRules->CurleyShuffle));
-	return 0x418739;
-}
-
-ASMJIT_PATCH(0x418782, AircraftClass_CurleyShuffle_D, 0x6)
-{
-	GET(AircraftClass*, pThis, ESI);
-	GET(RulesClass*, pRules, ECX);
-	R->DL(TechnoTypeExtContainer::Instance.Find(pThis->Type)->CurleyShuffle.Get(pRules->CurleyShuffle));
-	return 0x418788;
-}
-#endif
-
 //ASMJIT_PATCH(0x41B7F0, AircraftClass_IFlyControl_Is_Strafe, 0x6)
 //{
 //	GET_STACK(IFlyControl*, ptr, 0x4);

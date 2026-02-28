@@ -226,26 +226,6 @@ ASMJIT_PATCH(0x54D06F, JumpjetLocomotionClass_ProcessCrashing_RemoveSensors, 0x5
 
 #include <AircraftTrackerClass.h>
 
-ASMJIT_PATCH(0x4CD64E , FlyLocomotionClass_MovementAI_UpdateSensors, 0xA)
-{
-	GET(FlyLocomotionClass* const, pThis, ESI);
-	GET(CellStruct, currentCell, EDI);
-
-	const auto pLinkedTo = pThis->LinkedTo;
-	const auto pType = GET_TECHNOTYPE(pLinkedTo);
-
-	if (pType->Sensors && pType->SensorsSight > 0) {
-		pLinkedTo->RemoveSensorsAt(pLinkedTo->LastFlightMapCoords);
-
-		if(pLinkedTo->IsAlive)
-			pLinkedTo->AddSensorsAt(currentCell);
-	}
-
-	AircraftTrackerClass::Instance->Update(pLinkedTo, pLinkedTo->LastFlightMapCoords, currentCell);
-
-	return 0x4CD664;
-}
-
 //ASMJIT_PATCH(0x54B8E9, JumpjetLocomotionClass_In_Which_Layer_Deviation, 0x6)
 //{
 //	GET(TechnoClass*, pThis, EAX);
@@ -535,7 +515,7 @@ ASMJIT_PATCH(0x54D326, JumpjetLocomotionClass_MovementAI_CrashSpeedFix, 0x6)
 //	if (!pTarget)
 //		return ContinueNoTarget;
 //
-//	if (const auto pThis = abstract_cast<UnitClass*>(pLinkedTo))
+//	if (const auto pThis = cast_to<UnitClass*>(pLinkedTo))
 //	{
 //		if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->JumpjetTurnToTarget.Get(RulesExtData::Instance()->JumpjetTurnToTarget))
 //		{

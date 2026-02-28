@@ -980,6 +980,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	exINI.Read3Bool(GameStrings::General, "CampaignAllowHarvesterScanUnderShroud", this->CampaignAllowHarvesterScanUnderShroud);
 	this->AttackMove_IgnoreWeaponCheck.Read(exINI, GameStrings::General, "AttackMove.IgnoreWeaponCheck");
 	this->AttackMove_StopWhenTargetAcquired.Read(exINI, GameStrings::General, "AttackMove.StopWhenTargetAcquired");
+	this->OpenTopped_DecloakToFire.Read(exINI, GameStrings::General, "OpenTopped.DecloakToFire");
 	this->AISellCapturedBuilding.Read(exINI, GameStrings::General, "AISellCapturedBuilding");
 	this->InfantryAutoDeploy.Read(exINI, GameStrings::General, "InfantryAutoDeploy");
 	this->EnablePassiveAcquireMode.Read(exINI, GameStrings::General, "EnablePassiveAcquireMode");
@@ -1837,6 +1838,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->AIParadropMission)
 		.Process(this->AttackMove_IgnoreWeaponCheck)
 		.Process(this->AttackMove_StopWhenTargetAcquired)
+		.Process(this->OpenTopped_DecloakToFire)
 		.Process(this->PenetratesTransport_Level)
 		.Process(this->DamageWallRecursivly)
 		.Process(this->AirstrikeLineZAdjust)

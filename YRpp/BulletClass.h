@@ -27,9 +27,6 @@ struct BulletData
 	int Distance;
 };
 
-// the velocities along the axes, or something like that
-//using BulletVelocity = Vector3D<double>; // :3 -pd
-
 class DECLSPEC_UUID("0E272DC9-9C0F-11D1-B709-00A024DDAFD1")
 	NOVTABLE BulletClass : public ObjectClass
 {

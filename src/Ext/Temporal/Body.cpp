@@ -62,7 +62,7 @@ void HandleBuildingDestruction(TemporalClass* pTemporal, BuildingClass* building
 					const auto pExt = TechnoTypeExtContainer::Instance.Find(pAir->Type);
 
 					if (pAir->IsInAir() || !AircraftTypeExtContainer::Instance.Find(pAir->Type)->ExtendedAircraftMissions_FastScramble
-									.Get(RulesExtData::Instance()->ExpandAircraftMission)) {
+									.Get(AircraftTypeExtData::ExtendedAircraftMissionsEnabled(pAir))) {
 						if ((pExt->Crashable.isset() && !pExt->Crashable) || !pAir->Crash(pTemporal->Owner)) {
 							TechnoExtData::HandleRemove(pAir, pTemporal->Owner, false, false);
 						}

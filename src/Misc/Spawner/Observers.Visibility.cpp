@@ -30,8 +30,7 @@
 // 	return pThis->Owner->IsAlliedWith(pObject->GetOwningHouse()) ? 0x70059D : 0x7005E6;
 // }
 
-
-ASMJIT_PATCH(0x692686, DisplayClass_DecideAction_Cloak, 0x6)
+ASMJIT_PATCH(0x692686, DisplayClass_WhatAction_Cloak, 0x6)
 {
 	GET(TechnoClass*, pTechno, EDI);
 	enum { ProceedCloakCheck = 0x692690, ShouldNotCheck = 0x6926DB };

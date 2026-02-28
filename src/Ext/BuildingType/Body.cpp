@@ -1014,6 +1014,10 @@ bool BuildingTypeExtData::IsLinkable(BuildingTypeClass* pThis)
 
 int BuildingTypeExtData::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse)
 {
+	return BuildingTypeExtData::GetEnhancedPower(pBuilding->Type, pBuilding->GetPowerOutput(), pHouse);
+}
+
+int BuildingTypeExtData::GetEnhancedPower(BuildingTypeClass* pBuilding, int output, HouseClass* pHouse){
 	int nAmount = 0;
 	float fFactor = 1.0f;
 
@@ -1027,8 +1031,9 @@ int BuildingTypeExtData::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* 
 		nAmount += pExt->PowerPlantEnhancer_Amount * nCount;
 	}
 
-	return static_cast<int>(std::round(pBuilding->GetPowerOutput() * fFactor)) + nAmount;
+	return static_cast<int>(std::round(output * fFactor)) + nAmount;
 }
+
 
 float BuildingTypeExtData::GetPurifierBonusses(HouseClass* pHouse)
 {

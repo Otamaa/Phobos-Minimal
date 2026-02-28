@@ -410,72 +410,6 @@ ASMJIT_PATCH(0x70DEBA, TechnoClass_UpdateGattling_Cycle, 6)
 	return 0x70DEEB;
 }
 
-// do not let deactivated teleporter units move, otherwise
-// they could block a cell forever
-ASMJIT_PATCH(0x71810D, TeleportLocomotionClass_ILocomotion_MoveTo_Deactivated, 6)
-{
-	GET(FootClass*, pFoot, ECX);
-	return (!pFoot->Deactivated && pFoot->Locomotor.GetInterfacePtr()->Is_Powered() && !TechnoExtContainer::Instance.Find(pFoot)->Is_DriverKilled)
-		? 0 : 0x71820F;
-}
-
-// sink stuff that simply cannot exist on water
-ASMJIT_PATCH(0x7188F2, TeleportLocomotionClass_Unwarp_SinkJumpJets, 7)
-{
-	GET(CellClass*, pCell, EAX);
-	GET(TechnoClass**, pTechno, ESI);
-
-	if (pCell->Tile_Is_Wet() && !pCell->ContainsBridge())
-	{
-		if (UnitClass* pUnit = cast_to<UnitClass*>(pTechno[3]))
-		{
-			if (pUnit->Deactivated || TechnoExtContainer::Instance.Find(pUnit)->Is_DriverKilled)
-			{
-				// this thing does not float
-				R->BL(0);
-			}
-
-			// manually sink it
-			if (pUnit->Type->SpeedType == SpeedType::Hover && pUnit->Type->JumpJet)
-			{
-				return 0x718A66;
-			}
-		}
-	}
-
-	return 0;
-}
-
-// iron curtained units would crush themselves
-ASMJIT_PATCH(0x7187DA, TeleportLocomotionClass_Unwarp_PreventSelfCrush, 6)
-{
-	GET(TechnoClass*, pTeleporter, EDI);
-	GET(TechnoClass*, pContent, ECX);
-	return (pTeleporter == pContent) ? 0x71880A : 0;
-}
-
-// bug 897
-ASMJIT_PATCH(0x718871, TeleportLocomotionClass_UnfreezeObject_SinkOrSwim, 7)
-{
-	GET(TechnoTypeClass*, Type, EAX);
-
-	switch (Type->MovementZone)
-	{
-	case MovementZone::Amphibious:
-	case MovementZone::AmphibiousCrusher:
-	case MovementZone::AmphibiousDestroyer:
-	case MovementZone::WaterBeach:
-		R->BL(1);
-		return 0x7188B1;
-	}
-	if (Type->SpeedType == SpeedType::Hover)
-	{
-		// will set BL to 1 , unless this is a powered unit with no power centers <-- what if we have a powered unit that's not a hover?
-		return 0x71887A;
-	}
-	return 0x7188B1;
-}
-
 #include <Ext/Building/Body.h>
 
 // sanitize the power output
@@ -917,42 +851,6 @@ ASMJIT_PATCH(0x74031A, UnitClass_GetActionOnObject_NoManualEnter, 6)
 	const bool enterable = pTargetType->Passengers > 0 &&
 		!TechnoTypeExtContainer::Instance.Find(pTargetType)->NoManualEnter;
 	return enterable ? 0x740324u : 0x74037Au;
-}
-
-//TechnoClass_EvaluateObject_Heal
-DEFINE_JUMP(LJMP, 0x6F7FC5, 0x6F7FDF);
-
-// ASMJIT_PATCH(0x6F8EE3, TechnoClass_GreatestThereat_Heal, 6)
-// {
-// 	GET(unsigned int, nVal, EBX);
-//
-// 	nVal |= 0x403Cu;
-//
-// 	R->EBX(nVal);
-// 	return 0x6F8F25;
-// }ASMJIT_PATCH_AGAIN(0x6F8F1F, TechnoClass_GreatestThereat_Heal, 6)
-
-// DEFINE_PATCH_ADDR_OFFSET(byte, 0x6F8F1F , 0x2, 0x3C);
-// DEFINE_PATCH_ADDR_OFFSET(byte, 0x6F8EE3 , 0x2, 0x3C);
-
-ASMJIT_PATCH(0x6F7F4F, TechnoClass_EvaluateObject_NegativeDamage, 0x7)
-{
-	enum { SetHealthRatio = 0x6F7F56, ContinueCheck = 0x6F7F6D, retFalse = 0x6F894F };
-	GET(TechnoClass*, pThis, EDI);
-	GET(ObjectClass*, pThat, ESI);
-
-	const auto nRulesGreen = RulesClass::Instance->ConditionGreen;
-	const auto pThatTechno = flag_cast_to<TechnoClass*>(pThat);
-
-	if (!pThatTechno)
-	{
-		return pThat->GetHealthPercentage_() >= nRulesGreen ?
-			retFalse : ContinueCheck;
-	}
-
-	return !pThatTechno->IsIronCurtained() && TechnoExt_ExtData::FiringAllowed(pThis, pThatTechno, pThis->GetWeapon(pThis->SelectWeapon(pThatTechno))->WeaponType) ?
-		ContinueCheck : retFalse;
-
 }
 
 template<bool CheckKeyPress>
@@ -1527,64 +1425,6 @@ ASMJIT_PATCH(0x413ffa, AircraftClass_Init_TurretROT, 6)
 	GET(AircraftTypeClass*, pType, EDX);
 	R->EAX(TechnoTypeExtContainer::Instance.Find(pType)->TurretRot.Get(pType->ROT));
 	return 0x414000;
-}
-
-ASMJIT_PATCH(0x728EF0, TunnelLocomotionClass_ILocomotion_Process_Dig, 5)
-{
-	GET(FootClass*, pFoot, EAX);
-
-	TechnoExt_ExtData::HandleTunnelLocoStuffs(pFoot, true, true);
-	return 0x728F74;
-}
-
-ASMJIT_PATCH(0x72929A, TunnelLocomotionClass_sub_7291F0_Dig, 6)
-{
-	GET(TunnelLocomotionClass*, pThis, ESI);
-
-	auto const pType = GET_TECHNOTYPE(pThis->LinkedTo);
-	int time_left = (int(64.0 / pType->ROT /
-		TechnoTypeExtContainer::Instance.Find(pType)->Tunnel_Speed.Get(RulesClass::Instance->TunnelSpeed)
-		));
-
-	pThis->State = TunnelLocomotionClass::State::DIGGING_IN;
-	pThis->Timer.Start(time_left);
-	TechnoExt_ExtData::HandleTunnelLocoStuffs(pThis->LinkedTo, true, true);
-	return 0x729365;
-}
-
-ASMJIT_PATCH(0x7293DA, TunnelLocomotionClass_sub_729370_Dig, 6)
-{
-	GET(FootClass*, pFoot, ECX);
-
-	TechnoExt_ExtData::HandleTunnelLocoStuffs(pFoot, true, true);
-	return 0x72945E;
-}
-
-ASMJIT_PATCH(0x7297C4, TunnelLocomotionClass_sub_729580_Dig, 6)
-{
-	GET(FootClass*, pFoot, EAX);
-
-	TechnoExt_ExtData::HandleTunnelLocoStuffs(pFoot, false, false);
-	return 0x7297F3;
-}
-
-ASMJIT_PATCH(0x7299A9, TunnelLocomotionClass_sub_7298F0_Dig, 5)
-{
-	GET(TunnelLocomotionClass*, pThis, ESI);
-
-	TechnoExt_ExtData::HandleTunnelLocoStuffs(pThis->LinkedTo, false, true);
-	return 0x729A34;
-}
-
-ASMJIT_PATCH(0x72920C, TunnelLocomotionClass_Turning, 9)
-{
-	GET(TunnelLocomotionClass*, pThis, ESI);
-
-	if (pThis->_CoordsNow.IsValid())
-		return 0;
-
-	pThis->State = TunnelLocomotionClass::State::DUG_OUT;
-	return 0x729369;
 }
 
 // select the most appropriate firing voice and also account

@@ -39,7 +39,7 @@ public:
 	//TechnoClass
 	virtual int SelectWeapon(AbstractClass* pTarget) const override { JMP_THIS(0x5218E0); }
 	virtual FireError GetFireError(AbstractClass *pTarget, int nWeaponIndex, bool ignoreRange) const override { JMP_THIS(0x51C8B0); }
-	virtual CoordStruct* GetFLH(CoordStruct* pDest, int idxWeapon, CoordStruct BaseCoords) const override { JMP_THIS(0x523250); }
+	virtual CoordStruct GetFLH(int idxWeapon, CoordStruct BaseCoords) const override { JMP_THIS(0x523250); }
 
 	//FootClass
 	virtual bool ApproachTarget(bool bSomething) override { JMP_THIS(0x522340); }

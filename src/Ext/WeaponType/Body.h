@@ -13,7 +13,6 @@
 
 #include <New/Entity/ElectricBoltClass.h>
 
-#include <Misc/DynamicPatcher/Others/DamageText.h>
 #include <Misc/DynamicPatcher/Weapon/AttachFireData.h>
 
 
@@ -364,7 +363,7 @@ public:
 		AttackNoThreatBuildings(),
 		Anim_Update (),
 		CanTarget_IronCurtained {},
-		AutoTarget_IronCurtained {}, 
+		AutoTarget_IronCurtained {},
 		CylinderRangefinding {}
 	{
 		this->AbsType = WeaponTypeClass::AbsID;

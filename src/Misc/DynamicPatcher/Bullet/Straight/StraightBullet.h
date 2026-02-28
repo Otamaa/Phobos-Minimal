@@ -7,9 +7,9 @@ struct StraightBullet
 	bool Enable;
 	CoordStruct SourcePos;
 	CoordStruct TargetPos;
-	BulletVelocity Velocity;
+	VelocityClass Velocity;
 
-	StraightBullet(bool enable, CoordStruct sourcePos, CoordStruct targetPos, BulletVelocity bulletVelocity)
+	StraightBullet(bool enable, CoordStruct sourcePos, CoordStruct targetPos, VelocityClass bulletVelocity)
 		:
 		Enable { enable }
 		, SourcePos { sourcePos }

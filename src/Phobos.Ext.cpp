@@ -191,11 +191,13 @@ ASMJIT_PATCH(0x7258DE, AnnounceInvalidPointer_PhobosGlobal, 0x7)
 #include <New/Interfaces/LevitateLocomotionClass.h>
 #include <New/Interfaces/CustomRocketLocomotionClass.h>
 
+
 unsigned Phobos::GetVersionNumber() {
 	unsigned version = AresGlobalData::InternalVersion + PHOBOSSAVEGAME_ID;
-
 	version += sizeof(AnimExtData);
 	version += sizeof(AnimTypeExtData);
+
+	version += sizeof(AITriggerTypeExtData);
 
 	version += sizeof(BuildingExtData);
 	version += sizeof(BuildingTypeExtData);
@@ -323,6 +325,7 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	CLEAR_CONTAIER_CLASS_AND_TYPE(Terrain);
 	CLEAR_CONTAIER_CLASS_AND_TYPE(VoxelAnim);
 	CLEAR_CONTAIER_CLASS_AND_TYPE(Unit);
+	CLEAR_CONTAIER_CLASS(AITriggerTypeExtContainer);
 	CLEAR_CONTAIER_CLASS(SuperExtContainer);
 	CLEAR_CONTAIER_CLASS(SWTypeExtContainer);
 	CLEAR_CONTAIER_CLASS(TeamExtContainer);

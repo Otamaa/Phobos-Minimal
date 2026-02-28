@@ -195,7 +195,15 @@
 */
 
 const CoordStruct CoordStruct::Empty = {};
+
 const ColorStruct ColorStruct::Empty = {};
+
+const ColorStruct ColorStruct::Red = { 252, 0, 0 };
+const ColorStruct ColorStruct::Green = { 0, 252, 0 };
+const ColorStruct ColorStruct::Blue = { 0, 0, 252 };
+const ColorStruct ColorStruct::Yellow = { 252, 212, 0 };
+const ColorStruct ColorStruct::Black = { 3, 3, 3 };
+
 const CellStruct CellStruct::Empty = {};
 const CellStruct CellStruct::EOL = { 0x7FFF , 0x7FFF };
 const VelocityClass VelocityClass::Empty = {};

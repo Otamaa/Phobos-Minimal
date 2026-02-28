@@ -108,17 +108,6 @@ ASMJIT_PATCH(0x74D0D2, VeinholeMonsterClass_AI_SelectParticle, 0x5)
 	return 0x74D100;
 }
 
-ASMJIT_PATCH(0x7290AD, TunnelLocomotionClass_Process_Stop, 0x5)
-{
-	GET(TunnelLocomotionClass* const, pLoco, ESI);
-
-	if (const auto pLinked = pLoco->Owner ? pLoco->Owner : pLoco->LinkedTo)
-		if (auto const pCell = pLinked->GetCell())
-			pCell->CollectCrate(pLinked);
-
-	return 0;
-}
-
 ASMJIT_PATCH(0x5D736E, MultiplayGameMode_GenerateInitForces, 0x6)
 {
 	return (R->EAX<int>() > 0) ? 0x0 : 0x5D743E;
@@ -491,31 +480,6 @@ ASMJIT_PATCH(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
 	return 0x709202;
 }
 
-ASMJIT_PATCH(0x6F8260, TechnoClass_EvaluateObject_LegalTarget_AI, 0x6)
-{
-	enum
-	{
-		Continue = 0x0,
-		ContinueChecks = 0x6F826E,
-		ReturnFalse = 0x6F894F,
-		SetAL = 0x6F8266,
-	};
-
-	GET(TechnoClass* const, pThis, EDI);
-	//GET(TechnoClass* const, pTarget, ESI);
-	GET(TechnoTypeClass* const, pTargetType, EBP);
-
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTargetType);
-
-	if (pTypeExt->AI_LegalTarget.isset() && !pThis->Owner->IsControlledByHuman())
-	{
-		return pTypeExt->AI_LegalTarget.Get() ?
-			ContinueChecks : ReturnFalse;
-	}
-
-	return Continue;
-}
-
 ASMJIT_PATCH(0x4DC0E4, FootClass_DrawActionLines_Attack, 0x8)
 {
 	enum { Skip = 0x4DC1A0, Continue = 0x0 };
@@ -864,12 +828,12 @@ CoordStruct* FakeUnitClass::_GetFLH(CoordStruct* outBuffer, int weaponIdx, Coord
 			&& GET_TECHNOTYPEEXT(pTransporter)->AlternateFLH_ApplyVehicle)
 		{
 			if (const int idx = pTransporter->Passengers.IndexOf(pThis)) {
-				pTransporter->GetFLH(outBuffer , -idx, CoordStruct::Empty);
+				*outBuffer = pTransporter->GetFLH(-idx, CoordStruct::Empty);
 				break;
 			}
 		}
 
-		pThis->TechnoClass::GetFLH(outBuffer, weaponIdx, CoordStruct::Empty);
+		* outBuffer = pThis->TechnoClass::GetFLH(weaponIdx, CoordStruct::Empty);
 	}
 	while (false);
 
@@ -5928,36 +5892,6 @@ DEFINE_JUMP(LJMP, 0x4184FC, 0x418506);
 // ASMJIT_PATCH(0x4184FC, AircraftClass_Mission_Attack_Fire_Zero, 0x6) {
 // 	return 0x418506;
 // }
-
-ASMJIT_PATCH(0x4CDCFD, FlyLocomotionClass_MovingUpdate_HoverAttack, 0x7)
-{
-	GET(FlyLocomotionClass*, pFly, ESI);
-
-	AircraftClass* pAir = cast_to<AircraftClass*, false>(pFly->LinkedTo);
-
-	if (pAir && !pAir->Type->MissileSpawn && !pAir->Type->Fighter && !pAir->Is_Strafe() && pAir->CurrentMission == Mission::Attack)
-	{
-		if (AbstractClass* pDest = pAir->Destination)
-		{
-			CoordStruct sourcePos = pAir->GetCoords();
-			int dist = pAir->DistanceFrom(pDest);
-
-			if (dist < 64 && dist >= 16)
-			{
-				CoordStruct targetPos = pDest->GetCoords();
-				sourcePos.X = targetPos.X;
-				sourcePos.Y = targetPos.Y;
-				dist = 0;
-			}
-
-			if (dist < 16)
-			{
-				R->Stack(0x50, sourcePos);
-			}
-		}
-	}
-	return 0;
-}
 
 #include <WeaponTypeClass.h>
 

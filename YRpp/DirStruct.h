@@ -623,10 +623,10 @@ struct DirStruct
 	{ return (DirType)(this->Raw / 256); }
 
 	// Store a value in a given bit-width facing system (see SetValue<Bits>)
-	COMPILETIMEEVAL FORCEDINLINE void SetDir(size_t bit, size_t val)
+	COMPILETIMEEVAL FORCEDINLINE void SetDir(size_t bit, size_t val, size_t offset = 0)
 	{
 		if (bit <= 16u)
-			Raw = ((unsigned short)TranslateFixedPoint::Normal(bit, 16u, val));
+			Raw = ((unsigned short)TranslateFixedPoint::Normal(bit, 16u, val, offset));
 	}
 
 	// ── Bit-scaled value access ─────────────────────────────────────────────

@@ -240,7 +240,7 @@ ASMJIT_PATCH(0x418CD1, AircraftClass_MI_Attack_ContinueFlyToDestination, 0x6)
 
 	if (!pThis->Target)
 	{
-		if (!RulesExtData::Instance()->ExpandAircraftMission
+		if (!AircraftTypeExtData::ExtendedAircraftMissionsEnabled(pThis)
 			|| !pThis->MegaMissionIsAttackMove()
 			|| !pThis->MegaDestination) // (!pThis->MegaMissionIsAttackMove() || !pThis->MegaDestination)
 			return Continue;
@@ -259,4 +259,35 @@ ASMJIT_PATCH(0x418CD1, AircraftClass_MI_Attack_ContinueFlyToDestination, 0x6)
 	return Return;
 }
 
+ASMJIT_PATCH(0x4183C3, AircraftClass_CurleyShuffle_A, 0x6)
+{
+	GET(AircraftClass*, pThis, ESI);
+	GET(RulesClass*, pRules, ECX);
+	R->DL(TechnoTypeExtContainer::Instance.Find(pThis->Type)->CurleyShuffle.Get(pRules->CurleyShuffle));
+	return 0x4183C9;
+}
+
+ASMJIT_PATCH(0x418671, AircraftClass_CurleyShuffle_B, 0x6)
+{
+	GET(AircraftClass*, pThis, ESI);
+	GET(RulesClass*, pRules, EDX);
+	R->AL(TechnoTypeExtContainer::Instance.Find(pThis->Type)->CurleyShuffle.Get(pRules->CurleyShuffle));
+	return 0x418677;
+}
+
+ASMJIT_PATCH(0x418733, AircraftClass_CurleyShuffle_C, 0x6)
+{
+	GET(AircraftClass*, pThis, ESI);
+	GET(RulesClass*, pRules, EAX);
+	R->CL(TechnoTypeExtContainer::Instance.Find(pThis->Type)->CurleyShuffle.Get(pRules->CurleyShuffle));
+	return 0x418739;
+}
+
+ASMJIT_PATCH(0x418782, AircraftClass_CurleyShuffle_D, 0x6)
+{
+	GET(AircraftClass*, pThis, ESI);
+	GET(RulesClass*, pRules, ECX);
+	R->DL(TechnoTypeExtContainer::Instance.Find(pThis->Type)->CurleyShuffle.Get(pRules->CurleyShuffle));
+	return 0x418788;
+}
 #endif

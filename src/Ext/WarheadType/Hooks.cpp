@@ -263,7 +263,7 @@ void TechnoExt::RemoveParasite(TechnoClass* pThis, HouseClass* sourceHouse, Warh
 	if (!pThis || !wh)
 		return;
 
-	const auto pFoot = abstract_cast<FootClass*>(pThis);
+	const auto pFoot = flag_cast_to<FootClass*>(pThis);
 	if (!pFoot)
 		return;
 

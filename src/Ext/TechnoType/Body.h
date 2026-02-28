@@ -289,12 +289,14 @@ public:
 
 	Nullable<int> OpenTopped_RangeBonus;
 	Nullable<float> OpenTopped_DamageMultiplier;
+	Nullable<bool> OpenTopped_DecloakToFire;
 	Nullable<int> OpenTopped_WarpDistance;
 	Valueable<bool> OpenTopped_IgnoreRangefinding;
 	Valueable<bool> OpenTopped_AllowFiringIfDeactivated;
 	Valueable<bool> OpenTopped_ShareTransportTarget;
 	Valueable<bool> OpenTopped_UseTransportRangeModifiers;
 	Valueable<bool> OpenTopped_CheckTransportDisableWeapons;
+
 	Valueable<bool> AutoFire;
 	Valueable<bool> AutoFire_TargetSelf;
 
@@ -417,7 +419,7 @@ public:
 	Valueable<WeaponTypeClass*> CustomMissileEliteWeapon;
 	Valueable<int> CustomMissileInaccuracy;
 	Valueable<int> CustomMissileTrailAppearDelay;
-
+	Valueable<double> CustomMissileCloseEnoughFactor;
 	Promotable<bool> CustomMissileRaise;
 	Nullable<Point2D> CustomMissileOffset;
 
@@ -1403,14 +1405,17 @@ public:
 		DestroyAnimSpecific(),
 		NotHuman_RandomDeathSequence(false),
 		DefaultDisguise(nullptr),
+
 		OpenTopped_RangeBonus(),
 		OpenTopped_DamageMultiplier(),
+		OpenTopped_DecloakToFire(),
 		OpenTopped_WarpDistance(),
 		OpenTopped_IgnoreRangefinding(false),
 		OpenTopped_AllowFiringIfDeactivated(true),
 		OpenTopped_ShareTransportTarget(true),
 		OpenTopped_UseTransportRangeModifiers(false),
 		OpenTopped_CheckTransportDisableWeapons(false),
+
 		AutoFire(false),
 		AutoFire_TargetSelf(false),
 		NoSecondaryWeaponFallback(false),
@@ -1510,6 +1515,7 @@ public:
 		CustomMissileEliteWeapon(nullptr),
 		CustomMissileInaccuracy(0),
 		CustomMissileTrailAppearDelay(2),
+		CustomMissileCloseEnoughFactor(1.0),
 		CustomMissileRaise(true),
 		CustomMissileOffset(),
 		Draw_MindControlLink(AffectedHouse::All),
@@ -2364,6 +2370,7 @@ private:
 
 			.Process(this->OpenTopped_RangeBonus)
 			.Process(this->OpenTopped_DamageMultiplier)
+			.Process(this->OpenTopped_DecloakToFire)
 			.Process(this->OpenTopped_WarpDistance)
 			.Process(this->OpenTopped_IgnoreRangefinding)
 			.Process(this->OpenTopped_AllowFiringIfDeactivated)
@@ -2492,6 +2499,7 @@ private:
 			.Process(this->CustomMissileEliteWeapon)
 			.Process(this->CustomMissileInaccuracy)
 			.Process(this->CustomMissileTrailAppearDelay)
+			.Process(this->CustomMissileCloseEnoughFactor)
 			.Process(this->CustomMissileRaise)
 			.Process(this->CustomMissileOffset)
 

@@ -157,3 +157,29 @@ ASMJIT_PATCH(0x51613B, HoverLocomotionClass_515ED0_HoverBoost, 0x6) // C
 	pLoco->__Boost = nBoostExt;
 	return 0x516152;
 }
+
+ASMJIT_PATCH(0x514E97, HoverLocomotionClass_ILocomotion_MoveTo, 0x7)
+{
+	GET(HoverLocomotionClass const* const, hLoco, ESI);
+
+	FootClass* pFoot = hLoco->Owner ? hLoco->Owner : hLoco->LinkedTo;
+
+	if (!pFoot->Destination)
+		pFoot->SetSpeedPercentage(0.0);
+
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x514F60, HoverLocomotionClass_ILocomotion_MoveTo, 0x7)
+
+ASMJIT_PATCH(0x516305, HoverLocomotionClass_sub_515ED0, 0x9)
+{
+	GET(HoverLocomotionClass const* const, hLoco, ESI);
+
+	hLoco->sub_514F70(true);
+
+	FootClass* pFoot = hLoco->LinkedTo ? hLoco->LinkedTo : hLoco->Owner;
+
+	if (!pFoot->Destination)
+		pFoot->SetSpeedPercentage(0.0);
+
+	return 0x51630E;
+}

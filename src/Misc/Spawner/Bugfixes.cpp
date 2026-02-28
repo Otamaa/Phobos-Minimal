@@ -200,29 +200,6 @@ ASMJIT_PATCH(0x5218C2, InfantryClass_UnmarkAllOccupationBits_ResetOwnerIdx, 0x6)
 /*
 #include <Locomotor/TeleportLocomotionClass.h>
 
-ASMJIT_PATCH(0x7185DA, TeleportLocomotionClass_MakeRoom_DestFix, 0x6)
-{
-	enum { ReturnTrue = 0x71878F };
-
-	GET(CellStruct*, pCellAt, EAX);
-	GET(LocomotionClass*, pLoco, EBP);
-
-	if (*pCellAt == CellStruct::Empty)
-	{
-		// cannot find location ? dont move
-		pLoco->LinkedTo->ChronoDestCoords = pLoco->LinkedTo->Location;
-		return ReturnTrue;
-	}
-	return 0;
-}
-
-ASMJIT_PATCH(0x7184CE, TeleportLocomotionClass_MakeRoom_GetMovement_CellFix, 0x7)
-{
-	REF_STACK(CoordStruct, coords, STACK_OFFSET(0x5C, 0x4));
-
-	R->Stack(STACK_OFFSET(0x38, -0x18), MapClass::Instance->GetCellAt(coords));
-	return 0;
-}
 */
 #include <Ext/WeaponType/Body.h>
 

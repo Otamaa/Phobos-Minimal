@@ -30,7 +30,7 @@ void StraightBulletFunctional::Put(BulletClass* pBullet)
 			pBullet->TargetCoords = targetPos;
 		}
 
-		BulletVelocity velocity = RecalculateBulletVelocity(pBullet, sourcePos, targetPos);
+		VelocityClass velocity = RecalculateBulletVelocity(pBullet, sourcePos, targetPos);
 		pBulletExt->AnotherData.StraightBulletD.reset(GameCreate<StraightBullet>(true, sourcePos, targetPos, velocity));
 	}
 
@@ -62,9 +62,9 @@ void StraightBulletFunctional::AI(BulletClass* pBullet)
 	}
 }
 
-BulletVelocity StraightBulletFunctional::RecalculateBulletVelocity(BulletClass* pBullet, CoordStruct sourcePos, CoordStruct targetPos)
+VelocityClass StraightBulletFunctional::RecalculateBulletVelocity(BulletClass* pBullet, CoordStruct sourcePos, CoordStruct targetPos)
 {
-	BulletVelocity velocity = BulletVelocity{ (double)(targetPos.X - sourcePos.X), (double)(targetPos.Y - sourcePos.Y), (double)(targetPos.Z - sourcePos.Z) };
+	VelocityClass velocity = VelocityClass{ (double)(targetPos.X - sourcePos.X), (double)(targetPos.Y - sourcePos.Y), (double)(targetPos.Z - sourcePos.Z) };
 	velocity *= pBullet->Speed / targetPos.DistanceFrom(sourcePos);
 	pBullet->Velocity = velocity;
 	return velocity;

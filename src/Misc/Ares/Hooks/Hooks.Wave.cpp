@@ -240,7 +240,7 @@ ASMJIT_PATCH(0x762B62, WaveClass_WaveAI , 0x6)
 
 	CoordStruct FLH = pData->SourceCoord;
 	if(pData->WeaponIdx != -1)
-		Firer->GetFLH(&FLH , pData->WeaponIdx, CoordStruct::Empty);
+		FLH = Firer->GetFLH(pData->WeaponIdx, CoordStruct::Empty);
 
 	const CoordStruct xyzTgt = Target->GetCenterCoords(); // not GetCoords() !
 

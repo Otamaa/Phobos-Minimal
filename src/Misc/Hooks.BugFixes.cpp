@@ -287,40 +287,6 @@ ASMJIT_PATCH(0x67E6E5, LoadGame_RecalcLighting, 0x7)
 	return 0;
 }
 
-ASMJIT_PATCH(0x4CDA6F, FlyLocomotionClass_MovementAI_SpeedModifiers, 0x9)
-{
-	GET(FlyLocomotionClass* const, pThis, ESI);
-
-	if (const auto pLinked = pThis->LinkedTo)
-	{
-		const double currentSpeed = GET_TECHNOTYPE(pLinked)->Speed
-			* pThis->CurrentSpeed *
-			TechnoExtData::GetCurrentSpeedMultiplier(pLinked);
-
-		R->EAX(int(currentSpeed));
-		return 0x4CDA78;
-	}
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x4CE4B3, FlyLocomotionClass_4CE4B0_SpeedModifiers, 0x6)
-{
-	GET(FlyLocomotionClass* const, pThis, ECX);
-
-	if (const auto pLinked = pThis->LinkedTo)
-	{
-		const double currentSpeed = GET_TECHNOTYPE(pLinked)->Speed
-			* pThis->CurrentSpeed *
-			TechnoExtData::GetCurrentSpeedMultiplier(pLinked);
-
-		R->EAX(int(currentSpeed));
-		return 0x4CE4BF;
-	}
-
-	return 0;
-}
-
 ASMJIT_PATCH(0x73B2A2, UnitClass_DrawObject_DrawerBlitterFix, 0x6)
 {
 	enum { SkipGameCode = 0x73B2C3 };
@@ -1033,38 +999,51 @@ DEFINE_JUMP(LJMP, 0x5170CE, 0x5170E0);//Hover, not a big deal
 
 ASMJIT_PATCH(0x4D4B43, FootClass_Mission_Capture_ForbidUnintended, 0x6)
 {
+enum { LosesDestination = 0x4D4BD1 };
+
 	GET(InfantryClass*, pThis, EDI);
-	enum { LosesDestination = 0x4D4BD1 };
 
-	if(pThis){
-		const auto pBld = cast_to<BuildingClass*>(pThis->Destination);
+	if (!pThis || pThis->Target)
+		return 0;
 
-		if (!pBld || pThis->Target)
-			return 0;
+	auto const pBld = cast_to<BuildingClass*>(pThis->Destination);
 
-		if (pThis->Type->Engineer)
-			return 0;
+	if (!pBld || pBld->IsStrange())
+		return 0;
 
-		// interaction issues with Ares,
-		// no more further checking to make life easier.
-		// If someone still try to abuse the bug I won't try to stop them
-		if (pThis->Type->Infiltrate && !pThis->Owner->IsAlliedWith(pBld->Owner))
-			return 0;
+	auto const pType = pThis->Type;
 
-		if (pBld->IsStrange())
-			return 0;
+	if (pType->Engineer)
+		return 0;
 
-		if (pBld->Type->CanBeOccupied && (pThis->Type->Occupier || TechnoExtData::IsAssaulter(pThis)))
-			return 0;
+	// interaction issues with Ares, no more further checking to make life easier. If someone still try to abuse the bug I won't try to stop them
+	if (pType->Infiltrate && !pThis->Owner->IsAlliedWith(pBld->Owner))
+		return 0;
 
-		if (TechnoExtData::ISC4Holder(pThis))
-			return 0;
+	if (TechnoExtData::ISC4Holder(pThis))
+		return 0;
 
-		pThis->SetDestination(nullptr, false);
-		return 0x4D4BD1;
+	auto const pBldType = pBld->Type;
+
+	if (pBldType->CanBeOccupied && (pType->Occupier || TechnoExtData::IsAssaulter(pThis)))
+	{
+		// Re-evaluate destination if order to garrison came from TMission.
+		if (pType->Occupier && (pThis->ShouldEnterOccupiable || pThis->ShouldGarrisonStructure) && !pBld->CanBeOccupyedBy(pThis))
+		{
+			if (!(pThis->ShouldEnterOccupiable ? pThis->EnterBattleBunker() : pThis->GarrisonStructure()))
+			{
+				pThis->SetDestination(nullptr, false);
+				return LosesDestination;
+			}
+		}
+
+		return 0;
 	}
 
-	return 0;
+	// If you can't do any of these then why are you here?
+	pThis->SetDestination(nullptr, false);
+
+	return LosesDestination;
 }
 
 static void SetSkirmishHouseName(HouseClass* pHouse, bool IsHuman)
@@ -1782,41 +1761,6 @@ ASMJIT_PATCH(0x71464A, TechnoTypeClass_ReadINI_Speed, 0x7)
 	return SkipGameCode;
 }
 
-
-// In the following three places the distance check was hardcoded to compare with 20, 17 and 16 respectively,
-// which means it didn't consider the actual speed of the unit. Now we check it and the units won't get stuck
-// even at high speeds - NetsuNegi
-ASMJIT_PATCH(0x72958E, TunnelLocomotionClass_ProcessDigging_SlowdownDistance, 0x8) {
-	enum { KeepMoving = 0x72980F, CloseEnough = 0x7295CE };
-
-	//this fix reqire change of `pType->Speed`
-	//which is ridicculus really - Otamaa
-	GET(TunnelLocomotionClass* const, pLoco, ESI);
-
-	auto& currLoc = pLoco->LinkedTo->Location;
-	int distance = (int) CoordStruct{currLoc.X - pLoco->_CoordsNow.X, currLoc.Y - pLoco->_CoordsNow.Y,0}.Length() ;
-
-	auto const pTypeExt = GET_TECHNOTYPEEXT(pLoco->LinkedTo);
-	int currentSpeed = pTypeExt->SubterraneanSpeed >= 0 ?
-			pTypeExt->SubterraneanSpeed : RulesExtData::Instance()->SubterraneanSpeed;
-
-	// Calculate speed multipliers.
-	pLoco->LinkedTo->SpeedPercentage = 1.0; // Subterranean locomotor doesn't normally use this so it would be 0.0 here and cause issues.		int maxSpeed = pTypeExt->This()->Speed;
-	int maxSpeed = pTypeExt->This()->Speed;
-	pTypeExt->This()->Speed = currentSpeed;
-	currentSpeed = pLoco->LinkedTo->GetCurrentSpeed();
-	pTypeExt->This()->Speed = maxSpeed;
-
-	if (distance > currentSpeed)
-	{
-		REF_STACK(CoordStruct, newLoc, STACK_OFFSET(0x40, -0xC));
-		double angle = -Math::atan2((float)(currLoc.Y - pLoco->_CoordsNow.Y), (float)(pLoco->_CoordsNow.X - currLoc.X));
-		newLoc = currLoc + CoordStruct { int((double)currentSpeed * Math::cos(angle)), int((double)currentSpeed * Math::sin(angle)), 0 };
-		return 0x7298D3;
-	}
-	return 0x7295CE;
-}
-
 ASMJIT_PATCH(0x75BD70, WalkLocomotionClass_ProcessMoving_SlowdownDistance, 0x9) {
 	enum { KeepMoving = 0x75BF85, CloseEnough = 0x75BD79 };
 
@@ -2119,17 +2063,6 @@ DEFINE_JUMP(LJMP, 0x65B3F7, 0x65B416);//RadSite, no effect
 // 	pThis->ResetTarget();
 // 	return 0x6B7CCF;
 // }
-
-ASMJIT_PATCH(0x71872C, TeleportLocomotionClass_MakeRoom_OccupationFix, 0x9)
-{
-	enum { SkipMarkOccupation = 0x71878F };
-
-	GET(const LocomotionClass* const, pLoco, EBP);
-
-	const auto pFoot = pLoco->LinkedTo;
-
-	return (pFoot && !pFoot->InLimbo && pFoot->IsAlive && pFoot->Health > 0 && !pFoot->IsSinking) ? 0 : SkipMarkOccupation;
-}
 
 // Fix a crash at 0x7BAEA1 when trying to access a point outside of surface bounds.
 class NOVTABLE FakeXSurface final : public XSurface {
@@ -3173,10 +3106,27 @@ ASMJIT_PATCH(0x692AD6, ScrollClass_ChooseAction_SellWall, 0x6)
 	return 0;
 }
 
+static bool inline CanBeSold(TechnoClass* pTechno, AbstractType rtti)
+{
+	if (rtti == AbstractType::Building || rtti == AbstractType::Unit || rtti == AbstractType::Aircraft)
+		return pTechno->CanBeSold();
 
-// Fixes a desync caused by a check for shrouding at a specific cell
-// Sets Session.MPGameMode->SkipCheatCheck() to true
-DEFINE_PATCH(0x5C0E30, 0xB0, 0x01)
+	return false;
+}
+
+// Verify if object can be sold at event level.
+ASMJIT_PATCH(0x4C6F55, EventClass_Execute_Sell, 0x5)
+{
+	enum { SkipGameCode = 0x4C6FA8 };
+
+	GET(TechnoClass*, pTechno, EDI);
+	GET(AbstractType, rtti, EAX);
+
+	if (CanBeSold(pTechno, rtti))
+		pTechno->Sell(-1);
+
+	return SkipGameCode;
+}
 
 ASMJIT_PATCH(0x4D4203, FootClass_MissionMove_EndCheckFix1, 0x6)
 {
@@ -3190,4 +3140,40 @@ ASMJIT_PATCH(0x4D4221, FootClass_MissionMove_EndCheckFix2, 0x6)
 	GET(FootClass*, pThis, ESI);
 	R->AL(pThis->Locomotor.GetInterfacePtr()->Is_Moving_Now());
 	return 0x4D422D;
+}
+
+ASMJIT_PATCH(0x5F5C80, ObjectClass_SetHealthPercentage_Round, 0xA)
+{
+	enum { SkipGameCode = 0x5F5CBA };
+
+	GET(ObjectClass* const, pThis, ECX);
+	GET_STACK(const double, percentage, STACK_OFFSET(0x0, 0x4));
+
+	pThis->Health = (percentage <= 0.0) ? 0 : MaxImpl(1, int(pThis->GetType()->Strength * percentage + 0.5));
+
+	return SkipGameCode;
+}
+
+ASMJIT_PATCH(0x44A010, BuildingClass_Mission_Selling_SetUnitHealthPercentage, 0xA)
+{
+	enum { SkipGameCode = 0x44A03C };
+
+	GET(UnitClass* const, pUnit, EBX);
+	GET_STACK(const double, percentage, STACK_OFFSET(0xD0, -0xAC));
+
+	pUnit->SetHealthPercentage(percentage);
+	pUnit->EstimatedHealth = pUnit->Health;
+	return SkipGameCode;
+}
+
+ASMJIT_PATCH(0x73992B, UnitClass_TryToDeploy_SetBuildingHealthPercentage, 0x7)
+{
+	enum { SkipGameCode = 0x739956 };
+
+	GET(const UnitClass* const, pThis, EBP);
+	GET(BuildingClass* const, pBuilding, EBX);
+
+	pBuilding->SetHealthPercentage(pThis->GetHealthPercentage());
+	pBuilding->EstimatedHealth = pBuilding->Health;
+	return SkipGameCode;
 }

@@ -539,8 +539,7 @@ void FakeCaptureManagerClass::__DrawControlLinks()
 		CoordStruct target = pControlled->Location;
 				    target.Z += pType->LeptonMindControlOffset;
 
-		CoordStruct sourcePos;
-		this->Owner->GetFLH(&sourcePos, -1 - (i % 5), CoordStruct::Empty);
+		CoordStruct sourcePos = this->Owner->GetFLH(-1 - (i % 5), CoordStruct::Empty);
 
 		Drawing::DrawLinesTo(sourcePos, target, laserColor);
 	}

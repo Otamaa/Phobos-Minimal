@@ -222,8 +222,7 @@ int PrismForwarding::AcquireSlaves_SingleStage(PrismForwarding* TargetTower, int
 		++iFeeds;
 		++NetworkSize;
 
-		CoordStruct FLH {};
-		TargetTower->Owner->GetFLH(&FLH, 0, CoordStruct::Empty);
+		CoordStruct FLH = TargetTower->Owner->GetFLH(0, CoordStruct::Empty);
 		eligible.Tower->Owner->DelayBeforeFiring = eligible.Tower->Owner->Type->DelayedFireDelay;
 		eligible.Tower->Owner->PrismStage = PrismChargeState::Slave;
 		eligible.Tower->Owner->PrismTargetCoords = FLH;

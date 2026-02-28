@@ -19,6 +19,16 @@
 #define SDDTOR_NODELETE				0x00
 #define SDDTOR_DELETE				0x01
 
+enum class AITriggerConditionComparatorType : unsigned int
+{
+	Less = 0,
+	LessOrEqual = 1,
+	Equal = 2,
+	GreaterOrEqual = 3,
+	Greater = 4,
+	NotEqual = 5
+};
+
 enum PlayerColorSlot : int
 {
 	Gold = 0,

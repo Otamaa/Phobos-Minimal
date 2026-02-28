@@ -22,20 +22,20 @@ concept ReturnsBool = std::same_as<std::invoke_result_t<Func, Args...>, bool>;
 // Helper function for comparator operations
 static NOINLINE COMPILETIMEEVAL bool EvaluateComparator(int counter, AITriggerConditionComparator comp, bool ret)
 {
-	switch (comp.ComparatorOperand)
+	switch ((int)comp.Type)
 	{
 	case 0:
-		return counter < comp.ComparatorType;
+		return counter < comp.Operand;
 	case 1:
-		return counter <= comp.ComparatorType;
+		return counter <= comp.Operand;
 	case 2:
-		return counter == comp.ComparatorType;
+		return counter == comp.Operand;
 	case 3:
-		return counter >= comp.ComparatorType;
+		return counter >= comp.Operand;
 	case 4:
-		return counter > comp.ComparatorType;
+		return counter > comp.Operand;
 	case 5:
-		return counter != comp.ComparatorType;
+		return counter != comp.Operand;
 	default:
 		return ret;
 	}
@@ -1060,7 +1060,7 @@ void FakeTeamClass::_Took_Damage(FootClass* damagedMember, DamageState result, O
 		return 0x6EB47A;
 	}
 
-	auto pFocus = abstract_cast<TechnoClass*>(pThis->ArchiveTarget);
+	auto pFocus = flag_cast_to<TechnoClass*>(pThis->ArchiveTarget);
 	auto pSpawn = pThis->SpawnCell;
 
 	if (!pFocus || !pFocus->IsArmed() || !pSpawn || pFocus->IsCloseEnoughToAttackCoords(pSpawn->GetCoords()))
@@ -1077,7 +1077,7 @@ void FakeTeamClass::_Took_Damage(FootClass* damagedMember, DamageState result, O
 				}
 			}
 
-			if (auto pAttackerFoot = abstract_cast<FootClass*>(pAttacker))
+			if (auto pAttackerFoot = flag_cast_to<FootClass*>(pAttacker))
 			{
 				auto IsInTransporter = pAttackerFoot->Transporter && pAttackerFoot->Transporter->GetTechnoType()->OpenTopped;
 
@@ -2049,7 +2049,7 @@ void FakeTeamClass::_AssignMissionTarget(AbstractClass* new_target)
 	if (new_target != this->QueuedFocus) {
 		FootClass* unit = this->FirstUnit;
 
-		//if (this->QueuedFocus) 
+		//if (this->QueuedFocus)
 		{
 			while (unit)
 			{
@@ -3337,7 +3337,7 @@ void FakeTeamClass::_TMission_Scout(ScriptActionNode* nNode, bool arg3)
 						targetBuildings.push_back(this->TargetHouse->Buildings.Items[i]);
 					}
 				}
-					
+
 				if (targetBuildings.empty()) {
 					// No buildings found, mark as scouted
 					this->OwnerHouse->UpdateScoutNodes(this->TargetHouse);
@@ -3544,7 +3544,7 @@ void FakeTeamClass::_TMission_Chrono_prep_for_abwp(ScriptActionNode* nNode, bool
 
 		if (super->Type->Type == SuperWeaponType::ChronoSphere) // Chronosphere
 			chronosphere = super;
-		
+
 		if (super->Type->Type == SuperWeaponType::ChronoWarp) // Chronoshift
 			chronoshift = super;
 	}
@@ -3906,7 +3906,7 @@ void FakeTeamClass::_TMission_Attack_Waypoint(ScriptActionNode* nNode, bool arg3
 void FakeTeamClass::_TMission_Move_To_Cell(ScriptActionNode* nNode, bool arg3)
 {
 	const int nDivisor = ScenarioClass::NewINIFormat() < 4 ? 128 : 1000;
-	CellStruct toCell { 
+	CellStruct toCell {
 		short(nNode->Argument % nDivisor),
 		short(nNode->Argument / nDivisor)
 	};
@@ -4233,13 +4233,13 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 {
 	ScriptActionNode node = this->CurrentScript->GetCurrentAction();
 
-#ifndef _UseNew	
+#ifndef _UseNew
 
 	//dont prematurely finish the `Script` ,...
 	//bailout the script if the `Action` already -1
 	//this will free the Member and allow them to be recuited
-	//if (node.Action == TeamMissionType::none || (TeamMissionType)node.Action >= TeamMissionType::count && 
-	//	(AresScripts)node.Action >= AresScripts::count && 
+	//if (node.Action == TeamMissionType::none || (TeamMissionType)node.Action >= TeamMissionType::count &&
+	//	(AresScripts)node.Action >= AresScripts::count &&
 	//	(PhobosScripts)node.Action >= PhobosScripts::count
 	//) {
 	//	// Unknown action. This action finished
@@ -5144,18 +5144,18 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 			}
 			this->_AssignMissionTarget(pTarget);
 		}
-		
+
 		//auto pirst = this->FirstUnit;
 
 		if (this->QueuedFocus && this->_Does_Any_Member_Have_Ammo()) {
 			this->_Coordinate_Attack();
 			break;
-			
+
 		}
 
 		this->_AssignMissionTarget(nullptr);
 		this->StepCompleted = true;
-		
+
 		break;
 	}
 	default:
@@ -5165,7 +5165,7 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 
 		break;
 	}
-#else 
+#else
 	FakeTeamClass* pThis = this;
 	ScriptActionNode* pNode = &node;
 	bool something = missionChanged;

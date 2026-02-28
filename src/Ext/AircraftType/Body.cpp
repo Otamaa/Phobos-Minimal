@@ -33,6 +33,7 @@ bool AircraftTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	// Disabled , rare but can crash after S/L
 	this->Paradrop_MaxAttempt.Read(exINI, pSection, "Paradrop.MaxApproachAttempt");
 	//
+	this->ExtendedAircraftMissions.Read(exINI, pSection, "ExtendedAircraftMissions");
 	this->ExtendedAircraftMissions_SmoothMoving.Read(exINI, pSection, "ExtendedAircraftMissions.SmoothMoving");
 	this->ExtendedAircraftMissions_EarlyDescend.Read(exINI, pSection, "ExtendedAircraftMissions.EarlyDescend");
 	this->ExtendedAircraftMissions_RearApproach.Read(exINI, pSection, "ExtendedAircraftMissions.RearApproach");
@@ -53,6 +54,7 @@ bool AircraftTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->CustomMissileWeapon.Read(exINI, pSection, "Missile.Weapon");
 	this->CustomMissileEliteWeapon.Read(exINI, pSection, "Missile.EliteWeapon");
 	this->CustomMissileInaccuracy.Read(exINI, pSection, "Missile.Inaccuracy");
+	this->CustomMissileCloseEnoughFactor.Read(exINI, pSection, "Missile.CloseEnoughFactor");
 	this->CustomMissileTrailAppearDelay.Read(exINI, pSection, "Missile.TrailerAppearDelay");
 
 	this->AttackingAircraftSightRange.Read(exINI, pSection, "AttackingAircraftSightRange");
@@ -83,6 +85,16 @@ bool AircraftTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->MyPutData.Read(exINI, pSection);
 
 	return true;
+}
+
+#include <AircraftClass.h>
+
+bool AircraftTypeExtData::ExtendedAircraftMissionsEnabled(AircraftClass* pAircraft) {
+	return AircraftTypeExtContainer::Instance.Find(pAircraft->Type)->ExtendedAircraftMissions.Get(RulesExtData::Instance()->ExpandAircraftMission);
+}
+
+bool FakeAircraftTypeClass::_CanAttackMove() {
+	return AircraftTypeExtContainer::Instance.Find(this)->ExtendedAircraftMissions.Get(RulesExtData::Instance()->ExpandAircraftMission);
 }
 
 bool AircraftTypeExtContainer::LoadAll(const json& root)

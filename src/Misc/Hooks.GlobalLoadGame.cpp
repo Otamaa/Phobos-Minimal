@@ -188,6 +188,18 @@ HRESULT LoadSimpleArray(LPSTREAM stream, DynamicVectorClass<T>& collection)
 	return S_OK;
 }
 
+template<typename T>
+HRESULT LoadSimpleData(LPSTREAM stream, T& data)
+{
+	HRESULT hr;
+
+	// Read count
+	hr = stream->Read(&data, sizeof(T), 0);
+	if (FAILED(hr)) return hr;
+
+	return S_OK;
+}
+
 HRESULT PrepareDisplaySurfaces()
 {
 	if (!Game::Prep_For_Side(ScenarioClass::Instance->PlayerSideIndex))
@@ -555,7 +567,8 @@ bool __fastcall Load_Saved_Game(const char* file_name)
 	 */
 	Debug::Log("Opening DocFile\n");
 	ATL::CComPtr<IStorage> storage;
-	HRESULT hr = StgOpenStorage(wide_file_name, nullptr, STGM_READWRITE | STGM_SHARE_EXCLUSIVE, nullptr, 0, &storage);
+	HRESULT hr = StgOpenStorage(wide_file_name, nullptr,
+		STGM_READWRITE | STGM_SHARE_EXCLUSIVE, nullptr, 0, &storage);
 	if (FAILED(hr)) {
 		Debug::FatalError("Failed to open storage.\n");
 		return false;
@@ -572,6 +585,22 @@ bool __fastcall Load_Saved_Game(const char* file_name)
 	}
 
 	storage.Release();
+
+	if (SUCCEEDED(StgOpenStorage(wide_file_name, nullptr,
+		STGM_READWRITE | STGM_SHARE_EXCLUSIVE, nullptr, 0, &storage)
+	)) {
+		if (auto id = SavedGames::ReadFromStorage<CustomMissionID>(storage)) {
+			int num = id->Number;
+			Debug::Log("sav file CustomMissionID = %d\n", num);
+			SpawnerMain::GetGameConfigs()->CustomMissionID = num;
+			ScenarioClass::Instance->EndOfGame = true;
+		} else {
+			SpawnerMain::GetGameConfigs()->CustomMissionID = 0;
+		}
+	}
+
+	storage.Release();
+
 	SessionClass::Instance->GameMode = saveversion.GameType;
 	SwizzleManagerClass::Instance->Reset();
 
@@ -624,6 +653,15 @@ bool __fastcall Load_Saved_Game(const char* file_name)
 	if (FAILED(Decode_All_Pointers(stream))) {
 		Debug::FatalErrorAndExit("Error loading save game \"%s\"!\n", file_name);
 		return false;
+	}
+
+	if (SessionClass::IsCampaign()) {
+		if (SUCCEEDED(LoadSimpleData(stream, SpawnerMain::GetGameConfigs()->CustomMissionID))) {
+			Debug::Log("sav file CustomMissionID = %d\n", SpawnerMain::GetGameConfigs()->CustomMissionID);
+			ScenarioClass::Instance->EndOfGame = true;
+		} else {
+			SpawnerMain::GetGameConfigs()->CustomMissionID = 0;
+		}
 	}
 
 	Debug::Log("Unlinking content stream from decompressor.\n");

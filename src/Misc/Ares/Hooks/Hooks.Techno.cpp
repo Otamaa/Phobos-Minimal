@@ -860,42 +860,6 @@ ASMJIT_PATCH(0x48DC90, MapClass_UnselectAll_ClearLimboLaunchers, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6F826E, TechnoClass_EvaluateObject_CivilianEnemy, 0x5)
-{
-	GET(TechnoClass*, pThis, EDI);
-	GET(TechnoClass*, pTarget, ESI);
-	GET(TechnoTypeClass*, pTargetType, EBP);
-
-	enum {
-		Undecided = 0,
-		ConsiderEnemy = 0x6F8483,
-		ConsiderCivilian = 0x6F83B1,
-		Ignore = 0x6F894F
-	};
-
-	const auto pExt = TechnoTypeExtContainer::Instance.Find(pTargetType);
-
-	// always consider this an enemy
-	if (pExt->CivilianEnemy) {
-		return ConsiderEnemy;
-	}
-
-	// if the potential target is attacking an allied object, consider it an enemy
-	// to not allow civilians to overrun a player
-	if (const auto pTargetTarget = flag_cast_to<TechnoClass*>(pTarget->Target)) {
-		if (pThis->Owner->IsAlliedWith(pTargetTarget)) {
-			const auto pData = RulesExtData::Instance();
-
-			if (pThis->Owner->IsControlledByHuman() ?
-				pData->AutoRepelPlayer : pData->AutoRepelAI) {
-				return ConsiderEnemy;
-			}
-		}
-	}
-
-	return Undecided;
-}
-
 ASMJIT_PATCH(0x7162B0, TechnoTypeClass_GetPipMax_MindControl, 0x6)
 {
 	GET(TechnoTypeClass* const, pThis, ECX);

@@ -407,7 +407,7 @@ void BuildingExtData::UpdateAutoSellTimer()
 	if (pThis->InLimbo || !pThis->IsOnMap || this->LimboID >= 0 || nMission == Mission::Selling)
 		return;
 
-	if (!pThis->Type->Unsellable && pThis->Type->TechLevel != -1)
+	if (pThis->CanBeSold() && pThis->Type->TechLevel != -1)
 	{
 		auto const pRulesExt = RulesExtData::Instance();
 
@@ -1272,8 +1272,7 @@ int ProcessNukeSilo(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtData* pL
 				//Limbo-in the bullet will remove the `TechnoClass` owner from the bullet !
 				//pThis->Limbo();
 
-				CoordStruct nFLH;
-				pThis->GetFLH(&nFLH, 0, CoordStruct::Empty);
+				CoordStruct nFLH = pThis->GetFLH(0, CoordStruct::Empty);
 
 				// Otamaa : the original calculation seems causing missile to be invisible
 				//auto nCos = Math::cos(Math::Math::PI_BY_TWO_ACCURATE);
@@ -1423,8 +1422,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 	{
 		if (auto pPulseBall = pLinkedTypeExt->EMPulse_PulseBall)
 		{
-			CoordStruct flh {};
-			pThis->GetFLH(&flh, pExt->idxSlot_EMPulse, CoordStruct::Empty);
+			CoordStruct flh = pThis->GetFLH(pExt->idxSlot_EMPulse, CoordStruct::Empty);
 			auto pAnim = GameCreate<AnimClass>(pPulseBall, flh);
 			pAnim->Owner = pThis->GetOwningHouse();
 			((FakeAnimClass*)pAnim)->_GetExtData()->Invoker = pThis;
@@ -1457,8 +1455,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		pThis->BarrelFacing.Set_Desired(dirBarrel);
 
 		// Prepare bullet trajectory
-		CoordStruct flhCoord {};
-		pThis->GetFLH(&flhCoord, pExt->idxSlot_EMPulse, CoordStruct::Empty);
+		CoordStruct flhCoord = pThis->GetFLH(pExt->idxSlot_EMPulse, CoordStruct::Empty);
 
 		CoordStruct targetCoord = CellClass::Cell2Coord(celltarget);
 		targetCoord.Z = MapClass::Instance->GetZPos(&targetCoord);

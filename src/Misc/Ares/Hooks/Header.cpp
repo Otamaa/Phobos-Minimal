@@ -4058,15 +4058,11 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 
 	SetType(pThis, rtti, pToType);
 
-	if (AdjustHealth)
-	{
-		pThis->Health = std::max(1, oldHealth * pToType->Strength / pOldType->Strength);
+	if (AdjustHealth) {
 		// Readjust health according to percentage
-		//pThis->SetHealthPercentage((double)(oldHealth) / (double)pOldType->Strength);
+		pThis->SetHealthPercentage((double)(oldHealth) / (double)pOldType->Strength);
 		pThis->EstimatedHealth = pThis->Health;
-	}
-	else
-	{
+	} else {
 		pThis->Health = pToType->Strength;
 		pThis->EstimatedHealth = pToType->Strength;
 	}

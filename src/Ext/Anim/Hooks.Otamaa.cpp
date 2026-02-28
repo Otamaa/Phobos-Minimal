@@ -439,8 +439,7 @@ void FakeAnimClass::UpdateAsFiringAnim()
 
 		auto burstIdx = pOwner->CurrentBurstIndex;
 		pOwner->CurrentBurstIndex = pExt->FromBurstIdx;
-		CoordStruct flh;
-		pOwner->GetFLH(&flh , pExt->FromWeaponIdx, CoordStruct::Empty);
+		CoordStruct flh = pOwner->GetFLH(pExt->FromWeaponIdx, CoordStruct::Empty);
 		pOwner->CurrentBurstIndex = burstIdx;
 		this->SetLocation(flh - pOwner->GetCoords());
 	}

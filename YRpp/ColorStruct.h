@@ -68,6 +68,11 @@ struct ColorStruct
 	//}
 
 	static const ColorStruct Empty;
+	static const ColorStruct Red;
+	static const ColorStruct Green;
+	static const ColorStruct Blue;
+	static const ColorStruct Yellow;
+	static const ColorStruct Black;
 
 	explicit ColorStruct(DWORD const color)
 	{ memcpy(this, &color, sizeof(ColorStruct)); }
@@ -265,7 +270,7 @@ struct HSVClass
 
 		// Build lookup table for RGB values based on sector
 		// values[1] = val (V)
-		// values[2] = val (V)  
+		// values[2] = val (V)
 		// values[3] = q (descending)
 		// values[4] = p (minimum)
 		// values[5] = p (minimum)
@@ -310,7 +315,7 @@ struct HSVClass
 
 		return ColorStruct{ (unsigned char)values[redIndex]
 			, (unsigned char)values[blueIndex]
-			, (unsigned char)values[greenIndex] 
+			, (unsigned char)values[greenIndex]
 		} ;
 	}
 
@@ -418,7 +423,7 @@ struct BytePalette
 			Entries[index].Adjust(ratio, ColorStruct::Empty);
 		}
 	}
-	
+
 
 	void Adjust(int ratio, const BytePalette& palette){
 		for (int index = 0; index < EntriesCount; index++) {
@@ -432,7 +437,7 @@ struct BytePalette
 			}
 		}
 	}
-	
+
 
 	void Partial_Adjust(int ratio, const BytePalette& palette, char* lut) {
 		for (int index = 0; index < EntriesCount; index++) {

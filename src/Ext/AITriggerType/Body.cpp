@@ -4,10 +4,116 @@
 #include <Ext/Rules/Body.h>
 #include <Utilities/TemplateDef.h>
 
+#include <Phobos.SaveGame.h>
 
 // =============================
 // container
-AITriggerTypeExt::ExtContainer AITriggerTypeExt::ExtMap;
+AITriggerTypeExtContainer AITriggerTypeExtContainer::Instance;
+
+int AITriggerTypeExtData::CheckConditions(AITriggerTypeClass* pThis, HouseClass* pOwner, HouseClass* pEnemy)
+{
+	int condition = (int)pThis->ConditionType;
+
+	if (condition < -1) // Invalid, bail out early.
+		return 0;
+	else if (condition < (int)PhobosAINewConditionTypes::NumberOfTechBuildingsExist) // Not Phobos condition
+		return -1;
+
+	bool success = false;
+
+	switch ((PhobosAINewConditionTypes)condition)
+	{
+	case PhobosAINewConditionTypes::NumberOfTechBuildingsExist:
+		success = AITriggerTypeExtData::NumberOfTechBuildingsExist(pThis, pOwner);
+		break;
+	case PhobosAINewConditionTypes::NumberOfBridgeRepairHutsExist:
+		success = AITriggerTypeExtData::NumberOfBridgeRepairHutsExist(pThis);
+		break;
+	}
+
+	return success;
+}
+
+bool AITriggerTypeExtData::GetComparatorResult(int operand1, AITriggerConditionComparatorType operatorType, int operand2)
+{
+	switch (operatorType)
+	{
+	case AITriggerConditionComparatorType::Less:
+		return operand1 < operand2;
+		break;
+	case AITriggerConditionComparatorType::LessOrEqual:
+		return operand1 <= operand2;
+		break;
+	case AITriggerConditionComparatorType::Equal:
+		return operand1 == operand2;
+		break;
+	case AITriggerConditionComparatorType::GreaterOrEqual:
+		return operand1 >= operand2;
+		break;
+	case AITriggerConditionComparatorType::Greater:
+		return operand1 > operand2;
+		break;
+	case AITriggerConditionComparatorType::NotEqual:
+		return operand1 != operand2;
+		break;
+	default:
+		return false;
+		break;
+	}
+}
+
+bool AITriggerTypeExtData::NumberOfTechBuildingsExist(AITriggerTypeClass* pThis, HouseClass* pOwner)
+{
+	int count = 0;
+
+	for (auto const pHouse : *HouseClass::Array)
+	{
+		if (pHouse->IsAlliedWith(pOwner))
+			continue;
+
+		// Could possibly be optimized with bespoke tracking but
+		// it didn't seem to make much of a difference in testing.
+		for (auto const pBuilding : pHouse->Buildings)
+		{
+			if (!pBuilding->IsAlive || pBuilding->InLimbo)
+				continue;
+
+			auto const pType = pBuilding->Type;
+
+			if (pType->NeedsEngineer && pType->Capturable)
+				count++;
+		}
+	}
+
+	return AITriggerTypeExtData::GetComparatorResult(count, pThis->Conditions[0].Type, pThis->Conditions[0].Operand);
+}
+
+bool AITriggerTypeExtData::NumberOfBridgeRepairHutsExist(AITriggerTypeClass* pThis)
+{
+	int count = 0;
+	auto const pHouse = HouseClass::FindCivilianSide();
+
+	for (auto const pBuilding : pHouse->Buildings)
+	{
+		if (!pBuilding->IsAlive || pBuilding->InLimbo)
+			continue;
+
+		auto const pType = pBuilding->Type;
+
+		if (pType->BridgeRepairHut && MapClass::Instance->IsLinkedBridgeDestroyed(pBuilding->GetMapCoords()))
+			count++;
+	}
+
+	return AITriggerTypeExtData::GetComparatorResult(count, pThis->Conditions[0].Type, pThis->Conditions[0].Operand);
+}
+
+template <typename T>
+void AITriggerTypeExtData::Serialize(T& Stm)
+{
+
+}
+
+#ifdef _NOT
 
 void AITriggerTypeExt::ProcessCondition(AITriggerTypeClass* pAITriggerType, HouseClass* pHouse, int type, int condition)
 {
@@ -212,42 +318,134 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 	return;
 }
 
-//ASMJIT_PATCH(0x41E471, AITriggerTypeClass_CTOR, 0x7)
-//{
-//	GET(AITriggerTypeClass*, pThis, ESI);
-//	AITriggerTypeExt::ExtMap.Allocate(pThis);
-//	return 0x0;
-//}
-//
-//ASMJIT_PATCH(0x41E4AF, AITriggerTypeClass_DTOR, 0x6)
-//{
-//	GET(AITriggerTypeClass*, pThis, ESI);
-//	AITriggerTypeExt::ExtMap.Remove(pThis);
-//	return 0x0;
-//}
-//
-//ASMJIT_PATCH_AGAIN(0x41E540 , AITriggerTypeClass_SaveLoad_Prefix, 0x5)
-//ASMJIT_PATCH(0x41E5C0, AITriggerTypeClass_SaveLoad_Prefix, 0x8)
-//{
-//	GET_STACK(AITriggerTypeClass*, pItem, 0x4);
-//	GET_STACK(IStream*, pStm, 0x8);
-//	AITriggerTypeExt::ExtMap.PrepareStream(pItem, pStm);
-//	return 0;
-//}
-//
-//// BEfore -> 41E5A1
-//// After -> 41E5B2
-//// Better -> 41E5A1
-//ASMJIT_PATCH(0x41E5B2, AITriggerTypeClass_Load_Suffix, 0x6)
-//{
-//	AITriggerTypeExt::ExtMap.LoadStatic();
-//	return 0;
-//}
-//// BEfore -> 41E5DA
-//// After -> 41E5D8
-//// Better -> 41E5D4
-//ASMJIT_PATCH(0x41E5D8, AITriggerTypeClass_Save_Suffix, 0x5)
-//{
-//	AITriggerTypeExt::ExtMap.SaveStatic();
-//	return 0;
-//}
+#endif
+
+bool AITriggerTypeExtContainer::LoadAll(const json& root)
+{
+	this->Clear();
+
+	if (root.contains(AITriggerTypeExtContainer::ClassName))
+	{
+		auto& container = root[AITriggerTypeExtContainer::ClassName];
+
+		for (auto& entry : container[AITriggerTypeExtData::ClassName])
+		{
+
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, AITriggerTypeExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+bool AITriggerTypeExtContainer::SaveAll(json& root)
+{
+	auto& first_layer = root[AITriggerTypeExtContainer::ClassName];
+
+	json _extRoot = json::array();
+	for (auto& _extData : AITriggerTypeExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer); // write all data to stream
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[AITriggerTypeExtData::ClassName] = std::move(_extRoot);
+	return true;
+}
+
+void AITriggerTypeExtContainer::LoadFromINI(AITriggerTypeClass* key, CCINIClass* pINI, bool parseFailAddr)
+{
+	if (auto ptr = this->Find(key))
+	{
+		if (!pINI)
+		{
+			return;
+		}
+
+		//load anywhere other than rules
+		ptr->LoadFromINI(pINI, parseFailAddr);
+		//this function can be called again multiple time but without need to re-init the data
+		ptr->SetInitState(InitState::Ruled);
+	}
+
+}
+
+void AITriggerTypeExtContainer::WriteToINI(AITriggerTypeClass* key, CCINIClass* pINI)
+{
+
+	if (auto ptr = this->TryFind(key))
+	{
+		if (!pINI)
+		{
+			return;
+		}
+
+		ptr->WriteToINI(pINI);
+	}
+}
+
+
+ASMJIT_PATCH(0x41E471, AITriggerTypeClass_CTOR, 0x7)
+{
+	GET(AITriggerTypeClass*, pThis, ESI);
+	AITriggerTypeExtContainer::Instance.FindOrAllocate(pThis);
+	return 0x0;
+}
+
+ASMJIT_PATCH(0x41E4AF, AITriggerTypeClass_DTOR, 0x6)
+{
+	GET(AITriggerTypeClass*, pThis, ESI);
+	AITriggerTypeExtContainer::Instance.Remove(pThis);
+	return 0x0;
+}
+
+ASMJIT_PATCH(0x41E8FF, AITriggerTypeClass_NewTeam_CheckConditions, 0x9) // ConditionMet() in YRpp
+{
+	enum { ContinueGameChecks = 0x41E908, ReturnFromFunction = 0x41E9E1, Success = 0x41E9EA };
+
+	GET(AITriggerTypeClass*, pThis, ESI);
+	GET(HouseClass*, pOwner, EDI);
+	GET(HouseClass*, pEnemy, EBX);
+
+	int result = AITriggerTypeExtData::CheckConditions(pThis, pOwner, pEnemy);
+
+	switch (result)
+	{
+	case 0:
+		return ReturnFromFunction;
+		break;
+	case 1:
+		return Success;
+		break;
+	default:
+		return ContinueGameChecks;
+		break;
+	}
+}

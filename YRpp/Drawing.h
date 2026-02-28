@@ -175,17 +175,17 @@ struct Drawing
 		blue = static_cast<BYTE>(color >> BlueShiftLeft << BlueShiftRight);
 	}
 
-	//static void COMPILETIMEEVAL Int_To_RGB(int color, ColorStruct& buffer)
-	//{
-	//	Int_To_RGB(color, buffer.R, buffer.G, buffer.B);
-	//}
+	static void COMPILETIMEEVAL Int_To_RGB(int color, ColorStruct& buffer)
+	{
+		Int_To_RGB(color, buffer.R, buffer.G, buffer.B);
+	}
 
-	//static COMPILETIMEEVAL ColorStruct Int_To_RGB(int color)
-	//{
-	//	ColorStruct ret;
-	//	Int_To_RGB(color, ret);
-	//	return ret;
-	//}
+	static COMPILETIMEEVAL ColorStruct Int_To_RGB(int color)
+	{
+		ColorStruct ret;
+		Int_To_RGB(color, ret);
+		return ret;
+	}
 
 	static DWORD __fastcall RGB2DWORD(int red, int green, int blue)
 	{ return (red >> RedShiftRight << RedShiftLeft) | (green >> GreenShiftRight << GreenShiftLeft) | (blue >> BlueShiftRight << BlueShiftLeft);}

@@ -10,7 +10,10 @@
 #include <AircraftClass.h>
 #include <Kamikaze.h>
 #include <RocketStruct.h>
+
 #include <Locomotor/RocketLocomotionClass.h>
+
+#include <Locomotor/Cast.h>
 
 #include "DamageArea.h"
 
@@ -64,26 +67,30 @@ struct _KamikazetrackerClass
 
 	static void __fastcall Detach(Kamikaze* pThis, DWORD, AbstractClass const* pTarget)
 	{
-		if (!pThis->Nodes.Count)
-			return;
 
-		pThis->Nodes.erase_if([=](auto& item)
+		int count = pThis->Nodes.Count - 1;
+
+		if (count >= 0)
 		{
-			if (item->Item == pTarget)
-			{
-				GameDelete<false, false>(item);
-				item = nullptr;
-				return true;
+			auto it = pThis->Nodes.Items;
+			for (auto i = &it[count]; pTarget != (*i)->Item; --i) {
+
+				if (pTarget == (*i)->Cell) {
+					auto pCell = ((TechnoClass*)pTarget)->GetCell();
+					pThis->Nodes.Items[count]->Item->SetTarget(pCell);
+					pThis->Nodes.Items[count]->Item->QueueMission(Mission::Attack, false);
+					pThis->Nodes.Items[count]->Cell = pCell;
+					return;
+				}
+				if (--count < 0)
+				{
+					return;
+				}
 			}
 
-			if (item->Cell == pTarget)
-			{
-				item->Cell = MapClass::Instance->GetCellAt(pTarget->GetCoords());
-			}
-
-			return false;
-		});
-
+			GameDelete<false, false>(it[count]);
+			pThis->Nodes.erase_at(count);
+		}
 	}
 
 	static void __fastcall Clear(Kamikaze* pThis, DWORD)
@@ -196,6 +203,11 @@ struct _RocketLocomotionClass
 	static NOINLINE int GetTrailerSeparation(TechnoTypeClass* pType)
 	{
 		return TechnoTypeExtContainer::Instance.Find(pType)->CustomMissileTrailerSeparation;
+	}
+
+	static NOINLINE double GetCloseEnoughFactor(TechnoTypeClass* pType)
+	{
+		return TechnoTypeExtContainer::Instance.Find(pType)->CustomMissileCloseEnoughFactor;
 	}
 
 	static COMPILETIMEEVAL short NOINLINE GetFacing(RocketLocomotionClass* pThis) {
@@ -387,9 +399,7 @@ struct _RocketLocomotionClass
 			{
 				pRocket->MissionState = RocketMissionState::Flight;
 				Coordinate center_coord = pAir->GetCoords();
-				CellStruct center_cell = CellClass::Coord2Cell(center_coord);
-				CellStruct dest_loc = CellClass::Coord2Cell(pRocket->MovingDestination);
-				pRocket->ApogeeDistance = Vector2D<float>(static_cast<float>(center_cell.X - dest_loc.X), static_cast<float>(center_cell.Y - dest_loc.Y)).Length();
+				pRocket->ApogeeDistance = (center_coord - pRocket->MovingDestination).LengthXY();
 			}
 			break;
 		}
@@ -410,9 +420,7 @@ struct _RocketLocomotionClass
 						return false;
 
 					const Coordinate center_coord = pAir->GetCoords();
-					CellStruct center_cell = CellClass::Coord2Cell(center_coord);
-					CellStruct dest_loc = CellClass::Coord2Cell(pRocket->MovingDestination);
-					const double dist = (center_cell - dest_loc).Length();
+					const double dist = (center_coord - pRocket->MovingDestination).Length();
 					const double ratio = dist / pRocket->ApogeeDistance;
 
 					pRocket->CurrentPitch = float(rocket->PitchFinal * ratio * Math::DEG90_AS_RAD + Get_Next_Pitch(pRocket) * (1 - ratio));
@@ -423,13 +431,11 @@ struct _RocketLocomotionClass
 					if (pRocket->CurrentPitch > 0.0)
 					{
 						pRocket->CurrentPitch -= rocket->TurnRate;
-						pRocket->CurrentPitch = (float)std::max((double)pRocket->CurrentPitch, 0.0);
+						pRocket->CurrentPitch = (float)MaxImpl((double)pRocket->CurrentPitch, 0.0);
 					}
 
 					const Coordinate center_coord = pAir->GetCoords();
-					CellStruct center_cell = CellClass::Coord2Cell(center_coord);
-					CellStruct dest_loc = CellClass::Coord2Cell(pRocket->MovingDestination);
-					if ((center_cell - dest_loc).Length() <= pAir->Location.Z - pRocket->MovingDestination.Z)
+					if ((center_coord - pRocket->MovingDestination).LengthXY() <= (pAir->Location.Z - pRocket->MovingDestination.Z) * GetCloseEnoughFactor(pAirType))
 						pRocket->MissionState = RocketMissionState::ClosingIn;
 				}
 
@@ -437,6 +443,9 @@ struct _RocketLocomotionClass
 				const DirStruct desired { center_coord.X, pRocket->MovingDestination.Y, pRocket->MovingDestination.X, center_coord.Y };
 				pAir->PrimaryFacing.Set_Desired(desired);
 			}
+
+			if (!MapClass::Instance->IsWithinUsableArea(pAir->GetCoords()))
+				pAir->UnInit();
 
 			break;
 		}
@@ -599,18 +608,18 @@ public:
 	static double Get_Next_Pitch(RocketLocomotionClass* pThis)
 	{
 		const Coordinate left_to_go = pThis->MovingDestination - pThis->Owner->Location;
-		const double length = Vector2D<float> { static_cast<float>(left_to_go.X), static_cast<float>(left_to_go.Y) }.Length();
+		const double length = left_to_go.LengthXY();
 
 		if (length <= 0.0)
 			return -Math::DEG90_AS_RAD;
 
-		return Math::atan(double(left_to_go.Z / length));
+		return Math::atan(double(left_to_go.Z) / length);
 	}
 
 	static Coordinate Get_Next_Position(RocketLocomotionClass* pThis, double speed)
 	{
 		const double hSpeed = Math::cos(double(pThis->CurrentPitch)) * speed;
-		const double yaw = pThis->Owner->PrimaryFacing.Current().GetRadian<65536>();
+		const double yaw = (pThis->Owner->PrimaryFacing.Current().Raw - 0x3FFF) * Math::DIRECTION_FIXED_MAGIC;
 
 		const CoordStruct& loc = pThis->Owner->Location;
 		return {

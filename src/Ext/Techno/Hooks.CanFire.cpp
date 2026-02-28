@@ -260,6 +260,13 @@ ASMJIT_PATCH(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
 		if (pThis->CloakState == CloakState::Uncloaked)
 			return Continue;
 
+		if(pThis->InOpenToppedTransport && pThis->Transporter){
+			auto const pTransporterTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Transporter->GetTechnoType());
+			if (pTransporterTypeExt->OpenTopped_DecloakToFire.Get(RulesExtData::Instance()->OpenTopped_DecloakToFire)) {
+				return Continue;
+			}
+		}
+
 		return pThis->WhatAmI() != AircraftClass::AbsID || pThis->CloakState == CloakState::Cloaked ? FireErrorCloaked : Continue;
 	}
 
@@ -281,8 +288,11 @@ ASMJIT_PATCH(0x6FCD1D, TechnoClass_CanFire_OpenTopCloakFix, 0x5)
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(bool, checkIfTargetInRange, STACK_OFFSET(0x20, 0xC));
 
-	if (checkIfTargetInRange && pThis->InOpenToppedTransport && pThis->Transporter)
-		pThis->Transporter->Uncloak(true);
+	if (checkIfTargetInRange && pThis->InOpenToppedTransport && pThis->Transporter) {
+		auto const pTransporterTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Transporter->GetTechnoType());
+		if (pTransporterTypeExt->OpenTopped_DecloakToFire.Get(RulesExtData::Instance()->OpenTopped_DecloakToFire))
+				pThis->Transporter->Uncloak(true);
+	}
 
 	return 0;
 }

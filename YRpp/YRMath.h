@@ -238,6 +238,11 @@ namespace Math
 	float FORCEDINLINE sqrt(int value) noexcept {
 		return Math::sqrt(static_cast<double>(value));
 	}
+
+	static FORCEDINLINE double __cdecl atan2(int a1, int a2)
+	{
+		return atan2((double)a1, (double)a2);
+	}
 #else
 
 	float FORCEDINLINE sqrt(int value) noexcept {

@@ -1573,6 +1573,27 @@ public:
 	static int __fastcall __AdjustDamage(TechnoClass* pThis, discard_t, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
 	static void __fastcall __DrawAirstrikeFlare(TechnoClass* pThis, discard_t, const CoordStruct& startCoord, int startHeight, int endHeight, const CoordStruct& endCoord);
 	static AbstractClass* __fastcall __Greatest_Threat(TechnoClass* techno, discard_t, ThreatType method, CoordStruct* location, bool a4);
+	static 	bool __fastcall __EvaluateObject(
+		TechnoClass* pThis,
+		discard_t,
+		ThreatType targetFlags,
+		int mask,
+		int wantedDistance,
+		ObjectClass* pTarget,
+		int* pThreatPosed,
+		ZoneType dwUnk,
+		CoordStruct* pSourceCoords);
+
+	static bool __EvaluateObjectB(TechnoClass* pThis,
+		ThreatType   method,
+		int          mask,
+		int          range,
+		ObjectClass* target,
+		int* value,
+		ZoneType     zone,
+		CoordStruct* coord,
+		bool         attackUnderground);
+
 	static void __fastcall __Draw_Pips(TechnoClass* techno, discard_t, Point2D* position, Point2D* unused, RectangleStruct* clipRect);
 	static void __fastcall  __Draw_Stuff_When_Selected(TechnoClass* pThis, discard_t, Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect);
 	static void __fastcall __DrawHealthBar_Selection(TechnoClass* techno, discard_t, Point2D* position, RectangleStruct* clipRect, bool unused);

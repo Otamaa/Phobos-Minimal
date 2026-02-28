@@ -135,12 +135,10 @@ struct SpawnerMain
 		bool LoadSaveGame;
 		char SavedGameDir[MAX_PATH]; // Nested paths are also supported, e.g. "Saved Games\\Yuri's Revenge"
 		char SaveGameName[60];
-
+        int CustomMissionID;
 		int AutoSaveCount;
 		int AutoSaveInterval;
 		int NextAutoSaveNumber;
-
-		int CustomMissionID;
 
 		// Scenario Options
 		int  Seed;
@@ -151,6 +149,7 @@ struct SpawnerMain
 		char ScenarioName[260];
 		char MapHash[0xff];
 		wchar_t UIMapName[45];
+		bool ReadMissionSection;
 
 		// Network Options
 		int Protocol;
@@ -185,6 +184,8 @@ struct SpawnerMain
 		bool DefeatedBecomesObserver;
 		bool Observer_ShowAIOnSidebar;
 		bool Observer_ShowMultiplayPassive;
+
+		bool DisableChat;
 
 		// Custom mixes
 		// Note: std::list and std::string will be realised followed to RAII concept. It is pretty save instead of const char*.

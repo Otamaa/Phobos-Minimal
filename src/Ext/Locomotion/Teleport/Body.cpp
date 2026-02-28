@@ -354,7 +354,7 @@ bool __fastcall FakeTeleportLocomotionClass::TeleportLocomotionClass_InternalMar
 	// 2. When the Chronosphere or ChronoWarp superweapon activates
 	// 3. When units with Locomotor={4A582747-9839-11d1-B709-00A024DDAFD1} (Teleport) move
 	
-	//Debug::Log("[Phobos] TeleportLocomotion backport @ 0x718260 - Coords: (%d, %d, %d), Mark: %d, Unit: %s\n", 
+	//Debug::Log("[Phobos] TeleportLocomotion backport @ 0x718260 - Coords: (%d, %d, %d), Mark: %d, Unit: %s\n",
 	//	destX, destY, destZ, mark, 
 	//	pThis && pThis->LinkedTo ? pThis->LinkedTo->GetTechnoType()->get_ID() : "NULL");
 	
@@ -365,4 +365,4 @@ bool __fastcall FakeTeleportLocomotionClass::TeleportLocomotionClass_InternalMar
 // Hook to replace the entire original function
 // This makes the existing hooks at 0x718275, 0x7184CE, 0x7185DA redundant
 // Comment this out if you want to use the original function with partial hooks instead
-DEFINE_FUNCTION_JUMP(LJMP, 0x718260, FakeTeleportLocomotionClass::TeleportLocomotionClass_InternalMark);
+// DEFINE_FUNCTION_JUMP(LJMP, 0x718260, FakeTeleportLocomotionClass::TeleportLocomotionClass_InternalMark);

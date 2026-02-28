@@ -6,6 +6,7 @@
 #include <SpawnManagerClass.h>
 
 #include <Ext/Building/Body.h>
+#include <Ext/AircraftType/Body.h>
 
 #include <Misc/Ares/Hooks/Header.h>
 
@@ -539,7 +540,7 @@ static KickOutResult HandleAircraftIonStormExit(
 	FacingType poseDir = BuildingExtData::GetPoseDir(pAircraft, pBuilding);
 	DirStruct dir { static_cast<int>(poseDir) << 13 };
 
-	if (RulesExtData::Instance()->ExpandAircraftMission)
+	if (AircraftTypeExtData::ExtendedAircraftMissionsEnabled(pAircraft))
 		pAircraft->PrimaryFacing.Set_Current(dir);
 
 	pAircraft->SecondaryFacing.Set_Current(dir);
@@ -570,7 +571,7 @@ static KickOutResult HandleAircraftDockedExit(
 	FacingType poseDir = BuildingExtData::GetPoseDir(pAircraft, pBuilding);
 	DirStruct dir { poseDir };
 
-	if (RulesExtData::Instance()->ExpandAircraftMission)
+	if (AircraftTypeExtData::ExtendedAircraftMissionsEnabled(pAircraft))
 		pAircraft->PrimaryFacing.Set_Current(dir);
 
 	pAircraft->SecondaryFacing.Set_Current(dir);

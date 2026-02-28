@@ -1191,7 +1191,7 @@ void DisperseTrajectory::CreateDisperseBullets(WeaponTypeClass* pWeapon, Abstrac
 							//The straight trajectory bullets has LeadTimeCalculate=true are not calculate its velocity yet.
 							if (pTrajectory->UseDisperseBurst && Math::abs(pTrajType->RotateCoord) > 1e-10 && curBurst >= 0 && maxBurst > 1)
 							{
-								if (pTrajType->LeadTimeCalculate && abstract_cast<FootClass*>(pTarget))
+								if (pTrajType->LeadTimeCalculate && flag_cast_to<FootClass*>(pTarget))
 								{
 									pTrajectory->CurrentBurst = curBurst;
 									pTrajectory->CountOfBurst = maxBurst;
@@ -1213,7 +1213,7 @@ void DisperseTrajectory::CreateDisperseBullets(WeaponTypeClass* pWeapon, Abstrac
 											pTrajectory->CurrentBurst = curBurst;
 											pTrajectory->CountOfBurst = maxBurst;
 											pTrajectory->UseDisperseBurst = false;
-											if (!pTrajType->NoLaunch || !pTrajType->LeadTimeCalculate || !abstract_cast<FootClass*>(pTarget))
+											if (!pTrajType->NoLaunch || !pTrajType->LeadTimeCalculate || !flag_cast_to<FootClass*>(pTarget))
 												this->DisperseBurstSubstitution(pCreateBullet, pTrajType->AxisOfRotation.Get(), pTrajType->RotateCoord, curBurst, maxBurst, pTrajType->MirrorCoord);
 										}
 									}*/
@@ -1229,7 +1229,7 @@ void DisperseTrajectory::CreateDisperseBullets(WeaponTypeClass* pWeapon, Abstrac
 																//The parabola trajectory bullets has LeadTimeCalculate=true are not calculate its velocity yet.
 																if (pTrajectory->UseDisperseBurst && Math::abs(pTrajType->RotateCoord) > 1e-10 && curBurst >= 0 && maxBurst > 1)
 																{
-																	if (pTrajType->LeadTimeCalculate && abstract_cast<FootClass*>(pTarget))
+																	if (pTrajType->LeadTimeCalculate && flag_cast_to<FootClass*>(pTarget))
 																	{
 																		pTrajectory->CurrentBurst = curBurst;
 																		pTrajectory->CountOfBurst = maxBurst;

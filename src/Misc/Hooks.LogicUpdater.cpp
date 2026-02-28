@@ -35,51 +35,6 @@
 
 #define ENABLE_THESE
 
-ASMJIT_PATCH(0x728F74, TunnelLocomotionClass_Process_KillAnims, 0x5)
-{
-	GET(ILocomotion*, pThis, ESI);
-
-	const auto pLoco = static_cast<TunnelLocomotionClass*>(pThis);
-	const auto pExt = TechnoExtContainer::Instance.Find(pLoco->LinkedTo);
-
-	pExt->IsBurrowed = true;
-
-	if (const auto pShieldData = TechnoExtContainer::Instance.Find(pLoco->LinkedTo)->GetShield())
-	{
-		pShieldData->SetAnimationVisibility(false);
-	}
-
-	for (auto& attachEffect : pExt->PhobosAE){
-		if(attachEffect)
-			attachEffect->SetAnimationTunnelState(false);
-	}
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x728E5F, TunnelLocomotionClass_Process_RestoreAnims, 0x7)
-{
-	GET(ILocomotion*, pThis, ESI);
-
-	const auto pLoco = static_cast<TunnelLocomotionClass*>(pThis);
-
-	if (pLoco->State == TunnelLocomotionClass::State::PRE_DIG_OUT)
-	{
-		const auto pExt = TechnoExtContainer::Instance.Find(pLoco->LinkedTo);
-		pExt->IsBurrowed = false;
-
-		if (const auto pShieldData = TechnoExtContainer::Instance.Find(pLoco->LinkedTo)->GetShield())
-			pShieldData->SetAnimationVisibility(true);
-
-		for (auto& attachEffect : pExt->PhobosAE) {
-			if(attachEffect)
-				attachEffect->SetAnimationTunnelState(true);
-		}
-	}
-
-	return 0;
-}
-
 void UpdateWebbed(FootClass* pThis)
 {
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
@@ -291,7 +246,7 @@ ASMJIT_PATCH(0x4DA63B, FootClass_AI_IsMovingNow, 0x6)
 //		auto pSpawnTechnoType = pThis->SpawnOwner->GetTechnoType();
 //		auto pSpawnTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pSpawnTechnoType);
 //
-//		if (const auto pTargetTech = abstract_cast<TechnoClass*>(pThis->Target))
+//		if (const auto pTargetTech = flag_cast_to<TechnoClass*>(pThis->Target))
 //		{
 //			//Spawnee trying to chase Aircraft that go out of map until it reset
 //			//fix this , so reset immedietely if target is not on map

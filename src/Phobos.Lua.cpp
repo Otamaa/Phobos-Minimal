@@ -21,6 +21,9 @@ std::string LuaData::LuaDir;
 std::string LuaData::CoreHandles;
 std::vector<std::pair<uintptr_t, std::string>> LuaData::map_replaceAddrTo;
 std::string LuaData::MainWindowStr;
+std::string LuaData::FontName;
+std::string LuaData::StatisticPacketName;
+
 std::map<std::string, bool> LuaData::SafeFiles;
 bool LuaData::IsActive;
 
@@ -648,7 +651,7 @@ struct LuaWrapper
 		return true;
 	}
 
-	bool getGlobalString(const char* name, std::string& result)
+	bool getGlobalString(const char* name, std::string& result, bool validate)
 	{
 		auto L = Internal.get();
 		lua_getglobal(L, name);
@@ -658,10 +661,14 @@ struct LuaWrapper
 		}
 		lua_pop(L, 1);
 
+		if (validate && result.empty()) {
+			Debug::FatalError("%s is Invalid !", name);
+		}
+
 		return !result.empty();
 	}
 
-	bool getGlobalString(const char* name, std::wstring& result)
+	bool getGlobalString(const char* name, std::wstring& result, bool validate)
 	{
 		auto L = Internal.get();
 		lua_getglobal(L, name);
@@ -671,6 +678,10 @@ struct LuaWrapper
 		}
 
 		lua_pop(L, 1);
+
+		if (validate && result.empty()) {
+			Debug::FatalError("%s is Invalid !", name);
+		}
 
 		return !result.empty();
 	}
@@ -703,7 +714,7 @@ void Phobos::ExecuteLua()
 	if (Lua.loadfile(LuaData::LuaDir + "\\AdminMode.lua", nullptr))
 	{
 		std::string adminName {};
-		if (Lua.getGlobalString("AdminMode", adminName))
+		if (Lua.getGlobalString("AdminMode", adminName , false))
 		{
 			if (adminName.size() <= MAX_COMPUTERNAME_LENGTH + 1)
 			{
@@ -789,7 +800,7 @@ void Phobos::ExecuteLua()
 
 		lua_pop(L, 1);
 
-		if (Lua.getGlobalString("MainWindowString", LuaData::MainWindowStr))
+		if (Lua.getGlobalString("MainWindowString", LuaData::MainWindowStr, true))
 		{
 			Patch::Apply_OFFSET(0x777CC6, (uintptr_t)LuaData::MainWindowStr.c_str());
 			Patch::Apply_OFFSET(0x777CCB, (uintptr_t)LuaData::MainWindowStr.c_str());
@@ -798,17 +809,39 @@ void Phobos::ExecuteLua()
 			Patch::Apply_OFFSET(0x777CA1, (uintptr_t)LuaData::MainWindowStr.c_str());
 		}
 
+		if (Lua.getGlobalString("FontName", LuaData::FontName, true))
+		{
+			if (LuaData::FontName.find(".fnt") == std::string::npos && LuaData::FontName.find(".FNT") == std::string::npos) {
+				LuaData::FontName += ".fnt";
+			}
+
+			Patch::Apply_OFFSET(0x434AE7, (uintptr_t)LuaData::FontName.c_str());
+			Patch::Apply_OFFSET(0x4354DE, (uintptr_t)LuaData::FontName.c_str());
+		}
+
 		//core part to activate , disable it for now
 		//lua_get_string_array_of_SafeFiles(Lua.get(), "FetchHandles");
 		//Lua.getGlobalString("CoreHandles", CoreHandles);
 
 		//IsActive = !SafeFiles.empty() && !CoreHandles.empty();
 
-		Lua.getGlobalString("MovieMDINI", StaticVars::MovieMDINI);
-		Lua.getGlobalString("DebugLogName", Debug::LogFileMainName);
-		Lua.getGlobalString("CrashDumpFileName", Debug::CrashDumpFileName);
-		Lua.getGlobalString("DesyncLogName", Debug::SyncFileFormat);
-		Lua.getGlobalString("DesyncLogName2", Debug::SyncFileFormat2);
+		Lua.getGlobalString("MovieMDINI", StaticVars::MovieMDINI, true);
+		Lua.getGlobalString("DebugLogName", Debug::LogFileMainName, true);
+
+		if(Lua.getGlobalString("CrashDumpFileName", Debug::CrashDumpFileName, true)) {
+			if (LuaData::FontName.find(".dmp") == std::string::npos && LuaData::FontName.find(".DMP") == std::string::npos) {
+				LuaData::FontName += ".dmp";
+			}
+		}
+
+		if (Lua.getGlobalString("StatisticPacketName", LuaData::StatisticPacketName, true)) {
+			if (LuaData::FontName.find(".dmp") == std::string::npos && LuaData::FontName.find(".DMP") == std::string::npos) {
+				LuaData::FontName += ".dmp";
+			}
+		}
+
+		Lua.getGlobalString("DesyncLogName", Debug::SyncFileFormat, true);
+		Lua.getGlobalString("DesyncLogName2", Debug::SyncFileFormat2, true);
 		Lua.getGlobalBool("CompatibilityMode", Phobos::Otamaa::CompatibilityMode);
 		Lua.getGlobalBool("ReplaceGameMemoryAllocator", Phobos::Otamaa::ReplaceGameMemoryAllocator);
 		Lua.getGlobalBool("AllowMultipleInstances", Phobos::Otamaa::AllowMultipleInstance);

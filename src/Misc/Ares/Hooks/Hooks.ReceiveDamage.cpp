@@ -619,10 +619,10 @@ static bool IsTechnoImmuneToAffects(TechnoClass* pTechno, Rank rank, WarheadType
 #include <Utilities/DebrisSpawners.h>
 #ifndef _enable
 
-DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis, 
+DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 	discard_t,
-	int* damage, 
-	int distance, 
+	int* damage,
+	int distance,
 	WarheadTypeClass* warhead,
 	TechnoClass* source,
 	bool ignoreDefenses,
@@ -2338,7 +2338,7 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 
 				if ((pThis->GetCoords() - CachedRadio[i]->GetCoords()).Length() < 0x100 ||
 				(pThis->Type->Helipad && pAir &&
-					!AircraftTypeExtContainer::Instance.Find(pAir->Type)->ExtendedAircraftMissions_FastScramble.Get(RulesExtData::Instance()->ExpandAircraftMission)))
+					!AircraftTypeExtContainer::Instance.Find(pAir->Type)->ExtendedAircraftMissions_FastScramble.Get(AircraftTypeExtData::ExtendedAircraftMissionsEnabled(pAir))))
 				{
 					int _damage = GET_TECHNOTYPE(CachedRadio[i])->Strength;
 					CachedRadio[i]->ReceiveDamage(&_damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
@@ -2469,8 +2469,8 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4028, FakeBuildingClass::_ReceiveDamage)
 DamageState __fastcall FakeFootClass::__Take_Damage(FootClass* pThis, discard_t, int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse)
 {
 	args_ReceiveDamage args {
-		.Damage = damage, 
-		.DistanceToEpicenter = distance , 
+		.Damage = damage,
+		.DistanceToEpicenter = distance ,
 		.WH = warhead,
 		.Attacker = source,
 		.IgnoreDefenses = ignoreDefenses,
@@ -3152,7 +3152,7 @@ ASMJIT_PATCH(0x442243, BuildingClass_ReceiveDamage_AddEarly, 0xA)
 //
 //			while (pPassenger->NextObject)
 //			{
-//				pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
+//				pPassenger = flag_cast_to<FootClass*>(pPassenger->NextObject);
 //				pExt = TechnoExtContainer::Instance.Find(pPassenger);
 //
 //				if (pExt->OriginalPassengerOwner)

@@ -110,25 +110,25 @@ enum class ComparatorOperandTypes
 
 COMPILETIMEEVAL void ModifyOperand(bool& result, int counter, AITriggerConditionComparator& cond)
 {
-	switch ((ComparatorOperandTypes)cond.ComparatorOperand)
+	switch ((ComparatorOperandTypes)cond.Type)
 	{
 	case ComparatorOperandTypes::LessThan:
-		result = counter < cond.ComparatorType;
+		result = counter < cond.Operand;
 		break;
 	case ComparatorOperandTypes::LessOrEqual:
-		result = counter <= cond.ComparatorType;
+		result = counter <= cond.Operand;
 		break;
 	case ComparatorOperandTypes::Equal:
-		result = counter == cond.ComparatorType;
+		result = counter == cond.Operand;
 		break;
 	case ComparatorOperandTypes::MoreOrEqual:
-		result = counter >= cond.ComparatorType;
+		result = counter >= cond.Operand;
 		break;
 	case ComparatorOperandTypes::More:
-		result = counter > cond.ComparatorType;
+		result = counter > cond.Operand;
 		break;
 	case ComparatorOperandTypes::NotSame:
-		result = counter != cond.ComparatorType;
+		result = counter != cond.Operand;
 		break;
 	default:
 		break;
@@ -780,91 +780,91 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 						}	break;
 						case 9:
 						{
-							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < RulesExtData::Instance()->AITargetTypesLists.size())
+							if ((size_t)pTrigger->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
 							{
 								// New case 9: Like in case 0 but instead of 1 unit for comparisons there is a full list from [AITargetTypes] owned by the enemy.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								if (!EnemyOwns(pTrigger, pHouse, targetHouse, false, RulesExtData::Instance()->AITargetTypesLists[pTrigger->Conditions[3].ComparatorOperand]))
+								if (!EnemyOwns(pTrigger, pHouse, targetHouse, false, RulesExtData::Instance()->AITargetTypesLists[pTrigger->Conditions[3].Operand]))
 									continue;
 							}
 						}	break;
 						case 10:
 						{
-							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < RulesExtData::Instance()->AITargetTypesLists.size())
+							if ((size_t)pTrigger->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
 							{
 								// New case 10: Like in case 1 but instead of 1 unit for comparisons there is a full list from [AITargetTypes] owned by the house.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								if (!HouseOwns(pTrigger, pHouse, false, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].ComparatorOperand)]))
+								if (!HouseOwns(pTrigger, pHouse, false, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].Operand)]))
 									continue;
 							}
 						}	break;
 						case 11:
 						{
-							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < RulesExtData::Instance()->AITargetTypesLists.size())
+							if ((size_t)pTrigger->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
 							{
 								// New case 11: Like in case 7 but instead of 1 unit for comparisons there is a full list from [AITargetTypes] owned by the Civilians.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								if (!NeutralOwns(pTrigger, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].ComparatorOperand)]))
+								if (!NeutralOwns(pTrigger, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].Operand)]))
 									continue;
 							}
 						}	break;
 						case 12:
 						{
-							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < RulesExtData::Instance()->AITargetTypesLists.size())
+							if ((size_t)pTrigger->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
 							{
 								// New case 12: Like in case 0 & 9 but instead of a specific enemy this checks in all enemies.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								if (!EnemyOwns(pTrigger, pHouse, nullptr, false, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].ComparatorOperand)]))
+								if (!EnemyOwns(pTrigger, pHouse, nullptr, false, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].Operand)]))
 									continue;
 							}
 						}	break;
 						case 13:
 						{
-							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < RulesExtData::Instance()->AITargetTypesLists.size())
+							if ((size_t)pTrigger->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
 							{
 								// New case 13: Like in case 1 & 10 but instead checking the house now checks the allies.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								if (!HouseOwns(pTrigger, pHouse, true, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].ComparatorOperand)]))
+								if (!HouseOwns(pTrigger, pHouse, true, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].Operand)]))
 									continue;
 							}
 						}	break;
 						case 14:
 						{
-							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < RulesExtData::Instance()->AITargetTypesLists.size())
+							if ((size_t)pTrigger->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
 							{
 								// New case 14: Like in case 9 but instead of meet any comparison now is required all.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								if (!EnemyOwnsAll(pTrigger, pHouse, targetHouse, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].ComparatorOperand)]))
+								if (!EnemyOwnsAll(pTrigger, pHouse, targetHouse, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].Operand)]))
 									continue;
 							}
 						}	break;
 						case 15:
 						{
-							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < RulesExtData::Instance()->AITargetTypesLists.size())
+							if ((size_t)pTrigger->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
 							{
 								// New case 15: Like in case 10 but instead of meet any comparison now is required all.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								if (!HouseOwnsAll(pTrigger, pHouse, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].ComparatorOperand)]))
+								if (!HouseOwnsAll(pTrigger, pHouse, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].Operand)]))
 									continue;
 							}
 						}	break;
 						case 16:
 						{
-							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < RulesExtData::Instance()->AITargetTypesLists.size())
+							if ((size_t)pTrigger->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
 							{
 								// New case 16: Like in case 11 but instead of meet any comparison now is required all.
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								if (!NeutralOwnsAll(pTrigger, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].ComparatorOperand)]))
+								if (!NeutralOwnsAll(pTrigger, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].Operand)]))
 									continue;
 							}
 						}	break;
 						case 17:
 						{
-							if ((size_t)pTrigger->Conditions[3].ComparatorOperand < RulesExtData::Instance()->AITargetTypesLists.size())
+							if ((size_t)pTrigger->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
 							{
 								// New case 17: Like in case 14 but instead of meet any comparison now is required all. Check all enemies
 								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								if (!EnemyOwnsAll(pTrigger, pHouse, nullptr, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].ComparatorOperand)]))
+								if (!EnemyOwnsAll(pTrigger, pHouse, nullptr, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].Operand)]))
 									continue;
 							}
 						}	break;
@@ -1359,7 +1359,7 @@ std::vector<TeamTypeClass*> NOINLINE Suggested_New_Team(HouseClass* forHouse_, b
 	int teamCapValue = RulesClass::Instance->TotalAITeamCap.Items[Difficulty];
 	suggestedTeams.reserve(teamCapValue);
 
-	if (ScenarioClass::Instance->Random.RandomRanged(1, 100) <= forHouse_->RatioAITriggerTeam 
+	if (ScenarioClass::Instance->Random.RandomRanged(1, 100) <= forHouse_->RatioAITriggerTeam
 		&& forHouse_->AITriggersActive) {
 		int counter = 0;
 		int baseDefenseCount = 0;

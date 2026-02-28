@@ -94,7 +94,7 @@ ASMJIT_PATCH(0x73EDA1, UnitClass_Mission_Harvest_SubterraneanHarvester, 0x6)
 }
 
 // Apply same special rules on idle to player-owned subterranean harvesters as to Teleporter=yes ones.
-DEFINE_HOOK(0x740949, UnitClass_Mission_Guard_SubterraneanHarvester, 0x6)
+ASMJIT_PATCH(0x740949, UnitClass_Mission_Guard_SubterraneanHarvester, 0x6)
 {
 	enum { Continue = 0x740957 };
 

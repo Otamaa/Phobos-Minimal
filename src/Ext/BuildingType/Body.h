@@ -695,6 +695,7 @@ public:
 	// Short check: Is the building of a linkable kind at all?
 	static bool IsLinkable(BuildingTypeClass* pThis);
 	static int GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse);
+	static int GetEnhancedPower(BuildingTypeClass* pBuilding, int output, HouseClass* pHouse);
 	static float GetPurifierBonusses(HouseClass* pHouse);
 	static double GetExternalFactorySpeedBonus(TechnoClass* pWhat);
 	static double GetExternalFactorySpeedBonus(TechnoClass* pWhat, HouseClass* pOwner);

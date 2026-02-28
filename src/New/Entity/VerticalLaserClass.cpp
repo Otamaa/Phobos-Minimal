@@ -130,7 +130,7 @@ void LaunchCannon()
 			{
 				var exp2damge = (Owner.OwnerObject.Ref.Base.Health / (MAX_STRENGTH / 5)) * 100;
 				var inviso = misissle.Ref.CreateBullet(Owner.OwnerObject.Convert<AbstractClass>(), Owner.OwnerObject, exp2damge, exp2Warhead, 50, false);
-				inviso.Ref.MoveTo(targetPos + new CoordStruct(0, 0, 2000), new BulletVelocity(0, 0, 0));
+				inviso.Ref.MoveTo(targetPos + new CoordStruct(0, 0, 2000), new VelocityClass(0, 0, 0));
 				inviso.Ref.SetTarget(pCell.Convert<AbstractClass>());
 			}
 		}

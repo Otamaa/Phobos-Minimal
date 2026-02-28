@@ -4,6 +4,7 @@
 #include <Utilities/Macro.h>
 #include <Utilities/Enum.h>
 
+#include <Ext/AircraftType/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/TechnoType/Body.h>
@@ -58,7 +59,7 @@ ASMJIT_PATCH(0x4DF42A, FootClass_UpdateAttackMove_AircraftHoldAttackMoveTarget2,
 	GET(FootClass* const, pThis, ESI);
 
 	// Although if the target selected by CS is an object rather than cell.
-	return (RulesExtData::Instance()->ExpandAircraftMission && pThis->WhatAmI() == AbstractType::Aircraft) ? HoldTarget : ContinueCheck;
+	return (pThis->WhatAmI() == AbstractType::Aircraft && AircraftTypeExtData::ExtendedAircraftMissionsEnabled((AircraftClass*)pThis) ) ? HoldTarget : ContinueCheck;
 }
 
 ASMJIT_PATCH(0x41A5C7, AircraftClass_Mission_Guard_StartAreaGuard, 0x6)
@@ -67,7 +68,7 @@ ASMJIT_PATCH(0x41A5C7, AircraftClass_Mission_Guard_StartAreaGuard, 0x6)
 
 	GET(AircraftClass* const, pThis, ESI);
 
-	if (!RulesExtData::Instance()->ExpandAircraftMission || pThis->Team || !pThis->IsArmed() || pThis->Airstrike || pThis->Spawned)
+	if (!AircraftTypeExtData::ExtendedAircraftMissionsEnabled(pThis)  || pThis->Team || !pThis->IsArmed() || pThis->Airstrike || pThis->Spawned)
 		return 0;
 
 	const auto pArchive = pThis->ArchiveTarget;
@@ -77,23 +78,6 @@ ASMJIT_PATCH(0x41A5C7, AircraftClass_Mission_Guard_StartAreaGuard, 0x6)
 
 	pThis->SetDestination(pArchive, true);
 	pThis->QueueMission(Mission::Area_Guard, false);
-	return SkipGameCode;
-}
-
-ASMJIT_PATCH(0x4CE42A, FlyLocomotionClass_StateUpdate_NoLanding, 0x6) // Prevent aircraft from hovering due to cyclic enter Guard and AreaGuard missions when above buildings
-{
-	enum { SkipGameCode = 0x4CE441 };
-
-	GET(FootClass* const, pLinkTo, EAX);
-
-	if (!RulesExtData::Instance()->ExpandAircraftMission)
-		return 0;
-
-	const auto pAircraft = cast_to<AircraftClass*, true>(pLinkTo);
-
-	if (!pAircraft || pAircraft->Airstrike || pAircraft->Spawned || pAircraft->GetCurrentMission() == Mission::Enter)
-		return 0;
-
 	return SkipGameCode;
 }
 
@@ -152,36 +136,6 @@ enum class AirAttackStatusP : int
 	AIR_ATT_FIRE_AT_TARGET5 = 0x9,
 	AIR_ATT_RETURN_TO_BASE = 0xA,
 };
-
-ASMJIT_PATCH(0x4CF68D, FlyLocomotionClass_DrawMatrix_OnAirport, 0x5)
-{
-	GET(ILocomotion*, iloco, ESI);
-	auto loco = static_cast<FlyLocomotionClass*>(iloco);
-	auto pAir = cast_to<AircraftClass* , false>(loco->LinkedTo);
-
-	if (pAir && pAir->GetHeight() <= 0)
-	{
-		float ars = pAir->AngleRotatedSideways;
-		float arf = pAir->AngleRotatedForwards;
-		REF_STACK(Matrix3D, mat, STACK_OFFSET(0x38, -0x30));
-		auto slope_idx = MapClass::Instance->GetCellAt(pAir->Location)->SlopeIndex;
-		mat = Game::VoxelRampMatrix[slope_idx] * mat;
-
-		if (Math::abs(ars) > 0.005 || Math::abs(arf) > 0.005)
-		{
-			mat.TranslateZ(float(Math::abs(Math::sin(ars))
-				* pAir->Type->VoxelScaleX
-				+ Math::abs(Math::sin(arf)) * pAir->Type->VoxelScaleY));
-
-			R->ECX(pAir);
-			return 0x4CF6AD;
-		}
-
-		return 0x4CF6A0;
-	}
-
-	return 0;
-}
 
 static FORCEDINLINE bool CheckSpyPlaneCameraCount(AircraftClass* pThis ,WeaponTypeClass* pWeapon)
 {
@@ -265,7 +219,7 @@ ASMJIT_PATCH(0x41A96C, AircraftClass_Mission_AreaGuard, 0x6)
 
 	GET(AircraftClass*, pThis, ESI);
 
-	if (RulesExtData::Instance()->ExpandAircraftMission && !pThis->Team && pThis->Ammo && pThis->IsArmed())
+	if (AircraftTypeExtData::ExtendedAircraftMissionsEnabled(pThis) && !pThis->Team && pThis->Ammo && pThis->IsArmed())
 	{
 		auto enterIdleMode = [pThis]() -> bool
 			{
@@ -351,7 +305,7 @@ ASMJIT_PATCH(0x4DF3BA, FootClass_UpdateAttackMove_AircraftHoldAttackMoveTarget, 
 
 	GET(FootClass* const, pThis, ESI);
 
-	return (RulesExtData::Instance()->ExpandAircraftMission && pThis->WhatAmI() == AbstractType::Aircraft
+	return (pThis->WhatAmI() == AbstractType::Aircraft && AircraftTypeExtData::ExtendedAircraftMissionsEnabled((AircraftClass*)pThis)
 		|| pThis->IsCloseEnoughToAttackWithNeverUseWeapon(pThis->Target)) ? HoldCurrentTarget : LoseCurrentTarget; // pThis->InAuxiliarySearchRange(pThis->Target)
 }
 
@@ -367,7 +321,7 @@ ASMJIT_PATCH(0x416A0A, AircraftClass_Mission_Move_SmoothMoving, 0x5)
 	if (pThis->Team || pThis->Airstrike || pThis->Spawned || !pType->AirportBound)
 		return 0;
 
-	const auto extendedMissions = RulesExtData::Instance()->ExpandAircraftMission;
+	const auto extendedMissions = AircraftTypeExtData::ExtendedAircraftMissionsEnabled(pThis);
 	const auto pTypeExt = AircraftTypeExtContainer::Instance.Find(pType);
 
 	if (!pTypeExt->ExtendedAircraftMissions_SmoothMoving.Get(extendedMissions))
@@ -444,8 +398,7 @@ ASMJIT_PATCH(0x4C7403, EventClass_Execute_AircraftAreaGuard, 0x6)
 	GET(EventClass* const, pThis, ESI);
 	GET(TechnoClass* const, pTechno, EDI);
 
-	if (RulesExtData::Instance()->ExpandAircraftMission
-			&& pTechno->WhatAmI() == AbstractType::Aircraft)
+	if (pTechno->WhatAmI() == AbstractType::Aircraft && AircraftTypeExtData::ExtendedAircraftMissionsEnabled((AircraftClass*)pTechno))
 	{
 		// Skip assigning destination / target here.
 		R->ESI(&pThis->Data.MegaMission.Target);
@@ -463,8 +416,7 @@ ASMJIT_PATCH(0x4C72F2, EventClass_Execute__AircraftAreaGuard_Untether, 0x6)
 	GET(EventClass* const, pThis, ESI);
 	GET(TechnoClass* const, pTechno, EDI);
 
-	if (RulesExtData::Instance()->ExpandAircraftMission
-		&& pTechno->WhatAmI() == AbstractType::Aircraft
+	if (pTechno->WhatAmI() == AbstractType::Aircraft && AircraftTypeExtData::ExtendedAircraftMissionsEnabled((AircraftClass*)pTechno)
 		&& pThis->Data.MegaMission.Mission == (char)Mission::Area_Guard
 		&& (pTechno->CurrentMission != Mission::Sleep || !pTechno->Ammo)
 		)

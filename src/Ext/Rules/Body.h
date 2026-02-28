@@ -319,6 +319,7 @@ public:
 	Nullable<bool> NoQueueUpToEnter_Buildings {};
 	Nullable<bool> NoQueueUpToUnload_Buildings {};
 	Nullable<bool> AttackMove_StopWhenTargetAcquired {};
+	Valueable<bool> OpenTopped_DecloakToFire { false };
 
 	// ============================================================
 	// Valueable<int> / ValueableIdx (4 bytes each)

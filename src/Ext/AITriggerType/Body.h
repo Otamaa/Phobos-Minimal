@@ -1,7 +1,7 @@
 #pragma once
 
 #include <AITriggerTypeClass.h>
-#include <Utilities/Container.h>
+#include <Ext/AbstractType/Body.h>
 
 //this is a 1-based index.
 enum class PhobosAIConditionTypes : int
@@ -11,57 +11,88 @@ enum class PhobosAIConditionTypes : int
 
 enum class PhobosAINewConditionTypes : int
 {
-	CheckPrereq = 8,
-	CheckBridgeCondition = 9
+	//CheckPrereq = 8,
+	//CheckBridgeCondition = 9
+
+	NumberOfTechBuildingsExist = 8,
+	NumberOfBridgeRepairHutsExist = 9,
 };
 
-class AITriggerTypeExt
+class AITriggerTypeExtData final : public AbstractTypeExtData
 {
 public:
 
-	/*
-	class ExtData final : public Extension<AITriggerTypeClass>
+	using base_type = AITriggerTypeClass;
+	static COMPILETIMEEVAL const char* ClassName = "AITriggerTypeExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "AITriggerTypeClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+
+public:
+
+	AITriggerTypeExtData(AITriggerTypeClass* pObj)
+		: AbstractTypeExtData(pObj)
+	{ }
+
+	AITriggerTypeExtData(AITriggerTypeClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }
+
+	virtual ~AITriggerTypeExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
 	{
-	public:
-		using base_type = AITriggerTypeClass;
-		static COMPILETIMEEVAL size_t Canary = 0x2C2CAC2C;
-		static COMPILETIMEEVAL size_t ExtOffset = 0x10C;
+		this->AbstractTypeExtData::InvalidatePointer(ptr, bRemoved);
+	}
 
-	public:
-
-		//Valueable<HouseTypeClass*> NoneOF; String ?
-		ExtData(AITriggerTypeClass* OwnerObject) : Extension<AITriggerTypeClass>(OwnerObject)
-			//, NoneOF { }
-		{ }
-
-		virtual ~ExtData() override = default;
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm)
-		{
-			Stm
-				.Process(this->Initialized)
-				;
-		}
-	};
-
-	class ExtContainer final : public Container<AITriggerTypeExt::ExtData>
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(AITriggerTypeExt::ExtData, "AITriggerTypeClass");
-	};
+		this->AbstractTypeExtData::Internal_LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
 
-	static ExtContainer ExtMap;
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		this->AbstractTypeExtData::Internal_SaveToStream(Stm);
+		const_cast<AITriggerTypeExtData*>(this)->Serialize(Stm);
+	}
 
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
 
-	static void ProcessCondition(AITriggerTypeClass* pAITriggerType, HouseClass* pHouse, int type, int condition);
-	static void DisableAITrigger(AITriggerTypeClass* pAITriggerType);
-	static void EnableAITrigger(AITriggerTypeClass* pAITriggerType);
-	static bool ReadCustomizableAICondition(HouseClass* pHouse, int pickMode, int compareMode, int Number, TechnoTypeClass* TechnoType);
-	static void CustomizableAICondition(AITriggerTypeClass* pAITriggerType, HouseClass* pHouse, int condition);
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->AbstractTypeExtData::CalculateCRC(crc);
+	}
 
-	*/
+	AITriggerTypeClass* This() const { return reinterpret_cast<AITriggerTypeClass*>(this->AttachedToObject); }
+	const AITriggerTypeClass* This_Const() const { return reinterpret_cast<const AITriggerTypeClass*>(this->AttachedToObject); }
+
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr) { return true; }
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
+public:
+
+	static int CheckConditions(AITriggerTypeClass* pThis, HouseClass* pOwner, HouseClass* pEnemy);
+	static bool GetComparatorResult(int operand1, AITriggerConditionComparatorType operatorType, int operand2);
+	static bool NumberOfTechBuildingsExist(AITriggerTypeClass* pThis, HouseClass* pOwner);
+	static bool NumberOfBridgeRepairHutsExist(AITriggerTypeClass* pThis);
+
+private:
+	template <typename T>
+	void Serialize(T& Stm);
+};
+
+class AITriggerTypeExtContainer final : public Container<AITriggerTypeExtData>
+	, public ReadWriteContainerInterfaces<AITriggerTypeExtData>
+{
+public:
+
+	static COMPILETIMEEVAL const char* ClassName = "AITriggerTypeExtContainer";
+
+public:
+	static AITriggerTypeExtContainer Instance;
+
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
+
+	virtual void LoadFromINI(AITriggerTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
+	virtual void WriteToINI(AITriggerTypeClass* key, CCINIClass* pINI);
 };

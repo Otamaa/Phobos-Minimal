@@ -1077,6 +1077,20 @@ ASMJIT_PATCH(0x4B769B, ScenarioClass_GenerateDropshipLoadout, 5)
 
 #include <Ext/Scenario/Body.h>
 
+int Get_FallDamage(
+    double ratio,
+    const TechnoClass* pTechno,
+    const TechnoTypeClass* pTechnoType)
+{
+    if (ratio < 0.0)
+        return static_cast<int>(pTechno->Health * Math::abs(ratio));
+
+    if (ratio <= 1.0)
+        return static_cast<int>(pTechnoType->Strength * ratio);
+
+    return static_cast<int>(ratio);
+}
+
 ASMJIT_PATCH(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 {
 	GET(ObjectClass*, pThis, ESI);
@@ -1121,21 +1135,15 @@ ASMJIT_PATCH(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 				if (!pCell || !pCell->IsClearToMove(pTechnoType->SpeedType, true, true, ZoneType::None, pTechnoType->MovementZone, pCell->GetLevel(), pCell->ContainsBridge()))
 					return 0;
 
+				if (!pTechno->HasParachute){
 
-				double ratio = pCell->Tile_Is_Water() && !pTechno->OnBridge ?
-						  pExt->FallingDownDamage_Water.Get(pExt->FallingDownDamage.Get())
-						: pExt->FallingDownDamage.Get();
+					double ratio = pCell->LandType == LandType::Water && !pTechno->OnBridge ?
+						 	 pExt->FallingDownDamage_Water.Get(pExt->FallingDownDamage.Get())
+							: pExt->FallingDownDamage.Get();
 
-				int damage = 0;
-
-				if (ratio < 0.0)
-					damage = int(pThis->Health * Math::abs(ratio));
-				else if (ratio >= 0.0 && ratio <= 1.0)
-					damage = int(pTechnoType->Strength * ratio);
-				else
-					damage = int(ratio);
-
-				pThis->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
+					int damage = Get_FallDamage(ratio , pTechno , pTechnoType);
+					pThis->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
+				}
 
 				if (pThis->Health > 0 && pThis->IsAlive)
 				{

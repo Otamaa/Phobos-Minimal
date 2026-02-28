@@ -225,7 +225,7 @@ ASMJIT_PATCH(0x6EFB69, TeamClass_TMission_GatherAtFriendlyBase_Distance, 0x6)
 // 		return 0x6EB47A;
 // 	}
 
-// 	auto pFocus = abstract_cast<TechnoClass*>(pThis->ArchiveTarget);
+// 	auto pFocus = flag_cast_to<TechnoClass*>(pThis->ArchiveTarget);
 // 	auto pSpawn = pThis->SpawnCell;
 
 // 	if (!pFocus || !pFocus->IsArmed() || !pSpawn || pFocus->IsCloseEnoughToAttackCoords(pSpawn->GetCoords())) {
@@ -238,7 +238,7 @@ ASMJIT_PATCH(0x6EFB69, TeamClass_TMission_GatherAtFriendlyBase_Distance, 0x6)
 // 				}
 // 			}
 
-// 			if (auto pAttackerFoot = abstract_cast<FootClass*>(pAttacker)) {
+// 			if (auto pAttackerFoot = flag_cast_to<FootClass*>(pAttacker)) {
 // 				auto IsInTransporter = pAttackerFoot->Transporter && pAttackerFoot->Transporter->GetTechnoType()->OpenTopped;
 
 // 				if (pAttackerFoot->InLimbo && !IsInTransporter) {

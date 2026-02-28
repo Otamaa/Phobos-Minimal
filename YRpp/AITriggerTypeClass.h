@@ -15,8 +15,8 @@ class TeamTypeClass;
 
 struct AITriggerConditionComparator
 {
-	int ComparatorType;
-	int ComparatorOperand;
+	AITriggerConditionComparatorType Type;
+	int Operand;
 };
 
 class DECLSPEC_UUID("BA093524-4CF4-11D2-BC26-00104B8FB04D")

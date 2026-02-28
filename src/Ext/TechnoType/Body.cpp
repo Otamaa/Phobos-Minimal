@@ -908,6 +908,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->OpenTopped_ShareTransportTarget.Read(exINI, pSection, "OpenTopped.ShareTransportTarget");
 		this->OpenTopped_UseTransportRangeModifiers.Read(exINI, pSection, "OpenTopped.UseTransportRangeModifiers");
 		this->OpenTopped_CheckTransportDisableWeapons.Read(exINI, pSection, "OpenTopped.CheckTransportDisableWeapons");
+		this->OpenTopped_DecloakToFire.Read(exINI, pSection, "OpenTopped.DecloakToFire");
 
 		this->AutoFire.Read(exINI, pSection, "AutoFire");
 		this->AutoFire.Read(exINI, pSection, "AutoTargetOwnPosition");

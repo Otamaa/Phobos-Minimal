@@ -498,10 +498,19 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 
 		auto objectType = GET_TECHNOTYPE(object);
 		auto pObjectTypeExt = TechnoTypeExtContainer::Instance.Find(objectType);
+		bool skipImmune = false;
 
-		if (pTypeExt->AI_LegalTarget.isset() && !pTechno->Owner->IsControlledByHuman() && !pObjectTypeExt->AI_LegalTarget.Get()) {
-			continue;
-		}else if(!objectType->LegalTarget)
+		if (const auto pTargetBuilding = cast_to<BuildingClass*>(object)) {
+			// Discard invisible structures
+			if (pTargetBuilding->Type->InvisibleInGame)
+				continue;
+
+			// Skip immunity check for buildings in agent mode.
+			if (agentMode)
+				skipImmune = true;
+		}
+
+		if (!objectType->LegalTarget || (pObjectTypeExt->AI_LegalTarget.isset() && !pTechno->Owner->IsControlledByHuman() && !pObjectTypeExt->AI_LegalTarget.Get() )|| (!skipImmune && objectType->Immune))
 			continue;
 
 		if (object->GetCurrentMissionControl()->NoThreat)
@@ -701,6 +710,8 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 		buildingIsConsideredVehicle = pBuilding->Type->IsUndeployable();
 	}
 
+	//const bool isNeutralBld = IsBuilding && pTechno->Owner->IsNeutral();
+
 	const auto whatTech = pTechno->WhatAmI();
 	UnitTypeClass* pTypeUnit = whatTech == AbstractType::Unit ? static_cast<UnitTypeClass*>(pTechnoType) : nullptr;
 
@@ -728,8 +739,9 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 			if (!buildingIsConsideredVehicle)
 				return true;
 
-			if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
+			if (IsBuilding)
 			{
+				auto pBld = static_cast<BuildingClass*>(pTechno);
 				const auto pBldExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 
 				return !(pBld->Type->Artillary
@@ -782,8 +794,10 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 			if (buildingIsConsideredVehicle)
 				return true;
 
-			if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
+			if (IsBuilding)
 			{
+				auto pBld = static_cast<BuildingClass*>(pTechno);
+
 				const auto pExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 				return (pBld->Type->Artillary
 				|| pBld->Type->TickTank
@@ -799,19 +813,22 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 	case 6:
 		// Factory
 	{
-		if (!pTechno->Owner->IsNeutral())
+		if (IsBuilding && !pTechno->Owner->IsNeutral())
 		{
-			if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
-				return pBld->Type->Factory != AbstractType::None;
+			auto pBld = static_cast<BuildingClass*>(pTechno);
+			return pBld->Type->Factory != AbstractType::None;
 		}
+
 		return false;
 	}
 	case 7:
 	{
 		// Defense
-		if (!pTechno->Owner->IsNeutral())
-			if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
+		if (IsBuilding && !pTechno->Owner->IsNeutral())
+		{
+			auto pBld = static_cast<BuildingClass*>(pTechno);
 				return pBld->Type->IsBaseDefense;
+		}
 
 		return false;
 	}
@@ -819,7 +836,6 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 	{	// House threats
 		if (pTeamLeader && !pTechno->Owner->IsNeutral())
 		{
-
 			if (auto pTarget = flag_cast_to<TechnoClass*>(pTechno->Target))
 			{
 				// The possible Target is aiming against me? Revenge!
@@ -856,25 +872,50 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 	case 9:
 	{
 		// Power Plant
-		if (!pTechno->Owner->IsNeutral())
-		{
-			if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
+		if (!IsBuilding || pTechno->Owner->IsNeutral())
+			return false;
+
+			auto pBld = static_cast<BuildingClass*>(pTechno);
+
+			if(pBld->Type->InvisibleInGame
+				|| pBld->Type->Immune)
 			{
-				for (const auto type : pBld->GetTypes())
-				{
-					if (type)
-						return type->PowerBonus > 0;
+				return false;
+			}
+
+			for (const auto type : pBld->GetTypes())
+			{
+				if (type) {
+
+					if(type->PowerBonus > 0)
+						return true;
+
+						auto pBbldTypeExt  = BuildingTypeExtContainer::Instance.Find(type);
+
+					if (pBbldTypeExt->PowerPlantEnhancer_Buildings.size()
+						&& (pBbldTypeExt->PowerPlantEnhancer_Amount != 0 || pBbldTypeExt->PowerPlantEnhancer_Factor != 1.0f)
+						&& pBbldTypeExt->PowerPlantEnhancer_MaxCount > 0)
+					{
+						return true;
+					}
 				}
 			}
-		}
 
 		return false;
 	}
 	case 10:
 	{
 		// Occupied Building
-		if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
+		if (IsBuilding)
 		{
+				auto pBld = static_cast<BuildingClass*>(pTechno);
+
+			if(pBld->Type->InvisibleInGame
+				|| pBld->Type->Immune)
+			{
+				return false;
+			}
+
 			return (pBld->Occupants.Count > 0);
 		}
 
@@ -883,21 +924,10 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 	case 11:
 	{
 		// Civilian Tech
-		if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
+		if (IsBuilding)
 		{
-			if (!RulesClass::Instance->NeutralTechBuildings.contains(pBld->Type)){
-
-				// Other cases of civilian Tech Structures
-				return !pBld->Type->InvisibleInGame
-					&& !pBld->Type->Immune
-					&& pBld->Type->Unsellable
-					&& pBld->Type->Capturable
-					&& pBld->Type->TechLevel < 0
-					&& pBld->Type->NeedsEngineer
-					&& !pBld->Type->BridgeRepairHut;
-			}
-
-			return true;
+			auto pBld = static_cast<BuildingClass*>(pTechno);
+			return pBld->Type->Capturable && pBld->Type->NeedsEngineer;
 		}
 		return false;
 	}
@@ -914,8 +944,9 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 					;
 			}
 
-			if (auto pBuilding = cast_to<BuildingClass*, false>(pTechno))
+			if (IsBuilding)
 			{
+				auto pBuilding = static_cast<BuildingClass*>(pTechno);
 				return pBuilding->Type->ResourceGatherer
 					|| (pBuilding->Type->Refinery || (pBuilding->SlaveManager && pBuilding->Type->Enslaves));
 			}
@@ -997,8 +1028,10 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 			if (auto pInfT = type_cast<InfantryTypeClass*>(pTechnoType))
 				return pInfT->ResourceGatherer && (pInfT->Slaved && pTechno->SlaveOwner);
 
-			if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
+			if (IsBuilding)
 			{
+				auto pBld = static_cast<BuildingClass*>(pTechno);
+
 				for (auto const type : pBld->GetTypes())
 				{
 					if (type && (type->ProduceCashAmount > 0 || type->OrePurifier))
@@ -1044,9 +1077,9 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 	case 22:
 	{
 		// Radar & SpySat
-		if (!pTechno->Owner->IsNeutral())
+		if (IsBuilding && !pTechno->Owner->IsNeutral())
 		{
-			if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
+			auto pBld = static_cast<BuildingClass*>(pTechno);
 			{
 				if(pBld->Type->Radar)
 					return true;
@@ -1063,8 +1096,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 	case 23:
 	{
 		// Buildable Tech
-		if (!pTechno->Owner->IsNeutral()
-			&& IsBuilding)
+		if (IsBuilding && !pTechno->Owner->IsNeutral())
 		{
 			return (RulesClass::Instance->BuildTech.contains(static_cast<BuildingTypeClass*>(pTechnoType)));
 		}
@@ -1141,11 +1173,10 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 	}
 	case 28:
 	{
-		if (!IsBuilding)
+		if (!IsBuilding || pTechno->Owner->IsNeutral())
 			return false;
 
 		// Cloak Generator & Gap Generator
-		if (!pTechno->Owner->IsNeutral())
 		{
 			const auto pBuilding = static_cast<BuildingClass*>(pTechno);
 
@@ -1221,7 +1252,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 		const auto pBldExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 		// Capturable Structure or Repair Hut
 		return pBldExt->EngineerRepairable.Get(pBuilding->Type->Capturable)
-			|| (pBuilding->Type->BridgeRepairHut && pBuilding->Type->Repairable)
+			|| (pBuilding->Type->BridgeRepairHut && MapClass::Instance->IsLinkedBridgeDestroyed(pTechno->GetMapCoords()))
 			;
 	}
 	case 34:
@@ -1231,12 +1262,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 
 		if (!pTechno->Owner->IsNeutral())
 		{
-			// Inside the Area Guard of the Team Leader
-			const auto distanceToTarget = pTeamLeader->DistanceFrom(pTechno) / 256.0; // Caution, DistanceFrom() return leptons
-			const auto pLEaderType = GET_TECHNOTYPE(pTeamLeader);
-
-			return (pLEaderType->GuardRange > 0
-					&& distanceToTarget <= ((pLEaderType->GuardRange / 256.0) * 2.0));
+			return pTeamLeader->DistanceFrom(pTechno) <= pTeamLeader->GetGuardRange(1);
 		}
 
 		return false;
@@ -1286,7 +1312,8 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 			return false;
 
 		// Occupyable Civilian  Building
-		if (auto pBuilding = static_cast<BuildingClass*>(pTechno))
+		auto pBuilding = static_cast<BuildingClass*>(pTechno);
+
 		{
 			if (pBuilding->Type->CanBeOccupied && pBuilding->Occupants.Count == 0 && pBuilding->Owner->IsNeutral() && pBuilding->Type->CanOccupyFire && pBuilding->Type->TechLevel == -1 && pBuilding->GetHealthStatus() != HealthState::Red)
 				return true;
@@ -1296,15 +1323,33 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 
 		return false;
 	}
+	case 37:
+		// Bridge Repair Hut
+
+		if (IsBuilding) {
+			auto pBuilding = static_cast<BuildingClass*>(pTechno);
+
+			if (pBuilding->Type->BridgeRepairHut
+				&& MapClass::Instance->IsLinkedBridgeDestroyed(pTechno->GetMapCoords()))
+			{
+				return true;
+			}
+		//hero case
+		} else {
+			if (!pTechno->Owner->IsNeutral()) {
+				return TechnoTypeExtContainer::Instance.Find(pTechnoType)->IsHero.Get();
+			}
+		}
+
+		return false;
 	case 40:
 	{
-		if (!IsBuilding)
+		if (!IsBuilding || pTechno->Owner->IsNeutral())
 			return false;
 
-		if (!pTechno->Owner->IsNeutral())
 		{
 			// Self Building with Grinding=yes
-			if (auto pBuilding = static_cast<BuildingClass*>(pTechno))
+			auto pBuilding = static_cast<BuildingClass*>(pTechno);
 			{
 				return pBuilding->Type->Grinding && pBuilding->Owner == pTeamLeader->Owner;
 			}
@@ -1315,28 +1360,21 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 	case 41:
 	// Building with Spyable=yes
 	{
-		if (!IsBuilding)
+		if (!IsBuilding || pTechno->Owner->IsNeutral())
 			return false;
 
-		if (!pTechno->Owner->IsNeutral()) {
-			if (auto pBuilding = static_cast<BuildingClass*>(pTechno)) {
+		{
+			auto pBuilding = static_cast<BuildingClass*>(pTechno);
+
+			{
 				return pBuilding->Type->Spyable;
 			}
 		}
 
 		return false;
 	}
-	case 37:
-	{
-		if (!IsBuilding)
-			return false;
-
-		if (!pTechno->Owner->IsNeutral()) {
-			return TechnoTypeExtContainer::Instance.Find(pTechnoType)->IsHero.Get();
-		}
-
-		return false;
-	}
+	default:
+	break;
 	}
 
 	return false;

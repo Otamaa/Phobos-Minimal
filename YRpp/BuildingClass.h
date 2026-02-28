@@ -67,7 +67,7 @@ public:
 	virtual InfantryTypeClass* GetCrew() const override { JMP_THIS(0x44EB53); }
 	virtual void Destroyed(ObjectClass* Killer) override JMP_THIS(0x44D760);
 	virtual bool SetOwningHouse(HouseClass* pHouse, bool announce = true) override JMP_THIS(0x448260);
-	virtual CoordStruct* GetFLH(CoordStruct* pDest, int idxWeapon, CoordStruct BaseCoords) const override { JMP_THIS(0x453840); }
+	virtual CoordStruct GetFLH(int idxWeapon, CoordStruct BaseCoords) const override { JMP_THIS(0x453840); }
 	virtual bool ForceCreate(CoordStruct& coord, DWORD dwUnk = 0) override JMP_THIS(0x458A80);
 	virtual bool IsPowerOnline() const override { JMP_THIS(0x4555D0); }
 

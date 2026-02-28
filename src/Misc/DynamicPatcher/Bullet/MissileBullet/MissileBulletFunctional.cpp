@@ -26,7 +26,7 @@ void MissileBulletFunctional::Put(BulletClass* pThis)
 
 		if (pTypeExt->AnotherData.MissileData.ReverseVelocity)
 		{
-			BulletVelocity &velocity = pThis->Velocity;
+			VelocityClass &velocity = pThis->Velocity;
 			pThis->Velocity *= -1;
 
 			if (!pTypeExt->AnotherData.MissileData.ReverseVelocityZ)

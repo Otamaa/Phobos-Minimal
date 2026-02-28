@@ -16,6 +16,7 @@
 #include <Ext/Building/Body.h>
 #include <Misc/Ares/Hooks/Header.h>
 #include <New/PhobosAttachedAffect/Functions.h>
+#include <Ext/AircraftType/Body.h>
 
 #include <Misc/DynamicPatcher/Techno/Passengers/PassengersFunctional.h>
 #include <Misc/DynamicPatcher/Techno/SpawnSupport/SpawnSupportFunctional.h>
@@ -432,13 +433,14 @@ void FakeTechnoClass::__ClearTargetForInvalidMissions(TechnoClass* pThis)
 	}
 }
 
+#include <Ext/AircraftType/Body.h>
+
 void FakeTechnoClass::__HandleTargetAcquisition(TechnoClass* pThis)
 {
 	if (!pThis->TargetingTimer.Expired()) {
 		return;
 	}
-	auto const
-		pRulesExt = RulesExtData::Instance();
+	auto const pRulesExt = RulesExtData::Instance();
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(GET_TECHNOTYPE(pThis));
 
 	if ((!pThis->Owner->IsControlledByHuman() || !pRulesExt->DistributeTargetingFrame_AIOnly) && pTypeExt->DistributeTargetingFrame.Get(pRulesExt->DistributeTargetingFrame)) {
@@ -450,8 +452,9 @@ void FakeTechnoClass::__HandleTargetAcquisition(TechnoClass* pThis)
 	}
 
 	if (pThis->MegaMissionIsAttackMove()) {
-		const bool skip = pRulesExt->ExpandAircraftMission
-			&& pThis->WhatAmI() == AbstractType::Aircraft
+		auto pAircraft = cast_to<AircraftClass*, false>(pThis);
+
+		const bool skip = pAircraft && AircraftTypeExtData::ExtendedAircraftMissionsEnabled(pAircraft)
 			&& (!pThis->Ammo || !pThis->IsInAir());
 
 		if(!skip)

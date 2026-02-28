@@ -121,7 +121,7 @@ public:
 
 	// stupid! guess what happens again?
 	virtual CoordStruct* GetRenderCoords(CoordStruct* pCrd) const { JMP_THIS(0x41BE00); } //0xAC , GetPosition_2
-	virtual CoordStruct* GetFLH(CoordStruct *pDest, int idxWeapon, CoordStruct BaseCoords) const R0; //0xB0 mcoord_4263D0
+	virtual CoordStruct GetFLH(int idxWeapon, CoordStruct BaseCoords) const RT(CoordStruct); //0xB0 mcoord_4263D0
 	virtual CoordStruct* GetExitCoords(CoordStruct* pCrd, DWORD dwUnk) const R0; //0xB4 Exit_Coord
 	virtual int GetYSort() const { JMP_THIS(0x5F6BD0); }
 	virtual bool IsOnBridge(TechnoClass* pDocker = nullptr) const R0; // pDocker is passed to GetDestination
@@ -309,12 +309,6 @@ public:
 		this->GetTargetCoords(&ret);
 		return ret;
 	}
-
-	//CoordStruct GetFLH(int idxWeapon, const CoordStruct& base) const {
-	//	CoordStruct ret;
-	//	this->GetFLH(&ret, idxWeapon, base);
-	//	return ret;
-	//}
 
 	CellStruct InlineMapCoords() const {
 		return { short(this->Location.X / 256) , short(this->Location.Y / 256) };

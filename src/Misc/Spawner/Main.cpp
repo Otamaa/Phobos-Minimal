@@ -61,12 +61,12 @@ SpawnerMain::GameConfigs::GameConfigs()
 	, LoadSaveGame { false }
 	, SavedGameDir { "Saved Games" }
 	, SaveGameName { "" }
+	, CustomMissionID { 0 }
 
 	, AutoSaveCount { -1 }
 	, AutoSaveInterval { 7200 }
 	, NextAutoSaveNumber { 0 }
 
-	, CustomMissionID { 0 }
 	// Scenario Options
 	, Seed { 0 }
 	, TechLevel { 10 }
@@ -76,6 +76,7 @@ SpawnerMain::GameConfigs::GameConfigs()
 	, ScenarioName { "spawnmap.ini" }
 	, MapHash { "" }
 	, UIMapName { L"" }
+	, ReadMissionSection { false }
 
 	// Network Options
 	, Protocol { 2 }
@@ -130,6 +131,7 @@ SpawnerMain::GameConfigs::GameConfigs()
 	, DefeatedBecomesObserver { false }
 	, Observer_ShowAIOnSidebar { true }
 	, Observer_ShowMultiplayPassive { false }
+	, DisableChat { false }
 	// Custom Mixes
 	, PreloadMixes {}
 	, PostloadMixes {}
@@ -381,6 +383,7 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 		pINI->ReadString(GameStrings::Settings(), GameStrings::Scenario, ScenarioName, ScenarioName, sizeof(ScenarioName));
 		/* MapHash*/
 		pINI->ReadString(GameStrings::Settings(), "MapHash", MapHash, MapHash, sizeof(MapHash));
+		ReadMissionSection = pINI->ReadBool(GameStrings::Settings(), "ReadMissionSection", ReadMissionSection);
 
 		if (((CCINIClassDummy*)pINI)->ReadString_WithoutAresHook(GameStrings::Settings(), "UIMapName", "", Phobos::readBuffer, Phobos::readLength) > 0)
 			MultiByteToWideChar(CP_UTF8, 0, Phobos::readBuffer, strlen(Phobos::readBuffer), UIMapName, std::size(UIMapName));
@@ -426,6 +429,7 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 	DefeatedBecomesObserver = pINI->ReadBool(GameStrings::Settings(), "DefeatedBecomesObserver", DefeatedBecomesObserver);
 	Observer_ShowAIOnSidebar = pINI->ReadBool(GameStrings::Settings(), "Observer.ShowAIOnSidebar", Observer_ShowAIOnSidebar);
 	Observer_ShowMultiplayPassive = pINI->ReadBool(GameStrings::Settings(), "Observer.ShowMultiplayPassiveOnSidebar",  Phobos::Otamaa::IsAdmin  ? true : Observer_ShowMultiplayPassive);
+	DisableChat = pINI->ReadBool(GameStrings::Settings(), "DisableChat", DisableChat);
 	// Custom Mixes
 	ReadListFromSection(pINI, "PreloadMixes", PreloadMixes);
 	ReadListFromSection(pINI, "PostloadMixes", PostloadMixes);
@@ -987,34 +991,21 @@ bool SpawnerMain::GameConfigs::StartScenario(const char* pScenarioName) {
 	{
 		pGameModeOptions->Crates = true;
 
-#ifdef incomplete_ExtraSavedGamesData
+		if (SpawnerMain::GameConfigs::m_Ptr.LoadSaveGame)
+			return LoadSavedGame(SpawnerMain::GameConfigs::m_Ptr.SaveGameName);
+
 		// Rename MISSIONMD.INI to this
 		// because Ares has LoadScreenText.Color and Phobos has Starkku's PR #1145
-		if (SpawnerMain::GetGameConfigs()->CustomMissionID) // before parsing
-		{
-			Patch::Apply_RAW(0x839724, "Spawn.ini");
-			Patch::Apply_RAW(0x839734, { 00, 00, 00 }); //pad it bruh
-		}
+		// 2025-05-28: Moved to a hook in Spawner.Hook.cpp - Starkku
+		// if (Spawner::Config->ReadMissionSection) // before parsing
+		//	 Patch::Apply_RAW(0x839724, "Spawn.ini");
 
 		bool result = ScenarioClass::StartScenario(pScenarioName, 1, 0);
 
-		if (SpawnerMain::GetGameConfigs()->CustomMissionID) // after parsing
+		if (SpawnerMain::GameConfigs::m_Ptr.CustomMissionID != 0) // after parsing
 			ScenarioClass::Instance->EndOfGame = true;
 
 		return result;
-#else
-		//char keee_[46];
-		//sprintf(keee_, "%sSav", ScenarioClass::Instance->UIName);
-		//wcsncpy(ScenarioClass::Instance->UINameLoaded, StringTable::FetchString(keee_), 0x2Du);
-  //      if ( !wcsncmp(ScenarioClass::Instance->UINameLoaded, L"MISSING:", 8u) ) {
-  //          wcsncpy(ScenarioClass::Instance->UINameLoaded, ScenarioClass::Instance->Name, 0x2Du);
-  //      }
-  //     ScenarioClass::Instance->UINameLoaded[44] = 0;
-
-		//Debug::LogInfo("Loading Scenario Name [%s]" , wstring_to_utf8(ScenarioClass::Instance->UINameLoaded).c_str());
-		return SpawnerMain::GameConfigs::m_Ptr.LoadSaveGame ? SpawnerMain::GameConfigs::LoadSavedGame(SpawnerMain::GameConfigs::m_Ptr.SaveGameName)
-			: ScenarioClass::StartScenario(pScenarioName, 1, 0);
-#endif
 	}
 	else if (SessionClass::IsSkirmish())
 	{
@@ -1404,4 +1395,29 @@ ASMJIT_PATCH(0x4E20BA, GameControlsClass__SomeDialog_GameSpeedSlider, 0x5)
 
 // Set cncnet.fnt instead of game.fnt
 //DEFINE_PATCH(/* GameStrings::GAME_FNT */ 0x818B98, "cncnet.fnt");
-	
+
+ASMJIT_PATCH(0x686D46, ReadScenarioINI_MissionININame, 0x5)
+{
+	LEA_STACK(CCFileClass*, pFile, STACK_OFFSET(0x174, -0xF0));
+
+	if (SpawnerMain::GameConfigs::m_Ptr.ReadMissionSection)
+	{
+		pFile->SetFileName("SPAWN.INI");
+		return 0x686D57;
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x65F57F, BriefingDialog_MissionININame, 0x6)
+{
+	LEA_STACK(CCFileClass*, pFile, STACK_OFFSET(0x1D4, -0x16C));
+
+	if (SpawnerMain::GameConfigs::m_Ptr.ReadMissionSection)
+	{
+		pFile->SetFileName("SPAWN.INI");
+		return 0x65F58F;
+	}
+
+	return 0;
+}

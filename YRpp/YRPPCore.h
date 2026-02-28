@@ -18,6 +18,13 @@ union{\
 	char __##name[sizeof(type)]; \
 }
 
+#define DECLARE_PROPERTY_TWONAME(type, name, nameb)\
+union{\
+	type name; \
+	type nameb; \
+	char __##name[sizeof(type)]; \
+}
+
 #define DECLARE_PROPERTY_ARRAY(type,name,cnt)\
 union{\
 	type name[cnt]; \

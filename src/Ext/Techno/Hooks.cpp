@@ -128,49 +128,6 @@ ASMJIT_PATCH(0x702E4E, TechnoClass_RegisterDestruction_SaveKillerInfo, 0x6)
 
 #include <Locomotor/TunnelLocomotionClass.h>
 
-Matrix3D* __stdcall TunnelLocomotionClass_ShadowMatrix(ILocomotion* iloco, Matrix3D* ret, VoxelIndexKey* key)
-{
-	auto tLoco = static_cast<TunnelLocomotionClass*>(iloco);
-	tLoco->LocomotionClass::Shadow_Matrix(ret, key);
-
-	if (tLoco->State != TunnelLocomotionClass::State::IDLE)
-	{
-		double theta = 0.;
-		switch (tLoco->State)
-		{
-		case TunnelLocomotionClass::State::DIGGING:
-			if (key)key->Invalidate();
-			theta = Math::PI_BY_TWO_ACCURATE;
-			if (auto total = tLoco->Timer.Rate)
-				theta *= 1.0 - double(tLoco->Timer.GetTimeLeft()) / double(total);
-			break;
-		case TunnelLocomotionClass::State::DUG_IN:
-			theta = Math::PI_BY_TWO_ACCURATE;
-			break;
-		case TunnelLocomotionClass::State::PRE_DIG_OUT:
-			theta = -Math::PI_BY_TWO_ACCURATE;
-			break;
-		case TunnelLocomotionClass::State::DIGGING_OUT:
-			if (key)key->Invalidate();
-			theta = -Math::PI_BY_TWO_ACCURATE;
-			if (auto total = tLoco->Timer.Rate)
-				theta *= double(tLoco->Timer.GetTimeLeft()) / double(total);
-			break;
-		case TunnelLocomotionClass::State::DUG_OUT:
-			if (key)key->Invalidate();
-			theta = Math::PI_BY_TWO_ACCURATE;
-			if (auto total = tLoco->Timer.Rate)
-				theta *= double(tLoco->Timer.GetTimeLeft()) / double(total);
-			break;
-		default:break;
-		}
-		ret->ScaleX((float)Math::cos(theta));// I know it's ugly
-	}
-	return ret;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5A4C, TunnelLocomotionClass_ShadowMatrix);
-
 ASMJIT_PATCH(0x708FC0, TechnoClass_ResponseMove_Pickup, 0x5)
 {
 	enum { SkipResponse = 0x709015 };

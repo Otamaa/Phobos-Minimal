@@ -17,7 +17,6 @@
 #include <New/Entity/LauchSWData.h>
 #include <New/PhobosAttachedAffect/AEAttachInfoTypeClass.h>
 
-#include <Misc/DynamicPatcher/Others/DamageText.h>
 #include <Misc/DynamicPatcher/AttachedAffects/Effects/PaintBall/PaintBall.h>
 
 #include <Utilities/VersesData.h>

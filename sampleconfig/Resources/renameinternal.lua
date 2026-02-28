@@ -47,8 +47,7 @@ Replaces = {
 	{Addr = 0x00825E30, To = "Failed to find SOUNDMD.INI!\n"            			}, --39
 	{Addr = 0x00827DAC, To = "Failed to load UIMD.INI!\n"             				}, --40
 	{Addr = 0x00840D40, To = "ra2md.str"											}, --41
-	{Addr = 0x00818B98, To = "GAME.FNT"												},  --42
-	{Addr = 0x00842194, To = "subtitlemd.txt"										}  --43
+	{Addr = 0x00842194, To = "subtitlemd.txt"										}  --42
 }
 
  FetchHandles = {
@@ -65,13 +64,17 @@ Replaces = {
 
  CoreHandles = "user32.lib"
 
---Replace Main Window String is put in here due to character storage limit
+-- Replace Main Window String is put in here due to character storage limit
 MainWindowString = "Yuri's Revenge"
 
---Internal DLL name will be put here if needed
+-- Replace Game Font with desired one , put here due to character storage limit
+FontName = "Game.fnt"
+
+-- Internal DLL name will be put here if needed
 MovieMDINI = "MOVIEMD.INI"
 DebugLogName = "debug"
 CrashDumpFileName= "extcrashdump.dmp"
+StatisticPacketName = "stats.dmp"
 
 -- Please dont change the %..d format , it is internal code for _snprintf_s
 -- you can ad more digit by changing the number after the %
@@ -85,3 +88,6 @@ DesyncLogName2 = "SYNC%01d_%03d.TXT"
 -- Note : that some tag not worked due to them not implemented like :
 -- ,  "IsVoiceCreatedGlobal" ,etc that i may forgot :p
 CompatibilityMode=false
+
+-- Allow game to run multiple instance
+AllowMultipleInstances = false

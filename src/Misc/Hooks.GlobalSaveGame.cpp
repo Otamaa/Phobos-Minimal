@@ -158,6 +158,19 @@ HRESULT SaveObjectVector(LPSTREAM pStm, DynamicVectorClass<T>& collection)
 }
 
 template<typename T>
+HRESULT SaveSimpleData(LPSTREAM pStm, T& data)
+{
+	HRESULT hr;
+
+	// Write count
+	hr = pStm->Write(&data, sizeof(T), nullptr);
+
+	if (FAILED(hr)) return hr;
+
+	return S_OK;
+}
+
+template<typename T>
 HRESULT SaveSimpleArray(LPSTREAM pStm, DynamicVectorClass<T>& collection)
 {
 	HRESULT hr;
@@ -436,6 +449,7 @@ HRESULT Put_All_Pointers(LPSTREAM pStm)
 
 #include <Phobos.SaveGame.h>
 
+
 bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool)
 {
 	WCHAR wide_file_name[PATH_MAX];
@@ -521,7 +535,6 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 		return false;
 	}
 
-
 	IUnknown* pUnknown = nullptr;
 	ATL::CComPtr<ILinkStream> linkstream;
 	hr = CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER, IID_IUnknown, (void**)&pUnknown);
@@ -546,6 +559,11 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 
 	bool result = SUCCEEDED(Put_All_Pointers(stream));
 
+	if (SessionClass::IsCampaign()) {
+		if (SpawnerMain::GetGameConfigs()->CustomMissionID)
+			SaveSimpleData(stream, SpawnerMain::GetGameConfigs()->CustomMissionID);
+	}
+
 	Debug::Log("Unlinking content stream from compressor.\n");
 	hr = linkstream->Unlink_Stream(nullptr);
 	if (FAILED(hr)) {
@@ -561,6 +579,11 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 	if (FAILED(hr)) {
 		Debug::FatalError("Failed to commit storage.\n");
 		return false;
+	}
+
+	if (SessionClass::IsCampaign()) {
+		if (SpawnerMain::GetGameConfigs()->CustomMissionID)
+			SavedGames::WriteToStorage<CustomMissionID>(storage);
 	}
 
 	Debug::Log("SAVING GAME [%s] - Complete.\n", file_name);

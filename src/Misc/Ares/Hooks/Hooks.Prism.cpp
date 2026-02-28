@@ -234,8 +234,7 @@ ASMJIT_PATCH(0x44ABD0, BuildingClass_FireLaser, 5)
 	auto const pType = pThis->Type;
 	auto const pTypeData = BuildingTypeExtContainer::Instance.Find(pType);
 
-	CoordStruct sourceXYZ;
-	pThis->GetFLH(&sourceXYZ, 0, CoordStruct::Empty);
+	CoordStruct sourceXYZ = pThis->GetFLH(0, CoordStruct::Empty);
 
 	const int idxSupport = pThis->Veterancy.IsElite() ?
 		pTypeData->PrismForwarding.EliteSupportWeaponIndex : pTypeData->PrismForwarding.SupportWeaponIndex;

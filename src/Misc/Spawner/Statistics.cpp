@@ -31,6 +31,8 @@
 #include <Ext/House/Body.h>
 #include <New/Type/CrateTypeClass.h>
 
+#include <Phobos.Lua.h>
+
 bool FORCEDINLINE IsStatisticsEnabled()
 {
 	return SpawnerMain::Configs::Active
@@ -45,7 +47,7 @@ ASMJIT_PATCH(0x6C856C, SendStatisticsPacket_WriteStatisticsDump, 0x5)
 	{
 		GET(void*, buf, EAX);
 
-		CCFileClass statsFile { "stats.dmp" };
+		CCFileClass statsFile { LuaData::StatisticPacketName.c_str() };
 		if (statsFile.Open(FileAccessMode::Write))
 		{
 			statsFile.WriteBytes(buf, Game::SendStatistic_PacketSize());

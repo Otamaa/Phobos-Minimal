@@ -4,60 +4,12 @@
 #include <Misc/Ares/Hooks/Header.h>
 #include <InfantryClass.h>
 
-#ifndef DEBUG_CODE
-
 #define SET_THREATEVALS(addr , techreg , name ,size , ret)\
 ASMJIT_PATCH(addr, name, size) {\
 GET(TechnoClass* , pThis , techreg);\
 	return GET_TECHNOTYPEEXT(pThis->Transporter)->Passengers_SyncOwner.Get() ?  ret : 0; }
 
 SET_THREATEVALS(0x6F89F4, ESI, TechnoClass_EvaluateCell_ThreatEvals_OpenToppedOwner, 0x6, 0x6F8A0F)
-//SET_THREATEVALS(0x6F8FD7, ESI, TechnoClass_GreatestThreat_ThreatEvals_OpenToppedOwner, 0x5, 0x6F8FDC)
-SET_THREATEVALS(0x6F7EC2, EDI, TechnoClass_EvaluateObject_ThreatEvals_OpenToppedOwner, 0x6, 0x6F7EDA)
-
-#undef SET_THREATEVALS
-#undef SET_THREATEVALSB
-#else
-ASMJIT_PATCH_AGAIN(0x6F89F4, TechnoClass_ThreatEvals_OpenToppedOwner, 0x6) // TechnoClass::EvaluateCell
-ASMJIT_PATCH_AGAIN(0x6F7EC2, TechnoClass_ThreatEvals_OpenToppedOwner, 0x6) // TechnoClass::EvaluateObject
-ASMJIT_PATCH(0x6F8FD7, TechnoClass_ThreatEvals_OpenToppedOwner, 0x5)       // TechnoClass::Greatest_Threat
-{
-	enum { SkipCheckOne = 0x6F8FDC, SkipCheckTwo = 0x6F7EDA, SkipCheckThree = 0x6F8A0F, SkipCheckFour = 0x6FA37A };
-
-	TechnoClass* pThis = nullptr;
-	auto returnAddress = SkipCheckOne;
-
-	switch (R->Origin())
-	{
-	case 0x6F8FD7:
-		pThis = R->ESI<TechnoClass*>();
-		break;
-	case 0x6F7EC2:
-		pThis = R->EDI<TechnoClass*>();
-		returnAddress = SkipCheckTwo;
-		break;
-	case 0x6F89F4:
-		pThis = R->ESI<TechnoClass*>();
-		returnAddress = SkipCheckThree;
-	case 0x6FA33C:
-		pThis = R->ESI<TechnoClass*>();
-		returnAddress = SkipCheckFour;
-	default:
-		return 0;
-	}
-
-	if (auto pTransport = pThis->Transporter)
-	{
-		if (auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType()))
-		{
-			if (pTypeExt->Passengers_SyncOwner)
-				return returnAddress;
-		}
-	}
-
-	return 0;
-}
-#endif
 
 ASMJIT_PATCH(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
 {
@@ -397,31 +349,6 @@ ASMJIT_PATCH(0x70D910, FootClass_QueueEnter_NoMoveToBridge, 0x5)
 	return pEnter->OnBridge && (pEnter->WhatAmI() == AbstractType::Unit && static_cast<UnitClass*>(pEnter)->Type->Passengers > 0) ? NoMove : 0;
 }
 
-ASMJIT_PATCH(0x7196BB, TeleportLocomotionClass_Process_MarkDown, 0xA)
-{
-	enum { SkipGameCode = 0x7196C5 };
-
-	GET(FootClass*, pLinkedTo, ECX);
-	// When Teleport units board transport vehicles on the bridge, the lack of this repair can lead to numerous problems
-	// An impassable invisible barrier will be generated on the bridge (the object linked list of the cell will leave it)
-	// And the transport vehicle will board on the vehicle itself (BFRT Passenger:..., BFRT)
-	// If any infantry attempts to pass through this position on the bridge later, it will cause the game to freeze
-	auto shouldMarkDown = [pLinkedTo]()
-		{
-			if (pLinkedTo->GetCurrentMission() != Mission::Enter)
-				return true;
-
-			const auto pEnter = pLinkedTo->GetNthLink();
-
-			return (!pEnter || GET_TECHNOTYPE(pEnter)->Passengers <= 0);
-		};
-
-	if (shouldMarkDown())
-		pLinkedTo->Mark(MarkType::Down);
-
-	return SkipGameCode;
-}
-
 #pragma endregion
 
 #pragma region AmphibiousEnterAndUnload
@@ -438,7 +365,7 @@ ASMJIT_PATCH(0x4B08EF, DriveLocomotionClass_Process_CheckUnload, 0x5)
 	if (pFoot->GetCurrentMission() != Mission::Unload)
 		return ContinueProcess;
 
-	return (GET_TECHNOTYPE(pFoot)->Passengers > 0 
+	return (GET_TECHNOTYPE(pFoot)->Passengers > 0
 	&& pFoot->Passengers.GetFirstPassenger()) ? ContinueProcess : SkipGameCode;
 }
 
@@ -453,26 +380,9 @@ ASMJIT_PATCH(0x69FFB6, ShipLocomotionClass_Process_CheckUnload, 0x5)
 	if (pFoot->GetCurrentMission() != Mission::Unload)
 		return ContinueProcess;
 
-	return (GET_TECHNOTYPE(pFoot)->Passengers > 0 
+	return (GET_TECHNOTYPE(pFoot)->Passengers > 0
 	&& pFoot->Passengers.GetFirstPassenger()) ? ContinueProcess : SkipGameCode;
 }
-
-// Rewrite from 0x718505
-ASMJIT_PATCH(0x718F1E, TeleportLocomotionClass_MovingTo_ReplaceMovementZone, 0x6)
-{
-	GET(TechnoTypeClass* const, pType, EAX);
-
-	auto movementZone = pType->MovementZone;
-
-	if (movementZone == MovementZone::Fly || movementZone == MovementZone::Destroyer)
-		movementZone = MovementZone::Normal;
-	else if (movementZone == MovementZone::AmphibiousDestroyer)
-		movementZone = MovementZone::Amphibious;
-
-	R->EBP(movementZone);
-	return R->Origin() + 0x6;
-}ASMJIT_PATCH_AGAIN(0x7190B0, TeleportLocomotionClass_MovingTo_ReplaceMovementZone, 0x6)
-
 
 // Enter building
 DEFINE_JUMP(LJMP, 0x43C38D, 0x43C3FF); // Skip amphibious and naval check if no Ares

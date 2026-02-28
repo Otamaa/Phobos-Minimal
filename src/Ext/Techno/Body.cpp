@@ -7391,7 +7391,7 @@ void TechnoExtData::UpdateType(TechnoTypeClass* currentType)
 	//			MapClass::Logics.get().RemoveObject(pPassenger);
 	//		}
 
-	//		pPassenger = abstract_cast<FootClass*>(pPassenger->NextObject);
+	//		pPassenger = flag_cast_to<FootClass*>(pPassenger->NextObject);
 	//	}
 	//}
 }

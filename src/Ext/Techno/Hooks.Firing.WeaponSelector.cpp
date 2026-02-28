@@ -153,9 +153,9 @@ ASMJIT_PATCH(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 //	// Ignore target cell for airborne target technos.
 //	if (!pTargetTechno || !pTargetTechno->IsInAir())
 //	{
-//		if (auto const pCell = abstract_cast<CellClass*>(pTarget))
+//		if (auto const pCell = cast_to<CellClass*>(pTarget))
 //			pTargetCell = pCell;
-//		else if (auto const pObject = abstract_cast<ObjectClass*>(pTarget))
+//		else if (auto const pObject = flag_cast_to<ObjectClass*>(pTarget))
 //			pTargetCell = pObject->GetCell();
 //	}
 //
@@ -503,29 +503,6 @@ ASMJIT_PATCH(0x70023B, TechnoClass_MouseOverObject_AttackUnderGround, 0x5)
 	auto const pWeapon = pThis->GetWeapon(wpIdx)->WeaponType;
 
 	return (!pWeapon || !BulletTypeExtContainer::Instance.Find(pWeapon->Projectile)->AU) ? FireIsNotOK : FireIsOK;
-}
-
-ASMJIT_PATCH(0x728F9A, TunnelLocomotionClass_Process_Track, 0x7)
-{
-	// GET(FootClass*, pTechno, ECX);
-	GET(ILocomotion*, pThis, ESI);
-
-	const auto pLoco = static_cast<TunnelLocomotionClass*>(pThis);
-	auto pTechno = pLoco->LinkedTo;
-	ScenarioExtData::Instance()->UndergroundTracker.emplace(pTechno);
-	TechnoExtContainer::Instance.Find(pTechno)->UndergroundTracked = true;
-
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x729029, TunnelLocomotionClass_Process_Track, 0x7);
-
-ASMJIT_PATCH(0x7297F6, TunnelLocomotionClass_ProcessDigging_Track, 0x7)
-{
-	GET(FootClass*, pTechno, ECX);
-
-	ScenarioExtData::Instance()->UndergroundTracker.erase(pTechno);
-	TechnoExtContainer::Instance.Find(pTechno)->UndergroundTracked = false;
-
-	return 0;
 }
 
 ASMJIT_PATCH(0x772AB3, WeaponTypeClass_AllowedThreats_AU, 0x5)

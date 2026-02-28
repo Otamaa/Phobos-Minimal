@@ -263,7 +263,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	virtual void Override_Mission(Mission mission, AbstractClass* tarcom = nullptr, AbstractClass* navcom = nullptr) override JMP_THIS(0x7013A0); //Vt_1F4
 	virtual bool Mission_Revert() override JMP_THIS(0x7013E0);
 
-	virtual CoordStruct* GetFLH(CoordStruct *pDest, int idxWeapon, CoordStruct BaseCoords) const override { JMP_THIS(0x6F3AD0); };
+	virtual CoordStruct GetFLH(int idxWeapon, CoordStruct BaseCoords) const override { JMP_THIS(0x6F3AD0); };
 	//TechnoClass
 	virtual bool IsUnitFactory() const R0;
 	virtual bool IsCloakable() const R0;
@@ -450,7 +450,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	void StartReloading()
 		{ JMP_THIS(0x6FB080); }
 
-	bool ShouldSuppress(CellStruct *coords) const
+	double ShouldSuppress(CellStruct *coords) const
 		{ JMP_THIS(0x6F79A0); }
 
 	bool IsMindControlled() const
@@ -478,7 +478,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 // CanTargetWhatAmI is a bitfield, if(!(CanTargetWhatAmI & (1 << tgt->WhatAmI())) { fail; }
 
 // slave of the next one
-	bool CanAutoTargetObject(
+	bool EvaluateObject(
 		ThreatType targetFlags,
 		int mask,
 		int wantedDistance,
@@ -486,7 +486,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 		int* pThreatPosed,
 		ZoneType dwUnk,
 		CoordStruct* pSourceCoords) const
-			{ JMP_THIS(0x6F7CA0); }
+			{ JMP_THIS(0x6F7CA0); } //CanAutoTargetObject
 
 // called by AITeam Attack Target Type and autoscan
 	bool TryAutoTargetObject(
@@ -611,8 +611,9 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 		return ret;
 	}
 
-//	BulletClass* FireAt(AbstractClass* aTarget, int nWhich) const
-//	{ JMP_THIS(0x6FDD50); }
+	// Unit and Infantry fire logic is diffrent, this function for help to fire custom weapon, force use Unit's fire logic
+	BulletClass* Fire_IgnoreType(AbstractClass* pTarget, int idxWeapon)
+		{ JMP_THIS(0x6FDD50); }
 
 	int CombatDamage(int nWhich = -1) const
 	{ JMP_THIS(0x6F3970); }
@@ -966,7 +967,7 @@ public:
 	TechnoClass*     BunkerLinkedItem;
 
 	float            PitchAngle; // not exactly, and it doesn't affect the drawing, only internal state of a dropship
-	DECLARE_PROPERTY(CDTimerClass, RearmTimer);
+	DECLARE_PROPERTY_TWONAME(CDTimerClass, RearmTimer, ROFTimer);
 	int           	 ROF;
 	int              Ammo;
 	int              Value; //,PurchasePrice set to actual cost when this gets queued in factory, updated only in building's 42C

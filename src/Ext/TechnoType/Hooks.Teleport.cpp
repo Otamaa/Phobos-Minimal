@@ -141,6 +141,212 @@ ASMJIT_PATCH(0x71997B, TeleportLocomotionClass_ILocomotion_Process_ChronoDelay, 
 	return 0x719981;
 }
 
+ASMJIT_PATCH(0x7196BB, TeleportLocomotionClass_Process_MarkDown, 0xA)
+{
+	enum { SkipGameCode = 0x7196C5 };
+
+	GET(FootClass*, pLinkedTo, ECX);
+	// When Teleport units board transport vehicles on the bridge, the lack of this repair can lead to numerous problems
+	// An impassable invisible barrier will be generated on the bridge (the object linked list of the cell will leave it)
+	// And the transport vehicle will board on the vehicle itself (BFRT Passenger:..., BFRT)
+	// If any infantry attempts to pass through this position on the bridge later, it will cause the game to freeze
+	auto shouldMarkDown = [pLinkedTo]()
+		{
+			if (pLinkedTo->GetCurrentMission() != Mission::Enter)
+				return true;
+
+			const auto pEnter = pLinkedTo->GetNthLink();
+
+			return (!pEnter || GET_TECHNOTYPE(pEnter)->Passengers <= 0);
+		};
+
+	if (shouldMarkDown())
+		pLinkedTo->Mark(MarkType::Down);
+
+	return SkipGameCode;
+}
+
+// Rewrite from 0x718505
+ASMJIT_PATCH(0x718F1E, TeleportLocomotionClass_MovingTo_ReplaceMovementZone, 0x6)
+{
+	GET(TechnoTypeClass* const, pType, EAX);
+
+	auto movementZone = pType->MovementZone;
+
+	if (movementZone == MovementZone::Fly || movementZone == MovementZone::Destroyer)
+		movementZone = MovementZone::Normal;
+	else if (movementZone == MovementZone::AmphibiousDestroyer)
+		movementZone = MovementZone::Amphibious;
+
+	R->EBP(movementZone);
+	return R->Origin() + 0x6;
+}ASMJIT_PATCH_AGAIN(0x7190B0, TeleportLocomotionClass_MovingTo_ReplaceMovementZone, 0x6)
+
+ASMJIT_PATCH(0x71872C, TeleportLocomotionClass_MakeRoom_OccupationFix, 0x9)
+{
+	enum { SkipMarkOccupation = 0x71878F };
+
+	GET(const LocomotionClass* const, pLoco, EBP);
+
+	const auto pFoot = pLoco->LinkedTo;
+
+	return (pFoot && !pFoot->InLimbo && pFoot->IsAlive && pFoot->Health > 0 && !pFoot->IsSinking) ? 0 : SkipMarkOccupation;
+}
+
+// do not let deactivated teleporter units move, otherwise
+// they could block a cell forever
+ASMJIT_PATCH(0x71810D, TeleportLocomotionClass_ILocomotion_MoveTo_Deactivated, 6)
+{
+	GET(FootClass*, pFoot, ECX);
+	return (!pFoot->Deactivated && pFoot->Locomotor.GetInterfacePtr()->Is_Powered() && !TechnoExtContainer::Instance.Find(pFoot)->Is_DriverKilled)
+		? 0 : 0x71820F;
+}
+
+// sink stuff that simply cannot exist on water
+ASMJIT_PATCH(0x7188F2, TeleportLocomotionClass_Unwarp_SinkJumpJets, 7)
+{
+	GET(CellClass*, pCell, EAX);
+	GET(TechnoClass**, pTechno, ESI);
+
+	if (pCell->Tile_Is_Wet() && !pCell->ContainsBridge())
+	{
+		if (UnitClass* pUnit = cast_to<UnitClass*>(pTechno[3]))
+		{
+			if (pUnit->Deactivated || TechnoExtContainer::Instance.Find(pUnit)->Is_DriverKilled)
+			{
+				// this thing does not float
+				R->BL(0);
+			}
+
+			// manually sink it
+			if (pUnit->Type->SpeedType == SpeedType::Hover && pUnit->Type->JumpJet)
+			{
+				return 0x718A66;
+			}
+		}
+	}
+
+	return 0;
+}
+
+// iron curtained units would crush themselves
+ASMJIT_PATCH(0x7187DA, TeleportLocomotionClass_Unwarp_PreventSelfCrush, 6)
+{
+	GET(TechnoClass*, pTeleporter, EDI);
+	GET(TechnoClass*, pContent, ECX);
+	return (pTeleporter == pContent) ? 0x71880A : 0;
+}
+
+// bug 897
+ASMJIT_PATCH(0x718871, TeleportLocomotionClass_UnfreezeObject_SinkOrSwim, 7)
+{
+	GET(TechnoTypeClass*, Type, EAX);
+
+	switch (Type->MovementZone)
+	{
+	case MovementZone::Amphibious:
+	case MovementZone::AmphibiousCrusher:
+	case MovementZone::AmphibiousDestroyer:
+	case MovementZone::WaterBeach:
+		R->BL(1);
+		return 0x7188B1;
+	}
+	if (Type->SpeedType == SpeedType::Hover)
+	{
+		// will set BL to 1 , unless this is a powered unit with no power centers <-- what if we have a powered unit that's not a hover?
+		return 0x71887A;
+	}
+	return 0x7188B1;
+}
+
+ASMJIT_PATCH(0x7185DA, TeleportLocomotionClass_MakeRoom_DestFix, 0x6)
+{
+	enum { ReturnTrue = 0x71878F };
+
+	GET(CellStruct*, pCellAt, EAX);
+	GET(LocomotionClass*, pLoco, EBP);
+
+	if (*pCellAt == CellStruct::Empty)
+	{
+		// cannot find location ? dont move
+		pLoco->LinkedTo->ChronoDestCoords = pLoco->LinkedTo->Location;
+		return ReturnTrue;
+	}
+	return 0;
+}
+
+ASMJIT_PATCH(0x7184CE, TeleportLocomotionClass_MakeRoom_GetMovement_CellFix, 0x7)
+{
+	REF_STACK(CoordStruct, coords, STACK_OFFSET(0x5C, 0x4));
+
+	R->Stack(STACK_OFFSET(0x38, -0x18), MapClass::Instance->GetCellAt(coords));
+	return 0;
+}
+
+ASMJIT_PATCH(0x718275, TeleportLocomotionClass_MakeRoom, 9)
+{
+	LEA_STACK(CoordStruct*, pCoord, 0x3C);
+	GET(TeleportLocomotionClass*, pLoco, EBP);
+
+	const auto pCell = MapClass::Instance->GetCellAt(pCoord);
+
+	R->Stack(0x48, false);
+	const bool bLinkedIsInfantry = pLoco->LinkedTo->WhatAmI() == AbstractType::Infantry;
+	R->EBX(pCell->OverlayTypeIndex);
+	R->EDI(false);
+
+	for (auto pObj = pCell->GetContentB(); pObj; pObj = pObj->NextObject)
+	{
+		const auto bObjIsInfantry = pObj->WhatAmI() == AbstractType::Infantry;
+		bool bIsImmune = pObj->IsIronCurtained();
+		auto pType = pObj->GetTechnoType();
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.TryFind(pType);
+
+		if (pTypeExt && !pTypeExt->Chronoshift_Crushable)
+			bIsImmune = 1;
+
+		if (!RulesExtData::Instance()->ChronoInfantryCrush && bLinkedIsInfantry && !bObjIsInfantry)
+		{
+			pLoco->LinkedTo->ReceiveDamage(&pLoco->LinkedTo->GetType()->Strength, 0, RulesClass::Instance->C4Warhead, 0, 1, 0, 0);
+			break;
+		}
+
+		if (!bIsImmune && bObjIsInfantry && bLinkedIsInfantry)
+		{
+			auto nCoord = pObj->GetCoords();
+			if (nCoord.X == pCoord->X && nCoord.Y == pCoord->Y && nCoord.Z == pCoord->Z)
+			{
+				pObj->ReceiveDamage(&pObj->GetType()->Strength, 0, RulesClass::Instance->C4Warhead, 0, 1, 0, 0);
+			}
+		}
+		else if (bIsImmune || ((pObj->AbstractFlags & AbstractFlags::Foot) == AbstractFlags::None))
+		{
+			if ((pObj->AbstractFlags & AbstractFlags::Foot) == AbstractFlags::None)
+			{
+				R->Stack(0x48, true);
+			}
+			else if (bIsImmune)
+			{
+				pLoco->LinkedTo->ReceiveDamage(&pLoco->LinkedTo->GetType()->Strength, 0, RulesClass::Instance->C4Warhead, 0, 1, 0, 0);
+				break;
+			}
+		}
+		else
+		{
+			pObj->ReceiveDamage(&pObj->GetType()->Strength, 0, RulesClass::Instance->C4Warhead, 0, 1, 0, 0);
+		}
+	}
+
+	// Check if bridge exists (0x100) but body is destroyed (0x200 not set)
+	// Original: (Flags & 0x300) == 0x100 means bridge head present without body
+	if ((pCell->Flags & CellFlags(0x300)) == CellFlags(0x100))
+		R->Stack(0x48, true);
+
+	R->Stack(0x20, pLoco->LinkedTo->GetCellAgain());
+	R->EAX(true);
+	return 0x7184CE;
+}
+
 //FORCEDINLINE std::pair<Matrix3D, Matrix3D> SimplifiedTiltingConsideration(float arf, float ars, TechnoTypeClass* linkedType)
 //{
 //	double scalex = linkedType->VoxelScaleX;
@@ -199,9 +405,6 @@ Matrix3D* __stdcall LocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* re
 
 	return ret;
 }
-
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5028, 0x5142A0);//TeleportLocomotionClass_Shadow_Matrix : just use hover's to save my ass
-
 DEFINE_FUNCTION_JUMP(VTABLE , 0x7F5024, LocomotionClass_Draw_Matrix)
 
 ASMJIT_PATCH(0x729B5D, TunnelLocomotionClass_DrawMatrix_Tilt, 0x8)
@@ -212,6 +415,5 @@ ASMJIT_PATCH(0x729B5D, TunnelLocomotionClass_DrawMatrix_Tilt, 0x8)
 	R->EAX(LocomotionClass_Draw_Matrix(iloco, ret, pIndex));
 	return 0x729C09;
 }
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5A4C, 0x5142A0);//TunnelLocomotionClass_Shadow_Matrix : just use hover's to save my ass
 #endif
 #undef GET_LOCO

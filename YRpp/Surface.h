@@ -469,12 +469,31 @@ public:
 			ZGradient(ZGradientDescIndex), Brightness, TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
 	}
 
+	void DrawSHP(ConvertClass* Palette, SHPStruct* SHP, int FrameIndex,
+	const Point2D* const Position, const RectangleStruct* const Bounds,
+	BlitterFlags Flags = (BlitterFlags)0x600,
+	int Brightness = 1000,
+	int TintColor = 0)
+	{
+		DrawSHP(Palette, SHP, FrameIndex, Position, Bounds, Flags, 0,
+			0,
+			ZGradient::Ground,
+			Brightness,
+			TintColor, nullptr, 0, 0, 0
+		);
+	}
+
+	void DrawSHP(ConvertClass* Palette, SHPStruct* SHP, int FrameIndex,
+		const Point2D* const Position, BlitterFlags Flags = (BlitterFlags)0x600)
+	{
+		RectangleStruct bound = this->Get_Rect();
+		DrawSHP(Palette, SHP, FrameIndex, Position, &bound, Flags);
+	}
 
 	void DSurfaceDrawText(const wchar_t* pText, RectangleStruct* pBounds, Point2D* pLocation,
-		COLORREF ForeColor, COLORREF BackColor, TextPrintType Flag);
+		COLORREF ForeColor, COLORREF BackColor = 0, TextPrintType Flag = TextPrintType::NoShadow);
 
-	void DrawColorSchemeText(const wchar_t* pText, RectangleStruct& pBounds, Point2D& pLocation,
-	ColorScheme* ForeColor, COLORREF BackColor, TextPrintType Flag);
+	void DrawColorSchemeText(const wchar_t* pText, RectangleStruct& pBounds, Point2D& pLocation, ColorScheme* ForeColor, COLORREF BackColor, TextPrintType Flag);
 
 	void DSurfaceDrawText(const wchar_t* pText, Point2D* pLoction, COLORREF Color);
 
