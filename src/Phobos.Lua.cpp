@@ -21,8 +21,8 @@ std::string LuaData::LuaDir;
 std::string LuaData::CoreHandles;
 std::vector<std::pair<uintptr_t, std::string>> LuaData::map_replaceAddrTo;
 std::string LuaData::MainWindowStr;
-std::string LuaData::FontName;
-std::string LuaData::StatisticPacketName;
+std::string LuaData::FontName= "GAME.FNT";
+std::string LuaData::StatisticPacketName = "stats.dmp";
 
 std::map<std::string, bool> LuaData::SafeFiles;
 bool LuaData::IsActive;
