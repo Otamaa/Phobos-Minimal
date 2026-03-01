@@ -16,9 +16,9 @@
 #include <asmjit/support/arenatree.h>
 #include <asmjit/support/support.h>
 
-//#if defined(ASMJIT_TEST)
-//#include <asmjit-testing/commons/random.h>
-//#endif // ASMJIT_TEST
+#if defined(ASMJIT_TEST)
+#include <asmjit-testing/commons/random.h>
+#endif // ASMJIT_TEST
 
 ASMJIT_BEGIN_NAMESPACE
 

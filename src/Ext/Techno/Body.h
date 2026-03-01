@@ -848,6 +848,8 @@ private:
 		debugProcess(this->CanFireWeaponType, "CanFireWeaponType");
 		debugProcess(this->ExtraTurretRecoil, "ExtraTurretRecoil");
 		debugProcess(this->ExtraBarrelRecoil, "ExtraBarrelRecoil");
+		debugProcess(this->OnParachuted, "OnParachuted");
+		debugProcess(this->HoverShutdown, "HoverShutdown");
 	}
 
 
@@ -1038,7 +1040,9 @@ public:
 	bool FallingDownTracked;
 	bool ResetLocomotor;
 	bool JumpjetStraightAscend;
-	// 31 bools = 31 bytes, add 1 padding byte for 32 (4-byte alignment)
+	bool OnParachuted;
+	bool HoverShutdown;
+	// 33 bools = 33 bytes, add 1 padding byte for 32 (4-byte alignment)
 
 #pragma endregion
 
@@ -1197,7 +1201,9 @@ public:
 		UnitIdleIsSelected(false),
 		FallingDownTracked(false),
 		ResetLocomotor(false),
-		JumpjetStraightAscend(false)
+		JumpjetStraightAscend(false),
+		OnParachuted(false),
+		HoverShutdown(false)
 	{
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
 		MyTargetingFrame = ScenarioClass::Instance->Random.RandomRanged(0, 15);

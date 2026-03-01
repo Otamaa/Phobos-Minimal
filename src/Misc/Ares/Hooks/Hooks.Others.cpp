@@ -1091,6 +1091,16 @@ int Get_FallDamage(
     return static_cast<int>(ratio);
 }
 
+
+ASMJIT_PATCH(0x5F416A, ObjectClass_DropAsBomb_ResetFallRateRate, 0x7)
+{
+	GET(ObjectClass*, pThis, ESI);
+
+	// Reset value, otherwise it'll keep accelerating.
+	pThis->FallRate = 0;
+	return 0;
+}
+
 ASMJIT_PATCH(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 {
 	GET(ObjectClass*, pThis, ESI);

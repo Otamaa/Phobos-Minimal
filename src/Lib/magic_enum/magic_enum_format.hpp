@@ -60,7 +60,7 @@ std::string format_as(E e) {
 #if defined(__cpp_lib_format)
 
 #ifndef MAGIC_ENUM_USE_STD_MODULE
-#include <lib/fmt/format.h>
+#include <format>
 #endif
 
 template <typename E>

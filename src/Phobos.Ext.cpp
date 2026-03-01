@@ -303,11 +303,17 @@ unsigned Phobos::GetVersionNumber() {
 
 HRESULT Phobos::LoadAllExtData(IStream* pStm)
 {
+	//Global
+
+	//Ext
 	return S_OK;
 }
 
 HRESULT Phobos::SaveAllExtData(IStream* pStm)
 {
+	//Global
+
+	//Ext
 	return S_OK;
 }
 
