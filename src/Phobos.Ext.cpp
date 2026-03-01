@@ -119,6 +119,18 @@ void Phobos::SaveGameDataAfter()
 
 void Phobos::LoadGameDataAfter()
 {
+	SwizzleManagerClass::Instance->Reset();
+	ScenarioClass::InitScenariostuff();
+	TabClass::Instance->Init_IO();
+	TabClass::Instance->Activate(1);
+	SidebarClass::Instance->CloseWindow();
+	TiberiumClass::sub_722D00();
+	TiberiumClass::sub_0x722240();
+	RadarClass::Instance->Map_AI();
+	Game::InScenario2 = 1;
+	Game::InScenario1 = 1;
+	ScenarioClass::ToggleDisplayMode(1);
+	Game::Reset_SomeShapes_Post_Movie();
 
 	if (auto pPlayerSide = SideClass::Array->get_or_default(ScenarioClass::Instance->PlayerSideIndex)) {
 		if (auto pSideMouse = SideExtContainer::Instance.Find(pPlayerSide)->MouseShape) {

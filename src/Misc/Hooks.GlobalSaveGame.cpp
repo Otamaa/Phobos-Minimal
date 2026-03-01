@@ -450,7 +450,7 @@ HRESULT Put_All_Pointers(LPSTREAM pStm)
 
 bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool)
 {
-	WCHAR wide_file_name[64];
+	WCHAR wide_file_name[PATH_MAX];
 	HRESULT hr;
 	bool result = false;
 

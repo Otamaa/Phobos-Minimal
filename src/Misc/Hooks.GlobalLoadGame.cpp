@@ -548,7 +548,7 @@ bool RetFlag(bool flag) // set the DoingLoadGame flag to false
 
 bool __fastcall Make_Load_Game(const char* file_name, bool)
 {
-	WCHAR wide_file_name[64];
+	WCHAR wide_file_name[PATH_MAX];
 	HRESULT hr;
 
 	// -----------------------------------------------------------------
@@ -606,6 +606,9 @@ bool __fastcall Make_Load_Game(const char* file_name, bool)
 		}
 
 		Debug::Log("Save version validated OK.\n");
+
+		SessionClass::Instance->GameMode = saveversion.GameType;
+		SwizzleManagerClass::Instance->Reset();
 	}
 
 	// -----------------------------------------------------------------
