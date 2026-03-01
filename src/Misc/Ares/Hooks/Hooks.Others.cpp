@@ -1085,7 +1085,7 @@ int Get_FallDamage(
     if (ratio < 0.0)
         return static_cast<int>(pTechno->Health * Math::abs(ratio));
 
-    if (ratio <= 1.0)
+    if (ratio >= 0.0 && ratio <= 1.0)
         return static_cast<int>(pTechnoType->Strength * ratio);
 
     return static_cast<int>(ratio);
@@ -1145,7 +1145,8 @@ ASMJIT_PATCH(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 				if (!pCell || !pCell->IsClearToMove(pTechnoType->SpeedType, true, true, ZoneType::None, pTechnoType->MovementZone, pCell->GetLevel(), pCell->ContainsBridge()))
 					return 0;
 
-				if (!pTechno->HasParachute){
+				//if (!pTechno->HasParachute)
+				{
 
 					double ratio = pCell->LandType == LandType::Water && !pTechno->OnBridge ?
 						 	 pExt->FallingDownDamage_Water.Get(pExt->FallingDownDamage.Get())
