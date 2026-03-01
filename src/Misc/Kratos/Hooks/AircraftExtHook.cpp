@@ -19,7 +19,6 @@
 #include <Misc/Kratos/Ext/TechnoType/AircraftDive.h>
 #include <Misc/Kratos/Ext/TechnoType/AircraftGuard.h>
 
-#ifdef _ENABLE_HOOKS
 
 ASMJIT_PATCH(0x639DD8, PlanningManager_AllowAircraftsWaypoint, 0x5)
 {
@@ -38,6 +37,7 @@ ASMJIT_PATCH(0x639DD8, PlanningManager_AllowAircraftsWaypoint, 0x5)
 	return 0x639E03;
 }
 
+#ifdef _ENABLE_HOOKS
 
 #pragma region DrawShadow
 // Phobos took over the entire shadow rendering process, so skip Phobos's Hook here

@@ -21,7 +21,7 @@ std::string LuaData::LuaDir;
 std::string LuaData::CoreHandles;
 std::vector<std::pair<uintptr_t, std::string>> LuaData::map_replaceAddrTo;
 std::string LuaData::MainWindowStr;
-std::string LuaData::FontName= "GAME.FNT";
+std::string LuaData::FontName = GameStrings::GAME_FNT();
 std::string LuaData::StatisticPacketName = "stats.dmp";
 
 std::map<std::string, bool> LuaData::SafeFiles;
@@ -561,7 +561,17 @@ DEFINE_FUNCTION_JUMP(CALL, 0x74D47D, FakeFileLoader::_Retrieve);
 #pragma endregion
 
 using uintptr_string_pair = std::pair<uintptr_t, std::string>;
+#include <BitFont.h>
 
+class NOVTABLE _BitFontWrapper
+{
+public :
+
+	static BitFont* __fastcall _CreateMe(BitFont* ptr ,discard_t , const char* discarded) {
+		ptr->BitFont::BitFont(LuaData::FontName.c_str());
+		return ptr;
+	}
+};
 inline std::vector<uintptr_string_pair> lua_read_ptr_string_array(lua_State* L, const char* global_table_name)
 {
 	std::vector<uintptr_string_pair> results;
@@ -802,11 +812,11 @@ void Phobos::ExecuteLua()
 
 		if (Lua.getGlobalString("MainWindowString", LuaData::MainWindowStr, true))
 		{
-			Patch::Apply_OFFSET(0x777CC6, (uintptr_t)LuaData::MainWindowStr.c_str());
-			Patch::Apply_OFFSET(0x777CCB, (uintptr_t)LuaData::MainWindowStr.c_str());
-			Patch::Apply_OFFSET(0x777D6D, (uintptr_t)LuaData::MainWindowStr.c_str());
-			Patch::Apply_OFFSET(0x777D72, (uintptr_t)LuaData::MainWindowStr.c_str());
-			Patch::Apply_OFFSET(0x777CA1, (uintptr_t)LuaData::MainWindowStr.c_str());
+			Patch::Apply_OFFSET(0x777CC5 + 1, (uintptr_t)LuaData::MainWindowStr.c_str());
+			Patch::Apply_OFFSET(0x777CCA + 1, (uintptr_t)LuaData::MainWindowStr.c_str());
+			Patch::Apply_OFFSET(0x777D6C + 1, (uintptr_t)LuaData::MainWindowStr.c_str());
+			Patch::Apply_OFFSET(0x777D71 + 1, (uintptr_t)LuaData::MainWindowStr.c_str());
+			Patch::Apply_OFFSET(0x777CA0 + 1, (uintptr_t)LuaData::MainWindowStr.c_str());
 		}
 
 		if (Lua.getGlobalString("FontName", LuaData::FontName, true))
@@ -815,8 +825,10 @@ void Phobos::ExecuteLua()
 				LuaData::FontName += ".fnt";
 			}
 
-			Patch::Apply_OFFSET(0x434AE7, (uintptr_t)LuaData::FontName.c_str());
-			Patch::Apply_OFFSET(0x4354DE, (uintptr_t)LuaData::FontName.c_str());
+			//Patch::Apply_CALL(0x434AEE, _BitFontWrapper::_CreateMe);
+			//Patch::Apply_CALL(0x4354E5, _BitFontWrapper::_CreateMe);';
+			Patch::Apply_OFFSET(0x434AE7 + 1, (uintptr_t)LuaData::FontName.c_str());
+			Patch::Apply_OFFSET(0x4354DE + 1, (uintptr_t)LuaData::FontName.c_str());
 		}
 
 		//core part to activate , disable it for now
@@ -829,14 +841,14 @@ void Phobos::ExecuteLua()
 		Lua.getGlobalString("DebugLogName", Debug::LogFileMainName, true);
 
 		if(Lua.getGlobalString("CrashDumpFileName", Debug::CrashDumpFileName, true)) {
-			if (LuaData::FontName.find(".dmp") == std::string::npos && LuaData::FontName.find(".DMP") == std::string::npos) {
-				LuaData::FontName += ".dmp";
+			if (Debug::CrashDumpFileName.find(L".dmp") == std::string::npos && Debug::CrashDumpFileName.find(L".DMP") == std::string::npos) {
+				Debug::CrashDumpFileName += L".dmp";
 			}
 		}
 
 		if (Lua.getGlobalString("StatisticPacketName", LuaData::StatisticPacketName, true)) {
-			if (LuaData::FontName.find(".dmp") == std::string::npos && LuaData::FontName.find(".DMP") == std::string::npos) {
-				LuaData::FontName += ".dmp";
+			if (LuaData::StatisticPacketName.find(".dmp") == std::string::npos && LuaData::StatisticPacketName.find(".DMP") == std::string::npos) {
+				LuaData::StatisticPacketName += ".dmp";
 			}
 		}
 

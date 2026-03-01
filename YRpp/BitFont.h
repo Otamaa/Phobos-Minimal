@@ -7,9 +7,10 @@ class NOVTABLE BitFont
 public:
 	static COMPILETIMEEVAL reference<BitFont*, 0x89C4D0> Instance {};
 
-private:
-	BitFont(const char* pFileName) { JMP_THIS(0x433880); }
 public:
+
+	BitFont(const char* pFileName) { JMP_THIS(0x433880); }
+
 	virtual ~BitFont() RX;
 
 	bool GetTextDimension(const wchar_t* pText, int* pWidth, int* pHeight, int nMaxWidth) { JMP_THIS(0x433CF0); }
