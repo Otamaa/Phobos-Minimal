@@ -247,7 +247,6 @@ HRESULT Decode_All_Pointers(LPSTREAM stream)
 {
 	HRESULT hr = S_OK;
 
-	Phobos::Otamaa::DoingLoadGame = true;
 	ScenarioClass::ClearScenario();
 
 	hr = ScenarioClass::Instance->Load(stream);
@@ -517,10 +516,6 @@ HRESULT Decode_All_Pointers(LPSTREAM stream)
 
 	VoxClass::EVAIndex = value;
 
-	// Final Phobos data
-	hr = Phobos::LoadGameDataAfter(stream);
-	if (!SUCCEEDED(hr)) return hr;
-
 	// add more variable that need to be reset after loading an saved games
 	if (SessionClass::Instance->GameMode == GameMode::Campaign)
 	{
@@ -544,149 +539,156 @@ HRESULT Decode_All_Pointers(LPSTREAM stream)
 }
 
 #include <Phobos.SaveGame.h>
-
-bool __fastcall Load_Saved_Game(const char* file_name)
+#include <Utilities/CompressedStream.h>
+bool RetFlag(bool flag) // set the DoingLoadGame flag to false
 {
-	WCHAR wide_file_name[PATH_MAX];
+	Phobos::Otamaa::DoingLoadGame = false;
+	return flag;
+}
 
-	if (SpawnerMain::Configs::Enabled) {
-		MultiByteToWideChar(CP_ACP, 0, SavedGames::FormatPath(file_name), -1, wide_file_name, std::size(wide_file_name));
-	} else {
-		MultiByteToWideChar(CP_ACP, 0, file_name, -1, wide_file_name, std::size(wide_file_name));
+bool __fastcall Make_Load_Game(const char* file_name, bool)
+{
+	WCHAR wide_file_name[64];
+	HRESULT hr;
+
+	// -----------------------------------------------------------------
+	// Resolve file path
+	// -----------------------------------------------------------------
+	{
+		if (SpawnerMain::Configs::Enabled && SavedGames::CreateSubdir())
+		{
+			MultiByteToWideChar(CP_ACP, 0, SavedGames::FormatPath(file_name), -1,
+				wide_file_name, std::size(wide_file_name));
+		}
+		else
+		{
+			MultiByteToWideChar(CP_ACP, 0, file_name, -1,
+				wide_file_name, std::size(wide_file_name));
+		}
 	}
 
 	Debug::Log("\nLOADING GAME [%s]\n", file_name);
+	Phobos::Otamaa::DoingLoadGame = true;
 
-	if (!ExtensionSaveJson::Load(wide_file_name)) {
-		Debug::FatalError("Cannot Load dll datas !");
-		return false;
-	}
-
-	/**
-	 *  Convert the file name to a wide string.
-	 */
-	Debug::Log("Opening DocFile\n");
+	// -----------------------------------------------------------------
+	// Open compound file
+	// -----------------------------------------------------------------
 	ATL::CComPtr<IStorage> storage;
-	HRESULT hr = StgOpenStorage(wide_file_name, nullptr,
-		STGM_READWRITE | STGM_SHARE_EXCLUSIVE, nullptr, 0, &storage);
-	if (FAILED(hr)) {
-		Debug::FatalError("Failed to open storage.\n");
-		return false;
+	{
+		hr = StgOpenStorage(wide_file_name, nullptr,
+			STGM_READ | STGM_SHARE_EXCLUSIVE,
+			nullptr, 0, &storage);
+
+		if (FAILED(hr))
+		{
+			Debug::FatalError("Failed to open storage. hr=0x%08X\n", hr);
+			return RetFlag(false);
+		}
 	}
 
-	/**
-	 *  Read the save file header.
-	 */
-	SavegameInformation saveversion;
-	hr = saveversion.Read(storage);
-	if (FAILED(hr)) {
-		Debug::FatalError("Failed to read version information.\n");
-		return false;
+	// -----------------------------------------------------------------
+	// Read and validate save header (property set)
+	// -----------------------------------------------------------------
+	{
+		SavegameInformation saveversion {};
+		hr = saveversion.Read(storage);
+		if (FAILED(hr))
+		{
+			Debug::FatalError("Failed to read version information. hr=0x%08X\n", hr);
+			return RetFlag(false);
+		}
+
+		if (saveversion.InternalVersion != Game::Savegame_Magic())
+		{
+			Debug::FatalError("Save version mismatch. Expected 0x%08X, got 0x%08X\n",
+				Game::Savegame_Magic(), saveversion.InternalVersion);
+			return RetFlag(false);
+		}
+
+		Debug::Log("Save version validated OK.\n");
 	}
 
-	storage.Release();
+	// -----------------------------------------------------------------
+	// CustomMissionID — independent named stream, load early
+	// -----------------------------------------------------------------
+	{
+		auto mission = SavedGames::ReadFromStorage<CustomMissionID>(storage);
 
-	if (SUCCEEDED(StgOpenStorage(wide_file_name, nullptr,
-		STGM_READWRITE | STGM_SHARE_EXCLUSIVE, nullptr, 0, &storage)
-	)) {
-		if (auto id = SavedGames::ReadFromStorage<CustomMissionID>(storage)) {
-			int num = id->Number;
-			Debug::Log("sav file CustomMissionID = %d\n", num);
-			SpawnerMain::GetGameConfigs()->CustomMissionID = num;
-			ScenarioClass::Instance->EndOfGame = true;
-		} else {
+		if (mission.has_value())
+		{
+			Debug::Log("Loaded CustomMissionID: %d\n", mission->Number);
+			SpawnerMain::GetGameConfigs()->CustomMissionID = mission->Number;
+		}
+		else
+		{
+			Debug::Log("No CustomMissionID in save — using default.\n");
 			SpawnerMain::GetGameConfigs()->CustomMissionID = 0;
 		}
 	}
 
-	storage.Release();
+	// -----------------------------------------------------------------
+	// PHOBOS_EXT — load extension data (types must be ready
+	// before game objects reference them)
+	// -----------------------------------------------------------------
+	{
+		CompressedStream ext;
+		hr = ext.Open(storage, L"PHOBOS_EXT");
 
-	SessionClass::Instance->GameMode = saveversion.GameType;
-	SwizzleManagerClass::Instance->Reset();
+		Phobos::ClearAll();
 
-	Debug::Log("Opening DocFile\n");
-	hr = StgOpenStorage(wide_file_name, nullptr, STGM_SHARE_DENY_WRITE, nullptr, 0, &storage);
-	if (FAILED(hr)) {
-		Debug::FatalError("Failed to open storage.\n");
-		return false;
-	}
+		if (SUCCEEDED(hr))
+		{
+			Debug::Log("Loading Phobos extension data (compressed).\n");
+			hr = Phobos::LoadAllExtData(ext.Stream);
+			ext.Close();
 
-	Debug::Log("Opening content stream.\n");
-	ATL::CComPtr<IStream> docfile;
-	hr = storage->OpenStream(L"CONTENTS", nullptr, STGM_READ | STGM_SHARE_EXCLUSIVE, 0, &docfile);
-	if (FAILED(hr)) {
-		Debug::FatalError("Failed to open content stream.\n");
-		return false;
-	}
-
-	LARGE_INTEGER li = {};
-	hr = docfile->Seek(li, STREAM_SEEK_SET, nullptr);
-	if (FAILED(hr)) {
-		Debug::FatalError("Failed to seek CONTENTS stream to beginning.\n");
-		return false;
-	}
-
-	Debug::Log("Linking content stream to decompressor.\n");
-	IUnknown* pUnknown = nullptr;
-	ATL::CComPtr<ILinkStream> linkstream;
-	hr = CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER, IID_IUnknown, (void**)&pUnknown);
-	if (SUCCEEDED(hr)) {
-		hr = OleRun(pUnknown);
-		if (SUCCEEDED(hr)) {
-			pUnknown->QueryInterface(__uuidof(ILinkStream), (void**)&linkstream);
+			if (FAILED(hr))
+			{
+				Debug::FatalError("Failed to load extension data. hr=0x%08X\n", hr);
+				return RetFlag(false);
+			}
 		}
-		pUnknown->Release();
-	}
-
-	hr = linkstream->Link_Stream(docfile);
-	if (FAILED(hr)) {
-		Debug::FatalError("Failed to link stream to decompressor.\n");
-		return false;
-	}
-
-	ATL::CComPtr<IStream> stream;
-	linkstream->QueryInterface(__uuidof(IStream), (void**)&stream);
-	Debug::Log("Creating stream wrapper for tracking.\n");
-
-	Debug::Log("Calling Decode_All_Pointers().\n");
-
-	if (FAILED(Decode_All_Pointers(stream))) {
-		Debug::FatalErrorAndExit("Error loading save game \"%s\"!\n", file_name);
-		return false;
-	}
-
-	if (SessionClass::IsCampaign()) {
-		if (SUCCEEDED(LoadSimpleData(stream, SpawnerMain::GetGameConfigs()->CustomMissionID))) {
-			Debug::Log("sav file CustomMissionID = %d\n", SpawnerMain::GetGameConfigs()->CustomMissionID);
-			ScenarioClass::Instance->EndOfGame = true;
-		} else {
-			SpawnerMain::GetGameConfigs()->CustomMissionID = 0;
+		else
+		{
+			Debug::Log("No PHOBOS_EXT stream — vanilla or legacy save.\n");
 		}
 	}
 
-	Debug::Log("Unlinking content stream from decompressor.\n");
-	hr = linkstream->Unlink_Stream(nullptr);
-	if (FAILED(hr)) {
-		Debug::FatalError("Unlinking content stream from decompressor.\n");
-		return false;
+	// -----------------------------------------------------------------
+	// "C" — decompress and load all game data
+	// -----------------------------------------------------------------
+	{
+		Debug::Log("Calling Get_All_Pointers().\n");
+
+		CompressedStream game;
+		hr = game.Open(storage, L"C");
+		if (FAILED(hr))
+		{
+			Debug::FatalError("Failed to open C stream. hr=0x%08X\n", hr);
+			return RetFlag(false);
+		}
+
+		hr = Decode_All_Pointers(game.Stream);
+		game.Close();
+
+		if (FAILED(hr))
+		{
+			Debug::FatalError("Get_All_Pointers failed. hr=0x%08X\n", hr);
+			return RetFlag(false);
+		}
 	}
 
-	SwizzleManagerClass::Instance->Reset();
-	ScenarioClass::InitScenariostuff();
-	TabClass::Instance->Init_IO();
-	TabClass::Instance->Activate(1);
-	SidebarClass::Instance->CloseWindow();
-	TiberiumClass::sub_722D00();
-	TiberiumClass::sub_0x722240();
-	RadarClass::Instance->Map_AI();
-	Game::InScenario2 = 1;
-	Game::InScenario1 = 1;
-	ScenarioClass::ToggleDisplayMode(1);
-	Game::Reset_SomeShapes_Post_Movie();
+	Phobos::LoadGameDataAfter();
 
-	Debug::Log("LOADING GAME [%s] - Complete\n", file_name);
+	// -----------------------------------------------------------------
+	// Cleanup
+	// -----------------------------------------------------------------
+	{
+		storage.Release();
+	}
 
-	return true;
+	Debug::Log("LOADING GAME [%s] - Complete.\n", file_name);
+	return RetFlag(true);
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x67E440, Load_Saved_Game)
+DEFINE_FUNCTION_JUMP(LJMP, 0x67E440, Make_Load_Game)

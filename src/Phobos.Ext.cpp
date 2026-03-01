@@ -111,16 +111,14 @@
 #include <LoadOptionsClass.h>
 #include <BeaconManagerClass.h>
 
-HRESULT Phobos::SaveGameDataAfter(IStream* pStm)
+void Phobos::SaveGameDataAfter()
 {
 	Debug::LogInfo("[Phobos] Finished saving the game");
-	return S_OK;
+
 }
 
-HRESULT Phobos::LoadGameDataAfter(IStream* pStm)
+void Phobos::LoadGameDataAfter()
 {
-	//clear the loadgame flag
-	Phobos::Otamaa::DoingLoadGame = false;
 
 	if (auto pPlayerSide = SideClass::Array->get_or_default(ScenarioClass::Instance->PlayerSideIndex)) {
 		if (auto pSideMouse = SideExtContainer::Instance.Find(pPlayerSide)->MouseShape) {
@@ -130,9 +128,8 @@ HRESULT Phobos::LoadGameDataAfter(IStream* pStm)
 
 	BeaconManagerClass::Instance->LoadArt();
 	Debug::LogInfo("[Phobos] Finished loading the game");
-	return S_OK;
-}
 
+}
 
 ASMJIT_PATCH(0x7258DE, AnnounceInvalidPointer_PhobosGlobal, 0x7)
 {
@@ -142,14 +139,6 @@ ASMJIT_PATCH(0x7258DE, AnnounceInvalidPointer_PhobosGlobal, 0x7)
 
 	if (Phobos::Otamaa::ExeTerminated)
 		return 0;
-
-	//if (MapClass::Instance->Cells.IsInitialized) {
-	//	std::for_each(MapClass::Instance->Cells.Items, MapClass::Instance->Cells.Items + MapClass::Instance->Cells.Capacity, [removed, pInvalid](CellClass* pCell) {
-	//		 if (pCell){
-	//			 pCell->PointerExpired(pInvalid, removed);
-	//		 }
-	//	});
-	//}
 
 	TActionExtData::InvalidatePointer(pInvalid, removed);
 	PhobosGlobal::PointerGotInvalid(pInvalid, removed);
@@ -300,6 +289,16 @@ unsigned Phobos::GetVersionNumber() {
 
 #include <New/Type/ActionTypeClass.h>
 
+HRESULT Phobos::LoadAllExtData(IStream* pStm)
+{
+	return S_OK;
+}
+
+HRESULT Phobos::SaveAllExtData(IStream* pStm)
+{
+	return S_OK;
+}
+
 #define CLEAR_CONTAIER_CLASS_AND_TYPE(CC) 	CC##ExtContainer::Instance.Clear(); CC##TypeExtContainer::Instance.Clear()
 #define CLEAR_CONTAIER_CLASS(CC) 	CC::Instance.Clear()
 #define CLEAR_CLASS(CC) 	CC::Clear()
@@ -308,9 +307,16 @@ unsigned Phobos::GetVersionNumber() {
 
 // Clear static data from respective classes
 // this function is executed after all game classes already cleared
-ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
+
+void Phobos::ClearAll()
 {
-	for (auto& hand : Handles::Array) {
+
+	//we already clear the data dont need to do it twice
+	if (Phobos::Otamaa::DoingLoadGame)
+		return;
+
+	for (auto& hand : Handles::Array)
+	{
 		hand->detachptr();
 	}
 
@@ -385,8 +391,11 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 
 	MouseClassExt::ClearCameos();
 	MouseClassExt::ClearMappedAction();
+}
 
-
+ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
+{
+	Phobos::ClearAll();
 	return 0;
 }
 

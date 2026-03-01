@@ -94,9 +94,12 @@ public:
 	static void ThrowUsageWarning(CCINIClass* pINI);
 
 	static bool DetachFromDebugger();
-	static HRESULT SaveGameDataAfter(IStream* pStm);
-	static HRESULT LoadGameDataAfter(IStream* pStm);
+	static void SaveGameDataAfter();
+	static void LoadGameDataAfter();
+	static void ClearAll();
 	static void PassiveSaveGame();
+	static HRESULT LoadAllExtData(IStream* pStm);
+	static HRESULT SaveAllExtData(IStream* pStm);
 
 	//variables
 	static HANDLE hInstance;
@@ -172,7 +175,7 @@ public:
 		static void Read_RA2MD();
 		static void Read_UIMD();
 		static void Read_RULESMD();
-		
+
 		static bool HideWarning;
 		static bool ToolTipDescriptions;
 		static bool ToolTipBlur;

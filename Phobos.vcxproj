@@ -1498,6 +1498,7 @@
     <ClInclude Include="src\Utilities\AnimHelpers.h" />
     <ClInclude Include="src\Utilities\BuildingBrackedPositionData.h" />
     <ClInclude Include="src\Utilities\Cast.h" />
+    <ClInclude Include="src\Utilities\CompressedStream.h" />
     <ClInclude Include="src\Utilities\CSFText.h" />
     <ClInclude Include="src\Utilities\DebrisSpawners.h" />
     <ClInclude Include="src\Utilities\Enumerable.h" />

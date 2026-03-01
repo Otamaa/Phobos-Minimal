@@ -441,151 +441,211 @@ HRESULT Put_All_Pointers(LPSTREAM pStm)
 	hr = pStm->Write(&VoxClass::EVAIndex(), sizeof(int), &out);
 	if (!SUCCEEDED(hr)) return hr;
 
-	hr = Phobos::SaveGameDataAfter(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
 	return hr;
 }
 
 #include <Phobos.SaveGame.h>
 
+#include <Utilities/CompressedStream.h>
 
 bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool)
 {
-	WCHAR wide_file_name[PATH_MAX];
+	WCHAR wide_file_name[64];
+	HRESULT hr;
+	bool result = false;
 
-	if (SpawnerMain::Configs::Enabled && SavedGames::CreateSubdir()) {
-		MultiByteToWideChar(CP_ACP, 0, SavedGames::FormatPath(file_name), -1, wide_file_name, std::size(wide_file_name));
-	} else {
-		MultiByteToWideChar(CP_ACP, 0, file_name, -1, wide_file_name, std::size(wide_file_name));
+	// -----------------------------------------------------------------
+	// Resolve file path
+	// -----------------------------------------------------------------
+	{
+		if (SpawnerMain::Configs::Enabled && SavedGames::CreateSubdir())
+		{
+			MultiByteToWideChar(CP_ACP, 0, SavedGames::FormatPath(file_name), -1,
+				wide_file_name, std::size(wide_file_name));
+		}
+		else
+		{
+			MultiByteToWideChar(CP_ACP, 0, file_name, -1,
+				wide_file_name, std::size(wide_file_name));
+		}
 	}
 
 	Debug::Log("\nSAVING GAME [%s - %ls]\n", file_name, descr);
 
-	if (!ExtensionSaveJson::Save(wide_file_name)){
-		Debug::FatalError("Cannot Save dll datas !");
-		return false;
-	}
-
-	Debug::Log("Creating DocFile\n");
+	// =================================================================
+	// PHASE 1: Vanilla-identical layout (property set + "C")
+	// Must match original allocation pattern exactly to prevent
+	// the compound file FAT allocator from stomping property set sectors
+	// =================================================================
 
 	ATL::CComPtr<IStorage> storage;
-	HRESULT hr = StgCreateDocfile(wide_file_name, STGM_CREATE | STGM_READWRITE | STGM_SHARE_EXCLUSIVE, 0, &storage);
-	if (FAILED(hr)) {
-		Debug::FatalError("Failed to create storage.\n");
-		return false;
-	}
 
-	/**
-	 *  Write the save file header.
-	 */
+	// -----------------------------------------------------------------
+	// Create compound file
+	// -----------------------------------------------------------------
+	{
+		hr = StgCreateDocfile(wide_file_name,
+			STGM_CREATE | STGM_READWRITE | STGM_SHARE_EXCLUSIVE,
+			0, &storage);
 
-	SavegameInformation saveversion {};
-	saveversion.InternalVersion = Game::Savegame_Magic();
-	saveversion.ScenarioDescription = descr;
-	saveversion.Version = AresGlobalData::version;
-	saveversion.PlayerHouse = HouseClass::CurrentPlayer->Type->UIName;
-	saveversion.Campaign = ScenarioClass::Instance->CampaignIndex;
-	saveversion.ScenarioNumber = ScenarioClass::Instance->TechLevel;
-	sprintf_s(saveversion.ExecutableName.raw(), "GAMEMD.EXE + Phobos Minimal + Mod %s ver %s",
-	AresGlobalData::ModName,
-	AresGlobalData::ModVersion);
-	saveversion.GameType = SessionClass::Instance->GameMode;
-
-	FILETIME filetime;
-	CoFileTimeNow(&filetime);
-	saveversion.LastSaveTime = filetime;
-	saveversion.StartTime = filetime;
-	saveversion.PlayTime = filetime;
-
-	Debug::Log("Saving version information\n");
-	hr = saveversion.Write(storage);
-	if (FAILED(hr)) {
-		Debug::FatalError("Failed to write version information.\n");
-		return false;
-	}
-
-	// === ensure the property-set (SavegameInformation) is committed and finalized
-	// so the compound-file allocator won't reuse its space for the CONTENTS stream.
-	Debug::Log("Committing storage after SavegameInformation write to finalize property-set...\n");
-	hr = storage->Commit(STGC_DEFAULT);
-	if (FAILED(hr)) {
-		Debug::FatalError("Failed to commit storage after SavegameInformation write. hr=0x%08X\n", hr);
-		return false;
-	}
-
-	Debug::Log("Creating content stream.\n");
-	ATL::CComPtr<IStream> docfile;
-	hr = storage->CreateStream(L"CONTENTS", STGM_CREATE | STGM_WRITE | STGM_SHARE_EXCLUSIVE, 0, 0, &docfile);
-	if (FAILED(hr)) {
-		Debug::FatalError("Failed to create content stream.\n");
-		return false;
-	}
-
-	hr = docfile->Commit(STGC_OVERWRITE); // flush stream buffers
-	if (FAILED(hr)) {
-		Debug::FatalError("Failed to commit CONTENTS stream.\n");
-		return false;
-	}
-
-	LARGE_INTEGER li = {};
-	hr = docfile->Seek(li, STREAM_SEEK_SET, nullptr);
-	if (FAILED(hr)) {
-		Debug::FatalError("Failed to seek CONTENTS stream to beginning.\n");
-		return false;
-	}
-
-	IUnknown* pUnknown = nullptr;
-	ATL::CComPtr<ILinkStream> linkstream;
-	hr = CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER, IID_IUnknown, (void**)&pUnknown);
-	if (SUCCEEDED(hr)) {
-		hr = OleRun(pUnknown);
-		if (SUCCEEDED(hr)) {
-			pUnknown->QueryInterface(__uuidof(ILinkStream), (void**)&linkstream);
+		if (FAILED(hr))
+		{
+			Debug::FatalError("Failed to create storage. hr=0x%08X\n", hr);
+			return false;
 		}
-		pUnknown->Release();
 	}
 
-	hr = linkstream->Link_Stream(docfile);
-	if (FAILED(hr)) {
-		Debug::FatalError("Failed to link stream to compressor.\n");
-		return false;
+	// -----------------------------------------------------------------
+	// Write save header (property set) — no commit
+	// -----------------------------------------------------------------
+	{
+		SavegameInformation saveversion {};
+		saveversion.InternalVersion = Game::Savegame_Magic();
+		saveversion.ScenarioDescription = descr;
+		saveversion.Version = AresGlobalData::version;
+		saveversion.PlayerHouse = HouseClass::CurrentPlayer->Type->UIName;
+		saveversion.Campaign = ScenarioClass::Instance->CampaignIndex;
+		saveversion.ScenarioNumber = ScenarioClass::Instance->TechLevel;
+		sprintf_s(saveversion.ExecutableName.raw(),
+			"GAMEMD.EXE + Phobos Minimal + Mod %s ver %s",
+			AresGlobalData::ModName, AresGlobalData::ModVersion);
+		saveversion.GameType = SessionClass::Instance->GameMode;
+
+		FILETIME filetime;
+		CoFileTimeNow(&filetime);
+		saveversion.LastSaveTime = filetime;
+		saveversion.StartTime = filetime;
+		saveversion.PlayTime = filetime;
+
+		Debug::Log("Saving version information.\n");
+		hr = saveversion.Write(storage);
+		if (FAILED(hr))
+		{
+			Debug::FatalError("Failed to write version information. hr=0x%08X\n", hr);
+			return false;
+		}
 	}
 
-	ATL::CComPtr<IStream> stream;
-	linkstream->QueryInterface(__uuidof(IStream), (void**)&stream);
+	// -----------------------------------------------------------------
+	// "C" — compressed game data, immediately after property set
+	// This matches the original: property set then "C", nothing else
+	// -----------------------------------------------------------------
+	{
+		Debug::Log("Calling Put_All_Pointers().\n");
 
-	Debug::Log("Calling Put_All_Pointers().\n");
+		CompressedStream game;
+		hr = game.Create(storage, L"C");
+		if (FAILED(hr))
+		{
+			Debug::FatalError("Failed to create C stream. hr=0x%08X\n", hr);
+			return false;
+		}
 
-	bool result = SUCCEEDED(Put_All_Pointers(stream));
+		result = SUCCEEDED(Put_All_Pointers(game.Stream));
+		game.Close();
 
-	if (SessionClass::IsCampaign()) {
-		if (SpawnerMain::GetGameConfigs()->CustomMissionID)
-			SaveSimpleData(stream, SpawnerMain::GetGameConfigs()->CustomMissionID);
+		if (!result)
+		{
+			Debug::FatalError("Put_All_Pointers failed.\n");
+			return false;
+		}
 	}
 
-	Debug::Log("Unlinking content stream from compressor.\n");
-	hr = linkstream->Unlink_Stream(nullptr);
-	if (FAILED(hr)) {
-		Debug::FatalError("Failed to link unstream from compressor.\n");
-		return false;
+	// -----------------------------------------------------------------
+	// Single commit + full close — vanilla-identical, FAT finalized
+	// -----------------------------------------------------------------
+	{
+		hr = storage->Commit(STGC_DEFAULT);
+		if (FAILED(hr))
+		{
+			Debug::FatalError("Failed to commit storage. hr=0x%08X\n", hr);
+			return false;
+		}
+
+		storage.Release();
 	}
 
-	Debug::Log("Releasing content stream.\n");
-	docfile.Release();
+	// =================================================================
+	// PHASE 2: Reopen for extension data
+	// FAT is fully finalized on disk — new streams get fresh sectors,
+	// cannot stomp property set or "C"
+	// =================================================================
 
-	Debug::Log("Closing DocFile.\n");
-	hr = storage->Commit(STGC_DEFAULT);
-	if (FAILED(hr)) {
-		Debug::FatalError("Failed to commit storage.\n");
-		return false;
+	// -----------------------------------------------------------------
+	// Reopen storage
+	// -----------------------------------------------------------------
+	{
+		Debug::Log("Reopening storage for extension data.\n");
+		hr = StgOpenStorage(wide_file_name, nullptr,
+			STGM_READWRITE | STGM_SHARE_EXCLUSIVE,
+			nullptr, 0, &storage);
+
+		if (FAILED(hr))
+		{
+			Debug::FatalError("Failed to reopen storage. hr=0x%08X\n", hr);
+			return false;
+		}
 	}
 
-	if (SessionClass::IsCampaign()) {
-		if (SpawnerMain::GetGameConfigs()->CustomMissionID)
-			SavedGames::WriteToStorage<CustomMissionID>(storage);
+	// -----------------------------------------------------------------
+	// PHOBOS_EXT — compressed extension data
+	// -----------------------------------------------------------------
+	{
+		Debug::Log("Saving Phobos extension data (compressed).\n");
+
+		CompressedStream ext;
+		hr = ext.Create(storage, L"PHOBOS_EXT");
+		if (FAILED(hr))
+		{
+			Debug::FatalError("Failed to create PHOBOS_EXT stream. hr=0x%08X\n", hr);
+			storage.Release();
+			return false;
+		}
+
+		hr = Phobos::SaveAllExtData(ext.Stream);
+		ext.Close();
+
+		if (FAILED(hr))
+		{
+			Debug::FatalError("Failed to save extension data. hr=0x%08X\n", hr);
+			storage.Release();
+			return false;
+		}
 	}
 
+	// -----------------------------------------------------------------
+	// CustomMissionID — own named stream (uncompressed)
+	// -----------------------------------------------------------------
+	{
+		if (SessionClass::IsCampaign())
+		{
+			if (SpawnerMain::GetGameConfigs()->CustomMissionID)
+			{
+				Debug::Log("Writing CustomMissionID to storage.\n");
+				if (!SavedGames::WriteToStorage<CustomMissionID>(storage))
+				{
+					Debug::FatalError("Failed to write CustomMissionID.\n");
+				}
+			}
+		}
+	}
+
+	// -----------------------------------------------------------------
+	// Final commit + close
+	// -----------------------------------------------------------------
+	{
+		hr = storage->Commit(STGC_DEFAULT);
+		if (FAILED(hr))
+		{
+			Debug::FatalError("Failed to commit storage. hr=0x%08X\n", hr);
+			storage.Release();
+			return false;
+		}
+
+		storage.Release();
+	}
+
+	Phobos::SaveGameDataAfter();
 	Debug::Log("SAVING GAME [%s] - Complete.\n", file_name);
 	return result;
 }
