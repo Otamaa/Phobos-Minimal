@@ -251,12 +251,12 @@ struct _DropPodLocomotionClass
 
 	// function below originated from PR #1196 by : chaserli
 	// i just do some adjustment so my own code can go in
-	static void __stdcall _Move_To(DropPodLocomotionClass* pLoco, CoordStruct* pCoord)
+	static void __stdcall _Move_To(DropPodLocomotionClass* pLoco, CoordStruct pCoord)
 	{
 		if (pLoco->CoordDest.IsValid())
 			return;
 
-		pLoco->CoordDest = *pCoord;
+		pLoco->CoordDest = pCoord;
 		pLoco->CoordDest.Z = MapClass::Instance->GetCellFloorHeight(pCoord);
 		auto tType = GET_TECHNOTYPE(pLoco->LinkedTo);
 		const auto pLinkedSW = TechnoExtContainer::Instance.Find(pLoco->LinkedTo)->LinkedSW;
@@ -264,7 +264,7 @@ struct _DropPodLocomotionClass
 		const int height = DroppodProperties_::GetHeight(tType, pLoco->LinkedTo, condition);
 		const double angle = DroppodProperties_::GetAngle(tType, pLoco->LinkedTo, condition);
 
-		CoordStruct coord = *pCoord;
+		CoordStruct coord = pCoord;
 		coord.Z += height;
 		if (!MapClass::Instance->IsWithinUsableArea(coord))
 		{
@@ -293,7 +293,9 @@ struct _DropPodLocomotionClass
 };
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E82B8, _DropPodLocomotionClass::_Process);
+DEFINE_FUNCTION_JUMP(LJMP, 0x4B5B70, _DropPodLocomotionClass::_Process);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E82BC, _DropPodLocomotionClass::_Move_To);
+DEFINE_FUNCTION_JUMP(LJMP, 0x4B6040, _DropPodLocomotionClass::_Move_To);
 
 ASMJIT_PATCH(0x519168, InfantryClass_DrawIt_DroppodLinked, 0x5)
 {
