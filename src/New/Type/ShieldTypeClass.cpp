@@ -103,6 +103,7 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->InheritArmor_Disallowed.Read(exINI, pSection, "InheritArmor.Disallowed");
 	this->InheritArmorFromTechno.Read(exINI, pSection, "InheritArmorFromTechno");
 	this->CanBlock.Read(exINI, pSection, "CanBlock");
+	this->UseArmorplier.Read(exINI, pSection, "UseArmorplier");
 }
 
 template <typename T>
@@ -165,6 +166,7 @@ void ShieldTypeClass::Serialize(T& Stm)
 		.Process(this->InheritArmor_Disallowed)
 		.Process(this->InheritArmorFromTechno)
 		.Process(this->CanBlock)
+		.Process(this->UseArmorplier)
 		;
 }
 

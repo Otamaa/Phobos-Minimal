@@ -1133,6 +1133,9 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->CylinderRangefinding.Read(exINI, GameStrings::General, "CylinderRangefinding");
 	this->DefaultToGuardArea.Read(exINI, GameStrings::General, "DefaultToGuardArea");
 	this->DisableOveroptimizationInTargeting.Read(exINI, GameStrings::General, "DisableOveroptimizationInTargeting");
+	this->AreaGuard_UseSelfAsCenter.Read(exINI, GameStrings::General, "AreaGuard.UseSelfAsCenter");
+	this->AreaGuard_TargetingInRange.Read(exINI, GameStrings::General, "AreaGuard.TargetingInRange");
+	this->AreaGuard_StrayIgnoreDestination.Read(exINI, GameStrings::General, "AreaGuard.StrayIgnoreDestination");
 	#pragma endregion
 
 	#pragma region CombatDamage
@@ -1162,13 +1165,11 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->HunterSeeker_Damage.Read(exINI, GameStrings::CombatDamage(), "HunterSeekerDamage");
 	this->AutoRepelAI.Read(exINI, GameStrings::CombatDamage(), "AutoRepel");
 	this->AutoRepelPlayer.Read(exINI, GameStrings::CombatDamage(), "PlayerAutoRepel");
-
 	this->CanTargetAI_IronCurtained.Read(exINI, GameStrings::CombatDamage, "CanTargetAI.IronCurtained");
 	this->CanTarget_IronCurtained.Read(exINI, GameStrings::CombatDamage, "CanTarget.IronCurtained");
 	this->AutoTarget_IronCurtained.Read(exINI, GameStrings::CombatDamage, "AutoTarget.IronCurtained");
-
 	this->EMPAIRecoverMission.Read(exINI, GameStrings::CombatDamage(), "EMPAIRecoverMission");
-
+	this->ShieldUseArmorplier.Read(exINI, GameStrings::CombatDamage, "ShieldUseArmorplier");
 	#pragma endregion
 
 	#pragma region AI
@@ -1478,6 +1479,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->RadWarhead_Detonate)
 		.Process(this->RadHasOwner)
 		.Process(this->RadHasInvoker)
+		.Process(this->ShieldUseArmorplier)
 		.Process(this->UseGlobalRadApplicationDelay)
 		.Process(this->IronCurtain_KeptOnDeploy)
 		.Process(this->ForceShield_KeptOnDeploy)
@@ -1894,6 +1896,10 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->CylinderRangefinding)
 		.Process(this->DefaultToGuardArea)
 		.Process(this->DisableOveroptimizationInTargeting)
+
+		.Process(this->AreaGuard_UseSelfAsCenter)
+		.Process(this->AreaGuard_TargetingInRange)
+		.Process(this->AreaGuard_StrayIgnoreDestination)
 		;
 }
 

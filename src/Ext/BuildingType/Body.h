@@ -694,6 +694,7 @@ public:
 	static bool IsFoundationEqual(BuildingTypeClass* pType1, BuildingTypeClass* pType2);
 	// Short check: Is the building of a linkable kind at all?
 	static bool IsLinkable(BuildingTypeClass* pThis);
+	static std::pair<int, int> GetEnhancedPowerPair(BuildingTypeClass* pBuilding, int output, HouseClass* pHouse);
 	static int GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse);
 	static int GetEnhancedPower(BuildingTypeClass* pBuilding, int output, HouseClass* pHouse);
 	static float GetPurifierBonusses(HouseClass* pHouse);

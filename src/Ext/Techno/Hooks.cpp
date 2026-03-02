@@ -2112,3 +2112,31 @@ ASMJIT_PATCH(0x6F8A92, TechnoClass_CheckAutoTarget_AttackFriendlies, 0xA)
 
 #include <Ext/WeaponType/Body.h>
 
+#pragma region AreaGuard
+
+ASMJIT_PATCH(0x4D6E9F, FootClass_MissionAreaGuard_UseSelfAsCenter, 0x6)
+{
+	enum { CheckDist = 0x4D6EAF, ResetTarget = 0x4D6ED1 };
+
+	GET(FootClass*, pThis, ESI);
+
+	if (!RulesExtData::Instance()->AreaGuard_StrayIgnoreDestination && pThis->Destination)
+		return ResetTarget;
+
+	R->EAX(pThis->DistanceFrom(RulesExtData::Instance()->AreaGuard_UseSelfAsCenter ? pThis->Target : pThis->ArchiveTarget));
+	return CheckDist;
+}
+
+ASMJIT_PATCH(0x4D6EEF, FootClass_MissionAreaGuard_Extend, 0x6)
+{
+	enum { SkipGameCode = 0x4D6F03 };
+
+	GET(FootClass*, pThis, ESI);
+	LEA_STACK(CoordStruct*, CoordBuffer, 0x34);
+
+	(RulesExtData::Instance()->AreaGuard_UseSelfAsCenter ? pThis : pThis->ArchiveTarget)->GetCoords(CoordBuffer);
+	pThis->TargetAndEstimateDamage(CoordBuffer, RulesExtData::Instance()->AreaGuard_TargetingInRange ? ThreatType::Range : ThreatType::Area);
+	return 0x4D6F0C;
+}
+
+#pragma endregion

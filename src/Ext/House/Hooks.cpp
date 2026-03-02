@@ -238,16 +238,6 @@ ASMJIT_PATCH(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 	return 0;
 }
 
-// Power Plant Enhancer #131
-ASMJIT_PATCH(0x508CF2, HouseClass_UpdatePower_PowerOutput, 0x7)
-{
-	GET(HouseClass*, pThis, ESI);
-	GET(BuildingClass*, pBld, EDI);
-
-	pThis->PowerOutput += BuildingTypeExtData::GetEnhancedPower(pBld, pThis);
-
-	return 0x508D07;
-}
 
 //ASMJIT_PATCH(0x4F844B, HouseClass_Update, 0x6)
 //{
@@ -545,7 +535,7 @@ ASMJIT_PATCH(0x6A78F6, SidebarClass_Update_ToggleRepair, 0x9)
 		pThis->SetTogglePowerMode(-1);
 	else if(!RulesExtData::Instance()->ExtendedPlayerRepair)
 		pThis->SetRepairMode(-1);
-	else 
+	else
 		EventExt::TogglePlayerAutoRepair::Raise();
 
 	return 0x6A7A82;

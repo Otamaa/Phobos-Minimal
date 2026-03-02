@@ -4489,24 +4489,7 @@ ASMJIT_PATCH(0x44177E, BuildingClass_Destroyed_CreateSmudge_B, 0x6)
 		? 0x0 : 0x4418EC;
 }
 
-ASMJIT_PATCH(0x44E809, BuildingClass_PowerOutput_Absorber, 0x6)
-{
-	GET(BuildingClass*, pThis, ESI);
-	GET_STACK(int, powertotal, 0x8);
-
-	for (auto pPas = pThis->Passengers.GetFirstPassenger();
-		pPas;
-		pPas = flag_cast_to<FootClass*>(pPas->NextObject))
-	{
-
-		powertotal += Math::abs(GET_TECHNOTYPEEXT(pPas)
-			->ExtraPower_Amount.Get(pThis->Type->ExtraPowerBonus));
-	}
-
-	R->Stack(0x8, powertotal);
-	return 0x44E826;
-}
-
+//remove unused function
 DEFINE_JUMP(LJMP, 0x4417A7, 0x44180A)
 
 ASMJIT_PATCH(0x51A2EF, InfantryClass_UpdatePosition_Bio_Reactor_Sound, 0x6)

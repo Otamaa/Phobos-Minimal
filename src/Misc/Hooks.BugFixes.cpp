@@ -3177,3 +3177,27 @@ ASMJIT_PATCH(0x73992B, UnitClass_TryToDeploy_SetBuildingHealthPercentage, 0x7)
 	pBuilding->EstimatedHealth = pBuilding->Health;
 	return SkipGameCode;
 }
+
+
+ASMJIT_PATCH(0x706F64, TechnoClass_RenderVoxelObject_SkipInvisibleSections, 0xB)
+{
+	enum { SkipLayer = 0x706FDF };
+
+	GET(MotLib* const, pMotLib, EDI);
+
+	// stolen code
+	if (!pMotLib)
+		return 0x706FBD;
+
+	GET(int const, layer, EBX);
+	GET_STACK(unsigned int const, frame, STACK_OFFSET(0x13C, 0x18));
+
+	auto mtx = pMotLib->GetLayerMatrix(layer, frame);
+
+	if (mtx.Row[0][0] == 0.0 || mtx.Row[1][1] == 0.0 || mtx.Row[2][2] == 0.0)
+		return SkipLayer;
+
+	// stolen code
+	R->EAX(frame);
+	return 0x706F6F;
+}

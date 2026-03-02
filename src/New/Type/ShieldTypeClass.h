@@ -82,6 +82,8 @@ public:
 	ValueableVector<TechnoTypeClass*> InheritArmor_Disallowed;
 	Valueable<bool> InheritArmorFromTechno;
 	Valueable<bool> CanBlock;
+
+	Nullable<bool> UseArmorplier;
 public:
 
 	ShieldTypeClass(const char* const pTitle) : Enumerable<ShieldTypeClass> { pTitle }
@@ -141,6 +143,7 @@ public:
 		, InheritArmor_Disallowed {}
 		, InheritArmorFromTechno {}
 		, CanBlock { false }
+		, UseArmorplier {}
 	{};
 
 	void LoadFromINI(CCINIClass* pINI);

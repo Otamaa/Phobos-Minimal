@@ -242,11 +242,17 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	int DamageToShieldAfterMinMax = 0;
 	int PassableDamageAnount = 0;
 	const bool ShieldStillInfullHP = (this->Type->Strength - this->HP) == 0;
+	auto const pTechno = this->Techno;
 
 	if (pWHExt->CanTargetHouse(pSource, this->Techno) && !args->WH->Temporal)
 	{
 		if (*args->Damage > 0)
+		{
+			if (this->Type->UseArmorplier.Get(RulesExtData::Instance()->ShieldUseArmorplier))
+				nDamage = MaxImpl(static_cast<int>(nDamage / (pTechno->ArmorMultiplier * TechnoExtContainer::Instance.Find(pTechno)->AE.ArmorMultiplier)), 0);
+
 			nDamage = FakeWarheadTypeClass::ModifyDamage(*args->Damage, args->WH, this->Type->Armor, args->DistanceToEpicenter);
+		}
 		else
 			nDamage = -FakeWarheadTypeClass::ModifyDamage(-*args->Damage, args->WH, this->Type->Armor, args->DistanceToEpicenter);
 
@@ -401,7 +407,7 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 
 void ShieldClass::ResponseAttack(WarheadTypeClass* pWarhead) const
 {
-	if (this->Techno->Owner != HouseClass::CurrentPlayer 
+	if (this->Techno->Owner != HouseClass::CurrentPlayer
 		|| GET_TECHNOTYPE(this->Techno)->Insignificant)
 		return;
 

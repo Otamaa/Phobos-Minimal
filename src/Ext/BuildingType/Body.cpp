@@ -1012,6 +1012,23 @@ bool BuildingTypeExtData::IsLinkable(BuildingTypeClass* pThis)
 	return pExt->Firestorm_Wall || pExt->IsTrench >= 0;
 }
 
+std::pair<int, int> BuildingTypeExtData::GetEnhancedPowerPair(BuildingTypeClass* pBuilding, int output, HouseClass* pHouse){
+	int nAmount = 0;
+	float fFactor = 1.0f;
+
+	auto const pHouseExt = HouseExtContainer::Instance.Find(pHouse);
+	for (const auto& [pBldType, nCount] : pHouseExt->PowerPlantEnhancerBuildings) {
+		const auto pExt = BuildingTypeExtContainer::Instance.Find(pBldType);
+		if (pExt->PowerPlantEnhancer_Buildings.empty() || (pExt->PowerPlantEnhancer_Amount == 0 && pExt->PowerPlantEnhancer_Factor == 1.0f))
+			continue;
+
+		fFactor *= float(Math::pow((double)pExt->PowerPlantEnhancer_Factor, (double)nCount));
+		nAmount += pExt->PowerPlantEnhancer_Amount * nCount;
+	}
+
+	return std::make_pair(static_cast<int>(std::round(output * fFactor)), nAmount);
+}
+
 int BuildingTypeExtData::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse)
 {
 	return BuildingTypeExtData::GetEnhancedPower(pBuilding->Type, pBuilding->GetPowerOutput(), pHouse);

@@ -1262,13 +1262,6 @@ DEFINE_JUMP(LJMP, 0x451132, 0x451145);
 //BuildingClass_Place_SuperWeaponAnimsB
 DEFINE_JUMP(LJMP, 0x44656D, 0x446580);
 
-// EMP'd power plants don't produce power
-ASMJIT_PATCH(0x44E855, BuildingClass_PowerProduced_EMP, 0x6)
-{
-	GET(BuildingClass* const, pBld, ESI);
-	return ((pBld->EMPLockRemaining > 0) ? 0x44E873 : 0);
-}
-
 // removing hardcoded references to GAWALL and NAWALL as part of #709
 ASMJIT_PATCH(0x440709, BuildingClass_Unlimbo_RemoveHarcodedWall, 0x6)
 {

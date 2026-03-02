@@ -1388,8 +1388,29 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 	{
 		//HouseClass* house = pThis->Owner;
 
-		const auto celltarget = pExt->SuperTarget.IsValid()
-			? pExt->SuperTarget : pThis->Owner->EMPTarget;
+		auto celltarget = pExt->SuperTarget.IsValid()
+				? &pExt->SuperTarget : &pThis->Owner->EMPTarget;
+
+		WeaponTypeClass* weaponType = pThis->GetWeapon(pExt->idxSlot_EMPulse)->WeaponType;
+		const auto rand_radiues = BulletTypeExtContainer::Instance.Find(weaponType->Projectile)->EMPulseCannon_InaccurateRadius;
+
+		if (rand_radiues > 0)
+		{
+			if (pExt->RandomEMPTarget == CellStruct::Empty)
+			{
+				// Calculate a new valid random target coordinate
+				do
+				{
+					pExt->RandomEMPTarget.X = (short)ScenarioClass::Instance->Random.RandomRanged(celltarget->X - rand_radiues, celltarget->X + rand_radiues);
+					pExt->RandomEMPTarget.Y = (short)ScenarioClass::Instance->Random.RandomRanged(celltarget->Y - rand_radiues, celltarget->Y + rand_radiues);
+
+				}
+				while (!MapClass::Instance->IsWithinUsableArea(pExt->RandomEMPTarget, false));
+			}
+
+			*celltarget = pExt->RandomEMPTarget;
+			pExt->RandomEMPTarget = CellStruct::Empty;
+		}
 
 		CellClass* v21 = MapClass::Instance->GetCellAt(celltarget);
 		DirStruct dirPrimary = pThis->FireAngleTo(v21);
@@ -1435,18 +1456,19 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 	}
 	case EMPulseFiringState::SentWeaponPayload:
 	{
+		WeaponTypeClass* weaponType = pThis->GetWeapon(pExt->idxSlot_EMPulse)->WeaponType;
 		//HouseClass* house = pThis->Owner;
-		const auto celltarget = pExt->SuperTarget.IsValid()
-			? pExt->SuperTarget : pThis->Owner->EMPTarget;
+		auto celltarget = pExt->SuperTarget.IsValid()
+			? &pExt->SuperTarget : &pThis->Owner->EMPTarget;
 
 		// If no valid target or destination, reset to idle
-		if (Unsorted::ArmageddonMode() || !celltarget.IsValid())
+		if (Unsorted::ArmageddonMode() || !celltarget->IsValid())
 		{
 			pThis->BeginMode(BStateType::Idle);
 			pThis->QueueMission(Mission::Guard, false);
 			return 60;
 		}
-		WeaponTypeClass* weaponType = pThis->GetWeapon(pExt->idxSlot_EMPulse)->WeaponType;
+
 		AbstractClass* target = MapClass::Instance->GetCellAt(celltarget);
 
 		// Aim the barrel
@@ -1457,7 +1479,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		// Prepare bullet trajectory
 		CoordStruct flhCoord = pThis->GetFLH(pExt->idxSlot_EMPulse, CoordStruct::Empty);
 
-		CoordStruct targetCoord = CellClass::Cell2Coord(celltarget);
+		CoordStruct targetCoord = CellClass::Cell2Coord(*celltarget);
 		targetCoord.Z = MapClass::Instance->GetZPos(&targetCoord);
 
 		// Compute angles and bullet speed
@@ -2460,6 +2482,56 @@ InfantryTypeClass* FakeBuildingClass::__GetCrew()
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E41C8, FakeBuildingClass::__GetCrew)
 DEFINE_FUNCTION_JUMP(LJMP, 0x44EB10, FakeBuildingClass::__GetCrew)
+
+int FakeBuildingClass::__GetPower()
+{
+	if (!this->HasPower || this->IsUnderEMP() || this->IsBeingWarpedOut() || this->EMPLockRemaining > 0)
+		return 0;
+
+	int powerInitial  = this->Type->PowerBonus;
+
+	if(this->IsOverpowered) {
+		powerInitial += this->Type->ExtraPowerBonus;
+	}
+
+	if(this->Absorber()){
+		for (auto pPas = this->Passengers.GetFirstPassenger();
+			pPas;
+			pPas = flag_cast_to<FootClass*>(pPas->NextObject))
+		{
+
+			powerInitial += Math::abs(GET_TECHNOTYPEEXT(pPas)
+				->ExtraPower_Amount.Get(this->Type->ExtraPowerBonus));
+		}
+	}
+
+	const auto pOwner = this->Owner;
+	auto [power, extraPower] = BuildingTypeExtData::GetEnhancedPowerPair(this->Type, powerInitial, pOwner);
+
+	if (this->UpgradeLevel) {
+		for (const auto pUpgrade : this->Upgrades) {
+			if (pUpgrade) {
+				const auto&[upgradePower, extraUpgradePower] = BuildingTypeExtData::GetEnhancedPowerPair(pUpgrade, pUpgrade->PowerBonus, pOwner);
+				power += upgradePower;
+				extraPower += extraUpgradePower;
+			}
+		}
+	}
+
+	auto pTypeExt = this->_GetTypeExtData();
+	if((power + extraPower) > 0 && pTypeExt->Power_DegradeWithHealth.Get()){
+		const double factor = pTypeExt->PowerPlant_DamageFactor;
+
+		if (factor == 1.0)
+			power = static_cast<int>(power * this->GetHealthPercentage());
+		else if (factor != 0.0)
+			power = MaxImpl(static_cast<int>(power * (1.0 - factor + factor * this->GetHealthPercentage())), 0);
+	}
+
+	return power + extraPower;
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x44E7B0, FakeBuildingClass::__GetPower);
 
 int FakeBuildingClass::__GetCrewCount()
 {

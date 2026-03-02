@@ -30,20 +30,6 @@ ASMJIT_PATCH(0x4523D4, BuildingClass_TurnOff_EVA, 0x5)
 	VoxClass::PlayIndex(pThis->_GetTypeExtData()->EVA_Offline);
 	return 0x4523E3;
 }
-
-ASMJIT_PATCH(0x44E85F, BuildingClass_Power_UntieStregth, 0x7)
-{
-	GET(FakeBuildingClass*, pThis, ESI);
-	GET_STACK(int, nPowMult, 0x8);
-
-	R->EAX((int)(!pThis->_GetTypeExtData()->Power_DegradeWithHealth.Get()
-		? (nPowMult) :
-		 MaxImpl(
-			 ((nPowMult * pThis->_GetTypeExtData()->PowerPlant_DamageFactor) * pThis->GetHealthPercentage_()), 0)));
-
-	return 0x44E86F;
-}
-
 /*
 namespace Temp_BuildingClass_GetStaticImage_Sell
 {

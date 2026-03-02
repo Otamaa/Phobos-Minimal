@@ -302,6 +302,7 @@ public:
 
 	void _DrawRadialIndicator(int val);
 	int _BuildingClass_GetRangeOfRadial();
+	int __GetPower();
 
 	bool _SetOwningHouse(HouseClass* pHouse, bool announce)
 	{

@@ -598,7 +598,7 @@ bool __fastcall Make_Load_Game(const char* file_name, bool)
 			return RetFlag(false);
 		}
 
-		if (saveversion.InternalVersion != Game::Savegame_Magic())
+		if ((DWORD)saveversion.InternalVersion != Game::Savegame_Magic())
 		{
 			Debug::FatalError("Save version mismatch. Expected 0x%08X, got 0x%08X\n",
 				Game::Savegame_Magic(), saveversion.InternalVersion);

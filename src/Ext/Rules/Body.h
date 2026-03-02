@@ -460,6 +460,7 @@ public:
 	Valueable<bool> RadWarhead_Detonate { false };
 	Valueable<bool> RadHasOwner { false };
 	Valueable<bool> RadHasInvoker { false };
+	Valueable<bool> ShieldUseArmorplier { false };
 	Valueable<bool> UseGlobalRadApplicationDelay { true };
 	Valueable<bool> IronCurtain_KeptOnDeploy { true };
 	Valueable<bool> ForceShield_KeptOnDeploy { false };
@@ -595,6 +596,11 @@ public:
 	Valueable<bool> AllowBerzerkOnAllies { false };
 	Valueable<bool> UnitsUnsellable { false };
 	Valueable<bool> DisableOveroptimizationInTargeting { false };
+
+	Valueable<bool> AreaGuard_UseSelfAsCenter {};
+	Valueable<bool> AreaGuard_TargetingInRange {};
+	Valueable<bool> AreaGuard_StrayIgnoreDestination {};
+
 	// ============================================================
 	// Plain bool arrays and plain bools (at the very end)
 	// ============================================================

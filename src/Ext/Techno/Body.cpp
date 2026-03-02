@@ -4321,13 +4321,14 @@ void TechnoExtData::SendPlane(AircraftTypeClass* Aircraft, size_t Amount, HouseC
 bool TechnoExtData::CreateWithDroppod(FootClass* Object, const CoordStruct& XYZ)
 {
 	auto MyCell = MapClass::Instance->GetCellAt(XYZ);
+
 	if (Object->IsCellOccupied(MyCell, FacingType::None, -1, nullptr, false) != Move::OK)
 	{
 		return false;
 	}
 	else
 	{
-		LocomotionClass::ChangeLocomotorTo(Object, CLSIDs::DropPod);
+		LocomotionClass::ChangeLocomotorTo(Object, CLSIDs::DropPod());
 		CoordStruct xyz = XYZ;
 		xyz.Z = 0;
 
@@ -7105,13 +7106,12 @@ void TechnoExtData::TransformFLHForTurret(TechnoClass* pThis, Matrix3D& mtx, boo
 		TechnoTypeExtContainer::Instance.Find(pType)->ApplyTurretOffset(&mtx, factor, turIdx);
 		float angle {};
 
+		const double turretRad = pThis->TurretFacing().GetFacing<32>();
+
 		if (isFoot) {
-			const double turretRad = (pThis->TurretFacing().GetFacing<32>() - 8) * -(Math::PI_BY_SIXTEEN);
-			const short facint_32 = pThis->PrimaryFacing.Current().GetFacing<32>();
-			const double bodyRad = (facint_32 - 8) * -(Math::PI_BY_SIXTEEN);
-			angle = (float)(turretRad - facint_32);
+			angle = (float)(turretRad - pThis->PrimaryFacing.Current().GetFacing<32>());
 		}else {
-			angle = float(pThis->TurretFacing().GetFacing<32>() - 8) * -(Math::PI_BY_SIXTEEN);
+			angle = float(turretRad);
 		}
 
 		mtx.RotateZ(angle);

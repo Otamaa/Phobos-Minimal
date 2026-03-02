@@ -721,6 +721,20 @@ ASMJIT_PATCH(0x6FE7FE, TechnoClass_Fire_BallisticScatter2, 5)
 	return 0x6FE821;
 }
 
+
+// Fixed the issue that the time for units in the area guard mission to reacquire targets after eliminating the target is significantly longer than that in other missions
+ASMJIT_PATCH(0x707A2E, TechnoClass_PointerExpired_TargetExpired, 0x5)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	if (pThis->GetCurrentMission() == Mission::Area_Guard)
+	{
+		if (pThis->UpdateTimer.GetTimeLeft() > 10 && !Unsorted::ScenarioInit)
+			pThis->UpdateTimer.Start(pThis->TargetingTimer.GetTimeLeft());
+	}
+	return 0;
+}
+
 ASMJIT_PATCH(0x707A47, TechnoClass_PointerGotInvalid_LastTarget, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);
