@@ -2664,6 +2664,10 @@ DEFINE_PATCH(0x42A7FA, 0x02);
 
 // AStarClass::FindHierarchicalPath
 // Replace sign-extend to zero-extend
+// NOTE: These patches are inside the original Find_Path_Hierarchical (0x42C290) which is
+// completely replaced by FakeAStarPathFinderClass::__Find_Path_Hierarchical via LJMP.
+// They are dead code. The fix (using unsigned short for zone indices) is incorporated
+// directly in the backported function.
 
 // 42C34A: 0F BF 1C 70
 // To avoid incorrect negative int index
