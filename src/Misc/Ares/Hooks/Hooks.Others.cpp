@@ -63,7 +63,7 @@
 
 ASMJIT_PATCH(0x52C5E0, Ares_NOLOGO, 0x7)
 {
-	if(SpawnerMain::Configs::Enabled)
+	if (SpawnerMain::Configs::Enabled)
 		return 0x52C5F8; //skip showing looading screen
 
 	return Phobos::Otamaa::NoLogo ? 0x52C5F3 : 0x0;
@@ -162,7 +162,7 @@ ASMJIT_PATCH(0x5F77F0, ObjectTypeClass_UnloadPipsSHP, 0x5)
 	{
 		if (TechnoTypeClass::ShapesIsAllocated[i] && FileSystem::ShapesAllocated[i])
 		{
-			GameDelete<true, false>(std::exchange(FileSystem::ShapesAllocated[i] , nullptr));
+			GameDelete<true, false>(std::exchange(FileSystem::ShapesAllocated[i], nullptr));
 			TechnoTypeClass::ShapesIsAllocated[i] = false;
 		}
 	}
@@ -230,95 +230,107 @@ ASMJIT_PATCH(0x551A30, LayerClass_YSortReorder, 0x5)
 	auto const nCount = pThis->Count;
 	auto nBegin = &pThis->Items[nCount / 15 * (Unsorted::CurrentFrame % 15)];
 	auto nEnd = (Unsorted::CurrentFrame % 15 >= 14) ? (&pThis->Items[nCount]) : (&nBegin[nCount / 15 + nCount / 15 / 4]);
-	std::sort(nBegin, nEnd, [](const ObjectClass* A, const ObjectClass* B) {
-		return A->GetYSort() < B->GetYSort();
+	std::sort(nBegin, nEnd, [](const ObjectClass* A, const ObjectClass* B)
+ {
+	 return A->GetYSort() < B->GetYSort();
 	});
 
 	return 0x551A84;
 }
 #else
 
-FORCEDINLINE void fast_ysort(ObjectClass **begin, ObjectClass **end) {
-    size_t n = (size_t)(end - begin);
-    if (n <= 1) return;
+FORCEDINLINE void fast_ysort(ObjectClass** begin, ObjectClass** end)
+{
+	size_t n = (size_t)(end - begin);
+	if (n <= 1) return;
 
-    // tiny-range optimization: insertion sort for very small arrays
-    if (n <= 32) {
-        for (size_t i = 1; i < n; ++i) {
-            ObjectClass *key = begin[i];
-            int kval = key->GetYSort();
-            size_t j = i;
-            while (j > 0 && begin[j-1]->GetYSort() > kval) {
-                begin[j] = begin[j-1];
-                --j;
-            }
-            begin[j] = key;
-        }
-        return;
-    }
+	// tiny-range optimization: insertion sort for very small arrays
+	if (n <= 32)
+	{
+		for (size_t i = 1; i < n; ++i)
+		{
+			ObjectClass* key = begin[i];
+			int kval = key->GetYSort();
+			size_t j = i;
+			while (j > 0 && begin[j - 1]->GetYSort() > kval)
+			{
+				begin[j] = begin[j - 1];
+				--j;
+			}
+			begin[j] = key;
+		}
+		return;
+	}
 
-    // Build key-pointer pairs to avoid virtual calls in comparisons
-    // Also compute min/max while we are at it.
-    std::vector<int> keys;
-    keys.reserve(n);
-    int minv = INT32_MAX, maxv = INT32_MIN;
-    for (size_t i = 0; i < n; ++i) {
-        int k = begin[i]->GetYSort();
-        keys.push_back(k);
-        if (k < minv) minv = k;
-        if (k > maxv) maxv = k;
-    }
+	// Build key-pointer pairs to avoid virtual calls in comparisons
+	// Also compute min/max while we are at it.
+	std::vector<int> keys;
+	keys.reserve(n);
+	int minv = INT32_MAX, maxv = INT32_MIN;
+	for (size_t i = 0; i < n; ++i)
+	{
+		int k = begin[i]->GetYSort();
+		keys.push_back(k);
+		if (k < minv) minv = k;
+		if (k > maxv) maxv = k;
+	}
 
-    // If keys fit in a reasonably small range, do counting sort (stable).
-    // Tunable: max_range_allowed controls memory usage and speed tradeoff.
-    const int64_t max_range_allowed = 1 << 16; // 65536
-    int64_t range = (int64_t)maxv - (int64_t)minv + 1;
-    if (range > 0 && range <= max_range_allowed) {
-        // counting sort
-        std::vector<uint32_t> counts((size_t)range);
-        for (size_t i = 0; i < n; ++i) counts[(size_t)(keys[i] - minv)]++;
+	// If keys fit in a reasonably small range, do counting sort (stable).
+	// Tunable: max_range_allowed controls memory usage and speed tradeoff.
+	const int64_t max_range_allowed = 1 << 16; // 65536
+	int64_t range = (int64_t)maxv - (int64_t)minv + 1;
+	if (range > 0 && range <= max_range_allowed)
+	{
+		// counting sort
+		std::vector<uint32_t> counts((size_t)range);
+		for (size_t i = 0; i < n; ++i) counts[(size_t)(keys[i] - minv)]++;
 
-        // prefix sums
-        uint32_t sum = 0;
-        for (size_t i = 0; i < counts.size(); ++i) {
-            uint32_t c = counts[i];
-            counts[i] = sum;
-            sum += c;
-        }
+		// prefix sums
+		uint32_t sum = 0;
+		for (size_t i = 0; i < counts.size(); ++i)
+		{
+			uint32_t c = counts[i];
+			counts[i] = sum;
+			sum += c;
+		}
 
-        // output buffer (stable)
-        std::vector<ObjectClass*> out(n);
-        for (size_t i = 0; i < n; ++i) {
-            auto idx = (size_t)(keys[i] - minv);
-            out[counts[idx]++] = begin[i];
-        }
+		// output buffer (stable)
+		std::vector<ObjectClass*> out(n);
+		for (size_t i = 0; i < n; ++i)
+		{
+			auto idx = (size_t)(keys[i] - minv);
+			out[counts[idx]++] = begin[i];
+		}
 
-        // copy back
-        std::memcpy(begin, out.data(), n * sizeof(ObjectClass*));
-        return;
-    }
+		// copy back
+		std::memcpy(begin, out.data(), n * sizeof(ObjectClass*));
+		return;
+	}
 
-    // Fallback: sort by (key, pointer) pair to avoid repeated GetYSort() calls
-    // (This is typically faster than calling the virtual in comparator repeatedly)
-    struct KP { int key; ObjectClass* ptr; };
-    std::vector<KP> arr;
-    arr.reserve(n);
-    for (size_t i = 0; i < n; ++i) arr.push_back({keys[i], begin[i]});
+	// Fallback: sort by (key, pointer) pair to avoid repeated GetYSort() calls
+	// (This is typically faster than calling the virtual in comparator repeatedly)
+	struct KP { int key; ObjectClass* ptr; };
+	std::vector<KP> arr;
+	arr.reserve(n);
+	for (size_t i = 0; i < n; ++i) arr.push_back({ keys[i], begin[i] });
 
-    std::sort(arr.begin(), arr.end(), [](const KP &a, const KP &b) {
-        return a.key < b.key; // stable-ness not strictly required but ok
-    });
+	std::sort(arr.begin(), arr.end(), [](const KP& a, const KP& b)
+ {
+	 return a.key < b.key; // stable-ness not strictly required but ok
+	});
 
-    // copy back
-    for (size_t i = 0; i < n; ++i) begin[i] = arr[i].ptr;
+	// copy back
+	for (size_t i = 0; i < n; ++i) begin[i] = arr[i].ptr;
 }
 
 // --- Fixed buffer std::sort wrapper ----------------------------------------
 // Use preallocated index buffer to avoid allocations during sort when building comparators
 
 
-struct YSortComparator{
-	inline bool operator()(ObjectClass* a, ObjectClass* b) const {
+struct YSortComparator
+{
+	inline bool operator()(ObjectClass* a, ObjectClass* b) const
+	{
 		return a->GetYSort() < b->GetYSort();
 	}
 };
@@ -388,96 +400,113 @@ class FakeLayerClass : public LayerClass
 {
 public:
 
-	void __short() {
-        const int nCount = this->Count;
+	void __short()
+	{
+		const int nCount = this->Count;
 
-        // Early exit for trivial cases
-        if (nCount <= 1) return;
+		// Early exit for trivial cases
+		if (nCount <= 1) return;
 
-        constexpr int NUM_SLICES = 15;
-        const int currentFrame = Unsorted::CurrentFrame % NUM_SLICES;
-        const int chunkSize = nCount / NUM_SLICES;
+		constexpr int NUM_SLICES = 15;
+		const int currentFrame = Unsorted::CurrentFrame % NUM_SLICES;
+		const int chunkSize = nCount / NUM_SLICES;
 
-        // Calculate slice boundaries
-        const int startIndex = chunkSize * currentFrame;
-        ObjectClass** begin = &this->Items[startIndex];
-        ObjectClass** end;
+		// Calculate slice boundaries
+		const int startIndex = chunkSize * currentFrame;
+		ObjectClass** begin = &this->Items[startIndex];
+		ObjectClass** end;
 
-        if (currentFrame >= NUM_SLICES - 1) {
-            end = &this->Items[nCount];
-        } else {
-            const int sliceSize = chunkSize + (chunkSize >> 2);  // chunk + chunk/4
-            end = begin + sliceSize;
-            // Clamp to valid range
-            if (end > &this->Items[nCount]) {
-                end = &this->Items[nCount];
-            }
-        }
+		if (currentFrame >= NUM_SLICES - 1)
+		{
+			end = &this->Items[nCount];
+		}
+		else
+		{
+			const int sliceSize = chunkSize + (chunkSize >> 2);  // chunk + chunk/4
+			end = begin + sliceSize;
+			// Clamp to valid range
+			if (end > &this->Items[nCount])
+			{
+				end = &this->Items[nCount];
+			}
+		}
 
-        const size_t rangeSize = end - begin;
+		const size_t rangeSize = end - begin;
 
-        // Skip if nothing to sort
-        if (rangeSize <= 1) return;
+		// Skip if nothing to sort
+		if (rangeSize <= 1) return;
 
-        // Cache structure for sort keys
-        struct SortKey {
-            ObjectClass* obj;
-            int y;
-        };
+		// Cache structure for sort keys
+		struct SortKey
+		{
+			ObjectClass* obj;
+			int y;
+		};
 
-        // Use static thread_local for better performance in multithreaded scenarios
-        thread_local static std::vector<SortKey> cache;
-        cache.clear();
-        cache.reserve(rangeSize);
+		// Use static thread_local for better performance in multithreaded scenarios
+		thread_local static std::vector<SortKey> cache;
+		cache.clear();
+		cache.reserve(rangeSize);
 
-        // Build cache with prefetching
-        for (auto it = begin; it != end; ++it) {
-            // Prefetch next iteration's data
-            if (it + 1 < end) {
-                _mm_prefetch((const char*)(it + 1), _MM_HINT_T0);
-                // Also prefetch the object we'll be calling GetYSort on
-                if (*(it + 1)) {
-                    _mm_prefetch((const char*)(*(it + 1)), _MM_HINT_T0);
-                }
-            }
+		// Build cache with prefetching
+		for (auto it = begin; it != end; ++it)
+		{
+			// Prefetch next iteration's data
+			if (it + 1 < end)
+			{
+				_mm_prefetch((const char*)(it + 1), _MM_HINT_T0);
+				// Also prefetch the object we'll be calling GetYSort on
+				if (*(it + 1))
+				{
+					_mm_prefetch((const char*)(*(it + 1)), _MM_HINT_T0);
+				}
+			}
 
-            // Null check (in case of invalid pointers)
-            if (*it) {
-                cache.push_back({ *it, (*it)->GetYSort() });
-            }
-        }
+			// Null check (in case of invalid pointers)
+			if (*it)
+			{
+				cache.push_back({ *it, (*it)->GetYSort() });
+			}
+		}
 
-        // Sort by cached Y values
-        std::sort(cache.begin(), cache.end(),
-            [](const SortKey& a, const SortKey& b) {
-                return a.y < b.y;
-            }
-        );
+		// Sort by cached Y values
+		std::sort(cache.begin(), cache.end(),
+			[](const SortKey& a, const SortKey& b)
+ {
+	 return a.y < b.y;
+			}
+		);
 
-        // Write back sorted pointers with prefetching
-        auto outIt = begin;
-        for (size_t i = 0; i < cache.size(); ++i) {
-            // Prefetch next write location
-            if (i + 1 < cache.size() && outIt + 1 < end) {
-                _mm_prefetch((const char*)(outIt + 1), _MM_HINT_T0);
-            }
-            *outIt++ = cache[i].obj;
-        }
-    }
+		// Write back sorted pointers with prefetching
+		auto outIt = begin;
+		for (size_t i = 0; i < cache.size(); ++i)
+		{
+			// Prefetch next write location
+			if (i + 1 < cache.size() && outIt + 1 < end)
+			{
+				_mm_prefetch((const char*)(outIt + 1), _MM_HINT_T0);
+			}
+			*outIt++ = cache[i].obj;
+		}
+	}
 
 	bool __sortedadd(ObjectClass* object)
 	{
 		// Grow if needed
-		if (this->Count >= this->Capacity) {
-			if (!this->IsAllocated && this->Capacity != 0) {
+		if (this->Count >= this->Capacity)
+		{
+			if (!this->IsAllocated && this->Capacity != 0)
+			{
 				return false;
 			}
 
-			if (this->CapacityIncrement <= 0) {
+			if (this->CapacityIncrement <= 0)
+			{
 				return false;
 			}
 
-			if (!this->set_capacity(this->Capacity + this->CapacityIncrement, nullptr)) {
+			if (!this->set_capacity(this->Capacity + this->CapacityIncrement, nullptr))
+			{
 				return false;
 			}
 		}
@@ -489,7 +518,8 @@ public:
 
 		// If comparator is broken (always false), fall back to linear find to preserve original
 		bool anyLess = false;
-		for (int i = 0; i < this->Count; ++i) {
+		for (int i = 0; i < this->Count; ++i)
+		{
 			if (YSortComparator()(this->Items[i], object)) { anyLess = true; break; }
 		}
 
@@ -527,7 +557,8 @@ public:
 		// shift elements up by one => Vector_Item[index+1] becomes new value
 		int ac = this->Count;
 		// memmove is safe for overlapping ranges
-		if (index < ac) {
+		if (index < ac)
+		{
 			std::memmove(&this->Items[index + 1], &this->Items[index], (ac - index) * sizeof(ObjectClass*));
 		}
 
@@ -537,16 +568,17 @@ public:
 	}
 
 	bool __submit(ObjectClass* object, bool sort)
- 	{
- 		if (!object)
- 			Debug::FatalErrorAndExit("Trying To submit nullptr object to layer !\n");
+	{
+		if (!object)
+			Debug::FatalErrorAndExit("Trying To submit nullptr object to layer !\n");
 
- 		if (sort) {
- 			return this->__sortedadd(object);
- 		}
+		if (sort)
+		{
+			return this->__sortedadd(object);
+		}
 
- 		return this->push_back(object);
- 	}
+		return this->push_back(object);
+	}
 };
 
 //DEFINE_FUNCTION_JUMP(VTABLE, 0x7E607C, FakeLayerClass::__submit);
@@ -586,13 +618,13 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x551A30, FakeLayerClass::__short);
 //	return 0x0;
 //}
 
-static void __fastcall AnnounceInvalidatePointerWrapper(ObjectClass* pObject , bool removed)
+static void __fastcall AnnounceInvalidatePointerWrapper(ObjectClass* pObject, bool removed)
 {
 	if (!pObject->Limbo())
 		pObject->AnnounceExpiredPointer(removed);
 }
 
-DEFINE_FUNCTION_JUMP(CALL , 0x5F6616, AnnounceInvalidatePointerWrapper)
+DEFINE_FUNCTION_JUMP(CALL, 0x5F6616, AnnounceInvalidatePointerWrapper)
 // ASMJIT_PATCH(0x5F6612, ObjectClass_UnInit_SkipInvalidation, 0x9)
 // {
 // 	GET(ObjectClass*, pThis, ESI);
@@ -623,27 +655,27 @@ ASMJIT_PATCH(0x5FED00, OverlayTypeClass_GetRadarColor, 0x6)
 // 	return 0x5F69B6;
 // }
 
-DEFINE_FUNCTION_JUMP(VTABLE,0x7E2460, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE,0x7E3510, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE,0x7E3C8C, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE,0x7E4078, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE,0x7E48A0, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE,0x7E8E50, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE,0x7EB214, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE,0x7EC414, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE,0x7EDE7C, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE,0x7EF21C, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE,0x7EF590, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE,0x7EFB10, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE,0x7EFD58, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE,0x7F06C4, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE,0x7F34B8, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE,0x7F4B1C, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE,0x7F53E8, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE,0x7F5E2C, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE,0x7F64D4, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE,0x7F6864, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE,0x7F6DB0, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2460, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3510, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3C8C, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4078, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E48A0, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E8E50, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB214, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EC414, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EDE7C, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF21C, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF590, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFB10, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFD58, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F06C4, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F34B8, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4B1C, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F53E8, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5E2C, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F64D4, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6864, FakeObjectClass::_GetCell);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6DB0, FakeObjectClass::_GetCell);
 
 //Handle_Static_Messages_LoopingMovie
 DEFINE_JUMP(LJMP, 0x615BD3, 0x615BE0);
@@ -976,15 +1008,18 @@ ASMJIT_PATCH(0x4B93BD, ScenarioClass_GenerateDropshipLoadout_FreeAnims, 7)
 {
 	GET_STACK(SHPStruct*, pBackground, 0xAC);
 
-	if (pBackground) {
-		GameDelete<true, false>(std::exchange(pBackground , nullptr));
+	if (pBackground)
+	{
+		GameDelete<true, false>(std::exchange(pBackground, nullptr));
 	}
 
 	LEA_STACK(SHPStruct**, pSwipeAnims, 0x290);
 
-	for (auto i = 0; i < 4; ++i) {
-		if (auto pAnim = pSwipeAnims[i]) {
-			GameDelete<true, false>(std::exchange(pAnim , nullptr));
+	for (auto i = 0; i < 4; ++i)
+	{
+		if (auto pAnim = pSwipeAnims[i])
+		{
+			GameDelete<true, false>(std::exchange(pAnim, nullptr));
 		}
 	}
 
@@ -1078,17 +1113,17 @@ ASMJIT_PATCH(0x4B769B, ScenarioClass_GenerateDropshipLoadout, 5)
 #include <Ext/Scenario/Body.h>
 
 int Get_FallDamage(
-    double ratio,
-    const TechnoClass* pTechno,
-    const TechnoTypeClass* pTechnoType)
+	double ratio,
+	const TechnoClass* pTechno,
+	const TechnoTypeClass* pTechnoType)
 {
-    if (ratio < 0.0)
-        return static_cast<int>(pTechno->Health * Math::abs(ratio));
+	if (ratio < 0.0)
+		return static_cast<int>(pTechno->Health * Math::abs(ratio));
 
-    if (ratio >= 0.0 && ratio <= 1.0)
-        return static_cast<int>(pTechnoType->Strength * ratio);
+	if (ratio >= 0.0 && ratio <= 1.0)
+		return static_cast<int>(pTechnoType->Strength * ratio);
 
-    return static_cast<int>(ratio);
+	return static_cast<int>(ratio);
 }
 
 
@@ -1105,7 +1140,8 @@ ASMJIT_PATCH(0x514C07, HoverLocomotionClass_Process_HoverShutdown, 0x5)
 	return SkipGameCode;
 }
 
-bool IsTechnoFalling(ObjectClass* pThis){
+bool IsTechnoFalling(ObjectClass* pThis)
+{
 	pThis->FallRate = 0;
 
 	if (const auto pTechno = flag_cast_to<TechnoClass*, true>(pThis))
@@ -1160,10 +1196,10 @@ bool IsTechnoFalling(ObjectClass* pThis){
 				}
 
 				double ratio = pCell->LandType == LandType::Water && !pTechno->OnBridge ?
-						 	 pTypeExt->FallingDownDamage_Water.Get(pTypeExt->FallingDownDamage.Get())
-							: pTypeExt->FallingDownDamage.Get();
+					pTypeExt->FallingDownDamage_Water.Get(pTypeExt->FallingDownDamage.Get())
+					: pTypeExt->FallingDownDamage.Get();
 
-				damage = Get_FallDamage(ratio,pTechno,pType);
+				damage = Get_FallDamage(ratio, pTechno, pType);
 			}
 
 			if (damage == 0
@@ -1214,7 +1250,7 @@ bool IsTechnoFalling(ObjectClass* pThis){
 ASMJIT_PATCH(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 {
 	GET(ObjectClass*, pThis, ESI);
-	GET(Layer , curLayer , EBP);
+	GET(Layer, curLayer, EBP);
 
 	const auto pTechnoType = pThis->GetTechnoType();
 	const bool bAnimAttached = pTechnoType ? pThis->Parachute != 0 : pThis->HasParachute;
@@ -1237,21 +1273,23 @@ ASMJIT_PATCH(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 
 	pThis->FallRate = nMaxFallRate;
 
-	if(curLayer != pThis->InWhichLayer()) {
+	if (curLayer != pThis->InWhichLayer())
+	{
 		DisplayClass::Instance->SubmitObject(pThis);
 	}
 
-	if(pThis->IsFallingDown)
+	if (pThis->IsFallingDown)
 		return 0x5F4151;
 
-	if(IsTechnoFalling(pThis))
-		return 0x5F4151;
+	if (IsTechnoFalling(pThis))
+		return pThis->IsAlive ? 0x5F405B : 0x5F4151;
 
-	if(pThis->IsABomb && pThis->Health > 0 && pThis->IsAlive) {
+	if (pThis->IsABomb && pThis->Health > 0 && pThis->IsAlive)
+	{
 		int damage = pThis->Health;
 		pThis->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
 
-		if(!pThis->IsAlive)
+		if (!pThis->IsAlive)
 			return 0x5F4151;
 	}
 
@@ -1262,7 +1300,8 @@ ASMJIT_PATCH(0x5F5965, ObjectClass_SpawnParachuted_Track, 0x7)
 {
 	GET(ObjectClass*, pThis, ESI);
 
-	if (RulesExtData::Instance()->FallingDownTargetingFix && (pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None) {
+	if (RulesExtData::Instance()->FallingDownTargetingFix && (pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
+	{
 		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
 		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = true;
 	}
@@ -1273,7 +1312,8 @@ ASMJIT_PATCH(0x5F4160, ObjectClass_DropAsBomb_Track, 0x6)
 {
 	GET(ObjectClass*, pThis, ECX);
 
-	if (RulesExtData::Instance()->FallingDownTargetingFix && (pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None) {
+	if (RulesExtData::Instance()->FallingDownTargetingFix && (pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
+	{
 		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
 		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = true;
 	}
@@ -1285,7 +1325,8 @@ ASMJIT_PATCH(0x5F3F86, ObjectClass_Update_Track, 0x7)
 {
 	GET(ObjectClass*, pThis, ESI);
 
-	if (RulesExtData::Instance()->FallingDownTargetingFix && (pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None) {
+	if (RulesExtData::Instance()->FallingDownTargetingFix && (pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
+	{
 		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
 		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = false;
 	}
@@ -1334,12 +1375,14 @@ ASMJIT_PATCH(0x41D940, AirstrikeClass_Fire_AirstrikeAttackVoice, 5)
 	VocClass::SafeImmedietelyPlayAt(index, &pAirstrike->FirstObject->Location, nullptr);
 	pAirstrike->Target = pTarget;
 
-	if(pTarget){
+	if (pTarget)
+	{
 		const auto pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
 		pTargetExt->AirstrikeTargetingMe = pAirstrike;
 		pTarget->StartAirstrikeTimer(100000);
 
-		if(auto pBld = cast_to<BuildingClass* , false>(pTarget)){
+		if (auto pBld = cast_to<BuildingClass*, false>(pTarget))
+		{
 			pBld->IsAirstrikeTargetingMe = true;
 			pBld->Mark(MarkType::Redraw);
 		}
@@ -1421,8 +1464,8 @@ DEFINE_JUMP(LJMP, 0x52CA37, 0x52CA65)
 
 #include <CD.h>
 
-static COMPILETIMEEVAL reference<MixFileClass*, 0x884E04> const Language{};
-static COMPILETIMEEVAL reference<MixFileClass*, 0x884E00> const LangMD{};
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884E04> const Language {};
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884E00> const LangMD {};
 static COMPILETIMEEVAL constant_ptr<const char, 0x840D5C> const LANGMD_MIX {};
 static COMPILETIMEEVAL constant_ptr<const char, 0x840D4C> const LANGUAGE_MIX {};
 
@@ -1444,7 +1487,8 @@ static COMPILETIMEEVAL constant_ptr<const char, 0x826638> const LOCAL_MIX {};
 static COMPILETIMEEVAL reference<MixFileClass*, 0x884E38> const CONQMD {};
 static COMPILETIMEEVAL constant_ptr<const char, 0x826838> const CONQMD_MIX {};
 
-bool NOINLINE  __fastcall MixFilesBoostrap() {
+bool NOINLINE  __fastcall MixFilesBoostrap()
+{
 	int disk = CD::Disk();
 	CD::SetReqCD(-2);
 
@@ -1525,7 +1569,8 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x5301A0, MixFilesBoostrap);
 ASMJIT_PATCH(0x6BD7D5, Expand_MIX_Reorg, 7)
 {
 	StaticVars::aresMIX.reset(GameCreate<MixFileClass>("ares.mix", MixFileClass::Key()));
-	if(SpawnerMain::Configs::Enabled) {
+	if (SpawnerMain::Configs::Enabled)
+	{
 		SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>("cncnet.mix", MixFileClass::Key()));
 	}
 
@@ -1550,7 +1595,7 @@ void NOINLINE __fastcall Release_Neutral()
 	if (NEUTRAL())
 	{
 		Debug::LogInfo("Releasing {} ", NEUTRAL_MIX());
-		GameDelete<true,false>(NEUTRAL());
+		GameDelete<true, false>(NEUTRAL());
 		NEUTRAL = nullptr;
 	}
 
@@ -1615,7 +1660,8 @@ DEFINE_FUNCTION_JUMP(CALL, 0x72E060, Release_Neutral);
 ASMJIT_PATCH(0x6BE9BD, Game_ProgramEnd_ClearResource, 6)
 {
 	StaticVars::aresMIX.reset(nullptr);
-	if(SpawnerMain::Configs::Enabled) {
+	if (SpawnerMain::Configs::Enabled)
+	{
 		for (auto& Spawner_Mix : SpawnerMain::LoadedMixFiles)
 			GameDelete<true>(std::exchange(Spawner_Mix, nullptr));
 	}
