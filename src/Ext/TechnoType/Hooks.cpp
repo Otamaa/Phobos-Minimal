@@ -261,6 +261,27 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 }
 #endif
 
+#include <Ext/UnitType/Body.h>
+
+ASMJIT_PATCH(0x73CCF4, UnitClass_DrawSHP_FacingsB_TurretShape, 0xA)
+{
+	enum { SkipGameCode = 0x73CD06 };
+
+	GET(UnitClass*, pThis, EBP);
+	GET(UnitTypeClass*, pType, ECX);
+
+	const auto pTurretShape = UnitTypeExtContainer::Instance.Find(pType)->TurretShape;
+	const int StartFrame = pTurretShape ? 0 : (pType->WalkFrames * pType->Facings);
+	const int frameIdx = pThis->SecondaryFacing.Current().GetFacing<32>(4) + StartFrame;
+
+	if (pTurretShape)
+		R->EDI(pTurretShape);
+
+	R->ECX(pThis);
+	R->EAX(frameIdx);
+	return 0x73CD06;
+}
+
 ASMJIT_PATCH(0x73C7AC, UnitClass_DrawAsSHP_DrawTurret_TintFix, 0x6)
 {
 	enum { SkipDrawCode = 0x73CE00 };
@@ -285,10 +306,16 @@ ASMJIT_PATCH(0x73C7AC, UnitClass_DrawAsSHP_DrawTurret_TintFix, 0x6)
 	const int zAdjust = tooBigToFitUnderBridge ? -16 : 0;
 	const ZGradient zGradient = tooBigToFitUnderBridge ? ZGradient::Ground : pThis->GetZGradient();
 
+	const auto pTurretShape = UnitTypeExtContainer::Instance.Find(pType)->TurretShape;
+	const int StartFrame = pTurretShape ? 0 : (pType->WalkFrames * pType->Facings);
+
+	if (pTurretShape)
+		pShape = pTurretShape;
+
 	pThis->Draw_A_SHP(pShape, bodyFrameIdx, &location, &bounds, 0, 256, zAdjust, zGradient, 0, extraLight, 0, 0, 0, 0, 0, 0);
 
 	const auto secondaryDir = pThis->SecondaryFacing.Current();
-	const int frameIdx = secondaryDir.GetFacing<32>(4) + pType->WalkFrames * pType->Facings;
+const int frameIdx = secondaryDir.GetFacing<32>(4) + StartFrame;
 
 	const auto primaryDir = pThis->PrimaryFacing.Current();
 	const double bodyRad = primaryDir.GetRadian<32>();

@@ -1612,6 +1612,8 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		this->FallingDownDamage.Read(exINI, pSection, "FallingDownDamage");
 		this->FallingDownDamage_Water.Read(exINI, pSection, "FallingDownDamage.Water");
+		this->FallingDownDamage_AllowEMP.Read(exINI, pSection, "FallingDownDamage.AllowEMP");
+		this->HoverDrownable.Read(exINI, pSection, "HoverDrownable");
 
 		this->DropCrate.Read(exINI, pSection, "DropCrate");
 

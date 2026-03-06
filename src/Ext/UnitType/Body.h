@@ -11,6 +11,9 @@ public:
 	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
+
+	SHPStruct* TurretShape { nullptr };
+
 	UnitTypeExtData(UnitTypeClass* pObj) : FootTypeExtData(pObj)
 	{
 		this->AbsType = UnitTypeClass::AbsID;
@@ -28,11 +31,13 @@ public:
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
 		this->FootTypeExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
 	}
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<UnitTypeExtData*>(this)->FootTypeExtData::SaveToStream(Stm);
+		const_cast<UnitTypeExtData*>(this)->Serialize(Stm);
 	}
 
 	virtual AbstractType WhatIam() const { return base_type::AbsID; }
@@ -55,6 +60,16 @@ public:
 	}
 
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
+
+private: 
+	template<typename T>
+	void Serialize(T& Stm)
+	{
+		Stm
+			.Process(this->TurretShape)
+			;
+	}
+
 };
 
 class UnitTypeExtContainer final : public Container<UnitTypeExtData>

@@ -195,7 +195,7 @@ void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * 
 			if (isInAir)
 			{
 				pThis->Owner->IsFallingDown = true;
-				pThis->Owner->FallRate = 0;
+				TechnoExtContainer::Instance.Find(pThis->Owner)->OnParachuted = true;
 			}
 
 			if (pWHExt->UnlimboDetonate_KeepTarget

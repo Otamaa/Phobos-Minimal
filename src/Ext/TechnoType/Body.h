@@ -1104,6 +1104,9 @@ public:
 
 	Valueable<double> FallingDownDamage;
 	Nullable<double> FallingDownDamage_Water;
+    Valueable<bool> FallingDownDamage_AllowEMP;
+
+	Valueable<bool> HoverDrownable;
 
 	NullableIdx<CrateTypeClass> DropCrate;
 
@@ -2021,6 +2024,8 @@ public:
 		UnitIdlePointToMouse(),
 		FallingDownDamage(1.0),
 		FallingDownDamage_Water(),
+		FallingDownDamage_AllowEMP { true }	,
+		HoverDrownable { true },
 		DropCrate(),
 		WhenCrushed_Warhead(),
 		WhenCrushed_Weapon(),
@@ -3067,6 +3072,8 @@ private:
 
 			.Process(this->FallingDownDamage)
 			.Process(this->FallingDownDamage_Water)
+			.Process(this->FallingDownDamage_AllowEMP)
+			.Process(this->HoverDrownable)
 			.Process(this->DropCrate)
 
 			.Process(this->WhenCrushed_Warhead)

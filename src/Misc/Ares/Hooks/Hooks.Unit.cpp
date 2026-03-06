@@ -1676,23 +1676,26 @@ ASMJIT_PATCH(0x73C141, UnitClass_DrawVXL_Deactivated, 7)
 // }
 
 
-// ASMJIT_PATCH(0x747A2E, UnitTypeClass_ReadINI_TurretShape, 0x6)
-// {
-// 	GET(FakeUnitTypeClass*, pType, EDI);
+ASMJIT_PATCH(0x747A2E, UnitTypeClass_ReadINI_TurretShape, 0x6)
+{
+	GET(FakeUnitTypeClass*, pType, EDI);
 
-// 	if (!pType->Voxel && pType->Turret) {
-// 		char nameBuffer[0x19];
-// 		char Buffer[260];
-// 		const auto pArtSection = pType->ImageFile;
+	if (!pType->Voxel && pType->Turret) {
+		char nameBuffer[0x19];
+		char Buffer[260];
+		const auto pArtSection = pType->ImageFile;
 
-// 		if (Phobos::Config::ArtImageSwap &&
-// 			CCINIClass::INI_Art->ReadString(pArtSection, "Image", 0, nameBuffer, 0x19) != 0) {
-// 			_snprintf_s(Buffer, sizeof(Buffer), "%sTUR.SHP", nameBuffer);
-// 		} else {
-// 			_snprintf_s(Buffer, sizeof(Buffer), "%sTUR.SHP", pArtSection);
-// 		}
+		if (Phobos::Config::ArtImageSwap &&
+			CCINIClass::INI_Art->ReadString(pArtSection, "Image", 0, nameBuffer, 0x19) != 0) {
+			_snprintf_s(Buffer, sizeof(Buffer), "%sTUR.SHP", nameBuffer);
+		} else {
+			_snprintf_s(Buffer, sizeof(Buffer), "%sTUR.SHP", pArtSection);
+		}
 
-// 	}
 
-// 	return 0;
-// }
+		if (const auto pShape = FileSystem::LoadSHPFile(Buffer))
+			pType->_GetExtData()->TurretShape = pShape;
+	}
+
+	return 0;
+}

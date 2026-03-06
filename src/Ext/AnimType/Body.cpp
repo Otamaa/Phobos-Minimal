@@ -388,6 +388,7 @@ static TechnoClass* CreateFoot(
 					else if (inAir && !parachuted)
 					{
 						pTechno->IsFallingDown = true;
+						TechnoExtContainer::Instance.Find(pTechno)->OnParachuted = true;
 					}
 				}
 

@@ -3982,7 +3982,6 @@ void UpdateTypeData_Foot(FootClass* pThis, TechnoTypeClass* pOldType, TechnoType
 			else if (isinAir)
 			{
 				// Let it go into free fall.
-				pThis->FallRate = 0;
 				pThis->IsFallingDown = true;
 
 				const auto pCell = MapClass::Instance->TryGetCellAt(pThis->Location);
@@ -3997,6 +3996,7 @@ void UpdateTypeData_Foot(FootClass* pThis, TechnoTypeClass* pOldType, TechnoType
 				{
 					// If it's gonna land on the bridge, then it needs this.
 					pThis->OnBridge = pCell ? pCell->ContainsBridge() : false;
+					TechnoExtContainer::Instance.Find(pThis)->OnParachuted = true;
 				}
 
 				if (abs == AbstractType::Infantry)

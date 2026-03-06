@@ -236,7 +236,7 @@ ASMJIT_PATCH(0x551A30, LayerClass_YSortReorder, 0x5)
 
 	return 0x551A84;
 }
-#else 
+#else
 
 FORCEDINLINE void fast_ysort(ObjectClass **begin, ObjectClass **end) {
     size_t n = (size_t)(end - begin);
@@ -390,19 +390,19 @@ public:
 
 	void __short() {
         const int nCount = this->Count;
-        
+
         // Early exit for trivial cases
         if (nCount <= 1) return;
-        
+
         constexpr int NUM_SLICES = 15;
         const int currentFrame = Unsorted::CurrentFrame % NUM_SLICES;
         const int chunkSize = nCount / NUM_SLICES;
-        
+
         // Calculate slice boundaries
         const int startIndex = chunkSize * currentFrame;
         ObjectClass** begin = &this->Items[startIndex];
         ObjectClass** end;
-        
+
         if (currentFrame >= NUM_SLICES - 1) {
             end = &this->Items[nCount];
         } else {
@@ -413,23 +413,23 @@ public:
                 end = &this->Items[nCount];
             }
         }
-        
+
         const size_t rangeSize = end - begin;
-        
+
         // Skip if nothing to sort
         if (rangeSize <= 1) return;
-        
+
         // Cache structure for sort keys
         struct SortKey {
             ObjectClass* obj;
             int y;
         };
-        
+
         // Use static thread_local for better performance in multithreaded scenarios
         thread_local static std::vector<SortKey> cache;
         cache.clear();
         cache.reserve(rangeSize);
-        
+
         // Build cache with prefetching
         for (auto it = begin; it != end; ++it) {
             // Prefetch next iteration's data
@@ -440,20 +440,20 @@ public:
                     _mm_prefetch((const char*)(*(it + 1)), _MM_HINT_T0);
                 }
             }
-            
+
             // Null check (in case of invalid pointers)
             if (*it) {
                 cache.push_back({ *it, (*it)->GetYSort() });
             }
         }
-        
+
         // Sort by cached Y values
         std::sort(cache.begin(), cache.end(),
             [](const SortKey& a, const SortKey& b) {
                 return a.y < b.y;
             }
         );
-        
+
         // Write back sorted pointers with prefetching
         auto outIt = begin;
         for (size_t i = 0; i < cache.size(); ++i) {
@@ -995,7 +995,7 @@ ASMJIT_PATCH(0x4B93BD, ScenarioClass_GenerateDropshipLoadout_FreeAnims, 7)
 // {
 // 	GET(LPSTREAM, pStm, ESI);
 //
-//	
+//
 // 	int length = 0;
 // 	LPVOID out;
 // 	if (pStm->Read(&length, 4, 0) < 0)
@@ -1092,13 +1092,123 @@ int Get_FallDamage(
 }
 
 
-ASMJIT_PATCH(0x5F416A, ObjectClass_DropAsBomb_ResetFallRateRate, 0x7)
+ASMJIT_PATCH(0x514C07, HoverLocomotionClass_Process_HoverShutdown, 0x5)
 {
-	GET(ObjectClass*, pThis, ESI);
+	enum { SkipGameCode = 0x514C12 };
 
-	// Reset value, otherwise it'll keep accelerating.
+	GET(LocomotionClass* const, pThis, ESI);
+
+	const auto pTechno = pThis->Owner;
+	pTechno->DropAsBomb();
+	TechnoExtContainer::Instance.Find(pTechno)->HoverShutdown = true;
+
+	return SkipGameCode;
+}
+
+bool IsTechnoFalling(ObjectClass* pThis){
 	pThis->FallRate = 0;
-	return 0;
+
+	if (const auto pTechno = flag_cast_to<TechnoClass*, true>(pThis))
+	{
+		const auto pExt = TechnoExtContainer::Instance.Find(pTechno);
+		const auto pType = pTechno->GetTechnoType();
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+		const bool onParachuted = pExt->OnParachuted;
+		pExt->OnParachuted = false;
+
+		if (pThis->IsABomb && pThis->IsAlive)
+		{
+			const bool hoverShutdown = pExt->HoverShutdown;
+			pExt->HoverShutdown = false;
+
+			if (hoverShutdown)
+			{
+				if (pTypeExt->HoverDrownable)
+				{
+					int damage = pThis->Health;
+					pTechno->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
+				}
+
+				pThis->IsABomb = false;
+				return true;
+			}
+
+			const auto pCell = pTechno->GetCell();
+			const bool onBridge = pCell->ContainsBridge();
+
+			int damage = 0;
+
+			if (!pCell->IsClearToMove(pType->SpeedType, true, true, ZoneType::None, pType->MovementZone, -1, onBridge))
+			{
+				damage = pThis->Health;
+				pTechno->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
+
+				return true;
+			}
+
+			const LandType landType = pCell->LandType;
+			const bool inWater = !onBridge && (landType == LandType::Water || landType == LandType::Beach);
+
+			if (!onParachuted)
+			{
+				if (!pTypeExt->FallingDownDamage_AllowEMP && pTechno->EMPLockRemaining > 0)
+				{
+					damage = pThis->Health;
+					pTechno->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
+
+					return true;
+				}
+
+				double ratio = pCell->LandType == LandType::Water && !pTechno->OnBridge ?
+						 	 pTypeExt->FallingDownDamage_Water.Get(pTypeExt->FallingDownDamage.Get())
+							: pTypeExt->FallingDownDamage.Get();
+
+				damage = Get_FallDamage(ratio,pTechno,pType);
+			}
+
+			if (damage == 0
+				|| pThis->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr) != DamageState::NowDead)
+			{
+				pThis->IsABomb = false;
+				const auto abs = pThis->WhatAmI();
+
+				if (abs == AbstractType::Infantry)
+				{
+					const auto pInf = static_cast<InfantryClass*>(pTechno);
+					const auto sequenceAnim = pInf->SequenceAnim;
+					pInf->ShouldDeploy = false;
+
+					if (inWater)
+					{
+						if (sequenceAnim != DoType::Swim)
+							pInf->PlayAnim(DoType::Swim, true, false);
+					}
+					else if (sequenceAnim != DoType::Guard)
+					{
+						pInf->PlayAnim(DoType::Ready, true, false);
+					}
+
+					ObjectClass* pObject = pCell->GetContent();
+
+					while (pObject->NextObject)
+					{
+						pObject = pObject->NextObject;
+					}
+
+					if (pObject != pInf)
+						pInf->Scatter(pInf->GetCoords(), true, false);
+				}
+				else if (abs == AbstractType::Unit)
+				{
+					static_cast<UnitClass*>(pTechno)->UpdatePosition(PCPType::During);
+				}
+			}
+		}
+
+		return true;
+	}
+
+	return false;
 }
 
 ASMJIT_PATCH(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
@@ -1131,65 +1241,21 @@ ASMJIT_PATCH(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 		DisplayClass::Instance->SubmitObject(pThis);
 	}
 
-	if(!pThis->IsFallingDown){
+	if(pThis->IsFallingDown)
+		return 0x5F4151;
 
-		if(pThis->IsABomb && pThis->Health > 0) {
+	if(IsTechnoFalling(pThis))
+		return 0x5F4151;
 
-			if (pTechnoType)
-			{
-				auto const pTechno = static_cast<TechnoClass*>(pThis);
+	if(pThis->IsABomb && pThis->Health > 0 && pThis->IsAlive) {
+		int damage = pThis->Health;
+		pThis->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
 
-				auto pCell = pTechno->GetCell();
-				const auto pExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
-
-				if (!pCell || !pCell->IsClearToMove(pTechnoType->SpeedType, true, true, ZoneType::None, pTechnoType->MovementZone, pCell->GetLevel(), pCell->ContainsBridge()))
-					return 0;
-
-				//if (!pTechno->HasParachute)
-				{
-
-					double ratio = pCell->LandType == LandType::Water && !pTechno->OnBridge ?
-						 	 pExt->FallingDownDamage_Water.Get(pExt->FallingDownDamage.Get())
-							: pExt->FallingDownDamage.Get();
-
-					int damage = Get_FallDamage(ratio , pTechno , pTechnoType);
-					pThis->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
-				}
-
-				if (pThis->Health > 0 && pThis->IsAlive)
-				{
-					pThis->IsABomb = false;
-
-					if (pThis->WhatAmI() == AbstractType::Infantry)
-					{
-						auto pInf = static_cast<InfantryClass*>(pTechno);
-						const bool isWater = pCell->Tile_Is_Water();
-
-						if (isWater && pInf->SequenceAnim != DoType::Swim)
-							pInf->PlayAnim(DoType::Swim, true, false);
-						else if (!isWater && pInf->SequenceAnim != DoType::Guard)
-							pInf->PlayAnim(DoType::Guard, true, false);
-					}
-
-					return 0x5F413F;
-
-				} else {
-					pTechno->UpdatePosition(PCPType::During);
-					return 0x5F413F;
-				}
-
-			} else {
-				int _str = pThis->Health;
-				pThis->ReceiveDamage(&_str, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
-			}
-		}
-
-		//iam confused with the code ..
-		//probably calculating the desired destination ..
-		return 0x5F405B;
+		if(!pThis->IsAlive)
+			return 0x5F4151;
 	}
 
-	return 0x5F413F;
+	return 0x5F405B;
 }
 
 ASMJIT_PATCH(0x5F5965, ObjectClass_SpawnParachuted_Track, 0x7)

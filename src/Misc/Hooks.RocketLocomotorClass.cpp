@@ -105,10 +105,10 @@ struct _KamikazetrackerClass
 	}
 };
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x54E3B0, _KamikazetrackerClass::Add);
-DEFINE_FUNCTION_JUMP(LJMP, 0x54E4D0, _KamikazetrackerClass::AI);
-DEFINE_FUNCTION_JUMP(LJMP, 0x54E590, _KamikazetrackerClass::Detach);
-DEFINE_FUNCTION_JUMP(LJMP, 0x54E6F0, _KamikazetrackerClass::Clear);
+//DEFINE_FUNCTION_JUMP(LJMP, 0x54E3B0, _KamikazetrackerClass::Add);
+//DEFINE_FUNCTION_JUMP(LJMP, 0x54E4D0, _KamikazetrackerClass::AI);
+//DEFINE_FUNCTION_JUMP(LJMP, 0x54E590, _KamikazetrackerClass::Detach);
+//DEFINE_FUNCTION_JUMP(LJMP, 0x54E6F0, _KamikazetrackerClass::Clear);
 
 // What offset is CurrentPitch in RocketLocomotionClass?
 static_assert(offsetof(RocketLocomotionClass, CurrentPitch) == 0x54, "wrong offset");
@@ -420,7 +420,7 @@ struct _RocketLocomotionClass
 						return false;
 
 					const Coordinate center_coord = pAir->GetCoords();
-					const double dist = (center_coord - pRocket->MovingDestination).Length();
+					const double dist = (center_coord - pRocket->MovingDestination).LengthXY();
 					const double ratio = dist / pRocket->ApogeeDistance;
 
 					pRocket->CurrentPitch = float(rocket->PitchFinal * ratio * Math::DEG90_AS_RAD + Get_Next_Pitch(pRocket) * (1 - ratio));
@@ -443,9 +443,6 @@ struct _RocketLocomotionClass
 				const DirStruct desired { center_coord.X, pRocket->MovingDestination.Y, pRocket->MovingDestination.X, center_coord.Y };
 				pAir->PrimaryFacing.Set_Desired(desired);
 			}
-
-			if (!MapClass::Instance->IsWithinUsableArea(pAir->GetCoords()))
-				pAir->UnInit();
 
 			break;
 		}
@@ -619,7 +616,8 @@ public:
 	static Coordinate Get_Next_Position(RocketLocomotionClass* pThis, double speed)
 	{
 		const double hSpeed = Math::cos(double(pThis->CurrentPitch)) * speed;
-		const double yaw = (pThis->Owner->PrimaryFacing.Current().Raw - 0x3FFF) * Math::DIRECTION_FIXED_MAGIC;
+		//const double yaw = (pThis->Owner->PrimaryFacing.Current().Raw - 0x3FFF) * Math::DIRECTION_FIXED_MAGIC;
+		const double yaw = pThis->Owner->PrimaryFacing.Current().GetRadian<65536>();
 
 		const CoordStruct& loc = pThis->Owner->Location;
 		return {
