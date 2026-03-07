@@ -1201,7 +1201,7 @@ public:
 	Nullable<int> BattlePoints;
 
 	bool ForceWeapon_Check;
-	Valueable<bool> FiringForceScatter;
+	Nullable<bool> FiringForceScatter;
 
 	Valueable<int> FireUp;
 	Valueable<bool> FireUp_ResetInRetarget;
@@ -2095,7 +2095,7 @@ public:
 		TiberiumEaterType(),
 		BattlePoints(),
 		ForceWeapon_Check(false),
-		FiringForceScatter(true),
+		FiringForceScatter(),
 		FireUp(-1),
 		FireUp_ResetInRetarget(true),
 		DigitalDisplay_Health_FakeAtDisguise(true),

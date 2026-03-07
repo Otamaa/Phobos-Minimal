@@ -19,6 +19,8 @@
 #include <Locomotor/FlyLocomotionClass.h>
 #include <Phobos.SaveGame.h>
 
+#include <misc/Kratos/Ext/Helper/FLH.h>
+
 COMPILETIMEEVAL FORCEDINLINE bool AircraftCanStrafeWithWeapon(WeaponTypeClass* pWeapon)
 {
 	return pWeapon && WeaponTypeExtContainer::Instance.Find(pWeapon)->Strafing
@@ -31,13 +33,15 @@ bool AircraftExtData::FireWeapon(AircraftClass* pAir, AbstractClass* pTarget)
 {
 	const auto pExt = AircraftExtContainer::Instance.Find(pAir);
 	const int weaponIndex = pExt->CurrentAircraftWeaponIndex;
-	const bool Scatter = TechnoTypeExtContainer::Instance.Find(pAir->Type)->FiringForceScatter;
+	bool Scatter = true;
 	auto pDecideTarget = (pExt->Strafe_TargetCell ? pExt->Strafe_TargetCell : pTarget);
 
 	if (const auto pWeaponStruct = pAir->GetWeapon(weaponIndex))
 	{
 		if (const auto weaponType = pWeaponStruct->WeaponType)
 		{
+			Scatter = TechnoTypeExtContainer::Instance.Find(pAir->Type)->FiringForceScatter.Get(weaponType->Damage > 0);
+
 			auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(weaponType);
 			bool isStrafe = pAir->Is_Strafe();
 
@@ -72,17 +76,12 @@ bool AircraftExtData::FireWeapon(AircraftClass* pAir, AbstractClass* pTarget)
 		}
 	}
 
-	if (pDecideTarget)
+	if (pDecideTarget && Scatter)
 	{
-		if (Scatter)
-		{
+		auto coord = pDecideTarget->GetCoords();
 
-			auto coord = pDecideTarget->GetCoords();
-
-			if (auto pCell = MapClass::Instance->TryGetCellAt(coord))
-			{
-				pCell->ScatterContent(coord, true, false, false);
-			}
+		if (auto pCell = MapClass::Instance->TryGetCellAt(coord)) {
+			pCell->ScatterContent(coord, true, false, false);
 		}
 
 		return true;
@@ -278,6 +277,63 @@ int FakeAircraftClass::_Mission_Attack()
 		}
 		if (this->Target && this->Ammo)
 		{
+
+			if (!this->Type->MissileSpawn && !this->Type->Fighter && !this->Is_Strafe())
+			{
+				AbstractClass* pTarget = this->Target;
+				int weaponIdx = this->SelectWeapon(pTarget);
+
+				if (this->IsCloseEnough(pTarget, weaponIdx))
+				{
+					this->IsLocked = true;
+					CoordStruct pos = this->GetCoords();
+					CellClass* pCell = MapClass::Instance->TryGetCellAt(pos);
+					this->SetDestination(pCell, true);
+					this->MissionStatus = this->Destination
+						? static_cast<int>(AirAttackStatus::FlyToPosition)
+						: static_cast<int>(AirAttackStatus::ReturnToBase);
+				}
+				else
+				{
+					int dest = this->DistanceFrom(this->Target);
+					WeaponTypeClass* pWeapon = this->GetWeapon(weaponIdx)->WeaponType;
+					CoordStruct nextPos = CoordStruct::Empty;
+					if (dest < pWeapon->MinimumRange)
+					{
+						CoordStruct flh = CoordStruct::Empty;
+						flh.X = (int)(pWeapon->Range * 0.5);
+						nextPos = TechnoExtData::GetFLHAbsoluteCoords(this, flh, true);
+					}
+					else if (dest > pWeapon->Range) //TODO :Evaluate weapon range
+					{
+						int length = (int)(pWeapon->Range * 0.5);
+						int flipY = 1;
+						if (ScenarioClass::Instance->Random.RandomRanged(0, 1) == 1) {
+							flipY *= -1;
+						}
+						CoordStruct sourcePos = this->GetCoords();
+						int r = (dest - length) * Unsorted::LeptonsPerCell;
+						r = ScenarioClass::Instance->Random.RandomRanged(0, r);
+						CoordStruct flh{ 0, r * flipY, 0 };
+						CoordStruct targetPos = this->Target->GetCoords();
+						DirStruct dir = Point2Dir(sourcePos, targetPos);
+						sourcePos = GetFLHAbsoluteCoords(sourcePos, flh, dir);
+						sourcePos.Z = 0;
+						targetPos.Z = 0;
+
+						nextPos = GetForwardCoords(targetPos, sourcePos, length);
+					}
+					if (!nextPos.IsEmpty())
+					{
+						CellClass* pCell = MapClass::Instance->TryGetCellAt(nextPos);
+						this->SetDestination(pCell, true);
+						this->MissionStatus = this->Destination
+							? static_cast<int>(AirAttackStatus::FlyToPosition)
+							: static_cast<int>(AirAttackStatus::ReturnToBase);
+					}
+				}
+			}
+
 			this->SetDestination(this->GoodTargetLoc_(this->Target), true);
 			this->MissionStatus = this->Destination
 				? static_cast<int>(AirAttackStatus::FlyToPosition)
@@ -315,11 +371,16 @@ int FakeAircraftClass::_Mission_Attack()
 		}
 		else
 		{
-			if (this->Is_Locked())
-			{
-				this->MissionStatus = static_cast<int>(AirAttackStatus::FireAtTarget);
-				return 1;
-			}
+			// Skip fire twice,
+			// IsLocked always is False, so the game will jump to MissionStatus=AIR_ATT_FIRE_AT_TARGET1, and fire weapon again.
+			// this skip looks no effect for ROT=0 or Arcing.
+			//DEFINE_JUMP(LJMP, 0x4184FC, 0x418506);
+			// if (this->Is_Locked())
+			// {
+			// 	this->MissionStatus = static_cast<int>(AirAttackStatus::FireAtTarget);
+			// 	return 1;
+			// }
+
 			if (!this->Locomotor.GetInterfacePtr()->Is_Moving_Now())
 			{
 				this->MissionStatus = static_cast<int>(AirAttackStatus::FireAtTarget);
@@ -355,12 +416,18 @@ int FakeAircraftClass::_Mission_Attack()
 		else
 		{
 			this->SecondaryFacing.Set_Desired(this->GetDirectionOverObject(this->Target));
-			if (dist < 16)
-			{
+
+			if (dist < 16) {
+				if(!this->Type->MissileSpawn && !this->Type->Fighter) {
+					this->MissionStatus = static_cast<int>(AirAttackStatus::FireAtTarget);
+					return 1;
+				}
+
 				this->MissionStatus = static_cast<int>(AirAttackStatus::FireAtTarget);
 				this->SetDestination(nullptr, true);
 			}
 		}
+
 		return 1;
 	}
 

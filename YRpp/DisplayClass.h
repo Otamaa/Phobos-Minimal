@@ -90,6 +90,8 @@ public:
 	bool CanBuildHere(BuildingTypeClass* pBld, int nHouse, CellStruct* cell, CellStruct* tryCell) const
 		{ JMP_THIS(0x4A8EB0); }
 
+	bool PassesProximityCheck();
+
 	// Building Adjacent etc. check. Pretty much always called with:
 	// foundationData = DisplayClass::CurrentFoundation_Data
 	// currentPosition = DisplayClass::CurrentFoundation_CenterCell + DisplayClass::CurrentFoundation_TopLeftOffset

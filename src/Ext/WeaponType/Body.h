@@ -89,7 +89,6 @@ public:
 
 	Valueable<float> RockerPitch;
 	AttachFireData MyAttachFireDatas;
-
 	Valueable<int> Ammo;
 	Valueable<bool> IsDetachedRailgun;
 
@@ -183,6 +182,9 @@ public:
 	Valueable<int> KeepRange_EarlyStopFrame;
 
 	Valueable<bool> VisualScatter;
+	Nullable<Leptons> VisualScatter_Min;
+	Nullable<Leptons> VisualScatter_Max;
+
 	Valueable<bool> TurretRecoil_Suppress;
 
 	Valueable<double> CanTarget_MaxHealth;
@@ -337,6 +339,8 @@ public:
 		KeepRange_AllowPlayer(false),
 		KeepRange_EarlyStopFrame(0),
 		VisualScatter(false),
+		VisualScatter_Min(),
+		VisualScatter_Max(),
 		TurretRecoil_Suppress(false),
 		CanTarget_MaxHealth(1.0),
 		CanTarget_MinHealth(0.0),

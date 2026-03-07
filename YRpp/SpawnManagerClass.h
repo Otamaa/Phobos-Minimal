@@ -109,7 +109,7 @@ public:
 	DECLARE_PROPERTY(DynamicVectorClass<SpawnNode*>, SpawnedNodes);
 	DECLARE_PROPERTY(CDTimerClass, UpdateTimer);
 	DECLARE_PROPERTY(CDTimerClass, SpawnTimer);
-	AbstractClass* Target; //dest ,suspendedtarget
+	DECLARE_PROPERTY_TWONAME(AbstractClass*, Target, Destination); //dest ,suspendedtarget
 	AbstractClass* NewTarget; //target
 	SpawnManagerStatus Status;
 };

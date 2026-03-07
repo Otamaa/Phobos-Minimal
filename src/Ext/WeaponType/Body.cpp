@@ -254,6 +254,8 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->KeepRange_AllowPlayer.Read(exINI, pSection, "KeepRange.AllowPlayer");
 	this->KeepRange_EarlyStopFrame.Read(exINI, pSection, "KeepRange.EarlyStopFrame");
 	this->VisualScatter.Read(exINI, pSection, "VisualScatter");
+	this->VisualScatter_Min.Read(exINI, pSection, "VisualScatter.Min");
+	this->VisualScatter_Max.Read(exINI,pSection, "VisualScatter.Max");
 	this->TurretRecoil_Suppress.Read(exINI, pSection, "TurretRecoil.Suppress");
 
 	this->CanTarget_MaxHealth.Read(exINI, pSection, "CanTarget.MaxHealth");
@@ -616,6 +618,8 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->KeepRange_AllowPlayer)
 		.Process(this->KeepRange_EarlyStopFrame)
 		.Process(this->VisualScatter)
+		.Process(this->VisualScatter_Min)
+		.Process(this->VisualScatter_Max)
 		.Process(this->TurretRecoil_Suppress)
 
 		.Process(this->CanTarget_MaxHealth)

@@ -206,7 +206,9 @@ ASMJIT_PATCH(0x6FD38D, TechnoClass_DrawSth_Coords, 0x7)
 		if (pWeaponExt && pWeaponExt->VisualScatter)
 		{
 			const auto pRulesExt = RulesExtData::Instance();
-			const auto radius = ScenarioClass::Instance->Random.RandomRanged(pRulesExt->VisualScatter_Min.Get(), pRulesExt->VisualScatter_Max.Get());
+			auto min = pWeaponExt->VisualScatter_Min.Get(pRulesExt->VisualScatter_Min);
+			auto max = pWeaponExt->VisualScatter_Max.Get(pRulesExt->VisualScatter_Max);
+			const auto radius = ScenarioClass::Instance->Random.RandomRanged(min, max);
 			*pTargetCoords = MapClass::GetRandomCoordsNear(_targetCoords, radius, false);
 		}
 		else
