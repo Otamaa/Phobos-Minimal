@@ -3,10 +3,10 @@
 
 std::vector<CoordStruct> CircleDifferentiator::DivideArcByTolerance(const CoordStruct& center, int radius, int tolerance, const Vector3D<float>& upVector)
 {
-	tolerance = MinImpl(tolerance, (int)(Math::SQRT_TWO) * radius));
+	tolerance = MinImpl(tolerance, (int)(Math::SQRT_TWO * radius));
 
 	// start from nearest count n that satisfy: d = sqrt(2) * r * sin(a) <= tolerance, a = 2 * pi / n
-	double maxRad = Math::asin(tolerance / (Math::SQRT_TWO) * radius));
+	double maxRad = Math::asin(tolerance / (Math::SQRT_TWO * radius));
 	int n = (int)(Math::TWO_BY_PI / maxRad);
 
 	// find n that satisfy d <= length, d = sqrt(2) * r * sin(a), a = 2 * pi / n
