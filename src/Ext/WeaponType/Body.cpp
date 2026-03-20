@@ -162,8 +162,6 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->RockerPitch = float(1.0f * Math::PI_BY_TWO_ACCURATE);
 	}
 
-	this->MyAttachFireDatas.Read(exINI, pSection);
-
 #pragma endregion
 
 	this->Ammo.Read(exINI, pSection, "Ammo");
@@ -650,7 +648,6 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->CanTarget_IronCurtained)
 		.Process(this->AutoTarget_IronCurtained)
 		.Process(this->CylinderRangefinding)
-		.Process(this->MyAttachFireDatas)
 		
 		;
 };

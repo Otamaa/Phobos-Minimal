@@ -13,43 +13,9 @@
 #include <Misc/Kratos/Ext/Common/CommonStatus.h>
 #include <Misc/Kratos/Ext/TechnoType/TechnoStatus.h>
 
-#ifdef _ENABLE_HOOKS
+#include <PlanningTokenClass.h>
 
-#pragma region Building explosion anims
-
-ASMJIT_PATCH(0x441A26, BuildingClass_Destroy_Explosion_Remap, 0x5)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	GET(AnimClass*, pAnim, EBP);
-	if (pAnim)
-	{
-		pAnim->Owner = pTechno->Owner;
-	}
-	return 0x4418EC;
-}
-
-ASMJIT_PATCH(0x441B22, BuildingClass_Destroy_Exploding_Remap, 0x6)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	GET(AnimClass*, pAnim, EBP);
-	if (pAnim)
-	{
-		pAnim->Owner = pTechno->Owner;
-	}
-	return 0;
-}
-
-ASMJIT_PATCH(0x441D41, BuildingClass_Destroy_DestroyAnim_Remap, 0x6)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	GET(AnimClass*, pAnim, EDI);
-	if (pAnim)
-	{
-		pAnim->Owner = pTechno->Owner;
-	}
-	return 0;
-}
-#pragma endregion
+#ifndef _ENABLE_HOOKS
 
 // GiftBox will release a building onto a cell of existing buildings.
 // if that gift is not a virtual unit like Stand. I will add it to the occupy objects,
@@ -96,7 +62,7 @@ ASMJIT_PATCH(0x4AE95E, DisplayClass_sub_4AE750_DisallowBuildingNonAttackPlanning
 	GET(ObjectClass* const, pObject, ECX);
 	LEA_STACK(CellStruct*, pCell, STACK_OFFSET(0x20, 0x8));
 
-	const auto action = pObject->MouseOverCell(pCell);
+	const auto action = pObject->MouseOverCell(*pCell);
 
 	if (!PlanningNodeClass::PlanningModeActive || pObject->WhatAmI() != AbstractType::Building || action == Action::Attack)
 		pObject->CellClickedAction(action, pCell, pCell, false);

@@ -18,10 +18,6 @@
 #include <New/PhobosAttachedAffect/Functions.h>
 #include <Ext/AircraftType/Body.h>
 
-#include <Misc/DynamicPatcher/Techno/Passengers/PassengersFunctional.h>
-#include <Misc/DynamicPatcher/Techno/SpawnSupport/SpawnSupportFunctional.h>
-#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
-
 #include <Utilities/Macro.h>
 
 #define ENABLE_THESE
@@ -792,7 +788,7 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 
 	if (!IsBuilding) {
 		pExt->UpdateLaserTrails();
-		TrailsManager::AI((FootClass*)pThis);
+		//TrailsManager::AI((FootClass*)pThis);
 	}
 
 	HugeBar::InitializeHugeBar(pThis);
@@ -872,56 +868,56 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 	pThis->UpdateIronCurtainTimer();
 	pThis->UpdateAirstrikeTimer();
 
-	PassengersFunctional::AI(pThis);
-	if (!pThis->IsAlive)
-	{
-		return;
-	}
+	//PassengersFunctional::AI(pThis);
+	//if (!pThis->IsAlive)
+	//{
+	//	return;
+	//}
 
-	SpawnSupportFunctional::AI(pThis);
+	//SpawnSupportFunctional::AI(pThis);
 
-	if (!pThis->IsAlive)
-	{
-		return;
-	}
+	//if (!pThis->IsAlive)
+	//{
+	//	return;
+	//}
 
-	pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
+	//pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
 
-	if (!pThis->IsAlive)
-	{
-		return;
-	}
+	//if (!pThis->IsAlive)
+	//{
+	//	return;
+	//}
 
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-	GiftBoxFunctional::AI(pExt, pTypeExt);
+	//GiftBoxFunctional::AI(pExt, pTypeExt);
 
-	if (!pThis->IsAlive)
-	{
-		return;
-	}
+	//if (!pThis->IsAlive)
+	//{
+	//	return;
+	//}
 
-	pExt->PaintBallStates.erase_all_if([pThis, IsBuilding](auto& pb)
-	{
-		if (pb.second.timer.GetTimeLeft())
-		{
-			if (IsBuilding)
-			{
-				BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis))->LighningNeedUpdate = true;
-			}
-			return false;
-		}
+	//pExt->PaintBallStates.erase_all_if([pThis, IsBuilding](auto& pb)
+	//{
+	//	if (pb.second.timer.GetTimeLeft())
+	//	{
+	//		if (IsBuilding)
+	//		{
+	//			BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis))->LighningNeedUpdate = true;
+	//		}
+	//		return false;
+	//	}
 
-		return true;
-	});
+	//	return true;
+	//});
 
-	if (auto& pDSState = pExt->DamageSelfState) {
-		pDSState->TechnoClass_Update_DamageSelf(pThis);
-	}
+	//if (auto& pDSState = pExt->DamageSelfState) {
+	//	pDSState->TechnoClass_Update_DamageSelf(pThis);
+	//}
 
-	if (!pThis->IsAlive) {
-		return;
-	}
+	//if (!pThis->IsAlive) {
+	//	return;
+	//}
 
 	__HandleVoicePlayback(pThis);
 	__HandleBerzerkState(pThis);

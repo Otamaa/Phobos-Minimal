@@ -446,9 +446,6 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Temporal_WarpAway.Read(exINI, pSection, "Temporal.WarpAway");
 	this->Supress_LostEva.Read(exINI, pSection, "UnitLost.Suppress");
 	this->Temporal_HealthFactor.Read(exINI, pSection, "Temporal.HealthFactor");
-
-	this->PaintBallDuration.Read(exINI, pSection, "PaintBall.Duration");
-	this->PaintBallData.Read(exINI, pSection);
 #pragma endregion
 
 #ifndef _Handle_Old_
@@ -781,7 +778,6 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->ReloadAmmo != 0
 		|| (this->RevengeWeapon && this->RevengeWeapon_GrantDuration > 0)
 		|| !this->LimboKill_IDs.empty()
-		|| (this->PaintBallData.Color != ColorStruct::Empty)
 		//|| this->InflictLocomotor
 		//|| this->RemoveInflictedLocomotor
 		|| this->PenetratesTransport_Level > 0
@@ -1973,11 +1969,6 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->Webby_Cap)
 		.Process(this->Webby_Duration_Variation)
 		.Process(this->SelfHealing_CombatDelay)
-#ifdef COMPILE_PORTED_DP_FEATURES_
-		.Process(DamageTextPerArmor)
-
-#endif
-		.Process(this->PaintBallDuration)
 
 		.Process(this->KillDriver)
 		.Process(this->KillDriver_KillBelowPercent)
@@ -2098,8 +2089,6 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->IsFakeEngineer)
 		.Process(this->VeterancyCheck)
 		;
-
-	PaintBallData.Serialize(Stm);
 }
 
 #include <RadarEventClass.h>
@@ -2485,27 +2474,3 @@ void WarheadTypeExtContainer::WriteToINI(ext_t::base_type* key, CCINIClass* pINI
 
 // =============================
 // container hooks
-
-ASMJIT_PATCH(0x75D1A9, WarheadTypeClass_CTOR, 0x7)
-{
-	GET(WarheadTypeClass*, pItem, EBP);
-	WarheadTypeExtContainer::Instance.Allocate(pItem);
-	return 0;
-}
-
-ASMJIT_PATCH(0x75E5C8, WarheadTypeClass_SDDTOR, 0x6)
-{
-	GET(WarheadTypeClass*, pItem, ESI);
-	WarheadTypeExtContainer::Instance.Remove(pItem);
-	return 0;
-}
-
-bool FakeWarheadTypeClass::_ReadFromINI(CCINIClass* pINI)
-{
-	WarheadTypeExtContainer::Instance.Find(this)->Initialize();
-	bool status = this->WarheadTypeClass::LoadFromINI(pINI);
-	WarheadTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
-	return status;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6B94, FakeWarheadTypeClass::_ReadFromINI)

@@ -1,9 +1,11 @@
 #include "Body.h"
+#include <Ext/Aircraft/Body.h>
 #include <Ext/Infantry/Body.h>
 
 #include <Locomotor/Cast.h>
 
 #include <SuperClass.h>
+#include <TechnoClass.h>
 
 namespace ICTintTemp
 {

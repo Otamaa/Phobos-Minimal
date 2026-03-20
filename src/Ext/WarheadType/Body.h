@@ -17,8 +17,6 @@
 #include <New/Entity/LauchSWData.h>
 #include <New/PhobosAttachedAffect/AEAttachInfoTypeClass.h>
 
-#include <Misc/DynamicPatcher/AttachedAffects/Effects/PaintBall/PaintBall.h>
-
 #include <Utilities/VersesData.h>
 
 typedef std::vector<std::tuple< std::vector<int>, std::vector<int>, TransactValueType>> TransactData;
@@ -328,9 +326,6 @@ public:
 
 	Nullable<int> Rocker_AmplitudeOverride;
 	Valueable<double> Rocker_AmplitudeMultiplier;
-
-	Nullable<int> PaintBallDuration;
-	PaintballType PaintBallData;
 
 	ValueableIdx<SuperWeaponTypeClass> NukePayload_LinkedSW;
 	Valueable<int> IC_Duration;
@@ -734,8 +729,6 @@ public:
 		RemoveInflictedLocomotor(false),
 		Rocker_AmplitudeOverride(),
 		Rocker_AmplitudeMultiplier(0.01),
-		PaintBallDuration(),
-		PaintBallData(),
 		NukePayload_LinkedSW(-1),
 		IC_Duration(0),
 		IC_Cap(-1),

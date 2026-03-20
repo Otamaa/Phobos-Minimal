@@ -8,8 +8,6 @@
 #include <New/Type/LaserTrailTypeClass.h>
 #include <New/Type/PaletteManager.h>
 
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-
 #include <Ext/ObjectType/Body.h>
 
 class ParticleTypeExtData final : public ObjectTypeExtData
@@ -27,7 +25,6 @@ public:
 	// ============================================================
 	// Large aggregates
 	// ============================================================
-	TrailsReader Trails;
 	CustomPalette Palette;
 	std::array<Point2D, (size_t)FacingType::Count> WindMult;
 
@@ -72,7 +69,6 @@ public:
 public:
 	ParticleTypeExtData(ParticleTypeClass* pObj) : ObjectTypeExtData(pObj)
 		// Large aggregates
-		, Trails()
 		, Palette(CustomPalette::PaletteMode::Temperate)
 		, WindMult()
 		// Vector

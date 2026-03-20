@@ -1646,7 +1646,7 @@ bool InspectMathDetailed()
 		1.0 / WWMath_sqrt(5.0),
 		1.0 / (float)std::sqrt(5.0)
 	);
-	
+
 	testsdouble.emplace_back(
 		"2 / sqrt(5)",
 		2.0 / WWMath_sqrt(5.0),
@@ -1770,7 +1770,7 @@ bool InspectMathDetailed()
 		return false;
 	}
 
-	
+
 	struct Generate {
 		double value;
 		const char* name;
@@ -1849,7 +1849,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 			DisableThreadLibraryCalls((HMODULE)hInstance);
 			IsInitialized = true;
-			
+
 			MH_Initialize();
 
 			CRTHooks::Apply();
@@ -1957,46 +1957,3 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 	return TRUE;
 }
-
-#pragma region hooks
-ASMJIT_PATCH(0x55DBCD, MainLoop_SaveGame, 0x6)
-{
-	// This happens right before LogicClass::Update()
-	enum { SkipSave = 0x55DC99, InitialSave = 0x55DBE6 };
-
-	if (SessionClass::IsSingleplayer() && !ScenarioClass::ScenarioSaved())
-	{
-		ScenarioClass::ScenarioSaved = true;
-		if (Phobos::ShouldQuickSave)
-		{
-			Phobos::PassiveSaveGame();
-			Phobos::ShouldQuickSave = false;
-			Phobos::CustomGameSaveDescription.clear();
-		}
-		else if (Phobos::Config::SaveGameOnScenarioStart && SessionClass::IsCampaign())
-		{
-			Debug::Log("Saving Game [Filename : %s , UI : %s , LoadedUI : %ls]",
-			ScenarioClass::Instance->FileName,
-			ScenarioClass::Instance->UIName,
-			ScenarioClass::Instance->UINameLoaded
-			);
-			return InitialSave;
-		}
-	}
-
-	return SkipSave;
-}
-
-ASMJIT_PATCH(0x6BBE6A, WinMain_AllowMultipleInstances, 0x6) {
-	return Phobos::Otamaa::AllowMultipleInstance ? 0x6BBED6 : 0x0;
-}
-
-ASMJIT_PATCH(0x52FE55, Scenario_Start, 0x6)
-{
-	auto _seed = (DWORD)Game::Seed();
-	Debug::Log("Init Phobos Randomizer seed %x.\n", _seed);
-	Phobos::Random::SetRandomSeed(Game::Seed());
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x52FEB7, Scenario_Start, 0x6)
-
-#pragma endregion

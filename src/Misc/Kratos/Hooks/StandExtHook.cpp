@@ -19,6 +19,7 @@
 #include <Misc/Kratos/Ext/TechnoType/TechnoStatus.h>
 #include <Misc/Kratos/Ext/ObjectType/AttachEffect.h>
 
+//disabled for now , this is alot
 #ifdef _ENABLE_HOOKS
 
 ASMJIT_PATCH(0x6FA2A2, TechnoClass_Update_DrawBehind, 0x6)
@@ -237,7 +238,7 @@ ASMJIT_PATCH(0x4DA87A, FootClass_Update_UpdateLayer, 0x6)
 	{
 		if (pTechno->InWhichLayer() != pTechno->LastLayer)
 		{
-			DisplayClass::Instance->Submit(pTechno);
+			DisplayClass::Instance->SubmitObject(pTechno);
 		}
 	}
 	return 0;
@@ -281,7 +282,7 @@ ASMJIT_PATCH(0x4DB091, FootClass_GetZAdjustment, 0x6)
 				{
 					// 加上自身的zAdjust
 					int zz = pTechno->GetZ();
-					int zzz = -TacticalClass::Instance->AdjustForZ(zz);
+					int zzz = -Game::AdjustHeight(zz);
 					z += zzz;
 					// 加上建筑动画的zAdjust
 					BuildingTypeClass* pType = pBuilding->Type;

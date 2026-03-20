@@ -407,7 +407,7 @@ ASMJIT_PATCH(0x7058F6, TechnoClass_DrawAirstrikeFlare_LineColor, 0x5)
 	REF_STACK(ColorStruct, color, STACK_OFFSET(0x70, -0x60));
 
 	// Fix depth buffer value.
-	int zValue = Math::min(zSrc, zDest) + AudioVisual::Data()->AirstrikeLineZAdjust;
+	int zValue = MinImpl(zSrc, zDest) + AudioVisual::Data()->AirstrikeLineZAdjust;
 	R->EBP(zValue);
 	R->EBX(zValue);
 
@@ -419,7 +419,7 @@ ASMJIT_PATCH(0x7058F6, TechnoClass_DrawAirstrikeFlare_LineColor, 0x5)
 	double percentage = Random::RandomRanged(745, 1000) / 1000.0; // 随机色差
 	// Debug::Log(" - 绘制空袭光纤颜色: {%d, %d, %d} %d\n", baseColor.R, baseColor.G, baseColor.B, percentage);
 	color = { (BYTE)(baseColor.R * percentage), (BYTE)(baseColor.G * percentage), (BYTE)(baseColor.B * percentage) };
-	R->ESI(Drawing::RGB_To_Int(baseColor));
+	R->ESI(baseColor.ToInit());
 
 	return SkipGameCode;
 }

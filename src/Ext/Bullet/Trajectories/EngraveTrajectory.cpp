@@ -6,6 +6,7 @@
 #include <LaserDrawClass.h>
 
 #include <InfantryClass.h>
+#include <BulletClass.h>
 
 // https://github.com/Phobos-developers/Phobos/pull/1293
 // TODO : update

@@ -114,7 +114,7 @@ ASMJIT_PATCH(0x4C24BE, EBolt_Draw_Color1, 0x5)
 	{
 		if (ColorStruct color1 = status->Color1)
 		{
-			R->EAX((unsigned int)Drawing::RGB_To_Int(color1));
+			R->EAX(color1.ToInit());
 			return 0x4C24E4;
 		}
 	}
@@ -129,7 +129,7 @@ ASMJIT_PATCH(0x4C25CB, EBolt_Draw_Color2, 0x5)
 	{
 		if (ColorStruct color2 = status->Color2)
 		{
-			R->Stack<int>(0x18, Drawing::RGB_To_Int(color2));
+			R->Stack<int>(0x18, color2.ToInit());
 			return 0x4C25FD;
 		}
 	}
@@ -146,7 +146,7 @@ ASMJIT_PATCH(0x4C26C7, EBolt_Draw_Color3, 0x5)
 		{
 			GET(int, ebx, EBX);
 			R->EBX(ebx - 2);
-			R->EAX((unsigned int)Drawing::RGB_To_Int(color3));
+			R->EAX(color3.ToInit());
 			return 0x4C26EE;
 		}
 	}
@@ -204,7 +204,7 @@ ASMJIT_PATCH(0x4C2AE7, EBolt_Fire_DisableParticle, 0x6)
 	{
 		if (status->DisableParticle)
 		{
-			EBolt::Array->AddItem(pThis);
+			EBolt::Array->emplace_back(pThis);
 			R->EAX(0);
 			return 0x4C2B0C;
 		}

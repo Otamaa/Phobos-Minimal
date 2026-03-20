@@ -33,6 +33,7 @@
 #include <Ext/Tiberium/Body.h>
 #include <Ext/ParticleType/Body.h>
 #include <Ext/Particle/Body.h>
+#include <Ext/House/Body.h>
 
 #include <Utilities/Helpers.h>
 

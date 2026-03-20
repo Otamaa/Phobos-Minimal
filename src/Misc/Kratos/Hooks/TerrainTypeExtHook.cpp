@@ -10,7 +10,7 @@
 
 ASMJIT_PATCH(0x71DBC0, TerrainTypeClass_CTOR, 0x7)
 {
-	if (!Common::IsLoadGame)
+	if (!Phobos::Otamaa::DoingLoadGame)
 	{
 		GET(TerrainTypeClass *, pItem, ESI);
 

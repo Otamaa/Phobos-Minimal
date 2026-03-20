@@ -23,6 +23,11 @@
 
 #include <Phobos.SaveGame.h>
 
+#include <Misc/Kratos/Ext/AnimType/ExpireAnimData.h>
+#include <Misc/Kratos/Ext/AnimType/AnimStatus.h>
+#include <Misc/Kratos/Ext/Common/CommonStatus.h>
+#include <Misc/Kratos/Ext/TechnoType/TechnoStatus.h>
+
 void AnimExtData::OnInit(AnimClass* pThis, CoordStruct* pCoord)
 {
 	if (!pThis->Type)
@@ -910,6 +915,8 @@ ASMJIT_PATCH(0x422058, AnimClass_CTOR, 0x5)
 			}
 
 		}
+
+		AnimExt::ExtMap.TryAllocate(pItem);
 	}
 	else {
 		PhobosGlobal::Instance()->LastAnimName = "none";
@@ -925,6 +932,7 @@ ASMJIT_PATCH(0x422A52, AnimClass_DTOR, 0x6)
 	GET(AnimClass*, pItem, ESI);
 	AnimExtContainer::Instance.AnimsWithAttachedParticles.remove((FakeAnimClass*)pItem);
 	AnimExtContainer::Instance.Remove(pItem);
+	AnimExt::ExtMap.Remove(pItem);
 	return 0;
 }
 

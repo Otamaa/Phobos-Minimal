@@ -10,12 +10,11 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Infantry/Body.h>
 #include <Ext/Unit/Body.h>
+#include <Ext/Aircraft/Body.h>
 
 #include <Locomotor/Cast.h>
 #include <TerrainTypeClass.h>
 #include <OverlayTypeClass.h>
-
-#include <Misc/DynamicPatcher/Techno/Passengers/PassengersFunctional.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/EnumFunctions.h>

@@ -1,5 +1,6 @@
 #include "Body.h"
 
+#include <Ext/Bullet/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
@@ -78,7 +79,7 @@ ASMJIT_PATCH(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
 		auto const pWeaponSecondary = pThis->GetWeapon(1)->WeaponType;
 		const auto pPrimaryExt = WeaponTypeExtContainer::Instance.Find(pWeaponPrimary);
 
-		if (pWeaponSecondary && !pPrimaryExt->SkipWeaponPicking 
+		if (pWeaponSecondary && !pPrimaryExt->SkipWeaponPicking
 			&& (!EnumFunctions::IsCellEligible(pCell, pPrimaryExt->CanTarget, true, true)
 			|| (pPrimaryExt->AttachEffect_CheckOnFirer && !pPrimaryExt->HasRequiredAttachedEffects(pThis, pThis)))
 			&& (!GET_TECHNOTYPEEXT(pThis)->NoSecondaryWeaponFallback

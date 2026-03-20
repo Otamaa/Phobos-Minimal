@@ -1,6 +1,8 @@
 #include "Body.h"
 
 #include <Ext/Rules/Body.h>
+#include <Ext/House/Body.h>
+#include <Ext/HouseType/Body.h>
 
 std::unique_ptr<ScenarioExtData> ScenarioExtData::Data;
 IStream* ScenarioExtData::g_pStm;

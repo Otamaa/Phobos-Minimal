@@ -28,6 +28,7 @@
 
 #include <AlphaShapeClass.h>
 #include <InfantryClass.h>
+#include <AircraftClass.h>
 
 ASMJIT_PATCH(0x420F75, AlphaLightClass_UpdateScreen_ShouldDraw, 5)
 {

@@ -1,6 +1,7 @@
 
 #include "Header.h"
 
+#include <Ext/Bullet/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
 
@@ -10,6 +11,9 @@
 
 #include <EBolt.h>
 #include <SpawnManagerClass.h>
+#include <RadBeam.h>
+#include <TechnoClass.h>
+#include <LaserDrawClass.h>
 
 void WeaponTypeExtData::FireRadBeam(TechnoClass* pFirer, WeaponTypeClass* pWeapon, CoordStruct& source, CoordStruct& target)
 {

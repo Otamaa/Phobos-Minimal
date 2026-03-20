@@ -7,6 +7,7 @@
 #include <Ext/Super/Body.h>
 #include <Ext/SWType/Body.h>
 #include <Ext/Scenario/Body.h>
+#include <Ext/House/Body.h>
 #include <Ext/HouseType/Body.h>
 #include <Ext/Side/Body.h>
 #include <Misc/PhobosToolTip.h>

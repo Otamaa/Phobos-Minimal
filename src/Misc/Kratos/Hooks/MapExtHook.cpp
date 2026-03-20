@@ -21,6 +21,7 @@
 
 #include <Misc/Kratos/Ext/TechnoType/BuildingRangeData.h>
 
+//TODO : alot
 #ifdef _ENABLE_HOOKS
 
 ASMJIT_PATCH(0x489280, MapClass_DamageArea, 0x6)
@@ -264,7 +265,7 @@ ASMJIT_PATCH(0x6DA3FF, TacticalClass_SelectAt_VirtualUnit, 0x6)
 #pragma region Show Building Range
 ASMJIT_PATCH(0x6D5116, TacticalClass_Draw_Placement_Recheck, 0x5)
 {
-	BuildingTypeClass* pBuildingType = DisplayClass::Display_PendingObject.get();
+	BuildingTypeClass* pBuildingType = Unsorted::Display_PendingObject;
 	if (pBuildingType->WhatAmI() == AbstractType::BuildingType)
 	{
 		BuildingRangeData* data = INI::GetConfig<BuildingRangeData>(INI::Rules, pBuildingType->ID)->Data;
@@ -273,8 +274,8 @@ ASMJIT_PATCH(0x6D5116, TacticalClass_Draw_Placement_Recheck, 0x5)
 			// 获取建筑的四个角
 			int width = pBuildingType->GetFoundationWidth();
 			int height = pBuildingType->GetFoundationHeight(false);
-			CellStruct zoneCell = DisplayClass::Display_ZoneCell.get();
-			CellStruct zoneOffset = DisplayClass::Display_ZoneOffset.get();
+			CellStruct zoneCell = Unsorted::Display_ZoneCell.get();
+			CellStruct zoneOffset = Unsorted::Display_ZoneOffset.get();
 			CellStruct center = zoneCell + zoneOffset;
 			int cellX = center.X;
 			int cellY = center.Y;
@@ -289,9 +290,9 @@ ASMJIT_PATCH(0x6D5116, TacticalClass_Draw_Placement_Recheck, 0x5)
 			CellStruct wCell{ static_cast<short>(cellX - adjust), static_cast<short>(cellY + adjust + height - 1) };
 			// 可视范围
 			DSurface* pSurface = DSurface::Temp;
-			RectangleStruct rect = pSurface->GetRect();
+			RectangleStruct rect = pSurface->Get_Rect();
 			rect.Height -= 34;
-			int color = Drawing::RGB_To_Int(data->Color);
+			int color = data->Color.ToInit();
 			// 开始渲染
 			switch (data->Mode)
 			{
@@ -450,7 +451,7 @@ ASMJIT_PATCH(0x6D5116, TacticalClass_Draw_Placement_Recheck, 0x5)
 			}
 			}
 
-			DisplayClass::Display_PassedProximityCheck.get() = DisplayClass::Instance->Passes_Proximity_Check();
+			Unsorted::Display_PassedProximityCheck.get() = DisplayClass::Instance->PassesProximityCheck();
 		}
 	}
 	return 0;
@@ -462,14 +463,14 @@ ASMJIT_PATCH(0x4A904E, DisplayClass_Passes_Proximity_Check_MobileMCV, 0x5)
 	if (!canBuild && CombatDamage::Data()->AllowUnitAsBaseNormal)
 	{
 		BuildingTypeClass* pBuildingType = nullptr;
-		if ((!TechnoExt::BaseUnitArray.empty() || !TechnoExt::BaseStandArray.empty()) && (pBuildingType = DisplayClass::Display_PendingObject) != nullptr)
+		if ((!TechnoExt::BaseUnitArray.empty() || !TechnoExt::BaseStandArray.empty()) && (pBuildingType = Unsorted::Display_PendingObject) != nullptr)
 		{
 			// 获取建筑建造范围四点坐标
 			// 显示建造范围
 			int width = pBuildingType->GetFoundationWidth();
 			int height = pBuildingType->GetFoundationHeight(false);
-			CellStruct zoneCell = DisplayClass::Display_ZoneCell.get();
-			CellStruct zoneOffset = DisplayClass::Display_ZoneOffset.get();
+			CellStruct zoneCell = Unsorted::Display_ZoneCell.get();
+			CellStruct zoneOffset = Unsorted::Display_ZoneOffset.get();
 			CellStruct center = zoneCell + zoneOffset;
 			int cellX = center.X;
 			int cellY = center.Y;
@@ -489,7 +490,7 @@ ASMJIT_PATCH(0x4A904E, DisplayClass_Passes_Proximity_Check_MobileMCV, 0x5)
 			int maxY = wCell.Y;
 			// 检查单位节点
 			bool found = false;
-			int houseIndex = DisplayClass::Display_PendingHouse;
+			int houseIndex = Unsorted::Display_PendingHouse;
 			for (auto it : TechnoExt::BaseUnitArray)
 			{
 				found = CanBeBase(it.first, it.second, houseIndex, minX, maxX, minY, maxY);
@@ -518,4 +519,5 @@ ASMJIT_PATCH(0x4A904E, DisplayClass_Passes_Proximity_Check_MobileMCV, 0x5)
 	return 0;
 }
 #pragma endregion
+
 #endif

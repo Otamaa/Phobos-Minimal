@@ -2,7 +2,7 @@
 
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
-
+#include <Ext/Aircraft/Body.h>
 // TODO : revisit
 // ASMJIT_PATCH_AGAIN(0x6B73B9, SpawnManagerClass_AI_SpawnTimer, 0x5)
 // ASMJIT_PATCH(0x6B73A8, SpawnManagerClass_AI_SpawnTimer, 0x5)

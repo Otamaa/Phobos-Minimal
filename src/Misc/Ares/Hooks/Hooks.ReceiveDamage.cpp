@@ -31,6 +31,7 @@
 #include <Ext/TerrainType/Body.h>
 #include <Ext/AircraftType/Body.h>
 #include <Ext/Aircraft/Body.h>
+#include <Ext/House/Body.h>
 
 #include <Ext/SWType/NewSuperWeaponType/Firewall.h>
 
@@ -40,7 +41,6 @@
 
 #include <Misc/Hooks.Otamaa.h>
 #include <Misc/DamageArea.h>
-#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
 
 #include <New/Entity/FlyingStrings.h>
 #include <New/Type/ArmorTypeClass.h>
@@ -853,9 +853,6 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 		}
 	}
 
-	if(!pThis->Transporter)
-		GiftBoxFunctional::TakeDamage(pExt, pTypeExt, warhead, _res);
-
 	if (source && !pWHExt->Nonprovocative) {
 		pThis->Owner->UpdateAngerNodes((int)(pType->GetCost() * ((double)*damage / pType->Strength)),sourceHouse);
 	}
@@ -958,8 +955,6 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 	{
 		if (pWHExt->Supress_LostEva.Get())
 			pExt->SupressEVALost = true;
-
-		GiftBoxFunctional::Destroy(pExt, pTypeExt);
 
 		if(!pExt->PhobosAE.empty()){
 			std::vector<std::pair<WeaponTypeClass*, TechnoClass*>> expireWeapons {};

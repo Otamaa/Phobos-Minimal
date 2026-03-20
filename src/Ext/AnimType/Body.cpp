@@ -11,6 +11,7 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
+#include <Ext/House/Body.h>
 
 #include <Locomotor/Cast.h>
 #include <Locomotor/JumpjetLocomotionClass.h>
@@ -739,29 +740,3 @@ void AnimTypeExtContainer::WriteToINI(AnimTypeClass* key, CCINIClass* pINI)
 		ptr->WriteToINI(pINI);
 	}
 }
-
-ASMJIT_PATCH(0x42784B, AnimTypeClass_CTOR, 0x5)
-{
-	GET(AnimTypeClass*, pItem, EAX);
-	AnimTypeExtContainer::Instance.Allocate(pItem);
-	return 0;
-
-}
-
-ASMJIT_PATCH(0x428EA8, AnimTypeClass_SDDTOR, 0x5)
-{
-	GET(AnimTypeClass*, pItem, ECX);
-
-	AnimTypeExtContainer::Instance.Remove(pItem);
-
-	return 0;
-}
-
-bool FakeAnimTypeClass::_ReadFromINI(CCINIClass* pINI)
-{
-	bool status = this->AnimTypeClass::LoadFromINI(pINI);
-	AnimTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
-	return status;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E366C, FakeAnimTypeClass::_ReadFromINI)

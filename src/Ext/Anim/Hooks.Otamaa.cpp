@@ -21,6 +21,11 @@
 
 #include <Memory.h>
 
+#include <Misc/Kratos/Ext/AnimType/ExpireAnimData.h>
+#include <Misc/Kratos/Ext/AnimType/AnimStatus.h>
+#include <Misc/Kratos/Ext/Common/CommonStatus.h>
+#include <Misc/Kratos/Ext/TechnoType/TechnoStatus.h>
+#include <Misc/Kratos/Extension/AnimExt.h>
 
 ASMJIT_PATCH(0x685078, Generate_OreTwinkle_Anims, 0x7)
 {
@@ -576,6 +581,13 @@ bool NOINLINE UpdateLoopDelay(FakeAnimClass* pThis) {
 	return false;
 }
 
+void OnDone(AnimClass* pThis)
+{
+	if (auto pExt = AnimExt::ExtMap.Find(pThis))
+		pExt->_GameObject->Foreach([](Component* c)
+			{ c->OnUpdateEnd(); });
+}
+
 void FakeAnimClass::_AI()
 {
 	if (this->IsAlive) {
@@ -584,7 +596,13 @@ void FakeAnimClass::_AI()
 			this->__ToDelete_197 = true;
 			this->TimeToDie = true;
 			this->UnInit();
+			OnDone(this);
 			return;
+		}
+
+		if (auto pExt = AnimExt::ExtMap.Find(this)) {
+			pExt->_GameObject->Foreach([](Component* c)
+				{ c->OnUpdate(); });
 		}
 
 		if (!this->IsPlaying) {
@@ -637,6 +655,7 @@ void FakeAnimClass::_AI()
 
 				this->TimeToDie = true;
 				this->UnInit();
+				OnDone(this);
 				return;
 			}
 		}
@@ -652,15 +671,18 @@ void FakeAnimClass::_AI()
 		if (this->__ToDelete_197) {
 			this->TimeToDie = true;
 			this->UnInit();
-			return;
+			OnDone(this);
+			return;;
 		}
 
 		if (this->SkipProcessOnce) {
 			this->SkipProcessOnce = false;
+			OnDone(this);
 			return;
 		}
 
 		if (UpdateLoopDelay(this)) {
+			OnDone(this);
 			return;
 		}
 
@@ -679,8 +701,16 @@ void FakeAnimClass::_AI()
 				}
 			}
 
+			if (auto pExt = AnimExt::ExtMap.Find(this))
+			{
+				auto pNextType = this->Type->Next;
+				pExt->_GameObject->Foreach([&](Component* c)
+					{ if (auto cc = dynamic_cast<IAnimScript*>(c)) { cc->OnNext(pNextType); } });
+			}
+
 			if (this->Type->End == -1)
 			{
+
 				if(auto pImage = this->Type->GetImage())
 					this->Type->End = pImage->Frames;
 
@@ -697,13 +727,17 @@ void FakeAnimClass::_AI()
 
 			if (!this->PowerOff && !this->Paused)
 			{
-				if (!this->Animation.Update())
+				if (!this->Animation.Update()){
+					OnDone(this);
 					return;
+				}
 
 				if (this->Type->Damage > 0.0 && !this->HasExtras && !this->InLimbo) {
 					AnimExtData::DealDamageDelay(this);
-					if (!this->IsAlive)
+					if (!this->IsAlive) {
+						OnDone(this);
 						return;
+					}
 				}
 
 				if (this->Type->MiddleFrameIndex
@@ -713,11 +747,13 @@ void FakeAnimClass::_AI()
 				}
 
 				if (PingPong(this)) {
+					OnDone(this);
 					return;
 				}
 
 				if (StageLoops(this)){
 					if (ReverseAndShadow(this)) {
+						OnDone(this);
 						return;
 					}
 				}
@@ -725,6 +761,11 @@ void FakeAnimClass::_AI()
 				if (this->RemainingIterations && this->RemainingIterations != UCHAR_MAX) this->RemainingIterations--;
 				if (this->RemainingIterations)
 				{
+					if (auto pExt = AnimExt::ExtMap.Find(this)) {
+						pExt->_GameObject->Foreach([](Component* c)
+							{ if (auto cc = dynamic_cast<IAnimScript*>(c)) { cc->OnLoop(); } });
+					}
+
 					if (this->Type->Reverse || this->Reverse)
 					{
 						this->Animation.Stage = this->Type->LoopEnd;
@@ -739,10 +780,16 @@ void FakeAnimClass::_AI()
 						this->LoopDelay = ScenarioClass::Instance->Random.RandomRanged(this->Type->RandomLoopDelay);
 					}
 
+					OnDone(this);
 					return;
 				}
 
 				this->_GetExtData()->OnEnd();
+				if (auto pExt = AnimExt::ExtMap.Find(this))
+				{
+					pExt->_GameObject->Foreach([](Component* c)
+						{ if (auto cc = dynamic_cast<IAnimScript*>(c)) { cc->OnDone(); } });
+				}
 
 				if (const auto pNext = this->Type->Next)
 				{
@@ -785,6 +832,7 @@ void FakeAnimClass::_AI()
 						this->_GetExtData()->DamagingState.Start(damagedelay);
 					}
 					this->_Start();
+					OnDone(this);
 					return;
 				}
 
@@ -792,9 +840,12 @@ void FakeAnimClass::_AI()
 
 				this->TimeToDie = true;
 				this->UnInit();
+				OnDone(this);
 			}
 		}
 	}
+
+
 }
 
 int FakeAnimClass::_BounceAI()

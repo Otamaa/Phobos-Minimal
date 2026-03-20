@@ -84,9 +84,6 @@ bool ParticleTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	}
 
 	this->LaserTrail_Types.Read(exINI, pID, "LaserTrail.Types");
-
-	this->Trails.Read(exINI, pID, false);
-
 	this->Palette.Read(exINI, pID, "Palette");
 	this->DamageRange.Read(exINI, pID, "DamageRange");
 
@@ -122,7 +119,6 @@ void ParticleTypeExtData::Serialize(T& Stm)
 		.Process(this->TransmogrifyType)
 		.Process(this->TransmogrifyOwner)
 		.Process(this->Fire_DamagingAnim)
-		.Process(this->Trails)
 		;
 
 

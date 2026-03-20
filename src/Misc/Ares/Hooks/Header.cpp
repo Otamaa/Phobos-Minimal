@@ -26,6 +26,9 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/Aircraft/Body.h>
+#include <Ext/Infantry/Body.h>
+#include <Ext/Unit/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
@@ -46,6 +49,8 @@
 #include <Ext/Bomb/Body.h>
 #include <Ext/CaptureManager/Body.h>
 #include <Ext/Scenario/Body.h>
+#include <Ext/House/Body.h>
+#include <Ext/HouseType/Body.h>
 
 #include <New/Type/ArmorTypeClass.h>
 #include <New/Type/GenericPrerequisite.h>
@@ -4100,8 +4105,6 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	if (pExt->PassengerDeletionTimer.HasStarted()
 	&& !pToTypeExt->PassengerDeletionType.Enabled && pToTypeExt->PassengerDeletionType.Rate <= 0)
 		pExt->PassengerDeletionTimer.Stop();
-
-	TrailsManager::Construct(static_cast<TechnoClass*>(pThis), true);
 
 	// Adjust ammo
 	const int originalAmmo = pThis->Ammo;

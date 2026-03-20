@@ -3,16 +3,18 @@
 
 #include <Helpers/Macro.h>
 
+#include <Utilities/OptionalStruct.h>
 #include <Utilities/TemplateDefB.h>
 #include <Utilities/PhobosMap.h>
 #include <Utilities/SavegameDef.h>
 
 #include <New/Type/LaserTrailTypeClass.h>
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 
 #include <Ext/Bullet/Trajectories/PhobosTrajectory.h>
 
 #include <Ext/ObjectType/Body.h>
+
+#include <ConvertClass.h>
 
 class BulletTypeExtData final : public ObjectTypeExtData
 {
@@ -28,8 +30,7 @@ public:
 #pragma region ClassMembers
 	// ============================================================
 	// Large aggregates (unknown internal alignment)
-	// ============================================================
-	TrailsReader Trails;
+	// ============================================================;
 
 	// ============================================================
 	// 8-byte aligned: unique_ptr
@@ -160,7 +161,6 @@ public:
 	BulletTypeExtData(BulletTypeClass* pObj)
 		: ObjectTypeExtData(pObj)
 		// Large aggregates
-		, Trails()
 		// unique_ptr
 		, TrajectoryType(nullptr)
 		// Vectors

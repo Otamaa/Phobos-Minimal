@@ -3,17 +3,7 @@
 #include <Utilities/Macro.h>
 
 #include <Ext/WeaponType/Body.h>
-#include <Misc/DynamicPatcher/Techno/DamageSelf/DamageSelfType.h>
-#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
-#include <Misc/DynamicPatcher/Techno/ExtraFire/ExtraFirefunctional.h>
-#include <Misc/DynamicPatcher/Techno/SpawnSupport/SpawnSupportFunctional.h>
-#include <Misc/DynamicPatcher/Techno/JumjetFaceTarget/JJFacingToTargetFunctional.h>
-#include <Misc/DynamicPatcher/Techno/Passengers/PassengersFunctional.h>
-//#include <Misc/DynamicPatcher/Techno/FireSW/FireSWFunctional.h>
-#include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDiveFunctional.h>
-#include <Misc/DynamicPatcher/Techno/AircraftPut/AircraftPutDataFunctional.h>
-//#include <Misc/DynamicPatcher/Techno/AttackBeacon/AttackBeaconFunctional.h>
-
+#include <Ext/Techno/Body.h>
 #include <SpawnManagerClass.h>
 
 /*
@@ -74,7 +64,6 @@ ASMJIT_PATCH(0x69252D, ScrollClass_ProcessClickCoords_VirtualUnit, 0x8)
 #endif
 
 
-
 static bool CeaseFire(TechnoClass* pThis)
 {
 	bool bCeaseFire = false;
@@ -98,44 +87,44 @@ ASMJIT_PATCH(0x6FC339, TechnoClass_CanFire_DP, 0x6) //8
  	GET(SpawnManagerClass*, pSpawn, ESI);
  	//GET_STACK(int, nArrIdx, STACK_OFFS(0x68, 0x54));
 
- 	if (auto pOwner = pSpawn->Owner)
- 	{
- 		//if ((*pFLH) == CoordStruct::Empty)
- 		{
- 			auto pTypeExt = GET_TECHNOTYPEEXT(pOwner);
+ 	//if (auto pOwner = pSpawn->Owner)
+ 	//{
+ 	//	//if ((*pFLH) == CoordStruct::Empty)
+ 	//	{
+ 	//		auto pTypeExt = GET_TECHNOTYPEEXT(pOwner);
 
- 			if (pTypeExt->MySpawnSupportDatas.Enable)
- 			{
- 				//CoordStruct nFLH = CoordStruct::Empty;
+ 	//		if (pTypeExt->MySpawnSupportDatas.Enable)
+ 	//		{
+ 	//			//CoordStruct nFLH = CoordStruct::Empty;
 
- 				SpawnSupportFLHData nFLHData = pTypeExt->MySpawnSupportFLH;
- 				if (auto const pTransporter = pOwner->Transporter)
- 				{
- 					if (auto const pTransportExt = GET_TECHNOTYPEEXT(pTransporter))
- 					{
- 						nFLHData = pTransportExt->MySpawnSupportFLH;
- 					}
- 				}
+ 	//			//SpawnSupportFLHData nFLHData = pTypeExt->MySpawnSupportFLH;
+ 	//			if (auto const pTransporter = pOwner->Transporter)
+ 	//			{
+ 	//				if (auto const pTransportExt = GET_TECHNOTYPEEXT(pTransporter))
+ 	//				{
+ 	//					nFLHData = pTransportExt->MySpawnSupportFLH;
+ 	//				}
+ 	//			}
 
- 				CoordStruct nFLH = pOwner->Veterancy.IsElite() ? nFLHData.EliteSpawnSupportFLH : nFLHData.SpawnSupportFLH;
+ 	//			CoordStruct nFLH = pOwner->Veterancy.IsElite() ? nFLHData.EliteSpawnSupportFLH : nFLHData.SpawnSupportFLH;
 
- 				if (nFLH == CoordStruct::Empty)
- 					return 0x0;
+ 	//			if (nFLH == CoordStruct::Empty)
+ 	//				return 0x0;
 
- 				if (auto pSpawnExt = TechnoExtContainer::Instance.Find(pOwner))
- 				{
- 					if (pTypeExt->MySpawnSupportDatas.SwitchFLH)
- 					{
- 						nFLH.Y *= pSpawnExt->MySpawnSuport.supportFLHMult;
- 						pSpawnExt->MySpawnSuport.supportFLHMult *= -1;
- 					}
- 				}
+ 	//			if (auto pSpawnExt = TechnoExtContainer::Instance.Find(pOwner))
+ 	//			{
+ 	//				if (pTypeExt->MySpawnSupportDatas.SwitchFLH)
+ 	//				{
+ 	//					nFLH.Y *= pSpawnExt->MySpawnSuport.supportFLHMult;
+ 	//					pSpawnExt->MySpawnSuport.supportFLHMult *= -1;
+ 	//				}
+ 	//			}
 
- 				R->EAX(&nFLH);
- 				return 0x6B7498;
- 			}
- 		}
- 	}
+ 	//			R->EAX(&nFLH);
+ 	//			return 0x6B7498;
+ 	//		}
+ 	//	}
+ 	//}
 
 
  	return 0x0;
@@ -218,16 +207,16 @@ ASMJIT_PATCH(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
 	//GET(AbstractClass*, pTarget, EDI);
 
 	CalculatePinch::Calc(pThis, nWeapon);
-	ExtraFirefunctional::GetWeapon(pThis, pTarget, nWeapon);
+	//ExtraFirefunctional::GetWeapon(pThis, pTarget, nWeapon);
 	//FireSWFunctional::OnFire(pThis, pTarget, nWeapon);
-	SpawnSupportFunctional::OnFire(pThis, pTarget);
+	//SpawnSupportFunctional::OnFire(pThis, pTarget);
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	//if ()
 	//{
 		pExt->CurrentWeaponIdx = nWeapon;
 		auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 		{
-			AircraftDiveFunctional::OnFire(pExt, pTypeExt, pTarget, nWeapon);
+			//AircraftDiveFunctional::OnFire(pExt, pTypeExt, pTarget, nWeapon);
 			//AttackBeaconFunctional::OnFire(pExt, pTarget, nWeapon);
 		}
 	//}
@@ -246,13 +235,13 @@ DEFINE_FUNCTION_JUMP(CALL6, 0x6FDD69, GetWeapon_);
  	GET_STACK(CoordStruct*, pCoord, (0x4));
  	//GET_STACK(DirType, faceDir, (0x8));
 
-	auto pExt = TechnoExtContainer::Instance.Find(pThis); {
-		auto pTypeExt = GET_TECHNOTYPEEXT(pThis); {
- 			DamageSelfState::OnPut(pExt->DamageSelfState, pTypeExt->DamageSelfData);
- 			GiftBoxFunctional::Init(pExt, pTypeExt);
- 			AircraftPutDataFunctional::OnPut(pExt, pTypeExt, pCoord);
- 		}
- 	}
+	//auto pExt = TechnoExtContainer::Instance.Find(pThis); {
+	//	auto pTypeExt = GET_TECHNOTYPEEXT(pThis); {
+ //			DamageSelfState::OnPut(pExt->DamageSelfState, pTypeExt->DamageSelfData);
+ //			GiftBoxFunctional::Init(pExt, pTypeExt);
+ //			AircraftPutDataFunctional::OnPut(pExt, pTypeExt, pCoord);
+ //		}
+ //	}
 
  	return 0;
  }

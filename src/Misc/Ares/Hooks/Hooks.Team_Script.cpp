@@ -23,6 +23,7 @@
 #include <Ext/Terrain/Body.h>
 #include <Ext/InfantryType/Body.h>
 #include <Ext/TeamType/Body.h>
+#include <Ext/House/Body.h>
 
 #include <TerrainTypeClass.h>
 #include <Locomotor/HoverLocomotionClass.h>

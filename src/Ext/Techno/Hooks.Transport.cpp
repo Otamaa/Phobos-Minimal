@@ -4,6 +4,9 @@
 #include <Misc/Ares/Hooks/Header.h>
 #include <InfantryClass.h>
 
+#include <Ext/House/Body.h>
+#include <Ext/HouseType/Body.h>
+
 #define SET_THREATEVALS(addr , techreg , name ,size , ret)\
 ASMJIT_PATCH(addr, name, size) {\
 GET(TechnoClass* , pThis , techreg);\
@@ -31,7 +34,6 @@ ASMJIT_PATCH(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
 			pLaserTrail->LastLocation.clear();
 		}
 
-		TrailsManager::Hide((TechnoClass*)pPassenger);
 	}
 
 	return 0;

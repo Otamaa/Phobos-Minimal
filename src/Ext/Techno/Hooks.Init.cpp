@@ -1,10 +1,8 @@
 #include "Body.h"
 
+#include <Ext/Aircraft/Body.h>
 #include <Ext/TechnoType/Body.h>
-
-#include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDiveFunctional.h>
-#include <Misc/DynamicPatcher/Techno/DriveData/DriveDataFunctional.h>
-#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
+#include <Ext/House/Body.h>
 
 #include <InfantryClass.h>
 
@@ -49,6 +47,9 @@ ASMJIT_PATCH(0x442C43, BuildingClass_Init, 0x5)
 {
 	GET(BuildingClass*, pThis, ESI);
 
+	if (!pThis->Owner)
+		Debug::FatalErrorAndExit("Missing Ownership %s[%s]/n", pThis->Type->ID, pThis->Type->Name);
+
 	pThis->TechnoClass::Init();
 
 	auto pBldExt = BuildingExtContainer::Instance.Find(pThis);
@@ -56,13 +57,8 @@ ASMJIT_PATCH(0x442C43, BuildingClass_Init, 0x5)
 	pBldExt->MyPrismForwarding = std::make_unique<PrismForwarding>();
 	pBldExt->MyPrismForwarding->Owner = pThis;
 
-	HouseExtData* pHouseExt = nullptr;
-
-	if (pThis->Owner) {
-		pThis->OwnerCountryIndex = pThis->Owner->Type->ParentIdx;
-		pThis->Owner->AddTracking(pThis);
-		pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
-	}
+	pThis->OwnerCountryIndex = pThis->Owner->Type->ParentIdx;
+	pThis->Owner->AddTracking(pThis);
 
 	if (!pThis->Type)
 		return 0x442D1Bl;

@@ -16,6 +16,7 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
+#include <Ext/House/Body.h>
 #include <Ext/HouseType/Body.h>
 #include <Ext/Side/Body.h>
 #include <Ext/Scenario/Body.h>
@@ -27,6 +28,7 @@
 #include <TaskForceClass.h>
 
 #include <InfantryClass.h>
+#include <AircraftClass.h>
 
 ASMJIT_PATCH(0x4E3560, Game_GetFlagSurface, 5)
 {

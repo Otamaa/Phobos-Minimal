@@ -4,6 +4,7 @@
 #include <Ext/Building/Body.h>
 #include <Ext/Rules/Body.h>
 #include <Ext/SWType/Body.h>
+#include <Ext/House/Body.h>
 
 #include <Utilities/Helpers.h>
 

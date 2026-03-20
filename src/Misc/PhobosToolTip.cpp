@@ -7,6 +7,7 @@
 #include <Ext/Side/Body.h>
 #include <Ext/Surface/Body.h>
 #include <Ext/Scenario/Body.h>
+#include <Ext/House/Body.h>
 
 #include <Utilities/Cast.h>
 

@@ -16,6 +16,7 @@
 #include <Ext/Terrain/Body.h>
 #include <Ext/Tactical/Body.h>
 #include <Ext/Unit/Body.h>
+#include <Ext/House/Body.h>
 
 #include <InfantryClass.h>
 #include <VeinholeMonsterClass.h>
@@ -824,7 +825,7 @@ CoordStruct* FakeUnitClass::_GetFLH(CoordStruct* outBuffer, int weaponIdx, Coord
 	{
 		const auto pTransporter = pThis->Transporter;
 
-		if (pThis->InOpenToppedTransport && pTransporter 
+		if (pThis->InOpenToppedTransport && pTransporter
 			&& GET_TECHNOTYPEEXT(pTransporter)->AlternateFLH_ApplyVehicle)
 		{
 			if (const int idx = pTransporter->Passengers.IndexOf(pThis)) {
@@ -2553,8 +2554,8 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 					case Powerup::Cloak:
 					{
 
-						if (!GET_TECHNOTYPEEXT(pCollector)->CloakAllowed 
-							|| pCollector->CanICloakByDefault() 
+						if (!GET_TECHNOTYPEEXT(pCollector)->CloakAllowed
+							|| pCollector->CanICloakByDefault()
 							|| TechnoExtContainer::Instance.Find(pCollector)->AE.flags.Cloakable)
 							data = Powerup::Money;
 
@@ -2773,7 +2774,7 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 
 								currentPlayer = pCollectorOwner->ControlledByCurrentPlayer();
 							}
-							while (!Given->CrateGoodie || TechnoTypeExtContainer::Instance.Find(Given)->CrateGoodie_RerollChance > 0.0 
+							while (!Given->CrateGoodie || TechnoTypeExtContainer::Instance.Find(Given)->CrateGoodie_RerollChance > 0.0
 								&& TechnoTypeExtContainer::Instance.Find(Given)->CrateGoodie_RerollChance < ScenarioClass::Instance->Random.RandomDouble());
 
 							if (GameModeOptionsClass::Instance->Bases)
@@ -5798,78 +5799,78 @@ ASMJIT_PATCH(0x453E02, BuildingClass_Clear_Occupy_Spot_Skip, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x418072, AircraftClass_Mission_Attack_PickAttackLocation, 0x5)
-{
-	GET(AircraftClass*, pAir, ESI);
+//ASMJIT_PATCH(0x418072, AircraftClass_Mission_Attack_PickAttackLocation, 0x5)
+//{
+//	GET(AircraftClass*, pAir, ESI);
+//
+//	if (!pAir->Type->MissileSpawn && !pAir->Type->Fighter && !pAir->Is_Strafe())
+//	{
+//		AbstractClass* pTarget = pAir->Target;
+//
+//		int weaponIdx = pAir->SelectWeapon(pTarget);
+//		if (pAir->IsCloseEnough(pTarget, weaponIdx))
+//		{
+//			pAir->IsLocked = true;
+//			CoordStruct pos = pAir->GetCoords();
+//			CellClass* pCell = MapClass::Instance->TryGetCellAt(pos);
+//			pAir->SetDestination(pCell, true);
+//			return 0x418087;
+//		}
+//		else if (WeaponTypeClass* pWeapon = pAir->GetWeapon(weaponIdx)->WeaponType)
+//		{
+//			int dest = pAir->DistanceFrom(pAir->Target);
+//			CoordStruct nextPos = CoordStruct::Empty;
+//
+//			if (dest < pWeapon->MinimumRange)
+//			{
+//				CoordStruct flh = CoordStruct::Empty;
+//				flh.X = (int)(pWeapon->Range * 0.5);
+//				nextPos = TechnoExtData::GetFLHAbsoluteCoords(pAir, flh, true);
+//			}
+//			else if (dest > pWeapon->Range)
+//			{
+//				int length = (int)(pWeapon->Range * 0.5);
+//				int flipY = 1;
+//
+//				if (ScenarioClass::Instance->Random.RandomRanged(0, 1) == 1)
+//				{
+//					flipY *= -1;
+//				}
+//
+//				CoordStruct sourcePos = pAir->GetCoords();
+//				int r = (dest - length) * Unsorted::LeptonsPerCell;
+//				r = ScenarioClass::Instance->Random.RandomRanged(0, r);
+//				CoordStruct flh { 0, r * flipY, 0 };
+//				CoordStruct targetPos = pAir->Target->GetCoords();
+//				DirStruct dir = Helpers_DP::Point2Dir(sourcePos, targetPos);
+//				sourcePos = Helpers_DP::GetFLHAbsoluteCoords(sourcePos, flh, dir);
+//				sourcePos.Z = 0;
+//				targetPos.Z = 0;
+//				nextPos = Helpers_DP::GetForwardCoords(targetPos, sourcePos, length);
+//			}
+//			if (!nextPos.IsEmpty())
+//			{
+//				CellClass* pCell = MapClass::Instance->TryGetCellAt(nextPos);
+//				pAir->SetDestination(pCell, true);
+//				return 0x418087;
+//			}
+//		}
+//	}
+//
+//	return 0;
+//}
 
-	if (!pAir->Type->MissileSpawn && !pAir->Type->Fighter && !pAir->Is_Strafe())
-	{
-		AbstractClass* pTarget = pAir->Target;
-
-		int weaponIdx = pAir->SelectWeapon(pTarget);
-		if (pAir->IsCloseEnough(pTarget, weaponIdx))
-		{
-			pAir->IsLocked = true;
-			CoordStruct pos = pAir->GetCoords();
-			CellClass* pCell = MapClass::Instance->TryGetCellAt(pos);
-			pAir->SetDestination(pCell, true);
-			return 0x418087;
-		}
-		else if (WeaponTypeClass* pWeapon = pAir->GetWeapon(weaponIdx)->WeaponType)
-		{
-			int dest = pAir->DistanceFrom(pAir->Target);
-			CoordStruct nextPos = CoordStruct::Empty;
-
-			if (dest < pWeapon->MinimumRange)
-			{
-				CoordStruct flh = CoordStruct::Empty;
-				flh.X = (int)(pWeapon->Range * 0.5);
-				nextPos = TechnoExtData::GetFLHAbsoluteCoords(pAir, flh, true);
-			}
-			else if (dest > pWeapon->Range)
-			{
-				int length = (int)(pWeapon->Range * 0.5);
-				int flipY = 1;
-
-				if (ScenarioClass::Instance->Random.RandomRanged(0, 1) == 1)
-				{
-					flipY *= -1;
-				}
-
-				CoordStruct sourcePos = pAir->GetCoords();
-				int r = (dest - length) * Unsorted::LeptonsPerCell;
-				r = ScenarioClass::Instance->Random.RandomRanged(0, r);
-				CoordStruct flh { 0, r * flipY, 0 };
-				CoordStruct targetPos = pAir->Target->GetCoords();
-				DirStruct dir = Helpers_DP::Point2Dir(sourcePos, targetPos);
-				sourcePos = Helpers_DP::GetFLHAbsoluteCoords(sourcePos, flh, dir);
-				sourcePos.Z = 0;
-				targetPos.Z = 0;
-				nextPos = Helpers_DP::GetForwardCoords(targetPos, sourcePos, length);
-			}
-			if (!nextPos.IsEmpty())
-			{
-				CellClass* pCell = MapClass::Instance->TryGetCellAt(nextPos);
-				pAir->SetDestination(pCell, true);
-				return 0x418087;
-			}
-		}
-	}
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x4181CF, AircraftClass_Mission_Attack_FlyToPostion, 0x5)
-{
-	GET(AircraftClass*, pAir, ESI);
-	if (!pAir->Type->MissileSpawn && !pAir->Type->Fighter)
-	{
-		pAir->MissionStatus = 0x4; // AIR_ATT_FIRE_AT_TARGET0
-		return 0x4181E6;
-	}
-
-	return 0;
-}
+//ASMJIT_PATCH(0x4181CF, AircraftClass_Mission_Attack_FlyToPostion, 0x5)
+//{
+//	GET(AircraftClass*, pAir, ESI);
+//	if (!pAir->Type->MissileSpawn && !pAir->Type->Fighter)
+//	{
+//		pAir->MissionStatus = 0x4; // AIR_ATT_FIRE_AT_TARGET0
+//		return 0x4181E6;
+//	}
+//
+//	return 0;
+//}
 
 DEFINE_JUMP(LJMP, 0x4184FC, 0x418506);
 // ASMJIT_PATCH(0x4184FC, AircraftClass_Mission_Attack_Fire_Zero, 0x6) {
@@ -7758,12 +7759,12 @@ public:
 	{
 		int outcode0 = Compute_Out_Code(point1.X, point1.Y, &rect);
 		int outcode1 = Compute_Out_Code(point2.X, point2.Y, &rect);
-	
+
 		double x0 = point1.X;
 		double y0 = point1.Y;
 		double x1 = point2.X;
 		double y1 = point2.Y;
-	
+
 		while (true)
 		{
 			// Trivial accept
@@ -7773,17 +7774,17 @@ public:
 				point2.X = (int)x1; point2.Y = (int)y1;
 				return true;
 			}
-	
+
 			// Trivial reject
 			if (outcode0 & outcode1)
 				return false;
-	
+
 			// Choose endpoint outside rect
 			int outcodeOut = (outcode0 != CODE_INSIDE) ? outcode0 : outcode1;
-	
+
 			double x = 0.0;
 			double y = 0.0;
-	
+
 			// Find intersection
 			if (outcodeOut & CODE_TOP)           // above clip window
 			{
@@ -7822,7 +7823,7 @@ public:
 				// Safety net: outcodeOut has no directional bits? -> break
 				return false;
 			}
-	
+
 			// Move the outside point to intersection and recalc code
 			if (outcodeOut == outcode0)
 			{

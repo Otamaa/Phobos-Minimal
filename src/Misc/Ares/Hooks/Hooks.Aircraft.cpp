@@ -10,11 +10,13 @@
 #include <Utilities/Debug.h>
 
 #include <Ext/Techno/Body.h>
+#include <Ext/Aircraft/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/Anim/Body.h>
+#include <Ext/Team/Body.h>
 
 #include "Header.h"
 

@@ -12,6 +12,7 @@
 #include <Ext/TechnoType/Body.h>
 
 #include <Locomotor/Cast.h>
+#include <TeamClass.h>
 
 bool  AdvancedDriveLocomotionClass::IsReversing(FootClass* pFoot)
 {

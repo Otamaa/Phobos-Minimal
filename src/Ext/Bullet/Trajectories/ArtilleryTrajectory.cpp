@@ -179,8 +179,8 @@ bool ArtilleryTrajectory::OnAI()
 		pBullet->Unlimbo(pBullet->SourceCoords, static_cast<DirType>(0));
 		pExt->LaserTrails.clear();
 		pExt->InitializeLaserTrails();
-		TrailsManager::CleanUp(pExt->This());
-		TrailsManager::Construct(pExt->This());
+		//TrailsManager::CleanUp(pExt->This());
+		//TrailsManager::Construct(pExt->This());
 
 		this->Init = true;
 	}
@@ -200,7 +200,7 @@ bool ArtilleryTrajectory::OnAI()
 	{
 		auto pBulletExt = BulletExtContainer::Instance.Find(pBullet);
 		pBulletExt->LaserTrails.clear();
-		pBulletExt->Trails.clear();
+		//pBulletExt->Trails.clear();
 
 		return true;
 	}

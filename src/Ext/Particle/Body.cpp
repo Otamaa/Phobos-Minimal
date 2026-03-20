@@ -3,9 +3,9 @@
 #include <Ext/Bullet/Body.h>
 #include <Ext/ParticleType/Body.h>
 #include <Ext/WarheadType/Body.h>
-#include <Utilities/Macro.h>
+#include <Ext/House/Body.h>
 
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
+#include <Utilities/Macro.h>
 
 #include <Phobos.SaveGame.h>
 
@@ -72,7 +72,7 @@ void FakeParticleClass::__AI(){
 			}
 		}
 
-		TrailsManager::AI(this->_AsParticle());
+		//TrailsManager::AI(this->_AsParticle());
 	}
 
 	--this->RemainingEC;
@@ -1079,7 +1079,6 @@ void ParticleExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->LaserTrails)
-		.Process(this->Trails)
 
 		;
 }
@@ -1174,7 +1173,7 @@ ASMJIT_PATCH(0x62BB13, ParticleClass_CTOR, 0x5)
 			}
 		}
 
-		TrailsManager::Construct(pItem);
+		//TrailsManager::Construct(pItem);
 	}
 
 	return 0;

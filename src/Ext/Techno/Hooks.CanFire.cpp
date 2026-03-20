@@ -1,5 +1,6 @@
 #include "Body.h"
 
+#include <Ext/Aircraft/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/Unit/Body.h>
@@ -11,10 +12,7 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/WarheadType/Body.h>
 
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
 #include <Misc/Ares/Hooks/Header.h>
-#include <Misc/DynamicPatcher/Techno/Passengers/PassengersFunctional.h>
 
 #ifdef ATTACHMENT
 ASMJIT_PATCH(0x6FC3F4, TechnoClass_CanFire_HandleAttachmentLogics, 0x6)
@@ -497,9 +495,6 @@ ASMJIT_PATCH(0x6FC31C, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 	//	return FireCant;
 
 	if (!pWeaponExt->SkipWeaponPicking && !TechnoExtData::ObjectHealthAllowFiring(pObjectT, pWeapon))
-		return FireIllegal;
-
-	if (PassengersFunctional::CanFire(pThis))
 		return FireIllegal;
 
 	if (!TechnoExtData::CheckFundsAllowFiring(pThis, pWeapon->Warhead))

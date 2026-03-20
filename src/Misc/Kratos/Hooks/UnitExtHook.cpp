@@ -20,7 +20,7 @@
 #include <Misc/Kratos/Ext/TechnoType/TechnoStatus.h>
 #include <Misc/Kratos/Ext/TechnoType/TurretAngle.h>
 
-#ifdef _ENABLE_HOOKS
+#include <Utilities/Cast.h>
 
 #pragma region Unit Deploy
 ASMJIT_PATCH(0x6FF8F1, TechnoClass_DeployFire, 0x6)
@@ -64,68 +64,45 @@ ASMJIT_PATCH(0x6FF923, TechnoClass_DeployFire_FireOnce, 0x6)
 // }
 #pragma endregion
 
+#ifdef _ENABLE_HOOKS
+
 #pragma region FLH free
-ASMJIT_PATCH(0x6F3B5C, UnitClassClass_GetFLH_UnbindTurret, 0x6)
-{
-	enum { turretMitrix = 0x6F3C1A, nextCheck = 0x6F3B62, takeOver = 0x6F3C52 };
-	GET(TechnoClass*, pTechno, EBX);
-	if (pTechno)
-	{
-		if (TechnoStatus* status = GetStatus<TechnoExt, TechnoStatus>(pTechno))
-		{
-			GET_STACK(int, weaponIdx, 0xE0);
-			status->FLHIndex = weaponIdx;
-			if (pTechno->HasTurret() && status->IsFLHOnBody(weaponIdx))
-			{
-				Matrix3D matrix = GetMatrix3D(pTechno);
-				R->Stack(0x48, matrix);
-				return takeOver;
-			}
-		}
-		return nextCheck;
-	}
-	return turretMitrix;
-}
 
-ASMJIT_PATCH(0x6F3D2F, UnitClassClass_GetFLH_OnTarget, 0x5)
-{
-	GET(TechnoClass*, pTechno, EBX);
-	TechnoStatus* status = nullptr;
-	if (TryGetStatus<TechnoExt>(pTechno, status) && status->IsFLHOnTarget())
-	{
-		GET(CoordStruct*, pRenderCoord, EAX);
-		*pRenderCoord = pTechno->Target->GetCoords();
-	}
-	return 0;
-}
-#pragma endregion
+//need overhaul the TechnoExtData::GetFLHAbsoluteCoords
+//ASMJIT_PATCH(0x6F3B5C, UnitClassClass_GetFLH_UnbindTurret, 0x6)
+//{
+//	enum { turretMitrix = 0x6F3C1A, nextCheck = 0x6F3B62, takeOver = 0x6F3C52 };
+//	GET(TechnoClass*, pTechno, EBX);
+//	if (pTechno)
+//	{
+//		if (TechnoStatus* status = GetStatus<TechnoExt, TechnoStatus>(pTechno))
+//		{
+//			GET_STACK(int, weaponIdx, 0xE0);
+//			status->FLHIndex = weaponIdx;
+//			if (pTechno->HasTurret() && status->IsFLHOnBody(weaponIdx))
+//			{
+//				Matrix3D matrix = GetMatrix3D(pTechno);
+//				R->Stack(0x48, matrix);
+//				return takeOver;
+//			}
+//		}
+//		return nextCheck;
+//	}
+//	return turretMitrix;
+//}
 
-#pragma region Unit explosion anims
-ASMJIT_PATCH(0x738749, UnitClass_Destroy_Explosion_Remap, 0x6)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	GET(AnimClass*, pAnim, EAX);
-	if (pAnim)
-	{
-		pAnim->Owner = pTechno->Owner;
-	}
-	return 0;
-}
-
-// Take over to Create DestroyAnim Anim
-ASMJIT_PATCH(0x738801, UnitClass_Destroy_DestroyAnim_Remap, 0x6)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	if (TechnoStatus* status = GetStatus<TechnoExt, TechnoStatus>(pTechno))
-	{
-		if (status->PlayDestroyAnims())
-		{
-
-			return 0x73887E;
-		}
-	}
-	return 0;
-}
+//need overhaul the TechnoExtData::GetFLHAbsoluteCoords
+//ASMJIT_PATCH(0x6F3D2F, UnitClassClass_GetFLH_OnTarget, 0x5)
+//{
+//	GET(TechnoClass*, pTechno, EBX);
+//	TechnoStatus* status = nullptr;
+//	if (TryGetStatus<TechnoExt>(pTechno, status) && status->IsFLHOnTarget())
+//	{
+//		GET(CoordStruct*, pRenderCoord, EAX);
+//		*pRenderCoord = pTechno->Target->GetCoords();
+//	}
+//	return 0;
+//}
 #pragma endregion
 
 #pragma region UnitClass Disguise
@@ -159,7 +136,7 @@ ASMJIT_PATCH(0x6F4222, TechnoClass_Init_PermaDisguise, 0x7)
 			int sideIndex = pHouse->SideIndex;
 			if (sideIndex >= 0 && SideClass::Array->Count > sideIndex)
 			{
-				std::string sideId = SideClass::Array->GetItem(sideIndex)->ID;
+				std::string sideId = SideClass::Array->Items[sideIndex]->ID;
 				DisguiseData* sideData = INI::GetConfig<DisguiseData>(INI::Rules, sideId.c_str())->Data;
 				if (IsNotNone(sideData->DefaultUnitDisguise))
 				{
@@ -280,7 +257,7 @@ ASMJIT_PATCH(0x736BCA, UnitClass_Rotation_SetTurretFacing_NoTargetAndStanding, 0
 	if (TryGetScript<TechnoExt, TurretAngle>(pTechno, status) && status->ChangeDefaultDir)
 	{
 		// 炮塔转到指定角度，非车体前方
-		pTechno->SecondaryFacing.SetDesired(status->LockTurretDir);
+		pTechno->SecondaryFacing.Set_Desired(status->LockTurretDir);
 		return 0x736BE2;
 	}
 	return 0;
@@ -294,7 +271,7 @@ ASMJIT_PATCH(0x736BBB, UnitClass_Rotation_SetTurretFacing_NoTargetAndMoving, 0x5
 	if (TryGetScript<TechnoExt, TurretAngle>(pTechno, status) && status->LockTurret)
 	{
 		// 炮塔转到指定角度，非车体前方
-		pTechno->SecondaryFacing.SetDesired(status->LockTurretDir);
+		pTechno->SecondaryFacing.Set_Desired(status->LockTurretDir);
 		return 0x736BE2;
 	}
 	return 0;
@@ -463,7 +440,7 @@ ASMJIT_PATCH(0x73BDA3, UnitClass_DrawVoxel_TurretFacing, 0x5)
 			// 伪装的对象有炮塔，将身体的朝向赋给炮塔
 			GET(DirStruct*, pDir, EAX);
 			DirStruct dir = pTechno->PrimaryFacing.Current();
-			pDir->SetValue(dir.GetValue());
+			pDir->SetDir(16,dir.GetValue());
 		}
 	}
 	return 0;
@@ -520,6 +497,9 @@ ASMJIT_PATCH(0x706724, TechnoClass_Draw_VXL_Disguise_Blit_Flags, 0x5)
 }
 #pragma endregion
 
+#endif
+
+#include <Locomotor/JumpjetLocomotionClass.h>
 
 ASMJIT_PATCH(0x73C485, UnitClass_Draw_Voxel_Shadow_WO_Skip, 0x8)
 {
@@ -543,7 +523,7 @@ ASMJIT_PATCH(0x73C485, UnitClass_Draw_Voxel_Shadow_WO_Skip, 0x8)
 ASMJIT_PATCH(0x700E8B, TechnoClass_CanDeploy_Carryall_Drop, 0x6)
 {
 	GET(TechnoTypeClass*, pType, EAX);
-	if (pType->Passengers == 0 && pType->BalloonHover && pType->Locomotor == LocomotionClass::CLSIDs::Jumpjet)
+	if (pType->Passengers == 0 && pType->BalloonHover && pType->Locomotor == JumpjetLocomotionClass::ClassGUID())
 	{
 		GET(TechnoClass*, pTechno, ESI);
 		JumpjetCarryall* carry = GetScript<TechnoExt, JumpjetCarryall>(pTechno);
@@ -747,4 +727,3 @@ ASMJIT_PATCH(0x73D317, UnitClass_Draw_It, 0x6)
 // }
 
 #pragma endregion // Balloon Jumpjet Carryall and Landing
-#endif

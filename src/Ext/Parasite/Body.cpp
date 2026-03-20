@@ -14,6 +14,7 @@
 #include <Ext/WeaponType/Body.h>
 
 #include <InfantryClass.h>
+#include <TeamClass.h>
 
 void TechnoExtData::DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 {

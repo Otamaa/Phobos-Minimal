@@ -10,7 +10,7 @@
 
 ASMJIT_PATCH(0x74AEB0, VoxelAnimTypeClass_CTOR, 0xB)
 {
-	if (!Common::IsLoadGame)
+	if (!Phobos::Otamaa::DoingLoadGame)
 	{
 		GET(VoxelAnimTypeClass *, pItem, ESI);
 

@@ -8,6 +8,7 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/TEvent/Body.h>
+#include <Ext/House/Body.h>
 
 #include <Utilities/GeneralUtils.h>
 

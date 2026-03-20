@@ -6,6 +6,9 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/House/Body.h>
+#include <Ext/BulletType/Body.h>
+#include <Ext/Aircraft/Body.h>
 
 #include <TeamTypeClass.h>
 #include <InfantryClass.h>

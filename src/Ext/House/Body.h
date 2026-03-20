@@ -9,6 +9,7 @@
 #include <Utilities/TemplateDef.h>
 #include <Utilities/VectorHelper.h>
 #include <Utilities/VectorSet.h>
+#include <Utilities/PlacingBuildingStruct.h>
 
 #include <New/Entity/NewTiberiumStorageClass.h>
 #include <New/Entity/TrackerClass.h>
@@ -76,37 +77,6 @@ private:
 		return Stm
 			.Process(Vector)
 			.Process(MaxCap)
-			.Success()
-			//&& Stm.RegisterChange(this)
-			; // announce this type
-	}
-};
-
-struct PlacingBuildingStruct
-{
-	BuildingTypeClass* Type;
-	BuildingTypeClass* DrawType;
-	int Times;
-	CDTimerClass Timer;
-	CellStruct TopLeft;
-
-	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{ return Serialize(Stm); }
-
-	bool Save(PhobosStreamWriter& Stm) const
-	{ return const_cast<PlacingBuildingStruct*>(this)->Serialize(Stm); }
-
-private:
-
-	template <typename T>
-	bool Serialize(T& Stm)
-	{
-		return Stm
-			.Process(Type)
-			.Process(DrawType)
-			.Process(Times)
-			.Process(Timer)
-			.Process(TopLeft)
 			.Success()
 			//&& Stm.RegisterChange(this)
 			; // announce this type

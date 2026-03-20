@@ -5,7 +5,9 @@
 #include <FactoryClass.h>
 
 #include <Helpers/Macro.h>
+
 #include <Utilities/TemplateDef.h>
+#include <Utilities/PlacingBuildingStruct.h>
 
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
@@ -314,7 +316,7 @@ public:
 			this->QueueBState = BStateType::None;
 			this->QueuedMission = Mission::None;
 		}
-	
+
 		// Fix : update powered anims
 		//if (res && (this->Type->Powered || this->Type->PoweredSpecial))
 		//	this->UpdatePowerDown();

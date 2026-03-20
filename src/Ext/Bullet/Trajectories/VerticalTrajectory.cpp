@@ -108,8 +108,8 @@ void VerticalTrajectory::OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPos
 
 			pExt->LaserTrails.clear();
 			pExt->InitializeLaserTrails();
-			TrailsManager::CleanUp(pExt->This());
-			TrailsManager::Construct(pExt->This());
+			//TrailsManager::CleanUp(pExt->This());
+			//TrailsManager::Construct(pExt->This());
 
 		}
 	}

@@ -6,6 +6,7 @@
 #include <FootClass.h>
 #include <AircraftClass.h>
 #include <MapClass.h>
+#include <ObjectTypeClass.h>
 
 #include <Misc/Kratos/Kratos.h>
 #include <Utilities/Macro.h>
@@ -19,6 +20,7 @@
 #include <Misc/Kratos/Ext/TechnoType/AircraftDive.h>
 #include <Misc/Kratos/Ext/TechnoType/AircraftGuard.h>
 
+#include <Locomotor/Cast.h>
 
 ASMJIT_PATCH(0x639DD8, PlanningManager_AllowAircraftsWaypoint, 0x5)
 {
@@ -37,7 +39,7 @@ ASMJIT_PATCH(0x639DD8, PlanningManager_AllowAircraftsWaypoint, 0x5)
 	return 0x639E03;
 }
 
-#ifdef _ENABLE_HOOKS
+#ifndef _ENABLE_HOOKS
 
 #pragma region DrawShadow
 // Phobos took over the entire shadow rendering process, so skip Phobos's Hook here
@@ -48,7 +50,7 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow_SkipPhobos, 0x5)
 		GET(UnitClass*, pThis, EBP);
 		int height = pThis->GetHeight();
 		R->EAX(height);
-		ILocomotion* pLoco = pThis->Locomotor.get();
+		ILocomotion* pLoco = pThis->Locomotor;
 		if (pThis->CloakState != CloakState::Uncloaked || pThis->Type->NoShadow || !pLoco->Is_To_Have_Shadow())
 		{
 			// 彻底跳过阴影绘制过程，不论是Phobos还是原版
@@ -66,7 +68,7 @@ ASMJIT_PATCH(0x4147F9, AircraftClass_Draw_Shadow_SkipPhobos, 0x6)
 	if (AudioVisual::Data()->AllowTakeoverPhobosShadowMaker)
 	{
 		GET(AircraftClass*, pThis, EBP);
-		ILocomotion* pLoco = pThis->Locomotor.get();
+		ILocomotion* pLoco = pThis->Locomotor;
 		R->EAX(pLoco);
 		if (pThis->Type->NoShadow || pThis->CloakState != CloakState::Uncloaked || pThis->IsSinking || !pLoco->Is_To_Have_Shadow())
 		{
@@ -114,12 +116,12 @@ ASMJIT_PATCH(0x414876, TechnoClass_DrawShadow, 0x7) // Aircraft
 			float x = 0; // 倾转轴
 			float y = 0; // 俯仰轴
 			// 火箭的俯仰角度，由RocketLoco记录
-			if (RocketLocomotionClass* rLoco = locomotion_cast<RocketLocomotionClass*>(pFoot->Locomotor.get()))
+			if (RocketLocomotionClass* rLoco = locomotion_cast<RocketLocomotionClass*>(pFoot->Locomotor))
 			{
 				x = pTechno->AngleRotatedSideways;
 				y = rLoco->CurrentPitch;
 			}
-			else if (FlyLocomotionClass* fLoco = locomotion_cast<FlyLocomotionClass*>(pFoot->Locomotor.get()))
+			else if (FlyLocomotionClass* fLoco = locomotion_cast<FlyLocomotionClass*>(pFoot->Locomotor))
 			{
 				if (fLoco->Is_Moving_Now())
 				{
@@ -166,7 +168,7 @@ ASMJIT_PATCH(0x414876, TechnoClass_DrawShadow, 0x7) // Aircraft
 			}
 			if (scaleY != 1.0 || scaleX != 1.0)
 			{
-				pType->DestroyVoxelShadowCache();
+				pType->ReleaseAllVoxelCaches();
 			}
 		}
 	}
@@ -228,44 +230,44 @@ ASMJIT_PATCH(0x4CF3E3, FlyLocomotionClass_FlightLevel_ResetB, 0x9)
 	return 0;
 }
 
-ASMJIT_PATCH(0x4CF3C5, FlyLocomotionClass_4CEFB0, 0x6)
-{
-	// 调整飞机的朝向，有目标时获取目标的朝向，没有目标时获得默认朝向，此时EAX为0
-	// EAX是目标DirStruct的指针
-	// ECX是当前Facing的指针
-	// ESI是飞机的指针的指针
-	GET(DirStruct*, pDirEAX, EAX);
-	if (!pDirEAX)
-	{
-		GET(DirStruct*, pDir, EDX);
-		GET(TechnoClass**, ppTechno, ESI);
-		TechnoClass* pTechno = *ppTechno;
-		// 如果是Spawnd就全程强制执行
-		// Mission是Enter的普通飞机就不管
-		if (pTechno->IsInAir()
-			&& (pTechno->GetTechnoType()->Spawned || pTechno->CurrentMission != Mission::Enter))
-		{
-			pDir->SetValue(pTechno->SecondaryFacing.Current().GetValue());
-		}
-	}
-	return 0;
-}
+//ASMJIT_PATCH(0x4CF3C5, FlyLocomotionClass_4CEFB0, 0x6)
+//{
+//	// 调整飞机的朝向，有目标时获取目标的朝向，没有目标时获得默认朝向，此时EAX为0
+//	// EAX是目标DirStruct的指针
+//	// ECX是当前Facing的指针
+//	// ESI是飞机的指针的指针
+//	GET(DirStruct*, pDirEAX, EAX);
+//	if (!pDirEAX)
+//	{
+//		GET(DirStruct*, pDir, EDX);
+//		GET(TechnoClass**, ppTechno, ESI);
+//		TechnoClass* pTechno = *ppTechno;
+//		// 如果是Spawnd就全程强制执行
+//		// Mission是Enter的普通飞机就不管
+//		if (pTechno->IsInAir()
+//			&& (pTechno->GetTechnoType()->Spawned || pTechno->CurrentMission != Mission::Enter))
+//		{
+//			pDir->SetDir(16,pTechno->SecondaryFacing.Current().GetValue());
+//		}
+//	}
+//	return 0;
+//}
 
 // Hook address form Otamma
-ASMJIT_PATCH(0x41B760, IFlyControl_Landing_Direction, 0x6)
-{
-	GET_STACK(IFlyControl*, pAircraft, 0x4); // IFlyControl*
-	int poseDir = RulesClass::Instance->PoseDir;
-	AircraftAttitude* attitude = nullptr;
-	TechnoClass* pTechno = static_cast<AircraftClass*>(pAircraft);
-	if (TryGetScript<TechnoExt, AircraftAttitude>(pTechno, attitude)
-		&& attitude->TryGetAirportDir(poseDir))
-	{
-		R->EAX(poseDir);
-		return 0x41B7C1;
-	}
-	return 0;
-}
+//ASMJIT_PATCH(0x41B760, IFlyControl_Landing_Direction, 0x6)
+//{
+//	GET_STACK(IFlyControl*, pAircraft, 0x4); // IFlyControl*
+//	int poseDir = RulesClass::Instance->PoseDir;
+//	AircraftAttitude* attitude = nullptr;
+//	TechnoClass* pTechno = static_cast<AircraftClass*>(pAircraft);
+//	if (TryGetScript<TechnoExt, AircraftAttitude>(pTechno, attitude)
+//		&& attitude->TryGetAirportDir(poseDir))
+//	{
+//		R->EAX(poseDir);
+//		return 0x41B7C1;
+//	}
+//	return 0;
+//}
 
 #pragma endregion
 
@@ -319,215 +321,5 @@ ASMJIT_PATCH(0x4CF780, FlyLocomotionClass_Draw_Matrix_Rolling, 0x5)
 }
 
 #pragma endregion
-
-ASMJIT_PATCH(0x418478, AircraftClass_Mission_Attack_Fire_Imcoming_0, 0x6)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	AbstractClass* pTarget = pTechno->Target;
-	int weaponIdx = pTechno->SelectWeapon(pTarget);
-	WeaponStruct* pWeapon = pTechno->GetWeapon(weaponIdx);
-	if (pWeapon && pWeapon->WeaponType && pWeapon->WeaponType->Damage <= 0)
-	{
-		// skip scatter target cell
-		return 0x4184C2;
-	}
-	return 0;
-}
-
-ASMJIT_PATCH(0x4186D7, AircraftClass_Mission_Attack_Fire_Imcoming_1, 0x6)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	AbstractClass* pTarget = pTechno->Target;
-	int weaponIdx = pTechno->SelectWeapon(pTarget);
-	WeaponStruct* pWeapon = pTechno->GetWeapon(weaponIdx);
-	if (pWeapon && pWeapon->WeaponType && pWeapon->WeaponType->Damage <= 0)
-	{
-		// skip scatter target cell
-		return 0x418720;
-	}
-	return 0;
-}
-
-ASMJIT_PATCH(0x418826, AircraftClass_Mission_Attack_Fire_Imcoming_2, 0x6)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	AbstractClass* pTarget = pTechno->Target;
-	int weaponIdx = pTechno->SelectWeapon(pTarget);
-	WeaponStruct* pWeapon = pTechno->GetWeapon(weaponIdx);
-	if (pWeapon && pWeapon->WeaponType && pWeapon->WeaponType->Damage <= 0)
-	{
-		// skip scatter target cell
-		return 0x418870;
-	}
-	return 0;
-}
-
-ASMJIT_PATCH(0x418935, AircraftClass_Mission_Attack_Fire_Imcoming_3, 0x6)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	AbstractClass* pTarget = pTechno->Target;
-	int weaponIdx = pTechno->SelectWeapon(pTarget);
-	WeaponStruct* pWeapon = pTechno->GetWeapon(weaponIdx);
-	if (pWeapon && pWeapon->WeaponType && pWeapon->WeaponType->Damage <= 0)
-	{
-		// skip scatter target cell
-		return 0x41897F;
-	}
-	return 0;
-}
-
-ASMJIT_PATCH(0x418A44, AircraftClass_Mission_Attack_Fire_Imcoming_4, 0x6)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	AbstractClass* pTarget = pTechno->Target;
-	int weaponIdx = pTechno->SelectWeapon(pTarget);
-	WeaponStruct* pWeapon = pTechno->GetWeapon(weaponIdx);
-	if (pWeapon && pWeapon->WeaponType && pWeapon->WeaponType->Damage <= 0)
-	{
-		// skip scatter target cell
-		return 0x418A8E;
-	}
-	return 0;
-}
-
-ASMJIT_PATCH(0x418B40, AircraftClass_Mission_Attack_Fire_Imcoming_5, 0x6)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	AbstractClass* pTarget = pTechno->Target;
-	int weaponIdx = pTechno->SelectWeapon(pTarget);
-	WeaponStruct* pWeapon = pTechno->GetWeapon(weaponIdx);
-	if (pWeapon && pWeapon->WeaponType && pWeapon->WeaponType->Damage <= 0)
-	{
-		// skip scatter target cell
-		return 0x418B8A;
-	}
-	return 0;
-}
-
-ASMJIT_PATCH(0x418072, AircraftClass_Mission_Attack_GoodFirePostion, 0x5)
-{
-	GET(AircraftClass*, pAir, ESI);
-	if (!pAir->Type->MissileSpawn && !pAir->Type->Fighter && !pAir->Is_Strafe())
-	{
-		AbstractClass* pTarget = pAir->Target;
-		int weaponIdx = pAir->SelectWeapon(pTarget);
-		if (pAir->IsCloseEnough(pTarget, weaponIdx))
-		{
-			pAir->IsLocked = true;
-			CoordStruct pos = pAir->GetCoords();
-			CellClass* pCell = MapClass::Instance->TryGetCellAt(pos);
-			pAir->SetDestination(pCell, true);
-			return 0x418087;
-		}
-		else
-		{
-			// 计算一个新位置，wwsb往目标的前方飞
-			int dest = pAir->DistanceFrom(pAir->Target);
-			WeaponTypeClass* pWeapon = pAir->GetWeapon(weaponIdx)->WeaponType;
-			CoordStruct nextPos = CoordStruct::Empty;
-			if (dest < pWeapon->MinimumRange)
-			{
-				// 向后撤退 半个武器射程
-				CoordStruct flh = CoordStruct::Empty;
-				flh.X = (int)(pWeapon->Range * 0.5);
-				nextPos = GetFLHAbsoluteCoords(pAir, flh, true);
-			}
-			else if (dest > pWeapon->Range)
-			{
-				// 向前追击至与目标相隔半个武器射程
-				int length = (int)(pWeapon->Range * 0.5);
-				// 随机向左或者向右移动一个ROT的距离
-				int flipY = 1;
-				if (Random::RandomRanged(0, 1) == 1)
-				{
-					flipY *= -1;
-				}
-				CoordStruct sourcePos = pAir->GetCoords();
-				int r = (dest - length) * Unsorted::LeptonsPerCell;
-				r = Random::RandomRanged(0, r);
-				CoordStruct flh{ 0, r * flipY, 0 };
-				CoordStruct targetPos = pAir->Target->GetCoords();
-				DirStruct dir = Point2Dir(sourcePos, targetPos);
-				sourcePos = GetFLHAbsoluteCoords(sourcePos, flh, dir);
-				sourcePos.Z = 0;
-				targetPos.Z = 0;
-				// 从目标位置往回找半个武器射程
-				nextPos = GetForwardCoords(targetPos, sourcePos, length);
-			}
-			if (!nextPos.IsEmpty())
-			{
-				// 计算下一个位置
-				CellClass* pCell = MapClass::Instance->TryGetCellAt(nextPos);
-				pAir->SetDestination(pCell, true);
-				return 0x418087;
-			}
-		}
-	}
-	return 0;
-}
-
-// 已经过滤了扫射
-ASMJIT_PATCH(0x4181CF, AircraftClass_Mission_Attack_FlyToPostion, 0x5)
-{
-	GET(AircraftClass*, pAir, ESI);
-	if (!pAir->Type->MissileSpawn && !pAir->Type->Fighter)
-	{
-		pAir->MissionStatus = 0x4; // AIR_ATT_FIRE_AT_TARGET0
-		return 0x4181E6;
-	}
-	return 0;
-}
-
-// Skip fire twice,
-// IsLocked always is False, so the game will jump to MissionStatus=AIR_ATT_FIRE_AT_TARGET1, and fire weapon again.
-// this skip looks no effect for ROT=0 or Arcing.
-ASMJIT_PATCH(0x4184FC, AircraftClass_Mission_Attack_Fire_Zero, 0x6)
-{
-	return 0x418506;
-}
-
-// Aircrate hover attack
-ASMJIT_PATCH(0x4CDCFD, FlyLocomotionClass_MovingUpdate_HoverAttack, 0x7)
-{
-	GET(FlyLocomotionClass*, pFly, ESI);
-	AircraftClass* pAir = cast_to<AircraftClass*>(pFly->LinkedTo);
-	if (pAir && !pAir->Type->MissileSpawn && !pAir->Type->Fighter && !pAir->Is_Strafe() && pAir->CurrentMission == Mission::Attack)
-	{
-		if (AbstractClass* pDest = pAir->Destination)
-		{
-			CoordStruct sourcePos = pAir->GetCoords();
-			int dist = pAir->DistanceFrom(pDest);
-			// 进入开火位置的判定距离是16，有时候距离50就可以开火
-			if (dist < 64 && dist >= 16)
-			{
-				CoordStruct targetPos = pDest->GetCoords();
-				sourcePos.X = targetPos.X;
-				sourcePos.Y = targetPos.Y;
-				dist = 0;
-			}
-			if (dist < 16)
-			{
-				// 固定位置不动
-				R->Stack(0x50, sourcePos);
-			}
-		}
-	}
-	return 0;
-}
-
-ASMJIT_PATCH(0x4DDD66, FootClass_IsLandZoneClear_ReplaceHardcode, 0x6) // To avoid that the aircraft cannot fly towards the water surface normally
-{
-	enum { SkipGameCode = 0x4DDD8A };
-
-	GET(FootClass* const, pThis, EBP);
-	GET_STACK(const CellStruct, cell, STACK_OFFSET(0x20, 0x4));
-
-	const auto pType = pThis->GetTechnoType();
-
-	// In vanilla, only aircrafts or `foots with fly locomotion` will call this virtual function
-	// So I don't know why WW use hard-coded `SpeedType::Track` and `MovementZone::Normal` to check this
-	R->AL(MapClass::Instance->GetCellAt(cell)->IsClearToMove(pType->SpeedType, false, false, ZoneType::None, pType->MovementZone, -1, true));
-	return SkipGameCode;
-}
 
 #endif

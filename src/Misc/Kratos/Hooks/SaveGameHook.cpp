@@ -78,7 +78,7 @@ ASMJIT_PATCH(0x67E720, LoadGame_End, 0x6)
 
 ASMJIT_PATCH(0x67E730, LoadGameInStream_Start, 0x5)
 {
-	Common::IsLoadGame = true;
+	Phobos::Otamaa::DoingLoadGame = true;
 	GET(IStream *, stream, ECX);
 	LoadGameEventArgs args{stream, true};
 	EventSystems::SaveLoad.Broadcast(Events::LoadGameEvent, &args);
@@ -87,7 +87,7 @@ ASMJIT_PATCH(0x67E730, LoadGameInStream_Start, 0x5)
 
 ASMJIT_PATCH(0x67F7C8, LoadGameInStream_End, 0x5)
 {
-	Common::IsLoadGame = false;
+	Phobos::Otamaa::DoingLoadGame = false;
 	GET(IStream *, stream, ESI);
 	LoadGameEventArgs args{stream, false};
 	EventSystems::SaveLoad.Broadcast(Events::LoadGameEvent, &args);

@@ -12,8 +12,6 @@
 
 #include <ScriptTypeClass.h>
 
-#include <Misc/DynamicPatcher/Techno/AircraftPut/AircraftPutDataRules.h>
-
 #include <New/AnonymousType/MultipleFactoryCaps.h>
 #include <New/HugeBar.h>
 
@@ -90,7 +88,6 @@ public:
 	PhobosFixedString<32u> MissingCameo { GameStrings::XXICON_SHP() };
 	PhobosFixedString<0x18> NukeWarheadName {};
 	MultipleFactoryCaps MultipleFactoryCap {};
-	AircraftPutDataRules MyPutData {};
 	ProneSpeedData InfantrySpeedData {};
 	std::array<LandTypeExt, 12u> LandTypeConfigExts {};
 

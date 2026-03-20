@@ -97,8 +97,6 @@
 #include <Ext/Tactical/Body.h>
 
 //#include <New/Entity/FoggedObject.h>
-#include <Misc/DynamicPatcher/Trails/TrailType.h>
-
 #include <Misc/Ares/Hooks/Header.h>
 #pragma endregion
 
@@ -143,15 +141,12 @@ void Phobos::LoadGameDataAfter()
 
 }
 
-ASMJIT_PATCH(0x7258DE, AnnounceInvalidPointer_PhobosGlobal, 0x7)
+#include <Misc/Kratos/Kratos.h>
+
+void PhobosExt::InvalidatePointers(AbstractClass* const pInvalid, bool const removed, AbstractType  type)
 {
-	GET(AbstractClass* const, pInvalid, ECX);
-	GET(bool const, removed, EDX);
-	GET(AbstractType , type, EAX);
 
-	if (Phobos::Otamaa::ExeTerminated)
-		return 0;
-
+	Kratos::DetachFromAll(pInvalid, removed);
 	TActionExtData::InvalidatePointer(pInvalid, removed);
 	PhobosGlobal::PointerGotInvalid(pInvalid, removed);
 	SWStateMachine::PointerGotInvalid(pInvalid, removed);
@@ -184,8 +179,14 @@ ASMJIT_PATCH(0x7258DE, AnnounceInvalidPointer_PhobosGlobal, 0x7)
 	}
 
 	HugeBar::InvalidatePointer(pInvalid, removed);
+}
 
-	return 0;
+void PhobosExt::EnsureSeeded(unsigned long seed)
+{
+	auto _seed = (DWORD)Game::Seed();
+	Debug::Log("Init Phobos Randomizer seed %x.\n", _seed);
+	Phobos::Random::SetRandomSeed(Game::Seed());
+	Kratos::EnsureSeeded(_seed);
 }
 
 #include <New/Interfaces/AdvancedDriveLocomotionClass.h>
@@ -383,7 +384,6 @@ void Phobos::ClearAll()
 	CLEAR_CLASS_NONSTATIC(SWFirerManagerClass::Instance);
 
 	CLEAR_TYPE_CLASS(PhobosAttachEffect);
-	CLEAR_CLASS(TrailType);
 	CLEAR_TYPE_CLASS(Armor);
 	CLEAR_TYPE_CLASS(Action);
 	CLEAR_TYPE_CLASS(Banner);
@@ -409,12 +409,6 @@ void Phobos::ClearAll()
 
 	MouseClassExt::ClearCameos();
 	MouseClassExt::ClearMappedAction();
-}
-
-ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
-{
-	Phobos::ClearAll();
-	return 0;
 }
 
 #pragma endregion

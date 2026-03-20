@@ -3,10 +3,6 @@
 #include <New/Entity/ElectricBoltClass.h>
 #include <New/Entity/FlyingStrings.h>
 
-#ifdef COMPILE_PORTED_DP_FEATURES_
-#include <Misc/DynamicPatcher/Others/TextManager.h>
-#endif
-
 #include <FootClass.h>
 #include <TechnoClass.h>
 #include <ObjectClass.h>

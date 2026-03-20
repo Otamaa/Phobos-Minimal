@@ -18,7 +18,7 @@ ASMJIT_PATCH(0x466556, BulletClass_Init_Phobos, 0x6)
 		pExt->InitializeLaserTrails();
 	}
 
-	TrailsManager::Construct(pThis->_AsBullet());
+	//TrailsManager::Construct(pThis->_AsBullet());
 
 	return 0;
 }

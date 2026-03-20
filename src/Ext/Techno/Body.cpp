@@ -38,10 +38,7 @@
 #include <Utilities/Macro.h>
 #include <Utilities/LocomotionCast.h>
 
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
 #include <Misc/Ares/Hooks/Header.h>
-#include <Misc/DynamicPatcher/Techno/Passengers/PassengersFunctional.h>
 
 #include <memory>
 #include <TerrainTypeClass.h>
@@ -129,16 +126,16 @@ void TintColors::GetTints(int* tintColor, int* intensity)
 	auto const pOwner = this->Owner->Owner;
 	auto pOwnerExt = TechnoExtContainer::Instance.Find(this->Owner);
 
-	for (auto& [wh, paint] : pOwnerExt->PaintBallStates) {
-		if (paint.IsActive() && paint.AllowDraw(this->Owner)) {
-
-			if (calculateTint && paint.Color)
-				*tintColor |= paint.Color;
-
-			if (CalculateIntensity)
-				*intensity += int(paint.Data->BrightMultiplier * 1000);
-		}
-	}
+	//for (auto& [wh, paint] : pOwnerExt->PaintBallStates) {
+	//	if (paint.IsActive() && paint.AllowDraw(this->Owner)) {
+	//
+	//		if (calculateTint && paint.Color)
+	//			*tintColor |= paint.Color;
+	//
+	//		if (CalculateIntensity)
+	//			*intensity += int(paint.Data->BrightMultiplier * 1000);
+	//	}
+	//}
 
 	auto const pTypeExt = GET_TECHNOTYPEEXT(this->Owner);
 	const bool hasTechnoTint = pTypeExt->Tint_Color.isset() || pTypeExt->Tint_Intensity;
@@ -1866,8 +1863,8 @@ bool TechnoExtData::MultiWeaponCanFire(TechnoClass* const pThis, AbstractClass* 
 		}
 	}
 
-	if (PassengersFunctional::CanFire(pThis))
-		return false;
+	//if (PassengersFunctional::CanFire(pThis))
+	//	return false;
 
 	if (!TechnoExtData::CheckFundsAllowFiring(pThis, pWeaponType->Warhead))
 		return false;
@@ -7257,7 +7254,7 @@ void TechnoExtData::UpdateOnTunnelEnter()
 			pos->LastLocation.clear();
 		}
 
-		TrailsManager::Hide(This());
+		//TrailsManager::Hide(This());
 
 		this->IsInTunnel = true;
 	}
@@ -8269,7 +8266,7 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	if (auto pSpawn = (FakeSpawnManagerClass*)This()->SpawnManager)
 		pSpawn->_DetachB(ptr, bRemoved);
 
-	MyWeaponManager.InvalidatePointer(ptr, bRemoved);
+	//MyWeaponManager.InvalidatePointer(ptr, bRemoved);
 
 	AnnounceInvalidPointer(LinkedSW, ptr);
 	AnnounceInvalidPointer(OriginalPassengerOwner, ptr);

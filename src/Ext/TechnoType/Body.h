@@ -27,17 +27,6 @@
 
 #include <FileSystem.h>
 
-#include <Misc/DynamicPatcher/Techno/ExtraFire/ExtraFireData.h>
-#include <Misc/DynamicPatcher/Techno/DamageSelf/DamageSelfType.h>
-#include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDiveData.h>
-#include <Misc/DynamicPatcher/Techno/AircraftPut/AircraftPutData.h>
-#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxData.h>
-#include <Misc/DynamicPatcher/Techno/JumjetFaceTarget/JJFacingData.h>
-#include <Misc/DynamicPatcher/Techno/Passengers/Passengers.h>
-#include <Misc/DynamicPatcher/Techno/SpawnSupport/SpawnSupportData.h>
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-#include <Misc/DynamicPatcher/Techno/FighterGuardArea/FighterGuardAreaData.h>
-
 #include <New/AnonymousType/AresAttachEffectTypeClass.h>
 #include <Utilities/MultiBoolFixedArray.h>
 
@@ -709,25 +698,10 @@ public:
 	//PhobosPCXFile CameoPCX { };
 	//PhobosPCXFile AltCameoPCX { };
 
-	Valueable <bool> VirtualUnit;
-
 	Nullable<CoordStruct> PrimaryCrawlFLH;
 	Nullable<CoordStruct> Elite_PrimaryCrawlFLH;
 	Nullable<CoordStruct> SecondaryCrawlFLH;
 	Nullable<CoordStruct> Elite_SecondaryCrawlFLH;
-
-	Valueable<bool> MissileHoming;
-
-	ExtraFireData MyExtraFireData;
-	AircraftDiveData MyDiveData;
-	AircraftPutData MyPutData;
-	GiftBoxData MyGiftBoxData;
-	//JJFacingData  MyJJData { };
-	PassengersData MyPassangersData;
-	SpawnSupportFLHData MySpawnSupportFLH;
-	SpawnSupportData MySpawnSupportDatas;
-	TrailsReader Trails;
-	DamageSelfType DamageSelfData;
 
 	AresAttachEffectTypeClass AttachedEffect;
 
@@ -1736,21 +1710,10 @@ public:
 		Ammo_DeployUnlockMaximumAmount(-1),
 		BerserkROFMultiplier(),
 		Refinery_UseStorage(false),
-		VirtualUnit(false),
 		PrimaryCrawlFLH(),
 		Elite_PrimaryCrawlFLH(),
 		SecondaryCrawlFLH(),
 		Elite_SecondaryCrawlFLH(),
-		MissileHoming(false),
-		MyExtraFireData(),
-		MyDiveData(),
-		MyPutData(),
-		MyGiftBoxData(),
-		MyPassangersData(),
-		MySpawnSupportFLH(),
-		MySpawnSupportDatas(),
-		Trails(),
-		DamageSelfData(),
 		AttachedEffect(),
 		NoAmmoEffectAnim(nullptr),
 		AttackFriendlies_WeaponIdx(-1),
@@ -2616,9 +2579,6 @@ private:
 			.Process(this->ConsideredNaval)
 			.Process(this->ConsideredVehicle)
 
-
-			.Process(this->VirtualUnit)
-
 			.Process(this->PrimaryCrawlFLH)
 			.Process(this->Elite_PrimaryCrawlFLH)
 			.Process(this->SecondaryCrawlFLH)
@@ -2628,8 +2588,6 @@ private:
 			.Process(this->BountyDissallow)
 			.Process(this->BountyBonusmult)
 			.Process(this->Bounty_IgnoreEnablers)
-			.Process(this->MissileHoming)
-
 			.Process(this->Tiberium_EmptyPipIdx)
 			.Process(this->Tiberium_PipIdx)
 			.Process(this->Tiberium_PipShapes)
@@ -2919,19 +2877,6 @@ private:
 			.Process(this->LandingDir)
 #pragma endregion
 			;
-
-		Stm
-			.Process(this->MyExtraFireData)
-			.Process(this->MyDiveData)
-			.Process(this->MyPutData)
-			.Process(this->MyGiftBoxData)
-			.Process(this->MyPassangersData)
-			.Process(this->MySpawnSupportFLH)
-			.Process(this->MySpawnSupportDatas)
-			.Process(this->Trails)
-			.Process(this->DamageSelfData)
-			;
-
 
 		Stm.Process(this->AttachedEffect)
 			.Process(this->NoAmmoEffectAnim)

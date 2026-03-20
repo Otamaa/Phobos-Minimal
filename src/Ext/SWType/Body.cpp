@@ -3095,29 +3095,3 @@ void SWTypeExtContainer::Clear()
 // =============================
 // container hooks
 
-ASMJIT_PATCH(0x6CE6F2, SuperWeaponTypeClass_CTOR, 0x5)
-{
-	GET(SuperWeaponTypeClass*, pItem, EBP);
-
-	SWTypeExtContainer::Instance.Allocate(pItem);
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x6CEFE0, SuperWeaponTypeClass_SDDTOR, 0x8)
-{
-	GET(SuperWeaponTypeClass*, pItem, ECX);
-	SWTypeExtContainer::Instance.Remove(pItem);
-	return 0;
-}
-
-bool FakeSuperWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
-{
-	//read some properties early before
-	bool status = SWTypeExtContainer::Instance.Find(this)->PreParse(pINI);
-		 status |= this->SuperWeaponTypeClass::LoadFromINI(pINI);
-	SWTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
-	return status;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F40F4, FakeSuperWeaponTypeClass::_ReadFromINI)

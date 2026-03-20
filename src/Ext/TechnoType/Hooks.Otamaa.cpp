@@ -9,9 +9,6 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WarheadType/Body.h>
 
-#ifdef COMPILE_PORTED_DP_FEATURES_
-#include <Misc/DynamicPatcher/Others/DamageText.h>
-#endif
 
 #include <SlaveManagerClass.h>
 

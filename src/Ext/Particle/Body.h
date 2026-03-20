@@ -7,8 +7,6 @@
 #include <New/Entity/LaserTrailClass.h>
 #include <Ext/ParticleType/Body.h>
 
-#include <Misc/DynamicPatcher/Trails/Trails.h>
-
 #include <Ext/Object/Body.h>
 
 class ParticleExtData : public ObjectExtData
@@ -23,13 +21,11 @@ public:
 public:
 #pragma region ClassMembers
 	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails;
-	HelperedVector<std::unique_ptr<UniversalTrail>> Trails;
 #pragma endregion
 
 public:
 	ParticleExtData(ParticleClass* pObj) : ObjectExtData(pObj)
 		, LaserTrails()
-		, Trails()
 	{
 		this->Name = pObj->Type->ID;
 		this->AbsType = ParticleClass::AbsID;

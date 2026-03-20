@@ -16,9 +16,6 @@
 #include <Ext/WeaponType/Body.h>
 #include <Utilities/AnimHelpers.h>
 
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-
-
 ASMJIT_PATCH(0x74A70E, VoxelAnimClass_AI_Additional, 0x6) // C
 {
 	GET(VoxelAnimClass* const, pThis, EBX);
@@ -40,8 +37,6 @@ ASMJIT_PATCH(0x74A70E, VoxelAnimClass_AI_Additional, 0x6) // C
 			trail->Update(drawnCoords);
 		}
 	}
-
-	TrailsManager::AI(pThis);
 
 	if (pThis->Type->TrailerAnim && pTypeExt->TrailerAnim_SpawnDelay >= 1) {
 		auto& timer = pThisExt->TrailerSpawnDelayTimer;

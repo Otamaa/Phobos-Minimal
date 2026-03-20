@@ -120,7 +120,7 @@ bool SpiralTrajectory::OnAI()
 
 		pBulletExt->LaserTrails.clear();
 
-		pBulletExt->Trails.clear();
+		//pBulletExt->Trails.clear();
 
 		return true;
 	}

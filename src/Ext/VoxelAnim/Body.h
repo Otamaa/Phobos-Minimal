@@ -7,8 +7,6 @@
 
 #include <New/Entity/LaserTrailClass.h>
 
-#include <Misc/DynamicPatcher/Trails/Trails.h>
-
 #include <Ext/Object/Body.h>
 
 class VoxelAnimTypeExtData;
@@ -26,7 +24,6 @@ public:
 #pragma region ClassMember
 
 	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails;
-	HelperedVector<std::unique_ptr<UniversalTrail>> Trails;
 	CDTimerClass TrailerSpawnDelayTimer;
 	TechnoClass* Invoker;
 
@@ -37,7 +34,6 @@ public:
 
 	VoxelAnimExtData(VoxelAnimClass* pObj) : ObjectExtData(pObj)
 		, LaserTrails()
-		, Trails()
 		, TrailerSpawnDelayTimer()
 		, Invoker(nullptr)
 	{

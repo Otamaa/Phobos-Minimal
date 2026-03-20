@@ -21,6 +21,9 @@
 #include <Misc/Kratos/Ext/TechnoType/Spawn.h>
 #include <Misc/Kratos/Ext/TechnoType/TechnoStatus.h>
 
+#include <Locomotor/Cast.h>
+
+//TODO : put somewhere
 #ifdef _ENABLE_HOOKS
 
 #pragma region MultiSpawnType

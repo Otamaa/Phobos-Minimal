@@ -20,6 +20,7 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ext/UnitType/Body.h>
 #include <Ext/Unit/Body.h>
+#include <Ext/House/Body.h>
 
 #include <WWKeyboardClass.h>
 #include <Conversions.h>
@@ -32,6 +33,7 @@
 #include "Header.h"
 
 #include <InfantryClass.h>
+#include <AircraftClass.h>
 
 ASMJIT_PATCH(0x74613C, UnitClass_INoticeSink_CheckJumpjetHarvester, 0x6)
 {
@@ -442,7 +444,6 @@ ASMJIT_PATCH(0x73DE90, UnitClass_Mi_Unload_SimpleDeployer, 0x6)
 	}
 
 	TechnoExtData::InitializeLaserTrail(pThis, true);
-	TrailsManager::Construct(static_cast<TechnoClass*>(pThis), true);
 	//LineTrailExt::DeallocateLineTrail(pUnit);
 	//LineTrailExt::ConstructLineTrails(pUnit);
 
@@ -798,7 +799,7 @@ ASMJIT_PATCH(0x73D800, UnitClass_MI_Unload_NoManualUnload, 0x5){
 ASMJIT_PATCH(0x700EEC, TechnoClass_CanDeploySlashUnload_NoManualUnload, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
-	const bool disallowed = 
+	const bool disallowed =
 		GET_TECHNOTYPEEXT(pThis)->NoManualUnload
 		|| pThis->BunkerLinkedItem
 		|| pThis->OnBridge;

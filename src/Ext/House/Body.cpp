@@ -3575,7 +3575,7 @@ void FakeHouseClass::_UpdateSpySat()
 	}
 
 	std::unordered_map<int, int> Factorycounts;
-	
+
 	for (auto const& pBld : this->Buildings)
 	{
 		if (pBld && pBld->IsAlive && !pBld->InLimbo && pBld->IsOnMap)
@@ -3800,24 +3800,6 @@ bool FakeHouseClass::_IsIonCannonEligibleTarget(TechnoClass* pTechno) const
 
 // =============================
 // container hooks
-
-ASMJIT_PATCH(0x4F6532, HouseClass_CTOR, 0x5)
-{
-	GET(HouseClass*, pItem, EAX);
-
-	if (RulesExtData::Instance()->EnablePowerSurplus)
-		pItem->PowerSurplus = RulesClass::Instance->PowerSurplus;
-
-	HouseExtContainer::Instance.Allocate(pItem);
-	return 0;
-}
-
-ASMJIT_PATCH(0x4F7186, HouseClass_DTOR, 0x8)
-{
-	GET(HouseClass*, pItem, ESI);
-	HouseExtContainer::Instance.Remove(pItem);
-	return 0;
-}
 
 void FakeHouseClass::_Detach(AbstractClass* target, bool all) {
 	if(auto pExt = this->_GetExtData())

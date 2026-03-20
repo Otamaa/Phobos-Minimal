@@ -37,8 +37,6 @@
 #include <Utilities/Macro.h>
 #include <Utilities/Helpers.h>
 
-#include <Misc/DynamicPatcher/Trails/TrailType.h>
-
 #include <GameStrings.h>
 
 std::unique_ptr<RulesExtData> RulesExtData::Data {};
@@ -153,7 +151,7 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	ImmunityTypeClass::LoadFromINIList(pINI);
 	ArmorTypeClass::EvaluateDefault();
 
-	TrailType::LoadFromINIList(&CCINIClass::INI_Art.get());
+	//TrailType::LoadFromINIList(&CCINIClass::INI_Art.get());
 
 	RadTypeClass::LoadFromINIOnlyTheList(pINI);
 
@@ -1105,7 +1103,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AI_AutoSellHealthRatio.Read(exINI, GameStrings::General(), "AI.AutoSellHealthRatio");
 	this->DisablePathfindFailureLog.Read(exINI, GameStrings::General(), "DisablePathfindFailureLog");
 	this->AIFriendlyDistance.Read(exINI, GameStrings::General(), "AIFriendlyDistance");
-	this->MyPutData.Read(exINI, GameStrings::General());
+	//this->MyPutData.Read(exINI, GameStrings::General());
 	this->Storage_TiberiumIndex.Read(exINI, GameStrings::General(), "Storage.TiberiumIndex");
 	this->ChronoInfantryCrush.Read(exINI, GameStrings::General(), "ChronoInfantryCrush");
 	this->EnemyWrench.Read(exINI, GameStrings::General(), "EnemyWrench");
@@ -1849,7 +1847,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->InfantryAutoDeploy)
 		.Process(this->EnablePassiveAcquireMode)
 		.Process(this->UseRetintFix)
-		.Process(this->MyPutData)
+		//.Process(this->MyPutData)
 
 		.Process(this->AIAdjacentMax)
 		.Process(this->AIAdjacentMax_Campaign)

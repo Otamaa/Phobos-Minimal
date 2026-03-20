@@ -4,6 +4,7 @@
 
 #include <TeamTypeClass.h>
 #include <InfantryClass.h>
+#include <AircraftClass.h>
 
 std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType, bool naval, HouseExtData* pData)
 {

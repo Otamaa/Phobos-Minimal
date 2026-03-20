@@ -197,6 +197,20 @@ bool InRange(ObjectClass* pObject, AbstractClass* pTarget, WeaponTypeClass* pWea
 	case AbstractType::Infantry:
 	case AbstractType::Unit:
 	case AbstractType::Aircraft:
+
+		// 需要检查CellRangeFinding和InAir
+		if (pWeapon->CellRangefinding)
+		{
+			if (CellClass* pCell = MapClass::Instance->TryGetCellAt(location))
+			{
+				location = pCell->GetCoordsWithBridge();
+			}
+		}
+		if (pObject->IsInAir())
+		{
+			location.Z = pTarget->GetCoords().Z;
+		}
+
 		return flag_cast_to<TechnoClass*, true>(pObject)->InRange(location, pTarget, pWeapon);
 	default:
 		CoordStruct targetPos = pTarget->GetCoords();

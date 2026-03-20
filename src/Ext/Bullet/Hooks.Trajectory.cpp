@@ -62,7 +62,7 @@ ASMJIT_PATCH(0x4666F7, BulletClass_AI_Trajectories, 0x6)
 			}
 		}
 
-		TrailsManager::AI(pThis->_AsBullet());
+		/*TrailsManager::AI(pThis->_AsBullet());*/
 	}
 
 	if (pThis->HasParachute)
@@ -180,7 +180,7 @@ ASMJIT_PATCH(0x46745C, BulletClass_AI_Position_Trajectories, 0x7)
 			}
 		}
 
-		TrailsManager::AI(pThis->_AsBullet());
+		/*TrailsManager::AI(pThis->_AsBullet());*/
 	}
 
 	return 0;

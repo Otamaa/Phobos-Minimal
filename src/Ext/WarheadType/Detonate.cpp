@@ -778,29 +778,29 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 
 	auto pExt = TechnoExtContainer::Instance.Find(pTarget);
 
-	if(this->PaintBallDuration.isset() && this->PaintBallData.Color != ColorStruct::Empty) {
-		auto& paintball = pExt->PaintBallStates[this->This()];
-		paintball.SetData(this->PaintBallData);
-		paintball.Init();
+	//if(this->PaintBallDuration.isset() && this->PaintBallData.Color != ColorStruct::Empty) {
+	//	auto& paintball = pExt->PaintBallStates[this->This()];
+	//	paintball.SetData(this->PaintBallData);
+	//	paintball.Init();
 
-		if(this->PaintBallDuration < 0 || this->PaintBallData.Accumulate){
-			int value = paintball.timer.GetTimeLeft() + this->PaintBallDuration;
+	//	if(this->PaintBallDuration < 0 || this->PaintBallData.Accumulate){
+	//		int value = paintball.timer.GetTimeLeft() + this->PaintBallDuration;
 
-			if (value <= 0) {
-				paintball.timer.Stop();
-			} else {
-				paintball.timer.Add(value);
-			}
+	//		if (value <= 0) {
+	//			paintball.timer.Stop();
+	//		} else {
+	//			paintball.timer.Add(value);
+	//		}
 
-		} else{
+	//	} else{
 
-			if (this->PaintBallData.Override && paintball.timer.GetTimeLeft()) {
-				paintball.timer.Start(this->PaintBallDuration);
-			} else {
-				paintball.timer.Start(this->PaintBallDuration);
-			}
-		}
-	}
+	//		if (this->PaintBallData.Override && paintball.timer.GetTimeLeft()) {
+	//			paintball.timer.Start(this->PaintBallDuration);
+	//		} else {
+	//			paintball.timer.Start(this->PaintBallDuration);
+	//		}
+	//	}
+	//}
 
 	if (this->GattlingStage > 0) {
 		this->ApplyGattlingStage(pTarget, this->GattlingStage);

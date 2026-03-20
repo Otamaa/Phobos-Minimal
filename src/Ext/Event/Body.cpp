@@ -5,6 +5,7 @@
 #include <Ext/Building/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/TechnoType/Body.h>
+#include <Ext/House/Body.h>
 
 #include <WWKeyboardClass.h>
 

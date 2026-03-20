@@ -1,8 +1,9 @@
 #include "Body.h"
 
 #include <Ext/Techno/Body.h>
-#include <Utilities/Macro.h>
+#include <Ext/Aircraft/Body.h>
 
+#include <Utilities/Macro.h>
 
 // =============================
 // load / save

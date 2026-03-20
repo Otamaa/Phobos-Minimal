@@ -18,20 +18,21 @@
 #include <Misc/Kratos/Ext/Common/CommonStatus.h>
 #include <Misc/Kratos/Ext/Common/ExpandAnimsManager.h>
 
+#include <Ext/Bullet/Body.h>
 
 // ----------------
 // Extension
 // ----------------
-#ifdef _ENABLE_HOOKS
+#ifndef _ENABLE_HOOKS
 
 ASMJIT_PATCH(0x4664BA, BulletClass_CTOR, 0x5)
 {
 	// skip this Allocate just left BulletClass_Load_Suffix => LoadKey to Allocate
 	// when is loading a save game.
-	if (!Common::IsLoadGame)
+	if (!Phobos::Otamaa::DoingLoadGame)
 	{
 		GET(BulletClass*, pItem, ESI);
-
+		BulletExtContainer::Instance.Allocate(pItem);
 		BulletExt::ExtMap.TryAllocate(pItem);
 	}
 	return 0;
@@ -40,6 +41,9 @@ ASMJIT_PATCH(0x4664BA, BulletClass_CTOR, 0x5)
 ASMJIT_PATCH(0x4665E9, BulletClass_DTOR, 0xA)
 {
 	GET(BulletClass*, pItem, ECX);
+
+	BulletExtContainer::Instance.Remove(pItem);
+
 	if (BulletExt::ExtData* ext = BulletExt::ExtMap.Find(pItem))
 	{
 		ext->SetExtStatus(nullptr);
@@ -51,41 +55,17 @@ ASMJIT_PATCH(0x4665E9, BulletClass_DTOR, 0xA)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x46AFB0, BulletClass_SaveLoad_Prefix, 0x8)
-ASMJIT_PATCH(0x46AE70, BulletClass_SaveLoad_Prefix, 0x5)
-{
-	GET_STACK(BulletClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-
-	BulletExt::ExtMap.PrepareStream(pItem, pStm);
-
-	return 0;
-}
-
-DEFINE_HOOK_AGAIN(0x46AF97, BulletClass_Load_Suffix, 0x7)
-ASMJIT_PATCH(0x46AF9E, BulletClass_Load_Suffix, 0x7)
-{
-	BulletExt::ExtMap.LoadStatic();
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x46AFC4, BulletClass_Save_Suffix, 0x5)
-{
-	BulletExt::ExtMap.SaveStatic();
-
-	return 0;
-}
-
 // ----------------
 // Component
 // ----------------
 
 ASMJIT_PATCH(0x466556, BulletClass_Init, 0x6)
 {
-	GET(BulletClass*, pThis, ECX);
+	GET(FakeBulletClass*, pItem, ECX);
 
-	if (auto pExt = BulletExt::ExtMap.Find(pThis))
+	pItem->_GetExtData()->Name = pItem->Type->ID;
+
+	if (auto pExt = BulletExt::ExtMap.Find(pItem))
 	{
 		pExt->_GameObject->Foreach([](Component* c)
 			{if (auto cc = dynamic_cast<IBulletScript*>(c)) { cc->OnInit(); } });
@@ -164,8 +144,10 @@ ASMJIT_PATCH(0x4690C1, BulletClass_Detonate, 0x8)
 // when shooter dead, project's house will be 0
 ASMJIT_PATCH(0x469A75, BulletClass_Detonate_GetHouse, 0x7)
 {
-	GET(BulletClass*, pBullet, ESI);
+	GET(FakeBulletClass*, pBullet, ESI);
 	GET(HouseClass*, pHouse, ECX);
+
+	pHouse = pBullet->Owner ? pBullet->Owner->Owner : pBullet->_GetExtData()->Owner;
 
 	if (!pHouse)
 	{
@@ -174,66 +156,6 @@ ASMJIT_PATCH(0x469A75, BulletClass_Detonate_GetHouse, 0x7)
 		{
 			R->ECX(pSourceHouse);
 		}
-	}
-	return 0;
-}
-
-// Take over to create Warhead Anim
-// Phobos Hook in 0x469C46, Skip Ares 0x469C4E, must skip Phobos
-// SplashList of Phobos will be killed
-ASMJIT_PATCH(0x469C46, BulletClass_Detonate_WHAnim_Remap, 0x8)
-{
-	bool createdAnim = false;
-	GET(AnimTypeClass*, pAnimType, EBX);
-	if (pAnimType)
-	{
-		GET(BulletClass*, pBullet, ESI);
-		GET_STACK(CoordStruct, pos, 0x64);
-		if (pAnimType)
-		{
-			if (AnimClass* pAnim = GameCreate<AnimClass>(pAnimType, pos, 0, 1, 0x2600, -15, false))
-			{
-				createdAnim = true;
-				SetAnimOwner(pAnim, pBullet);
-				SetAnimCreater(pAnim, pBullet);
-			}
-		}
-	}
-	R->EAX(createdAnim);
-	return 0x469C98;
-}
-
-// Take over to create Warhead VxlAnim
-ASMJIT_PATCH(0x469D5C, BulletClass_Detonate_WHVxlDebris_Remap, 0x6)
-{
-	if (AudioVisual::Data()->AllowMakeVoxelDebrisByKratos)
-	{
-		GET(BulletClass*, pBullet, ESI);
-		GET(WarheadTypeClass*, pWH, EAX);
-		GET(int, times, EBX);
-		HouseClass* pHouse = GetSourceHouse(pBullet);
-		TechnoClass* pCreate = pBullet->Owner;
-		CoordStruct location = pBullet->GetCoords();
-		ExpandAnimsManager::PlayExpandDebirs(pWH->DebrisTypes, pWH->DebrisMaximums, times, location, pHouse, pCreate);
-		R->EBX(0);
-		return 0x469E18;
-	}
-	return 0;
-}
-
-ASMJIT_PATCH(0x469EB4, BulletClass_Detonate_WHDebris_Remap, 0x6)
-{
-	GET(BulletClass*, pBullet, ESI);
-	GET(AnimClass*, pAnim, EDI);
-	if (pAnim)
-	{
-		SetAnimOwner(pAnim, pBullet);
-		SetAnimCreater(pAnim, pBullet);
-	}
-	GET(int, i, EBX);
-	if (i > 0)
-	{
-		return 0x469E34;
 	}
 	return 0;
 }

@@ -79,10 +79,7 @@ bool AircraftTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->HunterSeekerEmergeSpeed.Read(exINI, pSection, "HunterSeeker.EmergeSpeed");
 	this->HunterSeekerIgnore.Read(exINI, pSection, "HunterSeeker.Ignore");
 
-	this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
 	this->Crashable.Read(exINI, pSection, "Crashable");
-	this->MyDiveData.Read(exINI, pSection);
-	this->MyPutData.Read(exINI, pSection);
 
 	return true;
 }

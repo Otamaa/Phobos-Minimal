@@ -116,7 +116,7 @@ bool WaveTrajectory::OnAI()
 		auto pBulletExt = BulletExtContainer::Instance.Find(pBullet);
 
 		pBulletExt->LaserTrails.clear();
-		pBulletExt->Trails.clear();
+		//pBulletExt->Trails.clear();
 
 		return true;
 	}

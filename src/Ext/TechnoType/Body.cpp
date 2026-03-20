@@ -1132,14 +1132,6 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		this->AllowFire_IroncurtainedTarget.Read(exINI, pSection, "Firing.AllowICedTargetForAI");
 
-		this->VirtualUnit.Read(exINI, pSection, "VirtualUnit");
-		this->MyExtraFireData.ReadRules(exINI, pSection);
-		this->MyGiftBoxData.Read(exINI, pSection);
-		//this->MyJJData.Read(exINI, pSection);
-		this->MyPassangersData.Read(exINI, pSection);
-		this->MySpawnSupportDatas.Read(exINI, pSection);
-		this->DamageSelfData.Read(exINI, pSection);
-
 		this->IronCurtain_KeptOnDeploy.Read(exINI, pSection, "IronCurtain.KeptOnDeploy");
 		this->ForceShield_KeptOnDeploy.Read(exINI, pSection, "ForceShield.KeptOnDeploy");
 		this->IronCurtain_Effect.Read(exINI, pSection, "IronCurtain.Flag");
@@ -2256,10 +2248,6 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		TechnoTypeExtData::GetFLH(exArtINI, pArtSection, PrimaryCrawlFLH, Elite_PrimaryCrawlFLH, "PrimaryCrawling");
 		TechnoTypeExtData::GetFLH(exArtINI, pArtSection, SecondaryCrawlFLH, Elite_SecondaryCrawlFLH, "SecondaryCrawling");
-
-		this->MyExtraFireData.ReadArt(exArtINI, pArtSection);
-		this->MySpawnSupportFLH.Read(exArtINI, pArtSection);
-		this->Trails.Read(exArtINI, pArtSection, true);
 
 		this->CameoPCX.Read(exArtINI.GetINI(), pArtSection, "CameoPCX");
 		this->AltCameoPCX.Read(exArtINI.GetINI(), pArtSection, "AltCameoPCX");

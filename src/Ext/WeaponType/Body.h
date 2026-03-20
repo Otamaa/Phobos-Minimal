@@ -13,8 +13,6 @@
 
 #include <New/Entity/ElectricBoltClass.h>
 
-#include <Misc/DynamicPatcher/Weapon/AttachFireData.h>
-
 
 class WeaponTypeExtData final : public AbstractTypeExtData
 {
@@ -88,7 +86,6 @@ public:
 	Valueable<bool> Targeting_Health_Percent_Below;
 
 	Valueable<float> RockerPitch;
-	AttachFireData MyAttachFireDatas;
 	Valueable<int> Ammo;
 	Valueable<bool> IsDetachedRailgun;
 
@@ -272,7 +269,6 @@ public:
 		Targeting_Health_Percent(),
 		Targeting_Health_Percent_Below(true),
 		RockerPitch(0.0f),
-		MyAttachFireDatas(),
 		Ammo(1),
 		IsDetachedRailgun(false),
 		Wave_IsHouseColor(false),

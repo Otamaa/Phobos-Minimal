@@ -1,6 +1,8 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
 
+#include <RadBeam.h>
+
 ASMJIT_PATCH(0x6FD64A, TechnoClass_FireRadBeam1, 6)
 {
 	BYTE idxWeapon = *reinterpret_cast<BYTE*>(R->Stack32(0x18) + 0xC); // hack! 0x18 fetches the caller's EBP, which gives us access to its locals, including idxWeapon

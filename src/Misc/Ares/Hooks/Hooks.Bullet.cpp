@@ -18,6 +18,7 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/BuildingType/Body.h>
+#include <Ext/House/Body.h>
 
 #include <InfantryClass.h>
 

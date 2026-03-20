@@ -4,6 +4,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/Bullet/Trajectories/PhobosTrajectory.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/House/Body.h>
 
 #include <Utilities/Macro.h>
 
@@ -223,7 +224,6 @@ bool BulletTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		if (pThis->Inviso) {
 			trailReaded = true;
 			this->LaserTrail_Types.Read(exINI, pSection, "LaserTrail.Types");
-			this->Trails.Read(exINI, pSection, false);
 		}
 	}
 
@@ -234,7 +234,6 @@ bool BulletTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->Parachute.Read(exArtINI, pArtSection, GameStrings::Parachute());
 		if(!trailReaded) {
 			this->LaserTrail_Types.Read(exArtINI, pArtSection, "LaserTrail.Types");
-			this->Trails.Read(exArtINI, pArtSection, false);
 		}
 	}
 
@@ -324,7 +323,6 @@ void BulletTypeExtData::Serialize(T& Stm)
 
 		.Process(this->AU)
 		.Process(this->UpdateImmediately)
-		.Process(this->Trails)
 
 
 		;
@@ -445,12 +443,3 @@ ASMJIT_PATCH(0x46C8B6, BulletTypeClass_SDDTOR, 0x6)
 	BulletTypeExtContainer::Instance.Remove(pItem);
 	return 0;
 }
-
-bool FakeBulletTypeClass::_ReadFromINI(CCINIClass* pINI)
-{
-	bool status = this->BulletTypeClass::LoadFromINI(pINI);
-	BulletTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
-	return status;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E49AC, FakeBulletTypeClass::_ReadFromINI)

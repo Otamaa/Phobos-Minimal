@@ -5,24 +5,27 @@
 #include <Utilities/Macro.h>
 
 #include <Misc/Kratos/Extension/WeaponTypeExt.h>
+#include <Ext/WeaponType/Body.h>
 
-#ifdef _ENABLE_HOOKS
+#ifndef _ENABLE_HOOKS
 
-ASMJIT_PATCH(0x771EE9, WeaponTypeClass_CTOR, 0x5)
+ASMJIT_PATCH(0x771EE0, WeaponTypeClass_CTOR, 0x6)
 {
-	if (!Common::IsLoadGame)
-	{
-		GET(WeaponTypeClass *, pItem, ESI);
+	GET(WeaponTypeClass *, pItem, ESI);
 
+	if (!Phobos::Otamaa::DoingLoadGame) {
+		WeaponTypeExtContainer::Instance.Allocate(pItem);
+		WeaponTypeExtData::calculateCircuferences();
 		WeaponTypeExt::ExtMap.TryAllocate(pItem);
 	}
+
 	return 0;
 }
 
 ASMJIT_PATCH(0x77311D, WeaponTypeClass_SDDTOR, 0x6)
 {
 	GET(WeaponTypeClass *, pItem, ESI);
-
+	WeaponTypeExtContainer::Instance.Remove(pItem);
 	WeaponTypeExt::ExtMap.Remove(pItem);
 
 	return 0;
@@ -39,29 +42,28 @@ ASMJIT_PATCH(0x772CD0, WeaponTypeClass_SaveLoad_Prefix, 0x7)
 	return 0;
 }
 
-ASMJIT_PATCH(0x772EA6, WeaponTypeClass_Load_Suffix, 0x6)
-{
-	WeaponTypeExt::ExtMap.LoadStatic();
+// ASMJIT_PATCH(0x772EA6, WeaponTypeClass_Load_Suffix, 0x6)
+// {
+// 	WeaponTypeExt::ExtMap.LoadStatic();
 
-	return 0;
+// 	return 0;
+// }
+
+// ASMJIT_PATCH(0x772F8C, WeaponTypeClass_Save_Suffix, 0x5)
+// {
+// 	WeaponTypeExt::ExtMap.SaveStatic();
+
+// 	return 0;
+// }
+
+bool FakeWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
+{
+	//WeaponTypeExtContainer::Instance.Find(this)->RadType = RadTypeClass::FindOrAllocate(GameStrings::Radiation());
+	bool status = this->WeaponTypeClass::LoadFromINI(pINI);
+	WeaponTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	WeaponTypeExt::ExtMap.LoadFromINI(this, pINI);
+	return status;
 }
 
-ASMJIT_PATCH(0x772F8C, WeaponTypeClass_Save_Suffix, 0x5)
-{
-	WeaponTypeExt::ExtMap.SaveStatic();
-
-	return 0;
-}
-
-DEFINE_HOOK_AGAIN(0x7729C7, WeaponTypeClass_LoadFromINI, 0x5)
-DEFINE_HOOK_AGAIN(0x7729D6, WeaponTypeClass_LoadFromINI, 0x5)
-ASMJIT_PATCH(0x7729B0, WeaponTypeClass_LoadFromINI, 0x5)
-{
-	GET(WeaponTypeClass *, pItem, ESI);
-	GET_STACK(CCINIClass *, pINI, 0xE4);
-
-	WeaponTypeExt::ExtMap.LoadFromINI(pItem, pINI);
-
-	return 0;
-}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F741C, FakeWeaponTypeClass::_ReadFromINI)
 #endif

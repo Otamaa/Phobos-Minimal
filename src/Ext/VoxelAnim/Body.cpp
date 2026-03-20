@@ -69,7 +69,6 @@ void VoxelAnimExtData::Serialize(T& Stm)
 	 Stm
 		.Process(this->Invoker, true)
 		.Process(this->LaserTrails)
-		.Process(this->Trails)
 		.Process(this->TrailerSpawnDelayTimer)
 		;
 }
@@ -153,7 +152,6 @@ ASMJIT_PATCH(0x7494CE , VoxelAnimClass_CTOR, 0x6)
 				pExt->LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
 
 		pExt->InitializeLaserTrails(pTypeExt);
-		TrailsManager::Construct(pItem);
 	}
 
 	return 0;

@@ -1,6 +1,6 @@
 #include <AnimClass.h>
 #include <UnitClass.h>
-#include <AnimClass.h>
+#include <AircraftClass.h>
 #include <InfantryClass.h>
 #include <BuildingClass.h>
 #include <ScenarioClass.h>

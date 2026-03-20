@@ -19,6 +19,8 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/Aircraft/Body.h>
+
 #include <Ext/WarheadType/Body.h>
 
 #include <WWKeyboardClass.h>

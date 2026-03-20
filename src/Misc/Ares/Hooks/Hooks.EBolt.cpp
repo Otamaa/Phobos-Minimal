@@ -11,6 +11,7 @@
 #include <Utilities/Macro.h>
 
 #include <InfantryClass.h>
+#include <AircraftClass.h>
 
 class NOVTABLE EBoltFake final : public EBolt
 {

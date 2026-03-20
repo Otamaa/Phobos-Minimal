@@ -3201,3 +3201,23 @@ ASMJIT_PATCH(0x706F64, TechnoClass_RenderVoxelObject_SkipInvisibleSections, 0xB)
 	R->EAX(frame);
 	return 0x706F6F;
 }
+
+ASMJIT_PATCH(0x4A1BE8, CrateClass_GetCrate_FixLandType, 0x7)
+{
+	GET(CellClass*, pCell, EBX);
+
+	pCell->OverlayData = 0;
+	pCell->RecalcAttributes(DWORD(-1));
+
+	return 0;
+}
+// Campaign
+ASMJIT_PATCH(0x56C1D3, MapClass_RemoveCrate_Campaign_FixLandType, 0x7)
+{
+	GET(CellClass*, pCell, EBX);
+
+	pCell->OverlayData = 0;
+	pCell->RecalcAttributes(DWORD(-1));
+
+	return 0;
+}

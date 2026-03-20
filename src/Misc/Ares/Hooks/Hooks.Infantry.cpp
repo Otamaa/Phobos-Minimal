@@ -14,8 +14,10 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/Building/Body.h>
+#include <Ext/Aircraft/Body.h>
 #include <Ext/Infantry/Body.h>
 #include <Ext/InfantryType/Body.h>
+#include <Ext/House/Body.h>
 
 #include <WWKeyboardClass.h>
 

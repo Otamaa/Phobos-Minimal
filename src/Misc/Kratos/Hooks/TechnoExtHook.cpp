@@ -29,7 +29,6 @@
 #include <Misc/Kratos/Ext/TechnoType/JumpjetCarryall.h>
 #include <Misc/Kratos/Ext/TechnoType/TechnoStatus.h>
 
-#ifdef _ENABLE_HOOKS
 
 // ----------------
 // Extension
@@ -40,7 +39,7 @@ ASMJIT_PATCH(0x6F3260, TechnoClass_CTOR, 0x5)
 {
 	// skip this Allocate just left TechnoClass_Load_Suffix => LoadKey to Allocate
 	// when is loading a save game.
-	if (!Common::IsLoadGame)
+	if (!Phobos::Otamaa::DoingLoadGame)
 	{
 		GET(TechnoClass*, pItem, ESI);
 
@@ -64,35 +63,6 @@ ASMJIT_PATCH(0x6F4500, TechnoClass_DTOR, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK_AGAIN(0x70C250, TechnoClass_SaveLoad_Prefix, 0x8)
-ASMJIT_PATCH(0x70BF50, TechnoClass_SaveLoad_Prefix, 0x5)
-{
-	GET_STACK(TechnoClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-
-	TechnoExt::ExtMap.PrepareStream(pItem, pStm);
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x70C249, TechnoClass_Load_Suffix, 0x5)
-{
-	TechnoExt::ExtMap.LoadStatic();
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x70C264, TechnoClass_Save_Suffix, 0x5)
-{
-	TechnoExt::ExtMap.SaveStatic();
-
-	return 0;
-}
-
-// ----------------
-// Component
-// ----------------
-
 ASMJIT_PATCH(0x6F42ED, TechnoClass_Init, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -105,6 +75,15 @@ ASMJIT_PATCH(0x6F42ED, TechnoClass_Init, 0xA)
 
 	return 0;
 }
+
+//letsee if stuffs compile here , for now
+//these all hooks need to be reallocated somewhere to sync feature with the mainline functions
+#ifdef _ENABLE_HOOKS
+
+// ----------------
+// Component
+// ----------------
+
 
 ASMJIT_PATCH(0x6F6CA0, TechnoClass_Put, 0x7)
 {
@@ -121,8 +100,6 @@ ASMJIT_PATCH(0x6F6CA0, TechnoClass_Put, 0x7)
 	return 0;
 }
 
-// avoid hook conflict with phobos feature -- shield
-//[Hook(HookType.AresHook, Address = 0x6F6AC0, Size = 5)]
 ASMJIT_PATCH(0x6F6AC4, TechnoClass_Remove, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
@@ -140,7 +117,6 @@ ASMJIT_PATCH(0x6F9E50, TechnoClass_Update, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
 
-	// Do not search this up again in any functions called here because it is costly for performance - Starkku
 	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 	{
 		pExt->_GameObject->Foreach([](Component* c)
@@ -181,6 +157,8 @@ ASMJIT_PATCH(0x414CF2, TechnoClass_WarpUpdate, 0x6)		 // Aircraft
 	return 0;
 }
 
+#pragma region Temporals
+
 ASMJIT_PATCH(0x71A88D, TemporalClass_Update, 0x0)
 {
 	GET(TemporalClass*, pTemporal, ESI);
@@ -214,6 +192,8 @@ ASMJIT_PATCH(0x71A917, TemporalClass_Update_Eliminate, 0x5)
 
 	return 0;
 }
+
+#pragma endregion
 
 bool DamageByToyWH = false;
 
@@ -532,7 +512,7 @@ ASMJIT_PATCH(0x6F9039, TechnoClass_Greatest_Threat_HealWeaponRange, 0x5)
 {
 	GET(TechnoClass*, pTechno, ESI);
 	int guardRange = pTechno->GetTechnoType()->GuardRange;
-	WeaponStruct* pirmary = pTechno->GetTurretWeapon();
+	WeaponStruct* pirmary = pTechno->GetTurrentWeapon();
 	if (pirmary && pirmary->WeaponType)
 	{
 		int range = pirmary->WeaponType->Range;
@@ -710,76 +690,6 @@ ASMJIT_PATCH(0x73C15F, UnitClass_DrawVXL_Colour, 0x7)
 }
 #pragma endregion
 
-#pragma region Techno Destroy Debris
-// Take over to make vxl debirs
-ASMJIT_PATCH(0x702299, TechnoClass_Destroy_VxlDebris_Remap, 0xA)
-{
-	if (AudioVisual::Data()->AllowMakeVoxelDebrisByKratos)
-	{
-		GET(TechnoClass*, pTechno, ESI);
-		TechnoTypeClass* pType = pTechno->GetTechnoType();
-		// Phobos hook 这个地址，要自己算随机数
-		int max = pType->MaxDebris;
-		int min = pType->MinDebris;
-		if (min < 0)
-		{
-			Debug::Log("Warning: TechnoType [%s] MinDebris = %d\n", pType->ID, min);
-			min = 0;
-		}
-		if (max < min)
-		{
-			Debug::Log("Warning: TechnoType [%s] MinDebris = %d, MaxDebris = %d\n", pType->ID, min, max);
-			max = min;
-		}
-		int times = Random::RandomRanged(min, max);
-		if (times > 0)
-		{
-			DynamicVectorClass<VoxelAnimTypeClass*> debrisTypes = pType->DebrisTypes;
-			if (debrisTypes.Count > 0)
-			{
-				HouseClass* pHouse = pTechno->Owner;
-				CoordStruct location = pTechno->GetCoords();
-				ExpandAnimsManager::PlayExpandDebirs(debrisTypes, pType->DebrisMaximums, times, location, pHouse, pTechno);
-			}
-			R->EBX(times);
-			return 0x7023E5;
-		}
-	}
-	return 0;
-}
-
-ASMJIT_PATCH(0x70256C, TechnoClass_Destroy_Debris_Remap, 0x6)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	GET(AnimClass*, pAnim, EDI);
-	if (pAnim)
-	{
-		pAnim->Owner = pTechno->Owner;
-	}
-	GET(int, i, EBX);
-	if (i > 0)
-	{
-		return 0x7024E0;
-	}
-	return 0;
-}
-
-ASMJIT_PATCH(0x7024B0, TechnoClass_Destroy_Debris_Remap2, 0x6)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	GET(AnimClass*, pAnim, EBX);
-	if (pAnim)
-	{
-		pAnim->Owner = pTechno->Owner;
-	}
-	GET(int, i, EBP);
-	if (i > 0)
-	{
-		return 0x70240C;
-	}
-	return 0;
-}
-#pragma endregion
 
 #pragma region Select weapon
 // Can not shoot to water when NavalTargeting = 6
@@ -787,7 +697,7 @@ ASMJIT_PATCH(0x6FC833, TechnoClass_NavalTargeting, 0x7)
 {
 	GET(TechnoClass*, pTechno, ESI);
 	GET(CellClass*, pTarget, EAX);
-	if (pTarget->LandType == LandType::Water && pTechno->GetTechnoType()->NavalTargeting == NavalTargetingType::Naval_None)
+	if (pTarget->LandType == LandType::Water && pTechno->GetTechnoType()->NavalTargeting == NavalTargetingType::Naval_none)
 	{
 		return 0x6FC86A;
 	}
@@ -936,31 +846,6 @@ ASMJIT_PATCH(0x6F36DB, TechnoClass_SelectWeapon, 0xA)
 	return Primary; // 返回主武器
 }
 
-// Phobos在这里新增对AU的检查，按距离切换武器可以在上面进行检查并切换
-// change form Otamaa
-// ASMJIT_PATCH(0x6F37EB, TechnoClass_SelectWeapon_SecondaryCheckAA_SwitchByRange, 0x6)
-// {
-// 	enum { Primary = 0x6F37AD, Secondary = 0x6F3807 };
-// 	GET(TechnoClass*, pTechno, ESI);
-// 	GET(AbstractClass*, pTarget, EBP);
-// 	GET_STACK(WeaponTypeClass*, pPrimary, 0x18 - 0x4);
-// 	GET(WeaponTypeClass*, pSecondary, EAX);
-// 	// 默认使用主武器
-// 	int select = Primary;
-// 	// 根据距离选择应该使用主武器或者副武器
-// 	SelectWeaponData* data = INI::GetConfig<SelectWeaponData>(INI::Rules, pTechno->GetTechnoType()->ID)->Data;
-// 	if (data->UseSecondary(pTechno, pTarget, pPrimary, pSecondary))
-// 	{
-// 		select = Secondary; // 返回副武器
-// 	}
-// 	// check AA
-// 	if (!pPrimary->Projectile->AA && pSecondary->Projectile->AA && pTarget && pTarget->IsInAir())
-// 	{
-// 		select = Secondary; // 返回副武器
-// 	}
-// 	return select;
-// }
-
 ASMJIT_PATCH(0x6FDD61, TechnoClass_Fire_OverrideWeapon, 0x5)
 {
 	GET(TechnoClass*, pTechno, ESI);
@@ -1102,13 +987,13 @@ ASMJIT_PATCH(0x54AED0, JumpjetLocomotionClass_Freeze, 0x5)
 		if (lockDir)
 		{
 			// 被冻结时，保持朝向不变
-			DirStruct dir = pJJ->LocomotionFacing.Current();
+			DirStruct dir = pJJ->Facing.Current();
 			if (status->JJMark)
 			{
 				status->JJMark = false;
 				dir = status->JJFacing;
 			}
-			pJJ->LocomotionFacing.Set_Current(dir);
+			pJJ->Facing.Set_Current(dir);
 			pTechno->PrimaryFacing.Set_Current(dir);
 		}
 		if (lockDir || status->CarryallLanding)
@@ -1131,7 +1016,7 @@ ASMJIT_PATCH(0x54BED4, JumpjetLocomotionClass_Hovering_DeployToLand, 0x7)
 	auto const pType = pLinkedTo->GetTechnoType();
 
 	if (!pType->BalloonHover || pType->DeployToLand)
-		pThis->State = JumpjetLocomotionClass::State::Descending;
+		pThis->NextState = JumpjetLocomotionClass::State::Descending;
 
 	pLinkedTo->TryNextPlanningTokenNode();
 	return SkipGameCode;
@@ -1149,8 +1034,8 @@ ASMJIT_PATCH(0x54C2DF, JumpjetLocomotionClass_Cruising_DeployToLand, 0xA)
 
 	if (!pType->BalloonHover || pType->DeployToLand)
 	{
-		pThis->CurrentHeight = 0;
-		pThis->State = JumpjetLocomotionClass::State::Descending;
+		pThis->__currentHeight = 0;
+		pThis->NextState = JumpjetLocomotionClass::State::Descending;
 	}
 
 	pLinkedTo->TryNextPlanningTokenNode();
@@ -1160,7 +1045,7 @@ ASMJIT_PATCH(0x54C2DF, JumpjetLocomotionClass_Cruising_DeployToLand, 0xA)
 ASMJIT_PATCH(0x54D600, JumpjetLocomotionClass_MovingUpdate_DontTurnInCell, 0x6)
 {
 	GET(JumpjetLocomotionClass*, pJJ, ESI);
-	CoordStruct targetPos = pJJ->DestinationCoords;
+	CoordStruct targetPos = pJJ->HeadToCoord;
 	if (!targetPos.IsEmpty())
 	{
 		TechnoClass* pTechno = pJJ->LinkedTo;
@@ -1192,9 +1077,9 @@ ASMJIT_PATCH(0x54D600, JumpjetLocomotionClass_MovingUpdate_DontTurnInCell, 0x6)
 					}
 
 					// 下降状态
-					if (pJJ->State != JumpjetLocomotionClass::State::Descending)
+					if (pJJ->NextState != JumpjetLocomotionClass::State::Descending)
 					{
-						pJJ->State = JumpjetLocomotionClass::State::Descending;
+						pJJ->NextState = JumpjetLocomotionClass::State::Descending;
 					}
 				}
 			}
@@ -1215,11 +1100,11 @@ ASMJIT_PATCH(0x54BC44, JumpjetLocomotionClass_Update_State1_DontTurnInCell, 0x8)
 	GET(JumpjetLocomotionClass*, pJJ, ESI);
 	TechnoClass* pTechno = pJJ->LinkedTo;
 	CoordStruct sourcePos = pTechno->GetCoords();
-	CoordStruct targetPos = pJJ->DestinationCoords;
+	CoordStruct targetPos = pJJ->HeadToCoord;
 	if (sourcePos.X == targetPos.X && sourcePos.Y == targetPos.Y)
 	{
 		// 完全垂直的升降，不要计算转角，保持朝向不变
-		DirStruct dir = pJJ->LocomotionFacing.Current();
+		DirStruct dir = pJJ->Facing.Current();
 		TechnoStatus* status = nullptr;
 		if (TryGetStatus<TechnoExt>(pTechno, status))
 		{
@@ -1238,7 +1123,7 @@ ASMJIT_PATCH(0x54BC44, JumpjetLocomotionClass_Update_State1_DontTurnInCell, 0x8)
 ASMJIT_PATCH(0x54BF53, JumpjetLocomotionClass_Update_State2_MarkDir, 0x5)
 {
 	GET(JumpjetLocomotionClass*, pJJ, ESI);
-	CoordStruct targetPos = pJJ->DestinationCoords;
+	CoordStruct targetPos = pJJ->HeadToCoord;
 	if (!targetPos.IsEmpty())
 	{
 		TechnoClass* pTechno = pJJ->LinkedTo;
@@ -1255,7 +1140,7 @@ ASMJIT_PATCH(0x54BF53, JumpjetLocomotionClass_Update_State2_MarkDir, 0x5)
 				if (s.X == t.X && s.Y == t.Y)
 				{
 					// 如果在同一个格子，不要乱转
-					dir = pJJ->LocomotionFacing.Current();
+					dir = pJJ->Facing.Current();
 				}
 				status->JJFacing = dir;
 			}
@@ -1287,7 +1172,7 @@ ASMJIT_PATCH(0x54BE6D, JumpjetLocomotionClass_Update_State2_BalloonHover, 0x6)
 			{
 				status->BalloonFall = true;
 				// 强制将状态转为下降
-				pJJ->State = JumpjetLocomotionClass::State::Descending;
+				pJJ->NextState = JumpjetLocomotionClass::State::Descending;
 				return 0x54BEA3;
 			}
 		}
@@ -1307,11 +1192,11 @@ ASMJIT_PATCH(0x54C0BB, JumpjetLocomotionClass_Update_State3_DontTurnInCell, 0x7)
 	GET(JumpjetLocomotionClass*, pJJ, ESI);
 	TechnoClass* pTechno = pJJ->LinkedTo;
 	CoordStruct sourcePos = pTechno->GetCoords();
-	CoordStruct targetPos = pJJ->DestinationCoords;
+	CoordStruct targetPos = pJJ->HeadToCoord;
 	if (sourcePos.X == targetPos.X && sourcePos.Y == targetPos.Y)
 	{
 		// 完全垂直的升降，不要计算转角，保持朝向不变
-		DirStruct dir = pJJ->LocomotionFacing.Current();
+		DirStruct dir = pJJ->Facing.Current();
 		TechnoStatus* status = nullptr;
 		if (TryGetStatus<TechnoExt>(pTechno, status))
 		{

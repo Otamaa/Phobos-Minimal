@@ -10,16 +10,17 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/TerrainType/Body.h>
 
+
 #include <AircraftClass.h>
-#include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDiveFunctional.h>
-#include <Misc/DynamicPatcher/Techno/AircraftPut/AircraftPutDataFunctional.h>
 
 #include <Utilities/Macro.h>
 
 #include <Locomotor/FlyLocomotionClass.h>
 #include <Phobos.SaveGame.h>
 
-#include <misc/Kratos/Ext/Helper/FLH.h>
+#include <misc/Kratos/Extension/TechnoExt.h>
+#include <misc/Kratos/Extension/TechnoTypeExt.h>
+#include <Misc/Kratos/Ext/Helper/Scripts.h>
 
 COMPILETIMEEVAL FORCEDINLINE bool AircraftCanStrafeWithWeapon(WeaponTypeClass* pWeapon)
 {
@@ -278,61 +279,61 @@ int FakeAircraftClass::_Mission_Attack()
 		if (this->Target && this->Ammo)
 		{
 
-			if (!this->Type->MissileSpawn && !this->Type->Fighter && !this->Is_Strafe())
-			{
-				AbstractClass* pTarget = this->Target;
-				int weaponIdx = this->SelectWeapon(pTarget);
+			// if (!this->Type->MissileSpawn && !this->Type->Fighter && !this->Is_Strafe())
+			// {
+			// 	AbstractClass* pTarget = this->Target;
+			// 	int weaponIdx = this->SelectWeapon(pTarget);
 
-				if (this->IsCloseEnough(pTarget, weaponIdx))
-				{
-					this->IsLocked = true;
-					CoordStruct pos = this->GetCoords();
-					CellClass* pCell = MapClass::Instance->TryGetCellAt(pos);
-					this->SetDestination(pCell, true);
-					this->MissionStatus = this->Destination
-						? static_cast<int>(AirAttackStatus::FlyToPosition)
-						: static_cast<int>(AirAttackStatus::ReturnToBase);
-				}
-				else
-				{
-					int dest = this->DistanceFrom(this->Target);
-					WeaponTypeClass* pWeapon = this->GetWeapon(weaponIdx)->WeaponType;
-					CoordStruct nextPos = CoordStruct::Empty;
-					if (dest < pWeapon->MinimumRange)
-					{
-						CoordStruct flh = CoordStruct::Empty;
-						flh.X = (int)(pWeapon->Range * 0.5);
-						nextPos = TechnoExtData::GetFLHAbsoluteCoords(this, flh, true);
-					}
-					else if (dest > pWeapon->Range) //TODO :Evaluate weapon range
-					{
-						int length = (int)(pWeapon->Range * 0.5);
-						int flipY = 1;
-						if (ScenarioClass::Instance->Random.RandomRanged(0, 1) == 1) {
-							flipY *= -1;
-						}
-						CoordStruct sourcePos = this->GetCoords();
-						int r = (dest - length) * Unsorted::LeptonsPerCell;
-						r = ScenarioClass::Instance->Random.RandomRanged(0, r);
-						CoordStruct flh{ 0, r * flipY, 0 };
-						CoordStruct targetPos = this->Target->GetCoords();
-						DirStruct dir = Point2Dir(sourcePos, targetPos);
-						sourcePos = GetFLHAbsoluteCoords(sourcePos, flh, dir);
-						sourcePos.Z = 0;
-						targetPos.Z = 0;
+			// 	if (this->IsCloseEnough(pTarget, weaponIdx))
+			// 	{
+			// 		this->IsLocked = true;
+			// 		CoordStruct pos = this->GetCoords();
+			// 		CellClass* pCell = MapClass::Instance->TryGetCellAt(pos);
+			// 		this->SetDestination(pCell, true);
+			// 		this->MissionStatus = this->Destination
+			// 			? static_cast<int>(AirAttackStatus::FlyToPosition)
+			// 			: static_cast<int>(AirAttackStatus::ReturnToBase);
+			// 	}
+			// 	else
+			// 	{
+			// 		int dest = this->DistanceFrom(this->Target);
+			// 		WeaponTypeClass* pWeapon = this->GetWeapon(weaponIdx)->WeaponType;
+			// 		CoordStruct nextPos = CoordStruct::Empty;
+			// 		if (dest < pWeapon->MinimumRange)
+			// 		{
+			// 			CoordStruct flh = CoordStruct::Empty;
+			// 			flh.X = (int)(pWeapon->Range * 0.5);
+			// 			nextPos = TechnoExtData::GetFLHAbsoluteCoords(this, flh, true);
+			// 		}
+			// 		else if (dest > pWeapon->Range) //TODO :Evaluate weapon range
+			// 		{
+			// 			int length = (int)(pWeapon->Range * 0.5);
+			// 			int flipY = 1;
+			// 			if (ScenarioClass::Instance->Random.RandomRanged(0, 1) == 1) {
+			// 				flipY *= -1;
+			// 			}
+			// 			CoordStruct sourcePos = this->GetCoords();
+			// 			int r = (dest - length) * Unsorted::LeptonsPerCell;
+			// 			r = ScenarioClass::Instance->Random.RandomRanged(0, r);
+			// 			CoordStruct flh{ 0, r * flipY, 0 };
+			// 			CoordStruct targetPos = this->Target->GetCoords();
+			// 			DirStruct dir = Point2Dir(sourcePos, targetPos);
+			// 			sourcePos = GetFLHAbsoluteCoords(sourcePos, flh, dir);
+			// 			sourcePos.Z = 0;
+			// 			targetPos.Z = 0;
 
-						nextPos = GetForwardCoords(targetPos, sourcePos, length);
-					}
-					if (!nextPos.IsEmpty())
-					{
-						CellClass* pCell = MapClass::Instance->TryGetCellAt(nextPos);
-						this->SetDestination(pCell, true);
-						this->MissionStatus = this->Destination
-							? static_cast<int>(AirAttackStatus::FlyToPosition)
-							: static_cast<int>(AirAttackStatus::ReturnToBase);
-					}
-				}
-			}
+			// 			nextPos = GetForwardCoords(targetPos, sourcePos, length);
+			// 		}
+			// 		if (!nextPos.IsEmpty())
+			// 		{
+			// 			CellClass* pCell = MapClass::Instance->TryGetCellAt(nextPos);
+			// 			this->SetDestination(pCell, true);
+			// 			this->MissionStatus = this->Destination
+			// 				? static_cast<int>(AirAttackStatus::FlyToPosition)
+			// 				: static_cast<int>(AirAttackStatus::ReturnToBase);
+			// 		}
+			// 	}
+			// }
 
 			this->SetDestination(this->GoodTargetLoc_(this->Target), true);
 			this->MissionStatus = this->Destination
@@ -449,7 +450,8 @@ int FakeAircraftClass::_Mission_Attack()
 		case FireError::OK:
 		{
 			this->loseammo_6c8 = true; // 0x418403
-			AircraftExtData::FireWeapon(this, this->Target);
+			 if(!GetTypeData<TechnoTypeExt, TechnoTypeExt::TypeData>(this->Type)->DisableNoFighterFireTwice)
+				AircraftExtData::FireWeapon(this, this->Target);
 
 			if (this->Is_Strafe())
 			{
@@ -463,12 +465,13 @@ int FakeAircraftClass::_Mission_Attack()
 				return AircraftExtData::GetDelay(this, false);
 			}
 
-			if (!this->Is_Locked())
-			{
-				this->MissionStatus = static_cast<int>(AirAttackStatus::FireAtTarget2);
-				return 1;
-			}
-
+			//DEFINE_JUMP(LJMP, 0x4184FC, 0x418506);
+			//if (!this->Is_Locked())
+			//{
+			//	this->MissionStatus = static_cast<int>(AirAttackStatus::FireAtTarget2);
+			//	return 1;
+			//}
+			
 			// 0x418506 - Delay1B
 			this->IsLocked = true;
 			this->MissionStatus = this->Ammo > 0
@@ -681,8 +684,8 @@ void FakeAircraftClass::_FootClass_Update_Wrapper()
 
 
 	//pExt->UpdateAircraftOpentopped();
-	AircraftPutDataFunctional::AI(pExt, pTypeExt);
-	AircraftDiveFunctional::AI(pExt, pTypeExt);
+	//AircraftPutDataFunctional::AI(pExt, pTypeExt);
+	//AircraftDiveFunctional::AI(pExt, pTypeExt);
 	//FighterAreaGuardFunctional::AI(pExt, pTypeExt);
 
 	//if (pThis->IsAlive && pThis->SpawnOwner != nullptr)

@@ -18,19 +18,7 @@ public:
 
 static GScreenHook _gScreenHook;
 
-#ifdef _ENABLE_HOOKS
-
-ASMJIT_PATCH(0x4F4497, GScreenClass_Render, 0x6)
-{
-	EventSystems::Render.Broadcast(Events::GScreenRenderEvent);
-	return 0;
-}
-
-ASMJIT_PATCH(0x4F4583, GScreenClass_Render_Late, 0x6)
-{
-	EventSystems::Render.Broadcast(Events::GScreenRenderEvent, EventArgsLate);
-	return 0;
-}
+#ifndef _ENABLE_HOOKS
 
 // SidebarClass_5F38C0
 ASMJIT_PATCH(0x6A70EB, SidebarClass_DrawIt, 0x6)

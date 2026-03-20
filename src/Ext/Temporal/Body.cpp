@@ -3,12 +3,14 @@
 #include <Utilities/Macro.h>
 
 #include <Ext/Anim/Body.h>
+#include <Ext/Aircraft/Body.h>
 #include <Ext/AircraftType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/WarheadType/Body.h>
+#include <Ext/House/Body.h>
 
 #include <TechnoClass.h>
 #include <BuildingClass.h>

@@ -2,7 +2,6 @@
 
 #include <Utilities/SavegameDef.h>
 #include "LauchSWData.h"
-#include <../Misc/DynamicPatcher/Helpers/Helpers.h>
 
 struct FireSuperWeapon
 {

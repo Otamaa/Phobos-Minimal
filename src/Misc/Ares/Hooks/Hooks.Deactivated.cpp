@@ -1,6 +1,7 @@
 #include <Ext/Techno/Body.h>
 
 #include <InfantryClass.h>
+#include <AircraftClass.h>
 
 ASMJIT_PATCH(0x417F83, AircraftClass_GetActionOnCell_Deactivated, 0x6)
 {

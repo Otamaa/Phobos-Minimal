@@ -30,6 +30,8 @@
 #include <FPSCounter.h>
 #include <EventClass.h>
 
+#include <Misc/Kratos/Kratos.h>
+
 #pragma endregion
 
 //ASMJIT_PATCH_AGAIN(0x55B6F8, LogicClass_Update, 0xC) //_End
@@ -37,8 +39,8 @@ std::chrono::high_resolution_clock::time_point lastFrameTime;
 #include <ThemeClass.h>
 
 //separate the function
-//ASMJIT_PATCH(0x55B719, LogicClass_Update_late, 0x5)
-//{
+ASMJIT_PATCH(0x55B719, LogicClass_Update_late, 0x5)
+{
 //	HarmlessCommandClass::AI();
 //	SWFirerClass::Update();
 //	SWStateMachine::UpdateAll();
@@ -77,13 +79,15 @@ std::chrono::high_resolution_clock::time_point lastFrameTime;
 //		});
 //	}
 //
-//	return 0x0;
-//}
+	Kratos::LogicUpdate_End();
+	return 0x0;
+}
 
 ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 {
 	lastFrameTime = std::chrono::high_resolution_clock::now();
 
+	Kratos::LogicUpdate_Early();
 	HarmlessCommandClass::AI();
 	SWFirerManagerClass::Instance.Update();
 	SWStateMachine::UpdateAll();

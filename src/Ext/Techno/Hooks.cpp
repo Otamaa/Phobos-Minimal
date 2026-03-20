@@ -14,6 +14,8 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/Infantry/Body.h>
+#include <Ext/Aircraft/Body.h>
+#include <Ext/BulletType/Body.h>
 
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/GeneralUtils.h>
@@ -21,8 +23,6 @@
 #include <Utilities/Debug.h>
 #include <Utilities/Macro.h>
 
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
 #include <New/PhobosAttachedAffect/Functions.h>
 #include <New/Entity/FlyingStrings.h>
 
@@ -174,7 +174,7 @@ ASMJIT_PATCH(0x6F6CFE, TechnoClass_Unlimbo_LaserTrails, 0x6)
 		pLaserTrail->Visible = true;
 	}
 
-	TrailsManager::Hide(pThis);
+	//TrailsManager::Hide(pThis);
 
 	return 0;
 }

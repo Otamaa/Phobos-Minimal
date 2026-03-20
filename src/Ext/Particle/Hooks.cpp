@@ -1,7 +1,5 @@
 #include "Body.h"
 
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-
 /*
 static CoordStruct GetFLHAbsoluteCoords(CoordStruct nFLH, CoordStruct nCurLoc)
 {

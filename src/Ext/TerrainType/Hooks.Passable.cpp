@@ -10,12 +10,15 @@
 
 #include <Ext/Terrain/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/Aircraft/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
 
 #include <Helpers/Macro.h>
+
+#include <IsometricTileTypeClass.h>
 
 #define IS_CELL_OCCUPIED(pCell)\
 pCell->OccupationFlags & 0x20 || pCell->OccupationFlags & 0x40 || pCell->OccupationFlags & 0x80 || pCell->GetInfantry(false) \

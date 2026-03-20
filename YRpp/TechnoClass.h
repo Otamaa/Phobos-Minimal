@@ -11,12 +11,13 @@
 #include <ProgressTimer.h>
 #include <DoorClass.h>
 #include <FacingClass.h>
+#include <ParticleSystemClass.h>
+
 enum class ProtectTypes : int
 {
 	IronCurtain , ForceShield
 };
 
-class ParticleSystemClass;
 struct ParticleSystems
 {
 	ParticleSystemClass* Fire;

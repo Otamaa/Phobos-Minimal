@@ -7,8 +7,6 @@
 
 #include <New/Entity/LaserTrailClass.h>
 
-#include <Misc/DynamicPatcher/Trails/Trails.h>
-
 #include "Trajectories/PhobosTrajectory.h"
 #include <Ext/Object/Body.h>
 
@@ -47,7 +45,6 @@ public:
 	// 24-byte aligned: Vectors
 	// ============================================================
 	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails;
-	HelperedVector<std::unique_ptr<UniversalTrail>> Trails;
 
 	// ============================================================
 	// 4-byte aligned: int, enum
@@ -81,7 +78,6 @@ public:
 		, AttachedSystem(nullptr)
 		// Vectors
 		, LaserTrails()
-		, Trails()
 		// int/enum
 		, CurrentStrength(0)
 		, DamageNumberOffset(INT32_MIN)

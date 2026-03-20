@@ -39,22 +39,4 @@ ASMJIT_PATCH(0x5F65F1, ObjectClass_UnInit, 0x5)
 	return 0;
 }
 
-// this function is a Object want Detach_All when Limbo or Delete
-ASMJIT_PATCH(0x7258D0, DetachThisFromAll, 0x6)
-{
-	GET(AbstractClass* const, pInvalid, ECX);
-	GET(bool const, removed, EDX);
-	void* args[] = { pInvalid, (void*)removed };
-
-	// 该广播会执行三次
-	// (01) DetachAll
-	// (01) Limbo
-	// (01) DetachAll
-	// (02) DetachAll
-	// (02) Delete
-	EventSystems::General.Broadcast(Events::DetachAll, &args);
-
-	return 0;
-}
-
 #endif

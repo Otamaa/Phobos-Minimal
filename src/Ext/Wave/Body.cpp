@@ -8,6 +8,7 @@
 #include <Utilities/Macro.h>
 
 #include <InfantryClass.h>
+#include <AircraftClass.h>
 
 #include <Phobos.SaveGame.h>
 

@@ -6,6 +6,8 @@
 #include <SpawnManagerClass.h>
 
 #include <Ext/Building/Body.h>
+#include <Ext/House/Body.h>
+#include <Ext/Aircraft/Body.h>
 #include <Ext/AircraftType/Body.h>
 
 #include <Misc/Ares/Hooks/Header.h>

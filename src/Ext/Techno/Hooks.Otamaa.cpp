@@ -5,6 +5,7 @@
 #include <BuildingClass.h>
 #include <UnitClass.h>
 
+#include <Ext/Aircraft/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WarheadType/Body.h>
@@ -17,8 +18,6 @@
 
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/GeneralUtils.h>
-
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 
 #include <Locomotor/FlyLocomotionClass.h>
 #include <DiskLaserClass.h>

@@ -10,9 +10,6 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/Cell/Body.h>
 
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
-#include <Misc/DynamicPatcher/Helpers/Helpers.h>
-
 #include "Trajectories/PhobosTrajectory.h"
 
 #include <Utilities/Macro.h>
@@ -21,6 +18,8 @@
 #include <New/Entity/FlyingStrings.h>
 
 #include <InfantryClass.h>
+#include <AircraftClass.h>
+#include <RadBeam.h>
 
 #include <Phobos.SaveGame.h>
 
@@ -869,8 +868,8 @@ void BulletExtData::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Bu
 				pExt->LaserTrails.clear();
 				pExt->InitializeLaserTrails();
 
-				TrailsManager::CleanUp(pExt->This());
-				TrailsManager::Construct(pExt->This());
+				//TrailsManager::CleanUp(pExt->This());
+				//TrailsManager::Construct(pExt->This());
 
 				// Lose target if the current bullet is no longer interceptable.
 
@@ -1207,7 +1206,6 @@ void BulletExtData::Serialize(T& Stm)
 	debugProcess(this->NukeSW, "NukeSW");
 	debugProcess(this->BrightCheckDone, "BrightCheckDone");
 	debugProcess(this->Owner, "Owner");
-	debugProcess(this->Trails, "Trails");
 	debugProcess(this->AttachedSystem, "AttachedSystem");
 	debugProcess(this->DamageNumberOffset, "DamageNumberOffset");
 	debugProcess(this->OriginalTarget, "OriginalTarget");
@@ -1282,27 +1280,6 @@ bool BulletExtContainer::SaveAll(json& root)
 
 // =============================
 // container hooks
-
-//dont have noint
-ASMJIT_PATCH(0x4664BA, BulletClass_CTOR, 0x5)
-{
-	GET(BulletClass*, pItem, ESI);
-	BulletExtContainer::Instance.Allocate(pItem);
-	return 0;
-}
-
-ASMJIT_PATCH(0x466501, BulletClass_InitSomeStuffs, 0x6) {
-	GET(FakeBulletClass*, pItem, ECX);
-	pItem->_GetExtData()->Name = pItem->Type->ID;
-	return 0x0;
-}
-
-ASMJIT_PATCH(0x4665E9, BulletClass_DTOR, 0xA)
-{
-	GET(BulletClass*, pItem, ESI);
-	BulletExtContainer::Instance.Remove(pItem);
-	return 0;
-}
 
 void FakeBulletClass::_Detach(AbstractClass* target , bool all)
 {

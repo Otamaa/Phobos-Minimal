@@ -5,22 +5,11 @@
 #include <Helpers/Macro.h>
 #include <Utilities/PooledContainer.h>
 #include <Utilities/TemplateDef.h>
-//#include <Utilities/EventHandler.h>
+#include <Utilities/Enum.h>
 
 #include <New/Entity/ShieldClass.h>
 #include <New/Entity/LaserTrailClass.h>
 #include <New/Entity/HomingMissileTargetTracker.h>
-
-#include <Misc/DynamicPatcher/Trails/Trails.h>
-#include <Misc/DynamicPatcher/CustomWeapon/CustomWeapon.h>
-#include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDive.h>
-#include <Misc/DynamicPatcher/Techno/DamageSelf/DamageSelfType.h>
-#include <Misc/DynamicPatcher/Techno/DriveData/DriveData.h>
-#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBox.h>
-#include <Misc/DynamicPatcher/Techno/JumjetFaceTarget/JJFacingToTarget.h>
-#include <Misc/DynamicPatcher/Techno/SpawnSupport/SpawnSupport.h>
-#include <Misc/DynamicPatcher/Techno/FighterGuardArea/FighterAreaGuard.h>
-#include <Misc/DynamicPatcher/AttachedAffects/Effects/PaintBall/PaintBall.h>
 
 #include <New/Type/DigitalDisplayTypeClass.h>
 
@@ -765,16 +754,11 @@ private:
 		debugProcess(this->AircraftOpentoppedInitEd, "AircraftOpentoppedInitEd");
 		debugProcess(this->EngineerCaptureDelay, "EngineerCaptureDelay");
 		debugProcess(this->FlhChanged, "FlhChanged");
-		//debugProcess(this->ReceiveDamageMultiplier, "ReceiveDamageMultiplier");
 		debugProcess(this->SkipLowDamageCheck, "SkipLowDamageCheck");
 		debugProcess(this->aircraftPutOffsetFlag, "aircraftPutOffsetFlag");
 		debugProcess(this->aircraftPutOffset, "aircraftPutOffset");
 		debugProcess(this->SkipVoice, "SkipVoice");
 		debugProcess(this->ExtraWeaponTimers, "ExtraWeaponTimers");
-		debugProcess(this->Trails, "Trails");
-		debugProcess(this->MyGiftBox, "MyGiftBox");
-		debugProcess(this->PaintBallStates, "PaintBallStates");
-		debugProcess(this->DamageSelfState, "DamageSelfState");
 		debugProcess(this->CurrentWeaponIdx, "CurrentWeaponIdx");
 		debugProcess(this->WarpedOutDelay, "WarpedOutDelay");
 
@@ -795,10 +779,6 @@ private:
 		debugProcess(this->AeData, "AeData");
 		debugProcess(this->MergePreventionTimer, "MergePreventionTimer");
 		debugProcess(this->TiberiumStorage, "TiberiumStorage");
-		debugProcess(this->MyWeaponManager, "MyWeaponManager");
-		debugProcess(this->MyDriveData, "MyDriveData");
-		debugProcess(this->MyDiveData, "MyDiveData");
-		debugProcess(this->MySpawnSuport, "MySpawnSuport");
 		debugProcess(this->PhobosAE, "PhobosAE");
 		debugProcess(this->FiringObstacleCell, "FiringObstacleCell");
 		debugProcess(this->AdditionalRange, "AdditionalRange");
@@ -886,8 +866,6 @@ public:
 	std::unique_ptr<PoweredUnitClass> PoweredUnit;
 	std::unique_ptr<RadarJammerClass> RadarJammer;
 	std::unique_ptr<ShieldClass> Shield;
-	std::unique_ptr<GiftBox> MyGiftBox;
-	std::unique_ptr<DamageSelfState> DamageSelfState;
 
 	// ============================================================
 	// 8-byte aligned: Handle wrappers (pointer-sized)
@@ -911,7 +889,6 @@ public:
 	// ============================================================
 	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails;
 	HelperedVector<TimedWarheadValue<WeaponTypeClass*>> RevengeWeapons;
-	HelperedVector<std::unique_ptr<UniversalTrail>> Trails;
 	HelperedVector<std::unique_ptr<PhobosAttachEffectClass>> PhobosAE;
 	HelperedVector<EBolt*> ElectricBolts;
 	HelperedVector<OnlyAttackStruct> OnlyAttackData;
@@ -922,7 +899,6 @@ public:
 	// Large aggregates: Maps
 	// ============================================================
 	PhobosMap<WeaponTypeClass*, CDTimerClass> ExtraWeaponTimers;
-	PhobosMap<WarheadTypeClass*, PaintBall> PaintBallStates;
 
 	// ============================================================
 	// Large aggregates: Custom compound types
@@ -931,10 +907,6 @@ public:
 	AEProperties AE;
 	AresAEData AeData;
 	NewTiberiumStorageClass TiberiumStorage;
-	FireWeaponManager MyWeaponManager;
-	DriveData MyDriveData;
-	AircraftDive MyDiveData;
-	SpawnSupport MySpawnSuport;
 	TintColors Tints;
 
 	// ============================================================
@@ -1073,8 +1045,6 @@ public:
 		PoweredUnit(nullptr),
 		RadarJammer(nullptr),
 		Shield(nullptr),
-		MyGiftBox(nullptr),
-		DamageSelfState(nullptr),
 
 		// Handle wrappers
 		EMPSparkleAnim(nullptr),
@@ -1088,7 +1058,6 @@ public:
 		// Vectors
 		LaserTrails(),
 		RevengeWeapons(),
-		Trails(),
 		PhobosAE(),
 		ElectricBolts(),
 		OnlyAttackData(),
@@ -1097,16 +1066,11 @@ public:
 
 		// Maps
 		ExtraWeaponTimers(),
-		PaintBallStates(),
 
 		// Custom compound types
 		AE(),
 		AeData(),
 		TiberiumStorage(),
-		MyWeaponManager(),
-		MyDriveData(),
-		MyDiveData(),
-		MySpawnSuport(),
 		Tints(),
 
 		// CDTimerClass

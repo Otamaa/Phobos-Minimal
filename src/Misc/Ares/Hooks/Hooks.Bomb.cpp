@@ -14,7 +14,9 @@
 
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
+#include <Ext/Bullet/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/Aircraft/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>

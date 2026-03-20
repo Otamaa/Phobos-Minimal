@@ -595,14 +595,15 @@ void BuildingTypeExtData::CreateLimboBuilding(BuildingClass* pBuilding, Building
 
 		pBuildingExt->LimboID = ID;
 		pBuildingExt->Shield.release();
-		pBuildingExt->Trails.clear();
+	/*	pBuildingExt->Trails.clear();*/
 		pBuildingExt->RevengeWeapons.clear();
-		pBuildingExt->DamageSelfState.release();
+		pBuildingExt->ExtraWeaponTimers.clear();
+	/*	pBuildingExt->DamageSelfState.release();
 		pBuildingExt->MyGiftBox.release();
 		pBuildingExt->PaintBallStates.clear();
-		pBuildingExt->ExtraWeaponTimers.clear();
+
 		pBuildingExt->MyWeaponManager.Clear();
-		pBuildingExt->MyWeaponManager.CWeaponManager.Clear();
+		pBuildingExt->MyWeaponManager.CWeaponManager.Clear();*/
 
 		if (!HouseExtContainer::Instance.AutoDeathObjects.contains(pBuilding))
 		{

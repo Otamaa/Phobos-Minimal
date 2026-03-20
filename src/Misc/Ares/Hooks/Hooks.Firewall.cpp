@@ -5,6 +5,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/Tiberium/Body.h>
 #include <Ext/SWType/NewSuperWeaponType/Firewall.h>
+#include <Ext/House/Body.h>
 
 #include <Ext/Bullet/Body.h>
 #include <Ext/WarheadType/Body.h>
@@ -345,7 +346,6 @@ ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
 			//fix this , so reset immedietely if target is not on map
 			if (!MapClass::Instance->IsValid(pTargetTech->Location)
 				|| pTargetTech->TemporalTargetingMe
-				|| (pSpawnTechnoTypeExt->MySpawnSupportDatas.Enable && pThis->SpawnOwner->GetCurrentMission() != Mission::Attack && pThis->GetCurrentMission() == Mission::Attack)
 				)
 			{
 				if (pThis->SpawnOwner->Target == pThis->Target)
@@ -354,13 +354,6 @@ ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
 				pThis->SpawnOwner->SpawnManager->ResetTarget();
 			}
 
-		}
-		else if (pSpawnTechnoTypeExt->MySpawnSupportDatas.Enable && pThis->SpawnOwner->GetCurrentMission() != Mission::Attack && pThis->GetCurrentMission() == Mission::Attack)
-		{
-			if (pThis->SpawnOwner->Target == pThis->Target)
-				pThis->SpawnOwner->SetTarget(nullptr);
-
-			pThis->SpawnOwner->SpawnManager->ResetTarget();
 		}
 	}
 

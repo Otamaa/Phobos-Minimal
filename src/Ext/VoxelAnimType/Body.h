@@ -2,7 +2,6 @@
 #include <VoxelAnimTypeClass.h>
 #include <Ext/ObjectType/Body.h>
 #include <New/Type/LaserTrailTypeClass.h>
-#include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 
 class VoxelAnimTypeExtData final : public ObjectTypeExtData
 {
@@ -22,7 +21,6 @@ public:
 
 	ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types;
 	NullableVector<AnimTypeClass*> SplashList;
-	TrailsReader Trails;
 
 	// =====================================================
 	// Pointers / nullable pointers
@@ -53,7 +51,6 @@ public:
 	VoxelAnimTypeExtData(VoxelAnimTypeClass* pObj) : ObjectTypeExtData(pObj)
 		, LaserTrail_Types()
 		, SplashList()
-		, Trails()
 		, WakeAnim()
 		, Weapon()
 		, TrailerAnim_SpawnDelay(2)
