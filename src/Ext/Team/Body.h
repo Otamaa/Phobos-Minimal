@@ -19,8 +19,8 @@ public:
 	using base_type = TeamClass;
 	static COMPILETIMEEVAL const char* ClassName = "TeamExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "TeamClass";
-	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
-	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+	
+	
 
 public:
 

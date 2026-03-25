@@ -1859,7 +1859,7 @@ void FakeBuildingClass::_DrawVisible(Point2D* pLocation, RectangleStruct* pBound
 					fmt::format_to(std::back_inserter(text_), L"{}", percent);
 					text_.push_back(L'\0');
 					RectangleStruct nTextDimension {};
-					COMPILETIMEEVAL TextPrintType printType = TextPrintType::FullShadow | TextPrintType::Point8 | TextPrintType::Background | TextPrintType::Center;
+					TextPrintType printType = TextPrintType::FullShadow | TextPrintType::Point8 | TextPrintType::Background | TextPrintType::Center;
 					Drawing::GetTextDimensions(&nTextDimension, text_.data(), textLoc, printType, 4, 2);
 					auto nIntersect = RectangleStruct::Intersect(nTextDimension, *pBounds, nullptr, nullptr);
 					const COLORREF foreColor = this->Owner->Color.ToInit();

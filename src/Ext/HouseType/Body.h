@@ -21,8 +21,8 @@ public:
 	using base_type = HouseTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "HouseTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "HouseTypeClass";
-	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
-	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+	
+	
 
 public:
 

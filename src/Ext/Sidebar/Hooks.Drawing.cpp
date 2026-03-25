@@ -19,6 +19,7 @@
 #include <TextDrawing.h>
 #include <CCToolTip.h>
 #include <EventClass.h>
+#include <GeneralDefinitions.h>
 
 static COMPILETIMEEVAL int ObserverBackgroundWidth = 121;
 static COMPILETIMEEVAL int ObserverBackgroundHeight = 96;

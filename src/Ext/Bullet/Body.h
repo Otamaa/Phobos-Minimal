@@ -18,8 +18,8 @@ public:
 	using base_type = BulletClass;
 	static COMPILETIMEEVAL const char* ClassName = "BulletExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "BulletClass";
-	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
-	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+	
+	
 
 public:
 #pragma region ClassMembers

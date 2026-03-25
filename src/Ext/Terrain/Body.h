@@ -17,8 +17,8 @@ public:
 	using base_type = TerrainClass;
 	static COMPILETIMEEVAL const char* ClassName = "TerrainExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "TerrainClass";
-	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
-	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+	
+	
 
 public:
 

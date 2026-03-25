@@ -12,8 +12,8 @@ public:
 	using base_type = WaveClass;
 	static COMPILETIMEEVAL const char* ClassName = "WaveExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "WaveClass";
-	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
-	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+	
+	
 
 public:
 #pragma region ClassMembers

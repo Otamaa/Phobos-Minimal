@@ -20,8 +20,8 @@ public:
 	using base_type = WeaponTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "WeaponTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "WeaponTypeClass";
-	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
-	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+	
+	
 
 public:
 

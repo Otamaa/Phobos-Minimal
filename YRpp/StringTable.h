@@ -8,6 +8,7 @@
 #include <GameStrings.h>
 #include <GeneralDefinitions.h>
 #include <Helpers/CompileTime.h>
+#include <array> //std::size
 
 #define CSF_SIGNATURE 0x43534620 //" FSC"
 #define CSF_LABEL_SIGNATURE 0x4C424C20 //" LBL"

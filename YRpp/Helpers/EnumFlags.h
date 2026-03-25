@@ -8,22 +8,22 @@ struct EnumFlagHelper
 {
 	using type = std::underlying_type_t<T>;
 
-	COMPILETIMEEVAL EnumFlagHelper(T value)
+	OPTIONALINLINE COMPILETIMEEVAL EnumFlagHelper(T value)
 	{
 		this->value = static_cast<type>(value);
 	}
 
-	COMPILETIMEEVAL explicit operator bool() const
+	OPTIONALINLINE COMPILETIMEEVAL explicit operator bool() const
 	{
 		return value != type();
 	}
 
-	COMPILETIMEEVAL operator T() const
+	OPTIONALINLINE COMPILETIMEEVAL operator T() const
 	{
 		return static_cast<T>(this->value);
 	}
 
-	COMPILETIMEEVAL explicit operator type() const
+	OPTIONALINLINE COMPILETIMEEVAL explicit operator type() const
 	{
 		return value;
 	}

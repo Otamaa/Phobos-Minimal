@@ -2,6 +2,7 @@
 
 #include <GeneralDefinitions.h>
 #include <Helpers/CompileTime.h>
+#include <ASMMacros.h>
 
 struct Theater	//US English spelling to keep it consistent with the game
 {

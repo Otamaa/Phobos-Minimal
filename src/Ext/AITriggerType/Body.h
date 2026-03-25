@@ -25,8 +25,8 @@ public:
 	using base_type = AITriggerTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "AITriggerTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "AITriggerTypeClass";
-	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
-	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+	
+	
 
 public:
 

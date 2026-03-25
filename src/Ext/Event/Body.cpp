@@ -13,7 +13,7 @@
 #include <IPXManagerClass.h>
 
 
-EventExt::ApproachObject::ApproachObject(FootClass* pThis, ObjectClass* pObject) : 
+EventExt::ApproachObject::ApproachObject(FootClass* pThis, ObjectClass* pObject) :
 	Whom { pThis }, Target { pObject } { }
 
 void EventExt::ApproachObject::Raise(FootClass* pThis, ObjectClass* pObject)
@@ -44,10 +44,10 @@ void EventExt::ApproachObject::Respond(EventClass* Event)
 	pSource->Target = pOriginalTarget;
 }
 
-EventExt::TogglePassiveAcquireMode::TogglePassiveAcquireMode(TechnoClass* pTechno, PassiveAcquireMode mode) : Who { pTechno } , Mode { mode }
+EventExt::TogglePassiveAcquireMode::TogglePassiveAcquireMode(TechnoClass* pTechno, PassiveAcquireModes mode) : Who { pTechno } , Mode { mode }
 { }
 
-void EventExt::TogglePassiveAcquireMode::Raise(TechnoClass* pTechno, PassiveAcquireMode mode)
+void EventExt::TogglePassiveAcquireMode::Raise(TechnoClass* pTechno, PassiveAcquireModes mode)
 {
 	EventClass eventExt {};
 	eventExt.Type = AsEventType();

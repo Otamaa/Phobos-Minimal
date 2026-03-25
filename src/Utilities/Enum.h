@@ -31,7 +31,7 @@
 #pragma endregion
 
 #pragma once
-
+#include <Helpers\EnumFlags.h>
 #include <GeneralDefinitions.h>
 
 enum class SubterraneanHarvStatus : unsigned char
@@ -40,18 +40,6 @@ enum class SubterraneanHarvStatus : unsigned char
 	Created = 1,
 	OutOfFactory = 2
 };
-
-enum class AffectedVeterancy : unsigned char
-{
-	None = 0x0,
-	Rookie = 0x1,
-	Veteran = 0x2,
-	Elite = 0x4,
-
-	All = Rookie | Veteran | Elite
-};
-
-MAKE_ENUM_FLAGS(AffectedVeterancy);
 
 enum class CommandBarTypes
 {
@@ -87,7 +75,7 @@ enum class HealthCondition : BYTE
 	ConditionRed = 2
 };
 
-enum class PassiveAcquireMode : BYTE
+enum class PassiveAcquireModes : BYTE
 {
 	Normal = 0,
 	Aggressive = 1,
@@ -174,7 +162,7 @@ enum class LandTypeFlags : unsigned short
 };
 
 MAKE_ENUM_FLAGS(LandTypeFlags);
-COMPILETIMEEVAL FORCEDINLINE bool IsLandTypeInFlags(LandTypeFlags flags, LandType type)
+FORCEDINLINE bool IsLandTypeInFlags(LandTypeFlags flags, LandType type)
 {
 	return (bool)((LandTypeFlags)(1 << (char)type) & flags);
 }
@@ -719,6 +707,18 @@ enum class BannerNumberType : BYTE
 	Prefixed = 2,
 	Suffixed = 3,
 };
+
+enum class AffectedVeterancy : unsigned char
+{
+	None = 0x0,
+	Rookie = 0x1,
+	Veteran = 0x2,
+	Elite = 0x4,
+	All = 0x7
+};
+
+MAKE_ENUM_FLAGS(AffectedVeterancy)
+
 #pragma region Otamaa
 
 enum class AircraftFireMode : int

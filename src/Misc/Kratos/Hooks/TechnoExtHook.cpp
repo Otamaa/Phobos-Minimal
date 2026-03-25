@@ -63,7 +63,7 @@ ASMJIT_PATCH(0x6F4500, TechnoClass_DTOR, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6F42ED, TechnoClass_Init, 0xA)
+ASMJIT_PATCH(0x6F42ED, TechnoClass_Init_Early, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);
 

@@ -22,8 +22,8 @@ public:
 	using base_type = BuildingClass;
 	static COMPILETIMEEVAL const char* ClassName = "BuildingExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "BuildingClass";
-	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
-	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+	
+	
 
 public:
 #pragma region ClassMember

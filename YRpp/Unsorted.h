@@ -4,6 +4,11 @@
 #include <ArrayClasses.h>
 #include <GeneralDefinitions.h>
 
+#include <YRMathVector.h>
+#include <CellStruct.h>
+#include <Point2D.h>
+#include <Matrix3D.h>
+
 #include <Timers.h>
 
 #include <Helpers/CompileTime.h>
@@ -197,13 +202,13 @@ struct Game
 	static RectangleStruct* __fastcall Get_Sidebar_Clip_Bounds(RectangleStruct* ree)
 	{ JMP_FAST(0x72AD20); }
 
-	static HRESULT __fastcall Save_Misc_Values(LPSTREAM a1) 
+	static HRESULT __fastcall Save_Misc_Values(LPSTREAM a1)
 	{ JMP_FAST(0x67F7E0); }
 
 	static HRESULT __fastcall Load_Misc_Values(LPSTREAM a1)
 	{ JMP_FAST(0x67F9C0); }
 
-	static void __fastcall UnlockImput() 
+	static void __fastcall UnlockImput()
 	{ JMP_FAST(0x684290); }
 
 	static void __fastcall UIStuffs_MenuStuffs()
@@ -243,7 +248,7 @@ struct Game
 	[[noreturn]] static void __stdcall RaiseError(HRESULT err)
 	{ JMP_STD(0x7DC720); }
 
-	static void ClearScenario() 
+	static void ClearScenario()
 	{ ASM_CALL(0x6851F0); }
 
 	// // actually is SessionClass::Callback
@@ -333,10 +338,10 @@ struct Game
 	static void __fastcall WriteMapFiles(const char* pFilename, int bArgs = false)
 	{ JMP_FAST(0x687CE0); }
 
-	static CoordStruct* __fastcall Coord_Move(CoordStruct* revtal, CoordStruct* start, DirStruct* dir, int distance) 
+	static CoordStruct* __fastcall Coord_Move(CoordStruct* revtal, CoordStruct* start, DirStruct* dir, int distance)
 	{ JMP_FAST(0x50E3A0); }
 
-	static int __fastcall Spot_Index(CoordStruct* coord) 
+	static int __fastcall Spot_Index(CoordStruct* coord)
 	{ JMP_FAST(0x4810A0); }
 
 	static bool __fastcall func_007BBE20(RectangleStruct* torect, const RectangleStruct* toarea, RectangleStruct* fromrect, const RectangleStruct* fromarea)

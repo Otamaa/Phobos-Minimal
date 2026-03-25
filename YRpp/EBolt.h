@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <GeneralDefinitions.h>
+#include <CoordStruct.h>
 #include <ArrayClasses.h>
 
 class TechnoClass;

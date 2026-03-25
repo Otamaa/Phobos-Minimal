@@ -51,7 +51,7 @@ void AggressiveModeClass::Execute(WWKey eInput) const
 
 			isAnySelectedUnitTogglable = true;
 
-			if (pTechnoExt->GetPassiveAcquireMode() == PassiveAcquireMode::Aggressive)
+			if (pTechnoExt->GetPassiveAcquireMode() == PassiveAcquireModes::Aggressive)
 			{
 				TechnoVectorAggressive.emplace(pTechno);
 			}
@@ -95,7 +95,7 @@ void AggressiveModeClass::Execute(WWKey eInput) const
 		if (isAllSelectedUnitAggressiveMode)
 		{
 			for (const auto& pTechno : TechnoVectorAggressive)
-				EventExt::TogglePassiveAcquireMode::Raise(pTechno, PassiveAcquireMode::Normal);
+				EventExt::TogglePassiveAcquireMode::Raise(pTechno, PassiveAcquireModes::Normal);
 
 			wchar_t buffer[0x100];
 			swprintf_s(buffer, GeneralUtils::LoadStringUnlessMissing("MSG:AGGRESSIVE_MODE_OFF", L"%i unit(s) ceased Aggressive Mode."), TechnoVectorAggressive.size());
@@ -104,7 +104,7 @@ void AggressiveModeClass::Execute(WWKey eInput) const
 		else
 		{
 			for (const auto& pTechno : TechnoVectorNonAggressive)
-				EventExt::TogglePassiveAcquireMode::Raise(pTechno, PassiveAcquireMode::Aggressive);
+				EventExt::TogglePassiveAcquireMode::Raise(pTechno, PassiveAcquireModes::Aggressive);
 
 			wchar_t buffer[0x100];
 			swprintf_s(buffer, GeneralUtils::LoadStringUnlessMissing("MSG:AGGRESSIVE_MODE_ON", L"%i unit(s) entered Aggressive Mode."), TechnoVectorNonAggressive.size());

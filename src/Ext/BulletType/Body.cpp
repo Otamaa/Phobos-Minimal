@@ -430,16 +430,16 @@ void BulletTypeExtContainer::WriteToINI(BulletTypeClass* key, CCINIClass* pINI)
 // =============================
 // container hooks
 
-ASMJIT_PATCH(0x46BDD9, BulletTypeClass_CTOR, 0x5)
-{
-	GET(BulletTypeClass*, pItem, EAX);
-	BulletTypeExtContainer::Instance.Allocate(pItem);
-	return 0;
-}
+// ASMJIT_PATCH(0x46BDD9, BulletTypeClass_CTOR, 0x5)
+// {
+// 	GET(BulletTypeClass*, pItem, EAX);
+// 	BulletTypeExtContainer::Instance.Allocate(pItem);
+// 	return 0;
+// }
 
-ASMJIT_PATCH(0x46C8B6, BulletTypeClass_SDDTOR, 0x6)
-{
-	GET(BulletTypeClass*, pItem, ESI);
-	BulletTypeExtContainer::Instance.Remove(pItem);
-	return 0;
-}
+// ASMJIT_PATCH(0x46C8B6, BulletTypeClass_SDDTOR, 0x6)
+// {
+// 	GET(BulletTypeClass*, pItem, ESI);
+// 	BulletTypeExtContainer::Instance.Remove(pItem);
+// 	return 0;
+// }

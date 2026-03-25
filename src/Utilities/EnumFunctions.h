@@ -17,7 +17,7 @@ class EnumFunctions final
 public:
 
 	//simple enums
-	static COMPILETIMEEVAL OPTIONALINLINE auto PassiveAcquireMode_ToStrings = magic_enum::enum_entries<PassiveAcquireMode>();
+	static COMPILETIMEEVAL OPTIONALINLINE auto PassiveAcquireModes_ToStrings = magic_enum::enum_entries<PassiveAcquireModes>();
 	static COMPILETIMEEVAL OPTIONALINLINE auto AffectedTechno_ToStrings = magic_enum::enum_entries<AffectedTechno>();
 	static COMPILETIMEEVAL OPTIONALINLINE auto AttachedAnimPosition_ToStrings = magic_enum::enum_entries<AttachedAnimPosition>();
 	static COMPILETIMEEVAL OPTIONALINLINE auto LaserTrailDrawType_ToStrings = magic_enum::enum_entries<LaserTrailDrawType>();
@@ -48,9 +48,9 @@ public:
 
 	static std::array<std::pair<const char*, const char*>, 11u> LocomotorPairs_ToStrings;
 	static std::array<std::pair<const wchar_t*, const wchar_t*>, 11u> LocomotorPairs_ToWideStrings;
-	
+
 	static std::array<const char*, (size_t)PhobosAbilityType::count> PhobosAbilityType_ToStrings;
-	
+
 	static std::array<const char*, 6u>  DisplayShowType_ToStrings;
 	static std::array<const char*, 6u> MouseCursorData_ToStrings;
 	static std::array<const char*, 21u> TileType_ToStrings;
@@ -89,7 +89,7 @@ public:
 	static std::pair<const char*, const char*>* locomotion_toSring(LocomotionClass* ptr);
 	static bool IsPlayerTypeEligible(AffectPlayerType flags, HouseClass* pFor);
 
-	COMPILETIMEEVAL OPTIONALINLINE bool IsLandTypeInFlags(LandTypeFlags flags, LandType type) {
+	OPTIONALINLINE bool IsLandTypeInFlags(LandTypeFlags flags, LandType type) {
 		return (bool)((LandTypeFlags)(1 << (char)type) & flags);
 	}
 };

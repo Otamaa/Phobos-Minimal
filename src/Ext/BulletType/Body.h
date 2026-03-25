@@ -22,8 +22,8 @@ public:
 	using base_type = BulletTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "BulletTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "BulletTypeClass";
-	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
-	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+	
+	
 
 public:
 

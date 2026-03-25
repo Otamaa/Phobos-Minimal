@@ -274,7 +274,7 @@ void TechnoExtData::InitPassiveAcquireMode()
 	this->PassiveAquireMode = TechnoTypeExtContainer::Instance.Find(pType)->PassiveAcquireMode.Get();
 }
 
-PassiveAcquireMode TechnoExtData::GetPassiveAcquireMode() const
+PassiveAcquireModes TechnoExtData::GetPassiveAcquireMode() const
 {
 	// if this is a passenger then obey the configuration of the transport
 	if (auto pTransport = This()->Transporter)
@@ -283,7 +283,7 @@ PassiveAcquireMode TechnoExtData::GetPassiveAcquireMode() const
 	return this->PassiveAquireMode;
 }
 
-void TechnoExtData::TogglePassiveAcquireMode(PassiveAcquireMode newMode)
+void TechnoExtData::TogglePassiveAcquireMode(PassiveAcquireModes newMode)
 {
 	auto previousMode = this->PassiveAquireMode;
 	this->PassiveAquireMode = newMode;
@@ -296,9 +296,9 @@ void TechnoExtData::TogglePassiveAcquireMode(PassiveAcquireMode newMode)
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 	int voiceIndex;
 
-	if (newMode == PassiveAcquireMode::Normal)
+	if (newMode == PassiveAcquireModes::Normal)
 	{
-		if (previousMode == PassiveAcquireMode::Ceasefire)
+		if (previousMode == PassiveAcquireModes::Ceasefire)
 		{
 			voiceIndex = pTypeExt->VoiceExitCeasefireMode.Get();
 
@@ -324,7 +324,7 @@ void TechnoExtData::TogglePassiveAcquireMode(PassiveAcquireMode newMode)
 			}
 		}
 	}
-	else if (newMode == PassiveAcquireMode::Ceasefire)
+	else if (newMode == PassiveAcquireModes::Ceasefire)
 	{
 		pThis->SetTarget(nullptr);
 		voiceIndex = pTypeExt->VoiceEnterCeasefireMode.Get();
@@ -440,7 +440,7 @@ bool __fastcall FakeTechnoClass::__Is_Allowed_To_Retaliate(TechnoClass* pThis , 
 	// Checks CanRetaliate, DriverKilled, and CeasefireMode
 	// Returns to 0x7087E3 after setting CL, or jumps to 0x708B17 if driver killed
 	const auto pType = GET_TECHNOTYPE(pThis);
-	const bool canRetaliate = pType->CanRetaliate && (pExt->GetPassiveAcquireMode() != PassiveAcquireMode::Ceasefire);
+	const bool canRetaliate = pType->CanRetaliate && (pExt->GetPassiveAcquireMode() != PassiveAcquireModes::Ceasefire);
 
 	if (!canRetaliate)
 		return false;

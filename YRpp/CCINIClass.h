@@ -18,6 +18,8 @@
 #include <INIEntry.h>
 #include <INISection.h>
 
+#include <Point2D.h>
+
 class TechnoTypeClass;
 class FileStraw;
 //Basic INI class

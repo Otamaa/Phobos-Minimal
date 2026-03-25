@@ -3,6 +3,7 @@
 #pragma comment(lib, "Version.lib")
 #pragma comment(lib, "DbgHelp.lib")
 #pragma comment(lib, "Winmm.lib")
+#pragma comment(lib, "ole32.lib")
 
 #ifdef _TTT
 #pragma comment(linker, "/NODEFAULTLIB")
@@ -29,7 +30,7 @@
 #pragma comment(lib, "onecore.lib")
 #pragma comment(lib, "dbghelp.lib")
 //#pragma comment(lib, "gdi32.lib")
-#pragma comment(lib, "ole32.lib")
+
 #pragma comment(lib, "comsuppw.lib")
 
 //#pragma comment(lib, "msvcrtd.lib")

@@ -13,8 +13,8 @@ public:
 	using base_type = InfantryClass;
 	static COMPILETIMEEVAL const char* ClassName = "InfantryExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "InfantryClass";
-	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
-	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+	
+	
 
 public:
 

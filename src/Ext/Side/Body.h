@@ -19,8 +19,8 @@ public:
 	using base_type = SideClass;
 	static COMPILETIMEEVAL const char* ClassName = "SideExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "SideClass";
-	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
-	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+	
+	
 
 public:
 #pragma region ClassMembers

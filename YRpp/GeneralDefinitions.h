@@ -1,6 +1,5 @@
 #pragma once
 
-#include <GeneralStructures.h>
 #include <Helpers\EnumFlags.h>
 
 /**

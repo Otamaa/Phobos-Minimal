@@ -7,8 +7,8 @@ public:
 	using base_type = UnitTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "UnitTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "UnitTypeClass";
-	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
-	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+	
+	
 
 public:
 

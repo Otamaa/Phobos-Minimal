@@ -1,10 +1,15 @@
 #pragma once
 
 #include <unknwn.h>
-#include <GeneralStructures.h>
+#include <GeneralDefinitions.h>
 #include <CoordStruct.h>
 #include <Matrix3D.h>
 #include <VoxelIndex.h>
+#include <Point2D.h>
+#include <DirStruct.h>
+#include <CellStruct.h>
+
+#include <combaseapi.h>
 #include <comdef.h>
 
 DECLARE_INTERFACE_IID_(ILocomotion, IUnknown, "070F3290-9841-11D1-B709-00A024DDAFD1")

@@ -48,8 +48,8 @@ public:
 	using base_type = SuperClass;
 	static COMPILETIMEEVAL const char* ClassName = "SuperExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "SuperClass";
-	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
-	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+	
+	
 
 public:
 

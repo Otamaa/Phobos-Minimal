@@ -9,8 +9,8 @@ public:
 	using base_type = VoxelAnimTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "VoxelAnimTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "VoxelAnimTypeClass";
-	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
-	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+	
+	
 
 public:
 #pragma region ClassMember

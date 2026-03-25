@@ -116,7 +116,7 @@ ASMJIT_PATCH(0x466781, BulletClass_UpdateEnd, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x4690C1, BulletClass_Detonate, 0x8)
+ASMJIT_PATCH(0x4690C1, BulletClass_Detonate_Early, 0x8)
 {
 	GET(BulletClass*, pThis, ECX);
 	GET_BASE(CoordStruct*, pPos, 0x8);

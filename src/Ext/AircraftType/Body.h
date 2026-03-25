@@ -11,8 +11,8 @@ public:
 	using base_type = AircraftTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "AircraftTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "AircraftTypeClass";
-	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
-	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+	
+	
 
 public:
 

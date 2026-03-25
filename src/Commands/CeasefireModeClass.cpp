@@ -50,7 +50,7 @@ void CeasefireModeClass::Execute(WWKey eInput) const
 
 			isAnySelectedUnitTogglable = true;
 
-			if (pTechnoExt->GetPassiveAcquireMode() == PassiveAcquireMode::Ceasefire)
+			if (pTechnoExt->GetPassiveAcquireMode() == PassiveAcquireModes::Ceasefire)
 			{
 				TechnoVectorCeasefire.emplace(pTechno);
 			}
@@ -94,7 +94,7 @@ void CeasefireModeClass::Execute(WWKey eInput) const
 		if (isAllSelectedUnitCeasefireMode)
 		{
 			for (const auto& pTechno : TechnoVectorCeasefire)
-				EventExt::TogglePassiveAcquireMode::Raise(pTechno, PassiveAcquireMode::Normal);
+				EventExt::TogglePassiveAcquireMode::Raise(pTechno, PassiveAcquireModes::Normal);
 
 			wchar_t buffer[0x100];
 			swprintf_s(buffer, GeneralUtils::LoadStringUnlessMissing("MSG:CEASEFIRE_MODE_OFF", L"%i unit(s) ceased Ceasefire Mode."), TechnoVectorCeasefire.size());
@@ -103,7 +103,7 @@ void CeasefireModeClass::Execute(WWKey eInput) const
 		else
 		{
 			for (const auto& pTechno : TechnoVectorNonCeasefire)
-				EventExt::TogglePassiveAcquireMode::Raise(pTechno, PassiveAcquireMode::Ceasefire);
+				EventExt::TogglePassiveAcquireMode::Raise(pTechno, PassiveAcquireModes::Ceasefire);
 
 			wchar_t buffer[0x100];
 			swprintf_s(buffer, GeneralUtils::LoadStringUnlessMissing("MSG:CEASEFIRE_MODE_ON", L"%i unit(s) entered Ceasefire Mode."), TechnoVectorNonCeasefire.size());

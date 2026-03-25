@@ -16,8 +16,8 @@ public:
 	using base_type = VoxelAnimClass;
 	static COMPILETIMEEVAL const char* ClassName = "VoxelAnimExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "VoxelAnimClass";
-	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
-	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+	
+	
 
 public:
 

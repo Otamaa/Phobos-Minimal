@@ -3,18 +3,14 @@
 #include <AnimClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/PooledContainer.h>
-#include <Utilities/TemplateDef.h>
-#include <Utilities/Enum.h>
+#include <Utilities/TemplateDefB.h>
 
 #include <New/Entity/ShieldClass.h>
 #include <New/Entity/LaserTrailClass.h>
-#include <New/Entity/HomingMissileTargetTracker.h>
 
 #include <New/Type/DigitalDisplayTypeClass.h>
 
 #include <Utilities/BuildingBrackedPositionData.h>
-#include <Utilities/MemoryPoolUniquePointer.h>
 
 #include <New/Entity/PoweredUnitClass.h>
 #include <New/Entity/RadarJammerClass.h>
@@ -64,7 +60,8 @@ public:
 		return const_cast<TintColors*>(this)->Serialize(Stm);
 	}
 
-	void Reset() {
+	void Reset()
+	{
 		this->ColorOwner = 0;
 		this->ColorAllies = 0;
 		this->ColorEnemies = 0;
@@ -498,8 +495,10 @@ struct AEProperties
 
 		COMPILETIMEEVAL void FillEligible(WarheadTypeClass* who, std::vector<double>& eligible)
 		{
-			for (auto& ex_range : this->mults) {
-				if (ex_range.Eligible(who)) {
+			for (auto& ex_range : this->mults)
+			{
+				if (ex_range.Eligible(who))
+				{
 					eligible.emplace_back(ex_range.Mult);
 				}
 			}
@@ -507,13 +506,14 @@ struct AEProperties
 
 		static COMPILETIMEEVAL double Apply(double initial, std::vector<double>& eligible)
 		{
-			for (auto& ex_range : eligible) {
+			for (auto& ex_range : eligible)
+			{
 				initial *= ex_range;
 			}
 
 			return initial;
 		}
-		private:
+	private:
 
 		template <typename T>
 		bool FORCEDINLINE Serialize(T& Stm)
@@ -541,9 +541,12 @@ struct AEProperties
 	MinMaxValue<int> ReceivedDamage { INT32_MIN , INT32_MAX };
 	MinMaxValue<double> Speed { 0.0 ,  INT32_MAX };
 
-	struct AEFlags {
-		union {
-			struct {
+	struct AEFlags
+	{
+		union
+		{
+			struct
+			{
 				unsigned Cloakable : 1;
 				unsigned ForceDecloak : 1;
 
@@ -572,11 +575,14 @@ struct AEProperties
 	public:
 
 		//load bit from int and flip the bits from it saved state
-		bool Load(PhobosStreamReader& Stm, bool RegisterForChange) {
-			for (int i = 0; i < BitCount; ++i) {
+		bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+		{
+			for (int i = 0; i < BitCount; ++i)
+			{
 				bool bit = (bits >> i) & 1;
 
-				if (!Stm.Process(bit).Success()) {
+				if (!Stm.Process(bit).Success())
+				{
 					return false;
 				}
 
@@ -587,11 +593,14 @@ struct AEProperties
 		}
 
 		//write each bit as integer on .Process to ensure compatibility
-		bool Save(PhobosStreamWriter& Stm) const {
-			for (int i = 0; i < BitCount; ++i) {
+		bool Save(PhobosStreamWriter& Stm) const
+		{
+			for (int i = 0; i < BitCount; ++i)
+			{
 				bool bit = (bits >> i) & 1;
 
-				if (!Stm.Process(bit).Success()) {
+				if (!Stm.Process(bit).Success())
+				{
 					return false;
 				}
 			}
@@ -604,11 +613,11 @@ struct AEProperties
 
 	} flags;
 
-public :
+public:
 
 	static void Recalculate(TechnoClass* pTechno);
 
-public :
+public:
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
@@ -622,7 +631,8 @@ public :
 
 protected:
 	template <typename T>
-	bool Serialize(T& Stm) {
+	bool Serialize(T& Stm)
+	{
 		return Stm
 			.Process(this->ExtraRange)
 			.Process(this->ExtraCrit)
@@ -678,35 +688,35 @@ private:
 	void Serialize(T& Stm)
 	{
 		auto debugProcess = [&Stm](auto& field, const char* fieldName)-> auto&
-		{
-			if constexpr (std::is_same_v<T, PhobosStreamWriter>)
 			{
-			//	size_t beforeSize = Stm.Getstream()->Size();
-				auto& result = Stm.Process(field);
-			//	size_t afterSize = Stm.Getstream()->Size();
-			//	GameDebugLog::Log("[TechnoExtData] SAVE %s: size %zu -> %zu (+%zu)\n",
-			//		fieldName, beforeSize, afterSize, afterSize - beforeSize);
-				return result;
-			}
-			else
-			{
-			//	size_t beforeOffset = Stm.Getstream()->Offset();
-			//	bool beforeSuccess = Stm.Success();
-				auto& result = Stm.Process(field);
-			//	size_t afterOffset = Stm.Getstream()->Offset();
-			//	bool afterSuccess = Stm.Success();
+				if constexpr (std::is_same_v<T, PhobosStreamWriter>)
+				{
+					//	size_t beforeSize = Stm.Getstream()->Size();
+					auto& result = Stm.Process(field);
+					//	size_t afterSize = Stm.Getstream()->Size();
+					//	GameDebugLog::Log("[TechnoExtData] SAVE %s: size %zu -> %zu (+%zu)\n",
+					//		fieldName, beforeSize, afterSize, afterSize - beforeSize);
+					return result;
+				}
+				else
+				{
+					//	size_t beforeOffset = Stm.Getstream()->Offset();
+					//	bool beforeSuccess = Stm.Success();
+					auto& result = Stm.Process(field);
+					//	size_t afterOffset = Stm.Getstream()->Offset();
+					//	bool afterSuccess = Stm.Success();
 
-			//	GameDebugLog::Log("[TechnoExtData] LOAD %s: offset %zu -> %zu (+%zu), success: %s -> %s\n",
-			//		fieldName, beforeOffset, afterOffset, afterOffset - beforeOffset,
-			//		beforeSuccess ? "true" : "false", afterSuccess ? "true" : "false");
+					//	GameDebugLog::Log("[TechnoExtData] LOAD %s: offset %zu -> %zu (+%zu), success: %s -> %s\n",
+					//		fieldName, beforeOffset, afterOffset, afterOffset - beforeOffset,
+					//		beforeSuccess ? "true" : "false", afterSuccess ? "true" : "false");
 
-			//	if (!afterSuccess && beforeSuccess)
-			//	{
-			//		GameDebugLog::Log("[TechnoExtData] ERROR: %s caused stream failure!\n", fieldName);
-				//}
-				return result;
-			}
-		};
+					//	if (!afterSuccess && beforeSuccess)
+					//	{
+					//		GameDebugLog::Log("[TechnoExtData] ERROR: %s caused stream failure!\n", fieldName);
+						//}
+					return result;
+				}
+			};
 
 		debugProcess(this->CurrentType, "CurrentType");
 		debugProcess(this->AE, "AE");
@@ -962,8 +972,8 @@ public:
 	Mission EMPLastMission;
 	Mission WebbyLastMission;
 	PowerupEffects DropCrateType;
-	PassiveAcquireMode PassiveAquireMode;
-	SubterraneanHarvStatus CurrentSubterraneanHarvStatus; // 0 = none, 1 = created, 2 = out from factory
+	PassiveAcquireModes PassiveAquireMode;
+	SubterraneanHarvStatus CurrentSubterraneanHarvStatus;
 	// ============================================================
 	// 1-byte aligned: BYTE (group to fill padding)
 	// ============================================================
@@ -1074,107 +1084,107 @@ public:
 		Tints(),
 
 		// CDTimerClass
-		CloakSkipTimer(),
-		PassengerDeletionTimer(),
-		Death_Countdown(),
-		DeployFireTimer(),
-		DisableWeaponTimer(),
-		EngineerCaptureDelay(),
-		WarpedOutDelay(),
-		SelfHealing_CombatDelay(),
-		MergePreventionTimer(),
-		TiberiumEaterTimer(),
-		ChargeTurretTimer(),
-		DelayedFireTimer(),
-		UnitIdleActionTimer(),
-		UnitIdleActionGapTimer(),
+CloakSkipTimer(),
+PassengerDeletionTimer(),
+Death_Countdown(),
+DeployFireTimer(),
+DisableWeaponTimer(),
+EngineerCaptureDelay(),
+WarpedOutDelay(),
+SelfHealing_CombatDelay(),
+MergePreventionTimer(),
+TiberiumEaterTimer(),
+ChargeTurretTimer(),
+DelayedFireTimer(),
+UnitIdleActionTimer(),
+UnitIdleActionGapTimer(),
 
-		// CellStruct
-		SuperTarget(),
-		RandomEMPTarget(),
-		LastSensorsMapCoords(),
+// CellStruct
+SuperTarget(),
+RandomEMPTarget(),
+LastSensorsMapCoords(),
 
-		// int, DWORD, float
-		HijackerHealth(0),
-		TechnoValueAmount(0),
-		Pos(0),
-		LastWarpDistance(0),
-		DamageNumberOffset(INT32_MIN),
-		GattlingDmageDelay(-1),
-		CurrentWeaponIdx(-1),
-		WHAnimRemainingCreationInterval(0),
-		LastWarpInDelay(0),
-		MyTargetingFrame(0),
-		DropCrate(-1),
-		LastBeLockedFrame(0),
-		BeControlledThreatFrame(0),
-		AccumulatedGattlingValue(0),
-		DelayedFireWeaponIndex(-1),
-		LastHurtFrame(0),
-		AttackMoveFollowerTempCount(0),
-		LastTargetID(0xFFFFFFFF),
-		HijackerVeterancy(0.0f),
+// int, DWORD, float
+HijackerHealth(0),
+TechnoValueAmount(0),
+Pos(0),
+LastWarpDistance(0),
+DamageNumberOffset(INT32_MIN),
+GattlingDmageDelay(-1),
+CurrentWeaponIdx(-1),
+WHAnimRemainingCreationInterval(0),
+LastWarpInDelay(0),
+MyTargetingFrame(0),
+DropCrate(-1),
+LastBeLockedFrame(0),
+BeControlledThreatFrame(0),
+AccumulatedGattlingValue(0),
+DelayedFireWeaponIndex(-1),
+LastHurtFrame(0),
+AttackMoveFollowerTempCount(0),
+LastTargetID(0xFFFFFFFF),
+HijackerVeterancy(0.0f),
 
-		// enums
-		EMPLastMission(Mission::Sleep),
-		WebbyLastMission(Mission::Sleep),
-		DropCrateType(PowerupEffects::Money),
-		PassiveAquireMode(PassiveAcquireMode::Normal),
-		CurrentSubterraneanHarvStatus(SubterraneanHarvStatus::None),
+// enums
+EMPLastMission(Mission::Sleep),
+WebbyLastMission(Mission::Sleep),
+DropCrateType(PowerupEffects::Money),
+PassiveAquireMode(PassiveAcquireModes::Normal),
+CurrentSubterraneanHarvStatus(SubterraneanHarvStatus::None),
 
-		// BYTE
-		idxSlot_EMPulse(0),
-		idxSlot_Wave(0),
-		idxSlot_Beam(0),
-		idxSlot_Warp(0),
-		idxSlot_Parasite(0),
-		Is_SurvivorsDone(0),
-		Is_DriverKilled(0),
-		Is_Operated(0),
-		Is_UnitLostMuted(0),
-		TakeVehicleMode(0),
+// BYTE
+idxSlot_EMPulse(0),
+idxSlot_Wave(0),
+idxSlot_Beam(0),
+idxSlot_Warp(0),
+idxSlot_Parasite(0),
+Is_SurvivorsDone(0),
+Is_DriverKilled(0),
+Is_Operated(0),
+Is_UnitLostMuted(0),
+TakeVehicleMode(0),
 
-		// bool
-		ReceiveDamage(false),
-		LastKillWasTeamTarget(false),
-		IsInTunnel(false),
-		IsBurrowed(false),
-		GattlingDmageSound(false),
-		AircraftOpentoppedInitEd(false),
-		FlhChanged(false),
-		SkipLowDamageCheck(false),
-		aircraftPutOffsetFlag(false),
-		aircraftPutOffset(false),
-		SkipVoice(false),
-		SupressEVALost(false),
-		PayloadCreated(false),
-		PayloadTriggered(false),
-		IsWebbed(false),
-		IsDetachingForCloak(false),
-		HasRemainingWarpInDelay(false),
-		IsBeingChronoSphered(false),
-		LastRearmWasFullDelay(false),
-		ShouldUpdateGattlingValue(false),
-		KeepTargetOnMove(false),
-		DelayedFireSequencePaused(false),
-		ForceFullRearmDelay(false),
-		IsSelected(false),
-		UndergroundTracked(false),
-		UnitIdleAction(false),
-		UnitIdleActionSelected(false),
-		UnitIdleIsSelected(false),
-		FallingDownTracked(false),
-		ResetLocomotor(false),
-		JumpjetStraightAscend(false),
-		OnParachuted(false),
-		HoverShutdown(false)
-	{
-		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
-		MyTargetingFrame = ScenarioClass::Instance->Random.RandomRanged(0, 15);
-		Tints.SetOwner(abs);
-	}
+// bool
+ReceiveDamage(false),
+LastKillWasTeamTarget(false),
+IsInTunnel(false),
+IsBurrowed(false),
+GattlingDmageSound(false),
+AircraftOpentoppedInitEd(false),
+FlhChanged(false),
+SkipLowDamageCheck(false),
+aircraftPutOffsetFlag(false),
+aircraftPutOffset(false),
+SkipVoice(false),
+SupressEVALost(false),
+PayloadCreated(false),
+PayloadTriggered(false),
+IsWebbed(false),
+IsDetachingForCloak(false),
+HasRemainingWarpInDelay(false),
+IsBeingChronoSphered(false),
+LastRearmWasFullDelay(false),
+ShouldUpdateGattlingValue(false),
+KeepTargetOnMove(false),
+DelayedFireSequencePaused(false),
+ForceFullRearmDelay(false),
+IsSelected(false),
+UndergroundTracked(false),
+UnitIdleAction(false),
+UnitIdleActionSelected(false),
+UnitIdleIsSelected(false),
+FallingDownTracked(false),
+ResetLocomotor(false),
+JumpjetStraightAscend(false),
+OnParachuted(false),
+HoverShutdown(false)
+{
+	TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
+	MyTargetingFrame = ScenarioClass::Instance->Random.RandomRanged(0, 15);
+	Tints.SetOwner(abs);
+};
 
-	TechnoExtData(TechnoClass* abs, noinit_t& noint) : RadioExtData(abs, noint) { };
+	TechnoExtData(TechnoClass* abs, noinit_t& noint) : RadioExtData(abs, noint) {};
 
 	virtual ~TechnoExtData();
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override;
@@ -1196,20 +1206,23 @@ public:
 	TechnoClass* This() const { return reinterpret_cast<TechnoClass*>(AttachedToObject); }
 	const TechnoClass* This_Const() const { return reinterpret_cast<const TechnoClass*>(AttachedToObject); }
 
-	virtual void CalculateCRC(CRCEngine& crc) const override {
+	virtual void CalculateCRC(CRCEngine& crc) const override
+	{
 		this->RadioExtData::CalculateCRC(crc);
 	}
 
 public:
 
-	FORCEDINLINE ShieldClass* GetShield() const {
+	FORCEDINLINE ShieldClass* GetShield() const
+	{
 		return this->Shield.get();
 	}
 
 	void ClearElectricBolts()
 	{
-		for (auto const pBolt : this->ElectricBolts) {
-			if(pBolt)
+		for (auto const pBolt : this->ElectricBolts)
+		{
+			if (pBolt)
 				pBolt->Owner = nullptr;
 		}
 
@@ -1260,8 +1273,8 @@ public:
 	int FindFirer(WeaponTypeClass* const Weapon) const;
 
 	void InitPassiveAcquireMode();
-	PassiveAcquireMode GetPassiveAcquireMode() const;
-	void TogglePassiveAcquireMode(PassiveAcquireMode mode);
+	PassiveAcquireModes GetPassiveAcquireMode() const;
+	void TogglePassiveAcquireMode(PassiveAcquireModes mode);
 	bool CanTogglePassiveAcquireMode();
 
 	static void InitializeRecoilData(TechnoClass* pThis, TechnoTypeClass* pType);
@@ -1280,7 +1293,7 @@ public:
 	static void GetLevelIntensity(TechnoClass* pThis, int level, int& levelIntensity, int& cellIntensity, double levelMult, double cellMult, bool applyBridgeBonus = false);
 	static int GetDeployingAnimIntensity(FootClass* pThis);
 
-	static int CalculateBlockDamage(TechnoClass* pThis, TechnoClass* pSource,  int* pDamage, WarheadTypeClass* WH);
+	static int CalculateBlockDamage(TechnoClass* pThis, TechnoClass* pSource, int* pDamage, WarheadTypeClass* WH);
 	static std::vector<double> GetBlockChance(TechnoClass* pThis, std::vector<double>& blockChance);
 
 protected:
@@ -1339,13 +1352,13 @@ public:
 
 	static void UpdateSharedAmmo(TechnoClass* pThis);
 
-	static void DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds , SHPStruct* shape , ConvertClass* convert);
+	static void DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds, SHPStruct* shape, ConvertClass* convert);
 	static void DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
 	static void ApplyGainedSelfHeal(TechnoClass* pThis, bool wasDamaged);
 	static void ApplyDrainMoney(TechnoClass* pThis);
 
 	static void DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
-	static void DrawSelectBox(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds , bool drawBefore = false);
+	static void DrawSelectBox(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds, bool drawBefore = false);
 	//static void DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pType, int iLength, Point2D* pLocation, RectangleStruct* pBound, bool isInfantry, bool IsDisguised);
 	static void SyncInvulnerability(TechnoClass* pFrom, TechnoClass* pTo);
 	static void PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker);
@@ -1465,7 +1478,7 @@ public:
 
 	static Point2D GetScreenLocation(TechnoClass* pThis);
 	static Point2D GetFootSelectBracketPosition(TechnoClass* pThis, Anchor anchor);
-	static Point2D GetBuildingSelectBracketPosition(TechnoClass* pThis, BuildingSelectBracketPosition bracketPosition , Point2D offset = Point2D::Empty);
+	static Point2D GetBuildingSelectBracketPosition(TechnoClass* pThis, BuildingSelectBracketPosition bracketPosition, Point2D offset = Point2D::Empty);
 	static void ProcessDigitalDisplays(TechnoClass* pThis);
 	static void GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType, int& value, int& maxValue, int infoIndex);
 	static std::vector<DigitalDisplayTypeClass*>* GetDisplayType(TechnoClass* pThis, TechnoTypeClass* pType, int& length);
@@ -1485,7 +1498,7 @@ public:
 	static bool MultiWeaponCanFire(TechnoClass* const pThis, AbstractClass* const pTarget, WeaponTypeClass* const pWeaponType);
 
 	static bool IsHealthInThreshold(ObjectClass* pObject, double min, double max);
-	static std::tuple<bool, bool , bool> CanBeAffectedByFakeEngineer(TechnoClass* pThis, TechnoClass* pTarget, bool checkBridge = false, bool checkCapturableBuilding = false, bool checkAttachedBombs = false);
+	static std::tuple<bool, bool, bool> CanBeAffectedByFakeEngineer(TechnoClass* pThis, TechnoClass* pTarget, bool checkBridge = false, bool checkCapturableBuilding = false, bool checkAttachedBombs = false);
 
 	static bool CannotMove(UnitClass* pThis);
 
@@ -1507,7 +1520,8 @@ public:
 
 };
 
-class TechnoExtContainer {
+class TechnoExtContainer
+{
 public:
 	static TechnoExtContainer Instance;
 
@@ -1538,7 +1552,7 @@ public:
 
 	//virtual TechnoTypeClass* GetTechnoType() { JMP_THIS(0x6F3270); }
 
-	static int __fastcall _EvaluateJustCell(TechnoClass* pThis , discard_t, CellStruct* where);
+	static int __fastcall _EvaluateJustCell(TechnoClass* pThis, discard_t, CellStruct* where);
 	static bool __fastcall __TargetSomethingNearby(TechnoClass* pThis, discard_t, CoordStruct* coord, ThreatType threat);
 	static int __fastcall __AdjustDamage(TechnoClass* pThis, discard_t, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
 	static void __fastcall __DrawAirstrikeFlare(TechnoClass* pThis, discard_t, const CoordStruct& startCoord, int startHeight, int endHeight, const CoordStruct& endCoord);
@@ -1567,8 +1581,8 @@ public:
 	static void __fastcall __Draw_Pips(TechnoClass* techno, discard_t, Point2D* position, Point2D* unused, RectangleStruct* clipRect);
 	static void __fastcall  __Draw_Stuff_When_Selected(TechnoClass* pThis, discard_t, Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect);
 	static void __fastcall __DrawHealthBar_Selection(TechnoClass* techno, discard_t, Point2D* position, RectangleStruct* clipRect, bool unused);
-	static void __fastcall __Draw_Airstrike_Flare(TechnoClass* techno, discard_t, CoordStruct startCoord , CoordStruct endCoord);
-	static CoordStruct* __fastcall __Get_FLH(TechnoClass* pThis, discard_t,CoordStruct* pBuffer,  int weaponIndex, CoordStruct offset);
+	static void __fastcall __Draw_Airstrike_Flare(TechnoClass* techno, discard_t, CoordStruct startCoord, CoordStruct endCoord);
+	static CoordStruct* __fastcall __Get_FLH(TechnoClass* pThis, discard_t, CoordStruct* pBuffer, int weaponIndex, CoordStruct offset);
 
 	static DamageState __fastcall __Take_Damage(TechnoClass* pThis, discard_t, int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse);
 	static bool __fastcall __Is_Allowed_To_Retaliate(TechnoClass* pThis, discard_t, TechnoClass* pSource, WarheadTypeClass* pWarhead);
@@ -1612,7 +1626,7 @@ public:
 	static void __HandleDamageSparks(TechnoClass* pThis);
 	static void __HandleEMPEffect(TechnoClass* pThis);
 	static void __fastcall __AI(TechnoClass* pThis);
-	static void __fastcall _Cloaking_AI(TechnoClass* pThis, discard_t ,bool something);
+	static void __fastcall _Cloaking_AI(TechnoClass* pThis, discard_t, bool something);
 	static bool __fastcall _ShouldNotBeCloaked(TechnoClass* pThis);
 	static bool __fastcall _ShouldBeCloaked(TechnoClass* pThis);
 };

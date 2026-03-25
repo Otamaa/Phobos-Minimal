@@ -16,6 +16,9 @@ NOTE:
 #include <MPTeams.h>
 #include <Helpers/CompileTime.h>
 #include <Wstring.h>
+
+#include <CellStruct.h>
+
 #include <ArrayClasses.h>
 
 //forward declarations

@@ -37,7 +37,6 @@
 #include "Template.h"
 
 #include "INIParser.h"
-#include "Enum.h"
 #include "Constructs.h"
 #include "SavegameDef.h"
 #include "TranslucencyLevel.h"
@@ -60,6 +59,7 @@
 
 #include <Utilities/TechnoTypeConvertData.h>
 #include <Utilities/CSFText.h>
+#include <Utilities/EnumFunctions.h>
 
 //#include <New/Type/PaletteManager.h>
 
@@ -893,10 +893,10 @@ namespace detail
 #pragma region Enumstuffs
 
 	template <>
-	inline bool read<PassiveAcquireMode>(PassiveAcquireMode& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	inline bool read<PassiveAcquireModes>(PassiveAcquireModes& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		if (parser.ReadString(pSection, pKey)) {
-			for (const auto& [val, name] : EnumFunctions::PassiveAcquireMode_ToStrings) {
+			for (const auto& [val, name] : EnumFunctions::PassiveAcquireModes_ToStrings) {
 				if (PhobosCRT::iequals(parser.value(), name)) {
 					value = val;
 					return true;

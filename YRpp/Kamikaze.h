@@ -1,13 +1,14 @@
 #pragma once
 
 #include <ArrayClasses.h>
-#include <GeneralDefinitions.h>
 #include <Helpers/CompileTime.h>
+#include <Timers.h>
 
 //forward declarations
 class AircraftClass;
 class CellClass;
 class AbstractClass;
+struct IStream;
 class Kamikaze {
 public:
 	struct KamikazeControl {

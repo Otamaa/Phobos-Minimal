@@ -46,14 +46,14 @@ public:
 
 	struct TogglePassiveAcquireMode
 	{
-		TogglePassiveAcquireMode(TechnoClass* pTechno, PassiveAcquireMode mode);
+		TogglePassiveAcquireMode(TechnoClass* pTechno, PassiveAcquireModes mode);
 
 		SET_DEFAULT_PROP(TogglePassiveAcquireMode)
 
-		static void Raise(TechnoClass* pTechno, PassiveAcquireMode mode);
+		static void Raise(TechnoClass* pTechno, PassiveAcquireModes mode);
 
 		TargetClass Who;
-		PassiveAcquireMode Mode;
+		PassiveAcquireModes Mode;
 	};
 
 	struct ApproachObject

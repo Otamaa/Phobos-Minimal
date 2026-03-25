@@ -1111,27 +1111,27 @@ void WeaponTypeExtContainer::WriteToINI(ext_t::base_type* key, CCINIClass* pINI)
 // container hooks
 //
 
-ASMJIT_PATCH(0x771EE0, WeaponTypeClass_CTOR, 0x6)
-{
-	GET(WeaponTypeClass*, pItem, ESI);
-	WeaponTypeExtContainer::Instance.Allocate(pItem);
-	WeaponTypeExtData::calculateCircuferences();
-	return 0;
-}
+// ASMJIT_PATCH(0x771EE0, WeaponTypeClass_CTOR, 0x6)
+// {
+// 	GET(WeaponTypeClass*, pItem, ESI);
+// 	WeaponTypeExtContainer::Instance.Allocate(pItem);
+// 	WeaponTypeExtData::calculateCircuferences();
+// 	return 0;
+// }
 
-ASMJIT_PATCH(0x77311D, WeaponTypeClass_SDDTOR, 0x6)
-{
-	GET(WeaponTypeClass*, pItem, ESI);
-	WeaponTypeExtContainer::Instance.Remove(pItem);
-	return 0;
-}
+// ASMJIT_PATCH(0x77311D, WeaponTypeClass_SDDTOR, 0x6)
+// {
+// 	GET(WeaponTypeClass*, pItem, ESI);
+// 	WeaponTypeExtContainer::Instance.Remove(pItem);
+// 	return 0;
+// }
 
-bool FakeWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
-{
-	//WeaponTypeExtContainer::Instance.Find(this)->RadType = RadTypeClass::FindOrAllocate(GameStrings::Radiation());
-	bool status = this->WeaponTypeClass::LoadFromINI(pINI);
-	WeaponTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
-	return status;
-}
+// bool FakeWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
+// {
+// 	//WeaponTypeExtContainer::Instance.Find(this)->RadType = RadTypeClass::FindOrAllocate(GameStrings::Radiation());
+// 	bool status = this->WeaponTypeClass::LoadFromINI(pINI);
+// 	WeaponTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+// 	return status;
+// }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F741C, FakeWeaponTypeClass::_ReadFromINI)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F741C, FakeWeaponTypeClass::_ReadFromINI)

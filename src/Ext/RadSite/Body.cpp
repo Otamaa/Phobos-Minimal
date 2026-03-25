@@ -595,7 +595,7 @@ void FakeRadSiteClass::__Reduce_In_Area()
 	const int levelDelay = pExt->Type->GetLevelDelay();
 	int reductionMultiplier = (levelDelay > 0 && this->RadTimeLeft > 0) ? (this->RadTimeLeft / levelDelay) + 1 : 1;
 
-	ForEachCellInRadiationArea([this, reductionMultiplier](CellClass* cell, double radiationAmount, int distance) {
+	ForEachCellInRadiationArea([&](CellClass* cell, double radiationAmount, int distance) {
 		// Apply reduction multiplier and current level decrement
 
 		if (radiationAmount <= 0)
@@ -610,7 +610,7 @@ void FakeRadSiteClass::__Reduce_In_Area()
 
 void FakeRadSiteClass::__Increase_In_Area()
 {
-	ForEachCellInRadiationArea([this](CellClass* cell, double radiationAmount, int distance) {
+	ForEachCellInRadiationArea([&](CellClass* cell, double radiationAmount, int distance) {
 		// Simply increase radiation by the calculated amount
 		PopulateCellRadVector<false>(this, &cell->MapCoords, distance, 0);
 		cell->RadLevel_Increase(radiationAmount);
@@ -618,7 +618,7 @@ void FakeRadSiteClass::__Increase_In_Area()
 }
 
 void FakeRadSiteClass::__Reduce_Radiation() {
-	ForEachCellInRadiationArea([this](CellClass* cell, double radiationAmount, int distance) {
+	ForEachCellInRadiationArea([&](CellClass* cell, double radiationAmount, int distance) {
 		// Apply current level decrement to calculate reduction amount
 		// This makes radiation fade faster as time goes on
 		PopulateCellRadVector<true>(this, &cell->MapCoords, distance, 0);
@@ -710,7 +710,7 @@ void FakeRadSiteClass::__AI()
 		return;
 	}
 
-	ForEachCellInRadiationArea([this](CellClass* pCell, double radiationAmount, int distance) {
+	ForEachCellInRadiationArea([&](CellClass* pCell, double radiationAmount, int distance) {
 		if (auto pObj = pCell->Cell_Occupier()) {
 			if(pObj->IsAlive) {
 				if (auto pFoot = flag_cast_to<FootClass*, false>(pObj))

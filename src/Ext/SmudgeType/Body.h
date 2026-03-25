@@ -8,8 +8,8 @@ public:
 	using base_type = SmudgeTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "SmudgeTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "SmudgeTypeClass";
-	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
-	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+
+
 
 public:
 

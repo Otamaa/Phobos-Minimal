@@ -13,8 +13,8 @@ public:
 	using base_type = OverlayTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "OverlayTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "OverlayTypeClass";
-	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
-	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+	
+	
 
 public:
 

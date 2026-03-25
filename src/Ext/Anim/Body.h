@@ -18,8 +18,8 @@ public:
 	using base_type = AnimClass;
 	static COMPILETIMEEVAL const char* ClassName = "AnimExData";
 	static COMPILETIMEEVAL const char* BaseClassName = "AnimClass";
-	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
-	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+	
+	
 
 public:
 

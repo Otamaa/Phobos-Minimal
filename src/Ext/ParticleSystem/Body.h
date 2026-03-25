@@ -17,8 +17,8 @@ public:
 	using base_type = ParticleSystemClass;
 	static COMPILETIMEEVAL const char* ClassName = "ParticleSystemExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "ParticleSystemClass";
-	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
-	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+	
+	
 
 public:
 #pragma region ClassMembers

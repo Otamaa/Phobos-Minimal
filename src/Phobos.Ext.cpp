@@ -1,5 +1,10 @@
-#include <Phobos.h>
 #include <Phobos.Ext.h>
+
+#include <Phobos.h>
+
+#include <Utilities/SavegameDef.h>
+
+#include <AbstractClass.h>
 
 #include <Ext/Aircraft/Body.h>
 #include <Ext/AITriggerType/Body.h>
@@ -61,13 +66,6 @@
 #include <New/Type/InsigniaTypeClass.h>
 #include <New/Type/SelectBoxTypeClass.h>
 //#include <New/Type/AttachmentTypeClass.h>
-
-#include <New/Entity/BannerClass.h>
-//#include <New/Entity/AttachmentClass.h>
-
-#include <New/HugeBar.h>
-
-#pragma region OtamaaStuffs
 #include <Ext/Bomb/Body.h>
 #include <Ext/CaptureManager/Body.h>
 #include <Ext/Infantry/Body.h>
@@ -89,6 +87,11 @@
 #include <Ext/SmudgeType/Body.h>
 #include <Ext/OverlayType/Body.h>
 
+#include <New/Entity/BannerClass.h>
+//#include <New/Entity/AttachmentClass.h>
+
+#include <New/HugeBar.h>
+
 #include <New/Entity/FlyingStrings.h>
 #include <New/Entity/VerticalLaserClass.h>
 #include <New/Entity/HomingMissileTargetTracker.h>
@@ -98,7 +101,6 @@
 
 //#include <New/Entity/FoggedObject.h>
 #include <Misc/Ares/Hooks/Header.h>
-#pragma endregion
 
 //#include <New/Entity/BannerClass.h>
 
@@ -112,7 +114,6 @@
 void Phobos::SaveGameDataAfter()
 {
 	Debug::LogInfo("[Phobos] Finished saving the game");
-
 }
 
 void Phobos::LoadGameDataAfter()
@@ -196,6 +197,7 @@ void PhobosExt::EnsureSeeded(unsigned long seed)
 
 unsigned Phobos::GetVersionNumber() {
 	unsigned version = AresGlobalData::InternalVersion + PHOBOSSAVEGAME_ID;
+
 	version += sizeof(AnimExtData);
 	version += sizeof(AnimTypeExtData);
 

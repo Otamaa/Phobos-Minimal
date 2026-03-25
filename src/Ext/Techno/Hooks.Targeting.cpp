@@ -32,7 +32,7 @@ ASMJIT_PATCH(0x6F8E1F, TechnoClass_SelectAutoTarget_CeasefireMode, 0x6)
 	if(TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
 		return 0x6F8E38;
 
-	R->CL(pType->NoAutoFire || (TechnoExtContainer::Instance.Find(pThis)->GetPassiveAcquireMode()) == PassiveAcquireMode::Ceasefire);
+	R->CL(pType->NoAutoFire || (TechnoExtContainer::Instance.Find(pThis)->GetPassiveAcquireMode()) == PassiveAcquireModes::Ceasefire);
 	return R->Origin() + 0x6;
 }
 

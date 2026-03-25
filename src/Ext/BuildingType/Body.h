@@ -33,8 +33,8 @@ public:
 	using base_type = BuildingTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "BuildingTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "BuildingTypeClass";
-	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
-	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+	
+	
 
 public:
 

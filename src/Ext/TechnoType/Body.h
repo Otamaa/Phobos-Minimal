@@ -1234,7 +1234,7 @@ public:
 	Valueable<bool> IsSimpleDeployer_ConsiderPathfinding;
 	Nullable<LandTypeFlags> IsSimpleDeployer_DisallowedLandTypes;
 
-	Valueable<PassiveAcquireMode> PassiveAcquireMode;
+	Valueable<PassiveAcquireModes> PassiveAcquireMode;
 	Valueable<bool> PassiveAcquireMode_Togglable;
 	ValueableIdx<VocClass> VoiceEnterAggressiveMode;
 	ValueableIdx<VocClass> VoiceExitAggressiveMode;
@@ -2103,7 +2103,7 @@ public:
 		CanBlock(false),
 		IsSimpleDeployer_ConsiderPathfinding(false),
 		IsSimpleDeployer_DisallowedLandTypes(),
-		PassiveAcquireMode(PassiveAcquireMode::Normal),
+		PassiveAcquireMode(PassiveAcquireModes::Normal),
 		PassiveAcquireMode_Togglable(true),
 		VoiceEnterAggressiveMode(-1),
 		VoiceExitAggressiveMode(-1),
