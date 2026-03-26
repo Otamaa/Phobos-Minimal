@@ -199,10 +199,7 @@
     <ClCompile Include="src\Misc\Kratos\Extension\SuperWeaponTypeExt.cpp" />
     <ClCompile Include="src\Misc\Kratos\Extension\TechnoExt.cpp" />
     <ClCompile Include="src\Misc\Kratos\Extension\TechnoTypeExt.cpp" />
-    <ClCompile Include="src\Misc\Kratos\Extension\TerrainTypeExt.cpp" />
     <ClCompile Include="src\Misc\Kratos\Extension\TypeExtension.cpp" />
-    <ClCompile Include="src\Misc\Kratos\Extension\VoxelAnimExt.cpp" />
-    <ClCompile Include="src\Misc\Kratos\Extension\VoxelAnimTypeExt.cpp" />
     <ClCompile Include="src\Misc\Kratos\Extension\WarheadTypeExt.cpp" />
     <ClCompile Include="src\Misc\Kratos\Extension\WeaponTypeExt.cpp" />
     <ClCompile Include="src\Misc\Kratos\Ext\AnimType\AnimStand.cpp" />
@@ -343,11 +340,7 @@
     <ClCompile Include="src\Misc\Kratos\Hooks\SuperWeaponTypeHook.cpp" />
     <ClCompile Include="src\Misc\Kratos\Hooks\TechnoExtHook.cpp" />
     <ClCompile Include="src\Misc\Kratos\Hooks\TechnoTypeExtHook.cpp" />
-    <ClCompile Include="src\Misc\Kratos\Hooks\TerrainExtHook.cpp" />
-    <ClCompile Include="src\Misc\Kratos\Hooks\TerrainTypeExtHook.cpp" />
     <ClCompile Include="src\Misc\Kratos\Hooks\UnitExtHook.cpp" />
-    <ClCompile Include="src\Misc\Kratos\Hooks\VoxelAnimExtHook.cpp" />
-    <ClCompile Include="src\Misc\Kratos\Hooks\VoxelAnimTypeExtHook.cpp" />
     <ClCompile Include="src\Misc\Kratos\Hooks\WarheadTypeExtHook.cpp" />
     <ClCompile Include="src\Misc\Kratos\Hooks\WeaponExtHook.cpp" />
     <ClCompile Include="src\Misc\Kratos\Hooks\WeaponTypeExtHook.cpp" />
@@ -976,10 +969,7 @@
     <ClInclude Include="src\Misc\Kratos\Extension\SuperWeaponTypeExt.h" />
     <ClInclude Include="src\Misc\Kratos\Extension\TechnoExt.h" />
     <ClInclude Include="src\Misc\Kratos\Extension\TechnoTypeExt.h" />
-    <ClInclude Include="src\Misc\Kratos\Extension\TerrainTypeExt.h" />
     <ClInclude Include="src\Misc\Kratos\Extension\TypeExtension.h" />
-    <ClInclude Include="src\Misc\Kratos\Extension\VoxelAnimExt.h" />
-    <ClInclude Include="src\Misc\Kratos\Extension\VoxelAnimTypeExt.h" />
     <ClInclude Include="src\Misc\Kratos\Extension\WarheadTypeExt.h" />
     <ClInclude Include="src\Misc\Kratos\Extension\WeaponTypeExt.h" />
     <ClInclude Include="src\Misc\Kratos\Ext\AnimType\AnimDamageData.h" />

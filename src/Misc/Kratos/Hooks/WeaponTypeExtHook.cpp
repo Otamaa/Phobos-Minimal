@@ -42,19 +42,6 @@ ASMJIT_PATCH(0x772CD0, WeaponTypeClass_SaveLoad_Prefix, 0x7)
 	return 0;
 }
 
-// ASMJIT_PATCH(0x772EA6, WeaponTypeClass_Load_Suffix, 0x6)
-// {
-// 	WeaponTypeExt::ExtMap.LoadStatic();
-
-// 	return 0;
-// }
-
-// ASMJIT_PATCH(0x772F8C, WeaponTypeClass_Save_Suffix, 0x5)
-// {
-// 	WeaponTypeExt::ExtMap.SaveStatic();
-
-// 	return 0;
-// }
 
 bool FakeWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
 {

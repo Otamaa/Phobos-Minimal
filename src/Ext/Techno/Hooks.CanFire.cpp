@@ -201,6 +201,9 @@ ASMJIT_PATCH(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
 	GET(AbstractClass*, pTarget, EBX);
 	GET_STACK(int, weaponIndex, STACK_OFFSET(0x20, 0x8));
 
+	if (!pThis->IsArmed())
+		return FireIllegal;
+
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 

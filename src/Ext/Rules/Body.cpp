@@ -554,6 +554,8 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			if (!pVxl->VXL->HeaderData || !pVxl->VXL->TailerData)
 			{
 				Debug::FatalError("Techno[%s - %s] Has %s VXL but has no HeaderData or TailerData wtf ?", myClassName, pItem->ID , ident);
+				GameDelete(pVxl);
+				pVxl = nullptr;
 			}
 
 			if (auto pHVA = pVxl->HVA)
