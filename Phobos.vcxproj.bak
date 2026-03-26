@@ -12,14 +12,6 @@
       <Configuration>OptimizationOff</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Commands\AggressiveModeClass.cpp" />
@@ -90,6 +82,87 @@
     <ClCompile Include="src\Ext\Unit\Hooks.SimpleDeployer.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.SubterraneanHarvester.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.Unload.cpp" />
+    <ClCompile Include="src\Lib\asmjit\support\arena.cpp" />
+    <ClCompile Include="src\Lib\asmjit\support\arenabitset.cpp" />
+    <ClCompile Include="src\Lib\asmjit\support\arenahash.cpp" />
+    <ClCompile Include="src\Lib\asmjit\support\arenalist.cpp" />
+    <ClCompile Include="src\Lib\asmjit\support\arenatree.cpp" />
+    <ClCompile Include="src\Lib\asmjit\support\arenavector.cpp" />
+    <ClCompile Include="src\Lib\asmjit\support\support.cpp" />
+    <ClCompile Include="src\Lib\asmjit\ujit\unicompiler_a64.cpp" />
+    <ClCompile Include="src\Lib\asmjit\ujit\unicompiler_x86.cpp" />
+    <ClCompile Include="src\Lib\asmjit\ujit\vecconsttable.cpp" />
+    <ClCompile Include="src\Lib\fmt\format.cc" />
+    <ClCompile Include="src\Lib\fmt\os.cc" />
+    <ClCompile Include="src\Lib\Lua\lapi.c" />
+    <ClCompile Include="src\Lib\Lua\lauxlib.c" />
+    <ClCompile Include="src\Lib\Lua\lbaselib.c" />
+    <ClCompile Include="src\Lib\Lua\lcode.c" />
+    <ClCompile Include="src\Lib\Lua\lcorolib.c" />
+    <ClCompile Include="src\Lib\Lua\lctype.c" />
+    <ClCompile Include="src\Lib\Lua\ldblib.c" />
+    <ClCompile Include="src\Lib\Lua\ldebug.c" />
+    <ClCompile Include="src\Lib\Lua\ldo.c" />
+    <ClCompile Include="src\Lib\Lua\ldump.c" />
+    <ClCompile Include="src\Lib\Lua\lfunc.c" />
+    <ClCompile Include="src\Lib\Lua\lgc.c" />
+    <ClCompile Include="src\Lib\Lua\linit.c" />
+    <ClCompile Include="src\Lib\Lua\liolib.c" />
+    <ClCompile Include="src\Lib\Lua\llex.c" />
+    <ClCompile Include="src\Lib\Lua\lmathlib.c" />
+    <ClCompile Include="src\Lib\Lua\lmem.c" />
+    <ClCompile Include="src\Lib\Lua\loadlib.c" />
+    <ClCompile Include="src\Lib\Lua\lobject.c" />
+    <ClCompile Include="src\Lib\Lua\lopcodes.c" />
+    <ClCompile Include="src\Lib\Lua\loslib.c" />
+    <ClCompile Include="src\Lib\Lua\lparser.c" />
+    <ClCompile Include="src\Lib\Lua\lstate.c" />
+    <ClCompile Include="src\Lib\Lua\lstring.c" />
+    <ClCompile Include="src\Lib\Lua\lstrlib.c" />
+    <ClCompile Include="src\Lib\Lua\ltable.c" />
+    <ClCompile Include="src\Lib\Lua\ltablib.c" />
+    <ClCompile Include="src\Lib\Lua\ltests.c" />
+    <ClCompile Include="src\Lib\Lua\ltm.c" />
+    <ClCompile Include="src\Lib\Lua\lundump.c" />
+    <ClCompile Include="src\Lib\Lua\lutf8lib.c" />
+    <ClCompile Include="src\Lib\Lua\lvm.c" />
+    <ClCompile Include="src\Lib\Lua\lzio.c" />
+    <ClCompile Include="src\Lib\minhook\buffer.c" />
+    <ClCompile Include="src\Lib\minhook\hde\hde32.c" />
+    <ClCompile Include="src\Lib\minhook\hde\hde64.c" />
+    <ClCompile Include="src\Lib\minhook\hook.c" />
+    <ClCompile Include="src\Lib\minhook\trampoline.c" />
+    <ClCompile Include="src\Lib\Zycore\Allocator.c" />
+    <ClCompile Include="src\Lib\Zycore\API\Memory.c" />
+    <ClCompile Include="src\Lib\Zycore\API\Process.c" />
+    <ClCompile Include="src\Lib\Zycore\API\Synchronization.c" />
+    <ClCompile Include="src\Lib\Zycore\API\Terminal.c" />
+    <ClCompile Include="src\Lib\Zycore\API\Thread.c" />
+    <ClCompile Include="src\Lib\Zycore\ArgParse.c" />
+    <ClCompile Include="src\Lib\Zycore\Bitset.c" />
+    <ClCompile Include="src\Lib\Zycore\Format.c" />
+    <ClCompile Include="src\Lib\Zycore\List.c" />
+    <ClCompile Include="src\Lib\Zycore\String.c" />
+    <ClCompile Include="src\Lib\Zycore\Vector.c" />
+    <ClCompile Include="src\Lib\Zycore\Zycore.c" />
+    <ClCompile Include="src\Lib\Zydis\Decoder.c" />
+    <ClCompile Include="src\Lib\Zydis\DecoderData.c" />
+    <ClCompile Include="src\Lib\Zydis\Disassembler.c" />
+    <ClCompile Include="src\Lib\Zydis\Encoder.c" />
+    <ClCompile Include="src\Lib\Zydis\EncoderData.c" />
+    <ClCompile Include="src\Lib\Zydis\Formatter.c" />
+    <ClCompile Include="src\Lib\Zydis\FormatterATT.c" />
+    <ClCompile Include="src\Lib\Zydis\FormatterBase.c" />
+    <ClCompile Include="src\Lib\Zydis\FormatterBuffer.c" />
+    <ClCompile Include="src\Lib\Zydis\FormatterIntel.c" />
+    <ClCompile Include="src\Lib\Zydis\MetaInfo.c" />
+    <ClCompile Include="src\Lib\Zydis\Mnemonic.c" />
+    <ClCompile Include="src\Lib\Zydis\Register.c" />
+    <ClCompile Include="src\Lib\Zydis\Segment.c" />
+    <ClCompile Include="src\Lib\Zydis\SharedData.c" />
+    <ClCompile Include="src\Lib\Zydis\String.c" />
+    <ClCompile Include="src\Lib\Zydis\Utils.c" />
+    <ClCompile Include="src\Lib\Zydis\Zydis.c" />
     <ClCompile Include="src\Misc\Ares\Audio.cpp" />
     <ClCompile Include="src\Misc\Ares\CSF.cpp" />
     <ClCompile Include="src\Misc\Ares\EVAVoices.cpp" />
@@ -456,6 +529,47 @@
     <ClCompile Include="src\Ext\Wave\Body.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Hooks.DiskLaserRadius.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\archtraits.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\assembler.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\builder.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\codeholder.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\codewriter.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\compiler.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\constpool.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\cpuinfo.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\emithelper.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\emitter.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\emitterutils.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\environment.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\errorhandler.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\formatter.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\func.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\funcargscontext.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\globals.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\inst.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\instdb.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\jitallocator.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\jitruntime.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\logger.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\operand.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\osutils.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\ralocal.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\rapass.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\rastack.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\string.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\target.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\type.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\virtmem.cpp" />
+    <ClCompile Include="src\Lib\asmjit\x86\x86assembler.cpp" />
+    <ClCompile Include="src\Lib\asmjit\x86\x86builder.cpp" />
+    <ClCompile Include="src\Lib\asmjit\x86\x86compiler.cpp" />
+    <ClCompile Include="src\Lib\asmjit\x86\x86emithelper.cpp" />
+    <ClCompile Include="src\Lib\asmjit\x86\x86formatter.cpp" />
+    <ClCompile Include="src\Lib\asmjit\x86\x86func.cpp" />
+    <ClCompile Include="src\Lib\asmjit\x86\x86instapi.cpp" />
+    <ClCompile Include="src\Lib\asmjit\x86\x86instdb.cpp" />
+    <ClCompile Include="src\Lib\asmjit\x86\x86operand.cpp" />
+    <ClCompile Include="src\Lib\asmjit\x86\x86rapass.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\AresTrajectoryHelper.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Classes\AttachedAffects.cpp" />
     <ClCompile Include="src\New\Entity\PrismForwarding.cpp" />
@@ -651,6 +765,13 @@
     <ClCompile Include="src\Utilities\TheaterSpecificSHP.cpp" />
     <ClCompile Include="src\Utilities\VersesData.cpp" />
     <ClCompile Include="src\Utilities\Patch.cpp" />
+    <ClCompile Include="YRpp\DebugLog.cpp" />
+    <ClCompile Include="YRpp\DisplayClass.cpp" />
+    <ClCompile Include="YRpp\GenericList.cpp" />
+    <ClCompile Include="YRpp\INIEntry.cpp" />
+    <ClCompile Include="YRpp\INISection.cpp" />
+    <ClCompile Include="YRpp\StaticInits.cpp" />
+    <ClCompile Include="YRpp\Syringe.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Commands\AggressiveModeClass.h" />
@@ -676,6 +797,145 @@
     <ClInclude Include="src\Ext\Trigger\Body.h" />
     <ClInclude Include="src\Ext\UnitType\Body.h" />
     <ClInclude Include="src\Ext\Unit\Body.h" />
+    <ClInclude Include="src\Lib\asmjit\asmjit-scope-begin.h" />
+    <ClInclude Include="src\Lib\asmjit\asmjit-scope-end.h" />
+    <ClInclude Include="src\Lib\asmjit\asmjit.h" />
+    <ClInclude Include="src\Lib\asmjit\core.h" />
+    <ClInclude Include="src\Lib\asmjit\core\fixup.h" />
+    <ClInclude Include="src\Lib\asmjit\core\racfgblock_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\racfgbuilder_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\raconstraints_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\rainst_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\rareg_p.h" />
+    <ClInclude Include="src\Lib\asmjit\host.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arena.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arenabitset_p.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arenahash.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arenalist.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arenapool.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arenastring.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arenatree.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arenavector.h" />
+    <ClInclude Include="src\Lib\asmjit\support\span.h" />
+    <ClInclude Include="src\Lib\asmjit\support\support.h" />
+    <ClInclude Include="src\Lib\asmjit\support\support_p.h" />
+    <ClInclude Include="src\Lib\asmjit\ujit.h" />
+    <ClInclude Include="src\Lib\asmjit\ujit\ujitbase.h" />
+    <ClInclude Include="src\Lib\asmjit\ujit\unicompiler.h" />
+    <ClInclude Include="src\Lib\asmjit\ujit\unicompiler_utils_p.h" />
+    <ClInclude Include="src\Lib\asmjit\ujit\unicondition.h" />
+    <ClInclude Include="src\Lib\asmjit\ujit\uniop.h" />
+    <ClInclude Include="src\Lib\asmjit\ujit\vecconsttable.h" />
+    <ClInclude Include="src\Lib\base64\base64.h" />
+    <ClInclude Include="src\Lib\fmt\args.h" />
+    <ClInclude Include="src\Lib\fmt\base.h" />
+    <ClInclude Include="src\Lib\fmt\chrono.h" />
+    <ClInclude Include="src\Lib\fmt\color.h" />
+    <ClInclude Include="src\Lib\fmt\compile.h" />
+    <ClInclude Include="src\Lib\fmt\core.h" />
+    <ClInclude Include="src\Lib\fmt\format-inl.h" />
+    <ClInclude Include="src\Lib\fmt\format.h" />
+    <ClInclude Include="src\Lib\fmt\os.h" />
+    <ClInclude Include="src\Lib\fmt\ostream.h" />
+    <ClInclude Include="src\Lib\fmt\printf.h" />
+    <ClInclude Include="src\Lib\fmt\ranges.h" />
+    <ClInclude Include="src\Lib\fmt\std.h" />
+    <ClInclude Include="src\Lib\fmt\xchar.h" />
+    <ClInclude Include="src\Lib\Lua\lauxlib.h" />
+    <ClInclude Include="src\Lib\Lua\lcode.h" />
+    <ClInclude Include="src\Lib\Lua\lctype.h" />
+    <ClInclude Include="src\Lib\Lua\ldebug.h" />
+    <ClInclude Include="src\Lib\Lua\ldo.h" />
+    <ClInclude Include="src\Lib\Lua\lfunc.h" />
+    <ClInclude Include="src\Lib\Lua\lgc.h" />
+    <ClInclude Include="src\Lib\Lua\ljumptab.h" />
+    <ClInclude Include="src\Lib\Lua\llex.h" />
+    <ClInclude Include="src\Lib\Lua\llimits.h" />
+    <ClInclude Include="src\Lib\Lua\lmem.h" />
+    <ClInclude Include="src\Lib\Lua\lobject.h" />
+    <ClInclude Include="src\Lib\Lua\lopcodes.h" />
+    <ClInclude Include="src\Lib\Lua\lopnames.h" />
+    <ClInclude Include="src\Lib\Lua\lparser.h" />
+    <ClInclude Include="src\Lib\Lua\lprefix.h" />
+    <ClInclude Include="src\Lib\Lua\lstate.h" />
+    <ClInclude Include="src\Lib\Lua\lstring.h" />
+    <ClInclude Include="src\Lib\Lua\ltable.h" />
+    <ClInclude Include="src\Lib\Lua\ltests.h" />
+    <ClInclude Include="src\Lib\Lua\ltm.h" />
+    <ClInclude Include="src\Lib\Lua\lua.h" />
+    <ClInclude Include="src\Lib\Lua\luaconf.h" />
+    <ClInclude Include="src\Lib\Lua\lualib.h" />
+    <ClInclude Include="src\Lib\Lua\lundump.h" />
+    <ClInclude Include="src\Lib\Lua\lvm.h" />
+    <ClInclude Include="src\Lib\Lua\lzio.h" />
+    <ClInclude Include="src\Lib\magic_enum\magic_enum.hpp" />
+    <ClInclude Include="src\Lib\magic_enum\magic_enum_all.hpp" />
+    <ClInclude Include="src\Lib\magic_enum\magic_enum_containers.hpp" />
+    <ClInclude Include="src\Lib\magic_enum\magic_enum_flags.hpp" />
+    <ClInclude Include="src\Lib\magic_enum\magic_enum_format.hpp" />
+    <ClInclude Include="src\Lib\magic_enum\magic_enum_fuse.hpp" />
+    <ClInclude Include="src\Lib\magic_enum\magic_enum_iostream.hpp" />
+    <ClInclude Include="src\Lib\magic_enum\magic_enum_switch.hpp" />
+    <ClInclude Include="src\Lib\magic_enum\magic_enum_utility.hpp" />
+    <ClInclude Include="src\Lib\minhook\buffer.h" />
+    <ClInclude Include="src\Lib\minhook\hde\hde32.h" />
+    <ClInclude Include="src\Lib\minhook\hde\hde64.h" />
+    <ClInclude Include="src\Lib\minhook\hde\pstdint.h" />
+    <ClInclude Include="src\Lib\minhook\hde\table32.h" />
+    <ClInclude Include="src\Lib\minhook\hde\table64.h" />
+    <ClInclude Include="src\Lib\minhook\MinHook.h" />
+    <ClInclude Include="src\Lib\minhook\trampoline.h" />
+    <ClInclude Include="src\Lib\pdqsort\pdqsort.h" />
+    <ClInclude Include="src\Lib\Zycore\Allocator.h" />
+    <ClInclude Include="src\Lib\Zycore\API\Memory.h" />
+    <ClInclude Include="src\Lib\Zycore\API\Process.h" />
+    <ClInclude Include="src\Lib\Zycore\API\Synchronization.h" />
+    <ClInclude Include="src\Lib\Zycore\API\Terminal.h" />
+    <ClInclude Include="src\Lib\Zycore\API\Thread.h" />
+    <ClInclude Include="src\Lib\Zycore\ArgParse.h" />
+    <ClInclude Include="src\Lib\Zycore\Atomic.h" />
+    <ClInclude Include="src\Lib\Zycore\Bitset.h" />
+    <ClInclude Include="src\Lib\Zycore\Comparison.h" />
+    <ClInclude Include="src\Lib\Zycore\Defines.h" />
+    <ClInclude Include="src\Lib\Zycore\Format.h" />
+    <ClInclude Include="src\Lib\Zycore\Internal\AtomicGNU.h" />
+    <ClInclude Include="src\Lib\Zycore\Internal\AtomicMSVC.h" />
+    <ClInclude Include="src\Lib\Zycore\LibC.h" />
+    <ClInclude Include="src\Lib\Zycore\List.h" />
+    <ClInclude Include="src\Lib\Zycore\Object.h" />
+    <ClInclude Include="src\Lib\Zycore\Status.h" />
+    <ClInclude Include="src\Lib\Zycore\String.h" />
+    <ClInclude Include="src\Lib\Zycore\Types.h" />
+    <ClInclude Include="src\Lib\Zycore\Vector.h" />
+    <ClInclude Include="src\Lib\Zycore\Zycore.h" />
+    <ClInclude Include="src\Lib\Zydis\Decoder.h" />
+    <ClInclude Include="src\Lib\Zydis\DecoderTypes.h" />
+    <ClInclude Include="src\Lib\Zydis\Defines.h" />
+    <ClInclude Include="src\Lib\Zydis\Disassembler.h" />
+    <ClInclude Include="src\Lib\Zydis\Encoder.h" />
+    <ClInclude Include="src\Lib\Zydis\Formatter.h" />
+    <ClInclude Include="src\Lib\Zydis\FormatterBuffer.h" />
+    <ClInclude Include="src\Lib\Zydis\Generated\EnumInstructionCategory.h" />
+    <ClInclude Include="src\Lib\Zydis\Generated\EnumISAExt.h" />
+    <ClInclude Include="src\Lib\Zydis\Generated\EnumISASet.h" />
+    <ClInclude Include="src\Lib\Zydis\Generated\EnumMnemonic.h" />
+    <ClInclude Include="src\Lib\Zydis\Generated\EnumRegister.h" />
+    <ClInclude Include="src\Lib\Zydis\Internal\DecoderData.h" />
+    <ClInclude Include="src\Lib\Zydis\Internal\EncoderData.h" />
+    <ClInclude Include="src\Lib\Zydis\Internal\FormatterATT.h" />
+    <ClInclude Include="src\Lib\Zydis\Internal\FormatterBase.h" />
+    <ClInclude Include="src\Lib\Zydis\Internal\FormatterIntel.h" />
+    <ClInclude Include="src\Lib\Zydis\Internal\SharedData.h" />
+    <ClInclude Include="src\Lib\Zydis\Internal\String.h" />
+    <ClInclude Include="src\Lib\Zydis\MetaInfo.h" />
+    <ClInclude Include="src\Lib\Zydis\Mnemonic.h" />
+    <ClInclude Include="src\Lib\Zydis\Register.h" />
+    <ClInclude Include="src\Lib\Zydis\Segment.h" />
+    <ClInclude Include="src\Lib\Zydis\SharedTypes.h" />
+    <ClInclude Include="src\Lib\Zydis\ShortString.h" />
+    <ClInclude Include="src\Lib\Zydis\Status.h" />
+    <ClInclude Include="src\Lib\Zydis\Utils.h" />
+    <ClInclude Include="src\Lib\Zydis\Zydis.h" />
     <ClInclude Include="src\Misc\BuildingFoundations.h" />
     <ClInclude Include="src\Misc\CustomMemoryManager.h" />
     <ClInclude Include="src\Misc\Hooks.CRT.h" />
@@ -915,6 +1175,67 @@
     <ClInclude Include="src\Ext\Event\Body.h" />
     <ClInclude Include="src\Ext\Script\Lua\Wrapper.h" />
     <ClInclude Include="src\Ext\VoxelAnimType\Body.h" />
+    <ClInclude Include="src\Lib\asmjit\core\api-build_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\api-config.h" />
+    <ClInclude Include="src\Lib\asmjit\core\archcommons.h" />
+    <ClInclude Include="src\Lib\asmjit\core\archtraits.h" />
+    <ClInclude Include="src\Lib\asmjit\core\assembler.h" />
+    <ClInclude Include="src\Lib\asmjit\core\builder.h" />
+    <ClInclude Include="src\Lib\asmjit\core\builder_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\codebuffer.h" />
+    <ClInclude Include="src\Lib\asmjit\core\codeholder.h" />
+    <ClInclude Include="src\Lib\asmjit\core\codewriter_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\compiler.h" />
+    <ClInclude Include="src\Lib\asmjit\core\compilerdefs.h" />
+    <ClInclude Include="src\Lib\asmjit\core\constpool.h" />
+    <ClInclude Include="src\Lib\asmjit\core\cpuinfo.h" />
+    <ClInclude Include="src\Lib\asmjit\core\emithelper_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\emitter.h" />
+    <ClInclude Include="src\Lib\asmjit\core\emitterutils_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\environment.h" />
+    <ClInclude Include="src\Lib\asmjit\core\errorhandler.h" />
+    <ClInclude Include="src\Lib\asmjit\core\formatter.h" />
+    <ClInclude Include="src\Lib\asmjit\core\formatter_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\func.h" />
+    <ClInclude Include="src\Lib\asmjit\core\funcargscontext_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\globals.h" />
+    <ClInclude Include="src\Lib\asmjit\core\inst.h" />
+    <ClInclude Include="src\Lib\asmjit\core\instdb_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\jitallocator.h" />
+    <ClInclude Include="src\Lib\asmjit\core\jitruntime.h" />
+    <ClInclude Include="src\Lib\asmjit\core\logger.h" />
+    <ClInclude Include="src\Lib\asmjit\core\misc_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\operand.h" />
+    <ClInclude Include="src\Lib\asmjit\core\osutils.h" />
+    <ClInclude Include="src\Lib\asmjit\core\osutils_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\raassignment_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\rabuilders_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\radefs_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\ralocal_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\rapass_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\rastack_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\string.h" />
+    <ClInclude Include="src\Lib\asmjit\core\target.h" />
+    <ClInclude Include="src\Lib\asmjit\core\type.h" />
+    <ClInclude Include="src\Lib\asmjit\core\virtmem.h" />
+    <ClInclude Include="src\Lib\asmjit\core\zonestack.h" />
+    <ClInclude Include="src\Lib\asmjit\x86.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86archtraits_p.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86assembler.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86builder.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86compiler.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86emithelper_p.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86emitter.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86formatter_p.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86func_p.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86globals.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86instapi_p.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86instdb.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86instdb_p.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86opcode_p.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86operand.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86rapass_p.h" />
+    <ClInclude Include="src\Lib\fast_remove_if.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\Hooks.MouseCursors.h" />
     <ClInclude Include="src\Misc\DamageArea.h" />
     <ClInclude Include="src\Misc\Defines.h" />
@@ -1032,6 +1353,7 @@
     <ClInclude Include="src\Ext\TEvent\Body.h" />
     <ClInclude Include="src\Ext\TriggerType\Body.h" />
     <ClInclude Include="src\Ext\Wave\Body.h" />
+    <ClInclude Include="src\Lib\Lua542\include\lua.hpp" />
     <ClInclude Include="src\Misc\Ares\Audio.h" />
     <ClInclude Include="src\Misc\Ares\CSF.h" />
     <ClInclude Include="src\Misc\Ares\EVAVoices.h" />
@@ -1167,6 +1489,13 @@
     <ClInclude Include="src\Utilities\VectorNames.h" />
     <ClInclude Include="src\Utilities\VectorSet.h" />
     <ClInclude Include="src\Utilities\VersesData.h" />
+    <ClInclude Include="YRpp\FoundationStruct.h" />
+    <ClInclude Include="YRpp\GameTextManager.h" />
+    <ClInclude Include="YRpp\HotKeyListClass.h" />
+    <ClInclude Include="YRpp\IndexBitfield.h" />
+    <ClInclude Include="YRpp\INIComment.h" />
+    <ClInclude Include="YRpp\INIEntry.h" />
+    <ClInclude Include="YRpp\INISection.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\Misc\UI\MultiplayerGameOptionsDialog.rc" />
@@ -1175,9 +1504,28 @@
   <ItemGroup>
     <None Include="cpp.hint" />
     <None Include="Debug DPFeatures\phobos.dll" />
+    <None Include="src\Lib\Generated\AccessedFlags.inc" />
+    <None Include="src\Lib\Generated\DecoderTables.inc" />
+    <None Include="src\Lib\Generated\EncoderTables.inc" />
+    <None Include="src\Lib\Generated\EnumInstructionCategory.inc" />
+    <None Include="src\Lib\Generated\EnumISAExt.inc" />
+    <None Include="src\Lib\Generated\EnumISASet.inc" />
+    <None Include="src\Lib\Generated\EnumMnemonic.inc" />
+    <None Include="src\Lib\Generated\EnumRegister.inc" />
+    <None Include="src\Lib\Generated\FormatterStrings.inc" />
+    <None Include="src\Lib\Generated\GetCcInfo.inc" />
+    <None Include="src\Lib\Generated\GetRelInfo.inc" />
+    <None Include="src\Lib\Generated\InstructionDefinitions.inc" />
+    <None Include="src\Lib\Generated\InstructionEncodings.inc" />
+    <None Include="src\Lib\Generated\OperandDefinitions.inc" />
+    <None Include="src\Lib\Generated\RegisterClassLookup.inc" />
+    <None Include="src\Lib\Generated\RegisterLookup.inc" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="sampleconfig\README_WHERETOPUTLUA.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="YRpp\yrpp_defs.asm" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -1185,10 +1533,6 @@
     <RootNamespace>Phobos</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>Phobos</ProjectName>
-  </PropertyGroup>
-  <!-- Redirect Debug/Release to Build so we only define settings once -->
-  <PropertyGroup Condition="'$(Configuration)' != 'Build' AND '$(Configuration)' != 'OptimizationOff'">
-    <Configuration>Build</Configuration>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
@@ -1308,7 +1652,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>PhobosLib_Zycore.lib;PhobosLib_Zydis.lib;PhobosLib_asmjit.lib;PhobosLib_Lua.lib;PhobosLib_minhook.lib;PhobosLib_YRpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <ProgramDatabaseFile>$(TargetName).pdb</ProgramDatabaseFile>
       <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
@@ -1316,7 +1660,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
-      <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration)\Libs\;$(MSBuildProjectDirectory)\src\Lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(MSBuildProjectDirectory)\src\Lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/VERBOSE %(AdditionalOptions)</AdditionalOptions>
@@ -1385,7 +1729,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>PhobosLib_Zycore.lib;PhobosLib_Zydis.lib;PhobosLib_asmjit.lib;PhobosLib_Lua.lib;PhobosLib_minhook.lib;PhobosLib_YRpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <ProgramDatabaseFile>$(TargetName).pdb</ProgramDatabaseFile>
       <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
@@ -1393,7 +1737,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
-      <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration)\Libs\;$(MSBuildProjectDirectory)\src\Lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(MSBuildProjectDirectory)\src\Lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/VERBOSE %(AdditionalOptions)</AdditionalOptions>
@@ -1434,33 +1778,4 @@
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
   </ImportGroup>
-  <ItemGroup>
-    <ProjectReference Include="PhobosLib_Zycore.vcxproj">
-      <Project>{B1000001-0001-0001-0001-000000000001}</Project>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="PhobosLib_Zydis.vcxproj">
-      <Project>{B1000001-0001-0001-0001-000000000002}</Project>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="PhobosLib_asmjit.vcxproj">
-      <Project>{B1000001-0001-0001-0001-000000000003}</Project>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="PhobosLib_Lua.vcxproj">
-      <Project>{B1000001-0001-0001-0001-000000000004}</Project>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="PhobosLib_minhook.vcxproj">
-      <Project>{B1000001-0001-0001-0001-000000000005}</Project>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-    </ProjectReference>
-    <ProjectReference Include="PhobosLib_YRpp.vcxproj">
-      <Project>{B1000001-0001-0001-0001-000000000006}</Project>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <MASM Include="YRpp\yrpp_defs.asm" />
-  </ItemGroup>
 </Project>

@@ -1,0 +1,159 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Build|Win32">
+      <Configuration>Build</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="OptimizationOff|Win32">
+      <Configuration>OptimizationOff</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{B1000001-0001-0001-0001-000000000006}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>PhobosLib_YRpp</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <!-- Redirect Debug/Release to Build so we don't duplicate settings -->
+  <PropertyGroup Condition="'$(Configuration)' != 'Build' AND '$(Configuration)' != 'OptimizationOff'">
+    <Configuration>Build</Configuration>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='OptimizationOff|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\Libs\</OutDir>
+    <IntDir>$(Configuration)\Libs\YRpp\</IntDir>
+    <TargetName>PhobosLib_YRpp</TargetName>
+    <IncludePath>$(SolutionDir)src\Lib;$(SolutionDir)src;$(SolutionDir)src\ExtraHeaders;$(SolutionDir)YRpp;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='OptimizationOff|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\Libs\</OutDir>
+    <IntDir>$(Configuration)\Libs\YRpp\</IntDir>
+    <TargetName>PhobosLib_YRpp</TargetName>
+    <IncludePath>$(SolutionDir)src\Lib;$(SolutionDir)src;$(SolutionDir)src\ExtraHeaders;$(SolutionDir)YRpp;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+  </PropertyGroup>
+  <!-- ================================================================ -->
+  <!-- Compiler — Build                                                 -->
+  <!-- ================================================================ -->
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <ConformanceMode>true</ConformanceMode>
+      <OmitFramePointers>true</OmitFramePointers>
+      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;MAKE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>SyncCThrow</ExceptionHandling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
+      <CallingConvention>StdCall</CallingConvention>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <DisableSpecificWarnings>4100;4530;4731;4740;4505;4201;26495</DisableSpecificWarnings>
+      <AdditionalOptions>/w14287 /w15038 /w44265 /w44002 /utf-8 /Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <MASM>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <EnableMASM51Compatibility>true</EnableMASM51Compatibility>
+      <UseSafeExceptionHandlers>false</UseSafeExceptionHandlers>
+    </MASM>
+  </ItemDefinitionGroup>
+  <!-- ================================================================ -->
+  <!-- Compiler — OptimizationOff                                       -->
+  <!-- ================================================================ -->
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='OptimizationOff|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <ConformanceMode>true</ConformanceMode>
+      <OmitFramePointers>true</OmitFramePointers>
+      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;MAKE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>SyncCThrow</ExceptionHandling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
+      <CallingConvention>StdCall</CallingConvention>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FloatingPointModel>Strict</FloatingPointModel>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <DisableSpecificWarnings>4100;4530;4731;4740;4505;4201;26495</DisableSpecificWarnings>
+      <AdditionalOptions>/w14287 /w15038 /w44265 /w44002 /utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <MASM>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <EnableMASM51Compatibility>true</EnableMASM51Compatibility>
+      <UseSafeExceptionHandlers>false</UseSafeExceptionHandlers>
+    </MASM>
+  </ItemDefinitionGroup>
+  <!-- Source files (.cpp) -->
+  <ItemGroup>
+    <ClCompile Include="YRpp\DebugLog.cpp" />
+    <ClCompile Include="YRpp\DisplayClass.cpp" />
+    <ClCompile Include="YRpp\GenericList.cpp" />
+    <ClCompile Include="YRpp\INIEntry.cpp" />
+    <ClCompile Include="YRpp\INISection.cpp" />
+    <ClCompile Include="YRpp\StaticInits.cpp" />
+    <ClCompile Include="YRpp\Syringe.cpp" />
+  </ItemGroup>
+  <!-- Assembly (.asm) -->
+  <!-- Headers -->
+  <ItemGroup>
+    <ClInclude Include="YRpp\FoundationStruct.h" />
+    <ClInclude Include="YRpp\GameTextManager.h" />
+    <ClInclude Include="YRpp\HotKeyListClass.h" />
+    <ClInclude Include="YRpp\IndexBitfield.h" />
+    <ClInclude Include="YRpp\INIComment.h" />
+    <ClInclude Include="YRpp\INIEntry.h" />
+    <ClInclude Include="YRpp\INISection.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
+  </ImportGroup>
+</Project>

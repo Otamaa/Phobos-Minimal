@@ -1,0 +1,275 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Build|Win32">
+      <Configuration>Build</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="OptimizationOff|Win32">
+      <Configuration>OptimizationOff</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{B1000001-0001-0001-0001-000000000003}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>PhobosLib_asmjit</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+
+  <!-- Redirect Debug/Release to Build so we don't duplicate settings -->
+  <PropertyGroup Condition="'$(Configuration)' != 'Build' AND '$(Configuration)' != 'OptimizationOff'">
+    <Configuration>Build</Configuration>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='OptimizationOff|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\Libs\</OutDir>
+    <IntDir>$(Configuration)\Libs\asmjit\</IntDir>
+    <TargetName>PhobosLib_asmjit</TargetName>
+    <IncludePath>$(SolutionDir)src\Lib;$(SolutionDir)src;$(SolutionDir)src\ExtraHeaders;$(SolutionDir)YRpp;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='OptimizationOff|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\Libs\</OutDir>
+    <IntDir>$(Configuration)\Libs\asmjit\</IntDir>
+    <TargetName>PhobosLib_asmjit</TargetName>
+    <IncludePath>$(SolutionDir)src\Lib;$(SolutionDir)src;$(SolutionDir)src\ExtraHeaders;$(SolutionDir)YRpp;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+  </PropertyGroup>
+
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <ConformanceMode>true</ConformanceMode>
+      <OmitFramePointers>true</OmitFramePointers>
+      <PreprocessorDefinitions>ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;ASMJIT_NO_TEXT;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;MAKE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>SyncCThrow</ExceptionHandling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
+      <CallingConvention>StdCall</CallingConvention>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <DisableSpecificWarnings>4100;4530;4731;4740;4505;4201;26495</DisableSpecificWarnings>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='OptimizationOff|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <ConformanceMode>true</ConformanceMode>
+      <OmitFramePointers>true</OmitFramePointers>
+      <PreprocessorDefinitions>ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;ASMJIT_NO_TEXT;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;MAKE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>SyncCThrow</ExceptionHandling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
+      <CallingConvention>StdCall</CallingConvention>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FloatingPointModel>Strict</FloatingPointModel>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <DisableSpecificWarnings>4100;4530;4731;4740;4505;4201;26495</DisableSpecificWarnings>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <ClCompile Include="src\Lib\asmjit\support\arena.cpp" />
+    <ClCompile Include="src\Lib\asmjit\support\arenabitset.cpp" />
+    <ClCompile Include="src\Lib\asmjit\support\arenahash.cpp" />
+    <ClCompile Include="src\Lib\asmjit\support\arenalist.cpp" />
+    <ClCompile Include="src\Lib\asmjit\support\arenatree.cpp" />
+    <ClCompile Include="src\Lib\asmjit\support\arenavector.cpp" />
+    <ClCompile Include="src\Lib\asmjit\support\support.cpp" />
+    <ClCompile Include="src\Lib\asmjit\ujit\unicompiler_a64.cpp" />
+    <ClCompile Include="src\Lib\asmjit\ujit\unicompiler_x86.cpp" />
+    <ClCompile Include="src\Lib\asmjit\ujit\vecconsttable.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\archtraits.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\assembler.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\builder.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\codeholder.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\codewriter.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\compiler.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\constpool.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\cpuinfo.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\emithelper.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\emitter.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\emitterutils.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\environment.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\errorhandler.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\formatter.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\func.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\funcargscontext.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\globals.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\inst.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\instdb.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\jitallocator.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\jitruntime.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\logger.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\operand.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\osutils.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\ralocal.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\rapass.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\rastack.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\string.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\target.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\type.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\virtmem.cpp" />
+    <ClCompile Include="src\Lib\asmjit\x86\x86assembler.cpp" />
+    <ClCompile Include="src\Lib\asmjit\x86\x86builder.cpp" />
+    <ClCompile Include="src\Lib\asmjit\x86\x86compiler.cpp" />
+    <ClCompile Include="src\Lib\asmjit\x86\x86emithelper.cpp" />
+    <ClCompile Include="src\Lib\asmjit\x86\x86formatter.cpp" />
+    <ClCompile Include="src\Lib\asmjit\x86\x86func.cpp" />
+    <ClCompile Include="src\Lib\asmjit\x86\x86instapi.cpp" />
+    <ClCompile Include="src\Lib\asmjit\x86\x86instdb.cpp" />
+    <ClCompile Include="src\Lib\asmjit\x86\x86operand.cpp" />
+    <ClCompile Include="src\Lib\asmjit\x86\x86rapass.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Lib\asmjit\asmjit-scope-begin.h" />
+    <ClInclude Include="src\Lib\asmjit\asmjit-scope-end.h" />
+    <ClInclude Include="src\Lib\asmjit\asmjit.h" />
+    <ClInclude Include="src\Lib\asmjit\core.h" />
+    <ClInclude Include="src\Lib\asmjit\core\fixup.h" />
+    <ClInclude Include="src\Lib\asmjit\core\racfgblock_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\racfgbuilder_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\raconstraints_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\rainst_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\rareg_p.h" />
+    <ClInclude Include="src\Lib\asmjit\host.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arena.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arenabitset_p.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arenahash.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arenalist.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arenapool.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arenastring.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arenatree.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arenavector.h" />
+    <ClInclude Include="src\Lib\asmjit\support\span.h" />
+    <ClInclude Include="src\Lib\asmjit\support\support.h" />
+    <ClInclude Include="src\Lib\asmjit\support\support_p.h" />
+    <ClInclude Include="src\Lib\asmjit\ujit.h" />
+    <ClInclude Include="src\Lib\asmjit\ujit\ujitbase.h" />
+    <ClInclude Include="src\Lib\asmjit\ujit\unicompiler.h" />
+    <ClInclude Include="src\Lib\asmjit\ujit\unicompiler_utils_p.h" />
+    <ClInclude Include="src\Lib\asmjit\ujit\unicondition.h" />
+    <ClInclude Include="src\Lib\asmjit\ujit\uniop.h" />
+    <ClInclude Include="src\Lib\asmjit\ujit\vecconsttable.h" />
+    <ClInclude Include="src\Lib\asmjit\core\api-build_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\api-config.h" />
+    <ClInclude Include="src\Lib\asmjit\core\archcommons.h" />
+    <ClInclude Include="src\Lib\asmjit\core\archtraits.h" />
+    <ClInclude Include="src\Lib\asmjit\core\assembler.h" />
+    <ClInclude Include="src\Lib\asmjit\core\builder.h" />
+    <ClInclude Include="src\Lib\asmjit\core\builder_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\codebuffer.h" />
+    <ClInclude Include="src\Lib\asmjit\core\codeholder.h" />
+    <ClInclude Include="src\Lib\asmjit\core\codewriter_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\compiler.h" />
+    <ClInclude Include="src\Lib\asmjit\core\compilerdefs.h" />
+    <ClInclude Include="src\Lib\asmjit\core\constpool.h" />
+    <ClInclude Include="src\Lib\asmjit\core\cpuinfo.h" />
+    <ClInclude Include="src\Lib\asmjit\core\emithelper_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\emitter.h" />
+    <ClInclude Include="src\Lib\asmjit\core\emitterutils_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\environment.h" />
+    <ClInclude Include="src\Lib\asmjit\core\errorhandler.h" />
+    <ClInclude Include="src\Lib\asmjit\core\formatter.h" />
+    <ClInclude Include="src\Lib\asmjit\core\formatter_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\func.h" />
+    <ClInclude Include="src\Lib\asmjit\core\funcargscontext_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\globals.h" />
+    <ClInclude Include="src\Lib\asmjit\core\inst.h" />
+    <ClInclude Include="src\Lib\asmjit\core\instdb_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\jitallocator.h" />
+    <ClInclude Include="src\Lib\asmjit\core\jitruntime.h" />
+    <ClInclude Include="src\Lib\asmjit\core\logger.h" />
+    <ClInclude Include="src\Lib\asmjit\core\misc_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\operand.h" />
+    <ClInclude Include="src\Lib\asmjit\core\osutils.h" />
+    <ClInclude Include="src\Lib\asmjit\core\osutils_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\raassignment_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\rabuilders_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\radefs_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\ralocal_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\rapass_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\rastack_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\string.h" />
+    <ClInclude Include="src\Lib\asmjit\core\target.h" />
+    <ClInclude Include="src\Lib\asmjit\core\type.h" />
+    <ClInclude Include="src\Lib\asmjit\core\virtmem.h" />
+    <ClInclude Include="src\Lib\asmjit\core\zonestack.h" />
+    <ClInclude Include="src\Lib\asmjit\x86.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86archtraits_p.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86assembler.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86builder.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86compiler.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86emithelper_p.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86emitter.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86formatter_p.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86func_p.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86globals.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86instapi_p.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86instdb.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86instdb_p.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86opcode_p.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86operand.h" />
+    <ClInclude Include="src\Lib\asmjit\x86\x86rapass_p.h" />
+  </ItemGroup>
+
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+
+</Project>

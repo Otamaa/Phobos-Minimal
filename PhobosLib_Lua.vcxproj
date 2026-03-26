@@ -1,0 +1,195 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Build|Win32">
+      <Configuration>Build</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="OptimizationOff|Win32">
+      <Configuration>OptimizationOff</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{B1000001-0001-0001-0001-000000000004}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>PhobosLib_Lua</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+
+  <!-- Redirect Debug/Release to Build so we don't duplicate settings -->
+  <PropertyGroup Condition="'$(Configuration)' != 'Build' AND '$(Configuration)' != 'OptimizationOff'">
+    <Configuration>Build</Configuration>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='OptimizationOff|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\Libs\</OutDir>
+    <IntDir>$(Configuration)\Libs\Lua\</IntDir>
+    <TargetName>PhobosLib_Lua</TargetName>
+    <IncludePath>$(SolutionDir)src\Lib;$(SolutionDir)src;$(SolutionDir)src\ExtraHeaders;$(SolutionDir)YRpp;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='OptimizationOff|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\Libs\</OutDir>
+    <IntDir>$(Configuration)\Libs\Lua\</IntDir>
+    <TargetName>PhobosLib_Lua</TargetName>
+    <IncludePath>$(SolutionDir)src\Lib;$(SolutionDir)src;$(SolutionDir)src\ExtraHeaders;$(SolutionDir)YRpp;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+  </PropertyGroup>
+
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <ConformanceMode>true</ConformanceMode>
+      <OmitFramePointers>true</OmitFramePointers>
+      <PreprocessorDefinitions>HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;MAKE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>SyncCThrow</ExceptionHandling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
+      <CallingConvention>StdCall</CallingConvention>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <DisableSpecificWarnings>4100;4530;4731;4740;4505;4201;26495</DisableSpecificWarnings>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='OptimizationOff|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <ConformanceMode>true</ConformanceMode>
+      <OmitFramePointers>true</OmitFramePointers>
+      <PreprocessorDefinitions>HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;MAKE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>SyncCThrow</ExceptionHandling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
+      <CallingConvention>StdCall</CallingConvention>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FloatingPointModel>Strict</FloatingPointModel>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <DisableSpecificWarnings>4100;4530;4731;4740;4505;4201;26495</DisableSpecificWarnings>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <ClCompile Include="src\Lib\Lua\lapi.c" />
+    <ClCompile Include="src\Lib\Lua\lauxlib.c" />
+    <ClCompile Include="src\Lib\Lua\lbaselib.c" />
+    <ClCompile Include="src\Lib\Lua\lcode.c" />
+    <ClCompile Include="src\Lib\Lua\lcorolib.c" />
+    <ClCompile Include="src\Lib\Lua\lctype.c" />
+    <ClCompile Include="src\Lib\Lua\ldblib.c" />
+    <ClCompile Include="src\Lib\Lua\ldebug.c" />
+    <ClCompile Include="src\Lib\Lua\ldo.c" />
+    <ClCompile Include="src\Lib\Lua\ldump.c" />
+    <ClCompile Include="src\Lib\Lua\lfunc.c" />
+    <ClCompile Include="src\Lib\Lua\lgc.c" />
+    <ClCompile Include="src\Lib\Lua\linit.c" />
+    <ClCompile Include="src\Lib\Lua\liolib.c" />
+    <ClCompile Include="src\Lib\Lua\llex.c" />
+    <ClCompile Include="src\Lib\Lua\lmathlib.c" />
+    <ClCompile Include="src\Lib\Lua\lmem.c" />
+    <ClCompile Include="src\Lib\Lua\loadlib.c" />
+    <ClCompile Include="src\Lib\Lua\lobject.c" />
+    <ClCompile Include="src\Lib\Lua\lopcodes.c" />
+    <ClCompile Include="src\Lib\Lua\loslib.c" />
+    <ClCompile Include="src\Lib\Lua\lparser.c" />
+    <ClCompile Include="src\Lib\Lua\lstate.c" />
+    <ClCompile Include="src\Lib\Lua\lstring.c" />
+    <ClCompile Include="src\Lib\Lua\lstrlib.c" />
+    <ClCompile Include="src\Lib\Lua\ltable.c" />
+    <ClCompile Include="src\Lib\Lua\ltablib.c" />
+    <ClCompile Include="src\Lib\Lua\ltests.c" />
+    <ClCompile Include="src\Lib\Lua\ltm.c" />
+    <ClCompile Include="src\Lib\Lua\lundump.c" />
+    <ClCompile Include="src\Lib\Lua\lutf8lib.c" />
+    <ClCompile Include="src\Lib\Lua\lvm.c" />
+    <ClCompile Include="src\Lib\Lua\lzio.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Lib\Lua\lauxlib.h" />
+    <ClInclude Include="src\Lib\Lua\lcode.h" />
+    <ClInclude Include="src\Lib\Lua\lctype.h" />
+    <ClInclude Include="src\Lib\Lua\ldebug.h" />
+    <ClInclude Include="src\Lib\Lua\ldo.h" />
+    <ClInclude Include="src\Lib\Lua\lfunc.h" />
+    <ClInclude Include="src\Lib\Lua\lgc.h" />
+    <ClInclude Include="src\Lib\Lua\ljumptab.h" />
+    <ClInclude Include="src\Lib\Lua\llex.h" />
+    <ClInclude Include="src\Lib\Lua\llimits.h" />
+    <ClInclude Include="src\Lib\Lua\lmem.h" />
+    <ClInclude Include="src\Lib\Lua\lobject.h" />
+    <ClInclude Include="src\Lib\Lua\lopcodes.h" />
+    <ClInclude Include="src\Lib\Lua\lopnames.h" />
+    <ClInclude Include="src\Lib\Lua\lparser.h" />
+    <ClInclude Include="src\Lib\Lua\lprefix.h" />
+    <ClInclude Include="src\Lib\Lua\lstate.h" />
+    <ClInclude Include="src\Lib\Lua\lstring.h" />
+    <ClInclude Include="src\Lib\Lua\ltable.h" />
+    <ClInclude Include="src\Lib\Lua\ltests.h" />
+    <ClInclude Include="src\Lib\Lua\ltm.h" />
+    <ClInclude Include="src\Lib\Lua\lua.h" />
+    <ClInclude Include="src\Lib\Lua\luaconf.h" />
+    <ClInclude Include="src\Lib\Lua\lualib.h" />
+    <ClInclude Include="src\Lib\Lua\lundump.h" />
+    <ClInclude Include="src\Lib\Lua\lvm.h" />
+    <ClInclude Include="src\Lib\Lua\lzio.h" />
+  </ItemGroup>
+
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+
+</Project>
