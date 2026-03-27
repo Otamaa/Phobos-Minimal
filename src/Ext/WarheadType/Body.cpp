@@ -667,6 +667,8 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->SuppressReflectDamage_Groups.Read(exINI, pSection, "SuppressReflectDamage.Groups");
 
 	this->RemoveParasites.Read(exINI, pSection, "RemoveParasites");
+	this->RemoveParasite_Allow.Read(exINI, pSection, "RemoveParasite.Allow");
+	this->RemoveParasite_Disallow.Read(exINI, pSection, "RemoveParasite.Disallow");
 	this->CLIsBlack.Read(exINI, pSection, "CLIsBlack");
 	this->ApplyMindamage.Read(exINI, pSection, "ApplyMinDamage");
 	this->MinDamage.Read(exINI, pSection, "MinDamage");
@@ -2005,6 +2007,8 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->SuppressReflectDamage_Types)
 		.Process(this->SuppressReflectDamage_Groups)
 		.Process(this->RemoveParasites)
+		.Process(this->RemoveParasite_Allow)
+		.Process(this->RemoveParasite_Disallow)
 		.Process(this->Reflected)
 		.Process(this->CLIsBlack)
 		.Process(this->ApplyMindamage)

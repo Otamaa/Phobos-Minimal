@@ -895,7 +895,7 @@ bool FakeParasiteClass::__Victims_Cell_Valid()
 	// Check water/beach/rock terrain
 	if (landType == LandType::Water || landType == LandType::Beach || landType == LandType::Rock) {
 
-		if (GroundType::GetCost(landType, pOwnerType->SpeedType) <= 0.0) {
+		if (GroundType::GetCost(landType, pOwnerType->SpeedType) <= 0.0f) {
 			// Check for specific overlay ranges (ice?)
 			int overlay = victimCell->OverlayTypeIndex;
 			bool hasSpecialOverlay = (overlay >= 74 && overlay <= 99) ||

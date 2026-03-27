@@ -4504,9 +4504,10 @@ bool TechnoExtData::AllowedTargetByZone(TechnoClass* pThis, ObjectClass* pTarget
 			if (!pCell)
 				return false;
 
-			const double distance = pCell->GetCoordsWithBridge().DistanceFrom(pTarget->GetCenterCoords());
+			const double distance = pCell->GetCoordsWithBridge().DistanceFromSquared(pTarget->GetCenterCoords());
+			const int range = pWeapon->Range;
 
-			if (distance > pWeapon->Range)
+			if (distance > range * range)
 				return false;
 		}
 	}
@@ -4670,12 +4671,16 @@ double TechnoExtData::GetArmorMult(TechnoClass* pSource, double damageIn, Warhea
 
 	auto const pExt = TechnoExtContainer::Instance.Find(pSource);
 
-	if (pWarhead && pExt->AE.ArmorMultData.Enabled()) {
-		_result /= pExt->AE.ArmorMultData.Get(pExt->AE.ArmorMultiplier, pWarhead);
+	//Ares AE using techno ArmorMultiplier
+	//PHobos AE using ArmorMultData 
+	if (pExt->AE.ArmorMultData.Enabled()) {
+		_result /= pExt->AE.ArmorMultData.Get(pSource->ArmorMultiplier, pWarhead);
+	} else {
+		_result /= pSource->ArmorMultiplier;
 	}
 
 	if (auto pOwner = pSource->Owner)
-		_result /= (pOwner->GetTypeArmorMult(pType) * pSource->ArmorMultiplier);
+	_result /= pOwner->GetTypeArmorMult(pType);
 
 	if (pSource->HasAbility(AbilityType::Stronger)) {
 		_result /= RulesClass::Instance->VeteranArmor;
@@ -8307,9 +8312,9 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 
 	double ROF_Mult = 1.0;
 	double ReceiveRelativeDamageMult = 1.0;
-	double FP_Mult = _AEProp->FirepowerMultiplier;
-	double Armor_Mult = _AEProp->ArmorMultiplier;
-	double Speed_Mult = _AEProp->SpeedMultiplier;
+	double FP_Mult = _AEProp->Crate_FirepowerMultiplier;
+	double Armor_Mult = _AEProp->Crate_ArmorMultiplier;
+	double Speed_Mult = _AEProp->Crate_SpeedMultiplier;
 
 	bool Cloak = GET_TECHNOTYPE(pTechno)->Cloakable
 		|| pTechno->HasAbility(AbilityType::Cloak)

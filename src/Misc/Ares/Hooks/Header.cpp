@@ -2277,8 +2277,8 @@ void TechnoExt_ExtData::UpdateAlphaShape(ObjectClass* pSource)
 	{
 		if (StaticVars::ObjectLinkedAlphas.get_or_default(pSource)
 			&& what == BuildingClass::AbsID
-			&& (pImage->Frames <= 1 || !((BuildingClass*)pSource)->HasTurret() || !((BuildingClass*)pSource)->TurretIsRotating)
-			)
+			&& (pImage->Frames <= 1 || !((BuildingClass*)pSource)->HasTurret()
+			))
 			return;
 
 		RectangleStruct ScreenArea = TacticalClass::Instance->VisibleArea();

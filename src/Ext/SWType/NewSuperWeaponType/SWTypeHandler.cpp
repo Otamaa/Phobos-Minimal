@@ -132,8 +132,9 @@ bool SWTypeHandler::IsDesignatorEligible(const SWTypeExtData* pData, HouseClass*
 		}
 
 		// has to be closer than the designator range (which defaults to Sight)
-		auto distance = Coords.DistanceFrom(CellClass::Coord2Cell(center));
-		return distance <= pExt->DesignatorRange.Get(pType->Sight);
+		auto distance = Coords.DistanceFromSquared(CellClass::Coord2Cell(center));
+		const int range = pExt->InhibitorRange.Get(pType->Sight);
+		return distance <= range * range;
 	}
 
 	return false;
@@ -188,8 +189,9 @@ bool SWTypeHandler::IsInhibitorEligible(const SWTypeExtData* pData, HouseClass* 
 		}
 
 		// has to be closer than the inhibitor range (which defaults to Sight)
-		auto distance = Coords.DistanceFrom(CellClass::Coord2Cell(center));
-		return distance <= pExt->InhibitorRange.Get(pType->Sight);
+		auto distance = Coords.DistanceFromSquared(CellClass::Coord2Cell(center));
+		const int range = pExt->InhibitorRange.Get(pType->Sight);
+		return distance <= range * range;
 	}
 
 	return false;
@@ -235,8 +237,9 @@ bool SWTypeHandler::IsAttractorEligible(const SWTypeExtData* pData, HouseClass* 
 		}
 
 		// has to be closer than the Attractor range (which defaults to Sight)
-		auto distance = Coords.DistanceFrom(CellClass::Coord2Cell(center));
-		return distance <= pExt->AttractorRange.Get(pType->Sight);
+		auto distance = Coords.DistanceFromSquared(CellClass::Coord2Cell(center));
+		const int range = pExt->InhibitorRange.Get(pType->Sight);
+		return distance <= range * range;
 	}
 
 	return false;
@@ -334,8 +337,9 @@ bool SWTypeHandler::IsSuppressorEligible(const SWTypeExtData* pData, HouseClass*
 		}
 
 		// has to be closer than the Suppressor range (which defaults to Sight)
-		auto distance = Coords.DistanceFrom(CellClass::Coord2Cell(center));
-		return distance <= pExt->SuppressorRange.Get(pType->Sight);
+		auto distance = Coords.DistanceFromSquared(CellClass::Coord2Cell(center));
+		const int range = pExt->InhibitorRange.Get(pType->Sight);
+		return distance <= range * range;
 	}
 
 	return false;

@@ -38,6 +38,10 @@ struct VoxelStruct
 	bool operator != (const VoxelStruct& nWeap) const {
 		return VXL != nWeap.VXL || HVA != nWeap.HVA;
 	}
+
+public:
+
+	MOVEABLE_ONLY(VoxelStruct);
 };
 
 class NOVTABLE FakeFileLoader

@@ -13,14 +13,6 @@ struct AEProperties
 	double ROFMultiplier { 1.0 };
 	double ReceiveRelativeDamageMult { 1.0 };
 
-	double SpeedBonus { 0.0 };
-	int FirepowerBonus { 0 };
-	int ArmorBonus { 0 };
-	int ROFBonus { 0 };
-
-	MinMaxValue<int> ReceivedDamage { INT32_MIN , INT32_MAX };
-	MinMaxValue<double> Speed { 0.0 ,  INT32_MAX };
-
 	union {
 		struct {
 			bool Cloakable : 1;
@@ -68,13 +60,6 @@ protected:
 			.Process(this->SpeedMultiplier)
 			.Process(this->ROFMultiplier)
 			.Process(this->ReceiveRelativeDamageMult)
-			.Process(this->FirepowerBonus)
-			.Process(this->ArmorBonus)
-			.Process(this->SpeedBonus)
-			.Process(this->ROFBonus)
-			.Process(this->ReceivedDamage)
-			.Process(this->Speed)
-
 			.Process(this->AllFlags)
 			.Success()
 			;

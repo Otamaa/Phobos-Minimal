@@ -413,7 +413,7 @@ struct AEProperties
 			{
 				bool allowed = false;
 
-				if (allow.begin() != allow.end())
+				if (allow.begin() != allow.end() && who)
 				{
 					for (auto iter_allow = allow.begin(); iter_allow != allow.end(); ++iter_allow)
 					{
@@ -429,7 +429,7 @@ struct AEProperties
 					allowed = true;
 				}
 
-				if (allowed && disallow.begin() != disallow.end())
+				if (allowed && disallow.begin() != disallow.end() && who)
 				{
 					for (auto iter_disallow = disallow.begin(); iter_disallow != disallow.end(); ++iter_disallow)
 					{
@@ -525,21 +525,11 @@ struct AEProperties
 		}
 	} ArmorMultData {};
 
-	double FirepowerMultiplier { 1.0 };
-	double ArmorMultiplier { 1.0 };
-	double SpeedMultiplier { 1.0 };
+	double Crate_FirepowerMultiplier { 1.0 };
+	double Crate_ArmorMultiplier { 1.0 };
+	double Crate_SpeedMultiplier { 1.0 };
 	double ROFMultiplier { 1.0 };
 	double ReceiveRelativeDamageMult { 1.0 };
-
-	//TODO :
-	int FirepowerBonus { 0 };
-	int ArmorBonus { 0 };
-	double SpeedBonus { 0.0 };
-	int ROFBonus { 0 };
-
-	//TODO :
-	MinMaxValue<int> ReceivedDamage { INT32_MIN , INT32_MAX };
-	MinMaxValue<double> Speed { 0.0 ,  INT32_MAX };
 
 	struct AEFlags
 	{
@@ -636,17 +626,11 @@ protected:
 		return Stm
 			.Process(this->ExtraRange)
 			.Process(this->ExtraCrit)
-			.Process(this->FirepowerMultiplier)
-			.Process(this->ArmorMultiplier)
-			.Process(this->SpeedMultiplier)
+			.Process(this->Crate_FirepowerMultiplier)
+			.Process(this->Crate_ArmorMultiplier)
+			.Process(this->Crate_SpeedMultiplier)
 			.Process(this->ROFMultiplier)
 			.Process(this->ReceiveRelativeDamageMult)
-			.Process(this->FirepowerBonus)
-			.Process(this->ArmorBonus)
-			.Process(this->SpeedBonus)
-			.Process(this->ROFBonus)
-			.Process(this->ReceivedDamage)
-			.Process(this->Speed)
 			.Process(this->ArmorMultData)
 			.Process(this->flags)
 

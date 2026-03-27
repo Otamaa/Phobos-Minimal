@@ -2574,7 +2574,7 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 					}
 					case Powerup::Armor:
 					{
-						if (TechnoExtContainer::Instance.Find(pCollector)->AE.ArmorMultiplier != 1.0)
+						if (TechnoExtContainer::Instance.Find(pCollector)->AE.Crate_ArmorMultiplier != 1.0)
 						{
 							data = Powerup::Money;
 						}
@@ -2583,7 +2583,7 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 					}
 					case Powerup::Speed:
 					{
-						if (TechnoExtContainer::Instance.Find(pCollector)->AE.SpeedMultiplier != 1.0 || pCollector->WhatAmI() == AbstractType::Aircraft)
+						if (TechnoExtContainer::Instance.Find(pCollector)->AE.Crate_SpeedMultiplier != 1.0 || pCollector->WhatAmI() == AbstractType::Aircraft)
 						{
 							data = Powerup::Money;
 						}
@@ -2592,7 +2592,7 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 					}
 					case Powerup::Firepower:
 					{
-						if (TechnoExtContainer::Instance.Find(pCollector)->AE.FirepowerMultiplier != 1.0 || !pCollector->IsArmed())
+						if (TechnoExtContainer::Instance.Find(pCollector)->AE.Crate_FirepowerMultiplier != 1.0 || !pCollector->IsArmed())
 						{
 							data = Powerup::Money;
 						}
@@ -2899,9 +2899,9 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 								auto LayersCoords = pTechno->GetCoords();
 								auto cellLoc = CellClass::Cell2Coord(this->MapCoords, this->GetFloorHeight({ 128,128 }));
 								auto place = cellLoc - LayersCoords;
-								if ((int)place.Length() < RulesClass::Instance->CrateRadius && TechnoExtContainer::Instance.Find(pCollector)->AE.ArmorMultiplier == 1.0)
+								if ((int)place.Length() < RulesClass::Instance->CrateRadius && TechnoExtContainer::Instance.Find(pCollector)->AE.Crate_ArmorMultiplier == 1.0)
 								{
-									TechnoExtContainer::Instance.Find(pCollector)->AE.ArmorMultiplier = something;
+									TechnoExtContainer::Instance.Find(pCollector)->AE.Crate_ArmorMultiplier = something;
 									AEProperties::Recalculate(pCollector);
 
 									if (pTechno->Owner->ControlledByCurrentPlayer())
@@ -2930,9 +2930,9 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 								auto LayersCoords = pTechno->GetCoords();
 								auto cellLoc = CellClass::Cell2Coord(this->MapCoords, this->GetFloorHeight({ 128,128 }));
 								auto place = cellLoc - LayersCoords;
-								if ((int)place.Length() < RulesClass::Instance->CrateRadius && TechnoExtContainer::Instance.Find(pCollector)->AE.SpeedMultiplier == 1.0)
+								if ((int)place.Length() < RulesClass::Instance->CrateRadius && TechnoExtContainer::Instance.Find(pCollector)->AE.Crate_SpeedMultiplier == 1.0)
 								{
-									TechnoExtContainer::Instance.Find(pCollector)->AE.SpeedMultiplier = something;
+									TechnoExtContainer::Instance.Find(pCollector)->AE.Crate_SpeedMultiplier = something;
 									AEProperties::Recalculate(pCollector);
 
 									if (pTechno->Owner->ControlledByCurrentPlayer())
@@ -2962,9 +2962,9 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 								auto cellLoc = CellClass::Cell2Coord(this->MapCoords, this->GetFloorHeight({ 128,128 }));
 								auto place = cellLoc - LayersCoords;
 								if ((int)place.Length() < RulesClass::Instance->CrateRadius
-									&& TechnoExtContainer::Instance.Find(pCollector)->AE.FirepowerMultiplier == 1.0)
+									&& TechnoExtContainer::Instance.Find(pCollector)->AE.Crate_FirepowerMultiplier == 1.0)
 								{
-									TechnoExtContainer::Instance.Find(pCollector)->AE.FirepowerMultiplier = something;
+									TechnoExtContainer::Instance.Find(pCollector)->AE.Crate_FirepowerMultiplier = something;
 									AEProperties::Recalculate(pCollector);
 
 									if (pTechno->Owner->ControlledByCurrentPlayer())

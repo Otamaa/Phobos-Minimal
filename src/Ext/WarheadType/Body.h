@@ -403,6 +403,8 @@ public:
 	ValueableVector<std::string> SuppressReflectDamage_Groups;
 
 	Nullable<bool> RemoveParasites;
+	ValueableVector<TechnoTypeClass*> RemoveParasite_Allow;
+	ValueableVector<TechnoTypeClass*> RemoveParasite_Disallow;
 
 	bool Reflected;
 	Valueable<bool> CLIsBlack;
@@ -786,6 +788,8 @@ public:
 		SuppressReflectDamage_Types(),
 		SuppressReflectDamage_Groups(),
 		RemoveParasites(),
+		RemoveParasite_Allow {},
+		RemoveParasite_Disallow {},
 		Reflected(false),
 		CLIsBlack(false),
 		ApplyMindamage(false),

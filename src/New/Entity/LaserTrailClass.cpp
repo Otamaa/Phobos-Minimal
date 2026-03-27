@@ -19,7 +19,7 @@ bool LaserTrailClass::Update(CoordStruct const& location)
 		// The trail was just inited
 		this->LastLocation = location;
 	}
-	else if (location.DistanceFrom(this->LastLocation.get()) > pType->SegmentLength) // TODO reimplement IgnoreVertical properly?
+	else if (location.DistanceFromSquared(this->LastLocation.get()) > pType->SegmentLength * pType->SegmentLength) // TODO reimplement IgnoreVertical properly?
 	{
 		if (LaserTrailClass::AllowDraw(location))
 		{

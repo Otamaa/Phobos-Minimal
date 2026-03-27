@@ -1234,7 +1234,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->CanTarget_IronCurtained.Read(exINI, GameStrings::CombatDamage, "CanTarget.IronCurtained");
 	this->AutoTarget_IronCurtained.Read(exINI, GameStrings::CombatDamage, "AutoTarget.IronCurtained");
 	this->EMPAIRecoverMission.Read(exINI, GameStrings::CombatDamage(), "EMPAIRecoverMission");
-	this->ShieldUseArmorplier.Read(exINI, GameStrings::CombatDamage, "ShieldUseArmorplier");
+	this->ShieldUseArmorplier.Read(exINI, GameStrings::CombatDamage, "ShieldApplyArmorMult");
 	#pragma endregion
 
 	#pragma region AI

@@ -1796,7 +1796,7 @@ public:
 		CreateSound_afect(),
 		Chronoshift_Allow(true),
 		Chronoshift_IsVehicle(false),
-		FactoryPlant_Multiplier(1.0),
+		FactoryPlant_Multiplier(1.0f),
 		MassSelectable(),
 		TiltsWhenCrushes_Vehicles(),
 		TiltsWhenCrushes_Overlays(),
@@ -2126,7 +2126,7 @@ public:
 		, WeaponGroupAs {}
 		, CanGoAboveTarget { false }
 		, OpenTransport_RangeBonus { 0 }
-		, OpenTransport_DamageMultiplier { 1.0 }
+		, OpenTransport_DamageMultiplier { 1.0f}
 		, ParadropMission {}
 		, AIParadropMission {}
 		, AreaGuardRange{}

@@ -596,7 +596,7 @@ ASMJIT_PATCH(0x51A996, InfantryClass_UpdatePositio_KillOnImpassable, 0x5)
 
 	if (landType == LandType::Water)
 	{
-		if (GroundType::GetCost(landType, pThis->Type->SpeedType) == 0.0)
+		if (GroundType::GetCost(landType, pThis->Type->SpeedType) == 0.0f)
 			return ContinueChecks;
 	}
 
@@ -3030,6 +3030,9 @@ ASMJIT_PATCH(0x4D77BD, FootClass_ObjectClickedAction_NoMove, 0x6)
 {
 	enum { ReturnFalse = 0x4D77EC, ReturnTrue = 0x4D7CC0 };
 
+	if (PlanningNodeClass::PlanningModeActive)
+		return 0;
+
 	GET(ObjectClass*, pTarget, EBX);
 
 	const auto pTargetTechno = flag_cast_to<TechnoClass*>(pTarget);
@@ -3236,4 +3239,40 @@ ASMJIT_PATCH(0x469A1B, BulletClass_Logics_DisguiseStuffs, 0x6)
 	}
 
 	return 0x0;
+}
+
+ASMJIT_PATCH(0x4DAD06, FootClass_AI_IsCrashing_VoiceAndSound, 0xA)
+{
+	enum { SkipVoiceAndSound = 0x4DADBC, ContinueAfter = 0x4DAD10 };
+
+	GET(FootClass*, pThis, ESI);
+
+	if (pThis->IsAttackedByLocomotor)
+		return SkipVoiceAndSound;
+
+	// Restore overriden instructions
+	R->EAX(pThis->GetTechnoType());
+	return ContinueAfter;
+}
+
+// https://modenc.renegadeprojects.com/IsLocomotor
+// The natural landing position of the affected unit is controlled by its own pathfinding rules.
+// This means that if the target is a unit that can originally move to the firer's cell, such as the original [ZEP],
+// it will be attracted directly above the firer, then fall vertically to crush the firer while being destroyed itself.
+namespace ImbueLocomotorTemp
+{
+	bool Imbuing = false;
+}
+
+static void __fastcall _ImbueLocomotor_SetDestination(FootClass* pThis, void*, AbstractClass* pDest, bool unk)
+{
+	ImbueLocomotorTemp::Imbuing = true;
+	pThis->SetDestination(pDest, true);
+	ImbueLocomotorTemp::Imbuing = false;
+}
+DEFINE_FUNCTION_JUMP(CALL6, 0x710326, _ImbueLocomotor_SetDestination)
+
+ASMJIT_PATCH(0x54B3E7, JumpjetLocomotionClass_Move_To_LocomotorWarheadFix, 0x5)
+{
+	return ImbueLocomotorTemp::Imbuing ? 0x54B3FC : 0;
 }

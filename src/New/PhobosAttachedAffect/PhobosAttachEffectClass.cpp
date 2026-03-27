@@ -30,6 +30,9 @@ PhobosAttachEffectClass::~PhobosAttachEffectClass()
 void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, TechnoClass* pTechno, HouseClass* pInvokerHouse,
 	TechnoClass* pInvoker, AbstractClass* pSource, int durationOverride, int delay, int initialDelay, int recreationDelay)
 {
+	if (!this->Techno->IsAlive)
+		return;
+
 	//Debug::LogInfo(__FUNCTION__" Executed [%s - %s]", pTechno->GetThisClassName(), pTechno->get_ID());
 	this->Duration = durationOverride != 0 ? durationOverride : pType->Duration;
 	this->DurationOverride = durationOverride;
@@ -49,17 +52,13 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 		this->Duration = MaxImpl(static_cast<int>(this->Duration * verses.Verses), 0);
 	}
 
-	if (pInvoker) {
-		auto pInvokerExt = TechnoExtContainer::Instance.Find(pInvoker);
-
-		if(pType->Duration_ApplyFirepowerMult)
-			this->Duration = static_cast<int>(this->Duration * pInvoker->FirepowerMultiplier * pInvokerExt->AE.FirepowerMultiplier);
+	if (pInvoker && pInvoker->IsAlive) {
+		this->Duration = (int)TechnoExtData::GetDamageMult(pInvoker, this->Duration, !pType->Duration_ApplyFirepowerMult);
 	}
 
 	if (pType->Duration_ApplyArmorMultOnTarget && this->Duration > 0) // count its own ArmorMultiplier as well
 	{
-		const auto _value = this->Duration / pTechno->ArmorMultiplier / pTechnoExt->AE.ArmorMultiplier / this->Type->ArmorMultiplier;
-		this->Duration = MaxImpl(static_cast<int>(_value), 0);
+		this->Duration = MaxImpl(static_cast<int>(TechnoExtData::GetArmorMult(pTechno, this->Duration, nullptr)), 0);
 	}
 
 	this->InvokerHouse = pInvokerHouse;
@@ -451,16 +450,14 @@ void PhobosAttachEffectClass::RefreshDuration(int durationOverride)
 		this->Duration = MaxImpl(static_cast<int>(this->Duration * verses.Verses), 0);
 	}
 
-	if (this->Invoker)
-	{
-		auto pInvokerExt = TechnoExtContainer::Instance.Find(this->Invoker);
-
-		if (this->Type->Duration_ApplyFirepowerMult)
-			this->Duration = static_cast<int>(this->Duration * this->Invoker->FirepowerMultiplier * pInvokerExt->AE.FirepowerMultiplier);
+	if (this->Invoker && this->Invoker->IsAlive) {
+		this->Duration = (int)TechnoExtData::GetDamageMult(this->Invoker, this->Duration, !this->Type->Duration_ApplyFirepowerMult);
 	}
 
 	if (this->Type->Duration_ApplyArmorMultOnTarget && this->Duration > 0) // count its own ArmorMultiplier as well
-		this->Duration = MaxImpl(static_cast<int>(this->Duration / this->Techno->ArmorMultiplier / TechnoExtContainer::Instance.Find(this->Techno)->AE.ArmorMultiplier / this->Type->ArmorMultiplier), 0);
+	{
+		this->Duration = MaxImpl(static_cast<int>(TechnoExtData::GetArmorMult(this->Techno, this->Duration, nullptr)), 0);
+	}
 
 	if (this->Type->Animation_ResetOnReapply)
 	{

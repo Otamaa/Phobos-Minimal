@@ -370,12 +370,13 @@ ASMJIT_PATCH(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 		double arf = pThis->AngleRotatedForwards;
 		if (flyloco->CurrentSpeed > pThis->Type->PitchSpeed)
 			arf += pThis->Type->PitchAngle;
-		double ars = pThis->AngleRotatedSideways;
-		if (key.Is_Valid_Key() && (Math::abs(arf) > 0.005 || Math::abs(ars) > 0.005))
+		const float newArf = (float)arf;
+		const float ars = pThis->AngleRotatedSideways;
+		if (key.Is_Valid_Key() && (Math::abs(newArf) > 0.005 || Math::abs(ars) > 0.005))
 			key.Invalidate();
 
-		shadow_mtx.RotateY((float)(ars));
-		shadow_mtx.RotateX((float)(arf));
+		shadow_mtx.RotateY(ars);
+		shadow_mtx.RotateX(newArf);
 
 	} else if (height > 0) {
 		if(const auto rocketloco = locomotion_cast<RocketLocomotionClass*>(pThis->Locomotor)){
@@ -491,9 +492,11 @@ static VoxelStruct* GetmainVxl(TechnoClass* pThis, TechnoTypeClass* pType , Voxe
 	return &pType->MainVoxel;
 }
 
-static void DecideScaleAndIndex(Matrix3D* mtx, TechnoClass* pThis, TechnoTypeClass* pType, VoxelIndexKey& key, ILocomotion* iLoco , int height)
+static double DecideScaleAndIndex(Matrix3D* mtx, TechnoClass* pThis, TechnoTypeClass* pType, VoxelIndexKey& key, ILocomotion* iLoco , int height)
 {
 	const double baseScale_log = RulesExtData::Instance()->AirShadowBaseScale_log; // -ln(baseScale) precomputed
+
+	double currentScale = 1.0;
 
 	if (RulesExtData::Instance()->HeightShadowScaling && height > 0)
 	{
@@ -506,7 +509,8 @@ static void DecideScaleAndIndex(Matrix3D* mtx, TechnoClass* pThis, TechnoTypeCla
 
 			if (cHeight > 0)
 			{
-				mtx->Scale((float)std::max(GeneralUtils::Pade2_2(baseScale_log * height / cHeight), minScale));
+				currentScale = (std::max(GeneralUtils::Pade2_2(baseScale_log * height / cHeight), minScale));
+				mtx->Scale((float)currentScale);
 
 				if (jjloco->NextState != JumpjetLocomotionClass::State::Hovering)
 					key.Invalidate();
@@ -518,15 +522,19 @@ static void DecideScaleAndIndex(Matrix3D* mtx, TechnoClass* pThis, TechnoTypeCla
 
 			if (cHeight > 0)
 			{
-				mtx->Scale((float)std::max(GeneralUtils::Pade2_2(baseScale_log * height / cHeight), minScale));
+				currentScale = (std::max(GeneralUtils::Pade2_2(baseScale_log * height / cHeight), minScale));
+				mtx->Scale((float)currentScale);
 				key.Invalidate();
 			}
 		}
 	}
 	else if (!RulesExtData::Instance()->HeightShadowScaling && pType->ConsideredAircraft)
 	{
-		mtx->Scale((float)GeneralUtils::Pade2_2(baseScale_log));
+		currentScale = (GeneralUtils::Pade2_2(baseScale_log));
+		mtx->Scale((float)currentScale);
 	}
+
+	return currentScale;
 }
 
 // Shadow_Point of RocketLoco was forgotten to be set to {0,0}. It was an oversight.
@@ -704,7 +712,7 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 	// This is the very reason I need to do this here, there's no less hacky way to get this Type from those inner calls
 
 	const auto height = pThis->GetHeight();
-	DecideScaleAndIndex(&shadow_matrix, pThis, pType, vxl_index_key, loco, height);
+	double currentScale = DecideScaleAndIndex(&shadow_matrix, pThis, pType, vxl_index_key, loco, height);
 
 	VoxelStruct* main_vxl = GetmainVxl(pThis, pType, vxl_index_key);
 
@@ -764,7 +772,9 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 			&& !uTypeExt->TurretShadow.Get(RulesExtData::Instance()->DrawTurretShadow)))
 		return 0x73C5C9;
 
-	uTypeExt->ApplyTurretOffset(&mtx, Game::Pixel_Per_Lepton());
+	
+	const double adjustedFactor = Game::Pixel_Per_Lepton() / currentScale;
+	uTypeExt->ApplyTurretOffset(&mtx, adjustedFactor);
 	mtx.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>()));
 	const bool inRecoil = pType->TurretRecoil && pThis->TurretRecoil.State != RecoilData::RecoilState::Inactive;
 

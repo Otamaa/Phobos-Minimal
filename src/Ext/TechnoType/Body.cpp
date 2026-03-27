@@ -309,7 +309,6 @@ int TechnoTypeExtData::SelectMultiWeapon(TechnoClass* pThis, AbstractClass* pTar
 	{
 		if (pTargetTechno->Health <= 0 || !pTargetTechno->IsAlive)
 			return 0;
-
 		bool getNavalTargeting = false;
 
 		auto checkSecondary = [&](int weaponIndex) -> bool
@@ -368,7 +367,7 @@ int TechnoTypeExtData::SelectMultiWeapon(TechnoClass* pThis, AbstractClass* pTar
 		const LandType landType = pTargetTechno->GetCell()->LandType;
 		const bool targetOnWater = landType == LandType::Water || landType == LandType::Beach;
 
-		if (!pTargetTechno->OnBridge && targetOnWater)
+		if (!pTargetTechno->OnBridge && targetOnWater && !pTargetTechno->IsInAir())
 		{
 			const auto result = pThis->SelectNavalTargeting(pTargetTechno);
 

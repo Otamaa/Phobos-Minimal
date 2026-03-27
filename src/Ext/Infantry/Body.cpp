@@ -109,16 +109,18 @@ void ProcessStandardDeathType(FakeInfantryClass* pThis, WarheadTypeClass* warhea
 	auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(warhead);
 
 	if(pThis->Type->NotHuman){
-		if (auto pDeathAnim = pWarheadExt->NotHuman_DeathAnim.Get(nullptr))
-		{
+
+		if (pThis->SequenceAnim == DoType::Paradrop && pThis->IsFallingDown) {
+			auto pAnim = GameCreate<AnimClass>(RulesClass::Instance->InfantryExplode, pThis->Location);
+			auto pInvoker = source ? source->GetOwningHouse() : nullptr;
+			AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->GetOwningHouse(), source, true, true);
+		} else if (auto pDeathAnim = pWarheadExt->NotHuman_DeathAnim.Get(nullptr)) {
 			auto pAnim = GameCreate<AnimClass>(pDeathAnim, pThis->Location);
 			auto pInvoker = source ? source->GetOwningHouse() : nullptr;
 			AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->GetOwningHouse(), source, true, true);
 			pAnim->ZAdjust = pThis->GetZAdjustment();
 			Succeeded = true;
-		}
-		else
-		{
+		} else {
 			auto const& whSequence = pWarheadExt->NotHuman_DeathSequence;
 			// Die1-Die5 sequences are offset by 10
 			COMPILETIMEEVAL auto Die = [](int x) { return x + 10; };
@@ -656,7 +658,7 @@ ASMJIT_PATCH(0x517AEB, InfantryClass_CTOR, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x517F83, InfantryClass_DTOR, 0x6)
+ASMJIT_PATCH(0x517F81, InfantryClass_DTOR, 0x8)
 {
 	GET(InfantryClass* const, pItem, ESI);
 	InfantryExtContainer::Instance.Remove(pItem);

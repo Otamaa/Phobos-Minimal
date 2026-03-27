@@ -26,6 +26,8 @@ void EventExt::ApproachObject::Raise(FootClass* pThis, ObjectClass* pObject)
 	EventExt::AddToEvent<true, true, ApproachObject>(Event, pThis, pObject);
 }
 
+#include <SlaveManagerClass.h>
+
 void EventExt::ApproachObject::Respond(EventClass* Event)
 {
 
@@ -33,6 +35,37 @@ void EventExt::ApproachObject::Respond(EventClass* Event)
 
 	if (!pSource || static_cast<char>(pSource->Owner->ArrayIndex) != Event->HouseIndex)
 		return;
+
+	pSource->ClearPlanningTokens(nullptr);
+
+	if (!pSource->IsAlive || pSource->Health <= 0 || pSource->InLimbo)
+		return;
+
+	if (pSource->IsTethered)
+	{
+		const auto pLink = cast_to<BuildingClass*>(pSource->GetNthLink());
+
+		if (pLink && pLink->IsAlive && pLink->Type->DockUnload)
+		{
+			pSource->SendToFirstLink(RadioCommand::NotifyUnlink);
+			pSource->IsTethered = false;
+		}
+	}
+	else
+	{
+		pSource->SendToFirstLink(RadioCommand::NotifyUnlink);
+	}
+
+	pSource->QueueUpToEnter = nullptr;
+	pSource->LastDestination = nullptr;
+
+	if (const auto pManager = pSource->SlaveManager)
+		pManager->AllGuard();
+
+	pSource->ClearNavQueue();
+	pSource->SetDestination(nullptr, true);
+	pSource->SetTarget(nullptr);
+	pSource->SetArchiveTarget(nullptr);
 
 	const auto pObject = Event->Data.nothing.As<ApproachObject>()->Target.As_Object();
 

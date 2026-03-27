@@ -2488,6 +2488,7 @@ DamageState __fastcall FakeFootClass::__Take_Damage(FootClass* pThis, discard_t,
 	}
 
 	auto pWHExt = WarheadTypeExtContainer::Instance.Find(args.WH);
+	auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	if (pParasiteEating){
 		auto pParasiteOwnerType = GET_TECHNOTYPE(pParasiteEating);
@@ -2496,7 +2497,10 @@ DamageState __fastcall FakeFootClass::__Take_Damage(FootClass* pThis, discard_t,
 			pParasiteEating->ParasiteImUsing->SuppressionTimer.Start((2 * *args.Damage) - pParasiteOwnerType->SuppressionThreshold);
 		}
 
-		if (pWHExt->RemoveParasites.Get(*args.Damage < 0)) {
+		const bool removeParasite = pWHExt->RemoveParasites.Get(*args.Damage < 0) && pWHExt->RemoveParasite_Disallow.Contains(pParasiteOwnerType)
+		|| (!pWHExt->RemoveParasite_Allow.empty() && !pWHExt->RemoveParasite_Allow.Contains(pParasiteOwnerType));
+
+		if (removeParasite) {
 			pParasiteEating->ParasiteImUsing->SuppressionTimer.Start(50);
 			pParasiteEating->ParasiteImUsing->ExitUnit();
 		}

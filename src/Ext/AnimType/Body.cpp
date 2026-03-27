@@ -239,7 +239,7 @@ void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
 		if (!pCell)
 			return;
 
-		bool allowBridges = pExt->WasOnBridge || GroundType::GetCost(LandType::Clear, pUnit->SpeedType) > 0.0;
+		bool allowBridges = pExt->WasOnBridge || GroundType::GetCost(LandType::Clear, pUnit->SpeedType) > 0.0f;
 		bool isBridge = allowBridges && pCell->ContainsBridge();
 
 		if (c_type->ConsiderPathfinding

@@ -123,16 +123,38 @@ ASMJIT_PATCH(0x4D9A83, FootClass_PointerGotInvalid_OccupierVehicleThief, 0x6)
 	return 0;
 }
 
-// update parasite coords along with the host
-ASMJIT_PATCH(0x4DB87E, FootClass_SetLocation_Parasite, 0x6)
-{
-	GET(FootClass* const, F, ESI);
+#include <Locomotor/Cast.h>
 
-	if (F->ParasiteEatingMe) {
-		F->ParasiteEatingMe->SetLocation(F->Location);
+ASMJIT_PATCH(0x4DEC7F, FootClass_Crash_FallingDownFix, 0x7)
+{
+	GET(FootClass*, pThis, ESI);
+
+	if (pThis->IsFallingDown && !pThis->IsABomb && pThis->Locomotor)
+	{
+		if (const auto pJumpjet = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor))
+			pJumpjet->NextState = JumpjetLocomotionClass::State::Crashing;
 	}
 
 	return 0;
+}
+
+// update parasite coords along with the host
+ASMJIT_PATCH(0x4DB874, FootClass_SetLocation_Extra, 0xA)
+{
+	enum { SkipGameCode = 0x4DB88F };
+
+	GET(FootClass*, pThis, ESI);
+	const auto pParasite = pThis->ParasiteEatingMe;
+
+	// Fix Ares's bug that parasite always on victim's location
+	if (pParasite && pParasite->InLimbo)
+		pParasite->SetLocation(pThis->Location);
+
+	// Restore overriden instructions
+	if (pThis->GetTechnoType()->OpenTopped)
+		pThis->UpdatePassengerCoords();
+
+	return SkipGameCode;
 }
 
 ASMJIT_PATCH(0x4D8D95, FootClass_UpdatePosition_HunterSeeker, 0xA)

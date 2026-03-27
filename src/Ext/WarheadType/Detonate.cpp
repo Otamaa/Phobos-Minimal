@@ -721,7 +721,8 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 				return;
 			}
 
-			if (coords.DistanceFrom(pIntended->GetCoords()) < double(Unsorted::LeptonsPerCell / 4)) {
+			if (coords.DistanceFrom(pIntended->GetCoords()) < double(Unsorted::LeptonsPerCell / 4.0) * (Unsorted::LeptonsPerCell / 4.0)
+				) {
 				this->DetonateOnOneUnit(pHouse, pIntended, coords , damage, pOwner, pBullet, ThisbulletWasIntercepted);
 
 				if (this->Transact) {
