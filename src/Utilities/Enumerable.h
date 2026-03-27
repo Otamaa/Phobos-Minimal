@@ -18,6 +18,8 @@ template <typename T> class Enumerable
 {
 	typedef std::vector<std::unique_ptr<T>> container_t;
 public:
+	MOVEABLE_ONLY(Enumerable<T>);
+public:
 
 	static container_t Array;
 

@@ -385,12 +385,12 @@ bool ExtensionSaveJson::Load(const wchar_t* baseSave)
 		}
 
 		if (_header.ModName != AresGlobalData::ModName) {
-			Debug::Log("[ExtLoad] Invalid Mod : %s\n", _header.ModName);
+			Debug::Log("[ExtLoad] Invalid Mod : %s\n", _header.ModName.c_str());
 			return false;
 		}
 
 		if (_header.ModVersion != AresGlobalData::ModVersion) {
-			Debug::Log("[ExtLoad] Invalid Mod version: %d\n", _header.ModVersion);
+			Debug::Log("[ExtLoad] Invalid Mod version: %s\n", _header.ModVersion.c_str());
 			return false;
 		}
 

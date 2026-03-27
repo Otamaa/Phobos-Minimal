@@ -224,12 +224,12 @@ void HugeBar::ProcessHugeBar()
 
 		for (TechnoClass* pTmpTechno : Technos)
 		{
-			if (HouseClass::IsCurrentPlayerObserver() && !configs[i]->VisibleToHouses_Observer)
+			if (HouseClass::IsCurrentPlayerObserver() && !configs[i].VisibleToHouses_Observer)
 				continue;
 
 			if (!HouseClass::IsCurrentPlayerObserver()
 				&& !EnumFunctions::CanTargetHouse(
-					configs[i]->VisibleToHouses,
+					configs[i].VisibleToHouses,
 					pTmpTechno->GetOwningHouse(),
 					HouseClass::CurrentPlayer))
 				continue;
@@ -248,13 +248,13 @@ void HugeBar::ProcessHugeBar()
 
 		int iCurrent = -1;
 		int iMax = 0;
-		TechnoExtData::GetValuesForDisplay(pTechno, configs[i]->InfoType, iCurrent, iMax , 0);
+		TechnoExtData::GetValuesForDisplay(pTechno, configs[i].InfoType, iCurrent, iMax , 0);
 
 		if (iCurrent <= -1 || iMax <= 0)
 			continue;
 
 
-		configs[i]->DrawHugeBar(iCurrent, iMax);
+		configs[i].DrawHugeBar(iCurrent, iMax);
 	}
 }
 

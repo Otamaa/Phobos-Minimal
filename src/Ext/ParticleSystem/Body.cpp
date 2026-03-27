@@ -409,6 +409,22 @@ void  ParticleSystemExtData::UpdateRailgun()
 			var = rand;
 			Data->A = float(var + pHeldType->Velocity);
 			Data->RemainingEC = LOWORD(pHeldType->MaxEC) + ScenarioClass::Instance->Random.RandomFromMax(9);
+
+			if (pHeldType->ColorList.Count)
+			{
+				if (pHeldType->StartColor1 && pHeldType->StartColor2)
+				{
+					Data->Colors = ColorStruct::Interpolate(
+						&pHeldType->StartColor1,
+						&pHeldType->StartColor2,
+						ScenarioClass::Instance->Random.RandomDouble()
+					);
+				}
+				else
+				{
+					Data->Colors = *pHeldType->ColorList.Items;
+				}
+			}
 		}
 
 		if (pThis->Type->Laser)
@@ -723,9 +739,9 @@ void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 
 						// Interpolate between two colors based on ColorFactor
 						ColorStruct finalColor = ColorStruct::Interpolate(
-							&color[idx + 1],      // Target color
-							selected,             // Current color
-							static_cast<double>(movement.ColorFactor)  // Blend factor (0.0 to 1.0)
+							selected,             // from = current color
+							&color[idx + 1],      // towards = next color
+							static_cast<double>(movement.ColorFactor)
 						);
 
 						uint32_t pixelColor;

@@ -84,6 +84,11 @@ public:
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr) override;
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
 
+	AircraftTypeExtData(AircraftTypeExtData&&) noexcept = default;
+	AircraftTypeExtData& operator=(AircraftTypeExtData&&) noexcept = default;
+	AircraftTypeExtData(const AircraftTypeExtData&) = delete;
+	AircraftTypeExtData& operator=(const AircraftTypeExtData&) = delete;
+
 public:
 	static bool ExtendedAircraftMissionsEnabled(AircraftClass* pAircraft);
 };

@@ -108,7 +108,7 @@ public:
 	std::vector<std::vector<PhobosFixedString<0x18>>> AIConditionsLists {};
 	std::vector<std::vector<AITriggerTypeClass*>> AITriggersLists {};
 	std::vector<std::vector<HouseTypeClass*>> AIHousesLists {};
-	std::vector<std::unique_ptr<HugeBar>> HugeBar_Config {};
+	std::vector<HugeBar> HugeBar_Config {};
 
 	// ============================================================
 	// 24-byte aligned: Vectors

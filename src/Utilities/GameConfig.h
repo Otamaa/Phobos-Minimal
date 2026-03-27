@@ -15,6 +15,11 @@ struct GameConfig
 
 	~GameConfig() noexcept = default;
 
+	GameConfig(GameConfig&&) noexcept = default;
+	GameConfig& operator=(GameConfig&&) noexcept = default;
+	GameConfig(const GameConfig&) = delete;
+	GameConfig& operator=(const GameConfig&) = delete;
+
 	bool OpenINI(FileAccessMode mode = FileAccessMode::Read) noexcept;
 
 	template <typename Func>

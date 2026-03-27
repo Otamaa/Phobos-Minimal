@@ -67,6 +67,7 @@ public:
 		return poolSize;
 	}
 
+	MOVEABLE_ONLY(ObjectPool);
 private:
 	std::vector<std::unique_ptr<std::byte[]>> storage;
 	std::vector<T*> freeList;

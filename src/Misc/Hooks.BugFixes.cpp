@@ -3186,7 +3186,10 @@ ASMJIT_PATCH(0x706F64, TechnoClass_RenderVoxelObject_SkipInvisibleSections, 0xB)
 	GET(MotLib* const, pMotLib, EDI);
 
 	// stolen code
-	if (!pMotLib)
+	// if it has no matrixes that mean the vxl is either broken 
+	// because the normals processing is skipped when the vxl data are broken 
+	// the side affect is the matrixes that suppose to be output there is also null
+	if (!pMotLib || !pMotLib->Matrixes)
 		return 0x706FBD;
 
 	GET(int const, layer, EBX);
@@ -3220,4 +3223,17 @@ ASMJIT_PATCH(0x56C1D3, MapClass_RemoveCrate_Campaign_FixLandType, 0x7)
 	pCell->RecalcAttributes(DWORD(-1));
 
 	return 0;
+}
+
+ASMJIT_PATCH(0x469A1B, BulletClass_Logics_DisguiseStuffs, 0x6)
+{
+	GET(ObjectClass*, pAbs, ECX);
+	GET(BulletClass*, pThis, ESI);
+
+	if (!pAbs->IsAlive) {
+		pThis->Owner = nullptr;
+		return 0x469AA4;
+	}
+
+	return 0x0;
 }

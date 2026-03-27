@@ -76,9 +76,10 @@ public:
 
 	public:
 
-	CustomPalette() : Mode( PaletteMode::Default ) , Name() , Convert() , Palette() , ColorschemeDataVector() {	};
+	CustomPalette() : Mode(PaletteMode::Default), Name(), Convert(), Palette(), ColorschemeDataVector() {};
+	explicit CustomPalette(PaletteMode mode) noexcept : Mode(mode), Name(), Convert(), Palette(), ColorschemeDataVector() {};
 
-	explicit CustomPalette(PaletteMode mode) noexcept : Mode(mode), Name() , Convert() , Palette() , ColorschemeDataVector() { };
+	MOVEABLE_ONLY(CustomPalette);
 
 	ConvertClass* GetConvert() const {
 		return this->Convert.get();

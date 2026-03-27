@@ -170,12 +170,12 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	if (Data->HugeBar_Config.empty())
 	{
-		Data->HugeBar_Config.push_back(std::move(std::make_unique<HugeBar>(DisplayInfoType::Health)));
-		Data->HugeBar_Config.push_back(std::move(std::make_unique<HugeBar>(DisplayInfoType::Shield)));
+		Data->HugeBar_Config.emplace_back(DisplayInfoType::Health);
+		Data->HugeBar_Config.emplace_back(DisplayInfoType::Shield);
 	}
 
 	for (auto& huge_bar : Data->HugeBar_Config) {
-		huge_bar->LoadFromINI(pINI);
+		huge_bar.LoadFromINI(pINI);
 	}
 
 	Data->LoadBeforeTypeData(pThis, pINI);
@@ -332,6 +332,49 @@ static bool NOINLINE IsVanillaDummy(const char* ID)
 
 std::unordered_map<VoxelStruct*, std::string > RulesExtData::Owners;
 
+ASMJIT_PATCH(0x5F61A0 , VoxelStruct_DTOR, 0x6){
+	GET(VoxelStruct*, pThis, EAX);
+	RulesExtData::Owners.erase(pThis);
+	return 0x0;
+}
+
+//void __fastcall Voxel_Calc_Normals_2(VoxLib* pVox, int headerentry, int tailerentry, Matrix3D* matrix1, Matrix3D* matrix2, Vector3D<float>* light, float exponent) {
+//	JMP_FAST(0x753D00);
+//}
+//
+//void __fastcall Voxel_Calc_Normals_2_intercept(VoxLib* pVox, int headerentry, int tailerentry, Matrix3D* matrix1, Matrix3D* matrix2, Vector3D<float>* light, float exponent)
+//{
+//	if (!pVox->HeaderData || !pVox->TailerData)
+//		return;
+//
+//	Voxel_Calc_Normals_2(pVox, headerentry, tailerentry, matrix1, matrix2, light, exponent);
+//}
+//
+//DEFINE_FUNCTION_JUMP(CALL, 0x706F4D, Voxel_Calc_Normals_2_intercept);
+
+#pragma optimize("", off)
+static void WatchPointer(void* fieldAddress, const char* name)
+{
+	DWORD value = *reinterpret_cast<DWORD*>(fieldAddress);
+	Debug::LogInfo("WatchPointer: {} @ 0x{:X} = 0x{:X}", name, (DWORD)fieldAddress, value);
+
+	// This is the key — set hardware write-breakpoint
+	// When the debugger is attached, it will break on write
+	CONTEXT ctx {};
+	ctx.ContextFlags = CONTEXT_DEBUG_REGISTERS;
+	HANDLE hThread = GetCurrentThread();
+	GetThreadContext(hThread, &ctx);
+
+	ctx.Dr0 = reinterpret_cast<DWORD>(fieldAddress);
+	ctx.Dr7 = (ctx.Dr7 & ~0xF0000) // clear DR0 control bits
+		| 0x1                    // enable DR0 locally
+		| (0x1 << 16)           // write-only condition
+		| (0x3 << 18);          // 4-byte size
+
+	SetThreadContext(hThread, &ctx);
+}
+#pragma optimize("", on)
+
 ASMJIT_PATCH(0x7564B0, VoxLib_GetData, 7)
 {
 	GET(VoxLib*, pVox, ECX);
@@ -339,8 +382,23 @@ ASMJIT_PATCH(0x7564B0, VoxLib_GetData, 7)
 	GET_STACK(int, header, 0x4);
 	GET_STACK(int, layer, 0x8);
 
+	// Check if the memory is still valid
+	//MEMORY_BASIC_INFORMATION mbi;
+	//VirtualQuery(pVox, &mbi, sizeof(mbi));
+
+	//if (mbi.State != MEM_COMMIT ||
+	//	!(mbi.Protect & (PAGE_READWRITE | PAGE_READONLY | PAGE_EXECUTE_READ)))
+	//{
+	//	Debug::FatalError("VoxLib @ 0x%X is FREED MEMORY! State=0x%X Protect=0x%X caller=0x%X",
+	//		(DWORD)pVox, mbi.State, mbi.Protect, caller);
+	//}
+
 	if (!pVox->HeaderData || !pVox->TailerData)
-	{
+	{		
+		// Log the raw pointer value to see if it's a stale pointer to freed mem
+		//Debug::FatalError("VoxLib @ 0x%X: HeaderData=0x%X TailerData=0x%X caller=0x%X",
+		//	(DWORD)pVox, (DWORD)pVox->HeaderData, (DWORD)pVox->TailerData, caller);
+
 		std::string owner = GameStrings::NoneStr();
 		for (auto& ii : RulesExtData::Owners)
 		{
@@ -586,6 +644,13 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 		if (pItem->BarrelVoxel.VXL) {
 			ValidateVoxelStruct(&pItem->BarrelVoxel, "BarrelVoxel");
+
+			//if (IS_SAME_STR_("XTITAN", pItem->ID))
+			//{
+			//	WatchPointer(&pItem->BarrelVoxel.VXL->HeaderData, "XTITAN_BarrelVoxel_HeaderData");
+			//	WatchPointer(&pItem->BarrelVoxel.VXL->BodyData, "XTITAN_BarrelVoxel_BodyData");
+			//	WatchPointer(&pItem->BarrelVoxel.VXL->TailerData, "XTITAN_BarrelVoxel_TailerData");
+			//}
 		}
 
 		if (pExt->SpawnAltData.VXL) {

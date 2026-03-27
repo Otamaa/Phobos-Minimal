@@ -289,9 +289,7 @@ ASMJIT_PATCH(0x73C7AC, UnitClass_DrawAsSHP_DrawTurret_TintFix, 0x6)
 	GET(UnitClass*, pThis, EBP);
 
 	const auto pThisType = pThis->Type;
-	const VoxelStruct barrelVoxel = pThisType->BarrelVoxel;
-
-	if (barrelVoxel.VXL && barrelVoxel.HVA)
+	if (pThisType->BarrelVoxel.VXL && pThisType->BarrelVoxel.HVA)
 		return 0;
 
 	GET(UnitTypeClass*, pType, ECX);

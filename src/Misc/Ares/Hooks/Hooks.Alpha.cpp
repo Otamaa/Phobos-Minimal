@@ -97,9 +97,64 @@ ASMJIT_PATCH(0x5F3D65, ObjectClass_DTOR, 6)
 	return 0;
 }
 
+#include <BulletClass.h>
+#include <IsometricTileClass.h>
+#include <OverlayClass.h>
+#include <InfantryClass.h>
+#include <WaveClass.h>
+#include <VeinholeMonsterClass.h>
+#include <VoxelAnimClass.h>
+#include <AircraftClass.h>
+#include <TerrainClass.h>
+
+#include <string>
+#include <array>
+
+struct thedata {
+public:
+
+	const char* Who;
+	DWORD vtable;
+};
+
+static constexpr std::array<thedata, 16> Loggers {{
+	{"AnimClass" , AnimClass::vtable},
+	{"BuildingLightClass" , BuildingLightClass::vtable},
+	{"BulletClass" , BulletClass::vtable},
+	{"IsometricTileClass" , 0x7EC258 },
+	{"OverlayClass" , OverlayClass::vtable},
+	{"ParticleClass" , ParticleClass::vtable},
+	{"ParticleSystemClass" , ParticleSystemClass::vtable},
+	{"SmudgeClass" , 0x7F32FC},
+	{"VeinholeMonsterClass" , 0x7F66A8},
+	{"VoxelAnimClass" , VoxelAnimClass::vtable},
+	{"WaveClass" , 0x7F6BF4},
+	{"BuildingClass" , BuildingClass::vtable},
+	{"UnitClass" , UnitClass::vtable},
+	{"InfantryClass" , InfantryClass::vtable},
+	{"AircraftClass" , AircraftClass::vtable},
+	{"TerrainClass" , TerrainClass::vtable},
+}};
+
  ASMJIT_PATCH(0x5F3E78, ObjectClass_Update_AlphaLight, 6)
  {
  	GET(ObjectClass*, pThis, ESI);
+
+	//bool valid = false;
+	//for(auto& data : Loggers){
+	//	if(data.vtable == VTable::Get(pThis)) {
+	//		valid = true;
+	//		break;
+	//	}
+	//}
+
+	//if (!valid)
+	//{
+	//	Debug::FatalError("What %s", pThis->GetThisClassName());
+	//	return 0x5F4151;
+	//}
+
+		
  	TechnoExt_ExtData::UpdateAlphaShape(pThis);
  	return pThis->InLimbo ? 0x5F3F11 : 0x5F3E86;
  }

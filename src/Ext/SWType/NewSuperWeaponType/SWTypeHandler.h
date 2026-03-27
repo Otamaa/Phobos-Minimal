@@ -57,8 +57,6 @@ public:
 
 public:
 
-public:
-
 	bool IsDesignator(const SWTypeExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const;
 	bool IsInhibitor(const SWTypeExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const;
 	bool IsAttractor(const SWTypeExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const;
@@ -117,6 +115,7 @@ public:
 
 	static TypeContainer Instance;
 
+	MOVEABLE_ONLY(TypeContainer);
 private:
 
 	void Register(std::unique_ptr<SWTypeHandler> pType, NewSuperType nType, std::string_view typeStrings);

@@ -28,11 +28,7 @@ struct VoxelStruct
 	{}
 
 	~VoxelStruct() noexcept {
-		GameDelete<true,true>(VXL);
-		GameDelete<true,true>(HVA);
-
-		VXL = nullptr;
-		HVA = nullptr;
+		JMP_THIS(0x5F61A0);
 	}
 
 	bool operator == (const VoxelStruct& nWeap) const {

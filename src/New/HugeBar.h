@@ -51,6 +51,7 @@ public:
 
 	HugeBar() = default;
 	HugeBar(DisplayInfoType infoType);
+	MOVEABLE_ONLY(HugeBar);
 	~HugeBar() = default;
 
 	void LoadFromINI(CCINIClass* pINI);

@@ -223,3 +223,27 @@ typedef size_t discard_t;
 #define BYTE1(x) ((unsigned char)((x) >>  8))
 #define BYTE2(x) ((unsigned char)((x) >> 16))
 #define BYTE3(x) ((unsigned char)((x) >> 24))
+
+// ── Move-only: for value types with unique_ptr/CustomPalette members ──
+// Use on: CustomPalette, HugeBar, BannerTypeClass, GameConfig, etc.
+#define MOVEABLE_ONLY(ClassName)                              \
+    ClassName(ClassName&&) noexcept = default;                 \
+    ClassName& operator=(ClassName&&) noexcept = default;     \
+    ClassName(const ClassName&) = delete;                      \
+    ClassName& operator=(const ClassName&) = delete
+
+// ── Non-transferable: for pool-managed / identity-bound objects ──
+// Use on: all ExtData classes, ObjectPool, etc.
+#define NON_TRANSFERABLE(ClassName)                            \
+    ClassName(ClassName&&) = delete;                           \
+    ClassName& operator=(ClassName&&) = delete;                \
+    ClassName(const ClassName&) = delete;                      \
+    ClassName& operator=(const ClassName&) = delete
+
+// ── Non-copyable (but moveable with no noexcept promise) ──
+// Use when move is needed but noexcept can't be guaranteed
+#define NON_COPYABLE(ClassName)                               \
+    ClassName(ClassName&&) = default;                          \
+    ClassName& operator=(ClassName&&) = default;               \
+    ClassName(const ClassName&) = delete;                      \
+    ClassName& operator=(const ClassName&) = delete

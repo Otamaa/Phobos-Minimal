@@ -99,6 +99,8 @@ private:
 	// Serialization version for compatibility
 	static constexpr uint32_t SERIALIZATION_VERSION = 1;
 
+	MOVEABLE_ONLY(EBoltClass);
+
 private:
 	// Core state (all directly serializable)
 	CoordStruct start_coord_ {};
