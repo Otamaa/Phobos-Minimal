@@ -4582,19 +4582,19 @@ ASMJIT_PATCH(0x467C2E, BulletClass_AI_FuseCheck, 0x7)
 	return 0x467C3A;
 }
 
-ASMJIT_PATCH(0x6EDA50, Team_DoMission_Harvest, 0x5)
-{
-	GET(Mission, setTo, EBX);
-	GET(FootClass*, pMember, ESI);
+// ASMJIT_PATCH(0x6EDA50, Team_DoMission_Harvest, 0x5)
+// {
+// 	GET(Mission, setTo, EBX);
+// 	GET(FootClass*, pMember, ESI);
 
-	if (setTo == Mission::Harvest)
-	{
-		pMember->EnterIdleMode(false, true);
-		return 0x6EDA77;
-	}
+// 	if (setTo == Mission::Harvest)
+// 	{
+// 		pMember->EnterIdleMode(false, true);
+// 		return 0x6EDA77;
+// 	}
 
-	return 0x0;
-}
+// 	return 0x0;
+// }
 
 #ifndef ASTAR_HOOKS
 

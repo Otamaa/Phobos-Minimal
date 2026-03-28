@@ -1612,7 +1612,17 @@ void FakeTeamClass::_Coordinate_Do(ScriptActionNode* pNode, CellStruct unused) {
 							  && ((Mission)value != Mission::Guard || i->GetCurrentMission() != Mission::Unload))
 							{
 								i->ArchiveTarget = nullptr;
-								i->QueueMission((Mission)value,false);
+								// Integrated from Team_DoMission_Harvest hook (0x6EDA50):
+								// Harvest mission should use EnterIdleMode instead of direct mission queue
+								if ((Mission)value == Mission::Harvest)
+								{
+									i->EnterIdleMode(false, true);
+								}
+								else
+								{
+									i->QueueMission((Mission)value, false);
+								}
+
 								i->SetTarget(nullptr);
 								i->SetDestination(nullptr, true);
 							}
@@ -4658,9 +4668,13 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 	}
 	case TeamMissionType::Reduce_tiberium:
 	{
-		if (this->FirstUnit)
+		// Pseudocode: iterate ALL team members and reduce tiberium at each location
+		for (FootClass* pMember = this->FirstUnit; pMember; pMember = pMember->NextTeamMember)
 		{
-			this->FirstUnit->GetCell()->ReduceTiberiumWithinCircularArea();
+			if (CellClass* pCell = pMember->GetCell())
+			{
+				pCell->ReduceTiberiumWithinCircularArea();
+			}
 		}
 
 		this->StepCompleted = true;
