@@ -250,7 +250,7 @@ ASMJIT_PATCH(0x54D138, JumpjetLocomotionClass_Movement_AI_SpeedModifiers, 0x6)
 	if (auto const pLinked = pThis->LinkedTo ? pThis->LinkedTo : pThis->Owner) {
 		if (TechnoExtData::IsReallyTechno(pLinked) && pLinked->IsAlive) {
 			const double multiplier = TechnoExtData::GetCurrentSpeedMultiplier(pLinked);
-			pThis->Speed = int(GET_TECHNOTYPE(pLinked)->JumpJetData.Speed * multiplier);
+			pThis->Speed = int(TechnoExtContainer::Instance.Find(pThis->LinkedTo)->JumpjetSpeed  * multiplier);
 		}
 	}
 
@@ -278,8 +278,8 @@ ASMJIT_PATCH(0x70B649, TechnoClass_RigidBodyDynamics_NoTiltCrashBlyat, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	if (flag_cast_to<FootClass*, false>(pThis) 
-		&& locomotion_cast<JumpjetLocomotionClass*>(((FootClass*)pThis)->Locomotor) 
+	if (flag_cast_to<FootClass*, false>(pThis)
+		&& locomotion_cast<JumpjetLocomotionClass*>(((FootClass*)pThis)->Locomotor)
 		&& !GET_TECHNOTYPE(pThis)->TiltCrashJumpjet)
 		return 0x70BCA4;
 
@@ -716,11 +716,13 @@ ASMJIT_PATCH(0x54DAC4, JumpjetLocomotionClass_EndPiggyback_Blyat, 0x6)
 	GET(FootClass*, pLinked, EAX);
 	auto const* pType = GET_TECHNOTYPE(pLinked);
 
+	auto pExt = TechnoExtContainer::Instance.Find(pLinked);
+
+	pExt->JumpjetSpeed = pType->JumpJetData.Speed;
 	pLinked->PrimaryFacing.Set_ROT(pType->ROT);
 
 	if (pType->Sensors && pType->SensorsSight > 0)
 	{
-		const auto pExt = TechnoExtContainer::Instance.Find(pLinked);
 		pLinked->RemoveSensorsAt(pExt->LastSensorsMapCoords);
 		pLinked->AddSensorsAt(CellStruct::Empty);
 	}

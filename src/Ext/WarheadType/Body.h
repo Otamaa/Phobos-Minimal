@@ -30,8 +30,8 @@ public:
 	using base_type = WarheadTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "WarheadTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "WarheadTypeClass";
-	
-	
+
+
 
 public:
 
@@ -496,6 +496,16 @@ public:
 	bool IsCellSpreadWH;
 	bool IsFakeEngineer;
 	bool VeterancyCheck;
+
+	Nullable<int> JumpjetTurnRate;
+	Nullable<int> JumpjetSpeed;
+	Nullable<float> JumpjetClimb;
+	Nullable<float> JumpjetCrash;
+	Nullable<int> JumpjetHeight;
+	Nullable<float> JumpjetAccel;
+	Nullable<float> JumpjetWobbles;
+	Nullable<bool> JumpjetNoWobbles;
+	Nullable<int> JumpjetDeviation;
 #pragma endregion
 
 public:
@@ -521,15 +531,15 @@ public:
 		SplashList_PickRandom(false),
 		SplashList_CreateAll(false),
 		SplashList_CreationInterval(0),
-		SplashList_ScatterMin(),
-		SplashList_ScatterMax(),
+		SplashList_ScatterMin(Leptons(-1)),
+		SplashList_ScatterMax(Leptons(-1)),
 		RemoveDisguise(false),
 		RemoveMindControl(false),
 		AnimList_PickRandom(),
 		AnimList_CreateAll(false),
 		AnimList_CreationInterval(0),
-		AnimList_ScatterMin(),
-		AnimList_ScatterMax(),
+		AnimList_ScatterMin(Leptons(-1)),
+		AnimList_ScatterMax(Leptons(-1)),
 		AnimList_ShowOnZeroDamage(false),
 		DecloakDamagedTargets(true),
 		ShakeIsLocal(false),
@@ -863,6 +873,17 @@ public:
 		IsCellSpreadWH(false),
 		IsFakeEngineer(false),
 		VeterancyCheck(false)
+
+		, JumpjetTurnRate {}
+		, JumpjetSpeed {}
+		, JumpjetClimb {}
+		, JumpjetCrash {}
+		, JumpjetHeight {}
+		, JumpjetAccel {}
+		, JumpjetWobbles {}
+		, JumpjetNoWobbles {}
+		, JumpjetDeviation {}
+
 		{
 			this->AbsType = WarheadTypeClass::AbsID;
 			this->InitializeConstant();

@@ -351,3 +351,62 @@ void TechnoExt::RemoveParasite(TechnoClass* pThis, HouseClass* sourceHouse, Warh
 	.Process(this->CanRemoveParasites_KickOut_Anim)
 
 */
+
+static WarheadTypeClass* LocomotorWarhead;
+#include <Locomotor/JumpjetLocomotionClass.h>
+#include <Ext/Techno/Body.h>
+
+// Customize Jumpjet properties on warhead
+ASMJIT_PATCH(0x4696CE, BulletClass_Detonate_ImbueLocomotor, 0x6)
+{
+	enum { SkipGameCode = 0x469AA4 };
+
+	GET(BulletClass* const, pBullet, ESI);
+	GET(FootClass* const, pTarget, EDI);
+	const auto pWH = pBullet->WH;
+
+	LocomotorWarhead = pWH;
+	pBullet->Owner->ImbueLocomotor(pTarget, pWH->Locomotor);
+	LocomotorWarhead = nullptr;
+	return SkipGameCode;
+}
+
+
+ASMJIT_PATCH(0x54AD41, JumpjetLocomotionClass_Link_To_Object_LocomotorWarhead, 0x8)
+{
+	enum { SkipGameCode = 0x54ADF8 };
+
+	GET(ILocomotion*, pThis, EBP);
+	GET(FootClass*, pLinkedTo, EBX);
+	const auto pLoco = static_cast<JumpjetLocomotionClass*>(pThis);
+	const auto pLinkedToExt = TechnoExtContainer::Instance.Find(pLinkedTo);
+	const auto pType = pLinkedTo->GetTechnoType();
+
+	if (const auto pLocomotorWarhead = LocomotorWarhead)
+	{
+		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pLocomotorWarhead);
+		pLoco->TurnRate = pWHExt->JumpjetTurnRate.Get(pType->JumpJetData.TurnRate);
+		pLoco->Speed = pLinkedToExt->JumpjetSpeed = pWHExt->JumpjetSpeed.Get(pType->JumpJetData.Speed);
+		pLoco->Climb = pWHExt->JumpjetClimb.Get(pType->JumpJetData.Climb);
+		pLoco->Crash = pWHExt->JumpjetCrash.Get(pType->JumpJetData.Crash);
+		pLoco->Height = std::max(pWHExt->JumpjetHeight.Get(pType->JumpJetData.Height), Unsorted::CellHeight);
+		pLoco->Acceleration = pWHExt->JumpjetAccel.Get(pType->JumpJetData.Accel);
+		pLoco->Wobbles = pWHExt->JumpjetWobbles.Get(pType->JumpJetData.Wobbles);
+		pLoco->Deviation = pWHExt->JumpjetDeviation.Get(pType->JumpJetData.Deviation);
+		pLoco->NoWobbles = pWHExt->JumpjetNoWobbles.Get(pType->JumpJetData.NoWobbles);
+	}
+	else
+	{
+		pLoco->TurnRate = pType->JumpJetData.TurnRate;
+		pLoco->Speed = pLinkedToExt->JumpjetSpeed = pType->JumpJetData.Speed;
+		pLoco->Climb = pType->JumpJetData.Climb;
+		pLoco->Crash = pType->JumpJetData.Crash;
+		pLoco->Height = std::max(pType->JumpJetData.Height, Unsorted::CellHeight);
+		pLoco->Acceleration = pType->JumpJetData.Accel;
+		pLoco->Wobbles = pType->JumpJetData.Wobbles;
+		pLoco->Deviation = pType->JumpJetData.Deviation;
+		pLoco->NoWobbles = pType->JumpJetData.NoWobbles;
+	}
+
+	return SkipGameCode;
+}

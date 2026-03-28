@@ -805,6 +805,7 @@ private:
 		debugProcess(this->RandomEMPTarget, "RandomEMPTarget");
 		debugProcess(this->ForceFullRearmDelay, "ForceFullRearmDelay");
 		debugProcess(this->AttackMoveFollowerTempCount, "AttackMoveFollowerTempCount");
+		debugProcess(this->JumpjetSpeed, "JumpjetSpeed");
 		debugProcess(this->OnlyAttackData, "OnlyAttackData");
 		debugProcess(this->IsSelected, "IsSelected");
 		debugProcess(this->UndergroundTracked, "UndergroundTracked");
@@ -948,6 +949,7 @@ public:
 	int DelayedFireWeaponIndex;
 	int LastHurtFrame;
 	int AttackMoveFollowerTempCount;
+	int JumpjetSpeed;
 
 	DWORD LastTargetID;
 
@@ -1105,7 +1107,8 @@ BeControlledThreatFrame(0),
 AccumulatedGattlingValue(0),
 DelayedFireWeaponIndex(-1),
 LastHurtFrame(0),
-AttackMoveFollowerTempCount(0),
+AttackMoveFollowerTempCount(0), 
+JumpjetSpeed { 14 }, // 0x7115B8
 LastTargetID(0xFFFFFFFF),
 HijackerVeterancy(0.0f),
 

@@ -760,6 +760,16 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	this->VeterancyCheck = this->AffectsVeterancy != AffectedVeterancy::All;
 
+	this->JumpjetTurnRate.Read(exINI, pSection, "JumpjetTurnRate");
+	this->JumpjetSpeed.Read(exINI, pSection, "JumpjetSpeed");
+	this->JumpjetClimb.Read(exINI, pSection, "JumpjetClimb");
+	this->JumpjetCrash.Read(exINI, pSection, "JumpjetCrash");
+	this->JumpjetHeight.Read(exINI, pSection, "JumpjetHeight");
+	this->JumpjetAccel.Read(exINI, pSection, "JumpjetAccel");
+	this->JumpjetWobbles.Read(exINI, pSection, "JumpjetWobbles");
+	this->JumpjetNoWobbles.Read(exINI, pSection, "JumpjetNoWobbles");
+	this->JumpjetDeviation.Read(exINI, pSection, "JumpjetDeviation");
+
 	this->IsCellSpreadWH =
 		this->RemoveDisguise ||
 		this->RemoveMindControl ||
@@ -989,7 +999,7 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool S
 
 		if (!IsVeterancyInThreshold(pTechno))
 			return false;
-	
+
 		if (auto const pBld = cast_to<BuildingClass*, false>(pTechno))
 		{
 			auto const pBldExt = BuildingExtContainer::Instance.Find(pBld);
@@ -1088,7 +1098,7 @@ FullMapDetonateResult WarheadTypeExtData::EligibleForFullMapDetonation(TechnoCla
 
 	if (!this->IsVeterancyInThreshold(pTechno))
 		return FullMapDetonateResult::TargetRestricted;
-	
+
 	if (!this->DetonateOnAllMapObjects_AffectTypes.empty()
 		&& !this->DetonateOnAllMapObjects_AffectTypes.Contains(pType))
 		return FullMapDetonateResult::TargetRestricted;
@@ -1585,7 +1595,7 @@ void WarheadTypeExtData::ApplyPenetratesTransport(TechnoClass* pTarget, TechnoCl
 			{
 				const auto nextPassenger = flag_cast_to<FootClass*>(passenger->NextObject);
 
-				if (this->PenetratesTransport_Level > 
+				if (this->PenetratesTransport_Level >
 					GET_TECHNOTYPEEXT(passenger)->PenetratesTransport_Level.Get(RulesExtData::Instance()->PenetratesTransport_Level))
 				{
 					if (passenger->ReceiveDamage(&passenger->Health, distance, pWH, pInvoker, false, true, pInvokerHouse) == DamageState::NowDead && isFirst && pTargetType->Gunner && pTargetFoot)
@@ -1607,7 +1617,7 @@ void WarheadTypeExtData::ApplyPenetratesTransport(TechnoClass* pTarget, TechnoCl
 			{
 				const auto nextPassenger = flag_cast_to<FootClass*>(passenger->NextObject);
 
-				if (this->PenetratesTransport_Level > 
+				if (this->PenetratesTransport_Level >
 					GET_TECHNOTYPEEXT(passenger)->PenetratesTransport_Level.Get(RulesExtData::Instance()->PenetratesTransport_Level))
 				{
 					int applyDamage = adjustedDamage;
@@ -1635,7 +1645,7 @@ void WarheadTypeExtData::ApplyPenetratesTransport(TechnoClass* pTarget, TechnoCl
 			--poorBastardIdx;
 		}
 
-		if (this->PenetratesTransport_Level <= 
+		if (this->PenetratesTransport_Level <=
 			GET_TECHNOTYPEEXT(passenger)->PenetratesTransport_Level.Get(RulesExtData::Instance()->PenetratesTransport_Level))
 			return;
 
@@ -2092,6 +2102,16 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->IsCellSpreadWH)
 		.Process(this->IsFakeEngineer)
 		.Process(this->VeterancyCheck)
+
+		.Process(this->JumpjetTurnRate)
+		.Process(this->JumpjetSpeed)
+		.Process(this->JumpjetClimb)
+		.Process(this->JumpjetCrash)
+		.Process(this->JumpjetHeight)
+		.Process(this->JumpjetAccel)
+		.Process(this->JumpjetWobbles)
+		.Process(this->JumpjetNoWobbles)
+		.Process(this->JumpjetDeviation)
 		;
 }
 
@@ -2277,7 +2297,7 @@ void WarheadTypeExtData::ApplyBuildingUndeploy(TechnoClass* pTarget) {
 			// Only armed units that are not considered allies will be recorded
 
 			if ((!pHouse || !pHouse->IsAlliedWith(pItem)) && pItem->IsArmed())
-				record[pBuilding->GetDirectionOverObject(pItem).GetValue<4>()] 
+				record[pBuilding->GetDirectionOverObject(pItem).GetValue<4>()]
 				+= GET_TECHNOTYPE(pItem)->Cost;
 
 		}

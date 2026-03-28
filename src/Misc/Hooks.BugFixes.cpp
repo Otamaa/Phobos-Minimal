@@ -3189,8 +3189,8 @@ ASMJIT_PATCH(0x706F64, TechnoClass_RenderVoxelObject_SkipInvisibleSections, 0xB)
 	GET(MotLib* const, pMotLib, EDI);
 
 	// stolen code
-	// if it has no matrixes that mean the vxl is either broken 
-	// because the normals processing is skipped when the vxl data are broken 
+	// if it has no matrixes that mean the vxl is either broken
+	// because the normals processing is skipped when the vxl data are broken
 	// the side affect is the matrixes that suppose to be output there is also null
 	if (!pMotLib || !pMotLib->Matrixes)
 		return 0x706FBD;
@@ -3276,3 +3276,7 @@ ASMJIT_PATCH(0x54B3E7, JumpjetLocomotionClass_Move_To_LocomotorWarheadFix, 0x5)
 {
 	return ImbueLocomotorTemp::Imbuing ? 0x54B3FC : 0;
 }
+
+// Skip the check for Teleporter here; this is an unreasonable check.
+// This check determines whether miners on a Guard mission near the refinery should return to the Harvest mission.
+DEFINE_JUMP(LJMP, 0x740943, 0x740957);

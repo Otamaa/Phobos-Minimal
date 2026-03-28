@@ -4,6 +4,8 @@
 #include <InfantryClass.h>
 #include <BuildingClass.h>
 
+DEFINE_JUMP(LJMP, 0x469AC1, 0x469AF0) // Skip random scatter in vanilla code
+
 #pragma optimize("", off )
 //optimizing this will cause game to crash
 void DetonateTheBullet(BulletClass* pThis,  CoordStruct coords , CoordStruct original)

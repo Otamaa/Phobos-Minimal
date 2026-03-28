@@ -191,7 +191,8 @@ void UnitDeliveryStateMachine::PlaceUnits()
 				*	FacingType -> Raw (<< 13)
 				*	FacingType -> DirType ( << 5 )
 				*/
-				if (Item->Unlimbo(XYZ, DirType((dir << 5))))
+				const DirType pLacing = ItemBuilding && !facingsize ? DirType::North : DirType((dir << 5));
+				if (Item->Unlimbo(XYZ, pLacing))
 				{
 					//Debug::LogInfo("PlaceUnits for [%s] - Owner[%s] After Unlimbo[%s] ", pData->get_ID(), pOwner->get_ID(), pType->ID);
 

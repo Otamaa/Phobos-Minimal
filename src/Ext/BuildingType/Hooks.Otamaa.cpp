@@ -229,7 +229,8 @@ ASMJIT_PATCH(0x7120D0, TechnoTypeClass_GetRepairCost_Building, 0x7)
 		return 0x712119;
 	}
 
-	const auto nCalc = int(((double)cost / int((double)pThis->Strength / nStep)) * RulesClass::Instance->RepairPercent);
+	const auto divider = MaxImpl(static_cast<double>(pThis->Strength) / nStep, 1.0);
+	const auto nCalc = int(((double)cost / divider)) * RulesClass::Instance->RepairPercent;
 	R->EAX(MaxImpl(nCalc, 1));
 	return 0x712119;
 }

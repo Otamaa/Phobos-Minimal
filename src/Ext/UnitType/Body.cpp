@@ -2,9 +2,23 @@
 #include <Utilities/Macro.h>
 
 #include <Phobos.SaveGame.h>
+#include <TerrainTypeClass.h>
 
 UnitTypeExtContainer UnitTypeExtContainer::Instance;
 
+bool UnitTypeExtData::LoadFromINI(CCINIClass * pINI, bool parseFailAddr)
+{
+	if (!this->FootTypeExtData::LoadFromINI(pINI, parseFailAddr))
+		return false;
+
+	auto pThis = this->This();
+	const char* pSection = pThis->ID;
+
+	INI_EX exINI(pINI);
+	this->DefaultMirageDisguises.Read(exINI, pSection, "DefaultMirageDisguises");
+
+	return true;
+}
 bool UnitTypeExtContainer::LoadAll(const json& root)
 {
 	this->Clear();

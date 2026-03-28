@@ -119,7 +119,7 @@ ASMJIT_PATCH(0x469C46, BulletClass_Logics_ApplyMoreLogics, 0x8)
 			int* remainingInterval = &pWarheadExt->RemainingAnimCreationInterval;
 			int scatterMin = pWarheadExt->Splashed ? pWarheadExt->SplashList_ScatterMin.Get() : pWarheadExt->AnimList_ScatterMin.Get();
 			int scatterMax = pWarheadExt->Splashed ? pWarheadExt->SplashList_ScatterMax.Get() : pWarheadExt->AnimList_ScatterMax.Get();
-			bool allowScatter = scatterMax != 0 || scatterMin != 0;
+			const bool allowScatter = scatterMax >= 0 || scatterMin >= 0 || pThis->Type->Inviso;
 
 			if (creationInterval > 0 && pThis->Owner)
 					remainingInterval = &TechnoExtContainer::Instance.Find(pThis->Owner)->WHAnimRemainingCreationInterval;
@@ -165,7 +165,11 @@ ASMJIT_PATCH(0x469C46, BulletClass_Logics_ApplyMoreLogics, 0x8)
 							auto animCoords = newCrds;
 
 							if (allowScatter) {
-								int distance = ScenarioClass::Instance->Random.RandomRanged(scatterMin, scatterMax);
+								int distance = 32;
+
+								if (scatterMax >= 0 || scatterMin >= 0)
+									distance = ScenarioClass::Instance->Random.RandomRanged(scatterMin, scatterMax);
+
 								animCoords = MapClass::GetRandomCoordsNear(animCoords, distance, false);
 							}
 

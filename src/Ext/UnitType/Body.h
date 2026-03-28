@@ -1,18 +1,20 @@
 #pragma once
 #include <Ext/FootType/Body.h>
 
+class TerrainTypeClass;
 class UnitTypeExtData : public FootTypeExtData
 {
 public:
 	using base_type = UnitTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "UnitTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "UnitTypeClass";
-	
-	
+
+
 
 public:
 
 	SHPStruct* TurretShape { nullptr };
+	NullableVector<TerrainTypeClass*> DefaultMirageDisguises {};
 
 	UnitTypeExtData(UnitTypeClass* pObj) : FootTypeExtData(pObj)
 	{
@@ -51,22 +53,17 @@ public:
 	UnitTypeClass* This() const { return reinterpret_cast<UnitTypeClass*>(this->AttachedToObject); }
 	const UnitTypeClass* This_Const() const { return reinterpret_cast<const UnitTypeClass*>(this->AttachedToObject); }
 
-	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
-	{
-		if (!this->FootTypeExtData::LoadFromINI(pINI, parseFailAddr))
-			return false;
-
-		return true;
-	}
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
 
-private: 
+private:
 	template<typename T>
 	void Serialize(T& Stm)
 	{
 		Stm
 			.Process(this->TurretShape)
+			.Process(this->DefaultMirageDisguises)
 			;
 	}
 
@@ -95,7 +92,7 @@ class NOVTABLE FakeUnitTypeClass : public UnitTypeClass
 public:
 	bool _ReadFromINI(CCINIClass* pINI);
 
-	
+
 	UnitTypeExtData* _GetExtData() {
 		return *reinterpret_cast<UnitTypeExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
