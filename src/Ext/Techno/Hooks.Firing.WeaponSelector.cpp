@@ -528,4 +528,4 @@ ASMJIT_PATCH(0x772AB3, WeaponTypeClass_AllowedThreats_AU, 0x5)
 //	return 0x0;
 //}
 //#pragma optimize("", on )
-#pregma endregion
+#pragma endregion
