@@ -25,14 +25,31 @@
 
 #include "Header.h"
 
+#include <Misc/Kratos/Common/Components/Scriptable.h>
+#include <Misc/Kratos/Extension/TechnoExt.h>
+#include <Misc/Kratos/Ext/Helper/Scripts.h>
+
 // #346, #464, #970, #1014
 // handle all veterancy gains ourselves
 ASMJIT_PATCH(0x702E9D, TechnoClass_RegisterDestruction_Veterancy, 0x6)
 {
 
 	GET(TechnoClass*, pKiller, EDI);
-	GET(TechnoClass*, pVictim, ESI);
+	GET(TechnoClass*, pThis, ESI);
 	GET(const int, Score, EBP);
+
+	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
+	{
+		bool skip = false;
+		pExt->_GameObject->Foreach([&](Component* c)
+			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnRegisterDestruction(pKiller, Score, skip); if (skip) c->Break(); } });
+
+		// skip the entire veterancy
+		if (skip)
+		{
+			return 0x702FF5;
+		}
+	}
 
 	// get the unit that receives veterancy
 	TechnoClass* pExpReceiver = nullptr;
@@ -46,7 +63,7 @@ ASMJIT_PATCH(0x702E9D, TechnoClass_RegisterDestruction_Veterancy, 0x6)
 	TechnoExperienceData::EvaluateExtReceiverData(pExpReceiver, pKiller, ExpFactor, promoteImmediately);
 
 	// update the veterancy
-	TechnoExperienceData::UpdateVeterancy(pExpReceiver, pKiller, pVictim, Score, ExpFactor, promoteImmediately);
+	TechnoExperienceData::UpdateVeterancy(pExpReceiver, pKiller, pThis, Score, ExpFactor, promoteImmediately);
 
 	// skip the entire veterancy handling
 	return 0x702FF5;

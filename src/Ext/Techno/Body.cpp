@@ -51,6 +51,11 @@ UnitClass* TechnoExtData::Deployer { nullptr };
 
 #include <Phobos.SaveGame.h>
 
+#include <Misc/Kratos/Common/Components/Scriptable.h>
+#include <Misc/Kratos/Extension/TechnoExt.h>
+#include <Misc/Kratos/Ext/Helper/Scripts.h>
+#include <Misc/Kratos/Ext/ObjectType/AttachEffect.h>
+
 void TintColors::Calculate(const int color, const int intensity, const AffectedHouse affectedHouse)
 {
 	if ((affectedHouse & AffectedHouse::Owner) != AffectedHouse::None)
@@ -3209,7 +3214,14 @@ bool TechnoExtData::IsPsionicsImmune(TechnoClass* pThis)
 	if (pType->ImmuneToPsionics)
 		return true;
 
-	return HasAbility(pThis, PhobosAbilityType::PsionicsImmune);
+	if (HasAbility(pThis, PhobosAbilityType::PsionicsImmune))
+		return true;
+
+	AttachEffect* aem = nullptr;
+	if (TryGetAEManager<TechnoExt>(pThis, aem) && aem->GetImmuneData().Psionics)
+		return true;
+
+	return false;
 }
 
 bool TechnoExtData::IsCritImmune(TechnoClass* pThis)
@@ -3249,7 +3261,14 @@ bool TechnoExtData::IsRadImmune(TechnoClass* pThis)
 	if (pType->ImmuneToRadiation)
 		return true;
 
-	return HasAbility(pThis, PhobosAbilityType::RadImmune);
+	if (HasAbility(pThis, PhobosAbilityType::RadImmune))
+		return true;
+
+	AttachEffect* aem = nullptr;
+	if (TryGetAEManager<TechnoExt>(pThis, aem) && aem->GetImmuneData().Radiation)
+		return true;
+
+	return false;
 }
 
 bool TechnoExtData::IsPsionicsWeaponImmune(TechnoClass* pThis)
@@ -3258,7 +3277,14 @@ bool TechnoExtData::IsPsionicsWeaponImmune(TechnoClass* pThis)
 	if (pType->ImmuneToPsionicWeapons)
 		return true;
 
-	return HasAbility(pThis, PhobosAbilityType::PsionicsWeaponImmune);
+	if (HasAbility(pThis, PhobosAbilityType::PsionicsWeaponImmune))
+		return true;
+
+	AttachEffect* aem = nullptr;
+	if (TryGetAEManager<TechnoExt>(pThis, aem) && aem->GetImmuneData().PsionicWeapons)
+		return true;
+
+	return false;
 }
 
 bool TechnoExtData::IsPoisonImmune(TechnoClass* pThis)
@@ -3267,7 +3293,14 @@ bool TechnoExtData::IsPoisonImmune(TechnoClass* pThis)
 	if (pType->ImmuneToPoison)
 		return true;
 
-	return HasAbility(pThis, PhobosAbilityType::PoisonImmune);
+	if (HasAbility(pThis, PhobosAbilityType::PoisonImmune))
+		return true;
+
+	AttachEffect* aem = nullptr;
+	if (TryGetAEManager<TechnoExt>(pThis, aem) && aem->GetImmuneData().Poison)
+		return true;
+
+	return false;
 }
 
 bool TechnoExtData::IsBerserkImmune(TechnoClass* pThis)
@@ -8302,208 +8335,6 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 }
 
 TechnoExtContainer TechnoExtContainer::Instance;
-
-void AEProperties::Recalculate(TechnoClass* pTechno) {
-
-	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
-
-	auto _AresAE = &pExt->AeData;
-	auto _AEProp = &pExt->AE;
-
-	double ROF_Mult = 1.0;
-	double ReceiveRelativeDamageMult = 1.0;
-	double FP_Mult = _AEProp->Crate_FirepowerMultiplier;
-	double Armor_Mult = _AEProp->Crate_ArmorMultiplier;
-	double Speed_Mult = _AEProp->Crate_SpeedMultiplier;
-
-	bool Cloak = GET_TECHNOTYPE(pTechno)->Cloakable
-		|| pTechno->HasAbility(AbilityType::Cloak)
-		|| pExt->AE.flags.Cloakable;
-
-	bool forceDecloak = false;
-	bool disableWeapons = false;
-	bool disableSelfHeal = false;
-	bool untrackable = false;
-	bool disableRadar = false;
-	bool disableSpySat = false;
-	bool unkillable = false;
-	auto extraRangeData = &_AEProp->ExtraRange;
-	auto extraCritData = &_AEProp->ExtraCrit;
-	auto armormultData = &_AEProp->ArmorMultData;
-	bool hasExtraWH = false;
-	bool hasFeedbackWeapon = false;
-
-	extraRangeData->Clear();
-	extraCritData->Clear();
-	armormultData->Clear();
-
-	bool wasTint = _AEProp->flags.HasTint;
-	bool hasTint = false;
-	bool reflectsDamage = false;
-	bool hasOnFireDiscardables = false;
-
-	std::optional<double> cur_timerAE {};
-
-	for (const auto& aeData : _AresAE->Data)
-	{
-		if (aeData.Type->ROFMultiplier_ApplyOnCurrentTimer)
-		{
-			if (!cur_timerAE.has_value())
-				cur_timerAE = aeData.Type->ROFMultiplier;
-			else
-				cur_timerAE.value() *= aeData.Type->ROFMultiplier;
-		}
-
-		ROF_Mult *= aeData.Type->ROFMultiplier;
-		ReceiveRelativeDamageMult += aeData.Type->ReceiveRelativeDamageMult;
-		FP_Mult *= aeData.Type->FirepowerMultiplier;
-		Speed_Mult *= aeData.Type->SpeedMultiplier;
-		Armor_Mult *= aeData.Type->ArmorMultiplier;
-		Cloak |= aeData.Type->Cloakable;
-		forceDecloak |= aeData.Type->ForceDecloak;
-		disableWeapons |= aeData.Type->DisableWeapons;
-		disableSelfHeal |= aeData.Type->DisableSelfHeal;
-		untrackable |= aeData.Type->Untrackable;
-		disableRadar |= aeData.Type->DisableRadar;
-		disableSpySat |= aeData.Type->DisableSpySat;
-		unkillable |= aeData.Type->Unkillable;
-		hasExtraWH |= aeData.Type->ExtraWarheads.size() > 0;
-
-		if (!(aeData.Type->WeaponRange_Multiplier == 1.0 && aeData.Type->WeaponRange_ExtraRange == 0.0)) {
-
-			auto& ranges_ = extraRangeData->ranges.emplace_back();
-			ranges_.rangeMult = aeData.Type->WeaponRange_Multiplier;
-			ranges_.extraRange = aeData.Type->WeaponRange_ExtraRange * Unsorted::LeptonsPerCell;
-			for (auto& allow : aeData.Type->WeaponRange_AllowWeapons)
-				ranges_.allow.insert(allow);
-
-			for (auto& disallow : aeData.Type->WeaponRange_DisallowWeapons)
-				ranges_.disallow.insert(disallow);
-		}
-	}
-
-	VectorSet<PhobosAttachEffectTypeClass*> cumulativeTypes {};
-
-	for (const auto& attachEffect : pExt->PhobosAE) {
-
-		if (!attachEffect || !attachEffect->IsActive())
-			continue;
-
-		auto const type = attachEffect->GetType();
-		FP_Mult *= type->FirepowerMultiplier;
-		Speed_Mult *= type->SpeedMultiplier;
-		ROF_Mult *= type->ROFMultiplier;
-		Cloak |= type->Cloakable;
-		forceDecloak |= type->ForceDecloak;
-		disableWeapons |= type->DisableWeapons;
-		disableSelfHeal |= type->DisableSelfHeal;
-		untrackable |= type->Untrackable;
-		ReceiveRelativeDamageMult += type->ReceiveRelativeDamageMult;
-		hasTint |= type->HasTint();
-		unkillable |= type->Unkillable;
-		disableRadar |= type->DisableRadar;
-		disableSpySat |= type->DisableSpySat;
-		hasExtraWH |= type->ExtraWarheads.size() > 0;
-		hasFeedbackWeapon |= type->FeedbackWeapon != nullptr;
-
-		if (type->ROFMultiplier_ApplyOnCurrentTimer)
-		{
-			if (!cur_timerAE.has_value())
-				cur_timerAE = type->ROFMultiplier;
-			else
-				cur_timerAE.value() *= type->ROFMultiplier;
-		}
-
-		if (!(type->WeaponRange_Multiplier == 1.0 && type->WeaponRange_ExtraRange == 0.0))
-		{
-			auto& ranges_ = extraRangeData->ranges.emplace_back();
-			ranges_.rangeMult = type->WeaponRange_Multiplier;
-			ranges_.extraRange = type->WeaponRange_ExtraRange * Unsorted::LeptonsPerCell;
-
-			for (auto& allow : type->WeaponRange_AllowWeapons)
-				ranges_.allow.insert(allow);
-
-			for (auto& disallow : type->WeaponRange_DisallowWeapons)
-				ranges_.disallow.insert(disallow);
-		}
-
-		if (!(type->Crit_Multiplier == 1.0 && type->Crit_ExtraChance == 0.0))
-		{
-			auto& ranges_ = extraCritData->ranges.emplace_back();
-			ranges_.Mult = type->Crit_Multiplier;
-			ranges_.extra = type->Crit_ExtraChance;
-
-			for (auto& allow : type->Crit_AllowWarheads)
-				ranges_.allow.insert(allow);
-
-			for (auto& disallow : type->Crit_DisallowWarheads)
-				ranges_.disallow.insert(disallow);
-		}
-
-		if (type->ArmorMultiplier != 1.0)
-		{
-			auto& mults_ = armormultData->mults.emplace_back();
-			mults_.Mult = type->ArmorMultiplier;
-
-
-			for (auto& allow : type->ArmorMultiplier_AllowWarheads)
-				mults_.allow.insert(allow);
-
-			for (auto& disallow : type->ArmorMultiplier_DisallowWarheads)
-				mults_.disallow.insert(disallow);
-		}
-
-		reflectsDamage |= type->ReflectDamage;
-		hasOnFireDiscardables |= (type->DiscardOn & DiscardCondition::Firing) != DiscardCondition::None;
-
-	}
-
-	if (cur_timerAE.has_value() && cur_timerAE > 0.0)
-	{
-		const int timeleft = pTechno->RearmTimer.GetTimeLeft();
-
-		if (timeleft > 0)
-		{
-			pTechno->RearmTimer.Start(int(timeleft * cur_timerAE.value()));
-		}
-		else
-		{
-			pTechno->RearmTimer.Stop();
-		}
-
-		pTechno->ROF = static_cast<int>(pTechno->ROF * cur_timerAE.value());
-	}
-
-	pTechno->FirepowerMultiplier = FP_Mult;
-	pTechno->ArmorMultiplier = Armor_Mult;
-	_AEProp->ROFMultiplier = ROF_Mult;
-	_AEProp->ReceiveRelativeDamageMult = ReceiveRelativeDamageMult;
-	pTechno->Cloakable = Cloak;
-	_AEProp->flags.ForceDecloak = forceDecloak;
-	_AEProp->flags.DisableWeapons = disableWeapons;
-	_AEProp->flags.DisableSelfHeal = disableSelfHeal;
-	_AEProp->flags.Untrackable = untrackable;
-	_AEProp->flags.HasTint = hasTint;
-	_AEProp->flags.ReflectDamage = reflectsDamage;
-	_AEProp->flags.HasOnFireDiscardables = hasOnFireDiscardables;
-	_AEProp->flags.Unkillable = unkillable;
-	_AEProp->flags.HasExtraWarheads = hasExtraWH;
-	_AEProp->flags.HasFeedbackWeapon = hasFeedbackWeapon;
-
-	if (((bool)_AEProp->flags.DisableRadar != disableRadar) || ((bool)_AEProp->flags.DisableSpySat != disableSpySat))
-		pTechno->Owner->RecheckRadar = true;
-
-	_AEProp->flags.DisableRadar = disableRadar;
-	_AEProp->flags.DisableSpySat = disableSpySat;
-
-	if (pTechno->AbstractFlags & AbstractFlags::Foot)
-	{
-		((FootClass*)pTechno)->SpeedMultiplier = Speed_Mult;
-	}
-
-	if (wasTint || hasTint)
-		pExt->Tints.Update();
-}
 
 TechnoExtData::~TechnoExtData()
 {

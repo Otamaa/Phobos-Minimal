@@ -36,858 +36,483 @@ public:
 public:
 
 #pragma region classmembers
+	Valueable<int> Reveal { 0 };
+	Valueable<bool> BigGap { false };
+	Valueable<int> CreateGap { 0 };
+	Valueable<int> TransactMoney { 0 };
+	Nullable<int> TransactMoney_Ally {};
+	Nullable<int> TransactMoney_Enemy {};
+	Valueable<bool> Transact_AffectsEnemies { false };
+	Valueable<bool> Transact_AffectsAlly { false };
+	Valueable<bool> Transact_AffectsOwner { true };
+	Valueable<bool> TransactMoney_Display { false };
+	Valueable<AffectedHouse> TransactMoney_Display_Houses { AffectedHouse::All };
+	Valueable<bool> TransactMoney_Display_AtFirer { false };
+	Valueable<Point2D> TransactMoney_Display_Offset { { 0, 0 } };
 
-	Valueable<int> Reveal;
-	Valueable<bool> BigGap;
-	Valueable<int> CreateGap;
-	Valueable<int> TransactMoney;
-	Nullable<int> TransactMoney_Ally;
-	Nullable<int> TransactMoney_Enemy;
-	Valueable<bool> Transact_AffectsEnemies;
-	Valueable<bool> Transact_AffectsAlly;
-	Valueable<bool> Transact_AffectsOwner;
-	Valueable<bool> TransactMoney_Display;
-	Valueable<AffectedHouse> TransactMoney_Display_Houses;
-	Valueable<bool> TransactMoney_Display_AtFirer;
-	Valueable<Point2D> TransactMoney_Display_Offset;
+	Valueable<int> StealMoney { 0 };
+	Valueable<AffectedHouse> Steal_Display_Houses { AffectedHouse::All };
+	Valueable<bool> Steal_Display { false };
+	Valueable<Point2D> Steal_Display_Offset { { 0, 0 } };
 
-	Valueable<int> StealMoney;
-	Valueable<AffectedHouse> Steal_Display_Houses;
-	Valueable<bool> Steal_Display;
-	Valueable<Point2D> Steal_Display_Offset;
+	NullableVector<AnimTypeClass*> SplashList {};
+	Valueable<bool> SplashList_PickRandom { false };
+	Valueable<bool> SplashList_CreateAll { false };
+	Valueable<int> SplashList_CreationInterval { 0 };
+	Valueable<Leptons> SplashList_ScatterMin { Leptons(-1) };
+	Valueable<Leptons> SplashList_ScatterMax { Leptons(-1) };
 
-	NullableVector<AnimTypeClass*> SplashList;
-	Valueable<bool> SplashList_PickRandom;
-	Valueable<bool> SplashList_CreateAll;
-	Valueable<int> SplashList_CreationInterval;
-	Valueable<Leptons> SplashList_ScatterMin;
-	Valueable<Leptons> SplashList_ScatterMax;
+	Valueable<bool> RemoveDisguise { false };
+	Valueable<bool> RemoveMindControl { false };
+	Nullable<bool> AnimList_PickRandom {};
+	Valueable<bool> AnimList_CreateAll { false };
+	Valueable<int> AnimList_CreationInterval { 0 };
+	Valueable<Leptons> AnimList_ScatterMin { Leptons(-1) };
+	Valueable<Leptons> AnimList_ScatterMax { Leptons(-1) };
 
-	Valueable<bool> RemoveDisguise;
-	Valueable<bool> RemoveMindControl;
-	Nullable<bool> AnimList_PickRandom;
-	Valueable<bool> AnimList_CreateAll;
-	Valueable<int> AnimList_CreationInterval;
-	Valueable<Leptons> AnimList_ScatterMin;
-	Valueable<Leptons> AnimList_ScatterMax;
+	Valueable<bool> AnimList_ShowOnZeroDamage { false };
+	Valueable<bool> DecloakDamagedTargets { true };
+	Valueable<bool> ShakeIsLocal { false };
+	Valueable<bool> Shake_UseAlternativeCalculation { false };
 
-	Valueable<bool> AnimList_ShowOnZeroDamage;
-	Valueable<bool> DecloakDamagedTargets;
-	Valueable<bool> ShakeIsLocal;
-	Valueable<bool> Shake_UseAlternativeCalculation;
+	Valueable<double> Crit_Chance { 0.0 };
+	Valueable<bool> Crit_ApplyChancePerTarget { false };
+	Valueable<int> Crit_ExtraDamage { 0 };
+	Valueable<bool> Crit_ExtraDamage_ApplyFirepowerMult { false };
+	Valueable<WarheadTypeClass*> Crit_Warhead { nullptr };
+	Valueable<bool> Crit_Warhead_FullDetonation { true };
+	Valueable<AffectedTarget> Crit_Affects { AffectedTarget::All };
+	Valueable<AffectedHouse> Crit_AffectsHouses { AffectedHouse::All };
+	ValueableVector<AnimTypeClass*> Crit_AnimList {};
+	Nullable<bool> Crit_AnimList_PickRandom {};
+	Nullable<bool> Crit_AnimList_CreateAll {};
+	ValueableVector<AnimTypeClass*> Crit_ActiveChanceAnims {};
+	Valueable<bool> Crit_AnimOnAffectedTargets { false };
+	Valueable<double> Crit_AffectBelowPercent { 1.0 };
+	Valueable<double> Crit_AffectAbovePercent { 0.0 };
+	Valueable<bool> Crit_SuppressWhenIntercepted { false };
 
-	Valueable<double> Crit_Chance;
-	Valueable<bool> Crit_ApplyChancePerTarget;
-	Valueable<int> Crit_ExtraDamage;
-	Valueable<bool> Crit_ExtraDamage_ApplyFirepowerMult;
-	Valueable<WarheadTypeClass*> Crit_Warhead;
-	Valueable<bool> Crit_Warhead_FullDetonation;
-	Valueable<AffectedTarget> Crit_Affects;
-	Valueable<AffectedHouse> Crit_AffectsHouses;
-	ValueableVector<AnimTypeClass*> Crit_AnimList;
-	Nullable<bool> Crit_AnimList_PickRandom;
-	Nullable<bool> Crit_AnimList_CreateAll;
-	ValueableVector<AnimTypeClass*> Crit_ActiveChanceAnims;
-	Valueable<bool> Crit_AnimOnAffectedTargets;
-	Valueable<double> Crit_AffectBelowPercent;
-	Valueable<double> Crit_AffectAbovePercent;
-	Valueable<bool> Crit_SuppressWhenIntercepted;
+	bool CritActive { false };
+	double CritRandomBuffer { 0.0 };
+	double CritCurrentChance { 0.0 };
+	double ReturnWarhead_RandomBuffer { 0.0 };
 
-	bool CritActive;
-	double CritRandomBuffer;
-	double CritCurrentChance;
-	double ReturnWarhead_RandomBuffer;
-
-	Nullable<AnimTypeClass*> MindControl_Anim;
+	Nullable<AnimTypeClass*> MindControl_Anim {};
 
 	// Ares tags
 	// http://ares-developers.github.io/Ares-docs/new/warheads/general.html
-	Valueable<bool> AffectsEnemies;
-	Nullable<bool> AffectsOwner;
-	Valueable<bool> EffectsRequireDamage;
-	Valueable<bool> EffectsRequireVerses;
-	Valueable<bool> AllowZeroDamage;
+	Valueable<bool> AffectsEnemies { true };
+	Nullable<bool> AffectsOwner {};
+	Valueable<bool> EffectsRequireDamage { false };
+	Valueable<bool> EffectsRequireVerses { true };
+	Valueable<bool> AllowZeroDamage { false };
 
-	Valueable<bool> Shield_Penetrate;
-	Valueable<bool> Shield_Break;
-	Valueable<AnimTypeClass*> Shield_BreakAnim;
-	Valueable<AnimTypeClass*> Shield_HitAnim;
-	Nullable<WeaponTypeClass*> Shield_BreakWeapon;
+	Valueable<bool> Shield_Penetrate { false };
+	Valueable<bool> Shield_Break { false };
+	Valueable<AnimTypeClass*> Shield_BreakAnim { nullptr };
+	Valueable<AnimTypeClass*> Shield_HitAnim { nullptr };
+	Nullable<WeaponTypeClass*> Shield_BreakWeapon {};
 
-	Nullable<double> Shield_AbsorbPercent;
-	Nullable<double> Shield_PassPercent;
-	Nullable<int> Shield_ReceivedDamage_Minimum;
-	Nullable<int> Shield_ReceivedDamage_Maximum;
-	Valueable<double> Shield_ReceivedDamage_MinMultiplier;
-	Valueable<double> Shield_ReceivedDamage_MaxMultiplier;
+	Nullable<double> Shield_AbsorbPercent {};
+	Nullable<double> Shield_PassPercent {};
+	Nullable<int> Shield_ReceivedDamage_Minimum {};
+	Nullable<int> Shield_ReceivedDamage_Maximum {};
+	Valueable<double> Shield_ReceivedDamage_MinMultiplier { 1.0 };
+	Valueable<double> Shield_ReceivedDamage_MaxMultiplier { 1.0 };
 
-	Valueable<int> Shield_Respawn_Duration;
-	Nullable<double> Shield_Respawn_Amount;
-	Valueable<int> Shield_Respawn_Rate;
-	Nullable<bool> Shield_Respawn_RestartInCombat;
-	Valueable<int> Shield_Respawn_RestartInCombatDelay;
+	Valueable<int> Shield_Respawn_Duration { 0 };
+	Nullable<double> Shield_Respawn_Amount {};
+	Valueable<int> Shield_Respawn_Rate { -1 };
+	Nullable<bool> Shield_Respawn_RestartInCombat {};
+	Valueable<int> Shield_Respawn_RestartInCombatDelay { -1 };
 
 private:
-	Valueable<double> Shield_Respawn_Rate_InMinutes;
-	Valueable<double> Shield_SelfHealing_Rate_InMinutes;
+	Valueable<double> Shield_Respawn_Rate_InMinutes { -1.0 };
+	Valueable<double> Shield_SelfHealing_Rate_InMinutes { -1.0 };
 
 public:
 
-	Valueable<bool> Shield_Respawn_RestartTimer;
-	ValueableVector<AnimTypeClass*> Shield_Respawn_Anim;
-	Valueable<WeaponTypeClass*> Shield_Respawn_Weapon;
-	Valueable<int> Shield_SelfHealing_Duration;
-	Nullable<double> Shield_SelfHealing_Amount;
-	Valueable<int> Shield_SelfHealing_Rate;
-	Nullable<bool> Shield_SelfHealing_RestartInCombat;
-	Valueable<int> Shield_SelfHealing_RestartInCombatDelay;
-	Valueable<bool> Shield_SelfHealing_RestartTimer;
+	Valueable<bool> Shield_Respawn_RestartTimer { false };
+	ValueableVector<AnimTypeClass*> Shield_Respawn_Anim {};
+	Valueable<WeaponTypeClass*> Shield_Respawn_Weapon { nullptr };
+	Valueable<int> Shield_SelfHealing_Duration { 0 };
+	Nullable<double> Shield_SelfHealing_Amount {};
+	Valueable<int> Shield_SelfHealing_Rate { -1 };
+	Nullable<bool> Shield_SelfHealing_RestartInCombat {};
+	Valueable<int> Shield_SelfHealing_RestartInCombatDelay { -1 };
+	Valueable<bool> Shield_SelfHealing_RestartTimer { false };
 
-	ValueableVector<ShieldTypeClass*> Shield_AttachTypes;
-	ValueableVector<ShieldTypeClass*> Shield_RemoveTypes;
+	ValueableVector<ShieldTypeClass*> Shield_AttachTypes {};
+	ValueableVector<ShieldTypeClass*> Shield_RemoveTypes {};
 
-	Valueable<bool> Shield_ReplaceOnly;
-	Valueable<bool> Shield_ReplaceNonRespawning;
-	Valueable<bool> Shield_InheritStateOnReplace;
-	Valueable<int> Shield_MinimumReplaceDelay;
-	ValueableVector<ShieldTypeClass*> Shield_AffectTypes;
+	Valueable<bool> Shield_ReplaceOnly { false };
+	Valueable<bool> Shield_ReplaceNonRespawning { false };
+	Valueable<bool> Shield_InheritStateOnReplace { false };
+	Valueable<int> Shield_MinimumReplaceDelay { 0 };
+	ValueableVector<ShieldTypeClass*> Shield_AffectTypes {};
 
-	NullableVector<ShieldTypeClass*> Shield_Penetrate_Types;
-	ValueableVector<ShieldTypeClass*> Shield_Penetrate_Types_Disallowed_Types;
-	ValueableVector<ArmorTypeClass*> Shield_Penetrate_Armor_Types;
-	NullableVector<ShieldTypeClass*> Shield_Break_Types;
-	NullableVector<ShieldTypeClass*> Shield_Respawn_Types;
-	NullableVector<ShieldTypeClass*> Shield_SelfHealing_Types;
+	NullableVector<ShieldTypeClass*> Shield_Penetrate_Types {};
+	ValueableVector<ShieldTypeClass*> Shield_Penetrate_Types_Disallowed_Types {};
+	ValueableVector<ArmorTypeClass*> Shield_Penetrate_Armor_Types {};
+	NullableVector<ShieldTypeClass*> Shield_Break_Types {};
+	NullableVector<ShieldTypeClass*> Shield_Respawn_Types {};
+	NullableVector<ShieldTypeClass*> Shield_SelfHealing_Types {};
 
-	Valueable<bool> Transact;
-	Valueable<int> Transact_Experience_Value;
-	Valueable<int> Transact_Experience_Source_Flat;
-	Valueable<double> Transact_Experience_Source_Percent;
-	Valueable<bool> Transact_Experience_Source_Percent_CalcFromTarget;
-	Valueable<int> Transact_Experience_Target_Flat;
-	Valueable<double> Transact_Experience_Target_Percent;
-	Valueable<bool> Transact_Experience_Target_Percent_CalcFromSource;
-	Valueable<bool> Transact_SpreadAmongTargets;
-	Valueable<bool> Transact_Experience_IgnoreNotTrainable;
+	Valueable<bool> Transact { false };
+	Valueable<int> Transact_Experience_Value { 1 };
+	Valueable<int> Transact_Experience_Source_Flat { 0 };
+	Valueable<double> Transact_Experience_Source_Percent { 0.0 };
+	Valueable<bool> Transact_Experience_Source_Percent_CalcFromTarget { false };
+	Valueable<int> Transact_Experience_Target_Flat { 0 };
+	Valueable<double> Transact_Experience_Target_Percent { 0.0 };
+	Valueable<bool> Transact_Experience_Target_Percent_CalcFromSource { false };
+	Valueable<bool> Transact_SpreadAmongTargets { false };
+	Valueable<bool> Transact_Experience_IgnoreNotTrainable { true };
 
-	Nullable<int> NotHuman_DeathSequence;
-	Valueable<bool> AllowDamageOnSelf;
-	Valueable<bool> Debris_Conventional;
-	Nullable<bool> DebrisTypes_Limit;
-	ValueableVector<int> DebrisMinimums;
+	Nullable<int> NotHuman_DeathSequence {};
+	Valueable<bool> AllowDamageOnSelf { false };
+	Valueable<bool> Debris_Conventional { false };
+	Nullable<bool> DebrisTypes_Limit {};
+	ValueableVector<int> DebrisMinimums {};
 
-	Valueable<int> GattlingStage;
-	Valueable<int> GattlingRateUp;
-	Valueable<int> ReloadAmmo;
+	Valueable<int> GattlingStage { 0 };
+	Valueable<int> GattlingRateUp { 0 };
+	Valueable<int> ReloadAmmo { 0 };
 
-	Valueable<bool> MindControl_UseTreshold;
-	Valueable<double> MindControl_Threshold;
-	Valueable<bool> MindControl_Threshold_Inverse;
-	Nullable<int> MindControl_AlternateDamage;
-	Nullable<WarheadTypeClass*> MindControl_AlternateWarhead;
-	Valueable<bool> MindControl_CanKill;
+	Valueable<bool> MindControl_UseTreshold { false };
+	Valueable<double> MindControl_Threshold { 1.0 };
+	Valueable<bool> MindControl_Threshold_Inverse { false };
+	Nullable<int> MindControl_AlternateDamage {};
+	Nullable<WarheadTypeClass*> MindControl_AlternateWarhead {};
+	Valueable<bool> MindControl_CanKill { false };
 
-	Valueable<bool> DetonateOnAllMapObjects;
-	Valueable<bool> DetonateOnAllMapObjects_Full;
-	Valueable<bool> DetonateOnAllMapObjects_RequireVerses;
-	Valueable<AffectedTarget> DetonateOnAllMapObjects_AffectTargets;
-	Valueable<AffectedHouse> DetonateOnAllMapObjects_AffectHouses;
-	ValueableVector<TechnoTypeClass*> DetonateOnAllMapObjects_AffectTypes;
-	ValueableVector<TechnoTypeClass*> DetonateOnAllMapObjects_IgnoreTypes;
+	Valueable<bool> DetonateOnAllMapObjects { false };
+	Valueable<bool> DetonateOnAllMapObjects_Full { true };
+	Valueable<bool> DetonateOnAllMapObjects_RequireVerses { false };
+	Valueable<AffectedTarget> DetonateOnAllMapObjects_AffectTargets { AffectedTarget::All };
+	Valueable<AffectedHouse> DetonateOnAllMapObjects_AffectHouses { AffectedHouse::All };
+	ValueableVector<TechnoTypeClass*> DetonateOnAllMapObjects_AffectTypes {};
+	ValueableVector<TechnoTypeClass*> DetonateOnAllMapObjects_IgnoreTypes {};
 
-	Valueable<WeaponTypeClass*> RevengeWeapon;
-	Valueable<int> RevengeWeapon_GrantDuration;
-	Valueable<AffectedHouse> RevengeWeapon_AffectsHouses;
-	Valueable<bool> RevengeWeapon_Cumulative;
-	Valueable<int> RevengeWeapon_MaxCount;
+	Valueable<WeaponTypeClass*> RevengeWeapon { nullptr };
+	Valueable<int> RevengeWeapon_GrantDuration { 0 };
+	Valueable<AffectedHouse> RevengeWeapon_AffectsHouses { AffectedHouse::All };
+	Valueable<bool> RevengeWeapon_Cumulative { false };
+	Valueable<int> RevengeWeapon_MaxCount { -1 };
 
-	bool WasDetonatedOnAllMapObjects;
-	bool Splashed;
-	int RemainingAnimCreationInterval;
+	bool WasDetonatedOnAllMapObjects { false };
+	bool Splashed { false };
+	int RemainingAnimCreationInterval { 0 };
 
-	Nullable<AnimTypeClass*> NotHuman_DeathAnim;
+	Nullable<AnimTypeClass*> NotHuman_DeathAnim {};
 
-	Valueable<bool> IsNukeWarhead;
-	Valueable<AnimTypeClass*> PreImpactAnim;
-	Valueable<int> NukeFlashDuration;
+	Valueable<bool> IsNukeWarhead { false };
+	Valueable<AnimTypeClass*> PreImpactAnim { nullptr };
+	Valueable<int> NukeFlashDuration { 0 };
 
-	Valueable<bool> Remover;
-	Valueable<AnimTypeClass*> Remover_Anim;
+	Valueable<bool> Remover { false };
+	Valueable<AnimTypeClass*> Remover_Anim { nullptr };
 
-	PhobosMap<ArmorTypeClass*, AnimTypeClass*> ArmorHitAnim;
+	PhobosMap<ArmorTypeClass*, AnimTypeClass*> ArmorHitAnim {};
 
-	NullableVector<AnimTypeClass*> DebrisAnimTypes;
-	NullableVector<AnimTypeClass*> SquidSplash;
+	NullableVector<AnimTypeClass*> DebrisAnimTypes {};
+	NullableVector<AnimTypeClass*> SquidSplash {};
 
-	Valueable<AnimTypeClass*> TemporalExpiredAnim;
-	Valueable<bool> TemporalExpiredApplyDamage;
-	Valueable<double> TemporalDetachDamageFactor;
+	Valueable<AnimTypeClass*> TemporalExpiredAnim { nullptr };
+	Valueable<bool> TemporalExpiredApplyDamage { false };
+	Valueable<double> TemporalDetachDamageFactor { 1.0 };
 
-	Valueable<bool> Parasite_DisableRocking;
-	Nullable<AnimTypeClass*> Parasite_GrappleAnim;
-	Nullable<ParticleSystemTypeClass*> Parasite_ParticleSys;
-	Nullable<bool> Parasite_TreatInfantryAsVehicle;
-	Nullable<WeaponTypeClass*> Parasite_InvestationWP;
-	Nullable<double> Parasite_Damaging_Chance;
+	Valueable<bool> Parasite_DisableRocking { false };
+	Nullable<AnimTypeClass*> Parasite_GrappleAnim {};
+	Nullable<ParticleSystemTypeClass*> Parasite_ParticleSys {};
+	Nullable<bool> Parasite_TreatInfantryAsVehicle {};
+	Nullable<WeaponTypeClass*> Parasite_InvestationWP {};
+	Nullable<double> Parasite_Damaging_Chance {};
 
-	Nullable<int> Flammability;
+	Nullable<int> Flammability {};
 
-	std::vector<LauchSWData> Launchs;
+	std::vector<LauchSWData> Launchs {};
 
-	Valueable<bool> PermaMC;
-	ValueableIdx<VocClass> Sound;
+	Valueable<bool> PermaMC { false };
+	ValueableIdx<VocClass> Sound { -1 };
 
-	std::vector<TechnoTypeConvertData> ConvertsPair;
-	Valueable<AnimTypeClass*> Convert_SucceededAnim;
+	std::vector<TechnoTypeConvertData> ConvertsPair {};
+	Valueable<AnimTypeClass*> Convert_SucceededAnim { nullptr };
 
-	Nullable<double> AffectEnemies_Damage_Mod;
-	Nullable<double> AffectOwner_Damage_Mod;
-	Nullable<double> AffectAlly_Damage_Mod;
+	Nullable<double> AffectEnemies_Damage_Mod {};
+	Nullable<double> AffectOwner_Damage_Mod {};
+	Nullable<double> AffectAlly_Damage_Mod {};
 
-	Nullable<double> DamageOwnerMultiplier;
-	Nullable<double> DamageAlliesMultiplier;
-	Nullable<double> DamageEnemiesMultiplier;
-	Nullable<double> DamageOwnerMultiplier_Berzerk;
-	Nullable<double> DamageAlliesMultiplier_Berzerk;
-	Nullable<double> DamageEnemiesMultiplier_Berzerk;
+	Nullable<double> DamageOwnerMultiplier {};
+	Nullable<double> DamageAlliesMultiplier {};
+	Nullable<double> DamageEnemiesMultiplier {};
+	Nullable<double> DamageOwnerMultiplier_Berzerk {};
+	Nullable<double> DamageAlliesMultiplier_Berzerk {};
+	Nullable<double> DamageEnemiesMultiplier_Berzerk {};
 
-	PhobosFixedString<32U> AttachTag;
-	Valueable<bool> AttachTag_Imposed;
-	NullableVector<TechnoTypeClass*> AttachTag_Types;
-	NullableVector<TechnoTypeClass*> AttachTag_Ignore;
+	PhobosFixedString<32U> AttachTag {};
+	Valueable<bool> AttachTag_Imposed { false };
+	NullableVector<TechnoTypeClass*> AttachTag_Types {};
+	NullableVector<TechnoTypeClass*> AttachTag_Ignore {};
 
-	Valueable<bool> RecalculateDistanceDamage;
-	Valueable<bool> RecalculateDistanceDamage_IgnoreMaxDamage;
-	Valueable<int> RecalculateDistanceDamage_Add;
-	Valueable<double> RecalculateDistanceDamage_Add_Factor;
-	Valueable<double> RecalculateDistanceDamage_Multiply;
-	Valueable<double> RecalculateDistanceDamage_Multiply_Factor;
-	Valueable<int> RecalculateDistanceDamage_Max;
-	Valueable<int> RecalculateDistanceDamage_Min;
-	Valueable<bool> RecalculateDistanceDamage_Display;
-	Valueable<bool> RecalculateDistanceDamage_Display_AtFirer;
-	Valueable<Point2D> RecalculateDistanceDamage_Display_Offset;
-	Valueable<bool> RecalculateDistanceDamage_ProcessVerses;
+	Valueable<bool> RecalculateDistanceDamage { false };
+	Valueable<bool> RecalculateDistanceDamage_IgnoreMaxDamage { false };
+	Valueable<int> RecalculateDistanceDamage_Add { 0 };
+	Valueable<double> RecalculateDistanceDamage_Add_Factor { 1.0 };
+	Valueable<double> RecalculateDistanceDamage_Multiply { 1.0 };
+	Valueable<double> RecalculateDistanceDamage_Multiply_Factor { 1.0 };
+	Valueable<int> RecalculateDistanceDamage_Max { INT_MAX };
+	Valueable<int> RecalculateDistanceDamage_Min { -INT_MAX };
+	Valueable<bool> RecalculateDistanceDamage_Display { false };
+	Valueable<bool> RecalculateDistanceDamage_Display_AtFirer { false };
+	Valueable<Point2D> RecalculateDistanceDamage_Display_Offset { Point2D::Empty };
+	Valueable<bool> RecalculateDistanceDamage_ProcessVerses { false };
 
-	AresAttachEffectTypeClass AttachedEffect;
-	ValueableVector<WeaponTypeClass*> DetonatesWeapons;
-	ValueableVector<int> LimboKill_IDs;
-	Valueable<AffectedHouse> LimboKill_Affected;
+	AresAttachEffectTypeClass AttachedEffect {};
+	ValueableVector<WeaponTypeClass*> DetonatesWeapons {};
+	ValueableVector<int> LimboKill_IDs {};
+	Valueable<AffectedHouse> LimboKill_Affected { AffectedHouse::Owner };
 
-	Valueable<AnimTypeClass*> InfDeathAnim;
+	Valueable<AnimTypeClass*> InfDeathAnim { nullptr };
 
-	Promotable<int> Culling_BelowHP;
-	Promotable<int> Culling_Chance;
-	Nullable<AffectedTarget> Culling_Target;
+	Promotable<int> Culling_BelowHP { 0, -1, -2 };
+	Promotable<int> Culling_Chance { 100 };
+	Nullable<AffectedTarget> Culling_Target {};
 
-	Valueable<bool> RelativeDamage;
-	Valueable<int> RelativeDamage_AirCraft;
-	Valueable<int> RelativeDamage_Unit;
-	Valueable<int> RelativeDamage_Infantry;
-	Valueable<int> RelativeDamage_Building;
-	Valueable<int> RelativeDamage_Terrain;
+	Valueable<bool> RelativeDamage { false };
+	Valueable<int> RelativeDamage_AirCraft { 0 };
+	Valueable<int> RelativeDamage_Unit { 0 };
+	Valueable<int> RelativeDamage_Infantry { 0 };
+	Valueable<int> RelativeDamage_Building { 0 };
+	Valueable<int> RelativeDamage_Terrain { 0 };
 
-	std::vector<VersesData> Verses;
+	std::vector<VersesData> Verses {};
 
-	Nullable<int> Berzerk_dur;
-	Valueable<int> Berzerk_cap;
-	Valueable<bool> Berzerk_dealDamage;
+	Nullable<int> Berzerk_dur {};
+	Valueable<int> Berzerk_cap { -1 };
+	Valueable<bool> Berzerk_dealDamage { false };
 
-	Nullable<bool> IC_Flash;
-	Valueable<bool> PreventScatter;
-	NullableIdx<VocClass> DieSound_Override;
-	NullableIdx<VocClass> VoiceSound_Override;
+	Nullable<bool> IC_Flash {};
+	Valueable<bool> PreventScatter { false };
+	NullableIdx<VocClass> DieSound_Override {};
+	NullableIdx<VocClass> VoiceSound_Override {};
 
-	Valueable<bool> SuppressDeathWeapon_Vehicles;
-	Valueable<bool> SuppressDeathWeapon_Infantry;
-	ValueableVector<TechnoTypeClass*> SuppressDeathWeapon;
-	ValueableVector<TechnoTypeClass*> SuppressDeathWeapon_Exclude;
-	Nullable<double> SuppressDeathWeapon_Chance;
-	Promotable<double> DeployedDamage;
+	Valueable<bool> SuppressDeathWeapon_Vehicles { false };
+	Valueable<bool> SuppressDeathWeapon_Infantry { false };
+	ValueableVector<TechnoTypeClass*> SuppressDeathWeapon {};
+	ValueableVector<TechnoTypeClass*> SuppressDeathWeapon_Exclude {};
+	Nullable<double> SuppressDeathWeapon_Chance {};
+	Promotable<double> DeployedDamage { 1.00 };
 
-	Nullable<AnimTypeClass*> Temporal_WarpAway;
-	Valueable<bool> Supress_LostEva;
-	Valueable<double> Temporal_HealthFactor;
+	Nullable<AnimTypeClass*> Temporal_WarpAway {};
+	Valueable<bool> Supress_LostEva { false };
+	Valueable<double> Temporal_HealthFactor { 0.0 };
 
-	PhobosMap<InfantryTypeClass*, AnimTypeClass*> InfDeathAnims;
+	PhobosMap<InfantryTypeClass*, AnimTypeClass*> InfDeathAnims {};
 
-	Valueable<int> Sonar_Duration;
-	Valueable<int> DisableWeapons_Duration;
-	Nullable<int> Flash_Duration;
+	Valueable<int> Sonar_Duration { 0 };
+	Valueable<int> DisableWeapons_Duration { 0 };
+	Nullable<int> Flash_Duration {};
 
-	NullableIdx<ImmunityTypeClass> ImmunityType;
+	NullableIdx<ImmunityTypeClass> ImmunityType {};
 
-	Valueable<bool> Malicious;
-	Valueable<bool> PreImpact_Moves;
-	Valueable<bool> Conventional_IgnoreUnits;
+	Valueable<bool> Malicious { true };
+	Valueable<bool> PreImpact_Moves { false };
+	Valueable<bool> Conventional_IgnoreUnits { false };
 
-	Valueable<bool> InflictLocomotor;
-	Valueable<bool> RemoveInflictedLocomotor;
+	Valueable<bool> InflictLocomotor { false };
+	Valueable<bool> RemoveInflictedLocomotor { false };
 
-	Nullable<int> Rocker_AmplitudeOverride;
-	Valueable<double> Rocker_AmplitudeMultiplier;
+	Nullable<int> Rocker_AmplitudeOverride {};
+	Valueable<double> Rocker_AmplitudeMultiplier { 0.01 };
 
-	ValueableIdx<SuperWeaponTypeClass> NukePayload_LinkedSW;
-	Valueable<int> IC_Duration;
-	Valueable<int> IC_Cap;
+	ValueableIdx<SuperWeaponTypeClass> NukePayload_LinkedSW { -1 };
+	Valueable<int> IC_Duration { 0 };
+	Valueable<int> IC_Cap { -1 };
 
 #pragma region Ion
-	Valueable<bool> Ion;
-	Nullable<int> Ripple_Radius;
-	Nullable<AnimTypeClass*> Ion_Beam;
-	Nullable<AnimTypeClass*> Ion_Blast;
-	Valueable<bool> Ion_AllowWater;
-	Valueable<bool> Ion_Rocking;
-	Nullable<WarheadTypeClass*> Ion_WH;
-	Nullable<int> Ion_Damage;
+	Valueable<bool> Ion { false };
+	Nullable<int> Ripple_Radius {};
+	Nullable<AnimTypeClass*> Ion_Beam {};
+	Nullable<AnimTypeClass*> Ion_Blast {};
+	Valueable<bool> Ion_AllowWater { false };
+	Valueable<bool> Ion_Rocking { true };
+	Nullable<WarheadTypeClass*> Ion_WH {};
+	Nullable<int> Ion_Damage {};
 #pragma endregion
 
-	ValueableVector<ParticleSystemTypeClass*> DetonateParticleSystem;
-	Nullable<bool> BridgeAbsoluteDestroyer;
-	Valueable<int> DamageAirThreshold;
-	Valueable<int> CellSpread_MaxAffect;
+	ValueableVector<ParticleSystemTypeClass*> DetonateParticleSystem {};
+	Nullable<bool> BridgeAbsoluteDestroyer {};
+	Valueable<int> DamageAirThreshold { 0 };
+	Valueable<int> CellSpread_MaxAffect { -1 };
 
-	Valueable<int> EMP_Duration;
-	Valueable<int> EMP_Cap;
-	Valueable<AnimTypeClass*> EMP_Sparkles;
+	Valueable<int> EMP_Duration { 0 };
+	Valueable<int> EMP_Cap { -1 };
+	Valueable<AnimTypeClass*> EMP_Sparkles { nullptr };
 
-	Nullable<bool> CanRemoveParasytes;
-	Valueable<bool> CanRemoveParasytes_KickOut;
-	Valueable<int> CanRemoveParasytes_KickOut_Paralysis;
-	NullableIdx<VocClass> CanRemoveParasytes_ReportSound;
-	Nullable<AnimTypeClass*> CanRemoveParasytes_KickOut_Anim;
+	Nullable<bool> CanRemoveParasytes {};
+	Valueable<bool> CanRemoveParasytes_KickOut { false };
+	Valueable<int> CanRemoveParasytes_KickOut_Paralysis { -1 };
+	NullableIdx<VocClass> CanRemoveParasytes_ReportSound {};
+	Nullable<AnimTypeClass*> CanRemoveParasytes_KickOut_Anim {};
 
-	Valueable<bool> Webby;
-	ValueableVector<AnimTypeClass*> Webby_Anims;
-	Valueable<int> Webby_Duration;
-	Valueable<int> Webby_Cap;
-	Valueable<int> Webby_Duration_Variation;
+	Valueable<bool> Webby { false };
+	ValueableVector<AnimTypeClass*> Webby_Anims {};
+	Valueable<int> Webby_Duration { 0 };
+	Valueable<int> Webby_Cap { -1 };
+	Valueable<int> Webby_Duration_Variation { 0 };
 
-	NullablePromotable<int> SelfHealing_CombatDelay;
+	NullablePromotable<int> SelfHealing_CombatDelay {};
 
-	Valueable<bool> KillDriver;
-	Valueable<double> KillDriver_KillBelowPercent;
-	Valueable<OwnerHouseKind> KillDriver_Owner;
-	Valueable<bool> KillDriver_ResetVeterancy;
-	Valueable<double> KillDriver_Chance;
+	Valueable<bool> KillDriver { false };
+	Valueable<double> KillDriver_KillBelowPercent { 1.00 };
+	Valueable<OwnerHouseKind> KillDriver_Owner { OwnerHouseKind::Special };
+	Valueable<bool> KillDriver_ResetVeterancy { false };
+	Valueable<double> KillDriver_Chance { 100.0 };
 
-	Valueable<bool> ApplyModifiersOnNegativeDamage;
+	Valueable<bool> ApplyModifiersOnNegativeDamage { false };
 
-	Nullable<int> CombatLightDetailLevel;
-	Nullable<double> CombatLightChance;
-	Nullable<bool> Particle_AlphaImageIsLightFlash;
+	Nullable<int> CombatLightDetailLevel {};
+	Nullable<double> CombatLightChance {};
+	Nullable<bool> Particle_AlphaImageIsLightFlash {};
 
-	Valueable<bool> Nonprovocative;
+	Valueable<bool> Nonprovocative { false };
 
-	std::vector<int> SpawnsCrate_Types;
-	std::vector<int> SpawnsCrate_Weights;
+	std::vector<int> SpawnsCrate_Types {};
+	std::vector<int> SpawnsCrate_Weights {};
 
-	AEAttachInfoTypeClass PhobosAttachEffects;
+	AEAttachInfoTypeClass PhobosAttachEffects {};
 
-	Valueable<bool> Shield_HitFlash;
-	Valueable<bool> Shield_SkipHitAnim;
-	Nullable<bool> CombatAlert_Suppress;
+	Valueable<bool> Shield_HitFlash { true };
+	Valueable<bool> Shield_SkipHitAnim { false };
+	Nullable<bool> CombatAlert_Suppress {};
 
-	Valueable<bool> AffectsGround;
-	Valueable<bool> AffectsInAir;
-	Valueable<bool> CellSpread_Cylinder;
+	Valueable<bool> AffectsGround { true };
+	Valueable<bool> AffectsInAir { true };
+	Valueable<bool> CellSpread_Cylinder { false };
 
-	Valueable<bool> PenetratesIronCurtain;
-	Nullable<bool> PenetratesForceShield;
-	Valueable<bool> Shield_RemoveAll;
-	Valueable<bool> SuppressRevengeWeapons;
-	ValueableVector<WeaponTypeClass*> SuppressRevengeWeapons_Types;
-	Valueable<bool> SuppressReflectDamage;
-	ValueableVector<PhobosAttachEffectTypeClass*> SuppressReflectDamage_Types;
+	Valueable<bool> PenetratesIronCurtain { false };
+	Nullable<bool> PenetratesForceShield {};
+	Valueable<bool> Shield_RemoveAll { false };
+	Valueable<bool> SuppressRevengeWeapons { false };
+	ValueableVector<WeaponTypeClass*> SuppressRevengeWeapons_Types {};
+	Valueable<bool> SuppressReflectDamage { false };
+	ValueableVector<PhobosAttachEffectTypeClass*> SuppressReflectDamage_Types {};
 
-	ValueableVector<std::string> SuppressReflectDamage_Groups;
+	ValueableVector<std::string> SuppressReflectDamage_Groups {};
 
-	Nullable<bool> RemoveParasites;
-	ValueableVector<TechnoTypeClass*> RemoveParasite_Allow;
-	ValueableVector<TechnoTypeClass*> RemoveParasite_Disallow;
+	Nullable<bool> RemoveParasites {};
+	ValueableVector<TechnoTypeClass*> RemoveParasite_Allow {};
+	ValueableVector<TechnoTypeClass*> RemoveParasite_Disallow {};
 
-	bool Reflected;
-	Valueable<bool> CLIsBlack;
-	Valueable<bool> ApplyMindamage;
-	Valueable<int> MinDamage;
+	bool Reflected { false };
+	Valueable<bool> CLIsBlack { false };
+	Valueable<bool> ApplyMindamage { false };
+	Valueable<int> MinDamage { -1 };
 
-	TechnoClass* IntendedTarget;
+	TechnoClass* IntendedTarget { nullptr };
 
-	Valueable<WeaponTypeClass*> KillWeapon;
-	Valueable<WeaponTypeClass*> KillWeapon_OnFirer;
-	Valueable<AffectedHouse> KillWeapon_AffectsHouses;
-	Valueable<AffectedHouse> KillWeapon_OnFirer_AffectsHouses;
-	Valueable<AffectedTarget> KillWeapon_Affects;
-	Valueable<AffectedTarget> KillWeapon_OnFirer_Affects;
+	Valueable<WeaponTypeClass*> KillWeapon { nullptr };
+	Valueable<WeaponTypeClass*> KillWeapon_OnFirer { nullptr };
+	Valueable<AffectedHouse> KillWeapon_AffectsHouses { AffectedHouse::All };
+	Valueable<AffectedHouse> KillWeapon_OnFirer_AffectsHouses { AffectedHouse::All };
+	Valueable<AffectedTarget> KillWeapon_Affects { AffectedTarget::All };
+	Valueable<AffectedTarget> KillWeapon_OnFirer_Affects { AffectedTarget::All };
 
-	Nullable<int> MindControl_ThreatDelay;
+	Nullable<int> MindControl_ThreatDelay {};
 
-	Nullable<bool> MergeBuildingDamage;
+	Nullable<bool> MergeBuildingDamage {};
 
-	Valueable<bool> BuildingSell;
-	Valueable<bool> BuildingSell_IgnoreUnsellable;
-	Valueable<bool> BuildingUndeploy;
-	Valueable<bool> BuildingUndeploy_Leave;
+	Valueable<bool> BuildingSell { false };
+	Valueable<bool> BuildingSell_IgnoreUnsellable { false };
+	Valueable<bool> BuildingUndeploy { false };
+	Valueable<bool> BuildingUndeploy_Leave { false };
 
-	Valueable<double> ScorchChance;
-	Valueable<double> ScorchPercentAtMax;
-	Valueable<double> CraterChance;
-	Valueable<double> CraterPercentAtMax;
-	Valueable<double> CellAnimChance;
-	Valueable<double> CellAnimPercentAtMax;
+	Valueable<double> ScorchChance { 0.0 };
+	Valueable<double> ScorchPercentAtMax { 1.0 };
+	Valueable<double> CraterChance { 0.0 };
+	Valueable<double> CraterPercentAtMax { 1.0 };
+	Valueable<double> CellAnimChance { 0.0 };
+	Valueable<double> CellAnimPercentAtMax { 1.0 };
 
-	NullableVector<AnimTypeClass*> CellAnim;
-	Valueable<int> ElectricAssaultLevel;
-	Valueable<AffectedTarget> AirstrikeTargets;
+	NullableVector<AnimTypeClass*> CellAnim {};
+	Valueable<int> ElectricAssaultLevel { 1 };
+	Valueable<AffectedTarget> AirstrikeTargets { AffectedTarget::Building };
 
-	Valueable<bool> CanKill;
-	Valueable<bool> ElectricAssault_Requireverses;
+	Valueable<bool> CanKill { true };
+	Valueable<bool> ElectricAssault_Requireverses { false };
 
-	Valueable<double> DamageSourceHealthMultiplier;
-	Valueable<double> DamageTargetHealthMultiplier;
+	Valueable<double> DamageSourceHealthMultiplier { 0.0 };
+	Valueable<double> DamageTargetHealthMultiplier { 0.0 };
 
-	Valueable<double> AffectsBelowPercent;
-	Valueable<double> AffectsAbovePercent;
-	Valueable<AffectedVeterancy> AffectsVeterancy;
-	Valueable<bool> AffectsNeutral;
+	Valueable<double> AffectsBelowPercent { 1.0 };
+	Valueable<double> AffectsAbovePercent { 0.0 };
+	Valueable<AffectedVeterancy> AffectsVeterancy { AffectedVeterancy::All };
+	Valueable<bool> AffectsNeutral { true };
 
-	Valueable<int> PenetratesTransport_Level;
-	Valueable<double> PenetratesTransport_PassThrough;
-	Valueable<double> PenetratesTransport_FatalRate;
-	Valueable<double> PenetratesTransport_DamageMultiplier;
-	Valueable<bool> PenetratesTransport_DamageAll;
-	ValueableIdx<VocClass> PenetratesTransport_CleanSound;
+	Valueable<int> PenetratesTransport_Level { 0 };
+	Valueable<double> PenetratesTransport_PassThrough { 1.0 };
+	Valueable<double> PenetratesTransport_FatalRate { 0.0 };
+	Valueable<double> PenetratesTransport_DamageMultiplier { 1.0 };
+	Valueable<bool> PenetratesTransport_DamageAll { false };
+	ValueableIdx<VocClass> PenetratesTransport_CleanSound { -1 };
 
-	Valueable<bool> FakeEngineer_CanRepairBridges;
-	Valueable<bool> FakeEngineer_CanDestroyBridges;
-	Valueable<bool> FakeEngineer_CanCaptureBuildings;
-	Valueable<bool> FakeEngineer_BombDisarm;
-	Valueable<bool> ReverseEngineer;
+	Valueable<bool> FakeEngineer_CanRepairBridges { false };
+	Valueable<bool> FakeEngineer_CanDestroyBridges { false };
+	Valueable<bool> FakeEngineer_CanCaptureBuildings { false };
+	Valueable<bool> FakeEngineer_BombDisarm { false };
+	Valueable<bool> ReverseEngineer { false };
 
-	Valueable<bool> UnlimboDetonate;
-	Valueable<bool> UnlimboDetonate_Force;
-	Valueable<bool> UnlimboDetonate_KeepTarget;
-	Valueable<bool> UnlimboDetonate_KeepSelected;
+	Valueable<bool> UnlimboDetonate { false };
+	Valueable<bool> UnlimboDetonate_Force { false };
+	Valueable<bool> UnlimboDetonate_KeepTarget { true };
+	Valueable<bool> UnlimboDetonate_KeepSelected { true };
 
-	std::unique_ptr<BlockTypeClass> BlockType;
-	Valueable<bool> Block_BasedOnWarhead;
-	Valueable<bool> Block_AllowOverride;
-	Valueable<bool> Block_IgnoreChanceModifier;
-	Valueable<double> Block_ChanceMultiplier;
-	Valueable<double> Block_ExtraChance;
-	Valueable<bool> ImmuneToBlock;
+	std::unique_ptr<BlockTypeClass> BlockType {};
+	Valueable<bool> Block_BasedOnWarhead { false };
+	Valueable<bool> Block_AllowOverride { true };
+	Valueable<bool> Block_IgnoreChanceModifier { true };
+	Valueable<double> Block_ChanceMultiplier { 1.0 };
+	Valueable<double> Block_ExtraChance { 0.0 };
+	Valueable<bool> ImmuneToBlock { false };
 
-	Valueable<bool> AffectsUnderground;
-	Valueable<bool> PlayAnimUnderground;
-	Valueable<bool> PlayAnimAboveSurface;
+	Valueable<bool> AffectsUnderground { false };
+	Valueable<bool> PlayAnimUnderground { true };
+	Valueable<bool> PlayAnimAboveSurface { false };
 
-	Nullable<bool> AnimZAdjust;
-	Nullable<bool> ApplyPerTargetEffectsOnDetonate;
-	Valueable<bool> Taunt;
+	Nullable<bool> AnimZAdjust {};
+	Nullable<bool> ApplyPerTargetEffectsOnDetonate {};
+	Valueable<bool> Taunt { false };
 
-	Valueable<WarheadTypeClass*> ReturnWarhead;
-	Valueable<int> ReturnWarhead_Damage;
-	Valueable<double> ReturnWarhead_Chance;
-	Valueable<bool> ReturnWarhead_ApplyChancePerTarget;
-	Valueable<bool> ReturnWarhead_FullDetonation;
-	Valueable<AffectedTarget> ReturnWarhead_AffectsTarget;
-	Valueable<AffectedHouse> ReturnWarhead_AffectsHouse;
+	Valueable<WarheadTypeClass*> ReturnWarhead {};
+	Valueable<int> ReturnWarhead_Damage { 0 };
+	Valueable<double> ReturnWarhead_Chance { 1.0 };
+	Valueable<bool> ReturnWarhead_ApplyChancePerTarget { false };
+	Valueable<bool> ReturnWarhead_FullDetonation { true };
+	Valueable<AffectedTarget> ReturnWarhead_AffectsTarget { AffectedTarget::All };
+	Valueable<AffectedHouse> ReturnWarhead_AffectsHouse { AffectedHouse::All };
 
-	bool IsCellSpreadWH;
-	bool IsFakeEngineer;
-	bool VeterancyCheck;
+	bool IsCellSpreadWH { false };
+	bool IsFakeEngineer { false };
+	bool VeterancyCheck { false };
 
-	Nullable<int> JumpjetTurnRate;
-	Nullable<int> JumpjetSpeed;
-	Nullable<float> JumpjetClimb;
-	Nullable<float> JumpjetCrash;
-	Nullable<int> JumpjetHeight;
-	Nullable<float> JumpjetAccel;
-	Nullable<float> JumpjetWobbles;
-	Nullable<bool> JumpjetNoWobbles;
-	Nullable<int> JumpjetDeviation;
+	Nullable<int> JumpjetTurnRate {};
+	Nullable<int> JumpjetSpeed {};
+	Nullable<float> JumpjetClimb {};
+	Nullable<float> JumpjetCrash {};
+	Nullable<int> JumpjetHeight {};
+	Nullable<float> JumpjetAccel {};
+	Nullable<float> JumpjetWobbles {};
+	Nullable<bool> JumpjetNoWobbles {};
+	Nullable<int> JumpjetDeviation {};
 #pragma endregion
 
 public:
-	WarheadTypeExtData(WarheadTypeClass* pObj) : AbstractTypeExtData(pObj),
-		Reveal(0),
-		BigGap(false),
-		CreateGap(0),
-		TransactMoney(0),
-		TransactMoney_Ally(),
-		TransactMoney_Enemy(),
-		Transact_AffectsEnemies(false),
-		Transact_AffectsAlly(false),
-		Transact_AffectsOwner(true),
-		TransactMoney_Display(false),
-		TransactMoney_Display_Houses(AffectedHouse::All),
-		TransactMoney_Display_AtFirer(false),
-		TransactMoney_Display_Offset({ 0, 0 }),
-		StealMoney(0),
-		Steal_Display_Houses(AffectedHouse::All),
-		Steal_Display(false),
-		Steal_Display_Offset({ 0, 0 }),
-		SplashList(),
-		SplashList_PickRandom(false),
-		SplashList_CreateAll(false),
-		SplashList_CreationInterval(0),
-		SplashList_ScatterMin(Leptons(-1)),
-		SplashList_ScatterMax(Leptons(-1)),
-		RemoveDisguise(false),
-		RemoveMindControl(false),
-		AnimList_PickRandom(),
-		AnimList_CreateAll(false),
-		AnimList_CreationInterval(0),
-		AnimList_ScatterMin(Leptons(-1)),
-		AnimList_ScatterMax(Leptons(-1)),
-		AnimList_ShowOnZeroDamage(false),
-		DecloakDamagedTargets(true),
-		ShakeIsLocal(false),
-		Shake_UseAlternativeCalculation(false),
-		Crit_Chance(0.0),
-		Crit_ApplyChancePerTarget(false),
-		Crit_ExtraDamage(0),
-		Crit_ExtraDamage_ApplyFirepowerMult(false),
-		Crit_Warhead(nullptr),
-		Crit_Warhead_FullDetonation(true),
-		Crit_Affects(AffectedTarget::All),
-		Crit_AffectsHouses(AffectedHouse::All),
-		Crit_AnimList(),
-		Crit_AnimList_PickRandom(),
-		Crit_AnimList_CreateAll(),
-		Crit_ActiveChanceAnims(),
-		Crit_AnimOnAffectedTargets(false),
-		Crit_AffectBelowPercent(1.0),
-		Crit_AffectAbovePercent(0.0),
-		Crit_SuppressWhenIntercepted(false),
-		CritActive(false),
-		CritRandomBuffer(0.0),
-		CritCurrentChance(0.0),
-		ReturnWarhead_RandomBuffer(0.0),
-		MindControl_Anim(),
-		AffectsEnemies(true),
-		AffectsOwner(),
-		EffectsRequireDamage(false),
-		EffectsRequireVerses(true),
-		AllowZeroDamage(false),
-		Shield_Penetrate(false),
-		Shield_Break(false),
-		Shield_BreakAnim(nullptr),
-		Shield_HitAnim(nullptr),
-		Shield_BreakWeapon(),
-		Shield_AbsorbPercent(),
-		Shield_PassPercent(),
-		Shield_ReceivedDamage_Minimum(),
-		Shield_ReceivedDamage_Maximum(),
-		Shield_ReceivedDamage_MinMultiplier(1.0),
-		Shield_ReceivedDamage_MaxMultiplier(1.0),
-		Shield_Respawn_Duration(0),
-		Shield_Respawn_Amount(),
-		Shield_Respawn_Rate(-1),
-		Shield_Respawn_RestartInCombat(),
-		Shield_Respawn_RestartInCombatDelay(-1),
-		Shield_Respawn_Rate_InMinutes(-1.0),
-		Shield_SelfHealing_Rate_InMinutes(-1.0),
-		Shield_Respawn_RestartTimer(false),
-		Shield_Respawn_Anim(),
-		Shield_Respawn_Weapon(nullptr),
-		Shield_SelfHealing_Duration(0),
-		Shield_SelfHealing_Amount(),
-		Shield_SelfHealing_Rate(-1),
-		Shield_SelfHealing_RestartInCombat(),
-		Shield_SelfHealing_RestartInCombatDelay(-1),
-		Shield_SelfHealing_RestartTimer(false),
-		Shield_AttachTypes(),
-		Shield_RemoveTypes(),
-		Shield_ReplaceOnly(false),
-		Shield_ReplaceNonRespawning(false),
-		Shield_InheritStateOnReplace(false),
-		Shield_MinimumReplaceDelay(0),
-		Shield_AffectTypes(),
-		Shield_Penetrate_Types(),
-		Shield_Penetrate_Types_Disallowed_Types(),
-		Shield_Penetrate_Armor_Types(),
-		Shield_Break_Types(),
-		Shield_Respawn_Types(),
-		Shield_SelfHealing_Types(),
-		Transact(false),
-		Transact_Experience_Value(1),
-		Transact_Experience_Source_Flat(0),
-		Transact_Experience_Source_Percent(0.0),
-		Transact_Experience_Source_Percent_CalcFromTarget(false),
-		Transact_Experience_Target_Flat(0),
-		Transact_Experience_Target_Percent(0.0),
-		Transact_Experience_Target_Percent_CalcFromSource(false),
-		Transact_SpreadAmongTargets(false),
-		Transact_Experience_IgnoreNotTrainable(true),
-		NotHuman_DeathSequence(),
-		AllowDamageOnSelf(false),
-		Debris_Conventional(false),
-		DebrisTypes_Limit(),
-		DebrisMinimums(),
-		GattlingStage(0),
-		GattlingRateUp(0),
-		ReloadAmmo(0),
-		MindControl_UseTreshold(false),
-		MindControl_Threshold(1.0),
-		MindControl_Threshold_Inverse(false),
-		MindControl_AlternateDamage(),
-		MindControl_AlternateWarhead(),
-		MindControl_CanKill(false),
-		DetonateOnAllMapObjects(false),
-		DetonateOnAllMapObjects_Full(true),
-		DetonateOnAllMapObjects_RequireVerses(false),
-		DetonateOnAllMapObjects_AffectTargets(AffectedTarget::All),
-		DetonateOnAllMapObjects_AffectHouses(AffectedHouse::All),
-		DetonateOnAllMapObjects_AffectTypes(),
-		DetonateOnAllMapObjects_IgnoreTypes(),
-		RevengeWeapon(nullptr),
-		RevengeWeapon_GrantDuration(0),
-		RevengeWeapon_AffectsHouses(AffectedHouse::All),
-		RevengeWeapon_Cumulative(false),
-		RevengeWeapon_MaxCount(-1),
-		WasDetonatedOnAllMapObjects(false),
-		Splashed(false),
-		RemainingAnimCreationInterval(0),
-		NotHuman_DeathAnim(),
-		IsNukeWarhead(false),
-		PreImpactAnim(nullptr),
-		NukeFlashDuration(0),
-		Remover(false),
-		Remover_Anim(nullptr),
-		ArmorHitAnim(),
-		DebrisAnimTypes(),
-		SquidSplash(),
-		TemporalExpiredAnim(nullptr),
-		TemporalExpiredApplyDamage(false),
-		TemporalDetachDamageFactor(1.0),
-		Parasite_DisableRocking(false),
-		Parasite_GrappleAnim(),
-		Parasite_ParticleSys(),
-		Parasite_TreatInfantryAsVehicle(),
-		Parasite_InvestationWP(),
-		Parasite_Damaging_Chance(),
-		Flammability(),
-		Launchs(),
-		PermaMC(false),
-		Sound(-1),
-		ConvertsPair(),
-		Convert_SucceededAnim(nullptr),
-		AffectEnemies_Damage_Mod(),
-		AffectOwner_Damage_Mod(),
-		AffectAlly_Damage_Mod(),
-		DamageOwnerMultiplier(),
-		DamageAlliesMultiplier(),
-		DamageEnemiesMultiplier(),
-		DamageOwnerMultiplier_Berzerk(),
-		DamageAlliesMultiplier_Berzerk(),
-		DamageEnemiesMultiplier_Berzerk(),
-		AttachTag(),
-		AttachTag_Imposed(false),
-		AttachTag_Types(),
-		AttachTag_Ignore(),
-		RecalculateDistanceDamage(false),
-		RecalculateDistanceDamage_IgnoreMaxDamage(false),
-		RecalculateDistanceDamage_Add(0),
-		RecalculateDistanceDamage_Add_Factor(1.0),
-		RecalculateDistanceDamage_Multiply(1.0),
-		RecalculateDistanceDamage_Multiply_Factor(1.0),
-		RecalculateDistanceDamage_Max(INT_MAX),
-		RecalculateDistanceDamage_Min(-INT_MAX),
-		RecalculateDistanceDamage_Display(false),
-		RecalculateDistanceDamage_Display_AtFirer(false),
-		RecalculateDistanceDamage_Display_Offset(Point2D::Empty),
-		RecalculateDistanceDamage_ProcessVerses(false),
-		AttachedEffect(),
-		DetonatesWeapons(),
-		LimboKill_IDs(),
-		LimboKill_Affected(AffectedHouse::Owner),
-		InfDeathAnim(nullptr),
-		Culling_BelowHP(0, -1, -2),
-		Culling_Chance(100),
-		Culling_Target(),
-		RelativeDamage(false),
-		RelativeDamage_AirCraft(0),
-		RelativeDamage_Unit(0),
-		RelativeDamage_Infantry(0),
-		RelativeDamage_Building(0),
-		RelativeDamage_Terrain(0),
-		Verses(),
-		Berzerk_dur(),
-		Berzerk_cap(-1),
-		Berzerk_dealDamage(false),
-		IC_Flash(),
-		PreventScatter(false),
-		DieSound_Override(),
-		VoiceSound_Override(),
-		SuppressDeathWeapon_Vehicles(false),
-		SuppressDeathWeapon_Infantry(false),
-		SuppressDeathWeapon(),
-		SuppressDeathWeapon_Exclude(),
-		SuppressDeathWeapon_Chance(),
-		DeployedDamage(1.00),
-		Temporal_WarpAway(),
-		Supress_LostEva(false),
-		Temporal_HealthFactor(0.0),
-		InfDeathAnims(),
-		Sonar_Duration(0),
-		DisableWeapons_Duration(0),
-		Flash_Duration(),
-		ImmunityType(),
-		Malicious(true),
-		PreImpact_Moves(false),
-		Conventional_IgnoreUnits(false),
-		InflictLocomotor(false),
-		RemoveInflictedLocomotor(false),
-		Rocker_AmplitudeOverride(),
-		Rocker_AmplitudeMultiplier(0.01),
-		NukePayload_LinkedSW(-1),
-		IC_Duration(0),
-		IC_Cap(-1),
-		Ion(false),
-		Ripple_Radius(),
-		Ion_Beam(),
-		Ion_Blast(),
-		Ion_AllowWater(false),
-		Ion_Rocking(true),
-		Ion_WH(),
-		Ion_Damage(),
-		DetonateParticleSystem(),
-		BridgeAbsoluteDestroyer(),
-		DamageAirThreshold(0),
-		CellSpread_MaxAffect(-1),
-		EMP_Duration(0),
-		EMP_Cap(-1),
-		EMP_Sparkles(nullptr),
-		CanRemoveParasytes(),
-		CanRemoveParasytes_KickOut(false),
-		CanRemoveParasytes_KickOut_Paralysis(-1),
-		CanRemoveParasytes_ReportSound(),
-		CanRemoveParasytes_KickOut_Anim(),
-		Webby(false),
-		Webby_Anims(),
-		Webby_Duration(0),
-		Webby_Cap(-1),
-		Webby_Duration_Variation(0),
-		SelfHealing_CombatDelay(),
-		KillDriver(false),
-		KillDriver_KillBelowPercent(1.00),
-		KillDriver_Owner(OwnerHouseKind::Special),
-		KillDriver_ResetVeterancy(false),
-		KillDriver_Chance(100.0),
-		ApplyModifiersOnNegativeDamage(false),
-		CombatLightDetailLevel(),
-		CombatLightChance(),
-		Particle_AlphaImageIsLightFlash(),
-		Nonprovocative(false),
-		SpawnsCrate_Types(),
-		SpawnsCrate_Weights(),
-		PhobosAttachEffects(),
-		Shield_HitFlash(true),
-		Shield_SkipHitAnim(false),
-		CombatAlert_Suppress(),
-		AffectsGround(true),
-		AffectsInAir(true),
-		CellSpread_Cylinder(false),
-		PenetratesIronCurtain(false),
-		PenetratesForceShield(),
-		Shield_RemoveAll(false),
-		SuppressRevengeWeapons(false),
-		SuppressRevengeWeapons_Types(),
-		SuppressReflectDamage(false),
-		SuppressReflectDamage_Types(),
-		SuppressReflectDamage_Groups(),
-		RemoveParasites(),
-		RemoveParasite_Allow {},
-		RemoveParasite_Disallow {},
-		Reflected(false),
-		CLIsBlack(false),
-		ApplyMindamage(false),
-		MinDamage(-1),
-		IntendedTarget(nullptr),
-		KillWeapon(nullptr),
-		KillWeapon_OnFirer(nullptr),
-		KillWeapon_AffectsHouses(AffectedHouse::All),
-		KillWeapon_OnFirer_AffectsHouses(AffectedHouse::All),
-		KillWeapon_Affects(AffectedTarget::All),
-		KillWeapon_OnFirer_Affects(AffectedTarget::All),
-		MindControl_ThreatDelay(),
-		MergeBuildingDamage(),
-		BuildingSell(false),
-		BuildingSell_IgnoreUnsellable(false),
-		BuildingUndeploy(false),
-		BuildingUndeploy_Leave(false),
-		ScorchChance(0.0),
-		ScorchPercentAtMax(1.0),
-		CraterChance(0.0),
-		CraterPercentAtMax(1.0),
-		CellAnimChance(0.0),
-		CellAnimPercentAtMax(1.0),
-		CellAnim(),
-		ElectricAssaultLevel(1),
-		AirstrikeTargets(AffectedTarget::Building),
-		CanKill(true),
-		ElectricAssault_Requireverses(false),
-		DamageSourceHealthMultiplier(0.0),
-		DamageTargetHealthMultiplier(0.0),
-		AffectsBelowPercent(1.0),
-		AffectsAbovePercent(0.0),
-		AffectsVeterancy(AffectedVeterancy::All),
-		AffectsNeutral(true),
-		PenetratesTransport_Level(0),
-		PenetratesTransport_PassThrough(1.0),
-		PenetratesTransport_FatalRate(0.0),
-		PenetratesTransport_DamageMultiplier(1.0),
-		PenetratesTransport_DamageAll(false),
-		PenetratesTransport_CleanSound(-1),
-		FakeEngineer_CanRepairBridges(false),
-		FakeEngineer_CanDestroyBridges(false),
-		FakeEngineer_CanCaptureBuildings(false),
-		FakeEngineer_BombDisarm(false),
-		ReverseEngineer(false),
-		UnlimboDetonate(false),
-		UnlimboDetonate_Force(false),
-		UnlimboDetonate_KeepTarget(true),
-		UnlimboDetonate_KeepSelected(true),
-		BlockType(),
-		Block_BasedOnWarhead(false),
-		Block_AllowOverride(true),
-		Block_IgnoreChanceModifier(true),
-		Block_ChanceMultiplier(1.0),
-		Block_ExtraChance(0.0),
-		ImmuneToBlock(false),
-		AffectsUnderground(false),
-		PlayAnimUnderground(true),
-		PlayAnimAboveSurface(false),
-		AnimZAdjust(),
-		ApplyPerTargetEffectsOnDetonate(),
-		Taunt { false },
-		ReturnWarhead {},
-		ReturnWarhead_Damage { 0 },
-		ReturnWarhead_Chance { 1.0 },
-		ReturnWarhead_ApplyChancePerTarget { false },
-		ReturnWarhead_FullDetonation { true },
-		ReturnWarhead_AffectsTarget { AffectedTarget::All },
-		ReturnWarhead_AffectsHouse { AffectedHouse::All },
-
-		IsCellSpreadWH(false),
-		IsFakeEngineer(false),
-		VeterancyCheck(false)
-
-		, JumpjetTurnRate {}
-		, JumpjetSpeed {}
-		, JumpjetClimb {}
-		, JumpjetCrash {}
-		, JumpjetHeight {}
-		, JumpjetAccel {}
-		, JumpjetWobbles {}
-		, JumpjetNoWobbles {}
-		, JumpjetDeviation {}
-
-		{
-			this->AbsType = WarheadTypeClass::AbsID;
-			this->InitializeConstant();
-		}
+	WarheadTypeExtData(WarheadTypeClass* pObj) : AbstractTypeExtData(pObj)
+	{
+		this->AbsType = WarheadTypeClass::AbsID;
+		this->InitializeConstant();
+	}
 
 	void Initialize();
 

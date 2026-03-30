@@ -80,9 +80,9 @@ static bool IsPrefiring(TechnoClass* pThis, WeaponTypeClass* pWeapon)
 		auto syncFrame = -1;
 
 		if (currentBurst == 0)
-			syncFrame = pUnit->Type->FiringSyncFrame0;
+			syncFrame = pUnit->Type->FiringSyncFrames[0];
 		else if (currentBurst == 1)
-			syncFrame = pUnit->Type->FiringSyncFrame1;
+			syncFrame = pUnit->Type->FiringSyncFrames[1];
 
 		if (syncFrame == -1)
 			return false;

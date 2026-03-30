@@ -96,12 +96,8 @@ public:
 	int StartDeathFrame;
 	int MaxDeathCounter;
 	int Facings;
-	int FiringSyncFrame0;
-	int FiringSyncFrame1;
-	int BurstDelay0;
-	int BurstDelay1;
-	int BurstDelay2;
-	int BurstDelay3;
+	int FiringSyncFrames[2];
+	int BurstDelays[4];
 	SHPStruct* AltImage;
 	char WalkFrames;
 	char FiringFrames;

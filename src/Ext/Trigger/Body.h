@@ -23,15 +23,15 @@ public:
 
 #pragma region ClassMember
 
-	PhobosFixedString<0x18> Name;
+	PhobosFixedString<0x18> Name {};
 
-	std::vector<TEventClass*> SortedEventsList;
+	std::vector<TEventClass*> SortedEventsList {};
 
-	PhobosMap<int, CDTimerClass> SequentialTimers;
-	PhobosMap<int, int>          SequentialTimersOriginalValue;
+	PhobosMap<int, CDTimerClass> SequentialTimers {};
+	PhobosMap<int, int>          SequentialTimersOriginalValue {};
 
-	PhobosMap<int, CDTimerClass> ParallelTimers;
-	PhobosMap<int, int>          ParallelTimersOriginalValue;
+	PhobosMap<int, CDTimerClass> ParallelTimers {};
+	PhobosMap<int, int>          ParallelTimersOriginalValue {};
 
 	int SequentialSwitchModeIndex;
 
@@ -41,18 +41,10 @@ public:
 public:
 
 	TriggerExtData(TriggerClass* pObj) : AbstractExtended(pObj)
-		, Name {}
-		, SortedEventsList {}
-		, SequentialTimers {}
-		, SequentialTimersOriginalValue {}
-		, ParallelTimers {}
-		, ParallelTimersOriginalValue {}
-		, SequentialSwitchModeIndex(-1)
 	{
 		this->Name = pObj->Type->ID;
 		this->AbsType = TriggerClass::AbsID;
 	}
-
 
 	TriggerExtData(TriggerClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 

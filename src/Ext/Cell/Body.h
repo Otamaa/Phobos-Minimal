@@ -45,34 +45,25 @@ public:
 	// ============================================================
 	// 8-byte aligned: Pointers
 	// ============================================================
-	UnitClass* IncomingUnit;
-	UnitClass* IncomingUnitAlt;
+	UnitClass* IncomingUnit {};
+	UnitClass* IncomingUnitAlt {};
 
 	// ============================================================
 	// 24-byte aligned: Vectors
 	// ============================================================
-	HelperedVector<RadSiteClass*> RadSites;
-	HelperedVector<RadLevel> RadLevels;
+	HelperedVector<RadSiteClass*> RadSites {};
+	HelperedVector<RadLevel> RadLevels {};
 
 	// ============================================================
 	// 4-byte aligned: int
 	// ============================================================
-	int NewPowerups;
-	int InfantryCount;
+	int NewPowerups {-1};
+	int InfantryCount {};
 
 #pragma endregion
 
 public:
 	CellExtData(CellClass* pObj) : AbstractExtended(pObj)
-		// Pointers
-		, IncomingUnit(nullptr)
-		, IncomingUnitAlt(nullptr)
-		// Vectors
-		, RadSites()
-		, RadLevels()
-		// ints
-		, NewPowerups(-1)
-		, InfantryCount(0)
 	{
 		this->AbsType = CellClass::AbsID;
 	}

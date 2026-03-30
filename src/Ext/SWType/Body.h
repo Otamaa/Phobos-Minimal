@@ -127,688 +127,377 @@ public:
 
 public:
 #pragma region ClassMembers
-
 	// ============================================================
 	// Large aggregates: CustomPalette, PhobosFixedString, IndexBitfield
 	// ============================================================
-	CustomPalette GClock_Palette;
-	CustomPalette SidebarPalette;
-	PhobosPCXFile SidebarPCX;
-	PhobosFixedString<0x19> SW_PostDependent;
-	IndexBitfield<HouseTypeClass*> SW_RequiredHouses;
-	IndexBitfield<HouseTypeClass*> SW_ForbiddenHouses;
-	DroppodProperties DroppodProp;
+	CustomPalette GClock_Palette { CustomPalette::PaletteMode::Default };
+	CustomPalette SidebarPalette { CustomPalette::PaletteMode::Default };
+	PhobosPCXFile SidebarPCX {};
+	PhobosFixedString<0x19> SW_PostDependent {};
+	IndexBitfield<HouseTypeClass*> SW_RequiredHouses { 0xFFFFFFFFu };
+	IndexBitfield<HouseTypeClass*> SW_ForbiddenHouses { 0u };
+	DroppodProperties DroppodProp {};
 
 	// ============================================================
 	// Large aggregates: Valueable<CSFText>
 	// ============================================================
-	Valueable<CSFText> Message_Launch;
-	Valueable<CSFText> Message_CannotFire;
-	Valueable<CSFText> Message_Activate;
-	Valueable<CSFText> Message_Abort;
-	Valueable<CSFText> Message_InsufficientFunds;
-	Valueable<CSFText> Message_InsufficientBattlePoints;
-	Valueable<CSFText> Message_Impatient;
-	Valueable<CSFText> Message_Detected;
-	Valueable<CSFText> Message_Ready;
-	Valueable<CSFText> Text_Preparing;
-	Valueable<CSFText> Text_Hold;
-	Valueable<CSFText> Text_Ready;
-	Valueable<CSFText> Text_Charging;
-	Valueable<CSFText> Text_Active;
-	Valueable<CSFText> UIDescription;
-	Valueable<CSFText> Message_LinkedSWAcquired;
+	Valueable<CSFText> Message_Launch {};
+	Valueable<CSFText> Message_CannotFire {};
+	Valueable<CSFText> Message_Activate {};
+	Valueable<CSFText> Message_Abort {};
+	Valueable<CSFText> Message_InsufficientFunds {};
+	Valueable<CSFText> Message_InsufficientBattlePoints {};
+	Valueable<CSFText> Message_Impatient {};
+	Valueable<CSFText> Message_Detected {};
+	Valueable<CSFText> Message_Ready {};
+	Valueable<CSFText> Text_Preparing {};
+	Valueable<CSFText> Text_Hold {};
+	Valueable<CSFText> Text_Ready {};
+	Valueable<CSFText> Text_Charging {};
+	Valueable<CSFText> Text_Active {};
+	Valueable<CSFText> UIDescription {};
+	Valueable<CSFText> Message_LinkedSWAcquired {};
 
 	// ============================================================
 	// Maps
 	// ============================================================
-	PhobosMap<AbstractTypeClass*, std::vector<ParadropData>> ParaDropDatas;
+	PhobosMap<AbstractTypeClass*, std::vector<ParadropData>> ParaDropDatas {};
 
 	// ============================================================
 	// Vectors of vectors
 	// ============================================================
-	std::vector<std::vector<int>> LimboDelivery_RandomWeightsData;
-	std::vector<std::vector<int>> SW_Next_RandomWeightsData;
-	std::vector<std::vector<int>> SW_Link_RandomWeightsData;
-	std::vector<TechnoTypeConvertData> ConvertsPair;
+	std::vector<std::vector<int>> LimboDelivery_RandomWeightsData {};
+	std::vector<std::vector<int>> SW_Next_RandomWeightsData {};
+	std::vector<std::vector<int>> SW_Link_RandomWeightsData {};
+	std::vector<TechnoTypeConvertData> ConvertsPair {};
 
 	// ============================================================
 	// 24-byte aligned: Vectors
 	// ============================================================
-	ValueableVector<BuildingTypeClass*> LimboDelivery_Types;
-	ValueableVector<int> LimboDelivery_IDs;
-	ValueableVector<float> LimboDelivery_RollChances;
-	ValueableVector<int> LimboKill_IDs;
-	ValueableVector<int> LimboKill_Counts;
-	ValueableIdxVector<SuperWeaponTypeClass*> SW_Next;
-	ValueableVector<float> SW_Next_RollChances;
-	ValueableVector<TechnoTypeClass*> SW_Inhibitors;
-	ValueableVector<TechnoTypeClass*> SW_Designators;
-	ValueableVector<TechnoTypeClass*> SW_Suppressors;
-	ValueableVector<TechnoTypeClass*> SW_Attractors;
-	ValueableVector<BuildingTypeClass*> SW_AuxBuildings;
-	ValueableVector<BuildingTypeClass*> SW_NegBuildings;
-	ValueableVector<TechnoTypeClass*> SW_AITargeting_PsyDom_AllowTypes;
-	ValueableVector<TechnoTypeClass*> SW_AITargeting_PsyDom_DisallowTypes;
-	ValueableVector<AircraftTypeClass*> SpyPlanes_TypeIndex;
-	ValueableVector<int> SpyPlanes_Count;
-	ValueableVector<Mission> SpyPlanes_Mission;
-	ValueableVector<Rank> SpyPlanes_Rank;
-	ValueableVector<BuildingTypeClass*> Battery_Overpower;
-	ValueableVector<BuildingTypeClass*> Battery_KeepOnline;
-	ValueableVector<TechnoTypeClass*> DropPod_Types;
-	ValueableVector<BuildingTypeClass*> EMPulse_Cannons;
-	ValueableVector<BuildingTypeClass*> HunterSeeker_Buildings;
-	NullableVector<AnimTypeClass*> Weather_Clouds;
-	NullableVector<AnimTypeClass*> Weather_Bolts;
-	NullableVector<AnimTypeClass*> Weather_Debris;
-	NullableIdxVector<VocClass> Weather_Sounds;
-	ValueableVector<BuildingTypeClass*> Weather_LightningRodTypes;
-	ValueableVector<TechnoTypeClass*> SW_Deliverables;
-	ValueableVector<int> SW_DeliverableCounts;
-	ValueableVector<FacingType> SW_Deliverables_Facing;
-	ValueableIdxVector<SuperWeaponTypeClass> SW_ResetType;
-	ValueableVector<int> SW_Require;
-	ValueableVector<TechnoTypeClass*> Aux_Techno;
-	ValueableVector<BuildingTypeClass*> SW_Lauchsites;
-	ValueableIdxVector<SuperWeaponTypeClass> SW_Link;
-	ValueableVector<float> SW_Link_RollChances;
+	ValueableVector<BuildingTypeClass*> LimboDelivery_Types {};
+	ValueableVector<int> LimboDelivery_IDs {};
+	ValueableVector<float> LimboDelivery_RollChances {};
+	ValueableVector<int> LimboKill_IDs {};
+	ValueableVector<int> LimboKill_Counts {};
+	ValueableIdxVector<SuperWeaponTypeClass*> SW_Next {};
+	ValueableVector<float> SW_Next_RollChances {};
+	ValueableVector<TechnoTypeClass*> SW_Inhibitors {};
+	ValueableVector<TechnoTypeClass*> SW_Designators {};
+	ValueableVector<TechnoTypeClass*> SW_Suppressors {};
+	ValueableVector<TechnoTypeClass*> SW_Attractors {};
+	ValueableVector<BuildingTypeClass*> SW_AuxBuildings {};
+	ValueableVector<BuildingTypeClass*> SW_NegBuildings {};
+	ValueableVector<TechnoTypeClass*> SW_AITargeting_PsyDom_AllowTypes {};
+	ValueableVector<TechnoTypeClass*> SW_AITargeting_PsyDom_DisallowTypes {};
+	ValueableVector<AircraftTypeClass*> SpyPlanes_TypeIndex {};
+	ValueableVector<int> SpyPlanes_Count {};
+	ValueableVector<Mission> SpyPlanes_Mission {};
+	ValueableVector<Rank> SpyPlanes_Rank {};
+	ValueableVector<BuildingTypeClass*> Battery_Overpower {};
+	ValueableVector<BuildingTypeClass*> Battery_KeepOnline {};
+	ValueableVector<TechnoTypeClass*> DropPod_Types {};
+	ValueableVector<BuildingTypeClass*> EMPulse_Cannons {};
+	ValueableVector<BuildingTypeClass*> HunterSeeker_Buildings {};
+	NullableVector<AnimTypeClass*> Weather_Clouds {};
+	NullableVector<AnimTypeClass*> Weather_Bolts {};
+	NullableVector<AnimTypeClass*> Weather_Debris {};
+	NullableIdxVector<VocClass> Weather_Sounds {};
+	ValueableVector<BuildingTypeClass*> Weather_LightningRodTypes {};
+	ValueableVector<TechnoTypeClass*> SW_Deliverables {};
+	ValueableVector<int> SW_DeliverableCounts {};
+	ValueableVector<FacingType> SW_Deliverables_Facing {};
+	ValueableIdxVector<SuperWeaponTypeClass> SW_ResetType {};
+	ValueableVector<int> SW_Require {};
+	ValueableVector<TechnoTypeClass*> Aux_Techno {};
+	ValueableVector<BuildingTypeClass*> SW_Lauchsites {};
+	ValueableIdxVector<SuperWeaponTypeClass> SW_Link {};
+	ValueableVector<float> SW_Link_RollChances {};
 
 	// ============================================================
 	// Valueable<SWRange> (likely 8+ bytes)
 	// ============================================================
-	Valueable<SWRange> SW_Range;
+	Valueable<SWRange> SW_Range { SWRange() };
 
 	// ============================================================
 	// 8-byte aligned: Valueable<pointer>
 	// ============================================================
-	Valueable<WarheadTypeClass*> Detonate_Warhead;
-	Valueable<WeaponTypeClass*> Detonate_Weapon;
-	Valueable<SHPStruct*> GClock_Shape;
-	Valueable<WeaponTypeClass*> Nuke_Payload;
-	Valueable<AnimTypeClass*> Nuke_PsiWarning;
-	Valueable<AnimTypeClass*> Convert_SucceededAnim;
-	Valueable<AnimTypeClass*> MeteorSmall;
-	Valueable<AnimTypeClass*> MeteorLarge;
-	Valueable<VoxelAnimTypeClass*> MeteorImpactSmall;
-	Valueable<VoxelAnimTypeClass*> MeteorImpactLarge;
-	Valueable<AnimTypeClass*> IonCannon_Blast;
-	Valueable<AnimTypeClass*> IonCannon_Beam;
-	Valueable<WeaponTypeClass*> LaserStrikeZeroRadius_Weapon;
+	Valueable<WarheadTypeClass*> Detonate_Warhead { nullptr };
+	Valueable<WeaponTypeClass*> Detonate_Weapon { nullptr };
+	Valueable<SHPStruct*> GClock_Shape {};
+	Valueable<WeaponTypeClass*> Nuke_Payload { nullptr };
+	Valueable<AnimTypeClass*> Nuke_PsiWarning { nullptr };
+	Valueable<AnimTypeClass*> Convert_SucceededAnim { nullptr };
+	Valueable<AnimTypeClass*> MeteorSmall { nullptr };
+	Valueable<AnimTypeClass*> MeteorLarge { nullptr };
+	Valueable<VoxelAnimTypeClass*> MeteorImpactSmall { nullptr };
+	Valueable<VoxelAnimTypeClass*> MeteorImpactLarge { nullptr };
+	Valueable<AnimTypeClass*> IonCannon_Blast { nullptr };
+	Valueable<AnimTypeClass*> IonCannon_Beam { nullptr };
+	Valueable<WeaponTypeClass*> LaserStrikeZeroRadius_Weapon { nullptr };
 
 	// ============================================================
 	// Nullable<pointer> (pointer + bool + padding ≈ 16 bytes)
 	// ============================================================
-	Nullable<AnimTypeClass*> Nuke_TakeOff;
-	Nullable<AnimTypeClass*> Chronosphere_BlastSrc;
-	Nullable<AnimTypeClass*> Chronosphere_BlastDest;
-	Nullable<AnimTypeClass*> Dominator_FirstAnim;
-	Nullable<AnimTypeClass*> Dominator_SecondAnim;
-	Nullable<AnimTypeClass*> Dominator_ControlAnim;
-	Nullable<UnitTypeClass*> HunterSeeker_Type;
-	Nullable<AnimTypeClass*> Weather_BoltExplosion;
-	Nullable<AnimTypeClass*> EMPulse_PulseBall;
-	Nullable<WarheadTypeClass*> SW_Warhead;
-	Nullable<AnimTypeClass*> SW_Anim;
+	Nullable<AnimTypeClass*> Nuke_TakeOff {};
+	Nullable<AnimTypeClass*> Chronosphere_BlastSrc {};
+	Nullable<AnimTypeClass*> Chronosphere_BlastDest {};
+	Nullable<AnimTypeClass*> Dominator_FirstAnim {};
+	Nullable<AnimTypeClass*> Dominator_SecondAnim {};
+	Nullable<AnimTypeClass*> Dominator_ControlAnim {};
+	Nullable<UnitTypeClass*> HunterSeeker_Type {};
+	Nullable<AnimTypeClass*> Weather_BoltExplosion {};
+	Nullable<AnimTypeClass*> EMPulse_PulseBall {};
+	Nullable<WarheadTypeClass*> SW_Warhead {};
+	Nullable<AnimTypeClass*> SW_Anim {};
 
 	// ============================================================
 	// Nullable<double> (~16 bytes)
 	// ============================================================
-	Nullable<double> SW_ChargeToDrainRatio;
+	Nullable<double> SW_ChargeToDrainRatio {};
 
 	// ============================================================
 	// Valueable<double> (8 bytes each)
 	// ============================================================
-	Valueable<double> RandomBuffer;
-	Valueable<double> SW_RangeMinimum;
-	Valueable<double> SW_RangeMaximum;
-	Valueable<double> DropPod_Veterancy;
+	Valueable<double> RandomBuffer { 0.0 };
+	Valueable<double> SW_RangeMinimum { -1.0 };
+	Valueable<double> SW_RangeMaximum { -1.0 };
+	Valueable<double> DropPod_Veterancy { 2.0 };
 
 	// ============================================================
 	// Nullable<int> (~8 bytes each)
 	// ============================================================
-	Nullable<int> Detonate_Damage;
-	Nullable<int> SW_Damage;
-	Nullable<int> SW_Power;
-	Nullable<int> SW_Deferment;
-	Nullable<int> Chronosphere_Delay;
-	Nullable<int> Dominator_FireAtPercentage;
-	Nullable<int> DropPod_Minimum;
-	Nullable<int> DropPod_Maximum;
-	Nullable<int> Weather_Duration;
-	Nullable<int> Weather_HitDelay;
-	Nullable<int> Weather_ScatterDelay;
-	Nullable<int> Weather_Separation;
-	Nullable<int> Weather_RadarOutage;
-	Nullable<int> Protect_Duration;
-	Nullable<int> Protect_PlayFadeSoundTime;
-	Nullable<int> Protect_PowerOutageDuration;
-	Nullable<int> Lighting_Ambient;
-	Nullable<int> Lighting_Green;
-	Nullable<int> Lighting_Blue;
-	Nullable<int> Lighting_Red;
+	Nullable<int> Detonate_Damage {};
+	Nullable<int> SW_Damage {};
+	Nullable<int> SW_Power {};
+	Nullable<int> SW_Deferment {};
+	Nullable<int> Chronosphere_Delay {};
+	Nullable<int> Dominator_FireAtPercentage {};
+	Nullable<int> DropPod_Minimum {};
+	Nullable<int> DropPod_Maximum {};
+	Nullable<int> Weather_Duration {};
+	Nullable<int> Weather_HitDelay {};
+	Nullable<int> Weather_ScatterDelay {};
+	Nullable<int> Weather_Separation {};
+	Nullable<int> Weather_RadarOutage {};
+	Nullable<int> Protect_Duration {};
+	Nullable<int> Protect_PlayFadeSoundTime {};
+	Nullable<int> Protect_PowerOutageDuration {};
+	Nullable<int> Lighting_Ambient {};
+	Nullable<int> Lighting_Green {};
+	Nullable<int> Lighting_Blue {};
+	Nullable<int> Lighting_Red {};
 
 	// ============================================================
 	// Nullable<TargetingConstraints/SuperWeaponTarget/etc> (~8 bytes)
 	// ============================================================
-	Nullable<TargetingConstraints> SW_AITargetingConstrain;
-	Nullable<SuperWeaponTarget> SW_AIRequiresTarget;
-	Nullable<AffectedHouse> SW_AIRequiresHouse;
-	Nullable<TargetingPreference> SW_AITargetingPreference;
+	Nullable<TargetingConstraints> SW_AITargetingConstrain {};
+	Nullable<SuperWeaponTarget> SW_AIRequiresTarget {};
+	Nullable<AffectedHouse> SW_AIRequiresHouse {};
+	Nullable<TargetingPreference> SW_AITargetingPreference {};
 
 	// ============================================================
 	// Nullable<bool> (~2-4 bytes)
 	// ============================================================
-	Nullable<bool> Mutate_Explosion;
-	Nullable<bool> Weather_PrintText;
-	Nullable<bool> SW_DeliverableScatter;
-	Nullable<bool> Lighting_Enabled;
-	Nullable<bool> SuperWeaponSidebar_Allow;
+	Nullable<bool> Mutate_Explosion {};
+	Nullable<bool> Weather_PrintText {};
+	Nullable<bool> SW_DeliverableScatter {};
+	Nullable<bool> Lighting_Enabled {};
+	Nullable<bool> SuperWeaponSidebar_Allow {};
 
 	// ============================================================
 	// NullableIdx (~8 bytes each)
 	// ============================================================
-	NullableIdx<VocClass> SW_Sound;
-	NullableIdx<VocClass> SW_ActivationSound;
-	NullableIdx<VocClass> EVA_LinkedSWAcquired;
+	NullableIdx<VocClass> SW_Sound {};
+	NullableIdx<VocClass> SW_ActivationSound {};
+	NullableIdx<VocClass> EVA_LinkedSWAcquired {};
 
 	// ============================================================
 	// ValueableIdx (4 bytes each)
 	// ============================================================
-	ValueableIdx<VoxClass> EVA_Activated;
-	ValueableIdx<VoxClass> EVA_Ready;
-	ValueableIdx<VoxClass> EVA_Detected;
-	ValueableIdx<VoxClass> EVA_InsufficientFunds;
-	ValueableIdx<VoxClass> EVA_InsufficientBattlePoints;
-	ValueableIdx<VoxClass> EVA_SelectTarget;
-	ValueableIdx<ColorScheme> Message_ColorScheme;
-	ValueableIdx<CursorTypeClass*> CursorType;
-	ValueableIdx<CursorTypeClass*> NoCursorType;
+	ValueableIdx<VoxClass> EVA_Activated { -1 };
+	ValueableIdx<VoxClass> EVA_Ready { -1 };
+	ValueableIdx<VoxClass> EVA_Detected { -1 };
+	ValueableIdx<VoxClass> EVA_InsufficientFunds { -1 };
+	ValueableIdx<VoxClass> EVA_InsufficientBattlePoints { -1 };
+	ValueableIdx<VoxClass> EVA_SelectTarget { -1 };
+	ValueableIdx<ColorScheme> Message_ColorScheme { -1 };
+	ValueableIdx<CursorTypeClass*> CursorType { (int)MouseCursorType::Attack };
+	ValueableIdx<CursorTypeClass*> NoCursorType { (int)MouseCursorType::NoMove };
 
 	// ============================================================
 	// Valueable<ColorStruct> (3-4 bytes each)
 	// ============================================================
-	Valueable<ColorStruct> LaserStrikeInnerColor;
-	Valueable<ColorStruct> LaserStrikeOuterColor;
-	Valueable<ColorStruct> LaserStrikeOuterSpread;
+	Valueable<ColorStruct> LaserStrikeInnerColor { { 255, 0, 0 } };
+	Valueable<ColorStruct> LaserStrikeOuterColor { { 255, 0, 0 } };
+	Valueable<ColorStruct> LaserStrikeOuterSpread { { 255, 0, 0 } };
 
 	// ============================================================
 	// Valueable<int> (4 bytes each)
 	// ============================================================
-	Valueable<int> CameoPriority;
-	Valueable<int> SW_Priority;
-	Valueable<int> SW_Group;
-	Valueable<int> SW_Shots;
-	Valueable<int> SW_AnimHeight;
-	Valueable<int> SW_MaxCount;
-	Valueable<int> Dominator_FirstAnimHeight;
-	Valueable<int> Dominator_SecondAnimHeight;
-	Valueable<int> Droppod_RetryCount;
-	Valueable<int> EMPField_Duration;
-	Valueable<int> EMPulse_PulseDelay;
-	Valueable<int> EMPulse_WeaponIndex;
-	Valueable<int> Weather_ScatterCount;
-	Valueable<int> Weather_CloudHeight;
-	Valueable<int> Weather_DebrisMin;
-	Valueable<int> Weather_DebrisMax;
-	Valueable<int> Sonar_Delay;
-	Valueable<int> Money_Amount;
-	Valueable<int> Money_DrainAmount;
-	Valueable<int> Money_DrainDelay;
-	Valueable<int> MeteorCounts;
-	Valueable<int> MeteorImactCounts;
-	Valueable<int> MeteorAddImpactChance;
-	Valueable<int> MeteorKindChance;
-	Valueable<int> MeteorImpactKindChance;
-	Valueable<int> IonCannon_BlastHeight;
-	Valueable<int> IonCannon_BeamHeight;
-	Valueable<int> IonCannon_FireAtPercentage;
-	Valueable<int> LaserStrikeDuration;
-	Valueable<int> LaserStrikeRadius;
-	Valueable<int> LaserStrikeMax;
-	Valueable<int> LaserStrikeMin;
-	Valueable<int> LaserStrikeMaxRadius;
-	Valueable<int> LaserStrikeMinRadius;
-	Valueable<int> LaserStrikeRadiusReduce;
-	Valueable<int> LaserStrikeRadiusReduceAcceleration;
-	Valueable<int> LaserStrikeRadiusReduceMax;
-	Valueable<int> LaserStrikeRadiusReduceMin;
-	Valueable<int> LaserStrikeROF;
-	Valueable<int> LaserStrikeScatter_Max;
-	Valueable<int> LaserStrikeScatter_Min;
-	Valueable<int> LaserStrikeScatter_Max_IncreaseMax;
-	Valueable<int> LaserStrikeScatter_Max_IncreaseMin;
-	Valueable<int> LaserStrikeScatter_Max_Increase;
-	Valueable<int> LaserStrikeScatter_Min_IncreaseMax;
-	Valueable<int> LaserStrikeScatter_Min_IncreaseMin;
-	Valueable<int> LaserStrikeScatter_Min_Increase;
-	Valueable<int> LaserStrikeLines;
-	Valueable<int> LaserStrikeAngle;
-	Valueable<int> LaserStrikeAngleAcceleration;
-	Valueable<int> LaserStrikeAngleMax;
-	Valueable<int> LaserStrikeAngleMin;
-	Valueable<int> LaserStrikeLaserDuration;
-	Valueable<int> LaserStrikeLaserHeight;
-	Valueable<int> LaserStrikeThickness;
-	Valueable<int> LaserStrikeRate;
-	Valueable<int> UseWeeds_Amount;
-	Valueable<int> UseWeeds_ReadinessAnimationPercentage;
-	Valueable<int> TabIndex;
-	Valueable<int> BattlePoints_Amount;
-	Valueable<int> BattlePoints_DrainAmount;
-	Valueable<int> BattlePoints_DrainDelay;
-	Valueable<int> SuperWeaponSidebar_Significance;
+	Valueable<int> CameoPriority { 0 };
+	Valueable<int> SW_Priority { 0 };
+	Valueable<int> SW_Group { 0 };
+	Valueable<int> SW_Shots { -1 };
+	Valueable<int> SW_AnimHeight { 0 };
+	Valueable<int> SW_MaxCount { -1 };
+	Valueable<int> Dominator_FirstAnimHeight { 1 };
+	Valueable<int> Dominator_SecondAnimHeight { 1 };
+	Valueable<int> Droppod_RetryCount { 3 };
+	Valueable<int> EMPField_Duration { 100 };
+	Valueable<int> EMPulse_PulseDelay { 32 };
+	Valueable<int> EMPulse_WeaponIndex { 0 };
+	Valueable<int> Weather_ScatterCount { 1 };
+	Valueable<int> Weather_CloudHeight { -1 };
+	Valueable<int> Weather_DebrisMin { 0 };
+	Valueable<int> Weather_DebrisMax { 1 };
+	Valueable<int> Sonar_Delay { 0 };
+	Valueable<int> Money_Amount { 0 };
+	Valueable<int> Money_DrainAmount { 0 };
+	Valueable<int> Money_DrainDelay { 0 };
+	Valueable<int> MeteorCounts { 15 };
+	Valueable<int> MeteorImactCounts { 5 };
+	Valueable<int> MeteorAddImpactChance { 10 };
+	Valueable<int> MeteorKindChance { 30 };
+	Valueable<int> MeteorImpactKindChance { 50 };
+	Valueable<int> IonCannon_BlastHeight { 0 };
+	Valueable<int> IonCannon_BeamHeight { 0 };
+	Valueable<int> IonCannon_FireAtPercentage { 0 };
+	Valueable<int> LaserStrikeDuration { 1000 };
+	Valueable<int> LaserStrikeRadius { 4096 };
+	Valueable<int> LaserStrikeMax { 2 };
+	Valueable<int> LaserStrikeMin { 1 };
+	Valueable<int> LaserStrikeMaxRadius { -1 };
+	Valueable<int> LaserStrikeMinRadius { -1 };
+	Valueable<int> LaserStrikeRadiusReduce { 20 };
+	Valueable<int> LaserStrikeRadiusReduceAcceleration { 0 };
+	Valueable<int> LaserStrikeRadiusReduceMax { 0 };
+	Valueable<int> LaserStrikeRadiusReduceMin { 0 };
+	Valueable<int> LaserStrikeROF { 0 };
+	Valueable<int> LaserStrikeScatter_Max { 0 };
+	Valueable<int> LaserStrikeScatter_Min { 0 };
+	Valueable<int> LaserStrikeScatter_Max_IncreaseMax { 0 };
+	Valueable<int> LaserStrikeScatter_Max_IncreaseMin { 0 };
+	Valueable<int> LaserStrikeScatter_Max_Increase { 0 };
+	Valueable<int> LaserStrikeScatter_Min_IncreaseMax { 0 };
+	Valueable<int> LaserStrikeScatter_Min_IncreaseMin { 0 };
+	Valueable<int> LaserStrikeScatter_Min_Increase { 0 };
+	Valueable<int> LaserStrikeLines { 8 };
+	Valueable<int> LaserStrikeAngle { 2 };
+	Valueable<int> LaserStrikeAngleAcceleration { 0 };
+	Valueable<int> LaserStrikeAngleMax { 0 };
+	Valueable<int> LaserStrikeAngleMin { 0 };
+	Valueable<int> LaserStrikeLaserDuration { 3 };
+	Valueable<int> LaserStrikeLaserHeight { 20000 };
+	Valueable<int> LaserStrikeThickness { 10 };
+	Valueable<int> LaserStrikeRate { 0 };
+	Valueable<int> UseWeeds_Amount { RulesClass::Instance->WeedCapacity };
+	Valueable<int> UseWeeds_ReadinessAnimationPercentage { 90 };
+	Valueable<int> TabIndex { 1 };
+	Valueable<int> BattlePoints_Amount { 0 };
+	Valueable<int> BattlePoints_DrainAmount { 0 };
+	Valueable<int> BattlePoints_DrainDelay { 0 };
+	Valueable<int> SuperWeaponSidebar_Significance { 0 };
 
 	// ============================================================
 	// DWORD (4 bytes each)
 	// ============================================================
-	DWORD SuperWeaponSidebar_PriorityHouses;
-	DWORD SuperWeaponSidebar_RequiredHouses;
+	DWORD SuperWeaponSidebar_PriorityHouses { 0u };
+	DWORD SuperWeaponSidebar_RequiredHouses { 0xFFFFFFFFu };
 
 	// ============================================================
 	// Valueable<enum> (4 bytes each)
 	// ============================================================
-	Valueable<TranslucencyLevel> GClock_Transculency;
-	Valueable<AffectedHouse> LimboKill_Affected;
-	Valueable<AffectedHouse> SW_Inhibitors_Houses;
-	Valueable<AffectedHouse> SW_Designators_Houses;
-	Valueable<SuperWeaponAITargetingMode> SW_AITargetingMode;
-	Valueable<AffectedHouse> SW_AffectsHouse;
-	Valueable<AffectedHouse> SW_AnimVisibility;
-	Valueable<SuperWeaponTarget> SW_RequiresTarget;
-	Valueable<AffectedHouse> SW_RequiresHouse;
-	Valueable<SuperWeaponTarget> SW_AffectsTarget;
-	Valueable<AffectedHouse> SW_TimerVisibility;
-	Valueable<OwnerHouseKind> SW_OwnerHouse;
-	Valueable<AffectedHouse> Weather_RadarOutageAffects;
-	NewSuperType HandledType;
-	Action LastAction;
+	Valueable<TranslucencyLevel> GClock_Transculency {};
+	Valueable<AffectedHouse> LimboKill_Affected { AffectedHouse::Owner };
+	Valueable<AffectedHouse> SW_Inhibitors_Houses { AffectedHouse::Enemies };
+	Valueable<AffectedHouse> SW_Designators_Houses { AffectedHouse::Owner };
+	Valueable<SuperWeaponAITargetingMode> SW_AITargetingMode { SuperWeaponAITargetingMode::None };
+	Valueable<AffectedHouse> SW_AffectsHouse { AffectedHouse::All };
+	Valueable<AffectedHouse> SW_AnimVisibility { AffectedHouse::All };
+	Valueable<SuperWeaponTarget> SW_RequiresTarget { SuperWeaponTarget::None };
+	Valueable<AffectedHouse> SW_RequiresHouse { AffectedHouse::None };
+	Valueable<SuperWeaponTarget> SW_AffectsTarget { SuperWeaponTarget::All };
+	Valueable<AffectedHouse> SW_TimerVisibility { AffectedHouse::All };
+	Valueable<OwnerHouseKind> SW_OwnerHouse { OwnerHouseKind::Default };
+	Valueable<AffectedHouse> Weather_RadarOutageAffects { AffectedHouse::All };
+	NewSuperType HandledType { NewSuperType::Invalid };
+	Action LastAction { Action::None };
 
 	// ============================================================
 	// Valueable<bool> (1 byte each, packed together at the end)
 	// ============================================================
-	Valueable<bool> EVA_Detected_Simple;
-	Valueable<bool> Message_FirerColor;
-	Valueable<bool> SW_RadarEvent;
-	Valueable<bool> SW_Next_RealLaunch;
-	Valueable<bool> SW_Next_IgnoreInhibitors;
-	Valueable<bool> SW_Next_IgnoreDesignators;
-	Valueable<bool> SW_AnyInhibitor;
-	Valueable<bool> SW_AnyDesignator;
-	Valueable<bool> ShowDesignatorRange;
-	Valueable<bool> SW_AnySuppressor;
-	Valueable<bool> SW_AnyAttractor;
-	Valueable<bool> SW_InitialReady;
-	Valueable<bool> SW_AlwaysGranted;
-	Valueable<bool> Detonate_AtFirer;
-	Valueable<bool> ChargeTimer;
-	Valueable<bool> ChargeTimer_Backwards;
-	Valueable<bool> SW_AutoFire;
-	Valueable<bool> SW_AutoFire_CheckAvail;
-	Valueable<bool> SW_AllowPlayer;
-	Valueable<bool> SW_AllowAI;
-	Valueable<bool> SW_FireToShroud;
-	Valueable<bool> SW_UseAITargeting;
-	Valueable<bool> SW_AITargeting_PsyDom_SkipChecks;
-	Valueable<bool> SW_AITargeting_PsyDom_AllowAir;
-	Valueable<bool> SW_AITargeting_PsyDom_AllowInvulnerable;
-	Valueable<bool> SW_AITargeting_PsyDom_AllowCloak;
-	Valueable<bool> SW_ShowCameo;
-	Valueable<bool> SW_VirtualCharge;
-	Valueable<bool> SW_ManualFire;
-	Valueable<bool> SW_Unstoppable;
-	Valueable<bool> Converts_UseSWRange;
-	Valueable<bool> Nuke_SiloLaunch;
-	Valueable<bool> Chronosphere_KillOrganic;
-	Valueable<bool> Chronosphere_KillTeleporters;
-	Valueable<bool> Chronosphere_AffectUndeployable;
-	Valueable<bool> Chronosphere_AffectBuildings;
-	Valueable<bool> Chronosphere_AffectUnwarpable;
-	Valueable<bool> Chronosphere_AffectIronCurtain;
-	Valueable<bool> Chronosphere_BlowUnplaceable;
-	Valueable<bool> Chronosphere_ReconsiderBuildings;
-	Valueable<bool> Chronosphere_KillCargo;
-	Valueable<bool> Dominator_Capture;
-	Valueable<bool> Dominator_Ripple;
-	Valueable<bool> Dominator_CaptureMindControlled;
-	Valueable<bool> Dominator_CapturePermaMindControlled;
-	Valueable<bool> Dominator_CaptureImmuneToPsionics;
-	Valueable<bool> Dominator_PermanentCapture;
-	Valueable<bool> EMPulse_Linked;
-	Valueable<bool> EMPulse_TargetSelf;
-	Valueable<bool> EMPulse_SuspendOthers;
-	Valueable<bool> Mutate_IgnoreCyborg;
-	Valueable<bool> Mutate_IgnoreNotHuman;
-	Valueable<bool> Mutate_KillNatural;
-	Valueable<bool> HunterSeeker_RandomOnly;
-	Valueable<bool> HunterSeeker_AllowAttachedBuildingAsFallback;
-	Valueable<bool> Weather_IgnoreLightningRod;
-	Valueable<bool> Weather_UseSeparateState;
-	Valueable<bool> Protect_IsForceShield;
-	Valueable<bool> SW_DeliverBuildups;
-	Valueable<bool> SW_BaseNormal;
-	Valueable<bool> IonCannon_Ripple;
-	Valueable<bool> Generic_Warhead_Detonate;
-	Valueable<bool> UseWeeds;
-	Valueable<bool> UseWeeds_StorageTimer;
-	Valueable<bool> SW_Link_Grant;
-	Valueable<bool> SW_Link_Ready;
-	Valueable<bool> SW_Link_Reset;
-	Valueable<bool> CrateGoodies;
-
+	Valueable<bool> EVA_Detected_Simple { false };
+	Valueable<bool> Message_FirerColor { false };
+	Valueable<bool> SW_RadarEvent { true };
+	Valueable<bool> SW_Next_RealLaunch { true };
+	Valueable<bool> SW_Next_IgnoreInhibitors { false };
+	Valueable<bool> SW_Next_IgnoreDesignators { true };
+	Valueable<bool> SW_AnyInhibitor { false };
+	Valueable<bool> SW_AnyDesignator { false };
+	Valueable<bool> ShowDesignatorRange { true };
+	Valueable<bool> SW_AnySuppressor { false };
+	Valueable<bool> SW_AnyAttractor { false };
+	Valueable<bool> SW_InitialReady { false };
+	Valueable<bool> SW_AlwaysGranted { false };
+	Valueable<bool> Detonate_AtFirer { false };
+	Valueable<bool> ChargeTimer { false };
+	Valueable<bool> ChargeTimer_Backwards { false };
+	Valueable<bool> SW_AutoFire { false };
+	Valueable<bool> SW_AutoFire_CheckAvail { false };
+	Valueable<bool> SW_AllowPlayer { true };
+	Valueable<bool> SW_AllowAI { true };
+	Valueable<bool> SW_FireToShroud { true };
+	Valueable<bool> SW_UseAITargeting { false };
+	Valueable<bool> SW_AITargeting_PsyDom_SkipChecks { false };
+	Valueable<bool> SW_AITargeting_PsyDom_AllowAir { false };
+	Valueable<bool> SW_AITargeting_PsyDom_AllowInvulnerable { false };
+	Valueable<bool> SW_AITargeting_PsyDom_AllowCloak { false };
+	Valueable<bool> SW_ShowCameo { true };
+	Valueable<bool> SW_VirtualCharge { false };
+	Valueable<bool> SW_ManualFire { true };
+	Valueable<bool> SW_Unstoppable { false };
+	Valueable<bool> Converts_UseSWRange { false };
+	Valueable<bool> Nuke_SiloLaunch { true };
+	Valueable<bool> Chronosphere_KillOrganic { true };
+	Valueable<bool> Chronosphere_KillTeleporters { true };
+	Valueable<bool> Chronosphere_AffectUndeployable { false };
+	Valueable<bool> Chronosphere_AffectBuildings { false };
+	Valueable<bool> Chronosphere_AffectUnwarpable { false };
+	Valueable<bool> Chronosphere_AffectIronCurtain { false };
+	Valueable<bool> Chronosphere_BlowUnplaceable { true };
+	Valueable<bool> Chronosphere_ReconsiderBuildings { false };
+	Valueable<bool> Chronosphere_KillCargo { false };
+	Valueable<bool> Dominator_Capture { true };
+	Valueable<bool> Dominator_Ripple { true };
+	Valueable<bool> Dominator_CaptureMindControlled { true };
+	Valueable<bool> Dominator_CapturePermaMindControlled { true };
+	Valueable<bool> Dominator_CaptureImmuneToPsionics { false };
+	Valueable<bool> Dominator_PermanentCapture { true };
+	Valueable<bool> EMPulse_Linked { false };
+	Valueable<bool> EMPulse_TargetSelf { false };
+	Valueable<bool> EMPulse_SuspendOthers { false };
+	Valueable<bool> Mutate_IgnoreCyborg { false };
+	Valueable<bool> Mutate_IgnoreNotHuman { true };
+	Valueable<bool> Mutate_KillNatural { true };
+	Valueable<bool> HunterSeeker_RandomOnly { false };
+	Valueable<bool> HunterSeeker_AllowAttachedBuildingAsFallback { false };
+	Valueable<bool> Weather_IgnoreLightningRod { false };
+	Valueable<bool> Weather_UseSeparateState { false };
+	Valueable<bool> Protect_IsForceShield { false };
+	Valueable<bool> SW_DeliverBuildups { true };
+	Valueable<bool> SW_BaseNormal { true };
+	Valueable<bool> IonCannon_Ripple { true };
+	Valueable<bool> Generic_Warhead_Detonate { false };
+	Valueable<bool> UseWeeds { false };
+	Valueable<bool> UseWeeds_StorageTimer { false };
+	Valueable<bool> SW_Link_Grant { false };
+	Valueable<bool> SW_Link_Ready { false };
+	Valueable<bool> SW_Link_Reset { false };
+	Valueable<bool> CrateGoodies { false };
 #pragma endregion
 
 public:
-	SWTypeExtData(SuperWeaponTypeClass* pObj) : AbstractTypeExtData(pObj)
-		// Large aggregates
-		, GClock_Palette(CustomPalette::PaletteMode::Default)
-		, SidebarPalette(CustomPalette::PaletteMode::Default)
-		, SidebarPCX()
-		, SW_PostDependent()
-		, SW_RequiredHouses(0xFFFFFFFFu)
-		, SW_ForbiddenHouses(0u)
-		, DroppodProp()
-		// CSFText
-		, Message_Launch()
-		, Message_CannotFire()
-		, Message_Activate()
-		, Message_Abort()
-		, Message_InsufficientFunds()
-		, Message_InsufficientBattlePoints()
-		, Message_Impatient()
-		, Message_Detected()
-		, Message_Ready()
-		, Text_Preparing()
-		, Text_Hold()
-		, Text_Ready()
-		, Text_Charging()
-		, Text_Active()
-		, UIDescription()
-		, Message_LinkedSWAcquired()
-		// Maps
-		, ParaDropDatas()
-		// Vectors of vectors
-		, LimboDelivery_RandomWeightsData()
-		, SW_Next_RandomWeightsData()
-		, SW_Link_RandomWeightsData()
-		, ConvertsPair()
-		// Vectors
-		, LimboDelivery_Types()
-		, LimboDelivery_IDs()
-		, LimboDelivery_RollChances()
-		, LimboKill_IDs()
-		, LimboKill_Counts()
-		, SW_Next()
-		, SW_Next_RollChances()
-		, SW_Inhibitors()
-		, SW_Designators()
-		, SW_Suppressors()
-		, SW_Attractors()
-		, SW_AuxBuildings()
-		, SW_NegBuildings()
-		, SW_AITargeting_PsyDom_AllowTypes()
-		, SW_AITargeting_PsyDom_DisallowTypes()
-		, SpyPlanes_TypeIndex()
-		, SpyPlanes_Count()
-		, SpyPlanes_Mission()
-		, SpyPlanes_Rank()
-		, Battery_Overpower()
-		, Battery_KeepOnline()
-		, DropPod_Types()
-		, EMPulse_Cannons()
-		, HunterSeeker_Buildings()
-		, Weather_Clouds()
-		, Weather_Bolts()
-		, Weather_Debris()
-		, Weather_Sounds()
-		, Weather_LightningRodTypes()
-		, SW_Deliverables()
-		, SW_DeliverableCounts()
-		, SW_Deliverables_Facing()
-		, SW_ResetType()
-		, SW_Require()
-		, Aux_Techno()
-		, SW_Lauchsites()
-		, SW_Link()
-		, SW_Link_RollChances()
-		// SWRange
-		, SW_Range(SWRange())
-		// Valueable<pointer>
-		, Detonate_Warhead(nullptr)
-		, Detonate_Weapon(nullptr)
-		, GClock_Shape()
-		, Nuke_Payload(nullptr)
-		, Nuke_PsiWarning(nullptr)
-		, Convert_SucceededAnim(nullptr)
-		, MeteorSmall(nullptr)
-		, MeteorLarge(nullptr)
-		, MeteorImpactSmall(nullptr)
-		, MeteorImpactLarge(nullptr)
-		, IonCannon_Blast(nullptr)
-		, IonCannon_Beam(nullptr)
-		, LaserStrikeZeroRadius_Weapon(nullptr)
-		// Nullable<pointer>
-		, Nuke_TakeOff()
-		, Chronosphere_BlastSrc()
-		, Chronosphere_BlastDest()
-		, Dominator_FirstAnim()
-		, Dominator_SecondAnim()
-		, Dominator_ControlAnim()
-		, HunterSeeker_Type()
-		, Weather_BoltExplosion()
-		, EMPulse_PulseBall()
-		, SW_Warhead()
-		, SW_Anim()
-		// Nullable<double>
-		, SW_ChargeToDrainRatio()
-		// Valueable<double>
-		, RandomBuffer(0.0)
-		, SW_RangeMinimum(-1.0)
-		, SW_RangeMaximum(-1.0)
-		, DropPod_Veterancy(2.0)
-		// Nullable<int>
-		, Detonate_Damage()
-		, SW_Damage()
-		, SW_Power()
-		, SW_Deferment()
-		, Chronosphere_Delay()
-		, Dominator_FireAtPercentage()
-		, DropPod_Minimum()
-		, DropPod_Maximum()
-		, Weather_Duration()
-		, Weather_HitDelay()
-		, Weather_ScatterDelay()
-		, Weather_Separation()
-		, Weather_RadarOutage()
-		, Protect_Duration()
-		, Protect_PlayFadeSoundTime()
-		, Protect_PowerOutageDuration()
-		, Lighting_Ambient()
-		, Lighting_Green()
-		, Lighting_Blue()
-		, Lighting_Red()
-		// Nullable<enum>
-		, SW_AITargetingConstrain()
-		, SW_AIRequiresTarget()
-		, SW_AIRequiresHouse()
-		, SW_AITargetingPreference()
-		// Nullable<bool>
-		, Mutate_Explosion()
-		, Weather_PrintText()
-		, SW_DeliverableScatter()
-		, Lighting_Enabled()
-		, SuperWeaponSidebar_Allow()
-		// NullableIdx
-		, SW_Sound()
-		, SW_ActivationSound()
-		, EVA_LinkedSWAcquired()
-		// ValueableIdx
-		, EVA_Activated(-1)
-		, EVA_Ready(-1)
-		, EVA_Detected(-1)
-		, EVA_InsufficientFunds(-1)
-		, EVA_InsufficientBattlePoints(-1)
-		, EVA_SelectTarget(-1)
-		, Message_ColorScheme(-1)
-		, CursorType((int)MouseCursorType::Attack)
-		, NoCursorType((int)MouseCursorType::NoMove)
-		// Valueable<ColorStruct>
-		, LaserStrikeInnerColor({ 255, 0, 0 })
-		, LaserStrikeOuterColor({ 255, 0, 0 })
-		, LaserStrikeOuterSpread({ 255, 0, 0 })
-		// Valueable<int>
-		, CameoPriority(0)
-		, SW_Priority(0)
-		, SW_Group(0)
-		, SW_Shots(-1)
-		, SW_AnimHeight(0)
-		, SW_MaxCount(-1)
-		, Dominator_FirstAnimHeight(1)
-		, Dominator_SecondAnimHeight(1)
-		, Droppod_RetryCount(3)
-		, EMPField_Duration(100)
-		, EMPulse_PulseDelay(32)
-		, EMPulse_WeaponIndex(0)
-		, Weather_ScatterCount(1)
-		, Weather_CloudHeight(-1)
-		, Weather_DebrisMin(0)
-		, Weather_DebrisMax(1)
-		, Sonar_Delay(0)
-		, Money_Amount(0)
-		, Money_DrainAmount(0)
-		, Money_DrainDelay(0)
-		, MeteorCounts(15)
-		, MeteorImactCounts(5)
-		, MeteorAddImpactChance(10)
-		, MeteorKindChance(30)
-		, MeteorImpactKindChance(50)
-		, IonCannon_BlastHeight(0)
-		, IonCannon_BeamHeight(0)
-		, IonCannon_FireAtPercentage(0)
-		, LaserStrikeDuration(1000)
-		, LaserStrikeRadius(4096)
-		, LaserStrikeMax(2)
-		, LaserStrikeMin(1)
-		, LaserStrikeMaxRadius(-1)
-		, LaserStrikeMinRadius(-1)
-		, LaserStrikeRadiusReduce(20)
-		, LaserStrikeRadiusReduceAcceleration(0)
-		, LaserStrikeRadiusReduceMax(0)
-		, LaserStrikeRadiusReduceMin(0)
-		, LaserStrikeROF(0)
-		, LaserStrikeScatter_Max(0)
-		, LaserStrikeScatter_Min(0)
-		, LaserStrikeScatter_Max_IncreaseMax(0)
-		, LaserStrikeScatter_Max_IncreaseMin(0)
-		, LaserStrikeScatter_Max_Increase(0)
-		, LaserStrikeScatter_Min_IncreaseMax(0)
-		, LaserStrikeScatter_Min_IncreaseMin(0)
-		, LaserStrikeScatter_Min_Increase(0)
-		, LaserStrikeLines(8)
-		, LaserStrikeAngle(2)
-		, LaserStrikeAngleAcceleration(0)
-		, LaserStrikeAngleMax(0)
-		, LaserStrikeAngleMin(0)
-		, LaserStrikeLaserDuration(3)
-		, LaserStrikeLaserHeight(20000)
-		, LaserStrikeThickness(10)
-		, LaserStrikeRate(0)
-		, UseWeeds_Amount(RulesClass::Instance->WeedCapacity)
-		, UseWeeds_ReadinessAnimationPercentage(90)
-		, TabIndex(1)
-		, BattlePoints_Amount(0)
-		, BattlePoints_DrainAmount(0)
-		, BattlePoints_DrainDelay(0)
-		, SuperWeaponSidebar_Significance(0)
-		// DWORD
-		, SuperWeaponSidebar_PriorityHouses(0u)
-		, SuperWeaponSidebar_RequiredHouses(0xFFFFFFFFu)
-		// Valueable<enum>
-		, GClock_Transculency()
-		, LimboKill_Affected(AffectedHouse::Owner)
-		, SW_Inhibitors_Houses(AffectedHouse::Enemies)
-		, SW_Designators_Houses(AffectedHouse::Owner)
-		, SW_AITargetingMode(SuperWeaponAITargetingMode::None)
-		, SW_AffectsHouse(AffectedHouse::All)
-		, SW_AnimVisibility(AffectedHouse::All)
-		, SW_RequiresTarget(SuperWeaponTarget::None)
-		, SW_RequiresHouse(AffectedHouse::None)
-		, SW_AffectsTarget(SuperWeaponTarget::All)
-		, SW_TimerVisibility(AffectedHouse::All)
-		, SW_OwnerHouse(OwnerHouseKind::Default)
-		, Weather_RadarOutageAffects(AffectedHouse::All)
-
-		, HandledType(NewSuperType::Invalid)
-		, LastAction(Action::None)
-		// Valueable<bool>
-		, EVA_Detected_Simple(false)
-		, Message_FirerColor(false)
-		, SW_RadarEvent(true)
-		, SW_Next_RealLaunch(true)
-		, SW_Next_IgnoreInhibitors(false)
-		, SW_Next_IgnoreDesignators(true)
-		, SW_AnyInhibitor(false)
-		, SW_AnyDesignator(false)
-		, ShowDesignatorRange(true)
-		, SW_AnySuppressor(false)
-		, SW_AnyAttractor(false)
-		, SW_InitialReady(false)
-		, SW_AlwaysGranted(false)
-		, Detonate_AtFirer(false)
-		, ChargeTimer(false)
-		, ChargeTimer_Backwards(false)
-		, SW_AutoFire(false)
-		, SW_AutoFire_CheckAvail(false)
-		, SW_AllowPlayer(true)
-		, SW_AllowAI(true)
-		, SW_FireToShroud(true)
-		, SW_UseAITargeting(false)
-		, SW_AITargeting_PsyDom_SkipChecks(false)
-		, SW_AITargeting_PsyDom_AllowAir(false)
-		, SW_AITargeting_PsyDom_AllowInvulnerable(false)
-		, SW_AITargeting_PsyDom_AllowCloak(false)
-		, SW_ShowCameo(true)
-		, SW_VirtualCharge(false)
-		, SW_ManualFire(true)
-		, SW_Unstoppable(false)
-		, Converts_UseSWRange(false)
-		, Nuke_SiloLaunch(true)
-		, Chronosphere_KillOrganic(true)
-		, Chronosphere_KillTeleporters(true)
-		, Chronosphere_AffectUndeployable(false)
-		, Chronosphere_AffectBuildings(false)
-		, Chronosphere_AffectUnwarpable(false)
-		, Chronosphere_AffectIronCurtain(false)
-		, Chronosphere_BlowUnplaceable(true)
-		, Chronosphere_ReconsiderBuildings(false)
-		, Chronosphere_KillCargo(false)
-		, Dominator_Capture(true)
-		, Dominator_Ripple(true)
-		, Dominator_CaptureMindControlled(true)
-		, Dominator_CapturePermaMindControlled(true)
-		, Dominator_CaptureImmuneToPsionics(false)
-		, Dominator_PermanentCapture(true)
-		, EMPulse_Linked(false)
-		, EMPulse_TargetSelf(false)
-		, EMPulse_SuspendOthers(false)
-		, Mutate_IgnoreCyborg(false)
-		, Mutate_IgnoreNotHuman(true)
-		, Mutate_KillNatural(true)
-		, HunterSeeker_RandomOnly(false)
-		, HunterSeeker_AllowAttachedBuildingAsFallback(false)
-		, Weather_IgnoreLightningRod(false)
-		, Weather_UseSeparateState(false)
-		, Protect_IsForceShield(false)
-		, SW_DeliverBuildups(true)
-		, SW_BaseNormal(true)
-		, IonCannon_Ripple(true)
-		, Generic_Warhead_Detonate(false)
-		, UseWeeds(false)
-		, UseWeeds_StorageTimer(false)
-		, SW_Link_Grant(false)
-		, SW_Link_Ready(false)
-		, SW_Link_Reset(false)
-		, CrateGoodies(false)
+	SWTypeExtData(SuperWeaponTypeClass* pObj) : AbstractTypeExtData(pObj)	
 	{
 		this->AbsType = SuperWeaponTypeClass::AbsID;
 		this->Text_Ready = GameStrings::TXT_READY();
@@ -896,7 +585,7 @@ public:
 	bool IsHouseAffected(HouseClass* pFirer, HouseClass* pHouse, AffectedHouse value);
 	bool Launch(SWTypeHandler* pNewType, SuperClass* pSuper, CellStruct const cell, bool const isPlayer);
 	void PrintMessage(const CSFText& message, HouseClass* pFirer);
-	Iterator<TechnoClass*> GetPotentialAITargets(HouseClass* pTarget , std::vector<TechnoClass*>& outVec) const;
+	Iterator<TechnoClass*> GetPotentialAITargets(HouseClass* pTarget) const;
 	bool IsCellEligible(CellClass* pCell, SuperWeaponTarget allowed);
 	bool IsTechnoEligible(TechnoClass* pTechno, SuperWeaponTarget allowed);
 	bool IsTechnoAffected(TechnoClass* pTechno);

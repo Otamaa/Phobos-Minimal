@@ -30,143 +30,90 @@ public:
 	// ============================================================
 	// Large aggregates (strings, fixed-size buffers)
 	// ============================================================
-	PhobosFixedString<0x20> LoadScreenBackground;
-	PhobosFixedString<0x20> LoadScreenPalette;
-	Valueable<std::string> TauntFileName;
-	Valueable<CSFText> LoadScreenName;
-	Valueable<CSFText> LoadScreenSpecialName;
-	Valueable<CSFText> LoadScreenBrief;
-	Valueable<CSFText> StatusText;
-	PhobosPCXFile FlagFile;
-	PhobosPCXFile ObserverFlag;
-	PhobosPCXFile ObserverBackground;
+	PhobosFixedString<0x20> LoadScreenBackground { "" };
+	PhobosFixedString<0x20> LoadScreenPalette { "" };
+	Valueable<std::string> TauntFileName { "" };
+	Valueable<CSFText> LoadScreenName {};
+	Valueable<CSFText> LoadScreenSpecialName {};
+	Valueable<CSFText> LoadScreenBrief {};
+	Valueable<CSFText> StatusText {};
+	PhobosPCXFile FlagFile {};
+	PhobosPCXFile ObserverFlag {};
+	PhobosPCXFile ObserverBackground {};
 
 	// ============================================================
 	// 24-byte aligned: Vectors
 	// ============================================================
-	ValueableVector<TechnoTypeClass*> ParaDropTypes;
-	ValueableVector<int> ParaDropNum;
-	ValueableVector<BuildingTypeClass*> Powerplants;
-	ValueableVector<BuildingTypeClass*> VeteranBuildings;
-	ValueableVector<std::string> TauntFile;
-	NullableVector<TechnoTypeClass*> StartInMultiplayer_Types;
+	ValueableVector<TechnoTypeClass*> ParaDropTypes {};
+	ValueableVector<int> ParaDropNum {};
+	ValueableVector<BuildingTypeClass*> Powerplants {};
+	ValueableVector<BuildingTypeClass*> VeteranBuildings {};
+	ValueableVector<std::string> TauntFile {};
+	NullableVector<TechnoTypeClass*> StartInMultiplayer_Types {};
 
 	// ============================================================
 	// 8-byte aligned: Pointers
 	// ============================================================
-	SHPStruct* ObserverFlagSHP;
-	SHPStruct* ObserverBackgroundSHP;
+	SHPStruct* ObserverFlagSHP { nullptr };
+	SHPStruct* ObserverBackgroundSHP { nullptr };
 
 	// ============================================================
 	// Valueable<pointer> (8 bytes each)
 	// ============================================================
-	Valueable<InfantryTypeClass*> Crew;
-	Valueable<InfantryTypeClass*> Engineer;
-	Valueable<InfantryTypeClass*> Technician;
-	Valueable<AircraftTypeClass*> ParaDropPlane;
-	Valueable<AircraftTypeClass*> SpyPlane;
-	Valueable<UnitTypeClass*> HunterSeeker;
-	Valueable<AnimTypeClass*> ParachuteAnim;
-	Valueable<InfantryTypeClass*> Disguise;
+	Valueable<InfantryTypeClass*> Crew { nullptr };
+	Valueable<InfantryTypeClass*> Engineer { nullptr };
+	Valueable<InfantryTypeClass*> Technician { nullptr };
+	Valueable<AircraftTypeClass*> ParaDropPlane { nullptr };
+	Valueable<AircraftTypeClass*> SpyPlane { nullptr };
+	Valueable<UnitTypeClass*> HunterSeeker { nullptr };
+	Valueable<AnimTypeClass*> ParachuteAnim { nullptr };
+	Valueable<InfantryTypeClass*> Disguise { nullptr };
 
 	// ============================================================
 	// Nullable<double> (double + bool + padding ≈ 16 bytes)
 	// ============================================================
-	Nullable<double> NewTeamsSelector_UnclassifiedCategoryPercentage;
-	Nullable<double> NewTeamsSelector_GroundCategoryPercentage;
-	Nullable<double> NewTeamsSelector_NavalCategoryPercentage;
-	Nullable<double> NewTeamsSelector_AirCategoryPercentage;
+	Nullable<double> NewTeamsSelector_UnclassifiedCategoryPercentage {};
+	Nullable<double> NewTeamsSelector_GroundCategoryPercentage {};
+	Nullable<double> NewTeamsSelector_NavalCategoryPercentage {};
+	Nullable<double> NewTeamsSelector_AirCategoryPercentage {};
 
 	// ============================================================
 	// Nullable<int> (int + bool + padding ≈ 8 bytes)
 	// ============================================================
-	Nullable<int> NewTeamsSelector_MergeUnclassifiedCategoryWith;
+	Nullable<int> NewTeamsSelector_MergeUnclassifiedCategoryWith {};
 
 	// ============================================================
 	// Nullable<bool> (bool + bool ≈ 2-4 bytes)
 	// ============================================================
-	Nullable<bool> CanBeDriven;
-	Nullable<bool> Degrades;
+	Nullable<bool> CanBeDriven {};
+	Nullable<bool> Degrades {};
 
 	// ============================================================
 	// Valueable<int> / ValueableIdx (4 bytes each)
 	// ============================================================
-	Valueable<int> SurvivorDivisor;
-	ValueableIdx<ColorScheme> LoadTextColor;
-	Valueable<unsigned int> RandomSelectionWeight;
+	Valueable<int> SurvivorDivisor { -1 };
+	ValueableIdx<ColorScheme> LoadTextColor { -1 };
+	Valueable<unsigned int> RandomSelectionWeight { 1 };
 
 	// ============================================================
 	// Valueable<bool> (1 byte each, packed together)
 	// ============================================================
-	Valueable<bool> GivesBounty;
-	Valueable<bool> StartInMultiplayer_WithConst;
-	Valueable<bool> ObserverFlagYuriPAL;
-	Valueable<bool> BattlePoints;
-	Valueable<bool> BattlePoints_CanUseStandardPoints;
+	Valueable<bool> GivesBounty { true };
+	Valueable<bool> StartInMultiplayer_WithConst { false };
+	Valueable<bool> ObserverFlagYuriPAL { false };
+	Valueable<bool> BattlePoints { false };
+	Valueable<bool> BattlePoints_CanUseStandardPoints { false };
 
 	// ============================================================
 	// Plain bool (1 byte, at the very end)
 	// ============================================================
-	bool SettingsInherited;
+	bool SettingsInherited { false };
 	// 6 bools = 6 bytes, pads to 8 for alignment
-
 #pragma endregion
 
 public:
-	HouseTypeExtData(HouseTypeClass* pObj)
-		: AbstractTypeExtData(pObj)
-		// Large aggregates
-		, LoadScreenBackground("")
-		, LoadScreenPalette("")
-		, TauntFileName("")
-		, LoadScreenName()
-		, LoadScreenSpecialName()
-		, LoadScreenBrief()
-		, StatusText()
-		, FlagFile()
-		, ObserverFlag()
-		, ObserverBackground()
-		// Vectors
-		, ParaDropTypes()
-		, ParaDropNum()
-		, Powerplants()
-		, VeteranBuildings()
-		, TauntFile()
-		, StartInMultiplayer_Types()
-		// Pointers
-		, ObserverFlagSHP(nullptr)
-		, ObserverBackgroundSHP(nullptr)
-		// Valueable<pointer>
-		, Crew(nullptr)
-		, Engineer(nullptr)
-		, Technician(nullptr)
-		, ParaDropPlane(nullptr)
-		, SpyPlane(nullptr)
-		, HunterSeeker(nullptr)
-		, ParachuteAnim(nullptr)
-		, Disguise(nullptr)
-		// Nullable<double>
-		, NewTeamsSelector_UnclassifiedCategoryPercentage()
-		, NewTeamsSelector_GroundCategoryPercentage()
-		, NewTeamsSelector_NavalCategoryPercentage()
-		, NewTeamsSelector_AirCategoryPercentage()
-		// Nullable<int>
-		, NewTeamsSelector_MergeUnclassifiedCategoryWith()
-		// Nullable<bool>
-		, CanBeDriven()
-		, Degrades()
-		// Valueable<int>
-		, SurvivorDivisor(-1)
-		, LoadTextColor(-1)
-		, RandomSelectionWeight(1)
-		// Valueable<bool>
-		, GivesBounty(true)
-		, StartInMultiplayer_WithConst(false)
-		, ObserverFlagYuriPAL(false)
-		, BattlePoints(false)
-		, BattlePoints_CanUseStandardPoints(false)
-		// Plain bool
-		, SettingsInherited(false)
+
+	HouseTypeExtData(HouseTypeClass* pObj) : AbstractTypeExtData(pObj)	
 	{
 		this->AbsType = HouseTypeClass::AbsID;
 		this->Initialize();

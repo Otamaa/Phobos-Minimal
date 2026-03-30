@@ -37,7 +37,7 @@ static int GetMultiWeaponRange(TechnoClass* pThis)
 
 	return range;
 }
-
+//#pragma optimize("", off )
 AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* pThis, discard_t, ThreatType method, CoordStruct* coord, bool onlyEnemy)
 {
 	++TechnoClass::TargetScanCounter();
@@ -663,30 +663,20 @@ bool FakeTechnoClass::__EvaluateObjectB(
 	if ((method & (ThreatType::TechBuildings | ThreatType::OccupiableBuildings | ThreatType::Capture))
 			== ThreatType::Normal)
 	{
-		FireError  fireError = FireError::NONE;
-		bool customErrorEvaluated = false;
-
-		if (pUnitTarget) {
-			if (TechnoExtData::CannotMove(pUnitTarget)) {
-				fireError = pUnitTarget->GetFireError(target, weaponIndex, true);
-				customErrorEvaluated = true;
-			}
-		} else if (pInfantryTarget) {
-			if (pInfantryTarget->Type->Speed <= 0) {
-				fireError = pInfantryTarget->GetFireError(target, weaponIndex, true);
-				customErrorEvaluated = true;
-			}
-		} else if (pTechnoTarget) {
+		if (pTechnoTarget) {
 			// IC-retaliation: reject immediately if we cannot fire at an
 			// IronCurtained target with this weapon.
 			if (!TechnoExtData::CanRetaliateICUnit(pThis,
 				reinterpret_cast<FakeWeaponTypeClass*>(lastWeapon), pTechnoTarget))
 				return false;
-			customErrorEvaluated = true;
 		}
 
-		if (!customErrorEvaluated)
-			fireError = pThis->GetFireError(target, weaponIndex, false);
+		bool ignoreRange = false;
+		if ((pThisUnit && TechnoExtData::CannotMove(pThisUnit) )|| (pThisInfantry && pThisInfantry->Type->Speed <= 0)) {
+			ignoreRange= true;
+		}
+
+		const FireError  fireError = pThis->GetFireError(target, weaponIndex, ignoreRange);
 
 		if (fireError == FireError::ILLEGAL)
 			return false;
@@ -1449,6 +1439,7 @@ bool __fastcall FakeTechnoClass::__EvaluateObject(
 {
 	return FakeTechnoClass::__EvaluateObjectB(pThis, targetFlags, mask, wantedDistance, pTarget, pThreatPosed, dwUnk, pSourceCoords,false);
 }
+//#pragma optimize("", on )
 
 DEFINE_FUNCTION_JUMP(CALL, 0x6F8C00, FakeTechnoClass::__EvaluateObject);
 DEFINE_FUNCTION_JUMP(LJMP, 0x6F7CA0, FakeTechnoClass::__EvaluateObject);

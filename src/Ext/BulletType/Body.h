@@ -23,8 +23,6 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "BulletTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "BulletTypeClass";
 	
-	
-
 public:
 
 #pragma region ClassMembers
@@ -35,218 +33,129 @@ public:
 	// ============================================================
 	// 8-byte aligned: unique_ptr
 	// ============================================================
-	std::unique_ptr<PhobosTrajectoryType> TrajectoryType;
+	std::unique_ptr<PhobosTrajectoryType> TrajectoryType { nullptr };
 
 	// ============================================================
 	// 24-byte aligned: Vectors
 	// ============================================================
-	ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types;
-	ValueableVector<WeaponTypeClass*> AirburstWeapons;
+	ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types {};
+	ValueableVector<WeaponTypeClass*> AirburstWeapons {};
 
 	// ============================================================
 	// OptionalStruct<pointer> (pointer + bool + padding)
 	// ============================================================
-	OptionalStruct<const ConvertClass*> ImageConvert;
+	OptionalStruct<const ConvertClass*> ImageConvert {};
 
 	// ============================================================
 	// Valueable<pointer> (8 bytes each)
 	// ============================================================
-	Valueable<WeaponTypeClass*> Interceptable_WeaponOverride;
-	Valueable<WeaponTypeClass*> BounceHitWeapon;
-	Valueable<ParticleSystemTypeClass*> AttachedSystem;
-	Valueable<WeaponTypeClass*> ReturnWeapon;
+	Valueable<WeaponTypeClass*> Interceptable_WeaponOverride { nullptr };
+	Valueable<WeaponTypeClass*> BounceHitWeapon { nullptr };
+	Valueable<ParticleSystemTypeClass*> AttachedSystem { nullptr };
+	Valueable<WeaponTypeClass*> ReturnWeapon { nullptr };
 
 	// ============================================================
 	// Nullable<pointer> (pointer + bool + padding ≈ 16 bytes)
 	// ============================================================
-	Nullable<AnimTypeClass*> Parachute;
+	Nullable<AnimTypeClass*> Parachute {};
 
 	// ============================================================
 	// Valueable<double> (8 bytes each)
 	// ============================================================
-	Valueable<double> RetargetAccuracy;
-	Valueable<double> RetargetSelf_Probability;
-	Valueable<double> AirburstSpread;
-	Valueable<double> Splits_Range;
+	Valueable<double> RetargetAccuracy { 0.0 };
+	Valueable<double> RetargetSelf_Probability { 0.5 };
+	Valueable<double> AirburstSpread { 1.5 };
+	Valueable<double> Splits_Range { 1280.0 };
 
 	// ============================================================
 	// Nullable<double> (double + bool + padding ≈ 16 bytes)
 	// ============================================================
-	Nullable<double> Gravity;
-	Nullable<double> Shrapnel_Chance;
-	Nullable<double> MissileROTVar;
-	Nullable<double> PreExplodeRange;
-	Nullable<double> Trajectory_Speed;
+	Nullable<double> Gravity {};
+	Nullable<double> Shrapnel_Chance {};
+	Nullable<double> MissileROTVar {};
+	Nullable<double> PreExplodeRange {};
+	Nullable<double> Trajectory_Speed {};
 
 	// ============================================================
 	// Nullable<int/enum/Leptons> (4 bytes + bool + padding ≈ 8 bytes)
 	// ============================================================
-	Nullable<Armor> Armor;
-	Nullable<int> MissileSafetyAltitude;
-	Nullable<int> Proximity_Range;
-	Nullable<int> Parachuted_MaxFallRate;
-	Nullable<Leptons> BallisticScatterMin;
-	Nullable<Leptons> BallisticScatterMax;
+	Nullable<Armor> Armor {};
+	Nullable<int> MissileSafetyAltitude {};
+	Nullable<int> Proximity_Range {};
+	Nullable<int> Parachuted_MaxFallRate {};
+	Nullable<Leptons> BallisticScatterMin {};
+	Nullable<Leptons> BallisticScatterMax {};
 
 	// ============================================================
 	// Nullable<bool> (bool + bool ≈ 2-4 bytes)
 	// ============================================================
-	Nullable<bool> SubjectToLand;
-	Nullable<bool> SubjectToWater;
-	Nullable<bool> AroundTarget;
-	Nullable<bool> VerticalInitialFacing;
-	Nullable<bool> UpdateImmediately;
+	Nullable<bool> SubjectToLand {};
+	Nullable<bool> SubjectToWater {};
+	Nullable<bool> AroundTarget {};
+	Nullable<bool> VerticalInitialFacing {};
+	Nullable<bool> UpdateImmediately {};
 
 	// ============================================================
 	// Valueable<Leptons> (4 bytes each, assuming Leptons = int)
 	// ============================================================
-	Valueable<Leptons> Cluster_Scatter_Min;
-	Valueable<Leptons> Cluster_Scatter_Max;
-	Valueable<Leptons> AirburstWeapon_SourceScatterMin;
-	Valueable<Leptons> AirburstWeapon_SourceScatterMax;
+	Valueable<Leptons> Cluster_Scatter_Min { BulletTypeExtData::DefaultBulletScatterMin };
+	Valueable<Leptons> Cluster_Scatter_Max { BulletTypeExtData::DefaultBulletScatterMax };
+	Valueable<Leptons> AirburstWeapon_SourceScatterMin {};
+	Valueable<Leptons> AirburstWeapon_SourceScatterMax {};
 
 	// ============================================================
 	// Valueable<int> (4 bytes each)
 	// ============================================================
-	Valueable<int> Health;
-	Valueable<int> Solid_Level;
-	Valueable<int> Splits_TargetCellRange;
-	Valueable<int> BounceAmount;
-	Valueable<int> AnimLength;
-	Valueable<int> EMPulseCannon_InaccurateRadius;
-	Valueable<int> Parachuted_FallRate;
+	Valueable<int> Health { 0 };
+	Valueable<int> Solid_Level { 0 };
+	Valueable<int> Splits_TargetCellRange { 3 };
+	Valueable<int> BounceAmount { 0 };
+	Valueable<int> AnimLength { 0 };
+	Valueable<int> EMPulseCannon_InaccurateRadius { 0 };
+	Valueable<int> Parachuted_FallRate { 1 };
 
 	// ============================================================
 	// Valueable<bool> (1 byte each, packed together at the end)
 	// ============================================================
-	Valueable<bool> Interceptable;
-	Valueable<bool> Gravity_HeightFix;
-	Valueable<bool> Shrapnel_AffectsGround;
-	Valueable<bool> Shrapnel_AffectsBuildings;
-	Valueable<bool> Shrapnel_UseWeaponTargeting;
-	Valueable<bool> Interceptable_DeleteOnIntercept;
-	Valueable<bool> SubjectToLand_Detonate;
-	Valueable<bool> SubjectToWater_Detonate;
-	Valueable<bool> AAOnly;
-	Valueable<bool> SubjectToSolid;
-	Valueable<bool> Splits;
-	Valueable<bool> RetargetOwner;
-	Valueable<bool> Airburst_UseCluster;
-	Valueable<bool> Airburst_RandomClusters;
-	Valueable<bool> Splits_UseWeaponTargeting;
-	Valueable<bool> AirburstWeapon_ApplyFirepowerMult;
-	Valueable<bool> Splits_RandomCellUseHarcodedRange;
-	Valueable<bool> Splits_TargetingUseVerses;
-	Valueable<bool> Splits_FillRemainingClusterWithRandomcells;
-	Valueable<bool> BounceOnTerrain;
-	Valueable<bool> BounceOnBuilding;
-	Valueable<bool> BounceOnInfantry;
-	Valueable<bool> BounceOnVehicle;
-	Valueable<bool> SubjectToTrenches;
-	Valueable<bool> IsScalable;
-	Valueable<bool> Parachuted;
-	Valueable<bool> Arcing_AllowElevationInaccuracy;
-	Valueable<bool> ReturnWeapon_ApplyFirepowerMult;
-	Valueable<bool> SubjectToGround;
-	Valueable<bool> Airburst_TargetAsSource;
-	Valueable<bool> Airburst_TargetAsSource_SkipHeight;
-	Valueable<bool> Parachuted_Remap;
-	Valueable<bool> Vertical_AircraftFix;
-	Valueable<bool> AU;
+	Valueable<bool> Interceptable { false };
+	Valueable<bool> Gravity_HeightFix { false };
+	Valueable<bool> Shrapnel_AffectsGround { false };
+	Valueable<bool> Shrapnel_AffectsBuildings { false };
+	Valueable<bool> Shrapnel_UseWeaponTargeting { false };
+	Valueable<bool> Interceptable_DeleteOnIntercept { false };
+	Valueable<bool> SubjectToLand_Detonate { true };
+	Valueable<bool> SubjectToWater_Detonate { true };
+	Valueable<bool> AAOnly { false };
+	Valueable<bool> SubjectToSolid { false };
+	Valueable<bool> Splits { false };
+	Valueable<bool> RetargetOwner { true };
+	Valueable<bool> Airburst_UseCluster { false };
+	Valueable<bool> Airburst_RandomClusters { false };
+	Valueable<bool> Splits_UseWeaponTargeting { false };
+	Valueable<bool> AirburstWeapon_ApplyFirepowerMult { false };
+	Valueable<bool> Splits_RandomCellUseHarcodedRange { true };
+	Valueable<bool> Splits_TargetingUseVerses { true };
+	Valueable<bool> Splits_FillRemainingClusterWithRandomcells { true };
+	Valueable<bool> BounceOnTerrain { true };
+	Valueable<bool> BounceOnBuilding { false };
+	Valueable<bool> BounceOnInfantry { false };
+	Valueable<bool> BounceOnVehicle { false };
+	Valueable<bool> SubjectToTrenches { true };
+	Valueable<bool> IsScalable { false };
+	Valueable<bool> Parachuted { false };
+	Valueable<bool> Arcing_AllowElevationInaccuracy { true };
+	Valueable<bool> ReturnWeapon_ApplyFirepowerMult { false };
+	Valueable<bool> SubjectToGround { false };
+	Valueable<bool> Airburst_TargetAsSource { false };
+	Valueable<bool> Airburst_TargetAsSource_SkipHeight { false };
+	Valueable<bool> Parachuted_Remap { true };
+	Valueable<bool> Vertical_AircraftFix { true };
+	Valueable<bool> AU { false };
 	// 35 Valueable<bool> = 35 bytes, pads to 36 for 4-byte alignment
-
 #pragma endregion
 
 public:
-	BulletTypeExtData(BulletTypeClass* pObj)
-		: ObjectTypeExtData(pObj)
-		// Large aggregates
-		// unique_ptr
-		, TrajectoryType(nullptr)
-		// Vectors
-		, LaserTrail_Types()
-		, AirburstWeapons()
-		// OptionalStruct
-		, ImageConvert()
-		// Valueable<pointer>
-		, Interceptable_WeaponOverride(nullptr)
-		, BounceHitWeapon(nullptr)
-		, AttachedSystem(nullptr)
-		, ReturnWeapon(nullptr)
-		// Nullable<pointer>
-		, Parachute()
-		// Valueable<double>
-		, RetargetAccuracy(0.0)
-		, RetargetSelf_Probability(0.5)
-		, AirburstSpread(1.5)
-		, Splits_Range(1280.0)
-		// Nullable<double>
-		, Gravity()
-		, Shrapnel_Chance()
-		, MissileROTVar()
-		, PreExplodeRange()
-		, Trajectory_Speed()
-		// Nullable<int/enum/Leptons>
-		, Armor()
-		, MissileSafetyAltitude()
-		, Proximity_Range()
-		, Parachuted_MaxFallRate()
-		, BallisticScatterMin()
-		, BallisticScatterMax()
-		// Nullable<bool>
-		, SubjectToLand()
-		, SubjectToWater()
-		, AroundTarget()
-		, VerticalInitialFacing()
-		, UpdateImmediately()
-		// Valueable<Leptons>
-		, Cluster_Scatter_Min(BulletTypeExtData::DefaultBulletScatterMin)
-		, Cluster_Scatter_Max(BulletTypeExtData::DefaultBulletScatterMax)
-		, AirburstWeapon_SourceScatterMin()
-		, AirburstWeapon_SourceScatterMax()
-		// Valueable<int>
-		, Health(0)
-		, Solid_Level(0)
-		, Splits_TargetCellRange(3)
-		, BounceAmount(0)
-		, AnimLength(0)
-		, EMPulseCannon_InaccurateRadius(0)
-		, Parachuted_FallRate(1)
-		// Valueable<bool>
-		, Interceptable(false)
-		, Gravity_HeightFix(false)
-		, Shrapnel_AffectsGround(false)
-		, Shrapnel_AffectsBuildings(false)
-		, Shrapnel_UseWeaponTargeting(false)
-		, Interceptable_DeleteOnIntercept(false)
-		, SubjectToLand_Detonate(true)
-		, SubjectToWater_Detonate(true)
-		, AAOnly(false)
-		, SubjectToSolid(false)
-		, Splits(false)
-		, RetargetOwner(true)
-		, Airburst_UseCluster(false)
-		, Airburst_RandomClusters(false)
-		, Splits_UseWeaponTargeting(false)
-		, AirburstWeapon_ApplyFirepowerMult(false)
-		, Splits_RandomCellUseHarcodedRange(true)
-		, Splits_TargetingUseVerses(true)
-		, Splits_FillRemainingClusterWithRandomcells(true)
-		, BounceOnTerrain(true)
-		, BounceOnBuilding(false)
-		, BounceOnInfantry(false)
-		, BounceOnVehicle(false)
-		, SubjectToTrenches(true)
-		, IsScalable(false)
-		, Parachuted(false)
-		, Arcing_AllowElevationInaccuracy(true)
-		, ReturnWeapon_ApplyFirepowerMult(false)
-		, SubjectToGround(false)
-		, Airburst_TargetAsSource(false)
-		, Airburst_TargetAsSource_SkipHeight(false)
-		, Parachuted_Remap(true)
-		, Vertical_AircraftFix(true)
-		, AU(false)
+	BulletTypeExtData(BulletTypeClass* pObj) : ObjectTypeExtData(pObj)		
 	{
 		this->AbsType = BulletTypeClass::AbsID;
 	}

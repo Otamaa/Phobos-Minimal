@@ -8,11 +8,11 @@
 class ObjectExtData : public AbstractExtended
 {
 public:
-	PhobosFixedString<0x18> Name;
+	PhobosFixedString<0x18> Name {};
 
 public:
 
-	ObjectExtData(ObjectClass* abs) : AbstractExtended(abs), Name() {};
+	ObjectExtData(ObjectClass* abs) : AbstractExtended(abs) {};
 
 	ObjectExtData(ObjectClass* abs, noinit_t& noint) : AbstractExtended(abs, noint) { };
 

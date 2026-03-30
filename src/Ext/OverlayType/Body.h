@@ -19,18 +19,14 @@ public:
 public:
 
 #pragma region ClassMembeers
-	CustomPalette Palette;
-	Valueable<int> ZAdjust;
-	Valueable<bool> IsCanBeBuiltOn;
-	Valueable<bool> CanBeBuiltOn_Remove;
+	CustomPalette Palette { CustomPalette::PaletteMode::Temperate };
+	Valueable<int> ZAdjust {};
+	Valueable<bool> IsCanBeBuiltOn {};
+	Valueable<bool> CanBeBuiltOn_Remove {};
 #pragma endregion
 
 public:
-	OverlayTypeExtData(OverlayTypeClass* pObj) : ObjectTypeExtData(pObj),
-		Palette(CustomPalette::PaletteMode::Temperate),
-		ZAdjust(0),
-		IsCanBeBuiltOn { false },
-		CanBeBuiltOn_Remove { true }
+	OverlayTypeExtData(OverlayTypeClass* pObj) : ObjectTypeExtData(pObj)
 	{
 		this->AbsType = OverlayTypeClass::AbsID;
 	}

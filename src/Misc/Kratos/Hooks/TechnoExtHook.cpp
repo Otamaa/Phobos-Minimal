@@ -29,6 +29,7 @@
 #include <Misc/Kratos/Ext/TechnoType/JumpjetCarryall.h>
 #include <Misc/Kratos/Ext/TechnoType/TechnoStatus.h>
 
+#include <Ext/Techno/Body.h>
 
 // ----------------
 // Extension
@@ -78,7 +79,6 @@ ASMJIT_PATCH(0x6F42ED, TechnoClass_Init_Early, 0xA)
 
 //letsee if stuffs compile here , for now
 //these all hooks need to be reallocated somewhere to sync feature with the mainline functions
-#ifdef _ENABLE_HOOKS
 
 // ----------------
 // Component
@@ -100,9 +100,55 @@ ASMJIT_PATCH(0x6F6CA0, TechnoClass_Put, 0x7)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6F6AC4, TechnoClass_Remove, 0x5)
+ASMJIT_PATCH(0x6F6AC4, TechnoClass_Limbo_AfterRadioClassRemove, 0x5)
 {
 	GET(TechnoClass*, pThis, ECX);
+
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
+
+	if (pThis->Owner && pThis->Owner->CountOwnedAndPresent(pTypeExt->This()) <= 0 && !pTypeExt->Linked_SW.empty())
+		pThis->Owner->UpdateSuperWeaponsOwned();
+
+	if (const auto pShieldData = pExt->GetShield())
+		pShieldData->OnRemove();
+
+	bool markForRedraw = false;
+	bool altered = false;
+
+	// Do not remove attached effects from undeploying buildings.
+	if (auto const pBuilding = cast_to<BuildingClass*, false>(pThis)) {
+		if ((pBuilding->Type->UndeploysInto && pBuilding->CurrentMission == Mission::Selling && pBuilding->MissionStatus == 2)) {
+			return 0;
+		}
+	}
+
+	pExt->PhobosAE.remove_all_if([&](auto& it){
+
+		if(!it)
+			return true;
+
+		if ((it->GetType()->DiscardOn & DiscardCondition::Entry) != DiscardCondition::None) {
+			altered = true;
+
+			if (it->GetType()->HasTint())
+				markForRedraw = true;
+
+			if (it->ResetIfRecreatable()) {
+				return false;
+			}
+
+			return true;
+		}
+
+		return false;
+	});
+
+	if (altered)
+		AEProperties::Recalculate(pThis);
+
+	if (markForRedraw)
+		pThis->MarkForRedraw();
 
 	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 	{
@@ -113,37 +159,9 @@ ASMJIT_PATCH(0x6F6AC4, TechnoClass_Remove, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6F9E50, TechnoClass_Update, 0x5)
-{
-	GET(TechnoClass*, pThis, ECX);
-
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
-	{
-		pExt->_GameObject->Foreach([](Component* c)
-			{ c->OnUpdate(); });
-	}
-
-	return 0;
-}
-
-DEFINE_HOOK_AGAIN(0x6FAFFD, TechnoClass_UpdateEnd, 0x7)
-ASMJIT_PATCH(0x6FAF7A, TechnoClass_UpdateEnd, 0x7)
-{
-	GET(TechnoClass*, pThis, ESI);
-
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
-	{
-		pExt->_GameObject->Foreach([](Component* c)
-			{ c->OnUpdateEnd(); });
-	}
-
-	return 0;
-}
 
 // If pObject.Is_Being_Warped() is ture, will skip Foot::AI and Techno::AI
-DEFINE_HOOK_AGAIN(0x44055D, TechnoClass_WarpUpdate, 0x6) // Building
-DEFINE_HOOK_AGAIN(0x51BBDF, TechnoClass_WarpUpdate, 0x6) // Infantry
-DEFINE_HOOK_AGAIN(0x736321, TechnoClass_WarpUpdate, 0x6) // Unit
+
 ASMJIT_PATCH(0x414CF2, TechnoClass_WarpUpdate, 0x6)		 // Aircraft
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -156,44 +174,61 @@ ASMJIT_PATCH(0x414CF2, TechnoClass_WarpUpdate, 0x6)		 // Aircraft
 
 	return 0;
 }
+ASMJIT_PATCH_AGAIN(0x44055D, TechnoClass_WarpUpdate, 0x6) // Building
+ASMJIT_PATCH_AGAIN(0x51BBDF, TechnoClass_WarpUpdate, 0x6) // Infantry
+ASMJIT_PATCH_AGAIN(0x736321, TechnoClass_WarpUpdate, 0x6) // Unit
 
-#pragma region Temporals
-
-ASMJIT_PATCH(0x71A88D, TemporalClass_Update, 0x0)
+ASMJIT_PATCH(0x5F45A0, TechnoClass_Select, 0x5)
 {
-	GET(TemporalClass*, pTemporal, ESI);
+	GET(TechnoClass*, pThis, EDI);
 
-	TechnoClass* pThis = pTemporal->Target;
 	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
 	{
-		pExt->_GameObject->Foreach([&pTemporal](Component* c)
-			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnTemporalUpdate(pTemporal); } });
+		bool selectable = true;
+		pExt->_GameObject->Foreach([&](Component* c)
+			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnSelect(selectable); } });
+
+		if (!selectable)
+		{
+			return 0x5F45A9;
+		}
 	}
-
-	GET(int, eax, EAX);
-	GET(int, ebx, EBX);
-	if (eax <= ebx)
-	{
-		return 0x71A895;
-	}
-	return 0x71AB08;
-}
-
-ASMJIT_PATCH(0x71A917, TemporalClass_Update_Eliminate, 0x5)
-{
-	GET(TemporalClass*, pTemporal, ESI);
-
-	TechnoClass* pThis = pTemporal->Target;
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
-	{
-		pExt->_GameObject->Foreach([&pTemporal](Component* c)
-			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnTemporalEliminate(pTemporal); } });
-	}
-
 	return 0;
 }
 
-#pragma endregion
+ASMJIT_PATCH(0x730E56, ObjectClass_GuardCommand, 0x6)
+{
+	GET(ObjectClass*, pThis, ESI);
+
+	TechnoClass* pTechno = nullptr;
+	if (CastToTechno(pThis, pTechno))
+	{
+		if (auto pExt = TechnoExt::ExtMap.Find(pTechno))
+		{
+			pExt->_GameObject->Foreach([](Component* c)
+				{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnGuardCommand(); } });
+		}
+	}
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x730DEB, ObjectClass_GuardCommand, 0x6) // Building
+
+ASMJIT_PATCH(0x730EEB, ObjectClass_StopCommand, 0x6)
+{
+	GET(ObjectClass*, pThis, ESI);
+
+	TechnoClass* pTechno = nullptr;
+	if (CastToTechno(pThis, pTechno))
+	{
+		if (auto pExt = TechnoExt::ExtMap.Find(pTechno))
+		{
+			pExt->_GameObject->Foreach([](Component* c)
+				{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnStopCommand(); } });
+		}
+	}
+	return 0;
+}
+
+#ifdef _ENABLE_HOOKS
 
 bool DamageByToyWH = false;
 
@@ -239,69 +274,6 @@ ASMJIT_PATCH(0x7019D8, TechnoClass_ReceiveDamage_At_Least1, 0x5)
 	}
 	return 0x7019E3;
 }
-
-#pragma region ImmuneToOOXX
-// Ares hook in 471C96 and return 471D2E
-ASMJIT_PATCH(0x471D2E, CaptureManagerClass_Is_Controllable, 0x7)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	AttachEffect* aem = nullptr;
-	if (TryGetAEManager<TechnoExt>(pTechno, aem) && aem->GetImmuneData().Psionics)
-	{
-		return 0x471D35;
-	}
-	return 0;
-}
-
-// Ares skip this whole function, here can do anything.
-ASMJIT_PATCH(0x53B233, IonStormClass_Dominator_Activate, 0x6)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	AttachEffect* aem = nullptr;
-	if (TryGetAEManager<TechnoExt>(pTechno, aem) && aem->GetImmuneData().Psionics)
-	{
-		return 0x53B364;
-	}
-	return 0;
-}
-
-/* Cannot hook in those address, Not Ares or Phobos */
-/* Modify Damage number in AE's ReceiveDamage function
-ASMJIT_PATCH(0x701C45, TechnoClass_ReceiveDamage_PsionicWeapons, 0x6)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	AttachEffect* aem = nullptr;
-	if (TryGetAEManager<TechnoExt>(pTechno, aem) && aem->GetImmuneData().PsionicWeapons)
-	{
-		return 0x701C4F;
-	}
-	return 0;
-}
-
-ASMJIT_PATCH(0x701C08, TechnoClass_ReceiveDamage_Radiation, 0xA)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	AttachEffect* aem = nullptr;
-	if (TryGetAEManager<TechnoExt>(pTechno, aem) && aem->GetImmuneData().Radiation)
-	{
-		return 0x701C1C;
-	}
-	return 0;
-}
-
-ASMJIT_PATCH(0x701C78, TechnoClass_ReceiveDamage_Poison, 0x6)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	AttachEffect* aem = nullptr;
-	if (TryGetAEManager<TechnoExt>(pTechno, aem) && aem->GetImmuneData().Poison)
-	{
-		return 0x701C82;
-	}
-	return 0;
-}
-
-*/
-#pragma endregion
 
 // modify the real damage
 ASMJIT_PATCH(0x5F5498, ObjectClass_ReceiveDamage_RealDamage, 0xC)
@@ -361,72 +333,6 @@ ASMJIT_PATCH(0x702050, TechnoClass_ReceiveDamage_Destroy, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x702E9D, TechnoClass_RegisterDestruction, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(TechnoClass*, pKiller, EDI);
-	GET(int, cost, EBP);
-
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
-	{
-		bool skip = false;
-		pExt->_GameObject->Foreach([&](Component* c)
-			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnRegisterDestruction(pKiller, cost, skip); if (skip) c->Break(); } });
-
-		// skip the entire veterancy
-		if (skip)
-		{
-			return 0x702FF5;
-		}
-	}
-	return 0;
-}
-
-ASMJIT_PATCH(0x6FC339, TechnoClass_CanFire, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EDI);
-	GET_STACK(AbstractClass*, pTarget, 0x20 - (-0x4));
-
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
-	{
-		if (auto status = pExt->_GameObject->GetComponent<TechnoStatus>())
-		{
-			if (auto dw = status->DisableWeapon)
-			{
-				if (dw->IsAlive())
-				{
-					return dw->Data.DisableWithTarget ? 0x6FC0DF : 0x6FCB7E;
-				}
-			}
-		}
-		bool ceaseFire = false;
-		pExt->_GameObject->Foreach([&](Component* c)
-			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->CanFire(pTarget, pWeapon, ceaseFire); if (ceaseFire) c->Break(); } });
-
-		// return FireError::ILLEGAL
-		if (ceaseFire)
-		{
-			return 0x6FCB7E;
-		}
-	}
-	return 0;
-}
-
-ASMJIT_PATCH(0x6FDD50, TechnoClass_Fire, 0x6)
-{
-	GET(TechnoClass*, pThis, ECX);
-	GET_STACK(AbstractClass*, pTarget, 0x4);
-	GET_STACK(int, weaponIdx, 0x8);
-
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
-	{
-		pExt->_GameObject->Foreach([&](Component* c)
-			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnFire(pTarget, weaponIdx); } });
-	}
-	return 0;
-}
-
 ASMJIT_PATCH(0x6F65D1, TechnoClass_DrawHealthBar_Building, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -457,82 +363,7 @@ ASMJIT_PATCH(0x6F683C, TechnoClass_DrawHealthBar_Other, 0x7)
 	return 0;
 }
 
-ASMJIT_PATCH(0x5F45A0, TechnoClass_Select, 0x5)
-{
-	GET(TechnoClass*, pThis, EDI);
-
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
-	{
-		bool selectable = true;
-		pExt->_GameObject->Foreach([&](Component* c)
-			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnSelect(selectable); } });
-
-		if (!selectable)
-		{
-			return 0x5F45A9;
-		}
-	}
-	return 0;
-}
-
-DEFINE_HOOK_AGAIN(0x730DEB, ObjectClass_GuardCommand, 0x6) // Building
-ASMJIT_PATCH(0x730E56, ObjectClass_GuardCommand, 0x6)
-{
-	GET(ObjectClass*, pThis, ESI);
-
-	TechnoClass* pTechno = nullptr;
-	if (CastToTechno(pThis, pTechno))
-	{
-		if (auto pExt = TechnoExt::ExtMap.Find(pTechno))
-		{
-			pExt->_GameObject->Foreach([](Component* c)
-				{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnGuardCommand(); } });
-		}
-	}
-	return 0;
-}
-
-ASMJIT_PATCH(0x730EEB, ObjectClass_StopCommand, 0x6)
-{
-	GET(ObjectClass*, pThis, ESI);
-
-	TechnoClass* pTechno = nullptr;
-	if (CastToTechno(pThis, pTechno))
-	{
-		if (auto pExt = TechnoExt::ExtMap.Find(pTechno))
-		{
-			pExt->_GameObject->Foreach([](Component* c)
-				{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnStopCommand(); } });
-		}
-	}
-	return 0;
-}
-
-ASMJIT_PATCH(0x6F9039, TechnoClass_Greatest_Threat_HealWeaponRange, 0x5)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	int guardRange = pTechno->GetTechnoType()->GuardRange;
-	WeaponStruct* pirmary = pTechno->GetTurrentWeapon();
-	if (pirmary && pirmary->WeaponType)
-	{
-		int range = pirmary->WeaponType->Range;
-		if (range > guardRange)
-		{
-			guardRange = range;
-		}
-	}
-	WeaponStruct* secondary = pTechno->GetWeapon(1);
-	if (secondary && secondary->WeaponType)
-	{
-		int range = secondary->WeaponType->Range;
-		if (range > guardRange)
-		{
-			guardRange = range;
-		}
-	}
-	R->EDI((unsigned int)guardRange);
-	return 0x6F903E;
-}
+#ptagma region WeaponRange
 
 ASMJIT_PATCH(0x7012DF, TechnoClass_In_WeaponRange, 0x6)
 {
@@ -608,6 +439,8 @@ ASMJIT_PATCH(0x6F72E3, TechnoClass_In_Range, 0x6)
 	R->EDI(range);
 	return 0;
 }
+
+#pragma endregion
 
 ASMJIT_PATCH(0x7067F1, TechnoClass_DrawVxl_DisableCache, 0x6)
 {
@@ -692,17 +525,6 @@ ASMJIT_PATCH(0x73C15F, UnitClass_DrawVXL_Colour, 0x7)
 
 
 #pragma region Select weapon
-// Can not shoot to water when NavalTargeting = 6
-ASMJIT_PATCH(0x6FC833, TechnoClass_NavalTargeting, 0x7)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	GET(CellClass*, pTarget, EAX);
-	if (pTarget->LandType == LandType::Water && pTechno->GetTechnoType()->NavalTargeting == NavalTargetingType::Naval_none)
-	{
-		return 0x6FC86A;
-	}
-	return 0;
-}
 
 ASMJIT_PATCH(0x6F36DB, TechnoClass_SelectWeapon, 0xA)
 {

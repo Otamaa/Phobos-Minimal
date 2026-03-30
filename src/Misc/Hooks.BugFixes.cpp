@@ -3228,17 +3228,17 @@ ASMJIT_PATCH(0x56C1D3, MapClass_RemoveCrate_Campaign_FixLandType, 0x7)
 	return 0;
 }
 
-ASMJIT_PATCH(0x469A1B, BulletClass_Logics_DisguiseStuffs, 0x6)
+ASMJIT_PATCH(0x469A0D, BulletClass_Logics_DisguiseStuffs, 0x6)
 {
-	GET(ObjectClass*, pAbs, ECX);
 	GET(BulletClass*, pThis, ESI);
 
-	if (!pAbs->IsAlive) {
+	if (!pThis->Owner || !pThis->Owner->IsAlive || !VTable::Get(pThis->Owner)) {
 		pThis->Owner = nullptr;
 		return 0x469AA4;
 	}
 
-	return 0x0;
+	R->ECX(pThis->Owner);
+	return 0x469A1B;
 }
 
 ASMJIT_PATCH(0x4DAD06, FootClass_AI_IsCrashing_VoiceAndSound, 0xA)

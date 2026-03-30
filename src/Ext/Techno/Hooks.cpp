@@ -1343,7 +1343,7 @@ ASMJIT_PATCH(0x736F61, UnitClass_UpdateFiring_FireUp, 0x6)
 		{
 			const int value = pThis->CurrentBurstIndex % pWeapon->Burst;
 			const int syncFrame = value >= 2 ? -1
-				: (value == 0 ? pType->FiringSyncFrame0 : pType->FiringSyncFrame1);
+				: (value == 0 ? pType->FiringSyncFrames[0] : pType->FiringSyncFrames[1]);
 
 			updateFiringFrame = syncFrame == -1;
 		}

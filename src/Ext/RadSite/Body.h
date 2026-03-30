@@ -24,44 +24,32 @@ public:
 	// ============================================================
 	// Large aggregates
 	// ============================================================
-	PhobosFixedString<0x18> Name;
-	PhobosMap<BuildingClass*, int> damageCounts;
+	PhobosFixedString<0x18> Name {};
+	PhobosMap<BuildingClass*, int> damageCounts {};
 
 	// ============================================================
 	// 8-byte aligned: Pointers
 	// ============================================================
-	RadTypeClass* Type;
-	WeaponTypeClass* Weapon;
-	TechnoClass* TechOwner;
-	HouseClass* HouseOwner;
+	RadTypeClass* Type {};
+	WeaponTypeClass* Weapon {};
+	TechnoClass* TechOwner {};
+	HouseClass* HouseOwner {};
 
 	// ============================================================
 	// 4-byte aligned: int
 	// ============================================================
-	int CreationFrame;
+	int CreationFrame {};
 
 	// ============================================================
 	// 1-byte aligned: bool (at the end)
 	// ============================================================
-	bool NoOwner;
+	bool NoOwner {true};
 	// 1 byte + 3 bytes padding for alignment
 
 #pragma endregion
 
 public:
 	RadSiteExtData(RadSiteClass* pObj) : AbstractExtended(pObj)
-		// Large aggregates
-		, Name()
-		, damageCounts()
-		// Pointers
-		, Type(nullptr)
-		, Weapon(nullptr)
-		, TechOwner(nullptr)
-		, HouseOwner(nullptr)
-		// int
-		, CreationFrame(0)
-		// bool
-		, NoOwner(true)
 	{
 		this->Name = GameStrings::NoneStr();
 		this->AbsType = RadSiteClass::AbsID;

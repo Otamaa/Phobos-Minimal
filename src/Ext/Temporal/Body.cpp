@@ -23,6 +23,9 @@
 
 #include <Misc/Ares/Hooks/Header.h>
 
+#include <Misc/Kratos/Extension/TechnoExt.h>
+#include <Misc/Kratos/Common/Components/Scriptable.h>
+
 #include <Phobos.SaveGame.h>
 
 void FakeTemporalClass::CreateWarpAwayAnimation(WeaponTypeClass* pWeapon)
@@ -86,6 +89,12 @@ void HandleBuildingDestruction(TemporalClass* pTemporal, BuildingClass* building
 // bugfix #1266: Temporal kills gain double experience
 void HandleDestruction(TemporalClass* pTemporal , TechnoClass* target , WeaponTypeClass* pWeapon)
 {
+	if (auto pTargetExt = TechnoExt::ExtMap.Find(target))
+	{
+		pTargetExt->_GameObject->Foreach([&](Component* c)
+			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnTemporalEliminate(pTemporal); } });
+	}
+
 	auto pOwnerExt = TechnoExtContainer::Instance.Find(pTemporal->Owner);
 	auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
 
@@ -205,6 +214,11 @@ void FakeTemporalClass::_Update()
 		if (!this->Owner) {
 			this->Detach();
 			return;
+		}
+
+		if (auto pExt = TechnoExt::ExtMap.Find(this->Target)) {
+			pExt->_GameObject->Foreach([&](Component* c)
+				{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnTemporalUpdate(this); } });
 		}
 
 		if(this->WarpRemaining <= 0) {

@@ -22,7 +22,7 @@
 #include <Misc/Kratos/Ext/TechnoType/BuildingRangeData.h>
 
 //TODO : alot
-#ifdef _ENABLE_HOOKS
+#ifndef _ENABLE_HOOKS
 
 ASMJIT_PATCH(0x489280, MapClass_DamageArea, 0x6)
 {
@@ -32,6 +32,7 @@ ASMJIT_PATCH(0x489280, MapClass_DamageArea, 0x6)
 	GET_STACK(WarheadTypeClass*, pWH, 0x8);
 	// GET_STACK(bool, affectsTiberium, 0xC);
 	GET_STACK(HouseClass*, pAttackingHouse, 0x10);
+
 	if (pWH)
 	{
 		// 抛射体爆炸OnDetonate()后会调用该事件

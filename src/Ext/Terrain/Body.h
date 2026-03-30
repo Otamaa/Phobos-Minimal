@@ -24,21 +24,17 @@ public:
 
 #pragma region ClassMember
 
-	Handle<LightSourceClass*, UninitLightSource> LightSource;
-	Handle<AnimClass*, UninitAnim> AttachedAnim;
-	Handle<AnimClass*, UninitAnim> AttachedFireAnim;
+	Handle<LightSourceClass*, UninitLightSource> LightSource {};
+	Handle<AnimClass*, UninitAnim> AttachedAnim {};
+	Handle<AnimClass*, UninitAnim> AttachedFireAnim {};
 
-	std::vector<CellStruct> AdjacentCells;
+	std::vector<CellStruct> AdjacentCells {};
 
 #pragma endregion
 
 public:
 
 	TerrainExtData(TerrainClass* pObj) : ObjectExtData(pObj)
-		, LightSource(nullptr)
-		, AttachedAnim(nullptr)
-		, AttachedFireAnim(nullptr)
-		, AdjacentCells()
 	{
 		this->Name = pObj->Type->ID;
 		this->AbsType = TerrainClass::AbsID;

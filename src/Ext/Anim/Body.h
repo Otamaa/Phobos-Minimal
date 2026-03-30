@@ -27,76 +27,53 @@ public:
 	// ============================================================
 	// 8-byte aligned: Pointers
 	// ============================================================
-	TechnoClass* Invoker;
-	BuildingClass* ParentBuilding;
-	WeaponTypeClass* FromWeapon;
-	Handle<ParticleSystemClass*, MarkForDeathDeleterB<ParticleSystemClass>> AttachedSystem;
+	TechnoClass* Invoker {};
+	BuildingClass* ParentBuilding {};
+	WeaponTypeClass* FromWeapon {};
+	Handle<ParticleSystemClass*, MarkForDeathDeleterB<ParticleSystemClass>> AttachedSystem {};
 
 	// ============================================================
 	// OptionalStruct (ordered by inner type size, largest first)
 	// CoordStruct = 12 bytes, DirStruct = 8 bytes, DirType = 1 byte
 	// ============================================================
-	OptionalStruct<CoordStruct, true> BackupCoords;
-	OptionalStruct<DirStruct, true> DeathUnitTurretFacing;
-	OptionalStruct<DirType, true> DeathUnitFacing;
+	OptionalStruct<CoordStruct, true> BackupCoords {};
+	OptionalStruct<DirStruct, true> DeathUnitTurretFacing {};
+	OptionalStruct<DirType, true> DeathUnitFacing {};
 
 	// ============================================================
 	// Compound types
 	// ============================================================
-	StageClass DamagingState;
+	StageClass DamagingState {};
 
 	// ============================================================
 	// 12-byte struct (3 ints)
 	// ============================================================
-	CoordStruct CreateUnitLocation;
+	CoordStruct CreateUnitLocation {};
 
 	// ============================================================
 	// 8-byte struct (2 ints)
 	// ============================================================
-	Point2D AEDrawOffset;
+	Point2D AEDrawOffset {};
 
 	// ============================================================
 	// 4-byte aligned: int
 	// ============================================================
-	int FromWeaponIdx;
-	int FromBurstIdx;
+	int FromWeaponIdx {};
+	int FromBurstIdx {};
 
 	// ============================================================
 	// 1-byte aligned: bool (packed together)
 	// ============================================================
-	bool OwnerSet;
-	bool AllowCreateUnit;
-	bool WasOnBridge;
-	bool DelayedFireRemoveOnNoDelay;
+	bool OwnerSet {};
+	bool AllowCreateUnit {};
+	bool WasOnBridge {};
+	bool DelayedFireRemoveOnNoDelay {};
 	// 4 bools = 4 bytes, naturally aligns to next 4-byte boundary
 
 #pragma endregion
 
 public:
 	AnimExtData(AnimClass* pObj) : ObjectExtData(pObj)
-		// Pointers
-		, Invoker { nullptr }
-		, ParentBuilding { nullptr }
-		, FromWeapon { nullptr }
-		, AttachedSystem { nullptr }
-		// OptionalStruct
-		, BackupCoords {}
-		, DeathUnitTurretFacing {}
-		, DeathUnitFacing {}
-		// Compound
-		, DamagingState {}
-		// CoordStruct
-		, CreateUnitLocation {}
-		// Point2D
-		, AEDrawOffset {}
-		// ints
-		, FromWeaponIdx { 0 }
-		, FromBurstIdx { 0 }
-		// bools
-		, OwnerSet { false }
-		, AllowCreateUnit { false }
-		, WasOnBridge { false }
-		, DelayedFireRemoveOnNoDelay { false }
 	{
 		this->Name = pObj->Type->ID;
 		this->AbsType = AnimClass::AbsID;

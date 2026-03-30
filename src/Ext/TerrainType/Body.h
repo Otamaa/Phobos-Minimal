@@ -17,80 +17,49 @@ public:
 public:
 
 #pragma region ClassMember
-
 	// ---- Visual / palette ----
-	CustomPalette CustomPalette; //
-	Nullable<ColorStruct> MinimapColor;
+	CustomPalette CustomPalette { CustomPalette::PaletteMode::Temperate };
+	Nullable<ColorStruct> MinimapColor {};
 
 	// ---- Tiberium spawning ----
-	Valueable<int> SpawnsTiberium_Type;
-	Valueable<int> SpawnsTiberium_Range;
-	Valueable<PartialVector2D<int>> SpawnsTiberium_GrowthStage;
-	Valueable<PartialVector2D<int>> SpawnsTiberium_CellsPerAnim;
-	Valueable<float> SpawnsTiberium_StageFalloff;
-	ValueableIdx<ParticleTypeClass*> SpawnsTiberium_Particle;
+	Valueable<int> SpawnsTiberium_Type { -1 };
+	Valueable<int> SpawnsTiberium_Range { 1 };
+	Valueable<PartialVector2D<int>> SpawnsTiberium_GrowthStage { { 3, 0 } };
+	Valueable<PartialVector2D<int>> SpawnsTiberium_CellsPerAnim { { 1, 0 } };
+	Valueable<float> SpawnsTiberium_StageFalloff {};
+	ValueableIdx<ParticleTypeClass*> SpawnsTiberium_Particle { -1 };
 
 	// ---- Destruction / damage ----
-	Valueable<AnimTypeClass*> DestroyAnim;
-	ValueableIdx<VocClass> DestroySound;
-	Nullable<WarheadTypeClass*> Warhead;
-	Nullable<int> Damage;
-	Valueable<bool> AreaDamage;
-	Valueable<int> Bounty;
+	Valueable<AnimTypeClass*> DestroyAnim {};
+	ValueableIdx<VocClass> DestroySound { -1 };
+	Nullable<WarheadTypeClass*> Warhead {};
+	Nullable<int> Damage {};
+	Valueable<bool> AreaDamage {};
+	Valueable<int> Bounty { 0 };
 
 	// ---- Terrain interaction ----
-	Valueable<bool> IsPassable;
-	Valueable<bool> CanBeBuiltOn;
-	Valueable<int> CrushableLevel;
+	Valueable<bool> IsPassable {};
+	Valueable<bool> CanBeBuiltOn {};
+	Valueable<int> CrushableLevel { 0 };
 
 	// ---- Lighting ----
-	Valueable<bool> LightEnabled;
-	Nullable<int> LightVisibility;
-	Nullable<double> LightIntensity;
-	Nullable<double> LightRedTint;
-	Nullable<double> LightGreenTint;
-	Nullable<double> LightBlueTint;
+	Valueable<bool> LightEnabled {};
+	Nullable<int> LightVisibility {};
+	Nullable<double> LightIntensity {};
+	Nullable<double> LightRedTint {};
+	Nullable<double> LightGreenTint {};
+	Nullable<double> LightBlueTint {};
 
 	// ---- Animation state ----
-	ValueableVector<AnimTypeClass*> AttachedAnim;
-	Valueable<bool> HasDamagedFrames;
-	Valueable<bool> HasCrumblingFrames;
-	ValueableIdx<VocClass> CrumblingSound;
-	Nullable<int> AnimationLength;
-	NullableVector<AnimTypeClass*> TreeFires;
-
+	ValueableVector<AnimTypeClass*> AttachedAnim {};
+	Valueable<bool> HasDamagedFrames {};
+	Valueable<bool> HasCrumblingFrames {};
+	ValueableIdx<VocClass> CrumblingSound { -1 };
+	Nullable<int> AnimationLength {};
+	NullableVector<AnimTypeClass*> TreeFires {};
 #pragma endregion
 
-	TerrainTypeExtData(TerrainTypeClass* pObj) : ObjectTypeExtData(pObj),
-		CustomPalette(CustomPalette::PaletteMode::Temperate),
-		MinimapColor(),
-		SpawnsTiberium_Type(-1),
-		SpawnsTiberium_Range(1),
-		SpawnsTiberium_GrowthStage({ 3, 0 }),
-		SpawnsTiberium_CellsPerAnim({ 1, 0 }),
-		SpawnsTiberium_StageFalloff(),
-		SpawnsTiberium_Particle(-1),
-		DestroyAnim(),
-		DestroySound(-1),
-		Warhead(),
-		Damage(),
-		AreaDamage(),
-		Bounty(0),
-		IsPassable(),
-		CanBeBuiltOn(),
-		CrushableLevel(0),
-		LightEnabled(),
-		LightVisibility(),
-		LightIntensity(),
-		LightRedTint(),
-		LightGreenTint(),
-		LightBlueTint(),
-		AttachedAnim(),
-		HasDamagedFrames(),
-		HasCrumblingFrames(),
-		CrumblingSound(-1),
-		AnimationLength(),
-		TreeFires()
+	TerrainTypeExtData(TerrainTypeClass* pObj) : ObjectTypeExtData(pObj)
 	{
 		this->AbsType = TerrainTypeClass::AbsID;
 		this->Initialize();

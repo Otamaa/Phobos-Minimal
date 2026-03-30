@@ -390,3 +390,4 @@ FodyWeavers.xsd
 /DebugBuild/IntDir/microsoft/STL
 /DebugBuild/IntDir
 /.vscode/settings.json
+/OptimizationOff

@@ -17,8 +17,6 @@ public:
 	using base_type = ParticleSystemClass;
 	static COMPILETIMEEVAL const char* ClassName = "ParticleSystemExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "ParticleSystemClass";
-	
-	
 
 public:
 #pragma region ClassMembers
@@ -111,23 +109,23 @@ public:
 	// ============================================================
 	// 8-byte aligned: Pointer
 	// ============================================================
-	ParticleTypeClass* HeldType;
+	ParticleTypeClass* HeldType {};
 
 	// ============================================================
 	// 24-byte aligned: Vectors
 	// ============================================================
-	HelperedVector<Movement> OtherParticleData;
-	HelperedVector<Draw> SmokeData;
+	HelperedVector<Movement> OtherParticleData {};
+	HelperedVector<Draw> SmokeData {};
 
 	// ============================================================
 	// 4-byte aligned: enum (int-based)
 	// ============================================================
-	Behave What;
+	Behave What { Behave::None };
 
 	// ============================================================
 	// 1-byte aligned: bool (at the end)
 	// ============================================================
-	bool AlphaIsLightFlash;
+	bool AlphaIsLightFlash { true };
 	// 1 byte + 3 bytes padding for alignment
 
 #pragma endregion

@@ -1004,6 +1004,10 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			"Please review the contents of the debug log and correct them.");
 	}
 
+	for (auto& pArmor : ArmorTypeClass::Array) {
+		pArmor->FreeTags();
+	}
+
 	return 0x0;
 }
 

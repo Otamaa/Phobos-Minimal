@@ -771,8 +771,24 @@ void FakeTechnoClass::__HandleEMPEffect(TechnoClass* pThis)
 	}
 }
 
+#include <Misc/Kratos/Extension/TechnoExt.h>
+
+void OnUpdateEnd(TechnoClass* pThis)
+{
+	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
+	{
+		pExt->_GameObject->Foreach([](Component* c)
+			{ c->OnUpdateEnd(); });
+	}
+}
+
 void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 {
+	if (auto pExt = TechnoExt::ExtMap.Find(pThis)) {
+		pExt->_GameObject->Foreach([](Component* c)
+			{ c->OnUpdate(); });
+	}
+
 	// Clear moused-over flag
 	if (pThis->IsMouseHovering) {
 		pThis->IsMouseHovering = 0;
@@ -783,8 +799,10 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 
 	TechnoExt_ExtData::Ares_technoUpdate(pThis);
 
-	if (!pThis->IsAlive)
+	if (!pThis->IsAlive){
+		OnUpdateEnd(pThis);
 		return;
+	}
 
 	if (!IsBuilding) {
 		pExt->UpdateLaserTrails();
@@ -795,8 +813,10 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 
 	PhobosAEFunctions::UpdateAttachEffects(pThis);
 
-	if (!pThis->IsAlive)
+	if (!pThis->IsAlive){
+		OnUpdateEnd(pThis);
 		return;
+	}
 
 	auto const pType = GET_TECHNOTYPE(pThis);
 	bool IsInLimboDelivered = false;
@@ -815,11 +835,13 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 
 	if (pExt->UpdateKillSelf_Slave())
 	{
+		OnUpdateEnd(pThis);
 		return;
 	}
 
 	if (pExt->CheckDeathConditions())
 	{
+		OnUpdateEnd(pThis);
 		return;
 	}
 
@@ -827,6 +849,7 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 	pExt->UpdateShield();
 	if (!pThis->IsAlive)
 	{
+		OnUpdateEnd(pThis);
 		return;
 	}
 	pExt->UpdateInterceptor();
@@ -846,11 +869,13 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 	pExt->UpdateEatPassengers();
 	if (!pThis->IsAlive)
 	{
+		OnUpdateEnd(pThis);
 		return;
 	}
 	pExt->UpdateGattlingOverloadDamage();
 	if (!pThis->IsAlive)
 	{
+		OnUpdateEnd(pThis);
 		return;
 	}
 
@@ -931,6 +956,7 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 	if (!pThis->InLimbo && pThis->IsVoxel()) {
 		pThis->RockingAI();
 		if (!pThis->IsAlive) {
+			OnUpdateEnd(pThis);
 			return;
 		}
 	}
@@ -958,6 +984,7 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 	__HandleManagers(pThis);
 
 	if (!pThis->IsAlive) {
+		OnUpdateEnd(pThis);
 		return;
 	}
 
@@ -965,6 +992,7 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 	__HandleSelfHealing(pThis);
 
 	if (!pThis->IsAlive) {
+		OnUpdateEnd(pThis);
 		return;
 	}
 
@@ -984,8 +1012,10 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 	// Sensors and special effects
 	pThis->RadarTrackingUpdate(false);
 	__HandleEMPEffect(pThis);
+
+	OnUpdateEnd(pThis);
 }
-#pragma optimize("", off )
+
 void __fastcall FakeTechnoClass::_Cloaking_AI(TechnoClass* pThis, discard_t, bool something)
 {
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
@@ -1174,7 +1204,7 @@ void __fastcall FakeTechnoClass::_Cloaking_AI(TechnoClass* pThis, discard_t, boo
 		}
 	}
 }
-#pragma optimize("", on )
+
 DEFINE_FUNCTION_JUMP(LJMP, 0x6FB740, FakeTechnoClass::_Cloaking_AI);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E26B4, FakeTechnoClass::_Cloaking_AI);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E90A4, FakeTechnoClass::_Cloaking_AI);

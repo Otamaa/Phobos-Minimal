@@ -57,13 +57,13 @@ public:
 	// ============================================================
 	// Large aggregates
 	// ============================================================
-	PhobosFixedString<0x18> Name;
-	SWStatus Statusses;
+	PhobosFixedString<0x18> Name {};
+	SWStatus Statusses {};
 
 	// ============================================================
 	// 8-byte aligned: Pointer
 	// ============================================================
-	SWTypeExtData* Type;
+	SWTypeExtData* Type {};
 
 	// ============================================================
 	// 4-byte aligned: int
@@ -72,14 +72,14 @@ public:
 	// ============================================================
 	// 4-byte aligned: CellStruct (2 shorts = 4 bytes)
 	// ============================================================
-	CellStruct Temp_CellStruct;
+	CellStruct Temp_CellStruct {};
 
 	// ============================================================
 	// 1-byte aligned: bool (packed together at the end)
 	// ============================================================
-	bool Temp_IsPlayer;
-	bool CameoFirstClickDone;
-	bool FirstClickAutoFireDone;
+	bool Temp_IsPlayer {};
+	bool CameoFirstClickDone {};
+	bool FirstClickAutoFireDone {};
 	// 4 bools = 4 bytes, naturally aligned
 
 #pragma endregion

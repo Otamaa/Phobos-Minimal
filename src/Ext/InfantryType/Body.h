@@ -157,95 +157,65 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "InfantryTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "InfantryTypeClass";
 	
-	
-
 public:
 
 #pragma region ClassMembers
 	// ============================================================
 	// Large aggregates (array of structs)
 	// ============================================================
-	WeaponStruct CrawlingWeaponDatas[4];
+	WeaponStruct CrawlingWeaponDatas[4] {};
 
 	// ============================================================
 	// Promotable types (likely contain multiple values per veterancy level)
 	// ============================================================
-	Promotable<WarheadTypeClass*> WhenInfiltrate_Warhead;
-	Promotable<WeaponTypeClass*> WhenInfiltrate_Weapon;
-	Promotable<int> WhenInfiltrate_Damage;
+	Promotable<WarheadTypeClass*> WhenInfiltrate_Warhead {};
+	Promotable<WeaponTypeClass*> WhenInfiltrate_Weapon {};
+	Promotable<int> WhenInfiltrate_Damage {};
 
 	// ============================================================
 	// 24-byte aligned: Vectors
 	// ============================================================
-	ValueableIdxVector<VocClass> VoiceGarrison;
-	std::vector<int> SquenceRates;  // typo: should be "SequenceRates"
+	ValueableIdxVector<VocClass> VoiceGarrison {};
+	std::vector<int> SquenceRates {};  // typo: should be "SequenceRates"
 
 	// ============================================================
 	// Nullable<pointer> (pointer + bool + padding ≈ 16 bytes)
 	// ============================================================
-	Nullable<WarheadTypeClass*> C4Warhead;
+	Nullable<WarheadTypeClass*> C4Warhead {};
 
 	// ============================================================
 	// Nullable<double> (double + bool + padding ≈ 16 bytes)
 	// ============================================================
-	Nullable<double> C4Delay;
-	Nullable<double> ProneSpeed;
+	Nullable<double> C4Delay {};
+	Nullable<double> ProneSpeed {};
 
 	// ============================================================
 	// Nullable<int> (int + bool + padding ≈ 8 bytes)
 	// ============================================================
-	Nullable<int> C4ROF;
+	Nullable<int> C4ROF {};
 
 	// ============================================================
 	// Nullable<bool> (bool + bool ≈ 2-4 bytes)
 	// ============================================================
-	Nullable<bool> InfantryAutoDeploy;
+	Nullable<bool> InfantryAutoDeploy {};
 
 	// ============================================================
 	// Valueable<bool> (1 byte each, packed together at the end)
 	// ============================================================
-	Valueable<bool> Is_Deso;
-	Valueable<bool> Is_Cow;
-	Valueable<bool> HideWhenDeployAnimPresent;
-	Valueable<bool> DeathBodies_UseDieSequenceAsIndex;
-	Valueable<bool> OnlyUseLandSequences;
-	Valueable<bool> WhenInfiltrate_Warhead_Full;
-	Valueable<bool> AllSequnceEqualRates;  // typo: should be "AllSequenceEqualRates"
-	Valueable<bool> AllowReceiveSpeedBoost;
+	Valueable<bool> Is_Deso {};
+	Valueable<bool> Is_Cow {};
+	Valueable<bool> HideWhenDeployAnimPresent {};
+	Valueable<bool> DeathBodies_UseDieSequenceAsIndex {};
+	Valueable<bool> OnlyUseLandSequences {};
+	Valueable<bool> WhenInfiltrate_Warhead_Full { true };
+	Valueable<bool> AllSequnceEqualRates {};  // typo: should be "AllSequenceEqualRates"
+	Valueable<bool> AllowReceiveSpeedBoost {};
 	// 8 Valueable<bool> = 8 bytes, naturally aligned
 
 #pragma endregion
 
 public:
-	InfantryTypeExtData(InfantryTypeClass* pObj)
-		: FootTypeExtData(pObj)
-		// Large aggregates
-		, CrawlingWeaponDatas()
-		// Promotable
-		, WhenInfiltrate_Warhead(nullptr)
-		, WhenInfiltrate_Weapon(nullptr)
-		, WhenInfiltrate_Damage(0)
-		// Vectors
-		, VoiceGarrison()
-		, SquenceRates()
-		// Nullable<pointer>
-		, C4Warhead()
-		// Nullable<double>
-		, C4Delay()
-		, ProneSpeed()
-		// Nullable<int>
-		, C4ROF()
-		// Nullable<bool>
-		, InfantryAutoDeploy()
-		// Valueable<bool>
-		, Is_Deso(false)
-		, Is_Cow(false)
-		, HideWhenDeployAnimPresent(false)
-		, DeathBodies_UseDieSequenceAsIndex(false)
-		, OnlyUseLandSequences(false)
-		, WhenInfiltrate_Warhead_Full(true)
-		, AllSequnceEqualRates(false)
-		, AllowReceiveSpeedBoost(false)
+	InfantryTypeExtData(InfantryTypeClass* pObj) : FootTypeExtData(pObj)
 	{
 		this->AbsType = InfantryTypeClass::AbsID;
 		this->InitializeConstant();

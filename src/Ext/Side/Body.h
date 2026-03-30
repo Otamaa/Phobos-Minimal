@@ -27,212 +27,128 @@ public:
 	// ============================================================
 	// Large aggregates: PhobosFixedString (32 bytes each)
 	// ============================================================
-	PhobosFixedString<0x20> ScoreMultiplayBackground;
-	PhobosFixedString<0x20> ScoreMultiplayPalette;
-	PhobosFixedString<0x20> ScoreMultiplayBars;
-	PhobosFixedString<0x20> ScoreCampaignBackground;
-	PhobosFixedString<0x20> ScoreCampaignTransition;
-	PhobosFixedString<0x20> ScoreCampaignAnimation;
-	PhobosFixedString<0x20> ScoreCampaignPalette;
-	PhobosFixedString<0x20> GraphicalTextImage;
-	PhobosFixedString<0x20> GraphicalTextPalette;
-	PhobosFixedString<0x20> DialogBackgroundImage;
-	PhobosFixedString<0x20> DialogBackgroundPalette;
-	PhobosFixedString<0x20> ScoreCampaignThemeUnderPar;
-	PhobosFixedString<0x20> ScoreCampaignThemeOverPar;
-	PhobosFixedString<0x20> ScoreMultiplayThemeWin;
-	PhobosFixedString<0x20> ScoreMultiplayThemeLose;
+	PhobosFixedString<0x20> ScoreMultiplayBackground {};
+	PhobosFixedString<0x20> ScoreMultiplayPalette {};
+	PhobosFixedString<0x20> ScoreMultiplayBars {};
+	PhobosFixedString<0x20> ScoreCampaignBackground {};
+	PhobosFixedString<0x20> ScoreCampaignTransition {};
+	PhobosFixedString<0x20> ScoreCampaignAnimation {};
+	PhobosFixedString<0x20> ScoreCampaignPalette {};
+	PhobosFixedString<0x20> GraphicalTextImage {};
+	PhobosFixedString<0x20> GraphicalTextPalette {};
+	PhobosFixedString<0x20> DialogBackgroundImage {};
+	PhobosFixedString<0x20> DialogBackgroundPalette {};
+	PhobosFixedString<0x20> ScoreCampaignThemeUnderPar {};
+	PhobosFixedString<0x20> ScoreCampaignThemeOverPar {};
+	PhobosFixedString<0x20> ScoreMultiplayThemeWin {};
+	PhobosFixedString<0x20> ScoreMultiplayThemeLose {};
 
 	// ============================================================
 	// Large aggregates: PhobosPCXFile
 	// ============================================================
-	PhobosPCXFile SuperWeaponSidebar_OnPCX;
-	PhobosPCXFile SuperWeaponSidebar_OffPCX;
-	PhobosPCXFile SuperWeaponSidebar_TopPCX;
-	PhobosPCXFile SuperWeaponSidebar_CenterPCX;
-	PhobosPCXFile SuperWeaponSidebar_BottomPCX;
+	PhobosPCXFile SuperWeaponSidebar_OnPCX {};
+	PhobosPCXFile SuperWeaponSidebar_OffPCX {};
+	PhobosPCXFile SuperWeaponSidebar_TopPCX {};
+	PhobosPCXFile SuperWeaponSidebar_CenterPCX {};
+	PhobosPCXFile SuperWeaponSidebar_BottomPCX {};
 
 	// ============================================================
 	// Large aggregates: CustomPalette
 	// ============================================================
-	CustomPalette GClock_Palette;
+	CustomPalette GClock_Palette { CustomPalette::PaletteMode::Default };
 
 	// ============================================================
 	// 24-byte aligned: Vectors
 	// ============================================================
-	NullableVector<TechnoTypeClass*> ParaDropTypes;
-	NullableVector<int> ParaDropNum;
-	NullableVector<BuildingTypeClass*> BaseDefenses;
-	NullableVector<int> BaseDefenseCounts;
+	NullableVector<TechnoTypeClass*> ParaDropTypes {};
+	NullableVector<int> ParaDropNum {};
+	NullableVector<BuildingTypeClass*> BaseDefenses {};
+	NullableVector<int> BaseDefenseCounts {};
 
 	// ============================================================
 	// 8-byte aligned: Valueable<pointer>
 	// ============================================================
-	Valueable<SHPStruct*> GClock_Shape;
-	Valueable<AircraftTypeClass*> SpyPlane;
-	Valueable<UnitTypeClass*> HunterSeeker;
-	Valueable<SHPStruct*> MouseShape;
+	Valueable<SHPStruct*> GClock_Shape {};
+	Valueable<AircraftTypeClass*> SpyPlane { nullptr };
+	Valueable<UnitTypeClass*> HunterSeeker { nullptr };
+	Valueable<SHPStruct*> MouseShape { nullptr };
 
 	// ============================================================
 	// Nullable<pointer> (pointer + bool + padding ≈ 16 bytes)
 	// ============================================================
-	Nullable<InfantryTypeClass*> Crew;
-	Nullable<InfantryTypeClass*> Engineer;
-	Nullable<InfantryTypeClass*> Technician;
-	Nullable<AnimTypeClass*> ParachuteAnim;
-	Nullable<InfantryTypeClass*> Disguise;
+	Nullable<InfantryTypeClass*> Crew {};
+	Nullable<InfantryTypeClass*> Engineer {};
+	Nullable<InfantryTypeClass*> Technician {};
+	Nullable<AnimTypeClass*> ParachuteAnim {};
+	Nullable<InfantryTypeClass*> Disguise {};
 
 	// ============================================================
 	// Nullable<int/float> (~8 bytes each)
 	// ============================================================
-	Nullable<int> SurvivorDivisor;
-	Nullable<int> ToolTip_Background_Opacity;
-	Nullable<float> ToolTip_Background_BlurSize;
+	Nullable<int> SurvivorDivisor {};
+	Nullable<int> ToolTip_Background_Opacity {};
+	Nullable<float> ToolTip_Background_BlurSize {};
 
 	// ============================================================
 	// Nullable<ColorStruct> (3 bytes + bool + padding ≈ 4-8 bytes)
 	// ============================================================
-	Nullable<ColorStruct> Sidebar_WeedsCounter_Color;
-	Nullable<ColorStruct> ToolTip_Background_Color;
-	Nullable<ColorStruct> Sidebar_BattlePoints_Color;
+	Nullable<ColorStruct> Sidebar_WeedsCounter_Color {};
+	Nullable<ColorStruct> ToolTip_Background_Color {};
+	Nullable<ColorStruct> Sidebar_BattlePoints_Color {};
 
 	// ============================================================
 	// Nullable<bool> (~2-4 bytes)
 	// ============================================================
-	Nullable<bool> Sidebar_GDIPositions;
+	Nullable<bool> Sidebar_GDIPositions {};
 
 	// ============================================================
 	// Valueable<Point2D> (8 bytes each)
 	// ============================================================
-	Valueable<Point2D> Sidebar_HarvesterCounter_Offset;
-	Valueable<Point2D> Sidebar_ProducingProgress_Offset;
-	Valueable<Point2D> Sidebar_PowerDelta_Offset;
-	Valueable<Point2D> Sidebar_WeedsCounter_Offset;
-	Valueable<Point2D> Sidebar_BattlePoints_Offset;
+	Valueable<Point2D> Sidebar_HarvesterCounter_Offset { { 0, 0 } };
+	Valueable<Point2D> Sidebar_ProducingProgress_Offset { { 0, 0 } };
+	Valueable<Point2D> Sidebar_PowerDelta_Offset { { 0, 0 } };
+	Valueable<Point2D> Sidebar_WeedsCounter_Offset { { 0, 0 } };
+	Valueable<Point2D> Sidebar_BattlePoints_Offset { Point2D() };
 
 	// ============================================================
 	// Valueable<ColorStruct> (3-4 bytes each)
 	// ============================================================
-	Valueable<ColorStruct> Sidebar_HarvesterCounter_Yellow;
-	Valueable<ColorStruct> Sidebar_HarvesterCounter_Red;
-	Valueable<ColorStruct> Sidebar_PowerDelta_Green;
-	Valueable<ColorStruct> Sidebar_PowerDelta_Grey;
-	Valueable<ColorStruct> Sidebar_PowerDelta_Yellow;
-	Valueable<ColorStruct> Sidebar_PowerDelta_Red;
-	Valueable<ColorStruct> ToolTipTextColor;
+	Valueable<ColorStruct> Sidebar_HarvesterCounter_Yellow { Drawing::DefaultColors[(int)DefaultColorList::Yellow] };
+	Valueable<ColorStruct> Sidebar_HarvesterCounter_Red { Drawing::DefaultColors[(int)DefaultColorList::Red] };
+	Valueable<ColorStruct> Sidebar_PowerDelta_Green { Drawing::DefaultColors[(int)DefaultColorList::Green] };
+	Valueable<ColorStruct> Sidebar_PowerDelta_Grey { Drawing::DefaultColors[(int)DefaultColorList::Grey] };
+	Valueable<ColorStruct> Sidebar_PowerDelta_Yellow { Drawing::DefaultColors[(int)DefaultColorList::Yellow] };
+	Valueable<ColorStruct> Sidebar_PowerDelta_Red { Drawing::DefaultColors[(int)DefaultColorList::Red] };
+	Valueable<ColorStruct> ToolTipTextColor { ColorStruct() };
 
 	// ============================================================
 	// Valueable<int> / ValueableIdx (4 bytes each)
 	// ============================================================
-	Valueable<int> ArrayIndex;
-	Valueable<int> IngameScore_WinTheme;
-	Valueable<int> IngameScore_LoseTheme;
-	Valueable<int> BriefingTheme;
-	Valueable<int> SidebarMixFileIndex;
-	ValueableIdx<AircraftTypeClass> ParaDropPlane;
-	ValueableIdx<ColorScheme> MessageTextColorIndex;
-#ifndef disable_aresOverride
-	ValueableIdx<EVAVoices> EVAIndex;
-#else
-	ValueableIdx<int> EVAIndex;
-#endif
+	Valueable<int> ArrayIndex { -1 };
+	Valueable<int> IngameScore_WinTheme { -2 };
+	Valueable<int> IngameScore_LoseTheme { -2 };
+	Valueable<int> BriefingTheme { -1 };
+	Valueable<int> SidebarMixFileIndex { -1 };
+	ValueableIdx<AircraftTypeClass> ParaDropPlane { -1 };
+	ValueableIdx<ColorScheme> MessageTextColorIndex { -1 };
+	ValueableIdx<EVAVoices> EVAIndex { -1 };
 
 	// ============================================================
 	// Valueable<enum> (4 bytes each)
 	// ============================================================
-	Valueable<TranslucencyLevel> GClock_Transculency;
-	Valueable<TextAlign> Sidebar_PowerDelta_Align;
-	Valueable<TextAlign> Sidebar_BattlePoints_Align;
+	Valueable<TranslucencyLevel> GClock_Transculency {};
+	Valueable<TextAlign> Sidebar_PowerDelta_Align { TextAlign::Left };
+	Valueable<TextAlign> Sidebar_BattlePoints_Align { TextAlign::Left };
 
 	// ============================================================
 	// Valueable<bool> (1 byte, at the end)
 	// ============================================================
-	Valueable<bool> SidebarYuriFileNames;
+	Valueable<bool> SidebarYuriFileNames { false };
 	// 1 byte + 3 bytes padding for alignment
-
 #pragma endregion
 
 public:
 	SideExtData(SideClass* pObj) : AbstractTypeExtData(pObj)
-		// PhobosFixedString
-		, ScoreMultiplayBackground()
-		, ScoreMultiplayPalette()
-		, ScoreMultiplayBars()
-		, ScoreCampaignBackground()
-		, ScoreCampaignTransition()
-		, ScoreCampaignAnimation()
-		, ScoreCampaignPalette()
-		, GraphicalTextImage()
-		, GraphicalTextPalette()
-		, DialogBackgroundImage()
-		, DialogBackgroundPalette()
-		, ScoreCampaignThemeUnderPar()
-		, ScoreCampaignThemeOverPar()
-		, ScoreMultiplayThemeWin()
-		, ScoreMultiplayThemeLose()
-		// PhobosPCXFile
-		, SuperWeaponSidebar_OnPCX()
-		, SuperWeaponSidebar_OffPCX()
-		, SuperWeaponSidebar_TopPCX()
-		, SuperWeaponSidebar_CenterPCX()
-		, SuperWeaponSidebar_BottomPCX()
-		// CustomPalette
-		, GClock_Palette(CustomPalette::PaletteMode::Default)
-		// Vectors
-		, ParaDropTypes()
-		, ParaDropNum()
-		, BaseDefenses()
-		, BaseDefenseCounts()
-		// Valueable<pointer>
-		, GClock_Shape()
-		, SpyPlane(nullptr)
-		, HunterSeeker(nullptr)
-		, MouseShape(nullptr)
-		// Nullable<pointer>
-		, Crew()
-		, Engineer()
-		, Technician()
-		, ParachuteAnim()
-		, Disguise()
-		// Nullable<int/float>
-		, SurvivorDivisor()
-		, ToolTip_Background_Opacity()
-		, ToolTip_Background_BlurSize()
-		// Nullable<ColorStruct>
-		, Sidebar_WeedsCounter_Color()
-		, ToolTip_Background_Color()
-		, Sidebar_BattlePoints_Color()
-		// Nullable<bool>
-		, Sidebar_GDIPositions()
-		// Valueable<Point2D>
-		, Sidebar_HarvesterCounter_Offset({ 0, 0 })
-		, Sidebar_ProducingProgress_Offset({ 0, 0 })
-		, Sidebar_PowerDelta_Offset({ 0, 0 })
-		, Sidebar_WeedsCounter_Offset({ 0, 0 })
-		, Sidebar_BattlePoints_Offset(Point2D())
-		// Valueable<ColorStruct>
-		, Sidebar_HarvesterCounter_Yellow(Drawing::DefaultColors[(int)DefaultColorList::Yellow])
-		, Sidebar_HarvesterCounter_Red(Drawing::DefaultColors[(int)DefaultColorList::Red])
-		, Sidebar_PowerDelta_Green(Drawing::DefaultColors[(int)DefaultColorList::Green])
-		, Sidebar_PowerDelta_Grey(Drawing::DefaultColors[(int)DefaultColorList::Grey])
-		, Sidebar_PowerDelta_Yellow(Drawing::DefaultColors[(int)DefaultColorList::Yellow])
-		, Sidebar_PowerDelta_Red(Drawing::DefaultColors[(int)DefaultColorList::Red])
-		, ToolTipTextColor(ColorStruct())
-		// Valueable<int> / ValueableIdx
-		, ArrayIndex(-1)
-		, IngameScore_WinTheme(-2)
-		, IngameScore_LoseTheme(-2)
-		, BriefingTheme(-1)
-		, SidebarMixFileIndex(-1)
-		, ParaDropPlane(-1)
-		, MessageTextColorIndex(-1)
-		, EVAIndex(-1)
-		// Valueable<enum>
-		, GClock_Transculency()
-		, Sidebar_PowerDelta_Align(TextAlign::Left)
-		, Sidebar_BattlePoints_Align(TextAlign::Left)
-		// Valueable<bool>
-		, SidebarYuriFileNames(false)
 	{
 		this->AbsType = SideClass::AbsID;
 		this->Initialize();

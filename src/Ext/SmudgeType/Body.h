@@ -13,10 +13,10 @@ public:
 
 public:
 
-	Valueable<bool> Clearable;
+	Valueable<bool> Clearable { true };
 
 public:
-	SmudgeTypeExtData(SmudgeTypeClass* pObj) : ObjectTypeExtData(pObj) , Clearable (true)
+	SmudgeTypeExtData(SmudgeTypeClass* pObj) : ObjectTypeExtData(pObj)
 	{
  		this->AbsType = SmudgeTypeClass::AbsID;
 	}

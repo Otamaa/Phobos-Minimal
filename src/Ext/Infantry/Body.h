@@ -14,39 +14,30 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "InfantryExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "InfantryClass";
 	
-	
-
 public:
 
 #pragma region ClassMembers
 	// ============================================================
 	// 8-byte aligned: Pointer
 	// ============================================================
-	BuildingClass* GarrisonedIn;
+	BuildingClass* GarrisonedIn {};
 
 	// ============================================================
 	// 4-byte aligned: int
 	// ============================================================
-	int CurrentDoType;
+	int CurrentDoType { -1 };
 
 	// ============================================================
 	// 1-byte aligned: bool (packed together at the end)
 	// ============================================================
-	bool IsUsingDeathSequence;
-	bool SkipTargetChangeResetSequence;
+	bool IsUsingDeathSequence {};
+	bool SkipTargetChangeResetSequence {};
 	// 2 bools = 2 bytes, pads to 4 for alignment
 
 #pragma endregion
 
 public:
 	InfantryExtData(InfantryClass* pObj) : FootExtData(pObj)
-		// Pointer
-		, GarrisonedIn(nullptr)
-		// int
-		, CurrentDoType(-1)
-		// bools
-		, IsUsingDeathSequence(false)
-		, SkipTargetChangeResetSequence(false)
 	{
 		this->Name = pObj->Type->ID;
 		this->AbsType = InfantryClass::AbsID;

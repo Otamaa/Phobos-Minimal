@@ -36,6 +36,9 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm);
 	void SaveToStream(PhobosStreamWriter& Stm);
 
+	void RebuildTags();
+	void FreeTags();
+
 	static bool IsDefault(const char* pName);
 	static void LoadFromINIList_New(CCINIClass* pINI, bool bDebug = false);
 	static void LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH);

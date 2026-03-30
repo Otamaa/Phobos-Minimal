@@ -7,7 +7,7 @@ class CCINIClass;
 class AbstractTypeExtData : public AbstractExtended
 {
 public:
-	PhobosFixedString<0x18> Name;
+	PhobosFixedString<0x18> Name {};
 public:
 
 	AbstractTypeExtData(AbstractTypeClass* pObj) : AbstractExtended(pObj) {

@@ -3,19 +3,29 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/WarheadType/Body.h>
 
-#include <ExtraHeaders/StackVector.h>
-
-struct AEAccumulator
+void AEProperties::Recalculate(TechnoClass* pTechno)
 {
-	// Multipliers (use double for precision)
+	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
+
+	auto _AresAE = &pExt->AeData;
+	auto _AEProp = &pExt->AE;
+
+	// #region Multiplier accumulators
+
 	double ROF_Mult = 1.0;
 	double ReceiveRelativeDamageMult = 1.0;
-	double FP_Mult = 1.0;
-	double Armor_Mult = 1.0;
-	double Speed_Mult = 1.0;
+	double FP_Mult = _AEProp->Crate_FirepowerMultiplier;
+	double Armor_Mult = _AEProp->Crate_ArmorMultiplier;
+	double Speed_Mult = _AEProp->Crate_SpeedMultiplier;
 
-	// Boolean flags
-	bool Cloak = false;
+	// #endregion
+
+	// #region Boolean flag accumulators
+
+	bool Cloak = GET_TECHNOTYPE(pTechno)->Cloakable
+		|| pTechno->HasAbility(AbilityType::Cloak)
+		|| pExt->AE.flags.Cloakable;
+
 	bool forceDecloak = false;
 	bool disableWeapons = false;
 	bool disableSelfHeal = false;
@@ -25,473 +35,182 @@ struct AEAccumulator
 	bool unkillable = false;
 	bool hasExtraWH = false;
 	bool hasFeedbackWeapon = false;
+
+	bool wasTint = _AEProp->flags.HasTint;
 	bool hasTint = false;
 	bool reflectsDamage = false;
 	bool hasOnFireDiscardables = false;
 
-	// Use small vectors (stack-allocated for small sizes)
-	StackVector<AEPropertiesExtraRange::RangeData, 4> extraRanges;
-	StackVector<AEPropertiesExtraCrit::CritData, 4> extraCrits;
-	StackVector<AEPropertiesArmorMult::MultData, 4> armorMults;
+	// #endregion
 
-	// Optional timer for ROF
-	std::optional<double> cur_timerAE;
+	// #region Transient data — clear and rebuild
 
-	// Helper to accumulate weapon range data
-	void AccumulateWeaponRange(
-		double rangeMult,
-		double extraRange,
-		const std::vector<WeaponTypeClass*>& allowWeapons,
-		const std::vector<WeaponTypeClass*>& disallowWeapons);
+	auto extraRangeData = &_AEProp->ExtraRange;
+	auto extraCritData = &_AEProp->ExtraCrit;
+	auto armormultData = &_AEProp->ArmorMultData;
 
-	// Helper to accumulate crit data
-	void AccumulateCrit(
-		double critMult,
-		double critExtra,
-		const std::vector<WarheadTypeClass*>& allowWarheads,
-		const std::vector<WarheadTypeClass*>& disallowWarheads);
+	extraRangeData->Clear();
+	extraCritData->Clear();
+	armormultData->Clear();
 
-	// Helper to accumulate armor mult data
-	void AccumulateArmorMult(
-		double armorMult,
-		const std::vector<WarheadTypeClass*>& allowWarheads,
-		const std::vector<WarheadTypeClass*>& disallowWarheads);
-};
+	// #endregion
 
-// Helper function to update component (create/update/remove)
-template<typename TComp, typename TData>
-void UpdateAEComponent(TechnoExtData* ext, TComp*& cache, TData&& data);
+	std::optional<double> cur_timerAE {};
 
-// Specialized version for ArmorMult (uses 'mults' not 'ranges')
-template<>
-void UpdateAEComponent<AEPropertiesArmorMult, StackVector<AEPropertiesArmorMult::MultData, 4>>(
-	TechnoExtData* ext,
-	AEPropertiesArmorMult*& cache,
-	StackVector<AEPropertiesArmorMult::MultData, 4>&& data);
+	// #region Loop 1: Ares AE system
 
-// Main recalculation function declaration
-namespace AEPropertiesHelper
-{
-	void Recalculate(TechnoClass* pTechno);
-}
-
-void AEAccumulator::AccumulateWeaponRange(
-	double rangeMult,
-	double extraRange,
-	const std::vector<WeaponTypeClass*>& allowWeapons,
-	const std::vector<WeaponTypeClass*>& disallowWeapons)
-{
-	auto& range = extraRanges.container().emplace_back();
-	range.rangeMult = rangeMult;
-	range.extraRange = extraRange * Unsorted::LeptonsPerCell;
-
-	// Copy allow/disallow lists
-	for (auto weapon : allowWeapons)
+	for (const auto& aeData : _AresAE->Data)
 	{
-		range.allow.insert(weapon);
-	}
-	for (auto weapon : disallowWeapons)
-	{
-		range.disallow.insert(weapon);
-	}
-}
+		auto aeType = aeData.Type;
 
-// Accumulator helper: Add crit data
-void AEAccumulator::AccumulateCrit(
-	double critMult,
-	double critExtra,
-	const std::vector<WarheadTypeClass*>& allowWarheads,
-	const std::vector<WarheadTypeClass*>& disallowWarheads)
-{
-	auto& crit = extraCrits.container().emplace_back();
-	crit.Mult = critMult;
-	crit.extra = critExtra;
-
-	// Copy allow/disallow lists
-	for (auto warhead : allowWarheads)
-	{
-		crit.allow.insert(warhead);
-	}
-	for (auto warhead : disallowWarheads)
-	{
-		crit.disallow.insert(warhead);
-	}
-}
-
-// Accumulator helper: Add armor mult data
-void AEAccumulator::AccumulateArmorMult(
-	double armorMult,
-	const std::vector<WarheadTypeClass*>& allowWarheads,
-	const std::vector<WarheadTypeClass*>& disallowWarheads)
-{
-	auto& mult = armorMults.container().emplace_back();
-	mult.Mult = armorMult;
-
-	// Copy allow/disallow lists
-	for (auto warhead : allowWarheads)
-	{
-		mult.allow.insert(warhead);
-	}
-	for (auto warhead : disallowWarheads) {
-		mult.disallow.insert(warhead);
-	}
-}
-
-// Helper: Update component (create/update/remove)
-template<typename TComp, typename TData>
-void UpdateAEComponent(TechnoExtData* ext, TData&& data)
-{
-	if (!data.container().empty())
-	{
-		// Data exists - ensure component exists
-		auto pComp = Phobos::gEntt->try_get<TComp>(ext->MyEntity);
-
-		if (!pComp) {
-			pComp = &Phobos::gEntt->emplace<TComp>(ext->MyEntity);
-		}
-
-		// Move data into component (no copy!)
-		pComp->ranges.clear();
-		pComp->ranges.reserve(data.container().size());
-		for (auto& item : data.container()) {
-			pComp->ranges.push_back(std::move(item));
-		}
-	}
-	else {
-		Phobos::gEntt->remove<TComp>(ext->MyEntity);
-	}
-}
-
-// Specialization for ArmorMult (uses 'mults' not 'ranges')
-template<>
-void UpdateAEComponent<AEPropertiesArmorMult, StackVector<AEPropertiesArmorMult::MultData, 4>>(
-	TechnoExtData* ext,
-	StackVector<AEPropertiesArmorMult::MultData, 4>&& data)
-{
-	if (!data.container().empty()) {
-		auto pComp = Phobos::gEntt->try_get<AEPropertiesArmorMult>(ext->MyEntity);
-
-		if (!pComp) {
-			pComp = &Phobos::gEntt->emplace<AEPropertiesArmorMult>(ext->MyEntity);
-		}
-
-		pComp->mults.clear();
-		pComp->mults.reserve(data.container().size());
-		for (auto& item : data.container())
+		if (aeType->ROFMultiplier_ApplyOnCurrentTimer)
 		{
-			pComp->mults.push_back(std::move(item));
+			if (!cur_timerAE.has_value())
+				cur_timerAE = aeType->ROFMultiplier;
+			else
+				cur_timerAE.value() *= aeType->ROFMultiplier;
 		}
-	} else {
-		Phobos::gEntt->remove<AEPropertiesArmorMult>(ext->MyEntity);
-	}
-}
 
-void AEProperties::Recalculate(TechnoClass* pTechno)
-{
-	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
-	auto _AresAE = pExt->Get_AresAEData();
-	auto _AEProp = pExt->Get_AEProperties();
+		ROF_Mult *= aeType->ROFMultiplier;
+		ReceiveRelativeDamageMult += aeType->ReceiveRelativeDamageMult;
+		FP_Mult *= aeType->FirepowerMultiplier;
+		Speed_Mult *= aeType->SpeedMultiplier;
+		Armor_Mult *= aeType->ArmorMultiplier;
 
-	// Stack-allocated accumulator (no heap allocation for small sizes!)
-	AEAccumulator acc;
+		Cloak |= aeType->Cloakable;
+		forceDecloak |= aeType->ForceDecloak;
+		disableWeapons |= aeType->DisableWeapons;
+		disableSelfHeal |= aeType->DisableSelfHeal;
+		untrackable |= aeType->Untrackable;
+		disableRadar |= aeType->DisableRadar;
+		disableSpySat |= aeType->DisableSpySat;
+		unkillable |= aeType->Unkillable;
+		hasExtraWH |= !aeType->ExtraWarheads.empty();
 
-	// Initialize from current state (convert to double for calculation)
-	acc.FP_Mult = static_cast<double>(_AEProp->FirepowerMultiplier);
-	acc.Armor_Mult = static_cast<double>(_AEProp->ArmorMultiplier);
-	acc.Speed_Mult = static_cast<double>(_AEProp->SpeedMultiplier);
-	acc.Cloak = GET_TECHNOTYPE(pTechno)->Cloakable || pTechno->HasAbility(AbilityType::Cloak) || pExt->AE.flags.Cloakable;
-
-	if(_AresAE) {
-		// === Accumulate from Ares AE ===
-		for (const auto& aeData : _AresAE->Data)
+		if (aeType->WeaponRange_Multiplier != 1.0 || aeType->WeaponRange_ExtraRange != 0.0)
 		{
-			auto type = aeData.Type;
-
-			// Accumulate multipliers
-			acc.ROF_Mult *= type->ROFMultiplier;
-			acc.ReceiveRelativeDamageMult += type->ReceiveRelativeDamageMult;
-			acc.FP_Mult *= type->FirepowerMultiplier;
-			acc.Speed_Mult *= type->SpeedMultiplier;
-			acc.Armor_Mult *= type->ArmorMultiplier;
-
-			// Accumulate flags
-			acc.Cloak |= type->Cloakable;
-			acc.forceDecloak |= type->ForceDecloak;
-			acc.disableWeapons |= type->DisableWeapons;
-			acc.disableSelfHeal |= type->DisableSelfHeal;
-			acc.untrackable |= type->Untrackable;
-			acc.disableRadar |= type->DisableRadar;
-			acc.disableSpySat |= type->DisableSpySat;
-			acc.unkillable |= type->Unkillable;
-			acc.hasExtraWH |= type->ExtraWarheads.size() > 0;
-
-			// Handle ROF timer
-			if (type->ROFMultiplier_ApplyOnCurrentTimer)
-			{
-				if (!acc.cur_timerAE.has_value())
-					acc.cur_timerAE = type->ROFMultiplier;
-				else
-					acc.cur_timerAE.value() *= type->ROFMultiplier;
-			}
-
-			// Handle weapon range
-			if (!(type->WeaponRange_Multiplier == 1.0 && type->WeaponRange_ExtraRange == 0.0))
-			{
-				acc.AccumulateWeaponRange(
-					type->WeaponRange_Multiplier,
-					type->WeaponRange_ExtraRange,
-					type->WeaponRange_AllowWeapons,
-					type->WeaponRange_DisallowWeapons
-				);
-			}
+			auto& entry = extraRangeData->ranges.emplace_back();
+			entry.rangeMult = aeType->WeaponRange_Multiplier;
+			entry.extraRange = aeType->WeaponRange_ExtraRange * Unsorted::LeptonsPerCell;
+			entry.allow = &aeType->WeaponRange_AllowWeapons;
+			entry.disallow = &aeType->WeaponRange_DisallowWeapons;
 		}
 	}
 
-	// === Accumulate from Phobos AE ===
+	// #endregion
+
+	// #region Loop 2: Phobos AE system
+
 	for (const auto& attachEffect : pExt->PhobosAE)
 	{
 		if (!attachEffect || !attachEffect->IsActive())
 			continue;
 
-		auto type = attachEffect->GetType();
+		auto const type = attachEffect->GetType();
 
-		// Accumulate multipliers
-		acc.FP_Mult *= type->FirepowerMultiplier;
-		acc.Speed_Mult *= type->SpeedMultiplier;
-		acc.ROF_Mult *= type->ROFMultiplier;
-		acc.ReceiveRelativeDamageMult += type->ReceiveRelativeDamageMult;
+		FP_Mult *= type->FirepowerMultiplier;
+		Speed_Mult *= type->SpeedMultiplier;
+		ROF_Mult *= type->ROFMultiplier;
+		Armor_Mult *= type->ArmorMultiplier;
+		ReceiveRelativeDamageMult += type->ReceiveRelativeDamageMult;
 
-		// Accumulate flags
-		acc.Cloak |= type->Cloakable;
-		acc.forceDecloak |= type->ForceDecloak;
-		acc.disableWeapons |= type->DisableWeapons;
-		acc.disableSelfHeal |= type->DisableSelfHeal;
-		acc.untrackable |= type->Untrackable;
-		acc.unkillable |= type->Unkillable;
-		acc.disableRadar |= type->DisableRadar;
-		acc.disableSpySat |= type->DisableSpySat;
-		acc.hasExtraWH |= type->ExtraWarheads.size() > 0;
-		acc.hasFeedbackWeapon |= type->FeedbackWeapon != nullptr;
-		acc.hasTint |= type->HasTint();
-		acc.reflectsDamage |= type->ReflectDamage;
-		acc.hasOnFireDiscardables |= (type->DiscardOn & DiscardCondition::Firing) != DiscardCondition::None;
+		Cloak |= type->Cloakable;
+		forceDecloak |= type->ForceDecloak;
+		disableWeapons |= type->DisableWeapons;
+		disableSelfHeal |= type->DisableSelfHeal;
+		untrackable |= type->Untrackable;
+		disableRadar |= type->DisableRadar;
+		disableSpySat |= type->DisableSpySat;
+		unkillable |= type->Unkillable;
+		hasExtraWH |= !type->ExtraWarheads.empty();
+		hasFeedbackWeapon |= type->FeedbackWeapon != nullptr;
+		hasTint |= type->HasTint();
+		reflectsDamage |= type->ReflectDamage;
+		hasOnFireDiscardables |= (type->DiscardOn & DiscardCondition::Firing) != DiscardCondition::None;
 
-		// Handle ROF timer
 		if (type->ROFMultiplier_ApplyOnCurrentTimer)
 		{
-			if (!acc.cur_timerAE.has_value())
-				acc.cur_timerAE = type->ROFMultiplier;
+			if (!cur_timerAE.has_value())
+				cur_timerAE = type->ROFMultiplier;
 			else
-				acc.cur_timerAE.value() *= type->ROFMultiplier;
+				cur_timerAE.value() *= type->ROFMultiplier;
 		}
 
-		// Handle weapon range
-		if (!(type->WeaponRange_Multiplier == 1.0 && type->WeaponRange_ExtraRange == 0.0))
+		if (type->WeaponRange_Multiplier != 1.0 || type->WeaponRange_ExtraRange != 0.0)
 		{
-			acc.AccumulateWeaponRange(
-				type->WeaponRange_Multiplier,
-				type->WeaponRange_ExtraRange,
-				type->WeaponRange_AllowWeapons,
-				type->WeaponRange_DisallowWeapons
-			);
+			auto& entry = extraRangeData->ranges.emplace_back();
+			entry.rangeMult = type->WeaponRange_Multiplier;
+			entry.extraRange = type->WeaponRange_ExtraRange * Unsorted::LeptonsPerCell;
+			entry.allow = &type->WeaponRange_AllowWeapons;
+			entry.disallow = &type->WeaponRange_DisallowWeapons;
 		}
 
-		// Handle crit
-		if (!(type->Crit_Multiplier == 1.0 && type->Crit_ExtraChance == 0.0))
+		if (type->Crit_Multiplier != 1.0 || type->Crit_ExtraChance != 0.0)
 		{
-			acc.AccumulateCrit(
-				type->Crit_Multiplier,
-				type->Crit_ExtraChance,
-				type->Crit_AllowWarheads,
-				type->Crit_DisallowWarheads
-			);
+			auto& entry = extraCritData->ranges.emplace_back();
+			entry.Mult = type->Crit_Multiplier;
+			entry.extra = type->Crit_ExtraChance;
+			entry.allow = &type->Crit_AllowWarheads;
+			entry.disallow = &type->Crit_DisallowWarheads;
 		}
 
-		// Handle armor multiplier
 		if (type->ArmorMultiplier != 1.0)
 		{
-			acc.AccumulateArmorMult(
-				type->ArmorMultiplier,
-				type->ArmorMultiplier_AllowWarheads,
-				type->ArmorMultiplier_DisallowWarheads
-			);
+			auto& entry = armormultData->mults.emplace_back();
+			entry.Mult = type->ArmorMultiplier;
+			entry.allow = &type->ArmorMultiplier_AllowWarheads;
+			entry.disallow = &type->ArmorMultiplier_DisallowWarheads;
 		}
 	}
 
-	// === Apply ROF timer adjustment ===
-	if (acc.cur_timerAE.has_value() && acc.cur_timerAE > 0.0)
+	// #endregion
+
+	// #region Apply ROF timer adjustment
+
+	if (cur_timerAE.has_value() && cur_timerAE > 0.0)
 	{
 		const int timeleft = pTechno->RearmTimer.GetTimeLeft();
 
 		if (timeleft > 0)
-		{
-			pTechno->RearmTimer.Start(static_cast<int>(timeleft * acc.cur_timerAE.value()));
-		}
+			pTechno->RearmTimer.Start(int(timeleft * cur_timerAE.value()));
 		else
-		{
 			pTechno->RearmTimer.Stop();
-		}
 
-		pTechno->ROF = static_cast<int>(pTechno->ROF * acc.cur_timerAE.value());
+		pTechno->ROF = static_cast<int>(pTechno->ROF * cur_timerAE.value());
 	}
 
-	// === Apply accumulated multipliers to game objects ===
-	pTechno->FirepowerMultiplier = acc.FP_Mult;
-	pTechno->ArmorMultiplier = acc.Armor_Mult;
-	pTechno->Cloakable = acc.Cloak;
+	// #endregion
+
+	// #region Write back results
+
+	pTechno->FirepowerMultiplier = FP_Mult;
+	pTechno->ArmorMultiplier = Armor_Mult;
+	_AEProp->ROFMultiplier = ROF_Mult;
+	_AEProp->ReceiveRelativeDamageMult = ReceiveRelativeDamageMult;
+	pTechno->Cloakable = Cloak;
+
+	_AEProp->flags.ForceDecloak = forceDecloak;
+	_AEProp->flags.DisableWeapons = disableWeapons;
+	_AEProp->flags.DisableSelfHeal = disableSelfHeal;
+	_AEProp->flags.Untrackable = untrackable;
+	_AEProp->flags.HasTint = hasTint;
+	_AEProp->flags.ReflectDamage = reflectsDamage;
+	_AEProp->flags.HasOnFireDiscardables = hasOnFireDiscardables;
+	_AEProp->flags.Unkillable = unkillable;
+	_AEProp->flags.HasExtraWarheads = hasExtraWH;
+	_AEProp->flags.HasFeedbackWeapon = hasFeedbackWeapon;
+
+	if (((bool)_AEProp->flags.DisableRadar != disableRadar) || ((bool)_AEProp->flags.DisableSpySat != disableSpySat))
+		pTechno->Owner->RecheckRadar = true;
+
+	_AEProp->flags.DisableRadar = disableRadar;
+	_AEProp->flags.DisableSpySat = disableSpySat;
 
 	if (pTechno->AbstractFlags & AbstractFlags::Foot)
-	{
-		static_cast<FootClass*>(pTechno)->SpeedMultiplier = acc.Speed_Mult;
-	}
+		((FootClass*)pTechno)->SpeedMultiplier = Speed_Mult;
 
-	// === Store accumulated values in AE core (keep as double) ===
-	_AEProp->ROFMultiplier = acc.ROF_Mult;
-	_AEProp->ReceiveRelativeDamageMult = acc.ReceiveRelativeDamageMult;
-
-	// Update flags in bitfield
-	_AEProp->AllFlags = 0;
-	if (acc.forceDecloak) _AEProp->ForceDecloak = true;
-	if (acc.disableWeapons) _AEProp->DisableWeapons = true;
-	if (acc.disableSelfHeal) _AEProp->DisableSelfHeal = true;
-	if (acc.untrackable) _AEProp->Untrackable = true;
-	if (acc.hasTint) _AEProp->HasTint = true;
-	if (acc.reflectsDamage) _AEProp->ReflectDamage = true;
-	if (acc.hasOnFireDiscardables) _AEProp->HasOnFireDiscardables = true;
-	if (acc.unkillable) _AEProp->Unkillable = true;
-	if (acc.hasExtraWH) _AEProp->HasExtraWarheads = true;
-	if (acc.hasFeedbackWeapon) _AEProp->HasFeedbackWeapon = true;
-
-	// === Handle radar changes ===
-	bool oldDisableRadar = _AEProp->DisableRadar;
-	bool oldDisableSpySat = _AEProp->DisableSpySat;
-
-	_AEProp->DisableRadar = acc.disableRadar;
-	_AEProp->DisableSpySat = acc.disableSpySat;
-
-	if ((oldDisableRadar != acc.disableRadar) || (oldDisableSpySat != acc.disableSpySat))
-	{
-		pTechno->Owner->RecheckRadar = true;
-	}
-
-	// === Update optional components (create/update/remove as needed) ===
-	UpdateAEComponent<AEPropertiesExtraRange, StackVector<AEPropertiesExtraRange::RangeData, 4>>(pExt, std::move(acc.extraRanges));
-	UpdateAEComponent<AEPropertiesExtraCrit, StackVector<AEPropertiesExtraCrit::CritData, 4>>(pExt, std::move(acc.extraCrits));
-	UpdateAEComponent<AEPropertiesArmorMult, StackVector<AEPropertiesArmorMult::MultData, 4>>(pExt, std::move(acc.armorMults));
-
-	// Update range modifier flag
-	_AEProp->HasRangeModifier = (pExt->Get_AEPropertiesExtraRange() != nullptr);
-
-	// === Update tint if needed ===
-	bool wasTint = _AEProp->HasTint;
-	if ((wasTint || acc.hasTint))
-	{
+	if (wasTint || hasTint)
 		pExt->Tints.Update();
-	}
-}
 
-bool AEPropertiesExtraRange::RangeData::Eligible(WeaponTypeClass* who)
-{
-	bool allowed = false;
-
-	if (allow.begin() != allow.end())
-	{
-		for (auto iter_allow = allow.begin(); iter_allow != allow.end(); ++iter_allow)
-		{
-			if (*iter_allow == who)
-			{
-				allowed = true;
-				break;
-			}
-		}
-	}
-	else
-	{
-		allowed = true;
-	}
-
-	if (allowed && disallow.begin() != disallow.end())
-	{
-		for (auto iter_disallow = disallow.begin(); iter_disallow != disallow.end(); ++iter_disallow)
-		{
-			if (*iter_disallow == who)
-			{
-				allowed = false;
-				break;
-			}
-		}
-	}
-
-	return allowed;
-}
-
-bool AEPropertiesExtraCrit::CritData::Eligible(WarheadTypeClass * who)
-{
-
-	bool allowed = false;
-
-	if (allow.begin() != allow.end())
-	{
-		for (auto iter_allow = allow.begin(); iter_allow != allow.end(); ++iter_allow)
-		{
-			if (*iter_allow == who)
-			{
-				allowed = true;
-				break;
-			}
-		}
-	}
-	else
-	{
-		allowed = true;
-	}
-
-	if (allowed && disallow.begin() != disallow.end())
-	{
-		for (auto iter_disallow = disallow.begin(); iter_disallow != disallow.end(); ++iter_disallow)
-		{
-			if (*iter_disallow == who)
-			{
-				allowed = false;
-				break;
-			}
-		}
-	}
-
-	return allowed;
-}
-
-bool AEPropertiesArmorMult::MultData::Eligible(WarheadTypeClass* who)
-{
-	bool allowed = false;
-
-	if (allow.begin() != allow.end())
-	{
-		for (auto iter_allow = allow.begin(); iter_allow != allow.end(); ++iter_allow)
-		{
-			if (*iter_allow == who)
-			{
-				allowed = true;
-				break;
-			}
-		}
-	}
-	else
-	{
-		allowed = true;
-	}
-
-	if (allowed && disallow.begin() != disallow.end())
-	{
-		for (auto iter_disallow = disallow.begin(); iter_disallow != disallow.end(); ++iter_disallow)
-		{
-			if (*iter_disallow == who)
-			{
-				allowed = false;
-				break;
-			}
-		}
-	}
-
-	return allowed;
+	// #endregion
 }

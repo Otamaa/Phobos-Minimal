@@ -25,69 +25,49 @@ public:
 	// ============================================================
 	// Large aggregates
 	// ============================================================
-	CustomPalette Palette;
-	std::array<Point2D, (size_t)FacingType::Count> WindMult;
+	CustomPalette Palette { CustomPalette::PaletteMode::Temperate };
+	std::array<Point2D, (size_t)FacingType::Count> WindMult {};
 
 	// ============================================================
 	// 24-byte aligned: Vector
 	// ============================================================
-	ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types;
+	ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types {};
 
 	// ============================================================
 	// 8-byte aligned: Valueable<pointer>
 	// ============================================================
-	Valueable<UnitTypeClass*> TransmogrifyType;
+	Valueable<UnitTypeClass*> TransmogrifyType {};
 
 	// ============================================================
 	// 8-byte aligned: Valueable<double>
 	// ============================================================
-	Valueable<double> DamageRange;
+	Valueable<double> DamageRange {};
 
 	// ============================================================
 	// 8-byte aligned: Valueable<MinMaxValue<int>> (2 ints = 8 bytes)
 	// ============================================================
-	Valueable<MinMaxValue<int>> Gas_DriftSpeedX;
-	Valueable<MinMaxValue<int>> Gas_DriftSpeedY;
+	Valueable<MinMaxValue<int>> Gas_DriftSpeedX { { -2, 2 } };
+	Valueable<MinMaxValue<int>> Gas_DriftSpeedY { { -2, 2 } };
 
 	// ============================================================
 	// 4-byte aligned: Valueable<int>, Valueable<enum>
 	// ============================================================
-	Valueable<int> TransmogrifyChance;
-	Valueable<OwnerHouseKind> TransmogrifyOwner;
+	Valueable<int> TransmogrifyChance { -1 };
+	Valueable<OwnerHouseKind> TransmogrifyOwner { OwnerHouseKind::Neutral };
 
 	// ============================================================
 	// 1-byte aligned: Valueable<bool> (packed together at the end)
 	// ============================================================
-	Valueable<bool> ReadjustZ;
-	Valueable<bool> DeleteWhenReachWater;
-	Valueable<bool> Transmogrify;
-	Valueable<bool> Fire_DamagingAnim;
+	Valueable<bool> ReadjustZ { true };
+	Valueable<bool> DeleteWhenReachWater {};
+	Valueable<bool> Transmogrify {};
+	Valueable<bool> Fire_DamagingAnim {};
 	// 4 bools = 4 bytes, naturally aligned
 
 #pragma endregion
 
 public:
 	ParticleTypeExtData(ParticleTypeClass* pObj) : ObjectTypeExtData(pObj)
-		// Large aggregates
-		, Palette(CustomPalette::PaletteMode::Temperate)
-		, WindMult()
-		// Vector
-		, LaserTrail_Types()
-		// Valueable<pointer>
-		, TransmogrifyType(nullptr)
-		// Valueable<double>
-		, DamageRange(0.0)
-		// Valueable<MinMaxValue<int>>
-		, Gas_DriftSpeedX({ -2, 2 })
-		, Gas_DriftSpeedY({ -2, 2 })
-		// Valueable<int/enum>
-		, TransmogrifyChance(-1)
-		, TransmogrifyOwner(OwnerHouseKind::Neutral)
-		// Valueable<bool>
-		, ReadjustZ(true)
-		, DeleteWhenReachWater(false)
-		, Transmogrify(false)
-		, Fire_DamagingAnim(false)
 	{
 		this->AbsType = ParticleTypeClass::AbsID;
 		LaserTrail_Types.reserve(2);

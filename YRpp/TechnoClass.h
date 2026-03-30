@@ -594,15 +594,32 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	FORCEDINLINE FacingClass F_TurretFacing()
 	{
 		FacingClass ret;
-		typedef FacingClass*(__thiscall* F_TurretFacing)(FacingClass* buffer);
-		(*reinterpret_cast<F_TurretFacing*>(&this[0x2A8]))(&ret);
+
+		// __fastcall trick: ECX = this, EDX = dummy
+		typedef FacingClass* (__fastcall* Fn)(
+			const TechnoClass* thisptr, void* edx, FacingClass* buffer);
+
+		// dereference vptr, then index into vtable at offset 0x308
+		auto vtable = *reinterpret_cast<uintptr_t const*>(this);
+		auto func = *reinterpret_cast<Fn*>(vtable + 0x2A8);
+
+		func(this, nullptr, &ret);
 		return ret;
 	}
 
-	FORCEDINLINE FacingClass F_GetRealfacing(){
+	FORCEDINLINE FacingClass F_GetRealfacing()
+	{
 		FacingClass ret;
-		typedef FacingClass*(__thiscall* F_GetRealfacing)(FacingClass* buffer);
-		(*reinterpret_cast<F_GetRealfacing*>(&this[0x308]))(&ret);
+
+		// __fastcall trick: ECX = this, EDX = dummy
+		typedef FacingClass* (__fastcall* Fn)(
+			const TechnoClass* thisptr, void* edx, FacingClass* buffer);
+
+		// dereference vptr, then index into vtable at offset 0x308
+		auto vtable = *reinterpret_cast<uintptr_t const*>(this);
+		auto func = *reinterpret_cast<Fn*>(vtable + 0x308);
+
+		func(this, nullptr, &ret);
 		return ret;
 	}
 

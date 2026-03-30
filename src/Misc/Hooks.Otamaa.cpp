@@ -45,7 +45,7 @@
 
 #include <Commands/ToggleRadialIndicatorDrawMode.h>
 
-#include <ExtraHeaders/AStarClass.h>
+#include <AStarClass.h>
 #include <TextDrawing.h>
 #include <format>
 
@@ -4596,7 +4596,7 @@ ASMJIT_PATCH(0x467C2E, BulletClass_AI_FuseCheck, 0x7)
 // 	return 0x0;
 // }
 
-#ifndef ASTAR_HOOKS
+#ifdef ASTAR_HOOKS
 
 // ENTRY  , 42C954 , stack 3C TECHNO , size 7 , return 0
 // END 42CB3F 5 , 42CCCB

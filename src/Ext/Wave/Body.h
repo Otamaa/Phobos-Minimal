@@ -18,22 +18,17 @@ public:
 public:
 #pragma region ClassMembers
 
-	WeaponTypeClass* Weapon;
-	CoordStruct SourceCoord;
-	int WeaponIdx;
-	bool ReverseAgainstTarget;
-	bool CanDoUpdate;
+	WeaponTypeClass* Weapon {};
+	CoordStruct SourceCoord {};
+	int WeaponIdx {-1};
+	bool ReverseAgainstTarget {};
+	bool CanDoUpdate {};
 
 #pragma endregion
 
 public:
 
 	WaveExtData(WaveClass* pObj) : ObjectExtData(pObj)
-		, Weapon(nullptr)
-		, SourceCoord()
-		, WeaponIdx(-1)
-		, ReverseAgainstTarget(false)
-		, CanDoUpdate(false)
 	{
 		this->Name = "WaveClass";
 		this->AbsType = WaveClass::AbsID;

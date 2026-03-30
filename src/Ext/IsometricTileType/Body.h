@@ -29,40 +29,30 @@ public :
 	// ============================================================
 	// Large aggregates
 	// ============================================================
-	std::string TileSetName;
-	CustomPalette Palette;
+	std::string TileSetName { "" };
+	CustomPalette Palette {};
 
 	// ============================================================
 	// 24-byte aligned: Vectors
 	// ============================================================
-	ValueableVector<TiberiumClass*> AllowedTiberiums;
-	ValueableVector<SmudgeTypeClass*> AllowedSmudges;
+	ValueableVector<TiberiumClass*> AllowedTiberiums {};
+	ValueableVector<SmudgeTypeClass*> AllowedSmudges {};
 
 	// ============================================================
 	// 4-byte aligned: Valueable<int>
 	// ============================================================
-	Valueable<int> Tileset;
+	Valueable<int> Tileset {};
 
 	// ============================================================
 	// 1-byte aligned: Valueable<bool> (at the end)
 	// ============================================================
-	Valueable<bool> AllowVeins;
+	Valueable<bool> AllowVeins {};
 	// 1 byte, pads to 4 for alignment
 
 #pragma endregion
 
 public:
 	IsometricTileTypeExtData(IsometricTileTypeClass* pObj) : ObjectTypeExtData(pObj)
-		// Large aggregates
-		, TileSetName("")
-		, Palette()
-		// Vectors
-		, AllowedTiberiums()
-		, AllowedSmudges()
-		// Valueable<int>
-		, Tileset(-1)
-		// Valueable<bool>
-		, AllowVeins()
 	{
 		this->AbsType = IsometricTileTypeClass::AbsID;
 	}

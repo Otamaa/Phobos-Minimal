@@ -16,16 +16,13 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "ParticleExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "ParticleClass";
 	
-	
-
 public:
 #pragma region ClassMembers
-	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails;
+	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails {};
 #pragma endregion
 
 public:
 	ParticleExtData(ParticleClass* pObj) : ObjectExtData(pObj)
-		, LaserTrails()
 	{
 		this->Name = pObj->Type->ID;
 		this->AbsType = ParticleClass::AbsID;

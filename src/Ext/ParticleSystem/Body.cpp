@@ -16,15 +16,6 @@
 #include <Phobos.SaveGame.h>
 
 ParticleSystemExtData::ParticleSystemExtData(ParticleSystemClass* pObj) : ObjectExtData(pObj)
-// Pointer
-, HeldType(nullptr)
-// Vectors
-, OtherParticleData()
-, SmokeData()
-// enum
-, What(Behave::None)
-// bool
-, AlphaIsLightFlash(true)
 {
 	this->Name = pObj->Type->ID;
 	this->AbsType = ParticleSystemClass::AbsID;

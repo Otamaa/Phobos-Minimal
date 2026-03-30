@@ -50,7 +50,6 @@ public:
 		return ((FakeParasiteClass*)this);
 	}
 
-
 	CoordStruct __Detach_From_Victim();
 	bool __Victims_Cell_Valid();
 	void __Infect(FootClass* target);

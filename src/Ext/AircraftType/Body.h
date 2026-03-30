@@ -12,24 +12,17 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "AircraftTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "AircraftTypeClass";
 	
-	
 
 public:
 
-	Nullable<bool> ExtendedAircraftMissions;
-	Nullable<bool> ExtendedAircraftMissions_SmoothMoving;
-	Nullable<bool> ExtendedAircraftMissions_EarlyDescend;
-	Nullable<bool> ExtendedAircraftMissions_RearApproach;
-	Nullable<bool> ExtendedAircraftMissions_FastScramble;
-	Nullable<int> ExtendedAircraftMissions_UnlandDamage;
+	Nullable<bool> ExtendedAircraftMissions {};
+	Nullable<bool> ExtendedAircraftMissions_SmoothMoving {};
+	Nullable<bool> ExtendedAircraftMissions_EarlyDescend {};
+	Nullable<bool> ExtendedAircraftMissions_RearApproach {};
+	Nullable<bool> ExtendedAircraftMissions_FastScramble {};
+	Nullable<int> ExtendedAircraftMissions_UnlandDamage {};
 
-	AircraftTypeExtData(AircraftTypeClass* pObj) : FootTypeExtData(pObj),
-		ExtendedAircraftMissions(),
-		ExtendedAircraftMissions_SmoothMoving(),
-		ExtendedAircraftMissions_EarlyDescend(),
-		ExtendedAircraftMissions_RearApproach(),
-		ExtendedAircraftMissions_FastScramble(),
-		ExtendedAircraftMissions_UnlandDamage()
+	AircraftTypeExtData(AircraftTypeClass* pObj) : FootTypeExtData(pObj)
 	{
 		this->AbsType = AircraftTypeClass::AbsID;
 		this->InitializeConstant();

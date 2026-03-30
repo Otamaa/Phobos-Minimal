@@ -26,68 +26,46 @@ public:
 	// ============================================================
 	// 8-byte aligned: Pointers
 	// ============================================================
-	TechnoTypeClass* InterceptorTechnoType;
-	SuperWeaponTypeClass* NukeSW;
-	HouseClass* Owner;
-	AbstractClass* OriginalTarget;
+	TechnoTypeClass* InterceptorTechnoType { nullptr };
+	SuperWeaponTypeClass* NukeSW { nullptr };
+	HouseClass* Owner { nullptr };
+	AbstractClass* OriginalTarget { nullptr };
 
 	// ============================================================
 	// 8-byte aligned: unique_ptr
 	// ============================================================
-	std::unique_ptr<PhobosTrajectory> Trajectory;
+	std::unique_ptr<PhobosTrajectory> Trajectory { nullptr };
 
 	// ============================================================
 	// 8-byte aligned: Handle wrapper
 	// ============================================================
-	Handle<ParticleSystemClass*, MarkForDeathDeleterB<ParticleSystemClass>> AttachedSystem;
+	Handle<ParticleSystemClass*, MarkForDeathDeleterB<ParticleSystemClass>> AttachedSystem { nullptr };
 
 	// ============================================================
 	// 24-byte aligned: Vectors
 	// ============================================================
-	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails;
+	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails {};
 
 	// ============================================================
 	// 4-byte aligned: int, enum
 	// ============================================================
-	int CurrentStrength;
-	int DamageNumberOffset;
-	int ParabombFallRate;
-	InterceptedStatus InterceptedStatus;
+	int CurrentStrength { 0 };
+	int DamageNumberOffset { INT32_MIN };
+	int ParabombFallRate { 0 };
+	InterceptedStatus InterceptedStatus { InterceptedStatus::None };
 
 	// ============================================================
 	// 1-byte aligned: bool (packed together at the end)
 	// ============================================================
-	bool DetonateOnInterception;
-	bool SnappedToTarget;
-	bool BrightCheckDone;
-	bool IsInstantDetonation;
+	bool DetonateOnInterception { true };
+	bool SnappedToTarget { false };
+	bool BrightCheckDone { false };
+	bool IsInstantDetonation { false };
 	// 4 bools = 4 bytes, naturally aligned
-
 #pragma endregion
 
 public:
 	BulletExtData(BulletClass* pObj) : ObjectExtData(pObj)
-		// Pointers
-		, InterceptorTechnoType(nullptr)
-		, NukeSW(nullptr)
-		, Owner(nullptr)
-		, OriginalTarget(nullptr)
-		// unique_ptr
-		, Trajectory(nullptr)
-		// Handle
-		, AttachedSystem(nullptr)
-		// Vectors
-		, LaserTrails()
-		// int/enum
-		, CurrentStrength(0)
-		, DamageNumberOffset(INT32_MIN)
-		, ParabombFallRate(0)
-		, InterceptedStatus(InterceptedStatus::None)
-		// bools
-		, DetonateOnInterception(true)
-		, SnappedToTarget(false)
-		, BrightCheckDone(false)
-		, IsInstantDetonation(false)
 	{
 		this->AbsType = BulletClass::AbsID;
 	}

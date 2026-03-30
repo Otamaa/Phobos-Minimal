@@ -20,34 +20,33 @@ public:
 public:
 
 #pragma region ClassMember
-
 	// ---- Visual / presentation ----
-	CustomPalette Palette; //
-	Nullable<AnimTypeClass*> OreTwinkle;
-	Nullable<int> OreTwinkleChance;
-	Nullable<int> Ore_TintLevel;
-	Nullable<ColorStruct> MinimapColor;
+	CustomPalette Palette { CustomPalette::PaletteMode::Temperate };
+	Nullable<AnimTypeClass*> OreTwinkle {};
+	Nullable<int> OreTwinkleChance {};
+	Nullable<int> Ore_TintLevel {};
+	Nullable<ColorStruct> MinimapColor {};
 
-	Valueable<bool> EnableLighningFix;
-	Valueable<bool> UseNormalLight;
-	Valueable<bool> EnablePixelFXAnim;
+	Valueable<bool> EnableLighningFix { true };
+	Valueable<bool> UseNormalLight { true };
+	Valueable<bool> EnablePixelFXAnim { true };
 
 	// ---- Damage / healing logic ----
-	Nullable<int> Damage;
-	Nullable<WarheadTypeClass*> Warhead;
+	Nullable<int> Damage {};
+	Nullable<WarheadTypeClass*> Warhead {};
 
-	Nullable<int> Heal_Step;
-	Nullable<int> Heal_IStep;
-	Nullable<int> Heal_UStep;
-	Nullable<double> Heal_Delay;
+	Nullable<int> Heal_Step {};
+	Nullable<int> Heal_IStep {};
+	Nullable<int> Heal_UStep {};
+	Nullable<double> Heal_Delay {};
 
-	Nullable<WarheadTypeClass*> ExplosionWarhead;
-	Nullable<int> ExplosionDamage;
+	Nullable<WarheadTypeClass*> ExplosionWarhead {};
+	Nullable<int> ExplosionDamage {};
 
 	// ---- Misc config ----
-	Valueable<int> DebrisChance;
-	Valueable<std::string> LinkedOverlayType;
-	Valueable<int> PipIndex;
+	Valueable<int> DebrisChance { 33 };
+	Valueable<std::string> LinkedOverlayType { "" };
+	Valueable<int> PipIndex { -1 };
 
 	// ---- Runtime spread / growth state ----
 	using QueueItem = std::pair<float, CellStruct>;
@@ -60,39 +59,15 @@ public:
 		}
 	};
 
-	std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem> SpreadQueue;
-	std::vector<bool> SpreadState;
+	std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem> SpreadQueue {};
+	std::vector<bool> SpreadState {};
 
-	std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem> GrowthQueue;
-	std::vector<bool> GrowthState;
-
+	std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem> GrowthQueue {};
+	std::vector<bool> GrowthState {};
 #pragma endregion
 
 public:
-	TiberiumExtData(TiberiumClass* pObj) : AbstractTypeExtData(pObj),
-		Palette(CustomPalette::PaletteMode::Temperate),
-		OreTwinkle(),
-		OreTwinkleChance(),
-		Ore_TintLevel(),
-		MinimapColor(),
-		EnableLighningFix(true),
-		UseNormalLight(true),
-		EnablePixelFXAnim(true),
-		Damage(),
-		Warhead(),
-		Heal_Step(),
-		Heal_IStep(),
-		Heal_UStep(),
-		Heal_Delay(),
-		ExplosionWarhead(),
-		ExplosionDamage(),
-		DebrisChance(33),
-		LinkedOverlayType(""),
-		PipIndex(-1),
-		SpreadQueue(),
-		SpreadState(),
-		GrowthQueue(),
-		GrowthState()
+	TiberiumExtData(TiberiumClass* pObj) : AbstractTypeExtData(pObj)
 	{
 		this->AbsType = TiberiumClass::AbsID;
 	}

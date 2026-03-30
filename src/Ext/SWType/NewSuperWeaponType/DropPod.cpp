@@ -62,7 +62,7 @@ void DroppodStateMachine::Update()
 {
 	if (this->Finished())
 	{
-		SendDroppods(this->Super , this->GetTypeExtData() , this->GetTypeExtData()->GetNewSWType(), this->Coords);
+		SendDroppods(this->Super, this->GetTypeExtData(), this->GetTypeExtData()->GetNewSWType(), this->Coords);
 	}
 }
 
@@ -71,97 +71,142 @@ void DroppodStateMachine::SendDroppods(SuperClass* pSuper, SWTypeExtData* pData,
 	pData->PrintMessage(pData->Message_Activate, pSuper->Owner);
 
 	auto const sound = pData->SW_ActivationSound.Get(-1);
-	if (sound != -1) {
+	if (sound != -1)
+	{
 		VocClass::PlayGlobal(sound, Panning::Center, 1.0);
 	}
 
-	// collect the options
 	const auto& Types = !pData->DropPod_Types.empty()
 		? pData->DropPod_Types
 		: RulesExtData::Instance()->DropPodTypes;
 
-	// quick way out
-	if (Types.empty()) {
+	if (Types.empty())
 		return;
-	}
 
 	int cMin = pData->DropPod_Minimum.Get(RulesExtData::Instance()->DropPodMinimum);
 	int cMax = pData->DropPod_Maximum.Get(RulesExtData::Instance()->DropPodMaximum);
 
-	DroppodStateMachine::PlaceUnits(pSuper, pData->DropPod_Veterancy.Get(), Types, cMin, cMax, loc, false);
+	DroppodStateMachine::PlaceUnits(pSuper, pData->DropPod_Veterancy.Get(), Types, cMin, cMax, loc);
 }
 
-void DroppodStateMachine::PlaceUnits(SuperClass* pSuper , double veterancy , Iterator<TechnoTypeClass*> const Types, int cMin ,int cMax , const CellStruct& Coords, bool retries)
+// ---------------------------------------------------------------------------
+// PlaceUnits — spawns drop pod units around a target cell
+//
+// Rolls a random count between cMin and cMax, then for each unit:
+//   1. Picks a random TechnoType from the Types list
+//   2. Finds a nearby free cell the unit can enter
+//   3. Attempts to place it via CreateWithDroppod
+//   4. On failure, retries up to RetryCount times with a new nearby cell
+//   5. If all retries fail, the unit is destroyed (not leaked)
+//
+// After each successful placement, the search origin shifts to a
+// neighbouring cell so subsequent pods spread out naturally.
+// ---------------------------------------------------------------------------
+void DroppodStateMachine::PlaceUnits(
+	SuperClass* pSuper,
+	double veterancy,
+	Iterator<TechnoTypeClass*> const Types,
+	int cMin,
+	int cMax,
+	const CellStruct& Coords)
 {
 	const auto pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
-	// three times more tries than units to place.
+	const int maxRetries = pData->Droppod_RetryCount;
 	const int count = ScenarioClass::Instance->Random.RandomRanged(cMin, cMax);
-	CellStruct cell = Coords;
-	std::vector<std::pair<bool , int>> Succeededs(count , {false , pData->Droppod_RetryCount });
 	const bool needRandom = Types.size() > 1;
 
-	for (auto&[status , retrycount] : Succeededs)
+	CellStruct cell = Coords;
+
+	for (int i = 0; i < count; ++i)
 	{
-		if (!status && retrycount)
+		// --- Pick a random type ---
+		const auto typeIndex = needRandom
+			? ScenarioClass::Instance->Random.RandomFromMax(Types.size() - 1)
+			: 0;
+
+		if (typeIndex >= Types.size())
+			continue;
+
+		TechnoTypeClass* pType = Types[typeIndex];
+		if (!pType)
+			continue;
+
+		// --- Create the unit ---
+		FootClass* pFoot = static_cast<FootClass*>(pType->CreateObject(pSuper->Owner));
+		if (!pFoot)
+			continue;
+
+		if (veterancy > pFoot->Veterancy.Veterancy)
+			pFoot->Veterancy.Add(veterancy);
+
+		TechnoExtContainer::Instance.Find(pFoot)->LinkedSW = pSuper;
+
+		// --- Try to place, with retries ---
+		bool placed = false;
+		CellStruct searchOrigin = cell;
+
+		for (int attempt = 0; attempt <= maxRetries; ++attempt)
 		{
-			// get a random type from the list and create an instance
-			if (Types.empty()) {
-				continue;
-			}
-
-			const auto typeIndex = needRandom ? ScenarioClass::Instance->Random.RandomFromMax(Types.size() - 1) : 0;
-			if (typeIndex >= Types.size()) {
-				continue;
-			}
-
-			TechnoTypeClass* pType = Types[typeIndex];
-			if (!pType) {
-				continue;
-			}
-
-			FootClass* pFoot = static_cast<FootClass*>(pType->CreateObject(pSuper->Owner));
-			// update veterancy only if higher
-			if (veterancy > pFoot->Veterancy.Veterancy)
-			{
-				pFoot->Veterancy.Add(veterancy);
-			}
-
-			// select a free cell the unit can enter
-			CellStruct tmpCell = MapClass::Instance->NearByLocation(cell, pType->SpeedType, ZoneType::None,
-				pType->MovementZone, false, 1, 1, false, false, false, false, CellStruct::Empty, false, false);
+			CellStruct tmpCell = MapClass::Instance->NearByLocation(
+				searchOrigin,
+				pType->SpeedType,
+				ZoneType::None,
+				pType->MovementZone,
+				false, 1, 1, false, false, false, false,
+				CellStruct::Empty, false, false);
 
 			CoordStruct crd = CellClass::Cell2Coord(tmpCell);
 
-			// let the locomotor take care of the rest
-			TechnoExtContainer::Instance.Find(pFoot)->LinkedSW = pSuper;
-			if (TechnoExtData::CreateWithDroppod(pFoot, crd)) {
-				status = true;
-			} else {
-				--retrycount;
+			if (TechnoExtData::CreateWithDroppod(pFoot, crd))
+			{
+				placed = true;
+				cell = tmpCell; // shift origin for next unit
+				break;
 			}
 
-			// randomize the target coodinates
+			// Placement failed — nudge the search origin for next attempt
+			// by picking a random neighbouring cell
 			CellClass* pCell = MapClass::Instance->GetCellAt(tmpCell);
 			int rnd = ScenarioClass::Instance->Random.RandomFromMax(7);
 
-			for (int j = 0; j < 8; ++j)
+			for (int d = 0; d < 8; ++d)
 			{
-
-				// get the direction in an overly verbose way
-				FacingType dir = FacingType(((j + rnd) % 8) & 7);
-
+				FacingType dir = FacingType(((d + rnd) % 8) & 7);
 				CellClass* pNeighbour = pCell->GetNeighbourCell(dir);
+
+				if (pFoot->IsCellOccupied(pNeighbour, FacingType::None, -1, nullptr, true) == Move::OK)
+				{
+					searchOrigin = pNeighbour->MapCoords;
+					break;
+				}
+			}
+		}
+
+		// --- Clean up if all attempts failed ---
+		if (!placed)
+		{
+			if (pFoot->InLimbo)
+				pFoot->UnInit();
+			else
+				GameDelete<true, false>(pFoot);
+		}
+		else
+		{
+			// Shift the base cell for the next unit so pods spread out.
+			// Try to find a walkable neighbour to avoid clustering.
+			CellClass* pPlacedCell = MapClass::Instance->GetCellAt(cell);
+			int rnd = ScenarioClass::Instance->Random.RandomFromMax(7);
+
+			for (int d = 0; d < 8; ++d)
+			{
+				FacingType dir = FacingType(((d + rnd) % 8) & 7);
+				CellClass* pNeighbour = pPlacedCell->GetNeighbourCell(dir);
+
 				if (pFoot->IsCellOccupied(pNeighbour, FacingType::None, -1, nullptr, true) == Move::OK)
 				{
 					cell = pNeighbour->MapCoords;
 					break;
 				}
-			}
-
-			// failed to place
-			if (pFoot->InLimbo)
-			{
-				pFoot->UnInit();
 			}
 		}
 	}

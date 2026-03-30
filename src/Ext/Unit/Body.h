@@ -15,21 +15,17 @@ public:
 public:
 #pragma region classMembers
 
-	CDTimerClass SimpleDeployerAnimationTimer;
-	CDTimerClass UnitAutoDeployTimer;
-	CDTimerClass Convert_Deploy_Delay;
+	CDTimerClass SimpleDeployerAnimationTimer {};
+	CDTimerClass UnitAutoDeployTimer {};
+	CDTimerClass Convert_Deploy_Delay {};
 
 	// if the unit marks cell occupation flags, this is set to whether it uses the "high" occupation members
-	OptionalStruct<bool, true> AltOccupation;
+	OptionalStruct<bool, true> AltOccupation {};
 
 #pragma endregion
 
 public:
-	UnitExtData(UnitClass* pObj) : FootExtData(pObj),
-		SimpleDeployerAnimationTimer(),
-		UnitAutoDeployTimer(),
-		Convert_Deploy_Delay(),
-		AltOccupation()
+	UnitExtData(UnitClass* pObj) : FootExtData(pObj)
 	{
 		this->CurrentType = pObj->Type;
 		this->Name = pObj->Type->ID;

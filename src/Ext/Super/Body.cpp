@@ -214,17 +214,6 @@ bool SuperExtContainer::SaveAll(json& root)
 
 // .cpp file
 SuperExtData::SuperExtData(SuperClass* pObj) : AbstractExtended(pObj)
-	// Large aggregates
-	, Name()
-	, Statusses()
-	// Pointer
-	, Type(nullptr)
-	// CellStruct
-	, Temp_CellStruct()
-	// bools
-	, Temp_IsPlayer(false)
-	, CameoFirstClickDone(false)
-	, FirstClickAutoFireDone(false)
 {
 	this->Type = SWTypeExtContainer::Instance.Find(pObj->Type);
 	this->Name = pObj->Type->ID;

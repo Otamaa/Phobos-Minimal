@@ -21,24 +21,19 @@ public:
 	// ============================================================
 	// Large aggregate: std::array
 	// ============================================================
-	std::array<Point2D, (size_t)FacingType::Count> FacingMult;
+	std::array<Point2D, (size_t)FacingType::Count> FacingMult {};
 
 	// ============================================================
 	// 1-byte aligned: Valueable<bool> (packed together at the end)
 	// ============================================================
-	Valueable<bool> ApplyOptimization;
-	Valueable<bool> AdjustTargetCoordsOnRotation;
+	Valueable<bool> ApplyOptimization { true };
+	Valueable<bool> AdjustTargetCoordsOnRotation { true };
 	// 2 bools = 2 bytes, pads to 4 for alignment
 
 #pragma endregion
 
 public:
 	ParticleSystemTypeExtData(ParticleSystemTypeClass* pObj) : ObjectTypeExtData(pObj)
-		// Large aggregate
-		, FacingMult()
-		// Valueable<bool>
-		, ApplyOptimization(true)
-		, AdjustTargetCoordsOnRotation(true)
 	{
 		this->AbsType = ParticleSystemTypeClass::AbsID;
 	}

@@ -14,6 +14,14 @@
 
 #include <Misc/Ares/Hooks/Header.h>
 
+#include <Misc/Kratos/Common/Components/Scriptable.h>
+#include <Misc/Kratos/Extension/TechnoExt.h>
+#include <Misc/Kratos/Ext/Helper/Scripts.h>
+#include <Misc/Kratos/Ext/ObjectType/AttachEffect.h>
+#include <Misc/Kratos/Ext/TechnoType/TechnoStatus.h>
+
+#include <SpawnManagerClass.h>
+
 #ifdef ATTACHMENT
 ASMJIT_PATCH(0x6FC3F4, TechnoClass_CanFire_HandleAttachmentLogics, 0x6)
 {
@@ -36,13 +44,939 @@ ASMJIT_PATCH(0x6FC3F4, TechnoClass_CanFire_HandleAttachmentLogics, 0x6)
 }
 #endif
 
-// canEnter and ignoreForce should come before GetFireError().
-DEFINE_JUMP(LJMP, 0x70054D, 0x70056C)
-
-namespace WhatActionObjectTemp
+bool DisguiseAllowed(const TechnoTypeExtData* pThis, ObjectTypeClass* pThat)
 {
-	bool Skip = false;
+	if (!pThis->DisguiseDisAllowed.empty() && pThis->DisguiseDisAllowed.Contains(pThat))
+		return false;
+
+	return true;
 }
+
+FireError __fastcall FakeTechnoClass::__CanFireMod(
+TechnoClass* pThis,
+AbstractClass* pTarget,
+int nWeaponIdx,
+bool bCheckRange,
+bool bSkipROF)
+{
+	// ====================================================================
+// [1] Basic null / enslaved
+// ====================================================================
+	if (!pTarget || pThis->SlaveOwner)
+		return FireError::ILLEGAL;
+
+	// ====================================================================
+	// [HOOK 0x6FC0D3] DisableWeapons — weapon selection & disable checks
+	// Runs before original IsBeingWarpedOut check.
+	// ====================================================================
+	if (!pThis->IsArmed())
+		return FireError::ILLEGAL;
+
+	auto const pObjectT = flag_cast_to<ObjectClass*, false>(pTarget);
+	auto const pTechnoT = flag_cast_to<TechnoClass*, false>(pTarget);
+	auto const pFootT = flag_cast_to<FootClass*, false>(pTarget);
+	auto const pBuildingT = cast_to<BuildingClass*, false>(pTarget);
+	auto const pCellTarget = cast_to<CellClass*, false>(pTarget);
+
+	auto const pThisExt = TechnoExtContainer::Instance.Find(pThis);
+	auto const pThisFoot = flag_cast_to<FootClass*, false>(pThis);
+	auto const pThisType = GET_TECHNOTYPE(pThis);
+	auto const pThisTypeExt = GET_TECHNOTYPEEXT(pThis);
+
+	auto const pCoordsCellT = MapClass::Instance->GetCellAt(pTarget->GetCoords());
+
+	// Phobos weapon selection override
+	const int nSelectedIdx = pThisTypeExt->SelectPhobosWeapon(pThis, pTarget);
+	if (nSelectedIdx >= 0)
+		nWeaponIdx = nSelectedIdx;
+
+	// Cache selected weapon for extension checks downstream
+	const int weaponCount = pThisType->WeaponCount > 0 ? pThisType->WeaponCount : 2;
+
+	if (nWeaponIdx >= weaponCount)
+		Debug::FatalErrorAndExit("Weapon of %s is out of bound [%d/%d]!", pThisType->ID, nWeaponIdx, weaponCount);
+
+	pThisExt->CanFireWeaponType = pThis->GetWeapon(nWeaponIdx)->WeaponType;
+
+	if (!pThisExt->CanFireWeaponType)
+		return FireError::ILLEGAL;
+
+	if (pThisExt->DisableWeaponTimer.InProgress())
+		return FireError::REARM;
+
+	if (pThisExt->AE.flags.DisableWeapons)
+		return FireError::REARM;
+
+	if (pTechnoT)
+	{
+		if (!TechnoExtData::CanTargetICUnit(
+			pThis, (FakeWeaponTypeClass*)pThisExt->CanFireWeaponType, pTechnoT))
+		{
+			return FireError::ILLEGAL;
+		}
+	}
+	// [END HOOK 0x6FC0D3]
+
+	// ====================================================================
+	// [2] Warping / status
+	// ====================================================================
+	if (pThis->IsWarpingIn())         // vt+0x1D8
+		return FireError::REARM;
+
+	if (pThis->LocomotorTarget == pTarget)          // +0x2AC LocomotorTarget
+		return FireError::REARM;
+
+	if (pThis->IsBeingWarpedOut()                // vt+0x1D4
+		|| pThis->Deactivated             // +0x1C8
+		|| pThis->IsSinking               // +0x3CD
+		|| pTarget == pThis->DrainTarget  // +0x1CC
+		|| pTarget == pThis->Transporter) // +0x11C
+	{
+		return FireError::ILLEGAL;
+	}
+
+	// ====================================================================
+	// [3] Temporal re-arm
+	// ====================================================================
+	if (pThis->IsWarpingSomethingOut())              // vt+0x1DC
+	{
+		if (auto const pTemporal = pThis->TemporalImUsing) // +0x274
+		{
+			if (pTarget == pTemporal->Target)
+				return FireError::REARM;
+		}
+	}
+
+	// ====================================================================
+	// [5] FootClass Locomotor attack check
+	// ====================================================================
+	if (pThisFoot && pThisFoot->IsAttackedByLocomotor)
+	{
+		return FireError::ILLEGAL;
+	}
+
+	// ====================================================================
+	// [6] Target-is-Techno early checks
+	// ====================================================================
+	if (pTechnoT)
+	{
+		if (pTechnoT->InLimbo)
+			return FireError::ILLEGAL;
+
+		if (pThis->Berzerk // +0x298
+			&& pTechnoT->GetTechnoType()->BerserkFriendly)
+		{
+			return FireError::ILLEGAL;
+		}
+
+		if (pThis->GetTechnoType()->Natural
+			&& pTechnoT->GetTechnoType()->Unnatural)
+		{
+			return FireError::ILLEGAL;
+		}
+
+		if (pTechnoT->IsImmobilized) // +0x27C
+			return FireError::ILLEGAL;
+
+		// AI won't fire at Iron Curtained targets
+		//if (!pThis->Owner->IsHumanPlayer
+		//	&& pTechnoT->IsIronCurtained())
+		//{
+		//	return FireError::ILLEGAL;
+		//}
+
+		// Visibility: VISUAL_HIDDEN and not sensed
+		if (pTechnoT->VisualCharacter(true, pThis->Owner) == VisualType::Hidden
+			&& !pCoordsCellT->Sensors_InclHouse(pThis->Owner->ArrayIndex)
+			&& (pThis->CombatDamage(-1) > 0
+				|| !pTechnoT->Owner->IsAlliedWith(pThis->Owner)))
+		{
+			return FireError::CANT;
+		}
+
+		// Tethered BalloonHover not in air
+		if (pTechnoT->IsTethered // +0x418
+			&& pTechnoT->GetTechnoType()->BalloonHover
+			&& !pTechnoT->IsInAir())
+		{
+			return FireError::ILLEGAL;
+		}
+	}
+
+	// ====================================================================
+	// [7] Falling / dying
+	// ====================================================================
+	if (pThis->IsFallingDown)
+		return FireError::ILLEGAL;
+
+	if (pThis->IsUnderEMP())
+	{
+		if (pThis->WhatAmI() != AbstractType::Unit)
+			return FireError::CANT;
+
+		auto pThisUnit = static_cast<UnitClass*>(pThis);
+
+		if (!pThisUnit->Type->LargeVisceroid && !pThisUnit->Type->SmallVisceroid)
+		{
+			return FireError::CANT;
+		}
+	}
+
+	// ====================================================================
+	// [8] Get weapon + extension checks
+	// [HOOK 0x6FC31C] PreFiringChecks — uses CanFireWeaponType from [HOOK 0x6FC0D3]
+	// ====================================================================
+	auto const pWeapon = static_cast<FakeWeaponTypeClass*>(pThisExt->CanFireWeaponType);
+	if (!pWeapon)
+		return FireError::CANT;
+
+	auto const pWeaponExt = pWeapon->_GetExtData();
+
+	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
+	{
+		if (auto status = pExt->_GameObject->GetComponent<TechnoStatus>())
+		{
+			if (auto dw = status->DisableWeapon)
+			{
+				if (dw->IsAlive())
+				{
+					return dw->Data.DisableWithTarget ? FireError::RANGE : FireError::ILLEGAL;
+				}
+			}
+		}
+		bool ceaseFire = false;
+		pExt->_GameObject->Foreach([&](Component* c)
+			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->CanFire(pTechnoT, pWeapon, ceaseFire); if (ceaseFire) c->Break(); } });
+
+		// return FireError::ILLEGAL
+		if (ceaseFire)
+		{
+			return FireError::ILLEGAL;
+		}
+	}
+
+	if (pWeapon->IonSensitive && pThis->Owner->IonSensitivesShouldBeOffline())
+		return FireError::CANT;
+
+	// --- Phobos / Ares pre-fire extension checks ---
+
+	// NoRepeatFire
+	if (pWeaponExt->NoRepeatFire > 0 && pTechnoT)
+	{
+		auto const pTargetTechnoExt = TechnoExtContainer::Instance.Find(pTechnoT);
+		if ((Unsorted::CurrentFrame - pTargetTechnoExt->LastBeLockedFrame)
+			< pWeaponExt->NoRepeatFire)
+		{
+			return FireError::ILLEGAL;
+		}
+	}
+
+	// Immune terrain
+	if (auto const pTerrain = cast_to<TerrainClass*, false>(pTarget))
+	{
+		if (pTerrain->Type->Immune)
+			return FireError::ILLEGAL;
+	}
+
+	// MakesDisguise
+	if (pWeapon->Warhead->MakesDisguise && pObjectT)
+	{
+		if (!DisguiseAllowed(GET_TECHNOTYPEEXT(pThis), pObjectT->GetDisguise(true)))
+			return FireError::ILLEGAL;
+	}
+
+	// Ares: Gunner + OpenTopped + Temporal incompatibility
+	if (pWeapon->Warhead->Temporal && pThis->Transporter)
+	{
+		auto const pTransType = GET_TECHNOTYPE(pThis->Transporter);
+		if (pTransType->Gunner && pTransType->OpenTopped)
+		{
+			if (!pThis->TemporalImUsing)
+				return FireError::CANT;
+		}
+	}
+
+	// ObjectHealth allow firing
+	if (!pWeaponExt->SkipWeaponPicking
+		&& !TechnoExtData::ObjectHealthAllowFiring(pObjectT, pWeapon))
+	{
+		return FireError::ILLEGAL;
+	}
+
+	// Funds
+	if (!TechnoExtData::CheckFundsAllowFiring(pThis, pWeapon->Warhead))
+		return FireError::ILLEGAL;
+
+	// Interceptor
+	if (!TechnoExtData::InterceptorAllowFiring(pThis, pObjectT))
+		return FireError::ILLEGAL;
+
+	// AAOnly
+	auto const& [pResolvedTechno, pResolvedCell] =
+		TechnoExtData::GetTargets(pObjectT, pTarget);
+
+	if (GET_TECHNOTYPE(pThis)->LandTargeting != LandTargetingType::Land_not_okay
+		&& pWeapon->Projectile->AA
+		&& pTarget
+		&& !pTarget->IsInAir())
+	{
+		if (BulletTypeExtContainer::Instance.Find(pWeapon->Projectile)->AAOnly)
+			return FireError::ILLEGAL;
+	}
+
+	// Cell allow firing
+	if (!TechnoExtData::CheckCellAllowFiring(pThis, pResolvedCell, pWeapon))
+		return FireError::ILLEGAL;
+
+	// Target-techno extension checks
+	if (pResolvedTechno)
+	{
+		auto const pTargetExt = TechnoExtContainer::Instance.Find(pResolvedTechno);
+
+		if (pWeaponExt->OnlyAttacker.Get()
+			&& !pTargetExt->ContainFirer(pWeapon, pThis))
+		{
+			return FireError::ILLEGAL;
+		}
+
+		if (pThis->Berzerk
+			&& !EnumFunctions::CanTargetHouse(
+				RulesExtData::Instance()->BerzerkTargeting,
+				pThis->Owner, pResolvedTechno->Owner))
+		{
+			return FireError::ILLEGAL;
+		}
+
+		if (!TechnoExtData::TechnoTargetAllowFiring(pThis, pResolvedTechno, pWeapon))
+			return FireError::ILLEGAL;
+
+		if (!TechnoExtData::TargetFootAllowFiring(pThis, pResolvedTechno, pWeapon))
+			return FireError::ILLEGAL;
+
+		if (pWeapon->Warhead->Airstrike)
+		{
+			auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
+
+			if (!EnumFunctions::IsTechnoEligible(
+				pResolvedTechno, pWHExt->AirstrikeTargets, false))
+			{
+				return FireError::ILLEGAL;
+			}
+
+			if (!GET_TECHNOTYPEEXT(pResolvedTechno)->AllowAirstrike.Get(
+				pFootT || cast_to<BuildingClass*, false>(pResolvedTechno)->Type->CanC4))
+			{
+				return FireError::ILLEGAL;
+			}
+		}
+	}
+	// [END HOOK 0x6FC31C]
+
+	// ====================================================================
+	// [9] Drain weapon
+	// ====================================================================
+	if (pWeapon->DrainWeapon)
+	{
+		if (pTechnoT)
+		{
+			if (pTechnoT->DrainingMe)
+				return FireError::ILLEGAL;
+
+			if (!pTechnoT->GetTechnoType()->Drainable)
+				return FireError::ILLEGAL;
+		}
+		// When !pTargetTechno the original gotos past the bunker check,
+		// but the bunker check gates on pTargetTechno anyway — no-op skip.
+	}
+
+	// ====================================================================
+	// [10] Bunker + short range
+	// [HOOK 0x6FC3A1] InBunkerRangeCheck — uses GetRangeWithModifiers
+	// [HOOK 0x6FC3AE] TankInBunker_LocomotorWarhead — was DEAD CODE, now integrated
+	// ====================================================================
+	if (pTechnoT
+		&& pTechnoT->BunkerLinkedItem // +0x2E4
+		&& pTechnoT->WhatAmI() == AbstractType::Unit)
+	{
+		// [0x6FC3AE] Locomotor warhead cannot affect bunkered units
+		if (pWeapon->Warhead && pWeapon->Warhead->IsLocomotor)
+			return FireError::ILLEGAL;
+
+		// [0x6FC3A1] Range check with modifiers instead of raw < 384
+		if (WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis) < 384)
+			return FireError::ILLEGAL;
+	}
+
+	// ====================================================================
+	// [11] Self deploying check (Unit)
+	// ====================================================================
+	if (pThis->WhatAmI() == AbstractType::Unit)
+	{
+		if (static_cast<UnitClass*>(pThis)->Deploying || static_cast<UnitClass*>(pThis)->Undeploying)
+			return FireError::ILLEGAL;
+	}
+
+	// ====================================================================
+	// [12] Warhead: Psychedelic
+	// [HOOK 0x6FC3FE] Immunities — IsPsionicsImmune replaces type check
+	// ====================================================================
+	auto const pWarhead = static_cast<FakeWarheadTypeClass*>(pWeapon->Warhead);
+
+	if (pWarhead && pWarhead->Psychedelic && pTechnoT)
+	{
+		// [0x6FC3FE] Extended psionic immunity
+		if (TechnoExtData::IsPsionicsImmune(pTechnoT))
+			return FireError::ILLEGAL;
+
+		if (pTechnoT->BunkerLinkedItem)
+			return FireError::ILLEGAL;
+	}
+
+	// ====================================================================
+	// [13] Warhead: IsLocomotor
+	// ====================================================================
+	if (pWarhead && pWarhead->IsLocomotor)
+	{
+		// Deploying unit
+		if (pTarget->WhatAmI() == AbstractType::Unit)
+		{
+			if (static_cast<UnitClass*>(pTarget)->Deploying || static_cast<UnitClass*>(pTarget)->Undeploying)
+				return FireError::ILLEGAL;
+		}
+
+		// JumpJet currently moving
+		if (pFootT && pFootT->GetTechnoType()->JumpJet)
+		{
+			auto const pFoot = static_cast<FootClass*>(pTarget);
+			auto const pLoco = pFoot->Locomotor.GetInterfacePtr();
+			if (!pLoco)
+				_com_issue_error(E_POINTER);
+
+			// vt+0x80 on ILocomotion — Is_Moving_Now
+			if (pLoco->Is_Moving_Now())
+				return FireError::ILLEGAL;
+		}
+
+		// SimpleDeployer in MISSION_UNLOAD
+		if (pTarget->WhatAmI() == AbstractType::Unit)
+		{
+			auto const pUnit = static_cast<UnitClass*>(pTarget);
+			if (pUnit->Type->IsSimpleDeployer
+				&& pUnit->CurrentMission == Mission::Unload)
+			{
+				return FireError::ILLEGAL;
+			}
+		}
+
+		// Organic targets
+		if (pTechnoT && pTechnoT->GetTechnoType()->Organic)
+			return FireError::ILLEGAL;
+	}
+
+	// ====================================================================
+	// [14] Open-topped transport
+	// [HOOK 0x6FC5C7] OpenTopped — extended transport checks
+	// ====================================================================
+	if (pThis->InOpenToppedTransport) // +0x82
+	{
+		if (!pWeapon->FireInTransport)
+			return FireError::ILLEGAL;
+
+		auto const pTransport = pThis->Transporter;
+		if (pTransport)
+		{
+			if (pTransport->IsUnderEMP())
+				return FireError::ILLEGAL;
+
+			// [HOOK 0x6FC5C7]
+			auto const pTransTypeExt = GET_TECHNOTYPEEXT(pTransport);
+
+			if (pTransport->Transporter)
+				return FireError::ILLEGAL;
+
+			if (pTransport->Deactivated
+				&& !pTransTypeExt->OpenTopped_AllowFiringIfDeactivated)
+			{
+				return FireError::ILLEGAL;
+			}
+
+			if (pTransTypeExt->OpenTopped_CheckTransportDisableWeapons
+				&& TechnoExtContainer::Instance.Find(pTransport)->AE.flags.DisableWeapons
+				&& pThisExt->CanFireWeaponType)
+			{
+				return FireError::REARM;
+			}
+		}
+	}
+
+	// ====================================================================
+	// [15] Warp-shielded target + non-Temporal weapon
+	// ====================================================================
+	if (pTechnoT
+		&& pWarhead
+		&& pTechnoT->IsBeingWarpedOut()
+		&& !pWarhead->Temporal)
+	{
+		return FireError::ILLEGAL;
+	}
+
+	// ====================================================================
+	// [16] Spawner
+	// [HOOK 0x6FC617] AirCarrierSkipCheckNearBridge
+	// ====================================================================
+	if (pWeapon->Spawner)
+	{
+		// [0x6FC617] Bridge check — skip if spawner is airborne
+		if (pThis->IsOnBridge() && !pThis->IsInAir())
+			return FireError::CANT;
+
+		if (pThis->IsParalyzed())
+			return FireError::CANT;
+
+		if (!pThis->SpawnManager->CountAliveSpawns()) // +0x2D0
+			return FireError::REARM;
+	}
+
+	// ====================================================================
+	// [17] Temporal vs Spawned Aircraft
+	// ====================================================================
+	if (pWarhead && pWarhead->Temporal
+		&& pTechnoT
+		&& pTechnoT->WhatAmI() == AbstractType::Aircraft
+		&& pTechnoT->GetTechnoType()->Spawned)
+	{
+		return FireError::ILLEGAL;
+	}
+
+	// [HOOK 0x6FC689] LandNavalTarget Pre
+	if (pCellTarget)
+	{
+		const auto landType = pCellTarget->LandType;
+
+		if (pThisType->NavalTargeting == NavalTargetingType::Naval_none
+			&& (landType == LandType::Water || landType == LandType::Beach))
+		{
+			return FireError::ILLEGAL;
+		}
+	}
+	else if (auto const pTerrainTarget = cast_to<TerrainClass*, false>(pTarget))
+	{
+		const auto landType = pTerrainTarget->GetCell()->LandType;
+
+		if (pThisType->LandTargeting == LandTargetingType::Land_not_okay
+			&& landType != LandType::Water && landType != LandType::Beach)
+		{
+			return FireError::ILLEGAL;
+		}
+		else if (pThisType->NavalTargeting == NavalTargetingType::Naval_none
+			&& (landType == LandType::Water || landType == LandType::Beach))
+		{
+			return FireError::ILLEGAL;
+		}
+	}
+
+	{
+		const int nOtherSlot = (nWeaponIdx == 0) ? 1 : 0;
+		auto const pOtherWeapon = pThis->GetWeapon(nOtherSlot)->WeaponType;
+
+		if (pOtherWeapon)
+		{
+			if ((pOtherWeapon->UseFireParticles && pThis->Sys.Fire)
+				|| (pOtherWeapon->IsRailgun && pThis->Sys.Railgun)
+				|| (pOtherWeapon->UseSparkParticles && pThis->Sys.Spark)
+				|| (pOtherWeapon->IsSonic && pThis->Wave))
+			{
+				return FireError::CANT;
+			}
+		}
+	}
+
+	// ====================================================================
+	// [19] Anti-air / anti-ground
+	// [HOOK 0x6FC7EB] InterceptBullet — bullet targets bypass AG check
+	// [HOOK 0x6FC749] AntiUnderground — underground layer + AU
+	// ====================================================================
+	auto const pProjectile = pWeapon->Projectile;
+	auto const pProjExt = BulletTypeExtContainer::Instance.Find(pProjectile);
+	bool const bTargetInAir = pTarget->IsInAir();
+	bool const bTargetIsBullet = (pTarget->WhatAmI() == AbstractType::Bullet);
+
+	// In-air target without AA
+	if (bTargetInAir && !pProjectile->AA)
+		return (pTarget != pThis->Target) ? FireError::ILLEGAL : FireError::REARM;
+
+	// [HOOK 0x6FC749] Layer-based checks for foot-class targets
+	if (pFootT)
+	{
+		switch (pFootT->InWhichLayer())
+		{
+		case Layer::Air:
+		case Layer::Top:
+			if (!pWeapon->Projectile->AA)
+				return FireError::ILLEGAL;
+			break;
+		case Layer::Underground:
+			if (!pProjExt->AU)
+				return FireError::ILLEGAL;
+			break;
+		default:
+			break;
+		}
+	}
+
+	// ====================================================================
+	// [20] Naval / ground / land targeting
+	// [HOOK 0x6FC815] CellTargeting
+	// ====================================================================
+
+	if (pTechnoT)
+	{
+		// Techno target — water/bridge/air checks
+		auto const pTechnoCell = pTechnoT->GetCell();
+		bool bIsOnWater = (pTechnoCell->LandType == LandType::Water
+			|| pTechnoCell->LandType == LandType::Beach);
+
+		if (pTechnoT->IsInAir())
+			bIsOnWater = false;
+
+		if (pTechnoT->IsOnBridge())
+		{
+			bIsOnWater = false;
+		}
+		else if (bIsOnWater)
+		{
+			if (pThis->SelectNavalTargeting(pTarget) == NavalTargetingType::NotAvaible)
+				return FireError::ILLEGAL;
+		}
+
+		if (pTechnoT->IsOnFloor() && !bIsOnWater)
+		{
+			if (pThisType->LandTargeting == LandTargetingType::Land_not_okay)
+				return FireError::ILLEGAL;
+		}
+	}
+	else
+	{
+		// Non-techno target
+
+		// [HOOK 0x6FC7EB] Bullets bypass AG check
+		if (!bTargetIsBullet && !bTargetInAir && !pProjectile->AG)
+			return FireError::ILLEGAL;
+
+		// [HOOK 0x6FC815] Bridge-aware cell targeting
+		if(pCellTarget && (pCellTarget->ContainsBridge()
+			|| pCellTarget->LandType == LandType::Water && pThisType->NavalTargeting == NavalTargetingType::Naval_none
+			|| pCellTarget->LandType == LandType::Beach || pCellTarget->LandType == LandType::Water))
+		{
+			if (pThisType->LandTargeting == LandTargetingType::Land_not_okay)
+				return FireError::ILLEGAL;
+		}
+	}
+
+	// ====================================================================
+	// [21] MagBeam
+	// ====================================================================
+	if (pWeapon->IsMagBeam)
+	{
+		auto const pCurrentTarget = pThis->Target; // +0x2AC
+
+		if (pCurrentTarget
+			&& pCurrentTarget != pTarget
+			&& pThis->Wave
+			&& pTarget->WhatAmI() != AbstractType::Building)
+		{
+			return FireError::REARM;
+		}
+
+		if (pCurrentTarget
+			&& pCurrentTarget == pTarget
+			&& pTarget->WhatAmI() != AbstractType::Building)
+		{
+			return FireError::REARM;
+		}
+	}
+
+	// ====================================================================
+	// [22] Burst sync + Arm timer
+	// bSkipROF parameter replaces WhatActionObjectTemp::Skip global
+	// ====================================================================
+	if (!bSkipROF)
+	{
+		bool bTimerReady = false;
+
+		// Unit burst synchronization (primary weapon only)
+		if (nWeaponIdx == 0 && pThis->WhatAmI() == AbstractType::Unit)
+		{
+			int nBurstIndex = pThis->CurrentBurstIndex % pWeapon->Burst;
+			if (nBurstIndex < 2)
+			{
+				auto const pUnitType = static_cast<UnitClass*>(pThis)->Type;
+
+				int nBurstDelay = pUnitType->FiringSyncFrames[nBurstIndex];
+
+				if (nBurstDelay != -1)
+				{
+					int nTimerValue = static_cast<UnitClass*>(pThis)->CurrentFiringFrame;
+
+					if (nTimerValue != -1)
+					{
+						if (nTimerValue == nBurstDelay)
+							bTimerReady = true;
+						else
+							return FireError::REARM;
+					}
+				}
+			}
+		}
+
+		// Normal arm timer
+		if (!bTimerReady)
+		{
+			int nRemaining = pThis->ROFTimer.TimeLeft; // +0x2F4
+
+			if (pThis->ROFTimer.StartTime != -1) // +0x2EC
+			{
+				int nElapsed = Unsorted::CurrentFrame - pThis->ROFTimer.StartTime;
+				if (nElapsed >= nRemaining)
+					bTimerReady = true;
+				else
+					nRemaining -= nElapsed;
+			}
+
+			if (!bTimerReady && nRemaining > 0)
+				return FireError::REARM;
+		}
+	}
+
+	// ====================================================================
+	// [23] Post-timer particle / wave re-checks (current weapon)
+	// ====================================================================
+	if (pWeapon->UseFireParticles && pThis->Sys.Fire)
+		return FireError::REARM;
+
+	if (pWeapon->IsRailgun && pThis->Sys.Railgun)
+		return FireError::REARM;
+
+	if (pWeapon->UseSparkParticles && pThis->Sys.Spark)
+		return FireError::REARM;
+
+	if (pWeapon->IsSonic && pThis->Wave)
+		return FireError::REARM;
+
+	// ====================================================================
+	// [24] Ammo
+	// [HOOK 0x6FCA0D] Ammo — weapon-specific ammo cost
+	// ====================================================================
+	{
+		const int nAmmo = pThis->Ammo; // +0x2FC
+		if (nAmmo >= 0) // negative = infinite ammo
+		{
+			if (nAmmo < WeaponTypeExtContainer::Instance.Find(pWeapon)->Ammo)
+				return FireError::AMMO;
+		}
+	}
+
+	// ====================================================================
+	// [25] Decloak
+	// [HOOK 0x6FCA0D] — OpenTopped transport decloak override
+	// ====================================================================
+	if (pWeapon->DecloakToFire && pThis->CloakState != CloakState::Uncloaked)
+	{
+		bool bTransportHandlesDecloak = false;
+
+		if (pThis->InOpenToppedTransport && pThis->Transporter)
+		{
+			auto const pTransTypeExt = TechnoTypeExtContainer::Instance.Find(
+				pThis->Transporter->GetTechnoType());
+
+			bTransportHandlesDecloak = pTransTypeExt->OpenTopped_DecloakToFire.Get(
+				RulesExtData::Instance()->OpenTopped_DecloakToFire);
+		}
+
+		if (!bTransportHandlesDecloak)
+		{
+			if (pThis->WhatAmI() != AbstractType::Aircraft
+				|| pThis->CloakState == CloakState::Cloaked)
+			{
+				return FireError::CLOAKED;
+			}
+		}
+	}
+
+	// ====================================================================
+	// [26] HunterSeeker
+	// ====================================================================
+	if (pThis->GetTechnoType()->HunterSeeker)
+		return FireError::RANGE;
+
+	// ====================================================================
+	// [27] Parasite pre-checks
+	// ====================================================================
+	if (pWarhead->Parasite)
+	{
+		if (pThis->AbstractFlags & AbstractFlags::Foot)
+		{
+			if (!((FootClass*)pThis)->ParasiteImUsing->CanInfect(pFootT))
+				return FireError::ILLEGAL;
+		}
+
+		if (pFootT && (Unsorted::CurrentFrame()
+			< pFootT->LastBeParasitedStartFrame))
+		{
+			return FireError::ILLEGAL;
+		}
+	}
+
+	// ====================================================================
+	// [28] Target-is-Techno: warhead compatibility
+	// [HOOK 0x6FCAFA] Verses — full replacement with custom armor, FakeEngineer, etc.
+	// ====================================================================
+	if (pTechnoT)
+	{
+		if (pTechnoT->IsSinking)
+			return FireError::ILLEGAL;
+
+		if (pWarhead->Parasite && pTechnoT->IsIronCurtained())
+			return FireError::ILLEGAL;
+
+		// Mind Control
+		if (pWarhead->MindControl)
+		{
+			if (auto const pManager = (FakeCaptureManagerClass*)pThis->CaptureManager)
+			{
+				if (!pManager->__CanCapture(pTechnoT))
+					return FireError::ILLEGAL;
+			}
+		}
+
+		// Custom armor + verses with ForceFire
+		Armor nArmor = TechnoExtData::GetTechnoArmor(pTechnoT, pWarhead);
+		const auto pVsData = pWarhead->GetVersesData(nArmor);
+
+		if (!pVsData->Flags.ForceFire && pVsData->Verses == 0.0)
+			return FireError::ILLEGAL;
+
+		// FakeEngineer
+		auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
+
+		if (pWHExt->FakeEngineer_CanCaptureBuildings || pWHExt->FakeEngineer_BombDisarm)
+		{
+			const int nWeaponRange = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis);
+			const int nCurrentRange = pThis->DistanceFrom(pTechnoT);
+
+			if (pWHExt->FakeEngineer_BombDisarm
+				&& pTechnoT->AttachedBomb
+				&& BombExtContainer::Instance.Find(pTechnoT->AttachedBomb)
+					->Weapon->Ivan_Detachable)
+			{
+				return (nCurrentRange <= nWeaponRange)
+					? FireError::OK : FireError::RANGE;
+			}
+
+			if (pWHExt->FakeEngineer_CanCaptureBuildings)
+			{
+				bool bCanCapture = pBuildingT
+					&& pBuildingT->IsAlive
+					&& pBuildingT->Health > 0
+					&& !pThis->Owner->IsAlliedWith(pBuildingT)
+					&& (pBuildingT->Type->Capturable || pBuildingT->Type->NeedsEngineer);
+
+				if (bCanCapture)
+				{
+					return (nCurrentRange <= nWeaponRange)
+						? FireError::OK : FireError::RANGE;
+				}
+			}
+		}
+
+		// BombDisarm — must have a detachable bomb
+		if (pWarhead->BombDisarm)
+		{
+			if (!pTechnoT->AttachedBomb
+				|| !BombExtContainer::Instance.Find(pTechnoT->AttachedBomb)
+					->Weapon->Ivan_Detachable)
+			{
+				return FireError::ILLEGAL;
+			}
+		}
+
+		// IvanBomb — can't stack
+		if (pWarhead->IvanBomb && pTechnoT->AttachedBomb)
+			return FireError::ILLEGAL;
+
+		// Bridge / elevation — skip entirely if target is airborne
+		if (!pTechnoT->IsInAir())
+		{
+			if (pThis->OnBridge != pTechnoT->OnBridge)
+			{
+				// Both on bridged cells
+				auto const pThisCell = pThis->GetCell();
+				if (pThisCell
+					&& (pThisCell->Flags & CellFlags::Bridge)
+					&& !pThis->IsInAir())
+				{
+					auto const pTgtCell = pTechnoT->GetCell();
+					if (pTgtCell && (pTgtCell->Flags & CellFlags::Bridge))
+						return FireError::ILLEGAL;
+				}
+
+				// Parasite elevation
+				if (pWarhead->Parasite)
+				{
+					int nZDiff = Math::abs(
+						pThis->GetCoords().Z - pTechnoT->GetCoords().Z);
+					if (nZDiff > 2 * Unsorted::BridgeHeight)
+						return FireError::ILLEGAL;
+				}
+			}
+		}
+	}
+	// [END HOOK 0x6FCAFA]
+
+	// ====================================================================
+	// [29] Organic + Paralyzed
+	// ====================================================================
+	if (pThis->GetTechnoType()->Organic && pThis->IsParalyzed())
+		return FireError::ILLEGAL;
+
+	// ====================================================================
+	// [30] Range check
+	// ====================================================================
+	if (bCheckRange && !pThis->IsCloseEnough(pTarget, nWeaponIdx))
+		return FireError::RANGE;
+
+	// ====================================================================
+	// [HOOK 0x6FCD1D] OpenTopCloakFix
+	// ====================================================================
+	if (bCheckRange
+		&& pThis->InOpenToppedTransport
+		&& pThis->Transporter)
+	{
+		auto const pTransTypeExt = TechnoTypeExtContainer::Instance.Find(
+			pThis->Transporter->GetTechnoType());
+
+		if (pTransTypeExt->OpenTopped_DecloakToFire.Get(
+			RulesExtData::Instance()->OpenTopped_DecloakToFire))
+		{
+			pThis->Transporter->Uncloak(true);
+		}
+	}
+
+	return FireError::OK;
+}
+
+FireError __fastcall FakeTechnoClass::__CanFireOriginal(TechnoClass* pThis, discard_t, AbstractClass* pTarget, int nWeaponIdx, bool bCheckRange)
+{
+	return FakeTechnoClass::__CanFireMod(pThis, pTarget, nWeaponIdx, bCheckRange);
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x6FC0B0, FakeTechnoClass::__CanFireOriginal)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4D20, FakeTechnoClass::__CanFireOriginal)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E9054, FakeTechnoClass::__CanFireOriginal)
+DEFINE_FUNCTION_JUMP(CALL, 0x74103E, FakeTechnoClass::__CanFireOriginal)
+DEFINE_FUNCTION_JUMP(CALL, 0x51C9A7, FakeTechnoClass::__CanFireOriginal)
+DEFINE_FUNCTION_JUMP(CALL, 0x447FD4, FakeTechnoClass::__CanFireOriginal)
+DEFINE_FUNCTION_JUMP(CALL, 0x41A9F6, FakeTechnoClass::__CanFireOriginal)
 
 ASMJIT_PATCH(0x700536, TechnoClass_WhatAction_Object_AllowAttack, 0x6)
 {
@@ -64,530 +998,523 @@ ASMJIT_PATCH(0x700536, TechnoClass_WhatAction_Object_AllowAttack, 0x6)
 	GET(ObjectClass*, pObject, EDI);
 	GET_STACK(int, WeaponIndex, STACK_OFFSET(0x1C, -0x8));
 
-	WhatActionObjectTemp::Skip = true;
-	R->EAX(pThis->GetFireError(pObject, WeaponIndex, true));
-	WhatActionObjectTemp::Skip = false;
-
+	R->EAX(FakeTechnoClass::__CanFireMod(pThis, pObject, WeaponIndex, true, true));
 	return Continue;
 }
 
-ASMJIT_PATCH(0x6FC8F5, TechnoClass_CanFire_SkipROF, 0x6)
-{
-	return WhatActionObjectTemp::Skip ? 0x6FC981 : 0;
-}
-
-ASMJIT_PATCH(0x6FCAFA, TechnoClass_CanFire_Verses, 0x8)
-{
-	enum
-	{
-		FireIllegal = 0x6FCB7E,
-		ContinueCheck = 0x6FCBCD,
-		ContinueCheckB = 0x6FCCBD,
-		ForceNewValue = 0x6FCBA6,
-		TargetIsNotTechno = 0x6FCCBD
-	};
-
-	GET(TechnoClass*, pThis, ESI);
-	GET(TechnoClass*, pTarget, EBP);
-	GET(WeaponTypeClass*, pWeapon, EBX);
-
-	if (!pTarget)
-	{
-		return TargetIsNotTechno;
-	}
-
-	if (pTarget->IsSinking)
-		return FireIllegal;
-
-	auto pWH = (FakeWarheadTypeClass*)pWeapon->Warhead;
-
-	if (pWH->Parasite && pTarget->IsIronCurtained())
-	{
-		return FireIllegal;
-	}
-
-	if (pWH->MindControl)
-	{
-		if (auto pManager = (FakeCaptureManagerClass*)pThis->CaptureManager)
-		{
-			if (!pManager->__CanCapture(pTarget))
-			{
-				return FireIllegal;
-			}
-		}
-	}
-
-	Armor armor = TechnoExtData::GetTechnoArmor(pTarget, pWH);
-	const auto vsData = pWH->GetVersesData(armor);
-
-	// i think there is no way for the techno know if it attack using force fire or not
-	if (vsData->Flags.ForceFire || vsData->Verses != 0.0)
-	{
-		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
-
-		if (pWHExt->FakeEngineer_CanCaptureBuildings || pWHExt->FakeEngineer_BombDisarm)
-		{
-			const int weaponRange = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis);
-			const int currentRange = pThis->DistanceFrom(pTarget);
-
-			if (pWHExt->FakeEngineer_BombDisarm
-				&& pTarget->AttachedBomb
-				&& BombExtContainer::Instance.Find(pTarget->AttachedBomb)->Weapon->Ivan_Detachable)
-			{
-
-				if (currentRange <= weaponRange)
-					R->EAX(FireError::OK);
-				else
-					R->EAX(FireError::RANGE); // Out of range
-
-				return ForceNewValue;
-			}
-
-			if (pWHExt->FakeEngineer_CanCaptureBuildings)
-			{
-				const auto pBuilding = cast_to<BuildingClass*, false>(pTarget);
-				const bool UneableToCapture = !pBuilding
-					|| !pBuilding->IsAlive
-					|| pBuilding->Health <= 0
-					|| pThis->Owner->IsAlliedWith(pTarget)
-					|| (!pBuilding->Type->Capturable && !pBuilding->Type->NeedsEngineer);
-
-				if (!UneableToCapture)
-				{
-					if (currentRange <= weaponRange)
-						R->EAX(FireError::OK);
-					else
-						R->EAX(FireError::RANGE); // Out of range
-
-					return ForceNewValue;
-				}
-			}
-		}
-
-		if (pWH->BombDisarm &&
-			(!pTarget->AttachedBomb ||
-				!BombExtContainer::Instance.Find(pTarget->AttachedBomb)->Weapon->Ivan_Detachable)
-		)
-		{
-			return FireIllegal;
-		}
-
-		if (pWH->IvanBomb && pTarget->AttachedBomb)
-			return FireIllegal;
-
-		// Skips bridge-related coord checks to allow AA to target air units on bridges over water.
-		if (pTarget->IsInAir())
-		{
-			return ContinueCheckB;
-		}
-
-		//elevation related checks
-		return  ContinueCheck;
-	}
-
-	return FireIllegal;
-}
-
-ASMJIT_PATCH(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
-{
-	enum
-	{
-		FireRange = 0x6FC0DF,  //keep targeting ?
-		FireIllegal = 0x6FCCDF, //cannot fire at all , ignore target
-		ContinueCheck = 0x0  //weeee
-	};
-
-	GET(TechnoClass*, pThis, ESI);
-	GET(AbstractClass*, pTarget, EBX);
-	GET_STACK(int, weaponIndex, STACK_OFFSET(0x20, 0x8));
-
-	if (!pThis->IsArmed())
-		return FireIllegal;
-
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
-
-	// Force weapon check
-	const int newIndex = pTypeExt->SelectPhobosWeapon(pThis, pTarget);
-
-	if (newIndex >= 0)
-	{
-		weaponIndex = newIndex;
-	}
-
-	pExt->CanFireWeaponType = pThis->GetWeapon(weaponIndex)->WeaponType;
-
-	if (pExt->CanFireWeaponType)
-	{
-		if (pExt->DisableWeaponTimer.InProgress())
-			return FireRange;
-
-		if (pExt->AE.flags.DisableWeapons)
-			return FireRange;
-
-
-		if (auto const pTechnoT = flag_cast_to<TechnoClass*, false>(pTarget))
-		{
-			if (!TechnoExtData::CanTargetICUnit(pThis, (FakeWeaponTypeClass*)pExt->CanFireWeaponType, pTechnoT))
-				return FireIllegal;
-		}
-
-		return ContinueCheck;
-	}
-
-
-	return FireIllegal;
-}
-
-//weapons can take more than one round of ammo
-ASMJIT_PATCH(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
-{
-	enum { FireErrAmmo = 0x6FCA17u, Continue = 0x6FCA5Eu, FireErrorCloaked = 0x6FCA4Fu };
-	GET(TechnoClass* const, pThis, ESI);
-	GET(WeaponTypeClass* const, pWeapon, EBX);
-
-	const auto nAmmo = pThis->Ammo;
-	if (nAmmo < 0)
-		return Continue;
-
-	if (!(nAmmo >= WeaponTypeExtContainer::Instance.Find(pWeapon)->Ammo))
-		return FireErrAmmo;
-
-	if (!pWeapon->DecloakToFire)
-		return Continue;
-
-	if (pWeapon->DecloakToFire)
-	{
-		if (pThis->CloakState == CloakState::Uncloaked)
-			return Continue;
-
-		if(pThis->InOpenToppedTransport && pThis->Transporter){
-			auto const pTransporterTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Transporter->GetTechnoType());
-			if (pTransporterTypeExt->OpenTopped_DecloakToFire.Get(RulesExtData::Instance()->OpenTopped_DecloakToFire)) {
-				return Continue;
-			}
-		}
-
-		return pThis->WhatAmI() != AircraftClass::AbsID || pThis->CloakState == CloakState::Cloaked ? FireErrorCloaked : Continue;
-	}
-
-	return Continue;
-	/*const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-	const bool IsDisabled = pTypeExt->NoAmmoWeapon == -1;
-
-	if (!IsDisabled)
-	{
-		if ((nAmmo - WeaponTypeExtContainer::Instance.Find(pWeapon)->Ammo) >= 0)
-			return Continue;
-	}
-
-	return (!IsDisabled || !nAmmo) ? FireErrAmmo : Continue;*/
-}
-
-ASMJIT_PATCH(0x6FCD1D, TechnoClass_CanFire_OpenTopCloakFix, 0x5)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET_STACK(bool, checkIfTargetInRange, STACK_OFFSET(0x20, 0xC));
-
-	if (checkIfTargetInRange && pThis->InOpenToppedTransport && pThis->Transporter) {
-		auto const pTransporterTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Transporter->GetTechnoType());
-		if (pTransporterTypeExt->OpenTopped_DecloakToFire.Get(RulesExtData::Instance()->OpenTopped_DecloakToFire))
-				pThis->Transporter->Uncloak(true);
-	}
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x6FC3AE, TechnoClass_CanFire_TankInBunker_LocomotorWarhead, 0x6)
-{
-	enum { Illegal = 0x6FC86A };
-
-	GET(WeaponTypeClass*, pWeapon, EDI);
-
-	return pWeapon->Warhead && pWeapon->Warhead->IsLocomotor ? Illegal : 0;
-}
-
-ASMJIT_PATCH(0x6FC617, TechnoClass_CanFire_AirCarrierSkipCheckNearBridge, 0x8)
-{
-	enum { ContinueCheck = 0x6FC61F, TemporaryCannotFire = 0x6FCD0E };
-
-	GET(TechnoClass* const, pThis, ESI);
-	GET(const bool, nearBridge, EAX);
-
-	return (nearBridge && !pThis->IsInAir()) ? TemporaryCannotFire : ContinueCheck;
-}
-
-ASMJIT_PATCH(0x6FC7EB, TechnoClass_CanFire_InterceptBullet, 0x7)
-{
-	enum { IgnoreAG = 0x6FC815, ContinueCheck = 0x6FC7F2 };
-
-	GET(AbstractClass*, pTarget, EBX);
-
-	if (pTarget->WhatAmI() == AbstractType::Bullet)
-		return IgnoreAG;
-
-	R->AL(pTarget->IsInAir());
-	return ContinueCheck;
-}
-
-ASMJIT_PATCH(0x6FC749, TechnoClass_CanFire_AntiUnderground, 0x5)
-{
-	enum { Illegal = 0x6FC86A, GoOtherChecks = 0x6FC762 };
-
-	GET(Layer, layer, EAX);
-	//GET(TechnoClass*, pThis, EBX);
-	GET(WeaponTypeClass*, pWeapon, EDI);
-
-	auto const pProj = pWeapon->Projectile;
-	auto const pProjExt = BulletTypeExtContainer::Instance.Find(pProj);
-
-	if (layer == Layer::Underground && !pProjExt->AU)
-		return Illegal;
-
-	if ((layer == Layer::Air || layer == Layer::Top) && !pProj->AA)
-		return Illegal;
-
-	return GoOtherChecks;
-}
-
-ASMJIT_PATCH(0x6FC5C7, TechnoClass_CanFire_OpenTopped, 0x6)
-{
-	enum { Illegal = 0x6FC86A, OutOfRange = 0x6FC0DF, Continue = 0x6FC5D5 };
-
-	GET(TechnoClass*, pThis, ESI);
-	GET(TechnoClass*, pTransport, EAX);
-	//GET_STACK(int, weaponIndex, STACK_OFFSET(0x20, 0x8));
-
-	auto const pTypeExt = GET_TECHNOTYPEEXT(pTransport);
-
-	if (pTransport->Transporter || (pTransport->Deactivated && !pTypeExt->OpenTopped_AllowFiringIfDeactivated))
-		return Illegal;
-
-	TechnoExtData* pThisExt = TechnoExtContainer::Instance.Find(pThis);
-
-	if (pTypeExt->OpenTopped_CheckTransportDisableWeapons
-		&& TechnoExtContainer::Instance.Find(pTransport)->AE.flags.DisableWeapons
-		&& pThisExt->CanFireWeaponType
-		) return OutOfRange;
-
-	return Continue;
-}
-
-ASMJIT_PATCH(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
-{
-	enum { DisallowFiring = 0x6FC86A };
-
-	GET(TechnoClass*, pThis, ESI);
-	//GET_STACK(int, nWeaponIdx, STACK_OFFSET(0x20, 0x8));
-	GET_STACK(AbstractClass*, pTarget, STACK_OFFSET(0x20, 0x4));
-
-	const auto pType = GET_TECHNOTYPE(pThis);
-	auto pCell = cast_to<CellClass*, false>(pTarget);
-
-	if (pCell)
-	{
-		if (pType->NavalTargeting == NavalTargetingType::Naval_none &&
-			((pCell->LandType == LandType::Water || pCell->LandType == LandType::Beach)) && !pCell->ContainsBridge())
-		{
-			return DisallowFiring;
-		}
-	}
-	else if (const auto pTerrain = cast_to<TerrainClass*, false>(pTarget))
-	{
-		pCell = pTerrain->GetCell();
-
-		if (pType->LandTargeting == LandTargetingType::Land_not_okay && pCell->LandType != LandType::Water && pCell->LandType != LandType::Beach)
-			return DisallowFiring;
-		//else if (pType->LandTargeting == LandTargetingType::Land_secondary && nWeaponIdx == 0)
-		//	return DisallowFiring;
-		else if (pType->NavalTargeting == NavalTargetingType::Naval_none && ((pCell->LandType == LandType::Water || pCell->LandType == LandType::Beach) && !pCell->ContainsBridge()))
-			return DisallowFiring;
-	}
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x6FC815, TechnoClass_CanFire_CellTargeting, 0x7)
-{
-	enum
-	{
-		LandTargetingCheck = 0x6FC857,
-		SkipLandTargetingCheck = 0x6FC879
-	};
-
-	GET(AbstractClass*, pTarget, EBX);
-	GET(TechnoClass*, pThis, ESI);
-
-	CellClass* pCell = cast_to<CellClass*, false>(pTarget);
-	if (!pCell)
-		return SkipLandTargetingCheck;
-
-	if (pCell->ContainsBridge())
-		return LandTargetingCheck;
-
-	if (pCell->LandType == LandType::Water && GET_TECHNOTYPE(pThis)->NavalTargeting == NavalTargetingType::Naval_none)
-		return LandTargetingCheck;
-
-	return pCell->LandType == LandType::Beach || pCell->LandType == LandType::Water ?
-		LandTargetingCheck : SkipLandTargetingCheck;
-}
-
-bool DisguiseAllowed(const TechnoTypeExtData* pThis, ObjectTypeClass* pThat)
-{
-	if (!pThis->DisguiseDisAllowed.empty() && pThis->DisguiseDisAllowed.Contains(pThat))
-		return false;
-
-	return true;
-}
-
-// Pre-Firing Checks
-ASMJIT_PATCH(0x6FC31C, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x20, -0x4));
-
-	enum { FireIllegal = 0x6FCB7E, Continue = 0x0, FireCant = 0x6FCD29 };
-
-	const auto pThisExt = TechnoExtContainer::Instance.Find(pThis);
-
-	FakeWeaponTypeClass* pWeapon = (FakeWeaponTypeClass*)pThisExt->CanFireWeaponType;
-
-	auto const pObjectT = flag_cast_to<ObjectClass*, false>(pTarget);
-	auto const pTechnoT = flag_cast_to<TechnoClass*, false>(pTarget);
-	auto const pFootT = flag_cast_to<FootClass*, false>(pTarget);
-	auto const pWeaponExt = pWeapon->_GetExtData();
-
-	R->EDI(pThisExt->CanFireWeaponType);
-
-	if (pWeaponExt->NoRepeatFire > 0)
-	{
-		if (pTechnoT)
-		{
-			const auto pTargetTechnoExt = TechnoExtContainer::Instance.Find(pTechnoT);
-
-			if ((Unsorted::CurrentFrame - pTargetTechnoExt->LastBeLockedFrame) < pWeaponExt->NoRepeatFire)
-				return FireIllegal;
-		}
-	}
-
-	if (auto pTerrain = cast_to<TerrainClass*, false>(pTarget))
-		if (pTerrain->Type->Immune)
-			return FireIllegal;
-
-	if (pWeapon->Warhead->MakesDisguise && pObjectT)
-	{
-		if (!DisguiseAllowed(GET_TECHNOTYPEEXT(pThis), pObjectT->GetDisguise(true)))
-			return FireIllegal;
-	}
-
-	// Ares TechnoClass_GetFireError_OpenToppedGunnerTemporal
-	// gunners and opentopped together do not support temporals, because the gunner
-	// takes away the TemporalImUsing from the infantry, and thus it is missing
-	// when the infantry fires out of the opentopped vehicle
-	if (pWeapon->Warhead->Temporal && pThis->Transporter)
-	{
-		auto const pType = GET_TECHNOTYPE(pThis->Transporter);
-		if (pType->Gunner && pType->OpenTopped)
-		{
-			if (!pThis->TemporalImUsing)
-				return FireCant;
-		}
-	}
-
-	//if (!TechnoExtData::FireOnceAllowFiring(pThis, pWeapon, pTarget))
-	//	return FireCant;
-
-	if (!pWeaponExt->SkipWeaponPicking && !TechnoExtData::ObjectHealthAllowFiring(pObjectT, pWeapon))
-		return FireIllegal;
-
-	if (!TechnoExtData::CheckFundsAllowFiring(pThis, pWeapon->Warhead))
-		return FireIllegal;
-
-	if (!TechnoExtData::InterceptorAllowFiring(pThis, pObjectT))
-		return FireIllegal;
-
-	auto const& [pTargetTechno, targetCell] = TechnoExtData::GetTargets(pObjectT, pTarget);
-
-	// AAOnly doesn't need to be checked if LandTargeting=1.
-	if (GET_TECHNOTYPE(pThis)->LandTargeting != LandTargetingType::Land_not_okay && pWeapon->Projectile->AA && pTarget && !pTarget->IsInAir())
-	{
-		if (BulletTypeExtContainer::Instance.Find(pWeapon->Projectile)->AAOnly)
-			return FireIllegal;
-	}
-
-	if (!TechnoExtData::CheckCellAllowFiring(pThis, targetCell, pWeapon))
-		return FireIllegal;
-
-	if (pTargetTechno)
-	{
-		const auto pTargetExt = TechnoExtContainer::Instance.Find(pTargetTechno);
-
-		if (pWeaponExt->OnlyAttacker.Get() && !pTargetExt->ContainFirer(pWeapon, pThis))
-			return FireIllegal;
-
-		if (pThis->Berzerk && !EnumFunctions::CanTargetHouse(RulesExtData::Instance()->BerzerkTargeting, pThis->Owner, pTargetTechno->Owner))
-			return FireIllegal;
-
-		if (!TechnoExtData::TechnoTargetAllowFiring(pThis, pTargetTechno, pWeapon))
-			return FireIllegal;
-
-		//if (!TechnoExtData::TargetTechnoShieldAllowFiring(pTargetTechno, pWeapon))
-		//	return FireIllegal;
-
-		if (!TechnoExtData::TargetFootAllowFiring(pThis, pTargetTechno, pWeapon))
-			return FireIllegal;
-
-		if (pWeapon->Warhead->Airstrike)
-		{
-			const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
-			if (!EnumFunctions::IsTechnoEligible(pTargetTechno, pWHExt->AirstrikeTargets, false))
-				return FireIllegal;
-
-			if (!GET_TECHNOTYPEEXT(pTargetTechno)->AllowAirstrike.Get(pFootT || cast_to<BuildingClass*, false>(pTargetTechno)->Type->CanC4))
-				return FireIllegal;
-		}
-	}
-
-	return Continue;
-}
-
-ASMJIT_PATCH(0x6FC3FE, TechnoClass_CanFire_Immunities, 0x6)
-{
-	enum { FireIllegal = 0x6FC86A, ContinueCheck = 0x6FC425 };
-
-	//GET(TechnoClass*, pThis, ESI);
-	GET(WarheadTypeClass*, pWarhead, EAX);
-	GET(TechnoClass*, pTarget, EBP);
-
-	if (pTarget)
-	{
-		//const auto nRank = pTarget->Veterancy.GetRemainingLevel();
-
-		//const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
-		//if(pWHExt->ImmunityType.isset() &&
-		//	 TechnoExtData::HasImmunity(nRank, pTarget , pWHExt->ImmunityType.Get()))
-		//	return FireIllegal;
-
-		if (pWarhead->Psychedelic && TechnoExtData::IsPsionicsImmune(pTarget))
-			return FireIllegal;
-	}
-
-	return ContinueCheck;
-}
-
-ASMJIT_PATCH(0x6FC3A1, TechnoClass_CanFire_InBunkerRangeCheck, 0x5)
-{
-	enum { ContinueChecks = 0x6FC3C5, CannotFire = 0x6FC86A };
-
-	GET(TechnoClass*, pTarget, EBP);
-	GET(TechnoClass*, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EDI);
-
-	if (pTarget->WhatAmI() == AbstractType::Unit && WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis) < 384.0)
-		return CannotFire;
-
-	return ContinueChecks;
-}
+// canEnter and ignoreForce should come before GetFireError().
+
+//DEFINE_JUMP(LJMP, 0x70054D, 0x70056C)
+//
+//ASMJIT_PATCH(0x6FC8F5, TechnoClass_CanFire_SkipROF, 0x6)
+//{
+//	return WhatActionObjectTemp::Skip ? 0x6FC981 : 0;
+//}
+//
+//ASMJIT_PATCH(0x6FCAFA, TechnoClass_CanFire_Verses, 0x8)
+//{
+//	enum
+//	{
+//		FireIllegal = 0x6FCB7E,
+//		ContinueCheck = 0x6FCBCD,
+//		ContinueCheckB = 0x6FCCBD,
+//		ForceNewValue = 0x6FCBA6,
+//		TargetIsNotTechno = 0x6FCCBD
+//	};
+//
+//	GET(TechnoClass*, pThis, ESI);
+//	GET(TechnoClass*, pTarget, EBP);
+//	GET(WeaponTypeClass*, pWeapon, EBX);
+//
+//	if (!pTarget)
+//	{
+//		return TargetIsNotTechno;
+//	}
+//
+//	if (pTarget->IsSinking)
+//		return FireIllegal;
+//
+//	auto pWH = (FakeWarheadTypeClass*)pWeapon->Warhead;
+//
+//	if (pWH->Parasite && pTarget->IsIronCurtained())
+//	{
+//		return FireIllegal;
+//	}
+//
+//	if (pWH->MindControl)
+//	{
+//		if (auto pManager = (FakeCaptureManagerClass*)pThis->CaptureManager)
+//		{
+//			if (!pManager->__CanCapture(pTarget))
+//			{
+//				return FireIllegal;
+//			}
+//		}
+//	}
+//
+//	Armor armor = TechnoExtData::GetTechnoArmor(pTarget, pWH);
+//	const auto vsData = pWH->GetVersesData(armor);
+//
+//	// i think there is no way for the techno know if it attack using force fire or not
+//	if (vsData->Flags.ForceFire || vsData->Verses != 0.0)
+//	{
+//		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
+//
+//		if (pWHExt->FakeEngineer_CanCaptureBuildings || pWHExt->FakeEngineer_BombDisarm)
+//		{
+//			const int weaponRange = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis);
+//			const int currentRange = pThis->DistanceFrom(pTarget);
+//
+//			if (pWHExt->FakeEngineer_BombDisarm
+//				&& pTarget->AttachedBomb
+//				&& BombExtContainer::Instance.Find(pTarget->AttachedBomb)->Weapon->Ivan_Detachable)
+//			{
+//
+//				if (currentRange <= weaponRange)
+//					R->EAX(FireError::OK);
+//				else
+//					R->EAX(FireError::RANGE); // Out of range
+//
+//				return ForceNewValue;
+//			}
+//
+//			if (pWHExt->FakeEngineer_CanCaptureBuildings)
+//			{
+//				const auto pBuilding = cast_to<BuildingClass*, false>(pTarget);
+//				const bool UneableToCapture = !pBuilding
+//					|| !pBuilding->IsAlive
+//					|| pBuilding->Health <= 0
+//					|| pThis->Owner->IsAlliedWith(pTarget)
+//					|| (!pBuilding->Type->Capturable && !pBuilding->Type->NeedsEngineer);
+//
+//				if (!UneableToCapture)
+//				{
+//					if (currentRange <= weaponRange)
+//						R->EAX(FireError::OK);
+//					else
+//						R->EAX(FireError::RANGE); // Out of range
+//
+//					return ForceNewValue;
+//				}
+//			}
+//		}
+//
+//		if (pWH->BombDisarm &&
+//			(!pTarget->AttachedBomb ||
+//				!BombExtContainer::Instance.Find(pTarget->AttachedBomb)->Weapon->Ivan_Detachable)
+//		)
+//		{
+//			return FireIllegal;
+//		}
+//
+//		if (pWH->IvanBomb && pTarget->AttachedBomb)
+//			return FireIllegal;
+//
+//		// Skips bridge-related coord checks to allow AA to target air units on bridges over water.
+//		if (pTarget->IsInAir())
+//		{
+//			return ContinueCheckB;
+//		}
+//
+//		//elevation related checks
+//		return  ContinueCheck;
+//	}
+//
+//	return FireIllegal;
+//}
+//
+//ASMJIT_PATCH(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
+//{
+//	enum
+//	{
+//		FireRange = 0x6FC0DF,  //keep targeting ?
+//		FireIllegal = 0x6FCCDF, //cannot fire at all , ignore target
+//		ContinueCheck = 0x0  //weeee
+//	};
+//
+//	GET(TechnoClass*, pThis, ESI);
+//	GET(AbstractClass*, pTarget, EBX);
+//	GET_STACK(int, weaponIndex, STACK_OFFSET(0x20, 0x8));
+//
+//	if (!pThis->IsArmed())
+//		return FireIllegal;
+//
+//	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+//	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
+//
+//	// Force weapon check
+//	const int newIndex = pTypeExt->SelectPhobosWeapon(pThis, pTarget);
+//
+//	if (newIndex >= 0)
+//	{
+//		weaponIndex = newIndex;
+//	}
+//
+//	pExt->CanFireWeaponType = pThis->GetWeapon(weaponIndex)->WeaponType;
+//
+//	if (pExt->CanFireWeaponType)
+//	{
+//		if (pExt->DisableWeaponTimer.InProgress())
+//			return FireRange;
+//
+//		if (pExt->AE.flags.DisableWeapons)
+//			return FireRange;
+//
+//
+//		if (auto const pTechnoT = flag_cast_to<TechnoClass*, false>(pTarget))
+//		{
+//			if (!TechnoExtData::CanTargetICUnit(pThis, (FakeWeaponTypeClass*)pExt->CanFireWeaponType, pTechnoT))
+//				return FireIllegal;
+//		}
+//
+//		return ContinueCheck;
+//	}
+//
+//
+//	return FireIllegal;
+//}
+//
+////weapons can take more than one round of ammo
+//ASMJIT_PATCH(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
+//{
+//	enum { FireErrAmmo = 0x6FCA17u, Continue = 0x6FCA5Eu, FireErrorCloaked = 0x6FCA4Fu };
+//	GET(TechnoClass* const, pThis, ESI);
+//	GET(WeaponTypeClass* const, pWeapon, EBX);
+//
+//	const auto nAmmo = pThis->Ammo;
+//	if (nAmmo < 0)
+//		return Continue;
+//
+//	if (!(nAmmo >= WeaponTypeExtContainer::Instance.Find(pWeapon)->Ammo))
+//		return FireErrAmmo;
+//
+//	if (!pWeapon->DecloakToFire)
+//		return Continue;
+//
+//	if (pWeapon->DecloakToFire)
+//	{
+//		if (pThis->CloakState == CloakState::Uncloaked)
+//			return Continue;
+//
+//		if(pThis->InOpenToppedTransport && pThis->Transporter){
+//			auto const pTransporterTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Transporter->GetTechnoType());
+//			if (pTransporterTypeExt->OpenTopped_DecloakToFire.Get(RulesExtData::Instance()->OpenTopped_DecloakToFire)) {
+//				return Continue;
+//			}
+//		}
+//
+//		return pThis->WhatAmI() != AircraftClass::AbsID || pThis->CloakState == CloakState::Cloaked ? FireErrorCloaked : Continue;
+//	}
+//
+//	return Continue;
+//	/*const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+//	const bool IsDisabled = pTypeExt->NoAmmoWeapon == -1;
+//
+//	if (!IsDisabled)
+//	{
+//		if ((nAmmo - WeaponTypeExtContainer::Instance.Find(pWeapon)->Ammo) >= 0)
+//			return Continue;
+//	}
+//
+//	return (!IsDisabled || !nAmmo) ? FireErrAmmo : Continue;*/
+//}
+//
+//ASMJIT_PATCH(0x6FCD1D, TechnoClass_CanFire_OpenTopCloakFix, 0x5)
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//	GET_STACK(bool, checkIfTargetInRange, STACK_OFFSET(0x20, 0xC));
+//
+//	if (checkIfTargetInRange && pThis->InOpenToppedTransport && pThis->Transporter) {
+//		auto const pTransporterTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Transporter->GetTechnoType());
+//		if (pTransporterTypeExt->OpenTopped_DecloakToFire.Get(RulesExtData::Instance()->OpenTopped_DecloakToFire))
+//				pThis->Transporter->Uncloak(true);
+//	}
+//
+//	return 0;
+//}
+//
+//ASMJIT_PATCH(0x6FC3AE, TechnoClass_CanFire_TankInBunker_LocomotorWarhead, 0x6)
+//{
+//	enum { Illegal = 0x6FC86A };
+//
+//	GET(WeaponTypeClass*, pWeapon, EDI);
+//
+//	return pWeapon->Warhead && pWeapon->Warhead->IsLocomotor ? Illegal : 0;
+//}
+//
+//ASMJIT_PATCH(0x6FC617, TechnoClass_CanFire_AirCarrierSkipCheckNearBridge, 0x8)
+//{
+//	enum { ContinueCheck = 0x6FC61F, TemporaryCannotFire = 0x6FCD0E };
+//
+//	GET(TechnoClass* const, pThis, ESI);
+//	GET(const bool, nearBridge, EAX);
+//
+//	return (nearBridge && !pThis->IsInAir()) ? TemporaryCannotFire : ContinueCheck;
+//}
+//
+//ASMJIT_PATCH(0x6FC7EB, TechnoClass_CanFire_InterceptBullet, 0x7)
+//{
+//	enum { IgnoreAG = 0x6FC815, ContinueCheck = 0x6FC7F2 };
+//
+//	GET(AbstractClass*, pTarget, EBX);
+//
+//	if (pTarget->WhatAmI() == AbstractType::Bullet)
+//		return IgnoreAG;
+//
+//	R->AL(pTarget->IsInAir());
+//	return ContinueCheck;
+//}
+//
+//ASMJIT_PATCH(0x6FC749, TechnoClass_CanFire_AntiUnderground, 0x5)
+//{
+//	enum { Illegal = 0x6FC86A, GoOtherChecks = 0x6FC762 };
+//
+//	GET(Layer, layer, EAX);
+//	//GET(TechnoClass*, pThis, EBX);
+//	GET(WeaponTypeClass*, pWeapon, EDI);
+//
+//	auto const pProj = pWeapon->Projectile;
+//	auto const pProjExt = BulletTypeExtContainer::Instance.Find(pProj);
+//
+//	if (layer == Layer::Underground && !pProjExt->AU)
+//		return Illegal;
+//
+//	if ((layer == Layer::Air || layer == Layer::Top) && !pProj->AA)
+//		return Illegal;
+//
+//	return GoOtherChecks;
+//}
+//
+//ASMJIT_PATCH(0x6FC5C7, TechnoClass_CanFire_OpenTopped, 0x6)
+//{
+//	enum { Illegal = 0x6FC86A, OutOfRange = 0x6FC0DF, Continue = 0x6FC5D5 };
+//
+//	GET(TechnoClass*, pThis, ESI);
+//	GET(TechnoClass*, pTransport, EAX);
+//	//GET_STACK(int, weaponIndex, STACK_OFFSET(0x20, 0x8));
+//
+//	auto const pTypeExt = GET_TECHNOTYPEEXT(pTransport);
+//
+//	if (pTransport->Transporter || (pTransport->Deactivated && !pTypeExt->OpenTopped_AllowFiringIfDeactivated))
+//		return Illegal;
+//
+//	TechnoExtData* pThisExt = TechnoExtContainer::Instance.Find(pThis);
+//
+//	if (pTypeExt->OpenTopped_CheckTransportDisableWeapons
+//		&& TechnoExtContainer::Instance.Find(pTransport)->AE.flags.DisableWeapons
+//		&& pThisExt->CanFireWeaponType
+//		) return OutOfRange;
+//
+//	return Continue;
+//}
+//
+//ASMJIT_PATCH(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
+//{
+//	enum { DisallowFiring = 0x6FC86A };
+//
+//	GET(TechnoClass*, pThis, ESI);
+//	//GET_STACK(int, nWeaponIdx, STACK_OFFSET(0x20, 0x8));
+//	GET_STACK(AbstractClass*, pTarget, STACK_OFFSET(0x20, 0x4));
+//
+//	const auto pType = GET_TECHNOTYPE(pThis);
+//	auto pCell = cast_to<CellClass*, false>(pTarget);
+//
+//	if (pCell)
+//	{
+//		if (pType->NavalTargeting == NavalTargetingType::Naval_none &&
+//			((pCell->LandType == LandType::Water || pCell->LandType == LandType::Beach)) && !pCell->ContainsBridge())
+//		{
+//			return DisallowFiring;
+//		}
+//	}
+//	else if (const auto pTerrain = cast_to<TerrainClass*, false>(pTarget))
+//	{
+//		pCell = pTerrain->GetCell();
+//
+//		if (pType->LandTargeting == LandTargetingType::Land_not_okay && pCell->LandType != LandType::Water && pCell->LandType != LandType::Beach)
+//			return DisallowFiring;
+//		//else if (pType->LandTargeting == LandTargetingType::Land_secondary && nWeaponIdx == 0)
+//		//	return DisallowFiring;
+//		else if (pType->NavalTargeting == NavalTargetingType::Naval_none && ((pCell->LandType == LandType::Water || pCell->LandType == LandType::Beach) && !pCell->ContainsBridge()))
+//			return DisallowFiring;
+//	}
+//
+//	return 0;
+//}
+//
+//ASMJIT_PATCH(0x6FC815, TechnoClass_CanFire_CellTargeting, 0x7)
+//{
+//	enum
+//	{
+//		LandTargetingCheck = 0x6FC857,
+//		SkipLandTargetingCheck = 0x6FC879
+//	};
+//
+//	GET(AbstractClass*, pTarget, EBX);
+//	GET(TechnoClass*, pThis, ESI);
+//
+//	CellClass* pCell = cast_to<CellClass*, false>(pTarget);
+//	if (!pCell)
+//		return SkipLandTargetingCheck;
+//
+//	if (pCell->ContainsBridge())
+//		return LandTargetingCheck;
+//
+//	if (pCell->LandType == LandType::Water && GET_TECHNOTYPE(pThis)->NavalTargeting == NavalTargetingType::Naval_none)
+//		return LandTargetingCheck;
+//
+//	return pCell->LandType == LandType::Beach || pCell->LandType == LandType::Water ?
+//		LandTargetingCheck : SkipLandTargetingCheck;
+//}
+//
+//// Pre-Firing Checks
+//ASMJIT_PATCH(0x6FC31C, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
+//{
+//	GET(TechnoClass*, pThis, ESI);
+//	GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x20, -0x4));
+//
+//	enum { FireIllegal = 0x6FCB7E, Continue = 0x0, FireCant = 0x6FCD29 };
+//
+//	const auto pThisExt = TechnoExtContainer::Instance.Find(pThis);
+//
+//	FakeWeaponTypeClass* pWeapon = (FakeWeaponTypeClass*)pThisExt->CanFireWeaponType;
+//
+//	auto const pObjectT = flag_cast_to<ObjectClass*, false>(pTarget);
+//	auto const pTechnoT = flag_cast_to<TechnoClass*, false>(pTarget);
+//	auto const pFootT = flag_cast_to<FootClass*, false>(pTarget);
+//	auto const pWeaponExt = pWeapon->_GetExtData();
+//
+//	R->EDI(pThisExt->CanFireWeaponType);
+//
+//	if (pWeaponExt->NoRepeatFire > 0)
+//	{
+//		if (pTechnoT)
+//		{
+//			const auto pTargetTechnoExt = TechnoExtContainer::Instance.Find(pTechnoT);
+//
+//			if ((Unsorted::CurrentFrame - pTargetTechnoExt->LastBeLockedFrame) < pWeaponExt->NoRepeatFire)
+//				return FireIllegal;
+//		}
+//	}
+//
+//	if (auto pTerrain = cast_to<TerrainClass*, false>(pTarget))
+//		if (pTerrain->Type->Immune)
+//			return FireIllegal;
+//
+//	if (pWeapon->Warhead->MakesDisguise && pObjectT)
+//	{
+//		if (!DisguiseAllowed(GET_TECHNOTYPEEXT(pThis), pObjectT->GetDisguise(true)))
+//			return FireIllegal;
+//	}
+//
+//	// Ares TechnoClass_GetFireError_OpenToppedGunnerTemporal
+//	// gunners and opentopped together do not support temporals, because the gunner
+//	// takes away the TemporalImUsing from the infantry, and thus it is missing
+//	// when the infantry fires out of the opentopped vehicle
+//	if (pWeapon->Warhead->Temporal && pThis->Transporter)
+//	{
+//		auto const pType = GET_TECHNOTYPE(pThis->Transporter);
+//		if (pType->Gunner && pType->OpenTopped)
+//		{
+//			if (!pThis->TemporalImUsing)
+//				return FireCant;
+//		}
+//	}
+//
+//	//if (!TechnoExtData::FireOnceAllowFiring(pThis, pWeapon, pTarget))
+//	//	return FireCant;
+//
+//	if (!pWeaponExt->SkipWeaponPicking && !TechnoExtData::ObjectHealthAllowFiring(pObjectT, pWeapon))
+//		return FireIllegal;
+//
+//	if (!TechnoExtData::CheckFundsAllowFiring(pThis, pWeapon->Warhead))
+//		return FireIllegal;
+//
+//	if (!TechnoExtData::InterceptorAllowFiring(pThis, pObjectT))
+//		return FireIllegal;
+//
+//	auto const& [pTargetTechno, targetCell] = TechnoExtData::GetTargets(pObjectT, pTarget);
+//
+//	// AAOnly doesn't need to be checked if LandTargeting=1.
+//	if (GET_TECHNOTYPE(pThis)->LandTargeting != LandTargetingType::Land_not_okay && pWeapon->Projectile->AA && pTarget && !pTarget->IsInAir())
+//	{
+//		if (BulletTypeExtContainer::Instance.Find(pWeapon->Projectile)->AAOnly)
+//			return FireIllegal;
+//	}
+//
+//	if (!TechnoExtData::CheckCellAllowFiring(pThis, targetCell, pWeapon))
+//		return FireIllegal;
+//
+//	if (pTargetTechno)
+//	{
+//		const auto pTargetExt = TechnoExtContainer::Instance.Find(pTargetTechno);
+//
+//		if (pWeaponExt->OnlyAttacker.Get() && !pTargetExt->ContainFirer(pWeapon, pThis))
+//			return FireIllegal;
+//
+//		if (pThis->Berzerk && !EnumFunctions::CanTargetHouse(RulesExtData::Instance()->BerzerkTargeting, pThis->Owner, pTargetTechno->Owner))
+//			return FireIllegal;
+//
+//		if (!TechnoExtData::TechnoTargetAllowFiring(pThis, pTargetTechno, pWeapon))
+//			return FireIllegal;
+//
+//		//if (!TechnoExtData::TargetTechnoShieldAllowFiring(pTargetTechno, pWeapon))
+//		//	return FireIllegal;
+//
+//		if (!TechnoExtData::TargetFootAllowFiring(pThis, pTargetTechno, pWeapon))
+//			return FireIllegal;
+//
+//		if (pWeapon->Warhead->Airstrike)
+//		{
+//			const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
+//			if (!EnumFunctions::IsTechnoEligible(pTargetTechno, pWHExt->AirstrikeTargets, false))
+//				return FireIllegal;
+//
+//			if (!GET_TECHNOTYPEEXT(pTargetTechno)->AllowAirstrike.Get(pFootT || cast_to<BuildingClass*, false>(pTargetTechno)->Type->CanC4))
+//				return FireIllegal;
+//		}
+//	}
+//
+//	return Continue;
+//}
+//
+//ASMJIT_PATCH(0x6FC3FE, TechnoClass_CanFire_Immunities, 0x6)
+//{
+//	enum { FireIllegal = 0x6FC86A, ContinueCheck = 0x6FC425 };
+//
+//	//GET(TechnoClass*, pThis, ESI);
+//	GET(WarheadTypeClass*, pWarhead, EAX);
+//	GET(TechnoClass*, pTarget, EBP);
+//
+//	if (pTarget)
+//	{
+//		//const auto nRank = pTarget->Veterancy.GetRemainingLevel();
+//
+//		//const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
+//		//if(pWHExt->ImmunityType.isset() &&
+//		//	 TechnoExtData::HasImmunity(nRank, pTarget , pWHExt->ImmunityType.Get()))
+//		//	return FireIllegal;
+//
+//		if (pWarhead->Psychedelic && TechnoExtData::IsPsionicsImmune(pTarget))
+//			return FireIllegal;
+//	}
+//
+//	return ContinueCheck;
+//}
+//
+//ASMJIT_PATCH(0x6FC3A1, TechnoClass_CanFire_InBunkerRangeCheck, 0x5)
+//{
+//	enum { ContinueChecks = 0x6FC3C5, CannotFire = 0x6FC86A };
+//
+//	GET(TechnoClass*, pTarget, EBP);
+//	GET(TechnoClass*, pThis, ESI);
+//	GET(WeaponTypeClass*, pWeapon, EDI);
+//
+//	if (pTarget->WhatAmI() == AbstractType::Unit && WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis) < 384.0)
+//		return CannotFire;
+//
+//	return ContinueChecks;
+//}
 
 #pragma region Unit
 ASMJIT_PATCH(0x51CAD1, InfantryClass_CanFire_Sync, 0x6)

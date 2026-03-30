@@ -14,19 +14,13 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "AircraftExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "AircraftClass";
 	
-	
-
 public:
 
-	int Strafe_BombsDroppedThisRound;
-	int CurrentAircraftWeaponIndex;
-	CellClass* Strafe_TargetCell;
+	int Strafe_BombsDroppedThisRound {};
+	int CurrentAircraftWeaponIndex {};
+	CellClass* Strafe_TargetCell {};
 
-	AircraftExtData(AircraftClass* pObj) : FootExtData(pObj),
-		Strafe_BombsDroppedThisRound(0),
-		CurrentAircraftWeaponIndex(0),
-		Strafe_TargetCell()
-	{
+	AircraftExtData(AircraftClass* pObj) : FootExtData(pObj)	{
 		this->Name = pObj->Type->ID;
 		this->AbsType = AircraftClass::AbsID;
 		this->CurrentType = pObj->Type;

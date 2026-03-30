@@ -413,7 +413,7 @@ bool SWTypeExtData::IsTargetConstraintsEligible(SuperClass* pThis, bool IsPlayer
 		if (((nFlag & TargetingConstraints::DominatorInactive) != TargetingConstraints::None) && PsyDom::IsActive())
 			return false;
 
-		if (((nFlag & TargetingConstraints::Attacked) != TargetingConstraints::None) && (pOwner->LATime && ((pOwner->LATime + 75) < Unsorted::CurrentFrame)))
+		if (((nFlag & TargetingConstraints::Attacked) != TargetingConstraints::None) && (!pOwner->LATime || ((pOwner->LATime + 75) < Unsorted::CurrentFrame)))
 			return false;
 
 		if (((nFlag & TargetingConstraints::LowPower) != TargetingConstraints::None) && pOwner->HasFullPower())
@@ -577,8 +577,7 @@ struct TargetingFuncs
 #pragma region MainTargeting
 	static TargetResult GetIonCannonTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting, HouseClass* pEnemy, CloakHandling cloak)
 	{
-		std::vector<TechnoClass*> targets {};
-		const auto it = pTargeting->TypeExt->GetPotentialAITargets(pEnemy , targets);
+		const auto it = pTargeting->TypeExt->GetPotentialAITargets(pEnemy);
 		const auto pResult = GetTargetAnyMax(it ,
 			[=](TechnoClass* pTechno, int curMax) {
 
@@ -728,8 +727,7 @@ struct TargetingFuncs
 
 	static TargetResult GetDominatorTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting)
 	{
-		std::vector<TechnoClass*> targets {};
-		const auto it = pTargeting->TypeExt->GetPotentialAITargets(nullptr, targets);
+		const auto it = pTargeting->TypeExt->GetPotentialAITargets(nullptr);
 		const auto pTarget = GetTargetFirstMax(it , [pTargeting, pNewType](TechnoClass* pTechno, int curMax) {
 
 			if (!TargetingFuncs::IsTargetAllowed(pTechno) || TargetingFuncs::IgnoreThis(pTechno)) {
@@ -793,58 +791,59 @@ struct TargetingFuncs
 
 	static TargetResult GetMutatorTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting)
 	{
-		//specific implementation for GeneticMutatorTargetSelector for
-		std::vector<TechnoClass*> targets {};
-		const auto it = pTargeting->TypeExt->GetPotentialAITargets(nullptr, targets);
-		const auto pResult = GetTargetFirstMax(it , [pTargeting , pNewType](TechnoClass* pTechno, int curMax) {
+		const auto it = pTargeting->TypeExt->GetPotentialAITargets(nullptr);
+		const auto pResult = GetTargetFirstMax(it, [pTargeting, pNewType](TechnoClass* pTechno, int curMax)
+	 {
 
-			if (!TargetingFuncs::IsTargetAllowed(pTechno) || TargetingFuncs::IgnoreThis(pTechno)) {
-			  return -1;
-			}
+			 if (!TargetingFuncs::IsTargetAllowed(pTechno) || TargetingFuncs::IgnoreThis(pTechno))
+			 {
+				 return -1;
+			 }
 
-			if(pTargeting->TypeExt->This()->Type == SuperWeaponType::GeneticMutator && pTechno->WhatAmI() == InfantryClass::AbsID) {
-				const auto pInfantryType = ((InfantryClass*)pTechno)->Type;
+			 if (pTargeting->TypeExt->This()->Type == SuperWeaponType::GeneticMutator
+				 && pTechno->WhatAmI() == InfantryClass::AbsID)
+			 {
+				 const auto pInfantryType = static_cast<InfantryClass*>(pTechno)->Type;
 
-				if (pInfantryType->Cyborg && pTargeting->TypeExt->Mutate_IgnoreCyborg) {
-					return -1;
-				}
-				if (pInfantryType->NotHuman && pTargeting->TypeExt->Mutate_IgnoreNotHuman) {
-					return -1;
-				}
-			}
+				 if (pInfantryType->Cyborg && pTargeting->TypeExt->Mutate_IgnoreCyborg)
+					 return -1;
 
-			auto cell = pTechno->GetCell()->MapCoords;
-			int value = 0;
+				 if (pInfantryType->NotHuman && pTargeting->TypeExt->Mutate_IgnoreNotHuman)
+					 return -1;
+			 }
 
-			for (size_t i = 0; i < CellSpread::NumCells(1); ++i)
-			{
+			 auto cell = pTechno->GetCell()->MapCoords;
+			 int value = 0;
+
+			 // Count eligible infantry across all cells in spread range
+			 for (size_t i = 0; i < CellSpread::NumCells(1); ++i)
+			 {
 				 const auto pCell = MapClass::Instance->GetCellAt(cell + CellSpread::GetCell(i));
 
 				 for (NextObject j(pCell->GetInfantry(pTechno->OnBridge)); cast_to<InfantryClass*>(*j); ++j)
 				 {
-					const auto pInf = static_cast<InfantryClass*>(*j);
+					 const auto pInf = static_cast<InfantryClass*>(*j);
 
 					 if (pInf->IsAlive && !pTargeting->Owner->IsAlliedWith(pInf) && !pInf->IsInAir())
 					 {
-						 // original game does not consider cloak
 						 if (pInf->CloakState != CloakState::Cloaked)
 						 {
 							 ++value;
 						 }
 					 }
 				 }
+			 }
 
-				 if (value <= curMax || !pNewType->CanTargetingFireAt(pTargeting , cell , false)) {
-					 return -1;
-				 }
-			}
+			 // Check AFTER totaling all cells, not inside the loop
+			 if (value <= curMax || !pNewType->CanTargetingFireAt(pTargeting, cell, false))
+				 return -1;
 
-		   return value;
+			 return value;
 		});
 
 		return pResult ?
-		TargetResult{ CellClass::Coord2Cell(pResult->GetCoords()), SWTargetFlags::AllowEmpty }:
-		TargetResult{ CellStruct::Empty , SWTargetFlags::DisallowEmpty };
+			TargetResult { CellClass::Coord2Cell(pResult->GetCoords()), SWTargetFlags::AllowEmpty } :
+			TargetResult { CellStruct::Empty, SWTargetFlags::DisallowEmpty };
 	}
 
 	static TargetResult GetForceShieldTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting)
@@ -964,8 +963,7 @@ struct TargetingFuncs
 
 	static TargetResult GetMultiMissileTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting)
 	{
-		std::vector<TechnoClass*> targets {};
-		const auto it = pTargeting->TypeExt->GetPotentialAITargets(HouseClass::Array->get_or_default(pTargeting->Owner->EnemyHouseIndex), targets);
+		const auto it = pTargeting->TypeExt->GetPotentialAITargets(HouseClass::Array->get_or_default(pTargeting->Owner->EnemyHouseIndex));
 		const auto pResult = GetTargetFirstMax(it, [pTargeting, pNewType](TechnoClass* pTechno, int curMax)
 		{
 			if (!TargetingFuncs::IsTargetAllowed(pTechno) || TargetingFuncs::IgnoreThis(pTechno))
@@ -1028,9 +1026,7 @@ struct TargetingFuncs
 			//
 			//if (!TargetHouse || TargetHouse->Defeated || TargetHouse->IsObserver())
 			//	return { CellStruct::Empty ,SWTargetFlags::DisallowEmpty };
-			std::vector<TechnoClass*> targets {};
-
-			for (auto pTech : pTargeting->TypeExt->GetPotentialAITargets(nullptr, targets)) {
+			for (auto pTech : pTargeting->TypeExt->GetPotentialAITargets(nullptr)) {
 				if (TechnoExtData::IsAlive(pTech, false, false, false) && !TargetingFuncs::IgnoreThis(pTech)) {
 
 					auto nLoc = pTech->GetCoords();
@@ -1241,8 +1237,12 @@ void SWTypeExtData::PrintMessage(const CSFText& message, HouseClass* pFirer)
 	message.PrintAsMessage<false>(color);
 }
 
-Iterator<TechnoClass*> SWTypeExtData::GetPotentialAITargets(HouseClass* pTarget, std::vector<TechnoClass*>& outVec) const
+Iterator<TechnoClass*> SWTypeExtData::GetPotentialAITargets(HouseClass* pTarget) const
 {
+	static std::vector<TechnoClass*> s_targets;
+
+	s_targets.clear();
+
 	const auto require = this->GetAIRequiredTarget();
 
 	if (require == SuperWeaponTarget::None
@@ -1280,26 +1280,24 @@ Iterator<TechnoClass*> SWTypeExtData::GetPotentialAITargets(HouseClass* pTarget,
 
 	// we do as much possible test to avoid using function below
 	// part below is more expensive targeting
-	outVec.clear();
-	outVec.reserve(TechnoClass::Array->Count);
 
 	if (require & SuperWeaponTarget::Building) {
 		if (pTarget) {
-			std::ranges::copy(pTarget->Buildings, std::back_inserter(outVec));
+			std::ranges::copy(pTarget->Buildings, std::back_inserter(s_targets));
 		}else {
-			std::ranges::copy(*BuildingClass::Array, std::back_inserter(outVec));
+			std::ranges::copy(*BuildingClass::Array, std::back_inserter(s_targets));
 		}
 	}
 
 	if(require & SuperWeaponTarget::Infantry)
-		std::ranges::copy(*InfantryClass::Array, std::back_inserter(outVec));
+		std::ranges::copy(*InfantryClass::Array, std::back_inserter(s_targets));
 
 	if (require & SuperWeaponTarget::Unit){
-		std::ranges::copy(*UnitClass::Array, std::back_inserter(outVec));
-		std::ranges::copy(*AircraftClass::Array, std::back_inserter(outVec));
+		std::ranges::copy(*UnitClass::Array, std::back_inserter(s_targets));
+		std::ranges::copy(*AircraftClass::Array, std::back_inserter(s_targets));
 	}
 
-	return make_iterator(outVec);
+	return make_iterator(s_targets);
 }
 
 bool SWTypeExtData::Launch(SWTypeHandler* pNewType, SuperClass* pSuper, CellStruct const cell, bool const isPlayer)

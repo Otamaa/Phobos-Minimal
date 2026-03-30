@@ -12,7 +12,7 @@
 //forward declarations
 class LocomotionClass;
 class TeamClass;
-
+struct PathType;
 class NOVTABLE FootClass : public TechnoClass
 {
 public:
@@ -187,6 +187,10 @@ public:
 	bool To_Try_Something() {
 		JMP_THIS(0x4E0080);
 	}
+
+	PathType* FindPath(CellStruct* pReachableDestCell, CellStruct* pBuffer, int unusedInt, int unusedInt_1, int nPathDirectionsIdx, int nMode)
+		{ JMP_THIS(0x4CBBA0); }
+
 	//Constructor
 	FootClass(HouseClass* pOwner) noexcept : FootClass(noinit_t())
 		{ JMP_THIS(0x4D31E0); }

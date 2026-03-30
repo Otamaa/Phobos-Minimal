@@ -441,9 +441,15 @@ ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 				PhobosAttachEffectClass::DetachByGroups(pTargetTechno, info);
 			}
 		}
+
+		if(pWeapon->Suicide && pThis->IsAlive){
+			int scdamage = pThis->Health;
+			pThis->ReceiveDamage(&scdamage, 0, RulesClass::Instance->C4Warhead, nullptr, false, true, nullptr);
+			return 0x6FDE03;
+		}
 	}
 
-	return 0x0;
+	return 0x6FDE0E;
 }
 
 // ASMJIT_PATCH(0x5206B7, InfantryClass_FiringAI_Entry, 0x6)

@@ -15,11 +15,11 @@ public:
 
 public:
 
-	WeaponTypeExtData* Weapon;
+	WeaponTypeExtData* Weapon { nullptr };
 
 public:
 
-	BombExtData(BombClass* pObj) : AbstractExtended(pObj) , Weapon(nullptr) {
+	BombExtData(BombClass* pObj) : AbstractExtended(pObj) {
 		this->AbsType = BombClass::AbsID;
 	}
 

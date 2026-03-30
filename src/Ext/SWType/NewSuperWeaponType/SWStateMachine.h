@@ -140,8 +140,8 @@ public:
 
 	DEFINE_SWSTATEMACHINE_IDENT(Droppod)
 
-		static void SendDroppods(SuperClass* pSuper, SWTypeExtData* pData, SWTypeHandler* pNewType, const CellStruct& loc);
-	static void PlaceUnits(SuperClass* pSuper, double veterancy, Iterator<TechnoTypeClass*> const Types, int cMin, int cMax, const CellStruct& Coords, bool retries);
+	static void SendDroppods(SuperClass* pSuper, SWTypeExtData* pData, SWTypeHandler* pNewType, const CellStruct& loc);
+	static void PlaceUnits(SuperClass* pSuper, double veterancy, Iterator<TechnoTypeClass*> const Types, int cMin, int cMax, const CellStruct& Coords);
 };
 
 // ============================================================
@@ -509,7 +509,7 @@ public:
 
 	DEFINE_SWSTATEMACHINE_IDENT(CloneableLighningStorm)
 
-		virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
+	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
 	void Strike2(CoordStruct const& nCoord);
@@ -693,7 +693,7 @@ public:
 
 	DEFINE_SWSTATEMACHINE_IDENT(GeneticMutator)
 
-		virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
 		return SWStateMachine::Load(Stm, RegisterForChange)
 			&& Stm

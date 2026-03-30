@@ -96,6 +96,7 @@ struct ProductionData
 	std::vector<int> CreationFrames;
 	std::vector<int> Values;
 	std::vector<int> BestChoices;
+
 	bool Load(PhobosStreamReader& stm, bool registerForChange)
 	{
 		return this->Serialize(stm);
@@ -104,6 +105,7 @@ struct ProductionData
 	{
 		return const_cast<ProductionData*>(this)->Serialize(stm);
 	}
+
 private:
 	template <typename T>
 	bool Serialize(T& stm)
@@ -131,185 +133,109 @@ public:
 	// ============================================================
 	// Large aggregates (unknown internal alignment, place first)
 	// ============================================================
-	PhobosFixedString<0x18> Name;
-	NewTiberiumStorageClass TiberiumStorage;
-	PlacingBuildingStruct Common;
-	PlacingBuildingStruct Combat;
-	std::bitset<MaxHouseCount> StolenTech;
-	IndexBitfield<HouseClass*> RadarPersist;
-	std::array<Nullable<bool>, 3u> RepairBaseNodes;
-	std::array<ProductionData, 3u> Productions;
+	PhobosFixedString<0x18> Name {};
+	NewTiberiumStorageClass TiberiumStorage {};
+	PlacingBuildingStruct Common {};
+	PlacingBuildingStruct Combat {};
+	std::bitset<MaxHouseCount> StolenTech {};
+	IndexBitfield<HouseClass*> RadarPersist {};
+	std::array<Nullable<bool>, 3u> RepairBaseNodes {};
+	std::array<ProductionData, 3u> Productions {};
 
 	// ============================================================
 	// PhobosMap (likely contains std::unordered_map or similar)
 	// ============================================================
-	PhobosMap<BuildingTypeClass*, int> PowerPlantEnhancerBuildings;
-	PhobosMap<BuildingTypeClass*, int> Building_BuildSpeedBonusCounter;
-	PhobosMap<BuildingTypeClass*, int> Building_OrePurifiersCounter;
-	PhobosMap<BuildingTypeClass*, int> BattlePointsCollectors;
-	PhobosMap<SuperClass*, std::vector<SuperClass*>> SuspendedEMPulseSWs;
+	PhobosMap<BuildingTypeClass*, int> PowerPlantEnhancerBuildings {};
+	PhobosMap<BuildingTypeClass*, int> Building_BuildSpeedBonusCounter {};
+	PhobosMap<BuildingTypeClass*, int> Building_OrePurifiersCounter {};
+	PhobosMap<BuildingTypeClass*, int> BattlePointsCollectors {};
+	PhobosMap<SuperClass*, std::vector<SuperClass*>> SuspendedEMPulseSWs {};
 
 	// ============================================================
 	// VectorSet (likely vector-based, ~24+ bytes each)
 	// ============================================================
-	VectorSet<HouseTypeClass*> FactoryOwners_GatheredPlansOf;
-	VectorSet<BuildingClass*> Academies;
-	VectorSet<BuildingClass*> TunnelsBuildings;
-	VectorSet<TechnoTypeClass*> Reversed;
-	VectorSet<TechnoClass*> OwnedCountedHarvesters;
-	VectorSet<BuildingClass*> RestrictedFactoryPlants;
+	VectorSet<HouseTypeClass*> FactoryOwners_GatheredPlansOf {};
+	VectorSet<BuildingClass*> Academies {};
+	VectorSet<BuildingClass*> TunnelsBuildings {};
+	VectorSet<TechnoTypeClass*> Reversed {};
+	VectorSet<TechnoClass*> OwnedCountedHarvesters {};
+	VectorSet<BuildingClass*> RestrictedFactoryPlants {};
 
 	// ============================================================
 	// Vectors (24 bytes each)
 	// ============================================================
-	std::vector<LauchData> LaunchDatas;
-	std::vector<TunnelData> Tunnels;
-	HelperedVector<SuperClass*> Batteries;
-	HelperedVector<UnitClass*> OwnedDeployingUnits;
-	std::vector<int> BestChoicesNaval;
-	std::vector<int> AITriggers_ValidList;
+	std::vector<LauchData> LaunchDatas {};
+	std::vector<TunnelData> Tunnels {};
+	HelperedVector<SuperClass*> Batteries {};
+	HelperedVector<UnitClass*> OwnedDeployingUnits {};
+	std::vector<int> BestChoicesNaval {};
+	std::vector<int> AITriggers_ValidList {};
 
 	// ============================================================
 	// OptionalStruct (pointer + bool + padding ≈ 16 bytes)
 	// ============================================================
-	OptionalStruct<TechTreeTypeClass*, true> SideTechTree;
+	OptionalStruct<TechTreeTypeClass*, true> SideTechTree {};
 
 	// ============================================================
 	// 8-byte aligned: Pointers
 	// ============================================================
-	BuildingClass* Factory_BuildingType;
-	BuildingClass* Factory_InfantryType;
-	BuildingClass* Factory_VehicleType;
-	BuildingClass* Factory_NavyType;
-	BuildingClass* Factory_AircraftType;
+	BuildingClass* Factory_BuildingType { nullptr };
+	BuildingClass* Factory_InfantryType { nullptr };
+	BuildingClass* Factory_VehicleType { nullptr };
+	BuildingClass* Factory_NavyType { nullptr };
+	BuildingClass* Factory_AircraftType { nullptr };
 
 	// ============================================================
 	// CDTimerClass (group together)
 	// ============================================================
-	CDTimerClass DiscoverEvaDelay;
-	CDTimerClass CombatAlertTimer;
-	CDTimerClass AISellAllDelayTimer;
-	CDTimerClass AISuperWeaponDelayTimer;
+	CDTimerClass DiscoverEvaDelay {};
+	CDTimerClass CombatAlertTimer {};
+	CDTimerClass AISellAllDelayTimer {};
+	CDTimerClass AISuperWeaponDelayTimer {};
 
 	// ============================================================
 	// Nullable<bool> (bool + bool ≈ 2-4 bytes)
 	// ============================================================
-	Nullable<bool> Degrades;
+	Nullable<bool> Degrades {};
 
 	// ============================================================
 	// 4-byte aligned: int
 	// ============================================================
-	int ForceOnlyTargetHouseEnemyMode;
-	int LastBuildingTypeArrayIdx;
-	int LastBuiltNavalVehicleType;
-	int ProducingNavalUnitTypeIndex;
-	int SWLastIndex;
-	int AvaibleDocks;
-	int AuxPower;
-	int KeepAliveCount;
-	int KeepAliveBuildingCount;
-	int NumAirpads_NonMFB;
-	int NumBarracks_NonMFB;
-	int NumWarFactories_NonMFB;
-	int NumConYards_NonMFB;
-	int NumShipyards_NonMFB;
-	int ForceEnemyIndex;
-	int BattlePoints;
-	int TeamDelay;
+	int ForceOnlyTargetHouseEnemyMode { -1 };
+	int LastBuildingTypeArrayIdx { -1 };
+	int LastBuiltNavalVehicleType { -1 };
+	int ProducingNavalUnitTypeIndex { -1 };
+	int SWLastIndex { -1 };
+	int AvaibleDocks { 0 };
+	int AuxPower { 0 };
+	int KeepAliveCount { 0 };
+	int KeepAliveBuildingCount { 0 };
+	int NumAirpads_NonMFB { 0 };
+	int NumBarracks_NonMFB { 0 };
+	int NumWarFactories_NonMFB { 0 };
+	int NumConYards_NonMFB { 0 };
+	int NumShipyards_NonMFB { 0 };
+	int ForceEnemyIndex { -1 };
+	int BattlePoints {};
+	int TeamDelay { -1 };
 
 	// ============================================================
 	// 1-byte aligned: bool (packed together at the end)
 	// ============================================================
-	bool m_ForceOnlyTargetHouseEnemy;
-	bool AllRepairEventTriggered;
-	bool CaptureObjectExecuted;
-	bool Is_NavalYardSpied;
-	bool Is_AirfieldSpied;
-	bool Is_ConstructionYardSpied;
-	bool FreeRadar;
-	bool ForceRadar;
-	bool PlayerAutoRepair;
+	bool m_ForceOnlyTargetHouseEnemy {};
+	bool AllRepairEventTriggered {};
+	bool CaptureObjectExecuted {};
+	bool Is_NavalYardSpied {};
+	bool Is_AirfieldSpied {};
+	bool Is_ConstructionYardSpied {};
+	bool FreeRadar {};
+	bool ForceRadar {};
+	bool PlayerAutoRepair {};
 	// 9 bools = 9 bytes, pads to 12 for 4-byte alignment
-
 #pragma endregion
 
-
-
 public:
-	HouseExtData(HouseClass* pObj)
-		: AbstractExtended(pObj)
-		// Large aggregates
-		, Name()
-		, TiberiumStorage()
-		, Common()
-		, Combat()
-		, StolenTech()
-		, RadarPersist()
-		, RepairBaseNodes()
-		, Productions()
-		// PhobosMap
-		, PowerPlantEnhancerBuildings()
-		, Building_BuildSpeedBonusCounter()
-		, Building_OrePurifiersCounter()
-		, BattlePointsCollectors()
-		, SuspendedEMPulseSWs()
-		// VectorSet
-		, FactoryOwners_GatheredPlansOf()
-		, Academies()
-		, TunnelsBuildings()
-		, Reversed()
-		, OwnedCountedHarvesters()
-		, RestrictedFactoryPlants()
-		// Vectors
-		, LaunchDatas()
-		, Tunnels()
-		, Batteries()
-		, OwnedDeployingUnits()
-		, BestChoicesNaval()
-		, AITriggers_ValidList()
-		// OptionalStruct
-		, SideTechTree()
-		// Pointers
-		, Factory_BuildingType(nullptr)
-		, Factory_InfantryType(nullptr)
-		, Factory_VehicleType(nullptr)
-		, Factory_NavyType(nullptr)
-		, Factory_AircraftType(nullptr)
-		// CDTimerClass
-		, DiscoverEvaDelay()
-		, CombatAlertTimer()
-		, AISellAllDelayTimer()
-		, AISuperWeaponDelayTimer()
-		// Nullable<bool>
-		, Degrades()
-		// ints
-		, ForceOnlyTargetHouseEnemyMode(-1)
-		, LastBuildingTypeArrayIdx(-1)
-		, LastBuiltNavalVehicleType(-1)
-		, ProducingNavalUnitTypeIndex(-1)
-		, SWLastIndex(-1)
-		, AvaibleDocks(0)
-		, AuxPower(0)
-		, KeepAliveCount(0)
-		, KeepAliveBuildingCount(0)
-		, NumAirpads_NonMFB(0)
-		, NumBarracks_NonMFB(0)
-		, NumWarFactories_NonMFB(0)
-		, NumConYards_NonMFB(0)
-		, NumShipyards_NonMFB(0)
-		, ForceEnemyIndex(-1)
-		, BattlePoints(0)
-		, TeamDelay(-1)
-		// bools
-		, m_ForceOnlyTargetHouseEnemy(false)
-		, AllRepairEventTriggered(false)
-		, CaptureObjectExecuted(false)
-		, Is_NavalYardSpied(false)
-		, Is_AirfieldSpied(false)
-		, Is_ConstructionYardSpied(false)
-		, FreeRadar(false)
-		, ForceRadar(false)
-		, PlayerAutoRepair(false)
+	HouseExtData(HouseClass* pObj) : AbstractExtended(pObj)
 	{
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
 		this->Name = pObj->Type->ID;

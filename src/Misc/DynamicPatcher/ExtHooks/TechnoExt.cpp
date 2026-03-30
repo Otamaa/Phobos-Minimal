@@ -6,6 +6,10 @@
 #include <Ext/Techno/Body.h>
 #include <SpawnManagerClass.h>
 
+#include <Misc/Kratos/Common/Components/Scriptable.h>
+#include <Misc/Kratos/Extension/TechnoExt.h>
+#include <Misc/Kratos/Ext/Helper/Scripts.h>
+
 /*
 ASMJIT_PATCH(0x4149EE, AircraftClass_Render2, 0x5)
 {
@@ -206,6 +210,12 @@ ASMJIT_PATCH(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
 	GET_STACK(const int, nWeapon, 0x8);
 	//GET(AbstractClass*, pTarget, EDI);
 
+	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
+	{
+		pExt->_GameObject->Foreach([&](Component* c)
+			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnFire(pTarget, nWeapon); } });
+	}
+
 	CalculatePinch::Calc(pThis, nWeapon);
 	//ExtraFirefunctional::GetWeapon(pThis, pTarget, nWeapon);
 	//FireSWFunctional::OnFire(pThis, pTarget, nWeapon);
@@ -229,22 +239,22 @@ static WeaponStruct* __fastcall GetWeapon_(TechnoClass* pTech, void*, int idx) {
 }
 DEFINE_FUNCTION_JUMP(CALL6, 0x6FDD69, GetWeapon_);
 
- ASMJIT_PATCH(0x6F6CA0, TechnoClass_Unlimbo_Early, 0x7)
- {
- 	GET(TechnoClass*, pThis, ECX);
- 	GET_STACK(CoordStruct*, pCoord, (0x4));
- 	//GET_STACK(DirType, faceDir, (0x8));
+//  ASMJIT_PATCH(0x6F6CA0, TechnoClass_Unlimbo_Early, 0x7)
+//  {
+//  	GET(TechnoClass*, pThis, ECX);
+//  	GET_STACK(CoordStruct*, pCoord, (0x4));
+//  	//GET_STACK(DirType, faceDir, (0x8));
 
-	//auto pExt = TechnoExtContainer::Instance.Find(pThis); {
-	//	auto pTypeExt = GET_TECHNOTYPEEXT(pThis); {
- //			DamageSelfState::OnPut(pExt->DamageSelfState, pTypeExt->DamageSelfData);
- //			GiftBoxFunctional::Init(pExt, pTypeExt);
- //			AircraftPutDataFunctional::OnPut(pExt, pTypeExt, pCoord);
- //		}
- //	}
+// 	//auto pExt = TechnoExtContainer::Instance.Find(pThis); {
+// 	//	auto pTypeExt = GET_TECHNOTYPEEXT(pThis); {
+//  //			DamageSelfState::OnPut(pExt->DamageSelfState, pTypeExt->DamageSelfData);
+//  //			GiftBoxFunctional::Init(pExt, pTypeExt);
+//  //			AircraftPutDataFunctional::OnPut(pExt, pTypeExt, pCoord);
+//  //		}
+//  //	}
 
- 	return 0;
- }
+//  	return 0;
+//  }
 
 ASMJIT_PATCH(0x6FBFE9, TechnoClass_Select_SkipVoice, 0x6)
 {

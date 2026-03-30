@@ -30,115 +30,72 @@ public:
 	// ============================================================
 	// 8-byte aligned: Pointers
 	// ============================================================
-	BuildingTypeExtData* Type;
-	BuildingClass* CurrentAirFactory;
-	HouseClass* C4Owner;
-	WarheadTypeClass* C4Warhead;
-	HouseClass* OwnerBeforeRaid;
-	FactoryClass* FactoryBuildingMe;
+	BuildingTypeExtData* Type {};
+	BuildingClass* CurrentAirFactory {};
+	HouseClass* C4Owner {};
+	WarheadTypeClass* C4Warhead {};
+	HouseClass* OwnerBeforeRaid {};
+	FactoryClass* FactoryBuildingMe {};
 
 	// ============================================================
 	// 8-byte aligned: unique_ptr
 	// ============================================================
-	std::unique_ptr<PrismForwarding> MyPrismForwarding;
+	std::unique_ptr<PrismForwarding> MyPrismForwarding {};
 
 	// ============================================================
 	// 8-byte aligned: Handle wrapper
 	// ============================================================
-	Handle<AnimClass*, UninitAnim> SpyEffectAnim;
+	Handle<AnimClass*, UninitAnim> SpyEffectAnim {};
 
 	// ============================================================
 	// 24-byte aligned: Vectors (grouped together)
 	// ============================================================
-	std::vector<AnimClass*> DamageFireAnims;
-	std::vector<int> DockReloadTimers;
-	HelperedVector<TechnoClass*> RegisteredJammers;
-	std::vector<BuildingClass*> airFactoryBuilding;
+	std::vector<AnimClass*> DamageFireAnims {};
+	std::vector<int> DockReloadTimers {};
+	HelperedVector<TechnoClass*> RegisteredJammers {};
+	std::vector<BuildingClass*> airFactoryBuilding {};
 
 	// ============================================================
 	// Large compound: std::array of CDTimerClass
 	// ============================================================
-	std::array<CDTimerClass, 3u> CashUpgradeTimers;
+	std::array<CDTimerClass, 3u> CashUpgradeTimers {};
 
 	// ============================================================
 	// CDTimerClass
 	// ============================================================
-	CDTimerClass AutoSellTimer;
+	CDTimerClass AutoSellTimer {};
 
 	// ============================================================
 	// 4-byte aligned: int
 	// ============================================================
-	int LimboID;
-	int GrindingWeapon_LastFiredFrame;
-	int AccumulatedIncome;
-	int SensorArrayActiveCounter;
-	int GrindingWeapon_AccumulatedCredits;
-	int LastFlameSpawnFrame;
-	int SpyEffectAnimDuration;
-	int PoweredUpToLevel;
+	int LimboID { -1 };
+	int GrindingWeapon_LastFiredFrame {};
+	int AccumulatedIncome {};
+	int SensorArrayActiveCounter {};
+	int GrindingWeapon_AccumulatedCredits {};
+	int LastFlameSpawnFrame {};
+	int SpyEffectAnimDuration {};
+	int PoweredUpToLevel {};
 
 	// ============================================================
 	// 1-byte aligned: bool (packed together at the end)
 	// ============================================================
-	bool DeployedTechno;
-	bool IsCreatedFromMapFile;
-	bool LighningNeedUpdate;  // typo: should be "LightningNeedUpdate"
-	bool TogglePower_HasPower;
-	bool Silent;
-	bool SecretLab_Placed;
-	bool AboutToChronoshift;
-	bool IsFromSW;
-	bool FreeUnitDone;
-	bool SeparateRepair;
-	bool IsFiringNow;
+	bool DeployedTechno {};
+	bool IsCreatedFromMapFile {};
+	bool LighningNeedUpdate {};  // typo: should be "LightningNeedUpdate"
+	bool TogglePower_HasPower { true };
+	bool Silent {};
+	bool SecretLab_Placed {};
+	bool AboutToChronoshift {};
+	bool IsFromSW {};
+	bool FreeUnitDone {};
+	bool SeparateRepair {};
+	bool IsFiringNow {};
 	// 11 bools = 11 bytes, pads to 12 for 4-byte alignment
-
 #pragma endregion
 
 public:
-	BuildingExtData(BuildingClass* pObj)
-		: TechnoExtData(pObj)
-		// Pointers
-		, Type(nullptr)
-		, CurrentAirFactory(nullptr)
-		, C4Owner(nullptr)
-		, C4Warhead(nullptr)
-		, OwnerBeforeRaid(nullptr)
-		, FactoryBuildingMe(nullptr)
-		// unique_ptr
-		, MyPrismForwarding(nullptr)
-		// Handle
-		, SpyEffectAnim(nullptr)
-		// Vectors
-		, DamageFireAnims()
-		, DockReloadTimers()
-		, RegisteredJammers()
-		, airFactoryBuilding()
-		// std::array
-		, CashUpgradeTimers()
-		// CDTimerClass
-		, AutoSellTimer()
-		// ints
-		, LimboID(-1)
-		, GrindingWeapon_LastFiredFrame(0)
-		, AccumulatedIncome(0)
-		, SensorArrayActiveCounter(0)
-		, GrindingWeapon_AccumulatedCredits(0)
-		, LastFlameSpawnFrame(0)
-		, SpyEffectAnimDuration(0)
-		, PoweredUpToLevel(0)
-		// bools
-		, DeployedTechno(false)
-		, IsCreatedFromMapFile(false)
-		, LighningNeedUpdate(false)
-		, TogglePower_HasPower(true)
-		, Silent(false)
-		, SecretLab_Placed(false)
-		, AboutToChronoshift(false)
-		, IsFromSW(false)
-		, FreeUnitDone(false)
-		, SeparateRepair(false)
-		, IsFiringNow(false)
+	BuildingExtData(BuildingClass* pObj) : TechnoExtData(pObj)
 	{
 		this->CurrentType = pObj->Type;
 		this->Type = BuildingTypeExtContainer::Instance.Find(pObj->Type);

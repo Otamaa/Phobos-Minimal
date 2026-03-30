@@ -72,6 +72,12 @@ struct PriorityQueueClass_AStarHierarchical
 };
 #pragma pack(pop)
 
+struct AStarClass_PassabilityData
+{
+	unsigned short Indices[500];
+};
+
+static_assert(sizeof(AStarClass_PassabilityData) == 0x3E8);
 class AStarPathFinderClass
 {
 public:
@@ -115,42 +121,51 @@ public:
 	/*AStarClass__Init_Cell_Index_Sets        0042CCD0
 	AStarClass__Is_Cell_Index_Set_Registered        0042CEB0
 	AStarClass__Register_Cell_Index_Set        0042CF10
-	AStarClass__Register_Cell_Index_Sets        0042CF80
-	AStarClass__Test_Cell_Walk        0042D170
-	__thiscall Cell::Cell(short,short)        0042D470
-	Find_Adjacent_Cell_0        0042D490
-	Cell const __thiscall Cell::operator+(Cell const &)        0042D510
-	*/
+	AStarClass__Register_Cell_Index_Sets        0042CF80*/
+	int AttemptPath(
+		CellStruct* pFromMapCrd,
+		CellStruct* pToMapCrd,
+		TechnoClass* pTechno,
+		bool bFromAlt,
+		bool bToAlt,
+		MovementZone nMovementZone = MovementZone::None)
+		{ JMP_THIS(0x42D170); }
+	//__thiscall Cell::Cell(short,short)        0042D470
+	//Find_Adjacent_Cell_0        0042D490
+	//Cell const __thiscall Cell::operator+(Cell const &)        0042D510
+	
 public:
-	bool bool_0;                                            // char_0: always false
-	bool bool_1;                                            // char_1: skips 004299D2 if false, bridge-related cost adjustment
-	bool bool_2;                                            // char_2: always false  
-	bool boolchar_3;                                        // char_3: blocks Process_Paths if false
-	float float_4;                                          // float_4: used only by "Regular", multiplier for Calc_Float
-	char bool_8;                                            // char_8: used as last arg in Can_Enter_Cell call
-	AStarWorkPathStructDataHeap* WorkPathDataHeap;          // AStarStruct3_C: node data heap for regular pathfinding
-	AStarWorkPathStructHeap* WorkPathHeap;                  // AStarStruct4_10: path struct heap for regular pathfinding
-	TPriorityQueueClass<AStarWorkPathStruct>* RegularQueue; // AStarStruct1_14: priority queue for regular A*
-	int* VisitedCellsAlt;                                   // pvoid18: visited tracking array (alternative bridge level)
-	int* VisitedCells;                                      // pvoid1C: visited tracking array (ground level)
-	float* MovementCosts;                                   // costarray2: movement costs for regular pathfinding
-	float* MovementCostsAlt;                                // costarray1: alternative movement costs (bridge level)
-	int initedcount;                                        // initedcount: epoch counter for visited array invalidation
-	int ObjectSpeed;                                        // ObjectSpeed: unit speed, used in regular pathfinding
-	int StartCellLevel;                                     // cellptr_30: start cell ground level (0=ground, 4=bridge)
-	int EndCellLevel;                                       // cellptr_34: end cell ground level
-	bool boolpathfind_38;                                   // pathfind_38: set by Test_Cell_Walk (0x42D170)
-	AStarPostProcessType __PathsNeedProcessing;             // call_Process_Paths: post-processing mode for regular A*
-	int* HierarchicalVisited[3];                            // field_40/ints_40_costs: visited arrays per hierarchy level
-	int* HierarchicalOpenSet[3];                            // ints_4C_costs: open set tracking per hierarchy level
-	float* HierarchicalCosts[3];                            // field_58: movement costs per hierarchy level
-	AStarQueueNodeHierarchical* HierarchicalNodeBuffer;     // buffer4: 160KB buffer for hierarchical A* nodes (10000 * 16 bytes)
-	PriorityQueueClass_AStarHierarchical* HierarchicalQueue;// AStarclass1_68: priority queue for hierarchical A*
-	int RegularPathProgress;                                // dword_6C: current progress index in zone path
-	CellStruct RegularOriginCell;                           // cell_70: origin cell for regular pathfinding
-	DynamicVectorClass<CellStruct> BlockedCellPairs[3];     // Vectors: blocked cell pairs per hierarchy level
-	short HierarchicalPath[1500];                           // somearray_BC: zone path storage (3 levels * 500 entries)
-	int HierarchicalPathLength[3];                          // maxvalues_field_C74: path length per hierarchy level
+	char unknown_byte_0;
+	bool FindBridgeDir;
+	char unknown_byte_2;
+	bool CanFindPath;
+	float PathCostFactor;
+	bool IsAlt;
+	PROTECTED_PROPERTY(BYTE, padding_9_B[3]);
+	AStarWorkPathStructDataHeap* PathNodeBuffer;
+	AStarWorkPathStructHeap* PathQueueBuffer;
+	TPriorityQueueClass<AStarWorkPathStruct>* PathQueue;
+	int* VisitCounts;
+	int* AltVisitCounts;
+	float* AltDistances;
+	float* Distances;
+	int SearchID;
+	SpeedType FinderSpeedType;
+	int StartLevel;
+	int EndLevel;
+	bool IsSearching;
+	PROTECTED_PROPERTY(BYTE, padding_39_3B[3]);
+	AStarPostProcessType FindMode;
+	int* LevelVisitedMarkers[3];
+	int* OpenSetMarkers[3];
+	float* GCostArray[3];
+	AStarQueueNodeHierarchical* HierarchyBuffer;
+	PriorityQueueClass_AStarHierarchical* HierarchyQueue;
+	int PathLength;
+	CellStruct CellStructBuffer;
+	DynamicVectorClass<CellStruct> ZoneIndices[3];
+	AStarClass_PassabilityData PassabilityData[3];
+	int PassabilityCounts[3];
 };
 static_assert(sizeof(AStarPathFinderClass) == 0xC80);
 

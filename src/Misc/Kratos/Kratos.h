@@ -19,7 +19,6 @@ public:
 	static void DetachFromAll(AbstractClass* const pInvalid, bool const removed);
 	static void GScreenRender_Early();
 	static void GSCreenRender_End();
-
 };
 
 void ExtTypeRegistryClear(EventSystem* sender, Event e, void* args);

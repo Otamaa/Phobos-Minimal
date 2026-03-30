@@ -2195,9 +2195,9 @@ void WarheadTypeExtData::GetCritChance(TechnoClass* pFirer, double& chances) con
 
 	if (pExt->AE.ExtraCrit.Enabled())
 	{
-		std::vector<AEProperties::ExtraCrit::CritDataOut> valids;
+		std::vector<AEExtraCrit::CritDataOut> valids;
 		pExt->AE.ExtraCrit.FillEligible(This(), valids);
-		chances = AEProperties::ExtraCrit::Count(chances, valids);
+		chances = AEExtraCrit::Count(chances, valids);
 	}
 }
 
