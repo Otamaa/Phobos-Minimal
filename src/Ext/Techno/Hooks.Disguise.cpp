@@ -4,6 +4,8 @@
 #include <Utilities/Cast.h>
 #include <Utilities/Macro.h>
 
+#include <TerrainTypeClass.h>
+
 ASMJIT_PATCH(0x6F421C, TechnoClass_Init_PermaDisguise_DefaultDisguise, 0x6)
 {
 	GET(TechnoTypeClass*, pType, EAX);
@@ -136,66 +138,9 @@ ASMJIT_PATCH(0x7060A9, TechnoClass_TechnoClass_DrawObject_DisguisePalette, 0x6)
 	return SkipGameCode;
 }
 
-// somewhat crash the game when called
-// maybe already hooked by something else ?
-//ASMJIT_PATCH(0x705D88, TechnoClass_GetRemapColor_CheckVector, 0x8)
-//{
-//	GET(DynamicVectorClass<ConvertClass*>*, pPal, EAX);
-//	GET(TechnoClass*, pThis, ESI);
-//
-//	int nColorIdx = 0;
-//	if (!pThis->Owner)
-//		Debug::LogInfo("TechnoClass[%s] GetRemapColor with nullptr Owner !  ", pThis->get_ID());
-//	else
-//		nColorIdx = pThis->Owner->ColorSchemeIndex;
-//
-//	R->EDI(nColorIdx);
-//	return pPal && pPal->Count > 0 ? 0x705D92 : 0x705DA1;
-//}
-
-//this check not event get tripped
-//ASMJIT_PATCH(0x451A8A, BuildingClass_AnimLogic_TerrainRemap, 0x6)
-//{
-//	GET(BuildingClass*, pThis, ESI);
-//	GET(LightConvertClass*, pResult, EAX);
-//
-//	if (!pResult)
-//		Debug::LogInfo("Building[%s] , trying to get remap palette but failed ! ", pThis->get_ID());
-//
-//	return 0x0;
-//}
 #endif
 
 #pragma region Otamaa
-
-#include <Ext/TechnoType/Body.h>
-#include <Utilities/Macro.h>
-
-#include <TerrainTypeClass.h>
-
-//ASMJIT_PATCH(0x73649A, UnitClass_AI_DisguiseAI, 0x7)
-//{
-//	GET(UnitClass*, pThis, ESI);
-//
-//	if (!TechnoTypeExtContainer::Instance.Find(pThis->Type)
-//		->TankDisguiseAsTank.Get())
-//		pThis->UpdateDisguise(); //this one updating the disguise blink and stuffs
-//
-//
-//	return 0x7364A1;
-//}
-
-// ASMJIT_PATCH(0x746A30, UnitClass_Disguise_AI_UnitAsUnit, 0x5)
-// {
-// 	GET(UnitClass*, pThis, ESI);
-
-// 	if (!TechnoTypeExtContainer::Instance.Find(pThis->Type)
-// 		->TankDisguiseAsTank.Get())
-// 		return 0x0;
-
-// 	R->EAX(pThis->Type);
-// 	return 0x746A6C;
-// }
 
 #ifdef sss
 ASMJIT_PATCH(0x746670, UnitClass_DisguiseAs_Override, 0x5)

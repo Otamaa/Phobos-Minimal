@@ -1,12 +1,10 @@
 #include "Body.h"
 
-#include <Ext/BulletType/Body.h>
-
 #include <Utilities/Macro.h>
 
-#include <Misc/Ares/Hooks/AresTrajectoryHelper.h>
+#include <Misc/AresTrajectoryHelper.h>
 
-// Hooks
+#include <Ext/BulletType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
@@ -255,4 +253,3 @@ ASMJIT_PATCH(0x418BA8, AircraftClass_MissionAttack_WeaponRangeCheck2, 0x6)
 
 // Skip a forced detonation check for Level=true projectiles that is now handled in Hooks.Obstacles.cpp.
 DEFINE_JUMP(LJMP, 0x468D08, 0x468D2F);
-//DEFINE_SKIP_HOOK(0x468D08 , BulletClass_IsForceToExplode_SkipLevelCheck , 0x6 , 468D2F);

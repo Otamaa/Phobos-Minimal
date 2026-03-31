@@ -13,8 +13,6 @@ public:
 	 static COMPILETIMEEVAL const char* ClassName = "TemporalExtData";
 	 static COMPILETIMEEVAL const char* BaseClassName = "TemporalClass";
 	 
-	 
-
 public:
 
 	TemporalExtData(TemporalClass* pObj) : AbstractExtended(pObj) {
@@ -60,8 +58,8 @@ public:
 public:
 	static TemporalExtContainer Instance;
 
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 };
 
 class NOVTABLE FakeTemporalClass : public TemporalClass

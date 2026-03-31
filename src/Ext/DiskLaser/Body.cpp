@@ -1,6 +1,15 @@
 #include "Body.h"
 
+#include <BuildingClass.h>
+#include <BuildingTypeClass.h>
+#include <ColorStruct.h>
+
+#include <Ext/Anim/Body.h>
+#include <Ext/WeaponType/Body.h>
+#include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
+
+#include <Misc/DamageArea.h>
 
 // =============================
 // load / save
@@ -70,95 +79,6 @@
 //	return 0x4A7C24;
 //}
 
-//detach
-
-//ASMJIT_PATCH(0x4A7755, DiskLaserClass_Update_ChargedUpSound, 0x6) //B
-//{
-//	GET(DiskLaserClass* const, pThis, ESI);
-//
-//	if (pThis && pThis->Owner)
-//	{
-//		R->ECX(TechnoTypeExtContainer::Instance.Find(pThis->Owner->GetTechnoType())->DiskLaserChargeUp.Get(RulesClass::Instance->DiskLaserChargeUp));
-//		return 0x4A7760;
-//	}
-//
-//	return 0x0;
-//}
-
-//// Angles = [ Pi/180*int((i*360/16+270)%360) for i in range(0,16)]
-//static COMPILETIMEEVAL double CosLUT[DiskLaserClass::DrawCoords.c_size()]
-//{
-//	0, 0.37460659341591196, 0.7071067811865474, 0.9205048534524403,
-//	1, 0.9271838545667874, 0.7071067811865476, 0.3907311284892737,
-//	0, -0.37460659341591207, -0.7071067811865475, -0.9205048534524404,
-//	-1, -0.9271838545667874, -0.7071067811865477, -0.3907311284892738
-//};
-//
-//static COMPILETIMEEVAL double SinLUT[DiskLaserClass::DrawCoords.c_size()]
-//{
-//	-1, -0.9271838545667874, -0.7071067811865477, -0.3907311284892739,
-//	0, 0.374606593415912, 0.7071067811865476, 0.9205048534524404,
-//	1, 0.9271838545667874, 0.7071067811865476, 0.39073112848927377,
-//	0, -0.374606593415912, -0.7071067811865475, -0.9205048534524403
-//};
-
-//ASMJIT_PATCH(0x4A757B, DiskLaserClass_AI_Circle, 0x6)
-//{
-//	GET(FakeWeaponTypeClass*, pWeapon, EDX);
-//
-//	if (WeaponTypeExtData::nOldCircumference != pWeapon->_GetExtData()->DiskLaser_Circumference)
-//	{
-//
-//		const int new_Circumference = pWeapon->_GetExtData()->DiskLaser_Circumference;
-//		WeaponTypeExtData::nOldCircumference = new_Circumference;
-//
-//		for (size_t i = 0u; i < DiskLaserClass::DrawCoords.c_size(); i++)
-//		{
-//			DiskLaserClass::DrawCoords[i].X = (int)(new_Circumference * WeaponTypeExtData::cosLUT[i]);
-//			DiskLaserClass::DrawCoords[i].Y = (int)(new_Circumference * WeaponTypeExtData::sinLUT[i]);
-//		}
-//	}
-//
-//	return 0;
-//}
-
-//ASMJIT_PATCH(0x4A76ED, DiskLaserClass_Update_Anim, 7)
-//{
-//	GET(DiskLaserClass* const, pThis, ESI);
-//	REF_STACK(CoordStruct, coords, STACK_OFFS(0x54, 0x1C));
-//
-//	auto const pWarhead = pThis->Weapon->Warhead;
-//
-//	if (RulesExtData::Instance()->DiskLaserAnimEnabled)
-//	{
-//		auto const pType = MapClass::SelectDamageAnimation(
-//			pThis->Damage, pWarhead, LandType::Clear, coords);
-//
-//		if (pType)
-//		{
-//			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, coords),
-//				pThis->Owner ? pThis->Owner->Owner : nullptr,
-//				pThis->Target ? pThis->Target->Owner : nullptr,
-//				pThis->Owner, false, false
-//			);
-//		}
-//	}
-//
-//	MapClass::FlashbangWarheadAt(pThis->Damage, pWarhead, coords);
-//
-//	return 0;
-//}
-
-#include <TechnoClass.h>
-#include <BuildingClass.h>
-#include <BuildingTypeClass.h>
-#include <ColorStruct.h>
-
-#include <Ext/Anim/Body.h>
-#include <Ext/WeaponType/Body.h>
-#include <Ext/TechnoType/Body.h>
-
-#include <Misc/DamageArea.h>
 
 static Point2D DiscLaserCoords[16] = {
 	{    0, -240 },  // 0  - Top

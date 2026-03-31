@@ -17,7 +17,95 @@ const CellStruct BuildingTypeExtData::FoundationEndMarker = { 0x7FFF, 0x7FFF };
 #include <ExtraHeaders/StackVector.h>
 #include <EventClass.h>
 
-#include <Phobos.SaveGame.h>
+#include <Misc/PhobosGlobal.h>
+
+DWORD BuildingTypeExtData::FoundationLength(CellStruct const* const pFoundation)
+{
+	auto pFCell = pFoundation;
+	while (*pFCell != BuildingTypeExtData::FoundationEndMarker)
+	{
+		++pFCell;
+	}
+
+	// include the end marker
+	return static_cast<DWORD>(std::distance(pFoundation, pFCell + 1));
+}
+
+const std::vector<CellStruct>* BuildingTypeExtData::GetCoveredCells(
+	BuildingClass* const pThis, CellStruct const mainCoords,
+	int const shadowHeight)
+{
+	auto const pFoundation = pThis->GetFoundationData(false);
+	//auto const len = FoundationLength(pFoundation);
+
+	PhobosGlobal::Instance()->TempCoveredCellsData.clear();
+	//PhobosGlobal::Instance()->TempCoveredCellsData.reserve(len * shadowHeight);
+
+	auto pFCell = pFoundation;
+
+	while (*pFCell != BuildingTypeExtData::FoundationEndMarker)
+	{
+		auto actualCell = mainCoords + *pFCell;
+		for (auto i = shadowHeight; i > 0; --i)
+		{
+			PhobosGlobal::Instance()->TempCoveredCellsData.push_back(actualCell);
+			--actualCell.X;
+			--actualCell.Y;
+		}
+		++pFCell;
+	}
+
+	PhobosGlobal::Instance()->TempCoveredCellsData.remove_all_duplicates([](const CellStruct& lhs, const CellStruct& rhs) -> bool
+ {
+	 return lhs.X > rhs.X || lhs.X == rhs.X && lhs.Y > rhs.Y;
+	});
+
+	return &PhobosGlobal::Instance()->TempCoveredCellsData;
+}
+
+constexpr int16_t TERMINATOR = static_cast<int16_t>(0x7FFF);
+
+void BuildingTypeExtData::GetDisplayRect(RectangleStruct* out, CellStruct* cells)
+{
+	// initial bounds (match assembly: +512 / -512)
+	int minX = 512;
+	int minY = 512;
+	int maxX = -512;
+	int maxY = -512;
+
+	// If first X == TERMINATOR and first Y == TERMINATOR -> empty rect
+	if (cells[0].X == TERMINATOR && cells[0].Y == TERMINATOR)
+	{
+		out->X = out->Y = out->Width = out->Height = 0;
+		return;
+	}
+
+	// iterate pairs until we see X == TERMINATOR and next X == TERMINATOR
+	const CellStruct* p = cells;
+	while (true)
+	{
+		int16_t x = p->X;
+		int16_t y = p->Y;
+
+		// if current x is sentinel and next x is sentinel -> end
+		if (x == TERMINATOR && y == TERMINATOR)
+			break;
+
+		// update bounds (same effect as the CMOV sequence in assembly)
+		if (x < minX) minX = x;
+		if (x > maxX) maxX = x;
+		if (y < minY) minY = y;
+		if (y > maxY) maxY = y;
+
+		++p; // move to next pair
+	}
+
+	out->X = minX;
+	out->Y = minY;
+	out->Width = maxX;
+	out->Height = maxY;
+	return;
+}
 
 bool FakeBuildingTypeClass::_CanUseWaypoint() {
 	return RulesExtData::Instance()->BuildingWaypoint;
@@ -2448,87 +2536,6 @@ void BuildingTypeExtContainer::Clear()
 {
 	this->base_container_t::Clear();
 	this->trenchKinds.clear();
-}
-
-bool BuildingTypeExtContainer::LoadAll(const json& root)
-{
-	this->Clear();
-
-	if (root.contains(BuildingTypeExtContainer::ClassName))
-	{
-		auto& container = root[BuildingTypeExtContainer::ClassName];
-
-		for (auto& entry : container[BuildingTypeExtData::ClassName])
-		{
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			auto buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, BuildingTypeExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
-		}
-
-		size_t dataSize = container["TrenchKinds_datasize"].get<size_t>();
-		std::string encoded = container["TrenchKinds_data"].get<std::string>();
-
-		PhobosByteStream loader(dataSize);
-		loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-		PhobosStreamReader reader(loader);
-
-		reader.Process(this->trenchKinds);
-
-		if (!reader.ExpectEndOfBlock())
-			return false;
-
-		return true;
-	}
-
-	return false;
-
-}
-
-bool BuildingTypeExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[BuildingTypeExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : BuildingTypeExtContainer::Array)
-	{
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer);
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
-	}
-
-	first_layer[BuildingTypeExtData::ClassName] = std::move(_extRoot);
-
-	PhobosByteStream saver(0);
-	PhobosStreamWriter writer(saver);
-
-	writer.Process(this->trenchKinds);
-
-	first_layer["TrenchKinds_datasize"] = saver.data.size();
-	first_layer["TrenchKinds_data"] = Base64Handler::encodeBase64(saver.data);
-
-	return true;
 }
 
 void BuildingTypeExtContainer::LoadFromINI(BuildingTypeClass* key, CCINIClass* pINI, bool parseFailAddr)

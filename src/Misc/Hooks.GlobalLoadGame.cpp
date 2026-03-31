@@ -110,8 +110,6 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
 
-#include <Misc/Ares/Hooks/Header.h>
-
 #include <Misc/Spawner/Main.h>
 #include <Misc/Spawner/SavedGamesInSubdir.h>
 
@@ -538,8 +536,8 @@ HRESULT Decode_All_Pointers(LPSTREAM stream)
 	return S_OK;
 }
 
-#include <Phobos.SaveGame.h>
 #include <Utilities/CompressedStream.h>
+
 bool RetFlag(bool flag) // set the DoingLoadGame flag to false
 {
 	Phobos::Otamaa::DoingLoadGame = false;

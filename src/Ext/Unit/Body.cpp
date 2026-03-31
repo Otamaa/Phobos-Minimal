@@ -1,80 +1,23 @@
 #include "Body.h"
 
 #include <Utilities/Macro.h>
-#include <Ext/UnitType/Body.h>
+
+#include <Misc/Hooks.Otamaa.h>
 
 #include <Locomotor/Cast.h>
 
+#include <Ext/Anim/Body.h>
+#include <Ext/UnitType/Body.h>
+#include <Ext/WarheadType/Body.h>
+#include <Ext/AnimType/Body.h>
+
+#include <RadarEventClass.h>
 #include <SlaveManagerClass.h>
 #include <GameModeOptionsClass.h>
-#include <Ext/Anim/Body.h>
 #include <ScenarioClass.h>
 #include <GameOptionsClass.h>
 
-#include <Phobos.SaveGame.h>
-
 UnitExtContainer UnitExtContainer::Instance;
-
-bool UnitExtContainer::LoadAll(const json& root)
-{
-	this->Clear();
-
-	if (root.contains(UnitExtContainer::ClassName))
-	{
-		auto& container = root[UnitExtContainer::ClassName];
-
-		for (auto& entry : container[UnitExtData::ClassName])
-		{
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			auto buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, UnitExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
-		}
-
-		return true;
-	}
-
-	return false;
-
-}
-
-bool UnitExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[UnitExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : UnitExtContainer::Array)
-	{
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer);
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
-	}
-
-	first_layer[UnitExtData::ClassName] = std::move(_extRoot);
-
-	return true;
-}
 
 bool UnitExtContainer::HasDeployingAnim(TechnoTypeClass* pUnitType) {
 	return pUnitType->DeployingAnim || !TechnoTypeExtContainer::Instance.Find(pUnitType)->DeployingAnims.empty();
@@ -325,14 +268,6 @@ int FakeUnitClass::_Mission_AreaGuard()
 DEFINE_FUNCTION_JUMP(VTABLE , 0x7F5E90 , FakeUnitClass::_Mission_AreaGuard)
 DEFINE_FUNCTION_JUMP(CALL , 0x744100, FakeUnitClass::_Mission_AreaGuard)
 
-#include <Ext/WarheadType/Body.h>
-#include <Ext/AnimType/Body.h>
-
-#include <Misc/Ares/Hooks/Header.h>
-#include <Misc/Hooks.Otamaa.h>
-
-#include <RadarEventClass.h>
-
 DamageState FakeUnitClass::_Take_Damage(int* damage, 
 	int distance,
 	WarheadTypeClass* warhead, 
@@ -539,7 +474,7 @@ DamageState FakeUnitClass::_Take_Damage(int* damage,
 			this->MarkPassengersAsExited();
 
 		if(!this->Transporter){
-			TechnoExt_ExtData::SpawnSurvivors(this, source, selected, ignoreDefenses, PreventsPassengerEscape);
+			TechnoExtData::SpawnSurvivors(this, source, selected, ignoreDefenses, PreventsPassengerEscape);
 
 			if (GameModeOptionsClass::Instance->Crates)
 			{

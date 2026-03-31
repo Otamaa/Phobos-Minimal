@@ -15,8 +15,6 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "TiberiumExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "TiberiumClass";
 	
-	
-
 public:
 
 #pragma region ClassMember
@@ -188,8 +186,8 @@ public:
 
 	static TiberiumExtContainer Instance;
 
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 	virtual void Clear();
 
 	virtual void LoadFromINI(TiberiumClass* key, CCINIClass* pINI, bool parseFailAddr);

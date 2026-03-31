@@ -12,8 +12,8 @@
 
 #include <ScriptTypeClass.h>
 
-#include <New/AnonymousType/MultipleFactoryCaps.h>
-#include <New/HugeBar.h>
+#include <New/Entity/MultipleFactoryCaps.h>
+#include <New/Entity/HugeBar.h>
 
 class AITriggerTypeClass;
 class AnimTypeClass;

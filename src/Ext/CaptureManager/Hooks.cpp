@@ -1,9 +1,7 @@
 
 #include "Body.h"
-#include <Ext/Techno/Body.h>
-#include <Ext/TechnoType/Body.h>
+
 #include <Utilities/Macro.h>
-#include <SlaveManagerClass.h>
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x4723B0, FakeCaptureManagerClass::__DecideUnitFate_Wrap)
 DEFINE_FUNCTION_JUMP(LJMP, 0x472330, FakeCaptureManagerClass::__SetOwnerToCivilian)

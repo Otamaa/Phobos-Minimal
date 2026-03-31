@@ -4,10 +4,14 @@
 #include <Ext/ParticleType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/House/Body.h>
+#include <Ext/Anim/Body.h>
+#include <Ext/Techno/Body.h>
 
+#include <YRMathVector.h>
+#include <TacticalClass.h>
+
+#include <Utilities/Helpers.h>
 #include <Utilities/Macro.h>
-
-#include <Phobos.SaveGame.h>
 
 #define DIRECT_CALL_THIS(address) \
     _asm { mov ecx, this } \
@@ -237,15 +241,6 @@ void FakeParticleClass::__Coord_AI()
 		break;
 	}
 }
-
-#include <YRMathVector.h>
-#include <TacticalClass.h>
-
-#include <Ext/Anim/Body.h>
-#include <Ext/Techno/Body.h>
-
-#include <Utilities/Helpers.h>
-#include <Misc/Ares/Hooks/Header.h>
 
 constexpr CoordStruct VectorToCoord(const Vector3D<float> &vec) {
 	return { (int)vec.X , (int)vec.Y , (int)vec.Z};
@@ -642,7 +637,7 @@ static void ApplyDamageToObject(ObjectClass* pItem, TechnoClass* pAttacker, Hous
 				transmoOwner = HouseExtData::GetHouseKind(pTypeExt->TransmogrifyOwner, true, nullptr, pOwner, pItem->GetOwningHouse());
 
 			CoordStruct loc_ = loc;
-			TechnoExt_ExtData::SpawnVisceroid(loc_, pTypeExt->TransmogrifyType, pTypeExt->TransmogrifyChance, pTypeExt->Transmogrify, transmoOwner);
+			TechnoExtData::SpawnVisceroid(loc_, pTypeExt->TransmogrifyType, pTypeExt->TransmogrifyChance, pTypeExt->Transmogrify, transmoOwner);
 		}
 	}
 }
@@ -1086,67 +1081,6 @@ void ParticleExtData::Serialize(T& Stm)
 // =============================
 // container
 ParticleExtContainer ParticleExtContainer::Instance;
-
-bool ParticleExtContainer::LoadAll(const json& root)
-{
-	this->Clear();
-
-	if (root.contains(ParticleExtContainer::ClassName))
-	{
-		auto& container = root[ParticleExtContainer::ClassName];
-
-		for (auto& entry : container[ParticleExtData::ClassName])
-		{
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			auto buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, ParticleExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
-		}
-
-		return true;
-	}
-
-	return false;
-
-}
-
-bool ParticleExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[ParticleExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : ParticleExtContainer::Array)
-	{
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer);
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
-	}
-
-	first_layer[ParticleExtData::ClassName] = std::move(_extRoot);
-
-	return true;
-}
 
 // =============================
 // container hooks

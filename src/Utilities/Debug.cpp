@@ -1,7 +1,7 @@
 #include "Debug.h"
 #include "Macro.h"
-#include <Phobos.h>
 
+#include <Phobos.h>
 
 #include <MouseClass.h>
 #include <Surface.h>
@@ -21,6 +21,10 @@
 #include <WarheadTypeClass.h>
 #include <HouseClass.h>
 #include <HouseTypeClass.h>
+
+#include <CCINIClass.h>
+#include <SessionClass.h>
+#include <ScenarioClass.h>
 
 #include <filesystem>
 #pragma region declarations
@@ -236,6 +240,30 @@ void Debug::FreeMouse()
 	BlackSurface(DSurface::Tile);
 
 	ShowCursor(TRUE);
+}
+
+Debug::Result Debug::GetINIChecksums()
+{
+	Result nBuffer;
+	if (SessionClass::Instance->GameMode != GameMode::LAN)
+	{
+		nBuffer = { CCINIClass::RulesHash() , CCINIClass::ArtHash() ,  CCINIClass::AIHash() };
+	}
+	else
+	{
+		nBuffer = { CCINIClass::RulesHash_Internet() , CCINIClass::ArtHash_Internet() ,  CCINIClass::AIHash_Internet() };
+	}
+
+	if (!nBuffer.Rules)
+		nBuffer.Rules = ScenarioClass::GetRulesUniqueID();
+
+	if (!nBuffer.Art)
+		nBuffer.Art = ScenarioClass::GetArtUniqueID();
+
+	if (!nBuffer.AI)
+		nBuffer.AI = ScenarioClass::GetAIUniqueID();
+
+	return nBuffer;
 }
 
 void Debug::FatalErrorCore(bool Dump, const std::string& msg)

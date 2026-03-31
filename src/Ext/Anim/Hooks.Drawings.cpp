@@ -28,19 +28,6 @@ ASMJIT_PATCH(0x423855, AnimClass_DrawIt_ShadowLocation, 0x7)
 	return SkipGameCode;
 }
 
-//ASMJIT_PATCH(0x4236F0, AnimClass_DrawIt_Tiled_Palette, 0x6)
-//{
-//	GET(FakeAnimClass* const, pThis, ESI);
-//
-//	if (auto pCustom = pThis->_GetTypeExtData()->Palette.GetConvert()) {
-//		R->EDX(pCustom);
-//		return 0x4236F6;
-//	}
-//
-//	R->EDX(FileSystem::ANIM_PAL());
-//	return 0x4236F6;
-//}
-
 #ifdef fullbackport 
 
 static int PackDSurfaceColor(int colorIndex)

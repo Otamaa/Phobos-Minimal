@@ -29,15 +29,6 @@
 
 #include <Locomotor/Cast.h>
 
-//Replace: checking of HasExtras = > checking of (HasExtras && Shadow)
-// ASMJIT_PATCH(0x423365, AnimClass_SHPShadowCheck, 0x8)
-// {
-// 	GET(AnimClass* const, pAnim, ESI);
-// 	return (pAnim->Type->Shadow && pAnim->HasExtras) ?
-// 		0x42336D :
-// 		0x4233EE;
-// }
-
 /*
 	Allow usage of TileSet of 255 and above without making NE-SW broken bridges unrepairable
 
@@ -82,17 +73,6 @@ ASMJIT_PATCH(0x4FB2DE, HouseClass_PlaceObject_HotkeyFix, 0x6)
 	return 0;
 }
 
-// Issue #46: Laser is mirrored relative to FireFLH
-// Author: Starkku
-// ASMJIT_PATCH(0x6FF2BE, TechnoClass_FireAt_BurstOffsetFix_1, 0x6)
-// {
-// 	GET(TechnoClass*, pThis, ESI);
-//
-// 	--pThis->CurrentBurstIndex;
-//
-// 	return 0x6FF2D1;
-// }
-
 bool IsUndeploy = false;
 
 // issue #290: Undeploy building into a unit plays EVA_NewRallyPointEstablished
@@ -130,19 +110,6 @@ ASMJIT_PATCH(0x443892, BuildingClass_SetRallyPoint_Naval_UndeploysInto, 0x6)
 // issue #232: Naval=yes overrides WaterBound=no and prevents move orders onto Land cells
 // Author: Uranusian
 DEFINE_JUMP(LJMP, 0x47CA05, 0x47CA33);
-
-// bugfix: DeathWeapon not properly detonates
-// Author: Uranusian
-// ASMJIT_PATCH(0x70D77F, TechnoClass_FireDeathWeapon_ProjectileFix, 0x8)
-// {
-// 	GET(BulletClass*, pBullet, EBX);
-// 	GET(CoordStruct*, pCoord, EAX);
-//
-// 	pBullet->SetLocation(*pCoord);
-// 	pBullet->Explode(true);
-//
-// 	return 0x70D787;
-// }
 
 static bool NOINLINE IsTemporalptrValid(TemporalClass* pThis)
 {
@@ -455,17 +422,6 @@ ASMJIT_PATCH(0x65DF67, TeamTypeClass_CreateMembers_LoadOntoTransport, 0x6)
 	return 0x65DF8D;
 }
 
-// BibShape checks for BuildingClass::BState which needs to not be 0 (constructing) for bib to draw.
-// It is possible for BState to be 1 early during construction for frame or two which can result in BibShape being drawn during buildup, which somehow depends on length of buildup.
-// Trying to fix this issue at its root is problematic and most of the time causes buildup to play twice, it is simpler to simply fix the BibShape to not draw until the buildup is done - Starkku
-// ASMJIT_PATCH(0x43D874, BuildingClass_Draw_BuildupBibShape, 0x6)
-// {
-// 	enum { DontDrawBib = 0x43D8EE };
-
-// 	GET(BuildingClass* const, pThis, ESI);
-// 	return !pThis->ActuallyPlacedOnMap ? DontDrawBib : 0x0;
-// }
-
 ASMJIT_PATCH(0x4DE652, FootClass_AddPassenger_NumPassengerGeq0, 0x7)
 {
 	enum { GunnerReception = 0x4DE65B, EndFuntion = 0x4DE666 };
@@ -575,14 +531,6 @@ ASMJIT_PATCH(0x519F84, InfantryClass_UpdatePosition_EngineerPreUninit, 0x6)
 	return 0;
 }
 
-// Enable sorted add for Air/Top layers to fix issues with attached anims etc.
-// ASMJIT_PATCH(0x4A9750, DisplayClass_Submit_LayerSort, 0x9)
-// {
-// 	GET(Layer const, layer, EDI);
-// 	R->ECX(layer != Layer::Surface && layer != Layer::Underground);
-// 	return 0;
-// }
-
 // Fixes C4=no amphibious infantry being killed in water if Chronoshifted/Paradropped there.
 ASMJIT_PATCH(0x51A996, InfantryClass_UpdatePositio_KillOnImpassable, 0x5)
 {
@@ -603,13 +551,6 @@ ASMJIT_PATCH(0x51A996, InfantryClass_UpdatePositio_KillOnImpassable, 0x5)
 	return SkipKilling;
 }
 
-// ASMJIT_PATCH(0x6FDDD4, TechnoClass_FireAt_Suicide_UseCurrentHP, 0x6)
-// {
-// 	GET(TechnoClass* const, pThis, ESI);
-// 	R->ECX(pThis->GetType()->Strength);
-// 	return 0x6FDDDA;
-// }
-
 ASMJIT_PATCH(0x70BC6F, TechnoClass_UpdateRigidBodyKinematics_KillFlipped, 0xA)
 {
 	GET(TechnoClass* const, pThis, ESI);
@@ -620,26 +561,6 @@ ASMJIT_PATCH(0x70BC6F, TechnoClass_UpdateRigidBodyKinematics_KillFlipped, 0xA)
 
 	return 0x70BCA4;
 }
-
-// ASMJIT_PATCH(0x501477, HouseClass_IHouse_AllToHunt_KillMCInsignificant, 0xA)
-// {
-// 	GET(TechnoClass* const, pItem, ESI);
-//
-// 	pItem->ReceiveDamage(&pItem->GetType()->Strength, 0, RulesClass::Instance->C4Warhead,
-// 		nullptr, true, true, nullptr);
-//
-// 	return 0x50150E;
-// }
-
-// ASMJIT_PATCH(0x7187D2, TeleportLocomotionClass_7187A0_IronCurtainFuckMeUp, 0x8)
-// {
-// 	GET(FootClass* const, pOwner, ECX);
-//
-// 	pOwner->ReceiveDamage(&pOwner->GetType()->Strength, 0, RulesClass::Instance->C4Warhead,
-// 		nullptr, true, false, nullptr);
-//
-// 	return 0x71880A;
-// }
 
 // Check WaterBound when setting rally points / undeploying instead of just Naval.
 ASMJIT_PATCH(0x4438B4, BuildingClass_SetRallyPoint_Naval, 0x6)
@@ -680,19 +601,6 @@ ASMJIT_PATCH(0x6DAAB2, TacticalClass_DrawRallyPointLines_NoUndeployBlyat, 0x6)
 DEFINE_JUMP(LJMP, 0x447380, 0x44739E);
 DEFINE_JUMP(LJMP, 0x447709, 0x447727);
 
-//// AG=no projectiles shouldn't fire at land.
-//ASMJIT_PATCH(0x6FC87D, TechnoClass_CanFire_AG, 0x6)
-//{
-//	enum { RetFireIllegal = 0x6FC86A , Continue = 0x0 };
-//
-//	GET(WeaponTypeClass*, pWeapon, EDI);
-//	GET_STACK(AbstractClass*, pTarget, STACK_OFFSET(0x20, 0x4));
-//
-//	return !pWeapon->Projectile->AG && !pTarget->IsInAir() ?
-//		RetFireIllegal : Continue;
-//}
-
-
 // Updates layers of all animations attached to the given techno.
 static void UpdateAttachedAnimLayers(TechnoClass* pThis)
 {
@@ -709,26 +617,6 @@ static void UpdateAttachedAnimLayers(TechnoClass* pThis)
 		DisplayClass::Instance->SubmitObject(pAnim);
 	}
 }
-
-//causing desyncs , need to be retest
-// ASMJIT_PATCH(0x54B188, JumpjetLocomotionClass_Process_LayerUpdate, 0x6)
-// {
-// 	GET(TechnoClass*, pLinkedTo, EAX);
-//
-// 	UpdateAttachedAnimLayers(pLinkedTo);
-//
-// 	return 0;
-// }
-//
-// ASMJIT_PATCH(0x4CD4E1, FlyLocomotionClass_Update_LayerUpdate, 0x6)
-// {
-// 	GET(TechnoClass*, pLinkedTo, ECX);
-//
-// 	if (pLinkedTo->LastLayer != pLinkedTo->InWhichLayer())
-// 		UpdateAttachedAnimLayers(pLinkedTo);
-//
-// 	return 0;
-// }
 
 // Update attached anim layers after parent unit changes layer.
 static void __fastcall DisplayClass_Submit_Wrapper(DisplayClass* pThis, void* _, ObjectClass* pObject)
@@ -783,25 +671,6 @@ ASMJIT_PATCH(0x68927B, ScenarioClass_ScanPlaceUnit_CheckMovement2, 0x5)
 	return 0;
 
 }
-
-// In vanilla YR, game destroys building animations directly by calling constructor.
-// Ares changed this to call UnInit() which has a consequence of doing pointer invalidation on the AnimClass pointer.
-// This notably causes an issue with Grinder that restores ActiveAnim if the building is sold/destroyed while SpecialAnim is playing even if the building is gone or in limbo.
-// Now it does not do this if the building is in limbo, which covers all cases from being destroyed, sold, to erased by Temporal weapons.
-// There is another potential case for this with ProductionAnim & IdleAnim which is also patched here just in case.
-//ASMJIT_PATCH(0x44E9FA, BuildingClass_Detach_RestoreAnims, 0x6)
-//{
-//	enum { SkipAnimOne = 0x44E9A4, SkipAnimTwo = 0x44EA07 };
-//
-//	GET(BuildingClass*, pThis, ESI);
-//
-//	if (pThis->InLimbo || !pThis->IsAlive)
-//		return R->Origin() == 0x44E997 ? SkipAnimOne : SkipAnimTwo;
-//
-//	return 0;
-//}ASMJIT_PATCH_AGAIN(0x44E997, BuildingClass_Detach_RestoreAnims, 0x6)
-
-
 
 // WWP for some reason passed nullptr as source to On_Destroyed even though the real source existed
 ASMJIT_PATCH(0x738467, UnitClass_TakeDamage_FixOnDestroyedSource, 0x6)
@@ -1070,62 +939,12 @@ static void SetSkirmishHouseName(HouseClass* pHouse, bool IsHuman)
 	Debug::LogInfo("{}, {}, position {}", pHouse->PlainName, PhobosCRT::WideStringToString(pHouse->UIName), spawn_position);
 }
 
-//ASMJIT_PATCH(0x68804A, AssignHouses_PlayerHouses, 0x5)
-//{
-//	GET(HouseClass*, pPlayerHouse, EBP);
-//
-//	SetSkirmishHouseName(pPlayerHouse, true);
-//
-//	return 0x68808E;
-//}
-
-//ASMJIT_PATCH(0x688210, AssignHouses_ComputerHouses, 0x5)
-//{
-//	GET(HouseClass*, pAiHouse, EBP);
-//
-//	SetSkirmishHouseName(pAiHouse, false);
-//
-//	return 0x688252;
-//}
-
-// Reverted on Develop #7ad3506
-// // Allow infantry to use all amphibious/water movement zones and still display sequence correctly.
-// ASMJIT_PATCH(0x51D793, InfantryClass_DoAction_MovementZoneCheck, 0x6)
-// {
-// 	enum { Amphibious = 0x51D7A6, NotAmphibious = 0x51D8BF };
-//
-// 	GET(InfantryClass*, pThis, ESI);
-//
-// 	auto const mZone = pThis->Type->MovementZone;
-//
-// 	if (mZone == MovementZone::Amphibious || mZone == MovementZone::AmphibiousDestroyer || mZone == MovementZone::AmphibiousCrusher ||
-// 		mZone == MovementZone::Water || mZone == MovementZone::WaterBeach)
-// 	{
-// 		return Amphibious;
-// 	}
-//
-// 	return NotAmphibious;
-// }
-
 // Game removes deploying vehicles from map temporarily to check if there's enough
 // space to deploy into a building when displaying allow/disallow deploy cursor.
 // This can cause desyncs if there are certain types of units around the deploying unit.
 // Only reasonable way to solve this is to perform the cell clear check on every client per frame
 // and use that result in cursor display which is client-specific. This is now implemented in multiplayer games only.
 #pragma region DeploysIntoDesyncFix
-//bugged
-// ASMJIT_PATCH(0x73635B, UnitClass_AI_DeploysIntoDesyncFix, 0x6)
-// {
-// 	if (!SessionClass::Instance->IsMultiplayer())
-// 		return 0;
-//
-// 	GET(UnitClass*, pThis, ESI);
-//
-// 	if (pThis->Type->DeploysInto)
-// 		TechnoExtContainer::Instance.Find(pThis)->CanCurrentlyDeployIntoBuilding = TechnoExtData::CanDeployIntoBuilding(pThis);
-//
-// 	return 0;
-// }
 
 ASMJIT_PATCH(0x73FEC1, UnitClass_WhatAction_DeploysIntoDesyncFix, 0x6)
 {
@@ -1547,42 +1366,6 @@ ASMJIT_PATCH(492776, BlitTransLucent75_Fix, 0)
 #pragma endregion
 #endif
 
-//ASMJIT_PATCH(0x51C9B8, InfantryClass_CanFire_HitAndRun1, 0x17)
-//{
-//	enum { CheckPass = 0x51C9CF, CheckNotPass = 0x51CAFA };
-//
-//	GET(InfantryClass*, pThis, EBX);
-//
-//	const auto pType = pThis->GetTechnoType();
-//	if ((pThis->CanAttackOnTheMove() && pType && pType->OpportunityFire)
-//		|| pThis->SpeedPercentage <= 0.1) // vanilla check
-//	{
-//		return CheckPass;
-//	}
-//	else
-//	{
-//		return CheckNotPass;
-//	}
-//}
-//
-//ASMJIT_PATCH(0x51CAAC, InfantryClass_CanFire_HitAndRun2, 0x13)
-//{
-//	enum { CheckPass = 0x51CACD, CheckNotPass = 0x51CABF };
-//
-//	GET(InfantryClass*, pThis, EBX);
-//
-//	const auto pType = pThis->GetTechnoType();
-//	if ((pThis->CanAttackOnTheMove() && pType && pType->OpportunityFire)
-//		|| !pThis->Locomotor.GetInterfacePtr()->Is_Moving_Now()) // vanilla check
-//	{
-//		return CheckPass;
-//	}
-//	else
-//	{
-//		return CheckNotPass;
-//	}
-//}
-
 // this fella was { 0, 0, 1 } before and somehow it also breaks both the light position a bit and how the lighting is applied when voxels rotate - Kerbiter
 ASMJIT_PATCH(0x753D86, VoxelCalcNormals_NullAdditionalVector, 0x8)
 {
@@ -1595,10 +1378,6 @@ ASMJIT_PATCH(0x753D86, VoxelCalcNormals_NullAdditionalVector, 0x8)
 
 	return 0x753D9E;
 }
-
-//DEFINE_PATCH(0x753D96, 0xC7, 0x44, 0x24, 0x20, 0x00, 0x00, 0x00, 0x00);
-
-#include <Misc/Ares/Hooks/Header.h>
 
 ASMJIT_PATCH(0x705D74, TechnoClass_GetRemapColour_DisguisePalette, 0x8)
 {
@@ -1728,20 +1507,6 @@ DEFINE_FUNCTION_JUMP(CALL, 0x647684, ComputeGameCRC);
 
 #pragma endregion
 
-// Fix TechnoTypeClass::CanBeHidden
-
-//DEFINE_PATCH(0x711229, 0xC6, 0x86, 0x24, 0x07, 0x00, 0x00, 0x00) // TechnoTypeClass::CTOR
-//DEFINE_PATCH(0x6FA2AA, 0x75, 0x2E) // TechnoClass::AI
-//
-//ASMJIT_PATCH(0x7121EB, TechnoTypeClass_LoadFromINI_CanBeHidden, 0x6)
-//{
-//	enum { SkipGameCode = 0x712208 };
-//
-//	GET(TechnoTypeClass*, pTechnoType, EBP);
-//	pTechnoType->CanBeHidden = CCINIClass::INI_Art->ReadBool(pTechnoType->ImageFile, "CanBeHidden", pTechnoType->CanBeHidden);
-//
-//	return SkipGameCode;
-//}
 
 ASMJIT_PATCH(0x71464A, TechnoTypeClass_ReadINI_Speed, 0x7)
 {
@@ -2052,18 +1817,6 @@ DEFINE_JUMP(LJMP, 0x65B3F7, 0x65B416);//RadSite, no effect
 
 #pragma endregion
 
-// ASMJIT_PATCH(0x6B7CC1, SpawnManagerClass_Detach_ExitGame, 0x7)
-// {
-// 	GET(SpawnManagerClass*, pThis, ESI);
-//
-// 	if (Phobos::Otamaa::ExeTerminated)
-// 		return 0x6B7CCF;
-//
-// 	pThis->KillNodes();
-// 	pThis->ResetTarget();
-// 	return 0x6B7CCF;
-// }
-
 // Fix a crash at 0x7BAEA1 when trying to access a point outside of surface bounds.
 class NOVTABLE FakeXSurface final : public XSurface {
 public:
@@ -2340,30 +2093,7 @@ ASMJIT_PATCH(0x4D9A1B, FootClass_PointerExpired_RemoveDestination, 0x6)
 }
 
 
-//namespace RemoveSpawneeHelper
-//{
-//	bool removed = false;
-//}
-//
-//ASMJIT_PATCH(0x707B23, TechnoClass_PointerExpired_RemoveSpawnee, 0x6)
-//{
-//	GET(SpawnManagerClass*, pSpawnManager, ECX);
-//	GET(AbstractClass*, pRemove, EBP);
-//	GET_STACK(bool, removed, STACK_OFFSET(0x20, 0x8));
-//
-//	RemoveSpawneeHelper::removed = removed;
-//	pSpawnManager->UnlinkPointer(pRemove);
-//	RemoveSpawneeHelper::removed = false;
-//
-//	return 0x707B29;
-//}
-//
-//ASMJIT_PATCH(0x6B7CE4, SpawnManagerClass_UnlinkPointer_RemoveSpawnee, 0x6)
-//{
-//	return RemoveSpawneeHelper::removed ? 0x6B7CF4 : 0;
-//}
-
-#ifndef _BalloonHoverFix
+#pragma region _BalloonHoverFix
 ASMJIT_PATCH(0x64D592, Game_PreProcessMegaMissionList_CheckForTargetCrdRecal1, 0x6)
 {
 	enum { SkipTargetCrdRecal = 0x64D598 };
@@ -2398,9 +2128,9 @@ ASMJIT_PATCH(0x73F0A7, UnitClass_IsCellOccupied_Start, 0x9)
 	GET(UnitClass*, pThis, ECX);
 	return pThis->Type->BalloonHover && pThis->IsInAir() ? MoveOK : 0;
 }
-#endif
+#pragma endregion
 
-#ifndef PassengerRelatedFix
+#pragma region PassengerRelatedFix
 
 #include <Locomotor/LocomotionClass.h>
 #include <Locomotor/ShipLocomotionClass.h>
@@ -2436,62 +2166,7 @@ ASMJIT_PATCH(0x710352, FootClass_ImbueLocomotor_ResetStatusses , 0x7)
 	return 0;
 }
 
-#endif
-
-#ifdef DamageAreaItemsFix
-ASMJIT_PATCH(0x489BDB, DamageArea_RockerItemsFix1, 0x6)
-{
-	enum { SkipGameCode = 0x489C29 };
-	// Get cell coordinates
-	GET(const short, cellX, ESI);
-	GET(const short, cellY, EBX);
-	// Record the current cell for linked list getting
-	const auto pCell = MapClass::Instance->GetCellAt(CellStruct { cellX, cellY });
-	DamageAreaTemp::CheckingCell = pCell;
-	// First, check the FirstObject linked list
-	auto pObject = pCell->FirstObject;
-	// Check if there are objects in the linked list
-	if (pObject)
-	{
-		// When it exists, start the vanilla processing
-		R->EAX(pObject);
-		return SkipGameCode;
-	}
-	// When it does not exist, check AltObject linked list
-	pObject = pCell->AltObject;
-	// If there is an object, record the flag
-	if (pObject)
-		DamageAreaTemp::CheckingCellAlt = true;
-	// Return the original check
-	R->EAX(pObject);
-	return SkipGameCode;
-}
-
-ASMJIT_PATCH(0x489E47, DamageArea_RockerItemsFix2, 0x6)
-{
-	// Prior to this, there was already pObject = pCell->FirstObject;
-	GET(const ObjectClass*, pObject, EDI);
-	// As vanilla, first look at the next object in the linked list
-	if (pObject)
-		return 0;
-	// When it does not exist, check which linked list it is currently in
-	if (DamageAreaTemp::CheckingCellAlt)
-	{
-		// If it is already in the AltObject linked list, reset the flag and return the original check
-		DamageAreaTemp::CheckingCellAlt = false;
-		return 0;
-	}
-	// If it is still in the FirstObject linked list, take the first object in the  linked list and continue checking
-	pObject = DamageAreaTemp::CheckingCell->AltObject;
-	// If there is an object, record the flag
-	if (pObject)
-		DamageAreaTemp::CheckingCellAlt = true;
-	// Return the original check
-	R->EDI(pObject);
-	return 0;
-}
-
-#endif
+#pragma endregion
 
 ASMJIT_PATCH(0x51A298, InfantryClass_UpdatePosition_EnterBuilding_CheckSize, 0x6)
 {
@@ -2624,9 +2299,6 @@ void __fastcall StartMouseThread() {
     }
 }
 
-//massive FPS losses
-//DEFINE_FUNCTION_JUMP(CALL , 0x6BD849 , StartMouseThread)
-
 ASMJIT_PATCH(0x70E126, TechnoClass_GetDeployWeapon_InfantryDeployFireWeapon, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -2643,13 +2315,6 @@ ASMJIT_PATCH(0x70E126, TechnoClass_GetDeployWeapon_InfantryDeployFireWeapon, 0x6
 }
 
 DEFINE_JUMP(LJMP, 0x6FBC0B, 0x6FBC38) // TechnoClass::UpdateCloak
-
-//ASMJIT_PATCH(0x457DEB, BuildingClass_ClearOccupants_Redraw, 0xA)
-//{
-//	GET(BuildingClass*, pThis, ESI);
-//	pThis->Mark(MarkType::Change);
-//	return 0;
-//}
 
 #pragma region AStarBuffer
 

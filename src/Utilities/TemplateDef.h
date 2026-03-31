@@ -67,8 +67,6 @@
 #include <iostream>
 #include <string_view>
 
-#include "Enumparser.h"
-
 template<typename T>
 struct IndexFinder
 {

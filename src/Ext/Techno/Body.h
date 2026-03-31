@@ -3,22 +3,19 @@
 #include <AnimClass.h>
 
 #include <Helpers/Macro.h>
+
 #include <Utilities/TemplateDefB.h>
+#include <Utilities/BuildingBrackedPositionData.h>
 
 #include <New/Entity/ShieldClass.h>
 #include <New/Entity/LaserTrailClass.h>
-
-#include <New/Type/DigitalDisplayTypeClass.h>
-
-#include <Utilities/BuildingBrackedPositionData.h>
-
 #include <New/Entity/PoweredUnitClass.h>
 #include <New/Entity/RadarJammerClass.h>
 #include <New/Entity/AEProperties.h>
-
-#include <Misc/Ares/Hooks/Classes/AttachedAffects.h>
-
+#include <New/Entity/AresAttachedAffects.h>
 #include <New/Entity/NewTiberiumStorageClass.h>
+
+#include <New/Type/DigitalDisplayTypeClass.h>
 
 #include <New/PhobosAttachedAffect/PhobosAttachEffectClass.h>
 
@@ -685,7 +682,7 @@ public:
 	static bool IsPsionicsImmune(TechnoClass* pThis);
 	static bool IsCullingImmune(TechnoClass* pThis);
 public:
-	//only check the veterancy part , please use the complete check from `Ares/Hooks/Header.h`
+	//only check the veterancy part
 	static bool IsEMPImmune(TechnoClass* pThis);
 public:
 	static bool IsChronoDelayDamageImmune(FootClass* pThis);
@@ -710,7 +707,7 @@ public:
 	static bool IsPsionicsImmune(Rank vet, TechnoClass* pThis);
 	static bool IsCullingImmune(Rank vet, TechnoClass* pThis);
 public:
-	//only check the veterancy part , please use the complete check from `Ares/Hooks/Header.h`
+	//only check the veterancy part
 	static bool IsEMPImmune(Rank vet, TechnoClass* pThis);
 public:
 	static bool IsChronoDelayDamageImmune(Rank vet, FootClass* pThis);
@@ -810,6 +807,135 @@ public:
 
 	static bool CanRetaliateICUnit(TechnoClass* pThis, FakeWeaponTypeClass* pWP, TechnoClass* pTarget);
 	static bool CanTargetICUnit(TechnoClass* pThis, FakeWeaponTypeClass* pWP, TechnoClass* pTarget);
+
+	static void ShakeScreen(TechnoClass* pThis, int nValToCalc, int nRules);
+
+	static void AddAirstrikeFactor(TechnoClass*& pKiller, double& d_factor);
+	static bool KillerInTransporterFactor(TechnoClass* pKiller, TechnoClass*& pExpReceiver, double& d_factor, bool& promoteImmediately);
+	static void AddExperience(TechnoClass* pExtReceiver, TechnoClass* pVictim, int victimCost, double factor);
+	static void MCControllerGainExperince(TechnoClass* pExpReceiver, TechnoClass* pVictim, double& d_factor, int victimCost);
+	static void GetSpawnerData(TechnoClass*& pSpawnOut, TechnoClass*& pExpReceiver, double& d_spawnFacor, double& d_ExpFactor);
+	static void PromoteImmedietely(TechnoClass* pExpReceiver, bool bSilent, bool Flash);
+	static void UpdateVeterancy(TechnoClass*& pExpReceiver, TechnoClass* pKiller, TechnoClass* pVictim, int VictimCost, double& d_factor, bool promoteImmediately);
+	static void EvaluateExtReceiverData(TechnoClass*& pExpReceiver, TechnoClass* pKiller, double& d_factor, bool& promoteImmediately);
+
+	static void AddPassengers(BuildingClass* const Grinder, FootClass* Vic, bool ParentReversed);
+
+	static bool IsSabotagable(BuildingClass const* const pThis);
+	static Action GetiInfiltrateActionResult(InfantryClass* pInf, BuildingClass* pBuilding);
+	static bool ApplyC4ToBuilding(InfantryClass* const pThis, BuildingClass* const pBuilding, const bool IsSaboteur);
+
+	static bool IsOperated(TechnoClass* pThis);
+	static bool IsOperatedB(TechnoClass* pThis);
+	static bool IsPowered(TechnoClass* pThis);
+	static void EvalRaidStatus(BuildingClass* pThis);
+	static bool IsUnitAlive(UnitClass* pUnit);
+
+	static void SetSpotlight(TechnoClass* pThis, BuildingLightClass* pSpotlight);
+	static bool CanSelfCloakNow(TechnoClass* pThis);
+	static bool IsCloakable(TechnoClass* pThis, bool allowPassive);
+	static bool CloakDisallowed(TechnoClass* pThis, bool allowPassive);
+	static bool CloakAllowed(TechnoClass* pThis);
+
+	static InfantryTypeClass* GetBuildingCrew(BuildingClass* pThis, int nChance);
+	static void UpdateFactoryQueues(BuildingClass const* const pBuilding);
+	static bool IsBaseNormal(BuildingClass* pBuilding);
+
+	static int GetVictimBountyValue(TechnoClass* pVictim, TechnoClass* pKiller);
+	static bool KillerAllowedToEarnBounty(TechnoClass* pKiller, TechnoClass* pVictim);
+	static void GiveBounty(TechnoClass* pVictim, TechnoClass* pKiller);
+
+	static AresHijackActionResult GetActionHijack(InfantryClass* pThis, TechnoClass* const pTarget);
+	static bool PerformActionHijack(TechnoClass* pFrom, TechnoClass* const pTarget);
+	static bool FindAndTakeVehicle(FootClass* pThis);
+
+	static Action GetEngineerEnterEnemyBuildingAction(BuildingClass* const pBld);
+
+	static bool CloneBuildingEligible(BuildingClass* pBuilding, bool requirePower);
+	static void KickOutClone(BuildingClass* pBuilding, TechnoTypeClass* ProductionType, HouseClass* FactoryOwner);
+	static void KickOutClones(BuildingClass* pFactory, TechnoClass* const Production);
+
+	static void InitWeapon(
+		TechnoClass* pThis,
+		TechnoTypeClass* pType,
+		WeaponTypeClass* pWeapon,
+		int idxWeapon,
+		CaptureManagerClass*& pCapture,
+		ParasiteClass*& pParasite,
+		TemporalClass*& pTemporal,
+		const char* pTagName,
+		bool IsFoot
+	);
+
+	static InfantryClass* RecoverHijacker(FootClass* const pThis);
+	static void SpawnSurvivors(
+		FootClass* const pThis,
+		TechnoClass* const pKiller,
+		const bool Select,
+		const bool IgnoreDefenses,
+		const bool PreventPassengersEscape
+	);
+
+	static int GetWarpPerStep(TemporalClass* pThis, int nStep);
+	static bool Warpable(TemporalClass* pTemp, TechnoClass* pTarget);
+
+	static void DepositTiberium(TechnoClass* pThis, HouseClass* pHouse, float const amount, float const bonus, int const idxType);
+	static void RefineTiberium(TechnoClass* pThis, HouseClass* pHouse, float const amount, int const idxType);
+
+	static bool FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
+
+	static UnitTypeClass* GetUnitTypeImage(UnitClass* const pThis);
+	static TechnoTypeClass* GetImage(FootClass* pThis);
+
+	static void HandleTunnelLocoStuffs(FootClass* pOwner, bool DugIN = false, bool PlayAnim = false);
+
+	static bool IsSameTrech(BuildingClass* currentBuilding, BuildingClass* targetBuilding);
+	static bool canTraverseTo(BuildingClass* currentBuilding, BuildingClass* targetBuilding);
+	static void doTraverseTo(BuildingClass* currentBuilding, BuildingClass* targetBuilding);
+
+	static bool AcquireHunterSeekerTarget(TechnoClass* pThis);
+	static void UpdateAlphaShape(ObjectClass* pSource);
+
+	static int GetAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapon);
+	static void DecreaseAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapon);
+
+	static AnimClass* SpawnAnim(CoordStruct& crd, AnimTypeClass* pType, int dist);
+
+	static void PlantBomb(TechnoClass* pSource, ObjectClass* pTarget, WeaponTypeClass* pWeapon);
+	static bool CanDetonate(TechnoClass* pThis, ObjectClass* pThat);
+	static Action GetAction(TechnoClass* pThis, ObjectClass* pThat);
+
+	static int GetFirstSuperWeaponIndex(BuildingClass* pThis);
+	static void UpdateDisplayTo(BuildingClass* pThis);
+	static void InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass* Enterer);
+	static DirStruct UnloadFacing(UnitClass* pThis);
+	static CellStruct UnloadCell(BuildingClass* pThis);
+	static BuildingClass* BuildingUnload(UnitClass* pThis);
+
+	static void KickOutHospitalArmory(BuildingClass* pThis);
+	static void KickOutOfRubble(BuildingClass* pBld);
+	static void UpdateSensorArray(BuildingClass* pBld);
+	static BuildingClass* CreateBuilding(
+		BuildingClass* pBuilding,
+		bool remove,
+		BuildingTypeClass* pNewType,
+		OwnerHouseKind owner,
+		int strength,
+		AnimTypeClass* pAnimType
+	);
+
+	static void Destroy(TechnoClass* pTechno, TechnoClass* pKiller, HouseClass* pKillerHouse, WarheadTypeClass* pWarhead);
+	static bool IsDriverKillable(TechnoClass* pThis, double KillBelowPercent);
+	static void ApplyKillDriver(TechnoClass* pTarget, TechnoClass* pKiller, HouseClass* pToOwner, bool ResetVet, Mission passiveMission);
+	static bool ConvertToType(TechnoClass* pThis, TechnoTypeClass* pToType, bool AdjustHealth = true, bool IsChangeOwnership = false);
+
+	static int GetSelfHealAmount(TechnoClass* pThis);
+	static void SpawnVisceroid(CoordStruct& crd, UnitTypeClass* pType, int chance, bool ignoreTibDeathToVisc, HouseClass* Owner);
+
+	static void TransferOriginalOwner(TechnoClass* pFrom, TechnoClass* pTo);
+	static void TransferIvanBomb(TechnoClass* From, TechnoClass* To);
+	static void Ares_technoUpdate(TechnoClass* pThis);
+	static void Ares_AddMoneyStrings(TechnoClass* pThis, bool forcedraw);
 
 public:
 	static UnitClass* Deployer;

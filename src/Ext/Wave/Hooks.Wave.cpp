@@ -1,0 +1,290 @@
+#include "Body.h"
+
+#include <AbstractClass.h>
+#include <TechnoClass.h>
+#include <FootClass.h>
+#include <UnitClass.h>
+
+#include <Utilities/Macro.h>
+#include <Helpers/Macro.h>
+
+#include <HouseClass.h>
+#include <Utilities/Debug.h>
+
+#include <Ext/Anim/Body.h>
+#include <Ext/AnimType/Body.h>
+#include <Ext/Techno/Body.h>
+#include <Ext/TechnoType/Body.h>
+#include <Ext/WarheadType/Body.h>
+#include <Ext/WeaponType/Body.h>
+#include <Ext/BulletType/Body.h>
+#include <Ext/VoxelAnim/Body.h>
+
+#include <Misc/PhobosGlobal.h>
+
+#include <New/Type/ArmorTypeClass.h>
+
+#include <Notifications.h>
+#include <algorithm>
+
+
+ASMJIT_PATCH(0x6FF5F5, TechnoClass_Fire_OtherWaves, 6)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	GET(WeaponTypeClass* const, pSource, EBX);
+	GET(TechnoClass* const, pTarget, EDI);
+
+	REF_STACK(CoordStruct const, crdSrc, 0x44);
+	REF_STACK(CoordStruct const, crdTgt, 0x88);
+
+	auto const pData = WeaponTypeExtContainer::Instance.Find(pSource);
+
+	if (!pData->IsWave() || pThis->Wave)
+		return 0x6FF656;
+
+	WaveType nType = WaveType::Sonic;
+	if (pSource->IsMagBeam)
+		nType = WaveType::Magnetron;
+	else
+		nType = pData->Wave_IsBigLaser
+		? WaveType::BigLaser : WaveType::Laser;
+
+	pThis->Wave = WaveExtData::Create(crdSrc, crdTgt, pThis, nType, pTarget, pSource);
+	return 0x6FF656;
+}
+
+ASMJIT_PATCH(0x75FA29, WaveClass_Draw_Colors, 0x6)
+{
+	GET(WaveClass*, pThis, ESI);
+	PhobosGlobal::Instance()->TempColor = WaveExtData::GetWaveColor(pThis);
+	return 0x0;
+}
+
+ASMJIT_PATCH(0x760F50, WaveClass_Update, 0x6)
+{
+	GET(WaveClass*, pThis, ECX);
+
+	const auto pData = WaveExtContainer::Instance.Find(pThis);
+
+	if (pData->Weapon && pData->Weapon->AmbientDamage) {
+		for (auto const& pCell : pThis->Cells) {
+			pThis->DamageArea(pCell->Cell2Coord());
+		}
+	}
+
+	int Intensity;
+
+	switch (pThis->Type)
+	{
+	case WaveType::Magnetron:
+	case WaveType::Sonic:
+	{
+		pThis->WaveAI();
+		Intensity = pThis->WaveIntensity;
+		--Intensity;
+		pThis->WaveIntensity = Intensity;
+		if (Intensity < 0)
+		{
+			//GameDelete<true,false>(pThis);
+			pThis->UnInit();
+		} else {
+			pThis->ObjectClass::Update();
+		}
+	}
+	break;
+	case WaveType::BigLaser:
+	case WaveType::Laser:
+	{
+		Intensity = pThis->LaserIntensity;
+		Intensity -= 6;
+		pThis->LaserIntensity = Intensity;
+		if (Intensity < 32)
+		{
+			//GameDelete<true,false>(pThis);
+			pThis->UnInit();
+		}
+
+		break;
+	}
+	}
+
+	return 0x76101A;
+}
+
+ASMJIT_PATCH(0x760BC2, WaveClass_Draw2, 0x9)
+{
+	GET(WaveClass*, Wave, EBX);
+	GET(WORD*, dest, EBP);
+
+	return (WaveExtData::ModifyWaveColor(*dest, *dest, Wave->LaserIntensity, Wave, &PhobosGlobal::Instance()->TempColor))
+		? 0x760CAFu
+		: 0u
+		;
+}
+
+ASMJIT_PATCH(0x760DE2, WaveClass_Draw3, 0x9)
+{
+	GET(WaveClass*, Wave, EBX);
+	GET(WORD*, dest, EDI);
+
+	return (WaveExtData::ModifyWaveColor(*dest, *dest, Wave->LaserIntensity, Wave, &PhobosGlobal::Instance()->TempColor))
+		? 0x760ECBu
+		: 0u
+		;
+}
+
+ASMJIT_PATCH(0x75EE57, WaveClass_Draw_Sonic, 0x7)
+{
+	GET_STACK(WaveClass*, Wave, 0x4);
+	GET(WORD*, src, EDI);
+	GET(DWORD, offset, ECX);
+
+	return (WaveExtData::ModifyWaveColor(src[offset], *src, R->ESI(), Wave, &PhobosGlobal::Instance()->TempColor))
+		? 0x75EF1Cu
+		: 0u
+		;
+}
+
+ASMJIT_PATCH(0x7601FB, WaveClass_Draw_Magnetron2, 0xB)
+{
+	GET_STACK(WaveClass*, Wave, 0x8);
+	GET(WORD*, src, EBX);
+	GET(DWORD, offset, ECX);
+
+	return (WaveExtData::ModifyWaveColor(src[offset], *src, R->EBP(), Wave, &PhobosGlobal::Instance()->TempColor))
+		? 0x760285u
+		: 0u
+		;
+}
+
+ /*
+ *	YES , this fuckery is removing WaveClass::WaveAI function call for later , replace it with boolean ,
+	so it can be done after all data set is completed !
+ */
+ASMJIT_PATCH(0x75EBC5, WaveClass_CTOR_AllowWaveUpdate, 0x7)
+{
+	GET(WaveClass*, Wave, ESI);
+	WaveExtContainer::Instance.Find(Wave)->CanDoUpdate = true;
+	return 0x75EBCC;
+}
+
+/*
+	FUCKING WW DOING THESE INSIDE THE CONSTRUCTOR ,..
+	that mean some Ext variable not yer executed , and when i try to use the data it wont work
+	need to move those to separate function after data set done ,..
+*/
+ASMJIT_PATCH(0x762B62, WaveClass_WaveAI , 0x6)
+{
+	GET(WaveClass*, Wave, ESI);
+
+	TechnoClass* Firer = Wave->Owner;
+	AbstractClass* Target = Wave->Target;
+
+	const bool eligible = Target && Firer && Wave->WaveIntensity != 19 && Firer->Target == Target;
+
+	if (!eligible) {
+		return 0x762C40;
+	}
+
+	const auto pData = WaveExtContainer::Instance.Find(Wave);
+
+	if (Wave->Type == WaveType::Magnetron)
+	{
+		if (pData->WeaponIdx != -1)
+		{
+			if (!Firer->IsCloseEnough(Target, pData->WeaponIdx))
+			{
+				return 0x762C40;
+			}
+		}
+		else
+		{
+			auto nFirerCoord = pData->SourceCoord;
+			auto nTargetCoord = Target->GetCoords();
+			int range = WeaponTypeExtData::GetRangeWithModifiers(pData->Weapon, Firer ,
+				GET_TECHNOTYPE(Firer)->GuardRange);
+			if (range < (int)(nFirerCoord.DistanceFrom(nTargetCoord) / Math::SQRT_TWO))
+			{
+				return 0x762C40;
+			}
+		}
+
+	}
+	else
+	{
+		auto nFirerCoord = pData->WeaponIdx != -1 ? Firer->GetCoords() : pData->SourceCoord;
+		auto nTargetCoord = Target->GetCoords();
+		int range = WeaponTypeExtData::GetRangeWithModifiers(pData->Weapon, Firer , 
+			GET_TECHNOTYPE(Firer)->GuardRange);
+		if (range < (int)(nFirerCoord.DistanceFrom(nTargetCoord) / Math::SQRT_TWO))
+		{
+			return 0x762C40;
+		}
+	}
+
+	if (!Wave->IsTraveling)
+		return 0x762D57;
+
+	CoordStruct FLH = pData->SourceCoord;
+	if(pData->WeaponIdx != -1)
+		FLH = Firer->GetFLH(pData->WeaponIdx, CoordStruct::Empty);
+
+	const CoordStruct xyzTgt = Target->GetCenterCoords(); // not GetCoords() !
+
+	if (Wave->Type == WaveType::Magnetron)
+	{
+		pData->ReverseAgainstTarget
+			? Wave->DrawMag(xyzTgt, FLH)
+			: Wave->DrawMag(FLH, xyzTgt);
+	}
+	else
+	{
+		pData->ReverseAgainstTarget
+			? Wave->DrawNonMag(xyzTgt, FLH)
+			: Wave->DrawNonMag(FLH, xyzTgt);
+	}
+
+	return 0x762D57;
+}
+
+ASMJIT_PATCH(0x75EE2E, WaveClass_Draw_Green, 0x8)
+{
+	GET(int, Q, EDX);
+	if (Q > 0x15F8F)
+	{
+		Q = 0x15F8F;
+	}
+	R->EDX(Q);
+	return 0;
+}
+
+ASMJIT_PATCH(0x7601C7, WaveClass_Draw_Magnetron, 0x8)
+{
+	GET(int, Q, EDX);
+	if (Q > 0x15F8F)
+	{
+		Q = 0x15F8F;
+	}
+	R->EDX(Q);
+	return 0;
+}
+
+//DEFINE_PATCH_TYPED(BYTE, 0x7609E3, 0x90, 0x90, 0x90, 0x00);
+//DEFINE_PATCH_TYPED(BYTE, 0x7609EB, 0x90, 0x90, 0x90 );
+//DEFINE_PATCH_TYPED(BYTE, 0x7609F3, 0x90, 0x90, 0x90, 0x90, 0x00, 0x00);
+
+ ASMJIT_PATCH(0x7609E3, WaveClass_Draw_NodLaser_Details, 0x5)
+ {
+ 	R->EAX(2);
+ 	return 0x7609E8;
+ }
+
+//WaveClass_Draw_Magnetron3
+DEFINE_JUMP(LJMP, 0x760286, 0x7602D3);
+
+ASMJIT_PATCH(0x76110B, WaveClass_RecalculateAffectedCells_Clear, 0x5)
+{
+	GET(DynamicVectorClass<CellClass*>*, pVec, EBP);
+	pVec->reset();
+	return 0x761110;
+}

@@ -2,16 +2,17 @@
 #include <SideClass.h>
 
 #include <Helpers/Macro.h>
+
 #include <Utilities/Container.h>
 #include <Utilities/PhobosPCXFile.h>
 #include <Utilities/PhobosFixedString.h>
 #include <Utilities/TemplateDefB.h>
 
-#include <Misc/Ares/EVAVoices.h>
-
 #include <FileFormats/SHP.h>
 
 #include <Ext/AbstractType/Body.h>
+
+#include <New/Entity/EVAVoices.h>
 
 class SideExtData final : public AbstractTypeExtData
 {
@@ -228,8 +229,8 @@ public:
 	static SHPStruct* s_DialogBackgroundImage;
 	static CustomPalette s_DialogBackgroundConvert;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
+	static bool LoadGlobals(PhobosStreamReader& stm) {}
+	static bool SaveGlobals(PhobosStreamWriter& stm) {}
 
 	static COMPILETIMEEVAL SHPStruct* GetGraphicalTextImage() {
 		return SideExtData::s_GraphicalTextImage ?
@@ -256,8 +257,8 @@ public:
 public:
 	static SideExtContainer Instance;
 
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(ext_t::base_type* key, CCINIClass* pINI);

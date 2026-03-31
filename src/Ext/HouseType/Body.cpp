@@ -6,8 +6,6 @@
 
 #include <DiscreteDistributionClass.h>
 
-#include <Phobos.SaveGame.h>
-
 void HouseTypeExtData::Initialize()
 {
 	const char* pID = This()->ID;
@@ -511,67 +509,6 @@ void  HouseTypeExtData::Serialize(T& Stm)
 // container
 
 HouseTypeExtContainer HouseTypeExtContainer::Instance;
-
-bool HouseTypeExtContainer::LoadAll(const json& root)
-{
-	this->Clear();
-
-	if (root.contains(HouseTypeExtContainer::ClassName))
-	{
-		auto& container = root[HouseTypeExtContainer::ClassName];
-
-		for (auto& entry : container[HouseTypeExtData::ClassName])
-		{
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			auto buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, HouseTypeExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
-		}
-
-		return true;
-	}
-
-	return false;
-
-}
-
-bool HouseTypeExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[HouseTypeExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : HouseTypeExtContainer::Array)
-	{
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer);
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
-	}
-
-	first_layer[HouseTypeExtData::ClassName] = std::move(_extRoot);
-
-	return true;
-}
 
 void HouseTypeExtContainer::LoadFromINI(HouseTypeClass* key, CCINIClass* pINI, bool parseFailAddr)
 {

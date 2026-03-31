@@ -12,6 +12,7 @@
 
 #include <Misc/Hooks.Otamaa.h>
 #include <Misc/Spawner/Main.h>
+#include <Misc/PhobosGlobal.h>
 
 #include <New/Type/GenericPrerequisite.h>
 #include <New/Type/CrateTypeClass.h>
@@ -22,117 +23,6 @@
 #include <ExtraHeaders/StackVector.h>
 
 #include <ScenarioClass.h>
-
-#include <Phobos.SaveGame.h>
-
-bool HouseExtContainer::LoadAll(const json& root)
-{
-	this->Clear();
-
-	if (root.contains(HouseExtContainer::ClassName))
-	{
-		auto& container = root[HouseExtContainer::ClassName];
-
-		for (auto& entry : container[HouseExtData::ClassName])
-		{
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			auto buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, HouseExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
-		}
-
-		size_t dataSize = container["ContainerCombined_datasize"].get<size_t>();
-		std::string encoded = container["ContainerCombined_data"].get<std::string>();
-
-		PhobosByteStream loader(dataSize);
-		loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-		PhobosStreamReader reader(loader);
-
-		reader
-			.Process(HouseExtContainer::LimboTechno)
-			.Process(HouseExtContainer::AutoDeathObjects)
-			.Process(HouseExtContainer::LastGrindingBlanceUnit)
-			.Process(HouseExtContainer::LastGrindingBlanceInf)
-			.Process(HouseExtContainer::LastHarvesterBalance)
-			.Process(HouseExtContainer::LastSlaveBalance)
-			.Process(HouseExtContainer::IsAnyFirestormActive)
-			.Process(HouseExtContainer::CloakEVASpeak)
-			.Process(HouseExtContainer::SubTerraneanEVASpeak)
-
-			.Process(HouseExtContainer::Civilian)
-			.Process(HouseExtContainer::Special)
-			.Process(HouseExtContainer::Neutral)
-			.Process(HouseExtContainer::CivilianSide);
-
-		if (!reader.ExpectEndOfBlock())
-			return false;
-
-		return true;
-	}
-
-	return false;
-
-}
-
-bool HouseExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[HouseExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : HouseExtContainer::Array)
-	{
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer);
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
-	}
-
-	first_layer[HouseExtData::ClassName] = std::move(_extRoot);
-
-	PhobosByteStream saver(0);
-	PhobosStreamWriter writer(saver);
-
-	writer
-		.Process(HouseExtContainer::LimboTechno)
-		.Process(HouseExtContainer::AutoDeathObjects)
-		.Process(HouseExtContainer::LastGrindingBlanceUnit)
-		.Process(HouseExtContainer::LastGrindingBlanceInf)
-		.Process(HouseExtContainer::LastHarvesterBalance)
-		.Process(HouseExtContainer::LastSlaveBalance)
-		.Process(HouseExtContainer::IsAnyFirestormActive)
-		.Process(HouseExtContainer::CloakEVASpeak)
-		.Process(HouseExtContainer::SubTerraneanEVASpeak)
-
-		.Process(HouseExtContainer::Civilian)
-		.Process(HouseExtContainer::Special)
-		.Process(HouseExtContainer::Neutral)
-		.Process(HouseExtContainer::CivilianSide);
-
-	first_layer["ContainerCombined_datasize"] = saver.data.size();
-	first_layer["ContainerCombined_data"] = Base64Handler::encodeBase64(saver.data);
-
-	return true;
-}
 
 void HouseExtData::InitializeTrackers(HouseClass* pHouse)
 {
@@ -3798,8 +3688,697 @@ bool FakeHouseClass::_IsIonCannonEligibleTarget(TechnoClass* pTechno) const
 	return false;
 }
 
+bool HouseExtData::CheckBasePlanSanity(HouseClass* const pThis)
+{
+	// this shouldn't happen, but you never know
+	if (pThis->IsControlledByHuman() || pThis->IsNeutral())
+	{
+		return true;
+	}
+
+	auto AllIsWell = true;
+
+	auto const pRules = RulesClass::Instance();
+	auto const pType = pThis->Type;
+
+	auto const errorMsg = "AI House[%x] of country [%s] cannot build any object in "
+		"%s. The AI ain't smart enough for that.";
+
+	// if you don't have a base unit buildable, how did you get to base
+	// planning? only through crates or map actions, so have to validate base
+	// unit in other situations
+	auto const idxParent = pType->FindParentCountryIndex();
+	auto const canBuild = pRules->BaseUnit.any_of([pThis, idxParent](UnitTypeClass const* const pItem)
+ {
+	 return pThis->CanExpectToBuild(pItem, idxParent);
+	});
+
+	if (!canBuild)
+	{
+		AllIsWell = false;
+		Debug::FatalError(errorMsg, pType->ID, GameStrings::BaseUnit());
+	}
+
+	auto CheckList = [pThis, pType, idxParent, errorMsg, &AllIsWell](
+		Iterator<BuildingTypeClass const*> const list,
+		const char* const ListName) -> void
+		{
+			if (!HouseExtData::FindBuildable(pThis, idxParent, list))
+			{
+				AllIsWell = false;
+				Debug::FatalError(errorMsg, pThis, pType->ID, ListName);
+			}
+		};
+
+	// commented out lists that do not cause a crash, according to testers
+	//CheckList(make_iterator(pRules->Shipyard), "Shipyard");
+	CheckList(make_iterator(pRules->BuildPower), GameStrings::BuildPower());
+	CheckList(make_iterator(pRules->BuildRefinery), GameStrings::BuildRefinery());
+	CheckList(make_iterator(pRules->BuildWeapons), GameStrings::BuildWeapons());
+	//CheckList(make_iterator(pRules->BuildConst), "BuildConst");
+	//CheckList(make_iterator(pRules->BuildBarracks), "BuildBarracks");
+	//CheckList(make_iterator(pRules->BuildTech), "BuildTech");
+	//CheckList(make_iterator(pRules->BuildRadar), "BuildRadar");
+	//CheckList(make_iterator(pRules->ConcreteWalls), "ConcreteWalls");
+	//CheckList(make_iterator(pRules->BuildDummy), "BuildDummy");
+	//CheckList(make_iterator(pRules->BuildNavalYard), "BuildNavalYard");
+
+
+	CheckList(HouseTypeExtContainer::Instance.Find(pType)->GetPowerplants(), "Powerplants");
+
+	//auto const pSide = SideClass::Array->get_or_default(pType->SideIndex);
+	//if(auto const pSideExt = SideExtContainer::Instance.Find(pSide)) {
+	//	CheckList(make_iterator(pSideExt->BaseDefenses), "Base Defenses");
+	//}
+
+	return AllIsWell;
+}
+
+void HouseExtData::UpdateTogglePower(HouseClass* pThis)
+{
+	auto pRulesExt = RulesExtData::Instance();
+
+	if (!pRulesExt->TogglePowerAllowed
+		|| pRulesExt->TogglePowerDelay <= 0
+		|| pRulesExt->TogglePowerIQ < 0
+		|| pRulesExt->TogglePowerIQ > pThis->IQLevel2
+		|| pThis->Buildings.Count == 0
+		|| pThis->IsBeingDrained
+		|| pThis->IsControlledByHuman()
+		|| pThis->PowerBlackoutTimer.InProgress())
+	{
+		return;
+	}
+
+	if (Unsorted::CurrentFrame % pRulesExt->TogglePowerDelay == 0)
+	{
+		struct ExpendabilityStruct
+		{
+		private:
+			COMPILETIMEEVAL std::tuple<const int&, BuildingClass&> Tie() const
+			{
+				// compare with tie breaker to prevent desyncs
+				return std::tie(this->Value, *this->Building);
+			}
+
+		public:
+			COMPILETIMEEVAL bool operator < (const ExpendabilityStruct& rhs) const
+			{
+				return this->Tie() < rhs.Tie();
+			}
+
+			COMPILETIMEEVAL bool operator > (const ExpendabilityStruct& rhs) const
+			{
+				return this->Tie() > rhs.Tie();
+			}
+
+			BuildingClass* Building;
+			int Value;
+		};
+
+		// properties: the higher this value is, the more likely
+		// this building is turned off (expendability)
+		auto GetExpendability = [](BuildingClass* pBld) -> int
+			{
+				auto pType = pBld->Type;
+
+				// disable super weapons, because a defenseless base is
+				// worse than one without super weapons
+				if (pType->HasSuperWeapon())
+				{
+					return pType->PowerDrain * 20 / 10;
+				}
+
+				// non-base defenses should be disabled before going
+				// to the base defenses. but power intensive defenses
+				// might still evaluate worse
+				if (!pType->IsBaseDefense)
+				{
+					return pType->PowerDrain * 15 / 10;
+				}
+
+				// default case, use power
+				return pType->PowerDrain;
+			};
+
+		// create a list of all buildings that can be powered down
+		// and give each building an expendability value
+		std::vector<ExpendabilityStruct> Buildings {};
+		Buildings.reserve(pThis->Buildings.Count);
+
+		const auto HasLowPower = pThis->HasLowPower();
+
+		for (auto const& pBld : pThis->Buildings)
+		{
+			if (pBld->InLimbo || BuildingExtContainer::Instance.Find(pBld)->LimboID >= 0)
+				continue;
+
+			auto pType = pBld->Type;
+			if (pType->CanTogglePower() && pType->PowerDrain > 0)
+			{
+				// if low power, we get buildings with StuffEnabled, if enough
+				// power, we look for builidings that are disabled
+				if (pBld->StuffEnabled == HasLowPower)
+				{
+					Buildings.emplace_back(pBld, GetExpendability(pBld));
+				}
+			}
+		}
+
+		int Surplus = pThis->PowerOutput - pThis->PowerDrain;
+
+		if (HasLowPower)
+		{
+			// most expendable building first
+			std::ranges::sort(Buildings, std::greater<>());
+
+			// turn off the expendable buildings until power is restored
+			for (const auto& item : Buildings)
+			{
+				auto Drain = item.Building->Type->PowerDrain;
+
+				item.Building->GoOffline();
+				Surplus += Drain;
+
+				if (Surplus >= 0)
+				{
+					break;
+				}
+			}
+		}
+		else
+		{
+			// least expendable building first
+			std::ranges::sort(Buildings, std::less<>());
+
+			// turn on as many of them as possible
+			for (const auto& item : Buildings)
+			{
+				auto Drain = item.Building->Type->PowerDrain;
+				if (Surplus - Drain >= 0)
+				{
+					item.Building->GoOnline();
+					Surplus -= Drain;
+				}
+			}
+		}
+	}
+}
+
+bool HouseExtData::UpdateAnyFirestormActive(bool const lastChange)
+{
+	HouseExtContainer::Instance.IsAnyFirestormActive = lastChange;
+
+	// if last change activated one, there is at least one. else...
+	if (!lastChange)
+	{
+		for (auto pHouse : *HouseClass::Array)
+		{
+			if (pHouse->FirestormActive)
+			{
+				HouseExtContainer::Instance.IsAnyFirestormActive = true;
+				break;
+			}
+		}
+	}
+
+	return HouseExtContainer::Instance.IsAnyFirestormActive;
+}
+
+void HouseExtData::SetFirestormState(HouseClass* pHouse, bool const active)
+{
+	if (pHouse->FirestormActive == active)
+	{
+		return;
+	}
+
+	pHouse->FirestormActive = active;
+	UpdateAnyFirestormActive(active);
+
+	DynamicVectorClass<CellStruct> AffectedCoords {};
+	AffectedCoords.reserve(pHouse->Buildings.Count);
+
+	for (auto const& pBld : pHouse->Buildings)
+	{
+		if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->Firestorm_Wall)
+		{
+			BuildingExtData::UpdateFirewall(pBld, true);
+			AffectedCoords.push_back(pBld->GetMapCoords());
+		}
+	}
+
+	MapClass::Instance->Update_Pathfinding_1();
+	MapClass::Instance->Update_Pathfinding_2(AffectedCoords);
+}
+
+void HouseExtData::FormulateTypeList(std::vector<TechnoTypeClass*>& types, TechnoTypeClass** items, int count, int houseidx)
+{
+	if (!count)
+		return;
+
+	const auto end = items + count;
+	for (auto find = items; find != end; ++find)
+	{
+		if ((*find)->AllowedToStartInMultiplayer)
+		{
+			if ((*find)->InOwners(houseidx) && ((*find))->TechLevel <= Game::TechLevel())
+			{
+				types.push_back(*find);
+			}
+		}
+	}
+}
+
+std::vector<TechnoTypeClass*> HouseExtData::GetTypeList()
+{
+	DWORD avaibleHouses = 0u;
+	HelperedVector<TechnoTypeClass*> types;
+	types.reserve(InfantryTypeClass::Array->Count + UnitTypeClass::Array->Count);
+
+	for (auto pHouse : *HouseClass::Array)
+	{
+		if (!pHouse->Type->MultiplayPassive)
+		{
+			const auto& data = HouseTypeExtContainer::Instance.Find(pHouse->Type)->StartInMultiplayer_Types;
+			if (data.HasValue())
+			{
+				types.insert(types.end(), data.begin(), data.end());
+			}
+			else
+			{
+				avaibleHouses |= 1 << pHouse->Type->ArrayIndex;
+			}
+		}
+	}
+
+	FormulateTypeList(types, (TechnoTypeClass**)UnitTypeClass::Array->Items, UnitTypeClass::Array->Count, avaibleHouses);
+	FormulateTypeList(types, (TechnoTypeClass**)InfantryTypeClass::Array->Items, InfantryTypeClass::Array->Count, avaibleHouses);
+
+	//remove any `BaseUnit` included
+	//base unit given for free then ?
+	types.remove_all_if([](TechnoTypeClass* pItem)
+ {
+	 for (int i = 0; i < RulesClass::Instance->BaseUnit.Count; ++i)
+	 {
+		 if (pItem == (RulesClass::Instance->BaseUnit.Items[i]))
+		 {
+			 return true;
+		 }
+	 }
+
+	 return false;
+	});
+
+	//idk these part
+	//but lets put it here
+	//need someone to test this to make sure if the calculation were correct :s
+	//-Otamaa
+	types.remove_all_duplicates_noshort();
+	return types;
+}
+
+int HouseExtData::GetTotalCost(const Nullable<int>& fixed)
+{
+	if (GameModeOptionsClass::Instance->UnitCount <= 0)
+		return 0;
+
+	int totalCost = 0;
+	if (fixed.isset())
+	{
+		totalCost = fixed;
+	}
+	else
+	{
+
+		auto types = GetTypeList();
+		int total_ = 0;
+
+		for (auto& tech : types)
+		{
+			total_ += tech->GetCost();
+		}
+
+		const int what = !types.size() ? 1 : types.size();
+		totalCost = (total_ + (what >> 1)) / what;
+		Debug::LogInfo("Unit cost of {} derived from {} units totalling {} credits.", totalCost, what, total_);
+	}
+
+	return totalCost * GameModeOptionsClass::Instance->UnitCount;
+}
+
+bool HouseExtData::PopulatePassangerPIPData(TechnoClass* pThis, TechnoTypeClass* pType, int pipMax)
+{
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	PhobosGlobal::Instance()->PipDatas.clear();
+
+	if (const auto pBld = cast_to<BuildingClass*, false>(pThis))
+	{
+		const TunnelData* pTunnelData = HouseExtData::GetTunnelVector(pBld->Type, pThis->Owner);
+		const bool Absorber = pBld->Absorber();
+
+		if (!pTunnelData)
+		{
+			if (pThis->Passengers.NumPassengers > pipMax)
+			{
+				return false;
+			}
+
+			PhobosGlobal::Instance()->PipDatas.resize(pipMax);
+
+			int nCargoSize = 0;
+			for (auto pPassenger = pThis->Passengers.GetFirstPassenger();
+				pPassenger;
+				pPassenger = flag_cast_to<FootClass*>(pPassenger->NextObject))
+			{
+				const auto pPassengerType = GET_TECHNOTYPE(pPassenger);
+
+				auto nSize = !Absorber ? (int)pPassengerType->Size : 1;
+				if (nSize <= 0)
+					nSize = 1;
+
+				int nPip = 1;
+				const auto what = pPassenger->WhatAmI();
+
+				if (what == InfantryClass::AbsID)
+					nPip = (int)(static_cast<InfantryTypeClass*>(pPassengerType)->Pip);
+				else if (what == UnitClass::AbsID)
+					nPip = 5;
+
+				//fetch first cargo size and change the pip
+				PhobosGlobal::Instance()->PipDatas[nCargoSize] = nPip;
+				for (int i = nSize - 1; i > 0; --i)
+				{ //check if the extra size is there and increment it to
+			   // total size
+					PhobosGlobal::Instance()->PipDatas[nCargoSize + i] = 3;     //set extra size to pip index 3
+				}
+
+				nCargoSize += nSize;
+			}
+
+			return true;
+		}
+		else
+		{
+			const int nTotal = pTunnelData->MaxCap > pipMax ? pipMax : pTunnelData->MaxCap;
+			PhobosGlobal::Instance()->PipDatas.resize(nTotal);
+
+			if ((int)pTunnelData->Vector.size() > nTotal)
+			{
+				return false;
+			}
+
+			for (size_t i = 0; i < pTunnelData->Vector.size(); ++i)
+			{
+				auto const& pContent = pTunnelData->Vector[i];
+				const auto what = pContent->WhatAmI();
+
+				int nPip = 1;
+				if (what == InfantryClass::AbsID)
+					nPip = (int)(static_cast<InfantryClass*>(pContent)->Type->Pip);
+				else if (what == UnitClass::AbsID)
+					nPip = 4;
+
+				PhobosGlobal::Instance()->PipDatas[i] = nPip;
+			}
+
+			return true;
+		}
+	}
+	else
+	{
+		if (pThis->Passengers.NumPassengers > pipMax)
+		{
+			return false;
+		}
+
+		PhobosGlobal::Instance()->PipDatas.resize(pipMax);
+
+		int nCargoSize = 0;
+		for (auto pPassenger = pThis->Passengers.GetFirstPassenger();
+			pPassenger;
+			pPassenger = flag_cast_to<FootClass*>(pPassenger->NextObject))
+		{
+			const auto pPassengerType = GET_TECHNOTYPE(pPassenger);
+
+			auto nSize = pTypeExt->Passengers_BySize.Get() ? (int)pPassengerType->Size : 1;
+			if (nSize <= 0)
+				nSize = 1;
+
+			const auto what = pPassenger->WhatAmI();
+
+			int nPip = 1;
+			if (what == InfantryClass::AbsID)
+				nPip = (int)(static_cast<InfantryTypeClass*>(pPassengerType)->Pip);
+			else if (what == UnitClass::AbsID)
+				nPip = 5;
+
+			//fetch first cargo size and change the pip
+			PhobosGlobal::Instance()->PipDatas[nCargoSize] = nPip;
+			for (int i = nSize - 1; i > 0; --i)
+			{ //check if the extra size is there and increment it to
+		   // total size
+				PhobosGlobal::Instance()->PipDatas[nCargoSize + i] = 3;     //set extra size to pip index 3
+			}
+
+			nCargoSize += nSize;
+		}
+
+		return true;
+	}
+}
+
+std::pair<bool, FootClass*> HouseExtData::UnlimboOne(std::vector<FootClass*>* pVector, BuildingClass* pTunnel, DWORD Where)
+{
+	auto pPassenger = pVector->back();
+	auto nCoord = pTunnel->GetCoords();
+
+	const auto nBldFacing = pTunnel->PrimaryFacing.Current().GetFacing<256>();
+
+	pPassenger->OnBridge = pTunnel->OnBridge;
+	pPassenger->SetLocation(nCoord);
+
+	++Unsorted::ScenarioInit();
+	bool Succeeded = pPassenger->Unlimbo(nCoord, (DirType)nBldFacing);
+	--Unsorted::ScenarioInit();
+
+	if (Succeeded)
+	{
+		pVector->pop_back();
+		pPassenger->Scatter(CoordStruct::Empty, true, false);
+		return { true,  pPassenger };
+	}
+
+	return { false,  pPassenger };
+}
+
+bool HouseExtData::UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel, bool silent)
+{
+	const auto facing = (((((short)pTunnel->PrimaryFacing.Current().Raw + 0x8000) >> 12) + 1) >> 1);
+	const auto Loc = pTunnel->GetMapCoords();
+
+	int nOffset = 0;
+	bool IsLessThanseven = true;
+	bool Succeeded = false;
+	CellStruct nResult;
+	CellClass* CurrentAdj = nullptr;
+	CellClass* NextCell = nullptr;
+	size_t nFacing = 0;
+
+	//TODO Fix these loop
+	for (int i = 0;; ++i)
+	{
+		nFacing = (facing + i) & 7;
+		const CellStruct tmpCoords = CellSpread::AdjacentCell[nFacing];
+		nResult = tmpCoords + Loc;
+		CellStruct next = tmpCoords + tmpCoords + Loc;
+
+		CurrentAdj = MapClass::Instance->GetCellAt(nResult);
+		NextCell = MapClass::Instance->GetCellAt(next);
+
+		const auto nLevel = pTunnel->GetCellLevel();
+		const auto nOccupyResult = pFoot->IsCellOccupied(CurrentAdj, (FacingType)nFacing, nLevel, nullptr, true);
+		const auto nNextnOccupyResult = pFoot->IsCellOccupied(NextCell, (FacingType)nFacing, nLevel, nullptr, true);
+
+		if ((!(int)nNextnOccupyResult) &&
+			(!IsLessThanseven || (!(int)nOccupyResult)) &&
+			(CurrentAdj->Flags & CellFlags::BridgeHead) == CellFlags::Empty)
+			break;
+
+		IsLessThanseven = i == 7 ? false : true;
+
+		++nOffset;
+
+		if (nOffset >= 16)
+			return false;
+	}
+
+	const auto pFootType = GET_TECHNOTYPE(pFoot);
+	++Unsorted::ScenarioInit();
+
+	CoordStruct nResultC = CellClass::Cell2Coord(nResult);
+	if (pFoot->WhatAmI() == AbstractType::Infantry)
+	{
+		nResultC = MapClass::Instance->PickInfantrySublocation(nResultC, false);
+	}
+	else
+	{
+		const auto nNearby = MapClass::Instance->NearByLocation(nResult, pFootType->SpeedType, ZoneType::None, MovementZone::None, false, 1, 1, false, false, false, true, CellStruct::Empty, false, false);
+		nResultC = CellClass::Cell2Coord(nNearby);
+	}
+
+	Succeeded = pFoot->Unlimbo(nResultC, DirType(32 * (nFacing & 0x3FFFFFF)));
+	--Unsorted::ScenarioInit();
+
+	if (Succeeded)
+	{
+		if (!silent)
+			VocClass::SafeImmedietelyPlayAt(pTunnel->Type->LeaveTransportSound, &pTunnel->Location);
+
+		pFoot->QueueMission(Mission::Move, false);
+		pFoot->SetDestination(IsLessThanseven ? NextCell : CurrentAdj, true);
+		return true;
+	}
+
+	HouseExtData::KillFootClass(pFoot, nullptr);
+	return false;
+}
+
+void HouseExtData::HandleUnload(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel)
+{
+	if (UnloadOnce(pTunnelData->back(), pTunnel))
+		pTunnelData->pop_back();
+}
+
+bool HouseExtData::FindSameTunnel(BuildingClass* pTunnel)
+{
+	FakeHouseClass* pOwner = (FakeHouseClass*)pTunnel->Owner;
+
+	if (!pOwner)
+		return false;
+
+	//found new building
+	return std::any_of(
+		pOwner->_GetExtData()->TunnelsBuildings.begin(),
+		pOwner->_GetExtData()->TunnelsBuildings.end(),
+		[pTunnel](BuildingClass* pBld)
+ {
+
+	 if (pTunnel != pBld && pBld->Health > 0 && !pBld->InLimbo && pBld->IsOnMap)
+	 {
+		 if (BuildingExtContainer::Instance.Find(pBld)->LimboID >= 0)
+			 return false;
+
+		 const auto nCurMission = pBld->CurrentMission;
+		 if (nCurMission != Mission::Construction && nCurMission != Mission::Selling)
+		 {
+			 if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->TunnelType == BuildingTypeExtContainer::Instance.Find(pTunnel->Type)->TunnelType)
+			 {
+				 return true;
+			 }
+		 }
+	 }
+
+	 return false;
+		});
+}
+
+void HouseExtData::KillFootClass(FootClass* pFoot, TechnoClass* pKiller)
+{
+	if (!pFoot || !pFoot->IsAlive)
+		return;
+
+	pFoot->RegisterDestruction(pKiller);
+	//Debug::LogInfo(__FUNCTION__" Called ");
+	TechnoExtData::HandleRemove(pFoot, pKiller, false, false);
+}
+
+void HouseExtData::DestroyTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, TechnoClass* pKiller)
+{
+	if (pTunnelData->empty() || FindSameTunnel(pTunnel))
+		return;
+
+	for (auto pFoot : *pTunnelData)
+	{
+		KillFootClass(pFoot, pKiller);
+	}
+
+	pTunnelData->clear();
+}
+
+void HouseExtData::EnterTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, FootClass* pFoot)
+{
+	pFoot->SetTarget(nullptr);
+	pFoot->OnBridge = false;
+	pFoot->MissionAccumulateTime = 0;
+	pFoot->GattlingValue = 0;
+	pFoot->SetGattlingStage(0);
+
+	if (auto const pCapturer = pFoot->MindControlledBy)
+	{
+		if (const auto pCmanager = pCapturer->CaptureManager)
+		{
+			pCmanager->FreeUnit(pFoot);
+		}
+	}
+
+	if (!pFoot->Limbo())
+	{
+		Debug::LogInfo("Techno[{}] Trying to enter Tunnel[{}] but failed ! ", pFoot->get_ID(), pTunnel->get_ID());
+		return;
+	}
+
+	VocClass::SafeImmedietelyPlayAt(pTunnel->Type->EnterTransportSound, &pTunnel->Location);
+
+	pFoot->Undiscover();
+
+	if (pFoot->GetCurrentMission() == Mission::Hunt)
+		pFoot->AbortMotion();
+
+	pTunnelData->push_back(pFoot);
+}
+
+bool HouseExtData::CanEnterTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, FootClass* pEnterer)
+{
+	if (pEnterer->SendCommand(RadioCommand::QueryCanEnter, pTunnel) != RadioCommand::AnswerPositive)
+		return false;
+
+	EnterTunnel(pTunnelData, pTunnel, pEnterer);
+	return true;
+}
+
 // =============================
 // container hooks
+
+ASMJIT_PATCH(0x4F6532, HouseClass_CTOR, 0x5)
+{
+	GET(HouseClass*, pItem, EAX);
+
+	if (RulesExtData::Instance()->EnablePowerSurplus)
+		pItem->PowerSurplus = RulesClass::Instance->PowerSurplus;
+
+	HouseExtContainer::Instance.Allocate(pItem);
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x4F7371, HouseClass_DTOR, 0x6)
+{
+	GET(HouseClass*, pItem, ESI);
+
+	HouseExtContainer::Instance.Remove(pItem);
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x50114D, HouseClass_InitFromINI, 0x5)
+{
+	GET(HouseClass* const, pThis, EBX);
+	GET(CCINIClass* const, pINI, ESI);
+
+	HouseExtContainer::Instance.Find(pThis)->LoadFromINI(pINI ,false);
+	return 0x0;
+}
 
 void FakeHouseClass::_Detach(AbstractClass* target, bool all) {
 	if(auto pExt = this->_GetExtData())

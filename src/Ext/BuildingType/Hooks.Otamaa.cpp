@@ -12,8 +12,6 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
 
-#include <Utilities/Macro.h>
-
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Cast.h>
@@ -146,48 +144,12 @@ ASMJIT_PATCH(0x459494, BuildingClass_459470_BunkerDownSound, 0x5)
 }
 #pragma endregion
 
-// not working  ?
-// hook itself is fine , but it not play globally as it should :s
-/*
-ASMJIT_PATCH(0x44A86A, BuildingClass_Mi_Selling_PackupSound, 0xC)
-{
-	enum
-	{
-		Handled = 0x44A89E
-	};
-
-	GET(BuildingClass* const, pThis, EBP);
-	CoordStruct nBuffer;
-	auto const pExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
-
-	pThis->GetCenterCoord(&nBuffer);
-	VocClass::SafeImmedietelyPlayAt(pThis->Type->PackupSound, nBuffer, pExt && pExt->PackupSound_PlayGlobal.Get());
-
-	return Handled;
-}
-
-*/
-
 ASMJIT_PATCH(0x450821, BuildingClass_Repair_AI_Step, 0x5)// B
 {
 	GET(FakeBuildingClass* const, pThis, ESI);
 	R->EAX(int(pThis->_GetTypeExtData()->RepairRate.Get(RulesClass::Instance->RepairRate) * 900.0));
 	return 0x450837;
 }
-
-// ares replace this
-//ASMJIT_PATCH(0x70BEF9, TechnoClass_canHealRepair_Building, 0x5) //B
-//{
-//	GET(TechnoClass*, pThis, ESI);
-//
-//	if (auto const pBuilding = specific_cast<BuildingClass*>(pThis)) {
-//		R->EAX(int(BuildingTypeExtContainer::Instance.Find(pBuilding->Type)
-//			->RepairRate.Get(RulesClass::Instance->RepairRate) * 900.0));
-//		return 0x70BF0F;
-//	}
-//
-//	return 0;
-//}
 
 //https://modenc.renegadeprojects.com/RepairStep
 ASMJIT_PATCH(0x712125, TechnoTypeClass_GetRepairStep_Building, 0x6)
@@ -234,23 +196,6 @@ ASMJIT_PATCH(0x7120D0, TechnoTypeClass_GetRepairCost_Building, 0x7)
 	R->EAX(MaxImpl(nCalc, 1));
 	return 0x712119;
 }
-
-//RepairCost
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2918, GET_OFFSET(GetRepairCost));
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4620, GET_OFFSET(GetRepairCost));
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4F88, GET_OFFSET(GetRepairCost));
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F62C8, GET_OFFSET(GetRepairCost));
-
-// ASMJIT_PATCH(0x464758, BuildingTypeClass_LoadFromINI_PowerUPZAdjust, 0x8) {
-// 	GET(int, nIndex, EBX);
-// 	GET(BuildingTypeClass*, pThis, EBP);
-
-// 	char flag[0x800];
-// 	sprintf_s(flag, "PowerUp%01dZAdjust", nIndex);
-// 	pThis->BuildingAnim[nIndex].ZAdjust = CCINIClass::INI_Art().ReadInteger(pThis->ImageFile, flag, pThis->BuildingAnim[nIndex].ZAdjust);
-
-// 	return 0;
-// }
 
 ASMJIT_PATCH(0x505F6C, HouseClass_GenerateAIBuildList_AIBuildInstead, 0x6)
 {

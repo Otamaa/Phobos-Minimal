@@ -8,8 +8,6 @@
 
 #include <Utilities/Macro.h>
 
-#include <Phobos.SaveGame.h>
-
 BulletTypeClass* BulletTypeExtData::GetDefaultBulletType() {
 	if(!RulesExtData::Instance()->DefaultBulletType)
 		RulesExtData::Instance()->DefaultBulletType = BulletTypeClass::Find(DEFAULT_STR2);
@@ -335,67 +333,6 @@ void BulletTypeExtData::Serialize(T& Stm)
 
 BulletTypeExtContainer BulletTypeExtContainer::Instance;
 
-bool BulletTypeExtContainer::LoadAll(const json& root)
-{
-	this->Clear();
-
-	if (root.contains(BulletTypeExtContainer::ClassName))
-	{
-		auto& container = root[BulletTypeExtContainer::ClassName];
-
-		for (auto& entry : container[BulletTypeExtData::ClassName])
-		{
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			auto buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, BulletTypeExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
-		}
-
-		return true;
-	}
-
-	return false;
-
-}
-
-bool BulletTypeExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[BulletTypeExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : BulletTypeExtContainer::Array)
-	{
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer);
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
-	}
-
-	first_layer[BulletTypeExtData::ClassName] = std::move(_extRoot);
-
-	return true;
-}
-
 void BulletTypeExtContainer::LoadFromINI(BulletTypeClass* key, CCINIClass* pINI, bool parseFailAddr)
 {
 	if (auto ptr = this->Find(key))
@@ -410,7 +347,6 @@ void BulletTypeExtContainer::LoadFromINI(BulletTypeClass* key, CCINIClass* pINI,
 		//this function can be called again multiple time but without need to re-init the data
 		ptr->SetInitState(InitState::Ruled);
 	}
-
 }
 
 void BulletTypeExtContainer::WriteToINI(BulletTypeClass* key, CCINIClass* pINI)
@@ -430,16 +366,28 @@ void BulletTypeExtContainer::WriteToINI(BulletTypeClass* key, CCINIClass* pINI)
 // =============================
 // container hooks
 
-// ASMJIT_PATCH(0x46BDD9, BulletTypeClass_CTOR, 0x5)
-// {
-// 	GET(BulletTypeClass*, pItem, EAX);
-// 	BulletTypeExtContainer::Instance.Allocate(pItem);
-// 	return 0;
-// }
+ASMJIT_PATCH(0x46BDD9, BulletTypeClass_CTOR, 0x5)
+{
+	if (!Phobos::Otamaa::DoingLoadGame)
+	{
+		GET(BulletTypeClass*, pItem, EAX);
+		BulletTypeExtContainer::Instance.Allocate(pItem);
+	}
+	return 0;
+}
 
-// ASMJIT_PATCH(0x46C8B6, BulletTypeClass_SDDTOR, 0x6)
-// {
-// 	GET(BulletTypeClass*, pItem, ESI);
-// 	BulletTypeExtContainer::Instance.Remove(pItem);
-// 	return 0;
-// }
+ASMJIT_PATCH(0x46C8B6, BulletTypeClass_SDDTOR, 0x6)
+{
+	GET(BulletTypeClass*, pItem, ESI);
+	BulletTypeExtContainer::Instance.Remove(pItem);
+	return 0;
+}
+
+bool FakeBulletTypeClass::_ReadFromINI(CCINIClass* pINI)
+{
+	bool status = this->BulletTypeClass::LoadFromINI(pINI);
+	BulletTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E49AC, FakeBulletTypeClass::_ReadFromINI)

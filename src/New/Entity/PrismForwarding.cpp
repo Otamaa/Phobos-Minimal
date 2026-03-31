@@ -1,6 +1,5 @@
 #include "PrismForwarding.h"
 
-#include <Misc/Ares/Hooks/Header.h>
 #include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <ExtraHeaders/StackVector.h>
@@ -266,8 +265,8 @@ bool PrismForwarding::ValidateSupportTower(PrismForwarding* pTargetTower, PrismF
 				&& SlaveMission != Mission::Attack
 				&& SlaveMission != Mission::Construction
 				&& SlaveMission != Mission::Selling
-				&& TechnoExt_ExtData::IsPowered(SlaveTower) //robot control logic
-				&& TechnoExt_ExtData::IsOperatedB(SlaveTower) //operator logic
+				&& TechnoExtData::IsPowered(SlaveTower) //robot control logic
+				&& TechnoExtData::IsOperatedB(SlaveTower) //operator logic
 				&& SlaveTower->IsPowerOnline() //base-powered or overpowerer-powered
 				&& !SlaveTower->IsUnderEMP()) //EMP logic - I think this should already be checked by IsPowerOnline() but included just to be sure
 			{

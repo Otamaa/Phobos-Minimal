@@ -10,8 +10,6 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "VoxelAnimTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "VoxelAnimTypeClass";
 	
-	
-
 public:
 #pragma region ClassMember
 
@@ -117,8 +115,8 @@ public:
 public:
 	static VoxelAnimTypeExtContainer Instance;
 
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(ext_t::base_type* key, CCINIClass* pINI);

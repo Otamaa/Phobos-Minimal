@@ -8,8 +8,6 @@
 #include <New/Interfaces/TSJumpJetLocomotionClass.h>
 //#include <New/Interfaces/AttachmentLocomotionClass.h>
 
-#include <Misc/Kratos/Kratos.h>
-
 ASMJIT_PATCH(0x6BD68D, WinMain_PhobosRegistrations, 0x6)
 {
 	Debug::Log("Starting COM registration...\n");

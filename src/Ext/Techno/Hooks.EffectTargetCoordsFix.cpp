@@ -1,3 +1,5 @@
+#include "Body.h"
+
 #include <BuildingClass.h>
 #include <CellClass.h>
 #include <MapClass.h>
@@ -10,14 +12,13 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
-#include <Ext/Techno/Body.h>
+#include <Ext/Wave/Body.h>
 #include <Ext/ParticleType/Body.h>
 #include <Ext/ParticleSystemType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/Infantry/Body.h>
 
-#include <Misc/Ares/Hooks/Header.h>
-#include <Misc/Ares/Hooks/AresTrajectoryHelper.h>
+#include <Misc/AresTrajectoryHelper.h>
 
 #ifndef PARTONE
 // Contains hooks that fix weapon graphical effects like lasers, railguns, electric bolts, beams and waves not interacting
@@ -567,7 +568,7 @@ ASMJIT_PATCH(0x6FF656, TechnoClass_FireAt_Additionals_End, 0xA)
 	LEA_STACK(CoordStruct*, pTargetCoords, STACK_OFFSET(0xB0, -0x28));
 
 	//remove ammo rounds depending on weapon
-	TechnoExt_ExtData::DecreaseAmmo(pThis, pWeaponType);
+	TechnoExtData::DecreaseAmmo(pThis, pWeaponType);
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 	auto const pTypeExt = GET_TECHNOTYPEEXT(pThis);
 

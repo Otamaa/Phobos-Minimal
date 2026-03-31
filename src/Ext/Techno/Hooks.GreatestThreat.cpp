@@ -1,6 +1,7 @@
+#include "Body.h"
+
 #include <Ext/Scenario/Body.h>
 #include <Ext/TechnoType/Body.h>
-#include <Ext/Techno/Body.h>
 #include <Ext/Rules/Body.h>
 #include <Ext/CaptureManager/Body.h>
 
@@ -14,7 +15,8 @@
 #include <UnitClass.h>
 #include <AircraftClass.h>
 #include <BuildingClass.h>
-
+#include <TeamClass.h>
+#include <TeamTypeClass.h>
 #include <AircraftTrackerClass.h>
 
 static int GetMultiWeaponRange(TechnoClass* pThis)
@@ -580,11 +582,6 @@ ASMJIT_PATCH(0x7089E8, TechnoClass_AllowedToRetaliate_AttackMindControlledDelay,
 	return CanAttackMindControlled(pAttacker, pThis) ? 0 : CannotRetaliate;
 }
 
-#include <TeamClass.h>
-#include <TeamTypeClass.h>
-#include <Misc/Ares/Hooks/Header.h>
-
-
 /**
  * Evaluates whether `target` is a valid threat candidate for the given techno.
  * Writes the computed priority value into `*value`.
@@ -861,7 +858,7 @@ bool FakeTechnoClass::__EvaluateObjectB(
 				//   For non-Techno objects: reject at >= ConditionGreen health.
 				// -----------------------------------------------------------------
 				if (pTechnoTarget) {
-					if (pTechnoTarget->IsIronCurtained() || !TechnoExt_ExtData::FiringAllowed(pThis, pTechnoTarget,pFakeWeapon))
+					if (pTechnoTarget->IsIronCurtained() || !TechnoExtData::FiringAllowed(pThis, pTechnoTarget,pFakeWeapon))
 						return false;
 
 				} else {

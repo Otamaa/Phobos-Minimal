@@ -13,6 +13,7 @@
 #include <Ext/SWType/Body.h>
 #include <Ext/Scenario/Body.h>
 
+#include <Utilities/Macro.h>
 #include <Utilities/Debug.h>
 #include <Utilities/EnumFunctions.h>
 
@@ -389,91 +390,471 @@ ASMJIT_PATCH(0x6A86ED, StripClass_OperatorLessThan_SortCameoByNameTechno, 0x5)
 	return wcscmp(pLeft->UIName, pRight->UIName) <= 0 ? rTrue : rFalse;
 }
 
-#pragma region Otamaa
 /*
-namespace GClockTemp
+enum VanillaDialogs : uint16_t
 {
-	SuperWeaponTypeClass* Super;
-	TechnoTypeClass* Techno;
-}
-
-ASMJIT_PATCH(0x6A9941, StripClass_DrawIt_GetSWData, 0x7)
-{
-	GET(SuperWeaponTypeClass*, pThis, EAX);
-	GClockTemp::Super = pThis;
-	return 0x0;
-}
-
-ASMJIT_PATCH(0x6A9779, StripClass_DrawIt_GetTechnoData, 0x5)
-{
-	GET(TechnoTypeClass*, pThis, EAX);
-	GClockTemp::Techno = pThis;
-	return 0x0;
-}
-
-static void FC StripClass_Draw_GClockSHP(
-	Surface* Surface,
-	ConvertClass* Pal,
-	SHPStruct* SHP,
-	int FrameIndex,
-	const Point2D* const Position,
-	const RectangleStruct* const Bounds,
-	BlitterFlags Flags,
-	int Remap,
-	int ZAdjust,
-	ZGradient ZGradientDescIndex,
-	int Brightness,
-	int TintColor,
-	SHPStruct* ZShape,
-	int ZShapeFrame,
-	int XOffset,
-	int YOffset
-)
-{
-	int Gclock_int = -1;
-	auto const pPlayer = HouseClass::CurrentPlayer();
-
-	if(auto const pSide = SideClass::Array->GetItemOrDefault(pPlayer->SideIndex)) {
-		if(auto const pSideExt = SideExtContainer::Instance.Find(pSide)) {
-			SHP = pSideExt->GClock_Shape.Get(SHP);
-			Gclock_int = pSideExt->GClock_Transculency.Get(-1);
-			//Pal = pSideExt->GClock_Palette.GetOrDefaultConvert(Pal);
-		}
-	}
-
-	if (auto const pSuper = GClockTemp::Super)
-	{
-		if (auto const pExt = SWTypeExtContainer::Instance.Find(pSuper))
-		{
-			SHP = pExt->GClock_Shape.Get(SHP);
-			Gclock_int = pExt->GClock_Transculency.Get(-1);
-			Pal = pExt->GClock_Palette.GetOrDefaultConvert(Pal);
-			GClockTemp::Super = nullptr;
-		}
-	}else
-	if (auto const pTechno = GClockTemp::Techno)
-	{
-		if (auto const pExt = TechnoTypeExtContainer::Instance.Find(pTechno))
-		{
-			SHP = pExt->GClock_Shape.Get(SHP);
-			Gclock_int = pExt->GClock_Transculency.Get(-1);
-			Pal = pExt->GClock_Palette.GetOrDefaultConvert(Pal);
-			GClockTemp::Techno = nullptr;
-		}
-	}
-
-	if (Gclock_int != -1)
-		Flags = BlitterFlags::bf_400 | EnumFunctions::GetTranslucentLevel(Gclock_int);
-
-	CC_Draw_Shape(Surface, Pal, SHP, FrameIndex, Position, Bounds, Flags, Remap, ZAdjust, ZGradientDescIndex, Brightness, TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
-}
-
-DEFINE_FUNCTION_JUMP(CALL,0x6A9E97, GET_OFFSET(StripClass_Draw_GClockSHP));
+	SingleplayerGameOptionsDialog = 181,
+	MultiplayerGameOptionsDialog = 3002
+};
 */
-//ASMJIT_PATCH(0x6A9E9C, StripClass_Draw_GClock_ClearContext, 0x6)
-//{
-//	GClockTemp::Techno = nullptr;
-//	GClockTemp::Super = nullptr;
-//	return 0x0;
-//}
+// For now this can only contain copies of the original dialogs with same IDs
+enum SpawnerCustomDialogs : uint16_t
+{
+	MultiplayerGameOptionsDialog = 3002, // added a save button
+
+	First = 3002,
+	Last = 3002
+};
+
+
+class Dialogs
+{
+public:
+
+};
+
+/*
+	So here's a first example on how to modify the game's dialogs! :3
+	To port a dialog from YR to the DLL, add a new .rc file and don't bother editing it
+	using MSVC's inbuilt tools.
+	Open gamemd.exe in ResHacker, open the selected dialog and copy the whole resource script to
+	the new .rc file.
+	Don't edit the dialog ID. That would be adding a new dialog and that's a pain to get working
+	apparently (I don't know how to do that yet).
+	Add #include <windows.h> to the first line of the script.
+	If STYLE doesn't list WS_CAPTION, remove the CAPTION "" line.
+	Adding new controls is best done in ResHacker, as MSVC wants to add too much stupid
+	stuff to things (resource.h and crap like that).
+	Also remember to set the control properties like the game originals to avoid problems.
+	Finally, be aware that MSVC will automatically add WS_VISIBLE to the controls.
+	I don't know why, but I know it sucks, as you'll see when you use the RMG with this version.
+	I've yet to find a way to suppress this behavior.
+	If you add buttons, they'll look like shit until you register them in the dialog function.
+	Adding new dialogs requires many funny hacks I'll try to figure later.
+	To make our systems consitent:
+	New control IDs within a dialog start with 5000.
+	Each dialog code should get its own cpp file to avoid major confusion.
+	This central source file contains an addition to YR's "FetchResource"
+	that's able to find resources within this DLL as well.
+	It's important for it to be just an addition so other DLLs can do this as well!
+	Happy GUI modding!
+	-pd
+*/
+
+//4A3B4B, 9 - NOTE: This overrides a call, but it's absolute, so don't worry.
+ASMJIT_PATCH(0x4A3B4B, FetchResource, 0x9)
+{
+	HMODULE hModule = static_cast<HMODULE>(Phobos::hInstance); //hModule and hInstance are technically the same...
+	GET(LPCTSTR, lpName, ECX);
+	GET(LPCTSTR, lpType, EDX);
+
+	if (HRSRC hResInfo = FindResource(hModule, lpName, lpType))
+	{
+		if (HGLOBAL hResData = LoadResource(hModule, hResInfo))
+		{
+			LockResource(hResData);
+			R->EAX(hResData);
+
+			return 0x4A3B73; //Resource locked and loaded (omg what a pun), return!
+		}
+	}
+	return 0; //Nothing was found, try the game's own resources.
+}
+
+ASMJIT_PATCH(0x609299, UI_IsStaticAndOrOwnerDraw_MultiplayerGameOptionsDialog, 0x5)
+{
+	enum { RetFalse = 0x609664, RetTrue = 0x609693 };
+
+	GET(int, dlgCtrlID, EAX);
+	return (dlgCtrlID == 1314 || dlgCtrlID == 1313 || dlgCtrlID == 1311) ? RetTrue : RetFalse;
+}
+
+#pragma region Colors
+
+ASMJIT_PATCH(0x69B97D, Game_ProcessRandomPlayers_ObserverColor, 7)
+{
+	GET(NodeNameType* const, pStartingSpot, ESI);
+
+	// observer uses last color, beyond the actual colors
+	pStartingSpot->Color = Phobos::Config::colorCount;
+
+	return 0x69B984;
+}
+
+ASMJIT_PATCH(0x69B949, Game_ProcessRandomPlayers_ColorsA, 6)
+{
+	R->EAX(ScenarioClass::Instance->Random.RandomRanged(0, Phobos::Config::colorCount - 1));
+	return 0x69B95E;
+}
+
+ASMJIT_PATCH(0x69BA13, Game_ProcessRandomPlayers_ColorsB, 6)
+{
+	R->EAX(ScenarioClass::Instance->Random.RandomRanged(0, Phobos::Config::colorCount - 1));
+	return 0x69BA28;
+}
+
+ASMJIT_PATCH(0x69B69B, GameModeClass_PickRandomColor_Unlimited, 6)
+{
+	R->EAX(ScenarioClass::Instance->Random.RandomRanged(0, Phobos::Config::colorCount - 1));
+	return 0x69B6AF;
+}
+
+ASMJIT_PATCH(0x69B7FF, Session_SetColor_Unlimited, 6)
+{
+	R->EAX(ScenarioClass::Instance->Random.RandomRanged(0, Phobos::Config::colorCount - 1));
+	return 0x69B813;
+}
+
+ASMJIT_PATCH(0x60FAD7, Ownerdraw_PostProcessColors, 0xA)
+{
+	// copy original instruction
+	*reinterpret_cast<int*>(0xAC1B90) = 0x443716;
+
+	// update colors
+	*reinterpret_cast<int*>(0xAC18A4) = Phobos::UI::uiColorText;
+	*reinterpret_cast<int*>(0xAC184C) = Phobos::UI::uiColorCaret;
+	*reinterpret_cast<int*>(0xAC4604) = Phobos::UI::uiColorSelection;
+	*reinterpret_cast<int*>(0xAC1B98) = Phobos::UI::uiColorBorder1;
+	*reinterpret_cast<int*>(0xAC1B94) = Phobos::UI::uiColorBorder2;
+	*reinterpret_cast<int*>(0xAC1AF8) = Phobos::UI::uiColorDisabledObserver;
+	*reinterpret_cast<int*>(0xAC1CB0) = Phobos::UI::uiColorTextObserver;
+	*reinterpret_cast<int*>(0xAC4880) = Phobos::UI::uiColorSelectionObserver;
+	*reinterpret_cast<int*>(0xAC1CB4) = Phobos::UI::uiColorDisabled;
+
+	// skip initialization
+	//CommonDialogStuff_Color_Shifts_Set_PCXes_Loaded
+	bool inited = *reinterpret_cast<bool*>(0xAC48D4);
+	return inited ? 0x60FB5D : 0x60FAE3;
+}
+
+ASMJIT_PATCH(0x612DA9, Handle_Button_Messages_Color, 6)
+{
+	R->EDI(Phobos::UI::uiColorTextButton);
+	return 0x612DAF;
+}
+
+ASMJIT_PATCH(0x613072, Handle_Button_Messages_DisabledColor, 7)
+{
+	R->EDI(Phobos::UI::uiColorDisabledButton);
+	return 0x613138;
+}
+
+ASMJIT_PATCH(0x61664C, Handle_Checkbox_Messages_Color, 5)
+{
+	R->EAX(Phobos::UI::uiColorTextCheckbox);
+	return 0x616651;
+}
+
+ASMJIT_PATCH(0x616655, Handle_Checkbox_Messages_Disabled, 5)
+{
+	R->EAX(Phobos::UI::uiColorDisabledCheckbox);
+	return 0x61665A;
+}
+
+ASMJIT_PATCH(0x616AF0, Handle_RadioButton_Messages_Color, 6)
+{
+	R->ECX(Phobos::UI::uiColorTextRadio);
+	return 0x616AF6;
+}
+
+ASMJIT_PATCH(0x615DF7, Handle_Static_Messages_Color, 6)
+{
+	R->ECX(Phobos::UI::uiColorTextLabel);
+	return 0x615DFD;
+}
+
+ASMJIT_PATCH(0x615AB7, Handle_Static_Messages_Disabled, 6)
+{
+	R->ECX(Phobos::UI::uiColorDisabledLabel);
+	return 0x615ABD;
+}
+
+ASMJIT_PATCH(0x619A4F, Handle_Listbox_Messages_Color, 6)
+{
+	R->ESI(Phobos::UI::uiColorTextList);
+	return 0x619A55;
+}
+
+ASMJIT_PATCH(0x6198D3, Handle_Listbox_Messages_DisabledA, 6)
+{
+	R->EBX(Phobos::UI::uiColorDisabledList);
+	return 0x6198D9;
+}
+
+ASMJIT_PATCH(0x619A5F, Handle_Listbox_Messages_DisabledB, 6)
+{
+	R->ESI(Phobos::UI::uiColorDisabledList);
+	return 0x619A65;
+}
+
+ASMJIT_PATCH(0x619270, Handle_Listbox_Messages_SelectionA, 5)
+{
+	R->EAX(Phobos::UI::uiColorSelectionList);
+	return 0x619275;
+}
+
+ASMJIT_PATCH(0x619288, Handle_Listbox_Messages_SelectionB, 6)
+{
+	R->DL(BYTE(Phobos::UI::uiColorSelectionList >> 16));
+	return 0x61928E;
+}
+
+ASMJIT_PATCH(0x617A2B, Handle_Combobox_Messages_Color, 6)
+{
+	R->EBX(Phobos::UI::uiColorTextCombobox);
+	return 0x617A31;
+}
+
+ASMJIT_PATCH(0x617A57, Handle_Combobox_Messages_Disabled, 6)
+{
+	R->EBX(Phobos::UI::uiColorDisabledCombobox);
+	return 0x617A5D;
+}
+
+ASMJIT_PATCH(0x60DDA6, Handle_Combobox_Dropdown_Messages_SelectionA, 5)
+{
+	R->EAX(Phobos::UI::uiColorSelectionCombobox);
+	return 0x60DDAB;
+}
+
+ASMJIT_PATCH(0x60DDB6, Handle_Combobox_Dropdown_Messages_SelectionB, 6)
+{
+	R->DL(BYTE(Phobos::UI::uiColorSelectionCombobox >> 16));
+	return 0x60DDBC;
+}
+
+ASMJIT_PATCH(0x61E2A5, Handle_Slider_Messages_Color, 5)
+{
+	R->EAX(Phobos::UI::uiColorTextSlider);
+	return 0x61E2AA;
+}
+
+ASMJIT_PATCH(0x61E2B1, Handle_Slider_Messages_Disabled, 5)
+{
+	R->EAX(Phobos::UI::uiColorDisabledSlider);
+	return 0x61E2B6;
+}
+
+ASMJIT_PATCH(0x61E8A0, Handle_GroupBox_Messages_Color, 6)
+{
+	R->ECX(Phobos::UI::uiColorTextGroupbox);
+	return 0x61E8A6;
+}
+
+ASMJIT_PATCH(0x614FF2, Handle_NewEdit_Messages_Color, 6)
+{
+	R->EDX(Phobos::UI::uiColorTextEdit);
+	return 0x614FF8;
+}
+
+// reset the colors
+ASMJIT_PATCH(0x4E43C0, Game_InitDropdownColors, 5)
+{
+	// mark all colors as unused (+1 for the  observer)
+	for (auto i = 0; i < Phobos::Config::colorCount + 1; ++i)
+	{
+		Phobos::UI::Colors[i].selectedIndex = -1;
+	}
+
+	return 0;
+}
+#include <Misc/Spawner/Main.h>
+
+ASMJIT_PATCH(0x69A310, SessionClass_GetPlayerColorScheme, 7)
+{
+	GET_STACK(PlayerColorSlot, idx, 0x4);
+	GET_STACK(DWORD, caller, 0x0);
+
+	int ret = 0;
+
+	// Game_GetLinkedColor converts vanilla dropdown color index into color scheme index ([Colors] from rules)
+	// if spawner feeds us a number, it will be used to look up color scheme directly
+	// Original Author : Morton
+
+	if (SpawnerMain::Configs::Enabled && Phobos::UI::UnlimitedColor && idx != PlayerColorSlot::Random)
+	{
+		ret = Math::abs((int)idx) << 1;
+	}
+	else
+	{
+
+		{
+
+			// get the slot
+			ColorData* slot = nullptr;
+			if (idx == PlayerColorSlot::Random || idx == Phobos::Config::colorCount)
+			{
+				// observer color
+				slot = &Phobos::UI::Colors[0];
+			}
+			else if (idx < Phobos::Config::colorCount)
+			{
+				// house color
+				slot = &Phobos::UI::Colors[idx + 1];
+			}
+
+			// retrieve the color scheme index
+
+			if (slot)
+			{
+				if (slot->colorSchemeIndex == -1)
+				{
+					slot->colorSchemeIndex = ColorScheme::FindIndex(slot->colorScheme);
+
+					if (slot->colorSchemeIndex == -1)
+					{
+						Debug::LogInfo("Color scheme \"{}\" not found.", slot->colorScheme);
+						slot->colorSchemeIndex = 4;
+					}
+				}
+
+				ret = slot->colorSchemeIndex;
+			}
+		}
+	}
+
+	ret += 1;
+	const int ColorShemeArrayCount = ColorScheme::Array->Count;
+
+	if ((size_t)ret >= (size_t)ColorShemeArrayCount)
+		Debug::FatalErrorAndExit("Address[%x] Trying To get Player Color[idx %d , %d(%d)] that more than ColorScheme Array Count [%d]!", caller, idx, ret, ret - 1, ColorShemeArrayCount);
+
+	R->EAX(ret);
+	return 0x69A334;
+}
+
+// return the tool tip describing this color
+ASMJIT_PATCH(0x4E42A0, GameSetup_GetColorTooltip, 5)
+{
+	GET(int const, idxColor, ECX);
+
+	if (idxColor == -2)
+	{
+		return 0x4E42A5;// random
+	}
+	else if (idxColor > Phobos::Config::colorCount)
+	{
+		return 0x4E43B7;
+	}
+
+	R->EAX(Phobos::UI::Colors[(idxColor + 1) % (Phobos::Config::colorCount + 1)].sttToolTipSublineText);
+	return 0x4E43B9;
+}
+
+// handle adding colors to combo box
+ASMJIT_PATCH(0x4E46BB, hWnd_PopulateWithColors, 7)
+{
+	GET(HWND const, hWnd, ESI);
+	GET_STACK(int const, idxPlayer, 0x14);
+
+	// add all colors
+	auto curSel = 0;
+	for (auto i = 0; i < Phobos::Config::colorCount; ++i)
+	{
+		auto const& Color = Phobos::UI::Colors[i + 1];
+		auto const isCurrent = Color.selectedIndex == idxPlayer;
+
+		if (isCurrent || Color.selectedIndex == -1)
+		{
+			int idx = Imports::SendMessageA.invoke()(hWnd, WW_CB_ADDITEM, 0, 0x822B78);
+			Imports::SendMessageA.invoke()(hWnd, WW_SETCOLOR, idx, Color.colorRGB);
+			Imports::SendMessageA.invoke()(hWnd, CB_SETITEMDATA, idx, i);
+
+			if (isCurrent)
+			{
+				curSel = idx;
+			}
+		}
+	}
+
+	Imports::SendMessageA.invoke()(hWnd, CB_SETCURSEL, curSel, 0);
+	Imports::SendMessageA.invoke()(hWnd, 0x4F1, 0, 0);
+
+	return 0x4E4749;
+}
+
+// update the color in the combo drop-down lists
+ASMJIT_PATCH(0x4E4A41, hWnd_SetPlayerColor_A, 7)
+{
+	GET(int const, idxPlayer, EAX);
+
+	for (auto i = 0; i < Phobos::Config::colorCount; ++i)
+	{
+		auto& Color = Phobos::UI::Colors[i + 1];
+		if (Color.selectedIndex == idxPlayer)
+		{
+			Color.selectedIndex = -1;
+			break;
+		}
+	}
+
+	return 0x4E4A6D;
+}
+
+ASMJIT_PATCH(0x4E4B47, hWnd_SetPlayerColor_B, 7)
+{
+	GET(int const, idxColor, EBP);
+	GET(int const, idxPlayer, ESI);
+
+	Phobos::UI::Colors[idxColor + 1].selectedIndex = idxPlayer;
+
+	return 0x4E4B4E;
+}
+
+ASMJIT_PATCH(0x4E4556, hWnd_GetSlotColorIndex, 7)
+{
+	GET(int const, idxPlayer, ECX);
+
+	auto ret = -1;
+	for (auto i = 0; i < Phobos::Config::colorCount; ++i)
+	{
+		auto const& Color = Phobos::UI::Colors[i + 1];
+		if (Color.selectedIndex == idxPlayer)
+		{
+			ret = i + 1;
+			break;
+		}
+	}
+
+	R->EAX(ret);
+	return 0x4E4570;
+}
+
+ASMJIT_PATCH(0x4E4580, hWnd_IsAvailableColor, 5)
+{
+	GET(int const, idxColor, ECX);
+	R->AL(Phobos::UI::Colors[idxColor + 1].selectedIndex == -1);
+	return 0x4E4592;
+}
+
+ASMJIT_PATCH(0x4E4C9D, hWnd_UpdatePlayerColors_A, 7)
+{
+	GET(int const, idxPlayer, EAX);
+
+	// check players and reset used color for this player
+	for (auto i = 0; i < Phobos::Config::colorCount; ++i)
+	{
+		auto& Color = Phobos::UI::Colors[i + 1];
+		if (Color.selectedIndex == idxPlayer)
+		{
+			Color.selectedIndex = -1;
+			break;
+		}
+	}
+
+	return 0x4E4CC9;
+}
+
+ASMJIT_PATCH(0x4E4D67, hWnd_UpdatePlayerColors_B, 7)
+{
+	GET(int const, idxColor, EAX);
+	GET(int const, idxPlayer, ESI);
+
+	// reserve the color for a player. skip the observer
+	Phobos::UI::Colors[idxColor + 1].selectedIndex = idxPlayer;
+
+	return 0x4E4D6E;
+}
+
+
 #pragma endregion

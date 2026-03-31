@@ -4,7 +4,6 @@
 #include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <Ext/TechnoType/Body.h>
-#include <Misc/Ares/Hooks/Header.h>
 
 
 //! \param TargetBuilding The building whose eligibility to check.

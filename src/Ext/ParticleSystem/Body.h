@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Utilities/PooledContainer.h>
 #include <Utilities/TemplateDefB.h>
 #include <Utilities/VectorHelper.h>
 
@@ -192,8 +191,8 @@ public:
 public:
 	static ParticleSystemExtContainer Instance;
 
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 };
 

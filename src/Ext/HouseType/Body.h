@@ -21,8 +21,6 @@ public:
 	using base_type = HouseTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "HouseTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "HouseTypeClass";
-	
-	
 
 public:
 
@@ -180,9 +178,9 @@ public:
 
 public:
 	static HouseTypeExtContainer Instance;
-
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void LoadFromINI(HouseTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(HouseTypeClass* key, CCINIClass* pINI);

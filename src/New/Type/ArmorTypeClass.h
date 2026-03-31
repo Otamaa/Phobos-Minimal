@@ -2,7 +2,8 @@
 
 #include <Utilities/Enumerable.h>
 #include <Utilities/Constructs.h>
-#include <Utilities/VersesData.h>
+
+#include <New/Entity/VersesData.h>
 
 class ArmorTypeClass final : public Enumerable<ArmorTypeClass>
 {

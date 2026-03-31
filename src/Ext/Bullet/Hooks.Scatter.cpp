@@ -1,5 +1,7 @@
 #include "Body.h"
+
 #include <Ext/BulletType/Body.h>
+
 #include <AircraftClass.h>
 #include <InfantryClass.h>
 #include <BuildingClass.h>
@@ -65,11 +67,6 @@ int GetScatterResult(BulletClass* pThis
 
 	return ScenarioClass::Instance->Random.RandomRanged(min , max);
 }
-
-// ASMJIT_PATCH(0x4687C2 , BulletClass_MoveTo_BallisticScatter_Inviso, 6)
-// {
-// 	GET(BulletClass*, pThis, EBX);
-// }
 
 ASMJIT_PATCH(0x46874E, BulletClass_Unlimbo_FlakScatter, 0x5)
 {

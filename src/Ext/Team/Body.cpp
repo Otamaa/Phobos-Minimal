@@ -7,13 +7,10 @@
 #include <Utilities/Macro.h>
 
 #include <Misc/Hooks.Otamaa.h>
-#include <Misc/Ares/Hooks/Header.h>
 
 #include <AITriggerTypeClass.h>
 #include <TaskForceClass.h>
 #include <TubeClass.h>
-
-#include <Phobos.SaveGame.h>
 
 template<typename Func, typename... Args>
 concept ReturnsBool = std::same_as<std::invoke_result_t<Func, Args...>, bool>;
@@ -4415,7 +4412,7 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 				auto pFirstType = GET_TECHNOTYPE(pFirst);
 				if (IS_SAME_STR_(pFirstType->ID, "TRUCKB"))
 				{
-					TechnoExt_ExtData::ConvertToType(pFirst, UnitTypeClass::Find("TRUCKA"));
+					TechnoExtData::ConvertToType(pFirst, UnitTypeClass::Find("TRUCKA"));
 				}
 
 				pCur = pNext;
@@ -4443,7 +4440,7 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 				auto pFirstType = GET_TECHNOTYPE(pFirst);
 				if (IS_SAME_STR_(pFirstType->ID, "TRUCKA"))
 				{
-					TechnoExt_ExtData::ConvertToType(pFirst, UnitTypeClass::Find("TRUCKB"));
+					TechnoExtData::ConvertToType(pFirst, UnitTypeClass::Find("TRUCKB"));
 				}
 
 				pCur = pNext;
@@ -5174,7 +5171,7 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 	}
 	default:
 
-		if (AresScriptExt::Handle(this, &node, missionChanged) || ScriptExtData::ProcessScriptActions(this, &node, missionChanged))
+		if (ScriptExtData::Handle(this, &node, missionChanged) || ScriptExtData::ProcessScriptActions(this, &node, missionChanged))
 			return;
 
 		break;
@@ -5408,7 +5405,7 @@ ASMJIT_PATCH(0x6E944B, TeamClass_AI_test, 0x6)
 	}
 	default:
 
-		if (AresScriptExt::Handle(pThis, pNode, something))
+		if (ScriptExtData::Handle(pThis, pNode, something))
 			return 0x6E9F4A;
 
 		if (ScriptExtData::ProcessScriptActions(pThis, pNode, something))
@@ -5508,67 +5505,6 @@ void TeamExtData::Serialize(T& Stm)
 // =============================
 // container
 TeamExtContainer TeamExtContainer::Instance;
-
-bool TeamExtContainer::LoadAll(const json& root)
-{
-	this->Clear();
-
-	if (root.contains(TeamExtContainer::ClassName))
-	{
-		auto& container = root[TeamExtContainer::ClassName];
-
-		for (auto& entry : container[TeamExtData::ClassName])
-		{
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			auto buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, TeamExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
-		}
-
-		return true;
-	}
-
-	return false;
-
-}
-
-bool TeamExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[TeamExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : TeamExtContainer::Array)
-	{
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer);
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
-	}
-
-	first_layer[TeamExtData::ClassName] = std::move(_extRoot);
-
-	return true;
-}
 
 // =============================
 // container hooks

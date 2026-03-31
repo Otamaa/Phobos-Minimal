@@ -185,49 +185,6 @@ ASMJIT_PATCH(0x7102F9, FootClass_ImbueLocomotor_SetDestination, 0x5)
 }
 #endif
 
-//ASMJIT_PATCH(0x466D19, BulletClass_Update_AdjustingVelocity, 0x6)
-//{
-//	R->ECX(R->EBP());
-//	return 0;
-//}
-
-//ASMJIT_PATCH(0x5B271A, BulletClass_ProjectileMotion_Fix2, 0x5)
-//{
-//	GET_BASE(BulletClass*, pBullet, 0x18);
-//	return pBullet->Type->VeryHigh ? 0x5B272D : 0x5B2721;
-//}
-//
-//ASMJIT_PATCH(0x5B260B, BulletClass_ProjectileMotion_DescentAngle, 0x7)
-//{
-//	GET_BASE(BulletClass*, pBullet, 0x18);
-//	GET_STACK(int, nData, 0x38);
-//
-//	return nData <= ((pBullet->Type->VeryHigh ? 6 : 3) << 8)
-//		? 0x5B289C : 0x5B2627;
-//}
-//
-//ASMJIT_PATCH(0x5B2778, BulletClass_ProjectileMotion_AscentAngle, 0x7)
-//{
-//	//GET_BASE(BulletClass*, pBullet, 0x18);
-//	//R->Stack(0x18, (std::clamp((0x4000 - 0x2000), 0, 0x4000)));
-//	R->Stack<WORD>(0x18, 0x2000);
-//	return 0x5B277F;
-//}
-//
-//ASMJIT_PATCH(0x5B2721, BulletClass_ProjectileMotion_Cruise, 0x5)
-//{
-//	//(BulletClass*, pBullet, 0x18);
-//	GET(int, nLepton, EAX);
-//
-//	//bool bLockedOnTrajectory = false;
-//	//int nCruiseLevel = 5;
-//	//if (bLockedOnTrajectory || nLepton >= nCruiseLevel)
-//	//	nLepton = nCruiseLevel;
-//
-//	R->EAX(nLepton >= 5 ? 5 : nLepton);
-//	return 0x5B2732;
-//}
-
 ASMJIT_PATCH(0x466BAF, BulletClass_AI_MissileROTVar, 0x6)
 {
 	GET(FakeBulletClass*, pThis, EBP);

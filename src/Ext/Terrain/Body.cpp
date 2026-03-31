@@ -6,7 +6,7 @@
 
 #include <Utilities/Macro.h>
 
-#include <Phobos.SaveGame.h>
+#include <Notifications.h>
 
 bool TerrainExtData::CanMoveHere(TechnoClass* pThis, TerrainClass* pTerrain) {
 	const auto pExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
@@ -113,70 +113,8 @@ void TerrainExtData::Serialize(T& Stm)
 // =============================
 // container
 TerrainExtContainer TerrainExtContainer::Instance;
-bool TerrainExtContainer::LoadAll(const json& root)
-{
-	this->Clear();
-
-	if (root.contains(TerrainExtContainer::ClassName))
-	{
-		auto& container = root[TerrainExtContainer::ClassName];
-
-		for (auto& entry : container[TerrainExtData::ClassName])
-		{
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			auto buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, TerrainExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
-		}
-
-		return true;
-	}
-
-	return false;
-
-}
-
-bool TerrainExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[TerrainExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : TerrainExtContainer::Array)
-	{
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer);
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
-	}
-
-	first_layer[TerrainExtData::ClassName] = std::move(_extRoot);
-
-	return true;
-}
 
 // container hooks
-#include <Notifications.h>
-
 DEFINE_JUMP(LJMP, 0x71BC31 , 0x71BC86);
 
 ASMJIT_PATCH(0x71BE74, TerrainClass_CTOR, 0x5)

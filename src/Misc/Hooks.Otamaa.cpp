@@ -35,7 +35,6 @@
 
 #include <Ext/TerrainType/Body.h>
 #include <Misc/DamageArea.h>
-#include <Misc/Ares/Hooks/Header.h>
 
 #include <Surface.h>
 
@@ -3345,7 +3344,7 @@ ASMJIT_PATCH(0x441B30, BuildingClass_Destroy_Refinery, 0x6)
 	if (!TechnoTypeExtContainer::Instance.Find(pThis->Type)->DontShake.Get() && RulesClass::Instance->ShakeScreen)
 	{
 		int cost = pThis->Type->GetCost();
-		ShakeScreenHandle::ShakeScreen(pThis, cost, RulesClass::Instance->ShakeScreen);
+		TechnoExtData::ShakeScreen(pThis, cost, RulesClass::Instance->ShakeScreen);
 	}
 
 	return 0x441C39;
@@ -3503,7 +3502,7 @@ ASMJIT_PATCH(0x73E3BF, UnitClass_Mi_Unload_replace, 0x6)
 		}
 		else
 		{
-			TechnoExt_ExtData::DepositTiberium(pBld, pBld->Owner,
+			TechnoExtData::DepositTiberium(pBld, pBld->Owner,
 			(float)dumpAmount,
 			(float)(BuildingTypeExtData::GetPurifierBonusses(pBld->Owner) * dumpAmount),
 			idxTiberium
@@ -3654,7 +3653,7 @@ ASMJIT_PATCH(0x522D50, InfantryClass_StorageAI_Handle, 0x5)
 
 		if (amountRemoved > 0.0)
 		{
-			TechnoExt_ExtData::DepositTiberium(pThis, pDest->Owner, amountRemoved,
+			TechnoExtData::DepositTiberium(pThis, pDest->Owner, amountRemoved,
 				BuildingTypeExtData::GetPurifierBonusses(pDest->Owner) * amountRemoved,
 				i);
 
@@ -4356,7 +4355,7 @@ ASMJIT_PATCH(0x447110, BuildingClass_Sell_Handled, 0x9)
 	GET_STACK(int, control, 0x4);
 
 	// #754 - evict Hospital/Armory contents
-	TechnoExt_ExtData::KickOutHospitalArmory(pThis);
+	TechnoExtData::KickOutHospitalArmory(pThis);
 
 	BuildingExtContainer::Instance.Find(pThis)->MyPrismForwarding->RemoveFromNetwork(true);
 

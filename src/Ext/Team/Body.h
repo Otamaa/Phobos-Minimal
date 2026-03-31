@@ -1,7 +1,7 @@
 #pragma once
 #include <TeamClass.h>
-#include <Utilities/PooledContainer.h>
 
+#include <Utilities/Container.h>
 #include <Utilities/Iterator.h>
 #include <Utilities/MapPathCellElement.h>
 #include <Utilities/PhobosFixedString.h>
@@ -115,8 +115,8 @@ public:
 public:
 	static TeamExtContainer Instance;
 
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 };
 

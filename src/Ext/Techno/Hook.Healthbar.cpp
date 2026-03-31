@@ -1,6 +1,7 @@
+#include "Body.h"
+
 #include <Ext/Building/Body.h>
 #include <Ext/TechnoType/Body.h>
-#include <Ext/Techno/Body.h>
 #include <Ext/Tiberium/Body.h>
 
 #include <Utilities/Macro.h>
@@ -11,69 +12,6 @@
 #include <InfantryTypeClass.h>
 
 #include <TacticalClass.h>
-
-#include <Misc/Ares/Hooks/Header.h>
-
-#ifdef _OLDHOOKS
-
-ASMJIT_PATCH(0x6F6637, TechnoClass_DrawHealthBar_HideBuildingsPips, 0x5)
-{
-	enum { SkipDrawPips = 0x6F677D, Continue = 0x0 };
-
-	GET(TechnoClass*, pThis, ESI);
-
-	return TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())
-		->HealthBar_HidePips ? SkipDrawPips : Continue;
-}
-
-
-// destroying a building (no health left) resulted in a single green pip shown
-// in the health bar for a split second. this makes the last pip red.
-ASMJIT_PATCH(0x6F661D, TechnoClass_DrawHealthBar_DestroyedBuilding_RedPip, 0x7)
-{
-	GET(BuildingClass*, pBld, ESI);
-	return (pBld->Health <= 0 || pBld->IsRedHP()) ? 0x6F6628 : 0x6F6630;
-}
-
-
-ASMJIT_PATCH(0x6F64A0, TechnoClass_DrawHealthBar_Hide, 0x5)
-{
-	enum
-	{
-		Draw = 0x0,
-		DoNotDraw = 0x6F6ABD
-	};
-
-	GET(TechnoClass*, pThis, ECX);
-
-	const auto what = pThis->WhatAmI();
-
-	if (what == UnitClass::AbsID)
-	{
-		const auto pUnit = (UnitClass*)pThis;
-
-		if (pUnit->DeathFrameCounter > 0)
-			return DoNotDraw;
-	}
-
-	if (what == BuildingClass::AbsID)
-	{
-		const auto pBld = (BuildingClass*)pThis;
-
-		if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->Firestorm_Wall)
-			return DoNotDraw;
-	}
-
-	if ((TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->HealthBar_Hide.Get())
-		|| pThis->TemporalTargetingMe
-		|| pThis->IsSinking
-	)
-		return DoNotDraw;
-
-	return Draw;
-}
-
-#endif
 
 ASMJIT_PATCH(0x6F5E37, TechnoClass_DrawExtras_DrawHealthBar, 0x6)
 {

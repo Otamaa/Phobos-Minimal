@@ -1,16 +1,17 @@
 #pragma once
 
 #include <AnimTypeClass.h>
+
 #include <Utilities/Container.h>
 #include <Utilities/Enum.h>
 #include <Utilities/TemplateDefB.h>
 
-#include <New/Entity/LauchSWData.h>
 #include <New/Type/PaletteManager.h>
 
-#include <New/AnonymousType/CreateUnitTypeClass.h>
+#include <New/Entity/LauchSWData.h>
+#include <New/Entity/CreateUnitTypeClass.h>
 
-#include <ext/ObjectType/Body.h>
+#include <Ext/ObjectType/Body.h>
 
 class AnimTypeExtData final : public ObjectTypeExtData
 {
@@ -259,8 +260,8 @@ public:
 public:
 	static AnimTypeExtContainer Instance;
 
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void LoadFromINI(AnimTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(AnimTypeClass* key, CCINIClass* pINI);

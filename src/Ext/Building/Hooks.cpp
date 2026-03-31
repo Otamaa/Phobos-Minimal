@@ -1,10 +1,7 @@
-	#include "Body.h"
+#include "Body.h"
 
-#include <UnitClass.h>
-#include <Utilities/Macro.h>
-
-#include <BitFont.h>
 #include <New/Entity/FlyingStrings.h>
+
 #include <Ext/BuildingType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/House/Body.h>
@@ -12,6 +9,8 @@
 #include <Utilities/Cast.h>
 
 #include <GameOptionsClass.h>
+#include <BitFont.h>
+#include <UnitClass.h>
 
 ASMJIT_PATCH(0x44955D, BuildingClass_WeaponFactoryOutsideBusy_WeaponFactoryCell, 0x6)
 {
@@ -146,23 +145,6 @@ ASMJIT_PATCH(0x4511D6, BuildingClass_AnimationAI_SellBuildup, 0x7)
 		? Continue : Skip;
 }
 
-// ASMJIT_PATCH(0x739717, UnitClass_TryToDeploy_Transfer, 0x8)
-// {
-// 	GET(UnitClass*, pUnit, EBP);
-// 	GET(FakeBuildingClass*, pStructure, EBX);
-
-// 	if (R->AL())
-// 	{
-// 		if (pUnit->Type->DeployToFire && pUnit->Target)
-// 			pStructure->LastTarget = pUnit->Target;
-
-// 		pStructure->_GetExtData()->DeployedTechno = true;
-
-// 		return 0x73971F;
-// 	}
-
-// 	return 0x739A6E;
-// }
 
 ASMJIT_PATCH(0x7396D2, UnitClass_TryToDeploy_Transfer, 0x5)
 {
@@ -190,34 +172,6 @@ ASMJIT_PATCH(0x449ADA, BuildingClass_MissionConstruction_DeployToFireFix, 0x6) /
 	pThis->QueueMission(nMission, false);
 	return 0x449AE8;
 }
-
-// ASMJIT_PATCH(0x43FE73, BuildingClass_AI_FlyingStrings, 0x6)
-// {
-// 	GET(BuildingClass*, pThis, ESI);
-//
-// 	if (Unsorted::CurrentFrame % 15 != 0)
-// 		return 0;
-//
-// 	auto const pExt = BuildingExtContainer::Instance.Find(pThis);
-// 	if (pExt->AccumulatedGrindingRefund) {
-// 		FlyingStrings::AddMoneyString(true,
-// 			pExt->AccumulatedGrindingRefund,
-// 			pThis, AffectedHouse::All,
-// 			pThis->GetRenderCoords(),
-// 			pExt->Type->Grinding_DisplayRefund_Offset);
-// 		pExt->AccumulatedGrindingRefund = 0;
-// 	}
-//
-// 	return 0;
-// }
-
-//ASMJIT_PATCH(0x440580, BuildingClass_Unlimbo_Addition, 0x5)
-//{
-//	GET(FakeBuildingClass* const, pThis, ESI);
-//	FakeHouseClass* pHouse = (FakeHouseClass*)pThis->Owner;
-//	pHouse->_GetExtData()->TunnelsBuildings.emplace(pThis);
-//	return 0x0;
-//}
 
 ASMJIT_PATCH(0x440B4F, BuildingClass_Unlimbo_SetShouldRebuild, 0x5)
 {
@@ -317,18 +271,6 @@ ASMJIT_PATCH(0x450D9C, BuildingClass_AI_Anims_IncludeWeeder_1, 0x6)
 	return 0x451030;
 }
 
-// ASMJIT_PATCH(0x450E12, BuildingTypeClass_AI_Anims_IncludeWeede_2, 0x7)
-// {
-// 	GET(BuildingClass*, pBuilding, ESI);
-//
-// 	R->EAX(pBuilding->Type->Weeder ?
-// 		int(4 * pBuilding->Owner->OwnedWeed.GetTotalAmount() / RulesClass::Instance->WeedCapacity) :
-// 		int(4 * pBuilding->Tiberium.GetTotalAmount() / pBuilding->Type->Storage)
-// 	);
-//
-// 	return 0x450E3E;
-// }
-
 ASMJIT_PATCH(0x44EFD8, BuildingClass_FindExitCell_BarracksExitCell, 0x6)
 {
 	enum { SkipGameCode = 0x44F13B, ReturnFromFunction = 0x44F037 };
@@ -379,49 +321,6 @@ ASMJIT_PATCH(0x4C9C7B, FactoryClass_QueueProduction_ForceCheckBuilding, 0x7)
 	return RulesExtData::Instance()->ExpandBuildingQueue ? SkipGameCode : 0;
 }
 
-#ifdef OLD
-ASMJIT_PATCH(0x4FAAD8, HouseClass_AbandonProduction_RewriteForBuilding, 0x8)
-{
-	enum { CheckSame = 0x4FAB3D, SkipCheck = 0x4FAB64, Return = 0x4FAC9B };
-
-	GET_STACK(const bool, all, STACK_OFFSET(0x18, 0x10));
-	GET(const int, index, EBX);
-	GET(const BuildCat, buildCat, ECX);
-	GET(const AbstractType, absType, EBP);
-	GET(FactoryClass* const, pFactory, ESI);
-
-	if (buildCat == BuildCat::DontCare || all)
-	{
-		const auto pType = TechnoTypeClass::GetByTypeAndIndex(absType, index);
-		const auto firstRemoved = pFactory->RemoveOneFromQueue(pType);
-
-		if (firstRemoved)
-		{
-			SidebarClass::Instance->SidebarBackgroundNeedsRedraw = true; // Added, force redraw strip
-			SidebarClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(absType, index, 0));
-
-			if (all)
-				while (pFactory->RemoveOneFromQueue(pType));
-			else
-				return Return;
-		}
-
-		return CheckSame;
-	}
-
-	if (!pFactory->Object)
-		return SkipCheck;
-
-	if (!pFactory->RemoveOneFromQueue(TechnoTypeClass::GetByTypeAndIndex(absType, index)))
-		return CheckSame;
-
-	SidebarClass::Instance->SidebarBackgroundNeedsRedraw = true; // Added, force redraw strip
-	SidebarClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(absType, index, 0));
-	return Return;
-}
-#else 
-//DEFINE_JUMP(LJMP, 0x4FABEE, 0x4FAB3D)
-
 ASMJIT_PATCH(0x4FAAD8, HouseClass_AbandonProduction_RewriteForBuilding, 0x8)
 {
 	enum { CheckSame = 0x4FAB3D, SkipCheck = 0x4FAB64, Return = 0x4FAC9B };
@@ -452,7 +351,6 @@ ASMJIT_PATCH(0x4FAAD8, HouseClass_AbandonProduction_RewriteForBuilding, 0x8)
 
 	return CheckSame;
 }
-#endif
 
 ASMJIT_PATCH(0x4FA612, HouseClass_BeginProduction_ForceRedrawStrip, 0x5)
 {
@@ -625,13 +523,6 @@ ASMJIT_PATCH(0x440042, BuildingClass_UpdateDelayedFiring_PrefiringMark1, 0x9)
 	pThis->_GetExtData()->IsFiringNow = (int)pThis->PrismStage && pThis->DelayBeforeFiring <= 1;
 	return 0;
 }
-
-// ASMJIT_PATCH(0x4400F9, BuildingClass_UpdateDelayedFiring_PrefiringMar2, 0x7)
-// {
-// 	GET(FakeBuildingClass*, pThis, ESI);
-// 	pThis->_GetExtData()->IsFiringNow = false;
-// 	return 0;
-// }
 
 ASMJIT_PATCH(0x446816, BuildingClass_Place_RevealToAll_UpdateSight, 0x5)
 {

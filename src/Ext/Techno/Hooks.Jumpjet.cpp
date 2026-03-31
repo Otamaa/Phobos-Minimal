@@ -53,19 +53,6 @@ ASMJIT_PATCH(0x4D8606, FootClass_UpdatePosition_Sensors, 0x6)
 	return SkipGameCode;
 }
 
-// Fix initial facing when jumpjet locomotor is being attached
-// there is bug with preplaced units , wait for fix
-//ASMJIT_PATCH(0x54AE44, JumpjetLocomotionClass_LinkToObject_FixFacing, 0x7)
-//{
-//	GET(ILocomotion*, iLoco, EBP);
-//	auto const pThis = static_cast<JumpjetLocomotionClass*>(iLoco);
-//
-//	pThis->Facing.Set_Current(pThis->LinkedTo->PrimaryFacing.Current());
-//	pThis->Facing.Set_Desired(pThis->LinkedTo->PrimaryFacing.Desired());
-//	pThis->LinkedTo->PrimaryFacing.SetROT(pThis->TurnRate);
-//	return 0;
-//}
-
 static FireError __stdcall JumpjetLocomotionClass_Can_Fire(ILocomotion* pThis)
 {
 	// do not use explicit toggle for this
@@ -156,36 +143,6 @@ ASMJIT_PATCH(0x7115AE, TechnoTypeClass_CTOR_JumpjetControls, 0xA)
 	return 0x711601;
 }
 
-// skip vanilla JumpjetControls and make it earlier load
-//DEFINE_SKIP_HOOK(0x668EB5 , RulesClass_Process_SkipJumpjetControls ,0x8 , 668EBD);
-//DEFINE_JUMP(LJMP, 0x668EB5, 0x668EBD); // RulesClass_Process_SkipJumpjetControls
-
-// ASMJIT_PATCH(0x52D0F9, InitRules_EarlyLoadJumpjetControls, 0x6)
-// {
-// 	GET(RulesClass*, pThis, ECX);
-// 	GET(CCINIClass*, pINI, EAX);
-//
-// 	RulesExtData::LoadEarlyBeforeColor(pThis, pINI);
-// 	pThis->Read_JumpjetControls(pINI);
-//
-// 	return 0;
-// }
-
-//ASMJIT_PATCH(0x6744E4, RulesClass_ReadJumpjetControls_Extra, 0x7)
-//{
-//	if (const auto pRulesExt = RulesExtData::Instance())
-//	{
-//		GET(CCINIClass*, pINI, EDI);
-//
-//		INI_EX exINI(pINI);
-//
-//		pRulesExt->JumpjetCrash.Read(exINI, GameStrings::JumpjetControls(), "Crash");
-//		pRulesExt->JumpjetNoWobbles.Read(exINI, GameStrings::JumpjetControls(), "NoWobbles");
-//	}
-//
-//	return 0;
-//}
-
 ASMJIT_PATCH(0x54C036, JumpjetLocomotionClass_State3_UpdateSensors, 0x7)
 {
 	GET(FootClass* const, pLinkedTo, ECX);
@@ -226,23 +183,6 @@ ASMJIT_PATCH(0x54D06F, JumpjetLocomotionClass_ProcessCrashing_RemoveSensors, 0x5
 
 #include <AircraftTrackerClass.h>
 
-//ASMJIT_PATCH(0x54B8E9, JumpjetLocomotionClass_In_Which_Layer_Deviation, 0x6)
-//{
-//	GET(TechnoClass*, pThis, EAX);
-//
-//	if (pThis->IsInAir())
-//	{
-//		if (!TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->JumpjetAllowLayerDeviation
-//			.Get(RulesExtData::Instance()->JumpjetAllowLayerDeviation.Get()))
-//		{
-//			R->EDX(INT32_MAX); // Override JumpjetHeight / CruiseHeight check so it always results in 3 / Layer::Air.
-//			return 0x54B96B;
-//		}
-//	}
-//
-//	return 0;
-//}
-
 ASMJIT_PATCH(0x54D138, JumpjetLocomotionClass_Movement_AI_SpeedModifiers, 0x6)
 {
 	GET(JumpjetLocomotionClass*, pThis, ESI);
@@ -271,7 +211,6 @@ ASMJIT_PATCH(0x54CB0E, JumpjetLocomotionClass_State5_CrashRotation, 0x7)
 
 }
 
-//DEFINE_JUMP(LJMP, 0x54DCCF, 0x54DCE8);//JumpjetLocomotionClass_DrawMatrix_NoTiltCrashJumpjetHereBlyat
 
 // We no longer explicitly check TiltCrashJumpjet when drawing, do it when crashing
 ASMJIT_PATCH(0x70B649, TechnoClass_RigidBodyDynamics_NoTiltCrashBlyat, 0x6)
@@ -285,15 +224,6 @@ ASMJIT_PATCH(0x70B649, TechnoClass_RigidBodyDynamics_NoTiltCrashBlyat, 0x6)
 
 	return 0;
 }
-
-// ASMJIT_PATCH(0x54DD3D, JumpjetLocomotionClass_DrawMatrix_AxisCenterInAir, 0x5)
-// {
-// 	GET(ILocomotion*, iloco, ESI);
-// 	if (static_cast<JumpjetLocomotionClass*>(iloco)->NextState == JumpjetLocomotionClass::State::Grounded)
-// 		return 0;
-//
-// 	return 0x54DE88;
-// }
 
 namespace JumpjetTiltReference
 {
@@ -443,19 +373,6 @@ ASMJIT_PATCH(0x73B748, UnitClass_DrawVXL_ResetKeyForTurretUse, 0x7)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECD8C, JumpjetLocomotionClass_Draw_Matrix);
 //TODO : Issue #690 #655
 
-// Otamaa
-//ASMJIT_PATCH(0x54DCE8, JumpetLocomotionClass_DrawMatrix, 0x9)
-//{
-//	GET(ILocomotion*, pILoco, ESI);
-//	auto pLoco = static_cast<JumpjetLocomotionClass*>(pILoco);
-//
-//	if (ILocomotionPtr pPiggy = pLoco->Owner->Locomotor)
-//	{
-//
-//	}
-//
-//	return LocomotionClass::End_Piggyback(pLoco->Owner->Locomotor) ? 0x0 : 0x54DF13;
-//}
 
 ASMJIT_PATCH(0x54D208, JumpjetLocomotionClass_MovementAI_Wobbles, 0x5)
 {
@@ -489,73 +406,6 @@ ASMJIT_PATCH(0x54D326, JumpjetLocomotionClass_MovementAI_CrashSpeedFix, 0x6)
 	GET(JumpjetLocomotionClass*, pThis, ESI);
 	return pThis->LinkedTo->IsCrashing ? 0x54D350 : 0;
 }
-
-//ASMJIT_PATCH(0x54B6E0, JumpjetLocomotionClass_DoTurn, 0x8)
-//{
-//	GET_STACK(ILocomotion*, iloco, 0x4);
-//	GET_STACK(DirStruct, dir, 0x8);
-//	// This seems to be used only when unloading shit on the ground
-//	// Rewrite just in case
-//	auto pThis = static_cast<JumpjetLocomotionClass*>(iloco);
-//	pThis->Facing.Set_Desired(dir);
-//	pThis->LinkedTo->PrimaryFacing.Set_Desired(dir);
-//	return 0x54B6FF;
-//}
-
-// Bugfix: Jumpjet turn to target when attacking
-// Even though it's still not the best place to do this, given that 0x54BF5B has done the similar action, I'll do it here too
-//ASMJIT_PATCH(0x54BD93, JumpjetLocomotionClass_State2_54BD30_TurnToTarget, 0x6)
-//{
-//	enum { ContinueNoTarget = 0x54BDA1, EndFunction = 0x54BFDE, ContinueFunc = 0x54BDA1 };
-//
-//	GET(JumpjetLocomotionClass* const, pLoco, ESI);
-//	GET(FootClass* const, pLinkedTo, EDI);
-//
-//	const auto pTarget = pLinkedTo->Target;
-//	if (!pTarget)
-//		return ContinueNoTarget;
-//
-//	if (const auto pThis = cast_to<UnitClass*>(pLinkedTo))
-//	{
-//		if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->JumpjetTurnToTarget.Get(RulesExtData::Instance()->JumpjetTurnToTarget))
-//		{
-//			CoordStruct& source = pThis->Location;
-//			CoordStruct target = pTarget->GetCoords();
-//			DirStruct tgtDir = DirStruct(std::atan2(source.Y - target.Y, target.X - source.X));
-//
-//			if (pThis->GetRealFacing().Current().GetFacing<32>() != tgtDir.GetFacing<32>())
-//				pLoco->Facing.Set_Desired(tgtDir);
-//
-//			R->EAX(pTarget);
-//			return EndFunction;
-//		}
-//	}
-//
-//	return ContinueFunc;
-//}
-
-//ASMJIT_PATCH(0x54AEC0, JumpjetLocomotionClass_Process_TurnToTarget, 0x8)
-//{
-	//GET_STACK(ILocomotion*, iLoco, 0x4);
-//	const auto pLoco = static_cast<JumpjetLocomotionClass*>(iLoco);
-//const auto pThis = pLoco->Owner;
-//	const auto pType = pThis->GetTechnoType();
-//	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find<false>(pType);
-//
-//	if (pTypeExt && pTypeExt->JumpjetTurnToTarget.Get(RulesExtData::Instance()->JumpjetTurnToTarget) &&
-	//	pThis->WhatAmI() == AbstractType::Unit && pThis->IsInAir() && !pType->TurretSpins && pLoco)
-	//{
-	//	if (const auto pTarget = pThis->Target)
-	//	{
-//			const CoordStruct source = pThis->Location;
-	//		const CoordStruct target = pTarget->GetCoords();
-//			const DirStruct tgtDir = DirStruct(static_cast<double>(source.Y - target.Y), static_cast<double>(target.X - source.X));
-//			if (pThis->GetRealFacing().current().value32() != tgtDir.value32())
-	//			pLoco->Facing.turn(tgtDir);
-//		}
-//	}
-//	return 0;
-//}
 
 // Let the jumpjet increase their height earlier or simply skip the stop check
 namespace JumpjetRushHelpers

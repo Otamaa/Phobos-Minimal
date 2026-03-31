@@ -1,10 +1,12 @@
 #include "Body.h"
 
 #include <AircraftClass.h>
-
 #include <AircraftTrackerClass.h>
+
 #include <Locomotor/FlyLocomotionClass.h>
+
 #include <Misc/DamageArea.h>
+
 #include <Ext/Building/Body.h>
 #include <Ext/AircraftType/Body.h>
 
@@ -122,15 +124,12 @@ ASMJIT_PATCH(0x4CF31C, FlyLocomotionClass_FlightUpdate_LandingDir, 0x9)
 			return SkipGameCode;
 
 		if (const auto pAircraft = cast_to<AircraftClass*, true>(pFoot))
-			dir = DirStruct( BuildingExtData::GetPoseDir(pAircraft, nullptr)).Raw;
+			dir = DirStruct(BuildingExtData::GetPoseDir(pAircraft, nullptr)).Raw;
 		else
 			dir = (iFly->Landing_Direction() << 13);
 	}
 
 	return SetSecondaryFacing;
 }
-
-#include <Ext/AircraftType/Body.h>
-
 
 

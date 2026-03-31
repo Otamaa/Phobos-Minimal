@@ -21,8 +21,6 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "IsometricTileTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "IsometricTileTypeClass";
 	
-	
-
 public :
 
 #pragma region ClassMembers
@@ -114,8 +112,9 @@ public:
 	std::map<std::string, std::map<TintStruct, LightConvertClass*>> LightConvertEntities;
 	int CurrentTileset;
 
-	virtual bool LoadAll(const json& root) { return true; }
-	virtual bool SaveAll(json& root) { return true; }
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
+
 	virtual void Clear() { 
 		this->base_t::Clear();
 		this->LightConvertEntities.clear();

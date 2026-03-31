@@ -1,11 +1,9 @@
 #pragma once
 #include <AnimClass.h>
 
-#include <Utilities/PooledContainer.h>
 #include <Utilities/OptionalStruct.h>
 #include <Utilities/TemplateDef.h>
 #include <Utilities/Handle.h>
-//#include <New/AnonymousType/SpawnsStatus.h>
 
 #include <ParticleSystemClass.h>
 
@@ -19,8 +17,6 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "AnimExData";
 	static COMPILETIMEEVAL const char* BaseClassName = "AnimClass";
 	
-	
-
 public:
 
 #pragma region ClassMembers
@@ -163,8 +159,8 @@ public:
 
 public:
 
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 	virtual void Clear();
 };
 
@@ -172,7 +168,6 @@ class AnimTypeExtData;
 class NOVTABLE FakeAnimClass : public AnimClass
 {
 public:
-
 
 	FORCEDINLINE HouseClass* _GetOwningHouse() {
 		return this->Owner;

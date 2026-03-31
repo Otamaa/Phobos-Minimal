@@ -13,8 +13,7 @@
 #include <TextDrawing.h>
 
 #include <Misc/Hooks.Otamaa.h>
-
-#include <Phobos.SaveGame.h>
+#include <Misc/PhobosGlobal.h>
 
 BuildingExtData::~BuildingExtData()
 {
@@ -41,7 +40,7 @@ bool BuildingExtData::BuildingHasPower(BuildingClass* pThis)
 	//		return false;
 	//	}
 
-	//	if (!(TechnoExtContainer::Instance.Find(pThis)->Is_Operated || TechnoExt_ExtData::IsOperated(pBld))) {
+	//	if (!(TechnoExtContainer::Instance.Find(pThis)->Is_Operated || TechnoExtData::IsOperated(pBld))) {
 	//		return false;
 	//	}
 
@@ -1765,14 +1764,7 @@ public:
 	//}
 };
 
-#include <Misc/Ares/Hooks/Header.h>
-
 // Calculate the mask once at initialization (assuming you know ColorStruct at startup)
-COMPILETIMEEVAL WORD BuildPcxMask()
-{
-	return (0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft)
-		| (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft);
-}
 
 void FakeBuildingClass::_DrawVisible(Point2D* pLocation, RectangleStruct* pBounds)
 {
@@ -1813,7 +1805,7 @@ void FakeBuildingClass::_DrawVisible(Point2D* pLocation, RectangleStruct* pBound
 				RectangleStruct cameoRect {};
 
 				// support for pcx cameos
-				if (auto pPCX = TechnoTypeExt_ExtData::GetPCXSurface(pProdType, this->Owner))
+				if (auto pPCX = TechnoTypeExtData::GetPCXSurface(pProdType, this->Owner))
 				{
 					const int cameoWidth = 60;
 					const int cameoHeight = 48;
@@ -1825,13 +1817,7 @@ void FakeBuildingClass::_DrawVisible(Point2D* pLocation, RectangleStruct* pBound
 					if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds))
 					{
 						cameoRect = destRect;
-						if (!StaticVars::InitEd)
-						{
-							StaticVars::GlobalPcxBlitter = AresPcxBlit<WORD>(BuildPcxMask(), 60, 48, 2);
-							StaticVars::InitEd = true;
-						}
-
-						Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &StaticVars::GlobalPcxBlitter, 0, 3, 1000, 0);
+						Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &PhobosGlobal::Instance()->GlobalPcxBlitter, 0, 3, 1000, 0);
 
 					}
 				}
@@ -1891,13 +1877,7 @@ void FakeBuildingClass::_DrawVisible(Point2D* pLocation, RectangleStruct* pBound
 						if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds))
 						{
 							cameoRect = destRect;
-							if (!StaticVars::InitEd)
-							{
-								StaticVars::GlobalPcxBlitter = AresPcxBlit<WORD>(BuildPcxMask(), 60, 48, 2);
-								StaticVars::InitEd = true;
-							}
-
-							Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &StaticVars::GlobalPcxBlitter, 0, 3, 1000, 0);
+							Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &PhobosGlobal::Instance()->GlobalPcxBlitter, 0, 3, 1000, 0);
 						}
 
 					}
@@ -2476,7 +2456,7 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x456750, FakeBuildingClass::_DrawRadialIndicator)
 InfantryTypeClass* FakeBuildingClass::__GetCrew()
 {
 	// YR defaults to 25 for buildings producing buildings
-	return TechnoExt_ExtData::GetBuildingCrew(this, TechnoTypeExtContainer::Instance.Find(this->Type)->
+	return TechnoExtData::GetBuildingCrew(this, TechnoTypeExtContainer::Instance.Find(this->Type)->
 		Crew_EngineerChance.Get((this->Type->Factory == BuildingTypeClass::AbsID) ? 25 : 0));
 }
 
@@ -2665,6 +2645,344 @@ ASMJIT_PATCH(0x43D874, BuildingClass_Draw_BuildupBibShape, 0x6)
  	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID >= 0 ? 0x43D9D5 : 0x0;
  }
 
+  DWORD BuildingExtData::GetFirewallFlags(BuildingClass* pThis)
+  {
+	  auto pCell = MapClass::Instance->GetCellAt(pThis->Location);
+	  DWORD flags = 0;
+	  for (size_t direction = 0; direction < 8; direction += 2)
+	  {
+		  if (auto pNeighbour = pCell->GetNeighbourCell((FacingType)direction))
+		  {
+			  if (auto pBld = pNeighbour->GetBuilding())
+			  {
+				  if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->Firestorm_Wall
+					  && pBld->Owner == pThis->Owner
+					  && !pBld->InLimbo
+					  && pBld->IsAlive
+				  )
+				  {
+					  flags |= 1 << (direction >> 1);
+				  }
+			  }
+		  }
+	  }
+
+	  return flags;
+  }
+
+  void BuildingExtData::ImmolateVictims(TechnoClass* pThis)
+  {
+	  auto const pCell = pThis->GetCell();
+	  for (NextObject object(pCell->FirstObject); object; ++object)
+	  {
+		  if (auto pFoot = flag_cast_to<FootClass*, false>(*object))
+		  {
+			  if (!pFoot->GetType()->IgnoresFirestorm)
+			  {
+				  BuildingExtData::ImmolateVictim(pThis, pFoot);
+			  }
+		  }
+	  }
+  }
+
+  bool BuildingExtData::ImmolateVictim(TechnoClass* pThis, ObjectClass* const pVictim, bool const destroy)
+  {
+	  if (pVictim && pVictim->IsAlive && pVictim->Health > 0 && !pVictim->InLimbo)
+	  {
+		  auto const pRulesExt = RulesExtData::Instance();
+
+		  if (destroy)
+		  {
+			  const auto pWarhead = pRulesExt->FirestormWarhead.Get(
+				  RulesClass::Instance->C4Warhead);
+
+			  auto damage = pVictim->Health;
+			  pVictim->ReceiveDamage(&damage, 0, pWarhead, pThis, true, true, pThis->Owner);
+		  }
+
+		  auto const& pType = (pVictim->GetHeight() < 100)
+			  ? pRulesExt->FirestormGroundAnim
+			  : pRulesExt->FirestormAirAnim;
+
+		  if (pType)
+		  {
+			  auto const crd = pVictim->GetCoords();
+			  HouseClass* pTarget = nullptr;
+			  switch (pVictim->WhatAmI())
+			  {
+			  case AbstractType::Building:
+			  case AbstractType::Unit:
+			  case AbstractType::Aircraft:
+			  case AbstractType::Infantry:
+				  pTarget = ((TechnoClass*)pVictim)->Owner;
+				  break;
+			  case AbstractType::Bullet:
+			  {
+				  const auto pBlt = (BulletClass*)pVictim;
+				  pTarget = pBlt->Owner ? pBlt->Owner->Owner : BulletExtContainer::Instance.Find(pBlt)->Owner;
+			  }
+			  break;
+			  default:
+				  break;
+			  }
+
+			  AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, crd, 0, 1, 0x600, -10, false),
+				  pThis->Owner,
+				  pTarget,
+				  pThis,
+				  false, false
+			  );
+
+		  }
+
+		  return true;
+	  }
+
+	  return false;
+  }
+
+  void BuildingExtData::UpdateFirewall(BuildingClass* pThis, bool const changedState)
+  {
+	  if (pThis->InLimbo || !pThis->IsAlive)
+	  {
+		  return;
+	  }
+
+	  auto const active = pThis->Owner->FirestormActive;
+
+	  if (!changedState)
+	  {
+		  // update only the idle anim
+		  auto& Anim = pThis->GetAnim(BuildingAnimSlot::SpecialTwo);
+
+		  // (0b0101 || 0b1010) == part of a straight line
+		  auto const connections = pThis->FirestormWallFrame & 0xF;
+		  if (active && (Unsorted::CurrentFrame & 7) && !Anim
+			  && connections != 0b0101 && connections != 0b1010
+			  && (ScenarioClass::Instance->Random.Random() & 0xF) == 0)
+		  {
+			  if (AnimTypeClass* pType = RulesExtData::Instance()->FirestormIdleAnim)
+			  {
+				  auto const crd = pThis->GetCoords() - CoordStruct { 740, 740, 0 };
+				  Anim = GameCreate<AnimClass>(pType, crd, 0, 1, 0x604, -10);
+				  Anim->IsBuildingAnim = true;
+			  }
+		  }
+	  }
+	  else
+	  {
+		  // update the frame, cell passability and active anim
+		  auto const idxFrame = BuildingExtData::GetFirewallFlags(pThis)
+			  + (active ? 32u : 0u);
+
+		  if (pThis->FirestormWallFrame != idxFrame)
+		  {
+			  pThis->FirestormWallFrame = idxFrame;
+			  pThis->GetCell()->RecalcAttributes(0xFFFFFFFF);
+			  pThis->Mark(MarkType::Redraw);
+		  }
+
+		  auto& Anim = pThis->GetAnim(BuildingAnimSlot::Special);
+
+		  auto const connections = idxFrame & 0xF;
+		  if (active && connections != 0b0101 && connections != 0b1010 && !Anim)
+		  {
+			  if (auto const& pType = RulesExtData::Instance()->FirestormActiveAnim)
+			  {
+				  auto const crd = pThis->GetCoords() - CoordStruct { 128, 128, 0 };
+				  Anim = GameCreate<AnimClass>(pType, crd, 1, 0, 0x600, -10);
+				  Anim->IsFogged = pThis->IsFogged;
+				  Anim->IsBuildingAnim = true;
+			  }
+		  }
+		  else if (Anim)
+		  {
+			  Anim->TimeToDie = true;
+			  Anim->UnInit();
+			  Anim = nullptr;
+		  }
+	  }
+
+	  if (active)
+	  {
+		  BuildingExtData::ImmolateVictims(pThis);
+	  }
+  }
+
+  void BuildingExtData::UpdateFirewallLinks(BuildingClass* pThis)
+  {
+	  if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->Firestorm_Wall)
+	  {
+		  // update this
+		  BuildingExtData::UpdateFirewall(pThis, true);
+
+		  // and all surrounding buildings
+		  auto const pCell = MapClass::Instance->GetCellAt(pThis->Location);
+		  for (size_t i = 0u; i < 8; i += 2)
+		  {
+			  if (auto const pNeighbour = pCell->GetNeighbourCell((FacingType)i))
+			  {
+				  if (auto const pBld = pNeighbour->GetBuilding())
+				  {
+					  if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->Firestorm_Wall)
+						  BuildingExtData::UpdateFirewall(pBld, true);
+				  }
+			  }
+		  }
+	  }
+  }
+
+  bool BuildingExtData::IsActiveFirestormWall(BuildingClass* const pBuilding, HouseClass const* const pIgnore)
+  {
+	  if (HouseExtContainer::Instance.IsAnyFirestormActive && pBuilding && pBuilding->Owner != pIgnore && pBuilding->Owner->FirestormActive)
+	  {
+		  if (!pBuilding->InLimbo && pBuilding->IsAlive)
+		  {
+			  return BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->Firestorm_Wall;
+		  }
+	  }
+
+	  return false;
+  }
+
+  bool BuildingExtData::sameTrench(BuildingClass* currentBuilding, BuildingClass* targetBuilding)
+  {
+	  const auto currentTypeExtData = BuildingTypeExtContainer::Instance.Find(currentBuilding->Type);
+	  const auto targetTypeExtData = BuildingTypeExtContainer::Instance.Find(targetBuilding->Type);
+
+	  return ((currentTypeExtData->IsTrench > -1) && (currentTypeExtData->IsTrench == targetTypeExtData->IsTrench));
+  }
+
+  bool BuildingExtData::canLinkTo(BuildingClass* currentBuilding, BuildingClass* targetBuilding)
+  {
+	  // Different owners // and owners not allied
+	  if ((currentBuilding->Owner != targetBuilding->Owner) && !currentBuilding->Owner->IsAlliedWith(targetBuilding->Owner))
+	  { //<-- see thread 1424
+		  return false;
+	  }
+
+	  //BuildingTypeExtData* currentTypeExtData = BuildingTypeExtContainer::Instance.Find(currentBuilding->Type);
+	  //BuildingTypeExtData* targetTypeExtData = BuildingTypeExtContainer::Instance.Find(targetBuilding->Type);
+
+	  // Firewalls
+	  if (BuildingTypeExtContainer::Instance.Find(currentBuilding->Type)->Firestorm_Wall
+		  && BuildingTypeExtContainer::Instance.Find(targetBuilding->Type)->Firestorm_Wall)
+	  {
+		  return true;
+	  }
+
+	  // Trenches
+	  if (BuildingExtData::sameTrench(currentBuilding, targetBuilding))
+	  {
+		  return true;
+	  }
+
+	  return false;
+  }
+
+  void BuildingExtData::BuildLines(BuildingClass* theBuilding, CellStruct selectedCell, HouseClass* buildingOwner)
+  {
+	  // check if this building is linkable at all and abort if it isn't
+	  if (!BuildingTypeExtData::IsLinkable(theBuilding->Type))
+	  {
+		  return;
+	  }
+
+	  short maxLinkDistance = static_cast<short>(theBuilding->Type->GuardRange / 256); // GuardRange governs how far the link can go, is saved in leptons
+
+	  for (size_t direction = 0; direction <= 7; direction += 2)
+	  {
+		  // the 4 straight directions of the simple compass
+		  CellStruct directionOffset = CellSpread::GetNeighbourOffset(direction); // coordinates of the neighboring cell in the given direction relative to the current cell (e.g. 0,1)
+		  int linkLength = 0; // how many cells to build on from center in direction to link up with a found building
+
+		  CellStruct cellToCheck = selectedCell;
+		  for (short distanceFromCenter = 1; distanceFromCenter <= maxLinkDistance; ++distanceFromCenter)
+		  {
+			  cellToCheck += directionOffset; // adjust the cell to check based on current distance, relative to the selected cell
+
+			  CellClass* cell = MapClass::Instance->TryGetCellAt(cellToCheck);
+
+			  if (!cell)
+			  { // don't parse this cell if it doesn't exist (duh)
+				  break;
+			  }
+
+			  if (BuildingClass* OtherEnd = cell->GetBuilding())
+			  { // if we find a building...
+				  if (BuildingExtData::canLinkTo(theBuilding, OtherEnd))
+				  { // ...and it is linkable, we found what we needed
+					  linkLength = distanceFromCenter - 1; // distanceFromCenter directly would be on top of the found building
+					  break;
+				  }
+
+				  break; // we found a building, but it's not linkable
+			  }
+
+			  if (!cell->CanThisExistHere(theBuilding->Type->SpeedType, theBuilding->Type, buildingOwner))
+			  { // abort if that buildingtype is not allowed to be built there
+				  break;
+			  }
+		  }
+
+		  // build a line of this buildingtype from the found building (if any) to the newly built one
+		  CellStruct cellToBuildOn = selectedCell;
+		  for (int distanceFromCenter = 1; distanceFromCenter <= linkLength; ++distanceFromCenter)
+		  {
+			  cellToBuildOn += directionOffset;
+
+			  if (CellClass* cell = MapClass::Instance->GetCellAt(cellToBuildOn))
+			  {
+				  if (BuildingClass* tempBuilding = (BuildingClass*)(theBuilding->Type->CreateObject(buildingOwner)))
+				  {
+					  CoordStruct coordBuffer = CellClass::Cell2Coord(cellToBuildOn);
+
+					  ++Unsorted::ScenarioInit; // put the building there even if normal rules would deny - e.g. under units
+					  bool Put = tempBuilding->Unlimbo(coordBuffer, DirType::North);
+					  --Unsorted::ScenarioInit;
+
+					  if (Put)
+					  {
+						  tempBuilding->QueueMission(Mission::Construction, false);
+						  tempBuilding->DiscoveredBy(buildingOwner);
+						  tempBuilding->IsReadyToCommence = 1;
+					  }
+					  else
+					  {
+						  //Debug::LogInfo(__FUNCTION__"Called!");
+						  TechnoExtData::HandleRemove(tempBuilding, nullptr, true, true);
+					  }
+				  }
+			  }
+		  }
+	  }
+  }
+
+  int BuildingExtData::GetImageFrameIndex(BuildingClass* pThis)
+  {
+	  BuildingTypeExtData* pData = BuildingTypeExtContainer::Instance.Find(pThis->Type);
+
+	  if (pData->Firestorm_Wall)
+	  {
+		  return static_cast<int>(pThis->FirestormWallFrame);
+
+		  /* this is the code the game uses to calculate the firewall's frame number when you place/remove sections... should be a good base for trench frames
+
+			  int frameIdx = 0;
+			  CellClass *Cell = this->GetCell();
+			  for(int direction = 0; direction <= 7; direction += 2) {
+				  if(BuildingClass *B = Cell->GetNeighbourCell(direction)->GetBuilding()) {
+					  if(B->IsAlive && !B->InLimbo) {
+						  frameIdx |= (1 << (direction >> 1));
+					  }
+				  }
+			  }
+
+		  */
+	  }
+
+	  return (pData->IsTrench >= 0) - 1;
+  }
 
 // =============================
 // load / save
@@ -2712,65 +3030,6 @@ void BuildingExtData::Serialize(T& Stm)
 // container
 BuildingExtContainer BuildingExtContainer::Instance;
 
-bool BuildingExtContainer::LoadAll(const json& root)
-{
-	this->Clear();
-
-	if (root.contains(BuildingExtContainer::ClassName))
-	{
-		auto& container = root[BuildingExtContainer::ClassName];
-
-		for (auto& entry : container[BuildingExtData::ClassName])
-		{
-
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			auto buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, BuildingExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
-		}
-
-		return true;
-	}
-
-	return false;
-}
-
-bool BuildingExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[BuildingExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : BuildingExtContainer::Array)
-	{
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer); // write all data to stream
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
-	}
-
-	first_layer[BuildingExtData::ClassName] = std::move(_extRoot);
-	return true;
-}
 // =============================
 // container hooks
 

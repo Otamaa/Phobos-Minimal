@@ -11,7 +11,6 @@
 #include <New/Type/ShieldTypeClass.h>
 
 #include <AnimClass.h>
-#include <Utilities/MemoryPoolUniquePointer.h>
 
 enum class SelfHealingStatus : char {
 	Online = 1, Offline = 2

@@ -21,8 +21,6 @@
 #include <AircraftClass.h>
 #include <RadBeam.h>
 
-#include <Phobos.SaveGame.h>
-
 static bool IsAllowedSplitsTarget(TechnoClass* pSource, HouseClass* pOwner, WeaponTypeClass* pWeapon, TechnoClass* pTarget , bool useverses)
 {
 	auto const pWH = pWeapon->Warhead;
@@ -1218,68 +1216,29 @@ void BulletExtData::Serialize(T& Stm)
 // container
 BulletExtContainer BulletExtContainer::Instance;
 
-bool BulletExtContainer::LoadAll(const json& root)
-{
-	this->Clear();
-
-	if (root.contains(BulletExtContainer::ClassName))
-	{
-		auto& container = root[BulletExtContainer::ClassName];
-
-		for (auto& entry : container[BulletExtData::ClassName])
-		{
-
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			auto buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, BulletExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
-		}
-
-		return true;
-	}
-
-	return false;
-}
-
-bool BulletExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[BulletExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : BulletExtContainer::Array)
-	{
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer); // write all data to stream
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
-	}
-
-	first_layer[BulletExtData::ClassName] = std::move(_extRoot);
-	return true;
-}
-
 // =============================
 // container hooks
+
+ASMJIT_PATCH(0x4664BA, BulletClass_CTOR, 0x5)
+{
+	// skip this Allocate just left BulletClass_Load_Suffix => LoadKey to Allocate
+	// when is loading a save game.
+	if (!Phobos::Otamaa::DoingLoadGame)
+	{
+		GET(BulletClass*, pItem, ESI);
+		BulletExtContainer::Instance.Allocate(pItem);
+	}
+	return 0;
+}
+
+ASMJIT_PATCH(0x4665E9, BulletClass_DTOR, 0xA)
+{
+	GET(BulletClass*, pItem, ECX);
+
+	BulletExtContainer::Instance.Remove(pItem);
+
+	return 0;
+}
 
 void FakeBulletClass::_Detach(AbstractClass* target , bool all)
 {

@@ -23,7 +23,6 @@
 
 #include <Ext/SWType/NewSuperWeaponType/Reveal.h>
 
-#include <New/Entity/VerticalLaserClass.h>
 #include <Ext/Event/Body.h>
 
 #include <Misc/DamageArea.h>

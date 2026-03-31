@@ -11,6 +11,10 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/Scenario/Body.h>
+#include <Ext/SWType/NewSuperWeaponType/LightningStorm.h>
+#include <Ext/Techno/Body.h>
+
+#include <Locomotor/JumpjetLocomotionClass.h>
 
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/Helpers.h>
@@ -21,26 +25,6 @@
 #include <TacticalClass.h>
 
 #pragma region DETONATION
-
-//ASMJIT_PATCH(0x46920B, BulletClass_Logics, 0x6)
-//{
-//	//GET(BulletClass* const, pThis, ESI);
-//	//GET_BASE(const CoordStruct*, pCoords, 0x8);
-//
-//	//if (pThis && pThis->WH)
-//	//{
-//	//	auto const pExt = BulletExtContainer::Instance.Find(pThis);
-//	//	auto const pTechno = pThis->Owner ? pThis->Owner : nullptr;
-//	//	auto const pHouse = pTechno ? pTechno->Owner : pExt->Owner ? pExt->Owner : nullptr;
-//	//
-//	//	WarheadTypeExtContainer::Instance.Find(pThis->WH)->Detonate(pTechno, pHouse, pThis, *pCoords);
-//	//}
-//
-//	PhobosGlobal::Instance()->DetonateDamageArea = false;
-//
-//	return 0;
-//}
-
 void ApplyExtraWarheads(
 	BulletClass* pBullet,
 	std::vector<WarheadTypeClass*>& exWH,
@@ -226,19 +210,6 @@ void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * 
 	}
 }
 
-// ASMJIT_PATCH(0x46A2A1, BulletClass_Logics_ReturnB, 0x5){
-// 	GET(BulletClass* , pThis ,ESI);
-// 	GET_BASE(CoordStruct*, coords, 0x8);
-//
-// 	if(auto pNullify = RulesClass::Instance->WeaponNullifyAnim){
-// 		GameCreate<AnimClass>(pNullify , coords ,0,1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200,-15,0);
-// 	}
-//
-// 	ApplyLogics(pThis, coords);
-//
-// 	return 0x46A2FB;
-// }
-
 ASMJIT_PATCH(0x469AA4, BulletClass_Logics_Extras, 0x5)
 {
 	GET(BulletClass* , pThis ,ESI);
@@ -250,111 +221,9 @@ ASMJIT_PATCH(0x469AA4, BulletClass_Logics_Extras, 0x5)
 
 #pragma endregion
 
-#include <Ext/SWType/NewSuperWeaponType/LightningStorm.h>
-
 DEFINE_FUNCTION_JUMP(LJMP , 0x48A4F0 , WarheadTypeExtData::SelectCombatAnim)
 
-/*
-void TechnoExt::RemoveParasite(TechnoClass* pThis, HouseClass* sourceHouse, WarheadTypeClass* wh)
-{
-	if (!pThis || !wh)
-		return;
-
-	const auto pFoot = flag_cast_to<FootClass*>(pThis);
-	if (!pFoot)
-		return;
-
-	bool isParasiteEatingMe = pFoot->ParasiteEatingMe && pThis->WhatAmI() != AbstractType::Infantry	&& pThis->WhatAmI() != AbstractType::Building;
-
-	// Ignore other cases that aren't useful for this logic
-	if (!isParasiteEatingMe)
-		return;
-
-	const auto pWHExt = WarheadTypeExt::ExtMap.Find(wh);
-	auto parasite = pFoot->ParasiteEatingMe;
-
-	if (!pWHExt || !pWHExt->CanRemoveParasites.Get() || !pWHExt->CanTargetHouse(parasite->Owner, pThis))
-		return;
-
-	if (pWHExt->CanRemoveParasites_ReportSound.isset() && pWHExt->CanRemoveParasites_ReportSound.Get() >= 0)
-		VocClass::SafeImmedietelyPlayAtpWHExt->CanRemoveParasites_ReportSound.Get(), parasite->GetCoords());
-
-	// Kill the parasite
-	CoordStruct coord = TechnoExt::PassengerKickOutLocation(pThis, parasite, 10);
-
-	auto deleteParasite = [parasite]()
-	{
-		auto parasiteOwner = parasite->Owner;
-		parasite->IsAlive = false;
-		parasite->IsOnMap = false;
-		parasite->Health = 0;
-
-		parasiteOwner->RegisterLoss(parasite, false);
-		parasiteOwner->RemoveTracking(parasite);
-		parasite->UnInit();
-	};
-
-	if (!pWHExt->CanRemoveParasites_KickOut.Get() || coord == CoordStruct::Empty)
-	{
-		deleteParasite;
-		return;
-	}
-
-	// Kick the parasite outside
-	pFoot->ParasiteEatingMe = nullptr;
-
-	if (!parasite->Unlimbo(coord, parasite->PrimaryFacing.Current().GetDir()))
-	{
-		// Failed to kick out the parasite, remove it instead
-		deleteParasite;
-		return;
-	}
-
-	parasite->Target = nullptr;
-	int paralysisCountdown = pWHExt->CanRemoveParasites_KickOut_Paralysis.Get() < 0 ? 15 : pWHExt->CanRemoveParasites_KickOut_Paralysis.Get();
-
-	if (paralysisCountdown > 0)
-	{
-		parasite->ParalysisTimer.Start(paralysisCountdown);
-		parasite->RearmTimer.Start(paralysisCountdown);
-	}
-
-	if (pWHExt->CanRemoveParasites_KickOut_Anim.isset())
-	{
-		if (auto const pAnim = GameCreate<AnimClass>(pWHExt->CanRemoveParasites_KickOut_Anim.Get(), parasite->GetCoords()))
-		{
-			pAnim->Owner = sourceHouse ? sourceHouse : parasite->Owner;
-			pAnim->SetOwnerObject(parasite);
-		}
-	}
-
-	return;
-}
-
-		Valueable<bool> CanRemoveParasites { false };
-		Valueable<bool> CanRemoveParasites_KickOut { false };
-		Valueable<int> CanRemoveParasites_KickOut_Paralysis { 15 };
-		NullableIdx<VocClass> CanRemoveParasites_ReportSound { };
-		Nullable<AnimTypeClass*> CanRemoveParasites_KickOut_Anim { };
-
-
-	this->CanRemoveParasites.Read(exINI, pSection, "CanRemoveParasites");
-	this->CanRemoveParasites_KickOut.Read(exINI, pSection, "CanRemoveParasites.KickOut");
-	this->CanRemoveParasites_KickOut_Paralysis.Read(exINI, pSection, "CanRemoveParasites.KickOut.Paralysis");
-	this->CanRemoveParasites_ReportSound.Read(exINI, pSection, "CanRemoveParasites.ReportSound");
-	this->CanRemoveParasites_KickOut_Anim.Read(exINI, pSection, "CanRemoveParasites.KickOut.Anim");
-
-	.Process(this->CanRemoveParasites)
-	.Process(this->CanRemoveParasites_KickOut)
-	.Process(this->CanRemoveParasites_KickOut_Paralysis)
-	.Process(this->CanRemoveParasites_ReportSound)
-	.Process(this->CanRemoveParasites_KickOut_Anim)
-
-*/
-
 static WarheadTypeClass* LocomotorWarhead;
-#include <Locomotor/JumpjetLocomotionClass.h>
-#include <Ext/Techno/Body.h>
 
 // Customize Jumpjet properties on warhead
 ASMJIT_PATCH(0x4696CE, BulletClass_Detonate_ImbueLocomotor, 0x6)

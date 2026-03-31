@@ -1,11 +1,9 @@
 #include "Body.h"
 
-#include <string>
 #include <Ext/Rules/Body.h>
 #include <Utilities/TemplateDef.h>
 
-#include <Phobos.SaveGame.h>
-
+#include <string>
 // =============================
 // container
 AITriggerTypeExtContainer AITriggerTypeExtContainer::Instance;
@@ -319,66 +317,6 @@ void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerTyp
 }
 
 #endif
-
-bool AITriggerTypeExtContainer::LoadAll(const json& root)
-{
-	this->Clear();
-
-	if (root.contains(AITriggerTypeExtContainer::ClassName))
-	{
-		auto& container = root[AITriggerTypeExtContainer::ClassName];
-
-		for (auto& entry : container[AITriggerTypeExtData::ClassName])
-		{
-
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			auto buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, AITriggerTypeExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
-		}
-
-		return true;
-	}
-
-	return false;
-}
-
-bool AITriggerTypeExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[AITriggerTypeExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : AITriggerTypeExtContainer::Array)
-	{
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer); // write all data to stream
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
-	}
-
-	first_layer[AITriggerTypeExtData::ClassName] = std::move(_extRoot);
-	return true;
-}
 
 void AITriggerTypeExtContainer::LoadFromINI(AITriggerTypeClass* key, CCINIClass* pINI, bool parseFailAddr)
 {

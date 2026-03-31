@@ -31,28 +31,21 @@
 #include <BombClass.h>
 #include <SpawnManagerClass.h>
 
-// ASMJIT_PATCH(0x448277 , BuildingClass_SetOwningHouse_Additionals , 5)
-// {
-// 	GET(BuildingClass* const, pThis, ESI);
-// 	REF_STACK(bool, announce, STACK_OFFSET(0x58, 0x8));
-//
-// 	pThis->NextMission();
-//
-// 	announce = announce && !pThis->Type->IsVehicle();
-//
-// 	if(announce && (pThis->Type->Powered || pThis->Type->PoweredSpecial))
-// 		pThis->UpdatePowerDown();
-//
-// 	return 0x0;
-// }
+void TechnoExtData::InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType)
+{
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	pExt->CurrentShieldType = pTypeExt->ShieldType;
 
-//ASMJIT_PATCH(0x4483C0, BuildingClass_SetOwningHouse_MuteSound, 0x6)
-//{
-//	GET(BuildingClass* const, pThis, ESI);
-//	REF_STACK(bool, announce, STACK_OFFSET(0x60, 0x8));
-//
-//	return announce ? 0 : 0x44848F; //early bailout
-//}
+	if (pExt->AbsType != BuildingClass::AbsID)
+	{
+		if (!pTypeExt->LaserTrailData.empty() && !pType->Invisible)
+			pExt->LaserTrails.reserve(pTypeExt->LaserTrailData.size());
+
+		TechnoExtData::InitializeLaserTrail(pThis, false);
+	}
+}
+
 
 ASMJIT_PATCH(0x7363C9, UnitClass_AI_AnimationPaused, 0x6)
 {
@@ -121,10 +114,6 @@ ASMJIT_PATCH(0x702E4E, TechnoClass_RegisterDestruction_SaveKillerInfo, 0x6)
 
 	return 0;
 }
-
-// TunnelLocomotionClass_IsToHaveShadow, skip shadow on all but idle.
-// TODO: Investigate if it is possible to fix the shadows not tilting on the burrowing etc. states.
-//DEFINE_JUMP(LJMP, 0x72A070, 0x72A07F);
 
 #include <Locomotor/TunnelLocomotionClass.h>
 
@@ -236,8 +225,6 @@ ASMJIT_PATCH(0x6B0B9C, SlaveManagerClass_Killed_DecideOwner, 0x6) //0x8
 	//	return 0x0;
 }
 
-#include <Misc/Ares/Hooks/Header.h>
-
 ASMJIT_PATCH(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -333,76 +320,6 @@ ASMJIT_PATCH(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 	R->EAX(_ROF);
 	return 0x6FD1F5;
 }
-
-// TODO :
-// yeah , fuckers !!
-  //struct VampireState {
-	// struct Data {
-	//   bool Enabled;
-	//   bool AffectAir;
-	//   AffectedHouse Affected_House;
-	//   AbstractType Affected_abs;
-	//   HelperedVector<TechnoTypeClass*> Affected_Types;
-	//   HelperedVector<TechnoTypeClass*> Exclude_Types;
-	//   Vector2D<double> Chances;
-	//   double Percent;
-	//   int TriggeredTimes;
-	// };
-
-	// HelperedVector<Data> Packed {};
-
-	// consteval void Clear() {
-	//	 Packed.clear();
-	// }
-
-	// COMPILETIMEEVAL bool Enabled() {
-	//	 return !Packed.empty();
-	// }
-
-	// //only add the data that can affect this current techno
-	// void Init()
-	// {
-
-	// }
-
-	// //update trigger count
-	// void Trigger() {
-	//	 for (auto& data : Packed) {
-	//		 if (data.Enabled && data.TriggeredTimes > 0) {
-	//			 --data.TriggeredTimes;
-
-	//			 if (data.TriggeredTimes <= 0)
-	//				 data.Enabled = false;
-	//		 }
-	//	 }
-	// }
-
-	// // apply the multiplier to the attacker ??
-	// void Apply() {
-
-	// }
-	// COMPILETIMEEVAL bool Eligible(TechnoClass* attacker, HouseClass* attackerOwner , bool isInAir) {
-
-
-
-
-	//	 return true;
-	// }
- //};
-
-// void NOINLINE ApplyVampire(int* pRealDamage, WarheadTypeClass* pWH, DamageState damageState, TechnoClass* pAttacker, HouseClass* pAttackingHouse)
-// {
-// 	if(!pAttacker || !pAttacker->IsAlive || pAttacker->IsCrashing || pAttacker->IsSinking || pAttacker->TemporalTargetingMe)
-// 		return;
-
-// 	bool inAir = pTechno->IsInAir();
-
-// 	vampireEffect->Trigger();
-// 	int damage = -(int)(*pRealDamage * ae->AEData.Vampire.Percent);
-// 	if (damage != 0) {
-// 		pAttacker->TakeDamage(damage, pAttacker->GetTechnoType()->Crewed, true, pAttacker, pAttackingHouse);
-// 	}
-// }
 
 ASMJIT_PATCH(0x4D9992, FootClass_PointerGotInvalid_Parasite, 0x7)
 {
@@ -956,58 +873,6 @@ ASMJIT_PATCH(0x655DDD, RadarClass_ProcessPoint_RadarInvisible, 0x6)
 	return GoOtherChecks;
 }
 
-//ASMJIT_PATCH(0x5F4032, ObjectClass_FallingDown_ToDead, 0x6)
-//{
-//	GET(ObjectClass*, pThis, ESI);
-//
-//	if (auto const pTechno = flag_cast_to<TechnoClass*>(pThis))
-//	{
-//		auto pCell = pTechno->GetCell();
-//		auto pType = pTechno->GetTechnoType();
-//		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-//
-//		if (!pCell || !pCell->IsClearToMove(pType->SpeedType, true, true, ZoneType::None, pType->MovementZone, pCell->GetLevel(), pCell->ContainsBridge()))
-//			return 0;
-//
-//
-//		double ratio = pCell->Tile_Is_Water() && !pTechno->OnBridge ?
-//				pTypeExt->FallingDownDamage_Water.Get(pTypeExt->FallingDownDamage.Get())
-//				: pTypeExt->FallingDownDamage.Get();
-//
-//		int damage = 0;
-//
-//		if (ratio < 0.0)
-//			damage = int(pThis->Health * Math::abs(ratio));
-//		else if (ratio >= 0.0 && ratio <= 1.0)
-//			damage = int(pThis->GetTechnoType()->Strength * ratio);
-//		else
-//			damage = int(ratio);
-//
-//		pThis->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
-//
-//		if (pThis->Health > 0 && pThis->IsAlive)
-//		{
-//			pThis->IsABomb = false;
-//
-//			if (pThis->WhatAmI() == AbstractType::Infantry)
-//			{
-//				auto pInf = static_cast<InfantryClass*>(pTechno);
-//				const bool isWater = pCell->Tile_Is_Water();
-//
-//				if (isWater && pInf->SequenceAnim != DoType::Swim)
-//					pInf->PlayAnim(DoType::Swim, true, false);
-//				else if (!isWater && pInf->SequenceAnim != DoType::Guard)
-//					pInf->PlayAnim(DoType::Guard, true, false);
-//			}
-//		} else {
-//			pTechno->UpdatePosition((int)PCPType::During);
-//		}
-//
-//		return 0x5F405B;
-//	}
-//
-//	return 0;
-//}
 
 ASMJIT_PATCH(0x6B74F0, SpawnManagerClass_AI_UseTurretFacing, 0x5)
 {
@@ -1025,24 +890,6 @@ ASMJIT_PATCH(0x6B74F0, SpawnManagerClass_AI_UseTurretFacing, 0x5)
 
 // Allow airstrike flare draw to foot
 DEFINE_JUMP(LJMP, 0x6D481D, 0x6D482D)
-
-// ASMJIT_PATCH(0x41D97B, AirstrikeClass_Fire_SetAirstrike, 0x7)
-// {
-// 	enum { ContinueIn = 0x41D9A0, Skip = 0x41DA0B };
-
-// 	GET(AirstrikeClass*, pThis, EDI);
-// 	GET(TechnoClass*, pTarget, ESI);
-// 	const auto pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
-// 	pTargetExt->AirstrikeTargetingMe = pThis;
-// 	pTarget->StartAirstrikeTimer(100000);
-
-// 	if(auto pBld = cast_to<BuildingClass* , false>(pTarget)){
-// 		pBld->IsAirstrikeTargetingMe = true;
-// 		pBld->Mark(MarkType::Redraw);
-// 	}
-
-// 	return Skip;
-// }
 
 ASMJIT_PATCH(0x41DA52, AirstrikeClass_ResetTarget_OriginalTarget, 0x6)
 {
@@ -1173,33 +1020,7 @@ ASMJIT_PATCH(0x51EAE0, TechnoClass_WhatAction_AllowAirstrike, 0x7)
 	return Cannot;
 }
 
-// ASMJIT_PATCH(0x70782D, TechnoClass_PointerGotInvalid_Airstrike, 0x6)
-// {
-// 	GET(TechnoClass*, pThis, ESI);
-// 	GET(AbstractClass*, pAbstract, EBP);
-//
-// 	if(const auto pExt = TechnoExtContainer::Instance.Find(pThis))
-// 		AnnounceInvalidPointer(pExt->AirstrikeTargetingMe, pAbstract);
-//
-// 	AnnounceInvalidPointer(pThis->Airstrike, pAbstract);
-//
-// 	return 0x70783B;
-// }
-
 #pragma region GetEffectTintIntensity
-
-// ASMJIT_PATCH(0x43FDD6, BuildingClass_AI_Airstrike, 0x6)
-// {
-// 	enum { SkipGameCode = 0x43FDF1 };
-
-// 	GET(BuildingClass*, pThis, ESI);
-// 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-
-// 	if (pExt->AirstrikeTargetingMe)
-// 		pThis->Mark(MarkType::Redraw);
-
-// 	return SkipGameCode;
-// }
 
 ASMJIT_PATCH(0x43F9E0, BuildingClass_Mark_Airstrike, 0x6)
 {
@@ -1708,37 +1529,11 @@ ASMJIT_PATCH(0x51F179, InfantryClass_WhatAction_Immune_FakeEngineer, 0x5)
 	return 0;
 }
 
-// ASMJIT_PATCH(0x6FC31C, TechnoClass_CanFire_ForceWeapon, 0xF)
-// {
-// 	enum { UseWeaponIndex = 0x0 };
-
-// 	GET(TechnoClass* const, pThis, ESI);
-// 	GET(AbstractClass* const, pTarget, EBX);
-// 	REF_STACK(int, nWeaponIdx, STACK_OFFSET(0x10, 0xC));
-
-// 	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
-
-// 	// Force weapon check
-// 	int newIndex = pTypeExt->SelectForceWeapon(pThis, pTarget);
-
-// 	if (newIndex >= 0) {
-// 		nWeaponIdx = newIndex;
-// 	} else {
-// 		// Multi weapon check
-// 		newIndex = pTypeExt->SelectMultiWeapon(pThis, pTarget);
-
-// 		if (newIndex >= 0)
-// 			nWeaponIdx = newIndex;
-// 	}
-
-// 	return 0;
-// }
 #endif
 
 #include <Locomotor/TunnelLocomotionClass.h>
 #include <Locomotor/Cast.h>
 
-// Prevent subterranean units from deploying while underground.
 // Prevent subterranean units from deploying while underground.
 ASMJIT_PATCH(0x73D63B, UnitClass_Mi_Unload_Subterranean, 0x6)
 {
@@ -1880,30 +1675,6 @@ ASMJIT_PATCH(0x4D6E97, FootClass_MissionAreaGuard_Pursuit, 0x6)
 		? RemoveTarget
 		: KeepTarget;
 }
-
-// ASMJIT_PATCH(0x707F08, TechnoClass_GetGuardRange_AreaGuardRange, 0x5)
-// {
-// 	enum { SkipGameCode = 0x707E70 };
-
-// 	GET(Leptons, guardRange, EAX);
-// 	GET(int, mode, EDI);
-// 	GET(TechnoClass* const, pThis, ESI);
-
-// 	const bool isPlayer = pThis->Owner->IsControlledByHuman();
-// 	const auto pRulesExt =RulesExtData::Instance();
-// 	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
-
-// 	const auto& [multiplier, addend, max] = isPlayer
-// 		? std::make_tuple(pTypeExt->PlayerGuardModeGuardRangeMultiplier.Get(pRulesExt->PlayerGuardModeGuardRangeMultiplier), pTypeExt->PlayerGuardModeGuardRangeAddend.Get(pRulesExt->PlayerGuardModeGuardRangeAddend), pRulesExt->PlayerGuardModeGuardRangeMax.Get())
-// 		: std::make_tuple(pTypeExt->AIGuardModeGuardRangeMultiplier.Get(pRulesExt->AIGuardModeGuardRangeMultiplier), pTypeExt->AIGuardModeGuardRangeAddend.Get(pRulesExt->AIGuardModeGuardRangeAddend), pRulesExt->AIGuardModeGuardRangeMax.Get());
-
-// 	const Leptons min = Leptons((mode == 2) ? (7 / Unsorted::LeptonsPerCell) : 0);
-// 	const Leptons areaGuardRange = Leptons(static_cast<int>(static_cast<int>(guardRange) * multiplier + static_cast<int>(addend)));
-
-// 	R->EAX(std::clamp(areaGuardRange, min, max));
-
-// 	return SkipGameCode;
-// }
 
 ASMJIT_PATCH(0x42EBA2, BaseClass_GetBaseNodeIndex_AIAdjacentMax, 0x8)
 {
@@ -2144,3 +1915,29 @@ ASMJIT_PATCH(0x772AB3, WeaponTypeClass_AllowedThreats_AU, 0x5)
 }
 #pragma endregion
 
+ASMJIT_PATCH(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
+{
+	GET(TechnoClass*, pThis, ECX);
+	GET_STACK(AbstractClass*, pTarget, 0x4);
+	GET_STACK(const int, nWeapon, 0x8);
+	//GET(AbstractClass*, pTarget, EDI);
+
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	pExt->CurrentWeaponIdx = nWeapon;
+
+	return 0x0;
+}
+
+static WeaponStruct* __fastcall GetWeapon_(TechnoClass* pTech, void*, int idx)
+{
+	return pTech->GetWeapon(TechnoExtContainer::Instance.Find(pTech)->CurrentWeaponIdx);
+}
+DEFINE_FUNCTION_JUMP(CALL6, 0x6FDD69, GetWeapon_);
+
+
+ASMJIT_PATCH(0x6FBFE9, TechnoClass_Select_SkipVoice, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	return TechnoExtContainer::Instance.Find(pThis)->SkipVoice ? 0x6FC01E : 0x0;
+}

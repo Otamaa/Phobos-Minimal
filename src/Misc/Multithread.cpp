@@ -18,7 +18,6 @@
 
 #include <New/MessageHandler/MessageColumnClass.h>
 
-#include <Misc/Kratos/Kratos.h>
 
 // Wait this long in LockOrDemandMutex before getting impatient. Bigger values = less frequent lock demands.
 const std::chrono::duration MainPatienceDuration = std::chrono::milliseconds(5);
@@ -133,8 +132,6 @@ public:
 		auto pTempSurface = DSurface::Temp.get();
 		DSurface::Temp = DSurface::Composite;
 
-		Kratos::GScreenRender_Early();
-
 		WWMouseClass::Instance->func_40(DSurface::Composite, false);
 
 		bool shouldDraw = pThis->Bitfield != 0;
@@ -171,7 +168,6 @@ public:
 		MessageColumnClass::Instance.DrawAll();
 		WWMouseClass::Instance->func_3C(DSurface::Composite, false);
 		pThis->vt_entry_44();
-		Kratos::GSCreenRender_End();
 
 		DSurface::Temp = pTempSurface;
 	}

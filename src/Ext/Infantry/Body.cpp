@@ -5,7 +5,7 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WarheadType/Body.h>
 
-#include <Phobos.SaveGame.h>
+#include <Misc/Hooks.Otamaa.h>
 
 bool FakeInfantryClass::_Paradrop(CoordStruct* pCoords)
 {
@@ -492,7 +492,6 @@ void HandleInfantryDeath(FakeInfantryClass* pThis, WarheadTypeClass* warhead,
 		ProcessInfantryDeathAnimation(pThis, warhead, source, sourceHouse, isCyborgDeath);
 	}
 }
-#include <Misc/Hooks.Otamaa.h>
 
 DamageState FakeInfantryClass::_Take_Damage(int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse) {
 
@@ -582,67 +581,6 @@ void InfantryExtData::Serialize(T& Stm)
 // container
 
 InfantryExtContainer InfantryExtContainer::Instance;
-
-bool InfantryExtContainer::LoadAll(const json& root)
-{
-	this->Clear();
-
-	if (root.contains(InfantryExtContainer::ClassName))
-	{
-		auto& container = root[InfantryExtContainer::ClassName];
-
-		for (auto& entry : container[InfantryExtData::ClassName])
-		{
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			auto buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, InfantryExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
-		}
-
-		return true;
-	}
-
-	return false;
-
-}
-
-bool InfantryExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[InfantryExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : InfantryExtContainer::Array)
-	{
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer);
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
-	}
-
-	first_layer[InfantryExtData::ClassName] = std::move(_extRoot);
-
-	return true;
-}
 
 // =============================
 // container hooks

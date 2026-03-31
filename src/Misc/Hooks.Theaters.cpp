@@ -656,15 +656,7 @@ ASMJIT_PATCH(0x546C8B, IsometricTileTypeClass_ReadData_LunarLimitation, 0x8)
 	GET_STACK(TheaterType, theater, 0xB4);
 	return TheaterTypeClass::FindFromTheaterType_NoCheck(theater)->IsLunar ? 0x546C95 : 0x546CBF;
 }
-// #pragma optimize("", off )
-// ASMJIT_PATCH(0x47589F, CCINIClass_ReadTheater, 0x5) {
-// 	GET(const char*, pBuffer, ECX);
-// 	TheaterTypeClass::AddDefaults();
-// 	auto idx = TheaterTypeClass::FindIndexById(pBuffer);
-// 	R->EAX(idx);
-// 	return 0x4758A4;
-// }
-// #pragma optimize("", on )
+
 #undef CURRENT_THEATER
 
 #endif

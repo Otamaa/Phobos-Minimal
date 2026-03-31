@@ -110,8 +110,6 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
 
-#include <Misc/Ares/Hooks/Header.h>
-
 #include <Misc/Spawner/Main.h>
 #include <Misc/Spawner/SavedGamesInSubdir.h>
 
@@ -444,8 +442,6 @@ HRESULT Put_All_Pointers(LPSTREAM pStm)
 	return hr;
 }
 
-#include <Phobos.SaveGame.h>
-
 #include <Utilities/CompressedStream.h>
 
 bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool)
@@ -502,13 +498,13 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 		SavegameInformation saveversion {};
 		saveversion.InternalVersion = Game::Savegame_Magic();
 		saveversion.ScenarioDescription = descr;
-		saveversion.Version = AresGlobalData::version;
+		saveversion.Version = Phobos::Config::version;
 		saveversion.PlayerHouse = HouseClass::CurrentPlayer->Type->UIName;
 		saveversion.Campaign = ScenarioClass::Instance->CampaignIndex;
 		saveversion.ScenarioNumber = ScenarioClass::Instance->TechLevel;
 		sprintf_s(saveversion.ExecutableName.raw(),
 			"GAMEMD.EXE + Phobos Minimal + Mod %s ver %s",
-			AresGlobalData::ModName, AresGlobalData::ModVersion);
+			Phobos::Config::ModName, Phobos::Config::ModVersion);
 		saveversion.GameType = SessionClass::Instance->GameMode;
 
 		FILETIME filetime;

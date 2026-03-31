@@ -11,8 +11,6 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "BombExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "BombClass";
 	
-	
-
 public:
 
 	WeaponTypeExtData* Weapon { nullptr };
@@ -63,8 +61,8 @@ public:
 public:
 	static BombExtContainer Instance;
 
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 };
 
 class NOVTABLE FakeBombClass : public BombClass

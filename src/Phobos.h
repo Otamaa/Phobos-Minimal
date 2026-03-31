@@ -27,12 +27,7 @@
 
 #pragma warning( pop )
 
-#define JSON_USE_IMPLICIT_CONVERSIONS 0
-//#define JSON_DIAGNOSTICS 0
-//#define JSON_NOEXCEPTION
-#include <Lib/nlohmann/json.hpp>
-
-using json = nlohmann::ordered_json;
+class CSFText;
 
 enum class DrawDamageMode : BYTE
 {
@@ -51,6 +46,15 @@ enum class ExceptionHandlerMode {
 	Default = 0,
 	Full = 1,
 	NoRemove = 2
+};
+
+struct ColorData
+{
+	int colorRGB;
+	int selectedIndex;
+	int colorSchemeIndex;
+	char colorScheme[0x20];
+	const wchar_t* sttToolTipSublineText;
 };
 
 class PhobosStreamWriter;
@@ -168,6 +172,34 @@ public:
 		static const wchar_t* BattlePointsSidebar_Label;
 		static bool BattlePointsSidebar_Label_InvertPosition;
 		static bool BattlePointsSidebar_AlwaysShow;
+
+		static int uiColorText;
+		static int uiColorTextButton; // #1644: needed for CD prompt
+		static int uiColorTextCheckbox;
+		static int uiColorTextRadio;
+		static int uiColorTextLabel; // #1644: needed for CD prompt
+		static int uiColorTextList;
+		static int uiColorTextCombobox;
+		static int uiColorTextGroupbox;
+		static int uiColorTextEdit;
+		static int uiColorTextSlider;
+		static int uiColorTextObserver;
+		static int uiColorCaret;
+		static int uiColorSelection;
+		static int uiColorSelectionCombobox;
+		static int uiColorSelectionList;
+		static int uiColorSelectionObserver;
+		static int uiColorBorder1;
+		static int uiColorBorder2;
+		static int uiColorDisabled;
+		static int uiColorDisabledLabel;
+		static int uiColorDisabledButton;
+		static int uiColorDisabledCombobox;
+		static int uiColorDisabledCheckbox;
+		static int uiColorDisabledList;
+		static int uiColorDisabledSlider;
+		static int uiColorDisabledObserver;
+		static ColorData Colors[16 + 1];
 	};
 
 	struct Config
@@ -246,6 +278,15 @@ public:
 		static int SuperWeaponSidebar_RequiredSignificance;
 
 		static bool SuperWeaponSidebarCommands;
+
+		static DWORD InternalVersion;
+		static char ModName[0x40];
+		static char ModVersion[0x40];
+		static int ModIdentifier;
+		static CSFText ModNote;
+		static byte GFX_DX_Force;
+		static int colorCount;
+		static int version;
 	};
 
 	struct Misc

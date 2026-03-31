@@ -1,14 +1,13 @@
 #include "Body.h"
 
-#include <InfantryClass.h>
-#include <WWKeyboardClass.h>
-
 #include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <Ext/House/Body.h>
 
 #include <New/Entity/FlyingStrings.h>
 
+#include <InfantryClass.h>
+#include <WWKeyboardClass.h>
 #include <CaptureManagerClass.h>
 
 ASMJIT_PATCH(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
@@ -153,7 +152,6 @@ ASMJIT_PATCH(0x51F0AF, InfantryClass_WhatAction_Grinding, 0x5)
 
  return Skip;
 }
-#include <Misc/Ares/Hooks/Header.h>
 
 void PlayDieSounds(TechnoClass* pTechno) {
 
@@ -194,7 +192,7 @@ ASMJIT_PATCH(0x739FBC, UnitClass_PerCellProcess_Grinding, 0x6)
 	const bool pParentReverseEngineered = pBuilding->Type->Grinding && BuildingExtData::ReverseEngineer(pBuilding, pThis);
 
 	//https://bugs.launchpad.net/ares/+bug/1925359
-	TechnoExt_ExtData::AddPassengers(pBuilding, pThis , pParentReverseEngineered);
+	TechnoExtData::AddPassengers(pBuilding, pThis , pParentReverseEngineered);
 
 	if (auto const MyParasite = pThis->ParasiteEatingMe) {
 		pBuilding->Owner->GiveMoney(MyParasite->GetRefund());

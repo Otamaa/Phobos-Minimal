@@ -4,27 +4,22 @@
 #include <SuperWeaponTypeClass.h>
 
 #include <Helpers/Macro.h>
+
 #include <Utilities/PhobosMap.h>
 #include <Utilities/TemplateDef.h>
-#include <Utilities/TheaterSpecificSHP.h>
-
-#include <DirStruct.h>
 
 #include <Ext/TechnoType/Body.h>
 
-#include <New/AnonymousType/BuildSpeedBonus.h>
+#include <New/Entity/BuildSpeedBonus.h>
+#include <New/Entity/TheaterSpecificSHP.h>
+#include <New/Entity/PrismForwardingData.h>
 
 #include <New/Type/TunnelTypeClass.h>
 #include <New/Type/CursorTypeClass.h>
 
-#include <New/AnonymousType/PrismForwardingData.h>
-
 #include <Misc/Defines.h>
 
-//enum class BunkerSoundMode : int
-//{
-//	Up, Down
-//};
+#include <DirStruct.h>
 
 class SuperClass;
 class BuildingTypeExtData final : public TechnoTypeExtData
@@ -33,8 +28,6 @@ public:
 	using base_type = BuildingTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "BuildingTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "BuildingTypeClass";
-	
-	
 
 public:
 
@@ -488,6 +481,10 @@ public:
 
 	static bool IsSameBuildingType(BuildingTypeClass* pType1, BuildingTypeClass* pType2);
 
+	static DWORD FoundationLength(CellStruct const* const pFoundation);
+	static const std::vector<CellStruct>* GetCoveredCells(BuildingClass* const pThis, CellStruct const mainCoords, int const shadowHeight);
+	static void GetDisplayRect(RectangleStruct* out, CellStruct* cells);
+
 private:
 
 	template <typename T>
@@ -514,8 +511,9 @@ public:
 public:
 	static BuildingTypeExtContainer Instance;
 
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
+
 	virtual void Clear();
 
 	virtual void LoadFromINI(BuildingTypeClass* key, CCINIClass* pINI, bool parseFailAddr);

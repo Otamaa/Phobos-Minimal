@@ -7,7 +7,6 @@
 #include <Ext/House/Body.h>
 
 #include <ProgressTimer.h>
-#include <Utilities/MemoryPoolUniquePointer.h>
 
 enum class SWStateMachineIdentifier : int
 {

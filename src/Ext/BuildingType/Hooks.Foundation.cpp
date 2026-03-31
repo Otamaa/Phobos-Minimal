@@ -1,0 +1,247 @@
+#include "Body.h"
+
+#include <Ext/Building/Body.h>
+
+#include <Misc/PhobosGlobal.h>
+#include <Misc/BuildingFoundations.h>
+
+#include <TerrainClass.h>
+#include <TerrainTypeClass.h>
+
+//since we loading game reaally early , fixup some of the stuffs
+ASMJIT_PATCH(0x465201, BuildingTypeClass_LoadFromStream_Foundation, 0x6)
+{
+	GET(BuildingTypeClass*, pThis, ESI);
+
+	pThis->ToTile = 0;
+	auto pExt = BuildingTypeExtContainer::Instance.Find(pThis);
+
+	if (pExt->IsCustom && pExt->CustomWidth > 0 && pExt->CustomHeight > 0) {
+
+		// if there's custom data, assign it
+		pThis->FoundationData = pExt->CustomData.data();
+		pThis->FoundationOutside = pExt->OutlineData.data();
+	}
+	else
+	{
+		//pThis->FoundationData = FoundationDataStruct::Cells[(int)pThis->Foundation].Datas;
+		//pThis->FoundationOutside = FoundationDataStruct::Outlines[(int)pThis->Foundation].Datas;
+		pThis->FoundationData = BuildingTypeClass::FoundationlinesData[(int)pThis->Foundation].Datas;
+		pThis->FoundationOutside = BuildingTypeClass::FoundationOutlinesData[(int)pThis->Foundation].Datas;
+
+	}
+
+	SwizzleManagerClass::Instance->Swizzle((void**)&pThis->ToOverlay);
+	return 0x465239;
+}
+
+ASMJIT_PATCH(0x45eca0, BuildingTypeClass_GetFoundationHeight, 6)
+{
+	GET(BuildingTypeClass*, pThis, ECX);
+	GET_STACK(DWORD, caller, 0x0);
+
+	if (((int)pThis) == -1) {
+		Debug::FatalError("What %d\n", caller);
+	}
+
+	if (pThis->Foundation == BuildingTypeExtData::CustomFoundation) {
+		const bool bIncludeBib = (R->Stack8(0x4) != 0);
+		R->EAX(BuildingTypeExtContainer::Instance.Find(pThis)->CustomHeight + (bIncludeBib && pThis->Bib));
+		return 0x45ECDA;
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x45ec90, BuildingTypeClass_GetFoundationWidth, 6)
+{
+	GET(BuildingTypeClass*, pThis, ECX);
+
+	if (pThis->Foundation == BuildingTypeExtData::CustomFoundation)
+	{
+		R->EAX(BuildingTypeExtContainer::Instance.Find(pThis)->CustomWidth);
+		return 0x45EC9D;
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x656584, RadarClass_GetFoundationShape, 6)
+{
+	GET(RadarClass*, pThis, ECX);
+	GET(BuildingTypeClass*, pType, EAX);
+
+	const auto fnd = pType->Foundation;
+	DWORD* ret = nullptr;
+
+	if (fnd == BuildingTypeExtData::CustomFoundation) {
+		const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
+		ret = reinterpret_cast<DWORD*>(&pTypeExt->FoundationRadarShape);
+	} else if(fnd >= Foundation::_1x1 && fnd <= Foundation::_0x0) {
+		ret = reinterpret_cast<DWORD*>(pThis->FoundationTypePixels + (int)fnd);
+	} else {
+		ret = reinterpret_cast<DWORD*>(pThis->FoundationTypePixels + (int)Foundation::_2x2);
+	}
+
+	R->EAX(ret);
+	return 0x656595;
+}
+
+ASMJIT_PATCH(0x6563B0, RadarClass_UpdateFoundationShapes_Custom, 5)
+{
+	// update each building type foundation
+	for (auto pType : *BuildingTypeClass::Array)
+	{
+		BuildingTypeExtContainer::Instance.Find(pType)->UpdateFoundationRadarShape();
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x568565, MapClass_AddContentAt_Foundation_OccupyHeight, 5)
+{
+	GET(BuildingClass*, pThis, EDI);
+	GET(int, ShadowHeight, EBP);
+	GET_STACK(CellStruct*, MainCoords, 0x8B4);
+
+	auto const AffectedCells = BuildingTypeExtData::GetCoveredCells(
+		pThis, *MainCoords, ShadowHeight);
+
+	for(const auto& cell : *AffectedCells) {
+		if (auto pCell = MapClass::Instance->TryGetCellAt(cell)) {
+			++pCell->OccupyHeightsCoveringMe;
+		}
+	}
+
+	return 0x568697;
+}
+
+ASMJIT_PATCH(0x568411, MapClass_AddContentAt_Foundation_P1, 6)
+{
+	GET(ObjectClass*, pThis, EDI);
+
+	if (auto pTerrain = cast_to<TerrainClass*, false>(pThis)) {
+		if (pTerrain->Type->Foundation == 21)
+			return 0x5687DF;
+	}
+
+	R->EBP(pThis->GetFoundationData(false));
+	return 0x568432;
+}
+
+ASMJIT_PATCH(0x568841, MapClass_RemoveContentAt_Foundation_P1, 6)
+{
+	GET(BuildingClass*, pThis, EDI);
+	R->EBP(pThis->GetFoundationData(false));
+	return 0x568862;
+}
+
+ASMJIT_PATCH(0x568997, MapClass_RemoveContentAt_Foundation_OccupyHeight, 5)
+{
+	GET(BuildingClass*, pThis, EDX);
+	GET(int, ShadowHeight, EBP);
+	GET_STACK(CellStruct*, MainCoords, 0x8B4);
+
+	auto const AffectedCells = BuildingTypeExtData::GetCoveredCells(
+		pThis, *MainCoords, ShadowHeight);
+
+	for (const auto& cell : *AffectedCells) {
+		if (auto pCell = MapClass::Instance->TryGetCellAt(cell)) {
+			if (pCell->OccupyHeightsCoveringMe > 0)
+				--pCell->OccupyHeightsCoveringMe;
+		}
+	}
+
+	return 0x568ADC;
+}
+
+ASMJIT_PATCH(0x4A8C77, DisplayClass_ProcessFoundation1_UnlimitBuffer, 5)
+{
+	GET_STACK(CellStruct const*, Foundation, 0x18);
+	GET(DisplayClass*, Display, EBX);
+
+	DWORD Len = BuildingTypeExtData::FoundationLength(Foundation);
+
+	PhobosGlobal::Instance()->TempFoundationData1.assign(Foundation, Foundation + Len);
+
+	Display->CurrentFoundation_Data = PhobosGlobal::Instance()->TempFoundationData1.data();
+
+	auto const bounds = Display->FoundationBoundsSize(
+		PhobosGlobal::Instance()->TempFoundationData1.data());
+
+	R->Stack<CellStruct>(0x18, bounds);
+	R->EAX<CellStruct*>(R->lea_Stack<CellStruct*>(0x18));
+
+	return 0x4A8C9E;
+}
+
+ASMJIT_PATCH(0x4A8DD7, DisplayClass_ProcessFoundation2_UnlimitBuffer, 5)
+{
+	GET_STACK(CellStruct const*, Foundation, 0x18);
+	GET(DisplayClass*, Display, EBX);
+
+	DWORD Len = BuildingTypeExtData::FoundationLength(Foundation);
+
+	PhobosGlobal::Instance()->TempFoundationData2.assign(Foundation, Foundation + Len);
+
+	Display->CurrentFoundationCopy_Data = PhobosGlobal::Instance()->TempFoundationData2.data();
+
+	auto const bounds = Display->FoundationBoundsSize(
+		PhobosGlobal::Instance()->TempFoundationData2.data());
+
+	R->Stack<CellStruct>(0x18, bounds);
+	R->EAX<CellStruct*>(R->lea_Stack<CellStruct*>(0x18));
+
+	return 0x4A8DFE;
+}
+
+ASMJIT_PATCH(0x45ECE0, BuildingTypeClass_GetMaxPips, 6)
+{
+	GET(BuildingTypeClass*, pThis, ECX);
+
+	if (pThis->Foundation == BuildingTypeExtData::CustomFoundation)
+	{
+		R->EAX(BuildingTypeExtContainer::Instance.Find(pThis)->CustomWidth);
+		return 0x45ECED;
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x465550, BuildingTypeClass_GetFoundationOutline, 6)
+{
+	GET(BuildingTypeClass*, pThis, ECX);
+
+	if (pThis->Foundation == BuildingTypeExtData::CustomFoundation)
+	{
+		R->EAX(BuildingTypeExtContainer::Instance.Find(pThis)->OutlineData.data());
+		return 0x46556D;
+	}
+
+	auto sz = (int)pThis->Foundation;
+	if ( sz == 9 ) {
+        sz = 6;
+    }
+
+	R->EAX(BuildingTypeClass::FoundationOutlinesData[sz].Datas);
+	//R->EAX(FoundationDataStruct::Outlines[sz].Datas);
+	return 0x46556D;
+}
+
+ASMJIT_PATCH(0x464AF0, BuildingTypeClass_GetSizeInLeptons, 6)
+{
+	GET(BuildingTypeClass*, pThis, ECX);
+	if (pThis->Foundation == BuildingTypeExtData::CustomFoundation)
+	{
+		GET_STACK(CoordStruct*, Coords, 0x4);
+		const auto pData = BuildingTypeExtContainer::Instance.Find(pThis);
+
+		Coords->X = pData->CustomWidth * 256;
+		Coords->Y = pData->CustomHeight * 256;
+		Coords->Z = BuildingTypeClass::HeightInLeptons * pThis->Height;
+		R->EAX(Coords);
+		return 0x464B2C;
+	}
+	return 0;
+
+}

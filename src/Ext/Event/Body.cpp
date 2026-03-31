@@ -1,7 +1,5 @@
 #include "Body.h"
 
-#include <Misc/Ares/Hooks/Header.h>
-
 #include <Ext/Building/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/TechnoType/Body.h>
@@ -174,8 +172,8 @@ void EventExt::TrenchRedirectClick::Respond(EventClass* Event)
 				pTargetCell == cell the user clicked on; event fires only on buildings which showed the enter cursor
 			*/
 			BuildingClass* targetBuilding = pTargetCell->GetBuilding();
-			if (TechnoExt_ExtData::canTraverseTo(pSourceBuilding, targetBuilding)) // check has happened before the enter cursor appeared
-				TechnoExt_ExtData::doTraverseTo(pSourceBuilding, targetBuilding);
+			if (TechnoExtData::canTraverseTo(pSourceBuilding, targetBuilding)) // check has happened before the enter cursor appeared
+				TechnoExtData::doTraverseTo(pSourceBuilding, targetBuilding);
 		}
 	}
 }
@@ -290,7 +288,7 @@ void EventExt::FirewallToggle::Respond(EventClass* Event)
 {
 	if (HouseClass* pSourceHouse = HouseClass::Array->get_or_default(Event->HouseIndex))
 	{
-		AresHouseExt::SetFirestormState(pSourceHouse, !pSourceHouse->FirestormActive);
+		HouseExtData::SetFirestormState(pSourceHouse, !pSourceHouse->FirestormActive);
 	}
 }
 

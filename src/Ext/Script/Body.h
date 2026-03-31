@@ -328,6 +328,7 @@ public:
 	static void SimpleDeployerDeploy(TeamClass* pTeam, int mode = -1);
 
 	static void PlaySpeech(TeamClass* pTeam);
+	static bool Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bThirdArd);
 
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
@@ -356,7 +357,7 @@ public:
 public:
 	static ScriptExtContainer Instance;
 
-	virtual bool LoadAll(const json& root) { return true;  };
-	virtual bool SaveAll(json& root) { return true;  };
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 };

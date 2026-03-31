@@ -23,7 +23,6 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "BuildingExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "BuildingClass";
 	
-	
 
 public:
 #pragma region ClassMember
@@ -210,6 +209,18 @@ public:
 	}
 
 	static bool CheckBuildingFoundation(BuildingTypeClass* const pBuildingType, const CellStruct topLeftCell, HouseClass* const pHouse, bool& noOccupy);
+
+	static DWORD GetFirewallFlags(BuildingClass* pThis);
+	static void ImmolateVictims(TechnoClass* pThis);
+	static bool ImmolateVictim(TechnoClass* pThis, ObjectClass* const pVictim, bool const destroy = true);
+	static void UpdateFirewall(BuildingClass* pThis, bool const changedState);
+	static void UpdateFirewallLinks(BuildingClass* pThis);
+	static bool IsActiveFirestormWall(BuildingClass* const pBuilding, HouseClass const* const pIgnore);
+	static bool sameTrench(BuildingClass* currentBuilding, BuildingClass* targetBuilding);
+	static bool canLinkTo(BuildingClass* currentBuilding, BuildingClass* targetBuilding);
+	static void BuildLines(BuildingClass* theBuilding, CellStruct selectedCell, HouseClass* buildingOwner);
+	static int GetImageFrameIndex(BuildingClass* pThis);
+
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -224,8 +235,8 @@ public:
 public:
 	static BuildingExtContainer Instance;
 
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 };
 
 class NOVTABLE FakeBuildingClass : public BuildingClass

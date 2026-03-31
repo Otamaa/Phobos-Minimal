@@ -1,16 +1,20 @@
+#include <Phobos.h>
+
 #include <LoadOptionsClass.h>
 
 #include <Utilities/Macro.h>
-#include <Misc/Ares/Hooks/Header.h>
+
 #include <Misc/Spawner/Main.h>
 #include <Misc/Spawner/SavedGamesInSubdir.h>
+
+#include <Unsorted.h>
 
 ASMJIT_PATCH(0x559F31, LoadOptionsClass_GetFileInfo, 9)
 {
 	REF_STACK(SavegameInformation, Info, STACK_OFFS(0x400, 0x3F4));
 
 	// compare equal if same mod and same Ares version (or compatible)
-	auto same = (Info.Version == (AresGlobalData::version)
+	auto same = (Info.Version == (Phobos::Config::version)
 		&& DWORD(Info.InternalVersion) == Game::Savegame_Magic());
 
 	R->ECX(&Info);

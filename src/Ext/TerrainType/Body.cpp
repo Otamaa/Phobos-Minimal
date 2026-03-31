@@ -12,8 +12,6 @@
 
 #include <AnimClass.h>
 
-#include <Phobos.SaveGame.h>
-
 void TerrainTypeExtData::Initialize()
 {
 	this->AttachedAnim.reserve(1);
@@ -153,66 +151,6 @@ void TerrainTypeExtData::Remove(TerrainClass* pTerrain)
 // =============================
 // container
 TerrainTypeExtContainer TerrainTypeExtContainer::Instance;
-bool TerrainTypeExtContainer::LoadAll(const json& root)
-{
-	this->Clear();
-
-	if (root.contains(TerrainTypeExtContainer::ClassName))
-	{
-		auto& container = root[TerrainTypeExtContainer::ClassName];
-
-		for (auto& entry : container[TerrainTypeExtData::ClassName])
-		{
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			auto buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, TerrainTypeExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
-		}
-
-		return true;
-	}
-
-	return false;
-
-}
-
-bool TerrainTypeExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[TerrainTypeExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : TerrainTypeExtContainer::Array)
-	{
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer);
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
-	}
-
-	first_layer[TerrainTypeExtData::ClassName] = std::move(_extRoot);
-
-	return true;
-}
 
 void TerrainTypeExtContainer::LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr)
 {

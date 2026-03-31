@@ -40,6 +40,7 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/ParticleSystem/Body.h>
 #include <Ext/ParticleSystemType/Body.h>
+#include <Ext/Mouse/Body.h>
 
 //#include <Misc/TriggerMPOwner.h>
 
@@ -88,21 +89,13 @@
 #include <Ext/OverlayType/Body.h>
 
 #include <New/Entity/BannerClass.h>
-//#include <New/Entity/AttachmentClass.h>
 
-#include <New/HugeBar.h>
+#include <New/Entity/HugeBar.h>
 
 #include <New/Entity/FlyingStrings.h>
-#include <New/Entity/VerticalLaserClass.h>
-#include <New/Entity/HomingMissileTargetTracker.h>
-#include <New/Entity/SWFirerClass.h>
 
 #include <Ext/Tactical/Body.h>
 
-//#include <New/Entity/FoggedObject.h>
-#include <Misc/Ares/Hooks/Header.h>
-
-//#include <New/Entity/BannerClass.h>
 
 #include <Commands/Commands.h>
 #include <Misc/PhobosGlobal.h>
@@ -142,12 +135,9 @@ void Phobos::LoadGameDataAfter()
 
 }
 
-#include <Misc/Kratos/Kratos.h>
-
 void PhobosExt::InvalidatePointers(AbstractClass* const pInvalid, bool const removed, AbstractType  type)
 {
 
-	Kratos::DetachFromAll(pInvalid, removed);
 	TActionExtData::InvalidatePointer(pInvalid, removed);
 	PhobosGlobal::PointerGotInvalid(pInvalid, removed);
 	SWStateMachine::PointerGotInvalid(pInvalid, removed);
@@ -187,7 +177,6 @@ void PhobosExt::EnsureSeeded(unsigned long seed)
 	auto _seed = (DWORD)Game::Seed();
 	Debug::Log("Init Phobos Randomizer seed %x.\n", _seed);
 	Phobos::Random::SetRandomSeed(Game::Seed());
-	Kratos::EnsureSeeded(_seed);
 }
 
 #include <New/Interfaces/AdvancedDriveLocomotionClass.h>
@@ -196,7 +185,7 @@ void PhobosExt::EnsureSeeded(unsigned long seed)
 
 
 unsigned Phobos::GetVersionNumber() {
-	unsigned version = AresGlobalData::InternalVersion + PHOBOSSAVEGAME_ID;
+	unsigned version = Phobos::Config::InternalVersion + PHOBOSSAVEGAME_ID;
 
 	version += sizeof(AnimExtData);
 	version += sizeof(AnimTypeExtData);
@@ -254,7 +243,6 @@ unsigned Phobos::GetVersionNumber() {
 	version += sizeof(TriggerExtData);
 
 	version += sizeof(ShieldClass);
-	version += sizeof(SWFirerClass);
 
 	version += sizeof(AdvancedDriveLocomotionClass);
 	version += sizeof(CustomRocketLocomotionClass);
@@ -263,7 +251,6 @@ unsigned Phobos::GetVersionNumber() {
 	version += sizeof(Prereqs);
 	version += sizeof(PaletteManager);
 	version += sizeof(HugeBar);
-	version += sizeof(StaticVars);
 
 	version += sizeof(BannerClass);
 	version += sizeof(BannerManagerClass);
@@ -383,7 +370,6 @@ void Phobos::ClearAll()
 
 	CLEAR_CLASS_NONSTATIC(FlyingStrings::Instance);
 	CLEAR_CLASS_NONSTATIC(BannerManagerClass::Instance);
-	CLEAR_CLASS_NONSTATIC(SWFirerManagerClass::Instance);
 
 	CLEAR_TYPE_CLASS(PhobosAttachEffect);
 	CLEAR_TYPE_CLASS(Armor);
@@ -407,7 +393,6 @@ void Phobos::ClearAll()
 	CLEAR_TYPE_CLASS(Tunnel);
 
 	CLEAR_CLASS(PhobosGlobal);
-	CLEAR_CLASS(StaticVars);
 
 	MouseClassExt::ClearCameos();
 	MouseClassExt::ClearMappedAction();

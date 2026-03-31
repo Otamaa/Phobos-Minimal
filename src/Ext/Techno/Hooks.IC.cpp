@@ -1,4 +1,5 @@
-#include <Ext/Techno/Body.h>
+#include "Body.h"
+
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Infantry/Body.h>
 
@@ -6,68 +7,6 @@
 #include <Utilities/EnumFunctions.h>
 
 #include <Misc/Hooks.Otamaa.h>
-
-#ifdef IC_AFFECT
-//https://github.com/Phobos-developers/Phobos/pull/674
-ASMJIT_PATCH(0x457C90, BuildingClass_IronCuratin, 0x6)
-{
-	GET(BuildingClass*, pThis, ECX);
-	GET_STACK(HouseClass*, pSource, 0x8);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-
-	if (pTypeExt->IronCurtain_Affect.isset())
-	{
-		if (pTypeExt->IronCurtain_Affect == IronCurtainAffects::Kill)
-		{
-			R->EAX(pThis->ReceiveDamage(&pThis->Type->Strength, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, pSource));
-			return 0x457CDB;
-		}
-		else if (pTypeExt->IronCurtain_Affect == IronCurtainAffects::NoAffect)
-		{
-			R->EAX(DamageState::Unaffected);
-			return 0x457CDB;
-		}
-	}
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x4DEAEE, FootClass_IronCurtain, 0x6)
-{
-	GET(FootClass*, pThis, ECX);
-	GET_STACK(HouseClass*, pSource, STACK_OFFS(0x10, -0x8));
-	const TechnoTypeClass* pType = GET_TECHNOTYPE(pThis);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	IronCurtainAffects ironAffect = IronCurtainAffects::Affect;
-
-	if (pType->Organic || Is_Infantry(pThis))
-	{
-		if (pTypeExt->IronCurtain_Affect.isset())
-			ironAffect = pTypeExt->IronCurtain_Affect.Get();
-		else
-			ironAffect = RulesExtData::Instance()->IronCurtainToOrganic.Get();
-	}
-	else
-	{
-		if (pTypeExt->IronCurtain_Affect.isset())
-			ironAffect = pTypeExt->IronCurtain_Affect.Get();
-	}
-
-	if (ironAffect == IronCurtainAffects::Kill)
-	{
-		R->EAX(pThis->ReceiveDamage(&pThis->GetType()->Strength, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, pSource));
-	}
-	else if (ironAffect == IronCurtainAffects::Affect)
-	{
-		R->ESI(pThis);
-		return 0x4DEB38;
-	}
-
-	R->EAX(DamageState::Unaffected);
-	return 0x4DEBA2;
-}
-#endif
 
 ASMJIT_PATCH(0x4DEAEE, TechnoClass_IronCurtain_Flags, 0x6)
 {

@@ -10,7 +10,6 @@
 #include <UDPInterfaceClass.h>
 #include <IPXManagerClass.h>
 
-#include <Misc/Ares/Hooks/Header.h>
 #include <Misc/Multithread.h>
 
 #include <Ext/Event/Body.h>

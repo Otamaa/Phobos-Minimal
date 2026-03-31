@@ -1,14 +1,17 @@
  #include "Body.h"
+
 #include <SpecificStructures.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/GeneralUtils.h>
+
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/TEvent/Body.h>
-#include <Locomotor/Cast.h>
 #include <Ext/Script/Body.h>
 #include <Ext/Anim/Body.h>
+
+#include <Locomotor/Cast.h>
 
 #include <RadarEventClass.h>
 
@@ -78,8 +81,3 @@ static void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 		}
 	}
 }
-#undef REPLACE_ARMOR
-
-#include <Ext/Super/Body.h>
-#include <New/PhobosAttachedAffect/Functions.h>
-

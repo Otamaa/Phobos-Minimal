@@ -1,5 +1,6 @@
 #include "Body.h"
-#include <Utilities/Macro.h>
+
+
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/WarheadType/Body.h>
@@ -11,21 +12,15 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Tiberium/Body.h>
 #include <Ext/Cell/Body.h>
+
 #include <Utilities/AnimHelpers.h>
 #include <Utilities/Helpers.h>
-
-#include <Misc/Ares/Hooks/Header.h>
+#include <Utilities/Macro.h>
 
 #include <SmudgeClass.h>
 #include <SmudgeTypeClass.h>
 
 #include <Memory.h>
-
-#include <Misc/Kratos/Ext/AnimType/ExpireAnimData.h>
-#include <Misc/Kratos/Ext/AnimType/AnimStatus.h>
-#include <Misc/Kratos/Ext/Common/CommonStatus.h>
-#include <Misc/Kratos/Ext/TechnoType/TechnoStatus.h>
-#include <Misc/Kratos/Extension/AnimExt.h>
 
 ASMJIT_PATCH(0x685078, Generate_OreTwinkle_Anims, 0x7)
 {
@@ -583,9 +578,6 @@ bool NOINLINE UpdateLoopDelay(FakeAnimClass* pThis) {
 
 void OnDone(AnimClass* pThis)
 {
-	if (auto pExt = AnimExt::ExtMap.Find(pThis))
-		pExt->_GameObject->Foreach([](Component* c)
-			{ c->OnUpdateEnd(); });
 }
 
 void FakeAnimClass::_AI()
@@ -600,11 +592,6 @@ void FakeAnimClass::_AI()
 			return;
 		}
 
-		if (auto pExt = AnimExt::ExtMap.Find(this)) {
-			pExt->_GameObject->Foreach([](Component* c)
-				{ c->OnUpdate(); });
-		}
-
 		if (!this->IsPlaying) {
 			auto coord = this->GetCoords();
 			VocClass::SafeImmedietelyPlayAt(this->Type->Report, &coord, &this->Audio3);
@@ -614,7 +601,7 @@ void FakeAnimClass::_AI()
 			this->FlamingGuy_AI();
 			this->ObjectClass::Update();
 		} else {
-			TechnoExt_ExtData::UpdateAlphaShape(this);
+			TechnoExtData::UpdateAlphaShape(this);
 		}
 
 		if (this->Type->PsiWarning) {
@@ -701,13 +688,6 @@ void FakeAnimClass::_AI()
 				}
 			}
 
-			if (auto pExt = AnimExt::ExtMap.Find(this))
-			{
-				auto pNextType = this->Type->Next;
-				pExt->_GameObject->Foreach([&](Component* c)
-					{ if (auto cc = dynamic_cast<IAnimScript*>(c)) { cc->OnNext(pNextType); } });
-			}
-
 			if (this->Type->End == -1)
 			{
 
@@ -761,11 +741,6 @@ void FakeAnimClass::_AI()
 				if (this->RemainingIterations && this->RemainingIterations != UCHAR_MAX) this->RemainingIterations--;
 				if (this->RemainingIterations)
 				{
-					if (auto pExt = AnimExt::ExtMap.Find(this)) {
-						pExt->_GameObject->Foreach([](Component* c)
-							{ if (auto cc = dynamic_cast<IAnimScript*>(c)) { cc->OnLoop(); } });
-					}
-
 					if (this->Type->Reverse || this->Reverse)
 					{
 						this->Animation.Stage = this->Type->LoopEnd;
@@ -785,11 +760,6 @@ void FakeAnimClass::_AI()
 				}
 
 				this->_GetExtData()->OnEnd();
-				if (auto pExt = AnimExt::ExtMap.Find(this))
-				{
-					pExt->_GameObject->Foreach([](Component* c)
-						{ if (auto cc = dynamic_cast<IAnimScript*>(c)) { cc->OnDone(); } });
-				}
 
 				if (const auto pNext = this->Type->Next)
 				{
@@ -958,13 +928,3 @@ ASMJIT_PATCH(0x422CC6, AnimClass_DrawIT_SpecialDraw, 0xA)
 }
 
 #endif
-//
-//bool FakeInfantryClass::_Unlimbo(const CoordStruct& coords, DirType dir) {
-//
-//	if (!MapClass::Instance->GetCellAt(coords)->IsClearToMove(this->Type->SpeedType, this->Type->MovementZone))
-//		return false;
-//
-//	return this->InfantryClass::Unlimbo(coords, dir);
-//}
-//
-//DEFINE_FUNCTION _JUMP(CALL6, 0x4431C5, FakeInfantryClass::_Unlimbo);

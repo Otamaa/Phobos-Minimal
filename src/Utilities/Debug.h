@@ -43,6 +43,15 @@ public:
 	static void LogFileRemove();
 	static void FreeMouse();
 
+	struct Result
+	{
+		DWORD Rules { 0 };
+		DWORD Art { 0 };
+		DWORD AI { 0 };
+	};
+
+	static Result GetINIChecksums();
+
 	template <typename... TArgs>
 	static void NOINLINE LogInfo(const fmt::format_string<TArgs...> _Fmt, TArgs&&... _Args) {
 		if (LogFileActive()){

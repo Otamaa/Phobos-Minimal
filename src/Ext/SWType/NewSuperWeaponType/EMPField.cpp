@@ -1,6 +1,5 @@
 #include "EMPField.h"
 
-#include <Misc/Ares/Hooks/Header.h>
 #include <Ext/SWType/Body.h>
 
 bool SW_EMPField::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)

@@ -6,8 +6,8 @@
 
 #include <Ext/TechnoType/Body.h>
 #include <Ext/HouseType/Body.h>
+#include <Ext/Mouse/Body.h>
 
-#include <Misc/Ares/Hooks/Header.h>
 #include <Utilities/Macro.h>
 
 // 4AC20C, 7

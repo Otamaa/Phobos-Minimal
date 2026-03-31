@@ -1,7 +1,7 @@
 #include "Firewall.h"
 
-#include <Misc/Ares/Hooks/Header.h>
 #include <Ext/SWType/Body.h>
+#include <Ext/House/Body.h>
 
 SuperWeaponType SW_Firewall::FirewallType = SuperWeaponType::Invalid;
 
@@ -28,7 +28,7 @@ bool SW_Firewall::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 	if (!pThis->Granted)
 		return false;
 
-	AresHouseExt::SetFirestormState(pThis->Owner, true);
+	HouseExtData::SetFirestormState(pThis->Owner, true);
 
 	if (IsPlayer) {
 		pThis->Owner->RecheckTechTree = true;
@@ -39,7 +39,7 @@ bool SW_Firewall::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 
 void SW_Firewall::Deactivate(SuperClass* pThis, CellStruct cell, bool isPlayer)
 {
-	AresHouseExt::SetFirestormState(pThis->Owner, false);
+	HouseExtData::SetFirestormState(pThis->Owner, false);
 
 	if (isPlayer) {
 		pThis->Owner->RecheckTechTree = true;

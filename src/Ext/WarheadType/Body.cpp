@@ -11,6 +11,7 @@
 #include <Ext/Building/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/SWType/NewSuperWeaponType/LightningStorm.h>
+#include <Ext/WarheadType/Body.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/EnumFunctions.h>
@@ -22,13 +23,13 @@
 #include <IonBlastClass.h>
 #include <InfantryClass.h>
 #include <TerrainClass.h>
-
-#include <Phobos.SaveGame.h>
+#include <SlaveManagerClass.h>
 
 #pragma region defines
 PhobosMap<IonBlastClass*, WarheadTypeExtData*> WarheadTypeExtData::IonBlastExt;
 
 #pragma endregion
+
 int __fastcall FakeWarheadTypeClass::ModifyDamageA(int damage, FakeWarheadTypeClass* pWH, Armor armor, int distance)
 {
 	int res = 0;
@@ -1548,14 +1549,13 @@ void WarheadTypeExtData::CreateIonBlast(WarheadTypeClass* pThis, const CoordStru
 	}
 }
 
-#include <Misc/Ares/Hooks/Header.h>
 
 void WarheadTypeExtData::applyEMP(WarheadTypeClass* pWH, const CoordStruct& coords, TechnoClass* source)
 {
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
 	if (pWHExt->EMP_Duration)
-		AresEMPulse::CreateEMPulse(pWH, coords, source);
+		WarheadTypeExtData::CreateEMPulse(pWH, coords, source);
 
 }
 
@@ -2245,6 +2245,881 @@ bool WarheadTypeExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim) const
 	return false;
 }
 
+void WarheadTypeExtData::ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
+{
+	if (Unsorted::CurrentFrame % 15)
+		return;
+
+	auto const pWarheadExt = WarheadTypeExtContainer::Instance.Find(args->WH);
+	auto const pTechno = flag_cast_to<TechnoClass*>(pTarget);
+	auto const pType = pTarget->GetType();
+	auto const bIgnoreDefense = args->IgnoreDefenses;
+	bool bImmune_pt2 = false;
+	bool const bImmune_pt1 =
+		(!pWarheadExt->CanAffectInvulnerable(pTechno) && !bIgnoreDefense) ||
+		(pType->Immune && !bIgnoreDefense) || pTarget->InLimbo
+		;
+
+	if (pTechno)
+	{
+		const auto pShield = TechnoExtContainer::Instance.Find(pTechno)->GetShield();
+		bImmune_pt2 = (pShield && pShield->IsActive())
+			|| pTechno->TemporalTargetingMe
+			|| pTechno->BeingWarpedOut
+			|| pTechno->IsSinking
+			;
+
+	}
+
+	if (!bImmune_pt1 && !bImmune_pt2)
+	{
+		const int nArmor = (int)TechnoExtData::GetArmor(pTarget);
+
+		if (const auto pAnimTypeDecided = pWarheadExt->GetArmorHitAnim(nArmor))
+		{
+			CoordStruct nBuffer { 0, 0 , 0 };
+
+			if (pTechno)
+			{
+				auto const pTechnoTypeExt = GET_TECHNOTYPEEXT(pTechno);
+
+				if (!pTechnoTypeExt->HitCoordOffset.empty())
+				{
+					if ((pTechnoTypeExt->HitCoordOffset.size() > 1) && pTechnoTypeExt->HitCoordOffset_Random.Get())
+						nBuffer = pTechnoTypeExt->HitCoordOffset[ScenarioClass::Instance->Random.RandomFromMax(pTechnoTypeExt->HitCoordOffset.size() - 1)];
+					else
+						nBuffer = pTechnoTypeExt->HitCoordOffset[0];
+				}
+			}
+
+			auto const nCoord = pTarget->GetCenterCoords() + nBuffer;
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimTypeDecided, nCoord),
+				args->Attacker ? args->Attacker->GetOwningHouse() : args->SourceHouse, pTarget->GetOwningHouse(),
+				args->Attacker,
+				false, false
+			);
+		}
+	}
+}
+
+void WarheadTypeExtData::CreateEMPulse(WarheadTypeClass* pWarhead, const CoordStruct& Target, TechnoClass* Firer)
+{
+	if (!pWarhead)
+	{
+		return;
+	}
+
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
+
+	// set of affected objects. every object can be here only once.
+	// affect each object
+	for (const auto& pItem : Helpers::Alex::getCellSpreadItems(
+		Target, pWarhead->CellSpread, true,
+		pWHExt->CellSpread_Cylinder,
+		pWHExt->AffectsInAir,
+		pWHExt->AffectsGround,
+		false
+	))
+	{
+		deliverEMPDamage(pItem, Firer, pWarhead);
+	}
+}
+
+void WarheadTypeExtData::Destroy(TechnoClass* pTechno, TechnoClass* pKiller, HouseClass* pKillerHouse, WarheadTypeClass* pWarhead)
+{
+	if (!pKillerHouse && pKiller)
+	{
+		pKillerHouse = pKiller->Owner;
+	}
+
+	if (!pWarhead)
+	{
+		pWarhead = RulesClass::Instance->C4Warhead;
+	}
+
+	int health = pTechno->GetType()->Strength;
+	pTechno->ReceiveDamage(&health, 0, pWarhead, pKiller, true, false, pKillerHouse);
+}
+
+AnimTypeClass* WarheadTypeExtData::GetSparkleAnimType(TechnoClass* pTechno)
+{
+	auto const pType = GET_TECHNOTYPE(pTechno);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	return pTypeExt->EMP_Sparkles.Get(RulesClass::Instance->EMPulseSparkles);
+}
+
+void WarheadTypeExtData::announceAttack(TechnoClass* Techno)
+{
+	enum class AttackEvents { None = 0, Base = 1, Harvester = 2 };
+	AttackEvents Event = AttackEvents::None;
+
+	// find out what event is the most appropriate.
+	if (Techno && Techno->Owner == HouseClass::CurrentPlayer)
+	{
+		if (auto pBuilding = cast_to<BuildingClass*, false>(Techno))
+		{
+			if (pBuilding->Type->ResourceGatherer)
+			{
+				// slave miner, for example
+				Event = AttackEvents::Harvester;
+			}
+			else if (!pBuilding->Type->Insignificant && !pBuilding->Type->BaseNormal)
+			{
+				Event = AttackEvents::Base;
+			}
+		}
+		else if (auto pUnit = cast_to<UnitClass*, false>(Techno))
+		{
+			if (pUnit->Type->Harvester || pUnit->Type->ResourceGatherer)
+			{
+				Event = AttackEvents::Harvester;
+			}
+		}
+	}
+
+	// handle the event.
+	switch (Event)
+	{
+	case AttackEvents::Harvester:
+		if (RadarEventClass::Create(RadarEventType::HarvesterAttacked, Techno->GetMapCoords()))
+			VoxClass::Play(GameStrings::EVA_OreMinerUnderAttack);
+		break;
+	case AttackEvents::Base:
+		((FakeHouseClass*)HouseClass::CurrentPlayer())->_Attacked(cast_to<BuildingClass*, false>(Techno), nullptr);
+		break;
+	case AttackEvents::None:
+	default:
+		break;
+	}
+}
+
+void WarheadTypeExtData::updateSpawnManager(TechnoClass* Techno, ObjectClass* Source)
+{
+	auto pSM = Techno->SpawnManager;
+
+	if (!pSM)
+	{
+		return;
+	}
+
+	if (Techno->EMPLockRemaining > 0)
+	{
+		// crash all spawned units that are visible. else, they'd land somewhere else.
+		for (const auto& pSpawn : pSM->SpawnedNodes)
+		{
+			// kill every spawned unit that is in the air. exempt missiles.
+			if (pSpawn->IsSpawnMissile == FALSE && pSpawn->Unit)
+			{
+				auto Status = pSpawn->Status;
+				if (Status >= SpawnNodeStatus::TakeOff && Status <= SpawnNodeStatus::Returning)
+				{
+					Destroy(pSpawn->Unit, flag_cast_to<TechnoClass*>(Source), nullptr, nullptr);
+				}
+			}
+		}
+
+		// pause the timers so spawning and regenerating is deferred.
+		pSM->SpawnTimer.Pause();
+		pSM->UpdateTimer.Pause();
+	}
+	else
+	{
+		// resume counting.
+		pSM->SpawnTimer.Resume();
+		pSM->UpdateTimer.Resume();
+	}
+}
+
+void WarheadTypeExtData::updateRadarBlackout(BuildingClass* const pBuilding)
+{
+	if (pBuilding->Type->Radar)
+	{
+		pBuilding->Owner->RecheckRadar = true;
+		return; //one of just check once
+	}
+
+	for (auto pType : pBuilding->GetTypes())
+	{
+		if (pType && pType->SpySat)
+		{
+			pBuilding->Owner->RecheckRadar = true;
+			return; //one of just check once
+		}
+	}
+}
+
+bool WarheadTypeExtData::IsTypeEMPProne(TechnoClass* pTechno)
+{
+
+	auto const pType = GET_TECHNOTYPE(pTechno);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	if (!pTypeExt->ImmuneToEMP.isset())
+	{
+		bool TypeImmune = false;
+		auto const abs = pTechno->WhatAmI();
+
+		if (abs == AbstractType::Building)
+		{
+			auto const pBld = static_cast<BuildingClass const*>(pTechno);
+
+			TypeImmune = !pBld->Type->InvisibleInGame
+				&& (pBld->Type->Powered && pBld->Type->PowerDrain > 0
+				 || pBld->Type->Radar
+				 || pBld->Type->SuperWeapon >= 0
+				 || pBld->Type->SuperWeapon2 >= 0
+				 || pBld->Type->UndeploysInto
+				 || pBld->Type->PowersUnit
+				 || pBld->Type->Sensors
+				 || pBld->Type->LaserFencePost
+				 || pBld->Type->GapGenerator);
+		}
+		else if (abs == AbstractType::Infantry)
+		{
+			// affected only if this is a cyborg.
+			TypeImmune = static_cast<InfantryClass const*>(pTechno)->Type->Cyborg;
+		}
+		else
+		{
+			// if this is a vessel or vehicle that is organic: no effect.
+			TypeImmune = !pType->Organic;
+		}
+
+		pTypeExt->ImmuneToEMP = !TypeImmune;
+	}
+
+	return pTypeExt->ImmuneToEMP.Get();
+}
+
+bool WarheadTypeExtData::isCurrentlyEMPImmune(WarheadTypeClass* pWarhead, TechnoClass* Target, HouseClass* SourceHouse)
+{
+	if (auto pBldLinked = cast_to<BuildingClass*>(Target->BunkerLinkedItem))
+	{
+		if (!pWarhead->PenetratesBunker)
+			return true;
+	}
+
+	// objects currently doing some time travel are exempt
+	if (Target->IsBeingWarpedOut())
+	{
+		return true;
+	}
+
+	// iron curtained objects can not be affected by EMPs
+	if (Target->IsIronCurtained())
+	{
+		return true;
+	}
+
+	if (Target->WhatAmI() == AbstractType::Unit)
+	{
+		if (BuildingClass* pBld = MapClass::Instance->GetCellAt(Target->Location)->GetBuilding())
+		{
+			if (pBld->Type->WeaponsFactory)
+			{
+				if (pBld->IsUnderEMP() || pBld == Target->GetNthLink(0))
+				{
+					return true;
+				}
+
+				// units requiring an operator can't deactivate on the bib
+				// because nobody could enter it afterwards.
+				if (!TechnoExtData::IsOperatedB(Target))
+				{
+					return true;
+				}
+			}
+		}
+	}
+
+	// the current status does allow this target to
+	// be affected by EMPs. It may be immune, though.
+	return isEMPImmune(Target, SourceHouse);
+}
+
+bool WarheadTypeExtData::isEMPImmune(TechnoClass* Target, HouseClass* SourceHouse)
+{
+	if (TechnoExtData::IsEMPImmune(Target))
+		return true;
+
+	// if houses differ, TypeImmune does not count.
+	if (Target->Owner == SourceHouse)
+	{
+		// ignore if type immune. don't even try.
+		if (isEMPTypeImmune(Target))
+		{
+			// This unit can fire emps and type immunity
+			// grants it to never be affected.
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool WarheadTypeExtData::isEMPTypeImmune(TechnoClass* Target)
+{
+	auto pType = GET_TECHNOTYPE(Target);
+
+	if (!pType->TypeImmune)
+	{
+		return false;
+	}
+
+	const int WeaponCount = pType->TurretCount <= 0 ? 2 : pType->WeaponCount;
+
+	for (auto i = 0; i < WeaponCount; ++i)
+	{
+
+		if (auto pWeaponType = Target->GetWeapon(i)->WeaponType)
+		{
+			if (WarheadTypeExtContainer::Instance.Find(pWeaponType->Warhead)->EMP_Duration != 0)
+			{
+				// this unit can fire emps and type immunity
+				// grants it to never be affected.
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+bool WarheadTypeExtData::IsDeactivationAdvisable(TechnoClass* Target)
+{
+	switch (Target->CurrentMission)
+	{
+	case Mission::Selling:
+	case Mission::Construction:
+		return false;
+	}
+	return true;
+}
+
+bool WarheadTypeExtData::IsDeactivationAdvisableB(TechnoClass* Target)
+{
+	switch (Target->CurrentMission)
+	{
+	case Mission::Selling:
+	case Mission::Construction:
+		return false;
+	}
+
+	switch (Target->QueuedMission)
+	{
+	case Mission::Selling:
+	case Mission::Construction:
+		return false;
+	}
+
+	return true;
+}
+
+void WarheadTypeExtData::UpdateSparkleAnim(TechnoClass* pFrom, TechnoClass* pTo)
+{
+	AnimTypeClass* pSparkle = nullptr;
+
+	if (auto& pCurSparkle = TechnoExtContainer::Instance.Find(pFrom)->EMPSparkleAnim)
+	{
+		const auto pSpecific = GetSparkleAnimType(pFrom);
+
+		if (pSpecific != pCurSparkle->Type)
+			pSparkle = pSpecific;
+	}
+
+	UpdateSparkleAnim(pTo, pSparkle);
+}
+
+void WarheadTypeExtData::UpdateSparkleAnim(TechnoClass* pWho, AnimTypeClass* pAnim)
+{
+	if (GET_TECHNOTYPEEXT(pWho)->IsDummy)
+		return;
+
+	auto& Anim = TechnoExtContainer::Instance.Find(pWho)->EMPSparkleAnim;
+
+	if (pWho->IsUnderEMP())
+	{
+		if (!Anim)
+		{
+			auto const pAnimType = pAnim ? pAnim
+				: GetSparkleAnimType(pWho);
+
+			if (pAnimType)
+			{
+				Anim.reset(GameCreate<AnimClass>(pAnimType, pWho->Location));
+				Anim->SetOwnerObject(pWho);
+
+				if (pWho->WhatAmI() == BuildingClass::AbsID)
+				{
+					Anim->ZAdjust = -1024;
+				}
+			}
+		}
+	}
+	else if (Anim)
+	{
+		// finish this loop, then disappear
+		Anim->RemainingIterations = 0;
+		Anim.release();
+	}
+}
+
+bool WarheadTypeExtData::thresholdExceeded(TechnoClass* Victim)
+{
+	auto const pData = GET_TECHNOTYPEEXT(Victim);
+	if (pData->EMP_Threshold != 0 && Victim->EMPLockRemaining > (Math::abs(pData->EMP_Threshold)))
+	{
+		if (pData->EMP_Threshold > 0)
+		{
+			return true;
+		}
+		else
+		{
+			FootClass* pFoot = nullptr;
+			bool InAir = Victim->IsInAir();
+
+			if (Victim->AbstractFlags & AbstractFlags::Foot)
+			{
+				pFoot = (FootClass*)Victim;
+			}
+
+			return InAir && !Victim->Parachute && !Victim->IsCrashing
+				&& (!pFoot || !pFoot->IsLetGoByLocomotor || !pFoot->IsAttackedByLocomotor);
+		}
+	}
+
+	return false;
+}
+
+bool WarheadTypeExtData::isEligibleEMPTarget(TechnoClass* const pTarget, HouseClass* const pSourceHouse, WarheadTypeClass* pWarhead)
+{
+	if (!pTarget->IsAlive || pTarget->IsCrashing || pTarget->IsSinking)
+		return false;
+
+	if (!WarheadTypeExtContainer::Instance.Find(pWarhead)->CanTargetHouse(pSourceHouse, pTarget))
+		return false;
+
+	return !isCurrentlyEMPImmune(pWarhead, pTarget, pSourceHouse);
+}
+
+void WarheadTypeExtData::deliverEMPDamage(TechnoClass* const pTechno, TechnoClass* const pFirer, WarheadTypeClass* pWarhead)
+{
+	auto const pHouse = pFirer ? pFirer->Owner : nullptr;
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
+
+	if (WarheadTypeExtData::isEligibleEMPTarget(pTechno, pHouse, pWarhead))
+	{
+		auto const pType = GET_TECHNOTYPE(pTechno);
+		const auto armor = TechnoExtData::GetTechnoArmor(pTechno, pWarhead);
+		auto const& Verses = pWHExt->GetVerses(armor).Verses;
+
+		if (Math::abs(Verses) < 0.001)
+		{
+			return;
+		}
+
+		auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
+		// get the target-specific multiplier
+		auto modifier = pWHExt->EMP_Duration > 0 ? pExt->EMP_Modifier : 1.0;
+
+		// respect verses
+
+		auto duration = static_cast<int>(pWHExt->EMP_Duration * modifier);
+
+
+		// get the new capped value
+		auto const oldValue = static_cast<int>(pTechno->EMPLockRemaining);
+		auto const newValue = Helpers::Alex::getCappedDuration(
+			oldValue, duration, pWHExt->EMP_Cap);
+
+		// can not be less than zero
+		pTechno->EMPLockRemaining = (MaxImpl(newValue, 0));
+
+		auto diedFromPulse = false;
+		auto const underEMPBefore = (oldValue > 0);
+		auto const underEMPAfter = (pTechno->EMPLockRemaining > 0);
+		auto const newlyUnderEMP = !underEMPBefore && underEMPAfter;
+
+		if (underEMPBefore && !underEMPAfter)
+		{
+			// newly de-paralyzed
+			WarheadTypeExtData::DisableEMPEffect(pTechno);
+
+			if (auto v19 = pTechno->AttachedTag)
+			{
+				v19->RaiseEvent(TriggerEvent(AresTriggerEvents::RemoveEMP_ByHouse), pTechno, CellStruct::Empty, 0, pFirer);
+			}
+
+			if (pTechno->IsAlive)
+			{
+				if (auto  v20 = pTechno->AttachedTag)
+				{
+					v20->RaiseEvent(TriggerEvent(AresTriggerEvents::RemoveEMP), pTechno, CellStruct::Empty, 0, 0);
+				}
+			}
+
+		}
+		else if (newlyUnderEMP)
+		{
+			// newly paralyzed unit
+			diedFromPulse = WarheadTypeExtData::EnableEMPEffect(pTechno, pFirer);
+
+			if (!diedFromPulse && pWHExt->Malicious)
+			{
+				// warn the player
+				WarheadTypeExtData::announceAttack(pTechno);
+			}
+
+			if (pTechno->IsAlive)
+			{
+				if (auto v19 = pTechno->AttachedTag)
+				{
+					v19->RaiseEvent(TriggerEvent(AresTriggerEvents::UnderEMP_ByHouse), pTechno, CellStruct::Empty, 0, pFirer);
+				}
+
+				if (pTechno->IsAlive)
+				{
+					if (auto  v20 = pTechno->AttachedTag)
+					{
+						v20->RaiseEvent(TriggerEvent(AresTriggerEvents::UnderEMP), pTechno, CellStruct::Empty, 0, nullptr);
+					}
+				}
+			}
+
+		}
+		else if (oldValue == newValue)
+		{
+			// no relevant change
+			return;
+		}
+
+		// is techno destroyed by EMP?
+		if (diedFromPulse || (underEMPAfter && WarheadTypeExtData::thresholdExceeded(pTechno)))
+		{
+			WarheadTypeExtData::Destroy(pTechno, pFirer, nullptr, nullptr);
+		}
+		else if (newlyUnderEMP || pWHExt->EMP_Sparkles)
+		{
+			// set the sparkle animation
+			WarheadTypeExtData::UpdateSparkleAnim(pTechno, pWHExt->EMP_Sparkles);
+		}
+	}
+}
+
+bool WarheadTypeExtData::EnableEMPEffect(TechnoClass* const pVictim, ObjectClass* const pSource)
+{
+	auto const abs = pVictim->WhatAmI();
+
+	if (abs == AbstractType::Building)
+	{
+		auto const pBuilding = static_cast<BuildingClass*>(pVictim);
+		auto const pOwner = pBuilding->Owner;
+
+		pOwner->RecheckTechTree = true;
+		pOwner->RecheckPower = true;
+
+		pBuilding->DisableStuff();
+		WarheadTypeExtData::updateRadarBlackout(pBuilding);
+		pBuilding->NeedsRedraw = true;
+	}
+	else if (abs == AbstractType::Aircraft)
+	{
+		// crash flying aircraft
+		auto const pAircraft = static_cast<AircraftClass*>(pVictim);
+		if (pAircraft->GetHeight() > 0 && !pAircraft->IsLetGoByLocomotor && !pAircraft->IsAttackedByLocomotor)
+		{
+			return true;
+		}
+	}
+
+	// cache the last mission this thing did
+	TechnoExtContainer::Instance.Find(pVictim)->EMPLastMission = pVictim->CurrentMission;
+
+	// detach temporal
+	if (pVictim->IsWarpingSomethingOut())
+	{
+		pVictim->TemporalImUsing->LetGo();
+	}
+
+	// remove the unit from its team
+	if (auto const pFoot = flag_cast_to<FootClass*, false>(pVictim))
+	{
+		if (pFoot->LocomotorTarget)
+			pFoot->LocomotorImblued(true);
+
+		if (pFoot->BelongsToATeam())
+		{
+			pFoot->Team->LiberateMember(pFoot);
+		}
+	}
+
+	// deactivate and sparkle
+	if (!pVictim->Deactivated && WarheadTypeExtData::IsDeactivationAdvisable(pVictim))
+	{
+		auto const selected = pVictim->IsSelected;
+		auto const pFocus = pVictim->ArchiveTarget;
+
+		pVictim->Deactivate();
+
+		if (selected)
+		{
+			auto const feedback = Unsorted::MoveFeedback();
+			Unsorted::MoveFeedback() = false;
+			pVictim->Select();
+			Unsorted::MoveFeedback() = feedback;
+		}
+
+		if (abs == AbstractType::Building)
+		{
+			pVictim->ArchiveTarget = pFocus;
+		}
+	}
+
+	// release all captured units.
+	if (pVictim->CaptureManager)
+	{
+		pVictim->CaptureManager->FreeAll();
+	}
+
+	// update managers.
+	WarheadTypeExtData::updateSpawnManager(pVictim, pSource);
+
+	if (auto const pSlaveManager = pVictim->SlaveManager)
+	{
+		pSlaveManager->SuspendWork();
+	}
+
+	// the unit still lives.
+	return false;
+}
+
+void WarheadTypeExtData::DisableEMPEffect(TechnoClass* const pVictim)
+{
+	auto const abs = pVictim->WhatAmI();
+
+	auto hasPower = true;
+
+	if (abs == AbstractType::Building)
+	{
+		auto const pBuilding = static_cast<BuildingClass*>(pVictim);
+		hasPower = pBuilding->IsPowerOnline();
+
+		auto const pOwner = pBuilding->Owner;
+		pOwner->RecheckTechTree = true;
+		pOwner->RecheckPower = true;
+
+		auto const pType = pBuilding->Type;
+		if (hasPower || pType->LaserFencePost)
+		{
+			pBuilding->EnableStuff();
+		}
+		WarheadTypeExtData::updateRadarBlackout(pBuilding);
+		pBuilding->NeedsRedraw = true;
+	}
+
+	if (hasPower && pVictim->Deactivated)
+	{
+		auto const pFocus = pVictim->ArchiveTarget;
+		pVictim->Reactivate();
+		if (abs == AbstractType::Building)
+		{
+			pVictim->ArchiveTarget = pFocus;
+		}
+	}
+
+	// allow to spawn units again.
+	WarheadTypeExtData::updateSpawnManager(pVictim);
+
+	if (auto const pSlaveManager = pVictim->SlaveManager)
+	{
+		pSlaveManager->ResumeWork();
+	}
+
+	// update the animation
+	WarheadTypeExtData::UpdateSparkleAnim(pVictim);
+
+	// get harvesters back to work and ai units to hunt
+	if (auto const pFoot = flag_cast_to<FootClass*, false>(pVictim))
+	{
+		auto hasMission = false;
+		if (abs == AbstractType::Unit)
+		{
+			auto const pUnit = static_cast<UnitClass*>(pVictim);
+			if (pUnit->Type->Harvester || pUnit->Type->ResourceGatherer)
+			{
+				// prevent unloading harvesters from being irritated.
+				auto const mission = TechnoExtContainer::Instance.Find(pVictim)->EMPLastMission != Mission::Guard
+					? TechnoExtContainer::Instance.Find(pVictim)->EMPLastMission : Mission::Enter;
+
+				pUnit->QueueMission(mission, true);
+				hasMission = true;
+			}
+		}
+
+		if (!hasMission && !pFoot->Owner->IsControlledByHuman())
+		{
+			pFoot->QueueMission(RulesExtData::Instance()->EMPAIRecoverMission.Get(Mission::Hunt), false);
+		}
+	}
+}
+
+bool WarheadTypeExtData::EnableEMPEffect2(TechnoClass* const pVictim)
+{
+	auto const abs = pVictim->WhatAmI();
+
+	if (abs == AbstractType::Building)
+	{
+		auto const pBuilding = static_cast<BuildingClass*>(pVictim);
+		auto const pOwner = pBuilding->Owner;
+
+		pOwner->RecheckTechTree = true;
+		pOwner->RecheckPower = true;
+
+		pBuilding->DisableStuff();
+		WarheadTypeExtData::updateRadarBlackout(pBuilding);
+		pBuilding->NeedsRedraw = true;
+	}
+	else if (abs == AbstractType::Aircraft)
+	{
+		// crash flying aircraft
+		auto const pAircraft = static_cast<AircraftClass*>(pVictim);
+		if (pAircraft->GetHeight() > 0 && !pAircraft->IsLetGoByLocomotor && !pAircraft->IsAttackedByLocomotor)
+		{
+			return true;
+		}
+	}
+
+	// deactivate and sparkle
+	if (!pVictim->Deactivated && WarheadTypeExtData::IsDeactivationAdvisable(pVictim))
+	{
+		// cache the last mission this thing did
+		TechnoExtContainer::Instance.Find(pVictim)->EMPLastMission = pVictim->CurrentMission;
+
+		// detach temporal
+		if (pVictim->IsWarpingSomethingOut())
+		{
+			pVictim->TemporalImUsing->LetGo();
+		}
+
+		// remove the unit from its team
+		if (auto const pFoot = flag_cast_to<FootClass*, false>(pVictim))
+		{
+			if (pFoot->LocomotorTarget)
+				pFoot->LocomotorImblued(true);
+
+			if (pFoot->BelongsToATeam())
+			{
+				pFoot->Team->LiberateMember(pFoot);
+			}
+		}
+
+		auto const selected = pVictim->IsSelected;
+		auto const pFocus = pVictim->ArchiveTarget;
+
+		pVictim->Deactivate();
+
+		if (selected)
+		{
+			auto const feedback = Unsorted::MoveFeedback();
+			Unsorted::MoveFeedback() = false;
+			pVictim->Select();
+			Unsorted::MoveFeedback() = feedback;
+		}
+
+		if (abs == AbstractType::Building)
+		{
+			pVictim->ArchiveTarget = pFocus;
+		}
+		else
+		{
+			pVictim->QueueMission(Mission::Sleep, true);
+		}
+
+		// release all captured units.
+		if (pVictim->CaptureManager)
+		{
+			pVictim->CaptureManager->FreeAll();
+		}
+
+		// update managers.
+		WarheadTypeExtData::updateSpawnManager(pVictim, nullptr);
+
+		if (auto const pSlaveManager = pVictim->SlaveManager)
+		{
+			pSlaveManager->SuspendWork();
+		}
+	}
+
+	// the unit still lives.
+	return false;
+}
+
+void WarheadTypeExtData::DisableEMPEffect2(TechnoClass* const pVictim)
+{
+	auto const abs = pVictim->WhatAmI();
+
+	auto hasPower = TechnoExtData::IsPowered(pVictim) && TechnoExtData::IsOperated(pVictim);
+
+	if (abs == AbstractType::Building)
+	{
+		auto const pBuilding = static_cast<BuildingClass*>(pVictim);
+		hasPower = hasPower && pBuilding->IsPowerOnline();
+
+		auto const pOwner = pBuilding->Owner;
+		pOwner->RecheckTechTree = true;
+		pOwner->RecheckPower = true;
+
+		if (hasPower)
+		{
+			pBuilding->EnableStuff();
+		}
+		WarheadTypeExtData::updateRadarBlackout(pBuilding);
+		pBuilding->NeedsRedraw = true;
+	}
+
+	if (hasPower && pVictim->Deactivated)
+	{
+		auto const pFocus = pVictim->ArchiveTarget;
+		pVictim->Reactivate();
+		if (abs == AbstractType::Building)
+		{
+			pVictim->ArchiveTarget = pFocus;
+		}
+
+		// allow to spawn units again.
+		WarheadTypeExtData::updateSpawnManager(pVictim);
+
+		if (auto const pSlaveManager = pVictim->SlaveManager)
+		{
+			pSlaveManager->ResumeWork();
+		}
+
+		// get harvesters back to work and ai units to hunt
+		if (auto const pFoot = flag_cast_to<FootClass*, false>(pVictim))
+		{
+			auto hasMission = false;
+			if (abs == AbstractType::Unit)
+			{
+				auto const pUnit = static_cast<UnitClass*>(pVictim);
+				if (pUnit->Type->Harvester || pUnit->Type->ResourceGatherer)
+				{
+					// prevent unloading harvesters from being irritated.
+					auto const mission = TechnoExtContainer::Instance.Find(pVictim)->EMPLastMission != Mission::Guard
+						? TechnoExtContainer::Instance.Find(pVictim)->EMPLastMission : Mission::Enter;
+
+					pUnit->QueueMission(mission, true);
+					hasMission = true;
+				}
+			}
+
+			if (!hasMission && !pFoot->Owner->IsControlledByHuman())
+			{
+				pFoot->QueueMission(RulesExtData::Instance()->EMPAIRecoverMission.Get(Mission::Hunt), false);
+			}
+		}
+	}
+}
+
 void WarheadTypeExtData::ApplyBuildingUndeploy(TechnoClass* pTarget) {
 	const auto pBuilding = cast_to<BuildingClass*>(pTarget);
 
@@ -2384,87 +3259,6 @@ void WarheadTypeExtContainer::Clear()
 	WarheadTypeExtData::IonBlastExt.clear();
 }
 
-bool WarheadTypeExtContainer::LoadAll(const json& root)
-{
-	this->Clear();
-
-	if (root.contains(WarheadTypeExtContainer::ClassName))
-	{
-		auto& container = root[WarheadTypeExtContainer::ClassName];
-
-		for (auto& entry : container[WarheadTypeExtData::ClassName])
-		{
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			auto buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, WarheadTypeExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
-		}
-
-		size_t dataSize = container["IonBlastExt_datasize"].get<size_t>();
-		std::string encoded = container["IonBlastExt_data"].get<std::string>();
-
-		PhobosByteStream loader(dataSize);
-		loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-		PhobosStreamReader reader(loader);
-
-		reader.Process(WarheadTypeExtData::IonBlastExt);
-
-		if (!reader.ExpectEndOfBlock())
-			return false;
-
-		return true;
-	}
-
-	return false;
-
-}
-
-bool WarheadTypeExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[WarheadTypeExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : WarheadTypeExtContainer::Array)
-	{
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer);
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
-	}
-
-	first_layer[WarheadTypeExtData::ClassName] = std::move(_extRoot);
-
-	PhobosByteStream saver(0);
-	PhobosStreamWriter writer(saver);
-
-	writer.Process(WarheadTypeExtData::IonBlastExt);
-
-	first_layer["IonBlastExt_datasize"] = saver.data.size();
-	first_layer["IonBlastExt_data"] = Base64Handler::encodeBase64(saver.data);
-
-	return true;
-}
-
 void WarheadTypeExtContainer::LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr)
 {
 	if (auto ptr = this->Find(key))
@@ -2498,3 +3292,29 @@ void WarheadTypeExtContainer::WriteToINI(ext_t::base_type* key, CCINIClass* pINI
 
 // =============================
 // container hooks
+ASMJIT_PATCH(0x75D1A9, WarheadTypeClass_CTOR, 0x7)
+{
+	if (!Phobos::Otamaa::DoingLoadGame)
+	{
+		GET(WarheadTypeClass*, pItem, EBP);
+		WarheadTypeExtContainer::Instance.Allocate(pItem);
+	}
+	return 0;
+}
+
+ASMJIT_PATCH(0x75E5C8, WarheadTypeClass_SDDTOR, 0x6)
+{
+	GET(WarheadTypeClass*, pItem, ESI);
+	WarheadTypeExtContainer::Instance.Remove(pItem);
+	return 0;
+}
+
+bool FakeWarheadTypeClass::_ReadFromINI(CCINIClass* pINI)
+{
+	WarheadTypeExtContainer::Instance.Find(this)->Initialize();
+	bool status = this->WarheadTypeClass::LoadFromINI(pINI);
+	WarheadTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6B94, FakeWarheadTypeClass::_ReadFromINI)

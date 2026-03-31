@@ -10,7 +10,6 @@ struct WaveColorData
 	ColorStruct Color;
 };
 
-
 //thse mostlikely some kind of array / multi dimentional array
 struct SingleArray_WavePoint2D
 {

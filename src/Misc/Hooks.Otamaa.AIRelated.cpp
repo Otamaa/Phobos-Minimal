@@ -377,16 +377,3 @@ ASMJIT_PATCH(0x6EEEF2, FindOwnBuilding_LimboDelivered, 0xA)
 }
 
 #endif
-
-//ASMJIT_PATCH(0x6F7D90, TechnoClass_EvalueateObject_Forbidden, 0x6)
-//{
-//	GET(ObjectClass*, pTarget, ESI);
-//
-//	// alive check here was too late
-//	if (pTarget->InLimbo)
-//		return 0x6F894F;
-//
-//
-//
-//	return 0x6F7D9E;
-//}

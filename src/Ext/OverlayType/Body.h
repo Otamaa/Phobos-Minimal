@@ -14,8 +14,6 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "OverlayTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "OverlayTypeClass";
 	
-	
-
 public:
 
 #pragma region ClassMembeers
@@ -81,8 +79,8 @@ public:
 public:
 	static OverlayTypeExtContainer Instance;
 
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void LoadFromINI(OverlayTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(OverlayTypeClass* key, CCINIClass* pINI);

@@ -7,6 +7,7 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/House/Body.h>
+#include <Ext/HouseType/Body.h>
 #include <Ext/WeaponType/Body.h>
 
 #include <New/Type/TheaterTypeClass.h>
@@ -460,6 +461,301 @@ bool TechnoTypeExtData::CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClas
 	const auto pBExt = BuildingTypeExtContainer::Instance.Find(pFactoryType);
 	return (pProductTypeExt->BuiltAt.empty() && !pBExt->Factory_ExplicitOnly)
 		|| pProductTypeExt->BuiltAt.Contains(pFactoryType);
+}
+
+
+BSurface* TechnoTypeExtData::GetPCXSurface(TechnoTypeClass* pType, HouseClass* pHouse)
+{
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	const auto eliteCameo = TechnoTypeExtData::CameoIsElite(pType, pHouse);
+
+	return eliteCameo ? pTypeExt->AltCameoPCX.GetSurface() : pTypeExt->CameoPCX.GetSurface();
+}
+
+bool TechnoTypeExtData::CarryallCanLift(AircraftTypeClass* pCarryAll, UnitClass* Target)
+{
+	if (Target->ParasiteEatingMe)
+	{
+		return false;
+	}
+
+	const auto CarryAllData = TechnoTypeExtContainer::Instance.Find(pCarryAll);
+	const auto TargetData = TechnoTypeExtContainer::Instance.Find(Target->Type);
+
+	UnitTypeClass* pTargetType = Target->Type;
+	const bool passengerEligible = !pTargetType->Organic && !pTargetType->NonVehicle;
+
+	if (!TargetData->CarryallAllowed.Get(passengerEligible))
+		return false;
+
+	const auto& nSize = CarryAllData->CarryallSizeLimit;
+
+	if (nSize.isset() && nSize.Get() > 0)
+	{
+		return nSize.Get() >= ((TechnoTypeClass*)Target->Type)->Size;
+	}
+
+	return true;
+}
+
+bool TechnoTypeExtData::CameoIsElite(TechnoTypeClass* pType, HouseClass* pHouse)
+{
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	if ((!pType->AltCameo && !pTypeExt->AltCameoPCX.GetSurface()) || !pHouse)
+		return false;
+
+	const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
+	const auto pCountry = pHouse->Type;
+	switch (pType->WhatAmI())
+	{
+	case AbstractType::InfantryType:
+	{
+		//special conditions
+		if (pHouse->BarracksInfiltrated && !pType->Naval && pType->Trainable)
+		{
+			return true;
+		}
+
+		//guarantee
+		return pCountry->VeteranInfantry.contains(static_cast<InfantryTypeClass*>(pType));
+	}
+	case AbstractType::UnitType:
+	{
+		//special conditions
+		if (pType->Trainable)
+		{
+			if (pHouse->WarFactoryInfiltrated && !pType->Naval)
+			{
+				return true;
+			}
+			else if (pHouseExt->Is_NavalYardSpied && pType->Naval)
+			{
+				return true;
+			}
+		}
+
+		//guaarantee
+		return pCountry->VeteranUnits.contains((UnitTypeClass*)pType);
+	}
+	case AbstractType::AircraftType:
+	{
+		//special conditions
+		if (pHouseExt->Is_AirfieldSpied && pType->Trainable)
+		{
+			return true;
+		}
+
+		//guarantee
+		return pCountry->VeteranAircraft.contains((AircraftTypeClass*)(pType));
+	}
+	case AbstractType::BuildingType:
+	{
+		//special conditions
+		if (pType->Trainable)
+		{
+			if (auto const pItem = pType->UndeploysInto)
+			{
+				if (pType->Naval && pHouseExt->Is_NavalYardSpied)
+				{
+					return true;
+				}
+
+				return pCountry->VeteranUnits.contains((UnitTypeClass*)(pItem));
+			}
+			else if (pHouseExt->Is_ConstructionYardSpied)
+			{
+				return true;
+			}
+		}
+
+		//guarantees
+		return HouseTypeExtContainer::Instance.Find(pCountry)->VeteranBuildings.Contains((BuildingTypeClass*)(pType));
+	}
+	}
+
+	//nope !
+	return false;
+}
+
+static COMPILETIMEEVAL std::array<std::pair<const char*, const char*>, 17u> const SubName =
+{ {
+	{"NormalTurretWeapon" , "NormalTurretIndex"},
+	{"RepairTurretWeapon" , "RepairTurretIndex"} ,
+	{"MachineGunTurretWeapon",	"MachineGunTurretIndex"},
+	{"FlakTurretWeapon" , "FlakTurretIndex"} ,
+	{"PistolTurretWeapon" , "PistolTurretIndex"} ,
+	{"SniperTurretWeapon" ,"SniperTurretIndex"} ,
+	{"ShockTurretWeapon", "ShockTurretIndex"},
+	{"ExplodeTurretWeapon" , "ExplodeTurretIndex"} ,
+	{"BrainBlastTurretWeapon" , "BrainBlastTurretIndex"} ,
+	{"RadCannonTurretWeapon" , "RadCannonTurretIndex"} ,
+	{"ChronoTurretWeapon" , "ChronoTurretIndex" },
+	{"TerroristExplodeTurretWeapon" , "TerroristExplodeTurretIndex"} ,
+	{"CowTurretWeapon" , "CowTurretIndex" },
+	{"InitiateTurretWeapon" , "InitiateTurretIndex"} ,
+	{"VirusTurretWeapon" ,	"VirusTurretIndex" },
+	{"YuriPrimeTurretWeapon" ,	"YuriPrimeTurretIndex"} ,
+	{"GuardianTurretWeapon"	, "GuardianTurretIndex"}
+ } };
+
+void TechnoTypeExtData::LoadTurrets(TechnoTypeClass* pType, CCINIClass* pINI)
+{
+	INI_EX iniEx(pINI);
+
+	const auto pSection = pType->ID;
+	const int weaponCount = pType->WeaponCount >= 0 ? pType->WeaponCount : 0;
+	const int addamount = weaponCount - TechnoTypeClass::MaxWeapons < 0 ? 0 : weaponCount - TechnoTypeClass::MaxWeapons;
+
+	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	pExt->AdditionalTurrentWeapon.resize(addamount, -1);
+	pExt->WeaponUINameX.resize(weaponCount);
+	pExt->Insignia_Weapon.resize(weaponCount);
+
+	//char buffer[0x100u];
+	//read default
+	for (size_t i = 0; i < SubName.size(); ++i)
+	{
+		Valueable<int> read_buff { -1 };
+		read_buff.Read(iniEx, pSection, SubName[i].first);
+
+		if (read_buff >= 0)
+		{
+
+			Valueable<int> read_buff_ { int(i < 4u ? i : 0u) };
+			read_buff_.Read(iniEx, pSection, SubName[i].second);
+
+			if (read_buff_ >= 0)
+			{
+				*(read_buff < 18 ? (pType->TurretWeapon + read_buff) :
+				(pExt->AdditionalTurrentWeapon.data() + (read_buff - TechnoTypeClass::MaxWeapons))) = read_buff_;
+			}
+		}
+	}
+
+	CSFText* CSF_ = pExt->WeaponUINameX.data();
+	InsigniaData* Data_ = pExt->Insignia_Weapon.data();
+
+	for (size_t i = 0;
+		i < (size_t)weaponCount;
+
+		++i,
+		++CSF_,
+		++Data_
+	)
+	{
+		std::string _number = std::to_string(i + 1);
+		int read_buff;
+		int* result = i < 18 ?
+			pType->TurretWeapon + i :
+			pExt->AdditionalTurrentWeapon.data() + (i - TechnoTypeClass::MaxWeapons);
+
+		if (detail::read(read_buff, iniEx, pSection, (std::string("WeaponTurretIndex") + _number).c_str()) && read_buff >= 0)
+		{
+			*result = read_buff;
+		}
+
+		if (*result < 0 || (pType->TurretCount > 0 && *result >= pType->TurretCount))
+		{
+			Debug::LogInfo("Weapon {} on [{}] has an invalid turret index of {}.", i + 1, pSection, *result);
+			//*result = 0; //avoid crash
+		}
+
+		if (iniEx.ReadString(pSection, (std::string("WeaponUIName") + _number).c_str()) > 0)
+			*CSF_ = iniEx.c_str();
+		(*Data_).Shapes.Read(iniEx, pSection, (std::string("Insignia.Weapon") + _number + ".%s").c_str());
+		(*Data_).Frame.Read(iniEx, pSection, (std::string("InsigniaFrame.Weapon") + _number + ".%s").c_str());
+		(*Data_).Frames.Read(iniEx, pSection, (std::string("InsigniaFrames.Weapon") + _number).c_str());
+	}
+}
+
+int* TechnoTypeExtData::GetTurretWeaponIndex(TechnoTypeClass* pType, size_t idx)
+{
+	if (idx < TechnoTypeClass::MaxWeapons)
+	{
+		return pType->TurretWeapon + idx;
+	}
+
+	const int resultidx = (idx - TechnoTypeClass::MaxWeapons);
+	const auto& vec = &TechnoTypeExtContainer::Instance.Find(pType)->AdditionalTurrentWeapon;
+
+	if ((size_t)resultidx < vec->size())
+		return vec->data() + resultidx;
+
+	Debug::LogInfo("Techno[{}] Trying to get AdditionalTurretWeaponIndex with out of bound index[{}]", pType->ID, idx);
+	return nullptr;
+}
+
+WeaponStruct* TechnoTypeExtData::GetWeapon(TechnoTypeClass* pType, int const idx, bool elite)
+{
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
+	const auto Vectors = &(elite ? pExt->AdditionalEliteWeaponDatas : pExt->AdditionalWeaponDatas);
+
+	if ((size_t)idx < Vectors->size())
+		return Vectors->data() + idx;
+
+	Debug::LogInfo("Techno[{}] Trying to get AdditionalWeapon with out of bound index[{}]", pType->ID, idx);
+	return nullptr;
+}
+
+void TechnoTypeExtData::ReadWeaponStructDatas(TechnoTypeClass* pType, CCINIClass* pRules)
+{
+	INI_EX iniEx(pRules);
+	INI_EX iniEX_art(CCINIClass::INI_Art());
+
+	const auto pSection = pType->ID;
+	const auto pSection_art = pType->ImageFile;
+	const int additionalamount = pType->WeaponCount - TechnoTypeClass::MaxWeapons < 0 ? 0 : pType->WeaponCount - TechnoTypeClass::MaxWeapons;
+	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	//Debug::LogInfo("Resize Additional Weapon [%s] [%d]", pSection, additionalamount);
+
+	pExt->AdditionalWeaponDatas.resize(additionalamount);
+	pExt->AdditionalEliteWeaponDatas.resize(additionalamount);
+	pExt->WeaponUINameX.resize(pType->WeaponCount);
+	pExt->AdditionalTurrentWeapon.resize(additionalamount);
+	pExt->Insignia_Weapon.resize(pType->WeaponCount);
+
+	//Debug::LogInfo("After Resize Additional Weapon [%s] [%d- E %d]", pSection, pExt->AdditionalWeaponDatas.size() , pExt->AdditionalEliteWeaponDatas.size());
+
+	for (int i = 0; i < pType->WeaponCount; ++i)
+	{
+		const int NextIdx = i < TechnoTypeClass::MaxWeapons ? i : i - TechnoTypeClass::MaxWeapons;
+		//Debug::LogInfo("Next Weapon Idx for [%s] [%d]", pSection, NextIdx);
+
+		//char buffer[0x40];
+		//char bufferWeapon[0x40];
+
+		auto data = (i < TechnoTypeClass::MaxWeapons ? pType->Weapon : pExt->AdditionalWeaponDatas.data()) + NextIdx;
+		auto data_e = (i < TechnoTypeClass::MaxWeapons ? pType->EliteWeapon : pExt->AdditionalEliteWeaponDatas.data()) + NextIdx;
+
+		std::string _bufferWeapon = std::string("EliteWeapon") + std::to_string(i + 1);
+		detail::read(data->WeaponType, iniEx, pSection, _bufferWeapon.c_str() + 5, true);
+
+		if (!detail::read(data_e->WeaponType, iniEx, pSection, _bufferWeapon.c_str(), true))
+			data_e->WeaponType = data->WeaponType;
+
+		detail::read(data->FLH, iniEX_art, pSection_art, (_bufferWeapon + "FLH").data() + 5, false);
+
+		if (!detail::read(data_e->FLH, iniEX_art, pSection_art, (_bufferWeapon + "FLH").c_str(), false))
+			data_e->FLH = data->FLH;
+
+		detail::read(data->BarrelLength, iniEX_art, pSection_art, (_bufferWeapon + "BarrelLength").data() + 5, false);
+
+		if (!detail::read(data_e->BarrelLength, iniEX_art, pSection_art, (_bufferWeapon + "BarrelLength").c_str()))
+			data_e->BarrelLength = data->BarrelLength;
+
+		detail::read(data->BarrelThickness, iniEX_art, pSection_art, (_bufferWeapon + "BarrelThickness").data() + 5, false);
+
+		if (!detail::read(data_e->BarrelThickness, iniEX_art, pSection_art, (_bufferWeapon + "BarrelThickness").c_str()))
+			data_e->BarrelThickness = data->BarrelThickness;
+
+		detail::read(data->TurretLocked, iniEX_art, pSection_art, (_bufferWeapon + "TurretLocked").data() + 5, false);
+
+		if (!detail::read(data_e->TurretLocked, iniEX_art, pSection_art, (_bufferWeapon + "TurretLocked").c_str()))
+			data_e->TurretLocked = data->TurretLocked;
+	}
 }
 
 void  TechnoTypeExtData::ApplyTurretOffset(Matrix3D* mtx, double factor, int turIdx)

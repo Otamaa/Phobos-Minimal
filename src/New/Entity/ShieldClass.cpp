@@ -12,7 +12,6 @@
 
 #include <Utilities/GeneralUtils.h>
 
-#include <Misc/Ares/Hooks/Header.h>
 #include <New/Entity/FlyingStrings.h>
 
 #include <AnimClass.h>

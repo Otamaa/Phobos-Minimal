@@ -7,7 +7,7 @@
 #include "SavegameDef.h"
 #include "Swizzle.h"
 
-#include <Utilities/Interfaces.h>
+#include <Utilities/ClassInterfaces.h>
 #include <Utilities/Concepts.h>
 
 class AbstractClass;

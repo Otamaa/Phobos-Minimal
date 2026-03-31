@@ -18,7 +18,7 @@
 
 #include <Ext/House/Body.h>
 
-#include <New/HugeBar.h>
+#include <New/Entity/HugeBar.h>
 
 bool IsOnMyView(CoordStruct& coords)
 {

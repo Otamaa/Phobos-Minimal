@@ -1,11 +1,17 @@
 #include "Body.h"
 #include <Ext/TechnoType/Body.h>
 
-#include <Misc/Ares/Hooks/Header.h>
 #include <InfantryClass.h>
 
 #include <Ext/House/Body.h>
 #include <Ext/HouseType/Body.h>
+
+
+#include <CaptureManagerClass.h>
+#include <Locomotor/Cast.h>
+#include <VoxClass.h>
+#include <VocClass.h>
+#include <Utilities/Macro.h>
 
 #define SET_THREATEVALS(addr , techreg , name ,size , ret)\
 ASMJIT_PATCH(addr, name, size) {\
@@ -71,12 +77,6 @@ ASMJIT_PATCH(0x710552, TechnoClass_SetOpenTransportCargoTarget_ShareTarget, 0x6)
 	return pTarget && !pTypeExt->OpenTopped_ShareTransportTarget
 		? ReturnFromFunction : Continue;
 }
-
-#include <CaptureManagerClass.h>
-#include <Locomotor/Cast.h>
-#include <VoxClass.h>
-#include <VocClass.h>
-#include <Utilities/Macro.h>
 
 #pragma region NoQueueUpToEnterAndUnload
 
@@ -652,7 +652,7 @@ ASMJIT_PATCH(0x739FA2, UnitClassClass_UpdatePosition_NoQueueUpToEnter, 0x5)
 			TechnoExtContainer::Instance.Find(pThis)->ResetLocomotor = true;
 
 			if (pTunnel) 	{
-				TunnelFuncs::EnterTunnel(&pTunnel->Vector, pBuilding, pThis);
+				HouseExtData::EnterTunnel(&pTunnel->Vector, pBuilding, pThis);
 				return SkipGameCode;
 			}
 

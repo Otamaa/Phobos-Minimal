@@ -34,6 +34,20 @@
 #include <Helpers\EnumFlags.h>
 #include <GeneralDefinitions.h>
 
+enum class AresHijackActionResult
+{
+	None = 0,
+	Hijack = 1,
+	Drive = 2
+};
+
+enum class Persistable : unsigned int
+{
+	None = 0,
+	unk_0x100 = 256,
+	unk_0x101 = 257
+};
+
 enum class SubterraneanHarvStatus : unsigned char
 {
 	None = 0,

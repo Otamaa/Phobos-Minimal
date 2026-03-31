@@ -2,8 +2,7 @@
 
 #include <Utilities/SavegameDef.h>
 #include <Utilities/VectorHelper.h>
-#include <Utilities/Interfaces.h>
-
+#include <Utilities/ClassInterfaces.h>
 
 class SuperClass;
 class SWFirerClass
@@ -54,8 +53,8 @@ public:
 	SWFirerManagerClass() = default;
 	virtual ~SWFirerManagerClass() = default;
 
-	virtual bool SaveGlobal(json& root);
-	virtual bool LoadGlobal(const json& root);
+	virtual bool SaveGlobal(PhobosStreamWriter& root) { return true; }
+	virtual bool LoadGlobal(const PhobosStreamReader& root) { return true; }
 	virtual void Clear();
 
 	void Update();

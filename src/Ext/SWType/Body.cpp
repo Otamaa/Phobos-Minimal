@@ -9,11 +9,10 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/Side/Body.h>
 #include <Ext/Super/Body.h>
+#include <Ext/Mouse/Body.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/EnumFunctions.h>
-
-#include <Misc/Ares/Hooks/Header.h>
 
 #include <Misc/PhobosToolTip.h>
 
@@ -26,9 +25,9 @@
 #include "NewSuperWeaponType/LightningStorm.h"
 #include "NewSuperWeaponType/Dominator.h"
 #include "NewSuperWeaponType/SWStateMachine.h"
+
+#include <New/Entity/TargetingData.h>
 #include <New/Type/GenericPrerequisite.h>
-//#include <ExtraHeaders/DiscreteSelectionClass_s.h>
-//#include <ExtraHeaders/DiscreteDistributionClass_s.h>
 
 #include <DiscreteSelectionClass.h>
 #include <DiscreteDistributionClass.h>
@@ -36,7 +35,6 @@
 
 #include <Utilities/Helpers.h>
 
-#include <Phobos.SaveGame.h>
 
 //TODO re-evaluate these , since the default array seems not contains what the documentation table says,..
 const AITargetingModeInfo SWTypeExtData::AITargetingModes[] =
@@ -2963,95 +2961,6 @@ void SWTypeExtContainer::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(SWTypeExtData::LauchData, ptr);
 }
 
-bool SWTypeExtContainer::LoadAll(const json& root)
-{
-	this->Clear();
-
-	if (root.contains(SWTypeExtContainer::ClassName))
-	{
-		auto& container = root[SWTypeExtContainer::ClassName];
-
-		for (auto& entry : container[SWTypeExtData::ClassName])
-		{
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			auto buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, SWTypeExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
-		}
-
-
-		size_t dataSize = container["Container_datasize"].get<size_t>();
-		std::string encoded = container["Container_data"].get<std::string>();
-
-		PhobosByteStream loader(dataSize);
-		loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-		PhobosStreamReader reader(loader);
-
-		reader
-			.Process(SWTypeExtData::CurrentSWType)
-			.Process(SWTypeExtData::TempSuper)
-			.Process(SWTypeExtData::Handled)
-			.Process(SWTypeExtData::LauchData);
-
-		if (!reader.ExpectEndOfBlock())
-			return false;
-
-		return true;
-	}
-
-	return false;
-
-}
-
-bool SWTypeExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[SWTypeExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : SWTypeExtContainer::Array)
-	{
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer);
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
-	}
-
-	first_layer[SWTypeExtData::ClassName] = std::move(_extRoot);
-	PhobosByteStream saver(0);
-	PhobosStreamWriter writer(saver);
-
-	writer
-		.Process(SWTypeExtData::CurrentSWType)
-		.Process(SWTypeExtData::TempSuper)
-		.Process(SWTypeExtData::Handled)
-		.Process(SWTypeExtData::LauchData);
-
-	first_layer["Container_datasize"] = saver.data.size();
-	first_layer["Container_data"] = Base64Handler::encodeBase64(saver.data);
-
-	return true;
-}
-
 void SWTypeExtContainer::LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr)
 {
 	if (auto ptr = this->Find(key))
@@ -3093,3 +3002,31 @@ void SWTypeExtContainer::Clear()
 // =============================
 // container hooks
 
+ASMJIT_PATCH(0x6CE6F6, SuperWeaponTypeClass_CTOR, 0x5)
+{
+	if (!Phobos::Otamaa::DoingLoadGame)
+	{
+		GET(SuperWeaponTypeClass*, pItem, EAX);
+		SWTypeExtContainer::Instance.Allocate(pItem);
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x6CEFE0, SuperWeaponTypeClass_SDDTOR, 0x8)
+{
+	GET(SuperWeaponTypeClass*, pItem, ECX);
+	SWTypeExtContainer::Instance.Remove(pItem);
+	return 0;
+}
+
+bool FakeSuperWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
+{
+	//read some properties early before
+	bool status = SWTypeExtContainer::Instance.Find(this)->PreParse(pINI);
+	status |= this->SuperWeaponTypeClass::LoadFromINI(pINI);
+	SWTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F40F4, FakeSuperWeaponTypeClass::_ReadFromINI)

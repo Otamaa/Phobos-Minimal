@@ -2,9 +2,16 @@
 
 #include <Utilities/SavegameDef.h>
 #include <Utilities/Constructs.h>
-#include <Utilities/PhobosMap.h>
 #include <Utilities/VectorHelper.h>
+#include <Utilities/PhobosMap.h>
 
+#include <New/Entity/AresBlitter.h>
+
+#include <MixFileClass.h>
+#include <string>
+#include <WaveClass.h>
+
+class TActionClass;
 struct ColorsData
 {
 	DWORD Forceshield_Color;
@@ -57,6 +64,13 @@ class UnitClass;
 class PhobosGlobal
 {
 	static PhobosGlobal GlobalObject;
+
+	COMPILETIMEEVAL WORD BuildPcxMask()
+	{
+		return (0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft)
+			| (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft);
+	}
+
 public:
 	bool DetonateDamageArea { true };
 
@@ -175,6 +189,16 @@ public:
 	ColorsData ColorDatas { };
 	int LandTypeParseCounter { };
 	bool Disappear_removed { false };
+
+	PhobosMap<ObjectClass*, AlphaShapeClass*> ObjectLinkedAlphas {};
+	std::vector<unsigned char> ShpCompression1Buffer {};
+	PhobosMap<const TActionClass*, int> TriggerCounts {};
+	UniqueGamePtr<MixFileClass> aresMIX {};
+	std::string MovieMDINI { "MOVIEMD.INI" };
+	WaveColorData TempColor {};
+	AresPcxBlit<WORD> GlobalPcxBlitter { BuildPcxMask(), 60, 48, 2 };
+	std::vector<int> PipDatas {};
+
 public:
 	static bool SaveGlobals(PhobosStreamWriter& stm);
 	static bool LoadGlobals(PhobosStreamReader& stm);
@@ -185,6 +209,7 @@ public:
 
 	static void Clear();
 	static void PointerGotInvalid(AbstractClass* ptr, bool removed);
+	static void LoadGlobalsConfig();
 
 private:
 
@@ -202,6 +227,7 @@ private:
 			.Process(this->LandTypeParseCounter)
 			.Process(this->LastAnimName)
 			.Process(this->Disappear_removed)
+			.Process(this->ObjectLinkedAlphas)
 			.Success();
 	}
 

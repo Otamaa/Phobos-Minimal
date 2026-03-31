@@ -1,6 +1,5 @@
 #include "TechnoTypeConvertData.h"
 
-#include <Misc/Ares/Hooks/Header.h>
 #include <Utilities/Debug.h>
 #include <AnimClass.h>
 
@@ -28,7 +27,7 @@ void TechnoTypeConvertData::ApplyConvert(const std::vector<TechnoTypeConvertData
 				if (pFrm != pCurType)
 					continue;
 
-				const auto bConvertStatus = TechnoExt_ExtData::ConvertToType(pTarget, pTo);
+				const auto bConvertStatus = TechnoExtData::ConvertToType(pTarget, pTo);
 
 				if (bConvertStatus)
 				{
@@ -48,7 +47,7 @@ void TechnoTypeConvertData::ApplyConvert(const std::vector<TechnoTypeConvertData
 				}
 			}
 		} else {
-			const auto bConvertStatus = TechnoExt_ExtData::ConvertToType(pTarget, pTo);
+			const auto bConvertStatus = TechnoExtData::ConvertToType(pTarget, pTo);
 
 			if (bConvertStatus)
 			{

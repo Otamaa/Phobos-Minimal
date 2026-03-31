@@ -1,7 +1,5 @@
 #include "UnitDelivery.h"
 
-#include <Misc/Ares/Hooks/Header.h>
-
 #include <Ext/Techno/Body.h>
 #include <Ext/Building/Body.h>
 
@@ -215,7 +213,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 							Item->QueueMission(Mission::Hunt, true);
 					}
 
-					if (!TechnoExt_ExtData::IsPowered(Item) || !TechnoExt_ExtData::IsOperatedB(Item))
+					if (!TechnoExtData::IsPowered(Item) || !TechnoExtData::IsOperatedB(Item))
 					{
 						Item->Deactivate();
 						if (ItemBuilding)

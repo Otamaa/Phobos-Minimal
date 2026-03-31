@@ -6,9 +6,10 @@
 #include <Utilities/OptionalStruct.h>
 #include <Utilities/TemplateDefB.h>
 #include <Utilities/PhobosMap.h>
+#include <Utilities/MultiBoolFixedArray.h>
 
-#include <New/InsigniaData.h>
-#include <New/LaserTrailDataEntry.h>
+#include <New/Entity/InsigniaData.h>
+#include <New/Entity/LaserTrailDataEntry.h>
 
 #include <New/Type/ShieldTypeClass.h>
 #include <New/Type/LaserTrailTypeClass.h>
@@ -21,18 +22,16 @@
 
 #include <New/PhobosAttachedAffect/AEAttachInfoTypeClass.h>
 
-#include <New/AnonymousType/PassengerDeletionTypeClass.h>
-#include <New/AnonymousType/TiberiumEaterTypeClass.h>
-#include <New/AnonymousType/BlockTypeClass.h>
-
-#include <FileSystem.h>
-
-#include <New/AnonymousType/AresAttachEffectTypeClass.h>
-#include <Utilities/MultiBoolFixedArray.h>
+#include <New/Entity/PassengerDeletionTypeClass.h>
+#include <New/Entity/TiberiumEaterTypeClass.h>
+#include <New/Entity/BlockTypeClass.h>
+#include <New/Entity/AresAttachEffectTypeClass.h>
 
 #include <Misc/Defines.h>
 
 #include <Ext/ObjectType/Body.h>
+
+#include <FileSystem.h>
 
 struct JumpjetTiltVoxelIndexKey
 {
@@ -2356,6 +2355,16 @@ public:
 	static VoxelStruct* GetTurretsVoxelFixedUp(TechnoTypeClass* const pThis, int const nIdx);
 
 	static bool CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClass* pFactoryType);
+
+	static bool CameoIsElite(TechnoTypeClass* pType, HouseClass* pHouse);
+	static BSurface* GetPCXSurface(TechnoTypeClass* pType, HouseClass* pHouse);
+
+	static bool CarryallCanLift(AircraftTypeClass* pCarryAll, UnitClass* Target);
+
+	static void LoadTurrets(TechnoTypeClass* pType, CCINIClass* pINI);
+	static int* GetTurretWeaponIndex(TechnoTypeClass* pType, size_t idx);
+	static WeaponStruct* GetWeapon(TechnoTypeClass* pType, int const idx, bool elite);
+	static void ReadWeaponStructDatas(TechnoTypeClass* pType, CCINIClass* pRules);
 
 	int SelectForceWeapon(TechnoClass* pThis, AbstractClass* pTarget);
 	int SelectMultiWeapon(TechnoClass* pThis, AbstractClass* pTarget);

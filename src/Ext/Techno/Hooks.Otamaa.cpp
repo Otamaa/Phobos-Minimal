@@ -24,21 +24,6 @@
 
 #pragma region Otamaa
 
-// ASMJIT_PATCH(0x6FF329, TechnoCllass_FireAt_OccupyAnims, 0x6)
-// {
-// 	GET(WeaponTypeClass*, pWeapon, EBX);
-//
-// 	AnimTypeClass* pDecidedMuzzle = pWeapon->OccupantAnim;
-//
-// 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-// 	if (pWeaponExt->OccupantAnim_UseMultiple.Get() && !pWeaponExt->OccupantAnims.empty()) {
-// 		pDecidedMuzzle = pWeaponExt->OccupantAnims[ScenarioClass::Instance->Random.RandomFromMax(pWeaponExt->OccupantAnims.size() - 1)];
-// 	}
-//
-// 	R->EDI(pDecidedMuzzle);
-// 	return 0x6FF32F;
-// }
-
 // this hook already inside loop function !
 #include <Ext/Scenario/Body.h>
 
@@ -185,16 +170,6 @@ ASMJIT_PATCH(0x4D42C4, FootClass_Mission_Patrol_IsCow, 0x6) //8
 
 	return Continue;
 }
-
-// ASMJIT_PATCH(0x51CE9A, InfantryClass_RandomAnim_IsCow, 0x5) //7
-// {
-// 	GET(InfantryClass*, pThis, ESI);
-//
-// 	R->EDI(R->EAX());
-// 	R->BL(InfantryTypeExt::ExtMap.Find(pThis->Type)->Is_Cow);
-// 	return 0x51CEAA;
-// }
-
 
 ASMJIT_PATCH(0x70FDC2, TechnoClass_Drain_LocalDrainAnim, 0x5) //A
 {

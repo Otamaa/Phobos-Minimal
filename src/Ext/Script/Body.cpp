@@ -13,6 +13,9 @@
 #include <Ext/Scenario/Body.h>
 #include <Ext/ScriptType/Body.h>
 #include <Ext/Team/Body.h>
+
+#include <New/Type/GenericPrerequisite.h>
+
 #include <Locomotor/HoverLocomotionClass.h>
 //#include <ExtraHeaders/StackVector.h>
 
@@ -397,6 +400,157 @@ static NOINLINE const char* ToStrings(PhobosScripts from)
 }
 
 #include "Lua/Wrapper.h"
+
+bool ScriptExtData::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bThirdArd)
+{
+
+	switch ((AresScripts)pTeamMission->Action)
+	{
+	case AresScripts::AuxilarryPower:
+	{
+		HouseExtContainer::Instance.Find(pTeam->OwnerHouse)->AuxPower += pTeamMission->Argument;
+		pTeam->OwnerHouse->RecheckPower = true;
+		pTeam->StepCompleted = true;
+		return true;
+	}
+	case AresScripts::KillDrivers:
+	{
+		const auto pToHouse = HouseExtData::FindSpecial();
+		FootClass* pCur = nullptr;
+		if (auto pFirst = pTeam->FirstUnit)
+		{
+			auto pNext = pFirst->NextTeamMember;
+			do
+			{
+				if (pFirst->Health > 0 && pFirst->IsAlive && pFirst->IsOnMap && !pFirst->InLimbo)
+				{
+					if (!TechnoExtContainer::Instance.Find(pFirst)->Is_DriverKilled
+						&& TechnoExtData::IsDriverKillable(pFirst, 1.0))
+					{
+						TechnoExtData::ApplyKillDriver(pFirst, nullptr, pToHouse, false, Mission::Harmless);
+					}
+				}
+
+				pCur = pNext;
+
+				if (pNext)
+					pNext = pNext->NextTeamMember;
+
+				pFirst = pCur;
+
+			}
+			while (pCur);
+		}
+
+		pTeam->StepCompleted = true;
+		return true;
+	}
+	case AresScripts::TakeVehicles:
+	{
+		FootClass* pCur = nullptr;
+		if (auto pFirst = pTeam->FirstUnit)
+		{
+			auto pNext = pFirst->NextTeamMember;
+			do
+			{
+				TechnoExtContainer::Instance.Find(pFirst)->TakeVehicleMode = true;
+
+				if (pFirst->GarrisonStructure())
+					pTeam->RemoveMember(pFirst, -1, 1);
+
+				pCur = pNext;
+
+				if (pNext)
+					pNext = pNext->NextTeamMember;
+
+				pFirst = pCur;
+
+			}
+			while (pCur);
+		}
+
+		pTeam->StepCompleted = true;
+		return true;
+	}
+	case AresScripts::ConvertType:
+	{
+		FootClass* pCur = nullptr;
+		if (auto pFirst = pTeam->FirstUnit)
+		{
+			auto pNext = pFirst->NextTeamMember;
+			do
+			{
+				const auto pTypeExt = GET_TECHNOTYPEEXT(pFirst);
+				if (pTypeExt->Convert_Script)
+				{
+					const auto& pConvertReq = pTypeExt->Convert_Scipt_Prereq;
+					if (pConvertReq.empty() || Prereqs::HouseOwnsAll(pTeam->OwnerHouse, pConvertReq))
+					{
+						TechnoExtData::ConvertToType(pFirst, pTypeExt->Convert_Script);
+					}
+				}
+
+				pCur = pNext;
+
+				if (pNext)
+					pNext = pNext->NextTeamMember;
+
+				pFirst = pCur;
+
+			}
+			while (pCur);
+		}
+
+		pTeam->StepCompleted = true;
+		return true;
+	}
+	case AresScripts::SonarReveal:
+	{
+		const auto nDur = pTeamMission->Argument;
+		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
+		{
+			auto& nSonarTime = TechnoExtContainer::Instance.Find(pUnit)->CloakSkipTimer;
+			if (nDur > nSonarTime.GetTimeLeft())
+			{
+				nSonarTime.Start(nDur);
+			}
+			else if (nDur <= 0)
+			{
+				if (nDur == 0)
+				{
+					nSonarTime.Stop();
+				}
+			}
+		}
+
+		pTeam->StepCompleted = true;
+		return true;
+	}
+	case AresScripts::DisableWeapons:
+	{
+		const auto nDur = pTeamMission->Argument;
+		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
+		{
+			auto& nTimer = TechnoExtContainer::Instance.Find(pUnit)->DisableWeaponTimer;
+			if (nDur > nTimer.GetTimeLeft())
+			{
+				nTimer.Start(nDur);
+			}
+			else if (nDur <= 0 && nDur == 0)
+			{
+				nTimer.Stop();
+			}
+		}
+
+		pTeam->StepCompleted = true;
+		return true;
+	}
+	default:
+		break;
+	}
+
+	return false;
+}
 
 bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bThirdArd)
 {

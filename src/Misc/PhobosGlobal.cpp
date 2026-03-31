@@ -4,6 +4,10 @@
 
 PhobosGlobal PhobosGlobal::GlobalObject;
 
+#include <Utilities/GameConfig.h>
+
+#include <VersionHelpers.h>
+
 void PhobosGlobal::Clear()
 {
 	auto pInstance = PhobosGlobal::Instance();
@@ -16,9 +20,11 @@ void PhobosGlobal::Clear()
 	pInstance->PathfindTechno.Clear();
 	pInstance->CurCopyArray.clear();
 	pInstance->LandTypeParseCounter = 0;
-
+	pInstance->ObjectLinkedAlphas.clear();
+	pInstance->ShpCompression1Buffer.clear();
+	pInstance->TriggerCounts.clear();
 	pInstance->LastAnimName.clear();
-
+	pInstance->PipDatas.clear();
 }
 
 void PhobosGlobal::PointerGotInvalid(AbstractClass* ptr, bool removed)
@@ -36,7 +42,6 @@ bool PhobosGlobal::LoadGlobals(PhobosStreamReader& stm)
 
 	if (PhobosGlobal::Instance()->Serialize(stm))
 	{
-#ifndef ENABLE_FOUNDATIONHOOK
 		if (Unsorted::CursorSize())
 		{
 			Unsorted::CursorSize = PhobosGlobal::Instance()->TempFoundationData1.data();
@@ -46,9 +51,32 @@ bool PhobosGlobal::LoadGlobals(PhobosStreamReader& stm)
 		{
 			Unsorted::CursorSizeSecond = PhobosGlobal::Instance()->TempFoundationData2.data();
 		}
-#endif
 		return true;
 	}
 
 	return false;
+}
+
+void PhobosGlobal::LoadGlobalsConfig()
+{
+	GameConfig ares_ini { "Ares.ini" };
+	ares_ini.OpenINIAction([](CCINIClass* pINI)
+ {
+	 if (pINI->ReadString("Graphics.Advanced", "DirectX.Force", Phobos::readDefval, Phobos::readBuffer))
+	 {
+		 if (IS_SAME_STR_(Phobos::readBuffer, "hardware"))
+		 {
+			 Phobos::Config::GFX_DX_Force = 0x01l; //HW
+		 }
+		 else if (IS_SAME_STR_(Phobos::readBuffer, "emulation"))
+		 {
+			 Phobos::Config::GFX_DX_Force = 0x02l; //EM
+		 }
+	 }
+	});
+
+	if (IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_VISTA), LOBYTE(_WIN32_WINNT_VISTA), 0))
+	{
+		Phobos::Config::GFX_DX_Force = 0;
+	}
 }

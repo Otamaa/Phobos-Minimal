@@ -299,6 +299,21 @@ public:
 
 	template<bool IsSrcGlobal, bool IsGlobal, typename _Pr>
 	static bool VariableCheckBinary(TEventClass* pThis);
+
+	// Resolves a param to a house.
+	static HouseClass* ResolveHouseParam(int const param, HouseClass* const pOwnerHouse = nullptr);
+
+	// original game using between 0 - 2 ?
+	// why these were 256 257 ? , something not right ,..
+	static std::pair<bool, bool> GetPersistableFlag(AresTriggerEvents nAction);
+	static std::pair<LogicNeedType, bool >  GetLogicNeed(AresTriggerEvents nAction);
+	static std::pair<TriggerAttachType, bool> GetAttachFlags(AresTriggerEvents nEvent);
+
+	static bool FindTechnoType(TEventClass* pThis, int args, HouseClass* pWho);
+
+	// the function return is deciding if the case is handled or not
+	// the bool result pointer is for the result of the Event itself
+	static bool HasOccured(TEventClass* pThis, EventArgs& Args, bool& result);
 };
 
 class TEventExtContainer final : public Container<TEventExtData>
@@ -309,8 +324,8 @@ public:
 public:
 	static TEventExtContainer Instance;
 
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 };
 
 class NOVTABLE FakeTEventClass : public TEventClass

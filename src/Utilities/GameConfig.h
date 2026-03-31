@@ -1,8 +1,9 @@
 #pragma once
 
 #include "GameUniquePointers.h"
+#include "LambdaFunctionArgCount.h"
+
 #include <CCINIClass.h>
-#include <Utilities/LambdaFunctionArgCount.h>
 
 struct GameConfig
 {
@@ -23,7 +24,7 @@ struct GameConfig
 	bool OpenINI(FileAccessMode mode = FileAccessMode::Read) noexcept;
 
 	template <typename Func>
-	void OpenINIAction(Func&& action, FileAccessMode mode = FileAccessMode::Read) noexcept
+	COMPILETIMEEVAL void OpenINIAction(Func&& action, FileAccessMode mode = FileAccessMode::Read) noexcept
 	{
 		if (this->OpenINI(mode)) {
 			if COMPILETIMEEVAL (lambda_details<decltype(action)>::argument_count == 1)
@@ -36,7 +37,7 @@ struct GameConfig
 	}
 
 	template <typename Func>
-	void OpenOrCreateAction(Func&& action, FileAccessMode mode = FileAccessMode::ReadWrite) noexcept
+	COMPILETIMEEVAL void OpenOrCreateAction(Func&& action, FileAccessMode mode = FileAccessMode::ReadWrite) noexcept
 	{
 		if(this->OpenOrCreate(mode)){
 			if COMPILETIMEEVAL (lambda_details<decltype(action)>::argument_count == 1)

@@ -80,73 +80,6 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 	return { currFactory  , block ,AbsType };
 }
 
-//#include <ostream>
-
-//static std::map<void*, std::string> MappedCaller {};
-//
-//ASMJIT_PATCH(0x7353C0, UnitClass_CTOR_RecordCaller , 0x7) {
-//
-//	GET(UnitClass*, pThis, ECX);
-//	GET_STACK(UnitTypeClass*, pType, 0x4);
-//	GET_STACK(DWORD, caller, 0x0);
-//	MappedCaller[pThis] = std::make_pair(pType , std::to_string(caller));
-//	return 0x0;
-//}
-
-//ASMJIT_PATCH(0x7C8E17, Game_OperatorNew_Map, 0x6)
-//{
-//	GET_STACK(int, size, 0x4);
-//	GET_STACK(DWORD, caller, 0x0);
-//
-//	const auto pTr = __mh_malloc(size , 1);
-//	MappedCaller[pTr] = std::to_string(caller);
-//	R->EAX(pTr);
-//	return 0x7C8E24;
-//}
-//
-//ASMJIT_PATCH(0x7C9430, Game_MAlloc_Map, 0x6)
-//{
-//	GET_STACK(int, size, 0x4);
-//	GET_STACK(DWORD, caller, 0x0);
-//
-//	const auto pTr = __mh_malloc(size, CRT::AllocatorMode());
-//	MappedCaller[pTr] = std::to_string(caller);
-//	R->EAX(pTr);
-//	return 0x7C9441;
-//}
-//
-//ASMJIT_PATCH(0x7C8B3D, Game_OperatorDelete_UnMap, 0x9)
-//{
-//	GET_STACK(void*, ptr, 0x4);
-//	MappedCaller.erase(ptr);
-//	__free(ptr);
-//	return 0x7C8B47;
-//}
-
-
-//ASMJIT_PATCH(0x7258D0, AnnounceInvalidPointer_PhobosGlobal_Mapped, 0x6)
-//{
-//	GET(AbstractClass* const, pInvalid, ECX);
-//	GET(bool const, removed, EDX);
-//
-//	if (Phobos::Otamaa::ExeTerminated)
-//		return 0;
-//
-//	if (removed && MappedCaller.contains((UnitClass*)pInvalid)) {
-//		MappedCaller.erase((UnitClass*)pInvalid);
-//	}
-//
-//	return 0;
-//}
-//
-
-//// Clear static data from respective classes
-//ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal_Mapped, 0xA)
-//{
-//	MappedCaller.clear();
-//	return 0x0;
-//}
-
 ASMJIT_PATCH(0x4401BB, BuildingClass_AI_PickWithFreeDocks, 0x6) //was C
 {
 	GET(BuildingClass*, pBuilding, ESI);
@@ -180,19 +113,6 @@ ASMJIT_PATCH(0x4401BB, BuildingClass_AI_PickWithFreeDocks, 0x6) //was C
 
 	return 0;
 }
-
-//ASMJIT_PATCH(0x04500FA, BuildingClass_AI_Factory_SkipNoneForComputer, 0x6)
-//{
-//	GET(BuildingClass*, pThis, ESI);
-//
-//	auto pRules = RulesExtData::Instance();
-//
-//	if (pThis->Type->Factory == AbstractType::AircraftType && pRules->ForbidParallelAIQueues_Aircraft.Get(!pRules->AllowParallelAIQueues))
-//		if(!pThis->Factory && !pThis->IsPrimaryFactory && pThis->Owner && pThis->Owner->IsControlledByHuman())
-//		return 0x4503CA;
-//
-//	return 0x0;
-//}
 
 ASMJIT_PATCH(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 {

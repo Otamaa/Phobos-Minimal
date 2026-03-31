@@ -1,12 +1,11 @@
-#include <Utilities/Cast.h>
-#include <Utilities/Macro.h>
-#include <BuildingClass.h>
-#include <BuildingTypeClass.h>
-#include <HouseClass.h>
-#include <Utilities/EnumFunctions.h>
 #include "Body.h"
-#include <Ext/TechnoType/Body.h>
+
 #include <FactoryClass.h>
+#include <HouseClass.h>
+
+#include <Utilities/EnumFunctions.h>
+#include <Ext/TechnoType/Body.h>
+
 
 ASMJIT_PATCH(0x452678, BuildingClass_CanUpgrade_UpgradeBuildings, 0x6) //8
 {

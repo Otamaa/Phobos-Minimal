@@ -2,7 +2,6 @@
 
 #include <VoxelAnimClass.h>
 
-#include <Utilities/PooledContainer.h>
 #include <Utilities/SavegameDef.h>
 
 #include <New/Entity/LaserTrailClass.h>
@@ -91,9 +90,8 @@ public:
 
 public:
 	static VoxelAnimExtContainer Instance;
-
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 };
 
 class VoxelAnimTypeExtData;

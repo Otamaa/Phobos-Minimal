@@ -1,8 +1,9 @@
+#include "Body.h"
+
 #include <Locomotor/DriveLocomotionClass.h>
 #include <Locomotor/ShipLocomotionClass.h>
 #include <UnitClass.h>
 
-#include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Utilities/Macro.h>
 #include <Utilities/TemplateDef.h>

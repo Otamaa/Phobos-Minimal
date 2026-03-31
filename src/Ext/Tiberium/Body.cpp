@@ -7,8 +7,6 @@
 
 #include <InfantryClass.h>
 
-#include <Phobos.SaveGame.h>
-
 int TiberiumExtData::Map_Cell_Index(CellStruct const& cell)
 {
 	return ((cell.X - cell.Y + MapClass::Instance->MapRect.Width - 1) >> 1) +
@@ -695,87 +693,6 @@ void TiberiumExtData::Serialize(T& Stm)
 }
 
 TiberiumExtContainer TiberiumExtContainer::Instance;
-
-bool TiberiumExtContainer::LoadAll(const json& root)
-{
-	this->Clear();
-
-	if (root.contains(TiberiumExtContainer::ClassName))
-	{
-		auto& container = root[TiberiumExtContainer::ClassName];
-
-		for (auto& entry : container[TiberiumExtData::ClassName])
-		{
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			auto buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, TiberiumExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
-		}
-
-		size_t dataSize = container["LinkedType_datasize"].get<size_t>();
-		std::string encoded = container["LinkedType_data"].get<std::string>();
-
-		PhobosByteStream loader(dataSize);
-		loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-		PhobosStreamReader reader(loader);
-
-		reader.Process(this->LinkedType);
-
-		if (!reader.ExpectEndOfBlock())
-			return false;
-
-		return true;
-	}
-
-	return false;
-
-}
-
-bool TiberiumExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[TiberiumExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : TiberiumExtContainer::Array)
-	{
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer);
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
-	}
-
-	first_layer[TiberiumExtData::ClassName] = std::move(_extRoot);
-
-	PhobosByteStream saver(0);
-	PhobosStreamWriter writer(saver);
-
-	writer.Process(this->LinkedType);
-
-	first_layer["LinkedType_datasize"] = saver.data.size();
-	first_layer["LinkedType_data"] = Base64Handler::encodeBase64(saver.data);
-
-	return true;
-}
 
 void TiberiumExtContainer::LoadFromINI(TiberiumClass* key, CCINIClass* pINI, bool parseFailAddr)
 {

@@ -17,6 +17,7 @@
 #include <TextDrawing.h>
 
 #include <Phobos.h>
+
 enum class CollisionBoxShape : BYTE{
 	Rectangle,
 	Diamond,      // Isometric diamond

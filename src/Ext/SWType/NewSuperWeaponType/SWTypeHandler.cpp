@@ -1,5 +1,7 @@
 #include "SWTypeHandler.h"
 
+#include <New/Entity/TargetingData.h>
+
 #include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
 

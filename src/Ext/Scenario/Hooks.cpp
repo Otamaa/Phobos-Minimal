@@ -77,3 +77,26 @@ ASMJIT_PATCH(0x552F79, LoadProgressManager_Draw_MissingLoadingScreenDefaults, 0x
 
 	return 0;
 }
+
+ASMJIT_PATCH(0x686C2A, ScenarioClass_ReadTutorialFromMap, 0x6)
+{
+	GET(CCINIClass*, pINI, EBP);
+
+	if (pINI->GetSection("Tutorial"))
+	{
+		const int tut_count = pINI->GetKeyCount("Tutorial");
+		Debug::Log("Reading Tutorial  from MAP , entry count = %d\n", tut_count);
+
+		for (int i = 0; i < tut_count; ++i)
+		{
+			if (pINI->ReadString("Tutorial", pINI->GetKeyName("Tutorial", i),
+				Phobos::readDefval, Phobos::readBuffer) > 0)
+			{
+				Debug::LogInfo("Value {} , at Idx {}", Phobos::readBuffer, i);
+			}
+		}
+
+	}
+
+	return 0x0;
+}

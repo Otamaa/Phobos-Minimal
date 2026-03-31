@@ -8,14 +8,13 @@
 #include <CoordStruct.h>
 #include <CellStruct.h>
 
-#include <Utilities/TargetingData.h>
-
 enum class PhobosNewActionType :int
 {
 	SuperWeaponDisallowed = 126,
 	SuperWeaponAllowed = 127,
 };
 
+struct TargetingData;
 class TechnoClass;
 class SuperClass;
 class SWTypeExtData;

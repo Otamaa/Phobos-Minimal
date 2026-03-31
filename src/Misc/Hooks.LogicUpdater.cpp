@@ -13,8 +13,7 @@
 #include <Kamikaze.h>
 
 #include <New/Entity/FlyingStrings.h>
-#include <New/Entity/VerticalLaserClass.h>
-#include <New/Entity/HomingMissileTargetTracker.h>
+
 #include <Commands/ShowTechnoNames.h>
 
 #include <Locomotor/TunnelLocomotionClass.h>
@@ -44,7 +43,6 @@ void UpdateWebbed(FootClass* pThis)
 	}
 }
 
-#include <Misc/Ares/Hooks/Header.h>
 #include <New/PhobosAttachedAffect/Functions.h>
 
 ASMJIT_PATCH(0x703789, TechnoClass_Cloak_BeforeDetach, 0x6)        // TechnoClass_Do_Cloak

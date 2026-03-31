@@ -9,7 +9,7 @@
 #include <Phobos.Math.h>
 #include <Phobos.h>
 
-#include <Misc/Ares/Hooks/Hooks.MouseCursors.h>
+#include <Ext/Mouse/Body.h>
 
 static void __cdecl PatchExit(int uExitCode)
 {

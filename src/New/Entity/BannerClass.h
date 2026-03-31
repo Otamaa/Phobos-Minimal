@@ -5,7 +5,7 @@
 
 #include <Point2D.h>
 
-#include <Utilities/Interfaces.h>
+#include <Utilities/ClassInterfaces.h>
 
 class BannerTypeClass;
 
@@ -56,8 +56,8 @@ public:
 	BannerManagerClass() = default;
 	virtual ~BannerManagerClass() = default;
 
-	virtual bool SaveGlobal(json& root);
-	virtual bool LoadGlobal(const json& root);
+	virtual bool SaveGlobal(PhobosStreamWriter& root) { return true; }
+	virtual bool LoadGlobal(const PhobosStreamReader& root) { return true; }
 	virtual void Clear();
 
 public:

@@ -6,13 +6,12 @@
 
 #include <Utilities/Debug.h>
 #include <Utilities/Patch.h>
-#include <Misc/Ares/Hooks/Header.h>
-
-#include <MessageBoxLogging.h>
-
 #include <Utilities/Macro.h>
 
+#include <MessageBoxLogging.h>
 #include <MixFileClass.h>
+
+#include <Misc/PhobosGlobal.h>
 
 // TODO : encryption support
 // Otamaa : change this variable if you want to load desired name lua file
@@ -837,7 +836,7 @@ void Phobos::ExecuteLua()
 
 		//IsActive = !SafeFiles.empty() && !CoreHandles.empty();
 
-		Lua.getGlobalString("MovieMDINI", StaticVars::MovieMDINI, true);
+		Lua.getGlobalString("MovieMDINI", PhobosGlobal::Instance()->MovieMDINI, true);
 		Lua.getGlobalString("DebugLogName", Debug::LogFileMainName, true);
 
 		if(Lua.getGlobalString("CrashDumpFileName", Debug::CrashDumpFileName, true)) {

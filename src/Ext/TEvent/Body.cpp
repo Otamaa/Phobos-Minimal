@@ -8,6 +8,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/Script/Body.h>
 #include <Ext/House/Body.h>
+#include <Ext/Super/Body.h>
 
 #include <BuildingClass.h>
 #include <InfantryClass.h>
@@ -18,11 +19,7 @@
 #include <New/PhobosAttachedAffect/PhobosAttachEffectClass.h>
 #include <New/PhobosAttachedAffect/Functions.h>
 
-#include <Misc/Ares/Hooks/Header.h>
-
 #include <TeamTypeClass.h>
-
-#include <Phobos.SaveGame.h>
 
 // =============================
 // load / save
@@ -51,6 +48,469 @@ namespace std
 		}
 	};
 	//struct and_with { bool operator()(int a, int b) { return a & b; } };
+}
+
+NOINLINE HouseClass* TEventExtData::ResolveHouseParam(int const param, HouseClass* const pOwnerHouse)
+{
+	if (param == -1)
+		return nullptr;
+
+	if (param == 8997)
+	{
+		return pOwnerHouse;
+	}
+
+	if (HouseClass::Index_IsMP(param))
+	{
+		return HouseClass::FindByIndex(param);
+	}
+
+	return HouseClass::FindByCountryIndex(param);
+}
+
+std::pair<bool, bool> TEventExtData::GetPersistableFlag(AresTriggerEvents nAction)
+{
+	switch (nAction)
+	{
+	case AresTriggerEvents::UnderEMP:
+	case AresTriggerEvents::UnderEMP_ByHouse:
+	case AresTriggerEvents::RemoveEMP:
+	case AresTriggerEvents::RemoveEMP_ByHouse:
+	case AresTriggerEvents::EnemyInSpotlightNow:
+	case AresTriggerEvents::ReverseEngineered:
+	case AresTriggerEvents::HouseOwnTechnoType:
+	case AresTriggerEvents::HouseDoesntOwnTechnoType:
+	case AresTriggerEvents::AttackedOrDestroyedByAnybody:
+	case AresTriggerEvents::AttackedOrDestroyedByHouse:
+	case AresTriggerEvents::TechnoTypeDoesntExistMoreThan:
+		return { false , true };
+	case AresTriggerEvents::DriverKiller:
+	case AresTriggerEvents::DriverKilled_ByHouse:
+	case AresTriggerEvents::VehicleTaken:
+	case AresTriggerEvents::VehicleTaken_ByHouse:
+	case AresTriggerEvents::Abducted:
+	case AresTriggerEvents::Abducted_ByHouse:
+	case AresTriggerEvents::AbductSomething:
+	case AresTriggerEvents::AbductSomething_OfHouse:
+	case AresTriggerEvents::SuperActivated:
+	case AresTriggerEvents::SuperDeactivated:
+	case AresTriggerEvents::SuperNearWaypoint:
+	case AresTriggerEvents::ReverseEngineerAnything:
+	case AresTriggerEvents::ReverseEngineerType:
+	case AresTriggerEvents::DestroyedByHouse:
+	case AresTriggerEvents::AllKeepAlivesDestroyed:
+	case AresTriggerEvents::AllKeppAlivesBuildingDestroyed:
+		return { true  , true };
+	default:
+		return { false  , false };
+	}
+}
+
+std::pair<LogicNeedType, bool > TEventExtData::GetLogicNeed(AresTriggerEvents nAction)
+{
+	switch (nAction)
+	{
+	case AresTriggerEvents::UnderEMP://
+	case AresTriggerEvents::RemoveEMP: //
+	case AresTriggerEvents::EnemyInSpotlightNow://
+	case AresTriggerEvents::DriverKiller://
+	case AresTriggerEvents::VehicleTaken://
+	case AresTriggerEvents::Abducted://
+	case AresTriggerEvents::AbductSomething://
+	case AresTriggerEvents::SuperActivated://
+	case AresTriggerEvents::SuperDeactivated://
+	case AresTriggerEvents::ReverseEngineerAnything://
+	case AresTriggerEvents::AttackedOrDestroyedByAnybody://
+		return { LogicNeedType::None  , true };
+	case AresTriggerEvents::UnderEMP_ByHouse://
+	case AresTriggerEvents::RemoveEMP_ByHouse://
+	case AresTriggerEvents::DriverKilled_ByHouse:
+	case AresTriggerEvents::VehicleTaken_ByHouse:
+	case AresTriggerEvents::Abducted_ByHouse:
+	case AresTriggerEvents::AbductSomething_OfHouse:
+	case AresTriggerEvents::AttackedOrDestroyedByHouse:
+	case AresTriggerEvents::DestroyedByHouse:
+	case AresTriggerEvents::AllKeepAlivesDestroyed:
+	case AresTriggerEvents::AllKeppAlivesBuildingDestroyed:
+		return { LogicNeedType::House  , true };
+	case AresTriggerEvents::SuperNearWaypoint:
+	case AresTriggerEvents::ReverseEngineered:
+	case AresTriggerEvents::ReverseEngineerType:
+	case AresTriggerEvents::HouseOwnTechnoType:
+	case AresTriggerEvents::HouseDoesntOwnTechnoType:
+	case AresTriggerEvents::TechnoTypeDoesntExistMoreThan:
+		return { LogicNeedType::NumberNTech  , true };
+	default:
+		return { LogicNeedType::None  , false };
+	}
+}
+
+std::pair<TriggerAttachType, bool> TEventExtData::GetAttachFlags(AresTriggerEvents nEvent)
+{
+	switch (nEvent)
+	{
+	case AresTriggerEvents::UnderEMP:
+	case AresTriggerEvents::UnderEMP_ByHouse:
+	case AresTriggerEvents::RemoveEMP:
+	case AresTriggerEvents::RemoveEMP_ByHouse:
+	case AresTriggerEvents::EnemyInSpotlightNow:
+	case AresTriggerEvents::DriverKiller:
+	case AresTriggerEvents::DriverKilled_ByHouse:
+	case AresTriggerEvents::VehicleTaken:
+	case AresTriggerEvents::VehicleTaken_ByHouse:
+	case AresTriggerEvents::Abducted:
+	case AresTriggerEvents::Abducted_ByHouse:
+	case AresTriggerEvents::AbductSomething:
+	case AresTriggerEvents::AbductSomething_OfHouse:
+	case AresTriggerEvents::ReverseEngineerAnything:
+	case AresTriggerEvents::ReverseEngineerType:
+	case AresTriggerEvents::AttackedOrDestroyedByAnybody:
+	case AresTriggerEvents::AttackedOrDestroyedByHouse:
+	{
+		return { TriggerAttachType::Object , true };
+	}
+	case AresTriggerEvents::SuperActivated:
+	case AresTriggerEvents::SuperDeactivated:
+	case AresTriggerEvents::SuperNearWaypoint:
+	case AresTriggerEvents::ReverseEngineered:
+	case AresTriggerEvents::HouseOwnTechnoType:
+	case AresTriggerEvents::HouseDoesntOwnTechnoType:
+	case AresTriggerEvents::DestroyedByHouse:
+	case AresTriggerEvents::AllKeepAlivesDestroyed:
+	case AresTriggerEvents::AllKeppAlivesBuildingDestroyed:
+	{
+		return { TriggerAttachType::House , true };
+	}
+	case AresTriggerEvents::TechnoTypeDoesntExistMoreThan:
+	{
+		return { TriggerAttachType::Logic , true };
+	}
+	}
+
+	return { TriggerAttachType::None , false };
+}
+
+bool TEventExtData::FindTechnoType(TEventClass* pThis, int args, HouseClass* pWho)
+{
+	const auto pType = TEventExtContainer::Instance.Find(pThis)->GetTechnoType();
+	if (!pType)
+		return false;
+
+	if (args <= 0)
+		return true;
+
+	if (!pType->Insignificant && !pType->DontScore)
+	{
+		HouseClass** const arr = pWho ? &pWho : HouseClass::Array->Items;
+		HouseClass** const nEnd = arr + (pWho ? 1 : HouseClass::Array->Count);
+
+		int i = args;
+
+		for (HouseClass** nPos = arr; nPos != nEnd; ++nPos)
+		{
+			i -= (*nPos)->CountOwnedNow(pType);
+
+			if (i <= 0)
+			{
+				return true;
+			}
+		}
+	}
+	else
+	{
+		int i = args;
+		TechnoClass** arrayItems = nullptr;
+		int arrayCount = 0;
+
+		switch (pType->WhatAmI())
+		{
+		case AbstractType::AircraftType:
+		{
+			arrayItems = (TechnoClass**)AircraftClass::Array->Items;
+			arrayCount = AircraftClass::Array->Count;
+			break;
+		}
+		case AbstractType::UnitType:
+		{
+			arrayItems = (TechnoClass**)UnitClass::Array->Items;
+			arrayCount = UnitClass::Array->Count;
+			break;
+		}
+		case AbstractType::InfantryType:
+		{
+			arrayItems = (TechnoClass**)InfantryClass::Array->Items;
+			arrayCount = InfantryClass::Array->Count;
+			break;
+		}
+		case AbstractType::BuildingType:
+		{
+			arrayItems = (TechnoClass**)BuildingClass::Array->Items;
+			arrayCount = BuildingClass::Array->Count;
+			break;
+		}
+		default:
+			break;
+		}
+
+		if (arrayCount > 0 && arrayItems)
+		{
+			const auto arrayItemsEnd = arrayItems + arrayCount;
+			for (auto walk = arrayItems; walk != arrayItemsEnd; ++walk)
+			{
+				if (pWho && pWho != (*walk)->Owner)
+					continue;
+
+				if (GET_TECHNOTYPE((*walk)) == pType)
+				{
+					i--;
+
+					if (i <= 0)
+					{
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+// the function return is deciding if the case is handled or not
+// the bool result pointer is for the result of the Event itself
+bool TEventExtData::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result)
+{
+	const AresTriggerEvents TEventKind = (AresTriggerEvents)pThis->EventKind;
+	const AresTriggerEvents ExecutedKind = (AresTriggerEvents)Args.EventType;
+	// They must be the same, but for other triggers to take effect normally, this cannot be judged outside case.
+	const auto isSameEvent = [&]() { return TEventKind == ExecutedKind; };
+
+	{
+		switch (TEventKind)
+		{
+		case AresTriggerEvents::UnderEMP:
+		{
+			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
+			result = pTechno && isSameEvent() && pTechno->EMPLockRemaining > 0;
+			return true;
+		}
+		case AresTriggerEvents::UnderEMP_ByHouse:
+		{
+			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
+			result = pTechno
+				&& isSameEvent()
+				&& Args.Source
+				&& ((TechnoClass*)(Args.Source))->Owner->ArrayIndex == pThis->Value
+				&& pTechno->EMPLockRemaining > 0;
+
+			return true;
+		}
+		case AresTriggerEvents::RemoveEMP:
+		{
+			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
+			result = pTechno && isSameEvent() && pTechno->EMPLockRemaining <= 0;
+			return true;
+		}
+		case AresTriggerEvents::RemoveEMP_ByHouse:
+		{
+			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
+			result = pTechno
+				&& isSameEvent()
+				&& Args.Source
+				&& ((TechnoClass*)(Args.Source))->Owner->ArrayIndex == pThis->Value
+				&& pTechno->EMPLockRemaining <= 0;
+		}
+		case AresTriggerEvents::EnemyInSpotlightNow:
+		{
+			result = true;
+			return true;
+		}
+		case AresTriggerEvents::DriverKiller:
+		{
+			result = flag_cast_to<FootClass*>(Args.Object)
+				&& isSameEvent();
+
+			return true;
+		}
+		case AresTriggerEvents::DriverKilled_ByHouse:
+		{
+			result = flag_cast_to<FootClass*>(Args.Object)
+				&& isSameEvent()
+				&& Args.Source
+				&& ((TechnoClass*)Args.Source)->Owner->ArrayIndex == pThis->Value;
+
+			return true;
+		}
+		case AresTriggerEvents::VehicleTaken:
+		{
+			result = flag_cast_to<FootClass*>(Args.Object)
+				&& isSameEvent();
+
+			return true;
+		}
+		case AresTriggerEvents::VehicleTaken_ByHouse:
+		{
+			result = flag_cast_to<FootClass*>(Args.Object)
+				&& isSameEvent()
+				&& Args.Source
+				&& ((TechnoClass*)Args.Source)->Owner->ArrayIndex == pThis->Value;
+
+			return true;
+		}
+		case AresTriggerEvents::Abducted:
+		case AresTriggerEvents::AbductSomething:
+		{
+			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
+			result = pTechno && isSameEvent();
+			return true;
+		}
+		case AresTriggerEvents::Abducted_ByHouse:
+		{
+			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
+			result = pTechno
+				&& isSameEvent()
+				&& (flag_cast_to<TechnoClass*>(Args.Source)
+				&& ((TechnoClass*)(Args.Source))->Owner->ArrayIndex == pThis->Value);
+
+			return true;
+		}
+		case AresTriggerEvents::AbductSomething_OfHouse:
+		{
+			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
+			result = pTechno
+				&& isSameEvent()
+				&& (cast_to<HouseClass*>(Args.Source)
+				&& ((HouseClass*)(Args.Source))->ArrayIndex == pThis->Value);
+
+			return true;
+
+		}
+		case AresTriggerEvents::SuperActivated:
+		case AresTriggerEvents::SuperDeactivated:
+		{
+			result = isSameEvent()
+				&& Args.Source
+				&& Args.Source->WhatAmI() == AbstractType::Super
+				&& ((SuperClass*)Args.Source)->Type->ArrayIndex == pThis->Value;
+
+			return true;
+		}
+		case AresTriggerEvents::SuperNearWaypoint:
+		{
+			struct PackedDatas
+			{
+				SuperClass* Super;
+				CellStruct Cell;
+			};
+
+			if (isSameEvent() && IS_SAME_STR_(((PackedDatas*)Args.Source)->Super->Type->ID, pThis->String))
+			{
+				const auto nCell = ScenarioClass::Instance->GetWaypointCoords(pThis->Value);
+				CellStruct nDesired = { ((PackedDatas*)Args.Source)->Cell.X - nCell.X ,((PackedDatas*)Args.Source)->Cell.Y - nCell.Y };
+				if (nDesired.pow() <= 5.0)
+				{
+					result = true;
+					return true;
+				}
+			}
+
+			result = false;
+			return true;
+		}
+		case AresTriggerEvents::ReverseEngineered:
+		{
+			if (!Args.Owner)
+				result = false;
+			else
+			{
+				if (!HouseExtContainer::Instance.Find(Args.Owner)->Reversed.empty())
+				{
+					auto TEvetType = TEventExtContainer::Instance.Find(pThis)->GetTechnoType();
+
+					for (auto pTechR : HouseExtContainer::Instance.Find(Args.Owner)->Reversed)
+					{
+						if (pTechR == TEvetType)
+						{
+							result = true;
+							break;
+						}
+					}
+
+				}
+			}
+
+			return true;
+		}
+		case AresTriggerEvents::ReverseEngineerAnything:
+		{
+			result = isSameEvent();
+			return true;
+		}
+		case AresTriggerEvents::ReverseEngineerType:
+		{
+			result = GET_TECHNOTYPE(((TechnoClass*)Args.Source)) == TEventExtContainer::Instance.Find(pThis)->GetTechnoType();
+			return true;
+		}
+		case AresTriggerEvents::HouseOwnTechnoType:
+		{
+			result = FindTechnoType(pThis, pThis->Value, Args.Owner);
+			return true;
+		}
+		case AresTriggerEvents::HouseDoesntOwnTechnoType:
+		{
+			result = !FindTechnoType(pThis, pThis->Value + 1, Args.Owner);
+			return true;
+		}
+		case AresTriggerEvents::AttackedOrDestroyedByAnybody:
+		{
+			result = isSameEvent();
+			return true;
+		}
+		case AresTriggerEvents::AttackedOrDestroyedByHouse:
+		{
+			result = isSameEvent()
+				&& Args.Source
+				&& ((TechnoClass*)Args.Source)->Owner->ArrayIndex == pThis->Value;
+
+			return true;
+		}
+		case AresTriggerEvents::DestroyedByHouse:
+		{
+			result = isSameEvent()
+				&& Args.Source
+				&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
+
+			return true;
+		}
+		case AresTriggerEvents::TechnoTypeDoesntExistMoreThan:
+		{
+			result = FindTechnoType(pThis, pThis->Value + 1, nullptr);
+			return true;
+		}
+		case AresTriggerEvents::AllKeepAlivesDestroyed:
+		{
+			HouseClass* pHouse = pThis->Value == 0x2325 ?
+				nullptr : HouseClass::Index_IsMP(pThis->Value) ?
+				HouseClass::FindByIndex(pThis->Value) : HouseClass::FindByCountryIndex(pThis->Value);
+
+			result = pHouse && HouseExtContainer::Instance.Find(pHouse)->KeepAliveCount <= 0;
+			return true;
+		}
+		case AresTriggerEvents::AllKeppAlivesBuildingDestroyed:
+		{
+			HouseClass* pHouse = pThis->Value == 0x2325 ?
+				nullptr : HouseClass::Index_IsMP(pThis->Value) ?
+				HouseClass::FindByIndex(pThis->Value) : HouseClass::FindByCountryIndex(pThis->Value);
+
+			result = pHouse && HouseExtContainer::Instance.Find(pHouse)->KeepAliveBuildingCount <= 0;
+			return true;
+		}
+		default:
+			break;
+		}
+	}
+
+	return false;
 }
 
 // Gets the TechnoType pointed to by the event's TechnoName field.
@@ -497,7 +957,7 @@ bool HandleEntryEvents(TEventClass* evt, TriggerEvent event, ObjectClass* obj, b
 		return false;
 	}
 
-	auto country = AresTEventExt::ResolveHouseParam(evt->Value);
+	auto country = TEventExtData::ResolveHouseParam(evt->Value);
 
 	if (!country) {
 		return false;
@@ -524,7 +984,7 @@ bool HandleSpyAsHouse(TEventClass* evt, TriggerEvent event, ObjectClass* obj, bo
 		return false;
 	}
 
-	auto country = AresTEventExt::ResolveHouseParam(evt->Value);
+	auto country = TEventExtData::ResolveHouseParam(evt->Value);
 
 	if (!country) {
 		return false;
@@ -694,7 +1154,7 @@ bool HandleHouseEvents(TEventClass* evt, HouseClass* house, bool* bool1)
 
 bool HandleValue2HouseEvents(TEventClass* evt)
 {
-	HouseClass* targetHouse = AresTEventExt::ResolveHouseParam(evt->Value);
+	HouseClass* targetHouse = TEventExtData::ResolveHouseParam(evt->Value);
 
 	// continue normally if a house was found or this isn't Player@X logic,
 	// otherwise return false directly so events don't fire for non-existing
@@ -818,7 +1278,7 @@ bool HandleDefaultEvents(
 		int param = evt->Value;
 		// convert Player @ X to real index
 		if (HouseClass::Index_IsMP( evt->Value)) {
-			auto const pPlayer = AresTEventExt::ResolveHouseParam( evt->Value);
+			auto const pPlayer = TEventExtData::ResolveHouseParam( evt->Value);
 			param = pPlayer ? pPlayer->ArrayIndex : -1;
 		}
 
@@ -860,7 +1320,7 @@ bool FakeTEventClass::_Occured(TriggerEvent event, HouseClass* house, ObjectClas
 		return result;
 	}
 
-	if (AresTEventExt::HasOccured(this, args, result)) {
+	if (TEventExtData::HasOccured(this, args, result)) {
 		return result;
 	}
 
@@ -900,11 +1360,11 @@ bool FakeTEventClass::_Occured(TriggerEvent event, HouseClass* house, ObjectClas
 
 	case TriggerEvent::TechTypeExists:
 	{
-		return AresTEventExt::FindTechnoType(this, this->Value, nullptr);
+		return TEventExtData::FindTechnoType(this, this->Value, nullptr);
 	}
 	case TriggerEvent::TechTypeDoesntExist:
 	{
-		return !AresTEventExt::FindTechnoType(this, 1, nullptr);
+		return !TEventExtData::FindTechnoType(this, 1, nullptr);
 	}
 	default:
 		return HandleDefaultEvents(this, event, house, obj, bool1, source);
@@ -927,7 +1387,7 @@ ASMJIT_PATCH(0x71F9C0, TEventClass_Persistable, 6)
 	}
 
 	std::pair<bool, bool> result =
-		AresTEventExt::GetPersistableFlag((AresTriggerEvents)pThis->EventKind);
+		TEventExtData::GetPersistableFlag((AresTriggerEvents)pThis->EventKind);
 
 	if (!result.second)
 		result = TEventExtData::GetPersistableFlag((PhobosTriggerEvent)pThis->EventKind);
@@ -943,7 +1403,7 @@ ASMJIT_PATCH(0x71F39B, TEventClass_SaveToINI, 5)
 {
 	GET(AresTriggerEvents, nAction, EDX);
 
-	std::pair<LogicNeedType, bool > result = AresTEventExt::GetLogicNeed(nAction);
+	std::pair<LogicNeedType, bool > result = TEventExtData::GetLogicNeed(nAction);
 
 	if (!result.second)
 		result = TEventExtData::GetLogicNeed((PhobosTriggerEvent)nAction);
@@ -959,7 +1419,7 @@ ASMJIT_PATCH(0x71f683, TEventClass_GetFlags, 5)
 {
 	GET(AresTriggerEvents, nAction, ECX);
 
-	std::pair<TriggerAttachType, bool> result = AresTEventExt::GetAttachFlags(nAction);
+	std::pair<TriggerAttachType, bool> result = TEventExtData::GetAttachFlags(nAction);
 
 	if (!result.second)
 		result = TEventExtData::GetTriggetAttach((PhobosTriggerEvent)nAction);
@@ -977,67 +1437,6 @@ DEFINE_FUNCTION_JUMP(CALL , 0x726540, FakeTEventClass::_Occured)
 // =============================
 // container
 TEventExtContainer TEventExtContainer::Instance;
-
-bool TEventExtContainer::LoadAll(const json& root)
-{
-	this->Clear();
-
-	if (root.contains(TEventExtContainer::ClassName))
-	{
-		auto& container = root[TEventExtContainer::ClassName];
-
-		for (auto& entry : container[TEventExtData::ClassName])
-		{
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			auto buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, TEventExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
-		}
-
-		return true;
-	}
-
-	return false;
-
-}
-
-bool TEventExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[TEventExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : TEventExtContainer::Array)
-	{
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer);
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
-	}
-
-	first_layer[TEventExtData::ClassName] = std::move(_extRoot);
-
-	return true;
-}
 
 // =============================
 // container hooks

@@ -84,26 +84,6 @@ ASMJIT_PATCH(0x7265F7, TriggerClass_Logic_PlayerAtX, 0x6)
 	return 0;
 }
 
-// Destroy triggers with Player @ X owners if they are not present in scenario.
-// ASMJIT_PATCH(0x725FC7, TriggerClass_CTOR_PlayerAtX, 0x7)
-// {
-// 	GET(TriggerClass*, pThis, ESI);
-
-// 	if (SessionClass::IsCampaign())
-// 		return 0;
-
-// 	auto& triggerOwners = ScenarioExtData::Instance()->TriggerTypePlayerAtXOwners;
-// 	auto it = triggerOwners.get_key_iterator(pThis->Type->ArrayIndex);
-
-// 	if (it != triggerOwners.end())
-// 	{
-// 		if (!HouseClass::FindByPlayerAt(it->second))
-// 			pThis->Destroy();
-// 	}
-
-// 	return 0;
-// }
-
 // Remove destroyed triggers from the map.
 ASMJIT_PATCH(0x726727, TriggerClass_Destroy_PlayerAtX, 0x5)
 {

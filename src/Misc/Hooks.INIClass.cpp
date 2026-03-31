@@ -14,7 +14,6 @@
 //#include <New/Interfaces/AttachmentLocomotionClass.h>
 #include <New/Interfaces/LevitateLocomotionClass.h>
 #include <New/Interfaces/AdvancedDriveLocomotionClass.h>
-#include <New/Interfaces/TestLocomotionClass.h>
 #include <New/Interfaces/CustomRocketLocomotionClass.h>
 #include <New/Interfaces/TSJumpJetLocomotionClass.h>
 

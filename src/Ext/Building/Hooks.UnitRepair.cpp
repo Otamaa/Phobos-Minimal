@@ -1,6 +1,5 @@
 #include "Body.h"
 
-
 ASMJIT_PATCH(0x44B8F1, BuildingClass_Mission_Repair_Hospital, 0x6)
 {
 	enum { SkipGameCode = 0x44B8F7 };
@@ -10,7 +9,6 @@ ASMJIT_PATCH(0x44B8F1, BuildingClass_Mission_Repair_Hospital, 0x6)
 	__asm { fld repairRate }
 	return SkipGameCode;
 }
-
 
 ASMJIT_PATCH(0x44BD38, BuildingClass_Mission_Repair_UnitRepair, 0x6)
 {

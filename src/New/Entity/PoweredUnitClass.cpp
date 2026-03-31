@@ -2,7 +2,7 @@
 
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
-#include <Misc/Ares/Hooks/Header.h>
+#include <Ext/WarheadType/Body.h>
 
 #include <InfantryClass.h>
 
@@ -19,7 +19,7 @@ bool PoweredUnitClass::IsPoweredBy(HouseClass* const pOwner) const
 
 		if (inArray && !pBuilding->BeingWarpedOut && !pBuilding->IsUnderEMP())
 		{
-			if (TechnoExt_ExtData::IsOperated(pBuilding) && pBuilding->IsPowerOnline())
+			if (TechnoExtData::IsOperated(pBuilding) && pBuilding->IsPowerOnline())
 			{
 				return true;
 			}
@@ -32,9 +32,9 @@ bool PoweredUnitClass::IsPoweredBy(HouseClass* const pOwner) const
 void PoweredUnitClass::PowerUp()
 {
 	auto const pTechno = this->Techno;
-	if (!pTechno->IsUnderEMP() && TechnoExt_ExtData::IsOperated(pTechno))
+	if (!pTechno->IsUnderEMP() && TechnoExtData::IsOperated(pTechno))
 	{
-		AresEMPulse::DisableEMPEffect2(pTechno);
+		WarheadTypeExtData::DisableEMPEffect2(pTechno);
 	}
 }
 
@@ -42,10 +42,10 @@ bool PoweredUnitClass::PowerDown()
 {
 	auto const pTechno = this->Techno;
 
-	if (AresEMPulse::IsDeactivationAdvisableB(pTechno))
+	if (WarheadTypeExtData::IsDeactivationAdvisableB(pTechno))
 	{
 		// destroy if EMP.Threshold would crash this unit when in air
-		if (AresEMPulse::EnableEMPEffect2(pTechno)
+		if (WarheadTypeExtData::EnableEMPEffect2(pTechno)
 			|| (GET_TECHNOTYPEEXT(pTechno)->EMP_Threshold
 				&& pTechno->IsInAir()))
 		{

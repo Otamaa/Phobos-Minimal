@@ -1,6 +1,7 @@
+#include "Body.h"
+
 #include <Ext/TechnoType/Body.h>
 
-#include "Body.h"
 #include <InfantryClass.h>
 #include <Ext/WeaponType/Body.h>
 

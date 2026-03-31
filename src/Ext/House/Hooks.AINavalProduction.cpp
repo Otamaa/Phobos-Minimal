@@ -29,35 +29,6 @@ ASMJIT_PATCH(0x4FB6FC, HouseClass_JustBuilt_NavalProductionFix, 0x6)
 	return 0;
 }
 
-// ASMJIT_PATCH(0x71F003, TEventClass_Execute_NavalProductionFix, 0x6)
-// {
-// 	enum { Occured = 0x71F014, Skip = 0x71F163 };
-//
-// 	GET(TEventClass* const, pThis, EBP);
-// 	GET(FakeHouseClass* const, pHouse, EAX);
-//
-// 	if (pHouse->LastBuiltVehicleType != pThis->Value &&
-// 		pHouse->_GetExtData()->LastBuiltNavalVehicleType != pThis->Value)
-// 	{
-// 		return Skip;
-// 	}
-//
-// 	return Occured;
-// }
-
-//ASMJIT_PATCH(0x444137, BuildingClass_ExitObject_NavalProductionFix2, 0x6)
-//{
-//	GET(BuildingClass* const, pThis, ESI);
-//	GET(FootClass* const, pObject, EDI);
-//
-//	auto const pHouse = pThis->Owner;
-//
-//	if (pObject->WhatAmI() == UnitClass::AbsID && pObject->GetTechnoType()->Naval)
-//		pHouse->ProducingUnitTypeIndex = ExitObjectTemp::ProducingUnitIndex;
-//
-//	return 0;
-//}
-
 //skipping call of 0x4FBD80
 ASMJIT_PATCH(0x450319, BuildingClass_AI_Factory_NavalProductionFix, 0x6)
 {

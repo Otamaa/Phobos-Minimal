@@ -1,8 +1,6 @@
 #include "Body.h"
-#include <Phobos.h>
-#include <Helpers/Macro.h>
-#include <Utilities/TemplateDef.h>
-#include <Utilities/Macro.h>
+
+
 #include <HouseTypeClass.h>
 #include <HouseClass.h>
 #include <ScenarioClass.h>
@@ -18,7 +16,9 @@
 
 #include <AircraftTrackerClass.h>
 
-#include <Phobos.SaveGame.h>
+#include <Helpers/Macro.h>
+#include <Utilities/TemplateDef.h>
+#include <Utilities/Macro.h>
 
 bool AnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
@@ -650,66 +650,6 @@ void AnimTypeExtData::Serialize(T& Stm)
 
 AnimTypeExtContainer AnimTypeExtContainer::Instance;
 
-bool AnimTypeExtContainer::LoadAll(const json& root)
-{
-	this->Clear();
-
-	if (root.contains(AnimTypeExtContainer::ClassName))
-	{
-		auto& container = root[AnimTypeExtContainer::ClassName];
-
-		for (auto& entry : container[AnimTypeExtData::ClassName])
-		{
-
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			auto buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, AnimTypeExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
-		}
-
-		return true;
-	}
-
-	return false;
-}
-
-bool AnimTypeExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[AnimTypeExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : AnimTypeExtContainer::Array)
-	{
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer); // write all data to stream
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
-	}
-
-	first_layer[AnimTypeExtData::ClassName] = std::move(_extRoot);
-	return true;
-}
-
 void AnimTypeExtContainer::LoadFromINI(AnimTypeClass* key, CCINIClass* pINI, bool parseFailAddr)
 {
 	if (auto ptr = this->Find(key))
@@ -739,4 +679,28 @@ void AnimTypeExtContainer::WriteToINI(AnimTypeClass* key, CCINIClass* pINI)
 
 		ptr->WriteToINI(pINI);
 	}
+}
+
+ASMJIT_PATCH(0x42784B, AnimTypeClass_CTOR, 0x5)
+{
+	if (!Phobos::Otamaa::DoingLoadGame)
+	{
+		GET(AnimTypeClass*, pItem, EAX);
+		AnimTypeExtContainer::Instance.Allocate(pItem);
+	}
+	return 0;
+}
+
+ASMJIT_PATCH(0x428EA8, AnimTypeClass_SDDTOR, 0x5)
+{
+	GET(AnimTypeClass*, pItem, ECX);
+	AnimTypeExtContainer::Instance.Remove(pItem);
+	return 0;
+}
+
+bool FakeAnimTypeClass::_ReadFromINI(CCINIClass* pINI)
+{
+	bool status = this->AnimTypeClass::LoadFromINI(pINI);
+	AnimTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
 }

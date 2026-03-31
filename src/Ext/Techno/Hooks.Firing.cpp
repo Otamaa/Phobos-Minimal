@@ -110,70 +110,6 @@ ASMJIT_PATCH(0x51B20E, InfantryClass_AssignTarget_FireOnce, 0x6)
 	return 0;
 }
 
-//https://github.com/Phobos-developers/Phobos/pull/1073/
-// ASMJIT_PATCH(0x6FE562, TechnoClass_FireAt_BurstRandomTarget, 0x6)
-// {
-// 	GET(TechnoClass*, pThis, ESI);
-// 	GET(WeaponTypeClass*, pWeapon, EBX);
-// 	GET(BulletClass*, pBullet, EAX);
-//
-// 	if (!pBullet || pWeapon->Burst < 2)
-// 		return 0;
-//
-// 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-// 	if (pWeaponExt->Burst_Retarget <= 0.0)
-// 		return 0;
-//
-// 	const int retargetProbability = pWeaponExt->Burst_Retarget > 1.0 ? 100 : (int)std::round(pWeaponExt->Burst_Retarget * 100);
-//
-// 	if (retargetProbability < ScenarioClass::Instance->Random.RandomRanged(1, 100))
-// 		return 0;
-//
-// 	auto pThisType = pThis->GetTechnoType();
-// 	std::vector<TechnoClass*> candidates;
-// 	auto originalTarget = pThis->Target;
-// 	auto pThisExt = TechnoExtContainer::Instance.Find(pThis);
-// 	int minimumRange = pWeapon->MinimumRange;
-// 	int range = pWeapon->Range;
-// 	int airRange = pWeapon->Range + pThisType->AirRangeBonus;
-//
-// 	for (auto pTarget : *TechnoClass::Array)
-// 	{
-// 		if (pTarget == originalTarget)
-// 			continue;
-//
-// 		const auto FireError = pThis->GetFireError(pTarget, pThisExt->CurrentWeaponIdx, false);
-// 		if (FireError != FireError::OK)
-// 			continue;
-//
-// 		int distanceFromAttacker = pThis->DistanceFrom(pTarget);
-// 		if (distanceFromAttacker < minimumRange)
-// 			continue;
-//
-// 		const auto rangemax = (pTarget->IsInAir() ? airRange : range);
-//
-// 		if (pWeapon->OmniFire) {
-// 			if(distanceFromAttacker <= rangemax)
-// 				candidates.push_back(pTarget);
-// 		}
-// 		else
-// 		{
-// 			int distanceFromOriginalTarget = pTarget->DistanceFrom(originalTarget);
-//
-// 			if (distanceFromAttacker <= rangemax && distanceFromOriginalTarget <= rangemax) {
-// 				candidates.push_back(pTarget);
-// 			}
-// 		}
-// 	}
-//
-// 	if (!candidates.empty()) {
-// 		Pick one new target from the list of targets inside the weapon range
-// 		pBullet->Target = candidates[ScenarioClass::Instance->Random.RandomFromMax(candidates.size() - 1)];
-// 	}
-//
-// 	return 0;
-// }
-
 ASMJIT_PATCH(0x772AA2, WeaponTypeClass_AllowedThreats_AAOnly, 0x5)
 {
 	GET(BulletTypeClass* const, pType, ECX);
@@ -295,24 +231,6 @@ ASMJIT_PATCH(0x7012C0, TechnoClass_WeaponRange, 0x8) //4
 }
 
 #pragma region WallWeaponStuff
-
-// NOINLINE WeaponStruct* TechnoClass_GetWeaponAgainstWallWrapper(TechnoClass* pThis) {
-// 	auto const weaponPrimary = pThis->GetWeapon(0);
-//
-// 	if (!weaponPrimary->WeaponType->Warhead->Wall) {
-// 		auto const weaponSecondary = pThis->GetWeapon(1);
-//
-// 		if (weaponSecondary
-// 			&& weaponSecondary->WeaponType
-// 			&& weaponSecondary->WeaponType->Warhead->Wall
-// 			 && !TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->NoSecondaryWeaponFallback) {
-// 			return weaponSecondary;
-// 		}
-// 	}
-//
-// 	return weaponPrimary;
-// }
-
 
 ASMJIT_PATCH(0x51C1F1, InfantryClass_CanEnterCell_WallWeapon, 0x5)
 {
@@ -451,17 +369,6 @@ ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 
 	return 0x6FDE0E;
 }
-
-// ASMJIT_PATCH(0x5206B7, InfantryClass_FiringAI_Entry, 0x6)
-// {
-// 	GET(InfantryClass*, pThis, EBP);
-//
-// 	if (!pThis->Target || !pThis->IsFiring)
-// 		TechnoExtContainer::Instance.Find(pThis)->DelayedFireSequencePaused = false;
-//
-// 	return 0;
-// }
-
 
 ASMJIT_PATCH(0x6FCDD2, TechnoClass_AssignTarget_Changed, 0x6)
 {

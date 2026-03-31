@@ -9,8 +9,6 @@
 
 #include <Utilities/Macro.h>
 
-#include <Misc/Ares/Hooks/Header.h>
-
 #include <SpawnManagerClass.h>
 #include <CaptureManagerClass.h>
 #include <RadarEventClass.h>
@@ -71,7 +69,7 @@ ASMJIT_PATCH(0x71AB10, TemporalClass_GetWarpPerStep, 6)
 {
 	GET_STACK(int, nStep, 0x4);
 	GET(TemporalClass*, pThis, ECX);
-	R->EAX(TechnoExt_ExtData::GetWarpPerStep(pThis, nStep));
+	R->EAX(TechnoExtData::GetWarpPerStep(pThis, nStep));
 	return 0x71AB57;
 }
 
@@ -83,7 +81,7 @@ ASMJIT_PATCH(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)
 	{
 		pTarget->Mark(MarkType::Redraw);
 
-		if (auto nTotal = TechnoExt_ExtData::GetWarpPerStep(pThis, 0))
+		if (auto nTotal = TechnoExtData::GetWarpPerStep(pThis, 0))
 		{
 			auto const pWeapon = pThis->Owner->GetWeapon(TechnoExtContainer::Instance.Find(pThis->Owner)->idxSlot_Warp)->WeaponType;
 
@@ -119,6 +117,6 @@ ASMJIT_PATCH(0x71AE50, TemporalClass_CanWarpTarget, 8)
 {
 	GET(TemporalClass*, pTemp, ECX);
 	GET_STACK(TechnoClass*, pTarget, 0x4);
-	R->EAX(TechnoExt_ExtData::Warpable(pTemp , pTarget));
+	R->EAX(TechnoExtData::Warpable(pTemp , pTarget));
 	return 0x71AF19;
 }

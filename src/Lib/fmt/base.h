@@ -1030,6 +1030,7 @@ struct is_view : std::false_type {};
 template <typename T>
 struct is_view<T, bool_constant<sizeof(T) != 0>> : std::is_base_of<view, T> {};
 
+// DEPRECATED! named_arg will be moved to the fmt namespace.
 template <typename T, typename Char> struct named_arg;
 template <typename T> struct is_named_arg : std::false_type {};
 template <typename T> struct is_static_named_arg : std::false_type {};
@@ -1808,6 +1809,7 @@ template <typename T> class buffer {
   /// Appends data to the end of the buffer.
   template <typename U>
   FMT_CONSTEXPR20 void append(const U* begin, const U* end) {
+    static_assert(std::is_same<T, U>() || std::is_same<U, char>(), "");
     while (begin != end) {
       auto size = size_;
       auto free_cap = capacity_ - size;
@@ -1820,7 +1822,7 @@ template <typename T> class buffer {
       }
       // A loop is faster than memcpy on small sizes.
       T* out = ptr_ + size;
-      for (size_t i = 0; i < count; ++i) out[i] = begin[i];
+      for (size_t i = 0; i < count; ++i) out[i] = static_cast<T>(begin[i]);
       size_ += count;
       begin += count;
     }
@@ -1856,6 +1858,54 @@ class fixed_buffer_traits {
   }
 };
 
+template <typename OutputIt, typename InputIt, typename = void>
+struct has_append : std::false_type {};
+
+template <typename OutputIt, typename InputIt>
+struct has_append<OutputIt, InputIt,
+                  void_t<decltype(get_container(std::declval<OutputIt>())
+                                      .append(std::declval<InputIt>(),
+                                              std::declval<InputIt>()))>>
+    : std::true_type {};
+
+template <typename OutputIt, typename T, typename = void>
+struct has_insert : std::false_type {};
+
+template <typename OutputIt, typename T>
+struct has_insert<OutputIt, T,
+                  void_t<decltype(get_container(std::declval<OutputIt>())
+                                      .insert({}, std::declval<T>(),
+                                              std::declval<T>()))>>
+    : std::true_type {};
+
+// An optimized version of std::copy with the output value type (T).
+template <typename T, typename InputIt, typename OutputIt,
+          FMT_ENABLE_IF(is_back_insert_iterator<OutputIt>() &&
+                        has_append<OutputIt, InputIt>())>
+FMT_CONSTEXPR auto copy(InputIt begin, InputIt end, OutputIt out) -> OutputIt {
+  get_container(out).append(begin, end);
+  return out;
+}
+
+template <typename T, typename InputIt, typename OutputIt,
+          FMT_ENABLE_IF(is_back_insert_iterator<OutputIt>() &&
+                        !has_append<OutputIt, InputIt>() &&
+                        has_insert<OutputIt, InputIt>())>
+FMT_CONSTEXPR auto copy(InputIt begin, InputIt end, OutputIt out) -> OutputIt {
+  auto& c = get_container(out);
+  c.insert(c.end(), begin, end);
+  return out;
+}
+
+template <typename T, typename InputIt, typename OutputIt,
+          FMT_ENABLE_IF(!is_back_insert_iterator<OutputIt>() ||
+                        !(has_append<OutputIt, InputIt>() ||
+                          has_insert<OutputIt, InputIt>()))>
+FMT_CONSTEXPR auto copy(InputIt begin, InputIt end, OutputIt out) -> OutputIt {
+  while (begin != end) *out++ = static_cast<T>(*begin++);
+  return out;
+}
+
 // A buffer that writes to an output iterator when flushed.
 template <typename OutputIt, typename T, typename Traits = buffer_traits>
 class iterator_buffer : public Traits, public buffer<T> {
@@ -1873,7 +1923,7 @@ class iterator_buffer : public Traits, public buffer<T> {
     this->clear();
     const T* begin = data_;
     const T* end = begin + this->limit(size);
-    while (begin != end) *out_++ = *begin++;
+    out_ = copy<T>(begin, end, out_);
   }
 
  public:

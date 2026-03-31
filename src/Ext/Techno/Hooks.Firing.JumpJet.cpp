@@ -84,46 +84,4 @@ ASMJIT_PATCH(0x736E6E, UnitClass_FiringAI_OmniFireTurnToTarget, 0x9) {
 	return 0;
 }
 
-// Bugfix: Align jumpjet turret's facing with body's
-// ASMJIT_PATCH_AGAIN(0x54BB80, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Ascending
-// ASMJIT_PATCH_AGAIN(0x54C2CB, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Cruising
-// ASMJIT_PATCH_AGAIN(0x54C376, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Cruising
-// ASMJIT_PATCH(0x54C64B, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Descending
-// {
-// 	GET(FootClass* const, pThis, ECX);
-//
-// 	if (pThis->Destination == pThis->GetCell()) {
-// 		pThis->SetDestination(nullptr, true);
-// 	}
-//
-// 	return 0;
-// }
-
-//
-//ASMJIT_PATCH(0x736BF3, UnitClass_UpdateRotation_TurretFacing, 0x6)
-//{
-//	GET(UnitClass*, pThis, ESI);
-//
-//	// I still don't know why jumpjet loco behaves differently for the moment
-//	// so I don't check jumpjet loco or InAir here, feel free to change if it doesn't break performance.
-//	if (!pThis->Target && !pThis->Type->TurretSpins && (pThis->Type->JumpJet || pThis->Type->BalloonHover))
-//	{
-//		pThis->SecondaryFacing.Set_Desired(pThis->PrimaryFacing.Current());
-//		pThis->TurretIsRotating = pThis->SecondaryFacing.Is_Rotating();
-//		return 0x736C09;
-//	}
-//
-//	return 0;
-//}
-
-// Man, what can I say
-//ASMJIT_PATCH(0x54D67B, JumpjetLocomotionClass_ProcessMove_NotJumpjetTurn, 0x5)
-//{
-//	GET(JumpjetLocomotionClass*, pThis, ESI);
-//
-//	pThis->LinkedTo->PrimaryFacing.Set_Desired(pThis->Facing.Desired());
-//
-//	return 0x54D697;
-//}
-
 #pragma endregion

@@ -2,10 +2,6 @@
 
 #include <Phobos.lib.h>
 
-#ifdef ENABLE_CLR
-#include <Scripting/CLR.h>
-#endif
-
 #include <CCINIClass.h>
 #include <Unsorted.h>
 #include <Drawing.h>
@@ -14,13 +10,11 @@
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Debug.h>
 #include <Utilities/Patch.h>
+#include <Utilities/CSFText.h>
 #include <Utilities/GameConfig.h>
 
 #include <Misc/Patches.h>
-
 #include <Misc/PhobosGlobal.h>
-
-#include <Misc/Ares/Hooks/Header.h>
 #include <Misc/Spawner/Main.h>
 
 #include <Dbghelp.h>
@@ -102,6 +96,35 @@ const wchar_t* Phobos::UI::SWShotsFormat { L"" };
 
 const wchar_t* Phobos::UI::BattlePoints_Label { L"" };
 const wchar_t* Phobos::UI::BattlePointsSidebar_Label { L"" };
+
+int Phobos::UI::uiColorText;
+int Phobos::UI::uiColorTextButton { 0xFFFF }; // #1644: needed for CD prompt
+int Phobos::UI::uiColorTextCheckbox;
+int Phobos::UI::uiColorTextRadio;
+int Phobos::UI::uiColorTextLabel { 0xFFFF }; // #1644: needed for CD prompt
+int Phobos::UI::uiColorTextList;
+int Phobos::UI::uiColorTextCombobox;
+int Phobos::UI::uiColorTextGroupbox;
+int Phobos::UI::uiColorTextEdit;
+int Phobos::UI::uiColorTextSlider;
+int Phobos::UI::uiColorTextObserver;
+int Phobos::UI::uiColorCaret;
+int Phobos::UI::uiColorSelection;
+int Phobos::UI::uiColorSelectionCombobox;
+int Phobos::UI::uiColorSelectionList;
+int Phobos::UI::uiColorSelectionObserver;
+int Phobos::UI::uiColorBorder1;
+int Phobos::UI::uiColorBorder2;
+int Phobos::UI::uiColorDisabled;
+int Phobos::UI::uiColorDisabledLabel;
+int Phobos::UI::uiColorDisabledButton;
+int Phobos::UI::uiColorDisabledCombobox;
+int Phobos::UI::uiColorDisabledCheckbox;
+int Phobos::UI::uiColorDisabledList;
+int Phobos::UI::uiColorDisabledSlider;
+int Phobos::UI::uiColorDisabledObserver;
+ColorData Phobos::UI::Colors[16 + 1];
+
 bool Phobos::UI::BattlePointsSidebar_Label_InvertPosition {};
 bool Phobos::UI::BattlePointsSidebar_AlwaysShow { false };
 
@@ -161,6 +184,15 @@ int Phobos::Config::DistributionFilterMode = 2;
 
 int Phobos::Config::SuperWeaponSidebar_RequiredSignificance { 0 };
 bool Phobos::Config::SuperWeaponSidebarCommands { false };
+DWORD  Phobos::Config::InternalVersion { 0x1414D121 };
+char  Phobos::Config::ModName[0x40] { "Yuri's Revenge" };
+char  Phobos::Config::ModVersion[0x40] { "1.001" };
+int  Phobos::Config::ModIdentifier;
+CSFText  Phobos::Config::ModNote;
+byte  Phobos::Config::GFX_DX_Force;
+int  Phobos::Config::colorCount { 8 };
+int  Phobos::Config::version;
+
 bool Phobos::Misc::CustomGS { false };
 int Phobos::Misc::CustomGS_ChangeInterval[7] { -1, -1, -1, -1, -1, -1, -1 };
 int Phobos::Misc::CustomGS_ChangeDelay[7] { 0, 1, 2, 3, 4, 5, 6 };

@@ -2,7 +2,6 @@
 #include <ParticleClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/PooledContainer.h>
 #include <Utilities/TemplateDef.h>
 #include <New/Entity/LaserTrailClass.h>
 #include <Ext/ParticleType/Body.h>
@@ -77,8 +76,9 @@ public:
 public:
 	static ParticleExtContainer Instance;
 
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
+
 };
 
 class ParticleTypeExtData;

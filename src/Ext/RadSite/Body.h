@@ -3,7 +3,6 @@
 #include <RadSiteClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/PooledContainer.h>
 #include <Utilities/TemplateDef.h>
 
 #include <Ext/WeaponType/Body.h>
@@ -113,8 +112,9 @@ public:
 public:
 	static RadSiteExtContainer Instance;
 
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
+
 };
 
 class NOVTABLE FakeRadSiteClass : public RadSiteClass

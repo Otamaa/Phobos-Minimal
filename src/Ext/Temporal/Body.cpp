@@ -21,12 +21,6 @@
 #include <SpawnManagerClass.h>
 #include <CaptureManagerClass.h>
 
-#include <Misc/Ares/Hooks/Header.h>
-
-#include <Misc/Kratos/Extension/TechnoExt.h>
-#include <Misc/Kratos/Common/Components/Scriptable.h>
-
-#include <Phobos.SaveGame.h>
 
 void FakeTemporalClass::CreateWarpAwayAnimation(WeaponTypeClass* pWeapon)
 {
@@ -54,7 +48,7 @@ void HandleBuildingDestruction(TemporalClass* pTemporal, BuildingClass* building
 	}
 
 	if (const auto pTunnelData = HouseExtData::GetTunnelVector(building->Type, building->Owner))
-		TunnelFuncs::DestroyTunnel(&pTunnelData->Vector, building, pTemporal->Owner);
+		HouseExtData::DestroyTunnel(&pTunnelData->Vector, building, pTemporal->Owner);
 
 	if (building->Type->Helipad
 		&& building->RadioLinks.Items
@@ -89,12 +83,6 @@ void HandleBuildingDestruction(TemporalClass* pTemporal, BuildingClass* building
 // bugfix #1266: Temporal kills gain double experience
 void HandleDestruction(TemporalClass* pTemporal , TechnoClass* target , WeaponTypeClass* pWeapon)
 {
-	if (auto pTargetExt = TechnoExt::ExtMap.Find(target))
-	{
-		pTargetExt->_GameObject->Foreach([&](Component* c)
-			{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnTemporalEliminate(pTemporal); } });
-	}
-
 	auto pOwnerExt = TechnoExtContainer::Instance.Find(pTemporal->Owner);
 	auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
 
@@ -135,7 +123,7 @@ void HandleDestruction(TemporalClass* pTemporal , TechnoClass* target , WeaponTy
 				bool erase = true;
 
 				if (!pBuilding && pWeaponExt->Abductor_Temporal)
-					erase = !AresWPWHExt::conductAbduction(pWeapon, pTemporal->Owner, target, CoordStruct::Empty);
+					erase = !WeaponTypeExtData::conductAbduction(pWeapon, pTemporal->Owner, target, CoordStruct::Empty);
 
 				if (erase) {
 					if (pBuilding) {
@@ -209,16 +197,11 @@ void FakeTemporalClass::_Update()
 	}
 
 	if (shouldProcessMainLogic) {
-		this->WarpRemaining -= TechnoExt_ExtData::GetWarpPerStep(this, 0);
+		this->WarpRemaining -= TechnoExtData::GetWarpPerStep(this, 0);
 
 		if (!this->Owner) {
 			this->Detach();
 			return;
-		}
-
-		if (auto pExt = TechnoExt::ExtMap.Find(this->Target)) {
-			pExt->_GameObject->Foreach([&](Component* c)
-				{ if (auto cc = dynamic_cast<ITechnoScript*>(c)) { cc->OnTemporalUpdate(this); } });
 		}
 
 		if(this->WarpRemaining <= 0) {
@@ -248,7 +231,7 @@ void FakeTemporalClass::_Detonate(TechnoClass* pTarget) 	{
 		this->Owner->TemporalImUsing->LetGo();
 	}
 
-	if (!TechnoExt_ExtData::Warpable(this, pTarget) || this->Owner->TemporalTargetingMe)
+	if (!TechnoExtData::Warpable(this, pTarget) || this->Owner->TemporalTargetingMe)
 		return;
 
 	// bugfix #874 B: Temporal warheads affect Warpable=no units
@@ -372,67 +355,6 @@ void TemporalExtData::Serialize(T& Stm) {
 // =============================
 // container
 TemporalExtContainer TemporalExtContainer::Instance;
-
-bool TemporalExtContainer::LoadAll(const json& root)
-{
-	this->Clear();
-
-	if (root.contains(TemporalExtContainer::ClassName))
-	{
-		auto& container = root[TemporalExtContainer::ClassName];
-
-		for (auto& entry : container[TemporalExtData::ClassName])
-		{
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			auto buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, TemporalExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
-		}
-
-		return true;
-	}
-
-	return false;
-
-}
-
-bool TemporalExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[TemporalExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : TemporalExtContainer::Array)
-	{
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer);
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
-	}
-
-	first_layer[TemporalExtData::ClassName] = std::move(_extRoot);
-
-	return true;
-}
 
 // =============================
 // container hooks

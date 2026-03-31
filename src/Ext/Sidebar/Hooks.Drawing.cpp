@@ -1,7 +1,5 @@
 #include "Body.h"
 
-#include <Misc/Ares/Hooks/Header.h>
-
 #include <Ext/TechnoType/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <Ext/Super/Body.h>
@@ -10,10 +8,13 @@
 #include <Ext/House/Body.h>
 #include <Ext/HouseType/Body.h>
 #include <Ext/Side/Body.h>
-#include <Misc/PhobosToolTip.h>
-#include <Misc/Ares/CSF.h>
-#include <Utilities/Cast.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/Mouse/Body.h>
+
+#include <Misc/PhobosToolTip.h>
+#include <Misc/CSF.h>
+
+#include <Utilities/Cast.h>
 
 #include <TechnoTypeClass.h>
 #include <TextDrawing.h>
@@ -45,24 +46,6 @@ public:
 		WWKey* key,
 		KeyModifier a4);
 };
-
-// ASMJIT_PATCH(0x6ab773, SelectClass_ProcessInput_ProduceUnsuspended, 0xA)
-// {
-// 	GET(EventClass*, pEvent, EAX);
-// 	GET_STACK(DWORD, flag, 0xB8);
-//
-// 	for (int i = ((4 * (flag & 1)) | 1); i > 0; --i) {
-// 		EventClass::AddEvent(pEvent);
-// 	}
-//
-// 	return 0x6AB7CC;
-// }
-
-// ASMJIT_PATCH(0x6AB689, SelectClass_Action_SkipBuildingProductionCheck, 0x5)
-// {
-// 	enum { SkipGameCode = 0x6AB6CE };
-// 	return RulesExtData::Instance()->ExpandBuildingQueue ? SkipGameCode : 0;
-// }
 
 #define EPILOGUE() \
    this->ControlClass::Action(flags, key, KeyModifier::None); \
@@ -978,7 +961,7 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 							if (pTechnoTypeExt->GClock_Transculency->GetIntValue() > 0)
 								_GCLOCK_Trans = pTechnoTypeExt->GClock_Transculency->GetBlitterFlags();
 
-							CameoPCXSurface = TechnoTypeExt_ExtData::GetPCXSurface(pTechnoType, pPlayer);
+							CameoPCXSurface = TechnoTypeExtData::GetPCXSurface(pTechnoType, pPlayer);
 
 							// 006A9800-006A980E: Get cameo data
 							cameoShape = pTechnoType->GetCameo();

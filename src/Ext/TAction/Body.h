@@ -3,10 +3,12 @@
 #include <TActionClass.h>
 #include <TriggerClass.h>
 
-#include <Utilities/Savegame.h>
 #include <Helpers/Template.h>
+
+#include <Utilities/Savegame.h>
 #include <Utilities/VectorHelper.h>
 #include <Utilities/PhobosMap.h>
+#include <Utilities/Enum.h>
 
 class HouseClass;
 class ObjectClass;
@@ -101,6 +103,9 @@ public:
 	static bool Occured(TActionClass* pThis, ActionArgs const& args , bool& bHandled);
 	static bool RunSuperWeaponAt(TActionClass* pThis, int X, int Y);
 
+	static std::pair<TriggerAttachType, bool> GetTriggetAttach(AresNewTriggerAction nAction);
+	static std::pair<LogicNeedType, bool> GetLogicNeed(AresNewTriggerAction nAction);
+
 #define ACTION_FUNC(name) \
 	static bool name(TActionClass* pThis, HouseClass* pHouse, \
 		ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
@@ -176,8 +181,28 @@ public:
 
 	ACTION_FUNC(AdjustHouseModifier);
 
+	ACTION_FUNC(ActivateFirestorm);
+	ACTION_FUNC(DeactivateFirestorm);
+	ACTION_FUNC(AuxiliaryPower);
+	ACTION_FUNC(KillDriversOf);
+	ACTION_FUNC(SetEVAVoice);
+	ACTION_FUNC(SetGroup);
+
+	//TODO : re-eval
+	ACTION_FUNC(LauchhNuke);
+
+	//TODO : re-eval
+	ACTION_FUNC(LauchhChemMissile);
+	ACTION_FUNC(LightstormStrike);
+	ACTION_FUNC(MeteorStrike);
+	ACTION_FUNC(PlayAnimAt);
+	ACTION_FUNC(DoExplosionAt);
+	ACTION_FUNC(EnableTrigger);
+
 #undef ACTION_FUNC
 
+	static bool Retint(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location, DefaultColorList col);
+	static bool Execute(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location, bool& ret);
 	static PhobosMap<int, std::vector<TriggerClass*>> RandomTriggerPool;
 
 	static void Clear() {

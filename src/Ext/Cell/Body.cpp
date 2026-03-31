@@ -3,14 +3,14 @@
 #include <TiberiumClass.h>
 
 #include <Utilities/Macro.h>
+
 #include <Ext/Tiberium/Body.h>
+
 #include <TacticalClass.h>
 #include <IsometricTileTypeClass.h>
 #include <BuildingClass.h>
 #include <TerrainClass.h>
 #include <ScenarioClass.h>
-
-#include <Phobos.SaveGame.h>
 
 #include <cmath>
 #include <algorithm>
@@ -333,67 +333,6 @@ void CellExtData::Serialize(T& Stm) {
 // container
 
 CellExtContainer CellExtContainer::Instance;
-
-bool CellExtContainer::LoadAll(const json& root)
-{
-	this->Clear();
-
-	if (root.contains(CellExtContainer::ClassName))
-	{
-		auto& container = root[CellExtContainer::ClassName];
-
-		for (auto& entry : container[CellExtData::ClassName])
-		{
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			auto buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, CellExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
-		}
-
-		return true;
-	}
-
-	return false;
-
-}
-
-bool CellExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[CellExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : CellExtContainer::Array)
-	{
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer);
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
-	}
-
-	first_layer[CellExtData::ClassName] = std::move(_extRoot);
-
-	return true;
-}
 
 // =============================
 // container hooks

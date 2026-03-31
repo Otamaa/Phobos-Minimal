@@ -5,6 +5,7 @@
 #include <Ext/SWType/Body.h>
 
 #include <Utilities/Helpers.h>
+#include <New/Entity/TargetingData.h>
 
 bool SW_Protect::CanTargetingFireAt(const TargetingData* pTargeting, const CellStruct& cell, bool manual) const
 {

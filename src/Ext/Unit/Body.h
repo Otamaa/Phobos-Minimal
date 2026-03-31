@@ -10,8 +10,6 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "UnitExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "UnitClass";
 	
-	
-
 public:
 #pragma region classMembers
 
@@ -82,8 +80,8 @@ public:
 public:
 	static UnitExtContainer Instance;
 
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	static bool HasDeployingAnim(TechnoTypeClass* pUnitType);
 	static bool CheckDeployRestrictions(FootClass* pUnit, bool isDeploying);

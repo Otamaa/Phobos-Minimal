@@ -2,12 +2,13 @@
 #include <BulletClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/PooledContainer.h>
+
 #include <Utilities/TemplateDef.h>
 
 #include <New/Entity/LaserTrailClass.h>
 
 #include "Trajectories/PhobosTrajectory.h"
+
 #include <Ext/Object/Body.h>
 
 class TechnoClass;
@@ -19,8 +20,6 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "BulletExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "BulletClass";
 	
-	
-
 public:
 #pragma region ClassMembers
 	// ============================================================
@@ -160,8 +159,8 @@ public:
 public:
 	static BulletExtContainer Instance;
 
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 };
 

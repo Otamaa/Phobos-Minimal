@@ -13,7 +13,6 @@
 
 #include <New/Entity/ElectricBoltClass.h>
 
-
 class WeaponTypeExtData final : public AbstractTypeExtData
 {
 public:
@@ -303,6 +302,17 @@ public:
 	static bool LutsInitialized;
 
 	static void calculateCircuferences();
+
+	static bool conductAbduction(
+	WeaponTypeClass* pWeapon,
+	TechnoClass* pOwner,
+	AbstractClass* pTarget,
+	CoordStruct nTargetCoords
+	);
+
+	static bool applyOccupantDamage(BulletClass* pThis);
+	static void applyKillDriver(WarheadTypeClass* pWH, TechnoClass* pKiller, TechnoClass* pVictim);
+	static void applyKillDriver(WarheadTypeClass* pWH, HouseClass* pKillerOwner, TechnoClass* pVictim);
 };
 
 class WeaponTypeExtContainer final :public Container<WeaponTypeExtData>
@@ -316,8 +326,8 @@ public:
 public:
 	static WeaponTypeExtContainer Instance;
 
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(ext_t::base_type* key, CCINIClass* pINI);

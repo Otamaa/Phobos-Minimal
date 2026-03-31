@@ -5,9 +5,12 @@
 #include <VocClass.h>
 
 #include <Utilities/Cast.h>
+#include <Utilities/CSFText.h>
+#include <Misc/CSF.h>
 
 #include <Ext/Techno/Body.h>
 #include <Ext/WarheadType/Body.h>
+
 #include <TranslateFixedPoints.h>
 
 #include <Locomotor/CLSIDs.h>
@@ -66,8 +69,6 @@ void GeneralUtils::DoubleValidCheck(double* source, const char* section, const c
 		*source = defaultValue;
 	}
 }
-
-#include <Misc/Ares/CSF.h>
 
 const wchar_t* GeneralUtils::LoadStringOrDefault(const char* key, const wchar_t* defaultValue)
 {

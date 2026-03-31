@@ -6,18 +6,17 @@
 
 #include <Utilities/PhobosMap.h>
 
-#include <New/AnonymousType/AresAttachEffectTypeClass.h>
-#include <New/AnonymousType/BlockTypeClass.h>
+#include <New/Entity/AresAttachEffectTypeClass.h>
+#include <New/Entity/BlockTypeClass.h>
+#include <New/Entity/VersesData.h>
+#include <New/Entity/LauchSWData.h>
 
 #include <New/Type/ShieldTypeClass.h>
 #include <New/Type/ArmorTypeClass.h>
 #include <New/Type/ImmunityTypeClass.h>
 #include <New/Type/CrateTypeClass.h>
 
-#include <New/Entity/LauchSWData.h>
 #include <New/PhobosAttachedAffect/AEAttachInfoTypeClass.h>
-
-#include <Utilities/VersesData.h>
 
 typedef std::vector<std::tuple< std::vector<int>, std::vector<int>, TransactValueType>> TransactData;
 
@@ -30,8 +29,6 @@ public:
 	using base_type = WarheadTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "WarheadTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "WarheadTypeClass";
-
-
 
 public:
 
@@ -662,6 +659,30 @@ public:
 	static void CreateIonBlast(WarheadTypeClass* pThis, const CoordStruct& coords);
 	static void applyEMP(WarheadTypeClass* pWH, const CoordStruct& coords, TechnoClass* source);
 	static void DetonateAtBridgeRepairHut(AbstractClass* pTarget, TechnoClass* pOwner = nullptr, HouseClass* pFiringHouse = nullptr, bool destroyBridge = false);
+
+	static void ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args);
+
+	static void CreateEMPulse(WarheadTypeClass* pWarhead, const CoordStruct& Target, TechnoClass* Firer);
+	static void Destroy(TechnoClass* pTechno, TechnoClass* pKiller, HouseClass* pKillerHouse, WarheadTypeClass* pWarhead);
+	static AnimTypeClass* GetSparkleAnimType(TechnoClass* pTechno);
+	static void announceAttack(TechnoClass* Techno);
+	static void updateSpawnManager(TechnoClass* Techno, ObjectClass* Source = nullptr);
+	static void updateRadarBlackout(BuildingClass* const pBuilding);
+	static bool IsTypeEMPProne(TechnoClass* pType);
+	static bool isCurrentlyEMPImmune(WarheadTypeClass* pWarhead, TechnoClass* Target, HouseClass* SourceHouse);
+	static bool isEMPImmune(TechnoClass* Target, HouseClass* SourceHouse);
+	static bool isEMPTypeImmune(TechnoClass* Target);
+	static bool IsDeactivationAdvisable(TechnoClass* Target);
+	static bool IsDeactivationAdvisableB(TechnoClass* Target);
+	static void UpdateSparkleAnim(TechnoClass* pFrom, TechnoClass* pTo);
+	static void UpdateSparkleAnim(TechnoClass* pWho, AnimTypeClass* pAnim = nullptr);
+	static bool thresholdExceeded(TechnoClass* Victim);
+	static bool isEligibleEMPTarget(TechnoClass* const pTarget, HouseClass* const pSourceHouse, WarheadTypeClass* pWarhead);
+	static void deliverEMPDamage(TechnoClass* const pTechno, TechnoClass* const pFirer, WarheadTypeClass* pWarhead);
+	static bool EnableEMPEffect(TechnoClass* const pVictim, ObjectClass* const pSource);
+	static void DisableEMPEffect(TechnoClass* const pVictim);
+	static bool EnableEMPEffect2(TechnoClass* const pVictim);
+	static void DisableEMPEffect2(TechnoClass* const pVictim);
 };
 
 class WarheadTypeExtContainer final : public Container<WarheadTypeExtData>
@@ -675,8 +696,9 @@ public:
 public:
 	static WarheadTypeExtContainer Instance;
 
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
+
 	virtual void Clear();
 
 	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);

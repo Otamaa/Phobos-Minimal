@@ -2,13 +2,21 @@
 
 #include <Ext/BulletType/Body.h>
 #include <Ext/Bullet/Body.h>
-#include <Utilities/Macro.h>
-
+#include <Ext/Building/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/WarheadType/Body.h>
+#include <Ext/House/Body.h>
+#include <Ext/AnimType/Body.h>
+#include <Ext/Anim/Body.h>
+#include <Ext/Infantry/Body.h>
+#include <Ext/InfantryType/Body.h>
+
+#include <Utilities/Macro.h>
 
 #include <EBolt.h>
-#include <Phobos.SaveGame.h>
+#include <CaptureManagerClass.h>
+#include <SlaveManagerClass.h>
 
 #pragma region defines
 int WeaponTypeExtData::nOldCircumference { DiskLaserClass::Radius };
@@ -990,91 +998,301 @@ void WeaponTypeExtData::DetonateAt5(WeaponTypeClass* pThis, const CoordStruct& c
 	//}
 }
 
-// =============================
-// container
-WeaponTypeExtContainer WeaponTypeExtContainer::Instance;
-
-bool WeaponTypeExtContainer::LoadAll(const json& root)
+bool WeaponTypeExtData::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner, AbstractClass* pTarget, CoordStruct nTargetCoords)
 {
-	this->Clear();
 
-	if (root.contains(WeaponTypeExtContainer::ClassName))
+	const auto pData = WeaponTypeExtContainer::Instance.Find(pWeapon);
+
+	// ensuring a few base parameters
+	if (!pData->Abductor || !pOwner || !pTarget)
 	{
-		auto& container = root[WeaponTypeExtContainer::ClassName];
+		return false;
+	}
 
-		for (auto& entry : container[WeaponTypeExtData::ClassName])
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pData->This()->Warhead);
+	const auto Target = flag_cast_to<FootClass*, false>(pTarget);
+
+	if (!Target)
+	{
+		// the target was not a valid passenger type
+		return false;
+	}
+
+	if (nTargetCoords == CoordStruct::Empty)
+		nTargetCoords = pTarget->GetCoords();
+
+	const auto Attacker = pOwner;
+	//const auto pTargetType = Target->GetTechnoType();
+	const auto AttackerType = GET_TECHNOTYPE(Attacker);
+
+	if (!pWHExt->CanAffectHouse(Attacker->Owner, Target->GetOwningHouse()))
+	{
+		return false;
+	}
+
+	if (!TechnoExtData::IsAbductable(Attacker, pData->This(), Target))
+	{
+		return false;
+	}
+
+	//if it's owner meant to be changed, do it here
+	HouseClass* pDesiredOwner = Attacker->Owner ? Attacker->Owner : HouseExtData::FindSpecial();
+
+	//if it's owner meant to be changed, do it here
+	if ((pData->Abductor_ChangeOwner && !TechnoExtData::IsPsionicsImmune(Target)))
+		Target->SetOwningHouse(pDesiredOwner);
+
+	// if we ended up here, the target is of the right type, and the attacker can take it
+	// so we abduct the target...
+	Target->EnterIdleMode(true, 0);
+	Target->StopMoving();
+	Target->SetDestination(nullptr, true); // Target->UpdatePosition(int) ?
+	Target->SetTarget(nullptr);
+	Target->CurrentTargets.clear(); // Target->ShouldLoseTargetNow ?
+	Target->SetArchiveTarget(nullptr);
+	Target->QueueMission(Mission::Sleep, true);
+	Target->MissionAccumulateTime = 0; // don't ask
+	Target->unknown_5A0 = 0;
+	Target->CurrentGattlingStage = 0;
+	Target->SetCurrentWeaponStage(0);
+
+	// the team should not wait for me
+	if (Target->BelongsToATeam())
+	{
+		Target->Team->LiberateMember(Target);
+	}
+
+	// if this unit is being mind controlled, break the link
+	if (const auto MindController = Target->MindControlledBy)
+	{
+		if (const auto MC = MindController->CaptureManager)
 		{
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			auto buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, WeaponTypeExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
+			MC->FreeUnit(Target);
 		}
-
-		size_t dataSize = container["OldCircumference_datasize"].get<size_t>();
-		std::string encoded = container["OldCircumference_data"].get<std::string>();
-
-		PhobosByteStream loader(dataSize);
-		loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-		PhobosStreamReader reader(loader);
-
-		reader.Process(WeaponTypeExtData::nOldCircumference);
-
-		if (!reader.ExpectEndOfBlock())
-			return false;
-
-		return true;
 	}
 
-	return false;
-
-}
-
-bool WeaponTypeExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[WeaponTypeExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : WeaponTypeExtContainer::Array)
+	// if this unit is a mind controller, break the link
+	if (Target->CaptureManager)
 	{
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer);
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
+		Target->CaptureManager->FreeAll();
 	}
 
-	first_layer[WeaponTypeExtData::ClassName] = std::move(_extRoot);
+	// if this unit is currently in a state of temporal flux, get it back to our time-frame
+	if (Target->TemporalTargetingMe)
+	{
+		Target->TemporalTargetingMe->LetGo();
+	}
 
+	//if the target is spawned, detach it from it's spawner
+	Target->DetachSpecificSpawnee(pDesiredOwner);
 
-	PhobosByteStream saver(0);
-	PhobosStreamWriter writer(saver);
+	// if the unit is a spawner, kill the spawns
+	if (Target->SpawnManager)
+	{
+		Target->SpawnManager->KillNodes();
+		Target->SpawnManager->ResetTarget();
+	}
 
-	writer.Process(WeaponTypeExtData::nOldCircumference);
+	//if the unit is a slave, it should be freed
+	Target->FreeSpecificSlave(pDesiredOwner);
 
-	first_layer["OldCircumference_datasize"] = saver.data.size();
-	first_layer["OldCircumference_data"] = Base64Handler::encodeBase64(saver.data);
+	// If the unit is a SlaveManager, free the slaves
+	if (auto pSlaveManager = Target->SlaveManager)
+	{
+		pSlaveManager->Killed(Attacker);
+		pSlaveManager->ZeroOutSlaves();
+		Target->SlaveManager->Owner = Target;
+	}
+
+	// if we have an abducting animation, play it
+	if (auto pAnimType = pData->Abductor_AnimType)
+	{
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nTargetCoords),
+			Attacker->Owner,
+			Target->Owner,
+			Attacker,
+			false, false
+		);
+	}
+
+	//Target->Locomotor.GetInterfacePtr()->Force_Track(-1, CoordStruct::Empty);
+	//CoordStruct coordsUnitSource = Target->GetCoords();
+	//Target->Locomotor.GetInterfacePtr()->Mark_All_Occupation_Bits(0);
+	//Target->MarkAllOccupationBits(coordsUnitSource);
+
+	Target->ClearPlanningTokens(nullptr);
+	Target->Flashing.DurationRemaining = 0;
+
+	if (!Target->Limbo())
+	{
+		Debug::FatalError("Abduction: Target unit %p (%s) could not be removed.", Target, Target->get_ID());
+		return false;
+	}
+
+	// because we are throwing away the locomotor in a split second, piggybacking
+	// has to be stopped. otherwise the object might remain in a weird state.
+	TechnoExtContainer::Instance.Find(Target)->ResetLocomotor = true;
+
+	//Target->AnnounceExpiredPointer(false);
+	Target->OnBridge = false; // ????
+	Target->NextObject = 0; // ??
+	//Target->Mark(MarkType::Remove);
+
+	// handling for Locomotor weapons: since we took this unit from the Magnetron
+	// in an unfriendly way, set these fields here to unblock the unit
+	if (Target->IsAttackedByLocomotor || Target->IsLetGoByLocomotor)
+	{
+		Target->IsAttackedByLocomotor = false;
+		Target->IsLetGoByLocomotor = false;
+	}
+
+	Target->Transporter = Attacker;
+	if (AttackerType->OpenTopped && Target->Owner->IsAlliedWith(Attacker))
+	{
+		Attacker->EnteredOpenTopped(Target);
+	}
+
+	if (Attacker->WhatAmI() == BuildingClass::AbsID)
+	{
+		Target->Absorbed = true;
+	}
+
+	Attacker->AddPassenger(Target);
+	Attacker->Undiscover();
+
+	if (auto v29 = Target->AttachedTag)
+		v29->RaiseEvent(TriggerEvent(AresTriggerEvents::Abducted_ByHouse), Target, CellStruct::Empty, false, Attacker);
+
+	if (Target->IsAlive)
+	{
+		if (auto v30 = Target->AttachedTag)
+			v30->RaiseEvent(TriggerEvent(AresTriggerEvents::Abducted), Target, CellStruct::Empty, false, nullptr);
+	}
+
+	if (auto v31 = Attacker->AttachedTag)
+		v31->RaiseEvent(TriggerEvent(AresTriggerEvents::AbductSomething_OfHouse), Attacker, CellStruct::Empty, false, Target->GetOwningHouse());// pTarget->Owner
+
+	if (Attacker->IsAlive)
+	{
+		if (auto v32 = Attacker->AttachedTag)
+			v32->RaiseEvent(TriggerEvent(AresTriggerEvents::AbductSomething), Attacker, CellStruct::Empty, false, nullptr);
+	}
 
 	return true;
 }
+
+bool WeaponTypeExtData::applyOccupantDamage(BulletClass* pThis)
+{
+	auto const pBuilding = cast_to<BuildingClass*>(pThis->Target);
+
+	// if that pointer is null, something went wrong
+	if (!pBuilding)
+	{
+		return false;
+	}
+
+	auto const pTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
+	auto const pBldTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+
+	auto const occupants = pBuilding->Occupants.Count;
+	auto const& passThrough = pBldTypeExt->UCPassThrough;
+
+	if (!occupants || !passThrough)
+	{
+		return false;
+	}
+
+	auto& Random = ScenarioClass::Instance->Random;
+	if (pTypeExt->SubjectToTrenches && Random.RandomDouble() >= passThrough)
+	{
+		return false;
+	}
+
+	auto const idxPoorBastard = Random.RandomFromMax(occupants - 1);
+	auto const pPoorBastard = pBuilding->Occupants[idxPoorBastard];
+	auto const& fatalRate = pBldTypeExt->UCFatalRate;
+
+	if (fatalRate > 0.0 && Random.RandomDouble() < fatalRate)
+	{
+		pBuilding->Occupants.erase_at(idxPoorBastard);
+		pPoorBastard->Destroyed(pThis->Owner);
+		pPoorBastard->UnInit();
+		pBuilding->UpdateThreatInCell(pBuilding->GetCell());
+		pBuilding->NeedsRedraw = true;
+	}
+	else
+	{
+		auto const& multiplier = pBldTypeExt->UCDamageMultiplier;
+		auto adjustedDamage = static_cast<int>(std::ceil(pThis->Health * multiplier));
+		int distance = 0;
+		//if(auto pOwnerTech = pThis->Owner)
+			//distance = pOwnerTech->DistanceFrom(pPoorBastard);
+
+		if (pPoorBastard->ReceiveDamage(&adjustedDamage, distance, pThis->WH, pThis->Owner, false, true, pThis->GetOwningHouse()) == DamageState::NowDead)
+			pBuilding->NeedsRedraw = true;
+	}
+
+	if (pBuilding->FiringOccupantIndex >= pBuilding->GetOccupantCount())
+	{
+		pBuilding->FiringOccupantIndex = 0;
+	}
+
+	// if the last occupant was killed and this building was raided,
+	// it needs to be returned to its owner. (Bug #700)
+	TechnoExtData::EvalRaidStatus(pBuilding);
+
+	return true;
+}
+
+void WeaponTypeExtData::applyKillDriver(WarheadTypeClass* pWH, HouseClass* pKillerOwner, TechnoClass* pVictim)
+{
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
+
+	if (!pKillerOwner || !pWHExt->KillDriver || !pVictim || !pVictim->IsAlive)
+		return;
+
+	if (!pWHExt->CanAffectHouse(pKillerOwner, pVictim->Owner))
+		return;
+
+	if (!TechnoExtData::IsDriverKillable(pVictim, pWHExt->KillDriver_KillBelowPercent))
+		return;
+
+	if (ScenarioClass::Instance->Random.RandomDouble() <= pWHExt->KillDriver_Chance)
+	{
+		HouseClass* Owner = HouseExtData::GetHouseKind(pWHExt->KillDriver_Owner, false, nullptr, pKillerOwner, pVictim->Owner);
+		if (!Owner)
+			Owner = HouseExtData::FindSpecial();
+
+		TechnoExtData::ApplyKillDriver(pVictim, nullptr, Owner, pWHExt->KillDriver_ResetVeterancy, Mission::Harmless);
+	}
+}
+
+void WeaponTypeExtData::applyKillDriver(WarheadTypeClass* pWH, TechnoClass* pKiller, TechnoClass* pVictim)
+{
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
+
+	if (!pKiller || !pWHExt->KillDriver || !pVictim || !pVictim->IsAlive)
+		return;
+
+	if (!pWHExt->CanAffectHouse(pKiller->Owner, pVictim->Owner))
+		return;
+
+	if (!TechnoExtData::IsDriverKillable(pVictim, pWHExt->KillDriver_KillBelowPercent))
+		return;
+
+	if (ScenarioClass::Instance->Random.RandomDouble() <= pWHExt->KillDriver_Chance)
+	{
+		HouseClass* Owner = HouseExtData::GetHouseKind(pWHExt->KillDriver_Owner, false, nullptr, pKiller->Owner, pVictim->Owner);
+		if (!Owner)
+			Owner = HouseExtData::FindSpecial();
+
+		TechnoExtData::ApplyKillDriver(pVictim, pKiller, Owner, pWHExt->KillDriver_ResetVeterancy, Mission::Harmless);
+	}
+}
+
+// =============================
+// container
+WeaponTypeExtContainer WeaponTypeExtContainer::Instance;
 
 void WeaponTypeExtContainer::LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr)
 {
@@ -1111,27 +1329,32 @@ void WeaponTypeExtContainer::WriteToINI(ext_t::base_type* key, CCINIClass* pINI)
 // container hooks
 //
 
-// ASMJIT_PATCH(0x771EE0, WeaponTypeClass_CTOR, 0x6)
-// {
-// 	GET(WeaponTypeClass*, pItem, ESI);
-// 	WeaponTypeExtContainer::Instance.Allocate(pItem);
-// 	WeaponTypeExtData::calculateCircuferences();
-// 	return 0;
-// }
+ASMJIT_PATCH(0x771EE0, WeaponTypeClass_CTOR, 0x6)
+{
+	GET(WeaponTypeClass*, pItem, ESI);
 
-// ASMJIT_PATCH(0x77311D, WeaponTypeClass_SDDTOR, 0x6)
-// {
-// 	GET(WeaponTypeClass*, pItem, ESI);
-// 	WeaponTypeExtContainer::Instance.Remove(pItem);
-// 	return 0;
-// }
+	if (!Phobos::Otamaa::DoingLoadGame)
+	{
+		WeaponTypeExtContainer::Instance.Allocate(pItem);
+		WeaponTypeExtData::calculateCircuferences();
+	}
 
-// bool FakeWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
-// {
-// 	//WeaponTypeExtContainer::Instance.Find(this)->RadType = RadTypeClass::FindOrAllocate(GameStrings::Radiation());
-// 	bool status = this->WeaponTypeClass::LoadFromINI(pINI);
-// 	WeaponTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
-// 	return status;
-// }
+	return 0;
+}
 
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F741C, FakeWeaponTypeClass::_ReadFromINI)
+ASMJIT_PATCH(0x77311D, WeaponTypeClass_SDDTOR, 0x6)
+{
+	GET(WeaponTypeClass*, pItem, ESI);
+	WeaponTypeExtContainer::Instance.Remove(pItem);
+	return 0;
+}
+
+bool FakeWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
+{
+	//WeaponTypeExtContainer::Instance.Find(this)->RadType = RadTypeClass::FindOrAllocate(GameStrings::Radiation());
+	bool status = this->WeaponTypeClass::LoadFromINI(pINI);
+	WeaponTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F741C, FakeWeaponTypeClass::_ReadFromINI)

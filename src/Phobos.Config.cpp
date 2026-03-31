@@ -4,54 +4,13 @@
 
 #include <Utilities/Debug.h>
 #include <Utilities/GameConfig.h>
+#include <Utilities/GeneralUtils.h>
 
-#include <Misc/Ares/Hooks/Header.h>
 #include <Misc/Patches.h>
 
 #include <GameStrings.h>
 #include <GameOptionsClass.h>
-
-//class CustomCCINIClass : public CCINIClass
-//{
-//public:
-//	static inline std::string encryptionKey { "ThisIstTheKey" }; // Example key
-//
-//	// Xor method is easy to implement
-//	// there will be more encryption support in the future
-//	// experimental for now
-//	static NOINLINE void xorEncryptDecrypt(std::vector<char>& buffer, const std::string& key)
-//	{
-//		size_t keyLength = key.length();
-//		for (std::size_t i = 0; i < buffer.size(); ++i) {
-//			buffer[i] ^=  key[i % keyLength];
-//		}
-//	}
-//
-//	// these module will be implemented as separate dll and the key will be different
-//	// and the source code for core module gonna be private and holded by each mod owner for security reason
-//#pragma optimize("", off )
-//	static NOINLINE std::vector<char> LoadINIFile(const char* filename)
-//	{
-//		CCFileClass* pFile = GameCreate<CCFileClass>(filename);
-//
-//		if(pFile->Exists()){
-//			// Read the file into a buffer.
-//			size_t fileSize = pFile->GetFileSize();
-//			std::vector<char> buffer(fileSize + 1, 0);
-//			if ((size_t)pFile->ReadBytes(buffer.data(), fileSize) == fileSize) {
-//				GameDelete<true, false>(pFile);
-//				xorEncryptDecrypt(buffer, encryptionKey); // encrypt the buffer
-//				xorEncryptDecrypt(buffer, encryptionKey); // decrypt the buffer
-//				return buffer;
-//			}
-//		}
-//
-//		GameDelete<true, false>(pFile);
-//
-//		return {};
-//	}
-//#pragma optimize("", on )
-//};
+#include <StringTable.h>
 
 void Phobos::Config::Read_RA2MD(){
 	auto const& pRA2MD = CCINIClass::INI_RA2MD;
@@ -110,10 +69,135 @@ void Phobos::Config::Read_RA2MD(){
 void Phobos::Config::Read_UIMD(){
 	GameConfig UIMD { GameStrings::UIMD_INI() };
 
-	UIMD.OpenINIAction([](CCINIClass* pINI)
- {
-	 Debug::Log("Loading early %s file.\n", GameStrings::UIMD_INI());
-	 AresGlobalData::ReadAresRA2MD(pINI);
+	UIMD.OpenINIAction([](CCINIClass* pINI) {
+		 Debug::Log("Loading early %s file.\n", GameStrings::UIMD_INI());
+	
+		 {
+			 Debug::LogInfo("--------- Loading Ares global settings -----------");
+			 auto Ini = pINI;
+
+			 if (Ini)
+			 {
+				 auto const section2 = GameStrings::Colors();
+				 colorCount = std::clamp(Ini->ReadInteger(section2, "Count", colorCount), 8, 17);
+
+				 auto const ParseColorInt = [&Ini](const char* section, const char* key, int defColor) -> int
+					 {
+						 ColorStruct ndefault(defColor & 0xFF, (defColor >> 8) & 0xFF, (defColor >> 16) & 0xFF);
+						 auto const color = Ini->ReadColor(section, key, ndefault);
+						 return color.R | color.G << 8 | color.B << 16;
+					 };
+
+				 auto const section = "UISettings";
+
+				 auto const ReadColor = [&Ini, section2, ParseColorInt]
+				 (
+					 const std::string& name,
+					 ColorData& value,
+					 int colorRGB,
+					 const char* defTooltip,
+					 const char* defColorScheme
+				 )
+					 {
+						 // load the tooltip string
+
+						 if (Ini->ReadString(section2, (name + ".Tooltip").c_str(), defTooltip, Phobos::readBuffer))
+							 value.sttToolTipSublineText = StringTable::FetchString(Phobos::readBuffer);
+
+						 if (Ini->ReadString(section2, (name + ".ColorScheme").c_str(), defColorScheme, Phobos::readBuffer))
+							 PhobosCRT::strCopy(value.colorScheme, Phobos::readBuffer);
+
+						 value.colorRGB = ParseColorInt(section2, (name + ".DisplayColor").c_str(), colorRGB);
+						 value.colorSchemeIndex = -1;
+						 value.selectedIndex = -1;
+					 };
+
+				 // menu colors. the color of labels, button texts, list items, stuff and others
+				 Phobos::UI::uiColorText = ParseColorInt(section, "Color.Text", 0xFFFF);
+
+				 // original color schemes
+				 static COMPILETIMEEVAL reference<int, 0x8316A8, 0x9> const DefaultColors {};
+				 COMPILETIMEEVAL const char* Slot_tags[] = {
+					 "Slot1", "Slot2", "Slot3", "Slot4",
+					 "Slot5", "Slot6", "Slot7", "Slot8",
+					 "Slot9", "Slot10", "Slot11", "Slot12",
+					 "Slot13", "Slot14", "Slot15", "Slot16"
+				 };
+
+				 ReadColor("Observer", Phobos::UI::Colors[0], DefaultColors[8], GameStrings::STT_PlayerColorObserver, GameStrings::LightGrey);
+				 ReadColor(Slot_tags[0], Phobos::UI::Colors[1], DefaultColors[0], GameStrings::STT_PlayerColorGold, GameStrings::LightGold);
+				 ReadColor(Slot_tags[1], Phobos::UI::Colors[2], DefaultColors[1], GameStrings::STT_PlayerColorRed, GameStrings::DarkRed);
+				 ReadColor(Slot_tags[2], Phobos::UI::Colors[3], DefaultColors[2], GameStrings::STT_PlayerColorBlue, "DarkBlue");
+				 ReadColor(Slot_tags[3], Phobos::UI::Colors[4], DefaultColors[3], GameStrings::STT_PlayerColorGreen, "DarkGreen");
+				 ReadColor(Slot_tags[4], Phobos::UI::Colors[5], DefaultColors[4], GameStrings::STT_PlayerColorOrange, "Orange");
+				 ReadColor(Slot_tags[5], Phobos::UI::Colors[6], DefaultColors[5], GameStrings::STT_PlayerColorSkyBlue, "DarkSky");
+				 ReadColor(Slot_tags[6], Phobos::UI::Colors[7], DefaultColors[6], GameStrings::STT_PlayerColorPurple, "Purple");
+				 ReadColor(Slot_tags[7], Phobos::UI::Colors[8], DefaultColors[7], GameStrings::STT_PlayerColorPink, "Magenta");
+
+				 // additional color schemes so just increasing Count will produce nice colors
+				 ReadColor(Slot_tags[8], Phobos::UI::Colors[9], 0xEF5D94, "STT:PlayerColorLilac", "NeonBlue");
+				 ReadColor(Slot_tags[9], Phobos::UI::Colors[10], 0xE7FF73, "STT:PlayerColorLightBlue", "LightBlue");
+				 ReadColor(Slot_tags[10], Phobos::UI::Colors[11], 0x63EFFF, "STT:PlayerColorLime", GameStrings::Yellow);
+				 ReadColor(Slot_tags[11], Phobos::UI::Colors[12], 0x5AC308, "STT:PlayerColorTeal", GameStrings::Green);
+				 ReadColor(Slot_tags[12], Phobos::UI::Colors[13], 0x0055BD, "STT:PlayerColorBrown", GameStrings::Red);
+				 ReadColor(Slot_tags[13], Phobos::UI::Colors[14], 0x808080, "STT:PlayerColorCharcoal", GameStrings::Grey);
+
+				 // blunt stuff
+				 ReadColor(Slot_tags[14], Phobos::UI::Colors[15], DefaultColors[8], "NOSTR:LightGrey", GameStrings::LightGrey);
+				 ReadColor(Slot_tags[15], Phobos::UI::Colors[16], DefaultColors[8], "NOSTR:LightGrey", GameStrings::LightGrey);
+
+				 Phobos::UI::uiColorTextButton = ParseColorInt(section, "Color.Button.Text", Phobos::UI::uiColorText);
+				 Phobos::UI::uiColorTextRadio = ParseColorInt(section, "Color.Radio.Text", Phobos::UI::uiColorText);
+				 Phobos::UI::uiColorTextCheckbox = ParseColorInt(section, "Color.Checkbox.Text", Phobos::UI::uiColorText);
+				 Phobos::UI::uiColorTextLabel = ParseColorInt(section, "Color.Label.Text", Phobos::UI::uiColorText);
+				 Phobos::UI::uiColorTextList = ParseColorInt(section, "Color.List.Text", Phobos::UI::uiColorText);
+				 Phobos::UI::uiColorTextCombobox = ParseColorInt(section, "Color.Combobox.Text", Phobos::UI::uiColorText);
+				 Phobos::UI::uiColorTextGroupbox = ParseColorInt(section, "Color.Groupbox.Text", Phobos::UI::uiColorText);
+				 Phobos::UI::uiColorTextSlider = ParseColorInt(section, "Color.Slider.Text", Phobos::UI::uiColorText);
+				 Phobos::UI::uiColorTextEdit = ParseColorInt(section, "Color.Edit.Text", Phobos::UI::uiColorText);
+				 Phobos::UI::uiColorTextObserver = ParseColorInt(section, "Color.Observer.Text", 0xEEEEEE);
+				 Phobos::UI::uiColorCaret = ParseColorInt(section, "Color.Caret", 0xFFFF);
+				 Phobos::UI::uiColorSelection = ParseColorInt(section, "Color.Selection", 0xFF);
+				 Phobos::UI::uiColorSelectionCombobox = ParseColorInt(section, "Color.Combobox.Selection", Phobos::UI::uiColorSelection);
+				 Phobos::UI::uiColorSelectionList = ParseColorInt(section, "Color.List.Selection", Phobos::UI::uiColorSelection);
+				 Phobos::UI::uiColorSelectionObserver = ParseColorInt(section, "Color.Observer.Selection", 0x626262);
+				 Phobos::UI::uiColorBorder1 = ParseColorInt(section, "Color.Border1", 0xC5BEA7);
+				 Phobos::UI::uiColorBorder2 = ParseColorInt(section, "Color.Border2", 0x807A68);
+				 Phobos::UI::uiColorDisabled = ParseColorInt(section, "Color.Disabled", 0x9F);
+				 Phobos::UI::uiColorDisabledLabel = ParseColorInt(section, "Color.Label.Disabled", Phobos::UI::uiColorDisabled);
+				 Phobos::UI::uiColorDisabledCombobox = ParseColorInt(section, "Color.Combobox.Disabled", Phobos::UI::uiColorDisabled);
+				 Phobos::UI::uiColorDisabledSlider = ParseColorInt(section, "Color.Slider.Disabled", Phobos::UI::uiColorDisabled);
+				 Phobos::UI::uiColorDisabledButton = ParseColorInt(section, "Color.Button.Disabled", 0xA7);
+				 Phobos::UI::uiColorDisabledCheckbox = ParseColorInt(section, "Color.Checkbox.Disabled", Phobos::UI::uiColorDisabled);
+				 Phobos::UI::uiColorDisabledList = ParseColorInt(section, "Color.List.Disabled", Phobos::UI::uiColorDisabled);
+				 Phobos::UI::uiColorDisabledObserver = ParseColorInt(section, "Color.Observer.Disabled", 0x8F8F8F);
+
+				 // read the mod's version info
+				 if (Ini->ReadString("VersionInfo", GameStrings::Name, Phobos::readDefval, Phobos::readBuffer, std::size(ModName)))
+				 {
+					 PhobosCRT::strCopy(ModName, Phobos::readBuffer);
+				 }
+
+				 if (Ini->ReadString("VersionInfo", "Version", Phobos::readDefval, Phobos::readBuffer, std::size(ModVersion)))
+				 {
+					 PhobosCRT::strCopy(ModVersion, Phobos::readBuffer);
+				 }
+
+				 SafeChecksummer crc {};
+				 crc.operator()(ModName);
+				 crc.operator()(ModVersion);
+				 ModIdentifier = Ini->ReadInteger("VersionInfo", "Identifier", static_cast<int>(crc.operator unsigned int()));
+
+				 Debug::LogInfo("Color count is {}", colorCount);
+				 Debug::LogInfo("Mod is {0} ({1}) with 0x{2:x}",
+					 ModName,
+					 ModVersion,
+					 (unsigned)ModIdentifier
+				 );
+			 }
+
+			 Debug::LogInfo("-------------------Complete ----------------------");
+		 }
 
 	 // LoadingScreen
 	 {

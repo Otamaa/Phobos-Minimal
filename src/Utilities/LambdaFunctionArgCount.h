@@ -1,6 +1,6 @@
-#pragma once
 
 #include <type_traits>
+#include <utility>
 
 // https://stackoverflow.com/questions/78638714/count-the-number-of-arguments-in-generic-lambda
 

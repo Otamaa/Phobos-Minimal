@@ -10,17 +10,11 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/TerrainType/Body.h>
 
-
 #include <AircraftClass.h>
 
 #include <Utilities/Macro.h>
 
 #include <Locomotor/FlyLocomotionClass.h>
-#include <Phobos.SaveGame.h>
-
-#include <misc/Kratos/Extension/TechnoExt.h>
-#include <misc/Kratos/Extension/TechnoTypeExt.h>
-#include <Misc/Kratos/Ext/Helper/Scripts.h>
 
 COMPILETIMEEVAL FORCEDINLINE bool AircraftCanStrafeWithWeapon(WeaponTypeClass* pWeapon)
 {
@@ -450,8 +444,7 @@ int FakeAircraftClass::_Mission_Attack()
 		case FireError::OK:
 		{
 			this->loseammo_6c8 = true; // 0x418403
-			 if(!GetTypeData<TechnoTypeExt, TechnoTypeExt::TypeData>(this->Type)->DisableNoFighterFireTwice)
-				AircraftExtData::FireWeapon(this, this->Target);
+			AircraftExtData::FireWeapon(this, this->Target);
 
 			if (this->Is_Strafe())
 			{
@@ -1101,65 +1094,6 @@ bool AircraftExtData::IsValidLandingZone(AircraftClass* pThis)
 }
 
 AircraftExtContainer AircraftExtContainer::Instance;
-
-bool AircraftExtContainer::LoadAll(const json& root)
-{
-	this->Clear();
-
-	//first layer
-	if (root.contains(AircraftExtContainer::ClassName))
-	{
-		auto& container = root[AircraftExtContainer::ClassName];
-
-		for (auto& entry : container[AircraftExtData::ClassName]) {
-
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			AircraftExtData* buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, AircraftExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
-		}
-
-		return true;
-	}
-
-	return false;
-}
-
-bool AircraftExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[AircraftExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : AircraftExtContainer::Array) {
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer);
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
-	}
-
-	first_layer[AircraftExtData::ClassName] = std::move(_extRoot);
-	return true;
-}
 
 ASMJIT_PATCH(0x413DB1, AircraftClass_CTOR, 0x6)
 {

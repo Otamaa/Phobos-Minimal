@@ -31,13 +31,13 @@
 #include <Point2DByte.h>
 #include <Point3D.h>
 #include <IndexBitfield.h>
-#include <Utilities/VectorHelper.h>
 
-#include "TranslucencyLevel.h"
-#include "Swizzle.h"
-#include "Debug.h"
-#include "MemoryPoolUniquePointer.h"
-#include "GameUniquePointers.h"
+#include <Utilities/VectorHelper.h>
+#include <Utilities/Debug.h>
+#include <Utilities/TranslucencyLevel.h>
+#include <Utilities/Swizzle.h>
+#include <Utilities/GameUniquePointers.h>
+
 
 namespace Savegame
 {
@@ -1162,58 +1162,6 @@ namespace Savegame
 
 			return true;
 		};
-	};
-
-	template <typename T>
-	struct Savegame::PhobosStreamObject<MemoryPoolUniquePointer<T>>
-	{
-		bool ReadFromStream(PhobosStreamReader& Stm, MemoryPoolUniquePointer<T>& Value, bool RegisterForChange) const
-		{
-			bool hasValue = false;
-			if (!Savegame::ReadPhobosStream(Stm, hasValue))
-				return false;
-
-			if (hasValue)
-			{
-
-				long ptrOld = 0l;
-				if (!Stm.Load(ptrOld))
-					return false;
-
-				MemoryPoolUniquePointer<T> ptrNew = MemoryPoolUniquePointer<T>()(Stm);
-				static_assert(detail::HasLoad<T> || detail::Hasload<T>,
-					"Savegame::PhobosStreamObject<MemoryPoolUniquePointer<T>>: Type must implement Load/load returning bool");
-
-				if (Savegame::ReadPhobosStream(Stm, *ptrNew, RegisterForChange)) {
-					PHOBOS_SWIZZLE_REGISTER_POINTER(ptrOld, ptrNew.get(), PhobosCRT::GetTypeIDName<T>().c_str())
-					Value.reset(ptrNew.release());
-					return true;
-				}
-
-				return false;
-			}
-
-			return true;
-		}
-
-		bool WriteToStream(PhobosStreamWriter& Stm, const MemoryPoolUniquePointer<T>& Value) const
-		{
-			const bool hasValue = Value.get() != nullptr;
-
-			if (!Savegame::WritePhobosStream(Stm, hasValue))
-				return false;
-
-			if (hasValue) {
-
-				if (!Savegame::WritePhobosStream(Stm, (long)Value.get()))
-					return false;
-
-				static_assert(detail::HasSave<T> || detail::Hassave<T>,
-					"Savegame::PhobosStreamObject<MemoryPoolUniquePointer<T>>: Type must implement Load/load returning bool");
-
-				return Savegame::WritePhobosStream(Stm, *Value.get());
-			}
-		}
 	};
 
 	template <typename T>

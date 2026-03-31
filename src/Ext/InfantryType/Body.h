@@ -3,8 +3,6 @@
 
 #include <Ext/FootType/Body.h>
 
-#include <Phobos.SaveGame.h>
-
 static COMPILETIMEEVAL const char* Sequences_ident[] = {
 		"Ready",
 		"Guard",
@@ -272,8 +270,8 @@ public:
 public:
 	static InfantryTypeExtContainer Instance;
 
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void LoadFromINI(InfantryTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(InfantryTypeClass* key, CCINIClass* pINI);

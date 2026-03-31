@@ -27,18 +27,6 @@ ASMJIT_PATCH(0x460285, BuildingTypeClass_LoadFromINI_Muzzle, 0x6)
 		? Skip : Read;
 }
 
-//ASMJIT_PATCH(0x44043D, BuildingClass_AI_Temporaled_Chronosparkle_MuzzleFix, 0x8)
-//{
-//	GET(BuildingClass*, pThis, ESI);
-//
-//	if (pThis->Type->MaxNumberOccupants > 10) {
-//		GET(int, nFiringIndex, EBX);
-//		R->EAX(BuildingTypeExtData::GetOccupyMuzzleFlash(pThis,nFiringIndex));
-//	}
-//
-//	return 0;
-//}
-
 ASMJIT_PATCH(0x45387A, BuildingClass_FireOffset_Replace_MuzzleFix, 0x6) // A
 {
 	GET(FakeBuildingClass*, pThis, ESI);
@@ -200,9 +188,6 @@ bool NOINLINE Passes_Proximity_Check(
     return passed;
 }
 
-
-#ifndef Original
-
  ASMJIT_PATCH(0x4A8EB0, DisplayClass_BuildingProximityCheck_Override, 0x5) {
  	//GET(DisplayClass*, pThis, ECX);
  	GET_STACK(BuildingTypeClass*, pObj, 0x4);
@@ -280,35 +265,3 @@ ASMJIT_PATCH(0x508D8D, HouseClass_UpdatePower_Techno, 0x6)
 
 	return 0x0;
 }
-#else
-ASMJIT_PATCH(0x4A8FF5, MapClass_CanBuildingTypeBePlacedHere_Ignore, 5)
-{
-	GET(BuildingClass*, pBuilding, ESI);
-	return BuildingExtContainer::Instance.Find(pBuilding)->IsFromSW ? 0x4A8FFA : 0x0;
-}
-
-//ASMJIT_PATCH(0x4A8FD7, DisplayClass_BuildingProximityCheck_BuildArea, 0x6)
-//{
-//	enum { SkipBuilding = 0x4A902C , Continue = 0x0 };
-//
-//	GET(BuildingClass*, pCellBuilding, ESI);
-//	GET_STACK(BuildingTypeClass*, pType, 0x4 + 0x28);
-//
-//	auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pCellBuilding->Type);
-//
-//	if (pTypeExt->NoBuildAreaOnBuildup && pCellBuilding->CurrentMission == Mission::Construction)
-//		return SkipBuilding;
-//
-//	auto const& pBuildingsAllowed = BuildingTypeExtContainer::Instance.Find(pType)->Adjacent_Allowed;
-//
-//	if (!pBuildingsAllowed.empty() && !pBuildingsAllowed.Contains(pCellBuilding->Type))
-//		return SkipBuilding;
-//
-//	auto const& pBuildingsDisallowed = BuildingTypeExtContainer::Instance.Find(pType)->Adjacent_Disallowed;
-//
-//	if (!pBuildingsDisallowed.empty() && pBuildingsDisallowed.Contains(pCellBuilding->Type))
-//		return SkipBuilding;
-//
-//	return Continue;
-//}
-#endif

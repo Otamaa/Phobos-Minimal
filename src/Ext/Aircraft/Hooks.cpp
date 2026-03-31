@@ -14,7 +14,6 @@
 #include <Ext/AircraftType/Body.h>
 
 #include <Misc/MapRevealer.h>
-
 #include <Misc/Hooks.Otamaa.h>
 
 #include <Locomotor/FlyLocomotionClass.h>

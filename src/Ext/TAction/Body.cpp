@@ -2,24 +2,33 @@
 
 #include <SessionClass.h>
 #include <MessageListClass.h>
-#include <Ext/House/Body.h>
+
 #include <SuperWeaponTypeClass.h>
 #include <SuperClass.h>
-#include <Ext/SWType/Body.h>
+
 #include <Utilities/SavegameDef.h>
+#include <Utilities/Macro.h>
 
 #include <BuildingClass.h>
 #include <RadSiteClass.h>
 #include <LightSourceClass.h>
 
+#include <Ext/House/Body.h>
+#include <Ext/Bullet/Body.h>
 #include <Ext/Scenario/Body.h>
 #include <Ext/Terrain/Body.h>
 #include <Ext/Rules/Body.h>
 #include <Ext/Script/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/TEvent/Body.h>
+#include <Ext/Side/Body.h>
+#include <Ext/SWType/Body.h>
+#include <Ext/SWType/NewSuperWeaponType/NuclearMissile.h>
 
 #include <New/Entity/BannerClass.h>
 #include <New/Type/BannerTypeClass.h>
+
+#include <Misc/DamageArea.h>
 
 #include <New/MessageHandler/MessageColumnClass.h>
 
@@ -28,8 +37,6 @@
 //Static init
 #include <TagClass.h>
 #include <numeric>
-
-#include <Misc/Ares/Hooks/Header.h>
 
 PhobosMap<int, std::vector<TriggerClass*>> TActionExtData::RandomTriggerPool;
 
@@ -91,7 +98,7 @@ bool TActionExtData::AllChangeHouse(TActionClass* pThis, HouseClass* pHouse, Obj
 {
 	bool changed = false;
 	if (pTrigger) {
-		if (HouseClass* NewOwnerPtr = AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->GetHouse())) {
+		if (HouseClass* NewOwnerPtr = TEventExtData::ResolveHouseParam(pThis->Value, pTrigger->GetHouse())) {
 			for (int i = 0; i < TechnoClass::Array->Count; ++i) {
 				const auto pItem = TechnoClass::Array->Items[i];
 
@@ -133,7 +140,7 @@ bool TActionExtData::ChangeHouse(TActionClass* pThis, HouseClass* pHouse, Object
 {
 	bool changed = false;
 	if (pTrigger) {
-		if (HouseClass* NewOwnerPtr = AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->GetHouse())) {
+		if (HouseClass* NewOwnerPtr = TEventExtData::ResolveHouseParam(pThis->Value, pTrigger->GetHouse())) {
 
 			for (int i = 0; i < TechnoClass::Array->Count; ++i) {
 				const auto pItem = TechnoClass::Array->Items[i];
@@ -176,7 +183,7 @@ bool TActionExtData::CreateBuildingAt(TActionClass* pThis, HouseClass* pHouse, O
 	// but this applies to all buildings and not just ones created through the trigger.
 	// Also restored Param3 to control the buildup display, only this time it is inverted (set to >0 to disable buildups).
 
-	if(HouseClass* NewOwnerPtr = AresTEventExt::ResolveHouseParam(pThis->Param5, pHouse)){
+	if(HouseClass* NewOwnerPtr = TEventExtData::ResolveHouseParam(pThis->Param5, pHouse)){
 		auto coord = CellClass::Cell2Coord(ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint));
 		//const auto pCell = MapClass::Instance->GetCellAt(coord);
 		const auto v8 = BuildingTypeClass::FindIndexById(pThis->Text);
@@ -302,7 +309,7 @@ bool TActionExtData::ResetHateValue(TActionClass* pThis, HouseClass* pHouse, Obj
 		}
 
 	} else {
-		HouseClass* pTargetHouse = AresTEventExt::ResolveHouseParam(pThis->Value, nullptr);
+		HouseClass* pTargetHouse = TEventExtData::ResolveHouseParam(pThis->Value, nullptr);
 
 		if (pTargetHouse && pTargetHouse->AngerNodes.Count > 0) {
 			for (auto& pAngerNode : pTargetHouse->AngerNodes)
@@ -1332,6 +1339,416 @@ static NOINLINE HouseClass* GetPlayerAt(int param, HouseClass* const pOwnerHouse
 	return HouseClass::FindByCountryIndex(param);
 }
 
+std::pair<TriggerAttachType, bool> TActionExtData::GetTriggetAttach(AresNewTriggerAction nAction)
+{
+	switch (nAction)
+	{
+	case AresNewTriggerAction::AuxiliaryPower:
+	case AresNewTriggerAction::SetEVAVoice:
+		return { TriggerAttachType::None , true };
+	case AresNewTriggerAction::KillDriversOf:
+	case AresNewTriggerAction::SetGroup:
+		return { TriggerAttachType::Object , true };
+	default:
+		return { TriggerAttachType::None , false };
+	}
+}
+
+std::pair<LogicNeedType, bool> TActionExtData::GetLogicNeed(AresNewTriggerAction nAction)
+{
+	switch (nAction)
+	{
+	case AresNewTriggerAction::AuxiliaryPower:
+		return { LogicNeedType::NumberNSuper  , true };
+	case AresNewTriggerAction::KillDriversOf:
+		return { LogicNeedType::None , true };
+	case AresNewTriggerAction::SetEVAVoice:
+	case AresNewTriggerAction::SetGroup:
+		return { LogicNeedType::Number, true };
+	default:
+		return { LogicNeedType::None , false };
+	}
+}
+
+
+bool TActionExtData::ActivateFirestorm(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
+{
+	if (pHouse->FirestormActive)
+	{
+		HouseExtData::SetFirestormState(pHouse, true);
+	}
+
+	return true;
+}
+
+bool TActionExtData::DeactivateFirestorm(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
+{
+	if (pHouse->FirestormActive)
+	{
+		HouseExtData::SetFirestormState(pHouse, false);
+	}
+	return true;
+}
+
+bool TActionExtData::AuxiliaryPower(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
+{
+	const auto pDecidedHouse = pAction->FindHouseByIndex(pTrigger, pAction->Value);
+
+	if (!pDecidedHouse)
+		return false;
+
+	HouseExtContainer::Instance.Find(pDecidedHouse)->AuxPower += pAction->Value2;
+	pDecidedHouse->RecheckPower = true;
+	return true;
+}
+
+bool TActionExtData::KillDriversOf(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
+{
+	auto pDecidedHouse = pAction->FindHouseByIndex(pTrigger, pAction->Value);
+	if (!pDecidedHouse)
+		pDecidedHouse = HouseExtData::FindSpecial();
+
+	for (auto pUnit : *FootClass::Array)
+	{
+		if (pUnit->Health > 0 && pUnit->IsAlive && pUnit->IsOnMap && !pUnit->InLimbo)
+		{
+			if (pUnit->AttachedTag && pUnit->AttachedTag->ContainsTrigger(pTrigger))
+			{
+				if (!TechnoExtContainer::Instance.Find(pUnit)->Is_DriverKilled
+					&& TechnoExtData::IsDriverKillable(pUnit, 1.0))
+				{
+					TechnoExtData::ApplyKillDriver(pUnit, nullptr, pDecidedHouse, false, Mission::Harmless);
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
+bool TActionExtData::SetEVAVoice(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
+{
+	if (pAction->Value < (int)EVAVoices::Types.size())
+	{
+		VoxClass::EVAIndex = MaxImpl(pAction->Value, -1);
+		return true;
+	}
+
+	return false;
+}
+
+bool TActionExtData::SetGroup(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
+{
+	if (auto pTech = flag_cast_to<TechnoClass*>(pObject))
+	{
+		pTech->Group = pAction->Value;
+		return true;
+	}
+
+	return false;
+}
+
+//TODO : re-eval
+bool TActionExtData::LauchhNuke(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
+{
+	const auto pFind = WeaponTypeClass::Find(GameStrings::NukePayload);
+	if (!pFind)
+		return false;
+
+	const auto nLoc = ScenarioClass::Instance->GetWaypointCoords(pAction->Waypoint);
+	auto nCoord = CellClass::Cell2Coord(nLoc);
+	nCoord.Z = MapClass::Instance->GetCellFloorHeight(nCoord);
+
+	if (MapClass::Instance->GetCellAt(nCoord)->ContainsBridge())
+		nCoord.Z += Unsorted::BridgeHeight;
+
+	SW_NuclearMissile::DropNukeAt(nullptr, nCoord, nullptr, pHouse, pFind);
+
+	//if (auto pBullet = pFind->Projectile->CreateBullet(MapClass::Instance->GetCellAt(nCoord), nullptr, pFind->Damage, pFind->Warhead, 50, false))
+	//{
+	//	pBullet->SetWeaponType(pFind);
+	//	VelocityClass nVel {};
+	//
+	//	double nSin = Math::sin(Math::Math::PI_BY_TWO_APPROX);
+	//	double nCos = Math::cos(Math::Math::PI_BY_TWO_APPROX);
+	//
+	//	double nX = nCos * nCos * -100.0;
+	//	double nY = nCos * nSin * -100.0;
+	//	double nZ = nSin * -100.0;
+	//
+	//	BulletExtContainer::Instance.Find(pBullet)->Owner = pHouse;
+	//	pBullet->MoveTo({ nCoord.X , nCoord.Y , nCoord.Z + 20000 }, nVel);
+	//	return true;
+	//}
+
+	return false;
+}
+
+//TODO : re-eval
+
+bool TActionExtData::LauchhChemMissile(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
+{
+	const auto pFind = WeaponTypeClass::Find(GameStrings::ChemLauncher);
+	if (!pFind)
+		return false;
+
+	auto nLoc = ScenarioClass::Instance->GetWaypointCoords(pAction->Waypoint);
+
+	if (auto pBullet = pFind->Projectile->CreateBullet(MapClass::Instance->GetCellAt(nLoc), nullptr, pFind->Damage, pFind->Warhead, 20, false))
+	{
+		pBullet->SetWeaponType(pFind);
+		double nSin = Math::SIN_PI_BY_TWO_ACCURATE;
+		double nCos = Math::COS_DIRECTION_FIXED_MAGIC;
+		BulletExtContainer::Instance.Find(pBullet)->Owner = pHouse;
+		auto nCell = MapClass::Instance->Localsize_586AC0(&nLoc, false);
+
+		pBullet->MoveTo(
+			{ nCell.X + 128 , nCell.Y + 128 , 0 },
+			{ nCos * nCos * 100.0  , nCos * nSin * 100.0  , nSin * 100.0 }
+		);
+		return true;
+	}
+
+	return false;
+}
+
+bool TActionExtData::LightstormStrike(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
+{
+	auto nLoc = ScenarioClass::Instance->GetWaypointCoords(pAction->Waypoint);
+
+	// get center of cell coords
+	auto const pCell = MapClass::Instance->GetCellAt(nLoc);
+	auto coords = pCell->GetCoordsWithBridge();
+
+	// create a cloud animation
+	if (coords.IsValid())
+	{
+		// select the anim
+		auto const& itClouds = RulesClass::Instance->WeatherConClouds;
+		auto const pAnimType = itClouds.Items[ScenarioClass::Instance->Random.RandomFromMax(itClouds.Count - 1)];
+
+		if (pAnimType)
+		{
+			coords.Z += GeneralUtils::GetLSAnimHeightFactor(pAnimType, pCell, true);
+
+			if (coords.IsValid())
+			{
+				// create the cloud and do some book keeping.auto const
+				auto pAnim = GameCreate<AnimClass>(pAnimType, coords);
+				pAnim->SetHouse(pHouse);
+				LightningStorm::CloudsManifesting->push_back(pAnim);
+				LightningStorm::CloudsPresent->push_back(pAnim);
+			}
+		}
+	}
+
+	return true;
+}
+
+bool TActionExtData::MeteorStrike(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
+{
+	static COMPILETIMEEVAL reference<int, 0x842AFC, 5u> MeteorAddAmount {};
+
+	const auto pSmall = AnimTypeClass::Find(GameStrings::METSMALL);
+	const auto pBig = AnimTypeClass::Find(GameStrings::METLARGE);
+
+	if (!pSmall && !pBig)
+		return false;
+
+	auto nLoc = ScenarioClass::Instance->GetWaypointCoords(pAction->Waypoint);
+	CoordStruct nCoord = CellClass::Cell2Coord(nLoc);
+	nCoord.Z = MapClass::Instance->GetCellFloorHeight(nCoord);
+
+	if (MapClass::Instance->GetCellAt(nCoord)->ContainsBridge())
+		nCoord.Z += Unsorted::BridgeHeight;
+
+	const auto amount = MeteorAddAmount[pAction->Value % MeteorAddAmount.size()] + ScenarioClass::Instance->Random.Random() % 3;
+	if (amount <= 0)
+		return true;
+
+	const int nTotal = 70 * amount;
+
+	for (int i = nTotal; i > 0; --i)
+	{
+		auto nRandX = ScenarioClass::Instance->Random.Random() % nTotal;
+		auto nRandY = ScenarioClass::Instance->Random.Random() % nTotal;
+		CoordStruct nAnimLoc { nRandX + nCoord.X ,nRandY + nCoord.Y ,nCoord.Z };
+
+		AnimTypeClass* pSelected = pBig;
+		int nRandHere = Math::abs(ScenarioClass::Instance->Random.Random()) & 0x80000001;
+		bool v13 = nRandHere == 0;
+		if (nRandHere < 0)
+		{
+			v13 = ((nRandHere - 1) | 0xFFFFFFFE) == -1;
+		}
+
+		if (v13)
+		{
+			pSelected = pSmall;
+		}
+
+		if (pSelected)
+		{
+			auto pAnim = GameCreate<AnimClass>(pSelected, nAnimLoc, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
+			pAnim->Owner = pHouse;
+		}
+	}
+
+	return true;
+}
+
+bool TActionExtData::PlayAnimAt(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
+{
+	if (const auto pAnimType = AnimTypeClass::Array->get_or_default(pAction->Value))
+	{
+		auto nLoc = ScenarioClass::Instance->GetWaypointCoords(pAction->Waypoint);
+		CoordStruct nCoord = CellClass::Cell2Coord(nLoc);
+		nCoord.Z = MapClass::Instance->GetCellFloorHeight(nCoord);
+
+		if (MapClass::Instance->GetCellAt(nCoord)->ContainsBridge())
+			nCoord.Z += Unsorted::BridgeHeight;
+		//Debug::LogInfo("Trigger %s - Tag %s PlayAnimAt at(%d %d %d) Anim[%s - %d]",
+		//	pAction->TriggerType ? pAction->TriggerType->get_ID() : GameStrings::NoneStr(),
+		//	pAction->TagType ? pAction->TagType->get_ID() : GameStrings::NoneStr(),
+		//	nCoord.X, nCoord.Y, nCoord.Z,
+		//	pAnimType->ID,
+		//	pAction->Value
+		//);
+
+		auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
+		pAnim->IsPlaying = !pAction->Param3;
+		pAnim->Owner = pHouse;
+	}
+
+	return true;
+}
+
+bool TActionExtData::DoExplosionAt(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
+{
+	if (const auto pWeaponType = WeaponTypeClass::Array->get_or_default(pAction->Value))
+	{
+		auto nLoc = ScenarioClass::Instance->GetWaypointCoords(pAction->Waypoint);
+		CoordStruct nCoord = CellClass::Cell2Coord(nLoc);
+		nCoord.Z = MapClass::Instance->GetCellFloorHeight(nCoord);
+		const auto pCell = MapClass::Instance->GetCellAt(nCoord);
+
+		if (pCell->ContainsBridge())
+			nCoord.Z += Unsorted::BridgeHeight;
+
+		//Debug::LogInfo("Trigger %s - Tag %s DoExplosion at(%d %d %d) Weapon[%s] Warhead[%s]",
+		//	pAction->TriggerType ? pAction->TriggerType->get_ID() : GameStrings::NoneStr() ,
+		//	pAction->TagType ? pAction->TagType->get_ID() : GameStrings::NoneStr(),
+		//	nCoord.X, nCoord.Y , nCoord.Z,
+		//	pWeaponType->ID,
+		//	pWeaponType->Warhead->ID
+		//);
+
+		if (auto pAnimType = MapClass::SelectDamageAnimation(pWeaponType->Damage, pWeaponType->Warhead, pCell->LandType, nCoord))
+		{
+			auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_2600, -15, 0);
+			pAnim->IsPlaying = true;
+			pAnim->Owner = pHouse;
+		}
+
+		MapClass::FlashbangWarheadAt(pWeaponType->Damage, pWeaponType->Warhead, nCoord);
+		DamageArea::Apply(&nCoord, pWeaponType->Damage, nullptr, pWeaponType->Warhead, true, pHouse);
+	}
+
+	return true;
+}
+
+bool TActionExtData::EnableTrigger(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
+{
+	if (pTrigger)
+	{
+		TriggerClass::Array->for_each([pTrigger](TriggerClass* pTrig)
+{
+
+	if (pTrig == pTrigger)
+	{
+		if (ScenarioClass::Instance->Difficulty1 == AIDifficulty::Easy && pTrig->Type->Difficulty[0]
+			|| ScenarioClass::Instance->Difficulty1 == AIDifficulty::Normal && pTrig->Type->Difficulty[1]
+			|| ScenarioClass::Instance->Difficulty1 == AIDifficulty::Hard && pTrig->Type->Difficulty[2])
+		{
+
+			pTrig->Enable();
+		}
+	}
+		});
+	}
+
+	return true;
+}
+
+bool TActionExtData::Retint(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location, DefaultColorList col)
+{
+
+	TintStruct copy_ = ScenarioClass::Instance->NormalLighting.Tint;
+	switch (col)
+	{
+
+	case DefaultColorList::Red:
+		copy_.Red = pAction->Value * 10;
+		copy_.Green *= 10;
+		copy_.Blue *= 10;
+		ScenarioClass::RecalcLighting(copy_.Red, copy_.Green, copy_.Blue, false);
+		ScenarioClass::Instance->NormalLighting.Tint.Red = pAction->Value;
+		break;
+	case DefaultColorList::Green:
+		copy_.Green = pAction->Value * 10;
+		copy_.Red *= 10;
+		copy_.Blue *= 10;
+		ScenarioClass::RecalcLighting(copy_.Red, copy_.Green, copy_.Blue, false);
+		ScenarioClass::Instance->NormalLighting.Tint.Green = pAction->Value;
+		break;
+	case DefaultColorList::Blue:
+		copy_.Blue = pAction->Value * 10;
+		copy_.Red *= 10;
+		copy_.Green *= 10;
+		ScenarioClass::RecalcLighting(copy_.Red, copy_.Green, copy_.Blue, false);
+		ScenarioClass::Instance->NormalLighting.Tint.Blue = pAction->Value;
+		break;
+	default:
+		return false;
+	}
+
+	ScenarioExtData::UpdateLightSources = true;
+	return true;
+}
+
+bool TActionExtData::Execute(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location, bool& ret)
+{
+	switch ((AresNewTriggerAction)pAction->ActionKind)
+	{
+	case AresNewTriggerAction::AuxiliaryPower:
+	{
+		ret = AuxiliaryPower(pAction, pHouse, pObject, pTrigger, location);
+		break;
+	}
+	case AresNewTriggerAction::KillDriversOf:
+	{
+		ret = KillDriversOf(pAction, pHouse, pObject, pTrigger, location);
+		break;
+	}
+	case AresNewTriggerAction::SetEVAVoice:
+	{
+		ret = SetEVAVoice(pAction, pHouse, pObject, pTrigger, location);
+		break;
+	}
+	case AresNewTriggerAction::SetGroup:
+	{
+		ret = SetGroup(pAction, pHouse, pObject, pTrigger, location);
+		break;
+	}
+	default:
+	{
+		return false;
+	}
+	}
+
+	return true;
+}
+
 bool TActionExtData::RunSuperWeaponAt(TActionClass* pThis, int X, int Y)
 {
 	if (SuperWeaponTypeClass::Array->Count > 0)
@@ -1517,7 +1934,7 @@ bool TActionExtData::RandomTriggerPut(TActionClass* pThis, HouseClass* pHouse, O
 
 bool TActionExtData::GiveCredits(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	if (HouseClass* hptr = (FakeHouseClass*)AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->House)) {
+	if (HouseClass* hptr = (FakeHouseClass*)TEventExtData::ResolveHouseParam(pThis->Value, pTrigger->House)) {
 		hptr->TransactMoney(pThis->Param3);
 	}
 
@@ -1601,7 +2018,7 @@ bool TActionExtData::AllAssignMission(TActionClass* pThis, HouseClass* pHouse, O
 
 bool TActionExtData::MakeEnemyOneWay(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	if (HouseClass* hptr = (FakeHouseClass*)AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->House)) {
+	if (HouseClass* hptr = (FakeHouseClass*)TEventExtData::ResolveHouseParam(pThis->Value, pTrigger->House)) {
 		Unsorted::ScenarioInit++;
 		pHouse->MakeEnemy(hptr,false);
 		--Unsorted::ScenarioInit;
@@ -1612,7 +2029,7 @@ bool TActionExtData::MakeEnemyOneWay(TActionClass* pThis, HouseClass* pHouse, Ob
 
 bool TActionExtData::MakeAllyOneWay(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	if (HouseClass* hptr = (FakeHouseClass*)AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->House)) {
+	if (HouseClass* hptr = (FakeHouseClass*)TEventExtData::ResolveHouseParam(pThis->Value, pTrigger->House)) {
 		Unsorted::ScenarioInit++;
 		pHouse->MakeAlly(hptr, false);
 		--Unsorted::ScenarioInit;
@@ -1916,87 +2333,6 @@ bool TActionExtData::SetTeamDelay(TActionClass* pThis, HouseClass* pHouse, Objec
 	return true;
 }
 
-// =============================
-// container hooks
-//
-
-//ASMJIT_PATCH(0x6DD176, TActionClass_CTOR, 0x5)
-//{
-//	GET(TActionClass*, pItem, ESI);
-//	TActionExtData::ExtMap.Allocate(pItem);
-//	return 0;
-//}
-//
-//ASMJIT_PATCH_AGAIN(0x6DD1E6, TActionClass_SDDTOR, 0x7)
-//ASMJIT_PATCH(0x6E4696, TActionClass_SDDTOR, 0x7)
-//{
-//	GET(TActionClass*, pItem, ESI);
-//	TActionExtData::ExtMap.Remove(pItem);
-//	return 0;
-//}
-//
-//ASMJIT_PATCH(0x6E3E29, TActionClass_Load_Suffix, 0x4)
-//{
-//	TActionExtData::ExtMap.LoadStatic();
-//	return 0x0;
-//}
-//
-//ASMJIT_PATCH(0x6E3E4A, TActionClass_Save_Suffix, 0x3)
-//{
-//	TActionExtData::ExtMap.SaveStatic();
-//	return 0x0;
-//}
-
-//ASMJIT_PATCH_AGAIN(0x6E3E30, TActionClass_SaveLoad_Prefix, 0x8)
-//ASMJIT_PATCH(0x6E3DB0, TActionClass_SaveLoad_Prefix, 0x5)
-//{
-//	GET_STACK(TActionClass*, pItem, 0x4);
-//	GET_STACK(IStream*, pStm, 0x8);
-//
-//	TActionExtData::ExtMap.PrepareStream(pItem, pStm);
-//
-//	return 0;
-//}
-//
-//ASMJIT_PATCH(0x6E3E19, TActionClass_Load_Suffix, 0x9)
-//{
-//	GET(TActionClass*, pItem, ESI);
-//
-//	SwizzleManagerClass::Instance->Swizzle((void**)&pItem->TriggerType);
-//	TActionExtData::ExtMap.LoadStatic();
-//
-//	return 0x6E3E27;
-//}
-//
-//ASMJIT_PATCH(0x6E3E44, TActionClass_Save_Suffix, 0x6)
-//{
-//	GET(HRESULT const, nRes, EAX);
-//
-//	if(SUCCEEDED(nRes)){
-//		TActionExtData::ExtMap.SaveStatic();
-//		return 0x6E3E48;
-//	}
-//
-//	return 0x6E3E4A;
-//}
-
-//ASMJIT_PATCH(0x6DD2DE, TActionClass_Detach, 0x5)
-//{
-//	GET(TActionClass*, pThis, ECX);
-//	GET(void*, target, EDX);
-//	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
-//
-//	if (auto pExt = TActionExtData::ExtMap.Find(pThis))
-//		pExt->InvalidatePointer(target, all);
-//
-//	return pThis->TriggerType == target ? 0x6DD2E3 : 0x6DD2E6;
-//}
-
-#include <Utilities/Macro.h>
-#include <Misc/Ares/Hooks/Header.h>
-#include <Ext/Side/Body.h>
-
-
 static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* pTargetHouse, ObjectClass* pSourceObject, TriggerClass* pTrigger, CellStruct* plocation, bool& ret)
 {
 	switch (pThis->ActionKind)
@@ -2034,9 +2370,11 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 		}
 		return true;
 	}
-	case TriggerAction::ProductionBegins: {
+	case TriggerAction::ProductionBegins:
+	{
 
-		if (auto pTrigOwner =  pThis->FindHouseByIndex(pTrigger,pThis->Value)) {
+		if (auto pTrigOwner = pThis->FindHouseByIndex(pTrigger, pThis->Value))
+		{
 			pTrigOwner->Production = true;
 			ret = true;
 		}
@@ -2044,18 +2382,22 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 		ret = false;
 		return true;
 	}
-	case TriggerAction::CreateTeam:{
+	case TriggerAction::CreateTeam:
+	{
 		++Unsorted::ScenarioInit;
 
-		if (auto pTeam = pThis->TeamType) {
+		if (auto pTeam = pThis->TeamType)
+		{
 			pTeam->CreateTeam(nullptr);
 		}
 		--Unsorted::ScenarioInit;
 		return true;
 	}
-	case TriggerAction::DestroyTeam:{
+	case TriggerAction::DestroyTeam:
+	{
 
-		if (auto pTeam = pThis->TeamType) {
+		if (auto pTeam = pThis->TeamType)
+		{
 			pTeam->DestroyAllInstances();
 		}
 
@@ -2063,7 +2405,8 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 	}
 	case TriggerAction::AllToHunt:
 	{
-		if (auto pTrigOwner = pThis->FindHouseByIndex(pTrigger, pThis->Value)) {
+		if (auto pTrigOwner = pThis->FindHouseByIndex(pTrigger, pThis->Value))
+		{
 			pTrigOwner->All_To_Hunt();
 			ret = true;
 		}
@@ -2074,7 +2417,8 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 	}
 	case TriggerAction::Reinforcement:
 	{
-		if (auto pTeam = pThis->TeamType) {
+		if (auto pTeam = pThis->TeamType)
+		{
 			ret = TeamTypeClass::DoReinforcement(pTeam, -1);
 		}
 
@@ -2185,7 +2529,7 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 			}
 
 			const int color = SessionClass::Instance->Game_GetLinkedColor(idx);
-			const int delay =(int)(RulesClass::Instance->MessageDelay * TICKS_PER_MINUTE);
+			const int delay = (int)(RulesClass::Instance->MessageDelay * TICKS_PER_MINUTE);
 			auto pText = StringTable::FetchString(text.c_str());
 
 			if (Phobos::Config::MessageDisplayInCenter)
@@ -2198,93 +2542,105 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 	}
 	case TriggerAction::PlayAnimAt:
 	{
-		ret = AresTActionExt::PlayAnimAt(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		ret = TActionExtData::PlayAnimAt(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
 		return true;
 	}
 	case TriggerAction::MeteorShower:
 	{
-		ret = AresTActionExt::MeteorStrike(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		ret = TActionExtData::MeteorStrike(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
 		return true;
 	}
 	case TriggerAction::LightningStrike:
 	{
-		ret = AresTActionExt::LightstormStrike(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		ret = TActionExtData::LightstormStrike(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
 		return true;
 	}
 	case TriggerAction::ActivateFirestorm:
 	{
-		ret = AresTActionExt::ActivateFirestorm(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		ret = TActionExtData::ActivateFirestorm(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
 		return true;
 	}
 	case TriggerAction::DeactivateFirestorm:
 	{
-		ret = AresTActionExt::DeactivateFirestorm(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		ret = TActionExtData::DeactivateFirestorm(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
 		return true;
 	}
 	case TriggerAction::NukeStrike:
 	{
-		ret = AresTActionExt::LauchhNuke(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		ret = TActionExtData::LauchhNuke(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
 		return true;
 	}
 	case TriggerAction::ChemMissileStrike:
 	{
-		ret = AresTActionExt::LauchhChemMissile(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		ret = TActionExtData::LauchhChemMissile(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
 		return true;
 	}
 	case TriggerAction::DoExplosionAt:
 	{
-		ret = AresTActionExt::DoExplosionAt(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		ret = TActionExtData::DoExplosionAt(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
 		return true;
 	}
 	case TriggerAction::RetintRed:
 	{
-		ret = AresTActionExt::Retint(pThis, pTargetHouse, pSourceObject, pTrigger, plocation, DefaultColorList::Red);
+		ret = TActionExtData::Retint(pThis, pTargetHouse, pSourceObject, pTrigger, plocation, DefaultColorList::Red);
 		return true;
 	}
 	case TriggerAction::RetintGreen:
 	{
-		ret = AresTActionExt::Retint(pThis, pTargetHouse, pSourceObject, pTrigger, plocation, DefaultColorList::Green);
+		ret = TActionExtData::Retint(pThis, pTargetHouse, pSourceObject, pTrigger, plocation, DefaultColorList::Green);
 		return true;
 	}
 	case TriggerAction::RetintBlue:
 	{
-		ret = AresTActionExt::Retint(pThis, pTargetHouse, pSourceObject, pTrigger, plocation, DefaultColorList::Blue);
+		ret = TActionExtData::Retint(pThis, pTargetHouse, pSourceObject, pTrigger, plocation, DefaultColorList::Blue);
 		return true;
 	}
-	case TriggerAction::DestroyAll:{
+	case TriggerAction::DestroyAll:
+	{
 
 		ret = false;
-		if(pTrigger){
-			if (FakeHouseClass* pHouse = (FakeHouseClass*)AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->House)) {
+		if (pTrigger)
+		{
+			if (FakeHouseClass* pHouse = (FakeHouseClass*)TEventExtData::ResolveHouseParam(pThis->Value, pTrigger->House))
+			{
 				pHouse->_BlowUpAll();
 				ret = 1;
 			}
 		}
 		return true;
 	}
-	case TriggerAction::DestroyAllBuildings: {
+	case TriggerAction::DestroyAllBuildings:
+	{
 		ret = false;
-		if (pTrigger) {
-			if (FakeHouseClass* pHouse = (FakeHouseClass*)AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->House)) {
+		if (pTrigger)
+		{
+			if (FakeHouseClass* pHouse = (FakeHouseClass*)TEventExtData::ResolveHouseParam(pThis->Value, pTrigger->House))
+			{
 				pHouse->_BlowUpAllBuildings();
 				ret = 1;
 			}
 		}
 		return true;
 	}
-	case TriggerAction::DestroyAllLandUnits: {
+	case TriggerAction::DestroyAllLandUnits:
+	{
 		ret = false;
-		if (pTrigger) {
-			if (HouseClass* pHouse = AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->House)) {
+		if (pTrigger)
+		{
+			if (HouseClass* pHouse = TEventExtData::ResolveHouseParam(pThis->Value, pTrigger->House))
+			{
 				pHouse->DestroyAllNonBuildingsNonNaval();
 				ret = 1;
 			}
 		}
 		return true;
 	}
-	case TriggerAction::DestroyAllNavalUnits: {
-		if (pTrigger) {
-			if (HouseClass* pHouse = AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->House)) {
+	case TriggerAction::DestroyAllNavalUnits:
+	{
+		if (pTrigger)
+		{
+			if (HouseClass* pHouse = TEventExtData::ResolveHouseParam(pThis->Value, pTrigger->House))
+			{
 				pHouse->DestroyAllNonBuildingsNaval();
 				ret = 1;
 			}
@@ -2296,11 +2652,13 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 		ret = TActionExtData::CreateBuildingAt(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
 		return true;
 	}
-	case TriggerAction::ChangeHouse: {
+	case TriggerAction::ChangeHouse:
+	{
 		ret = TActionExtData::ChangeHouse(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
 		return true;
 	}
-	case TriggerAction::AllChangeHouse: {
+	case TriggerAction::AllChangeHouse:
+	{
 		ret = TActionExtData::AllChangeHouse(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
 		return true;
 	}
@@ -2378,7 +2736,7 @@ bool FakeTActionClass::_OperatorBracket(HouseClass* pTargetHouse, ObjectClass* p
 {
 	std::string_view name = magic_enum::enum_name(this->ActionKind);
 
-	if(name.empty())
+	if (name.empty())
 		name = AresNewTriggerAction_ToString((AresNewTriggerAction)this->ActionKind);
 
 	if (name.empty())
@@ -2387,7 +2745,8 @@ bool FakeTActionClass::_OperatorBracket(HouseClass* pTargetHouse, ObjectClass* p
 	Debug::LogInfo("TAction[{} - {}] triggering [{}]", (void*)this, name, (int)this->ActionKind);
 	bool ret = true;
 
-	if (pSourceObject && !pSourceObject->IsAlive) {
+	if (pSourceObject && !pSourceObject->IsAlive)
+	{
 		pSourceObject = 0;
 	}
 
@@ -2395,16 +2754,95 @@ bool FakeTActionClass::_OperatorBracket(HouseClass* pTargetHouse, ObjectClass* p
 	{
 		return ret;
 	}
-	else if (TActionExtData::Occured(this, { pTargetHouse,pSourceObject,pTrigger,plocation }, ret)) {
+	else if (TActionExtData::Occured(this, { pTargetHouse,pSourceObject,pTrigger,plocation }, ret))
+	{
 		return ret;
 	}
-	else if (AresTActionExt::Execute(this, pTargetHouse, pSourceObject, pTrigger, plocation, ret)) {
+	else if (TActionExtData::Execute(this, pTargetHouse, pSourceObject, pTrigger, plocation, ret))
+	{
 		return ret;
 	}
-	else {
-		return this->ExecuteAction(this->ActionKind , pTargetHouse, pSourceObject, pTrigger, plocation);
+	else
+	{
+		return this->ExecuteAction(this->ActionKind, pTargetHouse, pSourceObject, pTrigger, plocation);
 	}
 }
+
+// =============================
+// container hooks
+//
+
+//ASMJIT_PATCH(0x6DD176, TActionClass_CTOR, 0x5)
+//{
+//	GET(TActionClass*, pItem, ESI);
+//	TActionExtData::ExtMap.Allocate(pItem);
+//	return 0;
+//}
+//
+//ASMJIT_PATCH_AGAIN(0x6DD1E6, TActionClass_SDDTOR, 0x7)
+//ASMJIT_PATCH(0x6E4696, TActionClass_SDDTOR, 0x7)
+//{
+//	GET(TActionClass*, pItem, ESI);
+//	TActionExtData::ExtMap.Remove(pItem);
+//	return 0;
+//}
+//
+//ASMJIT_PATCH(0x6E3E29, TActionClass_Load_Suffix, 0x4)
+//{
+//	TActionExtData::ExtMap.LoadStatic();
+//	return 0x0;
+//}
+//
+//ASMJIT_PATCH(0x6E3E4A, TActionClass_Save_Suffix, 0x3)
+//{
+//	TActionExtData::ExtMap.SaveStatic();
+//	return 0x0;
+//}
+
+//ASMJIT_PATCH_AGAIN(0x6E3E30, TActionClass_SaveLoad_Prefix, 0x8)
+//ASMJIT_PATCH(0x6E3DB0, TActionClass_SaveLoad_Prefix, 0x5)
+//{
+//	GET_STACK(TActionClass*, pItem, 0x4);
+//	GET_STACK(IStream*, pStm, 0x8);
+//
+//	TActionExtData::ExtMap.PrepareStream(pItem, pStm);
+//
+//	return 0;
+//}
+//
+//ASMJIT_PATCH(0x6E3E19, TActionClass_Load_Suffix, 0x9)
+//{
+//	GET(TActionClass*, pItem, ESI);
+//
+//	SwizzleManagerClass::Instance->Swizzle((void**)&pItem->TriggerType);
+//	TActionExtData::ExtMap.LoadStatic();
+//
+//	return 0x6E3E27;
+//}
+//
+//ASMJIT_PATCH(0x6E3E44, TActionClass_Save_Suffix, 0x6)
+//{
+//	GET(HRESULT const, nRes, EAX);
+//
+//	if(SUCCEEDED(nRes)){
+//		TActionExtData::ExtMap.SaveStatic();
+//		return 0x6E3E48;
+//	}
+//
+//	return 0x6E3E4A;
+//}
+
+//ASMJIT_PATCH(0x6DD2DE, TActionClass_Detach, 0x5)
+//{
+//	GET(TActionClass*, pThis, ECX);
+//	GET(void*, target, EDX);
+//	GET_STACK(bool, all, STACK_OFFS(0xC, -0x8));
+//
+//	if (auto pExt = TActionExtData::ExtMap.Find(pThis))
+//		pExt->InvalidatePointer(target, all);
+//
+//	return pThis->TriggerType == target ? 0x6DD2E3 : 0x6DD2E6;
+//}
 
 #ifdef _fucked
 DEFINE_FUNCTION_JUMP(CALL , 0x726605, FakeTActionClass::_OperatorBracket)
@@ -2448,7 +2886,7 @@ ASMJIT_PATCH(0x6DD8D7, TActionClass_Execute_Ares, 0xA)
 		R->AL(ret);
 		return Handled;
 	}
-	else if (AresTActionExt::Execute(pAction, pHouse, pObject, pTrigger, pLocation, ret))
+	else if (TActionExtData::Execute(pAction, pHouse, pObject, pTrigger, pLocation, ret))
 	{
 		R->AL(ret);
 		return Handled;

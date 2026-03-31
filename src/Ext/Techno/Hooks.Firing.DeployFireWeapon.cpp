@@ -1,6 +1,8 @@
 #include "Body.h"
+
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Infantry/Body.h>
+#include <Ext/InfantryType/Body.h>
 
 #include <Utilities/Macro.h>
 
@@ -22,8 +24,6 @@ ASMJIT_PATCH(0x5223B3, InfantryClass_Approach_Target_DeployFireWeapon, 0x6)
 	return 0x5223B9;
 }
 
-#include <Ext/InfantryType/Body.h>
-
 ASMJIT_PATCH(0x5218F3, InfantryClass_WhatWeaponShouldIUse_DeployFireWeapon, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
@@ -40,9 +40,6 @@ ASMJIT_PATCH(0x5218F3, InfantryClass_WhatWeaponShouldIUse_DeployFireWeapon, 0x6)
 	return 0x521917;
 }
 
-//fuckin broken !
-//DEFINE_FUNCTION_JUMP(LJMP , 0x5218E0 , FakeInfantryClass::_WhatWeaponShouldIUse)
-//DEFINE_FUNCTION_JUMP(VTABLE , 0x7EB33C , FakeInfantryClass::_WhatWeaponShouldIUse)
 
 #ifndef DISABLEFORTESTINGS
 ASMJIT_PATCH(0x6FF923, TechnoClass_FireaAt_FireOnce, 0x6)

@@ -12,12 +12,13 @@
 #include <TacticalClass.h>
 
 #include <ExtraHeaders/StackVector.h>
+
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Building/Body.h>
-#include <Misc/Ares/Hooks/Header.h>
-#include <New/PhobosAttachedAffect/Functions.h>
+#include <Ext/WarheadType/Body.h>
 #include <Ext/AircraftType/Body.h>
 
+#include <New/PhobosAttachedAffect/Functions.h>
 #include <Utilities/Macro.h>
 
 #define ENABLE_THESE
@@ -522,7 +523,7 @@ void FakeTechnoClass::__HandleSelfHealing(TechnoClass* pThis)
 	}
 
 	// this replaces the call to pThis->ShouldSelfHealOneStep()
-	const auto nAmount = TechnoExt_ExtData::GetSelfHealAmount(pThis);
+	const auto nAmount = TechnoExtData::GetSelfHealAmount(pThis);
 	bool wasDamaged = pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
 	if (nAmount > 0 || nAmount != 0)
 	{
@@ -756,12 +757,12 @@ void FakeTechnoClass::__HandleEMPEffect(TechnoClass* pThis)
 			// the forced vacation just ended. we use our own
 			// function here that is quicker in retrieving the
 			// EMP animation and does more stuff.
-			AresEMPulse::DisableEMPEffect(pThis);
+			WarheadTypeExtData::DisableEMPEffect(pThis);
 		}
 		else
 		{
 			// deactivate units that were unloading afterwards
-			if (!pThis->Deactivated && AresEMPulse::IsDeactivationAdvisable(pThis))
+			if (!pThis->Deactivated && WarheadTypeExtData::IsDeactivationAdvisable(pThis))
 			{
 				// update the current mission
 				TechnoExtContainer::Instance.Find(pThis)->EMPLastMission = pThis->CurrentMission;
@@ -771,23 +772,12 @@ void FakeTechnoClass::__HandleEMPEffect(TechnoClass* pThis)
 	}
 }
 
-#include <Misc/Kratos/Extension/TechnoExt.h>
-
 void OnUpdateEnd(TechnoClass* pThis)
 {
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis))
-	{
-		pExt->_GameObject->Foreach([](Component* c)
-			{ c->OnUpdateEnd(); });
-	}
 }
 
 void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 {
-	if (auto pExt = TechnoExt::ExtMap.Find(pThis)) {
-		pExt->_GameObject->Foreach([](Component* c)
-			{ c->OnUpdate(); });
-	}
 
 	// Clear moused-over flag
 	if (pThis->IsMouseHovering) {
@@ -797,7 +787,7 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto IsBuilding = pThis->WhatAmI() == BuildingClass::AbsID;
 
-	TechnoExt_ExtData::Ares_technoUpdate(pThis);
+	TechnoExtData::Ares_technoUpdate(pThis);
 
 	if (!pThis->IsAlive){
 		OnUpdateEnd(pThis);
@@ -948,7 +938,7 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 	__HandleBerzerkState(pThis);
 	__HandleStrengthSmoothing(pThis);
 	__HandleTurretAudio(pThis);
-	TechnoExperienceData::PromoteImmedietely(pThis, false, true);
+	TechnoExtData::PromoteImmedietely(pThis, false, true);
 	__HandleMoneyDrain(pThis);
 	__HandleDrainTarget(pThis);
 
@@ -1160,7 +1150,7 @@ void __fastcall FakeTechnoClass::_Cloaking_AI(TechnoClass* pThis, discard_t, boo
 		// === Not cloaked — check if we should begin cloaking ===
 		// === Hook: TechnoClass_UpdateCloak (0x6FB757) ===
 		// Extension pre-check: if not disallowed, fast-path past all vanilla checks
-		bool canCloak = !TechnoExt_ExtData::CloakDisallowed(pThis, false);
+		bool canCloak = !TechnoExtData::CloakDisallowed(pThis, false);
 
 		if(!canCloak)
 		{
@@ -1217,7 +1207,7 @@ bool __fastcall FakeTechnoClass::_ShouldNotBeCloaked(TechnoClass* pThis)
 	// the original code would not disallow cloaking as long as
 	// pThis->Cloakable is set, but this prevents CloakStop from
 	// working, because it overrides IsCloakable().
-	return TechnoExt_ExtData::CloakDisallowed(pThis, true);
+	return TechnoExtData::CloakDisallowed(pThis, true);
 }
 DEFINE_FUNCTION_JUMP(LJMP, 0x6FBC90, FakeTechnoClass::_ShouldNotBeCloaked);
 DEFINE_FUNCTION_JUMP(CALL, 0x4578C9, FakeTechnoClass::_ShouldNotBeCloaked);
@@ -1231,7 +1221,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5F14, FakeTechnoClass::_ShouldNotBeCloaked);
 
 bool __fastcall FakeTechnoClass::_ShouldBeCloaked(TechnoClass * pThis)
 {
-	return TechnoExt_ExtData::CloakAllowed(pThis);
+	return TechnoExtData::CloakAllowed(pThis);
 }
 DEFINE_FUNCTION_JUMP(LJMP, 0x6FBDC0, FakeTechnoClass::_ShouldBeCloaked);
 DEFINE_FUNCTION_JUMP(CALL, 0x457779, FakeTechnoClass::_ShouldBeCloaked);

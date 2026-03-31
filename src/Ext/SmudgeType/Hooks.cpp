@@ -2,7 +2,6 @@
 
 #include <Utilities/Macro.h>
 
-
 //ToDo : Overlap , better render code ?
 //https://github.com/Phobos-developers/Phobos/issues/448
 

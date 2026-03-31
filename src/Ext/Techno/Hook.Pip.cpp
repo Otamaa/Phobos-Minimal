@@ -1,6 +1,9 @@
+#include "Body.h"
+
 #include <Ext/TechnoType/Body.h>
-#include <Ext/Techno/Body.h>
 #include <Ext/Tiberium/Body.h>
+#include <Ext/Building/Body.h>
+#include <Ext/House/Body.h>
 
 #include <Utilities/Macro.h>
 
@@ -9,8 +12,9 @@
 #include <InfantryClass.h>
 #include <InfantryTypeClass.h>
 
-#include <Misc/Ares/Hooks/Header.h>
 #include <TextDrawing.h>
+
+#include <Misc/PhobosGlobal.h>
 
 #pragma region pipDrawings
 
@@ -157,393 +161,6 @@ namespace Tiberiumpip
 	}
 
 }
-
-#ifdef _done
-
-ASMJIT_PATCH(0x70A36E, TechnoClass_DrawPip_Ammo, 0x6)
-{
-	enum { SkipGameDrawing = 0x70A4EC };
-
-	GET(TechnoClass*, pThis, ECX);
-	LEA_STACK(RectangleStruct*, offset, STACK_OFFSET(0x74, -0x24));
-	GET_STACK(RectangleStruct*, rect, STACK_OFFSET(0x74, 0xC));
-	GET(int, pipWrap, EBX);
-	GET_STACK(int, pipCount, STACK_OFFSET(0x74, -0x54));
-	GET_STACK(int, maxPips, STACK_OFFSET(0x74, -0x60));
-	GET(int, yOffset, ESI); //verticalSpacing
-	GET_STACK(SHPStruct*, pDefault, 0x74 - 0x48);
-
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-	Point2D position = { offset->X + pTypeExt->AmmoPipOffset->X, offset->Y + pTypeExt->AmmoPipOffset->Y };
-	ConvertClass* pConvert = pTypeExt->AmmoPip_Palette.GetConvert() ?
-		pTypeExt->AmmoPip_Palette.GetConvert()
-		: FileSystem::PALETTE_PAL();
-
-	auto pSHApe = pTypeExt->AmmoPip_shape.Get(pDefault);
-
-	if (pipWrap > 0)
-	{
-		int levels = maxPips / pipWrap - 1;
-
-		for (int i = 0; i < pipWrap; i++)
-		{
-			int frame = pTypeExt->PipWrapAmmoPip;
-
-			if (levels >= 0)
-			{
-				int counter = i + pipWrap * levels;
-				int frameCounter = levels;
-				bool calculateFrame = true;
-
-				while (counter >= pThis->Ammo)
-				{
-					frameCounter--;
-					counter -= pipWrap;
-
-					if (frameCounter < 0)
-					{
-						calculateFrame = false;
-						break;
-					}
-				}
-
-				if (calculateFrame)
-					frame = frameCounter + frame + 1;
-			}
-
-			position.X += offset->Width;
-			position.Y += yOffset;
-
-			DSurface::Temp->DrawSHP(pConvert, pSHApe,
-				frame, &position, rect, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
-		}
-	}
-	else
-	{
-		int ammoFrame = pTypeExt->AmmoPip;
-		int emptyFrame = pTypeExt->EmptyAmmoPip;
-
-		for (int i = 0; i < maxPips; i++)
-		{
-			if (i >= pipCount && emptyFrame < 0)
-				break;
-
-			int frame = i >= pipCount ? emptyFrame : ammoFrame;
-			position.X += offset->Width;
-			position.Y += yOffset;
-
-			DSurface::Temp->DrawSHP(pConvert, pSHApe,
-				frame, &position, rect, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
-		}
-	}
-
-	return SkipGameDrawing;
-}
-
-ASMJIT_PATCH(0x709B79, TechnoClass_DrawPip_Spawner, 0x6)
-{
-	enum { SkipGameDrawing = 0x709C27 };
-
-	GET(TechnoClass*, pThis, EBP);
-	GET(TechnoTypeClass*, pType, EAX);
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	if (!pTypeExt->ShowSpawnsPips.Get(((int)pType->PipScale == 6)))
-	{
-		return SkipGameDrawing;
-	}
-
-	LEA_STACK(RectangleStruct*, offset, STACK_OFFSET(0x74, -0x24));
-	GET_STACK(RectangleStruct*, rect, STACK_OFFSET(0x74, 0xC));
-	//GET_STACK(SHPStruct*, shape, STACK_OFFSET(0x74, -0x58));
-	GET_STACK(bool, isBuilding, STACK_OFFSET(0x74, -0x61));
-	GET(int, maxSpawnsCount, EBX);
-
-	ConvertClass* pPal = FileSystem::PALETTE_PAL();
-	const auto pShape = isBuilding ?
-		pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP()) :
-		pTypeExt->PipShapes02.Get(FileSystem::PIPS_SHP());
-
-	//if (isBuilding)
-	//{
-	//	const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find((BuildingTypeClass*)pType);
-	//
-	//	if (pBuildingTypeExt->PipShapes01Remap)
-	//		pPal = pThis->GetRemapColour();
-	//	else if (const auto pConvertData = pBuildingTypeExt->PipShapes01Palette)
-	//		pPal = pConvertData->GetConvert<PaletteManager::Mode::Temperate>();
-	//
-	//}
-
-	int currentSpawnsCount = pThis->SpawnManager->CountDockedSpawns();
-	Point2D position { offset->X + pTypeExt->SpawnsPipOffset->X, offset->Y + pTypeExt->SpawnsPipOffset->Y };
-	const Point2D size = pTypeExt->SpawnsPipSize.Get(
-		isBuilding ?
-		RulesExtData::Instance()->Pips_Generic_Buildings_Size :
-		RulesExtData::Instance()->Pips_Generic_Size
-	);
-
-	for (int i = 0; i < maxSpawnsCount; i++)
-	{
-		int frame = i < currentSpawnsCount ? pTypeExt->SpawnsPip : pTypeExt->EmptySpawnsPip;
-
-		DSurface::Temp->DrawSHP(pPal, pShape, frame,
-			&position, rect, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
-
-		position.X += size.X;
-		position.Y += size.Y;
-	}
-
-	return SkipGameDrawing;
-}
-
-ASMJIT_PATCH(0x70A4FB, TechnoClass_DrawPip_SelfHealGain, 0x5)
-{
-	enum { SkipGameDrawing = 0x70A6C0 };
-
-	GET(TechnoClass*, pThis, ECX);
-	GET_STACK(Point2D*, pLocation, STACK_OFFS(0x74, -0x4));
-	GET_STACK(RectangleStruct*, pBounds, STACK_OFFS(0x74, -0xC));
-
-	const auto pType = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-	TechnoExtData::DrawSelfHealPips(pThis, pLocation, pBounds, FileSystem::PIPS_SHP(), FileSystem::PALETTE_PAL());
-
-	return SkipGameDrawing;
-}
-
-ASMJIT_PATCH(0x70A1F6, TechnoClass_DrawPip_Tiberium, 0x6)
-{
-	struct __declspec(align(4)) PipDataStruct
-	{
-		Point2D nPos;
-		int Int;
-		int Number;
-	};
-
-	GET(TechnoClass* const, pThis, EBP);
-	GET_STACK(PipDataStruct, pDatas, STACK_OFFS(0x74, 0x24));
-	//GET_STACK(SHPStruct*, pShapes, STACK_OFFS(0x74, 0x68));
-	GET_STACK(RectangleStruct*, pBound, STACK_OFFSET(0x74, 0xC));
-	GET(int, nOffsetY, ESI);
-
-	Tiberiumpip::DrawTiberiumPip(pThis, &pDatas.nPos, pBound, pDatas.Int, nOffsetY);
-	//DrawCargoPips_NotBySize(pThis, pThis->GetTechnoType()->GetPipMax(), &pDatas.nPos, pBound, pDatas.Int, nOffsetY);
-	return 0x70A340;
-}
-
-ASMJIT_PATCH(0x709C84, TechnoClass_DrawPip_Occupants, 0x6)
-{
-	struct DrawPipDataStruct
-	{
-		int nOccupantsCount; int Y; SHPStruct* pShape; int nMaxOccupants;
-	};
-
-	GET(BuildingClass*, pThis, EBP);
-	GET(int, nOccupantIdx, EDI);
-	GET(int, nOffset_X, EBX);
-	GET_STACK(int, nOffset_Y, STACK_OFFS(0x74, 0x50));
-	GET_STACK(DrawPipDataStruct, nPipDataStruct, STACK_OFFS(0x74, 0x60));
-	GET_STACK(Point2D, nDrawOffset, STACK_OFFS(0x74, 0x24));
-	GET_STACK(Point2D, nOffsetadd, STACK_OFFS(0x74, 0x1C));
-	GET_STACK(RectangleStruct*, pRect, STACK_OFFS(0x74, -0xC));
-	GET(int, nOffsetY_Increment, ESI);
-
-	int nPipFrameIndex = 6;
-	SHPStruct* pPipFile = nPipDataStruct.pShape;
-	ConvertClass* pPalette = FileSystem::THEATER_PAL;
-
-	if (nOccupantIdx < nPipDataStruct.nMaxOccupants)
-	{
-		if (auto const pInfantry = pThis->Occupants.Items[nOccupantIdx])
-		{
-			const auto pExt = TechnoTypeExtContainer::Instance.Find(pInfantry->Type);
-
-			if (const auto pGarrisonPip = pExt->PipGarrison.Get(nullptr))
-			{
-				pPipFile = pGarrisonPip;
-				nPipFrameIndex = std::clamp((int)pExt->PipGarrison_FrameIndex, 0, (int)pGarrisonPip->Frames);
-				if (auto pConvert_c = pExt->PipGarrison_Palette.GetConvert())
-					pPalette = pConvert_c;
-			}
-			else
-			{
-				nPipFrameIndex = (int)pInfantry->Type->OccupyPip;
-			}
-		}
-	}
-
-	Point2D nOffset { nOffset_X + nDrawOffset.X ,nDrawOffset.Y + nOffset_Y };
-	if (pPipFile)
-	{
-		DSurface::Temp->DrawSHP(
-			pPalette,
-			pPipFile,
-			nPipFrameIndex,
-			&nOffset,
-			pRect,
-			BlitterFlags(0x600),
-			0,
-			0,
-			ZGradient::None,
-			1000,
-			0,
-			0,
-			0,
-			0,
-			0);
-	}
-
-	++nOccupantIdx;
-	nOffset_X += nOffsetadd.X;
-	nOffset_Y += nOffsetY_Increment;
-
-	// need to forward the value bacause it is needed for next loop
-	R->EBX(nOffset_X);
-	R->ECX(nOffset_Y);
-	R->EDI(nOccupantIdx);
-	R->EAX(nPipDataStruct.nOccupantsCount);
-
-	return 0x709D11;
-}
-
-// the game specifically hides tiberium building pips. allow them, but
-// take care they don't show up for the original game
-ASMJIT_PATCH(0x709B4E, TechnoClass_DrawPip_SkipSkipTiberium, 6)
-{
-	GET(TechnoClass* const, pThis, EBP);
-
-	bool showTiberium = true;
-	if (const auto pBld = cast_to<BuildingClass*, false>(pThis))
-	{
-		if ((pBld->Type->Refinery || pBld->Type->ResourceDestination) && pBld->Type->Storage > 0)
-		{
-			// show only if this refinery uses storage. otherwise, the original
-			// refineries would show an unused tiberium pip scale
-			showTiberium = TechnoTypeExtContainer::Instance.Find(pBld->Type)->Refinery_UseStorage;
-		}
-	}
-
-	return showTiberium ? 0x709B6E : 0x70A980;
-}
-
-ASMJIT_PATCH(0x709B2E, TechnoClass_DrawPip_Sizes, 0x5)
-{
-	GET(TechnoClass*, pThis, ECX);
-	REF_STACK(int, pipWidth, STACK_OFFSET(0x74, -0x1C));
-
-	const bool isBuilding = pThis->WhatAmI() == AbstractType::Building;
-
-	Point2D size = Point2D::Empty;
-	const auto pType = pThis->GetTechnoType();
-
-	if (pType->PipScale == PipScale::Ammo)
-	{
-		size = TechnoTypeExtContainer::Instance.Find(pType)->AmmoPipSize.Get((isBuilding ?
-			RulesExtData::Instance()->Pips_Ammo_Buildings_Size : RulesExtData::Instance()->Pips_Ammo_Size));
-	}
-	else
-	{
-		size = (isBuilding ? RulesExtData::Instance()->Pips_Generic_Buildings_Size : RulesExtData::Instance()->Pips_Generic_Size).Get();
-	}
-
-	pipWidth = size.X;
-	R->ESI(size.Y);
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x709ACF, TechnoClass_DrawPip_PipShape1_A, 0x6)
-{
-	GET(TechnoClass* const, pThis, EBP);
-	GET(SHPStruct*, pPipShape01, ECX);
-
-	R->ECX(TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())
-		->PipShapes01.Get(pPipShape01));
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x709AE3, TechnoClass_DrawPip_PipShape1_B, 0x6)
-{
-	GET(TechnoClass* const, pThis, EBP);
-	GET(SHPStruct*, pPipShape01, EAX);
-
-	R->EAX(TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())
-		->PipShapes01.Get(pPipShape01));
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x709AF8, TechnoClass_DrawPip_PipShape2, 0x6)
-{
-	GET(TechnoClass* const, pThis, EBP);
-	GET(SHPStruct*, pPipShape02, EBX);
-
-	R->EBX(TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())
-		->PipShapes02.Get(pPipShape02));
-
-	return 0;
-}
-ASMJIT_PATCH(0x709D38, TechnoClass_DrawPip_Passengers, 7)
-{
-	GET(TechnoClass* const, pThis, EBP);
-	GET(TechnoTypeClass*, pType, EAX);
-
-	if (pType->PipScale != PipScale::Passengers)
-		return 0x70A083;
-
-	GET(int, nBracketPosDeltaY, ESI);
-	GET_STACK(SHPStruct*, pShp, 0x1C);
-	GET_STACK(RectangleStruct*, pRect, 0x80);
-	GET_STACK(int, nPosX, 0x50);
-	GET_STACK(int, nPosY, 0x54);
-	GET_STACK(int, nBracketPosDeltaX, 0x58);
-
-	Point2D nPos = { nPosX ,nPosY };
-	int nForGunner = 0;
-	bool fail = false;
-	const auto pData = TunnelFuncs::PopulatePassangerPIPData(pThis, pType, fail);
-
-	if (fail)
-		return 0x70A083;
-
-	for (auto nDPos = pData->begin(); nDPos != pData->end(); ++nDPos)
-	{
-		DSurface::Temp->DrawSHP
-		(FileSystem::PALETTE_PAL,
-			pShp,
-			*nDPos,
-			&nPos,
-			pRect,
-			BlitterFlags(0x600),
-			0,
-			0,
-			ZGradient::Ground,
-			1000,
-			0,
-			0,
-			0,
-			0,
-			0
-		);
-
-		++nForGunner;
-		const auto nXHere = nBracketPosDeltaX + nPos.X;
-		const auto nYHere = nBracketPosDeltaY + nPos.Y;
-		nPos.X += nBracketPosDeltaX;
-		nPos.Y += nBracketPosDeltaY;
-
-		if ((bool)nForGunner == pType->Gunner)
-		{
-			nPos.X += nXHere + nBracketPosDeltaX;
-			nPos.Y += nYHere + nBracketPosDeltaY;
-		}
-	}
-
-	return 0x70A4EC;
-}
-
-#endif
 
 // Helper structure for drawing state
 struct Spacing
@@ -904,12 +521,12 @@ static void DrawPassengerPips(TechnoClass* techno, TechnoTypeClass* technoType, 
 		return;
 	}
 
-	if (!TunnelFuncs::PopulatePassangerPIPData(techno, technoType, maxPips))
+	if (!HouseExtData::PopulatePassangerPIPData(techno, technoType, maxPips))
 	{
 		return;
 	}
 
-	if (TunnelFuncs::PipDatas.empty())
+	if (PhobosGlobal::Instance()->PipDatas.empty())
 	{
 		return;
 	}
@@ -924,7 +541,7 @@ static void DrawPassengerPips(TechnoClass* techno, TechnoTypeClass* technoType, 
 			.Y = drawState->pos.Y
 		};
 
-		DrawSinglePip(&gunnerPos, pipInfo->convert, pipInfo->shape, TunnelFuncs::PipDatas[0], clipRect);
+		DrawSinglePip(&gunnerPos, pipInfo->convert, pipInfo->shape, PhobosGlobal::Instance()->PipDatas[0], clipRect);
 		startIndex = 1;
 		offset.X = 2 * drawState->spacigns_.X;
 		offset.Y = 2 * drawState->spacigns_.Y;
@@ -937,7 +554,7 @@ static void DrawPassengerPips(TechnoClass* techno, TechnoTypeClass* technoType, 
 			.Y = drawState->pos.Y + offset.Y + (i - startIndex) * drawState->spacigns_.Y
 		};
 
-		DrawSinglePip(&pipPos, pipInfo->convert, pipInfo->shape, TunnelFuncs::PipDatas[i], clipRect);
+		DrawSinglePip(&pipPos, pipInfo->convert, pipInfo->shape, PhobosGlobal::Instance()->PipDatas[i], clipRect);
 	}
 }
 

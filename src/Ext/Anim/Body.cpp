@@ -21,13 +21,6 @@
 
 #include <Misc/DamageArea.h>
 
-#include <Phobos.SaveGame.h>
-
-#include <Misc/Kratos/Ext/AnimType/ExpireAnimData.h>
-#include <Misc/Kratos/Ext/AnimType/AnimStatus.h>
-#include <Misc/Kratos/Ext/Common/CommonStatus.h>
-#include <Misc/Kratos/Ext/TechnoType/TechnoStatus.h>
-
 void AnimExtData::OnInit(AnimClass* pThis, CoordStruct* pCoord)
 {
 	if (!pThis->Type)
@@ -766,7 +759,6 @@ void AnimExtData::Serialize(T& Stm)
 		.Process(this->AttachedSystem, true)
 		.Process(this->ParentBuilding, true)
 		.Process(this->CreateUnitLocation)
-		//.Process(this->SpawnsStatusData)
 		.Process(this->DelayedFireRemoveOnNoDelay)
 		.Process(this->DamagingState)
 		.Process(this->AEDrawOffset)
@@ -779,86 +771,6 @@ void AnimExtContainer::Clear()
 {
 	this->base_container_t::Clear();
 	this->AnimsWithAttachedParticles.clear();
-}
-
-bool AnimExtContainer::LoadAll(const json& root)
-{
-	this->Clear();
-
-	if (root.contains(AnimExtContainer::ClassName))
-	{
-		auto& container = root[AnimExtContainer::ClassName];
-
-		for (auto& entry : container[AnimExtData::ClassName])
-		{
-			uint32_t oldPtr = 0;
-			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
-				return false;
-
-			size_t dataSize = entry["datasize"].get<size_t>();
-			std::string encoded = entry["data"].get<std::string>();
-			auto buffer = this->AllocateNoInit();
-
-			PhobosByteStream loader(dataSize);
-			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-			PhobosStreamReader reader(loader);
-
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, AnimExtData::ClassName);
-
-			buffer->LoadFromStream(reader);
-
-			if (!reader.ExpectEndOfBlock())
-				return false;
-		}
-
-		size_t dataSize = container["AnimsWithAttachedParticles_datasize"].get<size_t>();
-		std::string encoded = container["AnimsWithAttachedParticles_data"].get<std::string>();
-
-		PhobosByteStream loader(dataSize);
-		loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
-		PhobosStreamReader reader(loader);
-
-		reader.Process(this->AnimsWithAttachedParticles);
-
-		if (!reader.ExpectEndOfBlock())
-			return false;
-
-		return true;
-	}
-
-	return false;
-
-}
-
-bool AnimExtContainer::SaveAll(json& root)
-{
-	auto& first_layer = root[AnimExtContainer::ClassName];
-
-	json _extRoot = json::array();
-	for (auto& _extData : AnimExtContainer::Array) {
-		PhobosByteStream saver(sizeof(*_extData));
-		PhobosStreamWriter writer(saver);
-
-		_extData->SaveToStream(writer);
-
-		json entry;
-		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
-		entry["datasize"] = saver.data.size();
-		entry["data"] = Base64Handler::encodeBase64(saver.data);
-		_extRoot.push_back(std::move(entry));
-	}
-
-	first_layer[AnimExtData::ClassName] = std::move(_extRoot);
-
-	PhobosByteStream saver(0);
-	PhobosStreamWriter writer(saver);
-
-	writer.Process(this->AnimsWithAttachedParticles);
-
-	first_layer["AnimsWithAttachedParticles_datasize"] = saver.data.size();
-	first_layer["AnimsWithAttachedParticles_data"] = Base64Handler::encodeBase64(saver.data);
-
-	return true;
 }
 
 // =============================
@@ -915,8 +827,6 @@ ASMJIT_PATCH(0x422058, AnimClass_CTOR, 0x5)
 			}
 
 		}
-
-		AnimExt::ExtMap.TryAllocate(pItem);
 	}
 	else {
 		PhobosGlobal::Instance()->LastAnimName = "none";
@@ -932,7 +842,6 @@ ASMJIT_PATCH(0x422A52, AnimClass_DTOR, 0x6)
 	GET(AnimClass*, pItem, ESI);
 	AnimExtContainer::Instance.AnimsWithAttachedParticles.remove((FakeAnimClass*)pItem);
 	AnimExtContainer::Instance.Remove(pItem);
-	AnimExt::ExtMap.Remove(pItem);
 	return 0;
 }
 

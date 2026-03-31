@@ -13,6 +13,7 @@
 
 #include <New/Entity/NewTiberiumStorageClass.h>
 #include <New/Entity/TrackerClass.h>
+
 #include <New/Type/TechTreeTypeClass.h>
 
 #include <Misc/Defines.h>
@@ -436,6 +437,24 @@ public:
 
 	static bool IsMutualAllies(HouseClass const* pThis , HouseClass const* pHouse);
 
+	static bool CheckBasePlanSanity(HouseClass* const pThis);
+	static void UpdateTogglePower(HouseClass* pThis);
+	static bool UpdateAnyFirestormActive(bool const lastChange);
+	static void SetFirestormState(HouseClass* pHouse, bool const active);
+	static void FormulateTypeList(std::vector<TechnoTypeClass*>& types, TechnoTypeClass** items, int count, int houseidx);
+	static std::vector<TechnoTypeClass*> GetTypeList();
+	static int GetTotalCost(const Nullable<int>& fixed);
+
+	static bool FindSameTunnel(BuildingClass* pTunnel);
+	static void KillFootClass(FootClass* pFoot, TechnoClass* pKiller);
+	static void DestroyTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, TechnoClass* pKiller);
+	static void EnterTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, FootClass* pFoot);
+	static bool CanEnterTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, FootClass* pEnterer);
+	static bool PopulatePassangerPIPData(TechnoClass* pThis, TechnoTypeClass* pType, int pipMax);
+	static std::pair<bool, FootClass*> UnlimboOne(std::vector<FootClass*>* pVector, BuildingClass* pTunnel, DWORD Where);
+	static bool UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel, bool silent = false);
+	static void HandleUnload(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel);
+
 private:
 	bool UpdateHarvesterProduction();
 
@@ -473,8 +492,9 @@ public:
 
 public:
 
-	virtual bool LoadAll(const json& root);
-	virtual bool SaveAll(json& root);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
+
 	virtual void Clear();
 };
 

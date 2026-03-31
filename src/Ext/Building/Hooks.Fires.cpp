@@ -1,4 +1,4 @@
-#include <Ext/Building/Body.h>
+#include "Body.h"
 
 #include <SpecificStructures.h>
 #include <ScenarioClass.h>
@@ -6,6 +6,7 @@
 
 #include <Ext/BuildingType/Body.h>
 #include <Ext/Anim/Body.h>
+
 #include <Utilities/Macro.h>
 
 #include <TacticalClass.h>
@@ -89,7 +90,5 @@ ASMJIT_PATCH(0x44EA1C, BuildingClass_DetachOrInvalidPtr_handle, 0x6)
 
 //remove it from load
 DEFINE_JUMP(LJMP, 0x454154, 0x454170);
-//ASMJIT_PATCH(0x454154 , BuildingClass_LoadGame_DamageFireAnims , 0x6) {
-//	return 0x454170;
-//}
+
 #endif

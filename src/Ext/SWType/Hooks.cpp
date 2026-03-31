@@ -8,6 +8,7 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/Sidebar/Body.h>
 #include <Ext/Super/Body.h>
+#include <Ext/Tactical/Body.h>
 
 #include "Body.h"
 
@@ -19,18 +20,16 @@
 #include "NewSuperWeaponType/LightningStorm.h"
 #include "NewSuperWeaponType/Dominator.h"
 
-#include <Misc/Ares/Hooks/Header.h>
-
 #include <Utilities/Macro.h>
 #include <New/Entity/SWFirerClass.h>
 
 #include <Misc/DamageArea.h>
+#include <Misc/PhobosGlobal.h>
+
 #include <Commands/Harmless.h>
 
 #include <FPSCounter.h>
 #include <EventClass.h>
-
-#include <Misc/Kratos/Kratos.h>
 
 #pragma endregion
 
@@ -79,7 +78,6 @@ ASMJIT_PATCH(0x55B719, LogicClass_Update_late, 0x5)
 //		});
 //	}
 //
-	Kratos::LogicUpdate_End();
 	return 0x0;
 }
 
@@ -87,7 +85,6 @@ ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 {
 	lastFrameTime = std::chrono::high_resolution_clock::now();
 
-	Kratos::LogicUpdate_Early();
 	HarmlessCommandClass::AI();
 	SWFirerManagerClass::Instance.Update();
 	SWStateMachine::UpdateAll();
@@ -95,7 +92,7 @@ ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 	HouseExtData::UpdateTransportReloaders();
 
 	for (auto pHouse : *HouseClass::Array) {
-		AresHouseExt::UpdateTogglePower(pHouse);
+		HouseExtData::UpdateTogglePower(pHouse);
 	}
 
 	for(auto pSuper : *SuperClass::Array){
@@ -144,7 +141,6 @@ ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 	return 0x0;
 }//
 
-#include <Ext/Tactical/Body.h>
 
 void FakeTacticalClass::__DrawAllTacticalText(wchar_t* text)
 {
@@ -165,14 +161,14 @@ void FakeTacticalClass::__DrawAllTacticalText(wchar_t* text)
 			offset += wanted.Height;
 		};
 
-	if (!AresGlobalData::ModNote.Label)
+	if (!Phobos::Config::ModNote.Label)
 	{
-		AresGlobalData::ModNote = "TXT_RELEASE_NOTE";
+		Phobos::Config::ModNote = "TXT_RELEASE_NOTE";
 	}
 
-	if (!AresGlobalData::ModNote.empty())
+	if (!Phobos::Config::ModNote.empty())
 	{
-		DrawText_Helper(AresGlobalData::ModNote, offset, COLOR_RED);
+		DrawText_Helper(Phobos::Config::ModNote, offset, COLOR_RED);
 	}
 
 	static fmt::basic_memory_buffer<wchar_t> buffer;

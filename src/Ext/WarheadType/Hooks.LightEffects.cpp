@@ -1,18 +1,11 @@
+#include "Body.h"
+
 #include <GameOptionsClass.h>
 
 #include <Ext/WarheadType/Body.h>
 #include <Helpers/Macro.h>
 
 #include <Ext/Rules/Body.h>
-
-// ASMJIT_PATCH(0x48A444 , AreaDamage_Particle_Handle , 0x5){
-// 	GET(WarheadTypeClass*, pWH, EDI);
-// 	GET_BASE(HouseClass* , pHouse , 0x14);
-// 	GET(CoordStruct* , pCoord , ESI);
-//
-// 	auto pParticleSystem = GameCreate<ParticleSystemClass>(pWH->Parasite,pCoord,nullptr ,nullptr , &CoordStruct::Empty, pHouse);
-// 	ParticleSystemExtContainer::Instance.Find(pParticleSystem)->
-// }
 
 namespace LightEffectsTemp
 {

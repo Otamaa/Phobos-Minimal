@@ -7,7 +7,6 @@
 
 #include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
 
-#include <Misc/Ares/Hooks/Header.h>
 
 #include <WeaponTypeClass.h>
 #include <HouseClass.h>
