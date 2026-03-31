@@ -106,6 +106,7 @@ ASMJIT_PATCH(0x6FF923, TechnoClass_DeployFire_FireOnce, 0x6)
 #pragma endregion
 
 #pragma region UnitClass Disguise
+
 ASMJIT_PATCH(0x6F4222, TechnoClass_Init_PermaDisguise, 0x7)
 {
 	GET(TechnoClass*, pTechno, ESI);

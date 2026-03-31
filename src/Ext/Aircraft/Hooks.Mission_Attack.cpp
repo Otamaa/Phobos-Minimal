@@ -22,7 +22,7 @@
 
 #ifndef MI_ATTACK_HOOKS
 
-int __fastcall AircraftClass_MI_Attack_SelectWeapon_BeforeFiring(AircraftClass* pThis, discard_t, AbstractClass* pTarget)
+int __fastcall AircraftClass_MI_Attack_WhatWeaponShouldIUse_BeforeFiring(AircraftClass* pThis, discard_t, AbstractClass* pTarget)
 {
 	auto pExt = AircraftExtContainer::Instance.Find(pThis);
 
@@ -34,12 +34,12 @@ int __fastcall AircraftClass_MI_Attack_SelectWeapon_BeforeFiring(AircraftClass* 
 	return pExt->CurrentAircraftWeaponIndex;
 }
 
-DEFINE_FUNCTION_JUMP(CALL6, 0x41831E, AircraftClass_MI_Attack_SelectWeapon_BeforeFiring);
-DEFINE_FUNCTION_JUMP(CALL6, 0x4185F5, AircraftClass_MI_Attack_SelectWeapon_BeforeFiring);
-DEFINE_FUNCTION_JUMP(CALL6, 0x4187C4, AircraftClass_MI_Attack_SelectWeapon_BeforeFiring);
-DEFINE_FUNCTION_JUMP(CALL6, 0x4188D3, AircraftClass_MI_Attack_SelectWeapon_BeforeFiring);
-DEFINE_FUNCTION_JUMP(CALL6, 0x4189E2, AircraftClass_MI_Attack_SelectWeapon_BeforeFiring);
-DEFINE_FUNCTION_JUMP(CALL6, 0x418AF1, AircraftClass_MI_Attack_SelectWeapon_BeforeFiring);
+DEFINE_FUNCTION_JUMP(CALL6, 0x41831E, AircraftClass_MI_Attack_WhatWeaponShouldIUse_BeforeFiring);
+DEFINE_FUNCTION_JUMP(CALL6, 0x4185F5, AircraftClass_MI_Attack_WhatWeaponShouldIUse_BeforeFiring);
+DEFINE_FUNCTION_JUMP(CALL6, 0x4187C4, AircraftClass_MI_Attack_WhatWeaponShouldIUse_BeforeFiring);
+DEFINE_FUNCTION_JUMP(CALL6, 0x4188D3, AircraftClass_MI_Attack_WhatWeaponShouldIUse_BeforeFiring);
+DEFINE_FUNCTION_JUMP(CALL6, 0x4189E2, AircraftClass_MI_Attack_WhatWeaponShouldIUse_BeforeFiring);
+DEFINE_FUNCTION_JUMP(CALL6, 0x418AF1, AircraftClass_MI_Attack_WhatWeaponShouldIUse_BeforeFiring);
 
 ASMJIT_PATCH(0x418544, AircraftClass_Mission_Attack_StrafingDestinationFix, 0x6)
 {

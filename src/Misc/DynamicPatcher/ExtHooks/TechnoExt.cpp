@@ -86,53 +86,53 @@ ASMJIT_PATCH(0x6FC339, TechnoClass_CanFire_DP, 0x6) //8
 }
 */
 
- ASMJIT_PATCH(0x6B743E, SpawnManagerAI_SpawnSupportFLH, 0x6)
- {
- 	GET(SpawnManagerClass*, pSpawn, ESI);
- 	//GET_STACK(int, nArrIdx, STACK_OFFS(0x68, 0x54));
+ //ASMJIT_PATCH(0x6B743E, SpawnManagerAI_SpawnSupportFLH, 0x6)
+ //{
+ //	GET(SpawnManagerClass*, pSpawn, ESI);
+ //	//GET_STACK(int, nArrIdx, STACK_OFFS(0x68, 0x54));
 
- 	//if (auto pOwner = pSpawn->Owner)
- 	//{
- 	//	//if ((*pFLH) == CoordStruct::Empty)
- 	//	{
- 	//		auto pTypeExt = GET_TECHNOTYPEEXT(pOwner);
+ //	//if (auto pOwner = pSpawn->Owner)
+ //	//{
+ //	//	//if ((*pFLH) == CoordStruct::Empty)
+ //	//	{
+ //	//		auto pTypeExt = GET_TECHNOTYPEEXT(pOwner);
 
- 	//		if (pTypeExt->MySpawnSupportDatas.Enable)
- 	//		{
- 	//			//CoordStruct nFLH = CoordStruct::Empty;
+ //	//		if (pTypeExt->MySpawnSupportDatas.Enable)
+ //	//		{
+ //	//			//CoordStruct nFLH = CoordStruct::Empty;
 
- 	//			//SpawnSupportFLHData nFLHData = pTypeExt->MySpawnSupportFLH;
- 	//			if (auto const pTransporter = pOwner->Transporter)
- 	//			{
- 	//				if (auto const pTransportExt = GET_TECHNOTYPEEXT(pTransporter))
- 	//				{
- 	//					nFLHData = pTransportExt->MySpawnSupportFLH;
- 	//				}
- 	//			}
+ //	//			//SpawnSupportFLHData nFLHData = pTypeExt->MySpawnSupportFLH;
+ //	//			if (auto const pTransporter = pOwner->Transporter)
+ //	//			{
+ //	//				if (auto const pTransportExt = GET_TECHNOTYPEEXT(pTransporter))
+ //	//				{
+ //	//					nFLHData = pTransportExt->MySpawnSupportFLH;
+ //	//				}
+ //	//			}
 
- 	//			CoordStruct nFLH = pOwner->Veterancy.IsElite() ? nFLHData.EliteSpawnSupportFLH : nFLHData.SpawnSupportFLH;
+ //	//			CoordStruct nFLH = pOwner->Veterancy.IsElite() ? nFLHData.EliteSpawnSupportFLH : nFLHData.SpawnSupportFLH;
 
- 	//			if (nFLH == CoordStruct::Empty)
- 	//				return 0x0;
+ //	//			if (nFLH == CoordStruct::Empty)
+ //	//				return 0x0;
 
- 	//			if (auto pSpawnExt = TechnoExtContainer::Instance.Find(pOwner))
- 	//			{
- 	//				if (pTypeExt->MySpawnSupportDatas.SwitchFLH)
- 	//				{
- 	//					nFLH.Y *= pSpawnExt->MySpawnSuport.supportFLHMult;
- 	//					pSpawnExt->MySpawnSuport.supportFLHMult *= -1;
- 	//				}
- 	//			}
+ //	//			if (auto pSpawnExt = TechnoExtContainer::Instance.Find(pOwner))
+ //	//			{
+ //	//				if (pTypeExt->MySpawnSupportDatas.SwitchFLH)
+ //	//				{
+ //	//					nFLH.Y *= pSpawnExt->MySpawnSuport.supportFLHMult;
+ //	//					pSpawnExt->MySpawnSuport.supportFLHMult *= -1;
+ //	//				}
+ //	//			}
 
- 	//			R->EAX(&nFLH);
- 	//			return 0x6B7498;
- 	//		}
- 	//	}
- 	//}
+ //	//			R->EAX(&nFLH);
+ //	//			return 0x6B7498;
+ //	//		}
+ //	//	}
+ //	//}
 
 
- 	return 0x0;
- }
+ //	return 0x0;
+ //}
 
 namespace CalculatePinch
 {

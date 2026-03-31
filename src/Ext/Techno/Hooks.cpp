@@ -1026,33 +1026,6 @@ ASMJIT_PATCH(0x6B74F0, SpawnManagerClass_AI_UseTurretFacing, 0x5)
 // Allow airstrike flare draw to foot
 DEFINE_JUMP(LJMP, 0x6D481D, 0x6D482D)
 
-ASMJIT_PATCH(0x6F348F, TechnoClass_WhatWeaponShouldIUse_Airstrike, 0x7)
-{
-	enum { Primary = 0x6F37AD, Secondary = 0x6F3807 };
-
-	GET(TechnoClass*, pTargetTechno, EBP);
-
-	if (!pTargetTechno)
-		return Primary;
-
-	GET(WarheadTypeClass*, pSecondaryWH, ECX);
-	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pSecondaryWH);
-
-	if (!EnumFunctions::IsTechnoEligible(pTargetTechno, pWHExt->AirstrikeTargets, false))
-		return Primary;
-
-	const auto pTargetType = GET_TECHNOTYPE(pTargetTechno);
-
-	if (pTargetTechno->AbstractFlags & AbstractFlags::Foot)
-	{
-		const auto pTargetTypeExt = TechnoTypeExtContainer::Instance.Find(pTargetType);
-		return pTargetTypeExt->AllowAirstrike.Get(true) ? Secondary : Primary;
-	}
-
-	const auto pTargetTypeExt = TechnoTypeExtContainer::Instance.Find(pTargetType);
-	return pTargetTypeExt->AllowAirstrike.Get(static_cast<BuildingTypeClass*>(pTargetType)->CanC4) && (!pTargetType->ResourceDestination || !pTargetType->ResourceGatherer) ? Secondary : Primary;
-}
-
 // ASMJIT_PATCH(0x41D97B, AirstrikeClass_Fire_SetAirstrike, 0x7)
 // {
 // 	enum { ContinueIn = 0x41D9A0, Skip = 0x41DA0B };
@@ -1300,7 +1273,7 @@ ASMJIT_PATCH(0x4D6D34, FootClass_MissionAreaGuard_Harvester, 0x5)
 
 DEFINE_JUMP(LJMP, 0x741406, 0x741427);
 
-ASMJIT_PATCH(0x736F61, UnitClass_UpdateFiring_FireUp, 0x6)
+ASMJIT_PATCH(0x736F61, UnitClass_FiringAI_FireUp, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 	GET(int, weaponIndex, EDI);
@@ -2140,3 +2113,34 @@ ASMJIT_PATCH(0x4D6EEF, FootClass_MissionAreaGuard_Extend, 0x6)
 }
 
 #pragma endregion
+
+#pragma region AttackUnderGround
+
+ASMJIT_PATCH(0x70023B, TechnoClass_WhatAction_AttackUnderGround, 0x5)
+{
+	enum { FireIsOK = 0x700246, FireIsNotOK = 0x70056C };
+
+	GET(ObjectClass*, pObject, EDI);
+	GET(TechnoClass*, pThis, ESI);
+	GET(int, wpIdx, EAX);
+
+	if (pObject->IsSurfaced())
+		return FireIsOK;
+
+	auto const pWeapon = pThis->GetWeapon(wpIdx)->WeaponType;
+
+	return (!pWeapon || !BulletTypeExtContainer::Instance.Find(pWeapon->Projectile)->AU) ? FireIsNotOK : FireIsOK;
+}
+
+ASMJIT_PATCH(0x772AB3, WeaponTypeClass_AllowedThreats_AU, 0x5)
+{
+	GET(BulletTypeClass* const, pType, ECX);
+	GET(ExtendedThreatType, flags, EAX);
+
+	if (BulletTypeExtContainer::Instance.Find(pType)->AU)
+		R->EAX<ExtendedThreatType>(flags | ExtendedThreatType::Underground);
+
+	return 0;
+}
+#pragma endregion
+

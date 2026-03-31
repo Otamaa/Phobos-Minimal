@@ -41,8 +41,8 @@ ASMJIT_PATCH(0x5218F3, InfantryClass_WhatWeaponShouldIUse_DeployFireWeapon, 0x6)
 }
 
 //fuckin broken !
-//DEFINE_FUNCTION_JUMP(LJMP , 0x5218E0 , FakeInfantryClass::_SelectWeaponAgainst)
-//DEFINE_FUNCTION_JUMP(VTABLE , 0x7EB33C , FakeInfantryClass::_SelectWeaponAgainst)
+//DEFINE_FUNCTION_JUMP(LJMP , 0x5218E0 , FakeInfantryClass::_WhatWeaponShouldIUse)
+//DEFINE_FUNCTION_JUMP(VTABLE , 0x7EB33C , FakeInfantryClass::_WhatWeaponShouldIUse)
 
 #ifndef DISABLEFORTESTINGS
 ASMJIT_PATCH(0x6FF923, TechnoClass_FireaAt_FireOnce, 0x6)
@@ -147,7 +147,7 @@ ASMJIT_PATCH(0x4C7518, EventClass_Execute_StopUnitDeployFire, 0x9)
 	return eax == Mission::Construction ? 0x4C8109 : 0x4C7521;
 }
 
-ASMJIT_PATCH(0x746CD0, UnitClass_SelectWeapon_Replacements, 0x6)
+ASMJIT_PATCH(0x746CD0, UnitClass_WhatWeaponShouldIUse_Replacements, 0x6)
 {
 	GET(UnitClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pTarget, 0x4);

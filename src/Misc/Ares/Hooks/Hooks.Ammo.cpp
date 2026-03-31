@@ -73,20 +73,3 @@ ASMJIT_PATCH(0x6FB05B, TechnoClass_Reload_ReloadAmount, 6)
 
 	return 0x6FB061;
 }
-
-ASMJIT_PATCH(0x6F3410, TechnoClass_SelectWeapon_NoAmmoWeapon, 5)
-{
-	GET(TechnoClass*, pThis, ESI);
-	const auto pType = GET_TECHNOTYPE(pThis);
-
-	if (pType->Ammo < 0)
-		return 0x0;
-
-	const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	if (pExt->NoAmmoWeapon < 0 || pThis->Ammo > pExt->NoAmmoAmount)
-		return 0x0;
-
-	R->EAX(pExt->NoAmmoWeapon);
-	return 0x6F3406;
-}

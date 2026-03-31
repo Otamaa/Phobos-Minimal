@@ -102,7 +102,7 @@ public:
 	void _Dummy(Mission, bool) RX;
 	void _DummyScatter(const CoordStruct& crd, bool ignoreMission, bool ignoreDestination) RX;
 	bool _Unlimbo(const CoordStruct& Crd, DirType dFaceDir);
-	int _SelectWeaponAgainst(AbstractClass* pTarget);
+	int _WhatWeaponShouldIUse(AbstractClass* pTarget);
 	WeaponStruct* _GetDeployWeapon();
 	DamageState _Take_Damage(int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse);
 

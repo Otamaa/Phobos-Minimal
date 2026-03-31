@@ -892,6 +892,7 @@ public:
 	static DamageState __fastcall __Take_Damage(TechnoClass* pThis, discard_t, int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse);
 	static bool __fastcall __Is_Allowed_To_Retaliate(TechnoClass* pThis, discard_t, TechnoClass* pSource, WarheadTypeClass* pWarhead);
 
+	static int __fastcall __WhatWeaponShouldIUse(TechnoClass* pThis, discard_t, AbstractClass* pTarget);
 	static void __fastcall __DoUncloak(TechnoClass* pThis, discard_t, char quiet);
 	static void __fastcall __DoCloak(TechnoClass* pThis, discard_t, char quiet);
 	static int __fastcall __HowManySurvivors(TechnoClass* pThis);

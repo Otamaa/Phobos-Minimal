@@ -526,7 +526,7 @@ ASMJIT_PATCH(0x73C15F, UnitClass_DrawVXL_Colour, 0x7)
 
 #pragma region Select weapon
 
-ASMJIT_PATCH(0x6F36DB, TechnoClass_SelectWeapon, 0xA)
+ASMJIT_PATCH(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0xA)
 {
 	enum { Primary = 0x6F37AD, Secondary = 0x6F3807 };
 	GET(TechnoClass*, pTechno, ESI);

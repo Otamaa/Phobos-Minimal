@@ -93,9 +93,6 @@ bool bSkipROF)
 	// Cache selected weapon for extension checks downstream
 	const int weaponCount = pThisType->WeaponCount > 0 ? pThisType->WeaponCount : 2;
 
-	if (nWeaponIdx >= weaponCount)
-		Debug::FatalErrorAndExit("Weapon of %s is out of bound [%d/%d]!", pThisType->ID, nWeaponIdx, weaponCount);
-
 	pThisExt->CanFireWeaponType = pThis->GetWeapon(nWeaponIdx)->WeaponType;
 
 	if (!pThisExt->CanFireWeaponType)

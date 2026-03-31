@@ -177,7 +177,7 @@ ASMJIT_PATCH(0x70CF45, TechnoClass_EvalThreatRating_ThisWeaponWarhead_Verses, 0x
 }
 
 // shield weapon selecting is applied earlier
-//ASMJIT_PATCH(0x6F36E3, TechnoClass_SelectWeapon_Verses, 0x5)
+//ASMJIT_PATCH(0x6F36E3, TechnoClass_WhatWeaponShouldIUse_Verses, 0x5)
 //{
 //	enum
 //	{

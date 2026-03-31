@@ -9,7 +9,7 @@
 #pragma region JJFixes
 // Bugfix: Jumpjet turn to target when attacking
 // Jumpjets stuck at FireError::FACING because WW didn't use a correct facing
-ASMJIT_PATCH(0x736F78, UnitClass_UpdateFiring_FireErrorIsFACING, 0x6)
+ASMJIT_PATCH(0x736F78, UnitClass_FiringAI_FireErrorIsFACING, 0x6)
 {
 	GET(UnitClass* const, pThis, ESI);
 
@@ -44,7 +44,7 @@ ASMJIT_PATCH(0x736F78, UnitClass_UpdateFiring_FireErrorIsFACING, 0x6)
 	return 0x736FB1;
 }
 
-ASMJIT_PATCH(0x736E6E, UnitClass_UpdateFiring_OmniFireTurnToTarget, 0x9) {
+ASMJIT_PATCH(0x736E6E, UnitClass_FiringAI_OmniFireTurnToTarget, 0x9) {
 
 	GET(FireError, err, EBP);
 	GET(UnitClass* const, pThis, ESI);

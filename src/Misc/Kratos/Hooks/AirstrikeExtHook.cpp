@@ -26,7 +26,7 @@
 #ifdef _ENABLE_HOOKS
 
 // 鲍里斯的副武器使用空袭是强制指定目标类型必须为建筑
-ASMJIT_PATCH(0x6F3477, TechnoClass_SelectWeapon_Airstrike, 0xA)
+ASMJIT_PATCH(0x6F3477, TechnoClass_WhatWeaponShouldIUse_Airstrike, 0xA)
 {
 	// 跳过副武器空袭弹头的检查，执行常规检查
 	return 0x6F3528;

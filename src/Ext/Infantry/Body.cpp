@@ -538,7 +538,7 @@ DamageState FakeInfantryClass::_Take_Damage(int* damage, int distance, WarheadTy
 	return result;
 }
 
-int FakeInfantryClass::_SelectWeaponAgainst(AbstractClass* pTarget)
+int FakeInfantryClass::_WhatWeaponShouldIUse(AbstractClass* pTarget)
 {
 	auto pThisType = this->Type;
 	int wp = -1;

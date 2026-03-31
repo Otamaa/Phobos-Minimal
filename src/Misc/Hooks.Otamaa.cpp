@@ -1186,18 +1186,6 @@ ASMJIT_PATCH(0x73D6EC, UnitClass_Unload_NoManualEject, 0x6)
 
 DEFINE_JUMP(LJMP, 0x422A59, 0x422A5F);
 
-ASMJIT_PATCH(0x6F357F, TechnoClass_SelectWeapon_DrainWeaponTarget, 0x6)
-{
-	enum { CheckAlly = 0x6F3589, ContinueCheck = 0x6F35A8, RetPrimary = 0x6F37AD };
-
-	GET(TechnoClass* const, pThis, ESI);
-	GET(TechnoClass* const, pTarget, EBP);
-
-	const bool IsTargetEligible = !pThis->DrainTarget && !pTarget->DrainingMe;
-	return IsTargetEligible ?
-		CheckAlly : ContinueCheck;
-}
-
 ASMJIT_PATCH(0x51F885, InfantryClass_WhatAction_TubeStuffs_FixGetCellAtCallTwice, 0x7)
 {
 	enum { retTrue = 0x51F8A6, retFalse = 0x51F8A8 };
