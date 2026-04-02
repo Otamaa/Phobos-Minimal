@@ -1,5 +1,4 @@
 #include "Body.h"
-
 #include <Ext/AnimType/Body.h>
 
 ASMJIT_PATCH(0x4232CE, AnimClass_Draw_SetPalette, 6)

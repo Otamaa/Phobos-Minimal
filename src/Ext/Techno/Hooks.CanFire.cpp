@@ -61,7 +61,7 @@ bool bSkipROF)
 		nWeaponIdx = nSelectedIdx;
 
 	// Cache selected weapon for extension checks downstream
-	const int weaponCount = pThisType->WeaponCount > 0 ? pThisType->WeaponCount : 2;
+	//const int weaponCount = pThisType->WeaponCount > 0 ? pThisType->WeaponCount : 2;
 
 	pThisExt->CanFireWeaponType = pThis->GetWeapon(nWeaponIdx)->WeaponType;
 

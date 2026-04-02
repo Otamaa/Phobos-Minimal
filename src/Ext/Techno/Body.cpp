@@ -5748,6 +5748,27 @@ DEFINE_FUNCTION_JUMP(CALL6, 0x6FA6DC, FakeTechnoClass::__TargetSomethingNearby);
 DEFINE_FUNCTION_JUMP(CALL6, 0x4D6F06, FakeTechnoClass::__TargetSomethingNearby);
 DEFINE_FUNCTION_JUMP(CALL6, 0x4D5392, FakeTechnoClass::__TargetSomethingNearby);
 
+bool NOINLINE TechnoExtData::CanRetaliateICUnit(TechnoClass* pThis, FakeWeaponTypeClass* pWP, TechnoClass* pTarget)
+{
+
+	if (!pTarget->IsIronCurtained())
+		return true;
+
+	bool canAutoTarget = RulesExtData::Instance()->AutoTarget_IronCurtained;
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	if (pWP)
+	{
+		auto pWPExt = pWP->_GetExtData();
+		if (pThis->Owner->IsControlledByHuman())
+		{
+			canAutoTarget = pWPExt->CanTarget_IronCurtained.Get(RulesExtData::Instance()->AutoTarget_IronCurtained);
+		}
+	}
+
+	return pTypeExt->AllowFire_IroncurtainedTarget.Get(canAutoTarget);
+}
+
 int __fastcall FakeTechnoClass::_EvaluateJustCell(TechnoClass* pThis , discard_t,CellStruct* where)
 {
 

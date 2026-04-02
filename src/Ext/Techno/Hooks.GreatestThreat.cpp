@@ -50,7 +50,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* pThis,
 	const bool attackFriendlies = pThis->Veterancy.IsElite() ? pTypeExt->AttackFriendlies.Y : pTypeExt->AttackFriendlies.X;
 
 	// Early exit for NoAutoFire units under player control
-	if (pType->NoAutoFire && isTechnoPlayerControlled)
+	if ((pType->NoAutoFire || (TechnoExtContainer::Instance.Find(pThis)->GetPassiveAcquireMode()) == PassiveAcquireModes::Ceasefire) && isTechnoPlayerControlled)
 	{
 		return nullptr;
 	}
@@ -660,12 +660,11 @@ bool FakeTechnoClass::__EvaluateObjectB(
 	if ((method & (ThreatType::TechBuildings | ThreatType::OccupiableBuildings | ThreatType::Capture))
 			== ThreatType::Normal)
 	{
-		if (pTechnoTarget) {
+		if (pTechnoTarget && !TechnoExtData::CanRetaliateICUnit(pThis,
+				reinterpret_cast<FakeWeaponTypeClass*>(lastWeapon), pTechnoTarget)) {
 			// IC-retaliation: reject immediately if we cannot fire at an
 			// IronCurtained target with this weapon.
-			if (!TechnoExtData::CanRetaliateICUnit(pThis,
-				reinterpret_cast<FakeWeaponTypeClass*>(lastWeapon), pTechnoTarget))
-				return false;
+			return false;
 		}
 
 		bool ignoreRange = false;

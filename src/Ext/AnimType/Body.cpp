@@ -704,3 +704,5 @@ bool FakeAnimTypeClass::_ReadFromINI(CCINIClass* pINI)
 	AnimTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
 	return status;
 }
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E366C, FakeAnimTypeClass::_ReadFromINI)
