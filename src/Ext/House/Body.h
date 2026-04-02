@@ -161,7 +161,7 @@ public:
 	VectorSet<TechnoTypeClass*> Reversed {};
 	VectorSet<TechnoClass*> OwnedCountedHarvesters {};
 	VectorSet<BuildingClass*> RestrictedFactoryPlants {};
-
+	VectorSet<BuildingClass*> PowerPlantEnhancers {};
 	// ============================================================
 	// Vectors (24 bytes each)
 	// ============================================================

@@ -1480,6 +1480,7 @@ void HouseExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	Academies.InvalidatePointer(ptr, bRemoved);
 	TunnelsBuildings.InvalidatePointer(ptr, bRemoved);
 	RestrictedFactoryPlants.InvalidatePointer(ptr, bRemoved);
+	PowerPlantEnhancers.InvalidatePointer(ptr, bRemoved);
 	OwnedCountedHarvesters.InvalidatePointer(ptr, bRemoved);
 	AnnounceInvalidPointer<UnitClass*>(OwnedDeployingUnits, ptr, bRemoved);
 
@@ -2769,6 +2770,7 @@ void HouseExtData::Serialize(T& Stm)
 	debugProcess(this->SideTechTree, "SideTechTree");
 	debugProcess(this->CombatAlertTimer, "CombatAlertTimer");
 	debugProcess(this->RestrictedFactoryPlants, "RestrictedFactoryPlants");
+	debugProcess(this->PowerPlantEnhancers, "PowerPlantEnhancers");
 	debugProcess(this->AISellAllDelayTimer, "AISellAllDelayTimer");
 	debugProcess(this->OwnedDeployingUnits, "OwnedDeployingUnits");
 	debugProcess(this->Common, "Common");
@@ -2837,6 +2839,7 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->SideTechTree)
 		.Process(this->CombatAlertTimer)
 		.Process(this->RestrictedFactoryPlants)
+		.Process(this->PowerPlantEnhancers)
 		.Process(this->AISellAllDelayTimer)
 		.Process(this->OwnedDeployingUnits)
 		.Process(this->Common)
@@ -3443,6 +3446,7 @@ void FakeHouseClass::_UpdateSpySat()
 	pHouseExt->Building_BuildSpeedBonusCounter.clear();
 	pHouseExt->Building_OrePurifiersCounter.clear();
 	pHouseExt->RestrictedFactoryPlants.clear();
+	pHouseExt->PowerPlantEnhancers.clear();
 	pHouseExt->BattlePointsCollectors.clear();
 
 	this->RecheckRadar = 0;
@@ -3464,7 +3468,7 @@ void FakeHouseClass::_UpdateSpySat()
 		return;
 	}
 
-	std::unordered_map<int, int> Factorycounts;
+	std::unordered_map<int, int> EnhancerCounts;
 
 	for (auto const& pBld : this->Buildings)
 	{
@@ -3504,23 +3508,31 @@ void FakeHouseClass::_UpdateSpySat()
 				const bool IsFactoryPowered = !pTypeExt->FactoryPlant_RequirePower || Online;
 
 				//recalculate the multiplier
-				if ((*begin)->FactoryPlant && IsFactoryPowered)
-				{
-					int max = pTypeExt->FactoryPlant_MaxCount;
-
-					if (max <= -1 || Factorycounts[(*begin)->ArrayIndex] < max){
-
-						Factorycounts[(*begin)->ArrayIndex]++;
-
-						if (pTypeExt->FactoryPlant_AllowTypes.size() > 0 || pTypeExt->FactoryPlant_DisallowTypes.size() > 0) {
+				if ((*begin)->FactoryPlant && IsFactoryPowered) {
+					//using separate logic to handle the multiplier
+					if (pTypeExt->FactoryPlant_AllowTypes.size() > 0
+						|| pTypeExt->FactoryPlant_DisallowTypes.size() > 0
+						|| pTypeExt->FactoryPlant_MaxCount > -1) {
 							pHouseExt->RestrictedFactoryPlants.emplace(pBld);
-						}
-
+					} else { //old way to do
 						this->CostDefensesMult *= (*begin)->DefensesCostBonus;
 						this->CostUnitsMult *= (*begin)->UnitsCostBonus;
 						this->CostInfantryMult *= (*begin)->InfantryCostBonus;
 						this->CostBuildingsMult *= (*begin)->BuildingsCostBonus;
 						this->CostAircraftMult *= (*begin)->AircraftCostBonus;
+					}
+				}
+
+				if (!pTypeExt->PowerPlantEnhancer_Buildings.empty()
+					&& (pTypeExt->PowerPlantEnhancer_Amount != 0 || pTypeExt->PowerPlantEnhancer_Factor != 1.0f))
+				{
+
+					int max = pTypeExt->PowerPlantEnhancer_MaxCount;
+
+					if (max <= -1 || EnhancerCounts[(*begin)->ArrayIndex] < max){
+						EnhancerCounts[(*begin)->ArrayIndex]++;
+
+						pHouseExt->PowerPlantEnhancers.emplace(pBld);
 					}
 				}
 

@@ -25,6 +25,7 @@ BuildingExtData::~BuildingExtData()
 	pOwnerExt->TunnelsBuildings.erase(pThis);
 	pOwnerExt->Academies.erase(pThis);
 	pOwnerExt->RestrictedFactoryPlants.erase(pThis);
+	pOwnerExt->PowerPlantEnhancers.erase(pThis);
 }
 
 //use IsPoweredOnline ?
