@@ -121,7 +121,8 @@ float HouseExtData::GetRestrictedFactoryPlantMult(TechnoTypeClass* pTechnoType) 
 {
 	float mult = 1.0;
 	auto const pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
-	std::unordered_map<int, int> counts;
+	static std::unordered_map<int, int> counts;
+	counts.clear();
 
 	for (auto const& pBuilding : this->RestrictedFactoryPlants)
 	{
@@ -3439,6 +3440,7 @@ void FakeHouseClass::_UpdateSpySat()
 	this->CostInfantryMult = 1.0;
 	this->CostBuildingsMult = 1.0;
 	this->CostAircraftMult = 1.0;
+	this->NumOrePurifiers = 0;
 	BuildingClass* Spysat = nullptr;
 
 	const auto pHouseExt = this->_GetExtData();
@@ -3468,8 +3470,8 @@ void FakeHouseClass::_UpdateSpySat()
 		return;
 	}
 
-	std::unordered_map<int, int> EnhancerCounts;
-
+	static std::unordered_map<int, int> EnhancerCounts;
+	EnhancerCounts.clear();
 	for (auto const& pBld : this->Buildings)
 	{
 		if (pBld && pBld->IsAlive && !pBld->InLimbo && pBld->IsOnMap)
@@ -3486,9 +3488,6 @@ void FakeHouseClass::_UpdateSpySat()
 				|| pBld->Deactivated
 				|| pBld->IsBeingWarpedOut())
 				continue;
-
-			if (pBld->CurrentMission == Mission::Selling) continue;
-			if (pBld->QueuedMission == Mission::Selling) continue;
 
 			const bool Online = pBld->IsPowerOnline(); // check power
 			const auto pTypes = pBld->GetTypes(); // building types include upgrades

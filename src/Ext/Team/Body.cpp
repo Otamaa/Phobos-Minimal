@@ -1797,7 +1797,8 @@ void FakeTeamClass::_GetTaskForceMissingMemberTypes(std::vector<TechnoTypeClass*
 	const auto pTaskForce = this->Type->TaskForce;
 
 	// Build a map of required units: Type -> Count
-	std::unordered_map<TechnoTypeClass*, int> required;
+	static std::unordered_map<TechnoTypeClass*, int> required;
+	required.clear();
 
 	for (int i = 0; i < pTaskForce->CountEntries; ++i) {
 		TechnoTypeClass* technoType = pTaskForce->Entries[i].Type;
@@ -1811,13 +1812,13 @@ void FakeTeamClass::_GetTaskForceMissingMemberTypes(std::vector<TechnoTypeClass*
 		TechnoTypeClass* memberType = GET_TECHNOTYPE(pMember);
 
 		// Try exact match first
-		if (required.count(memberType) && required[memberType] > 0) {
-			required[memberType]--;
+		auto it = required.find(memberType);
+		if (it != required.end() && it->second > 0) {
+			it->second--;
 		} else {
-			// Check if eligible for any required type
 			for (auto& [reqType, count] : required) {
 				if (count > 0 && TeamExtData::IsEligible(reqType, memberType)) {
-					required[reqType]--;
+					count--;
 					break;
 				}
 			}
@@ -1826,8 +1827,17 @@ void FakeTeamClass::_GetTaskForceMissingMemberTypes(std::vector<TechnoTypeClass*
 
 	// Build final missing list
 	missings.clear();
-	for (const auto& [technoType, count] : required) {
-		missings.insert(missings.end(), count, technoType);
+
+	int total = 0;
+	for (const auto& [technoType, count] : required)
+		total += count;
+
+	missings.reserve(total);
+
+	for (const auto& [technoType, count] : required)
+	{
+		for (int i = 0; i < count; ++i)
+			missings.push_back(technoType);
 	}
 }
 #endif

@@ -1580,8 +1580,8 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 	if (pWHExt->MergeBuildingDamage.Get(RulesExtData::Instance()->MergeBuildingDamage)) {
 		// Because during the process of causing damage, fragments may be generated that need to continue causing damage, resulting in nested calls
 		// to this function. Therefore, a single global variable cannot be used to store this data.
-		std::unordered_map<BuildingClass*, double> MapBuildings;
-
+		static std::unordered_map<BuildingClass*, double> MapBuildings;
+			   MapBuildings.clear();
 		{
 			const auto cellSpread = int(pWarhead->CellSpread * Unsorted::LeptonsPerCell);
 			const auto percentDifference = 1.0 - pWarhead->PercentAtMax; // Vanilla will first multiply the damage and round it up, but we don't need to.
