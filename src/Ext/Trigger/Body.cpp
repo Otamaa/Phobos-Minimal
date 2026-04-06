@@ -11,8 +11,6 @@
 #include <Utilities/Macro.h>
 #include <Notifications.h>
 
-void TriggerExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved) { }
-
 // =============================
 // load / save
 
@@ -115,7 +113,7 @@ ASMJIT_PATCH(0x72617D, TriggerClass_DTOR, 0xF)
 void FakeTriggerClass::_Detach(AbstractClass* pTarget, bool bRemove)
 {
 	if(auto pExt = this->_GetExtData())
-		pExt->InvalidatePointer(pTarget, bRemove);
+		pExt->InvalidatePointer(pTarget, bRemove, pTarget->WhatAmI());
 
 	this->TriggerClass::PointerExpired(pTarget, bRemove);
 }

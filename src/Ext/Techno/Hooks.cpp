@@ -1918,7 +1918,7 @@ ASMJIT_PATCH(0x772AB3, WeaponTypeClass_AllowedThreats_AU, 0x5)
 ASMJIT_PATCH(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
-	GET_STACK(AbstractClass*, pTarget, 0x4);
+	//GET_STACK(AbstractClass*, pTarget, 0x4);
 	GET_STACK(const int, nWeapon, 0x8);
 	//GET(AbstractClass*, pTarget, EDI);
 

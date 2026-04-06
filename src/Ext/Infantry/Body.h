@@ -48,10 +48,18 @@ public:
 
 	virtual ~InfantryExtData() = default;
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType type) override
 	{
-		this->FootExtData::InvalidatePointer(ptr, bRemoved);
-		AnnounceInvalidPointer(GarrisonedIn, ptr, bRemoved);
+		this->FootExtData::InvalidatePointer(ptr, bRemoved,type);
+
+		switch (type)
+		{
+		case AbstractType::Building:
+			AnnounceInvalidPointer(GarrisonedIn, ptr, bRemoved);
+			break;
+		default:
+			break;
+		}
 	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override

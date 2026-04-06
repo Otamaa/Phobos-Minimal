@@ -82,37 +82,6 @@ ASMJIT_PATCH(0x4CDF54, FlyLocomotionClass_sub_4CD600_HunterSeeker_Descent, 5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x4CDCFD, FlyLocomotionClass_MovingUpdate_HoverAttack, 0x7)
-{
-	GET(FlyLocomotionClass*, pFly, ESI);
-
-	AircraftClass* pAir = cast_to<AircraftClass*, false>(pFly->LinkedTo);
-
-	if (pAir && !pAir->Type->MissileSpawn && !pAir->Type->Fighter && !pAir->Is_Strafe() && pAir->CurrentMission == Mission::Attack)
-	{
-		if (AbstractClass* pDest = pAir->Destination)
-		{
-			CoordStruct sourcePos = pAir->GetCoords();
-			int dist = pAir->DistanceFrom(pDest);
-
-			if (dist < 64 && dist >= 16)
-			{
-				CoordStruct targetPos = pDest->GetCoords();
-				sourcePos.X = targetPos.X;
-				sourcePos.Y = targetPos.Y;
-				dist = 0;
-			}
-
-			if (dist < 16)
-			{
-				R->Stack(0x50, sourcePos);
-			}
-		}
-	}
-	return 0;
-}
-
-
 ASMJIT_PATCH(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_UpdateTarget, 0x6)
 {
 	GET(FlyLocomotionClass*, pThis, ESI);
@@ -163,7 +132,7 @@ ASMJIT_PATCH(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_UpdateTarget, 
 	return 0;
 }
 
-ASMJIT_PATCH(0x4CE85A, FlyLocomotionClass_UpdateLanding, 0x8)
+ASMJIT_PATCH(0x4CE85A, FlyLocomotionClass_0x4CE840_UpdateLanding, 0x8)
 {
 	GET(FlyLocomotionClass*, pThis, ESI);
 	const auto pObject = pThis->LinkedTo;
@@ -195,7 +164,7 @@ ASMJIT_PATCH(0x4CE85A, FlyLocomotionClass_UpdateLanding, 0x8)
 	return 0;
 }
 
-ASMJIT_PATCH(0x4CCB84, FlyLocomotionClass_ILocomotion_Process_HunterSeeker, 0x6)
+ASMJIT_PATCH(0x4CCB84, FlyLocomotionClass_Process_HunterSeeker, 0x6)
 {
 	GET(ILocomotion* const, pThis, ESI);
 	auto const pLoco = static_cast<FlyLocomotionClass*>(pThis);
@@ -225,7 +194,7 @@ ASMJIT_PATCH(0x4CCB84, FlyLocomotionClass_ILocomotion_Process_HunterSeeker, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x4CFE80, FlyLocomotionClass_ILocomotion_AcquireHunterSeekerTarget, 5)
+ASMJIT_PATCH(0x4CFE80, FlyLocomotionClass_AcquireHunterSeekerTarget, 5)
 {
 	GET_STACK(ILocomotion* const, pThis, 0x4);
 
@@ -254,24 +223,37 @@ ASMJIT_PATCH(0x4CDA6F, FlyLocomotionClass_MovementAI_SpeedModifiers, 0x9)
 	return 0;
 }
 
-ASMJIT_PATCH(0x4CE4B3, FlyLocomotionClass_4CE4B0_SpeedModifiers, 0x6)
+ASMJIT_PATCH(0x4CDCFD, FlyLocomotionClass_MovementAI_HoverAttack, 0x7)
 {
-	GET(FlyLocomotionClass* const, pThis, ECX);
+	GET(FlyLocomotionClass*, pFly, ESI);
 
-	if (const auto pLinked = pThis->LinkedTo)
+	AircraftClass* pAir = cast_to<AircraftClass*, false>(pFly->LinkedTo);
+
+	if (pAir && !pAir->Type->MissileSpawn && !pAir->Type->Fighter && !pAir->Is_Strafe() && pAir->CurrentMission == Mission::Attack)
 	{
-		const double currentSpeed = GET_TECHNOTYPE(pLinked)->Speed
-			* pThis->CurrentSpeed *
-			TechnoExtData::GetCurrentSpeedMultiplier(pLinked);
+		if (AbstractClass* pDest = pAir->Destination)
+		{
+			CoordStruct sourcePos = pAir->GetCoords();
+			int dist = pAir->DistanceFrom(pDest);
 
-		R->EAX(int(currentSpeed));
-		return 0x4CE4BF;
+			if (dist < 64 && dist >= 16)
+			{
+				CoordStruct targetPos = pDest->GetCoords();
+				sourcePos.X = targetPos.X;
+				sourcePos.Y = targetPos.Y;
+				dist = 0;
+			}
+
+			if (dist < 16)
+			{
+				R->Stack(0x50, sourcePos);
+			}
+		}
 	}
-
 	return 0;
 }
 
-ASMJIT_PATCH(0x4CE42A, FlyLocomotionClass_StateUpdate_NoLanding, 0x6) // Prevent aircraft from hovering due to cyclic enter Guard and AreaGuard missions when above buildings
+ASMJIT_PATCH(0x4CE42A, FlyLocomotionClass_MovementAI_NoLanding, 0x6) // Prevent aircraft from hovering due to cyclic enter Guard and AreaGuard missions when above buildings
 {
 	enum { SkipGameCode = 0x4CE441 };
 
@@ -283,36 +265,6 @@ ASMJIT_PATCH(0x4CE42A, FlyLocomotionClass_StateUpdate_NoLanding, 0x6) // Prevent
 		return 0;
 
 	return SkipGameCode;
-}
-
-ASMJIT_PATCH(0x4CF68D, FlyLocomotionClass_DrawMatrix_OnAirport, 0x5)
-{
-	GET(ILocomotion*, iloco, ESI);
-	auto loco = static_cast<FlyLocomotionClass*>(iloco);
-	auto pAir = cast_to<AircraftClass*, false>(loco->LinkedTo);
-
-	if (pAir && pAir->GetHeight() <= 0)
-	{
-		float ars = pAir->AngleRotatedSideways;
-		float arf = pAir->AngleRotatedForwards;
-		REF_STACK(Matrix3D, mat, STACK_OFFSET(0x38, -0x30));
-		auto slope_idx = MapClass::Instance->GetCellAt(pAir->Location)->SlopeIndex;
-		mat = Game::VoxelRampMatrix[slope_idx] * mat;
-
-		if (Math::abs(ars) > 0.005 || Math::abs(arf) > 0.005)
-		{
-			mat.TranslateZ(float(Math::abs(Math::sin(ars))
-				* pAir->Type->VoxelScaleX
-				+ Math::abs(Math::sin(arf)) * pAir->Type->VoxelScaleY));
-
-			R->ECX(pAir);
-			return 0x4CF6AD;
-		}
-
-		return 0x4CF6A0;
-	}
-
-	return 0;
 }
 
 ASMJIT_PATCH(0x4CD64E, FlyLocomotionClass_MovementAI_UpdateSensors, 0xA)
@@ -336,8 +288,7 @@ ASMJIT_PATCH(0x4CD64E, FlyLocomotionClass_MovementAI_UpdateSensors, 0xA)
 	return 0x4CD664;
 }
 
-
-ASMJIT_PATCH(0x4CF190, FlyLocomotionClass_FlightUpdate_SetPrimaryFacing, 0x6) // Make aircraft not to fly directly to the airport before starting to land
+ASMJIT_PATCH(0x4CF190, FlyLocomotionClass_0x4CEFB0_SetPrimaryFacing, 0x6) // Make aircraft not to fly directly to the airport before starting to land
 {
 	enum { SkipGameCode = 0x4CF29A };
 
@@ -420,7 +371,7 @@ ASMJIT_PATCH(0x4CF190, FlyLocomotionClass_FlightUpdate_SetPrimaryFacing, 0x6) //
 	return SkipGameCode;
 }
 
-ASMJIT_PATCH(0x4CF3D0, FlyLocomotionClass_FlightUpdate_SetFlightLevel, 0x7) // Make aircraft not have to fly directly above the airport before starting to descend
+ASMJIT_PATCH(0x4CF3D0, FlyLocomotionClass_0x4CEFB0_SetFlightLevel, 0x7) // Make aircraft not have to fly directly above the airport before starting to descend
 {
 	GET_STACK(FlyLocomotionClass* const, pThis, STACK_OFFSET(0x48, -0x28));
 
@@ -606,8 +557,7 @@ ASMJIT_PATCH(0x4CF3D0, FlyLocomotionClass_FlightUpdate_SetFlightLevel, 0x7) // M
 	return 0;
 }
 
-
-ASMJIT_PATCH(0x4CE689, FlyLocomotionClass_TakeOffAnim, 0x5)
+ASMJIT_PATCH(0x4CE689, FlyLocomotionClass_0x4CE680_TakeOffAnim, 0x5)
 {
 	GET(FlyLocomotionClass*, pThis, ECX);
 
@@ -635,7 +585,7 @@ ASMJIT_PATCH(0x4CE689, FlyLocomotionClass_TakeOffAnim, 0x5)
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x4CEB51, FlyLocomotionClass_LandingAnim, 0x8)
+ASMJIT_PATCH(0x4CEB51, FlyLocomotionClass_0x4CE680_LandingAnim, 0x8)
 {
 	GET(AircraftClass*, pLinked, ECX);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x48, 0x18));
@@ -673,3 +623,51 @@ ASMJIT_PATCH(0x4CEB51, FlyLocomotionClass_LandingAnim, 0x8)
 
 	//return 0x0;
 }
+
+ASMJIT_PATCH(0x4CF68D, FlyLocomotionClass_DrawMatrix_OnAirport, 0x5)
+{
+	GET(ILocomotion*, iloco, ESI);
+	auto loco = static_cast<FlyLocomotionClass*>(iloco);
+	auto pAir = cast_to<AircraftClass*, false>(loco->LinkedTo);
+
+	if (pAir && pAir->GetHeight() <= 0)
+	{
+		float ars = pAir->AngleRotatedSideways;
+		float arf = pAir->AngleRotatedForwards;
+		REF_STACK(Matrix3D, mat, STACK_OFFSET(0x38, -0x30));
+		auto slope_idx = MapClass::Instance->GetCellAt(pAir->Location)->SlopeIndex;
+		mat = Game::VoxelRampMatrix[slope_idx] * mat;
+
+		if (Math::abs(ars) > 0.005 || Math::abs(arf) > 0.005)
+		{
+			mat.TranslateZ(float(Math::abs(Math::sin(ars))
+				* pAir->Type->VoxelScaleX
+				+ Math::abs(Math::sin(arf)) * pAir->Type->VoxelScaleY));
+
+			R->ECX(pAir);
+			return 0x4CF6AD;
+		}
+
+		return 0x4CF6A0;
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x4CE4B3, FlyLocomotionClass_0x4CE4B0_SpeedModifiers, 0x6)
+{
+	GET(FlyLocomotionClass* const, pThis, ECX);
+
+	if (const auto pLinked = pThis->LinkedTo)
+	{
+		const double currentSpeed = GET_TECHNOTYPE(pLinked)->Speed
+			* pThis->CurrentSpeed *
+			TechnoExtData::GetCurrentSpeedMultiplier(pLinked);
+
+		R->EAX(int(currentSpeed));
+		return 0x4CE4BF;
+	}
+
+	return 0;
+}
+

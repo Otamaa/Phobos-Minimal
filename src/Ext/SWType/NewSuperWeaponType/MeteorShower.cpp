@@ -159,7 +159,17 @@ bool MeteorShowerStateMachine::Save(PhobosStreamWriter& Stm) const
 		.Success();
 }
 
-void MeteorShowerStateMachine::InvalidatePointer(AbstractClass* ptr, bool remove)
+void MeteorShowerStateMachine::InvalidatePointer(AbstractClass* ptr, bool remove, AbstractType  type)
 {
-	AnnounceInvalidPointer(Firer, ptr, remove);
+	switch (type)
+	{
+	case AbstractType::Unit:
+	case AbstractType::Aircraft:
+	case AbstractType::Building:
+	case AbstractType::Infantry:
+		AnnounceInvalidPointer(this->Firer, ptr, remove);
+		break;
+	default:
+		break;
+	}
 }

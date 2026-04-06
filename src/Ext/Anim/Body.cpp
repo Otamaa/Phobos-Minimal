@@ -439,17 +439,32 @@ AbstractClass* AnimExtData::GetTarget(AnimClass* pThis)
 	return nullptr;
 }
 
-void AnimExtData::InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+void AnimExtData::InvalidatePointer(AbstractClass* const ptr, bool bRemoved, AbstractType  type)
 {
-	this->ObjectExtData::InvalidatePointer(ptr, bRemoved);
-	AnnounceInvalidPointer(this->Invoker, ptr, bRemoved);
-	AnnounceInvalidPointer(this->ParentBuilding, ptr, bRemoved);
+	this->ObjectExtData::InvalidatePointer(ptr, bRemoved, type);
 
+	switch (type)
+	{
+	case AbstractType::Unit:
+	case AbstractType::Aircraft:
+	case AbstractType::Infantry:
+		AnnounceInvalidPointer(this->Invoker, ptr, bRemoved);
+		break;
+	case AbstractType::Building:
+		AnnounceInvalidPointer(this->Invoker, ptr, bRemoved);
+		AnnounceInvalidPointer(this->ParentBuilding, ptr, bRemoved);
+	break;
+	case AbstractType::ParticleSystem:
 	if (this->AttachedSystem == ptr)
 	{
 		AnimExtContainer::Instance.AnimsWithAttachedParticles.remove((FakeAnimClass*)this->This());
 		this->AttachedSystem.detachptr();
 	}
+		break;
+	default:
+		break;
+	}
+
 }
 
 void AnimExtData::CreateAttachedSystem()
@@ -853,7 +868,7 @@ ASMJIT_PATCH(0x425164, AnimClass_Detach, 0x6)
 
 	R->EBX(0);
 	if(auto pExt = pThis->_GetExtData())
-		pExt->InvalidatePointer(target, all);
+		pExt->InvalidatePointer(target, all, target->WhatAmI());
 
 	if (pThis->Type == target) {
 		//Debug::LogInfo("Anim[0x{}] detaching Type[{}] Pointer ! ", (void*)pThis, pThis->Type->ID);

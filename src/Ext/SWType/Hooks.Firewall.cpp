@@ -337,8 +337,8 @@ ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
 	if (pThis->SpawnOwner && !IsMissisleSpawn
 		)
 	{
-		auto pSpawnTechnoType = GET_TECHNOTYPE(pThis->SpawnOwner);
-		auto pSpawnTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pSpawnTechnoType);
+		//auto pSpawnTechnoType = GET_TECHNOTYPE(pThis->SpawnOwner);
+		//auto pSpawnTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pSpawnTechnoType);
 
 		if (const auto pTargetTech = flag_cast_to<TechnoClass*>(pThis->Target))
 		{

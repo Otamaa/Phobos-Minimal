@@ -8,8 +8,8 @@ class RadarJammerClass
 {
 public:
 
-	int LastScan {};							//!< Frame number when the last scan was performed.
 	TechnoClass* AttachedToObject {};			//!< Pointer to game object this jammer is on
+	int LastScan {};							//!< Frame number when the last scan was performed.
 	bool Registered {};
 
 public:
@@ -27,8 +27,8 @@ public:
 
 	RadarJammerClass() = default;
 	RadarJammerClass(TechnoClass* GameObject) :
-		LastScan(0),
 		AttachedToObject(GameObject),
+		LastScan(0),
 		Registered(false)
 	{ }
 
@@ -42,22 +42,38 @@ public:
 
 	DefaultSaveLoadFunc(RadarJammerClass)
 
+	RadarJammerClass(RadarJammerClass&& other) noexcept
+		: AttachedToObject(std::exchange(other.AttachedToObject, nullptr))
+		, LastScan(std::exchange(other.LastScan, 0u))
+		, Registered(std::exchange(other.Registered, true))
+	{}
+
+	RadarJammerClass& operator=(RadarJammerClass&& other) noexcept
+	{
+		if (this == &other)
+			return *this;
+
+		// Transfer all fields
+		this->AttachedToObject = std::exchange(other.AttachedToObject, nullptr);
+		this->LastScan = std::exchange(other.LastScan, 0u);
+		this->Registered = std::exchange(other.Registered, true);
+
+		return *this;
+	}
+
+private:
+	RadarJammerClass(const RadarJammerClass& other) = delete;
+	RadarJammerClass& operator=(const RadarJammerClass& other) = delete;
+
 private:
 	template <typename T>
 	bool Serialize(T& Stm)
 	{
 		return Stm
-			.Process(this->LastScan)
 			.Process(this->AttachedToObject)
+			.Process(this->LastScan)
 			.Process(this->Registered)
 			.Success()
 			;
-	}
-};
-
-template <>
-struct Savegame::ObjectFactory<RadarJammerClass> {
-	std::unique_ptr<RadarJammerClass> operator() (PhobosStreamReader& Stm) const {
-		return std::make_unique<RadarJammerClass>();
 	}
 };

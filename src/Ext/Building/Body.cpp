@@ -25,7 +25,6 @@ BuildingExtData::~BuildingExtData()
 	pOwnerExt->TunnelsBuildings.erase(pThis);
 	pOwnerExt->Academies.erase(pThis);
 	pOwnerExt->RestrictedFactoryPlants.erase(pThis);
-	pOwnerExt->PowerPlantEnhancers.erase(pThis);
 }
 
 //use IsPoweredOnline ?
@@ -563,15 +562,28 @@ CoordStruct BuildingExtData::GetCenterCoords(BuildingClass* pBuilding, bool incl
 	return ret;
 }
 
-void BuildingExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
+void BuildingExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type)
 {
-	this->TechnoExtData::InvalidatePointer(ptr, bRemoved);
+	this->TechnoExtData::InvalidatePointer(ptr, bRemoved, type);
 
-	AnnounceInvalidPointer(this->CurrentAirFactory, ptr, bRemoved);
-	AnnounceInvalidPointer<TechnoClass*>(this->RegisteredJammers, ptr, bRemoved);
+	switch (type)
+	{
+	case AbstractType::Unit:
+	case AbstractType::Aircraft:
+	case AbstractType::Infantry:
+	case AbstractType::Building:
+		AnnounceInvalidPointer<TechnoClass*>(this->RegisteredJammers, ptr, bRemoved);
 
-	if (this->MyPrismForwarding)
-		this->MyPrismForwarding->InvalidatePointer(ptr, bRemoved);
+		if(type == AbstractType::Building){
+			AnnounceInvalidPointer(this->CurrentAirFactory, ptr, bRemoved);
+
+			if (this->MyPrismForwarding)
+				this->MyPrismForwarding->InvalidatePointer(ptr, bRemoved);
+		}
+		break;
+	default:
+		break;
+	}
 }
 
 void BuildingExtData::StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType)
@@ -878,7 +890,6 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		pOwner->RecheckTechTree = true;
 		pOwner->RecheckPower = true;
 		pOwner->Buildings.push_back(pBuilding);
-
 		pOwner->ActiveBuildingTypes.increment(pBuilding->Type->ArrayIndex);
 		pOwner->UpdateSuperWeaponsUnavailable();
 
@@ -896,7 +907,7 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		}
 
 		pBuildingExt->LimboID = ID;
-		pBuildingExt->Shield.release();
+		PhobosEntity::Remove<ShieldClass>(pBuildingExt->ShieldEntity);
 		//pBuildingExt->Trails.clear();
 		pBuildingExt->RevengeWeapons.clear();
 		//pBuildingExt->DamageSelfState.release();
@@ -905,6 +916,7 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		pBuildingExt->ExtraWeaponTimers.clear();
 		//pBuildingExt->MyWeaponManager.Clear();
 		//pBuildingExt->MyWeaponManager.CWeaponManager.Clear();
+ 		pBuildingExt->PowerPlantEnhancer.Register();
 
 		if (!HouseExtContainer::Instance.AutoDeathObjects.contains(pBuilding))
 		{
@@ -2318,10 +2330,16 @@ void FakeBuildingClass::_Draw_It(Point2D* screenPos, RectangleStruct* clipRect)
 int FakeBuildingClass::_BuildingClass_GetRangeOfRadial()
 {
 	BuildingTypeClass* pType = this->Type;
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	const auto pExt = this->_GetExtData();
+	const auto pTypeExt = pExt->Type;
+
 
 	if (pTypeExt->RadialIndicatorRadius.isset())
 		return pTypeExt->RadialIndicatorRadius.Get();
+
+	if (pExt->PowerPlantEnhancer.IsValidEnhancer()) {
+		return pExt->PowerPlantEnhancer.GetRangeInCells();
+	}
 
 	if (pType->PsychicDetectionRadius <= 0) {
 		if (pType->GapGenerator) {
@@ -2377,6 +2395,8 @@ void FakeBuildingClass::_DrawRadialIndicator(int val)
 	if (!CanDrawRadialIndicator(this))
 		return;
 
+	PowerPlantEnhancerClass::DrawIndicators(this);
+
 	const int radius = this->_BuildingClass_GetRangeOfRadial();
 
 	if (radius <= 0)
@@ -2389,48 +2409,50 @@ void FakeBuildingClass::_DrawRadialIndicator(int val)
 	// ------------------------------------------------------------------------------------
 	// CASE 1: Concentric radial indicator
 	// ------------------------------------------------------------------------------------
-	if (concentricMode) {
-		// Color modulated by time-based sine-wave rhythm
+	if (concentricMode)
+	{
 		DWORD timeMs = timeGetTime();
 		DWORD t = (timeMs >> 1);
-		int wave = t & 0x3FF;     // 0..1023 pattern
+		int wave = t & 0x3FF;
 
-		// Copy color into a working variable
 		ColorStruct colorMod = laserColor;
 
-		// If inside first 512 frames…
-		if ((t & 0x200) == 0) {
-			if ((t & 0x100) == 0) {
-				// Adjust color depending on inverted time mask (Ares algorithm)
-				colorMod.Adjust(~t, ColorStruct::Empty);
+		if ((t & 0x200) == 0)
+		{
+			if ((t & 0x100) == 0)
+			{
+				// FIX 3: ratio from wave, not raw t
+				// FIX 2: adjust toward white, not Empty
+				static constexpr ColorStruct White { 255, 255, 255 };
+				colorMod.Adjust((~wave) & 0xFF, White);
 			}
 
 			FakeTacticalClass::__DrawRadialIndicator(
-				/*unknown_a*/ 0,
-				/*unknown_b*/ 0,
+				0, 0,
 				center,
 				colorMod,
 				static_cast<float>(radius),
-				/*drawBack?*/ 0,
-				/*something*/ 1);
+				0, 1);
 		}
 
-		// second ring: scaled pulse effect
+		// FIX 1: 60.0 multiplies, not divides
 		const float amplitude =
-			(static_cast<float>(radius) + 0.5f) / float(Math::SQRT_TWO * 60.0f);
+			static_cast<float>(
+				(static_cast<float>(radius) + 0.5f)
+				/ Math::sqrt(2.0f)
+				* 60.0f
+			);
 
 		unsigned scaled = (wave * static_cast<unsigned>(amplitude)) >> 10;
 
 		if (scaled > 0x20)
 		{
 			FakeTacticalClass::__DrawRadialIndicator(
-				0,
-				0,
+				0, 0,
 				center,
 				laserColor,
 				static_cast<float>(scaled),
-				1,
-				1);
+				1, 1);
 		}
 	}
 	// ------------------------------------------------------------------------------------
@@ -2487,12 +2509,12 @@ int FakeBuildingClass::__GetPower()
 	}
 
 	const auto pOwner = this->Owner;
-	auto [power, extraPower] = BuildingTypeExtData::GetEnhancedPowerPair(this->Type, powerInitial, pOwner);
+	auto [power, extraPower] = PowerPlantEnhancerClass::GetEnhancedPower(this->Type, powerInitial, pOwner);
 
 	if (this->UpgradeLevel) {
 		for (const auto pUpgrade : this->Upgrades) {
 			if (pUpgrade) {
-				const auto&[upgradePower, extraUpgradePower] = BuildingTypeExtData::GetEnhancedPowerPair(pUpgrade, pUpgrade->PowerBonus, pOwner);
+				const auto&[upgradePower, extraUpgradePower] = PowerPlantEnhancerClass::GetEnhancedPower(pUpgrade, pUpgrade->PowerBonus, pOwner);
 				power += upgradePower;
 				extraPower += extraUpgradePower;
 			}
@@ -2993,6 +3015,7 @@ void BuildingExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Type)
+		.Process(this->PowerPlantEnhancer)
 		.Process(this->MyPrismForwarding)
 		.Process(this->DeployedTechno)
 		.Process(this->LimboID)
@@ -3051,7 +3074,7 @@ ASMJIT_PATCH(0x43C022, BuildingClass_DTOR, 0x6)
 void FakeBuildingClass::_Detach(AbstractClass* target, bool all)
 {
 	if(auto pExt = this->_GetExtData())
-		pExt->InvalidatePointer(target, all);
+		pExt->InvalidatePointer(target, all, target->WhatAmI());
 	this->BuildingClass::PointerExpired(target, all);
 }
 

@@ -114,16 +114,16 @@ public:
 	HouseTypeExtData(HouseTypeClass* pObj) : AbstractTypeExtData(pObj)	
 	{
 		this->AbsType = HouseTypeClass::AbsID;
-		this->Initialize();
+		this->InitiliazeConstants();
 	}
 
 	HouseTypeExtData(HouseTypeClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }
 
 	virtual ~HouseTypeExtData() = default;
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType type) override
 	{
-		this->AbstractTypeExtData::InvalidatePointer(ptr, bRemoved);
+		this->AbstractTypeExtData::InvalidatePointer(ptr, bRemoved, type);
 	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
@@ -156,7 +156,7 @@ public:
 
 	void LoadFromRulesFile(CCINIClass* pINI);
 	void InheritSettings(HouseTypeClass* pThis);
-	void Initialize();
+	void InitiliazeConstants();
 
 	Iterator<BuildingTypeClass*> GetPowerplants() const;
 	Iterator<BuildingTypeClass*> GetDefaultPowerplants() const;

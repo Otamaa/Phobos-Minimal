@@ -39,7 +39,6 @@
 #include <FootClass.h>
 
 #include "Savegame.h"
-#include "Interpolation.h"
 
 class INI_EX;
 

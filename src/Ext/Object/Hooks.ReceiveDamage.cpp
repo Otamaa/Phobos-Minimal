@@ -2486,7 +2486,7 @@ DamageState __fastcall FakeFootClass::__Take_Damage(FootClass* pThis, discard_t,
 	}
 
 	auto pWHExt = WarheadTypeExtContainer::Instance.Find(args.WH);
-	auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
+	//auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	if (pParasiteEating){
 		auto pParasiteOwnerType = GET_TECHNOTYPE(pParasiteEating);

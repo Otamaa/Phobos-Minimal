@@ -7,7 +7,7 @@
 
 // because every project needs an own string implementation...
 
-namespace detail
+namespace FixedStringdetail
 {
 	template <typename CharT, typename Traits = std::char_traits<CharT>>
 	OPTIONALINLINE void __fastcall string_copy_n(
@@ -102,7 +102,7 @@ public:
 
     constexpr void assign(const_pointer str) noexcept {
         if (str) {
-            detail::string_copy_n(chars_, str, capacity());
+            FixedStringdetail::string_copy_n(chars_, str, capacity());
         } else {
             clear();
         }

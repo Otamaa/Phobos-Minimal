@@ -220,7 +220,8 @@ void FakeTerrainClass::_AI()
 void FakeTerrainClass::_Detach(AbstractClass* target, bool all)
 {
 	if(auto pExt = this->_GetExtData())
-		pExt->InvalidatePointer(target, all);
+		pExt->InvalidatePointer(target, all, target->WhatAmI());
+
 	this->TerrainClass::PointerExpired(target, all);
 }
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5254, FakeTerrainClass::_Detach);

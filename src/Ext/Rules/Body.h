@@ -316,6 +316,7 @@ public:
 	Nullable<bool> NoQueueUpToEnter_Buildings {};
 	Nullable<bool> NoQueueUpToUnload_Buildings {};
 	Nullable<bool> AttackMove_StopWhenTargetAcquired {};
+	Nullable<bool> ShowPowerPlantEnhancerRange {};
 	Valueable<bool> OpenTopped_DecloakToFire { false };
 
 	// ============================================================

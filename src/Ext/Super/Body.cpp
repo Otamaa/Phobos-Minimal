@@ -174,7 +174,8 @@ ASMJIT_PATCH(0x6CB1BD, SuperClass_SDDTOR, 0x7)
 
 void FakeSuperClass::_Detach(AbstractClass* target, bool all)
 {
-	this->_GetExtData()->InvalidatePointer(target, all);
+	this->_GetExtData()->InvalidatePointer(target, all, target->WhatAmI());
+
 	this->SuperClass::PointerExpired(target , all);
 }
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4010, FakeSuperClass::_Detach)
@@ -557,7 +558,7 @@ void FakeSuperClass::_Forced_Charge(bool isPlayer)
 	if (!this->Granted)
 		return;
 
-	int charge = this->GetRechargeTime();
+	//int charge = this->GetRechargeTime();
 	this->IsCharged = true;
 	this->RechargeTimer.Start(0);
 	const auto pData = this->_GetTypeExtData();
@@ -793,7 +794,7 @@ bool FakeSuperClass::_Grant(bool oneTime, bool announce, bool onHold)
 	this->BlinkState = false;
 	this->unused_3C = pType->UIName; // UIName token
 
-	auto pExt = SuperExtContainer::Instance.Find(this);
+	//auto pExt = SuperExtContainer::Instance.Find(this);
 	auto pSuperExt = SWTypeExtContainer::Instance.Find(pType);
 	auto pHouseExt = HouseExtContainer::Instance.Find(this->Owner);
 

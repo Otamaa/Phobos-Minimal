@@ -14,6 +14,7 @@
 #include <Ext/BuildingType/Body.h>
 
 #include <New/Entity/PrismForwarding.h>
+#include <New/Entity/PowerPlantEnhancerClass.h>
 
 class InfantryClass;
 class BuildingExtData : public TechnoExtData
@@ -26,6 +27,12 @@ public:
 
 public:
 #pragma region ClassMember
+
+	// ============================================================
+	// Custom Classes
+	// ============================================================ 
+	PowerPlantEnhancerClass PowerPlantEnhancer;
+
 	// ============================================================
 	// 8-byte aligned: Pointers
 	// ============================================================
@@ -94,7 +101,7 @@ public:
 #pragma endregion
 
 public:
-	BuildingExtData(BuildingClass* pObj) : TechnoExtData(pObj)
+	BuildingExtData(BuildingClass* pObj) : TechnoExtData(pObj) ,PowerPlantEnhancer(pObj)
 	{
 		this->CurrentType = pObj->Type;
 		this->Type = BuildingTypeExtContainer::Instance.Find(pObj->Type);
@@ -106,7 +113,7 @@ public:
 
 	virtual ~BuildingExtData();
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) override;
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{

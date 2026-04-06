@@ -435,9 +435,9 @@ void ChronoWarpStateMachine::Update()
 	}
 }
 
-void ChronoWarpStateMachine::InvalidatePointer(AbstractClass* ptr, bool remove)
+void ChronoWarpStateMachine::InvalidatePointer(AbstractClass* ptr, bool remove, AbstractType  type)
 {
-	if (remove) {
+	if (remove && type == AbstractType::Building) {
 		for (int i = 0; i < (int)this->Buildings.size(); ++i) {
 			if (this->Buildings[i].building == ptr) {
 				this->Buildings.erase(this->Buildings.begin() + i);

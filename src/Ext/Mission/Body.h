@@ -15,8 +15,8 @@ public:
 
 	virtual ~MissionExtData() = default;
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override {
-		this->ObjectExtData::InvalidatePointer(ptr, bRemoved);
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) override {
+		this->ObjectExtData::InvalidatePointer(ptr, bRemoved, type);
 	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override {

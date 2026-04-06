@@ -217,11 +217,12 @@ ASMJIT_PATCH(0x6F6AC9, TechnoClass_Limbo_Early, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	// if the removed object is a radar jammer, unjam all jammed radars
-	TechnoExtContainer::Instance.Find(pThis)->RadarJammer.reset();
-	// #617 powered units
-	TechnoExtContainer::Instance.Find(pThis)->PoweredUnit.reset();
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
+	// if the removed object is a radar jammer, unjam all jammed radars
+	PhobosEntity::Remove<RadarJammerClass>(pExt->RadarJammerEntity);
+	// #617 powered units
+	PhobosEntity::Remove<PoweredUnitClass>(pExt->PoweredUnitEntity);
 
 	//#1573, #1623, #255 attached effects
 	AresAE::Remove(&TechnoExtContainer::Instance.Find(pThis)->AeData , pThis);
@@ -405,8 +406,9 @@ ASMJIT_PATCH(0x7014D5, TechnoClass_SetOwningHouse_Additional, 6)
 	//	if (pSpawn->Target == pThis)
 	//		pSpawn->ResetTarget();
 	//}
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (auto& pJammer = TechnoExtContainer::Instance.Find(pThis)->RadarJammer) {
+	if (auto pJammer = pExt->GetRadarJammer()) {
 		pJammer->UnjamAll();
 	}
 
@@ -425,7 +427,7 @@ ASMJIT_PATCH(0x7014D5, TechnoClass_SetOwningHouse_Additional, 6)
 		nTunnelVec->Vector.clear();
 	}
 
-	if (TechnoExtContainer::Instance.Find(pThis)->TechnoValueAmount != 0)
+	if (pExt->TechnoValueAmount != 0)
 		TechnoExtData::Ares_AddMoneyStrings(pThis, true);
 
 	return 0;

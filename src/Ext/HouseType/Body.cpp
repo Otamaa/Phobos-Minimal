@@ -6,7 +6,7 @@
 
 #include <DiscreteDistributionClass.h>
 
-void HouseTypeExtData::Initialize()
+void HouseTypeExtData::InitiliazeConstants()
 {
 	const char* pID = This()->ID;
 
@@ -517,38 +517,33 @@ void HouseTypeExtContainer::LoadFromINI(HouseTypeClass* key, CCINIClass* pINI, b
 			return;
 		}
 
-		switch (ptr->GetInitState())
+		// Rules first 
+		// Other files 
+		// when this doesnt match the case it will causing weirdd issues like some value wont be initialized or replaced to default value after parsing
+		switch (ptr->Initialized)
 		{
-
 		case InitState::Blank:
 		{
 			ptr->SetInitState(InitState::Inited);
 
-			//Load from rules INI File
-			if (pINI == CCINIClass::INI_Rules)
+			if (pINI == CCINIClass::INI_Rules())
 			{
+				ptr->SetInitState(InitState::Ruled);
 				ptr->LoadFromRulesFile(pINI);
 			}
-
-			ptr->SetInitState(InitState::Ruled);
+			[[fallthrough]];
 		}
-		break;
 		case InitState::Ruled:
 		case InitState::Constanted:
 		{
-			//load anywhere other than rules
 			ptr->LoadFromINI(pINI, parseFailAddr);
-			//this function can be called again multiple time but without need to re-init the data
 			ptr->SetInitState(InitState::Ruled);
+			[[fallthrough]];
 		}
-		break;
-		{
 		default:
 			break;
 		}
-		}
 	}
-
 }
 
 void HouseTypeExtContainer::WriteToINI(HouseTypeClass* key, CCINIClass* pINI)

@@ -34,6 +34,16 @@
 #include <Helpers\EnumFlags.h>
 #include <GeneralDefinitions.h>
 
+enum class ParabolaFireMode : size_t
+{
+	Speed = 0,
+	Height = 1,
+	Angle = 2,
+	SpeedAndHeight = 3,
+	HeightAndAngle = 4,
+	SpeedAndAngle = 5
+};
+
 enum class AresHijackActionResult
 {
 	None = 0,
@@ -41,14 +51,14 @@ enum class AresHijackActionResult
 	Drive = 2
 };
 
-enum class Persistable : unsigned int
+enum class Persistable : size_t
 {
 	None = 0,
 	unk_0x100 = 256,
 	unk_0x101 = 257
 };
 
-enum class SubterraneanHarvStatus : unsigned char
+enum class SubterraneanHarvStatus : BYTE
 {
 	None = 0,
 	Created = 1,
@@ -395,7 +405,7 @@ enum class AresTriggerEvents : int
 	count
 };
 
-enum class NewMouseCursorType : unsigned int
+enum class NewMouseCursorType : size_t
 {
 	Tote = 0,
 	EngineerDamage,
@@ -722,7 +732,7 @@ enum class BannerNumberType : BYTE
 	Suffixed = 3,
 };
 
-enum class AffectedVeterancy : unsigned char
+enum class AffectedVeterancy : BYTE
 {
 	None = 0x0,
 	Rookie = 0x1,

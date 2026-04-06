@@ -518,9 +518,9 @@ public:
 		SWTypeExtData::CurrentSWType = pCopy;
 	};
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) override
 	{
-		this->AbstractTypeExtData::InvalidatePointer(ptr, bRemoved);
+		this->AbstractTypeExtData::InvalidatePointer(ptr, bRemoved, type);
 	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override

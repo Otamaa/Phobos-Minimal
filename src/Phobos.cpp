@@ -29,7 +29,7 @@
 #include <Phobos.Lua.h>
 #include <Phobos.UI.h>
 #include <Phobos.Defines.h>
-
+#include <Phobos.Entity.h>
 #include <MessageBoxLogging.h>
 
 #pragma region defines
@@ -192,6 +192,8 @@ CSFText  Phobos::Config::ModNote;
 byte  Phobos::Config::GFX_DX_Force;
 int  Phobos::Config::colorCount { 8 };
 int  Phobos::Config::version;
+
+bool Phobos::Config::ShowPowerPlantEnhancerRange = false;
 
 bool Phobos::Misc::CustomGS { false };
 int Phobos::Misc::CustomGS_ChangeInterval[7] { -1, -1, -1, -1, -1, -1, -1 };
@@ -1148,6 +1150,7 @@ void Phobos::ExeRun()
 	Debug::Log("Running on %s API.\n", gRuntimeAPI.GetName());
 	TheaterTypeClass::AddDefaults();
 	CursorTypeClass::AddDefaults();
+	PhobosEntity::OnStartup();
 }
 
 void Phobos::ExeTerminate()
@@ -1163,6 +1166,7 @@ void Phobos::ExeTerminate()
 		}
 		Handles::Array.clear();
 		Patch::ModuleDatas.clear();
+		PhobosEntity::OnExit();
 	}
 }
 

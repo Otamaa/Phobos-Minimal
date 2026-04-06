@@ -46,6 +46,8 @@ void Phobos::Config::Read_RA2MD(){
 	Phobos::Config::DistributionFilterMode = pRA2MD->ReadInteger(PHOBOS_STR, "DefaultDistributionFilterMode", 2);
 	Phobos::Config::DistributionFilterMode = std::clamp(Phobos::Config::DistributionFilterMode, 0, 3);
 
+	Phobos::Config::ShowPowerPlantEnhancerRange = pRA2MD->ReadBool(PHOBOS_STR, "ShowPowerPlantEnhancerRange", Phobos::Config::ShowPowerPlantEnhancerRange);
+
 	if (!Phobos::Otamaa::IsAdmin)
 	{
 		// Custom game speeds, 6 - i so that GS6 is index 0, just like in the engine

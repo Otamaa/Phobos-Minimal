@@ -179,7 +179,7 @@ ASMJIT_PATCH(0x4DA63B, FootClass_AI_IsMovingNow, 0x6)
 			pThis->IsOnMap = true;
 	}
 
-	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	//auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	 //UpdateWebbed(pThis);
 

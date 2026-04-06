@@ -42,9 +42,9 @@ public:
 
 	virtual ~ParticleSystemTypeExtData() = default;
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType type) override
 	{
-		this->ObjectTypeExtData::InvalidatePointer(ptr, bRemoved);
+		this->ObjectTypeExtData::InvalidatePointer(ptr, bRemoved, type);
 	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override

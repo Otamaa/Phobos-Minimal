@@ -74,6 +74,87 @@ ShieldClass::ShieldClass(TechnoClass* pTechno, bool isAttached) : Techno { pTech
 	Array.push_back(this);
 }
 
+ShieldClass::ShieldClass(ShieldClass&& other) noexcept
+	: Techno(std::exchange(other.Techno, nullptr))
+	, CurTechnoType(std::exchange(other.CurTechnoType, nullptr))
+	, HP(other.HP)
+	, Timers(std::move(other.Timers))
+	, IdleAnim(std::move(other.IdleAnim))      // Handle nulls itself on move
+	, Cloak(other.Cloak)
+	, Online(other.Online)
+	, Temporal(other.Temporal)
+	, Available(other.Available)
+	, Attached(other.Attached)
+	, AreAnimsHidden(other.AreAnimsHidden)
+	, SelfHealing_Warhead(other.SelfHealing_Warhead)
+	, SelfHealing_Rate_Warhead(other.SelfHealing_Rate_Warhead)
+	, SelfHealing_RestartInCombat_Warhead(other.SelfHealing_RestartInCombat_Warhead)
+	, SelfHealing_RestartInCombatDelay_Warhead(other.SelfHealing_RestartInCombatDelay_Warhead)
+	, Respawn_Warhead(other.Respawn_Warhead)
+	, Respawn_Rate_Warhead(other.Respawn_Rate_Warhead)
+	, Respawn_RestartInCombat_Warhead(other.Respawn_RestartInCombat_Warhead)
+	, Respawn_RestartInCombatDelay_Warhead(other.Respawn_RestartInCombatDelay_Warhead)
+	, Respawn_Anim_Warhead(std::move(other.Respawn_Anim_Warhead))
+	, Respawn_Weapon_Warhead(std::exchange(other.Respawn_Weapon_Warhead, nullptr))
+	, LastBreakFrame(other.LastBreakFrame)
+	, LastTechnoHealthRatio(other.LastTechnoHealthRatio)
+	, Type(std::exchange(other.Type, nullptr))
+{
+	// Update tracking array: swap old address for new
+	auto it = std::find(Array.begin(), Array.end(), &other);
+	if (it != Array.end())
+		*it = this;        // replace in-place, no remove + push_back
+	else
+		Array.push_back(this);
+}
+
+ShieldClass& ShieldClass::operator=(ShieldClass&& other) noexcept
+{
+	if (this == &other)
+		return *this;
+
+	// Clean up current state
+	this->KillAnim();
+	Array.remove(this);
+
+	// Transfer all fields
+	this->Techno = std::exchange(other.Techno, nullptr);
+	this->CurTechnoType = std::exchange(other.CurTechnoType, nullptr);
+	this->HP = other.HP;
+	this->Timers = std::move(other.Timers);
+	this->IdleAnim = std::move(other.IdleAnim);
+	this->Cloak = other.Cloak;
+	this->Online = other.Online;
+	this->Temporal = other.Temporal;
+	this->Available = other.Available;
+	this->Attached = other.Attached;
+	this->AreAnimsHidden = other.AreAnimsHidden;
+
+	this->SelfHealing_Warhead = other.SelfHealing_Warhead;
+	this->SelfHealing_Rate_Warhead = other.SelfHealing_Rate_Warhead;
+	this->SelfHealing_RestartInCombat_Warhead = other.SelfHealing_RestartInCombat_Warhead;
+	this->SelfHealing_RestartInCombatDelay_Warhead = other.SelfHealing_RestartInCombatDelay_Warhead;
+	this->Respawn_Warhead = other.Respawn_Warhead;
+	this->Respawn_Rate_Warhead = other.Respawn_Rate_Warhead;
+	this->Respawn_RestartInCombat_Warhead = other.Respawn_RestartInCombat_Warhead;
+	this->Respawn_RestartInCombatDelay_Warhead = other.Respawn_RestartInCombatDelay_Warhead;
+	this->Respawn_Anim_Warhead = std::move(other.Respawn_Anim_Warhead);
+	this->Respawn_Weapon_Warhead = std::exchange(other.Respawn_Weapon_Warhead, nullptr);
+
+	this->LastBreakFrame = other.LastBreakFrame;
+	this->LastTechnoHealthRatio = other.LastTechnoHealthRatio;
+	this->Type = std::exchange(other.Type, nullptr);
+
+	// Update tracking array: replace the source with us
+	auto it = std::find(Array.begin(), Array.end(), &other);
+	if (it != Array.end())
+		*it = this;
+	else
+		Array.push_back(this);
+
+	return *this;
+}
+
 void ShieldClass::UpdateType()
 {
 	this->Type = TechnoExtContainer::Instance.Find(this->Techno)->CurrentShieldType;
@@ -159,17 +240,22 @@ void ShieldClass::SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo)
 	const auto pToExt = TechnoExtContainer::Instance.Find(pTo);
 	const auto pTypeExt = GET_TECHNOTYPEEXT(pTo);
 
-	if (!pToExt || !pFromExt || !pFromExt->Shield)
+	if (!pToExt || !pFromExt)
+		return;
+
+	auto pForomShield = pFromExt->GetShield();
+
+	if(!pForomShield)
 		return;
 
 	if (pTypeExt->ShieldType && pFromExt->CurrentShieldType != pTypeExt->ShieldType)
 	{
-		if(pToExt->Shield) {
-			const auto nFromPrecentage = int(pFromExt->Shield->GetHealthRatio() * pToExt->Shield->Type->Strength);
-			pToExt->Shield->SetHP((int)nFromPrecentage);
+		if(auto pToShield = pToExt->GetShield()) {
+			const auto nFromPrecentage = int(pForomShield->GetHealthRatio() * pForomShield->Type->Strength);
+			pToShield->SetHP((int)nFromPrecentage);
 
-			if (pToExt->Shield->GetHP() == 0){
-					pToExt->Shield->SetRespawn(
+			if (pToShield->GetHP() == 0){
+					pToShield->SetRespawn(
 					pTypeExt->ShieldType->Respawn_Rate,
 					pTypeExt->ShieldType->Respawn,
 					pTypeExt->ShieldType->Respawn_Rate,
@@ -182,14 +268,14 @@ void ShieldClass::SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo)
 		}
 	} else {
 		pToExt->CurrentShieldType = pFromExt->CurrentShieldType;
-		pToExt->Shield.reset(pFromExt->Shield.release());
-		pToExt->Shield->KillAnim();
-		pToExt->Shield->Techno = pTo;
-		pToExt->Shield->CreateAnim();
+		auto&shield =PhobosEntity::Emplace<ShieldClass>(pToExt->ShieldEntity, pTo, true);
+		shield.KillAnim();
+		shield.Techno = pTo;
+		shield.CreateAnim();
 	}
 
-	if (pFrom->WhatAmI() == AbstractType::Building && pFromExt->Shield)
-		pFromExt->Shield = nullptr;
+	if (pFrom->WhatAmI() == AbstractType::Building && PhobosEntity::Has<ShieldClass>(pFromExt->ShieldEntity))
+		PhobosEntity::Remove<ShieldClass>(pFromExt->ShieldEntity);
 }
 
 void ShieldClass::OnRemove() { KillAnim(); }
@@ -548,7 +634,7 @@ void ShieldClass::OnUpdate()
 
 	if (this->Techno->Health <= 0 || !this->Techno->IsAlive || this->Techno->IsSinking)
 	{
-		TechnoExtContainer::Instance.Find(this->Techno)->Shield = nullptr;
+		PhobosEntity::Remove<ShieldClass>(TechnoExtContainer::Instance.Find(this->Techno)->ShieldEntity);
 		return;
 	}
 
@@ -717,7 +803,7 @@ bool ShieldClass::ConvertCheck()
 		// Case 1: Old shield is not allowed to transfer or there's no eligible new shield type -> delete shield.
 		this->KillAnim();
 		pTechnoExt->CurrentShieldType = ShieldTypeClass::FindOrAllocate(DEFAULT_STR2);
-		pTechnoExt->Shield = nullptr;
+		PhobosEntity::Remove<ShieldClass>(pTechnoExt->ShieldEntity);
 		this->UpdateTint();
 
 		return true;

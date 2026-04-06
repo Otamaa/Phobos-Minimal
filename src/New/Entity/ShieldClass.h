@@ -31,6 +31,8 @@ public:
 	ShieldClass(TechnoClass* pTechno, bool isAttached);
 	ShieldClass(TechnoClass* pTechno) : ShieldClass(pTechno, false) {};
 
+	ShieldClass(ShieldClass&& other) noexcept;
+
 	~ShieldClass()
 	{
 		Array.remove(this);
@@ -272,16 +274,11 @@ public:
 
 	ShieldTypeClass* Type;
 
+public:
+	ShieldClass& operator=(ShieldClass&& other) noexcept;
+
 private:
 	ShieldClass(const ShieldClass& other) = delete;
 	ShieldClass& operator=(const ShieldClass& other) = delete;
-};
 
-template <>
-struct Savegame::ObjectFactory<ShieldClass>
-{
-	std::unique_ptr<ShieldClass> operator() (PhobosStreamReader& Stm) const
-	{
-		return std::make_unique<ShieldClass>();
-	}
 };

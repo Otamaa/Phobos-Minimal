@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Ext/Techno/Body.h>
+#include <New/Entity/HijackerData.h>
 
 #include <FootClass.h>
 
@@ -15,8 +16,8 @@ public:
 
 	virtual ~FootExtData() = default;
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override {
-		this->TechnoExtData::InvalidatePointer(ptr, bRemoved);
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType type) override {
+		this->TechnoExtData::InvalidatePointer(ptr, bRemoved, type);
 	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override {
@@ -34,5 +35,30 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const override {
 		this->TechnoExtData::CalculateCRC(crc);
+	}
+
+};
+
+class FootExtContainer final //: public Container<TechnoTypeExtData>
+{
+public:
+	static FootExtContainer Instance;
+
+	COMPILETIMEEVAL FORCEDINLINE  FootExtData* GetExtAttribute(FootClass* key)
+	{
+		return (FootExtData*)(*(uintptr_t*)((char*)key + AbstractExtOffset));
+	}
+
+	COMPILETIMEEVAL FORCEDINLINE FootExtData* Find(FootClass* key)
+	{
+		return this->GetExtAttribute(key);
+	}
+
+	COMPILETIMEEVAL FORCEDINLINE FootExtData* TryFind(FootClass* key)
+	{
+		if (!key)
+			return nullptr;
+
+		return this->GetExtAttribute(key);
 	}
 };

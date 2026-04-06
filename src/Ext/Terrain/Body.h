@@ -44,16 +44,24 @@ public:
 
 	virtual ~TerrainExtData() = default;
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) override
 	{
-		this->ObjectExtData::InvalidatePointer(ptr, bRemoved);
+		this->ObjectExtData::InvalidatePointer(ptr, bRemoved,type);
 
-		if (this->LightSource.get() == ptr) {
-			this->LightSource.release();
-		}
+		switch (type)
+		{
+		case AbstractType::LightSource:
+			if (this->LightSource.get() == ptr) {
+				this->LightSource.release();
+			}
+			break;
 
-		if (this->AttachedAnim.get() == ptr) {
-			this->AttachedAnim.release();
+		case AbstractType::Anim:
+			if (this->AttachedAnim.get() == ptr) {
+				this->AttachedAnim.release();
+			}
+			break;
+		default:break;
 		}
 	}
 

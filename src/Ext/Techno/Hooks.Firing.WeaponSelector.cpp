@@ -126,7 +126,7 @@ int __fastcall FakeTechnoClass::__WhatWeaponShouldIUse(TechnoClass* pThis, disca
 		{
 			auto const pTargetExt = TechnoExtContainer::Instance.Find(pTargetTechno);
 			auto const pWeaponEven = pThis->GetWeapon(evenIdx)->WeaponType;
-			auto const pShield = pTargetExt->Shield.get();
+			auto const pShield = pTargetExt->GetShield();
 			auto const armor = pTargetTechno->GetTechnoType()->Armor;
 			const bool inAir = pTargetTechno->IsInAir();
 			const bool isUnderground = pTargetTechno->InWhichLayer() == Layer::Underground;

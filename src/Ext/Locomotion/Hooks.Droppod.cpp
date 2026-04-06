@@ -122,8 +122,9 @@ struct _DropPodLocomotionClass
 {
 	// function below originated from PR #1196 by : chaserli
 // i just do some adjustment so my own code can go in
-	static bool __stdcall _Process(DropPodLocomotionClass* pLoco)
+	static bool __stdcall _Process(ILocomotion* pILoco)
 	{
+		auto pLoco = static_cast<DropPodLocomotionClass*>(pILoco);
 		auto pLinked = pLoco->LinkedTo;
 		auto tType = GET_TECHNOTYPE(pLinked);
 		CoordStruct oldLoc = pLinked->Location;
@@ -132,7 +133,7 @@ struct _DropPodLocomotionClass
 		const bool condition = pLinkedSW && (int)pLinkedSW->Type->Type == (int)NewSuperType::DropPod;
 		const double angle = DroppodProperties_::GetAngle(tType, pLinked, condition);
 		const auto maxspeed = DroppodProperties_::GetSpeed(tType, pLinked, condition);
-		const int speed = std::max(maxspeed, pLinked->GetHeight() / 10 + 2);
+		const int speed = MaxImpl(maxspeed, pLinked->GetHeight() / 10 + 2);
 
 		CoordStruct coords = pLinked->Location;
 		coords.X += int(Math::cos(angle) * speed * (pLoco->OutOfMap ? 1 : -1));
@@ -250,8 +251,10 @@ struct _DropPodLocomotionClass
 
 	// function below originated from PR #1196 by : chaserli
 	// i just do some adjustment so my own code can go in
-	static void __stdcall _Move_To(DropPodLocomotionClass* pLoco, CoordStruct pCoord)
+	static void __stdcall _Move_To(ILocomotion* pILoco, CoordStruct pCoord)
 	{
+		auto pLoco = static_cast<DropPodLocomotionClass*>(pILoco);
+
 		if (pLoco->CoordDest.IsValid())
 			return;
 

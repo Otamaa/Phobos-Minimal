@@ -735,10 +735,22 @@ bool CloneableLighningStormStateMachine::Start(CellStruct& cell, int nDuration, 
 	return ret;
 }
 
-void CloneableLighningStormStateMachine::InvalidatePointer(AbstractClass* ptr, bool remove)
+void CloneableLighningStormStateMachine::InvalidatePointer(AbstractClass* ptr, bool remove, AbstractType  type)
 {
-	AnnounceInvalidPointer(Invoker, ptr, remove);
-	AnnounceInvalidPointer<AnimClass*>(CloudsPresent, ptr);
-	AnnounceInvalidPointer<AnimClass*>(CloudsManifest, ptr);
-	AnnounceInvalidPointer<AnimClass*>(BoltsPresent, ptr);
+	switch (type)
+	{
+	case AbstractType::Unit:
+	case AbstractType::Aircraft:
+	case AbstractType::Building:
+	case AbstractType::Infantry:
+		AnnounceInvalidPointer(Invoker, ptr, remove);
+		break;
+	case AbstractType::Anim:
+		AnnounceInvalidPointer<AnimClass*>(CloudsPresent, ptr);
+		AnnounceInvalidPointer<AnimClass*>(CloudsManifest, ptr);
+		AnnounceInvalidPointer<AnimClass*>(BoltsPresent, ptr);
+		break;
+	default:
+		break;
+	}
 }

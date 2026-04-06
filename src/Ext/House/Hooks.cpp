@@ -128,61 +128,13 @@ ASMJIT_PATCH(0x65E997, HouseClass_SendAirstrike_PlaceAircraft, 0x6)
 	return result ? SkipGameCode : SkipGameCodeNoSuccess;
 }
 
-ASMJIT_PATCH(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
-{
-	GET(FakeHouseClass*, pThis, ECX);
+// ASMJIT_PATCH(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
+// {
+// 	GET(FakeHouseClass*, pThis, ECX);
 
-	const auto pHouseExt = pThis->_GetExtData();
-
-	pHouseExt->PowerPlantEnhancerBuildings.clear();
-
-	// This pre-iterating ensure our process to be done in O(NM) instead of O(N^2),
-	// as M should be much less than N, this will be a great improvement. - secsome
-	for (const auto& pBld : pThis->Buildings)
-	{
-		if (pBld && pBld->IsAlive && !pBld->InLimbo && pBld->IsOnMap)
-		{
-			bool PowerChecked = false;
-			bool HasPower = false;
-
-			if (pBld->GetCurrentMission() == Mission::Selling || pBld->QueuedMission == Mission::Selling)
-				continue;
-
-			if (pBld->TemporalTargetingMe
-				|| BuildingExtContainer::Instance.Find(pBld)->AboutToChronoshift
-				|| pBld->IsBeingWarpedOut())
-				continue;
-
-			for(auto const pType : pBld->GetTypes()){
-
-				if (!pType)
-					continue;
-
-				if (!PowerChecked)
-				{
-					HasPower = pBld->HasPower && !pBld->IsUnderEMP()
-						&& (TechnoExtContainer::Instance.Find(pBld)->Is_Operated || TechnoExtData::IsOperated(pBld))
-						;
-
-					PowerChecked = true;
-				}
-
-				const auto pExt = BuildingTypeExtContainer::Instance.Find(pType);
-
-				if(HasPower) {
-					if (pExt->PowerPlantEnhancer_Buildings.size()
-						&& (pExt->PowerPlantEnhancer_Amount != 0 || pExt->PowerPlantEnhancer_Factor != 1.0f)
-						&& (pExt->PowerPlantEnhancer_MaxCount < 0 || pHouseExt->PowerPlantEnhancerBuildings[pType] < pExt->PowerPlantEnhancer_MaxCount))
-					{
-						++pHouseExt->PowerPlantEnhancerBuildings[pType];
-					}
-				}
-			}
-		}
-	}
-
-	return 0;
-}
+// 	const auto pHouseExt = pThis->_GetExtData();
+// 	return 0;
+// }
 
 
 #pragma region LimboTracking

@@ -35,6 +35,7 @@
 #include <New/SuperWeaponSidebar/SWButtonClass.h>
 #include <New/SuperWeaponSidebar/SWColumnClass.h>
 #include <New/SuperWeaponSidebar/ToggleSWButtonClass.h>
+#include <New/Entity/PowerPlantEnhancerClass.h>
 
 #include <YRMath.h>
 #include <Phobos.h>
@@ -112,7 +113,7 @@ OPTIONALINLINE int PhobosToolTip::GetPower(TechnoTypeClass* pType) const
 	case AbstractType::BuildingType:
 	{
 		auto pBldType = (BuildingTypeClass*)pType;
-		const auto&[enhancedPower, extraPower] = BuildingTypeExtData::GetEnhancedPowerPair(pBldType, pBldType->PowerBonus, HouseClass::CurrentPlayer());
+		const auto&[enhancedPower, extraPower] = PowerPlantEnhancerClass::GetEnhancedPower(pBldType, pBldType->PowerBonus, HouseClass::CurrentPlayer());
 		return enhancedPower + extraPower - pBldType->PowerDrain;	}
 	default:
 		break;

@@ -94,11 +94,23 @@ bool TeamExtData::IsEligible(TechnoClass* pGoing, TechnoTypeClass* reinfocement)
 	return TeamExtData::IsEligible(GET_TECHNOTYPE(pGoing), reinfocement);
 }
 
-void TeamExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
+void TeamExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType type)
 {
-	AnnounceInvalidPointer(TeamLeader, ptr, bRemoved);
-	AnnounceInvalidPointer(LastFoundSW, ptr);
-	AnnounceInvalidPointer(PreviousScript, ptr);
+	switch (type)
+	{
+	case AbstractType::Unit:
+	case AbstractType::Aircraft:
+	case AbstractType::Infantry:
+		AnnounceInvalidPointer(TeamLeader, ptr, bRemoved);
+		break;
+	case AbstractType::Super:
+		AnnounceInvalidPointer(LastFoundSW, ptr);
+		break;
+	case AbstractType::ScriptType:
+		AnnounceInvalidPointer(PreviousScript, ptr);
+		break;
+	default: break;
+	}
 }
 
 bool TeamExtData::HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, const Iterator<TechnoTypeClass*>& list)
@@ -5538,7 +5550,7 @@ ASMJIT_PATCH(0x6E8ECB, TeamClass_DTOR, 0x7)
 void FakeTeamClass::_Detach(AbstractClass* target, bool all)
 {
 	if(auto pExt = this->_GetExtData())
-		pExt->InvalidatePointer(target, all);
+		pExt->InvalidatePointer(target, all, target->WhatAmI());
 	this->TeamClass::PointerExpired(target, all);
 }
 

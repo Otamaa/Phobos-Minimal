@@ -34,9 +34,9 @@ public:
 
 	virtual ~UnitExtData() = default;
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) override
 	{
-		this->FootExtData::InvalidatePointer(ptr, bRemoved);
+		this->FootExtData::InvalidatePointer(ptr, bRemoved, type);
 	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override

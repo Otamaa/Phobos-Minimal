@@ -719,19 +719,29 @@ HouseClass* BulletExtData::GetHouse(BulletClass* const pThis)
 	return BulletExtContainer::Instance.Find(pThis)->Owner;
 }
 
-void BulletExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved) {
+void BulletExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType type) {
 
-	this->ObjectExtData::InvalidatePointer(ptr, bRemoved);
+	this->ObjectExtData::InvalidatePointer(ptr, bRemoved, type);
 
-	AnnounceInvalidPointer(OriginalTarget, ptr, bRemoved);
-	AnnounceInvalidPointer(Owner , ptr);
-	AnnounceInvalidPointer(NukeSW, ptr);
+	switch (type)
+	{
+	case AbstractType::House:
+		AnnounceInvalidPointer(Owner, ptr);
+		break;
+	case AbstractType::Super:
+		AnnounceInvalidPointer(NukeSW, ptr);
+		break;
+	case AbstractType::ParticleSystem:
+		break;
+	default:
 
-	if (auto& pTraj = Trajectory)
-		pTraj->InvalidatePointer(ptr, bRemoved);
+		AnnounceInvalidPointer(OriginalTarget, ptr, bRemoved);
 
-	if (this->AttachedSystem == ptr)
-		this->AttachedSystem.detachptr();
+		if (auto& pTraj = Trajectory)
+			pTraj->InvalidatePointer(ptr, bRemoved);
+
+		break;
+	}
  }
 
  static RadTypeClass* default_rad;
@@ -1233,7 +1243,7 @@ ASMJIT_PATCH(0x4664BA, BulletClass_CTOR, 0x5)
 
 ASMJIT_PATCH(0x4665E9, BulletClass_DTOR, 0xA)
 {
-	GET(BulletClass*, pItem, ECX);
+	GET(BulletClass*, pItem, ESI);
 
 	BulletExtContainer::Instance.Remove(pItem);
 
@@ -1243,7 +1253,7 @@ ASMJIT_PATCH(0x4665E9, BulletClass_DTOR, 0xA)
 void FakeBulletClass::_Detach(AbstractClass* target , bool all)
 {
 	if(auto pExt = this->_GetExtData())
-		pExt->InvalidatePointer(target, all);
+		pExt->InvalidatePointer(target, all, target->WhatAmI());
 	this->BulletClass::PointerExpired(target , all);
 }
 

@@ -217,6 +217,7 @@ void HugeBar::ProcessHugeBar()
 
 	auto& configs = RulesExtData::Instance()->HugeBar_Config;
 
+
 	for (size_t i = 0; i < configs.size(); i++)
 	{
 		TechnoClass* pTechno = nullptr;
@@ -246,13 +247,16 @@ void HugeBar::ProcessHugeBar()
 		if (pTechno == nullptr)
 			continue;
 
+		ShieldClass* pShield = TechnoExtContainer::Instance.Find(pTechno)->GetShield();
+		if (pShield && pShield->IsBrokenAndNonRespawning())
+			pShield = nullptr;
+
 		int iCurrent = -1;
 		int iMax = 0;
-		TechnoExtData::GetValuesForDisplay(pTechno, configs[i].InfoType, iCurrent, iMax , 0);
+		TechnoExtData::GetValuesForDisplay(pTechno, configs[i].InfoType, iCurrent, iMax , 0, pShield);
 
 		if (iCurrent <= -1 || iMax <= 0)
 			continue;
-
 
 		configs[i].DrawHugeBar(iCurrent, iMax);
 	}

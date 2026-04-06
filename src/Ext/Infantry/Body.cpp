@@ -606,7 +606,7 @@ ASMJIT_PATCH(0x517F81, InfantryClass_DTOR, 0x8)
 void FakeInfantryClass::_Detach(AbstractClass* target, bool all)
 {
 	if(auto pExt = this->_GetExtData())
-		pExt->InvalidatePointer(target, all);
+		pExt->InvalidatePointer(target, all, target->WhatAmI());
 	this->InfantryClass::PointerExpired(target, all);
 }
 

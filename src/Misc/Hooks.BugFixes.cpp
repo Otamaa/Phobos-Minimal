@@ -2738,28 +2738,28 @@ ASMJIT_PATCH(0x7442AB, UnitClass_ReadyToNextMission_FallingDown, 0x6)
 // Fixes ambiguous sell-target selection when cursor overlap picks a non-building object first.
 // In Action::Sell path, force target to a building on clicked cell (if any) so SellUnit=false cannot
 // ASMJIT_PATCH sell unit/aircraft via building-sell action.
-ASMJIT_PATCH(0x4AC15A, DisplayClass_LeftMouseButtonUp_SellAction_RetargetBuilding, 0x4)
-{
-	enum { Continue = 0, SellCell = 0x4AC19A, SkipSellEvent = 0x4AC20C };
-
-	GET(ObjectClass*, pSellTarget, ESI);
-	const bool hadObjectTarget = (pSellTarget != nullptr);
-
-	if (pSellTarget && pSellTarget->WhatAmI() != AbstractType::Building)
-	{
-		GET_STACK(const CellStruct*, pClickedCell, 0x94);
-
-		pSellTarget = MapClass::Instance->GetCellAt(*pClickedCell)->GetBuilding();
-		R->ESI(pSellTarget);
-
-		// Ambiguous overlap case with object target but no building under clicked cell:
-		// do not emit Sell / SellCell events from this path.
-		if (!pSellTarget && hadObjectTarget)
-			return SkipSellEvent;
-	}
-
-	return pSellTarget ? Continue : SellCell;
-}
+// ASMJIT_PATCH(0x4AC15A, DisplayClass_LeftMouseButtonUp_SellAction_RetargetBuilding, 0x4)
+// {
+// 	enum { Continue = 0, SellCell = 0x4AC19A, SkipSellEvent = 0x4AC20C };
+//
+// 	GET(ObjectClass*, pSellTarget, ESI);
+// 	const bool hadObjectTarget = (pSellTarget != nullptr);
+//
+// 	if (pSellTarget && pSellTarget->WhatAmI() != AbstractType::Building)
+// 	{
+// 		GET_STACK(const CellStruct*, pClickedCell, 0x94);
+//
+// 		pSellTarget = MapClass::Instance->GetCellAt(*pClickedCell)->GetBuilding();
+// 		R->ESI(pSellTarget);
+//
+// 		// Ambiguous overlap case with object target but no building under clicked cell:
+// 		// do not emit Sell / SellCell events from this path.
+// 		if (!pSellTarget && hadObjectTarget)
+// 			return SkipSellEvent;
+// 	}
+//
+// 	return pSellTarget ? Continue : SellCell;
+// }
 
 // Disallow sell action on wall overlays if mouse cursor is hovering on another object.
 ASMJIT_PATCH(0x692AD6, ScrollClass_ChooseAction_SellWall, 0x6)
@@ -2945,3 +2945,114 @@ ASMJIT_PATCH(0x54B3E7, JumpjetLocomotionClass_Move_To_LocomotorWarheadFix, 0x5)
 // Skip the check for Teleporter here; this is an unreasonable check.
 // This check determines whether miners on a Guard mission near the refinery should return to the Harvest mission.
 DEFINE_JUMP(LJMP, 0x740943, 0x740957);
+
+
+//These map cells are what SpySat skips revealing in MP normally.
+static COMPILETIMEEVAL bool FORCEDINLINE ShroudFix_IsCellInvalid(CellStruct* pMapCell)
+{
+	const int x = pMapCell->X;
+	const int y = pMapCell->Y;
+	auto const& rect = MapClass::Instance->MapRect;
+
+	if (x == 7 && y == rect.Width + 5)
+		return true;
+
+	if (x == 13 && y == rect.Width + 11)
+		return true;
+
+	if (x == rect.Height + 13 && y == rect.Width + rect.Height - 15)
+		return true;
+
+	return false;
+}
+
+ASMJIT_PATCH(0x6FB5E5, TechnoClass_DeleteGap_CellCheck, 0x5)
+{
+	enum { SkipCell = 0x6FB6F3 };
+
+	GET(CellStruct*, pMapCell, EDX);
+
+	if (ShroudFix_IsCellInvalid(pMapCell))
+		return SkipCell;
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x6FB2FB, TechnoClass_CreateGap_CellCheck, 0x5)
+{
+	enum { SkipCell = 0x6FB416 };
+
+	GET(CellStruct*, pMapCell, EDX);
+
+	if (ShroudFix_IsCellInvalid(pMapCell))
+		return SkipCell;
+
+	return 0;
+}
+
+// Replace the entire cell iterator loop for perf reasons.
+ASMJIT_PATCH(0x577AFF, MapClass_ResetShroud_CellCheck, 0x6)
+{
+	enum { SkipGameCode = 0x577B75 };
+
+	auto& map = MapClass::Instance;
+	map->CellIteratorReset();
+
+	for (auto pCell = map->CellIteratorNext(); pCell; pCell = map->CellIteratorNext())
+	{
+		if (ShroudFix_IsCellInvalid(&pCell->MapCoords))
+			continue;
+
+		pCell->Flags &= ~(CellFlags::CenterRevealed | CellFlags::EdgeRevealed);
+		pCell->AltFlags &= ~(AltCellFlags::Mapped | AltCellFlags::NoFog);
+		pCell->ShroudCounter = 1;
+		pCell->GapsCoveringThisCell = 0;
+	}
+
+	return SkipGameCode;
+}
+
+// Replace the entire cell iterator loop for perf reasons.
+ASMJIT_PATCH(0x577BF1, MapClass_ResetShroudForTMission_CellCheck, 0x6)
+{
+	enum { SkipGameCode = 0x577C57 };
+
+	auto& map = MapClass::Instance;
+	map->CellIteratorReset();
+
+	for (auto pCell = map->CellIteratorNext(); pCell; pCell = map->CellIteratorNext())
+	{
+		if (ShroudFix_IsCellInvalid(&pCell->MapCoords))
+			continue;
+
+		pCell->Flags &= ~(CellFlags::CenterRevealed | CellFlags::EdgeRevealed);
+		pCell->AltFlags &= ~(AltCellFlags::Mapped | AltCellFlags::NoFog);
+	}
+
+	return SkipGameCode;
+}
+
+// Now, miners will no longer actively withdraw from the Harvest mission due to mineral depletion.
+ASMJIT_PATCH(0x73EEA6, UnitClass_MissionHarvest_AllOreGathered, 0x6)
+{
+	enum { SkipGameCode = 0x73EFA4 };
+
+	GET(UnitClass*, pThis, EBP);
+
+	auto pBuilding = MapClass::Instance->GetCellAt(pThis->GetCoords())->GetBuilding();
+	if (pBuilding && (pBuilding->Type->Refinery || pBuilding->Type->Weeder))
+	{
+		CellStruct buffer = CellStruct::Empty;
+		pThis->NearbyLocation(&buffer, pBuilding);
+		auto pDest = MapClass::Instance->GetCellAt(buffer);
+		pThis->SetDestination(pDest, false);
+		R->EAX(15);
+	}
+	else
+	{
+		pThis->MissionStatus = 0;
+		R->EAX(100);
+	}
+
+	return SkipGameCode;
+}

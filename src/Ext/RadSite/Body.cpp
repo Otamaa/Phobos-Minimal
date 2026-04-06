@@ -9,12 +9,28 @@
 #include <Utilities/Macro.h>
 #include <Notifications.h>
 
-void RadSiteExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
+void RadSiteExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved,AbstractType type)
 {
-	AnnounceInvalidPointer(TechOwner, ptr , bRemoved);
-	AnnounceInvalidPointer(HouseOwner, ptr);
+	switch (type)
+	{
+	case AbstractType::Unit:
+	case AbstractType::Aircraft:
+	case AbstractType::Infantry:
+	case AbstractType::Building:
 
-	damageCounts.erase((BuildingClass*)ptr);
+		AnnounceInvalidPointer(TechOwner, ptr, bRemoved);
+
+		if (type == AbstractType::Building) {
+			damageCounts.erase((BuildingClass*)ptr);
+		}
+
+		break;
+	case AbstractType::House:
+		AnnounceInvalidPointer(HouseOwner, ptr);
+		break;
+	default:
+		break;
+	}
 }
 
 void RadSiteExtData::CreateInstance(CellClass* pCell , int spread, int amount, WeaponTypeExtData* pWeaponExt, TechnoClass* const pTech)
@@ -271,7 +287,7 @@ ASMJIT_PATCH(0x65B344, RadSiteClass_DTOR, 0x6)
 void FakeRadSiteClass::_Detach(AbstractClass* pTarget, bool bRemove)
 {
 	if(auto pExt = this->_GetExtData())
-		pExt->InvalidatePointer(pTarget, bRemove);
+		pExt->InvalidatePointer(pTarget, bRemove, pTarget->WhatAmI());
 	//this->RadSiteClass::PointerExpired(pTarget, bRemove);
 }
 

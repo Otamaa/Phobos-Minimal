@@ -757,7 +757,7 @@ bool HANDLE_COMMON_CRASH(LONG& exc, PEXCEPTION_POINTERS const pExs)
 LONG __fastcall ExceptionHandler(int code, PEXCEPTION_POINTERS const pExs)
 {
 
-	DWORD* eip_pointer = reinterpret_cast<DWORD*>(&pExs->ContextRecord->Eip);
+	//DWORD* eip_pointer = reinterpret_cast<DWORD*>(&pExs->ContextRecord->Eip);
 	std::string reason = "Unknown";
 	const auto hwnd = IsWindow(Game::hWnd()) ? Game::hWnd() : nullptr;
 
@@ -1084,7 +1084,7 @@ private:
 	// Helper function to write formatted string to FILE*
 	template<typename... Args>
 	static void write_to_file(FILE* file, fmt::format_string<Args...> format_str, Args&&... args) {
-		const auto formatted = fmt::format(format_str, std::forward<Args>(args)...);
+ 		const auto formatted = fmt::format(format_str, std::forward<Args>(args)...);
 		fputs(formatted.c_str(), file);
 	}
 

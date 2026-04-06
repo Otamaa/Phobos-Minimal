@@ -527,9 +527,9 @@ static KickOutResult HandleLandVehicleFactoryExit(
 		return KickOutResult::Failed;
 	}
 
-	auto pUnit = static_cast<UnitClass*>(pObject);
+	auto pUnit = cast_to<UnitClass*>(pObject);
 
-	if ((pUnit->Type->Harvester || pUnit->Type->Weeder) && pUnit->Type->MovementZone == MovementZone::Subterrannean)
+	if (pUnit && ((pUnit->Type->Harvester || pUnit->Type->Weeder) && pUnit->Type->MovementZone == MovementZone::Subterrannean))
 	{
 		auto const pExt = TechnoExtContainer::Instance.Find(pObject);
 

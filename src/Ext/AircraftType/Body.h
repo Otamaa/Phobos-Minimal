@@ -32,9 +32,9 @@ public:
 
 	virtual ~AircraftTypeExtData() = default;
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) override
 	{
-		this->FootTypeExtData::InvalidatePointer(ptr, bRemoved);
+		this->FootTypeExtData::InvalidatePointer(ptr, bRemoved, type);
 	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override

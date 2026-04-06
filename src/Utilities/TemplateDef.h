@@ -60,6 +60,7 @@
 #include <Utilities/TechnoTypeConvertData.h>
 #include <Utilities/CSFText.h>
 #include <Utilities/EnumFunctions.h>
+#include <Utilities/PhobosFixedString.h>
 
 //#include <New/Type/PaletteManager.h>
 
@@ -84,7 +85,7 @@ struct IndexFinder
 
 			int idx = value;
 
-			if COMPILETIMEEVAL (std::is_pointer<T>::value)
+			if COMPILETIMEEVAL(std::is_pointer<T>::value)
 			{
 				using base_type = std::remove_pointer_t<T>;
 				idx = base_type::FindIndexById(val);
@@ -109,221 +110,35 @@ struct IndexFinder
 
 namespace detail
 {
-#pragma region getresult
+
 	template <typename T>
-	OPTIONALINLINE bool getresult(T& value, const std::string& parser, const char* pSection, const char* pKey, bool allocate = false) {
-		static_assert(true, "Not Implemented!");
+	bool getresult(T& value, const std::string& parser, const char* pSection, const char* pKey, bool allocate = false)
+	{
+		//_assert(true, "Not Implemented!");
 		return true;
 	}
 
-	template <>
-	OPTIONALINLINE bool getresult<AffectedHouse>(AffectedHouse& value, const std::string& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (!parser.empty())
-		{
-			AffectedHouse resultData = AffectedHouse::None;
-			char* context = nullptr;
-			std::string copy = parser;
-
-			for (auto pCur = strtok_s(copy.data(),
-				Phobos::readDelims, &context);
-				pCur;
-				pCur = strtok_s(nullptr, Phobos::readDelims, &context))
-			{
-				bool found = false;
-				for (auto const& [pString, val] : EnumFunctions::AffectedHouse_ToStrings)
-				{
-					if (IS_SAME_STR_(pCur, pString))
-					{
-						found = true;
-						resultData |= val;
-						break;
-					}
-				}
-
-				if (!found)
-				{
-					Debug::INIParseFailed(pSection, pKey, pCur, "Expected a affected house");
-				}
-			}
-
-			value = resultData;
-			return true;
-		}
-		return false;
-	}
+	template<>
+	bool getresult<AffectedHouse>(AffectedHouse& value, const std::string& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool getresult<TechnoTypeConvertData>(TechnoTypeConvertData& value, const std::string& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (!parser.empty()) {
-
-			std::string copy = parser;
-			std::erase(copy, ' ');
-
-			const auto nDelim = copy.find(":");
-			if (nDelim == std::string::npos)
-				return false;
-
-			auto nFirst = copy.substr(0, nDelim);
-			//second countais b:c
-			auto nSecondPair = copy.substr(nDelim + 1);
-			const auto nDelim2 = nSecondPair.find(":");
-
-			if (nDelim2 != std::string::npos) {
-				auto nSecondPair_1 = nSecondPair.substr(0, nDelim2);
-				auto nSecondPair_2 = nSecondPair.substr(nDelim2 + 1);
-
-				value.From.clear();
-				char* context = nullptr;
-				for (auto pCur = strtok_s(nFirst.data(), Phobos::readDelims, &context);
-						pCur;
-						pCur = strtok_s(nullptr, Phobos::readDelims, &context))
-				{
-					TechnoTypeClass* buffer = nullptr;
-
-					if (Parser<TechnoTypeClass*>::Parse(pCur, &buffer))
-						value.From.push_back(buffer);
-					else if (!allocate && !GameStrings::IsNone(pCur))
-						Debug::INIParseFailed(pSection, pKey, pCur, nullptr);
-				}
-
-				Parser<TechnoTypeClass*>::Parse(nSecondPair_1.c_str(), &value.To);
-				detail::getresult<AffectedHouse>(value.Eligible, nSecondPair_2, pSection, pKey, allocate);
-
-				//Debug::LogInfo("parsing[%s]%s with 3 values [%s - %s - %s]", pSection , pKey , nFirst.c_str() , nSecondPair_1.c_str() , nSecondPair_2.c_str());
-			} else {
-				value.From.clear();
-				char* context = nullptr;
-				for (auto pCur = strtok_s(nFirst.data(), Phobos::readDelims, &context);
-						pCur;
-						pCur = strtok_s(nullptr, Phobos::readDelims, &context))
-				{
-					TechnoTypeClass* buffer = nullptr;
-
-					if (Parser<TechnoTypeClass*>::Parse(pCur, &buffer))
-						value.From.push_back(buffer);
-					else if (!allocate && !GameStrings::IsNone(pCur))
-						Debug::INIParseFailed(pSection, pKey, pCur, nullptr);
-				}
-
-				Parser<TechnoTypeClass*>::Parse(nSecondPair.c_str(), &value.To);
-			}
-
-			return true;
-		}
-
-		return true;
-	}
+	bool getresult<TechnoTypeConvertData>(TechnoTypeConvertData& value, const std::string& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool getresult<TileType>(TileType& value, const std::string& parser, const char* pSection, const char* pKey, bool bAllocate)
-	{
-		if (!parser.empty()) {
-
-			if (GameStrings::IsNone(parser.c_str())) {
-				value = TileType::ClearToSandLAT;
-				return true;
-			}
-
-			for (size_t i = 1; i < EnumFunctions::TileType_ToStrings.size(); ++i) {
-				if (IS_SAME_STR_(parser.c_str(), EnumFunctions::TileType_ToStrings[i])) {
-					value = TileType(i);
-					return true;
-				}
-			}
-
-			Debug::INIParseFailed(pSection, pKey, parser.c_str(), "Expect valid TileType !");
-		}
-		return false;
-	}
+	bool getresult<TileType>(TileType& value, const std::string& parser, const char* pSection, const char* pKey, bool bAllocate);
 
 	template <>
-	OPTIONALINLINE bool getresult<LandType>(LandType& value, const std::string& parser, const char* pSection, const char* pKey, bool bAllocate)
-	{
-		if (!parser.empty()) {
-
-			if (GameStrings::IsNone(parser.c_str())) {
-				value = LandType::Clear;
-				return true;
-			}
-
-			for (size_t i = 0; i < CellClass::LandTypeToStrings.size(); ++i) {
-				if (IS_SAME_STR_(CellClass::LandTypeToStrings[i], parser.c_str())) {
-					value = LandType(i);
-					return true;
-				}
-			}
-
-			Debug::INIParseFailed(pSection, pKey, parser.c_str(), "Expect Valind LandType");
-		}
-
-		return false;
-	}
+	bool getresult<LandType>(LandType& value, const std::string& parser, const char* pSection, const char* pKey, bool bAllocate);
 
 	template <>
-	OPTIONALINLINE bool getresult<PhobosAbilityType>(PhobosAbilityType& value, const std::string& parser, const char* pSection, const char* pKey, bool bAllocate)
-	{
-		if (!parser.empty())
-		{
-			for (size_t i = 0; i < EnumFunctions::PhobosAbilityType_ToStrings.size(); ++i) {
-				if (IS_SAME_STR_(EnumFunctions::PhobosAbilityType_ToStrings[i], parser.c_str())) {
-					value = PhobosAbilityType(i);
-					return true;
-				}
-			}
-
-			bool found = false;
-			for (size_t a = 0; a < TechnoTypeClass::AbilityTypeToStrings.size(); ++a) {
-				if (IS_SAME_STR_(TechnoTypeClass::AbilityTypeToStrings[a], parser.c_str())) {
-					found = true;
-				}
-			}
-
-			if(!found)
-				Debug::INIParseFailed(pSection, pKey, parser.c_str(), "Expect Valind AbilityTypes");
-		}
-
-		return false;
-	}
+	bool getresult<PhobosAbilityType>(PhobosAbilityType& value, const std::string& parser, const char* pSection, const char* pKey, bool bAllocate);
 
 	template <>
-	OPTIONALINLINE bool getresult<Rank>(Rank& value, const std::string& parser, const char* pSection, const char* pKey, bool bAllocate)
-	{
-		if (!parser.empty()) {
-			for (size_t i = 1 ; i < EnumFunctions::Rank_ToStrings.size(); ++i) {
-				const auto&[val , str ] = EnumFunctions::Rank_ToStrings[i];
-				if (PhobosCRT::iequals(parser.c_str(), str)) {
-					value = val;
-					return true;
-				}
-			}
-
-			Debug::INIParseFailed(pSection, pKey, parser.c_str(), "Expected a self Rank type");
-		}
-
-		return false;
-	}
+	bool getresult<Rank>(Rank& value, const std::string& parser, const char* pSection, const char* pKey, bool bAllocate);
 
 	template <>
-	OPTIONALINLINE bool getresult<FacingType>(FacingType& value, const std::string& parser, const char* pSection, const char* pKey, bool bAllocate)
-	{
-		if (!parser.empty())
-		{
-			int nBuffer = std::stoi(parser);
-			if (nBuffer >= (int)FacingType::Min && nBuffer < (int)FacingType::Max)
-			{
-				value = (FacingType)nBuffer;
-				return true;
-			}
+	bool getresult<FacingType>(FacingType& value, const std::string& parser, const char* pSection, const char* pKey, bool bAllocate);
 
-			Debug::INIParseFailed(pSection, pKey, parser.c_str(), "Expected a FacingType between 0 and 8");
-		}
-
-		return false;
-	}
-
-#pragma endregion
 
 	template <typename T>
 	OPTIONALINLINE bool read(T& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
@@ -339,59 +154,8 @@ namespace detail
 				value = parsed;
 				return true;
 			}
-			else {
-				Debug::INIParseFailed(pSection, pKey, pValue, nullptr);
-			}
-		}
-		return false;
-	}
-
-#pragma region Pointers
-
-	// template <>
-	// OPTIONALINLINE bool read<PaletteManager*>(PaletteManager*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	// {
-	// 	if (parser.ReadString(pSection, pKey))
-	// 	{
-	// 		if (!GeneralUtils::IsValidString(parser.value()))
-	// 			return false;
-	//
-	// 		std::string flag = _strlwr(parser.value());
-	// 		if (flag.find(".pal") == std::string::npos) {
-	// 			flag += ".pal";
-	// 		}
-	//
-	// 		if (const auto nResult = PaletteManager::FindOrAllocate(flag.c_str()))
-	// 		{
-	// 			if (!nResult->Palette)
-	// 				return false;
-
-	// 			value = nResult;
-	// 			return true;
-	// 		}
-	// 		else
-	// 		{
-	// 			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a Palette Name");
-	// 		}
-	// 	}
-
-	// 	return false;
-	// }
-
-	template <>
-	OPTIONALINLINE bool read<TechnoTypeClass*>(TechnoTypeClass*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			const auto pValue = parser.value();
-			const auto parsed = TechnoTypeClass::Find(pValue);
-
-			if (parsed || GameStrings::IsNone(pValue))
+			else
 			{
-				value = parsed;
-				return true;
-			}
-			else {
 				Debug::INIParseFailed(pSection, pKey, pValue, nullptr);
 			}
 		}
@@ -399,1302 +163,294 @@ namespace detail
 	}
 
 	template <>
-	OPTIONALINLINE bool read<SHPStruct*>(SHPStruct*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			std::string flag =  _strlwr(parser.value());
+	bool read<bool>(bool& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			if (flag.size() < 4 || !std::equal(flag.end() - 4, flag.end(), ".shp", []
-										(char input, char expected) { return input == expected; }))
-					flag += ".shp";
-
-			if (auto const pImage = FileSystem::LoadSHPFile(flag.c_str())) {
-				value = pImage;
-				return true;
-			} else {
-					Debug::Log("Failed to find file %s referenced by [%s]%s=%s\n", flag.c_str(), pSection, pKey, parser.value());
-			}
-		}
-
-		return false;
-	}
-
 	template <>
-	OPTIONALINLINE bool read<std::string> (std::string& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate) {
-		if (parser.ReadString(pSection, pKey)) {
-			value = parser.value();
-			return true;
-		}
-
-		return false;
-	}
-
-#pragma endregion
+	bool read<int>(int& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-#pragma region PartialVector
 	template <>
-	OPTIONALINLINE bool read<PartialVector2D<int>>(PartialVector2D<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		value.ValueCount = parser.Read2IntegerAndCount(pSection, pKey, (int*)&value);
+	bool read<unsigned int>(unsigned int& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		if (value.ValueCount > 0)
-			return true;
-
-		return false;
-	}
-
 	template <>
-	OPTIONALINLINE bool read<PartialVector2D<double>>(PartialVector2D<double>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		value.ValueCount = parser.Read2DoubleAndCount(pSection, pKey, (double*)&value);
-
-		if (value.ValueCount > 0)
-			return true;
+	bool read<unsigned short>(unsigned short& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return false;
-	}
-
 	template <>
-	OPTIONALINLINE bool read<PartialVector3D<int>>(PartialVector3D<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		value.ValueCount = parser.Read3IntegerAndCount(pSection, pKey, (int*)&value);
-
-		if (value.ValueCount > 0)
-			return true;
-
-		return false;
-	}
+	bool read<short>(short& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<ReversePartialVector3D<int>>(ReversePartialVector3D<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		// ReversePartialVector3D has Z,Y,X memory layout, so we need to read into a temp buffer
-		// and then assign in the correct order
-		int buffer[3] = { 0, 0, 0 };
-		value.ValueCount = parser.Read3IntegerAndCount(pSection, pKey, buffer);
+	bool read<BYTE>(BYTE& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		if (value.ValueCount > 0) {
-			value.X = buffer[0];
-			value.Y = buffer[1];
-			value.Z = buffer[2];
-			return true;
-		}
-
-		return false;
-	}
-
 	template <>
-	OPTIONALINLINE bool read<PartialVector3D<double>>(PartialVector3D<double>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		value.ValueCount = parser.Read3DoubleAndCount(pSection, pKey, (double*)&value);
+	bool read<float>(float& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		if (value.ValueCount > 0)
-			return true;
-
-		return false;
-	}
-
 	template <>
-	OPTIONALINLINE bool read<PartialVector3D<float>>(PartialVector3D<float>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		value.ValueCount = parser.Read3FloatAndCount(pSection, pKey, (float*)&value);
-
-		if (value.ValueCount > 0)
-			return true;
+	bool read<double>(double& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return false;
-	}
-#pragma endregion
-
-#pragma region structandval
 	template <>
-	OPTIONALINLINE bool read<bool>(bool& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (!parser.ReadBool(pSection, pKey, &value)) {
-
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid boolean value [1, true, yes, 0, false, no]");
-
-			return false;
-		}
+	bool read<TechnoTypeClass*>(TechnoTypeClass*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return true;
-	}
-
 	template <>
-	OPTIONALINLINE bool read<int>(int& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (!parser.ReadInteger(pSection, pKey, &value))
-		{
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid number");
-
-			return false;
-
-		}
+	bool read<SHPStruct*>(SHPStruct*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return true;
-	}
-
 	template <>
-	OPTIONALINLINE bool read<unsigned int>(unsigned int& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		int buffer { 0 };
-		if (parser.ReadInteger(pSection, pKey, &buffer) && buffer > 0 && (unsigned int)buffer <= MAX_VAL(unsigned int)) {
-			value = (unsigned int)buffer;
-			return true;
-		}
-
-		if (!parser.empty())
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid unsigned int between 0 and 4294967295 inclusive");
+	bool read<std::string>(std::string& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return false;
-	}
-
 	template <>
-	OPTIONALINLINE bool read<unsigned short>(unsigned short& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		short buffer { 0 };
-		if (parser.ReadShort(pSection, pKey, &buffer) && buffer > 0 && (unsigned short)buffer <= MAX_VAL(unsigned short)) {
-			value = (unsigned short)buffer;
-			return true;
-		}
-
-		if(!parser.empty())
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid unsigned short between 0 and 65535 inclusive");
-
-		return false;
-	}
+	bool read<PartialVector2D<int>>(PartialVector2D<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<short>(short& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (!parser.ReadShort(pSection, pKey, &value))
-		{
-			if (!parser.empty()) {
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid short");
-			}
+	bool read<PartialVector2D<double>>(PartialVector2D<double>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			return false;
-		}
-
-		return true;
-	}
-
 	template <>
-	OPTIONALINLINE bool read<BYTE>(BYTE& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (!parser.ReadBytes(pSection, pKey, &value)) {
-
-			if(!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid number");
+	bool read<PartialVector3D<int>>(PartialVector3D<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			return false;
-		}
-
-		return true;
-	}
-
 	template <>
-	OPTIONALINLINE bool read<float>(float& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (!parser.ReadFloat(pSection, pKey, &value))
-		{
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid floating point number");
-
-			return false;
-		}
+	bool read<ReversePartialVector3D<int>>(ReversePartialVector3D<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return true;
-	}
-
 	template <>
-	OPTIONALINLINE bool read<double>(double& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (!parser.ReadDouble(pSection, pKey, &value))
-		{
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid floating point number");
-
-			return false;
-		}
+	bool read<PartialVector3D<double>>(PartialVector3D<double>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return true;
-	}
-
 	template <>
-	OPTIONALINLINE bool read<CellStruct>(CellStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (!parser.Read2Short(pSection, pKey, (short*)&value))
-		{
-			if(!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid CellStruct");
+	bool read<PartialVector3D<float>>(PartialVector3D<float>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			return false;
-		}
-
-		return true;
-	}
+	template <>
+	bool read<CellStruct>(CellStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<Point2D>(Point2D& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (!parser.Read2Integers(pSection, pKey, (int*)&value))
-		{
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid Point2D");
+	bool read<Point2D>(Point2D& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			return false;
-		}
+	template <>
+	bool read<MinMaxValue<int>>(MinMaxValue<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return true;
-	}
+	template <>
+	bool read<MinMaxValue<float>>(MinMaxValue<float>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<MinMaxValue<int>>(MinMaxValue<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (!parser.Read2Integers(pSection, pKey, (int*)&value))
-		{
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid MinMaxValue<int>");
+	bool read<MinMaxValue<double>>(MinMaxValue<double>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			return false;
-		}
+	template <>
+	bool read<Vector2D<int>>(Vector2D<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return true;
-	}
+	template <>
+	bool read<Point3D>(Point3D& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<MinMaxValue<float>>(MinMaxValue<float>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (!parser.Read2Float(pSection, pKey, (float*)&value))
-		{
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid MinMaxValue<float>");
+	bool read<RectangleStruct>(RectangleStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			return false;
-		}
+	template <>
+	bool read<Point2DBYTE>(Point2DBYTE& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return true;
-	}
+	template <>
+	bool read<CoordStruct>(CoordStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<MinMaxValue<double>>(MinMaxValue<double>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (!parser.Read2Double(pSection, pKey, (double*)&value))
-		{
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid MinMaxValue<double>");
+	bool read<Vector3D<BYTE>>(Vector3D<BYTE>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			return false;
-		}
+	template <>
+	bool read<Vector3D<int>>(Vector3D<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return true;
-	}
+	template <>
+	bool read<Vector2D<double>>(Vector2D<double>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<Vector2D<int>>(Vector2D<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (!parser.Read2Integers(pSection, pKey, (int*)&value))
-		{
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid Vector2D");
+	bool read<CSFText>(CSFText& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			return false;
-		}
+	template <>
+	bool read<RocketStruct>(RocketStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return true;
-	}
+	template <>
+	bool read<Leptons>(Leptons& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<Point3D>(Point3D& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (!parser.Read3Integers(pSection, pKey, (int*)&value))
-		{
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid Point3D");
+	bool read<SWRange>(SWRange& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			return false;
-		}
+	template <>
+	bool read<PassiveAcquireModes>(PassiveAcquireModes& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return true;
-	}
+	template <>
+	bool read<LaserTrailDrawType>(LaserTrailDrawType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<RectangleStruct>(RectangleStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (!parser.Read4Integers(pSection, pKey, (int*)&value))
-		{
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid RectangleStruct");
+	bool read<AttachedAnimPosition>(AttachedAnimPosition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			return false;
-		}
+	template <>
+	bool read<Rank>(Rank& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return true;
-	}
+	template <>
+	bool read<Armor>(Armor& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<Point2DBYTE>(Point2DBYTE& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (!parser.Read2Bytes(pSection, pKey, (BYTE*)&value))
-		{
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid 3 BYTE Value");
+	bool read<Edge>(Edge& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			return false;
-		}
+	template <>
+	bool read<TranslucencyLevel>(TranslucencyLevel& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return true;
-	}
+	template <>
+	bool read<HorizontalPosition>(HorizontalPosition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<CoordStruct>(CoordStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (!parser.Read3Integers(pSection, pKey, (int*)&value))
-		{
-			if (!parser.empty())
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid CoordStruct");
+	bool read<BannerNumberType>(BannerNumberType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			return false;
-		}
-		return true;
-	}
+	template <>
+	bool read<VerticalPosition>(VerticalPosition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<Vector3D<BYTE>>(Vector3D<BYTE>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (!parser.Read3Bytes(pSection, pKey, (BYTE*)&value))
-		{
-			if (!parser.empty()) {
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid 3 BYTE Value");
-			}
+	bool read<SelfHealGainType>(SelfHealGainType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			return false;
-		}
+	template <>
+	bool read<SlaveReturnTo>(SlaveReturnTo& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return true;
-	}
+	template <>
+	bool read<KillMethod>(KillMethod& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<Vector3D<int>>(Vector3D<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (!parser.Read3Integers(pSection, pKey, (int*)&value))
-		{
-			if (!parser.empty())
-			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid 3 int Value");
-			}
+	bool read<IronCurtainFlag>(IronCurtainFlag& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			return false;
-		}
+	template <>
+	bool read<OwnerHouseKind>(OwnerHouseKind& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return true;
-	}
+	template <>
+	bool read<Mission>(Mission& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<Vector2D<double>>(Vector2D<double>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if(parser.Read2Double(pSection, pKey, (double*)&value))
-			return true;
-		else if (!parser.empty()) {
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid 2 floating point Value");
-		}
+	bool read<SuperWeaponAITargetingMode>(SuperWeaponAITargetingMode& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return false;
-	}
+	template <>
+	bool read<AffectedTarget>(AffectedTarget& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<CSFText>(CSFText& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			value = parser.value();
-			return true;
-		}
-		return false;
-	}
+	bool read<ChronoSparkleDisplayPosition>(ChronoSparkleDisplayPosition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<RocketStruct>(RocketStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		auto ret = false;
-		std::string _buffer(pKey);
+	bool read<SuperWeaponTarget>(SuperWeaponTarget& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		ret |= read(value.PauseFrames, parser, pSection, (_buffer + ".PauseFrames").c_str());
-		ret |= read(value.TiltFrames, parser, pSection, (_buffer + ".TiltFrames").c_str());
-		ret |= read(value.PitchInitial, parser, pSection, (_buffer + ".PitchInitial").c_str());
-		ret |= read(value.PitchFinal, parser, pSection, (_buffer + ".PitchFinal").c_str());
-		ret |= read(value.TurnRate, parser, pSection, (_buffer + ".TurnRate").c_str());
+	template <>
+	bool read<TargetingConstraints>(TargetingConstraints& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		// sic! integer read like a float.
-		float buffer = 0.0f;
-		if (read(buffer, parser, pSection, (_buffer + ".RaiseRate").c_str()))
-		{
-			value.RaiseRate = int(buffer);
-			ret = true;
-		}
+	template <>
+	bool read<TargetingPreference>(TargetingPreference& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		ret |= read(value.Acceleration, parser, pSection, (_buffer + ".Acceleration").c_str());
-		ret |= read(value.Altitude, parser, pSection, (_buffer + ".Altitude").c_str());
-		ret |= read(value.Damage, parser, pSection, (_buffer + ".Damage").c_str());
-		ret |= read(value.EliteDamage, parser, pSection, (_buffer + ".EliteDamage").c_str());
-		ret |= read(value.BodyLength, parser, pSection, (_buffer + ".BodyLength").c_str());
-		ret |= read(value.LazyCurve, parser, pSection, (_buffer + ".LazyCurve").c_str());
-		ret |= read(value.Type, parser, pSection, (_buffer + ".Type").c_str());
+	template <>
+	bool read<DiscardCondition>(DiscardCondition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return ret;
-	}
+	template <>
+	bool read<ExpireWeaponCondition>(ExpireWeaponCondition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<Leptons>(Leptons& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		double buffer;
-		//vanilla : return false if -1.0
-		if (read(buffer,parser ,pSection ,pKey ,allocate ) && buffer != -1.0) {
-			value = Leptons(buffer);
-			return true;
-		}
+	bool read<LandType>(LandType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return false;
-	}
+	template <>
+	bool read<AffectedHouse>(AffectedHouse& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<SWRange>(SWRange& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			char* context = nullptr;
-			char* p = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
-			if (p && *p)
-			{
-				value.WidthOrRange = float(atof(p));
-				value.Height = 0;
+	bool read<AttachedAnimFlag>(AttachedAnimFlag& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-				p = strtok_s(nullptr, Phobos::readDelims, &context);
-				if (p && *p)
-				{
-					value.Height = atoi(p);
-				}
-			}
+	template <>
+	bool read<AreaFireTarget>(AreaFireTarget& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			return true;
-		}
+	template <>
+	bool read<TextAlign>(TextAlign& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return false;
-	}
+	template <>
+	bool read<Layer>(Layer& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-#pragma endregion
+	template <>
+	bool read<AbstractType>(AbstractType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-#pragma region Enumstuffs
+	template <>
+	bool read<Locomotors>(Locomotors& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	inline bool read<PassiveAcquireModes>(PassiveAcquireModes& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey)) {
-			for (const auto& [val, name] : EnumFunctions::PassiveAcquireModes_ToStrings) {
-				if (PhobosCRT::iequals(parser.value(), name)) {
-					value = val;
-					return true;
-				}
-			}
+	bool read(TileType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a PassiveAcquireMode type");
-		}
+	template <>
+	bool read<LandTypeFlags>(LandTypeFlags& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return false;
-	}
+	template <>
+	bool read<TypeList<int>>(TypeList<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	inline bool read<LaserTrailDrawType>(LaserTrailDrawType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			for (const auto& [val, name] : EnumFunctions::LaserTrailDrawType_ToStrings) {
-				if (PhobosCRT::iequals(parser.value(), name)) {
-					value = val;
-					return true;
-				}
-			}
+	bool read<Vector3D<float>>(Vector3D<float>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a LaserTrail draw type");
-		}
+	template<>
+	bool read<Foundation>(Foundation& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return false;
-	}
+	template<>
+	bool read<DoTypeFacing>(DoTypeFacing& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	inline bool read<AttachedAnimPosition>(AttachedAnimPosition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey)) {
-
-			char* context = nullptr;
-			auto resultData = AttachedAnimPosition::Default;
-
-			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
-				cur;
-				cur = strtok_s(nullptr, Phobos::readDelims, &context))
-			{
-				bool found = false;
-				for (const auto& [val, name] : EnumFunctions::AttachedAnimPosition_ToStrings) {
-					if (PhobosCRT::iequals(cur, name)) {
-						resultData |= val;
-						found = true;
-						break;
-					}
-				}
+	bool read<AffectPlayerType>(AffectPlayerType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-				if(!found && IS_SAME_STR_(cur, "centre")) {
-					resultData |= AttachedAnimPosition::Center;
-					found = true;
-				}
+	template <>
+	bool read<AffectedVeterancy>(AffectedVeterancy& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-				if (!found) {
-					Debug::INIParseFailed(pSection, pKey, cur, "Expected aAttachedAnimPosition type");
-					return false;
-				}
-			}
+	template <>
+	bool read<SpotlightFlags>(SpotlightFlags& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			value = resultData;
-			return true;
-		}
+	template <>
+	bool read<ColorStruct>(ColorStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return false;
-	}
+	template <>
+	bool read<DamageDelayTargetFlag>(DamageDelayTargetFlag& value, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate);
 
 	template <>
-	OPTIONALINLINE bool read<Rank>(Rank& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		return parser.ReadString(pSection, pKey)
-			&& getresult<Rank>(value, parser.value(), pSection, pKey);
-	}
+	bool read<NewCrateType>(NewCrateType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<Armor>(Armor& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		return parser.ReadArmor(pSection, pKey, (int*)&value);
-	}
+	bool read<TargetZoneScanType>(TargetZoneScanType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<Edge>(Edge& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			for (size_t i = 0; i < CellClass::EdgeToStrings.size(); ++i)
-			{
-				if (PhobosCRT::iequals(parser.value(), CellClass::EdgeToStrings[i]))
-				{
-					value = (Edge)i;
-					return true;
-				}
-			}
+	bool read<MouseCursor>(MouseCursor& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid map Edge strings");
-		}
+	template <>
+	bool read<MouseCursorDataStruct>(MouseCursorDataStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return false;
-	}
+	template <>
+	bool read<FacingType>(FacingType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<TranslucencyLevel>(TranslucencyLevel& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		return value.Read(parser, pSection, pKey);
-	}
+	bool read<DirType32>(DirType32& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<HorizontalPosition>(HorizontalPosition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			for (const auto& [val , str] : EnumFunctions::HorizontalPosition_ToStrings) {
-				if (PhobosCRT::iequals(parser.value(), str)) {
-					value = val;
-					return true;
-				}
-			}
+	bool read<DirType>(DirType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			if (IS_SAME_STR_(parser.value(), "centre"))
-			{
-				value = HorizontalPosition::Center;
-				return true;
-			}
+	template <>
+	bool read<SpotlightAttachment>(SpotlightAttachment& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Horizontal Position can be either Left, Center/Centre or Right");
-		}
+	template <>
+	bool read<ShowTimerType>(ShowTimerType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return false;
-	}
+	template <>
+	bool read<AttachmentYSortPosition>(AttachmentYSortPosition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<BannerNumberType>(BannerNumberType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			for (const auto& [val , str] : EnumFunctions::BannerNumberType_ToStrings) {
-				if (PhobosCRT::iequals(parser.value(), str)) {
-					value = val;
-					return true;
-				}
-			}
+	bool read<AffectedTechno>(AffectedTechno& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Content.VariableFormat can be either none, prefixed, suffixed or fraction");
-		}
+	template <>
+	bool read<DisplayShowType>(DisplayShowType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-		return false;
-	}
+	template <>
+	bool read<BountyValueOption>(BountyValueOption& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<VerticalPosition>(VerticalPosition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			if (IS_SAME_STR_(parser.value(), "centre")) {
-				value = VerticalPosition::Center;
-				return true;
-			}
+	bool read<BuildingSelectBracketPosition>(BuildingSelectBracketPosition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			for (const auto& [val , str] : EnumFunctions::VerticalPosition_ToStrings) {
-				if (PhobosCRT::iequals(parser.value(), str)) {
-					value = val;
-					return true;
-				}
-			}
+	template <>
+	bool read<DisplayInfoType>(DisplayInfoType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Vertical Position can be either Top, Center/Centre or Bottom");
+	template <>
+	bool read<InterpolationMode>(InterpolationMode& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocat);
 
-		}
-		return false;
-	}
+	template <>
+	bool read<ParabolaFireMode>(ParabolaFireMode& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE bool read<SelfHealGainType>(SelfHealGainType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey)) {
-
-			if (IS_SAME_STR_(parser.value(), "noheal")){
-				value = SelfHealGainType::None;
-				return true;
-			}
+	bool read<CLSID>(CLSID& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
-			for (const auto& [val, str] : EnumFunctions::SelfHealGainType_ToStrings) {
-				if (PhobosCRT::iequals(parser.value(), str)) {
-					value = val;
-					return true;
-				}
-			}
-
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a self heal gain type");
-		}
-
-		return false;
-	}
-
-	template <>
-	OPTIONALINLINE bool read<SlaveReturnTo>(SlaveReturnTo& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			for (const auto& [val, str] : EnumFunctions::SlaveReturnTo_ToStrings) {
-				if (PhobosCRT::iequals(parser.value(), str)) {
-					value = val;
-					return true;
-				}
-			}
-
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a free-slave option, default to killer");
-		}
-
-		return false;
-	}
-
-	template <>
-	OPTIONALINLINE bool read<KillMethod>(KillMethod& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			if (IS_SAME_STR_(parser.value(), "kill")){
-				value = KillMethod::Explode;
-				return true;
-			}
-
-			for (const auto& [val, str] : EnumFunctions::KillMethod_ToStrings) {
-				if (PhobosCRT::iequals(parser.value(), str)) {
-					value = val;
-					return true;
-				}
-			}
-
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a kill method, default disabled");
-		}
-		return false;
-	}
-
-	template <>
-	OPTIONALINLINE bool read<IronCurtainFlag>(IronCurtainFlag& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			for (const auto& [val, str] : EnumFunctions::IronCurtainFlag_ToStrings) {
-				if (PhobosCRT::iequals(parser.value(), str)) {
-					value = val;
-					return true;
-				}
-			}
-
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "IronCurtainFlag can be either kill, invulnerable, ignore or random");
-		}
-
-		return false;
-	}
-
-	template <>
-	OPTIONALINLINE bool read<OwnerHouseKind>(OwnerHouseKind& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey)) {
-			for (size_t i = 0; i < EnumFunctions::OwnerHouseKind_ToStrings.size(); ++i) {
-				if (PhobosCRT::iequals(parser.value(), EnumFunctions::OwnerHouseKind_ToStrings[i].second)) {
-					value = EnumFunctions::OwnerHouseKind_ToStrings[i].first;
-					return true;
-				}
-			}
-
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a owner house kind");
-		}
-		return false;
-	}
-
-	template <>
-	OPTIONALINLINE bool read<Mission>(Mission& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			value = MissionClass::GetMissionById(parser.value());
-			return true;
-		}
-
-		return false;
-	}
-
-	template <>
-	OPTIONALINLINE bool read<SuperWeaponAITargetingMode>(SuperWeaponAITargetingMode& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			for (const auto& [val, str] : EnumFunctions::SuperWeaponAITargetingMode_ToStrings) {
-				if (PhobosCRT::iequals(parser.value(), str)) {
-					value = val;
-					return true;
-				}
-			}
-
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a AItargetingmode");
-		}
-		return false;
-	}
-
-	template <>
-	OPTIONALINLINE bool read<AffectedTarget>(AffectedTarget& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			char* context = nullptr;
-			AffectedTarget resultData = AffectedTarget::None;
-
-			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
-				cur;
-				cur = strtok_s(nullptr, Phobos::readDelims, &context))
-			{
-				bool found = false;
-				for (const auto& [pStrings , val] : EnumFunctions::AffectedTarget_ToStrings)
-				{
-					if (IS_SAME_STR_(cur, pStrings))
-					{
-						found = true;
-						resultData |= val;
-						break;
-					}
-				}
-
-				if (!found)
-				{
-					Debug::INIParseFailed(pSection, pKey, cur, "Expected a affected target");
-					return false;
-				}
-			}
-
-			value = resultData;
-			return true;
-		}
-		return false;
-	}
-
-	template <>
-	OPTIONALINLINE bool read<ChronoSparkleDisplayPosition>(ChronoSparkleDisplayPosition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			char* context = nullptr;
-			auto resultData = ChronoSparkleDisplayPosition::None;
-
-			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
-				cur;
-				cur = strtok_s(nullptr, Phobos::readDelims, &context))
-			{
-				bool found = false;
-				for (const auto& [pStrings , val] : EnumFunctions::ChronoSparkleDisplayPosition_ToStrings)
-				{
-					if (IS_SAME_STR_(cur, pStrings))
-					{
-						found = true;
-						resultData |= val;
-						break;
-					}
-				}
-
-				if (!found) {
-					Debug::INIParseFailed(pSection, pKey, cur, "Expected a chrono sparkle position type");
-				}
-			}
-
-			value = resultData;
-			return true;
-		}
-
-		return false;
-	}
-
-	template <>
-	OPTIONALINLINE bool read<SuperWeaponTarget>(SuperWeaponTarget& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			char* context = nullptr;
-			SuperWeaponTarget resultData = SuperWeaponTarget::None;
-
-			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
-				cur;
-				cur = strtok_s(nullptr, Phobos::readDelims, &context))
-			{
-				size_t result = 0;
-				bool found = false;
-				for (const auto& pStrings : EnumFunctions::AffectedTarget_ToStrings)
-				{
-					if (IS_SAME_STR_(cur, pStrings.first))
-					{
-						found = true;
-						break;
-					}
-					++result;
-				}
-
-				if (!found || result == 9)
-				{
-					Debug::INIParseFailed(pSection, pKey, cur, "Expected a SW target");
-					return false;
-				}
-				else
-				{
-					switch (result)
-					{
-					case 0: resultData |= SuperWeaponTarget::None; break;
-					case 1: resultData |= SuperWeaponTarget::Land; break;
-					case 2: resultData |= SuperWeaponTarget::Water; break;
-
-					case 14:
-					case 3: resultData |= SuperWeaponTarget::Empty; break;
-
-					case 4: resultData |= SuperWeaponTarget::Infantry; break;
-
-					case 5:
-					case 6: resultData |= SuperWeaponTarget::Unit; break;
-
-					case 7:
-					case 8: resultData |= SuperWeaponTarget::Building; break;
-
-					case 10: resultData |= SuperWeaponTarget::All; break;
-					case 11: resultData |= SuperWeaponTarget::AllCells; break;
-					case 12: resultData |= SuperWeaponTarget::AllTechnos; break;
-					case 13: resultData |= SuperWeaponTarget::AllContents; break;
-					}
-				}
-			}
-
-			value = resultData;
-			return true;
-		}
-		return false;
-	}
-
-	template <>
-	OPTIONALINLINE bool read<TargetingConstraints>(TargetingConstraints& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			char* context = nullptr;
-			auto resultData = TargetingConstraints::None;
-
-			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
-				cur;
-				cur = strtok_s(nullptr, Phobos::readDelims, &context))
-			{
-				bool found = false;
-				for (const auto& [pStrings , val] : EnumFunctions::TargetingConstraints_ToStrings) {
-					if (IS_SAME_STR_(cur, pStrings)) {
-						resultData |= val;
-						found = true;
-						break;
-					}
-				}
-
-				if (!found) {
-					Debug::INIParseFailed(pSection, pKey, cur, "Expected a targeting constraint");
-					return false;
-				}
-			}
-
-			value = resultData;
-			return true;
-		}
-		return false;
-	}
-
-	template <>
-	OPTIONALINLINE bool read<TargetingPreference>(TargetingPreference& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			for (const auto& [val , str] : EnumFunctions::TargetingPreference_ToStrings) {
-				if (PhobosCRT::iequals(parser.value(), str)) {
-					value = val;
-					return true;
-				}
-			}
-
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a targeting preference");
-		}
-		return false;
-	}
-
-	template <>
-	OPTIONALINLINE bool read<DiscardCondition>(DiscardCondition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			char* context = nullptr;
-			DiscardCondition resultData = DiscardCondition::None;
-
-			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
-				cur;
-				cur = strtok_s(nullptr, Phobos::readDelims, &context))
-			{
-				size_t result = 0;
-				bool found = false;
-				for (const auto& pStrings : EnumFunctions::DiscardCondition_to_strings)
-				{
-					if (IS_SAME_STR_(cur, pStrings))
-					{
-						found = true;
-						break;
-					}
-					++result;
-				}
-
-				if (!found)
-				{
-					Debug::INIParseFailed(pSection, pKey, cur, "Expected a DiscardCondition");
-					return false;
-				}
-				else
-				{
-					switch (result)
-					{
-					case 0: resultData |= DiscardCondition::None; break;
-					case 1: resultData |= DiscardCondition::Entry; break;
-					case 2: resultData |= DiscardCondition::Move; break;
-					case 3: resultData |= DiscardCondition::Stationary; break;
-					case 4: resultData |= DiscardCondition::Drain; break;
-					case 5: resultData |= DiscardCondition::InRange; break;
-					case 6: resultData |= DiscardCondition::OutOfRange; break;
-					case 7: resultData |= DiscardCondition::InvokerDeleted; break;
-					case 8: resultData |= DiscardCondition::Firing; break;
-					}
-				}
-			}
-
-			value = resultData;
-			return true;
-		}
-		return false;
-	}
-
-	template <>
-	OPTIONALINLINE bool read<ExpireWeaponCondition>(ExpireWeaponCondition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			char* context = nullptr;
-			ExpireWeaponCondition resultData = ExpireWeaponCondition::None;
-
-			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
-				cur;
-				cur = strtok_s(nullptr, Phobos::readDelims, &context)) {
-
-				size_t result = 0;
-				bool found = false;
-				for (const auto& pStrings : EnumFunctions::ExpireWeaponCondition_to_strings)
-				{
-					if (IS_SAME_STR_(cur, pStrings))
-					{
-						found = true;
-						break;
-					}
-					++result;
-				}
-
-				if (!found)
-				{
-					Debug::INIParseFailed(pSection, pKey, cur, "Expected a ExpireWeaponCondition");
-					return false;
-				}
-				else
-				{
-					switch (result)
-					{
-					case 0: resultData |= ExpireWeaponCondition::None; break;
-					case 1: resultData |= ExpireWeaponCondition::Expire; break;
-					case 2: resultData |= ExpireWeaponCondition::Remove; break;
-					case 3: resultData |= ExpireWeaponCondition::Death; break;
-					case 4: resultData |= ExpireWeaponCondition::Discard; break;
-					case 5: resultData = ExpireWeaponCondition::All; break;
-					}
-				}
-			}
-
-			value = resultData;
-			return true;
-		}
-		return false;
-	}
-
-	template <>
-	OPTIONALINLINE bool read<LandType>(LandType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		return parser.ReadString(pSection, pKey)
-			&& getresult<LandType>(value, parser.value(), pSection, pKey, allocate);
-	}
-
-	template <>
-	OPTIONALINLINE bool read<AffectedHouse>(AffectedHouse& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		return parser.ReadString(pSection, pKey)
-			&& getresult<AffectedHouse>(value, parser.value(), pSection, pKey, allocate);
-	}
-
-	template <>
-	OPTIONALINLINE bool read<AttachedAnimFlag>(AttachedAnimFlag& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			for (const auto& [pString , val] : EnumFunctions::AttachedAnimFlag_ToStrings)
-			{
-				if (IS_SAME_STR_(parser.value(), pString))
-				{
-					value = val;
-					return true;
-				}
-			}
-
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a AttachedAnimFlag");
-		}
-
-		return false;
-	}
-
-	template <>
-	OPTIONALINLINE bool read<AreaFireTarget>(AreaFireTarget& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			for (const auto& [val , str] : EnumFunctions::AreaFireTarget_ToStrings) {
-				if (PhobosCRT::iequals(parser.value(), str)) {
-					value = val;
-					return true;
-				}
-			}
-
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected an AreaFire target");
-		}
-
-		return false;
-	}
-
-	template <>
-	OPTIONALINLINE bool read<TextAlign>(TextAlign& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			for (auto const& [pString , val]: EnumFunctions::TextAlign_ToStrings)
-			{
-				if (IS_SAME_STR_(parser.value(), pString))
-				{
-					value = val;
-					return true;
-				}
-			}
-
-			if (IS_SAME_STR_(parser.value(), "centre"))
-			{
-				value = TextAlign::Center;
-				return true;
-			}
-
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Text Alignment can be either Left, Center/Centre or Right");
-		}
-
-		return false;
-	}
-
-	template <>
-	OPTIONALINLINE bool read<Layer>(Layer& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			if(GameStrings::IsNone(parser.value()))
-				return false;
-
-			for (size_t i = 0; i < CellClass::LayerToStrings.size(); ++i)
-			{
-				if (IS_SAME_STR_(parser.value(), CellClass::LayerToStrings[i]))
-				{
-					value = Layer(i);
-					return true;
-				}
-			}
-
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect a Valid Layer !");
-		}
-
-		return false;
-	}
-
-	template <>
-	OPTIONALINLINE bool read<AbstractType>(AbstractType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			if (IS_SAME_STR_(parser.value(), GameStrings::NoneStrb())) {
-				value = AbstractType::None;
-				return true;
-			}
-
-			for (size_t i = 0; i < AbstractClass::RTTIToString.size(); ++i) {
-				if (IS_SAME_STR_(parser.value(), AbstractClass::RTTIToString[i].Name)) {
-					value = AbstractType(i);
-					return true;
-				}
-			}
-
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect a Valid AbstractType !");
-		}
-
-		return false;
-	}
-
-	template <>
-	OPTIONALINLINE bool read<Locomotors>(Locomotors& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			for (size_t i = 0; i < EnumFunctions::LocomotorPairs_ToStrings.size(); ++i)
-			{
-				const auto& [name, ID] = EnumFunctions::LocomotorPairs_ToStrings[i];
-				if (IS_SAME_STR_(parser.value(), name) || IS_SAME_STR_(parser.value(), ID)) {
-					value = Locomotors(i);
-					return true;
-				}
-			}
-
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expect valid Locomotor CLSID or Name");
-		}
-
-		return false;
-	}
-
-	template <>
-	OPTIONALINLINE bool read(TileType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		return parser.ReadString(pSection, pKey)
-			&& getresult<TileType>(value, parser.value(), pSection, pKey, allocate);
-	}
-
-	template <>
-	OPTIONALINLINE bool read<LandTypeFlags>(LandTypeFlags& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			auto parsed = LandTypeFlags::None;
-			auto str = parser.value();
-			char* context = nullptr;
-
-			for (auto cur = strtok_s(str, Phobos::readDelims, &context);
-				cur;
-				cur = strtok_s(nullptr, Phobos::readDelims, &context)) {
-
-				auto const landType = GroundType::GetLandTypeFromName(parser.value());
-
-				if (landType >= LandType::Clear && landType <= LandType::Weeds) {
-					parsed |= (LandTypeFlags)(1 << (char)landType);
-				}
-				else {
-					Debug::INIParseFailed(pSection, pKey, cur, "Expected a land type name");
-					return false;
-				}
-			}
-
-			value = parsed;
-			return true;
-		}
-
-		return false;
-	}
-
-#pragma endregion
-
-#pragma region Vectorstuffs
-	template <>
-	OPTIONALINLINE bool read<TypeList<int>>(TypeList<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			value.reset();
-
-			char* context = nullptr;
-			for (auto pCur = strtok_s(parser.value(), Phobos::readDelims, &context);
-				pCur;
-				pCur = strtok_s(nullptr, Phobos::readDelims, &context))
-			{
-				int buffer = 0;
-				if (Parser<int>::Parse(pCur, &buffer))
-				{
-					value.push_back(buffer);
-					return true;
-				}
-				else
-				{
-					Debug::INIParseFailed(pSection, pKey, pCur, nullptr);
-				}
-			}
-		}
-		return false;
-	}
-
-	//WARNING : this not checking for read first , make sure before using it !
-	template <typename T , bool clearvec = true>
+	template <typename T, bool clearvec = true>
 	OPTIONALINLINE void parse_values(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
 	{
-		if COMPILETIMEEVAL (clearvec)
+		if COMPILETIMEEVAL(clearvec)
 			vector.clear();
 
 		char* context = nullptr;
@@ -1714,7 +470,7 @@ namespace detail
 	template <typename T>
 	OPTIONALINLINE void ReadVectors(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
 	{
-		//static_assert(std::is_pointer<T>::value, "Pointer Required !");
+		//_assert(std::is_pointer<T>::value, "Pointer Required !");
 
 		if (parser.ReadString(pSection, pKey))
 		{
@@ -1726,7 +482,7 @@ namespace detail
 	template <typename T>
 	OPTIONALINLINE void parse_Alloc_values(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
 	{
-		static_assert(std::is_pointer<T>::value, "Pointer Required !");
+		_assert(std::is_pointer<T>::value, "Pointer Required !");
 		using base_type = std::remove_pointer_t<T>;
 		vector.clear();
 
@@ -1748,7 +504,7 @@ namespace detail
 	template <typename T>
 	OPTIONALINLINE void ReadVectorsAlloc(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
 	{
-		static_assert(std::is_pointer<T>::value, "Pointer Required !");
+		_assert(std::is_pointer<T>::value, "Pointer Required !");
 
 		if (parser.ReadString(pSection, pKey))
 		{
@@ -1756,114 +512,26 @@ namespace detail
 		}
 	}
 
-	//WARNING : this not checking for read first , make sure before using it !
 	template <>
-	OPTIONALINLINE void parse_values<LandType>(std::vector<LandType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		vector.clear();
-		char* context = nullptr;
-		for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
-			cur;
-			cur = strtok_s(nullptr, Phobos::readDelims, &context))
-		{
-			LandType buffer;
-			if (getresult<LandType>(buffer, cur, pSection, pKey, allocate))
-				vector.push_back(buffer);
-		}
-	}
+	void parse_values<LandType>(std::vector<LandType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE void parse_values<FacingType>(std::vector<FacingType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		vector.clear();
-		char* context = nullptr;
-		for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
-			cur;
-			cur = strtok_s(nullptr, Phobos::readDelims, &context))
-		{
-			FacingType buffer;
-			if (getresult<FacingType>(buffer, cur, pSection, pKey, allocate))
-				vector.push_back(buffer);
-		}
-	}
+	void parse_values<FacingType>(std::vector<FacingType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE void parse_values<PhobosAbilityType>(std::vector<PhobosAbilityType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		vector.clear();
-		char* context = nullptr;
-		for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
-			cur;
-			cur = strtok_s(nullptr, Phobos::readDelims, &context))
-		{
-			PhobosAbilityType buffer;
-			if (getresult<PhobosAbilityType>(buffer, cur, pSection, pKey, allocate))
-				vector.push_back(buffer);
-		}
-	}
+	void parse_values<PhobosAbilityType>(std::vector<PhobosAbilityType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE void parse_values<TechnoTypeConvertData>(std::vector<TechnoTypeConvertData>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		vector.clear();
-		char* context = nullptr;
-		for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
-			cur;
-			cur = strtok_s(nullptr, Phobos::readDelims, &context))
-		{
-			TechnoTypeConvertData buffer;
-			if (getresult<TechnoTypeConvertData>(buffer, cur, pSection, pKey, allocate))
-				vector.push_back(buffer);
-		}
-	}
+	void parse_values<TechnoTypeConvertData>(std::vector<TechnoTypeConvertData>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE void parse_values<TileType>(std::vector<TileType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		vector.clear();
-		char* context = nullptr;
-		for (auto cur = strtok_s(parser.value(),
-			Phobos::readDelims, &context);
-			cur;
-			cur = strtok_s(nullptr, Phobos::readDelims, &context))
-		{
-			TileType buffer;
-			if (getresult<TileType>(buffer, cur, pSection, pKey, allocate))
-				vector.push_back(buffer);
-		}
-	}
+	void parse_values<TileType>(std::vector<TileType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE void parse_values<Mission>(std::vector<Mission>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		vector.clear();
-		char* context = nullptr;
-		for (auto cur = strtok_s(parser.value(),
-			Phobos::readDelims, &context);
-			cur;
-			cur = strtok_s(nullptr, Phobos::readDelims, &context))
-		{
-			Mission buffer = MissionClass::GetMissionById(cur);
-			if (buffer != Mission::None)
-				vector.push_back(buffer);
-		}
-	}
+	void parse_values<Mission>(std::vector<Mission>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	OPTIONALINLINE void parse_values<Rank>(std::vector<Rank>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		vector.clear();
-		char* context = nullptr;
-		for (auto cur = strtok_s(parser.value(),
-			Phobos::readDelims, &context);
-			cur;
-			cur = strtok_s(nullptr, Phobos::readDelims, &context))
-		{
-			Rank buffer;
-			if (getresult<Rank>(buffer, cur, pSection, pKey, allocate))
-				vector.push_back(buffer);
-		}
-	}
+	void parse_values<Rank>(std::vector<Rank>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <typename Lookuper, typename T>
 	OPTIONALINLINE void parse_indexes(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey)
@@ -1875,10 +543,12 @@ namespace detail
 			pCur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
 			int idx = -1;
-			if COMPILETIMEEVAL (std::is_pointer<Lookuper>::value) {
+			if COMPILETIMEEVAL(std::is_pointer<Lookuper>::value)
+			{
 				using base_type = std::remove_pointer_t<Lookuper>;
 				idx = base_type::FindIndexById(pCur);
-			} else { idx = Lookuper::FindIndexById(pCur); }
+			}
+			else { idx = Lookuper::FindIndexById(pCur); }
 
 			if (idx != -1 || GameStrings::IsNone(pCur))
 			{
@@ -1891,13 +561,225 @@ namespace detail
 		}
 	}
 
-#pragma endregion
+	void ParseVector(INI_EX& IniEx, std::vector<std::vector<std::string>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false, const char* Delims = Phobos::readDelims, const char* message = nullptr);
+
+	template<typename T, bool Alloc = false>
+	OPTIONALINLINE void ParseVector(INI_EX& IniEx, std::vector<std::vector<T>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false, const char* Delims = Phobos::readDelims, const char* message = nullptr)
+	{
+		//_assert(std::is_pointer<T>::value, "Pointer Required !");
+		using baseType = std::remove_pointer_t<T>;
+
+		if (!IniEx->GetSection(pSection))
+			return;
+
+		nVecDest.clear();
+		const auto nKeyCount = IniEx->GetKeyCount(pSection);
+
+		if (!nKeyCount)
+			return;
+
+		nVecDest.resize(nKeyCount);
+
+		for (int i = 0; i < nKeyCount; ++i)
+		{
+			if (!IniEx.ReadString(pSection, IniEx->GetKeyName(pSection, i)))
+				continue;
+
+			char* context = nullptr;
+			for (char* cur = strtok_s(IniEx.value(), Delims, &context);
+				cur; cur = strtok_s(nullptr, Delims, &context))
+			{
+				auto res = PhobosCRT::trim(cur);
+
+				T buffer = nullptr;
+				if COMPILETIMEEVAL(!Alloc)
+					buffer = baseType::Find(res.c_str());
+				else
+					buffer = baseType::FindOrAllocate(res.c_str());
+
+				if (bVerbose)
+					Debug::LogInfo("ParseVector DEBUG: [{}][{}]: Verose parsing [{}]", pSection, i, res.c_str());
+
+				if (buffer)
+				{
+					nVecDest[i].push_back(buffer);
+				}
+				else if (bDebug && !GameStrings::IsNone(cur))
+				{
+					Debug::LogInfo("ParseVector DEBUG: [{}][{}]: Error parsing [{}]", pSection, i, res.c_str());
+				}
+			}
+		}
+	}
+
+	template<size_t count>
+	OPTIONALINLINE void ParseVector(INI_EX& IniEx, std::vector<std::vector<PhobosFixedString<count>>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false, const char* Delims = Phobos::readDelims, const char* message = nullptr)
+	{
+		if (!IniEx->GetSection(pSection))
+			return;
+
+		nVecDest.clear();
+
+		const auto nKeyCount = IniEx->GetKeyCount(pSection);
+		if (!nKeyCount)
+			return;
+
+		nVecDest.resize(nKeyCount);
+
+		for (int i = 0; i < nKeyCount; ++i)
+		{
+			char* context = nullptr;
+			if (!IniEx.ReadString(pSection, IniEx->GetKeyName(pSection, i)))
+				continue;
+
+			for (char* cur = strtok_s(IniEx.value(), Delims, &context);
+				cur;
+				cur = strtok_s(nullptr, Delims, &context))
+			{
+				auto res = PhobosCRT::trim(cur);
+
+				if (!res.empty())
+					nVecDest[i].emplace_back(res.c_str());
+
+				if (bVerbose)
+					Debug::LogInfo("ParseVector DEBUG: [{}][{}]: Verose parsing [{}]", pSection, i, res.c_str());
+			}
+		}
+	}
+
+	template<typename T, bool Allocate = false, bool Unique = false>
+	OPTIONALINLINE void ParseVector(DynamicVectorClass<T>& List, INI_EX& IniEx, const char* section, const char* key, const char* message = nullptr)
+	{
+		if (IniEx.ReadString(section, key))
+		{
+			List.reset();
+			char* context = nullptr;
+
+			if COMPILETIMEEVAL(std::is_pointer<T>())
+			{
+				using BaseType = std::remove_pointer_t<T>;
+
+				for (char* cur = strtok_s(IniEx.value(), Phobos::readDelims, &context); cur;
+					 cur = strtok_s(nullptr, Phobos::readDelims, &context))
+				{
+					BaseType* buffer = nullptr;
+					if COMPILETIMEEVAL(Allocate)
+					{
+						buffer = BaseType::FindOrAllocate(cur);
+					}
+					else
+					{
+						buffer = BaseType::Find(cur);
+					}
+
+					if (buffer)
+					{
+						if COMPILETIMEEVAL(!Unique)
+						{
+							List.push_back(buffer);
+						}
+						else
+						{
+							List.insert_unique(buffer);
+						}
+					}
+					else if (!GameStrings::IsNone(cur))
+					{
+						Debug::INIParseFailed(section, key, cur, message);
+					}
+				}
+			}
+			else
+			{
+				for (char* cur = strtok_s(IniEx.value(), Phobos::readDelims, &context); cur;
+					 cur = strtok_s(nullptr, Phobos::readDelims, &context))
+				{
+					T buffer = T();
+					if (Parser<T>::TryParse(cur, &buffer))
+					{
+						if COMPILETIMEEVAL(!Unique)
+						{
+							List.push_back(buffer);
+						}
+						else
+						{
+							List.insert_unique(buffer);
+						}
+					}
+					else if (!GameStrings::IsNone(cur))
+					{
+						Debug::INIParseFailed(section, key, cur, message);
+					}
+				}
+			}
+		}
+	};
+
 
 	template <typename T>
-	OPTIONALINLINE bool getindex(int& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false) {
-		return IndexFinder<T>::getindex(value , parser , pSection , pKey , allocate);
+	OPTIONALINLINE T interpolate(T& first, T& second, double percentage, InterpolationMode mode)
+	{
+		return first;
 	}
-}
+
+	template <>
+	OPTIONALINLINE double interpolate<double>(double& first, double& second, double percentage, InterpolationMode mode)
+	{
+		double result = first;
+
+		switch (mode)
+		{
+		case InterpolationMode::Linear:
+			result = first + ((second - first) * percentage);
+			break;
+		default:
+			break;
+		}
+
+		return result;
+	}
+
+	template <>
+	OPTIONALINLINE int interpolate<int>(int& first, int& second, double percentage, InterpolationMode mode)
+	{
+		double firstValue = first;
+		double secondValue = second;
+		return (int)interpolate(firstValue, secondValue, percentage, mode);
+	}
+
+	template <>
+	OPTIONALINLINE BYTE interpolate<BYTE>(BYTE& first, BYTE& second, double percentage, InterpolationMode mode)
+	{
+		double firstValue = first;
+		double secondValue = second;
+		return (BYTE)interpolate(firstValue, secondValue, percentage, mode);
+	}
+
+	template <>
+	OPTIONALINLINE ColorStruct interpolate<ColorStruct>(ColorStruct& first, ColorStruct& second, double percentage, InterpolationMode mode)
+	{
+		BYTE r = interpolate(first.R, second.R, percentage, mode);
+		BYTE g = interpolate(first.G, second.G, percentage, mode);
+		BYTE b = interpolate(first.B, second.B, percentage, mode);
+		return { r, g, b };
+	}
+
+	template <>
+	OPTIONALINLINE TranslucencyLevel interpolate<TranslucencyLevel>(TranslucencyLevel& first, TranslucencyLevel& second, double percentage, InterpolationMode mode)
+	{
+		double firstValue = first.GetIntValue();
+		double secondValue = second.GetIntValue();
+		int value = (int)interpolate(firstValue, secondValue, percentage, mode);
+		return { value };
+	}
+
+	template <typename T>
+	OPTIONALINLINE bool getindex(int& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
+	{
+		return IndexFinder<T>::getindex(value, parser, pSection, pKey, allocate);
+	}
+};
+
 
 // Valueable
 template <typename T>
@@ -1933,10 +815,14 @@ void OPTIONALINLINE Nullable<T>::Read(INI_EX& parser, const char* pSection, cons
 	{
 		const char* val = parser.value();
 
-		if(strlen(val) != 0) {
-			if (IS_SAME_STR_(val, DEFAULT_STR2)) {
+		if (strlen(val) != 0)
+		{
+			if (IS_SAME_STR_(val, DEFAULT_STR2))
+			{
 				this->Reset();
-			} else {
+			}
+			else
+			{
 				this->HasValue = true;
 			}
 		}
@@ -1950,7 +836,8 @@ bool OPTIONALINLINE Nullable<T>::Load(PhobosStreamReader& Stm, bool RegisterForC
 	if (!Stm.Process(this->HasValue))
 		return false;
 
-	if (this->HasValue) {
+	if (this->HasValue)
+	{
 		return Stm.Process(this->Value, RegisterForChange);
 	}
 
@@ -1963,7 +850,8 @@ bool OPTIONALINLINE Nullable<T>::Save(PhobosStreamWriter& Stm) const
 	if (!Stm.Process(this->HasValue))
 		return false;
 
-	if (this->HasValue) {
+	if (this->HasValue)
+	{
 		return Stm.Process(this->Value);
 	}
 
@@ -1974,7 +862,8 @@ bool OPTIONALINLINE Nullable<T>::Save(PhobosStreamWriter& Stm) const
 template <typename Lookuper, EnumCheckMode mode>
 void OPTIONALINLINE NullableIdx<Lookuper, mode>::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
-	if COMPILETIMEEVAL (mode == EnumCheckMode::originalbehaviour) {
+	if COMPILETIMEEVAL(mode == EnumCheckMode::originalbehaviour)
+	{
 		if (detail::getindex<Lookuper>(this->Value, parser, pSection, pKey))
 			this->HasValue = true;
 	}
@@ -1984,8 +873,10 @@ void OPTIONALINLINE NullableIdx<Lookuper, mode>::Read(INI_EX& parser, const char
 		{
 			const char* val = parser.value();
 
-			if COMPILETIMEEVAL (mode != EnumCheckMode::disable){
-				if (GameStrings::IsNone(val)) {
+			if COMPILETIMEEVAL(mode != EnumCheckMode::disable)
+			{
+				if (GameStrings::IsNone(val))
+				{
 					this->Value = -1;
 					this->HasValue = true;
 					return;
@@ -1994,7 +885,7 @@ void OPTIONALINLINE NullableIdx<Lookuper, mode>::Read(INI_EX& parser, const char
 
 			int idx = this->Value;
 
-			if COMPILETIMEEVAL (std::is_pointer<Lookuper>::value)
+			if COMPILETIMEEVAL(std::is_pointer<Lookuper>::value)
 			{
 				using base_type = std::remove_pointer_t<Lookuper>;
 				idx = base_type::FindIndexById(val);
@@ -2036,19 +927,20 @@ void OPTIONALINLINE Promotable<T>::Read(INI_EX& parser, const char* const pSecti
 	}
 
 	T placeholder {};
-	if (detail::read(placeholder, parser, pSection, flagbuffer, allocate)) {
+	if (detail::read<T>(placeholder, parser, pSection, flagbuffer, allocate))
+	{
 		this->SetAll(placeholder);
 	}
 
 	// read specific flags
 	IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Rookie + 1].second.data());
-	detail::read(this->Rookie, parser, pSection, flagbuffer, allocate);
+	detail::read<T>(this->Rookie, parser, pSection, flagbuffer, allocate);
 
 	IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran + 1].second.data());
-	detail::read(this->Veteran, parser, pSection, flagbuffer, allocate);
+	detail::read<T>(this->Veteran, parser, pSection, flagbuffer, allocate);
 
 	IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Elite + 1].second.data());
-	detail::read(this->Elite, parser, pSection, flagbuffer, allocate);
+	detail::read<T>(this->Elite, parser, pSection, flagbuffer, allocate);
 };
 
 template <typename T>
@@ -2186,7 +1078,7 @@ void OPTIONALINLINE NullableVector<T>::Read(INI_EX& parser, const char* pSection
 
 		if (non_default)
 		{
-			detail::parse_values<T>(*this, parser, pSection, pKey , allocate);
+			detail::parse_values<T>(*this, parser, pSection, pKey, allocate);
 		}
 	}
 }
@@ -2205,7 +1097,8 @@ bool OPTIONALINLINE NullableVector<T>::Load(PhobosStreamReader& Stm, bool Regist
 template <typename T>
 bool OPTIONALINLINE NullableVector<T>::Save(PhobosStreamWriter& Stm) const
 {
-	if (Stm.Process(this->hasValue)) {
+	if (Stm.Process(this->hasValue))
+	{
 		return !this->hasValue || ValueableVector<T>::Save(Stm);
 	}
 
@@ -2250,14 +1143,15 @@ void OPTIONALINLINE Damageable<T>::Read(INI_EX& parser, const char* const pSecti
 	auto const pSingleFormat = pSingleFlag ? pSingleFlag : pBaseFlag;
 	auto res = IMPL_SNPRNINTF(flagName, sizeof(flagName), pSingleFormat, Phobos::readDefval);
 
-	if (res > 0) {
+	if (res > 0)
+	{
 		if (flagName[res - 1] == '.') //dot in the end
 			flagName[res - 1] = '\0';
 		else if (flagName[0] == '.') //dot in the first
 			flagName[0] = '\0';
 	}
 
-	this->BaseValue.Read(parser, pSection, flagName , Alloc);
+	this->BaseValue.Read(parser, pSection, flagName, Alloc);
 
 	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::HealthCondition_ToStrings[1].second.data());
 	this->ConditionYellow.Read(parser, pSection, flagName, Alloc);
@@ -2380,145 +1274,6 @@ bool OPTIONALINLINE DamageableVector<T>::Save(PhobosStreamWriter& Stm) const
 		.Process(this->ConditionRed)
 		.Process(this->MaxValue);
 }
-
-/*
-// PromotableVector
-template <typename T>
-void OPTIONALINLINE PromotableVector<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
-{
-	// read the common flag, with the trailing dot being stripped
-	char flagName[0x80];
-	auto const pSingleFormat = pSingleFlag ? pSingleFlag : pBaseFlag;
-	auto res = IMPL_SNPRNINTF(flagName, sizeof(flagName), pSingleFormat, Phobos::readDefval);
-
-	if (res > 0)
-	{
-		if (flagName[res - 1] == '.')
-			flagName[res - 1] = '\0';
-
-		if (flagName[0] == '.')
-			strcpy_s(flagName, flagName + 1);
-
-		this->Base.Read(parser, pSection, flagName);
-	}
-
-	NullableVector<T> veteran;
-	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran]);
-	veteran.Read(parser, pSection, flagName);
-
-	NullableVector<T> elite;
-	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Elite]);
-	elite.Read(parser, pSection, flagName);
-
-	if (veteran.HasValue())
-	{
-		for (size_t i = 0; i < veteran.size(); i++)
-		{
-			this->Veteran[i] = veteran[i];
-		}
-	}
-
-	if (elite.HasValue())
-	{
-		for (size_t i = 0; i < elite.size(); i++)
-		{
-			this->Elite[i] = elite[i];
-		}
-	}
-}
-
-template <typename T>
-void OPTIONALINLINE PromotableVector<T>::ReadList(INI_EX& parser, const char* pSection, const char* pFlag, bool allocate)
-{
-	bool numFirst = false;
-	int flagLength = strlen(pFlag);
-
-	for (int i = 1; i < flagLength; i++)
-	{
-		if (pFlag[i - 1] == '%')
-		{
-			if (pFlag[i] == 'd')
-			{
-				numFirst = true;
-			}
-			else
-			{
-				break;
-			}
-		}
-	}
-
-	char flag[0x40];
-
-	for (int i = 0;; i++)
-	{
-		Nullable<T> value;
-		int res = 0;
-
-		if (numFirst)
-			res = IMPL_SNPRNINTF(flag, sizeof(flag), pFlag, i, Phobos::readDefval);
-		else
-			res = IMPL_SNPRNINTF(flag, sizeof(flag), pFlag, Phobos::readDefval, i);
-
-		if (res > 0 && flag[res - 1] == '.')
-			flag[res - 1] = '\0';
-
-		if (flag[0] == '.')
-			strcpy_s(flag, flag + 1);
-
-		value.Read(parser, pSection, flag, allocate);
-
-		if (!value.isset())
-			break;
-
-		this->Base.push_back(value.Get());
-	}
-
-	int size = static_cast<int>(this->Base.size());
-
-	for (int i = 0; i < size; i++)
-	{
-		Nullable<T> veteran;
-		Nullable<T> elite;
-
-		if (numFirst)
-			IMPL_SNPRNINTF(flag, sizeof(flag), pFlag, i, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran]);
-		else
-			IMPL_SNPRNINTF(flag, sizeof(flag), pFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran], i);
-
-		veteran.Read(parser, pSection, flag, allocate);
-
-		if (numFirst)
-			IMPL_SNPRNINTF(flag, sizeof(flag), pFlag, i, EnumFunctions::Rank_ToStrings[(int)Rank::Elite]);
-		else
-			IMPL_SNPRNINTF(flag, sizeof(flag), pFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Elite], i);
-
-		elite.Read(parser, pSection, flag, allocate);
-
-		if (veteran.isset())
-			this->Veteran.emplace(i, veteran.Get());
-
-		if (elite.isset())
-			this->Elite.emplace(i, elite.Get());
-	}
-}
-
-template <typename T>
-bool PromotableVector<T>::Load(PhobosStreamReader& stm, bool registerForChange)
-{
-	return Savegame::ReadPhobosStream(stm, this->Base, registerForChange)
-		&& Savegame::ReadPhobosStream(stm, this->Veteran, registerForChange)
-		&& Savegame::ReadPhobosStream(stm, this->Elite, registerForChange);
-}
-
-template <typename T>
-bool PromotableVector<T>::Save(PhobosStreamWriter& stm) const
-{
-	return Savegame::WritePhobosStream(stm, this->Base)
-		&& Savegame::WritePhobosStream(stm, this->Veteran)
-		&& Savegame::WritePhobosStream(stm, this->Elite);
-}
-*/
 
 // TimedWarheadEffect
 template <typename T>

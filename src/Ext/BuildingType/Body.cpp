@@ -682,16 +682,17 @@ void BuildingTypeExtData::CreateLimboBuilding(BuildingClass* pBuilding, Building
 		}
 
 		pBuildingExt->LimboID = ID;
-		pBuildingExt->Shield.release();
+		PhobosEntity::Remove<ShieldClass>(pBuildingExt->ShieldEntity);
 	/*	pBuildingExt->Trails.clear();*/
 		pBuildingExt->RevengeWeapons.clear();
 		pBuildingExt->ExtraWeaponTimers.clear();
 	/*	pBuildingExt->DamageSelfState.release();
 		pBuildingExt->MyGiftBox.release();
 		pBuildingExt->PaintBallStates.clear();
-
+		
 		pBuildingExt->MyWeaponManager.Clear();
 		pBuildingExt->MyWeaponManager.CWeaponManager.Clear();*/
+ 		pBuildingExt->PowerPlantEnhancer.Register();
 
 		if (!HouseExtContainer::Instance.AutoDeathObjects.contains(pBuilding))
 		{
@@ -1101,46 +1102,6 @@ bool BuildingTypeExtData::IsLinkable(BuildingTypeClass* pThis)
 	return pExt->Firestorm_Wall || pExt->IsTrench >= 0;
 }
 
-std::pair<int, int> BuildingTypeExtData::GetEnhancedPowerPair(BuildingTypeClass* pBuilding, int output, HouseClass* pHouse){
-	int nAmount = 0;
-	float fFactor = 1.0f;
-
-	auto const pHouseExt = HouseExtContainer::Instance.Find(pHouse);
-	for (const auto& [pBldType, nCount] : pHouseExt->PowerPlantEnhancerBuildings) {
-		const auto pExt = BuildingTypeExtContainer::Instance.Find(pBldType);
-		if (pExt->PowerPlantEnhancer_Buildings.empty() || (pExt->PowerPlantEnhancer_Amount == 0 && pExt->PowerPlantEnhancer_Factor == 1.0f))
-			continue;
-
-		fFactor *= float(Math::pow((double)pExt->PowerPlantEnhancer_Factor, (double)nCount));
-		nAmount += pExt->PowerPlantEnhancer_Amount * nCount;
-	}
-
-	return std::make_pair(static_cast<int>(std::round(output * fFactor)), nAmount);
-}
-
-int BuildingTypeExtData::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse)
-{
-	return BuildingTypeExtData::GetEnhancedPower(pBuilding->Type, pBuilding->GetPowerOutput(), pHouse);
-}
-
-int BuildingTypeExtData::GetEnhancedPower(BuildingTypeClass* pBuilding, int output, HouseClass* pHouse){
-	int nAmount = 0;
-	float fFactor = 1.0f;
-
-	auto const pHouseExt = HouseExtContainer::Instance.Find(pHouse);
-	for (const auto& [pBldType, nCount] : pHouseExt->PowerPlantEnhancerBuildings) {
-		const auto pExt = BuildingTypeExtContainer::Instance.Find(pBldType);
-		if (pExt->PowerPlantEnhancer_Buildings.empty() || (pExt->PowerPlantEnhancer_Amount == 0 && pExt->PowerPlantEnhancer_Factor == 1.0f))
-			continue;
-
-		fFactor *= float(Math::pow((double)pExt->PowerPlantEnhancer_Factor, (double)nCount));
-		nAmount += pExt->PowerPlantEnhancer_Amount * nCount;
-	}
-
-	return static_cast<int>(std::round(output * fFactor)) + nAmount;
-}
-
-
 float BuildingTypeExtData::GetPurifierBonusses(HouseClass* pHouse)
 {
 	/*removing the counter reference
@@ -1362,6 +1323,7 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->PowersUp_Buildings.Read(exINI, pSection, "PowersUp.Buildings");
 		this->PowerPlantEnhancer_Buildings.Read(exINI, pSection, "PowerPlantEnhancer.PowerPlants");
 		this->PowerPlantEnhancer_Amount.Read(exINI, pSection, "PowerPlantEnhancer.Amount");
+		this->PowerPlantEnhancer_Range.Read(exINI, pSection, "PowerPlantEnhancer.Range");
 		this->PowerPlantEnhancer_Factor.Read(exINI, pSection, "PowerPlantEnhancer.Factor");
 		this->PowerPlantEnhancer_MaxCount.Read(exINI, pSection, "PowerPlantEnhancer.MaxCount");
 
@@ -1969,6 +1931,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->PowersUp_Buildings)
 		.Process(this->PowerPlantEnhancer_Buildings)
 		.Process(this->PowerPlantEnhancer_Amount)
+		.Process(this->PowerPlantEnhancer_Range)
 		.Process(this->PowerPlantEnhancer_Factor)
 		.Process(this->SuperWeapons)
 		.Process(this->OccupierMuzzleFlashes)
@@ -2547,10 +2510,34 @@ void BuildingTypeExtContainer::LoadFromINI(BuildingTypeClass* key, CCINIClass* p
 			return;
 		}
 
-		//load anywhere other than rules
-		ptr->LoadFromINI(pINI, parseFailAddr);
-		//this function can be called again multiple time but without need to re-init the data
-		ptr->SetInitState(InitState::Ruled);
+		// Rules first 
+				// Other files 
+				// when this doesnt match the case it will causing weirdd issues like some value wont be initialized or replaced to default value after parsing
+		switch (ptr->Initialized)
+		{
+		case InitState::Blank:
+		{
+			if (pINI == CCINIClass::INI_Rules())
+			{
+				ptr->SetInitState(InitState::Inited);
+				ptr->Initialize();
+
+				ptr->LostEvaEvent = VoxClass::FindIndexById(GameStrings::EVA_TechBuildingLost());
+				ptr->EVA_Online = VoxClass::FindIndexById(GameStrings::EVA_BuildingOnLine());
+				ptr->EVA_Offline = VoxClass::FindIndexById(GameStrings::EVA_BuildingOffLine());
+			}
+			[[fallthrough]];
+		}
+		case InitState::Inited:
+		case InitState::Ruled:
+		{
+			ptr->LoadFromINI(pINI, parseFailAddr);
+			ptr->SetInitState(InitState::Ruled);
+			[[fallthrough]];
+		}
+		default:
+			break;
+		}
 	}
 
 }
@@ -2592,17 +2579,13 @@ bool FakeBuildingTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
 	auto pExt = BuildingTypeExtContainer::Instance.Find(this);
 
-	pExt->Initialize();
-
-	pExt->LostEvaEvent = VoxClass::FindIndexById(GameStrings::EVA_TechBuildingLost());
-	pExt->EVA_Online = VoxClass::FindIndexById(GameStrings::EVA_BuildingOnLine());
-	pExt->EVA_Offline = VoxClass::FindIndexById(GameStrings::EVA_BuildingOffLine());
-	pExt->PrismForwarding.Initialize(this);
-
 	bool status = this->BuildingTypeClass::LoadFromINI(pINI);
 	BuildingTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+
+	//state change stuffs , need to re-initialize in-case non rules settings change
 	pExt->FoundationPowerTextShowLong = this->GetFoundationWidth() > 2 && this->GetFoundationHeight(false) > 2;
 	pExt->FoundationPrimaryFactoryTextShowLong = this->GetFoundationWidth() != 1;
+	pExt->PrismForwarding.Initialize(this);
 	return status;
 }
 

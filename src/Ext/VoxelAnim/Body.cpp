@@ -107,7 +107,7 @@ void FakeVoxelAnimClass::_Detach(AbstractClass* pTarget, bool bRemoved)
 {
 	this->ObjectClass::PointerExpired(pTarget, bRemoved);
 	if(auto pExt = this->_GetExtData())
-		pExt->InvalidatePointer(pTarget, bRemoved);
+		pExt->InvalidatePointer(pTarget, bRemoved, pTarget->WhatAmI());
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE ,0x7F6340 , FakeVoxelAnimClass::_Detach)

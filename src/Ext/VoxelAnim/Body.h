@@ -41,10 +41,19 @@ public:
 
 	virtual ~VoxelAnimExtData() = default;
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) override
 	{
-		this->ObjectExtData::InvalidatePointer(ptr, bRemoved);
-		AnnounceInvalidPointer(Invoker, ptr, bRemoved);
+		this->ObjectExtData::InvalidatePointer(ptr, bRemoved, type);
+		switch (type)
+		{
+		case AbstractType::Unit:
+		case AbstractType::Aircraft:
+		case AbstractType::Building:
+		case AbstractType::Infantry:
+			AnnounceInvalidPointer(Invoker, ptr, bRemoved);
+			break;
+			default: break;
+		}
 	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override

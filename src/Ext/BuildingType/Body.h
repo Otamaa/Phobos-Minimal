@@ -53,6 +53,7 @@ public:
 	ValueableVector<BuildingTypeClass*> PowersUp_Buildings {};
 	ValueableIdxVector<SuperWeaponTypeClass> SuperWeapons {};
 	ValueableVector<BuildingTypeClass*> PowerPlantEnhancer_Buildings {};
+
 	std::vector<Point2D> OccupierMuzzleFlashes {};
 	ValueableVector<TechnoTypeClass*> Grinding_AllowTypes {};
 	ValueableVector<TechnoTypeClass*> Grinding_DisallowTypes {};
@@ -216,6 +217,7 @@ public:
 	// Valueable<int> (4 bytes each)
 	// ============================================================
 	Valueable<int> PowerPlantEnhancer_Amount { 0 };
+	Valueable<Leptons> PowerPlantEnhancer_Range {};
 	Valueable<int> Grinding_Weapon_RequiredCredits { 0 };
 	Valueable<int> SpyEffect_StolenMoneyAmount { 0 };
 	Valueable<int> SpyEffect_PowerOutageDuration { 0 };
@@ -376,9 +378,9 @@ public:
 
 	virtual ~BuildingTypeExtData() = default;
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) override
 	{
-		this->TechnoTypeExtData::InvalidatePointer(ptr, bRemoved);
+		this->TechnoTypeExtData::InvalidatePointer(ptr, bRemoved, type);
 	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
@@ -433,10 +435,6 @@ public:
 	static bool IsFoundationEqual(BuildingTypeClass* pType1, BuildingTypeClass* pType2);
 	// Short check: Is the building of a linkable kind at all?
 	static bool IsLinkable(BuildingTypeClass* pThis);
-	
-	static std::pair<int, int> GetEnhancedPowerPair(BuildingTypeClass* pBuilding, int output, HouseClass* pHouse);
-	static int GetEnhancedPower(BuildingClass* pBuilding, HouseClass* pHouse);
-	static int GetEnhancedPower(BuildingTypeClass* pBuilding, int output, HouseClass* pHouse);
 
 	static float GetPurifierBonusses(HouseClass* pHouse);
 	static double GetExternalFactorySpeedBonus(TechnoClass* pWhat);

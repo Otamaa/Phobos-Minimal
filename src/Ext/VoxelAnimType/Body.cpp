@@ -3,6 +3,7 @@
 
 void VoxelAnimTypeExtData::Initialize(){
 	LaserTrail_Types.reserve(1);
+	this->SplashList.reserve(RulesClass::Instance->SplashList.Count);
 }
 
 bool VoxelAnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
@@ -62,10 +63,31 @@ void VoxelAnimTypeExtContainer::LoadFromINI(ext_t::base_type* key, CCINIClass* p
 			return;
 		}
 
-		//load anywhere other than rules
-		ptr->LoadFromINI(pINI, parseFailAddr);
-		//this function can be called again multiple time but without need to re-init the data
-		ptr->SetInitState(InitState::Ruled);
+
+		// Rules first 
+		// Other files 
+		// when this doesnt match the case it will causing weirdd issues like some value wont be initialized or replaced to default value after parsing
+		switch (ptr->Initialized)
+		{
+		case InitState::Blank:
+		{
+			if (pINI == CCINIClass::INI_Rules())
+			{
+				ptr->SetInitState(InitState::Inited);
+				ptr->Initialize();
+			}
+			[[fallthrough]];
+		}
+		case InitState::Inited:
+		case InitState::Ruled:
+		{
+			ptr->LoadFromINI(pINI, parseFailAddr);
+			ptr->SetInitState(InitState::Ruled);
+			[[fallthrough]];
+		}
+		default:
+			break;
+		}
 	}
 
 }
@@ -102,7 +124,6 @@ ASMJIT_PATCH(0x74BA66, VoxelAnimTypeClass_DTOR, 0x7)
 
 bool FakeVoxelAnimTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-	VoxelAnimTypeExtContainer::Instance.Find(this)->SplashList.reserve(RulesClass::Instance->SplashList.Count);
 	bool status = this->VoxelAnimTypeClass::LoadFromINI(pINI);
 	VoxelAnimTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
 	return status;

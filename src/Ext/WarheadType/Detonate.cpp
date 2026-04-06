@@ -776,7 +776,7 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 	if (!pTarget->IsAlive)
 		return;
 
-	auto pExt = TechnoExtContainer::Instance.Find(pTarget);
+	//auto pExt = TechnoExtContainer::Instance.Find(pTarget);
 
 	//if(this->PaintBallDuration.isset() && this->PaintBallData.Color != ColorStruct::Empty) {
 	//	auto& paintball = pExt->PaintBallStates[this->This()];
@@ -923,20 +923,22 @@ void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 
 	auto pExt = TechnoExtContainer::Instance.Find(pTarget);
 
+	const bool has_shield = PhobosEntity::Has<ShieldClass>(pExt->ShieldEntity);
+	ShieldClass* ptr = nullptr;
 
 	int shieldIndex = -1;
 	double oldRatio = 1.0;
 
 	// Remove shield.
-	if (pExt->GetShield())
-	{
-		shieldIndex = this->Shield_RemoveTypes.IndexOf(pExt->Shield->GetType());
+	if (has_shield) {
+		ptr = PhobosEntity::Get<ShieldClass>(pExt->ShieldEntity);
 
-		if (shieldIndex >= 0 || this->Shield_RemoveAll)
-		{
-			oldRatio = pExt->Shield->GetHealthRatio();
+		shieldIndex = this->Shield_RemoveTypes.IndexOf(ptr->GetType());
+
+		if (shieldIndex >= 0 || this->Shield_RemoveAll) {
+			oldRatio = ptr->GetHealthRatio();
 			pExt->CurrentShieldType = ShieldTypeClass::FindOrAllocate(DEFAULT_STR2);;
-			pExt->Shield.reset(nullptr);
+			PhobosEntity::Remove<ShieldClass>(pExt->ShieldEntity);
 		}
 	}
 
@@ -961,48 +963,54 @@ void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 			shieldType = Shield_AttachTypes[0];
 		}
 
-		if (shieldType)
+		bool create = !ptr;
+
+		if(ptr){
+			create = this->Shield_ReplaceNonRespawning && ptr->IsBrokenAndNonRespawning() && ptr->GetFramesSinceLastBroken() >= this->Shield_MinimumReplaceDelay;
+		}
+
+		if (shieldType && shieldType->Strength && create )
 		{
-			if (shieldType->Strength && (!pExt->Shield || (this->Shield_ReplaceNonRespawning && pExt->Shield->IsBrokenAndNonRespawning() &&
-				pExt->Shield->GetFramesSinceLastBroken() >= this->Shield_MinimumReplaceDelay)))
-			{
-				pExt->CurrentShieldType = shieldType;
-				pExt->Shield = std::make_unique<ShieldClass>(pTarget, true);
-				pExt->Shield->UpdateTint();
-
-				if (this->Shield_ReplaceOnly && this->Shield_InheritStateOnReplace)
-				{
-					pExt->Shield->SetHP((int)(shieldType->Strength * oldRatio));
-
-					if (pExt->Shield->GetHP() == 0)
-						pExt->Shield->SetRespawn(
-							shieldType->Respawn_Rate,
-							shieldType->Respawn,
-							shieldType->Respawn_Rate,
-							shieldType->Respawn_RestartInCombat,
-							-1,
-							true,
-							&shieldType->Respawn_Anim.AsVector()
-						);
-				}
+			pExt->CurrentShieldType = shieldType;
+			if (ptr) {
+				PhobosEntity::Remove<ShieldClass>(pExt->ShieldEntity);
+				ptr = nullptr;
 			}
+
+			ptr = &PhobosEntity::Emplace<ShieldClass>(pExt->ShieldEntity, pTarget, true);
+			ptr->UpdateTint();
+
+			if (this->Shield_ReplaceOnly && this->Shield_InheritStateOnReplace) {
+						ptr->SetHP((int)(shieldType->Strength * oldRatio));
+
+				if (ptr->GetHP() == 0) {
+					ptr->SetRespawn(
+								shieldType->Respawn_Rate,
+								shieldType->Respawn,
+								shieldType->Respawn_Rate,
+								shieldType->Respawn_RestartInCombat,
+								-1,
+								true,
+								&shieldType->Respawn_Anim.AsVector()
+					);
+				}
+			 }
 		}
 	}
 
 	// Apply other modifiers.
-	if (pExt->GetShield())
-	{
-		const auto pCurrentType = pExt->Shield->GetType();
+	if (ptr) {
+		const auto pCurrentType = ptr->GetType();
 
 		if (!this->Shield_AffectTypes.empty() && !this->Shield_AffectTypes.Contains(pCurrentType))
 			return;
 
-		if (this->Shield_Break && pExt->Shield->IsActive() && this->Shield_Break_Types.Eligible(this->Shield_AffectTypes, pCurrentType))
-			pExt->Shield->BreakShield(this->Shield_BreakAnim, this->Shield_BreakWeapon);
+		if (this->Shield_Break && ptr->IsActive() && this->Shield_Break_Types.Eligible(this->Shield_AffectTypes, pCurrentType))
+			ptr->BreakShield(this->Shield_BreakAnim, this->Shield_BreakWeapon);
 
 		if ((this->Shield_Respawn_Duration > 0 || this->Shield_Respawn_RestartTimer)
 			&& this->Shield_Respawn_Types.Eligible(this->Shield_AffectTypes, pCurrentType)) {
-				pExt->Shield->SetRespawn(
+				ptr->SetRespawn(
 					this->Shield_Respawn_Duration,
 					this->Shield_Respawn_Amount.Get(pCurrentType->Respawn),
 					this->Shield_Respawn_Rate,
@@ -1017,7 +1025,7 @@ void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 		if ((this->Shield_SelfHealing_Duration > 0 || this->Shield_SelfHealing_RestartTimer)
 		 	&& this->Shield_SelfHealing_Types.Eligible(this->Shield_AffectTypes, pCurrentType))
 		{
-			pExt->Shield->SetSelfHealing(
+			ptr->SetSelfHealing(
 				this->Shield_SelfHealing_Duration,
 				this->Shield_SelfHealing_Amount.Get(pCurrentType->SelfHealing),
 				this->Shield_SelfHealing_Rate,
@@ -1073,7 +1081,7 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 
 	auto const pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
 
-	auto pSld = pTargetExt->Shield.get();
+	auto pSld = pTargetExt->GetShield();
 
 	if (pSld && pSld->IsActive() && pSld->GetType()->ImmuneToCrit)
 		return;

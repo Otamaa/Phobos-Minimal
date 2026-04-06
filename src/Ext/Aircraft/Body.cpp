@@ -671,9 +671,9 @@ AbstractClass* FakeAircraftClass::_GreatestThreat(ThreatType threatType, CoordSt
 
 void FakeAircraftClass::_FootClass_Update_Wrapper()
 {
-	auto pExt = TechnoExtContainer::Instance.Find(this);
+	//auto pExt = TechnoExtContainer::Instance.Find(this);
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
+	//const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
 
 
 	//pExt->UpdateAircraftOpentopped();
@@ -1112,7 +1112,7 @@ ASMJIT_PATCH(0x41426F, AircraftClass_DTOR, 0x7)
 void FakeAircraftClass::_Detach(AbstractClass* target, bool all)
 {
 	if(auto pExt = this->_GetExtData())
-		pExt->InvalidatePointer(target, all);
+		pExt->InvalidatePointer(target, all, target->WhatAmI());
 	//will detach type pointer
 	this->AircraftClass::PointerExpired(target, all);
 }

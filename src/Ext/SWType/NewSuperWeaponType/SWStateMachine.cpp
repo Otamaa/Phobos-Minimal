@@ -26,16 +26,18 @@ void SWStateMachine::UpdateAll()
 	});
 }
 
-void SWStateMachine::PointerGotInvalid(AbstractClass* ptr, bool remove)
+void SWStateMachine::PointerGotInvalid(AbstractClass* ptr, bool remove, AbstractType  type)
 {
 	for (auto& Machine : SWStateMachine::Array) {
 		if(Machine) {
-			Machine->InvalidatePointer(ptr, remove);
+			Machine->InvalidatePointer(ptr, remove, type);
 		}
 	}
 
-	AnnounceInvalidPointer(SW_PsychicDominator::CurrentPsyDom, ptr);
-	AnnounceInvalidPointer(SW_LightningStorm::CurrentLightningStorm, ptr);
+	if(type == AbstractType::Super) {
+		AnnounceInvalidPointer(SW_PsychicDominator::CurrentPsyDom, ptr);
+		AnnounceInvalidPointer(SW_LightningStorm::CurrentLightningStorm, ptr);
+	}
 }
 
 void SWStateMachine::Clear()

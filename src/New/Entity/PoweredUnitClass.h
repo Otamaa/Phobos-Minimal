@@ -28,8 +28,29 @@ public:
 	PoweredUnitClass(TechnoClass* Techno) : Techno(Techno), LastScan(0), Powered(true)
 	{ }
 
-	DefaultSaveLoadFunc(PoweredUnitClass)
+	PoweredUnitClass(PoweredUnitClass&& other) noexcept
+	: Techno(std::exchange(other.Techno, nullptr))
+	, LastScan(std::exchange(other.LastScan, 0u))
+	, Powered(std::exchange(other.Powered, true))
+	{ }
 
+	PoweredUnitClass& operator=(PoweredUnitClass&& other) noexcept
+	{
+		if (this == &other)
+			return *this;
+
+		// Transfer all fields
+		this->Techno = std::exchange(other.Techno, nullptr);
+		this->LastScan = std::exchange(other.LastScan, 0u);
+		this->Powered = std::exchange(other.Powered, true);
+
+		return *this;
+	}
+
+	DefaultSaveLoadFunc(PoweredUnitClass)
+private:
+	PoweredUnitClass(const PoweredUnitClass& other) = delete;
+	PoweredUnitClass& operator=(const PoweredUnitClass& other) = delete;
 private:
 	template <typename T>
 	bool Serialize(T& Stm)
@@ -40,13 +61,5 @@ private:
 			.Process(this->Powered)
 			.Success()
 			;
-	}
-};
-
-
-template <>
-struct Savegame::ObjectFactory<PoweredUnitClass> {
-	std::unique_ptr<PoweredUnitClass> operator() (PhobosStreamReader& Stm) const {
-		return std::make_unique<PoweredUnitClass>();
 	}
 };

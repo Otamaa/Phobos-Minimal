@@ -3268,10 +3268,31 @@ void WarheadTypeExtContainer::LoadFromINI(ext_t::base_type* key, CCINIClass* pIN
 			return;
 		}
 
-		//load anywhere other than rules
-		ptr->LoadFromINI(pINI, parseFailAddr);
-		//this function can be called again multiple time but without need to re-init the data
-		ptr->SetInitState(InitState::Ruled);
+
+		// Rules first 
+		// Other files 
+		// when this doesnt match the case it will causing weirdd issues like some value wont be initialized or replaced to default value after parsing
+		switch (ptr->Initialized)
+		{
+		case InitState::Blank:
+		{
+			if (pINI == CCINIClass::INI_Rules())
+			{
+				ptr->SetInitState(InitState::Inited);
+				ptr->Initialize();
+			}
+			[[fallthrough]];
+		}
+		case InitState::Inited:
+		case InitState::Ruled:
+		{
+			ptr->LoadFromINI(pINI, parseFailAddr);
+			ptr->SetInitState(InitState::Ruled);
+			[[fallthrough]];
+		}
+		default:
+			break;
+		}
 	}
 
 }
@@ -3311,7 +3332,6 @@ ASMJIT_PATCH(0x75E5C8, WarheadTypeClass_SDDTOR, 0x6)
 
 bool FakeWarheadTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-	WarheadTypeExtContainer::Instance.Find(this)->Initialize();
 	bool status = this->WarheadTypeClass::LoadFromINI(pINI);
 	WarheadTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
 	return status;

@@ -1,9 +1,9 @@
 #pragma once
+#include <Phobos.h>
 
 #include <Phobos.Defines.h>
 
 #include "Enum.h"
-#include "Interpolation.h"
 
 #include <MouseClass.h>
 
@@ -17,6 +17,7 @@ class EnumFunctions final
 public:
 
 	//simple enums
+	static COMPILETIMEEVAL OPTIONALINLINE auto ParabolaFireMode_ToStrings = magic_enum::enum_entries<ParabolaFireMode>();
 	static COMPILETIMEEVAL OPTIONALINLINE auto PassiveAcquireModes_ToStrings = magic_enum::enum_entries<PassiveAcquireModes>();
 	static COMPILETIMEEVAL OPTIONALINLINE auto AffectedTechno_ToStrings = magic_enum::enum_entries<AffectedTechno>();
 	static COMPILETIMEEVAL OPTIONALINLINE auto AttachedAnimPosition_ToStrings = magic_enum::enum_entries<AttachedAnimPosition>();

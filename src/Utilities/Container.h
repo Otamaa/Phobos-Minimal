@@ -116,7 +116,7 @@ public:
 	AbstractClass* This() const { return const_cast<AbstractClass*>(AttachedToObject); }
 	const AbstractClass* This_Const() const { return AttachedToObject; }
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) = 0;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) = 0;
 	virtual void LoadFromStream(PhobosStreamReader& Stm) = 0;
 	virtual void SaveToStream(PhobosStreamWriter& Stm) = 0;
 	virtual void CalculateCRC(CRCEngine& crc) const = 0;

@@ -224,7 +224,7 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 
 	if (const auto pTechnoExt = TechnoExtContainer::Instance.Find(pFoot))
 	{
-		const auto pShieldData = pTechnoExt->Shield.get();
+		const auto pShieldData = pTechnoExt->GetShield();
 
 		if (pTechnoExt->CurrentShieldType && pShieldData)
 		{
@@ -307,7 +307,7 @@ void PrintBuilding(T& buffer, BuildingClass* pBuilding)
 
 	if (auto pTechnoExt = TechnoExtContainer::Instance.Find(pBuilding))
 	{
-		auto pShieldData = pTechnoExt->Shield.get();
+		auto pShieldData = pTechnoExt->GetShield();
 
 		if (pTechnoExt->CurrentShieldType && pShieldData)
 		{

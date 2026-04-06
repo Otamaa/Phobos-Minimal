@@ -903,7 +903,7 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 	//	return;
 	//}
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	//const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	//GiftBoxFunctional::AI(pExt, pTypeExt);
 

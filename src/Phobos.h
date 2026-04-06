@@ -287,6 +287,8 @@ public:
 		static byte GFX_DX_Force;
 		static int colorCount;
 		static int version;
+
+		static bool ShowPowerPlantEnhancerRange;
 	};
 
 	struct Misc

@@ -234,11 +234,25 @@ void IonCannonStateMachine::Fire()
 	}
 }
 
-void IonCannonStateMachine::InvalidatePointer(AbstractClass* ptr, bool remove)
+void IonCannonStateMachine::InvalidatePointer(AbstractClass* ptr, bool remove, AbstractType  type)
 {
-	AnnounceInvalidPointer(this->Firer, ptr , remove);
-	AnnounceInvalidPointer(this->Owner, ptr);
-	if (this->Anim.get() == this->Anim) {
-		this->Anim.release();
+	switch (type)
+	{
+	case AbstractType::Unit:
+	case AbstractType::Aircraft:
+	case AbstractType::Building:
+	case AbstractType::Infantry:
+		AnnounceInvalidPointer(this->Firer, ptr, remove);
+		break;
+	case AbstractType::House:
+		AnnounceInvalidPointer(this->Owner, ptr);
+		break;
+	case AbstractType::Anim:
+		if (this->Anim.get() == this->Anim) {
+			this->Anim.release();
+		}
+		break;
+	default:
+		break;
 	}
 }

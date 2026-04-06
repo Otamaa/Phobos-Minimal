@@ -97,12 +97,7 @@ ASMJIT_PATCH(0x532150, CommandClassCallback_Register, 5)
 		Make<SelectCapturedCommandClass>();
 
 		Make<FrameByFrameCommandClass>();
-		Make<FrameStepCommandClass<1>>(); // Single step in
-		Make<FrameStepCommandClass<5>>(); // Speed 1
-		Make<FrameStepCommandClass<10>>(); // Speed 2
-		Make<FrameStepCommandClass<15>>(); // Speed 3
-		Make<FrameStepCommandClass<30>>(); // Speed 4
-		Make<FrameStepCommandClass<60>>(); // Speed 5
+		FrameStepDispatch::Dispatch();
 
 		Make<AIBasePlanCommandClass>();
 
@@ -142,18 +137,7 @@ ASMJIT_PATCH(0x532150, CommandClassCallback_Register, 5)
 
 #pragma region SWSidebar
 	Make<ToggleSWSidebar>();
-	if (Phobos::Config::SuperWeaponSidebarCommands) {
-		SWSidebarClass::Commands[0] = Make<FireTacticalSWCommandClass<1>>();
-		SWSidebarClass::Commands[1] = Make<FireTacticalSWCommandClass<2>>();
-		SWSidebarClass::Commands[2] = Make<FireTacticalSWCommandClass<3>>();
-		SWSidebarClass::Commands[3] = Make<FireTacticalSWCommandClass<4>>();
-		SWSidebarClass::Commands[4] = Make<FireTacticalSWCommandClass<5>>();
-		SWSidebarClass::Commands[5] = Make<FireTacticalSWCommandClass<6>>();
-		SWSidebarClass::Commands[6] = Make<FireTacticalSWCommandClass<7>>();
-		SWSidebarClass::Commands[7] = Make<FireTacticalSWCommandClass<8>>();
-		SWSidebarClass::Commands[8] = Make<FireTacticalSWCommandClass<9>>();
-		SWSidebarClass::Commands[9] = Make<FireTacticalSWCommandClass<10>>();
-	}
+	FireTacticalSWDispatch::Dispatch();
 #pragma endregion SWSidebar
 
 

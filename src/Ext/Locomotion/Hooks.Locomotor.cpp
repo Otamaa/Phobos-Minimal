@@ -98,7 +98,7 @@ ASMJIT_PATCH(0x4B9A4A, DropshipLoadout_PrintArmor, 7)
 	return 0x4B9A51;
 }
 
-Point2D *__stdcall JumpjetLoco_ILoco_Shadow_Point(ILocomotion * iloco, Point2D *pPoint)
+Point2D *__stdcall JumpjetLoco_ILoco_Shadow_Point(ILocomotion* iloco, Point2D *pPoint)
 {
 	const auto pLoco = static_cast<JumpjetLocomotionClass*>(iloco);
 	const auto pThis = pLoco->LinkedTo;

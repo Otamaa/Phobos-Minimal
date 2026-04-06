@@ -145,7 +145,12 @@ void TintColors::GetTints(int* tintColor, int* intensity)
 
 	auto const pTypeExt = GET_TECHNOTYPEEXT(this->Owner);
 	const bool hasTechnoTint = pTypeExt->Tint_Color.isset() || pTypeExt->Tint_Intensity;
-	const bool hasShieldTint = pOwnerExt->Shield && pOwnerExt->Shield->IsActive() && pOwnerExt->Shield->GetType()->HasTint();
+	bool hasShieldTint = false;
+	auto pShield = pOwnerExt->GetShield();
+
+	if (pShield) {
+		hasShieldTint = pShield->IsActive() && pShield->GetType()->HasTint();
+	}
 
 	this->Reset();
 
@@ -174,7 +179,7 @@ void TintColors::GetTints(int* tintColor, int* intensity)
 
 	if (hasShieldTint)
 	{
-		auto const pShieldType = pOwnerExt->Shield->GetType();
+		auto const pShieldType = pShield->GetType();
 		this->Calculate(pShieldType->Tint_Color->ToInit(), static_cast<int>(pShieldType->Tint_Intensity * 1000), pShieldType->Tint_VisibleToHouses);
 	}
 
@@ -751,7 +756,7 @@ bool TechnoExtData::IsPowered(TechnoClass* pThis)
 		// if we reach this, we found no building that currently powers this object
 		return false;
 	}
-	else if (auto& pPower = TechnoExtContainer::Instance.Find(pThis)->PoweredUnit)
+	else if (auto pPower = TechnoExtContainer::Instance.Find(pThis)->GetPoweredUnit())
 	{
 		// #617
 		return pPower->IsPowered();
@@ -4362,14 +4367,15 @@ void NOINLINE UpdatePoweredBy(TechnoClass* pThis, TechnoTypeExtData* pTypeData)
 {
 	if (!pTypeData->PoweredBy.empty())
 	{
-		if (!TechnoExtContainer::Instance.Find(pThis)->PoweredUnit)
-		{
-			TechnoExtContainer::Instance.Find(pThis)->PoweredUnit =
-				std::make_unique < PoweredUnitClass>(pThis)
-				;
+		auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+		auto pTr = pExt->GetPoweredUnit();
+
+		if (!pTr) {
+			pTr = & PhobosEntity::Emplace<PoweredUnitClass>(pExt->PoweredUnitEntity , pThis);
 		}
 
-		if (!TechnoExtContainer::Instance.Find(pThis)->PoweredUnit->Update())
+		if (!pTr->Update())
 		{
 			TechnoExtData::Destroy(pThis, nullptr, nullptr, nullptr);
 		}
@@ -4441,6 +4447,8 @@ void NOINLINE UpdateRadarJammer(TechnoExtData* pData, TechnoTypeExtData* pTypeDa
 	auto const pThis = pData->This();
 
 	// prevent disabled units from driving around.
+	auto pJam = pData->GetRadarJammer();
+
 	if (pThis->Deactivated)
 	{
 		if (auto const pUnit = cast_to<UnitClass*, false>(pThis))
@@ -4454,7 +4462,7 @@ void NOINLINE UpdateRadarJammer(TechnoExtData* pData, TechnoTypeExtData* pTypeDa
 
 		// dropping Radar Jammers (#305) here for now; should check if another TechnoClass::Update hook might be better ~Ren
 		;
-		if (auto& pJam = TechnoExtContainer::Instance.Find(pThis)->RadarJammer)
+		if (pJam)
 		{ // RadarJam should only be non-null if the object is an active radar jammer
 			pJam->UnjamAll();
 		}
@@ -4464,13 +4472,11 @@ void NOINLINE UpdateRadarJammer(TechnoExtData* pData, TechnoTypeExtData* pTypeDa
 		// dropping Radar Jammers (#305) here for now; should check if another TechnoClass::Update hook might be better ~Ren
 		if (pTypeData->RadarJamRadius)
 		{
-			if (!TechnoExtContainer::Instance.Find(pThis)->RadarJammer)
-			{
-				TechnoExtContainer::Instance.Find(pThis)->RadarJammer =
-					std::make_unique<RadarJammerClass>(pThis);
+			if (!pJam) {
+				pJam = &PhobosEntity::Emplace<RadarJammerClass>(pData->RadarJammerEntity, pThis);
 			}
 
-			TechnoExtContainer::Instance.Find(pThis)->RadarJammer->Update();
+			pJam->Update();
 		}
 	}
 }
@@ -5962,7 +5968,7 @@ int TechnoExtData::CalculateBlockDamage(TechnoClass* pThis, TechnoClass* pSource
 			return damage;
 		}
 
-		const auto pShieldData = pExt->Shield.get();
+		const auto pShieldData = pExt->GetShield();
 
 		if (pShieldData && pShieldData->IsActive())
 		{
@@ -7033,6 +7039,10 @@ void TechnoExtData::ProcessDigitalDisplays(TechnoClass* pThis)
 		const auto What = pThis->WhatAmI();
 		const bool isBuilding = What == AbstractType::Building;
 		const bool isInfantry = What == AbstractType::Infantry;
+		ShieldClass* pShield = pExt->GetShield();
+		if (pShield && pShield->IsBrokenAndNonRespawning()) {
+			pShield = nullptr;
+		}
 
 		for (auto &pDisplayType : *DisplayTypes) {
 
@@ -7042,7 +7052,7 @@ void TechnoExtData::ProcessDigitalDisplays(TechnoClass* pThis)
 			int value = -1;
 			int maxValue = 0;
 
-			TechnoExtData::GetValuesForDisplay(pThis, pDisplayType->InfoType, value, maxValue, pDisplayType->InfoIndex);
+			TechnoExtData::GetValuesForDisplay(pThis, pDisplayType->InfoType, value, maxValue, pDisplayType->InfoIndex, pShield);
 
 			if (value <= -1 || maxValue <= 0)
 				continue;
@@ -7054,7 +7064,6 @@ void TechnoExtData::ProcessDigitalDisplays(TechnoClass* pThis)
 				maxValue = MaxImpl(maxValue / divisor, 1);
 			}
 
-			const bool hasShield = pExt->Shield != nullptr && !pExt->Shield->IsBrokenAndNonRespawning();
 			Point2D position = isBuilding ? GetBuildingSelectBracketPosition(pThis, pDisplayType->AnchorType_Building)
 				: GetFootSelectBracketPosition(pThis, pDisplayType->AnchorType);
 
@@ -7063,7 +7072,7 @@ void TechnoExtData::ProcessDigitalDisplays(TechnoClass* pThis)
 			if (pDisplayType->InfoType == DisplayInfoType::Shield)
 				position.Y += pExt->CurrentShieldType->BracketDelta;
 
-			pDisplayType->Draw(position, length, value, maxValue, isBuilding, isInfantry, hasShield);
+			pDisplayType->Draw(position, length, value, maxValue, isBuilding, isInfantry, pShield);
 		}
 	}
 }
@@ -7081,7 +7090,7 @@ void GetDigitalDisplayFakeHealth(TechnoClass* pThis, int& value, int& maxValue) 
 
 // https://github.com/Phobos-developers/Phobos/pull/1287
 // TODO : update
-void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType, int& value, int& maxValue, int infoIndex)
+void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType, int& value, int& maxValue, int infoIndex, ShieldClass* pShield)
 {
 	const auto pType = GET_TECHNOTYPE(pThis);
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
@@ -7096,11 +7105,11 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 	}
 	case DisplayInfoType::Shield:
 	{
-		if (!pExt->Shield || pExt->Shield->IsBrokenAndNonRespawning())
+		if (!pShield)
 			return;
 
-		value = pExt->Shield->GetHP();
-		maxValue = pExt->Shield->GetType()->Strength.Get();
+		value = pShield->GetHP();
+		maxValue = pShield->GetType()->Strength.Get();
 		break;
 	}
 	case DisplayInfoType::Ammo:
@@ -7497,8 +7506,8 @@ void TechnoExtData::StoreLastTargetAndMissionAfterWebbed(InfantryClass* pThis)
 
 //https://blueprints.launchpad.net/ares/+spec/elite-armor
 Armor TechnoExtData::GetArmor(ObjectClass* pThis) {
-	if(!pThis->IsAlive)
-		Debug::Log("Death Techno used for GetArmor !\n");
+	//if(!pThis->IsAlive)
+	//	Debug::Log("Death Techno used for GetArmor !\n");
 
 	if(pThis->AbstractFlags & AbstractFlags::Techno){
 		const auto pType = GET_TECHNOTYPE(((TechnoClass*)pThis));
@@ -7506,16 +7515,18 @@ Armor TechnoExtData::GetArmor(ObjectClass* pThis) {
 
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find((TechnoTypeClass*)pType);
 
-		if (((TechnoClass*)pThis)->Veterancy.IsVeteran() && pTypeExt->VeteranArmor.isset())
+		if (pTypeExt->VeteranArmor.isset() && ((TechnoClass*)pThis)->Veterancy.IsVeteran())
 			res = pTypeExt->VeteranArmor;
-		else if (((TechnoClass*)pThis)->Veterancy.IsElite() && pTypeExt->EliteArmor.isset())
+		else if (pTypeExt->EliteArmor.isset() && ((TechnoClass*)pThis)->Veterancy.IsElite())
 			res = pTypeExt->EliteArmor;
 
-		if(pThis->WhatAmI() == AbstractType::Infantry) {
-			if (((InfantryClass*)pThis)->IsDeployed() && pTypeExt->DeployedArmor.isset()) {
+		if(pTypeExt->DeployedArmor.isset() && pThis->WhatAmI() == AbstractType::Infantry) {
+			if (((InfantryClass*)pThis)->IsDeployed()) {
 				res = pTypeExt->DeployedArmor;
 			}
 		}
+
+		return res;
 	}
 
 	//Debug::LogInfo("{} Armor [{} = {}]", pType->ID, res, ArmorTypeClass::Array[(int)res]->Name.data());
@@ -7942,7 +7953,7 @@ bool TechnoExtData::HasAbility(TechnoClass* pThis, PhobosAbilityType nType)
 		return false;
 	}
 
-	return HasAbility(IsVet ? Rank::Veteran : Rank::Elite, pThis, nType);
+	return HasAbility(IsVet ? Rank::Veteran : Rank::Elite, GET_TECHNOTYPEEXT(pThis), nType);
 }
 
 bool TechnoExtData::HasImmunity(TechnoClass* pThis, int nType)
@@ -7968,7 +7979,7 @@ bool TechnoExtData::HasImmunity(TechnoClass* pThis, int nType)
 
 bool TechnoExtData::IsCullingImmune(Rank vet, TechnoClass* pThis)
 {
-	return HasAbility(vet, pThis, PhobosAbilityType::CullingImmune);
+	return HasAbility(vet, GET_TECHNOTYPEEXT(pThis), PhobosAbilityType::CullingImmune);
 }
 
 bool TechnoExtData::IsEMPImmune(Rank vet, TechnoClass* pThis)
@@ -7976,7 +7987,7 @@ bool TechnoExtData::IsEMPImmune(Rank vet, TechnoClass* pThis)
 	if (WarheadTypeExtData::IsTypeEMPProne(pThis))
 		return true;
 
-	return HasAbility(vet, pThis, PhobosAbilityType::EmpImmune);
+	return HasAbility(vet, GET_TECHNOTYPEEXT(pThis), PhobosAbilityType::EmpImmune);
 }
 
 bool TechnoExtData::IsPsionicsImmune(Rank vet, TechnoClass* pThis)
@@ -7986,7 +7997,7 @@ bool TechnoExtData::IsPsionicsImmune(Rank vet, TechnoClass* pThis)
 	if (pType->ImmuneToPsionics)
 		return true;
 
-	return HasAbility(vet, pThis, PhobosAbilityType::PsionicsImmune);
+	return HasAbility(vet, TechnoTypeExtContainer::Instance.Find(pType), PhobosAbilityType::PsionicsImmune);
 }
 
 bool TechnoExtData::IsCritImmune(Rank vet, TechnoClass* pThis)
@@ -7996,7 +8007,7 @@ bool TechnoExtData::IsCritImmune(Rank vet, TechnoClass* pThis)
 	if (pTypeExt->ImmuneToCrit)
 		return true;
 
-	return HasAbility(vet, pThis, PhobosAbilityType::CritImmune);
+	return HasAbility(vet, pTypeExt, PhobosAbilityType::CritImmune);
 }
 
 bool TechnoExtData::IsChronoDelayDamageImmune(Rank vet, FootClass* pThis)
@@ -8020,7 +8031,7 @@ bool TechnoExtData::IsChronoDelayDamageImmune(Rank vet, FootClass* pThis)
 	if (pTypeExt->ChronoDelay_Immune.Get())
 		return true;
 
-	return HasAbility(vet, pThis, PhobosAbilityType::ChronoDelayDamageImmune);
+	return HasAbility(vet, pTypeExt, PhobosAbilityType::ChronoDelayDamageImmune);
 }
 
 bool TechnoExtData::IsRadImmune(Rank vet, TechnoClass* pThis)
@@ -8029,7 +8040,7 @@ bool TechnoExtData::IsRadImmune(Rank vet, TechnoClass* pThis)
 	if (pType->ImmuneToRadiation)
 		return true;
 
-	return HasAbility(vet, pThis, PhobosAbilityType::RadImmune);
+	return HasAbility(vet,  TechnoTypeExtContainer::Instance.Find(pType), PhobosAbilityType::RadImmune);
 }
 
 bool TechnoExtData::IsPsionicsWeaponImmune(Rank vet, TechnoClass* pThis)
@@ -8038,7 +8049,7 @@ bool TechnoExtData::IsPsionicsWeaponImmune(Rank vet, TechnoClass* pThis)
 	if (pType->ImmuneToPsionicWeapons)
 		return true;
 
-	return HasAbility(vet, pThis, PhobosAbilityType::PsionicsWeaponImmune);
+	return HasAbility(vet,  TechnoTypeExtContainer::Instance.Find(pType), PhobosAbilityType::PsionicsWeaponImmune);
 }
 
 bool TechnoExtData::IsPoisonImmune(Rank vet, TechnoClass* pThis)
@@ -8047,7 +8058,7 @@ bool TechnoExtData::IsPoisonImmune(Rank vet, TechnoClass* pThis)
 	if (pType->ImmuneToPoison)
 		return true;
 
-	return HasAbility(vet, pThis, PhobosAbilityType::PoisonImmune);
+	return HasAbility(vet,  TechnoTypeExtContainer::Instance.Find(pType), PhobosAbilityType::PoisonImmune);
 }
 
 bool TechnoExtData::IsBerserkImmune(Rank vet, TechnoClass* pThis)
@@ -8064,7 +8075,7 @@ bool TechnoExtData::IsBerserkImmune(Rank vet, TechnoClass* pThis)
 	if (pShield && pShield->IsActive() && pExt->CurrentShieldType->ImmuneToPsychedelic)
 		return true;
 
-	return HasAbility(vet, pThis, PhobosAbilityType::BerzerkImmune);
+	return HasAbility(vet, pTypeExt, PhobosAbilityType::BerzerkImmune);
 }
 
 bool TechnoExtData::IsAbductorImmune(Rank vet, TechnoClass* pThis)
@@ -8075,7 +8086,7 @@ bool TechnoExtData::IsAbductorImmune(Rank vet, TechnoClass* pThis)
 	if (pTypeExt->ImmuneToAbduction)
 		return true;
 
-	return HasAbility(vet, pThis, PhobosAbilityType::AbductorImmune);
+	return HasAbility(vet, pTypeExt, PhobosAbilityType::AbductorImmune);
 }
 
 bool TechnoExtData::IsAssaulter(Rank vet, InfantryClass* pThis)
@@ -8083,23 +8094,27 @@ bool TechnoExtData::IsAssaulter(Rank vet, InfantryClass* pThis)
 	if (pThis->Type->Assaulter)
 		return true;
 
-	return HasAbility(vet, pThis, PhobosAbilityType::Assaulter);
+	return HasAbility(vet, TechnoTypeExtContainer::Instance.Find(pThis->Type), PhobosAbilityType::Assaulter);
 }
 
 bool TechnoExtData::IsParasiteImmune(Rank vet, TechnoClass* pThis)
-{
-	if (GET_TECHNOTYPE(pThis)->Parasiteable)
+{	
+	const auto pType = GET_TECHNOTYPE(pThis);
+
+	if (!pType->Parasiteable)
 		return false;
 
-	return HasAbility(vet, pThis, PhobosAbilityType::ParasiteImmune);
+	return HasAbility(vet, TechnoTypeExtContainer::Instance.Find(pType), PhobosAbilityType::ParasiteImmune);
 }
 
 bool TechnoExtData::IsUnwarpable(Rank vet, TechnoClass* pThis)
 {
-	if (!GET_TECHNOTYPE(pThis)->Warpable)
+	const auto pType = GET_TECHNOTYPE(pThis);
+
+	if (!pType->Warpable)
 		return true;
 
-	return HasAbility(vet, pThis, PhobosAbilityType::Unwarpable);
+	return HasAbility(vet, TechnoTypeExtContainer::Instance.Find(pType), PhobosAbilityType::Unwarpable);
 }
 
 bool TechnoExtData::IsBountyHunter(Rank vet, TechnoClass* pThis)
@@ -8109,7 +8124,7 @@ bool TechnoExtData::IsBountyHunter(Rank vet, TechnoClass* pThis)
 	if (pTypeExt->Bounty)
 		return true;
 
-	return HasAbility(vet, pThis, PhobosAbilityType::BountyHunter);
+	return HasAbility(vet, pTypeExt, PhobosAbilityType::BountyHunter);
 }
 
 bool TechnoExtData::IsWebImmune(Rank vet, TechnoClass* pThis)
@@ -8119,7 +8134,7 @@ bool TechnoExtData::IsWebImmune(Rank vet, TechnoClass* pThis)
 	if (pTypeExt->ImmuneToWeb)
 		return true;
 
-	return HasAbility(vet, pThis, PhobosAbilityType::WebbyImmune);
+	return HasAbility(vet, pTypeExt, PhobosAbilityType::WebbyImmune);
 }
 
 bool TechnoExtData::IsDriverKillProtected(Rank vet, TechnoClass* pThis)
@@ -8129,7 +8144,7 @@ bool TechnoExtData::IsDriverKillProtected(Rank vet, TechnoClass* pThis)
 	if (pTypeExt->ProtectedDriver)
 		return true;
 
-	return HasAbility(vet, pThis, PhobosAbilityType::Protected_Driver);
+	return HasAbility(vet, pTypeExt, PhobosAbilityType::Protected_Driver);
 }
 
 bool TechnoExtData::IsUntrackable(Rank vet, TechnoClass* pThis)
@@ -8139,15 +8154,13 @@ bool TechnoExtData::IsUntrackable(Rank vet, TechnoClass* pThis)
 	if (pTypeExt->Untrackable)
 		return true;
 
-	return HasAbility(vet, pThis, PhobosAbilityType::Untrackable);
+	return HasAbility(vet, pTypeExt, PhobosAbilityType::Untrackable);
 }
 
-bool TechnoExtData::HasAbility(Rank vet, TechnoClass* pThis, PhobosAbilityType nType)
+bool TechnoExtData::HasAbility(Rank vet, const TechnoTypeExtData* pTypeExt, PhobosAbilityType nType)
 {
 	if (nType == PhobosAbilityType::None)
 		return false;
-
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(GET_TECHNOTYPE(pThis));
 
 	if (vet == Rank::Veteran)
 	{
@@ -8571,7 +8584,7 @@ bool TechnoExtData::TargetTechnoShieldAllowFiring(TechnoClass* pTarget, WeaponTy
 	const auto pTargetTechnoExt = TechnoExtContainer::Instance.Find(pTarget);
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
 
-	if (const auto pShieldData = pTargetTechnoExt->Shield.get())
+	if (const auto pShieldData = pTargetTechnoExt->GetShield())
 	{
 		if (pShieldData->IsActive())
 		{
@@ -11647,7 +11660,7 @@ void TechnoExtData::UpdateOnTunnelEnter()
 {
 	if (!this->IsInTunnel)
 	{
-		if (auto& pShieldData = this->Shield)
+		if (auto pShieldData = this->GetShield())
 			pShieldData->SetAnimationVisibility(false);
 
 		for (auto& pos : this->LaserTrails)
@@ -11825,10 +11838,10 @@ void TechnoExtData::UpdateShield()
 		this->CurrentShieldType = pTypeExt->ShieldType;
 
 	// Create shield class instance if it does not exist.
-	if (this->CurrentShieldType && this->CurrentShieldType->Strength && !this->Shield)
+	if (this->CurrentShieldType && this->CurrentShieldType->Strength && !PhobosEntity::Has<ShieldClass>(this->ShieldEntity))
 	{
-		this->Shield = std::make_unique<ShieldClass>(pThis);
-		this->Shield->UpdateTint();
+		auto& shield = PhobosEntity::Emplace<ShieldClass>(this->ShieldEntity, pThis);
+		shield.UpdateTint();
 	}
 
 	if (const  auto pShieldData = this->GetShield())
@@ -12448,29 +12461,31 @@ bool TechnoExtData::EjectRandomly(FootClass* pEjectee, CoordStruct const& locati
 	return EjectSurvivor(pEjectee, destLoc, select , InAir);
 }
 
-void TechnoExtData::ReplaceArmor(Armor& armor, ObjectClass* pTarget, WeaponTypeClass* pWeapon)
+FORCEINLINE void TechnoExtData::ReplaceArmor(Armor& armor, ObjectClass* pTarget, WeaponTypeClass* pWeapon)
 {
 	TechnoExtData::ReplaceArmor(armor, pTarget, pWeapon->Warhead);
 }
 
-void TechnoExtData::ReplaceArmor(Armor& armor, TechnoClass* pTarget, WeaponTypeClass* pWeapon)
+FORCEINLINE void TechnoExtData::ReplaceArmor(Armor& armor, TechnoClass* pTarget, WeaponTypeClass* pWeapon)
 {
 	TechnoExtData::ReplaceArmor(armor, pTarget, pWeapon->Warhead);
 }
 
-void TechnoExtData::ReplaceArmor(Armor& armor, ObjectClass* pTarget, WarheadTypeClass* pWH)
+FORCEINLINE void TechnoExtData::ReplaceArmor(Armor& armor, ObjectClass* pTarget, WarheadTypeClass* pWH)
 {
 	if(pTarget->AbstractFlags & AbstractFlags::Techno) {
 		TechnoExtData::ReplaceArmor(armor , (TechnoClass*)pTarget, pWH);
 	}
 }
 
-void TechnoExtData::ReplaceArmor(Armor& armor, TechnoClass* pTarget, WarheadTypeClass* pWH)
+FORCEINLINE void TechnoExtData::ReplaceArmor(Armor& armor, TechnoClass* pTarget, WarheadTypeClass* pWH)
 {
-	if(const auto& pShieldData = TechnoExtContainer::Instance.Find(pTarget)->Shield){
-		if(pShieldData->IsActive() && !pShieldData->CanBePenetrated(pWH)){
-			armor = pShieldData->GetArmor(armor);
-		}
+	auto pExt = TechnoExtContainer::Instance.Find(pTarget);
+
+	auto pShieldData = pExt->GetShield();
+
+	if(pShieldData && pShieldData->IsActive() && !pShieldData->CanBePenetrated(pWH)){
+		armor = pShieldData->GetArmor(armor);
 	}
 }
 
@@ -12660,40 +12675,58 @@ void TechnoExtData::StopRotateWithNewROT(int ROT)
 // =============================
 // load / save
 
-void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
+void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type)
 {
+	this->RadioExtData::InvalidatePointer(ptr, bRemoved, type);
 
-	this->RadioExtData::InvalidatePointer(ptr, bRemoved);
+	switch (type)
+	{
+	case AbstractType::Unit:
+	case AbstractType::Aircraft:
+	case AbstractType::Building:
+	case AbstractType::Infantry:
+	{
+		if (ptr && bRemoved)
+		{
+			auto& AttackerDatas = this->OnlyAttackData;
+			if (!AttackerDatas.empty())
+			{
+				for (int index = int(AttackerDatas.size()) - 1; index >= 0; --index)
+				{
+					if (AttackerDatas[index].Attacker != ptr)
+						continue;
+
+					AttackerDatas.erase(AttackerDatas.begin() + index);
+				}
+			}
+		}
+		break;
+	}
+	case AbstractType::Airstrike:
+		AnnounceInvalidPointer(AirstrikeTargetingMe, ptr);
+		break;
+	case AbstractType::BuildingLight:
+		AnnounceInvalidPointer(BuildingLight, ptr);
+		break;
+	case AbstractType::House:
+
+		AnnounceInvalidPointer(OriginalPassengerOwner, ptr);
+		break;
+	case AbstractType::Super:
+		AnnounceInvalidPointer(LinkedSW, ptr);
+
+		break;
+	default:break;
+	}
 
 	if (auto pSpawn = (FakeSpawnManagerClass*)This()->SpawnManager)
 		pSpawn->_DetachB(ptr, bRemoved);
 
-	//MyWeaponManager.InvalidatePointer(ptr, bRemoved);
-
-	AnnounceInvalidPointer(LinkedSW, ptr);
-	AnnounceInvalidPointer(OriginalPassengerOwner, ptr);
 	AnnounceInvalidPointer(WebbyLastTarget, ptr);
-	AnnounceInvalidPointer(BuildingLight, ptr);
-	AnnounceInvalidPointer(AirstrikeTargetingMe, ptr);
 
 	for (auto& _phobos_AE : PhobosAE) {
 		if (_phobos_AE) {
-			_phobos_AE->InvalidatePointer(ptr, bRemoved);
-		}
-	}
-
-	if (ptr && bRemoved)
-	{
-		auto& AttackerDatas = this->OnlyAttackData;
-		if (!AttackerDatas.empty())
-		{
-			for (int index = int(AttackerDatas.size()) - 1; index >= 0; --index)
-			{
-				if (AttackerDatas[index].Attacker != ptr)
-					continue;
-
-				AttackerDatas.erase(AttackerDatas.begin() + index);
-			}
+			_phobos_AE->InvalidatePointer(ptr, bRemoved, type);
 		}
 	}
 }
@@ -12742,6 +12775,10 @@ TechnoExtData::~TechnoExtData()
 			pOwnerExt->OwnedDeployingUnits.remove((UnitClass*)pThis);
 		}
 	}
+
+	PhobosEntity::DestroyEntity<true>(this->ShieldEntity);
+	PhobosEntity::DestroyEntity<true>(this->PoweredUnitEntity);
+	PhobosEntity::DestroyEntity<true>(this->RadarJammerEntity);
 }
 
 // =============================
@@ -12786,7 +12823,7 @@ ASMJIT_PATCH(0x710415, TechnoClass_AnimPointerExpired_add, 6)
 		if (pExt->EMPSparkleAnim.get() == pAnim)
 			pExt->EMPSparkleAnim.release();
 
-		if (auto& pShield = pExt->Shield)
+		if (auto pShield = pExt->GetShield())
 			pShield->InvalidateAnimPointer(pAnim);
 
 		if (pExt->WebbedAnim.get() == pAnim)

@@ -35,8 +35,8 @@ public:
 	virtual AbstractType WhatIam() const { return base_type::AbsID; }
 	virtual int GetSize() const { return sizeof(*this); };
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) {
-		this->FootExtData::InvalidatePointer(ptr, bRemoved);
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) {
+		this->FootExtData::InvalidatePointer(ptr, bRemoved, type);
 	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) {

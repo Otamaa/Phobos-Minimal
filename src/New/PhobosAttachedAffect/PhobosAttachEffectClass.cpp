@@ -91,10 +91,22 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 
 }
 
-void PhobosAttachEffectClass::InvalidatePointer(AbstractClass* ptr, bool removed)
+void PhobosAttachEffectClass::InvalidatePointer(AbstractClass* ptr, bool removed, AbstractType type)
 {
-	AnnounceInvalidPointer(this->Invoker, ptr, removed);
-	AnnounceInvalidPointer(this->InvokerHouse, ptr);
+	switch(type)
+	{
+	case AbstractType::House:
+		AnnounceInvalidPointer(this->InvokerHouse, ptr);
+		break;
+
+	case AbstractType::Infantry:
+	case AbstractType::Unit:
+	case AbstractType::Aircraft:
+	case AbstractType::Building:
+		AnnounceInvalidPointer(this->Invoker, ptr, removed);
+		break;
+	default: break;
+	}
 }
 
 void PhobosAttachEffectClass::InvalidateAnimPointer(AnimClass* ptr)

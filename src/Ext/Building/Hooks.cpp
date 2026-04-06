@@ -12,6 +12,42 @@
 #include <BitFont.h>
 #include <UnitClass.h>
 
+ASMJIT_PATCH(0x441553, BuildingClass_Unlimbo_PowerPlantEnhancer, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	auto pExt = BuildingExtContainer::Instance.Find(pThis);
+
+	pExt->PowerPlantEnhancer.Register();
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x448A78, BuildingClass_SetOwningHouse_RemovePowerPlantEnhancer, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(HouseClass*, pOldOwner, EBX);
+	auto pExt = BuildingExtContainer::Instance.Find(pThis);
+
+	// We need to get the new owner too — depends on where in the function we hook
+	// For the Remove hook, we just unregister from old
+	pExt->PowerPlantEnhancer.Unregister();
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x449197, BuildingClass_SetOwningHouse_AddPowerPlantEnhancer, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(HouseClass*, pNewOwner, EBP);
+	auto pExt = BuildingExtContainer::Instance.Find(pThis);
+
+	// Re-register (AttachedToObject->Owner should now be pNewOwner)
+	pExt->PowerPlantEnhancer.Register();
+
+	return 0;
+}
+
 ASMJIT_PATCH(0x44955D, BuildingClass_WeaponFactoryOutsideBusy_WeaponFactoryCell, 0x6)
 {
 	enum { NotBusy = 0x44969B };

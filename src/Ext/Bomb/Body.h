@@ -25,8 +25,7 @@ public:
 
 	virtual ~BombExtData() = default;
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override {
-
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) override {
 	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override {

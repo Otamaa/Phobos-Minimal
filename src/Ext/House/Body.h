@@ -146,7 +146,6 @@ public:
 	// ============================================================
 	// PhobosMap (likely contains std::unordered_map or similar)
 	// ============================================================
-	PhobosMap<BuildingTypeClass*, int> PowerPlantEnhancerBuildings {};
 	PhobosMap<BuildingTypeClass*, int> Building_BuildSpeedBonusCounter {};
 	PhobosMap<BuildingTypeClass*, int> Building_OrePurifiersCounter {};
 	PhobosMap<BuildingTypeClass*, int> BattlePointsCollectors {};
@@ -162,6 +161,7 @@ public:
 	VectorSet<TechnoClass*> OwnedCountedHarvesters {};
 	VectorSet<BuildingClass*> RestrictedFactoryPlants {};
 	VectorSet<BuildingClass*> PowerPlantEnhancers {};
+
 	// ============================================================
 	// Vectors (24 bytes each)
 	// ============================================================
@@ -171,6 +171,7 @@ public:
 	HelperedVector<UnitClass*> OwnedDeployingUnits {};
 	std::vector<int> BestChoicesNaval {};
 	std::vector<int> AITriggers_ValidList {};
+
 
 	// ============================================================
 	// OptionalStruct (pointer + bool + padding ≈ 16 bytes)
@@ -247,7 +248,7 @@ public:
 
 	virtual ~HouseExtData() = default;
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) override;
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{

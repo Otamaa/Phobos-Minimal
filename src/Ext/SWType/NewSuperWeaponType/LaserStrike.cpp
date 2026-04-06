@@ -294,7 +294,17 @@ bool LaserStrikeStateMachine::Save(PhobosStreamWriter& Stm) const
 		.Success();
 }
 
-void LaserStrikeStateMachine::InvalidatePointer(AbstractClass* ptr, bool remove)
+void LaserStrikeStateMachine::InvalidatePointer(AbstractClass* ptr, bool remove, AbstractType  type)
 {
-	AnnounceInvalidPointer(Firer, ptr, remove);
+	switch (type)
+	{
+	case AbstractType::Unit:
+	case AbstractType::Aircraft:
+	case AbstractType::Building:
+	case AbstractType::Infantry:
+		AnnounceInvalidPointer(this->Firer, ptr, remove);
+		break;
+	default:
+		break;
+	}
 }

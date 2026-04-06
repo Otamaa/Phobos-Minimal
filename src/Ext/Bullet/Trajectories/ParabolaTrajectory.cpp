@@ -4,41 +4,6 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/WarheadType/Body.h>
 
-static COMPILETIMEEVAL std::array<const char* const, (size_t)ParabolaFireMode::count> ParabolaFireMode_ToStrings
-{
-	"Speed"  ,
-	"Height"  ,
-	"Angle" ,
-	"SpeedAndHeight" ,
-	"HeightAndAngle" ,
-	"SpeedAndAngle" ,
-};
-
-
-namespace detail
-{
-	template <>
-	OPTIONALINLINE bool read<ParabolaFireMode>(ParabolaFireMode& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			for (size_t i = 0; i < ParabolaFireMode_ToStrings.size(); ++i)
-			{
-				if (IS_SAME_STR_(ParabolaFireMode_ToStrings[i], parser.value()))
-				{
-					value = ParabolaFireMode(i);
-					return true;
-				}
-			}
-
-
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Parabola fire mode is invalid");
-		}
-
-		return false;
-	}
-}
-
 bool ParabolaTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	return this->PhobosTrajectoryType::Load(Stm, false)

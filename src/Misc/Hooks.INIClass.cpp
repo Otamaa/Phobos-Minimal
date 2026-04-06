@@ -33,65 +33,6 @@ if (IS_SAME_STR_(parser.value(), who ##_data.s_name)) { \
 	}\
 }
 
-namespace detail
-{
-	template <>
-	OPTIONALINLINE bool read<CLSID>(CLSID& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (!parser.ReadString(pSection, pKey))
-			return false;
-
-		// Semantic locomotor aliases
-		if (parser.value()[0] != '{') {
-
-			if (Phobos::Otamaa::IsAdmin)
-				Debug::Log("Reading locomotor [%s] of [%s]\n" , parser.value() , pSection);
-
-			for (size_t i = 0; i < EnumFunctions::LocomotorPairs_ToStrings.size(); ++i) {
-				if (IS_SAME_STR_(parser.value(), EnumFunctions::LocomotorPairs_ToStrings[i].first)) {
-					CLSID dummy;
-					const unsigned hr = CLSIDFromString(LPCOLESTR(EnumFunctions::LocomotorPairs_ToWideStrings[i].second), &dummy);
-					if (SUCCEEDED(hr)) {
-						value = dummy; return true;
-					}
-					else {
-						Debug::LogError("Cannot find Locomotor [{} - {}({})] err : 0x{:08X}", pSection, parser.value(), EnumFunctions::LocomotorPairs_ToStrings[i].second, hr);
-					}
-				}
-			}
-
-			//PARSE(Attachment)
-			//PARSE(Levitate)
-			PARSE(AdvancedDrive)
-			//PARSE(CustomRocket)
-			//PARSE(TSJumpJet)
-
-			//AddMore loco here
-			return false;
-		}
-
-		CHAR bytestr[128];
-		WCHAR wcharstr[128];
-
-		strncpy(bytestr, parser.value(), 128);
-		bytestr[127] = NULL;
-		CRT::strtrim(bytestr);
-
-		if (!strlen(bytestr))
-			return false;
-
-		MultiByteToWideChar(0, 1, bytestr, -1, wcharstr, 128);
-		const unsigned hr = CLSIDFromString(wcharstr, &value);
-
-		if(!SUCCEEDED(hr)){
-			Debug::LogError("Cannot find Locomotor [{} - {}] err : 0x{:08X}", pSection, parser.value(),hr);
-			return false;
-		}
-
-		return true;
-	}
-}
-
 // passthrough instead of std::hash, because our keys are already unique CRCs
 struct Passthrough {
 	std::size_t operator()(int const& x) const noexcept {

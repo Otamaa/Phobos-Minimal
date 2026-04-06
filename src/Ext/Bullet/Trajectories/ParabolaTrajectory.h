@@ -1,18 +1,6 @@
 #pragma once
 #include "PhobosTrajectory.h"
-
-enum class ParabolaFireMode : size_t
-{
-	Speed = 0,
-	Height = 1,
-	Angle = 2,
-	SpeedAndHeight = 3,
-	HeightAndAngle = 4,
-	SpeedAndAngle = 5,
-
-	count
-};
-
+#include <Utilities/EnumFunctions.h>
 
 class ParabolaTrajectoryType final : public PhobosTrajectoryType
 {

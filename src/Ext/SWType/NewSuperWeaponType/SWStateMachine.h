@@ -56,7 +56,7 @@ public:
 
 	virtual bool Finished() { return Clock.Completed(); }
 	virtual void Update() = 0;
-	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) = 0;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove, AbstractType  type) = 0;
 	virtual SWStateMachineIdentifier GetIdentifier() const = 0;
 	virtual const char* GetIdentifierStrings() const = 0;
 
@@ -75,7 +75,7 @@ public:
 
 public:
 	static void UpdateAll();
-	static void PointerGotInvalid(AbstractClass* ptr, bool remove);
+	static void PointerGotInvalid(AbstractClass* ptr, bool remove, AbstractType  type);
 	static void Clear();
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
@@ -115,7 +115,7 @@ public:
 	{ }
 
 	virtual void Update() override;
-	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { }
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove, AbstractType  type) override { }
 
 	DEFINE_SWSTATEMACHINE_IDENT(UnitDelivery)
 
@@ -135,7 +135,7 @@ public:
 	{ }
 
 	virtual void Update() override;
-	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { }
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove, AbstractType  type) override { }
 
 	DEFINE_SWSTATEMACHINE_IDENT(Droppod)
 
@@ -156,7 +156,7 @@ public:
 	{ }
 
 	virtual void Update() override;
-	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { }
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove, AbstractType  type) override { }
 
 	DEFINE_SWSTATEMACHINE_IDENT(SonarPulse)
 
@@ -181,7 +181,7 @@ public:
 	{ }
 
 	virtual void Update() override;
-	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { }
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove, AbstractType  type) override { }
 
 	DEFINE_SWSTATEMACHINE_IDENT(SpyPlane)
 
@@ -283,7 +283,7 @@ public:
 	{ }
 
 	virtual void Update() override;
-	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove, AbstractType  type) override;
 
 	DEFINE_SWSTATEMACHINE_IDENT(ChronoWarp)
 
@@ -337,7 +337,7 @@ public:
 	}
 
 	virtual void Update() override;
-	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { }
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove, AbstractType  type) override { }
 
 	DEFINE_SWSTATEMACHINE_IDENT(PsychicDominator)
 
@@ -403,7 +403,7 @@ public:
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
 	void Fire();
-	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove, AbstractType  type) override;
 
 protected:
 	// ============================================================
@@ -504,7 +504,7 @@ public:
 		return ActualDuration <= -1 ? false : !IsActive && !TimeToEnd && !Deferment && CloudsPresent.empty() && CloudsManifest.empty();
 	}
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove, AbstractType  type) override;
 
 	DEFINE_SWSTATEMACHINE_IDENT(CloneableLighningStorm)
 
@@ -602,7 +602,7 @@ public:
 		virtual bool Finished() override { return SWStateMachine::Finished() || MaxCountCounter <= 0; }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
-	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove, AbstractType  type) override;
 
 protected:
 	// ============================================================
@@ -657,7 +657,7 @@ public:
 
 		virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
-	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove, AbstractType  type) override;
 
 	static void SentPayload(TechnoClass* pFirer, SuperClass* pSuper, SWTypeExtData* pData, SWTypeHandler* pNewType, const CellStruct& loc);
 
@@ -710,9 +710,10 @@ public:
 			.Success();
 	}
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove, AbstractType  type) override
 	{
-		AnnounceInvalidPointer(Firer, ptr, remove);
+		if(ptr->AbstractFlags & AbstractFlags::Techno)
+			AnnounceInvalidPointer(Firer, ptr, remove);
 	}
 
 	static void ApplyGeneticMutator(TechnoClass* pFirer, SuperClass* pSuper, SWTypeExtData* pData, SWTypeHandler* pNewType, CoordStruct& coord, const CellStruct& loc, WarheadTypeClass* pWarhead, SWRange& range, int damage);
@@ -742,7 +743,7 @@ public:
 	{ }
 
 	virtual void Update() override;
-	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { }
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove, AbstractType  type) override { }
 
 	DEFINE_SWSTATEMACHINE_IDENT(Reveal)
 };
@@ -776,7 +777,7 @@ public:
 	}
 
 	virtual void Update() override;
-	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { }
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove, AbstractType  type) override { }
 
 	void UpdateProperties();
 
@@ -831,7 +832,7 @@ public:
 	{ }
 
 	virtual void Update() override;
-	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { }
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove, AbstractType  type) override { }
 
 	DEFINE_SWSTATEMACHINE_IDENT(Protect)
 };
@@ -858,7 +859,7 @@ public:
 
 		virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
-	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove, AbstractType  type) override;
 
 	static void SentMeteorShower(TechnoClass* pFirer, SuperClass* pSuper, SWTypeExtData* pData, SWTypeHandler* pNewType, const CellStruct& loc);
 

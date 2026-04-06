@@ -516,7 +516,7 @@ ASMJIT_PATCH(0x7359DC, UnitClass_DTOR, 0x7)
 void FakeUnitClass::_Detach(AbstractClass* target, bool all)
 {
 	if(auto pExt = this->_GetExtData())
-		pExt->InvalidatePointer(target, all);
+		pExt->InvalidatePointer(target, all, target->WhatAmI());
 	this->UnitClass::PointerExpired(target, all);
 }
 

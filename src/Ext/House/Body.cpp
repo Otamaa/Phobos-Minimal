@@ -129,8 +129,9 @@ float HouseExtData::GetRestrictedFactoryPlantMult(TechnoTypeClass* pTechnoType) 
 		auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 
 		int max = pTypeExt->FactoryPlant_MaxCount;
+		auto& counter =  counts[pBuilding->Type->ArrayIndex];
 
-		if (max > -1 && counts[pBuilding->Type->ArrayIndex] >= max)
+		if (max > -1 && counter >= max)
 			continue;
 
 		if (!pTypeExt->FactoryPlant_AllowTypes.empty() && !pTypeExt->FactoryPlant_AllowTypes.Contains(pTechnoType))
@@ -139,7 +140,7 @@ float HouseExtData::GetRestrictedFactoryPlantMult(TechnoTypeClass* pTechnoType) 
 		if (!pTypeExt->FactoryPlant_DisallowTypes.empty()&& pTypeExt->FactoryPlant_DisallowTypes.Contains(pTechnoType))
 			continue;
 
-		counts[pBuilding->Type->ArrayIndex]++;
+		counter++;
 		float currentMult = 1.0f;
 
 		switch (pTechnoType->WhatAmI())
@@ -468,8 +469,8 @@ COMPILETIMEEVAL bool CheckFactoryOwnersConstraints(
 
 COMPILETIMEEVAL bool CheckFactoryBuildingConstraints(
 	BuildingClass* bld,
-	const std::vector<HouseTypeClass*>& required,
-	const std::vector<HouseTypeClass*>& forbidden)
+	const HelperedVector<HouseTypeClass*>& required,
+	const HelperedVector<HouseTypeClass*>& forbidden)
 {
 	HouseClass* house = bld->Owner;
 
@@ -480,13 +481,13 @@ COMPILETIMEEVAL bool CheckFactoryBuildingConstraints(
 	HouseTypeClass* ownerType = house->Type;
 
 	// 1. Forbidden houses
-	if (std::find(forbidden.begin(), forbidden.end(), ownerType) != forbidden.end()) {
+	if (forbidden.contains(ownerType)) {
 		return false;
 	}
 
 	// 2. Required houses (whitelist)
 	if (!required.empty()) {
-		if (std::find(required.begin(), required.end(), ownerType) == required.end()) {
+		if (!required.contains(ownerType)) {
 			return false;
 		}
 	}
@@ -1466,30 +1467,48 @@ TechTreeTypeClass* HouseExtData::GetTechTreeType() {
 	return this->SideTechTree.get();
 }
 
-void HouseExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
+void HouseExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type)
 {
-	if (ptr == nullptr)
-		return;
+	switch (type)
+	{
+	case AbstractType::Super:
+		AnnounceInvalidPointer<SuperClass*>(this->Batteries, ptr);
+		break;
+	case AbstractType::Unit:
+	case AbstractType::Aircraft:
+	case AbstractType::Infantry:
+	case AbstractType::Building:
 
-	//AnnounceInvalidPointer(OwnedTechno, ptr , bRemoved);
-	AnnounceInvalidPointer(Factory_BuildingType, ptr, bRemoved);
-	AnnounceInvalidPointer(Factory_InfantryType, ptr, bRemoved);
-	AnnounceInvalidPointer(Factory_VehicleType, ptr, bRemoved);
-	AnnounceInvalidPointer(Factory_NavyType, ptr, bRemoved);
-	AnnounceInvalidPointer(Factory_AircraftType, ptr, bRemoved);
+		this->OwnedCountedHarvesters.InvalidatePointer(ptr, bRemoved);
 
-	Academies.InvalidatePointer(ptr, bRemoved);
-	TunnelsBuildings.InvalidatePointer(ptr, bRemoved);
-	RestrictedFactoryPlants.InvalidatePointer(ptr, bRemoved);
-	PowerPlantEnhancers.InvalidatePointer(ptr, bRemoved);
-	OwnedCountedHarvesters.InvalidatePointer(ptr, bRemoved);
-	AnnounceInvalidPointer<UnitClass*>(OwnedDeployingUnits, ptr, bRemoved);
+		for (auto& nTun : this->Tunnels)
+		{
+			AnnounceInvalidPointer<FootClass*>(nTun.Vector, ptr, bRemoved);
+		}
 
-	for (auto& nTun : Tunnels){
-		AnnounceInvalidPointer<FootClass*>(nTun.Vector, ptr, bRemoved);
+		if (type == UnitClass::AbsID)
+		{
+			AnnounceInvalidPointer<UnitClass*>(this->OwnedDeployingUnits, ptr, bRemoved);
+		}
+
+		if (type == AbstractType::Building)
+		{
+			AnnounceInvalidPointer(this->Factory_BuildingType, ptr, bRemoved);
+			AnnounceInvalidPointer(this->Factory_InfantryType, ptr, bRemoved);
+			AnnounceInvalidPointer(this->Factory_VehicleType, ptr, bRemoved);
+			AnnounceInvalidPointer(this->Factory_NavyType, ptr, bRemoved);
+			AnnounceInvalidPointer(this->Factory_AircraftType, ptr, bRemoved);
+
+			this->Academies.InvalidatePointer(ptr, bRemoved);
+			this->TunnelsBuildings.InvalidatePointer(ptr, bRemoved);
+			this->RestrictedFactoryPlants.InvalidatePointer(ptr, bRemoved);
+			this->PowerPlantEnhancers.InvalidatePointer(ptr, bRemoved);
+		}
+
+		break;
+	default:
+		break;
 	}
-
-	AnnounceInvalidPointer<SuperClass*>(Batteries, ptr);
 }
 
 int HouseExtData::ActiveHarvesterCount(HouseClass* pThis)
@@ -2731,7 +2750,6 @@ void HouseExtData::Serialize(T& Stm)
 		};
 
 	debugProcess(this->Degrades, "Degrades");
-	debugProcess(this->PowerPlantEnhancerBuildings, "PowerPlantEnhancerBuildings");
 	debugProcess(this->Building_BuildSpeedBonusCounter, "Building_BuildSpeedBonusCounter");
 	debugProcess(this->Building_OrePurifiersCounter, "Building_OrePurifiersCounter");
 	debugProcess(this->BattlePointsCollectors, "BattlePointsCollectors");
@@ -2800,7 +2818,6 @@ void HouseExtData::Serialize(T& Stm)
 	Stm
 		.Process(this->Name)
 		.Process(this->Degrades)
-		.Process(this->PowerPlantEnhancerBuildings)
 		.Process(this->Building_BuildSpeedBonusCounter)
 		.Process(this->Building_OrePurifiersCounter)
 		.Process(this->BattlePointsCollectors)
@@ -3448,7 +3465,6 @@ void FakeHouseClass::_UpdateSpySat()
 	pHouseExt->Building_BuildSpeedBonusCounter.clear();
 	pHouseExt->Building_OrePurifiersCounter.clear();
 	pHouseExt->RestrictedFactoryPlants.clear();
-	pHouseExt->PowerPlantEnhancers.clear();
 	pHouseExt->BattlePointsCollectors.clear();
 
 	this->RecheckRadar = 0;
@@ -3519,19 +3535,6 @@ void FakeHouseClass::_UpdateSpySat()
 						this->CostInfantryMult *= (*begin)->InfantryCostBonus;
 						this->CostBuildingsMult *= (*begin)->BuildingsCostBonus;
 						this->CostAircraftMult *= (*begin)->AircraftCostBonus;
-					}
-				}
-
-				if (!pTypeExt->PowerPlantEnhancer_Buildings.empty()
-					&& (pTypeExt->PowerPlantEnhancer_Amount != 0 || pTypeExt->PowerPlantEnhancer_Factor != 1.0f))
-				{
-
-					int max = pTypeExt->PowerPlantEnhancer_MaxCount;
-
-					if (max <= -1 || EnhancerCounts[(*begin)->ArrayIndex] < max){
-						EnhancerCounts[(*begin)->ArrayIndex]++;
-
-						pHouseExt->PowerPlantEnhancers.emplace(pBld);
 					}
 				}
 
@@ -4393,7 +4396,7 @@ ASMJIT_PATCH(0x50114D, HouseClass_InitFromINI, 0x5)
 
 void FakeHouseClass::_Detach(AbstractClass* target, bool all) {
 	if(auto pExt = this->_GetExtData())
-		pExt->InvalidatePointer(target, all);
+		pExt->InvalidatePointer(target, all, target->WhatAmI());
 	this->HouseClass::PointerExpired(target, all);
 }
 

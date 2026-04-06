@@ -138,22 +138,33 @@ void Phobos::LoadGameDataAfter()
 void PhobosExt::InvalidatePointers(AbstractClass* const pInvalid, bool const removed, AbstractType  type)
 {
 
-	TActionExtData::InvalidatePointer(pInvalid, removed);
-	PhobosGlobal::PointerGotInvalid(pInvalid, removed);
-	SWStateMachine::PointerGotInvalid(pInvalid, removed);
+	if(type == AbstractType::Trigger) {
+		TActionExtData::InvalidatePointer(pInvalid, removed);
+	}
+	
+	if(pInvalid->AbstractFlags & AbstractFlags::Techno) {
+		PhobosGlobal::PointerGotInvalid(pInvalid, removed);
+		HugeBar::InvalidatePointer(pInvalid, removed);
+	}
 
-	AnnounceInvalidPointer(SWTypeExtData::TempSuper, pInvalid);
-	AnnounceInvalidPointer(SWTypeExtData::LauchData, pInvalid);
+	SWStateMachine::PointerGotInvalid(pInvalid, removed, type);
+
+	if(type == AbstractType::Super) {
+		AnnounceInvalidPointer(SWTypeExtData::TempSuper, pInvalid);
+		AnnounceInvalidPointer(SWTypeExtData::LauchData, pInvalid);
+	}
 
 	if (removed) {
-		ScenarioExtData::Instance()->UndergroundTracker.erase((TechnoClass*)pInvalid);
-		ScenarioExtData::Instance()->FallingDownTracker.erase((TechnoClass*)pInvalid);
+		if(pInvalid->AbstractFlags & AbstractFlags::Techno) {
+			ScenarioExtData::Instance()->UndergroundTracker.erase((TechnoClass*)pInvalid);
+			ScenarioExtData::Instance()->FallingDownTracker.erase((TechnoClass*)pInvalid);
 
-		HouseExtContainer::Instance.AutoDeathObjects.erase_all_if([pInvalid](std::pair<TechnoClass*, KillMethod>& item) {
-			return item.first == pInvalid;
-		});
+			HouseExtContainer::Instance.AutoDeathObjects.erase_all_if([pInvalid](std::pair<TechnoClass*, KillMethod>& item) {
+				return item.first == pInvalid;
+			});
 
-		HouseExtContainer::Instance.LimboTechno.remove((TechnoClass*)pInvalid);
+			HouseExtContainer::Instance.LimboTechno.remove((TechnoClass*)pInvalid);
+		}
 
 		if (type == AnimClass::AbsID) {
 
@@ -169,7 +180,6 @@ void PhobosExt::InvalidatePointers(AbstractClass* const pInvalid, bool const rem
 		}
 	}
 
-	HugeBar::InvalidatePointer(pInvalid, removed);
 }
 
 void PhobosExt::EnsureSeeded(unsigned long seed)
@@ -396,6 +406,7 @@ void Phobos::ClearAll()
 
 	MouseClassExt::ClearCameos();
 	MouseClassExt::ClearMappedAction();
+	PhobosEntity::OnClear();
 }
 
 #pragma endregion

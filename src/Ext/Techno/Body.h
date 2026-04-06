@@ -2,6 +2,8 @@
 #include <TechnoClass.h>
 #include <AnimClass.h>
 
+#include <Phobos.Entity.h>
+
 #include <Helpers/Macro.h>
 
 #include <Utilities/TemplateDefB.h>
@@ -30,6 +32,7 @@ class TechnoTypeClass;
 class REGISTERS;
 struct BurstFLHBundle;
 class FakeWeaponTypeClass;
+struct HijackerData;
 
 struct TintColors
 {
@@ -164,8 +167,6 @@ private:
 		debugProcess(this->idxSlot_Parasite, "idxSlot_Parasite");
 		debugProcess(this->EMPSparkleAnim, "EMPSparkleAnim");
 		debugProcess(this->EMPLastMission, "EMPLastMission");
-		debugProcess(this->PoweredUnit, "PoweredUnit");
-		debugProcess(this->RadarJammer, "RadarJammer");
 		debugProcess(this->BuildingLight, "BuildingLight");
 		debugProcess(this->OriginalHouseType, "OriginalHouseType");
 		debugProcess(this->CloakSkipTimer, "CloakSkipTimer");
@@ -179,7 +180,6 @@ private:
 		debugProcess(this->TakeVehicleMode, "TakeVehicleMode");
 		debugProcess(this->TechnoValueAmount, "TechnoValueAmount");
 		debugProcess(this->Pos, "Pos");
-		debugProcess(this->Shield, "Shield");
 		debugProcess(this->LaserTrails, "LaserTrails");
 		debugProcess(this->ReceiveDamage, "ReceiveDamage");
 		debugProcess(this->LastKillWasTeamTarget, "LastKillWasTeamTarget");
@@ -208,7 +208,6 @@ private:
 		debugProcess(this->ExtraWeaponTimers, "ExtraWeaponTimers");
 		debugProcess(this->CurrentWeaponIdx, "CurrentWeaponIdx");
 		debugProcess(this->WarpedOutDelay, "WarpedOutDelay");
-
 		debugProcess(this->MyOriginalTemporal, "MyOriginalTemporal");
 		debugProcess(this->SupressEVALost, "SupressEVALost");
 		debugProcess(this->SelfHealing_CombatDelay, "SelfHealing_CombatDelay");
@@ -286,15 +285,22 @@ public:
 	using base_type = TechnoClass;
 public:
 #pragma region ClassMembers
+
 	// ============================================================
-// 8-byte aligned: Pointers
-// ============================================================
+	// Shield-related fields (group together for cache locality)
+	// ============================================================
+	ShieldTypeClass* CurrentShieldType { nullptr };
+
+	// ============================================================
+	
+	// ============================================================
+	// 8-byte aligned: Pointers
+	// ============================================================
 	TechnoTypeClass* CurrentType { nullptr };
 	BuildingLightClass* BuildingLight { nullptr };
 	HouseTypeClass* OriginalHouseType { nullptr };
 	HouseClass* HijackerOwner { nullptr };
 	HouseClass* OriginalPassengerOwner { nullptr };
-	ShieldTypeClass* CurrentShieldType { nullptr };
 	AnimTypeClass* MindControlRingAnimType { nullptr };
 	AbstractClass* WebbyLastTarget { nullptr };
 	CellClass* FiringObstacleCell { nullptr };
@@ -311,9 +317,6 @@ public:
 	// ============================================================
 	// 8-byte aligned: std::unique_ptr
 	// ============================================================
-	std::unique_ptr<PoweredUnitClass> PoweredUnit { nullptr };
-	std::unique_ptr<RadarJammerClass> RadarJammer { nullptr };
-	std::unique_ptr<ShieldClass> Shield { nullptr };
 
 	// ============================================================
 	// 8-byte aligned: Handle wrappers (pointer-sized)
@@ -385,6 +388,9 @@ public:
 	// ============================================================
 	// 4-byte aligned: int, DWORD, float, enums
 	// ============================================================
+	entt::entity ShieldEntity { entt::null };
+	entt::entity PoweredUnitEntity { entt::null };
+	entt::entity RadarJammerEntity { entt::null };
 	int HijackerHealth {};
 	int TechnoValueAmount {};
 	int Pos {};
@@ -475,12 +481,15 @@ public:
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
 		MyTargetingFrame = ScenarioClass::Instance->Random.RandomRanged(0, 15);
 		Tints.SetOwner(abs);
+		ShieldEntity = PhobosEntity::Create();
+		PoweredUnitEntity = PhobosEntity::Create();
+		RadarJammerEntity = PhobosEntity::Create();
 	};
 
 	TechnoExtData(TechnoClass* abs, noinit_t& noint) : RadioExtData(abs, noint) {};
 
 	virtual ~TechnoExtData();
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) override;
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
@@ -508,7 +517,26 @@ public:
 
 	FORCEDINLINE ShieldClass* GetShield() const
 	{
-		return this->Shield.get();
+		if (!PhobosEntity::Has<ShieldClass>(this->ShieldEntity))
+			return nullptr;
+
+		return PhobosEntity::Get<ShieldClass>(this->ShieldEntity);
+	}
+
+	FORCEDINLINE PoweredUnitClass* GetPoweredUnit() const
+	{
+		if (!PhobosEntity::Has<PoweredUnitClass>(this->PoweredUnitEntity))
+			return nullptr;
+
+		return PhobosEntity::Get<PoweredUnitClass>(this->PoweredUnitEntity);
+	}
+
+	FORCEDINLINE RadarJammerClass* GetRadarJammer() const
+	{
+		if (!PhobosEntity::Has<RadarJammerClass>(this->RadarJammerEntity))
+			return nullptr;
+
+		return PhobosEntity::Get<RadarJammerClass>(this->RadarJammerEntity);
 	}
 
 	void ClearElectricBolts()
@@ -724,7 +752,7 @@ public:
 	static bool IsDriverKillProtected(Rank vet, TechnoClass* pThis);
 	static bool IsUntrackable(Rank vet, TechnoClass* pThis);
 
-	static bool HasAbility(Rank vet, TechnoClass* pThis, PhobosAbilityType nType);
+	static bool HasAbility(Rank vet, const TechnoTypeExtData* pTypeExt, PhobosAbilityType nType);
 	static bool HasImmunity(Rank vet, TechnoClass* pThis, int nType);
 
 	static bool IsTypeImmune(TechnoClass* pThis, TechnoClass* pSource);
@@ -773,7 +801,7 @@ public:
 	static Point2D GetFootSelectBracketPosition(TechnoClass* pThis, Anchor anchor);
 	static Point2D GetBuildingSelectBracketPosition(TechnoClass* pThis, BuildingSelectBracketPosition bracketPosition, Point2D offset = Point2D::Empty);
 	static void ProcessDigitalDisplays(TechnoClass* pThis);
-	static void GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType, int& value, int& maxValue, int infoIndex);
+	static void GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType, int& value, int& maxValue, int infoIndex, ShieldClass* pShield);
 	static std::vector<DigitalDisplayTypeClass*>* GetDisplayType(TechnoClass* pThis, TechnoTypeClass* pType, int& length);
 
 	static void RestoreLastTargetAndMissionAfterWebbed(InfantryClass* pThis);
