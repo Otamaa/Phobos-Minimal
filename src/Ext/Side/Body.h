@@ -116,6 +116,7 @@ public:
 	// ============================================================
 	Valueable<ColorStruct> Sidebar_HarvesterCounter_Yellow { Drawing::DefaultColors[(int)DefaultColorList::Yellow] };
 	Valueable<ColorStruct> Sidebar_HarvesterCounter_Red { Drawing::DefaultColors[(int)DefaultColorList::Red] };
+	Nullable<ColorStruct> Sidebar_HarvesterCounter_Green { };
 	Valueable<ColorStruct> Sidebar_PowerDelta_Green { Drawing::DefaultColors[(int)DefaultColorList::Green] };
 	Valueable<ColorStruct> Sidebar_PowerDelta_Grey { Drawing::DefaultColors[(int)DefaultColorList::Grey] };
 	Valueable<ColorStruct> Sidebar_PowerDelta_Yellow { Drawing::DefaultColors[(int)DefaultColorList::Yellow] };

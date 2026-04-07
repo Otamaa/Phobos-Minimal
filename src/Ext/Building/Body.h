@@ -10,12 +10,12 @@
 #include <Utilities/PlacingBuildingStruct.h>
 
 #include <Ext/Techno/Body.h>
-#include <Ext/TechnoType/Body.h>
 #include <Ext/BuildingType/Body.h>
 
 #include <New/Entity/PrismForwarding.h>
 #include <New/Entity/PowerPlantEnhancerClass.h>
 
+class BuildingTypeExtData;
 class InfantryClass;
 class BuildingExtData : public TechnoExtData
 {
@@ -36,7 +36,6 @@ public:
 	// ============================================================
 	// 8-byte aligned: Pointers
 	// ============================================================
-	BuildingTypeExtData* Type {};
 	BuildingClass* CurrentAirFactory {};
 	HouseClass* C4Owner {};
 	WarheadTypeClass* C4Warhead {};
@@ -101,13 +100,7 @@ public:
 #pragma endregion
 
 public:
-	BuildingExtData(BuildingClass* pObj) : TechnoExtData(pObj) ,PowerPlantEnhancer(pObj)
-	{
-		this->CurrentType = pObj->Type;
-		this->Type = BuildingTypeExtContainer::Instance.Find(pObj->Type);
-		this->Name = pObj->Type->ID;
-		this->AbsType = BuildingClass::AbsID;
-	}
+	BuildingExtData(BuildingClass* pObj);
 
 	BuildingExtData(BuildingClass* pObj, noinit_t nn) : TechnoExtData(pObj, nn) { }
 
@@ -330,7 +323,7 @@ public:
 	}
 
 	FORCEDINLINE BuildingTypeExtData* _GetTypeExtData() {
-		return ((FakeBuildingTypeClass*)this->Type)->_GetExtData();
+		return ((FakeBuildingTypeClass*)(this->Type))->_GetExtData();
 	}
 };
 static_assert(sizeof(FakeBuildingClass) == sizeof(BuildingClass), "Invalid Size !");

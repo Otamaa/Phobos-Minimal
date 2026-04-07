@@ -7,6 +7,7 @@
 #include <ExtraHeaders/CompileTimeDirStruct.h>
 #include <Ext/Foot/Body.h>
 
+class InfantryTypeExtData;
 class InfantryExtData : public FootExtData
 {
 public:
@@ -37,12 +38,7 @@ public:
 #pragma endregion
 
 public:
-	InfantryExtData(InfantryClass* pObj) : FootExtData(pObj)
-	{
-		this->Name = pObj->Type->ID;
-		this->AbsType = InfantryClass::AbsID;
-		this->CurrentType = pObj->Type;
-	}
+	InfantryExtData(InfantryClass* pObj);
 
 	InfantryExtData(InfantryClass* pObj, noinit_t nn) : FootExtData(pObj, nn) { }
 

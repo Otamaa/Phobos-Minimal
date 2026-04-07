@@ -3351,7 +3351,7 @@ void FakeTeamClass::_TMission_Scout(ScriptActionNode* nNode, bool arg3)
 					if (pBld->Type->InvisibleInGame)
 						return false;
 
-					if (pExt->Type->IsDummy)
+					if (pExt->TypeExtData->IsDummy)
 						return false;
 
 					return true;

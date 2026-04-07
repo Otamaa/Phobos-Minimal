@@ -1315,7 +1315,7 @@ bool FakeTechnoClass::__EvaluateObjectB(
 	// =========================================================================
 	// 27. Base threat coefficient
 	// =========================================================================
-	*value = static_cast<int>(pThis->ThreatCoeffients(target, coord));
+	*value = static_cast<int>(FakeTechnoClass::__GetThreatCoeff(pThis, discard_t(),target, coord));
 
 	// =========================================================================
 	// 28. VHP scan adjustment

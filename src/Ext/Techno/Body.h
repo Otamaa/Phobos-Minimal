@@ -159,6 +159,7 @@ private:
 			};
 
 		debugProcess(this->CurrentType, "CurrentType");
+		debugProcess(this->TypeExtData, "OriginalType");
 		debugProcess(this->AE, "AE");
 		debugProcess(this->idxSlot_EMPulse, "idxSlot_EMPulse");
 		debugProcess(this->idxSlot_Wave, "idxSlot_Wave");
@@ -268,6 +269,8 @@ private:
 		debugProcess(this->UnitIdleIsSelected, "UnitIdleIsSelected");
 		debugProcess(this->UnitIdleActionTimer, "UnitIdleActionTimer");
 		debugProcess(this->UnitIdleActionGapTimer, "UnitIdleActionGapTimer");
+		debugProcess(this->LastTargetCrdClearTimer, "LastTargetCrdClearTimer");
+		debugProcess(this->LastTargetCrd, "LastTargetCrd");
 		debugProcess(this->Tints, "Tints");
 		debugProcess(this->FallingDownTracked, "FallingDownTracked");
 		debugProcess(this->ResetLocomotor, "ResetLocomotor");
@@ -297,6 +300,7 @@ public:
 	// 8-byte aligned: Pointers
 	// ============================================================
 	TechnoTypeClass* CurrentType { nullptr };
+	TechnoTypeExtData* TypeExtData { nullptr };
 	BuildingLightClass* BuildingLight { nullptr };
 	HouseTypeClass* OriginalHouseType { nullptr };
 	HouseClass* HijackerOwner { nullptr };
@@ -377,7 +381,10 @@ public:
 	CDTimerClass DelayedFireTimer {};
 	CDTimerClass UnitIdleActionTimer {};
 	CDTimerClass UnitIdleActionGapTimer {};
+	CDTimerClass LastTargetCrdClearTimer {};
 
+	//
+	CoordStruct LastTargetCrd {};
 	// ============================================================
 	// CellStruct instances (likely 4-8 bytes each)
 	// ============================================================
@@ -602,6 +609,7 @@ public:
 
 	void UpdateRecoilData();
 	void RecordRecoilData();
+	void UpdateLastTargetCrd();
 
 public:
 
@@ -1034,6 +1042,8 @@ public:
 	int nWeaponIdx,
 	bool bCheckRange,
 	bool bSkipROF = false);
+
+	static double __fastcall __GetThreatCoeff(TechnoClass* pThis, discard_t, ObjectClass* pTarget, CoordStruct* pTargetCoord);
 
 	static FireError __fastcall __CanFireOriginal(TechnoClass* pThis, discard_t, AbstractClass* pTarget, int nWeaponIdx, bool bCheckRange);
 

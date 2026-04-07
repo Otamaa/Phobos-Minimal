@@ -138,43 +138,43 @@ DEFINE_JUMP(LJMP, 0x700387, 0x7003BD)
 
 #include <Ext/CaptureManager/Body.h>
 
-ASMJIT_PATCH(0x70CEA0, TechnoClass_EvalThreatRating_TargetWeaponWarhead_Verses, 0x6)
-{
-	GET(TechnoClass*, pThis, EDI);
-	GET(TechnoClass*, pTarget, ESI);
-	GET(FakeWarheadTypeClass*, pTargetWH, EAX);
-	GET_STACK(double, mult, 0x18);
-	//GET(TechnoTypeClass*, pThisType, EBX);
+// ASMJIT_PATCH(0x70CEA0, TechnoClass_EvalThreatRating_TargetWeaponWarhead_Verses, 0x6)
+// {
+// 	GET(TechnoClass*, pThis, EDI);
+// 	GET(TechnoClass*, pTarget, ESI);
+// 	GET(FakeWarheadTypeClass*, pTargetWH, EAX);
+// 	GET_STACK(double, mult, 0x18);
+// 	//GET(TechnoTypeClass*, pThisType, EBX);
 
-	//const auto pData = WarheadTypeExtContainer::Instance.Find(pTargetWH);
-	const auto armor = TechnoExtData::GetTechnoArmor(pThis, pTargetWH);
-	const auto vsData = pTargetWH->GetVersesData(armor);
+// 	//const auto pData = WarheadTypeExtContainer::Instance.Find(pTargetWH);
+// 	const auto armor = TechnoExtData::GetTechnoArmor(pThis, pTargetWH);
+// 	const auto vsData = pTargetWH->GetVersesData(armor);
 
-	double nMult = 0.0;
+// 	double nMult = 0.0;
 
-	if (pTarget->Target == pThis)
-		nMult = -(mult * vsData->Verses);
-	else
-		nMult = mult * vsData->Verses;
+// 	if (pTarget->Target == pThis)
+// 		nMult = -(mult * vsData->Verses);
+// 	else
+// 		nMult = mult * vsData->Verses;
 
-	R->Stack(0x10, nMult);
-	return 0x70CED2;
-}
+// 	R->Stack(0x10, nMult);
+// 	return 0x70CED2;
+// }
 
-ASMJIT_PATCH(0x70CF45, TechnoClass_EvalThreatRating_ThisWeaponWarhead_Verses, 0xB)
-{
-	GET(ObjectClass*, pTarget, ESI);
-	//GET(WeaponTypeClass*, pWeapon, EBX);
-	GET(FakeWarheadTypeClass*, pWH, ECX);
-	//GET(int, nArmor, EAX);
-	GET_STACK(double, dmult, 0x10);
-	GET_STACK(double, dCoeff, 0x30);
+// ASMJIT_PATCH(0x70CF45, TechnoClass_EvalThreatRating_ThisWeaponWarhead_Verses, 0xB)
+// {
+// 	GET(ObjectClass*, pTarget, ESI);
+// 	//GET(WeaponTypeClass*, pWeapon, EBX);
+// 	GET(FakeWarheadTypeClass*, pWH, ECX);
+// 	//GET(int, nArmor, EAX);
+// 	GET_STACK(double, dmult, 0x10);
+// 	GET_STACK(double, dCoeff, 0x30);
 
-	Armor armor = TechnoExtData::GetTechnoArmor(pTarget , pWH);
-	R->Stack(0x10, dCoeff * pWH->GetVersesData(armor)->Verses + dmult);
+// 	Armor armor = TechnoExtData::GetTechnoArmor(pTarget , pWH);
+// 	R->Stack(0x10, dCoeff * pWH->GetVersesData(armor)->Verses + dmult);
 
-	return 0x70CF58;
-}
+// 	return 0x70CF58;
+// }
 
 ASMJIT_PATCH(0x4753F0, ArmorType_FindIndex, 0xA)
 {

@@ -15,6 +15,14 @@
 #include <Misc/Hooks.Otamaa.h>
 #include <Misc/PhobosGlobal.h>
 
+BuildingExtData::BuildingExtData(BuildingClass* pObj) : TechnoExtData(pObj), PowerPlantEnhancer(pObj)
+{
+	this->CurrentType = pObj->Type;
+	this->TypeExtData = BuildingTypeExtContainer::Instance.Find(pObj->Type);
+	this->Name = pObj->Type->ID;
+	this->AbsType = BuildingClass::AbsID;
+}
+
 BuildingExtData::~BuildingExtData()
 {
 
@@ -53,7 +61,7 @@ bool BuildingExtData::BuildingHasPower(BuildingClass* pThis)
 
 void BuildingExtData::UpdateMainEvaVoice()
 {
-	auto const pTypeExt = this->Type;
+	auto const pTypeExt = (BuildingTypeExtData*)this->TypeExtData;
 
 	if (!pTypeExt->NewEvaVoice || !pTypeExt->NewEvaVoice_Index.isset())
 		return;
@@ -327,7 +335,9 @@ SuperClass* BuildingExtData::GetFirstSuperWeapon(BuildingClass* pThis)
 
 void BuildingExtData::DisplayIncomeString()
 {
-	if (this->Type->DisplayIncome.Get(RulesExtData::Instance()->DisplayIncome) &&
+	auto const pTypeExt = (BuildingTypeExtData*)this->TypeExtData;
+
+	if (pTypeExt->DisplayIncome.Get(RulesExtData::Instance()->DisplayIncome) &&
 		this->AccumulatedIncome && Unsorted::CurrentFrame % 15 == 0)
 	{
 		if (!RulesExtData::Instance()->DisplayIncome_AllowAI && !This()->Owner->IsControlledByHuman())
@@ -340,9 +350,9 @@ void BuildingExtData::DisplayIncomeString()
 			this->AccumulatedIncome,
 			this->AccumulatedIncome,
 			This(),
-			this->Type->DisplayIncome_Houses.Get(RulesExtData::Instance()->DisplayIncome_Houses),
+			pTypeExt->DisplayIncome_Houses.Get(RulesExtData::Instance()->DisplayIncome_Houses),
 			This()->GetRenderCoords(),
-			this->Type->DisplayIncome_Offset, ColorStruct::Empty);
+			pTypeExt->DisplayIncome_Offset, ColorStruct::Empty);
 
 		this->AccumulatedIncome = 0;
 	}
@@ -351,8 +361,9 @@ void BuildingExtData::DisplayIncomeString()
 void BuildingExtData::UpdatePoweredKillSpawns() const
 {
 	auto const pThis = (BuildingClass*)this->This();
+	auto const pTypeExt = (BuildingTypeExtData*)this->TypeExtData;
 
-	if (this->Type->Powered_KillSpawns && !pThis->IsPowerOnline()) {
+	if (pTypeExt->Powered_KillSpawns && !pThis->IsPowerOnline()) {
 		if (const auto& pManager = pThis->SpawnManager) {
 			pManager->ResetTarget();
 
@@ -372,6 +383,7 @@ void BuildingExtData::UpdateSpyEffecAnimDisplay()
 {
 	auto const pThis = This();
 	auto const nMission = pThis->GetCurrentMission();
+	auto const pTypeExt = (BuildingTypeExtData*)this->TypeExtData;
 
 	if (pThis->InLimbo || !pThis->IsOnMap || this->LimboID >= 0 || nMission == Mission::Selling)
 		return;
@@ -379,7 +391,7 @@ void BuildingExtData::UpdateSpyEffecAnimDisplay()
 	if (this->SpyEffectAnim)
 	{
 		if (HouseClass::IsCurrentPlayerObserver() || EnumFunctions::CanTargetHouse(
-			this->Type->SpyEffect_Anim_DisplayHouses,
+			pTypeExt->SpyEffect_Anim_DisplayHouses,
 			SpyEffectAnim->Owner, HouseClass::CurrentPlayer))
 		{
 			SpyEffectAnim->Invisible = false;
@@ -402,6 +414,7 @@ void BuildingExtData::UpdateAutoSellTimer()
 {
 	auto const pThis = (BuildingClass*)this->This();
 	auto const nMission = pThis->GetCurrentMission();
+	auto const pTypeExt = (BuildingTypeExtData*)this->TypeExtData;
 
 	if (pThis->InLimbo || !pThis->IsOnMap || this->LimboID >= 0 || nMission == Mission::Selling)
 		return;
@@ -410,10 +423,10 @@ void BuildingExtData::UpdateAutoSellTimer()
 	{
 		auto const pRulesExt = RulesExtData::Instance();
 
-		if (this->Type->AutoSellTime.isset() && Math::abs(this->Type->AutoSellTime.Get()) > 0.00f)
+		if (pTypeExt->AutoSellTime.isset() && Math::abs(pTypeExt->AutoSellTime.Get()) > 0.00f)
 		{
 			if (!AutoSellTimer.HasStarted())
-				AutoSellTimer.Start(static_cast<int>(this->Type->AutoSellTime.Get() * 900.0));
+				AutoSellTimer.Start(static_cast<int>(pTypeExt->AutoSellTime.Get() * 900.0));
 		}
 
 		if (pRulesExt->AI_AutoSellHealthRatio.isset())
@@ -525,10 +538,11 @@ bool BuildingExtData::HandleInfiltrate(BuildingClass* pBuilding, HouseClass* pIn
 bool BuildingExtData::HasSuperWeapon(const int index, const bool withUpgrades) const
 {
 	const auto pThis = (BuildingClass*)this->This();
+	auto const pTypeExt = (BuildingTypeExtData*)this->TypeExtData;
 
-	for (auto i = 0; i < this->Type->GetSuperWeaponCount(); ++i)
+	for (auto i = 0; i < pTypeExt->GetSuperWeaponCount(); ++i)
 	{
-		if (this->Type->GetSuperWeaponIndex(i, pThis->Owner) == index)
+		if (pTypeExt->GetSuperWeaponIndex(i, pThis->Owner) == index)
 		{
 			return true;
 		}
@@ -810,7 +824,7 @@ bool BuildingExtData::CanGrindTechnoSimplified(BuildingClass* pBuilding, TechnoC
 bool BuildingExtData::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pTechno, int nRefundAmounts)
 {
 	const auto pExt = BuildingExtContainer::Instance.Find(pBuilding);
-	const auto pTypeExt = pExt->Type;
+	auto const pTypeExt = (BuildingTypeExtData*)pExt->TypeExtData;
 
 	{
 		if (!pTechno)
@@ -920,13 +934,13 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 
 		if (!HouseExtContainer::Instance.AutoDeathObjects.contains(pBuilding))
 		{
-			KillMethod nMethod = pBuildingExt->Type->Death_Method.Get();
+			KillMethod nMethod = pBuildingExt->TypeExtData->Death_Method.Get();
 
 			if (nMethod != KillMethod::None)
 			{
 
-				if (pBuildingExt->Type->Death_Countdown > 0)
-					pBuildingExt->Death_Countdown.Start(pBuildingExt->Type->Death_Countdown);
+				if (pBuildingExt->TypeExtData->Death_Countdown > 0)
+					pBuildingExt->Death_Countdown.Start(pBuildingExt->TypeExtData->Death_Countdown);
 
 				HouseExtContainer::Instance.AutoDeathObjects.emplace_unchecked(pBuilding, nMethod);
 			}
@@ -1719,7 +1733,7 @@ void FakeBuildingClass::_OnFireAI()
 {
 	const auto pType = this->Type;
 	const auto pExt = this->_GetExtData();
-	const auto pTypeext = pExt->Type;
+	auto const pTypeExt = (BuildingTypeExtData*)pExt->TypeExtData;
 
 	for (auto& nFires : pExt->DamageFireAnims)
 	{
@@ -1731,18 +1745,18 @@ void FakeBuildingClass::_OnFireAI()
 		}
 	}
 
-	auto const& pFire = pTypeext->DamageFireTypes.GetElements(RulesClass::Instance->DamageFireTypes);
+	auto const& pFire = pTypeExt->DamageFireTypes.GetElements(RulesClass::Instance->DamageFireTypes);
 
 	if (!pFire.empty())
 	{
-		pExt->DamageFireAnims.resize(pTypeext->DamageFire_Offs.size());
+		pExt->DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
 		const auto render_coords = this->GetRenderCoords();
 		const auto nBuildingHeight = pType->GetFoundationHeight(false);
 		const auto nWidth = pType->GetFoundationWidth();
 
-		for (int i = 0; i < (int)pTypeext->DamageFire_Offs.size(); ++i)
+		for (int i = 0; i < (int)pTypeExt->DamageFire_Offs.size(); ++i)
 		{
-			const auto& nFireOffs = pTypeext->DamageFire_Offs[i];
+			const auto& nFireOffs = pTypeExt->DamageFire_Offs[i];
 			const auto& [nPiX, nPiY] = TacticalClass::Instance->ApplyOffsetPixel(nFireOffs);
 
 			CoordStruct nPixCoord { nPiX, nPiY, 0 };
@@ -2331,7 +2345,7 @@ int FakeBuildingClass::_BuildingClass_GetRangeOfRadial()
 {
 	BuildingTypeClass* pType = this->Type;
 	const auto pExt = this->_GetExtData();
-	const auto pTypeExt = pExt->Type;
+	auto const pTypeExt = (BuildingTypeExtData*)pExt->TypeExtData;
 
 
 	if (pTypeExt->RadialIndicatorRadius.isset())
@@ -3014,7 +3028,6 @@ template <typename T>
 void BuildingExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Type)
 		.Process(this->PowerPlantEnhancer)
 		.Process(this->MyPrismForwarding)
 		.Process(this->DeployedTechno)

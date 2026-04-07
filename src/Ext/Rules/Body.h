@@ -611,7 +611,15 @@ public:
 	Valueable<bool> DrainMoneyDisplay_OnTarget_UseDisplayIncome { true };
 
 	Valueable<bool> CylinderRangefinding { false };
-	Nullable<bool> DefaultToGuardArea {} ;
+	Nullable<bool> DefaultToGuardArea {};
+
+	Valueable<double> ExtraThreat_IsThreat {};
+	Valueable<double> ExtraThreat_InRange {};
+	Valueable<double> ExtraThreatCoefficient_InRangeDistance {};
+	Valueable<double> ExtraThreatCoefficient_Facing {};
+	Valueable<double> ExtraThreatCoefficient_DistanceToLastTarget {};
+	
+	Valueable<bool> DriverKilled_KillPassengers {};
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

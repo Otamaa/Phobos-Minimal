@@ -3,6 +3,7 @@
 #include <Ext/Foot/Body.h>
 #include <UnitClass.h>
 
+class UnitTypeExtData;
 class UnitExtData : public FootExtData
 {
 public:
@@ -23,12 +24,8 @@ public:
 #pragma endregion
 
 public:
-	UnitExtData(UnitClass* pObj) : FootExtData(pObj)
-	{
-		this->CurrentType = pObj->Type;
-		this->Name = pObj->Type->ID;
-		this->AbsType = UnitClass::AbsID;
-	}
+
+	UnitExtData(UnitClass* pObj);
 
 	UnitExtData(UnitClass* pObj, noinit_t nn) : FootExtData(pObj, nn) { }
 

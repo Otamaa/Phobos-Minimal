@@ -4,8 +4,17 @@
 
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WarheadType/Body.h>
+#include <Ext/InfantryType/Body.h>
 
 #include <Misc/Hooks.Otamaa.h>
+
+InfantryExtData::InfantryExtData(InfantryClass* pObj) : FootExtData(pObj)
+{
+	this->Name = pObj->Type->ID;
+	this->AbsType = InfantryClass::AbsID;
+	this->CurrentType = pObj->Type;
+	this->TypeExtData = InfantryTypeExtContainer::Instance.Find(pObj->Type);
+}
 
 bool FakeInfantryClass::_Paradrop(CoordStruct* pCoords)
 {

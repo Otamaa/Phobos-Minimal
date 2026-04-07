@@ -16,6 +16,14 @@
 
 #include <Locomotor/FlyLocomotionClass.h>
 
+AircraftExtData::AircraftExtData(AircraftClass* pObj) : FootExtData(pObj)
+{
+	this->Name = pObj->Type->ID;
+	this->AbsType = AircraftClass::AbsID;
+	this->CurrentType = pObj->Type;
+	this->TypeExtData = AircraftTypeExtContainer::Instance.Find(pObj->Type);
+}
+
 COMPILETIMEEVAL FORCEDINLINE bool AircraftCanStrafeWithWeapon(WeaponTypeClass* pWeapon)
 {
 	return pWeapon && WeaponTypeExtContainer::Instance.Find(pWeapon)->Strafing

@@ -17,6 +17,7 @@
 #include <New/PhobosAttachedAffect/Functions.h>
 
 #include <Ext/Aircraft/Body.h>
+#include <Ext/AircraftType/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
@@ -35,6 +36,8 @@
 #include <Ext/Infantry/Body.h>
 #include <Ext/InfantryType/Body.h>
 #include <Ext/SWType/Body.h>
+#include <Ext/Unit/Body.h>
+#include <Ext/UnitType/Body.h>
 
 #include <Locomotor/Cast.h>
 
@@ -234,6 +237,32 @@ void TechnoExtData::AddAirstrikeFactor(TechnoClass*& pKiller, double& d_factor)
 				pKiller = pDesignator;
 				d_factor *= pDesignatorExt->AirstrikeExperienceModifier;
 			}
+		}
+	}
+}
+
+void TechnoExtData::UpdateLastTargetCrd()
+{
+	if (!this->TypeExtData->ExtraThreat_Enabled)
+		return;
+
+	auto const pThis = this->This();
+	auto pTimer = &this->LastTargetCrdClearTimer;
+
+	if (pThis->Target)
+	{
+		this->LastTargetCrd = pThis->Target->GetCoords();
+		pTimer->Stop();
+	}
+	else
+	{
+		if (!pTimer->IsTicking())
+			pTimer->Start(45);
+
+		if (pTimer->Completed())
+		{
+			this->LastTargetCrd = CoordStruct::Empty;
+			pTimer->Stop();
 		}
 	}
 }
@@ -3272,43 +3301,73 @@ void TechnoExtData::ApplyKillDriver(TechnoClass* pTarget, TechnoClass* pKiller, 
 		return;
 	}
 
-	TechnoExtContainer::Instance.Find(pTarget)->Is_DriverKilled = pToOwner->Type->MultiplayPassive;
+	auto pTargetFoot = static_cast<FootClass*>(pTarget);
+	auto pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
+	auto passive = pToOwner->Type->MultiplayPassive;
+
+	pTargetExt->Is_DriverKilled = passive;
 
 	const auto pTypeExt = GET_TECHNOTYPEEXT(pTarget);
 
-	if (pTarget->Passengers.GetFirstPassenger())
+	auto& passengers = pTarget->Passengers;
+
+	do
 	{
+		if (!passengers.GetFirstPassenger())
+			break;
+
 		if (pTypeExt->Operator_Any)
 		{
-			// kill first passenger
-			auto const pPassenger = pTarget->Passengers.RemoveFirstPassenger();
-			pPassenger->RegisterDestruction(pKiller);
-			pPassenger->UnInit();
-
+			const auto pOperator = pTargetFoot->RemoveFirstPassenger();
+			pOperator->RegisterDestruction(pKiller);
+			pOperator->UnInit();
 		}
 		else if (!pTypeExt->Operators.empty())
 		{
-			// find the driver cowardly hiding among the passengers, then kill him
-			for (NextObject passenger(pTarget->Passengers.GetFirstPassenger()); passenger; ++passenger)
+			for (NextObject passenger(passengers.GetFirstPassenger()); passenger; ++passenger)
 			{
-				auto const pPassenger = static_cast<FootClass*>(*passenger);
+				if (!pTypeExt->Operators.Contains(passenger->GetTechnoType()))
+					continue;
 
-				if (pTypeExt->Operators.Contains(GET_TECHNOTYPE(pPassenger)))
-				{
-					pTarget->Passengers.RemovePassenger(pPassenger);
-					pPassenger->RegisterDestruction(pKiller);
-					pPassenger->UnInit();
-					break;
-				}
+				auto pOperator = static_cast<FootClass*>(*passenger);
+				passengers.RemovePassenger(pOperator);
+
+				if (pTypeExt->This()->Gunner && !passengers.NumPassengers)
+					pTargetFoot->RemoveGunner(pOperator);
+
+				pOperator->RegisterDestruction(pKiller);
+				pOperator->UnInit();
+				break;
 			}
 		}
 
-		// if passengers remain in the vehicle, operator-using or not, they should leave
-		if (pTarget->Passengers.GetFirstPassenger())
+		if (passive && pTypeExt->DriverKilled_KeptPassengers)
+			break;
+
+		const bool kill = pTypeExt->DriverKilled_KillPassengers.Get(RulesExtData::Instance()->DriverKilled_KillPassengers);
+
+		while (auto pPassenger = passengers.GetFirstPassenger())
 		{
-			TechnoExtData::EjectPassengers((FootClass*)pTarget, -1);
+			const auto pNextPassenger = flag_cast_to<FootClass*>(pPassenger->NextObject);
+			passengers.RemovePassenger(pPassenger);
+
+			if (pTypeExt->This()->Gunner && !passengers.NumPassengers)
+				pTargetFoot->RemoveGunner(pPassenger);
+
+			if (kill || !TechnoExtData::EjectRandomly(pPassenger, pTarget->Location, 128, false))
+			{
+				pPassenger->RegisterDestruction(pKiller);
+				pPassenger->UnInit();
+			}
+			else if (pTypeExt->This()->OpenTopped)
+			{
+				pTarget->ExitedOpenTopped(pPassenger);
+			}
+
+			pPassenger = pNextPassenger;
 		}
 	}
+	while (false);
 
 	if (ResetVet)
 		pTarget->Veterancy.Reset();
@@ -3342,14 +3401,11 @@ void TechnoExtData::ApplyKillDriver(TechnoClass* pTarget, TechnoClass* pKiller, 
 	}
 
 	// This unit will be freed of its duties
-	if (auto const pFoot = flag_cast_to<FootClass*, false>(pTarget))
+	if (pTargetFoot->BelongsToATeam())
 	{
-		if (pFoot->BelongsToATeam())
-		{
-			pFoot->Team->LiberateMember(pFoot);
-		}
+			pTargetFoot->Team->LiberateMember(pTargetFoot);
 	}
-
+	
 	// If this unit spawns stuff, we should kill the spawns, since they still belong to the previous owner
 	if (auto const pSpawnManager = pTarget->SpawnManager)
 	{
@@ -3416,14 +3472,17 @@ void NOINLINE SetType(TechnoClass* pThis, AbstractType rtti, TechnoTypeClass* pT
 	{
 	case AbstractType::Infantry:
 	case AbstractType::InfantryType:
+		TechnoExtContainer::Instance.Find(pThis)->TypeExtData = TechnoTypeExtContainer::Instance.Find(pToType);
 		((InfantryClass*)pThis)->Type = (InfantryTypeClass*)pToType;
 		break;
 	case AbstractType::Unit:
 	case AbstractType::UnitType:
+		TechnoExtContainer::Instance.Find(pThis)->TypeExtData = TechnoTypeExtContainer::Instance.Find(pToType);
 		((UnitClass*)pThis)->Type = (UnitTypeClass*)pToType;
 		break;
 	case AbstractType::Aircraft:
 	case AbstractType::AircraftType:
+		TechnoExtContainer::Instance.Find(pThis)->TypeExtData = TechnoTypeExtContainer::Instance.Find(pToType);
 		((AircraftClass*)pThis)->Type = (AircraftTypeClass*)pToType;
 		break;
 	default:
@@ -4913,8 +4972,9 @@ bool __fastcall FakeTechnoClass::__Is_Allowed_To_Retaliate(TechnoClass* pThis , 
 	if (!bIsPlayerControl) {
 		if (auto pTargetFoot = flag_cast_to<FootClass*>(pThis->Target)) {
 			auto emptyCoords = CoordStruct::Empty;
-			const double dCurrentTargetCoeff = pThis->GetCoefficient(pTargetFoot, emptyCoords);
-			const double dSourceCoeff = pThis->GetCoefficient(pSource, emptyCoords);
+
+			const double dCurrentTargetCoeff = FakeTechnoClass::__GetThreatCoeff(pThis, discard_t(), pTargetFoot, &emptyCoords);
+			const double dSourceCoeff = FakeTechnoClass::__GetThreatCoeff(pThis, discard_t(), pSource, &emptyCoords);
 
 			if (dSourceCoeff <= dCurrentTargetCoeff)
 				return false;

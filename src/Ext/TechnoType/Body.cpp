@@ -2349,6 +2349,20 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 			this->WeaponGroupAs[idx].Read(pINI, pSection, tempBuffer);
 		}
 
+		this->ExtraThreat_IsThreat.Read(exINI, pSection, "ExtraThreat.IsThreat");
+		this->AlwaysConsideredThreat.Read(exINI, pSection, "AlwaysConsideredThreat");
+		this->ExtraThreat_InRange.Read(exINI, pSection, "ExtraThreat.InRange");
+		this->ExtraThreatCoefficient_InRangeDistance.Read(exINI, pSection, "ExtraThreatCoefficient.InRangeDistance");
+		this->ExtraThreatCoefficient_Facing.Read(exINI, pSection, "ExtraThreatCoefficient.Facing");
+		this->ExtraThreatCoefficient_DistanceToLastTarget.Read(exINI, pSection, "ExtraThreatCoefficient.DistanceToLastTarget");
+		this->ExtraThreat_Enabled = ExtraThreat_IsThreat.Get(RulesExtData::Instance()->ExtraThreat_IsThreat) != 0
+			|| !ExtraThreat_InRange.Get(RulesExtData::Instance()->ExtraThreat_InRange) != 0
+			|| ExtraThreatCoefficient_InRangeDistance.Get(RulesExtData::Instance()->ExtraThreatCoefficient_InRangeDistance) != 0
+			|| ExtraThreatCoefficient_Facing.Get(RulesExtData::Instance()->ExtraThreatCoefficient_Facing) != 0
+			|| ExtraThreatCoefficient_DistanceToLastTarget.Get(RulesExtData::Instance()->ExtraThreatCoefficient_DistanceToLastTarget) != 0;
+
+		this->DriverKilled_KeptPassengers.Read(exINI, pSection, "DriverKilled.KeptPassengers");
+		this->DriverKilled_KillPassengers.Read(exINI, pSection, "DriverKilled.KillPassengers");
 	}
 
 	this->TintColorAirstrike = GeneralUtils::GetColorFromColorAdd(this->LaserTargetColor.Get(RulesClass::Instance->LaserTargetColor));

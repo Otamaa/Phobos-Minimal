@@ -1080,6 +1080,14 @@ public:
 
 	Valueable<bool> HoverDrownable { true };
 
+	bool ExtraThreat_Enabled;
+	Nullable<double> ExtraThreat_IsThreat { false };
+	Valueable<bool> AlwaysConsideredThreat {};
+	Nullable<double> ExtraThreat_InRange {};
+	Nullable<double> ExtraThreatCoefficient_InRangeDistance {};
+	Nullable<double> ExtraThreatCoefficient_Facing {};
+	Nullable<double> ExtraThreatCoefficient_DistanceToLastTarget {};
+
 	NullableIdx<CrateTypeClass> DropCrate {};
 
 	Promotable<WarheadTypeClass*> WhenCrushed_Warhead {};
@@ -1276,6 +1284,8 @@ public:
 	std::vector<CoordStruct> ExtraTurretOffsets {};
 	Valueable<int> BurstPerTurret { 0 };
 
+	Valueable<bool> DriverKilled_KeptPassengers {};
+	Nullable<bool> DriverKilled_KillPassengers {};
 
 	int TintColorAirstrike {};
 #pragma endregion
@@ -2161,6 +2171,15 @@ private:
 			.Process(this->FallingDownDamage_Water)
 			.Process(this->FallingDownDamage_AllowEMP)
 			.Process(this->HoverDrownable)
+
+			.Process(this->ExtraThreat_Enabled)
+			.Process(this->ExtraThreat_IsThreat)
+			.Process(this->AlwaysConsideredThreat)
+			.Process(this->ExtraThreat_InRange)
+			.Process(this->ExtraThreatCoefficient_InRangeDistance)
+			.Process(this->ExtraThreatCoefficient_Facing)
+			.Process(this->ExtraThreatCoefficient_DistanceToLastTarget)
+
 			.Process(this->DropCrate)
 
 			.Process(this->WhenCrushed_Warhead)
@@ -2325,6 +2344,8 @@ private:
 			.Process(this->ExtraTurretCount)
 			.Process(this->ExtraTurretOffsets)
 			.Process(this->BurstPerTurret)
+			.Process(this->DriverKilled_KeptPassengers)
+			.Process(this->DriverKilled_KillPassengers)
 			.Process(this->TintColorAirstrike)
 			;
 	}

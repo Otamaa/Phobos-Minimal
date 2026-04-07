@@ -22,6 +22,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Ext\Techno\Hooks.ThreatCoeff.cpp" />
     <ClCompile Include="src\New\Entity\FactoryPlantClass.cpp" />
     <ClCompile Include="src\Commands\AggressiveModeClass.cpp" />
     <ClCompile Include="src\Commands\CeasefireModeClass.cpp" />

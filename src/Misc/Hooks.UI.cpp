@@ -124,7 +124,7 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 	 	const auto nPercentage = nTotal == 0 ? 1.0 : (double)nActive / (double)nTotal;
 
 	 	const ColorStruct clrToolTip = nPercentage > Phobos::UI::HarvesterCounter_ConditionYellow
-	 		? Drawing::TooltipColor() : nPercentage > Phobos::UI::HarvesterCounter_ConditionRed
+	 		? pSideExt->Sidebar_HarvesterCounter_Green.Get(Drawing::TooltipColor()) : nPercentage > Phobos::UI::HarvesterCounter_ConditionRed
 	 		? pSideExt->Sidebar_HarvesterCounter_Yellow : pSideExt->Sidebar_HarvesterCounter_Red;
 
 		fmt::format_to(std::back_inserter(Harv), L"{}{}/{}", Phobos::UI::HarvesterLabel, nActive, nTotal);

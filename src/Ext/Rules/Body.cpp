@@ -243,6 +243,7 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->DamageEnemiesMultiplier_Berzerk.Read(iniEX, GameStrings::CombatDamage, "DamageEnemiesMultiplier.Berzerk");
 	pData->DamageOwnerMultiplier_NotAffectsEnemies.Read(iniEX, GameStrings::CombatDamage, "DamageOwnerMultiplier.NotAffectsEnemies");
 	pData->DamageAlliesMultiplier_NotAffectsEnemies.Read(iniEX, GameStrings::CombatDamage, "DamageAlliesMultiplier.NotAffectsEnemies");
+	pData->DriverKilled_KillPassengers.Read(iniEX, GameStrings::CombatDamage, "DriverKilled.KillPassengers");
 
 	pData->FactoryProgressDisplay.Read(iniEX, GameStrings::AudioVisual, "FactoryProgressDisplay");
 	pData->MainSWProgressDisplay.Read(iniEX, GameStrings::AudioVisual, "MainSWProgressDisplay");
@@ -622,6 +623,11 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AIParadropMission.Read(exINI, GameStrings::General, "AIParadropMission");
 	this->CylinderRangefinding.Read(exINI, GameStrings::General, "CylinderRangefinding");
 	this->DefaultToGuardArea.Read(exINI, GameStrings::General, "DefaultToGuardArea");
+	this->ExtraThreat_IsThreat.Read(exINI, GameStrings::General, "ExtraThreat.IsThreat");
+	this->ExtraThreat_InRange.Read(exINI, GameStrings::General, "ExtraThreat.InRange");
+	this->ExtraThreatCoefficient_InRangeDistance.Read(exINI, GameStrings::General, "ExtraThreatCoefficient.InRangeDistance");
+	this->ExtraThreatCoefficient_Facing.Read(exINI, GameStrings::General, "ExtraThreatCoefficient.Facing");
+	this->ExtraThreatCoefficient_DistanceToLastTarget.Read(exINI, GameStrings::General, "ExtraThreatCoefficient.DistanceToLastTarget");
 	this->DisableOveroptimizationInTargeting.Read(exINI, GameStrings::General, "DisableOveroptimizationInTargeting");
 	this->AreaGuard_UseSelfAsCenter.Read(exINI, GameStrings::General, "AreaGuard.UseSelfAsCenter");
 	this->AreaGuard_TargetingInRange.Read(exINI, GameStrings::General, "AreaGuard.TargetingInRange");
@@ -1386,6 +1392,13 @@ void RulesExtData::Serialize(T& Stm)
 
 		.Process(this->CylinderRangefinding)
 		.Process(this->DefaultToGuardArea)
+
+		.Process(this->ExtraThreat_IsThreat)
+		.Process(this->ExtraThreat_InRange)
+		.Process(this->ExtraThreatCoefficient_InRangeDistance)
+		.Process(this->ExtraThreatCoefficient_Facing)
+		.Process(this->ExtraThreatCoefficient_DistanceToLastTarget)
+		.Process(this->DriverKilled_KillPassengers)
 		.Process(this->DisableOveroptimizationInTargeting)
 
 		.Process(this->AreaGuard_UseSelfAsCenter)
@@ -2608,7 +2621,6 @@ ASMJIT_PATCH(0x66BC71, Buf_CombatDamage, 9)
 	detail::ParseVector<SmudgeTypeClass*>(pRules->Scorches2, exINI, GameStrings::CombatDamage(), GameStrings::Scorches2, "Expect valid SmudgeType");
 	detail::ParseVector<SmudgeTypeClass*>(pRules->Scorches3, exINI, GameStrings::CombatDamage(), GameStrings::Scorches3, "Expect valid SmudgeType");
 	detail::ParseVector<SmudgeTypeClass*>(pRules->Scorches4, exINI, GameStrings::CombatDamage(), GameStrings::Scorches4, "Expect valid SmudgeType");
-
 	detail::ParseVector<AnimTypeClass*>(pRules->SplashList, exINI, GameStrings::CombatDamage(), GameStrings::SplashList, "Expect valid AnimType");
 	return 0x66C287;
 }

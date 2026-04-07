@@ -211,17 +211,17 @@ ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 	return ContinueCheck;
 }
 
-ASMJIT_PATCH(0x70CF6F, TechnoClass_ThreatCoefficients_WeaponRange, 0x6)
-{
-	enum { SkipGameCode = 0x70CF75 };
+// ASMJIT_PATCH(0x70CF6F, TechnoClass_ThreatCoefficients_WeaponRange, 0x6)
+// {
+// 	enum { SkipGameCode = 0x70CF75 };
 
-	GET(TechnoClass*, pThis, EDI);
-	GET(WeaponTypeClass*, pWeapon, EBX);
+// 	GET(TechnoClass*, pThis, EDI);
+// 	GET(WeaponTypeClass*, pWeapon, EBX);
 
-	R->EAX(WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis));
+// 	R->EAX(WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis));
 
-	return SkipGameCode;
-}
+// 	return SkipGameCode;
+// }
 
 ASMJIT_PATCH(0x41810F, AircraftClass_MissionAttack_WeaponRangeCheck1, 0x6)
 {
