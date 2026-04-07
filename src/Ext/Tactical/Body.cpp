@@ -702,9 +702,9 @@ void FakeTacticalClass::__DrawRadialIndicator(
 
 	};
 
-	constexpr double ANGLE_STEP_MULT = 0.05;
-	constexpr double WWMATH_INV_TWO_PI = 0.15915494309189533577;  // 1/(2*PI)
-	constexpr double ANGLE_EPSILON = 0.0001;                       // dbl_7E3818
+	constexpr double ANGLE_STEP_MULT = 0.005;
+	constexpr double WWMATH_INV_TWO_PI = 0.15915494309189535;  // 1/(2*PI)
+	constexpr double ANGLE_EPSILON = 0.001;                       // dbl_7E3818
 	double sizeD = static_cast<double>(size);
 	double halfsizeD = static_cast<double>(halfSize);
 
@@ -715,7 +715,7 @@ void FakeTacticalClass::__DrawRadialIndicator(
 
 		// Normalize angle to [0, 2*PI)
 		int fullRotations = static_cast<int>(angle * WWMATH_INV_TWO_PI);
-		angle -= static_cast<double>(fullRotations) * Math::SIN_PI_BY_TWO_ACCURATE;
+		angle -= static_cast<double>(fullRotations) * Math::GAME_TWOPI;
 
 		// Calculate endpoint on ellipse perimeter
 		int endX, endY;
@@ -792,9 +792,9 @@ void FakeTacticalClass::__DrawRadialIndicator(
 										-500,
 										-500,
 										false,
-										false,
-										false,
-										false,
+										true,
+										true,
+										true,
 										thickness);
 
 	}

@@ -2461,8 +2461,8 @@ void FakeBuildingClass::_DrawRadialIndicator(int val)
 	else
 	{
 		FakeTacticalClass::__DrawRadialIndicator(
-			/*overrideColor*/ val,
-			/*unknown_b*/ 1,
+			 val,
+			/*overrideColor*/1,
 			center,
 			laserColor,
 			static_cast<float>(radius),
