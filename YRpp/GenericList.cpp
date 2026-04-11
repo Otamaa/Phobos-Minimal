@@ -55,10 +55,24 @@ GenericList::~GenericList()
 
 void GenericList::UnlinkAll()
 {
-	this->FirstNode.Unlink();
-	this->LastNode.Unlink();
+	while (FirstNode.Next()->IsValid())
+	{
+		FirstNode.Next()->Unlink();
+	}
 }
 
-template class Node<INISection>;
-template class List<INISection>;
+int GenericList::Get_Valid_Count() const
+{
+	GenericNode* node = FirstValid();
+	int counter = 0;
+	while (node != nullptr)
+	{
+		++counter;
+		node = node->NextValid();
+	}
+	return counter;
+}
+
+template class Node<INISection*>;
+template class List<INISection*>;
 template class List<INIEntry*>;

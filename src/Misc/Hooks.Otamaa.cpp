@@ -1736,7 +1736,7 @@ ASMJIT_PATCH(0x65DD4E, TeamTypeClass_CreateGroub_MissingOwner, 0x7)
 	return 0x65DD55;
 }
 
-ASMJIT_PATCH(0x415302, AircraftClass_MissionUnload_IsDropship, 0x6)
+ASMJIT_PATCH(0x415302, AircraftClass_Mission_Unload_IsDropship, 0x6)
 {
 	GET(AircraftClass*, pThis, ESI);
 
@@ -3590,7 +3590,7 @@ ASMJIT_PATCH(0x738749, UnitClass_Destroy_TiberiumExplosive, 0x6)
 //IfantryClass
 #ifndef INFANTRY_STROAGE_HOOK
 
-ASMJIT_PATCH(0x522E70, InfantryClass_MissionHarvest_Handle, 0x5)
+ASMJIT_PATCH(0x522E70, InfantryClass_Mission_Harvest_Handle, 0x5)
 {
 	GET(InfantryClass*, pThis, ECX);
 
@@ -3995,7 +3995,7 @@ ASMJIT_PATCH(0x5A920D, galite_5A91E0_SpecialHouse, 0x5)
 	return 0x5A921E;
 }
 
-ASMJIT_PATCH(0x449E8E, BuildingClass_Mi_Selling_UndeployLocationFix, 0x5)
+ASMJIT_PATCH(0x449E8E, BuildingClass_Mission_Selling_UndeployLocationFix, 0x5)
 {
 	GET(BuildingClass*, pThis, EBP);
 	CellStruct mapCoords = pThis->InlineMapCoords();
@@ -4030,7 +4030,7 @@ ASMJIT_PATCH(0x522A09, InfantryClass_EnteredThing_Assaulter, 0x6)
 }
 
 //51F580
-ASMJIT_PATCH(0x51F580, InfantryClass_MissionHunt_Assaulter, 0x6)
+ASMJIT_PATCH(0x51F580, InfantryClass_Mission_Hunt_Assaulter, 0x6)
 {
 	enum { retTrue = 0x51F58A, retFalse = 0x51F5C0 };
 
@@ -4040,7 +4040,7 @@ ASMJIT_PATCH(0x51F580, InfantryClass_MissionHunt_Assaulter, 0x6)
 }
 
 //51F493
-ASMJIT_PATCH(0x51F493, InfantryClass_MissionAttack_Assaulter, 0x6)
+ASMJIT_PATCH(0x51F493, InfantryClass_Mission_Attack_Assaulter, 0x6)
 {
 	enum { retTrue = 0x51F49D, retFalse = 0x51F4D3 };
 
@@ -4060,7 +4060,7 @@ ASMJIT_PATCH(0x51968E, InfantryClass_UpdatePosition_Assaulter, 0x6)
 }
 
 //4D4BA0
-ASMJIT_PATCH(0x4D4BA0, InfantryClass_MissionCapture_Assaulter, 0x6)
+ASMJIT_PATCH(0x4D4BA0, InfantryClass_Mission_Capture_Assaulter, 0x6)
 {
 	enum { retTrue = 0x4D4BB4, retFalse = 0x4D4BAA };
 

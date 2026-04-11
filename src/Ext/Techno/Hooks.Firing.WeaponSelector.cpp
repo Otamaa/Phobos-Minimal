@@ -9,6 +9,9 @@
 #include <Ext/BulletType/Body.h>
 
 #include <Utilities/EnumFunctions.h>
+#include <Utilities/Patch.h>
+#include <Utilities/Macro.h>
+
 #include <Locomotor/Cast.h>
 
 #include <AircraftClass.h>

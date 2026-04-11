@@ -1395,7 +1395,7 @@ ASMJIT_PATCH(0x4E20BA, GameControlsClass__SomeDialog_GameSpeedSlider, 0x5)
 // Set cncnet.fnt instead of game.fnt
 //DEFINE_PATCH(/* GameStrings::GAME_FNT */ 0x818B98, "cncnet.fnt");
 
-ASMJIT_PATCH(0x686D46, ReadScenarioINI_MissionININame, 0x5)
+ASMJIT_PATCH(0x686D46, ReadScenarioINI_Mission_ININame, 0x5)
 {
 	LEA_STACK(CCFileClass*, pFile, STACK_OFFSET(0x174, -0xF0));
 
@@ -1408,7 +1408,7 @@ ASMJIT_PATCH(0x686D46, ReadScenarioINI_MissionININame, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x65F57F, BriefingDialog_MissionININame, 0x6)
+ASMJIT_PATCH(0x65F57F, BriefingDialog_Mission_ININame, 0x6)
 {
 	LEA_STACK(CCFileClass*, pFile, STACK_OFFSET(0x1D4, -0x16C));
 

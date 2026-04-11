@@ -554,15 +554,9 @@ public:
 
 
 	//Point2Dir
-	static const DirStruct Desired_Facing(int x1, int y1, int x2, int y2)
-	{
-		DirStruct dir {};
-		unsigned short value = static_cast<short>(int((Math::atan2(static_cast<double>(y2 - y1), static_cast<double>(x2 - x1)) - Math::deg2rad(-(360.0 / (USHRT_MAX - 1))))));
-		dir.SetValue<16>(value);
-		return dir;
-	}
+	static const DirStruct Desired_Facing(int x1, int y1, int x2, int y2);
 
-	static const DirStruct Desired_Facing(const Point2D& point1, const Point2D& point2)
+	static FORCEDINLINE const DirStruct Desired_Facing(const Point2D& point1, const Point2D& point2)
 	{
 		return Desired_Facing(point1.X, point1.Y, point2.X, point2.Y);
 	}
@@ -713,7 +707,7 @@ public:
 	static int GetLSAnimHeightFactor(AnimTypeClass* pType, CellClass* pCell , bool checklevel = false);
 #pragma endregion
 
-	static void PrintMessage(const wchar_t* pMessage) {
+	static FORCEDINLINE void PrintMessage(const wchar_t* pMessage) {
 		MessageListClass::Instance->PrintMessage(
 			pMessage,
 			RulesClass::Instance->MessageDelay,
@@ -723,7 +717,7 @@ public:
 	}
 
 	template <typename T> requires std::is_enum_v<T>
-	static COMPILETIMEEVAL bool Contains(T thisEnum, T thatEnum) {
+	static FORCEDINLINE COMPILETIMEEVAL bool Contains(T thisEnum, T thatEnum) {
 		return (thisEnum & thatEnum) != T::None;
 	}
 };

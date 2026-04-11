@@ -82,6 +82,7 @@ ASMJIT_PATCH(0x41A5C7, AircraftClass_Mission_Guard_StartAreaGuard, 0x6)
 
 // Skip duplicated aircraft check
 DEFINE_PATCH(0x4CF033, 0x8B, 0x06, 0xEB, 0x18); // mov eax, [esi] ; jmp short loc_4CF04F ;
+//AircraftClass_EnterIdleMode : Aicraft with no team stuffs
 DEFINE_JUMP(LJMP, 0x4179E2, 0x417B44);
 
 // If strafing weapon target is in air, consider the cell it is on as the firing position instead of the object itself if can fire at it.
@@ -212,6 +213,28 @@ static inline int GetTurningRadius(AircraftClass* pThis)
 	return rotRadian > epsilon ? static_cast<int>(static_cast<double>(pThis->Type->Speed) / rotRadian) : 0;
 }
 
+void hoverOverArchive(AircraftClass* pThis , const CoordStruct& coords, AbstractClass* pDest)
+	{
+		const auto& location = pThis->Location;
+		const int turningRadius = GetTurningRadius(pThis);
+		auto length_ = Point2D(coords.X, coords.Y).DistanceFrom({ location.X, location.Y });
+		const double distance = MaxImpl(1.0, length_);
+
+		// Random hovering direction
+		const double ratio = (((pThis->LastFireBulletFrame + pThis->UniqueID) & 1) ? turningRadius : -turningRadius) / distance;
+
+		// Fly sideways towards the target, and extend the distance to ensure no deceleration
+		const CoordStruct destination
+		{
+			(static_cast<int>(coords.X - ratio * (location.Y - coords.Y)) - location.X) * 4 + location.X,
+			(static_cast<int>(coords.Y + ratio * (location.X - coords.X)) - location.Y) * 4 + location.Y,
+			coords.Z
+		};
+
+		pThis->Locomotor->Move_To(destination);
+		pThis->IsLocked = distance < turningRadius;
+	}
+
 ASMJIT_PATCH(0x41A96C, AircraftClass_Mission_AreaGuard, 0x6)
 {
 	enum { SkipGameCode = 0x41A97A };
@@ -235,27 +258,6 @@ ASMJIT_PATCH(0x41A96C, AircraftClass_Mission_AreaGuard, 0x6)
 				pThis->MissionStatus = 1;
 				return false;
 			};
-		auto hoverOverArchive = [pThis](const CoordStruct& coords, AbstractClass* pDest)
-			{
-				const auto& location = pThis->Location;
-				const int turningRadius = GetTurningRadius(pThis);
-				auto length_ = Point2D(coords.X, coords.Y).DistanceFrom({ location.X, location.Y });
-				const double distance = MaxImpl(1.0, length_);
-
-				// Random hovering direction
-				const double ratio = (((pThis->LastFireBulletFrame + pThis->UniqueID) & 1) ? turningRadius : -turningRadius) / distance;
-
-				// Fly sideways towards the target, and extend the distance to ensure no deceleration
-				const CoordStruct destination
-				{
-					(static_cast<int>(coords.X - ratio * (location.Y - coords.Y)) - location.X) * 4 + location.X,
-					(static_cast<int>(coords.Y + ratio * (location.X - coords.X)) - location.Y) * 4 + location.Y,
-					coords.Z
-				};
-
-				pThis->Locomotor->Move_To(destination);
-				pThis->IsLocked = distance < turningRadius;
-			};
 
 		if (const auto pArchive = pThis->ArchiveTarget)
 		{
@@ -274,13 +276,13 @@ ASMJIT_PATCH(0x41A96C, AircraftClass_Mission_AreaGuard, 0x6)
 					if (!pThis->MissionStatus && !pThis->FindDockingBayInVector(reinterpret_cast<DynamicVectorClass<TechnoTypeClass*>*>(&pThis->Type->Dock), 0, 0))
 						pThis->MissionStatus = 1;
 
-					hoverOverArchive(coords, pArchive);
+					hoverOverArchive(pThis, coords, pArchive);
 				}
 			}
 			else if (!enterIdleMode() && pThis->IsAlive)
 			{
 				// continue circling
-				hoverOverArchive(pArchive->GetCoords(), pArchive);
+				hoverOverArchive(pThis, pArchive->GetCoords(), pArchive);
 			}
 		}
 		else if (!pThis->Destination)

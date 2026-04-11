@@ -233,7 +233,7 @@ struct PointerOffset
 
 struct MiscTools
 {
-	static DWORD __fastcall RelativeOffset(void const* pFrom, void const* pTo)
+	static OPTIONALINLINE DWORD __fastcall RelativeOffset(void const* pFrom, void const* pTo)
 	{
 		auto const from = reinterpret_cast<DWORD>(pFrom);
 		auto const to = reinterpret_cast<DWORD>(pTo);
@@ -242,12 +242,12 @@ struct MiscTools
 	}
 
 	template<typename T>
-	static volatile T& Memory(const uintptr_t ptr)
+	static OPTIONALINLINE volatile T& Memory(const uintptr_t ptr)
 	{
 		return *reinterpret_cast<T*>(ptr);
 	}
 
-	static volatile uint8_t& Memory(const uint16_t ptr)
+	static OPTIONALINLINE volatile uint8_t& Memory(const uint16_t ptr)
 	{
 		return *reinterpret_cast<uint8_t*>(ptr);
 	}

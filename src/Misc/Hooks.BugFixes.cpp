@@ -401,8 +401,9 @@ ASMJIT_PATCH(0x65DF67, TeamTypeClass_CreateMembers_LoadOntoTransport, 0x6)
 	{
 		if (pNext && pNext != pTransport && pNext->Team == pTeam)
 		{
-			pNext->Transporter = pTransport;
 			pGunner = pNext;
+			pNext->IsInPlayfield = true;
+			pNext->Transporter = pTransport;
 
 			if (isTransportOpenTopped)
 				pTransport->EnteredOpenTopped(pNext);
@@ -2796,14 +2797,14 @@ ASMJIT_PATCH(0x4C6F55, EventClass_Execute_Sell, 0x5)
 	return SkipGameCode;
 }
 
-ASMJIT_PATCH(0x4D4203, FootClass_MissionMove_EndCheckFix1, 0x6)
+ASMJIT_PATCH(0x4D4203, FootClass_Mission_Move_EndCheckFix1, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
 	R->EAX(pThis->Destination && pThis->DistanceFrom(pThis->Destination) > Unsorted::LeptonsPerCell);
 	return 0x4D4209;
 }
 
-ASMJIT_PATCH(0x4D4221, FootClass_MissionMove_EndCheckFix2, 0x6)
+ASMJIT_PATCH(0x4D4221, FootClass_Mission_Move_EndCheckFix2, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
 	R->AL(pThis->Locomotor.GetInterfacePtr()->Is_Moving_Now());
@@ -3033,7 +3034,7 @@ ASMJIT_PATCH(0x577BF1, MapClass_ResetShroudForTMission_CellCheck, 0x6)
 }
 
 // Now, miners will no longer actively withdraw from the Harvest mission due to mineral depletion.
-ASMJIT_PATCH(0x73EEA6, UnitClass_MissionHarvest_AllOreGathered, 0x6)
+ASMJIT_PATCH(0x73EEA6, UnitClass_Mission_Harvest_AllOreGathered, 0x6)
 {
 	enum { SkipGameCode = 0x73EFA4 };
 

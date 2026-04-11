@@ -9,7 +9,6 @@
 
 #include <Utilities/Macro.h>
 #include <Utilities/Helpers.h>
-#include <Utilities/AnimHelpers.h>
 
 #include <Misc/Hooks.Otamaa.h>
 
@@ -20,6 +19,117 @@
 #include <GameOptionsClass.h>
 
 #include <Misc/DamageArea.h>
+
+AnimTypeClass* AnimExtData::PickSplashAnim(NullableVector<AnimTypeClass*> const& nSplash, Nullable<AnimTypeClass*> const& nWake, bool Random, bool IsMeteor)
+{
+	if (nSplash.HasValue())
+	{
+		if (nSplash.size() > 0)
+		{
+			return nSplash[Random ? ScenarioClass::Instance->Random.RandomFromMax((nSplash.size() - 1)) : IsMeteor ? nSplash.size() - 1 : 0];
+		}
+	}
+
+	return !IsMeteor && nWake.isset() ? nWake.Get() : RulesClass::Instance->Wake;
+}
+
+std::pair<bool, int> AnimExtData::DetonateWarhead(int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, CoordStruct Where, TechnoClass* pInvoker, HouseClass* pOwner, bool DamageConsiderVet)
+{
+	if (pWarhead)
+	{
+		auto nResultDamage = static_cast<int>(TechnoExtData::GetDamageMult(pInvoker, nDamage, !DamageConsiderVet));
+
+		if (bWarheadDetonate)
+		{
+			WarheadTypeExtData::DetonateAt(pWarhead, Where, pInvoker, nResultDamage, pOwner);
+		}
+		else
+		{
+			DamageArea::Apply(&Where, nResultDamage, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
+			MapClass::FlashbangWarheadAt(nResultDamage, pWarhead, Where);
+			return { true, nResultDamage };
+		}
+	}
+
+	return { false , 0 };
+}
+
+std::pair<bool, int> AnimExtData::Detonate(Nullable<WeaponTypeClass*> const& pWeapon, int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, CoordStruct Where, TechnoClass* pInvoker, HouseClass* pOwner, bool DamageConsiderVet)
+{
+	if (!pWeapon.isset())
+	{
+		return DetonateWarhead(nDamage, pWarhead, bWarheadDetonate, Where, pInvoker, pOwner, DamageConsiderVet);
+	}
+
+	auto nResultDamage = static_cast<int>(TechnoExtData::GetDamageMult(pInvoker, nDamage, !DamageConsiderVet));
+	WeaponTypeExtData::DetonateAt4(pWeapon, Where, pInvoker, nResultDamage, false, pInvoker ? pInvoker->Owner : nullptr);
+	return { false , 0 };
+}
+
+void AnimExtData::SpawnMultiple(const std::vector<AnimTypeClass*>& nAnims, std::vector<int>& nAmount, CoordStruct Where, TechnoClass* pInvoker, HouseClass* pOwner, bool bRandom)
+{
+	if (!nAnims.empty())
+	{
+		auto nCreateAnim = [&](int nIndex)
+			{
+				if (auto const pMultipleSelected = nAnims[nIndex])
+				{
+					for (int k = nAmount[nIndex]; k > 0; --k)
+					{
+						AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pMultipleSelected, Where),
+							pOwner,
+							nullptr,
+							pInvoker,
+							false, false
+						);
+					}
+				}
+			};
+
+		if (!bRandom)
+		{
+			for (int i = 0; i < (int)nAnims.size(); i++)
+			{
+				nCreateAnim(i);
+			}
+		}
+		else
+		{
+			nCreateAnim(ScenarioClass::Instance->Random.RandomFromMax(nAnims.size() - 1));
+		}
+	}
+}
+
+std::expected<Point2D, bool> AnimExtData::CheckMinMax(double nMin, double nMax)
+{
+	int nMinL = (int)(Math::abs(nMin) * 256.0);
+	int nMaxL = (int)(Math::abs(nMax) * 256.0);
+
+	if (!nMinL && !nMaxL)
+		return std::unexpected(false);
+
+	if (nMinL > nMaxL)
+		std::swap(nMinL, nMaxL);
+
+	return Point2D { nMinL,nMaxL };
+}
+
+CoordStruct AnimExtData::GetRandomCoordsInsideLoops(double nMin, double nMax, CoordStruct nPos, int Increment)
+{
+
+	if (auto nMinMax = CheckMinMax(nMin, nMax))
+	{
+		auto nRandomCoords = MapClass::GetRandomCoordsNear(nPos,
+			(Math::abs(ScenarioClass::Instance->Random.RandomRanged(nMinMax->Y, nMinMax->X)) *
+				MaxImpl(Increment, 1)),
+			ScenarioClass::Instance->Random.RandomBool());
+
+		nRandomCoords.Z = nPos.Z + MapClass::Instance->GetCellFloorHeight(nRandomCoords);
+		return nRandomCoords;
+	}
+
+	return nPos;
+}
 
 void AnimExtData::OnInit(AnimClass* pThis, CoordStruct* pCoord)
 {
@@ -127,7 +237,7 @@ bool AnimExtData::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHei
 
 		if (!LandIsWater || EligibleHeight)
 		{
-			Helper::Otamaa::DetonateWarhead(int(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->Bounce.GetCoords(), pTechOwner, pOwner, pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
+			AnimExtData::DetonateWarhead(int(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->Bounce.GetCoords(), pTechOwner, pOwner, pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
 
 			if (auto const pExpireAnim = pThis->Type->ExpireAnim)
 			{
@@ -143,7 +253,7 @@ bool AnimExtData::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHei
 		{
 			if (!pAnimTypeExt->ExplodeOnWater)
 			{
-				if (auto pSplashAnim = Helper::Otamaa::PickSplashAnim(pAnimTypeExt->SplashList, pAnimTypeExt->WakeAnim, pAnimTypeExt->SplashIndexRandom.Get(), pThis->Type->IsMeteor))
+				if (auto pSplashAnim = AnimExtData::PickSplashAnim(pAnimTypeExt->SplashList, pAnimTypeExt->WakeAnim, pAnimTypeExt->SplashIndexRandom.Get(), pThis->Type->IsMeteor))
 				{
 					CoordStruct _SplashCoord = pThis->Location;
 					if (pAnimTypeExt->SplashList.HasValue()) {
@@ -162,7 +272,7 @@ bool AnimExtData::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHei
 			}
 			else
 			{
-				auto const& [bPlayWHAnim, nDamage] = Helper::Otamaa::DetonateWarhead(int(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->Location, pTechOwner, pOwner, pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
+				auto const& [bPlayWHAnim, nDamage] = AnimExtData::DetonateWarhead(int(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->Location, pTechOwner, pOwner, pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
 				if (bPlayWHAnim)
 				{
 					if (auto pSplashAnim = MapClass::SelectDamageAnimation(nDamage, pThis->Type->Warhead, pThis->GetCell()->LandType, pThis->Location))
@@ -306,7 +416,7 @@ bool AnimExtData::OnMiddle(AnimClass* pThis)
 		const auto pHouse = !pThis->Owner && pObject ? pObject->Owner : pThis->Owner;
 		auto nCoord = pThis->GetCoords();
 
-		Helper::Otamaa::SpawnMultiple(
+		AnimExtData::SpawnMultiple(
 			pAnimTypeExt->SpawnsMultiple,
 			pAnimTypeExt->SpawnsMultiple_amouts,
 			nCoord, pObject, pHouse, pAnimTypeExt->SpawnsMultiple_Random.Get());
@@ -326,7 +436,7 @@ bool AnimExtData::OnMiddle(AnimClass* pThis)
 						if (!pAnimTypeExt->ParticleChance.isset() ||
 							(ScenarioClass::Instance->Random.RandomFromMax(99) < Math::abs(pAnimTypeExt->ParticleChance.Get())))
 						{
-							nDestCoord = Helper::Otamaa::GetRandomCoordsInsideLoops(pAnimTypeExt->ParticleRangeMin.Get(), pAnimTypeExt->ParticleRangeMax.Get(), InitialCoord, i);
+							nDestCoord = AnimExtData::GetRandomCoordsInsideLoops(pAnimTypeExt->ParticleRangeMin.Get(), pAnimTypeExt->ParticleRangeMax.Get(), InitialCoord, i);
 							ParticleSystemClass::Instance->SpawnParticle(pParticleType, &nDestCoord);
 						}
 					}

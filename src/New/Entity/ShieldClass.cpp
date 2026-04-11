@@ -328,7 +328,7 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	int DamageToShieldAfterMinMax = 0;
 	int PassableDamageAnount = 0;
 	const bool ShieldStillInfullHP = (this->Type->Strength - this->HP) == 0;
-	auto const pTechno = this->Techno;
+	//auto const pTechno = this->Techno;
 
 	if (pWHExt->CanTargetHouse(pSource, this->Techno) && !args->WH->Temporal)
 	{

@@ -6,6 +6,9 @@
 #include <InfantryClass.h>
 #include <BuildingClass.h>
 
+#include <Utilities/Patch.h>
+#include <Utilities/Macro.h>
+
 DEFINE_JUMP(LJMP, 0x469AC1, 0x469AF0) // Skip random scatter in vanilla code
 
 #pragma optimize("", off )

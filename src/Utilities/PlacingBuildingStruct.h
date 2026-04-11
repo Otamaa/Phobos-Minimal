@@ -3,9 +3,10 @@
 #include <Timers.h>
 #include <CellStruct.h>
 
-#include "SavegameDef.h"
 
 class BuildingTypeClass;
+class PhobosStreamReader;
+class PhobosStreamWriter;
 struct PlacingBuildingStruct
 {
 	BuildingTypeClass* Type;
@@ -14,25 +15,9 @@ struct PlacingBuildingStruct
 	CDTimerClass Timer;
 	CellStruct TopLeft;
 
-	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{ return Serialize(Stm); }
+public:
 
-	bool Save(PhobosStreamWriter& Stm) const
-	{ return const_cast<PlacingBuildingStruct*>(this)->Serialize(Stm); }
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	bool Save(PhobosStreamWriter& Stm) const;
 
-private:
-
-	template <typename T>
-	bool Serialize(T& Stm)
-	{
-		return Stm
-			.Process(Type)
-			.Process(DrawType)
-			.Process(Times)
-			.Process(Timer)
-			.Process(TopLeft)
-			.Success()
-			//&& Stm.RegisterChange(this)
-			; // announce this type
-	}
 };

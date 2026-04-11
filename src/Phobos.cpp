@@ -12,6 +12,7 @@
 #include <Utilities/Patch.h>
 #include <Utilities/CSFText.h>
 #include <Utilities/GameConfig.h>
+#include <Utilities/Parser.h>
 
 #include <Misc/Patches.h>
 #include <Misc/PhobosGlobal.h>

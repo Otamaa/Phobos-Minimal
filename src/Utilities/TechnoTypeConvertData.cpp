@@ -5,6 +5,28 @@
 
 #include <Ext/Techno/Body.h>
 
+template <typename T>
+bool Serialize(TechnoTypeConvertData* pThis , T& stm)
+{
+	return stm
+		.Process(pThis->From)
+		.Process(pThis->To)
+		.Process(pThis->Eligible)
+		.Success()
+		//&& stm.RegisterChange(this)
+		; // announce this type
+}
+
+bool TechnoTypeConvertData::Load(PhobosStreamReader& stm, bool registerForChange)
+{
+	return Serialize(this,stm);
+}
+
+bool TechnoTypeConvertData::Save(PhobosStreamWriter& stm) const
+{
+	return Serialize(const_cast<TechnoTypeConvertData*>(this),stm);
+}
+
 void TechnoTypeConvertData::ApplyConvert(const std::vector<TechnoTypeConvertData>& nPairs , HouseClass * pHouse, TechnoClass * pTarget, AnimTypeClass* SucceededAnim)
 {
 	if (nPairs.empty())

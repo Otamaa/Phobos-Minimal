@@ -13,9 +13,10 @@
 #include <Ext/Tiberium/Body.h>
 #include <Ext/Cell/Body.h>
 
-#include <Utilities/AnimHelpers.h>
 #include <Utilities/Helpers.h>
 #include <Utilities/Macro.h>
+
+#include <Misc/DamageArea.h>
 
 #include <SmudgeClass.h>
 #include <SmudgeTypeClass.h>

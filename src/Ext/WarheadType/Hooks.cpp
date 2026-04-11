@@ -18,6 +18,7 @@
 
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/Helpers.h>
+#include <Utilities/Macro.h>
 
 #include <VeinholeMonsterClass.h>
 #include <Misc/PhobosGlobal.h>

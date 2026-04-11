@@ -242,6 +242,8 @@ public:
 class NOVTABLE FakeBuildingClass : public BuildingClass
 {
 public:
+
+	int _Mission_Repair();
 	void _Detach(AbstractClass* target, bool all);
 	bool _IsFactory();
 	int _Mission_Missile();

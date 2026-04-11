@@ -3,12 +3,14 @@
 #include <Helpers/Macro.h>
 
 #include <Ext/Techno/Body.h>
-#include <Ext/Ebolt/Body.h>
 #include <Ext/WeaponType/Body.h>
 
 #include <InfantryClass.h>
 #include <AircraftClass.h>
 #include <ParticleSystemClass.h>
+
+#include <Utilities/Patch.h>
+#include <Utilities/Macro.h>
 
 class NOVTABLE EBoltFake final : public EBolt
 {

@@ -202,6 +202,27 @@ void FakeTacticalClass::__DrawAllTacticalText(wchar_t* text)
 		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
 		break;
 	}
+	case FPSCounterMode::FPSandLat: {
+		auto currentFrameTime = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<float, std::milli> frameDuration = currentFrameTime - lastFrameTime;
+		lastFrameTime = currentFrameTime;
+		buffer.clear();
+		fmt::format_to(std::back_inserter(buffer), L"FPS: {} | {:.3f} ms", FPSCounter::CurrentFrameRate(), frameDuration.count());
+		buffer.push_back(L'\0');
+		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
+		break;
+	}
+	case FPSCounterMode::Lat: {
+		auto currentFrameTime = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<float, std::milli> frameDuration = currentFrameTime - lastFrameTime;
+		lastFrameTime = currentFrameTime;
+		buffer.clear();
+		fmt::format_to(std::back_inserter(buffer), L"{:.3f} ms", frameDuration.count());
+		buffer.push_back(L'\0');
+		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
+		break;
+	}
+	default: break;
 	}
 
 	this->DrawAllTacticalText(text);
@@ -512,7 +533,7 @@ ASMJIT_PATCH(0x43BE50, BuildingClass_DTOR_HasAnySW, 6)
 		? 0x43BEEAu : 0x43BEF5u;
 }
 
-ASMJIT_PATCH(0x449716, BuildingClass_Mi_Guard_HasFirstSW, 6)
+ASMJIT_PATCH(0x449716, BuildingClass_Mission_Guard_HasFirstSW, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	return pThis->FirstActiveSWIdx() != -1 ? 0x4497AFu : 0x449762u;

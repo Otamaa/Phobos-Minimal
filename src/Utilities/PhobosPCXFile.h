@@ -3,8 +3,7 @@
 #include <PCX.h>
 #include <Helpers/String.h>
 
-#include <string>
-#include "PhobosMap.h"
+#include <Map>
 
 class BSurface;
 class INIClass;

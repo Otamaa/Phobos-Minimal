@@ -11,6 +11,9 @@
 
 #include <Misc/DamageArea.h>
 
+#include <Utilities/Helpers.h>
+#include <Utilities/Macro.h>
+
 // =============================
 // load / save
 

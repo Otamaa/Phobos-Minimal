@@ -4,6 +4,8 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Scenario/Body.h>
 
+#include <Utilities/Patch.h>
+#include <Utilities/Macro.h>
 
 ASMJIT_PATCH(0x7294E0,TunnelLocomotionClass_7294E0_Handle, 0x6){
 	GET(TunnelLocomotionClass* const, pLoco, ECX);

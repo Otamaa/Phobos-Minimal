@@ -36,7 +36,7 @@ enum class DrawDamageMode : BYTE
 
 enum class FPSCounterMode
 {
-	disabled, Full, FPSOnly, FPSandAVG, count
+	disabled, Full, FPSOnly, FPSandAVG, FPSandLat, Lat,  count
 };
 
 class CCINIClass;

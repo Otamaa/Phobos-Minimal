@@ -14,6 +14,9 @@
 
 #include <SpawnManagerClass.h>
 
+#include <Utilities/Patch.h>
+#include <Utilities/Macro.h>
+
 bool DisguiseAllowed(const TechnoTypeExtData* pThis, ObjectTypeClass* pThat)
 {
 	if (!pThis->DisguiseDisAllowed.empty() && pThis->DisguiseDisAllowed.Contains(pThat))

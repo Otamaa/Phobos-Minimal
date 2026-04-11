@@ -1,58 +1,29 @@
 #pragma once
 
-#include <StringTable.h>
-#include <MessageListClass.h>
 #include <Helpers/String.h>
 
-#include <Utilities/SavegameDef.h>
-
+class PhobosStreamReader;
+class PhobosStreamWriter;
 // provides storage for a csf label with automatic lookup.
 class CSFText
 {
 	static COMPILETIMEEVAL const size_t Capacity = 0x20;
+
 public:
+
 	CSFText() noexcept { }
 	explicit CSFText(nullptr_t) noexcept { }
-
-	explicit CSFText(const char* label) noexcept
-	{
-		*this = label;
-	}
+	explicit CSFText(const char* label) noexcept;
 
 	~CSFText() noexcept = default;
 
 	CSFText& operator = (CSFText const& rhs) = default;
 	CSFText(const CSFText& other) = default;
 
-	const CSFText& operator = (const char* label)
-	{
-		if (this->Label != label)
-		{
-			this->Label.assign(label);
-
-			this->Text = nullptr;
-
-			if (this->Label)
-			{
-				this->Text = StringTable::FetchString(this->Label);
-			}
-		}
-
-		return *this;
-	}
+	const CSFText& operator = (const char* label);
 
 	template<bool check = true>
-	void FORCEDINLINE PrintAsMessage(int colorScheme) const
-	{
-
-		if COMPILETIMEEVAL (check)
-		{
-			if (this->empty())
-				return;
-		}
-
-		MessageListClass::Instance->PrintMessage(this->Text, RulesClass::Instance->MessageDelay, colorScheme);
-	}
+	void PrintAsMessage(int colorScheme) const;
 
 	COMPILETIMEEVAL operator const wchar_t* () const
 	{
@@ -64,23 +35,8 @@ public:
 		return !this->Text || !*this->Text;
 	}
 
-	bool load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{
-		this->Text = nullptr;
-		if (Stm.Process(this->Label))
-		{
-			if (this->Label)
-			{
-				this->Text = StringTable::FetchString(this->Label);
-			}
-			return true;
-		}
-		return false;
-	}
-	bool save(PhobosStreamWriter& Stm) const
-	{
-		return Stm.Process(this->Label);
-	}
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	bool Save(PhobosStreamWriter& Stm) const;
 
 public:
 

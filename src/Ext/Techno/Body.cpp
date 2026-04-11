@@ -7980,6 +7980,7 @@ void TechnoExtData::CreateInitialPayload(bool forced)
 			{
 				auto const pPayload = static_cast<FootClass*>(pObject);
 				pPayload->SetLocation(pThis->Location);
+				pPayload->IsInPlayfield = true;
 				pPayload->Limbo();
 
 				if (pType->OpenTopped)

@@ -22,6 +22,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Ext\INI\Body.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.ThreatCoeff.cpp" />
     <ClCompile Include="src\New\Entity\FactoryPlantClass.cpp" />
     <ClCompile Include="src\Commands\AggressiveModeClass.cpp" />
@@ -456,6 +457,7 @@
     <ClCompile Include="src\Utilities\Anchor.cpp" />
     <ClCompile Include="src\Utilities\Cast.cpp" />
     <ClCompile Include="src\Utilities\Container.cpp" />
+    <ClCompile Include="src\Utilities\CSFText.cpp" />
     <ClCompile Include="src\Utilities\DebrisSpawners.cpp" />
     <ClCompile Include="src\Utilities\Debug.cpp" />
     <ClCompile Include="src\Ext\BuildingType\Body.cpp" />
@@ -463,9 +465,12 @@
     <ClCompile Include="src\Utilities\GameConfig.cpp" />
     <ClCompile Include="src\Utilities\Handle.cpp" />
     <ClCompile Include="src\Utilities\Helpers.cpp" />
+    <ClCompile Include="src\Utilities\INIParser.cpp" />
     <ClCompile Include="src\Utilities\OptionalStruct.cpp" />
+    <ClCompile Include="src\Utilities\Parser.cpp" />
     <ClCompile Include="src\Utilities\PhobosFixedString.cpp" />
     <ClCompile Include="src\Utilities\PhobosPCXFile.cpp" />
+    <ClCompile Include="src\Utilities\PlacingBuildingStruct.cpp" />
     <ClCompile Include="src\Utilities\ShapeTextPrinter.cpp" />
     <ClCompile Include="src\Utilities\Stream.cpp" />
     <ClCompile Include="src\Utilities\Swizzle.cpp" />
@@ -480,9 +485,11 @@
     <ClCompile Include="src\New\Entity\VersesData.cpp" />
     <ClCompile Include="src\Utilities\Patch.cpp" />
     <ClCompile Include="src\Utilities\Template.cpp" />
+    <ClCompile Include="src\Utilities\TranslucencyLevel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="B:\Projects\Unused\LambdaFunctionArgCount.h" />
+    <ClInclude Include="src\Ext\INI\Body.h" />
     <ClInclude Include="src\New\Entity\FactoryPlantClass.h" />
     <ClInclude Include="src\Commands\AggressiveModeClass.h" />
     <ClInclude Include="src\Commands\CeasefireModeClass.h" />
@@ -803,7 +810,6 @@
     <ClInclude Include="src\PhobosSaveVersionInfo.h" />
     <ClInclude Include="src\resource.h" />
     <ClInclude Include="src\Utilities\Anchor.h" />
-    <ClInclude Include="src\Utilities\AnimHelpers.h" />
     <ClInclude Include="src\Utilities\BuildingBrackedPositionData.h" />
     <ClInclude Include="src\Utilities\Cast.h" />
     <ClInclude Include="src\Utilities\CompressedStream.h" />

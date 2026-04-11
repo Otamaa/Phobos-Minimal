@@ -10,6 +10,8 @@
 #include <Ext/Aircraft/Body.h>
 #include <Ext/AircraftType/Body.h>
 
+#include <Utilities/Patch.h>
+#include <Utilities/Macro.h>
 // ============================================================================
 // HELPER ENUMS AND FORWARD DECLARATIONS
 // ============================================================================

@@ -305,3 +305,84 @@ void Debug::INIParseFailed(const char* section, const char* flag, const char* va
 	}
 }
 
+void Debug::Log(const char* pFormat, ...)
+{
+	if (Debug::LogFileActive())
+	{
+		va_list args;
+		va_start(args, pFormat);
+		vfprintf(Debug::LogFile, pFormat, args);
+		va_end(args);
+
+		Debug::Flush();
+	}
+}
+
+//this will be used to replace game debug prints
+void __cdecl Debug::CLog(const char* pFormat, ...)
+{
+	if (Debug::LogFileActive())
+	{
+		va_list args;
+		va_start(args, pFormat);
+		vfprintf(Debug::LogFile, pFormat, args);
+		va_end(args);
+
+		Debug::Flush();
+	}
+}
+
+// Log file not checked
+void Debug::LogUnflushed(const char* pFormat, ...)
+{
+	va_list args;
+	va_start(args, pFormat);
+	vfprintf(Debug::LogFile, pFormat, args);
+	va_end(args);
+}
+
+void Debug::LogFlushed(const char* const pFormat, ...)
+{
+	if (Debug::LogFileActive())
+	{
+		va_list args;
+		va_start(args, pFormat);
+		vfprintf(Debug::LogFile, pFormat, args);
+		Debug::Flush();
+		va_end(args);
+	}
+}
+
+void Debug::LogDeferred(const char* pFormat, ...)
+{
+	va_list args;
+	va_start(args, pFormat);
+	vsprintf_s(DefferedVectorBuffer, sizeof(DefferedVectorBuffer), pFormat, args);
+	Debug::DefferedVector.emplace_back(DefferedVectorBuffer);
+	va_end(args);
+}
+
+void Debug::LogDeferredFinalize()
+{
+	if (Debug::LogFileActive())
+	{
+		for (auto& __log : Debug::DefferedVector)
+		{
+			if (!__log.empty())
+			{
+				fwrite(__log.data(), 1, __log.size(), Debug::LogFile);
+			}
+		}
+	}
+
+	Debug::Flush();
+	Debug::DefferedVector.clear();
+}
+
+void Debug::RegisterParserError()
+{
+	if (Phobos::Otamaa::TrackParserErrors)
+	{
+		Phobos::Otamaa::ParserErrorDetected = true;
+	}
+}

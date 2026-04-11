@@ -31,25 +31,61 @@ ASMJIT_PATCH(0x464749, BuildingTypeClass_ReadINI_PowerUpAnims, 0x6)
 
 	pThis->_GetExtData()->HasPowerUpAnim.clear();
 	auto const pINI = &CCINIClass::INI_Art();
+	struct Keys {
+		const char* _Base;
+		const char* _Anim;
+		const char* _DamagedAnim;
+		const char* _LocXX;
+		const char* _LocYY;
+		const char* _LocZZ;
+		const char* _YSort;
+		const char* _Powered;
+		const char* _PoweredLight;
+		const char* _PoweredEffect;
+		const char* _PoweredSpecial;
+	};
+
+	static constexpr std::array<Keys, 3> _Keys = {
+		Keys{
+			"PowerUp1" , "PowerUp1Anim" ,	"PowerUp1DamagedAnim" ,
+			"PowerUp1LocXX" ,	"PowerUp1LocYY" ,	"PowerUp1LocZZ" ,
+			"PowerUp1YSort" ,	"PowerUp1Powered" ,	"PowerUp1PoweredLight" ,
+			"PowerUp1PoweredEffect" ,"PowerUp1PoweredSpecial" }
+
+		,
+
+		Keys{
+			"PowerUp2" , "PowerUp2Anim" ,	"PowerUp2DamagedAnim" ,
+			"PowerUp2LocXX" ,	"PowerUp2LocYY" ,	"PowerUp2LocZZ" ,
+			"PowerUp2YSort" ,	"PowerUp2Powered" ,	"PowerUp2PoweredLight" ,
+			"PowerUp2PoweredEffect" ,"PowerUp2PoweredSpecial"
+		}
+
+		,
+
+		Keys{
+			"PowerUp3" , "PowerUp3Anim" ,	"PowerUp3DamagedAnim" ,
+			"PowerUp3LocXX" ,	"PowerUp3LocYY" ,	"PowerUp3LocZZ" ,
+			"PowerUp3YSort" ,	"PowerUp3Powered" ,	"PowerUp3PoweredLight" ,
+			"PowerUp3PoweredEffect" ,"PowerUp3PoweredSpecial"
+		}
+	};
 
 	for (int i = 0; i < 3; ++i)
 	{
 		auto animData = &pThis->BuildingAnim[i];
+		pINI->ReadString(pThis->ImageFile, _Keys[i]._Anim, Phobos::readDefval, animData->Anim);
+		pINI->ReadString(pThis->ImageFile, _Keys[i]._DamagedAnim, Phobos::readDefval, animData->Damaged);
 
-		const std::string baseKey = fmt::format("PowerUp{:01}", i + 1);
+		animData->Position.X = pINI->ReadInteger(pThis->ImageFile,  _Keys[i]._LocXX, animData->Position.X);
+		animData->Position.Y = pINI->ReadInteger(pThis->ImageFile,  _Keys[i]._LocYY, animData->Position.Y);
+		animData->ZAdjust = pINI->ReadInteger(pThis->ImageFile,  _Keys[i]._LocZZ, animData->ZAdjust);
+		animData->YSort = pINI->ReadInteger(pThis->ImageFile,  _Keys[i]._YSort, animData->YSort);
 
-		pINI->ReadString(pThis->ImageFile, (baseKey + "Anim").c_str(), Phobos::readDefval, animData->Anim);
-		pINI->ReadString(pThis->ImageFile, (baseKey + "DamagedAnim").c_str(), Phobos::readDefval, animData->Damaged);
-
-		animData->Position.X = pINI->ReadInteger(pThis->ImageFile, (baseKey + "LocXX").c_str(), animData->Position.X);
-		animData->Position.Y = pINI->ReadInteger(pThis->ImageFile, (baseKey + "LocYY").c_str(), animData->Position.Y);
-		animData->ZAdjust = pINI->ReadInteger(pThis->ImageFile, (baseKey + "LocZZ").c_str(), animData->ZAdjust);
-		animData->YSort = pINI->ReadInteger(pThis->ImageFile, (baseKey + "YSort").c_str(), animData->YSort);
-
-		animData->Powered = pINI->ReadBool(pThis->ImageFile, (baseKey + "Powered").c_str(), animData->Powered);
-		animData->PoweredLight = pINI->ReadBool(pThis->ImageFile, (baseKey + "PoweredLight").c_str(), animData->PoweredLight);
-		animData->PoweredEffect = pINI->ReadBool(pThis->ImageFile, (baseKey + "PoweredEffect").c_str(), animData->PoweredEffect);
-		animData->PoweredSpecial = pINI->ReadBool(pThis->ImageFile, (baseKey + "PoweredSpecial").c_str(), animData->PoweredSpecial);
+		animData->Powered = pINI->ReadBool(pThis->ImageFile,  _Keys[i]._Powered, animData->Powered);
+		animData->PoweredLight = pINI->ReadBool(pThis->ImageFile,  _Keys[i]._PoweredLight, animData->PoweredLight);
+		animData->PoweredEffect = pINI->ReadBool(pThis->ImageFile,  _Keys[i]._PoweredEffect, animData->PoweredEffect);
+		animData->PoweredSpecial = pINI->ReadBool(pThis->ImageFile,  _Keys[i]._PoweredSpecial, animData->PoweredSpecial);
 		pThis->_GetExtData()->HasPowerUpAnim.emplace_back(GeneralUtils::IsValidString(animData->Anim));
 	}
 

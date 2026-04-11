@@ -72,77 +72,23 @@ public:
 		}
 	}
 
-	static void Log(const char* pFormat, ...)
-	{
-		if (Debug::LogFileActive()) {
-			va_list args;
-			va_start(args, pFormat);
-			vfprintf(Debug::LogFile, pFormat, args);
-			va_end(args);
-
-			Debug::Flush();
-		}
-	}
+	static void Log(const char* pFormat, ...);
 
 	//this will be used to replace game debug prints
-	static void __cdecl CLog(const char* pFormat, ...)
-	{
-		if (Debug::LogFileActive())
-		{
-			va_list args;
-			va_start(args, pFormat);
-			vfprintf(Debug::LogFile, pFormat, args);
-			va_end(args);
-
-			Debug::Flush();
-		}
-	}
+	static void __cdecl CLog(const char* pFormat, ...);
 
 	// Log file not checked
-	static void LogUnflushed(const char* pFormat, ...)
-	{
-		va_list args;
-		va_start(args, pFormat);
-		vfprintf(Debug::LogFile, pFormat, args);
-		va_end(args);
-	}
+	static void LogUnflushed(const char* pFormat, ...);
 
-	void LogFlushed(const char* const pFormat, ...)
-	{
-		if (Debug::LogFileActive()) {
-			va_list args;
-			va_start(args, pFormat);
-			vfprintf(Debug::LogFile, pFormat, args);
-			Debug::Flush();
-			va_end(args);
-		}
-	}
+	void LogFlushed(const char* const pFormat, ...);
 
 	static FORCEINLINE void Flush() {
 		fflush(Debug::LogFile);
 	}
 
-	static void LogDeferred(const char* pFormat, ...) {
-		va_list args;
-		va_start(args, pFormat);
-		vsprintf_s(DefferedVectorBuffer, sizeof(DefferedVectorBuffer), pFormat, args);
-		Debug::DefferedVector.emplace_back(DefferedVectorBuffer);
-		va_end(args);
-	}
+	static void LogDeferred(const char* pFormat, ...);
 
-	static void LogDeferredFinalize()
-	{
-		if (Debug::LogFileActive()) {
-			for (auto& __log : Debug::DefferedVector) {
-				if(!__log.empty()) {
-					fwrite(__log.data(), 1, __log.size(), Debug::LogFile);
-				}
-			}
-		}
-
-		Debug::Flush();
-		Debug::DefferedVector.clear();
-	}
+	static void LogDeferredFinalize();
 
 	static FORCEDINLINE void TakeMouse()
 	{
@@ -282,11 +228,7 @@ public:
 			FatalErrorAndExit(0u, pFormat, std::forward<TArgs>(args)...);
 	}
 
-	static void RegisterParserError() {
-		if (Phobos::Otamaa::TrackParserErrors) {
-			Phobos::Otamaa::ParserErrorDetected = true;
-		}
-	}
+	static void RegisterParserError();
 
 	static NOINLINE void INIParseFailed(const char* section, const char* flag, const char* value, const char* Message = nullptr);
 };

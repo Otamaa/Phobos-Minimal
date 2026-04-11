@@ -3,6 +3,9 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/WarheadType/Body.h>
 
+#include <Utilities/Patch.h>
+#include <Utilities/Macro.h>
+
 static inline bool IsAThreatToMe(TechnoClass* const pTechno, AbstractClass* const pTarget, int weaponIndex = -1)
 {
 	if (const auto pTechnoTarget = flag_cast_to<TechnoClass*>(pTarget))
@@ -119,8 +122,6 @@ double __fastcall FakeTechnoClass::__GetThreatCoeff(TechnoClass* pThis, discard_
 
 	// 2. Determine Weapons
 	int myWeaponIndex = pThis->SelectWeapon(pTarget);
-	WeaponTypeClass* pMyWeapon = pThis->GetWeapon(myWeaponIndex)->WeaponType;
-
 	double threatValue = 0.0;
 	AbstractType targetKind = pTarget->WhatAmI();
 	TechnoClass* pTargetTechno = nullptr;
@@ -154,6 +155,8 @@ double __fastcall FakeTechnoClass::__GetThreatCoeff(TechnoClass* pThis, discard_
 			threatValue += RulesClass::Instance->EnemyHouseThreatBonus;
 		}
 	}
+
+	WeaponTypeClass* pMyWeapon = pThis->GetWeapon(myWeaponIndex)->WeaponType;
 
 	// 4. Effectiveness Logic (How well can I hurt the target?)
 	if (pMyWeapon && pMyWeapon->Warhead)

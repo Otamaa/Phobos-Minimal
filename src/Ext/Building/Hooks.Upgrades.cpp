@@ -1,6 +1,6 @@
 #include "Body.h"
 
-ASMJIT_PATCH(0x44AAD3 , BuildingClass_Mi_Selling_Upgrades, 9)
+ASMJIT_PATCH(0x44AAD3 , BuildingClass_Mission_Selling_Upgrades, 9)
 {
 	GET(BuildingTypeClass*, pUpgrades, ECX);
 	GET(BuildingClass*, pThis, EBP);

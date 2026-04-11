@@ -579,3 +579,42 @@ bool EnumFunctions::IsPlayerTypeEligible(AffectPlayerType flags, HouseClass* pFo
 
 	return true;
 }
+
+bool MouseCursorHotSpotX::Parse(const char* key, MouseHotSpotX* value)
+{
+	if (key && value)
+	{
+		for (const auto& arr : EnumFunctions::MouseHotSpotX_ToStrings)
+		{
+			if (IS_SAME_STR_(key, arr.first))
+			{
+				*value = arr.second;
+				return true;
+			}
+		}
+
+		if (IS_SAME_STR_(key, "centre"))
+		{
+			*value = MouseHotSpotX::Center;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool MouseCursorHotSpotY::Parse(const char* key, MouseHotSpotY* value)
+{
+	if (key && value)
+	{
+		for (const auto& arr : EnumFunctions::MouseHotSpotY_ToStrings)
+		{
+			if (IS_SAME_STR_(key, arr.first))
+			{
+				*value = arr.second;
+				return true;
+			}
+		}
+	}
+
+	return false;
+}

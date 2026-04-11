@@ -31,7 +31,7 @@ public:
 
 	const char* CurrentSectionName;
 	INISection* CurrentSection;
-	DECLARE_PROPERTY(List<INISection>, Sections);
+	DECLARE_PROPERTY(List<INISection*>, Sections);
 	DECLARE_PROPERTY(IndexType, SectionIndex); // <CRCValue of the Name, Pointer to the section>
 	INIComment* LineComments;
 
@@ -43,6 +43,16 @@ public:
 	virtual ~INIClass() { JMP_THIS(0x5256F0); };
 
 	DWORD CalculateTextCRCChecksums(const char* pText);
+
+	static void __fastcall Strip_Comments(const char* buffer) {
+		JMP_FAST(0x52AA90);
+	}
+
+	static bool __fastcall Line_Contains_Section(char* str) {
+		JMP_FAST(0x52AAC0);
+	}
+
+	bool Section_Present(char const* section) { return this->GetSection(section) != nullptr; }
 
 	INISection* GetOrReturnCurrenSection(const char* pSection)
 	{
@@ -89,7 +99,7 @@ public:
 	INIEntry* GetKey(const char* pSection , const char* pKey)
 		{ JMP_THIS(0x526B10); }
 
-	int GetKeyCount(const char* pSection) //Get the amount of keys in a section.
+	int GetKeyCount(const char* pSection) const//Get the amount of keys in a section.
 		{ JMP_THIS(0x526960); }
 
 	const char* GetKeyName(const char* pSection, int nKeyIndex) //Get the name of a key number in a section.
@@ -148,6 +158,9 @@ public:
 	//Writes an integer value.
 	bool WriteInteger(const char* pSection, const char* pKey, int nValue, bool bHex)
 		{ JMP_THIS(0x5275C0); }
+
+	int GetTextBlock(const char* section, char* buffer, int len)
+	{ JMP_THIS(0x5272B0); }
 
 	//Reads a decimal value.
 	double ReadDouble(const char* pSection, const char* pKey, double dDefault)

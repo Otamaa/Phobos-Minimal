@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Utilities/Parser.h>
 #include <Utilities/Enumerable.h>
 #include <Utilities/TemplateDefB.h>
 #include <Utilities/Enum.h>

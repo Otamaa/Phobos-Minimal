@@ -126,6 +126,13 @@ public:
 	static void OnInit(AnimClass* pThis, CoordStruct* pCoord);
 	static void CreateRandomAnim(Iterator<AnimTypeClass*> AnimList, CoordStruct coords, TechnoClass* pTechno = nullptr, HouseClass* pHouse = nullptr, bool ownedObject = false);
 
+	static AnimTypeClass* PickSplashAnim(NullableVector<AnimTypeClass*> const& nSplash, Nullable<AnimTypeClass*> const& nWake, bool Random, bool IsMeteor);
+	static std::pair<bool, int> DetonateWarhead(int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, CoordStruct Where, TechnoClass* pInvoker, HouseClass* pOwner, bool DamageConsiderVet);
+	static std::pair<bool, int> Detonate(Nullable<WeaponTypeClass*> const& pWeapon, int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, CoordStruct Where, TechnoClass* pInvoker, HouseClass* pOwner, bool DamageConsiderVet);
+	static void SpawnMultiple(const std::vector<AnimTypeClass*>& nAnims, std::vector<int>& nAmount, CoordStruct Where, TechnoClass* pInvoker, HouseClass* pOwner, bool bRandom);
+	static std::expected<Point2D, bool> CheckMinMax(double nMin, double nMax);
+	static CoordStruct GetRandomCoordsInsideLoops(double nMin, double nMax, CoordStruct nPos, int Increment);
+
 	static Layer __fastcall GetLayer_patch(AnimClass* pThis, discard_t);
 
 	static void SpawnFireAnims(AnimClass* pThis);

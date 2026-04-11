@@ -80,7 +80,7 @@ ASMJIT_PATCH(0x43C2A0, BuildingClass_RemoveFire_handle, 0x8) //was 5
 }
 
 //DEFINE_JUMP(LJMP, 0x44EA1C, 0x44EA2F);
-ASMJIT_PATCH(0x44EA1C, BuildingClass_DetachOrInvalidPtr_handle, 0x6)
+ASMJIT_PATCH(0x44EA1A, BuildingClass_DetachOrInvalidPtr_handle, 0x8)
 {
 	GET(FakeBuildingClass*, pThis, ESI);
 	GET(void*, ptr, EBP);

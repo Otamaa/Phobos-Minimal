@@ -112,7 +112,7 @@ ASMJIT_PATCH(0x44731C, BuildingClass_GetActionOnObject_Tunnel, 6)
 	return FindSameTunnel ? RetActionSelf : Nothing;
 }
 
-ASMJIT_PATCH(0x44A37F, BuildingClass_Mi_Selling_Tunnel_TryToPlacePassengers, 6)
+ASMJIT_PATCH(0x44A37F, BuildingClass_Mission_Selling_Tunnel_TryToPlacePassengers, 6)
 {
 	GET(BuildingClass*, pThis, EBP);
 	GET(CellStruct*, CellArr, EDI);
@@ -142,7 +142,7 @@ ASMJIT_PATCH(0x44A37F, BuildingClass_Mi_Selling_Tunnel_TryToPlacePassengers, 6)
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x44D880, BuildingClass_Mi_Unload_Tunnel, 5)
+ASMJIT_PATCH(0x44D880, BuildingClass_Mission_Unload_Tunnel, 5)
 {
 	GET(BuildingClass*, pThis, ECX);
 	auto pThisType = pThis->Type;

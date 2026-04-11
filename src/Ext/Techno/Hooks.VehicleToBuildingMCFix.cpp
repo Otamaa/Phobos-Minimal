@@ -11,7 +11,7 @@
 #include <Ext/CaptureManager/Body.h>
 #include <Ext/WarheadType/Body.h>
 
-ASMJIT_PATCH(0x449E2E, BuildingClass_Mi_Selling_CreateUnit, 0x6)
+ASMJIT_PATCH(0x449E2E, BuildingClass_Mission_Selling_CreateUnit, 0x6)
 {
 	GET(BuildingClass*, pStructure, EBP);
 	R->ECX<HouseClass*>(pStructure->GetOriginalOwner());

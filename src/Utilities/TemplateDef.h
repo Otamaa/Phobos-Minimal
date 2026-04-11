@@ -61,6 +61,7 @@
 #include <Utilities/CSFText.h>
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/PhobosFixedString.h>
+#include <Utilities/Parser.h>
 
 //#include <New/Type/PaletteManager.h>
 

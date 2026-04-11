@@ -36,7 +36,7 @@ ASMJIT_PATCH(0x54C767, JumpjetLocomotionClass_Descending_DeployDir, 0x6)
 	return 0x54C7A3;
 }
 
-
+//JJLOco_State3
 DEFINE_JUMP(LJMP, 0x54C212, 0x54C22A);
 #pragma endregion
 

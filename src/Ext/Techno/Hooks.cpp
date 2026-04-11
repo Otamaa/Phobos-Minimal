@@ -1076,7 +1076,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x450A5D, FakeBuildingClass::_GetAirstrikeInvulnerabi
 
 #pragma endregion
 
-ASMJIT_PATCH(0x4D6D34, FootClass_MissionAreaGuard_Harvester, 0x5)
+ASMJIT_PATCH(0x4D6D34, FootClass_Mission_AreaGuard_Harvester, 0x5)
 {
 	enum { GoGuardArea = 0x4D6D69 };
 
@@ -1092,6 +1092,7 @@ ASMJIT_PATCH(0x4D6D34, FootClass_MissionAreaGuard_Harvester, 0x5)
 	return 0;
 }
 
+//UnitClass_Fire_At
 DEFINE_JUMP(LJMP, 0x741406, 0x741427);
 
 ASMJIT_PATCH(0x736F61, UnitClass_FiringAI_FireUp, 0x6)
@@ -1637,7 +1638,7 @@ ASMJIT_PATCH(0x74312A, UnitClass_SetDestination_ReplaceWithHarvestMission, 0x5)
 	return SkipGameCode;
 }
 
-ASMJIT_PATCH(0x4D6E83, FootClass_MissionAreaGuard_FollowStray, 0x6)
+ASMJIT_PATCH(0x4D6E83, FootClass_Mission_AreaGuard_FollowStray, 0x6)
 {
 	enum { SkipGameCode = 0x4D6E8F };
 
@@ -1650,7 +1651,7 @@ ASMJIT_PATCH(0x4D6E83, FootClass_MissionAreaGuard_FollowStray, 0x6)
 	return SkipGameCode;
 }
 
-ASMJIT_PATCH(0x4D6E97, FootClass_MissionAreaGuard_Pursuit, 0x6)
+ASMJIT_PATCH(0x4D6E97, FootClass_Mission_AreaGuard_Pursuit, 0x6)
 {
 	enum { KeepTarget = 0x4D6ED1, RemoveTarget = 0x4D6EB3 };
 
@@ -1858,7 +1859,7 @@ ASMJIT_PATCH(0x6F8A92, TechnoClass_CheckAutoTarget_AttackFriendlies, 0xA)
 
 #pragma region AreaGuard
 
-ASMJIT_PATCH(0x4D6E9F, FootClass_MissionAreaGuard_UseSelfAsCenter, 0x6)
+ASMJIT_PATCH(0x4D6E9F, FootClass_Mission_AreaGuard_UseSelfAsCenter, 0x6)
 {
 	enum { CheckDist = 0x4D6EAF, ResetTarget = 0x4D6ED1 };
 
@@ -1871,7 +1872,7 @@ ASMJIT_PATCH(0x4D6E9F, FootClass_MissionAreaGuard_UseSelfAsCenter, 0x6)
 	return CheckDist;
 }
 
-ASMJIT_PATCH(0x4D6EEF, FootClass_MissionAreaGuard_Extend, 0x6)
+ASMJIT_PATCH(0x4D6EEF, FootClass_Mission_AreaGuard_Extend, 0x6)
 {
 	enum { SkipGameCode = 0x4D6F03 };
 

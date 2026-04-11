@@ -1,6 +1,9 @@
 #pragma once
+
+#include <Utilities/Enum.h>
 #include <Utilities/Enumerable.h>
 #include <Utilities/Anchor.h>
+#include <Utilities/Template.h>
 #include <New/Type/PaletteManager.h>
 
 class DigitalDisplayTypeClass final : public Enumerable<DigitalDisplayTypeClass>

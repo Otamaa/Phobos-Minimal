@@ -40,7 +40,7 @@ ASMJIT_PATCH(0x443C0D, BuildingClass_AssignTarget_Jugger, 0x6) //8
 	return 0x443BB3;
 }
 
-ASMJIT_PATCH(0x44A93D, BuildingClass_MI_DC_Jugger, 0x6) //8
+ASMJIT_PATCH(0x44A93D, BuildingClass_Mission_DC_Jugger, 0x6) //8
 {
 	GET(BuildingTypeClass*, pThis, EAX);
 	return (pThis->TickTank || BuildingTypeExtContainer::Instance.Find(pThis)->IsJuggernaut || pThis->Artillary)
@@ -71,7 +71,7 @@ ASMJIT_PATCH(0x6F6D94, TechnoClass_Unlimbo_BuildingFacing_Jugger, 0x6)
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x449AF8, BuildingClass_MI_Construct_Facing_Jugger, 0x6)
+ASMJIT_PATCH(0x449AF8, BuildingClass_Mission_Construct_Facing_Jugger, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(BuildingTypeClass*, pBldType, EAX);

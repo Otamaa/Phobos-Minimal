@@ -563,7 +563,7 @@ ASMJIT_PATCH(0x4DCEB3, FootClass_TiberiumScanning_AllowPlayertoScanUderShroud, 0
  	return R->Origin() + 0x6;
  }ASMJIT_PATCH_AGAIN(0x73E772, UnitClass_Mi_Harvest_LongScan, 6)
 
- ASMJIT_PATCH(0x73E730, UnitClass_MissionHarvest_HarvesterScanAfterUnload, 0x5)
+ ASMJIT_PATCH(0x73E730, UnitClass_Mission_Harvest_HarvesterScanAfterUnload, 0x5)
  {
  	GET(UnitClass* const, pThis, EBP);
  	GET(AbstractClass* const, pFocus, EAX);
@@ -1097,6 +1097,7 @@ ASMJIT_PATCH(0x73BA63, UnitClass_DrawVoxel_TurretOffset, 0x5)
 	return 0;
 }
 
+//TechnoClass_Draw_VXL
 DEFINE_JUMP(LJMP, 0x706724, 0x706731);
 
 ASMJIT_PATCH(0x739956, DeploysInto_UndeploysInto_SyncStatuses, 0x6) //UnitClass_Deploy_SyncShieldStatus
@@ -1118,7 +1119,7 @@ ASMJIT_PATCH(0x739956, DeploysInto_UndeploysInto_SyncStatuses, 0x6) //UnitClass_
 		pTo->QueueMission(Mission::Hunt, true);
 
 	return 0;
-}ASMJIT_PATCH_AGAIN(0x44A03C, DeploysInto_UndeploysInto_SyncStatuses, 0x6) //BuildingClass_Mi_Selling_SyncShieldStatus
+}ASMJIT_PATCH_AGAIN(0x44A03C, DeploysInto_UndeploysInto_SyncStatuses, 0x6) //BuildingClass_Mission_Selling_SyncShieldStatus
 
 ASMJIT_PATCH(0x4140EB, AircraftClass_DTOR_Prereqs, 6)
 {

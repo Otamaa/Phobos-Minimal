@@ -329,6 +329,7 @@ struct GameStrings
 	//..
 
 	// EVA entry names
+	GAMEMD_STR(EVA_UnitRepaired, 0x81905C);
 	GAMEMD_STR(EVA_UnitArmorUpgraded, 0x81CEB8u);
 	GAMEMD_STR(EVA_UnitSpeedUpgraded, 0x81CE80u);
 	GAMEMD_STR(EVA_UnitFirePowerUpgraded, 0x81CE40u);

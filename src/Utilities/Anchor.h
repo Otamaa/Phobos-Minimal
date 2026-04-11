@@ -1,7 +1,12 @@
 #pragma once
 
-#include "TemplateDef.h"
+#include <Utilities/Enum.h>
+#include <Point2D.h>
+#include <RectangleStruct.h>
 
+class INI_EX;
+class PhobosStreamReader;
+class PhobosStreamWriter;
 // Helper class to get anchor points on an arbitrary rectangle or a parallelogram
 class Anchor
 {
@@ -66,25 +71,6 @@ public:
 	}
 
 	void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag);
-	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{
-		return this->Serialize(Stm);
-	}
-
-	bool Save(PhobosStreamWriter& Stm) const
-	{
-		return const_cast<Anchor*>(this)->Serialize(Stm);
-	}
-
-private:
-	template <typename T>
-	bool Serialize(T& stm)
-	{
-		return stm
-			.Process(this->Horizontal)
-			.Process(this->Vertical)
-			.Success()
-			//&& stm.RegisterChange(this)
-			; // announce this type
-	}
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	bool Save(PhobosStreamWriter& Stm) const;
 };

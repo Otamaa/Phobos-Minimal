@@ -220,7 +220,7 @@ ASMJIT_PATCH(0x6FFEC0, TechnoClass_GetActionOnObject_Additionals, 5)
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x44A1FF, BuildingClass_Mi_Selling_DetonatePostBuildup, 6)
+ASMJIT_PATCH(0x44A1FF, BuildingClass_Mission_Selling_DetonatePostBuildup, 6)
 {
 	GET(BuildingClass* const, pStructure, EBP);
 

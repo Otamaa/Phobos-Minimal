@@ -34,7 +34,9 @@
 //    return output;
 //}
 
+//WinMain
 DEFINE_JUMP(LJMP, 0x6BC33A, 0x6BC425);
+//WinMain
 DEFINE_JUMP(LJMP, 0x6BD6CA, 0x6BD71D);
 
 ASMJIT_PATCH(0x438300, BlowStraw_Key_replace, 0x6)

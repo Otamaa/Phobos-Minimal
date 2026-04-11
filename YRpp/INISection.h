@@ -15,6 +15,9 @@ public:
 	EntryIndexType EntryIndex;
 	INIComment* Comments;
 
+	//virtual ~INISection() = default;
+	//INISection() = delete; //TODO
+
 	void DeallocINISection()
 	{
 		JMP_THIS(0x52AB80);
@@ -25,7 +28,9 @@ public:
 		JMP_THIS(0x52AE00);
 	}
 
-	virtual ~INISection() = default;
-	//INISection() = delete; //TODO
+
+private:
+	INISection(INISection const& rvalue) = delete;
+	INISection operator=(INISection const& that) = delete;
 };
 static_assert(sizeof(INISection) == 0x44, "Invalid size.");

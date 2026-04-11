@@ -588,7 +588,7 @@ ASMJIT_PATCH(0x4DFC83, FootClass_EnterBioReactor_NoQueueUpToUnload, 0x6)
 	return SkipGameCode;
 }
 
-ASMJIT_PATCH(0x44DCB1, BuildingClass_Mi_Unload_NoQueueUpToUnload, 0x7)
+ASMJIT_PATCH(0x44DCB1, BuildingClass_Mission_Unload_NoQueueUpToUnload, 0x7)
 {
 	GET(BuildingClass*, pThis, EBP);
 

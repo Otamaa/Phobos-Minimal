@@ -1,10 +1,12 @@
 #pragma once
 
 #include <YRMath.h>
-#include <Utilities/SavegameDef.h>
-#include <Utilities/Macro.h>
-#include <Utilities/INIParser.h>
+#include <Base/Always.h>
+#include <Utilities/Enum.h>
 
+class INI_EX;
+class PhobosStreamReader;
+class PhobosStreamWriter;
 class TranslucencyLevel
 {
 public:
@@ -57,26 +59,9 @@ public:
 		return (BlitterFlags)this->value;
 	}
 
-	bool Read(INI_EX& parser, const char* pSection, const char* pKey)
-	{
-		int buf;
-		if (parser.ReadInteger(pSection, pKey, &buf)) {
-			*this = buf;
-			return true;
-		}
-
-		return false;
-	}
-
-	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{
-		return Stm.Process(this->value, RegisterForChange);
-	}
-
-	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const
-	{
-		return Stm.Process(this->value);
-	}
+	bool Read(INI_EX& parser, const char* pSection, const char* pKey);
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	bool Save(PhobosStreamWriter& Stm) const;
 
 private:
 	BYTE value;

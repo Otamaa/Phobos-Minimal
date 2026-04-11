@@ -5,7 +5,7 @@
 // Hooks that allow harvesters / weeders to work correctly with MovementZone=Subterannean (sic).
 
 // Author : Otamaa
-ASMJIT_PATCH(0x4D423A, FootClass_MissionMove_SubterraneanResourceGatherer, 0x6)
+ASMJIT_PATCH(0x4D423A, FootClass_Mission_Move_SubterraneanResourceGatherer, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
 

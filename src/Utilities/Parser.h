@@ -44,7 +44,7 @@ class Parser {
 public:
 	using OutType = T;
 	using BaseType = std::remove_pointer_t<T>;
-	static const size_t Count = count;
+	static constexpr size_t Count = count;
 
 	//! Parses at most Count values and returns the number of items parsed.
 	/*!
@@ -62,7 +62,7 @@ public:
 		\author AlexB
 		\date 2013-03-10
 	*/
-	static size_t Parse(const char* pValue, OutType* outValue) {
+	static OPTIONALINLINE size_t Parse(const char* pValue, OutType* outValue) {
 		char buffer[0x80];
 		for (size_t i = 0; i < Count; ++i) {
 			// skip the leading spaces
@@ -113,7 +113,7 @@ public:
 		\author AlexB
 		\date 2013-03-11
 	*/
-	static bool TryParse(const char* pValue, OutType* outValue) {
+	static OPTIONALINLINE bool TryParse(const char* pValue, OutType* outValue) {
 		OutType buffer[Count] = {};
 
 		if (Parse(pValue, &buffer) != Count) {
@@ -148,7 +148,7 @@ public:
 		\author AlexB
 		\date 2013-03-11
 	*/
-	static int Parse(const char* pValue, OutType* outValue) {
+	static OPTIONALINLINE int Parse(const char* pValue, OutType* outValue) {
 		return TryParse(pValue, outValue) ? 1 : 0;
 	}
 
@@ -165,7 +165,7 @@ public:
 		\author AlexB
 		\date 2013-03-11
 	*/
-	static bool TryParse(const char* pValue, OutType* outValue) {
+	static OPTIONALINLINE bool TryParse(const char* pValue, OutType* outValue) {
 		// non-specialized: read AbstractTypes
 		if (auto pType = BaseType::Find(pValue)) {
 			if (outValue) {
@@ -176,7 +176,7 @@ public:
 		return false;
 	}
 
-	static bool TryParseIndex(const char* pValue, int* outValue)
+	static OPTIONALINLINE bool TryParseIndex(const char* pValue, int* outValue)
 	{
 		// non-specialized: read AbstractTypes
 		const auto type = BaseType::FindIndexById(pValue);
@@ -193,120 +193,19 @@ public:
 // functions will eventually call them.
 
 template<>
-OPTIONALINLINE bool Parser<bool>::TryParse(const char* pValue, OutType* outValue) {
-
-	switch (toupper(static_cast<unsigned char>(*pValue))) {
-	case '1':
-	case 'T':
-	case 'Y':
-	{
-		*outValue = true;
-		return true;
-	}
-	case '0':
-	case 'F':
-	case 'N':
-	{
-		*outValue = false;
-		return true;
-	}
-	}
-
-	return false;
-};
+bool Parser<bool>::TryParse(const char* pValue, OutType* outValue);
 
 template<>
-OPTIONALINLINE bool Parser<int>::TryParse(const char* pValue, OutType* outValue) {
-	const char* pFmt = nullptr;
-	if (*pValue == '$') {
-		pFmt = "$%x";
-	}
-	else if (tolower(static_cast<unsigned char>(pValue[strlen(pValue) - 1])) == 'h') {
-		pFmt = "%xh";
-	}
-	else {
-		pFmt = "%d";
-	}
-
-	int buffer = 0;
-	if (sscanf_s(pValue, pFmt, &buffer) == 1) {
-		*outValue = buffer;
-		return true;
-	}
-	return false;
-}
+bool Parser<int>::TryParse(const char* pValue, OutType* outValue);
 
 template<>
-OPTIONALINLINE bool Parser<double>::TryParse(const char* pValue, OutType* outValue) {
-
-	errno = 0;
-	char* end = nullptr;
-
-	// Nov 23, 2025 - Starkku: strtod() + cast result to float produces results
-	// more similar to game's CRT functions than using sscanf_s.
-	double value = strtod(pValue, &end);
-
-	if (pValue == end || errno == ERANGE || !std::isfinite(value))
-		return false;
-
-	float floatValue = static_cast<float>(value);
-
-	if (strchr(pValue, '%')) {
-		floatValue *= 0.01f;
-	}
-
-	if (outValue) {
-		*outValue = floatValue;
-	}
-	return true;
-};
+bool Parser<double>::TryParse(const char* pValue, OutType* outValue);
 
 template<>
-OPTIONALINLINE bool Parser<float>::TryParse(const char* pValue, OutType* outValue) {
-	double buffer = 0.0;
-	if (Parser<double>::TryParse(pValue, &buffer)) {
-		if (outValue) {
-			*outValue = static_cast<float>(buffer);
-		}
-		return true;
-	}
-	return false;
-}
+bool Parser<float>::TryParse(const char* pValue, OutType* outValue);
 
 template<>
-OPTIONALINLINE bool Parser<BYTE>::TryParse(const char* pValue, OutType* outValue) {
-	// no way to read unsigned char, use short instead.
-	const char* pFmt = nullptr;
-	if (*pValue == '$') {
-		pFmt = "$%hx";
-	}
-	else if (tolower(static_cast<unsigned char>(pValue[strlen(pValue) - 1])) == 'h') {
-		pFmt = "%hxh";
-	}
-	else {
-		pFmt = "%hu";
-	}
-
-	WORD buffer;
-	if (sscanf_s(pValue, pFmt, &buffer) == 1) {
-		if (buffer <= UCHAR_MAX) {
-			*outValue = static_cast<BYTE>(buffer);
-			return true;
-		}
-	}
-	return false;
-};
+bool Parser<BYTE>::TryParse(const char* pValue, OutType* outValue);
 
 template<>
-OPTIONALINLINE bool Parser<short>::TryParse(const char* pValue, OutType* outValue)
-{
-	int buffer = 0;
-	if (!Parser<int>::TryParse(pValue, &buffer))
-		return false;
-
-	if (buffer > std::numeric_limits<short>::max() || buffer < std::numeric_limits<short>::min())
-		return false;
-
-	*outValue = static_cast<short>(buffer);
-	return true;
-}
+bool Parser<short>::TryParse(const char* pValue, OutType* outValue);

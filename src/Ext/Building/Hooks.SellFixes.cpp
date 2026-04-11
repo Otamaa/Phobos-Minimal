@@ -57,7 +57,7 @@ ASMJIT_PATCH(0x449CC1, BuildingClass_Mission_Destruction_EVASoldAndUndeploysInto
 	//return 0x449CEA;
 }
 
-ASMJIT_PATCH(0x44A827, BuildingClass_Mi_Selling_PlaySellSound, 0x6)
+ASMJIT_PATCH(0x44A827, BuildingClass_Mission_Selling_PlaySellSound, 0x6)
 {
 	GET(BuildingClass*, pThis, EBP);
 
@@ -68,14 +68,14 @@ ASMJIT_PATCH(0x44A827, BuildingClass_Mi_Selling_PlaySellSound, 0x6)
 	return 0x44A85B;
 }
 
-ASMJIT_PATCH(0x44A8E5, BuildingClass_Mi_Selling_SetTarget, 0x6)
+ASMJIT_PATCH(0x44A8E5, BuildingClass_Mission_Selling_SetTarget, 0x6)
 {
 	GET(BuildingClass*, pThis, EBP);
 	enum { ResetTarget = 0x44A937, SkipShit = 0x44A95E };
 	return CanUndeployOnSell(pThis) ? ResetTarget : SkipShit;
 }
 
-ASMJIT_PATCH(0x44A964, BuildingClass_Mi_Selling_VoiceDeploy, 0x6)
+ASMJIT_PATCH(0x44A964, BuildingClass_Mission_Selling_VoiceDeploy, 0x6)
 {
 	GET(BuildingClass*, pThis, EBP);
 	enum { CanDeploySound = 0x44A9CA, SkipShit = 0x44AA3D };

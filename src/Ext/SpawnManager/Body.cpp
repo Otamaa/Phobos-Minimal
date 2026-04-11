@@ -121,4 +121,5 @@ DEFINE_FUNCTION_JUMP(CALL, 0x6B7637, FakeSpawnManagerClass::_Detach);
 DEFINE_FUNCTION_JUMP(CALL, 0x6B7ACD, FakeSpawnManagerClass::_Detach);
 DEFINE_FUNCTION_JUMP(CALL, 0x6B7C16, FakeSpawnManagerClass::_Detach);
 
+//TechnoClass_Detach
 DEFINE_JUMP(LJMP, 0x707B19, 0x707B29);

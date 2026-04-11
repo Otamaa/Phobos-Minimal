@@ -98,45 +98,11 @@ public:
 class MouseCursorHotSpotX
 {
 public:
-	static OPTIONALINLINE bool Parse(const char* key, MouseHotSpotX* value)
-	{
-		if (key && value)
-		{
-			for (const auto& arr : EnumFunctions::MouseHotSpotX_ToStrings)
-			{
-				if (IS_SAME_STR_(key, arr.first))
-				{
-					*value = arr.second;
-					return true;
-				}
-			}
-
-			if (IS_SAME_STR_(key, "centre")) {
-				*value = MouseHotSpotX::Center;
-				return true;
-			}
-		}
-		return false;
-	}
+	static bool Parse(const char* key, MouseHotSpotX* value);
 };
 
 class MouseCursorHotSpotY
 {
 public:
-	static OPTIONALINLINE bool Parse(const char* key, MouseHotSpotY* value)
-	{
-		if (key && value)
-		{
-			for (const auto& arr : EnumFunctions::MouseHotSpotY_ToStrings)
-			{
-				if (IS_SAME_STR_(key, arr.first))
-				{
-					*value = arr.second;
-					return true;
-				}
-			}
-		}
-
-		return false;
-	}
+	static bool Parse(const char* key, MouseHotSpotY* value);
 };

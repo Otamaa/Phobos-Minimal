@@ -20,14 +20,9 @@ public:
 	int BaseExtraFrame { 0 };		// as sequence ShapeTextPrinter::SignSequence
 	Point2D Spacing {};
 
-	ShapeTextPrintData(SHPStruct* shape, ConvertClass* palette, int iBaseNumberFrame, int baseExtraFrame, const Point2D& spacing)
-		: Shape { shape }
-		, Palette { palette }
-		, BaseNumberFrame { iBaseNumberFrame }
-		, BaseExtraFrame { baseExtraFrame }
-		, Spacing { spacing }
-	{ }
+public:
 
+	ShapeTextPrintData(SHPStruct* shape, ConvertClass* palette, int iBaseNumberFrame, int baseExtraFrame, const Point2D& spacing);
 	~ShapeTextPrintData() = default;
 	ShapeTextPrintData() = default;
 	ShapeTextPrintData(const ShapeTextPrintData&) = default;

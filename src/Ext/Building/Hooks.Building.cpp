@@ -134,7 +134,7 @@ ASMJIT_PATCH(0x445A72, BuildingClass_Remove_AIBaseNormal, 6)
 // others. this means planes don't have to wait one more ReloadDelay because
 // the first docker triggered repair mission while the other dockers arrive
 // too late and need to be put to sleep first.
-ASMJIT_PATCH(0x44C844, BuildingClass_MissionRepair_Reload, 6)
+ASMJIT_PATCH(0x44C844, BuildingClass_Mission_Repair_Reload, 6)
 {
 	GET(BuildingClass* const, pThis, EBP);
 	auto const pExt = BuildingExtContainer::Instance.Find(pThis);
@@ -383,7 +383,7 @@ ASMJIT_PATCH(0x519FAF, InfantryClass_UpdatePosition_EngineerRepairsFriendly, 6)
 	return 0x51A010;
 }
 
-ASMJIT_PATCH(0x44e2b0, BuildingClass_Mi_Unload_LargeGap, 6)
+ASMJIT_PATCH(0x44e2b0, BuildingClass_Mission_Unload_LargeGap, 6)
 {
 	GET(BuildingClass*, pBld, EBP);
 
@@ -1004,7 +1004,7 @@ ASMJIT_PATCH(0x4586D6, BuildingClass_KillOccupiers, 0x9)
 }
 
 // do not crash if the EMP cannon primary has no Report sound
-ASMJIT_PATCH(0x44D4CA, BuildingClass_Mi_Missile_NoReport, 0x9)
+ASMJIT_PATCH(0x44D4CA, BuildingClass_Mission_Missile_NoReport, 0x9)
 {
 	GET(TechnoTypeClass* const, pType, EAX);
 	GET(WeaponTypeClass* const, pWeapon, EBP);
@@ -1015,7 +1015,7 @@ ASMJIT_PATCH(0x44D4CA, BuildingClass_Mi_Missile_NoReport, 0x9)
 
 // for yet unestablished reasons a unit might not be present.
 // maybe something triggered the KickOutHospitalArmory
-ASMJIT_PATCH(0x44BB1B, BuildingClass_Mi_Repair_Promote, 0x6)
+ASMJIT_PATCH(0x44BB1B, BuildingClass_Mission_Repair_Promote, 0x6)
 {
 	//GET(BuildingClass*, pThis, EBP);
 	GET(TechnoClass* const, pTrainee, EAX);
@@ -1023,7 +1023,7 @@ ASMJIT_PATCH(0x44BB1B, BuildingClass_Mi_Repair_Promote, 0x6)
 }
 
 // remember that this building ejected its survivors already
-ASMJIT_PATCH(0x44A8A2, BuildingClass_Mi_Selling_Crew, 0xA)
+ASMJIT_PATCH(0x44A8A2, BuildingClass_Mission_Selling_Crew, 0xA)
 {
 	GET(BuildingClass*, pThis, EBP);
 	pThis->NoCrew = BuildingTypeExtContainer::Instance.Find(pThis->Type)->SpawnCrewOnlyOnce;
@@ -1033,7 +1033,7 @@ ASMJIT_PATCH(0x44A8A2, BuildingClass_Mi_Selling_Crew, 0xA)
 // #1156943, #1156937: replace the engineer check, because they were smart
 // enough to use the pointer right before checking whether it's null, and
 // even if it isn't, they build a possible infinite loop.
-ASMJIT_PATCH(0x44A5F0, BuildingClass_Mi_Selling_EngineerFreeze, 0x6)
+ASMJIT_PATCH(0x44A5F0, BuildingClass_Mission_Selling_EngineerFreeze, 0x6)
 {
 	GET(FakeBuildingClass* const, pThis, EBP);
 	GET(InfantryTypeClass*, pType, ESI);
@@ -1065,7 +1065,7 @@ ASMJIT_PATCH(0x44A5F0, BuildingClass_Mi_Selling_EngineerFreeze, 0x6)
 
 // prevent invisible mcvs, which shouldn't happen any more as the sell/move
 // hack is fixed. thus this one is a double unnecessity
-ASMJIT_PATCH(0x449FF8, BuildingClass_Mi_Selling_PutMcv, 7)
+ASMJIT_PATCH(0x449FF8, BuildingClass_Mission_Selling_PutMcv, 7)
 {
 	GET(UnitClass* const, pUnit, EBX);
 	GET(DirType, facing, EAX);
@@ -1829,7 +1829,7 @@ ASMJIT_PATCH(0x449518, BuildingClass_IsSellable_FirestormWall, 6)
 	return BuildingTypeExtContainer::Instance.Find(pType)->Firestorm_Wall ? CheckHouseFireWallActive : ReturnFalse;
 }
 
-ASMJIT_PATCH(0x44E550, BuildingClass_Mi_Open_GateDown, 6)
+ASMJIT_PATCH(0x44E550, BuildingClass_Mission_Open_GateDown, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	R->ECX(BuildingTypeExtContainer::Instance.Find(pThis->Type)->GateDownSound
@@ -1837,7 +1837,7 @@ ASMJIT_PATCH(0x44E550, BuildingClass_Mi_Open_GateDown, 6)
 	return 0x44E556;
 }
 
-ASMJIT_PATCH(0x44E61E, BuildingClass_Mi_Open_GateUp, 6)
+ASMJIT_PATCH(0x44E61E, BuildingClass_Mission_Open_GateUp, 6)
 {
 	GET(DWORD, offset, ESI);
 	const auto pThis = reinterpret_cast<BuildingClass*>(offset - 0x9C);

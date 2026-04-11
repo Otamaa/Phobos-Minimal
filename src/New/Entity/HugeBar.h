@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Utilities/TemplateDef.h>
 #include <Utilities/Anchor.h>
 #include <Utilities/Constructs.h>
 #include <New/Type/PaletteManager.h>

@@ -15,6 +15,8 @@
 #include <Misc/CSF.h>
 
 #include <Utilities/Cast.h>
+#include <Utilities/Patch.h>
+#include <Utilities/Macro.h>
 
 #include <TechnoTypeClass.h>
 #include <TextDrawing.h>

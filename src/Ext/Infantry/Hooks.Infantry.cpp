@@ -370,7 +370,7 @@ ASMJIT_PATCH(0x520731, InfantryClass_UpdateFiringState_Heal, 0x5)
 
 // actual game code: if(auto B = specific_cast<BuildingClass *>(T)) { if(T->currentAmmo > 1) { return 1; } }
 // if the object being queried doesn't have a weapon (Armory/Hospital), it'll return 1 anyway
-//echnoClass_GetROF_BuildingHack
+//TechnoClass_GetROF_BuildingHack
 DEFINE_JUMP(LJMP, 0x6FCFA4, 0x6FCFC1);
 
 ASMJIT_PATCH(0x51BCB2, InfantryClass_Update_Reload, 0x6)

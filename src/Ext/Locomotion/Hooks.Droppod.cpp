@@ -8,6 +8,9 @@
 
 #include <Misc/DamageArea.h>
 
+#include <Utilities/Patch.h>
+#include <Utilities/Macro.h>
+
 struct DroppodProperties_
 {
 	static int GetTrailerDelay(TechnoTypeClass* pType, FootClass* pFoot, bool condition)

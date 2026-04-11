@@ -46,7 +46,7 @@ void WeaponTypeExtData::FireEbolt(TechnoClass* pFirer, WeaponTypeClass* pWeapon,
 	supportEBolt->Fire(source, target, 0); //messing with 3rd arg seems to make bolts more jumpy, and parts of them disappear
 }
 
-ASMJIT_PATCH(0x44B2FE, BuildingClass_Mi_Attack_IsPrism, 6)
+ASMJIT_PATCH(0x44B2FE, BuildingClass_Mission_Attack_IsPrism, 6)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	//GET(int, idxWeapon, EBP); //which weapon was chosen to attack the target with
