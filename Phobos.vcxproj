@@ -22,6 +22,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Ext\Bullet\Hooks.AI.cpp" />
     <ClCompile Include="src\Ext\INI\Body.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.ThreatCoeff.cpp" />
     <ClCompile Include="src\New\Entity\FactoryPlantClass.cpp" />
@@ -471,6 +472,7 @@
     <ClCompile Include="src\Utilities\PhobosFixedString.cpp" />
     <ClCompile Include="src\Utilities\PhobosPCXFile.cpp" />
     <ClCompile Include="src\Utilities\PlacingBuildingStruct.cpp" />
+    <ClCompile Include="src\Utilities\SavegameDef.cpp" />
     <ClCompile Include="src\Utilities\ShapeTextPrinter.cpp" />
     <ClCompile Include="src\Utilities\Stream.cpp" />
     <ClCompile Include="src\Utilities\Swizzle.cpp" />
@@ -806,6 +808,7 @@
     <ClInclude Include="src\New\Type\TheaterTypeClass.h" />
     <ClInclude Include="src\Phobos.Ext.h" />
     <ClInclude Include="src\Phobos.Math.h" />
+    <ClInclude Include="src\Phobos.Maths.h" />
     <ClInclude Include="src\Phobos.UI.h" />
     <ClInclude Include="src\PhobosSaveVersionInfo.h" />
     <ClInclude Include="src\resource.h" />

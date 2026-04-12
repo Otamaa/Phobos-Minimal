@@ -11,6 +11,7 @@
 #include <Ext/House/Body.h>
 
 #include <Utilities/Macro.h>
+#include <Utilities/Patch.h>
 
 #include <TechnoClass.h>
 #include <TacticalClass.h>

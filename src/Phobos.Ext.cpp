@@ -107,6 +107,7 @@
 void Phobos::SaveGameDataAfter()
 {
 	Debug::LogInfo("[Phobos] Finished saving the game");
+	SavegameGlobal::ClearSharedRegistry();
 }
 
 void Phobos::LoadGameDataAfter()

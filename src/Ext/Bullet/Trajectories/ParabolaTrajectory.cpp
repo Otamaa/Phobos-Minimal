@@ -333,7 +333,14 @@ void ParabolaTrajectory::PrepareForOpenFire()
 bool ParabolaTrajectory::BulletPrepareCheck()
 {
 	if (this->WaitOneFrame.HasTimeLeft())
-		return true;
+	{
+		if (const auto pTarget = this->AttachedTo->Target)
+		{
+			this->LastTargetCoord = pTarget->GetCoords();
+			this->WaitOneFrame = 1;
+			return true;
+		}
+	}
 
 	this->PrepareForOpenFire();
 	this->WaitOneFrame.Stop();
@@ -858,10 +865,12 @@ double ParabolaTrajectory::SolveFixedSpeedMeetTime(CoordStruct* pSourceCrd, Coor
 		const double timeP = (-factor + Math::sqrt(delta)) / divisor;
 		const double timeM = (-factor - Math::sqrt(delta)) / divisor;
 
-		if (timeM > 1e-10)
+		if (timeM > 1e-10 && timeP > 1e-10)
+			return timeM < timeP ? timeM : timeP;
+		else if (timeM > 1e-10)
 			return timeM;
-
-		return timeP;
+		else if (timeP > 1e-10)
+			return timeP;
 	}
 
 	return -1.0;
@@ -1054,6 +1063,7 @@ VelocityClass ParabolaTrajectory::GetGroundNormalVector(CellClass* pCell)
 	const int bulletHeight = pBullet->Location.Z;
 	const int lastCellHeight = MapClass::Instance->GetCellFloorHeight(pBullet->Location - velocityCoords);
 
+	// Check if it has hit a cliff (384 -> (4 * Unsorted::LevelHeight - 32(error range)))
 	if (bulletHeight < cellHeight && (cellHeight - lastCellHeight) > 384)
 	{
 		CellStruct cell = pCell->MapCoords;

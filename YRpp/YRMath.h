@@ -366,7 +366,7 @@ namespace Math
 		else if constexpr (std::is_same<T, float>::value)
 			return static_cast<T>(std::fabs(x));
 		else
-			static_assert("Not supported");
+			static_assert(!sizeof(T*), "Math::abs: unsupported type T");
 	}
 
 	template <typename T>

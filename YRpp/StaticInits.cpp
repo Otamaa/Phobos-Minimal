@@ -1906,3 +1906,21 @@ void DSurface::DSurfaceDrawText(const wchar_t* pText, Point2D* pLoction, COLORRE
 	RectangleStruct rect = this->Get_Rect();
 	TextDrawing::Fancy_Text_Print_Wide_NoFormat(pText, this, &rect, pLoction, (unsigned int)Color, 0, TextPrintType::NoShadow);
 }
+
+DirStruct VelocityClass::GetDirectionFromXY()
+{
+	// Compute 2D magnitude (XZ plane)
+	double horizontalLength = this->LengthXY();
+
+	// Pitch angle in radians (atan2 returns angle above/below horizontal)
+	double pitchAngleRad = Math::atan2(this->Z, horizontalLength);
+
+	// Offset by -90° (engine defines 0° as vertical down)
+	double adjustedPitch = pitchAngleRad - Math::DEG90_AS_RAD;
+
+	// Convert to engine's binary angle format
+	//static_assert(-10430.06004058427 == Math::BINARY_ANGLE_MAGIC, "Binary Angle Magic Missmatch !");
+	//static_assert(1.570796326794897 == Math::DEG90_AS_RAD, "DEG90_AS_RAD Missmatch !");
+
+	return DirStruct { static_cast<int>(static_cast<int64_t>(adjustedPitch * Math::BINARY_ANGLE_MAGIC)) };
+}

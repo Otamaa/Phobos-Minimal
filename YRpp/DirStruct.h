@@ -583,27 +583,36 @@ struct DirStruct
 
 	// ── Comparison helpers ──────────────────────────────────────────────────
 
-	// Returns true if the angular distance from this to pBaseDir is <= pDirFrom
-	// Used for "am I close enough to my desired facing?" checks
-	bool CompareToTwoDir(DirStruct& pBaseDir, DirStruct& pDirFrom)
-	{ return Math::abs(pDirFrom.Raw) >= Math::abs(this->Raw - pBaseDir.Raw); }
-
-	// Slew this facing toward pDir2 by at most pDir3 per call (rate-limited turning)
-	// If the gap to pDir2 is already smaller than pDir3, snap directly to pDir2
-	void Func_5B29C0(DirStruct& pDir2, DirStruct& pDir3)
+	// Returns true if the angular distance from this to pBaseDir is within pDirFrom
+	bool CompareToTwoDir(DirStruct const& pBaseDir, DirStruct const& pDirFrom) const
 	{
-		if (Math::abs(pDir3.Raw) < Math::abs(this->Raw - pDir2.Raw))
+		// Wrap-aware shortest distance on the 16-bit facing circle
+		int diff = static_cast<int>(static_cast<short>(this->Raw - pBaseDir.Raw));
+		return static_cast<unsigned>(Math::abs(diff)) <= pDirFrom.Raw;
+	}
+
+	// Slew this facing toward pTarget by at most pStep per call (rate-limited turning).
+	// If the angular gap is already <= step, snap directly to pTarget.
+	void Func_5B29C0(DirStruct const& pTarget, DirStruct const& pStep)
+	{
+		// Signed delta on the 16-bit facing circle.
+		// Positive => clockwise is the shorter way; negative => counter-clockwise.
+		short delta = static_cast<short>(pTarget.Raw - this->Raw);
+		int absDelta = Math::abs(static_cast<int>(delta));
+		int absStep = Math::abs(static_cast<int>(static_cast<short>(pStep.Raw)));
+
+		if (absStep < absDelta)
 		{
-			// Gap is larger than our step: move toward pDir2 by pDir3
-			if ((pDir2.Raw - this->Raw) >= 0)
-				this->Raw += pDir3.Raw;   // need to turn clockwise
+			// Gap is larger than our step: rotate by step toward target
+			if (delta >= 0)
+				this->Raw += pStep.Raw;   // clockwise
 			else
-				this->Raw -= pDir3.Raw;   // need to turn counter-clockwise
+				this->Raw -= pStep.Raw;   // counter-clockwise
 		}
 		else
 		{
-			// Gap smaller than step: snap to target
-			this->Raw = pDir2.Raw;
+			// Step covers the gap: snap to target
+			this->Raw = pTarget.Raw;
 		}
 	}
 

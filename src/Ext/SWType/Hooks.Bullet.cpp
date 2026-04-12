@@ -77,7 +77,7 @@ ASMJIT_PATCH(0x46B423, BulletClass_NukeMaker_PropagateSW, 6)
 }
 
 // deferred explosion. create a nuke ball anim and, when that is over, go boom.
-ASMJIT_PATCH(0x467E59, BulletClass_Update_NukeBall, 5)
+ASMJIT_PATCH(0x467E59, BulletClass_AI_NukeBall, 5)
 {
 	// changed the hardcoded way to just do this if the warhead is called NUKE
 		// to a more universal approach. every warhead can get this behavior.

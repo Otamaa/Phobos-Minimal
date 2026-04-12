@@ -241,7 +241,7 @@ ASMJIT_PATCH(0x469C46, BulletClass_Logics_ApplyMoreLogics, 0x8)
 	return 0x46A290;
 }
 
-ASMJIT_PATCH(0x46670F, BulletClass_Update_PreImpactAnim, 6)
+ASMJIT_PATCH(0x46670F, BulletClass_AI_PreImpactAnim, 6)
 {
 	GET(BulletClass*, pThis, EBP);
 

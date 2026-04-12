@@ -381,7 +381,7 @@ ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
 	return CheckOtherState;
 }
 
-ASMJIT_PATCH(0x467B94, BulletClass_Update_Ranged, 7)
+ASMJIT_PATCH(0x467B94, BulletClass_AI_Ranged, 7)
 {
 	GET(BulletClass*, pThis, EBP);
 	REF_STACK(bool, Destroy, 0x18);

@@ -20,6 +20,7 @@
 #include "EngraveTrajectory.h"
 #include "DisperseTrajectory.h"
 #include "TracingTrajectory.h"
+#include "ParabolaTrajectory.h"
 
 #define Make_traj(enum_type , type) \
 case TrajectoryFlag::##enum_type##: \
@@ -69,17 +70,18 @@ bool PhobosTrajectoryType::UpdateType(std::unique_ptr<PhobosTrajectoryType>& pTy
 	Make_DefaultTrajType(Straight)
 	Make_DefaultTrajType(StraightVariantB)
 	Make_DefaultTrajType(StraightVariantC)
-	Make_DefaultTrajType(Disperse)
-	Make_DefaultTrajType(Engrave)
-	Make_DefaultTrajType(Bombard)
-	Make_DefaultTrajType(Artillery)
+	Make_DefaultTrajType(Disperse) // dissolved on https://github.com/Phobos-developers/Phobos/pull/2060
+	Make_DefaultTrajType(Engrave) // dissolved on https://github.com/Phobos-developers/Phobos/pull/2060
+	Make_DefaultTrajType(Bombard)  // develop sync
+	Make_DefaultTrajType(Parabola) // develop sync
+	Make_DefaultTrajType(Artillery) // Cannot find the PR anymore
 	Make_DefaultTrajType(Bounce)
-	Make_DefaultTrajType(Vertical)
-	Make_DefaultTrajType(Meteor)
-	Make_DefaultTrajType(Spiral)
-	Make_DefaultTrajType(Wave)
-	Make_DefaultTrajType(Arcing)
-	Make_DefaultTrajType(Tracing)
+	Make_DefaultTrajType(Vertical) // Cannot find the PR anymore
+	Make_DefaultTrajType(Meteor) // Cannot find the PR anymore
+	Make_DefaultTrajType(Spiral) // Cannot find the PR anymore
+	Make_DefaultTrajType(Wave) // Cannot find the PR anymore
+	Make_DefaultTrajType(Arcing) // dissolved on https://github.com/Phobos-developers/Phobos/pull/2060
+	Make_DefaultTrajType(Tracing) // dissolved on https://github.com/Phobos-developers/Phobos/pull/2060
 	default:
 		pType.release();
 		return false;
@@ -177,16 +179,6 @@ void PhobosTrajectoryType::CreateType(std::unique_ptr<PhobosTrajectoryType>& pTy
 		{
 			if (!pType->Read(pINI, pSection))
 				Debug::LogInfo("Failed When Reading Projectile[{}] With TrajectoryType {} ! ", pSection, Phobos::readBuffer);
-
-			if (pType->Flag == TrajectoryFlag::Bounce)
-			{
-				Debug::LogInfo("BounceTrajectory is Unfinished ! ");
-				//const auto pBounceType = reinterpret_cast<BounceTrajectoryType*>(pType.get());
-				//if (!(pBounceType->BounceAmount > 0))
-				//{
-					pType.release();
-				//}
-			}
 		}
 	}
 
@@ -321,6 +313,7 @@ bool PhobosTrajectory::UpdateType(BulletClass* pBullet, std::unique_ptr<PhobosTr
 	Make_traj(Disperse, DisperseTrajectory)
 	Make_traj(Engrave, EngraveTrajectory)
 	Make_traj(Bombard, BombardTrajectory)
+	Make_traj(Parabola, ParabolaTrajectory)
 	Make_traj(Artillery, ArtilleryTrajectory)
 	Make_traj(Bounce, BounceTrajectory)
 	Make_traj(Meteor, MeteorTrajectory)
@@ -371,6 +364,7 @@ void PhobosTrajectory::ProcessFromStream(PhobosStreamReader& Stm, std::unique_pt
 		Make_DefaultTraj(Disperse, DisperseTrajectory)
 		Make_DefaultTraj(Engrave, EngraveTrajectory)
 		Make_DefaultTraj(Bombard, BombardTrajectory)
+		Make_DefaultTraj(Parabola, ParabolaTrajectory)
 		Make_DefaultTraj(Artillery, ArtilleryTrajectory)
 		Make_DefaultTraj(Bounce, BounceTrajectory)
 		Make_DefaultTraj(Meteor, MeteorTrajectory)

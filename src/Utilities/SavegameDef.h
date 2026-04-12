@@ -38,6 +38,12 @@
 #include <Utilities/Swizzle.h>
 #include <Utilities/GameUniquePointers.h>
 
+class SavegameGlobal
+{
+public:
+	static std::unordered_map<void*, std::weak_ptr<void>> GlobalSharedRegistry;
+	static void ClearSharedRegistry() { SavegameGlobal::GlobalSharedRegistry.clear(); }
+};
 
 namespace Savegame
 {
@@ -1541,8 +1547,8 @@ namespace Savegame
 				if (Savegame::ReadPhobosStream(Stm, *ptrNew, RegisterForChange))
 				{
 
-					PHOBOS_SWIZZLE_REGISTER_POINTER(ptrOld, ptrNew.get(), PhobosCRT::GetTypeIDName<T>().c_str())
-						Value.reset(ptrNew.release());
+					PHOBOS_SWIZZLE_REGISTER_POINTER(ptrOld, ptrNew.get(), PhobosCRT::GetTypeIDName<T>().c_str());
+					Value.reset(ptrNew.release());
 					return true;
 				}
 
@@ -1569,12 +1575,51 @@ namespace Savegame
 					return false;
 
 				static_assert(detail::HasSave<T> || detail::Hassave<T>,
-					"Savegame::PhobosStreamObject<std::unique_ptr<T>>: Type must implement Load/load returning bool");
+					"Savegame::PhobosStreamObject<std::unique_ptr<T>>: Type must implement Save/save returning bool");
 
 				return Savegame::WritePhobosStream(Stm, *Value.get());
 			}
 
 			return true;
+		}
+	};
+
+	template <typename T>
+	struct Savegame::PhobosStreamObject<std::shared_ptr<T>>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, std::shared_ptr<T>& Value, bool RegisterForChange) const
+		{
+			static_assert(detail::HasLoad<T> || detail::Hasload<T>,
+			"Savegame::PhobosStreamObject<std::shared_ptr<T>>: Type must implement Load/load returning bool");
+
+			T* ptrOld = nullptr;
+			if (Stm.Load(ptrOld) && ptrOld)
+			{
+				std::shared_ptr<T> ptrNew = std::make_shared<T>();
+				std::shared_ptr<void> existing;
+
+				auto it = SavegameGlobal::GlobalSharedRegistry.find(ptrOld);
+				if (it != SavegameGlobal::GlobalSharedRegistry.end())
+					existing = it->second.lock();
+
+				if (existing) {
+					Value = std::static_pointer_cast<T>(existing);
+				} else {
+					Value = ptrNew;
+					SavegameGlobal::GlobalSharedRegistry[ptrOld] = ptrNew;
+					PHOBOS_SWIZZLE_REGISTER_POINTER(ptrOld, ptrNew.get(), PhobosCRT::GetTypeIDName<T>().c_str())
+				}
+			}
+
+			Value.reset();
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const std::shared_ptr<T>& Value) const
+		{
+			static_assert(detail::HasSave<T> || detail::Hassave<T>,
+		    "Savegame::PhobosStreamObject<std::shared_ptr<T>>: Type must implement Save/save returning bool");
+			return PersistObject(Stm, Value.get());
 		}
 	};
 

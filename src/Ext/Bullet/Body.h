@@ -179,6 +179,7 @@ public:
 	}
 
 	void _Detach(AbstractClass* target, bool all);
+	void _AI();
 
 	FORCEDINLINE BulletClass* _AsBullet() const {
 		return (BulletClass*)this;

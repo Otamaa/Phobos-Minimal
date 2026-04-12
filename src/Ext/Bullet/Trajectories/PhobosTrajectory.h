@@ -23,6 +23,14 @@ enum class TrajectoryFlag : int
 	Tracing = 14
 };
 
+enum class BounceCheckResult : unsigned char
+{
+    NotHandled         = 0,  // not a bouncing trajectory; vanilla check runs
+    BouncedKeepFlying  = 1,  // reflection happened; bullet survives this tick
+    BouncedDetonate    = 2,  // last bounce consumed; detonate this tick
+};
+ 
+
 class VelocityClass;
 class BulletClass;
 class BulletTypeClass;
@@ -94,7 +102,11 @@ public:
 	virtual void OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition) = 0;
 	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) = 0;
 	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) = 0;
-
+    virtual BounceCheckResult OnBounceCheck(CoordStruct const& impactCoord,
+                                              bool& force_detonate)
+    {
+        return BounceCheckResult::NotHandled;
+    }
 	double GetTrajectorySpeed() const;
 	void SetInaccurate() const;
 
