@@ -1833,3 +1833,479 @@ void FakeBulletClass::_AI()
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4740, FakeBulletClass::_AI);
+
+#ifdef _old
+ASMJIT_PATCH(0x46670F, BulletClass_AI_PreImpactAnim, 6)
+{
+	GET(BulletClass*, pThis, EBP);
+
+	const auto pWarheadTypeExt = WarheadTypeExtContainer::Instance.Find(pThis->WH);
+
+	if (!pThis->NextAnim)
+		return 0x46671D;
+
+	if (pWarheadTypeExt->PreImpact_Moves.Get())
+	{
+		auto coords = pThis->NextAnim->GetCoords();
+		pThis->Location = coords;
+		pThis->Target = MapClass::Instance->TryGetCellAt(coords);
+	}
+
+	return 0x467FEE;
+}
+
+ASMJIT_PATCH(0x467CCA, BulletClass_AI_TargetSnapChecks, 0x6) //was C
+{
+	enum { SkipAirburstCheck = 0x467CDE, SkipSnapFunc = 0x467E53 };
+
+	GET(FakeBulletClass*, pThis, EBP);
+
+	retfunc_fixed nRet(R, SkipAirburstCheck , pThis->Type);
+
+	// Do not require Airburst=no to check target snapping for Inviso / Trajectory=Straight projectiles
+	if (pThis->Type->Inviso)
+	{
+		return nRet();
+	}
+	else
+	{
+		auto const pExt = pThis->_GetExtData();
+
+		if (pExt->Trajectory && PhobosTrajectory::CanSnap(pExt->Trajectory))
+		{
+			return nRet();
+		}
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x466705, BulletClass_AI, 0x6) //8
+{
+	enum { retContunue = 0x0 , retDead = 0x466781 };
+	GET(FakeBulletClass* const, pThis, EBP);
+
+	const auto pBulletExt = pThis->_GetExtData();
+	bool bChangeOwner = false;
+	auto const pBulletCurOwner = pThis->GetOwningHouse();
+
+	if (pThis->Owner && pBulletCurOwner && pBulletCurOwner != pBulletExt->Owner)
+	{
+		bChangeOwner = true;
+		pBulletExt->Owner = pBulletCurOwner;
+	}
+
+	if (pThis->WeaponType && pThis->WH)
+	{
+		if (!pBulletExt->BrightCheckDone)
+		{
+			pThis->Bright = pThis->WeaponType->Bright || pThis->WH->Bright;
+			pBulletExt->BrightCheckDone = true;
+		}
+	}
+
+	auto const pTypeExt = pThis->_GetTypeExtData();
+
+	if (pTypeExt->PreExplodeRange.isset())
+	{
+		const auto ThisCoord = pThis->GetCoords();
+		const auto TargetCoords = pThis->GetBulletTargetCoords();
+
+		if (Math::abs(ThisCoord.DistanceFrom(TargetCoords))
+			<= pTypeExt->PreExplodeRange.Get(0) * 256)
+			if (BulletExtData::HandleBulletRemove(pThis, true, true))
+				return retDead;
+	}
+
+	if(!pBulletExt->Trajectory || !PhobosTrajectory::BlockDrawTrail(pBulletExt->Trajectory)){
+
+		// LaserTrails update routine is in BulletClass::AI hook because BulletClass::Draw
+		// doesn't run when the object is off-screen which leads to visual bugs - Kerbiter
+		if ((!pBulletExt->LaserTrails.empty()))
+		{
+			const CoordStruct& location = pThis->Location;
+			const VelocityClass& velocity = pThis->Velocity;
+
+			// We adjust LaserTrails to account for vanilla bug of drawing stuff one frame ahead.
+			// Pretty meh solution but works until we fix the bug - Kerbiter
+			CoordStruct drawnCoords
+			{
+				(int)(location.X + velocity.X),
+				(int)(location.Y + velocity.Y),
+				(int)(location.Z + velocity.Z)
+			};
+
+			for (auto& trail : pBulletExt->LaserTrails)
+			{
+				// We insert initial position so the first frame of trail doesn't get skipped - Kerbiter
+				// TODO move hack to BulletClass creation
+				if (!trail->LastLocation.isset())
+					trail->LastLocation = location;
+
+				if (trail->Type->IsHouseColor.Get() && bChangeOwner && pBulletExt->Owner)
+					trail->CurrentColor = pBulletExt->Owner->LaserColor;
+
+				trail->Update(drawnCoords);
+			}
+		}
+
+		/*TrailsManager::AI(pThis->_AsBullet());*/
+	}
+	//if (!pThis->Type->Inviso && pBulletExt->InitialBulletDir.has_value())
+	//	pBulletExt->InitialBulletDir = DirStruct((-1) * std::atan2(pThis->Velocity.Y, pThis->Velocity.X));
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x4671B9, BulletClass_AI_ApplyGravity, 0x6)
+{
+	//GET(BulletClass* const, pThis, EBP);
+	GET(BulletTypeClass* const, pType, EAX);
+
+	auto const nGravity = BulletTypeExtData::GetAdjustedGravity(pType);
+	__asm { fld nGravity };
+
+	return 0x4671BF;
+}
+
+// Inviso bullets behave differently in BulletClass::AI when their target is bullet and
+// seemingly (at least partially) adopt characteristics of a vertical projectile.
+// This is a potentially slightly hacky solution to that, as proper solution
+// would likely require making sense of BulletClass::AI and ain't nobody got time for that.
+ASMJIT_PATCH(0x4668BD, BulletClass_AI_Interceptor_InvisoSkip, 0x6)
+{
+	enum { DetonateBullet = 0x467F9B, Continue = 0x0 };
+	GET(FakeBulletClass*, pThis, EBP);
+	return (pThis->Type->Inviso && pThis->_GetExtData()->InterceptorTechnoType)
+		? DetonateBullet : Continue;
+}
+
+
+ASMJIT_PATCH(0x466BAF, BulletClass_AI_MissileROTVar, 0x6)
+{
+	GET(FakeBulletClass*, pThis, EBP);
+
+	const auto nFrame = (Unsorted::CurrentFrame + pThis->Fetch_ID()) % 15;
+	const double nMissileROTVar = pThis->_GetTypeExtData()->MissileROTVar.Get(RulesClass::Instance->MissileROTVar);
+
+	R->EAX(int(Math::sin(static_cast<double>(nFrame) *
+		Math::ONE_FIFTEENTH *
+		Math::GAME_TWOPI) *
+		nMissileROTVar + nMissileROTVar + 1.0) *
+		static_cast<double>(pThis->Type->ROT)
+	);
+
+	return 0x466C14;
+}
+
+ASMJIT_PATCH(0x466E9F, BulletClass_AI_MissileSafetyAltitude, 0x6)
+{
+	GET(FakeBulletClass*, pThis, EBP);
+	GET(int, comparator, EAX);
+	return comparator >= pThis->_GetTypeExtData()->GetMissileSaveAltitude(RulesClass::Instance)
+		? 0x466EAD : 0x466EB6;
+}
+
+
+ASMJIT_PATCH(0x4666F7, BulletClass_AI_Trajectories, 0x6)
+{
+	enum { Detonate = 0x467E53 };
+
+	GET(FakeBulletClass*, pThis, EBP);
+
+	auto pExt = pThis->_GetExtData();
+	auto pTypeExt  = pThis->_GetTypeExtData();
+
+	auto& pTraj = pExt->Trajectory;
+
+	if (!pThis->SpawnNextAnim && pTraj) {
+		return pTraj->OnAI() ? Detonate : 0x0;
+	}
+
+	if (pExt->InterceptedStatus & InterceptedStatus::Targeted) {
+		if (const auto pTarget = cast_to<BulletClass*>(pThis->Target)) {
+			const auto pTargetTypeExt = BulletTypeExtContainer::Instance.Find(pTarget->Type);
+			const auto pTargetExt = BulletExtContainer::Instance.Find(pTarget);
+
+			if (!pTargetTypeExt->Armor.isset())
+				pTargetExt->InterceptedStatus |= InterceptedStatus::Locked;
+		}
+	}
+
+	if (pExt->InterceptedStatus & InterceptedStatus::Intercepted)
+	{
+		if (const auto pTarget = cast_to<BulletClass*>(pThis->Target))
+			BulletExtContainer::Instance.Find(pTarget)->InterceptedStatus &= ~InterceptedStatus::Locked;
+
+		if (BulletExtData::HandleBulletRemove(pThis, pExt->DetonateOnInterception, true))
+			return 0x467FEE;
+	}
+
+	if (!pThis->IsAlive) {
+        return 0x467FEE;
+    }
+
+	if (!PhobosTrajectory::BlockDrawTrail(pTraj)) {
+
+		if(!pExt->LaserTrails.empty()) {
+			CoordStruct futureCoords
+			{
+				pThis->Location.X + static_cast<int>(pThis->Velocity.X),
+				pThis->Location.Y + static_cast<int>(pThis->Velocity.Y),
+				pThis->Location.Z + static_cast<int>(pThis->Velocity.Z)
+			};
+
+			for (auto& trail : pExt->LaserTrails)
+			{
+				if (!trail->LastLocation.isset())
+					trail->LastLocation = pThis->Location;
+
+				trail->Update(futureCoords);
+			}
+		}
+
+		/*TrailsManager::AI(pThis->_AsBullet());*/
+	}
+
+	if (pThis->HasParachute)
+	{
+		int fallRate = pExt->ParabombFallRate - pTypeExt->Parachuted_FallRate;
+		int maxFallRate = pTypeExt->Parachuted_MaxFallRate.Get(RulesClass::Instance->ParachuteMaxFallRate);
+
+		if (fallRate < maxFallRate)
+			fallRate = maxFallRate;
+
+		pExt->ParabombFallRate = fallRate;
+		pThis->FallRate = fallRate;
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x467AB2, BulletClass_AI_Parabomb, 0x7)
+{
+	GET(BulletClass*, pThis, EBP);
+
+	if (pThis->HasParachute)
+		return 0x467B1A;
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x467E53, BulletClass_AI_PreDetonation_Trajectories, 0x6)
+{
+	GET(FakeBulletClass*, pThis, EBP);
+
+	if (auto& pTraj = pThis->_GetExtData()->Trajectory)
+		pTraj->OnAIPreDetonate();
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x46745C, BulletClass_AI_Position_Trajectories, 0x7)
+{
+	GET(FakeBulletClass*, pThis, EBP);
+	LEA_STACK(VelocityClass*, pSpeed, STACK_OFFS(0x1AC, 0x11C));
+	LEA_STACK(VelocityClass*, pPosition, STACK_OFFS(0x1AC, 0x144));
+
+	auto pExt =  pThis->_GetExtData();
+
+	if (auto& pTraj = pExt->Trajectory)
+		pTraj->OnAIVelocity(pSpeed, pPosition);
+
+
+	// Trajectory can use Velocity only for turning Image's direction
+	// The true position in the next frame will be calculate after here
+	if (pExt->Trajectory) {
+
+		if(!pExt->LaserTrails.empty()){
+			CoordStruct futureCoords
+			{
+				static_cast<int>(pSpeed->X + pPosition->X),
+				static_cast<int>(pSpeed->Y + pPosition->Y),
+				static_cast<int>(pSpeed->Z + pPosition->Z)
+			};
+			for (auto& trail : pExt->LaserTrails)
+			{
+				if (!trail->LastLocation.isset())
+					trail->LastLocation = pThis->Location;
+				trail->Update(futureCoords);
+			}
+		}
+
+		/*TrailsManager::AI(pThis->_AsBullet());*/
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x4677D3, BulletClass_AI_TargetCoordCheck_Trajectories, 0x5)
+{
+	GET(BulletClass*, pThis, EBP);
+	REF_STACK(CoordStruct, coords, STACK_OFFS(0x1A8, 0x184));
+
+	return PhobosTrajectory::OnAITargetCoordCheck(pThis, coords);
+}
+
+ASMJIT_PATCH(0x467927, BulletClass_AI_TechnoCheck_Trajectories, 0x5)
+{
+
+	GET(BulletClass*, pThis, EBP);
+	GET(TechnoClass*, pTechno, ESI);
+
+	return PhobosTrajectory::OnAITechnoCheck(pThis, pTechno);
+}
+
+// deferred explosion. create a nuke ball anim and, when that is over, go boom.
+ASMJIT_PATCH(0x467E59, BulletClass_AI_NukeBall, 5)
+{
+	// changed the hardcoded way to just do this if the warhead is called NUKE
+		// to a more universal approach. every warhead can get this behavior.
+	GET(BulletClass* const, pThis, EBP);
+
+	auto const pExt = BulletExtContainer::Instance.Find(pThis);
+	auto const pWarheadExt = WarheadTypeExtContainer::Instance.Find(pThis->WH);
+
+	enum { Default = 0u, FireNow = 0x467F9Bu, PreImpact = 0x467ED0 };
+
+	auto allowFlash = true;
+	// flashDuration = 0;
+
+	// this is a bullet launched by a super weapon
+	if (pExt->NukeSW && !pThis->WH->NukeMaker)
+	{
+		SW_NuclearMissile::CurrentNukeType = pExt->NukeSW;
+
+		if (pThis->GetHeight() < 0)
+		{
+			pThis->SetHeight(0);
+		}
+
+		// cause yet another radar event
+		auto const pSWTypeExt = SWTypeExtContainer::Instance.Find(pExt->NukeSW);
+
+		if (pSWTypeExt->SW_RadarEvent)
+		{
+			auto const coords = pThis->GetMapCoords();
+			RadarEventClass::Create(
+				RadarEventType::SuperweaponActivated, coords);
+		}
+
+		if (pSWTypeExt->Lighting_Enabled.isset())
+			allowFlash = pSWTypeExt->Lighting_Enabled.Get();
+	}
+
+	// does this create a flash?
+	auto const duration = pWarheadExt->NukeFlashDuration.Get();
+
+	if (allowFlash && duration > 0)
+	{
+		// replaces call to NukeFlash::FadeIn
+
+		// manual light stuff
+		NukeFlash::Status = NukeFlashStatus::FadeIn;
+		ScenarioClass::Instance->AmbientTimer.Start(1);
+
+		// enable the nuke flash
+		NukeFlash::StartTime = Unsorted::CurrentFrame;
+		NukeFlash::Duration = duration;
+
+		SWTypeExtData::ChangeLighting(pExt->NukeSW ? pExt->NukeSW : nullptr);
+		MapClass::Instance->RedrawSidebar(1);
+	}
+
+	if (auto pPreImpact = pWarheadExt->PreImpactAnim.Get())
+	{
+		R->EDI(pPreImpact);
+		return PreImpact;
+	}
+
+	return FireNow;
+}
+
+ASMJIT_PATCH(0x467B94, BulletClass_AI_Ranged, 7)
+{
+	GET(BulletClass*, pThis, EBP);
+	REF_STACK(bool, Destroy, 0x18);
+	REF_STACK(CoordStruct, CrdNew, 0x24);
+
+	// range check
+	if (pThis->Type->Ranged)
+	{
+		CoordStruct crdOld = pThis->GetCoords();
+
+		pThis->Range -= int(CrdNew.DistanceFrom(crdOld));
+		if (pThis->Range <= 0)
+		{
+			Destroy = true;
+		}
+	}
+
+	// replicate replaced instruction
+	pThis->SetLocation(CrdNew);
+
+	// firestorm wall check
+	if (HouseExtContainer::Instance.IsAnyFirestormActive && !pThis->Type->IgnoresFirestorm)
+	{
+		auto const pCell = MapClass::Instance->GetCellAt(CrdNew);
+
+		if (auto const pBld = pCell->GetBuilding())
+		{
+			HouseClass* pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pThis)->Owner;
+			if (WarheadTypeExtContainer::Instance.Find(RulesExtData::Instance()->FirestormWarhead)->CanAffectHouse(pBld->Owner, pOwner))
+				pOwner =  nullptr; // clear the pointer if can affect the bullet owner
+
+			if (BuildingExtData::IsActiveFirestormWall(pBld, pOwner))
+			{
+				BuildingExtData::ImmolateVictim(pBld , pThis, false);
+				BulletExtData::HandleBulletRemove(pThis, ScenarioClass::Instance->Random.RandomBool(), true);
+				return 0x467FBA;
+			}
+		}
+	}
+
+	return 0x467BA4;
+}
+
+
+ASMJIT_PATCH(0x467C1C, BulletClass_AI_UnknownTimer, 0x6)
+{
+	GET(BulletTypeClass*, projectile, EAX);
+	return projectile->Inviso ? 0x467C2A : 0;
+}
+
+ASMJIT_PATCH(0x467C2E, BulletClass_AI_FuseCheck, 0x7)
+{
+	GET(BulletClass*, pThis, EBP);
+	GET(CoordStruct*, pCoord, ECX);
+
+	R->EAX(BulletExtData::FuseCheckup(pThis, pCoord));
+
+	return 0x467C3A;
+}
+
+
+ASMJIT_PATCH(0x466834, BulletClass_AI_TrailerAnim, 0x6)
+{
+	GET(BulletClass* const, pThis, EBP);
+	const int delay = pThis->Type->ScaledSpawnDelay ? pThis->Type->ScaledSpawnDelay : pThis->Type->SpawnDelay;
+
+	if (delay < 0)
+		return 0x4668BD;
+
+	if (!(Unsorted::CurrentFrame % delay))
+	{
+
+		auto const pExt = BulletExtContainer::Instance.Find(pThis);
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pThis->Type->Trailer, pThis->Location, 1, 1, AnimFlag::AnimFlag_600, 0, false),
+			pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt->Owner) ? pExt->Owner : nullptr,
+			pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis->Owner,
+			false,
+			false
+		);
+	}
+
+	return 0x4668BD;
+}
+
+#endif

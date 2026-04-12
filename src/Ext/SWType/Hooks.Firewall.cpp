@@ -381,50 +381,6 @@ ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
 	return CheckOtherState;
 }
 
-ASMJIT_PATCH(0x467B94, BulletClass_AI_Ranged, 7)
-{
-	GET(BulletClass*, pThis, EBP);
-	REF_STACK(bool, Destroy, 0x18);
-	REF_STACK(CoordStruct, CrdNew, 0x24);
-
-	// range check
-	if (pThis->Type->Ranged)
-	{
-		CoordStruct crdOld = pThis->GetCoords();
-
-		pThis->Range -= int(CrdNew.DistanceFrom(crdOld));
-		if (pThis->Range <= 0)
-		{
-			Destroy = true;
-		}
-	}
-
-	// replicate replaced instruction
-	pThis->SetLocation(CrdNew);
-
-	// firestorm wall check
-	if (HouseExtContainer::Instance.IsAnyFirestormActive && !pThis->Type->IgnoresFirestorm)
-	{
-		auto const pCell = MapClass::Instance->GetCellAt(CrdNew);
-
-		if (auto const pBld = pCell->GetBuilding())
-		{
-			HouseClass* pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pThis)->Owner;
-			if (WarheadTypeExtContainer::Instance.Find(RulesExtData::Instance()->FirestormWarhead)->CanAffectHouse(pBld->Owner, pOwner))
-				pOwner =  nullptr; // clear the pointer if can affect the bullet owner
-
-			if (BuildingExtData::IsActiveFirestormWall(pBld, pOwner))
-			{
-				BuildingExtData::ImmolateVictim(pBld , pThis, false);
-				BulletExtData::HandleBulletRemove(pThis, ScenarioClass::Instance->Random.RandomBool(), true);
-				return 0x467FBA;
-			}
-		}
-	}
-
-	return 0x467BA4;
-}
-
 ASMJIT_PATCH(0x4688A9, BulletClass_SetMovement_Obstacle, 6)
 {
 	GET(BulletClass* const, pThis, EBX);

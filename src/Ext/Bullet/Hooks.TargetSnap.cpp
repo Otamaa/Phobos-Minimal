@@ -3,32 +3,6 @@
 
 #include <Ext/Scenario/Body.h>
 
-ASMJIT_PATCH(0x467CCA, BulletClass_AI_TargetSnapChecks, 0x6) //was C
-{
-	enum { SkipAirburstCheck = 0x467CDE, SkipSnapFunc = 0x467E53 };
-
-	GET(FakeBulletClass*, pThis, EBP);
-
-	retfunc_fixed nRet(R, SkipAirburstCheck , pThis->Type);
-
-	// Do not require Airburst=no to check target snapping for Inviso / Trajectory=Straight projectiles
-	if (pThis->Type->Inviso)
-	{
-		return nRet();
-	}
-	else
-	{
-		auto const pExt = pThis->_GetExtData();
-
-		if (pExt->Trajectory && PhobosTrajectory::CanSnap(pExt->Trajectory))
-		{
-			return nRet();
-		}
-	}
-
-	return 0;
-}
-
 ASMJIT_PATCH(0x468E61, BulletClass_Explode_TargetSnapChecks1, 0x6) //was C
 {
 	enum { SkipAirburstChecks = 0x468E7B, SkipCoordFunc = 0x468E9F, SkipChecks = 0x468FF4 };
