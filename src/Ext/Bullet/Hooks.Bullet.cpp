@@ -241,25 +241,6 @@ ASMJIT_PATCH(0x469C46, BulletClass_Logics_ApplyMoreLogics, 0x8)
 	return 0x46A290;
 }
 
-ASMJIT_PATCH(0x46670F, BulletClass_AI_PreImpactAnim, 6)
-{
-	GET(BulletClass*, pThis, EBP);
-
-	const auto pWarheadTypeExt = WarheadTypeExtContainer::Instance.Find(pThis->WH);
-
-	if (!pThis->NextAnim)
-		return 0x46671D;
-
-	if (pWarheadTypeExt->PreImpact_Moves.Get())
-	{
-		auto coords = pThis->NextAnim->GetCoords();
-		pThis->Location = coords;
-		pThis->Target = MapClass::Instance->TryGetCellAt(coords);
-	}
-
-	return 0x467FEE;
-}
-
 ASMJIT_PATCH(0x46867F , BulletClass_SetMovement_Parachute, 5)
 {
 	GET(CoordStruct*, XYZ, EAX);

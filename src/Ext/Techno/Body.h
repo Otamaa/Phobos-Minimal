@@ -512,8 +512,8 @@ public:
 
 	virtual int GetSize() const { return sizeof(*this); };
 
-	TechnoClass* This() const { return reinterpret_cast<TechnoClass*>(AttachedToObject); }
-	const TechnoClass* This_Const() const { return reinterpret_cast<const TechnoClass*>(AttachedToObject); }
+	FORCEDINLINE TechnoClass* This() const { return reinterpret_cast<TechnoClass*>(AttachedToObject); }
+	FORCEDINLINE const TechnoClass* This_Const() const { return reinterpret_cast<const TechnoClass*>(AttachedToObject); }
 
 	virtual void CalculateCRC(CRCEngine& crc) const override
 	{

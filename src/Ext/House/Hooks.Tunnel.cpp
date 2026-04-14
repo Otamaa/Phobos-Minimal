@@ -10,6 +10,7 @@
 #include <Utilities/Debug.h>
 
 #include <Ext/Building/Body.h>
+#include <Ext/BuildingType/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/Techno/Body.h>

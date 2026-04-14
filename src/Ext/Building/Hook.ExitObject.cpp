@@ -6,6 +6,7 @@
 #include <SpawnManagerClass.h>
 
 #include <Ext/Building/Body.h>
+#include <Ext/BuildingType/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/Aircraft/Body.h>
 #include <Ext/AircraftType/Body.h>
@@ -1037,7 +1038,7 @@ static BuildingPlacementOutcome TryExtendedBuildingPlacement(
 		CoordStruct unlimboCoord = CellClass::Cell2Coord(placeCell);
 		if (pBuilding->Unlimbo(unlimboCoord, DirType::North))
 		{
-			BuildingExtData::PlayConstructionYardAnim(pFactoryBuilding);
+			BuildingExtData::PlayConstructionYardAnim<false>(pFactoryBuilding);
 			return BuildingPlacementOutcome::Success;
 		}
 		return BuildingPlacementOutcome::Failed;
@@ -1055,7 +1056,7 @@ static BuildingPlacementOutcome TryExtendedBuildingPlacement(
 		CoordStruct unlimboCoord = CellClass::Cell2Coord(placeCell);
 		if (pBuilding->Unlimbo(unlimboCoord, DirType::North))
 		{
-			BuildingExtData::PlayConstructionYardAnim(pFactoryBuilding);
+			BuildingExtData::PlayConstructionYardAnim<false>(pFactoryBuilding);
 			return BuildingPlacementOutcome::Success;
 		}
 		return BuildingPlacementOutcome::Failed;
@@ -1106,7 +1107,7 @@ static BuildingPlacementOutcome TryExtendedBuildingPlacement(
 	CoordStruct unlimboCoord = CellClass::Cell2Coord(placeCell);
 	if (pBuilding->Unlimbo(unlimboCoord, DirType::North))
 	{
-		BuildingExtData::PlayConstructionYardAnim(pFactoryBuilding);
+		BuildingExtData::PlayConstructionYardAnim<false>(pFactoryBuilding);
 		return BuildingPlacementOutcome::Success;
 	}
 

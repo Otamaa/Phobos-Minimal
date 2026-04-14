@@ -3057,3 +3057,6 @@ ASMJIT_PATCH(0x73EEA6, UnitClass_Mission_Harvest_AllOreGathered, 0x6)
 
 	return SkipGameCode;
 }
+
+// Skip incorrect mission queued in InfantryClass::EnterIdleMode
+DEFINE_JUMP(LJMP, 0x51CBE5, 0x51CC1F);

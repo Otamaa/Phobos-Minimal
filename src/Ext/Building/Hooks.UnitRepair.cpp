@@ -1,4 +1,7 @@
 #include "Body.h"
+
+#include <Ext/BuildingType/Body.h>
+
 #include <RadarClass.h>
 #include <RadarEventClass.h>
 #include <VoxClass.h>

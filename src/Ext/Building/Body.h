@@ -10,7 +10,6 @@
 #include <Utilities/PlacingBuildingStruct.h>
 
 #include <Ext/Techno/Body.h>
-#include <Ext/BuildingType/Body.h>
 
 #include <New/Entity/PrismForwarding.h>
 #include <New/Entity/PowerPlantEnhancerClass.h>
@@ -81,6 +80,8 @@ public:
 	int LastFlameSpawnFrame {};
 	int SpyEffectAnimDuration {};
 	int PoweredUpToLevel {};
+	int TurretAnimIdleFrame {};
+	int TurretAnimFiringFrame { -1 };
 
 	// ============================================================
 	// 1-byte aligned: bool (packed together at the end)
@@ -127,8 +128,10 @@ public:
 		this->TechnoExtData::CalculateCRC(crc);
 	}
 
-	BuildingClass* This() const { return reinterpret_cast<BuildingClass*>(this->AttachedToObject); }
-	const BuildingClass* This_Const() const { return reinterpret_cast<const BuildingClass*>(this->AttachedToObject); }
+	FORCEDINLINE BuildingClass* This() const { return reinterpret_cast<BuildingClass*>(this->AttachedToObject); }
+	FORCEDINLINE const BuildingClass* This_Const() const { return reinterpret_cast<const BuildingClass*>(this->AttachedToObject); }
+	FORCEDINLINE BuildingTypeExtData* GetTypeExtData() const { return ((BuildingTypeExtData*)TypeExtData); }
+
 	bool HasSuperWeapon(int index, bool withUpgrades) const;
 	bool RubbleYell(bool beingRepaired) const;
 
@@ -186,27 +189,8 @@ public:
 		}
 	}
 
-	template <bool slam = false>
-	static inline void PlayConstructionYardAnim(BuildingClass* const pFactory)
-	{
-		const auto pFactoryType = pFactory->Type;
-
-		if (pFactoryType->ConstructionYard)
-		{
-			if constexpr (slam)
-				VocClass::PlayGlobal(BuildingTypeExtContainer::Instance.Find(pFactoryType)->SlamSound.
-					Get(RulesClass::Instance->BuildingSlam), Panning::Center, 1.0);
-
-			pFactory->DestroyNthAnim(BuildingAnimSlot::PreProduction);
-			pFactory->DestroyNthAnim(BuildingAnimSlot::Idle);
-
-			const bool damaged = pFactory->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
-			const auto pAnimName = damaged ? pFactoryType->BuildingAnim[8].Damaged : pFactoryType->BuildingAnim[8].Anim;
-
-			if (pAnimName && *pAnimName)
-				pFactory->PlayAnim(pAnimName, BuildingAnimSlot::Production, damaged, false);
-		}
-	}
+	template <bool slam>
+	static inline void PlayConstructionYardAnim(BuildingClass* const pFactory);
 
 	static bool CheckBuildingFoundation(BuildingTypeClass* const pBuildingType, const CellStruct topLeftCell, HouseClass* const pHouse, bool& noOccupy);
 
@@ -220,6 +204,7 @@ public:
 	static bool canLinkTo(BuildingClass* currentBuilding, BuildingClass* targetBuilding);
 	static void BuildLines(BuildingClass* theBuilding, CellStruct selectedCell, HouseClass* buildingOwner);
 	static int GetImageFrameIndex(BuildingClass* pThis);
+	static int GetTurretFrame(BuildingClass* pThis);
 
 private:
 	template <typename T>
@@ -317,15 +302,15 @@ public:
 	}
 
 	FORCEDINLINE TechnoExtData* _GetTechnoExtData() {
-		return *reinterpret_cast<TechnoExtData**>(((TechnoExtData*)this));
+		return ((TechnoExtData*)this->_GetExtData());
 	}
 
 	FORCEDINLINE const TechnoExtData* _GetTechnoExtData() const {
-		return *reinterpret_cast<const TechnoExtData**>(((TechnoExtData*)this));
+		return ((const TechnoExtData*)this->_GetExtData());
 	}
 
 	FORCEDINLINE BuildingTypeExtData* _GetTypeExtData() {
-		return ((FakeBuildingTypeClass*)(this->Type))->_GetExtData();
+		return ((BuildingTypeExtData*)(this->_GetExtData()->TypeExtData));
 	}
 };
 static_assert(sizeof(FakeBuildingClass) == sizeof(BuildingClass), "Invalid Size !");

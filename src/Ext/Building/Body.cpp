@@ -15,6 +15,114 @@
 #include <Misc/Hooks.Otamaa.h>
 #include <Misc/PhobosGlobal.h>
 
+
+template <>
+ void BuildingExtData::PlayConstructionYardAnim<true>(BuildingClass* const pFactory)
+{
+	const auto pFactoryType = pFactory->Type;
+
+	if (pFactoryType->ConstructionYard)
+	{
+			VocClass::PlayGlobal(BuildingTypeExtContainer::Instance.Find(pFactoryType)->SlamSound.
+				Get(RulesClass::Instance->BuildingSlam), Panning::Center, 1.0);
+
+		pFactory->DestroyNthAnim(BuildingAnimSlot::PreProduction);
+		pFactory->DestroyNthAnim(BuildingAnimSlot::Idle);
+
+		const bool damaged = pFactory->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
+		const auto pAnimName = damaged ? pFactoryType->BuildingAnim[8].Damaged : pFactoryType->BuildingAnim[8].Anim;
+
+		if (pAnimName && *pAnimName)
+			pFactory->PlayAnim(pAnimName, BuildingAnimSlot::Production, damaged, false);
+	}
+}
+
+template <>
+void BuildingExtData::PlayConstructionYardAnim<false>(BuildingClass* const pFactory)
+{
+	const auto pFactoryType = pFactory->Type;
+
+	if (pFactoryType->ConstructionYard)
+	{
+		pFactory->DestroyNthAnim(BuildingAnimSlot::PreProduction);
+		pFactory->DestroyNthAnim(BuildingAnimSlot::Idle);
+
+		const bool damaged = pFactory->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
+		const auto pAnimName = damaged ? pFactoryType->BuildingAnim[8].Damaged : pFactoryType->BuildingAnim[8].Anim;
+
+		if (pAnimName && *pAnimName)
+			pFactory->PlayAnim(pAnimName, BuildingAnimSlot::Production, damaged, false);
+	}
+}
+
+int BuildingExtData::GetTurretFrame(BuildingClass* pThis)
+{
+	auto const pExt = BuildingExtContainer::Instance.Find(pThis);
+	auto const pTypeExt = pExt->GetTypeExtData();
+	int facing = pThis->PrimaryFacing.Current().GetValue<5>();
+	int shapeFacing = TechnoTypeClass::BodyShapeStage[facing];
+
+	bool isLowPower = !pThis->StuffEnabled || !pThis->IsPowerOnline();
+	bool isFiring = pExt->TurretAnimFiringFrame != -1;
+
+	int idleBlockSize = 32 * pTypeExt->TurretAnim_IdleFrames;
+	int lowPowerIdleBlockSize = 32 * pTypeExt->TurretAnim_LowPowerIdleFrames;
+	int firingBlockSize = 32 * pTypeExt->TurretAnim_FiringFrames;
+	int offsetIdle = 0;
+	int offsetLowPowerIdle = offsetIdle + idleBlockSize;
+	int offsetFiring = offsetLowPowerIdle + lowPowerIdleBlockSize;
+	int offsetLowPowerFiring = offsetFiring + firingBlockSize;
+
+	int framesPerFacing = pTypeExt->TurretAnim_IdleFrames;
+	int baseOffset = offsetIdle;
+
+	if (isLowPower)
+	{
+		if (isFiring)
+		{
+			framesPerFacing = pTypeExt->TurretAnim_LowPowerFiringFrames;
+			baseOffset = offsetLowPowerFiring;
+		}
+		else if (pTypeExt->TurretAnim_LowPowerIdleFrames > 0)
+		{
+			framesPerFacing = pTypeExt->TurretAnim_LowPowerIdleFrames;
+			baseOffset = offsetLowPowerIdle;
+		}
+	}
+	else
+	{
+		if (isFiring)
+		{
+			framesPerFacing = pTypeExt->TurretAnim_FiringFrames;
+			baseOffset = offsetFiring;
+		}
+	}
+
+	int animFrame = 0;
+
+	if (framesPerFacing > 1)
+	{
+		if (isFiring)
+		{
+			animFrame = pExt->TurretAnimFiringFrame;
+			pExt->TurretAnimFiringFrame++;
+
+			if (pExt->TurretAnimFiringFrame >= framesPerFacing)
+			{
+				pExt->TurretAnimFiringFrame = -1;
+				pExt->TurretAnimIdleFrame = 0; // Reset idle anim frame.
+			}
+		}
+		else
+		{
+			animFrame = pExt->TurretAnimIdleFrame;
+			++pExt->TurretAnimIdleFrame %= framesPerFacing;
+		}
+	}
+
+	return baseOffset + (shapeFacing * framesPerFacing) + animFrame;
+}
+
 BuildingExtData::BuildingExtData(BuildingClass* pObj) : TechnoExtData(pObj), PowerPlantEnhancer(pObj)
 {
 	this->CurrentType = pObj->Type;
@@ -3056,6 +3164,8 @@ void BuildingExtData::Serialize(T& Stm)
 		.Process(this->SpyEffectAnim)
 		.Process(this->SpyEffectAnimDuration)
 		.Process(this->PoweredUpToLevel)
+		.Process(this->TurretAnimIdleFrame)
+		.Process(this->TurretAnimFiringFrame)
 		.Process(this->FactoryBuildingMe)
 		.Process(this->airFactoryBuilding)
 		.Process(this->FreeUnitDone)

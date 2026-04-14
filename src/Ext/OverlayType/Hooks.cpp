@@ -34,7 +34,7 @@ ASMJIT_PATCH(0x47F974, CellClass_DrawOverlay_Walls, 0x5)
 	LightConvertClass* pConvert = nullptr;
 	const auto pTypeExt = OverlayTypeExtContainer::Instance.Find(pOverlayType);
 
-	if (auto pConvertVec = pTypeExt->Palette.ColorschemeDataVector)
+	if (auto pConvertVec = pTypeExt->Palette.GetColorschemeDataVector())
 		pConvert = pConvertVec->Items[colorSchemeIndex]->LightConvert;
 	else
 		pConvert = ColorScheme::Array->Items[colorSchemeIndex]->LightConvert;

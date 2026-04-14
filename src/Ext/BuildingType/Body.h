@@ -236,7 +236,11 @@ public:
 	Valueable<int> Overpower_ChargeWeapon { 1 };
 	Valueable<int> NewEvaVoice_Priority { 0 };
 	Valueable<int> PowerPlantEnhancer_MaxCount { -1 };
-
+	Valueable<int> TurretAnim_IdleFrames { 1 };
+	Valueable<int> TurretAnim_LowPowerIdleFrames { 0 };
+	Valueable<int> TurretAnim_FiringFrames { 0 };
+	Valueable<int> TurretAnim_LowPowerFiringFrames { 0 };
+	
 	// ============================================================
 	// Valueable<unsigned int> (4 bytes)
 	// ============================================================

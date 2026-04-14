@@ -1,6 +1,7 @@
 #include "Body.h"
 
 #include <Ext/Building/Body.h>
+#include <Ext/BuildingType/Body.h>
 #include <Ext/Rules/Body.h>
 #include <Ext/Team/Body.h>
 #include <Ext/Techno/Body.h>

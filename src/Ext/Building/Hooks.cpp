@@ -571,3 +571,42 @@ ASMJIT_PATCH(0x446816, BuildingClass_Place_RevealToAll_UpdateSight, 0x5)
 }
 
 #pragma endregion
+
+#pragma region TurretAnim
+
+DEFINE_HOOK(0x451242, BuildingClass_AnimationAI_TurretAnim, 0xA)
+{
+	enum { SkipGameCode = 0x451296 };
+
+	GET(FakeBuildingClass*, pThis, ESI);
+
+	if (auto const pAnim = pThis->Anims[(int)BuildingAnimSlot::Turret]) {
+		pAnim->Animation.Stage = BuildingExtData::GetTurretFrame(pThis);
+		pAnim->Animation.Step = 0;
+	}
+
+	return SkipGameCode;
+}
+
+DEFINE_HOOK(0x44B6C7, BuildingClass_Mission_Attack_TurretAnim, 0x6)
+{
+	enum { SkipFiring = 0x44B6FE };
+
+	GET(FakeBuildingClass*, pThis, ESI);
+
+	if (pThis->HasTurret()) {
+		if (auto const pAnim = pThis->Anims[(int)BuildingAnimSlot::Turret]) {
+			auto pExt = pThis->_GetExtData();
+			const auto pTypeExt = pExt->GetTypeExtData();
+			const bool isLowPower = !pThis->StuffEnabled || !pThis->IsPowerOnline();
+			const bool firingFrames = isLowPower ? pTypeExt->TurretAnim_LowPowerFiringFrames : pTypeExt->TurretAnim_FiringFrames;
+
+			if (firingFrames > 0 && pExt->TurretAnimFiringFrame == -1)
+				pExt->TurretAnimFiringFrame = 0;
+		}
+	}
+
+	return 0;
+}
+
+#pragma endregion

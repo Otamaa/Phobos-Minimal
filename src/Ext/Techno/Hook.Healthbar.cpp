@@ -1,6 +1,8 @@
 #include "Body.h"
 
 #include <Ext/Building/Body.h>
+#include <Ext/BuildingType/Body.h>
+
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Tiberium/Body.h>
 

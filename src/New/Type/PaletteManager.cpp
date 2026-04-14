@@ -184,140 +184,263 @@ void PaletteManager::SaveToStream(PhobosStreamWriter& Stm)
 	static_assert("Not implemented!");
 }
 
+// =====================================================================
+// Internal shared resource — one per unique (resolvedName, mode).
+// =====================================================================
+struct CustomPalette::PaletteResource
+{
+	std::string                        Name;    // resolved name
+	PaletteMode                        Mode;
+	UniqueGamePtr<BytePalette>         Palette;
+	UniqueGamePtr<ConvertClass>        Convert;
+	DynamicVectorClass<ColorScheme*>* ColorschemeDataVector = nullptr;
+
+	PaletteResource(std::string name, PaletteMode mode)
+		: Name(std::move(name)), Mode(mode) {}
+
+	// Build from the .pal file on disk. Returns true on success.
+	bool BuildFromFile()
+	{
+		if (auto* pPal = FileSystem::AllocatePalette(this->Name.c_str()))
+		{
+			this->Palette.reset(pPal);
+			this->BuildConvert();
+			return this->Convert != nullptr;
+		}
+		return false;
+	}
+
+	// Build the ConvertClass + colorscheme from an already-populated Palette.
+	void BuildConvert()
+	{
+		ConvertClass* buffer = nullptr;
+		if (this->Mode == PaletteMode::Temperate)
+		{
+			buffer = GameCreate<ConvertClass>(
+				*this->Palette.get(), FileSystem::TEMPERAT_PAL,
+				DSurface::Primary, 53, false);
+		}
+		else
+		{
+			buffer = GameCreate<ConvertClass>(
+				*this->Palette.get(), *this->Palette.get(),
+				DSurface::Alternate, 1, false);
+		}
+		this->Convert.reset(buffer);
+
+		// Colorscheme — strip extension from name and feed to generator
+		std::string filename = this->Name;
+		const auto dot = filename.find_last_of('.');
+		if (dot != std::string::npos)
+			filename.erase(dot);
+		this->ColorschemeDataVector =
+			ColorScheme::GeneratePalette(filename.data());
+	}
+};
+
+// =====================================================================
+// Registry singleton (Meyers) + public management API
+// =====================================================================
+std::unordered_map<
+	CustomPalette::RegistryKey,
+	std::shared_ptr<CustomPalette::PaletteResource>,
+	CustomPalette::RegistryKeyHash>&
+	CustomPalette::Registry()
+{
+	static std::unordered_map<
+		RegistryKey,
+		std::shared_ptr<PaletteResource>,
+		RegistryKeyHash> s;
+	return s;
+}
+
+void CustomPalette::ClearRegistry()
+{
+	Registry().clear();
+}
+
+size_t CustomPalette::RegistrySize()
+{
+	return Registry().size();
+}
+
+// =====================================================================
+// Helpers
+// =====================================================================
+std::string CustomPalette::ToLower(std::string s)
+{
+	for (auto& c : s)
+		c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+	return s;
+}
+
+std::string CustomPalette::ResolveTheaterSuffix(std::string name)
+{
+	const std::string target = "~~~";
+	if (name.find(target) == std::string::npos)
+		return name;
+
+	const std::string replacement =
+		Theater::GetTheater(ScenarioClass::Instance->Theater).Extension;
+
+	size_t pos = 0;
+	while ((pos = name.find(target, pos)) != std::string::npos)
+	{
+		name.replace(pos, target.length(), replacement);
+		pos += replacement.length();
+	}
+	return name;
+}
+
+std::shared_ptr<CustomPalette::PaletteResource>
+CustomPalette::GetOrCreateResource(const std::string& resolvedName, PaletteMode mode)
+{
+	RegistryKey key { ToLower(resolvedName), mode };
+	auto& reg = Registry();
+
+	if (auto it = reg.find(key); it != reg.end())
+		return it->second;
+
+	auto res = std::make_shared<PaletteResource>(resolvedName, mode);
+	if (!res->BuildFromFile())
+		return nullptr; // do NOT cache failures — the file may appear later
+
+	reg.emplace(std::move(key), res);
+	return res;
+}
+
+void CustomPalette::BindResource(std::shared_ptr<PaletteResource> res)
+{
+	Resource = std::move(res);
+	if (Resource)
+	{
+		Mode = Resource->Mode;
+		Name = Resource->Name;
+	}
+}
+
+// =====================================================================
+// Accessors
+// =====================================================================
+ConvertClass* CustomPalette::GetConvert() const
+{
+	return Resource ? Resource->Convert.get() : nullptr;
+}
+
+BytePalette* CustomPalette::GetPalette() const
+{
+	return Resource ? Resource->Palette.get() : nullptr;
+}
+
+DynamicVectorClass<ColorScheme*>* CustomPalette::GetColorschemeDataVector() const
+{
+	return Resource ? Resource->ColorschemeDataVector : nullptr;
+}
+
+// =====================================================================
+// Public API — mirrors the old class
+// =====================================================================
+void CustomPalette::Clear()
+{
+	// Drop the local handle; the registry retains the resource so
+	// any UI / other handles continue to work.
+	Resource.reset();
+	Name.clear();
+	// Mode left as-is: it represents the "desired" mode for the next bind.
+}
+
 bool CustomPalette::Allocate(std::string name)
 {
-	if (auto const pSuffix = strstr(name.data(), "~~~"))
+	const std::string resolved = ResolveTheaterSuffix(std::move(name));
+
+	auto res = GetOrCreateResource(resolved, Mode);
+	if (!res)
 	{
-		auto const theater = ScenarioClass::Instance->Theater;
-		auto const pExtension = Theater::GetTheater(theater).Extension;
-		name[0] = pExtension[0];
-		name[1] = pExtension[1];
-		name[2] = pExtension[2];
+		Clear();
+		return false;
 	}
-
-	this->Clear();
-
-	if (auto pPal = FileSystem::AllocatePalette(name.c_str()))
-	{
-		this->Name = name;
-		this->Palette.reset(pPal);
-		this->CreateConvert();
-	}
-
-	return this->Convert != nullptr;
+	BindResource(std::move(res));
+	return true;
 }
 
 bool CustomPalette::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
-	if (parser.ReadString(pSection, pKey))
+	if (!parser.ReadString(pSection, pKey))
+		return false;
+
+	const std::string resolved = ResolveTheaterSuffix(parser.value());
+
+	auto res = GetOrCreateResource(resolved, Mode);
+	if (!res)
 	{
-		std::string name = parser.value();
-
-		const std::string target = "~~~";
-
-		if (name.find(target) != std::string::npos) {
-
-			const std::string replacement = Theater::GetTheater(ScenarioClass::Instance->Theater).Extension;
-
-			size_t pos = 0;
-			while ((pos = name.find(target, pos)) != std::string::npos)
-			{
-				name.replace(pos, target.length(), replacement);
-				// If replacement is empty or shorter, don't advance pos
-			}
-		}
-
-		//if(Phobos::Otamaa::IsAdmin)
-		//	Debug::LogInfo("CustomPalette::Read {} - Name: {}", parser.value() , name);
-
-		this->Clear();
-
-		if (auto pPal = FileSystem::AllocatePalette(name.c_str()))
-		{
-			this->Name = name;
-			this->Palette.reset(pPal);
-			this->CreateConvert();
-		}
-
-		return this->Convert != nullptr;
+		Clear();
+		return false;
 	}
-	return false;
+	BindResource(std::move(res));
+	return true;
 }
 
 bool CustomPalette::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	this->Clear();
+	Clear();
 
 	bool hasPalette = false;
-	if (!Stm.Process(hasPalette))
+	if (!Stm.Process(hasPalette)) return false;
+
+	PaletteMode mode;
+	if (!Stm.Process(mode)) return false;
+	Mode = mode;
+
+	if (!hasPalette)
+		return true;
+
+	std::string name;
+	if (!Stm.Process(name, RegisterForChange))
 		return false;
 
-	if (!Stm.Process(this->Mode))
-		return false;
+	RegistryKey key { ToLower(name), mode };
+	auto& reg = Registry();
 
-	if (hasPalette) {
-		if (!Stm.Process(this->Name, RegisterForChange))
-			return false;
-
-		this->Palette.reset(GameCreate<BytePalette>());
-
-		if (!Stm.Process(*this->Palette)) {
-			return false;
-		}
-
-		this->CreateConvert();
+	if (auto it = reg.find(key); it != reg.end())
+	{
+		// Cache hit — drain the saved bytes into a throwaway so the
+		// stream advances, then bind the cached (current) resource.
+		BytePalette scratch;
+		if (!Stm.Process(scratch)) return false;
+		BindResource(it->second);
+		return true;
 	}
 
+	// Cache miss — rebuild from the saved bytes. This path also covers
+	// the case where the .pal file is missing from disk now.
+	auto res = std::make_shared<PaletteResource>(name, mode);
+	res->Palette.reset(GameCreate<BytePalette>());
+	if (!Stm.Process(*res->Palette))
+		return false;
+
+	res->BuildConvert();
+	if (!res->Convert)
+		return false;
+
+	reg.emplace(std::move(key), res);
+	BindResource(std::move(res));
 	return true;
 }
 
 bool CustomPalette::Save(PhobosStreamWriter& Stm) const
 {
-	const bool hasPalette = this->Palette != nullptr;
+	const bool hasPalette = Resource && Resource->Palette != nullptr;
 
-	Stm.Process(hasPalette);
-	Stm.Process(this->Mode);
+	Stm.Process(const_cast<bool&>(hasPalette));
 
-	if(hasPalette){
-		Stm.Process(this->Name);
-		Stm.Process(*this->Palette);
+	PaletteMode modeToSave = Resource ? Resource->Mode : Mode;
+	Stm.Process(modeToSave);
+
+	if (hasPalette)
+	{
+		std::string nameCopy = Resource->Name;
+		Stm.Process(nameCopy);
+		Stm.Process(*Resource->Palette);
 	}
-
 	return true;
-}
-
-void CustomPalette::Clear()
-{
-	this->Convert = nullptr;
-	this->Palette = nullptr;
-	this->ColorschemeDataVector = nullptr;
-}
-
-void CustomPalette::CreateConvert()
-{
-	//if (Phobos::Otamaa::IsAdmin)
-	//	Debug::LogInfo("CustomPalette::CreateConvert - Name: {}", this->Name);
-
-	ConvertClass* buffer = nullptr;
-	if (this->Mode == PaletteMode::Temperate)
-	{
-		buffer = GameCreate<ConvertClass>(
-			*this->Palette.get(), FileSystem::TEMPERAT_PAL, DSurface::Primary,
-			53, false);
-	}
-	else
-	{
-		buffer = GameCreate<ConvertClass>(
-			*this->Palette.get(), *this->Palette.get(), DSurface::Alternate,
-			1, false);
-	}
-
-	this->Convert.reset(buffer);
-	std::string filename = this->Name; // make a copy to avoid modifying the original string
-	size_t last_dot = filename.find_last_of('.');
-	if (last_dot != std::string::npos) {
-		filename.erase(last_dot); // remove from the dot to the end
-	}
-
-	this->ColorschemeDataVector = (ColorScheme::GeneratePalette(filename.data()));
 }

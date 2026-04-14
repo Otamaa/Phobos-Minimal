@@ -4,6 +4,8 @@
 #include <CellStruct.h>
 #include <Unsorted.h>
 
+#include <Ext/BuildingType/Body.h>
+
 ASMJIT_PATCH(0x6D50FB , TacticalClass_DrawPlacement_CustomFoundation, 0x5)
 {
 	RectangleStruct bounds {};

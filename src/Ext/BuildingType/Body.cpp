@@ -955,7 +955,7 @@ void BuildingTypeExtData::DisplayPlacementPreview()
 	}
 	else
 	{
-		if (auto pVecPal = pTypeExt->PlacementPreview_Palette.ColorschemeDataVector)
+		if (auto pVecPal = pTypeExt->PlacementPreview_Palette.GetColorschemeDataVector())
 		{
 			pDecidedPal = pVecPal->Items[pBuilding->Owner->ColorSchemeIndex]->LightConvert;
 		}
@@ -1331,6 +1331,12 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 			PhobosCRT::strCopy(pThis->PowersUpBuilding, this->PowersUp_Buildings[0]->ID);
 
 		//this->AllowAirstrike.Read(exINI, pSection, "AllowAirstrike");
+
+		// Existing TurretAnim characteristics are read from rules so following the pattern here.
+		this->TurretAnim_IdleFrames.Read(exINI, pSection, "TurretAnim.IdleFrames");
+		this->TurretAnim_LowPowerIdleFrames.Read(exINI, pSection, "TurretAnim.LowPowerIdleFrames");
+		this->TurretAnim_FiringFrames.Read(exINI, pSection, "TurretAnim.FiringFrames");
+		this->TurretAnim_LowPowerFiringFrames.Read(exINI, pSection, "TurretAnim.LowPowerFiringFrames");
 
 		this->Grinding_AllowAllies.Read(exINI, pSection, "Grinding.AllowAllies");
 		this->Grinding_AllowOwner.Read(exINI, pSection, "Grinding.AllowOwner");
@@ -2175,6 +2181,10 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->NewEvaVoice_Index)
 		.Process(this->NewEvaVoice_Priority)
 		.Process(this->PowerPlantEnhancer_MaxCount)
+		.Process(this->TurretAnim_IdleFrames)
+		.Process(this->TurretAnim_LowPowerIdleFrames)
+		.Process(this->TurretAnim_FiringFrames)
+		.Process(this->TurretAnim_LowPowerFiringFrames)
 		.Process(this->NewEvaVoice_RecheckOnDeath)
 		.Process(this->NewEvaVoice_InitialMessage)
 

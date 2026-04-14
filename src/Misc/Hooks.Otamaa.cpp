@@ -4559,15 +4559,6 @@ ASMJIT_PATCH(0x4145B6, AircraftClass_RenderCrash_, 0x6)
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x467C2E, BulletClass_AI_FuseCheck, 0x7)
-{
-	GET(BulletClass*, pThis, EBP);
-	GET(CoordStruct*, pCoord, ECX);
-
-	R->EAX(BulletExtData::FuseCheckup(pThis, pCoord));
-
-	return 0x467C3A;
-}
 
 // ASMJIT_PATCH(0x6EDA50, Team_DoMission_Harvest, 0x5)
 // {
@@ -6209,29 +6200,6 @@ ASMJIT_PATCH(0x451932, BuildingClass_AnimLogic_Ownership, 0x5)
 	((FakeAnimClass*)pAnim)->_GetExtData()->ParentBuilding = pThis;
 	R->EBP(pAnim);
 	return 0x45197B;
-}
-
-ASMJIT_PATCH(0x466834, BulletClass_AI_TrailerAnim, 0x6)
-{
-	GET(BulletClass* const, pThis, EBP);
-	const int delay = pThis->Type->ScaledSpawnDelay ? pThis->Type->ScaledSpawnDelay : pThis->Type->SpawnDelay;
-
-	if (delay < 0)
-		return 0x4668BD;
-
-	if (!(Unsorted::CurrentFrame % delay))
-	{
-
-		auto const pExt = BulletExtContainer::Instance.Find(pThis);
-		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pThis->Type->Trailer, pThis->Location, 1, 1, AnimFlag::AnimFlag_600, 0, false),
-			pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt->Owner) ? pExt->Owner : nullptr,
-			pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis->Owner,
-			false,
-			false
-		);
-	}
-
-	return 0x4668BD;
 }
 
 #include <OverlayClass.h>

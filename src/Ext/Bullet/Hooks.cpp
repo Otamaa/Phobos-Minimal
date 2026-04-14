@@ -19,82 +19,6 @@
 
 #include <Ext/Bullet/Trajectories/StraightTrajectory.h>
 
-ASMJIT_PATCH(0x466705, BulletClass_AI, 0x6) //8
-{
-	enum { retContunue = 0x0 , retDead = 0x466781 };
-	GET(FakeBulletClass* const, pThis, EBP);
-
-	const auto pBulletExt = pThis->_GetExtData();
-	bool bChangeOwner = false;
-	auto const pBulletCurOwner = pThis->GetOwningHouse();
-
-	if (pThis->Owner && pBulletCurOwner && pBulletCurOwner != pBulletExt->Owner)
-	{
-		bChangeOwner = true;
-		pBulletExt->Owner = pBulletCurOwner;
-	}
-
-	if (pThis->WeaponType && pThis->WH)
-	{
-		if (!pBulletExt->BrightCheckDone)
-		{
-			pThis->Bright = pThis->WeaponType->Bright || pThis->WH->Bright;
-			pBulletExt->BrightCheckDone = true;
-		}
-	}
-
-	auto const pTypeExt = pThis->_GetTypeExtData();
-
-	if (pTypeExt->PreExplodeRange.isset())
-	{
-		const auto ThisCoord = pThis->GetCoords();
-		const auto TargetCoords = pThis->GetBulletTargetCoords();
-
-		if (Math::abs(ThisCoord.DistanceFrom(TargetCoords))
-			<= pTypeExt->PreExplodeRange.Get(0) * 256)
-			if (BulletExtData::HandleBulletRemove(pThis, true, true))
-				return retDead;
-	}
-
-	if(!pBulletExt->Trajectory || !PhobosTrajectory::BlockDrawTrail(pBulletExt->Trajectory)){
-
-		// LaserTrails update routine is in BulletClass::AI hook because BulletClass::Draw
-		// doesn't run when the object is off-screen which leads to visual bugs - Kerbiter
-		if ((!pBulletExt->LaserTrails.empty()))
-		{
-			const CoordStruct& location = pThis->Location;
-			const VelocityClass& velocity = pThis->Velocity;
-
-			// We adjust LaserTrails to account for vanilla bug of drawing stuff one frame ahead.
-			// Pretty meh solution but works until we fix the bug - Kerbiter
-			CoordStruct drawnCoords
-			{
-				(int)(location.X + velocity.X),
-				(int)(location.Y + velocity.Y),
-				(int)(location.Z + velocity.Z)
-			};
-
-			for (auto& trail : pBulletExt->LaserTrails)
-			{
-				// We insert initial position so the first frame of trail doesn't get skipped - Kerbiter
-				// TODO move hack to BulletClass creation
-				if (!trail->LastLocation.isset())
-					trail->LastLocation = location;
-
-				if (trail->Type->IsHouseColor.Get() && bChangeOwner && pBulletExt->Owner)
-					trail->CurrentColor = pBulletExt->Owner->LaserColor;
-
-				trail->Update(drawnCoords);
-			}
-		}
-
-		/*TrailsManager::AI(pThis->_AsBullet());*/
-	}
-	//if (!pThis->Type->Inviso && pBulletExt->InitialBulletDir.has_value())
-	//	pBulletExt->InitialBulletDir = DirStruct((-1) * std::atan2(pThis->Velocity.Y, pThis->Velocity.X));
-
-	return 0;
-}
 
 ASMJIT_PATCH(0x469276, BulletClass_Logics_ApplyMindControl , 0xA)
 {
@@ -135,17 +59,6 @@ ASMJIT_PATCH(0x469276, BulletClass_Logics_ApplyMindControl , 0xA)
 		threatDelay));
 
 	return 0x4692D5;
-}
-
-ASMJIT_PATCH(0x4671B9, BulletClass_AI_ApplyGravity, 0x6)
-{
-	//GET(BulletClass* const, pThis, EBP);
-	GET(BulletTypeClass* const, pType, EAX);
-
-	auto const nGravity = BulletTypeExtData::GetAdjustedGravity(pType);
-	__asm { fld nGravity };
-
-	return 0x4671BF;
 }
 
 // we handle ScreenShake thru warhead
@@ -269,17 +182,6 @@ ASMJIT_PATCH(0x4690D4, BulletClass_Logics_ApplyAdditionals, 0x6)
 	return SkipShaking;
 }
 
-// Inviso bullets behave differently in BulletClass::AI when their target is bullet and
-// seemingly (at least partially) adopt characteristics of a vertical projectile.
-// This is a potentially slightly hacky solution to that, as proper solution
-// would likely require making sense of BulletClass::AI and ain't nobody got time for that.
-ASMJIT_PATCH(0x4668BD, BulletClass_AI_Interceptor_InvisoSkip, 0x6)
-{
-	enum { DetonateBullet = 0x467F9B, Continue = 0x0 };
-	GET(FakeBulletClass*, pThis, EBP);
-	return (pThis->Type->Inviso && pThis->_GetExtData()->InterceptorTechnoType)
-		? DetonateBullet : Continue;
-}
 
 ASMJIT_PATCH(0x469B44, BulletClass_Logics_LandTypeCheck, 0x6)
 {

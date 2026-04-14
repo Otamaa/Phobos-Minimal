@@ -1,5 +1,7 @@
 #include "Body.h"
 
+#include <Ext/BuildingType/Body.h>
+
 #include <Ext/Aircraft/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/House/Body.h>

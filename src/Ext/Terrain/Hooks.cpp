@@ -86,7 +86,7 @@ ASMJIT_PATCH(0x71C2BC, TerrainClass_Draw_CustomPal, 0x6)
 			colorSchemeIndex = HouseClass::Array->operator[](wallOwnerIndex)->ColorSchemeIndex;
 
 
-		pConvert = pTerrainExt->CustomPalette.ColorschemeDataVector->Items[colorSchemeIndex]->LightConvert;
+		pConvert = pTerrainExt->CustomPalette.GetColorschemeDataVector()->Items[colorSchemeIndex]->LightConvert;
 		R->EBP(pCell->Color1.Red);
 	}
 

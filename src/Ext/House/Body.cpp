@@ -3,6 +3,7 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/Building/Body.h>
+#include <Ext/BuildingType/Body.h>
 #include <Ext/Side/Body.h>
 #include <Ext/HouseType/Body.h>
 #include <Ext/SWType/Body.h>

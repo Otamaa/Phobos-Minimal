@@ -1168,6 +1168,7 @@ void Phobos::ExeTerminate()
 		Handles::Array.clear();
 		Patch::ModuleDatas.clear();
 		PhobosEntity::OnExit();
+		CustomPalette::ClearRegistry();
 	}
 }
 

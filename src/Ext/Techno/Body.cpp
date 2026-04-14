@@ -3869,6 +3869,10 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 		barrelRecoil.HoldFrames = barrelAnimData.HoldFrames;
 	}
 
+	// Clear AlphaImage
+	if (const auto pAlpha = PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pThis))
+			GameDelete(pAlpha);
+
 	// Only FootClass* can use this.
 	if (const auto pFoot = flag_cast_to<FootClass*>(pThis))
 	{
@@ -4982,7 +4986,7 @@ bool __fastcall FakeTechnoClass::__Is_Allowed_To_Retaliate(TechnoClass* pThis , 
 	}
 
 	// Units should not retaliate against the parasite eating them
-	if (pThisFoot) {
+	if (pThisFoot && pThisFoot->ParasiteEatingMe) {
 		if (pSource == pThisFoot->ParasiteEatingMe)
 			return false;
 	}
@@ -4993,8 +4997,8 @@ bool __fastcall FakeTechnoClass::__Is_Allowed_To_Retaliate(TechnoClass* pThis , 
 	// At this point: EBP = pSource, ECX = pWarhead->WarheadPtr, ESI = pWeapon
 	const auto pWeapon = pThis->GetWeapon(nWeaponIdx)->WeaponType;
 
-	if (!TechnoExtData::CanRetaliateICUnit(pThis, (FakeWeaponTypeClass*)pWeapon, pSource))
-		return false;
+	//if (!TechnoExtData::CanRetaliateICUnit(pThis, (FakeWeaponTypeClass*)pWeapon, pSource))
+	//	return false;
 
 	if (pWeapon) {
 		if (const auto pWarheadPtr = pWeapon->Warhead) {
@@ -5803,16 +5807,16 @@ bool __fastcall FakeTechnoClass::__TargetSomethingNearby(TechnoClass* pThis, dis
 	return pThis->Target != nullptr;
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x709820, FakeTechnoClass::__TargetSomethingNearby);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2640, FakeTechnoClass::__TargetSomethingNearby);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4258, FakeTechnoClass::__TargetSomethingNearby);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E9030, FakeTechnoClass::__TargetSomethingNearby);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB3F4, FakeTechnoClass::__TargetSomethingNearby);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4CFC, FakeTechnoClass::__TargetSomethingNearby);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F600C, FakeTechnoClass::__TargetSomethingNearby);
-DEFINE_FUNCTION_JUMP(CALL6, 0x6FA6DC, FakeTechnoClass::__TargetSomethingNearby);
-DEFINE_FUNCTION_JUMP(CALL6, 0x4D6F06, FakeTechnoClass::__TargetSomethingNearby);
-DEFINE_FUNCTION_JUMP(CALL6, 0x4D5392, FakeTechnoClass::__TargetSomethingNearby);
+//DEFINE_FUNCTION_JUMP(LJMP, 0x709820, FakeTechnoClass::__TargetSomethingNearby);
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2640, FakeTechnoClass::__TargetSomethingNearby);
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4258, FakeTechnoClass::__TargetSomethingNearby);
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E9030, FakeTechnoClass::__TargetSomethingNearby);
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB3F4, FakeTechnoClass::__TargetSomethingNearby);
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4CFC, FakeTechnoClass::__TargetSomethingNearby);
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F600C, FakeTechnoClass::__TargetSomethingNearby);
+//DEFINE_FUNCTION_JUMP(CALL6, 0x6FA6DC, FakeTechnoClass::__TargetSomethingNearby);
+//DEFINE_FUNCTION_JUMP(CALL6, 0x4D6F06, FakeTechnoClass::__TargetSomethingNearby);
+//DEFINE_FUNCTION_JUMP(CALL6, 0x4D5392, FakeTechnoClass::__TargetSomethingNearby);
 
 bool NOINLINE TechnoExtData::CanRetaliateICUnit(TechnoClass* pThis, FakeWeaponTypeClass* pWP, TechnoClass* pTarget)
 {
