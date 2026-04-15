@@ -11,7 +11,6 @@
 #include <Ext/Infantry/Body.h>
 #include <Ext/Scenario/Body.h>
 
-#include <Misc/Hooks.Otamaa.h>
 #include <Misc/Spawner/Main.h>
 #include <Misc/PhobosGlobal.h>
 
@@ -1163,7 +1162,7 @@ void HouseExtData::GetUnitTypeToProduce()
 	{
 		const auto pUnit = UnitClass::Array->Items[i];
 
-		if (values[pUnit->Type->ArrayIndex] > 0 && pUnit->CanBeRecruited(pThis))
+		if (values[pUnit->Type->ArrayIndex] > 0 && FakeFootClass::_IsRecruitable(pUnit, discard_t(), pThis))
 			--values[pUnit->Type->ArrayIndex];
 	}
 
@@ -1291,7 +1290,7 @@ int HouseExtData::GetAircraftTypeToProduce()
 	for (auto classPos = AircraftClass::Array->begin(); classPos != AircraftClass::Array->end(); ++classPos)
 	{
 		auto const Idx = static_cast<unsigned int>((*classPos)->Type->ArrayIndex);
-		if (Values[Idx] > 0 && (*classPos)->CanBeRecruited(This()))
+		if (Values[Idx] > 0 && FakeFootClass::_IsRecruitable((*classPos), discard_t(), This()))
 		{
 			--Values[Idx];
 		}
@@ -1394,7 +1393,7 @@ int HouseExtData::GetInfantryTypeToProduce()
 	for (auto classPos = InfantryClass::Array->begin(); classPos != InfantryClass::Array->end(); ++classPos)
 	{
 		auto const Idx = static_cast<unsigned int>((*classPos)->Type->ArrayIndex);
-		if (Values[Idx] > 0 && (*classPos)->CanBeRecruited(This()))
+		if (Values[Idx] > 0 && FakeFootClass::_IsRecruitable((*classPos), discard_t(), This()))
 		{
 			--Values[Idx];
 		}

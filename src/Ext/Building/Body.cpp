@@ -12,7 +12,6 @@
 
 #include <TextDrawing.h>
 
-#include <Misc/Hooks.Otamaa.h>
 #include <Misc/PhobosGlobal.h>
 
 
@@ -3128,6 +3127,45 @@ ASMJIT_PATCH(0x43D874, BuildingClass_Draw_BuildupBibShape, 0x6)
 
 	  return (pData->IsTrench >= 0) - 1;
   }
+
+
+  static OPTIONALINLINE COMPILETIMEEVAL CoordStruct RelativeCenterCoord { 128 , 128 , 0 };
+
+  void FakeBuildingClass::_Spawn_Refinery_Smoke_Particles()
+  {
+	  auto pType = this->Type;
+	  auto pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
+
+	  if (pTypeExt->RefinerySmokeParticleSystemOne && pType->RefinerySmokeOffsetOne.IsValid() && pType->RefinerySmokeOffsetOne != RelativeCenterCoord)
+	  {
+		  auto coord1 = pType->RefinerySmokeOffsetOne + this->Location;
+		  auto particle1 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemOne, coord1, nullptr, this);
+		  particle1->Lifetime = pType->RefinerySmokeFrames;
+	  }
+
+	  if (pTypeExt->RefinerySmokeParticleSystemTwo && pType->RefinerySmokeOffsetTwo.IsValid() && pType->RefinerySmokeOffsetTwo != RelativeCenterCoord)
+	  {
+		  auto coord2 = pType->RefinerySmokeOffsetTwo + this->Location;
+		  auto particle2 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemTwo, coord2, nullptr, this);
+		  particle2->Lifetime = pType->RefinerySmokeFrames;
+	  }
+
+	  if (pTypeExt->RefinerySmokeParticleSystemThree && pType->RefinerySmokeOffsetThree.IsValid() && pType->RefinerySmokeOffsetThree != RelativeCenterCoord)
+	  {
+		  auto coord3 = pType->RefinerySmokeOffsetThree + this->Location;
+		  auto particle3 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemThree, coord3, nullptr, this);
+		  particle3->Lifetime = pType->RefinerySmokeFrames;
+	  }
+
+	  if (pTypeExt->RefinerySmokeParticleSystemFour && pType->RefinerySmokeOffsetFour.IsValid() && pType->RefinerySmokeOffsetFour != RelativeCenterCoord)
+	  {
+		  auto coord4 = pType->RefinerySmokeOffsetFour + this->Location;
+		  auto particle4 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemFour, coord4, nullptr, this);
+		  particle4->Lifetime = pType->RefinerySmokeFrames;
+	  }
+  }
+
+  DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4324, FakeBuildingClass::_Spawn_Refinery_Smoke_Particles);
 
 // =============================
 // load / save

@@ -858,3 +858,43 @@ ASMJIT_PATCH(0x4E4D67, hWnd_UpdatePlayerColors_B, 7)
 
 
 #pragma endregion
+
+ASMJIT_PATCH(0x60B865, AdjustWindow_Child, 5)
+{
+	RECT Rect {};
+	Imports::GetWindowRect.invoke()(Game::hWnd(), &Rect);
+	R->ESI(R->ESI<int>() - Rect.top);
+	R->EDX(R->EDX<int>() - Rect.left);
+	return 0;
+}
+
+int aval;
+int bval;
+int cval;
+
+ASMJIT_PATCH(0x61E00C, TrackBarWndProc_AdjustLength, 7)
+{
+	int v2 = bval * cval / aval;
+	R->Stack(0x84, v2);
+	R->Stack(0x28, v2 + 12);
+	return 0;
+}
+
+ASMJIT_PATCH(0x61DA20, TrackbarMsgProc_SetValueRange, 6)
+{
+	if (R->Stack<int>(0x158) == 15)
+	{
+		aval = R->EBP<int>();
+		bval = R->EBX<int>();
+	}
+	return 0x0;
+}
+
+ASMJIT_PATCH(0x61DA6B, TrackbarMsgProc_GetSlideRange, 7)
+{
+	if (R->Stack<int>(0x158) == 15)
+	{
+		cval = R->EAX<int>();
+	}
+	return 0x0;
+}

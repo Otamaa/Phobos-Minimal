@@ -9,6 +9,7 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/Building/Body.h>
+#include <Ext/BuildingType/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WarheadType/Body.h>
@@ -1536,7 +1537,7 @@ ASMJIT_PATCH(0x51F179, InfantryClass_WhatAction_Immune_FakeEngineer, 0x5)
 #include <Locomotor/Cast.h>
 
 // Prevent subterranean units from deploying while underground.
-ASMJIT_PATCH(0x73D63B, UnitClass_Mi_Unload_Subterranean, 0x6)
+ASMJIT_PATCH(0x73D63B, UnitClass_Mission_Unload_Subterranean, 0x6)
 {
 	enum { ReturnFromFunction = 0x73DFB0, SkipHarvester = 0x73D694, SkipPassengers = 0x73DCD3, Harvester = 0x73DEE7, Continue = 0x73D6EC };
 
@@ -1584,7 +1585,7 @@ ASMJIT_PATCH(0x73D63B, UnitClass_Mi_Unload_Subterranean, 0x6)
 	return Continue;
 }
 
-ASMJIT_PATCH(0x73DEEB, UnitClass_Mi_Unload_SkipHarvester, 0x5)
+ASMJIT_PATCH(0x73DEEB, UnitClass_Mission_Unload_SkipHarvester, 0x5)
 {
 	GET(UnitClass* const, pThis, ESI);
 	enum { SkipHarvester = 0x73D694 };
@@ -1916,29 +1917,335 @@ ASMJIT_PATCH(0x772AB3, WeaponTypeClass_AllowedThreats_AU, 0x5)
 }
 #pragma endregion
 
-ASMJIT_PATCH(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
-{
-	GET(TechnoClass*, pThis, ECX);
-	//GET_STACK(AbstractClass*, pTarget, 0x4);
-	GET_STACK(const int, nWeapon, 0x8);
-	//GET(AbstractClass*, pTarget, EDI);
-
-	auto pExt = TechnoExtContainer::Instance.Find(pThis);
-
-	pExt->CurrentWeaponIdx = nWeapon;
-
-	return 0x0;
-}
-
-static WeaponStruct* __fastcall GetWeapon_(TechnoClass* pTech, void*, int idx)
-{
-	return pTech->GetWeapon(TechnoExtContainer::Instance.Find(pTech)->CurrentWeaponIdx);
-}
-DEFINE_FUNCTION_JUMP(CALL6, 0x6FDD69, GetWeapon_);
-
-
 ASMJIT_PATCH(0x6FBFE9, TechnoClass_Select_SkipVoice, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	return TechnoExtContainer::Instance.Find(pThis)->SkipVoice ? 0x6FC01E : 0x0;
 }
+
+ASMJIT_PATCH(0x736595, TechnoClass_IsSinking_SinkAnim, 0x6)
+{
+	GET(AnimClass*, pAnim, EAX);
+	GET(UnitClass* const, pThis, ESI);
+	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x30, 0x18));
+
+	pAnim->AnimClass::AnimClass(TechnoTypeExtData::GetSinkAnim(pThis), nCoord, 0, 1, AnimFlag::AnimFlag_600, 0, false);
+	AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
+
+	return 0x7365BB;
+}
+
+ASMJIT_PATCH(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
+{
+	enum
+	{
+		DecideResult = 0x709202,
+		Continue = 0x0,
+		ContinueCheck = 0x709206,
+		CantPassiveAcquire = 0x70927D,
+	};
+
+	GET(TechnoClass* const, pThis, ESI);
+	GET(TechnoTypeClass* const, pType, EAX);
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	const auto owner = pThis->Owner;
+
+	if (pTypeExt->PassiveAcquire_AI.isset())
+	{
+		if (owner
+			&& !owner->Type->MultiplayPassive
+			&& !owner->IsControlledByHuman()
+			)
+		{
+
+			R->CL(pTypeExt->PassiveAcquire_AI.Get());
+			return 0x709202;
+		}
+	}
+
+	R->CL((pType->Naval && pTypeExt->CanPassiveAquire_Naval.isset()) ?
+		pTypeExt->CanPassiveAquire_Naval.Get() : pType->CanPassiveAquire);
+	return 0x709202;
+}
+
+ASMJIT_PATCH(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
+{
+	enum { Continue = 0x0, DoNotDrawRadar = 0x70D407 };
+
+	GET(TechnoClass* const, pThis, ESI);
+
+	if (pThis->WhatAmI() == BuildingClass::AbsID)
+	{
+		if (BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis))->LimboID >= 0)
+		{
+			return DoNotDrawRadar;
+		}
+	}
+
+	return
+		GET_TECHNOTYPEEXT(pThis)->IsDummy ?
+		DoNotDrawRadar :
+		Continue;
+}
+
+ASMJIT_PATCH(0x70FB50, TechnoClass_Bunkerable, 0x5)
+{
+	GET(TechnoClass* const, pThis, ECX);
+
+	if (const auto pFoot = flag_cast_to<FootClass*, false>(pThis))
+	{
+
+		const auto pType = GET_TECHNOTYPE(pFoot);
+
+		if (pType->Bunkerable)
+		{
+			const auto nSpeedType = pType->SpeedType;
+			if (nSpeedType == SpeedType::Hover
+				|| nSpeedType == SpeedType::Winged
+				|| nSpeedType == SpeedType::None)
+			{
+				R->EAX(false);
+				return 0x70FBCA;
+			}
+
+			if (pFoot->ParasiteEatingMe)
+			{
+				R->EAX(false);
+				return 0x70FBCA;
+			}
+
+			//crash the game , dont allow it
+			//maybe because of force_track stuffs,..
+			const auto loco = VTable::Get(pFoot->Locomotor.GetInterfacePtr());
+			if (loco == HoverLocomotionClass::vtable
+				|| loco == MechLocomotionClass::vtable
+				|| loco == FlyLocomotionClass::vtable
+				|| loco == DropPodLocomotionClass::vtable
+				|| loco == RocketLocomotionClass::vtable
+				|| loco == ShipLocomotionClass::vtable)
+			{
+
+				R->EAX(false);
+				return 0x70FBCA;
+			}
+
+			auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+			if (pTypeExt->BunkerableAnyway)
+			{
+				R->EAX(true);
+				return 0x70FBCA;
+			}
+
+			if (!pType->Turret || !pFoot->IsArmed())
+			{
+				R->EAX(false);
+				return 0x70FBCA;
+			}
+
+			R->EAX(true);
+			return 0x70FBCA;
+		}
+	}
+
+	R->EAX(false);
+	return 0x70FBCA;
+}
+
+ASMJIT_PATCH(0x708F77, TechnoClass_ResponseToSelect_BugFixes, 0x5)
+{
+	GET(TechnoClass* const, pThis, ESI);
+
+	return pThis->IsCrashing || pThis->Health < 0 ?
+		0x708FAD : 0x0;
+}
+
+ASMJIT_PATCH(0x7008E5, TechnoClass_WhatAction_FixGetCellAtCallTwice, 0x9)
+{
+	GET(CellClass* const, pCell, EAX);
+	GET(TechnoClass* const, pThis, ESI);
+
+	R->EBP(pThis->SelectWeapon(pCell));
+	return 0x7008FB;
+}
+
+ASMJIT_PATCH(0x7043E7, TechnoClass_Get_ZAdjustment_IncludeWeeder, 0x6)
+{
+	GET(UnitTypeClass*, pUnitType, ECX);
+
+	R->AL(pUnitType->Harvester || pUnitType->Weeder);
+	return 0x7043ED;
+}
+
+//real adjusment place , maybe make this customizable ?
+ASMJIT_PATCH(0x70440C, TechnoClass_Get_ZAdjustment_IncludeWeederBuilding, 0x6)
+{
+	GET(BuildingTypeClass*, pBuildingType, EAX);
+	R->CL(pBuildingType->Refinery || pBuildingType->Weeder);
+	return 0x704412;
+}
+
+//this thing checking shit backwards ,..
+ASMJIT_PATCH(0x6D4764, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x7)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+
+	if (pThis->InLimbo || pThis->IsCrashing || pThis->IsSinking
+		|| (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->DeathFrameCounter > 0))
+	{
+		return 0x6D4793;
+	}
+
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	if (pExt->AE.flags.Untrackable || TechnoExtData::IsUntrackable(pThis))
+	{
+		return 0x6D4793;
+	}
+
+	if (pThis->CurrentlyOnSensor())
+	{
+		return 0x6D478C; //draw dashed line
+	}
+
+	return 0x6D4793;
+}
+
+ASMJIT_PATCH(0x6FFD25, TechnoClass_PlayerAssignMission_Capture_InfantryToBld, 0xA)
+{
+	GET_STACK(ObjectClass*, pTarget, 0x98 + 0xC);
+	GET(TechnoClass*, pThis, ESI);
+
+	if (pThis->WhatAmI() == InfantryClass::AbsID && pTarget && pTarget->WhatAmI() == BuildingClass::AbsID)
+	{
+		auto pInf = ((InfantryClass*)pThis);
+		if (pInf->Type->Assaulter || pInf->Type->Infiltrate || pInf->Type->Engineer)
+			return 0x0;
+
+		auto pInfTypeExt = InfantryTypeExtContainer::Instance.Find(pInf->Type);
+
+		if (!pInfTypeExt->VoiceGarrison.empty())
+		{
+			if (((BuildingClass*)pTarget)->Type->MaxNumberOccupants > 0)
+			{
+				pThis->QueueVoice(pInfTypeExt->VoiceGarrison[Random2Class::NonCriticalRandomNumber->Random() % pInfTypeExt->VoiceGarrison.size()]);
+				return 0x6FFDA5;
+			}
+		}
+	}
+
+	return 0x0;
+}
+
+ASMJIT_PATCH(0x70FF65, TechnoClass_ApplyLocomotorToTarget_CleaupFirst_Crash, 0x6)
+{
+	GET(TechnoClass*, pFirer, ESI);
+
+	return pFirer->LocomotorTarget ? 0x0 : 0x70FF77;
+}
+
+ASMJIT_PATCH(0x6FBB35, TechnoClass_CloakingAI_detachsensed, 0x6)
+{
+	GET(TechnoClass*, pTechno, EDI);
+	GET(TechnoClass*, pThis, ESI);
+
+	if (!pTechno || pTechno->Target != pThis || !pTechno->Owner)
+		return 0x6FBBC3; // to next check
+
+	if (!pTechno->IsAlive || pTechno->IsCrashing || pTechno->IsSinking)
+		return 0x6FBBC3;
+
+	return 0x6FBB3D;
+}
+
+ASMJIT_PATCH(0x70D0D0, TechnoClass_HasAbility_Check, 0x5)
+{
+	GET_STACK(AbilityType, abi, 0x4);
+	GET_STACK(DWORD, caller, 0x0);
+
+	if (abi >= AbilityType::count)
+	{
+		//Debug::FatalError("TechnoClass HasAbility input is too big ! %d [caller %x]\n", abi, caller);
+		return 0x70D148;
+	}
+
+	return 0x0;
+}
+ASMJIT_PATCH(0x6F5EAC, TechnoClass_Talkbuble_playVoices, 0x5)
+{
+	GET(TechnoClass*, pThis, EBP);
+
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
+
+	if (pTypeExt->TalkbubbleVoices.empty())
+		return 0x0;
+
+	const auto& vec = pTypeExt->TalkbubbleVoices[FileSystem::TALKBUBL_Frame() - 1];
+
+	if (!vec.empty())
+	{
+		auto coord = pThis->GetCoords();
+		VocClass::SafeImmedietelyPlayAt(Random2Class::Global->RandomFromMax(vec.size() - 1)
+			, &coord, &pThis->Audio3);
+	}
+
+	return  0x0;
+}
+
+ASMJIT_PATCH(0x7043B9, TechnoClass_GetZAdjustment_Link, 0x6)
+{
+	GET(TechnoClass*, pNthLink, EAX);
+	return pNthLink ? 0 : 0x7043E1;
+}
+
+// Gives player houses names based on their spawning spot
+static int GetPlayerPosByName(const char* pName)
+{
+	if (pName[0] != '<' || strlen(pName) != 12)
+		return -1;
+
+	for (size_t i = 0; i < GameStrings::PlayerAt.size(); ++i)
+	{
+		if (IS_SAME_STR_(GameStrings::PlayerAt[7u - i], pName))
+			return i;
+	}
+
+	return -1;
+}
+
+ASMJIT_PATCH(0x44F8A6, TechnoClass_FromINI_CreateForHouse, 0x7)
+{
+	GET(const char*, pHouseName, EAX);
+
+	const int startingPoints = GetPlayerPosByName(pHouseName);
+
+	const int idx = startingPoints != -1
+		?
+		//Hopefully the HouseIndices is fine
+		ScenarioClass::Instance->HouseIndices[startingPoints] :
+		HouseClass::FindIndexByName(pHouseName)
+		;
+
+	//if (Phobos::Otamaa::IsAdmin)
+	//	Debug::LogInfo("%s , With House Index [%d]", pHouseName, idx);
+
+	if (idx == -1)
+	{
+		Debug::LogInfo("Failed To fetch house index by name of [{}]", pHouseName);
+		Debug::RegisterParserError();
+	}
+
+	R->EAX(idx);
+	return R->Origin() + 0x7;
+}
+ASMJIT_PATCH_AGAIN(0x74330D, TechnoClass_FromINI_CreateForHouse, 0x7)
+ASMJIT_PATCH_AGAIN(0x41B17B, TechnoClass_FromINI_CreateForHouse, 0x7)
+ASMJIT_PATCH_AGAIN(0x51FB6B, TechnoClass_FromINI_CreateForHouse, 0x7)
+
+// Skips checking the gamemode or who the player is when assigning houses
+DEFINE_JUMP(LJMP, 0x44F8CB, 0x44F8E1)
+
+//TechnoClass_KillCargo_SupplyKiller
+DEFINE_PATCH(0x707CF2, 0x55);

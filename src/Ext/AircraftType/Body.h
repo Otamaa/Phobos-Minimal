@@ -105,6 +105,10 @@ public:
 
 class NOVTABLE FakeAircraftTypeClass : public AircraftTypeClass {
 public:
+	bool _CanUseWaypoint(){
+		return !this->Spawned;
+	}
+
 	bool _CanAttackMove();
 	bool _ReadFromINI(CCINIClass* pINI);
 };

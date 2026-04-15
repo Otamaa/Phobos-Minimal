@@ -26,7 +26,6 @@
 #include <numeric>
 
 #include <Misc/PhobosGlobal.h>
-#include <Misc/Hooks.Otamaa.h>
 #include <Misc/DamageArea.h>
 
 #include <RadarEventClass.h>
@@ -1621,7 +1620,7 @@ ASMJIT_PATCH(0x7376D9, UnitClass_ReceivedRadioCommand_DockUnload_Facing, 5)
 	return 0x73770C;
 }
 
-ASMJIT_PATCH(0x73DF66, UnitClass_Mi_Unload_DockUnload_Facing, 5)
+ASMJIT_PATCH(0x73DF66, UnitClass_Mission_Unload_DockUnload_Facing, 5)
 {
 	GET(UnitClass* const, pUnit, ESI);
 	GET(DirStruct* const, nCurrentFacing, EAX);
@@ -1648,21 +1647,21 @@ ASMJIT_PATCH(0x43CA80, BuildingClass_ReceivedRadioCommand_DockUnloadCell, 7)
 	return 0x43CA8D;
 }
 
-ASMJIT_PATCH(0x73E013, UnitClass_Mi_Unload_DockUnloadCell1, 6)
+ASMJIT_PATCH(0x73E013, UnitClass_Mission_Unload_DockUnloadCell1, 6)
 {
 	GET(UnitClass* const, pThis, ESI);
 	R->EAX(TechnoExtData::BuildingUnload(pThis));
 	return 0x73E05F;
 }
 
-ASMJIT_PATCH(0x73E17F, UnitClass_Mi_Unload_DockUnloadCell2, 6)
+ASMJIT_PATCH(0x73E17F, UnitClass_Mission_Unload_DockUnloadCell2, 6)
 {
 	GET(UnitClass* const, pThis, ESI);
 	R->EAX(TechnoExtData::BuildingUnload(pThis));
 	return 0x73E1CB;
 }
 
-ASMJIT_PATCH(0x73E2BF, UnitClass_Mi_Unload_DockUnloadCell3, 6)
+ASMJIT_PATCH(0x73E2BF, UnitClass_Mission_Unload_DockUnloadCell3, 6)
 {
 	GET(UnitClass* const, pThis, ESI);
 	R->EAX(TechnoExtData::BuildingUnload(pThis));

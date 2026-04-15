@@ -19,8 +19,15 @@
 #include <Locomotor/TunnelLocomotionClass.h>
 
 #include <InfantryClass.h>
+#include <VeinholeMonsterClass.h>
 
 #define ENABLE_THESE
+
+ASMJIT_PATCH(0x55B4E1, LogicClass_Update_Veinhole, 0x5)
+{
+	UpdateAllVeinholes();
+	return 0;
+}
 
 void UpdateWebbed(FootClass* pThis)
 {

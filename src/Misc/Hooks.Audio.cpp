@@ -560,3 +560,28 @@ ASMJIT_PATCH(0x401640, AudioIndex_GetSampleInformation, 5)
 
 	return 0x0;
 }
+
+ASMJIT_PATCH(0x40A5B3, AudioDriverStart_AnnoyingBufferLogDisable_A, 0x6)
+{
+	GET(AudioDriverChannelTag*, pAudioChannelTag, EBX);
+	pAudioChannelTag->dwBufferBytes = R->EAX<int>();
+
+	if (Phobos::Otamaa::OutputAudioLogs)
+		Debug::LogInfo("Sound frame size = {} bytes", pAudioChannelTag->dwBufferBytes);
+
+	return 0x40A5C4;
+}
+
+ASMJIT_PATCH(0x40A554, AudioDriverStart_AnnoyingBufferLogDisable_B, 0x6)
+{
+	GET(AudioDriverChannelTag*, pAudioChannelTag, EBX);
+	LEA_STACK(DWORD*, ptr, STACK_OFFS(0x40, 0x28));
+	pAudioChannelTag->soundframesize1 = R->EAX();
+
+	if (Phobos::Otamaa::OutputAudioLogs)
+		Debug::LogInfo("Sound frame size = {} bytes", pAudioChannelTag->soundframesize1);
+
+	R->EDX(R->EAX());
+	R->EAX(ptr);
+	return 0x40A56C;
+}

@@ -142,8 +142,6 @@ ASMJIT_PATCH(0x74A83C, VoxelAnimClass_BounceAnim, 0x5) // A
 	return 0x74A884;
 }
 
-#include <Misc/Hooks.Otamaa.h>
-
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6410, FakeVoxelAnimClass::_RemoveThis);
 
 #pragma endregion

@@ -5,8 +5,6 @@
 
 #include <Ext/BuildingType/Body.h>
 
-#include <Misc/Hooks.Otamaa.h>
-
 #pragma region Otamaa
 ASMJIT_PATCH(0x4518CF, BuildingClass_AnimLogic_check, 0x9)
 {

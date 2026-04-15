@@ -5,6 +5,7 @@
 #include <Ext/Rules/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
+#include <Ext/Foot/Body.h>
 
 #include <Utilities/Cast.h>
 
@@ -685,7 +686,7 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 					|| !pTechno->IsOnMap // Note: underground movement is considered "IsOnMap == false"
 					|| pTechno->Transporter
 					|| pTechno->Absorbed
-					|| !pFoot->CanBeRecruited(pHouse))
+					|| !FakeFootClass::_IsRecruitable(pFoot, discard_t(), pHouse))
 				{
 					continue;
 				}

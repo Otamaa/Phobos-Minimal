@@ -23,6 +23,19 @@
 #include <Locomotor/JumpjetLocomotionClass.h>
 #include <Locomotor/Cast.h>
 
+ASMJIT_PATCH(0x711F60, TechnoTypeClass_RefundAmount_Disable, 0x8)
+{
+	GET(TechnoTypeClass*, pThis, ECX);
+
+	if (TechnoTypeExtContainer::Instance.Find(pThis)->Soylent_Zero)
+	{
+		R->EAX(0);
+		return 0x712036;
+	}
+
+	return 0x0;
+}
+
 ASMJIT_PATCH(0x71532B, TechnoTypeClass_LoadFromINI_BarrelAnimData_Fix, 0x8)
 {
 	GET(TechnoTypeClass*, pThis, EBP);

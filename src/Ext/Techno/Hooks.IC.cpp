@@ -6,8 +6,6 @@
 #include <Utilities/Macro.h>
 #include <Utilities/EnumFunctions.h>
 
-#include <Misc/Hooks.Otamaa.h>
-
 ASMJIT_PATCH(0x4DEAEE, TechnoClass_IronCurtain_Flags, 0x6)
 {
 	GET(FootClass*, pThis, ESI);

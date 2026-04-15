@@ -12,6 +12,7 @@
 #include <TemporalClass.h>
 #include <CellClass.h>
 #include <Notifications.h>
+#include <TerrainTypeClass.h>
 
 #include <Ext/Rules/Body.h>
 #include <Ext/Building/Body.h>
@@ -1246,8 +1247,6 @@ ASMJIT_PATCH(0x74691D, UnitClass_UpdateDisguise_EMP, 0x6)
 
 	return 0x0;
 }
-
-#include <Misc/Hooks.Otamaa.h>
 
 bool FakeHouseClass::_IsAlliedWith(HouseClass* pOther)
 {

@@ -75,7 +75,7 @@ ASMJIT_PATCH(0x7461C5, UnitClass_BallooonHoverExplode_OverrideCheck, 0x6)
 // when it has multiple turrets. gattling and charge turret is no
 // longer affected by this.
 
-ASMJIT_PATCH(0x73D81C, UnitClass_Mi_Unload_LastPassenger, 0x7)
+ASMJIT_PATCH(0x73D81C, UnitClass_Mission_Unload_LastPassenger, 0x7)
 {
 	GET(UnitClass*, pThis, ESI);
 	R->EAX(pThis->Type->Gunner);
@@ -332,7 +332,7 @@ ASMJIT_PATCH(0x508D4A, HouseClass_UpdatePower_LocalDrain2, 6)
 }
 
 
-ASMJIT_PATCH(0x73DE90, UnitClass_Mi_Unload_SimpleDeployer, 0x6)
+ASMJIT_PATCH(0x73DE90, UnitClass_Mission_Unload_SimpleDeployer, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
@@ -361,7 +361,7 @@ ASMJIT_PATCH(0x73DE90, UnitClass_Mi_Unload_SimpleDeployer, 0x6)
 #include <Ext/CaptureManager/Body.h>
 
 // do not order deactivated units to move
-ASMJIT_PATCH(0x73DBF9, UnitClass_Mi_Unload_Decactivated, 5)
+ASMJIT_PATCH(0x73DBF9, UnitClass_Mission_Unload_Decactivated, 5)
 {
 	GET(UnitClass*, pUnloadee, EDI);
 	LEA_STACK(CellStruct**, ppCell, 0x0);
@@ -403,7 +403,7 @@ ASMJIT_PATCH(0x73DBF9, UnitClass_Mi_Unload_Decactivated, 5)
 	return 0;
 }
 
-//UnitClass_Mi_Harvest_SkipDock
+//UnitClass_Mission_Harvest_SkipDock
 DEFINE_JUMP(LJMP, 0x73E66D, 0x73E6CF);
 
 ASMJIT_PATCH(0x6AF748, SlaveManagerClass_UpdateSlaves_SlaveScan, 6)
@@ -461,7 +461,7 @@ ASMJIT_PATCH(0x6B1065, SlaveManagerClass_ShouldWakeUp_ShortScan, 5)
 	return 0x6B1085;
 }
 
-ASMJIT_PATCH(0x73EC0E, UnitClass_Mi_Harvest_TooFarDistance1, 6)
+ASMJIT_PATCH(0x73EC0E, UnitClass_Mission_Harvest_TooFarDistance1, 6)
 {
 	GET(UnitClass*, pThis, EBP);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
@@ -469,7 +469,7 @@ ASMJIT_PATCH(0x73EC0E, UnitClass_Mi_Harvest_TooFarDistance1, 6)
 	return 0x73EC14;
 }
 
-ASMJIT_PATCH(0x73EE40, UnitClass_Mi_Harvest_TooFarDistance2, 6)
+ASMJIT_PATCH(0x73EE40, UnitClass_Mission_Harvest_TooFarDistance2, 6)
 {
 	GET(UnitClass*, pThis, EBP);
 
@@ -479,20 +479,20 @@ ASMJIT_PATCH(0x73EE40, UnitClass_Mi_Harvest_TooFarDistance2, 6)
 	return 0x73EE46;
 }
 
-ASMJIT_PATCH(0x73E9F1, UnitClass_Mi_Harvest_ShortScan, 6)
+ASMJIT_PATCH(0x73E9F1, UnitClass_Mission_Harvest_ShortScan, 6)
 {
 	GET(UnitClass*, pThis, EBP);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	R->EAX(pTypeExt->Harvester_ShortScan.Get(RulesClass::Instance->TiberiumShortScan));
 	return R->Origin() + 0x6;
-}ASMJIT_PATCH_AGAIN(0x73EAC6, UnitClass_Mi_Harvest_ShortScan, 6)
-ASMJIT_PATCH_AGAIN(0x73EAA6, UnitClass_Mi_Harvest_ShortScan, 6)
-ASMJIT_PATCH_AGAIN(0x73EA17, UnitClass_Mi_Harvest_ShortScan, 6)
+}ASMJIT_PATCH_AGAIN(0x73EAC6, UnitClass_Mission_Harvest_ShortScan, 6)
+ASMJIT_PATCH_AGAIN(0x73EAA6, UnitClass_Mission_Harvest_ShortScan, 6)
+ASMJIT_PATCH_AGAIN(0x73EA17, UnitClass_Mission_Harvest_ShortScan, 6)
 
 #include <Locomotor/Cast.h>
 
 #ifdef _eeee
-ASMJIT_PATCH(0x73E735, UnitClass_Mi_Harvest_LongScan, 7){
+ASMJIT_PATCH(0x73E735, UnitClass_Mission_Harvest_LongScan, 7){
 	GET(UnitClass*, pThis, EBP);
 	GET(AbstractClass*, pFocus, EAX);
 
@@ -555,13 +555,13 @@ ASMJIT_PATCH(0x4DCEB3, FootClass_TiberiumScanning_AllowPlayertoScanUderShroud, 0
 	return RulesExtData::Instance()->CampaignAllowHarvesterScanUnderShroud[diff] ? 0x4DCF26 : 0x0;
 }
 
- ASMJIT_PATCH(0x73E851, UnitClass_Mi_Harvest_LongScan, 6)
+ ASMJIT_PATCH(0x73E851, UnitClass_Mission_Harvest_LongScan, 6)
  {
  	GET(UnitClass*, pThis, EBP);
  	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
  	R->EAX(pTypeExt->Harvester_LongScan.Get(RulesClass::Instance->TiberiumLongScan));
  	return R->Origin() + 0x6;
- }ASMJIT_PATCH_AGAIN(0x73E772, UnitClass_Mi_Harvest_LongScan, 6)
+ }ASMJIT_PATCH_AGAIN(0x73E772, UnitClass_Mission_Harvest_LongScan, 6)
 
  ASMJIT_PATCH(0x73E730, UnitClass_Mission_Harvest_HarvesterScanAfterUnload, 0x5)
  {
@@ -601,7 +601,7 @@ ASMJIT_PATCH(0x4DCEB3, FootClass_TiberiumScanning_AllowPlayertoScanUderShroud, 0
  	return 0x73E755;
  }
 
-ASMJIT_PATCH(0x74081F, UnitClass_Mi_Guard_KickFrameDelay, 5)
+ASMJIT_PATCH(0x74081F, UnitClass_Mission_Guard_KickFrameDelay, 5)
 {
 	GET(UnitClass*, pThis, ESI);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
@@ -611,7 +611,7 @@ ASMJIT_PATCH(0x74081F, UnitClass_Mi_Guard_KickFrameDelay, 5)
 		0x740854 : 0x74083B;
 }
 
-// ASMJIT_PATCH(0x74410D, UnitClass_Mi_AreaGuard_KickFrameDelay, 5)
+// ASMJIT_PATCH(0x74410D, UnitClass_Mission_AreaGuard_KickFrameDelay, 5)
 // {
 // 	GET(UnitClass*, pThis, ESI);
 // 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
@@ -695,7 +695,7 @@ ASMJIT_PATCH(0x417DD2, AircraftClass_GetActionOnObject_NoManualUnload, 6)
 	return TechnoTypeExtContainer::Instance.Find(pThis->Type)->NoManualUnload ? 0x417DF4u : 0u;
 }
 
-ASMJIT_PATCH(0x73D800, UnitClass_MI_Unload_NoManualUnload, 0x5){
+ASMJIT_PATCH(0x73D800, UnitClass_Mission_Unload_NoManualUnload, 0x5){
 	enum { Continue = 0x0 , AssignMissionGuard = 0x73D81C };
 	GET(UnitClass const* const, pThis, ESI);
 	return TechnoTypeExtContainer::Instance.Find(pThis->Type)->NoManualUnload ?

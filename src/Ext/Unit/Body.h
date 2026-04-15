@@ -94,6 +94,8 @@ public:
 	int _Mission_Attack();
 	int _Mission_AreaGuard();
 
+	FireError _Can_Fire(AbstractClass* target, int which, bool check_fire_coord);
+
 	void _Deploy();
 	void _UnDeploy();
 
@@ -108,7 +110,7 @@ public:
 	}
 
 	FORCEDINLINE UnitTypeExtData* _GetTypeExtData() {
-		return *reinterpret_cast<UnitTypeExtData**>(((DWORD)this->Type) + AbstractExtOffset);
+		return ((UnitTypeExtData*)this->_GetExtData()->TypeExtData);
 	}
 };
 static_assert(sizeof(FakeUnitClass) == sizeof(UnitClass), "Invalid Size !");

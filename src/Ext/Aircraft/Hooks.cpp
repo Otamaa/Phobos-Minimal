@@ -14,7 +14,6 @@
 #include <Ext/AircraftType/Body.h>
 
 #include <Misc/MapRevealer.h>
-#include <Misc/Hooks.Otamaa.h>
 
 #include <Locomotor/FlyLocomotionClass.h>
 
@@ -427,4 +426,61 @@ ASMJIT_PATCH(0x4C72F2, EventClass_Execute__AircraftAreaGuard_Untether, 0x6)
 	}
 
 	return 0;
+}
+
+ASMJIT_PATCH(0x414EAA, AircraftClass_IsSinking_SinkAnim, 0x6)
+{
+	GET(AnimClass*, pAnim, EAX);
+	GET(AircraftClass* const, pThis, ESI);
+	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x40, 0x24));
+
+	pAnim->AnimClass::AnimClass(TechnoTypeExtData::GetSinkAnim(pThis), nCoord, 0, 1, AnimFlag::AnimFlag_600, 0, false);
+	AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
+
+	return 0x414ED0;
+}
+
+ASMJIT_PATCH(0x415302, AircraftClass_Mission_Unload_IsDropship, 0x6)
+{
+	GET(AircraftClass*, pThis, ESI);
+
+	if (pThis->Destination)
+	{
+		if (pThis->Type->IsDropship)
+		{
+			CellStruct nCell = CellStruct::Empty;
+			if (pThis->Destination->WhatAmI() != CellClass::AbsID)
+			{
+				if (auto pTech = flag_cast_to<TechnoClass*, false>(pThis))
+				{
+					nCell = CellClass::Coord2Cell(pTech->GetCoords());
+					if (nCell.IsValid())
+					{
+						if (auto pCell = MapClass::Instance->TryGetCellAt(nCell))
+						{
+							for (auto pOccupy = pCell->FirstObject;
+								pOccupy;
+								pOccupy = pOccupy->NextObject)
+							{
+								if (pOccupy->WhatAmI() == AbstractType::Building)
+								{
+									pThis->SetDestination(pThis->GoodLandingZone_(), true);
+								}
+								else
+								{
+									pOccupy->Scatter(pThis->GetCoords(), true, true);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			return 0x41531B;
+		}
+	}
+
+	return 0x41530C;
 }

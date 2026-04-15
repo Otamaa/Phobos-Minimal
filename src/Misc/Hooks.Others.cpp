@@ -68,21 +68,7 @@ ASMJIT_PATCH(0x52C5E0, Ares_NOLOGO, 0x7)
 	return Phobos::Otamaa::NoLogo ? 0x52C5F3 : 0x0;
 }
 
-ASMJIT_PATCH(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
-{
-	GET(FactoryClass*, pThis, ESI);
-
-	if (pThis->Owner == HouseClass::CurrentPlayer() &&
-		pThis->Object &&
-		pThis->Object->WhatAmI() == BuildingClass::AbsID
-		)
-	{
-		pThis->Object->RemoveSidebarObject();
-	}
-
-	return 0;
-}
-
+//MapClass CTOR
 DEFINE_JUMP(LJMP, 0x565215, 0x56522D);
 
 //ASMJIT_PATCH(0x6E2290, ActionClass_PlayAnimAt, 0x6)
@@ -630,8 +616,6 @@ ASMJIT_PATCH(0x5FED00, OverlayTypeClass_GetRadarColor, 0x6)
 	return 0x5FEDDA;
 }
 
-#include <Misc/Hooks.Otamaa.h>
-
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2460, FakeObjectClass::_GetCell);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3510, FakeObjectClass::_GetCell);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3C8C, FakeObjectClass::_GetCell);
@@ -720,18 +704,6 @@ ASMJIT_PATCH(0x65EA43, SendReinforcement_Opentopped, 0x6)
 	pPassenger->Transporter = pPlane;
 
 	return 0x0;
-}
-
-// issue 1520: logging stupid shit crashes the game
-ASMJIT_PATCH(0x4CA437, FactoryClass_GetCRC, 0x8)
-{
-	GET(FactoryClass*, pThis, ECX);
-	GET_STACK(DWORD, pCRC, 0xC);
-
-	R->ESI<FactoryClass*>(pThis);
-	R->EDI(pCRC);
-
-	return 0x4CA501;
 }
 
 // PrismSupportModifier repair

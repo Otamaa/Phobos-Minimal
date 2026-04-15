@@ -17,7 +17,6 @@
 #include <Ext/WarheadType/Body.h>
 
 #include <Utilities/Macro.h>
-#include <Misc/Hooks.Otamaa.h>
 
 #include <SpawnManagerClass.h>
 

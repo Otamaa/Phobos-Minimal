@@ -84,6 +84,7 @@ bool AircraftTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 }
 
 #include <AircraftClass.h>
+#include "Body.h"
 
 bool AircraftTypeExtData::ExtendedAircraftMissionsEnabled(AircraftClass* pAircraft) {
 	return AircraftTypeExtContainer::Instance.Find(pAircraft->Type)->ExtendedAircraftMissions.Get(RulesExtData::Instance()->ExpandAircraftMission);
@@ -163,3 +164,5 @@ bool FakeAircraftTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E28CC, FakeAircraftTypeClass::_ReadFromINI)
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2908, FakeAircraftTypeClass::_CanUseWaypoint);

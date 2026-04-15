@@ -147,7 +147,8 @@ bool bSkipROF)
 
 		if (pTechnoT->IsImmobilized) // +0x27C
 			return FireError::ILLEGAL;
-
+		
+		//DEFINE_JUMP(LJMP, 0x6FC22A, 0x6FC24D) // Skip IronCurtain check
 		// AI won't fire at Iron Curtained targets
 		//if (!pThis->Owner->IsHumanPlayer
 		//	&& pTechnoT->IsIronCurtained())

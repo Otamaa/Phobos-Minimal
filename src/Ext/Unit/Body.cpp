@@ -2,8 +2,6 @@
 
 #include <Utilities/Macro.h>
 
-#include <Misc/Hooks.Otamaa.h>
-
 #include <Locomotor/Cast.h>
 
 #include <Ext/Anim/Body.h>
@@ -529,3 +527,136 @@ void FakeUnitClass::_Detach(AbstractClass* target, bool all)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5C98, FakeUnitClass::_Detach)
+
+bool FakeUnitClass::_Paradrop(CoordStruct* pCoords)
+{
+	if (!this->ObjectClass::SpawnParachuted(*pCoords))
+	{
+		return false;
+	}
+
+	auto pExt = TechnoExtContainer::Instance.Find(this);
+	if (pExt->Is_DriverKilled || !RulesExtData::Instance()->AssignUnitMissionAfterParadropped)
+		return true;
+
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
+
+	if (pTypeExt->ParadropMission.Get(RulesExtData::Instance()->ParadropMission) != Mission::None)
+	{
+		this->QueueMission(pTypeExt->ParadropMission.Get(RulesExtData::Instance()->ParadropMission), false);
+	}
+	else if (this->Type->ResourceGatherer || this->Type->Harvester)
+	{
+		this->QueueMission(Mission::Harvest, false);
+	}
+	else if (this->IsArmed())
+	{
+		this->QueueMission(Mission::Hunt, false);
+	}
+	else if (this->Owner->IsControlledByHuman())
+	{
+		this->QueueMission(pTypeExt->AIParadropMission.Get(RulesExtData::Instance()->AIParadropMission), false);
+	}
+	else
+	{
+		this->QueueMission(Mission::Area_Guard, false);
+	}
+
+	return true;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D58, FakeUnitClass::_Paradrop);
+
+CoordStruct* FakeUnitClass::_GetFLH(CoordStruct* outBuffer, int weaponIdx, CoordStruct base)
+{
+	const auto pThis = static_cast<UnitClass*>(this);
+
+	do
+	{
+		const auto pTransporter = pThis->Transporter;
+
+		if (pThis->InOpenToppedTransport && pTransporter
+			&& GET_TECHNOTYPEEXT(pTransporter)->AlternateFLH_ApplyVehicle)
+		{
+			if (const int idx = pTransporter->Passengers.IndexOf(pThis))
+			{
+				*outBuffer = pTransporter->GetFLH(-idx, CoordStruct::Empty);
+				break;
+			}
+		}
+
+		*outBuffer = pThis->TechnoClass::GetFLH(weaponIdx, CoordStruct::Empty);
+	}
+	while (false);
+
+	return outBuffer;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D20, FakeUnitClass::_GetFLH);
+
+// issue #895788: cells' high occupation flags are marked only if they
+// actually contains a bridge while unmarking depends solely on object
+// height above ground. this mismatch causes the cell to become blocked.
+void FakeUnitClass::_SetOccupyBit(CoordStruct* pCrd)
+{
+	CellClass* pCell = MapClass::Instance->GetCellAt(pCrd);
+	int height = MapClass::Instance->GetCellFloorHeight(pCrd) + Unsorted::BridgeHeight;
+	bool alt = (pCrd->Z >= height && pCell->ContainsBridge());
+	//auto pCellExt = CellExtContainer::Instance.TryFind(pCell);
+
+	// remember which occupation bit we set
+	this->_GetExtData()->AltOccupation = alt;
+
+	if (alt)
+	{
+		pCell->AltOccupationFlags |= 0x20;
+		//if(pCellExt && !TechnoExtData::DoesntOccupyCellAsChild(this))
+		//	pCellExt->IncomingUnitAlt = this;
+	}
+	else
+	{
+		pCell->OccupationFlags |= 0x20;
+
+		//if(pCellExt && !TechnoExtData::DoesntOccupyCellAsChild(this))
+		//	pCellExt->IncomingUnit = this;
+	}
+}
+
+void FakeUnitClass::_ClearOccupyBit(CoordStruct* pCrd)
+{
+	enum { obNormal = 1, obAlt = 2 };
+
+	CellClass* pCell = MapClass::Instance->GetCellAt(pCrd);
+	//auto pCellExt = CellExtContainer::Instance.TryFind(pCell);
+	int height = MapClass::Instance->GetCellFloorHeight(pCrd) + Unsorted::BridgeHeight;
+	int alt = (pCrd->Z >= height) ? obAlt : obNormal;
+
+	// also clear the last occupation bit, if set
+
+	if (!this->_GetExtData()->AltOccupation.empty())
+	{
+		int lastAlt = this->_GetExtData()->AltOccupation ? obAlt : obNormal;
+		alt |= lastAlt;
+		this->_GetExtData()->AltOccupation.clear();
+	}
+
+	if (alt & obAlt)
+	{
+		pCell->AltOccupationFlags &= ~0x20;
+		//if(pCellExt && !TechnoExtData::DoesntOccupyCellAsChild(this))
+		//	pCellExt->IncomingUnitAlt= this;
+	}
+
+	if (alt & obNormal)
+	{
+		pCell->OccupationFlags &= ~0x20;
+		//if(pCellExt && !TechnoExtData::DoesntOccupyCellAsChild(this))
+		//	pCellExt->IncomingUnit = this;
+	}
+
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x744210, FakeUnitClass::_ClearOccupyBit);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D64, FakeUnitClass::_ClearOccupyBit);
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x7441B0, FakeUnitClass::_SetOccupyBit);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D60, FakeUnitClass::_SetOccupyBit);

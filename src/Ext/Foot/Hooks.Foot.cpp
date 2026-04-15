@@ -3,6 +3,7 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/WarheadType/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/Tiberium/Body.h>
@@ -15,6 +16,204 @@
 
 #include <InfantryClass.h>
 #include <RadarEventClass.h>
+
+void ElectrictAssaultCheck(FootClass* pThis, bool updateIdleAction)
+{
+	if (pThis->Target)
+		return;
+
+	auto pWeapon = pThis->GetWeapon(1);
+
+	if (pWeapon && pWeapon->WeaponType && pWeapon->WeaponType->Warhead->ElectricAssault)
+	{
+
+		auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->WeaponType->Warhead);
+		auto myLoc = pThis->GetMapCoords();
+
+		for (int i = 0; i < 8; ++i)
+		{
+			if (auto pBld = MapClass::Instance->GetCellAt(myLoc + CellSpread::AdjacentCell[i])->GetBuilding())
+			{
+				if (pBld->Type->Overpowerable && pBld->Owner == pThis->Owner)
+				{
+
+					if (pWHExt->ElectricAssault_Requireverses && pWHExt->GetVerses(TechnoExtData::GetTechnoArmor(pBld, pWeapon->WeaponType->Warhead))
+					.Verses <= 0.0)
+						continue;
+
+					pThis->SetTarget(pBld);
+					pThis->__AssignNewThreat = true;
+					pThis->QueueMission(Mission::Attack, false);
+					return;
+				}
+			}
+		}
+
+	}
+	else if (updateIdleAction)
+	{
+		pThis->UpdateIdleAction();
+	}
+}
+
+ASMJIT_PATCH(0x4D6F38, FootClass_ElectricAssultFix_SetWeaponType, 0x6)
+{
+	GET(FootClass*, pThis, ESI);
+	ElectrictAssaultCheck(pThis, false);
+	return 0x4D7025;
+}
+
+ASMJIT_PATCH(0x4D50E1, FootClass_MI_Guard_ElectrictAssault, 0xA)
+{
+	GET(FootClass*, pThis, ESI);
+	ElectrictAssaultCheck(pThis, true);
+	return 0x4D5225;
+}
+
+// https://bugs.launchpad.net/ares/+bug/895893
+ASMJIT_PATCH(0x4DB37C, FootClass_Limbo_ClearCellJumpjet, 0x6)
+{
+	GET(FootClass*, pThis, EDI);
+	auto pCell = pThis->GetCell();
+
+	if (GET_TECHNOTYPE(pThis)->JumpJet)
+	{
+		if (pCell->Jumpjet == pThis)
+		{
+			pCell->TryAssignJumpjet(nullptr);
+		}
+	}
+
+	//FootClass_Remove_Airspace_ares
+	return pCell->MapCoords.IsValid() ? 0x4DB3A4 : 0x4DB3AF;
+}
+
+ASMJIT_PATCH(0x4DB1A0, FootClass_GetMovementSpeed_SpeedMult, 0x6)
+{
+	GET(FootClass*, pThis, ECX);
+
+	const auto maxSpeed = pThis->GetDefaultSpeed();
+	int speedResult = int(maxSpeed * TechnoExtData::GetCurrentSpeedMultiplier(pThis));
+
+	if (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->FlagHouseIndex != -1)
+	{
+		speedResult /= 2;
+	}
+
+	R->EAX((int)speedResult);
+	return 0x4DB245;
+}
+
+ASMJIT_PATCH(0x4DBF01, FootClass_SetOwningHouse_FixArgs, 0x6)
+{
+	GET(FootClass* const, pThis, ESI);
+	GET_STACK(HouseClass* const, pNewOwner, 0xC + 0x4);
+	GET_STACK(bool const, bAnnounce, 0xC + 0x8);
+
+	//Debug::LogInfo("SetOwningHouse for [%s] announce [%s - %d]", pNewOwner->get_ID(), bAnnounce ? "True" : "False" , bAnnounce);
+	bool result = false;
+	if (pThis->TechnoClass::SetOwningHouse(pNewOwner, bAnnounce))
+	{
+		const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+		for (auto& trail : pExt->LaserTrails)
+		{
+			if (trail->Type->IsHouseColor)
+			{
+				trail->CurrentColor = pThis->Owner->LaserColor;
+			}
+		}
+
+		if (pThis->Owner->IsControlledByHuman())
+		{
+			// This is not limited to mind control, could possibly affect many map triggers
+			// This is still not even correct, but let's see how far this can help us
+
+			pThis->ShouldScanForTarget = false;
+			pThis->ShouldEnterAbsorber = false;
+			pThis->ShouldEnterOccupiable = false;
+			pThis->ShouldLoseTargetNow = false;
+			pThis->ShouldGarrisonStructure = false;
+			pThis->CurrentTargets.clear();
+			auto pThisType = GET_TECHNOTYPE(pThis);
+
+			if (pThis->HasAnyLink() || pThisType->ResourceGatherer) // Don't want miners to stop
+				return 0x4DBF13;
+
+			switch (pThis->GetCurrentMission())
+			{
+			case Mission::Harvest:
+			case Mission::Sleep:
+			case Mission::Harmless:
+			case Mission::Repair:
+				return 0x4DBF13;
+			}
+
+			pThis->Override_Mission(pThisType->DefaultToGuardArea ? Mission::Area_Guard : Mission::Guard, nullptr, nullptr); // I don't even know what this is, just clear the target and destination for me
+		}
+
+		result = true;
+	}
+
+	R->AL(result);
+	return 0x4DBF0F;
+}
+
+ASMJIT_PATCH(0x4DC0E4, FootClass_DrawActionLines_Attack, 0x8)
+{
+	enum { Skip = 0x4DC1A0, Continue = 0x0 };
+
+	GET(FootClass* const, pThis, ESI);
+
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
+
+	if (pTypeExt->CommandLine_Attack_Color.isset())
+	{
+		GET(CoordStruct*, pMovingDestCoord, EAX);
+		GET(int, nFLH_X, EBP);
+		GET(int, nFLH_Y, EBX);
+		GET_STACK(int, nFLH_Z, STACK_OFFS(0x34, 0x10));
+
+		if (pTypeExt->CommandLine_Attack_Color.Get() != ColorStruct::Empty)
+		{
+			Drawing::Draw_action_lines_7049C0(nFLH_X, nFLH_Y, nFLH_Z, pMovingDestCoord->X, pMovingDestCoord->Y, pMovingDestCoord->Z,
+				pTypeExt->CommandLine_Attack_Color->ToInit(), false, false);
+		}
+
+		return Skip;
+	}
+
+	return Continue;
+}
+
+ASMJIT_PATCH(0x4DC280, FootClass_DrawActionLines_Move, 0x5)
+{
+	enum { Skip = 0x4DC328, Continue = 0x0 };
+
+	GET(FootClass* const, pThis, ESI);
+
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
+
+	if (pTypeExt->CommandLine_Move_Color.isset())
+	{
+		GET_STACK(CoordStruct, nCooordDest, STACK_OFFS(0x34, 0x24));
+		GET(int, nCoordDest_Adjusted_Z, EDI);
+		GET(int, nLoc_X, EBP);
+		GET(int, nLoc_Y, EBX);
+		GET_STACK(int, nLoc_Z, STACK_OFFS(0x34, 0x10));
+		GET_STACK(bool, barg3, STACK_OFFSET(0x34, 0x8));
+
+		if (pTypeExt->CommandLine_Move_Color.Get() != ColorStruct::Empty)
+		{
+			Drawing::Draw_action_lines_7049C0(nLoc_X, nLoc_Y, nLoc_Z, nCooordDest.X, nCooordDest.Y, nCoordDest_Adjusted_Z,
+				pTypeExt->CommandLine_Move_Color->ToInit(), barg3, false);
+		}
+
+		return Skip;
+	}
+
+	return Continue;
+}
 
 ASMJIT_PATCH(0x4DFE00, FootClass_GarrisonStructure_TakeVehicle, 6)
 {

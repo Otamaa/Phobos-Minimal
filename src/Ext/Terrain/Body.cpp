@@ -167,9 +167,6 @@ ASMJIT_PATCH(0x71B824, TerrainClass_DTOR, 0x5)
 	return 0x71B845;
 }
 
-
-#include <Misc/Hooks.Otamaa.h>
-
 void FakeTerrainClass::_AI()
 {
 	this->ObjectClass::Update();

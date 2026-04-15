@@ -261,8 +261,6 @@ ASMJIT_PATCH(0x763226, WaveClass_DTOR, 0x6)
 //	return 0x75F645;
 //}
 
-#include <Misc/Hooks.Otamaa.h>
-
 void FakeWaveClass::_Detach(AbstractClass* target , bool all)
 {
 	//WaveExtContainer::Instance.InvalidatePointerFor(pThis , target , all);

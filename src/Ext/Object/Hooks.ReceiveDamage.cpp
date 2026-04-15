@@ -38,7 +38,6 @@
 
 #include <Conversions.h>
 
-#include <Misc/Hooks.Otamaa.h>
 #include <Misc/DamageArea.h>
 
 #include <New/Entity/FlyingStrings.h>

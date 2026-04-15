@@ -144,3 +144,43 @@ ASMJIT_PATCH(0x71C6EE, TerrainClass_FireOut_Crumbling, 0x6)
 
 	return Skip;
 }
+
+ASMJIT_PATCH(0x71C84D, TerrainClass_AI_Animated, 0x6)
+{
+	enum { SkipGameCode = 0x71C8D5 };
+
+	GET(TerrainClass* const, pThis, ESI);
+
+	if (pThis->Type)
+	{
+		if (pThis->Type->IsAnimated)
+		{
+			auto const pTypeExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
+			if (auto pImage = pThis->Type->GetImage())
+			{
+				if (pThis->Animation.Stage == (pTypeExt->AnimationLength
+					.Get(pImage->Frames / (2 * (pTypeExt->HasDamagedFrames + 1)))))
+				{
+					pThis->Animation.Stage = 0;
+					pThis->Animation.Start(0);
+
+					if (pThis->Type->SpawnsTiberium && MapClass::Instance->IsValid(pThis->Location))
+					{
+						for (int i = 0; i < pTypeExt->GetCellsPerAnim(); i++)
+							((FakeCellClass*)MapClass::Instance->GetCellAt(pThis->Location))->_SpreadTiberium_2(pThis, true);
+
+						const int particleIdx = pTypeExt->SpawnsTiberium_Particle;
+
+						if (particleIdx >= 0)
+						{
+							ParticleSystemClass::Instance->SpawnParticle(ParticleTypeClass::Array->Items[particleIdx], &pThis->Location);
+						}
+					}
+				}
+			}
+			else { Debug::LogInfo("Terrain [%s] With Corrupted Image !", pThis->Type->ID); }
+		}
+	}
+
+	return SkipGameCode;
+}

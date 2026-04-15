@@ -6,8 +6,6 @@
 
 #include <Utilities/Macro.h>
 
-#include <Misc/Hooks.Otamaa.h>
-
 #include <AITriggerTypeClass.h>
 #include <TaskForceClass.h>
 #include <TubeClass.h>
@@ -4638,6 +4636,7 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 			TacticalClass::Instance->FocusOn(&place, node.Argument);
 		}
 
+		DisplayClass::Instance->FollowAnObject(nullptr);
 		this->StepCompleted = true;
 		return;
 	}

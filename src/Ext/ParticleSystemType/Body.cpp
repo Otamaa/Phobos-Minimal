@@ -151,3 +151,18 @@ bool FakeParticleSystemTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F010C, FakeParticleSystemTypeClass::_ReadFromINI)
+
+ASMJIT_PATCH(0x62E430, ParticleSystemClass_AddTovector_nullptrParticle, 0x9)
+{
+	//GET_STACK(DWORD, caller, 0x0);
+	GET(ParticleSystemClass*, pThis, ECX);
+
+	if (!pThis)
+	{
+		// Fuck off
+		//Debug::LogInfo("Function [ParticleSystemClass_AddTovector] Has missing pThis Pointer called from [0x%x]", caller);
+		return 0x62E4B4;
+	}
+
+	return 0x0;
+}

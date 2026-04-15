@@ -2,11 +2,15 @@
 
 #include <New/Entity/FlyingStrings.h>
 
+#include <Ext/Anim/Body.h>
+#include <Ext/AnimType/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/House/Body.h>
 
 #include <Utilities/Cast.h>
+#include <Utilities/Macro.h>
+#include <Utilities/Patch.h>
 
 #include <GameOptionsClass.h>
 #include <BitFont.h>
@@ -351,12 +355,6 @@ ASMJIT_PATCH(0x4FA520, HouseClass_BeginProduction_SkipBuilding, 0x5)
 	return RulesExtData::Instance()->ExpandBuildingQueue ? SkipGameCode : 0;
 }
 
-ASMJIT_PATCH(0x4C9C7B, FactoryClass_QueueProduction_ForceCheckBuilding, 0x7)
-{
-	enum { SkipGameCode = 0x4C9C9E };
-	return RulesExtData::Instance()->ExpandBuildingQueue ? SkipGameCode : 0;
-}
-
 ASMJIT_PATCH(0x4FAAD8, HouseClass_AbandonProduction_RewriteForBuilding, 0x8)
 {
 	enum { CheckSame = 0x4FAB3D, SkipCheck = 0x4FAB64, Return = 0x4FAC9B };
@@ -610,3 +608,350 @@ DEFINE_HOOK(0x44B6C7, BuildingClass_Mission_Attack_TurretAnim, 0x6)
 }
 
 #pragma endregion
+
+ASMJIT_PATCH(0x453E02, BuildingClass_Clear_Occupy_Spot_Skip, 0x6)
+{
+	GET(TechnoClass*, pTechno, ESI);
+	GET(CellClass*, pCell, EAX);
+
+	ObjectClass* pObject = pCell->FirstObject;
+
+	do
+	{
+		if (pObject)
+		{
+			switch (pObject->WhatAmI())
+			{
+			case AbstractType::Building:
+			{
+				if (pObject != pTechno)
+				{
+					// skip change the OccFlag of this cell
+					return 0x453E12;
+				}
+				break;
+			}
+			}
+		}
+	}
+	while (pObject && (pObject = pObject->NextObject) != nullptr);
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x44DBBC, BuildingClass_Mission_Unload_Leave_Bio_Readtor_Sound, 0x7)
+{
+	GET(BuildingClass* const, pThis, EBP);
+	GET(FootClass* const, pPassenger, ESI);
+	LEA_STACK(CoordStruct*, pBuffer, 0x40);
+
+	int sound = GET_TECHNOTYPE(pPassenger)->LeaveBioReactorSound;
+
+	if (sound == -1)
+		sound = RulesClass::Instance->LeaveBioReactorSound;
+
+	auto coord = pThis->GetCoords(pBuffer);
+	VocClass::SafeImmedietelyPlayAt(sound, coord, 0);
+	return 0x44DBDA;
+}
+
+ASMJIT_PATCH(0x447E90, BuildingClass_GetDestinationCoord_Helipad, 0x6)
+{
+	GET(BuildingClass* const, pThis, ECX);
+	GET_STACK(CoordStruct*, pCoord, 0x4);
+	GET_STACK(TechnoClass* const, pDocker, 0x8);
+
+	auto const pType = pThis->Type;
+	if (pType->Helipad)
+	{
+		pThis->GetDockCoords(pCoord, pDocker);
+		pCoord->Z = 0;
+	}
+	else if (pType->UnitRepair || pType->Bunker)
+	{
+		pThis->GetDockCoords(pCoord, pDocker);
+	}
+	else
+	{
+		pThis->GetCoords(pCoord);
+	}
+
+	R->EAX(pCoord);
+	return 0x447F06;
+}
+
+ASMJIT_PATCH(0x442CCF, BuildingClass_Init_Sellable, 0x7)
+{
+	GET(BuildingClass*, pThis, ESI);
+	pThis->IsAllowedToSell = !pThis->Type->Unsellable;
+	return 0x0;
+}
+
+ASMJIT_PATCH(0x458291, BuildingClass_GarrisonAI_AbandonedSound, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	const auto pExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
+	const auto nVal = pExt->AbandonedSound.Get(RulesClass::Instance->BuildingAbandonedSound);
+	if (nVal >= 0)
+	{
+		VocClass::PlayGlobal(nVal, Panning::Center, 1.0, 0);
+	}
+
+	return 0x4582AE;
+}
+
+ASMJIT_PATCH(0x4431D3, BuildingClass_Destroyed_removeLog, 0x5)
+{
+	GET(InfantryClass*, pSurvivor, ESI);
+	GET_STACK(int, nData, 0x8C - 0x70);
+	Debug::Log("Survivor[(%x - %s) - %s] unlimbo OK\n", pSurvivor, pSurvivor->Type->ID, pSurvivor->Owner->Type->ID);
+
+	R->EBP(--nData);
+	R->EDX(pSurvivor->Type);
+	return 0x4431EB;
+}
+
+ASMJIT_PATCH(0x443292, BuildingClass_Destroyed_CreateSmudge_A, 0x6)
+{
+	GET(BuildingClass*, pThis, EDI);
+	return BuildingTypeExtContainer::Instance.Find(pThis->Type)->Destroyed_CreateSmudge
+		? 0x0 : 0x4433F9;
+}
+
+ASMJIT_PATCH(0x44177E, BuildingClass_Destroyed_CreateSmudge_B, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	return BuildingTypeExtContainer::Instance.Find(pThis->Type)->Destroyed_CreateSmudge
+		? 0x0 : 0x4418EC;
+}
+
+ASMJIT_PATCH(0x447110, BuildingClass_Sell_Handled, 0x9)
+{
+	GET(BuildingClass*, pThis, ECX);
+	GET_STACK(int, control, 0x4);
+
+	// #754 - evict Hospital/Armory contents
+	TechnoExtData::KickOutHospitalArmory(pThis);
+
+	BuildingExtContainer::Instance.Find(pThis)->MyPrismForwarding->RemoveFromNetwork(true);
+
+	if (pThis->HasBuildup)
+	{
+
+		switch (control)
+		{
+		case -1:
+		{
+			if (pThis->GetCurrentMission() != Mission::Selling)
+			{
+
+				pThis->QueueMission(Mission::Selling, false);
+				pThis->NextMission();
+			}
+
+			break;
+		}
+		case 0:
+		{
+			if (pThis->GetCurrentMission() != Mission::Selling)
+			{
+				return 0x04471C2;
+			}
+
+			break;
+		}
+		case 1:
+		{
+			if (pThis->GetCurrentMission() != Mission::Selling && !pThis->IsGoingToBlow)
+			{
+				pThis->QueueMission(Mission::Selling, false);
+				pThis->NextMission();
+			}
+
+			break;
+		}
+		default:
+			break;
+		}
+
+		if (!BuildingExtContainer::Instance.Find(pThis)->Silent)
+		{
+			if (pThis->Owner->ControlledByCurrentPlayer())
+			{
+				VocClass::PlayGlobal(RulesClass::Instance->GenericClick, Panning::Center, 1.0, 0);
+			}
+		}
+
+		return 0x04471C2;
+	}
+	else
+	{
+		if (pThis->Type->FirestormWall || BuildingTypeExtContainer::Instance.Find(pThis->Type)->Firestorm_Wall)
+		{
+			//if(const auto pBomb = pThis->AttachedBomb) {
+			//	if (BombExtContainer::Instance.Find(pBomb)->Weapon->Ivan_DetonateOnSell.Get()){
+			//		pBomb->Detonate();// Otamaa : detonate may kill the techno before this function
+			//		// so this can possibly causing some weird crashes if that happening
+			//	}
+			//}
+
+			pThis->Limbo();
+			pThis->UnInit();
+		}
+	}
+
+	return 0x04471C2;
+}
+
+ASMJIT_PATCH(0x449462, BuildingClass_IsCellOccupied_UndeploysInto, 0x6)
+{
+	enum { PlacingCheck = 0x449493, SkipGameCode = 0x449487 };
+
+	GET(BuildingClass*, pThis, ECX);
+
+	if (pThis->CurrentMission == Mission::None)
+		return PlacingCheck;
+
+	GET(BuildingTypeClass*, pType, EAX);
+	LEA_STACK(CellStruct*, pDest, 0x4);
+
+	const auto pUndeploysInto = pType->UndeploysInto;
+	R->AL(MapClass::Instance->GetCellAt(pDest)
+		->IsClearToMove(pUndeploysInto->SpeedType, 0, 0, ZoneType::None, pUndeploysInto->MovementZone, -1, 1)
+	);
+
+	return SkipGameCode;
+}
+
+ASMJIT_PATCH(0x449E8E, BuildingClass_Mission_Selling_UndeployLocationFix, 0x5)
+{
+	GET(BuildingClass*, pThis, EBP);
+	CellStruct mapCoords = pThis->InlineMapCoords();
+
+	const short width = pThis->Type->GetFoundationWidth();
+	const short height = pThis->Type->GetFoundationHeight(false);
+
+	if (width > 2)
+		mapCoords.X += static_cast<short>(std::ceil(width / 2.0) - 1);
+	if (height > 2)
+		mapCoords.Y += static_cast<short>(std::ceil(height / 2.0) - 1);
+
+	REF_STACK(CoordStruct, location, STACK_OFFSET(0xD0, -0xC0));
+	auto coords = (CoordStruct*)&location.Z;
+	coords->X = (mapCoords.X << 8) + 128;
+	coords->Y = (mapCoords.Y << 8) + 128;
+	coords->Z = pThis->Location.Z;
+
+	return 0x449F12;
+}
+
+ASMJIT_PATCH(0x4419A9, BuildingClass_Destroy_ExplodeAnim, 0x5)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(int, X, ECX);
+	GET(int, Y, EDX);
+	GET(int, Z, EAX);
+	GET(int, zAdd, EDI);
+
+	CoordStruct nLoc { X , Y , Z + zAdd };
+	const int idx = pThis->Type->Explosion.Count == 1 ?
+		0 : ScenarioClass::Instance->Random.RandomFromMax(pThis->Type->Explosion.Count - 1);
+
+	if (auto const pType = pThis->Type->Explosion.Items[idx])
+	{
+		const auto nDelay = ScenarioClass::Instance->Random.RandomFromMax(3);
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, nLoc, nDelay, 1, AnimFlag::AnimFlag_600, 0, false),
+			pThis->GetOwningHouse(),
+			nullptr,
+			false
+		);
+	}
+
+	R->Stack(0x20, nLoc.X);
+	R->Stack(0x24, nLoc.Y);
+	R->Stack(0x28, nLoc.Z);
+	return 0x441A24;
+}
+
+ASMJIT_PATCH(0x441AC4, BuildingClass_Destroy_Fire3Anim, 0x5)
+{
+	GET(BuildingClass*, pThis, ESI);
+	LEA_STACK(CoordStruct*, pCoord, 0x64 - 0x54);
+
+	if (auto pType = RulesExtData::Instance()->DefaultExplodeFireAnim)
+	{
+		const auto nDelay = ScenarioClass::Instance->Random.RandomRanged(1, 3);
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pCoord, nDelay + 3, 1, AnimFlag::AnimFlag_600, 0, false),
+			pThis->GetOwningHouse(),
+			nullptr,
+			false
+		);
+	}
+
+	return 0x441B1F;
+}
+
+ASMJIT_PATCH(0x441D1F, BuildingClass_Destroy_DestroyAnim, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(AnimClass*, pAnim, EAX);
+
+	AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
+	return 0x0;
+}
+
+ASMJIT_PATCH(0x450B48, BuildingClass_Anim_AI_UnitAbsorb, 0x6)
+{
+	GET(BuildingTypeClass*, pThis, EAX);
+	R->CL(pThis->InfantryAbsorb || pThis->UnitAbsorb);
+	return 0x450B4E;
+}
+
+ASMJIT_PATCH(0x4421F2, BuildingClass_Destroyed_PlaceCrate, 0x6)
+{
+	//GET(BuildingClass*, pThis, ESI);
+	GET(BuildingTypeClass*, pThisType, EDX);
+	GET_STACK(CellStruct, cell, 0x10);
+
+	const PowerupEffects defaultcrate = pThisType->CrateBeneathIsMoney ? PowerupEffects::Money : (PowerupEffects)CrateTypeClass::Array.size();
+	const auto CrateType = &TechnoTypeExtContainer::Instance.Find(pThisType)->Destroyed_CrateType;
+	PowerupEffects crate = CrateType->isset() ? (PowerupEffects)CrateType->Get() : defaultcrate;
+	R->EAX(MapClass::Instance->Place_Crate(cell, crate));
+	return 0x442226;
+}
+
+ASMJIT_PATCH(0x451932, BuildingClass_AnimLogic_Ownership, 0x5)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(int, _X, ECX);
+	GET(int, _Y, EDX);
+	GET(int, _Z, EAX);
+	GET(int, animIdx, EBP);
+	GET_STACK(int, delay, 0x48);
+
+	CoordStruct coord { _X , _Y , _Z };
+	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(AnimTypeClass::Array->Items[animIdx]);
+
+	auto pAnim = GameCreate<AnimClass>(AnimTypeClass::Array->Items[animIdx], coord, delay, 1, AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_1000, 0, 0);
+	if (!pTypeExt->NoOwner)
+	{
+		((FakeAnimClass*)pAnim)->_GetExtData()->Invoker = pThis;
+		pAnim->SetHouse(pThis->Owner);
+	}
+
+	((FakeAnimClass*)pAnim)->_GetExtData()->ParentBuilding = pThis;
+	R->EBP(pAnim);
+	return 0x45197B;
+}
+
+//BuildingClass_ClearFactory
+DEFINE_JUMP(LJMP, 0x4495FF, 0x44961A);
+DEFINE_JUMP(LJMP, 0x449657, 0x449672);
+
+//remove unused function
+//BuildingClass_Destroy
+DEFINE_JUMP(LJMP, 0x4417A7, 0x44180A)
+
+//BuildingClass_Mission_Unload_DisableLog
+DEFINE_JUMP(LJMP, 0x44DE2F, 0x44DE3C);

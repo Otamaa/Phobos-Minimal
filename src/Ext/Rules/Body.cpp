@@ -31,6 +31,7 @@
 #include <Ext/Scenario/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/Side/Body.h>
+#include <Ext/House/Body.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/Helpers.h>
@@ -43,6 +44,7 @@
 #include <TerrainTypeClass.h>
 #include <IsometricTileTypeClass.h>
 #include <SmudgeTypeClass.h>
+#include <VeinholeMonsterClass.h>
 
 std::unique_ptr<RulesExtData> RulesExtData::Data {};
 IStream* RulesExtData::g_pStm;
@@ -2773,6 +2775,124 @@ ASMJIT_PATCH(0x511D16, HouseTypeClass_LoadFromINI_Buffer_CountryVeteran, 9)
 	return 0x51208C;
 }
 
+static void ProcessColorAdd(CCINIClass* pINI)
+{
+	const int count = pINI->GetKeyCount(GameStrings::ColorAdd);
+
+	if (count > 0)
+	{
+		struct temp_rgb
+		{
+			byte r, g, b;
+
+			operator ColorStruct()
+			{
+				return *reinterpret_cast<ColorStruct*>(this);
+			}
+
+			operator byte* ()
+			{
+				return reinterpret_cast<byte*>(this);
+			}
+		};
+
+		//this was for debugging purposes
+		//the code below can be simplified
+		std::vector<temp_rgb> v_buffer(count);
+
+		for (size_t i = 0; i < v_buffer.size(); ++i)
+		{
+			pINI->Read3Bytes((v_buffer[i]).operator unsigned char* ()
+				, GameStrings::ColorAdd
+				, pINI->GetKeyName(GameStrings::ColorAdd, i)
+				, (v_buffer[i]).operator unsigned char* ());
+		}
+
+		if (v_buffer.size() >= RulesClass::Instance->ColorAdd.size())
+		{
+			Debug::LogInfo("Attempt to read ColorAdd more than array size {}", count);
+			Debug::RegisterParserError();
+		}
+
+		for (size_t a = 0; a < RulesClass::Instance->ColorAdd.size(); ++a)
+		{
+			RulesClass::Instance->ColorAdd[a] = v_buffer[a];
+		}
+
+	}
+	else
+	{
+		Debug::FatalErrorAndExit("Empty ColorAdd\n");
+	}
+}
+
+ASMJIT_PATCH(0x668C24, RulesClass_Process_ColorAdd, 0x6)
+{
+	GET(CCINIClass*, pINI, ESI);
+	ProcessColorAdd(pINI);
+	return 0x668C8B;
+}
+
+ASMJIT_PATCH(0x668B29, RulesClass_Init_ColorAdd, 0x6)
+{
+	GET(CCINIClass*, pINI, EDI);
+	ProcessColorAdd(pINI);
+	return 0x668B8E;
+}
+
+ASMJIT_PATCH(0x581646, MapClass_CollapseCliffs_DefaultAnim, 0x5)
+{
+	R->Stack(0x1C, RulesExtData::Instance()->XGRYMED1_);//med1
+	R->Stack(0x28, RulesExtData::Instance()->XGRYMED2_);//med2
+	R->EDX(RulesExtData::Instance()->XGRYSML1_);//0x2C sml
+	return 0x58168F;
+}
+
+ASMJIT_PATCH(0x581D4E, MapClass_CollapseCliffs_DefaultAnimB, 0x5)
+{
+	R->Stack(0x20, RulesExtData::Instance()->XGRYMED1_);//med1
+	R->Stack(0x24, RulesExtData::Instance()->XGRYMED2_);//med2
+	R->EDX(RulesExtData::Instance()->XGRYSML1_);//0x2C sml
+	return 0x581D97;
+}
+
+ASMJIT_PATCH(0x42499C, AnimClass_AnimToInf_CivialHouse, 0x6)
+{
+	R->EAX(HouseExtData::FindFirstCivilianHouse());
+	return 0x4249D8;
+}
+
+ASMJIT_PATCH(0x458230, BuildingClass_GarrisonAI_CivilianHouse, 0x6)
+{
+	R->EBX(HouseExtData::FindFirstCivilianHouse());
+	return 0x45826E;
+}
+
+ASMJIT_PATCH(0x41ECB0, AITriggerClass_NeutralOwns_CivilianHouse, 0x5)
+{
+	R->EBX(HouseExtData::FindFirstCivilianHouse());
+	return 0x41ECE8;
+}
+
+ASMJIT_PATCH(0x50157C, HouseClass_IsAllowedToAlly_CivilianHouse, 0x5)
+{
+	HouseExtData::FindFirstCivilianHouse();
+	R->EAX(RulesExtData::Instance()->CivilianSideIndex);
+	return 0x501586;
+}
+
+ASMJIT_PATCH(0x6B0AFE, SlaveManagerClass_FreeSlaves_ToCivilianHouse, 0x5)
+{
+	R->Stack(0x10, HouseExtData::FindFirstCivilianHouse());
+	return 0x6B0B3C;
+}
+
+ASMJIT_PATCH(0x5A920D, galite_5A91E0_SpecialHouse, 0x5)
+{
+	R->EAX(HouseExtData::FindSpecial());
+	return 0x5A921E;
+}
+
 // HTExt_Unlimit1
 DEFINE_JUMP(LJMP, 0x4E3792, 0x4E37AD);
 
@@ -2793,3 +2913,182 @@ DEFINE_JUMP(LJMP, 0x56017A, 0x560183);
 
 //OptionsDlg_WndProc_RemoveHiResCheck
 DEFINE_JUMP(LJMP, 0x5601E3, 0x5601FC);
+
+ASMJIT_PATCH(0x74C8FB, VeinholeMonsterClass_CTOR_SetArmor, 0x6)
+{
+	GET(VeinholeMonsterClass*, pThis, ESI);
+	GET(TerrainTypeClass* const, pThisTree, EDX);
+
+	auto pType = pThis->GetType();
+	if (pType && pThisTree)
+		pType->Armor = pThisTree->Armor;
+
+	return 0x0;
+}
+
+static	void __fastcall DrawShape_VeinHole
+(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds,
+ BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape,
+ int ZShapeFrame, int XOffset, int YOffset
+)
+{
+	if (auto pManager = RulesExtData::Instance()->VeinholePal.GetConvert())
+		Pal = pManager;
+
+	CC_Draw_Shape(Surface, Pal, SHP, FrameIndex, Position, Bounds, Flags, Remap, ZAdjust, ZGradientDescIndex, Brightness
+	 , TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
+}
+
+DEFINE_FUNCTION_JUMP(CALL, 0x74D5BC, DrawShape_VeinHole);
+
+ASMJIT_PATCH(0x4AD097, DisplayClass_ReadINI_add, 0x6)
+{
+	const auto nTheater = ScenarioClass::Instance->Theater;
+	SmudgeTypeClass::TheaterInit(nTheater);
+	VeinholeMonsterClass::TheaterInit(nTheater);
+	return 0x4AD0A8;
+}
+
+ASMJIT_PATCH(0x52D36F, RulesClass_init_AIMD, 0x5)
+{
+	GET(CCFileClass*, pFile, EAX);
+	Debug::LogInfo("Init {} file", pFile->GetFileName());
+	return 0x0;
+}
+
+ASMJIT_PATCH(0x74D0D2, VeinholeMonsterClass_AI_SelectParticle, 0x5)
+{
+	//overriden instructions
+	R->Stack(0x2C, R->EDX());
+	R->Stack(0x30, R->EAX());
+	LEA_STACK(CoordStruct*, pCoord, 0x28);
+	const auto pRules = RulesExtData::Instance();
+	const auto pParticle = pRules->VeinholeParticle.Get(pRules->DefaultVeinParticle.Get());
+	R->EAX(ParticleSystemClass::Instance->SpawnParticle(pParticle, pCoord));
+	return 0x74D100;
+}
+
+ASMJIT_PATCH(0x5D736E, MultiplayGameMode_GenerateInitForces, 0x6)
+{
+	return (R->EAX<int>() > 0) ? 0x0 : 0x5D743E;
+}
+
+ASMJIT_PATCH(0x5D3ADE, MessageListClass_Init_MessageMax, 0x6)
+{
+	if (Phobos::Otamaa::IsAdmin)
+		R->EAX(14);
+
+	return 0x0;
+}
+
+// Skip log spam "Unable to locate scenario %s - No digest info"
+//MultiMission CTOR
+DEFINE_JUMP(LJMP, 0x69A797, 0x69A937);
+
+//allow `VeinholeMonster` to be placed anywhere flat
+//VeinholeClass CTOR
+DEFINE_JUMP(LJMP, 0x74C688, 0x74C697);
+
+ASMJIT_PATCH(0x4A267D, CreditClass_AI_MissingCurPlayerPtr, 0x6)
+{
+	if (!HouseClass::CurrentPlayer())
+		Debug::FatalError("CurrentPlayer ptr is Missing!");
+
+	return 0x0;
+}
+
+ASMJIT_PATCH(0x5FF93F, SpotlightClass_Draw_OutOfboundSurfaceArrayFix, 0x7)
+{
+	//GET(SpotlightClass*, pThis, EBP);
+	GET(int, idx, ECX);
+
+	if (idx > 64)
+	{
+		//Debug::LogInfo("[0x{}]SpotlightClass with OutOfBoundSurfaceArrayIndex[{}] Fixing!", (void*)pThis, idx);
+		idx = 64;
+	}
+
+	return 0x0;
+}
+
+enum class NewVHPScan : int
+{
+	None = 0,
+	Normal = 1,
+	Strong = 2,
+	//Threat = 3,
+	//Health = 4,
+	//Damage = 5,
+	//Value = 6,
+	//Locked = 7,
+	//Non_Infantry = 8,
+
+	count
+};
+
+COMPILETIMEEVAL std::array<const char*, (size_t)NewVHPScan::count> NewVHPScanToString
+{ {
+	{ "None" }
+	,{ "Normal" }
+	,{ "Strong" }
+	//,{ "Threat" }
+	//,{ "Health" }
+	//,{ "Damage" }
+	//,{ "Value" }
+	//,{ "Locked" }
+	//,{ "Non_Infantry" }
+	} };
+
+ASMJIT_PATCH(0x477590, CCINIClass_ReadVHPScan_Replace, 0x6)
+{
+	GET(CCINIClass*, pThis, ECX);
+	GET_STACK(const char*, pSection, 0x4);
+	GET_STACK(const char*, pKey, 0x8);
+	GET_STACK(int, default_val, 0xC);
+
+	INI_EX exINI(pThis);
+
+	int vHp = default_val;
+
+	if (exINI.ReadString(pSection, pKey) > 0)
+	{
+		for (int i = 0; i < (int)NewVHPScanToString.size(); ++i)
+		{
+			if (IS_SAME_STR_(exINI.value(), NewVHPScanToString[i]))
+			{
+				R->EAX(i);
+				return 0x477613;
+			}
+		}
+
+		Debug::INIParseFailed(pSection, pKey, exINI.value(), "Expected valid VHPScan value");
+	}
+
+	R->EAX(vHp);
+	return 0x477613;
+}
+
+ASMJIT_PATCH(0x52C5A1, InitGame_SecondaryMixInit, 0x9)
+{
+	const bool result = R->AL();
+	Debug::LogInfo(" ...{} !!!", !result ? "FAILED" : "OK");
+	return 0x52C5D3;
+}
+
+ASMJIT_PATCH(0x674028, RulesClass_ReadLandTypeData_Additionals, 0x7)
+{
+	GET(CCINIClass*, pINI, EDI);
+	GET(const char**, pSection_iter, ESI);
+	INI_EX ex_INI(pINI);
+	RulesExtData::Instance()->LandTypeConfigExts[PhobosGlobal::Instance()->LandTypeParseCounter].Bounce_Elasticity.Read(ex_INI, *pSection_iter, "Bounce.Elasticity");
+	Debug::LogInfo("Reading LandTypeData of [{} - {}]", *pSection_iter, PhobosGlobal::Instance()->LandTypeParseCounter);
+	++PhobosGlobal::Instance()->LandTypeParseCounter;
+	return 0;
+}
+
+ASMJIT_PATCH(0x691A32, ReadScenarion_RemoveInline, 0x5)
+{
+	LEA_STACK(char*, pName, 0x18);
+	R->ESI(GameCreate<ScriptTypeClass>(pName));
+	return 0x691B01;
+}

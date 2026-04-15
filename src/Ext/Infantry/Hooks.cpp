@@ -25,6 +25,86 @@
 #include <Locomotor/TeleportLocomotionClass.h>
 #include <CaptureManagerClass.h>
 
+//unnessesary call wtf ?
+//InfantryClass_Draw_It_GetCell_CallTwices
+DEFINE_JUMP(LJMP, 0x519211, 0x51922F);
+
+ASMJIT_PATCH(0x5194EF, InfantryClass_DrawIt_InAir_NoShadow, 5)
+{
+	GET(InfantryClass*, pThis, EBP);
+	return pThis->Type->NoShadow || pThis->CloakState != CloakState::Uncloaked ? 0x51958A : 0x0;
+}
+
+ASMJIT_PATCH(0x51F885, InfantryClass_WhatAction_TubeStuffs_FixGetCellAtCallTwice, 0x7)
+{
+	enum { retTrue = 0x51F8A6, retFalse = 0x51F8A8 };
+	GET(CellClass* const, pCell, EAX);
+
+	return pCell->CellClass_Tube_484AE0() || pCell->CellClass_Tube_484D60() ?
+		retTrue : retFalse;
+}
+
+ASMJIT_PATCH(0x51F9B7, InfantryClass_WhatAction_TubeStuffs_FixGetCellAtCallTwice_part2, 0x7)
+{
+	enum { retFalse = 0x51F953 };
+	GET(CellClass* const, pCell, EAX);
+	GET(InfantryClass* const, pThis, EDI);
+
+	if (!pCell->Tile_Is_Tunnel())
+		return retFalse;
+
+	R->EAX(pCell->CellClass_484F10(pThis));
+	return 0x51F9D5;
+}
+
+ASMJIT_PATCH(0x51DF82, InfantryClass_FireAt_StartReloading, 0x6)
+{
+	GET(InfantryClass*, pThis, ESI);
+	const auto pType = pThis->Type;
+
+	if (pThis->Transporter)
+	{
+		if (TechnoTypeExtContainer::Instance.Find(pType)->ReloadInTransport
+			&& pType->Ammo > 0
+			&& pThis->Ammo < pType->Ammo
+		)
+			pThis->StartReloading();
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x51CDB9, InfantryClass_RandomAnimate_CheckIdleRate, 0x6)
+{
+	return R->ESI<InfantryClass* const>()->Type->IdleRate == -1 ? 0x51D0A0 : 0x0;
+}
+
+ASMJIT_PATCH(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7)
+{
+	GET(InfantryClass* const, pThis, ECX);
+
+	enum { SkipWholeFunction = 0x5192BC, Continue = 0x0 };
+
+	return InfantryTypeExtContainer::Instance.Find(pThis->Type)->HideWhenDeployAnimPresent.Get()
+		&& pThis->DeployAnim ? SkipWholeFunction : Continue;
+}
+
+ASMJIT_PATCH(0x51A2EF, InfantryClass_UpdatePosition_Bio_Reactor_Sound, 0x6)
+{
+	//GET(BuildingClass* const, pBuilding, EDI);
+	GET(InfantryClass* const, pThis, ESI);
+	LEA_STACK(CoordStruct*, pBuffer, 0x44);
+
+	int sound = pThis->Type->EnterBioReactorSound;
+	if (sound <= -1)
+		sound = RulesClass::Instance->EnterBioReactorSound;
+
+	auto coord = pThis->GetCoords(pBuffer);
+	VocClass::SafeImmedietelyPlayAt(sound, coord, 0);
+
+	return 0x51A30F;
+}
+
 ASMJIT_PATCH(0x51E5E1, InfantryClass_GetActionOnObject_MultiEngineerB, 7)
 {
 	GET(BuildingClass*, pBld, ECX);

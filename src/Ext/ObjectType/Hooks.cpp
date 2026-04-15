@@ -1,7 +1,15 @@
+#include "Body.h"
 #include <Misc/ImageSwapModules.h>
 
 #include <Helpers/Macro.h>
 #include <Phobos.h>
+
+ASMJIT_PATCH(0x5F9652, ObjectTypeClass_GetAplha, 0x6)
+{
+	GET(ObjectTypeClass*, pThis, EBX);
+	R->CL(pThis->AlphaImageFile[0] && strlen(pThis->AlphaImageFile));
+	return 0x5F9658;
+}
 
 ASMJIT_PATCH(0x524734, InfantryTypeClass_ReadINI, 0x6)
 {

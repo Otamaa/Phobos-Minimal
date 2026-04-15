@@ -304,3 +304,14 @@ void __fastcall ScreenCaptureCommandClass_Process(CommandClass* pThis, DWORD)
 	}
 }
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EBF24, ScreenCaptureCommandClass_Process);
+
+ASMJIT_PATCH(0x730E39, GuardCommandClass_IncludeWeeder, 0x6)
+{
+	GET(UnitTypeClass*, pType, ECX);
+	R->AL(pType->Harvester || pType->Weeder);
+	return 0x730E3F;
+}
+
+// AttackMove Only for Foot
+//CommandClass_Attack_Move
+DEFINE_PATCH_TYPED(BYTE, 0x731B67, 4u);

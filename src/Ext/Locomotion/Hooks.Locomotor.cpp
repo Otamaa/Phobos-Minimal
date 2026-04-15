@@ -22,8 +22,83 @@
 
 #include <Locomotor/JumpjetLocomotionClass.h>
 #include <Locomotor/HoverLocomotionClass.h>
+#include <Locomotor/DriveLocomotionClass.h>
+#include <Locomotor/ShipLocomotionClass.h>
 
 #include <Misc/DamageArea.h>
+
+class NOVTABLE FakeDriveLocomotionClass final : DriveLocomotionClass
+{
+public:
+
+	bool __stdcall _Is_Moving_Now()
+	{
+		if (!this->Owner || !this->Owner->IsAlive)
+			return false;
+
+		if (this->Owner->PrimaryFacing.Is_Rotating())
+			return true;
+
+		return this->Is_Moving()
+			&& this->HeadToCoord.IsValid()
+			&& this->Owner->GetCurrentSpeed() > 0;
+	}
+};
+
+
+ASMJIT_PATCH(0x4B050B, DriveLocomotionClass_Process_Cargo, 0x5)
+{
+	GET(ILocomotion* const, pILoco, ESI);
+
+	const auto pLoco = static_cast<DriveLocomotionClass* const>(pILoco);
+
+	if (const auto pFoot = pLoco->LinkedTo)
+	{
+		if (const auto pTrans = pFoot->Transporter)
+		{
+			R->EAX(pTrans->GetCell());
+			return 0x4B0516;
+		}
+	}
+
+	return 0x0;
+}
+
+ASMJIT_PATCH(0x4B07CA, DriveLocomotionClass_Process_WakeAnim, 0x5)
+{
+	GET(ILocomotion* const, pLoco, ESI);
+	const auto pDrive = static_cast<DriveLocomotionClass* const>(pLoco);
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pDrive->LinkedTo);
+	TechnoExtData::PlayAnim(pTypeExt->Wake.Get(RulesClass::Instance->Wake), pDrive->LinkedTo);
+	return 0x4B0828;
+}
+
+ASMJIT_PATCH(0x69FE92, ShipLocomotionClass_Process_WakeAnim, 0x5)
+{
+	GET(ILocomotion* const, pLoco, ESI);
+	const auto pShip = static_cast<ShipLocomotionClass* const>(pLoco);
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pShip->LinkedTo);
+	TechnoExtData::PlayAnim(pTypeExt->Wake.Get(RulesClass::Instance->Wake), pShip->LinkedTo);
+	return 0x69FEF0;
+}
+
+ASMJIT_PATCH(0x75AC93, WalkLocomotionClass_Process_Wake, 0x6)
+{
+	if (!RulesExtData::Instance()->WalkLocomotorMakesWake)
+		return 0;
+
+	GET(ILocomotion* const, pThis, ESI);
+
+	const auto pLinkedTo = static_cast<LocomotionClass*>(pThis)->LinkedTo;
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pLinkedTo);
+
+	if (pThis->Is_Moving_Now() && !(Unsorted::CurrentFrame % 10) && !pLinkedTo->OnBridge && pLinkedTo->GetCell()->LandType == LandType::Water)
+	{
+		TechnoExtData::PlayAnim(pTypeExt->Wake.Get(RulesClass::Instance->Wake), pLinkedTo);
+	}
+
+	return 0;
+}
 
 ASMJIT_PATCH(0x4B99A2, DropshipLoadout_WriteUnit, 0xA)
 {

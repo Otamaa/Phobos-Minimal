@@ -1,5 +1,7 @@
 #include "Body.h"
 
+#include <Ext/Aircraft/Body.h>
+#include <Ext/Infantry/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/Techno/Body.h>
@@ -10,13 +12,12 @@
 #include <Utilities/Macro.h>
 #include <Utilities/Helpers.h>
 
-#include <Misc/Hooks.Otamaa.h>
-
 #include <ParticleSystemClass.h>
 #include <ColorScheme.h>
 #include <SmudgeTypeClass.h>
 #include <CoordStruct.h>
 #include <GameOptionsClass.h>
+#include <TerrainClass.h>
 
 #include <Misc/DamageArea.h>
 
@@ -1002,3 +1003,6 @@ ASMJIT_PATCH(0x425164, AnimClass_Detach, 0x6)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3390, FakeAnimClass::_GetOwningHouse);
+
+//AnimClass_Detach_DontRemoveTypePtr
+DEFINE_JUMP(LJMP, 0x422A59, 0x422A5F);

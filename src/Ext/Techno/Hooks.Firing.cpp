@@ -21,6 +21,55 @@
 
 #include <TerrainClass.h>
 
+ASMJIT_PATCH(0x6FDE05, TechnoClass_FireAt_End, 0x5)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	GET(WeaponTypeClass* const, pWeapon, EBX);
+
+	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+
+	//this may crash the game , since the object got deleted after killself ,..
+	if (pWeaponExt->RemoveTechnoAfterFiring.Get())
+		TechnoExtData::KillSelf(pThis, KillMethod::Vanish);
+	else if (pWeaponExt->DestroyTechnoAfterFiring.Get())
+		TechnoExtData::KillSelf(pThis, KillMethod::Explode);
+
+	return 0;
+} ASMJIT_PATCH_AGAIN(0x6FF933, TechnoClass_FireAt_End, 0x5);
+
+ASMJIT_PATCH(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
+{
+	GET(TechnoClass*, pThis, ECX);
+	//GET_STACK(AbstractClass*, pTarget, 0x4);
+	GET_STACK(const int, nWeapon, 0x8);
+	//GET(AbstractClass*, pTarget, EDI);
+
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	pExt->CurrentWeaponIdx = nWeapon;
+
+	return 0x0;
+}
+
+static WeaponStruct* __fastcall GetWeapon_(TechnoClass* pTech, void*, int idx)
+{
+	return pTech->GetWeapon(TechnoExtContainer::Instance.Find(pTech)->CurrentWeaponIdx);
+}
+//TechnoClass_FireAt_GetWeapon
+DEFINE_FUNCTION_JUMP(CALL6, 0x6FDD69, GetWeapon_);
+
+ASMJIT_PATCH(0x6FE337, TechnoClass_FireAt_DamageMult, 0x6)
+{
+	GET(int, damage, EDI);
+	GET(TechnoClass*, pThis, ESI);
+
+	int _damage = (int)TechnoExtData::GetDamageMult(pThis, (double)damage);
+	R->Stack(0x28, GET_TECHNOTYPE(pThis));
+	R->EDI(_damage);
+	R->EAX(_damage);
+	return 0x6FE3DF;
+}
+
 ASMJIT_PATCH(0x6FED2F, TechnoClass_FireAt_VerticalInitialFacing, 0x6)
 {
 	enum { Continue = 0x6FED39, SkipGameCode = 0x6FED8F };

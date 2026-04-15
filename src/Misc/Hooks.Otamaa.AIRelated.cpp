@@ -1,5 +1,3 @@
-#include "Hooks.Otamaa.h"
-
 #include <Ext/BuildingType/Body.h>
 #include <Ext/Building/Body.h>
 

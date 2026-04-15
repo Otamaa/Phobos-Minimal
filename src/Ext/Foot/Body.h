@@ -44,6 +44,7 @@ class FootExtContainer final //: public Container<TechnoTypeExtData>
 public:
 	static FootExtContainer Instance;
 
+
 	COMPILETIMEEVAL FORCEDINLINE  FootExtData* GetExtAttribute(FootClass* key)
 	{
 		return (FootExtData*)(*(uintptr_t*)((char*)key + AbstractExtOffset));
@@ -61,4 +62,13 @@ public:
 
 		return this->GetExtAttribute(key);
 	}
+};
+
+class NOVTABLE FakeFootClass final
+{
+public:
+
+	static bool __fastcall _IsRecruitable(FootClass* pThis, discard_t, HouseClass* pHouse);
+	static DamageState __fastcall __Take_Damage(FootClass* pThis, discard_t, int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse);
+
 };

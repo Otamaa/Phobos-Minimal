@@ -834,26 +834,6 @@ ASMJIT_PATCH(0x4FAB83, HouseClass_AbandonProductionOf_SkipMouseClear, 0x7)
 	return 0;
 }
 
-// Buildable-upon TechnoTypes Hook #5 -> sub_4C9FF0 - Restart timer and clear buffer when abandon building production
-ASMJIT_PATCH(0x4CA05B, FactoryClass_AbandonProduction_AbandonCurrentBuilding, 0x5)
-{
-	GET(FactoryClass*, pFactory, ESI);
-
-	if (RulesExtData::Instance()->ExtendedBuildingPlacing)
-	{
-		const auto pHouseExt = HouseExtContainer::Instance.Find(pFactory->Owner);
-		const auto pBuilding = cast_to<BuildingClass*>(pFactory->Object);
-
-		if (!pBuilding)
-			return 0;
-
-		auto place = &(pBuilding->Type->BuildCat != BuildCat::Combat ? pHouseExt->Common : pHouseExt->Combat);
-		BuildingExtData::ClearPlacingBuildingData(place);
-	}
-
-	return 0;
-}
-
 static inline bool CanDrawGrid(bool draw)
 {
 	if (ProximityTemp::Exist)

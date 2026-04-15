@@ -354,3 +354,39 @@ int __fastcall IsometricTileTypeClass_ReadINI_TilesInSet_Wrapper(INIClass* pThis
 }
 
 DEFINE_FUNCTION_JUMP(CALL, 0x545FD4, IsometricTileTypeClass_ReadINI_TilesInSet_Wrapper);
+
+ASMJIT_PATCH(0x474964, CCINIClass_ReadPipScale_add, 0x6)
+{
+	enum { seteax = 0x47499C, retzero = 0x47498B, seteaxwithEdi = 0x474995 };
+
+	LEA_STACK(char*, buffer, 0x8);
+	GET_STACK(const char* const, pSection, STACK_OFFSET(0x28, 0x4));
+	GET_STACK(const char* const, pKey, STACK_OFFSET(0x28, 0x8));
+
+	static const auto AdditionalPip =
+	{
+		GameStrings::Ammo() ,
+		GameStrings::Tiberium() ,
+		GameStrings::Passengers() ,
+		GameStrings::Power() ,
+		GameStrings::MindControl() ,
+		"Spawner"
+	};
+
+	auto it = AdditionalPip.begin();
+
+	for (size_t i = 0; i < AdditionalPip.size(); ++i)
+	{
+		if (CRT::strcmpi(buffer, *it++) == 0)
+		{
+			R->EAX(PipScale(i + 1));
+			return seteax;
+		}
+	}
+
+	if (!GameStrings::IsNone(buffer))
+		Debug::INIParseFailed(pSection, pKey, buffer, "Expect Valid PipScaleType !");
+
+	return retzero;
+}
+

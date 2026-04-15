@@ -1,6 +1,8 @@
 #include "Body.h"
 
 #include <Helpers\Macro.h>
+#include <Utilities/Macro.h>
+#include <Utilities/Patch.h>
 
 bool SmudgeTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
@@ -101,7 +103,6 @@ ASMJIT_PATCH(0x6B61B5, SmudgeTypeClass_SDDTOR, 0x7)
 	return 0;
 }
 
-#include <Misc/Hooks.Otamaa.h>
 #include <Ext/IsometricTileType/Body.h>
 
 bool FakeSmudgeTypeClass::_CanPlaceHere(CellStruct* origin, bool underbuildings) {
@@ -165,4 +166,4 @@ bool FakeSmudgeTypeClass::_ReadFromINI(CCINIClass* pINI)
 	return status;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F358C, FakeSmudgeTypeClass::_ReadFromINI)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F358C, FakeSmudgeTypeClass::_ReadFromINI);

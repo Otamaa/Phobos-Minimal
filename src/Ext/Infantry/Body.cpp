@@ -6,8 +6,6 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/InfantryType/Body.h>
 
-#include <Misc/Hooks.Otamaa.h>
-
 InfantryExtData::InfantryExtData(InfantryClass* pObj) : FootExtData(pObj)
 {
 	this->Name = pObj->Type->ID;
@@ -43,6 +41,8 @@ bool FakeInfantryClass::_Paradrop(CoordStruct* pCoords)
 	this->PlayAnim(DoType::Paradrop, true, false);
 	return true;
 }
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB140, FakeInfantryClass::_Paradrop)
 
 WeaponStruct* FakeInfantryClass::_GetDeployWeapon()
 {

@@ -114,39 +114,6 @@ ASMJIT_PATCH(0x4401BB, BuildingClass_AI_PickWithFreeDocks, 0x6) //was C
 	return 0;
 }
 
-ASMJIT_PATCH(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
-{
-	GET(FactoryClass*, pFactory, ESI);
-
-	if (HouseClass* pOwner = pFactory->Owner)
-	{
-		HouseExtData* pData = HouseExtContainer::Instance.Find(pOwner);
-
-		switch (pFactory->Object->WhatAmI())
-		{
-		case BuildingClass::AbsID:
-			pData->Factory_BuildingType = nullptr;
-			break;
-		case UnitClass::AbsID:
-			if (!((UnitClass*)pFactory->Object)->Type->Naval)
-				pData->Factory_VehicleType = nullptr;
-			else
-				pData->Factory_NavyType = nullptr;
-			break;
-		case InfantryClass::AbsID:
-			pData->Factory_InfantryType = nullptr;
-			break;
-		case AircraftClass::AbsID:
-			pData->Factory_AircraftType = nullptr;
-			break;
-		default:
-			break;
-		}
-	}
-
-	return 0;
-}
-
 ASMJIT_PATCH(0x4502F4, BuildingClass_Update_Factory, 0x6)
 {
 	enum { Skip = 0x4503CA };

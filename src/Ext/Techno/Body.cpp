@@ -16,6 +16,8 @@
 #include <New/Entity/FlyingStrings.h>
 #include <New/PhobosAttachedAffect/Functions.h>
 
+#include <Commands/ShowTeamLeader.h>
+
 #include <Ext/Aircraft/Body.h>
 #include <Ext/AircraftType/Body.h>
 #include <Ext/Anim/Body.h>
@@ -59,6 +61,8 @@ UnitClass* TechnoExtData::Deployer { nullptr };
 
 #include <Misc/PhobosGlobal.h>
 
+#include <Drawing.h>
+#include <TextDrawing.h>
 
 void TintColors::Calculate(const int color, const int intensity, const AffectedHouse affectedHouse)
 {
@@ -3873,6 +3877,11 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 	if (const auto pAlpha = PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pThis))
 			GameDelete(pAlpha);
 
+	if (pOldType->BombSight && !pCurrentType->BombSight)
+		BombListClass::Instance->RemoveDetector(pThis);
+	else if (!pOldType->BombSight && pCurrentType->BombSight)
+		BombListClass::Instance->AddDetector(pThis);
+
 	// Only FootClass* can use this.
 	if (const auto pFoot = flag_cast_to<FootClass*>(pThis))
 	{
@@ -4997,8 +5006,8 @@ bool __fastcall FakeTechnoClass::__Is_Allowed_To_Retaliate(TechnoClass* pThis , 
 	// At this point: EBP = pSource, ECX = pWarhead->WarheadPtr, ESI = pWeapon
 	const auto pWeapon = pThis->GetWeapon(nWeaponIdx)->WeaponType;
 
-	//if (!TechnoExtData::CanRetaliateICUnit(pThis, (FakeWeaponTypeClass*)pWeapon, pSource))
-	//	return false;
+	if (!TechnoExtData::CanRetaliateICUnit(pThis, (FakeWeaponTypeClass*)pWeapon, pSource))
+		return false;
 
 	if (pWeapon) {
 		if (const auto pWarheadPtr = pWeapon->Warhead) {
@@ -5082,6 +5091,54 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB4B4, FakeTechnoClass::__DoUncloak)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4DBC, FakeTechnoClass::__DoUncloak)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F60CC, FakeTechnoClass::__DoUncloak)
 
+//Aircraft 7E23B4
+//Building 7E3FCC
+//foot 7E8DA4
+//infantry 7EB168
+//techno 7F4A70
+//unit 7F5D80
+void __fastcall FakeTechnoClass::__DrawExtras(TechnoClass* pThis, discard_t, Point2D* pLocation, RectangleStruct* pBounds)
+{
+	auto DrawTheStuff = [&pLocation, &pThis, &pBounds](const wchar_t* pFormat)
+		{
+			auto nPoint = *pLocation;
+			//DrawingPart
+			RectangleStruct nTextDimension;
+			Drawing::GetTextDimensions(&nTextDimension, pFormat, nPoint, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, 4, 2);
+			auto nIntersect = RectangleStruct::Intersect(nTextDimension, *pBounds, nullptr, nullptr);
+			auto nColorInt = pThis->Owner->Color.ToInit();//0x63DAD0
+
+			DSurface::Temp->Fill_Rect(nIntersect, (COLORREF)0);
+			DSurface::Temp->Draw_Rect(nIntersect, (COLORREF)nColorInt);
+			TextDrawing::Simple_Text_Print_Wide(pFormat, DSurface::Temp.get(), pBounds, &nPoint, (COLORREF)nColorInt, (COLORREF)0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt);
+		};
+
+	if (ShowTeamLeaderCommandClass::IsActivated())
+	{
+		if (auto const pFoot = flag_cast_to<FootClass*, false>(pThis))
+		{
+			if (auto pTeam = pFoot->Team)
+			{
+				if (auto const pTeamLeader = pTeam->FetchLeader())
+				{
+					if (pTeamLeader == pThis)
+					{
+						DrawTheStuff(L"Team Leader");
+					}
+				}
+			}
+		}
+	}
+
+	pThis->DrawTechnoExtras(pLocation, pBounds);
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E23B4, FakeTechnoClass::__DrawExtras);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E8DA4, FakeTechnoClass::__DrawExtras);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB168, FakeTechnoClass::__DrawExtras);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4A70, FakeTechnoClass::__DrawExtras);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D80, FakeTechnoClass::__DrawExtras);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3FCC, FakeBuildingClass::_DrawExtras);
 
 int __fastcall FakeTechnoClass::__HowManySurvivors(TechnoClass* pThis)
 {
@@ -5807,16 +5864,16 @@ bool __fastcall FakeTechnoClass::__TargetSomethingNearby(TechnoClass* pThis, dis
 	return pThis->Target != nullptr;
 }
 
-//DEFINE_FUNCTION_JUMP(LJMP, 0x709820, FakeTechnoClass::__TargetSomethingNearby);
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2640, FakeTechnoClass::__TargetSomethingNearby);
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4258, FakeTechnoClass::__TargetSomethingNearby);
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E9030, FakeTechnoClass::__TargetSomethingNearby);
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB3F4, FakeTechnoClass::__TargetSomethingNearby);
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4CFC, FakeTechnoClass::__TargetSomethingNearby);
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F600C, FakeTechnoClass::__TargetSomethingNearby);
-//DEFINE_FUNCTION_JUMP(CALL6, 0x6FA6DC, FakeTechnoClass::__TargetSomethingNearby);
-//DEFINE_FUNCTION_JUMP(CALL6, 0x4D6F06, FakeTechnoClass::__TargetSomethingNearby);
-//DEFINE_FUNCTION_JUMP(CALL6, 0x4D5392, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(LJMP, 0x709820, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2640, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4258, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E9030, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB3F4, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4CFC, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F600C, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(CALL6, 0x6FA6DC, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(CALL6, 0x4D6F06, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(CALL6, 0x4D5392, FakeTechnoClass::__TargetSomethingNearby);
 
 bool NOINLINE TechnoExtData::CanRetaliateICUnit(TechnoClass* pThis, FakeWeaponTypeClass* pWP, TechnoClass* pTarget)
 {

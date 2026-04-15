@@ -5,7 +5,7 @@
 #include <Utilities/Constructs.h>
 #include <Utilities/Macro.h>
 
-#include "AresChecksummer.h"
+#include <CRC.h>
 
 #include <Helpers/Macro.h>
 
@@ -31,6 +31,19 @@ GenericNode* AresINIData::NodeCompare;
 
 #include <New/Type/GenericPrerequisite.h>
 
+ASMJIT_PATCH(0x474DEE, INIClass_GetFoundation, 7)
+{
+	GET_STACK(const char*, Section, 0x2C);
+	GET_STACK(const char*, Key, 0x30);
+	LEA_STACK(const char*, Value, 0x8);
+
+	if (!IS_SAME_STR_(Value, "Custom") && !FindFoundation(Value))
+	{
+		Debug::INIParseFailed(Section, Key, Value);
+	}
+
+	return 0;
+}
 
 ASMJIT_PATCH(0x528A10, INIClass_GetString, 5)
 {

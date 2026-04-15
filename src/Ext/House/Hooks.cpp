@@ -10,6 +10,51 @@
 #include <Ext/Event/Body.h>
 
 #include <Utilities/Cast.h>
+#include <Utilities/Macro.h>
+#include <Utilities/Patch.h>
+
+ASMJIT_PATCH(0x4FD95F, HouseClass_CheckFireSale_LimboID, 0x6)
+{
+	GET(BuildingClass*, pBld, EAX);
+	return BuildingExtContainer::Instance.Find(pBld)->LimboID >= 0 ? 0x4FD983 : 0x0;
+}
+
+ASMJIT_PATCH(0x4FD203, HouseClass_RecalcCenter_Optimize, 0x6)
+{
+	GET(BuildingClass*, pBld, ESI);
+	LEA_STACK(CoordStruct*, pBuffer_2, 0x38);
+	LEA_STACK(CoordStruct*, pBuffer, 0x2C);
+
+	const auto coord = pBld->GetCoords();
+	*pBuffer = coord;
+	*pBuffer_2 = coord;
+	R->EBP(R->EBP<int>() + coord.X);
+	R->EBX(R->EBX<int>() + coord.Y);
+	R->EAX(R->Stack<int>(0x18));
+	return 0x4FD228;
+}
+
+
+ASMJIT_PATCH(0x4FA5B8, HouseClass_BeginProduction_CompareType, 0x8)
+{
+	GET(TechnoClass*, pObject, ECX);
+	GET(TechnoTypeClass*, pTypeCompare, EBP);
+
+	return pObject->GetTechnoType() == pTypeCompare || GET_TECHNOTYPE(pObject) == pTypeCompare ?
+		0x4FA5C4 : 0x4FA5C8;
+}
+
+ASMJIT_PATCH(0x4FAB4D, HouseClass_AbandonProduction_GetObjectType, 0x8)
+{
+	GET(TechnoClass*, pObject, ECX);
+
+	// use cached type instead of `->GetTechnoType()` the pointer was changed !
+	R->EAX(GET_TECHNOTYPE(pObject));
+	return R->Origin() + 0x8;
+}
+
+//HouseClass_Calc_Cost_Mult_Disable
+DEFINE_JUMP(LJMP, 0x50BF60, 0x50C04A)// Disable CalcCost mult
 
 ASMJIT_PATCH(0x4FF9C9, HouseClass_ExcludeFromMultipleFactoryBonus, 0x6)
 {
@@ -387,4 +432,106 @@ ASMJIT_PATCH(0x450651, BuildingClass_UpdateRepairSell_PlayerAutoRepair, 0x8)
 		pThis->SetRepairState(0);
 		return CanNotAutoRepair;
 	}
+}
+
+ASMJIT_PATCH(0x50CA12, HouseClass_RecalcCenter_DeadTechno, 0xA)
+{
+	enum { NextLoop = 0x50CAB4, ContinueCheck = 0x0 };
+	GET(FootClass*, pTechno, ESI);
+
+	if (!pTechno->IsAlive || pTechno->InLimbo || pTechno->BunkerLinkedItem)
+		return NextLoop;
+
+	return ContinueCheck;
+}
+
+ASMJIT_PATCH(0x7084E9, HouseClass_BaseIsAttacked_StopRecuiting, 0x6)
+{
+	GET(UnitClass*, pCandidate, EBX);
+	bool allow = true;
+
+	if (pCandidate->IsTethered)
+	{
+		allow = false;
+	}
+	else if (auto pContact = pCandidate->GetRadioContact())
+	{
+		if (auto pBldC = cast_to<BuildingClass*, false>(pContact))
+		{
+			if (pBldC->Type->Bunker)
+				allow = false;
+		}
+	}
+	else if (auto pBld = pCandidate->GetCell()->GetBuilding())
+	{
+		if (pBld->Type->Bunker)
+			allow = false;
+	}
+
+	return allow ? 0x0 : 0x708622;//continue
+}
+
+ASMJIT_PATCH(0x4F671D, HouseClass_CanAfforBase_MissingPointer, 0x5)
+{
+	GET(HouseClass*, pThis, ESI);
+	GET(BuildingClass*, pBld, EAX);
+
+	if (!pBld)
+	{
+		Debug::FatalErrorAndExit("Cannot Find BuildWeapons For [%s - %ls] , BuildWeapons Count %d\n", pThis->Type->ID, pThis->Type->UIName, RulesClass::Instance->BuildWeapons.Count);
+	}
+
+	return 0x0;
+}
+
+ASMJIT_PATCH(0x508CE6, HouseClass_UpdatePower_LimboDeliver, 0x6)
+{
+	GET(BuildingClass*, pBld, EDI);
+
+	if (BuildingExtContainer::Instance.Find(pBld)->LimboID >= 0)
+		return 0x508CEE; // add the power
+
+	return 0x0;
+}
+ASMJIT_PATCH(0x4FB63A, HouseClass_PlaceObject_EVA_UnitReady, 0x5)
+{
+	GET(TechnoClass* const, pProduct, ESI);
+	VoxClass::PlayIndex(GET_TECHNOTYPEEXT(pProduct)->Eva_Complete.Get());
+	return 0x4FB649;
+}
+
+ASMJIT_PATCH(0x4FB7CA, HouseClass_RegisterJustBuild_CreateSound_PlayerOnly, 0x6) //9
+{
+	enum { ReturnNoVoiceCreate = 0x4FB804, Continue = 0x0 };
+
+	GET(HouseClass* const, pThis, EDI);
+	GET(TechnoClass* const, pTechno, EBP);
+
+	if (pTechno)
+	{
+		const auto pTechnoTypeExt = GET_TECHNOTYPEEXT(pTechno);
+
+		if (pTechnoTypeExt->VoiceCreate >= 0)
+		{
+
+			if (!pTechnoTypeExt->VoiceCreate_Instant)
+				pTechno->QueueVoice(pTechnoTypeExt->VoiceCreate);
+			else
+			{
+				if (pThis->IsControlledByHuman() && !pThis->IsCurrentPlayerObserver())
+					VocClass::SafeImmedietelyPlayAt(pTechnoTypeExt->VoiceCreate, &pTechno->Location);
+			}
+		}
+
+		if (!pTechnoTypeExt->CreateSound_Enable.Get())
+			return ReturnNoVoiceCreate;
+
+		if (!EnumFunctions::IsPlayerTypeEligible((AffectPlayerType::Observer | AffectPlayerType::Player), HouseClass::CurrentPlayer))
+			return ReturnNoVoiceCreate;
+
+		if (!EnumFunctions::CanTargetHouse(pTechnoTypeExt->CreateSound_afect.Get(RulesExtData::Instance()->CreateSound_PlayerOnly), pThis, HouseClass::CurrentPlayer))
+			return ReturnNoVoiceCreate;
+	}
+
+	return Continue;
 }

@@ -785,3 +785,49 @@ ASMJIT_PATCH(0x721C7B, TiberiumClass_LoadFromINI, 0xA)
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x721CDC, TiberiumClass_LoadFromINI, 0xA)
 ASMJIT_PATCH_AGAIN(0x721CE9, TiberiumClass_LoadFromINI, 0xA)
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x722440, FakeTiberiumClass::__Spread);
+DEFINE_FUNCTION_JUMP(LJMP, 0x7228B0, FakeTiberiumClass::__RecalcSpreadData);
+DEFINE_FUNCTION_JUMP(LJMP, 0x722AF0, FakeTiberiumClass::__QueueSpreadAt);
+DEFINE_FUNCTION_JUMP(LJMP, 0x722F00, FakeTiberiumClass::__Growth);
+DEFINE_FUNCTION_JUMP(LJMP, 0x7233A0, FakeTiberiumClass::__RecalcGrowthData);
+DEFINE_FUNCTION_JUMP(LJMP, 0x7235A0, FakeTiberiumClass::__QueueGrowthAt);
+DEFINE_FUNCTION_JUMP(LJMP, 0x483780, FakeCellClass::_SpreadTiberium);
+DEFINE_FUNCTION_JUMP(LJMP, 0x480A80, FakeCellClass::_Reduce_Tiberium);
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x722770, FakeTiberiumClass::__Initialize_Spread);
+DEFINE_FUNCTION_JUMP(LJMP, 0x723260, FakeTiberiumClass::__Initialize_Growth);
+DEFINE_FUNCTION_JUMP(LJMP, 0x723510, FakeTiberiumClass::__Clear_Growth);
+DEFINE_FUNCTION_JUMP(LJMP, 0x722A20, FakeTiberiumClass::__Clear_Spread);
+
+static void _Initialize_Tiberium_Spread_System()
+{
+	for (int i = 0; i < TiberiumClass::Array->Count; i++)
+	{
+		TiberiumClass::Array->Items[i]->Initialize_Spread();
+	}
+}
+
+static void _Deinitialize_Tiberium_Spread_System()
+{
+	for (int i = 0; i < TiberiumClass::Array->Count; i++)
+		TiberiumClass::Array->Items[i]->Clear_Spread();
+}
+
+static void _Initialize_Tiberium_Growth_System()
+{
+	for (int i = 0; i < TiberiumClass::Array->Count; i++)
+		TiberiumClass::Array->Items[i]->Initialize_Growth();
+}
+
+static void _Deinitialize_Tiberium_Growth_System()
+{
+	for (int i = 0; i < TiberiumClass::Array->Count; i++)
+		TiberiumClass::Array->Items[i]->Clear_Growth();
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x722240, _Initialize_Tiberium_Spread_System);
+DEFINE_FUNCTION_JUMP(LJMP, 0x722390, _Deinitialize_Tiberium_Spread_System);
+DEFINE_FUNCTION_JUMP(LJMP, 0x722D00, _Initialize_Tiberium_Growth_System);
+DEFINE_FUNCTION_JUMP(LJMP, 0x722E50, _Deinitialize_Tiberium_Growth_System);
+DEFINE_FUNCTION_JUMP(LJMP, 0x722AB0, TiberiumExtData::Clear_Tiberium_Spread_State);

@@ -7,7 +7,6 @@
 #include <Ext/Infantry/Body.h>
 #include <Ext/AnimType/Body.h>
 
-#include <Misc/Hooks.Otamaa.h>
 #include <Ext/House/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Tiberium/Body.h>

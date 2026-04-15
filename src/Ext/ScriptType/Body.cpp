@@ -70,3 +70,10 @@
 //
 //	return 0x691DFA;
 //}
+
+ASMJIT_PATCH(0x691C62, ScriptTypeClass_CreateFromName_RemoveInline, 0x5)
+{
+	GET(char*, pName, EDI);
+	R->ESI(GameCreate<ScriptTypeClass>(pName));
+	return 0x691D2C;
+}

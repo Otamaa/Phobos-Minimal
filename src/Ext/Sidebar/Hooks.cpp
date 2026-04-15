@@ -6,9 +6,23 @@
 #include <Ext/Side/Body.h>
 #include <Phobos.h>
 
+#include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <Ext/Scenario/Body.h>
+
+ASMJIT_PATCH(0x6A8E25, SidebarClass_StripClass_AI_Building_EVA_ConstructionComplete, 0x5)
+{
+	GET(TechnoClass* const, pTech, ESI);
+
+	if (pTech->WhatAmI() == BuildingClass::AbsID)
+	{
+		VoxClass::PlayIndex(GET_TECHNOTYPEEXT(pTech)->Eva_Complete.Get());
+		return 0x6A8E34;
+	}
+
+	return 0x0;
+}
 
 ASMJIT_PATCH(0x6A593E, SidebarClass_InitForHouse_AdditionalFiles, 0x5)
 {

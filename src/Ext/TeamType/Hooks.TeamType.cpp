@@ -39,6 +39,72 @@
 #include <Ext/Team/Body.h>
 #include <Ext/Script/Body.h>
 
+ASMJIT_PATCH(0x65DD4E, TeamTypeClass_CreateGroub_MissingOwner, 0x7)
+{
+	//GET(TeamClass*, pCreated, ESI);
+	GET(TeamTypeClass*, pType, EBX);
+
+	const auto pHouse = pType->GetHouse();
+	if (!pHouse)
+	{
+		Debug::FatalErrorAndExit("Creating Team[%s] groub without proper Ownership may cause crash , Please check !", pType->ID);
+	}
+
+	R->EAX(pHouse);
+	return 0x65DD55;
+}
+
+ASMJIT_PATCH(0x6F09C0, TeamTypeClass_CreateOneOf_Handled, 0x9)
+{
+	GET(TeamTypeClass*, pThis, ECX);
+	GET_STACK(DWORD, caller, 0x0);
+	GET_STACK(HouseClass*, pHouse, 0x4);
+
+	if (!pHouse)
+	{
+		pHouse = pThis->Owner;
+		if (!pHouse)
+		{
+			if (HouseClass::Index_IsMP(pThis->idxHouse))
+			{
+				pHouse = HouseClass::FindByPlayerAt(pThis->idxHouse);
+			}
+		}
+	}
+
+	if (!pHouse)
+	{
+		R->EAX<TeamClass*>(nullptr);
+		return 0x6F0A2C;
+	}
+
+	if (!Unsorted::ScenarioInit)
+	{
+		if (pThis->Max >= 0)
+		{
+			if (SessionClass::Instance->GameMode != GameMode::Campaign)
+			{
+				if (pHouse->GetTeamCount(pThis) >= pThis->Max)
+				{
+					R->EAX<TeamClass*>(nullptr);
+					return 0x6F0A2C;
+				}
+			}
+			else if (pThis->cntInstances >= pThis->Max)
+			{
+				R->EAX<TeamClass*>(nullptr);
+				return 0x6F0A2C;
+			}
+		}
+	}
+
+	const auto pTeam = GameCreate<TeamClass>(pThis, pHouse, false);
+	Debug::LogInfo("[{0} - {1}] Creating a new team named [{2} -{3}] caller [{4:x}].",
+		pHouse->get_ID(), (void*)pHouse, pThis->ID, (void*)pTeam, caller);
+	R->EAX(pTeam);
+	return 0x6F0A2C;
+}
+
 ASMJIT_PATCH(0x65DBB3, TeamTypeClass_CreateInstance_Plane, 5)
 {
 	GET(FootClass*, pFoot, EBP);

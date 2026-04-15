@@ -40,3 +40,15 @@ public:
 public:
 
 };
+
+class NOVTABLE FakeObjectClass
+{
+public:
+
+	static void __fastcall _DrawRadialIndicator(ObjectClass* pThis, discard_t, int val);
+	static int __fastcall _GetDistanceOfObj(ObjectClass* pThis, discard_t, AbstractClass* pThat);
+	static int __fastcall _GetDistanceOfCoord(ObjectClass* pThis, discard_t, CoordStruct* pThat);
+	static CellClass* __fastcall _GetCell(ObjectClass* pThis, discard_t);
+	static DamageState __fastcall __Take_Damage(ObjectClass* pThis, discard_t, int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse);
+
+};

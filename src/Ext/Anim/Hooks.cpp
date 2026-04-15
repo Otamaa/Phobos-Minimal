@@ -8,7 +8,35 @@
 #include <Ext/Infantry/Body.h>
 #include <Ext/AnimType/Body.h>
 
-#include <Misc/Hooks.Otamaa.h>
+ASMJIT_PATCH(0x4249EC, AnimClass_CreateMakeInf_WeirdAssCode, 0x6)
+{
+	GET(AnimClass*, pThis, ESI);
+
+	if (auto const pInf = RulesClass::Instance->AnimToInfantry.get_or_default(pThis->Type->MakeInfantry))
+	{
+		if (auto const pCreatedInf = pInf->CreateObject(pThis->Owner))
+		{
+			R->EAX(pCreatedInf);
+			return 0x424A1F;
+		}
+	}
+
+	return 0x424B0A;
+}
+
+ASMJIT_PATCH(0x6F6BD6, TechnoClass_Limbo_UpdateAfterHouseCounter, 0xA)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	//const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
+
+	//only update the SW once the techno is really not present
+	if (pThis->Owner && pThis->WhatAmI() != BuildingClass::AbsID && !pTypeExt->Linked_SW.empty() && pThis->Owner->CountOwnedAndPresent(pTypeExt->This()) <= 0)
+		pThis->Owner->UpdateSuperWeaponsOwned();
+
+	return 0x0;
+}
 
  ASMJIT_PATCH(0x4519A2, BuildingClass_UpdateAnim_SetParentBuilding, 0x6)
 {

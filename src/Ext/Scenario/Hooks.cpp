@@ -6,6 +6,18 @@
 
 #include <LoadProgressManager.h>
 
+ASMJIT_PATCH(0x687000, ScenarioClass_CheckEmptyUIName, 0x5)
+{
+	if (!strlen(ScenarioClass::Instance->UIName))
+	{
+		sprintf_s(ScenarioClass::Instance->UIName, "MISSINGMAPUINAME");
+		const auto name = PhobosCRT::StringToWideString(ScenarioClass::Instance->FileName);
+		swprintf_s(ScenarioClass::Instance->UINameLoaded, L"%ls Missing UI Name", name.c_str());
+	}
+
+	return 0x0;
+}
+
 ASMJIT_PATCH(0x6870D7, ReadScenario_LoadingScreens, 0x5)
 {
 	LEA_STACK(CCINIClass*, pINI, STACK_OFFSET(0x174, -0x158));

@@ -95,22 +95,6 @@ ASMJIT_PATCH(0x450319, BuildingClass_AI_Factory_NavalProductionFix, 0x6)
 	return SkipGameCode;
 }
 
-ASMJIT_PATCH(0x4CA0B1, FactoryClass_Abandon_NavalProductionFix, 0x6)
-{
-	enum { SkipUnitTypeCheck = 0x4CA0B7 };
-
-	GET(FactoryClass* const, pThis, ESI);
-	GET(UnitClass*, pObject, ECX);
-
-	if (pObject->Type->Naval) {
-		HouseExtContainer::Instance.Find(pThis->Owner)->ProducingNavalUnitTypeIndex = -1;
-	} else {
-		pThis->Owner->ProducingUnitTypeIndex = -1;
-	}
-
-	return 0x4CA0B7;
-}
-
 ASMJIT_PATCH(0x4F91A4, HouseClass_AI_BuildingProductionCheck, 0x6)
 {
 	enum { SkipGameCode = 0x4F9265, CheckBuildingProduction = 0x4F9240 };

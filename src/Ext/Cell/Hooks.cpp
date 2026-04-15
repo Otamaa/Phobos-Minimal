@@ -310,3 +310,29 @@ bool FakeCellClass::_CanPlaceVeins()
 	}
 	return false;
 }
+
+ASMJIT_PATCH(0x481180, CellClass_GetInfantrySubPos_InvalidCellPointer, 0x5)
+{
+	enum { retEmpty = 0x4812EC, retContinue = 0x0, retResult = 0x481313 };
+	GET(CellClass*, pThis, ECX);
+	//GET_STACK(CoordStruct*, pResult, 0x4);
+	GET_STACK(DWORD, caller, 0x0);
+
+	if (!pThis)
+	{
+		Debug::FatalErrorAndExit("CellClass::GetInfantrySubPos please fix ! caller [0x%x] ", caller);
+	}
+
+	return retContinue;
+}
+
+ASMJIT_PATCH(0x48724F, CellClass_PlaceTiberiumAt_RandomMax, 0x9)
+{
+	GET(CellClass*, pThis, ESI);
+	GET(TiberiumClass*, pTib, EDI);
+	GET(OverlayClass*, pMemory, EBP);
+	const int random = ScenarioClass::Instance->Random.RandomFromMax(pTib->NumImages - 1);
+	pMemory->OverlayClass::OverlayClass(OverlayTypeClass::Array->Items[pTib->Image->ArrayIndex + random], pThis->MapCoords, -1);
+	R->Stack(0x10, pThis->MapCoords);
+	return 0x487291;
+}

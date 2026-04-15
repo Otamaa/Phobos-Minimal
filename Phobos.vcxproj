@@ -22,8 +22,18 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Ext\AITriggerType\Hooks.cpp" />
+    <ClCompile Include="src\Ext\Building\Hooks.WallTower.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.AI.cpp" />
+    <ClCompile Include="src\Ext\Cell\Hooks.Crates.cpp" />
+    <ClCompile Include="src\Ext\Factory\Hooks.cpp" />
+    <ClCompile Include="src\Ext\Infantry\Hooks.Assaulter.cpp" />
     <ClCompile Include="src\Ext\INI\Body.cpp" />
+    <ClCompile Include="src\Ext\Object\Body.cpp" />
+    <ClCompile Include="src\Ext\Object\Hooks.cpp" />
+    <ClCompile Include="src\Ext\SlaveManager\Hooks.cpp" />
+    <ClCompile Include="src\Ext\Surface\Hooks.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.Storage.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.ThreatCoeff.cpp" />
     <ClCompile Include="src\New\Entity\FactoryPlantClass.cpp" />
     <ClCompile Include="src\Commands\AggressiveModeClass.cpp" />
@@ -97,7 +107,7 @@
     <ClCompile Include="src\Misc\Hooks.CopyProtection.cpp" />
     <ClCompile Include="src\Misc\Hooks.DebugLog.cpp" />
     <ClCompile Include="src\Ext\Foot\Hooks.Foot.cpp" />
-    <ClCompile Include="src\Ext\Infantry\Hooks.Infantry.cpp" />
+    <ClCompile Include="src\Ext\Infantry\Hooks.cpp" />
     <ClCompile Include="src\Misc\Hooks.IonBlast.cpp" />
     <ClCompile Include="src\Ext\Locomotion\Hooks.Locomotor.cpp" />
     <ClCompile Include="src\Misc\Hooks.Others.cpp" />
@@ -110,7 +120,6 @@
     <ClCompile Include="src\Misc\Hooks.GlobalSaveGame.cpp" />
     <ClCompile Include="src\Misc\Hooks.LoadOptionClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.AIRelated.cpp" />
-    <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\New\Entity\BlockTypeClass.cpp" />
     <ClCompile Include="src\New\Entity\CreateUnitTypeClass.cpp" />
     <ClCompile Include="src\New\Entity\EVAVoices.cpp" />
@@ -324,7 +333,7 @@
     <ClCompile Include="src\Ext\SWType\Hooks.Firewall.cpp" />
     <ClCompile Include="src\Ext\BuildingType\Hooks.Foundation.cpp" />
     <ClCompile Include="src\Ext\House\Hooks.House.cpp" />
-    <ClCompile Include="src\Misc\Hooks.INIFiles.cpp" />
+    <ClCompile Include="src\Ext\INI\Hooks.INIFiles.cpp" />
     <ClCompile Include="src\Ext\Mouse\Hooks.MouseCursors.cpp" />
     <ClCompile Include="src\Misc\Hooks.Movies.cpp" />
     <ClCompile Include="src\Misc\Hooks.Networking.cpp" />
@@ -352,8 +361,8 @@
     <ClCompile Include="src\Misc\DamageArea.cpp" />
     <ClCompile Include="src\Misc\Hooks.FixCrashes.cpp" />
     <ClCompile Include="src\Misc\Hooks.GameSpeed.cpp" />
-    <ClCompile Include="src\Ext\ObjectType\Hooks.Image.cpp" />
-    <ClCompile Include="src\Misc\Hooks.INIClass.cpp" />
+    <ClCompile Include="src\Ext\ObjectType\Hooks.cpp" />
+    <ClCompile Include="src\Ext\INI\Hooks.INIClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.cpp" />
     <ClCompile Include="src\Misc\Hooks.PCX.cpp" />
     <ClCompile Include="src\Ext\Locomotion\Rocket\Hooks.RocketLocomotorClass.cpp" />
@@ -491,6 +500,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="B:\Projects\Unused\LambdaFunctionArgCount.h" />
+    <ClInclude Include="src\Ext\Factory\Body.h" />
     <ClInclude Include="src\Ext\INI\Body.h" />
     <ClInclude Include="src\New\Entity\FactoryPlantClass.h" />
     <ClInclude Include="src\Commands\AggressiveModeClass.h" />
@@ -770,7 +780,6 @@
     <ClInclude Include="src\Commands\FPSCounter.h" />
     <ClInclude Include="src\Commands\MapSnapshot.h" />
     <ClInclude Include="src\Commands\TogglePower.h" />
-    <ClInclude Include="src\Misc\Hooks.Otamaa.h" />
     <ClInclude Include="src\Misc\MapRevealer.h" />
     <ClInclude Include="src\Misc\Patches.h" />
     <ClInclude Include="src\Misc\PhobosGlobal.h" />
