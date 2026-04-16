@@ -3059,3 +3059,60 @@ ASMJIT_PATCH(0x73EEA6, UnitClass_Mission_Harvest_AllOreGathered, 0x6)
 
 // Skip incorrect mission queued in InfantryClass::EnterIdleMode
 DEFINE_JUMP(LJMP, 0x51CBE5, 0x51CC1F);
+
+// Fix crash descent for aircraft/units off-map.
+// In all three locomotors below, MapClass::In_Radar blocks position/coordinate updates
+// when outside the map. This means crashing units off-map never descend to ground level
+// (or reach their destination), so the cleanup code (fire death weapon, UnInit) never runs.
+// The fix: at each locomotor's height/health check, treat off-map as ground-touch.
+// FlyLocomotionClass::Process - height check after crash descent calculation.
+// If off-map and crashing, skip the height > 0 check and go straight to ground-touch cleanup.
+// The IsCrashing guard is needed because healthy non-moving airborne aircraft also reach this
+// code path (Is_Moving()==false && Height>0) and must not be sent to cleanup.
+DEFINE_HOOK(0x4CD797, FlyLocomotionClass_CrashDescent_OffMap, 0x5)
+{
+	enum { GroundTouchCleanup = 0x4CD7AA };
+
+	GET(FlyLocomotionClass*, pThis, ESI);
+
+	const auto pLinkedTo = pThis->LinkedTo;
+
+	if (pLinkedTo->IsCrashing && !MapClass::Instance->IsWithinUsableArea(pLinkedTo->GetCoords()))
+		return GroundTouchCleanup;
+
+	return 0;
+}
+
+// JumpjetLocomotionClass::Process - height check before IsCrashing gate.
+// If off-map, skip height check and go to the IsCrashing check directly.
+DEFINE_HOOK(0x54CC16, JumpjetLocomotionClass_CrashDescent_OffMap, 0x8)
+{
+	enum { IsCrashingCheck = 0x54CC36 };
+
+	GET(JumpjetLocomotionClass*, pThis, EDI);
+
+	if (!MapClass::Instance->IsWithinUsableArea(pThis->LinkedTo->GetCoords()))
+	{
+		// Replicate the stack init from the stolen bytes (mov byte ptr [esp+11h], 0)
+		// so the "fell on something" flag is properly zeroed for the crash path.
+		REF_STACK(BYTE, fellOnSomething, STACK_OFFSET(0x34, -0x23));
+		fellOnSomething = 0;
+		return IsCrashingCheck;
+	}
+
+	return 0;
+}
+
+// RocketLocomotionClass::Process - health check after position update.
+// If off-map, bypass the Health > 0 skip and force detonation/cleanup.
+DEFINE_HOOK(0x662FD5, RocketLocomotionClass_Process_OffMap, 0x6)
+{
+	enum { ForceCleanup = 0x662FDF };
+
+	GET(RocketLocomotionClass*, pThis, EDI);
+
+	if (!MapClass::Instance->IsWithinUsableArea(pThis->LinkedTo->GetCoords()))
+		return ForceCleanup;
+
+	return 0;
+}

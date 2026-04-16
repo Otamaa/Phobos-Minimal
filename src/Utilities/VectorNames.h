@@ -47,7 +47,7 @@ public:
 	{
 		if (this->Buffer)
 		{
-			this->Strings.Clear();
+			this->Strings.clear();
 			YRMemory::Deallocate(this->Buffer);
 			this->Buffer = nullptr;
 		}
@@ -57,7 +57,7 @@ public:
 	{
 		if (this->Buffer)
 		{
-			this->Strings.Reset();
+			this->Strings.reset();
 
 			char* context = nullptr;
 			for (auto cur = CRT::strtok(this->Buffer, ",", &context); cur && *cur; cur = CRT::strtok(nullptr, ",", &context))

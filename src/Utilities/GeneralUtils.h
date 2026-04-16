@@ -74,7 +74,7 @@ public:
 	}
 
 	static const bool ProduceBuilding(HouseClass* pOwner, int idxBuilding);
-	static AnimTypeClass* SelectRandomAnimFromVector(std::vector<AnimTypeClass*>& vec, AnimTypeClass* fallback = nullptr);
+	static AnimTypeClass* SelectRandomAnimFromVector(Iterator<AnimTypeClass*>& vec, AnimTypeClass* fallback = nullptr);
 
 	static COMPILETIMEEVAL bool is_number(const std::string& s)
 	{
@@ -282,7 +282,7 @@ public:
 	// Weighted random element choice (weight) - roll for one.
 	// Takes a vector of integer type weights, which are then summed to calculate the chances.
 	// Returns chosen index or -1 if nothing is chosen.
-	static OPTIONALINLINE COMPILETIMEEVAL int ChooseOneWeighted(const double& dice, const std::vector<int>& weights)
+	static OPTIONALINLINE COMPILETIMEEVAL int ChooseOneWeighted(const double& dice, const Iterator<int>& weights)
 	{
 		float sum = 0.0;
 		float sum2 = 0.0;
@@ -299,7 +299,7 @@ public:
 		return -1;
 	}
 
-	static COMPILETIMEEVAL OPTIONALINLINE PhobosMap<Point2D, int> MakeTargetPad(std::vector<int>& weights, int count, int& maxValue)
+	static COMPILETIMEEVAL OPTIONALINLINE PhobosMap<Point2D, int> MakeTargetPad(Iterator<int>& weights, int count, int& maxValue)
 	{
 		const int weightCount = weights.size();
 		PhobosMap<Point2D, int> targetPad {};
@@ -350,7 +350,7 @@ public:
 		return false;
 	}
 
-	static OPTIONALINLINE bool Bingo(std::vector<double>& chances, int index)
+	static OPTIONALINLINE bool Bingo(Iterator<double>& chances, int index)
 	{
 		int size = chances.size();
 		if (size < index + 1)
@@ -630,10 +630,10 @@ public:
 	}
 
 	// Returns item from vector based on given direction and number of items in the vector, f.ex directional animations.
-// Vector is expected to have 2^n items where n >= 3 and n <= 16 for the logic to work correctly, other cases return first item.
-// Do not pass an empty vector, size/indices are not sanity checked here.
+	// Vector is expected to have 2^n items where n >= 3 and n <= 16 for the logic to work correctly, other cases return first item.
+	// Do not pass an empty vector, size/indices are not sanity checked here.
 	template<typename T>
-	static COMPILETIMEEVAL T GetItemForDirection(std::vector<T> const& items, DirStruct const& direction)
+	static COMPILETIMEEVAL T GetItemForDirection(Iterator<T> const& items, DirStruct const& direction)
 	{
 		if(items.empty())
 			return T {};

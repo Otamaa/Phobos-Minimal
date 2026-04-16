@@ -354,7 +354,7 @@ ASMJIT_PATCH(0x44ABD0, BuildingClass_FireLaser, 5)
 	return 0x44ACE2;
 }
 
-ASMJIT_PATCH(0x6FF48D, TechnoClass_Fire_IsLaser, 0xA)
+ASMJIT_PATCH(0x6FF48D, TechnoClass_Fire_At_IsLaser, 0xA)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET(TechnoClass* const, pTarget, EDI);

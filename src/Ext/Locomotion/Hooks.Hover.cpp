@@ -32,6 +32,14 @@ static const HoverTypeClass* GetHover(TechnoClass* pThis)
 	return defaulthover;
 }
 
+static AnimTypeClass* GetWakeAnim(TechnoClass* pThis) {
+	auto pAnim = GetHover(pThis)->GetAboveWaterAnim();
+	auto const pTechnoType = GET_TECHNOTYPE(pThis);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
+	return pTypeExt->Wake.Get(pAnim);
+
+}
+
 static TechnoClass* GetOwner(HoverLocomotionClass* pThis)
 {
 	return pThis->Owner ? pThis->Owner : pThis->LinkedTo;
@@ -107,7 +115,7 @@ ASMJIT_PATCH(0x514A32, HoverLocomotionClass_513D20_Anim, 0x5) //B
 
 		if (!Linked->IsOnBridge() && pCell->LandType == LandType::Water)
 		{
-			if (const auto pAnimType = GetHover(Linked)->GetAboveWaterAnim())
+			if (const auto pAnimType = GetWakeAnim(Linked))
 			{
 				const auto nCoord = Linked->GetCoords();
 				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nCoord),
