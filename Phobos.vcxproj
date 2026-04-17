@@ -23,6 +23,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Ext\AITriggerType\Hooks.cpp" />
+    <ClCompile Include="src\Ext\Building\Hook.DrawIt.cpp" />
     <ClCompile Include="src\Ext\Building\Hooks.WallTower.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.AI.cpp" />
     <ClCompile Include="src\Ext\Cell\Hooks.Crates.cpp" />

@@ -2190,250 +2190,251 @@ void FakeBuildingClass::_DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOrigi
 	}
 }
 
-void FakeBuildingClass::_Draw_It(Point2D* screenPos, RectangleStruct* clipRect)
-{
-	if (SHPStruct* mainShape = this->GetImage()) {
-
-		BuildingTypeClass* buildingType = this->Type;
-
-		if (buildingType->InvisibleInGame) {
-			return;
-		}
-
-		auto curMission = this->GetCurrentMission();
-
-		if (this->BState == BStateType::Construction && curMission == Mission::Selling) {
-			for (auto& anim : this->Anims) {
-				if (anim) {
-					anim->Invisible = true;
-				}
-			}
-		}
-
-		CellStruct cellPos = this->GetMapCoords();
-
-		auto pTypeExt = BuildingTypeExtContainer::Instance.Find(this->Type);
-
-		if (pTypeExt->IsHideDuringSpecialAnim &&
-			(this->Anims[(int)BuildingAnimSlot::Special] ||
-			this->Anims[(int)BuildingAnimSlot::SpecialTwo] ||
-			this->Anims[(int)BuildingAnimSlot::SpecialThree]))
-			return;
-
-		bool isUnloadingAirUnit = false;
-		if (curMission == Mission::Unload) {
-			if (TechnoClass* contactUnit = this->GetRadioContact()) {
-				TechnoTypeClass* unitType = GET_TECHNOTYPE(contactUnit);
-				if (unitType->JumpJet || unitType->BalloonHover)
-				{
-					isUnloadingAirUnit = true;
-				}
-			}
-		}
-
-		auto pCell = MapClass::Instance->GetCellAt(cellPos);
-		auto pCenterCell = MapClass::Instance->GetCellAt(this->GetCoords());
-
-		int tintLevel = 0;
-		if (!pCenterCell->IsShrouded()) {
-			tintLevel = TechnoExtData::ApplyTintColor(this, true, true, false);
-			TechnoExtData::ApplyCustomTint(this, &tintLevel, nullptr);
-		}
-
-		int NormalZAdjust = buildingType->NormalZAdjust;
-		auto& door = this->UnloadTimer;
-
-		// Handle gate/door animations
-		if (curMission == Mission::Open && (door.IsOpening() || door.IsClosing() || door.IsOpen()))
-		{
-
-			// Calculate gate frame based on door state
-			int gateFrame = (int)(door.GetCompletePercent()
-						* this->Type->GateStages);
-
-			if (door.IsClosing())
-			{
-				gateFrame = this->Type->GateStages - gateFrame;
-			}
-
-			if (door.IsClosed())
-			{
-				gateFrame = 0;
-			}
-
-			if (door.IsOpen())
-			{
-				gateFrame = this->Type->GateStages - 1;
-			}
-
-			// Clamp frame to valid range
-			gateFrame = MaxImpl(0, MinImpl(gateFrame, this->Type->GateStages - 1));
-
-			// Add damage frame offset if building is damaged
-			if (this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow)
-			{
-				gateFrame += this->Type->GateStages + 1;
-			}
-
-			ZGradient zgrad = ZGradient::Ground;
-
-			if (gateFrame < this->Type->GateStages / 2 || pTypeExt->IsBarGate)
-			{
-				zgrad = ZGradient::Deg90;
-			}
-
-			const int lightLevel = pCell->Color1.Red;
-			const int depthAdjust = Game::AdjustHeight(this->GetZ());
-
-			this->Draw_Object(mainShape,
-				gateFrame,
-				screenPos,
-				clipRect,
-				DirType::North,  // rotation
-				256,  // scale
-				NormalZAdjust - depthAdjust,  // height adjust
-				zgrad,  // ZGradient
-				1,  // useZBuffer
-				lightLevel,
-				tintLevel,
-				0, 0, 0, 0, BlitterFlags::None  // z-shape params
-			);
-
-			return;
-		}
-
-		// Handle special unload animations
-		if (curMission == Mission::Unload)
-		{
-			if (isUnloadingAirUnit)
-			{
-				if (this->Type->RoofDeployingAnim)
-				{
-					mainShape = this->Type->RoofDeployingAnim;
-					NormalZAdjust = -40;
-				}
-			}
-			else
-			{
-				if (this->Type->DeployingAnim)
-				{
-					mainShape = this->Type->DeployingAnim;
-					NormalZAdjust = -20;
-				}
-			}
-		}
-
-		// Calculate shape positioning
-		// Default shape offset values (198 = 0xC6, 446 = 0x1BE)
-		Point2D shapeOffset = { 198, 446 };
-
-		if ((curMission != Mission::Construction && curMission != Mission::Selling) || pTypeExt->ZShapePointMove_OnBuildup) {
-			shapeOffset += this->Type->ZShapePointMove;
-		}
-
-		const auto foundationWidth = this->Type->GetFoundationWidth();
-		const auto foundationHeiht = this->Type->GetFoundationHeight(0);
-
-		// Calculate screen position adjustment
-		const Point2D buildingSize {
-			.X = (foundationWidth * Unsorted::LeptonsPerCell) - Unsorted::LeptonsPerCell
-			,
-			.Y = (foundationHeiht * Unsorted::LeptonsPerCell) - Unsorted::LeptonsPerCell
-		};
-
-		Point2D screenOffset = TacticalClass::Instance->AdjustForZShapeMove(buildingSize.X, buildingSize.Y);
-				shapeOffset -= screenOffset;
-
-		// Draw main building if clipping rect has height
-		if (clipRect->Height > 0) {
-			SHPStruct* zShape = foundationWidth < 8 ? FileSystem::BUILDINGZ_SHA() : nullptr;
-			const int lightLevel = (int16)this->Type->ExtraLight + pCell->Color1.Red;
-			const int depthAdjust = Game::AdjustHeight(this->GetZ());
-
-			if (!pTypeExt->Firestorm_Wall) {
-				const int frameCount = mainShape->Frames;
-				const auto currentFrame = this->GetShapeNumber();
-				const int shapeFrame = currentFrame < frameCount / 2 ?
-					currentFrame : frameCount / 2;
-
-				this->Draw_Object(mainShape,
-						shapeFrame,
-						screenPos,
-						clipRect,
-						DirType::North,  // rotation
-						256,  // scale
-						NormalZAdjust - depthAdjust,  // height adjust
-						ZGradient::Ground,  // ZGradient
-						1,  // useZBuffer
-						lightLevel,
-						tintLevel,
-						zShape,
-						0,
-						shapeOffset.X ,
-						shapeOffset.Y ,
-						BlitterFlags::None  // flags
-				);
-			} else {
-				this->Draw_Object(mainShape,
-					this->GetShapeNumber(),
-					screenPos,
-					clipRect,
-					DirType::North,  // rotation
-					256,  // scale
-					-1 - depthAdjust,  // height adjust
-					ZGradient::Deg90,  // ZGradient
-					1,  // useZBuffer
-					lightLevel,
-					tintLevel,
-					zShape,
-					0,
-					shapeOffset.X ,
-					shapeOffset.Y ,
-					BlitterFlags::None  // flags
-				);
-			}
-		}
-
-		//// Draw bib (foundation) if present
-		if (this->Type->BibShape && this->BState != BStateType::Construction && this->ActuallyPlacedOnMap) {
-			const int lightLevel = (int)(this->Type->ExtraLight + pCell->Color1.Red);
-			const int heightZ = this->GetZ();
-
-			this->Draw_Object(
-				this->Type->BibShape,
-				this->GetShapeNumber(),
-				screenPos,
-				clipRect,
-				DirType::North,  // rotation
-				256,  // scale
-				-1 - Game::AdjustHeight(heightZ),  // height adjust
-				ZGradient::Ground,  // ZGradient
-				1,  // useZBuffer
-				lightLevel,
-				tintLevel,
-				0, 0, 0, 0, BlitterFlags::None  // z-shape params
-			);
-		}
-
-		// Draw special door animations for unload mission
-		if (curMission == Mission::Unload) {
-			if (const auto RoofAnim = isUnloadingAirUnit ? this->Type->UnderRoofDoorAnim : this->Type->UnderDoorAnim) {
-				this->Draw_Object(
-					RoofAnim,
-					this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow,
-					screenPos,
-					clipRect,
-					DirType::North, 256,  // rotation, scale
-					-Game::AdjustHeight(this->GetZ()),  // height adjust
-					ZGradient::Ground, 1,  // ZGradient, useZBuffer
-					 (int16)this->Type->ExtraLight + pCell->Color1.Red,
-					tintLevel,
-					0, 0, 0, 0, BlitterFlags::None  // z-shape params
-				);
-			}
-		}
-	}
-}
+//void FakeBuildingClass::_Draw_It(Point2D* screenPos, RectangleStruct* clipRect)
+//{
+//	if (SHPStruct* mainShape = this->GetImage()) {
+//
+//		BuildingTypeClass* buildingType = this->Type;
+//
+//		if (buildingType->InvisibleInGame) {
+//			return;
+//		}
+//
+//		auto curMission = this->GetCurrentMission();
+//
+//		if (this->BState == BStateType::Construction && curMission == Mission::Selling) {
+//			for (auto& anim : this->Anims) {
+//				if (anim) {
+//					anim->Invisible = true;
+//				}
+//			}
+//		}
+//
+//		CellStruct cellPos = this->GetMapCoords();
+//
+//		auto pTypeExt = BuildingTypeExtContainer::Instance.Find(this->Type);
+//
+//		if (pTypeExt->IsHideDuringSpecialAnim &&
+//			(this->Anims[(int)BuildingAnimSlot::Special] ||
+//			this->Anims[(int)BuildingAnimSlot::SpecialTwo] ||
+//			this->Anims[(int)BuildingAnimSlot::SpecialThree]))
+//			return;
+//
+//		bool isUnloadingAirUnit = false;
+//		if (curMission == Mission::Unload) {
+//			if (TechnoClass* contactUnit = this->GetRadioContact()) {
+//				TechnoTypeClass* unitType = GET_TECHNOTYPE(contactUnit);
+//				if (unitType->JumpJet || unitType->BalloonHover)
+//				{
+//					isUnloadingAirUnit = true;
+//				}
+//			}
+//		}
+//
+//		auto pCell = MapClass::Instance->GetCellAt(cellPos);
+//		auto pCenterCell = MapClass::Instance->GetCellAt(this->GetCoords());
+//
+//		int tintLevel = 0;
+//		if (!pCenterCell->IsShrouded()) {
+//			tintLevel = TechnoExtData::ApplyTintColor(this, true, true, false);
+//			TechnoExtData::ApplyCustomTint(this, &tintLevel, nullptr);
+//		}
+//
+//		int NormalZAdjust = buildingType->NormalZAdjust;
+//		auto& door = this->UnloadTimer;
+//
+//		// Handle gate/door animations
+//		if (curMission == Mission::Open && (door.IsOpening() || door.IsClosing() || door.IsOpen()))
+//		{
+//
+//			// Calculate gate frame based on door state
+//			int gateFrame = (int)(door.GetCompletePercent()
+//						* this->Type->GateStages);
+//
+//			if (door.IsClosing())
+//			{
+//				gateFrame = this->Type->GateStages - gateFrame;
+//			}
+//
+//			if (door.IsClosed())
+//			{
+//				gateFrame = 0;
+//			}
+//
+//			if (door.IsOpen())
+//			{
+//				gateFrame = this->Type->GateStages - 1;
+//			}
+//
+//			// Clamp frame to valid range
+//			gateFrame = MaxImpl(0, MinImpl(gateFrame, this->Type->GateStages - 1));
+//
+//			// Add damage frame offset if building is damaged
+//			if (this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow)
+//			{
+//				gateFrame += this->Type->GateStages + 1;
+//			}
+//
+//			ZGradient zgrad = ZGradient::Ground;
+//
+//			if (gateFrame < this->Type->GateStages / 2 || pTypeExt->IsBarGate)
+//			{
+//				zgrad = ZGradient::Deg90;
+//			}
+//
+//			const auto pCellHere = MapClass::Instance->GetCellAt(cellPos);
+//			const int lightLevel = pCellHere->Color1.Red;
+//			const int depthAdjust = Game::AdjustHeight(this->GetZ());
+//
+//			this->Draw_Object(mainShape,
+//				gateFrame,
+//				screenPos,
+//				clipRect,
+//				DirType::North,  // rotation
+//				256,  // scale
+//				NormalZAdjust - depthAdjust,  // height adjust
+//				zgrad,  // ZGradient
+//				1,  // useZBuffer
+//				lightLevel,
+//				tintLevel,
+//				0, 0, 0, 0, BlitterFlags::None  // z-shape params
+//			);
+//
+//			return;
+//		}
+//
+//		// Handle special unload animations
+//		if (curMission == Mission::Unload)
+//		{
+//			if (isUnloadingAirUnit)
+//			{
+//				if (this->Type->RoofDeployingAnim)
+//				{
+//					mainShape = this->Type->RoofDeployingAnim;
+//					NormalZAdjust = -40;
+//				}
+//			}
+//			else
+//			{
+//				if (this->Type->DeployingAnim)
+//				{
+//					mainShape = this->Type->DeployingAnim;
+//					NormalZAdjust = -20;
+//				}
+//			}
+//		}
+//
+//		// Calculate shape positioning
+//		// Default shape offset values (198 = 0xC6, 446 = 0x1BE)
+//		Point2D shapeOffset = { 198, 446 };
+//
+//		if ((curMission != Mission::Construction && curMission != Mission::Selling) || pTypeExt->ZShapePointMove_OnBuildup) {
+//			shapeOffset += this->Type->ZShapePointMove;
+//		}
+//
+//		const auto foundationWidth = this->Type->GetFoundationWidth();
+//		const auto foundationHeiht = this->Type->GetFoundationHeight(0);
+//
+//		// Calculate screen position adjustment
+//		const Point2D buildingSize {
+//			.X = (foundationWidth * Unsorted::LeptonsPerCell) - Unsorted::LeptonsPerCell
+//			,
+//			.Y = (foundationHeiht * Unsorted::LeptonsPerCell) - Unsorted::LeptonsPerCell
+//		};
+//
+//		Point2D screenOffset = TacticalClass::Instance->AdjustForZShapeMove(buildingSize.X, buildingSize.Y);
+//				shapeOffset -= screenOffset;
+//
+//		// Draw main building if clipping rect has height
+//		if (clipRect->Height > 0) {
+//			SHPStruct* zShape = foundationWidth < 8 ? FileSystem::BUILDINGZ_SHA() : nullptr;
+//			const int lightLevel = (int16)this->Type->ExtraLight + pCell->Color1.Red;
+//			const int depthAdjust = Game::AdjustHeight(this->GetZ());
+//
+//			if (!pTypeExt->Firestorm_Wall) {
+//				const int frameCount = mainShape->Frames;
+//				const auto currentFrame = this->GetShapeNumber();
+//				const int shapeFrame = currentFrame < frameCount / 2 ?
+//					currentFrame : frameCount / 2;
+//
+//				this->Draw_Object(mainShape,
+//						shapeFrame,
+//						screenPos,
+//						clipRect,
+//						DirType::North,  // rotation
+//						256,  // scale
+//						NormalZAdjust - depthAdjust,  // height adjust
+//						ZGradient::Ground,  // ZGradient
+//						1,  // useZBuffer
+//						lightLevel,
+//						tintLevel,
+//						zShape,
+//						0,
+//						shapeOffset.X ,
+//						shapeOffset.Y ,
+//						BlitterFlags::None  // flags
+//				);
+//			} else {
+//				this->Draw_Object(mainShape,
+//					this->GetShapeNumber(),
+//					screenPos,
+//					clipRect,
+//					DirType::North,  // rotation
+//					256,  // scale
+//					-1 - depthAdjust,  // height adjust
+//					ZGradient::Deg90,  // ZGradient
+//					1,  // useZBuffer
+//					lightLevel,
+//					tintLevel,
+//					zShape,
+//					0,
+//					shapeOffset.X ,
+//					shapeOffset.Y ,
+//					BlitterFlags::None  // flags
+//				);
+//			}
+//		}
+//
+//		//// Draw bib (foundation) if present
+//		if (this->Type->BibShape && this->BState != BStateType::Construction && this->ActuallyPlacedOnMap) {
+//			const int lightLevel = (int)(this->Type->ExtraLight + pCell->Color1.Red);
+//			const int heightZ = this->GetZ();
+//
+//			this->Draw_Object(
+//				this->Type->BibShape,
+//				this->GetShapeNumber(),
+//				screenPos,
+//				clipRect,
+//				DirType::North,  // rotation
+//				256,  // scale
+//				-1 - Game::AdjustHeight(heightZ),  // height adjust
+//				ZGradient::Ground,  // ZGradient
+//				1,  // useZBuffer
+//				lightLevel,
+//				tintLevel,
+//				0, 0, 0, 0, BlitterFlags::None  // z-shape params
+//			);
+//		}
+//
+//		// Draw special door animations for unload mission
+//		if (curMission == Mission::Unload) {
+//			if (const auto RoofAnim = isUnloadingAirUnit ? this->Type->UnderRoofDoorAnim : this->Type->UnderDoorAnim) {
+//				this->Draw_Object(
+//					RoofAnim,
+//					this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow,
+//					screenPos,
+//					clipRect,
+//					DirType::North, 256,  // rotation, scale
+//					-Game::AdjustHeight(this->GetZ()),  // height adjust
+//					ZGradient::Ground, 1,  // ZGradient, useZBuffer
+//					 (int16)this->Type->ExtraLight + pCell->Color1.Red,
+//					tintLevel,
+//					0, 0, 0, 0, BlitterFlags::None  // z-shape params
+//				);
+//			}
+//		}
+//	}
+//}
 
 //DEFINE_HOOK(0x43D290,BuildingClass_Draw_It, 0x5)
 //{
@@ -2446,7 +2447,10 @@ void FakeBuildingClass::_Draw_It(Point2D* screenPos, RectangleStruct* clipRect)
 //	return 0x43DA73;
 //}
 //
-//DEFINE_FUNCTION_JUMP(CALL6, 0x43D005 , FakeBuildingClass::_Draw_It)
+//
+DEFINE_FUNCTION_JUMP(CALL6, 0x43D005, FakeBuildingClass::_Draw_It)
+DEFINE_FUNCTION_JUMP(LJMP, 0x43D290, FakeBuildingClass::_Draw_It)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3FD0, FakeBuildingClass::_Draw_It)
 
 int FakeBuildingClass::_BuildingClass_GetRangeOfRadial()
 {
