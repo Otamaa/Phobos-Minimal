@@ -158,7 +158,7 @@ public:
 	}
 
 	static void __fastcall AnnounceExpiredPointer(AbstractClass* pAbstract, bool removed = true)
-	{ JMP_THIS(0x7258D0); }
+	{ JMP_FAST(0x7258D0); }
 
 	static void __fastcall RemoveAllInactive() JMP_FAST(0x725C70);
 	static int __fastcall GetbuildCat(AbstractType abstractID, int idx) JMP_FAST(0x5004E0);

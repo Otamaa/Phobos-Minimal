@@ -181,7 +181,7 @@ const double RadSiteExtData::GetRadLevelAt(double distance)
 	// Vanilla YR stores & updates the decremented RadLevel on CellClass.
 	// Because we're not storing multiple radiation site data on CellClass (yet?)
 	// we need to fully recalculate this stuff every time we need the radiation level for a cell coord - Starkku
-	const auto frame_Step = (Unsorted::CurrentFrame - this->CreationFrame);
+	const auto frame_Step = (Unsorted::CurrentFrame() - this->CreationFrame);
 	const int levelDelay = this->Type->GetLevelDelay();
 	const int stepCount = (frame_Step && levelDelay > 0) ? frame_Step / levelDelay : 0;
 
@@ -368,7 +368,7 @@ static NOINLINE void ApplyRadDamage(RadSiteClass* pRad, FootClass* pObj, CellCla
 
 		const int RadApplicationDelay = RulesExtData::Instance()->UseGlobalRadApplicationDelay ? pRadType->GetApplicationDelay() : RulesClass::Instance->RadApplicationDelay;
 		if ((RadApplicationDelay <= 0)
-			|| (Unsorted::CurrentFrame % RadApplicationDelay))
+			|| (Unsorted::CurrentFrame() % RadApplicationDelay))
 			return;
 
 		if (GET_TECHNOTYPE(pObj)->Immune || !pRadType->GetWarhead())
@@ -473,7 +473,7 @@ static NOINLINE void ApplyRadDamage(RadSiteClass* pRad, BuildingClass* pObj, Cel
 
 		const int delay = RulesExtData::Instance()->UseGlobalRadApplicationDelay ? pRadType->GetBuildingApplicationDelay() : RulesExtData::Instance()->RadApplicationDelay_Building;
 
-		if ((delay <= 0) || (Unsorted::CurrentFrame % delay))
+		if ((delay <= 0) || (Unsorted::CurrentFrame() % delay))
 			return;
 
 		if (GET_TECHNOTYPE(pObj)->Immune || !pRadType->GetWarhead() || pObj->IsBeingWarpedOut())

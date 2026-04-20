@@ -148,7 +148,7 @@ struct _DropPodLocomotionClass
 
 			if (AnimTypeClass* pType = DroppodProperties_::GetTrailer(tType, pLinked, condition))
 			{
-				if (Unsorted::CurrentFrame % DroppodProperties_::GetTrailerDelay(tType, pLinked, condition) == 1)
+				if (Unsorted::CurrentFrame.get() % DroppodProperties_::GetTrailerDelay(tType, pLinked, condition) == 1)
 				{
 					auto pTrail = GameCreate<AnimClass>(pType, coords, 0, 1, AnimFlag::AnimFlag_600, 0, false);
 					AnimExtData::SetAnimOwnerHouseKind(pTrail,
@@ -165,7 +165,7 @@ struct _DropPodLocomotionClass
 
 			if (auto dWpn = DroppodProperties_::GetWeapon(tType, pLinked, condition))
 			{
-				if (Unsorted::CurrentFrame % MaxImpl(dWpn->ROF, 3) == 0)
+				if (Unsorted::CurrentFrame.get() % MaxImpl(dWpn->ROF, 3) == 0)
 				{
 					auto cell = MapClass::Instance->GetCellAt(pLoco->CoordDest);
 					auto techno = cell->FindTechnoNearestTo({ 0,0 }, false);

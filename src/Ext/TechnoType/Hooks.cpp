@@ -545,12 +545,12 @@ ASMJIT_PATCH(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
 					pDrawer = pPalette;
 			}
 
-			idxFrame = nFramesPerFacing * nFacing + (Unsorted::CurrentFrame + pThis->WalkedFramesSoFar) % nFramesPerFacing;
+			idxFrame = nFramesPerFacing * nFacing + (Unsorted::CurrentFrame() + pThis->WalkedFramesSoFar) % nFramesPerFacing;
 		}
 	}
 
 	if (idxFrame == -1)
-		idxFrame = 15 * nFacing + (Unsorted::CurrentFrame + pThis->WalkedFramesSoFar) % 15;
+		idxFrame = 15 * nFacing + (Unsorted::CurrentFrame() + pThis->WalkedFramesSoFar) % 15;
 
 	DSurface::Temp->DrawSHP(
 		pDrawer, pSHP, idxFrame, pLocation, pBounds,
@@ -881,7 +881,7 @@ ASMJIT_PATCH(0x4AE670, DisplayClass_GetToolTip_EnemyUIName, 0x8)
 			{
 				if (const auto pOwnerHouse = pFoot->GetOwningHouse())
 				{
-					if (!pOwnerHouse->IsNeutral() && !pOwnerHouse->IsAlliedWith(HouseClass::CurrentPlayer))
+					if (!pOwnerHouse->IsNeutral() && !pOwnerHouse->IsAlliedWith(HouseClass::CurrentPlayer()))
 					{
 						const auto pTechnoTypeExt = GET_TECHNOTYPEEXT(pFoot);
 						{

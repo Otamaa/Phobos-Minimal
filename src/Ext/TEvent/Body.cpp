@@ -1246,7 +1246,7 @@ bool HandleDefaultEvents(
 
 	const int typeIndex = static_cast<int>(evt->EventKind);
 	if (typeIndex >= 0 && typeIndex < static_cast<int>(TriggerEvent::count)) {
-		if (RequiresEventMatch[typeIndex] && event != evt->EventKind && !Unsorted::ArmageddonMode()) {
+		if (RequiresEventMatch[typeIndex] && event != evt->EventKind && !Unsorted::MAP_DEBUG_MODE()) {
 			return false;
 		}
 	}

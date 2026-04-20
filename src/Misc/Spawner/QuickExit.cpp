@@ -32,7 +32,7 @@ ASMJIT_PATCH(0x77786B, MainWindowProc_HandleRageQuit, 0x5)
 {
 	if (SpawnerMain::GetMainConfigs()->QuickExit) {
 
-		if (Game::IsActive && HouseClass::CurrentPlayer && !Game::ScoreStuffLoad) {
+		if (Game::IsActive() && HouseClass::CurrentPlayer() && !Game::ScoreStuffLoad()) {
 			RageQuit = true;
 			//ASM_CALL(0x6471A0);
 			EventClass e_DESTRUCT { HouseClass::CurrentPlayer->ArrayIndex, EventType::DESTRUCT };

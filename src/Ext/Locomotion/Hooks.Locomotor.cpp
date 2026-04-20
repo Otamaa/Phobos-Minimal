@@ -92,7 +92,7 @@ ASMJIT_PATCH(0x75AC93, WalkLocomotionClass_Process_Wake, 0x6)
 	const auto pLinkedTo = static_cast<LocomotionClass*>(pThis)->LinkedTo;
 	const auto pTypeExt = GET_TECHNOTYPEEXT(pLinkedTo);
 
-	if (pThis->Is_Moving_Now() && !(Unsorted::CurrentFrame % 10) && !pLinkedTo->OnBridge && pLinkedTo->GetCell()->LandType == LandType::Water)
+	if (pThis->Is_Moving_Now() && !(Unsorted::CurrentFrame.get() % 10) && !pLinkedTo->OnBridge && pLinkedTo->GetCell()->LandType == LandType::Water)
 	{
 		TechnoExtData::PlayAnim(pTypeExt->Wake.Get(RulesClass::Instance->Wake), pLinkedTo);
 	}

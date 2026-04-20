@@ -85,7 +85,7 @@ ASMJIT_PATCH(0x647EB4, QueueAIMultiplayer_ProtocolZero2, 0x8)
 	if (EventExt::ProtocolZero::Enable)
 	{
 		R->AL(LatencyLevel::NewFrameSendRate);
-		R->ECX((DWORD)Unsorted::CurrentFrame);
+		R->ECX((DWORD)Unsorted::CurrentFrame());
 
 		return 0x647EBE;
 	}
@@ -97,7 +97,7 @@ ASMJIT_PATCH(0x647DF2, QueueAIMultiplayer_ProtocolZero3, 0x5)
 {
 	if (EventExt::ProtocolZero::Enable)
 	{
-		R->EDX((DWORD)Game::Network::MaxAhead & 0xffff);
+		R->EDX((DWORD)Game::Network::MaxAhead() & 0xffff);
 
 		return 0x647DF2 + 0x5;
 	}

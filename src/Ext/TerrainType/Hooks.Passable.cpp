@@ -306,7 +306,7 @@ ASMJIT_PATCH(0x5FD2B6, OverlayClass_Unlimbo_SkipTerrainCheck, 0x9)
 
 	GET(CellClass* const, pCell, EAX);
 
-	if (!Game::IsActive)
+	if (!Game::IsActive.get())
 		return Unlimbo;
 
 	auto pCellObject = pCell->FirstObject;
@@ -349,7 +349,7 @@ ASMJIT_PATCH(0x47C640, CellClass_CanThisExistHere_IgnoreSomething, 0x6)
 
 	ProximityTemp::Exist = false;
 
-	if (!Game::IsActive)
+	if (!Game::IsActive.get())
 		return CanExistHere;
 
 	const auto expand = RulesExtData::Instance()->ExtendedBuildingPlacing.Get();
@@ -597,7 +597,7 @@ ASMJIT_PATCH(0x4FB1EA, HouseClass_UnitFromFactory_HangUpPlaceEvent, 0x5)
 	{
 		BuildingTypeExtData::CreateLimboBuilding(pBuilding, pBuildingType, pHouse, pTypeExt->LimboBuildID);
 
-		if (pDisplay->CurrentBuilding == pBuilding && HouseClass::CurrentPlayer == pHouse)
+		if (pDisplay->CurrentBuilding == pBuilding && HouseClass::CurrentPlayer.get() == pHouse)
 		BuildingExtData::ClearCurrentBuildingData(pDisplay);
 
 		BuildingExtData::PlayConstructionYardAnim<true>(pFactory);
@@ -699,7 +699,7 @@ ASMJIT_PATCH(0x4FB1EA, HouseClass_UnitFromFactory_HangUpPlaceEvent, 0x5)
 					if (!(place.Times % 5) && BuildingTypeExtData::CleanUpBuildingSpace(pBuildingType, topLeftCell, pHouse))
 						break; // No place for cleaning
 
-					if (pHouse == HouseClass::CurrentPlayer && place.Times == 30)
+					if (pHouse == HouseClass::CurrentPlayer.get() && place.Times == 30)
 					BuildingExtData::ClearCurrentBuildingData(pDisplay);
 
 					--place.Times;
@@ -733,7 +733,7 @@ ASMJIT_PATCH(0x4FB1EA, HouseClass_UnitFromFactory_HangUpPlaceEvent, 0x5)
 	{
 		if (pBufferBuilding != pBuilding)
 		{
-			if (HouseClass::CurrentPlayer == pHouse)
+			if (HouseClass::CurrentPlayer.get() == pHouse)
 			{
 				if (pDisplay->CurrentBuilding == pBufferBuilding)
 					pDisplay->CurrentBuilding = pBuilding;
@@ -1062,10 +1062,10 @@ ASMJIT_PATCH(0x4F8DB1, HouseClass_Update_CheckHangUpBuilding, 0x6)
 		{
 			BuildingExtData::ClearPlacingBuildingData(pType->BuildCat != BuildCat::Combat ? &pHouseExt->Common : &pHouseExt->Combat);
 
-			if (pHouse == HouseClass::CurrentPlayer)
+			if (pHouse == HouseClass::CurrentPlayer.get())
 				VoxClass::Play(GameStrings::EVA_CannotDeployHere);
 		}
-		else if (pHouse == HouseClass::CurrentPlayer) // Prevent unexpected wrong event
+		else if (pHouse == HouseClass::CurrentPlayer.get()) // Prevent unexpected wrong event
 		{
 			EventClass event (pHouse->ArrayIndex, EventType::PLACE, AbstractType::Building, pType->GetArrayIndex(), pType->Naval, cell);
 			EventClass::AddEvent(&event);

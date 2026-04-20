@@ -12,7 +12,7 @@ LightConvertClass* IsometricTileTypeExtData::GetLightConvert(IsometricTileTypeCl
 		return nullptr;
 
 	const char* ConverName = "ISO_X.PAL";
-	BytePalette* pISOPal = &FileSystem::ISOx_PAL;
+	BytePalette* pISOPal = FileSystem::ISOx_PAL.ptr();
 
 	if(pOvrl) {
 		auto pExt = IsometricTileTypeExtContainer::Instance.Find(pOvrl);
@@ -35,8 +35,8 @@ LightConvertClass* IsometricTileTypeExtData::GetLightConvert(IsometricTileTypeCl
 			LightConvertClass* pLightConvert = GameCreate<LightConvertClass>
 				(
 					pISOPal,
-					&FileSystem::TEMPERAT_PAL,
-					DSurface::Primary,
+					FileSystem::TEMPERAT_PAL.ptr(),
+					DSurface::Primary.get(),
 					r,
 					g,
 					b,
@@ -56,8 +56,8 @@ LightConvertClass* IsometricTileTypeExtData::GetLightConvert(IsometricTileTypeCl
 		LightConvertClass* pLightConvert = GameCreate<LightConvertClass>
 			(
 				pISOPal,
-				&FileSystem::TEMPERAT_PAL,
-				DSurface::Primary,
+				FileSystem::TEMPERAT_PAL.ptr(),
+				DSurface::Primary.get(),
 				r,
 				g,
 				b,

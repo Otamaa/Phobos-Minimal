@@ -61,7 +61,7 @@ void LevitateLocomotionClass::ProcessHovering()
 	const auto nDampen = nInitialHeight + Dampen;
 	const auto pTechWhat = (int)LinkedTo->WhatAmI();
 	const double dMult = (pTechWhat & 1) ? 1.1 : 1.0;
-	const auto nFrame = Unsorted::CurrentFrame + 2 * pTechWhat;
+	const auto nFrame = Unsorted::CurrentFrame.get() + 2 * pTechWhat;
 	const auto nHoverBob = dMult * RulesClass::Instance->HoverBob * 900.0;
 	const auto nVal2 = (nFrame % int(nHoverBob)) * Math::PI_BY_TWO_APPROX / nHoverBob;
 	const auto nVal3 = Math::sin((float)nVal2);
@@ -918,7 +918,7 @@ bool __stdcall LevitateLocomotionClass::Process()
 	//Done
 	if (this->Is_Moving_Now())
 	{
-		if (!(Unsorted::CurrentFrame % 10))
+		if (!(Unsorted::CurrentFrame.get() % 10))
 		{
 			if (!LinkedTo->IsOnBridge() && LinkedTo->GetCell()->LandType == LandType::Water)
 			{

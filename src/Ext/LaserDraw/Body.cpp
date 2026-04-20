@@ -597,7 +597,7 @@ void FakeLaserDrawClass::_DrawLaser()
 	// Previously Thickness was only used for IsHouseColor
 	// Now we apply thickness to the outer color with smooth falloff
 	// ====================================================================
-	if (Thickness > 1 && hasOuterColor && !Game::bDirect3DIsUseable)
+	if (Thickness > 1 && hasOuterColor && !Game::bDirect3DIsUseable.get())
 	{
 		const bool isDiagonal = (direction & 1) != 0;
 
@@ -787,7 +787,7 @@ void FakeLaserDrawClass::_DrawInHouseColor()
 				line2End.X += offsets[1].X;
 			}
 
-			if (!Game::bDirect3DIsUseable)
+			if (!Game::bDirect3DIsUseable.get())
 			{
 				// Draw the lines for this layer
 				if (useHighQuality)
@@ -853,7 +853,7 @@ void FakeLaserDrawClass::_DrawInHouseColor()
 	}
 
 	// Final rendering: D3D triangle path or software center line
-	if (Game::bDirect3DIsUseable && DSurface::CD3DTriangleInstance() && ZBuffer::Instance)
+	if (Game::bDirect3DIsUseable.get() && DSurface::CD3DTriangleInstance() && ZBuffer::Instance.get())
 	{
 		const short zMax = ZBuffer::Instance->MaxValue;
 		const short viewportY = static_cast<short>(DSurface::ViewBounds->Y);

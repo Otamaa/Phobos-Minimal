@@ -22,6 +22,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Commands\Deselect.cpp" />
+    <ClCompile Include="src\Commands\ToggleSuperTimers.cpp" />
     <ClCompile Include="src\Ext\AITriggerType\Hooks.cpp" />
     <ClCompile Include="src\Ext\Building\Hook.DrawIt.cpp" />
     <ClCompile Include="src\Ext\Building\Hooks.WallTower.cpp" />
@@ -477,6 +479,7 @@
     <ClCompile Include="src\Utilities\Handle.cpp" />
     <ClCompile Include="src\Utilities\Helpers.cpp" />
     <ClCompile Include="src\Utilities\INIParser.cpp" />
+    <ClCompile Include="src\Utilities\MultiBoolFixedArray.cpp" />
     <ClCompile Include="src\Utilities\OptionalStruct.cpp" />
     <ClCompile Include="src\Utilities\Parser.cpp" />
     <ClCompile Include="src\Utilities\PhobosFixedString.cpp" />
@@ -501,6 +504,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="B:\Projects\Unused\LambdaFunctionArgCount.h" />
+    <ClInclude Include="src\Commands\Deselect.h" />
+    <ClInclude Include="src\Commands\ToggleSuperTimers.h" />
     <ClInclude Include="src\Ext\Factory\Body.h" />
     <ClInclude Include="src\Ext\INI\Body.h" />
     <ClInclude Include="src\New\Entity\FactoryPlantClass.h" />

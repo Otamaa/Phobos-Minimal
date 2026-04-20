@@ -1,6 +1,11 @@
 #pragma once
 
-#include "Template.h"
+#include <array>
+#include <Base/Always.h>
+
+class PhobosStreamReader;
+class PhobosStreamWriter;
+class INI_EX;
 
 // Use fixed array instead of vectors , to save some size
 template<int Amount>
@@ -11,40 +16,20 @@ struct MultiBoolFixedArray
 	static constexpr int WordCount =
 		(Amount + BitsPerWord - 1) / BitsPerWord;
 
-	OPTIONALINLINE void Read(
+	void Read(
 		INI_EX& parser,
 		const char* const pSection,
 		const char* const pKey,
-		std::array<const char*, Amount>& nKeysArray)
-	{
-		if (parser.ReadString(pSection, pKey) > 0)
-		{
-			Reset();
-			char* context = nullptr;
+		std::array<const char*, Amount>& nKeysArray);
+	
+	OPTIONALINLINE COMPILETIMEEVAL int size() const { return Amount; }
 
-			for (char* cur = strtok_s(parser.value(), Phobos::readDelims, &context);
-				cur; cur = strtok_s(nullptr, Phobos::readDelims, &context))
-			{
-				for (int i = 0; i < Amount; ++i)
-				{
-					if (IS_SAME_STR_(cur, nKeysArray[i]))
-					{
-						Set(i, true);
-						break;
-					}
-				}
-			}
-		}
-	}
-
-	COMPILETIMEEVAL int size() const { return Amount; }
-
-	COMPILETIMEEVAL bool at(int Index) const
+	OPTIONALINLINE COMPILETIMEEVAL bool at(int Index) const
 	{
 		return Get(Index);
 	}
 
-	bool Get(int Index) const
+	OPTIONALINLINE COMPILETIMEEVAL bool Get(int Index) const
 	{
 		if (Index < 0 || Index >= Amount)
 			return false;
@@ -54,7 +39,7 @@ struct MultiBoolFixedArray
 		return (Bits[word] >> bit) & 1u;
 	}
 
-	void Set(int Index, bool value)
+	OPTIONALINLINE COMPILETIMEEVAL void Set(int Index, bool value)
 	{
 		if (Index < 0 || Index >= Amount)
 			return;
@@ -69,34 +54,10 @@ struct MultiBoolFixedArray
 			Bits[word] &= ~mask;
 	}
 
-	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{
-		Reset();
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	bool Save(PhobosStreamWriter& Stm) const;
 
-		for (int i = 0; i < Amount; ++i)
-		{
-			bool value = false;
-			if (!Stm.Process(value, RegisterForChange))
-				return false;
-			Set(i, value);
-		}
-
-		return true;
-	}
-
-	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const
-	{
-		for (int i = 0; i < Amount; ++i)
-		{
-			bool value = Get(i);
-			if (!Stm.Process(value))
-				return false;
-		}
-
-		return true;
-	}
-
-	void Reset() {
+	OPTIONALINLINE void Reset() {
 		std::memset(Bits, 0, sizeof(Bits));
 	}
 

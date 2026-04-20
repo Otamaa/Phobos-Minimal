@@ -302,7 +302,7 @@ ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
 
 					if (health != 0)
 					{
-						if (!(Unsorted::CurrentFrame % int(delay * 900.0)))
+						if (!(Unsorted::CurrentFrame.get() % int(delay * 900.0)))
 						{
 							pThis->Health += health;
 

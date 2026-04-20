@@ -18,6 +18,16 @@
 #define SDDTOR_NODELETE				0x00
 #define SDDTOR_DELETE				0x01
 
+enum class TacticalRenderMode
+{
+	All0= 0x0,
+	Terrain = 0x1,
+	Moving_Animating = 0x2,
+	All3 = 0x3,
+	Stop_Drawing = 0x4,
+	Unknown = 0x5,
+};
+
 enum class AITriggerConditionComparatorType : unsigned int
 {
 	Less = 0,

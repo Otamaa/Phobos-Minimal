@@ -20,9 +20,9 @@ public:
 	//!< The average frame rate for all frames processed.
 	static OPTIONALINLINE double GetAverageFrameRate()
 	{
-		if(TotalTimeElapsed) {
-			return static_cast<double>(TotalFramesElapsed)
-				/ static_cast<double>(TotalTimeElapsed);
+		if(TotalTimeElapsed.get()) {
+			return static_cast<double>(TotalFramesElapsed.get())
+				/ static_cast<double>(TotalTimeElapsed.get());
 		}
 
 		return 0.0;
@@ -44,6 +44,6 @@ public:
 	//!< Whether effects should be reduced.
 	static OPTIONALINLINE bool ReduceEffects()
 	{
-		return FPSCounter::CurrentFrameRate < GetMinFrameRate();
+		return FPSCounter::CurrentFrameRate.get() < GetMinFrameRate();
 	}
 };

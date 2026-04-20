@@ -596,27 +596,7 @@ public:
 	}
 
 	template<bool UseCriticalRandomNumber = true>
-	static COMPILETIMEEVAL int GetRandomValue(const Point2D point, int defVal)
-	{
-		int min = point.X;
-		int max = point.Y;
-
-		if (min > max)
-		{
-			min = max;
-			max = point.X;
-		}
-
-		if (max > 0)
-		{
-			if COMPILETIMEEVAL (UseCriticalRandomNumber)
-				return ScenarioClass::Instance->Random.RandomRanged(min, max);
-			else
-				return Random2Class::NonCriticalRandomNumber->RandomRanged(min, max);
-		}
-
-		return defVal;
-	}
+	static int GetRandomValue(const Point2D point, int defVal);
 
 	template<typename T>
 	static OPTIONALINLINE COMPILETIMEEVAL T GetItemByHealthRatio(double ratio, T green , T yellow , T red) {

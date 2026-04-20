@@ -72,17 +72,17 @@ ASMJIT_PATCH(0x552F79, LoadProgressManager_Draw_MissingLoadingScreenDefaults, 0x
 
 	if (!pDrawer) {
 		// Uncertain how necessary this is but is what game does...
-		if (LoadProgressManager::LoadScreenPal) {
+		if (LoadProgressManager::LoadScreenPal()) {
 			GameDelete<true,false>(LoadProgressManager::LoadScreenPal());
 			LoadProgressManager::LoadScreenPal = nullptr;
 		}
 
-		if (LoadProgressManager::LoadScreenBytePal) {
+		if (LoadProgressManager::LoadScreenBytePal()) {
 			GameDelete<true,false>(LoadProgressManager::LoadScreenBytePal());
 			LoadProgressManager::LoadScreenBytePal = nullptr;
 		}
 
-		ConvertClass::CreateFromFile(pScenarioExt->DefaultLS800BkgdPal, LoadProgressManager::LoadScreenBytePal, LoadProgressManager::LoadScreenPal);
+		ConvertClass::CreateFromFile(pScenarioExt->DefaultLS800BkgdPal, LoadProgressManager::LoadScreenBytePal(), LoadProgressManager::LoadScreenPal());
 
 		R->EBX(LoadProgressManager::LoadScreenPal());
 	}

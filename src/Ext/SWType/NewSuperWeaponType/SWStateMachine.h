@@ -65,7 +65,7 @@ public:
 
 	COMPILETIMEEVAL OPTIONALINLINE int TimePassed() const
 	{
-		return Unsorted::CurrentFrame - Clock.StartTime;
+		return Unsorted::CurrentFrame.get() - Clock.StartTime;
 	}
 
 	COMPILETIMEEVAL OPTIONALINLINE SWTypeExtData* GetTypeExtData() const

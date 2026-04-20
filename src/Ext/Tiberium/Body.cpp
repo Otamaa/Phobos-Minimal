@@ -55,7 +55,7 @@ void TiberiumExtData::Spread_AI()
 
 				if (numallowed > 1)
 				{
-					SpreadQueue.emplace(Unsorted::CurrentFrame + ScenarioClass::Instance->Random.RandomRanged(0, 49), cell);
+					SpreadQueue.emplace(Unsorted::CurrentFrame() + ScenarioClass::Instance->Random.RandomRanged(0, 49), cell);
 					SpreadState[Map_Cell_Index(cellptr->MapCoords)] = true;
 				}
 			}
@@ -106,7 +106,7 @@ void TiberiumExtData::Queue_Spread(CellStruct const& cell)
 			Recalc_Spread();
 		}
 
-		SpreadQueue.emplace(Unsorted::CurrentFrame + ScenarioClass::Instance->Random.RandomRanged(0, 49), cell);
+		SpreadQueue.emplace(Unsorted::CurrentFrame() + ScenarioClass::Instance->Random.RandomRanged(0, 49), cell);
 		SpreadState[Map_Cell_Index(cell)] = true;
 	}
 }
@@ -138,7 +138,7 @@ void TiberiumExtData::Growth_AI()
 
 				if (cellptr->OverlayData < This()->NumFrames - 1)
 				{
-					GrowthQueue.emplace(Unsorted::CurrentFrame + ScenarioClass::Instance->Random.RandomRanged(0, 49), cell);
+					GrowthQueue.emplace(Unsorted::CurrentFrame() + ScenarioClass::Instance->Random.RandomRanged(0, 49), cell);
 					GrowthState[Map_Cell_Index(cell)] = true;
 					Queue_Spread(cell);
 				}
@@ -192,7 +192,7 @@ void TiberiumExtData::Queue_Growth(CellStruct const& cell)
 			Recalc_Growth();
 		}
 
-		GrowthQueue.emplace(Unsorted::CurrentFrame + ScenarioClass::Instance->Random.RandomRanged(0, 49), cell);
+		GrowthQueue.emplace(Unsorted::CurrentFrame() + ScenarioClass::Instance->Random.RandomRanged(0, 49), cell);
 		GrowthState[Map_Cell_Index(cell)] = true;
 	}
 }

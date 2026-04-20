@@ -586,7 +586,7 @@ void FakeParasiteClass::__Detach(AbstractClass* detachingObject, bool permanent)
 
 	// Handle victim detachment
 	if (permanent && detachingObject == this->Victim) {
-		if (!Game::InScenario2) {
+		if (!Game::InScenario2.get()) {
 			this->Victim = nullptr;
 			return;
 		}

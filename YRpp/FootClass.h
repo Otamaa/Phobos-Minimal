@@ -96,6 +96,8 @@ public:
 	virtual void vt_entry_54C() RX;
 	virtual bool IsLandingZoneClear(AbstractClass* pLZ) R0;
 
+	int draw_dashed_4DC340() { JMP_THIS(0x4DC340); }
+
 	bool CanBeRecruited(HouseClass* ByWhom) const
 	{ JMP_THIS(0x4DA230); }
 

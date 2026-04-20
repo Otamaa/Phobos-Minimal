@@ -694,7 +694,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 		*damage = 0;
 		return DamageState::Unaffected;
 	} else
-		pExt->LastHurtFrame = Unsorted::CurrentFrame;
+		pExt->LastHurtFrame = Unsorted::CurrentFrame.get();
 
 	if (!pThis || !pThis->IsAlive || pThis->Health <= 0) {
 		return DamageState::NowDead;
@@ -883,10 +883,10 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 				if (Started != -1)
 				{
 
-					if (Unsorted::CurrentFrame - Started >= DelayTime)
+					if (Unsorted::CurrentFrame.get() - Started >= DelayTime)
 						DelayTime = 0;
 					else
-						DelayTime -= Unsorted::CurrentFrame - Started;
+						DelayTime -= Unsorted::CurrentFrame.get() - Started;
 
 				}
 
@@ -2244,9 +2244,9 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 				const bool Onfire = pTypeExt->HealthOnfire.Get(pThis->GetHealthStatus());
 				auto const pFireType = pTypeExt->OnFireTypes.GetElements(RulesClass::Instance->OnFire);
 
-				if (Onfire && pFireType.size() >= 3 && Unsorted::CurrentFrame > pBldExt->LastFlameSpawnFrame + RulesExtData::Instance()->BuildingFlameSpawnBlockFrames)
+				if (Onfire && pFireType.size() >= 3 && Unsorted::CurrentFrame.get() > pBldExt->LastFlameSpawnFrame + RulesExtData::Instance()->BuildingFlameSpawnBlockFrames)
 				{
-					pBldExt->LastFlameSpawnFrame = Unsorted::CurrentFrame;
+					pBldExt->LastFlameSpawnFrame = Unsorted::CurrentFrame.get();
 					const auto rand_ = pThis->Type->GetFoundationWidth() + pThis->Type->GetFoundationHeight(false) + 5;
 
 					for (auto fnd = foundation; (fnd->X != 0x7FFF || fnd->Y != 0x7FFF); ++fnd)
@@ -2360,9 +2360,9 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 			auto Started = pThis->GoingToBlowTimer.StartTime;
 			auto DelayTime = pThis->GoingToBlowTimer.TimeLeft;
 
-			if (Started != -1 && Unsorted::CurrentFrame - Started < DelayTime)
+			if (Started != -1 && Unsorted::CurrentFrame.get() - Started < DelayTime)
 			{
-				DelayTime -= Unsorted::CurrentFrame - Started;
+				DelayTime -= Unsorted::CurrentFrame.get() - Started;
 			}
 
 			if (DelayTime > 0)
@@ -2390,7 +2390,7 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 				if (pThis->Owner && Attacker->IsAlive && !pThis->IsStrange())
 				{
 					pThis->Owner->LAEnemy = Attacker->Owner->ArrayIndex;
-					pThis->Owner->LATime = Unsorted::CurrentFrame;
+					pThis->Owner->LATime = Unsorted::CurrentFrame.get();
 					pThis->BaseIsAttacked(Attacker);
 				}
 

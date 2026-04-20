@@ -601,7 +601,7 @@ struct AudioController
 		f_0(nullptr),
 		f_4(0),
 		Voice(nullptr),
-		AudioIndex(&AudioIDXData::Instance),
+		AudioIndex(AudioIDXData::Instance.ptr()),
 		f_10(0)
 	{
 	}

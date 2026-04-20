@@ -39,26 +39,26 @@ static void NOINLINE DestroyBridge(CoordStruct* pCoord, const FakeWarheadTypeCla
 	{
 		const bool v98 = pWarhead->_GetExtData()->BridgeAbsoluteDestroyer.Get(pWarhead == RulesClass::Instance->IonCannonWarhead);
 
-		int v64 = pCell->IsoTileTypeIndex - BridgeSet + 1;
+		int v64 = pCell->IsoTileTypeIndex - BridgeSet.get() + 1;
 		CellClass* v104 = pCell->GetBridgeOwner();
 		int v67 = 0;
 		int v68 = 0;
 
 		if (v104 && (v104->OverlayTypeIndex == 24 || v104->OverlayTypeIndex == 25))
 		{
-			v67 = BridgeMiddle1;
+			v67 = BridgeMiddle1.get();
 		}
 		else
 		{
-			v67 = BridgeMiddle1;
+			v67 = BridgeMiddle1.get();
 
-			if (v64 != BridgeMiddle1 && v64 != BridgeMiddle1 + 1 && v64 != BridgeMiddle1 + 2 && v64 != BridgeMiddle1 + 3)
+			if (v64 != BridgeMiddle1.get() && v64 != BridgeMiddle1.get() + 1 && v64 != BridgeMiddle1.get() + 2 && v64 != BridgeMiddle1.get() + 3)
 			{
-				v68 = BridgeMiddle2;
-				if (v64 != BridgeMiddle2 && v64 != BridgeMiddle2 + 1 && v64 != BridgeMiddle2 + 2 && v64 != BridgeMiddle2 + 3)
+				v68 = BridgeMiddle2.get();
+				if (v64 != BridgeMiddle2.get() && v64 != BridgeMiddle2.get() + 1 && v64 != BridgeMiddle2.get() + 2 && v64 != BridgeMiddle2.get() + 3)
 				{
 				LABEL_167:
-					int v73 = pCell->IsoTileTypeIndex - WoodBridgeSet + 1;
+					int v73 = pCell->IsoTileTypeIndex - WoodBridgeSet.get() + 1;
 					if (v104 && (v104->OverlayTypeIndex == 237 || v104->OverlayTypeIndex == 238)
 					  || v73 == v67
 					  || v73 == v67 + 1

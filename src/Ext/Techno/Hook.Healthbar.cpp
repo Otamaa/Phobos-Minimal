@@ -41,7 +41,7 @@ ASMJIT_PATCH(0x6D9076, TacticalClass_RenderLayers_DrawBefore, 0x5)// FootClass
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
 
 		if (!pTypeExt->HealthBar_Hide && !pTypeExt->HideSelectBox)
-			TechnoExtData::DrawSelectBox(pTechno, pLocation, &DSurface::ViewBounds, true);
+			TechnoExtData::DrawSelectBox(pTechno, pLocation, DSurface::ViewBounds.ptr(), true);
 	}
 
 	return 0;
@@ -398,7 +398,7 @@ static bool ShouldDrawPips(TechnoClass* techno)
 		if (!technoType->PipsDrawForAll)
 		{
 			// Draw if allied with player
-			if (techno->Owner->IsAlliedWith(HouseClass::CurrentPlayer))
+			if (techno->Owner->IsAlliedWith(HouseClass::CurrentPlayer.get()))
 			{
 				return true;
 			}

@@ -745,7 +745,7 @@ void FakeAircraftClass::_FootClass_Update_Wrapper()
 					return;
 
 				// Injury every four frames
-				if (!((Unsorted::CurrentFrame - this->LastFireBulletFrame + this->UniqueID) & 0x3))
+				if (!((Unsorted::CurrentFrame.get() - this->LastFireBulletFrame + this->UniqueID) & 0x3))
 					this->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
 			}
 			else if (damage < 0)

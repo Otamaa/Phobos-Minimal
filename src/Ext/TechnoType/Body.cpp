@@ -2413,7 +2413,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->FireUp.Read(exArtINI, pArtSection, "FireUp");
 		this->FireUp_ResetInRetarget.Read(exArtINI, pArtSection, "FireUp.ResetInRetarget");
 
-		this->GreyCameoPCX.Read(&CCINIClass::INI_Art, pArtSection, "GreyCameoPCX");
+		this->GreyCameoPCX.Read(&CCINIClass::INI_Art(), pArtSection, "GreyCameoPCX");
 		this->AlternateFLH_OnTurret.Read(exArtINI, pArtSection, "AlternateFLH.OnTurret");
 		this->TurretOffset.Read(exArtINI, pArtSection, GameStrings::TurretOffset());
 		this->AlternateFLH_ApplyVehicle.Read(exArtINI, pArtSection, "AlternateFLH.ApplyVehicle");

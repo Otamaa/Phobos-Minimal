@@ -190,7 +190,7 @@ void TintColors::GetTints(int* tintColor, int* intensity)
 		this->Calculate(pShieldType->Tint_Color->ToInit(), static_cast<int>(pShieldType->Tint_Intensity * 1000), pShieldType->Tint_VisibleToHouses);
 	}
 
-	if (pOwner == HouseClass::CurrentPlayer)
+	if (pOwner == HouseClass::CurrentPlayer.get())
 	{
 		if(calculateTint)
 			*tintColor |= this->ColorOwner;
@@ -198,7 +198,7 @@ void TintColors::GetTints(int* tintColor, int* intensity)
 		if (CalculateIntensity)
 			*intensity += this->IntensityOwner;
 	}
-	else if (pOwner->IsAlliedWith(HouseClass::CurrentPlayer))
+	else if (pOwner->IsAlliedWith(HouseClass::CurrentPlayer.get()))
 	{
 		if (calculateTint)
 			*tintColor |= this->ColorAllies;
@@ -2306,7 +2306,7 @@ void TechnoExtData::UpdateAlphaShape(ObjectClass* pSource)
 		return;
 	}
 
-	if (Unsorted::CurrentFrame % 2)
+	if (Unsorted::CurrentFrame.get() % 2)
 	{
 		if (PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pSource)
 			&& what == BuildingClass::AbsID
@@ -2315,11 +2315,11 @@ void TechnoExtData::UpdateAlphaShape(ObjectClass* pSource)
 			return;
 
 		RectangleStruct ScreenArea = TacticalClass::Instance->VisibleArea();
-		++Unsorted::ScenarioInit;
+		++Unsorted::ScenarioInit.get();
 		GameCreate<AlphaShapeClass>(pSource,
 		(xyTL.X + off.X + ScreenArea.X),
 		(xyTL.Y + off.Y + ScreenArea.Y));
-		--Unsorted::ScenarioInit;
+		--Unsorted::ScenarioInit.get();
 		TacticalClass::Instance->RegisterDirtyArea({
 		xyTL.X + off.X,
 		xyTL.Y + off.Y,
@@ -2408,7 +2408,7 @@ void TechnoExtData::PlantBomb(TechnoClass* pSource, ObjectClass* pTarget, Weapon
 		{
 			const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 			BombExtContainer::Instance.Find(pBomb)->Weapon = pWeaponExt;
-			pBomb->DetonationFrame = Unsorted::CurrentFrame + pWeaponExt->Ivan_Delay.Get(RulesClass::Instance->IvanTimedDelay);
+			pBomb->DetonationFrame = Unsorted::CurrentFrame.get() + pWeaponExt->Ivan_Delay.Get(RulesClass::Instance->IvanTimedDelay);
 			pBomb->TickSound = pWeaponExt->Ivan_TickingSound.Get(RulesClass::Instance->BombTickingSound);
 
 			const auto IsAlly = pSource->Owner && pSource->Owner->IsAlliedWith(pTarget);
@@ -4022,7 +4022,7 @@ void UpdateTypeData_Foot(FootClass* pThis, TechnoTypeClass* pOldType, TechnoType
 		auto const pLocomotorType = pCurrentType->Locomotor;
 
 		// The Hover movement pattern allows for self-landing.
-		if (pLocomotorType != FlyLocomotionClass::ClassGUID && pLocomotorType != HoverLocomotionClass::ClassGUID)
+		if (pLocomotorType != FlyLocomotionClass::ClassGUID.get() && pLocomotorType != HoverLocomotionClass::ClassGUID.get())
 		{
 			const bool isinAir = pThis->IsInAir() && !pThis->LocomotorSource;
 
@@ -4287,7 +4287,7 @@ bool NOINLINE TechnoExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* 
 		// replace the original locomotor to new one
 		if (pOldType->Locomotor != pToType->Locomotor)
 		{
-			if (pOldType->Locomotor == CLSIDs::Teleport && pToType->Locomotor != CLSIDs::Teleport && pThis->WarpingOut)
+			if (pOldType->Locomotor == CLSIDs::Teleport.get() && pToType->Locomotor != CLSIDs::Teleport.get() && pThis->WarpingOut)
 				TechnoExtContainer::Instance.Find(pThis)->HasRemainingWarpInDelay = true;
 
 			//AbstractClass* pTarget = pThis->Target;
@@ -4349,7 +4349,7 @@ int TechnoExtData::GetSelfHealAmount(TechnoClass* pThis)
 
 		const auto frames = MaxImpl(int(rate * 900.0), 1);
 
-		if (Unsorted::CurrentFrame % frames == 0)
+		if (Unsorted::CurrentFrame.get() % frames == 0)
 		{
 			const auto strength = pType->Strength;
 
@@ -4608,9 +4608,9 @@ void TechnoExtData::Ares_AddMoneyStrings(TechnoClass* pThis, bool forcedraw)
 	const auto value = pExt->TechnoValueAmount;
 	static fmt::basic_memory_buffer<wchar_t> moneyStr;
 
-	if (value && (forcedraw || Unsorted::CurrentFrame >= pExt->Pos))
+	if (value && (forcedraw || Unsorted::CurrentFrame.get() >= pExt->Pos))
 	{
-		pExt->Pos = Unsorted::CurrentFrame - int32_t(RulesExtData::Instance()->DisplayCreditsDelay * -900.0);
+		pExt->Pos = Unsorted::CurrentFrame.get() - int32_t(RulesExtData::Instance()->DisplayCreditsDelay * -900.0);
 		pExt->TechnoValueAmount = 0;
 		bool isPositive = value > 0;
 
@@ -5333,7 +5333,7 @@ void __fastcall FakeTechnoClass:: __Activate(TechnoClass* pThis)
 
 		if (auto const wasDeactivated = std::exchange(pThis->Deactivated, false)) {
 			// change: don't play sound when mutex active
-			if (!Unsorted::ScenarioInit) {
+			if (!Unsorted::ScenarioInit.get()) {
 				VocClass::SafeImmedietelyPlayAt(pType->ActivateSound, &pThis->Location, nullptr);
 			}
 
@@ -5381,7 +5381,7 @@ void FakeTechnoClass::__Deactivate(TechnoClass* pThis)
 
 	if (!wasDeactivated) {
 		// change: don't play sound when mutex active
-		if (!Unsorted::ScenarioInit) {
+		if (!Unsorted::ScenarioInit.get()) {
 			VocClass::SafeImmedietelyPlayAt(pType->DeactivateSound, &pThis->Location, nullptr);
 		}
 
@@ -6644,7 +6644,7 @@ void TechnoExtData::UpdateRecountBurst() {
 
 	if (pThis->CurrentBurstIndex && !pThis->Target && pTypeExt->RecountBurst.Get(RulesExtData::Instance()->RecountBurst)) {
 		const auto pWeapon = this->LastWeaponType;
-		if (pWeapon && pWeapon->Burst && pThis->LastFireBulletFrame + MaxImpl(pWeapon->ROF, 30) <= Unsorted::CurrentFrame) {
+		if (pWeapon && pWeapon->Burst && pThis->LastFireBulletFrame + MaxImpl(pWeapon->ROF, 30) <= Unsorted::CurrentFrame.get()) {
 
 
 			const auto ratio = static_cast<double>(pThis->CurrentBurstIndex) / pWeapon->Burst;
@@ -7599,7 +7599,7 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 		value = pThis->Health;
 		maxValue = pType->Strength;
 
-		if (pThis->Disguised && !pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer))
+		if (pThis->Disguised && !pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer.get()))
 			GetDigitalDisplayFakeHealth(pThis, value, maxValue);
 
 		break;
@@ -7931,7 +7931,7 @@ void TechnoExtData::CreateInitialPayload(bool forced)
 	if (pTypeExt->InitialPayload_Types.empty())
 		return;
 
-	const bool re_AppyAcademyBonusses = Unsorted::ScenarioInit && (!pType->UndeploysInto || !pType->DeploysInto);
+	const bool re_AppyAcademyBonusses = Unsorted::ScenarioInit.get() && (!pType->UndeploysInto || !pType->DeploysInto);
 	auto const pBld = cast_to<BuildingClass*, false>(pThis);
 
 	auto freeSlots = (pBld && pBld->Type->CanBeOccupied)
@@ -9761,7 +9761,7 @@ void TechnoExtData::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, Rectang
 		return;
 
 	Point2D offset = *pLocation;
-	const bool IsAlly = pThis->Owner && pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer);
+	const bool IsAlly = pThis->Owner && pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer.get());
 
 	const bool isVisibleToPlayer = IsAlly
 		|| IsObserverPlayer
@@ -10052,7 +10052,7 @@ void TechnoExtData::UpdateInterceptor()
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(GET_TECHNOTYPE(pThis));
 	const int delay = Math::abs(pTypeExt->Interceptor_TargetingDelay.Get(pThis));
 
-	if (Unsorted::CurrentFrame % delay != 0)
+	if (Unsorted::CurrentFrame.get() % delay != 0)
 		return;
 
 	if (auto pTarget = pThis->Target) {
@@ -11282,7 +11282,7 @@ constexpr bool CanDoSelfHeal(TechnoClass* pThis , SelfHealGainType type , int& a
 	{
 	case SelfHealGainType::Infantry:
 	{
-		if (Unsorted::CurrentFrame % RulesClass::Instance->SelfHealInfantryFrames)
+		if (Unsorted::CurrentFrame.get() % RulesClass::Instance->SelfHealInfantryFrames)
 			return false;
 
 		amount = RulesClass::Instance->SelfHealInfantryAmount * countSelfHealing(pThis , true);
@@ -11294,7 +11294,7 @@ constexpr bool CanDoSelfHeal(TechnoClass* pThis , SelfHealGainType type , int& a
 	}
 	case SelfHealGainType::Units:
 	{
-		if (Unsorted::CurrentFrame % RulesClass::Instance->SelfHealUnitFrames)
+		if (Unsorted::CurrentFrame.get() % RulesClass::Instance->SelfHealUnitFrames)
 			return false;
 
 		amount = RulesClass::Instance->SelfHealUnitAmount * countSelfHealing(pThis, false);
@@ -11459,7 +11459,7 @@ void TechnoExtData::ApplyDrainMoney(TechnoClass* pThis)
 	const auto pRules = RulesClass::Instance();
 	const auto nDrainDelay = pTypeExt->DrainMoneyFrameDelay.Get(pRules->DrainMoneyFrameDelay);
 
-	if ((Unsorted::CurrentFrame % nDrainDelay) == 0)
+	if ((Unsorted::CurrentFrame.get() % nDrainDelay) == 0)
 	{
 		auto nDrainAmount = pTypeExt->DrainMoneyAmount.Get(pRules->DrainMoneyAmount);
 		if (nDrainAmount != 0)
@@ -11573,7 +11573,7 @@ void TechnoExtData::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rec
 		int xOffset = 0;
 		int yOffset = 0;
 
-		if (Unsorted::CurrentFrame % selfHealFrames <= 5
+		if (Unsorted::CurrentFrame.get() % selfHealFrames <= 5
 			&& pThis->Health < GET_TECHNOTYPE(pThis)->Strength)
 		{
 			isSelfHealFrame = true;
@@ -12161,7 +12161,7 @@ void TechnoExtData::UpdateLaserTrails()
 			if (!trail->Type->CloakVisible)
 			{
 				trail->Cloaked = true;
-			} else if (trail->Type->CloakVisible_Houses && !HouseClass::IsCurrentPlayerObserver() && !pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer)) {
+			} else if (trail->Type->CloakVisible_Houses && !HouseClass::IsCurrentPlayerObserver() && !pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer.get())) {
 				auto const pCell = pThis->GetCell();
 				trail->Cloaked = !pCell || !pCell->Sensors_InclHouse(HouseClass::CurrentPlayer->ArrayIndex);
 			}

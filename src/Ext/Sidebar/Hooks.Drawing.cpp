@@ -88,7 +88,7 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 					if (flags & GadgetFlag::RightPress) {
 						if (pCurrentFactory) {
 
-							if (Unsorted::PendingObject) {
+							if (Unsorted::PendingObject.get()) {
 								const AbstractType abs = Unsorted::PendingObject->WhatAmI();
 
 								if (abs == AbstractType::Building
@@ -636,16 +636,16 @@ const wchar_t* FakeStripClass::__Help_Text(int index)
 
 		const int Cost = pTechnoType->GetActualCost(HouseClass::CurrentPlayer);
 
-		if (CCToolTip::HideName || !wcslen(pTechnoType->UIName))
+		if (CCToolTip::HideName.get() || !wcslen(pTechnoType->UIName))
 		{
 			const wchar_t* Format = StringTable::FetchString(GameStrings::TXT_MONEY_FORMAT_1);
-			_snwprintf_s(SidebarClass::TooltipBuffer, SidebarClass::TooltipLength, SidebarClass::TooltipLength - 1, Format, Cost);
+			_snwprintf_s(SidebarClass::TooltipBuffer.get(), SidebarClass::TooltipLength, SidebarClass::TooltipLength - 1, Format, Cost);
 		}
 		else
 		{
 			const wchar_t* UIName = pTechnoType->UIName;
 			const wchar_t* Format = StringTable::FetchString(GameStrings::TXT_MONEY_FORMAT_2);
-			_snwprintf_s(SidebarClass::TooltipBuffer, SidebarClass::TooltipLength, SidebarClass::TooltipLength - 1, Format, UIName, Cost);
+			_snwprintf_s(SidebarClass::TooltipBuffer.get(), SidebarClass::TooltipLength, SidebarClass::TooltipLength - 1, Format, UIName, Cost);
 		}
 	}
 	else
@@ -739,7 +739,7 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 
 	// 006A9607-006A9644: Calculate visible rows
 	// Formula: ((SidebarBounds.Height - dword_B0B4F8 - tabOffset + SidebarBounds.Y - 7) / 50) + IsScrolling
-	int visibleRows = (DSurface::SidebarBounds->Height - Sidebar_B0B4F8 - tabOffset + DSurface::SidebarBounds->Y - 7) / 50;
+	int visibleRows = (DSurface::SidebarBounds->Height - Sidebar_B0B4F8.get() - tabOffset + DSurface::SidebarBounds->Y - 7) / 50;
 	visibleRows += (this->IsScrolling != 0) ? 1 : 0;
 	int maxRows = visibleRows;
 
@@ -771,8 +771,8 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 
 				// Calculate screen position
 				int stripX = pStrip->Location.X;
-				int screenX = stripX + column * SidebarClass::ObjectWidth - DSurface::SidebarBounds->X;
-				int screenY = rowIndex * SidebarClass::ObjectHeight + pStrip->Location.Y + 1;
+				int screenX = stripX + column * SidebarClass::ObjectWidth.get() - DSurface::SidebarBounds->X;
+				int screenY = rowIndex * SidebarClass::ObjectHeight.get() + pStrip->Location.Y + 1;
 				int originalScreenY = screenY;
 
 				// Item data pointers
@@ -814,7 +814,7 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 				// 006A9701-006A9710: Adjust position if scrolling
 				if (pStrip->IsScrolling)
 				{
-					screenY = screenY + pStrip->Slid - SidebarClass::ObjectHeight;
+					screenY = screenY + pStrip->Slid - SidebarClass::ObjectHeight.get();
 					originalScreenY = screenY;
 				}
 
@@ -1441,10 +1441,10 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 		{
 			int houseIndex = pStrip->TopRowIndex + rowIndex;
 			int panelX = pStrip->Location.X - DSurface::SidebarBounds->X;
-			int panelY = pStrip->Location.Y + 2 * rowIndex * SidebarClass::ObjectHeight + 1;
+			int panelY = pStrip->Location.Y + 2 * rowIndex * SidebarClass::ObjectHeight.get() + 1;
 
 			// Bounds check
-			if (houseIndex >= Sidebar_884CF8)
+			if (houseIndex >= Sidebar_884CF8.get())
 				break;
 
 			HouseClass* pObservedHouse = Sidebar_Houses_[houseIndex];
@@ -1566,7 +1566,7 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 			// Adjust for scrolling
 			int adjustedPanelY = panelY;
 			if (pStrip->IsScrolling)
-				adjustedPanelY += pStrip->Slid - SidebarClass::ObjectHeight;
+				adjustedPanelY += pStrip->Slid - SidebarClass::ObjectHeight.get();
 
 			Point2D textPos = { panelX + 8, adjustedPanelY + 4 };
 

@@ -443,7 +443,7 @@ void FakeTechnoClass::__HandleTargetAcquisition(TechnoClass* pThis)
 	if ((!pThis->Owner->IsControlledByHuman() || !pRulesExt->DistributeTargetingFrame_AIOnly) && pTypeExt->DistributeTargetingFrame.Get(pRulesExt->DistributeTargetingFrame)) {
 		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
-		if (Unsorted::CurrentFrame % 16 != pExt->MyTargetingFrame) {
+		if (Unsorted::CurrentFrame.get() % 16 != pExt->MyTargetingFrame) {
 			return;
 		}
 	}

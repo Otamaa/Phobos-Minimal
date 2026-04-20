@@ -459,7 +459,7 @@ ASMJIT_PATCH(0x6FDD7D, TechnoClass_FireAt_UpdateWeaponType, 0x5) {
 			if (pExt->LastWeaponType && pExt->LastWeaponType->Burst) {
 
 				const auto ratio = static_cast<double>(pThis->CurrentBurstIndex) / pExt->LastWeaponType->Burst;
-				const auto rof = static_cast<int>(ratio * pExt->LastWeaponType->ROF * pExt->AE.ROFMultiplier) - (Unsorted::CurrentFrame - pThis->LastFireBulletFrame);
+				const auto rof = static_cast<int>(ratio * pExt->LastWeaponType->ROF * pExt->AE.ROFMultiplier) - (Unsorted::CurrentFrame.get() - pThis->LastFireBulletFrame);
 
 				if (rof > 0){
 					pThis->ROF = rof;

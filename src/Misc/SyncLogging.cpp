@@ -40,13 +40,13 @@ void SyncLogger::AddRNGCallSyncLogEvent(Random2Class* pRandomizer, int type, uns
 	MakeCallerRelative(callerAddress);
 	// Don't log non-critical RNG calls.
 	if (pRandomizer == &ScenarioClass::Instance->Random)
-		SyncLogger::RNGCalls.Emplace(type, true, pRandomizer->Index1, pRandomizer->Index2, callerAddress, Unsorted::CurrentFrame, min, max);
+		SyncLogger::RNGCalls.Emplace(type, true, pRandomizer->Index1, pRandomizer->Index2, callerAddress, Unsorted::CurrentFrame.get(), min, max);
 }
 
 void SyncLogger::AddFacingChangeSyncLogEvent(unsigned short facing, unsigned int callerAddress)
 {
 	MakeCallerRelative(callerAddress);
-	SyncLogger::FacingChanges.Emplace(facing, callerAddress, Unsorted::CurrentFrame);
+	SyncLogger::FacingChanges.Emplace(facing, callerAddress, Unsorted::CurrentFrame.get());
 }
 
 void SyncLogger::AddTargetChangeSyncLogEvent(AbstractClass* pObject, AbstractClass* pTarget, unsigned int callerAddress)
@@ -64,7 +64,7 @@ void SyncLogger::AddTargetChangeSyncLogEvent(AbstractClass* pObject, AbstractCla
 		targetID = pTarget->UniqueID;
 	}
 
-	SyncLogger::TargetChanges.Emplace(pObject->WhatAmI(), pObject->UniqueID, targetRTTI, targetID, callerAddress, Unsorted::CurrentFrame);
+	SyncLogger::TargetChanges.Emplace(pObject->WhatAmI(), pObject->UniqueID, targetRTTI, targetID, callerAddress, Unsorted::CurrentFrame.get());
 }
 
 void SyncLogger::AddDestinationChangeSyncLogEvent(AbstractClass* pObject, AbstractClass* pTarget, unsigned int callerAddress)
@@ -82,7 +82,7 @@ void SyncLogger::AddDestinationChangeSyncLogEvent(AbstractClass* pObject, Abstra
 		targetID = pTarget->UniqueID;
 	}
 
-	SyncLogger::DestinationChanges.Emplace(pObject->WhatAmI(), pObject->UniqueID, targetRTTI, targetID, callerAddress, Unsorted::CurrentFrame);
+	SyncLogger::DestinationChanges.Emplace(pObject->WhatAmI(), pObject->UniqueID, targetRTTI, targetID, callerAddress, Unsorted::CurrentFrame.get());
 }
 
 void SyncLogger::AddMissionOverrideSyncLogEvent(AbstractClass* pObject, int mission, unsigned int callerAddress)
@@ -91,7 +91,7 @@ void SyncLogger::AddMissionOverrideSyncLogEvent(AbstractClass* pObject, int miss
 		return;
 
 	MakeCallerRelative(callerAddress);
-	SyncLogger::MissionOverrides.Emplace(pObject->WhatAmI(), pObject->UniqueID, mission, callerAddress, Unsorted::CurrentFrame);
+	SyncLogger::MissionOverrides.Emplace(pObject->WhatAmI(), pObject->UniqueID, mission, callerAddress, Unsorted::CurrentFrame.get());
 }
 
 void SyncLogger::AddAnimCreationSyncLogEvent(const CoordStruct& coords, unsigned int callerAddress)
@@ -106,7 +106,7 @@ void SyncLogger::AddAnimCreationSyncLogEvent(const CoordStruct& coords, unsigned
 		SyncLogger::AnimCreations_HighestZ = coords.Z;
 
 	MakeCallerRelative(callerAddress);
-	if (SyncLogger::AnimCreations.Emplace(coords, callerAddress, Unsorted::CurrentFrame))
+	if (SyncLogger::AnimCreations.Emplace(coords, callerAddress, Unsorted::CurrentFrame.get()))
 	{
 		SyncLogger::AnimCreations_HighestX = 0;
 		SyncLogger::AnimCreations_HighestY = 0;
@@ -123,7 +123,7 @@ void SyncLogger::WriteSyncLog(const std::string& logFilename)
 
 		fprintf(pLogFile, "\nPhobos synchronization log:\n\n");
 
-		int frameDigits = GeneralUtils::CountDigitsInNumber(Unsorted::CurrentFrame);
+		int frameDigits = GeneralUtils::CountDigitsInNumber(Unsorted::CurrentFrame.get());
 
 		WriteRNGCalls(pLogFile, frameDigits);
 		WriteFacingChanges(pLogFile, frameDigits);

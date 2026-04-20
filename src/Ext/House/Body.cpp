@@ -740,7 +740,7 @@ void HouseExtData::ApplyAcademy(
 	// also triggered in game for certain "conversions" like deploy
 	// Otamaa : added IsTethered check , so techno form WF wont get ignored !
 	//
-	if (Unsorted::ScenarioInit) {
+	if (Unsorted::ScenarioInit.get()) {
 		return;
 	}
 
@@ -1753,7 +1753,7 @@ bool HouseExtData::IsObserverPlayer()
 	if (!pCur)
 		return false;
 
-	if (pCur == HouseClass::Observer)
+	if (pCur == HouseClass::Observer.get())
 		return true;
 
 	return false;
@@ -2210,7 +2210,7 @@ bool HouseExtData::ShouldDisableCameo(HouseClass* pThis, TechnoTypeClass* pType,
 	if (CheckShouldDisableDefensesCameo(pThis, pType) || HouseExtData::ReachedBuildLimit(pThis, pType, false))
 		return true;
 
-	if (AdditionalCheks && pThis == HouseClass::CurrentPlayer) {
+	if (AdditionalCheks && pThis == HouseClass::CurrentPlayer.get()) {
 
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
@@ -3045,11 +3045,11 @@ int FakeHouseClass::_Expert_AI()
 			}
 		}
 
-		if (this->AIMode == AIMode::BuildBase && this->LATime + 900 < Unsorted::CurrentFrame) {
+		if (this->AIMode == AIMode::BuildBase && this->LATime + 900 < Unsorted::CurrentFrame.get()) {
 			this->AIMode = AIMode::General;
 		}
 
-		if (this->AIMode != AIMode::BuildBase && this->LATime + 900 > Unsorted::CurrentFrame) {
+		if (this->AIMode != AIMode::BuildBase && this->LATime + 900 > Unsorted::CurrentFrame.get()) {
 			this->AIMode = AIMode::BuildBase;
 		}
 	}
@@ -3784,7 +3784,7 @@ void HouseExtData::UpdateTogglePower(HouseClass* pThis)
 		return;
 	}
 
-	if (Unsorted::CurrentFrame % pRulesExt->TogglePowerDelay == 0)
+	if (Unsorted::CurrentFrame.get() % pRulesExt->TogglePowerDelay == 0)
 	{
 		struct ExpendabilityStruct
 		{

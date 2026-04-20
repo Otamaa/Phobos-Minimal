@@ -76,7 +76,7 @@ bool NOINLINE Passes_Proximity_Check(
     int distanceOverride = 0)  // default = 0 in header
 {
 	if (house != HouseClass::CurrentPlayer->ArrayIndex
-	  || Unsorted::ArmageddonMode
+	  || Unsorted::MAP_DEBUG_MODE.get()
 	  || !list
 	  || !trycell->IsValid()
 	  || !object

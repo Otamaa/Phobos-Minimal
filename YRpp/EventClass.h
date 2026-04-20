@@ -192,7 +192,7 @@ public:
 	}
 
 	static bool AddEventWithTimeStamp(EventClass* pEvent) {
-		pEvent->Frame = static_cast<DWORD>(Unsorted::CurrentFrame);
+		pEvent->Frame = static_cast<DWORD>(Unsorted::CurrentFrame.get());
 		return OutList->Add(pEvent);
 	}
 

@@ -47,13 +47,13 @@ ASMJIT_PATCH(0x539EB0, LightningStorm_Start, 5)
 	LightningStorm::Coords = cell;
 	LightningStorm::Owner = pOwner;
 
-	if (!LightningStorm::IsActive)
+	if (!LightningStorm::IsActive.get())
 	{
 		if (deferment)
 		{
 			// register this storm to start soon
-			if (!LightningStorm::Deferment
-				|| LightningStorm::Deferment >= deferment)
+			if (!LightningStorm::Deferment.get()
+				|| LightningStorm::Deferment.get() >= deferment)
 			{
 				LightningStorm::Deferment = deferment;
 			}
@@ -96,7 +96,7 @@ ASMJIT_PATCH(0x539EB0, LightningStorm_Start, 5)
 				}
 			}
 
-			if (HouseClass::CurrentPlayer)
+			if (HouseClass::CurrentPlayer.get())
 			{
 				HouseClass::CurrentPlayer->RecheckRadar = true;
 			}
@@ -139,9 +139,9 @@ ASMJIT_PATCH(0x53A6CF, LightningStorm_Update, 7)
 
 #pragma region NukeUpdate
 	// switch lightning for nuke
-	if (NukeFlash::Duration != -1)
+	if (NukeFlash::Duration.get() != -1)
 	{
-		if (NukeFlash::StartTime + NukeFlash::Duration < Unsorted::CurrentFrame)
+		if (NukeFlash::StartTime.get() + NukeFlash::Duration.get() < Unsorted::CurrentFrame.get())
 		{
 			if (NukeFlash::IsFadingIn())
 			{
@@ -198,9 +198,9 @@ ASMJIT_PATCH(0x53A6CF, LightningStorm_Update, 7)
 	if (LightningStorm::CloudsPresent->Count <= 0)
 	{
 		// end the lightning storm
-		if (LightningStorm::TimeToEnd)
+		if (LightningStorm::TimeToEnd.get())
 		{
-			if (LightningStorm::IsActive)
+			if (LightningStorm::IsActive.get())
 			{
 				LightningStorm::IsActive = false;
 				LightningStorm::Owner = nullptr;
@@ -241,7 +241,7 @@ ASMJIT_PATCH(0x53A6CF, LightningStorm_Update, 7)
 	auto const pExt = SWTypeExtContainer::Instance.Find(pType);
 
 	// is inactive
-	if (!LightningStorm::IsActive || LightningStorm::TimeToEnd)
+	if (!LightningStorm::IsActive.get() || LightningStorm::TimeToEnd.get())
 	{
 		auto deferment = LightningStorm::Deferment();
 
@@ -277,7 +277,7 @@ ASMJIT_PATCH(0x53A6CF, LightningStorm_Update, 7)
 	// does this Lightning Storm go on?
 	auto const duration = LightningStorm::Duration();
 
-	if (duration != -1 && duration + LightningStorm::StartTime < Unsorted::CurrentFrame)
+	if (duration != -1 && duration + LightningStorm::StartTime.get() < Unsorted::CurrentFrame.get())
 	{
 		// it's over already
 		LightningStorm::TimeToEnd = true;
@@ -288,7 +288,7 @@ ASMJIT_PATCH(0x53A6CF, LightningStorm_Update, 7)
 	auto const hitDelay = pExt->Weather_HitDelay.Get(
 		RulesClass::Instance->LightningHitDelay);
 
-	if (hitDelay > 0 && (Unsorted::CurrentFrame % hitDelay == 0))
+	if (hitDelay > 0 && (Unsorted::CurrentFrame.get() % hitDelay == 0))
 	{
 		LightningStorm::Strike(coords);
 	}
@@ -297,7 +297,7 @@ ASMJIT_PATCH(0x53A6CF, LightningStorm_Update, 7)
 	auto const scatterDelay = pExt->Weather_ScatterDelay.Get(
 		RulesClass::Instance->LightningScatterDelay);
 
-	if (scatterDelay > 0 && (Unsorted::CurrentFrame % scatterDelay == 0))
+	if (scatterDelay > 0 && (Unsorted::CurrentFrame.get() % scatterDelay == 0))
 	{
 		auto const range = SWTypeHandler::get_Handler(pExt->HandledType)->GetRange(pExt);
 		auto const isRectangle = (range.height() <= 0);

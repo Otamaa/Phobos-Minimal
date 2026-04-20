@@ -247,6 +247,7 @@ public:
 	void Recalc() const { JMP_THIS(0x6A7D20); }
 	bool Scroll(bool up, int column) { JMP_THIS(0x6A6A00); }
 	int Func_6AC430() const { JMP_THIS(0x6AC430); }
+	void OnTechnoDestroyed(TechnoClass* pTechno) { JMP_THIS(0x6A5F20); }
 
 protected:
 	//Constructor

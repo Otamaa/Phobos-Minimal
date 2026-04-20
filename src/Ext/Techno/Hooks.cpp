@@ -963,7 +963,7 @@ ASMJIT_PATCH(0x41DBD4, AirstrikeClass_Stop_ResetForTarget, 0x7)
 		const auto pTargetExt = TechnoExtContainer::Instance.Find(pTargetTechno);
 		pTargetExt->AirstrikeTargetingMe = pLastTargetingMe;
 
-		if (!pLastTargetingMe && Game::IsActive)
+		if (!pLastTargetingMe && Game::IsActive.get())
 			pTarget->Mark(MarkType::Redraw);
 	}
 
@@ -2087,31 +2087,31 @@ ASMJIT_PATCH(0x70440C, TechnoClass_Get_ZAdjustment_IncludeWeederBuilding, 0x6)
 }
 
 //this thing checking shit backwards ,..
-ASMJIT_PATCH(0x6D4764, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x7)
-{
-	GET(TechnoClass*, pThis, ESI);
+// ASMJIT_PATCH(0x6D4764, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x7)
+// {
+// 	GET(TechnoClass*, pThis, ESI);
 
 
-	if (pThis->InLimbo || pThis->IsCrashing || pThis->IsSinking
-		|| (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->DeathFrameCounter > 0))
-	{
-		return 0x6D4793;
-	}
+// 	if (pThis->InLimbo || pThis->IsCrashing || pThis->IsSinking
+// 		|| (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->DeathFrameCounter > 0))
+// 	{
+// 		return 0x6D4793;
+// 	}
 
-	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+// 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (pExt->AE.flags.Untrackable || TechnoExtData::IsUntrackable(pThis))
-	{
-		return 0x6D4793;
-	}
+// 	if (pExt->AE.flags.Untrackable || TechnoExtData::IsUntrackable(pThis))
+// 	{
+// 		return 0x6D4793;
+// 	}
 
-	if (pThis->CurrentlyOnSensor())
-	{
-		return 0x6D478C; //draw dashed line
-	}
+// 	if (pThis->CurrentlyOnSensor())
+// 	{
+// 		return 0x6D478C; //draw dashed line
+// 	}
 
-	return 0x6D4793;
-}
+// 	return 0x6D4793;
+// }
 
 ASMJIT_PATCH(0x6FFD25, TechnoClass_PlayerAssignMission_Capture_InfantryToBld, 0xA)
 {

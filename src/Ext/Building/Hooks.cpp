@@ -416,7 +416,7 @@ ASMJIT_PATCH(0x4AE95E, DisplayClass_sub_4AE750_AntiStupid, 0x5)
 
 	auto action = pObject->MouseOverCell(*pCell);
 
-	bool shouldSkip = PlanningNodeClass::PlanningModeActive && pObject->WhatAmI() == AbstractType::Building && action != Action::Attack;
+	bool shouldSkip = PlanningNodeClass::PlanningModeActive.get() && pObject->WhatAmI() == AbstractType::Building && action != Action::Attack;
 
 	if (!shouldSkip)
 		pObject->CellClickedAction(action, pCell, pCell, false);
@@ -597,9 +597,9 @@ DEFINE_HOOK(0x44B6C7, BuildingClass_Mission_Attack_TurretAnim, 0x6)
 			auto pExt = pThis->_GetExtData();
 			const auto pTypeExt = pExt->GetTypeExtData();
 			const bool isLowPower = !pThis->StuffEnabled || !pThis->IsPowerOnline();
-			const bool firingFrames = isLowPower ? pTypeExt->TurretAnim_LowPowerFiringFrames : pTypeExt->TurretAnim_FiringFrames;
+			const auto firingFrames = (isLowPower ? &pTypeExt->TurretAnim_LowPowerFiringFrames : &pTypeExt->TurretAnim_FiringFrames);
 
-			if (firingFrames > 0 && pExt->TurretAnimFiringFrame == -1)
+			if (firingFrames->Get() > 0 && pExt->TurretAnimFiringFrame == -1)
 				pExt->TurretAnimFiringFrame = 0;
 		}
 	}

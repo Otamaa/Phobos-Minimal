@@ -29,6 +29,8 @@
 #include "ToggleMessageList.h"
 #include "CeasefireModeClass.h"
 #include "AggressiveModeClass.h"
+#include "Deselect.h"
+#include "ToggleSuperTimers.h"
 
 #include <Commands/AIBasePlan.h>
 #include <Commands/AIControl.h>
@@ -121,6 +123,8 @@ ASMJIT_PATCH(0x532150, CommandClassCallback_Register, 5)
 	Make<ToggleMessageListCommandClass>();
 	Make<NextIdleHarvesterCommandClass>();
 
+	Make<ToggleSuperTimersCommandClass>();
+
 	if (Phobos::Config::AllowSwitchNoMoveCommand)
 		Make<SwitchNoMoveCommandClass>();
 
@@ -140,6 +144,8 @@ ASMJIT_PATCH(0x532150, CommandClassCallback_Register, 5)
 	FireTacticalSWDispatch::Dispatch();
 #pragma endregion SWSidebar
 
+	Make<DeselectObjectCommandClass>();
+	Make<DeselectObject5CommandClass>();
 
 	return 0x0;
 }

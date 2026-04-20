@@ -546,7 +546,7 @@ ASMJIT_PATCH(0x6AC67A, SidebarClass_FlashCameo_FixLimit, 5)
 	{
 		if (cameo.ItemIndex == typeIdx)
 		{
-			cameo.FlashEndFrame = Unsorted::CurrentFrame + Duration;
+			cameo.FlashEndFrame = Unsorted::CurrentFrame.get() + Duration;
 			break;
 		}
 	}
@@ -644,7 +644,7 @@ ASMJIT_PATCH(0x6aa600, StripClass_RecheckCameos, 5)
 {
 	GET(StripClass*, pThis, ECX);
 
-	if (Unsorted::ArmageddonMode || pThis->BuildableCount <= 0)
+	if (Unsorted::MAP_DEBUG_MODE.get() || pThis->BuildableCount <= 0)
 	{
 		R->EAX(0);
 		return 0x6AACAE;

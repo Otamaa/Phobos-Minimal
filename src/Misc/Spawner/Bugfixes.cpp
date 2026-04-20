@@ -146,8 +146,8 @@ ASMJIT_PATCH(0x454174, BuildingClass_Load_SwizzleLighsource, 0xA)
 
 ASMJIT_PATCH(0x50C8F4, HouseClass_Flag_To_Chear_Disable ,0x5)
 {
-	if ((SessionClass::Instance->GameMode == GameMode::LAN && !Game::LANTaunts)
-		|| (SessionClass::Instance->GameMode == GameMode::Internet && !Game::WOLTaunts)){
+	if ((SessionClass::Instance->GameMode == GameMode::LAN && !Game::LANTaunts())
+		|| (SessionClass::Instance->GameMode == GameMode::Internet && !Game::WOLTaunts())){
 		return 0x50C910;
 	}
 

@@ -1165,9 +1165,9 @@ bool DSurface::Put_Pixel_Trans(Point2D& point, ColorStruct& rgb, unsigned opacit
 	unsigned scale = (opacity * 255) / 100;
 	unsigned short delta = (255 - scale) & 0xFFFF;
 
-	unsigned int red_max = (unsigned int)(255 >> RedRight) << RedLeft;
-	unsigned int green_max = (unsigned int)(255 >> GreenRight) << GreenLeft;
-	unsigned int blue_max = (unsigned int)(255 >> BlueRight) << BlueLeft;
+	unsigned int red_max = (unsigned int)(255 >> RedRight.get()) << RedLeft.get();
+	unsigned int green_max = (unsigned int)(255 >> GreenRight.get()) << GreenLeft.get();
+	unsigned int blue_max = (unsigned int)(255 >> BlueRight.get()) << BlueLeft.get();
 
 	unsigned short color = rgb.ToInit();
 
@@ -1778,7 +1778,7 @@ bool TechnoClass::CanThisCloakByDefault() const
 
 bool SuperClass::IsDisabledFromShell() const
 {
-	if (SessionClass::Instance->GameMode != GameMode::Campaign && !Unsorted::SWAllowed) {
+	if (SessionClass::Instance->GameMode != GameMode::Campaign && !Unsorted::SWAllowed.get()) {
 		if (this->Type->DisableableFromShell) {
 			return true;
 		}

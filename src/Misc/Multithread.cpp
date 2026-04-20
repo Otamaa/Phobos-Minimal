@@ -14,6 +14,7 @@
 #include <SessionClass.h>
 
 #include <Ext/Techno/Body.h>
+#include <Ext/Tactical/Body.h>
 #include <Ext/Scenario/Body.h>
 
 #include <New/MessageHandler/MessageColumnClass.h>
@@ -138,15 +139,17 @@ public:
 		bool complete = pThis->Bitfield == 2;
 		pThis->Bitfield = 0;
 
-		if (!Multithreading::IonStormClass_ChronoScreenEffect_Status)
+		if (!Multithreading::IonStormClass_ChronoScreenEffect_Status.get())
 		{
-			TacticalClass::Instance->Render(DSurface::Composite, shouldDraw, 0);
-			TacticalClass::Instance->Render(DSurface::Composite, shouldDraw, 1);
+			auto pFakeTactical = (FakeTacticalClass*)TacticalClass::Instance();
+
+			pFakeTactical->_Render(DSurface::Composite, shouldDraw, TacticalRenderMode::All0);
+			pFakeTactical->_Render(DSurface::Composite, shouldDraw, TacticalRenderMode::Terrain);
 			pThis->Draw(complete);
-			TacticalClass::Instance->Render(DSurface::Composite, shouldDraw, 2);
+			pFakeTactical->_Render(DSurface::Composite, shouldDraw, TacticalRenderMode::Moving_Animating);
 		}
 
-		if (Multithreading::BlitMouse.get() && !Unsorted::ArmageddonMode)
+		if (Multithreading::BlitMouse.get() && !Unsorted::MAP_DEBUG_MODE.get())
 		{
 			WWMouseClass::Instance->func_40(DSurface::Sidebar, true);
 			Multithreading::BlitMouse = false;

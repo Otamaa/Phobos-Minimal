@@ -392,7 +392,7 @@ static bool CanEnterCell(CellClass* pCell)
 		return false;
 
 	// Check 5: GameActive - if game not running, allow entry
-	if (!Game::IsActive)
+	if (!Game::IsActive.get())
 		return true;
 
 	// Check 6: Loop through occupiers looking for buildings
@@ -403,7 +403,7 @@ static bool CanEnterCell(CellClass* pCell)
 	}
 
 	// Check 7: GameActive again
-	if (!Game::IsActive)
+	if (!Game::IsActive.get())
 		return true;
 
 	// Check 8: Loop through occupiers looking for terrain
@@ -783,7 +783,7 @@ CellStruct* FakeMapClass::__NearByLocation(
 	if (pCloseTo->X == CellStruct::Empty.X && pCloseTo->Y == CellStruct::Empty.Y)
 	{
 		// Random selection based on current frame
-		int index = Unsorted::CurrentFrame % selectedCount;
+		int index = Unsorted::CurrentFrame.get() % selectedCount;
 		*pOutBuffer = selectedList[index];
 	}
 	else

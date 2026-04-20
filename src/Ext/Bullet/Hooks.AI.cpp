@@ -623,7 +623,7 @@ namespace
 		if (delay < 0)
 			return;
 
-		if ((Unsorted::CurrentFrame % delay) != 0)
+		if ((Unsorted::CurrentFrame.get() % delay) != 0)
 			return;
 
 		auto pExt = pThis->_GetExtData();
@@ -697,7 +697,7 @@ namespace
 		int accel_value = pType->Acceleration;
 		if (pThis->CourseLock && pType->CourseLockDuration == 0)
 		{
-			accel_value = (Unsorted::CurrentFrame % 2 == 0) ? 1 : 0;
+			accel_value = (Unsorted::CurrentFrame.get() % 2 == 0) ? 1 : 0;
 		}
 
 		// ---------- (c) speed adjust + normalize -------------------------------
@@ -745,7 +745,7 @@ namespace
 		// -----------------------------------------------------------------------
 		// Hook 0x466BAF — MissileROTVar (type-ext override)
 		// -----------------------------------------------------------------------
-		const int    nFrame = (Unsorted::CurrentFrame + pThis->Fetch_ID()) % 15;
+		const int    nFrame = (Unsorted::CurrentFrame.get() + pThis->Fetch_ID()) % 15;
 		const double nMissileROTVar = pTypeExt->MissileROTVar.Get(RulesClass::Instance->MissileROTVar);
 
 		int rot_amount = static_cast<int>(
@@ -1704,7 +1704,7 @@ namespace
 			NukeFlash::Status = NukeFlashStatus::FadeIn;
 			ScenarioClass::Instance->AmbientTimer.Start(1);
 
-			NukeFlash::StartTime = Unsorted::CurrentFrame;
+			NukeFlash::StartTime = Unsorted::CurrentFrame.get();
 			NukeFlash::Duration = duration;
 
 			SWTypeExtData::ChangeLighting(pExt->NukeSW ? pExt->NukeSW : nullptr);

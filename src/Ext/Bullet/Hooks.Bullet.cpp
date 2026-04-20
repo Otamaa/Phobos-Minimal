@@ -306,7 +306,7 @@ ASMJIT_PATCH(0x468000, BulletClass_GetAnimFrame, 6)
 
 		if (length > 1)
 		{
-			frame = facing * length + ((Unsorted::CurrentFrame / pThis->Type->AnimRate) % length);
+			frame = facing * length + ((Unsorted::CurrentFrame.get() / pThis->Type->AnimRate) % length);
 		}
 		else
 		{

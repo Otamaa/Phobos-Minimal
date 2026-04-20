@@ -45,7 +45,7 @@ bool SW_LightningStorm::AbortFire(SuperClass* pSW, bool IsPlayer)
 	if (!pData->Weather_UseSeparateState)
 	{
 		// Classic mode: only one global lightning storm allowed at a time
-		if (LightningStorm::IsActive || LightningStorm::HasDeferment())
+		if (LightningStorm::IsActive() || LightningStorm::HasDeferment())
 		{
 			if (IsPlayer)
 			{
@@ -302,7 +302,7 @@ void CloneableLighningStormStateMachine::Update()
 
 	// --- Phase 6: Check if the storm has expired ---
 	auto const duration = ActualDuration;
-	if (duration != -1 && duration + StartTime < Unsorted::CurrentFrame)
+	if (duration != -1 && duration + StartTime < Unsorted::CurrentFrame())
 	{
 		TimeToEnd = true;
 		return;
@@ -312,7 +312,7 @@ void CloneableLighningStormStateMachine::Update()
 	auto const hitDelay = pExt->Weather_HitDelay.Get(
 		RulesClass::Instance->LightningHitDelay);
 
-	if (hitDelay > 0 && (Unsorted::CurrentFrame % hitDelay == 0))
+	if (hitDelay > 0 && (Unsorted::CurrentFrame() % hitDelay == 0))
 	{
 		this->Strike(Coords);
 	}
@@ -321,7 +321,7 @@ void CloneableLighningStormStateMachine::Update()
 	auto const scatterDelay = pExt->Weather_ScatterDelay.Get(
 		RulesClass::Instance->LightningScatterDelay);
 
-	if (scatterDelay > 0 && (Unsorted::CurrentFrame % scatterDelay == 0))
+	if (scatterDelay > 0 && (Unsorted::CurrentFrame() % scatterDelay == 0))
 	{
 		auto const range = pExt->GetNewSWType()->GetRange(pExt);
 		auto const isRectangle = (range.height() <= 0);
@@ -702,7 +702,7 @@ bool CloneableLighningStormStateMachine::Start(CellStruct& cell, int nDuration, 
 			}
 		}
 
-		if (HouseClass::CurrentPlayer)
+		if (HouseClass::CurrentPlayer())
 		{
 			HouseClass::CurrentPlayer->RecheckRadar = true;
 		}

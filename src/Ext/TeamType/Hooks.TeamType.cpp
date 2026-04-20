@@ -78,7 +78,7 @@ ASMJIT_PATCH(0x6F09C0, TeamTypeClass_CreateOneOf_Handled, 0x9)
 		return 0x6F0A2C;
 	}
 
-	if (!Unsorted::ScenarioInit)
+	if (!Unsorted::ScenarioInit())
 	{
 		if (pThis->Max >= 0)
 		{

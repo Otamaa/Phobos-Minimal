@@ -78,7 +78,7 @@ static COMPILETIMEEVAL reference<DynamicVectorClass<ObjectClass*>*, 0x87F778u> c
 
 		char logFilename[0x40];
 
-		if (Game::EnableMPSyncDebug) {
+		if (Game::EnableMPSyncDebug.get()) {
 			for (int i = 0; i < 256; i++) {
 				sprintf_s(logFilename, std::size(logFilename) - 1, Debug::SyncFileFormat2.c_str(), HouseClass::CurrentPlayer->ArrayIndex, i);
 				SyncLogger::WriteSyncLog(logFilename);

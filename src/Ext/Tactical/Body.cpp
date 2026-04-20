@@ -4,6 +4,8 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Scenario/Body.h>
+#include <Ext/CaptureManager/Body.h>
+#include <Ext/Building/Body.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/Cast.h>
@@ -11,12 +13,15 @@
 #include <TacticalClass.h>
 #include <HouseClass.h>
 #include <Unsorted.h>
-
+#include <BeaconManagerClass.h>
 #include <FPSCounter.h>
-
+#include <VeinholeMonsterClass.h>
 #include <TextDrawing.h>
-
+#include <SpotlightClass.h>
 #include <Phobos.h>
+#include <PlanningTokenClass.h>
+#include <Commands/ToggleSuperTimers.h>
+#include <Commands/ShowTeamLeader.h>
 
 enum class CollisionBoxShape : BYTE{
 	Rectangle,
@@ -456,7 +461,7 @@ bool FakeTacticalClass::__ClampTacticalPos(Point2D* tacticalPos) {
 ASMJIT_PATCH(0x6D4934, Tactical_Render_OverlapForeignMap, 0x6)
 {
 	auto pMapVisibleRect = &MapClass::Instance->VisibleRect;
-	auto pSurfaceViewBounds = &DSurface::ViewBounds;
+	auto pSurfaceViewBounds = DSurface::ViewBounds.ptr();
 
 	{
 		const int maxWidth = pSurfaceViewBounds->Width - pMapVisibleRect->Width * Unsorted::CellWidthInPixels;
@@ -710,7 +715,7 @@ void FakeTacticalClass::__DrawRadialIndicator(
 
 	for (size_t i = 0; i < ARRAY_SIZE(_line_alpha); ++i) {
 		// Calculate animated angle based on current game frame
-		int frameValue = Unsorted::CurrentFrame + i;
+		int frameValue = Unsorted::CurrentFrame() + i;
 		double angle = static_cast<double>(frameValue) * ANGLE_STEP_MULT;
 
 		// Normalize angle to [0, 2*PI)
@@ -1307,7 +1312,7 @@ void FakeTacticalClass::__DrawTimersSW(SuperClass* pSuper, int value, int interv
 	);
 }
 
-DEFINE_FUNCTION_JUMP(CALL, 0x6D4B2B, FakeTacticalClass::__DrawAllTacticalText)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6D4B2B, FakeTacticalClass::__DrawAllTacticalText)
 
 bool __fastcall FakeTacticalClass::TypeSelectFilter(TechnoClass* pTechno, DynamicVectorClass<const char*>& names)
 {
@@ -1415,6 +1420,533 @@ void TacticalExtData::Screen_Flash_AI()
 	}
 }
 
+//#pragma optimize("", off )
+void FakeTacticalClass::_Render(DSurface* pSurface, bool flag, TacticalRenderMode eMode)
+{
+	// =========================================================
+   // 1.  Init + scroll delta
+   // =========================================================
+	this->SelectableCount = 0;
+
+	const bool boundsChanged = this->checkbuildingbounds_6D9B50(DSurface::ViewBounds());
+
+	int deltaX = this->LastTacticalPos.X - this->TacticalPos.X;
+	int deltaY = this->LastTacticalPos.Y - this->TacticalPos.Y;
+
+	// =========================================================
+	// 2a.  Dirty flag / force-full-redraw
+	// =========================================================
+	if (eMode != TacticalRenderMode::All0)
+	{
+		if (tacticaldrawflag_B0E63C())
+			flag = true;
+	}
+	else
+	{
+		if ((int)Math::abs(deltaX) < DSurface::ViewBounds->Width &&
+			(int)Math::abs(deltaY) < DSurface::ViewBounds->Height)
+		{
+			tacticaldrawflag_B0E63C = 0;
+		}
+		else
+		{
+			flag = true;
+			tacticaldrawflag_B0E63C = 1;
+		}
+	}
+
+	if (flag) { deltaX = 0; deltaY = 0; }
+
+	// =========================================================
+	// 2b.  Decide whether a full tile redraw is needed
+	// =========================================================
+	const auto posChanged = [&]() -> bool
+		{
+			return this->Redrawing
+				|| (Drawing::DirtyAreas->Count > 0)
+				|| (this->TacticalPos.X != this->LastTacticalPos.X)
+				|| (this->TacticalPos.Y != this->LastTacticalPos.Y);
+		};
+
+	bool doTileDraw;
+	if (eMode == TacticalRenderMode::Moving_Animating)
+	{
+		doTileDraw = false;
+	}
+	else if (flag)
+	{
+		doTileDraw = true;
+	}
+	else if (this->field_D7C)
+	{
+		doTileDraw = boundsChanged || posChanged();
+	}
+	else if (boundsChanged || this->Redrawing)
+	{
+		doTileDraw = true;
+	}
+	else if (Drawing::DirtyAreas->Count > 0
+		 || this->TacticalCoord1.X != this->TacticalCoord2.X
+		 || this->TacticalCoord1.Y != this->TacticalCoord2.Y)
+	{
+		doTileDraw = posChanged();
+	}
+	else
+	{
+		doTileDraw = false;
+	}
+
+	if (doTileDraw)
+	{
+		// =====================================================
+		// 3.  Scroll blit / full-clear
+		// =====================================================
+		const int absDX = (int)Math::abs(deltaX);
+		const int absDY = (int)Math::abs(deltaY);
+
+		if (deltaX || deltaY)
+		{
+			RectangleStruct srcR = {
+				TacticalClass::view_bound->X + (deltaX < 0 ? -deltaX : 0),
+				TacticalClass::view_bound->Y + (deltaY < 0 ? -deltaY : 0),
+				TacticalClass::view_bound->Width - absDX,
+				TacticalClass::view_bound->Height - absDY
+			};
+			RectangleStruct dstR = {
+				TacticalClass::view_bound->X + (deltaX > 0 ? deltaX : 0),
+				TacticalClass::view_bound->Y + (deltaY > 0 ? deltaY : 0),
+				TacticalClass::view_bound->Width - absDX,
+				TacticalClass::view_bound->Height - absDY
+			};
+
+			if (eMode == TacticalRenderMode::All0 || eMode == TacticalRenderMode::All3)
+			{
+				DSurface::Composite->Copy_From(dstR,
+					DSurface::Tile(), srcR, 0, 1);
+				ZBuffer::Instance->BlitAt(-deltaX, -deltaY, 0xFFFF);
+				ABuffer::Instance->BlitAt(-deltaX, -deltaY, 127);
+
+				//std::swap(DSurface::Composite(), DSurface::Tile());
+				auto wasTile = DSurface::Tile();
+				auto wasComposite = DSurface::Composite();
+				DSurface::Tile = wasComposite;
+				DSurface::Composite = wasTile;
+				pSurface = DSurface::Composite();
+				DSurface::Temp = DSurface::Composite();
+			}
+
+		}
+		else if (flag
+			 && (eMode == TacticalRenderMode::All0 || eMode == TacticalRenderMode::All3))
+		{
+			ZBuffer::Instance->Fill(0xFFFF);
+			ABuffer::Instance->Fill(127);
+		}
+
+		if (eMode == TacticalRenderMode::All0)
+			return;
+
+		// =====================================================
+		// 4.  Ground-layer building rendering
+		// =====================================================
+		if (!Unsorted::MAP_DEBUG_MODE())
+		{
+			RectangleStruct Ground_Layer_(DSurface::ViewBounds->X - 64, DSurface::ViewBounds->Y - 64,
+				DSurface::ViewBounds->Width + 128, DSurface::ViewBounds->Height + 128);
+
+			this->Render_Buildings_In_Ground_Layer_0(Ground_Layer_);
+		}
+
+		// =====================================================
+		// 5.  Lock DSurface::Instance + terrain rendering
+		// =====================================================
+		DSurface* const prevDSurface_Temp = DSurface::Temp();
+		DSurface::Temp = DSurface::Tile();
+		DSurface::Tile->Lock(0, 0);
+
+		if (eMode == TacticalRenderMode::Terrain || eMode == TacticalRenderMode::All3)
+		{
+			const bool scrollR = this->LastTacticalPos.X > this->TacticalPos.X;
+			const bool scrollL = this->LastTacticalPos.X < this->TacticalPos.X;
+			const bool scrollD = this->LastTacticalPos.Y > this->TacticalPos.Y;
+			const bool scrollU = this->LastTacticalPos.Y < this->TacticalPos.Y;
+
+			RectangleStruct xStripL = { DSurface::ViewBounds->X,
+							 DSurface::ViewBounds->Y,
+							 absDX, DSurface::ViewBounds->Height };
+			RectangleStruct xStripR = { DSurface::ViewBounds->X + DSurface::ViewBounds->Width - absDX,
+							 DSurface::ViewBounds->Y,
+							 absDX, DSurface::ViewBounds->Height };
+
+			RectangleStruct xClipL = RectangleStruct::Intersect(xStripL, DSurface::ViewBounds(), 0, 0);
+			RectangleStruct xClipR = RectangleStruct::Intersect(xStripR, DSurface::ViewBounds(), 0, 0);
+
+			const int yX = scrollR
+				? (DSurface::ViewBounds->X + absDX)
+				: DSurface::ViewBounds->X;
+			const int yW = (scrollR || scrollL)
+				? (DSurface::ViewBounds->Width - absDX)
+				: DSurface::ViewBounds->Width;
+
+			RectangleStruct yStripT = { yX, DSurface::ViewBounds->Y,
+							 yW, absDY };
+			RectangleStruct yStripB = { yX, DSurface::ViewBounds->Y + DSurface::ViewBounds->Height - absDY,
+							 yW, absDY };
+
+			RectangleStruct yClipT = RectangleStruct::Intersect(yStripT, DSurface::ViewBounds(), 0, 0);
+			RectangleStruct yClipB = RectangleStruct::Intersect(yStripB, DSurface::ViewBounds(), 0, 0);
+
+			RectangleStruct maintained = {
+				DSurface::ViewBounds->X + (scrollR ? absDX : 0),
+				DSurface::ViewBounds->Y + (scrollD ? absDY : 0),
+				DSurface::ViewBounds->Width - absDX,
+				DSurface::ViewBounds->Height - absDY
+			};
+
+			RectangleStruct xDirty = {}, yDirty = {};
+			if (scrollR) xDirty = xClipL;
+			else if (scrollL) xDirty = xClipR;
+			if (scrollD) yDirty = yClipT;
+			else if (scrollU) yDirty = yClipB;
+
+			this->Render_Objects_Near_Shroud(flag, Point2D(deltaX, deltaY), &maintained);
+			this->Render_Shroud(&xDirty, &yDirty, &maintained, flag);
+			this->Render_Tiles(&xDirty, &yDirty, flag);
+			this->Render_Fog(&xDirty, &yDirty, flag);
+			this->Render_Overlays(&xDirty, &yDirty, flag);
+			this->Render_Terrain_Objects(&xDirty, &yDirty, flag);
+			this->Render_Cell_Shadows(&xDirty, &yDirty, flag);
+			this->Render_Buildings(&xDirty, &yDirty, flag);
+
+			Drawing::DirtyAreas->reset(0);
+
+			DSurface::Temp->Unlock();
+			DSurface::Temp = prevDSurface_Temp;
+			this->VisibleCellCount = 0;
+		}
+	} // end doTileDraw
+
+	// =========================================================
+	// 6.  Sync last-known positions
+	// =========================================================
+	this->LastTacticalPos.X = this->TacticalPos.X;
+	this->LastTacticalPos.Y = this->TacticalPos.Y;
+	this->TacticalCoord2.X = this->TacticalCoord1.X;
+	this->TacticalCoord2.Y = this->TacticalCoord1.Y;
+
+	// =========================================================
+	// 7.  Mode-based surface copy + early exits
+	// =========================================================
+	if (eMode == TacticalRenderMode::Terrain || eMode == TacticalRenderMode::All3)
+	{
+		DSurface::Temp->Copy_From(DSurface::ViewBounds(),
+		DSurface::Tile(), DSurface::ViewBounds(), 0, 1);
+	}
+
+	if (eMode == TacticalRenderMode::Terrain)
+		return;
+
+	if (eMode != TacticalRenderMode::Moving_Animating && eMode != TacticalRenderMode::All3)
+		return;
+
+	// =========================================================
+	// 8.  Animation / overlay rendering
+	// =========================================================
+	this->Fill_Building_Selectables(DSurface::ViewBounds());
+
+	pSurface->Lock(0, 0);
+
+	DSurface* const prevAnimSurface = DSurface::Temp;
+	DSurface::Temp = pSurface;
+
+	// --- First pass ---
+	this->Draw_Waypoint_Stuff(false);
+	this->Draw_Rally_Points(false);
+	this->draw_placement(false);
+
+	// [H1] @0x6D4656  IonBlastDrawAll
+	VeinholeMonsterClass::DrawAll();
+	IonBlastClass::DrawAll();
+
+	this->Render_Layers(true);
+	SpotlightClass::Draw_All();
+
+	// [H2] @0x6D4669  LaserDrawclassDrawAll
+	LaserDrawClass::DrawAll();
+	EBolt::DrawAll();
+	TacticalExtData::Instance()->Screen_Flash_AI();
+
+	// SUSPECT: original DEFINE_FUNCTION_JUMP(CALL, 0x6D4669, ...) only retargets the call at
+	//ElectricBoltManager::Draw_All(); //self coded EBolt attempt to replace the original(disabled)
+
+	LineTrail::Draw_All();
+	RadBeam::Draw_All();
+
+	this->Draw_super_lines_circles();
+
+	BeaconManagerClass::Instance->Draw(
+		DSurface::Temp(),
+		DSurface::ViewBounds());
+
+	this->Draw_Band_Box();
+
+	// --- Second pass ---
+	this->Draw_Waypoint_Stuff(true);
+	this->Draw_Rally_Points(true);
+	this->draw_placement(true);
+
+	const bool inPlanningMode = PlanningNodeClass::PlanningModeActive();
+	if (inPlanningMode) {
+		PlanningNodeClass::plannodes_63B0A0();
+		PlanningNodeClass::plannodes_63B150();
+	}
+
+	// =========================================================
+	// 8a.  Per-techno overlays
+	// =========================================================
+	for (auto pTech : *TechnoClass::Array) {
+		if (!pTech)
+			continue;
+
+		//check are modified to allow pre-check for  dead techno pt1
+		const bool isAlive = pTech->Health > 0 && pTech->IsAlive;
+
+		//check are modified to allow pre-check for  dead techno pt2
+		if (!isAlive 
+			|| pTech->IsCrashing 
+			|| pTech->IsSinking
+			|| (pTech->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pTech)->DeathFrameCounter > 0)
+			)
+			continue;
+
+		if (pTech->WhatAmI() == BuildingClass::AbsID) {
+			if (BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pTech))->LimboID >= 0) {
+				continue;
+			}
+		}
+
+		const bool controlled = pTech->Owner->ControlledByCurrentPlayer();
+
+		if (!controlled)
+		{
+			if (pTech->AbstractFlags & AbstractFlags::Foot
+				&& !pTech->InLimbo)
+			{
+				//check are modified to allow more condition that allow techno to be sensed
+				//like ability or AE
+				auto pExt = TechnoExtContainer::Instance.Find(pTech);
+				if (!pExt->AE.flags.Untrackable && !TechnoExtData::IsUntrackable(pTech) && pTech->CurrentlyOnSensor())
+					((FootClass*)pTech)->draw_dashed_4DC340();
+			}
+
+			if (inPlanningMode) continue;
+
+		}
+		else
+		{
+			if (inPlanningMode) continue;
+			if (pTech->IsSelected && Unsorted::ActionLinesEnabled())
+				pTech->DrawActionLines(false, false);
+		}
+
+		// --- Shared block: extra links + capture/airstrike (runs for all when !planning) ---
+
+		{
+			// [H3] @0x6D47A6  TacticalClass_Render_Techno
+			// Slave / Spawn / Team-leader indicator lines.
+			// Lambda lets an "abort extras" path short-circuit without skipping vanilla CM below.
+			if (!pTech->InLimbo)
+			{
+				auto drawExtraLinks = [&]() -> void
+					{
+						// Slave owner
+						if (auto const pSlaveOwner = pTech->SlaveOwner)
+						{
+							if (!pSlaveOwner->IsSelected) return;
+							Drawing::DrawLinesTo(
+								pSlaveOwner->GetRenderCoords(),
+								pTech->Location,
+								pSlaveOwner->Owner->Color);
+						}
+
+						// Spawn owner (admin only)
+						if (Phobos::Otamaa::IsAdmin)
+						{
+							if (auto const pSpawnOwner = pTech->SpawnOwner)
+							{
+								if (!pSpawnOwner->IsSelected) return;
+								Drawing::DrawLinesTo(
+									pSpawnOwner->GetRenderCoords(),
+									pTech->Location,
+									pSpawnOwner->Owner->Color);
+							}
+						}
+
+						// Team leader
+						if (ShowTeamLeaderCommandClass::IsActivated())
+						{
+							auto const pFoot = flag_cast_to<FootClass*, false>(pTech);
+							if (!pFoot) return;
+							if (!pFoot->BelongsToATeam()) return;
+							if (auto pTeam = pFoot->Team)
+							{
+								if (auto const pLeader = pTeam->FetchLeader())
+								{
+									if (pLeader != pFoot)
+									{
+										Drawing::DrawLinesTo(
+											pLeader->GetRenderCoords(),
+											pTech->Location,
+											pLeader->Owner->Color);
+									}
+								}
+							}
+						}
+					};
+				drawExtraLinks();
+			}
+
+			// Vanilla: own capture-manager link
+			if (FakeCaptureManagerClass* cm = (FakeCaptureManagerClass*)pTech->CaptureManager) {
+				if (cm->__Should_Draw_Link())
+					cm->__DrawControlLinks();
+			}
+
+			{
+				if (TechnoClass* orig = pTech->MindControlledBy) {
+					if (FakeCaptureManagerClass* cm = (FakeCaptureManagerClass*)orig->CaptureManager) {
+						if (cm->__Should_Draw_Link())
+							cm->__DrawControlLinks();
+					}
+				}
+			}
+		}
+
+		// Airstrike target wobble indicator
+		if (AirstrikeClass* pStrike = pTech->Airstrike)
+		{
+			if (pStrike->Owner == pTech)
+			{
+				if (ObjectClass* pTarget = pStrike->Target)
+				{
+					//check here modified to allow other techno to be drawn red as it targeted
+					// by the Airstrike (phobos)
+					//if (pTarget->r.m.o.a.vftable->t.r.m.o.a.Kind_Of(&pTarget->r.m.o.a) == RTTI_BUILDING)
+					{
+
+						const double t = (double)(int)(timeGetTime() >> 7);
+
+						CoordStruct pCenter = pTarget->GetCoords();
+
+						const int targX = pCenter.X;
+						const int targY = pCenter.Y;
+						const int targZ = pCenter.Z;
+
+						CoordStruct wobble = {
+							(int)(Math::cos(t * 0.37) * 15.0 + targX),
+							targY,
+							(int)(Math::sin(t) * 15.0 + targZ)
+						};
+
+						// SUSPECT @0x6D48F6: IDA shows v34=v44 (loop index clobber);
+						// likely a register-reload misread since asm restores i from stack.
+						FakeTechnoClass* pFakeTech = (FakeTechnoClass*)pTech;
+						CoordStruct flh = pTech->GetFLH(0, CoordStruct::Empty);
+
+						FakeTechnoClass::__Draw_Airstrike_Flare(
+							pTech,
+							discard_t(),
+							flh,
+							wobble);
+					}
+				}
+			}
+		}
+	} // end techno loop
+
+	if (inPlanningMode)
+		PlanningNodeClass::draw_63B2F0();
+
+	auto viewBounds = DSurface::ViewBounds();
+	this->Draw_Pixel_Effects(&viewBounds, &viewBounds);
+
+	DSurface::Temp = prevAnimSurface;
+	pSurface->Unlock();
+
+	// =========================================================
+	// 9.  HUD timer displays
+	// =========================================================
+	int timerSlot = 0;
+
+	// --- Mission countdown ---
+	if (ScenarioClass::Instance->MissionTimer.StartTime != -1)
+	{
+		this->__DrawTimersA(
+			timerSlot++,
+			ColorScheme::Array->Items[HouseClass::CurrentPlayer->ColorSchemeIndex],
+			ScenarioClass::Instance->MissionTimer.GetTimeLeft()/ 15,
+			ScenarioClass::Instance->MissionTimerTextCSF,
+			0, 0);
+	}
+
+	// --- Superweapon timers ---
+	// [H4] @0x6D49C9  TacticalClass_Render_SWText_Hide — skip whole loop when hidden.
+	if (ToggleSuperTimersCommandClass::ShowSuperWeaponTimers)
+	{
+		const int superCount = SuperClass::ShowTimers->Count;
+		for (int si = 0; si < superCount; ++si)
+		{
+			SuperClass* const pSuper = (SuperClass*)SuperClass::ShowTimers->Items[si];
+			int rem = pSuper->RechargeTimer.GetTimeLeft();
+
+			// Single-player suspended super: only display if not at full charge
+			if (pSuper->IsOnHold && SessionClass::Instance->GameMode == GameMode::Campaign) {
+				if (rem == pSuper->GetRechargeTime())
+					continue;
+			}
+
+			// [H5] @0x6D4A35  TacticalClass_Render_SWText
+			// Replaces vanilla Print_Timer_On_Tactical(slot, scheme, secs, uiName, &text_48, &blink)
+			// with the Phobos widget. `interval` is in seconds (rem / 15).
+			this->__DrawTimersSW(pSuper, timerSlot++, rem / 15);
+		}
+	}
+
+	// --- Force-shield blackout timers (one per house) ---
+	for(auto pH : *HouseClass::Array) {
+		int rem = pH->RadarBlackoutTimer.GetTimeLeft();
+		if (rem > 0) {
+
+			const wchar_t* text = StringTable::TryFetchStringOrReturnDefault(
+				"MSG:BlackoutTimer",L"RadarBlackout");
+
+			this->__DrawTimersA(
+				timerSlot++,
+				ColorScheme::Array->Items[pH->ColorSchemeIndex],
+				rem / 15,
+				text, 0, 0);
+		}
+
+		int pWrrem = pH->PowerBlackoutTimer.GetTimeLeft();
+
+		if (pWrrem > 0) {
+
+			const wchar_t* textPwr = StringTable::TryFetchStringOrReturnDefault(
+				"MSG:PowerBlackoutTimer",L"PowerOff");
+
+			this->__DrawTimersA(
+				timerSlot++,
+				ColorScheme::Array->Items[pH->ColorSchemeIndex],
+				pWrrem / 15,
+				textPwr, 0, 0);
+		}
+	}
+
+	this->__DrawAllTacticalText(this->ScreenText);
+	this->field_D7C = 0;
+	this->Redrawing = 0;
+}
+//#pragma optimize("", on )
 // =============================
 // container hooks
 

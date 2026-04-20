@@ -101,7 +101,7 @@ void SuperExtData::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 		// factor in the player's power status
 		const bool hasPower = pHouse->HasFullPower();
 		const bool isCampaign = SessionClass::Instance->GameMode == GameMode::Campaign;
-		const bool bIsSWShellEnabled = Unsorted::SWAllowed || isCampaign;
+		const bool bIsSWShellEnabled = Unsorted::SWAllowed() || isCampaign;
 
 		if (!hasPower || !bIsSWShellEnabled) {
 			pHouse->Supers.for_each([&](SuperClass* pSuper) {
@@ -247,7 +247,7 @@ int FakeSuperClass::_GetAnimStage()
 
 	if (started != -1)
 	{
-		int elapsed = Unsorted::CurrentFrame - started;
+		int elapsed = Unsorted::CurrentFrame() - started;
 		if (elapsed >= delayTime)
 		{
 			delayTime = 0;
@@ -371,7 +371,7 @@ bool FakeSuperClass::_IsToFlashTab()
 		return true;
 	}
 
-	return FlashSidebarTabFrames && FlashSidebarTabFrames + this->ReadinessFrame > Unsorted::CurrentFrame;
+	return FlashSidebarTabFrames && FlashSidebarTabFrames + this->ReadinessFrame > Unsorted::CurrentFrame();
 }
 DEFINE_FUNCTION_JUMP(LJMP, 0x6CE1A0, FakeSuperClass::_IsToFlashTab)
 

@@ -73,7 +73,7 @@ Matrix3D* AdvancedDriveLocomotionClass::Draw_Matrix(Matrix3D*  buff, VoxelIndexK
 		LocomotionClass::Draw_Matrix(&locoMtx, key);
 
 		if(shouldTilt){
-			*buff = (Game::VoxelRampMatrix[this->CurrentRamp]) * locoMtx;
+			*buff = (Game::VoxelRampMatrix.get()[this->CurrentRamp]) * locoMtx;
 		} else {
 			*buff = locoMtx;
 		}
@@ -161,7 +161,7 @@ bool AdvancedDriveLocomotionClass::Process()
 	if (notInMotion)
 		return false;
 
-	if (this->Is_Moving_Now() && !(Unsorted::CurrentFrame % 10))
+	if (this->Is_Moving_Now() && !(Unsorted::CurrentFrame.get() % 10))
 	{
 		if (!pLinked->OnBridge && pLinked->GetCell()->LandType == LandType::Water)
 		{
@@ -1391,7 +1391,7 @@ void AdvancedDriveLocomotionClass::UpdateHoverState()
 			const int id = static_cast<int>(pLinked->UniqueID);
 			const double hoverBob = pTypeExt->AdvancedDrive_Hover_Bob.Get(RulesClass::Instance->HoverBob);
 			const double bobDelay = ((id & 1) ? 1.0 : 1.1) * hoverBob * 900.0;
-			const double bobHeight = Math::sin(((Unsorted::CurrentFrame + 2 * id) % static_cast<int>(bobDelay)) / bobDelay * Math::GAME_TWOPI);
+			const double bobHeight = Math::sin(((Unsorted::CurrentFrame.get() + 2 * id) % static_cast<int>(bobDelay)) / bobDelay * Math::GAME_TWOPI);
 			newHeight = static_cast<int>(2 * bobHeight) + static_cast<int>(oldHeight + this->Wobbles);
 
 			if (newHeight >= 0)
@@ -1482,7 +1482,7 @@ inline void AdvancedDriveLocomotionClass::UpdateSituation()
 		if (pLinked->DistanceFrom(pTarget) <= pTypeExt->AdvancedDrive_Reverse_FaceTargetRange.Get())
 		{
 			this->ForwardTo = pTarget->GetCoords();
-			this->TargetFrame = Unsorted::CurrentFrame;
+			this->TargetFrame = Unsorted::CurrentFrame.get();
 			this->TargetDistance = 0;
 			return;
 		}
@@ -1493,7 +1493,7 @@ inline void AdvancedDriveLocomotionClass::UpdateSituation()
 		const auto currentDistance = static_cast<int>(pLinked->Location.DistanceFrom(this->ForwardTo));
 
 		if (currentDistance > pTypeExt->AdvancedDrive_Reverse_FaceTargetRange.Get()
-			|| (Unsorted::CurrentFrame - this->TargetFrame) > pTypeExt->AdvancedDrive_Reverse_RetreatDuration
+			|| (Unsorted::CurrentFrame.get() - this->TargetFrame) > pTypeExt->AdvancedDrive_Reverse_RetreatDuration
 			|| currentDistance < this->TargetDistance)
 		{
 			this->ForwardTo = CoordStruct::Empty;
@@ -1572,7 +1572,7 @@ inline void AdvancedDriveLocomotionClass::UpdateForwardState(int desiredRaw)
 			pTypeExt->AdvancedDrive_Reverse_FaceTarget;
 	}
 	// Check if we should retreat
-	else if (Unsorted::CurrentFrame - TechnoExtContainer::Instance.Find(pLinked)->LastHurtFrame
+	else if (Unsorted::CurrentFrame.get() - TechnoExtContainer::Instance.Find(pLinked)->LastHurtFrame
 			 <= pTypeExt->AdvancedDrive_Reverse_RetreatDuration) {
 		// When retreating, reverse if we're facing the threat
 		const auto currentDir = pLinked->PrimaryFacing.Current();

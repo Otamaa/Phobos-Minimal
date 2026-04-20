@@ -575,6 +575,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->KillDriver_Chance.Read(exINI, pSection, "KillDriver.Chance");
 
 	this->CombatLightDetailLevel.Read(exINI, pSection, "CombatLightDetailLevel");
+	this->CombatLightDetailLevel_CheckColored.Read(exINI, pSection, "CombatLightDetailLevel.CheckColored");
 	this->CombatLightChance.Read(exINI, pSection, "CombatLightChance");
 	this->Particle_AlphaImageIsLightFlash.Read(exINI, pSection, "Particle.AlphaImageIsLightFlash");
 
@@ -1990,6 +1991,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->ApplyModifiersOnNegativeDamage)
 
 		.Process(this->CombatLightDetailLevel)
+		.Process(this->CombatLightDetailLevel_CheckColored)
 		.Process(this->CombatLightChance)
 		.Process(this->Particle_AlphaImageIsLightFlash)
 		.Process(this->Nonprovocative)
@@ -2247,7 +2249,7 @@ bool WarheadTypeExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim) const
 
 void WarheadTypeExtData::ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 {
-	if (Unsorted::CurrentFrame % 15)
+	if (Unsorted::CurrentFrame() % 15)
 		return;
 
 	auto const pWarheadExt = WarheadTypeExtContainer::Instance.Find(args->WH);
@@ -2354,7 +2356,7 @@ void WarheadTypeExtData::announceAttack(TechnoClass* Techno)
 	AttackEvents Event = AttackEvents::None;
 
 	// find out what event is the most appropriate.
-	if (Techno && Techno->Owner == HouseClass::CurrentPlayer)
+	if (Techno && Techno->Owner == HouseClass::CurrentPlayer())
 	{
 		if (auto pBuilding = cast_to<BuildingClass*, false>(Techno))
 		{

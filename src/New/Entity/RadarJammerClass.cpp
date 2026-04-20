@@ -42,12 +42,12 @@ void RadarJammerClass::Update()
 	auto const pExt = GET_TECHNOTYPEEXT(this->AttachedToObject);
 
 	// we don't want to scan & crunch numbers every frame - this limits it to ScanInterval frames
-	if ((Unsorted::CurrentFrame - this->LastScan) < pExt->RadarJamDelay) {
+	if ((Unsorted::CurrentFrame.get() - this->LastScan) < pExt->RadarJamDelay) {
 		return;
 	}
 
 	// save the current frame for future reference
-	this->LastScan = Unsorted::CurrentFrame;
+	this->LastScan = Unsorted::CurrentFrame.get();
 
 	// walk through all buildings
 	for (auto const curBuilding : *BuildingClass::Array)

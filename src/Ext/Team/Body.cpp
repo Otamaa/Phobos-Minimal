@@ -771,7 +771,7 @@ bool FakeTeamClass::_Can_Add(FootClass* unit, int* outTypeIndex, bool ignoreQuan
 	if (pExt->Is_DriverKilled || unit->GetTechnoType()->Speed <= 0)
 		return false;
 
-	if (!Unsorted::ScenarioInit && unit->InLimbo)
+	if (!Unsorted::ScenarioInit() && unit->InLimbo)
 		return false;
 
 	// Unit already in this team
@@ -947,7 +947,7 @@ bool FakeTeamClass::_Remove(FootClass* obj, int typeindex, bool enterIdleMode) {
 	}
 
 	// A unit that breaks off of a team will enter idle mode
-	if (!Unsorted::ScenarioInit &&
+	if (!Unsorted::ScenarioInit() &&
 		obj->IsAlive &&
 		!obj->IsCrashing &&
 		!obj->InLimbo &&
@@ -1150,7 +1150,7 @@ void FakeTeamClass::_Coordinate_Attack() {
 	}
 
 	// Check if team leader can fire at target (every 8 frames, on frame 4)
-	if (Unsorted::CurrentFrame % 8 == 4) {
+	if (Unsorted::CurrentFrame() % 8 == 4) {
 		const int weaponIndex = teamLeader->SelectWeapon(this->ArchiveTarget);
 
 		if (teamLeader->GetFireError(this->ArchiveTarget, weaponIndex, true) == FireError::ILLEGAL) {
@@ -1193,7 +1193,7 @@ void FakeTeamClass::_Coordinate_Attack() {
 
 		// Handle unit initialization (bringing units to formation zone)
 		if (unitToProcess->Health
-			&& (Unsorted::ScenarioInit || !unitToProcess->InLimbo)
+			&& (Unsorted::ScenarioInit() || !unitToProcess->InLimbo)
 			&& !unitToProcess->IsTeamLeader)
 		{
 			int allowedStrayDistance = this->_Get_Stray();
@@ -1215,7 +1215,7 @@ void FakeTeamClass::_Coordinate_Attack() {
 		// Process active and initiated units for attack coordination
 		if (unitToProcess->IsAlive
 			&& unitToProcess->Health
-			&& (Unsorted::ScenarioInit || !unitToProcess->InLimbo)
+			&& (Unsorted::ScenarioInit() || !unitToProcess->InLimbo)
 			&& (unitToProcess->IsTeamLeader || unitToProcess->WhatAmI() == AircraftClass::AbsID))
 		{
 			const auto currentMission = unitToProcess->GetCurrentMission();
@@ -1305,7 +1305,7 @@ void FakeTeamClass::_CoordinateMove() {
 		// ========================================================
 		if (pUnit->IsAlive &&
 			pUnit->Health &&
-			(Unsorted::ScenarioInit || !pUnit->InLimbo) &&
+			(Unsorted::ScenarioInit() || !pUnit->InLimbo) &&
 			!pUnit->IsTeamLeader)
 		{
 			const int strayDistance = this->_Get_Stray();
@@ -1342,7 +1342,7 @@ void FakeTeamClass::_CoordinateMove() {
 		const bool shouldProcessMovement =
 			pUnit->IsAlive &&
 			pUnit->Health &&
-			(Unsorted::ScenarioInit || !pUnit->InLimbo) &&
+			(Unsorted::ScenarioInit() || !pUnit->InLimbo) &&
 			(pUnit->IsTeamLeader || pUnit->WhatAmI() == AbstractType::Aircraft) &&
 			pUnit->GetCurrentMission() != Mission::Unload &&
 			pUnit->QueuedMission != Mission::Unload;
@@ -1558,7 +1558,7 @@ void FakeTeamClass::_CoordinateMove() {
 }
 
 bool FakeTeamClass::_Coordinate_Conscript(FootClass* a2) {
-	if (!a2 || !a2->IsAlive || !a2->Health || !Unsorted::ScenarioInit && a2->InLimbo || a2->IsTeamLeader)
+	if (!a2 || !a2->IsAlive || !a2->Health || !Unsorted::ScenarioInit() && a2->InLimbo || a2->IsTeamLeader)
 	{
 		return 0;
 	}
@@ -1591,7 +1591,7 @@ void FakeTeamClass::_Coordinate_Do(ScriptActionNode* pNode, CellStruct unused) {
 		{
 			int stray = this->_Get_Stray();
 
-			if (i->Health && (Unsorted::ScenarioInit || !i->InLimbo) && !i->IsTeamLeader)
+			if (i->Health && (Unsorted::ScenarioInit() || !i->InLimbo) && !i->IsTeamLeader)
 			{
 				if (i->DistanceFrom(this->Zone) <= stray)
 				{
@@ -1604,7 +1604,7 @@ void FakeTeamClass::_Coordinate_Do(ScriptActionNode* pNode, CellStruct unused) {
 					i->SetDestination(this->Zone, 1);
 				}
 			}
-			if (i->IsAlive && i->Health && (Unsorted::ScenarioInit || !i->InLimbo))
+			if (i->IsAlive && i->Health && (Unsorted::ScenarioInit() || !i->InLimbo))
 			{
 				if (i->IsTeamLeader || (i->WhatAmI() == AbstractType::Aircraft))
 				{
@@ -1757,7 +1757,7 @@ FootClass* FakeTeamClass::_Fetch_A_Leader() {
 		int rating = GET_TECHNOTYPE(member)->LeadershipRating;
 		if (member->IsAlive
 		  && member->Health
-		  && (Unsorted::ScenarioInit || !member->InLimbo)
+		  && (Unsorted::ScenarioInit() || !member->InLimbo)
 		  && (member->IsTeamLeader || member->WhatAmI() == AircraftClass::AbsID)
 		  && rating > last_rating)
 		{
@@ -2150,7 +2150,7 @@ bool FakeTeamClass::_Lagging_Units()
 			{
 				if (unit->IsAlive
 				  && unit->Health
-				  && (Unsorted::ScenarioInit || !unit->InLimbo)
+				  && (Unsorted::ScenarioInit() || !unit->InLimbo)
 				  && (unit->IsTeamLeader || unit->WhatAmI() == AircraftClass::AbsID))
 				{
 
@@ -2306,7 +2306,7 @@ bool NOINLINE IsTechnoMemberEligible(FootClass* pTech, TeamClass* pTeam)
 	if (!pTech || !pTech->IsAlive || !pTech->Health)
 		return false;
 
-	if (!Unsorted::ScenarioInit && pTech->InLimbo)
+	if (!Unsorted::ScenarioInit() && pTech->InLimbo)
 		return false;
 
 	// For Hound_dog, we need allied units NOT in our team
@@ -2320,7 +2320,7 @@ bool NOINLINE IsAllyForHoundDog(FootClass* pTech, TeamClass* pTeam)
 	if (!pTech || !pTech->IsAlive || !pTech->Health)
 		return false;
 
-	if (!Unsorted::ScenarioInit && pTech->InLimbo)
+	if (!Unsorted::ScenarioInit() && pTech->InLimbo)
 		return false;
 
 	// Must be allied
@@ -2414,7 +2414,7 @@ void FakeTeamClass::_Calc_Center(AbstractClass** outCell, FootClass** outClosest
 		{
 			// Basic validity check for team members
 			if (!member->IsAlive || !member->Health ||
-				(!Unsorted::ScenarioInit && member->InLimbo))
+				(!Unsorted::ScenarioInit() && member->InLimbo))
 			{
 				member = member->NextTeamMember;
 				continue;
@@ -2831,7 +2831,7 @@ bool ProcessMemberInitiation(FakeTeamClass* team, FootClass* member)
 	if (!member->IsAlive || !member->Health)
 		return false;
 
-	if (!Unsorted::ScenarioInit && member->InLimbo)
+	if (!Unsorted::ScenarioInit() && member->InLimbo)
 		return false;
 
 	if (member->IsTeamLeader)
@@ -2948,7 +2948,7 @@ void FakeTeamClass::_TMission_Unload(ScriptActionNode* nNode, bool arg3)
 
 			// Process initiated members with cargo
 			if (current->IsAlive && current->Health &&
-				(Unsorted::ScenarioInit || !current->InLimbo) &&
+				(Unsorted::ScenarioInit() || !current->InLimbo) &&
 				(current->IsTeamLeader || current->WhatAmI() == AircraftClass::AbsID)) {
 				// Check if member has cargo
 				if (current->Passengers.NumPassengers)
@@ -3089,7 +3089,7 @@ void FakeTeamClass::_TMission_Load(ScriptActionNode* nNode, bool arg3)
 		// Process initiated members
 		if (unit->IsAlive &&
 			unit->Health &&
-			(Unsorted::ScenarioInit || !unit->InLimbo) &&
+			(Unsorted::ScenarioInit() || !unit->InLimbo) &&
 			(unit->IsTeamLeader || unit->WhatAmI() == AircraftClass::AbsID))
 		{
 			// Don't load the transport into itself
@@ -3148,7 +3148,7 @@ void FakeTeamClass::_TMission_Deploy(ScriptActionNode* nNode, bool arg3)
 		ProcessMemberInitiation(this, member);
 
 		// Process initiated members for deployment
-		if (member->Health && (Unsorted::ScenarioInit || !member->InLimbo) &&
+		if (member->Health && (Unsorted::ScenarioInit() || !member->InLimbo) &&
 			(member->IsTeamLeader || member->WhatAmI() == AircraftClass::AbsID))
 		{
 			bool handledDeployment = false;
@@ -4028,7 +4028,7 @@ void FakeTeamClass::_AI()
 	{
 		bool shouldDissolve = this->IsHasBeen;
 		if (SessionClass::Instance->GameMode != GameMode::Campaign) {
-			int elapsed = Unsorted::CurrentFrame - this->CreationFrame;
+			int elapsed = Unsorted::CurrentFrame() - this->CreationFrame;
 			if (elapsed > RulesClass::Instance->DissolveUnfilledTeamDelay) {
 				shouldDissolve = true;
 			}
@@ -4194,7 +4194,7 @@ bool FakeTeamClass::_CoordinateRegroup()
 	do {
 		if (Member->IsAlive) {
 			// Check if member is valid and ready for regrouping
-			if (Member->Health && (Unsorted::ScenarioInit || !Member->InLimbo) && !Member->IsTeamLeader) {
+			if (Member->Health && (Unsorted::ScenarioInit() || !Member->InLimbo) && !Member->IsTeamLeader) {
 				// Check if member is close enough to initiate
 				if (FakeObjectClass::_GetDistanceOfObj(Member , discard_t() , this->Zone) <= stray) {
 					Member->IsTeamLeader = true;
@@ -4211,7 +4211,7 @@ bool FakeTeamClass::_CoordinateRegroup()
 			// Process initiated members or aircraft
 			if (Member->IsAlive
 				&& Member->Health
-				&& (Unsorted::ScenarioInit || !Member->InLimbo)
+				&& (Unsorted::ScenarioInit() || !Member->InLimbo)
 				&& (Member->IsTeamLeader || Member->WhatAmI() == AbstractType::Aircraft))
 			{
 				// Check if member is in position or guarding with target
@@ -4765,7 +4765,7 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 			{
 				if (i->IsAlive
 				  && i->Health
-				  && (Unsorted::ScenarioInit || !i->InLimbo)
+				  && (Unsorted::ScenarioInit() || !i->InLimbo)
 				  && (i->IsTeamLeader || i->WhatAmI() == AircraftClass::AbsID))
 				{
 
@@ -4910,7 +4910,7 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 
 		// Periodically scan for threats (every PatrolTime minutes)
 		int patrolInterval = (int)(RulesClass::Instance->PatrolScan * TICKS_PER_MINUTE);
-		if ((Unsorted::CurrentFrame % patrolInterval) == 0)
+		if ((Unsorted::CurrentFrame() % patrolInterval) == 0)
 		{
 			// Find team leader
 			FootClass* leader = this->_Fetch_A_Leader();

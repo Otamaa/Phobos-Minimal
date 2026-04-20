@@ -181,7 +181,7 @@ public:
 		pDisplay->CurrentBuildingType = nullptr;
 		pDisplay->CurrentBuildingOwnerArrayIndexCopy = -1;
 
-		if (!Unsorted::ArmageddonMode)
+		if (!Unsorted::MAP_DEBUG_MODE.get())
 		{
 			pDisplay->SetCursorShape2(nullptr);
 			pDisplay->CurrentBuildingCopy = nullptr;

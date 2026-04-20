@@ -315,10 +315,10 @@ ASMJIT_PATCH(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 
 	DistributionModeHoldDownCommandClass::DrawRadialIndicator();
 
-	if (!ToggleDesignatorRangeCommandClass::ShowDesignatorRange || Unsorted::CurrentSWType < 0)
+	if (!ToggleDesignatorRangeCommandClass::ShowDesignatorRange || Unsorted::CurrentSWType.get() < 0)
 		return 0;
 
-	const auto pSuperType = SuperWeaponTypeClass::Array()->Items[Unsorted::CurrentSWType];
+	const auto pSuperType = SuperWeaponTypeClass::Array()->Items[Unsorted::CurrentSWType.get()];
 	const auto pExt = SWTypeExtContainer::Instance.Find(pSuperType);
 
 	if (!pExt->ShowDesignatorRange)
@@ -332,9 +332,9 @@ ASMJIT_PATCH(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 
 		if (!pCurrentTechno->IsAlive
 			|| pCurrentTechno->InLimbo
-			|| (!IsCurrentPlayer && pOwner->IsAlliedWith(HouseClass::CurrentPlayer))                  // Ally objects are never designators or inhibitors
+			|| (!IsCurrentPlayer && pOwner->IsAlliedWith(HouseClass::CurrentPlayer.get()))                  // Ally objects are never designators or inhibitors
 			|| (IsCurrentPlayer && !pExt->SW_Designators.Contains(pCurrentTechnoType))               // Only owned objects can be designators
-			|| (!pOwner->IsAlliedWith(HouseClass::CurrentPlayer) && !pExt->SW_Inhibitors.Contains(pCurrentTechnoType)))  // Only enemy objects can be inhibitors
+			|| (!pOwner->IsAlliedWith(HouseClass::CurrentPlayer.get()) && !pExt->SW_Inhibitors.Contains(pCurrentTechnoType)))  // Only enemy objects can be inhibitors
 		{
 			continue;
 		}
@@ -401,7 +401,7 @@ ASMJIT_PATCH(0x41F180, AITriggerTypeClass_Chrono, 0x5)
 		return 0x41F1BA;
 	}
 
-	const auto chargeTime = Unsorted::CurrentFrame - v8;
+	const auto chargeTime = Unsorted::CurrentFrame.get() - v8;
 	if (chargeTime < v9) {
 		v9 = (v9 - chargeTime);
 		const auto result2 = rechargePercent >= (v9 / (double)pSuper->GetRechargeTime());
@@ -657,7 +657,7 @@ ASMJIT_PATCH(0x4C78D6, Networking_RespondToEvent_SpecialPlace, 8)
 		{
 			const auto pHouseID = pHouse->get_ID();
 
-			if (pHouse == HouseClass::CurrentPlayer)
+			if (pHouse == HouseClass::CurrentPlayer.get())
 			{
 				Debug::LogInfo("[{} - {}] SW [{} - {}] CannotFire", pHouseID, (void*)pHouse, pSuper->Type->ID, (void*)pSuper);
 				pExt->PrintMessage(pExt->Message_CannotFire, pHouse);
@@ -700,8 +700,8 @@ ASMJIT_PATCH(0x50AF10, HouseClass_UpdateSuperWeaponsOwned, 5)
 					// only the human player can see the sidebar.
 					if (pThis->IsCurrentPlayer())
 					{
-						if (Unsorted::CurrentSWType == index)
-							Unsorted::CurrentSWType = -1;
+						if (Unsorted::CurrentSWType.get() == index)
+							Unsorted::CurrentSWType.get() = -1;
 
 						MouseClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(SuperClass::AbsID, index, 0));
 					}
@@ -714,7 +714,7 @@ ASMJIT_PATCH(0x50AF10, HouseClass_UpdateSuperWeaponsOwned, 5)
 			{
 				if (!status.Available || pThis->Defeated)
 				{
-					if ((pSuper->Lose() && HouseClass::CurrentPlayer))
+					if ((pSuper->Lose() && HouseClass::CurrentPlayer.get()))
 						Update();
 				}
 				else if (status.Charging && !pSuper->IsPowered())

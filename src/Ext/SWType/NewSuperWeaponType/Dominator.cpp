@@ -118,7 +118,7 @@ void PsychicDominatorStateMachine::Update()
 
 	SWTypeExtData* pData = this->GetTypeExtData();
 
-	switch (PsyDom::Status)
+	switch (PsyDom::Status())
 	{
 	case PsychicDominatorStatus::FirstAnim:
 	{
@@ -152,7 +152,7 @@ void PsychicDominatorStateMachine::Update()
 		// wait for some percentage of the first anim to be
 		// played until we strike.
 
-		if (PsyDom::Anim) {
+		if (PsyDom::Anim()) {
 			if(auto pImage = PsyDom::Anim->Type->GetImage()) {
 
 				const int percentage = pData->Dominator_FireAtPercentage.Get(RulesClass::Instance->DominatorFireAtPercentage);
@@ -174,7 +174,7 @@ void PsychicDominatorStateMachine::Update()
 		// wait for the second animation to finish. (there may be up to
 		// 10 frames still to be played.)
 
-		if (PsyDom::Anim) {
+		if (PsyDom::Anim()) {
 			if(auto pImage = PsyDom::Anim->Type->GetImage()) {
 				if (pImage->Frames - PsyDom::Anim->Animation.Stage > 10) {
 					return;
@@ -189,7 +189,7 @@ void PsychicDominatorStateMachine::Update()
 	{
 		// wait for the last frame... WTF?
 
-		if (PsyDom::Anim && PsyDom::Anim->Type) {
+		if (PsyDom::Anim() && PsyDom::Anim->Type) {
 			if(auto pImage = PsyDom::Anim->Type->GetImage()) {
 				if (pImage->Frames - PsyDom::Anim->Animation.Stage > 1) {
 					return;

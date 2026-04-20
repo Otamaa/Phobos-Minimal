@@ -41,14 +41,14 @@ public:
 	void Draw()
 		{ JMP_THIS(0x556C00); }
 
-	void DrawAll()
-		{ JMP_THIS(0x556D40); }
-
 	bool IsAlive()
 		{ JMP_THIS(0x556D20); }
 
 	void SetDecrement(int val)
 		{ JMP_THIS(0x556B50); }
+
+	static void __fastcall Draw_All() 
+		{ JMP_FAST(0x556D40); }
 
 	//static void DeleteAll()
 	//	{ JMP_STD(0x556DF0); }

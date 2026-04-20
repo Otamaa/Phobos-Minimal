@@ -118,7 +118,7 @@ public:
 
 	COMPILETIMEEVAL FORCEDINLINE int GetFramesSinceLastBroken() const
 	{
-		return Unsorted::CurrentFrame - this->LastBreakFrame;
+		return Unsorted::CurrentFrame.get() - this->LastBreakFrame;
 	}
 
 	void SetAnimationVisibility(bool visible)

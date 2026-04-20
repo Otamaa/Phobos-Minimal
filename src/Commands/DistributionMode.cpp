@@ -243,7 +243,7 @@ ASMJIT_PATCH(0x4AE7B3, DisplayClass_ActiveClickWith_Iterate, 0x0)
 				&& spreadMode
 				&& count > 1
 				&& action != Action::NoMove
-				&& !PlanningNodeClass::PlanningModeActive
+				&& !PlanningNodeClass::PlanningModeActive.get()
 				&& pTechno
 				&& !pTechno->IsInAir()
 				&& (HouseClass::CurrentPlayer->IsAlliedWith(pTechno->Owner)

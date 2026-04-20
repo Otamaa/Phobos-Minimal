@@ -310,7 +310,7 @@ struct Game
 	{
 		/* InitCommonDialogStuff() */ ASM_CALL(0x600560);
 
-		if (!PCXInitialized)
+		if (!PCXInitialized.get())
 		{
 			/* InitUIColorShifts() */ ASM_CALL(0x61F190);
 			/* LoadPCXFiles() */      ASM_CALL(0x61F210);
@@ -930,9 +930,10 @@ namespace Unsorted
 	// skip unit selection and move command voices?
 	COMPILETIMEEVAL reference<bool, 0x822CF2> const MoveFeedback {};
 
-	COMPILETIMEEVAL reference<bool, 0xA8ED6B> const ArmageddonMode {};
+	COMPILETIMEEVAL reference<bool, 0xA8ED6B> const MAP_DEBUG_MODE {};
 	COMPILETIMEEVAL reference<bool, 0xA8E9A0> const WTFMode {};
 	COMPILETIMEEVAL constant_ptr<DynamicVectorClass<ObjectClass*>, 0x8A0360> const ObjectsInLayers {};
+	COMPILETIMEEVAL reference<bool, 0x843108> const ActionLinesEnabled {};
 
 	// checkbox states, afaik
 	COMPILETIMEEVAL reference<bool, 0xA8B258> const Bases {};

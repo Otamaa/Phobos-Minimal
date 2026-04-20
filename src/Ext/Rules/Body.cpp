@@ -821,6 +821,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	this->WarheadParticleAlphaImageIsLightFlash.Read(exINI, GameStrings::AudioVisual, "WarheadParticleAlphaImageIsLightFlash");
 	this->CombatLightDetailLevel.Read(exINI, GameStrings::AudioVisual, "CombatLightDetailLevel");
+	this->CombatLightDetailLevel_CheckColored.Read(exINI, GameStrings::AudioVisual, "CombatLightDetailLevel.CheckColored");
 	this->LightFlashAlphaImageDetailLevel.Read(exINI, GameStrings::AudioVisual, "LightFlashAlphaImageDetailLevel");
 
 	this->DrainMoneyDisplay.Read(exINI, GameStrings::AudioVisual, "DrainMoneyDisplay");
@@ -1167,6 +1168,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->SelectFlashTimer)
 		.Process(this->WarheadParticleAlphaImageIsLightFlash)
 		.Process(this->CombatLightDetailLevel)
+		.Process(this->CombatLightDetailLevel_CheckColored)
 		.Process(this->LightFlashAlphaImageDetailLevel)
 
 		.Process(this->Promote_Vet_Anim)

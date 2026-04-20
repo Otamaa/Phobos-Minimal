@@ -659,7 +659,7 @@ void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 	ColorStruct* color = pHeldType->ColorList.Items;
 	const int colorCount = pHeldType->ColorList.Count;
 
-	auto& rect = DSurface::ViewBounds;
+	auto rect = DSurface::ViewBounds.ptr();
 	for (auto& movement : this->OtherParticleData)
 	{
 		CoordStruct Coord {
@@ -791,7 +791,7 @@ void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 				image,
 				draw.ImageFrame,
 				&outClient,
-				&rect,
+				rect,
 				(BlitterFlags)drawingFlag,
 				0,
 				offs,
@@ -812,7 +812,7 @@ void ParticleSystemExtData::UpdateInAir()
 	if (ParticleSystemClass::Array->Count && GameOptionsClass::Instance->DetailLevel && RulesExtData::DetailsCurrentlyEnabled())
 	{
 		bool StopDrawing = false;
-		if (Unsorted::ArmageddonMode() || !Game::hInstance() || ((ScenarioClass::Instance->SpecialFlags.RawFlags + 1) & 16) == 0)
+		if (Unsorted::MAP_DEBUG_MODE() || !Game::hInstance() || ((ScenarioClass::Instance->SpecialFlags.RawFlags + 1) & 16) == 0)
 			StopDrawing = true;
 
 		for (auto pSys : *ParticleSystemClass::Array) {
@@ -1352,7 +1352,7 @@ void FakeParticleSystemClass::SpawnChildParticle(ParticleClass* parent, Particle
 void FakeParticleSystemClass::SpawnSmokeParticles()
 {
 	// Check spawn timing
-	if ((Unsorted::CurrentFrame % (int)this->SpawnFrames))
+	if ((Unsorted::CurrentFrame.get() % (int)this->SpawnFrames))
 	{
 		return;
 	}
@@ -1538,8 +1538,8 @@ void FakeParticleSystemClass::SpawnFireParticles(bool forceSpawn)
 	}
 
 	// Check spawn timing
-	const bool shouldSpawn = (Unsorted::CurrentFrame % this->Type->SpawnFrames) == 0 ||
-		((Unsorted::CurrentFrame % 3) == 0 && forceSpawn);
+	const bool shouldSpawn = (Unsorted::CurrentFrame.get() % this->Type->SpawnFrames) == 0 ||
+		((Unsorted::CurrentFrame.get() % 3) == 0 && forceSpawn);
 
 	if (!shouldSpawn)
 	{
@@ -1551,7 +1551,7 @@ void FakeParticleSystemClass::SpawnFireParticles(bool forceSpawn)
 	const int waveIntensity = (distanceToTarget >= 200.0f) ? 1 : 3;
 
 	// Calculate wave offset
-	const int wavePhase = Unsorted::CurrentFrame % 500;
+	const int wavePhase = Unsorted::CurrentFrame.get() % 500;
 	const int waveOffset = int(int(12 * WaveClass::SonicBeamSineTable[wavePhase]) / (waveIntensity * 3.0f));
 
 	// Get direction to target

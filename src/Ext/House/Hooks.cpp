@@ -318,6 +318,7 @@ ASMJIT_PATCH(0x7015EB, TechnoClass_SetOwningHouse_UpdateTracking, 0x7)
 		pOldOwnerExt->OwnedDeployingUnits.remove((UnitClass*)pThis);
 	}
 
+	SidebarClass::Instance->OnTechnoDestroyed(pThis);
 	OldOwner = pThis->Owner;
 	return 0;
 }

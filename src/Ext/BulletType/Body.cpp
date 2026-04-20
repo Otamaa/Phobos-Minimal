@@ -114,7 +114,7 @@ bool BulletTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		return false;
 
 	auto pThis = This();
-	auto pArtInI = &CCINIClass::INI_Art;
+	auto pArtInI = CCINIClass::INI_Art.ptr();
 
 	const char* pSection = pThis->ID;
 	const char* pArtSection = (!pThis->ImageFile || !pThis->ImageFile[0]) ? pSection : pThis->ImageFile;
@@ -175,7 +175,9 @@ bool BulletTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->Splits_RandomCellUseHarcodedRange.Read(exINI, pSection, "Splits.RandomCellUseHardcodedRange");
 		this->Splits_TargetingUseVerses.Read(exINI, pSection, "Splits.TargetingUseVerses");
 		this->Splits_FillRemainingClusterWithRandomcells.Read(exINI, pSection, "Splits.FillRemainingClusterWihRandomCells");
-
+		this->Splits_TargetingDistance_Cylindrical.Read(exINI, pSection, "Splits.TargetingDistance.Cylindrical");
+		this->Splits_AllowRepeatTargets.Read(exINI, pSection, "Splits.AllowRepeatTargets");
+		this->AirburstWeapon_UseFiringEffects.Read(exINI, pSection, "AirburstWeapon.UseFiringEffects");
 		this->Cluster_Scatter_Min.Read(exINI, pSection, "ClusterScatter.Min");
 		this->Cluster_Scatter_Max.Read(exINI, pSection, "ClusterScatter.Max");
 
@@ -284,6 +286,9 @@ void BulletTypeExtData::Serialize(T& Stm)
 		.Process(this->AirburstWeapon_ApplyFirepowerMult)
 		.Process(this->Splits_TargetingUseVerses)
 		.Process(this->Splits_FillRemainingClusterWithRandomcells)
+		.Process(this->Splits_TargetingDistance_Cylindrical)
+		.Process(this->Splits_AllowRepeatTargets)
+		.Process(this->AirburstWeapon_UseFiringEffects)
 		.Process(this->BounceAmount)
 		.Process(this->BounceHitWeapon)
 		.Process(this->BounceOnTerrain)

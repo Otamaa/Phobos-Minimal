@@ -611,9 +611,9 @@ public:
 
 	static FORCEDINLINE COMPILETIMEEVAL unsigned RGB_To_Pixel(unsigned r, unsigned g, unsigned b)
 	{
-		return (unsigned((b >> BlueRight) << BlueLeft)
-			| unsigned((r >> RedRight) << RedLeft)
-			| unsigned((g >> GreenRight) << GreenLeft));
+		return (unsigned((b >> BlueRight.get()) << BlueLeft.get())
+			| unsigned((r >> RedRight.get()) << RedLeft.get())
+			| unsigned((g >> GreenRight.get()) << GreenLeft.get()));
 	}
 
 	//static unsigned RGB_To_Pixel(ColorStruct& rgb)
@@ -623,16 +623,16 @@ public:
 	//		| unsigned((rgb.B >> GreenRight) << GreenLeft));
 	//}
 
-	static int Get_RGB_Pixel_Format() { return RGBPixelFormat; }
+	static FORCEDINLINE COMPILETIMEEVAL int Get_RGB_Pixel_Format() { return RGBPixelFormat.get(); }
 
-	static unsigned Get_Red_Left() { return RedLeft; }
-	static unsigned Get_Red_Right() { return RedRight; }
+	static FORCEDINLINE COMPILETIMEEVAL unsigned Get_Red_Left() { return RedLeft.get(); }
+	static FORCEDINLINE COMPILETIMEEVAL unsigned Get_Red_Right() { return RedRight.get(); }
 
-	static unsigned Get_Green_Left() { return GreenLeft; }
-	static unsigned Get_Green_Right() { return GreenRight; }
+	static FORCEDINLINE COMPILETIMEEVAL unsigned Get_Green_Left() { return GreenLeft.get(); }
+	static FORCEDINLINE COMPILETIMEEVAL unsigned Get_Green_Right() { return GreenRight.get(); }
 
-	static unsigned Get_Blue_Left() { return BlueLeft; }
-	static unsigned Get_Blue_Right() { return BlueRight; }
+	static FORCEDINLINE COMPILETIMEEVAL unsigned Get_Blue_Left() { return BlueLeft.get(); }
+	static FORCEDINLINE COMPILETIMEEVAL unsigned Get_Blue_Right() { return BlueRight.get(); }
 
 public:
 	void* BufferPtr;

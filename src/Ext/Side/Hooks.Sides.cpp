@@ -60,7 +60,7 @@ ASMJIT_PATCH(0x72D730, Game_LoadMultiplayerScoreAssets, 5)
 	auto pExt = SideExtContainer::Instance.Find(pSide);
 
 	static COMPILETIMEEVAL reference<bool , 0xB0FBB8u> const MultiplayerScoreAssetsAlreadyLoaded{};
-	if (!MultiplayerScoreAssetsAlreadyLoaded)
+	if (!MultiplayerScoreAssetsAlreadyLoaded())
 	{
 		static COMPILETIMEEVAL reference<SHPStruct* , 0xB0FB1Cu> const MPxSCRNy_SHP {};
 		static COMPILETIMEEVAL reference<bool , 0xB0FC7Du> const MPxSCRNy_Loaded {};
@@ -88,7 +88,7 @@ ASMJIT_PATCH(0x72D300, Game_LoadCampaignScoreAssets, 5)
 
 	static COMPILETIMEEVAL reference<bool , 0xB0FBACu> const CampaignScoreAssetsAlreadyLoaded {};
 
-	if (!CampaignScoreAssetsAlreadyLoaded)
+	if (!CampaignScoreAssetsAlreadyLoaded())
 	{
 		static COMPILETIMEEVAL reference<SHPStruct* , 0xB0FB34u> const SxCRBKyy_SHP {};
 		static COMPILETIMEEVAL reference<SHPStruct* , 0xB0FB00u> const SxCRTyy_SHP {};

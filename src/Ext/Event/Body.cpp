@@ -192,10 +192,10 @@ void EventExt::ProtocolZero::Raise()
 	if (SessionClass::IsSingleplayer())
 		return;
 
-	int currentFrame = Unsorted::CurrentFrame;
+	int currentFrame = Unsorted::CurrentFrame.get();
 
 	if (ProtocolZero::NextSendFrame < 0) {
-		ProtocolZero::NextSendFrame = currentFrame + Game::Network::FrameSendRate + ProtocolZero::SendResponseTimeFrame;
+		ProtocolZero::NextSendFrame = currentFrame + Game::Network::FrameSendRate.get() + ProtocolZero::SendResponseTimeFrame;
 		return;
 	}
 
@@ -209,7 +209,7 @@ void EventExt::ProtocolZero::Raise()
 	EventClass event {};
 	event.Type = ProtocolZero::AsEventType();
 	event.HouseIndex = (char)HouseClass::CurrentPlayer->ArrayIndex;
-	event.Frame = currentFrame + Game::Network::MaxAhead;
+	event.Frame = currentFrame + Game::Network::MaxAhead.get();
 	const auto maxAhead = char((int8_t)ipxResponseTime + 1);
 	const auto latencyLevel = (uint8_t)LatencyLevel::FromResponseTime((uint8_t)ipxResponseTime);
 
@@ -256,7 +256,7 @@ void EventExt::ProtocolZero::Respond(EventClass* Event)
 
 	for (char i = 0; i < (char)std::size(PlayerMaxAheads); ++i)
 	{
-		if (Unsorted::CurrentFrame >= (PlayerLastTimingFrame[i] + (ProtocolZero::SendResponseTimeFrame / 2)))
+		if (Unsorted::CurrentFrame.get() >= (PlayerLastTimingFrame[i] + (ProtocolZero::SendResponseTimeFrame / 2)))
 		{
 			PlayerMaxAheads[i] = 0;
 			PlayerLatencyMode[i] = 0;
@@ -310,7 +310,7 @@ void EventExt::TogglePlayerAutoRepair::Respond(EventClass* Event)
 
 		pExt->PlayerAutoRepair = !pExt->PlayerAutoRepair;
 
-		if (HouseClass::CurrentPlayer == pSourceHouse && !Phobos::Config::TogglePowerInsteadOfRepair) {
+		if (HouseClass::CurrentPlayer.get() == pSourceHouse && !Phobos::Config::TogglePowerInsteadOfRepair) {
 			SidebarClass::Instance->SidebarNeedsRedraw = true;
 			auto pButton = &Make_Global<ShapeButtonClass>(0xB0B3A0);
 

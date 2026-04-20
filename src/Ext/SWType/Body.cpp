@@ -411,7 +411,7 @@ bool SWTypeExtData::IsTargetConstraintsEligible(SuperClass* pThis, bool IsPlayer
 		if (((nFlag & TargetingConstraints::DominatorInactive) != TargetingConstraints::None) && PsyDom::IsActive())
 			return false;
 
-		if (((nFlag & TargetingConstraints::Attacked) != TargetingConstraints::None) && (!pOwner->LATime || ((pOwner->LATime + 75) < Unsorted::CurrentFrame)))
+		if (((nFlag & TargetingConstraints::Attacked) != TargetingConstraints::None) && (!pOwner->LATime || ((pOwner->LATime + 75) < Unsorted::CurrentFrame.get())))
 			return false;
 
 		if (((nFlag & TargetingConstraints::LowPower) != TargetingConstraints::None) && pOwner->HasFullPower())
@@ -847,7 +847,7 @@ struct TargetingFuncs
 	static TargetResult GetForceShieldTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting)
 	{
 		if (pTargeting->Owner->PreferredDefensiveCell.IsValid()
-			&& (RulesClass::Instance->AISuperDefenseFrames + pTargeting->Owner->PreferredDefensiveCellStartTime) > Unsorted::CurrentFrame
+			&& (RulesClass::Instance->AISuperDefenseFrames + pTargeting->Owner->PreferredDefensiveCellStartTime) > Unsorted::CurrentFrame.get()
 			&& pNewType->CanTargetingFireAt(pTargeting , pTargeting->Owner->PreferredDefensiveCell , false))
 		{
 			return { pTargeting->Owner->PreferredDefensiveCell , SWTargetFlags::AllowEmpty };
@@ -1221,7 +1221,7 @@ void SWTypeExtData::PrintMessage(const CSFText& message, HouseClass* pFirer)
 			// user defined color
 			color = this->Message_ColorScheme;
 		}
-		else if (HouseClass::CurrentPlayer)
+		else if (HouseClass::CurrentPlayer.get())
 		{
 			// default way: the current player's color
 			color = HouseClass::CurrentPlayer->ColorSchemeIndex;
@@ -1332,7 +1332,7 @@ bool SWTypeExtData::Launch(SWTypeHandler* pNewType, SuperClass* pSuper, CellStru
 		pHouseExt->SWLastIndex = curSuperIdx;
 	}
 
-	if ((flags & SuperWeaponFlags::NoEVA) == SuperWeaponFlags::None && !Unsorted::MuteSWLaunches)
+	if ((flags & SuperWeaponFlags::NoEVA) == SuperWeaponFlags::None && !Unsorted::MuteSWLaunches.get())
 	{
 		if (pData->EVA_Activated >= 0)
 			VoxClass::PlayIndex(pData->EVA_Activated);
@@ -2334,7 +2334,7 @@ LightingColor SWTypeExtData::GetLightingColor(SuperWeaponTypeClass* pCustom)
 	LightingColor ret {};
 	auto scen = ScenarioClass::Instance();
 
-	if (NukeFlash::IsFadingIn() || ChronoScreenEffect::Status)
+	if (NukeFlash::IsFadingIn() || ChronoScreenEffect::Status.get())
 	{
 		// nuke flash
 		ret.Ambient = scen->NukeAmbient;
@@ -2348,7 +2348,7 @@ LightingColor SWTypeExtData::GetLightingColor(SuperWeaponTypeClass* pCustom)
 			pType = pSuper;
 		}
 	}
-	else if (LightningStorm::IsActive)
+	else if (LightningStorm::IsActive.get())
 	{
 		// lightning storm
 		ret.Ambient = scen->IonAmbient;
@@ -2387,7 +2387,7 @@ LightingColor SWTypeExtData::GetLightingColor(SuperWeaponTypeClass* pCustom)
 		}
 	}
 
-	if (PsyDom::Status != PsychicDominatorStatus::Inactive && PsyDom::Status != PsychicDominatorStatus::Over)
+	if (PsyDom::Status.get() != PsychicDominatorStatus::Inactive && PsyDom::Status.get() != PsychicDominatorStatus::Over)
 	{
 		// psychic dominator
 		ret.Ambient = scen->DominatorAmbient;

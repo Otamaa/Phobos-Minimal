@@ -45,11 +45,11 @@ void FrameByFrameCommandClass::Execute(WWKey eInput) const
 
 bool FrameByFrameCommandClass::FrameStepMainLoop()
 {
-	if (Game::IsActive)
+	if (Game::IsActive.get())
 	{
 		Game::CallBack();
 
-		if (Game::IsFocused && Game::SpecialDialog == 0)
+		if (Game::IsFocused.get() && Game::SpecialDialog.get() == 0)
 		{
 			MapClass::Instance->MarkNeedsRedraw(2);
 
@@ -71,7 +71,7 @@ bool FrameByFrameCommandClass::FrameStepMainLoop()
 	}
 
 	Sleep(1);
-	return Game::IsActive == false;
+	return Game::IsActive.get() == false;
 }
 
 ASMJIT_PATCH(0x55D360, MainLoop_FrameStep_Begin, 0x5)

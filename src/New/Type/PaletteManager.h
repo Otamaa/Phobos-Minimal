@@ -121,8 +121,8 @@ private:
 	{
 		size_t operator()(const RegistryKey& k) const noexcept
 		{
-			return std::hash<std::string>{}(k.NameLower)
-				^ (static_cast<size_t>(k.Mode) * 0x9E3779B97F4A7C15ULL);
+			return size_t(std::hash<std::string>{}(k.NameLower)
+				^ (static_cast<size_t>(k.Mode) * 0x9E3779B97F4A7C15ULL));
 		}
 	};
 

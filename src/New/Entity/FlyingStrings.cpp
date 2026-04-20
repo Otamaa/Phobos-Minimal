@@ -212,15 +212,15 @@ void FlyingStrings::UpdateAll()
 				auto bound = DSurface::Temp->Get_Rect_WithoutBottomBar();
 
 				if (!(pos.X < 0 || pos.Y < 0 || pos.X > bound.Width || pos.Y > bound.Height)) {
-					if (Unsorted::CurrentFrame > item.CreationFrame + Duration - 70) {
-						pos.Y -= (Unsorted::CurrentFrame - item.CreationFrame);
+					if (Unsorted::CurrentFrame.get() > item.CreationFrame + Duration - 70) {
+						pos.Y -= (Unsorted::CurrentFrame.get() - item.CreationFrame);
 					}
 
 					TextDrawing::Simple_Text_Print_Wide(item.Text , DSurface::Temp(), &bound, &pos, item.Color, item.Back_Color, item.TextPrintType);
 				}
 			}
 
-			if (!(Unsorted::CurrentFrame > item.CreationFrame + Duration || Unsorted::CurrentFrame < item.CreationFrame)) {
+			if (!(Unsorted::CurrentFrame.get() > item.CreationFrame + Duration || Unsorted::CurrentFrame.get() < item.CreationFrame)) {
 				return false;
 			}
 		}

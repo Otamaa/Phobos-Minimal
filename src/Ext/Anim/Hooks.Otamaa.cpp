@@ -222,7 +222,7 @@ void NOINLINE FakeAnimClass::_ApplyVeinsDamage()
 			return;
 		}
 
-		if (Unsorted::CurrentFrame % RulesExtData::Instance()->VeinsAttack_interval == 0)
+		if (Unsorted::CurrentFrame.get() % RulesExtData::Instance()->VeinsAttack_interval == 0)
 		{
 			while (pFirst != nullptr)
 			{

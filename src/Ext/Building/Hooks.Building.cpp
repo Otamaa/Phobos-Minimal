@@ -179,7 +179,7 @@ ASMJIT_PATCH(0x44C844, BuildingClass_Mission_Repair_Reload, 6)
 
 				// check whether the timer completed
 				auto const last_timer = pExt->DockReloadTimers[i];
-				if (last_timer > Unsorted::CurrentFrame)
+				if (last_timer > Unsorted::CurrentFrame.get())
 				{
 					continue;
 				}
@@ -189,10 +189,10 @@ ASMJIT_PATCH(0x44C844, BuildingClass_Mission_Repair_Reload, 6)
 				auto const defaultRate = RulesClass::Instance->ReloadRate;
 				auto const rate = pLinkExt->ReloadRate.Get(defaultRate);
 				auto const frames = static_cast<int>(rate * 900);
-				pExt->DockReloadTimers[i] = Unsorted::CurrentFrame + frames;
+				pExt->DockReloadTimers[i] = Unsorted::CurrentFrame.get() + frames;
 
 				// only reload if the timer was not outdated
-				if (last_timer != Unsorted::CurrentFrame)
+				if (last_timer != Unsorted::CurrentFrame.get())
 				{
 					continue;
 				}

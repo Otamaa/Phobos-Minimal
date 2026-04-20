@@ -136,6 +136,9 @@ public:
 	Valueable<bool> Splits_RandomCellUseHarcodedRange { true };
 	Valueable<bool> Splits_TargetingUseVerses { true };
 	Valueable<bool> Splits_FillRemainingClusterWithRandomcells { true };
+	Valueable<bool> Splits_TargetingDistance_Cylindrical { false };
+	Valueable<bool> Splits_AllowRepeatTargets { false };
+	Valueable<bool> AirburstWeapon_UseFiringEffects { false };
 	Valueable<bool> BounceOnTerrain { true };
 	Valueable<bool> BounceOnBuilding { false };
 	Valueable<bool> BounceOnInfantry { false };

@@ -21,6 +21,46 @@
 
 #include <SuperClass.h>
 
+template<>
+int  GeneralUtils::GetRandomValue<true>(const Point2D point, int defVal)
+{
+	int min = point.X;
+	int max = point.Y;
+
+	if (min > max)
+	{
+		min = max;
+		max = point.X;
+	}
+
+	if (max > 0)
+	{
+		return ScenarioClass::Instance->Random.RandomRanged(min, max);
+	}
+
+	return defVal;
+}
+
+template<>
+int  GeneralUtils::GetRandomValue<false>(const Point2D point, int defVal)
+{
+	int min = point.X;
+	int max = point.Y;
+
+	if (min > max)
+	{
+		min = max;
+		max = point.X;
+	}
+
+	if (max > 0)
+	{
+		return Random2Class::NonCriticalRandomNumber->RandomRanged(min, max);
+	}
+
+	return defVal;
+}
+
 int GeneralUtils::GetColorFromColorAdd(int colorIndex)
 {
 	auto const& colorAdd = RulesClass::Instance->ColorAdd;

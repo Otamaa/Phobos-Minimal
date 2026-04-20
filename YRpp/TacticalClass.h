@@ -33,7 +33,8 @@ public:
 
 	static COMPILETIMEEVAL reference<TacticalClass*, 0x887324u> const Instance{};
 	static COMPILETIMEEVAL reference<BuildingClass*, 0x88098Cu> const DisplayPendingObject{};
-	static	COMPILETIMEEVAL reference<RectangleStruct, 0xB0CE28u> const view_bound { };
+	static COMPILETIMEEVAL reference<RectangleStruct, 0xB0CE28u> const view_bound { };
+	static COMPILETIMEEVAL reference<bool, 0xB0E63C> const tacticaldrawflag_B0E63C { };
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x6DBCE0);
@@ -184,7 +185,7 @@ public:
 	*	TacticalRenderMode_STOPDRAWING = 0x4,
 	*	TacticalRenderMode_5 = 0x5,
 	*/
-	void Render(DSurface* pSurface, bool flag, int eMode)
+	void Render(DSurface* pSurface, bool flag, TacticalRenderMode eMode)
 		{ JMP_THIS(0x6D3D10); }
 
 	CellStruct* Coordmap_viewportpos_tocellpos_Click_Cell_Calc(CellStruct& retstr, Point2D& a3)
@@ -235,6 +236,84 @@ public:
 
 	void DrawAllTacticalText(wchar_t* text) const {
 		JMP_THIS(0x6D4E20);
+	}
+
+	char checkbuildingbounds_6D9B50(RectangleStruct Area) {
+		JMP_THIS(0x6D9B50);
+	}
+
+	void Render_Buildings_In_Ground_Layer_0(RectangleStruct Area) {
+		JMP_THIS(0x6D9A50);
+	}
+
+	void Render_Shroud(RectangleStruct* rect1, RectangleStruct* rect2, RectangleStruct* rect3, bool a5)
+	{
+		JMP_THIS(0x6D3660);
+	}
+
+	void Render_Tiles(RectangleStruct* rect1, RectangleStruct* rect2, bool a3)
+	{
+		JMP_THIS(0x6D2DE0);
+	}
+
+	void Render_Fog(RectangleStruct* rect1, RectangleStruct* rect2, bool a3)
+	{
+		JMP_THIS(0x6D3470);
+	}
+
+	void Render_Overlays(RectangleStruct* rect1, RectangleStruct* rect2, bool a3)
+	{
+		JMP_THIS(0x6D3290);
+	}
+
+	void Render_Terrain_Objects(RectangleStruct* rect1, RectangleStruct* rect2, bool a3)
+	{
+		JMP_THIS(0x6D3AC0);
+	}
+
+	void Render_Cell_Shadows(RectangleStruct* rect1, RectangleStruct* rect2, bool a3)
+	{
+		JMP_THIS(0x6D3040);
+	}
+
+	void Render_Buildings(RectangleStruct* rect1, RectangleStruct* rect2, bool a3)
+	{
+		JMP_THIS(0x6D3870);
+	}
+
+	void Fill_Building_Selectables(RectangleStruct rect)
+	{
+		JMP_THIS(0x6D3870);
+	}
+
+	void Draw_Waypoint_Stuff(bool blit)
+	{
+		JMP_THIS(0x6DAD60);
+	}
+
+	int Draw_Rally_Points(bool blit)
+	{
+		JMP_THIS(0x6DA9D0);
+	}
+
+	void draw_placement(bool blit)
+	{
+		JMP_THIS(0x6D5030);
+	}
+
+	void Render_Layers(bool a2)
+	{
+		JMP_THIS(0x6D8DB0);
+	}
+
+	void Draw_super_lines_circles()
+	{
+		JMP_THIS(0x6DBE20);
+	}
+
+	void Draw_Band_Box()
+	{
+		JMP_THIS(0x6DA180);
 	}
 
 	TacticalClass() noexcept

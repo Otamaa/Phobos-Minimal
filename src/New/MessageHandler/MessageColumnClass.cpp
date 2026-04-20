@@ -68,7 +68,7 @@ void MessageColumnClass::InitClear()
 
 void MessageColumnClass::InitIO()
 {
-	if (Unsorted::ArmageddonMode || !Phobos::Config::MessageDisplayInCenter)
+	if (Unsorted::MAP_DEBUG_MODE.get() || !Phobos::Config::MessageDisplayInCenter)
 		return;
 
 	const auto& rect = DSurface::ViewBounds();

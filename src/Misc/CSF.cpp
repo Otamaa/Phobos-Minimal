@@ -21,7 +21,7 @@ void CSFLoader::LoadAdditionalCSF(const char* pFileName, bool ignoreLanguage)
 	bool _loaded = false;
 	//The main stringtable must have been loaded (memory allocation)
 	//To do that, use StringTable::LoadFile.
-	if (StringTable::IsLoaded && std::strlen(pFileName) > 0 && *pFileName)
+	if (StringTable::IsLoaded.get() && std::strlen(pFileName) > 0 && *pFileName)
 	{
 		CCFileClass file { pFileName };
 
@@ -33,7 +33,7 @@ void CSFLoader::LoadAdditionalCSF(const char* pFileName, bool ignoreLanguage)
 			{
 				if (header.Signature == CSF_SIGNATURE &&
 					header.CSFVersion >= 2 &&
-					(header.Language == StringTable::Language //should stay in one language
+					(header.Language == StringTable::Language.get() //should stay in one language
 						|| header.Language == static_cast<CSFLanguages>(-1)
 						|| ignoreLanguage))
 				{
@@ -148,14 +148,14 @@ ASMJIT_PATCH(0x734A5F, CSF_AddOrOverrideLabel, 5)
 				pValues[idx] = nullptr;
 			}
 
-			char** pExtraValues = StringTable::ExtraValues;
+			char** pExtraValues = StringTable::ExtraValues.get();
 			if (pExtraValues[idx])
 			{
 				YRMemory::Deallocate(pExtraValues[idx]);
 				pExtraValues[idx] = nullptr;
 			}
 
-			auto ix = pLabel - StringTable::Labels;
+			auto ix = pLabel - StringTable::Labels.get();
 			R->EBP(ix * sizeof(CSFLabel));
 		}
 		else
@@ -164,7 +164,7 @@ ASMJIT_PATCH(0x734A5F, CSF_AddOrOverrideLabel, 5)
 			int idx = StringTable::ValueCount;
 			CSFLoader::NextValueIndex = idx;
 			StringTable::ValueCount = idx + 1;
-			StringTable::LabelCount = StringTable::LabelCount + 1;
+			StringTable::LabelCount = StringTable::LabelCount.get() + 1;
 
 			R->EBP(idx * sizeof(CSFLabel)); //set the index
 		}

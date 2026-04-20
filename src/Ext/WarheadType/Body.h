@@ -370,6 +370,7 @@ public:
 	Valueable<bool> ApplyModifiersOnNegativeDamage { false };
 
 	Nullable<int> CombatLightDetailLevel {};
+	Nullable<bool> CombatLightDetailLevel_CheckColored {};
 	Nullable<double> CombatLightChance {};
 	Nullable<bool> Particle_AlphaImageIsLightFlash {};
 

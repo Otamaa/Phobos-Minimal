@@ -202,7 +202,7 @@ void BuildingExtData::UpdateMainEvaVoice()
 		newEvaIndex = pTypeExt->NewEvaVoice_Index;
 	}
 
-	if (newPriority > 0 && VoxClass::EVAIndex != newEvaIndex)
+	if (newPriority > 0 && VoxClass::EVAIndex.get() != newEvaIndex)
 	{
 		// Note: if the index points to a nonexistant voice index then the player will hear no EVA voices
 		VoxClass::EVAIndex = newEvaIndex;
@@ -445,7 +445,7 @@ void BuildingExtData::DisplayIncomeString()
 	auto const pTypeExt = (BuildingTypeExtData*)this->TypeExtData;
 
 	if (pTypeExt->DisplayIncome.Get(RulesExtData::Instance()->DisplayIncome) &&
-		this->AccumulatedIncome && Unsorted::CurrentFrame % 15 == 0)
+		this->AccumulatedIncome && Unsorted::CurrentFrame.get() % 15 == 0)
 	{
 		if (!RulesExtData::Instance()->DisplayIncome_AllowAI && !This()->Owner->IsControlledByHuman())
 		{
@@ -941,11 +941,11 @@ bool BuildingExtData::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pT
 		pExt->GrindingWeapon_AccumulatedCredits += nRefundAmounts;
 
 		if (pTypeExt->Grinding_Weapon
-			&& Unsorted::CurrentFrame >= pExt->GrindingWeapon_LastFiredFrame + pTypeExt->Grinding_Weapon->ROF
+			&& Unsorted::CurrentFrame.get() >= pExt->GrindingWeapon_LastFiredFrame + pTypeExt->Grinding_Weapon->ROF
 			&& pExt->GrindingWeapon_AccumulatedCredits >= pTypeExt->Grinding_Weapon_RequiredCredits)
 		{
 			TechnoExtData::FireWeaponAtSelf(pBuilding, pTypeExt->Grinding_Weapon);
-			pExt->GrindingWeapon_LastFiredFrame = Unsorted::CurrentFrame;
+			pExt->GrindingWeapon_LastFiredFrame = Unsorted::CurrentFrame.get();
 			pExt->GrindingWeapon_AccumulatedCredits = 0;
 		}
 
@@ -1002,7 +1002,7 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		// Because of the unique nature of LimboDelivered buildings, this has been adjusted to always reveal to the current player in singleplayer
 		// and to the owner of the building regardless, removing the shroud check from the equation since they don't physically exist - Starkku
 		if (SessionClass::IsCampaign())
-			pBuilding->DiscoveredBy(HouseClass::CurrentPlayer);
+			pBuilding->DiscoveredBy(HouseClass::CurrentPlayer.get());
 
 		pBuilding->DiscoveredBy(pOwner);
 
@@ -1595,7 +1595,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 			? &pExt->SuperTarget : &pThis->Owner->EMPTarget;
 
 		// If no valid target or destination, reset to idle
-		if (Unsorted::ArmageddonMode() || !celltarget->IsValid())
+		if (Unsorted::MAP_DEBUG_MODE() || !celltarget->IsValid())
 		{
 			pThis->BeginMode(BStateType::Idle);
 			pThis->QueueMission(Mission::Guard, false);
@@ -1904,7 +1904,7 @@ void FakeBuildingClass::_DrawVisible(Point2D* pLocation, RectangleStruct* pBound
 {
 	auto pType = this->Type;
 
-	if (!this->IsSelected || !HouseClass::CurrentPlayer)
+	if (!this->IsSelected || !HouseClass::CurrentPlayer.get())
 		return;
 
 	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
@@ -1915,9 +1915,9 @@ void FakeBuildingClass::_DrawVisible(Point2D* pLocation, RectangleStruct* pBound
 	this->DrawExtraInfo(&DrawExtraLoc, pLocation, pBounds);
 
 	// helpers (with support for the new spy effect)
-	const bool bAllied = this->Owner->IsAlliedWith(HouseClass::CurrentPlayer);
+	const bool bAllied = this->Owner->IsAlliedWith(HouseClass::CurrentPlayer.get());
 	const bool IsObserver = HouseClass::CurrentPlayer->IsObserver();
-	const bool bReveal = pTypeExt->SpyEffect_RevealProduction && this->DisplayProductionTo.Contains(HouseClass::CurrentPlayer);
+	const bool bReveal = pTypeExt->SpyEffect_RevealProduction && this->DisplayProductionTo.Contains(HouseClass::CurrentPlayer.get());
 
 	// show building or house state
 	if (bAllied || IsObserver || bReveal)
@@ -2054,7 +2054,7 @@ void FakeBuildingClass::_DrawExtras(Point2D* pLocation, RectangleStruct* pBounds
 
 void FakeBuildingClass::_DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect)
 {
-	if (!HouseClass::CurrentPlayer)
+	if (!HouseClass::CurrentPlayer.get())
 		return;
 
 	{
@@ -2087,9 +2087,9 @@ void FakeBuildingClass::_DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOrigi
 		}
 
 		// helpers (with support for the new spy effect)
-		const bool bAllied = pOwner->IsAlliedWith(HouseClass::CurrentPlayer);
+		const bool bAllied = pOwner->IsAlliedWith(HouseClass::CurrentPlayer.get());
 		const bool IsObserver = HouseClass::CurrentPlayer->IsObserver();
-		const bool bReveal = pTypeExt->SpyEffect_RevealProduction && this->DisplayProductionTo.Contains(HouseClass::CurrentPlayer);
+		const bool bReveal = pTypeExt->SpyEffect_RevealProduction && this->DisplayProductionTo.Contains(HouseClass::CurrentPlayer.get());
 
 
 		if (bAllied || IsObserver || bReveal
@@ -2694,10 +2694,10 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x451330, FakeBuildingClass::__GetCrewCount)
 
 const wchar_t* FakeBuildingClass::__GetUIName()
 {
-	if (HouseClass::CurrentPlayer) {
+	if (HouseClass::CurrentPlayer.get()) {
 		const auto pBldOWner = this->Owner;
 		if (HouseClass::CurrentPlayer->IsObserver()
-			|| HouseClass::CurrentPlayer == pBldOWner
+			|| HouseClass::CurrentPlayer.get() == pBldOWner
 			|| HouseClass::CurrentPlayer->IsAlliedWith(pBldOWner)
 			|| this->DisplayProductionTo.Contains(HouseClass::CurrentPlayer->ArrayIndex))
 		{
@@ -2826,7 +2826,7 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x459ED0, FakeBuildingClass::__GetUIName)
 
 		  // (0b0101 || 0b1010) == part of a straight line
 		  auto const connections = pThis->FirestormWallFrame & 0xF;
-		  if (active && (Unsorted::CurrentFrame & 7) && !Anim
+		  if (active && (Unsorted::CurrentFrame.get() & 7) && !Anim
 			  && connections != 0b0101 && connections != 0b1010
 			  && (ScenarioClass::Instance->Random.Random() & 0xF) == 0)
 		  {

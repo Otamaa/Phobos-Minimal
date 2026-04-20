@@ -230,7 +230,7 @@ int FakeBuildingClass::_Mission_Repair()
 				int const rate = static_cast<int>(
 					MaxImpl(repairRate * 900.0, 1.0));
 
-				if ((Unsorted::CurrentFrame % rate) == 0)
+				if ((Unsorted::CurrentFrame.get() % rate) == 0)
 				{
 					pExt->SeparateRepair = true;
 
@@ -357,7 +357,7 @@ int FakeBuildingClass::_Mission_Repair()
 
 					// check whether the timer completed
 					auto const last_timer = pExt->DockReloadTimers[i];
-					if (last_timer > Unsorted::CurrentFrame)
+					if (last_timer > Unsorted::CurrentFrame.get())
 					{
 						continue;
 					}
@@ -367,10 +367,10 @@ int FakeBuildingClass::_Mission_Repair()
 					auto const defaultRate = RulesClass::Instance->ReloadRate;
 					auto const rate = pLinkExt->ReloadRate.Get(defaultRate);
 					auto const frames = static_cast<int>(rate * 900);
-					pExt->DockReloadTimers[i] = Unsorted::CurrentFrame + frames;
+					pExt->DockReloadTimers[i] = Unsorted::CurrentFrame.get() + frames;
 
 					// only reload if the timer was not outdated
-					if (last_timer != Unsorted::CurrentFrame)
+					if (last_timer != Unsorted::CurrentFrame.get())
 					{
 						continue;
 					}

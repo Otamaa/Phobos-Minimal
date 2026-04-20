@@ -212,7 +212,7 @@ bool bSkipROF)
 	if (pWeaponExt->NoRepeatFire > 0 && pTechnoT)
 	{
 		auto const pTargetTechnoExt = TechnoExtContainer::Instance.Find(pTechnoT);
-		if ((Unsorted::CurrentFrame - pTargetTechnoExt->LastBeLockedFrame)
+		if ((Unsorted::CurrentFrame.get() - pTargetTechnoExt->LastBeLockedFrame)
 			< pWeaponExt->NoRepeatFire)
 		{
 			return FireError::ILLEGAL;
@@ -684,7 +684,7 @@ bool bSkipROF)
 
 			if (pThis->ROFTimer.StartTime != -1) // +0x2EC
 			{
-				int nElapsed = Unsorted::CurrentFrame - pThis->ROFTimer.StartTime;
+				int nElapsed = Unsorted::CurrentFrame.get() - pThis->ROFTimer.StartTime;
 				if (nElapsed >= nRemaining)
 					bTimerReady = true;
 				else

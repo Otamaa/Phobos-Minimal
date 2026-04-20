@@ -521,7 +521,7 @@ ASMJIT_PATCH(0x4DA8B2, FootClass_Update_AnimRate, 6)
 	// animate unit whenever in air
 	if (pTypeExt->AirRate && pThis->GetHeight() > 0)
 	{
-		return (Unsorted::CurrentFrame % pTypeExt->AirRate) ? NoChange : Advance;
+		return (Unsorted::CurrentFrame.get() % pTypeExt->AirRate) ? NoChange : Advance;
 	}
 
 	return Undecided;

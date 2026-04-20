@@ -167,7 +167,7 @@ void FakeParticleClass::ApplyWindEffect(CoordStruct& pos)
 
 	// Apply wind every N frames based on wind effect strength
 	const int windFrequency = 10 / windEffect;
-	if ((Unsorted::CurrentFrame % windFrequency) != 0) {
+	if ((Unsorted::CurrentFrame() % windFrequency) != 0) {
 		return;
 	}
 
@@ -212,7 +212,7 @@ void FakeParticleClass::__Smoke_Coord_AI()
 	this->ApplyWindEffect(currentPos);
 
 	// Update position on odd frames
-	if ((Unsorted::CurrentFrame & 1) != 0) {
+	if ((Unsorted::CurrentFrame() & 1) != 0) {
 		this->ApplySmokeDrift(currentPos);
 	}
 
@@ -618,7 +618,7 @@ void FakeParticleClass::UpdateGasHeight()
 {
 	const int height = this->GetHeight();
 
-	if (height <= 5 || (Unsorted::CurrentFrame % 2)) {
+	if (height <= 5 || (Unsorted::CurrentFrame() % 2)) {
 		this->GasVelocity.Z = std::max(0, this->GasVelocity.Z);
 	} else {
 		this->GasVelocity.Z = std::max(-5, this->GasVelocity.Z - 1);
@@ -714,7 +714,7 @@ void FakeParticleClass::ProcessDamage()
 
 void FakeParticleClass::__Smoke_AI() {
 	// Skip processing on odd frames
-	if ((Unsorted::CurrentFrame & 1) != 0) {
+	if ((Unsorted::CurrentFrame() & 1) != 0) {
 		this->ProcessEndState();
 		return;
 	}
@@ -883,7 +883,7 @@ void FakeParticleClass::ProcessGasMovement()
 void FakeParticleClass::__Gas_AI() {
 
 	// Process gas movement on odd frames
-	if (Unsorted::CurrentFrame & 1) {
+	if (Unsorted::CurrentFrame() & 1) {
 		this->ProcessGasMovement();
 	}
 

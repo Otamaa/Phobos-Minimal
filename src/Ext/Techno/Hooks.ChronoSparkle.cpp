@@ -7,7 +7,7 @@
 
 void PlayChronoSparkleAnim(TechnoClass* pTechno, CoordStruct* pLoc, int X_Offs = 120, int nDelay = 24 , bool bHidden = false , int ZAdjust = 0)
 {
-	if (bHidden || (Unsorted::CurrentFrame % nDelay))
+	if (bHidden || (Unsorted::CurrentFrame.get() % nDelay))
 		return;
 
 	const auto pSparkle = RulesClass::Instance->ChronoSparkle1;
@@ -83,7 +83,7 @@ ASMJIT_PATCH(0x4403D4, BuildingClass_AI_ChronoSparkle, 0x6)
 		{
 			for (int i = 0; i < occupantCount; i++)
 			{
-				if (!((Unsorted::CurrentFrame + i) % RulesExtData::Instance()->ChronoSparkleDisplayDelay))
+				if (!((Unsorted::CurrentFrame.get() + i) % RulesExtData::Instance()->ChronoSparkleDisplayDelay))
 				{
 					const auto offset =  TacticalClass::Instance->ApplyMatrix_Pixel(
 						(pType->MaxNumberOccupants <= 10 ?

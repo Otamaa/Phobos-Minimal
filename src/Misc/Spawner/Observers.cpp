@@ -78,21 +78,21 @@ ASMJIT_PATCH(0x658473, RadarClass_658330_SetObserverFlag, 0x5)
 
 ASMJIT_PATCH(0x5533E0, LoadProgressMgr_Draw_SetBackground, 0x5)
 {
-	return Game::ObserverMode
+	return Game::ObserverMode()
 		? 0x5533EF
 		: 0;
 }
 
 ASMJIT_PATCH(0x5539E4, LoadProgressMgr_Draw_LoadBriefing, 0x5)
 {
-	return Game::ObserverMode
+	return Game::ObserverMode()
 		? 0x5539F3
 		: 0;
 }
 
 ASMJIT_PATCH(0x5536A0, LoadProgressMgr_Draw_CountryName, 0x5)
 {
-	return Game::ObserverMode
+	return Game::ObserverMode()
 		? 0x5536AF
 		: 0;
 }

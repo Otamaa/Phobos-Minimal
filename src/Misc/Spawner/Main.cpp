@@ -176,7 +176,7 @@ void SpawnerMain::PrintInitializeLog() {
 
 void SpawnerMain::LoadConfigurations()
 {
-	if (auto pINI = &CCINIClass::INI_RA2MD) {
+	if (auto pINI = CCINIClass::INI_RA2MD.ptr()) {
 
 		if (pINI->GetSection(GameStrings::Options())) {
 			auto pMainConfigs = SpawnerMain::GetMainConfigs();
@@ -750,7 +750,7 @@ void Print_Saving_Game_Message2() {
 	auto str = StringTable::TryFetchStringOrReturnDefaultIfMissing("TXT_AUTOSAVE_MESSAGE", L"Saving game...");
 	MessageListClass::Instance->AddMessage(nullptr, 0, str, 4, TextPrintType::Point6Grad | TextPrintType::UseGradPal | TextPrintType::FullShadow, message_delay, false);
 	// Force a redraw so that our message gets printed.
-	if (Game::SpecialDialog == 0) {
+	if (Game::SpecialDialog() == 0) {
 		MapClass::Instance->MarkNeedsRedraw(2);
 		MapClass::Instance->Render();
 	}
@@ -761,7 +761,7 @@ void SpawnerMain::GameConfigs::After_Main_Loop() {
 
 	const bool doSaveCampaign = SessionClass::IsSingleplayer() && pConfig->AutoSaveCount > 0 && pConfig->AutoSaveInterval > 0;
 	const bool doSaveMP = SpawnerMain::Configs::Active && SessionClass::Instance->GameMode == GameMode::LAN && pConfig->AutoSaveInterval > 0;
-	const bool isAutoSaving = (doSaveCampaign || doSaveMP) && Unsorted::CurrentFrame == SpawnerMain::Configs::NextAutoSaveFrame;
+	const bool isAutoSaving = (doSaveCampaign || doSaveMP) && Unsorted::CurrentFrame() == SpawnerMain::Configs::NextAutoSaveFrame;
 
 	// Schedule to make a save if it's time to autosave.
 	// The save might be triggered manually, so we have to OR it.
@@ -779,7 +779,7 @@ void SpawnerMain::GameConfigs::After_Main_Loop() {
 			);
 
 			// Force a redraw so that our message gets printed.
-			if (Game::SpecialDialog == 0)
+			if (Game::SpecialDialog() == 0)
 			{
 				MapClass::Instance->MarkNeedsRedraw(2);
 				MapClass::Instance->Render();
@@ -842,7 +842,7 @@ void SpawnerMain::GameConfigs::After_Main_Loop() {
 			SaveGame(saveFileName, saveDescription);
 
 			SpawnerMain::Configs::NextAutoSaveNumber = (SpawnerMain::Configs::NextAutoSaveNumber + 1) % pConfig->AutoSaveCount;
-			SpawnerMain::Configs::NextAutoSaveFrame = Unsorted::CurrentFrame + pConfig->AutoSaveInterval;
+			SpawnerMain::Configs::NextAutoSaveFrame = Unsorted::CurrentFrame() + pConfig->AutoSaveInterval;
 		}
 		else if (SessionClass::Instance->GameMode == GameMode::LAN)
 		{
@@ -853,7 +853,7 @@ void SpawnerMain::GameConfigs::After_Main_Loop() {
 			saveGameDescription += StringTable::FetchString(GameStrings::TXT_MULTIPLAYER_GAME);
 			SaveGame(GameStrings::SAVEGAME_NET, saveGameDescription.c_str());
 
-			SpawnerMain::Configs::NextAutoSaveFrame = Unsorted::CurrentFrame + pConfig->AutoSaveInterval;
+			SpawnerMain::Configs::NextAutoSaveFrame = Unsorted::CurrentFrame() + pConfig->AutoSaveInterval;
 		}
 
 		SpawnerMain::Configs::DoSave = false;
@@ -873,10 +873,10 @@ bool SpawnerMain::GameConfigs::StartScenario(const char* pScenarioName) {
 		return false;
 	}
 
-	const auto pSession = &SessionClass::Instance;
-	const auto pGameModeOptions = &GameModeOptionsClass::Instance;
+	const auto pSession = SessionClass::Instance.ptr();
+	const auto pGameModeOptions = GameModeOptionsClass::Instance.ptr();
 
-	strcpy_s(&Game::ScenarioName, 0x200, pScenarioName);
+	strcpy_s(Game::ScenarioName.ptr(), 0x200, pScenarioName);
 	pSession->ReadScenarioDescriptions();
 
 	{ // Set MPGameMode
@@ -977,7 +977,7 @@ bool SpawnerMain::GameConfigs::StartScenario(const char* pScenarioName) {
 	{ // Set SessionType
 		if (SpawnerMain::GameConfigs::m_Ptr.IsCampaign)
 			pSession->GameMode = GameMode::Campaign;
-		else if (Game::PlayerCount > 1|| SpawnerMain::GameConfigs::m_Ptr.ForceMultiplayer)
+		else if (Game::PlayerCount() > 1|| SpawnerMain::GameConfigs::m_Ptr.ForceMultiplayer)
 			pSession->GameMode = GameMode::Internet; // HACK: will be set to LAN later
 		else
 			pSession->GameMode = GameMode::Skirmish;
@@ -1105,7 +1105,7 @@ void SpawnerMain::GameConfigs::InitNetwork() {
 	}
 
 	Game::Network::MaxAhead = SpawnerMain::GameConfigs::m_Ptr.MaxAhead == -1
-		? Game::Network::FrameSendRate * 6
+		? Game::Network::FrameSendRate() * 6
 		: SpawnerMain::GameConfigs::m_Ptr.MaxAhead;
 
 	Game::Network::MaxMaxAhead = 0;
@@ -1368,7 +1368,7 @@ ASMJIT_PATCH(0x686A9E, ReadScenario_InitSomeThings_SpecialHouseIsAlly, 0x6)
 // Skirmish observers must always retain the slider regardless of config.
 ASMJIT_PATCH(0x4E20BA, GameControlsClass__SomeDialog_GameSpeedSlider, 0x5)
 {
-	if(Game::ObserverMode || (SessionClass::IsSkirmish() && HouseClass::CurrentPlayer && HouseClass::CurrentPlayer->IsObserver())) {
+	if(Game::ObserverMode() || (SessionClass::IsSkirmish() && HouseClass::CurrentPlayer() && HouseClass::CurrentPlayer->IsObserver())) {
 		return 0x4E211A;
 	}
 

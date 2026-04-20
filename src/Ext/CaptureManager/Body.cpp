@@ -377,7 +377,7 @@ bool FakeCaptureManagerClass::__Should_Draw_Link()
 	// 	
 	const auto pExt = GET_TECHNOTYPEEXT(this->Owner);
 
-	if (HouseClass::Observer != HouseClass::CurrentPlayer 
+	if (HouseClass::Observer.get() != HouseClass::CurrentPlayer.get()
 		&& !EnumFunctions::CanTargetHouse(pExt->Draw_MindControlLink, this->Owner->Owner, HouseClass::CurrentPlayer))
 		return false;
 

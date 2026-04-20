@@ -89,7 +89,7 @@ void BannerClass::RenderSHP(Point2D position)
 		shape,
 		this->ShapeFrameIndex,
 		&position,
-		&DSurface::ViewBounds,
+		&DSurface::ViewBounds.get(),
 		BlitterFlags::None,
 		0,
 		0,

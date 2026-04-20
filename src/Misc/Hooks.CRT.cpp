@@ -74,7 +74,7 @@ void __cdecl CRTHooks::_set_fp_mode()
 
 	// 4) Safety: ensure pFPU_Codeword_ has precision (inexact) masked bit set (bit 5 = 0x0020)
    // This prevents a later fistp from generating an exception even if someone changes CW between calls.
-	FPU_Codeword = static_cast<unsigned short>(FPU_Codeword | 0x0020u);
+	FPU_Codeword = static_cast<unsigned short>(FPU_Codeword.get() | 0x0020u);
 
 	// 5) If the game creates threads (likely), ensure new threads also apply the same config.
 	// Best place: in DllMain -> DLL_THREAD_ATTACH call a function that sets the same x87 and MXCSR state.
@@ -7753,7 +7753,7 @@ extern "C" __declspec(naked) int64_t __cdecl ww_ftol()
 
 void CRTHooks::Print_FPUMode()
 {
-	unsigned short rounding = (FPU_Codeword >> 10) & 3;
+	unsigned short rounding = (FPU_Codeword.get() >> 10) & 3;
 
 	const char* mode_name;
 	switch (rounding)

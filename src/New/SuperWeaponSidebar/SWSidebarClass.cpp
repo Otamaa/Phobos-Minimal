@@ -82,7 +82,7 @@ void SWSidebarClass::InitClear()
 
 void SWSidebarClass::InitIO()
 {
-	if (!Phobos::UI::SuperWeaponSidebar || Unsorted::ArmageddonMode)
+	if (!Phobos::UI::SuperWeaponSidebar || Unsorted::MAP_DEBUG_MODE())
 		return;
 
 	const auto pSide = SideClass::Array->get_or_default(ScenarioClass::Instance->PlayerSideIndex);

@@ -58,7 +58,7 @@ bool PoweredUnitClass::PowerDown()
 
 bool PoweredUnitClass::Update()
 {
-	if ((Unsorted::CurrentFrame - this->LastScan) < ScanInterval)
+	if ((Unsorted::CurrentFrame.get() - this->LastScan) < ScanInterval)
 	{
 		return true;
 	}

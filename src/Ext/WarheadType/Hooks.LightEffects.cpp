@@ -60,32 +60,32 @@ ASMJIT_PATCH(0x48A62E, DoFlash_CombatLightOptions, 0x6)
 
 	GET(int, currentDetailLevel, EAX);
 	GET(WarheadTypeClass*, pWH, EDI);
+	GET(const int, damage, ECX);
 	GET_STACK(bool, forceshow, 0xC + 0x10);
-	//GET(DWORD, bitMask, EBX);
+	GET(const int, bitmask, EBX);
+	GET_STACK(const bool, forced, STACK_OFFSET(0xC, 0x10));
 
-	R->ESI(R->ECX());
+	R->ESI(damage); // Restore overridden instructions.
 
-	const DWORD bit = R->BL();
+	bool checkColored = RulesExtData::Instance()->CombatLightDetailLevel_CheckColored;
+	int detailLevel =RulesExtData::Instance()->CombatLightDetailLevel;
 
-	if (!pWH || (!forceshow && !pWH->Bright)) //check first requirements
-		return SkipFlash;
+	if(pWH) {
+		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
-	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
-
-	const int detailLevel = pWHExt->CombatLightDetailLevel.Get(RulesExtData::Instance()->CombatLightDetailLevel);
-
-	if ((detailLevel <= currentDetailLevel && RulesExtData::DetailsCurrentlyEnabled())
-		|| (bit == 0xF)) //check detail level , FPS level  , and Bit
-	{
-		//check chance if set
 		if (pWHExt->CombatLightChance.isset() && pWHExt->CombatLightChance < Random2Class::Global->RandomDouble())
 			return SkipFlash;
 
+		detailLevel = pWHExt->CombatLightDetailLevel.Get(detailLevel);
+		checkColored = pWHExt->CombatLightDetailLevel_CheckColored.Get(checkColored);
+
 		if (pWHExt->CLIsBlack)
 			R->EBX(SpotlightFlags::NoColor);
-
-		return Continue;
 	}
+
+	// (bitmask & 0xF) != 0) is true if any color channel is disabled.
+	if (((detailLevel <= currentDetailLevel && RulesExtData::DetailsCurrentlyEnabled()) || (!checkColored && ((bitmask & 0xF) != 0))) && (forced || (pWH && pWH->Bright)))\
+		return Continue;
 
 	return SkipFlash;
 }

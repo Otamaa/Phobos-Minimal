@@ -110,7 +110,7 @@ void FakeBombClass::__Detonate() {
 
 							// Check for wood bridge tiles (WoodBridgeSet to WoodBridgeSet+15)
 							// or bridge overlay types (74-101 aka 0x4A-0x65)
-							bool const isWoodBridge = (tileType >= WoodBridgeSet && tileType < WoodBridgeSet + 16);
+							bool const isWoodBridge = (tileType >= WoodBridgeSet.get() && tileType < WoodBridgeSet.get() + 16);
 							bool const isBridgeOverlay = (overlay >= 74 && overlay <= 101);
 
 							if (isWoodBridge || isBridgeOverlay) {
@@ -154,7 +154,7 @@ int FakeBombClass::__GetBombFrame()
 		} else {
 			const int delay = pData->Ivan_Delay.Get(RulesClass::Instance->IvanTimedDelay);
 			const int flickerRate = pData->Ivan_FlickerRate.Get(RulesClass::Instance->IvanIconFlickerRate);
-			const int elapsed = Unsorted::CurrentFrame - this->PlantingFrame;
+			const int elapsed = Unsorted::CurrentFrame.get() - this->PlantingFrame;
 
 			const int half = frames / 2;
 			if (half <= 0)
@@ -187,7 +187,7 @@ int FakeBombClass::__GetBombFrame()
 				if (even >= frames) even = frames - 1;
 				if (odd >= frames) odd = frames - 1;
 
-				bool flick = (Unsorted::CurrentFrame % (2 * flickerRate)) < flickerRate;
+				bool flick = (Unsorted::CurrentFrame.get() % (2 * flickerRate)) < flickerRate;
 				result = flick ? even : odd;
 			}
 		}

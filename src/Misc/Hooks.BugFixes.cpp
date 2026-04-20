@@ -1030,7 +1030,7 @@ struct OverlayReader
 {
 	int Get()
 	{
-		if (ScenarioClass::NewINIFormat >= 5)
+		if (ScenarioClass::NewINIFormat.get() >= 5)
 		{
 			unsigned short shrt = ByteReader.GetWord();
 			if (shrt != static_cast<unsigned short>(-1))
@@ -1063,7 +1063,7 @@ ASMJIT_PATCH(0x5FD2E0, OverlayClass_ReadINI, 0x7)
 	pINI->CurrentSectionName = nullptr;
 	pINI->CurrentSection = nullptr;
 
-	if (ScenarioClass::NewINIFormat > 1)
+	if (ScenarioClass::NewINIFormat.get() > 1)
 	{
 
 		OverlayReader reader(pINI);
@@ -1178,7 +1178,7 @@ struct OverlayWriter
 
 	void Put(int nOverlay)
 	{
-		if (ScenarioClass::NewINIFormat >= 5)
+		if (ScenarioClass::NewINIFormat.get() >= 5)
 			ByteWriter.PutByte(static_cast<unsigned char>(nOverlay));
 		else
 			ByteWriter.PutWord(static_cast<unsigned short>(nOverlay));
@@ -1499,7 +1499,7 @@ static void __fastcall ComputeGameCRC()
 	}
 
 	AddCRC(EventClass::CurrentFrameCRC.operator->(), ScenarioClass::Instance->Random.Random());
-	Game::LogFrameCRC(Unsorted::CurrentFrame % 256);
+	Game::LogFrameCRC(Unsorted::CurrentFrame.get() % 256);
 }
 
 DEFINE_FUNCTION_JUMP(CALL, 0x64731C, ComputeGameCRC);
@@ -2373,7 +2373,7 @@ void NAKED _PlanningNodeClass_UpdateHoverNode_FixCheckValidity_RET()
 ASMJIT_PATCH(0x638F1E, PlanningNodeClass_UpdateHoverNode_FixCheckValidity, 0x5)
 {
 	// Newly added checks to prevent not in-time updates
-	return PlanningNodeClass::PlanningModeActive ? (int)_PlanningNodeClass_UpdateHoverNode_FixCheckValidity_RET : 0;
+	return PlanningNodeClass::PlanningModeActive.get() ? (int)_PlanningNodeClass_UpdateHoverNode_FixCheckValidity_RET : 0;
 }
 
 ASMJIT_PATCH(0x638F70, PlanningNodeClass_UpdateHoverNode_SkipDuplicateLog, 0x8)
@@ -2665,9 +2665,6 @@ ASMJIT_PATCH(0x6FBFA3, TechnoClass_Select_SkipLimboDelivery, 0x6)
 	return 0;
 }
 
-// Enable InGameMovie TAction in non-campaign mode.
-DEFINE_JUMP(LJMP, 0x5BF3B0, 0x5BF3BD);
-
 ASMJIT_PATCH(0x46954C, BulletClass_Logics_IsLocomotor_Bunker, 0x6)
 {
 	enum { CannotImbue = 0x4695E6 };
@@ -2695,7 +2692,7 @@ ASMJIT_PATCH(0x4D77BD, FootClass_ObjectClickedAction_NoMove, 0x6)
 {
 	enum { ReturnFalse = 0x4D77EC, ReturnTrue = 0x4D7CC0 };
 
-	if (PlanningNodeClass::PlanningModeActive)
+	if (PlanningNodeClass::PlanningModeActive.get())
 		return 0;
 
 	GET(ObjectClass*, pTarget, EBX);
@@ -3069,7 +3066,7 @@ DEFINE_JUMP(LJMP, 0x51CBE5, 0x51CC1F);
 // If off-map and crashing, skip the height > 0 check and go straight to ground-touch cleanup.
 // The IsCrashing guard is needed because healthy non-moving airborne aircraft also reach this
 // code path (Is_Moving()==false && Height>0) and must not be sent to cleanup.
-DEFINE_HOOK(0x4CD797, FlyLocomotionClass_CrashDescent_OffMap, 0x5)
+ASMJIT_PATCH(0x4CD797, FlyLocomotionClass_CrashDescent_OffMap, 0x5)
 {
 	enum { GroundTouchCleanup = 0x4CD7AA };
 
@@ -3085,7 +3082,7 @@ DEFINE_HOOK(0x4CD797, FlyLocomotionClass_CrashDescent_OffMap, 0x5)
 
 // JumpjetLocomotionClass::Process - height check before IsCrashing gate.
 // If off-map, skip height check and go to the IsCrashing check directly.
-DEFINE_HOOK(0x54CC16, JumpjetLocomotionClass_CrashDescent_OffMap, 0x8)
+ASMJIT_PATCH(0x54CC16, JumpjetLocomotionClass_CrashDescent_OffMap, 0x8)
 {
 	enum { IsCrashingCheck = 0x54CC36 };
 
@@ -3105,7 +3102,7 @@ DEFINE_HOOK(0x54CC16, JumpjetLocomotionClass_CrashDescent_OffMap, 0x8)
 
 // RocketLocomotionClass::Process - health check after position update.
 // If off-map, bypass the Health > 0 skip and force detonation/cleanup.
-DEFINE_HOOK(0x662FD5, RocketLocomotionClass_Process_OffMap, 0x6)
+ASMJIT_PATCH(0x662FD5, RocketLocomotionClass_Process_OffMap, 0x6)
 {
 	enum { ForceCleanup = 0x662FDF };
 
@@ -3116,3 +3113,21 @@ DEFINE_HOOK(0x662FD5, RocketLocomotionClass_Process_OffMap, 0x6)
 
 	return 0;
 }
+
+#pragma region TabOnTechnoDestroyedFix
+
+// Skip the vanilla call at HouseClass::RegisterUnpresent.
+// This should be called when the techno is destroyed, not disappeared.
+DEFINE_JUMP(LJMP, 0x502630, 0x50263B);
+
+static void __fastcall _KillPassengersWrapper(TechnoClass* pThis, discard_t , TechnoClass* pKiller){
+	pThis->KillPassengers(pKiller);
+	SidebarClass::Instance->OnTechnoDestroyed(pThis);
+}
+
+DEFINE_FUNCTION_JUMP(CALL , 0x5F660D, _KillPassengersWrapper)
+#pragma endregion
+
+// Enable InGameMovie TAction in non-campaign mode.
+DEFINE_JUMP(LJMP, 0x5BF3B0, 0x5BF3BD);
+DEFINE_JUMP(LJMP, 0x5BF2BB, 0x5BF2C1); // Func unused in vanilla, but maybe someone will use it.

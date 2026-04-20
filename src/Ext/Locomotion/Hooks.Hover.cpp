@@ -108,7 +108,7 @@ ASMJIT_PATCH(0x514A32, HoverLocomotionClass_513D20_Anim, 0x5) //B
 {
 	GET(HoverLocomotionClass* const, pLoco, ESI);
 
-	if (!(Unsorted::CurrentFrame % 10))
+	if (!(Unsorted::CurrentFrame.get() % 10))
 	{
 		const auto Linked = GetOwner(pLoco);
 		auto const pCell = Linked->GetCell();

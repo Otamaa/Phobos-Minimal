@@ -122,10 +122,6 @@ ASMJIT_PATCH(0x437CCC, BSurface_DrawSHPFrame1_Buffer, 0x8)
 	return 0x437CD4;
 }
 
-void ShakeScreen(TechnoClass* pThis, int nValToCalc, int nRules)
-{
-
-}
 ASMJIT_PATCH(0x7387D1, UnitClass_Destroyed_Shake, 0x6)
 {
 	GET(UnitClass* const, pUnit, ESI); //forEXT
@@ -217,8 +213,8 @@ ASMJIT_PATCH(0x551A30, LayerClass_YSortReorder, 0x5)
 	GET(LayerClass*, pThis, ECX);
 
 	auto const nCount = pThis->Count;
-	auto nBegin = &pThis->Items[nCount / 15 * (Unsorted::CurrentFrame % 15)];
-	auto nEnd = (Unsorted::CurrentFrame % 15 >= 14) ? (&pThis->Items[nCount]) : (&nBegin[nCount / 15 + nCount / 15 / 4]);
+	auto nBegin = &pThis->Items[nCount / 15 * (Unsorted::CurrentFrame.get() % 15)];
+	auto nEnd = (Unsorted::CurrentFrame.get() % 15 >= 14) ? (&pThis->Items[nCount]) : (&nBegin[nCount / 15 + nCount / 15 / 4]);
 	std::sort(nBegin, nEnd, [](const ObjectClass* A, const ObjectClass* B)
  {
 	 return A->GetYSort() < B->GetYSort();
@@ -603,8 +599,10 @@ static void __fastcall AnnounceInvalidatePointerWrapper(ObjectClass* pObject, bo
 	if (!pObject->Limbo())
 		pObject->AnnounceExpiredPointer(removed);
 }
-
+//ObjectClass_RemoveThis -> re-reoute the Invalidation call
 DEFINE_FUNCTION_JUMP(CALL, 0x5F6616, AnnounceInvalidatePointerWrapper)
+//ObjectClass_RemoveThis -> remove the unlimbo call
+DEFINE_JUMP(LJMP,0x5F661B , 0x5F6625)
 
 //speeds up preview drawing by insane amounts
 ASMJIT_PATCH(0x5FED00, OverlayTypeClass_GetRadarColor, 0x6)

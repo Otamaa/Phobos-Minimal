@@ -356,6 +356,7 @@ public:
 	Valueable<int> TogglePowerIQ { -1 };
 	Valueable<int> SelectFlashTimer { 0 };
 	Valueable<int> CombatLightDetailLevel { 0 };
+	Valueable<bool> CombatLightDetailLevel_CheckColored { false };
 	Valueable<int> LightFlashAlphaImageDetailLevel { 0 };
 	Valueable<int> VeinsAttack_interval { 2 };
 	Valueable<int> BuildingFlameSpawnBlockFrames { 0 };

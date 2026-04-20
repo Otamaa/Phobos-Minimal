@@ -27,6 +27,10 @@ public:
 	static COMPILETIMEEVAL reference<bool, 0xAC4CF4u> const PlanningModeActive {};
 	static COMPILETIMEEVAL reference <PlanningNodeClass* , 0xAC4CCC> const LastPlanning {};
 
+	static void __fastcall plannodes_63B0A0() { JMP_THIS(0x63B0A0); }
+	static void __fastcall plannodes_63B150() { JMP_THIS(0x63B150); }
+	static void __fastcall draw_63B2F0() { JMP_THIS(0x63B2F0); }
+
 	~PlanningNodeClass() { JMP_THIS(0x633D30); }
  	PlanningNodeClass(int nDword18) { JMP_THIS(0x633CC0);}
 	PlanningNodeClass(TechnoClass* pOwner) { JMP_THIS(0x638A80); }
@@ -58,6 +62,7 @@ public:
 	//Get
 	bool byte1C_636540() {JMP_THIS(0x636540);}
 	//
+
 	~PlanningTokenClass() {JMP_THIS(0x635F80);}
 	PlanningTokenClass(TechnoClass* pTechno)
 		{JMP_THIS(0x635F20);}

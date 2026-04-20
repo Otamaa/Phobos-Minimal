@@ -957,20 +957,20 @@ public:
 
 	// whether this house is equal to Player
 	COMPILETIMEEVAL bool IsCurrentPlayer() const {
-		return this == CurrentPlayer;
+		return this == CurrentPlayer.get();
 	}
 
 	// whether this house is equal to Observer
 	COMPILETIMEEVAL bool IsObserver() const {
 
-		return (this == Observer //|| !CRT::strcmpi(get_ID(), "Observer")
+		return (this == Observer.get() //|| !CRT::strcmpi(get_ID(), "Observer")
 			);
 
 	}
 
 	// whether Player is equal to Observer
 	COMPILETIMEEVAL static bool IsCurrentPlayerObserver() 
-		{	return CurrentPlayer && CurrentPlayer->IsObserver();	}
+		{	return CurrentPlayer.get() && CurrentPlayer->IsObserver();	}
 
 	void CalculateCostMultipliers()
 		{ JMP_THIS(0x50BF60); }
@@ -1072,7 +1072,7 @@ public:
 
 	COMPILETIMEEVAL bool MakeObserver() const
 	{
-		if (HouseClass::CurrentPlayer != this)
+		if (HouseClass::CurrentPlayer.get() != this)
 			return false;
 
 		HouseClass::Observer = const_cast<HouseClass*>(this);

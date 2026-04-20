@@ -39,6 +39,8 @@
 #include <VeinholeMonsterClass.h>
 #include <IonBlastClass.h>
 
+#include <Commands/ToggleSuperTimers.h>
+
 static COMPILETIMEEVAL void ShakeScreen(GScreenClass* pScreen)
 {
 	/**
@@ -84,33 +86,41 @@ ASMJIT_PATCH(0x4F4BB9, GSCreenClass_AI_ShakescreenMode, 0x5)
 	return 0x0;
 }
 
-static void __fastcall IonBlastDrawAll()
+ASMJIT_PATCH(0x6D912B, TacticalClass_Render_BuildingInLimboDeliveryA, 0x9)
 {
-	VeinholeMonsterClass::DrawAll();
-	IonBlastClass::DrawAll();
-}
-DEFINE_FUNCTION_JUMP(CALL, 0x6D4656, IonBlastDrawAll)
+	enum { Draw = 0x0, DoNotDraw = 0x6D9159 };
 
-static void __fastcall LaserDrawclassDrawAll()
-{
-	LaserDrawClass::DrawAll();
-	EBolt::DrawAll();
-	TacticalExtData::Instance()->Screen_Flash_AI();
-	//ElectricBoltManager::Draw_All();
-}
-DEFINE_FUNCTION_JUMP(CALL, 0x6D4669, LaserDrawclassDrawAll)
+	GET(TechnoClass* const, pTechno, ESI);
 
-ASMJIT_PATCH(0x6D4A35, TacticalClass_Render_SWText, 0x6)
-{
-	GET(SuperClass*, pSuper, ECX);
-	GET(int, val, EBX);
-	GET(int, interval, ESI);
+	if (pTechno->WhatAmI() == BuildingClass::AbsID)
+	{
+		if (BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pTechno))->LimboID >= 0)
+		{
+			return DoNotDraw;
+		}
+	}
 
-	FakeTacticalClass::__DrawTimersSW(pSuper, val, interval / 15);
-
-	return 0x6D4A70;
+	return Draw;
 }
 
+ASMJIT_PATCH(0x6D966A, TacticalClass_Render_BuildingInLimboDeliveryB, 0x9)
+{
+	enum { Draw = 0x0, DoNotDraw = 0x6D978F };
+
+	GET(TechnoClass* const, pTechno, EBX);
+
+	if (pTechno->WhatAmI() == BuildingClass::AbsID)
+	{
+		if (BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pTechno))->LimboID >= 0)
+		{
+			return DoNotDraw;
+		}
+	}
+
+	return Draw;
+}
+
+//hook at Tactical_super_lines_circles
 ASMJIT_PATCH(0x6DBE35, TacticalClass_DrawLinesOrCircles, 0x9)
 {
 	ObjectClass** items = !ToggleRadialIndicatorDrawModeClass::ShowForAll ? ObjectClass::CurrentObjects->Items : (ObjectClass**)TechnoClass::Array->Items;
@@ -156,92 +166,6 @@ ASMJIT_PATCH(0x6DBE35, TacticalClass_DrawLinesOrCircles, 0x9)
 	}
 
 	return 0x6DBE74;
-}
-
-ASMJIT_PATCH(0x6D47A6, TacticalClass_Render_Techno, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-
-	// draw line if the techno has target
-	 //if(auto pTargetTech = flag_cast_to<ObjectClass*>(pThis->Target))
-	 //		Drawing::DrawLinesTo(pTargetTech->GetRenderCoords(), pThis->Location, pThis->Owner->LaserColor);
-
-	if (pThis->InLimbo)
-		return 0x0;
-
-	if (auto const pOwner = pThis->SlaveOwner)
-	{
-		if (!pOwner->IsSelected)
-			return 0x0;
-
-		Drawing::DrawLinesTo(pOwner->GetRenderCoords(), pThis->Location, pOwner->Owner->Color);
-	}
-
-	if (Phobos::Otamaa::IsAdmin)
-	{
-		if (auto const pOwner = pThis->SpawnOwner)
-		{
-			if (!pOwner->IsSelected)
-				return 0x0;
-
-			Drawing::DrawLinesTo(pOwner->GetRenderCoords(), pThis->Location, pOwner->Owner->Color);
-		}
-	}
-
-	if (ShowTeamLeaderCommandClass::IsActivated())
-	{
-		if (auto const pFoot = flag_cast_to<FootClass*, false>(pThis))
-		{
-			if (!pFoot->BelongsToATeam())
-				return 0x0;
-
-			if (auto pTeam = pFoot->Team)
-			{
-				if (auto const pTeamLeader = pTeam->FetchLeader())
-				{
-
-					if (pTeamLeader != pFoot)
-						Drawing::DrawLinesTo(pTeamLeader->GetRenderCoords(), pThis->Location, pTeamLeader->Owner->Color);
-				}
-			}
-		}
-	}
-
-	return 0x0;
-}
-
-ASMJIT_PATCH(0x6D912B, TacticalClass_Render_BuildingInLimboDeliveryA, 0x9)
-{
-	enum { Draw = 0x0, DoNotDraw = 0x6D9159 };
-
-	GET(TechnoClass* const, pTechno, ESI);
-
-	if (pTechno->WhatAmI() == BuildingClass::AbsID)
-	{
-		if (BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pTechno))->LimboID >= 0)
-		{
-			return DoNotDraw;
-		}
-	}
-
-	return Draw;
-}
-
-ASMJIT_PATCH(0x6D966A, TacticalClass_Render_BuildingInLimboDeliveryB, 0x9)
-{
-	enum { Draw = 0x0, DoNotDraw = 0x6D978F };
-
-	GET(TechnoClass* const, pTechno, EBX);
-
-	if (pTechno->WhatAmI() == BuildingClass::AbsID)
-	{
-		if (BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pTechno))->LimboID >= 0)
-		{
-			return DoNotDraw;
-		}
-	}
-
-	return Draw;
 }
 
 ASMJIT_PATCH(0x420F75, AlphaLightClass_UpdateScreen_ShouldDraw, 5)

@@ -295,7 +295,7 @@ ASMJIT_PATCH(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 		const bool canSeeRepair = HouseClass::CurrentPlayer->IsAlliedWith(pBld->Owner)
 			|| isObserver;
 
-		const bool showRepair = FileSystem::WRENCH_SHP
+		const bool showRepair = FileSystem::WRENCH_SHP.get()
 			&& pBld->IsBeingRepaired
 			// fixes the wrench playing over a temporally challenged building
 			&& !pBld->IsBeingWarpedOut()
@@ -305,7 +305,7 @@ ASMJIT_PATCH(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 				&& RulesExtData::Instance()->EnemyWrench));
 
 		// display power off marker only for current player's buildings
-		const bool showPower = FileSystem::POWEROFF_SHP
+		const bool showPower = FileSystem::POWEROFF_SHP.get()
 			&& (!pBldExt->TogglePower_HasPower)
 			// only for owned buildings, but observers got magic eyes
 			&& ((pBld->GetCurrentMission() != Mission::Selling) && (pBld->GetCurrentMission() != Mission::Construction))
@@ -343,14 +343,14 @@ ASMJIT_PATCH(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 				// draw the markers
 				if (showRepair)
 				{
-					int frame = (FileSystem::WRENCH_SHP->Frames * (Unsorted::CurrentFrame % speed)) / speed;
+					int frame = (FileSystem::WRENCH_SHP->Frames * (Unsorted::CurrentFrame.get() % speed)) / speed;
 					DSurface::Temp->DrawSHP(FileSystem::MOUSE_PAL, FileSystem::WRENCH_SHP,
 						frame, &ptRepair, pRect, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, 0, 0, 0, 0);
 				}
 
 				if (showPower)
 				{
-					int frame = (FileSystem::POWEROFF_SHP->Frames * (Unsorted::CurrentFrame % speed)) / speed;
+					int frame = (FileSystem::POWEROFF_SHP->Frames * (Unsorted::CurrentFrame.get() % speed)) / speed;
 					DSurface::Temp->DrawSHP(FileSystem::MOUSE_PAL, FileSystem::POWEROFF_SHP,
 						frame, &ptPower, pRect, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, 0, 0, 0, 0);
 				}
@@ -576,7 +576,7 @@ ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 
 		// if override is in effect, do not create initial payload.
 		// this object might have been deployed, undeployed, ...
-		if (Unsorted::ScenarioInit && Unsorted::CurrentFrame) {
+		if (Unsorted::ScenarioInit.get() && Unsorted::CurrentFrame.get()) {
 			TechnoExtContainer::Instance.Find(pThis)->PayloadCreated = true;
 		}
 
@@ -663,7 +663,7 @@ ASMJIT_PATCH(0x707A2E, TechnoClass_PointerExpired_TargetExpired, 0x5)
 
 	if (pThis->GetCurrentMission() == Mission::Area_Guard)
 	{
-		if (pThis->UpdateTimer.GetTimeLeft() > 10 && !Unsorted::ScenarioInit)
+		if (pThis->UpdateTimer.GetTimeLeft() > 10 && !Unsorted::ScenarioInit.get())
 			pThis->UpdateTimer.Start(pThis->TargetingTimer.GetTimeLeft());
 	}
 	return 0;

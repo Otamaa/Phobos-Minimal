@@ -70,6 +70,8 @@ public:
 	void _Draw_Pixel_Effects(RectangleStruct* tactical_rect, RectangleStruct* effect_rect);
 	void _Render_Layer(bool arg);
 
+	void _Render(DSurface* pSurface, bool flag, TacticalRenderMode eMode);
+
 	//void DrawDebugOverlay();
 	//bool DrawCurrentCell(); //TODO
 	//bool DebugDrawAllCellInfo(); //TODO

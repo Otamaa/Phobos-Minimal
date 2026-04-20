@@ -41,6 +41,9 @@ public:
 	void Func(int nA , int nB) const
 		{ JMP_THIS(0x659510); }
 
+	static void __fastcall Draw_All() 
+		{ JMP_FAST(0x6591B0) }
+
 	RadBeam(RadBeamType mode)
 		{ JMP_THIS(0x6593F0); }
 	//===========================================================================

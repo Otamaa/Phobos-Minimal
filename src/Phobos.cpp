@@ -765,7 +765,7 @@ void ApplyasmjitPatch()
 		VirtualProtect(hookAddress, hookSize, PAGE_EXECUTE_READWRITE, &protect_flag);
 		code.copy_flattened_data(hookAddress, hookSize);
 		VirtualProtect(hookAddress, hookSize, protect_flag, &protect_flagb);
-		FlushInstructionCache(Game::hInstance, hookAddress, hookSize);
+		FlushInstructionCache(Game::hInstance(), hookAddress, hookSize);
 
 		Debug::Log("Hook installed at 0x%x (size: %d bytes)\n", addr, hookSize);
 	}
