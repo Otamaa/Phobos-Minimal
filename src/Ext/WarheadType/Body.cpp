@@ -24,6 +24,10 @@
 #include <InfantryClass.h>
 #include <TerrainClass.h>
 #include <SlaveManagerClass.h>
+#include <CaptureManagerClass.h>
+
+#include <AircraftClass.h>
+#include <SpawnManagerClass.h>
 
 #pragma region defines
 PhobosMap<IonBlastClass*, WarheadTypeExtData*> WarheadTypeExtData::IonBlastExt;

@@ -27,6 +27,8 @@ public:
 	BSurface* GetSurface(const char* pFileName, BytePalette * pPalette = nullptr)
 		{ JMP_THIS(0x6BA140); }
 
+public:
+
 	// Draws a PCX file
 	bool BlitToSurface(RectangleStruct *BoundingRect,
 		DSurface* TargetSurface,

@@ -183,14 +183,14 @@ public:
 
 		if (!Unsorted::MAP_DEBUG_MODE.get())
 		{
-			pDisplay->SetCursorShape2(nullptr);
+			pDisplay->SetBusyFoundation(nullptr);
 			pDisplay->CurrentBuildingCopy = nullptr;
 			pDisplay->CurrentBuildingTypeCopy = nullptr;
 		}
 	}
 
 	template <bool slam>
-	static inline void PlayConstructionYardAnim(BuildingClass* const pFactory);
+	static void PlayConstructionYardAnim(BuildingClass* const pFactory);
 
 	static bool CheckBuildingFoundation(BuildingTypeClass* const pBuildingType, const CellStruct topLeftCell, HouseClass* const pHouse, bool& noOccupy);
 

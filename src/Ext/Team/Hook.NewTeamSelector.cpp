@@ -10,6 +10,8 @@
 #include <Utilities/Cast.h>
 
 #include <AITriggerTypeClass.h>
+#include <TaskForceClass.h>
+#include <TeamTypeClass.h>
 
 // TODO :
 // - Optimization a lot of duplicate code ,..

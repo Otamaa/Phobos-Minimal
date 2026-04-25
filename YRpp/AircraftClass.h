@@ -79,6 +79,7 @@ public:
 
 	//some stuffs here may from FootClass::vtable , which is missing
 	CellClass* GoodLandingZone_() const { JMP_THIS(0x41A160); }
+	CellClass* FindNearestDock() const { JMP_THIS(0x41A160); }
 	CellClass* NewLandingZone_(AbstractClass* pOldCell) const { JMP_THIS(0x418E20); }
 	AbstractClass* GoodTargetLoc_(AbstractClass* pTarget) const { JMP_THIS(0x4197C0); }
 	bool CellSeemsOk_(const CellStruct& nCell, bool bStrich) { JMP_THIS(0x419B00); }

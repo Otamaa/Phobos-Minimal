@@ -5,14 +5,14 @@
 #pragma once
 
 #include <AbstractTypeClass.h>
-#include <ScriptTypeClass.h>
-#include <TaskForceClass.h>
 
 //forward declarations
 class FootClass;
 class TagClass;
 class TeamClass;
 class TechnoTypeClass;
+class ScriptTypeClass;
+class TaskForceClass;
 #pragma pack(push, 4)
 class DECLSPEC_UUID("D1DBA64E-0778-11D2-ACA5-006008055BB5")
 	NOVTABLE TeamTypeClass : public AbstractTypeClass

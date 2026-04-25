@@ -25,8 +25,9 @@ public:
 	ToggleClass(unsigned int nID, int nX, int nY, int nWidth, int nHeight) noexcept
 		: ToggleClass(noinit_t()) { JMP_THIS(0x723E60); }
 
-	ToggleClass(unsigned int nID, RectangleStruct rect) noexcept
-		: ToggleClass(noinit_t()) { JMP_THIS(0x723E60); }
+	ToggleClass(unsigned int nID, RectangleStruct rect) noexcept 
+		: ToggleClass(nID , rect.X , rect.Y , rect.Width , rect.Height)
+		 {}
 
 protected:
 	explicit __forceinline ToggleClass(noinit_t)  noexcept

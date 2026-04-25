@@ -1,6 +1,5 @@
 #pragma once
 
-#include <GeneralDefinitions.h>
 #include <YRPPCore.h>
 
 class LinkClass

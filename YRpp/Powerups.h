@@ -6,7 +6,7 @@
 
 
 class Powerups {
-	public:
+public:
 	// all these actually point to arrays with 0x13 items, see ePowerup for their numbering
 	/**
 	 * e.g. Powerups::Weights[pow_Unit] is the weight of the free unit crate
@@ -26,6 +26,8 @@ class Powerups {
 
 	// index into AnimTypeClass::Array
 	static COMPILETIMEEVAL reference<int, 0x81DAD8u, 19u> const Anims{};
+
+public:
 
 	CDTimerClass CrateTimer;
 	CellStruct Location;

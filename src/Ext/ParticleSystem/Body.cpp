@@ -1524,7 +1524,7 @@ void FakeParticleSystemClass::UpdatePositionFromOwner(TechnoClass* owner)
 	// Update target and system position
 	CoordStruct newPos { (int)offsetX, (int)offsetY, ownerPos.Z };
 	this->TargetCoords = newPos;
-	CoordStruct flh = owner->GetFLH(0, CoordStruct::Empty);
+	CoordStruct flh = owner->GetFLH(0, 0,0,0);
 	this->SetLocation(flh);
 }
 

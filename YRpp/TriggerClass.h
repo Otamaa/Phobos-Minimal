@@ -100,7 +100,7 @@ public:
 	{ JMP_THIS(0x7264C0); }
 
 	// returns whether any action was executed
-	bool FireActions(ObjectClass* pObj, CellStruct location)
+	bool FireActions(ObjectClass* pObj, DWORD arg)
 		{ JMP_THIS(0x7265C0); }
 
 	//Constructor

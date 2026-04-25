@@ -4,7 +4,7 @@
 
 #include <algorithm>
 #include <Helpers/Concepts.h>
-#include <YRPPCore.h>
+#include <array>
 
 struct __declspec(align(4)) DummyDynamicVectorClass
 {
@@ -33,8 +33,6 @@ struct TDummyDynamicVectorClass
 
 static_assert(sizeof(DummyDynamicVectorClass) == 0x18, "Invalid Size !");
 
-#include <VectorClass.h>
-#include <DynamicVectorClass.h>
 #include <TypeList.h>
 #include <CounterClass.h>
 

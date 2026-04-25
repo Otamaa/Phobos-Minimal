@@ -17,7 +17,9 @@
 #include <Misc/PhobosToolTip.h>
 
 #include <Notifications.h>
-
+#include <AircraftClass.h>
+#include <InfantryClass.h>
+#include <RadarEventClass.h>
 #include <StringTable.h>
 
 #include "NewSuperWeaponType/SWTypeHandler.h"

@@ -1,13 +1,11 @@
-
-#include <Surface.h>
+#pragma once
 
 #include <ColorScheme.h>
 
+#include <string>
+
 #include <BitFont.h>
 #include <BitText.h>
-
-#include <string>
-#include <GeneralDefinitions.h>
 
 struct TextDrawing
 {
@@ -21,57 +19,8 @@ struct TextDrawing
 		COLORREF fore,
 		COLORREF back,
 		TextPrintType flags
-	)
-	{
-		int ypos = rect->Y + xy->Y;
-		int xpos = xy->X + rect->X;
-		int width {};
-		int heignt {};
-		pFont->GetTextDimension(text, &width, &heignt, rect->Width);
-
-		if (flags & TextPrintType::Center)
-		{
-			xpos -= width / 2;
-		}
-		else if (flags & TextPrintType::Right)
-		{
-			xpos -= width;
-		}
-
-		RectangleStruct fill_rect {};
-		if (flags & TextPrintType::TransparentBackgoround)
-		{
-			fill_rect.Width = width + 2;
-			fill_rect.Y = ypos - 1;
-			fill_rect.Height = heignt + 2;
-			fill_rect.X = xpos - 1;
-
-			ColorStruct trans {};
-			surface->Fill_Rect_Trans(&fill_rect, &trans, 60);
-		}
-		else if (flags & TextPrintType::Background)
-		{
-			fill_rect.Width = width + 2;
-			fill_rect.Height = heignt + 2;
-			fill_rect.Y = ypos - 1;
-			fill_rect.X = xpos - 1;
-			surface->Fill_Rect(fill_rect, (unsigned int)0u);
-		}
-
-		RectangleStruct textrect {
-			rect->X,
-			rect->Y,
-			rect->Width + rect->X,
-			rect->Y + rect->Height
-		};
-
-		pFont->SetByte41(true);
-		pFont->SetBounds_Rect(&textrect);
-		pFont->SetColor((WORD)fore);
-		BitText::Instance->Print(pFont, surface, text, xpos, ypos, 0, 0);
-		return { xpos  , ypos };
-	}
-
+	);
+	
 	static FORCEDINLINE Point2D Simple_Text_Print_Wide(
 		const wchar_t* text,
 		Surface* surface,
@@ -114,46 +63,26 @@ struct TextDrawing
 	}
 
 	static Point2D Plain_Text_Print_Wide(
-	const wchar_t* text,
-	Surface* surface,
-	RectangleStruct* rect,
-	Point2D* xy,
-	unsigned int fore,
-	unsigned int back,
-	TextPrintType flag,
-	int scheme)
-	{
-		if (scheme <= -1 || scheme >= ColorScheme::Array->Count)
-		{
-			return Simple_Text_Print_Wide(BitFont::Instance(), text, surface, rect, xy, fore, back, flag);
-		}
-		else
-		{
-			const auto fromFore = ColorScheme::Array->Items[scheme]->BaseColor.ToColorStructInt();
-			return Simple_Text_Print_Wide(BitFont::Instance(), text, surface, rect, xy, fromFore, back, flag);
-		}
-	}
+		const wchar_t* text,
+		Surface* surface,
+		RectangleStruct* rect,
+		Point2D* xy,
+		unsigned int fore,
+		unsigned int back,
+		TextPrintType flag,
+		int scheme);
 
 
-	static Point2D Fancy_Text_Print_Wide_NoFormat(const wchar_t* Text, Surface* Surface, RectangleStruct* Bounds,
-		Point2D* Location, ColorScheme* fore, unsigned int BackColor, TextPrintType Flag)
-	{
-		Point2D ret_;
-		const ColorStruct fromFore = fore->BaseColor;
+	static Point2D Fancy_Text_Print_Wide_NoFormat(
+		const wchar_t* Text, 
+		Surface* Surface, 
+		RectangleStruct* Bounds,
+		Point2D* Location, 
+		ColorScheme* fore, 
+		unsigned int BackColor, 
+		TextPrintType Flag);
 
-		if (Text)
-		{
-			ret_ = Simple_Text_Print_Wide(Text, Surface, Bounds, Location, fromFore.ToInitGBR(), BackColor, Flag);
-		}
-		else
-		{
-			ret_ = Simple_Text_Print_Wide(L"", Surface, Bounds, Location, fromFore.ToInitGBR(), BackColor, Flag);
-		}
-
-		return ret_;
-	}
-
-	static Point2D Fancy_Text_Print_Wide_NoFormat(const wchar_t* Text, Surface* Surface, RectangleStruct* Bounds,
+	static FORCEDINLINE Point2D Fancy_Text_Print_Wide_NoFormat(const wchar_t* Text, Surface* Surface, RectangleStruct* Bounds,
 		Point2D* Location, unsigned int fore, unsigned int BackColor, TextPrintType Flag)
 	{
 		if (Text)

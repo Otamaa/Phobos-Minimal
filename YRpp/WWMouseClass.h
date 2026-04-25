@@ -66,7 +66,7 @@ public:
 	virtual byte GetField10()
 		{ JMP_THIS(0x7BA330); }
 
-	virtual void func_20(RectangleStruct Useless)
+	virtual void func_20(int x_pos, int y_pos, int width, int height)
 		{ JMP_THIS(0x7B9D70); }
 
 	virtual void CallFunc10()
@@ -84,8 +84,11 @@ public:
 	virtual Point2D* GetCoords(Point2D *buffer)
 		{ JMP_THIS(0x7BA360); }
 
-	virtual void SetCoords(Point2D buffer)
-		{ JMP_THIS(0x7BA380); }
+	void SetCoords(Point2D buffer)
+	{ this->SetCoords(buffer.X, buffer.Y); }
+
+	virtual void SetCoords(int x , int Y)
+	{ JMP_THIS(0x7BA380); }
 
 	virtual void func_3C(DSurface* pSurface, bool bUnk)
 		{ JMP_THIS(0x7B90C0); }

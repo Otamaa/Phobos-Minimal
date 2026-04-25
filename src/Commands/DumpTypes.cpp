@@ -12,6 +12,11 @@
 
 #include <AITriggerTypeClass.h>
 #include <ScriptTypeClass.h>
+#include <TaskForceClass.h>
+#include <TeamTypeClass.h>
+#include <BulletTypeClass.h>
+#include <SuperWeaponTypeClass.h>
+#include <SuperClass.h>
 
 template <typename T>
 void DumperTypesCommandClass::LogType(const char* pSection) const

@@ -7,6 +7,7 @@
 #include <SWRange.h>
 #include <CoordStruct.h>
 #include <CellStruct.h>
+#include <RadarEventClass.h> //for other SWs
 
 enum class PhobosNewActionType :int
 {

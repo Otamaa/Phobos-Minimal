@@ -7,7 +7,6 @@
 #include <Surface.h>
 
 #include <CRT.h>
-#include <YRPPCore.h>
 #include <AbstractClass.h>
 #include <vector>
 

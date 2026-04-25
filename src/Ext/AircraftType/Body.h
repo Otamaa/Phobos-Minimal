@@ -22,6 +22,8 @@ public:
 	Nullable<bool> ExtendedAircraftMissions_FastScramble {};
 	Nullable<int> ExtendedAircraftMissions_UnlandDamage {};
 
+	Nullable<bool> FiringForceScatter {};
+
 	AircraftTypeExtData(AircraftTypeClass* pObj) : FootTypeExtData(pObj)
 	{
 		this->AbsType = AircraftTypeClass::AbsID;
@@ -47,6 +49,7 @@ public:
 			.Process(this->ExtendedAircraftMissions_RearApproach)
 			.Process(this->ExtendedAircraftMissions_FastScramble)
 			.Process(this->ExtendedAircraftMissions_UnlandDamage)
+			.Process(this->FiringForceScatter)
 			;
 	}
 
@@ -61,6 +64,7 @@ public:
 			.Process(this->ExtendedAircraftMissions_RearApproach)
 			.Process(this->ExtendedAircraftMissions_FastScramble)
 			.Process(this->ExtendedAircraftMissions_UnlandDamage)
+			.Process(this->FiringForceScatter)
 			;
 	}
 

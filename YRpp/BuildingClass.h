@@ -67,7 +67,7 @@ public:
 	virtual InfantryTypeClass* GetCrew() const override { JMP_THIS(0x44EB53); }
 	virtual void Destroyed(ObjectClass* Killer) override JMP_THIS(0x44D760);
 	virtual bool SetOwningHouse(HouseClass* pHouse, bool announce = true) override JMP_THIS(0x448260);
-	virtual CoordStruct GetFLH(int idxWeapon, CoordStruct BaseCoords) const override { JMP_THIS(0x453840); }
+	virtual CoordStruct GetFLH(int idxWeapon, int BaseCoordsX , int BaseCoordsY , int BaseCoordsZ) const override { JMP_THIS(0x453840); }
 	virtual bool ForceCreate(CoordStruct& coord, DWORD dwUnk = 0) override JMP_THIS(0x458A80);
 	virtual bool IsPowerOnline() const override { JMP_THIS(0x4555D0); }
 
@@ -310,6 +310,9 @@ public:
 	bool Absorber() const { JMP_THIS(0x4598A0); }
 	bool ClearFactoryBib() const { JMP_THIS(0x449540); }
 
+	bool WeaponFactoryOutsideBusy() const
+		{ JMP_THIS(0x449540); }
+
 	void GarrisonAI() const { JMP_THIS(0x458200); }
 
 	bool IsFactory() const {
@@ -354,7 +357,10 @@ public:
 	}
 
 	bool CanUpgrade(BuildingTypeClass* pType, HouseClass * pHouse) const
-	{ JMP_THIS(0x452670); }
+		{ JMP_THIS(0x452670); }
+
+	bool CanUpgradeBuilding(const BuildingTypeClass* pType, const HouseClass* pHouse) const
+		{ JMP_THIS(0x452670); }
 
 	//Constructor
 	BuildingClass(BuildingTypeClass* pType, HouseClass* pOwner) noexcept

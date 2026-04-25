@@ -5,7 +5,9 @@
 #pragma once
 
 #include <GeneralDefinitions.h>
-#include <Helpers/CompileTime.h>
+#include <ArrayClasses.h>
+#include <CellStruct.h>
+#include <Timers.h>
 
 struct RadarEventData
 {

@@ -42,11 +42,13 @@
 #include <RadarEventClass.h>
 #include <SpawnManagerClass.h>
 #include <SlaveManagerClass.h>
-
+#include <WaypointPathClass.h>
+#include <EMPulseClass.h>
+#include <CaptureManagerClass.h>
 #include <AircraftTrackerClass.h>
 #include <Kamikaze.h>
 #include <BombListClass.h>
-
+#include <AirstrikeClass.h>
 #include <GScreenClass.h>
 
 #include <Utilities/Debug.h>

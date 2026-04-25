@@ -8,6 +8,7 @@
 #include <ControlClass.h>
 #include <EventClass.h>
 #include <CCToolTip.h>
+#include <CommandClass.h>
 
 #include "SWSidebarClass.h"
 #include "SWColumnClass.h"

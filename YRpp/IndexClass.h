@@ -1,6 +1,5 @@
 #pragma once
 
-#include <YRPPCore.h>
 #include <GenericList.h>
 #include <algorithm>
 

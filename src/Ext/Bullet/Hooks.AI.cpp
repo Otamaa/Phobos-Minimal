@@ -9,10 +9,13 @@
 #include <Ext/House/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/Rules/Body.h>
-
+#include <Ext/Super/Body.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/Patch.h>
+
+#include <RadarEventClass.h>
+#include <Ion.h>
 
 // missile_maths @ 0x5B20F0
 //

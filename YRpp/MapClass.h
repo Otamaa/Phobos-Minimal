@@ -778,6 +778,12 @@ public:
 		JMP_THIS(0x587180);
 	}
 
+	int GetCellPathIndex(const CellStruct& cell) const
+		{ JMP_THIS(0x56D3F0); }
+
+	int GetThreatPosedEstimates(HouseClass *pOwner, int level, int fromIdx, int toIdx) const
+		{ JMP_THIS(0x585F40); }
+
 	bool checkcells_57BAA0(CellStruct* a3) const
 	{
 		JMP_THIS(0x57BAA0);

@@ -10,6 +10,13 @@
 #include <BitFont.h>
 #include <TagTypeClass.h>
 
+#include <AircraftClass.h>
+#include <UnitClass.h>
+#include <InfantryClass.h>
+
+#include <Locomotor/LocomotionClass.h>
+#include <CaptureManagerClass.h>
+
 #include <Utilities/Helpers.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/Bullet/Body.h>

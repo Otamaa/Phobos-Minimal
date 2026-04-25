@@ -619,24 +619,24 @@ ASMJIT_PATCH(0x6CEEB0, SuperWeaponTypeClass_FindFirstOfAction, 8)
 	return 0x6CEEE5;
 }
 
-ASMJIT_PATCH(0x6D49D1, TacticalClass_Draw_TimerVisibility, 5)
-{
-	enum
-	{
-		DrawSuspended = 0x6D49D8,
-		DrawNormal = 0x6D4A0D,
-		DoNotDraw = 0x6D4A71
-	};
+// ASMJIT_PATCH(0x6D49D1, TacticalClass_Draw_TimerVisibility, 5)
+// {
+// 	enum
+// 	{
+// 		DrawSuspended = 0x6D49D8,
+// 		DrawNormal = 0x6D4A0D,
+// 		DoNotDraw = 0x6D4A71
+// 	};
 
-	GET(SuperClass*, pThis, EDX);
+// 	GET(SuperClass*, pThis, EDX);
 
-	const auto pExt = SWTypeExtContainer::Instance.Find(pThis->Type);
+// 	const auto pExt = SWTypeExtContainer::Instance.Find(pThis->Type);
 
-	if (!pExt->IsHouseAffected(pThis->Owner, HouseClass::CurrentPlayer(), pExt->SW_TimerVisibility))
-		return DoNotDraw;
+// 	if (!pExt->IsHouseAffected(pThis->Owner, HouseClass::CurrentPlayer(), pExt->SW_TimerVisibility))
+// 		return DoNotDraw;
 
-	return pThis->IsOnHold ? DrawSuspended : DrawNormal;
-}
+// 	return pThis->IsOnHold ? DrawSuspended : DrawNormal;
+// }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x5098F0, FakeHouseClass::_AITryFireSW)
 

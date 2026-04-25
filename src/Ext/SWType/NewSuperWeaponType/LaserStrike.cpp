@@ -1,5 +1,9 @@
 #include "LaserStrike.h"
 
+#include <LaserDrawClass.h>
+#include <IonBlastClass.h>
+#include <SuperClass.h>
+
 SuperWeaponFlags SW_LaserStrike::Flags(const SWTypeExtData* pData) const
 {
 	return SuperWeaponFlags::NoEvent | SuperWeaponFlags::NoMessage;

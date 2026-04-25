@@ -1,7 +1,6 @@
 #pragma once
 
 #include <ASMMacros.h>
-#include <YRPPCore.h>
 #include <Base/Always.h>
 
 #include <Interface/IDontKnow.h>

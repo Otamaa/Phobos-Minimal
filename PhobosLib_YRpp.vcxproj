@@ -140,6 +140,7 @@
     <ClCompile Include="YRpp\INISection.cpp" />
     <ClCompile Include="YRpp\StaticInits.cpp" />
     <ClCompile Include="YRpp\Syringe.cpp" />
+    <ClCompile Include="YRpp\TextDrawing.cpp" />
   </ItemGroup>
   <!-- Assembly (.asm) -->
   <!-- Headers -->

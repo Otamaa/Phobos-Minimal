@@ -1,8 +1,6 @@
 #pragma once
 
-#include <YRPPCore.h>
-#include <GeneralStructures.h>
-#include <Helpers/CompileTime.h>
+#include <YRMathVector.h>
 #include <Quaternion.h>
 
 struct CompileTimeMatrix3D

@@ -38,6 +38,9 @@ public:
 	EditClass(int ID, wchar_t* Text, int nMaxLength, TextPrintType eTextFlag, int X, int Y, int Width, int Height, EditFlag eEditFlag) noexcept
 		: ControlClass(noinit_t()) { JMP_THIS(0x4C2FC0); }
 
+	EditClass(int ID, wchar_t* Text, int nMaxLength, TextPrintType eTextFlag, RectangleStruct inRect, EditFlag eEditFlag) noexcept
+		: ControlClass(ID , Text , nMaxLength, eTextFlag, inRect.X , inRect.Y , inRect.Width , inRect.Height , eEditFlag) {}
+
 protected:
 	explicit __forceinline EditClass(noinit_t)  noexcept
 		: ControlClass(noinit_t())

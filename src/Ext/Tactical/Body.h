@@ -1,8 +1,6 @@
 #pragma once
 
 #include <TacticalClass.h>
-#include <CoordStruct.h>
-#include <ColorStruct.h>
 
 #include <unordered_set>
 

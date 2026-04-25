@@ -115,6 +115,10 @@
 
 #include <CStreamClass.h>
 #include <LoadOptionsClass.h>
+#include <AirstrikeClass.h>
+#include <WaypointPathClass.h>
+#include <EMPulseClass.h>
+#include <CaptureManagerClass.h>
 
 template<typename T>
 HRESULT LoadObjectVector(LPSTREAM stream, DynamicVectorClass<T>& collection)

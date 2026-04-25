@@ -32,7 +32,7 @@ public:
 	virtual void Update() override JMP_THIS(0x4DA530);
 
 	//ObjectClass
-	virtual CoordStruct GetFLH(int idxWeapon, CoordStruct BaseCoords) const override { JMP_THIS(0x6F3AD0); };
+	virtual CoordStruct GetFLH(int idxWeapon, int BaseCoordsX , int BaseCoordsY , int BaseCoordsZ) const override { JMP_THIS(0x6F3AD0); };
 	virtual DamageState ReceiveDamage(int* pDamage, int DistanceFromEpicenter, WarheadTypeClass* pWH,
 	ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseClass* pAttackingHouse) override JMP_THIS(0x4D7330);
 	virtual RadioCommand ReceiveCommand(TechnoClass* pSender, RadioCommand command, AbstractClass*& pInOut) override JMP_THIS(0x4D8FB0);
@@ -182,7 +182,7 @@ public:
 
 	bool TiberiumCheckAt(CellStruct* cell) const { JMP_THIS(0x4DCE80); }
 
-	double GetThreatAvoidance() const {
+	double GetThreatAvoidanceCoefficient() const {
 		JMP_THIS(0x4DC760);
 	}
 

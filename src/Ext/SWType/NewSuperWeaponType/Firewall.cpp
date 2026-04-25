@@ -3,6 +3,8 @@
 #include <Ext/SWType/Body.h>
 #include <Ext/House/Body.h>
 
+#include <SuperClass.h>
+
 SuperWeaponType SW_Firewall::FirewallType = SuperWeaponType::Invalid;
 
 SW_Firewall::~SW_Firewall() {

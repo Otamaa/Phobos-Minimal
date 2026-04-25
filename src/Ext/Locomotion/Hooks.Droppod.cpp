@@ -5,11 +5,14 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/SWType/Body.h>
 #include <Ext/SWType/NewSuperWeaponType/SWTypeHandler.h>
+#include <Ext/Super/Body.h>
 
 #include <Misc/DamageArea.h>
 
 #include <Utilities/Patch.h>
 #include <Utilities/Macro.h>
+
+#include <InfantryClass.h>
 
 struct DroppodProperties_
 {

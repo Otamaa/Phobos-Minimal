@@ -1110,6 +1110,13 @@ public:
 
 	void SellWall(CellStruct& cell, bool skipSound)
 		{ JMP_THIS(0x4FCE80); }
+
+	void UnitFromFactory(AbstractType absType, int arrayIndex, bool isNaval, const CellStruct* pCell)
+		{ JMP_THIS(0x4FB0E0); }
+
+	bool IsValidBaseNode(BaseNodeClass* pBaseNode)
+		{ JMP_THIS(0x50CAD0); }
+	
 	//Constructor
 	HouseClass(HouseTypeClass* pCountry) noexcept
 		: HouseClass(noinit_t())

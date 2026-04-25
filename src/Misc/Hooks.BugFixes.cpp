@@ -1,9 +1,8 @@
-#include <AircraftClass.h>
-#include <AnimClass.h>
-#include <BuildingClass.h>
-#include <TechnoClass.h>
-#include <FootClass.h>
+#include <RadarEventClass.h>
+#include <InfantryClass.h>
 #include <UnitClass.h>
+#include <AircraftClass.h>
+#include <BuildingClass.h>
 #include <OverlayTypeClass.h>
 #include <ScenarioClass.h>
 #include <VoxelAnimClass.h>
@@ -13,10 +12,15 @@
 #include <CellClass.h>
 #include <Notifications.h>
 #include <TerrainTypeClass.h>
+#include <SpawnManagerClass.h>
+#include <TeamTypeClass.h>
+#include <OverlayClass.h>
+#include <TerrainClass.h>
 
 #include <Ext/Rules/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
+#include <Ext/CaptureManager/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/House/Body.h>
@@ -2046,25 +2050,6 @@ ASMJIT_PATCH(0x481778, CellClass_ScatterContent_Scatter, 0x6)
 }
 
 #include <Ext/WarheadType/Body.h>
-
-// make a minimally permissible attack judgment.
-const bool CanElectricAssault(FootClass* pThis, BuildingClass* pBuilding)
-{
-	const auto pWarhead = pThis->GetWeapon(1)->WeaponType->Warhead;
-	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
-	return pWHExt->GetVerses(TechnoExtData::GetTechnoArmor(pThis , pWarhead)).Verses != 0.0;
-}
-
-ASMJIT_PATCH(0x4D7005, FootClass_ElectricAssultFix, 0x5)			// Mission_AreaGuard
-{
-	GET(FootClass*, pThis, ESI);
-	GET(BuildingClass*, pBuilding, EDI);
-	enum { SkipGuard = 0x4D5225, SkipAreaGuard = 0x4D7025 };
-
-	return !CanElectricAssault(pThis, pBuilding) ?
-		R->Origin() == 0x4D51B2 ? SkipGuard : SkipAreaGuard
-		: 0;
-}ASMJIT_PATCH_AGAIN(0x4D51B2, FootClass_ElectricAssultFix, 0x5)	// Mission_Guard
 
 ASMJIT_PATCH(0x7077FD, TechnoClass_PointerExpired_SpawnOwnerFix, 0x6) {
 	GET_STACK(bool, removed, STACK_OFFSET(0x20, 0x8));

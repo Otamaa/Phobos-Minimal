@@ -1,6 +1,5 @@
 #pragma once
 
-#include <YRPPCore.h>
 #include <ArrayClasses.h>
 #include <Interface/ISwizzle.h>
 

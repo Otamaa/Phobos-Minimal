@@ -264,7 +264,8 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	virtual void Override_Mission(Mission mission, AbstractClass* tarcom = nullptr, AbstractClass* navcom = nullptr) override JMP_THIS(0x7013A0); //Vt_1F4
 	virtual bool Mission_Revert() override JMP_THIS(0x7013E0);
 
-	virtual CoordStruct GetFLH(int idxWeapon, CoordStruct BaseCoords) const override { JMP_THIS(0x6F3AD0); };
+	virtual CoordStruct GetFLH(int idxWeapon, int BaseCoordsX , int BaseCoordsY , int BaseCoordsZ) const override { JMP_THIS(0x6F3AD0); };
+
 	//TechnoClass
 	virtual bool IsUnitFactory() const R0;
 	virtual bool IsCloakable() const R0;
@@ -422,7 +423,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	virtual bool RefreshMegaMission() R0; //0x4D0
 
 	//non-virtual
-	bool sub_703B10() const JMP_THIS(0x703B10);
+	bool IsNearBridge() const { JMP_THIS(0x703B10); }
 	int sub_703E70() const JMP_THIS(0x703E70);
 	int sub_704000() const JMP_THIS(0x704000);
 	int sub_704240() const JMP_THIS(0x704240);

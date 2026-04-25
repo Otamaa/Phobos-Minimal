@@ -43,6 +43,9 @@ public:
 	ListClass(unsigned int nID, int nX, int nY, int nWidth, int nHeight, TextPrintType eFlag, SHPStruct* UpSHP, SHPStruct* DownSHP) noexcept
 		: ListClass(noinit_t()) { JMP_THIS(0x557230); }
 
+	ListClass(unsigned int nID, RectangleStruct inRect, TextPrintType eFlag, SHPStruct* UpSHP, SHPStruct* DownSHP) noexcept
+		: ListClass(nID, inRect.X , inRect.Y , inRect.Width , inRect.Height, UpSHP , DownSHP) { }
+
 	explicit __forceinline ListClass(noinit_t)  noexcept
 		: ControlClass(noinit_t())
 		, Scroller(noinit_t())

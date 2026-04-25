@@ -2296,8 +2296,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 			this->ForceAAWeapon_Aircraft >= 0		||
 			this->ForceWeapon_Capture >= 0
 		);
-
-		this->FiringForceScatter.Read(exINI, pSection, "FiringForceScatter");
+		
 		this->Convert_ResetMindControl.Read(exINI, pSection, "Convert.ResetMindControl");
 
 		this->DigitalDisplay_Health_FakeAtDisguise.Read(exINI, pSection, "DigitalDisplay.Health.FakeAtDisguise");

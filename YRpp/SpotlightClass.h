@@ -26,8 +26,11 @@ public:
 
 	//Constructor
 	SpotlightClass(CoordStruct coords, int size)
-		{ JMP_THIS(0x5FF250); }
+	: SpotlightClass(coords.X , coords.Y , coords.Z , size)
+		{ }
 
+	SpotlightClass(int X , int Y , int Z , int size)
+	{ JMP_THIS(0x5FF250); }
 	//===========================================================================
 	//===== Properties ==========================================================
 	//===========================================================================

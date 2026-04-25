@@ -5,8 +5,6 @@
 
 #include <Fundamentals.h>
 #include <ASMMacros.h>
-#include <bit>
-
 
 //control key flags
 typedef DWORD eControlKeyFlags;

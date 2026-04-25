@@ -28,6 +28,7 @@
 #include <Fixed.h>
 #include <CCINIClass.h>
 #include <TextDrawing.h>
+#include <TeamTypeClass.h>
 
 #include <WWKeyboardClass.h>
 #include <DisplayClass.h>

@@ -15,7 +15,8 @@
 #include <New/Entity/MultipleFactoryCaps.h>
 #include <New/Entity/HugeBar.h>
 
-class AITriggerTypeClass;
+#include <AITriggerTypeClass.h>
+
 class AnimTypeClass;
 class MouseCursor;
 class TechnoTypeClass;

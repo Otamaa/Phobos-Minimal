@@ -50,6 +50,8 @@ public:
 	Status Update()
 		{ JMP_THIS(0x439B00); }
 
+public:
+
 	double Elasticity{ 0.0 }; // speed multiplier when bouncing off the ground
 	double Gravity{ 0.0 }; // subtracted from the Z coords every frame
 	double MaxVelocity{ 0.0 }; // 0.0 disables check

@@ -4,6 +4,7 @@
 #include <Phobos.CRT.h>
 #include <TacticalClass.h>
 #include <ScenarioClass.h>
+#include <Drawing.h>
 
 #include <Dimensions.h>
 

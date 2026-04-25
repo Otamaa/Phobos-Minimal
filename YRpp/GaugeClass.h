@@ -34,7 +34,7 @@ public:
 		: ControlClass(noinit_t()) { JMP_THIS(0x4E2500); }
 
 	GaugeClass(unsigned int nID, RectangleStruct rect) noexcept
-		: ControlClass(noinit_t()) { JMP_THIS(0x4E2500); }
+		: ControlClass(nID, rect.X , rect.Y , rect.Width , rect.Height) { }
 
 protected:
 	explicit __forceinline GaugeClass(noinit_t)  noexcept

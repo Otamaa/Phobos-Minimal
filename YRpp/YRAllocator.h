@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <YRPPCore.h>
+#include <Helpers/CompileTime.h>
 #include <Memory.h>
 
 class MemoryBuffer

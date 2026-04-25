@@ -6,6 +6,10 @@
 
 #include <AITriggerTypeClass.h>
 
+#include <TaskForceClass.h>
+#include <InfantryClass.h>
+#include <AircraftClass.h>
+
 void ScriptExtData::ManageTriggersFromList(TeamClass* pTeam, int idxAITriggerType = -1, bool isEnabled = false)
 {
 	auto pScript = pTeam->CurrentScript;

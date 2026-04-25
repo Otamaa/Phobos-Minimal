@@ -16,6 +16,7 @@ public:
 	int GetSide()
 		{ JMP_THIS(0x642B20); }
 
+public:
 
 	int field_0;
 	LoadProgressManager *LoadManager;

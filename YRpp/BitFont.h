@@ -1,7 +1,13 @@
 #pragma once
 
-#include <YRPP.h>
+#include <ASMMacros.h>
+#include <Helpers/CompileTime.h>
 
+#include <GeneralDefinitions.h>
+#include <RectangleStruct.h>
+#include <Point2D.h>
+
+class Surface;
 class NOVTABLE BitFont
 {
 public:
@@ -15,7 +21,9 @@ public:
 
 	bool GetTextDimension(const wchar_t* pText, int* pWidth, int* pHeight, int nMaxWidth) { JMP_THIS(0x433CF0); }
 	int Blit(wchar_t wch, int X, int Y, int nColor) { JMP_THIS(0x434120); }
+	int Blit(wchar_t wch, Point2D XY, int nColor) { return this->Blit(wch, XY.X, XY.Y, nColor); }
 	int Func_433F50(const wchar_t* chr, int X, int Y, int nColor) { JMP_THIS(0x433F50); }
+	int Func_433F50(const wchar_t* chr, Point2D XY, int nColor) { return this->Func_433F50(chr, XY.X, XY.Y, nColor); }
 
 	bool Lock(Surface* pSurface) { JMP_THIS(0x4348F0); }
 	bool UnLock(Surface* pSurface) { JMP_THIS(0x434990); }

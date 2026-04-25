@@ -62,8 +62,10 @@ public:
 		this->FootExtData::CalculateCRC(crc);
 	}
 
-	UnitClass* This() const { return reinterpret_cast<UnitClass*>(this->AttachedToObject); }
-	const UnitClass* This_Const() const { return reinterpret_cast<const UnitClass*>(this->AttachedToObject); }
+	FORCEDINLINE UnitClass* This() const { return reinterpret_cast<UnitClass*>(this->AttachedToObject); }
+	FORCEDINLINE const UnitClass* This_Const() const { return reinterpret_cast<const UnitClass*>(this->AttachedToObject); }
+	FORCEDINLINE UnitTypeExtData* GetTypeExtData() const { return ((UnitTypeExtData*)TypeExtData); }
+
 
 public:
 
@@ -90,7 +92,7 @@ class NOVTABLE FakeUnitClass : public UnitClass
 {
 public:
 	bool _Paradrop(CoordStruct* pCoords);
-	CoordStruct* _GetFLH(CoordStruct* buffer, int wepon, CoordStruct base);
+	CoordStruct* _GetFLH(CoordStruct* buffer, int wepon, int baseX , int baseY , int baseZ);
 	int _Mission_Attack();
 	int _Mission_AreaGuard();
 

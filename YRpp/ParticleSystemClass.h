@@ -59,6 +59,8 @@ public:
 	void Gas_AI() const { JMP_THIS(0x62E6D0); }
 	void Smoke_AI() const { JMP_THIS(0x62ED40); }
 
+public:
+
 	//Constructor
 	ParticleSystemClass(
 		ParticleSystemTypeClass* pParticleSystemType,

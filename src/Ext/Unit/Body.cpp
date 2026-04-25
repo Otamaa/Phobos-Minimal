@@ -566,7 +566,7 @@ bool FakeUnitClass::_Paradrop(CoordStruct* pCoords)
 }
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D58, FakeUnitClass::_Paradrop);
 
-CoordStruct* FakeUnitClass::_GetFLH(CoordStruct* outBuffer, int weaponIdx, CoordStruct base)
+CoordStruct* FakeUnitClass::_GetFLH(CoordStruct* outBuffer, int weaponIdx, int baseX , int baseY , int baseZ)
 {
 	const auto pThis = static_cast<UnitClass*>(this);
 
@@ -579,12 +579,12 @@ CoordStruct* FakeUnitClass::_GetFLH(CoordStruct* outBuffer, int weaponIdx, Coord
 		{
 			if (const int idx = pTransporter->Passengers.IndexOf(pThis))
 			{
-				*outBuffer = pTransporter->GetFLH(-idx, CoordStruct::Empty);
+				*outBuffer = pTransporter->GetFLH(-idx,0,0,0);
 				break;
 			}
 		}
 
-		*outBuffer = pThis->TechnoClass::GetFLH(weaponIdx, CoordStruct::Empty);
+		*outBuffer = pThis->TechnoClass::GetFLH(weaponIdx,0,0,0);
 	}
 	while (false);
 

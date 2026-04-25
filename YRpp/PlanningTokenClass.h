@@ -63,6 +63,8 @@ public:
 	bool byte1C_636540() {JMP_THIS(0x636540);}
 	//
 
+public:
+
 	~PlanningTokenClass() {JMP_THIS(0x635F80);}
 	PlanningTokenClass(TechnoClass* pTechno)
 		{JMP_THIS(0x635F20);}

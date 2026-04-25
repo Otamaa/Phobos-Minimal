@@ -1,7 +1,10 @@
 #pragma once
 
 #include <LinkClass.h>
+#include <GeneralDefinitions.h>
+
 #include <RectangleStruct.h>
+#include <Point2D.h>
 
 enum class KeyModifier : int
 {
@@ -79,7 +82,7 @@ public:
 		: GadgetClass(noinit_t()) { JMP_THIS(0x4E12F0); }
 
 	GadgetClass(RectangleStruct rect , GadgetFlag eFlag, bool bSticky) noexcept
-		: GadgetClass(noinit_t()) { JMP_THIS(0x4E12F0); }
+		: GadgetClass(rect.X , rect.Y , rect.Width , rect.Height , eFlag, bSticky) {}
 
 	GadgetClass(GadgetClass& another) noexcept
 		: GadgetClass(noinit_t()) { JMP_THIS(0x4E1340); }

@@ -1,6 +1,10 @@
 #include "EMPField.h"
 
 #include <Ext/SWType/Body.h>
+#include <SuperWeaponTypeClass.h>
+
+#include <EMPulseClass.h>
+#include <SuperClass.h>
 
 bool SW_EMPField::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {

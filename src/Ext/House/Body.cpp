@@ -23,6 +23,10 @@
 #include <ExtraHeaders/StackVector.h>
 
 #include <ScenarioClass.h>
+#include <AircraftClass.h>
+#include <TActionClass.h>
+#include <CaptureManagerClass.h>
+#include <RadarEventClass.h>
 
 void HouseExtData::InitializeTrackers(HouseClass* pHouse)
 {

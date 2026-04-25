@@ -19,6 +19,10 @@
 #include <Locomotor/HoverLocomotionClass.h>
 //#include <ExtraHeaders/StackVector.h>
 
+#include <InfantryClass.h>
+#include <UnitClass.h>
+#include <AircraftClass.h>
+
 /*
 *	Scripts is a part of `TeamClass` that executed sequentally form `ScriptTypeClass`
 *	Each script contains function that behave as it programmed

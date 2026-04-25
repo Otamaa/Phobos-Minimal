@@ -28,7 +28,7 @@ public:
 		: ControlClass(noinit_t()) { JMP_THIS(0x48E520); }
 
 	ControlClass(unsigned int nID, RectangleStruct rect, GadgetFlag eFlag, bool bSticky) noexcept
-		: ControlClass(noinit_t()) { JMP_THIS(0x48E520); }
+		: ControlClass(nID, rect.X , rect.Y , rect.Width, rect.Height , eFlag , bSticky) {}
 
 	ControlClass(ControlClass& nAnother) noexcept
 		: ControlClass(noinit_t()) { JMP_THIS(0x48E570); }

@@ -2,15 +2,21 @@
 #include <Utilities/EnumFunctions.h>
 
 #include <Utilities/Macro.h>
+
 #include <Ext/House/Body.h>
 #include <Ext/SWType/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <Ext/Side/Body.h>
 #include <Ext/Tactical/Body.h>
+
+#include <Ext/Aircraft/Body.h>
+#include <Ext/Infantry/Body.h>
+
 #include <New/Entity/FlyingStrings.h>
 
 #include <TextDrawing.h>
+#include <SpawnManagerClass.h>
 
 #include <Misc/PhobosGlobal.h>
 
@@ -1405,7 +1411,7 @@ int ProcessNukeSilo(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtData* pL
 				//Limbo-in the bullet will remove the `TechnoClass` owner from the bullet !
 				//pThis->Limbo();
 
-				CoordStruct nFLH = pThis->GetFLH(0, CoordStruct::Empty);
+				CoordStruct nFLH = pThis->GetFLH(0, 0, 0, 0);
 
 				// Otamaa : the original calculation seems causing missile to be invisible
 				//auto nCos = Math::cos(Math::Math::PI_BY_TWO_ACCURATE);
@@ -1576,7 +1582,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 	{
 		if (auto pPulseBall = pLinkedTypeExt->EMPulse_PulseBall)
 		{
-			CoordStruct flh = pThis->GetFLH(pExt->idxSlot_EMPulse, CoordStruct::Empty);
+			CoordStruct flh = pThis->GetFLH(pExt->idxSlot_EMPulse, 0, 0, 0);
 			auto pAnim = GameCreate<AnimClass>(pPulseBall, flh);
 			pAnim->Owner = pThis->GetOwningHouse();
 			((FakeAnimClass*)pAnim)->_GetExtData()->Invoker = pThis;
@@ -1610,7 +1616,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		pThis->BarrelFacing.Set_Desired(dirBarrel);
 
 		// Prepare bullet trajectory
-		CoordStruct flhCoord = pThis->GetFLH(pExt->idxSlot_EMPulse, CoordStruct::Empty);
+		CoordStruct flhCoord = pThis->GetFLH(pExt->idxSlot_EMPulse, 0, 0, 0);
 
 		CoordStruct targetCoord = CellClass::Cell2Coord(*celltarget);
 		targetCoord.Z = MapClass::Instance->GetZPos(&targetCoord);
@@ -1980,7 +1986,7 @@ void FakeBuildingClass::_DrawVisible(Point2D* pLocation, RectangleStruct* pBound
 					text_.push_back(L'\0');
 					RectangleStruct nTextDimension {};
 					TextPrintType printType = TextPrintType::FullShadow | TextPrintType::Point8 | TextPrintType::Background | TextPrintType::Center;
-					Drawing::GetTextDimensions(&nTextDimension, text_.data(), textLoc, printType, 4, 2);
+					Drawing::GetTextDimensions(&nTextDimension, text_.data(), textLoc, printType, Point2D(4, 2));
 					auto nIntersect = RectangleStruct::Intersect(nTextDimension, *pBounds, nullptr, nullptr);
 					const COLORREF foreColor = this->Owner->Color.ToInit();
 					DSurface::Temp->Fill_Rect(nIntersect, (COLORREF)0);
@@ -2070,7 +2076,7 @@ void FakeBuildingClass::_DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOrigi
 			{
 				//DrawingPart
 				RectangleStruct nTextDimension;
-				Drawing::GetTextDimensions(&nTextDimension, pFormat, DrawLoca, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, 4, 2);
+				Drawing::GetTextDimensions(&nTextDimension, pFormat, DrawLoca, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, Point2D(4, 2));
 				auto nIntersect = RectangleStruct::Intersect(nTextDimension, *pRect, nullptr, nullptr);
 				auto nColorInt = pOwner->Color.ToInit();//0x63DAD0
 

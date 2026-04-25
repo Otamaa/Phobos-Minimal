@@ -5,6 +5,12 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/Anim/Body.h>
 
+#include <SuperClass.h>
+#include <InfantryClass.h>
+#include <UnitClass.h>
+#include <AircraftClass.h>
+#include <BuildingClass.h>
+
 SuperClass* SW_LightningStorm::CurrentLightningStorm = nullptr;
 
 SuperWeaponFlags SW_LightningStorm::Flags(const SWTypeExtData* pData) const

@@ -11,7 +11,6 @@
 
 #include <Timers.h>
 
-#include <Helpers/CompileTime.h>
 #include <unknwn.h>
 
 struct TacticalSelectableStruct;
@@ -29,7 +28,7 @@ class CCINIClass;
 class CellClass;
 class BuildingClass;
 class BuildingTypeClass;
-
+struct DirStruct;
 struct PacketField {
 	char str[4];
 	char pad[4];

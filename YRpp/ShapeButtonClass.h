@@ -47,6 +47,9 @@ public:
 	ShapeButtonClass(unsigned int nID, int nX, int nY, int nWidth, int nHeight, bool bIsAlpha) noexcept
 		: ShapeButtonClass(noinit_t()) { JMP_THIS(0x69DD30); }
 
+	ShapeButtonClass(unsigned int nID, RectangleStruct atRect, bool bIsAlpha) noexcept
+		: ShapeButtonClass(nID, atRect.X , atRect.Y , atRect.Width, atRect.Height, bIsAlpha) {}
+
 protected:
 	explicit __forceinline ShapeButtonClass(noinit_t)  noexcept
 		: ToggleClass(noinit_t())

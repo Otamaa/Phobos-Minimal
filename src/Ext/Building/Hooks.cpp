@@ -7,6 +7,7 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/House/Body.h>
+#include <Ext/Infantry/Body.h>
 
 #include <Utilities/Cast.h>
 #include <Utilities/Macro.h>
@@ -30,7 +31,7 @@ ASMJIT_PATCH(0x441553, BuildingClass_Unlimbo_PowerPlantEnhancer, 0x6)
 ASMJIT_PATCH(0x448A78, BuildingClass_SetOwningHouse_RemovePowerPlantEnhancer, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
-	GET(HouseClass*, pOldOwner, EBX);
+	//GET(HouseClass*, pOldOwner, EBX);
 	auto pExt = BuildingExtContainer::Instance.Find(pThis);
 
 	// We need to get the new owner too — depends on where in the function we hook
@@ -43,7 +44,7 @@ ASMJIT_PATCH(0x448A78, BuildingClass_SetOwningHouse_RemovePowerPlantEnhancer, 0x
 ASMJIT_PATCH(0x449197, BuildingClass_SetOwningHouse_AddPowerPlantEnhancer, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
-	GET(HouseClass*, pNewOwner, EBP);
+	//GET(HouseClass*, pNewOwner, EBP);
 	auto pExt = BuildingExtContainer::Instance.Find(pThis);
 
 	// Re-register (AttachedToObject->Owner should now be pNewOwner)

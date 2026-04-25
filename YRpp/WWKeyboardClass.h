@@ -32,6 +32,9 @@ public:
 		{ JMP_THIS(0x54F200); }
 
     bool PutMouseMessage(WORD nKey , Point2D nXY , bool bRelease)
+		{ return this->PutMouseMessage(nKey, nXY.X, nXY.Y, bRelease); }
+
+	bool PutMouseMessage(WORD nKey, int X , int Y, bool bRelease)
 		{ JMP_THIS(0x54F2F0); }
 
     bool PutNewLineMessage(BYTE nChar)

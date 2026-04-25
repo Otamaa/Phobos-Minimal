@@ -1,6 +1,7 @@
 #pragma once
 
-#include <YRPP.h>
+#include <CRT.h>
+#include <CCFileClass.h>
 
 class Straw
 {

@@ -1,15 +1,11 @@
 #pragma once
 
-#include <Base/Always.h>
-
-#include <ASMMacros.h>
+#include <YRPPCore.h>
 
 #include <stdlib.h>
-
 #include <memory>
 #include <type_traits>
 #include <utility>
-#include <Helpers/CompileTime.h>
 /*
  * The memory (de)allocators have to match!
  * Do not allocate memory in the DLL and hand it to the game to deallocate, or vice versa.

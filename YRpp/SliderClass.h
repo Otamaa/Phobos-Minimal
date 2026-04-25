@@ -34,6 +34,10 @@ public:
 	SliderClass(unsigned int nID, int nX, int nY, int nWidth, int nHeight, bool bBelongToList) noexcept
 		: GaugeClass(noinit_t()) { JMP_THIS(0x6B1B20); }
 
+	SliderClass(unsigned int nID, RectangleStruct atRect, bool bBelongToList) noexcept
+		: SliderClass(nID, atRect.X , atRect.Y , atRect.Width , atRect.Height , bBelongToList)
+	{ }
+
 	SliderClass(SliderClass& another) noexcept
 		: GaugeClass(noinit_t()) { JMP_THIS(0x5581A0); }
 

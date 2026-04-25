@@ -3,13 +3,13 @@
 */
 #pragma once
 
+#include <Memory.h>
 #include <CRT.h>
 #include <AbstractClass.h>
-#include <Memory.h>
-#include <GameStrings.h>
 
 //forward declarations
 class CCINIClass;
+struct IStream;
 
 enum class AbstractBaseType : int
 {

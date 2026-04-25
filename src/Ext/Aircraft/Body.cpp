@@ -43,7 +43,7 @@ bool AircraftExtData::FireWeapon(AircraftClass* pAir, AbstractClass* pTarget)
 	{
 		if (const auto weaponType = pWeaponStruct->WeaponType)
 		{
-			Scatter = TechnoTypeExtContainer::Instance.Find(pAir->Type)->FiringForceScatter.Get(weaponType->Damage > 0);
+			Scatter = pExt->GetTypeExtData()->FiringForceScatter.Get(weaponType->Damage > 0);
 
 			auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(weaponType);
 			bool isStrafe = pAir->Is_Strafe();

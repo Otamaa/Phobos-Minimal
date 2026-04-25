@@ -1,6 +1,5 @@
 #pragma once
 
-#include <YRPPCore.h>
 #include <algorithm>
 #include <ASMMacros.h>
 #include <Helpers/CompileTime.h>
@@ -137,36 +136,36 @@ struct ColorStruct
 	FORCEDINLINE COMPILETIMEEVAL uintptr_t ToInit() const
 	{
 		return
-			((uint32_t(this->R) >> RedShiftRight) << RedShiftLeft) |
-			((uint32_t(this->G) >> GreenShiftRight) << GreenShiftLeft) |
-			((uint32_t(this->B) >> BlueShiftRight) << BlueShiftLeft);
+			((uint32_t(this->R) >> RedShiftRight()) << RedShiftLeft()) |
+			((uint32_t(this->G) >> GreenShiftRight()) << GreenShiftLeft()) |
+			((uint32_t(this->B) >> BlueShiftRight()) << BlueShiftLeft());
 	}
 
 	//GBR
 	FORCEDINLINE COMPILETIMEEVAL uintptr_t ToInitGBR() const
 	{
 		return
-			((uint32_t(this->G) >> GreenShiftRight) << GreenShiftLeft) |
-			((uint32_t(this->B) >> BlueShiftRight) << BlueShiftLeft) |
-			((uint32_t(this->R) >> RedShiftRight) << RedShiftLeft);
+			((uint32_t(this->G) >> GreenShiftRight()) << GreenShiftLeft()) |
+			((uint32_t(this->B) >> BlueShiftRight()) << BlueShiftLeft()) |
+			((uint32_t(this->R) >> RedShiftRight()) << RedShiftLeft());
 	}
 
 	//GRB
 	FORCEDINLINE COMPILETIMEEVAL uintptr_t ToInitGRB() const
 	{
 		return
-			((uint32_t(this->G) >> GreenShiftRight) << GreenShiftLeft) |
-			((uint32_t(this->R) >> RedShiftRight) << RedShiftLeft) |
-			((uint32_t(this->B) >> BlueShiftRight) << BlueShiftLeft);
+			((uint32_t(this->G) >> GreenShiftRight()) << GreenShiftLeft()) |
+			((uint32_t(this->R) >> RedShiftRight()) << RedShiftLeft()) |
+			((uint32_t(this->B) >> BlueShiftRight()) << BlueShiftLeft());
 	}
 
 	//BGR 16bit
 	FORCEDINLINE COMPILETIMEEVAL uint16_t ToInitBGR() const
 	{
 		return
-			((uint16_t(this->B) >> BlueShiftRight) << 0) |      // B: 5 bits
-			((uint16_t(this->G) >> GreenShiftLeft) << 5) |      // G: 6 bits
-			((uint16_t(this->R) >> RedShiftRight) << 11);       // R: 5 bits
+			((uint16_t(this->B) >> BlueShiftRight()) << 0) |      // B: 5 bits
+			((uint16_t(this->G) >> GreenShiftLeft()) << 5) |      // G: 6 bits
+			((uint16_t(this->R) >> RedShiftRight()) << 11);       // R: 5 bits
 	}
 
 	//Color16Struct int

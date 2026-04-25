@@ -121,7 +121,7 @@ public:
 
 	// stupid! guess what happens again?
 	virtual CoordStruct* GetRenderCoords(CoordStruct* pCrd) const { JMP_THIS(0x41BE00); } //0xAC , GetPosition_2
-	virtual CoordStruct GetFLH(int idxWeapon, CoordStruct BaseCoords) const RT(CoordStruct); //0xB0 mcoord_4263D0
+	virtual CoordStruct GetFLH(int idxWeapon, int BaseCoordsX , int BaseCoordsY , int BaseCoordsZ) const RT(CoordStruct); //0xB0 mcoord_4263D0
 	virtual CoordStruct* GetExitCoords(CoordStruct* pCrd, DWORD dwUnk) const R0; //0xB4 Exit_Coord
 	virtual int GetYSort() const { JMP_THIS(0x5F6BD0); }
 	virtual bool IsOnBridge(TechnoClass* pDocker = nullptr) const R0; // pDocker is passed to GetDestination
@@ -233,6 +233,10 @@ public:
 	//	this->GetCenterCoords(&ret);
 	//	return ret;
 	//}
+
+	CoordStruct GetFLH(int idxWeapon, CoordStruct BaseCoords) {
+		return this->GetFLH(idxWeapon, BaseCoords.X , BaseCoords.Y , BaseCoords.Z);
+	}
 
 	CoordStruct* GetLocationCoords(CoordStruct* pRet) const
 	{    //return this->Location

@@ -42,278 +42,112 @@ static int GetMultiWeaponRange(TechnoClass* pThis)
 	return range;
 }
 //#pragma optimize("", off )
-// ============================================================
-// Pre-computed scan context — avoids repeated lookups and
-// captures in the hot loop
-// ============================================================
-struct ThreatScanContext
-{
-	TechnoClass* pThis;
-	TechnoTypeClass* pType;
-	const TechnoTypeExtData* pTypeExt;
-	HouseClass* pOwner;
 
-	ThreatType method;
-	int threatBitfield;
-	int threatRange;
-	ZoneType zone;
-
-	bool onlyEnemy;
-	bool targetFriendly; // pre-computed once
-	bool distributedFire;
-	bool AU;
-
-	int enemyHouseIndex;
-
-	// Results — mutated during scan
-	TechnoClass* bestTarget;
-	int bestThreat;
-	CellStruct bestCell;
-	int bestCellThreat;
-
-	FORCEINLINE bool IsAllied(int houseIndex) const
-	{
-		pOwner->IsAlliedWith(HouseClass::Array->Items[houseIndex]);
-	}
-
-	FORCEINLINE bool IsAlliedWith(TechnoClass* pTarget) const
-	{
-		return pOwner->IsAlliedWith(pTarget->Owner);
-	}
-
-	// Unified "should I even consider this target" check
-	// Replaces 4 copy-pasted versions
-	FORCEINLINE bool CanConsiderTarget(TechnoClass* pTarget) const
-	{
-		// Allied and not allowed to target friendlies → skip
-		if (pOwner->IsAlliedWith(pTarget) && !targetFriendly)
-			return false;
-
-		// Only-enemy filter
-		if (onlyEnemy && pTarget->Owner->ArrayIndex != enemyHouseIndex)
-			return false;
-
-		// ThreatType_4000: only target allies (healer logic)
-		if ((method & ThreatType::Threattype_4000) && !IsAlliedWith(pTarget))
-			return false;
-
-		return true;
-	}
-
-	// Try to evaluate and update best target
-	FORCEINLINE bool EvaluateAndUpdate(TechnoClass* pCandidate, ZoneType evalZone, CoordStruct* evalCoord)
-	{
-		int evalThreat = 0;
-
-		if (!FakeTechnoClass::__EvaluateObjectB(
-				pThis, method, threatBitfield, threatRange,
-				pCandidate, &evalThreat, evalZone, evalCoord, AU))
-			return false;
-
-		if (distributedFire)
-		{
-			pThis->CurrentTargets.emplace_back(pCandidate);
-			pThis->CurrentTargetThreatValues.emplace_back(evalThreat);
-		}
-
-		if (evalThreat > bestThreat)
-		{
-			bestTarget = pCandidate;
-			bestThreat = evalThreat;
-			return true;
-		}
-
-		return false;
-	}
-};
-
-// ============================================================
-// Extracted from lambda — evaluates a single cell in the
-// spiral scan and updates context results
-// ============================================================
-static void NOINLINE EvaluateCellForThreat(ThreatScanContext& ctx, CellStruct cellToCheck)
-{
-	if (!MapClass::Instance->CoordinatesLegal(&cellToCheck))
-		return;
-
-	TechnoClass* cellTarget = nullptr;
-	int cellThreat = 0;
-
-	if (ctx.pThis->TryAutoTargetObject(
-			ctx.method, ctx.threatBitfield, &cellToCheck,
-			ctx.threatRange, &cellTarget, &cellThreat, ctx.zone))
-	{
-		if (cellTarget)
-		{
-			if (ctx.onlyEnemy && cellTarget->Owner->ArrayIndex != ctx.enemyHouseIndex)
-				return;
-
-			if ((ctx.method & ThreatType::Threattype_4000) && !ctx.IsAlliedWith(cellTarget))
-				return;
-
-			if (ctx.distributedFire)
-			{
-				ctx.pThis->CurrentTargets.emplace_back(cellTarget);
-				ctx.pThis->CurrentTargetThreatValues.emplace_back(cellThreat);
-			}
-
-			if (cellThreat > ctx.bestThreat)
-			{
-				ctx.bestThreat = cellThreat;
-				ctx.bestTarget = cellTarget;
-			}
-		}
-	}
-
-	// If no target yet, evaluate cell itself (ore/tiberium)
-	if (!ctx.bestTarget)
-	{
-		int justCellThreat = ctx.pThis->EvaluateJustCell(&cellToCheck);
-
-		if (justCellThreat > ctx.bestCellThreat)
-		{
-			ctx.bestCellThreat = justCellThreat;
-			ctx.bestCell = cellToCheck;
-		}
-	}
-}
-
-// ============================================================
-// Spiral scan — extracted for clarity
-// ============================================================
-static AbstractClass* ScanCellsInSpiral(ThreatScanContext& ctx, CellStruct centerCell, int cellRange)
-{
-	for (int radius = 0; radius < cellRange; ++radius)
-	{
-		// Top and bottom edges
-		for (int x = -radius; x <= radius; ++x)
-		{
-			EvaluateCellForThreat(ctx,
-				{ (short)(centerCell.X + x), (short)(centerCell.Y - radius) });
-
-			EvaluateCellForThreat(ctx,
-				{ (short)(centerCell.X + x), (short)(centerCell.Y + radius) });
-		}
-
-		// Left and right edges (excluding corners)
-		for (int y = 1 - radius; y < radius; ++y)
-		{
-			EvaluateCellForThreat(ctx,
-				{ (short)(centerCell.X - radius), (short)(centerCell.Y + y) });
-
-			EvaluateCellForThreat(ctx,
-				{ (short)(centerCell.X + radius), (short)(centerCell.Y + y) });
-		}
-
-		// Early exit at 1/4 and 1/2 range if we found something
-		if (ctx.bestTarget && !RulesExtData::Instance()->DisableOveroptimizationInTargeting)
-		{
-			if (radius == cellRange / 4 || radius == cellRange / 2)
-				return ctx.bestTarget;
-		}
-
-		// Found an interesting cell (tiberium etc)
-		if (ctx.bestCell.X != 0 || ctx.bestCell.Y != 0)
-			return MapClass::Instance->GetCellAt(ctx.bestCell);
-	}
-
-	return ctx.bestTarget;
-}
-
-// ============================================================
-// Scan tracker list (FallingDown / Underground)
-// ============================================================
-static void ScanTrackerList(
-	ThreatScanContext& ctx,
-	const VectorSet<TechnoClass*>& tracker,
-	ZoneType evalZone,
-	CoordStruct* evalCoord)
-{
-	for (auto pCurrent : tracker)
-	{
-		if (!ctx.CanConsiderTarget(pCurrent))
-			continue;
-
-		ctx.EvaluateAndUpdate(pCurrent, evalZone, evalCoord);
-	}
-}
-
-// ============================================================
-// Main function
-// ============================================================
 AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 	TechnoClass* pThis, discard_t, ThreatType method,
 	CoordStruct* coord, bool onlyEnemy)
 {
 	++TechnoClass::TargetScanCounter();
-
 	const auto pType = GET_TECHNOTYPE(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	const auto pOwner = pThis->Owner;
 	const bool isTechnoPlayerControlled = pOwner->IsControlledByHuman();
-	const bool attackFriendlies = pThis->Veterancy.IsElite()
-		? pTypeExt->AttackFriendlies.Y
-		: pTypeExt->AttackFriendlies.X;
-	const int combatDamage = pThis->CombatDamage(-1);
-	const AbstractType what = pThis->WhatAmI();
+	const bool attackFriendlies = pThis->Veterancy.IsElite() ? pTypeExt->AttackFriendlies.Y : pTypeExt->AttackFriendlies.X;
 
-	// Early exit for NoAutoFire
-	if ((pType->NoAutoFire
-		|| TechnoExtContainer::Instance.Find(pThis)->GetPassiveAcquireMode() == PassiveAcquireModes::Ceasefire)
-		&& isTechnoPlayerControlled)
+	// Early exit for NoAutoFire units under player control
+	if ((pType->NoAutoFire || (TechnoExtContainer::Instance.Find(pThis)->GetPassiveAcquireMode()) == PassiveAcquireModes::Ceasefire) && isTechnoPlayerControlled)
 	{
 		return nullptr;
 	}
 
-	const bool AU = (ExtendedThreatType(method) & ExtendedThreatType::Underground)
-		!= ExtendedThreatType::none;
+	bool AU = (ExtendedThreatType(method) & ExtendedThreatType::Underground) != ExtendedThreatType::none;
 
-	// ── Adjust method based on unit type ──────────────────────
+	// Initialize variables - FIXED: bestThreat = -1, not 0!
+	TechnoClass* bestTarget = nullptr;
+	int bestThreat = -1;
+	ZoneType zone = ZoneType::None;
+	const AbstractType what = pThis->WhatAmI();
+	CoordStruct emptyCoord = CoordStruct::Empty;
 
-	constexpr ThreatType ThreatType_HealerTargets =
-		ThreatType::Air | ThreatType::Infantry | ThreatType::Vehicles | ThreatType::Buildings;
+	// Determine zone for non-building, non-aircraft units without ThreatType::Range
+	if ((method & ThreatType::Range) == ThreatType::Normal
+		&& what != AbstractType::Building
+		&& what != AbstractType::Aircraft)
+	{
+		CoordStruct centerCoord = pThis->GetCoords();
+		CellStruct cellPos = CellClass::Coord2Cell(centerCoord);
 
+		zone = MapClass::Instance->GetMovementZoneType(&cellPos, pType->MovementZone, 1);
+	}
+
+	const int combatDamage = pThis->CombatDamage(-1);
+	constexpr ThreatType ThreatType_HealerTargets = ThreatType::Air | ThreatType::Infantry | ThreatType::Vehicles | ThreatType::Buildings;
+
+	// Adjust method based on unit type and combat damage
 	if (what == AbstractType::Infantry)
 	{
 		if (combatDamage < 0)
 		{
-			method = (method & (ThreatType::Area | ThreatType::Range))
-				| ThreatType::Threattype_4000 | ThreatType_HealerTargets;
+			// Negative damage infantry - target other infantry only
+			method = (method & (ThreatType::Area | ThreatType::Range)) | ThreatType::Threattype_4000 | ThreatType_HealerTargets;
 		}
 		else if (((InfantryClass*)pThis)->Type->Engineer)
 		{
+			// Engineers don't target infantry or vehicles
 			method &= ~(ThreatType::Vehicles | ThreatType::Infantry);
 		}
 	}
 	else if (what == AbstractType::Unit && combatDamage < 0)
 	{
-		method = (method & (ThreatType::Area | ThreatType::Range))
-			| ThreatType::Threattype_4000 | ThreatType_HealerTargets;
+		// Negative damage units - target other vehicles only
+		method = (method & (ThreatType::Area | ThreatType::Range)) | ThreatType::Threattype_4000 | ThreatType_HealerTargets;
 	}
 
-	// ── Build threat bitfield ─────────────────────────────────
-
+	// Build threat bitfield based on method flags
 	int threatBitfield = 0;
 
+	// FIXED: test bh, 1 = method & 0x100 = THREAT_CIVILIANS, not THREAT_VEHICLES!
 	if (method & ThreatType::Civilians)
+	{
 		threatBitfield = 0x8042;
+	}
 
 	if (method & ThreatType::Air)
+	{
 		threatBitfield |= 0x4;
+	}
 
-	if (method & (ThreatType::TechBuildings | ThreatType::OccupiableBuildings
-		| ThreatType::Base_defenses | ThreatType::Factories
-		| ThreatType::PowerFacilties | ThreatType::Tiberium
-		| ThreatType::Buildings | ThreatType::Capture))
+	// FIXED: test eax, 1BA60h - exact mask from assembly
+	// 0x1BA60 = TechBuildings | OccupiableBuildings | Base_defenses | Factories | PowerFacilties | Tiberium | Buildings
+	// Note: Does NOT include Capture (0x200)
+	if (method & (ThreatType::TechBuildings
+		| ThreatType::OccupiableBuildings
+		| ThreatType::Base_defenses
+		| ThreatType::Factories
+		| ThreatType::PowerFacilties
+		| ThreatType::Tiberium
+		| ThreatType::Buildings
+		| ThreatType::Capture))
 	{
 		threatBitfield |= 0x40;
 	}
 
 	if (method & ThreatType::Infantry)
+	{
 		threatBitfield |= 0x8000;
+	}
 
 	if (method & (ThreatType::Tiberium | ThreatType::Vehicles))
+	{
 		threatBitfield |= 0x2;
+	}
+
+	// Clear distributed fire targets
+	if (pType->DistributedFire)
+	{
+		pThis->CurrentTargets.clear();
+		pThis->CurrentTargetThreatValues.clear();
+	}
 
 	if (AU)
 	{
@@ -322,145 +156,113 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 		threatBitfield |= 1 << (int)AbstractType::Aircraft;
 	}
 
-	// Distributed fire setup
-	if (pType->DistributedFire)
-	{
-		pThis->CurrentTargets.clear();
-		pThis->CurrentTargetThreatValues.clear();
-	}
-
-	// ── Determine zone ────────────────────────────────────────
-
-	ZoneType zone = ZoneType::None;
-
-	if ((method & ThreatType::Range) == ThreatType::Normal
-		&& what != AbstractType::Building
-		&& what != AbstractType::Aircraft)
-	{
-		CoordStruct centerCoord = pThis->GetCoords();
-		CellStruct cellPos = CellClass::Coord2Cell(centerCoord);
-		zone = MapClass::Instance->GetMovementZoneType(&cellPos, pType->MovementZone, 1);
-	}
-
-	// ── Check open-topped transport ───────────────────────────
-
+	// Check if in open-topped transport with original owner
 	bool hasRealOwner = false;
 	if (auto transport = pThis->Transporter)
 	{
 		auto pTransportType = GET_TECHNOTYPE(transport);
 
-		if (pTransportType->OpenTopped
-			&& !TechnoTypeExtContainer::Instance.Find(pTransportType)->Passengers_SyncOwner)
+		if (pTransportType->OpenTopped && !TechnoTypeExtContainer::Instance.Find(pTransportType)->Passengers_SyncOwner)
 		{
 			hasRealOwner = (transport->OriginallyOwnedByHouse != nullptr);
 		}
 	}
 
-	// ── Initialize scan context ───────────────────────────────
-
-	ThreatScanContext ctx;
-	ctx.pThis = pThis;
-	ctx.pType = pType;
-	ctx.pTypeExt = pTypeExt;
-	ctx.pOwner = pOwner;
-	ctx.method = method;
-	ctx.threatBitfield = threatBitfield;
-	ctx.threatRange = -1;
-	ctx.zone = zone;
-	ctx.onlyEnemy = onlyEnemy;
-	ctx.distributedFire = pType->DistributedFire;
-	ctx.AU = AU;
-	ctx.enemyHouseIndex = pOwner->EnemyHouseIndex;
-	ctx.bestTarget = nullptr;
-	ctx.bestThreat = -1;
-	ctx.bestCell = { 0, 0 };
-	ctx.bestCellThreat = 0;
-
-	// Pre-compute: "am I allowed to target friendlies at all?"
-	// Unified across all scan paths
-	ctx.targetFriendly = attackFriendlies
-		|| pThis->Berzerk
-		|| hasRealOwner
-		|| combatDamage < 0;
-
-	// For the no-range techno loop, engineers also count as targetFriendly
-	// because they target allied buildings. We handle that inline below.
-
-	CoordStruct emptyCoord = CoordStruct::Empty;
-
-	// ══════════════════════════════════════════════════════════
-	// PATH A: No range/area restriction — scan global arrays
-	// ══════════════════════════════════════════════════════════
-
+	// No range or area restriction - scan all units directly
 	if ((method & (ThreatType::Area | ThreatType::Range)) == ThreatType::Normal)
 	{
-		// Scan aircraft
+		// Scan aircraft if targeting air
 		if ((threatBitfield & 0x4) != 0)
 		{
+
 			for (int i = 0; i < AircraftClass::Array->Count; ++i)
 			{
 				auto aircraft = AircraftClass::Array->Items[i];
 
-				if (!ctx.CanConsiderTarget(aircraft))
+				const bool canTarget = !pOwner->IsAlliedWith(aircraft)
+					|| attackFriendlies
+					|| pThis->Berzerk
+					|| hasRealOwner;
+
+				if (!canTarget)
 					continue;
 
-				ctx.EvaluateAndUpdate(aircraft, ZoneType::None, &emptyCoord);
+				if (onlyEnemy && aircraft->Owner->ArrayIndex != pOwner->EnemyHouseIndex)
+					continue;
+
+				// FIXED: test ah, 40h = method & 0x4000 = ThreatType_4000, NOT Tiberium!
+				if ((method & ThreatType::Threattype_4000) && !pOwner->IsAlliedWith(aircraft->Owner))
+					continue;
+
+				int evalThreat = 0;
+				if (FakeTechnoClass::__EvaluateObjectB(pThis, method, threatBitfield, -1, aircraft, &evalThreat, ZoneType::None, &emptyCoord, AU))
+				{
+					if (evalThreat > bestThreat)
+					{
+						bestTarget = aircraft;
+						bestThreat = evalThreat;
+					}
+				}
 			}
 		}
 
-		// Add air flag for ground scan
+		// Add air targeting to bitfield for vehicle scan
 		if (method & ThreatType::Vehicles)
-			ctx.threatBitfield |= 0x4;
+		{
+			threatBitfield |= 0x4;
+		}
 
-		// Scan all ground technos
-		// Note: the original had a special case for engineers being able to
-		// target allied buildings — we fold that into targetFriendly for this path
-		const bool engineerException = !isTechnoPlayerControlled
-			&& what == AbstractType::Infantry
-			&& ((InfantryTypeClass*)pType)->Engineer;
-
-		const bool canTargetAllied = ctx.targetFriendly || engineerException;
-
+		// Scan TechnoVector (ground units)
 		for (int i = 0; i < TechnoClass::Array->Count; ++i)
 		{
 			auto techno = TechnoClass::Array->Items[i];
 
-			// Alliance check (with engineer exception)
-			if (ctx.IsAlliedWith(techno) && !canTargetAllied)
+			const bool canTarget1 = !pOwner->IsAlliedWith(techno)
+				|| combatDamage < 0
+				|| (!isTechnoPlayerControlled && what == AbstractType::Infantry && ((InfantryTypeClass*)pType)->Engineer)
+				|| attackFriendlies
+				|| pThis->Berzerk
+				|| hasRealOwner;
+
+			if (!canTarget1)
 				continue;
 
-			// Layer filtering
 			if (!RulesExtData::Instance()->AIAirTargetingFix)
 			{
 				if (techno->LastLayer != Layer::Ground)
+				{
 					continue;
+				}
 			}
 			else
 			{
-				const bool layerOK = ((method & ThreatType::Air) != ThreatType::Normal)
-					? techno->LastLayer != Layer::Underground
-					: techno->LastLayer == Layer::Ground;
+				const bool canTarget2 = ((method & ThreatType::Air) != ThreatType::Normal) ?
+					techno->LastLayer != Layer::Underground : techno->LastLayer == Layer::Ground;
 
-				if (!layerOK)
+				if (!canTarget2)
 					continue;
 			}
 
-			// Only-enemy and healer filters
-			if (ctx.onlyEnemy && techno->Owner->ArrayIndex != ctx.enemyHouseIndex)
+			if (onlyEnemy && techno->Owner->ArrayIndex != pOwner->EnemyHouseIndex)
 				continue;
 
-			if ((method & ThreatType::Threattype_4000) && !ctx.IsAlliedWith(techno))
+			// FIXED: test ah, 40h = method & 0x4000 = ThreatType_4000, NOT Tiberium!
+			if ((method & ThreatType::Threattype_4000) && !pOwner->IsAlliedWith(techno->Owner))
 				continue;
 
-			ctx.EvaluateAndUpdate(techno, zone, coord);
+			int evalThreat = 0;
+			if (FakeTechnoClass::__EvaluateObjectB(pThis, method, threatBitfield, -1, techno, &evalThreat, zone, coord, AU))
+			{
+				if (evalThreat > bestThreat)
+				{
+					bestTarget = techno;
+					bestThreat = evalThreat;
+				}
+			}
 		}
 
-		return ctx.bestTarget;
+		return bestTarget;
 	}
-
-	// ══════════════════════════════════════════════════════════
-	// PATH B: Range/Area restricted — use spatial queries
-	// ══════════════════════════════════════════════════════════
 
 	// Calculate threat range
 	int threatRange = 0;
@@ -471,20 +273,29 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 	}
 	else if (method & ThreatType::Area)
 	{
-		threatRange = pThis->GetGuardRange(
-			pThis->CurrentMission == Mission::Patrol ? 2 : 1);
+		if (pThis->CurrentMission == Mission::Patrol)
+		{
+			threatRange = pThis->GetGuardRange(2);
+		}
+		else
+		{
+			threatRange = pThis->GetGuardRange(1);
+		}
 	}
 
+	// Override for negative damage units in guard mode
 	if (combatDamage < 0 && pThis->CurrentMission == Mission::Guard)
+	{
 		threatRange = 512;
+	}
 
 	// Calculate cell range
 	int cellRange = threatRange / 256;
 
+	// If no range, calculate from weapon range
 	if (threatRange == 0)
 	{
-		int weaponRange = 0;
-
+		int weaponRange {};
 		if (!pType->HasTurret() || pType->IsGattling)
 		{
 			if (pType->Underwater && pType->Organic && pType->SelfHealing)
@@ -493,16 +304,15 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 			}
 			else
 			{
-				int multiRange = GetMultiWeaponRange(pThis);
-				if (multiRange != -1)
+				if (int MultiWeaponrange = GetMultiWeaponRange(pThis); MultiWeaponrange != -1)
 				{
-					weaponRange = multiRange;
+					weaponRange = MultiWeaponrange;
 				}
 				else
 				{
-					const int r0 = pThis->GetWeaponRange(0);
-					const int r1 = pThis->GetWeaponRange(1);
-					weaponRange = (r0 > r1) ? r0 : r1;
+					const int range0 = pThis->GetWeaponRange(0);
+					const int range1 = pThis->GetWeaponRange(1);
+					weaponRange = (range0 > range1) ? range0 : range1;
 				}
 			}
 		}
@@ -510,77 +320,242 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 		cellRange = weaponRange / 256 + pType->AirRangeBonus / 256 + 1;
 	}
 
-	ctx.threatRange = threatRange;
-
+	// Get center cell
 	CellStruct centerCell = CellClass::Coord2Cell(coord);
 
 	// Adjust for occupied buildings
 	if (pThis->CanOccupyFire())
-		cellRange = pThis->GetOccupyRangeBonus() + RulesClass::Instance->OccupyWeaponRange + 1;
-
-	// ── Scan aircraft in range ────────────────────────────────
-
-	if (!RulesExtData::Instance()->AIAirTargetingFix && (method & ThreatType::Air))
 	{
-		AircraftTrackerClass::Instance->FillCurrentVector(
-			MapClass::Instance->GetCellAt(centerCell), cellRange);
+		cellRange = pThis->GetOccupyRangeBonus() + RulesClass::Instance->OccupyWeaponRange + 1;
+	}
 
-		for (auto aircraft = AircraftTrackerClass::Instance->Get();
-			aircraft;
-			aircraft = AircraftTrackerClass::Instance->Get())
+	// Scan aircraft in range
+	if (!RulesExtData::Instance()->AIAirTargetingFix && method & ThreatType::Air)
+	{
+
+		AircraftTrackerClass::Instance->FillCurrentVector(MapClass::Instance->GetCellAt(centerCell), cellRange);
+
+		for (auto aircraft = AircraftTrackerClass::Instance->Get(); aircraft; aircraft = AircraftTrackerClass::Instance->Get())
 		{
+
+			const bool canTarget3 = !pOwner->IsAlliedWith(aircraft)
+				|| attackFriendlies
+				|| pThis->Berzerk
+				|| hasRealOwner;
+
+			if (!canTarget3)
+				continue;
+
+			// FIXED: test ah, 40h = method & 0x4000 = ThreatType_4000, NOT Tiberium!
+			if ((method & ThreatType::Threattype_4000) && !pOwner->IsAlliedWith(aircraft->Owner))
+				continue;
+
 			if (!aircraft->IsOnMap)
 				continue;
 
 			if (aircraft->InWhichLayer() == Layer::Ground)
 				continue;
 
-			if (!ctx.CanConsiderTarget(aircraft))
+			if (onlyEnemy && aircraft->Owner->ArrayIndex != pOwner->EnemyHouseIndex)
 				continue;
 
-			ctx.EvaluateAndUpdate(aircraft, ZoneType::None, &emptyCoord);
+			int evalThreat = 0;
+			if (FakeTechnoClass::__EvaluateObjectB(pThis, method, threatBitfield | 0x8002, threatRange, aircraft, &evalThreat, ZoneType::None, &emptyCoord, AU))
+			{
+				// Distributed fire - add to target lists
+				if (pType->DistributedFire)
+				{
+					pThis->CurrentTargets.emplace_back(aircraft);
+					pThis->CurrentTargetThreatValues.emplace_back(evalThreat);
+				}
+
+				if (evalThreat > bestThreat)
+				{
+					bestTarget = aircraft;
+					bestThreat = evalThreat;
+				}
+			}
 		}
 	}
 
-	// Add air flag for vehicle scan
+	// Add air flag for vehicle scanning
 	if (method & ThreatType::Vehicles)
-		ctx.threatBitfield |= 0x4;
+	{
+		threatBitfield |= 0x4;
+	}
 
-	// ── Air-only early exit / FallingDown / Underground ───────
-
+	// Early exit for air-only range scan
 	const bool isAirOnlySearch = (method == (ThreatType::Air | ThreatType::Range));
 
 	if (RulesExtData::Instance()->FallingDownTargetingFix && isAirOnlySearch)
 	{
 		if (!AU)
 		{
-			ctx.threatBitfield |= 1 << (int)InfantryClass::AbsID;
-			ctx.threatBitfield |= 1 << (int)UnitClass::AbsID;
-			ctx.threatBitfield |= 1 << (int)AircraftClass::AbsID;
+			threatBitfield |= 1 << (int)InfantryClass::AbsID;
+			threatBitfield |= 1 << (int)UnitClass::AbsID;
+			threatBitfield |= 1 << (int)AircraftClass::AbsID;
 		}
 
-		ScanTrackerList(ctx,
-			ScenarioExtData::Instance()->FallingDownTracker,
-			ZoneType::None, &emptyCoord);
+		const bool targetFriendly = attackFriendlies || pThis->Berzerk || hasRealOwner || combatDamage < 0;
+		int threatBuffer = 0;
+		auto tempCrd = CoordStruct::Empty;
+
+		for (auto pCurrent : ScenarioExtData::Instance()->FallingDownTracker)
+		{
+			if ((!pOwner->IsAlliedWith(pCurrent) || targetFriendly)
+				&& (!onlyEnemy || pCurrent->Owner->ArrayIndex == pThis->Owner->EnemyHouseIndex)
+				&& FakeTechnoClass::__EvaluateObjectB(pThis, method, threatBitfield, threatRange, pCurrent, &threatBuffer, ZoneType::None, &tempCrd, AU))
+			{
+				if (pType->DistributedFire)
+				{
+					pThis->CurrentTargets.emplace_back(pCurrent);
+					pThis->CurrentTargetThreatValues.emplace_back(threatBuffer);
+				}
+
+				if (threatBuffer > bestThreat)
+				{
+					bestTarget = pCurrent;
+					bestThreat = threatBuffer;
+				}
+			}
+		}
+
 	}
 	else if (isAirOnlySearch)
 	{
-		return ctx.bestTarget;
+		return bestTarget;
 	}
 
 	if (AU)
 	{
-		ScanTrackerList(ctx,
-			ScenarioExtData::Instance()->UndergroundTracker,
-			ZoneType::None, &emptyCoord);
+		const bool targetFriendly = attackFriendlies || pThis->Berzerk || hasRealOwner || combatDamage < 0;
+		int threatBuffer = 0;
+		auto tempCrd = CoordStruct::Empty;
+
+		for (const auto pCurrent : ScenarioExtData::Instance()->UndergroundTracker)
+		{
+
+			if ((!pOwner->IsAlliedWith(pCurrent) || targetFriendly)
+				&& (!onlyEnemy || pCurrent->Owner->ArrayIndex == pOwner->EnemyHouseIndex)
+				&& FakeTechnoClass::__EvaluateObjectB(pThis, method, threatBitfield, threatRange, pCurrent, &threatBuffer, ZoneType::None, &tempCrd, AU))
+			{
+				if (pType->DistributedFire)
+				{
+					pThis->CurrentTargets.emplace_back(pCurrent);
+					pThis->CurrentTargetThreatValues.emplace_back(threatBuffer);
+				}
+
+				if (threatBuffer > bestThreat)
+				{
+					bestTarget = pCurrent;
+					bestThreat = threatBuffer;
+				}
+			}
+		}
 	}
 
-	// ── Spiral cell scan ──────────────────────────────────────
+	// Spiral cell scan
+	CellStruct bestCell = { 0, 0 };
+	int bestCellThreat = 0;
 
 	if (cellRange <= 0)
-		return ctx.bestTarget;
+	{
+		return bestTarget;
+	}
 
-	return ScanCellsInSpiral(ctx, centerCell, cellRange);
+	// Helper function to evaluate a cell and update best target
+	auto EvaluateCellAndUpdate = [&](CellStruct* cellToCheck) -> void
+		{
+			if (!MapClass::Instance->CoordinatesLegal(cellToCheck))
+				return;
+
+			TechnoClass* cellTarget = nullptr;
+			int cellThreat = 0;
+
+			if (pThis->TryAutoTargetObject(method, threatBitfield, cellToCheck, threatRange, &cellTarget, &cellThreat, zone))
+			{
+
+				if (cellTarget)
+				{
+					if (onlyEnemy && cellTarget->Owner->ArrayIndex != pOwner->EnemyHouseIndex)
+						return;
+
+					// FIXED: test bh, 40h = method & 0x4000 = ThreatType_4000, NOT Tiberium!
+					if ((method & ThreatType::Threattype_4000) && !pOwner->IsAlliedWith(cellTarget->Owner))
+						return;
+
+					// Distributed fire - add to target lists
+					if (pType->DistributedFire)
+					{
+						pThis->CurrentTargets.emplace_back(cellTarget);
+						pThis->CurrentTargetThreatValues.emplace_back(cellThreat);
+					}
+
+					if (cellThreat > bestThreat)
+					{
+						bestThreat = cellThreat;
+						bestTarget = cellTarget;
+					}
+				}
+			}
+
+			// If no target yet, evaluate cell itself
+			if (!bestTarget)
+			{
+				int justCellThreat = pThis->EvaluateJustCell(cellToCheck);
+
+				if (justCellThreat > bestCellThreat)
+				{
+					bestCellThreat = justCellThreat;
+					bestCell = *cellToCheck;
+				}
+			}
+		};
+
+	for (int radius = 0; radius < cellRange; ++radius)
+	{
+
+		// Scan top and bottom edges of current radius
+		for (int x = -radius; x <= radius; ++x)
+		{
+			// Top edge
+			CellStruct topCell((short)(centerCell.X + x), (short)(centerCell.Y - radius));
+			EvaluateCellAndUpdate(&topCell);
+
+			// Bottom edge
+			CellStruct bottomCell((short)(centerCell.X + x), (short)(centerCell.Y + radius));
+			EvaluateCellAndUpdate(&bottomCell);
+		}
+
+		// Scan left and right edges (excluding corners already done)
+		for (int y = 1 - radius; y < radius; ++y)
+		{
+			// Left edge
+			CellStruct leftCell((short)(centerCell.X - radius), (short)(centerCell.Y + y));
+			EvaluateCellAndUpdate(&leftCell);
+
+			// Right edge
+			CellStruct rightCell((short)(centerCell.X + radius), (short)(centerCell.Y + y));
+			EvaluateCellAndUpdate(&rightCell);
+		}
+
+		// Early exit if we found a target at certain radii
+		if (bestTarget && !RulesExtData::Instance()->DisableOveroptimizationInTargeting)
+		{
+			if (radius == cellRange / 4 || radius == cellRange / 2)
+			{
+				return bestTarget;
+			}
+		}
+
+		// If we found a good cell (no target but interesting cell), return it
+		if (bestCell.X != 0 || bestCell.Y != 0)
+		{
+			return MapClass::Instance->GetCellAt(bestCell);
+		}
+	}
+
+	return bestTarget;
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x6F8DF0, FakeTechnoClass::__Greatest_Threat);

@@ -38,7 +38,10 @@ public:
 
 	// non virtual
 	void CreateChronoAnim(CoordStruct coords)
-		{ JMP_THIS(0x6CB3A0); }
+		{this->CreateChronoAnim(coords.X , coords.Y , coords.Z); }
+
+	void CreateChronoAnim(int x,  int y , int Z)
+	{ JMP_THIS(0x6CB3A0); }
 
 	void Reset()
 		{ JMP_THIS(0x6CE0B0); }

@@ -10,8 +10,13 @@
 #include <InfantryClass.h>
 #include <Unsorted.h>
 #include <SpotlightClass.h>
-
+#include <BombClass.h>
+#include <BombListClass.h>
+#include <LineTrail.h>
+#include <AirstrikeClass.h>
+#include <RadarEventClass.h>
 #include <BitFont.h>
+#include <AlphaShapeClass.h>
 
 #include <New/Entity/FlyingStrings.h>
 #include <New/PhobosAttachedAffect/Functions.h>
@@ -40,6 +45,8 @@
 #include <Ext/SWType/Body.h>
 #include <Ext/Unit/Body.h>
 #include <Ext/UnitType/Body.h>
+#include <Ext/Tactical/Body.h>
+#include <Ext/Terrain/Body.h>
 
 #include <Locomotor/Cast.h>
 
@@ -5104,7 +5111,7 @@ void __fastcall FakeTechnoClass::__DrawExtras(TechnoClass* pThis, discard_t, Poi
 			auto nPoint = *pLocation;
 			//DrawingPart
 			RectangleStruct nTextDimension;
-			Drawing::GetTextDimensions(&nTextDimension, pFormat, nPoint, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, 4, 2);
+			Drawing::GetTextDimensions(&nTextDimension, pFormat, nPoint, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, Point2D(4, 2));
 			auto nIntersect = RectangleStruct::Intersect(nTextDimension, *pBounds, nullptr, nullptr);
 			auto nColorInt = pThis->Owner->Color.ToInit();//0x63DAD0
 

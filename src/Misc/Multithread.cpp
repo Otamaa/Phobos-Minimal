@@ -128,12 +128,13 @@ class NOVTABLE FakeGScreenClass final : GScreenClass
 {
 public:
 	static COMPILETIMEEVAL constant_ptr<FakeGScreenClass, 0x87F7E8u> const Instance {};
-	static FORCEDINLINE void _RenderRaw(GScreenClass* pThis)
+	static //FORCEDINLINE 
+		void _RenderRaw(GScreenClass* pThis)
 	{
 		auto pTempSurface = DSurface::Temp.get();
-		DSurface::Temp = DSurface::Composite;
+		DSurface::Temp = DSurface::Composite();
 
-		WWMouseClass::Instance->func_40(DSurface::Composite, false);
+		WWMouseClass::Instance->func_40(DSurface::Composite(), false);
 
 		bool shouldDraw = pThis->Bitfield != 0;
 		bool complete = pThis->Bitfield == 2;
@@ -142,16 +143,18 @@ public:
 		if (!Multithreading::IonStormClass_ChronoScreenEffect_Status.get())
 		{
 			auto pFakeTactical = (FakeTacticalClass*)TacticalClass::Instance();
-
-			pFakeTactical->_Render(DSurface::Composite, shouldDraw, TacticalRenderMode::All0);
-			pFakeTactical->_Render(DSurface::Composite, shouldDraw, TacticalRenderMode::Terrain);
+			//TacticalClass::Instance->Render(DSurface::Composite(), shouldDraw, TacticalRenderMode::All0);
+			pFakeTactical->_Render(DSurface::Composite(), shouldDraw, TacticalRenderMode::All0);
+			pFakeTactical->_Render(DSurface::Composite(), shouldDraw, TacticalRenderMode::Terrain);
+			//TacticalClass::Instance->Render(DSurface::Composite(), shouldDraw, TacticalRenderMode::Terrain);
 			pThis->Draw(complete);
-			pFakeTactical->_Render(DSurface::Composite, shouldDraw, TacticalRenderMode::Moving_Animating);
+			pFakeTactical->_Render(DSurface::Composite(), shouldDraw, TacticalRenderMode::Moving_Animating);
+			//TacticalClass::Instance->Render(DSurface::Composite(), shouldDraw, TacticalRenderMode::Moving_Animating);
 		}
 
 		if (Multithreading::BlitMouse.get() && !Unsorted::MAP_DEBUG_MODE.get())
 		{
-			WWMouseClass::Instance->func_40(DSurface::Sidebar, true);
+			WWMouseClass::Instance->func_40(DSurface::Sidebar(), true);
 			Multithreading::BlitMouse = false;
 		}
 

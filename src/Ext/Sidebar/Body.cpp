@@ -7,6 +7,7 @@
 
 #include <CCToolTip.h>
 #include <EventClass.h>
+#include <FactoryClass.h>
 
 std::unique_ptr<SidebarExtData> SidebarExtData::Data;
 IStream* SidebarExtData::g_pStm;

@@ -1,6 +1,7 @@
 #include "ChronoSphere.h"
 
 #include <Ext/SWType/Body.h>
+#include <Ext/Super/Body.h>
 
 SuperWeaponFlags SW_ChronoSphere::Flags(const SWTypeExtData* pData) const
 {

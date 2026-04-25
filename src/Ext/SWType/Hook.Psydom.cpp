@@ -7,6 +7,10 @@
 #include <Utilities/Helpers.h>
 #include <Misc/DamageArea.h>
 
+#include <IonBlastClass.h>
+#include <RadarEventClass.h>
+#include <CaptureManagerClass.h>
+
 // completely replace the PsyDom::Fire() method.
 ASMJIT_PATCH(0x53B080, PsyDom_Fire, 5)
 {

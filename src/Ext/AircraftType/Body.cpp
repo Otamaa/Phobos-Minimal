@@ -80,6 +80,8 @@ bool AircraftTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	this->Crashable.Read(exINI, pSection, "Crashable");
 
+	this->FiringForceScatter.Read(exINI, pSection, "FiringForceScatter");
+
 	return true;
 }
 

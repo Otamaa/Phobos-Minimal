@@ -1,10 +1,14 @@
 
 #include <AbstractClass.h>
-#include <TechnoClass.h>
-#include <TeamClass.h>
-#include <FootClass.h>
+#include <RadarEventClass.h>
+#include <InfantryClass.h>
 #include <UnitClass.h>
+#include <AircraftClass.h>
+#include <BuildingClass.h>
+#include <TeamClass.h>
 #include <SlaveManagerClass.h>
+#include <SpawnManagerClass.h>
+#include <AirstrikeClass.h>
 
 #include <Utilities/Macro.h>
 #include <Helpers/Macro.h>

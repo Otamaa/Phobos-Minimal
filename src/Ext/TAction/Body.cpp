@@ -24,6 +24,7 @@
 #include <Ext/Side/Body.h>
 #include <Ext/SWType/Body.h>
 #include <Ext/SWType/NewSuperWeaponType/NuclearMissile.h>
+#include <Ext/Tactical/Body.h>
 
 #include <New/Entity/BannerClass.h>
 #include <New/Type/BannerTypeClass.h>
@@ -37,6 +38,12 @@
 //Static init
 #include <TagClass.h>
 #include <numeric>
+#include <CaptureManagerClass.h>
+#include <RadarEventClass.h>
+#include <TActionClass.h>
+#include <TeamTypeClass.h>
+
+#include <UI.h>
 
 PhobosMap<int, std::vector<TriggerClass*>> TActionExtData::RandomTriggerPool;
 
@@ -581,7 +588,7 @@ bool TActionExtData::DrawAnimWithin(TActionClass* pThis, HouseClass* pHouse, Obj
 			{
 				Vector3D<float> Vec3Dresult {};
 				Vector3D<float> Vec3rot { v29 * 1.0f, nDimension * 1.0f, 0.0f };
-				Matrix3D::MatrixMultiply(&Vec3Dresult , &TacticalClass::Instance->IsoTransformMatrix,&Vec3rot);
+				Matrix3D::MatrixMultiply(&Vec3Dresult , &TacticalClass::Instance->IsoTransformMatrix, &Vec3rot);
 				GameCreate<AnimClass>(pAnimType, CoordStruct { (int)Vec3Dresult.X , (int)Vec3Dresult.Y , 0 });
 				nDimension += nShpWidth_;
 			}

@@ -1085,7 +1085,7 @@ bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
 
 	if (foot)
 	{
-		threatAvoidance = foot->GetThreatAvoidance();
+		threatAvoidance = foot->GetThreatAvoidanceCoefficient();
 		ownerHouse = foot->Owner;
 
 		if (threatAvoidance > 0.00001)

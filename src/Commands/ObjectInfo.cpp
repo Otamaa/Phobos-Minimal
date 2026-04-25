@@ -1,26 +1,32 @@
 #include "ObjectInfo.h"
 
-#include <AbstractClass.h>
-#include <ObjectClass.h>
+#include <AircraftClass.h>
 #include <BuildingClass.h>
 #include <InfantryClass.h>
-#include <FootClass.h>
+#include <UnitClass.h>
 #include <TeamClass.h>
 #include <HouseClass.h>
 #include <ScriptClass.h>
 #include <AITriggerTypeClass.h>
-#include <Helpers/Enumerators.h>
 #include <IsometricTileTypeClass.h>
 #include <TerrainTypeClass.h>
 #include <VeinholeMonsterClass.h>
+#include <TeamTypeClass.h>
+#include <FactoryClass.h>
+#include <TaskForceClass.h>
+
 
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/Cell/Body.h>
+#include <Ext/Terrain/Body.h>
 
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/EnumFunctions.h>
+
 #include <New/Type/ArmorTypeClass.h>
+
+#include <Helpers/Enumerators.h>
 
 const char* ObjectInfoCommandClass::GetName() const
 {

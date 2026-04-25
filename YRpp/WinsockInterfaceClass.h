@@ -1,7 +1,5 @@
 #pragma once
-#include <YRPPCore.h>
 #include <ArrayClasses.h>
-#include <Helpers/CompileTime.h>
 
 struct ALIGN(4) WinsockBufferType
 {

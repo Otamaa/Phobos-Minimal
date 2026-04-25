@@ -1,18 +1,15 @@
 #pragma once
 
-#include <YRPPCore.h>
 #include <CRT.h>
-#include <GenericList.h>
+
 #include <ArrayClasses.h>
 #include <CCFileClass.h>
-#include <IndexClass.h>
-#include <Helpers/CompileTime.h>
+
 #include <PKey.h>
 #include <TRect.h>
 #include <CoordStruct.h>
 #include <ColorStruct.h>
 #include <GameStrings.h>
-#include <Helpers/VTable.h>
 
 #include <INIComment.h>
 #include <INIEntry.h>

@@ -427,7 +427,7 @@ public:
 	static COMPILETIMEEVAL reference<RectangleStruct, 0x886F90u> const SidebarBounds{};
 	//ViewportBounds_TacPixel
 	static COMPILETIMEEVAL reference<RectangleStruct, 0x886FA0u> const ViewBounds{};
-	static COMPILETIMEEVAL reference<RectangleStruct, 0x886FB0u> const WindowBounds{};
+ 	static COMPILETIMEEVAL reference<RectangleStruct, 0x886FB0u> const WindowBounds{};
 
 	static COMPILETIMEEVAL reference<unsigned, 0x8A0DD0u> const RedLeft{};
 	static COMPILETIMEEVAL reference<unsigned, 0x8A0DD4u> const RedRight{};

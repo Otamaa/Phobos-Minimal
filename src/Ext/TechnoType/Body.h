@@ -1181,7 +1181,6 @@ public:
 	Nullable<int> BattlePoints {};
 
 	bool ForceWeapon_Check { false };
-	Nullable<bool> FiringForceScatter {};
 
 	Valueable<int> FireUp { -1 };
 	Valueable<bool> FireUp_ResetInRetarget { true };
@@ -2251,7 +2250,6 @@ private:
 
 			.Process(this->BattlePoints)
 			.Process(this->ForceWeapon_Check)
-			.Process(this->FiringForceScatter)
 			.Process(this->Convert_ResetMindControl)
 
 			.Process(this->FireUp)

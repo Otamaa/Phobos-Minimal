@@ -2217,12 +2217,21 @@ enum class WWKey : int {
 
 	// Westwood modifier/flag bits
 	WWKEY_SHIFT_BIT = 0x100,
+	Shift = 0x100,
 	WWKEY_CTRL_BIT = 0x200,
+	Ctrl = 0x200,
 	WWKEY_ALT_BIT = 0x400,
+	Alt = 0x400,
 	WWKEY_RLS_BIT = 0x800,
+	Release = 0x800,
 	WWKEY_VK_BIT = 0x1000,
+	VirtualKey = 0x1000,
 	WWKEY_DBL_BIT = 0x2000,
+	DoubleClick = 0x2000,
+	WWKEY_BTN_ISRIGHTCLCK_BIT = 0x8000,
+	Button_IsRightClick = 0x4000,
 	WWKEY_BTN_BIT = 0x8000,
+	Button = 0x8000,
 };
 MAKE_ENUM_FLAGS(WWKey)
 

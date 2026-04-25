@@ -8,7 +8,6 @@
 
 #include <ColorScheme.h>
 #include <GeneralDefinitions.h>
-#include <Helpers/CompileTime.h>
 #include <Surface.h>
 
 struct DirtyAreaStruct
@@ -60,14 +59,16 @@ struct Drawing
 	}
 
 	static RectangleStruct* __fastcall GetTextDimensions(
-		RectangleStruct* pOutBuffer, wchar_t const* pText, Point2D location,
-		WORD flags, int marginX = 0, int marginY = 0)
+		RectangleStruct* pOutBuffer, wchar_t const* pText, int locationX , int locationY,
+		DWORD flags, int marginX = 0, int marginY = 0)
 			{ JMP_FAST(0x4A59E0); }
 
 	static RectangleStruct* __fastcall GetTextDimensions(
 		RectangleStruct* pOutBuffer, wchar_t const* pText, Point2D location,
-		TextPrintType flags, int marginX = 0, int marginY = 0)
-		{ JMP_FAST(0x4A59E0); }
+		TextPrintType flags, Point2D margin)
+	{
+		return GetTextDimensions(pOutBuffer, pText, location.X, location.Y, (DWORD)flags, margin.X, margin.Y);
+	}
 
 	static RectangleStruct GetTextBox(const wchar_t* pText, int nX, int nY, int nMargin) {
 		RectangleStruct buffer;
@@ -98,11 +99,10 @@ struct Drawing
 	}
 
 	static RectangleStruct GetTextDimensions(
-		wchar_t const* pText, Point2D location, WORD flags, int marginX = 0,
-		int marginY = 0)
+		wchar_t const* pText, Point2D location, TextPrintType flags, int marginX, int marginY)
 	{
 		RectangleStruct buffer;
-		GetTextDimensions(&buffer, pText, location, flags, marginX, marginY);
+		GetTextDimensions(&buffer, pText, location , flags, Point2D(marginX, marginY));
 		return buffer;
 	}
 
@@ -170,9 +170,9 @@ struct Drawing
 
 	static void COMPILETIMEEVAL  Int_To_RGB(int color, BYTE& red, BYTE& green, BYTE& blue)
 	{
-		red = static_cast<BYTE>(color >> RedShiftLeft << RedShiftRight);
-		green = static_cast<BYTE>(color >> GreenShiftLeft << GreenShiftRight);
-		blue = static_cast<BYTE>(color >> BlueShiftLeft << BlueShiftRight);
+		red = static_cast<BYTE>(color >> RedShiftLeft() << RedShiftRight());
+		green = static_cast<BYTE>(color >> GreenShiftLeft() << GreenShiftRight());
+		blue = static_cast<BYTE>(color >> BlueShiftLeft() << BlueShiftRight());
 	}
 
 	static void COMPILETIMEEVAL Int_To_RGB(int color, ColorStruct& buffer)
@@ -188,7 +188,7 @@ struct Drawing
 	}
 
 	static DWORD __fastcall RGB2DWORD(int red, int green, int blue)
-	{ return (red >> RedShiftRight << RedShiftLeft) | (green >> GreenShiftRight << GreenShiftLeft) | (blue >> BlueShiftRight << BlueShiftLeft);}
+	{ return (red >> RedShiftRight() << RedShiftLeft()) | (green >> GreenShiftRight() << GreenShiftLeft()) | (blue >> BlueShiftRight() << BlueShiftLeft());}
 
 	//static DWORD RGB2DWORD(const ColorStruct Color) {
 	//	return RGB2DWORD(Color.R, Color.G, Color.B);
@@ -245,14 +245,19 @@ struct Drawing
 
 	static std::array<ColorStruct, (size_t)DefaultColorList::Black + 1> DefaultColors;
 
-	static void __stdcall DrawLinesTo(CoordStruct nFrom, CoordStruct nTo, ColorStruct color)
+	static void __stdcall DrawLinesTo(CoordStruct nFrom, CoordStruct nTo, DWORD color)
+	{
+		DrawLinesTo(nFrom.X, nFrom.Y, nFrom.Z, nTo.X, nTo.Y, nTo.Z, color);
+	}
+
+	static void __stdcall DrawLinesTo(int nFromX , int nFromY , int nFromZ, int nToX , int nToY , int nToZ , DWORD color)
 	{
 		JMP_STD(0x704E40);
 	}
 
 	static bool __stdcall Draw_action_lines_7049C0(CoordStruct nFrom, CoordStruct nTo, DWORD DWORD_clr, bool bDashedLine, bool a10)
 	{
-		JMP_STD(0x7049C0);
+		return Draw_action_lines_7049C0(nFrom.X, nFrom.Y, nFrom.Z, nTo.X, nTo.Y, nTo.Z, DWORD_clr, bDashedLine, a10);
 	}
 
 	static bool __stdcall Draw_action_lines_7049C0(int nFrom_x , int nFrom_y , int nFrom_z, int nTo_x , int nTo_y , int nTo_z, DWORD DWORD_clr, bool bDashedLine, bool a10)
@@ -366,6 +371,8 @@ public:
 
 	int Unoffset(int pos) const { return  BufferPosition - pos; }
 	bool BlitTo(Surface* pSurface, int X, int Y, int Offset, int Size) { JMP_THIS(0x7BCA50); }
+	bool BlitTo(Surface* pSurface, Point2D XY, int Offset, int Size) { this->BlitTo(pSurface, XY.X, XY.Y, Offset, Size); }
+
 	void ReleaseSurface() { JMP_THIS(0x7BCAE0); }
 	void Blitter(unsigned short* Data, int Length, unsigned short Value) { JMP_THIS(0x7BCAF0); }
 	void BlitAt(int X, int Y, COLORREF Color) { JMP_THIS(0x7BCB50); }
@@ -373,6 +380,7 @@ public:
 	bool FillRect(unsigned short Color, RectangleStruct Rect) { JMP_THIS(0x7BCF90); }
 	void BlitRect(RectangleStruct Rect) { JMP_THIS(0x7BCFB0); }
 	void* GetBuffer(int X, int Y) { JMP_THIS(0x7BD130); }
+	void* GetBuffer(Point2D XY) { this->GetBuffer(XY.X , XY.Y); }
 	template<typename T>
 	void AdjustPointer(T*& ptr) {
 		if (ptr >= BufferTail)

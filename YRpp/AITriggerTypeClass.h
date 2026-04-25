@@ -4,12 +4,12 @@
 
 #pragma once
 
-#include <YRPP.h>
-#include <HouseTypeClass.h>
-#include <TeamTypeClass.h>
 #include <AbstractTypeClass.h>
 
 //forward declarations
+class HouseClass;
+class CCINIClass;
+struct IStream;
 class TechnoTypeClass;
 class TeamTypeClass;
 

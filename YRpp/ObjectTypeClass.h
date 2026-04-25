@@ -83,6 +83,8 @@ public:
 	bool LoadVehicleImage() //Only UnitType
 		{ JMP_THIS(0x5F8CE0); }
 
+public:
+
 	//Constructor
 	ObjectTypeClass(const char* pID) noexcept
 		: ObjectTypeClass(noinit_t())

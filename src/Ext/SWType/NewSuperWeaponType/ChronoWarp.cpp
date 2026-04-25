@@ -11,6 +11,11 @@ SuperWeaponFlags SW_ChronoWarp::Flags(const SWTypeExtData* pData) const
 
 #include <Ext/Infantry/Body.h>
 
+#include <RadarEventClass.h>
+#include <LightSourceClass.h>
+#include <BulletClass.h>
+#include <Locomotor/LocomotionClass.h>
+
 void KillCargo(TechnoClass* pTech , HouseClass* killer)
 {
 	if(auto pBuilding = cast_to<BuildingClass*, false>(pTech)) {

@@ -70,14 +70,19 @@ public:
 	}
 
 	Point2D GetCrdOnRadar(CoordStruct crd, bool bRestrictToBound = true) {
-		auto pOutBuffer = new Point2D();
-		return *GetCrdOnRadar(pOutBuffer, &crd, bRestrictToBound);
+		Point2D buffer;
+		GetCrdOnRadar(&buffer, &crd, bRestrictToBound);
+		return buffer;
 	}
 
 	void RefreshCrd(Point2D* pCrd) {
 		JMP_THIS(0x6562D0);
 	}
 
+	void RefreshCrd(const Point2D& pCrd) {
+		JMP_THIS(0x6562D0);
+	}
+	
 	//Non-virtual
 protected:
 	//Constructor

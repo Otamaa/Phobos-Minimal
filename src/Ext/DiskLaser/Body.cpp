@@ -169,7 +169,7 @@ void FakeDiskLaserClass::__AI()
 	}
 
 	// Get weapon FLH position
-	CoordStruct flhCoords = pFirer->GetFLH(0, CoordStruct::Empty);
+	CoordStruct flhCoords = pFirer->GetFLH(0,0,0,0);
 	int const z = flhCoords.Z;
 
 	// Calculate rotating indices

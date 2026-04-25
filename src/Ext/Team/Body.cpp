@@ -9,6 +9,15 @@
 #include <AITriggerTypeClass.h>
 #include <TaskForceClass.h>
 #include <TubeClass.h>
+#include <AircraftClass.h>
+#include <BuildingClass.h>
+#include <InfantryClass.h>
+#include <UnitClass.h>
+#include <SuperClass.h>
+
+#include <Ext/Tactical/Body.h>
+
+#include <TeamTypeClass.h>
 
 template<typename Func, typename... Args>
 concept ReturnsBool = std::same_as<std::invoke_result_t<Func, Args...>, bool>;

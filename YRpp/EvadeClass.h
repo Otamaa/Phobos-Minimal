@@ -1,8 +1,9 @@
 #pragma once
 
-#include <YRPP.h>
 #include <Helpers/CompileTime.h>
+#include <ASMMacros.h>
 
+struct IStream;
 class NOVTABLE EvadeClass
 {
 public:

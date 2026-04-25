@@ -1,7 +1,5 @@
 #pragma once
 
-#include <YRPPCore.h>
-
 #include <Drawing.h>
 #include <AlphaLightingRemapClass.h>
 

@@ -5,10 +5,14 @@
 #include <Ext/Rules/Body.h>
 #include <Ext/SWType/Body.h>
 #include <Ext/Scenario/Body.h>
+#include <Ext/Tactical/Body.h>
 
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/Macro.h>
+
+#include <InfantryClass.h>
+#include <Unsorted.h>
 
 const DirStruct  BuildingTypeExtData::DefaultJuggerFacing = DirStruct { 0x7FFF };
 const CellStruct BuildingTypeExtData::FoundationEndMarker = { 0x7FFF, 0x7FFF };
@@ -1821,7 +1825,7 @@ bool BuildingTypeExtData::ShouldExistGreyCameo(TechnoTypeClass* pType)
 {
 	const auto techLevel = pType->TechLevel;
 
-	if (techLevel <= 0 || techLevel > Game::TechLevel)
+	if (techLevel <= 0 || techLevel > Game::TechLevel())
 		return false;
 
 	const auto pHouse = HouseClass::CurrentPlayer();

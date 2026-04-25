@@ -1,9 +1,6 @@
 #pragma once
 
-#include <ASMMacros.h>
-#include <YRPPCore.h>
 #include <CRT.h>
-#include <YRMath.h>
 #include <YRMathVector.h>
 #include <GeneralDefinitions.h> // need eDirection for FacingClass
 #include <BasicStructures.h>

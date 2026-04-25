@@ -7,8 +7,14 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/HouseType/Body.h>
 #include <Ext/Mouse/Body.h>
+#include <Ext/Tactical/Body.h>
 
 #include <Utilities/Macro.h>
+
+#include <InfantryClass.h>
+#include <UnitClass.h>
+#include <AircraftClass.h>
+#include <BuildingClass.h>
 
 // 4AC20C, 7
 // translates SW click to type

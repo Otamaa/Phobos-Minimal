@@ -71,7 +71,7 @@ ASMJIT_PATCH(0x6F7511, TechnoClass_InRange_Obstacle, 6)
 		const auto coords = pThis->Location;
 		pThis->Location = *pSource; // Temporarily adjust the coordinates based on the path finding.
 
-		if (pThis->sub_703B10()) // Near by elevated bridge
+		if (pThis->IsNearBridge()) // Near by elevated bridge
 		pResult = MapClass::Instance->GetCellAt(*pSource);
 
 		pThis->Location = coords;

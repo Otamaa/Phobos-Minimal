@@ -6,6 +6,8 @@
 
 #include <Ext/Building/Body.h>
 #include <Ext/House/Body.h>
+#include <Ext/Tactical/Body.h>
+
 #include <Utilities/GeneralUtils.h>
 
 #include <format>

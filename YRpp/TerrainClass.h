@@ -45,7 +45,7 @@ public:
 	{ JMP_THIS(0x71C360); }
 
 	//Constructor, Destructor
-	TerrainClass(TerrainTypeClass* tt, CellStruct coords) noexcept
+	TerrainClass(TerrainTypeClass* tt, CoordStruct* coords) noexcept
 		: TerrainClass(noinit_t())
 	{ JMP_THIS(0x71BB90); }
 

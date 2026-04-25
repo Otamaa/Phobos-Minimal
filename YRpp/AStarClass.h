@@ -177,7 +177,7 @@ bool Find_Path_Hierarchical(AStarPathFinderClass* pThis, CellStruct* from, CellS
 	bool Avaible = false;
 
 	if (pWho) {
-		threat = pWho->GetThreatAvoidance();
+		threat = pWho->GetThreatAvoidanceCoefficient();
 		Owner = pWho->Owner;
 		Avaible = true;
 

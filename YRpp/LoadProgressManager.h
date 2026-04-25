@@ -1,12 +1,13 @@
 #pragma once
 
-#include <YRPP.h>
-
 #include <Helpers/CompileTime.h>
+#include <Point2D.h>
 
 struct SHPStruct;
 class Surface;
-
+class DSurface;
+class ConvertClass;
+struct BytePalette;
 struct LoadRectangle : public RectangleStruct
 {
 	RectangleStruct* GetLoadingBound() const

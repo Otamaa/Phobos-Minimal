@@ -417,7 +417,7 @@ public:
 	Valueable<SuperWeaponTarget> SW_RequiresTarget { SuperWeaponTarget::None };
 	Valueable<AffectedHouse> SW_RequiresHouse { AffectedHouse::None };
 	Valueable<SuperWeaponTarget> SW_AffectsTarget { SuperWeaponTarget::All };
-	Valueable<AffectedHouse> SW_TimerVisibility { AffectedHouse::All };
+	Nullable<AffectedHouse> SW_TimerVisibility { };
 	Valueable<OwnerHouseKind> SW_OwnerHouse { OwnerHouseKind::Default };
 	Valueable<AffectedHouse> Weather_RadarOutageAffects { AffectedHouse::All };
 	NewSuperType HandledType { NewSuperType::Invalid };

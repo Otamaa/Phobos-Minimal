@@ -10,18 +10,29 @@
 #include <Utilities/Macro.h>
 #include <Utilities/Cast.h>
 
-#include <TacticalClass.h>
-#include <HouseClass.h>
-#include <Unsorted.h>
-#include <BeaconManagerClass.h>
+#include <Commands/ToggleSuperTimers.h>
+#include <Commands/ShowTeamLeader.h>
+
 #include <FPSCounter.h>
+#include <AirstrikeClass.h>
+#include <LineTrail.h>
+#include <LightSourceClass.h>
+#include <TeamClass.h>
+#include <IonBlastClass.h>
+#include <RadBeam.h>
 #include <VeinholeMonsterClass.h>
 #include <TextDrawing.h>
 #include <SpotlightClass.h>
-#include <Phobos.h>
 #include <PlanningTokenClass.h>
-#include <Commands/ToggleSuperTimers.h>
-#include <Commands/ShowTeamLeader.h>
+#include <BeaconManagerClass.h>
+#include <HouseClass.h>
+#include <Unsorted.h>
+#include <AircraftClass.h>
+#include <InfantryClass.h>
+#include <BuildingClass.h>
+#include <UnitClass.h>
+
+#include <Phobos.h>
 
 enum class CollisionBoxShape : BYTE{
 	Rectangle,
@@ -1486,8 +1497,8 @@ void FakeTacticalClass::_Render(DSurface* pSurface, bool flag, TacticalRenderMod
 		doTileDraw = true;
 	}
 	else if (Drawing::DirtyAreas->Count > 0
-		 || this->TacticalCoord1.X != this->TacticalCoord2.X
-		 || this->TacticalCoord1.Y != this->TacticalCoord2.Y)
+		 || this->TacticalCoord.X != this->LastTacticalCoord.X
+		 || this->TacticalCoord.Y != this->LastTacticalCoord.Y)
 	{
 		doTileDraw = posChanged();
 	}
@@ -1631,8 +1642,8 @@ void FakeTacticalClass::_Render(DSurface* pSurface, bool flag, TacticalRenderMod
 	// =========================================================
 	this->LastTacticalPos.X = this->TacticalPos.X;
 	this->LastTacticalPos.Y = this->TacticalPos.Y;
-	this->TacticalCoord2.X = this->TacticalCoord1.X;
-	this->TacticalCoord2.Y = this->TacticalCoord1.Y;
+	this->LastTacticalCoord.X = this->TacticalCoord.X;
+	this->LastTacticalCoord.Y = this->TacticalCoord.Y;
 
 	// =========================================================
 	// 7.  Mode-based surface copy + early exits
@@ -1851,7 +1862,7 @@ void FakeTacticalClass::_Render(DSurface* pSurface, bool flag, TacticalRenderMod
 						// SUSPECT @0x6D48F6: IDA shows v34=v44 (loop index clobber);
 						// likely a register-reload misread since asm restores i from stack.
 						FakeTechnoClass* pFakeTech = (FakeTechnoClass*)pTech;
-						CoordStruct flh = pTech->GetFLH(0, CoordStruct::Empty);
+						CoordStruct flh = pTech->GetFLH(0, 0,0,0);
 
 						FakeTechnoClass::__Draw_Airstrike_Flare(
 							pTech,

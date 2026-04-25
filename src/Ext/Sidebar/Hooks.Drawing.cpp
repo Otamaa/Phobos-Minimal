@@ -23,6 +23,9 @@
 #include <CCToolTip.h>
 #include <EventClass.h>
 #include <GeneralDefinitions.h>
+#include <LoadProgressManager.h>
+#include <EventClass.h>
+#include <FactoryClass.h>
 
 static COMPILETIMEEVAL int ObserverBackgroundWidth = 121;
 static COMPILETIMEEVAL int ObserverBackgroundHeight = 96;
@@ -1341,7 +1344,7 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 								int countY = screenY + 1;
 								Point2D countPos = { countX, countY };
 								RectangleStruct countBgRect;
-								Drawing::GetTextDimensions(&countBgRect, countBuffer.data(), countPos, TextPrintType::Right | TextPrintType::FullShadow | TextPrintType::Point8, 2, 1);
+								Drawing::GetTextDimensions(&countBgRect, countBuffer.data(), countPos, TextPrintType::Right | TextPrintType::FullShadow | TextPrintType::Point8, Point2D(2, 1));
 								LoadProgressManager::FillRectWithColor(countBgRect, SidebarSurface, 0, 0xAF);
 								TextDrawing::Fancy_Text_Print_Wide_NoFormat(countBuffer.data(), SidebarSurface, &clipRect, &countPos,
 													  textColor, 0, TextPrintType::Right | TextPrintType::FullShadow | TextPrintType::Point8);
@@ -1360,7 +1363,7 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 							int statusY = screenY + 1;
 							Point2D statusP { statusX, statusY };
 							RectangleStruct statusBgRect;
-							Drawing::GetTextDimensions(&statusBgRect, statusText, statusP, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Point8, 2, 1);
+							Drawing::GetTextDimensions(&statusBgRect, statusText, statusP, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Point8, Point2D(2, 1));
 
 							LoadProgressManager::FillRectWithColor(statusBgRect, SidebarSurface, 0, 0xAF);
 
@@ -1403,7 +1406,7 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 									int holdY = originalScreenY + 1;
 									Point2D holdPos = { holdX, holdY };
 									RectangleStruct holdBgRect;
-									Drawing::GetTextDimensions(&holdBgRect, holdText, holdPos, TextPrintType::FullShadow | TextPrintType::Point8, 2, 1);
+									Drawing::GetTextDimensions(&holdBgRect, holdText, holdPos, TextPrintType::FullShadow | TextPrintType::Point8, Point2D(2, 1));
 									LoadProgressManager::FillRectWithColor(holdBgRect, SidebarSurface, 0, 0xAF);
 									TextDrawing::Fancy_Text_Print_Wide_NoFormat(holdText, SidebarSurface, &clipRect, &holdPos,
 														  textColor, 0, TextPrintType::FullShadow | TextPrintType::Point8);
@@ -1415,7 +1418,7 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 									int holdY = originalScreenY + 1;
 									Point2D holdPos = { holdX, holdY };
 									RectangleStruct holdBgRect;
-									Drawing::GetTextDimensions(&holdBgRect, holdText, holdPos, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Point8, 2, 1);
+									Drawing::GetTextDimensions(&holdBgRect, holdText, holdPos, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Point8, Point2D(2, 1));
 									LoadProgressManager::FillRectWithColor(holdBgRect, SidebarSurface, 0, 0xAF);
 									TextDrawing::Fancy_Text_Print_Wide_NoFormat(holdText, SidebarSurface, &clipRect, &holdPos,
 														  textColor, 0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Point8);

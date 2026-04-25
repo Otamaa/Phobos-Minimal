@@ -64,9 +64,12 @@ public:
 
 	//rendering related
 	void Render_Objects_Near_Shroud(bool arg0, Point2D pos, RectangleStruct* a5) {
-		JMP_THIS(0x6D2B60);
+		this->Render_Objects_Near_Shroud(arg0, pos.X , pos.Y , a5);
 	}
 
+	void Render_Objects_Near_Shroud(bool arg0, int posX , int posY, RectangleStruct* a5) {
+		JMP_THIS(0x6D2B60);
+	}
 	void Draw_Pixel_Effects(RectangleStruct* tactical_rect, RectangleStruct* effect_rect){
 		JMP_THIS(0x6D7840);
 	}
@@ -239,6 +242,10 @@ public:
 	}
 
 	char checkbuildingbounds_6D9B50(RectangleStruct Area) {
+		return this->checkbuildingbounds_6D9B50(Area.X , Area.Y , Area.Width, Area.Height);
+	}
+
+	char checkbuildingbounds_6D9B50(int X, int Y, int W, int H) {
 		JMP_THIS(0x6D9B50);
 	}
 
@@ -283,7 +290,12 @@ public:
 
 	void Fill_Building_Selectables(RectangleStruct rect)
 	{
-		JMP_THIS(0x6D3870);
+		this->Fill_Building_Selectables(rect.X, rect.Y, rect.Width, rect.Height);
+	}
+
+	void Fill_Building_Selectables(int X, int Y, int W, int H)
+	{
+		JMP_THIS(0x6D9CE0);
 	}
 
 	void Draw_Waypoint_Stuff(bool blit)
@@ -343,10 +355,9 @@ public:
 	float field_DC;
 	int VisibleCellCount;
 	CellClass * VisibleCells [800];
-	Point2D TacticalCoord1;
-	DWORD field_D6C;
-	DWORD field_D70;
-	Point2D TacticalCoord2;
+	Point2D TacticalCoord;          // +0xD64
+	Point2D LastTacticalCoord;      // +0xD6C
+	Point2D DesiredTacticalCoord;   // +0xD74
 	bool field_D7C;
 	bool Redrawing; // set while redrawing - cheap mutex // TacticalPosUpdated
 	PROTECTED_PROPERTY(char, gap_D7E[2]);

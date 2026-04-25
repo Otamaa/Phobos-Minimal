@@ -81,7 +81,7 @@ public:
 	void MarkFoundation(CellStruct * BaseCell, bool Mark)
 		{ JMP_THIS(0x4A95A0); }
 
-	void SetCursorShape2(CellStruct* pWhere) const
+	void SetBusyFoundation(CellStruct* pWhere) const
 		{ JMP_THIS(0x4A8D50); }
 
 	void SetCursorPos(CellStruct* pRet , CellStruct* pIn ) const

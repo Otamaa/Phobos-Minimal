@@ -2,7 +2,6 @@
 
 #include <Memory.h>
 #include <Helpers/Concepts.h>
-#include <YRPPCore.h>
 
 #include <algorithm>
 #include <stdexcept>

@@ -1,6 +1,8 @@
 #pragma once
 
-#include <YRPPCore.h>
+#include <Helpers/CompileTime.h>
+#include <ASMMacros.h>
+#include <array>
 
 class CDDriveManagerClass
 {

@@ -1,6 +1,10 @@
 #include "IonCannon.h"
 #include <Ext/WarheadType/Body.h>
 
+#include <RadarEventClass.h>
+#include <SuperClass.h>
+#include <IonBlastClass.h>
+
 SuperWeaponFlags SW_IonCannon::Flags(const SWTypeExtData* pData) const
 {
 	return SuperWeaponFlags::NoEvent;

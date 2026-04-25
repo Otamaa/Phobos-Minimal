@@ -17,6 +17,7 @@
 #include <InfantryClass.h>
 #include <RadarEventClass.h>
 
+//ElectricAssultTemp
 void ElectrictAssaultCheck(FootClass* pThis, bool updateIdleAction)
 {
 	if (pThis->Target)
@@ -34,7 +35,7 @@ void ElectrictAssaultCheck(FootClass* pThis, bool updateIdleAction)
 		{
 			if (auto pBld = MapClass::Instance->GetCellAt(myLoc + CellSpread::AdjacentCell[i])->GetBuilding())
 			{
-				if (pBld->Type->Overpowerable && pBld->Owner == pThis->Owner)
+				if (pBld->Type->Overpowerable && pBld->Owner->IsAlliedWith(pThis->Owner))
 				{
 
 					if (pWHExt->ElectricAssault_Requireverses && pWHExt->GetVerses(TechnoExtData::GetTechnoArmor(pBld, pWeapon->WeaponType->Warhead))
@@ -56,7 +57,7 @@ void ElectrictAssaultCheck(FootClass* pThis, bool updateIdleAction)
 	}
 }
 
-ASMJIT_PATCH(0x4D6F38, FootClass_ElectricAssultFix_SetWeaponType, 0x6)
+ASMJIT_PATCH(0x4D6F38, FootClass_MI_AreaGuard_ElectrictAssault, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
 	ElectrictAssaultCheck(pThis, false);

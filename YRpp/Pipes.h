@@ -1,6 +1,6 @@
 #pragma once
 
-#include <YRPP.h>
+#include <CCFileClass.h>
 
 class Pipe
 {

@@ -45,6 +45,8 @@
 #include <IsometricTileTypeClass.h>
 #include <SmudgeTypeClass.h>
 #include <VeinholeMonsterClass.h>
+#include <TEventClass.h>
+#include <TActionClass.h>
 
 std::unique_ptr<RulesExtData> RulesExtData::Data {};
 IStream* RulesExtData::g_pStm;

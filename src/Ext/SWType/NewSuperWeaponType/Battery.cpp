@@ -3,6 +3,8 @@
 #include <Ext/House/Body.h>
 #include <Ext/SWType/Body.h>
 
+#include <SuperClass.h>
+
 bool SW_Battery::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	if (!pThis->Granted)

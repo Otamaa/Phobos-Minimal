@@ -581,7 +581,7 @@ static void DrawGroupNumber(TechnoClass* techno, AbstractType unitType, Point2D*
 
 		// Get text dimensions
 		RectangleStruct textRect;
-		Drawing::GetTextDimensions(&textRect, numberText.data(), textPos, TextPrintType::FullShadow | TextPrintType::Efnt, 2, -2);
+		Drawing::GetTextDimensions(&textRect, numberText.data(), textPos, TextPrintType::FullShadow | TextPrintType::Efnt, Point2D(2, -2));
 
 		// Clip to drawing area
 		RectangleStruct clippedRect = *clipRect;

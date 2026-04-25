@@ -39,7 +39,7 @@ public:
 
 	//ObjectClass
 	virtual Action MouseOverObject(ObjectClass const* pObject, bool ignoreForce = false) const override JMP_THIS(0x73FD50);
-	virtual CoordStruct GetFLH(int idxWeapon, CoordStruct BaseCoords) const override { JMP_THIS(0x6F3AD0); };
+	virtual CoordStruct GetFLH(int idxWeapon, int BaseCoordsX , int BaseCoordsY , int BaseCoordsZ) const override { JMP_THIS(0x6F3AD0); };
 	virtual DamageState ReceiveDamage(int* pDamage, int DistanceFromEpicenter, WarheadTypeClass* pWH,
 	ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseClass* pAttackingHouse) override JMP_THIS(0x737C90);
 
@@ -54,13 +54,23 @@ public:
 
 	//UnitClass
 	// main drawing functions - Draw() calles one of these, they call parent's Draw_A_smth
-	virtual void DrawAsVXL(Point2D Coords, RectangleStruct BoundingRect, int Brightness, int Tint)
-		{ JMP_THIS(0x73B470); }
+	void DrawAsVXL(Point2D Coords, RectangleStruct BoundingRect, int Brightness, int Tint)
+	{ this->DrawAsVXL(Coords.X, Coords.Y, BoundingRect.X, BoundingRect.Y, BoundingRect.Width, BoundingRect.Height, Brightness, Tint); }
 
-	virtual void DrawAsSHP(Point2D Coords, RectangleStruct BoundingRect, int Brightness, int Tint)
+
+	virtual void DrawAsVXL(int CoordX, int CoordY, int BoundingRectX, int BoundingRectY, int BoundingRectWidth, int BoundingRectHeight , int Brightness, int Tint)
+	{ JMP_THIS(0x73B470); }
+
+	void DrawAsSHP(Point2D Coords, RectangleStruct BoundingRect, int Brightness, int Tint)
+		{ this->DrawAsSHP(Coords.X, Coords.Y, BoundingRect.X, BoundingRect.Y, BoundingRect.Width, BoundingRect.Height, Brightness, Tint); }
+
+	virtual void DrawAsSHP(int CoordX, int CoordY, int BoundingRectX, int BoundingRectY, int BoundingRectWidth, int BoundingRectHeight, int Brightness, int Tint)
 		{ JMP_THIS(0x73C5F0); }
 
-	virtual void DrawObject(Surface* pSurface, Point2D Coords, RectangleStruct CacheRect, int Brightness, int Tint)
+	void DrawObject(Surface* pSurface, Point2D Coords, RectangleStruct CacheRect, int Brightness, int Tint)
+	{ this->DrawObject(pSurface,Coords.X, Coords.Y, CacheRect.X, CacheRect.Y, CacheRect.Width, CacheRect.Height, Brightness, Tint); }
+
+	virtual void DrawObject(Surface* pSurface, int CoordX, int CoordY, int BoundingRectX, int BoundingRectY, int BoundingRectWidth, int BoundingRectHeight, int Brightness, int Tint)
 		{ JMP_THIS(0x73B140); }
 
 	// non-virtual

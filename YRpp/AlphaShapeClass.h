@@ -34,14 +34,14 @@ public:
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
 	virtual int	ClassSize() const override R0;
 
-	//Constructor
+	//Constructor 
 	AlphaShapeClass(ObjectClass* pObj, int nX, int nY) noexcept
 		: AlphaShapeClass(noinit_t())
 	{ JMP_THIS(0x420960); }
 
 	AlphaShapeClass(ObjectClass* pObj, Point2D nPos) noexcept
-		: AlphaShapeClass(noinit_t())
-	{ JMP_THIS(0x420960); }
+		: AlphaShapeClass(pObj, nPos.X , nPos.Y)
+	{}
 
 protected:
 	explicit __forceinline AlphaShapeClass(noinit_t) noexcept

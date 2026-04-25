@@ -74,6 +74,8 @@ public:
 		JMP_THIS(0x62D5E0);
 	}
 
+public:
+
 	//Constructor
 	ParticleClass(
 		ParticleTypeClass* pParticleType,

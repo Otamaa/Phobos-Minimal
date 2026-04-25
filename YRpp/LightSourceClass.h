@@ -53,6 +53,9 @@ public:
 		{ JMP_THIS(0x554A80); }
 
 	void ChangeLevels(int nIntensity, TintStruct Tint, char mode)
+		{ this->ChangeLevels(nIntensity, Tint.Red, Tint.Green, Tint.Blue , mode); }
+
+	void ChangeLevels(int nIntensity, int R , int G , int B, char mode)
 		{ JMP_THIS(0x554AA0); }
 
 	//Constructor
@@ -63,8 +66,8 @@ public:
 
 	LightSourceClass(
 		CoordStruct Crd, int nVisibility, int nIntensity, TintStruct Tint) noexcept
-		: LightSourceClass(noinit_t())
-	{ JMP_THIS(0x554760); }
+		: LightSourceClass(Crd.X , Crd.Y , Crd.Z , nVisibility , nIntensity, Tint.Red, Tint.Green, Tint.Blue)
+	{ }
 
 //	LightSourceClass() noexcept
 //		: LightSourceClass(noinit_t())
