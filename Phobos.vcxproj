@@ -34,10 +34,12 @@
     <ClCompile Include="src\Ext\Factory\Hooks.cpp" />
     <ClCompile Include="src\Ext\Infantry\Hooks.Assaulter.cpp" />
     <ClCompile Include="src\Ext\INI\Body.cpp" />
+    <ClCompile Include="src\Ext\ObjectType\Body.cpp" />
     <ClCompile Include="src\Ext\Object\Body.cpp" />
     <ClCompile Include="src\Ext\Object\Hooks.cpp" />
     <ClCompile Include="src\Ext\SlaveManager\Hooks.cpp" />
     <ClCompile Include="src\Ext\Surface\Hooks.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.Sight.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Storage.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.ThreatCoeff.cpp" />
     <ClCompile Include="src\New\Entity\FactoryPlantClass.cpp" />
@@ -129,6 +131,7 @@
     <ClCompile Include="src\New\Entity\CreateUnitTypeClass.cpp" />
     <ClCompile Include="src\New\Entity\EVAVoices.cpp" />
     <ClCompile Include="src\New\Entity\PowerPlantEnhancerClass.cpp" />
+    <ClCompile Include="src\New\Entity\ShiftSchedule.cpp" />
     <ClCompile Include="src\New\Entity\TiberiumEaterTypeClass.cpp" />
     <ClCompile Include="src\New\Entity\AEArmorMults.cpp" />
     <ClCompile Include="src\New\Entity\AEExtraCrit.cpp" />
@@ -137,6 +140,7 @@
     <ClCompile Include="src\New\Entity\AEProperties.cpp" />
     <ClCompile Include="src\New\Entity\AnimationDrawOffsetClass.cpp" />
     <ClCompile Include="src\New\Entity\BannerClass.cpp" />
+    <ClCompile Include="src\New\Interfaces\ShiftLocomotionClass.cpp" />
     <ClCompile Include="src\New\MessageHandler\MessageButtonClass.cpp" />
     <ClCompile Include="src\New\MessageHandler\MessageColumnClass.cpp" />
     <ClCompile Include="src\New\MessageHandler\MessageLabelClass.cpp" />
@@ -623,6 +627,7 @@
     <ClInclude Include="src\New\Entity\CreateUnitTypeClass.h" />
     <ClInclude Include="src\New\Entity\EVAVoices.h" />
     <ClInclude Include="src\New\Entity\PowerPlantEnhancerClass.h" />
+    <ClInclude Include="src\New\Entity\ShiftSchedule.h" />
     <ClInclude Include="src\New\Entity\TiberiumEaterTypeClass.h" />
     <ClInclude Include="src\New\Entity\AEArmorMults.h" />
     <ClInclude Include="src\New\Entity\AEEligible.h" />
@@ -632,6 +637,7 @@
     <ClInclude Include="src\New\Entity\AEProperties.h" />
     <ClInclude Include="src\New\Entity\AnimationDrawOffsetClass.h" />
     <ClInclude Include="src\New\Entity\BannerClass.h" />
+    <ClInclude Include="src\New\Interfaces\ShiftLocomotionClass.h" />
     <ClInclude Include="src\New\MessageHandler\MessageButtonClass.h" />
     <ClInclude Include="src\New\MessageHandler\MessageColumnClass.h" />
     <ClInclude Include="src\New\MessageHandler\MessageLabelClass.h" />

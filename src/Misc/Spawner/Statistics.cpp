@@ -33,6 +33,11 @@
 
 #include <Phobos.Lua.h>
 
+#include <InfantryClass.h>
+#include <AircraftClass.h>
+#include <UnitClass.h>
+#include <BuildingClass.h>
+
 bool FORCEDINLINE IsStatisticsEnabled()
 {
 	return SpawnerMain::Configs::Active
@@ -116,7 +121,7 @@ ASMJIT_PATCH(0x6C7921, SendStatisticsPacket_AddField_MyId, 0x6)
 		GET(HouseClass*, pHouse, ESI);
 		GET(char, id, EBX);
 
-		if (pHouse == HouseClass::CurrentPlayer)
+		if (pHouse == HouseClass::CurrentPlayer())
 		{
 			pPacket->AddField<LONG>("MYID", id - '0');
 			pPacket->AddField<DWORD>("NKEY", 0);
@@ -252,30 +257,115 @@ ASMJIT_PATCH(0x64B2E4, KickPlayerNow_SendStatistics, 0x7)
 		: DontSend;
 }
 
-#ifdef TRACKER_REPLACE
+
+#ifndef TRACKER_REPLACE
+
 #include <PacketClass.h>
 
+#define GET_Tracker(a) (a.GetTrackerptr<PhobosUnitTrackerClass>())
+
+class NOVTABLE UnitTrackerPadWrapClass : public UnitTrackerPadClass
+{
+public:
+
+	void IncrementUnitCount(int nUnit) {
+		auto pTracker = this->GetTrackerptr<PhobosUnitTrackerClass>();
+		auto count = pTracker->GetCounts();
+
+		if (nUnit >= count)
+			Debug::FatalError("IncrementTracking Index %d of avaible %d !", nUnit, count);
+
+		pTracker->Increment(nUnit);
+	}
+
+	void DecrementUnitCount(int nUnit) {
+		auto pTracker = this->GetTrackerptr<PhobosUnitTrackerClass>();
+		auto count = pTracker->GetCounts();
+
+		if (nUnit >= count)
+			Debug::FatalError("DecrementTracking Index %d of avaible %d !", nUnit, count);
+
+		pTracker->Decrement(nUnit);
+	}
+
+	int GetCounts() {
+		return this->GetTrackerptr<PhobosUnitTrackerClass>()->GetAll();
+	}
+
+	void ClearCount() {
+		this->GetTrackerptr<PhobosUnitTrackerClass>()->ClearCount();
+	}
+};
+static_assert(sizeof(UnitTrackerPadWrapClass) == sizeof(UnitTrackerClass), "size missmatch !");
+static_assert(!std::is_polymorphic_v<UnitTrackerPadWrapClass>, "UnitTrackerPadWrapClass has vtable!");
+static_assert(alignof(UnitTrackerPadWrapClass) == alignof(UnitTrackerClass), "Alignment mismatch!");
+static_assert(!std::is_polymorphic_v<PhobosUnitTrackerClass>, "PhobosUnitTrackerClass has vtable!");
+
+ASMJIT_PATCH(0x4F58E9, HouseClass_CTOR_Trackers, 0x6){
+	GET(HouseClass*, pThis ,EBP);
+
+	pThis->TrackedBuiltAircraftTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+	pThis->TrackedBuiltInfantryTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+	pThis->TrackedBuiltUnitTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+	pThis->TrackedBuiltBuildingTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+	pThis->TrackedKilledAircraftTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+	pThis->TrackedKilledInfantryTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+	pThis->TrackedKilledUnitTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+	pThis->TrackedKilledBuildingTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+	pThis->TrackedCapturedBuildings.AllocateTrackerptr<PhobosUnitTrackerClass>();
+	pThis->TrackedCollectedCrates.AllocateTrackerptr<PhobosUnitTrackerClass>();
+
+	GET_Tracker(pThis->TrackedBuiltAircraftTypes)->Populate(AircraftTypeClass::Array->Count);
+	GET_Tracker(pThis->TrackedBuiltInfantryTypes)->Populate(InfantryTypeClass::Array->Count);
+	GET_Tracker(pThis->TrackedBuiltUnitTypes)->Populate(UnitTypeClass::Array->Count);
+	GET_Tracker(pThis->TrackedBuiltBuildingTypes)->Populate(BuildingTypeClass::Array->Count);
+	GET_Tracker(pThis->TrackedKilledAircraftTypes)->Populate(AircraftTypeClass::Array->Count);
+	GET_Tracker(pThis->TrackedKilledInfantryTypes)->Populate(InfantryTypeClass::Array->Count);
+	GET_Tracker(pThis->TrackedKilledUnitTypes)->Populate(UnitTypeClass::Array->Count);
+	GET_Tracker(pThis->TrackedKilledBuildingTypes)->Populate(BuildingTypeClass::Array->Count);
+	GET_Tracker(pThis->TrackedCapturedBuildings)->Populate(BuildingTypeClass::Array->Count);
+	GET_Tracker(pThis->TrackedCollectedCrates)->Populate(CrateTypeClass::Array.size());
+
+	return 0x4F5957;
+}
+
 DEFINE_JUMP(LJMP, 0x4F638F, 0x4F643B)
+
+ASMJIT_PATCH(0x4F7527, HouseClass_DTOR_Trackers, 0x6){
+	GET(HouseClass*, pThis ,ESI);
+
+	pThis->TrackedBuiltAircraftTypes.DeallocateTrackerptr<PhobosUnitTrackerClass>();
+	pThis->TrackedBuiltInfantryTypes.DeallocateTrackerptr<PhobosUnitTrackerClass>();
+	pThis->TrackedBuiltUnitTypes.DeallocateTrackerptr<PhobosUnitTrackerClass>();
+	pThis->TrackedBuiltBuildingTypes.DeallocateTrackerptr<PhobosUnitTrackerClass>();
+	pThis->TrackedKilledAircraftTypes.DeallocateTrackerptr<PhobosUnitTrackerClass>();
+	pThis->TrackedKilledInfantryTypes.DeallocateTrackerptr<PhobosUnitTrackerClass>();
+	pThis->TrackedKilledUnitTypes.DeallocateTrackerptr<PhobosUnitTrackerClass>();
+	pThis->TrackedKilledBuildingTypes.DeallocateTrackerptr<PhobosUnitTrackerClass>();
+	pThis->TrackedCapturedBuildings.DeallocateTrackerptr<PhobosUnitTrackerClass>();
+	pThis->TrackedCollectedCrates.DeallocateTrackerptr<PhobosUnitTrackerClass>();
+	return 0x4F7595;
+}
 
 ASMJIT_PATCH(0x6C92CB, StandaloneScore_SinglePlayerScoreDialog_Trackers, 0x6)
 {
 	GET(HouseClass*, pHouse, EDI);
 	int sum = 0;
-	const auto pExt = HouseExtContainer::Instance.Find(pHouse);
-	sum += pExt->KilledAircraftTypes.GetAll();
-	sum += pExt->KilledInfantryTypes.GetAll();
-	sum += pExt->KilledUnitTypes.GetAll();
-	sum += pExt->KilledBuildingTypes.GetAll();
+
+	sum += GET_Tracker(pHouse->TrackedKilledAircraftTypes)->GetCounts();
+	sum += GET_Tracker(pHouse->TrackedKilledInfantryTypes)->GetCounts();
+	sum += GET_Tracker(pHouse->TrackedKilledUnitTypes)->GetCounts();
+	sum += GET_Tracker(pHouse->TrackedKilledBuildingTypes)->GetCounts();
 	R->ESI(sum);
 	return 0x6C9303;
 }
 
 template <typename T>
-void FillTracker(HouseClass* pHouse, TrackerClass& tracker) {
+void FillTracker(HouseClass* pHouse, PhobosUnitTrackerClass* tracker) {
 	for (int i = 0; i < T::Array->Count; ++i) {
 
 		if (T::Array->Items[i] && T::Array->Items[i]->Owner == pHouse) {
-			tracker.Increment(T::Array->Items[i]->Type->ArrayIndex);
+			tracker->Increment(T::Array->Items[i]->Type->ArrayIndex);
 		}
 	}
 }
@@ -286,96 +376,52 @@ ASMJIT_PATCH(0x6C7B68, SendStatistic_Trackers, 0x6)
 	LEA_STACK(PacketClass*, pPacket, 0x83A4 - 0x8394);
 	char last = R->BL();
 
-	const auto pExt = HouseExtContainer::Instance.Find(pHouse);
-
-
-	auto FillPacket = [pPacket ,last](TrackerClass& tracker , PacketFieldRep field)
+	auto FillPacket = [pPacket ,last](PhobosUnitTrackerClass* tracker , PacketFieldRep field, bool clear)
 	{
-		int size = 0;
-		for (int i = 0; i < tracker.GetCounts(); ++i) {
-			if (tracker.GetCount(i)){
-				size = i + 1;
-			}
-		}
-
 		Game::PacketFields[(int)field].str[3] = last;
-		pPacket->AddField<void*>(Game::PacketFields[(int)field].str, (void*)tracker.GetData(), size);
+		auto[data , size] = tracker->SendNetworkFlatData();
+		pPacket->AddField<void*>(Game::PacketFields[(int)field].str, (void*)data, size);
+
+		if(clear)
+			tracker->Clear();
 	};
 
 	//Send Previous Built Data
-	pExt->BuiltAircraftTypes.ToNetwork();
-	pExt->BuiltInfantryTypes.ToNetwork();
-	pExt->BuiltUnitTypes.ToNetwork();
-	pExt->BuiltBuildingTypes.ToNetwork();
+	FillPacket(GET_Tracker(pHouse->TrackedBuiltInfantryTypes), PacketFieldRep::INB, true);
+	FillPacket(GET_Tracker(pHouse->TrackedBuiltUnitTypes), PacketFieldRep::UNB, true);
+	FillPacket(GET_Tracker(pHouse->TrackedBuiltAircraftTypes), PacketFieldRep::PLB, true);
+	FillPacket(GET_Tracker(pHouse->TrackedBuiltBuildingTypes), PacketFieldRep::BLB, true);
 
-	FillPacket(pExt->BuiltInfantryTypes, PacketFieldRep::INB);
-	FillPacket(pExt->BuiltUnitTypes, PacketFieldRep::UNB);
-	FillPacket(pExt->BuiltAircraftTypes, PacketFieldRep::PLB);
-	FillPacket(pExt->BuiltBuildingTypes, PacketFieldRep::BLB);
-
-	pExt->BuiltAircraftTypes.ToPC();
-	pExt->BuiltInfantryTypes.ToPC();
-	pExt->BuiltUnitTypes.ToPC();
-	pExt->BuiltBuildingTypes.ToPC();
-	//
-
+	//Re-Count Built Data
+	FillTracker<InfantryClass>(pHouse, pHouse->TrackedBuiltInfantryTypes.GetTrackerptr<PhobosUnitTrackerClass>());
+	FillTracker<UnitClass>(pHouse, pHouse->TrackedBuiltUnitTypes.GetTrackerptr<PhobosUnitTrackerClass>());
+	FillTracker<AircraftClass>(pHouse, pHouse->TrackedBuiltAircraftTypes.GetTrackerptr<PhobosUnitTrackerClass>());
+	FillTracker<BuildingClass>(pHouse, pHouse->TrackedBuiltBuildingTypes.GetTrackerptr<PhobosUnitTrackerClass>());
 	//Send Current Built Data
-	pExt->BuiltAircraftTypes.ClearCount();
-	pExt->BuiltInfantryTypes.ClearCount();
-	pExt->BuiltUnitTypes.ClearCount();
-	pExt->BuiltBuildingTypes.ClearCount();
+	FillPacket(GET_Tracker(pHouse->TrackedBuiltInfantryTypes), PacketFieldRep::INL, false);
+	FillPacket(GET_Tracker(pHouse->TrackedBuiltUnitTypes), PacketFieldRep::UNL, false);
+	FillPacket(GET_Tracker(pHouse->TrackedBuiltAircraftTypes), PacketFieldRep::PLL, false);
+	FillPacket(GET_Tracker(pHouse->TrackedBuiltBuildingTypes), PacketFieldRep::BLL, false);
 
-	FillTracker<UnitClass>(pHouse, pExt->BuiltUnitTypes);
-	FillTracker<InfantryClass>(pHouse, pExt->BuiltInfantryTypes);
-	FillTracker<AircraftClass>(pHouse, pExt->BuiltAircraftTypes);
-	FillTracker<BuildingClass>(pHouse, pExt->BuiltBuildingTypes);
+	//Send Current Kill Data
+	FillPacket(GET_Tracker(pHouse->TrackedKilledInfantryTypes), PacketFieldRep::INK, false);
+	FillPacket(GET_Tracker(pHouse->TrackedKilledUnitTypes), PacketFieldRep::UNK, false);
+	FillPacket(GET_Tracker(pHouse->TrackedKilledAircraftTypes), PacketFieldRep::PLK, false);
+	FillPacket(GET_Tracker(pHouse->TrackedKilledBuildingTypes), PacketFieldRep::BLK, false);
 
-	pExt->BuiltAircraftTypes.ToNetwork();
-	pExt->BuiltInfantryTypes.ToNetwork();
-	pExt->BuiltUnitTypes.ToNetwork();
-	pExt->BuiltBuildingTypes.ToNetwork();
+	//Send Current Capture Data
+	FillPacket(GET_Tracker(pHouse->TrackedCapturedBuildings), PacketFieldRep::BLC, false);
 
-	FillPacket(pExt->BuiltInfantryTypes, PacketFieldRep::INL);
-	FillPacket(pExt->BuiltUnitTypes, PacketFieldRep::UNL);
-	FillPacket(pExt->BuiltAircraftTypes, PacketFieldRep::PLL);
-	FillPacket(pExt->BuiltBuildingTypes, PacketFieldRep::BLL);
-	//
+	//Send Current Crate Data
+	FillPacket(GET_Tracker(pHouse->TrackedCollectedCrates), PacketFieldRep::CRA, false);
 
-	//Send Kill Data
-	pExt->KilledInfantryTypes.ToNetwork();
-	pExt->KilledUnitTypes.ToNetwork();
-	pExt->KilledAircraftTypes.ToNetwork();
-	pExt->KilledBuildingTypes.ToNetwork();
-
-	FillPacket(pExt->KilledInfantryTypes, PacketFieldRep::INK);
-	FillPacket(pExt->KilledUnitTypes, PacketFieldRep::UNK);
-	FillPacket(pExt->KilledAircraftTypes, PacketFieldRep::PLK);
-	FillPacket(pExt->KilledBuildingTypes, PacketFieldRep::BLK);
-	//
-
-	//Send Captured Data
-	pExt->CapturedBuildings.ToNetwork();
-	FillPacket(pExt->CapturedBuildings, PacketFieldRep::BLC);
-	//
-
-	//Semd ColledtedCrates Data
-	pExt->CollectedCrates.ToNetwork();
-	FillPacket(pExt->CollectedCrates, PacketFieldRep::CRA);
-	//
 
 	return 0x6C8369;
 }
 
-template<uintptr_t offset>
-FORCEDINLINE HouseClass* GetHouseClassptr(UnitTrackerClass* pTrack)
-{
-	uintptr_t ptr = (uintptr_t)pTrack;
-	return reinterpret_cast<HouseClass*>(ptr - offset);
-}
-
 void HouseExtData::IncremetCrateTracking(HouseClass* pHouse, Powerup type) {
 	if (IsStatisticsEnabled() || SessionClass::Instance->GameMode == GameMode::Internet) {
-		HouseExtContainer::Instance.Find(pHouse)->CollectedCrates.Increment((int)type);
+		GET_Tracker(pHouse->TrackedCollectedCrates)->Increment((int)type);
 	}
 }
 
@@ -387,58 +433,24 @@ ASMJIT_PATCH(0x448524, BuildingClass_Captured_SendStatistics, 0x7)
 
 	if ((IsStatisticsEnabled() || (SessionClass::Instance->GameMode == GameMode::Internet))
 		&& !pThis->Type->DontScore ) {
-		HouseExtContainer::Instance.Find(pNewOwner)->BuiltInfantryTypes.Increment(pThis->Type->ArrayIndex);
+		GET_Tracker(pNewOwner->TrackedCapturedBuildings)->Increment(pThis->Type->ArrayIndex);
 	}
 
 	return DontSend;
 }
 
-void __fastcall increment_tracker_inf(UnitTrackerClass* pTracker, DWORD, int idx) {
-	HouseExtContainer::Instance.Find(GetHouseClassptr<0xB30>(pTracker))->BuiltInfantryTypes.Increment(idx);
-}
-DEFINE_FUNCTION_JUMP(CALL, 0x4FF854, increment_tracker_inf));
-void __fastcall increment_tracker_destroyedinf(UnitTrackerClass* pTracker, DWORD, int idx) {
-	HouseExtContainer::Instance.Find(GetHouseClassptr<0x2B50>(pTracker))->KilledInfantryTypes.Increment(idx);
-}
-//Destroyed
-DEFINE_FUNCTION_JUMP(CALL, 0x703152, increment_tracker_destroyedinf));
-DEFINE_FUNCTION_JUMP(CALL, 0x7034B4, increment_tracker_destroyedinf));
-
-void __fastcall increment_tracker_Unit(UnitTrackerClass* pTracker, DWORD, int idx) {
-	HouseExtContainer::Instance.Find(GetHouseClassptr<0x1338>(pTracker))->BuiltInfantryTypes.Increment(idx);
-}
-DEFINE_FUNCTION_JUMP(CALL,0x4FF893, increment_tracker_Unit));
-void __fastcall increment_tracker_destroyedunit(UnitTrackerClass* pTracker, DWORD, int idx)
-{
-	HouseExtContainer::Instance.Find(GetHouseClassptr<0x3358>(pTracker))->KilledUnitTypes.Increment(idx);
-}
-//Destroyed
-DEFINE_FUNCTION_JUMP(CALL, 0x703198, increment_tracker_destroyedunit));
-DEFINE_FUNCTION_JUMP(CALL, 0x7034F4, increment_tracker_destroyedunit));
-
-void __fastcall increment_tracker_Aircraft(UnitTrackerClass* pTracker, DWORD, int idx) {
-	HouseExtContainer::Instance.Find(GetHouseClassptr<0x328>(pTracker))->BuiltAircraftTypes.Increment(idx);
-}
-DEFINE_FUNCTION_JUMP(CALL,0x4FF7FB, increment_tracker_Aircraft));
-//destroyed
-void __fastcall increment_tracker_destroyedaircraft(UnitTrackerClass* pTracker, DWORD, int idx)
-{
-	HouseExtContainer::Instance.Find(GetHouseClassptr<0x2348>(pTracker))->KilledAircraftTypes.Increment(idx);
-}
-DEFINE_FUNCTION_JUMP(CALL, 0x703108, increment_tracker_destroyedaircraft));
-DEFINE_FUNCTION_JUMP(CALL, 0x703474, increment_tracker_destroyedaircraft));
-
-void __fastcall increment_tracker_Building(UnitTrackerClass* pTracker, DWORD, int idx) {
-	HouseExtContainer::Instance.Find(GetHouseClassptr<0x1B40>(pTracker))->BuiltBuildingTypes.Increment(idx);
-}
-DEFINE_FUNCTION_JUMP(CALL,0x4FF7BD, increment_tracker_Building));
-//destroyed
-void __fastcall increment_tracker_destroyedbuilding (UnitTrackerClass* pTracker, DWORD, int idx)
-{
-	HouseExtContainer::Instance.Find(GetHouseClassptr<0x3B60>(pTracker))->KilledBuildingTypes.Increment(idx);
-}
-DEFINE_FUNCTION_JUMP(CALL, 0x703093, increment_tracker_destroyedbuilding));
-DEFINE_FUNCTION_JUMP(CALL, 0x703403, increment_tracker_destroyedbuilding));
+DEFINE_FUNCTION_JUMP(CALL, 0x4FF854, UnitTrackerPadWrapClass::IncrementUnitCount);
+DEFINE_FUNCTION_JUMP(CALL, 0x703152, UnitTrackerPadWrapClass::IncrementUnitCount);
+DEFINE_FUNCTION_JUMP(CALL, 0x7034B4, UnitTrackerPadWrapClass::IncrementUnitCount);
+DEFINE_FUNCTION_JUMP(CALL, 0x4FF893, UnitTrackerPadWrapClass::IncrementUnitCount);
+DEFINE_FUNCTION_JUMP(CALL, 0x703198, UnitTrackerPadWrapClass::IncrementUnitCount);
+DEFINE_FUNCTION_JUMP(CALL, 0x7034F4, UnitTrackerPadWrapClass::IncrementUnitCount);
+DEFINE_FUNCTION_JUMP(CALL, 0x4FF7FB, UnitTrackerPadWrapClass::IncrementUnitCount);
+DEFINE_FUNCTION_JUMP(CALL, 0x703108, UnitTrackerPadWrapClass::IncrementUnitCount);
+DEFINE_FUNCTION_JUMP(CALL, 0x703474, UnitTrackerPadWrapClass::IncrementUnitCount);
+DEFINE_FUNCTION_JUMP(CALL, 0x4FF7BD, UnitTrackerPadWrapClass::IncrementUnitCount);
+DEFINE_FUNCTION_JUMP(CALL, 0x703093, UnitTrackerPadWrapClass::IncrementUnitCount);
+DEFINE_FUNCTION_JUMP(CALL, 0x703403, UnitTrackerPadWrapClass::IncrementUnitCount);
 #else
 
 ASMJIT_PATCH(0x448524, BuildingClass_Captured_SendStatistics, 0x7)
@@ -453,7 +465,7 @@ ASMJIT_PATCH(0x448524, BuildingClass_Captured_SendStatistics, 0x7)
 void HouseExtData::IncremetCrateTracking(HouseClass* pHouse, Powerup type)
 {
 	if ((IsStatisticsEnabled() || (SessionClass::Instance->GameMode == GameMode::Internet)) && (int)type < 19u) {
-		pHouse->CollectedCrates.IncrementUnitCount((int)type);
+		pHouse->TrackedCollectedCrates.IncrementUnitCount((int)type);
 	}
 }
 

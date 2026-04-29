@@ -243,6 +243,25 @@ namespace Math
 	{
 		return atan2((double)a1, (double)a2);
 	}
+	
+
+	static FORCEDINLINE double hypot(double a1, double a2){
+		return std::hypot(a1, a2);
+	}
+
+	static FORCEDINLINE double ceil(double a1) {
+		return std::ceil(a1);
+	}
+
+	static FORCEDINLINE long long llround(double a1) {
+		return std::llround(a1);
+	}
+
+	// Use frac to interpolate
+	static FORCEDINLINE int lerp(int a, int b, double tt) {
+		return static_cast<int>(Math::llround(a + (b - a) * tt));
+	};
+
 #else
 
 	float FORCEDINLINE sqrt(int value) noexcept {

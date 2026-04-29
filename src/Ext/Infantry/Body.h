@@ -111,25 +111,6 @@ public:
 	WeaponStruct* _GetDeployWeapon();
 	DamageState _Take_Damage(int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse);
 
-	DamageState _IronCurtain(int nDur, HouseClass* pSource, bool bIsFC)
-	{
-		if (this->Type->Engineer && this->TemporalTargetingMe && this->Destination)
-		{
-			if (auto const pCell = this->GetCell())
-			{
-				if (auto const pBld = pCell->GetBuilding())
-				{
-					if (this->Destination == pBld && pBld->Type->BridgeRepairHut)
-					{
-						return DamageState::Unaffected;
-					}
-				}
-			}
-		}
-
-		return this->TechnoClass::IronCurtain(nDur, pSource, bIsFC);
-	}
-
 	void _DestroyThis(char flag) JMP_THIS(0x523350);
 	void _Detach(AbstractClass* target, bool all);
 

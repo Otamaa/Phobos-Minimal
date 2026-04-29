@@ -119,6 +119,133 @@ private:
 	}
 };
 
+struct NOVTABLE PhobosUnitTrackerClass
+{
+	void Populate(int size)
+	{
+		this->Items.resize(size);
+	}
+
+	int GetAll() const
+	{
+		int sum = 0;
+
+		for (auto& item : this->Items) {
+			sum += item;
+		}
+
+		return sum;
+	}
+
+	int GetCounts() const
+	{
+		return (int)this->Items.size();
+	}
+
+	int GetCount(int at)
+	{
+		return this->Items[at];
+	}
+
+	void Increment(int at)
+	{
+		++this->Items[at];
+	}
+
+	void Decrement(int at)
+	{
+		--this->Items[at];
+	}
+
+	void Clear()
+	{
+		this->Items.clear();
+		this->FlatBuffer.clear();
+	}
+
+	void ClearCount()
+	{
+		for (auto& item : this->Items) {
+			item = 0;
+		}
+	}
+
+	//data ptr , data size
+	std::pair<int*, int> SendNetworkFlatData()
+	{
+		this->FlatBuffer.resize(this->Items.size());
+
+		for (size_t i = 0; i < this->Items.size(); ++i) {
+			this->FlatBuffer[i] = htonl(this->Items[i]);
+		}
+
+		return { this->FlatBuffer.data(), static_cast<int>(this->FlatBuffer.size() * sizeof(int)) };
+	}
+
+	void ReceiveNetworkFlatBuffer(int* data, size_t sizeInBytes)
+	{
+
+		this->Items.clear();
+		const size_t elementCount = sizeInBytes / sizeof(int);
+		this->Items.resize(elementCount);
+
+		for (size_t i = 0; i < elementCount; i += 1)
+		{
+			this->Items[i] = ntohl(data[i]);
+		}
+	}
+
+	HRESULT Load(IStream* pStm)
+	{
+		int count = 0;
+		HRESULT hr = pStm->Read(&count, sizeof(count), nullptr);
+		if (FAILED(hr))
+		{
+			return hr;
+		}
+
+		this->Items.resize(count);
+
+		for (int i = 0; i < count; i++)
+		{
+			hr = pStm->Read(&Items[i], sizeof(Items[i]), nullptr);
+			if (FAILED(hr))
+			{
+				return hr;
+			}
+
+		}
+
+		return S_OK;
+	}
+
+	HRESULT Save(IStream* pStm)
+	{
+		int count = (int)this->Items.size();
+		HRESULT hr = pStm->Write(&count, sizeof(int), nullptr);
+		if (FAILED(hr))
+		{
+			return hr;
+		}
+
+		for (int i = 0; i < count; i++)
+		{
+			hr = pStm->Write(&this->Items[i], sizeof(this->Items[i]), nullptr);
+			if (FAILED(hr))
+			{
+				return hr;
+			}
+
+		}
+
+		return S_OK;
+	}
+
+protected:
+	std::vector<int> Items;
+	std::vector<int> FlatBuffer;
+};
+
 class HouseExtData final : public AbstractExtended
 {
 public:
@@ -126,8 +253,6 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "HouseExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "HouseClass";
 	
-	
-
 public:
 
 #pragma region ClassMembers
@@ -504,6 +629,9 @@ class NOVTABLE FakeHouseClass : public HouseClass
 {
 public:
 
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
+
 	bool _IsAlliedWith(HouseClass* pOther);
 	void _Detach(AbstractClass* target, bool all);
 	int _Expert_AI();
@@ -517,9 +645,26 @@ public:
 	void _UpdateSpySat();
 	void _Attacked(BuildingClass* source, WarheadTypeClass* warhead);
 
+	CanBuildResult _Can_Build(TechnoTypeClass* type, char buildLimitOnly, char includeInProduction);
+	int _FactoryCount(AbstractType nWhat, bool IsNaval);
+	int _AI_Supers();
+	int _AI_Aircraft();
+	int _AI_Infantry();
+	int _AI_Unit();
+
+	void _GenerateAIBuildList_Wrapper();
+
+	BuildingTypeClass* _Get_building_5051E0(TypeList<BuildingTypeClass*>* pList);
+	bool _ShouldDisableCameo(TechnoTypeClass* a2);
+	bool _AI_Fire_Sale(UrgencyType urgency);
+	bool _AllPrerequisitesAvailable(TechnoTypeClass* pItem, DynamicVectorClass<BuildingTypeClass*> const& vectorBuildings, int vectorLength);
+
 	// Backported from HouseClass::init_laser_color (0x50BA00-0x50BC90)
 	// Normalizes this->Color into this->LaserColor for laser rendering
 	void _InitLaserColor();
+	double _Get_CostMult(TechnoTypeClass* pType);
+
+	static BuildingClass* __fastcall _Find_Unit_Repair_Station(HouseClass* house, FootClass* foot);
 
 	HouseExtData* _GetExtData() {
 		return *reinterpret_cast<HouseExtData**>(((DWORD)this) + AbstractExtOffset);

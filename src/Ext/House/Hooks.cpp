@@ -34,7 +34,6 @@ ASMJIT_PATCH(0x4FD203, HouseClass_RecalcCenter_Optimize, 0x6)
 	return 0x4FD228;
 }
 
-
 ASMJIT_PATCH(0x4FA5B8, HouseClass_BeginProduction_CompareType, 0x8)
 {
 	GET(TechnoClass*, pObject, ECX);
@@ -69,20 +68,6 @@ ASMJIT_PATCH(0x4FF9C9, HouseClass_ExcludeFromMultipleFactoryBonus, 0x6)
 
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x4FFA99, HouseClass_ExcludeFromMultipleFactoryBonus, 0x6)
-
-ASMJIT_PATCH(0x500910, HouseClass_GetFactoryCount, 0x5)
-{
-	enum { SkipGameCode = 0x50095D };
-
-	GET(FakeHouseClass*, pThis, ECX);
-	GET_STACK(AbstractType, rtti, 0x4);
-	GET_STACK(bool, isNaval, 0x8);
-
-	R->EAX(pThis->_GetExtData()
-		->GetFactoryCountWithoutNonMFB(rtti, isNaval));
-
-	return SkipGameCode;
-}
 
 // Gets the superweapons used by AI for Chronoshift script actions.
 void GetAIChronoshiftSupers(HouseClass* pThis, SuperClass*& pSuperCSphere, SuperClass*& pSuperCWarp)
@@ -173,17 +158,7 @@ ASMJIT_PATCH(0x65E997, HouseClass_SendAirstrike_PlaceAircraft, 0x6)
 	return result ? SkipGameCode : SkipGameCodeNoSuccess;
 }
 
-// ASMJIT_PATCH(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
-// {
-// 	GET(FakeHouseClass*, pThis, ECX);
-
-// 	const auto pHouseExt = pThis->_GetExtData();
-// 	return 0;
-// }
-
-
 #pragma region LimboTracking
-
 
 ASMJIT_PATCH(0x6F6BC9, TechnoClass_Limbo_AddTracking, 0x6)
 {
@@ -324,38 +299,6 @@ ASMJIT_PATCH(0x7015EB, TechnoClass_SetOwningHouse_UpdateTracking, 0x7)
 }
 
 #pragma endregion
-
-ASMJIT_PATCH(0x4FDCE0 , HouseClass_AI_Fire_Sale_OnLastLegs, 0x6){
-	GET(FakeHouseClass*, pThis, ECX);
-	GET_STACK(UrgencyType, urg , 0x4);
-
-	bool ret = false;
-	if(urg == UrgencyType::Critical){
-		auto const pRules = RulesExtData::Instance();
-		auto const pExt = pThis->_GetExtData();
-
-		if (pRules->AISellAllOnLastLegs)
-		{
-			if (pRules->AISellAllDelay <= 0 ||
-				pExt->AISellAllDelayTimer.Completed())
-			{
-				pThis->Fire_Sale();
-			}
-			else if (!pExt->AISellAllDelayTimer.HasStarted())
-			{
-				pExt->AISellAllDelayTimer.Start(pRules->AISellAllDelay);
-			}
-		}
-
-		if (pRules->AIAllInOnLastLegs)
-			pThis->All_To_Hunt();
-
-		ret = true;
-	}
-
-	R->AL(ret);
-	return 0x4FDD00;
-}
 
 // I must not regroup my forces.
 ASMJIT_PATCH(0x739920, UnitClass_TryToDeploy_DisableRegroupAtNewConYard, 0x6)

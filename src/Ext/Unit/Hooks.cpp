@@ -90,7 +90,7 @@ ASMJIT_PATCH(0x73730E, UnitClass_Visceroid_HealthCheckRestore, 0x6)
 			if (pThis->GetCell()->LandType != LandType::Tiberium)
 			{
 				// search tiberium and abort current mission
-				pThis->MoveToTiberium(pThis->Type->Sight, false);
+				pThis->MoveToTiberium(FakeTechnoClass::_GetSight(pThis), false);
 
 				if (pThis->Destination)
 				{

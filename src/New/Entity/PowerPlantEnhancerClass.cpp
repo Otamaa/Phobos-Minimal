@@ -47,7 +47,7 @@ void PowerPlantEnhancerClass::DrawIndicators(BuildingClass* pCurrentBuilding) {
 			enhancerCoords.Z = MapClass::Instance->GetCellFloorHeight(enhancerCoords);
 			const auto& color = pEnhancer->Owner->Color;
 			FakeTacticalClass::__DrawRadialIndicator(false, true, enhancerCoords, color, range, false, true);
-		}
+		} 
 }
 
 // ========================================================================

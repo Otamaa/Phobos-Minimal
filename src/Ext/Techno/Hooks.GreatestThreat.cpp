@@ -696,7 +696,7 @@ bool FakeTechnoClass::__EvaluateObjectB(
 	// =========================================================================
 	// 3. VHP scan: skip dead targets when scanning for living ones
 	// =========================================================================
-	if (target->EstimatedHealth <= 0 && pType->VHPScan == 2)
+	if (target->EstimatedHealth <= 0 && pType->VHPScan == VHPScanType::Strong)
 		return false;
 
 	// =========================================================================
@@ -1296,7 +1296,7 @@ bool FakeTechnoClass::__EvaluateObjectB(
 	// 28. VHP scan adjustment
 	//     VHPScan == 1: reward damaged targets, penalise already-dead ones.
 	// =========================================================================
-	if (pType->VHPScan == 1 && pTechnoTarget)
+	if (pType->VHPScan == VHPScanType::Normal && pTechnoTarget)
 	{
 		if (target->EstimatedHealth <= 0)
 			*value /= 2;

@@ -11,13 +11,14 @@
 #include <Ext/Building/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/SWType/NewSuperWeaponType/LightningStorm.h>
-#include <Ext/WarheadType/Body.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/Helpers.h>
 
 #include <New/Entity/FlyingStrings.h>
+#include <New/Entity/ShieldClass.h>
+#include <New/Entity/ShiftSchedule.h>
 #include <New/Type/ArmorTypeClass.h>
 
 #include <IonBlastClass.h>
@@ -28,6 +29,8 @@
 
 #include <AircraftClass.h>
 #include <SpawnManagerClass.h>
+
+#include <New/Interfaces/ShiftLocomotionClass.h>
 
 #pragma region defines
 PhobosMap<IonBlastClass*, WarheadTypeExtData*> WarheadTypeExtData::IonBlastExt;
@@ -776,6 +779,15 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->JumpjetNoWobbles.Read(exINI, pSection, "JumpjetNoWobbles");
 	this->JumpjetDeviation.Read(exINI, pSection, "JumpjetDeviation");
 
+	this->KnockUp.Read(exINI, pSection, "KnockUp");
+	this->KnockUp_Range.Read(exINI, pSection, "KnockUp.Range");
+	this->KnockUp_Speed.Read(exINI, pSection, "KnockUp.Speed");
+	this->KnockUp_Angle.Read(exINI, pSection, "KnockUp.Angle");
+
+	this->Traction.Read(exINI, pSection, "Traction");
+	this->Traction_Range.Read(exINI, pSection, "Traction.Range");
+	this->Traction_Speed.Read(exINI, pSection, "Traction.Speed");
+
 	this->IsCellSpreadWH =
 		this->RemoveDisguise ||
 		this->RemoveMindControl ||
@@ -808,6 +820,8 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		|| this->BuildingUndeploy
 		|| this->ReverseEngineer
 		|| this->ReturnWarhead
+		|| this->KnockUp
+		|| this->Traction
 		;
 
 	this->IsFakeEngineer =
@@ -2118,6 +2132,15 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->JumpjetWobbles)
 		.Process(this->JumpjetNoWobbles)
 		.Process(this->JumpjetDeviation)
+
+		.Process(this->KnockUp)
+		.Process(this->KnockUp_Range)
+		.Process(this->KnockUp_Speed)
+		.Process(this->KnockUp_Angle)
+
+		.Process(this->Traction)
+		.Process(this->Traction_Range)
+		.Process(this->Traction_Speed)
 		;
 }
 
@@ -2206,6 +2229,95 @@ void WarheadTypeExtData::GetCritChance(TechnoClass* pFirer, double& chances) con
 		chances = AEExtraCrit::Count(chances, valids);
 	}
 }
+
+void WarheadTypeExtData::ApplyKnockUp(TechnoClass* pTarget)
+{
+	auto pTargetFoot = flag_cast_to<FootClass*, true>(pTarget);
+
+	if (!pTargetFoot)
+		return;
+
+	// same locomotor? no point to change
+	CLSID targetCLSID { };
+	CLSID inflictCLSID = __uuidof(ShiftLocomotionClass);
+	auto pLoco = pTargetFoot->Locomotor;
+	IPersistPtr pLocoPersist = pLoco;
+	if (SUCCEEDED(pLocoPersist->GetClassID(&targetCLSID)) && targetCLSID == inflictCLSID)
+		return;
+
+	// prevent endless piggyback
+	IPiggybackPtr pTargetPiggy = pTargetFoot->Locomotor;
+	if (pTargetPiggy != nullptr && pTargetPiggy->Is_Piggybacking())
+		return;
+
+	bool isAirUnit = ShiftLocomotionClass::IsAirLoco(pLoco);
+
+	// Calculate the reverse direction of PrimaryFacing
+	DirStruct facing = pTargetFoot->PrimaryFacing.Current();
+
+	// Convert facing to a unit vector
+	double angleRad = -facing.GetRadian<65536>();
+	double dx = Math::cos(angleRad);
+	double dy = Math::sin(angleRad);
+
+	// Opposite direction
+	dx = -dx;
+	dy = -dy;
+
+	// Calculate end position based on range
+	int range = this->KnockUp_Range.Get();
+	CoordStruct knockUpOffset;
+	knockUpOffset.X = static_cast<int>(range * dx);
+	knockUpOffset.Y = static_cast<int>(range * dy);
+	knockUpOffset.Z = 0;
+
+	// Check bridge at destination - if there's a bridge, use bridge height
+	CoordStruct destCoords;
+
+	if (isAirUnit)
+	{
+		destCoords = pTargetFoot->GetCoords() + knockUpOffset;
+		destCoords.Z = pTargetFoot->GetHeight() + MapClass::Instance->GetCellAt(destCoords)->GetCoordsWithBridge().Z;
+	}
+	else
+	{
+		destCoords = pTargetFoot->GetCoords() + knockUpOffset;
+		auto destCellCoords = MapClass::Instance->GetCellAt(destCoords)->GetCoords();
+		auto currentCellCoords = pTargetFoot->GetCell()->GetCoords();
+		auto currentCrd = pTargetFoot->GetCoords();
+		destCoords = destCellCoords + (currentCrd - currentCellCoords);
+		destCoords.Z = pTargetFoot->GetHeight() + MapClass::Instance->GetCellAt(destCoords)->GetCoordsWithBridge().Z;
+	}
+
+	destCoords = ShiftLocomotionClass::FindShiftDestination(pTargetFoot, destCoords);
+
+	if (destCoords != CoordStruct::Empty)
+	{
+		// Create shift schedule
+		auto sampleStart = ShiftSchedule::Sample(
+			pTargetFoot->GetCoords(),
+			pTargetFoot->PrimaryFacing.Current(),
+			0.0f, 0.0f, false);
+
+		auto sampleEnd = ShiftSchedule::Sample(
+			destCoords,
+			pTargetFoot->PrimaryFacing.Current(),
+			0.0f, 0.0f, true);
+
+		auto params = ParabolaParams(this->KnockUp_Angle.Get(), this->KnockUp_Speed.Get());
+		auto schedule = ParabolaShiftSchedule(sampleStart, sampleEnd, &params);
+
+		// Queue the shift
+		auto pExt = TechnoExtContainer::Instance.Find(pTarget);
+		pExt->QueuedShift = std::make_unique<ParabolaShiftSchedule>(schedule);
+
+		// Change locomotor
+		LocomotionClass::ChangeLocomotorTo(pTargetFoot, inflictCLSID);
+	}
+}
+
+void WarheadTypeExtData::ApplyTraction(TechnoClass * pTarget, const CoordStruct & coords)
+{}
 
 void WarheadTypeExtData::ApplyAttachEffects(TechnoClass* pTarget, HouseClass* pInvokerHouse, TechnoClass* pInvoker)
 {

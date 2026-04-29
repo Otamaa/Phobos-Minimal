@@ -5230,7 +5230,7 @@ int __fastcall FakeTechnoClass::__TimeToBuild(TechnoClass* pThis)
 		if (nFactorySpeed > 0)
 		{//Multiple Factory
 
-			const int factoryCount = pOwner->FactoryCount(what, isNaval);
+			const int factoryCount = ((FakeHouseClass*)pOwner)->_FactoryCount(what, isNaval);
 			const int divisor = (cap > 0 && factoryCount >= cap) ? cap : factoryCount;
 
 			for (int i = divisor - 1; i > 0; --i)
@@ -12828,6 +12828,8 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved, Abstrac
 					AttackerDatas.erase(AttackerDatas.begin() + index);
 				}
 			}
+
+			AnnounceInvalidPointer(this->ShiftApplier, ptr);
 		}
 		break;
 	}
@@ -12838,7 +12840,7 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved, Abstrac
 		AnnounceInvalidPointer(BuildingLight, ptr);
 		break;
 	case AbstractType::House:
-
+		AnnounceInvalidPointer(this->ShiftApplierHouse, ptr);
 		AnnounceInvalidPointer(OriginalPassengerOwner, ptr);
 		break;
 	case AbstractType::Super:

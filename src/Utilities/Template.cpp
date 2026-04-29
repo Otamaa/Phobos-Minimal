@@ -7,6 +7,7 @@
 #include <New/Interfaces/AdvancedDriveLocomotionClass.h>
 #include <New/Interfaces/CustomRocketLocomotionClass.h>
 #include <New/Interfaces/TSJumpJetLocomotionClass.h>
+#include <New/Interfaces/ShiftLocomotionClass.h>
 
 #define PARSE(who)\
 if (IS_SAME_STR_(parser.value(), who ##_data.s_name)) { \
@@ -2332,7 +2333,7 @@ bool detail::read<CLSID>(CLSID& value, INI_EX& parser, const char* pSection, con
 		PARSE(AdvancedDrive)
 		//PARSE(CustomRocket)
 		//PARSE(TSJumpJet)
-
+		PARSE(Shift)
 		//AddMore loco here
 		return false;
 	}

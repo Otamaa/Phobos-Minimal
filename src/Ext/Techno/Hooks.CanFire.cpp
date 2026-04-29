@@ -430,8 +430,7 @@ bool bSkipROF)
 		if (!pWeapon->FireInTransport)
 			return FireError::ILLEGAL;
 
-		auto const pTransport = pThis->Transporter;
-		if (pTransport)
+		if (auto const pTransport = pThis->Transporter)
 		{
 			if (pTransport->IsUnderEMP())
 				return FireError::ILLEGAL;
@@ -442,7 +441,12 @@ bool bSkipROF)
 			if (pTransport->Transporter)
 				return FireError::ILLEGAL;
 
-			if (pTransport->Deactivated
+			const bool isDeactivatedOrAttackedByLocomotor = pTransport->Deactivated
+			|| (pTransport->WhatAmI() != AbstractType::BuildingType
+			&& static_cast<FootClass*>(pTransport)->IsAttackedByLocomotor);
+
+
+			if (isDeactivatedOrAttackedByLocomotor 
 				&& !pTransTypeExt->OpenTopped_AllowFiringIfDeactivated)
 			{
 				return FireError::ILLEGAL;

@@ -37,6 +37,16 @@
 std::chrono::high_resolution_clock::time_point lastFrameTime;
 #include <ThemeClass.h>
 
+ASMJIT_PATCH(0x55B68D, LogicClass_Update_House, 0x5) {
+	for (auto pHouse : *HouseClass::Array) {
+		if (pHouse) {
+			pHouse->Update();
+		}
+	}
+
+	return 0x55B6B3;
+}
+
 //separate the function
 ASMJIT_PATCH(0x55B719, LogicClass_Update_late, 0x5)
 {
@@ -343,7 +353,7 @@ ASMJIT_PATCH(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 
 		const float radius = float((IsCurrentPlayer
 			? pTechnoTypeExt->DesignatorRange
-			: pTechnoTypeExt->InhibitorRange).Get(pCurrentTechnoType->Sight));
+			: pTechnoTypeExt->InhibitorRange).Get(FakeTechnoClass::_GetSight(pCurrentTechno)));
 
 		CoordStruct coords = pCurrentTechno->GetCenterCoords();
 		coords.Z = MapClass::Instance->GetCellFloorHeight(coords);
@@ -742,49 +752,6 @@ ASMJIT_PATCH(0x50AF10, HouseClass_UpdateSuperWeaponsOwned, 5)
 	}
 
 	return 0x50B1CA;
-}
-
-ASMJIT_PATCH(0x50B1D0, HouseClass_UpdateSuperWeaponsUnavailable, 6)
-{
-	GET(HouseClass*, pThis, ECX);
-
-	if (pThis->IsNeutral())
-		return 0x50B1CA;
-
-	if (!pThis->Defeated && !(pThis->IsObserver()))
-	{
-		SuperExtData::UpdateSuperWeaponStatuses(pThis);
-		const bool IsCurrentPlayer = pThis->IsCurrentPlayer();
-
-		// update all super weapons not repeatedly available
-		for (auto& pSuper : pThis->Supers)
-		{
-			if (!pSuper->Granted || pSuper->OneTime)
-			{
-				auto index = pSuper->Type->ArrayIndex;
-				const auto pExt = SuperExtContainer::Instance.Find(pSuper);
-				auto& status = pExt->Statusses;
-
-				if (status.Available)
-				{
-					pSuper->Grant(false, IsCurrentPlayer, !status.PowerSourced);
-
-					if (IsCurrentPlayer)
-					{
-						// hide the cameo (only if this is an auto-firing SW)
-						if (!pExt->Type->SW_ShowCameo || pExt->Type->SW_AutoFire)
-							continue;
-
-						MouseClass::Instance->AddCameo(AbstractType::Special, index);
-						MouseClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(SuperClass::AbsID, index, 0));
-
-					}
-				}
-			}
-		}
-	}
-
-	return 0x50B36E;
 }
 
 ASMJIT_PATCH(0x4555D5, BuildingClass_IsPowerOnline_KeepOnline, 5)

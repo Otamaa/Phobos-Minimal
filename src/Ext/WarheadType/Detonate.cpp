@@ -671,12 +671,23 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 				false
 				);
 
-			std::ranges::for_each(pTargetv, [&](TechnoClass* pTarget) {
-				this->DetonateOnOneUnit(pHouse, pTarget, coords , damage, pOwner, pBullet, ThisbulletWasIntercepted);
-			});
+			if (this->Traction) {
+				// Convert to vector for sorting (std::sort requires random access iterators)
+				std::vector<TechnoClass*> sortedItems(pTargetv.begin(), pTargetv.end());
+				std::sort(sortedItems.begin(), sortedItems.end(), [&coords](TechnoClass* a, TechnoClass* b) {
+						return a->GetCoords().DistanceFromSquared(coords) < b->GetCoords().DistanceFromSquared(coords);
+				});
 
-			if (this->Transact)
-			{
+				for (auto const pTarget : sortedItems)
+					this->DetonateOnOneUnit(pHouse, pTarget, coords, damage, pOwner, pBullet, ThisbulletWasIntercepted);
+			} else {
+				std::ranges::for_each(pTargetv, [&](TechnoClass* pTarget) {
+					this->DetonateOnOneUnit(pHouse, pTarget, coords, damage, pOwner, pBullet, ThisbulletWasIntercepted);
+				});
+
+			}
+
+			if (this->Transact) {
 				this->TransactOnAllUnits(pTargetv, pHouse, pOwner);
 			}
 
@@ -868,6 +879,18 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 			return;
 	}
 
+	// Apply knockup and traction effects
+	if (this->KnockUp)
+		this->ApplyKnockUp(pTarget);
+
+	if (!pTarget->IsAlive)
+		return;
+
+	if (this->Traction)
+		this->ApplyTraction(pTarget, coords);
+
+	if (!pTarget->IsAlive)
+		return;
 
 	for(auto& id : this->LimboKill_IDs){
 		BuildingExtData::ApplyLimboKill(id, -1 ,this->LimboKill_Affected, pTarget->Owner, pHouse);

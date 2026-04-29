@@ -288,7 +288,7 @@ public:
 	double          Size;
 	double          SizeLimit;
 	bool            HoverAttack;
-	int             VHPScan;
+	VHPScanType     VHPScan;
 	int             unknown_int_398;
 	DWORD			align_39C;
 	double          RollAngle;

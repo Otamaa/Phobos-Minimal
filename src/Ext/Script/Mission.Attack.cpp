@@ -494,7 +494,7 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 	for (int i = 0; i < TechnoClass::Array->Count; i++)
 	{
 		auto object = TechnoClass::Array->Items[i];
-		if (!ScriptExtData::IsUnitAvailable(object, true) || object == pTechno || object->EstimatedHealth <= 0 && pTechnoType->VHPScan == 2)
+		if (!ScriptExtData::IsUnitAvailable(object, true) || object == pTechno || object->EstimatedHealth <= 0 && pTechnoType->VHPScan == VHPScanType::Strong)
 			continue;
 
 		if (object->Spawned)
@@ -627,7 +627,7 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 					objectThreatValue += object->Health * (1 - object->GetHealthPercentage());
 					value = (objectThreatValue * threatMultiplier) / ((pTechno->DistanceFrom(object) / 256.0) + 1.0);
 
-					if (pTechnoType->VHPScan == 1) {
+					if (pTechnoType->VHPScan == VHPScanType::Normal) {
 						if (object->EstimatedHealth <= 0)
 							value /= 2;
 						else if (object->EstimatedHealth <= objectType->Strength / 2)

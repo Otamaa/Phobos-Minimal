@@ -30,17 +30,6 @@
 
 void HouseExtData::InitializeTrackers(HouseClass* pHouse)
 {
-	//auto pExt = HouseExtContainer::Instance.Find(pHouse);
-	//pExt->BuiltAircraftTypes.PopulateCounts(AircraftTypeClass::Array->Count);
-	//pExt->BuiltInfantryTypes.PopulateCounts(InfantryTypeClass::Array->Count);
-	//pExt->BuiltUnitTypes.PopulateCounts(UnitTypeClass::Array->Count);
-	//pExt->BuiltBuildingTypes.PopulateCounts(BuildingTypeClass::Array->Count);
-	//pExt->KilledAircraftTypes.PopulateCounts(AircraftTypeClass::Array->Count);
-	//pExt->KilledInfantryTypes.PopulateCounts(InfantryTypeClass::Array->Count);
-	//pExt->KilledUnitTypes.PopulateCounts(UnitTypeClass::Array->Count);
-	//pExt->KilledBuildingTypes.PopulateCounts(BuildingTypeClass::Array->Count);
-	//pExt->CapturedBuildings.PopulateCounts(BuildingTypeClass::Array->Count);
-	//pExt->CollectedCrates.PopulateCounts(CrateTypeClass::Array.size());
 }
 
 // restored from TS
@@ -114,6 +103,49 @@ void FakeHouseClass::_GiveTiberium(float amount, int type)
 		this->Balance += int(amount * pTib->Value * this->Type->IncomeMult);
 	}
 }
+DEFINE_FUNCTION_JUMP(LJMP, 0x4F9610, FakeHouseClass::_GiveTiberium);
+DEFINE_FUNCTION_JUMP(CALL, 0x44A272, FakeHouseClass::_GiveTiberium)
+DEFINE_FUNCTION_JUMP(CALL, 0x522E11, FakeHouseClass::_GiveTiberium)
+DEFINE_FUNCTION_JUMP(CALL, 0x522E31, FakeHouseClass::_GiveTiberium)
+DEFINE_FUNCTION_JUMP(CALL, 0x684F58, FakeHouseClass::_GiveTiberium)
+DEFINE_FUNCTION_JUMP(CALL, 0x73E4A9, FakeHouseClass::_GiveTiberium)
+DEFINE_FUNCTION_JUMP(CALL, 0x73E4C9, FakeHouseClass::_GiveTiberium)
+
+double FakeHouseClass::_Get_CostMult(TechnoTypeClass* pType)
+{
+	double nVal = 1.0;
+	double nDefVal = 1.0;
+
+	switch (pType->WhatAmI())
+	{
+	case AbstractType::AircraftType:
+	{
+		nVal = 1.0 - this->CostAircraftMult;
+		break;
+	}
+	case AbstractType::BuildingType:
+	{
+		nVal = 1.0 - (static_cast<BuildingTypeClass*>(pType)->BuildCat == BuildCat::Combat ?
+			this->CostDefensesMult : this->CostBuildingsMult);
+		break;
+	}
+	case AbstractType::InfantryType:
+	{
+		nVal = 1.0 - this->CostInfantryMult;
+		break;
+	}
+	case AbstractType::UnitType:
+	{
+		nVal = 1.0 - (static_cast<UnitTypeClass*>(pType)->ConsideredAircraft ? 
+			this->CostAircraftMult : this->CostUnitsMult);
+		break;
+	}
+	}
+
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	return (nDefVal - nVal * pTypeExt->FactoryPlant_Multiplier.Get());
+}
+DEFINE_FUNCTION_JUMP(LJMP, 0x50BEB0, FakeHouseClass::_Get_CostMult);
 
 bool HouseExtData::IsMutualAllies(HouseClass const* pThis, HouseClass const* pHouse) {
 	return pHouse == pThis
@@ -3049,42 +3081,327 @@ int FakeHouseClass::_Expert_AI()
 			}
 		}
 
-		if (this->AIMode == AIMode::BuildBase && this->LATime + 900 < Unsorted::CurrentFrame.get()) {
+		if (this->AIMode == AIMode::BuildBase && this->LATime + TICKS_PER_MINUTE < Unsorted::CurrentFrame.get()) {
 			this->AIMode = AIMode::General;
 		}
 
-		if (this->AIMode != AIMode::BuildBase && this->LATime + 900 > Unsorted::CurrentFrame.get()) {
+		if (this->AIMode != AIMode::BuildBase && this->LATime + TICKS_PER_MINUTE > Unsorted::CurrentFrame.get()) {
 			this->AIMode = AIMode::BuildBase;
 		}
 	}
 
 	if (SpawnerMain::GetGameConfigs()->SpawnerHackMPNodes || SessionClass::Instance->GameMode != GameMode::Campaign) {
 
-		const std::array<UrgencyType,2u> urgency = {
-			this->AIMode == AIMode::BuildBase ? UrgencyType::None  : this->Check_Fire_Sale()
-			,
-			this->Check_Raise_Money()
-		};
+		std::array<UrgencyType, 2u> urgency;
 
-        // Process strategies by priority from 4 down to 1
-        for (int priority = (int)UrgencyType::Critical; priority >= (int)UrgencyType::Low; --priority) {
-            for (int strat = 0; strat < 2; ++strat) {
-                if (urgency[strat] == (UrgencyType)priority) {
-                    if (strat == 1) {
-                        this->AI_Raise_Money((UrgencyType)priority);
-                    } else {
-                        this->AI_Fire_Sale((UrgencyType)priority);
-                    }
-                }
-            }
-        }
+		int strat;
+
+		for (strat = (int)StrategyType::First; strat < (int)StrategyType::Count; strat++)
+		{
+			urgency[strat] = UrgencyType::None;
+
+			switch (strat)
+			{
+				case (int)StrategyType::FireSale:
+				urgency[strat] = this->Check_Fire_Sale();
+				break;
+
+				case (int)StrategyType::RaiseMoney:
+				urgency[strat] = this->Check_Raise_Money();
+				break;
+
+			default:
+				urgency[strat] = UrgencyType::None;
+				break;
+			}
+		}
+
+		for (int u = (int)UrgencyType::Critical; u >= (int)UrgencyType::Low; u--) {
+			bool acted = false;
+
+			for (strat = (int)StrategyType::First; strat < (int)StrategyType::Count; strat++) {
+				if (urgency[strat] == (UrgencyType)u)
+				{
+					switch (strat)
+					{
+					case (int)StrategyType::FireSale:
+						acted |= this->_AI_Fire_Sale((UrgencyType)u);
+						break;
+
+					case (int)StrategyType::RaiseMoney:
+						acted |= this->AI_Raise_Money((UrgencyType)u);
+						break;
+
+					default:
+						break;
+					}
+				}
+			}
+		}
 	}
 
-	return ScenarioClass::Instance->Random.RandomRanged(1, 7) + 105;
+	return ScenarioClass::Instance->Random.RandomRanged(1, 7) + TICKS_PER_SECOND * 7;
 }
 
 DEFINE_FUNCTION_JUMP(CALL ,0x4F9017, FakeHouseClass::_Expert_AI)
 DEFINE_FUNCTION_JUMP(LJMP ,0x4FD500, FakeHouseClass::_Expert_AI)
+
+int FakeHouseClass::_FactoryCount(AbstractType nWhat, bool IsNaval)
+{
+	return this->_GetExtData()
+		->GetFactoryCountWithoutNonMFB(nWhat, IsNaval);
+}
+DEFINE_FUNCTION_JUMP(LJMP, 0x500910, FakeHouseClass::_FactoryCount)
+DEFINE_FUNCTION_JUMP(CALL, 0x6F48CF, FakeHouseClass::_FactoryCount)
+
+void FakeHouseClass::_GenerateAIBuildList_Wrapper()
+{
+	// #917 - validate build list before it needs to be generated
+	HouseExtData::CheckBasePlanSanity(this);
+	this->GenerateAIBuildList();
+}
+DEFINE_FUNCTION_JUMP(CALL, 0x5051D1, FakeHouseClass::_GenerateAIBuildList_Wrapper)
+DEFINE_FUNCTION_JUMP(CALL, 0x50A7D5, FakeHouseClass::_GenerateAIBuildList_Wrapper)
+DEFINE_FUNCTION_JUMP(CALL, 0x50C311, FakeHouseClass::_GenerateAIBuildList_Wrapper)
+
+BuildingTypeClass* FakeHouseClass::_Get_building_5051E0(TypeList<BuildingTypeClass*>* pList)
+{
+	return HouseExtData::FindBuildable(this, this->Type->FindParentCountryIndex(), make_iterator(*pList));
+}
+DEFINE_FUNCTION_JUMP(CALL, 0x4F6616, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x4F6718, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x4F678F, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x4FDBC0, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x4FDBDA, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x4FDD51, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x4FDE5E, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x4FDE86, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x4FE170, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x4FE300, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x4FEAE7, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x4FEB4E, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x505714, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x50578E, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x5057EA, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x505837, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x5059CE, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x506109, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x506128, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x507AB1, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x508415, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x50842D, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x508443, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x5CAB40, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x738E68, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x738E8B, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x738EEE, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(CALL, 0x738F11, FakeHouseClass::_Get_building_5051E0)
+DEFINE_FUNCTION_JUMP(LJMP, 0x5051E0, FakeHouseClass::_Get_building_5051E0)
+
+bool FakeHouseClass::_AI_Fire_Sale(UrgencyType urgency)
+{
+	bool ret = false;
+	if (urgency == UrgencyType::Critical)
+	{
+		auto const pRules = RulesExtData::Instance();
+		auto const pExt = this->_GetExtData();
+
+		if (pRules->AISellAllOnLastLegs)
+		{
+			if (pRules->AISellAllDelay <= 0 ||
+				pExt->AISellAllDelayTimer.Completed())
+			{
+				this->Fire_Sale();
+			}
+			else if (!pExt->AISellAllDelayTimer.HasStarted())
+			{
+				pExt->AISellAllDelayTimer.Start(pRules->AISellAllDelay);
+			}
+		}
+
+		if (pRules->AIAllInOnLastLegs)
+			this->All_To_Hunt();
+
+		ret = true;
+	}
+
+	return ret;
+}
+DEFINE_FUNCTION_JUMP(LJMP, 0x4FDCE0, FakeHouseClass::_AI_Fire_Sale)
+
+bool FakeHouseClass::_AllPrerequisitesAvailable(TechnoTypeClass* pItem, DynamicVectorClass<BuildingTypeClass*> const& vectorBuildings, int vectorLength)
+{
+	return Prereqs::PrerequisitesListed(vectorBuildings, pItem);
+}
+DEFINE_FUNCTION_JUMP(CALL, 0x4FE841, FakeHouseClass::_AllPrerequisitesAvailable)
+DEFINE_FUNCTION_JUMP(CALL, 0x5058E0, FakeHouseClass::_AllPrerequisitesAvailable)
+DEFINE_FUNCTION_JUMP(CALL, 0x507C4C, FakeHouseClass::_AllPrerequisitesAvailable)
+DEFINE_FUNCTION_JUMP(CALL, 0x507E3C, FakeHouseClass::_AllPrerequisitesAvailable)
+DEFINE_FUNCTION_JUMP(CALL, 0x50802C, FakeHouseClass::_AllPrerequisitesAvailable)
+DEFINE_FUNCTION_JUMP(LJMP, 0x505360, FakeHouseClass::_AllPrerequisitesAvailable)
+
+CanBuildResult FakeHouseClass::_Can_Build(TechnoTypeClass* type, char buildLimitOnly, char includeInProduction)
+{
+	auto validationResult = HouseExtData::PrereqValidate(this, type, buildLimitOnly, includeInProduction);
+
+	if (validationResult == CanBuildResult::Buildable)
+	{
+		validationResult = HouseExtData::BuildLimitGroupCheck(this, type, buildLimitOnly, includeInProduction);
+
+		if (HouseExtData::ReachedBuildLimit(this, type, true))
+			validationResult = CanBuildResult::TemporarilyUnbuildable;
+
+	}
+
+	if (!buildLimitOnly && includeInProduction && this == HouseClass::CurrentPlayer()) // Eliminate any non-producible calls to change the list safely
+		validationResult = BuildingTypeExtData::CheckAlwaysExistCameo(type, validationResult);
+
+	return validationResult;
+}
+DEFINE_FUNCTION_JUMP(CALL, 0x4140CC, FakeHouseClass::_Can_Build)
+DEFINE_FUNCTION_JUMP(CALL, 0x445758, FakeHouseClass::_Can_Build)
+DEFINE_FUNCTION_JUMP(CALL, 0x44579D, FakeHouseClass::_Can_Build)
+DEFINE_FUNCTION_JUMP(CALL, 0x4457DE, FakeHouseClass::_Can_Build)
+DEFINE_FUNCTION_JUMP(CALL, 0x44581E, FakeHouseClass::_Can_Build)
+DEFINE_FUNCTION_JUMP(CALL, 0x4FEDB7, FakeHouseClass::_Can_Build)
+DEFINE_FUNCTION_JUMP(CALL, 0x4FF0E1, FakeHouseClass::_Can_Build)
+DEFINE_FUNCTION_JUMP(CALL, 0x4FF411, FakeHouseClass::_Can_Build)
+DEFINE_FUNCTION_JUMP(CALL, 0x517DDB, FakeHouseClass::_Can_Build)
+DEFINE_FUNCTION_JUMP(CALL, 0x5F79A3, FakeHouseClass::_Can_Build)
+DEFINE_FUNCTION_JUMP(CALL, 0x6A97D2, FakeHouseClass::_Can_Build)
+DEFINE_FUNCTION_JUMP(CALL, 0x6AA781, FakeHouseClass::_Can_Build)
+DEFINE_FUNCTION_JUMP(CALL, 0x7357DF, FakeHouseClass::_Can_Build)
+DEFINE_FUNCTION_JUMP(LJMP, 0x4F7870, FakeHouseClass::_Can_Build)
+
+bool FakeHouseClass::_ShouldDisableCameo(TechnoTypeClass* a2)
+{
+	return false;
+}
+//DEFINE_FUNCTION_JUMP(CALL, 0x4C9CEA, FakeHouseClass::_ShouldDisableCameo)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6A5FE8, FakeHouseClass::_ShouldDisableCameo)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6A97EA, FakeHouseClass::_ShouldDisableCameo)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6AB656, FakeHouseClass::_ShouldDisableCameo)
+//DEFINE_FUNCTION_JUMP(LJMP, 0x50B370, FakeHouseClass::_ShouldDisableCameo)
+
+BuildingClass* __fastcall FakeHouseClass::_Find_Unit_Repair_Station(HouseClass* house, FootClass* foot)
+{
+	static COMPILETIMEEVAL double DBL_89C820 = std::bit_cast<double>(0x4076A09E60000000ULL);
+	static COMPILETIMEEVAL double distance = DBL_89C820 * 20.0;
+
+	BuildingClass* last_station = 0;
+	int last_dist = -1;
+
+	for (auto& pBay : house->UnitRepairStations) {
+		auto const pType = pBay->Type;
+		auto const pUnitType = foot->GetTechnoType();
+
+		const bool isNotAcceptable = (pUnitType->BalloonHover
+			|| pType->Naval != pUnitType->Naval
+			|| pType->Factory == AbstractType::AircraftType
+			|| pType->Helipad
+			|| pType->HoverPad && !RulesClass::Instance->SeparateAircraft);
+
+		if (isNotAcceptable)
+		{
+			continue;
+		}
+
+		auto const response = foot->SendCommand(
+			RadioCommand::QueryCanEnter, pBay);
+
+		// original game accepted any valid answer as a positive one
+		if (response != RadioCommand::AnswerPositive)
+			continue;
+		else {
+			const auto dist = int(pBay->Location.DistanceFrom(foot->Location));
+
+			if (dist < last_dist && dist < distance) {
+				last_station = pBay;
+				last_dist = dist;
+			}
+		}
+	}
+
+	return last_station;
+}
+DEFINE_FUNCTION_JUMP(CALL, 0x7367AC, FakeHouseClass::_Find_Unit_Repair_Station)
+DEFINE_FUNCTION_JUMP(LJMP, 0x455DD0, FakeHouseClass::_Find_Unit_Repair_Station)
+
+int FakeHouseClass::_AI_Supers()
+{
+	if (!this->IsNeutral() && this->Supers.Count > 0 && this->Supers.IsAllocated) {
+		if (!this->Defeated && !(this->IsObserver())) {
+			SuperExtData::UpdateSuperWeaponStatuses(this);
+			const bool IsCurrentPlayer = this->IsCurrentPlayer();
+
+			// update all super weapons not repeatedly available
+			for (auto& pSuper : this->Supers) {
+				if (!pSuper->Granted || pSuper->OneTime) {
+					auto index = pSuper->Type->ArrayIndex;
+					const auto pExt = SuperExtContainer::Instance.Find(pSuper);
+					auto& status = pExt->Statusses;
+
+					if (status.Available) {
+						pSuper->Grant(false, IsCurrentPlayer, !status.PowerSourced);
+
+						if (IsCurrentPlayer) {
+							// hide the cameo (only if this is an auto-firing SW)
+							if (!pExt->Type->SW_ShowCameo || pExt->Type->SW_AutoFire)
+								continue;
+
+							MouseClass::Instance->AddCameo(AbstractType::Special, index);
+							MouseClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(SuperClass::AbsID, index, 0));
+
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return TICKS_PER_SECOND;
+}
+//causing crash dont enable
+//DEFINE_FUNCTION_JUMP(CALL, 0x4409EF, FakeHouseClass::_AI_Supers)
+//DEFINE_FUNCTION_JUMP(CALL, 0x4F92FD, FakeHouseClass::_AI_Supers)
+DEFINE_FUNCTION_JUMP(LJMP, 0x50B1D0, FakeHouseClass::_AI_Supers)
+
+int FakeHouseClass::_AI_Aircraft()
+{
+	if (this->ProducingAircraftTypeIndex < 0) {
+		const int result = this->_GetExtData()->GetAircraftTypeToProduce();
+		if (result >= 0)
+			this->ProducingAircraftTypeIndex = result;
+	}
+
+	return TICKS_PER_SECOND;
+}
+//DEFINE_FUNCTION_JUMP(CALL, 0x4F919F, FakeHouseClass::_AI_Aircraft)
+//DEFINE_FUNCTION_JUMP(CALL, 0x4F9260, FakeHouseClass::_AI_Aircraft)
+DEFINE_FUNCTION_JUMP(LJMP, 0x4FF210, FakeHouseClass::_AI_Aircraft)
+
+int FakeHouseClass::_AI_Infantry()
+{
+	if (this->ProducingInfantryTypeIndex < 0) {
+		const int result = this->_GetExtData()->GetInfantryTypeToProduce();
+		if (result >= 0)
+			this->ProducingInfantryTypeIndex = result;
+	}
+
+	return TICKS_PER_SECOND;
+}
+//DEFINE_FUNCTION_JUMP(CALL, 0x4F9198, FakeHouseClass::_AI_Infantry)
+//DEFINE_FUNCTION_JUMP(CALL, 0x4F9259, FakeHouseClass::_AI_Infantry)
+DEFINE_FUNCTION_JUMP(LJMP, 0x4FEEE0, FakeHouseClass::_AI_Infantry)
+
+int FakeHouseClass::_AI_Unit()
+{
+	this->_GetExtData()->GetUnitTypeToProduce();
+	return TICKS_PER_SECOND;
+}
+//DEFINE_FUNCTION_JUMP(CALL, 0x4F90F2, FakeHouseClass::_AI_Unit)
+//DEFINE_FUNCTION_JUMP(CALL, 0x4F9252, FakeHouseClass::_AI_Unit)
+DEFINE_FUNCTION_JUMP(LJMP, 0x4FEA60, FakeHouseClass::_AI_Unit)
 
 void FakeHouseClass::_UpdateAngerNodes(int score_add, HouseClass* pHouse)
 {
@@ -4397,6 +4714,75 @@ ASMJIT_PATCH(0x50114D, HouseClass_InitFromINI, 0x5)
 	HouseExtContainer::Instance.Find(pThis)->LoadFromINI(pINI ,false);
 	return 0x0;
 }
+
+HRESULT __stdcall FakeHouseClass::__Load(IStream* pStm)
+{
+	auto hr = this->HouseClass::Load(pStm);
+
+	this->TrackedBuiltAircraftTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+	this->TrackedBuiltInfantryTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+	this->TrackedBuiltUnitTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+	this->TrackedBuiltBuildingTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+	this->TrackedKilledAircraftTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+	this->TrackedKilledInfantryTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+	this->TrackedKilledUnitTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+	this->TrackedKilledBuildingTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+	this->TrackedCapturedBuildings.AllocateTrackerptr<PhobosUnitTrackerClass>();
+	this->TrackedCollectedCrates.AllocateTrackerptr<PhobosUnitTrackerClass>();
+
+	hr = this->TrackedBuiltAircraftTypes.GetTrackerptr<PhobosUnitTrackerClass>()->Load(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = this->TrackedBuiltInfantryTypes.GetTrackerptr<PhobosUnitTrackerClass>()->Load(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = this->TrackedBuiltUnitTypes.GetTrackerptr<PhobosUnitTrackerClass>()->Load(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = this->TrackedBuiltBuildingTypes.GetTrackerptr<PhobosUnitTrackerClass>()->Load(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = this->TrackedKilledAircraftTypes.GetTrackerptr<PhobosUnitTrackerClass>()->Load(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = this->TrackedKilledInfantryTypes.GetTrackerptr<PhobosUnitTrackerClass>()->Load(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = this->TrackedKilledUnitTypes.GetTrackerptr<PhobosUnitTrackerClass>()->Load(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = this->TrackedKilledBuildingTypes.GetTrackerptr<PhobosUnitTrackerClass>()->Load(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = this->TrackedCapturedBuildings.GetTrackerptr<PhobosUnitTrackerClass>()->Load(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = this->TrackedCollectedCrates.GetTrackerptr<PhobosUnitTrackerClass>()->Load(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8B4, FakeHouseClass::__Load)
+
+HRESULT __stdcall FakeHouseClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	auto hr = this->HouseClass::Save(pStm, fClearDirty);
+
+	hr = this->TrackedBuiltAircraftTypes.GetTrackerptr<PhobosUnitTrackerClass>()->Save(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = this->TrackedBuiltInfantryTypes.GetTrackerptr<PhobosUnitTrackerClass>()->Save(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = this->TrackedBuiltUnitTypes.GetTrackerptr<PhobosUnitTrackerClass>()->Save(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = this->TrackedBuiltBuildingTypes.GetTrackerptr<PhobosUnitTrackerClass>()->Save(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = this->TrackedKilledAircraftTypes.GetTrackerptr<PhobosUnitTrackerClass>()->Save(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = this->TrackedKilledInfantryTypes.GetTrackerptr<PhobosUnitTrackerClass>()->Save(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = this->TrackedKilledUnitTypes.GetTrackerptr<PhobosUnitTrackerClass>()->Save(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = this->TrackedKilledBuildingTypes.GetTrackerptr<PhobosUnitTrackerClass>()->Save(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = this->TrackedCapturedBuildings.GetTrackerptr<PhobosUnitTrackerClass>()->Save(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = this->TrackedCollectedCrates.GetTrackerptr<PhobosUnitTrackerClass>()->Save(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8B8, FakeHouseClass::__Save)
 
 void FakeHouseClass::_Detach(AbstractClass* target, bool all) {
 	if(auto pExt = this->_GetExtData())

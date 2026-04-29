@@ -7,16 +7,18 @@
 #include <New/Interfaces/CustomRocketLocomotionClass.h>
 #include <New/Interfaces/TSJumpJetLocomotionClass.h>
 //#include <New/Interfaces/AttachmentLocomotionClass.h>
+#include <New/Interfaces/ShiftLocomotionClass.h>
 
 ASMJIT_PATCH(0x6BD68D, WinMain_PhobosRegistrations, 0x6)
 {
 	Debug::Log("Starting COM registration...\n");
 
 	// Add new classes to be COM-registered below
-	//RegisterFactoryForClass<LevitateLocomotionClass>();
-	//RegisterFactoryForClass<TSJumpJetLocomotionClass>();
+	//PhobosCOM::RegisterFactoryForClass<LevitateLocomotionClass>();
+	//PhobosCOM::RegisterFactoryForClass<TSJumpJetLocomotionClass>();
 	PhobosCOM::RegisterFactoryForClass<AdvancedDriveLocomotionClass>();
-	//RegisterFactoryForClass<CustomRocketLocomotionClass>();
+	PhobosCOM::RegisterFactoryForClass<ShiftLocomotionClass>();
+	//PhobosCOM::RegisterFactoryForClass<CustomRocketLocomotionClass>();
 	//RegisterFactoryForClass<AttachmentLocomotionClass>();
 
 	Debug::Log("COM registration done!\n");

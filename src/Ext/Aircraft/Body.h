@@ -86,6 +86,8 @@ class AbstractClass;
 class NOVTABLE FakeAircraftClass : public AircraftClass
 {
 public:
+	void __Look(bool incremental, int arg_4);
+
 	WeaponStruct* _GetWeapon(int weaponIndex);
 	void _SetTarget(AbstractClass* pTarget);
 	void _Destroyed(int mult);

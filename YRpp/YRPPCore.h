@@ -40,6 +40,12 @@ union{\
 		type name; \
 	public:
 
+#define DECLARE_PROPERTY_TWONAMETYPE(type, name,typeb, nameb)\
+union{\
+	type name; \
+	typeb nameb; \
+	char __##name[sizeof(type)]; \
+}
 
 struct noinit_t final {};
 struct noprapere_tag final { };

@@ -18,6 +18,13 @@
 #define SDDTOR_NODELETE				0x00
 #define SDDTOR_DELETE				0x01
 
+enum class VHPScanType : int
+{
+	None = 0x0,
+	Normal = 0x1,
+	Strong = 0x2,
+};
+
 enum class TacticalRenderMode
 {
 	All0= 0x0,

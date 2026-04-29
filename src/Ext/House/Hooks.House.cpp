@@ -27,6 +27,7 @@
 
 #include <InfantryClass.h>
 #include <AircraftClass.h>
+#include <CCToolTip.h>
 
 ASMJIT_PATCH(0x4E3560, Game_GetFlagSurface, 5)
 {
@@ -144,13 +145,13 @@ ASMJIT_PATCH(0x553d06, LoadProgressMgr_Draw_LSBrief, 6)
 	return SwitchStatement; //the default for switch statement is `null`
 }
 
-ASMJIT_PATCH(0x69B774, HTExt_PickRandom_Human, 5)
+ASMJIT_PATCH(0x69B774, SessionClass_69B760_PickRandom_Human, 5)
 {
 	R->EAX(HouseTypeExtData::PickRandomCountry());
 	return 0x69B788;
 }
 
-ASMJIT_PATCH(0x69B670, HTExt_PickRandom_AI, 5)
+ASMJIT_PATCH(0x69B670, MultiplayerGameMode_5D6430_PickRandom_AI, 5)
 {
 	R->EAX(HouseTypeExtData::PickRandomCountry());
 	return 0x69B684;
@@ -260,15 +261,6 @@ ASMJIT_PATCH(0x508D32, HouseClass_UpdatePower_LocalDrain1, 5)
 	return fullDrain ? 0 : 0x508D37;
 }
 
-// replaced the entire function, to have one centralized implementation
-ASMJIT_PATCH(0x5051E0, HouseClass_FirstBuildableFromArray, 5)
-{
-	GET(HouseClass*, pThis, ECX);
-	GET_STACK(const DynamicVectorClass<BuildingTypeClass*>*const, pList, 0x4);
-	R->EAX(HouseExtData::FindBuildable(pThis, pThis->Type->FindParentCountryIndex(), make_iterator(*pList)));
-	return 0x505300;
-}
-
 ASMJIT_PATCH(0x688B37, MPGameModeClass_CreateStartingUnits_B, 5)
 {
 	enum { hasBaseUnit = 0x688B75, hasNoBaseUnit = 0x688C09 };
@@ -346,7 +338,7 @@ ASMJIT_PATCH(0x5227A3, Sides_Disguise, 6) // InfantryClass_SetDefaultDisguise
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x6F422F, Sides_Disguise, 6) // TechnoClass_Init
 
-ASMJIT_PATCH(0x4F8B08, HouseClass_Update_DamageDelay, 6)
+ASMJIT_PATCH(0x4F8B08, HouseClass_AI_DamageDelay, 6)
 {
 	GET(HouseClass* const, pThis, ESI);
 
@@ -433,7 +425,7 @@ ASMJIT_PATCH(0x4FE782, HouseClass_AI_BaseConstructionUpdate_PickPowerplant, 6)
 	return 0x4FE893;
 }
 
-ASMJIT_PATCH(0x4F8EBD, HouseClass_Update_HasBeenDefeated, 5)
+ASMJIT_PATCH(0x4F8EBD, HouseClass_AI_HasBeenDefeated, 5)
 {
 	GET(FakeHouseClass*, pThis, ESI);
 
@@ -623,84 +615,6 @@ ASMJIT_PATCH(0x505C95, HouseClass_GenerateAIBuildList_CountExtra, 7)
 	return 0;
 }
 
-// #917 - validate build list before it needs to be generated
-ASMJIT_PATCH(0x5054B0, HouseClass_GenerateAIBuildList_EnsureSanity, 6)
-{
-	GET(HouseClass* const, pThis, ECX);
-
-	HouseExtData::CheckBasePlanSanity(pThis);
-
-	// allow the list to be generated even if it will crash the game - sanity
-	// check will log potential problems and thou shalt RTFLog
-	return 0;
-}
-
-ASMJIT_PATCH(0x505360, HouseClass_PrerequisitesForTechnoTypeAreListed, 5)
-{
-	//GET(HouseClass *, pHouse, ECX);
-
-	GET_STACK(TechnoTypeClass*, pItem, 0x4);
-	GET_STACK(DynamicVectorClass<BuildingTypeClass*> *, pBuildingsToCheck, 0x8);
-	//GET_STACK(int, pListCount, 0xC);
-
-	R->EAX(Prereqs::PrerequisitesListed(*pBuildingsToCheck, pItem));
-
-	return 0x505486;
-}
-
-ASMJIT_PATCH(0x5F7900, ObjectTypeClass_FindFactory, 5)
-{
-	GET(TechnoTypeClass*, pThis, ECX);
-	GET_STACK(HouseClass*, pHouse, 0x10);
-	GET_STACK(bool, bSkipAircraft, 0x4);
-	GET_STACK(bool, bRequirePower, 0x8);
-	GET_STACK(bool, bCheckCanBuild, 0xC);
-
-	const auto nBuffer = HouseExtData::HasFactory(
-	pHouse,
-	pThis,
-	bSkipAircraft,
-	bRequirePower,
-	bCheckCanBuild,
-	false);
-
-	R->EAX(nBuffer.first >= NewFactoryState::Available_Alternative ?
-		nBuffer.second : nullptr);
-
-	return 0x5F7A89;
-}
-
-ASMJIT_PATCH(0x4F7870, HouseClass_CanBuild, 7)
-{
-	// int (TechnoTypeClass *item, bool BuildLimitOnly, bool includeQueued)
-/* return
-	 1 - cameo shown
-	 0 - cameo not shown
-	-1 - cameo greyed out
- */
-
-	GET(HouseClass* const, pThis, ECX);
-	GET_STACK(TechnoTypeClass* const, pItem, 0x4);
-	GET_STACK(bool , buildLimitOnly, 0x8);
-	GET_STACK(bool , includeInProduction, 0xC);
-	//GET_STACK(DWORD , caller , 0x0);
-	auto validationResult = HouseExtData::PrereqValidate(pThis, pItem, buildLimitOnly, includeInProduction);
-
-	if(validationResult == CanBuildResult::Buildable) {
-		validationResult = HouseExtData::BuildLimitGroupCheck(pThis, pItem, buildLimitOnly, includeInProduction);
-
-		if (HouseExtData::ReachedBuildLimit(pThis, pItem, true))
-			validationResult = CanBuildResult::TemporarilyUnbuildable;
-
-	}
-
-	if (!buildLimitOnly && includeInProduction && pThis == HouseClass::CurrentPlayer()) // Eliminate any non-producible calls to change the list safely
-		validationResult = BuildingTypeExtData::CheckAlwaysExistCameo(pItem, validationResult);
-
-	R->EAX(validationResult);
-	return 0x4F8361;
-}
-
 ASMJIT_PATCH(0x50B370, HouseClass_ShouldDisableCameo, 5)
 {
 	GET(HouseClass*, pThis, ECX);
@@ -789,32 +703,6 @@ ASMJIT_PATCH(0x5007BE, HouseClass_SetFactoryCreatedManually2, 0x6)
 	return 0x50080D;
 }
 
-ASMJIT_PATCH(0x455E4C, HouseClass_FindRepairBay, 0x9)
-{
-	GET(UnitClass* const, pUnit, ECX);
-	GET(BuildingClass* const, pBay, ESI);
-
-	auto const pType = pBay->Type;
-	auto const pUnitType = pUnit->Type;
-
-	const bool isNotAcceptable = (pUnitType->BalloonHover
-		|| pType->Naval != pUnitType->Naval
-		|| pType->Factory == AbstractType::AircraftType
-		|| pType->Helipad
-		|| pType->HoverPad && !RulesClass::Instance->SeparateAircraft);
-
-	if (isNotAcceptable)
-	{
-		return 0x455EDE;
-	}
-
-	auto const response = pUnit->SendCommand(
-		RadioCommand::QueryCanEnter, pBay);
-
-	// original game accepted any valid answer as a positive one
-	return response != RadioCommand::AnswerPositive ? 0x455EDEu : 0x455E5Du;
-}
-
 // fixes SWs not being available in campaigns if they have been turned off in a
 // multiplayer mode
 ASMJIT_PATCH(0x5055D8, HouseClass_GenerateAIBuildList_SWAllowed, 0x5)
@@ -876,15 +764,6 @@ ASMJIT_PATCH(0x4FAF2A, HouseClass_SWDefendAgainst_Aborted, 0x8)
 	return (pSW && !pSW->IsCharged) ? 0x4FAF32 : 0x4FB0CF;
 }
 
-DEFINE_FUNCTION_JUMP(LJMP ,0x4F9610, FakeHouseClass::_GiveTiberium);
-DEFINE_FUNCTION_JUMP(CALL ,0x44A272, FakeHouseClass::_GiveTiberium)
-DEFINE_FUNCTION_JUMP(CALL ,0x522E11, FakeHouseClass::_GiveTiberium)
-DEFINE_FUNCTION_JUMP(CALL ,0x522E31, FakeHouseClass::_GiveTiberium)
-DEFINE_FUNCTION_JUMP(CALL ,0x684F58, FakeHouseClass::_GiveTiberium)
-DEFINE_FUNCTION_JUMP(CALL ,0x73E4A9, FakeHouseClass::_GiveTiberium)
-DEFINE_FUNCTION_JUMP(CALL ,0x73E4C9, FakeHouseClass::_GiveTiberium)
-
-
 ASMJIT_PATCH(0x4F62FF, HouseClass_CTOR_FixNameOverflow, 6)
 {
 	GET(HouseClass*, H, EBP);
@@ -908,47 +787,6 @@ ASMJIT_PATCH(0x4F645F, HouseClass_CTOR_FixSideIndices, 5)
 	}
 	return 0x4F6490;
 }
-
-ASMJIT_PATCH(0x50BEB0, HouseClass_GetCostMult, 6)
-{
-	GET(HouseClass*, pThis, ECX);
-	GET_STACK(TechnoTypeClass*, pType, 0x4);
-
-	double nVal = 1.0;
-	double nDefVal = 1.0;
-
-	switch (pType->WhatAmI())
-	{
-	case AbstractType::AircraftType:
-	{
-		nVal = 1.0 - pThis->CostAircraftMult;
-		break;
-	}
-	case AbstractType::BuildingType:
-	{
-		nVal = 1.0 - (static_cast<BuildingTypeClass*>(pType)->BuildCat == BuildCat::Combat ? pThis->CostDefensesMult : pThis->CostBuildingsMult);
-		break;
-	}
-	case AbstractType::InfantryType:
-	{
-		nVal = 1.0 - pThis->CostInfantryMult;
-		break;
-	}
-	case AbstractType::UnitType:
-	{
-		nVal = 1.0 - (static_cast<UnitTypeClass*>(pType)->ConsideredAircraft ? pThis->CostAircraftMult : pThis->CostUnitsMult);
-		break;
-	}
-	}
-
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	auto nResult = (nDefVal - nVal * pTypeExt->FactoryPlant_Multiplier.Get());
-
-	__asm { fld nResult };
-	return 0x50BF1E;
-}
-
-#include <CCToolTip.h>
 
 ASMJIT_PATCH(0x509140, HouseClass_Update_Factories_Queues, 5)
 {
@@ -1009,7 +847,7 @@ ASMJIT_PATCH(0x4FB2FD, HouseClass_UnitFromFactory_BuildingSlam, 6)
 }
 
 //0x4F8F54
-ASMJIT_PATCH(0x4F8F54, HouseClass_Update_SlaveMinerCheck, 6)
+ASMJIT_PATCH(0x4F8F54, HouseClass_AI_SlaveMinerCheck, 6)
 {
 	GET(HouseClass*, pThis, ESI);
 	GET(int, n, EDI);
@@ -1025,7 +863,7 @@ ASMJIT_PATCH(0x4F8F54, HouseClass_Update_SlaveMinerCheck, 6)
 }
 
 //0x4F8C97
-ASMJIT_PATCH(0x4F8C97, HouseClass_Update_BuildConst, 6)
+ASMJIT_PATCH(0x4F8C97, HouseClass_AI_BuildConst, 6)
 {
 	GET(HouseClass*, pThis, ESI);
 
@@ -1045,7 +883,7 @@ ASMJIT_PATCH(0x4F8C97, HouseClass_Update_BuildConst, 6)
 }
 
 // play this annoying message every now and then
-ASMJIT_PATCH(0x4F8C23, HouseClass_Update_SilosNeededEVA, 5)
+ASMJIT_PATCH(0x4F8C23, HouseClass_AI_SilosNeededEVA, 5)
 {
 	GET(HouseClass* const, pThis, ESI);
 
@@ -1078,3 +916,188 @@ ASMJIT_PATCH(0x500CC5, HouseClass_InitFromINI_FixBufferLimits, 6)
 
 	return 0x500D0D;
 }
+
+///
+// #917 - validate build list before it needs to be generated
+// ASMJIT_PATCH(0x5054B0, HouseClass_GenerateAIBuildList_EnsureSanity, 6)
+// {
+// 	GET(HouseClass* const, pThis, ECX);
+//
+// 	HouseExtData::CheckBasePlanSanity(pThis);
+//
+// 	// allow the list to be generated even if it will crash the game - sanity
+// 	// check will log potential problems and thou shalt RTFLog
+// 	return 0;
+// }
+// replaced the entire function, to have one centralized implementation
+//ASMJIT_PATCH(0x5051E0, HouseClass_FirstBuildableFromArray, 5)
+//{
+//	GET(HouseClass*, pThis, ECX);
+//	GET_STACK(const DynamicVectorClass<BuildingTypeClass*>*const, pList, 0x4);
+//	R->EAX(HouseExtData::FindBuildable(pThis, pThis->Type->FindParentCountryIndex(), make_iterator(*pList)));
+//	return 0x505300;
+//}
+//
+//ASMJIT_PATCH(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
+//{
+//	GET(FakeHouseClass* const, pThis, ECX);
+//
+//	retfunc_fixed<DWORD> ret(R, 0x4FEEDA, 15);
+//	pThis->_GetExtData()->GetUnitTypeToProduce();
+//	return ret();
+//}
+//
+//ASMJIT_PATCH(0x4FEEE0, HouseClass_AI_InfantryProduction, 6)
+//{
+//	GET(FakeHouseClass*, pThis, ECX);
+//
+//	if (pThis->ProducingInfantryTypeIndex < 0)
+//	{
+//		const int result = pThis->_GetExtData()->GetInfantryTypeToProduce();
+//		if (result >= 0)
+//			pThis->ProducingInfantryTypeIndex = result;
+//	}
+//
+//	R->EAX(15);
+//	return 0x4FF204;
+//}
+//
+//ASMJIT_PATCH(0x4FF210, HouseClass_AI_AircraftProduction, 6)
+//{
+//	GET(FakeHouseClass*, pThis, ECX);
+//
+//	if (pThis->ProducingAircraftTypeIndex < 0)
+//	{
+//
+//		const int result = pThis->_GetExtData()->GetAircraftTypeToProduce();
+//		if (result >= 0)
+//			pThis->ProducingAircraftTypeIndex = result;
+//	}
+//
+//	R->EAX(15);
+//	return 0x4FF534;
+//}
+//
+//ASMJIT_PATCH(0x505360, HouseClass_PrerequisitesForTechnoTypeAreListed, 5)
+//{
+//	//GET(HouseClass *, pHouse, ECX);
+//
+//	GET_STACK(TechnoTypeClass*, pItem, 0x4);
+//	GET_STACK(DynamicVectorClass<BuildingTypeClass*> *, pBuildingsToCheck, 0x8);
+//	//GET_STACK(int, pListCount, 0xC);
+//
+//	R->EAX(Prereqs::PrerequisitesListed(*pBuildingsToCheck, pItem));
+//
+//	return 0x505486;
+//}
+//
+//ASMJIT_PATCH(0x4F7870, HouseClass_CanBuild, 7)
+//{
+//	// int (TechnoTypeClass *item, bool BuildLimitOnly, bool includeQueued)
+///* return
+//	 1 - cameo shown
+//	 0 - cameo not shown
+//	-1 - cameo greyed out
+// */
+//
+//	GET(HouseClass* const, pThis, ECX);
+//	GET_STACK(TechnoTypeClass* const, pItem, 0x4);
+//	GET_STACK(bool, buildLimitOnly, 0x8);
+//	GET_STACK(bool, includeInProduction, 0xC);
+//	//GET_STACK(DWORD , caller , 0x0);
+//	auto validationResult = HouseExtData::PrereqValidate(pThis, pItem, buildLimitOnly, includeInProduction);
+//
+//	if (validationResult == CanBuildResult::Buildable)
+//	{
+//		validationResult = HouseExtData::BuildLimitGroupCheck(pThis, pItem, buildLimitOnly, includeInProduction);
+//
+//		if (HouseExtData::ReachedBuildLimit(pThis, pItem, true))
+//			validationResult = CanBuildResult::TemporarilyUnbuildable;
+//
+//	}
+//
+//	if (!buildLimitOnly && includeInProduction && pThis == HouseClass::CurrentPlayer()) // Eliminate any non-producible calls to change the list safely
+//		validationResult = BuildingTypeExtData::CheckAlwaysExistCameo(pItem, validationResult);
+//
+//	R->EAX(validationResult);
+//	return 0x4F8361;
+//}
+//
+//ASMJIT_PATCH(0x50BEB0, HouseClass_GetCostMult, 6)
+//{
+//	GET(HouseClass*, pThis, ECX);
+//	GET_STACK(TechnoTypeClass*, pType, 0x4);
+//
+//	double nVal = 1.0;
+//	double nDefVal = 1.0;
+//
+//	switch (pType->WhatAmI())
+//	{
+//	case AbstractType::AircraftType:
+//	{
+//		nVal = 1.0 - pThis->CostAircraftMult;
+//		break;
+//	}
+//	case AbstractType::BuildingType:
+//	{
+//		nVal = 1.0 - (static_cast<BuildingTypeClass*>(pType)->BuildCat == BuildCat::Combat ? pThis->CostDefensesMult : pThis->CostBuildingsMult);
+//		break;
+//	}
+//	case AbstractType::InfantryType:
+//	{
+//		nVal = 1.0 - pThis->CostInfantryMult;
+//		break;
+//	}
+//	case AbstractType::UnitType:
+//	{
+//		nVal = 1.0 - (static_cast<UnitTypeClass*>(pType)->ConsideredAircraft ? pThis->CostAircraftMult : pThis->CostUnitsMult);
+//		break;
+//	}
+//	}
+//
+//	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+//	auto nResult = (nDefVal - nVal * pTypeExt->FactoryPlant_Multiplier.Get());
+//
+//	__asm { fld nResult };
+//	return 0x50BF1E;
+//}
+//
+//ASMJIT_PATCH(0x455E4C, HouseClass_FindRepairBay, 0x9)
+//{
+//	GET(UnitClass* const, pUnit, ECX);
+//	GET(BuildingClass* const, pBay, ESI);
+//
+//	auto const pType = pBay->Type;
+//	auto const pUnitType = pUnit->Type;
+//
+//	const bool isNotAcceptable = (pUnitType->BalloonHover
+//		|| pType->Naval != pUnitType->Naval
+//		|| pType->Factory == AbstractType::AircraftType
+//		|| pType->Helipad
+//		|| pType->HoverPad && !RulesClass::Instance->SeparateAircraft);
+//
+//	if (isNotAcceptable)
+//	{
+//		return 0x455EDE;
+//	}
+//
+//	auto const response = pUnit->SendCommand(
+//		RadioCommand::QueryCanEnter, pBay);
+//
+//	// original game accepted any valid answer as a positive one
+//	return response != RadioCommand::AnswerPositive ? 0x455EDEu : 0x455E5Du;
+//}
+//
+//ASMJIT_PATCH(0x500910, HouseClass_GetFactoryCount, 0x5)
+//{
+//	enum { SkipGameCode = 0x50095D };
+//
+//	GET(FakeHouseClass*, pThis, ECX);
+//	GET_STACK(AbstractType, rtti, 0x4);
+//	GET_STACK(bool, isNaval, 0x8);
+//
+//	R->EAX(pThis->_GetExtData()
+//		->GetFactoryCountWithoutNonMFB(rtti, isNaval));
+//
+//	return SkipGameCode;
+//}

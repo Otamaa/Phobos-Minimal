@@ -939,7 +939,7 @@ public:
 	DECLARE_PROPERTY(StageClass, CloakProgress); // phase from [opaque] -> [fading] -> [transparent] , [General]CloakingStages= long
 	DECLARE_PROPERTY(CDTimerClass, CloakDelayTimer); // delay before cloaking again
 	float            WarpFactor; // don't ask! set to 0 in CTOR, never modified, only used as ((this->Fetch_ID) + this->WarpFactor) % 400 for something in cloak ripple
-	BYTE             unknown_bool_250;
+	BYTE             SightInitialized;
 	CoordStruct      LastSightCoords;
 	int              LastSightRange;
 	int              LastSightHeight;

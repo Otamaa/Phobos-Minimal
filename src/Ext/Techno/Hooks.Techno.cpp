@@ -75,26 +75,6 @@ ASMJIT_PATCH(0x703A79, TechnoClass_VisualCharacter_CloakingStages, 0xA)
 
 #include <ExtraHeaders/StackVector.h>
 
-// Support per unit modification of Iron Curtain effect duration
-ASMJIT_PATCH(0x70E2B0, TechnoClass_IronCurtain, 5)
-{
-	GET(TechnoClass*, pThis, ECX);
-	GET_STACK(int, duration, STACK_OFFS(0x0, -0x4));
-	//GET_STACK(HouseClass*, source, STACK_OFFS(0x0, -0x8));
-	GET_STACK(bool, force, STACK_OFFS(0x0, -0xC));
-
-	// if it's no force shield then it's the iron curtain.
-	const auto pData =  GET_TECHNOTYPEEXT(pThis);
-	const auto modifier = (force ? pData->ForceShield_Modifier : pData->IronCurtain_Modifier).Get();
-
-	pThis->IronCurtainTimer.Start(int(duration * modifier));
-	pThis->IronTintStage = 0;
-	pThis->ProtectType = force ? ProtectTypes::ForceShield : ProtectTypes::IronCurtain;
-
-	R->EAX(DamageState::Unaffected);
-	return 0x70E2FD;
-}
-
 ASMJIT_PATCH(0x7327AA, TechnoClass_PlayerOwnedAliveAndNamed_GroupAs, 8)
 {
 	GET(TechnoClass*, pThis, ESI);

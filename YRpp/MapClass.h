@@ -595,11 +595,11 @@ public:
 		CoordStruct* Coords,
 		int Radius,
 		HouseClass* OwnerHouse,
-		CellStruct arg4,
-		BYTE RevealByHeight,
-		BYTE arg6,
-		BYTE arg7,
-		BYTE arg8)
+		bool bOutlineOnly,
+		bool bNoShroudUpdate,
+		bool bFog,
+		bool bAllowRevealByHeight,
+		bool bHideOnRadar)
 	{
 		JMP_THIS(0x5673A0);
 	}
@@ -620,11 +620,11 @@ public:
 		CoordStruct* Coords,
 		int Radius,
 		HouseClass* OwnerHouse,
-		DWORD /*CellStruct*/ arg4,
-		BYTE RevealByHeight,
-		BYTE arg6,
-		BYTE arg7,
-		BYTE arg8)
+		bool bOutlineOnly,
+		int bNoShroudUpdate,
+		bool bFog,
+		bool bAllowRevealByHeight,
+		int bIncreaseShroudCounter)
 	{
 		JMP_THIS(0x5678E0);
 	}
@@ -640,7 +640,10 @@ public:
 	 * TechnoClass::Unlimbo
 	 * TechnoClass::Fire uses this (r = 4) right after using RevealArea0, wtfcock
 	 */
-	void RevealArea3(CoordStruct* Coords, int Height, int Radius, bool SkipReveal)
+	void RevealArea3(CoordStruct* Coords,
+		 int Height, 
+		 int Radius,
+		 bool SkipReveal)
 	{ JMP_THIS(0x567DA0); }
 
 	void Reveal(HouseClass* pHouse)

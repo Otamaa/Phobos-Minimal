@@ -16,6 +16,7 @@
 #include <New/Entity/AEProperties.h>
 #include <New/Entity/AresAttachedAffects.h>
 #include <New/Entity/NewTiberiumStorageClass.h>
+#include <New/Entity/ShiftSchedule.h>
 
 #include <New/Type/DigitalDisplayTypeClass.h>
 
@@ -159,6 +160,8 @@ private:
 			};
 
 		debugProcess(this->CurrentType, "CurrentType");
+		debugProcess(this->ShiftApplier, "ShiftApplier");
+		debugProcess(this->ShiftApplierHouse, "ShiftApplierHouse");
 		debugProcess(this->TypeExtData, "OriginalType");
 		debugProcess(this->AE, "AE");
 		debugProcess(this->idxSlot_EMPulse, "idxSlot_EMPulse");
@@ -299,6 +302,9 @@ public:
 	// ============================================================
 	// 8-byte aligned: Pointers
 	// ============================================================
+	std::unique_ptr<ShiftSchedule> QueuedShift { nullptr };
+	TechnoClass* ShiftApplier { nullptr };
+	HouseClass* ShiftApplierHouse { nullptr };
 	TechnoTypeClass* CurrentType { nullptr };
 	TechnoTypeExtData* TypeExtData { nullptr };
 	BuildingLightClass* BuildingLight { nullptr };
@@ -478,6 +484,7 @@ public:
 	bool OnParachuted {};
 	bool HoverShutdown {};
 	// 33 bools = 33 bytes, add 1 padding byte for 32 (4-byte alignment)
+
 
 #pragma endregion
 
@@ -1008,7 +1015,18 @@ class NOVTABLE FakeTechnoClass //final: TechnoClass
 {
 public:
 
+	static int _GetSight(TechnoClass* pThis);
+
 	//virtual TechnoTypeClass* GetTechnoType() { JMP_THIS(0x6F3270); }
+	static void __fastcall __See(
+		TechnoClass* pThis, discard_t,
+		bool         incremental,
+		int          a6,
+		bool         useCustomHouse,
+		HouseClass* customHouse,
+		int          sightRangeOverride);
+
+	static void __fastcall __Look(TechnoClass* pThis, discard_t, bool incremental, int arg_4);
 
 	static int __fastcall _EvaluateJustCell(TechnoClass* pThis, discard_t, CellStruct* where);
 	static bool __fastcall __TargetSomethingNearby(TechnoClass* pThis, discard_t, CoordStruct* coord, ThreatType threat);

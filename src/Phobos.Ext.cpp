@@ -193,7 +193,8 @@ void PhobosExt::EnsureSeeded(unsigned long seed)
 #include <New/Interfaces/AdvancedDriveLocomotionClass.h>
 #include <New/Interfaces/LevitateLocomotionClass.h>
 #include <New/Interfaces/CustomRocketLocomotionClass.h>
-
+#include <New/Interfaces/ShiftLocomotionClass.h>
+#include <New/Interfaces/TSJumpJetLocomotionClass.h>
 
 unsigned Phobos::GetVersionNumber() {
 	unsigned version = Phobos::Config::InternalVersion + PHOBOSSAVEGAME_ID;
@@ -256,8 +257,10 @@ unsigned Phobos::GetVersionNumber() {
 	version += sizeof(ShieldClass);
 
 	version += sizeof(AdvancedDriveLocomotionClass);
-	version += sizeof(CustomRocketLocomotionClass);
-	version += sizeof(LevitateLocomotionClass);
+	//version += sizeof(CustomRocketLocomotionClass);
+	//version += sizeof(LevitateLocomotionClass);
+	version += sizeof(ShiftLocomotionClass);
+	//version += sizeof(TSJumpJetLocomotionClass);
 	version += sizeof(GenericPrerequisite);
 	version += sizeof(Prereqs);
 	version += sizeof(PaletteManager);

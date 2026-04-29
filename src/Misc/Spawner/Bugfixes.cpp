@@ -112,13 +112,6 @@ ASMJIT_PATCH(0x6F49D8, TechnoClass_Revealed_FixCrash, 0x6)
 	return pHouse ? 0 : 0x6F4A31;
 }
 
-// Fix crash at 70AF6C
-ASMJIT_PATCH(0x70AF6C, TechnoClass_70AF50_FixCrash, 0x9)
-{
-	GET(TechnoClass*, pTechno, EAX);
-	return pTechno ? 0 : 0x70B1C7;
-}
-
 // Extend IsoMapPack5 decoding size limit
 // (Large map support)
 

@@ -135,7 +135,7 @@ bool SWTypeHandler::IsDesignatorEligible(const SWTypeExtData* pData, HouseClass*
 
 		// has to be closer than the designator range (which defaults to Sight)
 		auto distance = Coords.DistanceFromSquared(CellClass::Coord2Cell(center));
-		const int range = pExt->InhibitorRange.Get(pType->Sight);
+		const int range = pExt->InhibitorRange.Get(FakeTechnoClass::_GetSight(pTechno));
 		return distance <= range * range;
 	}
 
@@ -192,7 +192,7 @@ bool SWTypeHandler::IsInhibitorEligible(const SWTypeExtData* pData, HouseClass* 
 
 		// has to be closer than the inhibitor range (which defaults to Sight)
 		auto distance = Coords.DistanceFromSquared(CellClass::Coord2Cell(center));
-		const int range = pExt->InhibitorRange.Get(pType->Sight);
+		const int range = pExt->InhibitorRange.Get(FakeTechnoClass::_GetSight(pTechno));
 		return distance <= range * range;
 	}
 
@@ -240,7 +240,7 @@ bool SWTypeHandler::IsAttractorEligible(const SWTypeExtData* pData, HouseClass* 
 
 		// has to be closer than the Attractor range (which defaults to Sight)
 		auto distance = Coords.DistanceFromSquared(CellClass::Coord2Cell(center));
-		const int range = pExt->InhibitorRange.Get(pType->Sight);
+		const int range = pExt->InhibitorRange.Get(FakeTechnoClass::_GetSight(pTechno));
 		return distance <= range * range;
 	}
 
@@ -340,7 +340,7 @@ bool SWTypeHandler::IsSuppressorEligible(const SWTypeExtData* pData, HouseClass*
 
 		// has to be closer than the Suppressor range (which defaults to Sight)
 		auto distance = Coords.DistanceFromSquared(CellClass::Coord2Cell(center));
-		const int range = pExt->InhibitorRange.Get(pType->Sight);
+		const int range = pExt->InhibitorRange.Get(FakeTechnoClass::_GetSight(pTechno));
 		return distance <= range * range;
 	}
 
@@ -538,7 +538,7 @@ std::unique_ptr<TargetingData> SWTypeHandler::GetTargetingData(SWTypeExtData* pD
 
 				const auto pType = GET_TECHNOTYPE(pTechno);
 				const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
-				auto const range = pExt->DesignatorRange.Get(pType->Sight);
+				auto const range = pExt->DesignatorRange.Get(FakeTechnoClass::_GetSight(pTechno));
 
 				if (range > 0)
 				{
@@ -565,7 +565,7 @@ std::unique_ptr<TargetingData> SWTypeHandler::GetTargetingData(SWTypeExtData* pD
 
 				const auto pType = GET_TECHNOTYPE(pTechno);
 				const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
-				auto const range = pExt->AttractorRange.Get(pType->Sight);
+				auto const range = pExt->AttractorRange.Get(FakeTechnoClass::_GetSight(pTechno));
 
 				if (range > 0)
 				{
@@ -619,7 +619,7 @@ std::unique_ptr<TargetingData> SWTypeHandler::GetTargetingData(SWTypeExtData* pD
 
 				const auto pType = GET_TECHNOTYPE(pTechno);
 				const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
-				auto const range = pExt->SuppressorRange.Get(pType->Sight);
+				auto const range = pExt->SuppressorRange.Get(FakeTechnoClass::_GetSight(pTechno));
 
 				if (range > 0)
 				{

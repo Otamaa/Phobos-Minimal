@@ -503,6 +503,15 @@ public:
 	Nullable<float> JumpjetWobbles {};
 	Nullable<bool> JumpjetNoWobbles {};
 	Nullable<int> JumpjetDeviation {};
+
+	Valueable<bool> KnockUp {};
+	Valueable<Leptons> KnockUp_Range {};
+	Valueable<Leptons> KnockUp_Speed {};
+	Valueable<double> KnockUp_Angle { 45.0 };
+
+	Valueable<bool> Traction {};
+	Valueable<Leptons> Traction_Range {};
+	Valueable<Leptons> Traction_Speed {};
 #pragma endregion
 
 public:
@@ -604,6 +613,9 @@ public:
 	void ApplyBuildingUndeploy(TechnoClass* pTarget);
 	void ApplyAttachEffects(TechnoClass* pTarget, HouseClass* pInvokerHouse, TechnoClass* pInvoker);
 	void GetCritChance(TechnoClass* pFirer , double& chances) const;
+
+	void ApplyKnockUp(TechnoClass* pTarget);
+	void ApplyTraction(TechnoClass* pTarget, const CoordStruct& coords);
 
 	COMPILETIMEEVAL VersesData& GetVerses(Armor armor) {
 		return this->Verses[static_cast<int>(armor)];

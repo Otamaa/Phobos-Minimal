@@ -38,3 +38,12 @@ public:
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr) { return parseFailAddr ? false : true; }
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
 };
+
+class BuildingTypeClass;
+class HouseClass;
+class FakeObjectTypeClass final
+{
+public:
+
+	static BuildingClass* __fastcall WhoCanBuildMe(ObjectTypeClass* pThis, discard_t, bool intheory, bool bool2, bool legal, HouseClass* house);
+};

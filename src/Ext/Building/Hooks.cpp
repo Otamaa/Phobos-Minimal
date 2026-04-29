@@ -559,16 +559,6 @@ ASMJIT_PATCH(0x440045, BuildingClass_UpdateDelayedFiring_PrefiringMark1, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x446816, BuildingClass_Place_RevealToAll_UpdateSight, 0x5)
-{
-	enum { SkipGameCode = 0x44682F };
-
-	GET(FakeBuildingClass*, pThis, EBP);
-	const int radius = pThis->_GetTypeExtData()->RevealToAll_Radius.Get(pThis->Type->Sight);
-	pThis->UpdateSight(false, false, true, HouseClass::CurrentPlayer, radius);
-	return SkipGameCode;
-}
-
 #pragma endregion
 
 #pragma region TurretAnim

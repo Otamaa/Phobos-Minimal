@@ -1317,7 +1317,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 		int weaponIdx = pThis->SelectWeapon(Toretalitate);
 		bool isCloseEnough = pThis->IsCloseEnough(source, weaponIdx);
 		bool isNotHumanControlled = !pThis->Owner->IsControlledByHuman();
-		bool isSightEligible = (((pType->Sight + 0.5) * 256.0) >= (Toretalitate->Location - pThis->Location).Length());
+		bool isSightEligible = (((FakeTechnoClass::_GetSight(pThis) + 0.5) * 256.0) >= (Toretalitate->Location - pThis->Location).Length());
 
 		if (isCloseEnough
 			|| !isNotHumanControlled

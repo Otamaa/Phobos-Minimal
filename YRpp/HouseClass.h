@@ -17,6 +17,8 @@
 #include <ocidl.h>
 #include <ScenarioClass.h>
 
+#include <type_traits>
+
 //forward declarations
 class AnimClass;
 class BulletClass;
@@ -29,7 +31,7 @@ class WaypointPathClass;
 class WaypointClass;
 class TeamTypeClass;
 class SuperWeaponTypeClass;
-class UnitTrackerClass
+class NOVTABLE UnitTrackerClass
 {
 public:
 	static OPTIONALINLINE COMPILETIMEEVAL int Max = 0x200;
@@ -49,6 +51,48 @@ public:
 	int UnitCount;
 	BOOL InNetworkFormat;
 };
+
+class NOVTABLE UnitTrackerPadClass
+{
+public:
+
+	template<typename T>
+	void FORCEDINLINE AllocateTrackerptr() {
+		this->ModifiedData.Pointer = 0u;
+		this->ModifiedData.Pointer = DWORD(new T());
+	}
+
+	template<typename T>
+	void FORCEDINLINE DeallocateTrackerptr() {
+		delete ((T*)this->ModifiedData.Pointer);
+		this->ModifiedData.Pointer = 0u;
+	}
+
+	template<typename T>
+	auto FORCEDINLINE GetTrackerptr() {
+		return ((T*)this->ModifiedData.Pointer);
+	}
+
+public:
+	struct Internals {
+		DWORD Pointer;
+		alignas(alignof(UnitTrackerClass))
+		char _pad[sizeof(UnitTrackerClass) - sizeof(DWORD)];
+	};
+
+	union {
+		UnitTrackerClass OriginalData;
+		Internals ModifiedData;
+	};
+};
+
+static_assert(!std::is_polymorphic_v<UnitTrackerClass>, "UnitTrackerClass has vtable!");
+static_assert(!std::is_polymorphic_v<UnitTrackerPadClass>, "UnitTrackerPadClass has vtable!");
+
+static_assert(sizeof(UnitTrackerPadClass) == sizeof(UnitTrackerClass), "Size missmatch !");
+static_assert(alignof(UnitTrackerPadClass) == alignof(UnitTrackerClass), "Alignment mismatch!");
+static_assert(sizeof(UnitTrackerClass) == sizeof(int) * UnitTrackerClass::Max + sizeof(int) + sizeof(BOOL), "UnitTrackerClass has unexpected padding!");
+static_assert(sizeof(DWORD) == 4 && sizeof(BOOL) == 4 && sizeof(int) == 4, "Size assumptions violated!");
 
 struct ZoneInfoStruct
 {
@@ -1117,6 +1161,9 @@ public:
 	bool IsValidBaseNode(BaseNodeClass* pBaseNode)
 		{ JMP_THIS(0x50CAD0); }
 	
+	void GenerateAIBuildList()
+		{ JMP_THIS(0x5054B0); }
+
 	//Constructor
 	HouseClass(HouseTypeClass* pCountry) noexcept
 		: HouseClass(noinit_t())
@@ -1256,16 +1303,16 @@ public:
 	int                   TotalStorage; // capacity of all building Storage
 	DECLARE_PROPERTY(StorageClass, OwnedWeed);
 	DWORD unknown_324;
-	DECLARE_PROPERTY(UnitTrackerClass, BuiltAircraftTypes);
-	DECLARE_PROPERTY(UnitTrackerClass, BuiltInfantryTypes);
-	DECLARE_PROPERTY(UnitTrackerClass, BuiltUnitTypes);
-	DECLARE_PROPERTY(UnitTrackerClass, BuiltBuildingTypes);
-	DECLARE_PROPERTY(UnitTrackerClass, KilledAircraftTypes);
-	DECLARE_PROPERTY(UnitTrackerClass, KilledInfantryTypes);
-	DECLARE_PROPERTY(UnitTrackerClass, KilledUnitTypes);
-	DECLARE_PROPERTY(UnitTrackerClass, KilledBuildingTypes);
-	DECLARE_PROPERTY(UnitTrackerClass, CapturedBuildings);
-	DECLARE_PROPERTY(UnitTrackerClass, CollectedCrates);	//YES, THIS IS HOW WW WASTES TONS OF RAM
+	DECLARE_PROPERTY(UnitTrackerPadClass, TrackedBuiltAircraftTypes);
+	DECLARE_PROPERTY(UnitTrackerPadClass, TrackedBuiltInfantryTypes);
+	DECLARE_PROPERTY(UnitTrackerPadClass, TrackedBuiltUnitTypes);
+	DECLARE_PROPERTY(UnitTrackerPadClass, TrackedBuiltBuildingTypes);
+	DECLARE_PROPERTY(UnitTrackerPadClass, TrackedKilledAircraftTypes);
+	DECLARE_PROPERTY(UnitTrackerPadClass, TrackedKilledInfantryTypes);
+	DECLARE_PROPERTY(UnitTrackerPadClass, TrackedKilledUnitTypes);
+	DECLARE_PROPERTY(UnitTrackerPadClass, TrackedKilledBuildingTypes);
+	DECLARE_PROPERTY(UnitTrackerPadClass, TrackedCapturedBuildings);
+	DECLARE_PROPERTY(UnitTrackerPadClass, TrackedCollectedCrates);
 	int                   NumAirpads;
 	int                   NumBarracks;
 	int                   NumWarFactories;
