@@ -1123,9 +1123,20 @@ bool TechnoExtData::KillerAllowedToEarnBounty(TechnoClass* pKiller, TechnoClass*
 	if (pKillerTypeExt->Bounty_IgnoreEnablers || RulesExtData::Instance()->Bounty_Enablers.empty())
 		return true;
 
-	for (auto const& pEnablers : RulesExtData::Instance()->Bounty_Enablers)
-	{
-		if (pKiller->Owner->ActiveBuildingTypes.get_count(pEnablers->ArrayIndex) > 0)
+	if(!RulesExtData::Instance()->Bounty_Enablers.empty()){
+		auto pKillerHouse = pKiller->Owner;
+		auto pKillerHouseExt = HouseExtContainer::Instance.Find(pKillerHouse);
+
+		auto IsTechnoPresent = [pKillerHouse, pKillerHouseExt](TechnoTypeClass* pType) {
+			auto pBuildingType = type_cast<BuildingTypeClass*>(pType);
+
+			if (pBuildingType)
+					return BuildingTypeExtData::CountOwnedNowWithDeployOrUpgrade(pBuildingType, pKillerHouse) > 0;
+			else
+					return HouseExtData::CountOwnedIncludeDeploy(pKillerHouse, pType) > 0;
+		};
+
+		if(!std::ranges::none_of(RulesExtData::Instance()->Bounty_Enablers, IsTechnoPresent))
 			return true;
 	}
 

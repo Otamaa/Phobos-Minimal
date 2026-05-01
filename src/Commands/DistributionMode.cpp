@@ -228,8 +228,8 @@ ASMJIT_PATCH(0x4AE7B3, DisplayClass_ActiveClickWith_Iterate, 0x0)
 			}
 		}
 
-		GET_STACK(ObjectClass* const, pTarget, STACK_OFFSET(0x18, 0x4));
-		GET_STACK(Action const, action, STACK_OFFSET(0x18, 0xC));
+		GET_STACK(ObjectClass*, pTarget, STACK_OFFSET(0x18, 0x4));
+		GET_STACK(Action, action, STACK_OFFSET(0x18, 0xC));
 
 		if (pTarget)
 		{

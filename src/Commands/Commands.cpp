@@ -182,7 +182,7 @@ ASMJIT_PATCH(0x533F50, Game_ScrollSidebar_Skip, 0x5)
 
 ASMJIT_PATCH(0x777998, Game_WndProc_ScrollMouseWheel, 0x6)
 {
-	GET(const WPARAM, WParam, ECX);
+	GET(WPARAM, WParam, ECX);
 
 	if (WParam & 0x80000000u) {
 

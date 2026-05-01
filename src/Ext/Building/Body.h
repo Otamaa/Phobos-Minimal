@@ -82,7 +82,7 @@ public:
 	int PoweredUpToLevel {};
 	int TurretAnimIdleFrame {};
 	int TurretAnimFiringFrame { -1 };
-
+	int TurretAnimRateTick {};
 	// ============================================================
 	// 1-byte aligned: bool (packed together at the end)
 	// ============================================================

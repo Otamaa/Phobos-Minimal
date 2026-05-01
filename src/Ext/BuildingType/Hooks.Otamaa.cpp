@@ -151,52 +151,6 @@ ASMJIT_PATCH(0x450821, BuildingClass_Repair_AI_Step, 0x5)// B
 	return 0x450837;
 }
 
-//https://modenc.renegadeprojects.com/RepairStep
-ASMJIT_PATCH(0x712125, TechnoTypeClass_GetRepairStep_Building, 0x6)
-{
-	GET(TechnoTypeClass*, pThis, ECX);
-	GET(RulesClass*, pRules, EAX);
-
-	auto nStep = pRules->RepairStep;
-	if (auto const pBuildingType = type_cast<BuildingTypeClass*>(pThis))
-		nStep = BuildingTypeExtContainer::Instance.Find(pBuildingType)->RepairStep.Get(nStep);
-
-	R->EAX(nStep);
-
-	return 0x71212B;
-}
-
-//was 4
-ASMJIT_PATCH(0x7120D0, TechnoTypeClass_GetRepairCost_Building, 0x7)
-{
-	GET(TechnoTypeClass*, pThis, ECX);
-
-	int cost = pThis->GetCost();
-	if (!cost || !pThis->Strength)
-	{
-		R->EAX(1);
-		return 0x712119;
-	}
-
-	int nStep = RulesClass::Instance->RepairStep;
-	if (auto const pBuildingType = type_cast<BuildingTypeClass*>(pThis))
-	{
-		if (BuildingTypeExtContainer::Instance.Find(pBuildingType)->RepairStep.isset())
-			nStep = BuildingTypeExtContainer::Instance.Find(pBuildingType)->RepairStep;
-	}
-
-	if (!nStep)
-	{
-		R->EAX(1);
-		return 0x712119;
-	}
-
-	const auto divider = MaxImpl(static_cast<double>(pThis->Strength) / nStep, 1.0);
-	const auto nCalc = int(((double)cost / divider)) * RulesClass::Instance->RepairPercent;
-	R->EAX(MaxImpl(nCalc, 1));
-	return 0x712119;
-}
-
 ASMJIT_PATCH(0x505F6C, HouseClass_GenerateAIBuildList_AIBuildInstead, 0x6)
 {
 	GET(HouseClass*, pHouse, ESI);

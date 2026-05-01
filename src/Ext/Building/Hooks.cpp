@@ -132,7 +132,7 @@ ASMJIT_PATCH(0x4555E4, BuildingClass_IsPowerOnline_Overpower, 0x6)
 	enum { LowPower = 0x4556BE, Continue1 = 0x4555F0, Continue2 = 0x455643 };
 
 	GET(FakeBuildingClass*, pThis, ESI);
-	GET(const int, threshold, EDI);
+	GET(int, threshold, EDI);
 
 		// Battery.KeepOnline activated
 	if (!threshold)
@@ -395,7 +395,7 @@ ASMJIT_PATCH(0x4FA612, HouseClass_BeginProduction_ForceRedrawStrip, 0x5)
 
 ASMJIT_PATCH(0x6AA88D, StripClass_RecheckCameo_FindFactoryDehardCode, 0x6)
 {
-	GET(TechnoTypeClass* const, pType, EBX);
+	GET(TechnoTypeClass*, pType, EBX);
 	LEA_STACK(BuildCat*, pBuildCat, STACK_OFFSET(0x158, -0x158));
 
 	if (const auto pBuildingType = type_cast<BuildingTypeClass*>(pType))
@@ -518,7 +518,7 @@ ASMJIT_PATCH(0x73F5A7, UnitClass_IsCellOccupied_UnlimboDirection, 0x8)
 	if (!pType->WeaponsFactory)
 		return NextObject;
 
-	GET(CellClass* const, pCell, EDI);
+	GET(CellClass*, pCell, EDI);
 
 	return pCell->MapCoords.Y == pBuilding->Location.Y / Unsorted::LeptonsPerCell + pType->FoundationOutside[10].Y
 		? NextObject : ContinueCheck;
@@ -590,8 +590,10 @@ DEFINE_HOOK(0x44B6C7, BuildingClass_Mission_Attack_TurretAnim, 0x6)
 			const bool isLowPower = !pThis->StuffEnabled || !pThis->IsPowerOnline();
 			const auto firingFrames = (isLowPower ? &pTypeExt->TurretAnim_LowPowerFiringFrames : &pTypeExt->TurretAnim_FiringFrames);
 
-			if (firingFrames->Get() > 0 && pExt->TurretAnimFiringFrame == -1)
+			if (firingFrames->Get() > 0 && pExt->TurretAnimFiringFrame == -1) {
 				pExt->TurretAnimFiringFrame = 0;
+				pExt->TurretAnimRateTick = 0;
+			}
 		}
 	}
 

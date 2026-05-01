@@ -11,21 +11,6 @@
 #include <BitFont.h>
 #include <Misc/Defines.h>
 
-enum class SWTargetFlags
-{
-	DisallowEmpty,
-	AllowEmpty,
-	CheckHousePower
-};
-
-enum class CloakHandling
-{
-	RandomizeCloaked = 0,
-	AgnosticToCloak = 1,
-	IgnoreCloaked = 2,
-	RequireCloaked = 3
-};
-
 struct LightingColor
 {
 	int Red, Green, Blue, Ambient;
@@ -39,78 +24,11 @@ public:
 	ValueableVector<TechnoTypeClass*> Types;
 	ValueableVector<int> Num;
 
-	bool load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{
-		return Stm
-			.Process(Aircraft, RegisterForChange)
-			.Process(Types, RegisterForChange)
-			.Process(Num, RegisterForChange)
-			.Success();
-	}
-
-	bool save(PhobosStreamWriter& Stm) const
-	{
-		return Stm
-			.Process(Aircraft)
-			.Process(Types)
-			.Process(Num)
-			.Success();
-	}
+	bool load(PhobosStreamReader& Stm, bool RegisterForChange);
+	bool save(PhobosStreamWriter& Stm) const;
 };
 
-struct AITargetingModeInfo
-{
-	SuperWeaponAITargetingMode Mode;
-	SuperWeaponTarget Target;
-	AffectedHouse House;
-	TargetingConstraints Constraints;
-	TargetingPreference Preference;
-
-	bool load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{
-		return Stm
-			.Process(Mode, RegisterForChange)
-			.Process(Target, RegisterForChange)
-			.Process(House, RegisterForChange)
-			.Process(Constraints, RegisterForChange)
-			.Process(Preference, RegisterForChange)
-			.Success();
-	}
-
-	bool save(PhobosStreamWriter& Stm) const
-	{
-		return Stm
-			.Process(Mode)
-			.Process(Target)
-			.Process(House)
-			.Process(Constraints)
-			.Process(Preference)
-			.Success();
-	}
-};
-
-struct TargetResult
-{
-	CellStruct Target;
-	SWTargetFlags Flags;
-
-	bool load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{
-		return Stm
-			.Process(Target, RegisterForChange)
-			.Process(Flags, RegisterForChange)
-			.Success();
-	}
-
-	bool save(PhobosStreamWriter& Stm) const
-	{
-		return Stm
-			.Process(Target)
-			.Process(Flags)
-			.Success();
-	}
-};
-
+struct TargetResult;
 struct TargetingData;
 class SuperClass;
 class SWTypeHandler;
@@ -123,10 +41,9 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "SWTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "SuperWeaponTypeClass";
 	
-	
-
 public:
 #pragma region ClassMembers
+
 	// ============================================================
 	// Large aggregates: CustomPalette, PhobosFixedString, IndexBitfield
 	// ============================================================
@@ -494,29 +411,14 @@ public:
 	Valueable<bool> SW_Link_Ready { false };
 	Valueable<bool> SW_Link_Reset { false };
 	Valueable<bool> CrateGoodies { false };
+
 #pragma endregion
 
 public:
-	SWTypeExtData(SuperWeaponTypeClass* pObj) : AbstractTypeExtData(pObj)	
-	{
-		this->AbsType = SuperWeaponTypeClass::AbsID;
-		this->Text_Ready = GameStrings::TXT_READY();
-		this->Text_Hold = GameStrings::TXT_HOLD();
-		this->Text_Charging = GameStrings::TXT_CHARGING();
-		this->Text_Active = GameStrings::TXT_FIRESTORM_ON();
-		this->Message_CannotFire = "MSG:CannotFire";
-	}
 
+	SWTypeExtData(SuperWeaponTypeClass* pObj);
 	SWTypeExtData(SuperWeaponTypeClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }
-
-	virtual ~SWTypeExtData()
-	{
-		SuperWeaponTypeClass* pCopy = SWTypeExtData::CurrentSWType;
-		if (This() == SWTypeExtData::CurrentSWType)
-			pCopy = nullptr;
-
-		SWTypeExtData::CurrentSWType = pCopy;
-	};
+	virtual ~SWTypeExtData();
 
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) override
 	{
@@ -585,7 +487,7 @@ public:
 	bool IsHouseAffected(HouseClass* pFirer, HouseClass* pHouse, AffectedHouse value);
 	bool Launch(SWTypeHandler* pNewType, SuperClass* pSuper, CellStruct const cell, bool const isPlayer);
 	void PrintMessage(const CSFText& message, HouseClass* pFirer);
-	Iterator<TechnoClass*> GetPotentialAITargets(HouseClass* pTarget) const;
+	Iterator<TechnoClass*> GetPotentialAITargets(HouseClass* pTarget, std::vector<TechnoClass*>& s_targets) const;
 	bool IsCellEligible(CellClass* pCell, SuperWeaponTarget allowed);
 	bool IsTechnoEligible(TechnoClass* pTechno, SuperWeaponTarget allowed);
 	bool IsTechnoAffected(TechnoClass* pTechno);
@@ -641,7 +543,6 @@ public:
 	static bool Handled;
 	static SuperClass* TempSuper;
 	static SuperClass* LauchData;
-	static const AITargetingModeInfo AITargetingModes[];
 	static SuperWeaponTypeClass* CurrentSWType;
 
 public:

@@ -448,8 +448,8 @@ ASMJIT_PATCH(0x6FF48D, TechnoClass_Fire_At_IsLaser, 0xA)
 
 ASMJIT_PATCH(0x448277, BuildingClass_ChangeOwner_PrismForwardAndLeaveBomb, 5)
 {
-	GET(BuildingClass* const, pThis, ESI);
-	GET_STACK(HouseClass* const, newOwner, 0x58 + 0x4);
+	GET(BuildingClass*, pThis, ESI);
+	GET_STACK(HouseClass*, newOwner, 0x58 + 0x4);
 	REF_STACK(bool, announce, 0x58 + 0x8);
 
 	enum { LeaveBomb = 0x448293 };

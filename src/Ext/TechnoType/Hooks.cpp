@@ -18,6 +18,9 @@
 #include <Ext/House/Body.h>
 #include <Ext/UnitType/Body.h>
 
+#include <Utilities/Macro.h>
+#include <Utilities/Patch.h>
+
 #include <TacticalClass.h>
 
 #include <Locomotor/JumpjetLocomotionClass.h>
@@ -486,103 +489,8 @@ ASMJIT_PATCH(0x73CCE1, UnitClass_DrawSHP_TurretOffest, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6B7230, SpawnManagerClass_AI_Dead, 0x5)
-{
-	GET(SpawnManagerClass*, pThis, ECX);
-
-	if(!pThis->Owner || !pThis->Owner->IsAlive)
-		return 0x6B7B6A;
-
-	return 0x0;
-}
-
-ASMJIT_PATCH(0x6B7282, SpawnManagerClass_AI_PromoteSpawns, 0x5)
-{
-	GET(SpawnManagerClass*, pThis, ESI);
-
-	if(auto pOwner = pThis->Owner) {
-		if (GET_TECHNOTYPEEXT(pOwner)->Promote_IncludeSpawns) {
-			for (const auto& i : pThis->SpawnedNodes) {
-				if (i->Unit && i->Unit->Veterancy.Veterancy < pOwner->Veterancy.Veterancy)
-					i->Unit->Veterancy.Add(pOwner->Veterancy.Veterancy - i->Unit->Veterancy.Veterancy);
-			}
-		}
-	}
-
-	return 0;
-}
-
 #include <Ext/Cell/Body.h>
 
-ASMJIT_PATCH(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
-{
-	GET(UnitClass*, pThis, ESI);
-	GET(int, nFacing, EDI);
-	GET_STACK(RectangleStruct*, pBounds, STACK_OFFS(0x50, -0x8));
-	LEA_STACK(Point2D*, pLocation, STACK_OFFS(0x50, 0x18));
-	GET_STACK(int, nBrightness, STACK_OFFS(0x50, -0x4));
-
-	const auto pType = GET_TECHNOTYPE(pThis);
-
-	ConvertClass* pDrawer = FileSystem::ANIM_PAL;
-	SHPStruct* pSHP = FileSystem::OREGATH_SHP;
-	int idxFrame = -1;
-	auto idxTiberium = ((FakeCellClass*)pThis->GetCell())->_GetTiberiumType();
-
-	if (idxTiberium != -1)
-	{
-		const auto pData = TechnoTypeExtContainer::Instance.Find(pType);
-		const auto idxArray = pData->OreGathering_Tiberiums.IndexOf(idxTiberium);
-
-		if (idxArray != -1)
-		{
-			const auto nFramesPerFacing = pData->OreGathering_FramesPerDir.GetItemAtOrDefault(idxArray, 15);
-
-			if (auto pAnimType = pData->OreGathering_Anims.GetItemAtOrMax(idxArray))
-			{
-				pSHP = pAnimType->GetImage();
-				if (const auto pPalette = AnimTypeExtContainer::Instance.Find(pAnimType)->Palette.GetConvert())
-					pDrawer = pPalette;
-			}
-
-			idxFrame = nFramesPerFacing * nFacing + (Unsorted::CurrentFrame() + pThis->WalkedFramesSoFar) % nFramesPerFacing;
-		}
-	}
-
-	if (idxFrame == -1)
-		idxFrame = 15 * nFacing + (Unsorted::CurrentFrame() + pThis->WalkedFramesSoFar) % 15;
-
-	DSurface::Temp->DrawSHP(
-		pDrawer, pSHP, idxFrame, pLocation, pBounds,
-		BlitterFlags::Flat | BlitterFlags::Alpha | BlitterFlags::Centered,
-		0, pThis->GetZAdjustment() - 2, ZGradient::Ground, nBrightness,
-		0, nullptr, 0, 0, 0
-	);
-
-	R->EBP(nBrightness);
-	R->EBX(pBounds);
-
-	return 0x73D28C;
-}
-
-ASMJIT_PATCH(0x700C58, TechnoClass_CanPlayerMove_NoManualMove, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	return GET_TECHNOTYPEEXT(pThis)->NoManualMove.Get() ? 0x700C62 : 0;
-}
-
-ASMJIT_PATCH(0x4437B3, BuildingClass_CellClickedAction_NoManualMove, 0x6)
-{
-	GET(BuildingTypeClass*, pType, EDX);
-	return TechnoTypeExtContainer::Instance.Find(pType)->NoManualMove ? 0x44384E : 0;
-}
-
-ASMJIT_PATCH(0x44F62B, BuildingClass_CanPlayerMove_NoManualMove, 0x6)
-{
-	GET(BuildingTypeClass*, pType, EDX);
-	R->ECX(TechnoTypeExtContainer::Instance.Find(pType)->NoManualMove ? 0 : pType->UndeploysInto);
-	return 0x44F631;
-}
 
 // ASMJIT_PATCH(0x73CF46, UnitClass_Draw_It_KeepUnitVisible, 0x6)
 // {
@@ -901,281 +809,31 @@ ASMJIT_PATCH(0x4AE670, DisplayClass_GetToolTip_EnemyUIName, 0x8)
 	return SetUIName;
 }
 
-ASMJIT_PATCH(0x6FDFA8, TechnoClass_FireAt_SprayOffsets, 0x5)
+int __fastcall TechnoTypeExtContainer::__Repair_Cost(TechnoTypeClass* pThis)
 {
-	GET(TechnoClass*, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EBX);
-	LEA_STACK(CoordStruct*, pCoord, 0xB0 - 0x28);
+	if (pThis->Strength <= 0)
+		return 1;
 
-	auto pType = GET_TECHNOTYPE(pThis);
-	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
+	int cost = pThis->GetCost();
 
-	if (pType->SprayAttack) {
-		if(pThis->CurrentBurstIndex) {
-			pThis->SprayOffsetIndex = (pExt->SprayOffsets.size() / pWeapon->Burst + pThis->SprayOffsetIndex) % pExt->SprayOffsets.size();
-		}
-		else {
-			pThis->SprayOffsetIndex = ScenarioClass::Instance->Random.RandomRanged(0, pExt->SprayOffsets.size() - 1);
-		}
+	if (!cost)
+		return 1;
 
-		auto& Coord = pExt->SprayOffsets[pThis->SprayOffsetIndex];
-		pCoord->X = (pThis->Location.X + Coord->X);//X
-		pCoord->Y = (pThis->Location.Y + Coord->Y);//Y
-		R->EAX(pThis->Location.Z + Coord->Z); //Z
-		return 0x6FE218;
-	}
+	int nStep = RulesClass::Instance->RepairStep;
 
-	return 0x6FE140;
+	if (nStep <= 0)
+		nStep = 1;
+
+	int calc = int((double(cost) / (double(pThis->Strength) / double(nStep))
+		* RulesClass::Instance->RepairPercent));
+
+	if (calc <= 0)
+		calc = 1;
+
+	return nStep;
 }
 
-ASMJIT_PATCH(0x744745, UnitClass_RegisterDestruction_Trigger, 0x5)
-{
-	GET(UnitClass*, pThis, ESI);
-	GET(TechnoClass*, pAttacker, EDI);
-
-	if (pThis && pThis->IsAlive && pAttacker)
-	{
-		if (auto pTag = pThis->AttachedTag)
-		{
-			pTag->RaiseEvent((TriggerEvent)AresTriggerEvents::DestroyedByHouse, pThis, CellStruct::Empty, false, pAttacker->GetOwningHouse());
-		}
-	}
-
-	return 0x0;
-}
-
-ASMJIT_PATCH(0x738801, UnitClass_Destroy_DestroyAnim, 0x6) //was C
-{
-	GET(UnitClass* const, pThis, ESI);
-
-	auto const Extension = TechnoExtContainer::Instance.Find(pThis);
-
-	if (!Extension->ReceiveDamage)
-	{
-		AnimTypeExtData::ProcessDestroyAnims(pThis);
-	}
-
-	return 0x73887E;
-}
-
-int GetVoiceAttack(TechnoTypeClass* pType, int WeaponIndex, bool isElite, WeaponTypeClass* pWeaponType)
-{
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	int VoiceAttack = -1;
-
-	if (pWeaponType && pWeaponType->Damage < 0)
-	{
-		VoiceAttack = pTypeExt->VoiceIFVRepair.Get();
-
-		if (VoiceAttack < 0)
-			VoiceAttack = !strcmp(pType->ID, "FV") ? RulesClass::Instance->VoiceIFVRepair : -1;
-
-		if (VoiceAttack >= 0)
-			return VoiceAttack;
-	}
-
-	if (WeaponIndex >= 0 && int(pTypeExt->VoiceWeaponAttacks.size()) > WeaponIndex)
-		VoiceAttack = isElite ? pTypeExt->VoiceEliteWeaponAttacks[WeaponIndex] : pTypeExt->VoiceWeaponAttacks[WeaponIndex];
-
-	if (VoiceAttack < 0)
-	{
-		if (pTypeExt->IsSecondary(WeaponIndex))
-			VoiceAttack = isElite && pType->VoiceSecondaryEliteWeaponAttack != -1? pType->VoiceSecondaryEliteWeaponAttack : pType->VoiceSecondaryWeaponAttack;
-		else
-			VoiceAttack = isElite && pType->VoicePrimaryEliteWeaponAttack!= -1 ? pType->VoicePrimaryEliteWeaponAttack : pType->VoicePrimaryWeaponAttack;
-	}
-
-	return VoiceAttack;
-}
-
-ASMJIT_PATCH(0x7090A0, TechnoClass_VoiceAttack, 0x7)
-{
-	GET(TechnoClass*, pThis, ECX);
-	GET_STACK(AbstractClass*, pTarget, 0x4);
-
-	const auto pType = GET_TECHNOTYPE(pThis);
-	const int WeaponIndex = pThis->SelectWeapon(pTarget);
-	int VoiceAttack = GetVoiceAttack(pType, WeaponIndex, pThis->Veterancy.IsElite(), pThis->GetWeapon(WeaponIndex)->WeaponType);
-
-	if (VoiceAttack >= 0) {
-		pThis->QueueVoice(VoiceAttack);
-		return 0x7091C7;
-	}
-
-	const auto& Lists = pType->VoiceAttack;
-
-	if (Lists.Count > 0) {
-		int idx = Random2Class::Global->RandomRanged(0, Lists.Count - 1);
-		pThis->QueueVoice(Lists[idx]);
-	}
-
-	return 0x7091C7;
-}
-
-ThreatType __forceinline GetThreatType(TechnoClass* pThis, TechnoTypeExtData* pTypeExt, ThreatType result)
-{
-	ThreatType flags = pThis->Veterancy.IsElite() ? pTypeExt->ThreatTypes.Y : pTypeExt->ThreatTypes.X;
-	return result | flags;
-}
-
-ASMJIT_PATCH(0x7431C9, FootClass_SelectAutoTarget_MultiWeapon, 0x7)				// UnitClass_SelectAutoTarget
-{
-	GET(FootClass*, pThis, ESI);
-	GET(ThreatType, result, EDI);
-	enum { InfantryReturn = 0x51E31B, UnitReturn = 0x74324F, UnitGunner = 0x7431E4 };
-
-	const bool isUnit = R->Origin() == 0x7431C9;
-	const auto pType = GET_TECHNOTYPE(pThis);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	if (isUnit
-		&& !pType->IsGattling && pType->TurretCount > 0
-		&& (pType->Gunner || !pTypeExt->MultiWeapon)) {
-		return UnitGunner;
-	}
-
-	R->EDI(GetThreatType(pThis, pTypeExt, result));
-	return isUnit ? UnitReturn : InfantryReturn;
-}ASMJIT_PATCH_AGAIN(0x51E2CF, FootClass_SelectAutoTarget_MultiWeapon, 0x6)	// InfantryClass_SelectAutoTarget
-
-ASMJIT_PATCH(0x445F04, BuildingClass_SelectAutoTarget_MultiWeapon, 0xA)
-{
-	GET(BuildingClass*, pThis, ESI);
-	GET_STACK(ThreatType, result, STACK_OFFSET(0x8, 0x4));
-	enum { ReturnThreatType = 0x445F58, Continue = 0x445F0E };
-
-	if (pThis->UpgradeLevel > 0 || pThis->CanOccupyFire()) {
-		R->EAX(pThis->GetWeapon(0));
-		return Continue;
-	}
-
-	R->EDI(GetThreatType(pThis, TechnoTypeExtContainer::Instance.Find(pThis->Type), result));
-	return ReturnThreatType;
-}
-
-ASMJIT_PATCH(0x6F398E, TechnoClass_CombatDamage_MultiWeapon, 0x7)
-{
-	enum { ReturnDamage = 0x6F3ABB, GunnerDamage = 0x6F39AD, Continue = 0x6F39F4 };
-
-	GET(TechnoClass*, pThis, ESI);
-
-	const AbstractType rtti = pThis->WhatAmI();
-
-	if (rtti == AbstractType::Building)
-	{
-		const auto pBuilding = static_cast<BuildingClass*>(pThis);
-
-		if (pBuilding->UpgradeLevel > 0 || pBuilding->CanOccupyFire())
-			return Continue;
-	}
-
-	const auto pType = GET_TECHNOTYPE(pThis);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	if (rtti == AbstractType::Unit
-		&& !pType->IsGattling && pType->TurretCount > 0
-		&& (pType->Gunner || !pTypeExt->MultiWeapon))
-	{
-		return GunnerDamage;
-	}
-
-	R->EAX(pThis->Veterancy.IsElite() ? pTypeExt->CombatDamages.Y : pTypeExt->CombatDamages.X);
-	return ReturnDamage;
-}
-
-static int GetMultiWeaponRange(TechnoClass* pThis)
-{
-	int range = -1;
-	const auto pType = pThis->GetTechnoType();
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	if (pTypeExt->MultiWeapon) {
-		int selectCount = MinImpl(pType->WeaponCount, pTypeExt->MultiWeapon_SelectCount);
-		range = 0;
-
-		for (int index = selectCount - 1; index >= 0; --index) {
-			int weaponRange = pThis->GetWeaponRange(index);
-
-			if (weaponRange > range)
-				range = weaponRange;
-		}
-	}
-
-	return range;
-}
-
-static int GetGuardRange(TechnoClass* pThis, int control)
-{
-	if (control == -1)
-		return -1;
-
-	auto const pType = pThis->GetTechnoType();
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	int range = pType->GuardRange;
-
-	if (pThis->CurrentMission == Mission::Area_Guard && pTypeExt->AreaGuardRange.isset())
-		range = pTypeExt->AreaGuardRange.Get();
-
-	if (!control) // Control = 0, used for ThreatType=Range target acquisition.
-	{
-		if (range && !pThis->IsEngineer())
-			return range;
-
-		return 0;
-	}
-
-	// Set range from weapon range if GuardRange is not set.
-	if (!range)
-	{
-		// Handle special weapon configurations.
-		if (!pType->IsGattling && (pType->HasMultipleTurrets() || pTypeExt->MultiWeapon)) {
-			if (pType->HasMultipleTurrets())
-				range = pThis->GetWeaponRange(pThis->CurrentWeaponNumber);
-			else
-				range = GetMultiWeaponRange(pThis);
-		} else {
-			int weaponRange0 = pThis->GetWeaponRange(0);
-			int weaponRange1 = pThis->GetWeaponRange(1);
-
-			if (weaponRange0 < weaponRange1)
-				range = weaponRange1;
-			else
-				range = weaponRange0;
-		}
-	}
-
-
-	//TechnoClass_GetGuardRange_AreaGuardRange
-	const bool isPlayer = pThis->Owner->IsControlledByHuman();
-	const auto pRulesExt = RulesExtData::Instance();
-
-	double multiplier, addend, max = {};
-
-	if (isPlayer) {
-		multiplier = pTypeExt->PlayerGuardModeGuardRangeMultiplier.Get(pRulesExt->PlayerGuardModeGuardRangeMultiplier);
-		addend = pTypeExt->PlayerGuardModeGuardRangeAddend.Get(pRulesExt->PlayerGuardModeGuardRangeAddend);
-		max = pTypeExt->MaxGuardRange.Get(pRulesExt->PlayerGuardModeGuardRangeMax);
-	} else {
-		multiplier = pTypeExt->AIGuardModeGuardRangeMultiplier.Get(pRulesExt->AIGuardModeGuardRangeMultiplier);
-		addend = pTypeExt->AIGuardModeGuardRangeAddend.Get(pRulesExt->AIGuardModeGuardRangeAddend);
-		max = pTypeExt->MaxGuardRange.Get(pRulesExt->AIGuardModeGuardRangeMax);
-	}
-
-	const int min = ((control == 2) ? 1792 : 0);
-	const int areaGuardRange = (static_cast<int>(range * multiplier + static_cast<int>(addend)));
-	//
-
-
-	return std::clamp(areaGuardRange, min, (int)max);
-}
-
-ASMJIT_PATCH(0x707E60, TechnoClass_GetGuardRange, 0x7)
-{
-	enum { SkipGameCode = 0x707F4B };
-
-	GET(TechnoClass*, pThis, ECX);
-	GET_STACK(int, control, 0x4);
-
-	R->EAX(GetGuardRange(pThis, control));
-	return 0x707F4E;
-}
+DEFINE_FUNCTION_JUMP(LJMP, 0x7120D0, TechnoTypeExtContainer::__Repair_Cost);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2918, TechnoTypeExtContainer::__Repair_Cost);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4F88, TechnoTypeExtContainer::__Repair_Cost);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F62C8, TechnoTypeExtContainer::__Repair_Cost);

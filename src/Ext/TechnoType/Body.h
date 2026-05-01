@@ -2410,6 +2410,9 @@ class TechnoTypeExtContainer final //: public Container<TechnoTypeExtData>
 public:
 	static TechnoTypeExtContainer Instance;
 
+
+	static int __fastcall __Repair_Cost(TechnoTypeClass* pThis);
+
 	COMPILETIMEEVAL FORCEDINLINE  TechnoTypeExtData* GetExtAttribute(TechnoTypeClass* key)
 	{
 		return (TechnoTypeExtData*)(*(uintptr_t*)((char*)key + AbstractExtOffset));

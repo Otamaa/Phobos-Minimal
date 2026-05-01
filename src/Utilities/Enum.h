@@ -34,6 +34,21 @@
 #include <Helpers\EnumFlags.h>
 #include <GeneralDefinitions.h>
 
+enum class SWTargetFlags : BYTE
+{
+	DisallowEmpty,
+	AllowEmpty,
+	CheckHousePower
+};
+
+enum class CloakHandling : BYTE
+{
+	RandomizeCloaked = 0,
+	AgnosticToCloak = 1,
+	IgnoreCloaked = 2,
+	RequireCloaked = 3
+};
+
 enum class ParabolaFireMode : size_t
 {
 	Speed = 0,

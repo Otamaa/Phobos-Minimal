@@ -720,10 +720,10 @@ ASMJIT_PATCH(0x671152, RulesClass_Addition_General_PrismSupportModifier, 0x6)
 ASMJIT_PATCH(0x6B72F9, SpawnManagerClass_Update_Buildings, 0x5)
 {
 	GET(SpawnManagerClass*, pThis, ESI);
-	GET(SpawnNode, nNode, EAX);
+	GET(SpawnNode*, nNode, EAX);
 
 	auto const pOwner = pThis->Owner;
-	return (nNode.Status != SpawnNodeStatus::TakeOff
+	return (nNode->Status != SpawnNodeStatus::TakeOff
 		|| !pOwner
 		|| pOwner->WhatAmI() == BuildingClass::AbsID)
 		? 0x6B735C : 0x6B72FE;

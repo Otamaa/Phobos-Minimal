@@ -27,7 +27,7 @@ void SuperExtData::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 				auto pExt = SuperExtContainer::Instance.Find(pSuper);
 				pExt->Statusses.reset();
 
-				auto pTypeExt = pExt->Type;
+				/*auto pTypeExt = pExt->Type;*/
 
 				//if AlwaysGranted and SWAvaible
 				pExt->Statusses.PowerSourced = !pSuper->IsPowered();
@@ -658,7 +658,7 @@ bool FakeSuperClass::_Discharged(bool isPlayer, CellStruct* pCell)
 			return false;
 		}
 
-		this->Launch(*pCell, isPlayer);
+		this->_Place(pCell, isPlayer);
 
 		// the others will be reset after the PostClick SW fired
 		if (!pType->PostClick && !pType->PreClick)
@@ -710,13 +710,14 @@ bool FakeSuperClass::_Discharged(bool isPlayer, CellStruct* pCell)
 					* pExt->GetChargeToDrainRatio());
 			this->RechargeTimer.Start(duration);
 
-			this->Launch(*pCell, isPlayer);
+			this->_Place(pCell, isPlayer);
 		}
 	}
 
 	return false;
 }
 DEFINE_FUNCTION_JUMP(LJMP, 0x6CB920, FakeSuperClass::_Discharged)
+DEFINE_FUNCTION_JUMP(CALL, 0x4FAE97, FakeSuperClass::_Discharged)
 
 bool FakeSuperClass::_Suspend(bool on)
 {

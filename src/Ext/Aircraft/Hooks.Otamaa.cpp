@@ -15,7 +15,7 @@
 
 DEFINE_FUNCTION_JUMP(CALL, 0x4CD809, FakeAircraftClass::_Destroyed);
 
-ASMJIT_PATCH(0x415991, AircraftClass_Mission_Paradrop_Overfly_Radius, 0x6)
+ASMJIT_PATCH(0x415991, AircraftClass_MI_Paradrop_Overfly_Radius, 0x6)
 {
 	enum { ConditionMeet = 0x41599F, ConditionFailed = 0x4159C8 };
 
@@ -26,7 +26,7 @@ ASMJIT_PATCH(0x415991, AircraftClass_Mission_Paradrop_Overfly_Radius, 0x6)
 	return comparator > nRadius ? ConditionMeet : ConditionFailed;
 }
 
-ASMJIT_PATCH(0x415934, AircraftClass_Mission_Paradrop_Approach_Radius, 0x6)
+ASMJIT_PATCH(0x415934, AircraftClass_MI_Paradrop_Approach_Radius, 0x6)
 {
 	enum { ConditionMeet = 0x415942, ConditionFailed = 0x415956 };
 

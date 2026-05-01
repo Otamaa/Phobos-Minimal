@@ -2031,10 +2031,8 @@ std::vector<int> HouseExtData::GetBuildLimitGroupLimits(HouseClass* pHouse, Tech
 			auto pTmpType = pTypeExt->BuildLimitGroup_ExtraLimit_Types[i];
 			auto const pBuildingType = type_cast<BuildingTypeClass*>(pTmpType);
 
-			if (pBuildingType &&
-				(BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0
-				|| BuildingTypeClass::Find(pBuildingType->PowersUpBuilding)))
-				count = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, const_cast<HouseClass*>(pHouse));
+			if (pBuildingType)
+				count = BuildingTypeExtData::CountOwnedNowWithDeployOrUpgrade(pBuildingType, const_cast<HouseClass*>(pHouse));
 			else
 				count = pHouse->CountOwnedNow(pTmpType);
 
@@ -2112,9 +2110,8 @@ bool HouseExtData::ReachedBuildLimit(HouseClass* pHouse,TechnoTypeClass* pType, 
 			int owned = 0;
 			const auto pBuildingType = type_cast<BuildingTypeClass*>(pTmpType);
 
-			if (pBuildingType && (BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0
-				|| BuildingTypeClass::Find(pBuildingType->PowersUpBuilding)))
-				owned = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, const_cast<HouseClass*>(pHouse));
+			if (pBuildingType)
+				owned = BuildingTypeExtData::CountOwnedNowWithDeployOrUpgrade(pBuildingType, const_cast<HouseClass*>(pHouse));
 			else
 				owned = pHouse->CountOwnedNow(pTmpType);
 
@@ -2149,9 +2146,8 @@ bool HouseExtData::ReachedBuildLimit(HouseClass* pHouse,TechnoTypeClass* pType, 
 			int num = 0;
 			const auto pBuildingType = type_cast<BuildingTypeClass*>(pTmpType);
 
-			if (pBuildingType && (BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0
-				|| BuildingTypeClass::Find(pBuildingType->PowersUpBuilding)))
-				num = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, const_cast<HouseClass*>(pHouse));
+			if (pBuildingType)
+				num = BuildingTypeExtData::CountOwnedNowWithDeployOrUpgrade(pBuildingType, const_cast<HouseClass*>(pHouse));
 			else
 				num = pHouse->CountOwnedNow(pTmpType);
 
@@ -2367,9 +2363,8 @@ CanBuildResult HouseExtData::BuildLimitGroupCheck(HouseClass* pThis,TechnoTypeCl
 			//const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 			int ownedNow = 0;
 
-			if (pBuildingType && (BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0
-				|| BuildingTypeClass::Find(pBuildingType->PowersUpBuilding)))
-				ownedNow = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, const_cast<HouseClass*>(pThis));
+			if (pBuildingType)
+				ownedNow = BuildingTypeExtData::CountOwnedNowWithDeployOrUpgrade(pBuildingType, const_cast<HouseClass*>(pThis));
 			else
 				ownedNow = CountOwnedIncludeDeploy(pThis, pType);
 
@@ -2392,9 +2387,8 @@ CanBuildResult HouseExtData::BuildLimitGroupCheck(HouseClass* pThis,TechnoTypeCl
 				const auto pBuildingType = type_cast<BuildingTypeClass*>(pType);
 				int owned = 0;
 
-				if (pBuildingType && (BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0
-				|| BuildingTypeClass::Find(pBuildingType->PowersUpBuilding)))
-					owned = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, const_cast<HouseClass*>(pThis));
+				if (pBuildingType)
+					owned = BuildingTypeExtData::CountOwnedNowWithDeployOrUpgrade(pBuildingType, const_cast<HouseClass*>(pThis));
 				else
 					owned = CountOwnedIncludeDeploy(pThis, pType);
 
@@ -2418,9 +2412,8 @@ CanBuildResult HouseExtData::BuildLimitGroupCheck(HouseClass* pThis,TechnoTypeCl
 				const auto pBuildingType = type_cast<BuildingTypeClass*>(pType);
 				int ownedNow = 0;
 
-				if (pBuildingType && (BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.size() > 0
-				|| BuildingTypeClass::Find(pBuildingType->PowersUpBuilding)))
-					ownedNow = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, const_cast<HouseClass*>(pThis));
+				if (pBuildingType)
+					ownedNow = BuildingTypeExtData::CountOwnedNowWithDeployOrUpgrade(pBuildingType, const_cast<HouseClass*>(pThis));
 				else
 					ownedNow = CountOwnedIncludeDeploy(pThis, pType);
 
@@ -3988,7 +3981,7 @@ bool FakeHouseClass::_IsIonCannonEligibleTarget(TechnoClass* pTechno) const
 	if (pTechno->InLimbo) {
 		if ((pTechno->Transporter && pTechno->Transporter->IsAlive) || (pTechno->BunkerLinkedItem && pTechno->BunkerLinkedItem->IsAlive))
 			allowed = true;
-		else  if (pTechno->WhatAmI() == AbstractType::Aircraft && ((AircraftClass*)(pTechno))->DockedTo )
+		else  if (pTechno->WhatAmI() == AbstractType::Aircraft && ((AircraftClass*)(pTechno))->DockedTo)
 			allowed = true;
 		else if (pTechno->WhatAmI() == AbstractType::Infantry && InfantryExtContainer::Instance.Find((InfantryClass*)(pTechno))->GarrisonedIn)
 			allowed = true;

@@ -517,12 +517,10 @@ MAKE_ENUM_FLAGS(DirType);
 struct DirStruct
 {
 	// ── Constructors ────────────────────────────────────────────────────────
-
-	// Copy
-	COMPILETIMEEVAL DirStruct(const DirStruct& nDir) noexcept : Raw { nDir.Raw } { }
-
-	// Default = North (Raw 0)
-	COMPILETIMEEVAL explicit DirStruct() noexcept : Raw { 0 } { }
+	DirStruct() = default;
+	DirStruct(const DirStruct&) = default;
+	DirStruct& operator=(const DirStruct&) = default;
+	~DirStruct() = default;
 
 	// Raw BAM value directly (use when you already have the game's binary angle)
 	COMPILETIMEEVAL explicit DirStruct(int raw) noexcept : Raw { (unsigned short)raw } { }

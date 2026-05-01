@@ -498,10 +498,10 @@ bool _retTrue(bool& check) {
 }
 bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 {
-	if (this->LastDiscardCheckFrame == Unsorted::CurrentFrame)
+	if (this->LastDiscardCheckFrame == Unsorted::CurrentFrame())
 		return this->LastDiscardCheckValue;
 
-	this->LastDiscardCheckFrame = Unsorted::CurrentFrame;
+	this->LastDiscardCheckFrame = Unsorted::CurrentFrame();
 
 	if (this->ShouldBeDiscarded)
 		return _retTrue(this->LastDiscardCheckValue);
@@ -609,11 +609,12 @@ int PhobosAttachEffectClass::Attach(TechnoClass* pTarget, HouseClass* pInvokerHo
 			pTarget->ROF = static_cast<int>(pTarget->ROF * ROFModifier);
 	}
 
-	if (attachedCount > 0)
+	if (attachedCount > 0){
 		AEProperties::Recalculate(pTarget);
 
-	if (markForRedraw)
-		pTarget->MarkForRedraw();
+		if (markForRedraw)
+			pTarget->MarkForRedraw();
+	}
 
 	return attachedCount;
 }
@@ -883,6 +884,8 @@ void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, Tech
 	//Debug::LogInfo(__FUNCTION__" Executed [%s - %s]", pTarget->GetThisClassName(), pTarget->get_ID());
 	const auto pSourceExt = TechnoExtContainer::Instance.Find(pSource);
 	const auto pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
+	bool markForRedraw = false;
+	int transferCount = 0;
 
 	for (auto it = pSourceExt->PhobosAE.begin(); it != pSourceExt->PhobosAE.end(); )
 	{
@@ -956,7 +959,19 @@ void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, Tech
 				pAE->Duration = attachEffect->Duration;
 		}
 
+		if (type->HasTint())
+			markForRedraw = true;
+
+		transferCount++;
 		it = pSourceExt->PhobosAE.erase(it);
+	}
+
+	if (transferCount > 0) {
+
+		AEProperties::Recalculate(pTarget);
+
+		if (markForRedraw)
+			pTarget->MarkForRedraw();
 	}
 }
 

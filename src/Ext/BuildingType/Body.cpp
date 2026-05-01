@@ -111,6 +111,42 @@ void BuildingTypeExtData::GetDisplayRect(RectangleStruct* out, CellStruct* cells
 	return;
 }
 
+int FakeBuildingTypeClass::__Repair_Step()
+{
+	return this->_GetExtData()->RepairStep.Get(RulesClass::Instance->RepairStep);
+}
+DEFINE_FUNCTION_JUMP(VTABLE , 0x7E4624 , FakeBuildingTypeClass::__Repair_Cost)
+
+int FakeBuildingTypeClass::__Repair_Cost()
+{
+	if (this->Strength <= 0)
+		return 1;
+
+	int cost = this->GetCost();
+
+	if (!cost)
+		return 1;
+
+	int nStep = RulesClass::Instance->RepairStep;
+	auto pTypeExt = this->_GetExtData();
+
+	if (pTypeExt->RepairStep.isset())
+		nStep = pTypeExt->RepairStep;
+
+	if (nStep <= 0)
+		nStep = 1;
+
+	int calc = int((double(cost) / (double(this->Strength) / double(nStep))
+		* RulesClass::Instance->RepairPercent));
+
+	if (calc <= 0)
+		calc = 1;
+
+	return nStep;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE , 0x7E4620 , FakeBuildingTypeClass::__Repair_Cost)
+
 bool FakeBuildingTypeClass::_CanUseWaypoint() {
 	return RulesExtData::Instance()->BuildingWaypoint;
 }
@@ -1251,42 +1287,46 @@ double BuildingTypeExtData::GetExternalFactorySpeedBonus(TechnoClass* pWhat)
 
 int BuildingTypeExtData::GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass* pHouse) // not including producing upgrades
 {
-	int result = 0;
-	bool isUpgrade = false;
-	auto pPowersUp = pBuilding->PowersUpBuilding;
+	if(!BuildingTypeExtContainer::Instance.Find(pBuilding)->PowersUp_Buildings.empty() || BuildingTypeClass::Find(pBuilding->PowersUpBuilding)) {
 
-	if (!pHouse)
-		return -1;
+		int result = 0;
+		bool isUpgrade = false;
+		auto pPowersUp = pBuilding->PowersUpBuilding;
 
-	auto checkUpgrade = [pHouse, pBuilding, &result, &isUpgrade](BuildingTypeClass* pTPowersUp)
-		{
-			if(!pTPowersUp)
-				return;
+		if (!pHouse)
+			return -1;
 
-			isUpgrade = true;
-			for (auto const& pBld : pHouse->Buildings)
+		auto checkUpgrade = [pHouse, pBuilding, &result, &isUpgrade](BuildingTypeClass* pTPowersUp)
 			{
-				if (pBld->Type == pTPowersUp)
+				if(!pTPowersUp)
+					return;
+
+				isUpgrade = true;
+				for (auto const& pBld : pHouse->Buildings)
 				{
-					for (auto const& pUpgrade : pBld->Upgrades)
+					if (pBld->Type == pTPowersUp)
 					{
-						if (pUpgrade && pUpgrade == pBuilding)
-							++result;
+						for (auto const& pUpgrade : pBld->Upgrades)
+						{
+							if (pUpgrade && pUpgrade == pBuilding)
+								++result;
+						}
 					}
 				}
-			}
-		};
+			};
 
-	if (pPowersUp[0])
-	{
-		if (auto const pTPowersUp = BuildingTypeClass::Find(pPowersUp))
+		if (pPowersUp[0]) {
+			if (auto const pTPowersUp = BuildingTypeClass::Find(pPowersUp))
+				checkUpgrade(pTPowersUp);
+		}
+
+		for (auto pTPowersUp : BuildingTypeExtContainer::Instance.Find(pBuilding)->PowersUp_Buildings)
 			checkUpgrade(pTPowersUp);
+
+		return isUpgrade ? result : -1;
 	}
 
-	for (auto pTPowersUp : BuildingTypeExtContainer::Instance.Find(pBuilding)->PowersUp_Buildings)
-		checkUpgrade(pTPowersUp);
-
-	return isUpgrade ? result : -1;
+	return -1;
 }
 
 bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
@@ -1341,7 +1381,8 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->TurretAnim_LowPowerIdleFrames.Read(exINI, pSection, "TurretAnim.LowPowerIdleFrames");
 		this->TurretAnim_FiringFrames.Read(exINI, pSection, "TurretAnim.FiringFrames");
 		this->TurretAnim_LowPowerFiringFrames.Read(exINI, pSection, "TurretAnim.LowPowerFiringFrames");
-
+		this->TurretAnim_IdleRate.Read(exINI, pSection, "TurretAnim.IdleRate");
+		this->TurretAnim_FiringRate.Read(exINI, pSection, "TurretAnim.FiringRate");
 		this->Grinding_AllowAllies.Read(exINI, pSection, "Grinding.AllowAllies");
 		this->Grinding_AllowOwner.Read(exINI, pSection, "Grinding.AllowOwner");
 		this->Grinding_AllowTypes.Read(exINI, pSection, "Grinding.AllowTypes");
@@ -1845,10 +1886,12 @@ bool BuildingTypeExtData::ShouldExistGreyCameo(TechnoTypeClass* pType)
 
 
 	for (const auto& pNegType : pNegTypes) {
+		if (pNegType->WhatAmI() == AbstractType::BuildingType && BuildingTypeExtData::GetUpgradesAmount(static_cast<BuildingTypeClass*>(pNegType), pHouse) > 0)
+			return false;
+
 		if (pNegType && pHouse->CountOwnedAndPresent(pNegType))
 			return false;
-		else if (pNegType->WhatAmI() == AbstractType::BuildingType && BuildingTypeExtData::GetUpgradesAmount(static_cast<BuildingTypeClass*>(pNegType), pHouse) > 0)
-				return false;
+
 	}
 
 	const auto& pAuxTypes = pTypeExt->Cameo_AuxTechnos;
@@ -2189,6 +2232,8 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->TurretAnim_LowPowerIdleFrames)
 		.Process(this->TurretAnim_FiringFrames)
 		.Process(this->TurretAnim_LowPowerFiringFrames)
+		.Process(this->TurretAnim_IdleRate)
+		.Process(this->TurretAnim_FiringFrames)
 		.Process(this->NewEvaVoice_RecheckOnDeath)
 		.Process(this->NewEvaVoice_InitialMessage)
 

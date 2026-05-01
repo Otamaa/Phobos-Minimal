@@ -117,7 +117,7 @@ public:
 	ValueableVector<int> Pips_Tiberiums_Frames {};
 	NullableVector<int> Pips_Tiberiums_DisplayOrder {};
 	ValueableVector<BuildingTypeClass*> HunterSeekerBuildings {};
-	ValueableVector<BuildingTypeClass*> Bounty_Enablers {};
+	ValueableVector<TechnoTypeClass*> Bounty_Enablers {};
 	ValueableVector<BuildingTypeClass*> WallTowers {};
 	ValueableVector<TechnoTypeClass*> DropPodTypes {};
 	ValueableVector<DigitalDisplayTypeClass*> Buildings_DefaultDigitalDisplayTypes {};

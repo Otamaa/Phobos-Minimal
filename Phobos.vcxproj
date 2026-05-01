@@ -501,6 +501,8 @@
     <ClCompile Include="src\Utilities\EnumFunctions.cpp" />
     <ClCompile Include="src\Utilities\GeneralUtils.cpp" />
     <ClCompile Include="src\New\Entity\TargetingData.cpp" />
+    <ClCompile Include="src\Utilities\TargetingFuncs.cpp" />
+    <ClCompile Include="src\Utilities\TargetResult.cpp" />
     <ClCompile Include="src\Utilities\TechnoTypeConvertData.cpp" />
     <ClCompile Include="src\New\Entity\TheaterSpecificSHP.cpp" />
     <ClCompile Include="src\New\Entity\VersesData.cpp" />
@@ -898,6 +900,8 @@
     <ClInclude Include="src\Utilities\Parser.h" />
     <ClInclude Include="src\Utilities\Patch.h" />
     <ClInclude Include="src\New\Entity\TargetingData.h" />
+    <ClInclude Include="src\Utilities\TargetingFuncs.h" />
+    <ClInclude Include="src\Utilities\TargetResult.h" />
     <ClInclude Include="src\Utilities\TechnoTypeConvertData.h" />
     <ClInclude Include="src\Utilities\Template.h" />
     <ClInclude Include="src\Utilities\TemplateDef.h" />

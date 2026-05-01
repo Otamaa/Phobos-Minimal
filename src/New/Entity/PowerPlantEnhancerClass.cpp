@@ -55,9 +55,6 @@ void PowerPlantEnhancerClass::DrawIndicators(BuildingClass* pCurrentBuilding) {
 // ========================================================================
 bool PowerPlantEnhancerClass::IsValidEnhancer() const
 {
-	if (!this->AttachedToObject)
-		return false;
-
 	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(this->AttachedToObject->Type);
 
 	return !pTypeExt->PowerPlantEnhancer_Buildings.empty()
@@ -70,7 +67,7 @@ bool PowerPlantEnhancerClass::IsValidEnhancer() const
 // ========================================================================
 void PowerPlantEnhancerClass::Register()
 {
-	if (this->Registered || !this->AttachedToObject)
+	if (this->Registered)
 		return;
 
 	if (!this->IsValidEnhancer())
@@ -86,7 +83,7 @@ void PowerPlantEnhancerClass::Register()
 // ========================================================================
 void PowerPlantEnhancerClass::Unregister()
 {
-	if (!this->Registered || !this->AttachedToObject)
+	if (!this->Registered)
 		return;
 
 	if (!this->AttachedToObject->Owner)
@@ -103,7 +100,7 @@ void PowerPlantEnhancerClass::Unregister()
 // ========================================================================
 void PowerPlantEnhancerClass::OnOwnerChanged(HouseClass* pOldOwner, HouseClass* pNewOwner)
 {
-	if (!this->AttachedToObject || !this->IsValidEnhancer())
+	if (!this->IsValidEnhancer())
 		return;
 
 	// Remove from old owner
@@ -188,9 +185,6 @@ std::pair<int, int> PowerPlantEnhancerClass::GetEnhancedPower(
 // ========================================================================
 int PowerPlantEnhancerClass::GetRangeInCells() const
 {
-	if (!this->AttachedToObject)
-		return 0;
-
 	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(this->AttachedToObject->Type);
 	return pTypeExt->PowerPlantEnhancer_Range.Get() / Unsorted::LeptonsPerCell;
 }

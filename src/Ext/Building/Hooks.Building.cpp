@@ -422,8 +422,8 @@ ASMJIT_PATCH(0x448260, BuildingClass_SetOwningHouse_ContextSet, 0x8)
 
 ASMJIT_PATCH(0x448BE3, BuildingClass_SetOwningHouse_FixArgs, 0x5)
 {
-	GET(BuildingClass* const, pThis, ESI);
-	GET(HouseClass* const, pNewOwner, EDI);
+	GET(BuildingClass*, pThis, ESI);
+	GET(HouseClass*, pNewOwner, EDI);
 	//GET_STACK(bool const, bAnnounce, 0x58 + 0x8); // this thing already used
 	//discarded
 	for (auto& anim : pThis->Anims)
@@ -1006,8 +1006,8 @@ ASMJIT_PATCH(0x4586D6, BuildingClass_KillOccupiers, 0x9)
 // do not crash if the EMP cannon primary has no Report sound
 ASMJIT_PATCH(0x44D4CA, BuildingClass_Mission_Missile_NoReport, 0x9)
 {
-	GET(TechnoTypeClass* const, pType, EAX);
-	GET(WeaponTypeClass* const, pWeapon, EBP);
+	GET(TechnoTypeClass*, pType, EAX);
+	GET(WeaponTypeClass*, pWeapon, EBP);
 
 	return !pType->IsGattling && pWeapon->Report.Count ?
 		0x44D4D4 : 0x44D51F;
@@ -1018,7 +1018,7 @@ ASMJIT_PATCH(0x44D4CA, BuildingClass_Mission_Missile_NoReport, 0x9)
 ASMJIT_PATCH(0x44BB1B, BuildingClass_Mission_Repair_Promote, 0x6)
 {
 	//GET(BuildingClass*, pThis, EBP);
-	GET(TechnoClass* const, pTrainee, EAX);
+	GET(TechnoClass*, pTrainee, EAX);
 	return pTrainee ? 0 : 0x44BB3C;
 }
 
@@ -1268,7 +1268,7 @@ ASMJIT_PATCH(0x45E416, BuildingTypeClass_CTOR_Initialize, 0x6)
 
 ASMJIT_PATCH(0x4456E5, BuildingClass_UpdateConstructionOptions_ExcludeDisabled, 0x6)
 {
-	GET(BuildingClass* const, pBld, ECX);
+	GET(BuildingClass*, pBld, ECX);
 
 	// add the EMP check to the limbo check
 	return (pBld->InLimbo || pBld->IsUnderEMP()) ?
@@ -1278,8 +1278,8 @@ ASMJIT_PATCH(0x4456E5, BuildingClass_UpdateConstructionOptions_ExcludeDisabled, 
 ASMJIT_PATCH(0x7004AD, TechnoClass_GetActionOnObject_Saboteur, 0x6)
 {
 	// this is known to be InfantryClass, and Infiltrate is yes
-	GET(InfantryClass* const, pThis, ESI);
-	GET(ObjectClass* const, pObject, EDI);
+	GET(InfantryClass*, pThis, ESI);
+	GET(ObjectClass*, pObject, EDI);
 
 	bool infiltratable = false;
 	if (const auto pBldObject = cast_to<BuildingClass*>(pObject))
@@ -1420,8 +1420,8 @@ ASMJIT_PATCH(0x51E635, InfantryClass_GetActionOnObject_EngineerOverFriendlyBuild
 		ReturnValue = 0x51F17E
 	};
 
-	GET(TechnoClass* const, pTarget, ESI);
-	GET(InfantryClass* const, pThis, EDI);
+	GET(TechnoClass*, pTarget, ESI);
+	GET(InfantryClass*, pThis, EDI);
 
 	auto pBuilding = cast_to<BuildingClass*>(pTarget);
 
@@ -1465,7 +1465,7 @@ ASMJIT_PATCH(0x51E635, InfantryClass_GetActionOnObject_EngineerOverFriendlyBuild
 
 ASMJIT_PATCH(0x51FA82, InfantryClass_GetActionOnCell_EngineerRepairable, 6)
 {
-	GET(BuildingTypeClass* const, pBuildingType, EBP);
+	GET(BuildingTypeClass*, pBuildingType, EBP);
 	R->AL(BuildingTypeExtContainer::Instance.Find(pBuildingType)
 		->EngineerRepairable.Get(pBuildingType->Repairable));
 	return 0x51FA88;
@@ -1474,7 +1474,7 @@ ASMJIT_PATCH(0x51FA82, InfantryClass_GetActionOnCell_EngineerRepairable, 6)
 ASMJIT_PATCH(0x51B2CB, InfantryClass_SetTarget_Saboteur, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
-	GET(ObjectClass* const, pTarget, EDI);
+	GET(ObjectClass*, pTarget, EDI);
 
 	if (const auto pBldObject = cast_to<BuildingClass*>(pTarget))
 	{
@@ -1623,8 +1623,8 @@ ASMJIT_PATCH(0x7376D9, UnitClass_ReceivedRadioCommand_DockUnload_Facing, 5)
 
 ASMJIT_PATCH(0x73DF66, UnitClass_Mission_Unload_DockUnload_Facing, 5)
 {
-	GET(UnitClass* const, pUnit, ESI);
-	GET(DirStruct* const, nCurrentFacing, EAX);
+	GET(UnitClass*, pUnit, ESI);
+	GET(DirStruct*, nCurrentFacing, EAX);
 
 	const auto nDecidedFacing = TechnoExtData::UnloadFacing(pUnit);
 
@@ -1638,8 +1638,8 @@ ASMJIT_PATCH(0x73DF66, UnitClass_Mission_Unload_DockUnload_Facing, 5)
 
 ASMJIT_PATCH(0x43CA80, BuildingClass_ReceivedRadioCommand_DockUnloadCell, 7)
 {
-	GET(CellStruct* const, pCell, EAX);
-	GET(BuildingClass* const, pThis, ESI);
+	GET(CellStruct*, pCell, EAX);
+	GET(BuildingClass*, pThis, ESI);
 
 	const auto nBuff = TechnoExtData::UnloadCell(pThis);
 	R->DX(pCell->X + nBuff.X);
@@ -1650,28 +1650,28 @@ ASMJIT_PATCH(0x43CA80, BuildingClass_ReceivedRadioCommand_DockUnloadCell, 7)
 
 ASMJIT_PATCH(0x73E013, UnitClass_Mission_Unload_DockUnloadCell1, 6)
 {
-	GET(UnitClass* const, pThis, ESI);
+	GET(UnitClass*, pThis, ESI);
 	R->EAX(TechnoExtData::BuildingUnload(pThis));
 	return 0x73E05F;
 }
 
 ASMJIT_PATCH(0x73E17F, UnitClass_Mission_Unload_DockUnloadCell2, 6)
 {
-	GET(UnitClass* const, pThis, ESI);
+	GET(UnitClass*, pThis, ESI);
 	R->EAX(TechnoExtData::BuildingUnload(pThis));
 	return 0x73E1CB;
 }
 
 ASMJIT_PATCH(0x73E2BF, UnitClass_Mission_Unload_DockUnloadCell3, 6)
 {
-	GET(UnitClass* const, pThis, ESI);
+	GET(UnitClass*, pThis, ESI);
 	R->EAX(TechnoExtData::BuildingUnload(pThis));
 	return 0x73E30B;
 }
 
 ASMJIT_PATCH(0x741BDB, UnitClass_SetDestination_DockUnloadCell, 7)
 {
-	GET(UnitClass* const, pThis, EBP);
+	GET(UnitClass*, pThis, EBP);
 	R->EAX(TechnoExtData::BuildingUnload(pThis));
 	return 0x741C28;
 }

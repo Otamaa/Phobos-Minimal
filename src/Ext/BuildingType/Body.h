@@ -240,7 +240,9 @@ public:
 	Valueable<int> TurretAnim_LowPowerIdleFrames { 0 };
 	Valueable<int> TurretAnim_FiringFrames { 0 };
 	Valueable<int> TurretAnim_LowPowerFiringFrames { 0 };
-	
+	Valueable<int> TurretAnim_IdleRate { 1 };
+	Valueable<int> TurretAnim_FiringRate { 1 };
+
 	// ============================================================
 	// Valueable<unsigned int> (4 bytes)
 	// ============================================================
@@ -527,6 +529,9 @@ public:
 class NOVTABLE FakeBuildingTypeClass : public BuildingTypeClass
 {
 public:
+
+	int __Repair_Cost();
+	int __Repair_Step();
 
 	bool _CanUseWaypoint();
 
