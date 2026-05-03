@@ -2530,7 +2530,7 @@ void TechnoExtData::UpdateDisplayTo(BuildingClass* pThis)
 	}
 }
 
-void TechnoExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass* Enterer)
+void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass* Enterer)
 {
 	auto EnteredType = EnteredBuilding->Type;
 	auto Owner = EnteredBuilding->Owner;
@@ -6553,7 +6553,11 @@ bool TechnoExtData::CannotMove(UnitClass* pThis)
 {
 	const auto pType = pThis->Type;
 
-	if (pType->Speed <= 0)
+	if (pThis->LocomotorSource)
+		return false;
+
+	if (pType->Speed == 0
+		&& !(pType->Locomotor == CLSIDs::Teleport() && !pType->Teleporter))
 		return true;
 
 	const auto movementRestrictedTo = pType->MovementRestrictedTo;

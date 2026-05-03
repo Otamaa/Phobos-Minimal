@@ -2641,3 +2641,26 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E8FB0, FakeTechnoClass::__GetGuardRange);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB374, FakeTechnoClass::__GetGuardRange);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4C7C, FakeTechnoClass::__GetGuardRange);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5F8C, FakeTechnoClass::__GetGuardRange);
+
+#include <Ext/Unit/Body.h>
+#include <Ext/UnitType/Body.h>
+
+ASMJIT_PATCH(0x73D5D5, UnitClass_Harvesting_HarvesterLoadRate, 6)
+{
+	GET(UnitClass* const, pThis, ESI);
+	auto const pTypeExt = UnitExtContainer::Instance.Find(pThis)->GetTypeExtData();
+
+	R->EAX(pTypeExt->HarvesterLoadRate.Get(RulesClass::Instance->HarvesterLoadRate));
+
+	return R->Origin() == 0x73D508 ? 0x73D50E : 0x73D5DB;
+}ASMJIT_PATCH_AGAIN(0x73D508, UnitClass_Harvesting_HarvesterLoadRate, 6)
+
+ASMJIT_PATCH(0x73E951, UnitClass_Harvest_HarvesterLoadRate, 6)
+{
+	GET(UnitClass* const, pThis, EBP);
+	auto const pTypeExt = UnitExtContainer::Instance.Find(pThis)->GetTypeExtData();
+
+	R->EAX(pTypeExt->HarvesterLoadRate.Get(RulesClass::Instance->HarvesterLoadRate));
+
+	return 0x73E957;
+}

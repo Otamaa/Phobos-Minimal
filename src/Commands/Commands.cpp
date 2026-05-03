@@ -71,8 +71,7 @@ FORCEDINLINE T* Make()
 	return command;
 };
 
-ASMJIT_PATCH(0x532150, CommandClassCallback_Register, 5)
-{
+void __fastcall Game_Init_Commands_Wrapper() {
 	Make<ManualReloadAmmoCommandClass>();
 
 #pragma region Information
@@ -87,7 +86,8 @@ ASMJIT_PATCH(0x532150, CommandClassCallback_Register, 5)
 #pragma endregion Information
 
 #pragma region Adminexclusive
-	if(Phobos::Otamaa::IsAdmin) {
+	if (Phobos::Otamaa::IsAdmin)
+	{
 		Make<PlaceVeinholeMonster>();
 		Make<RevealMapCommandClass>();
 		Make<CaptureObjectsCommandClass>();
@@ -147,9 +147,10 @@ ASMJIT_PATCH(0x532150, CommandClassCallback_Register, 5)
 	Make<DeselectObjectCommandClass>();
 	Make<DeselectObject5CommandClass>();
 
-	return 0x0;
+	CommandClass::InitCommand();
 }
 
+DEFINE_FUNCTION_JUMP(CALL , 0x52CAE4, Game_Init_Commands_Wrapper)
 #undef Make
 
 ASMJIT_PATCH(0x533F50, Game_ScrollSidebar_Skip, 0x5)
@@ -309,6 +310,7 @@ void __fastcall ScreenCaptureCommandClass_Process(CommandClass* pThis, DWORD)
 		}
 	}
 }
+
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EBF24, ScreenCaptureCommandClass_Process);
 
 ASMJIT_PATCH(0x730E39, GuardCommandClass_IncludeWeeder, 0x6)

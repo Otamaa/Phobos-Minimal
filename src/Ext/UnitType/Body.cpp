@@ -14,7 +14,9 @@ bool UnitTypeExtData::LoadFromINI(CCINIClass * pINI, bool parseFailAddr)
 	const char* pSection = pThis->ID;
 
 	INI_EX exINI(pINI);
+	
 	this->DefaultMirageDisguises.Read(exINI, pSection, "DefaultMirageDisguises");
+	this->HarvesterLoadRate.Read(exINI, pSection, "HarvesterLoadRate");
 
 	return true;
 }

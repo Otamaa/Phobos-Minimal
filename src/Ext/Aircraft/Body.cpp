@@ -9,10 +9,15 @@
 #include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/TerrainType/Body.h>
+#include <Ext/Cell/Body.h>
 
 #include <AircraftClass.h>
+#include <TeamClass.h>
+#include <WaypointPathClass.h>
 
 #include <Utilities/Macro.h>
+
+#include <Misc/MapRevealer.h>
 
 #include <Locomotor/FlyLocomotionClass.h>
 
@@ -675,6 +680,598 @@ AbstractClass* FakeAircraftClass::_GreatestThreat(ThreatType threatType, CoordSt
 	}
 
 	return this->FootClass::GreatestThreat(threatType, pSelectCoords, onlyTargetHouseEnemy); // FootClass_GreatestThreat (Prevent circular calls)
+}
+
+// Sleep: return to airbase if in incorrect sleep status
+
+int FakeAircraftClass::_Mission_Sleep()
+{
+	if (!this->Destination || this->Destination == this->DockedTo)
+		return 450; // Vanilla MissionClass_Mission_Sleep value
+
+	this->EnterIdleMode(false, true);
+	return 1;
+}
+
+int FakeAircraftClass::_Mission_ParadropOverfly()
+{
+	auto pTarCom = this->Target;
+	this->IsLocked = 1;
+
+	if (!pTarCom || !this->Passengers.NumPassengers)
+	{
+		this->IsLocked = 0;
+		this->SetTarget(0);
+		this->SetDestination(0, 1);
+		this->QueueMission(Mission::Retreat, 0);
+		return 5;
+	}
+
+	const int distance = this->DistanceFrom(pTarCom);
+	const int nRadius = TechnoTypeExtContainer::Instance.Find(this->Type)->ParadropRadius.Get(RulesClass::Instance->ParadropRadius);
+
+
+	if (distance > nRadius)
+	{
+		auto paradrop_attempts = this->NumParadropsLeft;
+		this->IsLocked = 0;
+
+		if (paradrop_attempts > 0)
+		{
+			this->QueueMission(Mission::ParadropApproach, 0);
+			return 5;
+		}
+
+		this->SetTarget(0);
+		this->SetDestination(0, 1);
+		this->QueueMission(Mission::Retreat, 0);
+		return 5;
+	}
+
+	if (MapClass::Instance->IsWithinUsableArea(this->Location))
+	{
+		this->DropOffParadropCargo();
+	}
+
+	return 5;
+}
+
+int FakeAircraftClass::_Mission_ParadropApproach()
+{
+	if (auto pTarCom = this->Target)
+	{
+		if (auto pDest = this->Destination)
+		{
+			const int distance = this->DistanceFrom(pTarCom);
+			const int nRadius = TechnoTypeExtContainer::Instance.Find(this->Type)->ParadropRadius.Get(RulesClass::Instance->ParadropRadius);
+
+			if (distance <= nRadius)
+			{
+				this->QueueMission(Mission::ParadropOverfly, 0);
+				--this->NumParadropsLeft;
+			}
+
+			return 3;
+		}
+		else
+		{
+			this->SetDestination(pTarCom, 1);
+			return 3;
+		}
+	}
+	else
+	{
+		this->SetDestination(0, 1);
+		this->QueueMission(Mission::Retreat, 0);
+		return 3;
+	}
+}
+
+static FORCEDINLINE bool CheckSpyPlaneCameraCount(AircraftClass* pThis, WeaponTypeClass* pWeapon)
+{
+	auto const pExt = AircraftExtContainer::Instance.Find(pThis);
+
+	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+
+	if (!pWeaponExt->Strafing_Shots.isset())
+		return true;
+
+	if (pExt->Strafe_BombsDroppedThisRound >= pWeaponExt->Strafing_Shots)
+		return false;
+
+	pExt->Strafe_BombsDroppedThisRound++;
+	return true;
+}
+
+ASMJIT_PATCH(0x41564C, AircraftClass_Mission_SpyPlaneApproach_MaxCount, 0x6)
+{
+	GET(AircraftClass*, pThis, ESI);
+	GET(int, range, EBX);
+
+	const auto pPrimary = pThis->GetWeapon(0);
+
+	if (range <= pPrimary->WeaponType->Range.value)
+	{
+
+		if (!CheckSpyPlaneCameraCount(pThis, pPrimary->WeaponType))
+			return 0x41570C;
+
+		pThis->vt_entry_48C(nullptr, 0u, false, nullptr);
+		pThis->UpdateSight(false, 0, false, nullptr, pPrimary->WeaponType->Damage);
+
+		MapRevealer const revealer(pThis->Location);
+		revealer.UpdateShroud(0u, static_cast<size_t>(MaxImpl(pThis->LastSightRange + 3, 0)), false);
+
+		auto cameraSound = TechnoTypeExtContainer::Instance.Find(pThis->Type)
+			->SpyplaneCameraSound.Get(RulesClass::Instance->SpyPlaneCamera);
+
+		VocClass::SafeImmedietelyPlayAt(cameraSound, &pThis->Location);
+	}
+
+	return 0x415700;
+}
+
+int FakeAircraftClass::_Mission_SpyPlaneOverfly()
+{
+	int range = this->DistanceFrom(this->Target);
+
+	const auto pPrimary = this->GetWeapon(0);
+
+	if (range <= pPrimary->WeaponType->Range.value) {
+
+		if (!CheckSpyPlaneCameraCount(this, pPrimary->WeaponType))
+			return 0x415863;
+
+		this->vt_entry_48C(nullptr, 0u, false, nullptr);
+		this->UpdateSight(false, 0, false, nullptr, pPrimary->WeaponType->Damage);
+
+		MapRevealer const revealer(this->Location);
+		revealer.UpdateShroud(0u, static_cast<size_t>(MaxImpl(this->LastSightRange + 3, 0)), false);
+	}
+
+	if (!this->NavCom) {
+		auto edge = this->Owner->ResolveEdge();
+		auto loc = MapClass::Instance->PickCellOnEdge(edge
+			, CellStruct::Empty
+			, CellStruct::Empty
+			, SpeedType::Winged
+			, true
+			, MovementZone::Normal
+		);
+
+		if (loc.IsValid()) {
+			this->SetDestination(MapClass::Instance->GetCellAt(loc), true);
+		}
+	}
+
+	return 3;
+}
+
+int FakeAircraftClass::_Mission_SpyPlaneApproach()
+{
+
+	int range = this->DistanceFrom(this->Target);
+	if (this->TarCom) {
+		if(this->NavCom) {
+			const auto pPrimary = this->GetWeapon(0);
+
+			if (range <= pPrimary->WeaponType->Range.value) {
+
+				if (!CheckSpyPlaneCameraCount(this, pPrimary->WeaponType))
+					return 0x415863;
+
+				this->vt_entry_48C(nullptr, 0u, false, nullptr);
+				this->UpdateSight(false, 0, false, nullptr, pPrimary->WeaponType->Damage);
+
+				MapRevealer const revealer(this->Location);
+				revealer.UpdateShroud(0u, static_cast<size_t>(MaxImpl(this->LastSightRange + 3, 0)), false);
+			}
+		} else {
+			this->SetDestination(this->TarCom, true);
+		}
+
+	} else {
+		this->SetDestination(0, 1);
+		this->QueueMission(Mission::Retreat, 0);
+	}
+
+	if (range <= 768) {
+		this->IsLocked = true;
+		auto edge = this->Owner->ResolveEdge();
+		auto loc = MapClass::Instance->PickCellOnEdge(edge
+			, CellStruct::Empty
+			, CellStruct::Empty
+			, SpeedType::Winged
+			, true
+			, MovementZone::Normal
+		);
+
+		if (loc.IsValid()) {
+			this->SetDestination(MapClass::Instance->GetCellAt(loc), true);
+		}
+	}
+
+	return RulesClass::Instance->SpyPlaneCameraFrames;
+}
+
+int FakeAircraftClass::_Mission_Move_ForCarryAll()
+{
+	auto GetMissionDelay = [=]() -> int {
+		const auto control = this->GetCurrentMissionControl();
+		return static_cast<int>(control->Rate * TICKS_PER_MINUTE) +
+				ScenarioClass::Instance->Random.RandomRanged(0, 2);
+	};
+
+	auto EnterIdleAndDelay = [=]() -> int {
+		this->EnterIdleMode(0, 1);
+		return GetMissionDelay();
+	};
+
+	auto FindLZ = [=]() -> int {
+
+		AbstractClass* const pDest = AircraftExtData::IsValidLandingZone(this) ?
+			this->Destination : this->NewLandingZone_(this->Destination);
+
+		this->SetDestination(pDest, true);
+
+		if (auto pTeam = this->Team) {
+			pTeam->AssignMissionTarget(this->NavCom);
+		}
+
+		this->MissionStatus = 1;
+		return GetMissionDelay();
+	};
+
+	auto ValidateCarryallTarget = [=](AbstractClass* navCom) -> bool
+	{
+			navCom = this->Destination;
+
+			if (!navCom) {
+				return GetMissionDelay();
+			}
+
+			auto* target = flag_cast_to<TechnoClass*>(navCom);
+
+			if (!target)
+				return FindLZ();
+
+			// Must not have cargo and target must be allied
+			if (this->Passengers.NumPassengers || !this->Owner->IsAlliedWith(target))
+				return FindLZ();
+
+			if (!target->GetOwningHouse()->IsAlliedWith(this))
+				return FindLZ();
+
+			// Must be a unit type
+			if (target->WhatAmI() != AbstractType::Unit)
+				return FindLZ();
+
+			return TechnoTypeExtData::CarryallCanLift(this->Type, (UnitClass*)target);
+		};
+
+	//AircraftClass_MI_Move_Carryall_AllowWater_LZClear
+	auto LZClear = [this](AbstractClass* navCom) {
+		return AircraftExtData::IsValidLandingZone(this) || this->IsLandingZoneClear(navCom);
+	};
+
+	switch (this->MissionStatus)
+	{
+	case 0: // VALIDATE_LZ
+	{
+		AbstractClass* navCom = nullptr;
+
+		if (!ValidateCarryallTarget(navCom))
+			return EnterIdleAndDelay();
+
+		if (this->GetRadioContact() != navCom) {
+			this->SendToFirstLink(RadioCommand::NotifyUnlink);
+		}
+
+		if (this->SendCommand(RadioCommand::RequestLink, (TechnoClass*)navCom) != RadioCommand::AnswerPositive) {
+			return EnterIdleAndDelay();
+		}
+
+		if (this->SendToFirstLink(RadioCommand::RequestTether) == RadioCommand::AnswerPositive) {
+			this->SendToFirstLink(RadioCommand::NotifyBeginLoad);
+
+			return FindLZ();
+		} else {
+			this->SendToFirstLink(RadioCommand::NotifyUnlink);
+			return EnterIdleAndDelay();
+		}
+	}
+	case 1: // Setup movement to LZ
+	{
+		auto* navCom = this->NavCom;
+
+		if (!navCom) {
+			this->EnterIdleMode(0, 1);
+		} else {
+			this->Locomotor->Move_To(navCom->GetCoords());
+			CoordStruct coords[5];
+			this->MissionStatus = 2;
+		}
+
+		return 1;
+	}
+	case 2: // FLY_TO_LZ
+	{
+		auto* navCom = this->Destination;
+		auto pCellDest = cast_to<CellClass*>(navCom);
+
+		// Lost contact check
+		if (!pCellDest && this->GetRadioContact() != navCom)
+		{
+			this->MissionStatus = 0;
+			return 1;
+		}
+
+		// Cell-based target handling
+		if (pCellDest && !LZClear(navCom))
+		{
+			this->MissionStatus = 0;
+			return 1;
+		}
+
+		// Begin landing when arrived
+		if (this->Locomotor->Get_Status() == 1)
+		{			// Check if unit target moved
+			if (auto pUnitNav = cast_to<UnitClass*>(this->NavCom))
+			{
+				const CellStruct ourCell = CellClass::Coord2Cell(this->Location);
+				const CellStruct targetCellX = CellClass::Coord2Cell(pUnitNav->Location);
+
+				if (ourCell.DifferTo(targetCellX)) {
+					this->MissionStatus = 0;
+					return 1;
+				}
+			}
+			this->IsCarryallNotLanding = 0;
+		}
+
+		// Check if stopped moving
+		if (!this->Locomotor->Is_Moving())
+		{
+			this->MissionStatus = 3;
+		}
+		return 1;
+	}
+	case 3: // LAND
+	{
+
+		if (this->Passengers.NumPassengers) {
+			// Drop off cargo
+			if (this->BunkerLinkedItem) {
+				this->IsCarryallNotLanding = 1;
+			} else {
+				this->Mark(MarkType::Remove);
+				this->DropOffParadropCargo();
+				this->Mark(MarkType::Put);
+				this->MissionStatus = 0;
+			}
+			return 1;
+		}
+
+		// Pick up cargo
+		this->Mark(MarkType::Remove);
+
+		const auto& coord = this->Location;
+		CoordStruct cellCoord = { coord.X, coord.Y, coord.Z };
+
+		auto* cell = MapClass::Instance->GetCellAt(cellCoord);
+		auto* unit = cell->GetUnit(cell->UINTFlags & 1);
+
+		bool pickupSuccess = false;
+		if (unit && unit == this->GetRadioContact()) {
+			if (this->SendToFirstLink(RadioCommand::QueryMoving) == RadioCommand::AnswerPositive) {
+
+				unit->Limbo();
+				unit->OnBridge = 0;
+				unit->IsOnCarryall= 1;
+				this->Passengers.AddPassenger(unit);
+				pickupSuccess = true;
+			}
+		}
+
+		if (!pickupSuccess)
+			this->MissionStatus = 0;
+
+		this->SendToFirstLink(RadioCommand::NotifyUnlink);
+		this->Mark(MarkType::Put);
+		this->EnterIdleMode(0, 1);
+		this->IsCarryallNotLanding = 1;
+		return 1;
+	}
+
+	default:
+		return GetMissionDelay();
+	}
+}
+
+enum class OverrideFlag : BYTE {
+	Original , ContinueMoving , Idle
+};
+
+OverrideFlag OverrideMoving(AircraftClass* const pThis , CoordStruct* const pCoords) {
+	const auto pType = pThis->Type;
+	if (pThis->Team || pThis->Airstrike || pThis->Spawned || !pType->AirportBound){
+		return OverrideFlag::Original;
+	}
+
+	const auto extendedMissions = AircraftTypeExtData::ExtendedAircraftMissionsEnabled(pThis);
+	const auto pTypeExt = AircraftTypeExtContainer::Instance.Find(pType);
+
+	if (!pTypeExt->ExtendedAircraftMissions_SmoothMoving.Get(extendedMissions)) {
+		return OverrideFlag::Original;
+	}
+
+	const auto rotRadian = Math::abs(pThis->PrimaryFacing.ROT.Raw * (Math::GAME_TWOPI / 65536)); // GetRadian<65536>() is an incorrect methodw
+	const auto turningRadius = rotRadian > 1e-10 ? static_cast<int>(pType->Speed / rotRadian) : 0;
+	const int distance = int(Point2D { pCoords->X, pCoords->Y }.DistanceFrom(Point2D { pThis->Location.X, pThis->Location.Y }));
+
+	if (distance > MaxImpl((pType->SlowdownDistance / 2), turningRadius)) {
+		return OverrideFlag::ContinueMoving;
+	}
+
+	if (!extendedMissions || !pThis->TryNextPlanningTokenNode())
+		pThis->EnterIdleMode(false, true);
+
+	return OverrideFlag::Idle;
+}
+
+int FakeAircraftClass::_Mission_Move()
+{
+	if (this->Type->Carryall) {
+		return this->_Mission_Move_ForCarryAll();
+	}
+
+	switch (this->MissionStatus)
+	{
+	case 0:
+	{
+		if (auto NavCom = this->NavCom) {
+			this->SetDestination(this->NewLandingZone_(NavCom), true);
+			this->MissionStatus = 1;
+		} else {
+			this->EnterIdleMode(0, 1);
+		}
+		// Fall through to default case
+	}
+	// Intentional fall-through
+
+	default:
+	{
+		auto Current_Mission_Control = this->GetCurrentMissionControl();
+		return  (Current_Mission_Control->Rate * TICKS_PER_MINUTE) + ScenarioClass::Instance->Random.RandomRanged(0, 2);
+	}
+	case 1:
+	{
+		if (auto NavCom = this->NavCom) {
+			this->Locomotor->Move_To(NavCom->GetDestination(this));
+			this->MissionStatus = 2;
+			return 1;
+		} else {
+			this->EnterIdleMode(0, 1);
+			return 1;
+		}
+	}
+	case 2:
+	{
+		// Waypoint handling
+		if (this->PlanningPathIdx != -1)
+		{
+			bool shouldHandleWaypoint = false;
+
+			if (auto NavCom = this->NavCom) {
+				auto distanceCoord = this->Location - NavCom->GetCoords();
+					 distanceCoord.Z = 0;
+
+				if ((int)distanceCoord.Length() < 0x100) {
+					shouldHandleWaypoint = true;
+				}
+			} else {
+				shouldHandleWaypoint = true;
+			}
+
+			if (shouldHandleWaypoint) {
+				auto pPath = HouseClass::CurrentPlayer->PlanningPaths[this->PlanningPathIdx];
+				this->FootClass_4DC8C0(pPath->GetWaypoint(this->WaypointIndex));
+			}
+		}
+
+		if (!this->Locomotor->Is_Moving()) {
+			this->MissionStatus = 3;
+			return 1;
+		}
+
+		if (auto NavCom = this->NavCom) { 
+			bool ContinueMoving = false;
+			auto _dest = NavCom->GetDestination(this);
+
+			switch (OverrideMoving(this, &_dest))
+			{
+			case OverrideFlag::Original:
+			{
+				ContinueMoving = (CellClass::Coord2Cell(NavCom->GetDestination(this)) == this->GetMapCoords());
+			}break;
+			case OverrideFlag::ContinueMoving:
+			{
+				ContinueMoving = true;
+			}break;
+			default:
+				return 1;
+				break;
+			}
+
+			if (!ContinueMoving) {
+				this->MissionStatus = 3;//enter idle mode
+				return 1;
+			}
+
+			auto Dest = NavCom->GetDestination(this);
+
+			if (this->CellSeemsOk_(CellClass::Coord2Cell(Dest), true))
+			{
+				this->MissionStatus = 4;
+				return 1;
+			}
+			else
+			{
+				this->MissionStatus = 0;
+				return 1;
+			}
+		}
+	}
+	case 3:
+	{
+		if (!this->Locomotor->Is_Moving()) {
+			this->EnterIdleMode(0, 1);
+		}
+		return 1;
+	}
+	case 4:
+	{
+		bool ContinueMoving = true;
+
+		if(this->Locomotor->Is_Moving()){
+			if (auto pNav = this->NavCom) {
+				auto _dest = pNav->GetDestination(this);
+
+				switch (OverrideMoving(this, &_dest))
+				{
+				case OverrideFlag::Original: {
+					ContinueMoving = (CellClass::Coord2Cell(pNav->GetDestination(this)) == this->GetMapCoords());
+				}break;
+				case OverrideFlag::ContinueMoving: {
+					ContinueMoving = true;
+				}break;
+				default:
+					return 1;
+					break;
+				}
+			}
+		} else {
+			ContinueMoving = false;
+		}
+
+		if (!ContinueMoving) {
+			this->MissionStatus = 3; //enter idle mode
+		}
+		else
+		{
+			if (auto pNav = this->NavCom)
+			{
+				auto destCell = CellClass::Coord2Cell(pNav->GetDestination(this));
+
+				if (!this->CellSeemsOk_(destCell, 1)) {
+					this->MissionStatus = 0;
+					return 1;
+				}
+			}
+		}
+		return 1;
+	}
+	}
 }
 
 void FakeAircraftClass::_FootClass_Update_Wrapper()

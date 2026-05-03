@@ -969,7 +969,10 @@ public:
 	FootClass*       DirectRockerLinkedUnit;
 	FootClass*       LocomotorTarget; // mag->LocoTarget = victim
 	FootClass*       LocomotorSource; // victim->LocoSource = mag
-	AbstractClass*   Target; //if attacking ,tarcom
+	union {
+		AbstractClass* Target; //if attacking ,tarcom
+		AbstractClass* TarCom;
+	};
 	AbstractClass*   LastTarget; //suspendedtarcom
 	CaptureManagerClass* CaptureManager; //for Yuris
 	TechnoClass*     MindControlledBy;

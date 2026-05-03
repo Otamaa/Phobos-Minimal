@@ -130,104 +130,6 @@ ASMJIT_PATCH(0x445A72, BuildingClass_Remove_AIBaseNormal, 6)
 	return 0x445A94;
 }
 
-// replaces the UnitReload handling and makes each docker independent of all
-// others. this means planes don't have to wait one more ReloadDelay because
-// the first docker triggered repair mission while the other dockers arrive
-// too late and need to be put to sleep first.
-ASMJIT_PATCH(0x44C844, BuildingClass_Mission_Repair_Reload, 6)
-{
-	GET(BuildingClass* const, pThis, EBP);
-	auto const pExt = BuildingExtContainer::Instance.Find(pThis);
-
-	// ensure there are enough slots
-	pExt->DockReloadTimers.resize(pThis->RadioLinks.Capacity, -1);
-
-	// update all dockers, check if there's
-	// at least one needing more attention
-	bool keep_reloading = false;
-	for (auto i = 0; i < pThis->RadioLinks.Capacity; ++i)
-	{
-		if (auto const pLink = pThis->GetNthLink(i))
-		{
-			auto const SendCommand = [=](RadioCommand command)
-				{
-					return pThis->SendCommand(command, pLink) == RadioCommand::AnswerPositive;
-				};
-
-			// check if reloaded and repaired already
-			auto const pLinkType = GET_TECHNOTYPE(pLink);
-			auto done = SendCommand(RadioCommand::QueryReadiness)
-				&& pLink->Health == pLinkType->Strength;
-
-			if (!done)
-			{
-				// check if docked
-				auto const miss = pLink->GetCurrentMission();
-				if (miss == Mission::Enter
-					|| !SendCommand(RadioCommand::QueryMoving))
-				{
-					continue;
-				}
-
-				keep_reloading = true;
-
-				// make the unit sleep first
-				if (miss != Mission::Sleep)
-				{
-					pLink->QueueMission(Mission::Sleep, false);
-					continue;
-				}
-
-				// check whether the timer completed
-				auto const last_timer = pExt->DockReloadTimers[i];
-				if (last_timer > Unsorted::CurrentFrame.get())
-				{
-					continue;
-				}
-
-				// set the next frame
-				auto const pLinkExt = TechnoTypeExtContainer::Instance.Find(pLinkType);
-				auto const defaultRate = RulesClass::Instance->ReloadRate;
-				auto const rate = pLinkExt->ReloadRate.Get(defaultRate);
-				auto const frames = static_cast<int>(rate * 900);
-				pExt->DockReloadTimers[i] = Unsorted::CurrentFrame.get() + frames;
-
-				// only reload if the timer was not outdated
-				if (last_timer != Unsorted::CurrentFrame.get())
-				{
-					continue;
-				}
-
-				// reload and repair, return true if both failed
-				done = !SendCommand(RadioCommand::RequestReload)
-					&& !SendCommand(RadioCommand::RequestRepair);
-			}
-
-			if (done)
-			{
-				pLink->EnterIdleMode(false, 1);
-				pLink->ForceMission(Mission::Guard);
-				pLink->ProceedToNextPlanningWaypoint();
-
-				pExt->DockReloadTimers[i] = -1;
-			}
-		}
-	}
-
-	if (keep_reloading)
-	{
-		// update each frame
-		R->EAX(1);
-	}
-	else
-	{
-		pThis->QueueMission(Mission::Guard, false);
-		R->EAX(3);
-	}
-
-	return 0x44C968;
-}
-
 // copy the remaining EMP duration to the unit when undeploying a building.
 ASMJIT_PATCH(0x44A04C, BuildingClass_Destruction_CopyEMPDuration, 6)
 {
@@ -1013,15 +915,6 @@ ASMJIT_PATCH(0x44D4CA, BuildingClass_Mission_Missile_NoReport, 0x9)
 		0x44D4D4 : 0x44D51F;
 }
 
-// for yet unestablished reasons a unit might not be present.
-// maybe something triggered the KickOutHospitalArmory
-ASMJIT_PATCH(0x44BB1B, BuildingClass_Mission_Repair_Promote, 0x6)
-{
-	//GET(BuildingClass*, pThis, EBP);
-	GET(TechnoClass*, pTrainee, EAX);
-	return pTrainee ? 0 : 0x44BB3C;
-}
-
 // remember that this building ejected its survivors already
 ASMJIT_PATCH(0x44A8A2, BuildingClass_Mission_Selling_Crew, 0xA)
 {
@@ -1152,54 +1045,58 @@ void SetFreeUnitMission(UnitClass* pUnit)
 
 void SpawnFreeUnits(BuildingClass* pBuilding, int count)
 {
-
-	if (count <= 0)
+	if (count <= 0 || !pBuilding || !pBuilding->Type || !pBuilding->Type->FreeUnit)
 		return;
 
-	std::vector<bool> placements(count, false);
+	const auto buildingCoords = pBuilding->GetCoords();
+	const auto buildingCell = CellClass::Coord2Cell(buildingCoords);
+	const auto primaryPlacement = buildingCell + CellSpread::AdjacentCell[static_cast<size_t>(FacingType::South)];
 
-	const auto pBldLoc = pBuilding->GetCoords();
-	const auto pBldCell = CellClass::Coord2Cell(pBldLoc);
-	const auto placement_first = pBldCell + CellSpread::AdjacentCell[(size_t)FacingType::South];
-
-	for (size_t i = 0; i < placements.size(); ++i)
+	for (int i = 0; i < count; ++i)
 	{
-		if (auto pUnit = (UnitClass*)pBuilding->Type->FreeUnit->CreateObject(pBuilding->Owner))
+		auto* pUnit = static_cast<UnitClass*>(pBuilding->Type->FreeUnit->CreateObject(pBuilding->Owner));
+		if (!pUnit)
+			continue;
+
+		bool placed = false;
+
+		// Try primary placement (adjacent south cell)
+		if (pUnit->Unlimbo(CellClass::Cell2Coord(primaryPlacement), DirType::West))
 		{
-			if (pUnit->Unlimbo(CellClass::Cell2Coord(placement_first), DirType::West))
-			{
-				SetFreeUnitMission(pUnit);
-				placements[i] = true;
-				continue;
-			}
+			placed = true;
+		}
+		// Try nearby locations with different parameters
+		else
+		{
+			auto zone = MapClass::Instance->GetMovementZoneType(buildingCell, pUnit->Type->MovementZone, false);
 
-			// weeee
-			for (int a = 0; a < 2; ++a)
+			for (bool strictMode : {true, false})  // Try strict first, then relaxed
 			{
-				const auto pBldLoc_Cell = CellClass::Coord2Cell(pBuilding->Location);
-				auto zone = MapClass::Instance->GetMovementZoneType(pBldLoc_Cell, pUnit->Type->MovementZone, false);
-				auto nearbyLoc = MapClass::Instance->NearByLocation(pBldLoc_Cell,
-				pUnit->Type->SpeedType,
-				zone,
-				pUnit->Type->MovementZone,
-				false, 1, 1, !a, true, false, false, CellStruct::Empty, false, false);
+				auto nearbyLoc = MapClass::Instance->NearByLocation(
+					buildingCell,
+					pUnit->Type->SpeedType,
+					zone,
+					pUnit->Type->MovementZone,
+					false, 1, 1, strictMode, true, false, false, CellStruct::Empty, false, false
+				);
 
-				if (nearbyLoc.IsValid())
+				if (nearbyLoc.IsValid() && pUnit->Unlimbo(CellClass::Cell2Coord(nearbyLoc), DirType::SouthWest))
 				{
-					if (pUnit->Unlimbo(CellClass::Cell2Coord(nearbyLoc), DirType::SouthWest))
-					{
-						SetFreeUnitMission(pUnit);
-						placements[i] = true;
-						break; // berak from 2nd loop
-					}
+					placed = true;
+					break;
 				}
 			}
+		}
 
-			if (!placements[i])
-			{
-				GameDelete<true, false>(pUnit);
-				pBuilding->Owner->TransactMoney(pBuilding->Type->FreeUnit->GetRefund(pBuilding->Owner, true));
-			}
+		if (placed)
+		{
+			SetFreeUnitMission(pUnit);
+		}
+		else
+		{
+			// Failed to place - clean up and refund
+			GameDelete<true, false>(pUnit);
+			pBuilding->Owner->TransactMoney(pBuilding->Type->FreeUnit->GetRefund(pBuilding->Owner, true));
 		}
 	}
 }
@@ -1502,14 +1399,8 @@ ASMJIT_PATCH(0x51A521, InfantryClass_UpdatePosition_ApplyC4, 0xA)
 
 /* #633 - spy building infiltration */
 // wrapper around the entire function
-ASMJIT_PATCH(0x4571E0, BuildingClass_Infiltrate, 5)
-{
-	GET(BuildingClass*, EnteredBuilding, ECX);
-	GET_STACK(HouseClass*, Enterer, 0x4);
-
-	TechnoExtData::InfiltratedBy(EnteredBuilding, Enterer);
-	return 0x4575A2;
-}
+DEFINE_FUNCTION_JUMP(LJMP, 0x4571E0, FakeBuildingClass::InfiltratedBy)
+DEFINE_FUNCTION_JUMP(CALL, 0x51A00B, FakeBuildingClass::InfiltratedBy)
 
 #include <Ext/Infantry/Body.h>
 

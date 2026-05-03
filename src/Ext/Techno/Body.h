@@ -950,7 +950,6 @@ public:
 
 	static int GetFirstSuperWeaponIndex(BuildingClass* pThis);
 	static void UpdateDisplayTo(BuildingClass* pThis);
-	static void InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass* Enterer);
 	static DirStruct UnloadFacing(UnitClass* pThis);
 	static CellStruct UnloadCell(BuildingClass* pThis);
 	static BuildingClass* BuildingUnload(UnitClass* pThis);

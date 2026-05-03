@@ -13,6 +13,7 @@
 class LocomotionClass;
 class TeamClass;
 struct PathType;
+class WaypointClass;
 class NOVTABLE FootClass : public TechnoClass
 {
 public:
@@ -193,6 +194,9 @@ public:
 	PathType* FindPath(CellStruct* pReachableDestCell, CellStruct* pBuffer, int unusedInt, int unusedInt_1, int nPathDirectionsIdx, int nMode)
 		{ JMP_THIS(0x4CBBA0); }
 
+	void FootClass_4DC8C0(WaypointClass* a2)
+		{ JMP_THIS(0x4CBBA0); }
+
 	//Constructor
 	FootClass(HouseClass* pOwner) noexcept : FootClass(noinit_t())
 		{ JMP_THIS(0x4D31E0); }
@@ -230,7 +234,10 @@ public:
 	double          SpeedMultiplier;
 	DECLARE_PROPERTY(DynamicVectorClass<AbstractClass*>, unknown_abstract_array_588);
 	AbstractClass*  unknown_5A0;  //TODO
-	AbstractClass*  Destination; //NavCom, possibly other objects as well
+	union {
+		AbstractClass* Destination; //NavCom, possibly other objects as well
+		AbstractClass* NavCom;
+	};
 	AbstractClass*  LastDestination; //SuspendedNavCom
 	DECLARE_PROPERTY(DynamicVectorClass<AbstractClass*>, NavQueue);//unknown_abstract_array_5AC
 	Mission         MegaMission; // only Mission::AttackMove or Mission::None

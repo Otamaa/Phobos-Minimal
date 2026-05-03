@@ -58,17 +58,6 @@ ASMJIT_PATCH(0x417D75, AircraftClass_GetActionOnObject_CanTote, 5)
 		;
 }
 
-ASMJIT_PATCH(0x416E37, AircraftClass_Mi_MoveCarryall_CanTote, 5)
-{
-	GET(AircraftClass*, pCarryall, ESI);
-	GET(UnitClass*, pTarget, EDI);
-
-	return (TechnoTypeExtData::CarryallCanLift(pCarryall->Type, pTarget))
-		? 0u
-		: 0x416EC9u
-		;
-}
-
 ASMJIT_PATCH(0x41949F, AircraftClass_ReceivedRadioCommand_SpecificPassengers, 6)
 {
 	GET(AircraftClass*, pThis, ESI);

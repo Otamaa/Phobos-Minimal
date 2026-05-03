@@ -136,72 +136,6 @@ enum class AirAttackStatusP : int
 	AIR_ATT_RETURN_TO_BASE = 0xA,
 };
 
-static FORCEDINLINE bool CheckSpyPlaneCameraCount(AircraftClass* pThis ,WeaponTypeClass* pWeapon)
-{
-	auto const pExt = AircraftExtContainer::Instance.Find(pThis);
-
-	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-
-	if (!pWeaponExt->Strafing_Shots.isset())
-		return true;
-
-	if (pExt->Strafe_BombsDroppedThisRound >= pWeaponExt->Strafing_Shots)
-		return false;
-
-	pExt->Strafe_BombsDroppedThisRound++;
-	return true;
-}
-
-ASMJIT_PATCH(0x41564C, AircraftClass_Mission_SpyPlaneApproach_MaxCount, 0x6) {
-	GET(AircraftClass*, pThis, ESI);
-	GET(int, range, EBX);
-
-	const auto pPrimary = pThis->GetWeapon(0);
-
-	if (range <= pPrimary->WeaponType->Range.value ) {
-
-		if (!CheckSpyPlaneCameraCount(pThis, pPrimary->WeaponType))
-			return 0x41570C;
-
-		pThis->vt_entry_48C(nullptr ,0u,false , nullptr);
-		pThis->UpdateSight(false , 0 , false , nullptr , pPrimary->WeaponType->Damage);
-
-		MapRevealer const revealer(pThis->Location);
-		revealer.UpdateShroud(0u, static_cast<size_t>(MaxImpl(pThis->LastSightRange + 3, 0)), false);
-
-		auto cameraSound = TechnoTypeExtContainer::Instance.Find(pThis->Type)
-				->SpyplaneCameraSound.Get(RulesClass::Instance->SpyPlaneCamera);
-
-		VocClass::SafeImmedietelyPlayAt(cameraSound, &pThis->Location);
-	}
-
-	return 0x415700;
-}
-
-ASMJIT_PATCH(0x4157D3, AircraftClass_Mission_SpyPlaneOverfly_MaxCount, 0x6)
-{
-	GET(AircraftClass*, pThis, ESI);
-	GET(int, range, EAX);
-
-	R->EDI(range);
-
-	const auto pPrimary = pThis->GetWeapon(0);
-
-	if (range <= pPrimary->WeaponType->Range.value) {
-
-		if (!CheckSpyPlaneCameraCount(pThis, pPrimary->WeaponType))
-			return 0x415863;
-
-		pThis->vt_entry_48C(nullptr, 0u, false, nullptr);
-		pThis->UpdateSight(false, 0, false, nullptr, pPrimary->WeaponType->Damage);
-
-		MapRevealer const revealer(pThis->Location);
-		revealer.UpdateShroud(0u, static_cast<size_t>(MaxImpl(pThis->LastSightRange + 3, 0)), false);
-	}
-
-	return 0x415859;
-}
-
 // AreaGuard: return when no ammo or first target died
 static inline int GetTurningRadius(AircraftClass* pThis)
 {
@@ -309,37 +243,6 @@ ASMJIT_PATCH(0x4DF3BA, FootClass_UpdateAttackMove_AircraftHoldAttackMoveTarget, 
 		|| pThis->IsCloseEnoughToAttackWithNeverUseWeapon(pThis->Target)) ? HoldCurrentTarget : LoseCurrentTarget; // pThis->InAuxiliarySearchRange(pThis->Target)
 }
 
-ASMJIT_PATCH(0x416A0A, AircraftClass_Mission_Move_SmoothMoving, 0x5)
-{
-	enum { EnterIdleAndReturn = 0x416AC0, ContinueMoving1 = 0x416908, ContinueMoving2 = 0x416A47 };
-
-	GET(AircraftClass* const, pThis, ESI);
-	GET(CoordStruct* const, pCoords, EAX);
-
-	const auto pType = pThis->Type;
-
-	if (pThis->Team || pThis->Airstrike || pThis->Spawned || !pType->AirportBound)
-		return 0;
-
-	const auto extendedMissions = AircraftTypeExtData::ExtendedAircraftMissionsEnabled(pThis);
-	const auto pTypeExt = AircraftTypeExtContainer::Instance.Find(pType);
-
-	if (!pTypeExt->ExtendedAircraftMissions_SmoothMoving.Get(extendedMissions))
-		return 0;
-
-	const auto rotRadian = Math::abs(pThis->PrimaryFacing.ROT.Raw * (Math::GAME_TWOPI / 65536)); // GetRadian<65536>() is an incorrect methodw
-	const auto turningRadius = rotRadian > 1e-10 ? static_cast<int>(pType->Speed / rotRadian) : 0;
-	const int distance = int(Point2D { pCoords->X, pCoords->Y }.DistanceFrom(Point2D { pThis->Location.X, pThis->Location.Y }));
-
-	if (distance > MaxImpl((pType->SlowdownDistance / 2), turningRadius))
-		return (R->Origin() == 0x4168C7 ? ContinueMoving1 : ContinueMoving2);
-
-	if (!extendedMissions || !pThis->TryNextPlanningTokenNode())
-		pThis->EnterIdleMode(false, true);
-
-	return EnterIdleAndReturn;
-}ASMJIT_PATCH_AGAIN(0x4168C7, AircraftClass_Mission_Move_SmoothMoving, 0x5)
-
 ASMJIT_PATCH(0x4DDD66, FootClass_IsLZClear_ReplaceHardcode, 0x6) // To avoid that the aircraft cannot fly towards the water surface normally
  {
  	enum { SkipGameCode = 0x4DDD8A };
@@ -377,18 +280,6 @@ ASMJIT_PATCH(0x414D36, AircraftClass_Update_ClearTarget, 0x6)
 
 // GreatestThreat: for all the mission that should let the aircraft auto select a target
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2668, FakeAircraftClass::_GreatestThreat);
-
-// Sleep: return to airbase if in incorrect sleep status
-
-int FakeAircraftClass::_Mission_Sleep()
-{
-	if (!this->Destination || this->Destination == this->DockedTo)
-		return 450; // Vanilla MissionClass_Mission_Sleep value
-
-	this->EnterIdleMode(false, true);
-	return 1;
-}
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E24A8, FakeAircraftClass::_Mission_Sleep)
 
 // Handle assigning area guard mission to aircraft.
 ASMJIT_PATCH(0x4C7403, EventClass_Execute_AircraftAreaGuard, 0x6)

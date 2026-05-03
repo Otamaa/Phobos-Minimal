@@ -93,6 +93,14 @@ public:
 	void _Destroyed(int mult);
 	AbstractClass* _GreatestThreat(ThreatType threatType, CoordStruct* pSelectCoords, bool onlyTargetHouseEnemy);
 	int _Mission_Sleep();
+
+	int _Mission_ParadropOverfly();
+	int _Mission_ParadropApproach();
+	int _Mission_SpyPlaneOverfly();
+	int _Mission_SpyPlaneApproach();
+	int _Mission_Move_ForCarryAll();
+	int _Mission_Move();
+
 	void _FootClass_Update_Wrapper();
 	DamageState __Take_Damage(int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse);
 
