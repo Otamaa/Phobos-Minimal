@@ -1929,7 +1929,7 @@ void FakeTacticalClass::_Render(DSurface* pSurface, bool flag, TacticalRenderMod
 		if (rem > 0) {
 
 			const wchar_t* text = StringTable::TryFetchStringOrReturnDefault(
-				"MSG:BlackoutTimer",L"RadarBlackout");
+				"MSG:RadarBlackoutTimer",L"RadarOff-Line");
 
 			this->__DrawTimersA(
 				timerSlot++,
@@ -1943,7 +1943,7 @@ void FakeTacticalClass::_Render(DSurface* pSurface, bool flag, TacticalRenderMod
 		if (pWrrem > 0) {
 
 			const wchar_t* textPwr = StringTable::TryFetchStringOrReturnDefault(
-				"MSG:PowerBlackoutTimer",L"PowerOff");
+				"MSG:BlackoutTimer",L"PowerOff-Line");
 
 			this->__DrawTimersA(
 				timerSlot++,
