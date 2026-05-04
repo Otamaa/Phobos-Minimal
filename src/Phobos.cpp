@@ -17,6 +17,8 @@
 #include <Misc/Patches.h>
 #include <Misc/PhobosGlobal.h>
 #include <Misc/Spawner/Main.h>
+#include <Misc/ReShade/ini_file.hpp>
+#include <Misc/ReShade/integration.h>
 
 #include <Dbghelp.h>
 #include <tlhelp32.h>
@@ -26,12 +28,26 @@
 #include <CD.h>
 #include <aclapi.h>
 #include <GameOptionsClass.h>
+#include <Psapi.h>
 
 #include <Phobos.Lua.h>
 #include <Phobos.UI.h>
 #include <Phobos.Defines.h>
 #include <Phobos.Entity.h>
 #include <MessageBoxLogging.h>
+
+/// <summary>
+/// Checks whether the current operating system is Windows 7 or earlier.
+/// </summary>
+bool is_windows7()
+{
+	ULONGLONG condition = 0;
+	VER_SET_CONDITION(condition, VER_MAJORVERSION, VER_LESS_EQUAL);
+	VER_SET_CONDITION(condition, VER_MINORVERSION, VER_LESS_EQUAL);
+
+	OSVERSIONINFOEX verinfo_windows7 = { sizeof(verinfo_windows7), 6, 1 };
+	return VerifyVersionInfo(&verinfo_windows7, VER_MAJORVERSION | VER_MINORVERSION, condition) != FALSE;
+}
 
 #pragma region defines
 HANDLE Phobos::hInstance;
@@ -245,58 +261,6 @@ bool Phobos::LoadGlobals(PhobosStreamReader& stm)
 		.Success();
 }
 
-struct GraphicsRuntimeAPI
-{
-	enum class Type
-	{
-		UNK, DX, DXGI, OGL, VK
-	};
-
-	GraphicsRuntimeAPI(const std::vector<dllData>& dlls)
-		: name { "Unknown" }, type { Type::UNK }
-	{
-		for (auto& dll : dlls)
-		{
-			if (_strnicmp(dll.ModuleName.c_str(), "d3d", 3) == 0
-				|| IS_SAME_STR_(dll.ModuleName.c_str(), "dxgi.dll")
-				|| IS_SAME_STR_(dll.ModuleName.c_str(), "ddraw.dll")
-				)
-			{
-				name = "DirectX";
-				type = Type::DX;
-				break;
-			}
-			else if (IS_SAME_STR_("opengl32.dll", dll.ModuleName.c_str()))
-			{
-				name = "OpenGL";
-				type = Type::OGL;
-				break;
-			}
-			else if (IS_SAME_STR_("vulkan-1.dll", dll.ModuleName.c_str()))
-			{
-				name = "Vulkan";
-				type = Type::VK;
-				break;
-			}
-		}
-	}
-
-	~GraphicsRuntimeAPI() = default;
-
-	FORCEDINLINE COMPILETIMEEVAL const char* GetName() const
-	{
-		return name.c_str();
-	}
-
-	FORCEDINLINE COMPILETIMEEVAL Type GetType()
-	{
-		return type;
-	}
-
-private:
-	std::string name;
-	Type type;
-};
 
 std::unique_ptr<asmjit::JitRuntime> gJitRuntime;
 
@@ -1148,7 +1112,8 @@ void Phobos::ExeRun()
 	Patch::WindowsVersion = std::move(GetOsVersionQuick());
 	Debug::Log("Running on %s .\n", Patch::WindowsVersion.c_str());
 	GraphicsRuntimeAPI gRuntimeAPI(Patch::ModuleDatas);
-	Debug::Log("Running on %s API.\n", gRuntimeAPI.GetName());
+	Debug::Log("Running on %s API Object Created %s.\n", gRuntimeAPI.GetName() , (ReShadeIntegration::DirectDrawObject() ? "Yes" : "No"));
+	ReShadeIntegration::InstallHooks(gRuntimeAPI.GetType());
 	TheaterTypeClass::AddDefaults();
 	CursorTypeClass::AddDefaults();
 	PhobosEntity::OnStartup();
@@ -1833,7 +1798,6 @@ DWORD __stdcall GetVersion_Wrapper() {
 	auto ver = Game_GetVersion.invoke()();
 	CRTHooks::_set_fp_mode();
 	ApplyEarlyFuncs();
-	//LuaData::ApplyCoreHooks();
 	Phobos::ExeRun();
 	return ver;
 }
@@ -1873,8 +1837,12 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 	{
 		if (IsGamemdExe(nullptr))
 		{
+			HMODULE phobos_hModule = (HMODULE)hInstance;
 			Patch::CurrentProcess = GetCurrentProcess();
 			Phobos::hInstance = hInstance;
+
+			ReShadeIntegration::InitializeFromDllMain(phobos_hModule);
+
 			saved_lpReserved = lpReserved;
 			int argc;
 			LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
@@ -1885,7 +1853,6 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
                 return FALSE;
             }
 
-			DisableThreadLibraryCalls((HMODULE)hInstance);
 			IsInitialized = true;
 
 			MH_Initialize();
@@ -1981,6 +1948,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 		if (g_isProcessTerminating && IsInitialized)
 		{
+			ReShadeIntegration::Unload();
 			Multithreading::ShutdownMultitheadMode();
 			Debug::DeactivateLogger();
 			gJitRuntime.reset();

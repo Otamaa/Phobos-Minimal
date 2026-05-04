@@ -1,6 +1,7 @@
 #include <windows.h>
 
 #include "Phobos.version.h"
+#include "resource.h"
 
 #define IDI_APP    100
 #define ID_VERSION   1
@@ -46,3 +47,7 @@ BEGIN
 #endif
  END
 END
+
+// Shader resources
+IDR_MIPMAP_CS    RCDATA							"res\\shaders\\mipmap_cs_5_0.cso"
+IDR_MIPMAP_CS_GLSL      RCDATA                  "res\\shaders\\mipmap_cs_430.glsl"

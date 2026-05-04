@@ -64,7 +64,7 @@
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <ConformanceMode>true</ConformanceMode>
       <OmitFramePointers>true</OmitFramePointers>
-      <PreprocessorDefinitions>ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;ASMJIT_NO_TEXT;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;MAKE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;ASMJIT_NO_TEXT;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0A00;NTDDI_VERSION=0x0A000000;MAKE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>SyncCThrow</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

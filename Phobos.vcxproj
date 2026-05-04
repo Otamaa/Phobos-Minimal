@@ -42,6 +42,84 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Sight.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Storage.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.ThreatCoeff.cpp" />
+    <ClCompile Include="src\Lib\imgui\imgui.cpp" />
+    <ClCompile Include="src\Lib\imgui\imgui_demo.cpp" />
+    <ClCompile Include="src\Lib\imgui\imgui_draw.cpp" />
+    <ClCompile Include="src\Lib\imgui\imgui_tables.cpp" />
+    <ClCompile Include="src\Lib\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="src\Misc\ReShade\dll_resources.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Effects\effect_codegen_dxbc.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Effects\effect_codegen_dxil.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Effects\effect_codegen_glsl.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Effects\effect_codegen_hlsl.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Effects\effect_codegen_spirv.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Effects\effect_expression.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Effects\effect_lexer.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Effects\effect_parser_exp.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Effects\effect_parser_stmt.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Effects\effect_preprocessor.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Effects\effect_symbol_table.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d12\d3d12.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d12\d3d12_command_list.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d12\d3d12_command_queue.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d12\d3d12_command_queue_downlevel.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d12\d3d12_device.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d12\d3d12_device_downlevel.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d12\d3d12_impl_command_list.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d12\d3d12_impl_command_list_immediate.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d12\d3d12_impl_command_queue.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d12\d3d12_impl_device.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d12\d3d12_impl_swapchain.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d12\d3d12_impl_type_convert.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d12\d3d12_pix.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d12\d3d12_resource.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d9\d3d9.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d9\d3d9on12.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d9\d3d9on12_device.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d9\d3d9_device.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d9\d3d9_impl_command_list.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d9\d3d9_impl_command_queue.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d9\d3d9_impl_device.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d9\d3d9_impl_state_block.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d9\d3d9_impl_swapchain.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d9\d3d9_impl_type_convert.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d9\d3d9_internal.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\d3d9\d3d9_swapchain.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\dxgi\dxgi_adapter.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\hook.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\hook_manager.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\opengl\opengl.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\opengl\opengl_hooks_ffp.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\opengl\opengl_hooks_wgl.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\opengl\opengl_impl_command_list.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\opengl\opengl_impl_command_queue.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\opengl\opengl_impl_device.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\opengl\opengl_impl_state_block.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\opengl\opengl_impl_swapchain.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\opengl\opengl_impl_type_convert.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\vulkan\vulkan.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\vulkan\vulkan_hooks_command_list.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\vulkan\vulkan_hooks_device.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\vulkan\vulkan_hooks_instance.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\vulkan\vulkan_hooks_swapchain.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\vulkan\vulkan_impl_command_list.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\vulkan\vulkan_impl_command_list_immediate.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\vulkan\vulkan_impl_command_queue.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\vulkan\vulkan_impl_device.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\vulkan\vulkan_impl_swapchain.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Hooks\vulkan\vulkan_impl_type_convert.cpp" />
+    <ClCompile Include="src\Misc\ReShade\ImgUI\imgui_code_editor.cpp" />
+    <ClCompile Include="src\Misc\ReShade\ImgUI\imgui_widgets.cpp" />
+    <ClCompile Include="src\Misc\ReShade\ini_file.cpp" />
+    <ClCompile Include="src\Misc\ReShade\input.cpp" />
+    <ClCompile Include="src\Misc\ReShade\input_windows.cpp" />
+    <ClCompile Include="src\Misc\ReShade\integration.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtimes\runtime.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtimes\runtime_api.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtimes\runtime_gui.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtimes\runtime_manager.cpp" />
+    <ClCompile Include="src\Misc\ReShade\state_block.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Utils\platform_utils_windows.cpp" />
     <ClCompile Include="src\New\Entity\FactoryPlantClass.cpp" />
     <ClCompile Include="src\Commands\AggressiveModeClass.cpp" />
     <ClCompile Include="src\Commands\CeasefireModeClass.cpp" />
@@ -518,6 +596,84 @@
     <ClInclude Include="src\Ext\BitText\Body.h" />
     <ClInclude Include="src\Ext\Factory\Body.h" />
     <ClInclude Include="src\Ext\INI\Body.h" />
+    <ClInclude Include="src\Lib\imgui\imconfig.h" />
+    <ClInclude Include="src\Lib\imgui\imgui.h" />
+    <ClInclude Include="src\Lib\imgui\imgui_internal.h" />
+    <ClInclude Include="src\Lib\imgui\imstb_rectpack.h" />
+    <ClInclude Include="src\Lib\imgui\imstb_textedit.h" />
+    <ClInclude Include="src\Lib\imgui\imstb_truetype.h" />
+    <ClInclude Include="src\Lib\vma\include\vk_mem_alloc.h" />
+    <ClInclude Include="src\Misc\ReShade\dll_resources.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Effects\effect_codegen.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Effects\effect_expression.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Effects\effect_lexer.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Effects\effect_module.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Effects\effect_parser.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Effects\effect_preprocessor.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Effects\effect_symbol_table.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Effects\effect_token.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\d3d12\d3d12Wrap.h" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\d3d12\d3d12_command_list.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\d3d12\d3d12_command_queue.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\d3d12\d3d12_command_queue_downlevel.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\d3d12\d3d12_device.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\d3d12\d3d12_device_downlevel.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\d3d12\d3d12_impl_command_list.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\d3d12\d3d12_impl_command_list_immediate.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\d3d12\d3d12_impl_command_queue.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\d3d12\d3d12_impl_device.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\d3d12\d3d12_impl_swapchain.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\d3d12\d3d12_impl_type_convert.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\d3d12\d3d12_resource.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\d3d12\descriptor_heap.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\d3d9\d3d9on12_device.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\d3d9\d3d9_device.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\d3d9\d3d9_impl_device.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\d3d9\d3d9_impl_state_block.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\d3d9\d3d9_impl_swapchain.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\d3d9\d3d9_impl_type_convert.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\d3d9\d3d9_swapchain.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\dxgi\dxgi_adapter.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\hook.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\hook_manager.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\opengl\opengl_hooks.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\opengl\opengl_impl_device.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\opengl\opengl_impl_device_context.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\opengl\opengl_impl_state_block.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\opengl\opengl_impl_swapchain.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\opengl\opengl_impl_type_convert.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\vulkan\vulkan_hooks.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\vulkan\vulkan_impl_command_list.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\vulkan\vulkan_impl_command_list_immediate.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\vulkan\vulkan_impl_command_queue.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\vulkan\vulkan_impl_device.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\vulkan\vulkan_impl_swapchain.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Hooks\vulkan\vulkan_impl_type_convert.hpp" />
+    <ClInclude Include="src\Misc\ReShade\ImgUI\imgui_code_editor.hpp" />
+    <ClInclude Include="src\Misc\ReShade\ImgUI\imgui_widgets.hpp" />
+    <ClInclude Include="src\Misc\ReShade\ini_file.hpp" />
+    <ClInclude Include="src\Misc\ReShade\input.hpp" />
+    <ClInclude Include="src\Misc\ReShade\integration.h" />
+    <ClInclude Include="src\Misc\ReShade\recource.h" />
+    <ClInclude Include="src\Misc\ReShade\reshade.hpp" />
+    <ClInclude Include="src\Misc\ReShade\reshade_api.hpp" />
+    <ClInclude Include="src\Misc\ReShade\reshade_api_device.hpp" />
+    <ClInclude Include="src\Misc\ReShade\reshade_api_format.hpp" />
+    <ClInclude Include="src\Misc\ReShade\reshade_api_pipeline.hpp" />
+    <ClInclude Include="src\Misc\ReShade\reshade_api_resource.hpp" />
+    <ClInclude Include="src\Misc\ReShade\reshade_events.hpp" />
+    <ClInclude Include="src\Misc\ReShade\reshade_overlay.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtimes\runtime.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtimes\runtime_internal.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtimes\runtime_manager.hpp" />
+    <ClInclude Include="src\Misc\ReShade\state_block.hpp" />
+    <ClInclude Include="src\Misc\ReShade\reshade_api_object_impl.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Utils\com_ptr.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Utils\com_utils.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Utils\localization.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Utils\lockfree_linear_map.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Utils\moving_average.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Utils\platform_utils.hpp" />
     <ClInclude Include="src\New\Entity\FactoryPlantClass.h" />
     <ClInclude Include="src\Commands\AggressiveModeClass.h" />
     <ClInclude Include="src\Commands\CeasefireModeClass.h" />
@@ -920,6 +1076,8 @@
   <ItemGroup>
     <None Include="cpp.hint" />
     <None Include="Debug DPFeatures\phobos.dll" />
+    <None Include="src\Misc\ReShade\Effects\effect_symbol_table_intrinsics.inl" />
+    <None Include="src\Misc\ReShade\Hooks\d3d12\d3d12_resource_call_vtable.inl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="sampleconfig\README_WHERETOPUTLUA.txt" />
@@ -999,7 +1157,7 @@
     <EnableClangTidyCodeAnalysis>false</EnableClangTidyCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
-    <VcpkgEnabled>false</VcpkgEnabled>
+    <VcpkgEnabled>true</VcpkgEnabled>
     <VcpkgManifestInstall>false</VcpkgManifestInstall>
     <VcpkgAutoLink>false</VcpkgAutoLink>
     <VcpkgApplocalDeps>false</VcpkgApplocalDeps>
@@ -1014,7 +1172,7 @@
       <ConformanceMode>true</ConformanceMode>
       <DiagnosticsFormat>Column</DiagnosticsFormat>
       <OmitFramePointers>true</OmitFramePointers>
-      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;ASMJIT_NO_TEXT;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;MAKE_LIB;SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;_ATL_NO_SECURITY;_ATL_NO_AUTOMATIC_NAMESPACE;_ATL_NO_MODULE;_ATL_NO_COM_MODULE;_ATL_NO_WIN_SUPPORT;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0A00;NTDDI_VERSION=0x0A000000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;ASMJIT_NO_TEXT;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;MAKE_LIB;SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;_ATL_NO_SECURITY;_ATL_NO_AUTOMATIC_NAMESPACE;_ATL_NO_MODULE;_ATL_NO_COM_MODULE;_ATL_NO_WIN_SUPPORT;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>SyncCThrow</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

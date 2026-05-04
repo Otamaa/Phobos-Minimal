@@ -67,7 +67,7 @@
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <ConformanceMode>true</ConformanceMode>
       <OmitFramePointers>true</OmitFramePointers>
-      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;MAKE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0A00;NTDDI_VERSION=0x0A000000;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;MAKE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>SyncCThrow</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

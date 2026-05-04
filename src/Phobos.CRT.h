@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <immintrin.h>
 #include <intrin.h>
+#include <filesystem>
+#include <vector>
 
 class PhobosCRT final
 {
@@ -223,6 +225,12 @@ public:
 		return sv.substr(begin, end - begin);
 	};
 
+	static COMPILETIMEEVAL std::string_view FORCEDINLINE trim(std::string_view str, const char chars[])
+	{
+		const size_t first = str.find_first_not_of(chars);
+		return first != std::string_view::npos ? std::string_view(str.data() + first, str.find_last_not_of(chars) + 1 - first) : std::string_view();
+	}
+
 	template<size_t max>
 	static COMPILETIMEEVAL std::array<std::string_view, max> OPTIONALINLINE split(std::string_view s)
 	{
@@ -270,4 +278,18 @@ public:
 
 		return std::pair<std::array<std::string_view, max>, size_t>{ out, count };
 	}
+
+	/// <summary>
+	/// Returns the path to the Windows System32 directory.
+	/// </summary>
+	static std::filesystem::path get_system_path();
+
+	/// <summary>
+	/// Returns the path to the module file identified by the specified <paramref name="module"/> handle.
+	/// </summary>
+	static std::filesystem::path get_module_path(HMODULE module);
+
+	static bool resolve_path(std::filesystem::path& path, std::error_code& ec, const std::filesystem::path& base);
+	static std::string expand_macro_string(const std::string& input, std::vector<std::pair<std::string_view, std::string>> macros, std::chrono::system_clock::time_point now);
+	static std::string expand_macro_string(const std::string& input, std::vector<std::pair<std::string_view, std::string>> macros);
 };
