@@ -17,6 +17,7 @@ class EnumFunctions final
 public:
 
 	//simple enums
+	static COMPILETIMEEVAL OPTIONALINLINE auto StackingMode_ToStrings = magic_enum::enum_entries<StackingMode>();
 	static COMPILETIMEEVAL OPTIONALINLINE auto ParabolaFireMode_ToStrings = magic_enum::enum_entries<ParabolaFireMode>();
 	static COMPILETIMEEVAL OPTIONALINLINE auto PassiveAcquireModes_ToStrings = magic_enum::enum_entries<PassiveAcquireModes>();
 	static COMPILETIMEEVAL OPTIONALINLINE auto AffectedTechno_ToStrings = magic_enum::enum_entries<AffectedTechno>();
@@ -76,7 +77,7 @@ public:
 
 
 public:
-
+	static bool CalcValueWithStackingMode(int& oldValue, int newValue, StackingMode stackingMode);
 	static bool CanTargetVeterancy(AffectedVeterancy flags, TechnoClass* pTechno);
 	static bool CanTargetHouse(AffectedHouse flags, HouseClass* ownerHouse, HouseClass* targetHouse);
 	static bool IsCellEligible(CellClass* const pCell, AffectedTarget allowed, bool explicitEmptyCells = false, bool considerBridgesLand = false);

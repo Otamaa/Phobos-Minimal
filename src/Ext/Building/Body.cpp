@@ -34,7 +34,7 @@ template <>
 		pFactory->DestroyNthAnim(BuildingAnimSlot::PreProduction);
 		pFactory->DestroyNthAnim(BuildingAnimSlot::Idle);
 
-		const bool damaged = pFactory->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
+		const bool damaged = pFactory->GetHealthRatio() <= RulesClass::Instance->ConditionYellow;
 		const auto pAnimName = damaged ? pFactoryType->BuildingAnim[8].Damaged : pFactoryType->BuildingAnim[8].Anim;
 
 		if (pAnimName && *pAnimName)
@@ -52,7 +52,7 @@ void BuildingExtData::PlayConstructionYardAnim<false>(BuildingClass* const pFact
 		pFactory->DestroyNthAnim(BuildingAnimSlot::PreProduction);
 		pFactory->DestroyNthAnim(BuildingAnimSlot::Idle);
 
-		const bool damaged = pFactory->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
+		const bool damaged = pFactory->GetHealthRatio() <= RulesClass::Instance->ConditionYellow;
 		const auto pAnimName = damaged ? pFactoryType->BuildingAnim[8].Damaged : pFactoryType->BuildingAnim[8].Anim;
 
 		if (pAnimName && *pAnimName)
@@ -570,8 +570,9 @@ void BuildingExtData::UpdateAutoSellTimer()
 				return;
 
 			const double nValue = pRulesExt->AI_AutoSellHealthRatio->at(pThis->Owner->GetCorrectAIDifficultyIndex());
+			const double percent = pThis->GetHealthPercentage();
 
-			if (nValue > 0.0 && pThis->GetHealthPercentage() <= nValue)
+			if (nValue > 0.0 && percent <= nValue)
 			{
 				pThis->Sell(-1);
 				return;
@@ -1175,7 +1176,7 @@ constexpr int GetRepairValue(BuildingClass* pTarget, int repair)
 	}
 	else if (repair < 0)
 	{
-		const double percentage = std::clamp(pTarget->GetHealthPercentage() - (static_cast<double>(repair) / 100), 0.0, 1.0);
+		const double percentage = std::clamp(pTarget->GetHealthRatio() - (static_cast<double>(repair) / 100), 0.0, 1.0);
 		repairAmount = static_cast<int>(std::round(pTarget->Type->Strength * percentage));
 	}
 
@@ -1184,7 +1185,7 @@ constexpr int GetRepairValue(BuildingClass* pTarget, int repair)
 
 void FakeBuildingClass::_OnFinishRepairB(InfantryClass* pEngineer)
 {
-	const bool wasDamaged = this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
+	const bool wasDamaged = this->GetHealthRatio() <= RulesClass::Instance->ConditionYellow;
 
 	this->Mark(MarkType::Change);
 
@@ -1194,7 +1195,7 @@ void FakeBuildingClass::_OnFinishRepairB(InfantryClass* pEngineer)
 	this->EstimatedHealth = this->Health;
 	this->SetRepairState(0);
 
-	if ((this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow) != wasDamaged)
+	if ((this->GetHealthRatio() <= RulesClass::Instance->ConditionYellow) != wasDamaged)
 	{
 		this->ToggleDamagedAnims(!wasDamaged);
 
@@ -1209,14 +1210,14 @@ void FakeBuildingClass::_OnFinishRepairB(InfantryClass* pEngineer)
 
 void FakeBuildingClass::_OnFinishRepair()
 {
-	const bool wasDamaged = this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
+	const bool wasDamaged = this->GetHealthRatio() <= RulesClass::Instance->ConditionYellow;
 
 	this->Mark(MarkType::Change);
 	this->Health = this->Type->Strength;
 	this->EstimatedHealth = this->Health;
 	this->SetRepairState(0);
 
-	if ((this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow) != wasDamaged)
+	if ((this->GetHealthRatio() <= RulesClass::Instance->ConditionYellow) != wasDamaged)
 	{
 		this->ToggleDamagedAnims(!wasDamaged);
 
@@ -2295,7 +2296,7 @@ void FakeBuildingClass::_DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOrigi
 //			gateFrame = MaxImpl(0, MinImpl(gateFrame, this->Type->GateStages - 1));
 //
 //			// Add damage frame offset if building is damaged
-//			if (this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow)
+//			if (this->GetHealthRatio() <= RulesClass::Instance->ConditionYellow)
 //			{
 //				gateFrame += this->Type->GateStages + 1;
 //			}
@@ -2446,7 +2447,7 @@ void FakeBuildingClass::_DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOrigi
 //			if (const auto RoofAnim = isUnloadingAirUnit ? this->Type->UnderRoofDoorAnim : this->Type->UnderDoorAnim) {
 //				this->Draw_Object(
 //					RoofAnim,
-//					this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow,
+//					this->GetHealthRatio() <= RulesClass::Instance->ConditionYellow,
 //					screenPos,
 //					clipRect,
 //					DirType::North, 256,  // rotation, scale
@@ -2676,9 +2677,9 @@ int FakeBuildingClass::__GetPower()
 		const double factor = pTypeExt->PowerPlant_DamageFactor;
 
 		if (factor == 1.0)
-			power = static_cast<int>(power * this->GetHealthPercentage());
+			power = static_cast<int>(power * this->GetHealthRatio());
 		else if (factor != 0.0)
-			power = MaxImpl(static_cast<int>(power * (1.0 - factor + factor * this->GetHealthPercentage())), 0);
+			power = MaxImpl(static_cast<int>(power * (1.0 - factor + factor * this->GetHealthRatio())), 0);
 	}
 
 	return power + extraPower;

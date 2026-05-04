@@ -141,7 +141,7 @@ ASMJIT_PATCH(0x736E8E, UnitClass_UpdateFiringState_Heal, 0x6)
 
 	const auto pTargetTechno = flag_cast_to<TechnoClass*>(pThis->Target);
 
-	if (!pTargetTechno || pTargetTechno->GetHealthPercentage() <= RulesClass::Instance()->ConditionGreen)
+	if (!pTargetTechno || pTargetTechno->GetHealthRatio() <= RulesClass::Instance()->ConditionGreen)
 		pThis->SetTarget(nullptr);
 
 	return 0x737063;

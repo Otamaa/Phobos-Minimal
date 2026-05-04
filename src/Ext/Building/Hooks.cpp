@@ -723,6 +723,7 @@ ASMJIT_PATCH(0x447110, BuildingClass_Sell_Handled, 0x9)
 {
 	GET(BuildingClass*, pThis, ECX);
 	GET_STACK(int, control, 0x4);
+	GET_STACK(DWORD, caller, 0x0);
 
 	// #754 - evict Hospital/Armory contents
 	TechnoExtData::KickOutHospitalArmory(pThis);

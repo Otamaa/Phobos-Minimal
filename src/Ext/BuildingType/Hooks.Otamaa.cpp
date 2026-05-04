@@ -144,13 +144,6 @@ ASMJIT_PATCH(0x459494, BuildingClass_459470_BunkerDownSound, 0x5)
 }
 #pragma endregion
 
-ASMJIT_PATCH(0x450821, BuildingClass_Repair_AI_Step, 0x5)// B
-{
-	GET(FakeBuildingClass* const, pThis, ESI);
-	R->EAX(int(pThis->_GetTypeExtData()->RepairRate.Get(RulesClass::Instance->RepairRate) * 900.0));
-	return 0x450837;
-}
-
 ASMJIT_PATCH(0x505F6C, HouseClass_GenerateAIBuildList_AIBuildInstead, 0x6)
 {
 	GET(HouseClass*, pHouse, ESI);

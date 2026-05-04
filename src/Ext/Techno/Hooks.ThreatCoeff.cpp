@@ -167,7 +167,7 @@ double __fastcall FakeTechnoClass::__GetThreatCoeff(TechnoClass* pThis, discard_
 	}
 
 	// 5. Target Health Weighting
-	double finalScore = (pTarget->GetHealthPercentage_() * targetStrengthCoeff) + threatValue;
+	double finalScore = (pTarget->GetHealthRatio() * targetStrengthCoeff) + threatValue;
 
 	ApplyExtraThreat(pThis, pExt->TypeExtData, pTargetTechno, finalScore);
 

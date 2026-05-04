@@ -239,7 +239,7 @@ void FakeCaptureManagerClass::__DecideUnitFate(TechnoClass* pTechno , bool Captu
     
     if (availableMoney >= RulesClass::Instance->AICaptureLowMoneyMark) {
         if (this->Owner->Owner->GetPowerPercentage() >= 1.0) {
-            int healthRatio = (int)pTechno->GetHealthPercentage();
+            int healthRatio = (int)pTechno->GetHealthRatio();
             
             if (healthRatio >= RulesClass::Instance->AICaptureWoundedMark) {
                 nCondition = 3;

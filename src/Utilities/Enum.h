@@ -34,6 +34,18 @@
 #include <Helpers\EnumFlags.h>
 #include <GeneralDefinitions.h>
 
+enum class StackingMode : BYTE
+{
+	Override = 0,
+	SetIfZero = 1,
+	Min = 2,
+	Max = 3,
+	Add = 4,
+	Subtract = 5,
+	Multiply = 6,
+	Divide = 7
+};
+
 enum class SWTargetFlags : BYTE
 {
 	DisallowEmpty,
@@ -49,7 +61,7 @@ enum class CloakHandling : BYTE
 	RequireCloaked = 3
 };
 
-enum class ParabolaFireMode : size_t
+enum class ParabolaFireMode : BYTE
 {
 	Speed = 0,
 	Height = 1,
@@ -59,7 +71,7 @@ enum class ParabolaFireMode : size_t
 	SpeedAndAngle = 5
 };
 
-enum class AresHijackActionResult
+enum class AresHijackActionResult : BYTE
 {
 	None = 0,
 	Hijack = 1,
@@ -80,7 +92,7 @@ enum class SubterraneanHarvStatus : BYTE
 	OutOfFactory = 2
 };
 
-enum class CommandBarTypes
+enum class CommandBarTypes  : int
 {
 	none = -1,
 	Team01,

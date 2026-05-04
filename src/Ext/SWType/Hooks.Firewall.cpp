@@ -284,7 +284,7 @@ ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
 		{
 			if (pThis->Health > 0 && pThis->Health < pType->Strength)
 			{
-				bool wasDamaged = pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
+				bool wasDamaged = pThis->GetHealthRatio() <= RulesClass::Instance->ConditionYellow;
 				auto const pCell = (FakeCellClass*)pThis->GetCell();
 
 				if (pCell->LandType == LandType::Tiberium)
@@ -311,7 +311,7 @@ ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
 							}
 
 							if (wasDamaged
-								&& (pThis->GetHealthPercentage() > RulesClass::Instance->ConditionYellow
+								&& (pThis->GetHealthRatio() > RulesClass::Instance->ConditionYellow
 								|| pThis->GetHeight() < -10))
 							{
 								if (auto& dmgParticle = pThis->Sys.Damage)

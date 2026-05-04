@@ -787,6 +787,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Traction.Read(exINI, pSection, "Traction");
 	this->Traction_Range.Read(exINI, pSection, "Traction.Range");
 	this->Traction_Speed.Read(exINI, pSection, "Traction.Speed");
+	this->Psychedelic_StackingMode.Read(exINI, pSection, "Psychedelic.StackingMode");
 
 	this->IsCellSpreadWH =
 		this->RemoveDisguise ||
@@ -1320,7 +1321,7 @@ bool WarheadTypeExtData::applyCulling(TechnoClass* pSource, ObjectClass* pTarget
 	}
 	else
 	{
-		if (static_cast<int>(pTarget->GetHealthPercentage() * 100.0) > nCullingHP)
+		if (static_cast<int>(pTarget->GetHealthRatio() * 100.0) > nCullingHP)
 			return false;
 	}
 
@@ -1401,50 +1402,36 @@ bool WarheadTypeExtData::GoBerzerkFor(FootClass* pVictim, int* damage) const
 
 	if (nDur != 0)
 	{
-		if (nDur > 0)
-		{
-			if (auto pData = TechnoTypeExtContainer::Instance.Find(pType))
-			{
+		//Modify duration thru target modifier
+		if (nDur > 0) {
+			if (auto pData = TechnoTypeExtContainer::Instance.Find(pType)) {
 				nDur = static_cast<int>(nDur * pData->Berzerk_Modifier.Get());
 			}
 		}
 
-		//Default way game modify duration
-		nDur = FakeWarheadTypeClass::ModifyDamage(nDur, This(),
-					TechnoExtData::GetTechnoArmor(pVictim, This()), 0);
+		//Modify duration based on target armor
+		nDur = FakeWarheadTypeClass::ModifyDamage(nDur, This(), TechnoExtData::GetTechnoArmor(pVictim, This()), 0);
 
+		//capture oldValue
 		const int oldValue = (!pVictim->Berzerk ? 0 : pVictim->BerzerkDurationLeft);
-		const int newValue = Helpers::Alex::getCappedDuration(oldValue, nDur, this->Berzerk_cap.Get());
+		//only set the cap when needed
+		const int newValue = this->Berzerk_cap.isset() ? Helpers::Alex::getCappedDuration(oldValue, nDur, this->Berzerk_cap) : nDur;
+		//set the applyMode
+		const auto mode = this->Psychedelic_StackingMode.Get(RulesExtData::Instance()->Psychedelic_StackingMode);
 
-		//auto const underBrzBefore = (oldValue > 0);
-		//auto const underBrzAfter = (pVictim->Berzerk && pVictim->BerzerkDurationLeft > 0);
-		//auto const newlyUnderBrz = !underBrzBefore && underBrzAfter;
-		if (oldValue == newValue)
-			return this->Berzerk_dealDamage.Get();
+		//apply the value based on the stackingmode
+		if(EnumFunctions::CalcValueWithStackingMode(pVictim->BerzerkDurationLeft, newValue, mode)){
 
-		if (oldValue <= 0)
-		{
-			if (newValue > 0) {
-				pVictim->GoBerzerkFor(newValue);
-			}
-		}
-		else
-		{
-
-			if (newValue > 0) {
-				pVictim->GoBerzerkFor(newValue);
-			} else {
-
-				auto const nLeft = pVictim->BerzerkDurationLeft - newValue;
-				if (nLeft <= 0)
-				{
-					pVictim->BerzerkDurationLeft = 0;
-					pVictim->Berzerk = false;
-					pVictim->SetTarget(nullptr);
-					TechnoExtData::SetMissionAfterBerzerk(pVictim);
-				} else {
-					pVictim->BerzerkDurationLeft -= nLeft;
-				}
+			//do the nessessarry affects needed here if value really changed
+			
+			//absolutely empty , and the result is > 0 , apply berzerk affects
+			if (oldValue <= 0 && pVictim->BerzerkDurationLeft > 0) {
+				pVictim->GoBerzerkFor(pVictim->BerzerkDurationLeft);
+			} else if (pVictim->BerzerkDurationLeft <= 0) { // run out , just break it, to properly dispell the berzer affect
+				pVictim->BerzerkDurationLeft = 0;
+				pVictim->Berzerk = false;
+				pVictim->SetTarget(nullptr);
+				TechnoExtData::SetMissionAfterBerzerk(pVictim);
 			}
 		}
 
@@ -2141,6 +2128,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->Traction)
 		.Process(this->Traction_Range)
 		.Process(this->Traction_Speed)
+		.Process(this->Psychedelic_StackingMode)
 		;
 }
 

@@ -1489,7 +1489,7 @@ Action TechnoExtData::GetEngineerEnterEnemyBuildingAction(BuildingClass* const p
 		return Action::Capture;
 	}
 
-	if (pBld->GetHealthPercentage() > pRulesExt->AttachedToObject->EngineerCaptureLevel)
+	if (pBld->GetHealthRatio() > pRulesExt->AttachedToObject->EngineerCaptureLevel)
 	{
 		return (pRulesExt->EngineerDamage > 0.0)
 			? Action::Damage : Action::NoEnter;
@@ -1947,7 +1947,7 @@ bool TechnoExtData::FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget, Weap
 			{
 				const bool IsFullHP = pThatShield->GetHealthRatio() >= nRulesGreen;
 				if (IsFullHP && pThatShield->GetType()->PassthruNegativeDamage)
-					return !(pTarget->GetHealthPercentage_() >= nRulesGreen);
+					return !(pTarget->GetHealthRatio() >= nRulesGreen);
 
 				return true;
 			}
@@ -1956,7 +1956,7 @@ bool TechnoExtData::FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget, Weap
 		}
 	}
 
-	return !(pTarget->GetHealthPercentage_() >= nRulesGreen);
+	return !(pTarget->GetHealthRatio() >= nRulesGreen);
 }
 
 UnitTypeClass* TechnoExtData::GetUnitTypeImage(UnitClass* const pThis)
@@ -3306,7 +3306,7 @@ bool TechnoExtData::IsDriverKillable(TechnoClass* pThis, double KillBelowPercent
 			protecteddriver ? 0.0 : 1.0),
 		KillBelowPercent);
 
-	if (pThis->GetHealthPercentage() > maxKillHealth)
+	if (pThis->GetHealthRatio() > maxKillHealth)
 		return false;
 
 	return true;
@@ -6038,7 +6038,7 @@ int TechnoExtData::CalculateBlockDamage(TechnoClass* pThis, TechnoClass* pSource
 			blockCanActiveStationary = pOtherBlock->Block_CanActive_Stationary.isset() ? pOtherBlock->Block_CanActive_Stationary : blockCanActiveStationary;
 		}
 
-		if (blockAffectBelowPercents.size() > 0 && pThis->GetHealthPercentage() > blockAffectBelowPercents[0])
+		if (blockAffectBelowPercents.size() > 0 && pThis->GetHealthRatio() > blockAffectBelowPercents[0])
 			return damage;
 
 		if (damage == 0 && !blockCanActiveZeroDamage)
@@ -6052,7 +6052,7 @@ int TechnoExtData::CalculateBlockDamage(TechnoClass* pThis, TechnoClass* pSource
 		{
 			for (; level < blockAffectBelowPercents.size() - 1; level++)
 			{
-				if (pThis->GetHealthPercentage() > blockAffectBelowPercents[level + 1])
+				if (pThis->GetHealthRatio() > blockAffectBelowPercents[level + 1])
 					break;
 			}
 		}
@@ -6491,7 +6491,7 @@ bool TechnoExtData::IsHealthInThreshold(ObjectClass* pObject, double min, double
 	if (!pObject->Health || !pObject->IsAlive)
 		return false;
 
-	double hp = pObject->GetHealthPercentage();
+	double hp = pObject->GetHealthRatio();
 	return (hp > 0 ? hp > min : hp >= min) && hp <= max;
 }
 
@@ -8631,7 +8631,7 @@ bool TechnoExtData::ObjectHealthAllowFiring(ObjectClass* pTargetObj, WeaponTypeC
 	if (pTargetObj)
 	{
 		if(pWeaponExt->Targeting_Health_Percent.isset()){
-			auto const pHP = pTargetObj->GetHealthPercentage();
+			auto const pHP = pTargetObj->GetHealthRatio();
 
 			if (!pWeaponExt->Targeting_Health_Percent_Below.Get() && pHP <= pWeaponExt->Targeting_Health_Percent.Get())
 				return false;
@@ -8771,7 +8771,7 @@ bool TechnoExtData::IsAbductable(TechnoClass* pThis, WeaponTypeClass* pWeapon, F
 
 	//Don't abduct the target if it has more life then the abducting percent
 
-	if (pWeaponExt->Abductor_AbductBelowPercent < pFoot->GetHealthPercentage()) {
+	if (pWeaponExt->Abductor_AbductBelowPercent < pFoot->GetHealthRatio()) {
 		return false;
 	}
 
@@ -9521,7 +9521,7 @@ void TechnoExtData::DrawSelectBox(TechnoClass* pThis,Point2D* pLocation,Rectangl
 	if (!canSee)
 		return;
 
-	const double healthPercentage = pThis->GetHealthPercentage();
+	const double healthPercentage = pThis->GetHealthRatio();
 	//defaultFrame
 	const Point3D defaultFrame = whatAmI == AbstractType::Infantry ? Point3D { 1,1,1 } : Point3D { 0,0,0 };
 	const auto pSurface = DSurface::Temp();
@@ -11373,7 +11373,7 @@ void TechnoExtData::ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged)
 			}
 		}
 
-		if ((wasDamaged || pThis->Sys.Damage) && (pThis->GetHealthPercentage() > RulesClass::Instance->ConditionYellow
+		if ((wasDamaged || pThis->Sys.Damage) && (pThis->GetHealthRatio() > RulesClass::Instance->ConditionYellow
 			|| pThis->GetHeight() < -10))
 		{
 			bool Rubbled = false;
@@ -11386,7 +11386,7 @@ void TechnoExtData::ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged)
 				// restore rubble after reaching green health ?
 				// not sure if this good implementation
 				// maybe better to put it somewhere on update function ,..
-				//if(pThis->GetHealthPercentage() >= RulesClass::Instance->ConditionGreen
+				//if(pThis->GetHealthRatio() >= RulesClass::Instance->ConditionGreen
 				//	&& (pExt->RubbleIntact || pExt->RubbleIntactRemove))
 				//{
 				//	auto pRubble = TechnoExtData::CreateBuilding(pBuilding,

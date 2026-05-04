@@ -524,7 +524,7 @@ void FakeTechnoClass::__HandleSelfHealing(TechnoClass* pThis)
 
 	// this replaces the call to pThis->ShouldSelfHealOneStep()
 	const auto nAmount = TechnoExtData::GetSelfHealAmount(pThis);
-	bool wasDamaged = pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
+	bool wasDamaged = pThis->GetHealthRatio() <= RulesClass::Instance->ConditionYellow;
 	if (nAmount > 0 || nAmount != 0)
 	{
 		pThis->Health += nAmount;
@@ -700,7 +700,7 @@ void FakeTechnoClass::__HandleDamageSparks(TechnoClass* pThis)
 {
 	if (!pThis->Sys.Spark)
 	{
-		auto _HPRatio = pThis->GetHealthPercentage();
+		auto _HPRatio = pThis->GetHealthRatio();
 
 		if (!(_HPRatio >= RulesClass::Instance->ConditionYellow || pThis->GetHeight() <= -10))
 		{
@@ -808,7 +808,7 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 		return;
 	}
 
-	auto const pType = GET_TECHNOTYPE(pThis);
+	//auto const pType = GET_TECHNOTYPE(pThis);
 	bool IsInLimboDelivered = false;
 
 	if (IsBuilding) {

@@ -507,10 +507,10 @@ bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 		return _retTrue(this->LastDiscardCheckValue);
 
 	//Debug::LogInfo(__FUNCTION__" Executed [%s - %s]", this->Techno->GetThisClassName(), this->Techno->get_ID());
-	if (this->Type->DiscardOn_AbovePercent.isset() && this->Techno->GetHealthPercentage() >= this->Type->DiscardOn_AbovePercent.Get())
+	if (this->Type->DiscardOn_AbovePercent.isset() && this->Techno->GetHealthRatio() >= this->Type->DiscardOn_AbovePercent.Get())
 		return _retTrue(this->LastDiscardCheckValue);
 
-	if (this->Type->DiscardOn_BelowPercent.isset() && this->Techno->GetHealthPercentage() <= this->Type->DiscardOn_BelowPercent.Get())
+	if (this->Type->DiscardOn_BelowPercent.isset() && this->Techno->GetHealthRatio() <= this->Type->DiscardOn_BelowPercent.Get())
 		return _retTrue(this->LastDiscardCheckValue);
 
 	if(this->Type->DiscardOn != DiscardCondition::None){
@@ -682,10 +682,10 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(
 	if (!EnumFunctions::IsTechnoEligible(pTarget, pType->AffectTargets, true))
 		return nullptr;
 
-	if (pType->AffectAbovePercent.isset() && pTarget->GetHealthPercentage() < pType->AffectAbovePercent)
+	if (pType->AffectAbovePercent.isset() && pTarget->GetHealthRatio() < pType->AffectAbovePercent)
 		return nullptr;
 
-	if (pType->AffectBelowPercent.isset() && pTarget->GetHealthPercentage() > pType->AffectBelowPercent)
+	if (pType->AffectBelowPercent.isset() && pTarget->GetHealthRatio() > pType->AffectBelowPercent)
 		return nullptr;
 
 	int currentTypeCount = 0;

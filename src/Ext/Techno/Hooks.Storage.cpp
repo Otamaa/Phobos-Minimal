@@ -197,7 +197,7 @@ ASMJIT_PATCH(0x73E3BF, UnitClass_Mission_Unload_replace, 0x6)
 		if (pBld->Type->Refinery)
 		{ //weed ???
 			pBld->Game_PlayNthAnim(BuildingAnimSlot::Production,
-				pBld->GetHealthPercentage_() <= RulesClass::Instance->ConditionYellow,
+				pBld->GetHealthRatio() <= RulesClass::Instance->ConditionYellow,
 				false, false);
 		}
 		pThis->MissionStatus = 4;

@@ -321,19 +321,21 @@ bool ObjectClass::IsOnMyView() const
 
 }
 
-bool ObjectClass::IsGreenToYellowHP() const
-{
-	return this->GetHealthPercentage() >= RulesClass::Instance->ConditionYellow;
+bool ObjectClass::IsGreenToYellowHP() const {
+	return this->GetHealthRatio() >= RulesClass::Instance->ConditionYellow;
 }
 
 bool ObjectClass::IsFullHP() const
-{ return this->GetHealthPercentage() >= RulesClass::Instance->ConditionGreen; }
+{ return this->GetHealthRatio() >= RulesClass::Instance->ConditionGreen; }
 
-double ObjectClass::GetHealthPercentage_() const
+double ObjectClass::GetHealthRatio_() const
 { JMP_THIS(0x5F5C60); }
 
-double ObjectClass::GetHealthPercentage() const
-{
+double ObjectClass::GetHealthPercentage() const {
+	return (double)this->Health / (double)this->GetType()->Strength * 100.0;;
+}
+
+double ObjectClass::GetHealthRatio() const {
 	return (double)this->Health / (double)this->GetType()->Strength;
 }
 

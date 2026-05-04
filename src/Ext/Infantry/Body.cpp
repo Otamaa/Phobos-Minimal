@@ -89,7 +89,7 @@ void HandleInfantryDamaged(FakeInfantryClass* pThis, TechnoClass* source, HouseC
 	{
 
 		int morefear = 50;
-		auto _HPPercent = pThis->GetHealthPercentage();
+		auto _HPPercent = pThis->GetHealthRatio();
 
 		if (_HPPercent > RulesClass::Instance->ConditionRed)
 		{

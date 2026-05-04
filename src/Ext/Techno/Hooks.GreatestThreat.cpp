@@ -873,7 +873,7 @@ bool FakeTechnoClass::__EvaluateObjectB(
 						return false;
 
 				} else {
-					if (target->GetHealthPercentage_() >= RulesClass::Instance->ConditionGreen)
+					if (target->GetHealthRatio() >= RulesClass::Instance->ConditionGreen)
 						return false;
 				}
 
@@ -1254,7 +1254,7 @@ bool FakeTechnoClass::__EvaluateObjectB(
 			// buildings that are healthy or free to rebuild.
 			if (!pBuildingTarget
 				|| (pThis->Owner->IsAlliedWith(pBuildingTarget->Owner)
-					&& (target->GetHealthPercentage() > RulesClass::Instance->ConditionRed
+					&& (target->GetHealthRatio() > RulesClass::Instance->ConditionRed
 						|| !pBuildingTarget->Type->GetActualCost(pThis->Owner))))
 			{
 				return false;

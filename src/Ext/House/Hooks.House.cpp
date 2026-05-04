@@ -372,7 +372,7 @@ ASMJIT_PATCH(0x4F8B08, HouseClass_AI_DamageDelay, 6)
 				auto damage = pBldTypeExt->DegradeAmount.Get(defaultAmount);
 				auto const percentage = pBldTypeExt->DegradePercentage.Get(defaultPercentage);
 
-				if (damage > 0 && pBld->GetHealthPercentage() > percentage)
+				if (damage > 0 && pBld->GetHealthRatio() > percentage)
 				{
 					pBld->ReceiveDamage(&damage, 0, pRules->C4Warhead, nullptr, false, false, nullptr);
 				}

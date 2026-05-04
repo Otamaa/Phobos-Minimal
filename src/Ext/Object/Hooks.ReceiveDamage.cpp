@@ -169,7 +169,7 @@ DamageState FakeTerrainClass::__TakeDamage(int* Damage,
 		{
 			auto const pTypeExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
 			auto pExt = TerrainExtContainer::Instance.Find(pThis);
-			double PriorHealthRatio = pThis->GetHealthPercentage();
+			double PriorHealthRatio = pThis->GetHealthRatio();
 
 			_res = FakeObjectClass::__Take_Damage(pThis, discard_t(), Damage, DistanceToEpicenter, pWH, Attacker, IgnoreDefenses, PreventsPassengerEscape, SourceHouse);
 
@@ -183,7 +183,7 @@ DamageState FakeTerrainClass::__TakeDamage(int* Damage,
 
 			double condYellow = RulesExtData::Instance()->ConditionYellow_Terrain;
 
-			if (!pThis->Type->IsAnimated && pTypeExt->HasDamagedFrames && PriorHealthRatio > condYellow && pThis->GetHealthPercentage() <= condYellow)
+			if (!pThis->Type->IsAnimated && pTypeExt->HasDamagedFrames && PriorHealthRatio > condYellow && pThis->GetHealthRatio() <= condYellow)
 			{
 				pThis->TimeToDie = true; // Dirty hack to get game to redraw the art reliably.
 				MapClass::Logics->AddObject(pThis, false);
@@ -1267,7 +1267,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 		}
 	}
 
-	if (pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow)
+	if (pThis->GetHealthRatio() <= RulesClass::Instance->ConditionYellow)
 	{
 		if ((_res == DamageState::NowYellow || _res == DamageState::NowRed) && !pThis->Transporter)
 		{
@@ -2047,7 +2047,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 		}
 	}
 
-	if (pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow)
+	if (pThis->GetHealthRatio() <= RulesClass::Instance->ConditionYellow)
 	{
 		if ((_res == DamageState::NowYellow || _res == DamageState::NowRed) && !pThis->Transporter)
 		{
@@ -2438,13 +2438,13 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 				}
 			}
 
-			pThis->ToggleDamagedAnims(pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow);
+			pThis->ToggleDamagedAnims(pThis->GetHealthRatio() <= RulesClass::Instance->ConditionYellow);
 		}
 
 		if (pShape != pThis->GetShapeNumber())
 		{
 			pThis->NeedsRedraw = true;
-			pThis->ToggleDamagedAnims(pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow);
+			pThis->ToggleDamagedAnims(pThis->GetHealthRatio() <= RulesClass::Instance->ConditionYellow);
 		}
 	}
 

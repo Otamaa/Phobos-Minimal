@@ -446,6 +446,9 @@ namespace detail
 	bool read<ParabolaFireMode>(ParabolaFireMode& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
+	bool read<StackingMode>(StackingMode& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
+
+	template <>
 	bool read<CLSID>(CLSID& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <typename T, bool clearvec = true>

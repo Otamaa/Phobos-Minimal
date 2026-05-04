@@ -665,7 +665,7 @@ void ShieldClass::OnUpdate()
 		this->SelfHealing();
 	}
 
-	double ratio = this->Techno->GetHealthPercentage();
+	double ratio = this->Techno->GetHealthRatio();
 	if (!this->AreAnimsHidden)
 	{
 		if (GeneralUtils::HasHealthRatioThresholdChanged(LastTechnoHealthRatio, ratio))
@@ -821,7 +821,7 @@ bool ShieldClass::ConvertCheck()
 	// Update shield properties. if we still have a shield.
 	if (pNewType->Strength && this->Available)
 	{
-		bool isDamaged = this->Techno->GetHealthPercentage() <= this->Type->GetConditionYellow();
+		bool isDamaged = this->Techno->GetHealthRatio() <= this->Type->GetConditionYellow();
 		double healthRatio = this->GetHealthRatio();
 
 		if (pOldType->GetIdleAnimType(isDamaged, healthRatio) != pNewType->GetIdleAnimType(isDamaged, healthRatio))
@@ -1132,7 +1132,7 @@ AnimTypeClass* ShieldClass::GetIdleAnimType() const
 	if (!this->Type || !this->Techno)
 		return nullptr;
 
-	bool isDamaged = this->Techno->GetHealthPercentage() <= this->Type->GetConditionYellow();
+	bool isDamaged = this->Techno->GetHealthRatio() <= this->Type->GetConditionYellow();
 
 	return this->Type->GetIdleAnimType(isDamaged, this->GetHealthRatio());
 }

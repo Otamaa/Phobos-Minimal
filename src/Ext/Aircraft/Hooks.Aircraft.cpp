@@ -31,7 +31,7 @@ ASMJIT_PATCH(0x415085, AircraftClass_Update_DamageSmoke, 7)
 	if(chance <= 0 )
 		return 0x41512C;
 
-	if (pThis->GetHealthPercentage() < RulesClass::Instance->ConditionRed) {
+	if (pThis->GetHealthRatio() < RulesClass::Instance->ConditionRed) {
 		if (pThis->GetHeight() > 0) {
 			if (ScenarioClass::Instance->Random.RandomFromMax(99) < chance) {
 				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pThis->Location),

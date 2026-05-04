@@ -120,7 +120,7 @@ ASMJIT_PATCH(0x71C1FE, TerrainClass_Draw_PickFrame, 0x6)
 	GET(TerrainClass*, pThis, ESI);
 
 	auto const pTypeExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
-	bool isDamaged = pTypeExt->HasDamagedFrames && pThis->GetHealthPercentage() <= RulesExtData::Instance()->ConditionYellow_Terrain;
+	bool isDamaged = pTypeExt->HasDamagedFrames && pThis->GetHealthRatio() <= RulesExtData::Instance()->ConditionYellow_Terrain;
 
 	if (pThis->Type->IsAnimated)
 	{

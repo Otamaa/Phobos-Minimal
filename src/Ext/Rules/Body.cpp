@@ -248,6 +248,7 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->DamageOwnerMultiplier_NotAffectsEnemies.Read(iniEX, GameStrings::CombatDamage, "DamageOwnerMultiplier.NotAffectsEnemies");
 	pData->DamageAlliesMultiplier_NotAffectsEnemies.Read(iniEX, GameStrings::CombatDamage, "DamageAlliesMultiplier.NotAffectsEnemies");
 	pData->DriverKilled_KillPassengers.Read(iniEX, GameStrings::CombatDamage, "DriverKilled.KillPassengers");
+	pData->Psychedelic_StackingMode.Read(iniEX, GameStrings::CombatDamage, "Psychedelic.StackingMode");
 
 	pData->FactoryProgressDisplay.Read(iniEX, GameStrings::AudioVisual, "FactoryProgressDisplay");
 	pData->MainSWProgressDisplay.Read(iniEX, GameStrings::AudioVisual, "MainSWProgressDisplay");
@@ -1405,6 +1406,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->ExtraThreatCoefficient_Facing)
 		.Process(this->ExtraThreatCoefficient_DistanceToLastTarget)
 		.Process(this->DriverKilled_KillPassengers)
+		.Process(this->Psychedelic_StackingMode)
 		.Process(this->DisableOveroptimizationInTargeting)
 
 		.Process(this->AreaGuard_UseSelfAsCenter)

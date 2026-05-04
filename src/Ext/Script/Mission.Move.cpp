@@ -359,7 +359,7 @@ TechnoClass* ScriptExtData::FindBestObject(TechnoClass* pTechno, int method, Dis
 						}
 
 						// Extra threat based on current health. More damaged == More threat (almost destroyed objects gets more priority)
-						objectThreatValue += pObj->Health * (1 - pObj->GetHealthPercentage());
+						objectThreatValue += pObj->Health * (1 - pObj->GetHealthRatio());
 						value = (objectThreatValue * threatMultiplier) / ((pTechno->DistanceFrom(pObj) / 256.0) + 1.0);
 
 						if (calcThreatMode == DistanceMode::idkZero)

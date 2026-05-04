@@ -747,7 +747,7 @@ public:
 
 	COMPILETIMEEVAL const T& Get(TechnoClass* pTechno) const noexcept
 	{
-		return Get(pTechno->GetHealthPercentage(), RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed);
+		return Get(pTechno->GetHealthRatio(), RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed);
 	}
 
 	COMPILETIMEEVAL const T& Get(double ratio) const noexcept
@@ -870,7 +870,7 @@ public:
 
 	COMPILETIMEEVAL const ValueableVector<T>& Get(TechnoClass* pTechno) const noexcept
 	{
-		return Get(pTechno->GetHealthPercentage());
+		return Get(pTechno->GetHealthRatio());
 	}
 
 	COMPILETIMEEVAL const ValueableVector<T>* GetEx(double ratio) const noexcept

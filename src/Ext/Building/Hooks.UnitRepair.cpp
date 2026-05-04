@@ -38,7 +38,7 @@ int FakeBuildingClass::_Mission_Repair()
 	auto const play_health_anim = [pThis](int slot, BuildingAnimSlot destAnim)
 		{
 			bool const damaged =
-				pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
+				pThis->GetHealthRatio() <= RulesClass::Instance->ConditionYellow;
 
 			auto pAnimSet = damaged
 				? pThis->Type->BuildingAnim[slot].Damaged
@@ -520,7 +520,7 @@ int FakeBuildingClass::_Mission_Repair()
 		// Positive — evaluate repair vs sell-back
 		auto* pClient = (FootClass*)pThis->GetRadioContact(0);
 		bool const needs_repair =
-			pClient->GetHealthPercentage() < RulesClass::Instance->ConditionGreen;
+			pClient->GetHealthRatio() < RulesClass::Instance->ConditionGreen;
 		bool const needs_reload = pClient->GetTechnoType()->ManualReload;
 
 		auto const repair_msg = pThis->SendToFirstLink(RadioCommand::RequestRepair);
@@ -555,7 +555,7 @@ int FakeBuildingClass::_Mission_Repair()
 		}
 
 		// Client is full-health and doesn't need reload -> release it
-		if (pClient->GetHealthPercentage() == RulesClass::Instance->ConditionGreen)
+		if (pClient->GetHealthRatio() == RulesClass::Instance->ConditionGreen)
 		{
 			if (!pClient->Locomotor->Is_Powered())
 			{

@@ -367,15 +367,26 @@ ASMJIT_PATCH(0x450651, BuildingClass_UpdateRepairSell_PlayerAutoRepair, 0x8)
 	enum { CanAutoRepair = 0x450659, CanNotAutoRepair = 0x450813 };
 	GET(BuildingClass*, pThis, ESI);
 
-	if (!RulesExtData::Instance()->ExtendedPlayerRepair)
-		return pThis->Owner->IQLevel2 >= RulesClass::Instance->RepairSell ? CanAutoRepair : CanNotAutoRepair;
+	if(RulesExtData::Instance()->ExtendedPlayerRepair && pThis->Owner->IsControlledByHuman()){
+		if (HouseExtContainer::Instance.Find(pThis->Owner)->PlayerAutoRepair) {
+			return CanAutoRepair;
+		} else {
 
-	if (HouseExtContainer::Instance.Find(pThis->Owner)->PlayerAutoRepair) {
-		return CanAutoRepair;
-	} else {
-		pThis->SetRepairState(0);
-		return CanNotAutoRepair;
+			if (pThis->IsBeingRepaired)
+				pThis->SetRepairState(0);
+
+			return CanNotAutoRepair;
+		}
 	}
+
+	return pThis->Owner->IQLevel2 <= RulesClass::Instance->RepairSell ? CanNotAutoRepair : CanAutoRepair ;
+
+}
+ASMJIT_PATCH(0x450821, BuildingClass_Repair_AI_Step, 0x5)// B
+{
+	GET(FakeBuildingClass* const, pThis, ESI);
+	R->EAX(int(pThis->_GetTypeExtData()->RepairRate.Get(RulesClass::Instance->RepairRate) * 900.0));
+	return 0x450837;
 }
 
 ASMJIT_PATCH(0x50CA12, HouseClass_RecalcCenter_DeadTechno, 0xA)

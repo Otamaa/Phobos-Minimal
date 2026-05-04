@@ -2852,7 +2852,7 @@ ASMJIT_PATCH(0x73992B, UnitClass_TryToDeploy_SetBuildingHealthPercentage, 0x7)
 	GET(const UnitClass* const, pThis, EBP);
 	GET(BuildingClass* const, pBuilding, EBX);
 
-	pBuilding->SetHealthPercentage(pThis->GetHealthPercentage());
+	pBuilding->SetHealthPercentage(pThis->GetHealthRatio());
 	pBuilding->EstimatedHealth = pBuilding->Health;
 	return SkipGameCode;
 }

@@ -255,9 +255,10 @@ public:
 		return ret;
 	}
 
-	double GetHealthPercentage_() const;
+	double GetHealthRatio_() const;
 
 	//game original func
+	double GetHealthRatio() const;
 	double GetHealthPercentage() const;
 
 	bool IsRedHP() const

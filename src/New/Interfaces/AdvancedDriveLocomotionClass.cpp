@@ -1062,7 +1062,7 @@ bool AdvancedDriveLocomotionClass::PassableCheck(bool* pStop, bool force, bool c
 		speedFactor *= pTypeExt->AdvancedDrive_Reverse_Speed;
 
 	// Customized damaged speed
-	if (pLinked->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow)
+	if (pLinked->GetHealthRatio() <= RulesClass::Instance->ConditionYellow)
 		speedFactor *= pTypeExt->DamagedSpeed.Get(RulesExtData::Instance()->DamagedSpeed);
 
 	if (this->TrackNumber >= 64)

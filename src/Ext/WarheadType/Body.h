@@ -286,7 +286,7 @@ public:
 	std::vector<VersesData> Verses {};
 
 	Nullable<int> Berzerk_dur {};
-	Valueable<int> Berzerk_cap { -1 };
+	Nullable<int> Berzerk_cap { };
 	Valueable<bool> Berzerk_dealDamage { false };
 
 	Nullable<bool> IC_Flash {};
@@ -512,6 +512,8 @@ public:
 	Valueable<bool> Traction {};
 	Valueable<Leptons> Traction_Range {};
 	Valueable<Leptons> Traction_Speed {};
+
+	Nullable<StackingMode> Psychedelic_StackingMode {};
 #pragma endregion
 
 public:

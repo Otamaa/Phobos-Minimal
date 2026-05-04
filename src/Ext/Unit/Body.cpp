@@ -384,7 +384,7 @@ DamageState FakeUnitClass::_Take_Damage(int* damage,
 
 					if ((pType->Harvester || pType->Weeder)
 						&& this->GetPipFillLevel() > 0
-						&& this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow)
+						&& this->GetHealthRatio() <= RulesClass::Instance->ConditionYellow)
 					{
 						TechnoClass* pDock = nullptr;
 						for (int i = 0; i < pType->Dock.Count; ++i) {

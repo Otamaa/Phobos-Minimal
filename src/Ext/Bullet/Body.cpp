@@ -724,7 +724,7 @@ bool BulletExtData::ApplyMCAlternative(BulletClass* pThis)
 	if (!pTarget || !pTarget->IsAlive)
 		return false;
 
-	const double currentHealthPerc = pTarget->GetHealthPercentage();
+	const double currentHealthPerc = pTarget->GetHealthRatio();
 	const bool flipComparations = pWarheadExt->MindControl_Threshold_Inverse;
 	double nTreshold = pWarheadExt->MindControl_Threshold;
 

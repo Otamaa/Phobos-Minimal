@@ -267,7 +267,7 @@ void FakeTemporalClass::_Detonate(TechnoClass* pTarget) 	{
 		pTarget->TemporalTargetingMe = this;
 
 		if(pWHExt->Temporal_HealthFactor > 1.0){
-			this->WarpRemaining = int(pTarget->GetHealthPercentage() * pWHExt->Temporal_HealthFactor);
+			this->WarpRemaining = int(pTarget->GetHealthRatio() * pWHExt->Temporal_HealthFactor);
 		} else {
 			this->WarpRemaining = 10 * pTargetType->Strength;
 		}

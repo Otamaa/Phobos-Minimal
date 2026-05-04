@@ -218,7 +218,7 @@ static void DrawBuildingHealthBar(TechnoClass* techno, Point2D* position, Rectan
 	// 1 for left (moving left), -1 for right (moving right)
 
 // Calculate how much of the bar should be filled based on health
-	double healthRatio = techno->GetHealthPercentage();
+	double healthRatio = techno->GetHealthRatio();
 	int filledPips = (int)(healthRatio * barHeight);
 
 	// Clamp to valid range
@@ -339,7 +339,7 @@ static void DrawUnitHealthBar(TechnoClass* techno, AbstractType unitType, Point2
 	// Could check: if (technoType->CustomHealthBarLength > 0) { drawState.barLength = technoType->CustomHealthBarLength; drawState.useCustomLength = true; }
 
 	// Calculate filled health bar length
-	double healthRatio = techno->GetHealthPercentage();
+	double healthRatio = techno->GetHealthRatio();
 	int filledLength = (int)(healthRatio * drawState.barLength);
 
 	// Clamp health bar length

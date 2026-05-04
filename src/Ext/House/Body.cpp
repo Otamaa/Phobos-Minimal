@@ -3069,7 +3069,7 @@ int FakeHouseClass::_Expert_AI()
 		}
 
 		if (this->AIMode == AIMode::LowOnCash) {
-			if (this->Available_Money() >= 25) {
+			if (this->Available_Money() > 25) {
 				this->AIMode = AIMode::General;
 			}
 		}
@@ -3083,7 +3083,7 @@ int FakeHouseClass::_Expert_AI()
 		}
 	}
 
-	if (SpawnerMain::GetGameConfigs()->SpawnerHackMPNodes || SessionClass::Instance->GameMode != GameMode::Campaign) {
+	/*if (SpawnerMain::GetGameConfigs()->SpawnerHackMPNodes || SessionClass::Instance->GameMode != GameMode::Campaign) {
 
 		std::array<UrgencyType, 2u> urgency;
 
@@ -3131,7 +3131,7 @@ int FakeHouseClass::_Expert_AI()
 				}
 			}
 		}
-	}
+	}*/
 
 	return ScenarioClass::Instance->Random.RandomRanged(1, 7) + TICKS_PER_SECOND * 7;
 }

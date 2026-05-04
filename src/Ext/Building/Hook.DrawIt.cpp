@@ -101,7 +101,7 @@ void  FakeBuildingClass::_Draw_It(
 		gateFrame = MaxImpl(0, MinImpl(gateFrame, this->Type->GateStages - 1));
 
 		// Add damage frame offset if building is damaged
-		if (this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow) {
+		if (this->GetHealthRatio() <= RulesClass::Instance->ConditionYellow) {
 			gateFrame += this->Type->GateStages + 1;
 		}
 
@@ -271,7 +271,7 @@ void  FakeBuildingClass::_Draw_It(
 	{
 		this->Draw_Object(
 			RoofAnim,
-			this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow ? 1 : 0,
+			this->GetHealthRatio() <= RulesClass::Instance->ConditionYellow ? 1 : 0,
 			pPixel,
 			pBound,
 			DirType::North, 256,  // rotation, scale

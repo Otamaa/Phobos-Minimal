@@ -219,7 +219,7 @@ namespace
 				if (auto pTargetTechno = flag_cast_to<TechnoClass*>(target)) {
 					if (pTargetTechno->IsStrange())
 					{
-						const double ratio = pThis->GetHealthPercentage();
+						const double ratio = pThis->GetHealthRatio();
 						if (ratio < RulesClass::Instance->ConditionYellow)
 							return FireError::ILLEGAL;
 					}

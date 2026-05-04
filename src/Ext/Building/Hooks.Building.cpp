@@ -1343,7 +1343,7 @@ ASMJIT_PATCH(0x51E635, InfantryClass_GetActionOnObject_EngineerOverFriendlyBuild
 			if(ret == Action::NoGRepair &&
 				(pBuilding->Type->InfantryAbsorb
 				|| BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->TunnelType != -1
-				|| pBuilding->Type->Hospital && pThis->GetHealthPercentage() < RulesClass::Instance->ConditionGreen
+				|| pBuilding->Type->Hospital && pThis->GetHealthRatio() < RulesClass::Instance->ConditionGreen
 				|| pBuilding->Type->Armory && pThis->Type->Trainable
 			  )){
 				ret = pThis->SendCommand(RadioCommand::QueryCanEnter, pTarget) == RadioCommand::AnswerPositive ?
