@@ -1399,8 +1399,8 @@ ASMJIT_PATCH(0x51A521, InfantryClass_UpdatePosition_ApplyC4, 0xA)
 
 /* #633 - spy building infiltration */
 // wrapper around the entire function
-DEFINE_FUNCTION_JUMP(LJMP, 0x4571E0, FakeBuildingClass::InfiltratedBy)
-DEFINE_FUNCTION_JUMP(CALL, 0x51A00B, FakeBuildingClass::InfiltratedBy)
+DEFINE_FUNCTION_JUMP(LJMP, 0x4571E0, FakeBuildingClass::_InfiltratedBy)
+DEFINE_FUNCTION_JUMP(CALL, 0x51A00B, FakeBuildingClass::_InfiltratedBy)
 
 #include <Ext/Infantry/Body.h>
 

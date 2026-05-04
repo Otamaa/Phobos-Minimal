@@ -2530,12 +2530,11 @@ void TechnoExtData::UpdateDisplayTo(BuildingClass* pThis)
 	}
 }
 
-void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass* Enterer)
+void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 {
-	auto EnteredType = EnteredBuilding->Type;
-	auto Owner = EnteredBuilding->Owner;
-	auto pTypeExt = BuildingTypeExtContainer::Instance.Find(EnteredBuilding->Type);
-	auto pBldExt = BuildingExtContainer::Instance.Find(EnteredBuilding);
+	auto EnteredType = this->Type;
+	auto pTypeExt = BuildingTypeExtContainer::Instance.Find(this->Type);
+	auto pBldExt = BuildingExtContainer::Instance.Find(this);
 	static COMPILETIMEEVAL reference<bool, 0x884B8E> tootip_something {};
 
 	bool raiseEva = false;
@@ -2544,7 +2543,7 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 
 	if (IsEntererControlledByCurrentPlayer || IsOwnerControlledByCurrentPlayer)
 	{
-		CellStruct xy = CellClass::Coord2Cell(EnteredBuilding->GetCoords());
+		CellStruct xy = CellClass::Coord2Cell(this->GetCoords());
 		if (RadarEventClass::Create(RadarEventType::BuildingInfiltrated, xy))
 		{
 			raiseEva = true;
@@ -2556,26 +2555,26 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 	auto pEntererExt = HouseExtContainer::Instance.Find(Enterer);
 	bool effectApplied = false;
 	bool promotionStolen = false;
-	int moneyBefore = Owner->Available_Money();
+	int moneyBefore = this->Owner->Available_Money();
 
 	if (!pTypeExt->SpyEffect_Custom)
 	{
-		if (EnteredType->Radar)
+		if (this->Type->Radar)
 		{
-			Owner->ReshroudMap();
-			if (!Owner->SpySatActive && evaForOwner)
+			this->Owner->ReshroudMap();
+			if (!this->Owner->SpySatActive && evaForOwner)
 			{
 				VoxClass::Play(GameStrings::EVA_RadarSabotaged);
 			}
-			if (!Owner->SpySatActive && evaForEnterer)
+			if (!this->Owner->SpySatActive && evaForEnterer)
 			{
 				VoxClass::Play(GameStrings::EVA_BuildingInfRadarSabotaged);
 			}
 			effectApplied = true;
 		}
-		else if (EnteredType->PowerBonus > 0)
+		else if (this->Type->PowerBonus > 0)
 		{
-			Owner->CreatePowerOutage(RulesClass::Instance->SpyPowerBlackout);
+			this->Owner->CreatePowerOutage(RulesClass::Instance->SpyPowerBlackout);
 			if (evaForOwner)
 			{
 				VoxClass::Play(GameStrings::EVA_PowerSabotaged);
@@ -2589,10 +2588,10 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 		}
 		else if (!RulesClass::Instance->BuildTech.contains(EnteredType))
 		{
-			if (EnteredType->SuperWeapon != -1)
+			if (this->Type->SuperWeapon != -1)
 			{
 
-				if (auto pSuper = Owner->Supers[EnteredType->SuperWeapon])
+				if (auto pSuper = this->Owner->Supers[this->Type->SuperWeapon])
 				{
 					pSuper->Reset();
 					if (evaForOwner || evaForEnterer)
@@ -2602,14 +2601,14 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 					effectApplied = true;
 				}
 			}
-			else if (EnteredType->Storage > 0 && !EnteredType->Weeder)
+			else if (this->Type->Storage > 0 && !this->Type->Weeder)
 			{
 
-				int available = Owner->Available_Money();
+				int available = this->Owner->Available_Money();
 				float mult = RulesClass::Instance->SpyMoneyStealPercent;
 				auto const& nAIMult = RulesExtData::Instance()->AI_SpyMoneyStealPercent;
 
-				if (!Owner->IsControlledByHuman() && nAIMult.isset())
+				if (!this->Owner->IsControlledByHuman() && nAIMult.isset())
 				{
 					mult = nAIMult.Get();
 				}
@@ -2618,7 +2617,7 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 				if (bounty > 0)
 				{
 					bounty = MinImpl(bounty, available);
-					Owner->TakeMoney(bounty);
+					this->Owner->TakeMoney(bounty);
 					Enterer->GiveMoney(bounty);
 					if (evaForOwner)
 					{
@@ -2632,9 +2631,9 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 					effectApplied = true;
 				}
 			}
-			else if (EnteredType->Factory != AbstractType::None)
+			else if (this->Type->Factory != AbstractType::None)
 			{
-				switch (EnteredType->Factory)
+				switch (this->Type->Factory)
 				{
 				case UnitTypeClass::AbsID:
 					Enterer->WarFactoryInfiltrated = true;
@@ -2651,7 +2650,7 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 		}
 		else
 		{
-			switch (EnteredType->AIBasePlanningSide)
+			switch (this->Type->AIBasePlanningSide)
 			{
 			case 0:
 				Enterer->Side0TechInfiltrated = true;
@@ -2675,12 +2674,12 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 	{
 		if (pTypeExt->SpyEffect_ResetRadar)
 		{
-			Owner->ReshroudMap();
-			if (!Owner->SpySatActive && evaForOwner)
+			this->Owner->ReshroudMap();
+			if (!this->Owner->SpySatActive && evaForOwner)
 			{
 				VoxClass::Play(GameStrings::EVA_RadarSabotaged);
 			}
-			if (!Owner->SpySatActive && evaForEnterer)
+			if (!this->Owner->SpySatActive && evaForEnterer)
 			{
 				VoxClass::Play(GameStrings::EVA_BuildingInfRadarSabotaged);
 			}
@@ -2689,7 +2688,7 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 
 		if (pTypeExt->SpyEffect_PowerOutageDuration > 0)
 		{
-			Owner->CreatePowerOutage(pTypeExt->SpyEffect_PowerOutageDuration);
+			this->Owner->CreatePowerOutage(pTypeExt->SpyEffect_PowerOutageDuration);
 			if (evaForOwner)
 			{
 				VoxClass::Play(GameStrings::EVA_PowerSabotaged);
@@ -2722,9 +2721,9 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 
 		if (pTypeExt->SpyEffect_UnReverseEngineer)
 		{
-			Debug::LogInfo("Undoing all Reverse Engineering achieved by house {}", Owner->Type->ID);
-			HouseExtContainer::Instance.Find(Owner)->Reversed.clear();
-			Owner->RecheckTechTree = true;
+			Debug::LogInfo("Undoing all Reverse Engineering achieved by house {}", this->Owner->Type->ID);
+			HouseExtContainer::Instance.Find(this->Owner)->Reversed.clear();
+			this->Owner->RecheckTechTree = true;
 
 			if (evaForOwner || evaForEnterer)
 			{
@@ -2737,7 +2736,7 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 		if (pTypeExt->SpyEffect_ResetSW)
 		{
 			bool somethingReset = false;
-			for (auto types : EnteredBuilding->GetTypes())
+			for (auto types : this->GetTypes())
 			{
 				if (auto typeExt = BuildingTypeExtContainer::Instance.TryFind(types))
 				{
@@ -2763,7 +2762,7 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 		}
 
 		// Did you mean for not launching for real or not, Morton?
-		auto launchTheSWHere = [EnteredBuilding, pTypeExt](int const idx, HouseClass* const pHouse, bool realLaunch = false)
+		auto launchTheSWHere = [this, pTypeExt](int const idx, HouseClass* const pHouse, bool realLaunch = false)
 			{
 				if (const auto pSuper = pHouse->Supers.get_or_default(idx))
 				{
@@ -2772,7 +2771,7 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 						const int oldstart = pSuper->RechargeTimer.StartTime;
 						const int oldleft = pSuper->RechargeTimer.TimeLeft;
 						pSuper->SetReadiness(true);
-						CoordStruct loc = pTypeExt->SpyEffect_SWTargetCenter.Get() ? EnteredBuilding->GetCenterCoords() : EnteredBuilding->Location;
+						CoordStruct loc = pTypeExt->SpyEffect_SWTargetCenter.Get() ? this->GetCenterCoords() : this->Location;
 						pSuper->Launch(CellClass::Coord2Cell(loc), pHouse->IsCurrentPlayer());
 						pSuper->Reset();
 						if (!realLaunch)
@@ -2800,9 +2799,9 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 				}
 			};
 
-		if (pTypeExt->SpyEffect_VictimSuperWeapon.isset() && !Owner->IsNeutral())
+		if (pTypeExt->SpyEffect_VictimSuperWeapon.isset() && !this->Owner->IsNeutral())
 		{
-			launchTheSWHere(pTypeExt->SpyEffect_VictimSuperWeapon.Get(), Owner, pTypeExt->SpyEffect_VictimSW_RealLaunch.Get());
+			launchTheSWHere(pTypeExt->SpyEffect_VictimSuperWeapon.Get(), this->Owner, pTypeExt->SpyEffect_VictimSW_RealLaunch.Get());
 
 			if (evaForOwner || evaForEnterer)
 			{
@@ -2866,11 +2865,11 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 		{
 			const int nDelay = int(pTypeExt->SpyEffect_SabotageDelay * 900.0);
 
-			if (nDelay >= 0 && !EnteredBuilding->IsGoingToBlow)
+			if (nDelay >= 0 && !this->IsGoingToBlow)
 			{
-				EnteredBuilding->IsGoingToBlow = true;
-				EnteredBuilding->GoingToBlowTimer.Start(nDelay);
-				EnteredBuilding->Flash(nDelay / 2);
+				this->IsGoingToBlow = true;
+				this->GoingToBlowTimer.Start(nDelay);
+				this->Flash(nDelay / 2);
 
 				if (evaForOwner || evaForEnterer)
 				{
@@ -2883,7 +2882,7 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 
 		{
 			int bounty = 0;
-			int available = Owner->Available_Money();
+			int available = this->Owner->Available_Money();
 			if (pTypeExt->SpyEffect_StolenMoneyAmount > 0)
 			{
 				bounty = pTypeExt->SpyEffect_StolenMoneyAmount;
@@ -2896,7 +2895,7 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 			if (bounty > 0)
 			{
 				bounty = MinImpl(bounty, available);
-				Owner->TakeMoney(bounty);
+				this->Owner->TakeMoney(bounty);
 				Enterer->GiveMoney(bounty);
 				if (evaForOwner)
 				{
@@ -2914,10 +2913,10 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 		{
 			if (pTypeExt->SpyEffect_GainVeterancy)
 			{
-				switch (EnteredType->Factory)
+				switch (this->Type->Factory)
 				{
 				case UnitTypeClass::AbsID:
-					if (!EnteredType->Naval)
+					if (!this->Type->Naval)
 						Enterer->WarFactoryInfiltrated = true;
 					else
 						pEntererExt->Is_NavalYardSpied = true;
@@ -2984,7 +2983,7 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 		*/
 		if (pTypeExt->SpyEffect_RevealProduction)
 		{
-			EnteredBuilding->DisplayProductionTo.Add(Enterer);
+			this->DisplayProductionTo.Add(Enterer);
 			if (evaForOwner || evaForEnterer)
 			{
 				VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
@@ -3000,11 +2999,11 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 			*/
 			if (pTypeExt->SpyEffect_RevealRadarPersist)
 			{
-				HouseExtContainer::Instance.Find(Owner)->RadarPersist.Add(Enterer);
+				HouseExtContainer::Instance.Find(this->Owner)->RadarPersist.Add(Enterer);
 			}
 
-			EnteredBuilding->DisplayProductionTo.Add(Enterer);
-			TechnoExtData::UpdateDisplayTo(EnteredBuilding);
+			this->DisplayProductionTo.Add(Enterer);
+			TechnoExtData::UpdateDisplayTo(this);
 
 			if (evaForOwner || evaForEnterer)
 			{
@@ -3035,10 +3034,10 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 	if (pTypeExt->SpyEffect_Anim && pTypeExt->SpyEffect_Anim_Duration > 0)
 	{
 
-		pBldExt->SpyEffectAnim.reset(GameCreate<AnimClass>(pTypeExt->SpyEffect_Anim, EnteredBuilding->GetCoords()));
-		pBldExt->SpyEffectAnim->SetOwnerObject(EnteredBuilding);
+		pBldExt->SpyEffectAnim.reset(GameCreate<AnimClass>(pTypeExt->SpyEffect_Anim, this->GetCoords()));
+		pBldExt->SpyEffectAnim->SetOwnerObject(this);
 		pBldExt->SpyEffectAnim->RemainingIterations = 0xFFU;
-		pBldExt->SpyEffectAnim->Owner = EnteredBuilding->Owner;
+		pBldExt->SpyEffectAnim->Owner = this->Owner;
 
 		pBldExt->SpyEffectAnimDuration = pTypeExt->SpyEffect_Anim_Duration;
 		effectApplied = true;
@@ -3068,7 +3067,7 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 
 	if (effectApplied)
 	{
-		EnteredBuilding->Mark(MarkType::Redraw);
+		this->Mark(MarkType::Redraw);
 	}
 
 	pBldExt->AccumulatedIncome += Owner->Available_Money() - moneyBefore;
@@ -3076,10 +3075,10 @@ void FakeBuildingClass::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 	if (!Owner->IsControlledByHuman() && !RulesExtData::Instance()->DisplayIncome_AllowAI)
 	{
 		CoordStruct coord {};
-		EnteredBuilding->GetRenderCoords(&coord);
+		this->GetRenderCoords(&coord);
 		FlyingStrings::Instance.AddMoneyString(true,
 				pBldExt->AccumulatedIncome,
-				EnteredBuilding,
+				this,
 				pTypeExt->DisplayIncome_Houses.Get(RulesExtData::Instance()->DisplayIncome_Houses.Get()),
 				coord,
 				pTypeExt->DisplayIncome_Offset,

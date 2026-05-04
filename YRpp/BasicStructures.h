@@ -46,6 +46,7 @@ public:
 
 	int Red, Green, Blue;
 };
+static_assert(sizeof(TintStruct) == 0xC, "Invalid Sizes!");
 
 //obvious
 struct LTRBStruct

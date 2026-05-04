@@ -916,6 +916,7 @@ public:
 	int field_1B8;
 	int field_1BC;
 };
+static_assert(sizeof(SomeNodes<DWORD>) == 0xC, "Invalid Size!");
 static_assert(sizeof(AudioChannelTag) == 0x1C0, "Invalid Size!");
 
 class FileClass;

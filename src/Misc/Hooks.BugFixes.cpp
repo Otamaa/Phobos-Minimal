@@ -1412,6 +1412,9 @@ ASMJIT_PATCH(0x51A67E, InfantryClass_UpdatePosition_DamageBridgeFix, 0x6)
 #include <Ext/AnimType/Body.h>
 #include <EventClass.h>
 
+#include <ParticleClass.h>
+#include <ParticleTypeClass.h>
+
 #pragma region FrameCRC
 
 static bool IsHashable(ObjectClass* pObj)
@@ -1425,12 +1428,19 @@ static bool IsHashable(ObjectClass* pObj)
 			return false;
 
 		auto const pAnim = static_cast<AnimClass*>(pObj);
-		auto const pType = pAnim->Type;
+		auto pType = pAnim->Type;
 
-		if (pType->Damage != 0.0 || pType->Bouncer || pType->IsMeteor || pType->IsTiberium || pType->TiberiumChainReaction
-			|| pType->IsAnimatedTiberium || pType->MakeInfantry != -1 || AnimTypeExtContainer::Instance.Find(pType)->CreateUnitType)
+		while (pType)
 		{
-			return true;
+			// If animation type has logic that affects game simulation, don't ignore.
+			if (pType->Damage != 0.0 || pType->Bouncer || pType->IsMeteor || pType->IsTiberium || pType->TiberiumChainReaction
+				|| pType->IsAnimatedTiberium || pType->MakeInfantry != -1 || AnimTypeExtContainer::Instance.Find(pType)->CreateUnitType.get())
+			{
+				return true;
+			}
+
+			// Check anim's Next type recursively until not present.
+			pType = pType->Next;
 		}
 
 		return false;
@@ -1438,7 +1448,26 @@ static bool IsHashable(ObjectClass* pObj)
 		case AbstractType::Particle:
 	{
 		auto const pParticle = static_cast<ParticleClass*>(pObj);
-		return pParticle->Type->Damage;
+		auto pType = pParticle->Type;
+
+		// If particle type deals damage don't ignore.
+		if (pType->Damage)
+			return true;
+
+		// Check particle's NextParticle type recursively until not present.
+		int index = pType->NextParticle;
+
+		while (index != -1)
+		{
+			pType = ParticleTypeClass::Array->Items[index];
+
+			if (pType->Damage)
+				return true;
+
+			index = pType->NextParticle;
+		}
+
+		return false;
 	}
 	default:
 		break;

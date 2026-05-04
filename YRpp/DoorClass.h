@@ -9,13 +9,15 @@ enum class DoorState : char
 	Open = 0x1,
 };
 
-struct DoorClass
+struct NOVTABLE DoorClass
 {
 	double RateDouble {};
-	CDTimerClass Timer {};
-	int rate_2 {};
+	RepeatableTimer Timer {};
 	DoorState ToTransition { DoorState::Close };
 	DoorState State { DoorState::Close };
+
+private:
+	int _pad {};
 
 public:
 
@@ -68,3 +70,7 @@ public:
 	}
 };
 static_assert(sizeof(DoorClass) == 0x20, "Invalid Size!");
+static_assert(offsetof(DoorClass, RateDouble) == 0x0, "ClassMember Shifted !");
+static_assert(offsetof(DoorClass, Timer) == 0x8, "ClassMember Shifted !");
+static_assert(offsetof(DoorClass, ToTransition) == 0x18, "ClassMember Shifted !");
+static_assert(offsetof(DoorClass, State) == 0x19, "ClassMember Shifted !");

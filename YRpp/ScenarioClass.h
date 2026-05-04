@@ -21,6 +21,7 @@ struct LightingStruct
 	int Ground; // all these are stored as ini value * 100 + 0.01
 	int Level; // this one is stored as ini value * 1000 + 0.01
 };
+static_assert(sizeof(LightingStruct) == 0x14, "Invalid Sizes!");
 
 struct ScenarioFlags
 {

@@ -228,7 +228,7 @@ class NOVTABLE FakeBuildingClass : public BuildingClass
 {
 public:
 
-	void InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass* Enterer);
+	void _InfiltratedBy(HouseClass* Enterer);
 	int _Mission_Repair();
 	void _Detach(AbstractClass* target, bool all);
 	bool _IsFactory();

@@ -244,7 +244,7 @@ struct Game
 		return int((double)height * Math::TWO_BY_PI + ((double)(height >= Unsorted::HeightMax)) + 0.5);
 	}
 
-	[[noreturn]] static void __stdcall RaiseError(HRESULT err)
+	[[noreturn]] static void WINAPI RaiseError(HRESULT err)
 	{ JMP_STD(0x7DC720); }
 
 	static void ClearScenario()
@@ -269,10 +269,10 @@ struct Game
 	static void __fastcall sub_53E3C0(HWND hWindow)
 	{ JMP_FAST(0x53E3C0); }
 
-	static void __stdcall OnWindowMoving(tagRECT* Rect)
+	static void WINAPI OnWindowMoving(tagRECT* Rect)
 	{ JMP_FAST(0x776D80); }
 
-	static void __stdcall PlanningManager_WM_RBUTTONUP_63AB00(Point2D XY)
+	static void WINAPI PlanningManager_WM_RBUTTONUP_63AB00(Point2D XY)
 	{ JMP_FAST(0x63AB00); }
 
 	static HRESULT __fastcall Save_Sides(LPSTREAM pStm, DynamicVectorClass<SideClass*>* pVector)
@@ -436,44 +436,44 @@ struct Imports
 {
 
 	// OleLoadFromStream
-	typedef HRESULT(__stdcall* FP_OleSaveToStream)(LPPERSISTSTREAM pPStm, LPSTREAM pStm);
+	typedef HRESULT(WINAPI* FP_OleSaveToStream)(LPPERSISTSTREAM pPStm, LPSTREAM pStm);
 	static COMPILETIMEEVAL referencefunc<FP_OleSaveToStream, 0x7E15F4> const OleSaveToStream {};
 
-	typedef HRESULT(__stdcall* FP_OleLoadFromStream)(LPSTREAM pStm, const IID* const iidInterface, LPVOID* ppvObj);
+	typedef HRESULT(WINAPI* FP_OleLoadFromStream)(LPSTREAM pStm, const IID* const iidInterface, LPVOID* ppvObj);
 	static COMPILETIMEEVAL referencefunc<FP_OleLoadFromStream, 0x7E15F8> const OleLoadFromStream {};
 
-	typedef HRESULT(__stdcall* FP_CoRegisterClassObject)(const IID& rclsid, LPUNKNOWN pUnk, DWORD dwClsContext, DWORD flags, LPDWORD lpdwRegister);
+	typedef HRESULT(WINAPI* FP_CoRegisterClassObject)(const IID& rclsid, LPUNKNOWN pUnk, DWORD dwClsContext, DWORD flags, LPDWORD lpdwRegister);
 	static COMPILETIMEEVAL referencefunc<FP_CoRegisterClassObject, 0x7E15D8> const CoRegisterClassObject {};
 
-	typedef HRESULT(__stdcall* FP_CoRevokeClassObject)(DWORD dwRegister);
+	typedef HRESULT(WINAPI* FP_CoRevokeClassObject)(DWORD dwRegister);
 	static COMPILETIMEEVAL referencefunc<FP_CoRevokeClassObject, 0x7E15CC> const CoRevokeClassObject {};
 
-	typedef HRESULT(__stdcall* FP_OleCoCreateInstance)(const IID& rclsid, LPUNKNOWN pUnkOuter, DWORD dwClsContext, const IID& riid, LPVOID* ppv);
+	typedef HRESULT(WINAPI* FP_OleCoCreateInstance)(const IID& rclsid, LPUNKNOWN pUnkOuter, DWORD dwClsContext, const IID& riid, LPVOID* ppv);
 	static COMPILETIMEEVAL referencefunc<FP_OleCoCreateInstance, 0x7E15FC > const CoCreateInstance {};
 
-	typedef HRESULT(__stdcall* FP_OleRun)(LPUNKNOWN pUnknown);
+	typedef HRESULT(WINAPI* FP_OleRun)(LPUNKNOWN pUnknown);
 	static COMPILETIMEEVAL referencefunc<FP_OleRun, 0x7E1600 > const OleRun {};
 
 	typedef DWORD(*FP_TimeGetTime)();
 	static COMPILETIMEEVAL referencefunc<FP_TimeGetTime, 0x7E1530> const TimeGetTime {};
 
 	/* user32.dll */
-	typedef LRESULT(__stdcall* FP_DefWindowProcA)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+	typedef LRESULT(WINAPI* FP_DefWindowProcA)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 	static COMPILETIMEEVAL referencefunc<FP_DefWindowProcA, 0x7E1394> const DefWindowProcA {};
 
-	typedef BOOL(__stdcall* FP_MoveWindow)(HWND hWnd, int X, int Y, int nWidth, int nHeight, BOOL bRepaint);
+	typedef BOOL(WINAPI* FP_MoveWindow)(HWND hWnd, int X, int Y, int nWidth, int nHeight, BOOL bRepaint);
 	static COMPILETIMEEVAL referencefunc<FP_MoveWindow, 0x7E1398> const MoveWindow {};
 
-	typedef BOOL(__stdcall* FP_GetUpdateRect)(HWND hWnd, LPRECT lpRect, BOOL bErase);
+	typedef BOOL(WINAPI* FP_GetUpdateRect)(HWND hWnd, LPRECT lpRect, BOOL bErase);
 	static COMPILETIMEEVAL referencefunc<FP_GetUpdateRect, 0x7E139C> const GetUpdateRect {};
 
 	typedef HWND(*FP_GetFocus)(void);
 	static COMPILETIMEEVAL referencefunc<FP_GetFocus, 0x7E13A0> const GetFocus {};
 
-	typedef HDC(__stdcall* FP_GetDC)(HWND hWnd);
+	typedef HDC(WINAPI* FP_GetDC)(HWND hWnd);
 	static COMPILETIMEEVAL referencefunc<FP_GetDC, 0x7E13A4> const GetDC {};
 
-	typedef SHORT(__stdcall* FP_GetKeyState)(int nVirtKey);
+	typedef SHORT(WINAPI* FP_GetKeyState)(int nVirtKey);
 	static COMPILETIMEEVAL referencefunc<FP_GetKeyState, 0x7E13A8> const GetKeyState {};
 
 	typedef HWND(*FP_GetActiveWindow)(void);
@@ -482,350 +482,352 @@ struct Imports
 	typedef HWND(*FP_GetCapture)(void);
 	static COMPILETIMEEVAL referencefunc<FP_GetCapture, 0x7E13B0> const GetCapture {};
 
-	typedef int(__stdcall* FP_GetDlgCtrlID)(HWND hWnd);
+	typedef int(WINAPI* FP_GetDlgCtrlID)(HWND hWnd);
 	static COMPILETIMEEVAL referencefunc<FP_GetDlgCtrlID, 0x7E13B4> const GetDlgCtrlID {};
 
-	typedef HWND(__stdcall* FP_ChildWindowFromPointEx)(HWND, POINT, UINT);
+	typedef HWND(WINAPI* FP_ChildWindowFromPointEx)(HWND, POINT, UINT);
 	static COMPILETIMEEVAL referencefunc<FP_ChildWindowFromPointEx, 0x7E13B8> const ChildWindowFromPointEx {};
 
-	typedef BOOL(__stdcall* FP_GetWindowRect)(HWND hWnd, LPRECT lpRect);
+	typedef BOOL(WINAPI* FP_GetWindowRect)(HWND hWnd, LPRECT lpRect);
 	static COMPILETIMEEVAL referencefunc<FP_GetWindowRect, 0x7E13BC> const GetWindowRect {};
 
-	typedef BOOL(__stdcall* FP_GetCursorPos)(LPPOINT lpPoint);
+	typedef BOOL(WINAPI* FP_GetCursorPos)(LPPOINT lpPoint);
 	static COMPILETIMEEVAL referencefunc<FP_GetCursorPos, 0x7E13C0> const GetCursorPos {};
 
-	typedef BOOL(__stdcall* FP_CloseWindow)(HWND hWnd);
+	typedef BOOL(WINAPI* FP_CloseWindow)(HWND hWnd);
 	static COMPILETIMEEVAL referencefunc<FP_CloseWindow, 0x7E13C4> const CloseWindow {};
 
-	typedef BOOL(__stdcall* FP_EndDialog)(HWND hDlg, int nResult);
+	typedef BOOL(WINAPI* FP_EndDialog)(HWND hDlg, int nResult);
 	static COMPILETIMEEVAL referencefunc<FP_EndDialog, 0x7E13C8> const EndDialog {};
 
-	typedef HWND(__stdcall* FP_SetFocus)(HWND hWnd);
+	typedef HWND(WINAPI* FP_SetFocus)(HWND hWnd);
 	static COMPILETIMEEVAL referencefunc<FP_SetFocus, 0x7E13CC> const SetArchiveTarget {};
 
-	typedef BOOL(__stdcall* FP_SetDlgItemTextA)(HWND hDlg, int nIDDlgItem, LPCSTR lpString);
+	typedef BOOL(WINAPI* FP_SetDlgItemTextA)(HWND hDlg, int nIDDlgItem, LPCSTR lpString);
 	static COMPILETIMEEVAL referencefunc<FP_SetDlgItemTextA, 0x7E13D0> const SetDlgItemTextA {};
 
-	typedef int(__stdcall* FP_DialogBoxParamA)(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
+	typedef int(WINAPI* FP_DialogBoxParamA)(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
 	static COMPILETIMEEVAL referencefunc<FP_DialogBoxParamA, 0x7E13D4> const DialogBoxParamA {};
 
-	typedef int(__stdcall* FP_DialogBoxIndirectParamA)(HINSTANCE hInstance, LPCDLGTEMPLATEA hDialogTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
+	typedef int(WINAPI* FP_DialogBoxIndirectParamA)(HINSTANCE hInstance, LPCDLGTEMPLATEA hDialogTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
 	static COMPILETIMEEVAL referencefunc<FP_DialogBoxIndirectParamA, 0x7E13D8> const DialogBoxIndirectParamA {};
 
-	typedef int(__stdcall* FP_ShowCursor)(BOOL bShow);
+	typedef int(WINAPI* FP_ShowCursor)(BOOL bShow);
 	static COMPILETIMEEVAL referencefunc<FP_ShowCursor, 0x7E13DC> const ShowCursor {};
 
-	typedef SHORT(__stdcall* FP_GetAsyncKeyState)(int vKey);
+	typedef SHORT(WINAPI* FP_GetAsyncKeyState)(int vKey);
 	static COMPILETIMEEVAL referencefunc<FP_GetAsyncKeyState, 0x7E13E0> const GetAsyncKeyState {};
 
-	typedef int(__stdcall* FP_ToAscii)(UINT uVirtKey, UINT uScanCode, PBYTE lpKeyState, LPWORD lpChar, UINT uFlags);
+	typedef int(WINAPI* FP_ToAscii)(UINT uVirtKey, UINT uScanCode, PBYTE lpKeyState, LPWORD lpChar, UINT uFlags);
 	static COMPILETIMEEVAL referencefunc<FP_ToAscii, 0x7E13E4> const ToAscii {};
 
-	typedef UINT(__stdcall* FP_MapVirtualKeyA)(UINT uCode, UINT uMapType);
+	typedef UINT(WINAPI* FP_MapVirtualKeyA)(UINT uCode, UINT uMapType);
 	static COMPILETIMEEVAL referencefunc<FP_MapVirtualKeyA, 0x7E13E8> const MapVirtualKeyA {};
 
-	typedef int(__stdcall* FP_GetSystemMetrics)(int nIndex);
+	typedef int(WINAPI* FP_GetSystemMetrics)(int nIndex);
 	static COMPILETIMEEVAL referencefunc<FP_GetSystemMetrics, 0x7E13EC> const GetSystemMetrics {};
 
-	typedef BOOL(__stdcall* FP_SetWindowPos)(HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx, int cy, UINT uFlags);
+	typedef BOOL(WINAPI* FP_SetWindowPos)(HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx, int cy, UINT uFlags);
 	static COMPILETIMEEVAL referencefunc<FP_SetWindowPos, 0x7E13F0> const SetWindowPos {};
 
-	typedef BOOL(__stdcall* FP_DestroyWindow)(HWND hWnd);
+	typedef BOOL(WINAPI* FP_DestroyWindow)(HWND hWnd);
 	static COMPILETIMEEVAL referencefunc<FP_DestroyWindow, 0x7E13F4> const DestroyWindow {};
 
 	typedef BOOL(*FP_ReleaseCapture)(void);
 	static COMPILETIMEEVAL referencefunc<FP_ReleaseCapture, 0x7E13F8> const ReleaseCapture {};
 
-	typedef HWND(__stdcall* FP_SetCapture)(HWND hWnd);
+	typedef HWND(WINAPI* FP_SetCapture)(HWND hWnd);
 	static COMPILETIMEEVAL referencefunc<FP_SetCapture, 0x7E13FC> const SetCapture {};
 
-	typedef BOOL(__stdcall* FP_AdjustWindowRectEx)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle);
+	typedef BOOL(WINAPI* FP_AdjustWindowRectEx)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle);
 	static COMPILETIMEEVAL referencefunc<FP_AdjustWindowRectEx, 0x7E1400> const AdjustWindowRectEx {};
 
-	typedef HMENU(__stdcall* FP_GetMenu)(HWND hWnd);
+	typedef HMENU(WINAPI* FP_GetMenu)(HWND hWnd);
 	static COMPILETIMEEVAL referencefunc<FP_GetMenu, 0x7E1404> const GetMenu {};
 
-	typedef BOOL(__stdcall* FP_AdjustWindowRect)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu);
+	typedef BOOL(WINAPI* FP_AdjustWindowRect)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu);
 	static COMPILETIMEEVAL referencefunc<FP_AdjustWindowRect, 0x7E1408> const AdjustWindowRect {};
 
-	typedef DWORD(__stdcall* FP_GetSysColor)(int nIndex);
+	typedef DWORD(WINAPI* FP_GetSysColor)(int nIndex);
 	static COMPILETIMEEVAL referencefunc<FP_GetSysColor, 0x7E140C> const GetSysColor {};
 
-	typedef UINT(__stdcall* FP_IsDlgButtonChecked)(HWND hDlg, int nIDButton);
+	typedef UINT(WINAPI* FP_IsDlgButtonChecked)(HWND hDlg, int nIDButton);
 	static COMPILETIMEEVAL referencefunc<FP_IsDlgButtonChecked, 0x7E1410> const IsDlgButtonChecked {};
 
-	typedef BOOL(__stdcall* FP_CheckDlgButton)(HWND hDlg, int nIDButton, UINT uCheck);
+	typedef BOOL(WINAPI* FP_CheckDlgButton)(HWND hDlg, int nIDButton, UINT uCheck);
 	static COMPILETIMEEVAL referencefunc<FP_CheckDlgButton, 0x7E1414 > const CheckDlgButton {};
 
-	typedef DWORD(__stdcall* FP_WaitForInputIdle)(HANDLE hProcess, DWORD dwMilliseconds);
+	typedef DWORD(WINAPI* FP_WaitForInputIdle)(HANDLE hProcess, DWORD dwMilliseconds);
 	static COMPILETIMEEVAL referencefunc<FP_WaitForInputIdle, 0x7E1418 > const WaitForInputIdle {};
 
-	typedef HWND(__stdcall* FP_GetTopWindow)(HWND hWnd);
+	typedef HWND(WINAPI* FP_GetTopWindow)(HWND hWnd);
 	static COMPILETIMEEVAL referencefunc<FP_GetTopWindow, 0x7E141C > const GetTopWindow {};
 
 	typedef HWND(*FP_GetForegroundWindow)(void);
 	static COMPILETIMEEVAL referencefunc<FP_GetForegroundWindow, 0x7E1420 > const GetForegroundWindow {};
 
-	typedef HICON(__stdcall* FP_LoadIconA)(HINSTANCE hInstance, LPCSTR lpIconName);
+	typedef HICON(WINAPI* FP_LoadIconA)(HINSTANCE hInstance, LPCSTR lpIconName);
 	static COMPILETIMEEVAL referencefunc<FP_LoadIconA, 0x7E1424 > const LoadIconA {};
 
-	typedef HWND(__stdcall* FP_SetActiveWindow)(HWND hWnd);
+	typedef HWND(WINAPI* FP_SetActiveWindow)(HWND hWnd);
 	static COMPILETIMEEVAL referencefunc<FP_SetActiveWindow, 0x7E1428> const SetActiveWindow {};
 
-	typedef BOOL(__stdcall* FP_RedrawWindow)(HWND hWnd, const RECT* lprcUpdate, HRGN hrgnUpdate, UINT flags);
+	typedef BOOL(WINAPI* FP_RedrawWindow)(HWND hWnd, const RECT* lprcUpdate, HRGN hrgnUpdate, UINT flags);
 	static COMPILETIMEEVAL referencefunc<FP_RedrawWindow, 0x7E142C> const RedrawWindow {};
 
-	typedef DWORD(__stdcall* FP_GetWindowContextHelpId)(HWND);
+	typedef DWORD(WINAPI* FP_GetWindowContextHelpId)(HWND);
 	static COMPILETIMEEVAL referencefunc<FP_GetWindowContextHelpId, 0x7E1430  > const GetWindowContextHelpId {};
 
-	typedef BOOL(__stdcall* FP_WinHelpA)(HWND hWndMain, LPCSTR lpszHelp, UINT uCommand, DWORD dwData);
+	typedef BOOL(WINAPI* FP_WinHelpA)(HWND hWndMain, LPCSTR lpszHelp, UINT uCommand, DWORD dwData);
 	static COMPILETIMEEVAL referencefunc<FP_WinHelpA, 0x7E1434> const WinHelpA {};
 
-	typedef HWND(__stdcall* FP_ChildWindowFromPoint)(HWND hWndParent, POINT Point);
+	typedef HWND(WINAPI* FP_ChildWindowFromPoint)(HWND hWndParent, POINT Point);
 	static COMPILETIMEEVAL referencefunc<FP_ChildWindowFromPoint, 0x7E1438 > const ChildWindowFromPoint {};
 
-	typedef HCURSOR(__stdcall* FP_LoadCursorA)(HINSTANCE hInstance, LPCSTR lpCursorName);
+	typedef HCURSOR(WINAPI* FP_LoadCursorA)(HINSTANCE hInstance, LPCSTR lpCursorName);
 	static COMPILETIMEEVAL referencefunc<FP_LoadCursorA, 0x7E143C > const LoadCursorA {};
 
-	typedef HCURSOR(__stdcall* FP_SetCursor)(HCURSOR hCursor);
+	typedef HCURSOR(WINAPI* FP_SetCursor)(HCURSOR hCursor);
 	static COMPILETIMEEVAL referencefunc<FP_SetCursor, 0x7E1440 > const SetCursor {};
 
-	typedef void(__stdcall* FP_PostQuitMessage)(int nExitCode);
+	typedef void(WINAPI* FP_PostQuitMessage)(int nExitCode);
 	static COMPILETIMEEVAL referencefunc<FP_PostQuitMessage, 0x7E1444 > const PostQuitMessage {};
 
-	typedef HWND(__stdcall* FP_FindWindowA)(LPCSTR lpClassName, LPCSTR lpWindowName);
+	typedef HWND(WINAPI* FP_FindWindowA)(LPCSTR lpClassName, LPCSTR lpWindowName);
 	static COMPILETIMEEVAL referencefunc<FP_FindWindowA, 0x7E1448 > const FindWindowA {};
 
-	typedef BOOL(__stdcall* FP_SetCursorPos)(int X, int Y);
+	typedef BOOL(WINAPI* FP_SetCursorPos)(int X, int Y);
 	static COMPILETIMEEVAL referencefunc<FP_SetCursorPos, 0x7E144C> const SetCursorPos {};
 
-	typedef HWND(__stdcall* FP_CreateDialogIndirectParamA)(HINSTANCE hInstance, LPCDLGTEMPLATEA lpTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
+	typedef HWND(WINAPI* FP_CreateDialogIndirectParamA)(HINSTANCE hInstance, LPCDLGTEMPLATEA lpTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
 	static COMPILETIMEEVAL referencefunc<FP_CreateDialogIndirectParamA, 0x7E1450> const CreateDialogIndirectParamA {};
 
-	typedef int(__stdcall* FP_GetKeyNameTextA)(LONG lParam, LPSTR lpString, int nSize);
+	typedef int(WINAPI* FP_GetKeyNameTextA)(LONG lParam, LPSTR lpString, int nSize);
 	static COMPILETIMEEVAL referencefunc<FP_GetKeyNameTextA, 0x7E1454 > const GetKeyNameTextA {};
 
-	typedef BOOL(__stdcall* FP_ScreenToClient)(HWND hWnd, LPPOINT lpPoint);
+	typedef BOOL(WINAPI* FP_ScreenToClient)(HWND hWnd, LPPOINT lpPoint);
 	static COMPILETIMEEVAL referencefunc<FP_ScreenToClient, 0x7E1458 > const ScreenToClient {};
 
-	typedef BOOL(__stdcall* FP_LockWindowUpdate)(HWND hWndLock);
+	typedef BOOL(WINAPI* FP_LockWindowUpdate)(HWND hWndLock);
 	static COMPILETIMEEVAL referencefunc<FP_LockWindowUpdate, 0x7E145C> const LockWindowUpdate {};
 
-	typedef int(__stdcall* FP_MessageBoxA)(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
+	typedef int(WINAPI* FP_MessageBoxA)(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
 	static COMPILETIMEEVAL referencefunc<FP_MessageBoxA, 0x7E1460> const MessageBoxA {};
 
-	typedef int(__stdcall* FP_ReleaseDC)(HWND hWnd, HDC hDC);
+	typedef int(WINAPI* FP_ReleaseDC)(HWND hWnd, HDC hDC);
 	static COMPILETIMEEVAL referencefunc<FP_ReleaseDC, 0x7E1464> const ReleaseDC {};
 
-	typedef HWND(__stdcall* FP_WindowFromPoint)(POINT Point);
+	typedef HWND(WINAPI* FP_WindowFromPoint)(POINT Point);
 	static COMPILETIMEEVAL referencefunc<FP_WindowFromPoint, 0x7E1468> const WindowFromPoint {};
 
-	typedef BOOL(__stdcall* FP_UpdateWindow)(HWND hWnd);
+	typedef BOOL(WINAPI* FP_UpdateWindow)(HWND hWnd);
 	static COMPILETIMEEVAL referencefunc<FP_UpdateWindow, 0x7E146C > const UpdateWindow {};
 
-	typedef LONG(__stdcall* FP_SetWindowLongA)(HWND hWnd, int nIndex, LONG dwNewLong);
+	typedef LONG(WINAPI* FP_SetWindowLongA)(HWND hWnd, int nIndex, LONG dwNewLong);
 	static COMPILETIMEEVAL referencefunc<FP_SetWindowLongA, 0x7E1470 > const SetWindowLongA {};
 
-	typedef LONG(__stdcall* FP_GetWindowLongA)(HWND hWnd, int nIndex);
+	typedef LONG(WINAPI* FP_GetWindowLongA)(HWND hWnd, int nIndex);
 	static COMPILETIMEEVAL referencefunc<FP_GetWindowLongA, 0x7E1474> const GetWindowLongA {};
 
-	typedef BOOL(__stdcall* FP_ValidateRect)(HWND hWnd, const RECT* lpRect);
+	typedef BOOL(WINAPI* FP_ValidateRect)(HWND hWnd, const RECT* lpRect);
 	static COMPILETIMEEVAL referencefunc<FP_ValidateRect, 0x7E1478 > const ValidateRect {};
 
-	typedef BOOL(__stdcall* FP_IntersectRect)(LPRECT lprcDst, const RECT* lprcSrc1, const RECT* lprcSrc2);
+	typedef BOOL(WINAPI* FP_IntersectRect)(LPRECT lprcDst, const RECT* lprcSrc1, const RECT* lprcSrc2);
 	static COMPILETIMEEVAL referencefunc<FP_IntersectRect, 0x7E147C > const IntersectRect {};
 
-	typedef int(__stdcall* FP_MessageBoxIndirectA)(LPMSGBOXPARAMSA);
+	typedef int(WINAPI* FP_MessageBoxIndirectA)(LPMSGBOXPARAMSA);
 	static COMPILETIMEEVAL referencefunc<FP_MessageBoxIndirectA, 0x7E1480 > const MessageBoxIndirectA {};
 
-	typedef BOOL(__stdcall* FP_PeekMessageA)(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg);
+	typedef BOOL(WINAPI* FP_PeekMessageA)(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg);
 	static COMPILETIMEEVAL referencefunc<FP_PeekMessageA, 0x7E1484> const PeekMessageA {};
 
-	typedef LRESULT(__stdcall* FP_CallWindowProcA)(WNDPROC lpPrevWndFunc, HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+	typedef LRESULT(WINAPI* FP_CallWindowProcA)(WNDPROC lpPrevWndFunc, HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 	static COMPILETIMEEVAL referencefunc<FP_CallWindowProcA, 0x7E1488> const CallWindowProcA {};
 
-	typedef BOOL(__stdcall* FP_KillTimer)(HWND hWnd, UINT uIDEvent);
+	typedef BOOL(WINAPI* FP_KillTimer)(HWND hWnd, UINT uIDEvent);
 	static COMPILETIMEEVAL referencefunc<FP_KillTimer, 0x7E148C> const KillTimer {};
 
-	typedef LONG(__stdcall* FP_SendDlgItemMessageA)(HWND hDlg, int nIDDlgItem, UINT Msg, WPARAM wParam, LPARAM lParam);
+	typedef LONG(WINAPI* FP_SendDlgItemMessageA)(HWND hDlg, int nIDDlgItem, UINT Msg, WPARAM wParam, LPARAM lParam);
 	static COMPILETIMEEVAL referencefunc<FP_SendDlgItemMessageA, 0x7E1490> const SendDlgItemMessageA {};
 
-	typedef UINT(__stdcall* FP_SetTimer)(HWND hWnd, UINT nIDEvent, UINT uElapse, TIMERPROC lpTimerFunc);
+	typedef UINT(WINAPI* FP_SetTimer)(HWND hWnd, UINT nIDEvent, UINT uElapse, TIMERPROC lpTimerFunc);
 	static COMPILETIMEEVAL referencefunc<FP_SetTimer, 0x7E1494> const SetTimer {};
 
-	typedef BOOL(__stdcall* FP_ShowWindow)(HWND hWnd, int nCmdShow);
+	typedef BOOL(WINAPI* FP_ShowWindow)(HWND hWnd, int nCmdShow);
 	static COMPILETIMEEVAL referencefunc<FP_ShowWindow, 0x7E1498 > const ShowWindow {};
 
-	typedef BOOL(__stdcall* FP_InvalidateRect)(HWND hWnd, const RECT* lpRect, BOOL bErase);
+	typedef BOOL(WINAPI* FP_InvalidateRect)(HWND hWnd, const RECT* lpRect, BOOL bErase);
 	static COMPILETIMEEVAL referencefunc<FP_InvalidateRect, 0x7E149C > const InvalidateRect {};
 
-	typedef BOOL(__stdcall* FP_EnableWindow)(HWND hWnd, BOOL bEnable);
+	typedef BOOL(WINAPI* FP_EnableWindow)(HWND hWnd, BOOL bEnable);
 	static COMPILETIMEEVAL referencefunc<FP_EnableWindow, 0x7E14A0> const EnableWindow {};
 
-	typedef LRESULT(__stdcall* FP_SendMessageA)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+	typedef LRESULT(WINAPI* FP_SendMessageA)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 	static COMPILETIMEEVAL referencefunc<FP_SendMessageA, 0x7E14A4> const SendMessageA {};
 
-	typedef HWND(__stdcall* FP_GetDlgItem)(HWND hDlg, int nIDDlgItem);
+	typedef HWND(WINAPI* FP_GetDlgItem)(HWND hDlg, int nIDDlgItem);
 	static COMPILETIMEEVAL referencefunc<FP_GetDlgItem, 0x7E14A8 > const GetDlgItem {};
 
-	typedef BOOL(__stdcall* FP_PostMessageA)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+	typedef BOOL(WINAPI* FP_PostMessageA)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 	static COMPILETIMEEVAL referencefunc<FP_PostMessageA, 0x7E14AC > const PostMessageA {};
 
 	typedef int (*FP_wsprintfA)(LPSTR, LPCSTR, ...);
 	static COMPILETIMEEVAL referencefunc<FP_wsprintfA, 0x7E14B0> const wsprintfA {};
 
-	typedef BOOL(__stdcall* FP_SetRect)(LPRECT lprc, int xLeft, int yTop, int xRight, int yBottom);
+	typedef BOOL(WINAPI* FP_SetRect)(LPRECT lprc, int xLeft, int yTop, int xRight, int yBottom);
 	static COMPILETIMEEVAL referencefunc<FP_SetRect, 0x7E14B4 > const SetRect {};
 
-	typedef BOOL(__stdcall* FP_ClientToScreen)(HWND hWnd, LPPOINT lpPoint);
+	typedef BOOL(WINAPI* FP_ClientToScreen)(HWND hWnd, LPPOINT lpPoint);
 	static COMPILETIMEEVAL referencefunc<FP_ClientToScreen, 0x7E14B8> const ClientToScreen {};
 
-	typedef BOOL(__stdcall* FP_TranslateMessage)(const MSG* lpMsg);
+	typedef BOOL(WINAPI* FP_TranslateMessage)(const MSG* lpMsg);
 	static COMPILETIMEEVAL referencefunc<FP_TranslateMessage, 0x7E14BC> const TranslateMessage {};
 
-	typedef LONG(__stdcall* FP_DispatchMessageA)(const MSG* lpMsg);
+	typedef LONG(WINAPI* FP_DispatchMessageA)(const MSG* lpMsg);
 	static COMPILETIMEEVAL referencefunc<FP_DispatchMessageA, 0x7E14C0> const DispatchMessageA {};
 
-	typedef BOOL(__stdcall* FP_GetClientRect)(HWND hWnd, LPRECT lpRect);
+	typedef BOOL(WINAPI* FP_GetClientRect)(HWND hWnd, LPRECT lpRect);
 	static COMPILETIMEEVAL referencefunc<FP_GetClientRect, 0x7E14C4 > const GetClientRect {};
 
-	typedef HWND(__stdcall* FP_GetWindow)(HWND hWnd, UINT uCmd);
+	typedef HWND(WINAPI* FP_GetWindow)(HWND hWnd, UINT uCmd);
 	static COMPILETIMEEVAL referencefunc<FP_GetWindow, 0x7E14C8> const GetWindow {};
 
-	typedef BOOL(__stdcall* FP_BringWindowToTop)(HWND hWnd);
+	typedef BOOL(WINAPI* FP_BringWindowToTop)(HWND hWnd);
 	static COMPILETIMEEVAL referencefunc<FP_BringWindowToTop, 0x7E14CC> const BringWindowToTop {};
 
-	typedef BOOL(__stdcall* FP_SetForegroundWindow)(HWND hWnd);
+	typedef BOOL(WINAPI* FP_SetForegroundWindow)(HWND hWnd);
 	static COMPILETIMEEVAL referencefunc<FP_SetForegroundWindow, 0x7E14D0 > const SetForegroundWindow {};
 
-	typedef HWND(__stdcall* FP_CreateWindowExA)(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
+	typedef HWND(WINAPI* FP_CreateWindowExA)(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
 	static COMPILETIMEEVAL referencefunc<FP_CreateWindowExA, 0x7E14D4> const CreateWindowExA {};
 
-	typedef ATOM(__stdcall* FP_RegisterClassA)(const WNDCLASSA* lpWndClass);
+	typedef ATOM(WINAPI* FP_RegisterClassA)(const WNDCLASSA* lpWndClass);
 	static COMPILETIMEEVAL referencefunc<FP_RegisterClassA, 0x7E14D8> const RegisterClassA {};
 
-	typedef int(__stdcall* FP_GetClassNameA)(HWND hWnd, LPSTR lpClassName, int nMaxCount);
+	typedef int(WINAPI* FP_GetClassNameA)(HWND hWnd, LPSTR lpClassName, int nMaxCount);
 	static COMPILETIMEEVAL referencefunc<FP_GetClassNameA, 0x7E14DC> const GetClassNameA {};
 
-	typedef BOOL(__stdcall* FP_IsWindowVisible)(HWND hWnd);
+	typedef BOOL(WINAPI* FP_IsWindowVisible)(HWND hWnd);
 	static COMPILETIMEEVAL referencefunc<FP_IsWindowVisible, 0x7E14E0> const IsWindowVisible {};
 
-	typedef BOOL(__stdcall* FP_EnumChildWindows)(HWND hWndParent, WNDENUMPROC lpEnumFunc, LPARAM lParam);
+	typedef BOOL(WINAPI* FP_EnumChildWindows)(HWND hWndParent, WNDENUMPROC lpEnumFunc, LPARAM lParam);
 	static COMPILETIMEEVAL referencefunc<FP_EnumChildWindows, 0x7E14E4> const EnumChildWindows {};
 
-	typedef BOOL(__stdcall* FP_IsWindowEnabled)(HWND hWnd);
+	typedef BOOL(WINAPI* FP_IsWindowEnabled)(HWND hWnd);
 	static COMPILETIMEEVAL referencefunc<FP_IsWindowEnabled, 0x7E14E8> const IsWindowEnabled {};
 
-	typedef HWND(__stdcall* FP_GetParent)(HWND hWnd);
+	typedef HWND(WINAPI* FP_GetParent)(HWND hWnd);
 	static COMPILETIMEEVAL referencefunc<FP_GetParent, 0x7E14EC > const GetParent {};
 
-	typedef HWND(__stdcall* FP_GetNextDlgTabItem)(HWND hDlg, HWND hCtl, BOOL bPrevious);
+	typedef HWND(WINAPI* FP_GetNextDlgTabItem)(HWND hDlg, HWND hCtl, BOOL bPrevious);
 	static COMPILETIMEEVAL referencefunc<FP_GetNextDlgTabItem, 0x7E14F0 > const GetNextDlgTabItem {};
 
-	typedef BOOL(__stdcall* FP_IsDialogMessageA)(HWND hDlg, LPMSG lpMsg);
+	typedef BOOL(WINAPI* FP_IsDialogMessageA)(HWND hDlg, LPMSG lpMsg);
 	static COMPILETIMEEVAL referencefunc<FP_IsDialogMessageA, 0x7E14F4> const IsDialogMessageA {};
 
-	typedef int(__stdcall* FP_TranslateAcceleratorA)(HWND hWnd, HACCEL hAccTable, LPMSG lpMsg);
+	typedef int(WINAPI* FP_TranslateAcceleratorA)(HWND hWnd, HACCEL hAccTable, LPMSG lpMsg);
 	static COMPILETIMEEVAL referencefunc<FP_TranslateAcceleratorA, 0x7E14F8> const TranslateAcceleratorA {};
 
-	typedef BOOL(__stdcall* FP_CharToOemBuffA)(LPCSTR lpszSrc, LPSTR lpszDst, DWORD cchDstLength);
+	typedef BOOL(WINAPI* FP_CharToOemBuffA)(LPCSTR lpszSrc, LPSTR lpszDst, DWORD cchDstLength);
 	static COMPILETIMEEVAL referencefunc<FP_CharToOemBuffA, 0x7E14FC > const CharToOemBuffA {};
 
-	typedef HDC(__stdcall* FP_BeginPaint)(HWND hWnd, LPPAINTSTRUCT lpPaint);
+	typedef HDC(WINAPI* FP_BeginPaint)(HWND hWnd, LPPAINTSTRUCT lpPaint);
 	static COMPILETIMEEVAL referencefunc<FP_BeginPaint, 0x7E1500 > const BeginPaint {};
 
-	typedef BOOL(__stdcall* FP_EndPaint)(HWND hWnd, const PAINTSTRUCT* lpPaint);
+	typedef BOOL(WINAPI* FP_EndPaint)(HWND hWnd, const PAINTSTRUCT* lpPaint);
 	static COMPILETIMEEVAL referencefunc<FP_EndPaint, 0x7E1504 > const EndPaint {};
 
-	typedef HWND(__stdcall* FP_CreateDialogParamA)(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
+	typedef HWND(WINAPI* FP_CreateDialogParamA)(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
 	static COMPILETIMEEVAL referencefunc<FP_CreateDialogParamA, 0x7E1508 > const CreateDialogParamA {};
 
-	typedef int(__stdcall* FP_GetWindowTextA)(HWND hWnd, LPSTR lpString, int nMaxCount);
+	typedef int(WINAPI* FP_GetWindowTextA)(HWND hWnd, LPSTR lpString, int nMaxCount);
 	static COMPILETIMEEVAL referencefunc<FP_GetWindowTextA, 0x7E150C> const GetWindowTextA {};
 
-	typedef BOOL(__stdcall* FP_RegisterHotKey)(HWND hWnd, int id, UINT fsModifiers, UINT vk);
+	typedef BOOL(WINAPI* FP_RegisterHotKey)(HWND hWnd, int id, UINT fsModifiers, UINT vk);
 	static COMPILETIMEEVAL referencefunc<FP_RegisterHotKey, 0x7E1510 > const RegisterHotKey {};
 
-	typedef LONG(__stdcall* FP_InterlockedIncrement)(void* lpAddend);
+	typedef LONG(WINAPI* FP_InterlockedIncrement)(void* lpAddend);
 	static COMPILETIMEEVAL referencefunc<FP_InterlockedIncrement, 0x7E11C8> const  InterlockedIncrementFunc {};
 
-	typedef LONG(__stdcall* FP_InterlockedDecrement)(void* lpAddend);
+	typedef LONG(WINAPI* FP_InterlockedDecrement)(void* lpAddend);
 	static COMPILETIMEEVAL referencefunc<FP_InterlockedDecrement, 0x7E11CC> const InterlockedDecrementFunc {};
 
-	typedef void(__stdcall* FP_DeleteCriticalSection)(LPCRITICAL_SECTION lpCriticalSection);
+	typedef void(WINAPI* FP_DeleteCriticalSection)(LPCRITICAL_SECTION lpCriticalSection);
 	static COMPILETIMEEVAL referencefunc<FP_DeleteCriticalSection, 0x7E11E4> const DeleteCriticalSection {};
 
-	typedef void(__stdcall* FP_EnterCriticalSection)(LPCRITICAL_SECTION lpCriticalSection);
+	typedef void(WINAPI* FP_EnterCriticalSection)(LPCRITICAL_SECTION lpCriticalSection);
 	static COMPILETIMEEVAL referencefunc<FP_EnterCriticalSection, 0x7E11E8 > const EnterCriticalSection {};
 
-	typedef void(__stdcall* FP_LeaveCriticalSection)(LPCRITICAL_SECTION lpCriticalSection);
+	typedef void(WINAPI* FP_LeaveCriticalSection)(LPCRITICAL_SECTION lpCriticalSection);
 	static COMPILETIMEEVAL referencefunc<FP_LeaveCriticalSection, 0x7E11EC> const LeaveCriticalSection {};
 
-	typedef void(__stdcall* FP_InitializeCriticalSection)(LPCRITICAL_SECTION lpCriticalSection);
+	typedef void(WINAPI* FP_InitializeCriticalSection)(LPCRITICAL_SECTION lpCriticalSection);
 	static COMPILETIMEEVAL referencefunc<FP_InitializeCriticalSection, 0x7E11F4> const InitializeCriticalSection {};
 
-	typedef void(__stdcall* FP_Sleep)(DWORD dwMilliseconds);
+	typedef void(WINAPI* FP_Sleep)(DWORD dwMilliseconds);
 	static COMPILETIMEEVAL referencefunc<FP_Sleep, 0x7E11F0> const Sleep {};
 
 	//Kernel32.dll
-	typedef BOOL(__stdcall* FP_FindClose)(HANDLE hFindFile);
+	typedef BOOL(WINAPI* FP_FindClose)(HANDLE hFindFile);
 	static COMPILETIMEEVAL referencefunc<FP_FindClose, 0x7E1300> const FindClose {};
 
-	typedef BOOL(__stdcall* FP_CloseHandle)(HANDLE hObject);
+	typedef BOOL(WINAPI* FP_CloseHandle)(HANDLE hObject);
 	static COMPILETIMEEVAL referencefunc<FP_CloseHandle, 0x7E11E0> const CloseHandle {};
 
-	typedef DWORD(__stdcall* FP_WaitForSingleObject)(HANDLE hHandle, DWORD dwMilliseconds);
+	typedef DWORD(WINAPI* FP_WaitForSingleObject)(HANDLE hHandle, DWORD dwMilliseconds);
 	static COMPILETIMEEVAL referencefunc<FP_WaitForSingleObject, 0x7E11DC> const WaitForSingleObject {};
 
-	typedef DWORD(__stdcall* FP_FormatMessageA)(DWORD dwFlags, LPCVOID lpSource, DWORD dwMessageId, DWORD dwLanguageId, LPSTR lpBuffer, DWORD nSize, va_list* Arguments);
+	typedef DWORD(WINAPI* FP_FormatMessageA)(DWORD dwFlags, LPCVOID lpSource, DWORD dwMessageId, DWORD dwLanguageId, LPSTR lpBuffer, DWORD nSize, va_list* Arguments);
 	static COMPILETIMEEVAL referencefunc<FP_FormatMessageA, 0x7E1204> const FormatMessageA {};
 
-	typedef DWORD(__stdcall* FP_GetLastError)();
+	typedef DWORD(WINAPI* FP_GetLastError)();
 	static COMPILETIMEEVAL referencefunc<FP_GetLastError, 0x7E1200> const GetLastError {};
 
-	typedef BOOL(__stdcall* FP_SetThreadPriority)(HANDLE hThread, int nPriority);
+	typedef BOOL(WINAPI* FP_SetThreadPriority)(HANDLE hThread, int nPriority);
 	static COMPILETIMEEVAL referencefunc<FP_SetThreadPriority, 0x7E11FC> const SetThreadPriority {};
 
-	typedef HANDLE(__stdcall* FP_CreateThread)(LPSECURITY_ATTRIBUTES lpThreadAttributes, SIZE_T dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress, LPVOID lpParameter, DWORD dwCreationFlags, LPDWORD lpThreadId);
+	typedef HANDLE(WINAPI* FP_CreateThread)(LPSECURITY_ATTRIBUTES lpThreadAttributes, SIZE_T dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress, LPVOID lpParameter, DWORD dwCreationFlags, LPDWORD lpThreadId);
 	static COMPILETIMEEVAL referencefunc<FP_CreateThread, 0x7E11F8> const CreateThread {};
 
-	typedef BOOL(__stdcall* FP_ReleaseMutex)(HANDLE hMutex);
+	typedef BOOL(WINAPI* FP_ReleaseMutex)(HANDLE hMutex);
 	static COMPILETIMEEVAL referencefunc<FP_ReleaseMutex, 0x7E1198> const ReleaseMutex {};
 
-	typedef HANDLE(__stdcall* FP_CreateMutexA)(LPSECURITY_ATTRIBUTES lpMutexAttributes, BOOL bInitialOwner, LPCSTR lpName);
+	typedef HANDLE(WINAPI* FP_CreateMutexA)(LPSECURITY_ATTRIBUTES lpMutexAttributes, BOOL bInitialOwner, LPCSTR lpName);
 	static COMPILETIMEEVAL referencefunc<FP_CreateMutexA, 0x7E1248 > const CreateMutexA {};
 
 	//
-	typedef HMODULE(__stdcall* FP_LoadLibraryA)(LPCSTR lpLibFileName);
+	typedef HMODULE(WINAPI* FP_LoadLibraryA)(LPCSTR lpLibFileName);
 	static COMPILETIMEEVAL referencefunc<FP_LoadLibraryA, 0x7E1220> const LoadLibraryA {};
 
-	typedef BOOL(__stdcall* FP_FreeLibrary)(HMODULE hLibModule);
+	typedef BOOL(WINAPI* FP_FreeLibrary)(HMODULE hLibModule);
 	static COMPILETIMEEVAL referencefunc<FP_FreeLibrary, 0x7E1224> const FreeLibrary {};
 
-	typedef int(__stdcall* FP_GetLocaleInfoA)(LCID Locale, LCTYPE LCType, LPSTR lpLCData, int cchData);
+	typedef int(WINAPI* FP_GetLocaleInfoA)(LCID Locale, LCTYPE LCType, LPSTR lpLCData, int cchData);
 	static COMPILETIMEEVAL referencefunc<FP_GetLocaleInfoA, 0x7E130C> const GetLocaleInfoA {};
 
-	typedef int(__stdcall* FP_MultiByteToWideChar)(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar);
+	typedef int(WINAPI* FP_MultiByteToWideChar)(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar);
 	static COMPILETIMEEVAL referencefunc<FP_MultiByteToWideChar, 0x7E11C4> const MultiByteToWideChar {};
 
-	typedef HANDLE(__stdcall* FP_CreateFileA)(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
+	typedef HANDLE(WINAPI* FP_CreateFileA)(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
 	static COMPILETIMEEVAL referencefunc<FP_CreateFileA, 0x7E11BC> const CreateFileA {};
 
-	typedef BOOL(__stdcall* FP_ReadFile)(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped);
+	typedef BOOL(WINAPI* FP_ReadFile)(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped);
 	static COMPILETIMEEVAL referencefunc<FP_ReadFile, 0x7E111C> const ReadFile {};
 
-	typedef void(__stdcall* FP_GetLocalTime)(LPSYSTEMTIME lpSystemTime);
+	typedef void(WINAPI* FP_GetLocalTime)(LPSYSTEMTIME lpSystemTime);
 	static COMPILETIMEEVAL referencefunc<FP_GetLocalTime, 0x7E1284> const GetLocalTime {};
 
-	typedef DWORD(__stdcall* FP_GetFileSize)(HANDLE hFile, LPDWORD lpFileSizeHigh);
+	typedef DWORD(WINAPI* FP_GetFileSize)(HANDLE hFile, LPDWORD lpFileSizeHigh);
 	static COMPILETIMEEVAL referencefunc<FP_GetFileSize, 0x7E1120> const GetFileSize {};
 
-	typedef DWORD(__stdcall* FP_SetFilePointer)(HANDLE hFile, LONG lDistanceToMove, PLONG lpDistanceToMoveHigh, DWORD dwMoveMethod);
+	typedef DWORD(WINAPI* FP_SetFilePointer)(HANDLE hFile, LONG lDistanceToMove, PLONG lpDistanceToMoveHigh, DWORD dwMoveMethod);
 	static COMPILETIMEEVAL referencefunc<FP_SetFilePointer, 0x7E11C0> const SetFilePointer {};
 
-	typedef DWORD(__stdcall* FP_SetFileTime)(HANDLE hFile, const FILETIME* lpCreationTime, const FILETIME* lpLastAccessTime, const FILETIME* lpLastWriteTime);
+	typedef DWORD(WINAPI* FP_SetFileTime)(HANDLE hFile, const FILETIME* lpCreationTime, const FILETIME* lpLastAccessTime, const FILETIME* lpLastWriteTime);
 	static COMPILETIMEEVAL referencefunc<FP_SetFileTime, 0x7E112C> const SetFileTime {};
 
+	//typedef HRESULT(WINAPI* FP_DirectDrawCreate)(GUID* lpGUID, LPDIRECTDRAW* lplpDD, IUnknown* pUnkOuter);
+	//static COMPILETIMEEVAL referencefunc<FP_DirectDrawCreate, 0x7E1048> const DirectDrawCreate {};
 };
 
 //DeleterType is required to identify

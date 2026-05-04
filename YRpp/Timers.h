@@ -234,5 +234,5 @@ public:
 		return rate ? static_cast<double>(rate - this->GetTimeLeft()) / static_cast<double>(rate) : 1.0;
 	}
 };
-
+static_assert(sizeof(RepeatableTimer) == 0x10, "Invalid Size !");
 typedef RepeatableTimer RateTimer;

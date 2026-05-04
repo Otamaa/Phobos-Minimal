@@ -195,3 +195,4 @@ public:
 	CDTimerClass RotationTimer; // Counts down from NumSteps to 0
 	DirStruct ROT;            // Turn rate (Raw used directly as step size)
 };
+static_assert(sizeof(FacingClass) == 0x18, "Invalid size.");
