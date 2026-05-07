@@ -3145,3 +3145,13 @@ DEFINE_FUNCTION_JUMP(CALL , 0x5F660D, _KillPassengersWrapper)
 // Enable InGameMovie TAction in non-campaign mode.
 DEFINE_JUMP(LJMP, 0x5BF3B0, 0x5BF3BD);
 DEFINE_JUMP(LJMP, 0x5BF2BB, 0x5BF2C1); // Func unused in vanilla, but maybe someone will use it.
+
+
+ASMJIT_PATCH(0x5F6A70, ObjectClass_tube_5F6A70_WhoCall, 0x5)
+{
+	GET(ObjectClass*, pThis, ECX);
+	GET_STACK(DWORD, caller, 0x0);
+	Debug::Log("Calling function with %s from %x\n", pThis->get_ID(), caller);;
+	return 0x0;
+}
+ASMJIT_PATCH_AGAIN(0x4DDC40 , FootClass_tube_5F6A70_WhoCall, 0x6)

@@ -4,10 +4,35 @@
 #pragma comment(lib, "DbgHelp.lib")
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "ole32.lib")
+#pragma comment(lib, "SDL3-static.lib")
+#pragma comment(lib, "imm32.lib")
+#pragma comment(lib, "setupapi.lib")
+#pragma comment(lib, "user32.lib")
+#pragma comment(lib, "shell32.lib")
+#pragma comment(lib, "oleaut32.lib")
+#pragma comment(lib, "uuid.lib")
+#pragma comment(lib, "advapi32.lib")
+#pragma comment(lib, "gdi32.lib")
+#pragma comment(lib, "msimg32.lib")
+#pragma comment(lib, "opengl32.lib")
 
 #ifdef _TTT
 #pragma comment(linker, "/NODEFAULTLIB")
-
+SDL3 - static.lib
+imm32.lib
+winmm.lib
+version.lib
+setupapi.lib
+gdi32.lib
+user32.lib
+shell32.lib
+ole32.lib
+oleaut32.lib
+uuid.lib
+advapi32.lib
+gdi32.lib
+msimg32.lib
+opengl32.lib
 #pragma comment(lib, "kernel32.lib")
 #pragma comment(lib, "user32.lib")
 //#pragma comment(lib, "winspool.lib")

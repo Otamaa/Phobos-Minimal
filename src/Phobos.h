@@ -28,6 +28,9 @@
 #pragma warning( pop )
 
 class CSFText;
+struct SDL_Window;
+struct SDL_Renderer;
+struct SDL_Texture;
 
 enum class DrawDamageMode : BYTE
 {
@@ -297,6 +300,12 @@ public:
 		static int CustomGS_ChangeInterval[7];
 		static int CustomGS_ChangeDelay[7];
 		static int CustomGS_DefaultDelay[7];
+
+		static SDL_Window* SDLWindow;
+		static SDL_Renderer* SDLWindowRenderer;
+		static SDL_Texture* SDLWindowTexture;
+		static int SDLWindowWidth;
+		static int SDLWindowHeight;
 	};
 
 	struct Otamaa

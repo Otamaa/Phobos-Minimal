@@ -236,7 +236,7 @@ HRESULT PrepareDisplaySurfaces()
 	composite_surf_rect.Y = 0;
 
 	// Allocate surfaces
-	Allocate_Surfaces(DSurface::WindowBounds.operator->(), &composite_surf_rect, &tile_surf_rect, &sidebar_surf_rect, 0);
+	Allocate_Surfaces(DSurface::WindowBounds(), composite_surf_rect, tile_surf_rect, sidebar_surf_rect, 0);
 	DisplayClass::Instance->Set_View_Dimensions(clip_bounds);
 
 	return S_OK;

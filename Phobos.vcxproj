@@ -22,6 +22,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Lib\lodepng\lodepng.cpp" />
     <ClCompile Include="src\Commands\Deselect.cpp" />
     <ClCompile Include="src\Commands\ToggleSuperTimers.cpp" />
     <ClCompile Include="src\Ext\AITriggerType\Hooks.cpp" />
@@ -37,6 +38,7 @@
     <ClCompile Include="src\Ext\ObjectType\Body.cpp" />
     <ClCompile Include="src\Ext\Object\Body.cpp" />
     <ClCompile Include="src\Ext\Object\Hooks.cpp" />
+    <ClCompile Include="src\Ext\PCXFile\Hooks.PNG.cpp" />
     <ClCompile Include="src\Ext\SlaveManager\Hooks.cpp" />
     <ClCompile Include="src\Ext\Surface\Hooks.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Sight.cpp" />
@@ -512,12 +514,88 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="B:\Projects\Unused\LambdaFunctionArgCount.h" />
+    <ClInclude Include="src\Lib\lodepng\lodepng.h" />
     <ClInclude Include="src\Commands\Deselect.h" />
     <ClInclude Include="src\Commands\ToggleSuperTimers.h" />
     <ClInclude Include="src\Ext\BitFont\Body.h" />
     <ClInclude Include="src\Ext\BitText\Body.h" />
     <ClInclude Include="src\Ext\Factory\Body.h" />
     <ClInclude Include="src\Ext\INI\Body.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_assert.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_asyncio.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_atomic.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_audio.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_begin_code.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_bits.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_blendmode.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_camera.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_clipboard.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_close_code.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_copying.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_cpuinfo.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_dialog.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_dlopennote.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_egl.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_endian.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_error.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_events.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_filesystem.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_gamepad.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_gpu.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_guid.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_haptic.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_hidapi.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_hints.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_init.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_intrin.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_iostream.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_joystick.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_keyboard.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_keycode.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_loadso.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_locale.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_log.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_main.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_main_impl.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_messagebox.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_metal.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_misc.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_mouse.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_mutex.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_oldnames.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_opengl.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_opengles.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_opengles2.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_opengles2_gl2.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_opengles2_gl2ext.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_opengles2_gl2platform.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_opengles2_khrplatform.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_opengl_glext.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_pen.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_pixels.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_platform.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_platform_defines.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_power.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_process.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_properties.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_rect.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_render.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_revision.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_scancode.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_sensor.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_stdinc.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_storage.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_surface.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_system.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_thread.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_time.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_timer.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_touch.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_tray.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_version.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_video.h" />
+    <ClInclude Include="src\Lib\SDL3\SDL_vulkan.h" />
     <ClInclude Include="src\New\Entity\FactoryPlantClass.h" />
     <ClInclude Include="src\Commands\AggressiveModeClass.h" />
     <ClInclude Include="src\Commands\CeasefireModeClass.h" />
@@ -1014,7 +1092,7 @@
       <ConformanceMode>true</ConformanceMode>
       <DiagnosticsFormat>Column</DiagnosticsFormat>
       <OmitFramePointers>true</OmitFramePointers>
-      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;ASMJIT_NO_TEXT;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;MAKE_LIB;SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;_ATL_NO_SECURITY;_ATL_NO_AUTOMATIC_NAMESPACE;_ATL_NO_MODULE;_ATL_NO_COM_MODULE;_ATL_NO_WIN_SUPPORT;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;ASMJIT_NO_TEXT;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;MAKE_LIB;SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;_ATL_NO_SECURITY;_ATL_NO_AUTOMATIC_NAMESPACE;_ATL_NO_MODULE;_ATL_NO_COM_MODULE;_ATL_NO_WIN_SUPPORT;SDL_MAIN_USE_CALLBACKS;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>SyncCThrow</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

@@ -33,6 +33,8 @@
 #include <Phobos.Entity.h>
 #include <MessageBoxLogging.h>
 
+//#include <Misc/Vinifera/sdl/sdl_hooks.h>
+
 #pragma region defines
 HANDLE Phobos::hInstance;
 char Phobos::readBuffer[readLength] {};
@@ -200,6 +202,13 @@ bool Phobos::Misc::CustomGS { false };
 int Phobos::Misc::CustomGS_ChangeInterval[7] { -1, -1, -1, -1, -1, -1, -1 };
 int Phobos::Misc::CustomGS_ChangeDelay[7] { 0, 1, 2, 3, 4, 5, 6 };
 int Phobos::Misc::CustomGS_DefaultDelay[7] { 0, 1, 2, 3, 4, 5, 6 };
+
+SDL_Window* Phobos::Misc::SDLWindow = nullptr;
+SDL_Renderer* Phobos::Misc::SDLWindowRenderer = nullptr;
+SDL_Texture* Phobos::Misc::SDLWindowTexture = nullptr;
+int Phobos::Misc::SDLWindowWidth = 0;
+int Phobos::Misc::SDLWindowHeight = 0;
+
 
 bool Phobos::Otamaa::DisableCustomRadSite { false };
 bool Phobos::Otamaa::IsAdmin { false };
@@ -1896,6 +1905,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			Patch::Apply_CALL6(0x7CD835, GetVersion_Wrapper);
 			Patch::Apply_TYPED<DWORD>(0x7B853C, { 1 });
 			Patch::Apply_TYPED<char>(0x82612C + 13, { '\n' });
+			//SDL_Hooks();
 
 			static std::wstring args {};
 
