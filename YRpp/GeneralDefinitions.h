@@ -18,6 +18,53 @@
 #define SDDTOR_NODELETE				0x00
 #define SDDTOR_DELETE				0x01
 
+enum VQAAnimControlFlags
+{
+	VQAAnimControlFlags_0 = 0x0,
+	VQAAnimControlFlags_1 = 0x1,
+	VQAAnimControlFlags_2 = 0x2,
+	VQAAnimControlFlags_3 = 0x3,
+	VQAAnimControlFlags_4 = 0x4,
+	VQAAnimControlFlags_5 = 0x5,
+	VQAAnimControlFlags_6 = 0x6,
+	VQAAnimControlFlags_7 = 0x7,
+	VQAAnimControlFlags_8 = 0x8,
+	VQAAnimControlFlags_9 = 0x9,
+	VQAAnimControlFlags_A = 0xA,
+	VQAAnimControlFlags_B = 0xB,
+	VQAAnimControlFlags_C = 0xC,
+	VQAAnimControlFlags_D = 0xD,
+	VQAAnimControlFlags_E = 0xE,
+	VQAAnimControlFlags_F = 0xF,
+	VQAAnimControlFlags_10 = 0x10,
+	VQAAnimControlFlags_11 = 0x11,
+	VQAAnimControlFlags_12 = 0x12,
+	VQAAnimControlFlags_13 = 0x13,
+	VQAAnimControlFlags_14 = 0x14,
+	VQAAnimControlFlags_15 = 0x15, //noStrech
+	VQAAnimControlFlags_16 = 0x16,
+	VQAAnimControlFlags_17 = 0x17,
+	VQAAnimControlFlags_18 = 0x18,
+	VQAAnimControlFlags_19 = 0x19,
+	VQAAnimControlFlags_1A = 0x1A,
+	VQAAnimControlFlags_1B = 0x1B,
+};
+
+enum SpecialDialogType : int
+{
+	SDLG_NONE = 0x0,
+	SDLG_1 = 0x1,
+	SDLG_SURRENDER = 0x2,
+	SDLG_3 = 0x3,
+	SDLG_4 = 0x4,
+	SDLG_5 = 0x5,
+	SDLG_6 = 0x6,
+	SDLG_7 = 0x7,
+	SDLG_8 = 0x8,
+	SDLG_9 = 0x9,
+	SDLG_A = 0xA,
+};
+
 enum class VHPScanType : int
 {
 	None = 0x0,

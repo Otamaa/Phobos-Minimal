@@ -130,7 +130,12 @@ public:
 	static VelocityClass GenerateVelocity(BulletClass* pThis, AbstractClass* pTarget, const int nSpeed, bool bCalculateSpeedFirst = false);
 	static int GetShrapAmount(BulletClass* pThis);
 	static bool AllowShrapnel(BulletClass* pThis, CellClass* pCell);
-	static bool ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pTarget, bool checkOwner = true);
+	static bool ShrapnelTargetEligible(BulletClass* pThis,
+	AbstractClass* pTarget,
+	BuildingClass* pInitialTargetBuilding,  // Building at impact point
+	const std::set<BuildingClass*>& hitBuildings,  // Already targeted buildings
+	bool ignorePreviouslyHit,
+	bool checkOwner = true);
 	static void ApplyShrapnel(BulletClass* pThis);
 	static void ApplyAirburst(BulletClass* pThis);
 private:

@@ -362,33 +362,43 @@ ASMJIT_PATCH(0x6A7AE1, SidebarClass_Update_RepairButton, 0x6)
 	return !HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer)->PlayerAutoRepair && pButton->IsOn ? TurnOffButton : Continue;
 }
 
-ASMJIT_PATCH(0x450651, BuildingClass_UpdateRepairSell_PlayerAutoRepair, 0x8)
-{
-	enum { CanAutoRepair = 0x450659, CanNotAutoRepair = 0x450813 };
-	GET(BuildingClass*, pThis, ESI);
+//======================================================================================================================================
 
-	if(RulesExtData::Instance()->ExtendedPlayerRepair && pThis->Owner->IsControlledByHuman()){
-		if (HouseExtContainer::Instance.Find(pThis->Owner)->PlayerAutoRepair) {
-			return CanAutoRepair;
-		} else {
+// ASMJIT_PATCH(0x450651, BuildingClass_UpdateRepairSell_PlayerAutoRepair, 0x8)
+// {
+// 	enum { ContinueChecks = 0x450659, CanNotAutoRepair = 0x450813 };
+// 	GET(BuildingClass*, pThis, ESI);
 
-			if (pThis->IsBeingRepaired)
-				pThis->SetRepairState(0);
+// 	if(RulesExtData::Instance()->ExtendedPlayerRepair && pThis->Owner->IsControlledByHuman()){
+// 		if (HouseExtContainer::Instance.Find(pThis->Owner)->PlayerAutoRepair) {
+// 			return ContinueChecks;
+// 		} else {
 
-			return CanNotAutoRepair;
-		}
-	}
+// 			if (pThis->IsBeingRepaired)
+// 				pThis->SetRepairState(0);
 
-	return pThis->Owner->IQLevel2 <= RulesClass::Instance->RepairSell ? CanNotAutoRepair : CanAutoRepair ;
+// 			return CanNotAutoRepair;
+// 		}
+// 	}
 
-}
-ASMJIT_PATCH(0x450821, BuildingClass_Repair_AI_Step, 0x5)// B
-{
-	GET(FakeBuildingClass* const, pThis, ESI);
-	R->EAX(int(pThis->_GetTypeExtData()->RepairRate.Get(RulesClass::Instance->RepairRate) * 900.0));
-	return 0x450837;
-}
+// 	return pThis->Owner->IQLevel2 <= RulesClass::Instance->RepairSell ? CanNotAutoRepair : ContinueChecks ;
 
+// }
+// ASMJIT_PATCH(0x450821, BuildingClass_Repair_AI_Step, 0x5)// B
+// {
+// 	GET(FakeBuildingClass* const, pThis, ESI);
+// 	R->EAX(int(pThis->_GetTypeExtData()->RepairRate.Get(RulesClass::Instance->RepairRate) * 900.0));
+// 	return 0x450837;
+// }
+
+// ASMJIT_PATCH(0x4509B4, BuildingClass_UpdateRepair_Funds, 7)
+// {
+// 	GET(BuildingClass*, pThis, ESI);
+// 	return !pThis->Owner->IsControlledByHuman() || RulesExtData::Instance()->RepairStopOnInsufficientFunds
+// 		? 0x0 : 0x4509BB;
+// }
+
+//==========================================================================================================================================
 ASMJIT_PATCH(0x50CA12, HouseClass_RecalcCenter_DeadTechno, 0xA)
 {
 	enum { NextLoop = 0x50CAB4, ContinueCheck = 0x0 };

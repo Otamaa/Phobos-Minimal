@@ -601,6 +601,8 @@ public:
 	Valueable<bool> AreaGuard_TargetingInRange {};
 	Valueable<bool> AreaGuard_StrayIgnoreDestination {};
 
+	Valueable<bool> Shrapnel_IgnoreHitBuildings { false };
+
 	// ============================================================
 	// Plain bool arrays and plain bools (at the very end)
 	// ============================================================

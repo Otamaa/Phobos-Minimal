@@ -40,14 +40,14 @@ ASMJIT_PATCH(0x4E3560, Game_GetFlagSurface, 5)
 	if (n == -2)
 	{
 		//rani.pcx
-		R->EAX(PCX::Instance->GetSurface(reinterpret_cast<const char*>(0x844AE8))); // special index
+		R->EAX(PCXImages::Instance->GetSurface(reinterpret_cast<const char*>(0x844AE8))); // special index
 		return 0x4E3686;
 	}
 
 	if (n == -3)
 	{
 		//obsi.pcx
-		R->EAX(PCX::Instance->GetSurface(reinterpret_cast<const char*>(0x844AEC))); // special index
+		R->EAX(PCXImages::Instance->GetSurface(reinterpret_cast<const char*>(0x844AEC))); // special index
 		return 0x4E3686;
 	}
 

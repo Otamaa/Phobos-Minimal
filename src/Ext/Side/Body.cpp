@@ -361,8 +361,8 @@ bool SideExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	for (unsigned int i = 0; i < 10; ++i) {
 		auto pFilename = this->GetMultiplayerScoreBarFilename(i);
-		if (!PCX::Instance->GetSurface(pFilename)) {
-			PCX::Instance->LoadFile(pFilename);
+		if (!PCXImages::Instance->GetSurface(pFilename)) {
+			PCXImages::Instance->LoadFile(pFilename);
 		}
 	}
 

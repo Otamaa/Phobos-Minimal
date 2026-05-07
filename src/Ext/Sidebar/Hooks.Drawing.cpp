@@ -1111,7 +1111,7 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 				if (CameoPCXSurface)
 				{
 					RectangleStruct bounds { screenX, screenY, 60, 48 };
-					PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, CameoPCXSurface, (WORD)Drawing::DefaultColors[6].ToInit());
+					PCXImages::Instance->BlitToSurface(&bounds, DSurface::Sidebar, CameoPCXSurface, (WORD)Drawing::DefaultColors[6].ToInit());
 					CameoPCXSurface = nullptr;
 				}
 				else
@@ -1135,13 +1135,13 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 						{
 							BSurface* pCXSurf = nullptr;
 
-							if (PCX::Instance->LoadFile(pFilename))
-								pCXSurf = PCX::Instance->GetSurface(pFilename);
+							if (PCXImages::Instance->LoadFile(pFilename))
+								pCXSurf = PCXImages::Instance->GetSurface(pFilename);
 
 							if (pCXSurf)
 							{
 								RectangleStruct bounds { screenX, screenY, 60, 48 };
-								PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, pCXSurf);
+								PCXImages::Instance->BlitToSurface(&bounds, DSurface::Sidebar, pCXSurf);
 
 								drawSHP = false;
 							}
@@ -1205,7 +1205,7 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 									if (const auto CameoPCX = pTypeExt->GreyCameoPCX.GetSurface())
 									{
 										auto drawRect = RectangleStruct { screenX, screenY, 60, 48 };
-										PCX::Instance->BlitToSurface(&drawRect, DSurface::Sidebar, CameoPCX);
+										PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Sidebar, CameoPCX);
 									}
 
 									frame = frames.Z;
@@ -1495,7 +1495,7 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 				else if (auto PCXSurface = pData->ObserverBackground.GetSurface())
 				{
 					RectangleStruct bounds = { panelX, panelY, ObserverBackgroundWidth, ObserverBackgroundHeight };
-					PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, PCXSurface, (WORD)Drawing::DefaultColors[6].ToInit());
+					PCXImages::Instance->BlitToSurface(&bounds, DSurface::Sidebar, PCXSurface, (WORD)Drawing::DefaultColors[6].ToInit());
 				}
 			}
 
@@ -1533,7 +1533,7 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 								ObserverFlagPCXWidth, ObserverFlagPCXHeight
 						};
 
-						PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, PCXSurface, (WORD)Drawing::DefaultColors[6].ToInit());
+						PCXImages::Instance->BlitToSurface(&bounds, DSurface::Sidebar, PCXSurface, (WORD)Drawing::DefaultColors[6].ToInit());
 					}
 				}
 

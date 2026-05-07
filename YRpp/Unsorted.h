@@ -28,6 +28,7 @@ class CCINIClass;
 class CellClass;
 class BuildingClass;
 class BuildingTypeClass;
+class Surface;
 struct DirStruct;
 struct PacketField {
 	char str[4];
@@ -70,6 +71,17 @@ struct Game
 	static COMPILETIMEEVAL reference<bool, 0xA8D110u> const LANTaunts {};
 	static COMPILETIMEEVAL reference<bool, 0xA8D111> const WOLTaunts {};
 	static COMPILETIMEEVAL reference<bool, 0xA8D108u, 8u> const ChatMask {};
+	static COMPILETIMEEVAL reference<int, 0x008A00A4> const VideoWidth {};
+	static COMPILETIMEEVAL reference<int, 0x008A00A8> const VideoHeight {};
+	static COMPILETIMEEVAL reference<DWORD, 0x8A00AC> const VideoBitsPerPixel {};
+	static COMPILETIMEEVAL reference<int, 0xB72F50> const WSDialogCount {};
+	static COMPILETIMEEVAL reference<SpecialDialogType, 0xA8EDA0> const SpecialDialogTypeSet {};
+	static COMPILETIMEEVAL reference<HICON, 0xB7354C> const IconPointer {};
+	static COMPILETIMEEVAL reference<HCURSOR, 0xB7354C> const CursorPointer {};
+	static COMPILETIMEEVAL reference<int, 0xB73544> const CommandShow {};
+	static COMPILETIMEEVAL reference<HIMC, 0xB7355C> const IMEContext {};
+	static COMPILETIMEEVAL reference<bool, 0xB73561> const _MouseWheel {};
+	static COMPILETIMEEVAL reference<int, 0xA8EDD8> const ReadyToQuitP {};
 
 #define GAMEMD_CLSID(_addrs ,_name) \
 	static COMPILETIMEEVAL reference<CLSID const, _addrs> const _name {};
@@ -136,7 +148,6 @@ struct Game
 	static COMPILETIMEEVAL reference<CoordStruct, 0x89C870u> const RelativeCoordCenter {};
 
 	static COMPILETIMEEVAL reference<wchar_t, 0xB730ECu, 256u> const IMEBuffer {};
-	static COMPILETIMEEVAL reference<HIMC, 0xB7355Cu> const IMEContext {};
 	static COMPILETIMEEVAL reference<wchar_t, 0xB73318u, 257u> const IMECompositionString {};
 
 	static COMPILETIMEEVAL reference<bool, 0xA8F7ACu> const DontSetExceptionHandler{};
@@ -253,6 +264,19 @@ struct Game
 	// // actually is SessionClass::Callback
 	// static void SetProgress(int progress)
 	// { SET_REG32(ECX, 0xA8B238); JMP_STD(0x69AE90); }
+
+	static void __fastcall Update_Visible_Surface(bool, Surface*, RectangleStruct*) 
+		{ JMP_FAST(0x4F4780); }
+
+	void __fastcall Focus_Loss()
+		{	JMP_FAST(0x7773C0); }
+
+	void __fastcall Focus_Restore()
+		{ JMP_FAST(0x777420); }
+
+	bool __fastcall Set_Video_Mode(HWND__* hwnd, int w, int h, int bits_per_pixel)
+		{ JMP_FAST(0x4A42F0); }
+
 
 	static void __cdecl CallBack()
 	{ JMP(0x48D080); }
@@ -434,6 +458,9 @@ struct IIDs
 // to avoid having to link to their DLLs ourselves
 struct Imports
 {
+	//
+	typedef LRESULT (CALLBACK* FP_CtrlProc)(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
+	static COMPILETIMEEVAL referencefunc<FP_CtrlProc, 0x610CA0> const CtrlProc {};
 
 	// OleLoadFromStream
 	typedef HRESULT(WINAPI* FP_OleSaveToStream)(LPPERSISTSTREAM pPStm, LPSTREAM pStm);

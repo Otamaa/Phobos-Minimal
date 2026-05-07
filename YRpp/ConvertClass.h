@@ -26,6 +26,7 @@ public:
 
 	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E5358;
 	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<ConvertClass*>, 0x89ECF8u> const Array {};
+	static COMPILETIMEEVAL reference<ConvertClass*, 0x7B93F0u> const MouseConvert {};
 
 	static void __fastcall CreateFromFile(const char* pal_filename, BytePalette*& pPalette, ConvertClass*& pDestination)
 	  { JMP_FAST(0x72ADE0); }

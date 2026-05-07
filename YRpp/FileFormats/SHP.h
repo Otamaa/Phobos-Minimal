@@ -54,7 +54,7 @@ struct SHPStruct //header
 		return *GetColor(buffer, idxFrame);
 	}
 
-	byte* GetPixels(int idxFrame)
+	uint8_t* GetPixels(int idxFrame)
 		{ JMP_THIS(0x69E740); }
 
 	// Flags & 2
@@ -72,6 +72,8 @@ struct SHPStruct //header
 	SHPFile* AsFile();
 
 	const SHPFile* AsFile() const;
+
+public:
 
 	WORD	Type;
 	short	Width;

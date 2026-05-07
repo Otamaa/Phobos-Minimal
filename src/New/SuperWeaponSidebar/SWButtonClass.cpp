@@ -43,7 +43,7 @@ bool SWButtonClass::Draw(bool forced)
 	// support for pcx cameos
 	if (const auto pPCXCameo = pSWExt->SidebarPCX.GetSurface())
 	{
-		PCX::Instance->BlitToSurface(&destRect, pSurface, pPCXCameo);
+		PCXImages::Instance->BlitToSurface(&destRect, pSurface, pPCXCameo);
 	}
 	else if (const auto pCameo = pSuper->Type->SidebarImage) // old shp cameos, fixed palette
 	{
@@ -54,10 +54,10 @@ bool SWButtonClass::Draw(bool forced)
 
 		if (!_stricmp(pCameoRef->Filename, GameStrings::XXICON_SHP) && strstr(pFilename, ".pcx"))
 		{
-			PCX::Instance->LoadFile(pFilename);
+			PCXImages::Instance->LoadFile(pFilename);
 
-			if (const auto CameoPCX = PCX::Instance->GetSurface(pFilename))
-				PCX::Instance->BlitToSurface(&destRect, pSurface, CameoPCX);
+			if (const auto CameoPCX = PCXImages::Instance->GetSurface(pFilename))
+				PCXImages::Instance->BlitToSurface(&destRect, pSurface, CameoPCX);
 		}
 		else
 		{

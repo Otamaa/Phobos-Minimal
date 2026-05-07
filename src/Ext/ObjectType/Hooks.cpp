@@ -94,14 +94,6 @@ ASMJIT_PATCH(0x5F7900, ObjectTypeClass_FindFactory, 5)
 	return 0x5F7A89;
 }
 
-DEFINE_FUNCTION_JUMP(CALL, 0x4F920A, FakeObjectTypeClass::WhoCanBuildMe);
-DEFINE_FUNCTION_JUMP(CALL, 0x4FA438, FakeObjectTypeClass::WhoCanBuildMe);
-DEFINE_FUNCTION_JUMP(CALL, 0x509667, FakeObjectTypeClass::WhoCanBuildMe);
-DEFINE_FUNCTION_JUMP(CALL, 0x5F5C47, FakeObjectTypeClass::WhoCanBuildMe);
-DEFINE_FUNCTION_JUMP(CALL, 0x6A97AA, FakeObjectTypeClass::WhoCanBuildMe);
-DEFINE_FUNCTION_JUMP(CALL, 0x6AA76D, FakeObjectTypeClass::WhoCanBuildMe);
-DEFINE_FUNCTION_JUMP(CALL, 0x6AB891, FakeObjectTypeClass::WhoCanBuildMe);
-
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E28FC, FakeObjectTypeClass::WhoCanBuildMe);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E369C, FakeObjectTypeClass::WhoCanBuildMe);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4604, FakeObjectTypeClass::WhoCanBuildMe);

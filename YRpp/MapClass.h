@@ -13,6 +13,13 @@ class BulletTypeClass;
 class ObjectClass;
 class WarheadTypeClass;
 class WeaponTypeClass;
+typedef enum GScreenRedrawFlags
+{
+	GS_REDRAW_NONE,
+	GS_REDRAW_TACTICAL,
+	GS_REDRAW_ALL,
+} GScreenRedrawFlags;
+
 
 // Terrain ground type
 struct GroundType

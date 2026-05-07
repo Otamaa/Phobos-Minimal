@@ -77,9 +77,9 @@ PhobosPCXFile& PhobosPCXFile::Assign(const char* pFilename)
 
 	this->filename = pFilename;
 
-	BSurface* pSource = PCX::Instance->GetSurface(this->filename);
-	if (!pSource && PCX::Instance->LoadFile(this->filename))
-		pSource = PCX::Instance->GetSurface(this->filename);
+	BSurface* pSource = PCXImages::Instance->GetSurface(this->filename);
+	if (!pSource && PCXImages::Instance->LoadFile(this->filename))
+		pSource = PCXImages::Instance->GetSurface(this->filename);
 
 	this->Surface = pSource;
 
@@ -156,9 +156,9 @@ bool PhobosPCXFile::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 
 		if(!iter.surface){
 
-			BSurface* pSource = PCX::Instance->GetSurface(this->filename);
-			if (!pSource && PCX::Instance->LoadFile(this->filename))
-				pSource = PCX::Instance->GetSurface(this->filename, nullptr);
+			BSurface* pSource = PCXImages::Instance->GetSurface(this->filename);
+			if (!pSource && PCXImages::Instance->LoadFile(this->filename))
+				pSource = PCXImages::Instance->GetSurface(this->filename, nullptr);
 
 			this->Surface = pSource;
 			iter.surface = pSource;

@@ -143,7 +143,7 @@ public:
 	byte        field_13;
 	Point2D     XY_Old;
 	Point2D     XY1;
-	DSurface *  Surface;
+	DSurface *  MySurface;
 	HWND        hWnd;
 	RectangleStruct __ConfiningRect;
 	Point2D     MouseHot;

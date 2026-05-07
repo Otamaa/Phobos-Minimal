@@ -16,6 +16,14 @@ struct ALIGN(4) WinsockBufferType
 };
 static_assert(sizeof(WinsockBufferType) == 0x2A0);
 
+typedef enum tProtocolEnum
+{
+	PROTOCOL_NONE,
+	PROTOCOL_IPX,
+	PROTOCOL_UDP
+} ProtocolEnum;
+
+
 class ALIGN(4) WinsockInterfaceClass
 {
 public:
@@ -35,11 +43,32 @@ public:
 	{ JMP_THIS(0x7B1D10) }
 
 	WinsockInterfaceClass() { JMP_THIS(0x7B19C0); }
-	~WinsockInterfaceClass() { JMP_THIS(0x7B1AB0); }
+	virtual ~WinsockInterfaceClass() { JMP_THIS(0x7B1AB0); }
 
 	// Properties
-private:
-	void* vftable;
+public:
+
+	virtual void Close_Socket() RX;
+	virtual int Read(void* buffer, int& buffer_len, void* address, int& address_len) R0;
+	virtual void WriteTo(void* buffer, int buffer_len, void* address) RX;
+	virtual void Broadcast(void* buffer, int buffer_len) RX;
+	virtual void Discard_In_Buffers() RX;
+	virtual void Discard_Out_Buffers() RX;
+	virtual bool Start_Listening() R0;
+	virtual void Stop_Listening() RX;
+	virtual void Clear_Socket_Error(SOCKET socket) RX;
+	virtual bool Set_Socket_Options() R0;
+	virtual void Set_Broadcast_Address(void* addr) RX;
+	virtual void Clear_Broadcast_Addresses() RX;
+	virtual ProtocolEnum Get_Protocol() RT(ProtocolEnum);
+	virtual int Protocol_Event_Message() R0;
+	virtual bool Open_Socket(SOCKET socket) R0;
+	virtual LRESULT Message_Handler(HWND hWnd, UINT uMsg, UINT wParam, LONG lParam) RT(LRESULT);
+	virtual bool Get_Host_Name(char* name, int name_len) const R0;
+	virtual int Local_Addresses_Count() const R0;
+	virtual unsigned char* Get_Local_Address(int i) const R0;
+	virtual void Set_NetCard(int netcard) RX;
+
 public:
 	DWORD MaxPacketSize;
 	DECLARE_PROPERTY(DynamicVectorClass<WinsockBufferType*>, InBuffers);

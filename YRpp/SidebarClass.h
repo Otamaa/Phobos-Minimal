@@ -203,6 +203,10 @@ public:
 	void RepaintSidebar(int tab = 0)
 	{ JMP_THIS(0x6A60A0); }
 
+	void Do_Blit(char force) {
+		JMP_THIS(0x6A70E0);
+	}
+
 	bool AddCameo(AbstractType absType, int idxType)
 	{ JMP_THIS(0x6A6300); }
 

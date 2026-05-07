@@ -220,6 +220,7 @@ bool BulletTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		this->EMPulseCannon_InaccurateRadius.Read(exINI, pSection, "EMPulseCannon.InaccurateRadius");
 		this->UpdateImmediately.Read(exINI, pSection, "UpdateImmediately");
+		this->Shrapnel_IgnoreHitBuildings.Read(exINI, pSection, "Shrapnel.IgnoreHitBuildings");
 
 		if (pThis->Inviso) {
 			trailReaded = true;
@@ -326,6 +327,7 @@ void BulletTypeExtData::Serialize(T& Stm)
 
 		.Process(this->AU)
 		.Process(this->UpdateImmediately)
+		.Process(this->Shrapnel_IgnoreHitBuildings)
 
 
 		;

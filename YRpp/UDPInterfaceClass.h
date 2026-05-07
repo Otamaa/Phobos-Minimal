@@ -13,8 +13,10 @@ public:
 	UDPInterfaceClass()
 	{ JMP_THIS(0x7B2DB0); }
 
-	~UDPInterfaceClass()
+	virtual ~UDPInterfaceClass()
 	{ JMP_THIS(0x7B2E50); }
+
+public:
 
 	// Properties
 	int16_t Port;

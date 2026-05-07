@@ -228,6 +228,8 @@ class NOVTABLE FakeBuildingClass : public BuildingClass
 {
 public:
 
+	void _Sell_Back(int control);
+	void _Repair_AI();
 	void _InfiltratedBy(HouseClass* Enterer);
 	int _Mission_Repair();
 	void _Detach(AbstractClass* target, bool all);

@@ -2530,6 +2530,221 @@ void TechnoExtData::UpdateDisplayTo(BuildingClass* pThis)
 	}
 }
 
+bool NOINLINE _CheckFirstPahse(FakeBuildingClass* pThis, bool isHumanControlled) {
+
+	if (RulesExtData::Instance()->ExtendedPlayerRepair && isHumanControlled) {
+		if (!HouseExtContainer::Instance.Find(pThis->Owner)->PlayerAutoRepair) {
+			if (pThis->IsBeingRepaired)
+				pThis->SetRepairState(0);
+
+			if (!pThis->IsBeingRepaired)
+				return false;
+
+			return true;
+		}
+	} else { //Noot Human check the IQ first
+		if (pThis->Owner->IQLevel2 <= RulesClass::Instance->RepairSell) {
+
+			if (!pThis->IsBeingRepaired)
+				return false;
+		}
+	}
+
+	auto curMission = pThis->GetCurrentMission();
+	if (curMission == Mission::Construction ||
+		curMission == Mission::Selling||
+		!pThis->CanBeRepaired()) {
+
+		if (!pThis->IsBeingRepaired)
+			return false;
+	}
+
+	if (pThis->Owner->Available_Money() < RulesClass::Instance->CreditReserve) {
+
+		
+		// Low money: attempt sell-back
+		if ((!SessionClass::Instance->IsCampaign() || pThis->IsAllowedToSell) &&
+			pThis->IsTickedOff &&
+			pThis->Owner->StaticData.IQLevel >= RulesClass::Instance->SellBack &&
+			ScenarioClass::Instance->Random.RandomRanged(0, 50) < pThis->Owner->StaticData.TechLevel &&
+			!pThis->AttachedTag &&
+			pThis->Type->Factory != AbstractType::BuildingType &&
+			pThis->GetHealthRatio_()< RulesClass::Instance->ConditionRed)
+		{
+			pThis->_Sell_Back(1);
+			return false;//chnged from vanilla , since it selling dont need to proceed further code and just return
+		}
+
+		if (!pThis->IsBeingRepaired)
+			return false;
+
+		return true;
+	}
+
+	if (pThis->Owner->Repairing) {
+
+		if (!pThis->IsBeingRepaired)
+			return false;
+
+		return true;
+	}
+
+	if (!pThis->IsBeingRepaired) {
+		// Not repairing yet - check if we should start
+		if (pThis->HasBeenCaptured || pThis->IsBeingRepaired || isHumanControlled) {
+			pThis->Owner->Repairing = 1;
+			pThis->SetRepairState(1);
+
+			if (!isHumanControlled)
+			{
+				const int v3 = ScenarioClass::Instance->Random.RandomRanged(
+					(pThis->Owner->RepairDelay * 225.0),
+					(pThis->Owner->RepairDelay * 1800.0));
+
+				pThis->Owner->RepairTimer.Start(v3);
+			}
+		}
+		
+		if (!pThis->IsBeingRepaired)
+			return false;
+	}
+
+	return true;
+}
+
+void FakeBuildingClass::_Repair_AI()
+{
+	const bool isHumanControlled = this->Owner->IsControlledByHuman();
+
+	// Phase 1: Determine if we should consider starting repairs
+	if (!_CheckFirstPahse(this , isHumanControlled))
+		return;
+
+	// Phase 2: Execute repair tick if currently repairing
+	// Repair tick at Rule->RepairRate intervals
+	int rate = int(this->_GetTypeExtData()->RepairRate.Get(RulesClass::Instance->RepairRate) * 900.0);
+
+	if (!(Unsorted::CurrentFrame() % rate)) {
+		FakeBuildingTypeClass* v6 = (FakeBuildingTypeClass*)this->Type;
+		this->NeedsRepairs = this->NeedsRepairs == 0;
+
+		const int cost = v6->__Repair_Cost();
+		const int step = v6->__Repair_Step();
+		const int v19 = this->GetCurrentFrame();
+
+		if (this->Owner->Available_Money() < cost) { 
+			if(!isHumanControlled || RulesExtData::Instance()->RepairStopOnInsufficientFunds)
+				this->IsBeingRepaired = 0;
+		} else {
+			this->Owner->TakeMoney(cost);
+			this->Health = MinImpl(step + this->Health, v6->Strength);
+			this->EstimatedHealth = MinImpl(step + this->EstimatedHealth, v6->Strength);
+			const auto ratio = this->GetHealthRatio_();
+			const bool v13 = ratio <= RulesClass::Instance->ConditionYellow;
+
+			if (this->IsDamaged != v13) {
+				this->IsDamaged = v13;
+				for (auto& anim : this->Anims) {
+					if (anim) {
+						for (int i = 0; i < 21; ++i) {
+							this->PlayAnim(v13 ?
+								v6->BuildingAnim[i].Damaged : v6->BuildingAnim[i].Anim
+								, BuildingAnimSlot(i), v13, false, 0);
+						}
+					}
+				}
+			}
+
+			if (ratio > RulesClass::Instance->ConditionYellow) {
+				if (ParticleSystemClass* v17 = this->Sys.Damage) {
+					v17->UnInit();
+				}
+			}
+
+			if (this->GetCurrentFrame() != v19) {
+				this->NeedsRedraw = 1;
+			}
+		}
+	}
+}
+
+DEFINE_FUNCTION_JUMP(CALL, 0x4401B6, FakeBuildingClass::_Repair_AI)
+DEFINE_FUNCTION_JUMP(LJMP, 0x450630, FakeBuildingClass::_Repair_AI)
+
+void FakeBuildingClass::_Sell_Back(int control)
+{
+	// #754 - evict Hospital/Armory contents
+	TechnoExtData::KickOutHospitalArmory(this);
+	auto pThis = this;
+
+	BuildingExtContainer::Instance.Find(pThis)->MyPrismForwarding->RemoveFromNetwork(true);
+
+	if (pThis->HasBuildup)
+	{
+		switch (control)
+		{
+		case -1:
+		{
+			if (pThis->GetCurrentMission() != Mission::Selling)
+			{
+
+				pThis->QueueMission(Mission::Selling, false);
+				pThis->NextMission();
+			}
+
+			break;
+		}
+		case 0:
+		{
+			if (pThis->GetCurrentMission() != Mission::Selling)
+			{
+				return;
+			}
+
+			break;
+		}
+		case 1:
+		{
+			if (pThis->GetCurrentMission() != Mission::Selling && !pThis->IsGoingToBlow)
+			{
+				pThis->QueueMission(Mission::Selling, false);
+				pThis->NextMission();
+			}
+
+			break;
+		}
+		default:
+			break;
+		}
+
+		if (!BuildingExtContainer::Instance.Find(pThis)->Silent)
+		{
+			if (pThis->Owner->ControlledByCurrentPlayer())
+			{
+				VocClass::PlayGlobal(RulesClass::Instance->GenericClick, Panning::Center, 1.0, 0);
+			}
+		}
+	}
+	else
+	{
+		if (pThis->Type->FirestormWall || BuildingTypeExtContainer::Instance.Find(pThis->Type)->Firestorm_Wall)
+		{
+			//if(const auto pBomb = pThis->AttachedBomb) {
+			//	if (BombExtContainer::Instance.Find(pBomb)->Weapon->Ivan_DetonateOnSell.Get()){
+			//		pBomb->Detonate();// Otamaa : detonate may kill the techno before this function
+			//		// so this can possibly causing some weird crashes if that happening
+			//	}
+			//}
+
+			pThis->Limbo();
+			pThis->UnInit();
+		}
+	}
+}
+
+DEFINE_FUNCTION_JUMP(CALL, 0x7E405C, FakeBuildingClass::_Sell_Back)
+DEFINE_FUNCTION_JUMP(LJMP, 0x447110, FakeBuildingClass::_Sell_Back)
+
 void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 {
 	auto EnteredType = this->Type;

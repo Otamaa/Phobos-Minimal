@@ -72,6 +72,29 @@ int GeneralUtils::GetColorFromColorAdd(int colorIndex)
 	return GetColorFromColorAdd(colorAdd[colorValue]);
 }
 
+int GeneralUtils::GetColorFromColorAdd(ColorStruct const& colors)
+{
+	int colorValue = 0;
+	int red = colors.R;
+	int green = colors.G;
+	int blue = colors.B;
+
+	switch (Drawing::ColorMode())
+	{
+	case RGBMode::RGB565:
+		colorValue |= blue | (32 * (green | (red << 6)));
+		break;
+	case RGBMode::RGB556:
+		colorValue |= blue | (((32 * red) | (green >> 1)) << 6);
+		break;
+	default:
+		colorValue |= blue | (32 * ((32 * red) | (green >> 1)));
+		break;
+	}
+
+	return colorValue;
+}
+
 bool GeneralUtils::IsValidString(const char* str)
 {
 	if (str == nullptr || strlen(str) == 0 || GameStrings::IsNone(str))

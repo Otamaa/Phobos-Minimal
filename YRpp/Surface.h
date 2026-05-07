@@ -302,9 +302,14 @@ public:
 
 	BSurface() : XSurface(), BufferPtr() { VTable::Set(this, vtable); }
 	BSurface(int width, int height, int bpp, void* buffer) : XSurface(width, height, bpp), BufferPtr((void*)buffer, int((height* width)* bpp)) { VTable::Set(this, vtable); }
+	BSurface(int width, int height, int bpp, MemoryBuffer& buffer) : XSurface(width, height, bpp), BufferPtr(buffer) { VTable::Set(this, vtable); }
 	virtual ~BSurface() { JMP_THIS(0x411650); }
 
 	virtual void* Lock(int x = 0, int y = 0) override JMP_THIS(0x4115F0);
+	FORCEDINLINE void*  Lock(Point2D point) {
+		return this->Lock(point.X, point.Y);
+	}
+
 	virtual int Get_Bytes_Per_Pixel() const override JMP_THIS(0x411630);
 	virtual int Get_Pitch() const override JMP_THIS(0x411640);
 
@@ -405,7 +410,7 @@ static bool __fastcall Buffer_To_Surface_wrapper(Surface *tosurface, RectangleSt
 static bool __fastcall Blit_helper_lockregion(Surface* dst_surf, RectangleStruct* rect1, RectangleStruct* rect2, Surface* src_surf, RectangleStruct* rect3, RectangleStruct* rect4, bool* checkme, __int16* dst_buffer, __int16* src_buffer)
 { JMP_FAST(0x7BC040); }
 
-static bool __fastcall Allocate_Surfaces(RectangleStruct *common_rect, RectangleStruct *composite_rect, RectangleStruct *tile_rect, RectangleStruct *sidebar_rect, char alloc_hidden_surf)
+static bool __fastcall Allocate_Surfaces(RectangleStruct& common_rect, RectangleStruct& composite_rect, RectangleStruct& tile_rect, RectangleStruct& sidebar_rect, char alloc_hidden_surf)
 { JMP_FAST(0x533FD0); }
 
 #pragma warning(pop)
@@ -423,7 +428,9 @@ public:
 	static COMPILETIMEEVAL reference<DSurface*, 0x887314u> const Hidden_2{};
 	static COMPILETIMEEVAL reference<DSurface*, 0x88731Cu> const Composite{};
 	static COMPILETIMEEVAL reference<int, 0x8205D0u> const RGBMode{};
-
+	static COMPILETIMEEVAL reference<int, 0x8A0DE8u> const HalfbrightMask {};
+	static COMPILETIMEEVAL reference<int, 0x8A0DEAu> const QuarterbrightMask {};
+	static COMPILETIMEEVAL reference<int, 0x8A0DEAu> const EighthbrightMask {};
 	static COMPILETIMEEVAL reference<RectangleStruct, 0x886F90u> const SidebarBounds{};
 	//ViewportBounds_TacPixel
 	static COMPILETIMEEVAL reference<RectangleStruct, 0x886FA0u> const ViewBounds{};
@@ -602,12 +609,12 @@ public:
 	//		| unsigned((g >> GreenRight) << GreenLeft));
 	//}
 
-	//static void Pixel_To_RGBA(unsigned pixel, unsigned* red, unsigned* green, unsigned* blue)
-	//{
-	//	*red = ((pixel >> RedLeft) << RedRight);
-	//	*green = ((pixel >> GreenLeft) << GreenRight);
-	//	*blue = ((pixel >> BlueLeft) << BlueRight);
-	//}
+	static FORCEDINLINE COMPILETIMEEVAL void Pixel_To_RGB(unsigned pixel, unsigned* red, unsigned* green, unsigned* blue)
+	{
+		*red = static_cast<unsigned char>(pixel >> RedRight() << RedLeft());
+		*green = static_cast<unsigned char>(pixel >> GreenRight() << GreenLeft());
+		*blue = static_cast<unsigned char>(pixel >> BlueRight() << BlueLeft());
+	}
 
 	static FORCEDINLINE COMPILETIMEEVAL unsigned RGB_To_Pixel(unsigned r, unsigned g, unsigned b)
 	{

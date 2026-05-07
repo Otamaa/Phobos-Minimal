@@ -1737,13 +1737,6 @@ ASMJIT_PATCH(0x44E61E, BuildingClass_Mission_Open_GateUp, 6)
 	return 0x44E624;
 }
 
-ASMJIT_PATCH(0x4509B4, BuildingClass_UpdateRepair_Funds, 7)
-{
-	GET(BuildingClass*, pThis, ESI);
-	return !pThis->Owner->IsControlledByHuman() || RulesExtData::Instance()->RepairStopOnInsufficientFunds
-		? 0x0 : 0x4509BB;
-}
-
 ASMJIT_PATCH(0x4521C8, BuildingClass_Disable_Temporal_Factories, 6)
 {
 	GET(BuildingClass*, pThis, ECX);

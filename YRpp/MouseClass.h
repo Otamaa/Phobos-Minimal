@@ -212,6 +212,10 @@ public:
 
 	ScrollClass() JMP_THIS(0x692290);
 
+	void Process_Mouse(HWND hwnd, int message, int wParam, int lParam) {
+		JMP_THIS(0x6930A0);
+	}
+
 	void Update_(const int* keyCode, const Point2D* mouseCoords) JMP_THIS(0x6922E0);
 public:
 	DWORD unknown_int_5548;

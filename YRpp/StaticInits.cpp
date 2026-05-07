@@ -781,12 +781,12 @@ int TechnoClass::GetIonCannonValue(AIDifficulty difficulty, int maxHealth) const
 	return this->GetIonCannonValue(difficulty);
 }
 
-bool PCX::LoadFile(const char *pFileName, int flag1, int flag2)
+bool PCXImages::LoadFile(const char *pFileName, int flag1, int flag2)
 {
-	if (Instance->GetSurface(pFileName, nullptr)) {
+	if (this->GetSurface(pFileName, nullptr)) {
 		return true;
 	}
-	return Instance->ForceLoadFile(pFileName, flag1, flag2);
+	return this->ForceLoadFile(pFileName, flag1, flag2);
 }
 
 void LoadProgressManager::DrawTheText(const wchar_t *pText, int X, int Y, DWORD dwColor)

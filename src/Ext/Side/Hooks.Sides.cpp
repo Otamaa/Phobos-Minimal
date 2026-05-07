@@ -311,7 +311,7 @@ ASMJIT_PATCH(0x5CA110, Game_GetMultiplayerScoreScreenBar, 5)
 
 	BSurface* ret = nullptr;
 	if (auto pSide = SideClass::Array->get_or_default(ScenarioClass::Instance->PlayerSideIndex)){
-		ret = PCX::Instance->GetSurface(SideExtContainer::Instance.Find(pSide)->GetMultiplayerScoreBarFilename(idxBar));
+		ret = PCXImages::Instance->GetSurface(SideExtContainer::Instance.Find(pSide)->GetMultiplayerScoreBarFilename(idxBar));
 	}
 
 	R->EAX(ret);

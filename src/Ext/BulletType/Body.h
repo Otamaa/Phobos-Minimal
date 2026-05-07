@@ -94,6 +94,7 @@ public:
 	Nullable<bool> AroundTarget {};
 	Nullable<bool> VerticalInitialFacing {};
 	Nullable<bool> UpdateImmediately {};
+	Nullable<bool> Shrapnel_IgnoreHitBuildings {};
 
 	// ============================================================
 	// Valueable<Leptons> (4 bytes each, assuming Leptons = int)

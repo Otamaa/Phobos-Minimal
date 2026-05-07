@@ -19,7 +19,7 @@ void __fastcall FakeTechnoClass::__See(
 	HouseClass* customHouse,
 	int          sightRangeOverride)
 {
-	if (!pThis->IsOnMap || !pThis->Owner || pThis->Owner->Type->MultiplayPassive)
+	if (!pThis->IsInPlayfield || !pThis->Owner || pThis->Owner->Type->MultiplayPassive)
 		return;
 
 	const int sight = _GetSight(pThis);
@@ -121,7 +121,7 @@ void FakeAircraftClass::__Look(bool incremental, int arg_4)
 
 void __fastcall FakeTechnoClass::__Look(TechnoClass* pThis, discard_t, bool incremental, int arg_4)
 {
-	if (!pThis->IsOnMap || !pThis->Owner)
+	if (!pThis->IsInPlayfield || !pThis->Owner)
 		return;
 
 	if (pThis->Owner->Type->MultiplayPassive

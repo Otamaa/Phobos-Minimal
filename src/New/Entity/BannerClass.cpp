@@ -73,7 +73,7 @@ void BannerClass::RenderPCX(Point2D position)
 	position.X -= pcx->Width / 2;
 	position.Y -= pcx->Height / 2;
 	RectangleStruct bounds(position.X, position.Y, pcx->Width, pcx->Height);
-	PCX::Instance->BlitToSurface(&bounds, DSurface::Composite, pcx);
+	PCXImages::Instance->BlitToSurface(&bounds, DSurface::Composite, pcx);
 }
 
 void BannerClass::RenderSHP(Point2D position)

@@ -640,6 +640,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	#pragma endregion
 
 	#pragma region CombatDamage
+	this->Shrapnel_IgnoreHitBuildings.Read(exINI, GameStrings::CombatDamage, "Shrapnel.IgnoreHitBuildings");
 	this->PenetratesTransport_Level.Read(exINI, GameStrings::CombatDamage, "PenetratesTransport.Level");
 	this->DamageWallRecursivly.Read(exINI, GameStrings::CombatDamage, "DamageWallRecursivly");
 	this->AdjacentWallDamage.Read(exINI, GameStrings::CombatDamage, "AdjacentWallDamage");
@@ -1412,6 +1413,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->AreaGuard_UseSelfAsCenter)
 		.Process(this->AreaGuard_TargetingInRange)
 		.Process(this->AreaGuard_StrayIgnoreDestination)
+		.Process(this->Shrapnel_IgnoreHitBuildings)
 		;
 }
 

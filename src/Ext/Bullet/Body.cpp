@@ -510,8 +510,11 @@ bool BulletExtData::AllowShrapnel(BulletClass* pThis, CellClass* pCell)
 
 	if (const auto pObject = pCell->FirstObject)
 	{
-		if ((((DWORD*)pObject)[0]) != BuildingClass::vtable || pData->Shrapnel_AffectsBuildings)
-			return true;
+		if ((((DWORD*)pObject)[0]) == BuildingClass::vtable) {
+			return pData->Shrapnel_AffectsBuildings;
+		}
+
+		return true;
 	}
 	else if (pData->Shrapnel_AffectsGround)
 		return true;
@@ -519,13 +522,30 @@ bool BulletExtData::AllowShrapnel(BulletClass* pThis, CellClass* pCell)
 	return false;
 }
 
-bool BulletExtData::ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pTarget, bool checkOwner)
+bool BulletExtData::ShrapnelTargetEligible(BulletClass* pThis,
+	AbstractClass* pTarget,
+	BuildingClass* pInitialTargetBuilding,  // Building at impact point
+	const std::set<BuildingClass*>& hitBuildings,  // Already targeted buildings
+	bool ignorePreviouslyHit,
+	bool checkOwner)
 {
 	if (!pTarget || pThis->Target == pTarget)
 		return false;
 
-	const auto pWH = pThis->Type->ShrapnelWeapon->Warhead;
+	if (auto pTargetBuilding = cast_to<BuildingClass*>(pTarget))
+	{
+		// Never target the building we impacted on
+		if (pTargetBuilding == pInitialTargetBuilding)
+			return false;
+
+		// Skip if already hit (when feature enabled)
+		if (ignorePreviouslyHit && hitBuildings.contains(pTargetBuilding))
+			return false;
+	}
+
+	// === Rest of your existing eligibility checks ===
 	const auto pBulletExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
+	const auto pWH = pThis->Type->ShrapnelWeapon->Warhead;
 
 	if (pBulletExt->Shrapnel_UseWeaponTargeting)
 	{
@@ -587,7 +607,9 @@ bool BulletExtData::ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pT
 		}
 		else if (pTarget->WhatAmI() == CellClass::AbsID)
 		{
-			if (!pWeaponExt->SkipWeaponPicking && !EnumFunctions::IsCellEligible((CellClass*)pTarget, pWeaponExt->CanTarget, true, true))
+			auto pTargetCell = (CellClass*)pTarget;
+
+			if (!pWeaponExt->SkipWeaponPicking && !EnumFunctions::IsCellEligible(pTargetCell, pWeaponExt->CanTarget, true, true))
 			{
 				return false;
 			}
@@ -620,59 +642,116 @@ void BulletExtData::ApplyShrapnel(BulletClass* pThis)
 		return;
 
 	auto const pBulletCell = pThis->GetCell();
-	if (BulletExtData::AllowShrapnel(pThis, pBulletCell))
+	auto const pBulletExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
+
+	// === Setup tracking state ===
+	std::set<BuildingClass*> hitBuildings;  // Buildings already targeted
+	BuildingClass* pInitialTargetBuilding = nullptr;  // Building at impact point
+
+	// Check if we should enable "ignore previously hit buildings" feature
+	bool ignorePreviouslyHit = pBulletExt->Shrapnel_IgnoreHitBuildings.Get(
+		RulesExtData::Instance()->Shrapnel_IgnoreHitBuildings);
+
+	// Store initial target building (if impact point has one)
+	if (auto pImpactObject = pBulletCell->FirstObject)
 	{
-		auto const nRange = pShrapWeapon->Range.ToCell();
-
-		if (nRange >= 1)
+		if (auto pImpactBuilding = cast_to<BuildingClass*>(pImpactObject))
 		{
-			int nTotal = 0;
+			pInitialTargetBuilding = pImpactBuilding;
+			hitBuildings.insert(pImpactBuilding);  // Don't re-hit impact building
+		}
+	}
 
-			for (CellSpreadEnumerator it((short)nRange); it; ++it)
+	// === Check if shrapnel is allowed ===
+	if (!BulletExtData::AllowShrapnel(pThis, pBulletCell))
+		return;
+
+	auto const nRange = pShrapWeapon->Range.ToCell();
+	if (nRange < 1)
+		return;
+
+	// === Main shrapnel targeting loop ===
+	int nTotal = 0;
+
+	for (CellSpreadEnumerator it((short)nRange); it; ++it)
+	{
+		auto cellCoords = pBulletCell->MapCoords + *it;
+		auto pCurCell = MapClass::Instance->GetCellAt(cellCoords);
+		auto pTarget = pCurCell->FirstObject;
+
+		if (!pTarget)
+			continue;
+
+		// Check eligibility with building tracking
+		if (!BulletExtData::ShrapnelTargetEligible(
+			pThis, pTarget, pInitialTargetBuilding, hitBuildings, ignorePreviouslyHit))
+		{
+			continue;
+		}
+
+		// === Create shrapnel bullet ===
+		const auto pShrapExt = BulletTypeExtContainer::Instance.Find(pShrapWeapon->Projectile);
+		auto pBullet = pShrapExt->CreateBullet(pTarget, pThis->Owner, pShrapWeapon);
+
+		if (pBullet)
+		{
+			pBullet->MoveTo(pThis->Location,
+				BulletExtData::GenerateVelocity(pThis, pTarget, pShrapWeapon->Speed));
+			BulletExtData::SimulatedFiringEffects(pBullet,
+				pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pBullet)->Owner,
+				pThis->Owner, true, true);
+
+			// Add to hit list AFTER successful creation (original Phobos behavior)
+			if (ignorePreviouslyHit)
 			{
-				auto cellhere = (pBulletCell->MapCoords + *it);
-				auto pCurCell = MapClass::Instance->GetCellAt(cellhere);
-				auto const pTarget = pCurCell->FirstObject;
-				if (BulletExtData::ShrapnelTargetEligible(pThis, pTarget))
+				if (auto pTargetBuilding = cast_to<BuildingClass*>(pTarget))
+					hitBuildings.insert(pTargetBuilding);
+			}
+		}
+
+		// Check if we've created enough shrapnel
+		if (++nTotal >= nCount)
+			break;
+	}
+
+	// === Random fallback shrapnel ===
+	int nRemaining = nCount - nTotal;
+	if (nRemaining > 0)
+	{
+		for (int i = 0; i < nRemaining; ++i)
+		{
+			short nX = ScenarioClass::Instance->Random.RandomRangedSpecific<short>(-2, 2);
+			short nY = ScenarioClass::Instance->Random.RandomRangedSpecific<short>(-2, 2);
+			CellStruct targetCoord = pThis->InlineMapCoords();
+			targetCoord.X += nX;
+			targetCoord.Y += nY;
+
+			auto pCellTarget = MapClass::Instance->GetCellAt(targetCoord);
+			if (!pCellTarget)
+				continue;
+
+			// Check if cell has a building we already hit
+			if (ignorePreviouslyHit)
+			{
+				if (auto pCellBuilding = pCellTarget->GetBuilding())
 				{
-					const auto pShrapExt = BulletTypeExtContainer::Instance.Find(pShrapWeapon->Projectile);
+					if (hitBuildings.contains(pCellBuilding))
+						continue;
 
-					if (auto pBullet = pShrapExt->CreateBullet(pTarget, pThis->Owner, pShrapWeapon))
-					{
-						pBullet->MoveTo(pThis->Location, BulletExtData::GenerateVelocity(pThis, pTarget, pShrapWeapon->Speed));
-						BulletExtData::SimulatedFiringEffects(pBullet, pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pBullet)->Owner, pThis->Owner, true, true);
-					}
-
-					//escapes
-					if (++nTotal == nCount)
-						break; //stop the loop
+					hitBuildings.insert(pCellBuilding);
 				}
-
 			}
 
-			auto const nRemaining = Math::abs(nCount - nTotal);
+			const auto pShrapExt = BulletTypeExtContainer::Instance.Find(pShrapWeapon->Projectile);
+			auto pBullet = pShrapExt->CreateBullet(pCellTarget, pThis->Owner, pShrapWeapon);
 
-			// get random coords for last remaining shrapnel if the total still less than ncount
-			if (nRemaining)
+			if (pBullet)
 			{
-				for (int nAmountHere = nRemaining; nAmountHere > 0; --nAmountHere)
-				{
-					const short nX = ScenarioClass::Instance->Random.RandomRangedSpecific<short>(-2, 2);
-					const short nY = ScenarioClass::Instance->Random.RandomRangedSpecific<short>(-2, 2);
-					CellStruct nNextCoord = pThis->InlineMapCoords();
-					nNextCoord.X += nX;
-					nNextCoord.Y += nY;
-					if (const auto pCellTarget = MapClass::Instance->GetCellAt(nNextCoord))
-					{
-						const auto pShrapExt = BulletTypeExtContainer::Instance.Find(pShrapWeapon->Projectile);
-
-						if (const auto pBullet = pShrapExt->CreateBullet(pCellTarget, pThis->Owner, pShrapWeapon))
-						{
-							pBullet->MoveTo(pThis->Location, BulletExtData::GenerateVelocity(pThis, pCellTarget, pShrapWeapon->Speed, true));
-							BulletExtData::SimulatedFiringEffects(pBullet, pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pBullet)->Owner, pThis->Owner, true, true);
-						}
-					}
-				}
+				pBullet->MoveTo(pThis->Location,
+					BulletExtData::GenerateVelocity(pThis, pCellTarget, pShrapWeapon->Speed, true));
+				BulletExtData::SimulatedFiringEffects(pBullet,
+					pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pBullet)->Owner,
+					pThis->Owner, true, true);
 			}
 		}
 	}

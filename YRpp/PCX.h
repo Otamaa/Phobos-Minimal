@@ -5,16 +5,45 @@
 #include <GeneralDefinitions.h>
 #include <Helpers/CompileTime.h>
 #include <RectangleStruct.h>
+#include <Wstring.h>
 
 struct BytePalette;
+class FileClass;
+class Surface;
 class BSurface;
 class DSurface;
-class PCX
+class NOVTABLE PCXEntry {
+  Wstring FilenameTemp;
+  char Filename[772];
+  PCXEntry *Next;
+};
+
+static_assert(sizeof(PCXEntry) == 0x30C, "Invalid Size !");
+#pragma pack(push, 4)
+class NOVTABLE PCXImages
 {
 public:
 
-	static COMPILETIMEEVAL reference<PCX, 0xAC4848u> const Instance{};
+  PCXEntry **entries;
+  DWORD Count;
+  int Bitmask1;
+  DWORD Bitmask2;
+  int dword_10;
+  char char_14;
+  void* func_18; //callback ?
+  int field_1C;
+  double qword_20;
+  double qword_28;
+  int dword_30;
+
+public:
+	static COMPILETIMEEVAL reference<PCXImages, 0xAC4848u> const Instance{};
 	static OPTIONALINLINE COMPILETIMEEVAL WORD const DefaultTransparentColor = COLOR_PURPLE;
+
+public:
+
+	static Surface* __fastcall Read_PCX_File(FileClass* file, unsigned char* palette, void* buffer, int buf_size)
+	{ JMP_FAST(0x630310); }
 
 	// Load a PCX file
 	bool ForceLoadFile(const char* pFileName, int flag1, int flag2)
@@ -27,15 +56,23 @@ public:
 	BSurface* GetSurface(const char* pFileName, BytePalette * pPalette = nullptr)
 		{ JMP_THIS(0x6BA140); }
 
-public:
-
-	// Draws a PCX file
 	bool BlitToSurface(RectangleStruct *BoundingRect,
 		DSurface* TargetSurface,
 		BSurface* PCXSurface,
 		WORD TransparentColor = DefaultTransparentColor
 	)
 		{ JMP_THIS(0x6BA580); }
+public:
 
-	void *Buffer;
+  	PCXImages(){
+		JMP_THIS(0x6B9450);
+	}
+
+	~PCXImages(){
+		JMP_THIS(0x6B9530);
+	}
+
 };
+#pragma pack(pop)
+
+static_assert(sizeof(PCXImages) == 0x34, "Invalid Size !");
