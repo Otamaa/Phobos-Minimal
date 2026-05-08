@@ -47,7 +47,7 @@ public:
 
 	// Properties
 public:
-
+#ifndef _VTBLE
 	virtual void Close_Socket() RX;
 	virtual int Read(void* buffer, int& buffer_len, void* address, int& address_len) R0;
 	virtual void WriteTo(void* buffer, int buffer_len, void* address) RX;
@@ -68,15 +68,18 @@ public:
 	virtual int Local_Addresses_Count() const R0;
 	virtual unsigned char* Get_Local_Address(int i) const R0;
 	virtual void Set_NetCard(int netcard) RX;
+#else 
+	void* vftable;
+#endif
 
 public:
 	DWORD MaxPacketSize;
 	DECLARE_PROPERTY(DynamicVectorClass<WinsockBufferType*>, InBuffers);
 	DECLARE_PROPERTY(DynamicVectorClass<WinsockBufferType*>, OutBuffers);
 	DECLARE_PROPERTY(DynamicVectorClass<WinsockBufferType*>, AltOutBuffers);
-	WinsockBufferType StaticInBuffer[128];
-	WinsockBufferType StaticOutBuffer[128];
-	WinsockBufferType StaticAltOutBuffer[128];
+	std::array<WinsockBufferType, 128> StaticInBuffer;
+	std::array<WinsockBufferType, 128> StaticOutBuffer;
+	std::array<WinsockBufferType, 128> StaticAltOutBuffer;
 	DWORD StaticInBufferPos;
 	DWORD StaticOutBufferPos;
 	int StaticAltOutBufferPos;
@@ -86,7 +89,7 @@ public:
 	BYTE WinsockInitialised;
 	int Socket;
 	DWORD AlternateSocket;
-	char ReceiveBuffer[640];
+	std::array<char, 640> ReceiveBuffer;
 	int field_3F2F4;
 	int NetCard;
 };

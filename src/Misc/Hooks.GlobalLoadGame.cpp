@@ -236,7 +236,7 @@ HRESULT PrepareDisplaySurfaces()
 	composite_surf_rect.Y = 0;
 
 	// Allocate surfaces
-	Allocate_Surfaces(DSurface::WindowBounds.operator->(), &composite_surf_rect, &tile_surf_rect, &sidebar_surf_rect, 0);
+	Allocate_Surfaces(DSurface::WindowBounds(), composite_surf_rect, tile_surf_rect, sidebar_surf_rect, 0);
 	DisplayClass::Instance->Set_View_Dimensions(clip_bounds);
 
 	return S_OK;
@@ -250,6 +250,12 @@ HRESULT Decode_All_Pointers(LPSTREAM stream)
 	HRESULT hr = S_OK;
 
 	ScenarioClass::ClearScenario();
+
+	//load the voice index for the current player , this is used to restore the correct voice when loading a save game
+	int value;
+	ULONG out = 0;
+	hr = stream->Read(&value, sizeof(value), &out);
+	if (!SUCCEEDED(hr)) return hr;
 
 	hr = ScenarioClass::Instance->Load(stream);
 	if (!SUCCEEDED(hr)) return hr;
@@ -511,11 +517,6 @@ HRESULT Decode_All_Pointers(LPSTREAM stream)
 	hr = ThemeClass::Instance->Load(stream);
 	if (!SUCCEEDED(hr)) return hr;
 
-	int value;
-	ULONG out = 0;
-	hr = stream->Read(&value, sizeof(value), &out);
-	if (!SUCCEEDED(hr)) return hr;
-
 	VoxClass::EVAIndex = value;
 
 	// add more variable that need to be reset after loading an saved games
@@ -524,7 +525,9 @@ HRESULT Decode_All_Pointers(LPSTREAM stream)
 		if (std::exchange(Unsorted::MuteSWLaunches(), false))
 		{// this will also make radar unusable
 			auto pSide = SideClass::Array->operator[](HouseClass::CurrentPlayer()->Type->SideIndex);
-			VoxClass::EVAIndex = SideExtContainer::Instance.Find(pSide)->EVAIndex;
+			auto pHouseType = HouseTypeExtContainer::Instance.Find(HouseClass::CurrentPlayer()->Type);
+
+			VoxClass::EVAIndex = pHouseType->EVAIndex.Get(SideExtContainer::Instance.Find(pSide)->EVAIndex);
 		}
 		// this variable need to be reset , especially after you play as an observer on skirmish
 		// then load an save game of campaign mode , it will shutoff the radar and EVA's

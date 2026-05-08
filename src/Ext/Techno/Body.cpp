@@ -2742,7 +2742,7 @@ void FakeBuildingClass::_Sell_Back(int control)
 	}
 }
 
-DEFINE_FUNCTION_JUMP(CALL, 0x7E405C, FakeBuildingClass::_Sell_Back)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E405C, FakeBuildingClass::_Sell_Back)
 DEFINE_FUNCTION_JUMP(LJMP, 0x447110, FakeBuildingClass::_Sell_Back)
 
 void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)

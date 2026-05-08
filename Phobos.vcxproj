@@ -91,7 +91,6 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Init.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Jumpjet.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Otamaa.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.Shield.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Tint.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Transport.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.VehicleToBuildingMCFix.cpp" />

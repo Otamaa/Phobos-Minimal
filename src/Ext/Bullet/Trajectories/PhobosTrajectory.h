@@ -107,6 +107,9 @@ public:
     {
         return BounceCheckResult::NotHandled;
     }
+	virtual bool ShouldSkipBridgeCheck() const { return false; }
+
+
 	double GetTrajectorySpeed() const;
 	void SetInaccurate() const;
 

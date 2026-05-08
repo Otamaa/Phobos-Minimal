@@ -170,5 +170,102 @@ void __fastcall VoxClass_SetEvaIndex(int house) {
 	}
 }
 
-DEFINE_FUNCTION_JUMP(CALL,0x534FAC, VoxClass_SetEvaIndex);
-DEFINE_FUNCTION_JUMP(LJMP,0x7534E0, VoxClass_SetEvaIndex);
+// DEFINE_FUNCTION_JUMP(CALL,0x534FAC, VoxClass_SetEvaIndex);
+// DEFINE_FUNCTION_JUMP(LJMP,0x7534E0, VoxClass_SetEvaIndex);
+
+#include <Ext/HouseType/Body.h>
+#include <Ext/Scenario/Body.h>
+#include <CampaignClass.h>
+
+ASMJIT_PATCH(0x6877EE, ScenarioClass_LoadINI_EVAIndex1, 5)
+{
+	GET(int, HouseIndex, EAX);
+	int _SideIdx = 0;
+
+	if(HouseIndex >= 0 && HouseIndex < HouseClass::Array->Count) {
+		auto pHouse = HouseClass::Array->Items[HouseIndex];
+		auto pSide = SideClass::Array->operator[](pHouse->Type->SideIndex);
+		auto pHouseType = HouseTypeExtContainer::Instance.Find(HouseClass::CurrentPlayer()->Type);
+	
+		if(!pHouseType->EVAIndex.isset())
+			ScenarioExtData::Instance()->IsHouseTypeVoiceNeedCheck = false;
+
+		VoxClass::EVAIndex = SideExtContainer::Instance.Find(pSide)->EVAIndex;
+		_SideIdx = pHouse->Type->SideIndex;
+	}
+
+	R->EBX(_SideIdx);
+	return 0x687811;
+}
+
+ASMJIT_PATCH(0x6878A0, ScenarioClass_LoadINI_EVAIndex3, 5)
+{
+	GET(int, HouseIndex, EAX);
+
+	int _SideIdx = 0;
+
+	if(HouseIndex >= 0 && HouseIndex < HouseClass::Array->Count) {
+		auto pHouse = HouseClass::Array->Items[HouseIndex];
+		auto pSide = SideClass::Array->operator[](pHouse->Type->SideIndex);
+		auto pHouseType = HouseTypeExtContainer::Instance.Find(HouseClass::CurrentPlayer()->Type);
+
+		if(!pHouseType->EVAIndex.isset())
+			ScenarioExtData::Instance()->IsHouseTypeVoiceNeedCheck = false;
+
+		VoxClass::EVAIndex = SideExtContainer::Instance.Find(pSide)->EVAIndex;
+		_SideIdx = pHouse->Type->SideIndex;
+	}
+
+	R->EBX(_SideIdx);
+
+	return 0x6878C3;
+}
+
+static COMPILETIMEEVAL reference<unsigned long , 0xA8E7A8> const ScenarioCRC {};
+
+ASMJIT_PATCH(0x68776E, ScenarioClass_LoadINI_EVAIndex2, 8)
+{
+	int _SideIdx = 0;
+	ScenarioCRC = 0;
+
+	if(SessionClass::Instance->GameMode != GameMode::Campaign) {
+		auto campaignIdx = ScenarioClass::Instance->CampaignIndex;
+		if(campaignIdx != -1){
+			_SideIdx = CampaignClass::Array->Items[campaignIdx]->idxCD;
+		}
+	} else {
+
+		auto pNode = NodeNameType::Array->Items[0];
+		int HouseTypeSelected = 0;
+		if(pNode->HouseIndex != -3){
+			HouseTypeSelected = pNode->HouseIndex;
+		}
+
+		auto pHouse = HouseClass::Array->Items[HouseTypeSelected];
+		auto pHouseType = HouseTypeExtContainer::Instance.Find(pHouse->Type);
+
+		if(!pHouseType->EVAIndex.isset())
+			ScenarioExtData::Instance()->IsHouseTypeVoiceNeedCheck = false;
+		else 
+
+		_SideIdx = pHouse->Type->SideIndex;
+	}
+
+	VoxClass::EVAIndex = SideExtContainer::Instance.Find(SideClass::Array->operator[](_SideIdx))->EVAIndex;
+	
+
+	R->ECX(_SideIdx);
+	return 0x6877B5;
+}
+
+// decide to check it here because one of the hook path litelarry doest support direct house/housetype access
+// and changing that need more effort and code than doing this hack
+DEFINE_HOOK(0x68AD0C, ScenarioClass_ReadMap_SetEVAIndex, 0x7)
+{
+	if (const auto pHouse = HouseClass::CurrentPlayer()) {
+		if (ScenarioExtData::Instance()->IsHouseTypeVoiceNeedCheck)
+			VoxClass::EVAIndex = HouseTypeExtContainer::Instance.Find(pHouse->Type)->EVAIndex.Get();
+	}
+
+	return 0;
+}

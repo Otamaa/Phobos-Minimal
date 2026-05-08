@@ -778,14 +778,14 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 
 	if (warhead->Psychedelic)
 	{
-		if (TechnoExtData::IsPsionicsImmune(nRank, pThis) || TechnoExtData::IsBerserkImmune(nRank, pThis)) {
-			return DamageState::Unchanged;
-		}
-
 		if (!RulesExtData::Instance()->AllowBerzerkOnAllies && pThis->Owner->IsAlliedWith(sourceHouse)) {
 			return DamageState::Unchanged;
 		}
 
+		if (TechnoExtData::IsPsionicsImmune(nRank, pThis) || TechnoExtData::IsBerserkImmune(nRank, pThis)) {
+			return DamageState::Unchanged;
+		}
+	
 		if (pThis->WhatAmI() == AbstractType::Building) {
 			return DamageState::Unchanged;
 		}

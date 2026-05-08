@@ -62,7 +62,7 @@ struct CellLevelPassabilityStruct
 
 struct GlobalPassabilityData
 {
-	WORD data[4];
+	std::array<WORD, 4u> data;
 	bool byte1;
 	bool byte2;
 };
@@ -844,7 +844,7 @@ protected:
 public:
 	DWORD unknown_10;
 	HashTable<DWORD,DWORD>* unknown_pointer_14;
-	void* MovementZones [13];
+	std::array<void*, 13> MovementZones;
 	DWORD somecount_4C;
 	DynamicVectorClass<ZoneConnectionClass> ZoneConnections;
 	CellLevelPassabilityStruct* LevelAndPassability;
@@ -873,7 +873,7 @@ public:
 	int MaxWidth;
 	int MaxHeight;
 	int MaxNumCells;
-	Powerups Crates [0x100];
+	std::array<Powerups, 0x100> Crates;
 	BOOL Redraws;
 	DynamicVectorClass<CellStruct> TaggedCells;
 };

@@ -197,6 +197,11 @@ HRESULT Put_All_Pointers(LPSTREAM pStm)
 {
 	HRESULT hr = S_OK;
 
+	//save the voice Index for the current player , this is used to restore the correct voice when loading a save game
+	ULONG out = 0;
+	hr = pStm->Write(&VoxClass::EVAIndex(), sizeof(int), &out);
+	if (!SUCCEEDED(hr)) return hr;
+
 	hr = ScenarioClass::Instance->Save(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
@@ -435,10 +440,6 @@ HRESULT Put_All_Pointers(LPSTREAM pStm)
 	if (!SUCCEEDED(hr)) return hr;
 
 	hr = ThemeClass::Instance->Save(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	ULONG out = 0;
-	hr = pStm->Write(&VoxClass::EVAIndex(), sizeof(int), &out);
 	if (!SUCCEEDED(hr)) return hr;
 
 	return hr;

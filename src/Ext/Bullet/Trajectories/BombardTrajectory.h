@@ -127,8 +127,8 @@ public:
 	virtual void OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition) override;
 	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) override;
 	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
-
 	virtual const char* Name() { return "BombardTrajectory"; }
+	virtual bool ShouldSkipBridgeCheck() const override;
 
 	void PrepareForOpenFire();
 	CoordStruct CalculateMiddleCoords();

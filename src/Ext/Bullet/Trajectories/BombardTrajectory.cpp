@@ -183,6 +183,11 @@ TrajectoryCheckReturnType BombardTrajectory::OnAITechnoCheck(TechnoClass* pTechn
 	return TrajectoryCheckReturnType::ExecuteGameCheck; // Execute game checks.
 }
 
+bool BombardTrajectory::ShouldSkipBridgeCheck() const
+{
+	return !this->GetTrajectoryType()->SubjectToGround;
+}
+
 void BombardTrajectory::PrepareForOpenFire()
 {
 	auto const pBullet = this->AttachedTo;

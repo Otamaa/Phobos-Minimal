@@ -11,24 +11,25 @@
 union EventData
 {
 	EventData() { }
+	~EventData() = default;
 
 	struct nothing
 	{
-		char Data[0x68];
+		std::array<char, 0x68> Data;
 
 		template<typename T>
 		FORCEDINLINE T* As() {
-			return reinterpret_cast<T*>(this->Data);
+			return reinterpret_cast<T*>(this->Data.data());
 		}
 
 		template<typename T>
 		FORCEDINLINE void Set(T* data , size_t size) {
-			memcpy(this->Data, data, size);
+			memcpy(this->Data.data(), data, size);
 		}
 
 		template<typename T>
 		FORCEDINLINE void Set(T* data) {
-			memcpy(this->Data, data, T::size());
+			memcpy(this->Data.data(), data, T::size());
 		}
 
 	} nothing;
@@ -39,7 +40,7 @@ union EventData
 		DWORD Checksum;
 		WORD CommandCount;
 		BYTE Delay;
-		BYTE ExtraData[0x61];
+		std::array<BYTE, 0x61> ExtraData;
 	} unkData;
 	static_assert(sizeof(unkData) == 0x68);
 
@@ -48,7 +49,7 @@ union EventData
 		int ID; // Anim ID
 		int AnimOwner; // House ID
 		CellStruct Location;
-		BYTE ExtraData[0x5C];
+		std::array<BYTE, 0x5C> ExtraData;
 	} Animation;
 	static_assert(sizeof(Animation) == 0x68);
 
@@ -57,14 +58,14 @@ union EventData
 		BYTE CRC;
 		WORD CommandCount;
 		BYTE Delay;
-		BYTE ExtraData[0x64];
+		std::array<BYTE, 0x64> ExtraData;
 	} FrameInfo;
 	static_assert(sizeof(FrameInfo) == 0x68);
 
 	struct Target
 	{
 		TargetClass Whom;
-		BYTE ExtraData[0x63];
+		std::array<BYTE, 0x63> ExtraData;
 	} Target;
 	static_assert(sizeof(Target) == 0x68);
 
@@ -77,7 +78,7 @@ union EventData
 		TargetClass Destination;
 		TargetClass Follow;
 		bool IsPlanningEvent;
-		BYTE ExtraData[0x51];
+		std::array<BYTE, 0x51> ExtraData;
 	} MegaMission;
 	static_assert(sizeof(MegaMission) == 0x68);
 
@@ -89,7 +90,7 @@ union EventData
 		TargetClass Destination;
 		int Speed;
 		int MaxSpeed;
-		BYTE ExtraData[0x50];
+		std::array<BYTE, 0x50> ExtraData;
 	} MegaMission_F; // Seems unused in YR?
 	static_assert(sizeof(MegaMission_F) == 0x68);
 
@@ -98,7 +99,7 @@ union EventData
 		int RTTI_ID;
 		int Heap_ID;
 		int IsNaval;
-		BYTE ExtraData[0x5C];
+		std::array<BYTE, 0x5C> ExtraData;
 	} Production;
 	static_assert(sizeof(Production) == 0x68);
 
@@ -107,7 +108,7 @@ union EventData
 		int Unknown_0; //4
 		long long Data; //8
 		int Unknown_C; //4
-		BYTE ExtraData[0x58];
+		std::array<BYTE, 0x58> ExtraData;
 	} Unknown_LongLong;
 	//static OPTIONALINLINE COMPILETIMEEVAL size_t TotalSizeOfAdditinalData_1 = sizeof(EventData::Unknown_LongLong);
 	static_assert(sizeof(Unknown_LongLong) == 0x68);
@@ -118,7 +119,7 @@ union EventData
 		int Unknown_4;
 		int Data;
 		int Unknown_C;
-		BYTE ExtraData[0x58];
+		std::array<BYTE, 0x58> ExtraData;
 	} Unknown_Tuple;
 	static_assert(sizeof(Unknown_Tuple) == 0x68);
 
@@ -128,7 +129,7 @@ union EventData
 		int HeapID;
 		int IsNaval;
 		CellStruct Location;
-		BYTE ExtraData[0x58];
+		std::array<BYTE, 0x58> ExtraData;
 	} Place;
 	static_assert(sizeof(Place) == 0x68);
 
@@ -136,7 +137,7 @@ union EventData
 	{
 		int ID;
 		CellStruct Location;
-		BYTE ExtraData[0x60];
+		std::array<BYTE, 0x60> ExtraData;
 	} SpecialPlace;
 	static_assert(sizeof(SpecialPlace) == 0x68);
 
@@ -144,7 +145,7 @@ union EventData
 	{
 		AbstractType RTTIType;
 		int ID;
-		BYTE ExtraData[0x60];
+		std::array<BYTE, 0x60> ExtraData;
 	} Specific;
 	static_assert(sizeof(Specific) == 0x68);
 
@@ -159,8 +160,8 @@ public:
 	int Count;
 	int Head;
 	int Tail;
-	EventClass List[Length];
-	int Timings[Length];
+	std::array<EventClass, Length> List;
+	std::array<int, Length> Timings;
 };
 
 class EventClass
@@ -200,6 +201,8 @@ public:
 	{
 		__stosb(reinterpret_cast<unsigned char*>(this), 0, sizeof(*this));
 	}
+
+	~EventClass() = default;
 
 	explicit EventClass(int houseIndex, EventType eventType)
 	{

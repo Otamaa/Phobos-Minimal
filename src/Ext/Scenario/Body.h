@@ -91,6 +91,7 @@ public:
 	Valueable<bool> ShowBriefing { false };
 	bool AdjustLightingFix { false };
 	bool SWSidebar_Enable { true };
+	bool IsHouseTypeVoiceNeedCheck { true };
 	// 3 bools = 3 bytes, pads to 4 for alignment
 
 #pragma endregion
@@ -143,6 +144,7 @@ private:
 			.Process(this->BriefingTheme)
 			.Process(this->OwnedExistCameoTechnoTypes)
 			.Process(this->SWSidebar_Enable)
+			.Process(this->IsHouseTypeVoiceNeedCheck)
 			.Process(this->SWSidebar_Indices)
 
 			.Process(this->RecordMessages)

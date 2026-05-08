@@ -272,6 +272,8 @@ bool HouseTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	INI_EX exINI(pINI);
 
+
+	this->EVAIndex.Read(exINI, pSection, "EVA.Tag");
 	this->SurvivorDivisor.Read(exINI, pSection, "SurvivorDivisor");
 	this->Crew.Read(exINI, pSection, "Crew", true);
 	this->Engineer.Read(exINI, pSection, "Engineer", true);
@@ -473,6 +475,7 @@ void  HouseTypeExtData::Serialize(T& Stm)
 		.Process(this->NewTeamsSelector_GroundCategoryPercentage)
 		.Process(this->NewTeamsSelector_AirCategoryPercentage)
 		.Process(this->NewTeamsSelector_NavalCategoryPercentage)
+		.Process(this->EVAIndex)
 		.Process(this->ParachuteAnim)
 		.Process(this->StartInMultiplayer_WithConst)
 		.Process(this->Powerplants)

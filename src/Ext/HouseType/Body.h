@@ -8,6 +8,8 @@
 #include <Utilities/PhobosFixedString.h>
 #include <Utilities/PhobosPCXFile.h>
 
+#include <New/Entity/EVAVoices.h>
+
 class TechnoTypeClass;
 class InfantryTypeClass;
 class AircraftTypeClass;
@@ -79,7 +81,7 @@ public:
 	// Nullable<int> (int + bool + padding ≈ 8 bytes)
 	// ============================================================
 	Nullable<int> NewTeamsSelector_MergeUnclassifiedCategoryWith {};
-
+	NullableIdx<EVAVoices> EVAIndex { -1 };
 	// ============================================================
 	// Nullable<bool> (bool + bool ≈ 2-4 bytes)
 	// ============================================================

@@ -20,15 +20,15 @@ public:
 
 	// Properties
 	int16_t Port;
-	int SpareSockets[8];
-	int16_t SpareSocketPorts[8];
+	std::array<int, 8> SpareSockets;
+	std::array<int16_t, 8> SpareSocketPorts;
 	DWORD NextSpareSocket;
 	DWORD Socket;
 	DECLARE_PROPERTY(DynamicVectorClass<void*>, BroadcastAddresses);
-	int16_t words3F350[256];
+	std::array<int16_t, 256> words3F350;
 	DECLARE_PROPERTY(DynamicVectorClass<void*>, LocalAddresses);
 	DWORD NextAddressPort;
-	int Addresses[16];
-	int16_t Ports[16];
+	std::array<int, 16>Addresses;
+	std::array<int16_t, 16> Ports;
 };
 static_assert(sizeof(UDPInterfaceClass) == 0x3F5CC);

@@ -144,9 +144,6 @@ ASMJIT_PATCH(0x445D87, BuildingClass_Limbo_DestroyableObstacle, 0x6)
 	if (pTypeExt->IsDestroyableObstacle)
 		RecalculateCells<true>(pThis);
 
-	if (pTypeExt->NewEvaVoice && pTypeExt->NewEvaVoice_RecheckOnDeath)
-		pThis->_GetExtData()->UpdateMainEvaVoice();
-
 	return 0;
 }
 

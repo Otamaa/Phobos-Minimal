@@ -1121,16 +1121,17 @@ namespace
 		bool crossed_top_descending = false;
 		bool crossed_top_ascending = false;
 
-		if (pCellNew->ContainsBridgeHead() || MapClass::Instance->GetCellAt(old_pos)->ContainsBridgeHead())
-		{
-			if (new_pos.Z < wall_top)
-			{
-				if (old_pos.Z >= wall_top)
-					crossed_top_ascending = true;
-			}
-			else if (old_pos.Z < wall_top)
-			{
-				crossed_top_descending = true;
+		if(pExt->Trajectory && pExt->Trajectory->ShouldSkipBridgeCheck()){
+			if (pCellNew->ContainsBridgeHead() || MapClass::Instance->GetCellAt(old_pos)->ContainsBridgeHead()) {
+				if (new_pos.Z < wall_top)
+				{
+					if (old_pos.Z >= wall_top)
+						crossed_top_ascending = true;
+				}
+				else if (old_pos.Z < wall_top)
+				{
+					crossed_top_descending = true;
+				}
 			}
 		}
 

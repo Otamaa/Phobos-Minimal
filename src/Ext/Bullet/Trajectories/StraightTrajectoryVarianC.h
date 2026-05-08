@@ -99,6 +99,9 @@ public:
 	}
 
 	virtual const char* Name() { return "StraightTrajectoryVarianC"; }
+	virtual bool ShouldSkipBridgeCheck() const override {
+		return !this->GetTrajectoryType()->SubjectToGround;
+	}
 
 private:
 	void PrepareForOpenFire();

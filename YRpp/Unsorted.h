@@ -268,13 +268,13 @@ struct Game
 	static void __fastcall Update_Visible_Surface(bool, Surface*, RectangleStruct*) 
 		{ JMP_FAST(0x4F4780); }
 
-	void __fastcall Focus_Loss()
+	static void __fastcall Focus_Loss()
 		{	JMP_FAST(0x7773C0); }
 
-	void __fastcall Focus_Restore()
+	static void __fastcall Focus_Restore()
 		{ JMP_FAST(0x777420); }
 
-	bool __fastcall Set_Video_Mode(HWND__* hwnd, int w, int h, int bits_per_pixel)
+	static bool __fastcall Set_Video_Mode(HWND__* hwnd, int w, int h, int bits_per_pixel)
 		{ JMP_FAST(0x4A42F0); }
 
 
