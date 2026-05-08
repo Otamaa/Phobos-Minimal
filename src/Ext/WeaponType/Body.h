@@ -213,6 +213,8 @@ public:
 	Nullable<bool> AutoTarget_IronCurtained {};
 
 	Nullable<bool> CylinderRangefinding {};
+
+	Nullable<int> LaserZAdjust {};
 #pragma endregion
 
 public:

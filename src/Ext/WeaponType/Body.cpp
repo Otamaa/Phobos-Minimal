@@ -300,6 +300,7 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->CanTarget_IronCurtained.Read(exINI, pSection, "CanTarget.IronCurtained");
 	this->AutoTarget_IronCurtained.Read(exINI, pSection, "AutoTarget.IronCurtained");
 	this->CylinderRangefinding.Read(exINI, pSection, "CylinderRangefinding");
+	this->LaserZAdjust.Read(exINI, pSection, "LaserZAdjust");
 
 	this->SkipWeaponPicking = true;
 	if (this->CanTarget != AffectedTarget::All ||
@@ -657,6 +658,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->CanTarget_IronCurtained)
 		.Process(this->AutoTarget_IronCurtained)
 		.Process(this->CylinderRangefinding)
+		.Process(this->LaserZAdjust)
 		
 		;
 };

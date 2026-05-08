@@ -92,15 +92,15 @@ void FakeTechnoClass::__HandleTurretAudio(TechnoClass* pThis)
 	}
 
 	if (pThis->TurretIsRotating) {
-		if (pThis->__IsTurretTurning_49C) {
+		if (pThis->IsTurretRotateSoundPlaying) {
 			pThis->Audio3.AudioEventHandleStop();
 			VocClass::SafeImmedietelyPlayAt(pType->TurretRotateSound, &pThis->Location, &pThis->Audio3);
 
-			pThis->__IsTurretTurning_49C = 0;
+			pThis->IsTurretRotateSoundPlaying = 0;
 		}
 	} else {
 		pThis->Audio3.AudioEventHandleStop();
-		pThis->__IsTurretTurning_49C = 1;
+		pThis->IsTurretRotateSoundPlaying = 1;
 	}
 
 	VocClass::PlayIfInRange(pThis->Location, &pThis->Audio3);

@@ -2664,3 +2664,45 @@ ASMJIT_PATCH(0x73E951, UnitClass_Harvest_HarvesterLoadRate, 6)
 
 	return 0x73E957;
 }
+
+ASMJIT_PATCH(0x6FD3FD, TechnoClass_LaserZap_ZAdjust, 0x5)
+{
+	GET_STACK(WeaponTypeClass*, pWeapon, STACK_OFFSET(0x6C, 0xC));
+	GET(int, zAdjust, EAX);
+
+	zAdjust += WeaponTypeExtContainer::Instance.Find(pWeapon)->LaserZAdjust.Get(RulesExtData::Instance()->LaserZAdjust);
+	R->EAX(zAdjust);
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x44B214, BuildingClass_Mission_Attack_Gattling, 0x6)
+{
+	enum { SkipGameCode = 0x44B228 };
+
+	GET(BuildingClass*, pThis, ESI);
+
+	if (TechnoExtData::HasWeaponsDisabled(pThis))
+	{
+		pThis->GattlingRateDown(pThis->MissionAccumulateTime);
+		pThis->MissionAccumulateTime = 0;
+		return SkipGameCode;
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x737086, UnitClass_FiringAI_Gattling, 0x9)
+{
+	enum { SkipGameCode = 0x7370AE };
+
+	GET(UnitClass*, pThis, ESI);
+	GET(FireError, fireError, EBP);
+
+	if (fireError == FireError::REARM && TechnoExtData::HasWeaponsDisabled(pThis))
+		pThis->GattlingRateDown(1);
+	else
+		pThis->GattlingRateUp(1);
+
+	return SkipGameCode;
+}

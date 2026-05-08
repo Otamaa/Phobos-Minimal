@@ -30,7 +30,8 @@ TechnoClass* pThis,
 AbstractClass* pTarget,
 int nWeaponIdx,
 bool bCheckRange,
-bool bSkipROF)
+bool bSkipROF,
+bool bIgnoreDisableWeapon)
 {
 	// ====================================================================
 // [1] Basic null / enslaved
@@ -71,11 +72,9 @@ bool bSkipROF)
 	if (!pThisExt->CanFireWeaponType)
 		return FireError::ILLEGAL;
 
-	if (pThisExt->DisableWeaponTimer.InProgress())
-		return FireError::REARM;
-
-	if (pThisExt->AE.flags.DisableWeapons)
-		return FireError::REARM;
+	if(!bIgnoreDisableWeapon && TechnoExtData::HasWeaponsDisabled(pThis)){
+			return FireError::REARM;
+	}
 
 	if (pTechnoT)
 	{
@@ -453,7 +452,7 @@ bool bSkipROF)
 			}
 
 			if (pTransTypeExt->OpenTopped_CheckTransportDisableWeapons
-				&& TechnoExtContainer::Instance.Find(pTransport)->AE.flags.DisableWeapons
+				&& TechnoExtData::HasWeaponsDisabled(pTransport)
 				&& pThisExt->CanFireWeaponType)
 			{
 				return FireError::REARM;

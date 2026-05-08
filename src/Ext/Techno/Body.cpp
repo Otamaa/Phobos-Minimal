@@ -223,6 +223,40 @@ void TintColors::GetTints(int* tintColor, int* intensity)
 	}
 }
 
+bool TechnoExtData::HasWeaponsDisabled(TechnoClass* pThis)
+{
+	const auto pThisExt = TechnoExtContainer::Instance.Find(pThis);
+
+	if (pThisExt->DisableWeaponTimer.InProgress())
+		return true;
+
+	if (pThisExt->AE.flags.DisableWeapons)
+		return true;
+
+	return false;
+}
+
+FireError TechnoExtData::GetFireErrorIgnoreDisableWeapons(TechnoClass* pThis, AbstractClass* pTarget, int weaponIndex, bool ignoreRange)
+{
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+	bool const disableWeapons = pExt->AE.flags.DisableWeapons;
+	int timeLeft = 0;
+
+	pExt->AE.flags.DisableWeapons = false;
+
+	timeLeft = pExt->DisableWeaponTimer.GetTimeLeft();
+	pExt->DisableWeaponTimer.Stop();
+
+	auto const fireError = pThis->GetFireError(pTarget, weaponIndex, ignoreRange);
+	
+	pExt->AE.flags.DisableWeapons = disableWeapons;
+
+	if (timeLeft > 0)
+		pExt->DisableWeaponTimer.Start(timeLeft);
+
+	return fireError;
+}
+
 void TechnoExtData::ShakeScreen(TechnoClass* pThis, int nValToCalc, int nRules) {
 	if (pThis->IsOnMyView())
 	{
@@ -6059,7 +6093,7 @@ bool __fastcall FakeTechnoClass::__TargetSomethingNearby(TechnoClass* pThis, dis
 	if (pThis->Target && pThis->ShouldLoseTargetNow)
 	{
 		const int weaponIndex = pThis->SelectWeapon(pThis->Target);
-		const auto fire = pThis->GetFireError(pThis->Target, weaponIndex, 1);
+		const auto fire = TechnoExtData::GetFireErrorIgnoreDisableWeapons(pThis, pThis->Target, weaponIndex, 1);
 
 		if (fire == FireError::CANT) {
 

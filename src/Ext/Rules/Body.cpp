@@ -705,6 +705,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	#pragma endregion
 
 	#pragma region AudioVisual
+	this->LaserZAdjust.Read(exINI, GameStrings::AudioVisual, "LaserZAdjust");
 	this->AirstrikeLineZAdjust.Read(exINI, GameStrings::AudioVisual, "AirstrikeLineZAdjust");
 	this->UseRetintFix.Read(exINI, GameStrings::AudioVisual, "UseRetintFix");
 	this->WarheadAnimZAdjust.Read(exINI, GameStrings::AudioVisual, "WarheadAnimZAdjust");
@@ -1268,6 +1269,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->AISuperWeaponDelay)
 		.Process(this->ChronoSpherePreDelay)
 		.Process(this->ChronoSphereDelay)
+		.Process(this->LaserZAdjust)
 		.Process(this->EnablePowerSurplus)
 		.Process(this->ShakeScreenUseTSCalculation)
 		.Process(this->UnitIdleRotateTurret)

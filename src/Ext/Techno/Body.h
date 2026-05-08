@@ -979,6 +979,9 @@ public:
 	static void Ares_technoUpdate(TechnoClass* pThis);
 	static void Ares_AddMoneyStrings(TechnoClass* pThis, bool forcedraw);
 
+	static bool HasWeaponsDisabled(TechnoClass* pThis);
+	static FireError GetFireErrorIgnoreDisableWeapons(TechnoClass* pThis, AbstractClass* pTarget, int weaponIndex, bool ignoreRange);
+
 public:
 	static UnitClass* Deployer;
 
@@ -1058,7 +1061,8 @@ public:
 	AbstractClass* pTarget,
 	int nWeaponIdx,
 	bool bCheckRange,
-	bool bSkipROF = false);
+	bool bSkipROF = false,
+	bool bIgnoreDisableWeapon = false);
 
 	static double __fastcall __GetThreatCoeff(TechnoClass* pThis, discard_t, ObjectClass* pTarget, CoordStruct* pTargetCoord);
 
