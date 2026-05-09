@@ -1038,7 +1038,7 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		pOwner->RecheckPower = true;
 		pOwner->Buildings.push_back(pBuilding);
 		pOwner->ActiveBuildingTypes.increment(pBuilding->Type->ArrayIndex);
-		pOwner->UpdateSuperWeaponsUnavailable();
+		((FakeHouseClass*)pOwner)->_AI_Supers();
 
 		auto const pBuildingExt = BuildingExtContainer::Instance.Find(pBuilding);
 
@@ -1149,7 +1149,7 @@ void BuildingExtData::LimboKill(BuildingClass* pBuilding)
 			pTargetHouse->UnitsSelfHeal = 0;
 	}
 
-	pTargetHouse->UpdateSuperWeaponsUnavailable();
+	((FakeHouseClass*)pTargetHouse)->_AI_Supers();
 	pBuilding->Stun();
 	pBuilding->Limbo();
 

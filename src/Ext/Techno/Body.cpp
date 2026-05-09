@@ -13145,7 +13145,7 @@ TechnoExtData::~TechnoExtData()
 
 	//only update the SW if really needed it
 	if (pThis->Owner && pThis->WhatAmI() != BuildingClass::AbsID && !pTypeExt->Linked_SW.empty())
-		pThis->Owner->UpdateSuperWeaponsUnavailable();
+		((FakeHouseClass*)pThis->Owner)->_AI_Supers();
 
 	this->ClearElectricBolts();
 

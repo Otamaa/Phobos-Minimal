@@ -514,6 +514,11 @@ public:
 	Valueable<Leptons> Traction_Speed {};
 
 	Nullable<StackingMode> Psychedelic_StackingMode {};
+
+	Valueable<int> RadarOutage_Duration {};
+	Valueable<AffectedHouse> RadarOutage_AffectsHouse { AffectedHouse::Owner };
+	Valueable<int> PowerOutage_Duration {};
+	Valueable<AffectedHouse> PowerOutage_AffectsHouse { AffectedHouse::Owner };
 #pragma endregion
 
 public:

@@ -789,7 +789,14 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Traction_Speed.Read(exINI, pSection, "Traction.Speed");
 	this->Psychedelic_StackingMode.Read(exINI, pSection, "Psychedelic.StackingMode");
 
+	this->RadarOutage_Duration.Read(exINI, pSection, "RadarOutage.Duration");
+	this->RadarOutage_AffectsHouse.Read(exINI, pSection, "RadarOutage.AffectsHouse");
+	this->PowerOutage_Duration.Read(exINI, pSection, "PowerOutage.Duration");
+	this->PowerOutage_AffectsHouse.Read(exINI, pSection, "PowerOutage.AffectsHouse");
+
 	this->IsCellSpreadWH =
+		this->RadarOutage_Duration ||
+		this->PowerOutage_Duration ||
 		this->RemoveDisguise ||
 		this->RemoveMindControl ||
 		//this->Crit_Chance ||
@@ -2129,6 +2136,11 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->Traction_Range)
 		.Process(this->Traction_Speed)
 		.Process(this->Psychedelic_StackingMode)
+
+		.Process(this->RadarOutage_Duration)
+		.Process(this->RadarOutage_AffectsHouse)
+		.Process(this->PowerOutage_Duration)
+		.Process(this->PowerOutage_AffectsHouse)
 		;
 }
 

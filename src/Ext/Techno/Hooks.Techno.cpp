@@ -228,7 +228,7 @@ ASMJIT_PATCH(0x6F6F20, TechnoClass_Unlimbo_BuildingLight, 6)
 
 	//only update the SW if really needed it
 	if (pThis->Owner && pThis->WhatAmI() != BuildingClass::AbsID && !pTypeExt->Linked_SW.empty())
-		pThis->Owner->UpdateSuperWeaponsUnavailable();
+		((FakeHouseClass*)pThis->Owner)->_AI_Supers();
 
 	if (pTypeExt->HasSpotlight)
 	{

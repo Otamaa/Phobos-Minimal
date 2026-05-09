@@ -794,6 +794,20 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 	if (!pTarget->IsAlive)
 		return;
 
+	if (this->RadarOutage_Duration > 0 || this->PowerOutage_Duration > 0) {
+		for (const auto pTargetHouse : *HouseClass::Array) {
+			if (!pHouse->Defeated && !pHouse->IsObserver() && !pHouse->Type->MultiplayPassive) {
+
+				if (this->PowerOutage_Duration > 0 && EnumFunctions::CanTargetHouse(this->PowerOutage_AffectsHouse, pHouse, pTargetHouse)) {
+					pTargetHouse->CreatePowerOutage(this->PowerOutage_Duration);
+				}
+
+				if (this->RadarOutage_Duration > 0 && EnumFunctions::CanTargetHouse(this->RadarOutage_AffectsHouse, pHouse, pTargetHouse)) {
+					pTargetHouse->CreateRadarOutage(this->RadarOutage_Duration);
+				}
+			}
+		}
+	}
 	//auto pExt = TechnoExtContainer::Instance.Find(pTarget);
 
 	//if(this->PaintBallDuration.isset() && this->PaintBallData.Color != ColorStruct::Empty) {

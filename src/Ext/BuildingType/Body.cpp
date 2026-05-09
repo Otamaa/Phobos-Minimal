@@ -706,7 +706,7 @@ void BuildingTypeExtData::CreateLimboBuilding(BuildingClass* pBuilding, Building
 		pOwner->Buildings.push_back(pBuilding);
 
 		pOwner->ActiveBuildingTypes.increment(pBuilding->Type->ArrayIndex);
-		pOwner->UpdateSuperWeaponsUnavailable();
+		((FakeHouseClass*)pOwner)->_AI_Supers();
 
 		auto const pBuildingExt = BuildingExtContainer::Instance.Find(pBuilding);
 

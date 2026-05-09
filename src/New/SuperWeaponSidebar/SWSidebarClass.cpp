@@ -8,6 +8,7 @@
 #include <Ext/SWType/Body.h>
 #include <Ext/Scenario/Body.h>
 #include <Ext/Rules/Body.h>
+#include <Ext/House/Body.h>
 
 #include <SuperWeaponTypeClass.h>
 #include <SuperClass.h>
@@ -321,7 +322,7 @@ ASMJIT_PATCH(0x4F92FB, HouseClass_UpdateTechTree_SWSidebar, 0x7)
 
 	GET(HouseClass*, pHouse, ESI);
 
-	pHouse->UpdateSuperWeaponsUnavailable();
+	((FakeHouseClass*)pHouse)->_AI_Supers();
 
 	if (pHouse->IsCurrentPlayer())
 		SWSidebarClass::RecheckCameo();
