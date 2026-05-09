@@ -126,6 +126,7 @@ public:
 	ValueableIdxVector<SuperWeaponTypeClass> SW_ResetType {};
 	ValueableVector<int> SW_Require {};
 	ValueableVector<TechnoTypeClass*> Aux_Techno {};
+	ValueableVector<TechnoTypeClass*> Neg_Techno {};
 	ValueableVector<BuildingTypeClass*> SW_Lauchsites {};
 	ValueableIdxVector<SuperWeaponTypeClass> SW_Link {};
 	ValueableVector<float> SW_Link_RollChances {};

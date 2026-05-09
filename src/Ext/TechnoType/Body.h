@@ -842,7 +842,7 @@ public:
 	Promotable<double> Bounty_Value_mult {};
 	Valueable<bool> Bounty_IgnoreEnablers { false };
 	bool RecheckTechTreeWhenDie { false };
-	ValueableVector<SuperWeaponTypeClass*> Linked_SW {};
+	std::set<SuperWeaponTypeClass*> Linked_SW {};
 
 	Nullable<bool> CanDrive {};
 	ValueableVector<TechnoTypeClass*> Operators {};

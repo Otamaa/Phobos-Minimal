@@ -508,9 +508,7 @@ TargetResult TargetingFuncs::GetAuxTechnoTarget(SWTypeHandler* pNewType, const T
 				}
 			}
 		}
-	}
-	else
-	{
+	} else {
 		Debug::LogInfo("Uneable to fire SW [{} - {}] , AuxTechno is empty!", pTargeting->TypeExt->Name.data(), pTargeting->Owner->Type->ID);
 	}
 

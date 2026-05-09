@@ -1306,6 +1306,7 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_ResetType.Read(exINI, pSection, "SW.ResetTypes");
 	GenericPrerequisite::Parse(pINI, pSection, "SW.RequireBuildings", this->SW_Require);
 	this->Aux_Techno.Read(exINI, pSection, "SW.AuxTechnos");
+	this->Neg_Techno.Read(exINI, pSection, "SW.NegTechnos");
 	this->SW_Lauchsites.Read(exINI, pSection, "SW.LaunchSites");
 
 	this->UseWeeds.Read(exINI, pSection, "UseWeeds");
@@ -1730,6 +1731,17 @@ bool SWTypeExtData::IsAvailable(HouseClass* pHouse)
 			return count > 0;
 		}))
 	{
+		return false;
+	}
+
+	const auto& NegAuxT = this->Neg_Techno;
+	if (!NegAuxT.empty() && NegAuxT.None_Of([pHouse, &count](TechnoTypeClass* pType) {
+			if (pType) {
+				count = pHouse->CountOwnedAndPresent(pType);
+			}
+
+			return count <= 0;
+		})) {
 		return false;
 	}
 
@@ -2265,6 +2277,7 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->SW_ResetType)
 		.Process(this->SW_Require)
 		.Process(this->Aux_Techno)
+		.Process(this->Neg_Techno)
 		.Process(this->SW_Lauchsites)
 
 		.Process(this->MeteorCounts)

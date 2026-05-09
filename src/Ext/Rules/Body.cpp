@@ -2294,9 +2294,8 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			//	CursorTypeClass::AllocateWithDefault(_name.c_str(), _Temp_MouseCursor);
 			//}
 
-			for (auto& pTech : pSuperExt->Aux_Techno)
-			{
-				TechnoTypeExtContainer::Instance.Find(pTech)->Linked_SW.push_back(pSuper);
+			for (auto& pTech : pSuperExt->Aux_Techno) {
+				TechnoTypeExtContainer::Instance.Find(pTech)->Linked_SW.emplace(pTech);
 			}
 
 			fast_remove_if(pSuperExt->SW_AuxBuildings, [](BuildingTypeClass* pItem) { return !pItem; });
@@ -2304,10 +2303,8 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 			Helpers::Alex::remove_non_paradroppables(pSuperExt->DropPod_Types, pSuper->ID, "DropPod.Types");
 
-			for (auto& para : pSuperExt->ParaDropDatas)
-			{
-				for (auto& pVec : para.second)
-				{
+			for (auto& para : pSuperExt->ParaDropDatas) {
+				for (auto& pVec : para.second) {
 					Helpers::Alex::remove_non_paradroppables(pVec.Types, pSuper->ID, "ParaDrop.Types");
 				}
 			}
