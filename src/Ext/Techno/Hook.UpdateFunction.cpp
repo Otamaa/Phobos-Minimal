@@ -1243,3 +1243,4 @@ ASMJIT_PATCH(0x70E92F, TechnoClass_UpdateAirstrikeTint, 0x5)
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x6F9E50, FakeTechnoClass::__AI);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F49BC, FakeTechnoClass::__AI);

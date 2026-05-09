@@ -41,7 +41,6 @@ static int GetMultiWeaponRange(TechnoClass* pThis)
 
 	return range;
 }
-//#pragma optimize("", off )
 
 AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 	TechnoClass* pThis, discard_t, ThreatType method,
@@ -562,6 +561,20 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x6F8DF0, FakeTechnoClass::__Greatest_Threat);
 DEFINE_FUNCTION_JUMP(CALL, 0x4D9942, FakeTechnoClass::__Greatest_Threat);//foot
 DEFINE_FUNCTION_JUMP(CALL, 0x445F68, FakeTechnoClass::__Greatest_Threat);//building
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4D24, FakeTechnoClass::__Greatest_Threat);//technoVtable
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x709820, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2640, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4258, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E9030, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB3F4, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4CFC, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F600C, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(CALL6, 0x6FA6DC, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(CALL6, 0x4D6F06, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(CALL6, 0x4D5392, FakeTechnoClass::__TargetSomethingNearby);
+
+DEFINE_FUNCTION_JUMP(CALL, 0x6F8C00, FakeTechnoClass::__EvaluateObject);
+DEFINE_FUNCTION_JUMP(LJMP, 0x6F7CA0, FakeTechnoClass::__EvaluateObject);
 
 static bool CanAttackMindControlled(TechnoClass* pControlled, TechnoClass* pRetaliator)
 {
@@ -1450,8 +1463,6 @@ bool __fastcall FakeTechnoClass::__EvaluateObject(
 }
 //#pragma optimize("", on )
 
-DEFINE_FUNCTION_JUMP(CALL, 0x6F8C00, FakeTechnoClass::__EvaluateObject);
-DEFINE_FUNCTION_JUMP(LJMP, 0x6F7CA0, FakeTechnoClass::__EvaluateObject);
 
 ASMJIT_PATCH(0x6F90F8, TechnoClass_SelectAutoTarget_Demacroize, 6)
 {

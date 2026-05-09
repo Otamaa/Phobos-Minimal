@@ -454,7 +454,7 @@ ASMJIT_PATCH(0x6B1065, SlaveManagerClass_ShouldWakeUp_ShortScan, 5)
 	auto pTypeExt = GET_TECHNOTYPEEXT(pThis->Owner);
 	auto nKickFrameDelay = pTypeExt->Harvester_KickDelay.Get(RulesClass::Instance->SlaveMinerKickFrameDelay);
 
-	if (nKickFrameDelay < 0 || nKickFrameDelay + pThis->LastScanFrame >= Unsorted::CurrentFrame)
+	if (nKickFrameDelay < 0 || nKickFrameDelay + pThis->LastScanFrame >= Unsorted::CurrentFrame())
 		return 0x6B10C6;
 
 	R->EAX(pTypeExt->Harvester_ShortScan.Get(RulesClass::Instance->SlaveMinerShortScan));
@@ -607,7 +607,7 @@ ASMJIT_PATCH(0x74081F, UnitClass_Mission_Guard_KickFrameDelay, 5)
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	auto nFrame = pTypeExt->Harvester_KickDelay.Get(RulesClass::Instance->SlaveMinerKickFrameDelay);
 
-	return(nFrame < 0 || nFrame + pThis->CurrentMissionStartTime >= Unsorted::CurrentFrame) ?
+	return(nFrame < 0 || nFrame + pThis->CurrentMissionStartTime >= Unsorted::CurrentFrame()) ?
 		0x740854 : 0x74083B;
 }
 

@@ -5875,6 +5875,9 @@ CoordStruct* __fastcall FakeTechnoClass::__Get_FLH(TechnoClass* pThis, discard_t
 	return pBuffer;
 }
 DEFINE_FUNCTION_JUMP(LJMP, 0x6F3AD0, FakeTechnoClass::__Get_FLH);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2354, FakeTechnoClass::__Get_FLH);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E8D44, FakeTechnoClass::__Get_FLH);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4A10, FakeTechnoClass::__Get_FLH);
 
 int __fastcall FakeTechnoClass::__AdjustDamage(TechnoClass* pThis, discard_t,TechnoClass* pTarget, WeaponTypeClass* pWeapon)
 {
@@ -6129,17 +6132,6 @@ bool __fastcall FakeTechnoClass::__TargetSomethingNearby(TechnoClass* pThis, dis
 
 	return pThis->Target != nullptr;
 }
-
-DEFINE_FUNCTION_JUMP(LJMP, 0x709820, FakeTechnoClass::__TargetSomethingNearby);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2640, FakeTechnoClass::__TargetSomethingNearby);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4258, FakeTechnoClass::__TargetSomethingNearby);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E9030, FakeTechnoClass::__TargetSomethingNearby);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB3F4, FakeTechnoClass::__TargetSomethingNearby);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4CFC, FakeTechnoClass::__TargetSomethingNearby);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F600C, FakeTechnoClass::__TargetSomethingNearby);
-DEFINE_FUNCTION_JUMP(CALL6, 0x6FA6DC, FakeTechnoClass::__TargetSomethingNearby);
-DEFINE_FUNCTION_JUMP(CALL6, 0x4D6F06, FakeTechnoClass::__TargetSomethingNearby);
-DEFINE_FUNCTION_JUMP(CALL6, 0x4D5392, FakeTechnoClass::__TargetSomethingNearby);
 
 bool NOINLINE TechnoExtData::CanRetaliateICUnit(TechnoClass* pThis, FakeWeaponTypeClass* pWP, TechnoClass* pTarget)
 {
@@ -13148,6 +13140,12 @@ TechnoExtData::~TechnoExtData()
 			GameDelete<true, false>(pTemp);
 		}
 	}
+
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
+
+	//only update the SW if really needed it
+	if (pThis->Owner && pThis->WhatAmI() != BuildingClass::AbsID && !pTypeExt->Linked_SW.empty())
+		pThis->Owner->UpdateSuperWeaponsUnavailable();
 
 	this->ClearElectricBolts();
 

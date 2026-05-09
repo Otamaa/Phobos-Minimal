@@ -197,4 +197,4 @@ double __fastcall FakeTechnoClass::__GetThreatCoeff(TechnoClass* pThis, discard_
 	return (double)rangeDiff * targetDistanceCoeff + finalScore + 100000.0;
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x70CD10, FakeTechnoClass::__GetThreatCoeff)
+ DEFINE_FUNCTION_JUMP(LJMP, 0x70CD10, FakeTechnoClass::__GetThreatCoeff)

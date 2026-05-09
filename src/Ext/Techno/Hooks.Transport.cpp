@@ -211,6 +211,7 @@ void TechnoExtData::Fastenteraction(FootClass* pThis) {
 	}
 }
 
+
 // Rewrite from 0x4835D5/0x74004B, replace check pThis->GetCell()->LandType != LandType::Water
 static FORCEDINLINE bool CanUnloadNow(UnitClass* pTransport, FootClass* pPassenger)
 {

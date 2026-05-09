@@ -160,18 +160,10 @@ ASMJIT_PATCH(0x753380, VoxClass_GetFilename, 5)
 
 void __fastcall VoxClass_SetEvaIndex(int house) {
 
-	if (Phobos::Otamaa::DoingLoadGame) {
-		VoxClass::EVAIndex = 0;
-	}
-	else if (auto pSide = SideClass::Array->get_or_default(house)) {
-		VoxClass::EVAIndex = SideExtContainer::Instance.Find(pSide)->EVAIndex;
-	} else if (house < 0) {
-		VoxClass::EVAIndex = 0;
-	}
 }
 
-// DEFINE_FUNCTION_JUMP(CALL,0x534FAC, VoxClass_SetEvaIndex);
-// DEFINE_FUNCTION_JUMP(LJMP,0x7534E0, VoxClass_SetEvaIndex);
+ DEFINE_FUNCTION_JUMP(CALL,0x534FAC, VoxClass_SetEvaIndex);
+ DEFINE_FUNCTION_JUMP(LJMP,0x7534E0, VoxClass_SetEvaIndex);
 
 #include <Ext/HouseType/Body.h>
 #include <Ext/Scenario/Body.h>
@@ -228,27 +220,27 @@ ASMJIT_PATCH(0x68776E, ScenarioClass_LoadINI_EVAIndex2, 8)
 	int _SideIdx = 0;
 	ScenarioCRC = 0;
 
-	if(SessionClass::Instance->GameMode != GameMode::Campaign) {
+	if(SessionClass::Instance->GameMode == GameMode::Campaign) {
 		auto campaignIdx = ScenarioClass::Instance->CampaignIndex;
 		if(campaignIdx != -1){
 			_SideIdx = CampaignClass::Array->Items[campaignIdx]->idxCD;
 		}
 	} else {
 
+		//yeah , you tell me
 		auto pNode = NodeNameType::Array->Items[0];
 		int HouseTypeSelected = 0;
-		if(pNode->HouseIndex != -3){
-			HouseTypeSelected = pNode->HouseIndex;
+		if(pNode->Country != -3){
+			HouseTypeSelected = pNode->Country;
 		}
 
-		auto pHouse = HouseClass::Array->Items[HouseTypeSelected];
-		auto pHouseType = HouseTypeExtContainer::Instance.Find(pHouse->Type);
+		auto pHouse = HouseTypeClass::Array->Items[HouseTypeSelected];
+		auto pHouseType = HouseTypeExtContainer::Instance.Find(pHouse);
 
 		if(!pHouseType->EVAIndex.isset())
 			ScenarioExtData::Instance()->IsHouseTypeVoiceNeedCheck = false;
-		else 
 
-		_SideIdx = pHouse->Type->SideIndex;
+		_SideIdx = pHouse->SideIndex;
 	}
 
 	VoxClass::EVAIndex = SideExtContainer::Instance.Find(SideClass::Array->operator[](_SideIdx))->EVAIndex;

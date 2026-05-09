@@ -584,7 +584,7 @@ CoordStruct* FakeUnitClass::_GetFLH(CoordStruct* outBuffer, int weaponIdx, int b
 			}
 		}
 
-		*outBuffer = pThis->TechnoClass::GetFLH(weaponIdx,0,0,0);
+		FakeTechnoClass::__Get_FLH(pThis, discard_t(), outBuffer, weaponIdx, CoordStruct::Empty);
 	}
 	while (false);
 
