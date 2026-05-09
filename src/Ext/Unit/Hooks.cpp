@@ -13,6 +13,20 @@
 #include <UnitClass.h>
 #include <UnitTypeClass.h>
 
+ASMJIT_PATCH(0x73E361, UnitClass_Harvesting_HarvesterDumpRate, 6)
+{
+	GET(UnitClass* const, pThis, ESI);
+
+	auto pType = pThis->Type;
+	auto pTypeExt = UnitTypeExtContainer::Instance.Find(pType);
+
+	double dumpRate = pTypeExt->HarvesterDumpRate.Get(RulesClass::Instance->HarvesterDumpRate);
+
+	__asm { fld dumpRate }
+
+	return 0x73E367;
+}
+
 ASMJIT_PATCH(0x73844A, UnitClass_Destroyed_PlaceCrate, 0x8)
 {
 	GET(UnitClass*, pThis, ESI);

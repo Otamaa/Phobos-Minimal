@@ -16,6 +16,7 @@ public:
 	SHPStruct* TurretShape { nullptr };
 	NullableVector<TerrainTypeClass*> DefaultMirageDisguises {};
 	Nullable<int> HarvesterLoadRate {};
+	Nullable<double> HarvesterDumpRate {};
 
 	UnitTypeExtData(UnitTypeClass* pObj) : FootTypeExtData(pObj)
 	{
@@ -66,6 +67,7 @@ private:
 			.Process(this->TurretShape)
 			.Process(this->DefaultMirageDisguises)
 			.Process(this->HarvesterLoadRate)
+			.Process(this->HarvesterDumpRate)
 
 			;
 	}

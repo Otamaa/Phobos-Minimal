@@ -243,7 +243,7 @@ int FakeUnitClass::_Mission_AreaGuard()
 	auto nFrame = pTypeExt->Harvester_KickDelay.Get(RulesClass::Instance->SlaveMinerKickFrameDelay);
 
 	if (this->SlaveManager
-			&& !(nFrame < 0 || nFrame + this->CurrentMissionStartTime >= Unsorted::CurrentFrame)) {
+			&& !(nFrame < 0 || nFrame + this->CurrentMissionStartTime >= Unsorted::CurrentFrame())) {
 
 		this->SlaveManager->Guard();
 		return static_cast<int>((this->GetCurrentMissionControl()->Rate
