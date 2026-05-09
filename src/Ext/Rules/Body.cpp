@@ -2295,7 +2295,7 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			//}
 
 			for (auto& pTech : pSuperExt->Aux_Techno) {
-				TechnoTypeExtContainer::Instance.Find(pTech)->Linked_SW.emplace(pTech);
+				TechnoTypeExtContainer::Instance.Find(pTech)->Linked_SW.emplace(pSuper);
 			}
 
 			fast_remove_if(pSuperExt->SW_AuxBuildings, [](BuildingTypeClass* pItem) { return !pItem; });
