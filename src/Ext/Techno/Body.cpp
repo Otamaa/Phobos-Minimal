@@ -2684,13 +2684,13 @@ void FakeBuildingClass::_Repair_AI()
 
 			if (this->IsDamaged != v13) {
 				this->IsDamaged = v13;
-				for (auto& anim : this->Anims) {
-					if (anim) {
-						for (int i = 0; i < 21; ++i) {
-							this->PlayAnim(v13 ?
-								v6->BuildingAnim[i].Damaged : v6->BuildingAnim[i].Anim
-								, BuildingAnimSlot(i), v13, false, 0);
-						}
+	
+				for (int i = 0; i < 21; ++i) {
+					const char* _animName = v13 ?
+						v6->BuildingAnim[i].Damaged : v6->BuildingAnim[i].Anim;
+
+					if(this->Anims[i] && _animName && *_animName){
+						this->PlayAnim(_animName, BuildingAnimSlot(i), v13, false, 0);
 					}
 				}
 			}
