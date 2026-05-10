@@ -2663,16 +2663,22 @@ void FakeBuildingClass::_Repair_AI()
 		this->NeedsRepairs = this->NeedsRepairs == 0;
 
 		const int cost = v6->__Repair_Cost();
-		const int step = v6->__Repair_Step();
 		const int v19 = this->GetCurrentFrame();
 
 		if (this->Owner->Available_Money() < cost) { 
-			if(!isHumanControlled || RulesExtData::Instance()->RepairStopOnInsufficientFunds)
-				this->IsBeingRepaired = 0;
+			if (!isHumanControlled || RulesExtData::Instance()->RepairStopOnInsufficientFunds) { 
+				this->IsBeingRepaired = 0; }
 		} else {
+			const int step = v6->__Repair_Step();
 			this->Owner->TakeMoney(cost);
-			this->Health = MinImpl(step + this->Health, v6->Strength);
-			this->EstimatedHealth = MinImpl(step + this->EstimatedHealth, v6->Strength);
+			const int _upp = MinImpl(step + this->EstimatedHealth, v6->Strength);
+			this->Health = _upp;
+			this->EstimatedHealth = _upp;
+
+			if (this->Health >= v6->Strength) {
+				this->IsBeingRepaired = 0;
+			}
+
 			const auto ratio = this->GetHealthRatio_();
 			const bool v13 = ratio <= RulesClass::Instance->ConditionYellow;
 
@@ -13139,13 +13145,11 @@ TechnoExtData::~TechnoExtData()
 		{
 			GameDelete<true, false>(pTemp);
 		}
+
+		//only update the SW if really needed it
+		if (pThis->Owner && pThis->WhatAmI() != BuildingClass::AbsID && !this->TypeExtData->Linked_SW.empty())
+			((FakeHouseClass*)pThis->Owner)->_AI_Supers();
 	}
-
-	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
-
-	//only update the SW if really needed it
-	if (pThis->Owner && pThis->WhatAmI() != BuildingClass::AbsID && !pTypeExt->Linked_SW.empty())
-		((FakeHouseClass*)pThis->Owner)->_AI_Supers();
 
 	this->ClearElectricBolts();
 

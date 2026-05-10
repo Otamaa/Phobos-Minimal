@@ -37,6 +37,7 @@
     <ClCompile Include="src\Ext\ObjectType\Body.cpp" />
     <ClCompile Include="src\Ext\Object\Body.cpp" />
     <ClCompile Include="src\Ext\Object\Hooks.cpp" />
+    <ClCompile Include="src\Ext\PCXFile\Hooks.PNG.cpp" />
     <ClCompile Include="src\Ext\SlaveManager\Hooks.cpp" />
     <ClCompile Include="src\Ext\Surface\Hooks.cpp" />
     <ClCompile Include="src\Ext\Techno\Hook.HealthBar.cpp" />
@@ -75,6 +76,7 @@
     <ClCompile Include="src\Ext\Unit\Hooks.SimpleDeployer.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.SubterraneanHarvester.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.Unit.cpp" />
+    <ClCompile Include="src\Lib\lodepng\lodepng.cpp" />
     <ClCompile Include="src\New\Entity\FactoryPlantClass.cpp" />
     <ClCompile Include="src\Commands\AggressiveModeClass.cpp" />
     <ClCompile Include="src\Commands\CeasefireModeClass.cpp" />
@@ -517,6 +519,7 @@
     <ClInclude Include="src\Ext\BitText\Body.h" />
     <ClInclude Include="src\Ext\Factory\Body.h" />
     <ClInclude Include="src\Ext\INI\Body.h" />
+    <ClInclude Include="src\Lib\lodepng\lodepng.h" />
     <ClInclude Include="src\New\Entity\FactoryPlantClass.h" />
     <ClInclude Include="src\Commands\AggressiveModeClass.h" />
     <ClInclude Include="src\Commands\CeasefireModeClass.h" />
