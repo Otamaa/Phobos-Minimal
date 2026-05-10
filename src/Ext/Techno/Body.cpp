@@ -2577,7 +2577,7 @@ bool NOINLINE _CheckFirstPahse(FakeBuildingClass* pThis, bool isHumanControlled)
 			return true;
 		}
 	} else { //Noot Human check the IQ first
-		if (pThis->Owner->IQLevel2 <= RulesClass::Instance->RepairSell) {
+		if (pThis->Owner->IQLevel2 < RulesClass::Instance->RepairSell) {
 
 			if (!pThis->IsBeingRepaired)
 				return false;
@@ -2603,7 +2603,7 @@ bool NOINLINE _CheckFirstPahse(FakeBuildingClass* pThis, bool isHumanControlled)
 			ScenarioClass::Instance->Random.RandomRanged(0, 50) < pThis->Owner->StaticData.TechLevel &&
 			!pThis->AttachedTag &&
 			pThis->Type->Factory != AbstractType::BuildingType &&
-			pThis->GetHealthRatio_()< RulesClass::Instance->ConditionRed)
+			pThis->GetHealthRatio_() < RulesClass::Instance->ConditionRed)
 		{
 			pThis->_Sell_Back(1);
 			return false;//chnged from vanilla , since it selling dont need to proceed further code and just return
@@ -2625,7 +2625,7 @@ bool NOINLINE _CheckFirstPahse(FakeBuildingClass* pThis, bool isHumanControlled)
 
 	if (!pThis->IsBeingRepaired) {
 		// Not repairing yet - check if we should start
-		if (pThis->HasBeenCaptured || pThis->IsBeingRepaired || isHumanControlled) {
+		if (pThis->HasBeenCaptured || pThis->ShouldRebuild || isHumanControlled) {
 			pThis->Owner->Repairing = 1;
 			pThis->SetRepairState(1);
 
