@@ -826,6 +826,15 @@ public:
 	int Click_Cell_Calc_In_Radar(Point2D* a2, CellStruct* a3, ObjectClass** a4)
 	{ JMP_THIS(0x656750); }
 
+	// Called from Nearby_Location and AI build location evaluation.
+	// Checks bunch of stuff like do cells in rectangle have terrain/buildings, overlays, ramp etc.
+	bool IsAreaFree(RectangleStruct* pRect, int houseID)
+	{ JMP_THIS(0x586780); }
+
+	// Checks if the area is in the visible portion of map.
+	bool InLocalRadar(RectangleStruct* pRect, bool checkLevel)
+	{ JMP_THIS(0x578390); }
+
 	//find_type 0 - 3 ,range and threadposed related
 	static BuildingClass* __fastcall FindEnemyBuilding(BuildingTypeClass* type, HouseClass* house, TechnoClass* attacker, int find_type, bool OnlyTargetHouseEnemy)
 		{ JMP_FAST(0x6EEBD0); }
