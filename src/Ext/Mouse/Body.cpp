@@ -6,8 +6,34 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/SWType/NewSuperWeaponType/SWTypeHandler.h>
 
+#include <Utilities/Patch.h>
+#include <Utilities/Macro.h>
+
 std::array<MouseClassExt::MappedActions, (size_t)Action::count + 2> MouseClassExt::CursorIdx;
 std::vector<BuildType> MouseClassExt::TabCameos[4u];
+
+bool MouseClassExt::__Factory_Link(FactoryClass* factory, AbstractType rtti, int heap_id)
+{
+	bool found = false;
+	const int TabIndex = SidebarClass::GetObjectTabIdx(rtti, heap_id, 0);
+	auto& Tab = MouseClass::Instance->Tabs[TabIndex];
+
+	for (auto& cameo : MouseClassExt::TabCameos[TabIndex]) {
+		if (cameo.ItemIndex == heap_id && cameo.ItemType == rtti) {
+			cameo.CurrentFactory = factory;
+			Tab.NeedsRedraw = 1;
+			Tab.IsBuilding = 1;
+			MouseClass::Instance->RedrawSidebar(0);
+			found = true;
+			break;
+		}
+	}
+
+	return found;
+}
+
+DEFINE_FUNCTION_JUMP(CALL, 0x4FA6AA, MouseClassExt::__Factory_Link);
+DEFINE_FUNCTION_JUMP(LJMP, 0x6A6140, MouseClassExt::__Factory_Link);
 
 const MouseCursor* MouseClassExt::GetCursorData(MouseCursorType nMouse)
 {

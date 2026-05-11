@@ -8,6 +8,9 @@
 
 #include <SidebarClass.h>
 
+//Extending at the end of the part of class
+//to avoid breaking vtable
+
 class MouseClassExt final : public MouseClass
 {
 public:
@@ -79,6 +82,27 @@ public:
 
 	//5BE990 - Not a vtable
 	int _Get_Mouse_Frame_Count(MouseCursorType mouse) const;
+
+	CellStruct* __NearByLocation(
+		CellStruct* pOutBuffer,
+		const CellStruct* pPosition,
+		SpeedType speed,
+		int zone,
+		MovementZone movementZone,
+		bool alt,
+		int spaceSizeX,
+		int spaceSizeY,
+		bool disallowOverlay,
+		bool checkLevel,
+		bool requireBurrowable,
+		bool allowBridge,
+		const CellStruct* pCloseTo,
+		bool skipFirstCheck,
+		bool checkBuildable);
+
+	bool __IsAreaFree(RectangleStruct* pRect, int houseID, bool IsEvaluatingBuildLocation);
+	bool __IsAreaFree_Wrapper(RectangleStruct* pRect, int houseID);
+	bool __Factory_Link(FactoryClass* factory, AbstractType rtti, int heap_id);
 
 	static size_t GetActionIndex(Action nAction);
 	static MouseCursorType ValidateCursorType(Action nAction);

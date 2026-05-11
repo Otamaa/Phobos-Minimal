@@ -209,34 +209,6 @@ ASMJIT_PATCH(0x6AC02F, SidebarClass_InitGUI_Strip3, 0x8)
 	return 0x6AC0A7;
 }
 
-ASMJIT_PATCH(0x6A83E0, StripClass_DisableInput, 6)
-{
-	for (auto begin = SidebarClass::SelectButtonCombined.begin();
-		begin != SidebarClass::SelectButtonCombined.end();
-		++begin)
-		GScreenClass::Instance->RemoveButton(begin);
-
-	return 0x6A8415;
-}
-
-ASMJIT_PATCH(0x6A8330, StripClass_EnableInput, 5)
-{
-	GET(StripClass*, pThis, ECX);
-
-	int const nIdx = SidebarClass::Instance->Func_6AC430();
-	for (auto i = SidebarClass::SelectButtonCombined.begin();
-		i != (&SidebarClass::SelectButtonCombined[nIdx]);
-		++i)
-	{
-		(*i).Zap();
-		(*i).Strip = pThis;
-		GScreenClass::Instance->AddButton(i);
-	}
-
-	CCToolTip::Bound = true;
-	return 0x6A83DA;
-}
-
 ASMJIT_PATCH(0x6ABF44, SidebarClass_InitGUI_Strip1, 0x5)
 {
 	R->ESI(SidebarClass::SelectButtonCombined.begin());
@@ -293,21 +265,6 @@ ASMJIT_PATCH(0x6A79A0, SidebarClass_Update_Strip2, 6)
 	return 0x6A7A51;
 }
 
-ASMJIT_PATCH(0x6A93F0, StripClass_Activate, 6)
-{
-	GET(StripClass*, pThis, ECX);
-	pThis->AllowedToDraw = true;
-	pThis->Activate();
-	return 0x6A94A0;
-}
-
-ASMJIT_PATCH(0x6A94B0, StripClass_Deactivate, 6)
-{
-	GET(StripClass*, pThis, ECX);
-	pThis->AllowedToDraw = false;
-	pThis->Deactivate();
-	return 0x6A94E9;
-}
 #endif
 
 #ifndef CAMEOS_
@@ -321,33 +278,6 @@ ASMJIT_PATCH(0x6A4EA5, SidebarClass_CameosList, 6)
 
 ASMJIT_PATCH_AGAIN(0x6A4FD8, SidebarClass_CameosList, 6)
 
-ASMJIT_PATCH(0x6A6140, SidebarClass_FactoryLink_handle, 0x5)
-{
-	//GET(SidebarClass*, pThis, ECX);
-	GET_STACK(FactoryClass*, pFactory, 0x4);
-	GET_STACK(AbstractType, rtti, 0x8);
-	GET_STACK(int, typeIdx, 0xC);
-
-	bool found = false;
-	const int TabIndex = SidebarClass::GetObjectTabIdx(rtti, typeIdx, 0);
-	auto& Tab = MouseClass::Instance->Tabs[TabIndex];
-
-	for (auto& cameo : MouseClassExt::TabCameos[TabIndex])
-	{
-		if (cameo.ItemIndex == typeIdx && cameo.ItemType == rtti)
-		{
-			cameo.CurrentFactory = pFactory;
-			Tab.NeedsRedraw = 1;
-			Tab.IsBuilding = 1;
-			MouseClass::Instance->RedrawSidebar(0);
-			found = true;
-			break;
-		}
-	}
-
-	R->AL(found);
-	return 0x6A6215;
-}
 
 ASMJIT_PATCH(0x6A633D, SidebarClass_AddCameo_TabIndex, 0x5)
 {
@@ -370,31 +300,6 @@ ASMJIT_PATCH(0x6A633D, SidebarClass_AddCameo_TabIndex, 0x5)
 
 	R->EDI<StripClass*>(&MouseClass::Instance->Tabs[TabIndex]);
 	return NewlyAdded;
-}
-
-ASMJIT_PATCH(0x6A61B1, SidebarClass_SetFactoryForObject, 5)
-{
-	enum { Found = 0x6A6210, NotFound = 0x6A61E6 };
-
-	GET(int, TabIndex, EAX);
-	GET(AbstractType, ItemType, EDI);
-	GET(int, ItemIndex, EBP);
-	GET_STACK(FactoryClass*, Factory, 0x10);
-
-	for (auto& cameo : MouseClassExt::TabCameos[TabIndex])
-	{
-		if (cameo.ItemIndex == ItemIndex && cameo.ItemType == ItemType)
-		{
-			cameo.CurrentFactory = Factory;
-			auto& Tab = MouseClass::Instance->Tabs[TabIndex];
-			Tab.NeedsRedraw = 1;
-			Tab.IsBuilding = 1;
-			MouseClass::Instance->RedrawSidebar(0);
-			return Found;
-		}
-	}
-
-	return NotFound;
 }
 
 static COMPILETIMEEVAL NOINLINE BuildType* lower_bound(BuildType* first, int size, const BuildType& x)
@@ -421,38 +326,6 @@ static COMPILETIMEEVAL NOINLINE BuildType* lower_bound(BuildType* first, int siz
 	return first;
 }
 
-template<typename T, typename Compare>
-bool insert_sorted_unique(std::vector<T>& vec, T item, Compare comp)
-{
-    auto pos = std::lower_bound(vec.begin(), vec.end(), item);
-
-        // Check if item already exists
-    if (pos != vec.end() && comp(item, *pos) && comp(*pos, item)) {
-    	return false; // Item already exists
-    }
-
-    vec.insert(pos, std::move(item));
-    return true;
-}
-
-ASMJIT_PATCH(0x6A8710, StripClass_AddCameo_ReplaceItAll, 6)
-{
-	GET(StripClass*, pTab, ECX);
-	GET_STACK(AbstractType, ItemType, 0x4);
-	GET_STACK(int, ItemIndex, 0x8);
-
-	BuildType newCameo(ItemIndex, ItemType);
-	if (ItemType == BuildingTypeClass::AbsID)
-	{
-		newCameo.Cat = ObjectTypeClass::IsBuildCat5(BuildingTypeClass::AbsID, ItemIndex);
-	}
-
-	if(insert_sorted_unique(MouseClassExt::TabCameos[pTab->TabIndex],
-		 newCameo , std::equal_to<BuildType>()))
-		++pTab->BuildableCount;
-
-	return 0x6A87E7;
-}
 
 // pointer #1
 ASMJIT_PATCH(0x6A8D1C, StripClass_MouseMove_GetCameos1, 7)
@@ -554,161 +427,5 @@ ASMJIT_PATCH(0x6AC67A, SidebarClass_FlashCameo_FixLimit, 5)
 	return 0x6AC71A;
 }
 
-#include <New/SuperWeaponSidebar/SWSidebarClass.h>
-
-bool NOINLINE RemoveCameo(BuildType* item)
-{
-	auto TechnoType = ObjectTypeClass::FetchTechnoType(item->ItemType, item->ItemIndex);
-
-	if (TechnoType)
-	{
-		if (auto Factory = TechnoType->FindFactory(true, false, false, HouseClass::CurrentPlayer()))
-		{
-			if (Factory->Owner->CanBuild(TechnoType, false, true) != CanBuildResult::Unbuildable)
-				return false;
-		}
-	}
-	else
-	{
-		const auto& supers = HouseClass::CurrentPlayer->Supers;
-
-		if (supers.valid_index(item->ItemIndex)) {
-			if(!SWSidebarClass::IsEnabled()){
-				if (supers[item->ItemIndex]->Granted)
-					return false;
-
-			} else {
-				if (supers[item->ItemIndex]->Granted) {
-					if(SWSidebarClass::Global()->AddButton(item->ItemIndex)){
-						ScenarioExtData::Instance()->SWSidebar_Indices.emplace(item->ItemIndex);
-						return true;
-					} else {
-						return false;
-					}
-				}
-			}
-		}
-	}
-
-
-	if (item->CurrentFactory)
-	{
-		EventClass Event {
-			HouseClass::CurrentPlayer->ArrayIndex  ,
-			EventType::ABANDON ,
-			item->ItemType ,
-			item->ItemIndex,
-			bool(TechnoType ? TechnoType->Naval : 0)
-		};
-
-		EventClass::AddEvent(&Event);
-	}
-
-	if (item->ItemType == BuildingTypeClass::AbsID || item->ItemType == BuildingClass::AbsID)
-	{
-		const auto pBldType = static_cast<BuildingTypeClass*>(TechnoType);
-		const auto pDisplay = DisplayClass::Instance();
-		const auto pCurType = type_cast<BuildingTypeClass*>(pDisplay->CurrentBuildingType);
-
-		if (!RulesExtData::Instance()->ExtendedBuildingPlacing || !pCurType
-			|| BuildingTypeExtData::IsSameBuildingType(pBldType, pCurType))
-		{
-			pDisplay->SetActiveFoundation(nullptr);
-			pDisplay->CurrentBuilding = nullptr;
-			pDisplay->CurrentBuildingType = nullptr;
-			pDisplay->CurrentBuildingOwnerArrayIndex = -1;
-		}
-	}
-
-	if (TechnoType)
-	{
-		auto Me = TechnoType->WhatAmI();
-		if (HouseClass::CurrentPlayer->GetPrimaryFactory(Me, TechnoType->Naval, BuildCat::DontCare))
-		{
-			EventClass Event {
-				HouseClass::CurrentPlayer->ArrayIndex  ,
-				EventType::ABANDON_ALL ,
-				item->ItemType ,
-				item->ItemIndex,
-				TechnoType->Naval
-			};
-
-			EventClass::AddEvent(&Event);
-		}
-	}
-
-	return true;
-}
-
-ASMJIT_PATCH(0x6aa600, StripClass_RecheckCameos, 5)
-{
-	GET(StripClass*, pThis, ECX);
-
-	if (Unsorted::MAP_DEBUG_MODE.get() || pThis->BuildableCount <= 0)
-	{
-		R->EAX(0);
-		return 0x6AACAE;
-	}
-
-	auto& tabs = MouseClassExt::TabCameos[pThis->TabIndex];
-	const auto rtt = tabs[pThis->TopRowIndex].ItemType;
-	const auto idx = tabs[pThis->TopRowIndex].ItemIndex;
-
-	auto iter = std::remove_if(tabs.begin(), tabs.end(),[=](BuildType& item) {
-		return RemoveCameo(&item);
-	});
-
-	tabs.erase(iter, tabs.end());
-
-	if ((int)tabs.size() >= pThis->BuildableCount)
-	{
-		R->EAX(0);
-		return 0x6AACAE;
-	}
-
-	pThis->BuildableCount = tabs.size();
-	if ((int)tabs.size() <= 0)
-	{
-		SidebarClass::ShapeButtons[pThis->TabIndex].Disable();
-
-		StripClass* begin_c = SidebarClass::Column.begin();
-		bool IsBreak = false;
-		while ((*begin_c).BuildableCount <= 0)
-		{
-			if (++begin_c == SidebarClass::Column.end())
-			{
-				SidebarClass::Instance->ToggleStuffs();
-				if (SidebarClass::Shape_B0B478())
-				{
-					SidebarClass::something_884B80 = -1;
-					SidebarClass::something_884B7C = SidebarClass::Shape_B0B478->Height;
-				}
-
-				IsBreak = true;
-				break;
-			}
-		}
-
-		if (!IsBreak && pThis->TabIndex == SidebarClass::something_884B84())
-			SidebarClass::Instance->ChangeTab(std::distance(SidebarClass::Column.begin(), begin_c));
-	}
-	else
-	{
-		SidebarClass::Instance->ToggleStuffs();
-	}
-
-	auto iter_lower = std::lower_bound(tabs.begin(), tabs.end(), BuildType(idx, rtt));
-	auto idxLower = std::distance(tabs.begin(), iter_lower);
-	auto buildCount = pThis->BuildableCount - SidebarClass::Instance->Func_6AC430();
-	int value = (buildCount >= 0 ? buildCount : 0) / 2;
-
-	if (value >= idxLower)
-		value = idxLower;
-
-	pThis->TopRowIndex = value;
-	CCToolTip::Bound = true;
-	R->EAX(1);
-	return 0x6AACAE;
-}
 
 #endif

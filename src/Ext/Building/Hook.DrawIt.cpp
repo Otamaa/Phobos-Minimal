@@ -9,33 +9,33 @@
 
 // ─── Main function ────────────────────────────────────────────────────────────
 void  FakeBuildingClass::_Draw_It(
-    Point2D* pPixel,    // arg0
+	Point2D* pPixel,    // arg0
 	RectangleStruct* pBound)    // a6
 {
 	BuildingTypeClass* const type = this->Type;
 	auto* pTypeExt = this->_GetTypeExtData();
 	auto* pExt = this->_GetExtData();
 
-    {
-     
+	{
+
 		if (pTypeExt->IsHideDuringSpecialAnim &&
 			(this->Anims[(int)BuildingAnimSlot::Special] ||
 				this->Anims[(int)BuildingAnimSlot::SpecialTwo] ||
 				this->Anims[(int)BuildingAnimSlot::SpecialThree]))
 			return;
 
-        if (pExt->LimboID >= 0)
-            return;
+		if (pExt->LimboID >= 0)
+			return;
 
 		if (type->InvisibleInGame)
 			return;
-    }
+	}
 
-    CellStruct cellIdx = this->GetMapCoords();
-    SHPStruct* shape = this->GetImage();
+	CellStruct cellIdx = this->GetMapCoords();
+	SHPStruct* shape = this->GetImage();
 
-    if (!shape)
-        return;
+	if (!shape)
+		return;
 
 	auto curMission = this->GetCurrentMission();
 
@@ -47,9 +47,9 @@ void  FakeBuildingClass::_Draw_It(
 		}
 	}
 
-    int   zAdjust = type->NormalZAdjust;
-    SHPStruct* depthShape = FileSystem::BUILDINGZ_SHA();
-    bool  openRoof = false;
+	int   zAdjust = type->NormalZAdjust;
+	SHPStruct* depthShape = FileSystem::BUILDINGZ_SHA();
+	bool  openRoof = false;
 
 	if (curMission == Mission::Unload){
 		if (TechnoClass* contactUnit = this->GetRadioContact()) {
@@ -57,8 +57,8 @@ void  FakeBuildingClass::_Draw_It(
 			if (unitType->JumpJet || unitType->BalloonHover) {
 				openRoof = true;
 			}
-        }
-    }
+		}
+	}
 
 	int tintColor = 0;
 
@@ -148,51 +148,45 @@ void  FakeBuildingClass::_Draw_It(
 	int zShapeX = 198;
 	int zShapeY = 446;
 
-    {
-        const bool applyZShape = (curMission != Mission::Construction && curMission != Mission::Selling) || pTypeExt->ZShapePointMove_OnBuildup;
+	{
+		const bool applyZShape = (curMission != Mission::Construction && curMission != Mission::Selling) || pTypeExt->ZShapePointMove_OnBuildup;
 
-        if (applyZShape)
-        {
-            zShapeX += type->ZShapePointMove.X;
-            zShapeY += type->ZShapePointMove.Y;
-        }
-    }
+		if (applyZShape)
+		{
+			zShapeX += type->ZShapePointMove.X;
+			zShapeY += type->ZShapePointMove.Y;
+		}
+	}
 
-    // Compute screen-space depth shadow placement from building tile dimensions
-    //         The cell-coord pair from Center_Coord / 256 is passed as input.
-    {
-        // Reinterpret cell position as the XY input expected by the screen helper
-        Point2D screenInput = {
-            static_cast<int>(static_cast<short>(center.X >> 8)),
-            static_cast<int>(static_cast<short>(center.Y >> 8))
-        };
-
-        const int buildH = this->Type->GetFoundationWidth();
-        const int buildW = this->Type->GetFoundationHeight(0);
+	// Compute screen-space depth shadow placement from building tile dimensions
+	// Original code: v72.X = (Width << 8) - 256; v72.Y = (Height << 8) - 256
+	{
+		const int buildWidth = this->Type->GetFoundationWidth();
+		const int buildHeight = this->Type->GetFoundationHeight(0);
 
 		Point2D screenSize {
-			(buildW << 8) - 256 , (buildH << 8) - 256
+			(buildWidth << 8) - 256,   // Width -> X
+			(buildHeight << 8) - 256   // Height -> Y
 		};
-        
+
 		Point2D screenOffset = TacticalClass::Instance->
 			AdjustForZShapeMove(screenSize.X, screenSize.Y);
 
-        zShapeX -= screenOffset.X;
-        zShapeY -= screenOffset.Y;
+		zShapeX -= screenOffset.X;
+		zShapeY -= screenOffset.Y;
 
-        // Wide buildings (>= 8 tiles) don't use the depth shape
-        if (buildW >= 8)
-            depthShape = nullptr;
-    }
+		// Wide buildings (>= 8 tiles) don't use the depth shape
+		if (buildWidth >= 8)
+			depthShape = nullptr;
+	}
 
 	const int shapeNum = this->GetShapeNumber();
 
-    // Only draws if the clipping rect has positive height (visible on screen).
-    if (pBound->Height > 0)
-    {
+	// Only draws if the clipping rect has positive height (visible on screen).
+	if (pBound->Height > 0)
+	{
 		const int lightLevel = (int16)this->Type->ExtraLight + pBuildingCell->Color1.Red;
 		const int depthAdjust = Game::AdjustHeight(this->GetZ());
-
 		if (!pTypeExt->Firestorm_Wall)
 		{
 			// Frame selection: min(Shape_Number(), frameCount/2)
@@ -238,34 +232,34 @@ void  FakeBuildingClass::_Draw_It(
 				BlitterFlags::None  // flags
 			);
 		}
-    }
+	}
 
 	if (type->BibShape &&
-		(this->BState != BStateType::Construction || pTypeExt->ZShapePointMove_OnBuildup)		
+		(this->BState != BStateType::Construction || pTypeExt->ZShapePointMove_OnBuildup)
 		)
-    {
-        if (this->ActuallyPlacedOnMap)
-        {
-            // Bib uses drawflag1=0 (no depth sort), NOT 2 like the main shape.
-            // Height = -1 - Adjust_For_Height (note: more negative than under-door).
+	{
+		if (this->ActuallyPlacedOnMap)
+		{
+			// Bib uses drawflag1=0 (no depth sort), NOT 2 like the main shape.
+			// Height = -1 - Adjust_For_Height (note: more negative than under-door).
 			const int lightLevel = (int)(this->Type->ExtraLight + pBuildingCell->Color1.Red);
 			const int heightZ = -1 - Game::AdjustHeight(this->GetZ());
 
-            this->Draw_Object(
-                type->BibShape, shapeNum,
-                pPixel, pBound,
+			this->Draw_Object(
+				type->BibShape, shapeNum,
+				pPixel, pBound,
 				DirType::North,
 				256,
 				heightZ,
 				ZGradient::Ground,
-                1,
+				1,
 				lightLevel, tintColor,
-                nullptr, 0, 0, 0, BlitterFlags::None);
-        }
-    }
+				nullptr, 0, 0, 0, BlitterFlags::None);
+		}
+	}
 
-    if (curMission != Mission::Unload)
-        return;
+	if (curMission != Mission::Unload)
+		return;
 
 	if (const auto RoofAnim = openRoof ? this->Type->UnderRoofDoorAnim : this->Type->UnderDoorAnim)
 	{
@@ -283,5 +277,5 @@ void  FakeBuildingClass::_Draw_It(
 		);
 	}
 
-    return;
+	return;
 }

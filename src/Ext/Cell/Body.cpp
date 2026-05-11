@@ -5,6 +5,7 @@
 #include <Utilities/Macro.h>
 
 #include <Ext/Tiberium/Body.h>
+#include <Ext/Mouse/Body.h>
 
 #include <TacticalClass.h>
 #include <IsometricTileTypeClass.h>
@@ -355,7 +356,7 @@ ASMJIT_PATCH(0x47BB60, CellClass_DTOR, 0x6) {
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F14, FakeCellClass::_Invalidate);
 
 // =============================
-// FakeMapClass::__NearByLocation implementation
+// MouseClassExt::__NearByLocation implementation
 // Backport of MapClass::NearByLocation (0x56DC20)
 
 // Maximum number of candidate cells to collect
@@ -460,7 +461,7 @@ static bool IsCellOnScreen(TacticalClass* pTactical, const CellStruct& cell)
 	return (result.X == cell.X && result.Y == cell.Y);
 }
 
-CellStruct* FakeMapClass::__NearByLocation(
+CellStruct* MouseClassExt::__NearByLocation(
 	CellStruct* pOutBuffer,
 	const CellStruct* pPosition,
 	SpeedType speed,
@@ -477,7 +478,7 @@ CellStruct* FakeMapClass::__NearByLocation(
 	bool skipFirstCheck,
 	bool checkBuildable)
 {
-	//Debug::Log("FakeMapClass::__NearByLocation called at position (%d, %d)\n", pPosition->X, pPosition->Y);
+	//Debug::Log("MouseClassExt::__NearByLocation called at position (%d, %d)\n", pPosition->X, pPosition->Y);
 
 	const int posX = pPosition->X;
 	const int posY = pPosition->Y;
@@ -811,103 +812,103 @@ CellStruct* FakeMapClass::__NearByLocation(
 }
 
 // Hook to replace the original function at 0x56DC20
-DEFINE_FUNCTION_JUMP(LJMP, 0x56DC20, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x41A2C0, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x41A36B, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x41A4D4, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x443957, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4443DC, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x446A14, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x446CCD, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x446E10, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x44DAF0, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x458D2D, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4597E3, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x482366, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4CD16F, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4CEA57, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4D3B76, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4D3DD8, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4D44BC, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4D69E3, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4D6CE1, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4D7ABE, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4D7BD3, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4DCB57, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4DE528, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4DF76A, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4FBFED, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x4FD2C0, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x5002E5, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x504931, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x504B4C, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x504D70, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x506193, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x509D9A, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x50C999, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x51D41D, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x54B36F, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x54B5DF, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x56BE76, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x56BF69, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x65E11D, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x65E94F, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x65EEBB, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x65EF5A, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x6885B5, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x6B0417, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x6CD375, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x6CD5B6, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x6EC944, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x6EE557, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x6EE78D, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x6EEA59, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x6EF98A, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x6EFC3A, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x70369C, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x7185D5, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x71900D, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x719185, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x728CE5, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x728D3D, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x7296C1, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x729726, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x73841E, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x738EC8, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x738F40, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x73D7B0, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x73DADD, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x73ED75, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x742042, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x7430EE, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x743C6B, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x744964, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x7449B2, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x744B39, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x744C81, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x744D12, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x744E4D, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x744F36, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x74501B, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745069, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745182, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745247, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x7452D8, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x7453DF, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x74547E, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x7454F9, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x7455F4, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745697, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745712, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x7457E3, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745831, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x74594A, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745A0F, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745AA0, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745B77, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745C06, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745CB0, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745CFE, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745E4F, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745F14, FakeMapClass::__NearByLocation);
-DEFINE_FUNCTION_JUMP(CALL, 0x745FA5, FakeMapClass::__NearByLocation);
+DEFINE_FUNCTION_JUMP(LJMP, 0x56DC20, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x41A2C0, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x41A36B, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x41A4D4, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x443957, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4443DC, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x446A14, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x446CCD, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x446E10, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x44DAF0, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x458D2D, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4597E3, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x482366, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4CD16F, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4CEA57, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4D3B76, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4D3DD8, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4D44BC, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4D69E3, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4D6CE1, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4D7ABE, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4D7BD3, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4DCB57, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4DE528, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4DF76A, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4FBFED, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x4FD2C0, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x5002E5, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x504931, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x504B4C, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x504D70, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x506193, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x509D9A, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x50C999, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x51D41D, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x54B36F, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x54B5DF, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x56BE76, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x56BF69, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x65E11D, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x65E94F, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x65EEBB, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x65EF5A, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x6885B5, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x6B0417, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x6CD375, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x6CD5B6, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EC944, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EE557, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EE78D, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EEA59, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EF98A, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EFC3A, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x70369C, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x7185D5, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x71900D, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x719185, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x728CE5, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x728D3D, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x7296C1, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x729726, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x73841E, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x738EC8, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x738F40, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x73D7B0, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x73DADD, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x73ED75, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x742042, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x7430EE, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x743C6B, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x744964, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x7449B2, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x744B39, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x744C81, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x744D12, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x744E4D, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x744F36, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x74501B, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745069, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745182, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745247, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x7452D8, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x7453DF, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x74547E, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x7454F9, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x7455F4, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745697, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745712, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x7457E3, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745831, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x74594A, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745A0F, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745AA0, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745B77, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745C06, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745CB0, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745CFE, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745E4F, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745F14, MouseClassExt::__NearByLocation);
+DEFINE_FUNCTION_JUMP(CALL, 0x745FA5, MouseClassExt::__NearByLocation);

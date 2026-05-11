@@ -988,7 +988,6 @@ int FakeAircraftClass::_Mission_Move_ForCarryAll()
 			this->EnterIdleMode(0, 1);
 		} else {
 			this->Locomotor->Move_To(navCom->GetCoords());
-			CoordStruct coords[5];
 			this->MissionStatus = 2;
 		}
 
@@ -1129,8 +1128,8 @@ int FakeAircraftClass::_Mission_Move()
 	{
 	case 0:
 	{
-		if (auto NavCom = this->NavCom) {
-			this->SetDestination(this->NewLandingZone_(NavCom), true);
+		if (auto pNavCom = this->NavCom) {
+			this->SetDestination(this->NewLandingZone_(pNavCom), true);
 			this->MissionStatus = 1;
 		} else {
 			this->EnterIdleMode(0, 1);
@@ -1146,8 +1145,8 @@ int FakeAircraftClass::_Mission_Move()
 	}
 	case 1:
 	{
-		if (auto NavCom = this->NavCom) {
-			this->Locomotor->Move_To(NavCom->GetDestination(this));
+		if (auto pNavCom = this->NavCom) {
+			this->Locomotor->Move_To(pNavCom->GetDestination(this));
 			this->MissionStatus = 2;
 			return 1;
 		} else {
@@ -1162,8 +1161,8 @@ int FakeAircraftClass::_Mission_Move()
 		{
 			bool shouldHandleWaypoint = false;
 
-			if (auto NavCom = this->NavCom) {
-				auto distanceCoord = this->Location - NavCom->GetCoords();
+			if (auto pNavCom = this->NavCom) {
+				auto distanceCoord = this->Location - pNavCom->GetCoords();
 					 distanceCoord.Z = 0;
 
 				if ((int)distanceCoord.Length() < 0x100) {
@@ -1184,15 +1183,15 @@ int FakeAircraftClass::_Mission_Move()
 			return 1;
 		}
 
-		if (auto NavCom = this->NavCom) { 
+		if (auto pNavCom = this->NavCom) { 
 			bool ContinueMoving = false;
-			auto _dest = NavCom->GetDestination(this);
+			auto _dest = pNavCom->GetDestination(this);
 
 			switch (OverrideMoving(this, &_dest))
 			{
 			case OverrideFlag::Original:
 			{
-				ContinueMoving = (CellClass::Coord2Cell(NavCom->GetDestination(this)) == this->GetMapCoords());
+				ContinueMoving = (CellClass::Coord2Cell(pNavCom->GetDestination(this)) == this->GetMapCoords());
 			}break;
 			case OverrideFlag::ContinueMoving:
 			{

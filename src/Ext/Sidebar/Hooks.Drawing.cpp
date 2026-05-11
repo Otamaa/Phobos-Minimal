@@ -27,6 +27,8 @@
 #include <EventClass.h>
 #include <FactoryClass.h>
 
+#include <New/SuperWeaponSidebar/SWSidebarClass.h>
+
 static COMPILETIMEEVAL int ObserverBackgroundWidth = 121;
 static COMPILETIMEEVAL int ObserverBackgroundHeight = 96;
 
@@ -40,8 +42,47 @@ class FakeStripClass : public StripClass
 public:
 	void __Draw_It(bool forceRedraw);
 	const wchar_t* __Help_Text(int index);
+	void __Add_Internal(AbstractType type, int id);
+	bool __Recalc();
+
+	void _Deactivate(){
+		for (auto begin = SidebarClass::SelectButtonCombined.begin();
+			begin != SidebarClass::SelectButtonCombined.end();
+			++begin)
+			GScreenClass::Instance->RemoveButton(begin);
+	}
+
+	void _Activate(){
+		int const nIdx = SidebarClass::Instance->Func_6AC430();
+		for (auto i = SidebarClass::SelectButtonCombined.begin();
+			i != (&SidebarClass::SelectButtonCombined[nIdx]);
+			++i)
+		{
+			(*i).Zap();
+			(*i).Strip = this;
+			GScreenClass::Instance->AddButton(i);
+		}
+
+		CCToolTip::Bound = true;
+	}
+
+	void _Activate_Enable() {
+		this->AllowedToDraw = true;
+		this->_Activate();
+	}
+
+	void _Deactivate_Disable() {
+		this->AllowedToDraw = false;
+		this->_Deactivate();
+	}
 };
 
+DEFINE_FUNCTION_JUMP(LJMP, 0x6A83E0, FakeStripClass::_Deactivate);
+DEFINE_FUNCTION_JUMP(CALL, 0x6AAB7A, FakeStripClass::_Deactivate);
+DEFINE_FUNCTION_JUMP(LJMP, 0x6A8330, FakeStripClass::_Activate);
+DEFINE_FUNCTION_JUMP(CALL, 0x6AABB3, FakeStripClass::_Activate);
+DEFINE_FUNCTION_JUMP(LJMP, 0x6A93F0, FakeStripClass::_Activate_Enable);
+DEFINE_FUNCTION_JUMP(LJMP, 0x6A94B0, FakeStripClass::_Deactivate_Disable);
 
 class FakeSelectClass : public SelectClass
 {
@@ -673,7 +714,187 @@ const wchar_t* FakeStripClass::__Help_Text(int index)
 
 DEFINE_FUNCTION_JUMP(CALL, 0x6AC3C3, FakeStripClass::__Help_Text);
 
-void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
+template<typename T, typename Compare>
+bool insert_sorted_unique(std::vector<T>& vec, T item, Compare comp) {
+	auto pos = std::lower_bound(vec.begin(), vec.end(), item);
+
+	// Check if item already exists
+	if (pos != vec.end() && comp(item, *pos) && comp(*pos, item)) {
+		return false; // Item already exists
+	}
+
+	vec.insert(pos, std::move(item));
+	return true;
+}
+
+void FakeStripClass::__Add_Internal(AbstractType type, int id){
+
+	BuildType newCameo(id, type);
+	if (type == BuildingTypeClass::AbsID) {
+		newCameo.Cat = ObjectTypeClass::IsBuildCat5(BuildingTypeClass::AbsID, id);
+	}
+
+	if(insert_sorted_unique(MouseClassExt::TabCameos[this->TabIndex],
+		 newCameo , std::equal_to<BuildType>()))
+		++this->BuildableCount;
+}
+
+DEFINE_FUNCTION_JUMP(CALL, 0x6A641E, FakeStripClass::__Add_Internal);
+DEFINE_FUNCTION_JUMP(CALL, 0x6A8840, FakeStripClass::__Add_Internal);
+DEFINE_FUNCTION_JUMP(LJMP, 0x6A8710, FakeStripClass::__Add_Internal);
+
+bool NOINLINE RemoveCameo(BuildType* item)
+{
+	auto TechnoType = ObjectTypeClass::FetchTechnoType(item->ItemType, item->ItemIndex);
+
+	if (TechnoType)
+	{
+		if (auto Factory = TechnoType->FindFactory(true, false, false, HouseClass::CurrentPlayer()))
+		{
+			if (Factory->Owner->CanBuild(TechnoType, false, true) != CanBuildResult::Unbuildable)
+				return false;
+		}
+	}
+	else
+	{
+		const auto& supers = HouseClass::CurrentPlayer->Supers;
+
+		if (supers.valid_index(item->ItemIndex)) {
+			if(!SWSidebarClass::IsEnabled()){
+				if (supers[item->ItemIndex]->Granted)
+					return false;
+
+			} else {
+				if (supers[item->ItemIndex]->Granted) {
+					if(SWSidebarClass::Global()->AddButton(item->ItemIndex)){
+						ScenarioExtData::Instance()->SWSidebar_Indices.emplace(item->ItemIndex);
+						return true;
+					} else {
+						return false;
+					}
+				}
+			}
+		}
+	}
+
+
+	if (item->CurrentFactory)
+	{
+		EventClass Event {
+			HouseClass::CurrentPlayer->ArrayIndex  ,
+			EventType::ABANDON ,
+			item->ItemType ,
+			item->ItemIndex,
+			bool(TechnoType ? TechnoType->Naval : 0)
+		};
+
+		EventClass::AddEvent(&Event);
+	}
+
+	if (item->ItemType == BuildingTypeClass::AbsID || item->ItemType == BuildingClass::AbsID)
+	{
+		const auto pBldType = static_cast<BuildingTypeClass*>(TechnoType);
+		const auto pDisplay = DisplayClass::Instance();
+		const auto pCurType = type_cast<BuildingTypeClass*>(pDisplay->CurrentBuildingType);
+
+		if (!RulesExtData::Instance()->ExtendedBuildingPlacing || !pCurType
+			|| BuildingTypeExtData::IsSameBuildingType(pBldType, pCurType))
+		{
+			pDisplay->SetActiveFoundation(nullptr);
+			pDisplay->CurrentBuilding = nullptr;
+			pDisplay->CurrentBuildingType = nullptr;
+			pDisplay->CurrentBuildingOwnerArrayIndex = -1;
+		}
+	}
+
+	if (TechnoType)
+	{
+		auto Me = TechnoType->WhatAmI();
+		if (HouseClass::CurrentPlayer->GetPrimaryFactory(Me, TechnoType->Naval, BuildCat::DontCare))
+		{
+			EventClass Event {
+				HouseClass::CurrentPlayer->ArrayIndex  ,
+				EventType::ABANDON_ALL ,
+				item->ItemType ,
+				item->ItemIndex,
+				TechnoType->Naval
+			};
+
+			EventClass::AddEvent(&Event);
+		}
+	}
+
+	return true;
+}
+
+bool FakeStripClass::__Recalc()
+{
+	if (Unsorted::MAP_DEBUG_MODE.get() || this->BuildableCount <= 0) {
+		return false;
+	}
+
+	auto& tabs = MouseClassExt::TabCameos[this->TabIndex];
+	const auto rtt = tabs[this->TopRowIndex].ItemType;
+	const auto idx = tabs[this->TopRowIndex].ItemIndex;
+
+	auto iter = std::remove_if(tabs.begin(), tabs.end(),[=](BuildType& item) {
+		return RemoveCameo(&item);
+	});
+
+	tabs.erase(iter, tabs.end());
+
+	if ((int)tabs.size() >= this->BuildableCount) {
+		return false;
+	}
+
+	this->BuildableCount = tabs.size();
+
+	if ((int)tabs.size() <= 0) {
+		SidebarClass::ShapeButtons[this->TabIndex].Disable();
+
+		StripClass* begin_c = SidebarClass::Column.begin();
+		bool IsBreak = false;
+		while ((*begin_c).BuildableCount <= 0)
+		{
+			if (++begin_c == SidebarClass::Column.end())
+			{
+				SidebarClass::Instance->ToggleStuffs();
+				if (SidebarClass::Shape_B0B478())
+				{
+					SidebarClass::something_884B80 = -1;
+					SidebarClass::something_884B7C = SidebarClass::Shape_B0B478->Height;
+				}
+
+				IsBreak = true;
+				break;
+			}
+		}
+
+		if (!IsBreak && this->TabIndex == SidebarClass::something_884B84())
+			SidebarClass::Instance->ChangeTab(std::distance(SidebarClass::Column.begin(), begin_c));
+	}
+	else
+	{
+		SidebarClass::Instance->ToggleStuffs();
+	}
+
+	auto iter_lower = std::lower_bound(tabs.begin(), tabs.end(), BuildType(idx, rtt));
+	auto idxLower = std::distance(tabs.begin(), iter_lower);
+	auto buildCount = this->BuildableCount - SidebarClass::Instance->Func_6AC430();
+	int value = (buildCount >= 0 ? buildCount : 0) / 2;
+
+	if (value >= idxLower)
+		value = idxLower;
+
+	this->TopRowIndex = value;
+	CCToolTip::Bound = true;
+	return true;
+}
+
+DEFINE_FUNCTION_JUMP(CALL, 0x6A7D33, FakeStripClass::__Recalc);
+DEFINE_FUNCTION_JUMP(LJMP, 0x6AA600, FakeStripClass::__Recalc);
+
+void FakeStripClass::__Draw_It(bool forceRedraw)
 {
 	// Early exit checks
 	// 006A954D: mov al, [esi+1Ch] - check AllowedToDraw
