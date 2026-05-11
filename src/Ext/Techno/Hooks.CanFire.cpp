@@ -1030,7 +1030,7 @@ ASMJIT_PATCH(0x51C913, InfantryClass_CanFire_Heal, 7)
 		return retFireIllegal;
 	}
 
-	return  TechnoExtData::FiringAllowed(pThis, pThatTechno, pThis->GetWeapon(nWeaponIdx)->WeaponType) ?
+	return  TechnoExtData::FiringAllowed(pThis, pThatTechno, pThis->GetWeapon(nWeaponIdx)->WeaponType, true) ?
 		retContinue : retFireIllegal;
 
 }
@@ -1042,7 +1042,7 @@ ASMJIT_PATCH(0x741113, UnitClass_CanFire_Heal, 0xA)
 	GET(TechnoClass*, pThatTechno, EDI);
 	GET_STACK(int, nWeaponIdx, STACK_OFFSET(0x1C, 0x8));
 
-	return !pThatTechno->IsIronCurtained() && TechnoExtData::FiringAllowed(pThis, pThatTechno, pThis->GetWeapon(nWeaponIdx)->WeaponType) ?
+	return !pThatTechno->IsIronCurtained() && TechnoExtData::FiringAllowed(pThis, pThatTechno, pThis->GetWeapon(nWeaponIdx)->WeaponType, true) ?
 		retContinue : retFireIllegal;
 }
 

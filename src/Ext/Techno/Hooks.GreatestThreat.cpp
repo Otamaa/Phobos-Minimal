@@ -44,6 +44,68 @@ static int GetMultiWeaponRange(TechnoClass* pThis)
 	return range;
 }
 
+#pragma optimize("", off)
+
+// Helper function to evaluate a cell and update best target
+void NOINLINE EvaluateCellAndUpdate(TechnoClass* pThis,
+	TechnoTypeClass* pType,
+	HouseClass* pOwner,
+	CellStruct* cellToCheck,
+	ZoneType zone,
+	ThreatType method,
+	int threatBitfield,
+	int threatRange,
+	bool onlyEnemy,
+	int& bestThreat,
+	TechnoClass*& bestTarget,
+	int& bestCellThreat,
+	CellStruct& bestCell)
+{
+	if (!MapClass::Instance->CoordinatesLegal(cellToCheck))
+		return;
+
+	TechnoClass* cellTarget = nullptr;
+	int cellThreat = 0;
+
+	if (pThis->TryAutoTargetObject(method, threatBitfield, cellToCheck, threatRange, &cellTarget, &cellThreat, zone))
+	{
+
+		if (cellTarget)
+		{
+			if (onlyEnemy && cellTarget->Owner->ArrayIndex != pOwner->EnemyHouseIndex)
+				return;
+
+			// FIXED: test bh, 40h = method & 0x4000 = ThreatType_4000, NOT Tiberium!
+			if ((method & ThreatType::Threattype_4000) && !pOwner->IsAlliedWith(cellTarget->Owner))
+				return;
+
+			// Distributed fire - add to target lists
+			if (pType->DistributedFire)
+			{
+				pThis->CurrentTargets.emplace_back(cellTarget);
+				pThis->CurrentTargetThreatValues.emplace_back(cellThreat);
+			}
+
+			if (cellThreat > bestThreat)
+			{
+				bestThreat = cellThreat;
+				bestTarget = cellTarget;
+			}
+		}
+	}
+
+	// If no target yet, evaluate cell itself
+	if (!bestTarget)
+	{
+		int justCellThreat = pThis->EvaluateJustCell(cellToCheck);
+
+		if (justCellThreat > bestCellThreat)
+		{
+			bestCellThreat = justCellThreat;
+			bestCell = *cellToCheck;
+		}
+	}
+}
 AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 	TechnoClass* pThis, discard_t, ThreatType method,
 	CoordStruct* coord, bool onlyEnemy)
@@ -53,7 +115,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	const auto pOwner = pThis->Owner;
 	const bool isTechnoPlayerControlled = pOwner->IsControlledByHuman();
-	const bool attackFriendlies = pThis->Veterancy.IsElite() ? pTypeExt->AttackFriendlies.Y : pTypeExt->AttackFriendlies.X;
+	const bool attackFriendlies = TechnoExtData::IsAttackFriendlies(pThis);
 
 	// Early exit for NoAutoFire units under player control
 	if ((pType->NoAutoFire || (TechnoExtContainer::Instance.Find(pThis)->GetPassiveAcquireMode()) == PassiveAcquireModes::Ceasefire) && isTechnoPlayerControlled)
@@ -81,29 +143,15 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 		zone = MapClass::Instance->GetMovementZoneType(&cellPos, pType->MovementZone, 1);
 	}
 
-	const int combatDamage = pThis->CombatDamage(-1);
-	constexpr ThreatType ThreatType_HealerTargets = ThreatType::Air | ThreatType::Infantry | ThreatType::Vehicles | ThreatType::Buildings;
-
+	const bool isEffectivelyHealer = TechnoExtData::IsHealer(pThis);
 	// True when this unit effectively heals: either the weapon damage is negative,
 	// or any weapon slot produces negative output through verses modifiers.
 	// Iterates all weapon slots so Gattling, Gunner, and MultiWeapon units are
 	// handled correctly. Uses Armor::None as a representative armor for the
 	// pre-scan check (no specific target yet).
-	const bool isEffectivelyHealer = [&]() -> bool
-		{
-			if (combatDamage < 0)
-				return true;
-			const int numWeapons = pType->WeaponCount;
-			for (int i = 0; i < numWeapons; ++i)
-			{
-				const auto* ws = pThis->GetWeapon(i);
-				if (!ws || !ws->WeaponType || !ws->WeaponType->Warhead || ws->WeaponType->Damage <= 0)
-					continue;
-				if (FakeWarheadTypeClass::ModifyDamage(ws->WeaponType->Damage, ws->WeaponType->Warhead, Armor::None, 0) < 0)
-					return true;
-			}
-			return false;
-		}();
+	constexpr ThreatType ThreatType_HealerTargets = ThreatType::Air | ThreatType::Infantry | ThreatType::Vehicles | ThreatType::Buildings;
+
+
 
 	// Adjust method based on unit type and combat damage
 	if (what == AbstractType::Infantry)
@@ -418,7 +466,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 			threatBitfield |= 1 << (int)AircraftClass::AbsID;
 		}
 
-		const bool targetFriendly = attackFriendlies || pThis->Berzerk || hasRealOwner || combatDamage < 0;
+		const bool targetFriendly = attackFriendlies || pThis->Berzerk || hasRealOwner || isEffectivelyHealer;
 		int threatBuffer = 0;
 		auto tempCrd = CoordStruct::Empty;
 
@@ -450,7 +498,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 
 	if (AU)
 	{
-		const bool targetFriendly = attackFriendlies || pThis->Berzerk || hasRealOwner || combatDamage < 0;
+		const bool targetFriendly = attackFriendlies || pThis->Berzerk || hasRealOwner || isEffectivelyHealer;
 		int threatBuffer = 0;
 		auto tempCrd = CoordStruct::Empty;
 
@@ -485,55 +533,6 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 		return bestTarget;
 	}
 
-	// Helper function to evaluate a cell and update best target
-	auto EvaluateCellAndUpdate = [&](CellStruct* cellToCheck) -> void
-		{
-			if (!MapClass::Instance->CoordinatesLegal(cellToCheck))
-				return;
-
-			TechnoClass* cellTarget = nullptr;
-			int cellThreat = 0;
-
-			if (pThis->TryAutoTargetObject(method, threatBitfield, cellToCheck, threatRange, &cellTarget, &cellThreat, zone))
-			{
-
-				if (cellTarget)
-				{
-					if (onlyEnemy && cellTarget->Owner->ArrayIndex != pOwner->EnemyHouseIndex)
-						return;
-
-					// FIXED: test bh, 40h = method & 0x4000 = ThreatType_4000, NOT Tiberium!
-					if ((method & ThreatType::Threattype_4000) && !pOwner->IsAlliedWith(cellTarget->Owner))
-						return;
-
-					// Distributed fire - add to target lists
-					if (pType->DistributedFire)
-					{
-						pThis->CurrentTargets.emplace_back(cellTarget);
-						pThis->CurrentTargetThreatValues.emplace_back(cellThreat);
-					}
-
-					if (cellThreat > bestThreat)
-					{
-						bestThreat = cellThreat;
-						bestTarget = cellTarget;
-					}
-				}
-			}
-
-			// If no target yet, evaluate cell itself
-			if (!bestTarget)
-			{
-				int justCellThreat = pThis->EvaluateJustCell(cellToCheck);
-
-				if (justCellThreat > bestCellThreat)
-				{
-					bestCellThreat = justCellThreat;
-					bestCell = *cellToCheck;
-				}
-			}
-		};
-
 	for (int radius = 0; radius < cellRange; ++radius)
 	{
 
@@ -542,11 +541,11 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 		{
 			// Top edge
 			CellStruct topCell((short)(centerCell.X + x), (short)(centerCell.Y - radius));
-			EvaluateCellAndUpdate(&topCell);
+			EvaluateCellAndUpdate(pThis , pType , pOwner , &topCell , zone , method, threatBitfield,threatRange,onlyEnemy,bestThreat,bestTarget,bestCellThreat , bestCell);
 
 			// Bottom edge
 			CellStruct bottomCell((short)(centerCell.X + x), (short)(centerCell.Y + radius));
-			EvaluateCellAndUpdate(&bottomCell);
+			EvaluateCellAndUpdate(pThis, pType, pOwner, &bottomCell, zone, method, threatBitfield, threatRange, onlyEnemy, bestThreat, bestTarget, bestCellThreat, bestCell);
 		}
 
 		// Scan left and right edges (excluding corners already done)
@@ -554,11 +553,11 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 		{
 			// Left edge
 			CellStruct leftCell((short)(centerCell.X - radius), (short)(centerCell.Y + y));
-			EvaluateCellAndUpdate(&leftCell);
+			EvaluateCellAndUpdate(pThis, pType, pOwner, &leftCell, zone, method, threatBitfield, threatRange, onlyEnemy, bestThreat, bestTarget, bestCellThreat, bestCell);
 
 			// Right edge
 			CellStruct rightCell((short)(centerCell.X + radius), (short)(centerCell.Y + y));
-			EvaluateCellAndUpdate(&rightCell);
+			EvaluateCellAndUpdate(pThis, pType, pOwner, &rightCell, zone, method, threatBitfield, threatRange, onlyEnemy, bestThreat, bestTarget, bestCellThreat, bestCell);
 		}
 
 		// Early exit if we found a target at certain radii
@@ -579,6 +578,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 
 	return bestTarget;
 }
+#pragma optimize("", on)
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x6F8DF0, FakeTechnoClass::__Greatest_Threat);
 DEFINE_FUNCTION_JUMP(CALL, 0x4D9942, FakeTechnoClass::__Greatest_Threat);//foot
@@ -903,16 +903,8 @@ bool FakeTechnoClass::__EvaluateObjectB(
 				// Reject unless this weapon effectively heals the target:
 				// either the weapon's own damage is negative, or the verses modifier
 				// for this specific target's armor makes the net damage negative.
-				const bool isEffectivelyHealing = [&]() -> bool
-					{
-						if (pThis->CombatDamage(-1) < 0)
-							return true;
-						if (!pFakeWH || !lastWeapon || lastWeapon->Damage <= 0)
-							return false;
-						const Armor armor = TechnoExtData::GetTechnoArmor(target, pFakeWH);
-						const VersesData* vsData = pFakeWH->GetVersesData(armor);
-						return vsData && vsData->Verses < 0.0;
-					}();
+				const bool isEffectivelyHealing = TechnoExtData::IsHealer(pThis);
+
 				if (!isEffectivelyHealing && !hasThreatRange)
 					return false;
 
@@ -925,7 +917,7 @@ bool FakeTechnoClass::__EvaluateObjectB(
 				// -----------------------------------------------------------------
 				if (pTechnoTarget)
 				{
-					if (pTechnoTarget->IsIronCurtained() || !TechnoExtData::FiringAllowed(pThis, pTechnoTarget, pFakeWeapon))
+					if (pTechnoTarget->IsIronCurtained() || !TechnoExtData::FiringAllowed(pThis, pTechnoTarget, pFakeWeapon , isEffectivelyHealing))
 						return false;
 
 				}
@@ -946,25 +938,25 @@ bool FakeTechnoClass::__EvaluateObjectB(
 				// NOTE: Only UnitClass attackers are subject to this rejection.
 				//   Infantry (e.g., medics) must fall through so they can repair.
 				// -----------------------------------------------------------------
-				if (pThisUnit)
-				{
-					if (pAircraftTarget)
-					{
-						// Allied aircraft: reject if airborne or sitting over a building.
-						if (target->GetHeight() > 0)
-							return false;
-
-						CoordStruct tmp;
-						target->GetCoords(&tmp);
-
-						if (MapClass::Instance->GetCellAt(tmp)->GetBuilding())
-							return false;
-					}
-					else
-					{
-						return false;
-					}
-				}
+				//if (pThisUnit)
+				//{
+				//	if (pAircraftTarget)
+				//	{
+				//		// Allied aircraft: reject if airborne or sitting over a building.
+				//		if (target->GetHeight() > 0)
+				//			return false;
+				//
+				//		CoordStruct tmp;
+				//		target->GetCoords(&tmp);
+				//
+				//		if (MapClass::Instance->GetCellAt(tmp)->GetBuilding())
+				//			return false;
+				//	}
+				//	else
+				//	{
+				//		return false;
+				//	}
+				//}
 			}
 		}
 	}

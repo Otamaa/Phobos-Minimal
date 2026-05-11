@@ -223,6 +223,32 @@ void TintColors::GetTints(int* tintColor, int* intensity)
 	}
 }
 
+bool NOINLINE TechnoExtData::IsHealer(TechnoClass* pThis)
+{
+	const int _result = pThis->CombatDamage(-1);
+
+	if (_result < 0)
+		return true;
+
+	//auto pType = pThis->GetTechnoType();
+	//DeadReaporz fix related 
+	//const int numWeapons = pType->WeaponCount;
+	//for (int i = 0; i < numWeapons; ++i)
+	//{
+	//	const auto* ws = pThis->GetWeapon(i);
+	//	if (!ws || !ws->WeaponType || !ws->WeaponType->Warhead || ws->WeaponType->Damage <= 0)
+	//		continue;
+	//	if (FakeWarheadTypeClass::ModifyDamage(ws->WeaponType->Damage, ws->WeaponType->Warhead, Armor::None, 0) < 0)
+	//		return true;
+	//}
+	return false;
+}
+
+bool TechnoExtData::IsAttackFriendlies(TechnoClass* pThis) {
+	const auto pThisExt = TechnoExtContainer::Instance.Find(pThis);
+	//return pThis->Veterancy.IsElite() ? pThisExt->TypeExtData->AttackFriendlies.Y : pThisExt->TypeExtData->AttackFriendlies.X;
+	return pThis->GetTechnoType()->AttackFriendlies;
+}
 bool TechnoExtData::HasWeaponsDisabled(TechnoClass* pThis)
 {
 	const auto pThisExt = TechnoExtContainer::Instance.Find(pThis);
@@ -1967,21 +1993,18 @@ void TechnoExtData::RefineTiberium(TechnoClass* pThis, HouseClass* pHouse, float
 	TechnoExtData::DepositTiberium(pThis, pHouse, amount, refined, idxType);
 }
 
-bool TechnoExtData::FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon)
+bool TechnoExtData::FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon , bool isHealer)
 {
 	const auto nRulesGreen = RulesClass::Instance->ConditionGreen;
 	const auto pThatTechnoExt = TechnoExtContainer::Instance.Find(pTarget);
 	const auto pThatShield = pThatTechnoExt->GetShield();
 
-	if (pThatShield && pThatShield->IsActive())
-	{
-		if (!pThatShield->CanBePenetrated(pWeapon->Warhead))
-		{
-			if (pThatShield->GetType()->CanBeHealed)
-			{
-				const bool IsFullHP = pThatShield->GetHealthRatio() >= nRulesGreen;
-				if (IsFullHP && pThatShield->GetType()->PassthruNegativeDamage)
-					return !(pTarget->GetHealthRatio() >= nRulesGreen);
+	if (pThatShield && pThatShield->IsActive()) {
+		if (!pThatShield->CanBePenetrated(pWeapon->Warhead)) {
+			if (pThatShield->GetType()->CanBeHealed) {
+				const bool IsFullHP = pThatShield->GetHealthRatio() >= RulesExtData::Instance()->Shield_ConditionGreen;
+				if (IsFullHP && pThatShield->GetType()->PassthruNegativeDamage && isHealer)
+					return pTarget->GetHealthRatio() < RulesClass::Instance->ConditionGreen;
 
 				return true;
 			}
@@ -1990,7 +2013,7 @@ bool TechnoExtData::FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget, Weap
 		}
 	}
 
-	return !(pTarget->GetHealthRatio() >= nRulesGreen);
+	return pTarget->GetHealthRatio() < RulesClass::Instance->ConditionGreen && isHealer;
 }
 
 UnitTypeClass* TechnoExtData::GetUnitTypeImage(UnitClass* const pThis)

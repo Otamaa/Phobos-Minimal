@@ -925,7 +925,7 @@ public:
 	static void DepositTiberium(TechnoClass* pThis, HouseClass* pHouse, float const amount, float const bonus, int const idxType);
 	static void RefineTiberium(TechnoClass* pThis, HouseClass* pHouse, float const amount, int const idxType);
 
-	static bool FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
+	static bool FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon, bool isHealer);
 
 	static UnitTypeClass* GetUnitTypeImage(UnitClass* const pThis);
 	static TechnoTypeClass* GetImage(FootClass* pThis);
@@ -981,6 +981,8 @@ public:
 
 	static bool HasWeaponsDisabled(TechnoClass* pThis);
 	static FireError GetFireErrorIgnoreDisableWeapons(TechnoClass* pThis, AbstractClass* pTarget, int weaponIndex, bool ignoreRange);
+	static bool IsHealer(TechnoClass* pThis);
+	static bool IsAttackFriendlies(TechnoClass* pTarget);
 
 public:
 	static UnitClass* Deployer;
@@ -1120,6 +1122,7 @@ public:
 	static void __fastcall _Cloaking_AI(TechnoClass* pThis, discard_t, bool something);
 	static bool __fastcall _ShouldNotBeCloaked(TechnoClass* pThis);
 	static bool __fastcall _ShouldBeCloaked(TechnoClass* pThis);
+
 };
 
 #define GET_TECHNOTYPE(techno) techno->GetTechnoType()

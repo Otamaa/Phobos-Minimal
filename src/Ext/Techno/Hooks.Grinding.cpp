@@ -275,15 +275,6 @@ ASMJIT_PATCH(0x740134, UnitClass_WhatAction_Grinding, 0x9) //0
 	return Continue;
 }
 
-ASMJIT_PATCH(0x4DFABD, FootClass_Try_Grinding_CheckIfAllowed, 0x8)
-{
-	enum { Continue = 0x0 , Skip = 0x4DFB30 };
-	GET(FootClass*, pThis, ESI);
-	GET(BuildingClass*, pBuilding, EBX);
-	return BuildingExtData::CanGrindTechno(pBuilding, pThis)
-		? Continue : Skip;
-}
-
 ASMJIT_PATCH(0x519790, InfantryClass_PerCellProcess_Grinding, 0xA)
 {
 	enum { Continue = 0x5198AD, PlayAnims = 0x5198CE  , RemoveInfantry = 0x51A02A };

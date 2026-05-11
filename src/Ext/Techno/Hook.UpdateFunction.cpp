@@ -280,7 +280,7 @@ void FakeTechnoClass::__ClearInvalidAllyTarget(TechnoClass* pThis)
 	auto pType = GET_TECHNOTYPE(pThis);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-	if (!pThis->Berzerk &&  (pThis->Veterancy.IsElite() ? pTypeExt->AttackFriendlies.Y : pTypeExt->AttackFriendlies.X) && isTargetAlly && pTypeExt->AttackFriendlies_AutoAttack) {
+	if (!pThis->Berzerk && TechnoExtData::IsAttackFriendlies(pThis) && isTargetAlly && pTypeExt->AttackFriendlies_AutoAttack) {
 		return;
 	}
 

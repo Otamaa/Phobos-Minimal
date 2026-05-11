@@ -1850,10 +1850,7 @@ ASMJIT_PATCH(0x700358, TechnoClass_MouseOverObject_AttackFriendlies, 0x6)
 ASMJIT_PATCH(0x6F8A92, TechnoClass_CheckAutoTarget_AttackFriendlies, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);
-
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-
-	R->CL(pThis->Veterancy.IsElite() ? pTypeExt->AttackFriendlies.Y : pTypeExt->AttackFriendlies.X);
+	R->CL(TechnoExtData::IsAttackFriendlies(pThis));
 	return R->Origin() + 0x10;
 }ASMJIT_PATCH_AGAIN(0x6F8BBC, TechnoClass_CheckAutoTarget_AttackFriendlies, 0xA)	// TechnoClass::TryAutoTargetObject
 
@@ -2467,6 +2464,8 @@ ASMJIT_PATCH(0x7090A0, TechnoClass_VoiceAttack, 0x7)
 	return 0x7091C7;
 }
 
+#ifdef _MultiWeapon
+
 ThreatType __forceinline GetThreatType(TechnoClass* pThis, TechnoTypeExtData* pTypeExt, ThreatType result)
 {
 	ThreatType flags = pThis->Veterancy.IsElite() ? pTypeExt->ThreatTypes.Y : pTypeExt->ThreatTypes.X;
@@ -2563,6 +2562,8 @@ static int GetMultiWeaponRange(TechnoClass* pThis)
 	return range;
 }
 
+#endif
+
 int __fastcall FakeTechnoClass::__GetGuardRange(TechnoClass* pThis, discard_t, int control)
 {
 	if (control == -1)
@@ -2589,10 +2590,14 @@ int __fastcall FakeTechnoClass::__GetGuardRange(TechnoClass* pThis, discard_t, i
 		// Handle special weapon configurations.
 		if (!pType->IsGattling && (pType->HasMultipleTurrets() || pTypeExt->MultiWeapon))
 		{
+#ifdef _MultiWeapon
 			if (pType->HasMultipleTurrets())
 				range = pThis->GetWeaponRange(pThis->CurrentWeaponNumber);
 			else
 				range = GetMultiWeaponRange(pThis);
+#else
+			range = pThis->GetWeaponRange(pThis->CurrentWeaponNumber);
+#endif
 		}
 		else
 		{

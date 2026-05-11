@@ -70,5 +70,5 @@ public:
 
 	static bool __fastcall _IsRecruitable(FootClass* pThis, discard_t, HouseClass* pHouse);
 	static DamageState __fastcall __Take_Damage(FootClass* pThis, discard_t, int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse);
-
+	static bool __fastcall __Try_Grinding(FootClass* pThis);
 };
