@@ -923,6 +923,7 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x50BA00, FakeHouseClass::_InitLaserColor);
 // Hook: Destroy_LaserDrawClassDVC (0x550000)
 // Replaces the function that destroys all lasers in the global DVC
 // ============================================================================
+DEFINE_FUNCTION_JUMP(CALL, 0x55B5C3, FakeLaserDrawClass::_DestroyAllLasers);
 DEFINE_FUNCTION_JUMP(LJMP, 0x550000, FakeLaserDrawClass::_DestroyAllLasers);
 
 // ============================================================================

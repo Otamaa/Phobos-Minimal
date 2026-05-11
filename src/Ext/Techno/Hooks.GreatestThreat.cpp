@@ -27,11 +27,13 @@ static int GetMultiWeaponRange(TechnoClass* pThis)
 	const auto pType = pThis->GetTechnoType();
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-	if (pTypeExt->MultiWeapon) {
+	if (pTypeExt->MultiWeapon)
+	{
 		int selectCount = MinImpl(pType->WeaponCount, pTypeExt->MultiWeapon_SelectCount);
 		range = 0;
 
-		for (int index = selectCount - 1; index >= 0; --index) {
+		for (int index = selectCount - 1; index >= 0; --index)
+		{
 			int weaponRange = pThis->GetWeaponRange(index);
 
 			if (weaponRange > range)
@@ -82,12 +84,33 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 	const int combatDamage = pThis->CombatDamage(-1);
 	constexpr ThreatType ThreatType_HealerTargets = ThreatType::Air | ThreatType::Infantry | ThreatType::Vehicles | ThreatType::Buildings;
 
+	// True when this unit effectively heals: either the weapon damage is negative,
+	// or any weapon slot produces negative output through verses modifiers.
+	// Iterates all weapon slots so Gattling, Gunner, and MultiWeapon units are
+	// handled correctly. Uses Armor::None as a representative armor for the
+	// pre-scan check (no specific target yet).
+	const bool isEffectivelyHealer = [&]() -> bool
+		{
+			if (combatDamage < 0)
+				return true;
+			const int numWeapons = pType->WeaponCount;
+			for (int i = 0; i < numWeapons; ++i)
+			{
+				const auto* ws = pThis->GetWeapon(i);
+				if (!ws || !ws->WeaponType || !ws->WeaponType->Warhead || ws->WeaponType->Damage <= 0)
+					continue;
+				if (FakeWarheadTypeClass::ModifyDamage(ws->WeaponType->Damage, ws->WeaponType->Warhead, Armor::None, 0) < 0)
+					return true;
+			}
+			return false;
+		}();
+
 	// Adjust method based on unit type and combat damage
 	if (what == AbstractType::Infantry)
 	{
-		if (combatDamage < 0)
+		if (isEffectivelyHealer)
 		{
-			// Negative damage infantry - target other infantry only
+			// Healer infantry (negative damage or negative verses) - target allied units only
 			method = (method & (ThreatType::Area | ThreatType::Range)) | ThreatType::Threattype_4000 | ThreatType_HealerTargets;
 		}
 		else if (((InfantryClass*)pThis)->Type->Engineer)
@@ -96,9 +119,9 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 			method &= ~(ThreatType::Vehicles | ThreatType::Infantry);
 		}
 	}
-	else if (what == AbstractType::Unit && combatDamage < 0)
+	else if (what == AbstractType::Unit && isEffectivelyHealer)
 	{
-		// Negative damage units - target other vehicles only
+		// Healer units (negative damage or negative verses) - target allied units only
 		method = (method & (ThreatType::Area | ThreatType::Range)) | ThreatType::Threattype_4000 | ThreatType_HealerTargets;
 	}
 
@@ -217,7 +240,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 			auto techno = TechnoClass::Array->Items[i];
 
 			const bool canTarget1 = !pOwner->IsAlliedWith(techno)
-				|| combatDamage < 0
+				|| isEffectivelyHealer
 				|| (!isTechnoPlayerControlled && what == AbstractType::Infantry && ((InfantryTypeClass*)pType)->Engineer)
 				|| attackFriendlies
 				|| pThis->Berzerk
@@ -282,8 +305,8 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 		}
 	}
 
-	// Override for negative damage units in guard mode
-	if (combatDamage < 0 && pThis->CurrentMission == Mission::Guard)
+	// Override for healer units (negative damage or negative verses) in guard mode
+	if (isEffectivelyHealer && pThis->CurrentMission == Mission::Guard)
 	{
 		threatRange = 512;
 	}
@@ -686,15 +709,17 @@ bool FakeTechnoClass::__EvaluateObjectB(
 			== ThreatType::Normal)
 	{
 		if (pTechnoTarget && !TechnoExtData::CanRetaliateICUnit(pThis,
-				reinterpret_cast<FakeWeaponTypeClass*>(lastWeapon), pTechnoTarget)) {
+			reinterpret_cast<FakeWeaponTypeClass*>(lastWeapon), pTechnoTarget))
+		{
 			// IC-retaliation: reject immediately if we cannot fire at an
 			// IronCurtained target with this weapon.
 			return false;
 		}
 
 		bool ignoreRange = false;
-		if ((pThisUnit && TechnoExtData::CannotMove(pThisUnit) )|| (pThisInfantry && pThisInfantry->Type->Speed <= 0)) {
-			ignoreRange= true;
+		if ((pThisUnit && TechnoExtData::CannotMove(pThisUnit)) || (pThisInfantry && pThisInfantry->Type->Speed <= 0))
+		{
+			ignoreRange = true;
 		}
 
 		const FireError  fireError = pThis->GetFireError(target, weaponIndex, ignoreRange);
@@ -729,7 +754,8 @@ bool FakeTechnoClass::__EvaluateObjectB(
 	{
 		pFakeWeapon = reinterpret_cast<FakeWeaponTypeClass*>(lastWeapon);
 
-		if(lastWeapon->Warhead){
+		if (lastWeapon->Warhead)
+		{
 			pFakeWH = reinterpret_cast<FakeWarheadTypeClass*>(lastWeapon->Warhead);
 
 			const Armor armor = TechnoExtData::GetTechnoArmor(target, pFakeWH);
@@ -762,7 +788,8 @@ bool FakeTechnoClass::__EvaluateObjectB(
 	// =========================================================================
 	// 8. Mission / lock / height checks
 	// =========================================================================
-	if(pTechnoTarget){
+	if (pTechnoTarget)
+	{
 		if (!pTechnoTarget->IsInPlayfield)
 			return false;
 
@@ -809,8 +836,10 @@ bool FakeTechnoClass::__EvaluateObjectB(
 	//   is synchronized elsewhere; the vanilla per-passenger owner check is
 	//   skipped to avoid double-filtering.
 	// -------------------------------------------------------------------------
-	if(pTechnoTarget){
-		if (TechnoClass* transport = pTechnoTarget->Transporter) {
+	if (pTechnoTarget)
+	{
+		if (TechnoClass* transport = pTechnoTarget->Transporter)
+		{
 			auto pTransporTypeExt = GET_TECHNOTYPEEXT(transport);
 			auto pTransportType = GET_TECHNOTYPE(transport);
 
@@ -842,7 +871,8 @@ bool FakeTechnoClass::__EvaluateObjectB(
 	{
 		bool  attackFriendlies = pType->AttackFriendlies;
 
-		if (pFakeWeapon) {
+		if (pFakeWeapon)
+		{
 			attackFriendlies = pFakeWeapon->_GetExtData()->AttackFriendlies.Get(attackFriendlies);
 		}
 
@@ -870,8 +900,20 @@ bool FakeTechnoClass::__EvaluateObjectB(
 		{
 			if (pThis->Owner->IsAlliedWith(target))
 			{
-				// Reject unless doing negative damage (repair) with threat-range active.
-				if (pThis->CombatDamage(-1) >= 0 && !hasThreatRange)
+				// Reject unless this weapon effectively heals the target:
+				// either the weapon's own damage is negative, or the verses modifier
+				// for this specific target's armor makes the net damage negative.
+				const bool isEffectivelyHealing = [&]() -> bool
+					{
+						if (pThis->CombatDamage(-1) < 0)
+							return true;
+						if (!pFakeWH || !lastWeapon || lastWeapon->Damage <= 0)
+							return false;
+						const Armor armor = TechnoExtData::GetTechnoArmor(target, pFakeWH);
+						const VersesData* vsData = pFakeWH->GetVersesData(armor);
+						return vsData && vsData->Verses < 0.0;
+					}();
+				if (!isEffectivelyHealing && !hasThreatRange)
 					return false;
 
 				// -----------------------------------------------------------------
@@ -881,39 +923,47 @@ bool FakeTechnoClass::__EvaluateObjectB(
 				//   rules gate whether friendly fire is permitted.
 				//   For non-Techno objects: reject at >= ConditionGreen health.
 				// -----------------------------------------------------------------
-				if (pTechnoTarget) {
-					if (pTechnoTarget->IsIronCurtained() || !TechnoExtData::FiringAllowed(pThis, pTechnoTarget,pFakeWeapon))
+				if (pTechnoTarget)
+				{
+					if (pTechnoTarget->IsIronCurtained() || !TechnoExtData::FiringAllowed(pThis, pTechnoTarget, pFakeWeapon))
 						return false;
 
-				} else {
+				}
+				else
+				{
 					if (target->GetHealthRatio() >= RulesClass::Instance->ConditionGreen)
 						return false;
 				}
 
-				if (pAircraftTarget && pThisUnit)
+				// -----------------------------------------------------------------
+				// [PATCH 0x6F7FC5 → 0x6F7FDF]  DEFINE_JUMP(LJMP, 0x6F7FC5, 0x6F7FDF)
+				//   Vanilla code at loc_6F7FC5 checked Kind_Of() == RTTI_UNIT and
+				//   only rejected the target when Is_Vehicle_Can_Undeploy() was
+				//   false, allowing undeployable allies through so a unit could
+				//   "nudge" them.  The patch jumps past the entire block, making
+				//   a unit ALWAYS reject non-aircraft allied targets here,
+				//   regardless of their undeploy capability.
+				// NOTE: Only UnitClass attackers are subject to this rejection.
+				//   Infantry (e.g., medics) must fall through so they can repair.
+				// -----------------------------------------------------------------
+				if (pThisUnit)
 				{
-					// Allied aircraft: reject if airborne or sitting over a building.
-					if (target->GetHeight() > 0)
-						return false;
+					if (pAircraftTarget)
+					{
+						// Allied aircraft: reject if airborne or sitting over a building.
+						if (target->GetHeight() > 0)
+							return false;
 
-					CoordStruct tmp;
-					target->GetCoords(&tmp);
+						CoordStruct tmp;
+						target->GetCoords(&tmp);
 
-					if (MapClass::Instance->GetCellAt(tmp)->GetBuilding())
+						if (MapClass::Instance->GetCellAt(tmp)->GetBuilding())
+							return false;
+					}
+					else
+					{
 						return false;
-				}
-				else
-				{
-					// -----------------------------------------------------------------
-					// [PATCH 0x6F7FC5 → 0x6F7FDF]  DEFINE_JUMP(LJMP, 0x6F7FC5, 0x6F7FDF)
-					//   Vanilla code at loc_6F7FC5 checked Kind_Of() == RTTI_UNIT and
-					//   only rejected the target when Is_Vehicle_Can_Undeploy() was
-					//   false, allowing undeployable allies through so a unit could
-					//   "nudge" them.  The patch jumps past the entire block, making
-					//   a unit ALWAYS reject non-aircraft allied targets here,
-					//   regardless of their undeploy capability.
-					// -----------------------------------------------------------------
-					return false;
+					}
 				}
 			}
 		}
@@ -928,7 +978,8 @@ bool FakeTechnoClass::__EvaluateObjectB(
 	// =========================================================================
 	// 13. Harvester protection in special scenario mode (Scen->Specials bit 11)
 	// =========================================================================
-	if (ScenarioClass::Instance->SpecialFlags.StructEd.HarvesterImmune && pUnitTarget) {
+	if (ScenarioClass::Instance->SpecialFlags.StructEd.HarvesterImmune && pUnitTarget)
+	{
 		if (RulesClass::Instance->HarvesterUnit.contains(pUnitTarget->Type))
 			return false;
 	}
@@ -973,12 +1024,14 @@ bool FakeTechnoClass::__EvaluateObjectB(
 	// =========================================================================
 	// 16. Player / campaign visibility restriction
 	// =========================================================================
-	if(pTechnoTarget){
+	if (pTechnoTarget)
+	{
 		if (pThis->Owner->ControlledByCurrentPlayer()
 			&& !pTechnoTarget->IsOwnedByCurrentPlayer
 			&& !pTechnoTarget->DiscoveredByCurrentPlayer
 			&& SessionClass::Instance->GameMode == GameMode::Campaign
-			&& !pAircraftTarget) {
+			&& !pAircraftTarget)
+		{
 			return false;
 		}
 	}
@@ -1017,14 +1070,18 @@ bool FakeTechnoClass::__EvaluateObjectB(
 		{
 			const auto* pTargetTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoTarget->GetTechnoType());
 
-			if(pTargetTypeExt->AI_LegalTarget.isset() && !pThis->Owner->IsControlledByHuman()){
+			if (pTargetTypeExt->AI_LegalTarget.isset() && !pThis->Owner->IsControlledByHuman())
+			{
 				if (!pTargetTypeExt->AI_LegalTarget.Get())
-				return false;
-			} else if (!target->GetType()->LegalTarget) {
+					return false;
+			}
+			else if (!target->GetType()->LegalTarget)
+			{
 				return false;
 			}
 		}
-		else if (!target->GetType()->LegalTarget) {
+		else if (!target->GetType()->LegalTarget)
+		{
 			return false;
 		}
 	}
@@ -1089,16 +1146,18 @@ bool FakeTechnoClass::__EvaluateObjectB(
 			if (GET_TECHNOTYPEEXT(pTechnoTarget)->CivilianEnemy)
 				return true;
 
-				// Auto-repel: passive unit is actively attacking an ally.
-			if (const auto* pTargetTarget = flag_cast_to<TechnoClass*>(pTechnoTarget->Target)) {
-				if (pThis->Owner->IsAlliedWith(pTargetTarget)) {
-						const auto* pData = RulesExtData::Instance();
-						const bool autoRepel = pThis->Owner->IsControlledByHuman()
-							? pData->AutoRepelPlayer
-							: pData->AutoRepelAI;
+			// Auto-repel: passive unit is actively attacking an ally.
+			if (const auto* pTargetTarget = flag_cast_to<TechnoClass*>(pTechnoTarget->Target))
+			{
+				if (pThis->Owner->IsAlliedWith(pTargetTarget))
+				{
+					const auto* pData = RulesExtData::Instance();
+					const bool autoRepel = pThis->Owner->IsControlledByHuman()
+						? pData->AutoRepelPlayer
+						: pData->AutoRepelAI;
 
-						if (autoRepel)
-							return true;
+					if (autoRepel)
+						return true;
 				}
 			}
 
@@ -1137,7 +1196,8 @@ bool FakeTechnoClass::__EvaluateObjectB(
 	// =========================================================================
 	// 21. Disguise / mirage detection
 	// =========================================================================
-	if (pTechnoTarget && pTechnoTarget->IsDisguisedAs(pThis->Owner) && !pType->DetectDisguise) {
+	if (pTechnoTarget && pTechnoTarget->IsDisguisedAs(pThis->Owner) && !pType->DetectDisguise)
+	{
 
 		if (!pTechnoTarget->DisguiseBlinkTimer.GetTimeLeft()
 			|| pThis->Owner->IsControlledByHuman()
@@ -1246,7 +1306,7 @@ bool FakeTechnoClass::__EvaluateObjectB(
 					{
 						isViable = true;
 					}
-					else if(pTechnoTarget)
+					else if (pTechnoTarget)
 					{
 						// Vanilla: viable only if building has an armed turret with Risk.
 						WeaponStruct* turret = pTechnoTarget->GetTurrentWeapon();
@@ -1303,7 +1363,7 @@ bool FakeTechnoClass::__EvaluateObjectB(
 	// =========================================================================
 	// 27. Base threat coefficient
 	// =========================================================================
-	*value = static_cast<int>(FakeTechnoClass::__GetThreatCoeff(pThis, discard_t(),target, coord));
+	*value = static_cast<int>(FakeTechnoClass::__GetThreatCoeff(pThis, discard_t(), target, coord));
 
 	// =========================================================================
 	// 28. VHP scan adjustment
@@ -1354,13 +1414,16 @@ bool FakeTechnoClass::__EvaluateObjectB(
 	// =========================================================================
 	if ((method & ThreatType::PowerFacilties) != ThreatType::Normal)
 	{
-		if (pBuildingTarget) {
+		if (pBuildingTarget)
+		{
 			int totalPower = 0;
 
-			for (const auto type : pBuildingTarget->GetTypes()) {
-				if (type) {
-					const auto&[enhancedPower, extraPower] = PowerPlantEnhancerClass::GetEnhancedPower(type, type->PowerBonus, pBuildingTarget->Owner);
-					totalPower += ( enhancedPower + extraPower);
+			for (const auto type : pBuildingTarget->GetTypes())
+			{
+				if (type)
+				{
+					const auto& [enhancedPower, extraPower] = PowerPlantEnhancerClass::GetEnhancedPower(type, type->PowerBonus, pBuildingTarget->Owner);
+					totalPower += (enhancedPower + extraPower);
 				}
 			}
 
@@ -1410,11 +1473,15 @@ bool FakeTechnoClass::__EvaluateObjectB(
 	//     Note: despite the enum name, pThis flag path governs garrison/occupy
 	//     targeting rather than base-defence structures specifically.
 	// =========================================================================
-	if ((method & ThreatType::Base_defenses) != ThreatType::Normal) {
-		if (pBuildingTarget && pBuildingTarget->Type->CanBeOccupied) {
+	if ((method & ThreatType::Base_defenses) != ThreatType::Normal)
+	{
+		if (pBuildingTarget && pBuildingTarget->Type->CanBeOccupied)
+		{
 			if (!pBuildingTarget->GetOccupantCount())
 				return false;
-		} else if (pTechnoTarget) {
+		}
+		else if (pTechnoTarget)
+		{
 			WeaponStruct* primaryWeapon = pTechnoTarget->GetPrimaryWeapon();
 			if (!primaryWeapon || !primaryWeapon->WeaponType || !pBuildingTarget)
 				return false;
@@ -1450,7 +1517,7 @@ bool FakeTechnoClass::__EvaluateObjectB(
 
 bool __fastcall FakeTechnoClass::__EvaluateObject(
 	TechnoClass* pThis,
-	discard_t ,
+	discard_t,
 	ThreatType targetFlags,
 	int mask,
 	int wantedDistance,
@@ -1459,7 +1526,7 @@ bool __fastcall FakeTechnoClass::__EvaluateObject(
 	ZoneType dwUnk,
 	CoordStruct* pSourceCoords)
 {
-	return FakeTechnoClass::__EvaluateObjectB(pThis, targetFlags, mask, wantedDistance, pTarget, pThreatPosed, dwUnk, pSourceCoords,false);
+	return FakeTechnoClass::__EvaluateObjectB(pThis, targetFlags, mask, wantedDistance, pTarget, pThreatPosed, dwUnk, pSourceCoords, false);
 }
 //#pragma optimize("", on )
 
