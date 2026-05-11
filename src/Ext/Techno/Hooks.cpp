@@ -2464,7 +2464,7 @@ ASMJIT_PATCH(0x7090A0, TechnoClass_VoiceAttack, 0x7)
 	return 0x7091C7;
 }
 
-#ifdef _MultiWeapon
+#ifndef _MultiWeapon
 
 ThreatType __forceinline GetThreatType(TechnoClass* pThis, TechnoTypeExtData* pTypeExt, ThreatType result)
 {
@@ -2590,7 +2590,7 @@ int __fastcall FakeTechnoClass::__GetGuardRange(TechnoClass* pThis, discard_t, i
 		// Handle special weapon configurations.
 		if (!pType->IsGattling && (pType->HasMultipleTurrets() || pTypeExt->MultiWeapon))
 		{
-#ifdef _MultiWeapon
+#ifndef _MultiWeapon
 			if (pType->HasMultipleTurrets())
 				range = pThis->GetWeaponRange(pThis->CurrentWeaponNumber);
 			else

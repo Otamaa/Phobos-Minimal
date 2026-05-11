@@ -246,8 +246,8 @@ bool NOINLINE TechnoExtData::IsHealer(TechnoClass* pThis)
 
 bool TechnoExtData::IsAttackFriendlies(TechnoClass* pThis) {
 	const auto pThisExt = TechnoExtContainer::Instance.Find(pThis);
-	//return pThis->Veterancy.IsElite() ? pThisExt->TypeExtData->AttackFriendlies.Y : pThisExt->TypeExtData->AttackFriendlies.X;
-	return pThis->GetTechnoType()->AttackFriendlies;
+	bool attackFriendlies = pThis->Veterancy.IsElite() ? pThisExt->TypeExtData->AttackFriendlies.Y : pThisExt->TypeExtData->AttackFriendlies.X;
+	return attackFriendlies || pThis->GetTechnoType()->AttackFriendlies;
 }
 bool TechnoExtData::HasWeaponsDisabled(TechnoClass* pThis)
 {
