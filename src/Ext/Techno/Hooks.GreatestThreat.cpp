@@ -21,6 +21,40 @@
 #include <TeamTypeClass.h>
 #include <AircraftTrackerClass.h>
 
+// Returns true when pThis effectively heals: either CombatDamage is negative,
+// or any weapon slot produces negative net output via verses modifiers against
+// Armor::None (a representative pre-scan check; no specific target yet).
+// Iterates all WeaponCount slots so Gattling, Gunner, and MultiWeapon units
+// are handled correctly.
+static FORCEDINLINE bool IsEffectivelyHealer(TechnoClass* pThis, TechnoTypeClass* pType, int combatDamage)
+{
+	if (combatDamage < 0)
+		return true;
+	const int numWeapons = pType->WeaponCount;
+	for (int i = 0; i < numWeapons; ++i)
+	{
+		const auto* ws = pThis->GetWeapon(i);
+		if (!ws || !ws->WeaponType || !ws->WeaponType->Warhead || ws->WeaponType->Damage <= 0)
+			continue;
+		if (FakeWarheadTypeClass::ModifyDamage(ws->WeaponType->Damage, ws->WeaponType->Warhead, Armor::None, 0) < 0)
+			return true;
+	}
+	return false;
+}
+
+// Returns true when the selected weapon for pThis will effectively heal
+// the specific target (i.e. net damage is negative against that target's armor).
+static FORCEDINLINE bool IsEffectivelyHealingTarget(TechnoClass* pThis, WeaponTypeClass* lastWeapon, FakeWarheadTypeClass* pFakeWH, ObjectClass* target)
+{
+	if (pThis->CombatDamage(-1) < 0)
+		return true;
+	if (!pFakeWH || !lastWeapon || lastWeapon->Damage <= 0)
+		return false;
+	const Armor armor = TechnoExtData::GetTechnoArmor(target, pFakeWH);
+	const VersesData* vsData = pFakeWH->GetVersesData(armor);
+	return vsData && vsData->Verses < 0.0;
+}
+
 static int GetMultiWeaponRange(TechnoClass* pThis)
 {
 	int range = -1;
@@ -158,7 +192,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 	{
 		if (isEffectivelyHealer)
 		{
-			// Healer infantry (negative damage or negative verses) - target allied units only
+			// Healer infantry - target allied units
 			method = (method & (ThreatType::Area | ThreatType::Range)) | ThreatType::Threattype_4000 | ThreatType_HealerTargets;
 		}
 		else if (((InfantryClass*)pThis)->Type->Engineer)
@@ -169,7 +203,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 	}
 	else if (what == AbstractType::Unit && isEffectivelyHealer)
 	{
-		// Healer units (negative damage or negative verses) - target allied units only
+		// Healer units - target allied units
 		method = (method & (ThreatType::Area | ThreatType::Range)) | ThreatType::Threattype_4000 | ThreatType_HealerTargets;
 	}
 
@@ -353,7 +387,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 		}
 	}
 
-	// Override for healer units (negative damage or negative verses) in guard mode
+	// Override for healer units in guard mode
 	if (isEffectivelyHealer && pThis->CurrentMission == Mission::Guard)
 	{
 		threatRange = 512;
