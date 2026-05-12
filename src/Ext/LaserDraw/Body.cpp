@@ -913,49 +913,54 @@ void FakeLaserDrawClass::_DrawInHouseColor()
 	}
 }
 
-// ============================================================================
-// Hook: HouseClass::init_laser_color (0x50BA00)
-// Replaces the original RGB normalization function
-// ============================================================================
+//// ============================================================================
+//// Hook: HouseClass::init_laser_color (0x50BA00)
+//// Replaces the original RGB normalization function
+//// ============================================================================
 DEFINE_FUNCTION_JUMP(LJMP, 0x50BA00, FakeHouseClass::_InitLaserColor);
+DEFINE_FUNCTION_JUMP(CALL, 0x6880E6, FakeHouseClass::_InitLaserColor);
+DEFINE_FUNCTION_JUMP(CALL, 0x6881E7, FakeHouseClass::_InitLaserColor);
 
-// ============================================================================
-// Hook: Destroy_LaserDrawClassDVC (0x550000)
-// Replaces the function that destroys all lasers in the global DVC
-// ============================================================================
-DEFINE_FUNCTION_JUMP(CALL, 0x55B5C3, FakeLaserDrawClass::_DestroyAllLasers);
-DEFINE_FUNCTION_JUMP(LJMP, 0x550000, FakeLaserDrawClass::_DestroyAllLasers);
-
-// ============================================================================
-// Hook: LaserDrawClass per-laser update (0x550080)
-// Replaces the per-instance AI update (__thiscall)
-// ============================================================================
-DEFINE_FUNCTION_JUMP(LJMP, 0x550080, FakeLaserDrawClass::_UpdateLaser);
-
-// ============================================================================
-// Hook: LaserDrawClass::AI (0x550150)
-// Replaces the static function that iterates all lasers and updates them
-// ============================================================================
-DEFINE_FUNCTION_JUMP(LJMP, 0x550150, FakeLaserDrawClass::_UpdateAllLasers);
-
-// ============================================================================
-// Hook: LaserDrawClass::Draw_All (0x550240)
-// Replaces the static __fastcall that iterates and draws all lasers
-// ============================================================================
-DEFINE_FUNCTION_JUMP(LJMP, 0x550240, FakeLaserDrawClass::_DrawAllLasers);
-
-// ============================================================================
-// Hook: LaserDrawClass::Draw (0x550260)
-// Replaces the per-instance draw function (__thiscall)
-// Now supports multicolored thickness (previously only IsHouseColor)
-// ============================================================================
+//
+//// ============================================================================
+//// Hook: Destroy_LaserDrawClassDVC (0x550000)
+//// Replaces the function that destroys all lasers in the global DVC
+//// ============================================================================
+//DEFINE_FUNCTION_JUMP(CALL, 0x55B5C3, FakeLaserDrawClass::_DestroyAllLasers);
+//DEFINE_FUNCTION_JUMP(LJMP, 0x550000, FakeLaserDrawClass::_DestroyAllLasers);
+//
+//// ============================================================================
+//// Hook: LaserDrawClass per-laser update (0x550080)
+//// Replaces the per-instance AI update (__thiscall)
+//// ============================================================================
+//DEFINE_FUNCTION_JUMP(LJMP, 0x550080, FakeLaserDrawClass::_UpdateLaser);
+//
+//// ============================================================================
+//// Hook: LaserDrawClass::AI (0x550150)
+//// Replaces the static function that iterates all lasers and updates them
+//// ============================================================================
+//DEFINE_FUNCTION_JUMP(LJMP, 0x550150, FakeLaserDrawClass::_UpdateAllLasers);
+//
+//// ============================================================================
+//// Hook: LaserDrawClass::Draw_All (0x550240)
+//// Replaces the static __fastcall that iterates and draws all lasers
+//// ============================================================================
+//DEFINE_FUNCTION_JUMP(LJMP, 0x550240, FakeLaserDrawClass::_DrawAllLasers);
+//
+//// ============================================================================
+//// Hook: LaserDrawClass::Draw (0x550260)
+//// Replaces the per-instance draw function (__thiscall)
+//// Now supports multicolored thickness (previously only IsHouseColor)
+//// ============================================================================
 DEFINE_FUNCTION_JUMP(LJMP, 0x550260, FakeLaserDrawClass::_DrawLaser);
+DEFINE_FUNCTION_JUMP(CALL, 0x550256, FakeLaserDrawClass::_DrawLaser);
 
-// ============================================================================
-// Hook: LaserDrawClass::Draw_In_House_Color (0x5509F0)
-// Replaces the house-color laser rendering (__thiscall)
-// Uses smooth exponential falloff instead of harsh >>1 halving
-// ============================================================================
+//
+//// ============================================================================
+//// Hook: LaserDrawClass::Draw_In_House_Color (0x5509F0)
+//// Replaces the house-color laser rendering (__thiscall)
+//// Uses smooth exponential falloff instead of harsh >>1 halving
+//// ============================================================================
 DEFINE_FUNCTION_JUMP(LJMP, 0x5509F0, FakeLaserDrawClass::_DrawInHouseColor);
 
 #ifdef LASERDRAWDEBUG

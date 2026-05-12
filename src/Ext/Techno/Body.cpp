@@ -223,6 +223,7 @@ void TintColors::GetTints(int* tintColor, int* intensity)
 	}
 }
 
+//#pragma optimize("", off)
 bool NOINLINE TechnoExtData::IsHealer(TechnoClass* pThis)
 {
 	const int _result = pThis->CombatDamage(-1);
@@ -243,6 +244,7 @@ bool NOINLINE TechnoExtData::IsHealer(TechnoClass* pThis)
 	//}
 	return false;
 }
+//#pragma optimize("", on)
 
 bool TechnoExtData::IsAttackFriendlies(TechnoClass* pThis) {
 	const auto pThisExt = TechnoExtContainer::Instance.Find(pThis);
@@ -6142,9 +6144,11 @@ bool __fastcall FakeTechnoClass::__TargetSomethingNearby(TechnoClass* pThis, dis
 	}
 
 	if (!pThis->Target) {
+		const auto potentialTarget = pThis->GreatestThreat((threat & (ThreatType::Range | ThreatType::Area)).operator ThreatType(), coord, 0);
+
 		if (pType->DistributedFire) {
 			pThis->DistributedFire();
-		} else if (const auto potentialTarget = pThis->GreatestThreat((threat & (ThreatType::Range | ThreatType::Area)).operator ThreatType(), coord, 0)) {
+		} else if (potentialTarget) {
 
 			pThis->SetTarget(potentialTarget);
 

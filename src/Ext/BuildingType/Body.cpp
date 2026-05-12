@@ -1785,6 +1785,11 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->BuildingRadioLink_SyncOwner.Read(exINI, pSection, "BuildingRadioLink.SyncOwner");
 		this->ApplyPerTargetEffectsOnDetonate.Read(exINI, pSection, "ApplyPerTargetEffectsOnDetonate");
 		this->RevealToAll_Radius.Read(exINI, pSection, "RevealToAll.Radius");
+		this->DisplayIncome_Delay.Read(exINI, pSection, "DisplayIncome.Delay");
+		if (this->DisplayIncome_Delay.isset() && this->DisplayIncome_Delay == 0) {
+			Debug::Log("[Developer warning] [%s] DisplayIncome.Delay is set to 0, forcing to 1.\n", pSection);
+			this->DisplayIncome_Delay = 1;
+		}
 	}
 #pragma endregion
 	if (pArtINI->GetSection(pArtSection))
@@ -2251,6 +2256,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->ApplyPerTargetEffectsOnDetonate)
 		.Process(this->Adjacent_Disallowed_Prohibit)
 		.Process(this->RevealToAll_Radius)
+		.Process(this->DisplayIncome_Delay)
 
 		;
 }

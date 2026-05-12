@@ -43,3 +43,5 @@ public:
 	void __AI();
 	void __Fire(TechnoClass* firer, AbstractClass* target, WeaponTypeClass* weapon, int damage_multiplier);
 };
+
+static_assert(sizeof(FakeDiskLaserClass) == sizeof(DiskLaserClass), "Invalid Size !");

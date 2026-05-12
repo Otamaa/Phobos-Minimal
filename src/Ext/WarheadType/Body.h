@@ -515,9 +515,11 @@ public:
 
 	Nullable<StackingMode> Psychedelic_StackingMode {};
 
-	Valueable<int> RadarOutage_Duration {};
+	Valueable<int> RadarOutage_Duration { 0 };
+	Valueable<int> RadarOutage_Max {};
 	Valueable<AffectedHouse> RadarOutage_AffectsHouse { AffectedHouse::Owner };
-	Valueable<int> PowerOutage_Duration {};
+	Valueable<int> PowerOutage_Duration { 0 };
+	Valueable<int> PowerOutage_Max {};
 	Valueable<AffectedHouse> PowerOutage_AffectsHouse { AffectedHouse::Owner };
 #pragma endregion
 

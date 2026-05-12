@@ -175,6 +175,7 @@ public:
 	Nullable<int> Units_RepairStep {};
 	Nullable<int> NewEvaVoice_Index {};
 	Nullable<int> RevealToAll_Radius {};
+	Nullable<int> DisplayIncome_Delay {};
 	Nullable<AffectedHouse> RadialIndicator_Visibility {};
 	Nullable<DirType32> DockUnload_Facing {};
 	Nullable<AffectedHouse> DisplayIncome_Houses {};

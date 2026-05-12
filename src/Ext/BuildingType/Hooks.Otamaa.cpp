@@ -67,6 +67,7 @@ ASMJIT_PATCH(0x6FE3E3, TechnoClass_FireAt_OccupyDamageBonus, 0xA) //B
 	pThis->RearmTimer.Start(rearm);
 	pThis->CurrentBurstIndex %= pWeapon->Burst;
 	((FakeDiskLaserClass*)pDiskLaser)->__Fire(pThis, pTarget, pWeapon, nDamage);
+	//pDiskLaser->Fire(pThis, pTarget, pWeapon, nDamage);
 
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 

@@ -26,34 +26,34 @@
 // Armor::None (a representative pre-scan check; no specific target yet).
 // Iterates all WeaponCount slots so Gattling, Gunner, and MultiWeapon units
 // are handled correctly.
-static FORCEDINLINE bool IsEffectivelyHealer(TechnoClass* pThis, TechnoTypeClass* pType, int combatDamage)
-{
-	if (combatDamage < 0)
-		return true;
-	const int numWeapons = pType->WeaponCount;
-	for (int i = 0; i < numWeapons; ++i)
-	{
-		const auto* ws = pThis->GetWeapon(i);
-		if (!ws || !ws->WeaponType || !ws->WeaponType->Warhead || ws->WeaponType->Damage <= 0)
-			continue;
-		if (FakeWarheadTypeClass::ModifyDamage(ws->WeaponType->Damage, ws->WeaponType->Warhead, Armor::None, 0) < 0)
-			return true;
-	}
-	return false;
-}
-
-// Returns true when the selected weapon for pThis will effectively heal
-// the specific target (i.e. net damage is negative against that target's armor).
-static FORCEDINLINE bool IsEffectivelyHealingTarget(TechnoClass* pThis, WeaponTypeClass* lastWeapon, FakeWarheadTypeClass* pFakeWH, ObjectClass* target)
-{
-	if (pThis->CombatDamage(-1) < 0)
-		return true;
-	if (!pFakeWH || !lastWeapon || lastWeapon->Damage <= 0)
-		return false;
-	const Armor armor = TechnoExtData::GetTechnoArmor(target, pFakeWH);
-	const VersesData* vsData = pFakeWH->GetVersesData(armor);
-	return vsData && vsData->Verses < 0.0;
-}
+//static FORCEDINLINE bool IsEffectivelyHealer(TechnoClass* pThis, TechnoTypeClass* pType, int combatDamage)
+//{
+//	if (combatDamage < 0)
+//		return true;
+//	const int numWeapons = pType->WeaponCount;
+//	for (int i = 0; i < numWeapons; ++i)
+//	{
+//		const auto* ws = pThis->GetWeapon(i);
+//		if (!ws || !ws->WeaponType || !ws->WeaponType->Warhead || ws->WeaponType->Damage <= 0)
+//			continue;
+//		if (FakeWarheadTypeClass::ModifyDamage(ws->WeaponType->Damage, ws->WeaponType->Warhead, Armor::None, 0) < 0)
+//			return true;
+//	}
+//	return false;
+//}
+//
+//// Returns true when the selected weapon for pThis will effectively heal
+//// the specific target (i.e. net damage is negative against that target's armor).
+//static FORCEDINLINE bool IsEffectivelyHealingTarget(TechnoClass* pThis, WeaponTypeClass* lastWeapon, FakeWarheadTypeClass* pFakeWH, ObjectClass* target)
+//{
+//	if (pThis->CombatDamage(-1) < 0)
+//		return true;
+//	if (!pFakeWH || !lastWeapon || lastWeapon->Damage <= 0)
+//		return false;
+//	const Armor armor = TechnoExtData::GetTechnoArmor(target, pFakeWH);
+//	const VersesData* vsData = pFakeWH->GetVersesData(armor);
+//	return vsData && vsData->Verses < 0.0;
+//}
 
 static int GetMultiWeaponRange(TechnoClass* pThis)
 {
@@ -78,7 +78,7 @@ static int GetMultiWeaponRange(TechnoClass* pThis)
 	return range;
 }
 
-#pragma optimize("", off)
+//#pragma optimize("", off)
 
 // Helper function to evaluate a cell and update best target
 void NOINLINE EvaluateCellAndUpdate(TechnoClass* pThis,
@@ -140,6 +140,7 @@ void NOINLINE EvaluateCellAndUpdate(TechnoClass* pThis,
 		}
 	}
 }
+
 AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 	TechnoClass* pThis, discard_t, ThreatType method,
 	CoordStruct* coord, bool onlyEnemy)
@@ -165,6 +166,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 	ZoneType zone = ZoneType::None;
 	const AbstractType what = pThis->WhatAmI();
 	CoordStruct emptyCoord = CoordStruct::Empty;
+	//ThreatType result_method = ThreatType(-1) ;
 
 	// Determine zone for non-building, non-aircraft units without ThreatType::Range
 	if ((method & ThreatType::Range) == ThreatType::Normal
@@ -420,6 +422,10 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 				}
 			}
 		}
+		else // HasTurret && !IsGattling: use the selected turret weapon slot
+		{
+			weaponRange = pThis->GetWeaponRange(pThis->CurrentWeaponNumber);
+		}
 
 		cellRange = weaponRange / 256 + pType->AirRangeBonus / 256 + 1;
 	}
@@ -612,7 +618,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 
 	return bestTarget;
 }
-#pragma optimize("", on)
+//#pragma optimize("", on)
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x6F8DF0, FakeTechnoClass::__Greatest_Threat);
 DEFINE_FUNCTION_JUMP(CALL, 0x4D9942, FakeTechnoClass::__Greatest_Threat);//foot
@@ -951,7 +957,7 @@ bool FakeTechnoClass::__EvaluateObjectB(
 				// -----------------------------------------------------------------
 				if (pTechnoTarget)
 				{
-					if (pTechnoTarget->IsIronCurtained() || !TechnoExtData::FiringAllowed(pThis, pTechnoTarget, pFakeWeapon , isEffectivelyHealing))
+					if (pTechnoTarget->IsIronCurtained() || !TechnoExtData::FiringAllowed(pThis, pTechnoTarget, pFakeWeapon , true))
 						return false;
 
 				}
@@ -1557,22 +1563,22 @@ bool __fastcall FakeTechnoClass::__EvaluateObject(
 //#pragma optimize("", on )
 
 
-ASMJIT_PATCH(0x6F90F8, TechnoClass_SelectAutoTarget_Demacroize, 6)
-{
-	GET(int, nVal1, EDI);
-	GET(int, nVal2, EAX);
-
-	R->EAX(nVal2 >= nVal1 ? nVal2 : nVal1);
-	return 0x6F9116;
-}
-
-ASMJIT_PATCH_AGAIN(0x6F8F1F, TechnoClass_SelectAutoTarget_Heal, 6)
-ASMJIT_PATCH(0x6F8EE3, TechnoClass_SelectAutoTarget_Heal, 6)
-{
-	GET(unsigned int, nVal, EBX);
-
-	nVal |= 0x403Cu;
-
-	R->EBX(nVal);
-	return 0x6F8F25;
-}
+//ASMJIT_PATCH(0x6F90F8, TechnoClass_SelectAutoTarget_Demacroize, 6)
+//{
+//	GET(int, nVal1, EDI);
+//	GET(int, nVal2, EAX);
+//
+//	R->EAX(nVal2 >= nVal1 ? nVal2 : nVal1);
+//	return 0x6F9116;
+//}
+//
+//ASMJIT_PATCH_AGAIN(0x6F8F1F, TechnoClass_SelectAutoTarget_Heal, 6)
+//ASMJIT_PATCH(0x6F8EE3, TechnoClass_SelectAutoTarget_Heal, 6)
+//{
+//	GET(unsigned int, nVal, EBX);
+//
+//	nVal |= 0x403Cu;
+//
+//	R->EBX(nVal);
+//	return 0x6F8F25;
+//}

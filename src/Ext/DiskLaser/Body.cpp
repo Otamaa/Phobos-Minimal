@@ -363,58 +363,44 @@ void FakeDiskLaserClass::__AI()
 	}
 }
 
-void FakeDiskLaserClass::__Fire(TechnoClass* pFirer, AbstractClass* pTarget, WeaponTypeClass* pWeapon, int damageMultiplier)
+void NOINLINE FakeDiskLaserClass::__Fire(TechnoClass* pFirer, AbstractClass* pTarget, WeaponTypeClass* pWeapon, int damageMultiplier)
 {
 	// Validate all required parameters
-	if (!pFirer) {
-		this->DrawRateCounter = -1;
+	if (pFirer && pTarget && pWeapon) {
+		// Initialize disk laser state
+		this->Owner = pFirer;
+		this->Damage = damageMultiplier;
+		this->Target = pTarget;
+		this->Weapon = pWeapon;
+
+		// Get center coordinates of target and firer
+		CoordStruct const targetCoords = pTarget->GetCoords();
+		CoordStruct const firerCoords = pFirer->GetCoords();
+
+		// Calculate angle from firer to target
+		// Atan2(firerY - targetY, targetX - firerX)
+		double const angle = Math::atan2(
+			static_cast<double>(firerCoords.Y - targetCoords.Y),
+			static_cast<double>(targetCoords.X - firerCoords.X)
+		);
+
+		// Convert angle to binary angle format
+		// Subtract 90 degrees and convert using BINARY_ANGLE_MAGIC
+		double const adjustedAngle = angle - Math::DEG90_AS_RAD;
+		int const binaryAngle = static_cast<int>(adjustedAngle * Math::BINARY_ANGLE_MAGIC);
+
+		// Calculate starting offset for laser animation
+		// Extract lower 16 bits, then calculate index
+		unsigned short const angleWord = static_cast<unsigned short>(binaryAngle);
+		const int offset = (((((angleWord >> 11) + 1) >> 1) & 0xF) + 8);
+
+		// Use signed mod 16 for final value
+		this->Facing = offset % std::size(DiscLaserCoords);
+		this->DrawRateCounter = 0;
+		this->DrawCounter = 0;
 		return;
 	}
-
-	if (!pTarget) {
-		this->DrawRateCounter = -1;
-		return;
-	}
-
-	if (!pWeapon) {
-		this->DrawRateCounter = -1;
-		return;
-	}
-
-	// Initialize disk laser state
-	this->Owner = pFirer;
-	this->Damage = damageMultiplier;
-	this->Target = pTarget;
-	this->Weapon = pWeapon;
-
-	// Get center coordinates of target and firer
-	CoordStruct const targetCoords = pTarget->GetCoords();
-	CoordStruct const firerCoords = pFirer->GetCoords();
-
-	// Calculate angle from firer to target
-	// Atan2(firerY - targetY, targetX - firerX)
-	double const angle = Math::atan2(
-		static_cast<double>(firerCoords.Y - targetCoords.Y),
-		static_cast<double>(targetCoords.X - firerCoords.X)
-	);
-
-	// Convert angle to binary angle format
-	// Subtract 90 degrees and convert using BINARY_ANGLE_MAGIC
-	double const adjustedAngle = angle - Math::DEG90_AS_RAD;
-	int const binaryAngle = static_cast<int>(adjustedAngle * Math::BINARY_ANGLE_MAGIC);
-
-	// Calculate starting offset for laser animation
-	// Extract lower 16 bits, then calculate index
-	unsigned short const angleWord = static_cast<unsigned short>(binaryAngle);
-	const int offset = (((((angleWord >> 11) + 1) >> 1) & 0xF) + 8);
-
-	// Use signed mod 16 for final value
-	this->Facing = offset % std::size(DiscLaserCoords);
-	this->DrawRateCounter = 0;
-	this->DrawCounter = 0;
-
-	// Add to the array for AI processing
-	AbstractClass::Array2->push_back(this);
+	this->AddTovector();
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x4A71A0, FakeDiskLaserClass::__Fire)

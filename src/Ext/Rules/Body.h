@@ -378,6 +378,7 @@ public:
 	Valueable<int> ChronoSpherePreDelay { 60 };
 	Valueable<int> ChronoSphereDelay { 0 };
 	Valueable<int> LaserZAdjust { 0 };
+	Valueable<int> DisplayIncome_Delay { 15 };
 
 	ValueableIdx<ColorScheme> AnimRemapDefaultColorScheme { 0 };
 	ValueableIdx<CursorTypeClass*> EngineerDamageCursor { 87 };

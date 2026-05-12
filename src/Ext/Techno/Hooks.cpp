@@ -18,6 +18,7 @@
 #include <Ext/Aircraft/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/Cell/Body.h>
+#include <Ext/CaptureManager/Body.h>
 
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/GeneralUtils.h>
@@ -32,6 +33,7 @@
 
 #include <BombClass.h>
 #include <SpawnManagerClass.h>
+#include <PlanningTokenClass.h>
 
 void TechnoExtData::InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType)
 {
@@ -1933,39 +1935,200 @@ ASMJIT_PATCH(0x736595, TechnoClass_IsSinking_SinkAnim, 0x6)
 	return 0x7365BB;
 }
 
-ASMJIT_PATCH(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
+#include <Ext/CaptureManager/Body.h>
+
+bool NOINLINE __fastcall ___CanPassiveAquire(TechnoClass* pThis)
 {
-	enum
+    // ==================== Early Exit Conditions ====================
+    // Cannot passive acquire if abstract, enslaved, or type doesn't allow it
+
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	// prevent units with killed drivers from looking for victims.
+	if(pExt->Is_DriverKilled)
+		return false;
+
+    if (pThis->IsWarpingIn())
+        return false;
+
+    if (pThis->SlaveOwner)
+        return false;
+
+	auto pOwner = pThis->Owner;
+	auto pType = pExt->TypeExtData->This();
+
+	if (pExt->TypeExtData->PassiveAcquire_AI.isset())
 	{
-		DecideResult = 0x709202,
-		Continue = 0x0,
-		ContinueCheck = 0x709206,
-		CantPassiveAcquire = 0x70927D,
-	};
-
-	GET(TechnoClass* const, pThis, ESI);
-	GET(TechnoTypeClass* const, pType, EAX);
-
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	const auto owner = pThis->Owner;
-
-	if (pTypeExt->PassiveAcquire_AI.isset())
-	{
-		if (owner
-			&& !owner->Type->MultiplayPassive
-			&& !owner->IsControlledByHuman()
+		if (!pOwner->Type->MultiplayPassive
+			&& !pOwner->IsControlledByHuman()
 			)
 		{
-
-			R->CL(pTypeExt->PassiveAcquire_AI.Get());
-			return 0x709202;
+			if(!pExt->TypeExtData->PassiveAcquire_AI.Get())
+				return false;
 		}
 	}
 
-	R->CL((pType->Naval && pTypeExt->CanPassiveAquire_Naval.isset()) ?
-		pTypeExt->CanPassiveAquire_Naval.Get() : pType->CanPassiveAquire);
-	return 0x709202;
+	if(pType->Naval && !pExt->TypeExtData->CanPassiveAquire_Naval.isset()){
+		if(!pExt->TypeExtData->CanPassiveAquire_Naval)
+			return false;
+	}
+
+	if (!pType->CanPassiveAquire){
+
+        return false;
+	}
+
+    // ==================== Building Occupancy Check ====================
+    // If this is a building that can be occupied, it must have occupants to passive acquire
+
+    const auto pBuilding = cast_to<BuildingClass*, false>(pThis);
+
+    if (pBuilding && pBuilding->Type->CanBeOccupied)
+    {
+        if (!pThis->GetOccupantCount())
+            return false;  // Can be occupied but has no occupants
+    }
+
+    // ==================== Final Eligibility Checks ====================
+    // Must meet all weapon/control conditions
+
+    // Check renovator and player control condition
+
+    if (pThis->IsEngineer() && pOwner->IsControlledByHuman())
+        return false;  // Renovator under player control cannot passive acquire
+
+	// ==================== Capture Manager Check ====================
+	// Check if capture manager can control more units
+	if (pThis->CaptureManager && !((FakeCaptureManagerClass*)pThis->CaptureManager)->__CanControlMore())
+        return false;  // Capture manager can control more - cannot passive acquire
+
+    if (!pThis->IsArmed())
+        return false;  // Must have weapon to passive acquire
+
+    // All conditions satisfied
+    return true;
 }
+
+DEFINE_FUNCTION_JUMP(CALL, 0x4D6EDB, ___CanPassiveAquire)
+DEFINE_FUNCTION_JUMP(LJMP, 0x7091D0, ___CanPassiveAquire)
+
+#include <TeamTypeClass.h>
+
+bool __fastcall FakeTechnoClass::___ShouldPassiveAcquire(TechnoClass* pThis)
+{
+	// ==================== Special Case: AI Team Aggressive Move ====================
+	// AI-controlled units on aggressive team missions can acquire targets while moving
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	auto pOwner = pThis->Owner;
+	auto pType = pExt->TypeExtData->This();
+
+	if (!pThis->TarCom && !pOwner->IsControlledByHuman())
+	{
+		if (auto pThisFoot = flag_cast_to<FootClass*, false>(pThis))
+		{
+			if (TeamClass* team = pThisFoot->Team)
+			{
+				TeamTypeClass* teamType = team->Type;
+				if (!teamType->Suicide && teamType->Aggressive && pThis->CurrentMission == Mission::Move)
+				{
+					return true;  // Aggressive team on move mission can acquire
+				}
+			}
+		}
+	}
+
+	// ==================== Basic Eligibility Check ====================
+	// Must pass the basic passive acquire check first
+
+	if (!___CanPassiveAquire(pThis))
+		return false;
+
+	// ==================== Move Mission Special Cases ====================
+	// Units on move missions have special acquisition rules based on type
+
+	if (pThis->CurrentMission == Mission::Move)
+	{
+		// --- Balloon Hover Units ---
+		if (pType->BalloonHover)
+		{
+			auto pThisFoot = flag_cast_to<FootClass*, false>(pThis);
+			// Must have target bitfield set
+			if (!pThisFoot)
+				return false;
+
+			// If at destination and no planning path, can acquire
+			if (pThisFoot->NavCom == pThisFoot->GetCell())
+			{
+				PlanningTokenClass* planningToken = pThisFoot->PlanningToken;
+
+				if (!planningToken || planningToken->NodeCount() <= 0)
+				{
+					return true;  // Balloon at destination with no queued moves
+				}
+			}
+		}
+
+		// --- Special Unit Type Check ---
+		// Check for units with specific properties (offset 150 byte flag check)
+		if (pThis->CurrentMission == Mission::Move)  // Reconfirm mission still MOVE
+		{
+			if (auto pThisUnit = cast_to<UnitClass*,false>(pThis))
+			{
+				if (pThisUnit->Type->IsSimpleDeployer)
+				{
+					// If at destination waypoint and no planning path, can acquire
+					if (pThisUnit->NavCom == pThisUnit->GetCell())
+					{
+						PlanningTokenClass* planningToken = pThisUnit->PlanningToken;
+						if (!planningToken || planningToken->NodeCount() <= 0)
+						{
+							return true;  // Special unit at waypoint with no queued moves
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// ==================== Opportunity Fire Override ====================
+	// Units with opportunity fire always acquire targets
+
+	if (pType->OpportunityFire)
+		return true;
+
+	// ==================== Guard Mission Weapon Check ====================
+	// Only guard mission units continue to weapon-specific checks
+
+	if (pThis->CurrentMission != Mission::Guard)
+		return false;
+
+	// --- Area Fire Weapon Restriction ---
+	// Guard units with area fire weapons have additional restrictions
+
+	const int weaponSlot = pThis->IsNotSprayAttack();
+	WeaponStruct* weapon = pThis->GetWeapon(weaponSlot);
+
+	bool isAreaFire = false;
+	if (weapon) {
+		WeaponTypeClass* weaponType = weapon->WeaponType;
+
+		if (weaponType && weaponType->AreaFire) {
+			isAreaFire = true;
+		}
+	}
+
+	const bool isSameTarget = pThis->SelectWeapon(pThis->TarCom) == weaponSlot;
+
+	// Area fire weapons can only acquire if it's NOT the same target
+	// (prevents spamming area fire on the same spot)
+	if (isAreaFire && isSameTarget)
+		return false;
+
+	// All other guard mission cases can acquire
+	return true;
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x709290, FakeTechnoClass::___ShouldPassiveAcquire)
 
 ASMJIT_PATCH(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 {

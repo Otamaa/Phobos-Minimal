@@ -1122,7 +1122,7 @@ public:
 	static void __fastcall _Cloaking_AI(TechnoClass* pThis, discard_t, bool something);
 	static bool __fastcall _ShouldNotBeCloaked(TechnoClass* pThis);
 	static bool __fastcall _ShouldBeCloaked(TechnoClass* pThis);
-
+	static bool __fastcall ___ShouldPassiveAcquire(TechnoClass* pThis);
 };
 
 #define GET_TECHNOTYPE(techno) techno->GetTechnoType()

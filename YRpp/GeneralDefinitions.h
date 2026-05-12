@@ -349,6 +349,7 @@ enum class LandTargetingType : int
 
 enum class ThreatType : int
 {
+	None = -1,
 	Normal = 0x0,
 	Range = 0x1,
 	Area = 0x2,

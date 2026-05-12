@@ -705,6 +705,11 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	#pragma endregion
 
 	#pragma region AudioVisual
+	this->DisplayIncome_Delay.Read(exINI, GameStrings::AudioVisual, "DisplayIncome.Delay");
+	if (!this->DisplayIncome_Delay) {
+		Debug::Log("[Developer warning] [AudioVisual] DisplayIncome.Delay is set 0 which would cause a crash, set to 1 instead.\n");
+		this->DisplayIncome_Delay = 1;
+	}
 	this->LaserZAdjust.Read(exINI, GameStrings::AudioVisual, "LaserZAdjust");
 	this->AirstrikeLineZAdjust.Read(exINI, GameStrings::AudioVisual, "AirstrikeLineZAdjust");
 	this->UseRetintFix.Read(exINI, GameStrings::AudioVisual, "UseRetintFix");
@@ -1270,6 +1275,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->ChronoSpherePreDelay)
 		.Process(this->ChronoSphereDelay)
 		.Process(this->LaserZAdjust)
+		.Process(this->DisplayIncome_Delay)
 		.Process(this->EnablePowerSurplus)
 		.Process(this->ShakeScreenUseTSCalculation)
 		.Process(this->UnitIdleRotateTurret)

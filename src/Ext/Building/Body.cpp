@@ -469,25 +469,28 @@ void BuildingExtData::DisplayIncomeString()
 {
 	auto const pTypeExt = (BuildingTypeExtData*)this->TypeExtData;
 
-	if (pTypeExt->DisplayIncome.Get(RulesExtData::Instance()->DisplayIncome) &&
-		this->AccumulatedIncome && Unsorted::CurrentFrame.get() % 15 == 0)
-	{
-		if (!RulesExtData::Instance()->DisplayIncome_AllowAI && !This()->Owner->IsControlledByHuman())
-		{
+	if (pTypeExt->DisplayIncome.Get(RulesExtData::Instance()->DisplayIncome) && this->AccumulatedIncome) {
+		int const delay = pTypeExt->DisplayIncome_Delay.Get(RulesExtData::Instance()->DisplayIncome_Delay);
+
+		if(Unsorted::CurrentFrame() % delay == 0) {
+
+			if (!RulesExtData::Instance()->DisplayIncome_AllowAI && !This()->Owner->IsControlledByHuman()) {
+				this->AccumulatedIncome = 0;
+				return;
+			}
+
+			FlyingStrings::Instance.AddMoneyString(
+				this->AccumulatedIncome,
+				this->AccumulatedIncome,
+				This(),
+				pTypeExt->DisplayIncome_Houses.Get(RulesExtData::Instance()->DisplayIncome_Houses),
+				This()->GetRenderCoords(),
+				pTypeExt->DisplayIncome_Offset, ColorStruct::Empty);
+
 			this->AccumulatedIncome = 0;
-			return;
 		}
-
-		FlyingStrings::Instance.AddMoneyString(
-			this->AccumulatedIncome,
-			this->AccumulatedIncome,
-			This(),
-			pTypeExt->DisplayIncome_Houses.Get(RulesExtData::Instance()->DisplayIncome_Houses),
-			This()->GetRenderCoords(),
-			pTypeExt->DisplayIncome_Offset, ColorStruct::Empty);
-
-		this->AccumulatedIncome = 0;
 	}
+
 }
 
 void BuildingExtData::UpdatePoweredKillSpawns() const
@@ -2474,9 +2477,7 @@ void FakeBuildingClass::_DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOrigi
 //}
 //
 //
-DEFINE_FUNCTION_JUMP(CALL6, 0x43D005, FakeBuildingClass::_Draw_It)
-DEFINE_FUNCTION_JUMP(LJMP, 0x43D290, FakeBuildingClass::_Draw_It)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3FD0, FakeBuildingClass::_Draw_It)
+
 
 int FakeBuildingClass::_BuildingClass_GetRangeOfRadial()
 {

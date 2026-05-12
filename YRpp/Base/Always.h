@@ -133,13 +133,13 @@ typedef union {
 #define RT(type) {return type();}
 
 #define NOVTABLE __declspec(novtable)
-#define NOINLINE __declspec(noinline)
-#define UNUSED  PRAGMA(warning(suppress : 4100 4101))
-#define NORETURN __declspec(noreturn)
-#define NOTHROW __declspec(nothrow)
+#define NOINLINE [[msvc::noinline]]
+#define UNUSED  [[maybe_unused]]
+#define NORETURN [[noreturn]]
+#define NOTHROW noexcept
 #define SELECTANY __declspec(selectany)
 #define NAKED __declspec(naked)
-#define NAKEDNOINLINE __declspec(noinline) __declspec(naked)
+#define NAKEDNOINLINE [[msvc::noinline]] __declspec(naked)
 
 #ifdef _DEBUG
 #define FORCEDINLINE inline

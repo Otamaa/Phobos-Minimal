@@ -553,7 +553,7 @@ bool FakeUnitClass::_Paradrop(CoordStruct* pCoords)
 	{
 		this->QueueMission(Mission::Hunt, false);
 	}
-	else if (this->Owner->IsControlledByHuman())
+	else if (!this->Owner->IsControlledByHuman())
 	{
 		this->QueueMission(pTypeExt->AIParadropMission.Get(RulesExtData::Instance()->AIParadropMission), false);
 	}
