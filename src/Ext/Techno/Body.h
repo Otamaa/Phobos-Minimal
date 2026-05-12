@@ -1085,6 +1085,7 @@ public:
 	static int __fastcall __HowManySurvivors(TechnoClass* pThis);
 	static bool __fastcall __ShouldSelfHealOneStep(TechnoClass* pThis);
 	static int __fastcall __TimeToBuild(TechnoClass* pThis);
+	static bool __fastcall _CanPassiveAquire(TechnoClass* pThis);
 
 	static InfantryTypeClass* __fastcall __GetCrew(TechnoClass* pThis);
 	static void __fastcall __DrawExtras(TechnoClass* pThis, discard_t, Point2D* pLocation, RectangleStruct* pBounds);

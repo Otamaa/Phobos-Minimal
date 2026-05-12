@@ -43,6 +43,7 @@
     <ClCompile Include="src\Ext\Techno\Hook.HealthBar.cpp" />
     <ClCompile Include="src\Ext\Techno\Hook.Pip.cpp" />
     <ClCompile Include="src\Ext\Techno\Hook.UpdateFunction.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.AI.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Ammo.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.CanFire.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.ChronoSparkle.cpp" />

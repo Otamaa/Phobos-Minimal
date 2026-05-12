@@ -271,12 +271,12 @@ ASMJIT_PATCH(0x730EE5, StopCommandClass_Execute_Berzerk, 6)
 	return pTechno->Berzerk || TechnoExtContainer::Instance.Find(pTechno)->Is_DriverKilled ? 0x730EF7 : 0;
 }
 
-ASMJIT_PATCH(0x7091D6, TechnoClass_CanPassiveAquire_KillDriver, 6)
-{
-	// prevent units with killed drivers from looking for victims.
-	GET(TechnoClass*, pThis, ESI);
-	return (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x70927Du : 0u);
-}
+//ASMJIT_PATCH(0x7091D6, TechnoClass_CanPassiveAquire_KillDriver, 6)
+//{
+//	// prevent units with killed drivers from looking for victims.
+//	GET(TechnoClass*, pThis, ESI);
+//	return (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x70927Du : 0u);
+//}
 
 
 ASMJIT_PATCH(0x73758A, UnitClass_ReceivedRadioCommand_QueryEnterAsPassenger_KillDriver, 6)

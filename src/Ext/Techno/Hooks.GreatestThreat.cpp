@@ -420,6 +420,10 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 				}
 			}
 		}
+		else // HasTurret && !IsGattling: use the selected turret weapon slot
+		{
+			weaponRange = pThis->GetWeaponRange(pThis->CurrentWeaponNumber);
+		}
 
 		cellRange = weaponRange / 256 + pType->AirRangeBonus / 256 + 1;
 	}
@@ -865,27 +869,27 @@ bool FakeTechnoClass::__EvaluateObjectB(
 	HouseClass* transportOwnerHouse = nullptr;
 
 	// -------------------------------------------------------------------------
-	// [HOOK 0x6F7EC2]  TechnoClass_EvaluateObject_ThreatEvals_OpenToppedOwner
-	//   When Passengers_SyncOwner is active on pThis unit's transport, ownership
-	//   is synchronized elsewhere; the vanilla per-passenger owner check is
-	//   skipped to avoid double-filtering.
+	// [VANILLA 0x6F7EA2]  TechnoClass_EvaluateObject_ThreatEvals_OpenToppedOwner
+	//   If pThis is riding in an open-topped transport that is currently
+	//   mind-controlled, use the captor's house for alliance filtering instead
+	//   of pThis's own house.  This handles the case where passengers of a
+	//   captured transport should attack enemies of the new controller.
+	//
+	//   When Passengers_SyncOwner is active on the transport, ownership of all
+	//   passengers is synchronised elsewhere, so the per-passenger captor check
+	//   is skipped to avoid double-filtering.
 	// -------------------------------------------------------------------------
-	if (pTechnoTarget)
+	if (auto transport = pThis->Transporter)
 	{
-		if (TechnoClass* transport = pTechnoTarget->Transporter)
+		auto pTransportType = GET_TECHNOTYPE(transport);
+
+		if (pTransportType->OpenTopped
+			&& !TechnoTypeExtContainer::Instance.Find(pTransportType)->Passengers_SyncOwner.Get())
 		{
-			auto pTransporTypeExt = GET_TECHNOTYPEEXT(transport);
-			auto pTransportType = GET_TECHNOTYPE(transport);
-
-			const bool syncOwnerActive = pTransporTypeExt->Passengers_SyncOwner.Get();
-
-			if (!syncOwnerActive && pTransportType->OpenTopped)
+			if (TechnoClass* captor = transport->MindControlledBy)
 			{
-				if (TechnoClass* origOwner = transport->MindControlledBy)
-				{
-					transportOwnerHouse = origOwner->Owner;
-					inOpenTopped = true;
-				}
+				transportOwnerHouse = captor->Owner;
+				inOpenTopped = true;
 			}
 		}
 	}
@@ -1557,22 +1561,22 @@ bool __fastcall FakeTechnoClass::__EvaluateObject(
 //#pragma optimize("", on )
 
 
-ASMJIT_PATCH(0x6F90F8, TechnoClass_SelectAutoTarget_Demacroize, 6)
-{
-	GET(int, nVal1, EDI);
-	GET(int, nVal2, EAX);
+//ASMJIT_PATCH(0x6F90F8, TechnoClass_SelectAutoTarget_Demacroize, 6)
+//{
+//	GET(int, nVal1, EDI);
+//	GET(int, nVal2, EAX);
+//
+//	R->EAX(nVal2 >= nVal1 ? nVal2 : nVal1);
+//	return 0x6F9116;
+//}
 
-	R->EAX(nVal2 >= nVal1 ? nVal2 : nVal1);
-	return 0x6F9116;
-}
-
-ASMJIT_PATCH_AGAIN(0x6F8F1F, TechnoClass_SelectAutoTarget_Heal, 6)
-ASMJIT_PATCH(0x6F8EE3, TechnoClass_SelectAutoTarget_Heal, 6)
-{
-	GET(unsigned int, nVal, EBX);
-
-	nVal |= 0x403Cu;
-
-	R->EBX(nVal);
-	return 0x6F8F25;
-}
+//ASMJIT_PATCH_AGAIN(0x6F8F1F, TechnoClass_SelectAutoTarget_Heal, 6)
+//ASMJIT_PATCH(0x6F8EE3, TechnoClass_SelectAutoTarget_Heal, 6)
+//{
+//	GET(unsigned int, nVal, EBX);
+//
+//	nVal |= 0x403Cu;
+//
+//	R->EBX(nVal);
+//	return 0x6F8F25;
+//}

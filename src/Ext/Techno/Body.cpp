@@ -6142,18 +6142,21 @@ bool __fastcall FakeTechnoClass::__TargetSomethingNearby(TechnoClass* pThis, dis
 	}
 
 	if (!pThis->Target) {
+		// GreatestThreat must always be called first: it populates CurrentTargets
+		// for DistributedFire units, which DistributedFire() then consumes.
+		AbstractClass* potentialTarget = pThis->GreatestThreat(
+			(threat & (ThreatType::Range | ThreatType::Area)).operator ThreatType(), coord, 0);
+
 		if (pType->DistributedFire) {
 			pThis->DistributedFire();
-		} else if (const auto potentialTarget = pThis->GreatestThreat((threat & (ThreatType::Range | ThreatType::Area)).operator ThreatType(), coord, 0)) {
-
+		} else if (potentialTarget) {
 			pThis->SetTarget(potentialTarget);
 
-			if (auto pPotentT = flag_cast_to<TechnoClass* ,false>(potentialTarget)) {
+			if (auto pPotentT = flag_cast_to<TechnoClass*, false>(potentialTarget)) {
 				const auto pWeapon = pThis->GetWeapon(pThis->SelectWeapon(pThis->Target));
 
 				if (pWeapon && pWeapon->WeaponType && !pWeapon->WeaponType->Projectile->Inaccurate) {
-					pPotentT->EstimatedHealth -= FakeTechnoClass::__AdjustDamage(pThis , discard_t() , pPotentT, pWeapon->WeaponType);
-
+					pPotentT->EstimatedHealth -= FakeTechnoClass::__AdjustDamage(pThis, discard_t(), pPotentT, pWeapon->WeaponType);
 				}
 			}
 		}

@@ -1933,39 +1933,39 @@ ASMJIT_PATCH(0x736595, TechnoClass_IsSinking_SinkAnim, 0x6)
 	return 0x7365BB;
 }
 
-ASMJIT_PATCH(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
-{
-	enum
-	{
-		DecideResult = 0x709202,
-		Continue = 0x0,
-		ContinueCheck = 0x709206,
-		CantPassiveAcquire = 0x70927D,
-	};
-
-	GET(TechnoClass* const, pThis, ESI);
-	GET(TechnoTypeClass* const, pType, EAX);
-
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	const auto owner = pThis->Owner;
-
-	if (pTypeExt->PassiveAcquire_AI.isset())
-	{
-		if (owner
-			&& !owner->Type->MultiplayPassive
-			&& !owner->IsControlledByHuman()
-			)
-		{
-
-			R->CL(pTypeExt->PassiveAcquire_AI.Get());
-			return 0x709202;
-		}
-	}
-
-	R->CL((pType->Naval && pTypeExt->CanPassiveAquire_Naval.isset()) ?
-		pTypeExt->CanPassiveAquire_Naval.Get() : pType->CanPassiveAquire);
-	return 0x709202;
-}
+//ASMJIT_PATCH(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
+//{
+//	enum
+//	{
+//		DecideResult = 0x709202,
+//		Continue = 0x0,
+//		ContinueCheck = 0x709206,
+//		CantPassiveAcquire = 0x70927D,
+//	};
+//
+//	GET(TechnoClass* const, pThis, ESI);
+//	GET(TechnoTypeClass* const, pType, EAX);
+//
+//	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+//	const auto owner = pThis->Owner;
+//
+//	if (pTypeExt->PassiveAcquire_AI.isset())
+//	{
+//		if (owner
+//			&& !owner->Type->MultiplayPassive
+//			&& !owner->IsControlledByHuman()
+//			)
+//		{
+//
+//			R->CL(pTypeExt->PassiveAcquire_AI.Get());
+//			return 0x709202;
+//		}
+//	}
+//
+//	R->CL((pType->Naval && pTypeExt->CanPassiveAquire_Naval.isset()) ?
+//		pTypeExt->CanPassiveAquire_Naval.Get() : pType->CanPassiveAquire);
+//	return 0x709202;
+//}
 
 ASMJIT_PATCH(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 {
