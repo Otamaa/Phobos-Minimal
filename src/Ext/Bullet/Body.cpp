@@ -1235,8 +1235,19 @@ void BulletExtData::SimulatedFiringElectricBolt(BulletClass* pBullet)
 	if (!pWeapon->IsElectricBolt)
 		return;
 
+	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+	int zAdjust = pWeaponExt->EBoltZAdjust.Get(RulesExtData::Instance()->EBoltZAdjust);
+
+	const auto pOwner = pBullet->Owner;
+	if (pOwner && pOwner->WhatAmI() == AbstractType::Building)
+	{
+		const bool clamp = pWeaponExt->EBoltZAdjust_ClampInitialDepthForBuilding.Get(RulesExtData::Instance()->EBoltZAdjust_ClampInitialDepthForBuilding);
+		if (clamp && zAdjust > 0)
+			zAdjust = 0;
+	}
+
 	const auto pEBolt = EboltExtData::_CreateOneOf(pWeapon, nullptr);
-	pEBolt->Fire(pBullet->SourceCoords, (pBullet->Type->Inviso ? pBullet->Location : pBullet->TargetCoords), 0);
+	pEBolt->Fire(pBullet->SourceCoords, (pBullet->Type->Inviso ? pBullet->Location : pBullet->TargetCoords), zAdjust);
 }
 
 // Make sure pBullet and pBullet->WeaponType is not empty before call

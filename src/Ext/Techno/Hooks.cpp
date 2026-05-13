@@ -1999,7 +1999,7 @@ bool NOINLINE __fastcall ___CanPassiveAquire(TechnoClass* pThis)
 
 	// ==================== Capture Manager Check ====================
 	// Check if capture manager can control more units
-	if (pThis->CaptureManager && !((FakeCaptureManagerClass*)pThis->CaptureManager)->__CanControlMore())
+	if (pThis->CaptureManager && ((FakeCaptureManagerClass*)pThis->CaptureManager)->__CanControlMore())
         return false;  // Capture manager can control more - cannot passive acquire
 
     if (!pThis->IsArmed())

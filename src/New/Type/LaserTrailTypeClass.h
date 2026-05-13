@@ -32,6 +32,8 @@ public:
 	Valueable<double> Beam_Amplitude;
 	Valueable<bool> CanBeHidden;
 
+	Valueable<int> Bolt_ZAdjust;
+
 	LaserTrailTypeClass(const char* pTitle) : Enumerable<LaserTrailTypeClass> { pTitle }
 		, IsHouseColor { false }
 		, Color { Drawing::DefaultColors[(int)DefaultColorList::Red] }
@@ -54,6 +56,8 @@ public:
 		, Beam_Color {}
 		, Beam_Amplitude { 40.0 }
 		, CanBeHidden { true }
+
+		, Bolt_ZAdjust { 0 }
 	{ }
 
 	void LoadFromINI(CCINIClass* pINI);

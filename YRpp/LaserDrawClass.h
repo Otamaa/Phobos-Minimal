@@ -21,6 +21,13 @@ public:
 		JMP_FAST(0x550240);
 	}
 
+	void SetThickness(int thickness) {
+		if (thickness > 0)
+			this->Thickness = thickness;
+
+		this->IsSupported = thickness > 3;
+	}
+
 	//Constructor, Destructor
 	LaserDrawClass(const CoordStruct& source, const CoordStruct& target, const ColorStruct& innerColor,
 		const ColorStruct& outerColor, const ColorStruct& outerSpread, int duration)

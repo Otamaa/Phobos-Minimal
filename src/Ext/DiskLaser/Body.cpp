@@ -180,13 +180,14 @@ void FakeDiskLaserClass::__AI()
 	int const idx1 = (offset34 - offset38 + 16) % std::size(DiscLaserCoords); // Opposite position
 	int const idx2 = (offset34 + offset38 + 1) % std::size(DiscLaserCoords);  // Next position
 	int const idx3 = (offset34 - offset38 + 15) % std::size(DiscLaserCoords); // Opposite next
+	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
 	// ============================================================
 	// HOOK: 0x4A757B - DiskLaserClass_AI_Circle
 	// Update circle coords if weapon has custom circumference
 	// ============================================================
 	{
-		auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+
 		int const newCircumference = pWeaponExt->DiskLaser_Circumference;
 
 		if (WeaponTypeExtData::nOldCircumference != newCircumference) {
@@ -198,6 +199,7 @@ void FakeDiskLaserClass::__AI()
 			}
 		}
 	}
+	int zAdj = pWeaponExt->LaserZAdjust;
 	// ============================================================
 
 	// Determine colors
@@ -236,14 +238,22 @@ void FakeDiskLaserClass::__AI()
 		}
 
 		// Create final laser beam
-		GameCreate<LaserDrawClass>(
+		auto pLaser_1 = GameCreate<LaserDrawClass>(
 			laserStart,
 			laserEnd,
+			zAdj,
+			1u,
 			innerColor,
 			outerColor,
 			*pOuterSpread,
-			pWeapon->LaserDuration
+			pWeapon->LaserDuration,
+			false,
+			true,
+			1.0f,
+			0.0f
 		);
+
+		pLaser_1->SetThickness(pWeaponExt->Laser_Thickness);
 
 		if(!pTypeExt->DiskLaserDetonate){
 			// Deal damage at target
@@ -325,14 +335,22 @@ void FakeDiskLaserClass::__AI()
 		// ============================================================
 
 		// First laser
-		GameCreate<LaserDrawClass>(
+		auto pLaser2 = GameCreate<LaserDrawClass>(
 			start1,
 			end1,
+			zAdj,
+			1u,
 			innerColor,
 			outerColor,
 			*pOuterSpread,
-			duration
+			duration,
+			false,
+			true,
+			1.0f,
+			0.5f
 		);
+
+		pLaser2->SetThickness(pWeaponExt->Laser_Thickness);
 
 		// Second pair: idx1 -> idx3
 		CoordStruct const start2 {
@@ -348,14 +366,22 @@ void FakeDiskLaserClass::__AI()
 		};
 
 		// Second laser
-		GameCreate<LaserDrawClass>(
+		auto pLaser3 = GameCreate<LaserDrawClass>(
 			start2,
 			end2,
+			zAdj,
+			1u,
 			innerColor,
 			outerColor,
 			*pOuterSpread,
-			duration
+			duration,
+			false,
+			true,
+			1.0f,
+			0.5f
 		);
+
+		pLaser3->SetThickness(pWeaponExt->Laser_Thickness);
 
 		// Advance animation state
 		this->DrawRateCounter = 1;

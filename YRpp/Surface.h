@@ -5,6 +5,7 @@
 #include <RectangleStruct.h>
 #include <CoordStruct.h>
 #include <ColorStruct.h>
+#include <Point2D.h>
 
 #include <Helpers/CompileTime.h>
 #include <Helpers/VTable.h>

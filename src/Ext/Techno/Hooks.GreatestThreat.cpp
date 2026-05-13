@@ -633,36 +633,16 @@ DEFINE_FUNCTION_JUMP(CALL6, 0x4D5392, FakeTechnoClass::__TargetSomethingNearby);
 DEFINE_FUNCTION_JUMP(CALL, 0x6F8C00, FakeTechnoClass::__EvaluateObject);
 DEFINE_FUNCTION_JUMP(LJMP, 0x6F7CA0, FakeTechnoClass::__EvaluateObject);
 
-static bool CanAttackMindControlled(TechnoClass* pControlled, TechnoClass* pRetaliator)
-{
-	const auto pMind = pControlled->MindControlledBy;
 
-	if (!pMind || pRetaliator->Berzerk)
-		return true;
-
-	const auto pManager = pMind->CaptureManager;
-
-	if (!pManager)
-		return true;
-
-	const auto pHome = pManager->GetOriginalOwner(pControlled);
-	const auto pHouse = pRetaliator->Owner;
-
-	if (!pHome || !pHouse || !pHouse->IsAlliedWith(pHome))
-		return true;
-
-	return TechnoExtContainer::Instance.Find(pControlled)->BeControlledThreatFrame <= Unsorted::CurrentFrame();
-}
-
-ASMJIT_PATCH(0x7089E8, TechnoClass_AllowedToRetaliate_AttackMindControlledDelay, 0x6)
-{
-	enum { CannotRetaliate = 0x708B17 };
-
-	GET(TechnoClass* const, pThis, ESI);
-	GET(TechnoClass* const, pAttacker, EBP);
-
-	return CanAttackMindControlled(pAttacker, pThis) ? 0 : CannotRetaliate;
-}
+// ASMJIT_PATCH(0x7089E8, TechnoClass_AllowedToRetaliate_AttackMindControlledDelay, 0x6)
+// {
+// 	enum { CannotRetaliate = 0x708B17 };
+//
+// 	GET(TechnoClass* const, pThis, ESI);
+// 	GET(TechnoClass* const, pAttacker, EBP);
+//
+// 	return CanAttackMindControlled(pAttacker, pThis) ? 0 : CannotRetaliate;
+// }
 
 /**
  * Evaluates whether `target` is a valid threat candidate for the given techno.
@@ -1430,7 +1410,7 @@ bool FakeTechnoClass::__EvaluateObjectB(
 	// -------------------------------------------------------------------------
 	if (pTechnoTarget)
 	{
-		if (!CanAttackMindControlled(pTechnoTarget, pThis))
+		if (!TechnoExtData::CanAttackMindControlled(pTechnoTarget, pThis))
 			return false;
 	}
 

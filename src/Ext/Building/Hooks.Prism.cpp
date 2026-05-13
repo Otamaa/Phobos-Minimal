@@ -40,10 +40,20 @@ void WeaponTypeExtData::FireRadBeam(TechnoClass* pFirer, WeaponTypeClass* pWeapo
 
 void WeaponTypeExtData::FireEbolt(TechnoClass* pFirer, WeaponTypeClass* pWeapon, CoordStruct& source, CoordStruct& target, int idx)
 {
+	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+	int zAdjust = pWeaponExt->EBoltZAdjust.Get(RulesExtData::Instance()->EBoltZAdjust);
+
+	if (pFirer && pFirer->WhatAmI() == AbstractType::Building)
+	{
+		const bool clamp = pWeaponExt->EBoltZAdjust_ClampInitialDepthForBuilding.Get(RulesExtData::Instance()->EBoltZAdjust_ClampInitialDepthForBuilding);
+		if (clamp && zAdjust > 0)
+			zAdjust = 0;
+	}
+
 	auto const supportEBolt = EboltExtData::_CreateOneOf(pWeapon, pFirer);
 	supportEBolt->Owner = pFirer;
 	supportEBolt->WeaponSlot = idx;
-	supportEBolt->Fire(source, target, 0); //messing with 3rd arg seems to make bolts more jumpy, and parts of them disappear
+	supportEBolt->Fire(source, target, zAdjust); //messing with 3rd arg seems to make bolts more jumpy, and parts of them disappear
 }
 
 ASMJIT_PATCH(0x44B2FE, BuildingClass_Mission_Attack_IsPrism, 6)

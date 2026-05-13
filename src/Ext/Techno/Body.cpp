@@ -4500,7 +4500,7 @@ bool NOINLINE TechnoExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* 
 			reloadPrev = pOldType->EmptyReload;
 			reloadNew = pToType->EmptyReload;
 		}
-		else if (pThis->Ammo)
+		else
 		{
 			reloadPrev = pOldType->Reload;
 			reloadNew = pToType->Reload;
@@ -5164,6 +5164,27 @@ int TechnoExtData::GetDeployingAnimIntensity(FootClass* pThis)
 	return intensity;
 }
 
+bool TechnoExtData::CanAttackMindControlled(TechnoClass* pControlled, TechnoClass* pRetaliator)
+{
+	const auto pMind = pControlled->MindControlledBy;
+
+	if (!pMind || pRetaliator->Berzerk)
+		return true;
+
+	const auto pManager = pMind->CaptureManager;
+
+	if (!pManager)
+		return true;
+
+	const auto pHome = pManager->GetOriginalOwner(pControlled);
+	const auto pHouse = pRetaliator->Owner;
+
+	if (!pHome || !pHouse || !pHouse->IsAlliedWith(pHome))
+		return true;
+
+	return TechnoExtContainer::Instance.Find(pControlled)->BeControlledThreatFrame <= Unsorted::CurrentFrame();
+}
+
 bool __fastcall FakeTechnoClass::__Is_Allowed_To_Retaliate(TechnoClass* pThis , discard_t , TechnoClass* pSource, WarheadTypeClass* pWarhead)
 {
 	if (!pSource || !pSource->IsAlive || pSource->IsCrashing || pSource->IsSinking)
@@ -5201,6 +5222,9 @@ bool __fastcall FakeTechnoClass::__Is_Allowed_To_Retaliate(TechnoClass* pThis , 
 	if (pThis->SpawnManager)
 		return false;
 
+	if(!TechnoExtData::CanAttackMindControlled(pSource, pThis))
+		return false;
+	
 	const bool bIsPlayerControl = pThis->Owner->IsControlledByHuman();
 
 	if (bIsPlayerControl && pThis->Target)

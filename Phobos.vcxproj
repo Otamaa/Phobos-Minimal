@@ -25,12 +25,20 @@
     <ClCompile Include="src\Commands\Deselect.cpp" />
     <ClCompile Include="src\Commands\ToggleSuperTimers.cpp" />
     <ClCompile Include="src\Ext\AITriggerType\Hooks.cpp" />
+    <ClCompile Include="src\Ext\AStar\Body.cpp" />
     <ClCompile Include="src\Ext\BitFont\Body.cpp" />
     <ClCompile Include="src\Ext\BitText\Body.cpp" />
     <ClCompile Include="src\Ext\Building\Hook.DrawIt.cpp" />
     <ClCompile Include="src\Ext\Building\Hooks.WallTower.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.AI.cpp" />
     <ClCompile Include="src\Ext\Cell\Hooks.Crates.cpp" />
+    <ClCompile Include="src\Ext\Convert\BlitterPack\BlitterPack.byte.avx2.cpp" />
+    <ClCompile Include="src\Ext\Convert\BlitterPack\BlitterPack.byte.scalar.cpp" />
+    <ClCompile Include="src\Ext\Convert\BlitterPack\BlitterPack.byte.sse2.cpp" />
+    <ClCompile Include="src\Ext\Convert\BlitterPack\BlitterPack.word.avx2.cpp" />
+    <ClCompile Include="src\Ext\Convert\BlitterPack\BlitterPack.word.scalar.cpp" />
+    <ClCompile Include="src\Ext\Convert\BlitterPack\BlitterPack.word.sse2.cpp" />
+    <ClCompile Include="src\Ext\Convert\Body.cpp" />
     <ClCompile Include="src\Ext\Factory\Hooks.cpp" />
     <ClCompile Include="src\Ext\Infantry\Hooks.Assaulter.cpp" />
     <ClCompile Include="src\Ext\INI\Body.cpp" />
@@ -494,6 +502,7 @@
     <ClCompile Include="src\Utilities\PlacingBuildingStruct.cpp" />
     <ClCompile Include="src\Utilities\SavegameDef.cpp" />
     <ClCompile Include="src\Utilities\ShapeTextPrinter.cpp" />
+    <ClCompile Include="src\Utilities\Simd.cpp" />
     <ClCompile Include="src\Utilities\Stream.cpp" />
     <ClCompile Include="src\Utilities\Swizzle.cpp" />
     <ClCompile Include="src\Phobos.cpp" />
@@ -515,8 +524,118 @@
     <ClInclude Include="B:\Projects\Unused\LambdaFunctionArgCount.h" />
     <ClInclude Include="src\Commands\Deselect.h" />
     <ClInclude Include="src\Commands\ToggleSuperTimers.h" />
+    <ClInclude Include="src\Ext\AStar\Body.h" />
     <ClInclude Include="src\Ext\BitFont\Body.h" />
     <ClInclude Include="src\Ext\BitText\Body.h" />
+    <ClInclude Include="src\Ext\Convert\BlitterPack\BlitterPack.byte.avx2.h" />
+    <ClInclude Include="src\Ext\Convert\BlitterPack\BlitterPack.byte.scalar.h" />
+    <ClInclude Include="src\Ext\Convert\BlitterPack\BlitterPack.byte.sse2.h" />
+    <ClInclude Include="src\Ext\Convert\BlitterPack\BlitterPack.h" />
+    <ClInclude Include="src\Ext\Convert\BlitterPack\BlitterPack.levels.h" />
+    <ClInclude Include="src\Ext\Convert\BlitterPack\BlitterPack.word.avx2.h" />
+    <ClInclude Include="src\Ext\Convert\BlitterPack\BlitterPack.word.scalar.h" />
+    <ClInclude Include="src\Ext\Convert\BlitterPack\BlitterPack.word.sse2.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitPlainXlat.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitPlainXlatAlpha.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitPlainXlatZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitPlainXlatZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\Blitter.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransDarken.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransDarkenZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransDarkenZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent25.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent25Alpha.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent25AlphaZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent25AlphaZReadWarp.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent25AlphaZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent25ZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent25ZReadWarp.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent25ZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent50.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent50Alpha.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent50AlphaZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent50AlphaZReadWarp.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent50AlphaZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTranslucent50NonzeroAlpha.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTranslucent50ZeroAlpha.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent50ZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent50ZReadWarp.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent50ZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent75.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent75Alpha.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent75AlphaZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent75AlphaZReadWarp.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent75AlphaZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent75ZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent75ZReadWarp.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransLucent75ZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTranslucentWriteAlpha.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransRemapDest.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransRemapXlat.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransXlat.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransXlatAlpha.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransXlatAlphaZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransXlatAlphaZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransXlatMultWriteAlpha.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransXlatWriteAlpha.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransXlatZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransXlatZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransZRemapXlat.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransZRemapXlatAlpha.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransZRemapXlatAlphaZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransZRemapXlatAlphaZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransZRemapXlatZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\BlitTransZRemapXlatZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\index.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransDarken.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransDarkenZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransDarkenZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent25.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent25Alpha.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent25AlphaZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent25AlphaZReadFix.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent25AlphaZReadWarp.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent25AlphaZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent25ZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent25ZReadWarp.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent25ZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent50.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent50Alpha.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent50AlphaZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent50AlphaZReadFix.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent50AlphaZReadWarp.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent50AlphaZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent50ZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent50ZReadWarp.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent50ZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent75.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent75Alpha.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent75AlphaZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent75AlphaZReadFix.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent75AlphaZReadWarp.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent75AlphaZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent75ZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent75ZReadWarp.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransLucent75ZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransRemapDest.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransRemapDestZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransRemapDestZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransRemapXlat.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransRemapXlatZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransRemapXlatZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransXlat.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransXlatAlpha.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransXlatAlphaZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransXlatAlphaZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransXlatZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransXlatZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransZRemapXlat.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransZRemapXlatAlpha.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransZRemapXlatAlphaZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransZRemapXlatAlphaZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransZRemapXlatZRead.h" />
+    <ClInclude Include="src\Ext\Convert\Blitters\RLEBlitTransZRemapXlatZReadWrite.h" />
+    <ClInclude Include="src\Ext\Convert\Body.h" />
     <ClInclude Include="src\Ext\Factory\Body.h" />
     <ClInclude Include="src\Ext\INI\Body.h" />
     <ClInclude Include="src\Lib\lodepng\lodepng.h" />
@@ -880,6 +999,7 @@
     <ClInclude Include="src\Utilities\Savegame.h" />
     <ClInclude Include="src\Utilities\SavegameDef.h" />
     <ClInclude Include="src\Utilities\ShapeTextPrinter.h" />
+    <ClInclude Include="src\Utilities\Simd.h" />
     <ClInclude Include="src\Utilities\Stream.h" />
     <ClInclude Include="src\Utilities\StreamUtils.h" />
     <ClInclude Include="src\Utilities\Swizzle.h" />
@@ -1016,14 +1136,14 @@
       <ConformanceMode>true</ConformanceMode>
       <DiagnosticsFormat>Column</DiagnosticsFormat>
       <OmitFramePointers>true</OmitFramePointers>
-      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;ASMJIT_NO_TEXT;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;MAKE_LIB;SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;_ATL_NO_SECURITY;_ATL_NO_AUTOMATIC_NAMESPACE;_ATL_NO_MODULE;_ATL_NO_COM_MODULE;_ATL_NO_WIN_SUPPORT;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;ASMJIT_NO_TEXT;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;MAKE_LIB;SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;_ATL_NO_SECURITY;_ATL_NO_AUTOMATIC_NAMESPACE;_ATL_NO_MODULE;_ATL_NO_COM_MODULE;_ATL_NO_WIN_SUPPORT;YR_SIMD_COMPILE_AVX2;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>SyncCThrow</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
-      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AssemblerListingLocation>$(IntDir)\%(RelativeDir)</AssemblerListingLocation>

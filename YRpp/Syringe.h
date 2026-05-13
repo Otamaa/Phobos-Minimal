@@ -1270,12 +1270,25 @@ namespace SyringeData
 	namespace Hosts { };
 }
 
+#define _YR_PP_CAT_INNER(a, b) a##b
+#define _YR_PP_CAT(a, b) _YR_PP_CAT_INNER(a, b)
+#define _YR_PP_STRINGIZE_INNER(x) #x
+#define _YR_PP_STRINGIZE(x) _YR_PP_STRINGIZE_INNER(x)
+
+#define _YR_LINKER_FORCE_INCLUDE(symbol) \
+	__pragma(comment(linker, "/include:_" _YR_PP_STRINGIZE(symbol)))
+
+#define _YR_DEFINE_INCLUDE_ANCHOR(name, expr) \
+	extern "C" __declspec(selectany) const void* name = (expr); \
+	_YR_LINKER_FORCE_INCLUDE(name)
+
+#define declhost(exename, checksum) \
+namespace SyringeData { namespace Hosts { __declspec(allocate(".syexe00")) hostdecl _hst__ ## exename  { checksum, #exename }; }; }; \
+_YR_DEFINE_INCLUDE_ANCHOR(_YR_PP_CAT(YrKeepHost_, exename), &SyringeData::Hosts::_hst__ ## exename)
+
 #define declhook(hook, funcname, size) \
-namespace SyringeData { \
-namespace Hooks { \
-__declspec(allocate(SYRINGE_HOOKS_SECTION_NAME)) \
-hookdecl _hk__ ## hook ## funcname = { hook, size, #funcname }; \
-}; };
+namespace SyringeData { namespace Hooks { __declspec(allocate(".syhks00")) hookdecl _hk__ ## hook ## funcname  {  hook, size, #funcname }; }; }; \
+_YR_DEFINE_INCLUDE_ANCHOR(_YR_PP_CAT(YrKeepHook_, _YR_PP_CAT(hook, funcname)), &SyringeData::Hooks::_hk__ ## hook ## funcname)
 
 #define decl_asmjit_patch_data(hook, funcname, size) \
 namespace AsmjitPatchData { \

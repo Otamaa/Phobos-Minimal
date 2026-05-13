@@ -25,6 +25,8 @@
 
 #include <Lib/magic_enum/magic_enum_all.hpp>
 
+#include <Utilities/Simd.h>
+
 #pragma warning( pop )
 
 class CSFText;
@@ -289,6 +291,8 @@ public:
 		static int version;
 
 		static bool ShowPowerPlantEnhancerRange;
+		static bool FixTransparencyBlitters;
+		static Simd::Level MaxSimdLevel;
 	};
 
 	struct Misc

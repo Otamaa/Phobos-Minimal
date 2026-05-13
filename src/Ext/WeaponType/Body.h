@@ -215,6 +215,8 @@ public:
 	Nullable<bool> CylinderRangefinding {};
 
 	Nullable<int> LaserZAdjust {};
+	Nullable<int> EBoltZAdjust {};
+	Nullable<bool> EBoltZAdjust_ClampInitialDepthForBuilding {};
 #pragma endregion
 
 public:

@@ -114,7 +114,11 @@ struct _VTABLE
 	{                                                             \
 		__declspec(allocate(PATCH_SECTION_NAME))                  \
 		Patch patch = {type ,offset, size, (BYTE*)data};                \
-	}
+	}\
+	_YR_DEFINE_INCLUDE_ANCHOR(                                    \
+		_YR_PP_CAT(YrKeepPatch_, offset),                        \
+		&STATIC_PATCH##offset::patch                              \
+	)
 
 #define DEFINE_PATCH_TYPED(type, offset, ...)                     \
 	namespace STATIC_PATCH##offset                                \

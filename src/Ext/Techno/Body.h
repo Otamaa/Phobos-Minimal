@@ -983,6 +983,7 @@ public:
 	static FireError GetFireErrorIgnoreDisableWeapons(TechnoClass* pThis, AbstractClass* pTarget, int weaponIndex, bool ignoreRange);
 	static bool IsHealer(TechnoClass* pThis);
 	static bool IsAttackFriendlies(TechnoClass* pTarget);
+	static bool CanAttackMindControlled(TechnoClass* pControlled, TechnoClass* pRetaliator);
 
 public:
 	static UnitClass* Deployer;

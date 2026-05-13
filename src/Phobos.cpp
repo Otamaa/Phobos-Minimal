@@ -195,7 +195,8 @@ int  Phobos::Config::colorCount { 8 };
 int  Phobos::Config::version;
 
 bool Phobos::Config::ShowPowerPlantEnhancerRange = false;
-
+bool Phobos::Config::FixTransparencyBlitters = false;
+Simd::Level Phobos::Config::MaxSimdLevel = Simd::Level::AVX2;
 bool Phobos::Misc::CustomGS { false };
 int Phobos::Misc::CustomGS_ChangeInterval[7] { -1, -1, -1, -1, -1, -1, -1 };
 int Phobos::Misc::CustomGS_ChangeDelay[7] { 0, 1, 2, 3, 4, 5, 6 };

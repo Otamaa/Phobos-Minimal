@@ -405,9 +405,8 @@ void Phobos::Config::Read_RULESMD()
 		 }
 	 }
 
-	 if (pINI->ReadBool(GameStrings::General(), "FixTransparencyBlitters", false))
-	 {
-		 BlittersFix::Apply();
+	 if (pINI->ReadBool(GameStrings::General(), "FixTransparencyBlitters", Phobos::Config::FixTransparencyBlitters)) {
+		Phobos::Config::FixTransparencyBlitters = true;
 	 }
 
 	 Phobos::Config::MultiThreadSinglePlayer = pINI->ReadBool(GameStrings::General(), "MultiThreadSinglePlayer", Phobos::Config::MultiThreadSinglePlayer);
