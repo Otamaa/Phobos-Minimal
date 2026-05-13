@@ -109,7 +109,7 @@ void FakeDiskLaserClass::__AI()
 	// State < 0: Destroy
 	if (state < 0) {
 		this->DrawRateCounter = -1;
-		AbstractClass::Array2->erase(this);
+		DiskLaserClass::Array->erase(static_cast<DiskLaserClass*>(this));
 		return;
 	}
 
@@ -157,14 +157,14 @@ void FakeDiskLaserClass::__AI()
 	// Out of range - destroy
 	if (range > pWeapon->Range) {
 		this->DrawRateCounter = -1;
-		AbstractClass::Array2->erase(this);
+		DiskLaserClass::Array->erase(static_cast<DiskLaserClass*>(this));
 		return;
 	}
 
 	// Firer crashing - destroy
 	if (pFirer->IsCrashing) {
 		this->DrawRateCounter = -1;
-		AbstractClass::Array2->erase(this);
+		DiskLaserClass::Array->erase(static_cast<DiskLaserClass*>(this));
 		return;
 	}
 
@@ -326,12 +326,7 @@ void FakeDiskLaserClass::__AI()
 
 		// First laser
 		GameCreate<LaserDrawClass>(
-			start1,
-			end1,
-			innerColor,
-			outerColor,
-			*pOuterSpread,
-			duration
+			start1, end1, 0, 1, innerColor, outerColor, *pOuterSpread, duration, false, true, 1.0f, 0.5f
 		);
 
 		// Second pair: idx1 -> idx3
@@ -349,12 +344,7 @@ void FakeDiskLaserClass::__AI()
 
 		// Second laser
 		GameCreate<LaserDrawClass>(
-			start2,
-			end2,
-			innerColor,
-			outerColor,
-			*pOuterSpread,
-			duration
+			start2, end2, 0, 1, innerColor, outerColor, *pOuterSpread, duration, false, true, 1.0f, 0.5f
 		);
 
 		// Advance animation state
@@ -400,6 +390,7 @@ void NOINLINE FakeDiskLaserClass::__Fire(TechnoClass* pFirer, AbstractClass* pTa
 		this->DrawCounter = 0;
 		return;
 	}
+	this->DrawRateCounter = -1;
 	this->AddTovector();
 }
 

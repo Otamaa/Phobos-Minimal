@@ -654,15 +654,15 @@ static bool CanAttackMindControlled(TechnoClass* pControlled, TechnoClass* pReta
 	return TechnoExtContainer::Instance.Find(pControlled)->BeControlledThreatFrame <= Unsorted::CurrentFrame();
 }
 
-ASMJIT_PATCH(0x7089E8, TechnoClass_AllowedToRetaliate_AttackMindControlledDelay, 0x6)
-{
-	enum { CannotRetaliate = 0x708B17 };
-
-	GET(TechnoClass* const, pThis, ESI);
-	GET(TechnoClass* const, pAttacker, EBP);
-
-	return CanAttackMindControlled(pAttacker, pThis) ? 0 : CannotRetaliate;
-}
+// ASMJIT_PATCH(0x7089E8, TechnoClass_AllowedToRetaliate_AttackMindControlledDelay, 0x6)
+// {
+//	 enum { CannotRetaliate = 0x708B17 };
+//
+//	 GET(TechnoClass* const, pThis, ESI);
+//	 GET(TechnoClass* const, pAttacker, EBP);
+//
+//	 return CanAttackMindControlled(pAttacker, pThis) ? 0 : CannotRetaliate;
+// }
 
 /**
  * Evaluates whether `target` is a valid threat candidate for the given techno.

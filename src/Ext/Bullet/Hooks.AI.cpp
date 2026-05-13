@@ -370,6 +370,9 @@ namespace
 											   VelocityClass& veloc, BulletAITickContext& ctx);
 	OPTIONALINLINE void CheckUnguidedTargetCell(FakeBulletClass* pThis, CoordStruct& coord,
 												 VelocityClass& veloc, BulletAITickContext& ctx);
+	enum class BouncePhaseResult { ContinueVanilla, KeepFlying, ForceDetonate };
+	OPTIONALINLINE BouncePhaseResult RunBouncePhase(FakeBulletClass* pThis, CoordStruct& coord,
+													 BulletAITickContext& ctx);
 	OPTIONALINLINE void FinalizeBulletMotion(FakeBulletClass* pThis, CoordStruct& coord,
 											  BulletAITickContext& ctx);
 	OPTIONALINLINE void RunDetonation(FakeBulletClass* pThis, CoordStruct& coord,
@@ -1404,10 +1407,42 @@ namespace
 	// the bullet (a) keeps flying after a bounce, (b) detonates immediately due to
 	// exhausted bounces, or (c) wasn't a bouncing trajectory and falls through to
 	// vanilla logic. No gotos, no skipped initializers.
-	//
-	// Drop-in replacement for the existing FinalizeBulletMotion in the anonymous
-	// namespace of FakeBulletClass_AI.cpp.
 	// ============================================================================
+
+	OPTIONALINLINE BouncePhaseResult RunBouncePhase(FakeBulletClass* pThis, CoordStruct& coord,
+													 BulletAITickContext& ctx)
+	{
+		auto pExt = pThis->_GetExtData();
+		if (!pExt->Trajectory)
+			return BouncePhaseResult::ContinueVanilla;
+
+		bool force_detonate_from_bounce = false;
+		const auto bounce_result = pExt->Trajectory->OnBounceCheck(
+			coord, force_detonate_from_bounce);
+
+		switch (bounce_result)
+		{
+		case BounceCheckResult::NotHandled:
+			return BouncePhaseResult::ContinueVanilla;
+
+		case BounceCheckResult::BouncedKeepFlying:
+			// Reflection happened. Velocity has been updated by OnBounceCheck;
+			// re-commit the location to be safe and clear any prior explode
+			// flag from upstream phases (Range decay, etc. don't apply when
+			// a bounce keeps us alive).
+			ctx.exploded = false;
+			pThis->SetLocation(coord);
+			return BouncePhaseResult::KeepFlying;
+
+		case BounceCheckResult::BouncedDetonate:
+			ctx.exploded = true;
+			return force_detonate_from_bounce
+				? BouncePhaseResult::ForceDetonate
+				: BouncePhaseResult::ContinueVanilla;
+		}
+
+		return BouncePhaseResult::ContinueVanilla;
+	}
 
 	OPTIONALINLINE void FinalizeBulletMotion(FakeBulletClass* pThis, CoordStruct& coord,
 											  BulletAITickContext& ctx)
@@ -1481,43 +1516,7 @@ namespace
 		//   ForceDetonate   — bounces exhausted, detonate immediately (skip fuse
 		//                     and target snap, go straight to RunDetonation)
 		// -----------------------------------------------------------------------
-		enum class BouncePhaseResult { ContinueVanilla, KeepFlying, ForceDetonate };
-
-		auto bounce_phase = [&]() -> BouncePhaseResult
-			{
-				auto pExt = pThis->_GetExtData();
-				if (!pExt->Trajectory)
-					return BouncePhaseResult::ContinueVanilla;
-
-				bool force_detonate_from_bounce = false;
-				const auto bounce_result = pExt->Trajectory->OnBounceCheck(
-					coord, force_detonate_from_bounce);
-
-				switch (bounce_result)
-				{
-				case BounceCheckResult::NotHandled:
-					return BouncePhaseResult::ContinueVanilla;
-
-				case BounceCheckResult::BouncedKeepFlying:
-					// Reflection happened. Velocity has been updated by OnBounceCheck;
-					// re-commit the location to be safe and clear any prior explode
-					// flag from upstream phases (Range decay, etc. don't apply when
-					// a bounce keeps us alive).
-					ctx.exploded = false;
-					pThis->SetLocation(coord);
-					return BouncePhaseResult::KeepFlying;
-
-				case BounceCheckResult::BouncedDetonate:
-					ctx.exploded = true;
-					return force_detonate_from_bounce
-						? BouncePhaseResult::ForceDetonate
-						: BouncePhaseResult::ContinueVanilla;
-				}
-
-				return BouncePhaseResult::ContinueVanilla;
-			};
-
-		const auto bounce_outcome = bounce_phase();
+		const auto bounce_outcome = RunBouncePhase(pThis, coord, ctx);
 
 		if (bounce_outcome == BouncePhaseResult::ForceDetonate)
 		{
@@ -1556,7 +1555,7 @@ namespace
 		// Hook 0x467C2E — FuseCheck (extended fuse checkup)
 		// -----------------------------------------------------------------------
 		Fuse fuse_result = Fuse::DontIgnite;
-		if (pType->ROT > 0 || pType->Ranged)
+		if (pType->ROT > 0 || pType->Ranged || pType->Inviso)
 		{
 			fuse_result = static_cast<Fuse>(
 				BulletExtData::FuseCheckup(pThis, &coord));

@@ -591,7 +591,7 @@ public:
 	Valueable<TechnoTypeClass*> Convert_Deploy { nullptr };
 	Valueable<int> Convert_Deploy_Delay { -1 };
 	Valueable<TechnoTypeClass*> Convert_Script { nullptr };
-	ValueableVector<int> Convert_Scipt_Prereq {};
+	ValueableVector<int> Convert_Script_Prereq {};
 	Valueable<TechnoTypeClass*> Convert_Water { nullptr };
 	Valueable<TechnoTypeClass*> Convert_Land { nullptr };
 	Valueable<bool> Convert_ResetMindControl { false };
@@ -2072,7 +2072,7 @@ private:
 			.Process(this->DeployedArmor)
 			.Process(this->Cloakable_IgnoreArmTimer)
 			.Process(this->Untrackable)
-			.Process(this->Convert_Scipt_Prereq)
+			.Process(this->Convert_Script_Prereq)
 			.Process(this->LargeVisceroid)
 			.Process(this->DropPodProp)
 			.Process(this->VoicePickup)

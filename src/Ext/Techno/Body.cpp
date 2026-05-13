@@ -4500,7 +4500,7 @@ bool NOINLINE TechnoExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* 
 			reloadPrev = pOldType->EmptyReload;
 			reloadNew = pToType->EmptyReload;
 		}
-		else if (pThis->Ammo)
+		else
 		{
 			reloadPrev = pOldType->Reload;
 			reloadNew = pToType->Reload;
@@ -5262,6 +5262,23 @@ bool __fastcall FakeTechnoClass::__Is_Allowed_To_Retaliate(TechnoClass* pThis , 
 	// Player-controlled artillery units should not retaliate
 	if (bIsPlayerControl && pThisUnit && pThisUnit->Type->DeploysInto && pThisUnit->Type->DeploysInto->Artillary) {
 		return false;
+	}
+
+	// Mind-controlled allied unit attack delay check
+	// Integrated from ASMJIT_PATCH(0x7089E8, TechnoClass_AllowedToRetaliate_AttackMindControlledDelay)
+	// If the source is mind-controlled by a unit whose original house is allied with us,
+	// only allow retaliation after the specified threat frame has passed.
+	if (const auto pMind = pSource->MindControlledBy) {
+		if (!pThis->Berzerk) {
+			if (const auto pManager = pMind->CaptureManager) {
+				const auto pHome = pManager->GetOriginalOwner(pSource);
+				const auto pHouse = pThis->Owner;
+				if (pHome && pHouse && pHouse->IsAlliedWith(pHome)) {
+					if (TechnoExtContainer::Instance.Find(pSource)->BeControlledThreatFrame > Unsorted::CurrentFrame())
+						return false;
+				}
+			}
+		}
 	}
 
 	// Player-controlled units without SmartDefense should only retaliate in guard missions

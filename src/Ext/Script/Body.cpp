@@ -487,7 +487,7 @@ bool ScriptExtData::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 				const auto pTypeExt = GET_TECHNOTYPEEXT(pFirst);
 				if (pTypeExt->Convert_Script)
 				{
-					const auto& pConvertReq = pTypeExt->Convert_Scipt_Prereq;
+					const auto& pConvertReq = pTypeExt->Convert_Script_Prereq;
 					if (pConvertReq.empty() || Prereqs::HouseOwnsAll(pTeam->OwnerHouse, pConvertReq))
 					{
 						TechnoExtData::ConvertToType(pFirst, pTypeExt->Convert_Script);

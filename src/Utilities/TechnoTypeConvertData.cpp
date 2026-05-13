@@ -66,7 +66,9 @@ void TechnoTypeConvertData::ApplyConvert(const std::vector<TechnoTypeConvertData
 							pAnim->SetOwnerObject(pDrawer);
 						}
 					}
+					return; // stop — first matching pair applied, pCurType is now stale
 				}
+				break; // matched type; don't fire duplicate entries in pFrom
 			}
 		} else {
 			const auto bConvertStatus = TechnoExtData::ConvertToType(pTarget, pTo);
@@ -87,6 +89,7 @@ void TechnoTypeConvertData::ApplyConvert(const std::vector<TechnoTypeConvertData
 						pAnim->SetOwnerObject(pDrawer);
 					}
 				}
+				return; // stop — first matching pair applied
 			}
 		}
 	}

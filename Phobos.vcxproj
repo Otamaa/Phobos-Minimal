@@ -97,6 +97,8 @@
     <ClCompile Include="src\Ext\Locomotion\Hooks.Hover.cpp" />
     <ClCompile Include="src\Ext\Building\Hook.ExitObject.cpp" />
     <ClCompile Include="src\Ext\Cell\Body.cpp" />
+    <ClCompile Include="src\Ext\Pathfinding\Body.cpp" />
+    <ClCompile Include="src\Ext\Pathfinding\Hooks.cpp" />
     <ClCompile Include="src\Ext\Ebolt\Body.cpp" />
     <ClCompile Include="src\Ext\Locomotion\Teleport\Body.cpp" />
     <ClCompile Include="src\Ext\Sidebar\Hooks.TacticalButton.cpp" />
@@ -732,6 +734,7 @@
     <ClInclude Include="src\Ext\Bullet\Trajectories\WaveTrajectory.h" />
     <ClInclude Include="src\Ext\CaptureManager\Body.h" />
     <ClInclude Include="src\Ext\Cell\Body.h" />
+    <ClInclude Include="src\Ext\Pathfinding\Body.h" />
     <ClInclude Include="src\Ext\DiskLaser\Body.h" />
     <ClInclude Include="src\Ext\LaserDraw\Body.h" />
     <ClInclude Include="src\Ext\HouseType\Body.h" />

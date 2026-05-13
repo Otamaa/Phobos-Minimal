@@ -1394,11 +1394,11 @@ ASMJIT_PATCH(0x705D74, TechnoClass_GetRemapColour_DisguisePalette, 0x8)
 	return SkipGameCode;
 }
 
-ASMJIT_PATCH(0x467C1C, BulletClass_AI_UnknownTimer, 0x6)
-{
-	GET(BulletTypeClass*, projectile, EAX);
-	return projectile->Inviso ? 0x467C2A : 0;
-}
+// ASMJIT_PATCH(0x467C1C, BulletClass_AI_UnknownTimer, 0x6)
+// {
+//	 GET(BulletTypeClass*, projectile, EAX);
+//	 return projectile->Inviso ? 0x467C2A : 0;
+// }
 
 ASMJIT_PATCH(0x51A67E, InfantryClass_UpdatePosition_DamageBridgeFix, 0x6)
 {
