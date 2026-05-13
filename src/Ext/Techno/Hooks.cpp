@@ -2798,7 +2798,6 @@ int __fastcall FakeTechnoClass::__GetGuardRange(TechnoClass* pThis, discard_t, i
 	const int areaGuardRange = (static_cast<int>(range * multiplier + static_cast<int>(addend)));
 	//
 
-
 	return std::clamp(areaGuardRange, min, (int)max);
 }
 

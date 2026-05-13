@@ -147,14 +147,16 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 {
 	++TechnoClass::TargetScanCounter();
 	const auto pType = GET_TECHNOTYPE(pThis);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	//const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	const auto pOwner = pThis->Owner;
 	const bool isTechnoPlayerControlled = pOwner->IsControlledByHuman();
 	const bool attackFriendlies = TechnoExtData::IsAttackFriendlies(pThis);
+	const ThreatType backup_original = method;
 
 	// Early exit for NoAutoFire units under player control
-	if ((pType->NoAutoFire || (TechnoExtContainer::Instance.Find(pThis)->GetPassiveAcquireMode()) == PassiveAcquireModes::Ceasefire) && isTechnoPlayerControlled)
-	{
+	if ((pType->NoAutoFire 
+		|| (TechnoExtContainer::Instance.Find(pThis)->GetPassiveAcquireMode()) == PassiveAcquireModes::Ceasefire) 
+		&& isTechnoPlayerControlled) {
 		return nullptr;
 	}
 
@@ -187,15 +189,13 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 	// pre-scan check (no specific target yet).
 	constexpr ThreatType ThreatType_HealerTargets = ThreatType::Air | ThreatType::Infantry | ThreatType::Vehicles | ThreatType::Buildings;
 
-
-
 	// Adjust method based on unit type and combat damage
 	if (what == AbstractType::Infantry)
 	{
 		if (isEffectivelyHealer)
 		{
 			// Healer infantry - target allied units
-			method = (method & (ThreatType::Area | ThreatType::Range)) | ThreatType::Threattype_4000 | ThreatType_HealerTargets;
+			method = (backup_original & (ThreatType::Area | ThreatType::Range)) | ThreatType::Threattype_4000 | ThreatType_HealerTargets;
 		}
 		else if (((InfantryClass*)pThis)->Type->Engineer)
 		{
@@ -373,19 +373,13 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 	// Calculate threat range
 	int threatRange = 0;
 
-	if (method & ThreatType::Range)
-	{
-		threatRange = pThis->GetGuardRange(0);
-	}
-	else if (method & ThreatType::Area)
-	{
-		if (pThis->CurrentMission == Mission::Patrol)
-		{
-			threatRange = pThis->GetGuardRange(2);
-		}
-		else
-		{
-			threatRange = pThis->GetGuardRange(1);
+	if (backup_original & ThreatType::Range) {
+		threatRange = FakeTechnoClass::__GetGuardRange(pThis, discard_t(), 0);
+	} else if (backup_original & ThreatType::Area) {
+		if (pThis->CurrentMission == Mission::Patrol) {
+			threatRange = FakeTechnoClass::__GetGuardRange(pThis, discard_t(), 2);
+		} else {
+			threatRange = FakeTechnoClass::__GetGuardRange(pThis, discard_t(), 1);
 		}
 	}
 

@@ -179,9 +179,9 @@ public:
 	AbstractClass* Target;
 	int Speed;
 	int InheritedColor;
-	DWORD SomeIntIncrement_118;
+	int TrendSampleCount;
 	DWORD unknown_11C;
-	double unknown_120;
+	double SmoothedDistanceDelta;
 	WarheadTypeClass* WH;
 	byte AnimFrame;
 	byte AnimRateCounter;

@@ -115,7 +115,7 @@ bool TActionExtData::AllChangeHouse(TActionClass* pThis, HouseClass* pHouse, Obj
 				if (!pItem->IsAlive || pItem->Health <= 0 || pItem->Owner != pHouse)
 					continue;
 
-				Debug::Log("SwitchAllObjectsToHouse for [%s] from [%x] with param3 [%d] [ %s -> %s ]", pItem->get_ID(), pThis, pThis->Param3, pItem->Owner->get_ID(), NewOwnerPtr->get_ID());
+				Debug::Log("SwitchAllObjectsToHouse for [%s] from [%x] with param3 [%d] [ %s -> %s ]\n", pItem->get_ID(), pThis, pThis->Param3, pItem->Owner->get_ID(), NewOwnerPtr->get_ID());
 
 				if (pThis->Param3 && pItem->Passengers.FirstPassenger != nullptr) {
 					FootClass* pPassenger = pItem->Passengers.FirstPassenger;
@@ -155,7 +155,7 @@ bool TActionExtData::ChangeHouse(TActionClass* pThis, HouseClass* pHouse, Object
 				if (!pItem)
 					continue;
 
-				Debug::Log("ChangeOwner for [%s] from [%x] with param3 [%d] [ %s(%x) -> %s(%x) ]", pItem->get_ID(), pThis, pThis->Param3, pItem->Owner->get_ID(), pItem->Owner, NewOwnerPtr->get_ID(), NewOwnerPtr);
+				Debug::Log("ChangeOwner for [%s] from [%x] with param3 [%d] [ %s(%x) -> %s(%x) ]\n", pItem->get_ID(), pThis, pThis->Param3, pItem->Owner->get_ID(), pItem->Owner, NewOwnerPtr->get_ID(), NewOwnerPtr);
 
 				if (!pItem->IsAlive || pItem->Health <= 0 || pItem->InLimbo || !pItem->IsOnMap)
 					continue;

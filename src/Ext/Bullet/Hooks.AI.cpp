@@ -865,17 +865,18 @@ namespace
 
 		if (!pThis->CourseLock)
 		{
-			if (pThis->SomeIntIncrement_118 < 60)
+			if (pThis->TrendSampleCount < 60)
 			{
-				++pThis->SomeIntIncrement_118;
-				pThis->unknown_120 += dist_delta;
+				++pThis->TrendSampleCount;
+				pThis->SmoothedDistanceDelta += dist_delta;
 			}
 			else
 			{
-				pThis->unknown_120 *= 0.9833333333333333 + dist_delta;
 
-				if (pThis->unknown_120 >= 0.0
-					&& pThis->unknown_120 < 60.0)
+				pThis->SmoothedDistanceDelta = pThis->SmoothedDistanceDelta * Math:: ProximityFuseDecayFactor + dist_delta;
+
+				if (pThis->SmoothedDistanceDelta >= 0.0
+					&& pThis->SmoothedDistanceDelta < 60.0)
 				{
 					if (!pType->Airburst && !pType->VeryHigh)
 					{

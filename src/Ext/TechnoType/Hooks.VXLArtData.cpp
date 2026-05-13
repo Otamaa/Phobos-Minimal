@@ -620,7 +620,7 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 	auto drawTurretShadow = [&](int turIdx)
 		{
 			auto mtx_turret = mtx;
-			pDrawTypeExt->ApplyTurretOffset(&mtx_turret, Game::Pixel_Per_Lepton(), turIdx);
+			pDrawTypeExt->ApplyTurretOffset(&mtx_turret, Math::Pixel_Per_Lepton, turIdx);
 			mtx_turret.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>()));
 
 			const auto pTurData = pDrawType->TurretRecoil ? ((turIdx < 0 || turIdx < pExt->ExtraTurretRecoil.size()) ? &pThis->TurretRecoil : &pExt->ExtraTurretRecoil[turIdx]) : nullptr;
@@ -646,7 +646,7 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 					mtx_barrel.Translate(-mtx.Row[0].W, -mtx.Row[1].W, -mtx.Row[2].W);
 					mtx_barrel.RotateY(static_cast<float>(-pThis->BarrelFacing.Current().GetRadian<32>()));
 					const auto offset = ((brlIdx >= 0) ? pDrawTypeExt->ExtraBarrelOffsets[brlIdx] : pDrawTypeExt->BarrelOffset.Get());
-					mtx_barrel.TranslateY(static_cast<float>(Game::Pixel_Per_Lepton() * offset));
+					mtx_barrel.TranslateY(static_cast<float>(Math::Pixel_Per_Lepton * offset));
 
 					if (barrelInRecoil)
 						mtx_barrel.TranslateX(-pBrlData->TravelSoFar);
@@ -771,7 +771,7 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 		return 0x73C5C9;
 
 	
-	const double adjustedFactor = Game::Pixel_Per_Lepton() / currentScale;
+	const double adjustedFactor = Math::Pixel_Per_Lepton / currentScale;
 	uTypeExt->ApplyTurretOffset(&mtx, adjustedFactor);
 	mtx.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>()));
 	const bool inRecoil = pType->TurretRecoil && pThis->TurretRecoil.State != RecoilData::RecoilState::Inactive;
