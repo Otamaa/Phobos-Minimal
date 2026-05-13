@@ -185,8 +185,8 @@ void FakeDiskLaserClass::__AI()
 	// HOOK: 0x4A757B - DiskLaserClass_AI_Circle
 	// Update circle coords if weapon has custom circumference
 	// ============================================================
+	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 	{
-		auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 		int const newCircumference = pWeaponExt->DiskLaser_Circumference;
 
 		if (WeaponTypeExtData::nOldCircumference != newCircumference) {
@@ -236,7 +236,7 @@ void FakeDiskLaserClass::__AI()
 		}
 
 		// Create final laser beam
-		GameCreate<LaserDrawClass>(
+		auto* pFinalBeam = GameCreate<LaserDrawClass>(
 			laserStart,
 			laserEnd,
 			innerColor,
@@ -244,6 +244,9 @@ void FakeDiskLaserClass::__AI()
 			*pOuterSpread,
 			pWeapon->LaserDuration
 		);
+		if (pWeaponExt->Laser_Thickness > 1)
+			pFinalBeam->Thickness = pWeaponExt->Laser_Thickness;
+		pFinalBeam->IsSupported = pFinalBeam->Thickness > 3;
 
 		if(!pTypeExt->DiskLaserDetonate){
 			// Deal damage at target
@@ -325,9 +328,12 @@ void FakeDiskLaserClass::__AI()
 		// ============================================================
 
 		// First laser
-		GameCreate<LaserDrawClass>(
+		auto* pLaser1 = GameCreate<LaserDrawClass>(
 			start1, end1, 0, 1, innerColor, outerColor, *pOuterSpread, duration, false, true, 1.0f, 0.5f
 		);
+		if (pWeaponExt->Laser_Thickness > 1)
+			pLaser1->Thickness = pWeaponExt->Laser_Thickness;
+		pLaser1->IsSupported = pLaser1->Thickness > 3;
 
 		// Second pair: idx1 -> idx3
 		CoordStruct const start2 {
@@ -343,9 +349,12 @@ void FakeDiskLaserClass::__AI()
 		};
 
 		// Second laser
-		GameCreate<LaserDrawClass>(
+		auto* pLaser2 = GameCreate<LaserDrawClass>(
 			start2, end2, 0, 1, innerColor, outerColor, *pOuterSpread, duration, false, true, 1.0f, 0.5f
 		);
+		if (pWeaponExt->Laser_Thickness > 1)
+			pLaser2->Thickness = pWeaponExt->Laser_Thickness;
+		pLaser2->IsSupported = pLaser2->Thickness > 3;
 
 		// Advance animation state
 		this->DrawRateCounter = 1;
