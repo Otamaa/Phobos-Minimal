@@ -798,6 +798,8 @@ void ShutdownAsmjit()
 #pragma region PhobosFunctions
 void Phobos::CheckProcessorFeatures()
 {
+#ifdef _REQ_SSE
+
 #if _M_IX86_FP != 2 //only SSE
 	static_assert(false, "Phobos compiled using unsupported architecture.");
 #endif
@@ -818,6 +820,8 @@ void Phobos::CheckProcessorFeatures()
 		Debug::Log("Game will now exit.\n");
 		Debug::ExitGame(533u);
 	}
+#endif
+
 }
 
 void Phobos::PassiveSaveGame()
