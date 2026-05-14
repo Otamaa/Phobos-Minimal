@@ -12,8 +12,9 @@
 #include <Utilities/Patch.h>
 #include <Utilities/Macro.h>
 
-ASMJIT_PATCH(0x6FD4E4, TechnoClass_FireEBolt_Building_ClampPositive, 0x9)
+ASMJIT_PATCH(0x6FD4E4, TechnoClass_FireEBolt_Building_ClampPositive, 0x5)
 {
+	GET_STACK(TechnoClass*, pTarget, STACK_OFFSET(0x30, 0x4));
 	GET_STACK(WeaponTypeClass*, pWeapon, STACK_OFFSET(0x30, 0x8));
 	GET(CoordStruct*, pV13, EAX);
 	GET(int, Y, ESI);
@@ -26,12 +27,15 @@ ASMJIT_PATCH(0x6FD4E4, TechnoClass_FireEBolt_Building_ClampPositive, 0x9)
 	if (clamp && zAdjust > 0)
 		zAdjust = 0;
 
-	R->ESI(zAdjust);
+	zAdjust += pWeaponExt->EBoltZAdjust.Get(RulesExtData::Instance()->EBoltZAdjust);
 
-	return 0x6FD4ED;
+	R->ESI(zAdjust);
+	R->ECX(pTarget);
+
+	return (pTarget ? 0x6FD4F5 : 0x6FD50A);
 }
 
-ASMJIT_PATCH(0x6FD4ED, TechnoClass_FireEBolt_ZAdjust, 0x7)
+ASMJIT_PATCH(0x6FD4ED, TechnoClass_FireEBolt_ZAdjust, 0x6)
 {
 	GET_STACK(TechnoClass*, pTarget, STACK_OFFSET(0x30, 0x4));
 	GET_STACK(WeaponTypeClass*, pWeapon, STACK_OFFSET(0x30, 0x8));

@@ -223,8 +223,12 @@ inline constexpr bool CompileAvx2 = false;
 		const __m256i gatherIndex32 = _mm256_andnot_si256(maxIndexMask32, index32Local);                       \
 		__m256i value32 = _mm256_i32gather_epi32(reinterpret_cast<const int*>(pTableLocal), gatherIndex32, 2); \
 		value32 = _mm256_and_si256(value32, _mm256_set1_epi32(0xFFFF));                                        \
-		const __m256i maxValue32 = _mm256_set1_epi32(static_cast<int>(pTableLocal[maxIndexLocal]));            \
-		return _mm256_blendv_epi8(value32, maxValue32, maxIndexMask32);                                        \
+		if (_mm256_movemask_epi8(maxIndexMask32))                                                              \
+		{                                                                                                      \
+			const __m256i maxValue32 = _mm256_set1_epi32(static_cast<int>(pTableLocal[maxIndexLocal]));        \
+			value32 = _mm256_blendv_epi8(value32, maxValue32, maxIndexMask32);                                 \
+		}                                                                                                      \
+		return value32;                                                                                        \
 	}((index32), (pTable), (maxIndex)))
 
 #define Avx2_GatherPaletteWord(srcIndex32, pPaletteData) \

@@ -135,7 +135,6 @@ private:
 			constexpr uintptr_t ChunkBytes = ChunkSize * sizeof(WORD);
 			ABuffer* pABuffer = ABuffer::Instance;
 			const uintptr_t aTailAddress = reinterpret_cast<uintptr_t>(pABuffer->BufferTail);
-			const __m256i low16Mask32 = _mm256_set1_epi32(0xFFFF);
 			const __m256i zero32 = _mm256_setzero_si256();
 			const __m256i blendMask32 = _mm256_set1_epi32(static_cast<int>(mask));
 
@@ -149,13 +148,12 @@ private:
 				const __m256i activeMask32 = _mm256_cmpgt_epi32(srcIndex32, zero32);
 				if (_mm256_movemask_epi8(activeMask32))
 				{
-					__m256i alphaIndex32 = Avx2_Load8WordAsEpi32(abuf);
-					alphaIndex32 = _mm256_i32gather_epi32(reinterpret_cast<const int*>(pAData), alphaIndex32, 2);
-					alphaIndex32 = _mm256_and_si256(alphaIndex32, low16Mask32);
 
-					const __m256i paletteIndex32 = _mm256_or_si256(srcIndex32, alphaIndex32);
-					__m256i srcColor32 = _mm256_i32gather_epi32(reinterpret_cast<const int*>(pPaletteData), paletteIndex32, 2);
-					srcColor32 = _mm256_and_si256(srcColor32, low16Mask32);
+					const __m256i alphaIndex32 = Avx2_Load8WordAsEpi32(abuf);
+					const __m256i alphaValue32 = Avx2_GatherWordTable(alphaIndex32, pAData, 0x00FF);
+
+					const __m256i paletteIndex32 = _mm256_or_si256(srcIndex32, alphaValue32);
+					const __m256i srcColor32 = Avx2_GatherWordTable(paletteIndex32, pPaletteData, 0xFFFF);
 
 					const __m256i dest32 = Avx2_Load8WordAsEpi32(pDest);
 					const __m256i destQuarter32 = _mm256_and_si256(_mm256_srli_epi32(dest32, 2), blendMask32);
