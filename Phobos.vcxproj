@@ -98,6 +98,7 @@
     <ClCompile Include="src\Ext\Bullet\Hooks.Trajectory.cpp" />
     <ClCompile Include="src\Ext\FootType\Body.cpp" />
     <ClCompile Include="src\Ext\Foot\Body.cpp" />
+    <ClCompile Include="src\Ext\Map\Body.cpp" />
     <ClCompile Include="src\Ext\Mouse\Body.cpp" />
     <ClCompile Include="src\Ext\Sidebar\Hooks.Drawing.cpp" />
     <ClCompile Include="src\Ext\Locomotion\Hooks.Droppod.cpp" />
@@ -657,6 +658,7 @@
     <ClInclude Include="src\Ext\Foot\Body.h" />
     <ClInclude Include="src\Ext\Locomotion\Teleport\Body.h" />
     <ClInclude Include="src\Ext\Mission\Body.h" />
+    <ClInclude Include="src\Ext\Map\Body.h" />
     <ClInclude Include="src\Ext\Mouse\Body.h" />
     <ClInclude Include="src\Ext\ObjectType\Body.h" />
     <ClInclude Include="src\Ext\Object\Body.h" />

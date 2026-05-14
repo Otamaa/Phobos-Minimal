@@ -565,6 +565,21 @@ public:
 	void ResetZones(CellStruct const& cell) const
 	{ JMP_THIS(0x56D460); }
 
+	// Reinitialises all SubzoneTracking entries for one level (called during big reset).
+	void SubzoneReinit_581F90(int level)
+	{ JMP_THIS(0x581F90); }
+
+	// Flood-fills passable cells connected to pPassability at the given level,
+	// assigns them zone ID zoneID, and populates pTempConns with the found connections.
+	// pCell is an optional starting cell override (pass nullptr to derive from pPassability).
+	void SubzoneFloodFill_5824A0(CellLevelPassabilityStruct* pPassability, int level,
+		int zoneID, DummyDynamicVectorClass* pTempConns, CellStruct* pCell)
+	{ JMP_THIS(0x5824A0); }
+
+	// Rebuilds zone-connection data for one ZoneConnectionClass entry at the given level.
+	void SubzoneUpdateZoneConn_582D70(ZoneConnectionClass* pConn, int level)
+	{ JMP_THIS(0x582D70); }
+
 	// Called on wall state updates etc
 	void RecalculateSubZones(CellStruct const& cell) const
 	{ JMP_THIS(0x584550); }

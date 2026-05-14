@@ -72,6 +72,9 @@ ASMJIT_PATCH(0x41CE7E, AircraftTypeClass_Load, 0x6)
 	return 0;
 }
 
+// Superseded by DEFINE_FUNCTION_JUMP(LJMP, 0x5F7900, FakeObjectTypeClass::WhoCanBuildMe) below.
+// Keeping this here as a reference for the original hook logic.
+#if 0
 ASMJIT_PATCH(0x5F7900, ObjectTypeClass_FindFactory, 5)
 {
 	GET(TechnoTypeClass*, pThis, ECX);
@@ -93,11 +96,14 @@ ASMJIT_PATCH(0x5F7900, ObjectTypeClass_FindFactory, 5)
 
 	return 0x5F7A89;
 }
+#endif
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E28FC, FakeObjectTypeClass::WhoCanBuildMe);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E369C, FakeObjectTypeClass::WhoCanBuildMe);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4604, FakeObjectTypeClass::WhoCanBuildMe);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E49DC, FakeObjectTypeClass::WhoCanBuildMe);
+
+
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB6A4, FakeObjectTypeClass::WhoCanBuildMe);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECCDC, FakeObjectTypeClass::WhoCanBuildMe);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF36C, FakeObjectTypeClass::WhoCanBuildMe);
@@ -111,3 +117,20 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7F62AC, FakeObjectTypeClass::WhoCanBuildMe);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F65DC, FakeObjectTypeClass::WhoCanBuildMe);
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x5F7900, FakeObjectTypeClass::WhoCanBuildMe);
+
+/*
+DEFINE_FUNCTION_JUMP(CALL, 0x41CE72, FakeObjectTypeClass::_LoadVoxel);
+DEFINE_FUNCTION_JUMP(CALL, 0x42884E, FakeObjectTypeClass::_LoadVoxel);
+DEFINE_FUNCTION_JUMP(CALL, 0x46C417, FakeObjectTypeClass::_LoadVoxel);
+DEFINE_FUNCTION_JUMP(CALL, 0x46C6E1, FakeObjectTypeClass::_LoadVoxel);
+DEFINE_FUNCTION_JUMP(CALL, 0x5249AD, FakeObjectTypeClass::_LoadVoxel);
+DEFINE_FUNCTION_JUMP(CALL, 0x5FEB3E, FakeObjectTypeClass::_LoadVoxel);
+DEFINE_FUNCTION_JUMP(CALL, 0x6B5891, FakeObjectTypeClass::_LoadVoxel);
+DEFINE_FUNCTION_JUMP(CALL, 0x71609C, FakeObjectTypeClass::_LoadVoxel);
+DEFINE_FUNCTION_JUMP(CALL, 0x71E211, FakeObjectTypeClass::_LoadVoxel);
+DEFINE_FUNCTION_JUMP(CALL, 0x74805A, FakeObjectTypeClass::_LoadVoxel);
+DEFINE_FUNCTION_JUMP(CALL, 0x74B8BB, FakeObjectTypeClass::_LoadVoxel);
+
+// Replaces the full ObjectTypeClass::LoadVoxel function (0x5F8110–0x5F8CDB).
+// The 4 conflicting hooks inside that range in Hooks.VXLArtData.cpp are disabled.
+DEFINE_FUNCTION_JUMP(LJMP, 0x5F8110, FakeObjectTypeClass::_LoadVoxel);*/

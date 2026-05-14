@@ -5,6 +5,14 @@
 
 #include <Ext/Building/Body.h>
 
+#include <InfantryClass.h>
+#include <InfantryTypeClass.h>
+#include <HouseClass.h>
+#include <SessionClass.h>
+#include <ScenarioClass.h>
+#include <MapClass.h>
+#include <SlaveManagerClass.h>
+
 FootExtContainer FootExtContainer::Instance;
 
 bool __fastcall FakeFootClass::__Try_Grinding(FootClass* pFoot)
@@ -92,3 +100,66 @@ bool __fastcall FakeFootClass::_IsRecruitable(FootClass* pThis, discard_t, House
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x4DA230 , FakeFootClass::_IsRecruitable)
+
+// FootClass::Mission_Hunt — backported from game (0x4D5350–0x4D55B6)
+// Ported from gamemd.exe, address range 0x4D5350 to 0x4D55B6
+int __fastcall FakeFootClass::_Mission_Hunt(FootClass* pThis)
+{
+	CoordStruct loc = pThis->GetCoords();
+	const bool hasTarget = !pThis->GetTechnoType()->StupidHunt
+		&& FakeTechnoClass::__TargetSomethingNearby(pThis, discard_t(), &loc, ThreatType::None);
+
+	if (hasTarget) {
+		if (pThis->WhatAmI() == AbstractType::Infantry) {
+			auto pInfantry = static_cast<InfantryClass*>(pThis);
+			InfantryTypeClass* pType = pInfantry->Type;
+
+			if (pType->Engineer && !pType->C4 && !pThis->HasAbility(AbilityType::C4)) {
+				// Engineer: capture the target
+				pThis->SetDestination(pThis->Target, true);
+				pThis->QueueMission(Mission::Capture, false);
+				if (pThis->ReadyToNextMission())
+					pThis->NextMission();
+			} else if ((pType->C4 || pThis->HasAbility(AbilityType::C4))
+				&& pThis->Target != nullptr
+				&& pThis->Target->WhatAmI() == AbstractType::Building) {
+				// C4 / bomber infantry vs a building: sabotage
+				pThis->SetDestination(pThis->Target, true);
+				pThis->QueueMission(Mission::Sabotage, false);
+				if (pThis->ReadyToNextMission())
+					pThis->NextMission();
+			} else if (pType->VehicleThief) {
+				// Vehicle thief: capture the target
+				pThis->SetDestination(pThis->Target, true);
+				pThis->QueueMission(Mission::Capture, false);
+				if (pThis->ReadyToNextMission())
+					pThis->NextMission();
+			} else {
+				pThis->SetDestination(nullptr, true);
+				pThis->ApproachTarget(false);
+			}
+		} else {
+			pThis->ApproachTarget(false);
+		}
+	} else {
+		if (pThis->Owner->IsControlledByHuman() || SessionClass::Instance->GameMode != GameMode::Campaign) {
+			pThis->UpdateIdleAction();
+		} else {
+			// AI in campaign: move toward the player's base center
+			const CellStruct& baseCenter = HouseClass::CurrentPlayer->GetBaseCenter();
+			if (baseCenter.IsValid()) {
+				if (pThis->SlaveManager)
+					pThis->SlaveManager->Guard();
+
+				CellClass* pCell = MapClass::Instance->GetCellAt(baseCenter);
+				pThis->SetDestination(pCell, true);
+				pThis->QueueMission(Mission::Move, true);
+			}
+		}
+	}
+
+	auto* pControl = pThis->GetCurrentMissionControl();
+	return pControl->NormalDelay() + ScenarioClass::Instance->Random.RandomRanged(0, 2);
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x4D5350, FakeFootClass::_Mission_Hunt)

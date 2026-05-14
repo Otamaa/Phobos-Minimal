@@ -46,4 +46,9 @@ class FakeObjectTypeClass final
 public:
 
 	static BuildingClass* __fastcall WhoCanBuildMe(ObjectTypeClass* pThis, discard_t, bool intheory, bool bool2, bool legal, HouseClass* house);
+
+	// Backport of ObjectTypeClass::LoadVoxel (0x5F8110–0x5F8CDB).
+	// Loads VXL/HVA art assets for the type's main body, turrets, and barrels.
+	// Integrates Phobos NoSpawnAlt, multi-turret, and multi-barrel extensions inline.
+	// static void __fastcall _LoadVoxel(ObjectTypeClass* pThis, discard_t);
 };
