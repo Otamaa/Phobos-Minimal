@@ -16,6 +16,70 @@ using PreApplyIC = std::function<bool(TechnoClass*)>;
 class FakeWrapperClass final {
 public:
 
+	static int __fastcall __IronTintTimer(TechnoClass* pThis, discard_t, int intensity)
+	{
+		// Calculate remaining time on iron tint timer
+		const int remainingTime = pThis->IronTintTimer.GetTimeLeft();
+
+		// Calculate stage-specific multiplier (v5 in original)
+		int multiplier = 0;
+
+		switch (pThis->IronTintStage)
+		{
+		case 1:  // Fade in: (12 - time) * 256 / 6
+			multiplier = ((12 - remainingTime) << 8) / 6;
+			break;
+
+		case 2:  // Sustain
+		case 8:  // Sustain (alternate)
+			multiplier = 512;
+			break;
+
+		case 3:  // Complex fade: (461 * time + 1020) / 10
+		{
+			int temp = 461 * remainingTime + 1020;
+			// Original uses magic multiply 0x66666667 for /10
+			multiplier = temp / 10;
+			break;
+		}
+
+		case 4:  // Fade: (1024 - 77 * time) / 8
+			multiplier = (1024 - 77 * remainingTime) / 8;
+			break;
+
+		case 5:  // Fade: (77 * time + 816) / 16
+			multiplier = (77 * remainingTime + 816) / 16;
+			break;
+
+		case 6:  // Fixed value
+			multiplier = 51;
+			break;
+
+		case 7:  // Fade out: (3072 - 461 * time) / 6
+			multiplier = (3072 - 461 * remainingTime) / 6;
+			break;
+
+		case 9:  // Quick fade: (time + 20) * 256 / 20
+			multiplier = ((remainingTime + 20) << 8) / 20;
+			break;
+
+		default:  // No tinting active
+			return intensity;
+		}
+
+		// Apply multiplier and clamp
+		int result = (intensity * multiplier) >> 8;
+		if (result > 2000)
+			result = 2000;
+
+		const int extraIntensity = static_cast<int>(
+			(pThis->ProtectType == ProtectTypes::ForceShield ? RulesExtData::Instance()->ForceShield_ExtraTintIntensity
+				: RulesExtData::Instance()->IronCurtain_ExtraTintIntensity) * 1000
+		);
+
+		return result + extraIntensity;
+	}
+
 	static IronCurtainFlag GetFlag(TechnoClass* pThis, TechnoTypeExtData* pTypeExt, bool forceshield)
 	{
 		const auto what = pThis->WhatAmI();
@@ -209,4 +273,4 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E23F8, FakeWrapperClass::AircraftClass_IronCurta
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5DC4, FakeWrapperClass::UnitClass_IronCurtain);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4010, FakeWrapperClass::BuildingClass_IronCurtain);
 DEFINE_FUNCTION_JUMP(LJMP, 0x457C90, FakeWrapperClass::BuildingClass_IronCurtain);
-
+DEFINE_FUNCTION_JUMP(LJMP, 0x70E380, FakeWrapperClass::__IronTintTimer);
