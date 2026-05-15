@@ -16,6 +16,11 @@ class HashObject
 public:
 	key_type Key;
 	value_type Value;
+
+	bool operator==(const HashObject& other) const
+	{
+		return Key == other.Key && Value == other.Value;
+	}
 };
 
 template<typename key_type, typename value_type>

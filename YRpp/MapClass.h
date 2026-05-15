@@ -117,6 +117,12 @@ struct SubzoneTrackingStruct
 };
 static_assert(sizeof(SubzoneTrackingStruct) == 0x24, "Invalid Size !");
 
+struct MapClass_subzone_5824A0_Data {
+	DWORD dword0;
+	DWORD dword4;
+	DWORD dword8;
+	DWORD dwordC;
+};
 // helper class with static methods to detect projectile collisions
 struct TrajectoryHelper
 {
@@ -564,6 +570,23 @@ public:
 	// Called on wall state updates etc. when the wall HAS been removed.
 	void ResetZones(CellStruct const& cell) const
 	{ JMP_THIS(0x56D460); }
+
+	// Reinitialises all SubzoneTracking entries for one level (called during big reset).
+	void SubzoneReinit_581F90(int level)
+	{ JMP_THIS(0x581F90); }
+
+	// Flood-fills passable cells connected to pPassability at the given level,
+	// assigns them zone ID zoneID, and populates pTempConns with the found connections.
+	// pCell is an optional starting cell override (pass nullptr to derive from pPassability).
+	void SubzoneFloodFill_5824A0(CellLevelPassabilityStruct* pPassability, int level,
+		int zoneID, MapClass_subzone_5824A0_Data* pTempConns, CellStruct* pCell)
+	{
+		JMP_THIS(0x5824A0);
+	}
+
+	// Rebuilds zone-connection data for one ZoneConnectionClass entry at the given level.
+	void SubzoneUpdateZoneConn_582D70(ZoneConnectionClass* pConn, int level)
+	{ JMP_THIS(0x582D70); }
 
 	// Called on wall state updates etc
 	void RecalculateSubZones(CellStruct const& cell) const
