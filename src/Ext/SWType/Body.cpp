@@ -1105,6 +1105,8 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	this->SW_RadarEvent.Read(exINI, pSection, "SW.CreateRadarEvent");
 
+	this->SW_TechLevel.Read(exINI, pSection, "SW.TechLevel");
+
 	this->Money_Amount.Read(exINI, pSection, "Money.Amount");
 	this->UIDescription.Read(exINI, pSection, "UIDescription");
 	this->CameoPriority.Read(exINI, pSection, "CameoPriority");
@@ -1680,6 +1682,9 @@ std::pair<double, double> SWTypeExtData::GetLaunchSiteRange(BuildingClass* pBuil
 bool SWTypeExtData::IsAvailable(HouseClass* pHouse)
 {
 	const auto pThis = This();
+
+	if (pHouse->StaticData.TechLevel < this->SW_TechLevel)
+		return false;
 
 	if (this->SW_Shots >= 0 && HouseExtContainer::Instance.Find(pHouse)->GetShotCount(pThis).Count >= this->SW_Shots)
 		return false;
@@ -2352,6 +2357,7 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->BattlePoints_DrainAmount)
 		.Process(this->BattlePoints_DrainDelay)
 		.Process(this->SuperWeaponSidebar_Significance)
+		.Process(this->SW_TechLevel)
 
 		.Process(this->SW_Link)
 		.Process(this->SW_Link_Grant)

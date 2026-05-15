@@ -105,14 +105,14 @@ public:
 		RectangleStruct* pRect, Point2D* pStart, Point2D* pEnd, ColorStruct* pColor,
 		float Intensity, DWORD dwUnk1, DWORD dwUnk2) PURE;
 
-	virtual bool PlotLine(RectangleStruct& area, Point2D& start, Point2D& end, void(*drawer_callback)(Point2D&)) PURE;
+	virtual bool PlotLine(RectangleStruct& area, Point2D& start, Point2D& end, bool(__fastcall* AddRedrawPoint)(Point2D&)) PURE;
 
-	virtual int Draw_Dashed_Line(Point2D& start, Point2D& end, unsigned color, bool* pattern, int offset) PURE;
-	virtual int DrawDashedLine_(Point2D& start, Point2D& end, unsigned color, bool* pattern, int offset, bool a6) PURE;
+	virtual bool Draw_Dashed_Line(Point2D& start, Point2D& end, unsigned color, bool* pattern, int offset) PURE;
+	virtual bool DrawDashedLine_(Point2D& start, Point2D& end, unsigned color, bool* pattern, int offset, bool a6) PURE;
 	virtual bool DrawLine_(Point2D& start, Point2D& end, unsigned color, bool a4 = false) PURE;
 
-	virtual bool Draw_Rect(RectangleStruct& RectangleStruct, unsigned color) PURE;
 	virtual bool Draw_Rect(RectangleStruct& area, RectangleStruct& RectangleStruct, unsigned color) PURE;
+	virtual bool Draw_Rect(RectangleStruct& RectangleStruct, unsigned color) PURE;
 
 	virtual void* Lock(int x = 0, int y = 0) PURE;
 	virtual bool Unlock() PURE;
@@ -252,14 +252,14 @@ public:
 	//	 return false;
 	// }
 
-	virtual bool PlotLine(RectangleStruct& area, Point2D& start, Point2D& end, void(*drawer_callback)(Point2D&)) override JMP_THIS(0x7BAB90);
+	virtual bool PlotLine(RectangleStruct& area, Point2D& start, Point2D& end, bool(__fastcall* AddRedrawPoint)(Point2D&)) override JMP_THIS(0x7BAB90);
 
-	virtual int Draw_Dashed_Line(Point2D& start, Point2D& end, unsigned color, bool* pattern, int offset) override JMP_THIS(0x7BA8C0);
-	virtual int DrawDashedLine_(Point2D& start, Point2D& end, unsigned color, bool* pattern, int offset, bool a6) override R0;
+	virtual bool Draw_Dashed_Line(Point2D& start, Point2D& end, unsigned color, bool* pattern, int offset) override JMP_THIS(0x7BA8C0);
+	virtual bool DrawDashedLine_(Point2D& start, Point2D& end, unsigned color, bool* pattern, int offset, bool a6) override R0;
 	virtual bool DrawLine_(Point2D& start, Point2D& end, unsigned color, bool a4 = false) override  R0;
 
-	virtual bool Draw_Rect(RectangleStruct& rect, unsigned color) override JMP_THIS(0x7BAD90);
 	virtual bool Draw_Rect(RectangleStruct& area, RectangleStruct& rect, unsigned color) override JMP_THIS(0x7BADC0);
+	virtual bool Draw_Rect(RectangleStruct& rect, unsigned color) override JMP_THIS(0x7BAD90);
 
 	virtual void* Lock(int x = 0, int y = 0) override JMP_THIS(0x411560);
 	virtual bool Unlock() override JMP_THIS(0x411570);
@@ -511,6 +511,7 @@ public:
 		DSurfaceDrawText(pText, &P, Color);
 	}
 
+	DSurface(noinit_t) {};
 	DSurface() JMP_THIS(0x4BA720);
 	DSurface(int width, int height, bool system_mem = false) JMP_THIS(0x4BA5A0);
 	DSurface(LPDIRECTDRAWSURFACE surface) JMP_THIS(0x4BAC60);
@@ -532,7 +533,7 @@ public:
 		float Intensity, DWORD dwUnk1, DWORD dwUnk2) override JMP_THIS(0x4BDF00);
 
 
-	virtual int DrawDashedLine_(Point2D& start, Point2D& end, unsigned color, bool pattern[], int offset, bool a6) override JMP_THIS(0x4C0750);
+	virtual bool DrawDashedLine_(Point2D& start, Point2D& end, unsigned color, bool pattern[], int offset, bool a6) override JMP_THIS(0x4C0750);
 	virtual bool DrawLine_(Point2D& start, Point2D& end, unsigned color, bool a4 = false) override JMP_THIS(0x4C0E30);
 
 	virtual void* Lock(int x = 0, int y = 0) override JMP_THIS(0x4BAD80);
@@ -543,7 +544,7 @@ public:
 
 	virtual bool IsDSurface() const override { return true; }
 
-	virtual bool DrawGradientLine(RectangleStruct& area, Point2D& start, Point2D& end, ColorStruct& a4, ColorStruct& a5, float& a6, float& a7) JMP_THIS(0x4BF750);
+	virtual bool DrawGradientLine(RectangleStruct& area, Point2D& start, Point2D& end, ColorStruct& a4, ColorStruct& a5, float a6, int a7) JMP_THIS(0x4BF750);
 	virtual bool Can_Blit() const { JMP_THIS(0x4BAF20); }
 
 	static __int16 __fastcall _4BF650_adjust(unsigned __int16 a1, int a2, int a3)

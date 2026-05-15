@@ -315,7 +315,7 @@ public:
 	Valueable<int> BattlePoints_DrainAmount { 0 };
 	Valueable<int> BattlePoints_DrainDelay { 0 };
 	Valueable<int> SuperWeaponSidebar_Significance { 0 };
-
+	Valueable<int> SW_TechLevel { 0 } ;
 	// ============================================================
 	// DWORD (4 bytes each)
 	// ============================================================
