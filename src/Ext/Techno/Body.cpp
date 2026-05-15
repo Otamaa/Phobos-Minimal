@@ -1997,7 +1997,6 @@ void TechnoExtData::RefineTiberium(TechnoClass* pThis, HouseClass* pHouse, float
 
 bool TechnoExtData::FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon , bool isHealer)
 {
-	const auto nRulesGreen = RulesClass::Instance->ConditionGreen;
 	const auto pThatTechnoExt = TechnoExtContainer::Instance.Find(pTarget);
 	const auto pThatShield = pThatTechnoExt->GetShield();
 

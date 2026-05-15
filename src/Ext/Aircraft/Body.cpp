@@ -109,7 +109,7 @@ int AircraftExtData::GetDelay(AircraftClass* pThis, bool isLastShot)
 	{
 		pExt->Strafe_TargetCell = nullptr;
 		pThis->MissionStatus = (int)AirAttackStatus::FlyToPosition;
-		delay = pWeaponExt->Strafing_EndDelay.Get((pWeapon->Range + 1024) / pThis->Type->Speed);
+		delay = pWeaponExt->Strafing_EndDelay.Get((WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis) + 1024) / pThis->Type->Speed);
 	}
 
 	return delay;
@@ -369,8 +369,8 @@ int FakeAircraftClass::_Mission_Attack()
 		if (this->Is_Strafe())
 		{
 			// 0x4180F4 - use CurrentAircraftWeaponIndex instead of slot 0 for range check
-			auto const* wt = this->GetWeapon(pExt->CurrentAircraftWeaponIndex)->WeaponType;
-			if (this->DistanceFrom(this->Target) < wt->Range)
+			auto* wt = this->GetWeapon(pExt->CurrentAircraftWeaponIndex)->WeaponType;
+			if (this->DistanceFrom(this->Target) < WeaponTypeExtData::GetRangeWithModifiers(wt, this))
 			{
 				this->MissionStatus = static_cast<int>(AirAttackStatus::FireAtTarget);
 				return 1;
@@ -781,34 +781,6 @@ static FORCEDINLINE bool CheckSpyPlaneCameraCount(AircraftClass* pThis, WeaponTy
 
 	pExt->Strafe_BombsDroppedThisRound++;
 	return true;
-}
-
-ASMJIT_PATCH(0x41564C, AircraftClass_Mission_SpyPlaneApproach_MaxCount, 0x6)
-{
-	GET(AircraftClass*, pThis, ESI);
-	GET(int, range, EBX);
-
-	const auto pPrimary = pThis->GetWeapon(0);
-
-	if (range <= pPrimary->WeaponType->Range.value)
-	{
-
-		if (!CheckSpyPlaneCameraCount(pThis, pPrimary->WeaponType))
-			return 0x41570C;
-
-		pThis->vt_entry_48C(nullptr, 0u, false, nullptr);
-		pThis->UpdateSight(false, 0, false, nullptr, pPrimary->WeaponType->Damage);
-
-		MapRevealer const revealer(pThis->Location);
-		revealer.UpdateShroud(0u, static_cast<size_t>(MaxImpl(pThis->LastSightRange + 3, 0)), false);
-
-		auto cameraSound = TechnoTypeExtContainer::Instance.Find(pThis->Type)
-			->SpyplaneCameraSound.Get(RulesClass::Instance->SpyPlaneCamera);
-
-		VocClass::SafeImmedietelyPlayAt(cameraSound, &pThis->Location);
-	}
-
-	return 0x415700;
 }
 
 int FakeAircraftClass::_Mission_SpyPlaneOverfly()
