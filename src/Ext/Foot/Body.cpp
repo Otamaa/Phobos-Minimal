@@ -94,7 +94,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E8EBC, FakeFootClass::_Mission_Hunt)
 bool __fastcall FakeFootClass::__Try_Grinding(FootClass* pFoot)
 {
 	BuildingClass* bestGrinder = nullptr;
-	int shortestDistance = MAX_VAL(int);
+	int shortestDistance = MIN_VAL(int);
 
 	int grinderCount = pFoot->Owner->Grinders.Count;
 
