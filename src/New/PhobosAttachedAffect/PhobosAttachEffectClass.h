@@ -94,7 +94,7 @@ public:
 	static int RemoveAllOfType(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, int minCount, int maxCount);
 
 	static void CumulateExpireWeapon(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, TechnoClass* pInvoker,	std::vector<std::pair<WeaponTypeClass*, TechnoClass*>>& expireContainer);
-	static void DetonateExpireWeapon(std::vector<std::pair<WeaponTypeClass*, TechnoClass*>>& expireContainer);
+	static void DetonateExpireWeapon(std::vector<std::pair<WeaponTypeClass*, TechnoClass*>>& expireContainer, CoordStruct& designation);
 
 	template <typename T>
 	bool Serialize(T& Stm);

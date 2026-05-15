@@ -11151,6 +11151,8 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, 
 	}break;
 	case KillMethod::Vanish:
 	{
+		auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
 		if (pWhat == BuildingClass::vtable) {
 			const auto pBld = static_cast<BuildingClass*>(pThis);
 
@@ -11160,15 +11162,51 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, 
 
 		// this shit is not really good idea to pull off
 		// some stuffs doesnt really handled properly , wtf
+		CoordStruct ValidCoord = pThis->Transporter ? pThis->Transporter->Location : pThis->Location;
+		const CellStruct ValicCell = CellClass::Coord2Cell(ValidCoord);
+		const bool HasValidLoc = (ValidCoord.IsValid() && ValicCell.IsValid());
 
-		if (pVanishAnim && !pThis->InLimbo && (pThis->Location.IsValid() && pThis->InlineMapCoords().IsValid()))
-		{
-			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pVanishAnim, pThis->GetCoords()),
+		if (pVanishAnim && HasValidLoc) {
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pVanishAnim, ValidCoord),
 				pThis->GetOwningHouse(),
 				nullptr,
 				 true
 			);
 		}
+
+		if (HasValidLoc && !pExt->PhobosAE.empty())
+		{
+			std::vector<std::pair<WeaponTypeClass*, TechnoClass*>> expireWeapons {};
+			std::set<PhobosAttachEffectTypeClass*> cumulativeTypes {};
+
+			for (auto const& attachEffect : pExt->PhobosAE)
+			{
+				auto const pAEType = attachEffect->GetType();
+				if (pAEType->ExpireWeapon && (pAEType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Death) != ExpireWeaponCondition::None)
+				{
+					if (!pAEType->Cumulative || !pAEType->ExpireWeapon_CumulativeOnlyOnce || !cumulativeTypes.contains(pAEType))
+					{
+						if (pAEType->Cumulative && pAEType->ExpireWeapon_CumulativeOnlyOnce)
+							cumulativeTypes.insert(pAEType);
+
+						if (pAEType->ExpireWeapon_UseInvokerAsOwner)
+						{
+							if (auto const pInvoker = attachEffect->GetInvoker())
+								expireWeapons.emplace_back(pAEType->ExpireWeapon, pInvoker);
+						}
+						else
+						{
+							expireWeapons.emplace_back(pAEType->ExpireWeapon, pThis);
+						}
+					}
+				}
+			}
+
+			PhobosAttachEffectClass::DetonateExpireWeapon(expireWeapons, ValidCoord);
+		}
+
+		if (!pThis->IsAlive)
+			return;
 
 		pThis->Stun();
 		bool skiptrackingremove = false;
@@ -11181,6 +11219,7 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, 
 		if (RegisterKill)
 			pThis->RegisterKill(pThis->Owner);
 
+		
 		//Debug::LogInfo(__FUNCTION__" Called ");
 		TechnoExtData::HandleRemove(pThis, nullptr, skiptrackingremove, false);
 

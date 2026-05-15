@@ -977,7 +977,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 				}
 			}
 
-			PhobosAttachEffectClass::DetonateExpireWeapon(expireWeapons);
+			PhobosAttachEffectClass::DetonateExpireWeapon(expireWeapons, pThis->Location);
 		}
 
 		if (!pThis->IsAlive)

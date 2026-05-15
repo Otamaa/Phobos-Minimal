@@ -855,7 +855,7 @@ int PhobosAttachEffectClass::RemoveAllOfType(PhobosAttachEffectTypeClass* pType,
 		}
 	}
 
-	PhobosAttachEffectClass::DetonateExpireWeapon(expireWeapons);
+	PhobosAttachEffectClass::DetonateExpireWeapon(expireWeapons, pTarget->Location);
 
 	return detachedCount;
 }
@@ -872,10 +872,10 @@ void PhobosAttachEffectClass::CumulateExpireWeapon(PhobosAttachEffectTypeClass* 
 	}
 }
 
-void PhobosAttachEffectClass::DetonateExpireWeapon(std::vector<std::pair<WeaponTypeClass*, TechnoClass*>>& expireContainer)
+void PhobosAttachEffectClass::DetonateExpireWeapon(std::vector<std::pair<WeaponTypeClass*, TechnoClass*>>& expireContainer, CoordStruct& designation)
 {
 	for (auto& [pWeapon, pTarget] : expireContainer) {
-		WeaponTypeExtData::DetonateAt5(pWeapon, pTarget->Location, pTarget, pTarget, pWeapon->Damage, false, pTarget->Owner);
+		WeaponTypeExtData::DetonateAt5(pWeapon, designation, pTarget, pTarget, pWeapon->Damage, false, pTarget->Owner);
 	}
 }
 
