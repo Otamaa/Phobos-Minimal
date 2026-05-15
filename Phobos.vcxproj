@@ -46,6 +46,7 @@
     <ClCompile Include="src\Ext\Object\Body.cpp" />
     <ClCompile Include="src\Ext\Object\Hooks.cpp" />
     <ClCompile Include="src\Ext\PCXFile\Hooks.PNG.cpp" />
+    <ClCompile Include="src\Ext\Session\Body.cpp" />
     <ClCompile Include="src\Ext\SlaveManager\Hooks.cpp" />
     <ClCompile Include="src\Ext\Surface\Hooks.cpp" />
     <ClCompile Include="src\Ext\Techno\Hook.HealthBar.cpp" />
@@ -638,6 +639,7 @@
     <ClInclude Include="src\Ext\Convert\Body.h" />
     <ClInclude Include="src\Ext\Factory\Body.h" />
     <ClInclude Include="src\Ext\INI\Body.h" />
+    <ClInclude Include="src\Ext\Session\Body.h" />
     <ClInclude Include="src\Lib\lodepng\lodepng.h" />
     <ClInclude Include="src\New\Entity\FactoryPlantClass.h" />
     <ClInclude Include="src\Commands\AggressiveModeClass.h" />

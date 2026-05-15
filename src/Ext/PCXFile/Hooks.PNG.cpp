@@ -39,11 +39,7 @@ bool Write_PNG_File(FileClass* name, Surface& pic, const BytePalette* palette, b
 	 */
 	unsigned char* image = (unsigned char*)std::malloc(pic_height * pic_width * 3);
 
-	static struct rgb
-	{
-		unsigned char r, g, b;
-	};
-	rgb* imageptr = (rgb*)image;
+	ColorStruct* imageptr = (ColorStruct*)image;
 
 	for (int i = 0; i < (pic_width * pic_height); ++i)
 	{
@@ -51,9 +47,9 @@ bool Write_PNG_File(FileClass* name, Surface& pic, const BytePalette* palette, b
 		unsigned char r = (value & 0xF800) >> 11; // Extract the 5 R bits
 		unsigned char g = (value & 0x07E0) >> 5;  // Extract the 6 G bits
 		unsigned char b = (value & 0x001F);       // Extract the 5 B bits
-		imageptr[i].r = (r * 255) / 31;
-		imageptr[i].g = (g * 255) / 63;
-		imageptr[i].b = (b * 255) / 31;
+		imageptr[i].R = (r * 255) / 31;
+		imageptr[i].G = (g * 255) / 63;
+		imageptr[i].B = (b * 255) / 31;
 	}
 
 	/**
@@ -277,7 +273,7 @@ BSurface* __fastcall Read_PCX_File_Intercept(FileClass* file, unsigned char* pal
 	 */
 	*file_name = '\0';
 
-	const char* upper_filename = strupr((char*)fnamebuffer);
+	const char* upper_filename = _strupr((char*)fnamebuffer);
 
 	char png_buffer[32 - 4];
 	std::snprintf(png_buffer, sizeof(png_buffer), "%s.PNG", upper_filename);

@@ -151,7 +151,7 @@ struct _VTABLE
 
 #define DEFINE_NAKED_HOOK(hook, funcname)                         \
 	void funcname();                                              \
-	DEFINE_FUNCTION_JUMP(LJMP, hook, GET_OFFSET(funcname))                 \
+	DEFINE_FUNCTION_JUMP(LJMP, hook, funcname)                 \
 	void NAKED funcname()
 
 #pragma endregion Static Patch

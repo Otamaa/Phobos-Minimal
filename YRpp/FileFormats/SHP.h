@@ -54,7 +54,7 @@ struct SHPStruct //header
 		return *GetColor(buffer, idxFrame);
 	}
 
-	uint8_t* GetPixels(int idxFrame)
+	uint8_t* GetPixels(int idxFrame) const
 		{ JMP_THIS(0x69E740); }
 
 	// Flags & 2

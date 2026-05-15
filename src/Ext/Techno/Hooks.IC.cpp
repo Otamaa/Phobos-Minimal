@@ -80,6 +80,52 @@ public:
 		return result + extraIntensity;
 	}
 
+	static int __fastcall __AirstrikeTintTimer(TechnoClass* pThis, discard_t, int intensity)
+	{
+		// Calculate remaining time on airstrike tint timer
+		int remainingTime = pThis->AirstrikeTintTimer.GetTimeLeft();
+
+		// Calculate stage-specific multiplier
+		int multiplier;
+
+		switch (pThis->AirstrikeTintStage)
+		{
+		case 1:  // Fade in (shared with case 7)
+		case 7:  // Fade out variant
+			multiplier = ((12 - remainingTime) << 8) / 6;
+			break;
+
+		case 2:  // Sustain
+		case 8:  // Sustain (alternate)
+			multiplier = 512;
+			break;
+
+		case 3:  // Quick fade (shared with case 9)
+		case 9:  // Quick fade variant
+			multiplier = ((remainingTime + 20) << 8) / 20;
+			break;
+
+		case 4:  // Fade: (128 - time) * 256 / 64
+			multiplier = ((128 - remainingTime) << 8) / 64;
+			break;
+
+		case 5:  // Fade: (time + 64) * 256 / 64
+			multiplier = ((remainingTime + 64) << 8) / 64;
+			break;
+
+		case 6:  // Fixed value
+			multiplier = 256;
+			break;
+
+		default:  // No tinting active
+			return intensity;
+		}
+
+		// Apply multiplier and clamp
+		int result = (intensity * multiplier) >> 8;
+		return (result > 2000) ? 2000 : result;
+	}
+
 	static IronCurtainFlag GetFlag(TechnoClass* pThis, TechnoTypeExtData* pTypeExt, bool forceshield)
 	{
 		const auto what = pThis->WhatAmI();
@@ -274,3 +320,4 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5DC4, FakeWrapperClass::UnitClass_IronCurtain);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4010, FakeWrapperClass::BuildingClass_IronCurtain);
 DEFINE_FUNCTION_JUMP(LJMP, 0x457C90, FakeWrapperClass::BuildingClass_IronCurtain);
 DEFINE_FUNCTION_JUMP(LJMP, 0x70E380, FakeWrapperClass::__IronTintTimer);
+DEFINE_FUNCTION_JUMP(LJMP, 0x70E4B0, FakeWrapperClass::__AirstrikeTintTimer);

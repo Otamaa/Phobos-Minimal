@@ -801,7 +801,7 @@ void FakeTacticalClass::__DrawRadialIndicator(
 
 		float thickness = static_cast<float>(_line_alpha[i]);
 
-		DSurface::Temp->DrawSubtractiveLine_AZ(DSurface::ViewBounds(),
+		DSurface::Temp->DrawSubtractiveLine_AZB(DSurface::ViewBounds(),
 										lineStart,
 										lineEnd,
 										draw_color,

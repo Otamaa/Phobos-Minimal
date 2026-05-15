@@ -471,7 +471,7 @@ void FakeLaserDrawClass::_DrawLaser()
 		{
 			// Subtractive drawing for blinking lasers
 			ColorStruct innerCopy = InnerColor;
-			DSurface::Temp->DrawSubtractiveLine_AZ(
+			DSurface::Temp->DrawSubtractiveLine_AZB(
 				DSurface::ViewBounds(),
 				ptSource, ptTarget,
 				innerCopy,
@@ -490,7 +490,7 @@ void FakeLaserDrawClass::_DrawLaser()
 				Point2D outerTgt0 = { ptTarget.X + off0.X, ptTarget.Y + off0.Y };
 
 				ColorStruct outerCopy0 = outerDrawColor;
-				DSurface::Temp->DrawSubtractiveLine_AZ(
+				DSurface::Temp->DrawSubtractiveLine_AZB(
 					DSurface::ViewBounds(),
 					outerSrc0, outerTgt0,
 					outerCopy0,
@@ -503,7 +503,7 @@ void FakeLaserDrawClass::_DrawLaser()
 				Point2D outerTgt1 = { ptTarget.X + off1.X, ptTarget.Y + off1.Y };
 
 				ColorStruct outerCopy1 = outerDrawColor;
-				DSurface::Temp->DrawSubtractiveLine_AZ(
+				DSurface::Temp->DrawSubtractiveLine_AZB(
 					DSurface::ViewBounds(),
 					outerSrc1, outerTgt1,
 					outerCopy1,
@@ -546,7 +546,7 @@ void FakeLaserDrawClass::_DrawLaser()
 		{
 			// Subtractive drawing for non-outer-color (fading) lasers
 			ColorStruct innerFade = InnerColor;
-			DSurface::Temp->DrawSubtractiveLine_AZ(
+			DSurface::Temp->DrawSubtractiveLine_AZB(
 				DSurface::ViewBounds(),
 				ptSource, ptTarget,
 				innerFade,
