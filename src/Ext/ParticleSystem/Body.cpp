@@ -690,7 +690,7 @@ void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 				)
 				*/
 			{
-				uintptr_t buff = *reinterpret_cast<uint16_t*>(ABuffer::Instance->GetBuffer(outClient.X, y_copy - ABuffer::Instance->Area.Y));
+				uint16_t buff = *reinterpret_cast<uint16_t*>(ABuffer::Instance->GetBuffer(outClient.X, y_copy - ABuffer::Instance->Area.Y));
 
 				if (buff == 0)
 				{
@@ -699,7 +699,7 @@ void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 
 
 				{
-					int ZBuff = *reinterpret_cast<uint16_t*>((ZBuffer::Instance->GetBuffer(outClient.X, outClient.Y - ZBuffer::Instance->Area.Y)));
+					uint16_t ZBuff = *reinterpret_cast<uint16_t*>((ZBuffer::Instance->GetBuffer(outClient.X, outClient.Y - ZBuffer::Instance->Area.Y)));
 					int Zadjust = Game::AdjustHeight(Coord.Z);
 
 					uint16_t zTest = static_cast<uint16_t>(
@@ -733,24 +733,24 @@ void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 							static_cast<double>(movement.ColorFactor)
 						);
 
-						uint32_t pixelColor;
+						uint32_t data_r;
+						uint32_t data_g;
+						uint32_t data_b;
 
-						if (buff >= 127u)
-						{
+						if (buff >= 127u) {
 							// Full brightness - use color directly
-							pixelColor = finalColor.ToInit();
-						}
-						else
-						{
+							data_r = finalColor.R;
+							data_g = finalColor.G;
+							data_b = finalColor.B;
+						} else {
 							// Dim the color based on alpha buffer value
-														// buff is 0-127, so this darkens the color proportionally
-							uint32_t data_r = (buff * finalColor.R) >> 7;  // Divide by 128
+							// buff is 0-127, so this darkens the color proportionally
+							uint32_t data_r = (buff * finalColor.R) >> 7;
 							uint32_t data_g = (buff * finalColor.G) >> 7;
 							uint32_t data_b = (buff * finalColor.B) >> 7;
-							pixelColor = DSurface::RGB_To_Pixel(data_r, data_g, data_b);
 						}
 
-						DSurface::Temp->Put_Pixel(outClient, pixelColor);
+						DSurface::Temp->Put_Pixel(outClient, DSurface::RGB_To_Pixel(data_r, data_g, data_b));
 					}
 				}
 			}

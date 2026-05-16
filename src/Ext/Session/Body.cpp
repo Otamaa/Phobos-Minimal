@@ -42,7 +42,7 @@ int FakeSessionClass::_Game_GetLinkedColor(PlayerColorSlot idx)
 					slot->colorSchemeIndex = ColorScheme::FindIndex(slot->colorScheme);
 
 					if (slot->colorSchemeIndex == -1) {
-						Debug::Log("Color scheme %s not found.", slot->colorScheme);
+						Debug::Log("Color scheme %s not found.\n", slot->colorScheme);
 						slot->colorSchemeIndex = 4;
 					}
 				}
