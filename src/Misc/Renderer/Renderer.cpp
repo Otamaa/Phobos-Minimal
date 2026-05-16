@@ -654,55 +654,358 @@ void DXRenderer::UnloadImports() {
 	}
 }
 
-bool DXRenderer::CreateDevice() {
-	UINT dxgiFactoryFlags = 0;
+UINT64 AdapterScore::ScoreAdapter(const DXGI_ADAPTER_DESC1& d)
+{
+	UINT64 score = 0;
+
+	// Must not be software
+	if (d.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+		return 0;
+
+	// Prefer dedicated GPU memory
+	score += d.DedicatedVideoMemory / (1024 * 1024); // MB
+
+	// Huge boost for real discrete GPUs
+	if (d.DedicatedVideoMemory > 4ull * 1024 * 1024 * 1024)
+		score += 100000;
+
+	// Slight boost for known discrete class
+	if (d.DedicatedVideoMemory > 0)
+		score += 50000;
+
+	return score;
+}
+
+bool DXRenderer::CreateDevice()
+{
+	UINT factoryFlags = 0;
+
 #if DXRENDER_DEBUG
 	wil::com_ptr_nothrow<ID3D12Debug> debugController;
-	if (SUCCEEDED(FP_D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)))) {
+	if (SUCCEEDED(FP_D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
+	{
 		debugController->EnableDebugLayer();
+		factoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
 	}
-	dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
 #endif
-	if (FAILED(FP_CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&Factory)))) {
+
+	if (FAILED(FP_CreateDXGIFactory2(factoryFlags, IID_PPV_ARGS(&Factory))))
+		return false;
+
+	D3D_FEATURE_LEVEL selectedLevel = D3D_FEATURE_LEVEL_12_0;
+
+	wil::com_ptr_nothrow<IDXGIAdapter1> bestAdapter {};
+	UINT64 bestScore = 0;
+
+	// -------------------------------------------------
+	// 1. Adapter selection (score-based, safe for all GPUs)
+	// -------------------------------------------------
+	for (UINT i = 0;; i++)
+	{
+		wil::com_ptr_nothrow<IDXGIAdapter1> adapter {};
+
+		if (Factory->EnumAdapterByGpuPreference(
+			i,
+			DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE,
+			IID_PPV_ARGS(&adapter)) == DXGI_ERROR_NOT_FOUND)
+		{
+			break;
+		}
+
+		DXGI_ADAPTER_DESC1 desc {};
+		adapter->GetDesc1(&desc);
+
+		if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+			continue;
+
+		UINT64 score = AdapterScore::ScoreAdapter(desc);
+
+		Debug::Log("[RenderDX] Adapter %d: %ls | USED VRAM=%llu MB\n",
+			i,
+			desc.Description,
+			desc.DedicatedVideoMemory / (1024ull * 1024ull));
+
+		if (score > bestScore)
+		{
+			bestScore = score;
+			bestAdapter = adapter;
+		}
+	}
+
+	if (!bestAdapter)
+	{
+		Debug::Log("[RenderDX] No suitable GPU found.\n");
 		return false;
 	}
-	constexpr bool kUseWarpDevice = false;
-	if (kUseWarpDevice) {
-		wil::com_ptr_nothrow<IDXGIAdapter> warpAdapter;
-		if (FAILED(Factory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)))) {
-			Debug::Log("[RenderDX] Failed to create WARP adapter.\n");
-			return false;
-		}
-		if (FAILED(FP_D3D12CreateDevice(warpAdapter.get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&Device)))) {
-			Debug::Log("[RenderDX] Failed to create WARP adapter.\n");
-			return false;
-		}
 
-		Debug::Log("[RenderDX] D3D12 WARP device created successfully.\n");
+	// -------------------------------------------------
+	// 2. Create D3D12 device
+	// -------------------------------------------------
+	if (!CreateDeviceInternal(bestAdapter.get(), selectedLevel))
+	{
+		Debug::Log("[RenderDX] Failed to create D3D12 device.\n");
+		return false;
 	}
-	else {
-		wil::com_ptr_nothrow<IDXGIAdapter1> hardwareAdapter;
-		for (UINT adapterIndex = 0; Factory->EnumAdapterByGpuPreference(adapterIndex, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(&hardwareAdapter)) != DXGI_ERROR_NOT_FOUND; ++adapterIndex) {
-			DXGI_ADAPTER_DESC1 desc;
-			hardwareAdapter->GetDesc1(&desc);
-			if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) {
-				continue;
-			}
-			if (SUCCEEDED(FP_D3D12CreateDevice(hardwareAdapter.get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&Device)))) {
-				Debug::Log("[RenderDX] D3D12 device created successfully on adapter: %ls\n", desc.Description);
-				break;
-			}
-		}
-		if (!Device) {
-			return false;
-		}
+	UINT nodeCount = Device->GetNodeCount();
+	Debug::Log("[RenderDX] D3D12 Node Count = %u\n", nodeCount);
 
-		Debug::Log("[RenderDX] D3D12 device created successfully.\n");
+	// -------------------------------------------------
+	// 3. Query FINAL adapter info (IMPORTANT FIX)
+	// -------------------------------------------------
+	DXGI_ADAPTER_DESC1 desc {};
+	bestAdapter->GetDesc1(&desc);
+
+	Caps.VendorID = desc.VendorId;
+	Caps.IsUMA = (desc.DedicatedVideoMemory == 0);
+
+	// fallback (still useful)
+	Caps.VRAM = desc.DedicatedVideoMemory / (1024ull * 1024ull);
+
+	// REAL memory query
+	wil::com_ptr_nothrow<IDXGIAdapter3> adapter3 {};
+	if (SUCCEEDED(bestAdapter->QueryInterface(IID_PPV_ARGS(&adapter3))))
+	{
+		DXGI_QUERY_VIDEO_MEMORY_INFO info {};
+		if (SUCCEEDED(adapter3->QueryVideoMemoryInfo(
+			0,
+			DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
+			&info)))
+		{
+			Caps.VRAM_MB = info.Budget / (1024ull * 1024ull);
+			Caps.VRAM_GB = static_cast<double>(Caps.VRAM_MB) / 1024.0;
+		}
 	}
+	else
+	{
+		// fallback to DXGI desc
+		Caps.VRAM_MB = Caps.VRAM / (1024ull * 1024ull);
+		Caps.VRAM_GB = static_cast<double>(Caps.VRAM_MB) / 1024.0;
+	}
+
+	Debug::Log(
+		"[RenderDX] Adapter: %ls | Vendor: 0x%x | UMA: %s | VRAM: %llu / %llu MB (%.2f GB)\n",
+		desc.Description,
+		Caps.VendorID,
+		Caps.IsUMA ? "Yes" : "No",
+		Caps.VRAM,
+		Caps.VRAM_MB,
+		Caps.VRAM_GB
+	);
+
+	// -------------------------------------------------
+	// 4. Feature level store
+	// -------------------------------------------------
+	Caps.FeatureLevel = selectedLevel;
+
+	// -------------------------------------------------
+	// 5. Query GPU capabilities (DXIL / RT / Mesh etc.)
+	// -------------------------------------------------
+	QueryCapabilities();
+
+	Debug::Log("[RenderDX] Device created. FeatureLevel = 0x%x\n", selectedLevel);
 
 	return true;
 }
 
+bool DXRenderer::CreateDeviceInternal(IDXGIAdapter* adapter, D3D_FEATURE_LEVEL& outLevel)
+{
+	const D3D_FEATURE_LEVEL levels[] =
+	{
+		D3D_FEATURE_LEVEL_12_2,
+		D3D_FEATURE_LEVEL_12_1,
+		D3D_FEATURE_LEVEL_12_0
+	};
+
+	for (auto level : levels)
+	{
+		if (SUCCEEDED(FP_D3D12CreateDevice(
+			adapter,
+			level,
+			IID_PPV_ARGS(&Device))))
+		{
+			outLevel = level;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void DXRenderer::QueryCapabilities()
+{
+	if (!Device)
+		return;
+
+	{
+		D3D12_FEATURE_DATA_D3D12_OPTIONS opts {
+			.TiledResourcesTier = D3D12_TILED_RESOURCES_TIER_NOT_SUPPORTED,
+			.ResourceBindingTier = D3D12_RESOURCE_BINDING_TIER_1,
+			.ConservativeRasterizationTier = D3D12_CONSERVATIVE_RASTERIZATION_TIER_NOT_SUPPORTED
+		};
+
+		if (SUCCEEDED(Device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &opts, sizeof(opts))))
+		{
+			Caps.ResourceBindingTier = opts.ResourceBindingTier;
+			Caps.ConservativeRasterTier = opts.ConservativeRasterizationTier;
+			Caps.TiledResourcesTier = opts.TiledResourcesTier;
+		}
+		else
+		{
+			Debug::Log("[RenderDX] D3D12_OPTIONS query FAILED\n");
+		}
+	}
+
+	{
+		D3D12_FEATURE_DATA_SHADER_CACHE sc { .SupportFlags = D3D12_SHADER_CACHE_SUPPORT_NONE };
+		if (SUCCEEDED(Device->CheckFeatureSupport(D3D12_FEATURE_SHADER_CACHE, &sc, sizeof(sc))))
+		{
+			Caps.HasShaderCache = sc.SupportFlags != D3D12_SHADER_CACHE_SUPPORT_NONE;
+		}
+	}
+
+	std::string sm_str { "Unknown" };
+
+	{
+		D3D12_FEATURE_DATA_SHADER_MODEL sm { .HighestShaderModel = D3D_SHADER_MODEL_6_9 };
+
+		COMPILETIMEEVAL auto ToString = [](D3D_SHADER_MODEL model)
+			{
+				switch (model)
+				{
+				case D3D_SHADER_MODEL_5_1: return "5.1";
+				case D3D_SHADER_MODEL_6_0: return "6.0";
+				case D3D_SHADER_MODEL_6_1: return "6.1";
+				case D3D_SHADER_MODEL_6_2: return "6.2";
+				case D3D_SHADER_MODEL_6_3: return "6.3";
+				case D3D_SHADER_MODEL_6_4: return "6.4";
+				case D3D_SHADER_MODEL_6_5: return "6.5";
+				case D3D_SHADER_MODEL_6_6: return "6.6";
+				case D3D_SHADER_MODEL_6_7: return "6.7";
+				case D3D_SHADER_MODEL_6_8: return "6.8";
+				case D3D_SHADER_MODEL_6_9: return "6.9";
+				default: return "Unknown";
+				}
+			};
+
+		HRESULT hr = Device->CheckFeatureSupport(
+			D3D12_FEATURE_SHADER_MODEL,
+			&sm,
+			sizeof(sm)
+		);
+
+		if (SUCCEEDED(hr))
+		{
+			Caps.HasDXIL = sm.HighestShaderModel >= D3D_SHADER_MODEL_6_0;
+			sm_str = ToString(sm.HighestShaderModel);
+		}
+		else
+		{
+			Debug::Log("[RenderDX] ShaderModel query FAILED: 0x%x\n", hr);
+			Caps.HasDXIL = false;
+		}
+	}
+
+	D3D12_RAYTRACING_TIER RT_Tier = D3D12_RAYTRACING_TIER_NOT_SUPPORTED;
+	std::string rt_tier_str = "NOT_SUPPORTED";
+
+	// ---- Raytracing / Mesh / modern features ----
+	{
+		D3D12_FEATURE_DATA_D3D12_OPTIONS5 opt5 {};
+
+		Debug::Log("[RenderDX] Querying D3D12_FEATURE_D3D12_OPTIONS5 (size=%zu)...\n", sizeof(opt5));
+
+		HRESULT hr = Device->CheckFeatureSupport(
+			D3D12_FEATURE_D3D12_OPTIONS5,
+			&opt5,
+			sizeof(opt5));
+
+		Debug::Log("[RenderDX] CheckFeatureSupport result: 0x%x (%s)\n",
+			hr, SUCCEEDED(hr) ? "SUCCESS" : "FAILED");
+
+		if (SUCCEEDED(hr))
+		{
+			// Log ALL fields from OPTIONS5
+			Debug::Log("[RenderDX] OPTIONS5 results:\n");
+			Debug::Log("  - SRVOnlyTiledResourceTier3: %d\n", opt5.SRVOnlyTiledResourceTier3);
+			Debug::Log("  - RenderPassesTier: %d\n", (int)opt5.RenderPassesTier);
+			Debug::Log("  - RaytracingTier: %d\n", (int)opt5.RaytracingTier);
+
+			RT_Tier = opt5.RaytracingTier;
+			Caps.HasRenderPasses = opt5.RenderPassesTier != D3D12_RENDER_PASS_TIER_0;
+			Caps.HasRaytracing = opt5.RaytracingTier >= D3D12_RAYTRACING_TIER_1_0;
+
+			// Convert tier to string for better logging
+			switch (opt5.RaytracingTier)
+			{
+			case D3D12_RAYTRACING_TIER_NOT_SUPPORTED: rt_tier_str = "NOT_SUPPORTED"; break;
+			case D3D12_RAYTRACING_TIER_1_0: rt_tier_str = "1.0"; break;
+			case D3D12_RAYTRACING_TIER_1_1: rt_tier_str = "1.1"; break;
+			default: rt_tier_str = std::format("UNKNOWN({})", (int)opt5.RaytracingTier); break;
+			}
+		}
+		else
+		{
+			Debug::Log("[RenderDX] D3D12_OPTIONS5 (Raytracing) query FAILED: 0x%x\n", hr);
+			Caps.HasRaytracing = false;
+		}
+	}
+
+	{
+		D3D12_FEATURE_DATA_D3D12_OPTIONS6 opt6 {
+			.VariableShadingRateTier = D3D12_VARIABLE_SHADING_RATE_TIER_NOT_SUPPORTED
+		};
+
+		if (SUCCEEDED(Device->CheckFeatureSupport(
+			D3D12_FEATURE_D3D12_OPTIONS6,
+			&opt6,
+			sizeof(opt6))))
+		{
+			Caps.HasVRS =
+				opt6.VariableShadingRateTier != D3D12_VARIABLE_SHADING_RATE_TIER_NOT_SUPPORTED;
+		}
+	}
+
+	{
+		D3D12_FEATURE_DATA_D3D12_OPTIONS7 opt7 {
+			.MeshShaderTier = D3D12_MESH_SHADER_TIER_NOT_SUPPORTED,
+			.SamplerFeedbackTier = D3D12_SAMPLER_FEEDBACK_TIER_NOT_SUPPORTED
+		};
+		if (SUCCEEDED(Device->CheckFeatureSupport(
+			D3D12_FEATURE_D3D12_OPTIONS7,
+			&opt7,
+			sizeof(opt7))))
+		{
+			Caps.HasMeshShader =
+				opt7.MeshShaderTier != D3D12_MESH_SHADER_TIER_NOT_SUPPORTED;
+
+			Caps.HasSamplerFeedback =
+				opt7.SamplerFeedbackTier != D3D12_SAMPLER_FEEDBACK_TIER_NOT_SUPPORTED;
+		}
+	}
+
+	{
+		D3D12_FEATURE_DATA_D3D12_OPTIONS12 opt12 {};
+		if (SUCCEEDED(Device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12, &opt12, sizeof(opt12))))
+		{
+			Debug::Log("[RenderDX] OPTIONS12 - EnhancedBarriersSupported: %d\n", opt12.EnhancedBarriersSupported);
+		}
+	}
+
+	Debug::LogInfo("[RenderDX] === FINAL CAPS ===");
+	Debug::LogInfo("[RenderDX] DXIL: {}\n", Caps.HasDXIL);
+	Debug::LogInfo("[RenderDX] Raytracing: {} (Tier: {})", Caps.HasRaytracing, rt_tier_str);
+	Debug::LogInfo("[RenderDX] ShaderModel: {}", sm_str);
+	Debug::LogInfo("[RenderDX] VRS: {}", Caps.HasVRS);
+	Debug::LogInfo("[RenderDX] MeshShader: {}", Caps.HasMeshShader);
+	Debug::LogInfo("[RenderDX] SamplerFeedback: {}", Caps.HasSamplerFeedback);
+	Debug::LogInfo("[RenderDX] ShaderCache: {}", Caps.HasShaderCache);
+	Debug::LogInfo("[RenderDX] RenderPasses: {}", Caps.HasRenderPasses);
+
+	Debug::LogInfo("[RenderDX] ResourceBindingTier: {}", (int)Caps.ResourceBindingTier);
+	Debug::LogInfo("[RenderDX] ConservativeRasterTier: {}", (int)Caps.ConservativeRasterTier);
+	Debug::LogInfo("[RenderDX] TiledResourcesTier: {}", (int)Caps.TiledResourcesTier);
+
+}
 bool DXRenderer::CreateCommandQueue() {
 	D3D12_COMMAND_QUEUE_DESC queueDesc {};
 	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
