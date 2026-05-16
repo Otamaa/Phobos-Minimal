@@ -92,7 +92,14 @@ bool DXRenderer::CreateMainWindow(HINSTANCE instance, int cmd_show, int width, i
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	wc.lpfnWndProc = proc;
 	wc.hInstance = instance;
-	wc.hIcon = ::LoadIconA(instance, MAKEINTRESOURCEA(93));
+
+	if (!Phobos::AppIconPath.empty()) {
+		Debug::LogInfo("Applying AppIcon from \"{}\"", Phobos::AppIconPath.c_str());
+		wc.hIcon = (HICON)::LoadImageA(instance, Phobos::AppIconPath.c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	} else {
+		wc.hIcon = ::LoadIconA(instance, MAKEINTRESOURCEA(93));
+	}
+
 	wc.hCursor = ::LoadCursorA(nullptr, IDC_ARROW);
 	wc.lpszClassName = LuaData::MainWindowStr.c_str();
 	if (!::RegisterClassA(&wc)) {
