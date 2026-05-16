@@ -18,6 +18,15 @@
 #define SDDTOR_NODELETE				0x00
 #define SDDTOR_DELETE				0x01
 
+enum class HicolorLayout : int
+{
+	RGB,
+	RBG,
+	GRB,
+	GBR,
+	BRG
+};
+
 enum VQAAnimControlFlags
 {
 	VQAAnimControlFlags_0 = 0x0,

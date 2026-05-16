@@ -201,18 +201,15 @@ void* DXSurface::GetBuffer() {
 }
 
 DXSurfaceImpl::DXSurfaceImpl(int width, int height) {
-	const int sourceRowBytes = width * 2; // 2 bytes per pixel for 16-bit color
-	Pitch = (sourceRowBytes + 256 - 1) & ~(256 - 1); // Align up to D3D12_TEXTURE_DATA_PITCH_ALIGNMENT
-	Buffer.reset(new BYTE[Pitch * height]);
+	const int sourceRowBytes = width * 2;
+	Pitch = (sourceRowBytes + 256 - 1) & ~(256 - 1);
+	const size_t bufferSize = static_cast<size_t>(Pitch) * height;
+	Buffer.reset(new BYTE[bufferSize]);
+	std::memset(Buffer.get(), 0, bufferSize);  // ✅ Zero the buffer (black)
 }
 
 DXSurfaceImpl::~DXSurfaceImpl() {}
-
-static __forceinline unsigned int Build_Hicolor_Pixel(unsigned int r, unsigned int g, unsigned int b) {
-	return (r >> Unsorted::ColorPackData->_R_SHR << Unsorted::ColorPackData->_R_SHL) |
-		(g >> Unsorted::ColorPackData->_G_SHR << Unsorted::ColorPackData->_G_SHL) |
-		(b >> Unsorted::ColorPackData->_B_SHR << Unsorted::ColorPackData->_B_SHL);
-}
+#include <Drawing.h>
 
 DXSurface* __fastcall DXSurface::CreatePrimary() {
 	DSurface::AllowHardwareBlitFills = false; // AllowHardwareBlitFills
@@ -223,17 +220,17 @@ DXSurface* __fastcall DXSurface::CreatePrimary() {
 	auto surface = new DXSurface(DSurface::WindowBounds->Width, DSurface::WindowBounds->Height);
 
 	// RGB565 color shifts
-	Unsorted::ColorPackData->_R_SHL = 11;
-	Unsorted::ColorPackData->_R_SHR = 3;
-	Unsorted::ColorPackData->_B_SHL = 0;
-	Unsorted::ColorPackData->_B_SHR = 3;
-	Unsorted::ColorPackData->_G_SHL = 5;
-	Unsorted::ColorPackData->_G_SHR = 2;
+	Drawing::RedShiftLeft = 11;
+	Drawing::RedShiftRight = 3;
+	Drawing::GreenShiftLeft = 5;
+	Drawing::GreenShiftRight = 2;
+	Drawing::BlueShiftLeft = 0;
+	Drawing::BlueShiftRight = 3;
 
-	DSurface::RGBMode = 2; // ColorMode RGB565
-	DSurface::HalfbrightMask = static_cast<unsigned short>(Build_Hicolor_Pixel(127, 127, 127));
-	DSurface::QuarterbrightMask = static_cast<unsigned short>(Build_Hicolor_Pixel(63, 63, 63));
-	DSurface::EighthbrightMask = static_cast<unsigned short>(Build_Hicolor_Pixel(31, 31, 31));
+	DSurface::RGBMode = RGBMode::RGB565; // ColorMode RGB565
+	DSurface::HalfbrightMask = static_cast<unsigned short>(DSurface::Build_Hicolor_Pixel_RGB(127, 127, 127));
+	DSurface::QuarterbrightMask = static_cast<unsigned short>(DSurface::Build_Hicolor_Pixel_RGB(63, 63, 63));
+	DSurface::EighthbrightMask = static_cast<unsigned short>(DSurface::Build_Hicolor_Pixel_RGB(31, 31, 31));
 
 	Debug::Log("[RenderDX] D3D12 surface created as primary surface done.\n");
 

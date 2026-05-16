@@ -2,6 +2,8 @@
 
 #include <Surface.h>
 
+#define DX12_SURFACE_IMPLEMENTATION
+
 // CPU render
 class DXSurfaceImpl;
 class DXSurface : public DSurface {

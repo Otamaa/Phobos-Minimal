@@ -447,7 +447,7 @@ public:
 	static COMPILETIMEEVAL reference<DSurface*, 0x887314u> const Temp {};
 	static COMPILETIMEEVAL reference<DSurface*, 0x887314u> const Hidden_2 {};
 	static COMPILETIMEEVAL reference<DSurface*, 0x88731Cu> const Composite {};
-	static COMPILETIMEEVAL reference<int, 0x8205D0u> const RGBMode {};
+	static COMPILETIMEEVAL reference<RGBMode, 0x8205D0u> const RGBMode {};
 	static COMPILETIMEEVAL reference<int, 0x8A0DE8u> const HalfbrightMask {};
 	static COMPILETIMEEVAL reference<int, 0x8A0DEAu> const QuarterbrightMask {};
 	static COMPILETIMEEVAL reference<int, 0x8A0DEAu> const EighthbrightMask {};
@@ -630,6 +630,7 @@ public:
 	//		| unsigned((g >> GreenRight) << GreenLeft));
 	//}
 
+	
 	static FORCEDINLINE COMPILETIMEEVAL void Pixel_To_RGB(unsigned pixel, unsigned* red, unsigned* green, unsigned* blue)
 	{
 		*red = static_cast<unsigned char>(pixel >> RedRight() << RedLeft());
@@ -637,12 +638,53 @@ public:
 		*blue = static_cast<unsigned char>(pixel >> BlueRight() << BlueLeft());
 	}
 
-	static FORCEDINLINE COMPILETIMEEVAL unsigned RGB_To_Pixel(unsigned r, unsigned g, unsigned b)
+	//GBR
+	static FORCEDINLINE COMPILETIMEEVAL unsigned Build_Hicolor_Pixel_GBR(unsigned r, unsigned g, unsigned b)
 	{
-		return (unsigned((b >> BlueRight.get()) << BlueLeft.get())
-			| unsigned((r >> RedRight.get()) << RedLeft.get())
-			| unsigned((g >> GreenRight.get()) << GreenLeft.get()));
+		return g >> GreenRight() << GreenLeft()
+			| b >> BlueRight() << BlueLeft()
+			| r >> RedRight() << RedLeft()
+			;
 	}
+
+	//GRB
+	static FORCEDINLINE COMPILETIMEEVAL unsigned Build_Hicolor_Pixel_GRB(unsigned r, unsigned g, unsigned b)
+	{
+		return  g >> GreenRight() << GreenLeft()
+			| r >> RedRight() << RedLeft()
+			| b >> BlueRight() << BlueLeft();
+	}
+
+	//BRG
+	static FORCEDINLINE COMPILETIMEEVAL unsigned Build_Hicolor_Pixel_BRG(unsigned r, unsigned g, unsigned b) {
+		return b >> BlueRight() << BlueLeft()
+			| r >> RedRight() << RedLeft()
+			| g >> GreenRight() << GreenLeft(); }
+
+	//RBG
+	static FORCEDINLINE COMPILETIMEEVAL unsigned Build_Hicolor_Pixel_RBG(unsigned r, unsigned g, unsigned b)
+	{
+		return r >> RedRight() << RedLeft()
+			| b >> BlueRight() << BlueLeft()
+			| g >> GreenRight() << GreenLeft();
+	}
+
+	//RGB
+	static FORCEDINLINE COMPILETIMEEVAL unsigned Build_Hicolor_Pixel_RGB(unsigned r, unsigned g, unsigned b)
+	{
+		return  r >> RedRight() << RedLeft()
+			| g >> GreenRight() << GreenLeft()
+			| b >> BlueRight() << BlueLeft()
+			;
+	}
+
+	static FORCEDINLINE void Build_Locolor_Pixel(unsigned pixel, unsigned* red, unsigned* green, unsigned* blue)
+	{
+		*red = static_cast<unsigned char>(pixel >> RedRight() << RedLeft());
+		*green = static_cast<unsigned char>(pixel >> GreenRight() << GreenLeft());
+		*blue = static_cast<unsigned char>(pixel >> BlueRight() << BlueLeft());
+	}
+
 
 	//static unsigned RGB_To_Pixel(ColorStruct& rgb)
 	//{

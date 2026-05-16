@@ -13,6 +13,8 @@
 #include <GameOptionsClass.h>
 #include <TacticalClass.h>
 
+#include <Misc/Renderer/Surface.h>
+
 ParticleSystemExtData::ParticleSystemExtData(ParticleSystemClass* pObj) : ObjectExtData(pObj)
 {
 	this->Name = pObj->Type->ID;
@@ -745,12 +747,13 @@ void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 						} else {
 							// Dim the color based on alpha buffer value
 							// buff is 0-127, so this darkens the color proportionally
-							uint32_t data_r = (buff * finalColor.R) >> 7;
-							uint32_t data_g = (buff * finalColor.G) >> 7;
-							uint32_t data_b = (buff * finalColor.B) >> 7;
+							data_r = (buff * finalColor.R) >> 7;
+							data_g = (buff * finalColor.G) >> 7;
+							data_b = (buff * finalColor.B) >> 7;
 						}
 
-						DSurface::Temp->Put_Pixel(outClient, DSurface::RGB_To_Pixel(data_r, data_g, data_b));
+						DSurface::Temp->Put_Pixel(outClient, DSurface::Build_Hicolor_Pixel_RBG(data_r, data_g, data_b));
+
 					}
 				}
 			}
