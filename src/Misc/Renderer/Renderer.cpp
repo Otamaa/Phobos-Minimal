@@ -144,7 +144,7 @@ bool DXRenderer::CreateMainWindow(HINSTANCE instance, int cmd_show, int width, i
 	::RegisterHotKey(Game::hWnd(), 1, MOD_ALT | MOD_CONTROL | MOD_SHIFT, 'M');
 
 	// Gain focus for the game window to ensure it receives input
-	::SetForegroundWindow(Game::hWnd);
+	::SetForegroundWindow(Game::hWnd());
 	Game::IsFocused = true;
 
 	if (!DXRenderer::Instance().LoadImports()) {
@@ -631,6 +631,7 @@ void DXRenderer::UnloadImports() {
 	if (D3DCompilerLib) {
 		D3DCompilerLib.reset();
 		FP_D3DCompile = nullptr;
+		FP_D3DCreateBlob = nullptr;
 	}
 	if (DXGILib) {
 		DXGILib.reset();
