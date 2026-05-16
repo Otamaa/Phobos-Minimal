@@ -2695,9 +2695,8 @@ void FakeBuildingClass::_Repair_AI()
 		} else {
 			const int step = v6->__Repair_Step();
 			this->Owner->TakeMoney(cost);
-			const int _upp = MinImpl(step + this->EstimatedHealth, v6->Strength);
-			this->Health = _upp;
-			this->EstimatedHealth = _upp;
+			this->Health = MinImpl(step + this->Health, v6->Strength);
+			this->EstimatedHealth = MinImpl(step + this->EstimatedHealth, v6->Strength);
 
 			if (this->Health >= v6->Strength) {
 				this->IsBeingRepaired = 0;
