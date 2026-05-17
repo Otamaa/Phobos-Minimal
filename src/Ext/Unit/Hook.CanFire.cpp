@@ -247,7 +247,7 @@ namespace
 				const int reload_state_2 = *reinterpret_cast<int*>(
 					reinterpret_cast<char*>(pThis) + 0x5A4);
 				if (reload_state_2 != 0)
-					return FireError::RELOADING;
+					return FireError::REARM;
 			}
 			else
 			{
@@ -255,14 +255,14 @@ namespace
 				auto pAmmoObj = *reinterpret_cast<void**>(
 					reinterpret_cast<char*>(pThis) + 0x674);
 				if (!pAmmoObj)
-					return FireError::RELOADING;
+					return FireError::REARM;
 
 				using AmmoCheckFn = bool(__thiscall*)(void*);
 				const auto ammo_vt = *reinterpret_cast<AmmoCheckFn**>(pAmmoObj);
 				const auto ammo_check = reinterpret_cast<AmmoCheckFn>(
 					ammo_vt[0x80 / 4]);
 				if (ammo_check(pAmmoObj))
-					return FireError::RELOADING;
+					return FireError::REARM;
 			}
 		}
 
@@ -278,7 +278,7 @@ namespace
 				const int reload_state_3 = *reinterpret_cast<int*>(
 					reinterpret_cast<char*>(pThis) + 0x5A4);
 				if (reload_state_3 != 0)
-					return FireError::RELOADING;
+					return FireError::REARM;
 			}
 		}
 
@@ -315,7 +315,7 @@ namespace
 						reinterpret_cast<char*>(pThis) + 0x5A4);
 
 					if (state_274 != 0 && reload_state_4 != 0)
-						return FireError::RELOADING;
+						return FireError::MOVING;
 				}
 			}
 		}
@@ -358,15 +358,15 @@ namespace
 										   AbstractClass* target,
 										   WeaponTypeClass* pWeapon)
 	{
-		const bool weapon_12b = *(
-			reinterpret_cast<unsigned char*>(pWeapon) + 0x12B) != 0;
+		const bool isOmniFire = 
+			pWeapon->OmniFire != 0;
 
 		auto pTypeData = *reinterpret_cast<unsigned char**>(
 			reinterpret_cast<char*>(pThis) + 0x6C4);
-		const bool type_e19 = pTypeData[0xE19] != 0;
-		const bool type_e18 = pTypeData[0xE18] != 0;
+		const bool IsLargeVisceroid = pTypeData[0xE19] != 0;
+		const bool IsSmallVisceroid = pTypeData[0xE18] != 0;
 
-		if (weapon_12b || type_e19 || type_e18)
+		if (isOmniFire || IsLargeVisceroid || IsSmallVisceroid)
 			return kContinue;
 
 		const bool use_turret_facing = pTypeData[0xCA1] != 0;
@@ -385,7 +385,7 @@ namespace
 			reinterpret_cast<char*>(pProjectile) + 0x2DC);
 		const int threshold = 8 + (rot != 0 ? 8 : 0);
 
-		DirStruct target_dir = pThis->Direction(target);
+		DirStruct target_dir = pThis->GetDirectionOverObject(target);
 
 		const short raw_diff = static_cast<short>(current_facing.Raw - target_dir.Raw);
 		const int abs_diff = raw_diff < 0 ? -raw_diff : raw_diff;
@@ -449,7 +449,7 @@ FireError FakeUnitClass::_Can_Fire(AbstractClass* target, int which, bool check_
 		switch (CheckBuildableAndRadio(this))
 		{
 		case BuildableCheckResult::ReturnBuildingForbidden:
-			return FireError::BUILDING_FORBIDDEN;
+			return FireError::MUST_DEPLOY;
 
 		case BuildableCheckResult::SkipToTail:
 			skip_weapon_gates = true;

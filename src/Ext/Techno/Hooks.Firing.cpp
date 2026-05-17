@@ -171,24 +171,6 @@ ASMJIT_PATCH(0x772AA2, WeaponTypeClass_AllowedThreats_AAOnly, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6FDE0E, TechnoClass_FireAt_OnlyAttacker, 0x6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EBX);
-	GET_BASE(AbstractClass* const, pTarget, 0x8);
-
-	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-
-	if (pWeaponExt->OnlyAttacker.Get() && pTarget == pThis->Target
-		&& pTarget->AbstractFlags & AbstractFlags::Techno)
-	{
-		const auto pTargetExt = TechnoExtContainer::Instance.Find(static_cast<TechnoClass*>(pTarget));
-		pTargetExt->AddFirer(pWeapon, pThis);
-	}
-
-	return 0;
-}
-
 ASMJIT_PATCH(0x6FE19A, TechnoClass_FireAt_AreaFire, 0x6) //7
 {
 	enum { Continue = 0x0, DoNotFire = 0x6FE4E7, SkipSetTarget = 0x6FE1D5 };
@@ -395,7 +377,9 @@ ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 			}
 		}
 
-		if (const auto pTargetTechno = flag_cast_to<TechnoClass*>(pTarget)) {
+		const auto pTargetTechno = flag_cast_to<TechnoClass*>(pTarget);
+
+		if (pTargetTechno) {
 				auto const pTargetExt = TechnoExtContainer::Instance.Find(pTargetTechno);
 			if (pWeaponExt->NoRepeatFire > 0) {
 				pTargetExt->LastBeLockedFrame = Unsorted::CurrentFrame;
@@ -413,6 +397,11 @@ ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 			int scdamage = pThis->Health;
 			pThis->ReceiveDamage(&scdamage, 0, RulesClass::Instance->C4Warhead, nullptr, false, true, nullptr);
 			return 0x6FDE03;
+		}
+
+		if (pWeaponExt->OnlyAttacker.Get() && pTarget == pThis->Target && pTargetTechno) {
+			const auto pTargetExt = TechnoExtContainer::Instance.Find(pTargetTechno);
+			pTargetExt->AddFirer(pWeapon, pThis);
 		}
 	}
 

@@ -31,6 +31,11 @@ public:
 	void UpdateCumulativeAnim(int count);
 	void TransferCumulativeAnim(PhobosAttachEffectClass* pSource);
 	bool CanShowAnim() const;
+
+	void FirePeriodicWeapon();
+	void LaunchPeriodicBullet(TechnoClass* pFirer, HouseClass* pFirerHouse,
+		WeaponTypeClass* pWeapon, TechnoClass* pTarget, CoordStruct firePos);
+
 	TechnoClass* GetInvoker() const
 	{
 		return this->Invoker;
@@ -107,6 +112,7 @@ public:
 	int InitialDelay { 0 };
 	int RecreationDelay { -1 };
 	int LastDiscardCheckFrame { -1 };
+	int PeriodicWeaponTimer { 0 };
 	PhobosAttachEffectTypeClass* Type { nullptr };
 	TechnoClass* Techno { nullptr };
 	HouseClass* InvokerHouse { nullptr };

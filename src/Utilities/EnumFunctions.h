@@ -85,6 +85,7 @@ public:
 	static bool IsTechnoEligibleB(TechnoClass* const pTechno, AffectedTarget allowed);
 	static bool CanAffectTechnoResult(AbstractType type, AffectedTechno allowed);
 	static bool AreCellAndObjectsEligible(CellClass* const pCell, AffectedTarget allowed, AffectedHouse allowedHouses, HouseClass* owner, bool explicitEmptyCells = false, bool considerAircraftSeparately = false, bool allowBridges = false);
+	static bool AreCellAndObjectsEligibleSelfAware(CellClass* const pCell, AffectedTarget allowed, AffectedHouse allowedHouses, HouseClass* owner, ObjectClass* pAttacker , bool skipAttacker , bool explicitEmptyCells = false, bool considerAircraftSeparately = false, bool allowBridges = false);
 	static BlitterFlags GetTranslucentLevel(int nInt);
 	static TextPrintType CastAlignToFlags(HorizontalPosition pos);
 	static IronCurtainFlag GetICFlagResult(IronCurtainFlag Input);
