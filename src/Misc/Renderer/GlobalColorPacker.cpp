@@ -1,9 +1,9 @@
-#include "ColorPacker.h"
+#include "GlobalColorPacker.h"
 
 #include <Surface.h>
 #include <Drawing.h>
 
-void ColorPacker::SetColorPacker()
+void GlobalColorPacker::SetColorPacker()
 {
 	// RGB565 color shifts
 	Drawing::RedShiftLeft = 11;
