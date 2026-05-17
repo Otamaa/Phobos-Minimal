@@ -33,6 +33,8 @@
 #include <Phobos.Entity.h>
 #include <MessageBoxLogging.h>
 
+#include <Misc/Renderer/ColorPacker.h>
+
 #pragma region defines
 HANDLE Phobos::hInstance;
 char Phobos::readBuffer[readLength] {};
@@ -1878,6 +1880,9 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 	{
 		if (IsGamemdExe(nullptr))
 		{
+			//this is dangerious but this keep shit from breaking early 
+			//ColorPacker::SetColorPacker();
+
 			Patch::CurrentProcess = GetCurrentProcess();
 			Phobos::hInstance = hInstance;
 			saved_lpReserved = lpReserved;

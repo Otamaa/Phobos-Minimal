@@ -86,6 +86,7 @@
     <ClCompile Include="src\Ext\Unit\Hooks.SubterraneanHarvester.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.Unit.cpp" />
     <ClCompile Include="src\Lib\lodepng\lodepng.cpp" />
+    <ClCompile Include="src\Misc\Renderer\Renderer.cpp" />
     <ClCompile Include="src\New\Entity\FactoryPlantClass.cpp" />
     <ClCompile Include="src\Commands\AggressiveModeClass.cpp" />
     <ClCompile Include="src\Commands\CeasefireModeClass.cpp" />
@@ -641,6 +642,7 @@
     <ClInclude Include="src\Ext\INI\Body.h" />
     <ClInclude Include="src\Ext\Session\Body.h" />
     <ClInclude Include="src\Lib\lodepng\lodepng.h" />
+    <ClInclude Include="src\Misc\Renderer\Renderer.h" />
     <ClInclude Include="src\New\Entity\FactoryPlantClass.h" />
     <ClInclude Include="src\Commands\AggressiveModeClass.h" />
     <ClInclude Include="src\Commands\CeasefireModeClass.h" />

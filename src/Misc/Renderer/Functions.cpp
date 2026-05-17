@@ -344,7 +344,7 @@ static void RebuildDisplayState(const RectangleStruct& view_rect) {
 	SidebarClass::Instance->Set_View_Dimensions(temp);
 	SidebarClass::Instance->Init_IO();
 	SidebarClass::Instance->Activate(1);
-	SidebarClass::Instance->CloseWindow();
+	SidebarClass::Instance->InitGUI();
 	SidebarClass::Instance->MarkNeedsRedraw(2); // REDRAW_ALL
 	DXMouse::Instance->Show_Mouse();
 }
@@ -492,7 +492,7 @@ int* __fastcall RenderDX::EnumDisplayModes(DWORD minw, DWORD minh, DWORD maxw, D
 		const DWORD h = devmode.dmPelsHeight;
 		const DWORD bpp = devmode.dmBitsPerPel;
 
-		if (w >= minw && h >= minh && w <= maxw && h <= maxh && bpp == bitdepth) {
+		if (w >= minw && h >= minh && w <= maxw && h <= maxh && bpp == 32) {
 			modes.emplace_back(static_cast<int>(w), static_cast<int>(h));
 		}
 	}

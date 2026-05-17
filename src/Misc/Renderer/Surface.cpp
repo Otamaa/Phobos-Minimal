@@ -210,6 +210,7 @@ DXSurfaceImpl::DXSurfaceImpl(int width, int height) {
 
 DXSurfaceImpl::~DXSurfaceImpl() {}
 #include <Drawing.h>
+#include "ColorPacker.h"
 
 DXSurface* __fastcall DXSurface::CreatePrimary() {
 	DSurface::AllowHardwareBlitFills = false; // AllowHardwareBlitFills
@@ -217,20 +218,21 @@ DXSurface* __fastcall DXSurface::CreatePrimary() {
 
 	Debug::Log("[RenderDX] D3D12 surface created as primary surface.\n");
 
-	auto surface = new DXSurface(DSurface::WindowBounds->Width, DSurface::WindowBounds->Height);
+	auto surface = new DXSurface(Game::ScreenWidth(), Game::ScreenHeight());
 
-	// RGB565 color shifts
-	Drawing::RedShiftLeft = 11;
-	Drawing::RedShiftRight = 3;
-	Drawing::GreenShiftLeft = 5;
-	Drawing::GreenShiftRight = 2;
-	Drawing::BlueShiftLeft = 0;
-	Drawing::BlueShiftRight = 3;
+	ColorPacker::SetColorPacker();
 
-	DSurface::RGBMode = RGBMode::RGB565; // ColorMode RGB565
 	DSurface::HalfbrightMask = static_cast<unsigned short>(DSurface::Build_Hicolor_Pixel_RGB(127, 127, 127));
 	DSurface::QuarterbrightMask = static_cast<unsigned short>(DSurface::Build_Hicolor_Pixel_RGB(63, 63, 63));
 	DSurface::EighthbrightMask = static_cast<unsigned short>(DSurface::Build_Hicolor_Pixel_RGB(31, 31, 31));
+
+	uint16_t testRed = Build_Hicolor_Pixel_RGB(255, 0, 0);
+	uint16_t testYellow = Build_Hicolor_Pixel_RGB(255, 255, 0);
+	uint16_t testCyan = Build_Hicolor_Pixel_RGB(0, 255, 255);
+
+	Debug::Log("[Test] RED(255,0,0) = 0x%04X\n", testRed);
+	Debug::Log("[Test] YELLOW(255,255,0) = 0x%04X\n", testYellow);
+	Debug::Log("[Test] CYAN(0,255,255) = 0x%04X\n", testCyan);
 
 	Debug::Log("[RenderDX] D3D12 surface created as primary surface done.\n");
 

@@ -20,7 +20,7 @@ public:
 
 	//DisplayClass
 	virtual const wchar_t* GetToolTip(UINT nDlgID) override JMP_THIS(0x640450);
-	virtual void CloseWindow() override JMP_THIS(0x6403A0); //prolly wrong naming
+	virtual void InitGUI() override JMP_THIS(0x6403A0); //prolly wrong naming
 
 	//RadarClass
 	virtual void DisposeOfArt() override JMP_THIS(0x63F7E0);

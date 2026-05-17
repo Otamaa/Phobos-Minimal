@@ -116,7 +116,7 @@ void Phobos::LoadGameDataAfter()
 	ScenarioClass::InitScenariostuff();
 	TabClass::Instance->Init_IO();
 	TabClass::Instance->Activate(1);
-	SidebarClass::Instance->CloseWindow();
+	SidebarClass::Instance->InitGUI();
 	TiberiumClass::sub_722D00();
 	TiberiumClass::sub_0x722240();
 	RadarClass::Instance->Map_AI();

@@ -77,7 +77,7 @@ class NOVTABLE Surface
 public:
 	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E2198;
 	static COMPILETIMEEVAL reference<bool*, 0x84310Cu> const Target_Laser_Draw_Pattern {};
-
+	Surface(noinit_t) {};
 	Surface() : Width(0), Height(0) { VTable::Set(this, vtable); }
 	Surface(int width, int height) JMP_THIS(0x4AEC60);
 	virtual ~Surface() { JMP_THIS(0x4115D0); }
@@ -221,7 +221,7 @@ class NOVTABLE XSurface : public Surface
 public:
 
 	static OPTIONALINLINE COMPILETIMEEVAL DWORD vtable = 0x7E2104;
-
+	XSurface(noinit_t) {};
 	XSurface() : Surface(), LockLevel(0), BytesPerPixel(0) { VTable::Set(this, vtable); }
 	XSurface(int width, int height) JMP_THIS(0x5FE020);
 	XSurface(int width, int height, int bpp) : Surface(width, height), LockLevel(0), BytesPerPixel(bpp) { VTable::Set(this, vtable); }
@@ -301,6 +301,9 @@ public:
 	static OPTIONALINLINE COMPILETIMEEVAL DWORD vtable = 0x7E2070;
 	static COMPILETIMEEVAL reference<BSurface, 0xB2D928> const VoxelSurface {};
 
+public:
+
+	BSurface(noinit_t) {};
 	BSurface() : XSurface(), BufferPtr() { VTable::Set(this, vtable); }
 	BSurface(int width, int height, int bpp, void* buffer) : XSurface(width, height, bpp), BufferPtr((void*)buffer, int((height* width)* bpp)) { VTable::Set(this, vtable); }
 	BSurface(int width, int height, int bpp, MemoryBuffer& buffer) : XSurface(width, height, bpp), BufferPtr(buffer) { VTable::Set(this, vtable); }

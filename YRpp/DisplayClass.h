@@ -36,7 +36,7 @@ public:
 	virtual HRESULT Save(IStream* pStm) JMP_THIS(0x4AE720);
 	virtual void LoadFromINI(CCINIClass* pINI) JMP_THIS(0x4ACE70); //Loads the map from a map file.
 	virtual const wchar_t* GetToolTip(UINT nDlgID) JMP_THIS(0x4AE4F0);
-	virtual void CloseWindow() JMP_THIS(0x4AE6B0); //prolly wrong naming
+	virtual void InitGUI() JMP_THIS(0x4AE6B0); //prolly wrong naming
 	virtual void ClearDragBand() JMP_THIS(0x4AEAD0);
 	virtual bool MapCell(CellStruct& cell, HouseClass* pHouse) JMP_THIS(0x4A9890);
 	virtual bool RevealFogShroud(CellStruct& cell, HouseClass* pHouse, bool bIncreaseShroudCounter) JMP_THIS(0x4A9CA0);

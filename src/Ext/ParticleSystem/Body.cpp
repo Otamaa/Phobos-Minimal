@@ -13,8 +13,6 @@
 #include <GameOptionsClass.h>
 #include <TacticalClass.h>
 
-#include <Misc/Renderer/Surface.h>
-
 ParticleSystemExtData::ParticleSystemExtData(ParticleSystemClass* pObj) : ObjectExtData(pObj)
 {
 	this->Name = pObj->Type->ID;
