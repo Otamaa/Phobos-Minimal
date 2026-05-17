@@ -992,7 +992,7 @@ void DXRenderer::QueryCapabilities()
 	}
 
 	Debug::LogInfo("[RenderDX] === FINAL CAPS ===");
-	Debug::LogInfo("[RenderDX] DXIL: {}\n", Caps.HasDXIL);
+	Debug::LogInfo("[RenderDX] DXIL: {}", Caps.HasDXIL);
 	Debug::LogInfo("[RenderDX] Raytracing: {} (Tier: {})", Caps.HasRaytracing, rt_tier_str);
 	Debug::LogInfo("[RenderDX] ShaderModel: {}", sm_str);
 	Debug::LogInfo("[RenderDX] VRS: {}", Caps.HasVRS);

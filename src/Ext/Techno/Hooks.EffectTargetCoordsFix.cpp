@@ -510,9 +510,9 @@ ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 			}
 	}
 
-	if(pWeapon->IsSonic){
-		pThis->Wave = WaveExtData::Create(crdSrc, crdTgt, pThis, WaveType::Sonic, pOriginalTarget, pWeapon);
-	}
+	// if(pWeapon->IsSonic){
+	// 	pThis->Wave = WaveExtData::Create(crdSrc, crdTgt, pThis, WaveType::Sonic, pOriginalTarget, pWeapon);
+	// }
 
 	return 0x6FF48A;
 }
@@ -558,14 +558,28 @@ ASMJIT_PATCH(0x70CBDA, TechnoClass_Railgun_AmbientDamageWarhead, 0x6)
 }
 #endif
 
-ASMJIT_PATCH(0x6FF656, TechnoClass_FireAt_Additionals_End, 0xA)
+ASMJIT_PATCH(0x6FF5F5, TechnoClass_FireAt_Additionals_End, 0x6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET_BASE(AbstractClass*, pTarget, 0x8);
 	GET(WeaponTypeClass* const, pWeaponType, EBX);
 	GET_STACK(BulletClass* const, pBullet, STACK_OFFS(0xB0, 0x74));
 	GET_BASE(int, weaponIndex, 0xC);
-	LEA_STACK(CoordStruct*, pTargetCoords, STACK_OFFSET(0xB0, -0x28));
+	REF_STACK(CoordStruct const, crdSrc, 0x44);
+	REF_STACK(CoordStruct, pTargetCoords, 0x88);
+
+	auto const pData = WeaponTypeExtContainer::Instance.Find(pWeaponType);
+	//TechnoClass_Fire_OtherWaves
+	if (pData->IsWave() && !pThis->Wave) {
+		WaveType nType = WaveType::Sonic;
+		if (pWeaponType->IsMagBeam)
+			nType = WaveType::Magnetron;
+		else
+			nType = pData->Wave_IsBigLaser
+			? WaveType::BigLaser : WaveType::Laser;
+
+		pThis->Wave = WaveExtData::Create(crdSrc, pTargetCoords, pThis, nType, pTarget, pWeaponType);
+	}
 
 	//remove ammo rounds depending on weapon
 	TechnoExtData::DecreaseAmmo(pThis, pWeaponType);
@@ -574,7 +588,7 @@ ASMJIT_PATCH(0x6FF656, TechnoClass_FireAt_Additionals_End, 0xA)
 
 #ifndef PERFORMANCE_HEAVY
 	// Restore original target & coords
-	*pTargetCoords = FireAtTemp::originalTargetCoords;
+	pTargetCoords = FireAtTemp::originalTargetCoords;
 	R->Base(8, FireAtTemp::pOriginalTarget);
 	pTarget = FireAtTemp::pOriginalTarget;
 	R->EDI(FireAtTemp::pOriginalTarget);

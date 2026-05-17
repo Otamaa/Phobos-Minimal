@@ -27,32 +27,6 @@
 #include <Notifications.h>
 #include <algorithm>
 
-
-ASMJIT_PATCH(0x6FF5F5, TechnoClass_Fire_OtherWaves, 6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(WeaponTypeClass* const, pSource, EBX);
-	GET(TechnoClass* const, pTarget, EDI);
-
-	REF_STACK(CoordStruct const, crdSrc, 0x44);
-	REF_STACK(CoordStruct const, crdTgt, 0x88);
-
-	auto const pData = WeaponTypeExtContainer::Instance.Find(pSource);
-
-	if (!pData->IsWave() || pThis->Wave)
-		return 0x6FF656;
-
-	WaveType nType = WaveType::Sonic;
-	if (pSource->IsMagBeam)
-		nType = WaveType::Magnetron;
-	else
-		nType = pData->Wave_IsBigLaser
-		? WaveType::BigLaser : WaveType::Laser;
-
-	pThis->Wave = WaveExtData::Create(crdSrc, crdTgt, pThis, nType, pTarget, pSource);
-	return 0x6FF656;
-}
-
 ASMJIT_PATCH(0x75FA29, WaveClass_Draw_Colors, 0x6)
 {
 	GET(WaveClass*, pThis, ESI);

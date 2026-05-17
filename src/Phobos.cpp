@@ -1881,7 +1881,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		if (IsGamemdExe(nullptr))
 		{
 			//this is dangerious but this keep shit from breaking early 
-			GlobalColorPacker::SetColorPacker();
+			//GlobalColorPacker::SetColorPacker();
 
 			Patch::CurrentProcess = GetCurrentProcess();
 			Phobos::hInstance = hInstance;

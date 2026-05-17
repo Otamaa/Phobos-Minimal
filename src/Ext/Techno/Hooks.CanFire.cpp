@@ -627,23 +627,16 @@ bool bIgnoreDisableWeapon)
 	// ====================================================================
 	// [21] MagBeam
 	// ====================================================================
-	if (pWeapon->IsMagBeam)
-	{
-		auto const pCurrentTarget = pThis->Target; // +0x2AC
+	if (pWeapon->IsMagBeam) {	
+		auto const pLocoTarget = pThis->LocomotorTarget; // +0x2AC
 
-		if (pCurrentTarget
-			&& pCurrentTarget != pTarget
-			&& pThis->Wave
-			&& pTarget->WhatAmI() != AbstractType::Building)
-		{
-			return FireError::REARM;
-		}
+		if (pLocoTarget && !pBuildingT) {
 
-		if (pCurrentTarget
-			&& pCurrentTarget == pTarget
-			&& pTarget->WhatAmI() != AbstractType::Building)
-		{
-			return FireError::REARM;
+			if (pLocoTarget == pTarget)
+				return FireError::REARM;
+
+			if (pThis->Wave)
+				return FireError::REARM;
 		}
 	}
 
@@ -924,7 +917,7 @@ FireError __fastcall FakeTechnoClass::__CanFireOriginal(TechnoClass* pThis, disc
 DEFINE_FUNCTION_JUMP(LJMP, 0x6FC0B0, FakeTechnoClass::__CanFireOriginal)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4D20, FakeTechnoClass::__CanFireOriginal)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E9054, FakeTechnoClass::__CanFireOriginal)
-DEFINE_FUNCTION_JUMP(CALL, 0x74103E, FakeTechnoClass::__CanFireOriginal)
+DEFINE_FUNCTION_JUMP(CALL, 0x74103E, FakeTechnoClass::__CanFireOriginal) //UnitClass_CanFire
 DEFINE_FUNCTION_JUMP(CALL, 0x51C9A7, FakeTechnoClass::__CanFireOriginal)
 DEFINE_FUNCTION_JUMP(CALL, 0x447FD4, FakeTechnoClass::__CanFireOriginal)
 DEFINE_FUNCTION_JUMP(CALL, 0x41A9F6, FakeTechnoClass::__CanFireOriginal)
