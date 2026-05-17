@@ -1,6 +1,6 @@
 #pragma once
 
-struct ColorPacker
+struct GlobalColorPacker
 {
 	static void SetColorPacker();
 

@@ -33,7 +33,7 @@
 #include <Phobos.Entity.h>
 #include <MessageBoxLogging.h>
 
-#include <Misc/Renderer/ColorPacker.h>
+#include <Misc/Renderer/GlobalColorPacker.h>
 
 #pragma region defines
 HANDLE Phobos::hInstance;
@@ -1881,7 +1881,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		if (IsGamemdExe(nullptr))
 		{
 			//this is dangerious but this keep shit from breaking early 
-			//ColorPacker::SetColorPacker();
+			GlobalColorPacker::SetColorPacker();
 
 			Patch::CurrentProcess = GetCurrentProcess();
 			Phobos::hInstance = hInstance;

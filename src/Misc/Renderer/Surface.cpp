@@ -210,7 +210,7 @@ DXSurfaceImpl::DXSurfaceImpl(int width, int height) {
 
 DXSurfaceImpl::~DXSurfaceImpl() {}
 #include <Drawing.h>
-#include "ColorPacker.h"
+#include "GlobalColorPacker.h"
 
 DXSurface* __fastcall DXSurface::CreatePrimary() {
 	DSurface::AllowHardwareBlitFills = false; // AllowHardwareBlitFills
@@ -220,7 +220,7 @@ DXSurface* __fastcall DXSurface::CreatePrimary() {
 
 	auto surface = new DXSurface(Game::ScreenWidth(), Game::ScreenHeight());
 
-	ColorPacker::SetColorPacker();
+	GlobalColorPacker::SetColorPacker();
 
 	DSurface::HalfbrightMask = static_cast<unsigned short>(DSurface::Build_Hicolor_Pixel_RGB(127, 127, 127));
 	DSurface::QuarterbrightMask = static_cast<unsigned short>(DSurface::Build_Hicolor_Pixel_RGB(63, 63, 63));
