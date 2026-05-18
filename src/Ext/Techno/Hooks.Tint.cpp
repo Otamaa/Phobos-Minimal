@@ -100,7 +100,7 @@ ASMJIT_PATCH(0x423420, AnimClass_Draw_TintColor, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x43DC1C, BuildingClass_Draw_Fogged_TintColor, 0x6)
+ASMJIT_PATCH(0x43DC1C, BuildingClass_Draw_Fogged_TintColor, 0x6)
 {
 	enum { SkipGameCode = 0x43DD8E };
 
@@ -113,7 +113,7 @@ DEFINE_HOOK(0x43DC1C, BuildingClass_Draw_Fogged_TintColor, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x73BF95, UnitClass_DrawAsVoxel_Tint, 0x7)
+ASMJIT_PATCH(0x73BF95, UnitClass_DrawAsVoxel_Tint, 0x7)
 {
 	enum { SkipGameCode = 0x73C141 };
 
@@ -136,7 +136,7 @@ DEFINE_HOOK(0x73BF95, UnitClass_DrawAsVoxel_Tint, 0x7)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x518FC8, InfantryClass_Draw_TintColor, 0x6)
+ASMJIT_PATCH(0x518FC8, InfantryClass_Draw_TintColor, 0x6)
 {
 	enum { SkipGameCode = 0x519082 };
 
@@ -150,7 +150,7 @@ DEFINE_HOOK(0x518FC8, InfantryClass_Draw_TintColor, 0x6)
 	return SkipGameCode;
 }
 
-DEFINE_HOOK(0x51946D, InfantryClass_Draw_TintIntensity, 0x6)
+ASMJIT_PATCH(0x51946D, InfantryClass_Draw_TintIntensity, 0x6)
 {
 	GET(InfantryClass*, pThis, EBP);
 	GET(int, intensity, ESI);

@@ -1746,7 +1746,7 @@ void FakeTacticalClass::_Render(DSurface* pSurface, bool flag, TacticalRenderMod
 				//check are modified to allow more condition that allow techno to be sensed
 				//like ability or AE
 				auto pExt = TechnoExtContainer::Instance.Find(pTech);
-				if (!pExt->AE.flags.Untrackable && !TechnoExtData::IsUntrackable(pTech) && pTech->CurrentlyOnSensor())
+				if (pTech->LocomotorSource && !pExt->AE.flags.Untrackable && !TechnoExtData::IsUntrackable(pTech) && pTech->CurrentlyOnSensor())
 					((FootClass*)pTech)->draw_dashed_4DC340();
 			}
 
@@ -1861,7 +1861,7 @@ void FakeTacticalClass::_Render(DSurface* pSurface, bool flag, TacticalRenderMod
 
 						// SUSPECT @0x6D48F6: IDA shows v34=v44 (loop index clobber);
 						// likely a register-reload misread since asm restores i from stack.
-						FakeTechnoClass* pFakeTech = (FakeTechnoClass*)pTech;
+						//FakeTechnoClass* pFakeTech = (FakeTechnoClass*)pTech;
 						CoordStruct flh = pTech->GetFLH(0, 0,0,0);
 
 						FakeTechnoClass::__Draw_Airstrike_Flare(

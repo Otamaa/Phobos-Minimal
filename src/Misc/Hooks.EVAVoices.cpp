@@ -252,7 +252,7 @@ ASMJIT_PATCH(0x68776E, ScenarioClass_LoadINI_EVAIndex2, 8)
 
 // decide to check it here because one of the hook path litelarry doest support direct house/housetype access
 // and changing that need more effort and code than doing this hack
-DEFINE_HOOK(0x68AD0C, ScenarioClass_ReadMap_SetEVAIndex, 0x7)
+ASMJIT_PATCH(0x68AD0C, ScenarioClass_ReadMap_SetEVAIndex, 0x7)
 {
 	if (const auto pHouse = HouseClass::CurrentPlayer()) {
 		if (ScenarioExtData::Instance()->IsHouseTypeVoiceNeedCheck)

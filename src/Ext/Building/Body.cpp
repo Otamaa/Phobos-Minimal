@@ -2465,7 +2465,7 @@ void FakeBuildingClass::_DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOrigi
 //	}
 //}
 
-//DEFINE_HOOK(0x43D290,BuildingClass_Draw_It, 0x5)
+//ASMJIT_PATCH(0x43D290,BuildingClass_Draw_It, 0x5)
 //{
 //	GET(FakeBuildingClass*, pThis, ECX);
 //	GET_STACK(Point2D*, pPoint, 0x4);
