@@ -4,315 +4,13 @@
 #include <cstdio>
 #include <vector>
 
-
-#ifdef __EXAMPLES
-#include "AsyncLogger.h"
-#include <thread>
-#include <chrono>
-#include <Windows.h>
-
-// Example 1: Basic usage
-void Example_BasicUsage()
-{
-	// Initialize with custom log name
-	AsyncLogger::Initialize("Phobos.log");
-
-	// Simple logging
-	AsyncLogger::Info("Game initialized");
-	AsyncLogger::Debug("Loading configuration...");
-	AsyncLogger::Warn("Deprecated feature used");
-	AsyncLogger::Error("Failed to load texture: %s", "tank.shp");
-
-	// Flush to ensure everything is written
-	AsyncLogger::Flush();
-
-	AsyncLogger::Shutdown();
-}
-
-// Example 2: Printf-style formatting (old school, for compatibility)
-void Example_PrintfStyle()
-{
-	AsyncLogger::Initialize("Combat.log");
-
-	int health = 100;
-	int armor = 50;
-	float damage = 25.5f;
-	const char* unit = "Tank";
-
-	// Traditional printf-style formatting
-	AsyncLogger::Info("Unit: %s, Health: %d, Armor: %d", unit, health, armor);
-	AsyncLogger::Info("Damage dealt: %.2f", damage);
-	AsyncLogger::Info("Position: (%d, %d)", 1024, 768);
-
-	// Works with all log levels
-	AsyncLogger::Debug("Debug info: %d %d %d", 1, 2, 3);
-	AsyncLogger::Warn("Warning: Resource count = %d", 42);
-	AsyncLogger::Error("Error code: 0x%08X", 0xDEADBEEF);
-
-	AsyncLogger::Flush();
-	AsyncLogger::Shutdown();
-}
-
-// Example 3: Modern fmt-style formatting
-void Example_FmtStyle()
-{
-	AsyncLogger::Initialize("Modern.log");
-
-	std::string playerName = "Commander";
-	int score = 9001;
-
-	// Modern fmt-style formatting (cleaner, type-safe)
-	AsyncLogger::InfoFmt("Player: {}, Score: {}", playerName, score);
-	AsyncLogger::InfoFmt("Hex value: 0x{:08X}", 0xCAFEBABE);
-	AsyncLogger::InfoFmt("Float: {:.3f}", 3.14159265);
-
-	// Can mix types easily
-	AsyncLogger::WarnFmt("Mixed types: {} {} {} {}", 42, "string", 3.14, true);
-
-	AsyncLogger::Flush();
-	AsyncLogger::Shutdown();
-}
-
-// Example 4: Thread independence demonstration
-void BackgroundTask()
-{
-	for (int i = 0; i < 10; i++)
-	{
-		AsyncLogger::Info("Background thread: iteration %d", i);
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-	}
-}
-
-void Example_ThreadIndependence()
-{
-	AsyncLogger::Initialize("Threading.log", 2);  // Use 2 background threads
-
-	AsyncLogger::Info("Starting background task...");
-
-	// Launch background thread
-	std::thread worker(BackgroundTask);
-
-	// Main thread can continue logging without blocking
-	for (int i = 0; i < 10; i++)
-	{
-		AsyncLogger::Info("Main thread: iteration %d", i);
-		std::this_thread::sleep_for(std::chrono::milliseconds(50));
-	}
-
-	worker.join();
-
-	// Check if messages are still pending
-	if (AsyncLogger::HasPendingMessages())
-	{
-		AsyncLogger::InfoFmt("Pending messages: {}", AsyncLogger::GetPendingCount());
-		AsyncLogger::Flush();  // Force flush
-	}
-
-	AsyncLogger::Shutdown();
-}
-
-// Example 5: Session management
-void Example_Sessions()
-{
-	AsyncLogger::Initialize("GameSessions.log");
-
-	// First game session
-	AsyncLogger::BeginSession("Tutorial Mission");
-	AsyncLogger::Info("Player entered tutorial");
-	AsyncLogger::Info("Objective: Build 5 tanks");
-	AsyncLogger::Info("Tutorial completed");
-	AsyncLogger::EndSession();
-
-	// Second game session
-	AsyncLogger::BeginSession("Mission 1: Red Alert");
-	AsyncLogger::Info("Mission started");
-	AsyncLogger::Warn("Low power warning");
-	AsyncLogger::Info("Mission objective completed");
-	AsyncLogger::EndSession();
-
-	AsyncLogger::Shutdown();
-}
-
-// Example 6: DLL usage pattern (typical Phobos usage)
-class GameSystem
-{
-public:
-	static void Initialize()
-	{
-		AsyncLogger::Initialize("Phobos.log", 1, 16384);  // Larger queue for game
-		AsyncLogger::BeginSession("Phobos Extension");
-		AsyncLogger::Info("Phobos version: 1.0.0");
-		AsyncLogger::Info("Game: Red Alert 2 - Yuri's Revenge");
-	}
-
-	static void OnGameStart()
-	{
-		AsyncLogger::BeginSession("New Game");
-		AsyncLogger::Info("Map: XMP01T4.map");
-		AsyncLogger::Info("Difficulty: Hard");
-	}
-
-	static void OnUpdate(int frameCount)
-	{
-		// Log sparingly in update loop
-		if (frameCount % 1000 == 0)
-		{
-			AsyncLogger::Debug("Frame: %d", frameCount);
-		}
-	}
-
-	static void OnError(const char* system, const char* error)
-	{
-		// Errors are auto-flushed
-		AsyncLogger::Error("[%s] %s", system, error);
-	}
-
-	static void OnGameEnd()
-	{
-		AsyncLogger::EndSession();
-		AsyncLogger::InfoFmt("Game ended at frame {}", 50000);
-	}
-
-	static void Shutdown()
-	{
-		AsyncLogger::Info("Shutting down Phobos...");
-		AsyncLogger::EndSession();
-		AsyncLogger::Shutdown();  // Blocking, ensures all logs are written
-	}
-};
-
-// Example 7: Checking flush status
-void Example_FlushStatus()
-{
-	AsyncLogger::Initialize("FlushTest.log");
-
-	// Generate lots of logs
-	for (int i = 0; i < 1000; i++)
-	{
-		AsyncLogger::Info("Log message %d", i);
-	}
-
-	// Check if messages are still in queue
-	while (AsyncLogger::HasPendingMessages())
-	{
-		size_t pending = AsyncLogger::GetPendingCount();
-		printf("Still writing... Pending: %zu\n", pending);
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	}
-
-	printf("All messages flushed to disk!\n");
-
-	AsyncLogger::Shutdown();
-}
-
-// Example 8: Configuration options
-void Example_Configuration()
-{
-	AsyncLogger::Initialize("Config.log");
-
-	// Change log level (only info and above will be logged)
-	AsyncLogger::SetLevel(2);  // 0=trace, 1=debug, 2=info, 3=warn, 4=error, 5=critical
-
-	AsyncLogger::Trace("This won't appear (trace)");
-	AsyncLogger::Debug("This won't appear (debug)");
-	AsyncLogger::Info("This will appear (info)");
-	AsyncLogger::Warn("This will appear (warn)");
-
-	// Custom pattern
-	AsyncLogger::SetPattern("[%H:%M:%S] [%l] %v");  // Simpler format
-	AsyncLogger::Info("Custom pattern message");
-
-	// Restore default pattern
-	AsyncLogger::SetPattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
-
-	// Enable console output (useful for debugging)
-	// AsyncLogger::SetConsoleOutput(true);
-
-	AsyncLogger::Shutdown();
-}
-
-// Example 9: DLL main usage (typical pattern)
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved)
-{
-	switch (reason)
-	{
-	case DLL_PROCESS_ATTACH:
-		// Initialize logger when DLL loads
-		GameSystem::Initialize();
-		break;
-
-	case DLL_PROCESS_DETACH:
-		// Clean shutdown when DLL unloads
-		GameSystem::Shutdown();
-		break;
-	}
-	return TRUE;
-}
-
-// Example 10: Error recovery
-void Example_ErrorRecovery()
-{
-	// Multiple initializations are safe
-	AsyncLogger::Initialize("Test1.log");
-	AsyncLogger::Initialize("Test2.log");  // Ignored, already initialized
-
-	AsyncLogger::Info("This goes to Test1.log");
-
-	// Can check if initialized
-	if (AsyncLogger::IsInitialized())
-	{
-		AsyncLogger::Info("Logger is ready");
-	}
-
-	// Safe to call even if not initialized
-	AsyncLogger::Shutdown();
-	AsyncLogger::Shutdown();  // Safe, does nothing
-
-	// Can reinitialize with different name
-	AsyncLogger::Initialize("Test2.log");
-	AsyncLogger::Info("This goes to Test2.log");
-	AsyncLogger::Shutdown();
-}
-
-int main()
-{
-	printf("Running AsyncLogger examples...\n\n");
-
-	printf("Example 1: Basic Usage\n");
-	Example_BasicUsage();
-
-	printf("Example 2: Printf-style Formatting\n");
-	Example_PrintfStyle();
-
-	printf("Example 3: Modern fmt-style Formatting\n");
-	Example_FmtStyle();
-
-	printf("Example 4: Thread Independence\n");
-	Example_ThreadIndependence();
-
-	printf("Example 5: Session Management\n");
-	Example_Sessions();
-
-	printf("Example 7: Flush Status Checking\n");
-	Example_FlushStatus();
-
-	printf("Example 8: Configuration Options\n");
-	Example_Configuration();
-
-	printf("Example 10: Error Recovery\n");
-	Example_ErrorRecovery();
-
-	printf("\nAll examples completed! Check the generated .log files.\n");
-	return 0;
-}
-#endif
-
 // Static member initialization
 std::shared_ptr<spdlog::logger> AsyncLogger::s_Logger = nullptr;
 std::atomic<bool> AsyncLogger::s_Initialized(false);
 std::atomic<size_t> AsyncLogger::s_PendingCount(0);
 std::mutex AsyncLogger::s_InitMutex;
 std::string AsyncLogger::s_CurrentLogFile;
+FILE* AsyncLogger::s_LegacyFileHandle = nullptr;
 
 void AsyncLogger::FormatAndStripNewline(const char* pFormat, va_list args, std::vector<char>& buffer)
 {
@@ -342,12 +40,17 @@ void AsyncLogger::FormatAndStripNewline(const char* pFormat, va_list args, std::
 	}
 }
 
-bool AsyncLogger::Initialize(const char* logFileName, size_t threadPoolSize, size_t queueSize)
+bool AsyncLogger::Initialize(const char* logFileName, size_t threadPoolSize, size_t queueSize, FILE** legacyFilePtr)
 {
 	std::lock_guard<std::mutex> lock(s_InitMutex);
 
 	if (s_Initialized)
 	{
+		// If already initialized and legacy handle requested, provide it
+		if (legacyFilePtr && s_LegacyFileHandle)
+		{
+			*legacyFilePtr = s_LegacyFileHandle;
+		}
 		return true;  // Already initialized
 	}
 
@@ -356,14 +59,37 @@ bool AsyncLogger::Initialize(const char* logFileName, size_t threadPoolSize, siz
 		// Store log file name
 		s_CurrentLogFile = logFileName ? logFileName : "default.log";
 
+		// Open legacy FILE* handle if requested (for backward compatibility)
+		if (legacyFilePtr)
+		{
+			// Open with write+share deny write (same as _wfsopen with _SH_DENYWR)
+#ifdef _WIN32
+			errno_t err = fopen_s(&s_LegacyFileHandle, s_CurrentLogFile.c_str(), "w");
+			if (err != 0)
+			{
+				s_LegacyFileHandle = nullptr;
+			}
+#else
+			s_LegacyFileHandle = fopen(s_CurrentLogFile.c_str(), "w");
+#endif
+
+			if (s_LegacyFileHandle)
+			{
+				*legacyFilePtr = s_LegacyFileHandle;
+			}
+		}
+
 		// Initialize spdlog's thread pool for async logging
 		// This creates background threads that are completely independent
 		spdlog::init_thread_pool(queueSize, threadPoolSize);
 
 		// Create async file sink
+		// Note: spdlog will append "_async" or use the file we specify
+		// To avoid conflicts with legacy FILE*, we could use a different approach
+		// But typically spdlog handles this fine as it buffers writes
 		auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(
 			s_CurrentLogFile,
-			true  // truncate file on open
+			false  // append mode to work with legacy FILE* (set to true to truncate)
 		);
 
 		// Create async logger with the file sink
@@ -391,6 +117,10 @@ bool AsyncLogger::Initialize(const char* logFileName, size_t threadPoolSize, siz
 		s_Logger->info("Log File: {}", s_CurrentLogFile);
 		s_Logger->info("Thread Pool Size: {}", threadPoolSize);
 		s_Logger->info("Queue Size: {}", queueSize);
+		if (s_LegacyFileHandle)
+		{
+			s_Logger->info("Legacy FILE* handle created for backward compatibility");
+		}
 		s_Logger->flush();
 
 		return true;
@@ -399,6 +129,14 @@ bool AsyncLogger::Initialize(const char* logFileName, size_t threadPoolSize, siz
 	{
 		// Initialization failed - try to output error somewhere
 		fprintf(stderr, "AsyncLogger::Initialize failed: %s\n", e.what());
+
+		// Clean up legacy handle if it was opened
+		if (s_LegacyFileHandle)
+		{
+			fclose(s_LegacyFileHandle);
+			s_LegacyFileHandle = nullptr;
+		}
+
 		s_Initialized = false;
 		s_Logger = nullptr;
 		return false;
@@ -425,6 +163,14 @@ void AsyncLogger::Shutdown()
 		// Drop the logger (important for cleanup)
 		spdlog::drop("async_logger");
 		s_Logger = nullptr;
+	}
+
+	// Close legacy FILE* handle if it exists
+	if (s_LegacyFileHandle)
+	{
+		fflush(s_LegacyFileHandle);
+		fclose(s_LegacyFileHandle);
+		s_LegacyFileHandle = nullptr;
 	}
 
 	// Shutdown the thread pool (waits for all threads to finish)
@@ -456,6 +202,22 @@ void AsyncLogger::BeginSession(const char* sessionName)
 	s_Logger->info("======================================");
 	s_Logger->info("");
 	s_Logger->flush();
+
+	// Also write to legacy handle if it exists
+	if (s_LegacyFileHandle)
+	{
+		fprintf(s_LegacyFileHandle, "\n======================================\n");
+		if (sessionName)
+		{
+			fprintf(s_LegacyFileHandle, "=== Session: %s ===\n", sessionName);
+		}
+		else
+		{
+			fprintf(s_LegacyFileHandle, "=== New Session ===\n");
+		}
+		fprintf(s_LegacyFileHandle, "======================================\n\n");
+		fflush(s_LegacyFileHandle);
+	}
 }
 
 void AsyncLogger::EndSession()
@@ -468,6 +230,15 @@ void AsyncLogger::EndSession()
 	s_Logger->info("======================================");
 	s_Logger->info("");
 	s_Logger->flush();
+
+	// Also write to legacy handle if it exists
+	if (s_LegacyFileHandle)
+	{
+		fprintf(s_LegacyFileHandle, "\n======================================\n");
+		fprintf(s_LegacyFileHandle, "=== Session End ===\n");
+		fprintf(s_LegacyFileHandle, "======================================\n\n");
+		fflush(s_LegacyFileHandle);
+	}
 }
 
 void AsyncLogger::Flush()
@@ -476,6 +247,12 @@ void AsyncLogger::Flush()
 	{
 		s_Logger->flush();
 		s_PendingCount = 0;  // Reset counter after flush
+	}
+
+	// Also flush legacy handle if it exists
+	if (s_LegacyFileHandle)
+	{
+		fflush(s_LegacyFileHandle);
 	}
 }
 
@@ -487,6 +264,11 @@ bool AsyncLogger::HasPendingMessages()
 size_t AsyncLogger::GetPendingCount()
 {
 	return s_PendingCount.load();
+}
+
+FILE* AsyncLogger::GetLegacyFileHandle()
+{
+	return s_LegacyFileHandle;
 }
 
 // Helper function for printf-style formatting
@@ -673,7 +455,7 @@ void AsyncLogger::SetConsoleOutput(bool enabled)
 		// Create new logger with both file and console sinks
 		auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(
 			s_CurrentLogFile,
-			true
+			false  // append mode
 		);
 
 		std::vector<spdlog::sink_ptr> sinks { file_sink, console_sink };

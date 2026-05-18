@@ -20,7 +20,7 @@ std::unordered_map<LaserDrawClass*, LaserDrawClassExt::TrackingData> LaserDrawCl
 
 CoordStruct LaserDrawClassExt::GetRelativeFLH(TechnoClass* pShooter, int weaponIndex)
 {
-	return {}:
+	return {};
 }
 
 void LaserDrawClassExt::RemoveLaserTracking(LaserDrawClass* pLaser)
@@ -35,12 +35,12 @@ void LaserDrawClassExt::Clear()
 
 bool LaserDrawClassExt::LoadAll(const PhobosStreamReader& stm)
 {
-
+	return true;
 }
 
 bool LaserDrawClassExt::SaveAll(PhobosStreamWriter& stm)
 {
-
+	return true;
 }
 
 // ============================================================================

@@ -4,6 +4,7 @@
 #include <string>
 #include <mutex>
 #include <atomic>
+#include <cstdio>
 
 #include <Lib/spdlog/spdlog.h>
 #include <Lib/spdlog/async.h>
@@ -21,9 +22,11 @@
  * - Both old printf-style and modern fmt formatting
  * - Clear flush state visibility
  * - MSVC-compatible without CMake
+ * - Optional FILE* handle for backward compatibility
  *
  * Usage:
- *   AsyncLogger::Initialize("MyLog.log");
+ *   FILE* legacyHandle = nullptr;
+ *   AsyncLogger::Initialize("MyLog.log", 1, 8192, &legacyHandle);
  *   AsyncLogger::Info("Player spawned at %d, %d", x, y);  // printf-style
  *   AsyncLogger::InfoFmt("Player spawned at {}, {}", x, y);  // fmt-style
  *   AsyncLogger::Flush();  // Ensure everything is written
@@ -39,11 +42,17 @@ public:
 	 * @param logFileName Name of the log file (e.g., "Phobos.log")
 	 * @param threadPoolSize Number of background threads (default: 1)
 	 * @param queueSize Size of the async queue (default: 8192)
+	 * @param legacyFilePtr Optional FILE** to populate with a valid handle for backward compatibility
 	 * @return true if initialization succeeded
+	 *
+	 * If legacyFilePtr is provided, a separate FILE* will be opened that mirrors
+	 * the log file. This allows legacy code to use direct fprintf calls while
+	 * still benefiting from async logging for performance-critical paths.
 	 */
 	static bool Initialize(const char* logFileName,
 						  size_t threadPoolSize = 1,
-						  size_t queueSize = 8192);
+						  size_t queueSize = 8192,
+						  FILE** legacyFilePtr = nullptr);
 
 	/**
 	 * Shutdown the logger and flush all pending messages
@@ -74,6 +83,7 @@ public:
 	/**
 	 * Flush all pending log messages to disk (blocking)
 	 * Returns after all messages are written
+	 * Also flushes the legacy FILE* if it exists
 	 */
 	static void Flush();
 
@@ -147,7 +157,14 @@ public:
 	 */
 	static void SetPattern(const char* pattern);
 
+	/**
+	 * Get the legacy FILE* handle if it was created during initialization
+	 * Returns nullptr if no legacy handle exists
+	 */
+	static FILE* GetLegacyFileHandle();
+
 	static void FormatAndStripNewline(const char* pFormat, va_list args, std::vector<char>& buffer);
+
 private:
 	// Internal implementation
 	static std::shared_ptr<spdlog::logger> s_Logger;
@@ -155,6 +172,7 @@ private:
 	static std::atomic<size_t> s_PendingCount;
 	static std::mutex s_InitMutex;
 	static std::string s_CurrentLogFile;
+	static FILE* s_LegacyFileHandle;  // Optional FILE* for backward compatibility
 
 	// Helper for printf-style formatting
 	static std::string FormatPrintf(const char* fmt, va_list args);
@@ -165,11 +183,6 @@ private:
 	AsyncLogger(const AsyncLogger&) = delete;
 	AsyncLogger& operator=(const AsyncLogger&) = delete;
 };
-
-// Template implementations (must be in header)
-
-#include <spdlog/spdlog.h>
-#include <spdlog/async.h>
 
 template<typename... Args>
 void AsyncLogger::TraceFmt(const fmt::format_string<Args...> _Fmt, Args&&... args)
