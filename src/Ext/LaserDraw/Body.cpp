@@ -20,7 +20,7 @@ std::unordered_map<LaserDrawClass*, LaserDrawClassExt::TrackingData> LaserDrawCl
 
 CoordStruct LaserDrawClassExt::GetRelativeFLH(TechnoClass* pShooter, int weaponIndex)
 {
-
+	return {}:
 }
 
 void LaserDrawClassExt::RemoveLaserTracking(LaserDrawClass* pLaser)
