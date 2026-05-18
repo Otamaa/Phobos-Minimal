@@ -146,6 +146,7 @@ int FakeAircraftClass::_Mission_Attack()
 			|| this->MissionStatus > static_cast<int>(AirAttackStatus::FireAtTarget5_Strafe))
 		{
 			pExt->Strafe_BombsDroppedThisRound = 0;
+			pExt->Strafe_TargetCell = nullptr;
 		}
 
 		if (pExt->Strafe_BombsDroppedThisRound)
@@ -457,15 +458,21 @@ int FakeAircraftClass::_Mission_Attack()
 		case FireError::OK:
 		{
 			this->loseammo_6c8 = true; // 0x418403
-			AircraftExtData::FireWeapon(this, this->Target);
+			bool const fired = AircraftExtData::FireWeapon(this, this->Target);
 
 			if (this->Is_Strafe())
 			{
 				// 0x4184CC - Delay1A
 				auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(
 					this->GetWeapon(pExt->CurrentAircraftWeaponIndex)->WeaponType);
-				if (pWeaponExt->Strafing_TargetCell)
+				// Guard against FireWeapon having cleared Target via SetTarget(nullptr) when ammo=0
+				if (pWeaponExt->Strafing_TargetCell && this->Target)
 					pExt->Strafe_TargetCell = MapClass::Instance->GetCellAt(this->Target->GetCoords());
+				// Set destination toward target so aircraft flies through it during end-delay,
+				// matching STRAFE_FIRE_CASE behaviour and ensuring the aircraft leaves weapon range
+				// before FlyToPosition re-evaluates (fixes Strafing.Shots < 5 looping in place)
+				if (fired)
+					this->SetDestination(this->Target, true);
 				this->IsLocked = true;
 				this->MissionStatus = static_cast<int>(AirAttackStatus::FireAtTarget2_Strafe);
 				return AircraftExtData::GetDelay(this, false);
@@ -523,7 +530,8 @@ int FakeAircraftClass::_Mission_Attack()
 				return ReturnToBaseNow();
 			if (this->Is_Strafe())
 				return 1;
-			this->MissionStatus = static_cast<int>(AirAttackStatus::ReturnToBase);
+			// 0x418572 — original: Status = FireAtTarget2 (5), try secondary fire state
+			this->MissionStatus = static_cast<int>(AirAttackStatus::FireAtTarget2);
 			return 1;
 		}
 	}
@@ -1505,34 +1513,31 @@ BulletClass* FakeAircraftClass::_FireAt(AbstractClass* pTarget, int nWeaponIdx) 
 
 		if(!pTypeExt->Firing_IgnoreGravity)
 			CalculateVelocity(this, pBullet, pTarget);
-	}
-	// Reveal map for attacking aircraft if controlled by player
 
-	if (this->Owner->ControlledByCurrentPlayer())
-	{
-		CoordStruct coord = this->Location;
+		// Reveal map for attacking aircraft if controlled by player
+		if (this->Owner->ControlledByCurrentPlayer())
+		{
+			CoordStruct coord = this->Location;
 
-		if (!MapClass::Instance->IsLocationShrouded(coord)) {
-			bool mapped = false;
-			constexpr CoordStruct offsets[4] = {
-				{512, 512 , 0}, {-512, -512 , 0}, {512, -512 , 0}, {-512, 512 , 0}
-			};
+			bool reveal = MapClass::Instance->IsLocationShrouded(coord);
+			if (!reveal) {
+				constexpr CoordStruct offsets[4] = {
+					{512, 512 , 0}, {-512, -512 , 0}, {512, -512 , 0}, {-512, 512 , 0}
+				};
 
-			for (auto& off : offsets) {
-				CoordStruct probe = off + coord;
+				for (auto const& off : offsets) {
+					if (MapClass::Instance->IsLocationShrouded(coord + off)) {
+						reveal = true;
+						break;
+					}
+				}
 
-				if (MapClass::Instance->IsLocationShrouded(probe)) {
-					mapped = true;
-					break;
+				if (!reveal) {
+					reveal = MapClass::Instance->IsLocationShrouded(pTarget->GetCoords());
 				}
 			}
 
-			if (!mapped) {
-				CoordStruct tgtCenter = pTarget->GetCoords();
-				mapped = MapClass::Instance->IsLocationShrouded(tgtCenter);
-			}
-
-			if (mapped) {
+			if (reveal) {
 				const int sightRange = TechnoTypeExtContainer::Instance.Find(this->Type)->AttackingAircraftSightRange.Get(RulesClass::Instance->AttackingAircraftSightRange);
 				MapClass::Instance->RevealArea2(&coord, sightRange, this->Owner, 0, 0, 0, 1, 0);
 				MapClass::Instance->RevealArea2(&coord, sightRange, this->Owner, 0, 0, 0, 1, 1);

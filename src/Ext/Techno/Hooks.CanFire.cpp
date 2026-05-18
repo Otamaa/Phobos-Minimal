@@ -627,17 +627,17 @@ bool bIgnoreDisableWeapon)
 	// ====================================================================
 	// [21] MagBeam
 	// ====================================================================
-	if (pWeapon->IsMagBeam) {	
+	if (pWeapon->IsMagBeam)
+	{
 		auto const pLocoTarget = pThis->LocomotorTarget; // +0x2AC
 
-		if (pLocoTarget && !pBuildingT) {
+		// Original check 1 (0x6FC887): active locomotor target pointing somewhere else while Wave is active
+		if (pLocoTarget && pLocoTarget != pTarget && pThis->Wave && !pBuildingT)
+			return FireError::REARM;
 
-			if (pLocoTarget == pTarget)
-				return FireError::REARM;
-
-			if (pThis->Wave)
-				return FireError::REARM;
-		}
+		// Original check 2 (0x6FC8C2): locomotor target already matches firing target
+		if (pLocoTarget && pLocoTarget == pTarget && !pBuildingT)
+			return FireError::REARM;
 	}
 
 	// ====================================================================
