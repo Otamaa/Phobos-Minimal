@@ -215,7 +215,7 @@ public:
 		return pRules->MissileROTVar;
 	}
 
-	COMPILETIMEEVAL double FORCEDINLINE GetMissileSaveAltitude(const RulesClass* const pRules) const
+	COMPILETIMEEVAL int FORCEDINLINE GetMissileSaveAltitude(const RulesClass* const pRules) const
 	{
 		if (MissileSafetyAltitude.isset())
 			return MissileSafetyAltitude.Get();
