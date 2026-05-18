@@ -9653,7 +9653,7 @@ const Nullable<CoordStruct>* TechnoExtData::GetInfrantyCrawlFLH(InfantryClass* p
 				return pThis->Veterancy.IsElite() ?
 					pTechnoType->E_ProneSecondaryFireFLH.isset() ?
 					&pTechnoType->E_ProneSecondaryFireFLH :
-					&pTechnoType->E_ProneSecondaryFireFLH
+					&pTechnoType->Elite_SecondaryCrawlFLH
 					:
 
 					pTechnoType->ProneSecondaryFireFLH.isset() ?

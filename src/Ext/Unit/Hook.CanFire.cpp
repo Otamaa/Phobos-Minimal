@@ -13,6 +13,7 @@
 //   0x7410D6  7   UnitClass_CanFire_Tethered                 CheckDockedToBuilding
 //   0x7410EC  5   UnitClass_CanFire_Sync                     GetCurrentWeapon (DISABLED)
 //   0x741206  6   UnitClass_CanFire                          CheckWeaponGates (Temporal)
+//   0x741288  6   UnitClass_CanFire_DeployFire_DoNotErrorFacing  CheckFacing (absorbed, dead — LJMP 0x740FD0 makes this unreachable)
 //
 // ============================================================================
 // STRUCTURE
@@ -65,6 +66,7 @@ namespace
 	OPTIONALINLINE FireError CheckPreflightLocks(FakeUnitClass* pThis,
 												  AbstractClass* target,
 												  int which,
+												  bool check_fire_coord,
 												  FireError& out_cached_error)
 	{
 		{
@@ -73,7 +75,7 @@ namespace
 		}
 
 		// ORIG 0x740FF2 — SpawnManager "no spawns available"
-		if (pThis->SpawnManager && pThis->SpawnManager->CountLaunchingSpawns() == 0)
+		if (pThis->SpawnManager && pThis->SpawnManager->CountLaunchingSpawns() != 0)
 			return FireError::BUSY;
 
 		{
@@ -82,7 +84,7 @@ namespace
 		}
 
 		// ORIG 0x74102D — Delegate to TechnoClass::Can_Fire
-		out_cached_error = FakeTechnoClass::__CanFireMod(pThis, target, which, false, false);
+		out_cached_error = FakeTechnoClass::__CanFireMod(pThis, target, which, check_fire_coord, false);
 
 		return kContinue;
 	}
@@ -172,7 +174,7 @@ namespace
 	// ===========================================================================
 	OPTIONALINLINE WeaponTypeClass* GetCurrentWeapon(FakeUnitClass* pThis, int which)
 	{
-	    // DISABLED FOR TESTING — Hook 0x7410EC (UnitClass_CanFire_Sync)
+		// DISABLED FOR TESTING — Hook 0x7410EC (UnitClass_CanFire_Sync)
 		// -----------------------------------------------------------------------
 		// Hook 0x7410EC — UnitClass_CanFire_Sync
 		// -----------------------------------------------------------------------
@@ -215,8 +217,10 @@ namespace
 		{
 			const int damage = pThis->CombatDamage(-1);
 
-			if (damage < 0) {
-				if (auto pTargetTechno = flag_cast_to<TechnoClass*>(target)) {
+			if (damage < 0)
+			{
+				if (auto pTargetTechno = flag_cast_to<TechnoClass*>(target))
+				{
 					if (pTargetTechno->IsStrange())
 					{
 						const double ratio = pThis->GetHealthRatio();
@@ -247,22 +251,22 @@ namespace
 				const int reload_state_2 = *reinterpret_cast<int*>(
 					reinterpret_cast<char*>(pThis) + 0x5A4);
 				if (reload_state_2 != 0)
-					return FireError::REARM;
+					return FireError::MOVING;
 			}
 			else
 			{
-				// ORIG 0x7411A3 — AmmoClass COM check
+				// ORIG 0x7411A3 — AmmoClass COM check; null ammo → skip (jz 0x7411D9)
 				auto pAmmoObj = *reinterpret_cast<void**>(
 					reinterpret_cast<char*>(pThis) + 0x674);
-				if (!pAmmoObj)
-					return FireError::REARM;
-
-				using AmmoCheckFn = bool(__thiscall*)(void*);
-				const auto ammo_vt = *reinterpret_cast<AmmoCheckFn**>(pAmmoObj);
-				const auto ammo_check = reinterpret_cast<AmmoCheckFn>(
-					ammo_vt[0x80 / 4]);
-				if (ammo_check(pAmmoObj))
-					return FireError::REARM;
+				if (pAmmoObj)
+				{
+					using AmmoCheckFn = bool(__thiscall*)(void*);
+					const auto ammo_vt = *reinterpret_cast<AmmoCheckFn**>(pAmmoObj);
+					const auto ammo_check = reinterpret_cast<AmmoCheckFn>(
+						ammo_vt[0x80 / 4]);
+					if (ammo_check(pAmmoObj))
+						return FireError::MOVING;
+				}
 			}
 		}
 
@@ -278,7 +282,7 @@ namespace
 				const int reload_state_3 = *reinterpret_cast<int*>(
 					reinterpret_cast<char*>(pThis) + 0x5A4);
 				if (reload_state_3 != 0)
-					return FireError::REARM;
+					return FireError::MOVING;
 			}
 		}
 
@@ -338,7 +342,7 @@ namespace
 						const int rot = *reinterpret_cast<int*>(
 							reinterpret_cast<char*>(pProjectile) + 0x2DC);
 						if (rot == 0)
-							return FireError::CANT;
+							return FireError::ROTATING;
 					}
 				}
 			}
@@ -351,14 +355,17 @@ namespace
 	// CheckFacing
 	//
 	// ORIG 0x74125C
-	// Angular diff between unit facing and target direction; if within threshold
-	// return ROTATING.
+	// Angular diff between unit facing and target direction.
+	// abs_diff < threshold_scaled → unit is well-aimed → kContinue.
+	// DeployFire units bypass the check entirely (kContinue).
+	// Otherwise → FACING.
+	// (ASMJIT_PATCH 0x741288 logic absorbed here; dead due to LJMP at 0x740FD0.)
 	// ===========================================================================
 	OPTIONALINLINE FireError CheckFacing(FakeUnitClass* pThis,
 										   AbstractClass* target,
 										   WeaponTypeClass* pWeapon)
 	{
-		const bool isOmniFire = 
+		const bool isOmniFire =
 			pWeapon->OmniFire != 0;
 
 		auto pTypeData = *reinterpret_cast<unsigned char**>(
@@ -392,10 +399,20 @@ namespace
 
 		const int threshold_scaled = threshold << 8;
 
+		// ORIG 0x741288 — abs_diff < threshold: unit is aimed at target, can fire
 		if (abs_diff < threshold_scaled)
-			return FireError::ROTATING;
+			return kContinue;
 
-		return kContinue;
+		// ASMJIT_PATCH 0x741288 — DeployFire bypass (absorbed from dead hook)
+		if (pThis->Type->DeployFire
+			&& !pThis->Type->IsSimpleDeployer
+			&& !pThis->Deployed
+			&& pThis->CurrentMission == Mission::Unload)
+		{
+			return kContinue;
+		}
+
+		return FireError::FACING;
 	}
 
 	// ===========================================================================
@@ -431,7 +448,7 @@ FireError FakeUnitClass::_Can_Fire(AbstractClass* target, int which, bool check_
 	// ----- Phase 1..4: preflight + TechnoClass::Can_Fire ------------------
 	FireError cached_error = FireError::OK;
 	{
-		const auto preflight = CheckPreflightLocks(this, target, which, cached_error);
+		const auto preflight = CheckPreflightLocks(this, target, which, check_fire_coord, cached_error);
 		if (preflight != kContinue)
 			return preflight;
 	}
@@ -439,7 +456,7 @@ FireError FakeUnitClass::_Can_Fire(AbstractClass* target, int which, bool check_
 	// ORIG 0x741049 — if TechnoClass::Can_Fire returned non-OK non-ROTATING,
 	// skip the buildable check and go to the cached-error tail.
 	const bool techno_error_skips_buildable =
-		(cached_error != FireError::OK && cached_error != FireError::ROTATING);
+		(cached_error != FireError::OK && cached_error != FireError::FACING);
 
 	bool skip_weapon_gates = techno_error_skips_buildable;
 

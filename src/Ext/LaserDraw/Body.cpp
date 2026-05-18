@@ -15,6 +15,34 @@
 #include <Ext/Rules/Body.h>
 #include <Ext/House/Body.h>
 
+
+std::unordered_map<LaserDrawClass*, LaserDrawClassExt::TrackingData> LaserDrawClassExt::g_Trackers;
+
+CoordStruct LaserDrawClassExt::GetRelativeFLH(TechnoClass* pShooter, int weaponIndex)
+{
+
+}
+
+void LaserDrawClassExt::RemoveLaserTracking(LaserDrawClass* pLaser)
+{
+	LaserDrawClassExt::g_Trackers.erase(pLaser);
+}
+
+void LaserDrawClassExt::Clear()
+{
+	LaserDrawClassExt::g_Trackers.clear();
+}
+
+bool LaserDrawClassExt::LoadAll(const PhobosStreamReader& stm)
+{
+
+}
+
+bool LaserDrawClassExt::SaveAll(PhobosStreamWriter& stm)
+{
+
+}
+
 // ============================================================================
 // Static member initialization
 // ============================================================================
@@ -988,3 +1016,31 @@ struct LaserDrawDebugInit
 };
 static LaserDrawDebugInit s_laserDrawDebugInit;
 #endif
+
+ASMJIT_PATCH(0x54FFB0, LaserDrawClass_DTOR_Update, 7)
+{
+	GET(LaserDrawClass*, pLaser, ECX);
+	LaserDrawClassExt::RemoveLaserTracking(pLaser);
+	return 0;
+}
+
+ASMJIT_PATCH(0x550016, LaserDrawClass_Remove1_Update, 6)
+{
+	GET(LaserDrawClass*, pLaser, ECX);
+	LaserDrawClassExt::RemoveLaserTracking(pLaser);
+	return 0;
+}
+
+ASMJIT_PATCH(0x5500EF, LaserDrawClass_Remove2_Update, 5)
+{
+	GET(LaserDrawClass*, pLaser, ECX);
+	LaserDrawClassExt::RemoveLaserTracking(pLaser);
+	return 0;
+}
+
+ASMJIT_PATCH(0x5501D7, LaserDrawClass_Remove3_Update, 5)
+{
+	GET(LaserDrawClass*, pLaser, ECX);
+	LaserDrawClassExt::RemoveLaserTracking(pLaser);
+	return 0;
+}

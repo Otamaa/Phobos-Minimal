@@ -1551,7 +1551,6 @@ private:
 			.Process(this->DeployedPrimaryFireFLH)
 			.Process(this->DeployedSecondaryFireFLH)
 			.Process(this->E_PronePrimaryFireFLH)
-			.Process(this->ProneSecondaryFireFLH)
 			.Process(this->E_ProneSecondaryFireFLH)
 			.Process(this->E_DeployedPrimaryFireFLH)
 			.Process(this->E_DeployedSecondaryFireFLH)

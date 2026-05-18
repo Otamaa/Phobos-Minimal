@@ -457,15 +457,22 @@ int FakeAircraftClass::_Mission_Attack()
 		case FireError::OK:
 		{
 			this->loseammo_6c8 = true; // 0x418403
-			AircraftExtData::FireWeapon(this, this->Target);
+			bool const fired = AircraftExtData::FireWeapon(this, this->Target);
 
 			if (this->Is_Strafe())
 			{
 				// 0x4184CC - Delay1A
 				auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(
 					this->GetWeapon(pExt->CurrentAircraftWeaponIndex)->WeaponType);
-				if (pWeaponExt->Strafing_TargetCell)
+				if (pWeaponExt->Strafing_TargetCell && this->Target)
 					pExt->Strafe_TargetCell = MapClass::Instance->GetCellAt(this->Target->GetCoords());
+
+				// Set destination toward target so aircraft flies through it during end-delay,
+				// matching STRAFE_FIRE_CASE behaviour and ensuring the aircraft leaves weapon range
+				// before FlyToPosition re-evaluates (fixes Strafing.Shots < 5 looping in place)
+				if (fired)
+					this->SetDestination(this->Target, true);
+
 				this->IsLocked = true;
 				this->MissionStatus = static_cast<int>(AirAttackStatus::FireAtTarget2_Strafe);
 				return AircraftExtData::GetDelay(this, false);
@@ -523,7 +530,8 @@ int FakeAircraftClass::_Mission_Attack()
 				return ReturnToBaseNow();
 			if (this->Is_Strafe())
 				return 1;
-			this->MissionStatus = static_cast<int>(AirAttackStatus::ReturnToBase);
+			// 0x418572 — original: Status = FireAtTarget2 (5), try secondary fire state
+			this->MissionStatus = static_cast<int>(AirAttackStatus::FireAtTarget2);
 			return 1;
 		}
 	}
@@ -1528,8 +1536,7 @@ BulletClass* FakeAircraftClass::_FireAt(AbstractClass* pTarget, int nWeaponIdx) 
 			}
 
 			if (!mapped) {
-				CoordStruct tgtCenter = pTarget->GetCoords();
-				mapped = MapClass::Instance->IsLocationShrouded(tgtCenter);
+				mapped = MapClass::Instance->IsLocationShrouded(pTarget->GetCoords());
 			}
 
 			if (mapped) {

@@ -34,6 +34,14 @@
 #include <Helpers\EnumFlags.h>
 #include <GeneralDefinitions.h>
 
+enum class PositionFollow : BYTE
+{
+	None = 0,
+	Firer = 1,
+	Target = 2,
+	All = 3
+};
+
 enum class StackingMode : BYTE
 {
 	Override = 0,

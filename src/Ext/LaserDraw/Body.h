@@ -4,7 +4,44 @@
 #include <CoordStruct.h>
 #include <ColorStruct.h>
 #include <GeneralStructures.h>
+#include <Utilities/Enum.h>
+#include <unordered_map>
 
+class TechnoClass;
+class ObjectClass;
+class PhobosStreamReader;
+class PhobosStreamWriter;
+class LaserDrawClassExt
+{
+public:
+	using base_type = LaserDrawClass;
+	static COMPILETIMEEVAL const char* ClassName = "LaserDrawClassExt";
+	static COMPILETIMEEVAL const char* BaseClassName = "LaserDrawClass";
+
+public:
+
+
+	struct TrackingData
+	{
+		TechnoClass* Shooter {};
+		ObjectClass* Target {};;
+		bool IsFloorTarget {};
+		int WeaponIndex {};
+		bool IsActive {};
+		PositionFollow FollowMode {};
+		CoordStruct SavedRelativeFLH { 0, 0, 0 };
+	};
+
+	static std::unordered_map<LaserDrawClass*, TrackingData> g_Trackers;
+
+	static CoordStruct GetRelativeFLH(TechnoClass* pShooter, int weaponIndex);
+	static void RemoveLaserTracking(LaserDrawClass* pLaser);
+
+	static void Clear();
+	static bool LoadAll(const PhobosStreamReader& stm);
+	static bool SaveAll(PhobosStreamWriter& stm);
+
+};
 // ============================================================================
 // FakeLaserDrawClass - Backported and improved laser rendering
 //
@@ -29,6 +66,7 @@
 class NOVTABLE FakeLaserDrawClass : public LaserDrawClass
 {
 public:
+
 	// ========================================================================
 	// Backported drawing functions
 	// ========================================================================

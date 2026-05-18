@@ -84,9 +84,9 @@ int __fastcall FakeWarheadTypeClass::ModifyDamageA(int damage, FakeWarheadTypeCl
 		 *	that at least one damage point is done.
 		 */
 		if (pExt->ApplyMindamage && distance < 4)
-			damage = MaxImpl(damage, pExt->MinDamage >= 0 ? pExt->MinDamage : RulesClass::Instance->MinDamage);
+			res = MaxImpl(res, pExt->MinDamage >= 0 ? pExt->MinDamage : RulesClass::Instance->MinDamage);
 
-		damage = MinImpl(damage, RulesClass::Instance->MaxDamage);
+		res = MinImpl(res, RulesClass::Instance->MaxDamage);
 
 	}
 	else
@@ -131,7 +131,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	{
 		auto& pArmor = ArmorTypeClass::Array[i];
 		const int nDefaultIdx = pArmor->DefaultTo;
-		Verses.push_back((nDefaultIdx == -1 || nDefaultIdx > (int)i)
+		Verses.push_back((nDefaultIdx == -1 || nDefaultIdx >= (int)i)
 				? pArmor->DefaultVersesValue
 				: Verses[nDefaultIdx]
 		);
