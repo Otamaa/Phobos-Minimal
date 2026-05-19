@@ -27,7 +27,7 @@ enum class HicolorLayout : int
 	BRG
 };
 
-enum VQAAnimControlFlags
+enum class VQAAnimControlFlags
 {
 	VQAAnimControlFlags_0 = 0x0,
 	VQAAnimControlFlags_1 = 0x1,
@@ -101,7 +101,7 @@ enum class AITriggerConditionComparatorType : unsigned int
 	NotEqual = 5
 };
 
-enum PlayerColorSlot : int
+enum class PlayerColorSlot : int
 {
 	Gold = 0,
 	Red = 1,
@@ -116,7 +116,7 @@ enum PlayerColorSlot : int
 	None = -1
 };
 
-enum ProdFailType : byte
+enum class ProdFailType : byte
 {
 	OK = 0x0,
 	Limit = 0x1,

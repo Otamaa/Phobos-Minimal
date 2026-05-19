@@ -496,7 +496,7 @@ void TechnoExtData::PromoteImmedietely(TechnoClass* pExpReceiver, bool bSilent, 
 				pNewType = pTypeExt->Promote_Elite_Type;
 				promoteExp = pTypeExt->Promote_Elite_Exp;
 				Promoted_PlayAnim = pTypeExt->Promote_Elite_Anim.Get(RulesExtData::Instance()->Promote_Elite_Anim);
-				playSpotlight = pTypeExt->Promote_Vet_PlaySpotlight.Get(RulesExtData::Instance()->Promote_Vet_PlaySpotlight);
+				playSpotlight = pTypeExt->Promote_Elite_PlaySpotlight.Get(RulesExtData::Instance()->Promote_Elite_PlaySpotlight);
 			}
 
 			if (pNewType && TechnoExtData::ConvertToType(pExpReceiver, pNewType) && promoteExp != 0.0)

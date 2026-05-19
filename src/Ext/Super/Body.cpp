@@ -474,9 +474,9 @@ bool FakeSuperClass::_AI(bool isPlayer)
 		if (remainingDelay != 0)
 		{
 			int stage = this->GetCameoChargeState();
-			if (stage != this->CameoChargeState)
-			{
-				this->CameoChargeState = this->GetCameoChargeState();
+
+			if (stage != this->CameoChargeState) {
+				this->CameoChargeState = stage;
 				return true;
 			}
 			return false;

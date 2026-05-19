@@ -307,7 +307,7 @@ std::pair<NewFactoryState, BuildingClass*> HouseExtData::HasFactory(
 
 		auto const pBType = pBld->Type;
 
-		if ((nWhat != pBType->Factory) || !pType->InOwners(bitsOwners))
+		if ((nWhat != pBType->Factory) || !pBType->InOwners(bitsOwners))
 			continue;
 
 		if (!bSkipAircraft && (nWhat == AbstractType::AircraftType) && pBld->HasAnyLink())

@@ -457,29 +457,28 @@ public:
 	 * 	GameCreate<AnimClass>(damageAnimType, location);
 	 * }
 	 */
-	static AnimTypeClass* __fastcall SelectDamageAnimation
-	(int Damage, WarheadTypeClass* WH, LandType LandType, const CoordStruct& coords)
+	static AnimTypeClass* __fastcall SelectDamageAnimation(int Damage, WarheadTypeClass* WH, LandType LandType, const CoordStruct& coords)
 	{
 		JMP_FAST(0x48A4F0);
 	}
 
-	static AnimTypeClass* __fastcall SelectDamageAnimation
-	(int Damage, WarheadTypeClass* WH, LandType LandType, CoordStruct* pCoords)
+	static AnimTypeClass* __fastcall SelectDamageAnimation(int Damage, WarheadTypeClass* WH, LandType LandType, CoordStruct* pCoords)
 	{
 		JMP_FAST(0x48A4F0);
 	}
 
-	static void __fastcall FlashbangWarheadAt
-	(int Damage, WarheadTypeClass* WH, CoordStruct coords, bool Force = 0, SpotlightFlags CLDisableFlags = SpotlightFlags::None)
-	{
+	static void __fastcall FlashbangWarheadAt(int Damage, WarheadTypeClass* WH,int X ,int Y, int Z, bool Force = 0, SpotlightFlags CLDisableFlags = SpotlightFlags::None) {
 		JMP_FAST(0x48A620);
 	}
 
-	static FORCEDINLINE void FlashbangWarheadAt
-	(int Damage, WarheadTypeClass* WH, CoordStruct* pCoord, bool Force, SpotlightFlags CLDisableFlags)
+	static void FlashbangWarheadAt(int Damage, WarheadTypeClass* WH, CoordStruct coords, bool Force = 0, SpotlightFlags CLDisableFlags = SpotlightFlags::None)
 	{
-		auto nCoord = *pCoord;
-		FlashbangWarheadAt(Damage, WH, nCoord, Force, CLDisableFlags);
+		FlashbangWarheadAt(Damage, WH, coords.X , coords.Y , coords.Z, Force, CLDisableFlags);
+	}
+
+	static FORCEDINLINE void FlashbangWarheadAt(int Damage, WarheadTypeClass* WH, CoordStruct* pCoord, bool Force, SpotlightFlags CLDisableFlags)
+	{
+		FlashbangWarheadAt(Damage, WH, pCoord->X, pCoord->Y, pCoord->Z, Force, CLDisableFlags);
 	}
 
 	// get the damage a warhead causes to specific armor

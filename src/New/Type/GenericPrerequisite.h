@@ -49,6 +49,7 @@ public:
 
 	static bool ListContainsGeneric(Iterator<BuildingTypeClass*> items, int Index);
 	static bool ListContainsSpecific(Iterator<BuildingTypeClass*> items, int Index);
+	static bool ListContainsSpecific(Iterator<BuildingTypeClass*> items, TechnoTypeClass* item);
 	static bool ListContainsPrereq(Iterator<BuildingTypeClass*> items, int Index);
 
 	static bool ListContainsAll(Iterator<BuildingTypeClass*> items, const Iterator<int> intit);

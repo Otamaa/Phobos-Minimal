@@ -157,7 +157,6 @@ ASMJIT_PATCH(0x54C036, JumpjetLocomotionClass_State3_UpdateSensors, 0x7)
 			pLinkedTo->RemoveSensorsAt(lastCell);
 
 			if(pLinkedTo->IsAlive) {
-				pLinkedTo->RemoveSensorsAt(lastCell);
 				pLinkedTo->AddSensorsAt(currentCell);
 			}
 		}

@@ -735,6 +735,7 @@ public:
 	bool _ReadFromINI(CCINIClass* pINI);
 
 	static int __fastcall ModifyDamageA(int damage, FakeWarheadTypeClass* pWH, Armor armor, int distance);
+	static void __fastcall DoFlash(int Damage, WarheadTypeClass* WH, int X, int Y, int Z, bool Force , SpotlightFlags CLDisableFlags);
 
 	static FORCEDINLINE int ModifyDamage(int damage, WarheadTypeClass* pWH, Armor armor, int distance) {
 		return ModifyDamageA(damage, (FakeWarheadTypeClass*)pWH, armor, distance);

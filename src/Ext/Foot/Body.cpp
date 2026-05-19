@@ -94,7 +94,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E8EBC, FakeFootClass::_Mission_Hunt)
 bool __fastcall FakeFootClass::__Try_Grinding(FootClass* pFoot)
 {
 	BuildingClass* bestGrinder = nullptr;
-	int shortestDistance = MIN_VAL(int);
+	int shortestDistance = MAX_VAL(int);
 
 	int grinderCount = pFoot->Owner->Grinders.Count;
 
@@ -157,7 +157,7 @@ bool __fastcall FakeFootClass::_IsRecruitable(FootClass* pThis, discard_t, House
 	if (pThis->IsCrashing || pThis->IsSinking)
 		return false;
 
-	const bool canRecruit = pThis->RecruitableA && pThis->RecruitableB;
+	const bool canRecruit = pThis->RecruitableA  != 0;
 	if (!canRecruit)
 		return false;
 

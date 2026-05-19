@@ -814,7 +814,7 @@ ASMJIT_PATCH(0x508C7F, HouseClass_UpdatePower_Auxiliary, 6)
 	pThis->PowerOutput = AuxPowerOutput;
 
 	int AuxPowerDrain = 0;
-	if (AuxPowerDrain <= 0)
+	if (curAux <= 0)
 		AuxPowerDrain = -curAux;
 	pThis->PowerDrain = AuxPowerDrain;
 

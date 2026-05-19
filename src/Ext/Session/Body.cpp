@@ -24,15 +24,15 @@ int FakeSessionClass::_Game_GetLinkedColor(PlayerColorSlot idx)
 		{
 			// get the slot
 			ColorData* slot = nullptr;
-			if (idx == PlayerColorSlot::Random || idx == Phobos::Config::colorCount)
+			if (idx == PlayerColorSlot::Random || (int)idx == Phobos::Config::colorCount)
 			{
 				// observer color
 				slot = &Phobos::UI::Colors[0];
 			}
-			else if (idx < Phobos::Config::colorCount)
+			else if ((int)idx < Phobos::Config::colorCount)
 			{
 				// house color
-				slot = &Phobos::UI::Colors[idx + 1];
+				slot = &Phobos::UI::Colors[(int)idx + 1];
 			}
 
 			// retrieve the color scheme index

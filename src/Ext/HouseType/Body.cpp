@@ -217,6 +217,7 @@ void HouseTypeExtData::InheritSettings(HouseTypeClass* pThis)
 			this->ParaDropPlane = ParentData->ParaDropPlane;
 			this->SpyPlane = ParentData->SpyPlane;
 			this->HunterSeeker = ParentData->HunterSeeker;
+			this->Disguise = ParentData->Disguise;
 			this->ParaDropTypes = ParentData->ParaDropTypes;
 			this->ParaDropNum = ParentData->ParaDropNum;
 			this->GivesBounty = ParentData->GivesBounty;
