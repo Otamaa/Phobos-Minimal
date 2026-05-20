@@ -387,12 +387,7 @@ public:
 	Valueable<Point2D> DrainMoney_Display_Offset { { 0, 0 } };
 
 	Nullable<float> TalkBubbleTime {};
-	Nullable<int> AttackingAircraftSightRange {};
-	NullableIdx<VoxClass> SpyplaneCameraSound {};
-	Nullable<int> ParadropRadius {};
-	Nullable<int> ParadropOverflRadius {};
-	Valueable<bool> Paradrop_DropPassangers { true };
-	Valueable<int> Paradrop_MaxAttempt { 5 };
+
 
 	Valueable<bool> IsCustomMissile { false };
 	Valueable<RocketStruct> CustomMissileData { RocketStruct() };
@@ -1595,15 +1590,6 @@ private:
 			.Process(this->DrainMoney_Display_Offset)
 
 			.Process(this->TalkBubbleTime)
-
-			.Process(this->AttackingAircraftSightRange)
-
-			.Process(this->SpyplaneCameraSound)
-
-			.Process(this->ParadropRadius)
-			.Process(this->ParadropOverflRadius)
-			.Process(this->Paradrop_DropPassangers)
-			.Process(this->Paradrop_MaxAttempt)
 
 			.Process(this->IsCustomMissile)
 			.Process(this->CustomMissileData)

@@ -20,35 +20,32 @@ int FakeSessionClass::_Game_GetLinkedColor(PlayerColorSlot idx)
 	}
 	else
 	{
-
+		// get the slot
+		ColorData* slot = nullptr;
+		if (idx == PlayerColorSlot::Random || (int)idx == Phobos::Config::colorCount)
 		{
-			// get the slot
-			ColorData* slot = nullptr;
-			if (idx == PlayerColorSlot::Random || (int)idx == Phobos::Config::colorCount)
-			{
-				// observer color
-				slot = &Phobos::UI::Colors[0];
-			}
-			else if ((int)idx < Phobos::Config::colorCount)
-			{
-				// house color
-				slot = &Phobos::UI::Colors[(int)idx + 1];
-			}
+			// observer color
+			slot = &Phobos::UI::Colors[0];
+		}
+		else if ((int)idx < Phobos::Config::colorCount)
+		{
+			// house color
+			slot = &Phobos::UI::Colors[(int)idx + 1];
+		}
 
-			// retrieve the color scheme index
+		// retrieve the color scheme index
 
-			if (slot) {
+		if (slot) {
+			if (slot->colorSchemeIndex == -1) {
+				slot->colorSchemeIndex = ColorScheme::FindIndex(slot->colorScheme);
+
 				if (slot->colorSchemeIndex == -1) {
-					slot->colorSchemeIndex = ColorScheme::FindIndex(slot->colorScheme);
-
-					if (slot->colorSchemeIndex == -1) {
-						Debug::Log("Color scheme %s not found.\n", slot->colorScheme);
-						slot->colorSchemeIndex = 4;
-					}
+					Debug::Log("Color scheme %s not found.\n", slot->colorScheme);
+					slot->colorSchemeIndex = 4;
 				}
-
-				ret = slot->colorSchemeIndex;
 			}
+
+			ret = slot->colorSchemeIndex;
 		}
 	}
 

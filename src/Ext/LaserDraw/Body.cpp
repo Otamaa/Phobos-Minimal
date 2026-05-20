@@ -43,6 +43,25 @@ bool LaserDrawClassExt::SaveAll(PhobosStreamWriter& stm)
 	return true;
 }
 
+void LaserDrawClassExt::PointerExpired(void* ptr, bool removed)
+{
+	if (!removed)
+		return;
+
+	for (auto& [laser, data] : g_Trackers) {
+
+		if (data.Shooter == ptr) {
+			data.Shooter = nullptr;
+			data.IsActive = false;
+		}
+
+		if (data.Target == ptr) {
+			data.Shooter = nullptr;
+			data.IsActive = false;
+		}
+	}
+}
+
 // ============================================================================
 // Static member initialization
 // ============================================================================

@@ -42,25 +42,6 @@ ASMJIT_PATCH(0x5218F3, InfantryClass_WhatWeaponShouldIUse_DeployFireWeapon, 0x6)
 
 
 #ifndef DISABLEFORTESTINGS
-ASMJIT_PATCH(0x6FF923, TechnoClass_FireaAt_FireOnce, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EBX);
-
-	pThis->SetTarget(nullptr);
-	if (auto pUnit = cast_to<UnitClass*, false>(pThis)) {
-		if (pUnit->Type->DeployFire
-			&& !pUnit->Type->IsSimpleDeployer
-			&& !pUnit->Deployed
-			&& pThis->CurrentMission == Mission::Unload
-		)
-		{
-			TechnoExtContainer::Instance.Find(pUnit)->DeployFireTimer.Start(pWeapon->ROF);
-		}
-	}
-
-	return 0x6FF92F;
-}
 
 ASMJIT_PATCH(0x73DCEF, UnitClass_Mission_Unload_DeployFire, 0x6)
 {

@@ -40,6 +40,7 @@ public:
 	static void Clear();
 	static bool LoadAll(const PhobosStreamReader& stm);
 	static bool SaveAll(PhobosStreamWriter& stm);
+	static void PointerExpired(void* ptr, bool removed);
 
 };
 // ============================================================================

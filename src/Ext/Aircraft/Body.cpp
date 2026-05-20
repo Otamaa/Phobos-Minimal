@@ -716,7 +716,7 @@ int FakeAircraftClass::_Mission_ParadropOverfly()
 	}
 
 	const int distance = this->DistanceFrom(pTarCom);
-	const int nRadius = TechnoTypeExtContainer::Instance.Find(this->Type)->ParadropRadius.Get(RulesClass::Instance->ParadropRadius);
+	const int nRadius = AircraftTypeExtContainer::Instance.Find(this->Type)->ParadropRadius.Get(RulesClass::Instance->ParadropRadius);
 
 
 	if (distance > nRadius)
@@ -751,7 +751,7 @@ int FakeAircraftClass::_Mission_ParadropApproach()
 		if (auto pDest = this->Destination)
 		{
 			const int distance = this->DistanceFrom(pTarCom);
-			const int nRadius = TechnoTypeExtContainer::Instance.Find(this->Type)->ParadropRadius.Get(RulesClass::Instance->ParadropRadius);
+			const int nRadius = AircraftTypeExtContainer::Instance.Find(this->Type)->ParadropRadius.Get(RulesClass::Instance->ParadropRadius);
 
 			if (distance <= nRadius)
 			{
@@ -1474,7 +1474,7 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 
 BulletClass* FakeAircraftClass::_FireAt(AbstractClass* pTarget, int nWeaponIdx) {
 
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
+	auto const pTypeExt = AircraftTypeExtContainer::Instance.Find(this->Type);
 	bool DropPassengers = pTypeExt->Paradrop_DropPassangers;
 
 	if (this->Passengers.FirstPassenger)
@@ -1540,7 +1540,7 @@ BulletClass* FakeAircraftClass::_FireAt(AbstractClass* pTarget, int nWeaponIdx) 
 			}
 
 			if (mapped) {
-				const int sightRange = TechnoTypeExtContainer::Instance.Find(this->Type)->AttackingAircraftSightRange.Get(RulesClass::Instance->AttackingAircraftSightRange);
+				const int sightRange = AircraftTypeExtContainer::Instance.Find(this->Type)->AttackingAircraftSightRange.Get(RulesClass::Instance->AttackingAircraftSightRange);
 				MapClass::Instance->RevealArea2(&coord, sightRange, this->Owner, 0, 0, 0, 1, 0);
 				MapClass::Instance->RevealArea2(&coord, sightRange, this->Owner, 0, 0, 0, 1, 1);
 			}

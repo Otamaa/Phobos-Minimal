@@ -893,6 +893,7 @@ ASMJIT_PATCH(0x6B74F0, SpawnManagerClass_AI_UseTurretFacing, 0x5)
 #include <AirstrikeClass.h>
 
 // Allow airstrike flare draw to foot
+//TacticalClass_Render_AirstrikeFlares_AllowFoot
 DEFINE_JUMP(LJMP, 0x6D481D, 0x6D482D)
 
 ASMJIT_PATCH(0x41DA52, AirstrikeClass_ResetTarget_OriginalTarget, 0x6)
@@ -2508,37 +2509,6 @@ ASMJIT_PATCH(0x44F62B, BuildingClass_CanPlayerMove_NoManualMove, 0x6)
 	GET(BuildingTypeClass*, pType, EDX);
 	R->ECX(TechnoTypeExtContainer::Instance.Find(pType)->NoManualMove ? 0 : pType->UndeploysInto);
 	return 0x44F631;
-}
-
-
-ASMJIT_PATCH(0x6FDFA8, TechnoClass_FireAt_SprayOffsets, 0x5)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(WeaponTypeClass*, pWeapon, EBX);
-	LEA_STACK(CoordStruct*, pCoord, 0xB0 - 0x28);
-
-	auto pType = GET_TECHNOTYPE(pThis);
-	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	if (pType->SprayAttack)
-	{
-		if (pThis->CurrentBurstIndex)
-		{
-			pThis->SprayOffsetIndex = (pExt->SprayOffsets.size() / pWeapon->Burst + pThis->SprayOffsetIndex) % pExt->SprayOffsets.size();
-		}
-		else
-		{
-			pThis->SprayOffsetIndex = ScenarioClass::Instance->Random.RandomRanged(0, pExt->SprayOffsets.size() - 1);
-		}
-
-		auto& Coord = pExt->SprayOffsets[pThis->SprayOffsetIndex];
-		pCoord->X = (pThis->Location.X + Coord->X);//X
-		pCoord->Y = (pThis->Location.Y + Coord->Y);//Y
-		R->EAX(pThis->Location.Z + Coord->Z); //Z
-		return 0x6FE218;
-	}
-
-	return 0x6FE140;
 }
 
 ASMJIT_PATCH(0x744745, UnitClass_RegisterDestruction_Trigger, 0x5)

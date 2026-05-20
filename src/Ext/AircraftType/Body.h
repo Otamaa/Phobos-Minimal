@@ -24,6 +24,13 @@ public:
 
 	Nullable<bool> FiringForceScatter {};
 
+	Nullable<int> AttackingAircraftSightRange {};
+	NullableIdx<VoxClass> SpyplaneCameraSound {};
+	Nullable<int> ParadropRadius {};
+	Nullable<int> ParadropOverflRadius {};
+	Valueable<bool> Paradrop_DropPassangers { true };
+	Valueable<int> Paradrop_MaxAttempt { 5 };
+
 	AircraftTypeExtData(AircraftTypeClass* pObj) : FootTypeExtData(pObj)
 	{
 		this->AbsType = AircraftTypeClass::AbsID;
@@ -50,6 +57,13 @@ public:
 			.Process(this->ExtendedAircraftMissions_FastScramble)
 			.Process(this->ExtendedAircraftMissions_UnlandDamage)
 			.Process(this->FiringForceScatter)
+			.Process(this->AttackingAircraftSightRange)
+			.Process(this->SpyplaneCameraSound)
+			.Process(this->ParadropRadius)
+			.Process(this->ParadropOverflRadius)
+			.Process(this->Paradrop_DropPassangers)
+			.Process(this->Paradrop_MaxAttempt)
+
 			;
 	}
 

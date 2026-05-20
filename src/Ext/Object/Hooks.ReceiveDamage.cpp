@@ -33,6 +33,7 @@
 #include <Ext/AircraftType/Body.h>
 #include <Ext/Aircraft/Body.h>
 #include <Ext/House/Body.h>
+#include <Ext/Team/Body.h>
 
 #include <Ext/SWType/NewSuperWeaponType/Firewall.h>
 
@@ -2522,7 +2523,7 @@ DamageState __fastcall FakeFootClass::__Take_Damage(FootClass* pThis, discard_t,
 		{
 			if (auto pTeam = pThis->Team)
 			{
-				pTeam->TookDamage(pThis, _res, args.Attacker);
+				((FakeTeamClass*)pTeam)->_Took_Damage(pThis, _res, args.Attacker);
 				return _res;
 			}
 		}
