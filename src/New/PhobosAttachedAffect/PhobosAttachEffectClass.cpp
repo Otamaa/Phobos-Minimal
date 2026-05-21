@@ -31,7 +31,7 @@ PhobosAttachEffectClass::~PhobosAttachEffectClass()
 void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, TechnoClass* pTechno, HouseClass* pInvokerHouse,
 	TechnoClass* pInvoker, AbstractClass* pSource, int durationOverride, int delay, int initialDelay, int recreationDelay)
 {
-	if (!this->Techno->IsAlive)
+	if (!pTechno->IsAlive)
 		return;
 
 	//Debug::LogInfo(__FUNCTION__" Executed [%s - %s]", pTechno->GetThisClassName(), pTechno->get_ID());

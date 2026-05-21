@@ -52,13 +52,13 @@ void LaserDrawClassExt::PointerExpired(void* ptr, bool removed)
 
 		if (data.Shooter == ptr) {
 			data.Shooter = nullptr;
-			data.IsActive = false;
 		}
 
 		if (data.Target == ptr) {
 			data.Shooter = nullptr;
-			data.IsActive = false;
 		}
+
+		data.IsActive = data.Active();
 	}
 }
 

@@ -170,7 +170,7 @@ BounceCheckResult BounceTrajectory::OnBounceCheck(CoordStruct const& impactCoord
 {
     auto const pBullet   = this->AttachedTo;
     auto const pType     = this->GetTrajectoryType();
-    auto const pBulletType = pBullet->Type;
+    //auto const pBulletType = pBullet->Type;
  
     if (pType->BounceAmount <= 0)
         return BounceCheckResult::NotHandled;

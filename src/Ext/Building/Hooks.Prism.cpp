@@ -301,7 +301,7 @@ ASMJIT_PATCH(0x44ABD0, BuildingClass_FireLaser, 5)
 		if (supportWeapon->IsRadBeam)
 		{
 			CoordStruct target = targetXYZ;
-			WeaponTypeExtData::FireRadBeam(pThis, supportWeapon, sourceXYZ, target);
+			FakeTechnoClass::__FireBeam(pThis, supportWeapon, sourceXYZ, target, supportWeapon->Warhead->Temporal ? RadBeamType::Temporal : RadBeamType::RadBeam);
 		}
 
 		//IsElectricBolt

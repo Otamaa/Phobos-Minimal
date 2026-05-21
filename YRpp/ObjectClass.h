@@ -111,7 +111,7 @@ public:
 	virtual bool IsActive() const R0; //Can_Player_Fire ; this fucking naming is confusing , wtf
 
 	// can the current player control this unit? (owned by him, not paralyzed, not spawned, not warping, not slaved...)
-	virtual bool IsControllable() const R0;
+	virtual bool IsControllable() const R0;//Can_Player_Move
 
 	// On non-buildings this is same as GetCenterCoord(), on buildings it returns the target coordinate that is affected by TargetCoordOffset.
 	virtual CoordStruct* GetTargetCoords(CoordStruct* pCrd) const R0; //0xA4

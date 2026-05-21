@@ -619,6 +619,7 @@ public:
 	 * TechnoClass::Fire uses this for RevealOnFire on player's own units (radius = 3)
 	 * TechnoClass::See uses this on all (singleCampaign || !MultiplayPassive) units
 	 * TalkBubble uses this to display the unit to the player
+	 *  Called : Sight_Form2
 	 */
 	void RevealArea1(
 		CoordStruct* Coords,
@@ -644,6 +645,7 @@ public:
 	 * PsychicReveal launch - reveal to user (0,0,0,0,x)
 	 * ActionClass::RevealWaypoint - reveal RevealTriggerRadius= to player (0,0,0,1,x)
 	 * ActionClass::RevealZoneOfWaypoint - reveal (r = 2) to player (0,0,0,1,x)
+	 * Called : Sight_Form2
 	 */
 	void RevealArea2(
 		CoordStruct* Coords,

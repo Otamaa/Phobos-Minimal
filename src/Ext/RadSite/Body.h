@@ -14,8 +14,6 @@ public:
 	using base_type = RadSiteClass;
 	static COMPILETIMEEVAL const char* ClassName = "RadSiteExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "RadSiteClass";
-	
-	
 
 public:
 

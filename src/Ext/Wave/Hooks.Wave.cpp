@@ -199,10 +199,7 @@ ASMJIT_PATCH(0x762B62, WaveClass_WaveAI , 0x6)
 	if (!Wave->IsTraveling)
 		return 0x762D57;
 
-	CoordStruct FLH = pData->SourceCoord;
-	if(pData->WeaponIdx != -1)
-		FLH = Firer->GetFLH(pData->WeaponIdx, 0,0,0);
-
+	CoordStruct FLH = pData->WeaponIdx != -1 ? Firer->GetFLH(pData->WeaponIdx, 0, 0, 0) : pData->SourceCoord;
 	const CoordStruct xyzTgt = Target->GetCenterCoords(); // not GetCoords() !
 
 	if (Wave->Type == WaveType::Magnetron)

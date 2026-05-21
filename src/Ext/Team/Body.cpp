@@ -2085,7 +2085,7 @@ void FakeTeamClass::_AssignMissionTarget(AbstractClass* new_target)
 	if (new_target != this->QueuedFocus) {
 		FootClass* unit = this->FirstUnit;
 
-		//if (this->QueuedFocus)
+		if (this->QueuedFocus)
 		{
 			while (unit)
 			{
@@ -4062,10 +4062,14 @@ void FakeTeamClass::_AI()
 			return;
 		}
 
+#ifdef _fix
 		// Team has no members but shouldn't dissolve yet
 		// Fall through to coordinate move
 		this->_CoordinateMove();
 		return;
+#else 
+		//isBeignWrapped remains false; fall through to IsMoving check
+#endif
 	} else {
 		isBeingWarped = pFirstUnit->IsBeingWarpedOut();
 	}
@@ -4488,9 +4492,28 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 	}
 	case TeamMissionType::Wait_till_fully_loaded:
 	{
-		if (!this->FirstUnit)
+		// Pseudocode: loop through members. If any transport has room (MaxPassengers > Quantity),
+		// keep waiting (just return). If all transports are full or no members, advance.
+		FootClass* pMember = this->FirstUnit;
+		if (!pMember)
+		{
 			this->StepCompleted = true;
+			return;
+		}
 
+		while (pMember)
+		{
+			TechnoTypeClass* pType = GET_TECHNOTYPE(pMember);
+			// If this member is a transport and has room for more passengers, keep waiting
+			if (pType->Passengers > pMember->Passengers.NumPassengers)
+			{
+				return; // Still waiting for loading to complete
+			}
+			pMember = pMember->NextTeamMember;
+		}
+
+		// All transports are full (or no transports found)
+		this->StepCompleted = true;
 		return;
 	}
 	case TeamMissionType::Force_facing:
@@ -4639,9 +4662,13 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 		if (this->Zone)
 		{
 			CoordStruct place = this->Zone->GetCoords();
+			// Pseudocode: Z = MapClass::Get_Z_Pos(coords), then add bridge height if on bridge
+			place.Z = MapClass::Instance->GetZPos(&place);
 			auto pCell = MapClass::Instance->GetCellAt(place);
-			place.Z = pCell->ContainsBridgeEx() ? place.Z + CellClass::BridgeHeight : 0;
-
+			if (pCell->ContainsBridgeEx())
+			{
+				place.Z += CellClass::BridgeHeight;
+			}
 			TacticalClass::Instance->FocusOn(&place, node.Argument);
 		}
 
@@ -4651,33 +4678,30 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 	}
 	case TeamMissionType::Self_destruct:
 	{
-		FootClass* pCur = nullptr;
-		if (auto pFirst = this->FirstUnit)
+		// Pseudocode: outer do-while loop repeats until no member was damaged in a pass.
+		// This ensures units that survive the first C4 hit get hit again.
+		//Debug::Log("[FakeTeam] %s: Self_destruct starting\n", this->Type->ID);
+		bool anyDamaged;
+		int passCount = 0;
+		do
 		{
-			auto pNext = pFirst->NextTeamMember;
-			do
+			anyDamaged = false;
+			passCount++;
+			for (FootClass* pMember = this->FirstUnit; pMember; pMember = pMember->NextTeamMember)
 			{
-				if (pFirst->Health > 0
-					&& pFirst->IsAlive
-					&& !pFirst->IsCrashing
-					&& !pFirst->IsSinking
-					&& !pFirst->InLimbo
-					)
+				if (pMember->Health > 0 && pMember->IsAlive && pMember->IsOnMap && !pMember->InLimbo)
 				{
-					int damage = pFirst->Health;
-					pFirst->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
+					int damage = pMember->Health;
+					pMember->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
+					anyDamaged = true;
 				}
-
-				pCur = pNext;
-
-				if (pNext)
-					pNext = pNext->NextTeamMember;
-
-				pFirst = pCur;
-
 			}
-			while (pCur);
+
+			if (!this->FirstUnit)
+				break;
 		}
+		while (anyDamaged);
+
 		this->StepCompleted = true;
 		return;
 	}

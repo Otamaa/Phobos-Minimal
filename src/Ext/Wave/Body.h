@@ -79,7 +79,7 @@ private:
 
 public:
 
-	static WaveClass* Create(CoordStruct nFrom, CoordStruct nTo, TechnoClass* pOwner, WaveType nType, AbstractClass* pTarget, WeaponTypeClass* pWeapon, bool FromSourceCoord = false);
+	static WaveClass* Create(CoordStruct nFrom, CoordStruct nTo, TechnoClass* pOwner, WaveType nType, AbstractClass* pTarget, WeaponTypeClass* pWeapon, int wpIdx, bool FromSourceCoord = false);
 	static bool ModifyWaveColor(WORD const src, WORD& dest, int const intensity, WaveClass* const pWave, WaveColorData const* colorDatas);
 	static Point3D GetIntent(WeaponTypeClass* pWeapon);
 	static ColorStruct GetColor(WeaponTypeClass* pWeapon, WaveClass* pWave);

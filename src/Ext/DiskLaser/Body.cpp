@@ -17,39 +17,37 @@
 // =============================
 // load / save
 
-//template <typename T>
-//void DiskLaserExt::ExtData::Serialize(T& Stm)
-//{
-//	Stm
-//		.Process(this->Initialized)
-//		;
-//}
+template <typename T>
+void DiskLaserExtData::Serialize(T& Stm)
+{
+	Stm
+		.Process(this->WeaponIdx)
+		;
+}
 
 // =============================
 // container
 
-//DiskLaserExt::ExtContainer DiskLaserExt::ExtMap;
+DiskLaserExtContainer DiskLaserExtContainer::Instance;
 
 // =============================
 // container hooks
 
-//ASMJIT_PATCH(0x4A7A6A, DiskLaserClass_CTOR, 0x6)
-//{
-//	GET(DiskLaserClass*, pItem, ESI);
-//#
-//	DiskLaserExt::ExtMap.Allocate(pItem);
-//
-//	return 0;
-//}
-//
-//ASMJIT_PATCH_AGAIN(0x4A7B00 , DiskLaserClass_SDDTOR, 0x8)
-//ASMJIT_PATCH(0x4A7C90, DiskLaserClass_SDDTOR, 0x8)
-//{
-//	GET(DiskLaserClass *, pItem, ECX);
-//	DiskLaserExt::ExtMap.Remove(pItem);
-//	return 0;
-//}
-//
+ASMJIT_PATCH(0x4A7A6A, DiskLaserClass_CTOR, 0x6)
+{
+	GET(DiskLaserClass*, pItem, ESI);
+	DiskLaserExtContainer::Instance.Allocate(pItem);
+	return 0;
+}
+
+ASMJIT_PATCH_AGAIN(0x4A7B00 , DiskLaserClass_SDDTOR, 0x8)
+ASMJIT_PATCH(0x4A7C90, DiskLaserClass_SDDTOR, 0x8)
+{
+	GET(DiskLaserClass *, pItem, ECX);
+	DiskLaserExtContainer::Instance.Remove(pItem);
+	return 0;
+}
+
 //ASMJIT_PATCH_AGAIN(0x4A7B90, DiskLaserClass_SaveLoad_Prefix, 0x5)
 //ASMJIT_PATCH(0x4A7C10, DiskLaserClass_SaveLoad_Prefix, 0x8)
 //{
@@ -121,7 +119,7 @@ void FakeDiskLaserClass::__AI()
 
 	// State == 0: Main firing logic
 	auto pFirer = this->Owner;
-	auto pTarget = this->Target;
+	auto pTarget = this->Target; 
 	auto pWeapon = this->Weapon;
 
 	auto pTypeExt = GET_TECHNOTYPEEXT(pFirer);
@@ -169,7 +167,10 @@ void FakeDiskLaserClass::__AI()
 	}
 
 	// Get weapon FLH position
-	CoordStruct flhCoords = pFirer->GetFLH(0,0,0,0);
+	CoordStruct flhCoords = pFirer->GetFLH(
+		DiskLaserExtContainer::Instance.Find(this)->WeaponIdx
+	,0,0,0);
+
 	int const z = flhCoords.Z;
 
 	// Calculate rotating indices

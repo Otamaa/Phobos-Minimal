@@ -1268,7 +1268,7 @@ void BulletExtData::SimulatedFiringRadBeam(BulletClass* pBullet, HouseClass* pHo
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
 	pRadBeam->Color = (pWeaponExt->Beam_IsHouseColor && pHouse) ? pHouse->LaserColor
-		: pWeaponExt->Beam_Color.Get(isTemporal ? RulesClass::Instance->ChronoBeamColor : RulesClass::Instance->RadColor);
+		: pWeaponExt->GetBeamColor();
 
 	pRadBeam->Period = pWeaponExt->Beam_Duration;
 	pRadBeam->Amplitude = pWeaponExt->Beam_Amplitude;

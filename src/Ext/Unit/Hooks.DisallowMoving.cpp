@@ -89,17 +89,6 @@ ASMJIT_PATCH(0x736B60, UnitClass_Rotation_AI_DisallowMoving, 0x6)
 			->TurretResponse.Get(pThis->Type->Speed != 0) ? 0x736AFB : 0;
 }
 
-ASMJIT_PATCH(0x74132B, UnitClass_GetFireError_DisallowMoving, 0x7)
-{
-	GET(UnitClass*, pThis, ESI);
-	GET(FireError, result, EAX);
-
-	if (result == FireError::RANGE && TechnoExtData::CannotMove(pThis))
-		R->EAX(FireError::ILLEGAL);
-
-	return 0;
-}
-
 namespace UnitApproachTargetTemp
 {
 	int WeaponIndex;

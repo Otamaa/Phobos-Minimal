@@ -267,6 +267,9 @@ BSurface* __fastcall Read_PCX_File_Intercept(FileClass* file, unsigned char* pal
 	 */
 	char* file_name = std::strchr((char*)fnamebuffer, '.');
 
+	if (!file_name) { //invalid name
+		return nullptr;
+	}
 	/**
 	 *  Insert a null-char where the "." was. This will give us the actual
 	 *  file name without the extension, allowing us to rebuild it.

@@ -57,7 +57,7 @@
 #include <Utilities/Macro.h>
 
 #include <Locomotor/Cast.h>
-
+#include <RadBeam.h>
 
 #include <memory>
 #include <TerrainTypeClass.h>
@@ -5182,6 +5182,159 @@ bool TechnoExtData::CanAttackMindControlled(TechnoClass* pControlled, TechnoClas
 
 	return TechnoExtContainer::Instance.Find(pControlled)->BeControlledThreatFrame <= Unsorted::CurrentFrame();
 }
+
+RadBeam* __fastcall  FakeTechnoClass::__FireBeam_Wrapper(TechnoClass* pThis, discard_t, AbstractClass* pTarget, RadBeamType type)
+{
+	
+	return __FireBeam(pThis, -1 , nullptr, pTarget, type);
+}
+
+RadBeam* FakeTechnoClass::__FireBeam(TechnoClass* pThis , WeaponTypeClass* pWeapon, CoordStruct flh, CoordStruct target_coord, RadBeamType type)
+{
+	auto const Rad = RadBeam::Allocate(type);
+
+	CoordStruct renderCoord = pThis->GetRenderCoords();
+
+	int heignt = 0;
+	if (flh.Y != renderCoord.Y)
+	{
+		auto flh_rend = TacticalClass::Instance->CoordsToClient(flh);
+		auto rend_rend = TacticalClass::Instance->CoordsToClient(renderCoord);
+		heignt = flh_rend.Y - rend_rend.Y;
+	}
+
+	WeaponTypeExtData* pData = WeaponTypeExtContainer::Instance.Find(pWeapon);
+
+	if (!pData->Beam_IsHouseColor) {
+		Rad->Color = pData->GetBeamColor();
+	} else {
+		Rad->Color = pThis->Owner->Color;
+	}
+
+	Rad->SourceLocation = flh;
+	Rad->TargetLocation = target_coord;
+	Rad->Period = pData->Beam_Duration;
+	Rad->Amplitude = pData->Beam_Amplitude;
+	Rad->unknown_C = heignt;
+
+	if (type == RadBeamType::Eruption) {
+		Rad->unknown_54 = 1;
+		Rad->unknown_59 = 1;
+		Rad->Owner = pThis;
+	}
+
+	return Rad;
+}
+
+RadBeam* FakeTechnoClass::__FireBeam(TechnoClass* pThis, int WeaponIDx,WeaponTypeClass* pWeapon, AbstractClass* pTarget, RadBeamType type)
+{
+	auto const Rad = RadBeam::Allocate(type);
+
+	if (WeaponIDx == -1)
+		WeaponIDx = 0;
+
+	if (!pWeapon)
+		pWeapon = pThis->GetWeapon(WeaponIDx)->WeaponType;
+
+	CoordStruct flh = pThis->GetFLH(WeaponIDx, 0, 0, 0);
+	CoordStruct renderCoord = pThis->GetRenderCoords();
+
+
+	int heignt = 0;
+	if(flh.Y != renderCoord.Y){ 
+		auto flh_rend = TacticalClass::Instance->CoordsToClient(flh);
+		auto rend_rend = TacticalClass::Instance->CoordsToClient(renderCoord);
+		heignt = flh_rend.Y - rend_rend.Y;
+	}
+
+	CoordStruct target_coord {};
+	if (auto pTargetFoot = flag_cast_to<FootClass*>(pTarget)) {
+		target_coord = pTargetFoot->GetTargetCoords();
+	} else {
+		pTarget->GetCenterCoords(&target_coord);
+	}
+	WeaponTypeExtData* pData = WeaponTypeExtContainer::Instance.Find(pWeapon);
+
+	if (!pData->Beam_IsHouseColor) {
+		Rad->Color = pData->GetBeamColor();
+	} else {
+		Rad->Color = pThis->Owner->Color;
+	}
+	
+	Rad->SourceLocation = flh;
+	Rad->TargetLocation = target_coord;
+	Rad->Period = pData->Beam_Duration;
+	Rad->Amplitude = pData->Beam_Amplitude;
+	Rad->unknown_C = heignt;
+
+	if (type == RadBeamType::Eruption) {
+		Rad->unknown_54 = 1;
+		Rad->unknown_59 = 1;
+		Rad->Owner = pThis;
+
+		if (auto pTargetTech = flag_cast_to<TechnoClass*>(pTarget)) {
+			pTargetTech->FiringRadBeam = Rad;
+		}
+	}
+
+	return Rad;
+}
+
+void FakeTechnoClass::__FireRadEruption(TechnoClass* pThis,WeaponTypeClass* pWeapon, float spread)
+{
+	ColorStruct clr = RulesClass::Instance->RadColor;
+
+	if (pWeapon) {
+		WeaponTypeExtData* pData = WeaponTypeExtContainer::Instance.Find(pWeapon);
+
+		if (!pData->Beam_IsHouseColor) {
+			clr = pData->GetBeamColor();
+		}
+		else {
+			clr = pThis->Owner->Color;
+		}
+	}
+
+	CoordStruct base = pThis->GetCoords();
+	CellStruct base_cell = CellClass::Coord2Cell(base);
+
+	for (int dy = -1; dy <= 1; ++dy) {
+		for (int dx = -1; dx <= 1; ++dx) {
+			if (dx == 0 && dy == 0)
+				continue;
+
+			// Target cell = centerCell + spread * (dx, dy)
+			CellStruct targetCell {
+				static_cast<short>(base_cell.X + spread * dx),
+				static_cast<short>(base_cell.Y + spread * dy)
+			};
+
+			CoordStruct targetCoord {};
+			MapClass::Instance->GetCellAt(targetCell)->GetCellCoords(&targetCoord);
+
+			targetCoord.X += Random2Class::NonCriticalRandomNumber->RandomRanged(-128, 128);
+			targetCoord.Y += Random2Class::NonCriticalRandomNumber->RandomRanged(-128, 128);
+
+			// --- Beam setup ---
+			RadBeam* pBeam = RadBeam::Allocate(RadBeamType::Eruption);
+			pBeam->Color = clr;
+			pBeam->SourceLocation = base;
+			pBeam->TargetLocation = targetCoord;
+			pBeam->Period = Random2Class::NonCriticalRandomNumber->RandomRanged(5, 20);;
+			pBeam->Amplitude = Random2Class::NonCriticalRandomNumber->RandomRanged(100, 500);
+			pBeam->unknown_48 = {};
+			pBeam->unknown_50 = Random2Class::NonCriticalRandomNumber->RandomRanged(0, 20);
+		}
+	}
+}
+
+void __fastcall  FakeTechnoClass::__FireRadEruption_Wrapper(TechnoClass* pThis, discard_t, int spread)
+{
+	__FireRadEruption(pThis, nullptr, spread);
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x6FD620, FakeTechnoClass::__FireBeam_Wrapper)
+DEFINE_FUNCTION_JUMP(LJMP, 0x6FD800, FakeTechnoClass::__FireRadEruption_Wrapper)
 
 bool __fastcall FakeTechnoClass::__Is_Allowed_To_Retaliate(TechnoClass* pThis , discard_t , TechnoClass* pSource, WarheadTypeClass* pWarhead)
 {

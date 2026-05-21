@@ -79,6 +79,7 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Transport.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.VehicleToBuildingMCFix.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Veterancy.cpp" />
+    <ClCompile Include="src\Ext\Unit\Hook.CanFire.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.Crushing.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.DisallowMoving.cpp" />
@@ -132,7 +133,7 @@
     <ClCompile Include="src\Misc\Hooks.DebugLog.cpp" />
     <ClCompile Include="src\Ext\Foot\Hooks.Foot.cpp" />
     <ClCompile Include="src\Ext\Infantry\Hooks.cpp" />
-    <ClCompile Include="src\Misc\Hooks.IonBlast.cpp" />
+    <ClCompile Include="src\Ext\WarheadType\Hooks.IonBlast.cpp" />
     <ClCompile Include="src\Ext\Locomotion\Hooks.Locomotor.cpp" />
     <ClCompile Include="src\Misc\Hooks.Others.cpp" />
     <ClCompile Include="src\Ext\Object\Hooks.ReceiveDamage.cpp" />
@@ -384,7 +385,6 @@
     <ClCompile Include="src\Ext\ObjectType\Hooks.cpp" />
     <ClCompile Include="src\Ext\INI\Hooks.INIClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.cpp" />
-    <ClCompile Include="src\Misc\Hooks.PCX.cpp" />
     <ClCompile Include="src\Ext\Locomotion\Rocket\Hooks.RocketLocomotorClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.Theaters.cpp" />
     <ClCompile Include="src\Misc\ImageSwapModules.cpp" />

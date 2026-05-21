@@ -30,6 +30,17 @@ public:
 		bool IsActive {};
 		PositionFollow FollowMode {};
 		CoordStruct SavedRelativeFLH { 0, 0, 0 };
+
+		bool Active() const
+		{
+			if (this->FollowMode == PositionFollow::Firer && this->Shooter)
+				return true;
+
+			if (this->FollowMode == PositionFollow::Target && this->Target)
+				return true;
+
+			return false;
+		}
 	};
 
 	static std::unordered_map<LaserDrawClass*, TrackingData> g_Trackers;

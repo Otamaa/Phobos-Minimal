@@ -1,4 +1,5 @@
 #pragma once
+
 // https://github.com/electronicarts/CnC_Renegade/blob/main/Code/Launcher/dictionary.h
 // Westwood Hashmap
 
@@ -20,7 +21,7 @@ class Dictionary
 
 	using HashFunctionProc = uint32_t(__fastcall*)(const K& key);
 public:
-	Dictionary(HashFunctionProc* hashfn) :
+	Dictionary(HashFunctionProc hashfn) :
 		ShrinkThreshold { 0.2 },
 		ExpandThreshold { 0.8 },
 		MinTableSize { 32 }
@@ -170,7 +171,7 @@ public:
 	bool insert(const K& key, const V& value)
 	{
 		auto item = GameCreate<Node>(key, value, nullptr);
-		remove(item);
+		erase(key);
 
 		auto offset = key_hash(key);
 		auto node = Table[offset];
@@ -208,7 +209,7 @@ public:
 		return nullptr;
 	}
 
-	bool remove(const K& key)
+	bool erase(const K& key)
 	{
 		if (!Count)
 			return false;
@@ -237,7 +238,7 @@ public:
 		node = node->Next;
 
 		// Now the case if the thing to delete is not the first
-		while (!node)
+		while (node)
 		{
 			if (node->Key == key)
 			{
@@ -273,7 +274,7 @@ private:
 		--TableBits;
 
 		Table = GameCreateArray<Node*>(TableSize);
-		for (int i = 0; i < oldTableSize; ++i)
+		for (uint32_t i = 0; i < oldTableSize; ++i)
 		{
 			for (auto node = oldTable[i]; node; )
 			{
@@ -300,7 +301,7 @@ private:
 		++TableBits;
 
 		Table = GameCreateArray<Node*>(TableSize);
-		for (int i = 0; i < oldTableSize; ++i)
+		for (uint32_t i = 0; i < oldTableSize; ++i)
 		{
 			for (auto node = oldTable[i]; node; )
 			{
@@ -321,7 +322,7 @@ private:
 	uint32_t TableBits;
 	uint32_t Log2Size;
 	bool KeepSize;
-	HashFunctionProc* HashFunction;
+	HashFunctionProc HashFunction;
 	double ShrinkThreshold;
 	double ExpandThreshold;
 	int MinTableSize;

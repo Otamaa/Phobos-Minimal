@@ -60,12 +60,16 @@ public:
 	int NewPowerups {-1};
 	int InfantryCount {};
 
+	//
+	bool IsvalidCell { false };
 #pragma endregion
 
 public:
 	CellExtData(CellClass* pObj) : AbstractExtended(pObj)
 	{
 		this->AbsType = CellClass::AbsID;
+		//dont save invalid cell
+		this->IsvalidCell = pObj != CellClass::Instance();
 	}
 
 	CellExtData(CellClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }

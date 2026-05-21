@@ -19,7 +19,7 @@
 // STRUCTURE
 // ============================================================================
 // The original's goto chain is replaced with helper functions that each
-// return either a FireError to propagate or a kContinue sentinel to signal
+// return either a `FireError` to propagate or `FireError::NONE` to signal
 // "run the next helper." The orchestrator is a flat sequence of calls.
 //
 //   1. CheckPreflightLocks      — passenger/spawn/deploy + Techno::Can_Fire
@@ -28,7 +28,7 @@
 //   4. GetCurrentWeapon         — Get_Weapon or Sync hook (DISABLED)
 //   5. CheckWeaponGates         — weapon flags / reload / Temporal hook
 //   6. CheckFacing              — angular target check
-//   7. CheckAmmoFinal           — AmmoClass COM delegation
+//   7. CheckLocomotorCanFire   — Locomotor COM delegation
 // ============================================================================
 
 #include <UnitClass.h>
@@ -51,10 +51,6 @@
 
 namespace
 {
-
-	// Sentinel used by helpers to signal "continue to next phase"
-	constexpr FireError kContinue = FireError::NONE;
-
 	// ===========================================================================
 	// CheckPreflightLocks
 	//
@@ -64,10 +60,10 @@ namespace
 	// out parameter so the orchestrator can reuse it for the tail return.
 	// ===========================================================================
 	OPTIONALINLINE FireError CheckPreflightLocks(FakeUnitClass* pThis,
-												  AbstractClass* target,
-												  int which,
-												  bool check_fire_coord,
-												  FireError& out_cached_error)
+													  AbstractClass* target,
+													  int which,
+													  bool check_fire_coord,
+													  FireError& outCachedError)
 	{
 		{
 			if (pThis->DeathFrameCounter >= 0)
@@ -84,9 +80,13 @@ namespace
 		}
 
 		// ORIG 0x74102D — Delegate to TechnoClass::Can_Fire
-		out_cached_error = FakeTechnoClass::__CanFireMod(pThis, target, which, check_fire_coord, false);
+		outCachedError = FakeTechnoClass::__CanFireMod(pThis, target, which, check_fire_coord, false);
 
-		return kContinue;
+		//0x74132B, UnitClass_CanFire_DisallowMoving, 0x7
+		if(outCachedError == FireError::RANGE && TechnoExtData::CannotMove(pThis))
+			return FireError::ILLEGAL;
+
+		return FireError::NONE;
 	}
 
 	// ===========================================================================
@@ -151,13 +151,13 @@ namespace
 		if (!pThis->IsTethered)
 			return DockedCheckResult::Continue;
 
-		auto pLink = pThis->GetRadioContact(0);
+		auto pRadioLink = pThis->GetRadioContact(0);
 
 		// Hook 0x7410D6 — null guard
-		if (!pLink)
+		if (!pRadioLink)
 			return DockedCheckResult::Continue;
 
-		if (pLink->WhatAmI() == AbstractType::Building)
+		if (pRadioLink->WhatAmI() == AbstractType::Building)
 			return DockedCheckResult::ReturnOK;
 
 		return DockedCheckResult::Continue;
@@ -172,7 +172,7 @@ namespace
 	// on the unit's ext data. DISABLED FOR TESTING — re-enable the #if 1 block
 	// when the Can_Fire crash is diagnosed.
 	// ===========================================================================
-	OPTIONALINLINE WeaponTypeClass* GetCurrentWeapon(FakeUnitClass* pThis, int which)
+		OPTIONALINLINE WeaponTypeClass* GetCurrentWeapon(FakeUnitClass* pThis, int which)
 	{
 		// DISABLED FOR TESTING — Hook 0x7410EC (UnitClass_CanFire_Sync)
 		// -----------------------------------------------------------------------
@@ -187,16 +187,18 @@ namespace
 		// vanilla Get_Weapon path, which lets us isolate whether the hook or
 		// the vanilla logic is responsible for the null-weapon crash.
 		// -----------------------------------------------------------------------
-		return pThis->_GetExtData()->CanFireWeaponType;
-#if 0
+		if (auto pWeapon = pThis->_GetExtData()->CanFireWeaponType)
+			return pWeapon;
+
 		// -----------------------------------------------------------------------
 		// VANILLA FALLBACK — use Get_Weapon(which)
 		// -----------------------------------------------------------------------
-		auto pWeaponStruct = pThis->GetWeapon(which);
-		if (!pWeaponStruct || !pWeaponStruct->WeaponType)
+		auto pWeaponSlot = pThis->GetWeapon(which);
+
+		if (!pWeaponSlot || !pWeaponSlot->WeaponType)
 			return nullptr;
-		return pWeaponStruct->WeaponType;
-#endif
+
+		return pWeaponSlot->WeaponType;
 	}
 
 	// ===========================================================================
@@ -207,20 +209,23 @@ namespace
 	// Chain of weapon-flag / reload-state checks. The original crash was at
 	// +0x141 read; the orchestrator null-checks pWeapon before calling in.
 	// ===========================================================================
-	OPTIONALINLINE FireError CheckWeaponGates(FakeUnitClass* pThis,
-												AbstractClass* target,
-												WeaponTypeClass* pWeapon)
+		OPTIONALINLINE FireError CheckWeaponGates(FakeUnitClass* pThis,
+													AbstractClass* target,
+													WeaponTypeClass* pWeapon)
 	{
-		auto pTypeData = pThis->Type;
+			auto pUnitType = pThis->Type;
 
 		// ORIG 0x7410F9 — Combat_Damage(-1) + low-health retreat check
 		{
-			const int damage = pThis->CombatDamage(-1);
-
-			if (damage < 0)
+			if (TechnoExtData::IsHealer(pThis))
 			{
 				if (auto pTargetTechno = flag_cast_to<TechnoClass*>(target))
 				{
+					//0x741113, UnitClass_CanFire_Heal, 0xA
+					if(pTargetTechno->IsIronCurtained()
+						|| !TechnoExtData::FiringAllowed(pThis, pTargetTechno, pWeapon, true))
+						return FireError::ILLEGAL;
+
 					if (pTargetTechno->IsStrange())
 					{
 						const double ratio = pThis->GetHealthRatio();
@@ -233,7 +238,7 @@ namespace
 
 		// ORIG 0x741149 — UnitType +0x6AE + reload state
 		{
-			if (!pTypeData->MobileFire && pThis->Destination)
+			if (!pUnitType->MobileFire && pThis->Destination)
 				return FireError::MOVING;
 		}
 
@@ -242,29 +247,16 @@ namespace
 
 		if (!pWeapon->FireWhileMoving)
 		{
-			auto pTypeData = *reinterpret_cast<unsigned char**>(
-				reinterpret_cast<char*>(pThis) + 0x6C4);
-			const bool type_flag_d6a = pTypeData[0xD6A] != 0;
-
-			if (!type_flag_d6a)
+			if (!pThis->Type->BalloonHover)
 			{
-				const int reload_state_2 = *reinterpret_cast<int*>(
-					reinterpret_cast<char*>(pThis) + 0x5A4);
-				if (reload_state_2 != 0)
+				if (pThis->NavCom != 0)
 					return FireError::MOVING;
 			}
 			else
 			{
-				// ORIG 0x7411A3 — AmmoClass COM check; null ammo → skip (jz 0x7411D9)
-				auto pAmmoObj = *reinterpret_cast<void**>(
-					reinterpret_cast<char*>(pThis) + 0x674);
-				if (pAmmoObj)
-				{
-					using AmmoCheckFn = bool(__thiscall*)(void*);
-					const auto ammo_vt = *reinterpret_cast<AmmoCheckFn**>(pAmmoObj);
-					const auto ammo_check = reinterpret_cast<AmmoCheckFn>(
-						ammo_vt[0x80 / 4]);
-					if (ammo_check(pAmmoObj))
+				// ORIG 0x7411A3 — Locomotor COM check; null ammo → skip (jz 0x7411D9)
+				if (auto pLoco = pThis->Locomotor) {
+					if (pLoco->Is_Moving_Now())
 						return FireError::MOVING;
 				}
 			}
@@ -272,16 +264,11 @@ namespace
 
 		// ORIG 0x7411D9 — Weapon +0x12A / +0x129 + reload state
 		{
-			const bool weapon_flag_12a = *(
-				reinterpret_cast<unsigned char*>(pWeapon) + 0x12A) != 0;
-			const bool weapon_flag_129 = *(
-				reinterpret_cast<unsigned char*>(pWeapon) + 0x129) != 0;
+			const bool useSparkParticles = pWeapon->UseSparkParticles != 0;
+			const bool useFireParticles = pWeapon->UseFireParticles != 0;
 
-			if (weapon_flag_12a || weapon_flag_129)
-			{
-				const int reload_state_3 = *reinterpret_cast<int*>(
-					reinterpret_cast<char*>(pThis) + 0x5A4);
-				if (reload_state_3 != 0)
+			if (useSparkParticles || useFireParticles) {
+				if (pThis->NavCom != 0)
 					return FireError::MOVING;
 			}
 		}
@@ -295,30 +282,28 @@ namespace
 		//   else                                  → skip
 		// -----------------------------------------------------------------------
 		{
-			auto pType = pThis->Type;
+			auto pUnitType2 = pThis->Type;
 			const bool has_turret_and_not_gattling =
-				pType->TurretCount && !pType->IsGattling;
+				pUnitType2->TurretCount && !pUnitType2->IsGattling;
 
 			if (has_turret_and_not_gattling)
 			{
-				const auto pSelectedWeaponStruct = pThis->GetWeapon(
+				const auto pSelectedWeaponSlot = pThis->GetWeapon(
 					pThis->SelectWeapon(nullptr));
 
 				const bool is_temporal =
-					pSelectedWeaponStruct
-					&& pSelectedWeaponStruct->WeaponType
-					&& pSelectedWeaponStruct->WeaponType->Warhead
-					&& pSelectedWeaponStruct->WeaponType->Warhead->Temporal;
+					pSelectedWeaponSlot
+					&& pSelectedWeaponSlot->WeaponType
+					&& pSelectedWeaponSlot->WeaponType->Warhead
+					&& pSelectedWeaponSlot->WeaponType->Warhead->Temporal;
 
 				if (is_temporal)
 				{
 					// ORIG 0x741210 — the +0x274 + +0x5A4 reload check
-					const int state_274 = *reinterpret_cast<int*>(
-						reinterpret_cast<char*>(pThis) + 0x274);
-					const int reload_state_4 = *reinterpret_cast<int*>(
-						reinterpret_cast<char*>(pThis) + 0x5A4);
+					const auto temporal_state = pThis->TemporalImUsing;
+					const auto navcom_state = pThis->NavCom;
 
-					if (state_274 != 0 && reload_state_4 != 0)
+					if (temporal_state != 0 && navcom_state != 0)
 						return FireError::MOVING;
 				}
 			}
@@ -327,28 +312,20 @@ namespace
 		// ORIG 0x741229 — Non-homing weapon lockout
 		// (jumpjet in air + non-homing weapon → can't fire)
 		{
-			const bool flag_68d = *(
-				reinterpret_cast<unsigned char*>(pThis) + 0x68D) != 0;
-			if (!flag_68d)
-			{
-				const bool flag_6af = *(
-					reinterpret_cast<unsigned char*>(pThis) + 0x6AF) != 0;
-				if (flag_6af)
+			const bool isFiring = pThis->IsFiring != 0;
+			if (!isFiring) {
+				if (pThis->IsRotating != 0)
 				{
-					auto pProjectile = *reinterpret_cast<BulletTypeClass**>(
-						reinterpret_cast<char*>(pWeapon) + 0xA0);
-					if (pProjectile)
+					if (auto pProjectile = pWeapon->Projectile)
 					{
-						const int rot = *reinterpret_cast<int*>(
-							reinterpret_cast<char*>(pProjectile) + 0x2DC);
-						if (rot == 0)
+						if (pProjectile->ROT == 0)
 							return FireError::ROTATING;
 					}
 				}
 			}
 		}
 
-		return kContinue;
+		return FireError::NONE;
 	}
 
 	// ===========================================================================
@@ -356,8 +333,8 @@ namespace
 	//
 	// ORIG 0x74125C
 	// Angular diff between unit facing and target direction.
-	// abs_diff < threshold_scaled → unit is well-aimed → kContinue.
-	// DeployFire units bypass the check entirely (kContinue).
+	// abs_diff < threshold_scaled → unit is well-aimed → return `FireError::NONE`.
+	// DeployFire units bypass the check entirely (return `FireError::NONE`).
 	// Otherwise → FACING.
 	// (ASMJIT_PATCH 0x741288 logic absorbed here; dead due to LJMP at 0x740FD0.)
 	// ===========================================================================
@@ -368,74 +345,81 @@ namespace
 		const bool isOmniFire =
 			pWeapon->OmniFire != 0;
 
-		auto pTypeData = *reinterpret_cast<unsigned char**>(
-			reinterpret_cast<char*>(pThis) + 0x6C4);
-		const bool IsLargeVisceroid = pTypeData[0xE19] != 0;
-		const bool IsSmallVisceroid = pTypeData[0xE18] != 0;
+		auto pTypeData = pThis->Type;
+		const bool IsLargeVisceroid = pTypeData->LargeVisceroid != 0;
+		const bool IsSmallVisceroid = pTypeData->SmallVisceroid != 0;
 
 		if (isOmniFire || IsLargeVisceroid || IsSmallVisceroid)
-			return kContinue;
+			return FireError::NONE;
 
-		const bool use_turret_facing = pTypeData[0xCA1] != 0;
-		const int facing_offset = use_turret_facing ? 0x3A0 : 0x388;
+		// Prefer the instance-level turret state when available; some units
+		// can have per-instance turretness that differs from the type flag.
+		const bool use_turret_facing = pThis->HasTurret();
+		DirStruct current_facing = (use_turret_facing ? &pThis->SecondaryFacing : &pThis->PrimaryFacing)->Current();
 
-		auto pFacing = reinterpret_cast<FacingClass*>(
-			reinterpret_cast<char*>(pThis) + facing_offset);
-		DirStruct current_facing = pFacing->Current();
+		auto pProjectile = pWeapon->Projectile;
 
-		auto pProjectile = *reinterpret_cast<BulletTypeClass**>(
-			reinterpret_cast<char*>(pWeapon) + 0xA0);
-		if (!pProjectile)
-			return kContinue;
+		if (!pProjectile)	
+			return FireError::NONE;
 
-		const int rot = *reinterpret_cast<int*>(
-			reinterpret_cast<char*>(pProjectile) + 0x2DC);
+		const int rot = pProjectile->ROT;
 		const int threshold = 8 + (rot != 0 ? 8 : 0);
 
 		DirStruct target_dir = pThis->GetDirectionOverObject(target);
 
-		const short raw_diff = static_cast<short>(current_facing.Raw - target_dir.Raw);
+		// Compute the wrapped angular delta using DirStruct subtraction so
+		// callers don't deal with Raw arithmetic directly. Widen to `int`
+		// after casting to `short` to preserve the game's signed-16
+		// subtraction semantics while avoiding UB.
+		const DirStruct delta = current_facing - target_dir;
+		const int raw_diff = static_cast<int>(static_cast<short>(delta.Raw));
 		const int abs_diff = raw_diff < 0 ? -raw_diff : raw_diff;
 
 		const int threshold_scaled = threshold << 8;
 
 		// ORIG 0x741288 — abs_diff < threshold: unit is aimed at target, can fire
+		//
+		// Fix: use inclusive compare `<=` to avoid off-by-one directions
+		// being classified as `FACING`. The original game's `<` check is
+		// preserved behind the `PHOBOS_USE_ORIGINAL_FACING` macro for
+		// compatibility/testing.
+	#ifndef PHOBOS_USE_ORIGINAL_FACING
+		if (abs_diff <= threshold_scaled)
+		    return FireError::NONE;
+	#else
 		if (abs_diff < threshold_scaled)
-			return kContinue;
+		    return FireError::NONE;
+	#endif
 
 		// ASMJIT_PATCH 0x741288 — DeployFire bypass (absorbed from dead hook)
+		// dont return FACING if the unit can deploy to fire and isn't already deployed
 		if (pThis->Type->DeployFire
 			&& !pThis->Type->IsSimpleDeployer
 			&& !pThis->Deployed
 			&& pThis->CurrentMission == Mission::Unload)
 		{
-			return kContinue;
+			return FireError::NONE;
 		}
 
 		return FireError::FACING;
 	}
 
 	// ===========================================================================
-	// CheckAmmoFinal
+	// CheckLocomotorCanFire
 	//
-	// ORIG 0x741300 — Final AmmoClass COM delegation.
+	// ORIG 0x741300 — Final Locomotor COM delegation.
 	// ===========================================================================
-	OPTIONALINLINE FireError CheckAmmoFinal(FakeUnitClass* pThis)
+	OPTIONALINLINE FireError CheckLocomotorCanFire(FakeUnitClass* pThis)
 	{
-		auto pAmmoObj = *reinterpret_cast<void**>(
-			reinterpret_cast<char*>(pThis) + 0x674);
-		if (!pAmmoObj)
+		auto pLocomotor = pThis->Locomotor;
+		if (!pLocomotor)
 			return FireError::ILLEGAL;
 
-		using AmmoFinalFn = int(__thiscall*)(void*, void*);
-		const auto ammo_vt = *reinterpret_cast<AmmoFinalFn**>(pAmmoObj);
-		const auto ammo_final = reinterpret_cast<AmmoFinalFn>(ammo_vt[0x8C / 4]);
+		const FireError locoResult = pLocomotor->Can_Fire();
+		if (locoResult != FireError::NONE)
+			return locoResult;
 
-		const int ammo_result = ammo_final(pAmmoObj, pAmmoObj);
-		if (ammo_result != 0)
-			return static_cast<FireError>(ammo_result);
-
-		return kContinue;
+		return FireError::NONE;
 	}
 
 }  // anonymous namespace
@@ -449,7 +433,7 @@ FireError FakeUnitClass::_Can_Fire(AbstractClass* target, int which, bool check_
 	FireError cached_error = FireError::OK;
 	{
 		const auto preflight = CheckPreflightLocks(this, target, which, check_fire_coord, cached_error);
-		if (preflight != kContinue)
+		if (preflight != FireError::NONE)
 			return preflight;
 	}
 
@@ -504,22 +488,22 @@ FireError FakeUnitClass::_Can_Fire(AbstractClass* target, int which, bool check_
 	// ----- Phase 8: weapon-flag / reload-state gates ----------------------
 	{
 		const auto gates = CheckWeaponGates(this, target, pWeapon);
-		if (gates != kContinue)
+		if (gates != FireError::NONE)
 			return gates;
 	}
 
 	// ----- Phase 9: facing check ------------------------------------------
 	{
 		const auto facing = CheckFacing(this, target, pWeapon);
-		if (facing != kContinue)
+		if (facing != FireError::NONE)
 			return facing;
 	}
 
-	// ----- Phase 10: final AmmoClass delegation ---------------------------
+	// ----- Phase 10: final Locomotor delegation ---------------------------
 	{
-		const auto ammo = CheckAmmoFinal(this);
-		if (ammo != kContinue)
-			return ammo;
+		const auto locoCheck = CheckLocomotorCanFire(this);
+		if (locoCheck != FireError::NONE)
+			return locoCheck;
 	}
 
 	// ----- Tail: return cached error --------------------------------------
@@ -528,25 +512,3 @@ FireError FakeUnitClass::_Can_Fire(AbstractClass* target, int which, bool check_
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6030, FakeUnitClass::_Can_Fire);
 DEFINE_FUNCTION_JUMP(LJMP, 0x740FD0, FakeUnitClass::_Can_Fire);
-// ============================================================================
-// DEBUGGING NOTES
-// ============================================================================
-//
-// The original crash at 0x741172 was reading [ebx+141h] where ebx was null.
-// In this backport the read is inside CheckWeaponGates, with pWeapon
-// null-checked in the orchestrator's Phase 7.
-//
-// Hook 0x7410EC (UnitClass_CanFire_Sync) is DISABLED in GetCurrentWeapon.
-// Testing path: vanilla Get_Weapon(which) + null-guard fallback. Re-enable
-// by flipping the `#if 0` to `#if 1` when done debugging.
-//
-// If the null-guard in Phase 7 fires:
-//   - set a breakpoint on the `return FireError::ILLEGAL` line
-//   - inspect `which`, `this->Primary`, `this->Secondary`
-//   - walk the call stack to find who passed the bad `which`
-//
-// Most likely suspects for bad `which`:
-//   1. What_Weapon_Should_I_Use backport returning an invalid slot
-//   2. SelectWeapon() returning a slot the unit doesn't have
-//   3. A caller passing `which=1` to a unit with no Secondary weapon
-// ============================================================================

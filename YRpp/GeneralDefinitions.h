@@ -1644,8 +1644,8 @@ enum class MouseCursorType : uint32_t {
 MAKE_ENUM_FLAGS(MouseCursorType)
 
 enum class RadBeamType : int {
-	Temporal = 0,
-	RadBeam = 1,
+	RadBeam = 0,
+	Temporal = 1,
 	Eruption = 2 // this sets the beam color to MagnaBeamColor! There probably was no reason for that whatsoever.
 };
 

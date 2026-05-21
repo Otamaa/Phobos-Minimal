@@ -25,6 +25,19 @@ bool DisguiseAllowed(const TechnoTypeExtData* pThis, ObjectTypeClass* pThat)
 	return true;
 }
 
+struct TimerValue {
+	int TimeLeft;
+	int StartTime;
+};
+
+NOINLINE TimerValue GetRofTimer(TechnoClass* pTechno) {
+	int nRemaining = pTechno->ROFTimer.TimeLeft; // +0x2F4
+	int nStartTime = pTechno->ROFTimer.StartTime; // +0x2EC
+
+
+	return { nRemaining, nStartTime };
+}
+
 FireError __fastcall FakeTechnoClass::__CanFireMod(
 TechnoClass* pThis,
 AbstractClass* pTarget,
@@ -676,18 +689,19 @@ bool bIgnoreDisableWeapon)
 		// Normal arm timer
 		if (!bTimerReady)
 		{
-			int nRemaining = pThis->ROFTimer.TimeLeft; // +0x2F4
+			auto timer = GetRofTimer(pThis);
 
-			if (pThis->ROFTimer.StartTime != -1) // +0x2EC
-			{
-				int nElapsed = Unsorted::CurrentFrame.get() - pThis->ROFTimer.StartTime;
-				if (nElapsed >= nRemaining)
+			if (timer.StartTime != -1) {
+
+				int nElapsed = Unsorted::CurrentFrame.get() - timer.StartTime;
+
+				if (nElapsed >= timer.TimeLeft)
 					bTimerReady = true;
 				else
-					nRemaining -= nElapsed;
+					timer.TimeLeft -= nElapsed;
 			}
 
-			if (!bTimerReady && nRemaining > 0)
+			if (!bTimerReady && timer.TimeLeft > 0)
 				return FireError::REARM;
 		}
 	}
@@ -946,68 +960,12 @@ ASMJIT_PATCH(0x700536, TechnoClass_WhatAction_Object_AllowAttack, 0x6)
 	return Continue;
 }
 
-#pragma region Unit
 ASMJIT_PATCH(0x51CAD1, InfantryClass_CanFire_Sync, 0x6)
 {
 	GET(FakeInfantryClass*, pInf, EBX);
 	R->ESI(pInf->_GetExtData()->CanFireWeaponType);
 	return 0x51CAE2;
 }
-
-ASMJIT_PATCH(0x7410EC, UnitClass_CanFire_Sync, 0x5)
-{
-	GET(FakeUnitClass*, pUnit, ESI);
-	R->EBX(pUnit->_GetExtData()->CanFireWeaponType);
-	return 0x7410F9;
-}
-
-ASMJIT_PATCH(0x741050, UnitClass_CanFire_DeployToFire, 0x6)
-{
-	enum { NoNeedToCheck = 0x74132B, SkipGameCode = 0x7410B7, MustDeploy = 0x7410A8 };
-
-	GET(UnitClass*, pThis, ESI);
-
-	if (pThis->Type->DeployToFire
-		&& pThis->CanDeployNow()
-		&& !TechnoExtData::CanDeployIntoBuilding(pThis, true)
-		)
-	{
-		return MustDeploy;
-	}
-
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-
-	if (!pTypeExt->NoTurret_TrackTarget.Get(RulesExtData::Instance()->NoTurret_TrackTarget))
-	{
-		return NoNeedToCheck;
-	}
-
-	return SkipGameCode;
-}
-
-ASMJIT_PATCH(0x7410D6, UnitClass_CanFire_Tethered, 0x7)
-{
-	GET(TechnoClass*, pLink, EAX);
-	return !pLink ? 0x7410DD : 0x0;
-}
-
-ASMJIT_PATCH(0x741206, UnitClass_CanFire, 0x6)
-{
-	GET(UnitClass*, pThis, ESI);
-	auto Type = pThis->Type;
-
-	if (!Type->TurretCount || Type->IsGattling)
-	{
-		return 0x741229;
-	}
-
-	const auto W = pThis->GetWeapon(pThis->SelectWeapon(nullptr));
-	return (W->WeaponType && W->WeaponType->Warhead->Temporal)
-		? 0x741210u
-		: 0x741229u
-		;
-}
-
 
 ASMJIT_PATCH(0x51C913, InfantryClass_CanFire_Heal, 7)
 {
@@ -1028,34 +986,7 @@ ASMJIT_PATCH(0x51C913, InfantryClass_CanFire_Heal, 7)
 
 }
 
-ASMJIT_PATCH(0x741113, UnitClass_CanFire_Heal, 0xA)
-{
-	enum { retFireIllegal = 0x74113A, retContinue = 0x741149 };
-	GET(UnitClass*, pThis, ESI);
-	GET(TechnoClass*, pThatTechno, EDI);
-	GET_STACK(int, nWeaponIdx, STACK_OFFSET(0x1C, 0x8));
-
-	return !pThatTechno->IsIronCurtained() && TechnoExtData::FiringAllowed(pThis, pThatTechno, pThis->GetWeapon(nWeaponIdx)->WeaponType, true) ?
-		retContinue : retFireIllegal;
-}
-
-ASMJIT_PATCH(0x741288, UnitClass_CanFire_DeployFire_DoNotErrorFacing, 0x6)
-{
-	GET(UnitClass*, pThis, ESI);
-
-	//const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-
-	if (pThis->Type->DeployFire
-		&& !pThis->Type->IsSimpleDeployer
-		&& !pThis->Deployed
-		&& pThis->CurrentMission == Mission::Unload
-	)
-	{
-		return 0x741327; //fireOK
-	}
-
-	return 0x0;
-}
+#pragma region Unit
 
 #pragma endregion
 

@@ -245,12 +245,12 @@ struct Drawing
 
 	static std::array<ColorStruct, (size_t)DefaultColorList::Black + 1> DefaultColors;
 
-	static void __stdcall DrawLinesTo(CoordStruct nFrom, CoordStruct nTo, DWORD color)
+	static void __stdcall DrawLinesTo(CoordStruct nFrom, CoordStruct nTo, ColorStruct color)
 	{
 		DrawLinesTo(nFrom.X, nFrom.Y, nFrom.Z, nTo.X, nTo.Y, nTo.Z, color);
 	}
 
-	static void __stdcall DrawLinesTo(int nFromX , int nFromY , int nFromZ, int nToX , int nToY , int nToZ , DWORD color)
+	static void __stdcall DrawLinesTo(int nFromX , int nFromY , int nFromZ, int nToX , int nToY , int nToZ , ColorStruct color)
 	{
 		JMP_STD(0x704E40);
 	}

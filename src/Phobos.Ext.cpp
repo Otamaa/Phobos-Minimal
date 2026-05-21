@@ -14,6 +14,7 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
+#include <Ext/DiskLaser/Body.h>
 #include <Ext/Ebolt/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/HouseType/Body.h>
@@ -73,7 +74,6 @@
 #include <Ext/InfantryType/Body.h>
 #include <Ext/SHPReference/Body.h>
 #include <Ext/Cell/Body.h>
-#include <Ext/DiskLaser/Body.h>
 #include <Ext/Parasite/Body.h>
 #include <Ext/Particle/Body.h>
 #include <Ext/ParticleType/Body.h>
@@ -211,6 +211,8 @@ unsigned Phobos::GetVersionNumber() {
 	version += sizeof(BulletTypeExtData);
 
 	version += sizeof(CellExtData);
+
+	version += sizeof(DiskLaserExtData);
 
 	version += sizeof(EboltExtData);
 

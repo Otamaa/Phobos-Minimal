@@ -307,6 +307,8 @@ public:
 	BSurface() : XSurface(), BufferPtr() { VTable::Set(this, vtable); }
 	BSurface(int width, int height, int bpp, void* buffer) : XSurface(width, height, bpp), BufferPtr((void*)buffer, int((height* width)* bpp)) { VTable::Set(this, vtable); }
 	BSurface(int width, int height, int bpp, MemoryBuffer& buffer) : XSurface(width, height, bpp), BufferPtr(buffer) { VTable::Set(this, vtable); }
+	BSurface(int width, int height) : XSurface { width, height }, BufferPtr { width * height * 2 } { BytesPerPixel = 2; VTable::Set(this, vtable);}
+
 	virtual ~BSurface() { JMP_THIS(0x411650); }
 
 	virtual void* Lock(int x = 0, int y = 0) override JMP_THIS(0x4115F0);
