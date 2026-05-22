@@ -478,9 +478,6 @@ public:
 	}
 
 	//with arg(s)
-
-	// check shootamount
-	bool CanFire(HouseClass* pOwner) const;
 	bool CanFireAt(HouseClass* pOwner, const CellStruct& coords, bool manual);
 
 	bool IsAnimVisible(HouseClass* pFirer) const;
@@ -492,7 +489,6 @@ public:
 	bool IsCellEligible(CellClass* pCell, SuperWeaponTarget allowed);
 	bool IsTechnoEligible(TechnoClass* pTechno, SuperWeaponTarget allowed);
 	bool IsTechnoAffected(TechnoClass* pTechno);
-	bool IsAvailable(HouseClass* pHouse);
 
 	void UneableToTransactMoney(HouseClass* pHouse);
 	void UneableToTransactBattlePoints(HouseClass* pHouse);
@@ -518,6 +514,7 @@ public:
 public:
 
 	//statics
+	static bool IsAvailable(HouseClass* pHouse, SuperClass* pSuper);
 	static void Deactivate(SuperClass* pSuper, CellStruct const cell, bool const isPlayer);
 	static bool Activate(SuperClass* pSuper, CellStruct const cell, bool const isPlayer);
 	static AffectedHouse GetRelation(HouseClass* pFirer, HouseClass* pHouse);

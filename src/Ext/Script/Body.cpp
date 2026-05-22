@@ -2101,7 +2101,7 @@ void ScriptExtData::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeam
 
 	for (auto& pSuper : pOwner->Supers)
 	{
-		if (!SWTypeExtContainer::Instance.Find(pSuper->Type)->IsAvailable(pOwner))
+		if (!SWTypeExtData::IsAvailable(pOwner, pSuper))
 			continue;
 
 		if (!pSuperChronosphere && pSuper->Type->Type == SuperWeaponType::ChronoSphere)

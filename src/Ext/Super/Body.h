@@ -5,6 +5,37 @@
 #include <Utilities/PhobosFixedString.h>
 #include <Helpers/Template.h>
 
+struct LauchData
+{
+	int LastFrame { Unsorted::CurrentFrame };
+	int Count { 0 };
+
+	COMPILETIMEEVAL FORCEDINLINE void Update()
+	{
+		++Count;
+		LastFrame = Unsorted::CurrentFrame();
+	}
+
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{ return Serialize(Stm); }
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<LauchData*>(this)->Serialize(Stm); }
+
+protected:
+
+	template <typename T>
+	bool Serialize(T& Stm)
+	{
+		return Stm
+			.Process(LastFrame)
+			.Process(Count)
+			.Success()
+			//&& Stm.RegisterChange(this)
+			; // announce this type
+	}
+};
+
 // cache all super weapon statuses
 struct SWStatus
 {
@@ -48,8 +79,6 @@ public:
 	using base_type = SuperClass;
 	static COMPILETIMEEVAL const char* ClassName = "SuperExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "SuperClass";
-	
-	
 
 public:
 
@@ -82,6 +111,8 @@ public:
 	bool FirstClickAutoFireDone {};
 	// 4 bools = 4 bytes, naturally aligned
 
+	LauchData Data {};
+
 #pragma endregion
 
 public:
@@ -90,8 +121,12 @@ public:
 
 	virtual ~SuperExtData() = default;
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType type) override {
-	}
+	static LauchData* GetLauchDataPtr(SuperClass* pFor);
+	static void UpdateLauchDataTimer(SuperClass* pFor);
+	static void UpdateLauchData(SuperClass* pFor);
+	static bool CanFire(SuperClass* pFor);
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType type) override {}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{

@@ -911,26 +911,10 @@ NOINLINE TunnelData* HouseExtData::GetTunnelVector(BuildingTypeClass* pBld, Hous
 	return HouseExtData::GetTunnelVector(pHouse, BuildingTypeExtContainer::Instance.Find(pBld)->TunnelType);
 }
 
-void HouseExtData::UpdateShotCount(SuperWeaponTypeClass* pFor)
-{
-	this->LaunchDatas.resize(SuperWeaponTypeClass::Array->Count);
-	this->LaunchDatas[pFor->ArrayIndex].Update();
-}
-
-void HouseExtData::UpdateShotCountB(SuperWeaponTypeClass* pFor)
-{
-	this->LaunchDatas.resize(SuperWeaponTypeClass::Array->Count);
-
-	auto& nData = this->LaunchDatas[pFor->ArrayIndex];
-
-	if ((nData.LastFrame & 0x80000000) != 0)
-		nData.LastFrame = Unsorted::CurrentFrame();
-}
-
 SuperClass* HouseExtData::IsSuperAvail(int nIdx, HouseClass* pHouse)
 {
 	if (const auto pSW = pHouse->Supers.get_or_default(nIdx)) {
-		if (SWTypeExtContainer::Instance.Find(pSW->Type)->IsAvailable(pHouse)) {
+		if (SWTypeExtData::IsAvailable(pHouse, pSW)) {
 			return pSW;
 		}
 	}
@@ -2794,7 +2778,6 @@ void HouseExtData::Serialize(T& Stm)
 	debugProcess(this->RepairBaseNodes, "RepairBaseNode");
 	debugProcess(this->LastBuiltNavalVehicleType, "LastBuiltNavalVehicleType");
 	debugProcess(this->ProducingNavalUnitTypeIndex, "ProducingNavalUnitTypeIndex");
-	debugProcess(this->LaunchDatas, "LaunchDatas");
 	debugProcess(this->CaptureObjectExecuted, "CaptureObjectExecuted");
 	debugProcess(this->DiscoverEvaDelay, "DiscoverEvaDelay");
 	debugProcess(this->Tunnels, "Tunnels");
@@ -2862,7 +2845,6 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->RepairBaseNodes)
 		.Process(this->LastBuiltNavalVehicleType)
 		.Process(this->ProducingNavalUnitTypeIndex)
-		.Process(this->LaunchDatas)
 		.Process(this->CaptureObjectExecuted)
 		.Process(this->DiscoverEvaDelay)
 		.Process(this->Tunnels)

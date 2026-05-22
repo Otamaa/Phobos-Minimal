@@ -1032,7 +1032,7 @@ SuperClass* BuildingTypeExtData::GetSuperWeaponByIndex(int index, HouseClass* pH
 {
 	if (auto pSuper = pHouse->Supers.get_or_default(this->GetSuperWeaponIndex(index)))
 	{
-		if (SWTypeExtContainer::Instance.Find(pSuper->Type)->IsAvailable(pHouse))
+		if (SWTypeExtData::IsAvailable(pHouse, pSuper))
 		{
 			return pSuper;
 		}
@@ -1046,7 +1046,8 @@ int BuildingTypeExtData::GetSuperWeaponIndex(const int index, HouseClass* pHouse
 	const size_t idxSW = this->GetSuperWeaponIndex(index);
 
 	if (idxSW < (size_t)pHouse->Supers.Count) {
-		if (!SWTypeExtContainer::Instance.Find(pHouse->Supers[idxSW]->Type)->IsAvailable(pHouse)) {
+		auto pSuper = pHouse->Supers[idxSW];
+		if (!SWTypeExtData::IsAvailable(pHouse, pSuper)) {
 			return -1;
 		}
 	}

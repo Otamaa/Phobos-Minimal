@@ -3575,7 +3575,7 @@ void FakeTeamClass::_TMission_Chrono_prep_for_abwp(ScriptActionNode* nNode, bool
 		SuperClass* super = house->Supers.Items[i];
 		SWTypeExtData* pExt = SWTypeExtContainer::Instance.Find(super->Type);
 
-		if (!pExt->IsAvailable(house))
+		if (!SWTypeExtData::IsAvailable(house, super))
 			continue;
 
 		if (super->Type->Type == SuperWeaponType::ChronoSphere) // Chronosphere
@@ -3717,7 +3717,7 @@ void FakeTeamClass::_TMission_Iron_Curtain_Me(ScriptActionNode* nNode, bool arg3
 
 		if (pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain && pExt->SW_Group == nNode->Argument)
 		{
-			if (!pExt->IsAvailable(pOwner))
+			if (!SWTypeExtData::IsAvailable(pOwner, pSuper))
 				continue;
 
 			ironCurtain = pSuper;
@@ -3765,7 +3765,7 @@ void FakeTeamClass::_TMission_Chrono_prep_for_aq(ScriptActionNode* nNode, bool a
 		SuperClass* super = (SuperClass*)house->Supers.Items[i];
 		SWTypeExtData* pExt = SWTypeExtContainer::Instance.Find(super->Type);
 
-		if (!pExt->IsAvailable(house))
+		if (!SWTypeExtData::IsAvailable(house, super))
 			continue;
 
 		if (super->Type->Type == SuperWeaponType::ChronoSphere) chronosphere = super;
