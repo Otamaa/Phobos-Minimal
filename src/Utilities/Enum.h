@@ -34,6 +34,16 @@
 #include <Helpers\EnumFlags.h>
 #include <GeneralDefinitions.h>
 
+enum class DrawDamageMode : BYTE
+{
+	disabled, damageOnly, withWH, count
+};
+
+enum class FPSCounterMode : BYTE
+{
+	disabled, Full, FPSOnly, FPSandAVG, FPSandLat, Lat, count
+};
+
 enum class PositionFollow : BYTE
 {
 	None = 0,

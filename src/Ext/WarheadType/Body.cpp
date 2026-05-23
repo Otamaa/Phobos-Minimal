@@ -3434,6 +3434,22 @@ void WarheadTypeExtData::ApplyBuildingUndeploy(TechnoClass* pTarget) {
 // container
 WarheadTypeExtContainer WarheadTypeExtContainer::Instance;
 
+bool WarheadTypeExtContainer::LoadAll(PhobosStreamReader& stm)
+{
+	if (!stm.Process(WarheadTypeExtData::IonBlastExt))
+		return false;
+
+	return this->base_SaveLoad_t::LoadAll(stm);
+}
+
+bool WarheadTypeExtContainer::SaveAll(PhobosStreamWriter& stm)
+{
+	if (!stm.Process(WarheadTypeExtData::IonBlastExt))
+		return false;
+
+	return this->base_SaveLoad_t::SaveAll(stm);
+}
+
 void WarheadTypeExtContainer::Clear()
 {
 	this->base_t::Clear();

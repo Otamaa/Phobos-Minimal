@@ -19,8 +19,6 @@ public:
 	using base_type = WeaponTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "WeaponTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "WeaponTypeClass";
-	
-	
 
 public:
 
@@ -320,7 +318,7 @@ public:
 };
 
 class WeaponTypeExtContainer final :public Container<WeaponTypeExtData>
-	, public ReadWriteContainerInterfaces<WeaponTypeExtData>
+	, public ReadWriteContainerInterfaces<WeaponTypeExtData>, public ContainerSaveLoad<WeaponTypeExtContainer, true>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "WeaponTypeExtContainer";
@@ -329,9 +327,6 @@ public:
 
 public:
 	static WeaponTypeExtContainer Instance;
-
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(ext_t::base_type* key, CCINIClass* pINI);

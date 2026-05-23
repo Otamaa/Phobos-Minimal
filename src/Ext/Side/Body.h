@@ -249,7 +249,7 @@ private:
 };
 
 class SideExtContainer final : public Container<SideExtData>
-	, public ReadWriteContainerInterfaces<SideExtData>
+	, public ReadWriteContainerInterfaces<SideExtData>, public ContainerSaveLoad<SideExtContainer, true>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "SideExtContainer";
@@ -257,9 +257,6 @@ public:
 
 public:
 	static SideExtContainer Instance;
-
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(ext_t::base_type* key, CCINIClass* pINI);

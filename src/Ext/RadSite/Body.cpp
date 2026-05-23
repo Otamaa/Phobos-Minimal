@@ -251,7 +251,6 @@ void RadSiteExtData::Serialize(T& Stm)
 // =============================
 // container
 RadSiteExtContainer RadSiteExtContainer::Instance;
-
 // =============================
 // container hooks
 

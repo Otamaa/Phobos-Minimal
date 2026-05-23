@@ -15,8 +15,6 @@ public:
 	using base_type = TriggerClass;
 	static COMPILETIMEEVAL const char* ClassName = "TriggerExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "TriggerClass";
-	
-	
 
 public:
 
@@ -76,17 +74,13 @@ private:
 	void Serialize(T& Stm);
 };
 
-class TriggerExtContainer final : public Container<TriggerExtData>
+class TriggerExtContainer final : public Container<TriggerExtData>, public ContainerSaveLoad<TriggerExtContainer, true>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "TriggerExtContainer";
 
 public:
 	static TriggerExtContainer Instance;
-
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
-
 };
 
 class NOVTABLE FakeTriggerClass : public TriggerClass

@@ -5,7 +5,7 @@ By AlexB and Joshy
 */
 
 #pragma once
-#include <Phobos.h>
+#include <Base/Always.h>
 
 #include <ColorScheme.h>
 #include <CoordStruct.h>
@@ -15,7 +15,10 @@ By AlexB and Joshy
 #include <string>
 
 #include <Utilities/ClassInterfaces.h>
+#include <Lib/fmt/format.h>
 
+class PhobosStreamReader;
+class PhobosStreamWriter;
 class WarheadTypeClass;
 class TechnoClass;
 class HouseClass;
@@ -23,6 +26,9 @@ class CellClass;
 class FlyingStrings : public GlobalSaveable
 {
 private:
+	const char* ClassName = CLASS_NAME(FlyingStrings);
+
+public:
 
 	struct Item
 	{
@@ -31,35 +37,11 @@ private:
 		int CreationFrame;
 		COLORREF Color;
 		COLORREF Back_Color;
-		TextPrintType TextPrintType;
+		int TPrintType;
 		std::wstring Text;
 
-		bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-		{
-			return
-				Stm
-				.Process(this->Location, RegisterForChange)
-				.Process(this->PixelOffset, RegisterForChange)
-				.Process(this->CreationFrame, RegisterForChange)
-				.Process(this->Color, RegisterForChange)
-				.Process(this->Back_Color, RegisterForChange)
-				.Process(this->TextPrintType, RegisterForChange)
-				.Process(this->Text, RegisterForChange)
-				;
-		}
-
-		bool Save(PhobosStreamWriter& Stm) const
-		{
-			return Stm
-				.Process(this->Location)
-				.Process(this->PixelOffset)
-				.Process(this->CreationFrame)
-				.Process(this->Color)
-				.Process(this->Back_Color)
-				.Process(this->TextPrintType)
-				.Process(this->Text)
-				;
-		}
+		bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+		bool Save(PhobosStreamWriter& Stm) const;
 	};
 
 	static COMPILETIMEEVAL int Duration = 75;
@@ -73,23 +55,23 @@ public:
 	static COMPILETIMEEVAL size_t ItemSize = sizeof(Item);
 
 	void FORCEDINLINE Add(std::wstring text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty) {
-		Data.emplace_back(coords, pixelOffset, Unsorted::CurrentFrame(), color.ToInit(), 0, TextPrintType::Center | TextPrintType::NoShadow, std::move(text));
+		Data.emplace_back(coords, pixelOffset, Unsorted::CurrentFrame(), color.ToInit(), 0, int(TextPrintType::Center | TextPrintType::NoShadow), std::move(text));
 	}
 
 	void FORCEDINLINE Add(const wchar_t* text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty) {
-		Data.emplace_back(coords, pixelOffset, Unsorted::CurrentFrame(), color.ToInit(), 0, TextPrintType::Center | TextPrintType::NoShadow, text);
+		Data.emplace_back(coords, pixelOffset, Unsorted::CurrentFrame(), color.ToInit(), 0, int(TextPrintType::Center | TextPrintType::NoShadow), text);
 	}
 
 	void FORCEDINLINE Add(std::wstring_view text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty) {
-		Data.emplace_back(coords, pixelOffset, Unsorted::CurrentFrame(), color.ToInit(), 0, TextPrintType::Center | TextPrintType::NoShadow, std::move(std::wstring(text)));
+		Data.emplace_back(coords, pixelOffset, Unsorted::CurrentFrame(), color.ToInit(), 0, int(TextPrintType::Center | TextPrintType::NoShadow), std::move(std::wstring(text)));
 	}
 
 	void FORCEDINLINE Add(const fmt::basic_memory_buffer<wchar_t>& buffer, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty) {
-		Data.emplace_back(coords, pixelOffset, Unsorted::CurrentFrame(), color.ToInit(), 0, TextPrintType::Center | TextPrintType::NoShadow, std::wstring(buffer.data(), buffer.size()));
+		Data.emplace_back(coords, pixelOffset, Unsorted::CurrentFrame(), color.ToInit(), 0, int(TextPrintType::Center | TextPrintType::NoShadow), std::wstring(buffer.data(), buffer.size()));
 	}
 
 	void FORCEDINLINE Add(fmt::basic_memory_buffer<wchar_t>&& buffer, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty) {
-		Data.emplace_back(coords, pixelOffset, Unsorted::CurrentFrame(), color.ToInit(), 0, TextPrintType::Center | TextPrintType::NoShadow, std::wstring(buffer.data(), buffer.size()));
+		Data.emplace_back(coords, pixelOffset, Unsorted::CurrentFrame(), color.ToInit(), 0, int(TextPrintType::Center | TextPrintType::NoShadow), std::wstring(buffer.data(), buffer.size()));
 	}
 
 	void AddMoneyString(bool Display, int amount, TechnoClass* owner, AffectedHouse displayToHouses, CoordStruct coords, Point2D pixelOffset = Point2D::Empty , ColorStruct nOverrideColor = ColorStruct::Empty);
@@ -105,7 +87,7 @@ public:
 	FlyingStrings() = default;
 	virtual ~FlyingStrings() = default;
 
-	virtual bool SaveGlobal(PhobosStreamWriter& root) { return true; }
-	virtual bool LoadGlobal(const PhobosStreamReader& root) { return true; }
+	virtual bool SaveGlobal(PhobosStreamWriter& root);
+	virtual bool LoadGlobal(PhobosStreamReader& root);
 	virtual void Clear();
 };

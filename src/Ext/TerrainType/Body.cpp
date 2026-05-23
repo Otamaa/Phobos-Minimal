@@ -151,6 +151,7 @@ void TerrainTypeExtData::Remove(TerrainClass* pTerrain)
 // =============================
 // container
 TerrainTypeExtContainer TerrainTypeExtContainer::Instance;
+//=============================
 
 void TerrainTypeExtContainer::LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr)
 {

@@ -258,16 +258,13 @@ public:
 };
 
 class BulletTypeExtContainer final : public Container<BulletTypeExtData>
-	, public ReadWriteContainerInterfaces<BulletTypeExtData>
+	, public ReadWriteContainerInterfaces<BulletTypeExtData>, public ContainerSaveLoad<BulletTypeExtContainer, true>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "BulletTypeExtContainer";
 
 public:
 	static BulletTypeExtContainer Instance;
-
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void LoadFromINI(BulletTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(BulletTypeClass* key, CCINIClass* pINI);

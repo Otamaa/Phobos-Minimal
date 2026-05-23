@@ -1434,10 +1434,10 @@ ASMJIT_PATCH(0x71f683, TEventClass_GetFlags, 5)
 }
 
 DEFINE_FUNCTION_JUMP(CALL , 0x726540, FakeTEventClass::_Occured)
+
 // =============================
 // container
 TEventExtContainer TEventExtContainer::Instance;
-
 // =============================
 // container hooks
 //

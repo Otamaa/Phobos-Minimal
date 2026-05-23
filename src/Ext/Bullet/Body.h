@@ -155,7 +155,7 @@ public:
 
 };
 
-class BulletExtContainer final : public Container<BulletExtData>
+class BulletExtContainer final : public Container<BulletExtData>, public ContainerSaveLoad<BulletExtContainer, true>
 {
 public:
 
@@ -163,10 +163,6 @@ public:
 
 public:
 	static BulletExtContainer Instance;
-
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
-
 };
 
 class FakeWarheadTypeClass;

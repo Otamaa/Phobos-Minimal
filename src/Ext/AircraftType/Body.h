@@ -105,7 +105,7 @@ public:
 };
 
 class AircraftTypeExtContainer final : public Container<AircraftTypeExtData>
-	, public ReadWriteContainerInterfaces<AircraftTypeExtData>
+	, public ReadWriteContainerInterfaces<AircraftTypeExtData>, public ContainerSaveLoad<AircraftTypeExtContainer, true>
 {
 public:
 
@@ -113,9 +113,6 @@ public:
 
 public:
 	static AircraftTypeExtContainer Instance;
-
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void LoadFromINI(AircraftTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(AircraftTypeClass* key, CCINIClass* pINI);

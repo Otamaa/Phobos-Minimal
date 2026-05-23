@@ -557,20 +557,21 @@ public:
 };
 
 class SWTypeExtContainer final : public Container<SWTypeExtData>
-	, public ReadWriteContainerInterfaces<SWTypeExtData>
+	, public ReadWriteContainerInterfaces<SWTypeExtData>, public ContainerSaveLoad<SWTypeExtContainer, true>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "SWTypeExtContainer";
 	using base_t = Container<SWTypeExtData>;
 	using ext_t = SWTypeExtData;
+	using base_SaveLoad_t = ContainerSaveLoad<SWTypeExtContainer, true>;
 
 public:
 	static SWTypeExtContainer Instance;
 
 public:
 
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
+	virtual bool LoadAll(PhobosStreamReader& stm);
+	virtual bool SaveAll(PhobosStreamWriter& stm);
 
 	virtual void Clear();
 

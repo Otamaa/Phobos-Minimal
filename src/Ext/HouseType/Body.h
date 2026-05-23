@@ -173,7 +173,7 @@ private:
 };
 
 class HouseTypeExtContainer final : public Container<HouseTypeExtData>
-	, public ReadWriteContainerInterfaces<HouseTypeExtData>
+	, public ReadWriteContainerInterfaces<HouseTypeExtData>, public ContainerSaveLoad<HouseTypeExtContainer, true>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "HouseTypeExtContainer";
@@ -181,9 +181,6 @@ public:
 public:
 	static HouseTypeExtContainer Instance;
 	
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
-
 	virtual void LoadFromINI(HouseTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(HouseTypeClass* key, CCINIClass* pINI);
 };

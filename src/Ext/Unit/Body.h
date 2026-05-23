@@ -66,21 +66,18 @@ public:
 	FORCEDINLINE const UnitClass* This_Const() const { return reinterpret_cast<const UnitClass*>(this->AttachedToObject); }
 	FORCEDINLINE UnitTypeExtData* GetTypeExtData() const { return ((UnitTypeExtData*)TypeExtData); }
 
-
+	static double GetPrimaryRadian(UnitClass* pThis);
 public:
 
 };
 
-class UnitExtContainer final : public Container<UnitExtData>
+class UnitExtContainer final : public Container<UnitExtData>, public ContainerSaveLoad<UnitExtContainer, true>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "UnitExtContainer";
 
 public:
 	static UnitExtContainer Instance;
-
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	static bool HasDeployingAnim(TechnoTypeClass* pUnitType);
 	static bool CheckDeployRestrictions(FootClass* pUnit, bool isDeploying);

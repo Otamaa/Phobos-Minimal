@@ -708,18 +708,19 @@ public:
 };
 
 class WarheadTypeExtContainer final : public Container<WarheadTypeExtData>
-	, public ReadWriteContainerInterfaces<WarheadTypeExtData>
+	, public ReadWriteContainerInterfaces<WarheadTypeExtData>, public ContainerSaveLoad<WarheadTypeExtContainer, true>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "WarheadTypeExtContainer";
 	using base_t = Container<WarheadTypeExtData>;
 	using ext_t = WarheadTypeExtData;
+	using base_SaveLoad_t = ContainerSaveLoad<WarheadTypeExtContainer, true>;
 
 public:
 	static WarheadTypeExtContainer Instance;
 
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
+	virtual bool LoadAll(PhobosStreamReader& stm);
+	virtual bool SaveAll(PhobosStreamWriter& stm);
 
 	virtual void Clear();
 

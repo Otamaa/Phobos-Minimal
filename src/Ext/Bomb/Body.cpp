@@ -19,7 +19,6 @@ void BombExtData::Serialize(T& Stm) {
 // =============================
 // container
 BombExtContainer BombExtContainer::Instance;
-
 // =============================
 // container hooks
 

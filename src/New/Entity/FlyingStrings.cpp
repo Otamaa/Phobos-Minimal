@@ -1,5 +1,7 @@
 #include "FlyingStrings.h"
 
+#include <Phobos.h>
+
 #include <MapClass.h>
 #include <Phobos.CRT.h>
 #include <TacticalClass.h>
@@ -14,8 +16,37 @@
 #include <TextDrawing.h>
 
 #include <Utilities/EnumFunctions.h>
+#include <Utilities/Debug.h>
+#include <Utilities/Savegame.h>
 
 FlyingStrings FlyingStrings::Instance;
+
+bool FlyingStrings::Item::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+{
+	return
+		Stm
+		.Process(this->Location)
+		.Process(this->PixelOffset)
+		.Process(this->CreationFrame)
+		.Process(this->Color)
+		.Process(this->Back_Color)
+		.Process(this->TPrintType)
+		.Process(this->Text)
+		;
+}
+
+bool FlyingStrings::Item::Save(PhobosStreamWriter& Stm) const
+{
+	return Stm
+		.Process(this->Location)
+		.Process(this->PixelOffset)
+		.Process(this->CreationFrame)
+		.Process(this->Color)
+		.Process(this->Back_Color)
+		.Process(this->TPrintType)
+		.Process(this->Text)
+		;
+}
 
 bool FlyingStrings::DrawAllowed(CoordStruct const& nCoords, Point2D& outPoint)
 {
@@ -28,6 +59,42 @@ bool FlyingStrings::DrawAllowed(CoordStruct const& nCoords, Point2D& outPoint)
 			outPoint = _ret;
 			return _cond;
 		}
+	}
+
+	return false;
+}
+
+bool FlyingStrings::SaveGlobal(PhobosStreamWriter& Stm) { return true; 
+		//save it as int instead of size_t
+		const int Count = (int)this->Data.size();
+		Stm.Save(Count);
+
+		for (int i = 0; i < Count; ++i)
+		{
+			Debug::Log("Saving %s [Item(%d) - %x] to stream\n", FlyingStrings::ClassName,i, (long)(&this->Data[i]));
+
+			if (!this->Data[i].Save(Stm))
+				Debug::FatalError("Failed to save FlyingStrings Item [%d]\n", i);
+		}
+
+		return true;
+}
+
+bool FlyingStrings::LoadGlobal(PhobosStreamReader& Stm) {
+	Clear();
+
+	int Count = 0;
+
+	if (Stm.Load(Count)) {
+		if (Count > 0) {
+			Data.resize(Count);
+			for (int i = 0; i < Count; ++i) {
+				if (!this->Data[i].Load(Stm, true))
+					Debug::FatalError("Failed to Load FlyingStrings Item [%d]\n", i);
+			}
+		}
+
+		return true;
 	}
 
 	return false;
@@ -217,7 +284,7 @@ void FlyingStrings::UpdateAll()
 						pos.Y -= (Unsorted::CurrentFrame.get() - item.CreationFrame);
 					}
 
-					TextDrawing::Simple_Text_Print_Wide(item.Text , DSurface::Temp(), &bound, &pos, item.Color, item.Back_Color, item.TextPrintType);
+					TextDrawing::Simple_Text_Print_Wide(item.Text , DSurface::Temp(), &bound, &pos, item.Color, item.Back_Color, (TextPrintType)item.TPrintType);
 				}
 			}
 

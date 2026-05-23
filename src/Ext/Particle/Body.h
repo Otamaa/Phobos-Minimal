@@ -68,17 +68,13 @@ private:
 	void Serialize(T& Stm);
 };
 
-class ParticleExtContainer final : public Container<ParticleExtData>
+class ParticleExtContainer final : public Container<ParticleExtData>, public ContainerSaveLoad<ParticleExtContainer, true>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "ParticleExtContainer";
 
 public:
 	static ParticleExtContainer Instance;
-
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
-
 };
 
 class ParticleTypeExtData;
@@ -86,9 +82,6 @@ class NOVTABLE FakeParticleClass : public ParticleClass
 {
 public:
 	void _Detach(AbstractClass* target, bool all);
-
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	void __AI();
 	void __Coord_AI();

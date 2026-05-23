@@ -160,6 +160,7 @@ typedef union {
 #define STRING(x) STRING2(x)
 
 #define DEFINE_CLSID(_addrs) __declspec(uuid(_addrs))
+#define CLASS_NAME(type) #type
 
 #define COMPILE_TIME_SIZEOF(t) \
 template<int s> struct SIZEOF_ ## t ## _IS; \

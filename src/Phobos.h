@@ -3,7 +3,9 @@
 #include <Phobos.version.h>
 
 #include <GameStrings.h>
+
 #include <Utilities/Patch.h>
+#include <Utilities/Enum.h>
 
 #include <Wstring.h>
 #include <random>
@@ -29,18 +31,9 @@
 
 #pragma warning( pop )
 
+
+
 class CSFText;
-
-enum class DrawDamageMode : BYTE
-{
-	disabled, damageOnly, withWH, count
-};
-
-enum class FPSCounterMode
-{
-	disabled, Full, FPSOnly, FPSandAVG, FPSandLat, Lat,  count
-};
-
 class CCINIClass;
 class AbstractClass;
 

@@ -113,6 +113,7 @@ void TerrainExtData::Serialize(T& Stm)
 // =============================
 // container
 TerrainExtContainer TerrainExtContainer::Instance;
+//==============================
 
 // container hooks
 DEFINE_JUMP(LJMP, 0x71BC31 , 0x71BC86);

@@ -102,17 +102,13 @@ private:
 	void Serialize(T& Stm);
 };
 
-class RadSiteExtContainer final : public Container<RadSiteExtData>
+class RadSiteExtContainer final : public Container<RadSiteExtData>, public ContainerSaveLoad<RadSiteExtContainer, true>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "RadSiteExtContainer";
 
 public:
 	static RadSiteExtContainer Instance;
-
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
-
 };
 
 class NOVTABLE FakeRadSiteClass : public RadSiteClass

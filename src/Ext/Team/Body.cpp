@@ -5559,7 +5559,6 @@ void TeamExtData::Serialize(T& Stm)
 // =============================
 // container
 TeamExtContainer TeamExtContainer::Instance;
-
 // =============================
 // container hooks
 

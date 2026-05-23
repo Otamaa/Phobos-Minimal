@@ -113,16 +113,13 @@ public:
 	static int GetOverlayIndex(CellClass* pCell);
 };
 
-class CellExtContainer final : public Container<CellExtData>
+class CellExtContainer final : public Container<CellExtData>, public ContainerSaveLoad<CellExtContainer, false>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "CellExtContainer";
 
 public:
 	static CellExtContainer Instance;
-
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 };
 
 enum class CollectResult : char {

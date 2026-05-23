@@ -157,16 +157,12 @@ private:
 	void Serialize(T& Stm);
 };
 
-class SuperExtContainer final : public Container<SuperExtData>
+class SuperExtContainer final : public Container<SuperExtData>, public ContainerSaveLoad<SuperExtContainer, true>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "SuperExtContainer";
 public:
 	static SuperExtContainer Instance;
-
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
-
 };
 
 class SWTypeExtData;

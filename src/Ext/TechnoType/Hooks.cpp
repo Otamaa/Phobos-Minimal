@@ -16,6 +16,7 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/House/Body.h>
+#include <Ext/Unit/Body.h>
 #include <Ext/UnitType/Body.h>
 
 #include <Utilities/Macro.h>
@@ -196,6 +197,17 @@ ASMJIT_PATCH(0x73C7AC, UnitClass_DrawAsSHP_DrawTurret_TintFix, 0x6)
 	return SkipDrawCode;
 }
 
+double UnitExtData::GetPrimaryRadian(UnitClass* pThis)
+{
+	// Align with the jj Draw_Matrix calc changing.
+	if (auto const pJJLoco = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor)) {
+		if (!pThis->IsAttackedByLocomotor)
+			return pJJLoco->Facing.Current().GetRadian<32>();
+	}
+
+	return pThis->PrimaryFacing.Current().GetRadian<32>();
+}
+
 ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 {
 	enum { SkipGameCode = 0x73BEA4 };
@@ -241,17 +253,7 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 			Matrix3D mtxTurret = mtx;
 			pDrawTypeExt->ApplyTurretOffset(&mtxTurret, Math::Pixel_Per_Lepton);
 
-			FacingClass* pPrimaryFacing = &pThis->PrimaryFacing;
-			// Align with the jj Draw_Matrix calc changing.
-			if (auto pJJLoco = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor))
-			{
-				if (!pThis->IsAttackedByLocomotor)
-					pPrimaryFacing = &pJJLoco->Facing;
-			}
-
-			double primaryRad = pPrimaryFacing->Current().GetRadian<32>();
-
-			mtxTurret.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - primaryRad));
+			mtxTurret.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - UnitExtData::GetPrimaryRadian(pThis)));
 
 			if (pThis->TurretRecoil.State != RecoilData::RecoilState::Inactive)
 				mtxTurret.TranslateX(-pThis->TurretRecoil.TravelSoFar);

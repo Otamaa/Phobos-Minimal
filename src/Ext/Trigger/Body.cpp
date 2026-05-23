@@ -31,7 +31,6 @@ void TriggerExtData::Serialize(T& Stm)
 // =============================
 // container
 TriggerExtContainer TriggerExtContainer::Instance;
-
 // =============================
 // container hooks
 

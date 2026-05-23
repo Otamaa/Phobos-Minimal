@@ -355,7 +355,6 @@ void TemporalExtData::Serialize(T& Stm) {
 // =============================
 // container
 TemporalExtContainer TemporalExtContainer::Instance;
-
 // =============================
 // container hooks
 

@@ -2898,6 +2898,52 @@ void HouseExtData::Serialize(T& Stm)
 
 HouseExtContainer HouseExtContainer::Instance;
 
+bool HouseExtContainer::LoadAll(PhobosStreamReader& stm)
+{
+	if (!stm
+		.Process(Civilian)
+		.Process(Special)
+		.Process(Neutral)
+		.Process(CivilianSide)
+		.Process(AutoDeathObjects)
+		.Process(LimboTechno)
+
+		.Process(LastGrindingBlanceUnit)
+		.Process(LastGrindingBlanceInf)
+		.Process(LastHarvesterBalance)
+		.Process(LastSlaveBalance)
+
+		.Process(CloakEVASpeak)
+		.Process(SubTerraneanEVASpeak)
+		.Process(IsAnyFirestormActive))
+		return false;
+
+	return this->base_SaveLoad_t::LoadAll(stm);
+}
+
+bool HouseExtContainer::SaveAll(PhobosStreamWriter& stm)
+{
+	if (!stm
+		.Process(Civilian)
+		.Process(Special)
+		.Process(Neutral)
+		.Process(CivilianSide)
+		.Process(AutoDeathObjects)
+		.Process(LimboTechno)
+
+		.Process(LastGrindingBlanceUnit)
+		.Process(LastGrindingBlanceInf)
+		.Process(LastHarvesterBalance)
+		.Process(LastSlaveBalance)
+
+		.Process(CloakEVASpeak)
+		.Process(SubTerraneanEVASpeak)
+		.Process(IsAnyFirestormActive))
+		return false;
+
+	return this->base_SaveLoad_t::SaveAll(stm);
+}
+
 void HouseExtContainer::Clear()
 {
 	this->base_t::Clear();
@@ -4694,6 +4740,8 @@ HRESULT __stdcall FakeHouseClass::__Load(IStream* pStm)
 {
 	auto hr = this->HouseClass::Load(pStm);
 
+	if (!SUCCEEDED(hr)) return hr;
+
 	this->TrackedBuiltAircraftTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
 	this->TrackedBuiltInfantryTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
 	this->TrackedBuiltUnitTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
@@ -4733,7 +4781,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8B4, FakeHouseClass::__Load)
 HRESULT __stdcall FakeHouseClass::__Save(IStream* pStm, BOOL fClearDirty)
 {
 	auto hr = this->HouseClass::Save(pStm, fClearDirty);
-
+	if (!SUCCEEDED(hr)) return hr;
 	hr = this->TrackedBuiltAircraftTypes.GetTrackerptr<PhobosUnitTrackerClass>()->Save(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 	hr = this->TrackedBuiltInfantryTypes.GetTrackerptr<PhobosUnitTrackerClass>()->Save(pStm);

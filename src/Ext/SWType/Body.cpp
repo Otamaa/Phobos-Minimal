@@ -2467,10 +2467,33 @@ void SWTypeExtData::ApplyLinkedSW(SuperClass* pSW)
 // container
 
 SWTypeExtContainer SWTypeExtContainer::Instance;
+
+bool SWTypeExtContainer::LoadAll(PhobosStreamReader& stm)
+{
+	if (!stm
+		.Process(SWTypeExtData::TempSuper)
+	.Process(SWTypeExtData::LauchData)
+		)
+		return false;
+
+	return this->base_SaveLoad_t::LoadAll(stm);
+}
+
+bool SWTypeExtContainer::SaveAll(PhobosStreamWriter& stm)
+{
+	if (!stm
+		.Process(SWTypeExtData::TempSuper)
+	.Process(SWTypeExtData::LauchData)
+		)
+		return false;
+
+	return this->base_SaveLoad_t::SaveAll(stm);
+}
+
 SuperWeaponTypeClass* SWTypeExtData::CurrentSWType;
 SuperClass* SWTypeExtData::TempSuper;
-bool SWTypeExtData::Handled;
 SuperClass* SWTypeExtData::LauchData;
+bool SWTypeExtData::Handled;
 
 void SWTypeExtContainer::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {

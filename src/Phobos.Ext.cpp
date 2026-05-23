@@ -307,22 +307,6 @@ unsigned Phobos::GetVersionNumber() {
 
 #include <New/Type/ActionTypeClass.h>
 
-HRESULT Phobos::LoadAllExtData(IStream* pStm)
-{
-	//Global
-
-	//Ext
-	return S_OK;
-}
-
-HRESULT Phobos::SaveAllExtData(IStream* pStm)
-{
-	//Global
-
-	//Ext
-	return S_OK;
-}
-
 #define CLEAR_CONTAIER_CLASS_AND_TYPE(CC) 	CC##ExtContainer::Instance.Clear(); CC##TypeExtContainer::Instance.Clear()
 #define CLEAR_CONTAIER_CLASS(CC) 	CC::Instance.Clear()
 #define CLEAR_CLASS(CC) 	CC::Clear()
@@ -334,10 +318,6 @@ HRESULT Phobos::SaveAllExtData(IStream* pStm)
 
 void Phobos::ClearAll()
 {
-
-	//we already clear the data dont need to do it twice
-	if (Phobos::Otamaa::DoingLoadGame)
-		return;
 
 	for (auto& hand : Handles::Array)
 	{

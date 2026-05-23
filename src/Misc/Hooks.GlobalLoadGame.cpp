@@ -68,18 +68,33 @@
 #include <New/Type/InsigniaTypeClass.h>
 #include <New/Type/SelectBoxTypeClass.h>
 #include <New/Type/TheaterTypeClass.h>
+#include <New/Type/GenericPrerequisite.h>
+#include <New/Type/BannerTypeClass.h>
+#include <New/Type/BarTypeClass.h>
+#include <New/Type/HealthBarTypeClass.h>
+#include <New/Type/RocketTypeClass.h>
+#include <New/Type/ThemeTypeClass.h>
+
+#include <New/Entity/FlyingStrings.h>
+#include <New/Entity/SWFirerClass.h>
+#include <New/Entity/BannerClass.h>
+
+#include <Misc/PhobosGlobal.h>
 
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/Aircraft/Body.h>
 #include <Ext/AircraftType/Body.h>
+#include <Ext/AITriggerType/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/Bomb/Body.h>
 #include <Ext/Cell/Body.h>
+#include <Ext/DiskLaser/Body.h>
 #include <Ext/Side/Body.h>
+#include <Ext/Script/Body.h>
 #include <Ext/UnitType/Body.h>
 #include <Ext/Unit/Body.h>
 #include <Ext/HouseType/Body.h>
@@ -91,9 +106,11 @@
 #include <Ext/Particle/Body.h>
 #include <Ext/ParticleSystemType/Body.h>
 #include <Ext/ParticleSystem/Body.h>
+#include <Ext/Parasite/Body.h>
 #include <Ext/RadSite/Body.h>
 #include <Ext/SmudgeType/Body.h>
 #include <Ext/SWType/Body.h>
+#include <Ext/SWType/NewSuperWeaponType/SWStateMachine.h>
 #include <Ext/Super/Body.h>
 #include <Ext/TAction/Body.h>
 #include <Ext/Tactical/Body.h>
@@ -109,6 +126,7 @@
 #include <Ext/Wave/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/Mouse/Body.h>
 
 #include <Misc/Spawner/Main.h>
 #include <Misc/Spawner/SavedGamesInSubdir.h>
@@ -245,11 +263,257 @@ HRESULT PrepareDisplaySurfaces()
 #include <Utilities/StreamUtils.h>
 #include <Ext/Scenario/Body.h>
 
-HRESULT Decode_All_Pointers(LPSTREAM stream)
+template<typename T>
+HRESULT ReadBlocksFromStream(IStream* pStm)
+{
+	PhobosByteStream loader(0);
+	if (loader.ReadFromStream(pStm)) {
+		PhobosStreamReader reader(loader);
+		if (T::LoadGlobals(reader)) { 
+			if(reader.ExpectEndOfBlock())
+				return S_OK;
+		}
+	}
+
+	return S_FALSE;
+}
+
+template<typename T>
+HRESULT ReadBlocksFromStreamStreamB(T& who_, IStream* pStm)
+{
+	using Base = std::remove_const_t<std::remove_pointer_t<T>>;
+
+	PhobosByteStream loader(0);
+	PhobosStreamReader reader(loader);
+
+	bool _LoadResult = false;
+
+	if constexpr (std::is_pointer_v<T>) {
+		_LoadResult = who_->LoadGlobal(reader);
+	} else {
+		_LoadResult = who_.LoadGlobal(reader);
+	}
+
+	if (_LoadResult && reader.ExpectEndOfBlock())
+		return S_OK;
+
+	return S_FALSE;
+}
+
+template<typename T>
+HRESULT ReadBlocksFromStreamStreamC(T& who_, IStream* pStm)
+{
+	PhobosByteStream loader(0);
+	PhobosStreamReader reader(loader);
+
+	if (who_.LoadAll(reader) && reader.ExpectEndOfBlock())
+		return S_OK;
+
+	return S_FALSE;
+}
+
+HRESULT Phobos::LoadAllExtData(IStream* pStm)
 {
 	HRESULT hr = S_OK;
 
-	ScenarioClass::ClearScenario();
+	//Global
+	hr = ReadBlocksFromStream<Phobos>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<CursorTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream	<MouseClassExt>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<TheaterTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<GenericPrerequisite>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<BannerTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<ArmorTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<BarTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<CrateTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<DigitalDisplayTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<HealthBarTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<HoverTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<ImmunityTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<InsigniaTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<LaserTrailTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<RadTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<RocketTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<SelectBoxTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<ShieldTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<TechTreeTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<ThemeTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	
+	hr = ReadBlocksFromStream<TunnelTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<PhobosAttachEffectTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	//
+	hr = ReadBlocksFromStreamStreamB(FlyingStrings::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStreamStreamB(SWFirerManagerClass::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStreamStreamB(BannerManagerClass::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<PhobosGlobal>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<HugeBar>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<SWStateMachine>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<TActionExtData>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<ShieldClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	//Ext
+	hr = ReadBlocksFromStreamStreamC(SideExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(AnimTypeExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(TiberiumExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(HouseTypeExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(HouseExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(UnitTypeExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(UnitExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(InfantryTypeExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(InfantryExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(BuildingTypeExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(BuildingExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(AircraftTypeExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(AircraftExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(AnimExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	//hr = ReadBlocksFromStreamStreamC(TeamTypeExtContainer::Instance, pStm);
+	//	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(TeamExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	//hr = ReadBlocksFromStreamStreamC(ScriptTypeExtContainer::Instance, pStm);
+	//	if (!SUCCEEDED(hr)) return hr;
+	//hr = ReadBlocksFromStreamStreamC(ScriptExtContainer::Instance, pStm);
+	//if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(AITriggerTypeExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	//hr = ReadBlocksFromStreamStreamC(TActionExtContainer::Instance, pStm);
+	//if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(TEventExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(VoxelAnimTypeExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(VoxelAnimExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(WarheadTypeExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(WeaponTypeExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(ParticleTypeExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(ParticleExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(ParticleSystemTypeExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(ParticleSystemExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(BulletTypeExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(BulletExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(SmudgeTypeExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(OverlayTypeExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(SWTypeExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(SuperExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(BuildingExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(TerrainTypeExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(TerrainExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(WaveExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	//hr = ReadBlocksFromStreamStreamC(CaptureManagerExtContainer::Instance, pStm);
+	//	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(DiskLaserExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	//hr = ReadBlocksFromStreamStreamC(ParasiteExtContainer::Instance, pStm);
+	//	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(TemporalExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	//hr = ReadBlocksFromStreamStreamC(AirstrikeExtContainer::Instance, pStm);
+	//	if (!SUCCEEDED(hr)) return hr;
+	//hr = ReadBlocksFromStreamStreamC(SpawnManagerExtContainer::Instance, pStm);
+	// if (!SUCCEEDED(hr)) return hr;
+	//hr = ReadBlocksFromStreamStreamC(SlaveManagerExtContainer::Instance, pStm);
+	//if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(RadSiteExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	//more
+	return hr;
+}
+
+HRESULT Decode_All_Pointers(LPSTREAM stream)
+{
+	HRESULT hr = S_OK;
 
 	//load the voice index for the current player , this is used to restore the correct voice when loading a save game
 	int value;
@@ -634,6 +898,9 @@ bool __fastcall Make_Load_Game(const char* file_name, bool)
 		}
 	}
 
+	// clear the scenario here very ahead 
+	ScenarioClass::ClearScenario();
+
 	// -----------------------------------------------------------------
 	// PHOBOS_EXT — load extension data (types must be ready
 	// before game objects reference them)
@@ -641,8 +908,6 @@ bool __fastcall Make_Load_Game(const char* file_name, bool)
 	{
 		CompressedStream ext;
 		hr = ext.Open(storage, L"PHOBOS_EXT");
-
-		Phobos::ClearAll();
 
 		if (SUCCEEDED(hr))
 		{

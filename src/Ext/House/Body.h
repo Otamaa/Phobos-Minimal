@@ -547,12 +547,12 @@ private:
 
 };
 
-class HouseExtContainer final : public Container<HouseExtData>
+class HouseExtContainer final : public Container<HouseExtData>, public ContainerSaveLoad<HouseExtContainer, true>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "HouseExtContainer";
 	using base_t = Container<HouseExtData>;
-
+	using base_SaveLoad_t = ContainerSaveLoad<HouseExtContainer, true>;
 public:
 	static HouseExtContainer Instance;
 
@@ -576,8 +576,8 @@ public:
 
 public:
 
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
+	virtual bool LoadAll(PhobosStreamReader& stm);
+	virtual bool SaveAll(PhobosStreamWriter& stm);
 
 	virtual void Clear();
 };

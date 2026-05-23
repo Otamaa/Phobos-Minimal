@@ -844,7 +844,6 @@ void ParticleSystemExtData::Serialize(T& Stm)
 // =============================
 // container
 ParticleSystemExtContainer ParticleSystemExtContainer::Instance;
-
 // =============================
 // container hooks
 

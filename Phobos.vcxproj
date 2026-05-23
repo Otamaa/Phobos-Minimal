@@ -24,6 +24,8 @@
   <ItemGroup>
     <ClCompile Include="src\Commands\Deselect.cpp" />
     <ClCompile Include="src\Commands\ToggleSuperTimers.cpp" />
+    <ClCompile Include="src\Ext\AbstractType\Body.cpp" />
+    <ClCompile Include="src\Ext\Abstract\Hooks.cpp" />
     <ClCompile Include="src\Ext\AITriggerType\Hooks.cpp" />
     <ClCompile Include="src\Ext\AStar\Body.cpp" />
     <ClCompile Include="src\Ext\BitFont\Body.cpp" />

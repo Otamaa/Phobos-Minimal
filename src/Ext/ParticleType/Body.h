@@ -112,7 +112,7 @@ private:
 };
 
 class ParticleTypeExtContainer final : public Container<ParticleTypeExtData>
-	, public ReadWriteContainerInterfaces<ParticleTypeExtData>
+	, public ReadWriteContainerInterfaces<ParticleTypeExtData>, public ContainerSaveLoad<ParticleTypeExtContainer, true>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "ParticleTypeExtContainer";
@@ -120,9 +120,6 @@ public:
 
 public:
 	static ParticleTypeExtContainer Instance;
-
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(ext_t::base_type* key, CCINIClass* pINI);

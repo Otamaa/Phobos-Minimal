@@ -48,16 +48,13 @@ private:
 };
 
 class DiskLaserExtContainer final : public Container<DiskLaserExtData>
+	, public ContainerSaveLoad<DiskLaserExtContainer, false>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "DiskLaserExtContainer";
 
 public:
 	static DiskLaserExtContainer Instance;
-
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm) { return true; }
-
 };
 
 class NOVTABLE FakeDiskLaserClass : public DiskLaserClass

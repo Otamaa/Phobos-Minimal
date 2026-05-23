@@ -86,16 +86,13 @@ public:
 	static WaveColorData GetWaveColor(WaveClass* pWave);
 };
 
-class WaveExtContainer final : public Container<WaveExtData>
+class WaveExtContainer final : public Container<WaveExtData>, public ContainerSaveLoad<WaveExtContainer, false>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "WaveExtContainer";
 
 public:
 	static WaveExtContainer Instance;
-
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 };
 
 class NOVTABLE FakeWaveClass : public WaveClass

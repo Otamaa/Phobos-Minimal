@@ -893,6 +893,22 @@ void AnimExtData::Serialize(T& Stm)
 
 AnimExtContainer AnimExtContainer::Instance;
 
+bool AnimExtContainer::LoadAll(PhobosStreamReader& stm)
+{
+	if(!stm.Process(AnimsWithAttachedParticles))
+		return false;
+
+	return this->base_SaveLoad_t::LoadAll(stm);
+}
+
+bool AnimExtContainer::SaveAll(PhobosStreamWriter& stm)
+{
+	if (!stm.Process(AnimsWithAttachedParticles))
+		return false;
+
+	return this->base_SaveLoad_t::SaveAll(stm);
+}
+
 void AnimExtContainer::Clear()
 {
 	this->base_container_t::Clear();

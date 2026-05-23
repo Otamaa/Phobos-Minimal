@@ -18,6 +18,7 @@
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/Aircraft/Body.h>
+#include <Ext/Unit/Body.h>
 
 #include <Ext/WarheadType/Body.h>
 
@@ -773,7 +774,8 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 	
 	const double adjustedFactor = Math::Pixel_Per_Lepton / currentScale;
 	uTypeExt->ApplyTurretOffset(&mtx, adjustedFactor);
-	mtx.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>()));
+	mtx.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - UnitExtData::GetPrimaryRadian(pThis)));
+
 	const bool inRecoil = pType->TurretRecoil && pThis->TurretRecoil.State != RecoilData::RecoilState::Inactive;
 
 	if (inRecoil)

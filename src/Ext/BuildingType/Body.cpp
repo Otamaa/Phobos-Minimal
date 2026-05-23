@@ -2561,6 +2561,22 @@ void BuildingTypeExtData::Serialize(T& Stm)
 // container
 BuildingTypeExtContainer BuildingTypeExtContainer::Instance;
 
+bool BuildingTypeExtContainer::LoadAll(PhobosStreamReader& stm)
+{
+	if (!stm.Process(trenchKinds))
+		return false;
+
+	return this->base_SaveLoad_t::LoadAll(stm);
+}
+
+bool BuildingTypeExtContainer::SaveAll(PhobosStreamWriter& stm)
+{
+	if (!stm.Process(trenchKinds))
+		return false;
+
+	return this->base_SaveLoad_t::SaveAll(stm);
+}
+
 void BuildingTypeExtContainer::Clear()
 {
 	this->base_container_t::Clear();

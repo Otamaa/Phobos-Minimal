@@ -221,7 +221,6 @@ void WaveExtData::Serialize(T& Stm)
 // =============================
 // container
 WaveExtContainer WaveExtContainer::Instance;
-
 // =============================
 // container hooks
 //

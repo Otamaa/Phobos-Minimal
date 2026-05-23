@@ -505,11 +505,12 @@ public:
 };
 
 class BuildingTypeExtContainer final : public Container<BuildingTypeExtData>
-	, public ReadWriteContainerInterfaces<BuildingTypeExtData>
+	, public ReadWriteContainerInterfaces<BuildingTypeExtData>, public ContainerSaveLoad<BuildingTypeExtContainer, true>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "BuildingTypeExtContainer";
 	using base_container_t = Container<BuildingTypeExtData>;
+	using base_SaveLoad_t = ContainerSaveLoad<BuildingTypeExtContainer, true>;
 
 public:
 
@@ -518,10 +519,10 @@ public:
 public:
 	static BuildingTypeExtContainer Instance;
 
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
-
 	virtual void Clear();
+
+	virtual bool LoadAll(PhobosStreamReader& stm);
+	virtual bool SaveAll(PhobosStreamWriter& stm);
 
 	virtual void LoadFromINI(BuildingTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(BuildingTypeClass* key, CCINIClass* pINI);

@@ -92,15 +92,13 @@ public:
 	static TechnoClass* GetTechnoOwner(VoxelAnimClass* pThis);
 };
 
-class VoxelAnimExtContainer final : public Container<VoxelAnimExtData>
+class VoxelAnimExtContainer final : public Container<VoxelAnimExtData>, public ContainerSaveLoad<VoxelAnimExtContainer, true>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "VoxelAnimExtContainer";
 
 public:
 	static VoxelAnimExtContainer Instance;
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 };
 
 class VoxelAnimTypeExtData;
