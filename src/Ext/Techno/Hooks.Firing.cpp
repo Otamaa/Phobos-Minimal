@@ -2443,21 +2443,8 @@ ASMJIT_PATCH(0x6FD38D, TechnoClass_DrawSth_Coords, 0x7)
 
 	const auto pBullet = FireAtTemp::FireBullet;
 
-	if (pBullet && pBullet->WeaponType)
-	{
-
-		// The weapon may not have been set up
-		const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pBullet->WeaponType);
-
-		if (pWeaponExt && pWeaponExt->VisualScatter) {
-			const auto pRulesExt = RulesExtData::Instance();
-			auto min = pWeaponExt->VisualScatter_Min.Get(pRulesExt->VisualScatter_Min);
-			auto max = pWeaponExt->VisualScatter_Max.Get(pRulesExt->VisualScatter_Max);
-			const auto radius = ScenarioClass::Instance->Random.RandomRanged(min, max);
-			*pTargetCoords = MapClass::GetRandomCoordsNear(pBullet->GetDestinationCoords(), radius, false);
-		} else {
-			*pTargetCoords = BulletExtData::GetTargetCoords(pBullet);
-		}
+	if (pBullet) {
+		*pTargetCoords = BulletExtData::GetTargetCoords(pBullet);
 
 	} else if (FireAtTemp::pObstacleCell) {
 		*pTargetCoords = FireAtTemp::pObstacleCell->GetCoordsWithBridge();
