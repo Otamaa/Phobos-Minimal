@@ -931,7 +931,7 @@ bool SpawnerMain::GameConfigs::StartScenario(const char* pScenarioName) {
 	}
 
 	{ // Added Human Players
-		NetHack::PortHack = true;
+		NetHack::RequirePortMatch = false;
 		const char maxPlayers = SpawnerMain::GameConfigs::m_Ptr.IsCampaign ? 1 : (char)std::size(SpawnerMain::GameConfigs::m_Ptr.Players);
 		for (char playerIndex = 0; playerIndex < maxPlayers; playerIndex++)
 		{
@@ -970,7 +970,7 @@ bool SpawnerMain::GameConfigs::StartScenario(const char* pScenarioName) {
 				// Accumulate this flag across all players in the loop.
 				// Do not overwrite it on each iteration.
 				if (playerPort != listenPort)
-					NetHack::PortHack = true;
+					NetHack::RequirePortMatch = true;
 			}
 		}
 
