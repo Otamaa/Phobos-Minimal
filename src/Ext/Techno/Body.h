@@ -1115,6 +1115,7 @@ public:
 	static void __fastcall __FireRadEruption_Wrapper(TechnoClass* pThis, discard_t, int spread);
 
 	static RadBeam* __FireBeam(TechnoClass* pThis, int WeaponIDx, WeaponTypeClass* pWeapon, AbstractClass* pTarget, RadBeamType type);
+	static RadBeam* __FireBeam(TechnoClass* pThis, int WeaponIDx, BulletClass* pBullet , CellClass* pObstacle, AbstractClass* pTarget, RadBeamType type);
 	static RadBeam* __FireBeam(TechnoClass* pThis, WeaponTypeClass* pWeapon, CoordStruct flh , CoordStruct target, RadBeamType type);
 	static void __FireRadEruption(TechnoClass* pThis, WeaponTypeClass* pWeapon, float spread);
 

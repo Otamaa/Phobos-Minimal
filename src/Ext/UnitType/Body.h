@@ -90,8 +90,9 @@ public:
 class NOVTABLE FakeUnitTypeClass : public UnitTypeClass
 {
 public:
-	bool _ReadFromINI(CCINIClass* pINI);
 
+	HRESULT __stdcall _Load(IStream* pStm);
+	bool _ReadFromINI(CCINIClass* pINI);
 
 	UnitTypeExtData* _GetExtData() {
 		return *reinterpret_cast<UnitTypeExtData**>(((DWORD)this) + AbstractExtOffset);

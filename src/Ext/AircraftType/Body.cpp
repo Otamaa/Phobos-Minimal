@@ -158,6 +158,21 @@ ASMJIT_PATCH(0x41CA46, AircraftTypeClass_DTOR, 0x6)
 	return 0;
 }
 
+#include <Misc/ImageSwapModules.h>
+
+HRESULT __stdcall FakeAircraftTypeClass::_Load(IStream* pStm)
+{
+	HRESULT hr = this->AircraftTypeClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (Phobos::Config::ArtImageSwap)
+			TechnoImageReplacer::Replace(this);
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E287C, FakeAircraftTypeClass::_Load)
+
 bool FakeAircraftTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
 	bool status = this->AircraftTypeClass::LoadFromINI(pINI);

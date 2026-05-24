@@ -6,6 +6,8 @@
 
 #include <Helpers/CompileTime.h>
 
+//the game calling virtual dtor for cleanup 
+//so class size is not really important
 class NOVTABLE CommandClass
 {
 public:
@@ -36,3 +38,4 @@ public:
 
 	static void __fastcall InitCommand() { JMP_FAST(0x532150); }
 };
+static_assert(sizeof(CommandClass) == 0x4, "Invalid size.");

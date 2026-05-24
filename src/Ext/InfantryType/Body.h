@@ -278,6 +278,7 @@ class NOVTABLE FakeInfantryTypeClass : public InfantryTypeClass
 {
 public:
 
+	HRESULT __stdcall _Load(IStream* pStm);
 	bool _ReadFromINI(CCINIClass* pINI);
 
 	InfantryTypeExtData* _GetExtData() {

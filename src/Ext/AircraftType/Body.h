@@ -120,6 +120,9 @@ public:
 
 class NOVTABLE FakeAircraftTypeClass : public AircraftTypeClass {
 public:
+
+	HRESULT __stdcall _Load(IStream* pStm);
+
 	bool _CanUseWaypoint(){
 		return !this->Spawned;
 	}

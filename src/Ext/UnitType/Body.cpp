@@ -88,6 +88,21 @@ ASMJIT_PATCH(0x747316, UnitTypeClass_DTOR, 0x6)
 	return 0;
 }
 
+#include <Misc/ImageSwapModules.h>
+
+HRESULT __stdcall FakeUnitTypeClass::_Load(IStream* pStm)
+{
+	HRESULT hr = this->UnitTypeClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (Phobos::Config::ArtImageSwap)
+			TechnoImageReplacer::Replace(this);
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F622C, FakeUnitTypeClass::_Load)
+
 bool FakeUnitTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
 	bool status = this->UnitTypeClass::LoadFromINI(pINI);

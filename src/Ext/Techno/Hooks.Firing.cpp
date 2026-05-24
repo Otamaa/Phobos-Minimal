@@ -2445,28 +2445,27 @@ ASMJIT_PATCH(0x6FD38D, TechnoClass_DrawSth_Coords, 0x7)
 
 	if (pBullet && pBullet->WeaponType)
 	{
+
 		// The weapon may not have been set up
 		const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pBullet->WeaponType);
-		// pBullet->Data.Location (0x4E1130) -> pBullet->Type->Inviso ? pBullet->Location : pBullet->TargetCoords
-		CoordStruct _targetCoords= pBullet->GetDestinationCoords();
-		if (pWeaponExt && pWeaponExt->VisualScatter)
-		{
+
+		if (pWeaponExt && pWeaponExt->VisualScatter) {
 			const auto pRulesExt = RulesExtData::Instance();
 			auto min = pWeaponExt->VisualScatter_Min.Get(pRulesExt->VisualScatter_Min);
 			auto max = pWeaponExt->VisualScatter_Max.Get(pRulesExt->VisualScatter_Max);
 			const auto radius = ScenarioClass::Instance->Random.RandomRanged(min, max);
-			*pTargetCoords = MapClass::GetRandomCoordsNear(_targetCoords, radius, false);
+			*pTargetCoords = MapClass::GetRandomCoordsNear(pBullet->GetDestinationCoords(), radius, false);
+		} else {
+			*pTargetCoords = BulletExtData::GetTargetCoords(pBullet);
 		}
-		else
-		{
-			*pTargetCoords = _targetCoords;
-		}
-	} else if (FireAtTemp::pObstacleCell)
+
+	} else if (FireAtTemp::pObstacleCell) {
 		*pTargetCoords = FireAtTemp::pObstacleCell->GetCoordsWithBridge();
+	}
 
 	R->EAX(pTargetCoords);
 	return 0;
-}ASMJIT_PATCH_AGAIN(0x6FD70D, TechnoClass_DrawSth_Coords, 0x6) // CreateRBeam
+}
 ASMJIT_PATCH_AGAIN(0x6FD514, TechnoClass_DrawSth_Coords, 0x7) // CreateEBolt
 
 // Cut railgun logic off at obstacle coordinates.

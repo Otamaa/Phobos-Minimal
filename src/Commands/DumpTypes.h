@@ -5,6 +5,14 @@
 class DumperTypesCommandClass : public PhobosCommandClass
 {
 public:
+	DumperTypesCommandClass() : PhobosCommandClass()
+	{
+		this->IsDeveloper = true;
+	}
+
+	virtual ~DumperTypesCommandClass() = default;
+
+public:
 
 	virtual const char* GetName() const override;
 	virtual const wchar_t* GetUIName() const override;

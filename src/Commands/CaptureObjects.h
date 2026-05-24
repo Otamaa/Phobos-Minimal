@@ -5,6 +5,14 @@
 class CaptureObjectsCommandClass : public PhobosCommandClass
 {
 public:
+	CaptureObjectsCommandClass() : PhobosCommandClass()
+	{
+		this->IsDeveloper = true;
+	}
+
+	virtual ~CaptureObjectsCommandClass() = default;
+
+public:
 
 	static bool Given;
 

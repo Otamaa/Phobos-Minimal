@@ -74,7 +74,6 @@ static FORCEDINLINE T* Make()
 
 void FireTacticalSWDispatch::Dispatch()
 {
-
 	if (Phobos::Config::SuperWeaponSidebarCommands) {
 		SWSidebarClass::Commands[0] = Make<FireTacticalSWCommandClass<1>>();
 		SWSidebarClass::Commands[1] = Make<FireTacticalSWCommandClass<2>>();

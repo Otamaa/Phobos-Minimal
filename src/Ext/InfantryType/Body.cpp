@@ -287,16 +287,18 @@ ASMJIT_PATCH(0x5239D0, InfantryTypeClass_DTOR, 0x5)
 
 #include <Misc/ImageSwapModules.h>
 
-ASMJIT_PATCH(0x524B53, InfantryTypeClass_Load_Suffix, 0x5)
+HRESULT __stdcall FakeInfantryTypeClass::_Load(IStream* pStm)
 {
-	if (Phobos::Config::ArtImageSwap) {
-		GET(BYTE*, poisonedVal, EDI);
-		poisonedVal -= 0xE20;
-		TechnoImageReplacer::Replace(reinterpret_cast<InfantryTypeClass*>(poisonedVal));
+	HRESULT hr = this->InfantryTypeClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (Phobos::Config::ArtImageSwap)
+			TechnoImageReplacer::Replace(this);
 	}
 
-	return 0;
+	return hr;
 }
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB624C, FakeInfantryTypeClass::_Load)
 
 bool FakeInfantryTypeClass::_ReadFromINI(CCINIClass* pINI)
 {

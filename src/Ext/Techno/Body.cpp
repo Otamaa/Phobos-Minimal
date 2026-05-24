@@ -5226,6 +5226,68 @@ RadBeam* FakeTechnoClass::__FireBeam(TechnoClass* pThis , WeaponTypeClass* pWeap
 	return Rad;
 }
 
+RadBeam* FakeTechnoClass::__FireBeam(TechnoClass* pThis, int WeaponIDx, BulletClass* pBullet, CellClass* pObstacle, AbstractClass* pTarget, RadBeamType type)
+{
+	auto const Rad = RadBeam::Allocate(type);
+
+	if (WeaponIDx == -1)
+		WeaponIDx = 0;
+
+	CoordStruct flh = pThis->GetFLH(WeaponIDx, 0, 0, 0);
+	CoordStruct renderCoord = pThis->GetRenderCoords();
+
+
+	int heignt = 0;
+	if (flh.Y != renderCoord.Y)
+	{
+		auto flh_rend = TacticalClass::Instance->CoordsToClient(flh);
+		auto rend_rend = TacticalClass::Instance->CoordsToClient(renderCoord);
+		heignt = flh_rend.Y - rend_rend.Y;
+	}
+
+	CoordStruct target_coord {};
+	WeaponTypeExtData* pData = nullptr;
+
+	if (pBullet->WeaponType && !pObstacle) {
+		// The weapon may not have been set up
+		pData = WeaponTypeExtContainer::Instance.Find(pBullet->WeaponType);
+		target_coord = BulletExtData::GetTargetCoords(pBullet);
+
+	} else if (pObstacle) {
+		target_coord = pObstacle->GetCoordsWithBridge();
+	} else if (auto pTargetFoot = flag_cast_to<FootClass*>(pTarget)) {
+		target_coord = pTargetFoot->GetTargetCoords();
+	} else {
+		pTarget->GetCenterCoords(&target_coord);
+	}
+
+	if (pData && !pData->Beam_IsHouseColor) {
+		Rad->Color = pData->GetBeamColor();
+	} else {
+		Rad->Color = pThis->Owner->Color;
+	}
+
+	Rad->SourceLocation = flh;
+	Rad->TargetLocation = target_coord;
+	Rad->Period = pData ? pData->Beam_Duration : 15;
+	Rad->Amplitude = pData ? pData->Beam_Amplitude : 40.0;
+	Rad->unknown_C = heignt;
+
+	if (type == RadBeamType::Eruption)
+	{
+		Rad->unknown_54 = 1;
+		Rad->unknown_59 = 1;
+		Rad->Owner = pThis;
+
+		if (auto pTargetTech = flag_cast_to<TechnoClass*>(pTarget))
+		{
+			pTargetTech->FiringRadBeam = Rad;
+		}
+	}
+
+	return Rad;
+}
+
 RadBeam* FakeTechnoClass::__FireBeam(TechnoClass* pThis, int WeaponIDx,WeaponTypeClass* pWeapon, AbstractClass* pTarget, RadBeamType type)
 {
 	auto const Rad = RadBeam::Allocate(type);
