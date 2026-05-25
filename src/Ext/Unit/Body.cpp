@@ -20,9 +20,12 @@ UnitExtContainer UnitExtContainer::Instance;
 UnitExtData::UnitExtData(UnitClass* pObj) : FootExtData(pObj)
 {
 	this->CurrentType = pObj->Type;
-	this->Name = pObj->Type->ID;
+	if (pObj->Type)
+	{
+		this->Name = pObj->Type->ID;
+		this->TypeExtData = UnitTypeExtContainer::Instance.Find(pObj->Type);
+	}
 	this->AbsType = UnitClass::AbsID;
-	this->TypeExtData = UnitTypeExtContainer::Instance.Find(pObj->Type);
 }
 
 bool UnitExtContainer::HasDeployingAnim(TechnoTypeClass* pUnitType) {

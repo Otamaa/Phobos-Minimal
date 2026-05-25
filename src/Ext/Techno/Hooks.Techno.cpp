@@ -548,8 +548,10 @@ ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 
 		if (auto pOwner = pThis->Owner) {
 			const auto pHouseType = pOwner->Type;
-			const auto pParentHouseType = pHouseType->FindParentCountry();
-			TechnoExtContainer::Instance.Find(pThis)->OriginalHouseType = pParentHouseType ? pParentHouseType : pHouseType;
+			if (pHouseType) {
+				const auto pParentHouseType = pHouseType->FindParentCountry();
+				TechnoExtContainer::Instance.Find(pThis)->OriginalHouseType = pParentHouseType ? pParentHouseType : pHouseType;
+			}
 		} else {
 			Debug::LogInfo("Techno[{}] Init Without any ownership!", pType->ID);
 		}

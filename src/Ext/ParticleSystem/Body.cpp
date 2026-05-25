@@ -15,9 +15,14 @@
 
 ParticleSystemExtData::ParticleSystemExtData(ParticleSystemClass* pObj) : ObjectExtData(pObj)
 {
-	this->Name = pObj->Type->ID;
-	this->AbsType = ParticleSystemClass::AbsID;
 	auto pType = pObj->Type;
+	if (!pType)
+	{
+		this->AbsType = ParticleSystemClass::AbsID;
+		return;
+	}
+	this->Name = pType->ID;
+	this->AbsType = ParticleSystemClass::AbsID;
 	{
 		if (!ParticleSystemTypeExtContainer::Instance.Find(pType)->ApplyOptimization || (size_t)pType->HoldsWhat >= ParticleTypeClass::Array->size())
 			return;

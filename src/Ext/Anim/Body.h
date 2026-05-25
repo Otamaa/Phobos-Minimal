@@ -71,8 +71,9 @@ public:
 public:
 	AnimExtData(AnimClass* pObj) : ObjectExtData(pObj)
 	{
-		this->Name = pObj->Type->ID;
 		this->AbsType = AnimClass::AbsID;
+		if (pObj->Type)
+			this->Name = pObj->Type->ID;
 	}
 	AnimExtData(AnimClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) {}
 

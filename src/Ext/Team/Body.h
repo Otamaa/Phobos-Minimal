@@ -57,8 +57,9 @@ public:
 public:
 	TeamExtData(TeamClass* pObj) : AbstractExtended(pObj)
 	{
-		this->Name = pObj->Type->ID;
 		this->AbsType = TeamClass::AbsID;
+		if (pObj->Type)
+			this->Name = pObj->Type->ID;
 	}
 
 	TeamExtData(TeamClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }

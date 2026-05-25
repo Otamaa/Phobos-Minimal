@@ -15,6 +15,23 @@
 #include <BuildingTypeClass.h>
 #include <BuildingClass.h>
 #include <AircraftTypeClass.h>
+#include <ScenarioClass.h>
+#include <EvadeClass.h>
+#include <MouseClass.h>
+#include <TacticalClass.h>
+
+#include <AnimTypeClass.h>
+#include <AnimClass.h>
+#include <TubeClass.h>
+#include <HouseTypeClass.h>
+#include <HouseClass.h>
+#include <UnitTypeClass.h>
+#include <UnitClass.h>
+#include <InfantryTypeClass.h>
+#include <InfantryClass.h>
+#include <BuildingTypeClass.h>
+#include <BuildingClass.h>
+#include <AircraftTypeClass.h>
 #include <AircraftClass.h>
 
 #include <TaskForceClass.h>
@@ -164,8 +181,14 @@ HRESULT LoadObjectVector(LPSTREAM stream, DynamicVectorClass<T>& collection)
 	{
 		LPVOID objPtr = nullptr;
 		hr = OleLoadFromStream(stream, IID_IUnknown, &objPtr);
-		if (FAILED(hr)) return hr;
+		if (FAILED(hr))
+		{
+			Debug::Log("LoadObjectVector<%s>: FAILED at index %d/%d (hr=0x%08X)\n",
+				typeName.c_str(), i + 1, count, hr);
+			return hr;
+		}
 	}
+	Debug::Log("LoadObjectVector<%s>: Done (%d objects)\n", typeName.c_str(), count);
 	return S_OK;
 }
 
@@ -266,55 +289,91 @@ HRESULT PrepareDisplaySurfaces()
 template<typename T>
 HRESULT ReadBlocksFromStream(IStream* pStm)
 {
+	const auto typeName = PhobosCRT::GetTypeIDName<T>();
+	Debug::Log("[ExtLoad] Loading %s ...\n", typeName.c_str());
+
 	PhobosByteStream loader(0);
-	if (loader.ReadFromStream(pStm)) {
-		PhobosStreamReader reader(loader);
-		if (T::LoadGlobals(reader)) { 
-			if(reader.ExpectEndOfBlock())
-				return S_OK;
-		}
+	if (!loader.ReadFromStream(pStm)) {
+		Debug::Log("[ExtLoad]   FAILED %s - ReadFromStream returned false\n", typeName.c_str());
+		return S_FALSE;
 	}
 
-	return S_FALSE;
+	PhobosStreamReader reader(loader);
+	if (!T::LoadGlobals(reader)) {
+		Debug::Log("[ExtLoad]   FAILED %s - LoadGlobals returned false\n", typeName.c_str());
+		return S_FALSE;
+	}
+
+	if (!reader.ExpectEndOfBlock()) {
+		Debug::Log("[ExtLoad]   FAILED %s - ExpectEndOfBlock (stream desync or leftover bytes)\n", typeName.c_str());
+		return S_FALSE;
+	}
+
+	Debug::Log("[ExtLoad]   OK %s\n", typeName.c_str());
+	return S_OK;
 }
 
 template<typename T>
 HRESULT ReadBlocksFromStreamStreamB(T& who_, IStream* pStm)
 {
 	using Base = std::remove_const_t<std::remove_pointer_t<T>>;
+	const auto typeName = PhobosCRT::GetTypeIDName<Base>();
+	Debug::Log("[ExtLoad] Loading (B) %s ...\n", typeName.c_str());
 
 	PhobosByteStream loader(0);
-
-	if(loader.ReadFromStream(pStm)){
-		PhobosStreamReader reader(loader);
-		bool _LoadResult = false;
-
-		if constexpr (std::is_pointer_v<T>) {
-			_LoadResult = who_->LoadGlobal(reader);
-		} else {
-			_LoadResult = who_.LoadGlobal(reader);
-		}
-
-		if (_LoadResult && reader.ExpectEndOfBlock())
-			return S_OK;
+	if (!loader.ReadFromStream(pStm)) {
+		Debug::Log("[ExtLoad]   FAILED (B) %s - ReadFromStream returned false\n", typeName.c_str());
+		return S_FALSE;
 	}
 
-	return S_FALSE;
+	PhobosStreamReader reader(loader);
+	bool _LoadResult = false;
+
+	if constexpr (std::is_pointer_v<T>) {
+		_LoadResult = who_->LoadGlobal(reader);
+	} else {
+		_LoadResult = who_.LoadGlobal(reader);
+	}
+
+	if (!_LoadResult) {
+		Debug::Log("[ExtLoad]   FAILED (B) %s - LoadGlobal returned false\n", typeName.c_str());
+		return S_FALSE;
+	}
+
+	if (!reader.ExpectEndOfBlock()) {
+		Debug::Log("[ExtLoad]   FAILED (B) %s - ExpectEndOfBlock (stream desync or leftover bytes)\n", typeName.c_str());
+		return S_FALSE;
+	}
+
+	Debug::Log("[ExtLoad]   OK (B) %s\n", typeName.c_str());
+	return S_OK;
 }
 
 template<typename T>
 HRESULT ReadBlocksFromStreamStreamC(T& who_, IStream* pStm)
 {
+	const auto typeName = PhobosCRT::GetTypeIDName<T>();
+	Debug::Log("[ExtLoad] Loading (C) %s ...\n", typeName.c_str());
+
 	PhobosByteStream loader(0);
-
-	if (loader.ReadFromStream(pStm)) {
-		PhobosStreamReader reader(loader);
-
-		if (who_.LoadAll(reader) && reader.ExpectEndOfBlock())
-			return S_OK;
+	if (!loader.ReadFromStream(pStm)) {
+		Debug::Log("[ExtLoad]   FAILED (C) %s - ReadFromStream returned false\n", typeName.c_str());
+		return S_FALSE;
 	}
 
-	return S_FALSE;
+	PhobosStreamReader reader(loader);
+	if (!who_.LoadAll(reader)) {
+		Debug::Log("[ExtLoad]   FAILED (C) %s - LoadAll returned false\n", typeName.c_str());
+		return S_FALSE;
+	}
+
+	if (!reader.ExpectEndOfBlock()) {
+		Debug::Log("[ExtLoad]   FAILED (C) %s - ExpectEndOfBlock (stream desync or leftover bytes)\n", typeName.c_str());
+		return S_FALSE;
+	}
+
+	Debug::Log("[ExtLoad]   OK (C) %s\n", typeName.c_str());
+	return S_OK;
 }
 
 HRESULT Phobos::LoadAllExtData(IStream* pStm)
@@ -522,10 +581,13 @@ HRESULT Decode_All_Pointers(LPSTREAM stream)
 	int value;
 	ULONG out = 0;
 	hr = stream->Read(&value, sizeof(value), &out);
-	if (!SUCCEEDED(hr)) return hr;
+	if (!SUCCEEDED(hr)) { Debug::Log("[Decode] FAILED reading EVA index (hr=0x%08X)\n", hr); return hr; }
+	Debug::Log("[Decode] EVA index = %d\n", value);
 
+	Debug::Log("[Decode] Loading ScenarioClass ...\n");
 	hr = ScenarioClass::Instance->Load(stream);
-	if (!SUCCEEDED(hr)) return hr;
+	if (!SUCCEEDED(hr)) { Debug::Log("[Decode] FAILED ScenarioClass (hr=0x%08X)\n", hr); return hr; }
+	Debug::Log("[Decode] OK ScenarioClass\n");
 
 	ScenarioClass::IsUserInputLocked = ScenarioClass::Instance->UserInputLocked;
 
@@ -534,32 +596,44 @@ HRESULT Decode_All_Pointers(LPSTREAM stream)
 
 	PrepareDisplaySurfaces();
 
+	Debug::Log("[Decode] Loading EvadeClass ...\n");
 	hr = EvadeClass::Instance->Load(stream);
-	if (!SUCCEEDED(hr)) return hr;
+	if (!SUCCEEDED(hr)) { Debug::Log("[Decode] FAILED EvadeClass (hr=0x%08X)\n", hr); return hr; }
+	Debug::Log("[Decode] OK EvadeClass\n");
 
 	Theater::Init(ScenarioClass::Instance->Theater);
 
+	Debug::Log("[Decode] Loading RulesClass ...\n");
 	hr = RulesClass::Instance->Load(stream);
-	if (!SUCCEEDED(hr)) return hr;
+	if (!SUCCEEDED(hr)) { Debug::Log("[Decode] FAILED RulesClass (hr=0x%08X)\n", hr); return hr; }
+	Debug::Log("[Decode] OK RulesClass\n");
 
+	Debug::Log("[Decode] Loading MouseClass ...\n");
 	hr = MouseClass::Instance->Load(stream);
-	if (!SUCCEEDED(hr)) return hr;
+	if (!SUCCEEDED(hr)) { Debug::Log("[Decode] FAILED MouseClass (hr=0x%08X)\n", hr); return hr; }
+	Debug::Log("[Decode] OK MouseClass\n");
 
+	Debug::Log("[Decode] Loading Misc values ...\n");
 	hr = Game::Load_Misc_Values(stream);
-	if (!SUCCEEDED(hr)) return hr;
+	if (!SUCCEEDED(hr)) { Debug::Log("[Decode] FAILED Misc values (hr=0x%08X)\n", hr); return hr; }
+	Debug::Log("[Decode] OK Misc values\n");
 
 	MapClass::Instance->Clear_SubzoneTracking();
 
+	Debug::Log("[Decode] Loading MapClass::Logics ...\n");
 	hr = MapClass::Logics->Load(stream);
-	if (!SUCCEEDED(hr)) return hr;
+	if (!SUCCEEDED(hr)) { Debug::Log("[Decode] FAILED MapClass::Logics (hr=0x%08X)\n", hr); return hr; }
+	Debug::Log("[Decode] OK MapClass::Logics\n");
 
 	if (auto pInstance = TacticalClass::Instance()) {
 		pInstance->ClearPtr();
 	}
 
+	Debug::Log("[Decode] Loading TacticalClass ...\n");
 	LPVOID tacticalMapObj = nullptr;
 	hr = OleLoadFromStream(stream, IID_IUnknown, &tacticalMapObj);
-	if (!SUCCEEDED(hr)) return hr;
+	if (!SUCCEEDED(hr)) { Debug::Log("[Decode] FAILED TacticalClass (hr=0x%08X)\n", hr); return hr; }
+	Debug::Log("[Decode] OK TacticalClass\n");
 
 	TacticalExtData::Allocate(TacticalClass::Instance());
 
@@ -746,17 +820,23 @@ HRESULT Decode_All_Pointers(LPSTREAM stream)
 	hr = LoadObjectVector(stream, *SlaveManagerClass::Array);
 	if (!SUCCEEDED(hr)) return hr;
 
+	Debug::Log("[Decode] Loading AircraftTrackerClass ...\n");
 	AircraftTrackerClass::Instance->Clear();
 	hr = AircraftTrackerClass::Instance->Load(stream);
-	if (!SUCCEEDED(hr)) return hr;
+	if (!SUCCEEDED(hr)) { Debug::Log("[Decode] FAILED AircraftTrackerClass (hr=0x%08X)\n", hr); return hr; }
+	Debug::Log("[Decode] OK AircraftTrackerClass\n");
 
+	Debug::Log("[Decode] Loading Kamikaze ...\n");
 	Kamikaze::Instance->Clear();
 	hr = Kamikaze::Instance->Load(stream);
-	if (!SUCCEEDED(hr)) return hr;
+	if (!SUCCEEDED(hr)) { Debug::Log("[Decode] FAILED Kamikaze (hr=0x%08X)\n", hr); return hr; }
+	Debug::Log("[Decode] OK Kamikaze\n");
 
+	Debug::Log("[Decode] Loading BombListClass ...\n");
 	BombListClass::Instance->Clear();
 	hr = BombListClass::Instance->Load(stream);
-	if (!SUCCEEDED(hr)) return hr;
+	if (!SUCCEEDED(hr)) { Debug::Log("[Decode] FAILED BombListClass (hr=0x%08X)\n", hr); return hr; }
+	Debug::Log("[Decode] OK BombListClass\n");
 
 	hr = LoadObjectVector(stream, *BombClass::Array);
 	if (!SUCCEEDED(hr)) return hr;
@@ -775,14 +855,20 @@ HRESULT Decode_All_Pointers(LPSTREAM stream)
 	}
 
 	// Audio/visual systems
+	Debug::Log("[Decode] Loading VocClass ...\n");
 	hr = VocClass::Load(stream);
-	if (!SUCCEEDED(hr)) return hr;
+	if (!SUCCEEDED(hr)) { Debug::Log("[Decode] FAILED VocClass (hr=0x%08X)\n", hr); return hr; }
+	Debug::Log("[Decode] OK VocClass\n");
 
+	Debug::Log("[Decode] Loading VoxClass ...\n");
 	hr = VoxClass::Load(stream);
-	if (!SUCCEEDED(hr)) return hr;
+	if (!SUCCEEDED(hr)) { Debug::Log("[Decode] FAILED VoxClass (hr=0x%08X)\n", hr); return hr; }
+	Debug::Log("[Decode] OK VoxClass\n");
 
+	Debug::Log("[Decode] Loading ThemeClass ...\n");
 	hr = ThemeClass::Instance->Load(stream);
-	if (!SUCCEEDED(hr)) return hr;
+	if (!SUCCEEDED(hr)) { Debug::Log("[Decode] FAILED ThemeClass (hr=0x%08X)\n", hr); return hr; }
+	Debug::Log("[Decode] OK ThemeClass\n");
 
 	VoxClass::EVAIndex = value;
 

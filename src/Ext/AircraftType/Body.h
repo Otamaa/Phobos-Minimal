@@ -69,7 +69,7 @@ public:
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
-		const_cast<AircraftTypeExtData*>(this)->TechnoTypeExtData::SaveToStream(Stm);
+		const_cast<AircraftTypeExtData*>(this)->FootTypeExtData::SaveToStream(Stm);
 
 		Stm
 			.Process(this->ExtendedAircraftMissions)
@@ -79,6 +79,13 @@ public:
 			.Process(this->ExtendedAircraftMissions_FastScramble)
 			.Process(this->ExtendedAircraftMissions_UnlandDamage)
 			.Process(this->FiringForceScatter)
+			.Process(this->AttackingAircraftSightRange)
+			.Process(this->SpyplaneCameraSound)
+			.Process(this->ParadropRadius)
+			.Process(this->ParadropOverflRadius)
+			.Process(this->Paradrop_DropPassangers)
+			.Process(this->Paradrop_MaxAttempt)
+
 			;
 	}
 

@@ -12,6 +12,9 @@ ASMJIT_PATCH(0x517D69, InfantryClass_Init_InitialStrength, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
 
+	if (!pThis->Type)
+		return 0;
+
 	const auto strength = TechnoExtData::GetInitialStrength(pThis->Type, pThis->Type->Strength);
 	pThis->Health = strength;
 	pThis->EstimatedHealth = strength;
@@ -49,8 +52,10 @@ ASMJIT_PATCH(0x442C43, BuildingClass_Init, 0x5)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	if (!pThis->Owner)
-		Debug::FatalErrorAndExit("Missing Ownership %s[%s]/n", pThis->Type->ID, pThis->Type->Name);
+	if (!pThis->Owner && !Phobos::Otamaa::DoingLoadGame)
+		Debug::FatalErrorAndExit("Missing Ownership %s[%s]/n",
+			pThis->Type ? pThis->Type->ID : "(null type)",
+			pThis->Type ? pThis->Type->Name : "(null type)");
 
 	pThis->TechnoClass::Init();
 
@@ -59,8 +64,12 @@ ASMJIT_PATCH(0x442C43, BuildingClass_Init, 0x5)
 	pBldExt->MyPrismForwarding = std::make_unique<PrismForwarding>();
 	pBldExt->MyPrismForwarding->Owner = pThis;
 
-	pThis->OwnerCountryIndex = pThis->Owner->Type->ParentIdx;
-	pThis->Owner->AddTracking(pThis);
+	if (pThis->Owner)
+	{
+		if (pThis->Owner->Type)
+			pThis->OwnerCountryIndex = pThis->Owner->Type->ParentIdx;
+		pThis->Owner->AddTracking(pThis);
+	}
 
 	if (!pThis->Type)
 		return 0x442D1Bl;

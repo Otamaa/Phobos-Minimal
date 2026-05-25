@@ -153,9 +153,12 @@ SuperExtContainer SuperExtContainer::Instance;
 // .cpp file
 SuperExtData::SuperExtData(SuperClass* pObj) : AbstractExtended(pObj)
 {
-	this->Type = SWTypeExtContainer::Instance.Find(pObj->Type);
-	this->Name = pObj->Type->ID;
 	this->AbsType = SuperClass::AbsID;
+	if (pObj->Type)
+	{
+		this->Type = SWTypeExtContainer::Instance.Find(pObj->Type);
+		this->Name = pObj->Type->ID;
+	}
 }
 
 LauchData* SuperExtData::GetLauchDataPtr(SuperClass* pFor)

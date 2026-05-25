@@ -673,7 +673,8 @@ ASMJIT_PATCH(0x447E90, BuildingClass_GetDestinationCoord_Helipad, 0x6)
 ASMJIT_PATCH(0x442CCF, BuildingClass_Init_Sellable, 0x7)
 {
 	GET(BuildingClass*, pThis, ESI);
-	pThis->IsAllowedToSell = !pThis->Type->Unsellable;
+	if (pThis->Type)
+		pThis->IsAllowedToSell = !pThis->Type->Unsellable;
 	return 0x0;
 }
 

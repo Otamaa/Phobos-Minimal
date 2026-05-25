@@ -39,8 +39,9 @@ public:
 
 	TriggerExtData(TriggerClass* pObj) : AbstractExtended(pObj)
 	{
-		this->Name = pObj->Type->ID;
 		this->AbsType = TriggerClass::AbsID;
+		if (pObj->Type)
+			this->Name = pObj->Type->ID;
 	}
 
 	TriggerExtData(TriggerClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }

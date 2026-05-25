@@ -23,8 +23,9 @@ public:
 public:
 	ParticleExtData(ParticleClass* pObj) : ObjectExtData(pObj)
 	{
-		this->Name = pObj->Type->ID;
 		this->AbsType = ParticleClass::AbsID;
+		if (pObj->Type)
+			this->Name = pObj->Type->ID;
 	}
 
 	ParticleExtData(ParticleClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }

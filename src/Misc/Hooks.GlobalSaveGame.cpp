@@ -213,6 +213,9 @@ HRESULT SaveSimpleArray(LPSTREAM pStm, DynamicVectorClass<T>& collection)
 
 template<typename T, bool hasArray = true>
 HRESULT WriteBlocksToStream(IStream* pStm) {
+	const auto typeName = PhobosCRT::GetTypeIDName<T>();
+	Debug::Log("[ExtSave] Saving %s ...\n", typeName.c_str());
+
 	//reserve the stream block
 	size_t _re = 0u;
 	if constexpr(hasArray)
@@ -225,18 +228,23 @@ HRESULT WriteBlocksToStream(IStream* pStm) {
 
 	if (T::SaveGlobals(writer)) {
 		if (saver.WriteToStream(pStm)) {
+			Debug::Log("[ExtSave]   OK %s\n", typeName.c_str());
 			return S_OK;
 		}
+		Debug::Log("[ExtSave]   FAILED %s - WriteToStream failed\n", typeName.c_str());
+	} else {
+		Debug::Log("[ExtSave]   FAILED %s - SaveGlobals returned false\n", typeName.c_str());
 	}
 
 	return S_FALSE;
-
 }
 
 template<typename T>
 HRESULT WriteBlocksToStreamB(T& who_ , IStream* pStm)
 {
 	using Base = std::remove_const_t<std::remove_pointer_t<T>>;
+	const auto typeName = PhobosCRT::GetTypeIDName<Base>();
+	Debug::Log("[ExtSave] Saving (B) %s ...\n", typeName.c_str());
 
 	//reserve the stream block
 	PhobosByteStream saver(sizeof(sizeof(Base)));
@@ -252,29 +260,38 @@ HRESULT WriteBlocksToStreamB(T& who_ , IStream* pStm)
 
 	if (_SaveResult) {
 		if (saver.WriteToStream(pStm)) {
+			Debug::Log("[ExtSave]   OK (B) %s\n", typeName.c_str());
 			return S_OK;
 		}
+		Debug::Log("[ExtSave]   FAILED (B) %s - WriteToStream failed\n", typeName.c_str());
+	} else {
+		Debug::Log("[ExtSave]   FAILED (B) %s - SaveGlobal returned false\n", typeName.c_str());
 	}
 
 	return S_FALSE;
-
 }
 
 template<typename T>
 HRESULT WriteBlocksToStreamC(T& who_, IStream* pStm)
 {
+	const auto typeName = PhobosCRT::GetTypeIDName<T>();
+	Debug::Log("[ExtSave] Saving (C) %s ...\n", typeName.c_str());
+
 	//reserve the stream block
 	PhobosByteStream saver(sizeof(sizeof(T)));
 	PhobosStreamWriter writer(saver);
 
 	if (who_.SaveAll(writer)) {
 		if (saver.WriteToStream(pStm)) {
+			Debug::Log("[ExtSave]   OK (C) %s\n", typeName.c_str());
 			return S_OK;
 		}
+		Debug::Log("[ExtSave]   FAILED (C) %s - WriteToStream failed\n", typeName.c_str());
+	} else {
+		Debug::Log("[ExtSave]   FAILED (C) %s - SaveAll returned false\n", typeName.c_str());
 	}
 
 	return S_FALSE;
-
 }
 
 HRESULT Phobos::SaveAllExtData(IStream* pStm)

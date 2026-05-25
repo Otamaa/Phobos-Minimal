@@ -150,17 +150,24 @@ int BuildingExtData::GetTurretFrame(BuildingClass* pThis)
 BuildingExtData::BuildingExtData(BuildingClass* pObj) : TechnoExtData(pObj), PowerPlantEnhancer(pObj)
 {
 	this->CurrentType = pObj->Type;
-	this->TypeExtData = BuildingTypeExtContainer::Instance.Find(pObj->Type);
-	this->Name = pObj->Type->ID;
+	if (pObj->Type)
+	{
+		this->TypeExtData = BuildingTypeExtContainer::Instance.Find(pObj->Type);
+		this->Name = pObj->Type->ID;
+	}
 	this->AbsType = BuildingClass::AbsID;
 }
 
 BuildingExtData::~BuildingExtData()
 {
-
 	auto pThis = This();
+	if (!pThis)
+		return;
+
 	FakeHouseClass* pOwner = (FakeHouseClass*)pThis->Owner;
-	auto pOwnerExt = pOwner->_GetExtData();
+	auto pOwnerExt = pOwner ? pOwner->_GetExtData() : nullptr;
+	if (!pOwnerExt)
+		return;
 
 	pOwnerExt->TunnelsBuildings.erase(pThis);
 	pOwnerExt->Academies.erase(pThis);

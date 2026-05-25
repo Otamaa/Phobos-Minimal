@@ -617,7 +617,7 @@ ASMJIT_PATCH(0x74689B, UnitClass_Init_Academy, 6)
 {
 	GET(UnitClass*, pThis, ESI);
 
-	if (!pThis->Owner)
+	if (!pThis->Owner || !pThis->Type)
 		return 0x0;
 
 	const auto pType = pThis->Type;

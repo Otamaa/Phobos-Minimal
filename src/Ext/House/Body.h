@@ -333,7 +333,8 @@ public:
 	HouseExtData(HouseClass* pObj) : AbstractExtended(pObj)
 	{
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
-		this->Name = pObj->Type->ID;
+		if (pObj->Type)
+			this->Name = pObj->Type->ID;
 		this->AbsType = HouseClass::AbsID;
 	}
 

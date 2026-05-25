@@ -13442,8 +13442,11 @@ TechnoExtContainer TechnoExtContainer::Instance;
 TechnoExtData::~TechnoExtData()
 {
 	auto pThis = This();
+	if (!pThis)
+		return;
+
 	FakeHouseClass* pOwner = (FakeHouseClass*)pThis->Owner;
-	auto pOwnerExt = pOwner->_GetExtData();
+	auto pOwnerExt = pOwner ? pOwner->_GetExtData() : nullptr;
 
 	ScenarioExtData::Instance()->LimboLaunchers.erase(pThis);
 
@@ -13473,16 +13476,19 @@ TechnoExtData::~TechnoExtData()
 
 	HouseExtContainer::Instance.LimboTechno.remove(pThis);
 
-	pOwnerExt->OwnedCountedHarvesters.erase(pThis);
+	if (pOwnerExt)
+	{
+		pOwnerExt->OwnedCountedHarvesters.erase(pThis);
 
-	if (this->AbsType != AbstractType::Building) {
-		for (auto& tun : pOwnerExt->Tunnels) {
-			tun.Vector.remove((FootClass*)pThis);
-		}
+		if (this->AbsType != AbstractType::Building) {
+			for (auto& tun : pOwnerExt->Tunnels) {
+				tun.Vector.remove((FootClass*)pThis);
+			}
 
-		if (RulesExtData::Instance()->ExtendedBuildingPlacing && this->AbsType == AbstractType::Unit && ((UnitClass*)pThis)->Type->DeploysInto)
-		{
-			pOwnerExt->OwnedDeployingUnits.remove((UnitClass*)pThis);
+			if (RulesExtData::Instance()->ExtendedBuildingPlacing && this->AbsType == AbstractType::Unit && ((UnitClass*)pThis)->Type->DeploysInto)
+			{
+				pOwnerExt->OwnedDeployingUnits.remove((UnitClass*)pThis);
+			}
 		}
 	}
 

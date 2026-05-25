@@ -16,6 +16,9 @@ void  FakeBuildingClass::_Draw_It(
 	auto* pTypeExt = this->_GetTypeExtData();
 	auto* pExt = this->_GetExtData();
 
+	if (!pTypeExt || !pExt || !type)
+		return;
+
 	{
 
 		if (pTypeExt->IsHideDuringSpecialAnim &&

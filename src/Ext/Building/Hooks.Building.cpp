@@ -81,7 +81,7 @@ ASMJIT_PATCH(0x442D1B, BuildingClass_Init_Academy, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	if (!pThis->Owner)
+	if (!pThis->Owner || !pThis->Owner->Type || !pThis->Type)
 		return 0x0;
 
 	if (HouseTypeExtContainer::Instance.Find(pThis->Owner->Type)->VeteranBuildings.Contains(pThis->Type))
@@ -745,7 +745,7 @@ ASMJIT_PATCH(0x442CE0, BuildingClass_Init_Cloakable, 0x6)
 {
 	GET(BuildingClass*, Item, ESI);
 
-	if (Item->Type->Cloakable)
+	if (Item->Type && Item->Type->Cloakable)
 	{
 		Item->Cloakable = true;
 	}

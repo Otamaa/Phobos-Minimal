@@ -72,6 +72,9 @@
 #include <Ext/CaptureManager/Body.h>
 #include <Ext/Infantry/Body.h>
 #include <Ext/InfantryType/Body.h>
+#include <Ext/Unit/Body.h>
+#include <Ext/UnitType/Body.h>
+#include <Ext/AircraftType/Body.h>
 #include <Ext/SHPReference/Body.h>
 #include <Ext/Cell/Body.h>
 #include <Ext/Parasite/Body.h>
@@ -132,6 +135,36 @@ void Phobos::LoadGameDataAfter()
 	}
 
 	BeaconManagerClass::Instance->LoadArt();
+
+	// Re-derive TypeExtData for all techno instances after load.
+	// Phobos ext type objects are not registered with the game's SwizzleManager,
+	// so the saved TypeExtData pointers cannot be remapped — they end up null.
+	// Re-initialize them from the (already-swizzled) game Type pointers.
+	for (auto pBuilding : *BuildingClass::Array)
+	{
+		if (auto* pExt = BuildingExtContainer::Instance.Find(pBuilding))
+			if (pBuilding->Type)
+				pExt->TypeExtData = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+	}
+	for (auto pUnit : *UnitClass::Array)
+	{
+		if (auto* pExt = UnitExtContainer::Instance.Find(pUnit))
+			if (pUnit->Type)
+				pExt->TypeExtData = UnitTypeExtContainer::Instance.Find(pUnit->Type);
+	}
+	for (auto pInfantry : *InfantryClass::Array)
+	{
+		if (auto* pExt = InfantryExtContainer::Instance.Find(pInfantry))
+			if (pInfantry->Type)
+				pExt->TypeExtData = InfantryTypeExtContainer::Instance.Find(pInfantry->Type);
+	}
+	for (auto pAircraft : *AircraftClass::Array)
+	{
+		if (auto* pExt = AircraftExtContainer::Instance.Find(pAircraft))
+			if (pAircraft->Type)
+				pExt->TypeExtData = AircraftTypeExtContainer::Instance.Find(pAircraft->Type);
+	}
+
 	Debug::LogInfo("[Phobos] Finished loading the game");
 
 }
@@ -299,11 +332,6 @@ unsigned Phobos::GetVersionNumber() {
 
 	return version;
 }
-
-#include <Ext/AircraftType/Body.h>
-
-#include <Ext/Unit/Body.h>
-#include <Ext/UnitType/Body.h>
 
 #include <New/Type/ActionTypeClass.h>
 

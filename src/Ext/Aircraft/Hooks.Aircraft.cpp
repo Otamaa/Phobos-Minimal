@@ -130,7 +130,7 @@ ASMJIT_PATCH(0x413FA3, AircraftClass_Init_Cloakable, 0x5)
 {
 	GET(AircraftClass*, Item, ESI);
 
-	if (Item->Type->Cloakable) {
+	if (Item->Type && Item->Type->Cloakable) {
 		Item->Cloakable = true;
 	}
 

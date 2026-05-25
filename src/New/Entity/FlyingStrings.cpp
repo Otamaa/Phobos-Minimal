@@ -64,17 +64,22 @@ bool FlyingStrings::DrawAllowed(CoordStruct const& nCoords, Point2D& outPoint)
 	return false;
 }
 
-bool FlyingStrings::SaveGlobal(PhobosStreamWriter& Stm) { return true; 
+bool FlyingStrings::SaveGlobal(PhobosStreamWriter& Stm)
+{
 		//save it as int instead of size_t
 		const int Count = (int)this->Data.size();
-		Stm.Save(Count);
+		if (!Stm.Save(Count))
+			return false;
 
 		for (int i = 0; i < Count; ++i)
 		{
-			Debug::Log("Saving %s [Item(%d) - %x] to stream\n", FlyingStrings::ClassName,i, (long)(&this->Data[i]));
+			Debug::Log("Saving %s [Item(%d) - %x] to stream\n", FlyingStrings::ClassName, i, (long)(&this->Data[i]));
 
 			if (!this->Data[i].Save(Stm))
+			{
 				Debug::FatalError("Failed to save FlyingStrings Item [%d]\n", i);
+				return false;
+			}
 		}
 
 		return true;

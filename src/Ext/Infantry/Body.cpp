@@ -8,10 +8,13 @@
 
 InfantryExtData::InfantryExtData(InfantryClass* pObj) : FootExtData(pObj)
 {
-	this->Name = pObj->Type->ID;
-	this->AbsType = InfantryClass::AbsID;
 	this->CurrentType = pObj->Type;
-	this->TypeExtData = InfantryTypeExtContainer::Instance.Find(pObj->Type);
+	if (pObj->Type)
+	{
+		this->Name = pObj->Type->ID;
+		this->TypeExtData = InfantryTypeExtContainer::Instance.Find(pObj->Type);
+	}
+	this->AbsType = InfantryClass::AbsID;
 }
 
 bool FakeInfantryClass::_Paradrop(CoordStruct* pCoords)
