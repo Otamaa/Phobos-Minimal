@@ -21,12 +21,7 @@ public:
 #pragma endregion
 
 public:
-	ParticleExtData(ParticleClass* pObj) : ObjectExtData(pObj)
-	{
-		this->Name = pObj->Type->ID;
-		this->AbsType = ParticleClass::AbsID;
-	}
-
+	ParticleExtData(ParticleClass* pObj);
 	ParticleExtData(ParticleClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 
 	virtual ~ParticleExtData() = default;

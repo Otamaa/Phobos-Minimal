@@ -36,6 +36,7 @@ DiskLaserExtContainer DiskLaserExtContainer::Instance;
 ASMJIT_PATCH(0x4A7A6A, DiskLaserClass_CTOR, 0x6)
 {
 	GET(DiskLaserClass*, pItem, ESI);
+	if(!Phobos::Otamaa::DoingLoadGame)
 	DiskLaserExtContainer::Instance.Allocate(pItem);
 	return 0;
 }

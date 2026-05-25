@@ -16,6 +16,7 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/AircraftType/Body.h>
 
 #include <Conversions.h>
 
@@ -26,14 +27,19 @@
 ASMJIT_PATCH(0x6B6D60, SpawnManagerClass_CTOR_CustomMissile, 6)
 {
 	GET(SpawnManagerClass* const, pSpawnManager, ESI);
-	return TechnoTypeExtContainer::Instance.Find(pSpawnManager->SpawnType)->IsCustomMissile ? 0x6B6D86 : 0x0;
+	return AircraftTypeExtContainer::Instance.Find(pSpawnManager->SpawnType)->IsCustomMissile ? 0x6B6D86 : 0x0;
 }
 
 #pragma region Update
 ASMJIT_PATCH(0x6B78F8, SpawnManagerClass_Update_CustomMissile, 6)
 {
 	GET(TechnoTypeClass* const, pSpawnType, EAX);
-	return TechnoTypeExtContainer::Instance.Find(pSpawnType)->IsCustomMissile ? 0x6B791F : 0x0;
+
+	if(pSpawnType->WhatAmI() == AbstractType::AircraftType
+		&& AircraftTypeExtContainer::Instance.Find((AircraftTypeClass*)pSpawnType)->IsCustomMissile)
+		return 0x6B791F ;
+
+	return 0x0;
 }
 
 ASMJIT_PATCH(0x6B7A6A, SpawnManagerClass_Update_CustomMissile2, 5)
@@ -43,13 +49,15 @@ ASMJIT_PATCH(0x6B7A6A, SpawnManagerClass_Update_CustomMissile2, 5)
 
 	auto pSpawnType = pSpawnManager->SpawnType;
 
-	const auto pExt = TechnoTypeExtContainer::Instance.Find(pSpawnType);
+	if (pSpawnType->WhatAmI() == AbstractType::AircraftType){
+		const auto pExt = AircraftTypeExtContainer::Instance.Find(pSpawnType);
 
-	if (pExt->IsCustomMissile) {
-		auto node = &pSpawnManager->SpawnedNodes.Items[idxSpawn]->NodeSpawnTimer;
-		node->StartTime = Unsorted::CurrentFrame();
-		node->TimeLeft = pExt->CustomMissileData->PauseFrames + pExt->CustomMissileData->TiltFrames;
-		return 0x6B7B03;
+		if (pExt->IsCustomMissile) {
+			auto node = &pSpawnManager->SpawnedNodes.Items[idxSpawn]->NodeSpawnTimer;
+			node->StartTime = Unsorted::CurrentFrame();
+			node->TimeLeft = pExt->CustomMissileData->PauseFrames + pExt->CustomMissileData->TiltFrames;
+			return 0x6B7B03;
+		}
 	}
 
 	return 0;
@@ -60,20 +68,24 @@ ASMJIT_PATCH(0x6B750B, SpawnManagerClass_Update_CustomMissilePreLauchAnim, 0x5)
 {
 	GET(AircraftClass*, pSpawned, EDI);
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pSpawned->Type);
+	if (pSpawned->Type->WhatAmI() == AbstractType::AircraftType) {
+		const auto pTypeExt = AircraftTypeExtContainer::Instance.Find((AircraftTypeClass*)pSpawned->Type);
+
+		if (pTypeExt->IsCustomMissile) {
+			if (AnimTypeClass* pType = pTypeExt->CustomMissilePreLauchAnim) {
+				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pSpawned->Location, 2, 1, 0x600, -10, false),
+					pSpawned->Owner,
+					nullptr,
+					pSpawned,
+					true, false
+				);
+			}
+		}
+	}
 
 	if (pSpawned->Type == RulesClass::Instance->CMisl.Type) {
 		return 0x0;
-	} else if (pTypeExt->IsCustomMissile) {
-		if(AnimTypeClass* pType = pTypeExt->CustomMissilePreLauchAnim) {
-			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pSpawned->Location, 2, 1, 0x600, -10, false),
-				pSpawned->Owner,
-				nullptr,
-				pSpawned,
-				true, false
-			);
-		}
-	}
+	} 
 
 	return 0x6B757A;
 }
@@ -91,13 +103,19 @@ ASMJIT_PATCH(0x6B74BC, SpawnManagerClass_Update_MissileCoordOffset, 0x6)
 	//GET(AircraftClass*, pSpawned, EDI);
 	GET(AircraftTypeClass* const, pMissile, EAX);
 
-	const auto pExt = TechnoTypeExtContainer::Instance.Find(pMissile);
+	if (pMissile->WhatAmI() == AbstractType::AircraftType) {
+		const auto pExt = AircraftTypeExtContainer::Instance.Find(pMissile);
 
-	if (pExt->IsCustomMissile && pExt->CustomMissileOffset.isset()) {
-		R->Stack(0x2C, R->ECX<int>() - pExt->CustomMissileOffset->X);
-		R->Stack(0x30, R->EDX<int>() - pExt->CustomMissileOffset->Y);
+		if (pExt->IsCustomMissile && pExt->CustomMissileOffset.isset())
+		{
+			R->Stack(0x2C, R->ECX<int>() - pExt->CustomMissileOffset->X);
+			R->Stack(0x30, R->EDX<int>() - pExt->CustomMissileOffset->Y);
+
+			return GetPrimaryFacing;
+		}
 	}
-	else if(pMissile == RulesClass::Instance->CMisl.Type) {
+
+	if(pMissile == RulesClass::Instance->CMisl.Type) {
 		return OffsetBy28;
 	}
 

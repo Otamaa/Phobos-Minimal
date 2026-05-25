@@ -940,40 +940,42 @@ ASMJIT_PATCH(0x421EA0, AnimClass_CTOR_SetContext, 0x6)
 ASMJIT_PATCH(0x422058, AnimClass_CTOR, 0x5)
 {
 	GET(AnimClass*, pItem, ESI);
-	if(pItem->Type){
 
-		PhobosGlobal::Instance()->LastAnimName = pItem->Type->ID;
+	if(!Phobos::Otamaa::DoingLoadGame) {
+		if(pItem->Type){
 
-		// Do this here instead of using a duplicate hook in SyncLogger.cpp
-		if (!SyncLogger::HooksDisabled && pItem->UniqueID != -2)
-			SyncLogger::AddAnimCreationSyncLogEvent(CTORTemp::coords, CTORTemp::callerAddress);
+			PhobosGlobal::Instance()->LastAnimName = pItem->Type->ID;
 
-		if (pItem->UniqueID == -2) {
-			Debug::LogInfo("Anim[{} - {}] with some weird ID", pItem->Type->ID, (void*)pItem);
-		}
+			// Do this here instead of using a duplicate hook in SyncLogger.cpp
+			if (!SyncLogger::HooksDisabled && pItem->UniqueID != -2)
+				SyncLogger::AddAnimCreationSyncLogEvent(CTORTemp::coords, CTORTemp::callerAddress);
 
-		if (AnimExtData* val = AnimExtContainer::Instance.Allocate(pItem))
-		{
-			AnimExtContainer::Instance.SetExtAttribute(pItem, val);
-
-			// Something about creating this in constructor messes with debris anims, so it has to be done for them later.
-			if (!pItem->HasExtras) {
-
-				auto pFake = (FakeAnimClass*)(pItem);
-				if (pFake->_GetTypeExtData()->Damaging_UseSeparateState) {
-					int damagedelay = pFake->_GetTypeExtData()->Damaging_Rate == -1 ? pFake->Animation.Step : pFake->_GetTypeExtData()->Damaging_Rate;
-					pFake->_GetExtData()->DamagingState.Start(damagedelay);
-				}
-
-				val->CreateAttachedSystem();
+			if (pItem->UniqueID == -2) {
+				Debug::LogInfo("Anim[{} - {}] with some weird ID", pItem->Type->ID, (void*)pItem);
 			}
 
+			if (AnimExtData* val = AnimExtContainer::Instance.Allocate(pItem))
+			{
+				AnimExtContainer::Instance.SetExtAttribute(pItem, val);
+
+				// Something about creating this in constructor messes with debris anims, so it has to be done for them later.
+				if (!pItem->HasExtras) {
+
+					auto pFake = (FakeAnimClass*)(pItem);
+					if (pFake->_GetTypeExtData()->Damaging_UseSeparateState) {
+						int damagedelay = pFake->_GetTypeExtData()->Damaging_Rate == -1 ? pFake->Animation.Step : pFake->_GetTypeExtData()->Damaging_Rate;
+						pFake->_GetExtData()->DamagingState.Start(damagedelay);
+					}
+
+					val->CreateAttachedSystem();
+				}
+
+			}
+		}
+		else {
+			PhobosGlobal::Instance()->LastAnimName = "none";
 		}
 	}
-	else {
-		PhobosGlobal::Instance()->LastAnimName = "none";
-	}
-
 
 	PhobosGlobal::Instance()->LastAnimName.clear();
 	return 0;

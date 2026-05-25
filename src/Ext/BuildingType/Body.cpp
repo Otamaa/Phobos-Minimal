@@ -2644,6 +2644,7 @@ void BuildingTypeExtContainer::WriteToINI(BuildingTypeClass* key, CCINIClass* pI
 ASMJIT_PATCH(0x45E50C, BuildingTypeClass_CTOR, 0x6)
 {
 	GET(BuildingTypeClass*, pItem, EAX);
+	if(!Phobos::Otamaa::DoingLoadGame)
 	BuildingTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }

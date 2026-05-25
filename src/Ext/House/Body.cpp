@@ -4713,7 +4713,9 @@ ASMJIT_PATCH(0x4F6532, HouseClass_CTOR, 0x5)
 	if (RulesExtData::Instance()->EnablePowerSurplus)
 		pItem->PowerSurplus = RulesClass::Instance->PowerSurplus;
 
-	HouseExtContainer::Instance.Allocate(pItem);
+	if (!Phobos::Otamaa::DoingLoadGame) {
+		HouseExtContainer::Instance.Allocate(pItem);
+	}
 
 	return 0;
 }

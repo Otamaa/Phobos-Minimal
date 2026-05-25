@@ -6,6 +6,13 @@
 
 DWORD LastKnown;
 AbstractClass* pAbs;
+DWORD Origin;
+
+ASMJIT_PATCH(0x410380 , AbstractClass_Load_FetchOrigi, 0x5){
+	GET_STACK(DWORD, caller, 0x0);
+	Origin = caller;
+	return 0x0;
+}
 
 ASMJIT_PATCH(0x4103D0, AbstractClass_Load_LogValue, 0x5)
 {
@@ -13,7 +20,8 @@ ASMJIT_PATCH(0x4103D0, AbstractClass_Load_LogValue, 0x5)
 	//GET_STACK(IStream*, pStream, 0x0);
 
 	//immedietely update the extension pointer value and the extension AttachedToObject itself !
-	ExtensionSwizzleManager::SwizzleExtensionPointer(reinterpret_cast<void**>(&pThis->unknown_18), pThis);
+	ExtensionSwizzleManager::SwizzleExtensionPointer(reinterpret_cast<void**>(&pThis->unknown_18), pThis , Origin);
+	Origin = 0u;
 	LastKnown = pThis->unknown_18;
 	pAbs = pThis;
 

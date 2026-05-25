@@ -2021,8 +2021,8 @@ ASMJIT_PATCH(0x6DBE18, TacticalClass_Save_Suffix, 0x5)
 	PhobosByteStream saver(sizeof(TacticalExtData));
 	PhobosStreamWriter writer(saver);
 
- writer.Save(TacticalExtData::Canary);
- writer.Save(buffer);
+	writer.Save(TacticalExtData::Canary);
+	writer.Save(buffer);
 
 	buffer->SaveToStream(writer);
 	saver.WriteToStream(TacticalExtData::g_pStm);

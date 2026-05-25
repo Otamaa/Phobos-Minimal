@@ -228,7 +228,8 @@ WaveExtContainer WaveExtContainer::Instance;
 ASMJIT_PATCH(0x75EA66, WaveClass_CTOR, 0x5)
 {
 	GET(WaveClass*, pItem, ESI);
-	WaveExtContainer::Instance.FindOrAllocate(pItem);
+	if (!Phobos::Otamaa::DoingLoadGame)
+		WaveExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 

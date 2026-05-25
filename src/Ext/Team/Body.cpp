@@ -5566,6 +5566,7 @@ TeamExtContainer TeamExtContainer::Instance;
 ASMJIT_PATCH(0x6E8D05, TeamClass_CTOR, 0x5)
 {
 	GET(TeamClass*, pThis, ESI);
+	if (!Phobos::Otamaa::DoingLoadGame)
 	TeamExtContainer::Instance.Allocate(pThis);
 	return 0;
 }

@@ -283,8 +283,6 @@ private:
 		debugProcess(this->HoverShutdown, "HoverShutdown");
 	}
 
-
-
 public:
 	using base_type = TechnoClass;
 public:

@@ -37,12 +37,7 @@ public:
 
 public:
 
-	TriggerExtData(TriggerClass* pObj) : AbstractExtended(pObj)
-	{
-		this->Name = pObj->Type->ID;
-		this->AbsType = TriggerClass::AbsID;
-	}
-
+	TriggerExtData(TriggerClass* pObj);
 	TriggerExtData(TriggerClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~TriggerExtData() = default;
@@ -74,7 +69,8 @@ private:
 	void Serialize(T& Stm);
 };
 
-class TriggerExtContainer final : public Container<TriggerExtData>, public ContainerSaveLoad<TriggerExtContainer, true>
+class TriggerExtContainer final : public Container<TriggerExtData>
+	, public ContainerSaveLoad<TriggerExtContainer, true>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "TriggerExtContainer";

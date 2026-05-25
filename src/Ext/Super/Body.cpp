@@ -191,7 +191,7 @@ bool SuperExtData::CanFire(SuperClass* pFor)
 ASMJIT_PATCH(0x6CB10E, SuperClass_CTOR, 0x7)
 {
 	GET(SuperClass*, pItem, ESI);
-
+	if (!Phobos::Otamaa::DoingLoadGame)
 	SuperExtContainer::Instance.Allocate(pItem);
 	return 0;
 }

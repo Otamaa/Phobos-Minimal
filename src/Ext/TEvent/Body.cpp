@@ -1445,7 +1445,7 @@ TEventExtContainer TEventExtContainer::Instance;
 ASMJIT_PATCH(0x71E7F8, TEventClass_CTOR, 5)
 {
 	GET(TEventClass*, pItem, ESI);
-
+	if (!Phobos::Otamaa::DoingLoadGame)
 	TEventExtContainer::Instance.Allocate(pItem);
 	return 0;
 }

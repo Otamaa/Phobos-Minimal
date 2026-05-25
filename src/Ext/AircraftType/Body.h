@@ -14,6 +14,7 @@ public:
 	
 
 public:
+	Nullable<AnimTypeClass*> TakeOff_Anim {};
 
 	Nullable<bool> ExtendedAircraftMissions {};
 	Nullable<bool> ExtendedAircraftMissions_SmoothMoving {};
@@ -31,11 +32,30 @@ public:
 	Valueable<bool> Paradrop_DropPassangers { true };
 	Valueable<int> Paradrop_MaxAttempt { 5 };
 
+	Valueable<bool> IsCustomMissile { false };
+	Valueable<RocketStruct> CustomMissileData { RocketStruct() };
+	Valueable<WarheadTypeClass*> CustomMissileWarhead { nullptr };
+	Valueable<WarheadTypeClass*> CustomMissileEliteWarhead { nullptr };
+	Valueable<AnimTypeClass*> CustomMissileTakeoffAnim { nullptr };
+	Valueable<AnimTypeClass*> CustomMissilePreLauchAnim { nullptr };
+	Valueable<AnimTypeClass*> CustomMissileTrailerAnim { nullptr };
+	Valueable<int> CustomMissileTrailerSeparation { 3 };
+	Valueable<WeaponTypeClass*> CustomMissileWeapon { nullptr };
+	Valueable<WeaponTypeClass*> CustomMissileEliteWeapon { nullptr };
+	Valueable<int> CustomMissileInaccuracy { 0 };
+	Valueable<int> CustomMissileTrailAppearDelay { 2 };
+	Valueable<double> CustomMissileCloseEnoughFactor { 1.0 };
+	NullablePromotable<bool> CustomMissileRaise { };
+	Nullable<Point2D> CustomMissileOffset {};
+
 	AircraftTypeExtData(AircraftTypeClass* pObj) : FootTypeExtData(pObj)
 	{
 		this->AbsType = AircraftTypeClass::AbsID;
+		this->CustomMissileData->Type = pObj;
 		this->InitializeConstant();
 	}
+
+	void Initialize() override;
 
 	AircraftTypeExtData(AircraftTypeClass* pObj, noinit_t nn) : FootTypeExtData(pObj, nn) { }
 
@@ -49,37 +69,13 @@ public:
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
 		this->FootTypeExtData::LoadFromStream(Stm);
-		Stm
-			.Process(this->ExtendedAircraftMissions)
-			.Process(this->ExtendedAircraftMissions_SmoothMoving)
-			.Process(this->ExtendedAircraftMissions_EarlyDescend)
-			.Process(this->ExtendedAircraftMissions_RearApproach)
-			.Process(this->ExtendedAircraftMissions_FastScramble)
-			.Process(this->ExtendedAircraftMissions_UnlandDamage)
-			.Process(this->FiringForceScatter)
-			.Process(this->AttackingAircraftSightRange)
-			.Process(this->SpyplaneCameraSound)
-			.Process(this->ParadropRadius)
-			.Process(this->ParadropOverflRadius)
-			.Process(this->Paradrop_DropPassangers)
-			.Process(this->Paradrop_MaxAttempt)
-
-			;
+		this->Serialize(Stm);
 	}
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
-		const_cast<AircraftTypeExtData*>(this)->TechnoTypeExtData::SaveToStream(Stm);
-
-		Stm
-			.Process(this->ExtendedAircraftMissions)
-			.Process(this->ExtendedAircraftMissions_SmoothMoving)
-			.Process(this->ExtendedAircraftMissions_EarlyDescend)
-			.Process(this->ExtendedAircraftMissions_RearApproach)
-			.Process(this->ExtendedAircraftMissions_FastScramble)
-			.Process(this->ExtendedAircraftMissions_UnlandDamage)
-			.Process(this->FiringForceScatter)
-			;
+		const_cast<AircraftTypeExtData*>(this)->FootTypeExtData::SaveToStream(Stm);
+		const_cast<AircraftTypeExtData*>(this)->Serialize(Stm);
 	}
 
 	virtual AbstractType WhatIam() const { return base_type::AbsID; }
@@ -102,6 +98,10 @@ public:
 
 public:
 	static bool ExtendedAircraftMissionsEnabled(AircraftClass* pAircraft);
+
+private:
+	template <typename T>
+	void Serialize(T& Stm);
 };
 
 class AircraftTypeExtContainer final : public Container<AircraftTypeExtData>

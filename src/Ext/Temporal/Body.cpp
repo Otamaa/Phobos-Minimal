@@ -361,6 +361,7 @@ TemporalExtContainer TemporalExtContainer::Instance;
 ASMJIT_PATCH(0x71A594, TemporalClass_CTOR, 0x7)
 {
 	GET(TemporalClass*, pItem, ESI);
+	if (!Phobos::Otamaa::DoingLoadGame)
 	TemporalExtContainer::Instance.Allocate(pItem);
 	return 0;
 }

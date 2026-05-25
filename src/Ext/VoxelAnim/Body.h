@@ -31,12 +31,7 @@ public:
 public:
 public:
 
-	VoxelAnimExtData(VoxelAnimClass* pObj) : ObjectExtData(pObj)
-	{
-		this->Name = pObj->Type->ID;
-		this->AbsType = VoxelAnimClass::AbsID;
-	}
-
+	VoxelAnimExtData(VoxelAnimClass* pObj);
 	VoxelAnimExtData(VoxelAnimClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 
 	virtual ~VoxelAnimExtData() = default;

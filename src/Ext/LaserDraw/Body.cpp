@@ -329,14 +329,7 @@ void FakeLaserDrawClass::_UpdateLaser()
 	}
 
 	// Check if laser has expired
-	if (Progress.Stage >= Duration)
-	{
-		// Remove from global array and delete
-		const int idx = LaserDrawClass::Array->find(this);
-		if (idx >= 0)
-		{
-			LaserDrawClass::Array->erase_at(idx);
-		}
+	if (Progress.Stage >= Duration) {
 		GameDelete(this);
 	}
 }
@@ -374,16 +367,8 @@ void FakeLaserDrawClass::_DestroyAllLasers()
 	Debug::Log("[LaserDraw] DestroyAllLasers: destroying %d lasers\n", LaserDrawClass::Array->Count);
 #endif
 
-	while (LaserDrawClass::Array->Count > 0)
-	{
-		auto* pLaser = (*LaserDrawClass::Array)[0];
-		if (pLaser)
-		{
-			const int idx = LaserDrawClass::Array->find(pLaser);
-			if (idx >= 0)
-			{
-				LaserDrawClass::Array->erase_at(idx);
-			}
+	while (LaserDrawClass::Array->Count > 0) {
+		if (auto* pLaser = (*LaserDrawClass::Array)[0]) {
 			GameDelete(pLaser);
 		}
 	}
@@ -1043,23 +1028,14 @@ ASMJIT_PATCH(0x54FFB0, LaserDrawClass_DTOR_Update, 7)
 	return 0;
 }
 
-ASMJIT_PATCH(0x550016, LaserDrawClass_Remove1_Update, 6)
-{
-	GET(LaserDrawClass*, pLaser, ECX);
-	LaserDrawClassExt::RemoveLaserTracking(pLaser);
-	return 0;
-}
+ASMJIT_PATCH(0x5501D7 , LaserDrawClass_Remove_InlineDTOR, 0x5) {
+	GET(LaserDrawClass*, pLaser, ESI);
+	GameDelete(pLaser);
+	return R->Origin() + 0x51;
+}ASMJIT_PATCH_AGAIN(0x5500EF ,LaserDrawClass_Remove_InlineDTOR, 0x5)
 
-ASMJIT_PATCH(0x5500EF, LaserDrawClass_Remove2_Update, 5)
-{
-	GET(LaserDrawClass*, pLaser, ECX);
-	LaserDrawClassExt::RemoveLaserTracking(pLaser);
-	return 0;
-}
-
-ASMJIT_PATCH(0x5501D7, LaserDrawClass_Remove3_Update, 5)
-{
-	GET(LaserDrawClass*, pLaser, ECX);
-	LaserDrawClassExt::RemoveLaserTracking(pLaser);
-	return 0;
+ASMJIT_PATCH(0x550016 ,LaserDrawClass_Remove_InlineDTOR_BB, 0x6 ){
+		GET(LaserDrawClass*, pLaser, ESI);
+	GameDelete(pLaser);
+	return R->Origin() + 0x52;
 }

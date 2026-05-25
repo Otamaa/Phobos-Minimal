@@ -75,7 +75,8 @@ void UnitTypeExtContainer::WriteToINI(ext_t::base_type* key, CCINIClass* pINI)
 ASMJIT_PATCH(0x7472B1, UnitTypeClass_CTOR, 0x6)
 {
 	GET(UnitTypeClass*, pItem, ESI);
-	UnitTypeExtContainer::Instance.Allocate(pItem);
+	if (!Phobos::Otamaa::DoingLoadGame)
+		UnitTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 

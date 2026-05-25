@@ -1681,6 +1681,7 @@ AircraftExtContainer AircraftExtContainer::Instance;
 ASMJIT_PATCH(0x413DB1, AircraftClass_CTOR, 0x6)
 {
 	GET(AircraftClass*, pItem, ESI);
+	if(!Phobos::Otamaa::DoingLoadGame)
 	AircraftExtContainer::Instance.Allocate(pItem);
 	return 0;
 }

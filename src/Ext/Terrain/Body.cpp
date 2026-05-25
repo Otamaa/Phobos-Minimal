@@ -121,6 +121,7 @@ DEFINE_JUMP(LJMP, 0x71BC31 , 0x71BC86);
 ASMJIT_PATCH(0x71BE74, TerrainClass_CTOR, 0x5)
 {
 	GET(TerrainClass*, pItem, ESI);
+	if (!Phobos::Otamaa::DoingLoadGame)
 	TerrainExtContainer::Instance.Allocate(pItem);
 	//PointerExpiredNotification::NotifyInvalidObject->Add(pItem);
 	return 0;

@@ -212,10 +212,14 @@ HRESULT SaveSimpleArray(LPSTREAM pStm, DynamicVectorClass<T>& collection)
 #include <Ext/Scenario/Body.h>
 
 template<typename T, bool hasArray = true>
-HRESULT WriteBlocksToStream(IStream* pStm) {
+HRESULT WriteBlocksToStream(IStream* pStm)
+{
+	const auto typeName = PhobosCRT::GetTypeIDName<T>();
+	Debug::Log("[ExtSave] Saving %s ...\n", typeName.c_str());
+
 	//reserve the stream block
 	size_t _re = 0u;
-	if constexpr(hasArray)
+	if constexpr (hasArray)
 		_re = (sizeof(sizeof(T) * T::Array.size()));
 	else
 		_re = (sizeof(sizeof(T)));
@@ -223,20 +227,29 @@ HRESULT WriteBlocksToStream(IStream* pStm) {
 	PhobosByteStream saver(_re);
 	PhobosStreamWriter writer(saver);
 
-	if (T::SaveGlobals(writer)) {
-		if (saver.WriteToStream(pStm)) {
+	if (T::SaveGlobals(writer))
+	{
+		if (saver.WriteToStream(pStm))
+		{
+			Debug::Log("[ExtSave]   OK %s\n", typeName.c_str());
 			return S_OK;
 		}
+		Debug::Log("[ExtSave]   FAILED %s - WriteToStream failed\n", typeName.c_str());
+	}
+	else
+	{
+		Debug::Log("[ExtSave]   FAILED %s - SaveGlobals returned false\n", typeName.c_str());
 	}
 
 	return S_FALSE;
-
 }
 
 template<typename T>
-HRESULT WriteBlocksToStreamB(T& who_ , IStream* pStm)
+HRESULT WriteBlocksToStreamB(T& who_, IStream* pStm)
 {
 	using Base = std::remove_const_t<std::remove_pointer_t<T>>;
+	const auto typeName = PhobosCRT::GetTypeIDName<Base>();
+	Debug::Log("[ExtSave] Saving (B) %s ...\n", typeName.c_str());
 
 	//reserve the stream block
 	PhobosByteStream saver(sizeof(sizeof(Base)));
@@ -244,37 +257,57 @@ HRESULT WriteBlocksToStreamB(T& who_ , IStream* pStm)
 
 	//mark the block
 	bool _SaveResult = false;
-	if constexpr (std::is_pointer_v<T>) {
+	if constexpr (std::is_pointer_v<T>)
+	{
 		_SaveResult = who_->SaveGlobal(writer);
-	} else {
+	}
+	else
+	{
 		_SaveResult = who_.SaveGlobal(writer);
 	}
 
-	if (_SaveResult) {
-		if (saver.WriteToStream(pStm)) {
+	if (_SaveResult)
+	{
+		if (saver.WriteToStream(pStm))
+		{
+			Debug::Log("[ExtSave]   OK (B) %s\n", typeName.c_str());
 			return S_OK;
 		}
+		Debug::Log("[ExtSave]   FAILED (B) %s - WriteToStream failed\n", typeName.c_str());
+	}
+	else
+	{
+		Debug::Log("[ExtSave]   FAILED (B) %s - SaveGlobal returned false\n", typeName.c_str());
 	}
 
 	return S_FALSE;
-
 }
 
 template<typename T>
 HRESULT WriteBlocksToStreamC(T& who_, IStream* pStm)
 {
+	const auto typeName = PhobosCRT::GetTypeIDName<T>();
+	Debug::Log("[ExtSave] Saving (C) %s ...\n", typeName.c_str());
+
 	//reserve the stream block
 	PhobosByteStream saver(sizeof(sizeof(T)));
 	PhobosStreamWriter writer(saver);
 
-	if (who_.SaveAll(writer)) {
-		if (saver.WriteToStream(pStm)) {
+	if (who_.SaveAll(writer))
+	{
+		if (saver.WriteToStream(pStm))
+		{
+			Debug::Log("[ExtSave]   OK (C) %s\n", typeName.c_str());
 			return S_OK;
 		}
+		Debug::Log("[ExtSave]   FAILED (C) %s - WriteToStream failed\n", typeName.c_str());
+	}
+	else
+	{
+		Debug::Log("[ExtSave]   FAILED (C) %s - SaveAll returned false\n", typeName.c_str());
 	}
 
 	return S_FALSE;
-
 }
 
 HRESULT Phobos::SaveAllExtData(IStream* pStm)
@@ -303,8 +336,8 @@ HRESULT Phobos::SaveAllExtData(IStream* pStm)
 	hr = WriteBlocksToStream<ArmorTypeClass>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
-	hr = WriteBlocksToStream<BarTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
+	//hr = WriteBlocksToStream<BarTypeClass>(pStm);
+	//if (!SUCCEEDED(hr)) return hr;
 
 	hr = WriteBlocksToStream<CrateTypeClass>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
@@ -375,11 +408,13 @@ HRESULT Phobos::SaveAllExtData(IStream* pStm)
 
 	hr = WriteBlocksToStream<ShieldClass>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	
+
 	//Ext
 	hr = WriteBlocksToStreamC(SideExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
 	hr = WriteBlocksToStreamC(AnimTypeExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+	hr = WriteBlocksToStreamC(CellExtContainer ::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
 	hr = WriteBlocksToStreamC(TiberiumExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
@@ -481,7 +516,8 @@ HRESULT Put_All_Pointers(LPSTREAM pStm)
 
 	//save the voice Index for the current player , this is used to restore the correct voice when loading a save game
 	ULONG out = 0;
-	hr = pStm->Write(&VoxClass::EVAIndex(), sizeof(int), &out);
+	int oldEva = VoxClass::EVAIndex();
+	hr = pStm->Write(&oldEva, sizeof(int), &out);
 	if (!SUCCEEDED(hr)) return hr;
 
 	hr = ScenarioClass::Instance->Save(pStm);
@@ -707,9 +743,11 @@ HRESULT Put_All_Pointers(LPSTREAM pStm)
 	if (!SUCCEEDED(hr)) return hr;
 
 	// Game options section (known problematic area)
-	if (SessionClass::Instance->GameMode == GameMode::Skirmish) {
+	if (SessionClass::Instance->GameMode == GameMode::Skirmish)
+	{
 		Debug::Log("Writing Skirmish Session.Options\n");
-		if (!GameOptionsType::Instance->Save(pStm)){
+		if (!GameOptionsType::Instance->Save(pStm))
+		{
 			Debug::Log("\t***** GameOptionsType SAVE FAILED!\n");
 			return E_FAIL;
 		}

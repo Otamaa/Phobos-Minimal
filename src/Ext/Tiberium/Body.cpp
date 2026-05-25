@@ -775,6 +775,7 @@ void TiberiumExtContainer::Clear()
 ASMJIT_PATCH(0x721876, TiberiumClass_CTOR, 0x5)
 {
 	GET(TiberiumClass*, pItem, ESI);
+	if (!Phobos::Otamaa::DoingLoadGame)
 	TiberiumExtContainer::Instance.Allocate(pItem);
 	return 0;
 }

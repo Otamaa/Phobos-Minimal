@@ -233,17 +233,24 @@ struct ContainerSaveLoad {
 		if (!stm.Load(Count))
 			return false;
 
-		if (Count > 0) {
-			for (int i = 0; i < Count; ++i) {
-				uintptr_t saved {};
-				if (!stm.Load(saved))
-					return false;
+		for (int i = 0; i < Count; ++i) {
+			uintptr_t savedPtr {};
+			if (!stm.Load(savedPtr))
+				return false;
 
-				auto buffer = new T::ExtT(nullptr, noinit_t());
-				buffer->LoadFromStream(stm);
-				ExtensionSwizzleManager::RegisterExtensionPointer((void*)saved, buffer);
-				((T*)this)->Array.emplace_back(buffer);
-			}
+			auto buffer = new T::ExtT(nullptr, noinit_t());
+			Debug::Log("Loading %s [At (%d) - %x] to stream\n",
+					T::ClassName, i, savedPtr);
+
+			buffer->LoadFromStream(stm);
+			if (!stm.Success())
+				return false;
+
+			//specifically for immedietely restore the extension pointers 
+			ExtensionSwizzleManager::RegisterExtensionPointer((void*)savedPtr, buffer);
+			//for others that need to be remapped using vanilla swizzle manager
+			PhobosSwizzleManager.Here_I_Am(savedPtr, buffer);
+			((T*)this)->Array.emplace_back(buffer);
 		}
 
 		return true;
@@ -255,8 +262,7 @@ struct ContainerSaveLoad {
 		if (!stm.Save(Count))
 			return false;
 
-		for (int i = 0; i < Count; ++i)
-		{
+		for (int i = 0; i < Count; ++i) {
 			uintptr_t savedPtr = (uintptr_t)((T*)this)->Array[i];
 
 			if constexpr (haNameItem) { 
@@ -271,6 +277,8 @@ struct ContainerSaveLoad {
 				return false;
 
 			((T*)this)->Array[i]->SaveToStream(stm);
+			if (!stm.Success())
+				return false;
 		}
 
 		return true;

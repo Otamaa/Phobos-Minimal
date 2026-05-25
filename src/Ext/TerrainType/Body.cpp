@@ -189,7 +189,8 @@ void TerrainTypeExtContainer::WriteToINI(ext_t::base_type* key, CCINIClass* pINI
 ASMJIT_PATCH(0x71DBC0, TerrainTypeClass_CTOR, 0x7)
 {
 	GET(TerrainTypeClass*, pItem, ESI);
-	TerrainTypeExtContainer::Instance.Allocate(pItem);
+	if (!Phobos::Otamaa::DoingLoadGame)
+		TerrainTypeExtContainer::Instance.Allocate(pItem);
 	pItem->RadarInvisible = false;
 	return 0;
 }

@@ -31,6 +31,7 @@ BombExtContainer BombExtContainer::Instance;
 ASMJIT_PATCH(0x4385FC, BombClass_CTOR, 0x6)
 {
 	GET(BombClass*, pItem, ESI);
+	if(!Phobos::Otamaa::DoingLoadGame)
 	BombExtContainer::Instance.Allocate(pItem);
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x438EE9, BombClass_CTOR, 0x6)

@@ -13453,16 +13453,24 @@ TechnoExtData::~TechnoExtData()
 	if(this->FallingDownTracked)
 		ScenarioExtData::Instance()->FallingDownTracker.erase(pThis);
 
-	if (!Phobos::Otamaa::ExeTerminated)
+	//mimicking the original game stuffs
+	if (!Phobos::Otamaa::ExeTerminated && Game::IsActive())
 	{
-		if (auto pTemp = std::exchange(this->MyOriginalTemporal, nullptr))
-		{
+		if (auto pTemp = std::exchange(this->MyOriginalTemporal, nullptr)) {
 			GameDelete<true, false>(pTemp);
 		}
 
 		//only update the SW if really needed it
-		if (pThis->Owner && pThis->WhatAmI() != BuildingClass::AbsID && !this->TypeExtData->Linked_SW.empty())
-			((FakeHouseClass*)pThis->Owner)->_AI_Supers();
+		//ony if the RecheckTechTree is false , otherwise we dont need to re-evaluate again
+		if (pThis->Owner && !pThis->Owner->RecheckTechTree && !pThis->Owner->Type->MultiplayPassive){
+
+			if(pThis->WhatAmI() != BuildingClass::AbsID && !this->TypeExtData->Linked_SW.empty())
+				((FakeHouseClass*)pThis->Owner)->_AI_Supers();
+
+			if (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->IsGenericPrerequisite()) {
+				pThis->Owner->RecheckTechTree = true;
+			}
+		}
 	}
 
 	this->ClearElectricBolts();

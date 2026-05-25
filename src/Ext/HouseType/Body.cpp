@@ -568,7 +568,7 @@ void HouseTypeExtContainer::WriteToINI(HouseTypeClass* key, CCINIClass* pINI)
 ASMJIT_PATCH(0x511643, HouseTypeClass_CTOR, 0x5)
 {
 	GET(HouseTypeClass*, pItem, EAX);
-
+	if (!Phobos::Otamaa::DoingLoadGame) 
 	HouseTypeExtContainer::Instance.Allocate(pItem);
 
 	return 0;

@@ -852,6 +852,7 @@ ParticleSystemExtContainer ParticleSystemExtContainer::Instance;
 ASMJIT_PATCH(0x62DF05, ParticleSystemClass_CTOR, 0x5)
 {
 	GET(ParticleSystemClass*, pItem, ESI);
+	if (!Phobos::Otamaa::DoingLoadGame) 
 	ParticleSystemExtContainer::Instance.Allocate(pItem);
 	return 0;
 }

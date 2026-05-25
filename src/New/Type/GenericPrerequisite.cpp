@@ -12,7 +12,7 @@ GenericPrerequisite::GenericPrerequisite(const char* const pTitle)
 	: Enumerable<GenericPrerequisite>(pTitle)
 { }
 
-void GenericPrerequisite::Parse(CCINIClass* pINI, const char* section, const char* key, ValueableVector<int>& Vec)
+void GenericPrerequisite::Parse(CCINIClass* pINI, const char* section, const char* key, std::vector<int>& Vec)
 {
 	if (pINI->ReadString(section, key, Phobos::readDefval, Phobos::readBuffer) > 0)
 	{

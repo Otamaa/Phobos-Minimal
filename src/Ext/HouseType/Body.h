@@ -81,7 +81,7 @@ public:
 	// Nullable<int> (int + bool + padding ≈ 8 bytes)
 	// ============================================================
 	Nullable<int> NewTeamsSelector_MergeUnclassifiedCategoryWith {};
-	NullableIdx<EVAVoices> EVAIndex { -1 };
+	NullableIdx<EVAVoices> EVAIndex { };
 	// ============================================================
 	// Nullable<bool> (bool + bool ≈ 2-4 bytes)
 	// ============================================================

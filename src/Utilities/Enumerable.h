@@ -232,7 +232,8 @@ public:
 
 		//save it as int instead of size_t
 		const int Count = (int)Array.size();
-		Stm.Save(Count);
+		if (!Stm.Save(Count))
+			return false;
 
 		for (int i = 0; i < Count; ++i) {
 			Debug::Log("Saving %s [%s - %x] to stream\n", T::ClassName, Array[i]->Name.data(), (long)Array[i].get());

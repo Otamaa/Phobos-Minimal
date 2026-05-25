@@ -3174,6 +3174,7 @@ BuildingExtContainer BuildingExtContainer::Instance;
 ASMJIT_PATCH(0x43B75C, BuildingClass_CTOR, 0x6)
 {
 	GET(BuildingClass*, pItem, ESI);
+	if(!Phobos::Otamaa::DoingLoadGame)
 	BuildingExtContainer::Instance.Allocate(pItem);
 	return 0;
 }

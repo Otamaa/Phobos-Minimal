@@ -7,6 +7,8 @@
 #include <Ext/Tiberium/Body.h>
 #include <Ext/SWType/NewSuperWeaponType/Firewall.h>
 #include <Ext/House/Body.h>
+#include <Ext/Aircraft/Body.h>
+#include <Ext/AircraftType/Body.h>
 
 #include <Ext/Bullet/Body.h>
 #include <Ext/WarheadType/Body.h>
@@ -327,9 +329,11 @@ ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
 	 if(!pThis->IsAlive)
 	 	return SkipEverything;
 
+	auto pAir = cast_to<AircraftClass*, false>(pThis);
+
 	const bool IsMissisleSpawn = (RulesClass::Instance->V3Rocket.Type == pType ||
 	 pType == RulesClass::Instance->DMisl.Type || pType == RulesClass::Instance->CMisl.Type
-	 || TechnoTypeExtContainer::Instance.Find(pType)->IsCustomMissile);
+	 || (pAir && AircraftTypeExtContainer::Instance.Find(pAir->Type)->IsCustomMissile));
 
 	if (pThis->SpawnOwner && !IsMissisleSpawn
 		)

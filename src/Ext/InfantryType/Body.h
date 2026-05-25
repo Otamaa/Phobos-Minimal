@@ -200,6 +200,7 @@ public:
 	// ============================================================
 	// Valueable<bool> (1 byte each, packed together at the end)
 	// ============================================================
+	Valueable<bool> IsHero {};
 	Valueable<bool> Is_Deso {};
 	Valueable<bool> Is_Cow {};
 	Valueable<bool> HideWhenDeployAnimPresent {};
