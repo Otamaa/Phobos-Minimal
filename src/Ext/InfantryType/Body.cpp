@@ -298,7 +298,7 @@ HRESULT __stdcall FakeInfantryTypeClass::_Load(IStream* pStm)
 
 	return hr;
 }
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB624C, FakeInfantryTypeClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB624, FakeInfantryTypeClass::_Load)
 
 bool FakeInfantryTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
