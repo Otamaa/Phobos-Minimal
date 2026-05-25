@@ -8,7 +8,7 @@
 
 //the game calling virtual dtor for cleanup 
 //so class size is not really important
-class NOVTABLE CommandClass
+class CommandClass
 {
 public:
 	// static
@@ -16,6 +16,7 @@ public:
 	static COMPILETIMEEVAL reference<IndexClass<unsigned short, CommandClass*>, 0x87F680u> const Hotkeys {};
 
 	//CommandClass
+	CommandClass() = default;
 	virtual ~CommandClass() = default;
 	virtual const char* GetName() const = 0;
 	virtual const wchar_t* GetUIName() const = 0;
