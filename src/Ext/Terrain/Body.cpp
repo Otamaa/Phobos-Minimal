@@ -159,12 +159,7 @@ ASMJIT_PATCH(0x71B824, TerrainClass_DTOR, 0x5)
 			pItem->AnnounceExpiredPointer();
 	}
 
-	if(auto pExt = TerrainExtContainer::Instance.TryFind(pItem)) {
-		delete pExt;
-		TerrainExtContainer::Instance.ClearExtAttribute(pItem);
-		//PointerExpiredNotification::NotifyInvalidObject->Remove(pItem);
-	}
-
+	TerrainExtContainer::Instance.Remove(pItem);
 	return 0x71B845;
 }
 

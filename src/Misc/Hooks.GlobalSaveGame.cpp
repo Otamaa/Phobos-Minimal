@@ -342,9 +342,6 @@ HRESULT Phobos::SaveAllExtData(IStream* pStm)
 	hr = WriteBlocksToStream<TechTreeTypeClass>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
-	hr = WriteBlocksToStream<TechTreeTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
 	hr = WriteBlocksToStream<ThemeTypeClass>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
@@ -449,8 +446,6 @@ HRESULT Phobos::SaveAllExtData(IStream* pStm)
 	hr = WriteBlocksToStreamC(SWTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
 	hr = WriteBlocksToStreamC(SuperExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(BuildingExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
 	hr = WriteBlocksToStreamC(TerrainTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;

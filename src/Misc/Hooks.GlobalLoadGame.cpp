@@ -284,18 +284,20 @@ HRESULT ReadBlocksFromStreamStreamB(T& who_, IStream* pStm)
 	using Base = std::remove_const_t<std::remove_pointer_t<T>>;
 
 	PhobosByteStream loader(0);
-	PhobosStreamReader reader(loader);
 
-	bool _LoadResult = false;
+	if(loader.ReadFromStream(pStm)){
+		PhobosStreamReader reader(loader);
+		bool _LoadResult = false;
 
-	if constexpr (std::is_pointer_v<T>) {
-		_LoadResult = who_->LoadGlobal(reader);
-	} else {
-		_LoadResult = who_.LoadGlobal(reader);
+		if constexpr (std::is_pointer_v<T>) {
+			_LoadResult = who_->LoadGlobal(reader);
+		} else {
+			_LoadResult = who_.LoadGlobal(reader);
+		}
+
+		if (_LoadResult && reader.ExpectEndOfBlock())
+			return S_OK;
 	}
-
-	if (_LoadResult && reader.ExpectEndOfBlock())
-		return S_OK;
 
 	return S_FALSE;
 }
@@ -304,10 +306,13 @@ template<typename T>
 HRESULT ReadBlocksFromStreamStreamC(T& who_, IStream* pStm)
 {
 	PhobosByteStream loader(0);
-	PhobosStreamReader reader(loader);
 
-	if (who_.LoadAll(reader) && reader.ExpectEndOfBlock())
-		return S_OK;
+	if (loader.ReadFromStream(pStm)) {
+		PhobosStreamReader reader(loader);
+
+		if (who_.LoadAll(reader) && reader.ExpectEndOfBlock())
+			return S_OK;
+	}
 
 	return S_FALSE;
 }
@@ -481,8 +486,6 @@ HRESULT Phobos::LoadAllExtData(IStream* pStm)
 	hr = ReadBlocksFromStreamStreamC(SWTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
 	hr = ReadBlocksFromStreamStreamC(SuperExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(BuildingExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
 	hr = ReadBlocksFromStreamStreamC(TerrainTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
