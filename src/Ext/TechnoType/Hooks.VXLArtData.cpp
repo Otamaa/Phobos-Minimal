@@ -200,11 +200,16 @@ ASMJIT_PATCH(0x5F8084, ObjectTypeClass_UnloadTurretArt, 6)
 		)
 		return 0;
 
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find((TechnoTypeClass*)pThis);
-
-	for(auto& bar : pThis->ChargerBarrels){
+	for (auto& bar : pThis->ChargerBarrels) {
 		bar.~VoxelStruct();
 	}
+
+	//abstractclass::Load is called after this function , so we not doing anything here
+	//the TechnoTypeExtData::LoadFromStream already does the job cleaning up these
+	if (Phobos::Otamaa::DoingLoadGame)
+		return 0;
+
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find((TechnoTypeClass*)pThis);
 
 	pTypeExt->BarrelImageData.clear();
 	pTypeExt->TurretImageData.clear();

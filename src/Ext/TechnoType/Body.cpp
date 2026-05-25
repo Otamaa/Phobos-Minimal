@@ -666,6 +666,23 @@ void TechnoTypeExtData::LoadTurrets(TechnoTypeClass* pType, CCINIClass* pINI)
 	}
 }
 
+void  TechnoTypeExtData::LoadFromStream(PhobosStreamReader& Stm)
+{
+	this->ObjectTypeExtData::LoadFromStream(Stm);
+	this->Serialize(Stm);
+
+	//wee
+	this->BarrelImageData.clear();
+	this->TurretImageData.clear();
+	this->SpawnAltData.~VoxelStruct();
+}
+
+void  TechnoTypeExtData::SaveToStream(PhobosStreamWriter& Stm)
+{
+	const_cast<TechnoTypeExtData*>(this)->ObjectTypeExtData::SaveToStream(Stm);
+	const_cast<TechnoTypeExtData*>(this)->Serialize(Stm);
+}
+
 int* TechnoTypeExtData::GetTurretWeaponIndex(TechnoTypeClass* pType, size_t idx)
 {
 	if (idx < TechnoTypeClass::MaxWeapons)

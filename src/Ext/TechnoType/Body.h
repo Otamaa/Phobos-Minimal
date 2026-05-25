@@ -1283,17 +1283,8 @@ public:
 		this->ObjectTypeExtData::InvalidatePointer(ptr, bRemoved, type);
 	}
 
-	virtual void LoadFromStream(PhobosStreamReader& Stm) override
-	{
-		this->ObjectTypeExtData::LoadFromStream(Stm);
-		this->Serialize(Stm);
-	}
-
-	virtual void SaveToStream(PhobosStreamWriter& Stm)
-	{
-		const_cast<TechnoTypeExtData*>(this)->ObjectTypeExtData::SaveToStream(Stm);
-		const_cast<TechnoTypeExtData*>(this)->Serialize(Stm);
-	}
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override;
+	virtual void SaveToStream(PhobosStreamWriter& Stm);
 
 	virtual int GetSize() const { return sizeof(*this); };
 
