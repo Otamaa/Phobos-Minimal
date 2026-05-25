@@ -649,6 +649,7 @@ bool PhobosAttachEffectClass::ResetIfRecreatable()
 	this->KillAnim();
 	this->Duration = 0;
 	this->CurrentDelay = this->RecreationDelay;
+	this->NeedsDurationRefresh = true;
 
 	return true;
 }
