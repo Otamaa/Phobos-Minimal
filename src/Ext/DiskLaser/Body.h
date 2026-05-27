@@ -3,37 +3,58 @@
 
 #include <Utilities/Container.h>
 
-class DiskLaserExtData
+class DiskLaserExtData : public AbstractExtended
 {
 public:
-	/*
-	class ExtData final : public Extension<DiskLaserClass>
+	using base_type = DiskLaserClass;
+	static COMPILETIMEEVAL const char* ClassName = "DiskLaserExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "DiskLaserClass";
+
+public :
+	int WeaponIdx { 0 };
+
+	DiskLaserExtData(DiskLaserClass* pObj) : AbstractExtended(pObj)
 	{
-	public:
-		static COMPILETIMEEVAL size_t Canary = 0x87659771;
-		using base_type = DiskLaserClass;
+		this->AbsType = DiskLaserClass::AbsID;
+	}
 
-	public:
+	DiskLaserExtData(DiskLaserClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) {}
 
-		ExtData(DiskLaserClass* OwnerObject) : Extension<DiskLaserClass>(OwnerObject) { }
-		virtual ~ExtData() override = default;
+	virtual ~DiskLaserExtData() = default;
 
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) override {}
 
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public Container<DiskLaserExt::ExtData>
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(DiskLaserExt::ExtData, "DiskLaserClass");
-	};
+		this->AbstractExtended::Internal_LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
 
-	static ExtContainer ExtMap;
-	*/
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		this->AbstractExtended::Internal_SaveToStream(Stm);
+		const_cast<DiskLaserExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual int GetSize() const { return sizeof(*this); };
+	virtual void CalculateCRC(CRCEngine& crc) const {}
+
+	DiskLaserClass* This() const { return reinterpret_cast<DiskLaserClass*>(this->AttachedToObject); }
+	const DiskLaserClass* This_Const() const { return reinterpret_cast<const DiskLaserClass*>(this->AttachedToObject); }
+
+private:
+	template <typename T>
+	void Serialize(T& Stm);
+};
+
+class DiskLaserExtContainer final : public Container<DiskLaserExtData>
+	, public ContainerSaveLoad<DiskLaserExtContainer, false>
+{
+public:
+	static COMPILETIMEEVAL const char* ClassName = "DiskLaserExtContainer";
+
+public:
+	static DiskLaserExtContainer Instance;
 };
 
 class NOVTABLE FakeDiskLaserClass : public DiskLaserClass
@@ -43,3 +64,5 @@ public:
 	void __AI();
 	void __Fire(TechnoClass* firer, AbstractClass* target, WeaponTypeClass* weapon, int damage_multiplier);
 };
+
+static_assert(sizeof(FakeDiskLaserClass) == sizeof(DiskLaserClass), "Invalid Size !");

@@ -4,6 +4,15 @@
 class SetVeterancyCommandClass : public PhobosCommandClass
 {
 public:
+	SetVeterancyCommandClass() : PhobosCommandClass()
+	{
+		this->IsDeveloper = true;
+	}
+
+	virtual ~SetVeterancyCommandClass() = default;
+
+public:
+
 	// CommandClass
 	virtual const char* GetName() const override;
 	virtual const wchar_t* GetUIName() const override;

@@ -8,6 +8,7 @@
 #include <Ext/Surface/Body.h>
 #include <Ext/Scenario/Body.h>
 #include <Ext/House/Body.h>
+#include <Ext/Super/Body.h>
 
 #include <Utilities/Cast.h>
 
@@ -339,11 +340,11 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 
 	}
 
-	auto const& sw_ext = HouseExtContainer::Instance.Find(pSuper->Owner)->GetShotCount(pSuper->Type);
+	auto lData = SuperExtData::GetLauchDataPtr(pSuper);
 
 	if (pData->SW_Shots > 0) {
 		wchar_t buffer[64];
-		swprintf_s(buffer, Phobos::UI::SWShotsFormat, (pData->SW_Shots - sw_ext.Count), pData->SW_Shots);
+		swprintf_s(buffer, Phobos::UI::SWShotsFormat, (pData->SW_Shots - lData->Count), pData->SW_Shots);
 
 		fmt::format_to(std::back_inserter(this->TextBuffer),
 			L"{}{}{}",

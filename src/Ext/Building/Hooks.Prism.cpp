@@ -40,10 +40,20 @@ void WeaponTypeExtData::FireRadBeam(TechnoClass* pFirer, WeaponTypeClass* pWeapo
 
 void WeaponTypeExtData::FireEbolt(TechnoClass* pFirer, WeaponTypeClass* pWeapon, CoordStruct& source, CoordStruct& target, int idx)
 {
+	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+	int zAdjust = pWeaponExt->EBoltZAdjust.Get(RulesExtData::Instance()->EBoltZAdjust);
+
+	if (pFirer && pFirer->WhatAmI() == AbstractType::Building)
+	{
+		const bool clamp = pWeaponExt->EBoltZAdjust_ClampInitialDepthForBuilding.Get(RulesExtData::Instance()->EBoltZAdjust_ClampInitialDepthForBuilding);
+		if (clamp && zAdjust > 0)
+			zAdjust = 0;
+	}
+
 	auto const supportEBolt = EboltExtData::_CreateOneOf(pWeapon, pFirer);
 	supportEBolt->Owner = pFirer;
 	supportEBolt->WeaponSlot = idx;
-	supportEBolt->Fire(source, target, 0); //messing with 3rd arg seems to make bolts more jumpy, and parts of them disappear
+	supportEBolt->Fire(source, target, zAdjust); //messing with 3rd arg seems to make bolts more jumpy, and parts of them disappear
 }
 
 ASMJIT_PATCH(0x44B2FE, BuildingClass_Mission_Attack_IsPrism, 6)
@@ -291,7 +301,7 @@ ASMJIT_PATCH(0x44ABD0, BuildingClass_FireLaser, 5)
 		if (supportWeapon->IsRadBeam)
 		{
 			CoordStruct target = targetXYZ;
-			WeaponTypeExtData::FireRadBeam(pThis, supportWeapon, sourceXYZ, target);
+			FakeTechnoClass::__FireBeam(pThis, supportWeapon, sourceXYZ, target, supportWeapon->Warhead->Temporal ? RadBeamType::Temporal : RadBeamType::RadBeam);
 		}
 
 		//IsElectricBolt
@@ -352,98 +362,6 @@ ASMJIT_PATCH(0x44ABD0, BuildingClass_FireLaser, 5)
 	pThis->SupportingPrisms = 0; //not sure why Westwood set this here. We're setting it in BuildingClass_Update_Prism
 
 	return 0x44ACE2;
-}
-
-ASMJIT_PATCH(0x6FF48D, TechnoClass_Fire_At_IsLaser, 0xA)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(TechnoClass* const, pTarget, EDI);
-	GET(WeaponTypeClass* const, pFiringWeaponType, EBX);
-	GET_BASE(int, idxWeapon, 0xC);// don't use stack offsets - function uses on-the-fly stack realignments which mean offsets are not constants
-
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-
-	auto pType = GET_TECHNOTYPE(pThis);
-	if (pType->TargetLaser && pThis->Owner->ControlledByCurrentPlayer())
-	{
-
-		const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
-
-		if (pTypeExt->TargetLaser_WeaponIdx.empty()
-			|| pTypeExt->TargetLaser_WeaponIdx.Contains(idxWeapon))
-		{
-			pThis->TargetLaserTimer.Start(pTypeExt->TargetLaser_Time.Get());
-		}
-	}
-
-	if (pFiringWeaponType->IsLaser)
-	{
-		auto const pData = WeaponTypeExtContainer::Instance.Find(pFiringWeaponType);
-		int const Thickness = pData->Laser_Thickness;
-
-		if (auto const pBld = cast_to<BuildingClass*, false>(pThis))
-		{	//ToggleLaserWeaponIndex
-
-			if (pExt->CurrentLaserWeaponIndex.empty())
-				pExt->CurrentLaserWeaponIndex = idxWeapon;
-			else
-				pExt->CurrentLaserWeaponIndex.clear();
-
-			auto const pTWeapon = pBld->GetPrimaryWeapon()->WeaponType;
-
-			if (auto const pLaser = pBld->CreateLaser(pTarget, idxWeapon, pTWeapon, CoordStruct::Empty))
-			{
-
-				//default thickness for buildings. this was 3 for PrismType (rising to 5 for supported prism) but no idea what it was for non-PrismType - setting to 3 for all BuildingTypes now.
-				pLaser->Thickness = Thickness == -1 ? 3 : Thickness;
-				auto const pBldTypeData = BuildingTypeExtContainer::Instance.Find(pBld->Type);
-
-				if (pBldTypeData->PrismForwarding.CanAttack())
-				{
-					//is a prism tower
-
-					if (pBld->SupportingPrisms > 0)
-					{ //Ares sets this to the longest backward chain
-						//is being supported... so increase beam intensity
-						if (pBldTypeData->PrismForwarding.Intensity < 0)
-						{
-							pLaser->Thickness -= pBldTypeData->PrismForwarding.Intensity; //add on absolute intensity
-						}
-						else if (pBldTypeData->PrismForwarding.Intensity > 0)
-						{
-							pLaser->Thickness += (pBldTypeData->PrismForwarding.Intensity * pBld->SupportingPrisms);
-						}
-
-						// always supporting
-						pLaser->IsSupported = true;
-					}
-				}
-			}
-		}
-		else
-		{
-			if (auto const pLaser = pThis->CreateLaser(pTarget, idxWeapon, pFiringWeaponType, CoordStruct::Empty))
-			{
-				if (Thickness == -1)
-				{
-					pLaser->Thickness = 2;
-				}
-				else
-				{
-					pLaser->Thickness = Thickness;
-
-					// required for larger Thickness to work right
-					pLaser->IsSupported = (Thickness > 3);
-				}
-			}
-		}
-
-		// skip all default handling
-		return 0x6FF656;
-	}
-
-	//other affects
-	return 0x6FF57D;
 }
 
 ASMJIT_PATCH(0x448277, BuildingClass_ChangeOwner_PrismForwardAndLeaveBomb, 5)

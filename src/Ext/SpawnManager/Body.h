@@ -39,10 +39,12 @@ public:
 	*/
 };
 
-class FakeSpawnManagerClass : public SpawnManagerClass
+class NOVTABLE FakeSpawnManagerClass : public SpawnManagerClass
 {
 public:
 
 	void _Detach(AbstractClass* pTarget);
 	void _DetachB(AbstractClass* pTarget, bool removed);
+	int _CountDockedSpawns();
 };
+static_assert(sizeof(FakeSpawnManagerClass) == sizeof(SpawnManagerClass), "Size Missmatch !");

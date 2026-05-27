@@ -201,19 +201,21 @@ ASMJIT_PATCH(0x51ED8E, InfantryClass_GetActionOnObject_Tunnel, 6)
 
 ASMJIT_PATCH(0x51A2AD, InfantryClass_UpdatePosition_Tunnel, 9)
 {
-	enum { CanEnter = 0x51A396, CannotEnter = 0x51A488, Nothing = 0x0 };
+	enum { CanEnter = 0x51A396, CannotEnter = 0x51A488, CannotenterB = 0x51A4BF, Nothing = 0x0 };
 
 	GET(InfantryClass*, pThis, ESI);
 	GET(BuildingClass*, pBld, EDI);
 
 	if (!RulesExtData::Instance()->Infantry_IgnoreBuildingSizeLimit) {
-		return pBld->Passengers.NumPassengers + 1 <= pBld->Type->Passengers
-			&& static_cast<int>(pThis->Type->Size) <= pBld->Type->SizeLimit
-			? 0 : 0x51A4BF;
+		const bool sizeIsOkay = pBld->Passengers.NumPassengers + 1 <= pBld->Type->Passengers
+			&& static_cast<int>(pThis->Type->Size) <= pBld->Type->SizeLimit;
+
+		if(!sizeIsOkay) //only return if the size is not okay
+			return CannotenterB;
 	}
 
-	if (const auto nTunnelVec = HouseExtData::GetTunnelVector(pBld->Type, pBld->Owner))
-	{
+	//decide tunnel action if has tunnel functionality, otherwise do nothing
+	if (const auto nTunnelVec = HouseExtData::GetTunnelVector(pBld->Type, pBld->Owner)) {
 		return HouseExtData::CanEnterTunnel(&nTunnelVec->Vector, pBld, pThis) ? CanEnter : CannotEnter;
 	}
 

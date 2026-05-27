@@ -45,6 +45,10 @@ namespace Math
 
 	static COMPILETIMEEVAL float radToIndex = std::bit_cast<float>(0x4522F983u);
 
+	static COMPILETIMEEVAL double Pixel_Per_Lepton = std::bit_cast<double>(0x3FC53694862E9021ull);
+	
+	static COMPILETIMEEVAL double ProximityFuseDecayFactor = std::bit_cast<double>(0x3FEF777777777777ull);
+
 	//-0.00009587672516830327
 	static COMPILETIMEEVAL double DIRECTION_FIXED_MAGIC = std::bit_cast<double>(uint64_t { 0xBF19222D989F5E57ull });
 

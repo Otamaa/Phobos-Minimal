@@ -5,6 +5,7 @@
 #include <RectangleStruct.h>
 #include <CoordStruct.h>
 #include <ColorStruct.h>
+#include <Point2D.h>
 
 #include <Helpers/CompileTime.h>
 #include <Helpers/VTable.h>
@@ -75,8 +76,8 @@ class NOVTABLE Surface
 {
 public:
 	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E2198;
-	static COMPILETIMEEVAL reference<bool*, 0x84310Cu> const Target_Laser_Draw_Pattern{};
-
+	static COMPILETIMEEVAL reference<bool*, 0x84310Cu> const Target_Laser_Draw_Pattern {};
+	Surface(noinit_t) {};
 	Surface() : Width(0), Height(0) { VTable::Set(this, vtable); }
 	Surface(int width, int height) JMP_THIS(0x4AEC60);
 	virtual ~Surface() { JMP_THIS(0x4115D0); }
@@ -98,16 +99,16 @@ public:
 
 	virtual bool DrawLineColor_AZ(RectangleStruct& area, Point2D& start, Point2D& end, unsigned color, int a5, int a6, bool z_only = false) PURE;
 	virtual bool DrawMultiplyingLine_AZ(RectangleStruct& area, Point2D& start, Point2D& end, int a4, int a5, int a6, bool a7 = false) PURE;
-	virtual bool DrawSubtractiveLine_AZ(RectangleStruct& area, Point2D& start, Point2D& end, ColorStruct& color, int a5, int a6, bool a7, bool a8, bool a9, bool a10, float a11) PURE;
+	virtual bool DrawSubtractiveLine_AZB(RectangleStruct& area, Point2D& start, Point2D& end, ColorStruct& color, int a5, int a6, bool a7, bool a8, bool a9, bool a10, float a11) PURE;
 
 	virtual bool DrawRGBMultiplyingLine_AZ(
 		RectangleStruct* pRect, Point2D* pStart, Point2D* pEnd, ColorStruct* pColor,
 		float Intensity, DWORD dwUnk1, DWORD dwUnk2) PURE;
 
-	virtual bool PlotLine(RectangleStruct& area, Point2D& start, Point2D& end, void(*drawer_callback)(Point2D&)) PURE;
+	virtual bool PlotLine(RectangleStruct& area, Point2D& start, Point2D& end, bool(__fastcall* AddRedrawPoint)(Point2D&)) PURE;
 
-	virtual int Draw_Dashed_Line(Point2D& start, Point2D& end, unsigned color, bool* pattern, int offset) PURE;
-	virtual int DrawDashedLine_(Point2D& start, Point2D& end, unsigned color, bool* pattern, int offset, bool a6) PURE;
+	virtual bool Draw_Dashed_Line(Point2D& start, Point2D& end, unsigned color, bool* pattern, int offset) PURE;
+	virtual bool DrawDashedLine_(Point2D& start, Point2D& end, unsigned color, bool* pattern, int offset, bool a6) PURE;
 	virtual bool DrawLine_(Point2D& start, Point2D& end, unsigned color, bool a4 = false) PURE;
 
 	virtual bool Draw_Rect(RectangleStruct& RectangleStruct, unsigned color) PURE;
@@ -202,7 +203,7 @@ public:
 		bool bUnk1,
 		bool bUnk2)
 	{
-		return Copy_From(pClipRect, pClipRect2, pSrc, pDestRect,pSrcRect, bUnk1, bUnk2);
+		return Copy_From(pClipRect, pClipRect2, pSrc, pDestRect, pSrcRect, bUnk1, bUnk2);
 	}
 
 	bool DrawDashedLine(Point2D& pStart, Point2D& pEnd, int nColor, int nOffset) {
@@ -220,8 +221,8 @@ class NOVTABLE XSurface : public Surface
 public:
 
 	static OPTIONALINLINE COMPILETIMEEVAL DWORD vtable = 0x7E2104;
-
-	XSurface() : Surface(), LockLevel(0), BytesPerPixel(0) { VTable::Set(this , vtable); }
+	XSurface(noinit_t) {};
+	XSurface() : Surface(), LockLevel(0), BytesPerPixel(0) { VTable::Set(this, vtable); }
 	XSurface(int width, int height) JMP_THIS(0x5FE020);
 	XSurface(int width, int height, int bpp) : Surface(width, height), LockLevel(0), BytesPerPixel(bpp) { VTable::Set(this, vtable); }
 	virtual ~XSurface() { JMP_THIS(0x4115A0); }
@@ -242,19 +243,19 @@ public:
 
 	virtual bool DrawLineColor_AZ(RectangleStruct& area, Point2D& start, Point2D& end, unsigned color, int a5, int a6, bool z_only = false) override R0;
 	virtual bool DrawMultiplyingLine_AZ(RectangleStruct& area, Point2D& start, Point2D& end, int a4, int a5, int a6, bool a7 = false) override R0;
-	virtual bool DrawSubtractiveLine_AZ(RectangleStruct& area, Point2D& start, Point2D& end, ColorStruct& color, int a5, int a6, bool a7, bool a8, bool a9, bool a10, float a11) override R0;
+	virtual bool DrawSubtractiveLine_AZB(RectangleStruct& area, Point2D& start, Point2D& end, ColorStruct& color, int a5, int a6, bool a7, bool a8, bool a9, bool a10, float a11) override R0;
 
-	 virtual bool DrawRGBMultiplyingLine_AZ(
-		 RectangleStruct* pRect, Point2D* pStart, Point2D* pEnd, ColorStruct* pColor,
-		 float Intensity, DWORD dwUnk1, DWORD dwUnk2) override  R0;
+	virtual bool DrawRGBMultiplyingLine_AZ(
+		RectangleStruct* pRect, Point2D* pStart, Point2D* pEnd, ColorStruct* pColor,
+		float Intensity, DWORD dwUnk1, DWORD dwUnk2) override  R0;
 	// {
 	//	 return false;
 	// }
 
-	virtual bool PlotLine(RectangleStruct& area, Point2D& start, Point2D& end, void(*drawer_callback)(Point2D&)) override JMP_THIS(0x7BAB90);
+	virtual bool PlotLine(RectangleStruct& area, Point2D& start, Point2D& end, bool(__fastcall* AddRedrawPoint)(Point2D&)) override JMP_THIS(0x7BAB90);
 
-	virtual int Draw_Dashed_Line(Point2D& start, Point2D& end, unsigned color, bool* pattern, int offset) override JMP_THIS(0x7BA8C0);
-	virtual int DrawDashedLine_(Point2D& start, Point2D& end, unsigned color, bool* pattern, int offset, bool a6) override R0;
+	virtual bool Draw_Dashed_Line(Point2D& start, Point2D& end, unsigned color, bool* pattern, int offset) override JMP_THIS(0x7BA8C0);
+	virtual bool DrawDashedLine_(Point2D& start, Point2D& end, unsigned color, bool* pattern, int offset, bool a6) override R0;
 	virtual bool DrawLine_(Point2D& start, Point2D& end, unsigned color, bool a4 = false) override  R0;
 
 	virtual bool Draw_Rect(RectangleStruct& rect, unsigned color) override JMP_THIS(0x7BAD90);
@@ -300,13 +301,19 @@ public:
 	static OPTIONALINLINE COMPILETIMEEVAL DWORD vtable = 0x7E2070;
 	static COMPILETIMEEVAL reference<BSurface, 0xB2D928> const VoxelSurface {};
 
+public:
+
+	BSurface(noinit_t) {};
 	BSurface() : XSurface(), BufferPtr() { VTable::Set(this, vtable); }
 	BSurface(int width, int height, int bpp, void* buffer) : XSurface(width, height, bpp), BufferPtr((void*)buffer, int((height* width)* bpp)) { VTable::Set(this, vtable); }
 	BSurface(int width, int height, int bpp, MemoryBuffer& buffer) : XSurface(width, height, bpp), BufferPtr(buffer) { VTable::Set(this, vtable); }
+	BSurface(int width, int height) : XSurface { width, height }, BufferPtr { width * height * 2 } { BytesPerPixel = 2; VTable::Set(this, vtable);}
+
 	virtual ~BSurface() { JMP_THIS(0x411650); }
 
 	virtual void* Lock(int x = 0, int y = 0) override JMP_THIS(0x4115F0);
-	FORCEDINLINE void*  Lock(Point2D point) {
+	FORCEDINLINE void* Lock(Point2D point)
+	{
 		return this->Lock(point.X, point.Y);
 	}
 
@@ -326,7 +333,7 @@ protected:
 	void* Get_Buffer_Ptr(int x, int y) { return (unsigned char*)BufferPtr.Get_Buffer() + (x * Get_Bytes_Per_Pixel()) + (y * Get_Pitch()); }
 
 public:
-	DECLARE_PROPERTY(MemoryBuffer , BufferPtr);
+	DECLARE_PROPERTY(MemoryBuffer, BufferPtr);
 };
 static_assert(sizeof(BSurface) == 0x20, "Invalid Size !");
 
@@ -335,15 +342,30 @@ static_assert(sizeof(BSurface) == 0x20, "Invalid Size !");
 #pragma region CommonFunction
 //static long Surface_Size_Of_Region(Surface& surface, int w, int h);
 
-static bool __fastcall  Animated_Text_Print_623880(Surface *surface ,RectangleStruct* rect, const wchar_t* text, size_t coint , BitFont* font , uint32_t color , size_t* anim, bool hasfocus, bool blankout, bool fillbg, size_t animsize) {
+static bool __fastcall  Animated_Text_Print_623880(Surface* surface, RectangleStruct* rect,
+	const wchar_t* text, size_t coint,
+	BitFont* font, uint32_t color, 
+	size_t* anim, bool hasfocus,
+	bool blankout, bool fillbg, size_t animsize) {
 	JMP_FAST(0x623880);
 }
 
-static bool __fastcall Buffer_To_RLE_Surface_With_Z_Shape(Surface *surface1, Point2D *point1, RectangleStruct *rect1, Surface *surface2, Point2D *point2, RectangleStruct *rect2, void* blitter, int height_offset, int somearrayindex, int a10, int arg_20, Surface *z_shape_surface, int shape_x_offset, int shape_y_offset, int useotherblitterset) {
+static bool __fastcall Buffer_To_RLE_Surface_With_Z_Shape(Surface* surface1, Point2D* point1,
+	RectangleStruct* rect1, Surface* surface2, 
+	Point2D* point2, RectangleStruct* rect2, 
+	void* blitter, int height_offset,
+	int somearrayindex, int a10, 
+	int arg_20, Surface* z_shape_surface,
+	int shape_x_offset, int shape_y_offset, int useotherblitterset) {
 	JMP_FAST(0x437A10);
 }
 
-static bool __fastcall Buffer_To_Surface_with_LastArg(Surface *tosurface, RectangleStruct *rect1, RectangleStruct *torect, Surface *fromsurface, RectangleStruct *a5, RectangleStruct *fromrect, void* blitter, int z_val, int somearrayindex, int alpha_val, int use_new_blitter, int wrap_value) {
+static bool __fastcall Buffer_To_Surface_with_LastArg(Surface* tosurface, RectangleStruct* rect1,
+	RectangleStruct* torect, Surface* fromsurface,
+	RectangleStruct* a5, RectangleStruct* fromrect, 
+	void* blitter, int z_val, 
+	int somearrayindex, int alpha_val, 
+	int use_new_blitter, int wrap_value) {
 	JMP_FAST(0x4373B0);
 }
 
@@ -400,10 +422,13 @@ static Point2D* __fastcall Simple_Text_Print_Wide(Point2D* RetVal, const wchar_t
 {
 	JMP_FAST(0x4A5EB0);
 }
-static bool __fastcall Buffer_To_Surface_wrapper(Surface *tosurface, RectangleStruct *torect, Surface *fromsurface, RectangleStruct *fromrect) {
+static bool __fastcall Buffer_To_Surface_wrapper(Surface* tosurface, RectangleStruct* torect, Surface* fromsurface, RectangleStruct* fromrect) {
 	JMP_FAST(0x7BC1F0);
 }
-static bool __fastcall Buffer_To_Surface_wrapper(Surface *tosurface, RectangleStruct *torect, Surface *fromsurface, RectangleStruct *fromrect, void* blitter, int z_val, int somearrayindex, int alpha_val, int Blit_Move_2_arg) {
+static bool __fastcall Buffer_To_Surface_wrapper(Surface* tosurface, RectangleStruct* torect, 
+	Surface* fromsurface, RectangleStruct* fromrect, 
+	void* blitter, int z_val, 
+	int somearrayindex, int alpha_val, int Blit_Move_2_arg) {
 	JMP_FAST(0x437350);
 }
 
@@ -419,29 +444,29 @@ static bool __fastcall Allocate_Surfaces(RectangleStruct& common_rect, Rectangle
 class NOVTABLE DSurface : public XSurface
 {
 public:
-	static COMPILETIMEEVAL reference<DSurface*, 0x8872FCu> const Tile{};
-	static COMPILETIMEEVAL reference<DSurface*, 0x887300u> const Sidebar{};
-	static COMPILETIMEEVAL reference<DSurface*, 0x887308u> const Primary{};
-	static COMPILETIMEEVAL reference<DSurface*, 0x88730Cu> const Hidden{};
-	static COMPILETIMEEVAL reference<DSurface*, 0x887310u> const Alternate{};
-	static COMPILETIMEEVAL reference<DSurface*, 0x887314u> const Temp{};
-	static COMPILETIMEEVAL reference<DSurface*, 0x887314u> const Hidden_2{};
-	static COMPILETIMEEVAL reference<DSurface*, 0x88731Cu> const Composite{};
-	static COMPILETIMEEVAL reference<int, 0x8205D0u> const RGBMode{};
+	static COMPILETIMEEVAL reference<DSurface*, 0x8872FCu> const Tile {};
+	static COMPILETIMEEVAL reference<DSurface*, 0x887300u> const Sidebar {};
+	static COMPILETIMEEVAL reference<DSurface*, 0x887308u> const Primary {};
+	static COMPILETIMEEVAL reference<DSurface*, 0x88730Cu> const Hidden {};
+	static COMPILETIMEEVAL reference<DSurface*, 0x887310u> const Alternate {};
+	static COMPILETIMEEVAL reference<DSurface*, 0x887314u> const Temp {};
+	static COMPILETIMEEVAL reference<DSurface*, 0x887314u> const Hidden_2 {};
+	static COMPILETIMEEVAL reference<DSurface*, 0x88731Cu> const Composite {};
+	static COMPILETIMEEVAL reference<RGBMode, 0x8205D0u> const RGBMode {};
 	static COMPILETIMEEVAL reference<int, 0x8A0DE8u> const HalfbrightMask {};
 	static COMPILETIMEEVAL reference<int, 0x8A0DEAu> const QuarterbrightMask {};
 	static COMPILETIMEEVAL reference<int, 0x8A0DEAu> const EighthbrightMask {};
-	static COMPILETIMEEVAL reference<RectangleStruct, 0x886F90u> const SidebarBounds{};
+	static COMPILETIMEEVAL reference<RectangleStruct, 0x886F90u> const SidebarBounds {};
 	//ViewportBounds_TacPixel
-	static COMPILETIMEEVAL reference<RectangleStruct, 0x886FA0u> const ViewBounds{};
- 	static COMPILETIMEEVAL reference<RectangleStruct, 0x886FB0u> const WindowBounds{};
+	static COMPILETIMEEVAL reference<RectangleStruct, 0x886FA0u> const ViewBounds {};
+	static COMPILETIMEEVAL reference<RectangleStruct, 0x886FB0u> const WindowBounds {};
 
-	static COMPILETIMEEVAL reference<unsigned, 0x8A0DD0u> const RedLeft{};
-	static COMPILETIMEEVAL reference<unsigned, 0x8A0DD4u> const RedRight{};
-	static COMPILETIMEEVAL reference<unsigned, 0x8A0DE0u> const GreenLeft{};
-	static COMPILETIMEEVAL reference<unsigned, 0x8A0DE4u> const GreenRight{};
-	static COMPILETIMEEVAL reference<unsigned, 0x8A0DD8u> const BlueLeft{};
-	static COMPILETIMEEVAL reference<unsigned, 0x8A0DDCu> const BlueRight{};
+	static COMPILETIMEEVAL reference<unsigned, 0x8A0DD0u> const RedLeft {};
+	static COMPILETIMEEVAL reference<unsigned, 0x8A0DD4u> const RedRight {};
+	static COMPILETIMEEVAL reference<unsigned, 0x8A0DE0u> const GreenLeft {};
+	static COMPILETIMEEVAL reference<unsigned, 0x8A0DE4u> const GreenRight {};
+	static COMPILETIMEEVAL reference<unsigned, 0x8A0DD8u> const BlueLeft {};
+	static COMPILETIMEEVAL reference<unsigned, 0x8A0DDCu> const BlueRight {};
 
 	static COMPILETIMEEVAL reference<int, 0x8205D0u> const RGBPixelFormat {};
 	static COMPILETIMEEVAL reference<bool, 0x8A0DEEu> const AllowStretchBlits {};
@@ -510,6 +535,7 @@ public:
 		DSurfaceDrawText(pText, &P, Color);
 	}
 
+	DSurface(noinit_t) {};
 	DSurface() JMP_THIS(0x4BA720);
 	DSurface(int width, int height, bool system_mem = false) JMP_THIS(0x4BA5A0);
 	DSurface(LPDIRECTDRAWSURFACE surface) JMP_THIS(0x4BAC60);
@@ -525,13 +551,13 @@ public:
 
 	virtual bool DrawLineColor_AZ(RectangleStruct& area, Point2D& start, Point2D& end, unsigned color, int a5, int a6, bool z_only = false) override JMP_THIS(0x4BFD30);
 	virtual bool DrawMultiplyingLine_AZ(RectangleStruct& area, Point2D& start, Point2D& end, int a4, int a5, int a6, bool a7 = false) override JMP_THIS(0x4BBCA0);
-	virtual bool DrawSubtractiveLine_AZ(RectangleStruct& area, Point2D& start, Point2D& end, ColorStruct& color, int a5, int a6, bool a7, bool a8, bool a9, bool a10, float a11) override JMP_THIS(0x4BC750);
+	virtual bool DrawSubtractiveLine_AZB(RectangleStruct& area, Point2D& start, Point2D& end, ColorStruct& color, int a5, int a6, bool a7, bool a8, bool a9, bool a10, float a11) override JMP_THIS(0x4BC750);
 	virtual bool DrawRGBMultiplyingLine_AZ(
 		RectangleStruct* pRect, Point2D* pStart, Point2D* pEnd, ColorStruct* pColor,
 		float Intensity, DWORD dwUnk1, DWORD dwUnk2) override JMP_THIS(0x4BDF00);
 
 
-	virtual int DrawDashedLine_(Point2D& start, Point2D& end, unsigned color, bool pattern[], int offset, bool a6) override JMP_THIS(0x4C0750);
+	virtual bool DrawDashedLine_(Point2D& start, Point2D& end, unsigned color, bool pattern[], int offset, bool a6) override JMP_THIS(0x4C0750);
 	virtual bool DrawLine_(Point2D& start, Point2D& end, unsigned color, bool a4 = false) override JMP_THIS(0x4C0E30);
 
 	virtual void* Lock(int x = 0, int y = 0) override JMP_THIS(0x4BAD80);
@@ -542,17 +568,17 @@ public:
 
 	virtual bool IsDSurface() const override { return true; }
 
-	virtual bool DrawGradientLine(RectangleStruct& area, Point2D& start, Point2D& end, ColorStruct& a4, ColorStruct& a5, float& a6, float& a7) JMP_THIS(0x4BF750);
+	virtual bool DrawGradientLine(RectangleStruct& area, Point2D& start, Point2D& end, ColorStruct& a4, ColorStruct& a5, float a6, int a7) JMP_THIS(0x4BF750);
 	virtual bool Can_Blit() const { JMP_THIS(0x4BAF20); }
 
 	static __int16 __fastcall _4BF650_adjust(unsigned __int16 a1, int a2, int a3)
-		{ JMP_THIS(0x4BF650); }
+	{ JMP_THIS(0x4BF650); }
 
 	bool _4BEAC0_Blit(int a2, int a3, int a4, int a5, signed int a6, int a7, int a8)
-		{ JMP_THIS(0x4BEAC0); }
+	{ JMP_THIS(0x4BEAC0); }
 
 	void DrawLineBlit(RectangleStruct* pRect, Point2D* pStart, Point2D* pEnd, ColorStruct* pStartColor, int mult, int start_z, int end_z)
-		{ JMP_THIS(0x4BEAC0); }
+	{ JMP_THIS(0x4BEAC0); }
 
 	bool Restore_Check() JMP_THIS(0x4BB000);
 	bool IsSurface_Lost() JMP_THIS(0x4BAFE0);
@@ -609,6 +635,7 @@ public:
 	//		| unsigned((g >> GreenRight) << GreenLeft));
 	//}
 
+	
 	static FORCEDINLINE COMPILETIMEEVAL void Pixel_To_RGB(unsigned pixel, unsigned* red, unsigned* green, unsigned* blue)
 	{
 		*red = static_cast<unsigned char>(pixel >> RedRight() << RedLeft());
@@ -616,12 +643,53 @@ public:
 		*blue = static_cast<unsigned char>(pixel >> BlueRight() << BlueLeft());
 	}
 
-	static FORCEDINLINE COMPILETIMEEVAL unsigned RGB_To_Pixel(unsigned r, unsigned g, unsigned b)
+	//GBR
+	static FORCEDINLINE COMPILETIMEEVAL unsigned Build_Hicolor_Pixel_GBR(unsigned r, unsigned g, unsigned b)
 	{
-		return (unsigned((b >> BlueRight.get()) << BlueLeft.get())
-			| unsigned((r >> RedRight.get()) << RedLeft.get())
-			| unsigned((g >> GreenRight.get()) << GreenLeft.get()));
+		return g >> GreenRight() << GreenLeft()
+			| b >> BlueRight() << BlueLeft()
+			| r >> RedRight() << RedLeft()
+			;
 	}
+
+	//GRB
+	static FORCEDINLINE COMPILETIMEEVAL unsigned Build_Hicolor_Pixel_GRB(unsigned r, unsigned g, unsigned b)
+	{
+		return  g >> GreenRight() << GreenLeft()
+			| r >> RedRight() << RedLeft()
+			| b >> BlueRight() << BlueLeft();
+	}
+
+	//BRG
+	static FORCEDINLINE COMPILETIMEEVAL unsigned Build_Hicolor_Pixel_BRG(unsigned r, unsigned g, unsigned b) {
+		return b >> BlueRight() << BlueLeft()
+			| r >> RedRight() << RedLeft()
+			| g >> GreenRight() << GreenLeft(); }
+
+	//RBG
+	static FORCEDINLINE COMPILETIMEEVAL unsigned Build_Hicolor_Pixel_RBG(unsigned r, unsigned g, unsigned b)
+	{
+		return r >> RedRight() << RedLeft()
+			| b >> BlueRight() << BlueLeft()
+			| g >> GreenRight() << GreenLeft();
+	}
+
+	//RGB
+	static FORCEDINLINE COMPILETIMEEVAL unsigned Build_Hicolor_Pixel_RGB(unsigned r, unsigned g, unsigned b)
+	{
+		return  r >> RedRight() << RedLeft()
+			| g >> GreenRight() << GreenLeft()
+			| b >> BlueRight() << BlueLeft()
+			;
+	}
+
+	static FORCEDINLINE void Build_Locolor_Pixel(unsigned pixel, unsigned* red, unsigned* green, unsigned* blue)
+	{
+		*red = static_cast<unsigned char>(pixel >> RedRight() << RedLeft());
+		*green = static_cast<unsigned char>(pixel >> GreenRight() << GreenLeft());
+		*blue = static_cast<unsigned char>(pixel >> BlueRight() << BlueLeft());
+	}
+
 
 	//static unsigned RGB_To_Pixel(ColorStruct& rgb)
 	//{

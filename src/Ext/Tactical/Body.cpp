@@ -86,7 +86,7 @@ void DrawEllipse(DSurface* surface, RectangleStruct& clip,
 
 void NOINLINE DrawCenterCross(DSurface* surface, RectangleStruct& clip, Point2D& center)
 {
-	unsigned short white = DSurface::RGB_To_Pixel(255, 255, 255);
+	unsigned short white = DSurface::Build_Hicolor_Pixel_RGB(255, 255, 255);
 
 	// Small cross for visibility
 	Point2D _c1_start { center.X - 2, center.Y };
@@ -220,8 +220,8 @@ void NOINLINE DrawCollisionBox(FootClass* obj, DSurface* surface,
 	if (tech_loc.IsEmpty())
 		return;
 
-	unsigned short red = DSurface::RGB_To_Pixel(255, 0, 0);
-	unsigned short yellow = DSurface::RGB_To_Pixel(255, 255, 0);
+	unsigned short red = DSurface::Build_Hicolor_Pixel_RGB(255, 0, 0);
+	unsigned short yellow = DSurface::Build_Hicolor_Pixel_RGB(255, 255, 0);
 
 	// Convert world coords to screen
 	auto [outClient, visible] = TacticalClass::Instance->GetCoordsToClientSituation(tech_loc);
@@ -292,7 +292,7 @@ void NOINLINE DrawCollisionBox(FootClass* obj, DSurface* surface,
 
 template<typename T>
 void NOINLINE Draws(COLORREF color, DSurface* pSurface , RectangleStruct& bounds) {
-	unsigned short pixelColor = DSurface::RGB_To_Pixel(
+	unsigned short pixelColor = DSurface::Build_Hicolor_Pixel_RGB(
 		(color >> 16) & 0xFF,  // R
 		(color >> 8) & 0xFF,   // G
 		color & 0xFF           // B
@@ -350,7 +350,7 @@ void NOINLINE DrawLines()
 	Debug::Log("bounds: X=%d Y=%d W=%d H=%d\n", bounds.X, bounds.Y, bounds.Width, bounds.Height);
 
 	Debug::Log("Converting color...\n");
-	unsigned short green = DSurface::RGB_To_Pixel(0, 255, 0);
+	unsigned short green = DSurface::Build_Hicolor_Pixel_RGB(0, 255, 0);
 	Debug::Log("green = %04X\n", green);
 
 	Debug::Log("Creating points...\n");
@@ -801,7 +801,7 @@ void FakeTacticalClass::__DrawRadialIndicator(
 
 		float thickness = static_cast<float>(_line_alpha[i]);
 
-		DSurface::Temp->DrawSubtractiveLine_AZ(DSurface::ViewBounds(),
+		DSurface::Temp->DrawSubtractiveLine_AZB(DSurface::ViewBounds(),
 										lineStart,
 										lineEnd,
 										draw_color,
@@ -1746,7 +1746,7 @@ void FakeTacticalClass::_Render(DSurface* pSurface, bool flag, TacticalRenderMod
 				//check are modified to allow more condition that allow techno to be sensed
 				//like ability or AE
 				auto pExt = TechnoExtContainer::Instance.Find(pTech);
-				if (!pExt->AE.flags.Untrackable && !TechnoExtData::IsUntrackable(pTech) && pTech->CurrentlyOnSensor())
+				if (pTech->LocomotorSource && !pExt->AE.flags.Untrackable && !TechnoExtData::IsUntrackable(pTech) && pTech->CurrentlyOnSensor())
 					((FootClass*)pTech)->draw_dashed_4DC340();
 			}
 
@@ -1861,7 +1861,7 @@ void FakeTacticalClass::_Render(DSurface* pSurface, bool flag, TacticalRenderMod
 
 						// SUSPECT @0x6D48F6: IDA shows v34=v44 (loop index clobber);
 						// likely a register-reload misread since asm restores i from stack.
-						FakeTechnoClass* pFakeTech = (FakeTechnoClass*)pTech;
+						//FakeTechnoClass* pFakeTech = (FakeTechnoClass*)pTech;
 						CoordStruct flh = pTech->GetFLH(0, 0,0,0);
 
 						FakeTechnoClass::__Draw_Airstrike_Flare(
@@ -2021,8 +2021,8 @@ ASMJIT_PATCH(0x6DBE18, TacticalClass_Save_Suffix, 0x5)
 	PhobosByteStream saver(sizeof(TacticalExtData));
 	PhobosStreamWriter writer(saver);
 
- writer.Save(TacticalExtData::Canary);
- writer.Save(buffer);
+	writer.Save(TacticalExtData::Canary);
+	writer.Save(buffer);
 
 	buffer->SaveToStream(writer);
 	saver.WriteToStream(TacticalExtData::g_pStm);

@@ -5,7 +5,91 @@
 
 #include <Ext/Building/Body.h>
 
+#include <InfantryClass.h>
+#include <SlaveManagerClass.h>
+
 FootExtContainer FootExtContainer::Instance;
+
+// FootClass::Mission_Hunt — backported from game (0x4D5350–0x4D55B6)
+// Ported from gamemd.exe, address range 0x4D5350 to 0x4D55B6
+int __fastcall FakeFootClass::_Mission_Hunt(FootClass* pThis)
+{
+	CoordStruct loc = pThis->GetCoords();
+	const bool hasTarget = !pThis->GetTechnoType()->StupidHunt
+		&& FakeTechnoClass::__TargetSomethingNearby(pThis, discard_t(), &loc, ThreatType::None);
+
+	if (hasTarget)
+	{
+		if (auto pInfantry = cast_to<InfantryClass*,false>(pThis))
+		{
+			InfantryTypeClass* pType = pInfantry->Type;
+
+			if (pType->Engineer && !pType->C4 && !pThis->HasAbility(AbilityType::C4))
+			{
+				// Engineer: capture the target
+				pThis->SetDestination(pThis->Target, true);
+				pThis->QueueMission(Mission::Capture, false);
+				if (pThis->ReadyToNextMission())
+					pThis->NextMission();
+			}
+			else if ((pType->C4 || pThis->HasAbility(AbilityType::C4))
+			 && pThis->Target != nullptr
+			 && pThis->Target->WhatAmI() == AbstractType::Building)
+			{
+				// C4 / bomber infantry vs a building: sabotage
+				pThis->SetDestination(pThis->Target, true);
+				pThis->QueueMission(Mission::Sabotage, false);
+				if (pThis->ReadyToNextMission())
+					pThis->NextMission();
+			}
+			else if (pType->VehicleThief)
+			{
+				// Vehicle thief: capture the target
+				pThis->SetDestination(pThis->Target, true);
+				pThis->QueueMission(Mission::Capture, false);
+				if (pThis->ReadyToNextMission())
+					pThis->NextMission();
+			}
+			else
+			{
+				pThis->SetDestination(nullptr, true);
+				pThis->ApproachTarget(false);
+			}
+		}
+		else
+		{
+			pThis->ApproachTarget(false);
+		}
+	}
+	else
+	{
+		if (pThis->Owner->IsControlledByHuman() || SessionClass::Instance->GameMode != GameMode::Campaign)
+		{
+			pThis->UpdateIdleAction();
+		}
+		else
+		{
+			// AI in campaign: move toward the player's base center
+			const CellStruct& baseCenter = HouseClass::CurrentPlayer->GetBaseCenter();
+			if (baseCenter.IsValid())
+			{
+				if (pThis->SlaveManager)
+					pThis->SlaveManager->Guard();
+
+				CellClass* pCell = MapClass::Instance->GetCellAt(baseCenter);
+				pThis->SetDestination(pCell, true);
+				pThis->QueueMission(Mission::Move, true);
+			}
+		}
+	}
+
+	auto* pControl = pThis->GetCurrentMissionControl();
+	return pControl->NormalDelay() + ScenarioClass::Instance->Random.RandomRanged(0, 2);
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x4D5350, FakeFootClass::_Mission_Hunt)
+DEFINE_FUNCTION_JUMP(CALL, 0x51F60C, FakeFootClass::_Mission_Hunt)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E8EBC, FakeFootClass::_Mission_Hunt)
 
 bool __fastcall FakeFootClass::__Try_Grinding(FootClass* pFoot)
 {
@@ -73,7 +157,7 @@ bool __fastcall FakeFootClass::_IsRecruitable(FootClass* pThis, discard_t, House
 	if (pThis->IsCrashing || pThis->IsSinking)
 		return false;
 
-	const bool canRecruit = pThis->RecruitableA && pThis->RecruitableB;
+	const bool canRecruit = pThis->RecruitableA  != 0;
 	if (!canRecruit)
 		return false;
 

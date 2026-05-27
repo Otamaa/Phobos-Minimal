@@ -98,7 +98,6 @@ public:
 	
 
 public:
-
 	OptionalStruct<TechnoTypeClass*, false> TechnoType;
 
 public:
@@ -106,6 +105,7 @@ public:
 	TEventExtData(TEventClass* pObj) : AbstractExtended(pObj) , TechnoType() {
 		this->AbsType = TEventClass::AbsID;
 	}
+
 	TEventExtData(TEventClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~TEventExtData() = default;
@@ -316,16 +316,13 @@ public:
 	static bool HasOccured(TEventClass* pThis, EventArgs& Args, bool& result);
 };
 
-class TEventExtContainer final : public Container<TEventExtData>
+class TEventExtContainer final : public Container<TEventExtData>, public ContainerSaveLoad<TEventExtContainer, false>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "TEventExtContainer";
 
 public:
 	static TEventExtContainer Instance;
-
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 };
 
 class NOVTABLE FakeTEventClass : public TEventClass

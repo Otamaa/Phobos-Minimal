@@ -570,7 +570,7 @@ ASMJIT_PATCH(0x4CE689, FlyLocomotionClass_0x4CE680_TakeOffAnim, 0x5)
 		if (!pCell || pAir->GetHeight() > pCell->GetFloorHeight({ 1,1 }))
 			return 0x0;
 
-		if (auto pDecidedAnim = TechnoTypeExtContainer::Instance.Find(pAir->Type)->TakeOff_Anim.Get(RulesExtData::Instance()->Aircraft_TakeOffAnim.Get()))
+		if (auto pDecidedAnim = AircraftTypeExtContainer::Instance.Find(pAir->Type)->TakeOff_Anim.Get(RulesExtData::Instance()->Aircraft_TakeOffAnim.Get()))
 		{
 			auto const nCoord = pAir->GetCoords();
 			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDecidedAnim, nCoord, 0, 1, AnimFlag::AnimFlag_600, 0, 0),
@@ -587,28 +587,43 @@ ASMJIT_PATCH(0x4CE689, FlyLocomotionClass_0x4CE680_TakeOffAnim, 0x5)
 
 ASMJIT_PATCH(0x4CEB51, FlyLocomotionClass_0x4CE680_LandingAnim, 0x8)
 {
-	GET(AircraftClass*, pLinked, ECX);
+	GET(TechnoClass*, pLinked, ECX);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x48, 0x18));
 
-	const auto pType = pLinked->Type;
-	auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
+	auto pType = pLinked->GetTechnoType();
 
 	{
-		auto GetDefaultType = [pType]()
-			{
+		bool IsAir = false;
+
+		auto GetDefaultType = [pLinked, &IsAir, pType]() {
 				if (pType->IsDropship)
 					return RulesExtData::Instance()->DropShip_LandAnim.Get();
-				else if (pType->Carryall)
-					return RulesExtData::Instance()->CarryAll_LandAnim.Get();
+				else if (auto pAir = cast_to<AircraftClass*, false>(pLinked)){
+					IsAir = true;
+					if(pAir->Type->Carryall)
+						return RulesExtData::Instance()->CarryAll_LandAnim.Get();
+				}
 
-				return (AnimTypeClass*)nullptr;
-			};
+			return (AnimTypeClass*)nullptr;
+		};
 
-		const auto pCell = pLinked->GetCell();
-		const auto pFirst = pCell->LandType == LandType::Water && !pCell->ContainsBridge() && pExt->Landing_AnimOnWater.Get()
-			? pExt->Landing_AnimOnWater.Get() : pExt->Landing_Anim.Get(RulesExtData::Instance()->Aircraft_LandAnim.Get());
+		auto GetLandingAnim = [&](){
 
-		if (AnimTypeClass* pDecidedType = pFirst ? pFirst : GetDefaultType())
+			AnimTypeClass* pAnimRet = nullptr;
+
+			if(IsAir){
+				const auto pCell = pLinked->GetCell();
+				auto pExt = AircraftExtContainer::Instance.Find((AircraftClass*)pLinked);
+
+				pAnimRet = pCell->LandType == LandType::Water && !pCell->ContainsBridge() && pExt->TypeExtData->Landing_AnimOnWater
+				?  pExt->TypeExtData->Landing_AnimOnWater :  pExt->TypeExtData->Landing_Anim.Get(RulesExtData::Instance()->Aircraft_LandAnim.Get());
+			}
+
+			return !pAnimRet ? GetDefaultType() : nullptr;
+
+		};
+
+		if (AnimTypeClass* pDecidedType = GetLandingAnim())
 		{
 			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDecidedType, nCoord, 0, 1, AnimFlag::AnimFlag_600, 0, 0),
 				pLinked->GetOwningHouse(),

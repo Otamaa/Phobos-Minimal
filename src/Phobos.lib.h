@@ -4,6 +4,9 @@
 #pragma comment(lib, "DbgHelp.lib")
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "ole32.lib")
+#pragma comment(lib, "imm32.lib")
+#pragma comment(lib, "comctl32.lib")
+#pragma comment(lib, "gdi32.lib")
 
 #ifdef _TTT
 #pragma comment(linker, "/NODEFAULTLIB")

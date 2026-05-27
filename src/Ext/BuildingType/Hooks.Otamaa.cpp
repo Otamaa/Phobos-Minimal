@@ -23,62 +23,6 @@
 
 #pragma region Otamaa
 
-ASMJIT_PATCH(0x6FE3E3, TechnoClass_FireAt_OccupyDamageBonus, 0xA) //B
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(WeaponTypeClass* const, pWeapon, EBX);
-	GET_STACK(int, nDamage, 0x2C);
-	GET_BASE(int, weapon_idx, 0xC);
-	GET_BASE(AbstractClass*, pTarget, 0x8);
-
-	auto pExtType = GET_TECHNOTYPEEXT(pThis);
-
-	if(pThis->CanOccupyFire()) {
-		if (auto const Building = cast_to<BuildingClass*, false>(pThis)) {
-			nDamage = int(nDamage * BuildingTypeExtContainer::Instance.Find(Building->Type)->BuildingOccupyDamageMult.Get(RulesClass::Instance->OccupyDamageMultiplier));
-		} else {
-			nDamage = int(nDamage * RulesClass::Instance->OccupyDamageMultiplier);
-		}
-	}
-
-	if (pThis->InOpenToppedTransport) {
-		nDamage = int(nDamage * pExtType->OpenTransport_DamageMultiplier);
-
-		if (auto const  pTransport = pThis->Transporter) {
-			float nDamageMult = GET_TECHNOTYPEEXT(pTransport)->OpenTopped_DamageMultiplier
-				.Get(RulesClass::Instance->OpenToppedDamageMultiplier);
-			nDamage = int(nDamage * nDamageMult);
-		} else {
-			nDamage = int(nDamage * RulesClass::Instance->OpenToppedDamageMultiplier);
-		}
-	}
-
-	if(!pWeapon->DiskLaser) {
-		R->EDI(nDamage);
-		R->Stack(0x2C, nDamage);
-		return 0x6FE4F6; // continue check
-	}
-
-	auto pDiskLaser = GameCreate<DiskLaserClass>();
-
-	++pThis->CurrentBurstIndex;
-	int rearm = pThis->GetROF(weapon_idx);
-	TechnoExtData::SetChargeTurretDelay(pThis, rearm, pWeapon);
-	pThis->RearmTimer.Start(rearm);
-	pThis->CurrentBurstIndex %= pWeapon->Burst;
-	((FakeDiskLaserClass*)pDiskLaser)->__Fire(pThis, pTarget, pWeapon, nDamage);
-
-	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-
-	//this may crash the game , since the object got deleted after killself ,..
-	if (pWeaponExt->RemoveTechnoAfterFiring.Get())
-		TechnoExtData::KillSelf(pThis, KillMethod::Vanish);
-	else if (pWeaponExt->DestroyTechnoAfterFiring.Get())
-		TechnoExtData::KillSelf(pThis, KillMethod::Explode);
-
-	return 0x6FE4E7; //end of func
-}
-
 ASMJIT_PATCH(0x6FD15E, TechnoClass_RearmDelay_RofMult, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);

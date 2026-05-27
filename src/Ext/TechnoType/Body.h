@@ -54,6 +54,7 @@ struct PhobosVoxelIndexKey
 			JumpjetTiltVoxelIndexKey JumpjetTiltVoxel;
 			// add other definitions here as needed
 		} CustomIndexKey;
+		DWORD Value;
 	};
 
 	// add funcs here if needed
@@ -155,6 +156,9 @@ public:
 public:
 
 #pragma region ClassMembers
+	Nullable<AnimTypeClass*> Landing_Anim {};
+	Valueable<AnimTypeClass*> Landing_AnimOnWater { nullptr };
+
 	Valueable<bool> HealthBar_Hide { false };
 	Valueable<bool> HealthBar_HidePips { false };
 	Valueable<bool> HealthBar_Permanent { false };
@@ -387,28 +391,6 @@ public:
 	Valueable<Point2D> DrainMoney_Display_Offset { { 0, 0 } };
 
 	Nullable<float> TalkBubbleTime {};
-	Nullable<int> AttackingAircraftSightRange {};
-	NullableIdx<VoxClass> SpyplaneCameraSound {};
-	Nullable<int> ParadropRadius {};
-	Nullable<int> ParadropOverflRadius {};
-	Valueable<bool> Paradrop_DropPassangers { true };
-	Valueable<int> Paradrop_MaxAttempt { 5 };
-
-	Valueable<bool> IsCustomMissile { false };
-	Valueable<RocketStruct> CustomMissileData { RocketStruct() };
-	Valueable<WarheadTypeClass*> CustomMissileWarhead { nullptr };
-	Valueable<WarheadTypeClass*> CustomMissileEliteWarhead { nullptr };
-	Valueable<AnimTypeClass*> CustomMissileTakeoffAnim { nullptr };
-	Valueable<AnimTypeClass*> CustomMissilePreLauchAnim { nullptr };
-	Valueable<AnimTypeClass*> CustomMissileTrailerAnim { nullptr };
-	Valueable<int> CustomMissileTrailerSeparation { 3 };
-	Valueable<WeaponTypeClass*> CustomMissileWeapon { nullptr };
-	Valueable<WeaponTypeClass*> CustomMissileEliteWeapon { nullptr };
-	Valueable<int> CustomMissileInaccuracy { 0 };
-	Valueable<int> CustomMissileTrailAppearDelay { 2 };
-	Valueable<double> CustomMissileCloseEnoughFactor { 1.0 };
-	Promotable<bool> CustomMissileRaise { true };
-	Nullable<Point2D> CustomMissileOffset {};
 
 	Valueable<AffectedHouse> Draw_MindControlLink { AffectedHouse::All };
 
@@ -419,10 +401,6 @@ public:
 	Nullable<ParticleSystemTypeClass*> Overload_ParticleSys {};
 	Nullable<int> Overload_ParticleSysCount {};
 	Nullable<WarheadTypeClass*> Overload_Warhead {};
-
-	Nullable<AnimTypeClass*> Landing_Anim {};
-	Valueable<AnimTypeClass*> Landing_AnimOnWater { nullptr };
-	Nullable<AnimTypeClass*> TakeOff_Anim {};
 
 	std::vector<CoordStruct> HitCoordOffset {};
 	Valueable<bool> HitCoordOffset_Random { true };
@@ -482,7 +460,6 @@ public:
 	Nullable<int> Gattling_Overload_ParticleSysCount {};
 	Nullable<WarheadTypeClass*> Gattling_Overload_Warhead {};
 
-	Valueable<bool> IsHero { false };
 	Valueable<bool> IsDummy { false };
 
 	ValueableVector<WeaponTypeClass*> FireSelf_Weapon {};
@@ -516,7 +493,7 @@ public:
 
 	// Ares 0.1
 	DWORD Prerequisite_RequiredTheaters { 0xFFFFFFFF };
-	std::vector<ValueableVector<int>> Prerequisites {};
+	std::vector<std::vector<int>> Prerequisites {};
 	Valueable<int> Prerequisite_Lists { 1 };
 	ValueableVector<int> Prerequisite_Negative {};
 	ValueableVector<int> Prerequisite_Display {};
@@ -591,7 +568,7 @@ public:
 	Valueable<TechnoTypeClass*> Convert_Deploy { nullptr };
 	Valueable<int> Convert_Deploy_Delay { -1 };
 	Valueable<TechnoTypeClass*> Convert_Script { nullptr };
-	ValueableVector<int> Convert_Scipt_Prereq {};
+	ValueableVector<int> Convert_Script_Prereq {};
 	Valueable<TechnoTypeClass*> Convert_Water { nullptr };
 	Valueable<TechnoTypeClass*> Convert_Land { nullptr };
 	Valueable<bool> Convert_ResetMindControl { false };
@@ -1295,7 +1272,7 @@ public:
 	{ }
 
 	void InitializeConstant();
-	void Initialize();
+	virtual void Initialize();
 
 	TechnoTypeExtData(TechnoTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
 
@@ -1306,17 +1283,8 @@ public:
 		this->ObjectTypeExtData::InvalidatePointer(ptr, bRemoved, type);
 	}
 
-	virtual void LoadFromStream(PhobosStreamReader& Stm) override
-	{
-		this->ObjectTypeExtData::LoadFromStream(Stm);
-		this->Serialize(Stm);
-	}
-
-	virtual void SaveToStream(PhobosStreamWriter& Stm)
-	{
-		const_cast<TechnoTypeExtData*>(this)->ObjectTypeExtData::SaveToStream(Stm);
-		const_cast<TechnoTypeExtData*>(this)->Serialize(Stm);
-	}
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override;
+	virtual void SaveToStream(PhobosStreamWriter& Stm);
 
 	virtual int GetSize() const { return sizeof(*this); };
 
@@ -1353,17 +1321,881 @@ public:
 	static WeaponStruct* GetWeaponStruct(TechnoTypeClass* pThis, int nWeaponIndex, bool isElite);
 
 private:
-#ifdef _Track
+#ifndef Logged
+	template<typename T>
+	void Serialize(T& Stm)
+	{
+		auto debugProcess = [&Stm](auto& field, const char* fieldName) -> auto&
+			{
+				if constexpr (std::is_same_v<T, PhobosStreamWriter>)
+				{
+					size_t beforeSize = Stm.Getstream()->Size();
+					auto& result = Stm.Process(field);
+					size_t afterSize = Stm.Getstream()->Size();
+					GameDebugLog::Log("[TechnoTypextData] SAVE %s: size %zu -> %zu (+%zu)\n",
+						fieldName, beforeSize, afterSize, afterSize - beforeSize);
+					return result;
+				}
+				else
+				{
+					size_t beforeOffset = Stm.Getstream()->Offset();
+					bool beforeSuccess = Stm.Success();
+					auto& result = Stm.Process(field);
+					size_t afterOffset = Stm.Getstream()->Offset();
+					bool afterSuccess = Stm.Success();
+					GameDebugLog::Log("[TechnoTypextData] LOAD %s: offset %zu -> %zu (+%zu), success: %s -> %s\n",
+						fieldName, beforeOffset, afterOffset, afterOffset - beforeOffset,
+						beforeSuccess ? "true" : "false", afterSuccess ? "true" : "false");
+					if (!afterSuccess && beforeSuccess)
+						GameDebugLog::Log("[TechnoTypextData] ERROR: %s caused stream failure!\n", fieldName);
+					return result;
+				}
+			};
 
-	void Serialize(PhobosStreamWriter& Stm);
-	void Serialize(PhobosStreamReader& Stm);
+		debugProcess(this->Landing_Anim, "Landing_Anim");
+		debugProcess(this->Landing_AnimOnWater, "Landing_AnimOnWater");
+		debugProcess(this->HealthBar_Hide, "HealthBar_Hide");
+		debugProcess(this->HealthBar_HidePips, "HealthBar_HidePips");
+		debugProcess(this->HealthBar_Permanent, "HealthBar_Permanent");
+		debugProcess(this->HealthBar_Permanent_PipScale, "HealthBar_Permanent_PipScale");
+		debugProcess(this->UIDescription, "UIDescription");
+		debugProcess(this->LowSelectionPriority, "LowSelectionPriority");
+		debugProcess(this->LowDeployPriority, "LowDeployPriority");
+		debugProcess(this->MindControlRangeLimit, "MindControlRangeLimit");
+		debugProcess(this->MindControl_IgnoreSize, "MindControl_IgnoreSize");
+		debugProcess(this->MindControlSize, "MindControlSize");
+		debugProcess(this->Phobos_EliteAbilities, "Phobos_EliteAbilities");
+		debugProcess(this->Phobos_VeteranAbilities, "Phobos_VeteranAbilities");
+		debugProcess(this->E_ImmuneToType, "E_ImmuneToType");
+		debugProcess(this->V_ImmuneToType, "V_ImmuneToType");
+		debugProcess(this->R_ImmuneToType, "R_ImmuneToType");
+		debugProcess(this->Interceptor, "Interceptor");
+		debugProcess(this->Interceptor_CanTargetHouses, "Interceptor_CanTargetHouses");
+		debugProcess(this->Interceptor_GuardRange, "Interceptor_GuardRange");
+		debugProcess(this->Interceptor_MinimumGuardRange, "Interceptor_MinimumGuardRange");
+		debugProcess(this->Interceptor_TargetingDelay, "Interceptor_TargetingDelay");
+		debugProcess(this->Interceptor_Weapon, "Interceptor_Weapon");
+		debugProcess(this->Interceptor_DeleteOnIntercept, "Interceptor_DeleteOnIntercept");
+		debugProcess(this->Interceptor_WeaponOverride, "Interceptor_WeaponOverride");
+		debugProcess(this->Interceptor_WeaponReplaceProjectile, "Interceptor_WeaponReplaceProjectile");
+		debugProcess(this->Interceptor_WeaponCumulativeDamage, "Interceptor_WeaponCumulativeDamage");
+		debugProcess(this->Interceptor_KeepIntact, "Interceptor_KeepIntact");
+		debugProcess(this->Interceptor_ConsiderWeaponRange, "Interceptor_ConsiderWeaponRange");
+		debugProcess(this->Interceptor_OnlyTargetBullet, "Interceptor_OnlyTargetBullet");
+		debugProcess(this->Interceptor_ApplyFirepowerMult, "Interceptor_ApplyFirepowerMult");
+		debugProcess(this->GroupAs, "GroupAs");
+		debugProcess(this->RadarJamRadius, "RadarJamRadius");
+		debugProcess(this->RadarJamHouses, "RadarJamHouses");
+		debugProcess(this->RadarJamDelay, "RadarJamDelay");
+		debugProcess(this->RadarJamAffect, "RadarJamAffect");
+		debugProcess(this->RadarJamIgnore, "RadarJamIgnore");
+		debugProcess(this->InhibitorRange, "InhibitorRange");
+		debugProcess(this->DesignatorRange, "DesignatorRange");
+		debugProcess(this->TurretOffset, "TurretOffset");
+		debugProcess(this->TurretShadow, "TurretShadow");
+		debugProcess(this->ShadowIndices, "ShadowIndices");
+		debugProcess(this->ShadowIndex_Frame, "ShadowIndex_Frame");
+		debugProcess(this->ShadowSizeCharacteristicHeight, "ShadowSizeCharacteristicHeight");
+		debugProcess(this->Powered_KillSpawns, "Powered_KillSpawns");
+		debugProcess(this->Spawn_LimitedRange, "Spawn_LimitedRange");
+		debugProcess(this->Spawn_LimitedExtraRange, "Spawn_LimitedExtraRange");
+		debugProcess(this->AdvancedDrive_Reverse, "AdvancedDrive_Reverse");
+		debugProcess(this->AdvancedDrive_Reverse_FaceTarget, "AdvancedDrive_Reverse_FaceTarget");
+		debugProcess(this->AdvancedDrive_Reverse_FaceTargetRange, "AdvancedDrive_Reverse_FaceTargetRange");
+		debugProcess(this->AdvancedDrive_Reverse_MinimumDistance, "AdvancedDrive_Reverse_MinimumDistance");
+		debugProcess(this->AdvancedDrive_Reverse_RetreatDuration, "AdvancedDrive_Reverse_RetreatDuration");
+		debugProcess(this->AdvancedDrive_Reverse_Speed, "AdvancedDrive_Reverse_Speed");
+		debugProcess(this->AdvancedDrive_Hover, "AdvancedDrive_Hover");
+		debugProcess(this->AdvancedDrive_Hover_Sink, "AdvancedDrive_Hover_Sink");
+		debugProcess(this->AdvancedDrive_Hover_Spin, "AdvancedDrive_Hover_Spin");
+		debugProcess(this->AdvancedDrive_Hover_Tilt, "AdvancedDrive_Hover_Tilt");
+		debugProcess(this->AdvancedDrive_Hover_Height, "AdvancedDrive_Hover_Height");
+		debugProcess(this->AdvancedDrive_Hover_Dampen, "AdvancedDrive_Hover_Dampen");
+		debugProcess(this->AdvancedDrive_Hover_Bob, "AdvancedDrive_Hover_Bob");
+		debugProcess(this->Harvester_CanGuardArea, "Harvester_CanGuardArea");
+		debugProcess(this->Harvester_CanGuardArea_RequireTarget, "Harvester_CanGuardArea_RequireTarget");
+		debugProcess(this->TiberiumEaterType, "TiberiumEaterType");
+		debugProcess(this->Spawner_DelayFrames, "Spawner_DelayFrames");
+		debugProcess(this->Harvester_Counted, "Harvester_Counted");
+		debugProcess(this->Promote_IncludeSpawns, "Promote_IncludeSpawns");
+		debugProcess(this->ImmuneToCrit, "ImmuneToCrit");
+		debugProcess(this->MultiMindControl_ReleaseVictim, "MultiMindControl_ReleaseVictim");
+		debugProcess(this->CameoPriority, "CameoPriority");
+		debugProcess(this->NoManualMove, "NoManualMove");
+		debugProcess(this->InitialStrength, "InitialStrength");
+		debugProcess(this->Death_NoAmmo, "Death_NoAmmo");
+		debugProcess(this->Death_Countdown, "Death_Countdown");
+		debugProcess(this->Death_Method, "Death_Method");
+		debugProcess(this->AutoDeath_Nonexist, "AutoDeath_Nonexist");
+		debugProcess(this->AutoDeath_Nonexist_House, "AutoDeath_Nonexist_House");
+		debugProcess(this->AutoDeath_Nonexist_Any, "AutoDeath_Nonexist_Any");
+		debugProcess(this->AutoDeath_Nonexist_AllowLimboed, "AutoDeath_Nonexist_AllowLimboed");
+		debugProcess(this->AutoDeath_Exist, "AutoDeath_Exist");
+		debugProcess(this->AutoDeath_Exist_House, "AutoDeath_Exist_House");
+		debugProcess(this->AutoDeath_Exist_Any, "AutoDeath_Exist_Any");
+		debugProcess(this->AutoDeath_Exist_AllowLimboed, "AutoDeath_Exist_AllowLimboed");
+		debugProcess(this->AutoDeath_VanishAnimation, "AutoDeath_VanishAnimation");
+		debugProcess(this->Convert_AutoDeath, "Convert_AutoDeath");
+		debugProcess(this->Death_WithMaster, "Death_WithMaster");
+		debugProcess(this->AutoDeath_MoneyExceed, "AutoDeath_MoneyExceed");
+		debugProcess(this->AutoDeath_MoneyBelow, "AutoDeath_MoneyBelow");
+		debugProcess(this->AutoDeath_LowPower, "AutoDeath_LowPower");
+		debugProcess(this->AutoDeath_FullPower, "AutoDeath_FullPower");
+		debugProcess(this->AutoDeath_PassengerExceed, "AutoDeath_PassengerExceed");
+		debugProcess(this->AutoDeath_PassengerBelow, "AutoDeath_PassengerBelow");
+		debugProcess(this->AutoDeath_ContentIfAnyMatch, "AutoDeath_ContentIfAnyMatch");
+		debugProcess(this->AutoDeath_OwnedByPlayer, "AutoDeath_OwnedByPlayer");
+		debugProcess(this->AutoDeath_OwnedByAI, "AutoDeath_OwnedByAI");
+		debugProcess(this->Slaved_ReturnTo, "Slaved_ReturnTo");
+		debugProcess(this->Death_IfChangeOwnership, "Death_IfChangeOwnership");
+		debugProcess(this->ShieldType, "ShieldType");
+		debugProcess(this->WarpOut, "WarpOut");
+		debugProcess(this->WarpIn, "WarpIn");
+		debugProcess(this->WarpAway, "WarpAway");
+		debugProcess(this->ChronoTrigger, "ChronoTrigger");
+		debugProcess(this->ChronoDistanceFactor, "ChronoDistanceFactor");
+		debugProcess(this->ChronoMinimumDelay, "ChronoMinimumDelay");
+		debugProcess(this->ChronoRangeMinimum, "ChronoRangeMinimum");
+		debugProcess(this->ChronoDelay, "ChronoDelay");
+		debugProcess(this->WarpInWeapon, "WarpInWeapon");
+		debugProcess(this->WarpInMinRangeWeapon, "WarpInMinRangeWeapon");
+		debugProcess(this->WarpOutWeapon, "WarpOutWeapon");
+		debugProcess(this->WarpInWeapon_UseDistanceAsDamage, "WarpInWeapon_UseDistanceAsDamage");
+		debugProcess(this->OreGathering_Anims, "OreGathering_Anims");
+		debugProcess(this->OreGathering_Tiberiums, "OreGathering_Tiberiums");
+		debugProcess(this->OreGathering_FramesPerDir, "OreGathering_FramesPerDir");
+		debugProcess(this->LaserTrailData, "LaserTrailData");
+		debugProcess(this->DestroyAnim_Random, "DestroyAnim_Random");
+		debugProcess(this->DestroyAnimSpecific, "DestroyAnimSpecific");
+		debugProcess(this->NotHuman_RandomDeathSequence, "NotHuman_RandomDeathSequence");
+		debugProcess(this->DefaultDisguise, "DefaultDisguise");
+		debugProcess(this->PassengerDeletionType, "PassengerDeletionType");
+		debugProcess(this->OpenTopped_RangeBonus, "OpenTopped_RangeBonus");
+		debugProcess(this->OpenTopped_DamageMultiplier, "OpenTopped_DamageMultiplier");
+		debugProcess(this->OpenTopped_DecloakToFire, "OpenTopped_DecloakToFire");
+		debugProcess(this->OpenTopped_WarpDistance, "OpenTopped_WarpDistance");
+		debugProcess(this->OpenTopped_IgnoreRangefinding, "OpenTopped_IgnoreRangefinding");
+		debugProcess(this->OpenTopped_AllowFiringIfDeactivated, "OpenTopped_AllowFiringIfDeactivated");
+		debugProcess(this->OpenTopped_ShareTransportTarget, "OpenTopped_ShareTransportTarget");
+		debugProcess(this->OpenTopped_UseTransportRangeModifiers, "OpenTopped_UseTransportRangeModifiers");
+		debugProcess(this->OpenTopped_CheckTransportDisableWeapons, "OpenTopped_CheckTransportDisableWeapons");
+		debugProcess(this->AutoFire, "AutoFire");
+		debugProcess(this->AutoFire_TargetSelf, "AutoFire_TargetSelf");
+		debugProcess(this->NoSecondaryWeaponFallback, "NoSecondaryWeaponFallback");
+		debugProcess(this->NoSecondaryWeaponFallback_AllowAA, "NoSecondaryWeaponFallback_AllowAA");
+		debugProcess(this->AllowWeaponSelectAgainstWalls, "AllowWeaponSelectAgainstWalls");
+		debugProcess(this->NoAmmoWeapon, "NoAmmoWeapon");
+		debugProcess(this->NoAmmoAmount, "NoAmmoAmount");
+		debugProcess(this->JumpjetAllowLayerDeviation, "JumpjetAllowLayerDeviation");
+		debugProcess(this->JumpjetTurnToTarget, "JumpjetTurnToTarget");
+		debugProcess(this->JumpjetCrash_Rotate, "JumpjetCrash_Rotate");
+		debugProcess(this->DeployingAnims, "DeployingAnims");
+		debugProcess(this->DeployingAnim_KeepUnitVisible, "DeployingAnim_KeepUnitVisible");
+		debugProcess(this->DeployingAnim_ReverseForUndeploy, "DeployingAnim_ReverseForUndeploy");
+		debugProcess(this->DeployingAnim_UseUnitDrawer, "DeployingAnim_UseUnitDrawer");
+		debugProcess(this->SelfHealGainType, "SelfHealGainType");
+		debugProcess(this->EnemyUIName, "EnemyUIName");
+		debugProcess(this->ForceWeapon_Naval_Decloaked, "ForceWeapon_Naval_Decloaked");
+		debugProcess(this->ForceWeapon_UnderEMP, "ForceWeapon_UnderEMP");
+		debugProcess(this->ForceWeapon_Cloaked, "ForceWeapon_Cloaked");
+		debugProcess(this->ForceWeapon_Disguised, "ForceWeapon_Disguised");
+		debugProcess(this->ImmuneToEMP, "ImmuneToEMP");
+		debugProcess(this->Ammo_Shared, "Ammo_Shared");
+		debugProcess(this->Ammo_Shared_Group, "Ammo_Shared_Group");
+		debugProcess(this->Passengers_SyncOwner, "Passengers_SyncOwner");
+		debugProcess(this->Passengers_SyncOwner_RevertOnExit, "Passengers_SyncOwner_RevertOnExit");
+		debugProcess(this->Aircraft_DecreaseAmmo, "Aircraft_DecreaseAmmo");
+		debugProcess(this->UseDisguiseMovementSpeed, "UseDisguiseMovementSpeed");
+		debugProcess(this->Insignia, "Insignia");
+		debugProcess(this->InsigniaFrames, "InsigniaFrames");
+		debugProcess(this->InsigniaFrame, "InsigniaFrame");
+		debugProcess(this->Insignia_ShowEnemy, "Insignia_ShowEnemy");
+		debugProcess(this->Insignia_Weapon, "Insignia_Weapon");
+		debugProcess(this->Insignia_Passengers, "Insignia_Passengers");
+		debugProcess(this->InsigniaFrame_Passengers, "InsigniaFrame_Passengers");
+		debugProcess(this->InsigniaFrames_Passengers, "InsigniaFrames_Passengers");
+		debugProcess(this->InitialStrength_Cloning, "InitialStrength_Cloning");
+		debugProcess(this->SelectBox, "SelectBox");
+		debugProcess(this->HideSelectBox, "HideSelectBox");
+		debugProcess(this->Explodes_KillPassengers, "Explodes_KillPassengers");
+		debugProcess(this->DeployFireWeapon, "DeployFireWeapon");
+		debugProcess(this->RevengeWeapon, "RevengeWeapon");
+		debugProcess(this->RevengeWeapon_AffectsHouses, "RevengeWeapon_AffectsHouses");
+		debugProcess(this->TargetZoneScanType, "TargetZoneScanType");
+		debugProcess(this->GrapplingAttack, "GrapplingAttack");
+		debugProcess(this->PronePrimaryFireFLH, "PronePrimaryFireFLH");
+		debugProcess(this->ProneSecondaryFireFLH, "ProneSecondaryFireFLH");
+		debugProcess(this->DeployedPrimaryFireFLH, "DeployedPrimaryFireFLH");
+		debugProcess(this->DeployedSecondaryFireFLH, "DeployedSecondaryFireFLH");
+		debugProcess(this->E_PronePrimaryFireFLH, "E_PronePrimaryFireFLH");
+		debugProcess(this->E_ProneSecondaryFireFLH, "E_ProneSecondaryFireFLH");
+		debugProcess(this->E_DeployedPrimaryFireFLH, "E_DeployedPrimaryFireFLH");
+		debugProcess(this->E_DeployedSecondaryFireFLH, "E_DeployedSecondaryFireFLH");
+		debugProcess(this->WeaponBurstFLHs, "WeaponBurstFLHs");
+		debugProcess(this->CrouchedWeaponBurstFLHs, "CrouchedWeaponBurstFLHs");
+		debugProcess(this->DeployedWeaponBurstFLHs, "DeployedWeaponBurstFLHs");
+		debugProcess(this->IronCurtain_KeptOnDeploy, "IronCurtain_KeptOnDeploy");
+		debugProcess(this->ForceShield_KeptOnDeploy, "ForceShield_KeptOnDeploy");
+		debugProcess(this->IronCurtain_Effect, "IronCurtain_Effect");
+		debugProcess(this->IronCurtain_KillWarhead, "IronCurtain_KillWarhead");
+		debugProcess(this->ForceShield_Effect, "ForceShield_Effect");
+		debugProcess(this->ForceShield_KillWarhead, "ForceShield_KillWarhead");
+		debugProcess(this->SellSound, "SellSound");
+		debugProcess(this->EVA_Sold, "EVA_Sold");
+		debugProcess(this->AlternateFLHs, "AlternateFLHs");
+		debugProcess(this->Spawner_SpawnOffsets, "Spawner_SpawnOffsets");
+		debugProcess(this->Spawner_SpawnOffsets_OverrideWeaponFLH, "Spawner_SpawnOffsets_OverrideWeaponFLH");
+		debugProcess(this->FacingRotation_Disable, "FacingRotation_Disable");
+		debugProcess(this->FacingRotation_DisalbeOnEMP, "FacingRotation_DisalbeOnEMP");
+		debugProcess(this->FacingRotation_DisalbeOnDeactivated, "FacingRotation_DisalbeOnDeactivated");
+		debugProcess(this->FacingRotation_DisableOnDriverKilled, "FacingRotation_DisableOnDriverKilled");
+		debugProcess(this->DontShake, "DontShake");
+		debugProcess(this->DiskLaserChargeUp, "DiskLaserChargeUp");
+		debugProcess(this->DiskLaserDetonate, "DiskLaserDetonate");
+		debugProcess(this->DrainAnimationType, "DrainAnimationType");
+		debugProcess(this->DrainMoneyFrameDelay, "DrainMoneyFrameDelay");
+		debugProcess(this->DrainMoneyAmount, "DrainMoneyAmount");
+		debugProcess(this->DrainMoney_Display, "DrainMoney_Display");
+		debugProcess(this->DrainMoney_Display_Houses, "DrainMoney_Display_Houses");
+		debugProcess(this->DrainMoney_Display_OnTarget, "DrainMoney_Display_OnTarget");
+		debugProcess(this->DrainMoney_Display_OnTarget_UseDisplayIncome, "DrainMoney_Display_OnTarget_UseDisplayIncome");
+		debugProcess(this->DrainMoney_Display_Offset, "DrainMoney_Display_Offset");
+		debugProcess(this->TalkBubbleTime, "TalkBubbleTime");
+		debugProcess(this->Draw_MindControlLink, "Draw_MindControlLink");
+		debugProcess(this->Overload_Count, "Overload_Count");
+		debugProcess(this->Overload_Damage, "Overload_Damage");
+		debugProcess(this->Overload_Frames, "Overload_Frames");
+		debugProcess(this->Overload_DeathSound, "Overload_DeathSound");
+		debugProcess(this->Overload_ParticleSys, "Overload_ParticleSys");
+		debugProcess(this->Overload_ParticleSysCount, "Overload_ParticleSysCount");
+		debugProcess(this->Overload_Warhead, "Overload_Warhead");
+		debugProcess(this->HitCoordOffset, "HitCoordOffset");
+		debugProcess(this->HitCoordOffset_Random, "HitCoordOffset_Random");
+		debugProcess(this->DeathWeapon, "DeathWeapon");
+		debugProcess(this->CrashWeapon, "CrashWeapon");
+		debugProcess(this->CrashWeapon_s, "CrashWeapon_s");
+		debugProcess(this->DeathWeapon_CheckAmmo, "DeathWeapon_CheckAmmo");
+		debugProcess(this->Disable_C4WarheadExp, "Disable_C4WarheadExp");
+		debugProcess(this->CrashSpinLevelRate, "CrashSpinLevelRate");
+		debugProcess(this->CrashSpinVerticalRate, "CrashSpinVerticalRate");
+		debugProcess(this->ParasiteExit_Sound, "ParasiteExit_Sound");
+		debugProcess(this->PipShapes01, "PipShapes01");
+		debugProcess(this->PipShapes02, "PipShapes02");
+		debugProcess(this->PipGarrison, "PipGarrison");
+		debugProcess(this->PipGarrison_FrameIndex, "PipGarrison_FrameIndex");
+		debugProcess(this->PipGarrison_Palette, "PipGarrison_Palette");
+		debugProcess(this->HealthNumber_Show, "HealthNumber_Show");
+		debugProcess(this->HealthNumber_Percent, "HealthNumber_Percent");
+		debugProcess(this->Healnumber_Offset, "Healnumber_Offset");
+		debugProcess(this->HealthNumber_SHP, "HealthNumber_SHP");
+		debugProcess(this->Healnumber_Decrement, "Healnumber_Decrement");
+		debugProcess(this->HealthBarSHP, "HealthBarSHP");
+		debugProcess(this->HealthBarSHP_Selected, "HealthBarSHP_Selected");
+		debugProcess(this->HealthBarSHPBracketOffset, "HealthBarSHPBracketOffset");
+		debugProcess(this->HealthBarSHP_HealthFrame, "HealthBarSHP_HealthFrame");
+		debugProcess(this->HealthBarSHP_Palette, "HealthBarSHP_Palette");
+		debugProcess(this->HealthBarSHP_PointOffset, "HealthBarSHP_PointOffset");
+		debugProcess(this->HealthbarRemap, "HealthbarRemap");
+		debugProcess(this->GClock_Shape, "GClock_Shape");
+		debugProcess(this->GClock_Transculency, "GClock_Transculency");
+		debugProcess(this->GClock_Palette, "GClock_Palette");
+		debugProcess(this->ROF_Random, "ROF_Random");
+		debugProcess(this->Rof_RandomMinMax, "Rof_RandomMinMax");
+		debugProcess(this->Eva_Complete, "Eva_Complete");
+		debugProcess(this->VoiceCreate, "VoiceCreate");
+		debugProcess(this->VoiceCreate_Instant, "VoiceCreate_Instant");
+		debugProcess(this->CreateSound_Enable, "CreateSound_Enable");
+		debugProcess(this->SlaveFreeSound_Enable, "SlaveFreeSound_Enable");
+		debugProcess(this->SlaveFreeSound, "SlaveFreeSound");
+		debugProcess(this->NoAirportBound_DisableRadioContact, "NoAirportBound_DisableRadioContact");
+		debugProcess(this->SinkAnim, "SinkAnim");
+		debugProcess(this->Tunnel_Speed, "Tunnel_Speed");
+		debugProcess(this->HoverType, "HoverType");
+		debugProcess(this->Gattling_Overload, "Gattling_Overload");
+		debugProcess(this->Gattling_Overload_Damage, "Gattling_Overload_Damage");
+		debugProcess(this->Gattling_Overload_Frames, "Gattling_Overload_Frames");
+		debugProcess(this->Gattling_Overload_DeathSound, "Gattling_Overload_DeathSound");
+		debugProcess(this->Gattling_Overload_ParticleSys, "Gattling_Overload_ParticleSys");
+		debugProcess(this->Gattling_Overload_ParticleSysCount, "Gattling_Overload_ParticleSysCount");
+		debugProcess(this->Gattling_Overload_Warhead, "Gattling_Overload_Warhead");
+		debugProcess(this->IsDummy, "IsDummy");
+		debugProcess(this->FireSelf_Weapon, "FireSelf_Weapon");
+		debugProcess(this->FireSelf_ROF, "FireSelf_ROF");
+		debugProcess(this->FireSelf_Weapon_GreenHeath, "FireSelf_Weapon_GreenHeath");
+		debugProcess(this->FireSelf_ROF_GreenHeath, "FireSelf_ROF_GreenHeath");
+		debugProcess(this->FireSelf_Weapon_YellowHeath, "FireSelf_Weapon_YellowHeath");
+		debugProcess(this->FireSelf_ROF_YellowHeath, "FireSelf_ROF_YellowHeath");
+		debugProcess(this->FireSelf_Weapon_RedHeath, "FireSelf_Weapon_RedHeath");
+		debugProcess(this->FireSelf_ROF_RedHeath, "FireSelf_ROF_RedHeath");
+		debugProcess(this->AllowFire_IroncurtainedTarget, "AllowFire_IroncurtainedTarget");
+		debugProcess(this->EngineerCaptureDelay, "EngineerCaptureDelay");
+		debugProcess(this->CommandLine_Move_Color, "CommandLine_Move_Color");
+		debugProcess(this->CommandLine_Attack_Color, "CommandLine_Attack_Color");
+		debugProcess(this->PassiveAcquire_AI, "PassiveAcquire_AI");
+		debugProcess(this->CanPassiveAquire_Naval, "CanPassiveAquire_Naval");
+		debugProcess(this->TankDisguiseAsTank, "TankDisguiseAsTank");
+		debugProcess(this->DisguiseDisAllowed, "DisguiseDisAllowed");
+		debugProcess(this->ChronoDelay_Immune, "ChronoDelay_Immune");
+		debugProcess(this->PoseDir, "PoseDir");
+		debugProcess(this->Firing_IgnoreGravity, "Firing_IgnoreGravity");
+		debugProcess(this->Survivors_PassengerChance, "Survivors_PassengerChance");
+		debugProcess(this->Prerequisite_RequiredTheaters, "Prerequisite_RequiredTheaters");
+		debugProcess(this->Prerequisites, "Prerequisites");
+		debugProcess(this->Prerequisite_Lists, "Prerequisite_Lists");
+		debugProcess(this->Prerequisite_Negative, "Prerequisite_Negative");
+		debugProcess(this->Prerequisite_Display, "Prerequisite_Display");
+		debugProcess(this->BuildLimit_Requires, "BuildLimit_Requires");
+		debugProcess(this->ConsideredNaval, "ConsideredNaval");
+		debugProcess(this->ConsideredVehicle, "ConsideredVehicle");
+		debugProcess(this->PrimaryCrawlFLH, "PrimaryCrawlFLH");
+		debugProcess(this->Elite_PrimaryCrawlFLH, "Elite_PrimaryCrawlFLH");
+		debugProcess(this->SecondaryCrawlFLH, "SecondaryCrawlFLH");
+		debugProcess(this->Elite_SecondaryCrawlFLH, "Elite_SecondaryCrawlFLH");
+		debugProcess(this->BountyAllow, "BountyAllow");
+		debugProcess(this->BountyDissallow, "BountyDissallow");
+		debugProcess(this->BountyBonusmult, "BountyBonusmult");
+		debugProcess(this->Bounty_IgnoreEnablers, "Bounty_IgnoreEnablers");
+		debugProcess(this->Tiberium_EmptyPipIdx, "Tiberium_EmptyPipIdx");
+		debugProcess(this->Tiberium_PipIdx, "Tiberium_PipIdx");
+		debugProcess(this->Tiberium_PipShapes, "Tiberium_PipShapes");
+		debugProcess(this->Tiberium_PipShapes_Palette, "Tiberium_PipShapes_Palette");
+		debugProcess(this->CrushLevel, "CrushLevel");
+		debugProcess(this->CrushableLevel, "CrushableLevel");
+		debugProcess(this->DeployCrushableLevel, "DeployCrushableLevel");
+		debugProcess(this->Experience_KillerMultiple, "Experience_KillerMultiple");
+		debugProcess(this->Experience_VictimMultiple, "Experience_VictimMultiple");
+		debugProcess(this->NavalRangeBonus, "NavalRangeBonus");
+		debugProcess(this->AI_LegalTarget, "AI_LegalTarget");
+		debugProcess(this->DeployFire_UpdateFacing, "DeployFire_UpdateFacing");
+		debugProcess(this->Fake_Of, "Fake_Of");
+		debugProcess(this->CivilianEnemy, "CivilianEnemy");
+		debugProcess(this->ImmuneToBerserk, "ImmuneToBerserk");
+		debugProcess(this->Berzerk_Modifier, "Berzerk_Modifier");
+		debugProcess(this->TargetLaser_Time, "TargetLaser_Time");
+		debugProcess(this->TargetLaser_WeaponIdx, "TargetLaser_WeaponIdx");
+		debugProcess(this->CurleyShuffle, "CurleyShuffle");
+		debugProcess(this->PassengersGainExperience, "PassengersGainExperience");
+		debugProcess(this->ExperienceFromPassengers, "ExperienceFromPassengers");
+		debugProcess(this->PassengerExperienceModifier, "PassengerExperienceModifier");
+		debugProcess(this->MindControlExperienceSelfModifier, "MindControlExperienceSelfModifier");
+		debugProcess(this->MindControlExperienceVictimModifier, "MindControlExperienceVictimModifier");
+		debugProcess(this->SpawnExperienceOwnerModifier, "SpawnExperienceOwnerModifier");
+		debugProcess(this->SpawnExperienceSpawnModifier, "SpawnExperienceSpawnModifier");
+		debugProcess(this->ExperienceFromAirstrike, "ExperienceFromAirstrike");
+		debugProcess(this->AirstrikeExperienceModifier, "AirstrikeExperienceModifier");
+		debugProcess(this->Promote_IncludePassengers, "Promote_IncludePassengers");
+		debugProcess(this->Promote_Elite_Eva, "Promote_Elite_Eva");
+		debugProcess(this->Promote_Vet_Eva, "Promote_Vet_Eva");
+		debugProcess(this->Promote_Elite_Sound, "Promote_Elite_Sound");
+		debugProcess(this->Promote_Vet_Sound, "Promote_Vet_Sound");
+		debugProcess(this->Promote_Elite_Flash, "Promote_Elite_Flash");
+		debugProcess(this->Promote_Vet_Flash, "Promote_Vet_Flash");
+		debugProcess(this->Promote_Vet_Type, "Promote_Vet_Type");
+		debugProcess(this->Promote_Elite_Type, "Promote_Elite_Type");
+		debugProcess(this->Promote_Vet_Anim, "Promote_Vet_Anim");
+		debugProcess(this->Promote_Elite_Anim, "Promote_Elite_Anim");
+		debugProcess(this->Promote_Vet_PlaySpotlight, "Promote_Vet_PlaySpotlight");
+		debugProcess(this->Promote_Elite_PlaySpotlight, "Promote_Elite_PlaySpotlight");
+		debugProcess(this->Promote_Vet_Exp, "Promote_Vet_Exp");
+		debugProcess(this->Promote_Elite_Exp, "Promote_Elite_Exp");
+		debugProcess(this->DeployDir, "DeployDir");
+		debugProcess(this->PassengersWhitelist, "PassengersWhitelist");
+		debugProcess(this->PassengersBlacklist, "PassengersBlacklist");
+		debugProcess(this->NoManualUnload, "NoManualUnload");
+		debugProcess(this->NoSelfGuardArea, "NoSelfGuardArea");
+		debugProcess(this->NoManualFire, "NoManualFire");
+		debugProcess(this->NoManualEnter, "NoManualEnter");
+		debugProcess(this->NoManualEject, "NoManualEject");
+		debugProcess(this->Passengers_BySize, "Passengers_BySize");
+		debugProcess(this->Convert_Deploy, "Convert_Deploy");
+		debugProcess(this->Convert_Deploy_Delay, "Convert_Deploy_Delay");
+		debugProcess(this->Convert_Script, "Convert_Script");
+		debugProcess(this->Convert_Water, "Convert_Water");
+		debugProcess(this->Convert_Land, "Convert_Land");
+		debugProcess(this->Harvester_LongScan, "Harvester_LongScan");
+		debugProcess(this->Harvester_ShortScan, "Harvester_ShortScan");
+		debugProcess(this->Harvester_ScanCorrection, "Harvester_ScanCorrection");
+		debugProcess(this->Harvester_TooFarDistance, "Harvester_TooFarDistance");
+		debugProcess(this->Harvester_KickDelay, "Harvester_KickDelay");
+		debugProcess(this->TurretRot, "TurretRot");
+		debugProcess(this->WaterImage, "WaterImage");
+		debugProcess(this->WaterImage_Yellow, "WaterImage_Yellow");
+		debugProcess(this->WaterImage_Red, "WaterImage_Red");
+		debugProcess(this->Image_Yellow, "Image_Yellow");
+		debugProcess(this->Image_Red, "Image_Red");
+		debugProcess(this->FallRate_Parachute, "FallRate_Parachute");
+		debugProcess(this->FallRate_NoParachute, "FallRate_NoParachute");
+		debugProcess(this->FallRate_ParachuteMax, "FallRate_ParachuteMax");
+		debugProcess(this->FallRate_NoParachuteMax, "FallRate_NoParachuteMax");
+		debugProcess(this->WeaponUINameX, "WeaponUINameX");
+		debugProcess(this->NoShadowSpawnAlt, "NoShadowSpawnAlt");
+		debugProcess(this->AdditionalWeaponDatas, "AdditionalWeaponDatas");
+		debugProcess(this->AdditionalEliteWeaponDatas, "AdditionalEliteWeaponDatas");
+		debugProcess(this->AdditionalTurrentWeapon, "AdditionalTurrentWeapon");
+		debugProcess(this->OmniCrusher_Aggressive, "OmniCrusher_Aggressive");
+		debugProcess(this->CrusherDecloak, "CrusherDecloak");
+		debugProcess(this->Crusher_SupressLostEva, "Crusher_SupressLostEva");
+		debugProcess(this->CrushFireDeathWeapon, "CrushFireDeathWeapon");
+		debugProcess(this->CrushDamage, "CrushDamage");
+		debugProcess(this->CrushDamageWarhead, "CrushDamageWarhead");
+		debugProcess(this->CrushDamagePlayWHAnim, "CrushDamagePlayWHAnim");
+		debugProcess(this->CrushRange, "CrushRange");
+		debugProcess(this->DigInSound, "DigInSound");
+		debugProcess(this->DigOutSound, "DigOutSound");
+		debugProcess(this->DigInAnim, "DigInAnim");
+		debugProcess(this->DigOutAnim, "DigOutAnim");
+		debugProcess(this->EVA_UnitLost, "EVA_UnitLost");
+		debugProcess(this->BuildTime_Speed, "BuildTime_Speed");
+		debugProcess(this->BuildTime_Cost, "BuildTime_Cost");
+		debugProcess(this->BuildTime_LowPowerPenalty, "BuildTime_LowPowerPenalty");
+		debugProcess(this->BuildTime_MinLowPower, "BuildTime_MinLowPower");
+		debugProcess(this->BuildTime_MaxLowPower, "BuildTime_MaxLowPower");
+		debugProcess(this->BuildTime_MultipleFactory, "BuildTime_MultipleFactory");
+		debugProcess(this->CloakStages, "CloakStages");
+		debugProcess(this->DamageSparks, "DamageSparks");
+		debugProcess(this->ParticleSystems_DamageSmoke, "ParticleSystems_DamageSmoke");
+		debugProcess(this->ParticleSystems_DamageSparks, "ParticleSystems_DamageSparks");
+		debugProcess(this->GattlingCyclic, "GattlingCyclic");
+		debugProcess(this->CloakSound, "CloakSound");
+		debugProcess(this->DecloakSound, "DecloakSound");
+		debugProcess(this->VoiceRepair, "VoiceRepair");
+		debugProcess(this->ReloadAmount, "ReloadAmount");
+		debugProcess(this->EmptyReloadAmount, "EmptyReloadAmount");
+		debugProcess(this->TiberiumProof, "TiberiumProof");
+		debugProcess(this->TiberiumSpill, "TiberiumSpill");
+		debugProcess(this->TiberiumRemains, "TiberiumRemains");
+		debugProcess(this->TiberiumTransmogrify, "TiberiumTransmogrify");
+		debugProcess(this->SensorArray_Warn, "SensorArray_Warn");
+		debugProcess(this->IronCurtain_Modifier, "IronCurtain_Modifier");
+		debugProcess(this->ForceShield_Modifier, "ForceShield_Modifier");
+		debugProcess(this->Survivors_PilotCount, "Survivors_PilotCount");
+		debugProcess(this->Survivors_Pilots, "Survivors_Pilots");
+		debugProcess(this->Ammo_AddOnDeploy, "Ammo_AddOnDeploy");
+		debugProcess(this->Ammo_AutoDeployMinimumAmount, "Ammo_AutoDeployMinimumAmount");
+		debugProcess(this->Ammo_AutoDeployMaximumAmount, "Ammo_AutoDeployMaximumAmount");
+		debugProcess(this->Ammo_DeployUnlockMinimumAmount, "Ammo_DeployUnlockMinimumAmount");
+		debugProcess(this->Ammo_DeployUnlockMaximumAmount, "Ammo_DeployUnlockMaximumAmount");
+		debugProcess(this->ImmuneToWeb, "ImmuneToWeb");
+		debugProcess(this->Webby_Anims, "Webby_Anims");
+		debugProcess(this->Webby_Modifier, "Webby_Modifier");
+		debugProcess(this->Webby_Duration_Variation, "Webby_Duration_Variation");
+		debugProcess(this->BerserkROFMultiplier, "BerserkROFMultiplier");
+		debugProcess(this->Refinery_UseStorage, "Refinery_UseStorage");
+		debugProcess(this->VHPscan_Value, "VHPscan_Value");
+		debugProcess(this->SelfHealing_Rate, "SelfHealing_Rate");
+		debugProcess(this->SelfHealing_Amount, "SelfHealing_Amount");
+		debugProcess(this->SelfHealing_Max, "SelfHealing_Max");
+		debugProcess(this->SelfHealing_CombatDelay, "SelfHealing_CombatDelay");
+		debugProcess(this->Bounty, "Bounty");
+		debugProcess(this->HasSpotlight, "HasSpotlight");
+		debugProcess(this->Spot_Height, "Spot_Height");
+		debugProcess(this->Spot_Distance, "Spot_Distance");
+		debugProcess(this->Spot_AttachedTo, "Spot_AttachedTo");
+		debugProcess(this->Spot_DisableR, "Spot_DisableR");
+		debugProcess(this->Spot_DisableG, "Spot_DisableG");
+		debugProcess(this->Spot_DisableB, "Spot_DisableB");
+		debugProcess(this->Spot_DisableColor, "Spot_DisableColor");
+		debugProcess(this->Spot_Reverse, "Spot_Reverse");
+		debugProcess(this->CloakAllowed, "CloakAllowed");
+		debugProcess(this->InitialPayload_Types, "InitialPayload_Types");
+		debugProcess(this->InitialPayload_Nums, "InitialPayload_Nums");
+		debugProcess(this->InitialPayload_Vet, "InitialPayload_Vet");
+		debugProcess(this->InitialPayload_AddToTransportTeam, "InitialPayload_AddToTransportTeam");
+		debugProcess(this->AlternateTheaterArt, "AlternateTheaterArt");
+		debugProcess(this->HijackerOneTime, "HijackerOneTime");
+		debugProcess(this->HijackerKillPilots, "HijackerKillPilots");
+		debugProcess(this->HijackerEnterSound, "HijackerEnterSound");
+		debugProcess(this->HijackerLeaveSound, "HijackerLeaveSound");
+		debugProcess(this->HijackerBreakMindControl, "HijackerBreakMindControl");
+		debugProcess(this->HijackerAllowed, "HijackerAllowed");
+		debugProcess(this->Survivors_PilotChance, "Survivors_PilotChance");
+		debugProcess(this->Crew_TechnicianChance, "Crew_TechnicianChance");
+		debugProcess(this->Crew_EngineerChance, "Crew_EngineerChance");
+		debugProcess(this->Saboteur, "Saboteur");
+		debugProcess(this->Cursor_Deploy, "Cursor_Deploy");
+		debugProcess(this->Cursor_NoDeploy, "Cursor_NoDeploy");
+		debugProcess(this->Cursor_Enter, "Cursor_Enter");
+		debugProcess(this->Cursor_NoEnter, "Cursor_NoEnter");
+		debugProcess(this->Cursor_Move, "Cursor_Move");
+		debugProcess(this->Cursor_NoMove, "Cursor_NoMove");
+		debugProcess(this->ImmuneToAbduction, "ImmuneToAbduction");
+		debugProcess(this->UseROFAsBurstDelays, "UseROFAsBurstDelays");
+		debugProcess(this->Chronoshift_Crushable, "Chronoshift_Crushable");
+		debugProcess(this->CanBeReversed, "CanBeReversed");
+		debugProcess(this->ReversedAs, "ReversedAs");
+		debugProcess(this->AssaulterLevel, "AssaulterLevel");
+		debugProcess(this->RadialIndicatorRadius, "RadialIndicatorRadius");
+		debugProcess(this->RadialIndicatorColor, "RadialIndicatorColor");
+		debugProcess(this->GapRadiusInCells, "GapRadiusInCells");
+		debugProcess(this->SuperGapRadiusInCells, "SuperGapRadiusInCells");
+		debugProcess(this->SmokeChanceRed, "SmokeChanceRed");
+		debugProcess(this->SmokeChanceDead, "SmokeChanceDead");
+		debugProcess(this->SmokeAnim, "SmokeAnim");
+		debugProcess(this->CarryallAllowed, "CarryallAllowed");
+		debugProcess(this->CarryallSizeLimit, "CarryallSizeLimit");
+		debugProcess(this->VoiceAirstrikeAttack, "VoiceAirstrikeAttack");
+		debugProcess(this->VoiceAirstrikeAbort, "VoiceAirstrikeAbort");
+		debugProcess(this->HunterSeekerDetonateProximity, "HunterSeekerDetonateProximity");
+		debugProcess(this->HunterSeekerDescendProximity, "HunterSeekerDescendProximity");
+		debugProcess(this->HunterSeekerAscentSpeed, "HunterSeekerAscentSpeed");
+		debugProcess(this->HunterSeekerDescentSpeed, "HunterSeekerDescentSpeed");
+		debugProcess(this->HunterSeekerEmergeSpeed, "HunterSeekerEmergeSpeed");
+		debugProcess(this->HunterSeekerIgnore, "HunterSeekerIgnore");
+		debugProcess(this->Bounty_Display, "Bounty_Display");
+		debugProcess(this->Bounty_Value, "Bounty_Value");
+		debugProcess(this->Bounty_Value_PercentOf, "Bounty_Value_PercentOf");
+		debugProcess(this->Bounty_ReceiveSound, "Bounty_ReceiveSound");
+		debugProcess(this->Bounty_Value_Option, "Bounty_Value_Option");
+		debugProcess(this->Bounty_Value_mult, "Bounty_Value_mult");
+		debugProcess(this->CanPassiveAcquire_Guard, "CanPassiveAcquire_Guard");
+		debugProcess(this->CanPassiveAcquire_Cloak, "CanPassiveAcquire_Cloak");
+		debugProcess(this->CrashSpin, "CrashSpin");
+		debugProcess(this->AirRate, "AirRate");
+		debugProcess(this->Unsellable, "Unsellable");
+		debugProcess(this->CreateSound_afect, "CreateSound_afect");
+		debugProcess(this->Chronoshift_Allow, "Chronoshift_Allow");
+		debugProcess(this->Chronoshift_IsVehicle, "Chronoshift_IsVehicle");
+		debugProcess(this->SuppressorRange, "SuppressorRange");
+		debugProcess(this->AttractorRange, "AttractorRange");
+		debugProcess(this->FactoryPlant_Multiplier, "FactoryPlant_Multiplier");
+		debugProcess(this->MassSelectable, "MassSelectable");
+		debugProcess(this->TiltsWhenCrushes_Vehicles, "TiltsWhenCrushes_Vehicles");
+		debugProcess(this->TiltsWhenCrushes_Overlays, "TiltsWhenCrushes_Overlays");
+		debugProcess(this->CrushForwardTiltPerFrame, "CrushForwardTiltPerFrame");
+		debugProcess(this->CrushOverlayExtraForwardTilt, "CrushOverlayExtraForwardTilt");
+		debugProcess(this->CrushSlowdownMultiplier, "CrushSlowdownMultiplier");
+		debugProcess(this->ShadowScale, "ShadowScale");
+		debugProcess(this->AIIonCannonValue, "AIIonCannonValue");
+		debugProcess(this->GenericPrerequisite, "GenericPrerequisite");
+		debugProcess(this->ExtraPower_Amount, "ExtraPower_Amount");
+		debugProcess(this->RecheckTechTreeWhenDie, "RecheckTechTreeWhenDie");
+		debugProcess(this->Linked_SW, "Linked_SW");
+		debugProcess(this->CanDrive, "CanDrive");
+		debugProcess(this->Operators, "Operators");
+		debugProcess(this->Operator_Any, "Operator_Any");
+		debugProcess(this->AlwayDrawRadialIndicator, "AlwayDrawRadialIndicator");
+		debugProcess(this->ReloadRate, "ReloadRate");
+		debugProcess(this->CloakAnim, "CloakAnim");
+		debugProcess(this->DecloakAnim, "DecloakAnim");
+		debugProcess(this->Cloak_KickOutParasite, "Cloak_KickOutParasite");
+		debugProcess(this->DeployAnims, "DeployAnims");
+		debugProcess(this->SpecificExpFactor, "SpecificExpFactor");
+		debugProcess(this->Initial_DriverKilled, "Initial_DriverKilled");
+		debugProcess(this->VoiceCantDeploy, "VoiceCantDeploy");
+		debugProcess(this->DigitalDisplay_Disable, "DigitalDisplay_Disable");
+		debugProcess(this->DigitalDisplayTypes, "DigitalDisplayTypes");
+		debugProcess(this->EmptyAmmoPip, "EmptyAmmoPip");
+		debugProcess(this->PipWrapAmmoPip, "PipWrapAmmoPip");
+		debugProcess(this->AmmoPipSize, "AmmoPipSize");
+		debugProcess(this->ProduceCashDisplay, "ProduceCashDisplay");
+		debugProcess(this->FactoryOwners, "FactoryOwners");
+		debugProcess(this->FactoryOwners_Forbidden, "FactoryOwners_Forbidden");
+		debugProcess(this->Wake, "Wake");
+		debugProcess(this->Spawner_AttackImmediately, "Spawner_AttackImmediately");
+		debugProcess(this->Spawner_UseTurretFacing, "Spawner_UseTurretFacing");
+		debugProcess(this->FactoryOwners_HaveAllPlans, "FactoryOwners_HaveAllPlans");
+		debugProcess(this->FactoryOwners_HasAllPlans, "FactoryOwners_HasAllPlans");
+		debugProcess(this->Drain_Local, "Drain_Local");
+		debugProcess(this->Drain_Amount, "Drain_Amount");
+		debugProcess(this->HealthBar_Sections, "HealthBar_Sections");
+		debugProcess(this->HealthBar_Border, "HealthBar_Border");
+		debugProcess(this->HealthBar_BorderFrame, "HealthBar_BorderFrame");
+		debugProcess(this->HealthBar_BorderAdjust, "HealthBar_BorderAdjust");
+		debugProcess(this->Crashable, "Crashable");
+		debugProcess(this->IsBomb, "IsBomb");
+		debugProcess(this->ParachuteAnim, "ParachuteAnim");
+		debugProcess(this->Cloneable, "Cloneable");
+		debugProcess(this->ClonedAt, "ClonedAt");
+		debugProcess(this->ClonedAs, "ClonedAs");
+		debugProcess(this->AI_ClonedAs, "AI_ClonedAs");
+		debugProcess(this->BuiltAt, "BuiltAt");
+		debugProcess(this->EMP_Sparkles, "EMP_Sparkles");
+		debugProcess(this->EMP_Modifier, "EMP_Modifier");
+		debugProcess(this->EMP_Threshold, "EMP_Threshold");
+		debugProcess(this->PoweredBy, "PoweredBy");
+		debugProcess(this->CameoPCX, "CameoPCX");
+		debugProcess(this->AltCameoPCX, "AltCameoPCX");
+		debugProcess(this->CameoPal, "CameoPal");
+		debugProcess(this->LandingDir, "LandingDir");
+		debugProcess(this->AttachedEffect, "AttachedEffect");
+		debugProcess(this->NoAmmoEffectAnim, "NoAmmoEffectAnim");
+		debugProcess(this->AttackFriendlies_WeaponIdx, "AttackFriendlies_WeaponIdx");
+		debugProcess(this->AttackFriendlies_AutoAttack, "AttackFriendlies_AutoAttack");
+		debugProcess(this->PipScaleIndex, "PipScaleIndex");
+		debugProcess(this->AmmoPip, "AmmoPip");
+		debugProcess(this->AmmoPip_Palette, "AmmoPip_Palette");
+		debugProcess(this->AmmoPipOffset, "AmmoPipOffset");
+		debugProcess(this->AmmoPip_Offset, "AmmoPip_Offset");
+		debugProcess(this->AmmoPip_shape, "AmmoPip_shape");
+		debugProcess(this->ShowSpawnsPips, "ShowSpawnsPips");
+		debugProcess(this->SpawnsPip, "SpawnsPip");
+		debugProcess(this->EmptySpawnsPip, "EmptySpawnsPip");
+		debugProcess(this->SpawnsPipSize, "SpawnsPipSize");
+		debugProcess(this->SpawnsPipOffset, "SpawnsPipOffset");
+		debugProcess(this->Secret_RequiredHouses, "Secret_RequiredHouses");
+		debugProcess(this->Secret_ForbiddenHouses, "Secret_ForbiddenHouses");
+		debugProcess(this->RequiredStolenTech, "RequiredStolenTech");
+		debugProcess(this->ReloadInTransport, "ReloadInTransport");
+		debugProcess(this->Weeder_TriggerPreProductionBuildingAnim, "Weeder_TriggerPreProductionBuildingAnim");
+		debugProcess(this->Weeder_PipIndex, "Weeder_PipIndex");
+		debugProcess(this->Weeder_PipEmptyIndex, "Weeder_PipEmptyIndex");
+		debugProcess(this->CanBeDriven, "CanBeDriven");
+		debugProcess(this->CloakPowered, "CloakPowered");
+		debugProcess(this->CloakDeployed, "CloakDeployed");
+		debugProcess(this->ProtectedDriver, "ProtectedDriver");
+		debugProcess(this->ProtectedDriver_MinHealth, "ProtectedDriver_MinHealth");
+		debugProcess(this->KeepAlive, "KeepAlive");
+		debugProcess(this->SpawnDistanceFromTarget, "SpawnDistanceFromTarget");
+		debugProcess(this->SpawnHeight, "SpawnHeight");
+		debugProcess(this->HumanUnbuildable, "HumanUnbuildable");
+		debugProcess(this->NoIdleSound, "NoIdleSound");
+		debugProcess(this->Soylent_Zero, "Soylent_Zero");
+		debugProcess(this->Prerequisite_Power, "Prerequisite_Power");
+		debugProcess(this->PassengerTurret, "PassengerTurret");
+		debugProcess(this->DetectDisguise_Percent, "DetectDisguise_Percent");
+		debugProcess(this->EliteArmor, "EliteArmor");
+		debugProcess(this->VeteranArmor, "VeteranArmor");
+		debugProcess(this->DeployedArmor, "DeployedArmor");
+		debugProcess(this->Cloakable_IgnoreArmTimer, "Cloakable_IgnoreArmTimer");
+		debugProcess(this->Untrackable, "Untrackable");
+		debugProcess(this->Convert_Script_Prereq, "Convert_Script_Prereq");
+		debugProcess(this->LargeVisceroid, "LargeVisceroid");
+		debugProcess(this->DropPodProp, "DropPodProp");
+		debugProcess(this->VoicePickup, "VoicePickup");
+		debugProcess(this->CrateGoodie_RerollChance, "CrateGoodie_RerollChance");
+		debugProcess(this->Destroyed_CrateType, "Destroyed_CrateType");
+		debugProcess(this->Infantry_DimWhenEMPEd, "Infantry_DimWhenEMPEd");
+		debugProcess(this->Infantry_DimWhenDisabled, "Infantry_DimWhenDisabled");
+		debugProcess(this->Convert_HumanToComputer, "Convert_HumanToComputer");
+		debugProcess(this->Convert_ComputerToHuman, "Convert_ComputerToHuman");
+		debugProcess(this->AutoDeath_OnOwnerChange, "AutoDeath_OnOwnerChange");
+		debugProcess(this->AutoDeath_OnOwnerChange_HumanToComputer, "AutoDeath_OnOwnerChange_HumanToComputer");
+		debugProcess(this->AutoDeath_OnOwnerChange_ComputerToHuman, "AutoDeath_OnOwnerChange_ComputerToHuman");
+		debugProcess(this->TalkbubbleVoices, "TalkbubbleVoices");
+		debugProcess(this->HarvesterDumpAmount, "HarvesterDumpAmount");
+		debugProcess(this->HarvesterScanAfterUnload, "HarvesterScanAfterUnload");
+		debugProcess(this->AttackMove_Aggressive, "AttackMove_Aggressive");
+		debugProcess(this->AttackMove_UpdateTarget, "AttackMove_UpdateTarget");
+		debugProcess(this->NoExtraSelfHealOrRepair, "NoExtraSelfHealOrRepair");
+		debugProcess(this->BuildLimitGroup_Types, "BuildLimitGroup_Types");
+		debugProcess(this->BuildLimitGroup_Nums, "BuildLimitGroup_Nums");
+		debugProcess(this->BuildLimitGroup_Factor, "BuildLimitGroup_Factor");
+		debugProcess(this->BuildLimitGroup_ContentIfAnyMatch, "BuildLimitGroup_ContentIfAnyMatch");
+		debugProcess(this->BuildLimitGroup_NotBuildableIfQueueMatch, "BuildLimitGroup_NotBuildableIfQueueMatch");
+		debugProcess(this->BuildLimitGroup_ExtraLimit_Types, "BuildLimitGroup_ExtraLimit_Types");
+		debugProcess(this->BuildLimitGroup_ExtraLimit_Nums, "BuildLimitGroup_ExtraLimit_Nums");
+		debugProcess(this->BuildLimitGroup_ExtraLimit_MaxCount, "BuildLimitGroup_ExtraLimit_MaxCount");
+		debugProcess(this->BuildLimitGroup_ExtraLimit_MaxNum, "BuildLimitGroup_ExtraLimit_MaxNum");
+		debugProcess(this->Tint_Color, "Tint_Color");
+		debugProcess(this->Tint_Intensity, "Tint_Intensity");
+		debugProcess(this->Tint_VisibleToHouses, "Tint_VisibleToHouses");
+		debugProcess(this->PhobosAttachEffects, "PhobosAttachEffects");
+		debugProcess(this->KeepTargetOnMove, "KeepTargetOnMove");
+		debugProcess(this->KeepTargetOnMove_Weapon, "KeepTargetOnMove_Weapon");
+		debugProcess(this->KeepTargetOnMove_ExtraDistance, "KeepTargetOnMove_ExtraDistance");
+		debugProcess(this->KeepTargetOnMove_NoMorePursuit, "KeepTargetOnMove_NoMorePursuit");
+		debugProcess(this->AllowAirstrike, "AllowAirstrike");
+		debugProcess(this->ForbidParallelAIQueues, "ForbidParallelAIQueues");
+		debugProcess(this->IgnoreForBaseCenter, "IgnoreForBaseCenter");
+		debugProcess(this->EVA_Combat, "EVA_Combat");
+		debugProcess(this->CombatAlert, "CombatAlert");
+		debugProcess(this->CombatAlert_UseFeedbackVoice, "CombatAlert_UseFeedbackVoice");
+		debugProcess(this->CombatAlert_UseAttackVoice, "CombatAlert_UseAttackVoice");
+		debugProcess(this->CombatAlert_UseEVA, "CombatAlert_UseEVA");
+		debugProcess(this->CombatAlert_NotBuilding, "CombatAlert_NotBuilding");
+		debugProcess(this->SubterraneanHeight, "SubterraneanHeight");
+		debugProcess(this->Spawner_RecycleRange, "Spawner_RecycleRange");
+		debugProcess(this->Spawner_RecycleFLH, "Spawner_RecycleFLH");
+		debugProcess(this->Spawner_RecycleOnTurret, "Spawner_RecycleOnTurret");
+		debugProcess(this->Spawner_RecycleAnim, "Spawner_RecycleAnim");
+		debugProcess(this->HugeBar, "HugeBar");
+		debugProcess(this->HugeBar_Priority, "HugeBar_Priority");
+		debugProcess(this->SprayOffsets, "SprayOffsets");
+		debugProcess(this->AINormalTargetingDelay, "AINormalTargetingDelay");
+		debugProcess(this->PlayerNormalTargetingDelay, "PlayerNormalTargetingDelay");
+		debugProcess(this->AIGuardAreaTargetingDelay, "AIGuardAreaTargetingDelay");
+		debugProcess(this->PlayerGuardAreaTargetingDelay, "PlayerGuardAreaTargetingDelay");
+		debugProcess(this->DistributeTargetingFrame, "DistributeTargetingFrame");
+		debugProcess(this->AIAttackMoveTargetingDelay, "AIAttackMoveTargetingDelay");
+		debugProcess(this->PlayerAttackMoveTargetingDelay, "PlayerAttackMoveTargetingDelay");
+		debugProcess(this->CanBeBuiltOn, "CanBeBuiltOn");
+		debugProcess(this->UnitBaseNormal, "UnitBaseNormal");
+		debugProcess(this->UnitBaseForAllyBuilding, "UnitBaseForAllyBuilding");
+		debugProcess(this->ChronoSpherePreDelay, "ChronoSpherePreDelay");
+		debugProcess(this->ChronoSphereDelay, "ChronoSphereDelay");
+		debugProcess(this->PassengerWeapon, "PassengerWeapon");
+		debugProcess(this->RefinerySmokeParticleSystemOne, "RefinerySmokeParticleSystemOne");
+		debugProcess(this->RefinerySmokeParticleSystemTwo, "RefinerySmokeParticleSystemTwo");
+		debugProcess(this->RefinerySmokeParticleSystemThree, "RefinerySmokeParticleSystemThree");
+		debugProcess(this->RefinerySmokeParticleSystemFour, "RefinerySmokeParticleSystemFour");
+		debugProcess(this->SubterraneanSpeed, "SubterraneanSpeed");
+		debugProcess(this->ForceWeapon_InRange, "ForceWeapon_InRange");
+		debugProcess(this->ForceWeapon_InRange_Overrides, "ForceWeapon_InRange_Overrides");
+		debugProcess(this->ForceWeapon_InRange_ApplyRangeModifiers, "ForceWeapon_InRange_ApplyRangeModifiers");
+		debugProcess(this->ForceAAWeapon_InRange, "ForceAAWeapon_InRange");
+		debugProcess(this->ForceAAWeapon_InRange_Overrides, "ForceAAWeapon_InRange_Overrides");
+		debugProcess(this->ForceAAWeapon_InRange_ApplyRangeModifiers, "ForceAAWeapon_InRange_ApplyRangeModifiers");
+		debugProcess(this->ForceWeapon_InRange_TechnoOnly, "ForceWeapon_InRange_TechnoOnly");
+		debugProcess(this->UnitIdleRotateTurret, "UnitIdleRotateTurret");
+		debugProcess(this->UnitIdlePointToMouse, "UnitIdlePointToMouse");
+		debugProcess(this->FallingDownDamage, "FallingDownDamage");
+		debugProcess(this->FallingDownDamage_Water, "FallingDownDamage_Water");
+		debugProcess(this->FallingDownDamage_AllowEMP, "FallingDownDamage_AllowEMP");
+		debugProcess(this->HoverDrownable, "HoverDrownable");
+		debugProcess(this->ExtraThreat_Enabled, "ExtraThreat_Enabled");
+		debugProcess(this->ExtraThreat_IsThreat, "ExtraThreat_IsThreat");
+		debugProcess(this->AlwaysConsideredThreat, "AlwaysConsideredThreat");
+		debugProcess(this->ExtraThreat_InRange, "ExtraThreat_InRange");
+		debugProcess(this->ExtraThreatCoefficient_InRangeDistance, "ExtraThreatCoefficient_InRangeDistance");
+		debugProcess(this->ExtraThreatCoefficient_Facing, "ExtraThreatCoefficient_Facing");
+		debugProcess(this->ExtraThreatCoefficient_DistanceToLastTarget, "ExtraThreatCoefficient_DistanceToLastTarget");
+		debugProcess(this->DropCrate, "DropCrate");
+		debugProcess(this->WhenCrushed_Warhead, "WhenCrushed_Warhead");
+		debugProcess(this->WhenCrushed_Weapon, "WhenCrushed_Weapon");
+		debugProcess(this->WhenCrushed_Damage, "WhenCrushed_Damage");
+		debugProcess(this->WhenCrushed_Warhead_Full, "WhenCrushed_Warhead_Full");
+		debugProcess(this->Convert_ToHouseOrCountry, "Convert_ToHouseOrCountry");
+		debugProcess(this->SuppressKillWeapons, "SuppressKillWeapons");
+		debugProcess(this->SuppressKillWeapons_Types, "SuppressKillWeapons_Types");
+		debugProcess(this->NoQueueUpToEnter, "NoQueueUpToEnter");
+		debugProcess(this->NoQueueUpToUnload, "NoQueueUpToUnload");
+		debugProcess(this->NoRearm_UnderEMP, "NoRearm_UnderEMP");
+		debugProcess(this->NoRearm_Temporal, "NoRearm_Temporal");
+		debugProcess(this->NoReload_UnderEMP, "NoReload_UnderEMP");
+		debugProcess(this->NoReload_Temporal, "NoReload_Temporal");
+		debugProcess(this->RateDown_Ammo, "RateDown_Ammo");
+		debugProcess(this->RateDown_Delay, "RateDown_Delay");
+		debugProcess(this->RateDown_Cover, "RateDown_Cover");
+		debugProcess(this->RateDown_Reset, "RateDown_Reset");
+		debugProcess(this->CanManualReload, "CanManualReload");
+		debugProcess(this->CanManualReload_ResetROF, "CanManualReload_ResetROF");
+		debugProcess(this->CanManualReload_DetonateWarhead, "CanManualReload_DetonateWarhead");
+		debugProcess(this->CanManualReload_DetonateConsume, "CanManualReload_DetonateConsume");
+		debugProcess(this->Cameo_AlwaysExist, "Cameo_AlwaysExist");
+		debugProcess(this->Cameo_AuxTechnos, "Cameo_AuxTechnos");
+		debugProcess(this->Cameo_NegTechnos, "Cameo_NegTechnos");
+		debugProcess(this->CameoCheckMutex, "CameoCheckMutex");
+		debugProcess(this->UIDescription_Unbuildable, "UIDescription_Unbuildable");
+		debugProcess(this->GreyCameoPCX, "GreyCameoPCX");
+		debugProcess(this->Power, "Power");
+		debugProcess(this->BunkerableAnyway, "BunkerableAnyway");
+		debugProcess(this->JumpjetTilt, "JumpjetTilt");
+		debugProcess(this->JumpjetTilt_ForwardAccelFactor, "JumpjetTilt_ForwardAccelFactor");
+		debugProcess(this->JumpjetTilt_ForwardSpeedFactor, "JumpjetTilt_ForwardSpeedFactor");
+		debugProcess(this->JumpjetTilt_SidewaysRotationFactor, "JumpjetTilt_SidewaysRotationFactor");
+		debugProcess(this->JumpjetTilt_SidewaysSpeedFactor, "JumpjetTilt_SidewaysSpeedFactor");
+		debugProcess(this->NoTurret_TrackTarget, "NoTurret_TrackTarget");
+		debugProcess(this->RecountBurst, "RecountBurst");
+		debugProcess(this->LaserTargetColor, "LaserTargetColor");
+		debugProcess(this->AirstrikeLineColor, "AirstrikeLineColor");
+		debugProcess(this->InitialSpawnsNumber, "InitialSpawnsNumber");
+		debugProcess(this->Spawns_Queue, "Spawns_Queue");
+		debugProcess(this->Sinkable, "Sinkable");
+		debugProcess(this->SinkSpeed, "SinkSpeed");
+		debugProcess(this->Sinkable_SquidGrab, "Sinkable_SquidGrab");
+		debugProcess(this->SpawnerRange, "SpawnerRange");
+		debugProcess(this->EliteSpawnerRange, "EliteSpawnerRange");
+		debugProcess(this->AmphibiousEnter, "AmphibiousEnter");
+		debugProcess(this->AmphibiousUnload, "AmphibiousUnload");
+		debugProcess(this->AlternateFLH_OnTurret, "AlternateFLH_OnTurret");
+		debugProcess(this->AlternateFLH_ApplyVehicle, "AlternateFLH_ApplyVehicle");
+		debugProcess(this->DamagedSpeed, "DamagedSpeed");
+		debugProcess(this->RadarInvisibleToHouse, "RadarInvisibleToHouse");
+		debugProcess(this->BattlePoints, "BattlePoints");
+		debugProcess(this->ForceWeapon_Check, "ForceWeapon_Check");
+		debugProcess(this->Convert_ResetMindControl, "Convert_ResetMindControl");
+		debugProcess(this->FireUp, "FireUp");
+		debugProcess(this->FireUp_ResetInRetarget, "FireUp_ResetInRetarget");
+		debugProcess(this->DigitalDisplay_Health_FakeAtDisguise, "DigitalDisplay_Health_FakeAtDisguise");
+		debugProcess(this->EngineerRepairAmount, "EngineerRepairAmount");
+		debugProcess(this->DebrisTypes_Limit, "DebrisTypes_Limit");
+		debugProcess(this->DebrisMinimums, "DebrisMinimums");
+		debugProcess(this->AttackMove_Follow, "AttackMove_Follow");
+		debugProcess(this->AttackMove_Follow_IncludeAir, "AttackMove_Follow_IncludeAir");
+		debugProcess(this->AttackMove_StopWhenTargetAcquired, "AttackMove_StopWhenTargetAcquired");
+		debugProcess(this->AttackMove_PursuitTarget, "AttackMove_PursuitTarget");
+		debugProcess(this->SkipCrushSlowdown, "SkipCrushSlowdown");
+		debugProcess(this->RecuitedAs, "RecuitedAs");
+		debugProcess(this->ForceWeapon_Buildings, "ForceWeapon_Buildings");
+		debugProcess(this->ForceWeapon_Defenses, "ForceWeapon_Defenses");
+		debugProcess(this->ForceWeapon_Infantry, "ForceWeapon_Infantry");
+		debugProcess(this->ForceWeapon_Naval_Units, "ForceWeapon_Naval_Units");
+		debugProcess(this->ForceWeapon_Units, "ForceWeapon_Units");
+		debugProcess(this->ForceWeapon_Aircraft, "ForceWeapon_Aircraft");
+		debugProcess(this->ForceAAWeapon_Infantry, "ForceAAWeapon_Infantry");
+		debugProcess(this->ForceAAWeapon_Units, "ForceAAWeapon_Units");
+		debugProcess(this->ForceAAWeapon_Aircraft, "ForceAAWeapon_Aircraft");
+		debugProcess(this->AttackMove_Follow_IfMindControlIsFull, "AttackMove_Follow_IfMindControlIsFull");
+		debugProcess(this->PenetratesTransport_Level, "PenetratesTransport_Level");
+		debugProcess(this->PenetratesTransport_PassThroughMultiplier, "PenetratesTransport_PassThroughMultiplier");
+		debugProcess(this->PenetratesTransport_FatalRateMultiplier, "PenetratesTransport_FatalRateMultiplier");
+		debugProcess(this->PenetratesTransport_DamageMultiplier, "PenetratesTransport_DamageMultiplier");
+		debugProcess(this->VoiceIFVRepair, "VoiceIFVRepair");
+		debugProcess(this->VoiceWeaponAttacks, "VoiceWeaponAttacks");
+		debugProcess(this->VoiceEliteWeaponAttacks, "VoiceEliteWeaponAttacks");
+		debugProcess(this->DefaultVehicleDisguise, "DefaultVehicleDisguise");
+		debugProcess(this->TurretResponse, "TurretResponse");
+		debugProcess(this->Unload_SkipPassengers, "Unload_SkipPassengers");
+		debugProcess(this->Unload_NoPassengers, "Unload_NoPassengers");
+		debugProcess(this->Unload_SkipHarvester, "Unload_SkipHarvester");
+		debugProcess(this->Unload_NoTiberiums, "Unload_NoTiberiums");
+		debugProcess(this->BlockType, "BlockType");
+		debugProcess(this->CanBlock, "CanBlock");
+		debugProcess(this->ForceWeapon_Capture, "ForceWeapon_Capture");
+		debugProcess(this->MultiWeapon, "MultiWeapon");
+		debugProcess(this->MultiWeapon_IsSecondary, "MultiWeapon_IsSecondary");
+		debugProcess(this->MultiWeapon_SelectCount, "MultiWeapon_SelectCount");
+		debugProcess(this->ReadMultiWeapon, "ReadMultiWeapon");
+		debugProcess(this->IsSimpleDeployer_ConsiderPathfinding, "IsSimpleDeployer_ConsiderPathfinding");
+		debugProcess(this->IsSimpleDeployer_DisallowedLandTypes, "IsSimpleDeployer_DisallowedLandTypes");
+		debugProcess(this->PassiveAcquireMode, "PassiveAcquireMode");
+		debugProcess(this->PassiveAcquireMode_Togglable, "PassiveAcquireMode_Togglable");
+		debugProcess(this->VoiceEnterAggressiveMode, "VoiceEnterAggressiveMode");
+		debugProcess(this->VoiceExitAggressiveMode, "VoiceExitAggressiveMode");
+		debugProcess(this->VoiceEnterCeasefireMode, "VoiceEnterCeasefireMode");
+		debugProcess(this->VoiceExitCeasefireMode, "VoiceExitCeasefireMode");
+		debugProcess(this->PlayerGuardModePursuit, "PlayerGuardModePursuit");
+		debugProcess(this->PlayerGuardModeStray, "PlayerGuardModeStray");
+		debugProcess(this->PlayerGuardModeGuardRangeMultiplier, "PlayerGuardModeGuardRangeMultiplier");
+		debugProcess(this->PlayerGuardModeGuardRangeAddend, "PlayerGuardModeGuardRangeAddend");
+		debugProcess(this->PlayerGuardStationaryStray, "PlayerGuardStationaryStray");
+		debugProcess(this->AIGuardModePursuit, "AIGuardModePursuit");
+		debugProcess(this->AIGuardModeStray, "AIGuardModeStray");
+		debugProcess(this->AIGuardModeGuardRangeMultiplier, "AIGuardModeGuardRangeMultiplier");
+		debugProcess(this->AIGuardModeGuardRangeAddend, "AIGuardModeGuardRangeAddend");
+		debugProcess(this->AIGuardStationaryStray, "AIGuardStationaryStray");
+		debugProcess(this->ThreatTypes, "ThreatTypes");
+		debugProcess(this->CombatDamages, "CombatDamages");
+		debugProcess(this->AttackFriendlies, "AttackFriendlies");
+		debugProcess(this->TeamMember_ConsideredAs, "TeamMember_ConsideredAs");
+		debugProcess(this->WeaponGroupAs, "WeaponGroupAs");
+		debugProcess(this->CanGoAboveTarget, "CanGoAboveTarget");
+		debugProcess(this->OpenTransport_RangeBonus, "OpenTransport_RangeBonus");
+		debugProcess(this->OpenTransport_DamageMultiplier, "OpenTransport_DamageMultiplier");
+		debugProcess(this->ParadropMission, "ParadropMission");
+		debugProcess(this->AIParadropMission, "AIParadropMission");
+		debugProcess(this->AreaGuardRange, "AreaGuardRange");
+		debugProcess(this->MaxGuardRange, "MaxGuardRange");
+		debugProcess(this->JumpjetClimbIgnoreBuilding, "JumpjetClimbIgnoreBuilding");
+		debugProcess(this->BarrelOverTurret, "BarrelOverTurret");
+		debugProcess(this->BarrelOffset, "BarrelOffset");
+		debugProcess(this->ExtraBarrelCount, "ExtraBarrelCount");
+		debugProcess(this->ExtraBarrelOffsets, "ExtraBarrelOffsets");
+		debugProcess(this->ExtraTurretCount, "ExtraTurretCount");
+		debugProcess(this->ExtraTurretOffsets, "ExtraTurretOffsets");
+		debugProcess(this->BurstPerTurret, "BurstPerTurret");
+		debugProcess(this->DriverKilled_KeptPassengers, "DriverKilled_KeptPassengers");
+		debugProcess(this->DriverKilled_KillPassengers, "DriverKilled_KillPassengers");
+		debugProcess(this->TintColorAirstrike, "TintColorAirstrike");
 
+	}
 #else
-
 	template<typename T>
 	void Serialize(T& Stm)
 	{
 		Stm
+			.Process(this->Landing_Anim)
+			.Process(this->Landing_AnimOnWater)
 			.Process(this->HealthBar_Hide)
 			.Process(this->HealthBar_HidePips)
 			.Process(this->HealthBar_Permanent)
@@ -1551,7 +2383,6 @@ private:
 			.Process(this->DeployedPrimaryFireFLH)
 			.Process(this->DeployedSecondaryFireFLH)
 			.Process(this->E_PronePrimaryFireFLH)
-			.Process(this->ProneSecondaryFireFLH)
 			.Process(this->E_ProneSecondaryFireFLH)
 			.Process(this->E_DeployedPrimaryFireFLH)
 			.Process(this->E_DeployedSecondaryFireFLH)
@@ -1574,8 +2405,6 @@ private:
 
 			.Process(this->Spawner_SpawnOffsets_OverrideWeaponFLH)
 
-#pragma region Otamaa
-
 			.Process(this->FacingRotation_Disable)
 			.Process(this->FacingRotation_DisalbeOnEMP)
 			.Process(this->FacingRotation_DisalbeOnDeactivated)
@@ -1597,31 +2426,6 @@ private:
 
 			.Process(this->TalkBubbleTime)
 
-			.Process(this->AttackingAircraftSightRange)
-
-			.Process(this->SpyplaneCameraSound)
-
-			.Process(this->ParadropRadius)
-			.Process(this->ParadropOverflRadius)
-			.Process(this->Paradrop_DropPassangers)
-			.Process(this->Paradrop_MaxAttempt)
-
-			.Process(this->IsCustomMissile)
-			.Process(this->CustomMissileData)
-			.Process(this->CustomMissileWarhead)
-			.Process(this->CustomMissileEliteWarhead)
-			.Process(this->CustomMissileTakeoffAnim)
-			.Process(this->CustomMissilePreLauchAnim)
-			.Process(this->CustomMissileTrailerAnim)
-			.Process(this->CustomMissileTrailerSeparation)
-			.Process(this->CustomMissileWeapon)
-			.Process(this->CustomMissileEliteWeapon)
-			.Process(this->CustomMissileInaccuracy)
-			.Process(this->CustomMissileTrailAppearDelay)
-			.Process(this->CustomMissileCloseEnoughFactor)
-			.Process(this->CustomMissileRaise)
-			.Process(this->CustomMissileOffset)
-
 			.Process(this->Draw_MindControlLink)
 
 			.Process(this->Overload_Count)
@@ -1631,10 +2435,6 @@ private:
 			.Process(this->Overload_ParticleSys)
 			.Process(this->Overload_ParticleSysCount)
 			.Process(this->Overload_Warhead)
-
-			.Process(this->Landing_Anim)
-			.Process(this->Landing_AnimOnWater)
-			.Process(this->TakeOff_Anim)
 
 			.Process(this->HitCoordOffset)
 			.Process(this->HitCoordOffset_Random)
@@ -1697,7 +2497,6 @@ private:
 			.Process(this->Gattling_Overload_ParticleSysCount)
 			.Process(this->Gattling_Overload_Warhead)
 
-			.Process(this->IsHero)
 			.Process(this->IsDummy)
 
 			.Process(this->FireSelf_Weapon)
@@ -2026,10 +2825,8 @@ private:
 			.Process(this->AltCameoPCX)
 			.Process(this->CameoPal)
 			.Process(this->LandingDir)
-#pragma endregion
-			;
 
-		Stm.Process(this->AttachedEffect)
+			.Process(this->AttachedEffect)
 			.Process(this->NoAmmoEffectAnim)
 			.Process(this->AttackFriendlies_WeaponIdx)
 			.Process(this->AttackFriendlies_AutoAttack)
@@ -2072,7 +2869,7 @@ private:
 			.Process(this->DeployedArmor)
 			.Process(this->Cloakable_IgnoreArmTimer)
 			.Process(this->Untrackable)
-			.Process(this->Convert_Scipt_Prereq)
+			.Process(this->Convert_Script_Prereq)
 			.Process(this->LargeVisceroid)
 			.Process(this->DropPodProp)
 			.Process(this->VoicePickup)
@@ -2325,6 +3122,7 @@ private:
 			.Process(this->AIGuardStationaryStray)
 			.Process(this->ThreatTypes)
 			.Process(this->CombatDamages)
+			.Process(this->AttackFriendlies)
 			.Process(this->TeamMember_ConsideredAs)
 			.Process(this->WeaponGroupAs)
 			.Process(this->CanGoAboveTarget)
@@ -2347,7 +3145,6 @@ private:
 			.Process(this->TintColorAirstrike)
 			;
 	}
-
 #endif
 
 public:

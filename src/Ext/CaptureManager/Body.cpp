@@ -208,7 +208,7 @@ void FakeCaptureManagerClass::__DecideUnitFate(TechnoClass* pTechno , bool Captu
 		pTechno->SetTargetForPassengers(nullptr);
 	}
 
-	 HouseClass* unitHouse =	pTechno->Owner;
+	HouseClass* unitHouse =	pTechno->Owner;
     HouseClass* ownerHouse = this->Owner->Owner;
     bool bOwnershipChange = (unitHouse != ownerHouse);
 
@@ -239,7 +239,7 @@ void FakeCaptureManagerClass::__DecideUnitFate(TechnoClass* pTechno , bool Captu
     
     if (availableMoney >= RulesClass::Instance->AICaptureLowMoneyMark) {
         if (this->Owner->Owner->GetPowerPercentage() >= 1.0) {
-            int healthRatio = (int)pTechno->GetHealthRatio();
+            float healthRatio = pTechno->GetHealthRatio();
             
             if (healthRatio >= RulesClass::Instance->AICaptureWoundedMark) {
                 nCondition = 3;
@@ -298,7 +298,7 @@ void FakeCaptureManagerClass::__DecideUnitFate(TechnoClass* pTechno , bool Captu
 		pTargetType->Name);
 
 	auto pFootOwner = flag_cast_to<FootClass*>(this->Owner);
-
+	
     if (pFootOwner) {
         if (TeamClass* team = pFootOwner->Team) {
             int nTeamDecision = team->Type->MindControlDecision;
@@ -336,25 +336,28 @@ void FakeCaptureManagerClass::__DecideUnitFate(TechnoClass* pTechno , bool Captu
             if (pTechno->EnterGrinder()) {
                 return;
             }
-            break;
-
-        case 3: // Absorb
+            
+			Debug::Log("AICapture: Naw, let's put him in hunt.\n");
+			pTechno->QueueMission(Mission::Hunt, false);
+			break;
+		case 3: // Absorb
             if (pTechno->EnterBioReactor()) {
                 return;
             }
-            break;
 
-        case 5: // Do nothing
-            return;
-
-        default: {
+			Debug::Log("AICapture: Naw, let's put him in hunt.\n");
+			pTechno->QueueMission(Mission::Hunt, false);
+			break;
+        case 4: {// Hunt
+			Debug::Log("AICapture: Naw, let's put him in hunt.\n");
+			pTechno->QueueMission(Mission::Hunt, false);
+			break;
+		}
+        default:  // Do nothing
+		{
 			break;
 		}
     }
-
-	// Fallback: assign hunt mission
-	Debug::Log("AICapture: Naw, let's put him in hunt.\n");
-	pTechno->QueueMission(Mission::Hunt, false);
 }
 
 bool FakeCaptureManagerClass::__Should_Draw_Link()

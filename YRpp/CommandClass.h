@@ -6,7 +6,9 @@
 
 #include <Helpers/CompileTime.h>
 
-class NOVTABLE CommandClass
+//the game calling virtual dtor for cleanup 
+//so class size is not really important
+class CommandClass
 {
 public:
 	// static
@@ -14,6 +16,7 @@ public:
 	static COMPILETIMEEVAL reference<IndexClass<unsigned short, CommandClass*>, 0x87F680u> const Hotkeys {};
 
 	//CommandClass
+	CommandClass() = default;
 	virtual ~CommandClass() = default;
 	virtual const char* GetName() const = 0;
 	virtual const wchar_t* GetUIName() const = 0;
@@ -36,3 +39,4 @@ public:
 
 	static void __fastcall InitCommand() { JMP_FAST(0x532150); }
 };
+static_assert(sizeof(CommandClass) == 0x4, "Invalid size.");

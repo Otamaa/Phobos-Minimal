@@ -844,7 +844,22 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	{ JMP_THIS(0x746750); }
 
 	bool TargetingTimerFinished()
-		{ JMP_THIS(0x70F7E0); }
+	{ JMP_THIS(0x70F7E0); }
+
+	void SetDrainTarget(TechnoClass* target)
+	{ JMP_THIS(0x70FD70); }
+
+	RadBeam* FireRadBeam(AbstractClass* pTarget, RadBeamType type){
+		JMP_THIS(0x6FD620);
+	}
+
+	EBolt* FireEBolt(AbstractClass* pTarget){
+		JMP_THIS(0x6FD570);
+	}
+
+	void FireRadEruption(int spread){
+		JMP_THIS(0x6FD800);
+	}
 
 	void Draw_Object(
 		SHPStruct* shapefile,

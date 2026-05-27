@@ -44,6 +44,8 @@ class HouseClass;
 class FakeObjectTypeClass final
 {
 public:
+	static HRESULT __stdcall __Load(ObjectTypeClass* pThis, IStream* pStm);
+	static HRESULT __stdcall __Save(ObjectTypeClass* pThis, IStream* pStm, BOOL fClearDirty);
 
 	static BuildingClass* __fastcall WhoCanBuildMe(ObjectTypeClass* pThis, discard_t, bool intheory, bool bool2, bool legal, HouseClass* house);
 };

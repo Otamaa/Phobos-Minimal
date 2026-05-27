@@ -34,6 +34,7 @@ class REGISTERS;
 struct BurstFLHBundle;
 class FakeWeaponTypeClass;
 struct HijackerData;
+class RadBeam;
 
 struct TintColors
 {
@@ -165,8 +166,6 @@ private:
 		debugProcess(this->TypeExtData, "OriginalType");
 		debugProcess(this->AE, "AE");
 		debugProcess(this->idxSlot_EMPulse, "idxSlot_EMPulse");
-		debugProcess(this->idxSlot_Wave, "idxSlot_Wave");
-		debugProcess(this->idxSlot_Beam, "idxSlot_Beam");
 		debugProcess(this->idxSlot_Warp, "idxSlot_Warp");
 		debugProcess(this->idxSlot_Parasite, "idxSlot_Parasite");
 		debugProcess(this->EMPSparkleAnim, "EMPSparkleAnim");
@@ -210,7 +209,6 @@ private:
 		debugProcess(this->aircraftPutOffset, "aircraftPutOffset");
 		debugProcess(this->SkipVoice, "SkipVoice");
 		debugProcess(this->ExtraWeaponTimers, "ExtraWeaponTimers");
-		debugProcess(this->CurrentWeaponIdx, "CurrentWeaponIdx");
 		debugProcess(this->WarpedOutDelay, "WarpedOutDelay");
 		debugProcess(this->MyOriginalTemporal, "MyOriginalTemporal");
 		debugProcess(this->SupressEVALost, "SupressEVALost");
@@ -284,8 +282,6 @@ private:
 		debugProcess(this->OnParachuted, "OnParachuted");
 		debugProcess(this->HoverShutdown, "HoverShutdown");
 	}
-
-
 
 public:
 	using base_type = TechnoClass;
@@ -410,7 +406,6 @@ public:
 	int LastWarpDistance {};
 	int DamageNumberOffset { INT32_MIN };
 	int GattlingDmageDelay { -1 };
-	int CurrentWeaponIdx { -1 };
 	int WHAnimRemainingCreationInterval {};
 	int LastWarpInDelay {};
 	int MyTargetingFrame {};
@@ -436,8 +431,6 @@ public:
 	// 1-byte aligned: BYTE (group to fill padding)
 	// ============================================================
 	BYTE idxSlot_EMPulse {};
-	BYTE idxSlot_Wave {};
-	BYTE idxSlot_Beam {};
 	BYTE idxSlot_Warp {};
 	BYTE idxSlot_Parasite {};
 
@@ -531,26 +524,17 @@ public:
 
 	FORCEDINLINE ShieldClass* GetShield() const
 	{
-		if (!PhobosEntity::Has<ShieldClass>(this->ShieldEntity))
-			return nullptr;
-
-		return PhobosEntity::Get<ShieldClass>(this->ShieldEntity);
+		return PhobosEntity::TryGet<ShieldClass>(this->ShieldEntity);
 	}
 
 	FORCEDINLINE PoweredUnitClass* GetPoweredUnit() const
 	{
-		if (!PhobosEntity::Has<PoweredUnitClass>(this->PoweredUnitEntity))
-			return nullptr;
-
-		return PhobosEntity::Get<PoweredUnitClass>(this->PoweredUnitEntity);
+		return PhobosEntity::TryGet<PoweredUnitClass>(this->PoweredUnitEntity);
 	}
 
 	FORCEDINLINE RadarJammerClass* GetRadarJammer() const
 	{
-		if (!PhobosEntity::Has<RadarJammerClass>(this->RadarJammerEntity))
-			return nullptr;
-
-		return PhobosEntity::Get<RadarJammerClass>(this->RadarJammerEntity);
+		return PhobosEntity::TryGet<RadarJammerClass>(this->RadarJammerEntity);
 	}
 
 	void ClearElectricBolts()
@@ -983,6 +967,7 @@ public:
 	static FireError GetFireErrorIgnoreDisableWeapons(TechnoClass* pThis, AbstractClass* pTarget, int weaponIndex, bool ignoreRange);
 	static bool IsHealer(TechnoClass* pThis);
 	static bool IsAttackFriendlies(TechnoClass* pTarget);
+	static bool CanAttackMindControlled(TechnoClass* pControlled, TechnoClass* pRetaliator);
 
 public:
 	static UnitClass* Deployer;
@@ -1069,7 +1054,7 @@ public:
 	static double __fastcall __GetThreatCoeff(TechnoClass* pThis, discard_t, ObjectClass* pTarget, CoordStruct* pTargetCoord);
 
 	static FireError __fastcall __CanFireOriginal(TechnoClass* pThis, discard_t, AbstractClass* pTarget, int nWeaponIdx, bool bCheckRange);
-
+	static BulletClass* __fastcall __Fire_At(TechnoClass* pThis, discard_t, AbstractClass* pTarget, int which);
 	static void __fastcall __Draw_Pips(TechnoClass* techno, discard_t, Point2D* position, Point2D* unused, RectangleStruct* clipRect);
 	static void __fastcall  __Draw_Stuff_When_Selected(TechnoClass* pThis, discard_t, Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect);
 	static void __fastcall __DrawHealthBar_Selection(TechnoClass* techno, discard_t, Point2D* position, RectangleStruct* clipRect, bool unused);
@@ -1122,6 +1107,15 @@ public:
 	static void __fastcall _Cloaking_AI(TechnoClass* pThis, discard_t, bool something);
 	static bool __fastcall _ShouldNotBeCloaked(TechnoClass* pThis);
 	static bool __fastcall _ShouldBeCloaked(TechnoClass* pThis);
+	static bool __fastcall ___ShouldPassiveAcquire(TechnoClass* pThis);
+
+	static RadBeam* __fastcall __FireBeam_Wrapper(TechnoClass* pThis, discard_t, AbstractClass* pTarget, RadBeamType type);
+	static void __fastcall __FireRadEruption_Wrapper(TechnoClass* pThis, discard_t, int spread);
+
+	static RadBeam* __FireBeam(TechnoClass* pThis, int WeaponIDx, WeaponTypeClass* pWeapon, AbstractClass* pTarget, RadBeamType type);
+	static RadBeam* __FireBeam(TechnoClass* pThis, int WeaponIDx, BulletClass* pBullet , CellClass* pObstacle, AbstractClass* pTarget, RadBeamType type);
+	static RadBeam* __FireBeam(TechnoClass* pThis, WeaponTypeClass* pWeapon, CoordStruct flh , CoordStruct target, RadBeamType type);
+	static void __FireRadEruption(TechnoClass* pThis, WeaponTypeClass* pWeapon, float spread);
 
 };
 

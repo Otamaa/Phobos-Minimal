@@ -23,20 +23,55 @@ bool ExtensionSwizzleManager::SwizzleExtensionPointer(void** ptrToFix, AbstractC
 		return true;
 
 	auto it = extensionPointerMap.find((uintptr_t)*ptrToFix);
-	if (it != extensionPointerMap.end() && it->second.ptr)
+	if (it != extensionPointerMap.end())
 	{
-		auto currentExtension = (AbstractExtended*)it->second.ptr;
+		if (it->second.ptr)
+		{
+			auto currentExtension = (AbstractExtended*)it->second.ptr;
 
-		// Fix bidirectional pointers
-		//Debug::Log("ExtensionSwizzleManager::SwizzleExtensionPointer Fixing Up Extension Pointer of %s from %x to %x \n"
-		//,	currentExtension->GetAttachedObjectName(), *ptrToFix, currentExtension);
-		currentExtension->SetAttached(OwnerObj);
-		*ptrToFix = currentExtension;
-		it->second.release();
-		return true;
+			// Fix bidirectional pointers
+			Debug::Log("ExtensionSwizzleManager::SwizzleExtensionPointer Fixing Up Extension Pointer of %s from %x to %x \n"
+			, it->second.ident.c_str(), *ptrToFix, currentExtension);
+
+			currentExtension->SetAttached(OwnerObj);
+			*ptrToFix = currentExtension;
+			it->second.release();
+			return true;
+		} else if (it->second.released) {
+			return true;//the pointer already handed on , nothing to do
+		}
 	}
 
 	Debug::Log("[ExtensionSwizzleManager] Cannot Find ext pointer of %x from %x !\n", *ptrToFix, OwnerObj);
+	return false;
+}
+
+bool ExtensionSwizzleManager::SwizzleExtensionPointer(void** ptrToFix, AbstractClass* OwnerObj, DWORD origin)
+{
+	if (!*ptrToFix) // nothing to fix
+		return true;
+
+	auto it = extensionPointerMap.find((uintptr_t)*ptrToFix);
+
+	if (it != extensionPointerMap.end())
+	{
+		if(it->second.ptr){
+			auto currentExtension = (AbstractExtended*)it->second.ptr;
+
+			// Fix bidirectional pointers
+			Debug::Log("ExtensionSwizzleManager::SwizzleExtensionPointer Fixing Up Extension Pointer of %s from %x to %x \n"
+			, it->second.ident.c_str(), *ptrToFix, currentExtension);
+
+			currentExtension->SetAttached(OwnerObj);
+			*ptrToFix = currentExtension;
+			it->second.release();
+			return true;
+		} else if (it->second.released) {
+			return true;//the pointer already handed on , nothing to do
+		}
+	}
+
+	Debug::Log("[ExtensionSwizzleManager] Cannot Find ext pointer of %x from %x caller %x !\n", *ptrToFix, OwnerObj, origin);
 	return false;
 }
 

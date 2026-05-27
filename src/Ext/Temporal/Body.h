@@ -51,15 +51,13 @@ private:
 };
 
 class TemporalExtContainer final : public Container<TemporalExtData>
+	, public ContainerSaveLoad<TemporalExtContainer, false>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "TemporalExtContainer";
 
 public:
 	static TemporalExtContainer Instance;
-
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 };
 
 class NOVTABLE FakeTemporalClass : public TemporalClass

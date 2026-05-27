@@ -381,8 +381,9 @@ public:
 	// CoordStruct* Get3DCoords3(CoordStruct* result) const
 	//  	{ JMP_THIS(0x480A30); }
 
-	// CoordStruct* GetCellCoords(CoordStruct* pOutBuffer) const
-	// 	{ JMP_THIS(0x480A30); }
+	//this also check the cell Z offset
+    CoordStruct* GetCellCoords(CoordStruct* pOutBuffer) const
+	 	{ JMP_THIS(0x480A30); }
 
 	COMPILETIMEEVAL CoordStruct Cell2Coord() {
 		return CellClass::Cell2Coord(this->MapCoords, this->GetFloorHeight(CellClass::SnapCell), true);

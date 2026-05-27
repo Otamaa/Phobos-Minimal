@@ -2354,21 +2354,6 @@ DEFINE_PATCH(0x42C34B, 0xB7);
 DEFINE_PATCH(0x42C36B, 0xB7);
 // movsx eax, word ptr [eax+esi*2] -> movzx eax, word ptr [eax+esi*2]
 
-// Fix Jumpjets can not spawn missiles in air.
-ASMJIT_PATCH(0x6B72FE, SpawnerManagerClass_AI_MissileCheck, 0x9)
-{
-	enum { SpawnMissile = 0x6B735C, NoSpawn = 0x6B795A };
-
-	GET(SpawnManagerClass*, pThis, ESI);
-
-	auto& pLoco = ((FootClass*)pThis->Owner)->Locomotor; // Ares has already handled the building case.
-	auto pLocoInterface = pLoco.GetInterfacePtr();
-
-	return (pLocoInterface->Is_Moving_Now()
-		|| (!locomotion_cast<JumpjetLocomotionClass*>(pLoco) && pLocoInterface->Is_Moving())) // Jumpjet should only check Is_Moving_Now.
-		? NoSpawn : SpawnMissile;
-}
-
 DEFINE_PATCH(0x6656B3, 0x89, 0x4E);
 
 #pragma region FixPlanningNodeConnect
@@ -2406,43 +2391,6 @@ ASMJIT_PATCH(0x638F70, PlanningNodeClass_UpdateHoverNode_SkipDuplicateLog, 0x8)
 
 #pragma region JumpjetSetDestFix
 
-// Fix JJ infantries stop incorrectly when assigned a target out of range.
-ASMJIT_PATCH(0x51AB5C, InfantryClass_SetDestination_JJInfFix, 0x6)
-{
-	enum { FuncRet = 0x51B1D7 };
-
-	GET(InfantryClass* const, pThis, EBP);
-	GET(AbstractClass* const, pDest, EBX);
-
-	auto pJumpjetLoco = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor);
-
-	if (pThis->Type->BalloonHover && !pDest && pThis->Destination && pJumpjetLoco && pThis->Target)
-	{
-		if (pThis->IsCloseEnoughToAttack(pThis->Target))
-		{
-			pThis->StopMoving();
-		}
-
-		pThis->ForceMission(Mission::Attack);
-		return FuncRet;
-	}
-
-	return 0;
-}
-
-// Fix JJ vehicles can not stop correctly when assigned a target in range.
-ASMJIT_PATCH(0x741A66, UnitClass_SetDestination_JJVehFix, 0x5) {
-	GET(UnitClass* const, pThis, EBP);
-
-	auto pJumpjetLoco = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor);
-
-	if (pJumpjetLoco && pThis->IsCloseEnoughToAttack(pThis->Target))
- {
-		pThis->StopMoving();
-	}
-
-	return 0;
-}
 
 ASMJIT_PATCH(0x741A96, UnitClass_SetDestination_ResetFiringFrame, 0x6) {
 	GET(UnitClass* const, pThis, EBP);
@@ -2493,65 +2441,6 @@ ASMJIT_PATCH(0x74431F, UnitClass_ReadyToNextMission_HuntCheck, 0x6)
 	return pThis->GetCurrentMission() != Mission::Hunt ? 0 : 0x744329;
 }
 
-ASMJIT_PATCH(0x54CC9C, JumpjetLocomotionClass_ProcessCrashing_DropFix, 0x5)
-{
-	enum { SkipGameCode = 0x54CDC3, SkipGameCode2 = 0x54CFB7 };
-
-	GET(ObjectClass* const, pObject, ESI);
-	GET(JumpjetLocomotionClass*, pLoco, EDI);
-	const auto pLinkedTo = pLoco->LinkedTo;
-	bool fallOnSomething = false;
-
-	for (NextObject object(pObject); object; ++object)
-	{
-		if (*object == pLinkedTo || !(*object)->IsAlive)
-			continue;
-
-		const auto whatAmObject = object->WhatAmI();
-
-		if (whatAmObject == UnitClass::AbsID || whatAmObject == BuildingClass::AbsID || whatAmObject == AircraftClass::AbsID)
-		{
-			fallOnSomething = true;
-			continue;
-		}
-
-		if (whatAmObject == InfantryClass::AbsID)
-		{
-			const auto pInfantry = static_cast<InfantryClass*>(*object);
-
-			VocClass::SafeImmedietelyPlayAt(object->GetType()->CrushSound, object->Location);
-
-			if (const auto pManipulater = pLinkedTo->BeingManipulatedBy)
-				pInfantry->RegisterDestruction(pManipulater);
-			else if (const auto pSourceHouse = pLinkedTo->ChronoWarpedByHouse)
-				pInfantry->RegisterKill(pSourceHouse);
-			else
-				pInfantry->RegisterDestruction(pLinkedTo);
-
-			pInfantry->Mark(MarkType::Up);
-			pInfantry->Limbo();
-			pInfantry->UnInit();
-			continue;
-		}
-
-		if (whatAmObject == TerrainClass::AbsID)
-		{
-			const auto pTerrain = static_cast<TerrainClass*>(*object);
-
-			if (pTerrain->Type->SpawnsTiberium || pTerrain->Type->Immune)
-				continue;
-		}
-
-		if (const auto pManipulater = pLinkedTo->BeingManipulatedBy)
-			object->ReceiveDamage(&object->Health, 0, RulesClass::Instance->CrushWarhead, pManipulater, true, false, pManipulater->Owner);
-		else if (const auto pSourceHouse = pLinkedTo->ChronoWarpedByHouse)
-			object->ReceiveDamage(&object->Health, 0, RulesClass::Instance->CrushWarhead, pLinkedTo, true, false, pSourceHouse);
-		else
-			object->ReceiveDamage(&object->Health, 0, RulesClass::Instance->CrushWarhead, pLinkedTo, true, false, pLinkedTo->Owner);
-	}
-
-	return fallOnSomething ? SkipGameCode2 : SkipGameCode;
-}
 
 #pragma region OwnerChangeBuildupFix
 
@@ -2635,22 +2524,23 @@ ASMJIT_PATCH(0x70D4FD, AbstractClass_ClearTargetToMe_ClearLastTarget, 0x6)
 // Related GitHub issue: https://github.com/Phobos-developers/Phobos/issues/1958
 
 #pragma region PrePlacedAircraftFix
+#include <Ext/Aircraft/Body.h>
 
 namespace PrePlacedAircraftFixTemp
 {
 	bool SkipCrashing;
 }
 
-static bool __fastcall AircraftClass_Unlimbo_Wrapper(AircraftClass* pThis, discard_t, const CoordStruct& coords, DirType facing)
+bool  FakeAircraftClass::__Unlimbo_Wrapper(const CoordStruct& coords, DirType facing)
 {
 	PrePlacedAircraftFixTemp::SkipCrashing = true;
-	bool retVal = pThis->Unlimbo(coords, facing);
+	bool retVal = this->AircraftClass::Unlimbo(coords, facing);
 	PrePlacedAircraftFixTemp::SkipCrashing = false;
 
 	return retVal;
 
 }
-DEFINE_FUNCTION_JUMP(CALL6, 0x41B39B, AircraftClass_Unlimbo_Wrapper);
+DEFINE_FUNCTION_JUMP(CALL6, 0x41B39B, FakeAircraftClass::__Unlimbo_Wrapper);
 
 ASMJIT_PATCH(0x4DEBC4, FootClass_Crash_PreplacedAircraft, 0x7)
 {
@@ -2727,16 +2617,6 @@ ASMJIT_PATCH(0x4D77BD, FootClass_ObjectClickedAction_NoMove, 0x6)
 	EventExt::ApproachObject::Raise(pThis, pTarget);
 	return ReturnTrue;
 }
-
-// According to the code comments of the open-sourced RA1, I believe that the check of IsMovingNow here is to prevent foots from starting a new mission at an unstoppable position in the cell.
-// Then it is obvious that Jumpjet should not perform this check because Jumpjet's movement does not take the cell into account.
-ASMJIT_PATCH(0x7442D6, FootClass_ReadyToNextMission_MovingCheck, 0x6) // Unit
-{
-	GET(FootClass*, pThis, ESI);
-	auto pLoco = pThis->Locomotor.GetInterfacePtr();
-	R->AL(!locomotion_cast<JumpjetLocomotionClass*>(pLoco) && pLoco->Is_Moving_Now());
-	return R->Origin() + 0xF;
-}ASMJIT_PATCH_AGAIN(0x521BA7, FootClass_ReadyToNextMission_MovingCheck, 0x6); // Infantry
 
 // Although this may seem useless because locomotor also checks IsFallingDown. But just in case.
 ASMJIT_PATCH(0x7442AB, UnitClass_ReadyToNextMission_FallingDown, 0x6)
@@ -3090,26 +2970,6 @@ ASMJIT_PATCH(0x4CD797, FlyLocomotionClass_CrashDescent_OffMap, 0x5)
 
 	if (pLinkedTo->IsCrashing && !MapClass::Instance->IsWithinUsableArea(pLinkedTo->GetCoords()))
 		return GroundTouchCleanup;
-
-	return 0;
-}
-
-// JumpjetLocomotionClass::Process - height check before IsCrashing gate.
-// If off-map, skip height check and go to the IsCrashing check directly.
-ASMJIT_PATCH(0x54CC16, JumpjetLocomotionClass_CrashDescent_OffMap, 0x8)
-{
-	enum { IsCrashingCheck = 0x54CC36 };
-
-	GET(JumpjetLocomotionClass*, pThis, EDI);
-
-	if (!MapClass::Instance->IsWithinUsableArea(pThis->LinkedTo->GetCoords()))
-	{
-		// Replicate the stack init from the stolen bytes (mov byte ptr [esp+11h], 0)
-		// so the "fell on something" flag is properly zeroed for the crash path.
-		REF_STACK(BYTE, fellOnSomething, STACK_OFFSET(0x34, -0x23));
-		fellOnSomething = 0;
-		return IsCrashingCheck;
-	}
 
 	return 0;
 }

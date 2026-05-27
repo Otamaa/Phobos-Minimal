@@ -13,6 +13,28 @@
 #include <Utilities/Helpers.h>
 #include <Utilities/Macro.h>
 
+ParticleExtData::ParticleExtData(ParticleClass* pObj) : ObjectExtData(pObj)
+{
+	this->Name = pObj->Type->ID;
+	this->AbsType = ParticleClass::AbsID;
+	const auto pTypeExt = ParticleTypeExtContainer::Instance.Find(pObj->Type);
+	CoordStruct nFLH = CoordStruct::Empty;
+	//vtable is already intialized
+	const ColorStruct nColor = pObj->GetOwningHouse() ? pObj->GetOwningHouse()->LaserColor : ColorStruct::Empty;
+
+	if (this->LaserTrails.empty() && !LaserTrailTypeClass::Array.empty())
+	{
+		this->LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
+
+		for (auto const& idxTrail : pTypeExt->LaserTrail_Types)
+		{
+			this->LaserTrails.emplace_back(
+				std::move(std::make_unique<LaserTrailClass>(
+					LaserTrailTypeClass::Array[idxTrail].get(), nColor, nFLH)));
+		}
+	}
+}
+
 #define DIRECT_CALL_THIS(address) \
     _asm { mov ecx, this } \
     _asm { mov eax, address } \
@@ -1088,28 +1110,8 @@ ParticleExtContainer ParticleExtContainer::Instance;
 ASMJIT_PATCH(0x62BB13, ParticleClass_CTOR, 0x5)
 {
 	GET(ParticleClass*, pItem, ESI);
-
-	if (pItem->Type) {
-		auto pExt = ParticleExtContainer::Instance.Allocate(pItem);
-		const auto pTypeExt = ParticleTypeExtContainer::Instance.Find(pItem->Type);
-		CoordStruct nFLH = CoordStruct::Empty;
-		const ColorStruct nColor = pItem->GetOwningHouse() ? pItem->GetOwningHouse()->LaserColor : ColorStruct::Empty;
-
-		if (pExt->LaserTrails.empty() && !LaserTrailTypeClass::Array.empty())
-		{
-			pExt->LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
-
-			for (auto const& idxTrail : pTypeExt->LaserTrail_Types)
-			{
-				pExt->LaserTrails.emplace_back(
-					std::move(std::make_unique<LaserTrailClass>(
-						LaserTrailTypeClass::Array[idxTrail].get(), nColor, nFLH)));
-			}
-		}
-
-		//TrailsManager::Construct(pItem);
-	}
-
+	if (!Phobos::Otamaa::DoingLoadGame) 
+	ParticleExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 

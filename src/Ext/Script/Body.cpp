@@ -487,7 +487,7 @@ bool ScriptExtData::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 				const auto pTypeExt = GET_TECHNOTYPEEXT(pFirst);
 				if (pTypeExt->Convert_Script)
 				{
-					const auto& pConvertReq = pTypeExt->Convert_Scipt_Prereq;
+					const auto& pConvertReq = pTypeExt->Convert_Script_Prereq;
 					if (pConvertReq.empty() || Prereqs::HouseOwnsAll(pTeam->OwnerHouse, pConvertReq))
 					{
 						TechnoExtData::ConvertToType(pFirst, pTypeExt->Convert_Script);
@@ -2101,7 +2101,7 @@ void ScriptExtData::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeam
 
 	for (auto& pSuper : pOwner->Supers)
 	{
-		if (!SWTypeExtContainer::Instance.Find(pSuper->Type)->IsAvailable(pOwner))
+		if (!SWTypeExtData::IsAvailable(pOwner, pSuper))
 			continue;
 
 		if (!pSuperChronosphere && pSuper->Type->Type == SuperWeaponType::ChronoSphere)

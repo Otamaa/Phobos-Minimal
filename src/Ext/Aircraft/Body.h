@@ -12,7 +12,7 @@ class AircraftExtData : public FootExtData
 {
 public:
 	using base_type = AircraftClass;
-	static COMPILETIMEEVAL const char* ClassName = "AircraftExtData";
+	static COMPILETIMEEVAL const char* ClassName = CLASS_NAME(AircraftExtData);
 	static COMPILETIMEEVAL const char* BaseClassName = "AircraftClass";
 	
 public:
@@ -69,7 +69,7 @@ public :
 	static int GetDelay(AircraftClass* pThis, bool isLastShot);
 };
 
-class AircraftExtContainer final : public Container<AircraftExtData>
+class AircraftExtContainer final : public Container<AircraftExtData> , public ContainerSaveLoad<AircraftExtContainer, true>
 {
 public:
 
@@ -77,9 +77,6 @@ public:
 
 public:
 	static AircraftExtContainer Instance;
-
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 };
 
 class AbstractClass;
@@ -93,6 +90,8 @@ public:
 	void _Destroyed(int mult);
 	AbstractClass* _GreatestThreat(ThreatType threatType, CoordStruct* pSelectCoords, bool onlyTargetHouseEnemy);
 	int _Mission_Sleep();
+
+	bool  __Unlimbo_Wrapper(const CoordStruct& coords, DirType facing);
 
 	int _Mission_ParadropOverfly();
 	int _Mission_ParadropApproach();

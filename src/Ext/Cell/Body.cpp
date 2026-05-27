@@ -341,7 +341,10 @@ CellExtContainer CellExtContainer::Instance;
 ASMJIT_PATCH(0x47BDA1, CellClass_CTOR, 0x5)
 {
 	GET(CellClass*, pItem, ESI);
-	CellExtContainer::Instance.Allocate(pItem);
+
+	if(!Phobos::Otamaa::DoingLoadGame || pItem == CellClass::Instance())
+		CellExtContainer::Instance.Allocate(pItem);
+
 	return 0;
 }
 

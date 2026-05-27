@@ -15,6 +15,53 @@
 #include <Ext/Rules/Body.h>
 #include <Ext/House/Body.h>
 
+
+std::unordered_map<LaserDrawClass*, LaserDrawClassExt::TrackingData> LaserDrawClassExt::g_Trackers;
+
+CoordStruct LaserDrawClassExt::GetRelativeFLH(TechnoClass* pShooter, int weaponIndex)
+{
+	return {};
+}
+
+void LaserDrawClassExt::RemoveLaserTracking(LaserDrawClass* pLaser)
+{
+	LaserDrawClassExt::g_Trackers.erase(pLaser);
+}
+
+void LaserDrawClassExt::Clear()
+{
+	LaserDrawClassExt::g_Trackers.clear();
+}
+
+bool LaserDrawClassExt::LoadAll(const PhobosStreamReader& stm)
+{
+	return true;
+}
+
+bool LaserDrawClassExt::SaveAll(PhobosStreamWriter& stm)
+{
+	return true;
+}
+
+void LaserDrawClassExt::PointerExpired(void* ptr, bool removed)
+{
+	if (!removed)
+		return;
+
+	for (auto& [laser, data] : g_Trackers) {
+
+		if (data.Shooter == ptr) {
+			data.Shooter = nullptr;
+		}
+
+		if (data.Target == ptr) {
+			data.Shooter = nullptr;
+		}
+
+		data.IsActive = data.Active();
+	}
+}
+
 // ============================================================================
 // Static member initialization
 // ============================================================================
@@ -282,14 +329,7 @@ void FakeLaserDrawClass::_UpdateLaser()
 	}
 
 	// Check if laser has expired
-	if (Progress.Stage >= Duration)
-	{
-		// Remove from global array and delete
-		const int idx = LaserDrawClass::Array->find(this);
-		if (idx >= 0)
-		{
-			LaserDrawClass::Array->erase_at(idx);
-		}
+	if (Progress.Stage >= Duration) {
 		GameDelete(this);
 	}
 }
@@ -327,16 +367,8 @@ void FakeLaserDrawClass::_DestroyAllLasers()
 	Debug::Log("[LaserDraw] DestroyAllLasers: destroying %d lasers\n", LaserDrawClass::Array->Count);
 #endif
 
-	while (LaserDrawClass::Array->Count > 0)
-	{
-		auto* pLaser = (*LaserDrawClass::Array)[0];
-		if (pLaser)
-		{
-			const int idx = LaserDrawClass::Array->find(pLaser);
-			if (idx >= 0)
-			{
-				LaserDrawClass::Array->erase_at(idx);
-			}
+	while (LaserDrawClass::Array->Count > 0) {
+		if (auto* pLaser = (*LaserDrawClass::Array)[0]) {
 			GameDelete(pLaser);
 		}
 	}
@@ -471,7 +503,7 @@ void FakeLaserDrawClass::_DrawLaser()
 		{
 			// Subtractive drawing for blinking lasers
 			ColorStruct innerCopy = InnerColor;
-			DSurface::Temp->DrawSubtractiveLine_AZ(
+			DSurface::Temp->DrawSubtractiveLine_AZB(
 				DSurface::ViewBounds(),
 				ptSource, ptTarget,
 				innerCopy,
@@ -490,7 +522,7 @@ void FakeLaserDrawClass::_DrawLaser()
 				Point2D outerTgt0 = { ptTarget.X + off0.X, ptTarget.Y + off0.Y };
 
 				ColorStruct outerCopy0 = outerDrawColor;
-				DSurface::Temp->DrawSubtractiveLine_AZ(
+				DSurface::Temp->DrawSubtractiveLine_AZB(
 					DSurface::ViewBounds(),
 					outerSrc0, outerTgt0,
 					outerCopy0,
@@ -503,7 +535,7 @@ void FakeLaserDrawClass::_DrawLaser()
 				Point2D outerTgt1 = { ptTarget.X + off1.X, ptTarget.Y + off1.Y };
 
 				ColorStruct outerCopy1 = outerDrawColor;
-				DSurface::Temp->DrawSubtractiveLine_AZ(
+				DSurface::Temp->DrawSubtractiveLine_AZB(
 					DSurface::ViewBounds(),
 					outerSrc1, outerTgt1,
 					outerCopy1,
@@ -523,7 +555,7 @@ void FakeLaserDrawClass::_DrawLaser()
 			Point2D outerTgt0 = { ptTarget.X + off0.X, ptTarget.Y + off0.Y };
 
 			DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-				&DSurface::ViewBounds(), &outerSrc0, &outerTgt0,
+				DSurface::ViewBounds.operator->(), &outerSrc0, &outerTgt0,
 				&outerDrawColor, intensity, zSource, zTarget
 			);
 
@@ -531,14 +563,14 @@ void FakeLaserDrawClass::_DrawLaser()
 			Point2D outerTgt1 = { ptTarget.X + off1.X, ptTarget.Y + off1.Y };
 
 			DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-				&DSurface::ViewBounds(), &outerSrc1, &outerTgt1,
+				DSurface::ViewBounds.operator->(), &outerSrc1, &outerTgt1,
 				&outerDrawColor, intensity, zSource, zTarget
 			);
 
 			// Draw inner color center line
 			ColorStruct innerCopy = InnerColor;
 			DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-				&DSurface::ViewBounds(), &ptSource, &ptTarget,
+				DSurface::ViewBounds.operator->(), &ptSource, &ptTarget,
 				&innerCopy, intensity, zSource, zTarget
 			);
 		}
@@ -546,7 +578,7 @@ void FakeLaserDrawClass::_DrawLaser()
 		{
 			// Subtractive drawing for non-outer-color (fading) lasers
 			ColorStruct innerFade = InnerColor;
-			DSurface::Temp->DrawSubtractiveLine_AZ(
+			DSurface::Temp->DrawSubtractiveLine_AZB(
 				DSurface::ViewBounds(),
 				ptSource, ptTarget,
 				innerFade,
@@ -661,11 +693,11 @@ void FakeLaserDrawClass::_DrawLaser()
 			if (useHighQuality)
 			{
 				DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-					&DSurface::ViewBounds(), &line1Start, &line2Start,
+					DSurface::ViewBounds.operator->(), &line1Start, &line2Start,
 					&layerColor, intensity, zSource, zTarget
 				);
 				DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-					&DSurface::ViewBounds(), &line1End, &line2End,
+					DSurface::ViewBounds.operator->(), &line1End, &line2End,
 					&layerColor, intensity, zSource, zTarget
 				);
 			}
@@ -793,13 +825,13 @@ void FakeLaserDrawClass::_DrawInHouseColor()
 				if (useHighQuality)
 				{
 					DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-						&DSurface::ViewBounds(),
+						DSurface::ViewBounds.operator->(),
 						&line1Start, &line2Start,
 						&workingColor, intensity,
 						zSource, zTarget
 					);
 					DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-						&DSurface::ViewBounds(),
+						DSurface::ViewBounds.operator->(),
 						&line1End, &line2End,
 						&workingColor, intensity,
 						zSource, zTarget
@@ -892,7 +924,7 @@ void FakeLaserDrawClass::_DrawInHouseColor()
 		if (useHighQuality)
 		{
 			DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-				&DSurface::ViewBounds(),
+				DSurface::ViewBounds.operator->(),
 				&ptSource, &ptTarget,
 				&centerColor, intensity,
 				zSource, zTarget
@@ -913,17 +945,20 @@ void FakeLaserDrawClass::_DrawInHouseColor()
 	}
 }
 
-// ============================================================================
-// Hook: HouseClass::init_laser_color (0x50BA00)
-// Replaces the original RGB normalization function
-// ============================================================================
+//// ============================================================================
+//// Hook: HouseClass::init_laser_color (0x50BA00)
+//// Replaces the original RGB normalization function
+//// ============================================================================
 DEFINE_FUNCTION_JUMP(LJMP, 0x50BA00, FakeHouseClass::_InitLaserColor);
+DEFINE_FUNCTION_JUMP(CALL, 0x6880E6, FakeHouseClass::_InitLaserColor);
+DEFINE_FUNCTION_JUMP(CALL, 0x6881E7, FakeHouseClass::_InitLaserColor);
+
 
 // ============================================================================
 // Hook: Destroy_LaserDrawClassDVC (0x550000)
 // Replaces the function that destroys all lasers in the global DVC
 // ============================================================================
-DEFINE_FUNCTION_JUMP(CALL, 0x55B5C3, FakeLaserDrawClass::_DestroyAllLasers);
+DEFINE_FUNCTION_JUMP(CALL, 0x534949, FakeLaserDrawClass::_DestroyAllLasers);
 DEFINE_FUNCTION_JUMP(LJMP, 0x550000, FakeLaserDrawClass::_DestroyAllLasers);
 
 // ============================================================================
@@ -937,25 +972,30 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x550080, FakeLaserDrawClass::_UpdateLaser);
 // Replaces the static function that iterates all lasers and updates them
 // ============================================================================
 DEFINE_FUNCTION_JUMP(LJMP, 0x550150, FakeLaserDrawClass::_UpdateAllLasers);
+DEFINE_FUNCTION_JUMP(CALL, 0x55B5C3, FakeLaserDrawClass::_UpdateAllLasers);
 
 // ============================================================================
 // Hook: LaserDrawClass::Draw_All (0x550240)
 // Replaces the static __fastcall that iterates and draws all lasers
 // ============================================================================
 DEFINE_FUNCTION_JUMP(LJMP, 0x550240, FakeLaserDrawClass::_DrawAllLasers);
-
-// ============================================================================
-// Hook: LaserDrawClass::Draw (0x550260)
-// Replaces the per-instance draw function (__thiscall)
-// Now supports multicolored thickness (previously only IsHouseColor)
-// ============================================================================
+DEFINE_FUNCTION_JUMP(CALL, 0x6D4669, FakeLaserDrawClass::_DrawAllLasers);
+//
+//// ============================================================================
+//// Hook: LaserDrawClass::Draw (0x550260)
+//// Replaces the per-instance draw function (__thiscall)
+//// Now supports multicolored thickness (previously only IsHouseColor)
+//// ============================================================================
+DEFINE_FUNCTION_JUMP(CALL, 0x550256, FakeLaserDrawClass::_DrawLaser);
 DEFINE_FUNCTION_JUMP(LJMP, 0x550260, FakeLaserDrawClass::_DrawLaser);
 
-// ============================================================================
-// Hook: LaserDrawClass::Draw_In_House_Color (0x5509F0)
-// Replaces the house-color laser rendering (__thiscall)
-// Uses smooth exponential falloff instead of harsh >>1 halving
-// ============================================================================
+//
+//// ============================================================================
+//// Hook: LaserDrawClass::Draw_In_House_Color (0x5509F0)
+//// Replaces the house-color laser rendering (__thiscall)
+//// Uses smooth exponential falloff instead of harsh >>1 halving
+//// ============================================================================
+DEFINE_FUNCTION_JUMP(CALL, 0x55027B, FakeLaserDrawClass::_DrawInHouseColor);
 DEFINE_FUNCTION_JUMP(LJMP, 0x5509F0, FakeLaserDrawClass::_DrawInHouseColor);
 
 #ifdef LASERDRAWDEBUG
@@ -980,3 +1020,22 @@ struct LaserDrawDebugInit
 };
 static LaserDrawDebugInit s_laserDrawDebugInit;
 #endif
+
+ASMJIT_PATCH(0x54FFB0, LaserDrawClass_DTOR_Update, 7)
+{
+	GET(LaserDrawClass*, pLaser, ECX);
+	LaserDrawClassExt::RemoveLaserTracking(pLaser);
+	return 0;
+}
+
+ASMJIT_PATCH(0x5501D7 , LaserDrawClass_Remove_InlineDTOR, 0x5) {
+	GET(LaserDrawClass*, pLaser, ESI);
+	GameDelete(pLaser);
+	return R->Origin() + 0x51;
+}ASMJIT_PATCH_AGAIN(0x5500EF ,LaserDrawClass_Remove_InlineDTOR, 0x5)
+
+ASMJIT_PATCH(0x550016 ,LaserDrawClass_Remove_InlineDTOR_BB, 0x6 ){
+		GET(LaserDrawClass*, pLaser, ESI);
+	GameDelete(pLaser);
+	return R->Origin() + 0x52;
+}

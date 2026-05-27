@@ -15,7 +15,8 @@
 #include <Utilities/Patch.h>
 
 #include <RadarEventClass.h>
-#include <Ion.h>
+#include <Ion.h>		
+enum class BouncePhaseResult { ContinueVanilla, KeepFlying, ForceDetonate };
 
 // missile_maths @ 0x5B20F0
 //
@@ -370,6 +371,8 @@ namespace
 											   VelocityClass& veloc, BulletAITickContext& ctx);
 	OPTIONALINLINE void CheckUnguidedTargetCell(FakeBulletClass* pThis, CoordStruct& coord,
 												 VelocityClass& veloc, BulletAITickContext& ctx);
+	OPTIONALINLINE BouncePhaseResult RunBouncePhase(FakeBulletClass* pThis, CoordStruct& coord,
+											 BulletAITickContext& ctx);
 	OPTIONALINLINE void FinalizeBulletMotion(FakeBulletClass* pThis, CoordStruct& coord,
 											  BulletAITickContext& ctx);
 	OPTIONALINLINE void RunDetonation(FakeBulletClass* pThis, CoordStruct& coord,
@@ -865,17 +868,18 @@ namespace
 
 		if (!pThis->CourseLock)
 		{
-			if (pThis->SomeIntIncrement_118 < 60)
+			if (pThis->TrendSampleCount < 60)
 			{
-				++pThis->SomeIntIncrement_118;
-				pThis->unknown_120 += dist_delta;
+				++pThis->TrendSampleCount;
+				pThis->SmoothedDistanceDelta += dist_delta;
 			}
 			else
 			{
-				pThis->unknown_120 *= 0.9833333333333333 + dist_delta;
 
-				if (pThis->unknown_120 >= 0.0
-					&& pThis->unknown_120 < 60.0)
+				pThis->SmoothedDistanceDelta = pThis->SmoothedDistanceDelta * Math:: ProximityFuseDecayFactor + dist_delta;
+
+				if (pThis->SmoothedDistanceDelta >= 0.0
+					&& pThis->SmoothedDistanceDelta < 60.0)
 				{
 					if (!pType->Airburst && !pType->VeryHigh)
 					{
@@ -1480,43 +1484,8 @@ namespace
 		//   ForceDetonate   — bounces exhausted, detonate immediately (skip fuse
 		//                     and target snap, go straight to RunDetonation)
 		// -----------------------------------------------------------------------
-		enum class BouncePhaseResult { ContinueVanilla, KeepFlying, ForceDetonate };
 
-		auto bounce_phase = [&]() -> BouncePhaseResult
-			{
-				auto pExt = pThis->_GetExtData();
-				if (!pExt->Trajectory)
-					return BouncePhaseResult::ContinueVanilla;
-
-				bool force_detonate_from_bounce = false;
-				const auto bounce_result = pExt->Trajectory->OnBounceCheck(
-					coord, force_detonate_from_bounce);
-
-				switch (bounce_result)
-				{
-				case BounceCheckResult::NotHandled:
-					return BouncePhaseResult::ContinueVanilla;
-
-				case BounceCheckResult::BouncedKeepFlying:
-					// Reflection happened. Velocity has been updated by OnBounceCheck;
-					// re-commit the location to be safe and clear any prior explode
-					// flag from upstream phases (Range decay, etc. don't apply when
-					// a bounce keeps us alive).
-					ctx.exploded = false;
-					pThis->SetLocation(coord);
-					return BouncePhaseResult::KeepFlying;
-
-				case BounceCheckResult::BouncedDetonate:
-					ctx.exploded = true;
-					return force_detonate_from_bounce
-						? BouncePhaseResult::ForceDetonate
-						: BouncePhaseResult::ContinueVanilla;
-				}
-
-				return BouncePhaseResult::ContinueVanilla;
-			};
-
-		const auto bounce_outcome = bounce_phase();
+		const auto bounce_outcome = RunBouncePhase(pThis, coord, ctx);
 
 		if (bounce_outcome == BouncePhaseResult::ForceDetonate)
 		{
@@ -1553,9 +1522,10 @@ namespace
 
 		// -----------------------------------------------------------------------
 		// Hook 0x467C2E — FuseCheck (extended fuse checkup)
+		// Hook 0x467C1C — BulletClass_AI_UnknownTimer
 		// -----------------------------------------------------------------------
 		Fuse fuse_result = Fuse::DontIgnite;
-		if (pType->ROT > 0 || pType->Ranged)
+		if (pType->ROT > 0 || pType->Ranged || pType->Inviso)
 		{
 			fuse_result = static_cast<Fuse>(
 				BulletExtData::FuseCheckup(pThis, &coord));
@@ -1755,6 +1725,41 @@ namespace
 	OPTIONALINLINE void UpdateLastMapCoords(BulletClass* pThis, CoordStruct const& coord)
 	{
 		pThis->LastMapCoords = CellClass::Coord2Cell(coord);
+	}
+
+	OPTIONALINLINE BouncePhaseResult RunBouncePhase(FakeBulletClass* pThis, CoordStruct& coord,
+													 BulletAITickContext& ctx)
+	{
+		auto pExt = pThis->_GetExtData();
+		if (!pExt->Trajectory)
+			return BouncePhaseResult::ContinueVanilla;
+
+		bool force_detonate_from_bounce = false;
+		const auto bounce_result = pExt->Trajectory->OnBounceCheck(
+			coord, force_detonate_from_bounce);
+
+		switch (bounce_result)
+		{
+		case BounceCheckResult::NotHandled:
+			return BouncePhaseResult::ContinueVanilla;
+
+		case BounceCheckResult::BouncedKeepFlying:
+			// Reflection happened. Velocity has been updated by OnBounceCheck;
+			// re-commit the location to be safe and clear any prior explode
+			// flag from upstream phases (Range decay, etc. don't apply when
+			// a bounce keeps us alive).
+			ctx.exploded = false;
+			pThis->SetLocation(coord);
+			return BouncePhaseResult::KeepFlying;
+
+		case BounceCheckResult::BouncedDetonate:
+			ctx.exploded = true;
+			return force_detonate_from_bounce
+				? BouncePhaseResult::ForceDetonate
+				: BouncePhaseResult::ContinueVanilla;
+		}
+
+		return BouncePhaseResult::ContinueVanilla;
 	}
 
 }  // anonymous namespace

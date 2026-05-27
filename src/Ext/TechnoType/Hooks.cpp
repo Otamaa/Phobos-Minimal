@@ -16,6 +16,7 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/House/Body.h>
+#include <Ext/Unit/Body.h>
 #include <Ext/UnitType/Body.h>
 
 #include <Utilities/Macro.h>
@@ -106,13 +107,7 @@ ASMJIT_PATCH(0x6F3E6E, FootClass_firecoord_6F3D60_TurretMultiOffset, 0x6) //0
 	GET(TechnoTypeClass*, pType, EBP);
 	LEA_STACK(Matrix3D*, mtx, STACK_OFFS(0xCC, 0x90));
 
-	const auto& nOffs = TechnoTypeExtContainer::Instance.Find(pType)->TurretOffset;
-
-	float x = static_cast<float>(nOffs->X * TechnoTypeExtData::TurretMultiOffsetDefaultMult);
-	float y = static_cast<float>(nOffs->Y * TechnoTypeExtData::TurretMultiOffsetDefaultMult);
-	float z = static_cast<float>(nOffs->Z * TechnoTypeExtData::TurretMultiOffsetDefaultMult);
-
-	mtx->Translate(x, y, z);
+	TechnoTypeExtContainer::Instance.Find(pType)->ApplyTurretOffset(mtx);
 
 	return 0x6F3E85;
 }
@@ -182,13 +177,13 @@ ASMJIT_PATCH(0x73C7AC, UnitClass_DrawAsSHP_DrawTurret_TintFix, 0x6)
 	pThis->Draw_A_SHP(pShape, bodyFrameIdx, &location, &bounds, 0, 256, zAdjust, zGradient, 0, extraLight, 0, 0, 0, 0, 0, 0);
 
 	const auto secondaryDir = pThis->SecondaryFacing.Current();
-const int frameIdx = secondaryDir.GetFacing<32>(4) + StartFrame;
+	const int frameIdx = secondaryDir.GetFacing<32>(4) + StartFrame;
 
 	const auto primaryDir = pThis->PrimaryFacing.Current();
 	const double bodyRad = primaryDir.GetRadian<32>();
 	Matrix3D mtx = Matrix3D::GetIdentity();
 	mtx.RotateZ(static_cast<float>(bodyRad));
-	TechnoTypeExtContainer::Instance.Find(pType)->ApplyTurretOffset(&mtx,Game::Pixel_Per_Lepton());
+	TechnoTypeExtContainer::Instance.Find(pType)->ApplyTurretOffset(&mtx);
 	const double turretRad = pType->Turret ? secondaryDir.GetRadian<32>() : bodyRad;
 	mtx.RotateZ(static_cast<float>(turretRad - bodyRad));
 
@@ -200,6 +195,17 @@ const int frameIdx = secondaryDir.GetFacing<32>(4) + StartFrame;
 	pThis->Draw_A_SHP(pShape, frameIdx, &drawPoint, &bounds, 0, 256, static_cast<DWORD>(-32), zGradient, 0, extraLight, 0, 0, 0, 0, 0, 0);
 	Game::bDrawShadow = originalDrawShadow;
 	return SkipDrawCode;
+}
+
+double UnitExtData::GetPrimaryRadian(UnitClass* pThis)
+{
+	// Align with the jj Draw_Matrix calc changing.
+	if (auto const pJJLoco = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor)) {
+		if (!pThis->IsAttackedByLocomotor)
+			return pJJLoco->Facing.Current().GetRadian<32>();
+	}
+
+	return pThis->PrimaryFacing.Current().GetRadian<32>();
 }
 
 ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
@@ -245,19 +251,9 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 	auto getTurretMatrix = [=, &mtx]() -> Matrix3D
 		{
 			Matrix3D mtxTurret = mtx;
-			pDrawTypeExt->ApplyTurretOffset(&mtxTurret, Game::Pixel_Per_Lepton());
+			pDrawTypeExt->ApplyTurretOffset(&mtxTurret, Math::Pixel_Per_Lepton);
 
-			FacingClass* pPrimaryFacing = &pThis->PrimaryFacing;
-			// Align with the jj Draw_Matrix calc changing.
-			if (auto pJJLoco = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor))
-			{
-				if (!pThis->IsAttackedByLocomotor)
-					pPrimaryFacing = &pJJLoco->Facing;
-			}
-
-			double primaryRad = pPrimaryFacing->Current().GetRadian<32>();
-
-			mtxTurret.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - primaryRad));
+			mtxTurret.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - UnitExtData::GetPrimaryRadian(pThis)));
 
 			if (pThis->TurretRecoil.State != RecoilData::RecoilState::Inactive)
 				mtxTurret.TranslateX(-pThis->TurretRecoil.TravelSoFar);
@@ -334,7 +330,7 @@ Matrix3D NOINLINE getTurretMatrix(const Matrix3D& mtx , UnitClass* pThis , Techn
 
 	Matrix3D mtx_turret = mtx;
 
-	pDrawTypeExt->ApplyTurretOffset(&mtx_turret, Game::Pixel_Per_Lepton());
+	pDrawTypeExt->ApplyTurretOffset(&mtx_turret, Math::Pixel_Per_Lepton);
 	mtx_turret.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>()));
 
 	if (pThis->TurretRecoil.State != RecoilData::RecoilState::Inactive)
@@ -435,13 +431,7 @@ ASMJIT_PATCH(0x73C890, UnitClass_Draw_1_TurretMultiOffset, 0x8) //0
 	GET(TechnoTypeClass*, pType, EAX);
 	LEA_STACK(Matrix3D*, mtx, 0x80);
 
-	const auto& nOffs = TechnoTypeExtContainer::Instance.Find(pType)->TurretOffset;
-
-	float x = static_cast<float>(nOffs->X * TechnoTypeExtData::TurretMultiOffsetOneByEightMult);
-	float y = static_cast<float>(nOffs->Y * TechnoTypeExtData::TurretMultiOffsetOneByEightMult);
-	float z = static_cast<float>(nOffs->Z * TechnoTypeExtData::TurretMultiOffsetOneByEightMult);
-
-	mtx->Translate(x, y, z);
+	TechnoTypeExtContainer::Instance.Find(pType)->ApplyTurretOffset(mtx, TechnoTypeExtData::TurretMultiOffsetOneByEightMult);
 
 	return 0x73C8B7;
 }
@@ -451,13 +441,7 @@ ASMJIT_PATCH(0x43E0C4, BuildingClass_Draw_43DA80_TurretMultiOffset, 0x5) //0
 	GET(TechnoTypeClass*, pType, EDX);
 	LEA_STACK(Matrix3D*, mtx, 0x60);
 
-	const auto& nOffs = TechnoTypeExtContainer::Instance.Find(pType)->TurretOffset;
-
-	float x = static_cast<float>(nOffs->X * TechnoTypeExtData::TurretMultiOffsetOneByEightMult);
-	float y = static_cast<float>(nOffs->Y * TechnoTypeExtData::TurretMultiOffsetOneByEightMult);
-	float z = static_cast<float>(nOffs->Z * TechnoTypeExtData::TurretMultiOffsetOneByEightMult);
-
-	mtx->Translate(x, y, z);
+	TechnoTypeExtContainer::Instance.Find(pType)->ApplyTurretOffset(mtx, TechnoTypeExtData::TurretMultiOffsetOneByEightMult);
 
 	return 0x43E0E8;
 }
@@ -469,13 +453,8 @@ ASMJIT_PATCH(0x73CCE1, UnitClass_DrawSHP_TurretOffest, 0x6)
 
 	Matrix3D mtx = Matrix3D::GetIdentity();
 	mtx.RotateZ(static_cast<float>(pThis->PrimaryFacing.Current().GetRadian<32>()));
-	const auto& nOffs = TechnoTypeExtContainer::Instance.Find(pThis->Type)->TurretOffset;
 
-	float x = static_cast<float>(nOffs->X * TechnoTypeExtData::TurretMultiOffsetDefaultMult);
-	float y = static_cast<float>(nOffs->Y * TechnoTypeExtData::TurretMultiOffsetDefaultMult);
-	float z = static_cast<float>(nOffs->Z * TechnoTypeExtData::TurretMultiOffsetDefaultMult);
-
-	mtx.Translate(x, y, z);
+	TechnoTypeExtContainer::Instance.Find(pThis->Type)->ApplyTurretOffset(&mtx);
 
 	double turretRad = pThis->TurretFacing().GetRadian<32>();
 	double bodyRad = pThis->PrimaryFacing.Current().GetRadian<32>();

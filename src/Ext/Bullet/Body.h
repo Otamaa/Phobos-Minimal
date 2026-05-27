@@ -152,10 +152,10 @@ public:
 	static void SimulatedFiringElectricBolt(BulletClass* pBullet);
 	static void SimulatedFiringRadBeam(BulletClass* pBullet, HouseClass* pHouse);
 	static void SimulatedFiringParticleSystem(BulletClass* pBullet, HouseClass* pHouse);
-
+	static CoordStruct GetTargetCoords(BulletClass* pBullet);
 };
 
-class BulletExtContainer final : public Container<BulletExtData>
+class BulletExtContainer final : public Container<BulletExtData>, public ContainerSaveLoad<BulletExtContainer, true>
 {
 public:
 
@@ -163,10 +163,6 @@ public:
 
 public:
 	static BulletExtContainer Instance;
-
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
-
 };
 
 class FakeWarheadTypeClass;

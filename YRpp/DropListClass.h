@@ -54,3 +54,4 @@ public:
 	ShapeButtonClass SomeButton;
 	ListClass List;
 };
+static_assert(sizeof(DropListClass) == 0x224, "Invalid size.");

@@ -13,7 +13,6 @@
 
 class Blitter;
 class RLEBlitter;
-class RGBClass;
 struct ColorStruct;
 class DSurface;
 

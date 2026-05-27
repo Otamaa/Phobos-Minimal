@@ -28,7 +28,7 @@ public:
 		FindOrAllocate("PROC");
 	}
 
-	static void Parse(CCINIClass* pINI, const char* section, const char* key, ValueableVector<int>& Vec);
+	static void Parse(CCINIClass* pINI, const char* section, const char* key, std::vector<int>& Vec);
 	static void Parse(CCINIClass* pINI, const char* section, const char* key, DynamicVectorClass<int>& Vec);
 	static void LoadFromINIList_New(CCINIClass* pINI, bool bDebug = false);
 
@@ -49,6 +49,7 @@ public:
 
 	static bool ListContainsGeneric(Iterator<BuildingTypeClass*> items, int Index);
 	static bool ListContainsSpecific(Iterator<BuildingTypeClass*> items, int Index);
+	static bool ListContainsSpecific(Iterator<BuildingTypeClass*> items, TechnoTypeClass* item);
 	static bool ListContainsPrereq(Iterator<BuildingTypeClass*> items, int Index);
 
 	static bool ListContainsAll(Iterator<BuildingTypeClass*> items, const Iterator<int> intit);

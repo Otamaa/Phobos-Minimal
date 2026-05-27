@@ -52,6 +52,7 @@ private:
 };
 
 class BombExtContainer final : public Container<BombExtData>
+	, public ContainerSaveLoad<BombExtContainer, false>
 {
 public:
 
@@ -60,8 +61,6 @@ public:
 public:
 	static BombExtContainer Instance;
 
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 };
 
 class NOVTABLE FakeBombClass : public BombClass

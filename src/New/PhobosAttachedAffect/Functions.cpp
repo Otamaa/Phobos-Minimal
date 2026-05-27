@@ -148,7 +148,7 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 	if (markForRedraw)
 		pThis->MarkForRedraw();
 
-	PhobosAttachEffectClass::DetonateExpireWeapon(expireWeapons);
+	PhobosAttachEffectClass::DetonateExpireWeapon(expireWeapons, pTechno->Location);
 }
 
 bool PhobosAEFunctions::HasAttachedEffects(
@@ -274,7 +274,7 @@ void PhobosAEFunctions::UpdateSelfOwnedAttachEffects(TechnoClass* pTechno, Techn
 			return false;
 		});
 
-		PhobosAttachEffectClass::DetonateExpireWeapon(expireWeapons);
+		PhobosAttachEffectClass::DetonateExpireWeapon(expireWeapons, pTechno->Location);
 	}
 
 	// Add new ones.

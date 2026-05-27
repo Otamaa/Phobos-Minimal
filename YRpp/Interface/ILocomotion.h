@@ -12,9 +12,10 @@
 #include <combaseapi.h>
 #include <comdef.h>
 
+class FootClass;
 DECLARE_INTERFACE_IID_(ILocomotion, IUnknown, "070F3290-9841-11D1-B709-00A024DDAFD1")
 {
-	virtual HRESULT __stdcall Link_To_Object(void* pointer) PURE; //Links object to locomotor.
+	virtual HRESULT __stdcall Link_To_Object(FootClass* pointer) PURE; //Links object to locomotor.
 	virtual bool __stdcall Is_Moving() PURE;	//Sees if object is moving.
 	virtual CoordStruct __stdcall Destination() PURE;	//Fetches destination coordinate.
 	virtual CoordStruct __stdcall Head_To_Coord() PURE; // Fetches immediate (next cell) destination coordinate.

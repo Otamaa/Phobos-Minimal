@@ -182,6 +182,8 @@ struct Game
 		{ JMP_FAST(0x5DA6C0); }
 	};
 
+	static int __stdcall Main_Window_Proc(HWND hwnd, unsigned int message, unsigned int wParam, int lParam) { JMP_STD(0x7775C0); }
+
 	static void __fastcall GetKeyboardKeyString(unsigned short key, wchar_t* buffer)
 	{ JMP_FAST(0x61EF70); }
 
@@ -229,6 +231,18 @@ struct Game
 
 	static void __fastcall Reset_SomeShapes_Post_Movie()
 	{ JMP_FAST(0x72DEF0); }
+
+	static void __fastcall Activate_Command_From_Name(const char* a1)
+	{ JMP_FAST(0x533F50); }
+
+	static bool __stdcall On_Window_Moving(HWND, WPARAM, LPARAM)
+	{ JMP_STD(0x776D80); }
+
+	static bool __fastcall Is_Movie_Playing()
+	{ JMP_FAST(0x5C0980); }
+
+	static void __fastcall Blit_Movie()
+	{ JMP_FAST(0x5C09A0); }
 
 #ifdef deprecated
 

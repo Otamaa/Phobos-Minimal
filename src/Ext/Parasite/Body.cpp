@@ -631,7 +631,7 @@ void FakeParasiteClass::__Detach(AbstractClass* detachingObject, bool permanent)
 
 		// Get victim facing direction
 		DirStruct facingDir= this->Victim->PrimaryFacing.Current();
-		DirType ownerDirection = DirType(((facingDir.Raw >> 7) + 1) >> 1);
+		DirType ownerDirection = DirType(facingDir.GetFacing<8>());
 
 		bool canPlace = false;
 
@@ -747,7 +747,7 @@ void FakeParasiteClass::__Uninfect()
 	}
 	else {
 		// Try to place owner
-		DirType placementDir = DirType(((exitDirection.Raw >> 7) + 1) >> 1);
+		DirType placementDir = DirType(exitDirection.GetFacing<8>());
 
 		if (!this->Owner->Unlimbo(placementCoord, placementDir))
 		{

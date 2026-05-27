@@ -271,14 +271,6 @@ ASMJIT_PATCH(0x730EE5, StopCommandClass_Execute_Berzerk, 6)
 	return pTechno->Berzerk || TechnoExtContainer::Instance.Find(pTechno)->Is_DriverKilled ? 0x730EF7 : 0;
 }
 
-ASMJIT_PATCH(0x7091D6, TechnoClass_CanPassiveAquire_KillDriver, 6)
-{
-	// prevent units with killed drivers from looking for victims.
-	GET(TechnoClass*, pThis, ESI);
-	return (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x70927Du : 0u);
-}
-
-
 ASMJIT_PATCH(0x73758A, UnitClass_ReceivedRadioCommand_QueryEnterAsPassenger_KillDriver, 6)
 {
 	// prevent units from getting the enter cursor on transports
@@ -1121,54 +1113,6 @@ ASMJIT_PATCH(0x739956, DeploysInto_UndeploysInto_SyncStatuses, 0x6) //UnitClass_
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x44A03C, DeploysInto_UndeploysInto_SyncStatuses, 0x6) //BuildingClass_Mission_Selling_SyncShieldStatus
 
-ASMJIT_PATCH(0x4140EB, AircraftClass_DTOR_Prereqs, 6)
-{
-	GET(UnitClass* const, pThis, EDI);
-
-	if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->IsGenericPrerequisite())
-	{
-		pThis->Owner->RecheckTechTree = true;
-	}
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x517DF2, InfantryClass_DTOR_Prereqs, 6)
-{
-	GET(InfantryClass* const, pThis, ESI);
-
-	if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->IsGenericPrerequisite())
-	{
-		pThis->Owner->RecheckTechTree = true;
-	}
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x7357F6, UnitClass_DTOR_Prereqs, 6)
-{
-	GET(UnitClass* const, pThis, ESI);
-
-	if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->IsGenericPrerequisite())
-	{
-		pThis->Owner->RecheckTechTree = true;
-	}
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x4D7221, FootClass_Put_Prereqs, 6)
-{
-	GET(FootClass* const, pThis, ESI);
-
-	if (GET_TECHNOTYPEEXT(pThis)->IsGenericPrerequisite())
-	{
-		pThis->Owner->RecheckTechTree = true;
-	}
-
-	return 0;
-}
-
 ASMJIT_PATCH(0x6F4A1D, TechnoClass_DiscoveredBy_Prereqs, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);
@@ -1182,7 +1126,6 @@ ASMJIT_PATCH(0x6F4A1D, TechnoClass_DiscoveredBy_Prereqs, 6)
 
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x6F4A37, TechnoClass_DiscoveredBy_Prereqs, 5)
-
 
 ASMJIT_PATCH(0x741613, UnitClass_ApproachTarget_OmniCrusher, 6)
 {

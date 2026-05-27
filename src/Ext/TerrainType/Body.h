@@ -12,8 +12,6 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "TerrainTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "TerrainTypeClass";
 	
-	
-
 public:
 
 #pragma region ClassMember
@@ -136,7 +134,7 @@ public:
 };
 
 class TerrainTypeExtContainer final : public Container<TerrainTypeExtData>
-	, public ReadWriteContainerInterfaces<TerrainTypeExtData>
+	, public ReadWriteContainerInterfaces<TerrainTypeExtData>, public ContainerSaveLoad<TerrainTypeExtContainer, true>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "TerrainTypeExtContainer";
@@ -145,9 +143,6 @@ public:
 
 public:
 	static TerrainTypeExtContainer Instance;
-	
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(ext_t::base_type* key, CCINIClass* pINI);

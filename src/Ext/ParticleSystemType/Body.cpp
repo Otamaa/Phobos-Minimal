@@ -131,6 +131,7 @@ void ParticleSystemTypeExtContainer::WriteToINI(ext_t::base_type* key, CCINIClas
 ASMJIT_PATCH(0x644217, ParticleSystemTypeClass_CTOR, 0x5)
 {
 	GET(ParticleSystemTypeClass*, pItem, ESI);
+	if (!Phobos::Otamaa::DoingLoadGame) 
 	ParticleSystemTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
