@@ -9,7 +9,10 @@
 #include <ColorScheme.h>
 #include <GeneralDefinitions.h>
 #include <Surface.h>
+#include <Matrix3D.h>
+#include <YRMathVector.h>
 
+class VoxLib;
 struct DirtyAreaStruct
 {
 	RectangleStruct Rect;
@@ -39,7 +42,8 @@ struct Drawing
 	COMPILETIMEEVAL static reference<RectangleStruct, 0x886FA0u> const SurfaceDimensions_Hidden {};
 	static COMPILETIMEEVAL reference<ColorStruct, 0xB0FA1Cu> const TooltipColor {};
 
-	static COMPILETIMEEVAL reference<RGBMode, 0x8205D0> ColorMode {};
+	static COMPILETIMEEVAL reference<RGBMode, 0x8205D0> const ColorMode {};
+	static COMPILETIMEEVAL reference<Matrix3D, 0x887430> const VoxelTransformMatrix {};
 
 	static COMPILETIMEEVAL reference<int, 0x8A0DD0> const RedShiftLeft {};
 	static COMPILETIMEEVAL reference<int, 0x8A0DD4> const RedShiftRight {};
@@ -47,6 +51,28 @@ struct Drawing
 	static COMPILETIMEEVAL reference<int, 0x8A0DE4> const GreenShiftRight {};
 	static COMPILETIMEEVAL reference<int, 0x8A0DD8> const BlueShiftLeft {};
 	static COMPILETIMEEVAL reference<int, 0x8A0DDC> const BlueShiftRight {};
+
+	static char __fastcall SetupVoxelDoubleLighting(
+		VoxLib* VXL,
+		int a2,
+		int a3,
+		Matrix3D* pA,
+		Matrix3D* pTransform,
+		Vector3D<float>* pLightSrc,
+		float fIntensity)
+	{
+		JMP_FAST(0x753D00);
+	}
+
+	static char __fastcall SetupVoxelSingleLighting(
+		VoxLib* VXL,
+		int a2,
+		int a3,
+		Matrix3D* pMatrix,
+		Vector3D<float>* pLightSrc)
+	{
+		JMP_FAST(0x753C80);
+	}
 
 	static bool __fastcall DrawSurfaces(Surface* surface1, ConvertClass* convert, Surface* surface2, RectangleStruct* a2, Point2D* point, RectangleStruct* a6, int drawerval, Blitter* a7, int z_val, int somearrayindex, int alpha_val, int Blit_Move_2_arg, int wrap_value)
 	{ JMP_FAST(0x4AF2A0); }

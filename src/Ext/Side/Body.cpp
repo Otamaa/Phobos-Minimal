@@ -301,6 +301,8 @@ bool SideExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Sidebar_HarvesterCounter_Red.Read(exINI, pSection, "Sidebar.HarvesterCounter.ColorRed");
 	this->Sidebar_HarvesterCounter_Green.Read(exINI, pSection, "Sidebar.HarvesterCounter.ColorGreen");
 	this->Sidebar_ProducingProgress_Offset.Read(exINI, pSection, "Sidebar.ProducingProgress.Offset");
+	this->Sidebar_HarvesterCounter_HideMaxValue.Read(exINI, pSection, "Sidebar.HarvesterCounter.HideMaxValue");
+	this->Sidebar_HarvesterCounter_OnlyMaxValue.Read(exINI, pSection, "Sidebar.HarvesterCounter.OnlyMaxValue");
 	this->Sidebar_PowerDelta_Offset.Read(exINI, pSection, "Sidebar.PowerDelta.Offset");
 	this->Sidebar_PowerDelta_Green.Read(exINI, pSection, "Sidebar.PowerDelta.ColorGreen");
 	this->Sidebar_PowerDelta_Grey.Read(exINI, pSection, "Sidebar.PowerDelta.ColorGrey");
@@ -435,6 +437,8 @@ void SideExtData::Serialize(T& Stm)
 	Stm
 		.Process(this->ArrayIndex)
 		.Process(this->Sidebar_GDIPositions)
+		.Process(this->Sidebar_HarvesterCounter_HideMaxValue)
+		.Process(this->Sidebar_HarvesterCounter_OnlyMaxValue)
 
 		.Process(this->IngameScore_WinTheme)
 		.Process(this->IngameScore_LoseTheme)

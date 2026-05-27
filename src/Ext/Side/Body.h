@@ -101,6 +101,8 @@ public:
 	// Nullable<bool> (~2-4 bytes)
 	// ============================================================
 	Nullable<bool> Sidebar_GDIPositions {};
+	Valueable<bool> Sidebar_HarvesterCounter_HideMaxValue { false };
+	Valueable<bool> Sidebar_HarvesterCounter_OnlyMaxValue { false };
 
 	// ============================================================
 	// Valueable<Point2D> (8 bytes each)

@@ -3145,3 +3145,29 @@ DEFINE_FUNCTION_JUMP(CALL , 0x5F660D, _KillPassengersWrapper)
 // Enable InGameMovie TAction in non-campaign mode.
 DEFINE_JUMP(LJMP, 0x5BF3B0, 0x5BF3BD);
 DEFINE_JUMP(LJMP, 0x5BF2BB, 0x5BF2C1); // Func unused in vanilla, but maybe someone will use it.
+
+#pragma region VoxelLightingFix
+
+// Fixes VoxelAnimClass::DrawIt and BulletClass::DrawAVXL VXL rendering
+// lacking proper double-light source (ambient + directional + specular)
+// that TechnoClass uses via sub_753D00, making them appear darker.
+
+ASMJIT_PATCH(0x749D97, VoxelAnimClass_DrawIt_LightingFix, 0x5)
+{
+	GET(VoxLib*, pVXL, EBP);
+	GET(Matrix3D*, pMatrix, EAX);
+	Drawing::SetupVoxelDoubleLighting(pVXL, 0, 0, pMatrix, Drawing::VoxelTransformMatrix.operator->(), Game::VoxelLightSource.operator->(), 3.0);
+	return 0x749DA8;
+}
+
+ASMJIT_PATCH(0x46B0E1, BulletClass_DrawAVXL_LightingFix, 0x5)
+{
+	GET(VoxLib*, pVXL, ESI);
+	GET(Matrix3D*, pMatrix, EAX);
+
+	Drawing::SetupVoxelDoubleLighting(pVXL, 0, 0, pMatrix, Drawing::VoxelTransformMatrix.operator->(), Game::VoxelLightSource.operator->(), 3.0);
+	R->Stack(STACK_OFFSET(0xF4, -0xDC), pVXL);
+	return 0x46B0F6;
+}
+
+#pragma endregion
