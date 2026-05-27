@@ -91,6 +91,8 @@ public:
 	AbstractClass* _GreatestThreat(ThreatType threatType, CoordStruct* pSelectCoords, bool onlyTargetHouseEnemy);
 	int _Mission_Sleep();
 
+	bool  __Unlimbo_Wrapper(const CoordStruct& coords, DirType facing);
+
 	int _Mission_ParadropOverfly();
 	int _Mission_ParadropApproach();
 	int _Mission_SpyPlaneOverfly();

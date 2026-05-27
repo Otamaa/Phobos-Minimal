@@ -4593,7 +4593,7 @@ bool NOINLINE TechnoExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* 
 			// a new one of the default type for this unit.
 			if (auto newLoco = LocomotionClass::CreateInstance(pToType->Locomotor))
 			{
-				newLoco->Link_To_Object(pThis);
+				newLoco->Link_To_Object((FootClass*)pThis);
 				((FootClass*)pThis)->Locomotor = std::move(newLoco);
 				//pThis->Override_Mission(prevMission, pTarget, pDest);
 			}
@@ -4610,7 +4610,7 @@ bool NOINLINE TechnoExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* 
 			// throw away old loco to ensure the new loco properties is properly adjusted
 			if (auto newLoco = LocomotionClass::CreateInstance(pToType->Locomotor))
 			{
-				newLoco->Link_To_Object(pThis);
+				newLoco->Link_To_Object((FootClass*)pThis);
 				((FootClass*)pThis)->Locomotor = std::move(newLoco);
 				((FootClass*)pThis)->Locomotor.GetInterfacePtr()->Move_To(pThis->Location);
 				pThis->Override_Mission(prevMission, pTarget, pDest);
@@ -13467,7 +13467,7 @@ TechnoExtData::~TechnoExtData()
 			if(pThis->WhatAmI() != BuildingClass::AbsID && !this->TypeExtData->Linked_SW.empty())
 				((FakeHouseClass*)pThis->Owner)->_AI_Supers();
 
-			if (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->IsGenericPrerequisite()) {
+			if (this->TypeExtData->IsGenericPrerequisite()) {
 				pThis->Owner->RecheckTechTree = true;
 			}
 		}

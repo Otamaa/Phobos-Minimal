@@ -63,92 +63,62 @@ ASMJIT_PATCH(0x6B7A6A, SpawnManagerClass_Update_CustomMissile2, 5)
 	return 0;
 }
 
-//new
-ASMJIT_PATCH(0x6B750B, SpawnManagerClass_Update_CustomMissilePreLauchAnim, 0x5)
+// new
+//#pragma optimize("", off )
+//ASMJIT_PATCH(0x41ADC0, AircraftClass_InWhichLayer_Crash, 0x9)
+//{
+//	GET(AircraftClass*, pThis, ECX);
+//	auto pLoco = pThis->Locomotor.GetInterfacePtr();
+//	R->EAX(pLoco->In_Which_Layer());
+//	return 0x41ADE4;
+//}
+
+ASMJIT_PATCH(0x6B7498, SpawnManagerClass_AI_Statte0_Handlestuffs, 0x8)
 {
+	GET(SpawnManagerClass*, pThis, ESI);
 	GET(AircraftClass*, pSpawned, EDI);
+	GET(CoordStruct*, pCoord, EAX);
 
-	if (pSpawned->Type->WhatAmI() == AbstractType::AircraftType) {
-		const auto pTypeExt = AircraftTypeExtContainer::Instance.Find((AircraftTypeClass*)pSpawned->Type);
+	auto pMissile = pThis->SpawnType;
+	auto animCoord = *pCoord;
+	const bool IsCMisl = pMissile == RulesClass::Instance->CMisl.Type;
+	const auto pExt = AircraftTypeExtContainer::Instance.Find(pMissile);
+	AnimTypeClass* _pAnim = nullptr;
 
-		if (pTypeExt->IsCustomMissile) {
-			if (AnimTypeClass* pType = pTypeExt->CustomMissilePreLauchAnim) {
-				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pSpawned->Location, 2, 1, 0x600, -10, false),
-					pSpawned->Owner,
-					nullptr,
-					pSpawned,
-					true, false
-				);
-			}
+	if (pExt->IsCustomMissile){
+		if(pExt->CustomMissileOffset.isset()){
+			animCoord.X -= pExt->CustomMissileOffset->X;
+			animCoord.Y -= pExt->CustomMissileOffset->Y;
+		}
+
+		_pAnim = pExt->CustomMissilePreLauchAnim;
+
+	} else if(IsCMisl) {
+		animCoord.X -= 28;
+		animCoord.Y -= 28;
+
+		_pAnim = AnimTypeClass::Find(GameStrings::V3TAKEOFF());
+	}
+
+	animCoord.Z += 10;
+
+	auto priFacing = pThis->Owner->PrimaryFacing.Current();
+	if(pSpawned->Unlimbo(animCoord, (DirType)priFacing.GetFacing<8>())){
+		if (_pAnim) {
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(_pAnim, pSpawned->Location, 2, 1, 0x600, -10, false),
+				pSpawned->Owner,
+				nullptr,
+				pSpawned->IsAlive ? pSpawned : nullptr,
+				true, false
+			);
 		}
 	}
 
-	if (pSpawned->Type == RulesClass::Instance->CMisl.Type) {
-		return 0x0;
-	} 
-
+	R->EBX(R->Stack<int>(0x14));
 	return 0x6B757A;
 }
-
-// new
-ASMJIT_PATCH(0x6B74BC, SpawnManagerClass_Update_MissileCoordOffset, 0x6)
-{
-	enum
-	{
-		OffsetBy28 = 0x6B74C4,
-		GetPrimaryFacing = 0x6B74DB
-	};
-
-	//GET(SpawnManagerClass*, pThis, ESI);
-	//GET(AircraftClass*, pSpawned, EDI);
-	GET(AircraftTypeClass* const, pMissile, EAX);
-
-	if (pMissile->WhatAmI() == AbstractType::AircraftType) {
-		const auto pExt = AircraftTypeExtContainer::Instance.Find(pMissile);
-
-		if (pExt->IsCustomMissile && pExt->CustomMissileOffset.isset())
-		{
-			R->Stack(0x2C, R->ECX<int>() - pExt->CustomMissileOffset->X);
-			R->Stack(0x30, R->EDX<int>() - pExt->CustomMissileOffset->Y);
-
-			return GetPrimaryFacing;
-		}
-	}
-
-	if(pMissile == RulesClass::Instance->CMisl.Type) {
-		return OffsetBy28;
-	}
-
-	return GetPrimaryFacing;
-}
+//#pragma optimize("", on )
 
 #pragma endregion
 
-ASMJIT_PATCH(0x6B7D50, SpawnManagerClass_CountDockedSpawns, 0x6)
-{
-	GET(SpawnManagerClass*, pThis, ECX);
-
-	int nCur = 0;
-	if(pThis) { // some function call this without checking , so here it is the check
-		for (auto const& pNode : pThis->SpawnedNodes)
-		{
-			const auto nStatus = pNode->Status;
-			const auto nEligible =
-				nStatus == SpawnNodeStatus::Idle
-				|| nStatus == SpawnNodeStatus::Reloading
-				|| nStatus == SpawnNodeStatus::Dead
-				// spawn timer should be updated somewhere ?
-				&& pNode->NodeSpawnTimer.IsNotActive();
-
-			if (nEligible)
-			{
-				++nCur;
-			}
-
-		}
-	}
-
-	R->EAX(nCur);
-	return 0x6B7D73;
-}
 #pragma endregion

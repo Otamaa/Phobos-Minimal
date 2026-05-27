@@ -44,6 +44,8 @@
     <ClCompile Include="src\Ext\Factory\Hooks.cpp" />
     <ClCompile Include="src\Ext\Infantry\Hooks.Assaulter.cpp" />
     <ClCompile Include="src\Ext\INI\Body.cpp" />
+    <ClCompile Include="src\Ext\Locomotion\Rocket\Hooks.CustomMissile.cpp" />
+    <ClCompile Include="src\Ext\Locomotion\Rocket\Hooks.RocketLocomotorClass.cpp" />
     <ClCompile Include="src\Ext\ObjectType\Body.cpp" />
     <ClCompile Include="src\Ext\Object\Body.cpp" />
     <ClCompile Include="src\Ext\Object\Hooks.cpp" />
@@ -353,7 +355,6 @@
     <ClCompile Include="src\Ext\Building\Hooks.BuildngFoundation.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.Bullet.cpp" />
     <ClCompile Include="src\Misc\Hooks.Checksummer.cpp" />
-    <ClCompile Include="src\Ext\Locomotion\Rocket\Hooks.CustomMissile.cpp" />
     <ClCompile Include="src\Ext\Ebolt\Hooks.EBolt.cpp" />
     <ClCompile Include="src\Misc\Hooks.Exception.cpp" />
     <ClCompile Include="src\Ext\SWType\Hooks.Firewall.cpp" />
@@ -387,7 +388,6 @@
     <ClCompile Include="src\Ext\ObjectType\Hooks.cpp" />
     <ClCompile Include="src\Ext\INI\Hooks.INIClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.cpp" />
-    <ClCompile Include="src\Ext\Locomotion\Rocket\Hooks.RocketLocomotorClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.Theaters.cpp" />
     <ClCompile Include="src\Misc\ImageSwapModules.cpp" />
     <ClCompile Include="src\Misc\Hooks.Render.cpp" />

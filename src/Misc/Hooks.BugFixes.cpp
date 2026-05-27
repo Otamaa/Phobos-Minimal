@@ -2635,22 +2635,23 @@ ASMJIT_PATCH(0x70D4FD, AbstractClass_ClearTargetToMe_ClearLastTarget, 0x6)
 // Related GitHub issue: https://github.com/Phobos-developers/Phobos/issues/1958
 
 #pragma region PrePlacedAircraftFix
+#include <Ext/Aircraft/Body.h>
 
 namespace PrePlacedAircraftFixTemp
 {
 	bool SkipCrashing;
 }
 
-static bool __fastcall AircraftClass_Unlimbo_Wrapper(AircraftClass* pThis, discard_t, const CoordStruct& coords, DirType facing)
+bool  FakeAircraftClass::__Unlimbo_Wrapper(const CoordStruct& coords, DirType facing)
 {
 	PrePlacedAircraftFixTemp::SkipCrashing = true;
-	bool retVal = pThis->Unlimbo(coords, facing);
+	bool retVal = this->AircraftClass::Unlimbo(coords, facing);
 	PrePlacedAircraftFixTemp::SkipCrashing = false;
 
 	return retVal;
 
 }
-DEFINE_FUNCTION_JUMP(CALL6, 0x41B39B, AircraftClass_Unlimbo_Wrapper);
+DEFINE_FUNCTION_JUMP(CALL6, 0x41B39B, FakeAircraftClass::__Unlimbo_Wrapper);
 
 ASMJIT_PATCH(0x4DEBC4, FootClass_Crash_PreplacedAircraft, 0x7)
 {
