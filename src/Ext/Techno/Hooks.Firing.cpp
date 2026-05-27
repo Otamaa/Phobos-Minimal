@@ -96,7 +96,11 @@ static void RunEndHook(TechnoClass* pThis, WeaponTypeClass* pWeapon)
 static void HandleAfterEffects(
 	TechnoClass* pThis, WeaponTypeClass* pWeapon, AbstractClass* pTarget)
 {
-	pThis->DecreaseAmmo();
+	// Only perform vanilla ammo deduction if the weapon does not explicitly opt out.
+	// Ammo=0 or Ammo<0 on the weapon type means no ammo should be consumed; the
+	// GetAmmo loop in TechnoExtData::DecreaseAmmo already handles positive values.
+	if (WeaponTypeExtContainer::Instance.Find(pWeapon)->Ammo > 0)
+		pThis->DecreaseAmmo();
 	pThis->Mark(MarkType::Change);
 
 	CoordStruct center = pThis->GetCoords();
