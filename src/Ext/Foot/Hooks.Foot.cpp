@@ -316,19 +316,6 @@ ASMJIT_PATCH(0x4D9A83, FootClass_PointerGotInvalid_OccupierVehicleThief, 0x6)
 
 #include <Locomotor/Cast.h>
 
-ASMJIT_PATCH(0x4DEC7F, FootClass_Crash_FallingDownFix, 0x7)
-{
-	GET(FootClass*, pThis, ESI);
-
-	if (pThis->IsFallingDown && !pThis->IsABomb && pThis->Locomotor)
-	{
-		if (const auto pJumpjet = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor))
-			pJumpjet->NextState = JumpjetLocomotionClass::State::Crashing;
-	}
-
-	return 0;
-}
-
 // update parasite coords along with the host
 ASMJIT_PATCH(0x4DB874, FootClass_SetLocation_Extra, 0xA)
 {

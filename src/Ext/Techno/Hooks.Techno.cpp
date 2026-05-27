@@ -787,38 +787,6 @@ ASMJIT_PATCH(0x4DF4DB, FootClass_RefreshMegaMission_CheckMissionFix, 0xA)
 	return clearMegaMission ? ClearMegaMission : ContinueMegaMission;
 }
 
-ASMJIT_PATCH(0x4DF410, FootClass_UpdateAttackMove_TargetAcquired, 0x6)
-{
-	GET(FootClass* const, pThis, ESI);
-
-	auto const pType = GET_TECHNOTYPE(pThis);
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	if (pThis->IsCloseEnoughToAttack(pThis->Target)
-		&& pTypeExt->AttackMove_StopWhenTargetAcquired.Get(RulesExtData::Instance()->AttackMove_StopWhenTargetAcquired.Get(!pType->OpportunityFire)))
-	{
-		if (auto const pJumpjetLoco = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor))
-		{
-			auto const crd = pThis->GetCoords();
-			pJumpjetLoco->HeadToCoord.X = crd.X;
-			pJumpjetLoco->HeadToCoord.Y = crd.Y;
-			pJumpjetLoco->Speed = 0;
-			pJumpjetLoco->__maxSpeed = 0;
-			pJumpjetLoco->NextState = JumpjetLocomotionClass::State::Hovering;
-			pThis->AbortMotion();
-		}
-		else
-		{
-			pThis->StopMoving();
-			pThis->AbortMotion();
-		}
-	}
-
-	if (pTypeExt->AttackMove_PursuitTarget)
-		pThis->SetDestination(pThis->Target, true);
-
-	return 0;
-}
 
 ASMJIT_PATCH(0x711E90, TechnoTypeClass_CanAttackMove_IgnoreWeapon, 0x6)
 {

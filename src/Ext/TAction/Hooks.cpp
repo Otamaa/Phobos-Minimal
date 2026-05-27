@@ -17,14 +17,6 @@
 #include <Utilities/Macro.h>
 #include <TriggerTypeClass.h>
 
-ASMJIT_PATCH(0x6E08DE, TActionClass_SellBack_LimboDelivered, 0x6)
-{
-	enum { forbidden = 0x6E0907, allow = 0x0 };
-
-	GET(BuildingClass*, pBld, ESI);
-	return BuildingExtContainer::Instance.Find(pBld)->LimboID >= 0 ?
-		forbidden : allow;
-}
 
 namespace RetintTemp
 {

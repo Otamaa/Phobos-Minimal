@@ -555,7 +555,7 @@ void FakeLaserDrawClass::_DrawLaser()
 			Point2D outerTgt0 = { ptTarget.X + off0.X, ptTarget.Y + off0.Y };
 
 			DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-				&DSurface::ViewBounds(), &outerSrc0, &outerTgt0,
+				DSurface::ViewBounds.operator->(), &outerSrc0, &outerTgt0,
 				&outerDrawColor, intensity, zSource, zTarget
 			);
 
@@ -563,14 +563,14 @@ void FakeLaserDrawClass::_DrawLaser()
 			Point2D outerTgt1 = { ptTarget.X + off1.X, ptTarget.Y + off1.Y };
 
 			DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-				&DSurface::ViewBounds(), &outerSrc1, &outerTgt1,
+				DSurface::ViewBounds.operator->(), &outerSrc1, &outerTgt1,
 				&outerDrawColor, intensity, zSource, zTarget
 			);
 
 			// Draw inner color center line
 			ColorStruct innerCopy = InnerColor;
 			DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-				&DSurface::ViewBounds(), &ptSource, &ptTarget,
+				DSurface::ViewBounds.operator->(), &ptSource, &ptTarget,
 				&innerCopy, intensity, zSource, zTarget
 			);
 		}
@@ -693,11 +693,11 @@ void FakeLaserDrawClass::_DrawLaser()
 			if (useHighQuality)
 			{
 				DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-					&DSurface::ViewBounds(), &line1Start, &line2Start,
+					DSurface::ViewBounds.operator->(), &line1Start, &line2Start,
 					&layerColor, intensity, zSource, zTarget
 				);
 				DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-					&DSurface::ViewBounds(), &line1End, &line2End,
+					DSurface::ViewBounds.operator->(), &line1End, &line2End,
 					&layerColor, intensity, zSource, zTarget
 				);
 			}
@@ -825,13 +825,13 @@ void FakeLaserDrawClass::_DrawInHouseColor()
 				if (useHighQuality)
 				{
 					DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-						&DSurface::ViewBounds(),
+						DSurface::ViewBounds.operator->(),
 						&line1Start, &line2Start,
 						&workingColor, intensity,
 						zSource, zTarget
 					);
 					DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-						&DSurface::ViewBounds(),
+						DSurface::ViewBounds.operator->(),
 						&line1End, &line2End,
 						&workingColor, intensity,
 						zSource, zTarget
@@ -924,7 +924,7 @@ void FakeLaserDrawClass::_DrawInHouseColor()
 		if (useHighQuality)
 		{
 			DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-				&DSurface::ViewBounds(),
+				DSurface::ViewBounds.operator->(),
 				&ptSource, &ptTarget,
 				&centerColor, intensity,
 				zSource, zTarget
