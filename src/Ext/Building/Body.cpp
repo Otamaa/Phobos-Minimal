@@ -2510,9 +2510,8 @@ int FakeBuildingClass::_BuildingClass_GetRangeOfRadial()
 				const int range = WeaponTypeExtData::GetRangeWithModifiers(pWeapon->WeaponType, this);
 				if(range > 0)
 					return range / 256;
-			} else {
-				return 0;
 			}
+			return 0;
 		}
 	}
 

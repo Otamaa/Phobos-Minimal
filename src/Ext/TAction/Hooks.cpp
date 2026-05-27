@@ -19,6 +19,9 @@
 
 ASMJIT_PATCH(0x6E08DE, TActionClass_SellBack_LimboDelivered, 0x6)
 {
+	// NOTE: TriggerAction::SellBuilding is now fully overridden in _OverrideOriginalActions (Body.cpp),
+	// which already skips buildings with LimboID >= 0. This native patch is therefore unreachable
+	// via the normal TAction dispatch path but is kept intact per project policy.
 	enum { forbidden = 0x6E0907, allow = 0x0 };
 
 	GET(BuildingClass*, pBld, ESI);

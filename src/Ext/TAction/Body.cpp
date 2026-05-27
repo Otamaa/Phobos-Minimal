@@ -34,6 +34,11 @@
 #include <New/MessageHandler/MessageColumnClass.h>
 
 #include <TriggerTypeClass.h>
+#include <InfantryClass.h>
+#include <ParticleSystemClass.h>
+#include <ParticleSystemTypeClass.h>
+#include <Ext/Building/Body.h>
+#include <ThemeClass.h>
 
 //Static init
 #include <TagClass.h>
@@ -70,6 +75,9 @@ TActionExtData::ExtContainer TActionExtData::ExtMap;
 //==============================
 bool TActionExtData::AdjustHouseModifier(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
+	if (!pHouse)
+		return false;
+
 	const int amount = pThis->Param3;
 
 	switch (pThis->Value)
@@ -103,6 +111,9 @@ bool TActionExtData::AdjustHouseModifier(TActionClass* pThis, HouseClass* pHouse
 
 bool TActionExtData::AllChangeHouse(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
+	if (!pHouse)
+		return false;
+
 	bool changed = false;
 	if (pTrigger) {
 		if (HouseClass* NewOwnerPtr = TEventExtData::ResolveHouseParam(pThis->Value, pTrigger->GetHouse())) {
@@ -155,10 +166,10 @@ bool TActionExtData::ChangeHouse(TActionClass* pThis, HouseClass* pHouse, Object
 				if (!pItem)
 					continue;
 
-				Debug::Log("ChangeOwner for [%s] from [%x] with param3 [%d] [ %s(%x) -> %s(%x) ]\n", pItem->get_ID(), pThis, pThis->Param3, pItem->Owner->get_ID(), pItem->Owner, NewOwnerPtr->get_ID(), NewOwnerPtr);
-
 				if (!pItem->IsAlive || pItem->Health <= 0 || pItem->InLimbo || !pItem->IsOnMap)
 					continue;
+
+				Debug::Log("ChangeOwner for [%s] from [%x] with param3 [%d] [ %s(%x) -> %s(%x) ]\n", pItem->get_ID(), pThis, pThis->Param3, pItem->Owner->get_ID(), pItem->Owner, NewOwnerPtr->get_ID(), NewOwnerPtr);
 
 				if (pItem->AttachedTag && pItem->AttachedTag->ContainsTrigger(pTrigger)) {
 					pItem->SetOwningHouse(NewOwnerPtr, false);
@@ -617,6 +628,9 @@ bool TActionExtData::SetAllOwnedFootDestinationTo(TActionClass* pThis, HouseClas
 
 	const auto pCell = MapClass::Instance->TryGetCellAt(nBufer);
 
+	if (!pCell)
+		return true;
+
 	for (auto pFoot : *FootClass::Array) {
 		if (pFoot->Owner == pOwner) {
 			pFoot->SetDestination(pCell, false);
@@ -884,6 +898,9 @@ bool NOINLINE TActionExtData::Occured(TActionClass* pThis, ActionArgs const& arg
 
 bool TActionExtData::EditAngerNode(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
+	if (!pHouse)
+		return false;
+
 	auto setValue = [pThis, pHouse](HouseClass* pTargetHouse)
 		{
 			if (!pTargetHouse || pHouse == pTargetHouse ||
@@ -901,8 +918,8 @@ bool TActionExtData::EditAngerNode(TActionClass* pThis, HouseClass* pHouse, Obje
 				case 1: { pAngerNode.AngerLevel += pThis->Param4; break; }
 				case 2: { pAngerNode.AngerLevel -= pThis->Param4; break; }
 				case 3: { pAngerNode.AngerLevel *= pThis->Param4; break; }
-				case 4: { pAngerNode.AngerLevel /= pThis->Param4; break; }
-				case 5: { pAngerNode.AngerLevel %= pThis->Param4; break; }
+				case 4: { if (pThis->Param4 != 0) pAngerNode.AngerLevel /= pThis->Param4; break; }
+				case 5: { if (pThis->Param4 != 0) pAngerNode.AngerLevel %= pThis->Param4; break; }
 				case 6: { pAngerNode.AngerLevel <<= pThis->Param4; break; }
 				case 7: { pAngerNode.AngerLevel >>= pThis->Param4; break; }
 				case 8: { pAngerNode.AngerLevel = ~pAngerNode.AngerLevel; break; }
@@ -969,7 +986,13 @@ bool TActionExtData::ClearAngerNode(TActionClass* pThis, HouseClass* pHouse, Obj
 
 bool TActionExtData::SetForceEnemy(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
+	if (!pHouse)
+		return false;
+
 	auto const pHouseExt = HouseExtContainer::Instance.Find(pHouse);
+
+	if (!pHouseExt)
+		return false;
 
 	if (pThis->Param3 >= 0 || pThis->Param3 == -2)
 	{
@@ -2384,6 +2407,7 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 		{
 			pTrigOwner->Production = true;
 			ret = true;
+			return true;
 		}
 
 		ret = false;
@@ -2416,6 +2440,7 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 		{
 			pTrigOwner->All_To_Hunt();
 			ret = true;
+			return true;
 		}
 
 		ret = false;
@@ -2427,6 +2452,7 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 		if (auto pTeam = pThis->TeamType)
 		{
 			ret = TeamTypeClass::DoReinforcement(pTeam, -1);
+			return true;
 		}
 
 		ret = false;
@@ -2452,6 +2478,7 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 		{
 			pTrigOwner->AIMode = AIMode::SellAll;
 			ret = true;
+			return true;
 		}
 
 		ret = false;
@@ -2517,8 +2544,8 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 	case TriggerAction::CreateCrate:
 	{
 		const CellStruct waypointCell = ScenarioExtData::Instance()->Waypoints[pThis->Waypoint];
-		const auto placed = MapClass::Instance->Place_Crate(waypointCell, (PowerupEffects)pThis->Value);
-		return placed;
+		ret = MapClass::Instance->Place_Crate(waypointCell, (PowerupEffects)pThis->Value);
+		return true;
 	}
 	case TriggerAction::TextTrigger:
 	{
@@ -2667,6 +2694,743 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 	case TriggerAction::AllChangeHouse:
 	{
 		ret = TActionExtData::AllChangeHouse(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::SellBuilding:
+	{
+		// Replicates native behavior + integrates LimboID fix from ASMJIT_PATCH(0x6E08DE) in Hooks.cpp
+		if (!pTrigger)
+			return true;
+		for (auto pBld : *BuildingClass::Array)
+		{
+			if (!pBld || !pBld->IsAlive || !pBld->IsOnMap || pBld->InLimbo)
+				continue;
+			if (!pBld->AttachedTag || !pBld->AttachedTag->ContainsTrigger(pTrigger))
+				continue;
+			if (BuildingExtContainer::Instance.Find(pBld)->LimboID >= 0)
+				continue;
+			pBld->Sell(1);
+		}
+		return true;
+	}
+	case TriggerAction::TurnOffBuilding:
+	{
+		if (!pTrigger)
+			return true;
+		for (auto pBld : *BuildingClass::Array)
+		{
+			if (!pBld || !pBld->IsAlive || !pBld->IsOnMap || pBld->InLimbo)
+				continue;
+			if (!pBld->HasPower)
+				continue;
+			if (!pBld->AttachedTag || !pBld->AttachedTag->ContainsTrigger(pTrigger))
+				continue;
+			pBld->HasPower = false;
+			pBld->UpdatePowerDown();
+		}
+		return true;
+	}
+	case TriggerAction::TurnOnBuilding:
+	{
+		if (!pTrigger)
+			return true;
+		for (auto pBld : *BuildingClass::Array)
+		{
+			if (!pBld || !pBld->IsAlive || !pBld->IsOnMap || pBld->InLimbo)
+				continue;
+			if (pBld->HasPower)
+				continue;
+			if (!pBld->AttachedTag || !pBld->AttachedTag->ContainsTrigger(pTrigger))
+				continue;
+			pBld->HasPower = true;
+			pBld->UpdatePowerDown();
+		}
+		return true;
+	}
+	case TriggerAction::Apply100Damage:
+	{
+		auto const cell = ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint);
+		auto coord = CellClass::Cell2Coord(cell);
+		coord.Z = MapClass::Instance->GetCellFloorHeight(coord);
+		auto const pWarhead = RulesClass::Instance->C4Warhead;
+		if (!pWarhead)
+			return true;
+		constexpr int damage = 100;
+		DamageArea::Apply(&coord, damage, nullptr, pWarhead, true, nullptr);
+		CoordStruct offsets[4] =
+		{
+			{ coord.X + 85, coord.Y + 85, coord.Z },
+			{ coord.X - 85, coord.Y + 85, coord.Z },
+			{ coord.X + 85, coord.Y - 85, coord.Z },
+			{ coord.X - 85, coord.Y - 85, coord.Z },
+		};
+		for (auto& off : offsets)
+		{
+			off.Z = MapClass::Instance->GetCellFloorHeight(off);
+			DamageArea::Apply(&off, damage, nullptr, pWarhead, true, nullptr);
+		}
+		return true;
+	}
+	case TriggerAction::SmallLightFlash:
+	{
+		auto const cell = ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint);
+		auto coord = CellClass::Cell2Coord(cell);
+		coord.Z = MapClass::Instance->GetCellFloorHeight(coord);
+		MapClass::FlashbangWarheadAt(50, RulesClass::Instance->C4Warhead, coord);
+		return true;
+	}
+	case TriggerAction::MediumLightFlash:
+	{
+		auto const cell = ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint);
+		auto coord = CellClass::Cell2Coord(cell);
+		coord.Z = MapClass::Instance->GetCellFloorHeight(coord);
+		MapClass::FlashbangWarheadAt(100, RulesClass::Instance->C4Warhead, coord);
+		return true;
+	}
+	case TriggerAction::LargeLightFlash:
+	{
+		auto const cell = ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint);
+		auto coord = CellClass::Cell2Coord(cell);
+		coord.Z = MapClass::Instance->GetCellFloorHeight(coord);
+		MapClass::FlashbangWarheadAt(300, RulesClass::Instance->C4Warhead, coord);
+		return true;
+	}
+	case TriggerAction::AnnounceWin:
+	{
+		// Bug fix: native vtable entry shares address with Win (0x6E0440); override to force unconditional win
+		HouseClass::CurrentPlayer->Win(true);
+		return true;
+	}
+	case TriggerAction::AnnounceLose:
+	{
+		// Bug fix: native vtable entry shares address with Lose (0x6E0460); override to force unconditional lose
+		HouseClass::CurrentPlayer->Lose(true);
+		return true;
+	}
+	case TriggerAction::ForceEnd:
+	{
+		HouseClass::CurrentPlayer->ForceEnd();
+		return true;
+	}
+	case TriggerAction::WakeupSelf:
+	{
+		if (!pTrigger)
+			return true;
+		for (auto pTechno : *TechnoClass::Array)
+		{
+			if (!pTechno || pTechno->WhatAmI() == AbstractType::Building)
+				continue;
+			if (!pTechno->IsAlive || !pTechno->IsOnMap || pTechno->InLimbo)
+				continue;
+			if (!pTechno->AttachedTag || !pTechno->AttachedTag->ContainsTrigger(pTrigger))
+				continue;
+			auto const mission = pTechno->CurrentMission;
+			if (mission == Mission::Sleep || mission == Mission::Harmless)
+			{
+				pTechno->QueueMission(Mission::Guard, false);
+				pTechno->NextMission();
+			}
+		}
+		return true;
+	}
+	case TriggerAction::WakeupAllSleepers:
+	{
+		// Wake sleeping foot units belonging to houses OTHER than the trigger owner
+		for (auto pFoot : *FootClass::Array)
+		{
+			if (!pFoot || !pFoot->IsAlive || !pFoot->IsOnMap || pFoot->InLimbo)
+				continue;
+			if (pFoot->Owner == pTargetHouse)
+				continue;
+			if (pFoot->CurrentMission == Mission::Sleep)
+			{
+				pFoot->QueueMission(Mission::Guard, false);
+				pFoot->NextMission();
+			}
+		}
+		return true;
+	}
+	case TriggerAction::WakeupAllHarmless:
+	{
+		// Wake harmless foot units belonging to the SAME house as the trigger owner
+		for (auto pFoot : *FootClass::Array)
+		{
+			if (!pFoot || !pFoot->IsAlive || !pFoot->IsOnMap || pFoot->InLimbo)
+				continue;
+			if (pFoot->Owner != pTargetHouse)
+				continue;
+			if (pFoot->CurrentMission == Mission::Harmless)
+			{
+				pFoot->QueueMission(Mission::Guard, false);
+				pFoot->NextMission();
+			}
+		}
+		return true;
+	}
+	case TriggerAction::WakeupGroup:
+	{
+		// pThis->Value = group index (0-9); wake all sleeping/harmless technos in that group
+		for (auto pTechno : *TechnoClass::Array)
+		{
+			if (!pTechno || !pTechno->IsAlive || !pTechno->IsOnMap || pTechno->InLimbo)
+				continue;
+			if (pTechno->Group != pThis->Value)
+				continue;
+			auto const mission = pTechno->CurrentMission;
+			if (mission == Mission::Sleep || mission == Mission::Harmless)
+			{
+				pTechno->QueueMission(Mission::Guard, false);
+				pTechno->NextMission();
+			}
+		}
+		return true;
+	}
+	case TriggerAction::VeinGrowth:
+	{
+		ScenarioClass::Instance->VeinGrowthEnabled = pThis->Value != 0;
+		return true;
+	}
+	case TriggerAction::TiberiumGrowth:
+	{
+		ScenarioClass::Instance->TiberiumGrowthEnabled = pThis->Value != 0;
+		return true;
+	}
+	case TriggerAction::IceGrowth:
+	{
+		ScenarioClass::Instance->IceGrowthEnabled = pThis->Value != 0;
+		return true;
+	}
+	case TriggerAction::ParticleAnim:
+	{
+		// pThis->Value = ParticleSystemType index; pThis->Waypoint = waypoint
+		auto const typeIdx = pThis->Value;
+		if (typeIdx < 0 || typeIdx >= ParticleSystemTypeClass::Array->Count)
+			return true;
+		auto const pType = ParticleSystemTypeClass::Array->Items[typeIdx];
+		auto const cell = ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint);
+		auto coord = CellClass::Cell2Coord(cell);
+		coord.Z = MapClass::Instance->GetCellFloorHeight(coord);
+		CoordStruct emptyCoord{};
+		GameCreate<ParticleSystemClass>(pType, &coord, nullptr, nullptr, &emptyCoord, nullptr);
+		return true;
+	}
+	case TriggerAction::RemoveParticleAnim:
+	{
+		// Remove all particle systems whose location maps to the waypoint cell
+		auto const wayCell = ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint);
+		auto& pss = *ParticleSystemClass::Array;
+		for (int i = 0; i < pss.Count; )
+		{
+			auto const pPS = pss.Items[i];
+			if (CellClass::Coord2Cell(pPS->Location) == wayCell)
+				pPS->UnInit();
+			else
+				++i;
+		}
+		return true;
+	}
+	case TriggerAction::GoBerzerk:
+	{
+		// Make all tagged infantry permanently berserk
+		if (!pTrigger)
+			return true;
+		for (auto pInfantry : *InfantryClass::Array)
+		{
+			if (!pInfantry || !pInfantry->IsAlive || !pInfantry->IsOnMap || pInfantry->InLimbo)
+				continue;
+			if (!pInfantry->AttachedTag || !pInfantry->AttachedTag->ContainsTrigger(pTrigger))
+				continue;
+			pInfantry->PermanentBerzerk = true;
+			pInfantry->GoBerzerk();
+		}
+		return true;
+	}
+	// -------------------------------------------------------------------------
+	// Phase 2 — backported from TActionClass::operator() pseudocode
+	// -------------------------------------------------------------------------
+	case TriggerAction::GlobalSet:
+	{
+		ScenarioClass::Instance->GlobalVarChange(pThis->Value, true);
+		return true;
+	}
+	case TriggerAction::GlobalClear:
+	{
+		ScenarioClass::Instance->GlobalVarChange(pThis->Value, false);
+		return true;
+	}
+	case TriggerAction::PreferredTarget:
+	{
+		if (pTargetHouse)
+			pTargetHouse->PreferredTargetType = (QuarryType)pThis->Value;
+		return true;
+	}
+	case TriggerAction::AutocreateBegins:
+	{
+		auto const pHouse = TEventExtData::ResolveHouseParam(pThis->Value, pTrigger ? pTrigger->House : nullptr);
+		if (pHouse)
+			pHouse->AutocreateAllowed = true;
+		return true;
+	}
+	case TriggerAction::MakeAlly:
+	{
+		auto const pHouseB = TEventExtData::ResolveHouseParam(pThis->Value, pTrigger ? pTrigger->House : nullptr);
+		if (pTargetHouse && pHouseB)
+		{
+			pTargetHouse->MakeAlly(pHouseB, false);
+			pHouseB->MakeAlly(pTargetHouse, false);
+		}
+		return true;
+	}
+	case TriggerAction::MakeEnemy:
+	{
+		auto const pHouseB = TEventExtData::ResolveHouseParam(pThis->Value, pTrigger ? pTrigger->House : nullptr);
+		if (pTargetHouse && pHouseB)
+		{
+			pTargetHouse->MakeEnemy(pHouseB, false);
+			pHouseB->MakeEnemy(pTargetHouse, false);
+		}
+		return true;
+	}
+	case TriggerAction::TimerStart:
+	{
+		ScenarioClass::Instance->MissionTimer.Resume();
+		MapClass::Instance->RedrawSidebar(1);
+		return true;
+	}
+	case TriggerAction::TimerStop:
+	{
+		ScenarioClass::Instance->MissionTimer.Pause();
+		MapClass::Instance->RedrawSidebar(1);
+		return true;
+	}
+	case TriggerAction::TimerExtend:
+	{
+		ScenarioClass::Instance->MissionTimer.Add(15 * pThis->Value);
+		MapClass::Instance->RedrawSidebar(1);
+		return true;
+	}
+	case TriggerAction::TimerShorten:
+	{
+		auto& timer = ScenarioClass::Instance->MissionTimer;
+		const int newTime = std::max(0, timer.GetTimeLeft() - (15 * pThis->Value));
+		if (timer.IsTicking())
+			timer.Start(newTime);
+		else
+			timer.TimeLeft = newTime;
+		MapClass::Instance->RedrawSidebar(1);
+		return true;
+	}
+	case TriggerAction::TimerSet:
+	{
+		ScenarioClass::Instance->MissionTimer.Start(15 * pThis->Value);
+		ScenarioClass::Instance->MissionTimerTextCSF = nullptr;
+		ScenarioClass::Instance->MissionTimerText[0] = '\0';
+		MapClass::Instance->RedrawSidebar(1);
+		return true;
+	}
+	case TriggerAction::TimerText:
+	{
+		ScenarioClass::Instance->MissionTimerTextCSF =
+			pThis->Text[0] ? const_cast<wchar_t*>(StringTable::FetchString(pThis->Text)) : nullptr;
+		return true;
+	}
+	case TriggerAction::PlaySoundEffect:
+	{
+		VocClass::PlayGlobal(pThis->Value, Panning::Center, 1.0f, nullptr);
+		return true;
+	}
+	case TriggerAction::PlayMusicTheme:
+	{
+		ThemeClass::Instance->Queue(pThis->Value);
+		return true;
+	}
+	case TriggerAction::ReduceTiberium:
+	{
+		auto const waycell = ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint);
+		if (auto const pCell = MapClass::Instance->GetCellAt(waycell))
+			pCell->ReduceTiberiumWithinCircularArea();
+		return true;
+	}
+	case TriggerAction::RevealAroundWaypoint:
+	{
+		if (!ScenarioClass::Instance->IsDefinedWaypoint(pThis->Waypoint))
+			return true;
+		auto const waycell = ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint);
+		auto coord = CellClass::Cell2Coord(waycell);
+		coord.Z = MapClass::Instance->GetCellFloorHeight(coord);
+		const int radius = RulesClass::Instance->RevealTriggerRadius;
+		MapClass::Instance->RevealArea2(&coord, radius, HouseClass::CurrentPlayer, false, false, false, true, 0);
+		MapClass::Instance->RevealArea2(&coord, radius, HouseClass::CurrentPlayer, false, false, false, true, 1);
+		return true;
+	}
+	case TriggerAction::RevealAllMap:
+	{
+		HouseClass::CurrentPlayer->Visionary = 1;
+		MapClass::Instance->Reveal(HouseClass::CurrentPlayer);
+		return true;
+	}
+	// --- native delegates: no direct YRpp bindings available ---
+	case TriggerAction::AutoBaseBuilding:
+	{
+		ret = pThis->AutoBaseBuilding(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::GrowShroud:
+	{
+		ret = pThis->GrowShroud(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::DestroyAttachedObject:
+	{
+		ret = pThis->DestroyAttachedObject(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::AddOneTimeSuperWeapon:
+	{
+		ret = pThis->AddOneTimeSuperWeapon(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::AddRepeatingSuperWeapon:
+	{
+		ret = pThis->AddRepeatingSuperWeapon(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::ResizePlayerView:
+	{
+		ret = pThis->ResizePlayerView(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::RevealWaypointZone:
+	{
+		ret = pThis->RevealWaypointZone(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::ReshroudMapAtWaypoint:
+	{
+		ret = pThis->ReshroudMapAtWaypoint(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::PlayIngameMovie:
+	{
+		ret = pThis->PlayIngameMovie(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::PlayIngameMovieAndPause:
+	{
+		ret = pThis->PlayIngameMovieAndPause(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::StopSounds:
+	{
+		ret = pThis->StopSounds(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::TeleportAll:
+	{
+		ret = pThis->TeleportAll(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::MindControlBase:
+	{
+		ret = pThis->MindControlBase(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::RestoreMindControlledBase:
+	{
+		ret = pThis->RestoreMindControlledBase(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::ReinforcementAt:
+	{
+		ret = pThis->ReinforcementAt(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	// -------------------------------------------------------------------------
+	// Phase 3 — backported from TActionClass pseudocode
+	// -------------------------------------------------------------------------
+	case TriggerAction::DestroyTrigger:
+	{
+		ret = pThis->DestroyTrigger(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::ForceTrigger:
+	{
+		ret = pThis->ForceTrigger(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::CreateVoxelAnim:
+	{
+		ret = pThis->CreateVoxelAnim(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::IonStormStart:
+	{
+		ret = pThis->IonStormStart(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::IonStormStop:
+	{
+		ret = pThis->IonStormStop(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::LockInput:
+	{
+		ret = pThis->LockInput(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::MoveCameraToWaypoint:
+	{
+		ret = pThis->MoveCameraToWaypoint(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::CenterCameraAtWaypoint:
+	{
+		ret = pThis->CenterCameraAtWaypoint(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::JumpCameraHome:
+	{
+		ret = pThis->JumpCameraHome(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::ZoomIn:
+	{
+		ret = pThis->ZoomIn(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::ZoomOut:
+	{
+		ret = pThis->ZoomOut(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::ReshroudMap:
+	{
+		MapClass::Instance->Reshroud(pTargetHouse);
+		return true;
+	}
+	case TriggerAction::ChangeLightBehavior:
+	{
+		ret = pThis->ChangeLightBehavior(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::EnableTrigger:
+	{
+		ret = pThis->EnableTrigger(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::DisableTrigger:
+	{
+		ret = pThis->DisableTrigger(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::CreateRadarEvent:
+	{
+		ret = pThis->CreateRadarEvent(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::LocalSet:
+	{
+		ScenarioClass::Instance->LocalVarChange(pThis->Value, true);
+		return true;
+	}
+	case TriggerAction::LocalClear:
+	{
+		ScenarioClass::Instance->LocalVarChange(pThis->Value, false);
+		return true;
+	}
+	case TriggerAction::DestroyTag:
+	{
+		ret = pThis->DestroyTag(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::SetAmbientStep:
+	{
+		ret = pThis->SetAmbientStep(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::SetAmbientRate:
+	{
+		ret = pThis->SetAmbientRate(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::SetAmbientLight:
+	{
+		ret = pThis->SetAmbientLight(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::AITriggersBegin:
+	{
+		ret = pThis->AITriggersBegin(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::AITriggersStop:
+	{
+		ret = pThis->AITriggersStop(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::MakeHouseCheer:
+	{
+		ret = pThis->MakeHouseCheer(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::RestoreStartingUnits:
+	{
+		ret = pThis->RestoreStartingUnits(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::RestoreStartingBuildings:
+	{
+		ret = pThis->RestoreStartingBuildings(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::RatioOfAITriggerTeams:
+	{
+		ret = pThis->RatioOfAITriggerTeams(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::RatioOfTeamAircraft:
+	{
+		ret = pThis->RatioOfTeamAircraft(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::RatioOfTeamInfantry:
+	{
+		ret = pThis->RatioOfTeamInfantry(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::RatioOfTeamUnits:
+	{
+		ret = pThis->RatioOfTeamUnits(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::IonCannonStrike:
+	{
+		ret = pThis->IonCannonStrike(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::ToggleTrainCargo:
+	{
+		ScenarioClass::Instance->TrainCrate = !ScenarioClass::Instance->TrainCrate;
+		return true;
+	}
+	case TriggerAction::LightningStormStrike:
+	{
+		ret = pThis->LightningStormStrike(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::IronCurtain:
+	{
+		ret = pThis->IronCurtain(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::SetObjectTechLevel:
+	{
+		ret = pThis->SetObjectTechLevel(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::ReinforcementByChrono:
+	{
+		ret = pThis->ReinforcementByChrono(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::PauseGame:
+	{
+		ret = pThis->PauseGame(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::EvictOccupiers:
+	{
+		ret = pThis->EvictOccupiers(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::SetTabTo:
+	{
+		ret = pThis->SetTabTo(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::FlashCameo:
+	{
+		ret = pThis->FlashCameo(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::FlashTeam:
+	{
+		ret = pThis->FlashTeam(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::TalkBubble:
+	{
+		ret = pThis->TalkBubble(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::ClearAllSmudges:
+	{
+		ret = pThis->ClearAllSmudges(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::StartChronoScreenEffect:
+	{
+		ret = pThis->StartChronoScreenEffect(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::SetSuperWeaponCharge:
+	{
+		ret = pThis->SetSuperWeaponCharge(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::FlashBuildingsOfType:
+	{
+		ret = pThis->FlashBuildingsOfType(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::SuperWeaponSetRechargeTime:
+	{
+		ret = pThis->SuperWeaponSetRechargeTime(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::SuperWeaponResetRechargeTime:
+	{
+		ret = pThis->SuperWeaponResetRechargeTime(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::SuperWeaponReset:
+	{
+		ret = pThis->SuperWeaponReset(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::SetPreferredTargetCell:
+	{
+		ret = pThis->SetPreferredTargetCell(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::ClearPreferredTargetCell:
+	{
+		ret = pThis->ClearPreferredTargetCell(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::SetBaseCenterCell:
+	{
+		ret = pThis->SetBaseCenterCell(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::ClearBaseCenterCell:
+	{
+		ret = pThis->ClearBaseCenterCell(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::BlackoutRadar:
+	{
+		ret = pThis->BlackoutRadar(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::SetDefensiveTargetCell:
+	{
+		ret = pThis->SetDefensiveTargetCell(pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::ClearDefensiveTargetCell:
+	{
+		ret = pThis->ClearDefensiveTargetCell(pTargetHouse, pSourceObject, pTrigger, plocation);
 		return true;
 	}
 	default:

@@ -957,17 +957,16 @@ bool HandleEntryEvents(TEventClass* evt, TriggerEvent event, ObjectClass* obj, b
 		return false;
 	}
 
-	auto country = TEventExtData::ResolveHouseParam(evt->Value);
-
-	if (!country) {
-		return false;
-	}
-
 	if (!obj) {
 		return false;
 	}
 
+	// Pseudocode: Value==-1 means any house (no filter). Only resolve and check when Value!=-1.
 	if (evt->Value != -1) {
+		auto country = TEventExtData::ResolveHouseParam(evt->Value);
+		if (!country) {
+			return false;
+		}
 		if (obj->GetOwningHouseIndex() != country->ArrayIndex) {
 			return false;
 		}
@@ -1146,7 +1145,7 @@ bool HandleHouseEvents(TEventClass* evt, HouseClass* house, bool* bool1)
 		}
 		break;
 	default:
-		return true;
+		return false;
 	}
 
 	return false;
@@ -1156,10 +1155,11 @@ bool HandleValue2HouseEvents(TEventClass* evt)
 {
 	HouseClass* targetHouse = TEventExtData::ResolveHouseParam(evt->Value);
 
-	// continue normally if a house was found or this isn't Player@X logic,
-	// otherwise return false directly so events don't fire for non-existing
-	// players.
-	if(targetHouse || !HouseClass::Index_IsMP(evt->Value)){
+	// Enter switch only if the house was resolved. For Player@X slots that
+	// don't exist, return false. For any other unresolved house (Value == -1
+	// or invalid country), fall through to return true (matches original).
+	if (targetHouse)
+	{
 		switch (evt->EventKind)
 		{
 		case TriggerEvent::ThievedBy:
@@ -1217,11 +1217,13 @@ bool HandleValue2HouseEvents(TEventClass* evt)
 		default:
 			break;
 		}
-
-		return true;
+	}
+	else if (HouseClass::Index_IsMP(evt->Value))
+	{
+		return false;
 	}
 
-	return false;
+	return true;
 }
 
 bool HandleDefaultEvents(
@@ -1234,10 +1236,12 @@ bool HandleDefaultEvents(
 {
 
 	// Constexpr lookup table for events that require exact event matching
+	// Pseudocode: build events (19-22) are explicitly excluded from the event-match gate
+	// via an outer `if (type != BUILD_*) { switch ... }` block - they check house fields directly.
 	static constexpr bool RequiresEventMatch[static_cast<int>(TriggerEvent::count)] = {
 		false, true,  true,  true,  true,  false, true,  true,  false, false, // 0-9
-		false, false, false, false, false, false, false, false, true,  true,  // 10-19
-		true,  true,  true,  true,  true,  true,  true,  false, false, true,  // 20-29
+		false, false, false, false, false, false, false, false, true,  false, // 10-19
+		false, false, false, true,  true,  true,  true,  false, false, true,  // 20-29
 		false, true,  false, true,  true,  true,  false, false, true,  true,  // 30-39
 		true,  true,  true,  true,  true,  false, false, false, true,  true,  // 40-49
 		true,  false, false, true,  true,  false, false, false, false, true,  // 50-59
@@ -1292,16 +1296,35 @@ bool HandleDefaultEvents(
 		break;
 	}
 
-	// Handle house-specific events
+	// House-section events: if the house condition fails, return false immediately.
+	// Non-house-section events (ThievedBy, HouseDiscovered, DestroyedUnitsAll, etc.)
+	// skip the house check entirely and go straight to the Value2 house check.
 	if (house)
 	{
-		if (HandleHouseEvents(evt, house, bool1))
+		switch (evt->EventKind)
 		{
-			return true;
+		case TriggerEvent::CreditsExceed:
+		case TriggerEvent::DestroyedBuildingsNum:
+		case TriggerEvent::DestroyedUnitsNum:
+		case TriggerEvent::NoFactoriesLeft:
+		case TriggerEvent::CiviliansEvacuated:
+		case TriggerEvent::BuildBuildingType:
+		case TriggerEvent::BuildUnitType:
+		case TriggerEvent::BuildInfantryType:
+		case TriggerEvent::BuildAircraftType:
+		case TriggerEvent::TeamLeavesMap:
+		case TriggerEvent::BuildingExists:
+		case TriggerEvent::CreditsBelow:
+		case TriggerEvent::BuildingDoesNotExist:
+			if (!HandleHouseEvents(evt, house, bool1))
+				return false;
+			break;
+		default:
+			break;
 		}
 	}
 
-	// Handle Value2 house events
+	// Value2 house check (original LABEL_122)
 	return HandleValue2HouseEvents(evt);
 }
 
@@ -1328,26 +1351,31 @@ bool FakeTEventClass::_Occured(TriggerEvent event, HouseClass* house, ObjectClas
 	{
 	case TriggerEvent::ElapsedTime:
 	case TriggerEvent::RandomDelay:
-		return td->Expired();
+		// Pseudocode: if Started==-1 return (DelayTime==0); else return (Frame-Started >= DelayTime)
+		// Expired() returns true for any non-ticking timer regardless of TimeLeft, which is wrong
+		// when the timer hasn't started but still has time remaining.
+		return td->GetTimeLeft() <= 0;
 
 	case TriggerEvent::MissionTimerExpired:
-		return ScenarioClass::Instance->MissionTimer.Expired();
+		// Pseudocode: if Started==-1 return false; else return (Frame-Started >= DelayTime)
+		// Expired() returns true when not ticking, but original returns false when not started.
+		return ScenarioClass::Instance->MissionTimer.Completed();
 
 	case TriggerEvent::GlobalSet:
 		ScenarioClass::Instance->GetGlobalVarValue_ptr(this->Value, bool1);
-		return bool1 != 0;
+		return *bool1;
 
 	case TriggerEvent::GlobalCleared:
 		ScenarioClass::Instance->GetGlobalVarValue_ptr(this->Value, bool1);
-		return bool1 == 0;
+		return !*bool1;
 
 	case TriggerEvent::LocalSet:
 		ScenarioClass::Instance->GetLocalVarValue_ptr(this->Value, bool1);
-		return bool1 != 0;
+		return *bool1;
 
 	case TriggerEvent::LocalCleared:
 		ScenarioClass::Instance->GetLocalVarValue_ptr(this->Value, bool1);
-		return bool1 == 0;
+		return !*bool1;
 
 	case TriggerEvent::AmbientLightBelow:
 		return ScenarioClass::Instance->AmbientCurrent <= this->Value;
@@ -1364,6 +1392,8 @@ bool FakeTEventClass::_Occured(TriggerEvent event, HouseClass* house, ObjectClas
 	}
 	case TriggerEvent::TechTypeDoesntExist:
 	{
+		if (!TEventExtContainer::Instance.Find(this)->GetTechnoType())
+			return false; // type not defined in game -> never "doesn't exist" event
 		return !TEventExtData::FindTechnoType(this, 1, nullptr);
 	}
 	default:

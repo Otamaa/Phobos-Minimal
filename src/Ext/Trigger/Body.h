@@ -30,7 +30,7 @@ public:
 	PhobosMap<int, CDTimerClass> ParallelTimers {};
 	PhobosMap<int, int>          ParallelTimersOriginalValue {};
 
-	int SequentialSwitchModeIndex;
+	int SequentialSwitchModeIndex = -1;
 
 #pragma endregion
 

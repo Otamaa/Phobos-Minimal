@@ -1245,7 +1245,7 @@ void FakeTeamClass::_Coordinate_Attack() {
 					&& (currentMission != Mission::Unload
 						|| !unitToProcess->CanDeployNow()))
 			{
-				unitToProcess->SendToEachLink(RadioCommand::NotifyUnlink);
+				unitToProcess->SendToFirstLink(RadioCommand::NotifyUnlink);
 				unitToProcess->QueueMission(Mission::Attack, 0);
 				unitToProcess->SetTarget(0);
 				unitToProcess->SetDestination(0, 1);
@@ -2283,16 +2283,16 @@ bool FakeTeamClass::_Recalculate() {
     // */
     if (this->IsLeavingMap) {
 		// Iterate in reverse since SpringEvent can remove tags from the array
-		for(int i = TagClass::Array->Count - 1; i >= 0; --i) {
-			if (TagClass::Array->Count == 0)
+		for(int i = TagClass::ActiveTags->Count - 1; i >= 0; --i) {
+			if (TagClass::ActiveTags->Count == 0)
 				break;
-			if (i >= TagClass::Array->Count)
-				i = TagClass::Array->Count - 1;
-			if (TagClass::Array->operator[](i)->SpringEvent(TriggerEvent::TeamLeavesMap,
+			if (i >= TagClass::ActiveTags->Count)
+				i = TagClass::ActiveTags->Count - 1;
+			if (TagClass::ActiveTags->operator[](i)->SpringEvent(TriggerEvent::TeamLeavesMap,
 				nullptr,
 				CellStruct::Empty,
 				false,
-				nullptr) && !TagClass::Array->Count)
+				nullptr) && !TagClass::ActiveTags->Count)
 				break;
 		}
     }
@@ -2990,7 +2990,10 @@ void FakeTeamClass::_TMission_Unload(ScriptActionNode* nNode, bool arg3)
 	bool hasAircraftInTaskForce = this->_has_aircraft();
 
 	// Process transport units
-	ProcessTransports(this, nNode->Action, hasAircraftInTaskForce);
+	// nNode->Argument (0-3) is used as the removal mode, interpreted as TeamMissionType:
+	// 0 (Attack)   = keep all,  1 (Att_waypt) = lose units,
+	// 2 (Go_bezerk)= lose transport,  3 (Move) = lose both
+	ProcessTransports(this, static_cast<TeamMissionType>(nNode->Argument), hasAircraftInTaskForce);
 
 	this->StepCompleted = true;
 }
