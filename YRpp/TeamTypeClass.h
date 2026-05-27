@@ -121,7 +121,7 @@ public:
 	bool     Aggressive; //AD
 	bool     LooseRecruit; //AE
 	bool     Suicide; //AF
-	bool     DropPod; //B0
+	bool     Droppod; //B0
 	bool     UseTransportOrigin; //B1
 	bool     DropshipLoadout; //B2
 	bool     OnTransOnly; //B3

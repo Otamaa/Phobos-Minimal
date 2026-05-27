@@ -1192,7 +1192,7 @@ void FakeTeamClass::_Coordinate_Attack() {
 		if (!unitToProcess->IsAlive)
 		{
 			// Special case: droppod units in limbo are still considered valid
-			if (this->Type->DropPod && unitToProcess->InLimbo)
+			if (this->Type->Droppod && unitToProcess->InLimbo)
 			{
 				hasValidUnits = true;
 			}
@@ -1269,7 +1269,7 @@ void FakeTeamClass::_Coordinate_Attack() {
 		else
 		{
 			// Handle droppod special case for units in limbo
-			if (this->Type->DropPod && unitToProcess->InLimbo)
+			if (this->Type->Droppod && unitToProcess->InLimbo)
 			{
 				hasValidUnits = true;
 			}

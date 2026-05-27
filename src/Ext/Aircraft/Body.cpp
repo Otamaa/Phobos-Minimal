@@ -797,11 +797,7 @@ int FakeAircraftClass::_Mission_SpyPlaneOverfly()
 
 	const auto pPrimary = this->GetWeapon(0);
 
-	if (range <= pPrimary->WeaponType->Range.value) {
-
-		if (!CheckSpyPlaneCameraCount(this, pPrimary->WeaponType))
-			return 0x415863;
-
+	if (range <= pPrimary->WeaponType->Range.value && CheckSpyPlaneCameraCount(this, pPrimary->WeaponType)) {
 		this->vt_entry_48C(nullptr, 0u, false, nullptr);
 		this->UpdateSight(false, 0, false, nullptr, pPrimary->WeaponType->Damage);
 
@@ -835,11 +831,7 @@ int FakeAircraftClass::_Mission_SpyPlaneApproach()
 		if(this->NavCom) {
 			const auto pPrimary = this->GetWeapon(0);
 
-			if (range <= pPrimary->WeaponType->Range.value) {
-
-				if (!CheckSpyPlaneCameraCount(this, pPrimary->WeaponType))
-					return 0x415863;
-
+			if (range <= pPrimary->WeaponType->Range.value && CheckSpyPlaneCameraCount(this, pPrimary->WeaponType)) {
 				this->vt_entry_48C(nullptr, 0u, false, nullptr);
 				this->UpdateSight(false, 0, false, nullptr, pPrimary->WeaponType->Damage);
 
@@ -902,33 +894,6 @@ int FakeAircraftClass::_Mission_Move_ForCarryAll()
 		return GetMissionDelay();
 	};
 
-	auto ValidateCarryallTarget = [=](AbstractClass* navCom) -> bool
-	{
-			navCom = this->Destination;
-
-			if (!navCom) {
-				return GetMissionDelay();
-			}
-
-			auto* target = flag_cast_to<TechnoClass*>(navCom);
-
-			if (!target)
-				return FindLZ();
-
-			// Must not have cargo and target must be allied
-			if (this->Passengers.NumPassengers || !this->Owner->IsAlliedWith(target))
-				return FindLZ();
-
-			if (!target->GetOwningHouse()->IsAlliedWith(this))
-				return FindLZ();
-
-			// Must be a unit type
-			if (target->WhatAmI() != AbstractType::Unit)
-				return FindLZ();
-
-			return TechnoTypeExtData::CarryallCanLift(this->Type, (UnitClass*)target);
-		};
-
 	//AircraftClass_MI_Move_Carryall_AllowWater_LZClear
 	auto LZClear = [this](AbstractClass* navCom) {
 		return AircraftExtData::IsValidLandingZone(this) || this->IsLandingZoneClear(navCom);
@@ -938,22 +903,37 @@ int FakeAircraftClass::_Mission_Move_ForCarryAll()
 	{
 	case 0: // VALIDATE_LZ
 	{
-		AbstractClass* navCom = nullptr;
-
-		if (!ValidateCarryallTarget(navCom))
+		auto* const pNavCom = this->NavCom;
+		if (!pNavCom)
 			return EnterIdleAndDelay();
 
-		if (this->GetRadioContact() != navCom) {
-			this->SendToFirstLink(RadioCommand::NotifyUnlink);
+		auto* const pTarget = flag_cast_to<TechnoClass*>(pNavCom);
+
+		// Non-unit or ineligible target: fly directly to LZ without radio pickup
+		if (!pTarget
+			|| this->Passengers.NumPassengers
+			|| !this->Owner->IsAlliedWith(pTarget)
+			|| !pTarget->GetOwningHouse()->IsAlliedWith(this)
+			|| pTarget->WhatAmI() != AbstractType::Unit)
+		{
+			return FindLZ();
 		}
 
-		if (this->SendCommand(RadioCommand::RequestLink, (TechnoClass*)navCom) != RadioCommand::AnswerPositive) {
+		// Extension: reject unit types this carryall cannot lift
+		if (!TechnoTypeExtData::CarryallCanLift(this->Type, (UnitClass*)pTarget))
+			return EnterIdleAndDelay();
+
+		// Valid unit target: perform radio handshake
+		if (this->GetRadioContact() != pTarget)
+			this->SendToFirstLink(RadioCommand::NotifyUnlink);
+
+		if (this->SendCommand(RadioCommand::RequestLink, (TechnoClass*)pTarget) != RadioCommand::AnswerPositive) {
+			this->SetDestination(nullptr, true);
 			return EnterIdleAndDelay();
 		}
 
 		if (this->SendToFirstLink(RadioCommand::RequestTether) == RadioCommand::AnswerPositive) {
 			this->SendToFirstLink(RadioCommand::NotifyBeginLoad);
-
 			return FindLZ();
 		} else {
 			this->SendToFirstLink(RadioCommand::NotifyUnlink);
@@ -1199,6 +1179,10 @@ int FakeAircraftClass::_Mission_Move()
 				this->MissionStatus = 0;
 				return 1;
 			}
+		} else {
+			// NavCom cleared while flying: proceed to landing state
+			this->MissionStatus = 4;
+			return 1;
 		}
 	}
 	case 3:
