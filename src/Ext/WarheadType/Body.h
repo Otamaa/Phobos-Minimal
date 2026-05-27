@@ -515,11 +515,9 @@ public:
 
 	Nullable<StackingMode> Psychedelic_StackingMode {};
 
-	Valueable<int> RadarOutage_Duration { 0 };
-	Valueable<int> RadarOutage_Max {};
+	Valueable<int> RadarOutage_Duration {};
 	Valueable<AffectedHouse> RadarOutage_AffectsHouse { AffectedHouse::Owner };
-	Valueable<int> PowerOutage_Duration { 0 };
-	Valueable<int> PowerOutage_Max {};
+	Valueable<int> PowerOutage_Duration {};
 	Valueable<AffectedHouse> PowerOutage_AffectsHouse { AffectedHouse::Owner };
 #pragma endregion
 
@@ -708,19 +706,18 @@ public:
 };
 
 class WarheadTypeExtContainer final : public Container<WarheadTypeExtData>
-	, public ReadWriteContainerInterfaces<WarheadTypeExtData>, public ContainerSaveLoad<WarheadTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<WarheadTypeExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "WarheadTypeExtContainer";
 	using base_t = Container<WarheadTypeExtData>;
 	using ext_t = WarheadTypeExtData;
-	using base_SaveLoad_t = ContainerSaveLoad<WarheadTypeExtContainer, true>;
 
 public:
 	static WarheadTypeExtContainer Instance;
 
-	virtual bool LoadAll(PhobosStreamReader& stm);
-	virtual bool SaveAll(PhobosStreamWriter& stm);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void Clear();
 
@@ -736,7 +733,6 @@ public:
 	bool _ReadFromINI(CCINIClass* pINI);
 
 	static int __fastcall ModifyDamageA(int damage, FakeWarheadTypeClass* pWH, Armor armor, int distance);
-	static void __fastcall DoFlash(int Damage, WarheadTypeClass* WH, int X, int Y, int Z, bool Force , SpotlightFlags CLDisableFlags);
 
 	static FORCEDINLINE int ModifyDamage(int damage, WarheadTypeClass* pWH, Armor armor, int distance) {
 		return ModifyDamageA(damage, (FakeWarheadTypeClass*)pWH, armor, distance);

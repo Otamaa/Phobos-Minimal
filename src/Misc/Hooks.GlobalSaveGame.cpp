@@ -70,33 +70,18 @@
 #include <New/Type/InsigniaTypeClass.h>
 #include <New/Type/SelectBoxTypeClass.h>
 #include <New/Type/TheaterTypeClass.h>
-#include <New/Type/GenericPrerequisite.h>
-#include <New/Type/BannerTypeClass.h>
-#include <New/Type/BarTypeClass.h>
-#include <New/Type/HealthBarTypeClass.h>
-#include <New/Type/RocketTypeClass.h>
-#include <New/Type/ThemeTypeClass.h>
-
-#include <New/Entity/FlyingStrings.h>
-#include <New/Entity/SWFirerClass.h>
-#include <New/Entity/BannerClass.h>
-
-#include <Misc/PhobosGlobal.h>
 
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/Aircraft/Body.h>
 #include <Ext/AircraftType/Body.h>
-#include <Ext/AITriggerType/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/Bullet/Body.h>
-#include <Ext/Bomb/Body.h>
 #include <Ext/Cell/Body.h>
-#include <Ext/DiskLaser/Body.h>
+#include <Ext/Bomb/Body.h>
 #include <Ext/Side/Body.h>
-#include <Ext/Script/Body.h>
 #include <Ext/UnitType/Body.h>
 #include <Ext/Unit/Body.h>
 #include <Ext/HouseType/Body.h>
@@ -108,11 +93,9 @@
 #include <Ext/Particle/Body.h>
 #include <Ext/ParticleSystemType/Body.h>
 #include <Ext/ParticleSystem/Body.h>
-#include <Ext/Parasite/Body.h>
 #include <Ext/RadSite/Body.h>
 #include <Ext/SmudgeType/Body.h>
 #include <Ext/SWType/Body.h>
-#include <Ext/SWType/NewSuperWeaponType/SWStateMachine.h>
 #include <Ext/Super/Body.h>
 #include <Ext/TAction/Body.h>
 #include <Ext/Tactical/Body.h>
@@ -128,7 +111,6 @@
 #include <Ext/Wave/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
-#include <Ext/Mouse/Body.h>
 
 #include <Misc/Spawner/Main.h>
 #include <Misc/Spawner/SavedGamesInSubdir.h>
@@ -211,313 +193,13 @@ HRESULT SaveSimpleArray(LPSTREAM pStm, DynamicVectorClass<T>& collection)
 #include <Ext/SWType/NewSuperWeaponType/SWTypeHandler.h>
 #include <Ext/Scenario/Body.h>
 
-template<typename T, bool hasArray = true>
-HRESULT WriteBlocksToStream(IStream* pStm)
-{
-	const auto typeName = PhobosCRT::GetTypeIDName<T>();
-	Debug::Log("[ExtSave] Saving %s ...\n", typeName.c_str());
-
-	//reserve the stream block
-	size_t _re = 0u;
-	if constexpr (hasArray)
-		_re = (sizeof(sizeof(T) * T::Array.size()));
-	else
-		_re = (sizeof(sizeof(T)));
-
-	PhobosByteStream saver(_re);
-	PhobosStreamWriter writer(saver);
-
-	if (T::SaveGlobals(writer))
-	{
-		if (saver.WriteToStream(pStm))
-		{
-			Debug::Log("[ExtSave]   OK %s\n", typeName.c_str());
-			return S_OK;
-		}
-		Debug::Log("[ExtSave]   FAILED %s - WriteToStream failed\n", typeName.c_str());
-	}
-	else
-	{
-		Debug::Log("[ExtSave]   FAILED %s - SaveGlobals returned false\n", typeName.c_str());
-	}
-
-	return S_FALSE;
-}
-
-template<typename T>
-HRESULT WriteBlocksToStreamB(T& who_, IStream* pStm)
-{
-	using Base = std::remove_const_t<std::remove_pointer_t<T>>;
-	const auto typeName = PhobosCRT::GetTypeIDName<Base>();
-	Debug::Log("[ExtSave] Saving (B) %s ...\n", typeName.c_str());
-
-	//reserve the stream block
-	PhobosByteStream saver(sizeof(sizeof(Base)));
-	PhobosStreamWriter writer(saver);
-
-	//mark the block
-	bool _SaveResult = false;
-	if constexpr (std::is_pointer_v<T>)
-	{
-		_SaveResult = who_->SaveGlobal(writer);
-	}
-	else
-	{
-		_SaveResult = who_.SaveGlobal(writer);
-	}
-
-	if (_SaveResult)
-	{
-		if (saver.WriteToStream(pStm))
-		{
-			Debug::Log("[ExtSave]   OK (B) %s\n", typeName.c_str());
-			return S_OK;
-		}
-		Debug::Log("[ExtSave]   FAILED (B) %s - WriteToStream failed\n", typeName.c_str());
-	}
-	else
-	{
-		Debug::Log("[ExtSave]   FAILED (B) %s - SaveGlobal returned false\n", typeName.c_str());
-	}
-
-	return S_FALSE;
-}
-
-template<typename T>
-HRESULT WriteBlocksToStreamC(T& who_, IStream* pStm)
-{
-	const auto typeName = PhobosCRT::GetTypeIDName<T>();
-	Debug::Log("[ExtSave] Saving (C) %s ...\n", typeName.c_str());
-
-	//reserve the stream block
-	PhobosByteStream saver(sizeof(sizeof(T)));
-	PhobosStreamWriter writer(saver);
-
-	if (who_.SaveAll(writer))
-	{
-		if (saver.WriteToStream(pStm))
-		{
-			Debug::Log("[ExtSave]   OK (C) %s\n", typeName.c_str());
-			return S_OK;
-		}
-		Debug::Log("[ExtSave]   FAILED (C) %s - WriteToStream failed\n", typeName.c_str());
-	}
-	else
-	{
-		Debug::Log("[ExtSave]   FAILED (C) %s - SaveAll returned false\n", typeName.c_str());
-	}
-
-	return S_FALSE;
-}
-
-HRESULT Phobos::SaveAllExtData(IStream* pStm)
-{
-	HRESULT hr = S_OK;
-
-	//Global
-	hr = WriteBlocksToStream<Phobos, false>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<CursorTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<MouseClassExt, false>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<TheaterTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<GenericPrerequisite>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<BannerTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<ArmorTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	//hr = WriteBlocksToStream<BarTypeClass>(pStm);
-	//if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<CrateTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<DigitalDisplayTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<HealthBarTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<HoverTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<ImmunityTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<InsigniaTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<LaserTrailTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<RadTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<RocketTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<SelectBoxTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<ShieldTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<TechTreeTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<ThemeTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<TunnelTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<PhobosAttachEffectTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	//
-	hr = WriteBlocksToStreamB(FlyingStrings::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStreamB(SWFirerManagerClass::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStreamB(BannerManagerClass::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<PhobosGlobal, false>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<HugeBar, false>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<SWStateMachine, false>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<TActionExtData, false>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<ShieldClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	//Ext
-	hr = WriteBlocksToStreamC(SideExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(AnimTypeExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(CellExtContainer ::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(TiberiumExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(HouseTypeExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(HouseExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(UnitTypeExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(UnitExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(InfantryTypeExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(InfantryExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(BuildingTypeExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(BuildingExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(AircraftTypeExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(AircraftExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(AnimExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	//hr = WriteBlocksToStreamC(TeamTypeExtContainer::Instance, pStm);
-	//	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(TeamExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	//hr = WriteBlocksToStreamC(ScriptTypeExtContainer::Instance, pStm);
-	//	if (!SUCCEEDED(hr)) return hr;
-	//hr = WriteBlocksToStreamC(ScriptExtContainer::Instance, pStm);
-	//if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(AITriggerTypeExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	//hr = WriteBlocksToStreamC(TActionExtContainer::Instance, pStm);
-	//if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(TEventExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(VoxelAnimTypeExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(VoxelAnimExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(WarheadTypeExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(WeaponTypeExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(ParticleTypeExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(ParticleExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(ParticleSystemTypeExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(ParticleSystemExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(BulletTypeExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(BulletExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(SmudgeTypeExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(OverlayTypeExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(SWTypeExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(SuperExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(TerrainTypeExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(TerrainExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(WaveExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	//hr = WriteBlocksToStreamC(CaptureManagerExtContainer::Instance, pStm);
-	//	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(DiskLaserExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	//hr = WriteBlocksToStreamC(ParasiteExtContainer::Instance, pStm);
-	//	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(TemporalExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	//hr = WriteBlocksToStreamC(AirstrikeExtContainer::Instance, pStm);
-	//	if (!SUCCEEDED(hr)) return hr;
-	//hr = WriteBlocksToStreamC(SpawnManagerExtContainer::Instance, pStm);
-	// if (!SUCCEEDED(hr)) return hr;
-	//hr = WriteBlocksToStreamC(SlaveManagerExtContainer::Instance, pStm);
-	//if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(RadSiteExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	//more
-
-	return hr;
-}
-
-
 HRESULT Put_All_Pointers(LPSTREAM pStm)
 {
 	HRESULT hr = S_OK;
 
 	//save the voice Index for the current player , this is used to restore the correct voice when loading a save game
 	ULONG out = 0;
-	int oldEva = VoxClass::EVAIndex();
-	hr = pStm->Write(&oldEva, sizeof(int), &out);
+	hr = pStm->Write(&VoxClass::EVAIndex(), sizeof(int), &out);
 	if (!SUCCEEDED(hr)) return hr;
 
 	hr = ScenarioClass::Instance->Save(pStm);
@@ -743,11 +425,9 @@ HRESULT Put_All_Pointers(LPSTREAM pStm)
 	if (!SUCCEEDED(hr)) return hr;
 
 	// Game options section (known problematic area)
-	if (SessionClass::Instance->GameMode == GameMode::Skirmish)
-	{
+	if (SessionClass::Instance->GameMode == GameMode::Skirmish) {
 		Debug::Log("Writing Skirmish Session.Options\n");
-		if (!GameOptionsType::Instance->Save(pStm))
-		{
+		if (!GameOptionsType::Instance->Save(pStm)){
 			Debug::Log("\t***** GameOptionsType SAVE FAILED!\n");
 			return E_FAIL;
 		}

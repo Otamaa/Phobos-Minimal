@@ -499,7 +499,7 @@ bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 	// don't try to fire if we obviously haven't enough money
 	if (SWTypeExtData::IsResourceAvailable(pThis)) {
 
-		if (pExt->SW_AutoFire_CheckAvail && !SWTypeExtData::IsAvailable(pThis->Owner, pThis))
+		if (pExt->SW_AutoFire_CheckAvail && !pExt->IsAvailable(pThis->Owner))
 			return false;
 
 		if (SWTypeExtData::IsTargetConstraintsEligible(pThis, IsPlayer)) {
@@ -671,6 +671,18 @@ TargetResult SWTypeExtData::PickSuperWeaponTarget(SWTypeHandler* pNewType , cons
 	return{ CellStruct::Empty, SWTargetFlags::DisallowEmpty };
 }
 
+ bool SWTypeExtData::CanFire(HouseClass* pOwner) const
+ {
+ 	const int nAmount = this->SW_Shots;
+
+ 	if (nAmount < 0)
+ 		return true;
+
+ 	return
+		HouseExtContainer::Instance.Find(pOwner)->GetShotCount(This()).Count <
+		nAmount;
+ }
+
 // can i see the animation of pFirer's SW?
 bool SWTypeExtData::IsAnimVisible(HouseClass* pFirer) const
 {
@@ -816,8 +828,7 @@ bool SWTypeExtData::Launch(SWTypeHandler* pNewType, SuperClass* pSuper, CellStru
 	const auto pOwner = pSuper->Owner;
 	auto pHouseExt = HouseExtContainer::Instance.Find(pOwner);
 
-	SuperExtData::UpdateLauchData(pSuper);
-
+	pHouseExt->UpdateShotCount(pSuper->Type);
 	const auto pCurrentSWTypeData = SWTypeExtContainer::Instance.Find(pSuper->Type); //previous data
 	const auto flags = pNewType->Flags(pCurrentSWTypeData);
 
@@ -832,7 +843,7 @@ bool SWTypeExtData::Launch(SWTypeHandler* pNewType, SuperClass* pSuper, CellStru
 
 	const auto pData = SWTypeExtContainer::Instance.Find(pSuper->Type); //newer data
 
-	if (pSuper->OneTime || (pCurrentSWTypeData->SW_Shots >= 0 && SuperExtData::GetLauchDataPtr(pSuper)->Count >= pCurrentSWTypeData->SW_Shots))
+	if (pSuper->OneTime || (pCurrentSWTypeData->SW_Shots >= 0 && HouseExtContainer::Instance.Find(pOwner)->GetShotCount(pSuper->Type).Count >= pCurrentSWTypeData->SW_Shots))
 		pOwner->RecheckTechTree = true;
 
 	const auto curSuperIdx = pOwner->Supers.find(pSuper);
@@ -1093,8 +1104,6 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Message_FirerColor.Read(exINI, pSection, "Message.FirerColor");
 
 	this->SW_RadarEvent.Read(exINI, pSection, "SW.CreateRadarEvent");
-
-	this->SW_TechLevel.Read(exINI, pSection, "SW.TechLevel");
 
 	this->Money_Amount.Read(exINI, pSection, "Money.Amount");
 	this->UIDescription.Read(exINI, pSection, "UIDescription");
@@ -1668,21 +1677,18 @@ std::pair<double, double> SWTypeExtData::GetLaunchSiteRange(BuildingClass* pBuil
 	return this->GetNewSWType()->GetLaunchSiteRange(this, pBuilding);
 }
 
-bool SWTypeExtData::IsAvailable(HouseClass* pHouse, SuperClass* pSuper)
+bool SWTypeExtData::IsAvailable(HouseClass* pHouse)
 {
-	const auto pThis = SWTypeExtContainer::Instance.Find(pSuper->Type);
+	const auto pThis = This();
 
-	if (pHouse->StaticData.TechLevel < pThis->SW_TechLevel)
+	if (this->SW_Shots >= 0 && HouseExtContainer::Instance.Find(pHouse)->GetShotCount(pThis).Count >= this->SW_Shots)
 		return false;
 
-	if (pThis->SW_Shots >= 0 && SuperExtData::GetLauchDataPtr(pSuper)->Count >= pThis->SW_Shots)
+	if (pHouse->IsControlledByHuman() ? (!this->SW_AllowPlayer) : (!this->SW_AllowAI))
 		return false;
 
-	if (pHouse->IsControlledByHuman() ? (!pThis->SW_AllowPlayer) : (!pThis->SW_AllowAI))
-		return false;
-
-	if (!pThis->SW_Require.empty()) {
-		if (!Prereqs::HouseOwnsAll(pHouse, pThis->SW_Require))
+	if (!this->SW_Require.empty()) {
+		if (!Prereqs::HouseOwnsAll(pHouse, this->SW_Require))
 			return false;
 	}
 	// check that any aux building exist and no neg building
@@ -1692,28 +1698,28 @@ bool SWTypeExtData::IsAvailable(HouseClass* pHouse, SuperClass* pSuper)
 	};
 
 	// check whether the optional aux building exists
-	if (pSuper->Type->AuxBuilding && !IsBuildingPresent(pSuper->Type->AuxBuilding)){
+	if (pThis->AuxBuilding && !IsBuildingPresent(pThis->AuxBuilding)){
 		return false;
 	}
 
 	// allow only certain houses, disallow forbidden houses
-	if (!((pThis->SW_RequiredHouses.data & (1u << pHouse->Type->ArrayIndex)) != 0u)
-			|| ((pThis->SW_ForbiddenHouses.data & (1u << pHouse->Type->ArrayIndex)) != 0u))
+	if (!((this->SW_RequiredHouses.data & (1u << pHouse->Type->ArrayIndex)) != 0u)
+			|| ((this->SW_ForbiddenHouses.data & (1u << pHouse->Type->ArrayIndex)) != 0u))
 		return false;
 
-	const auto& Aux = pThis->SW_AuxBuildings;
+	const auto& Aux = this->SW_AuxBuildings;
 	// If building Not Exist
 	if (!Aux.empty() && Aux.None_Of(IsBuildingPresent)) {
 		return false;
 	}
 
-	const auto& Neg = pThis->SW_NegBuildings;
+	const auto& Neg = this->SW_NegBuildings;
 	// If building Exist
 	if (!Neg.empty() && Neg.Any_Of(IsBuildingPresent)) {
 		return false;
 	}
 
-	const auto& AuxT = pThis->Aux_Techno;
+	const auto& AuxT = this->Aux_Techno;
 	int count = 0;
 	if (!AuxT.empty() && AuxT.None_Of([pHouse, &count](TechnoTypeClass* pType)
 		{
@@ -1728,7 +1734,7 @@ bool SWTypeExtData::IsAvailable(HouseClass* pHouse, SuperClass* pSuper)
 		return false;
 	}
 
-	const auto& NegAuxT = pThis->Neg_Techno;
+	const auto& NegAuxT = this->Neg_Techno;
 	if (!NegAuxT.empty() && NegAuxT.None_Of([pHouse, &count](TechnoTypeClass* pType) {
 			if (pType) {
 				count = pHouse->CountOwnedAndPresent(pType);
@@ -2346,7 +2352,6 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->BattlePoints_DrainAmount)
 		.Process(this->BattlePoints_DrainDelay)
 		.Process(this->SuperWeaponSidebar_Significance)
-		.Process(this->SW_TechLevel)
 
 		.Process(this->SW_Link)
 		.Process(this->SW_Link_Grant)
@@ -2467,33 +2472,10 @@ void SWTypeExtData::ApplyLinkedSW(SuperClass* pSW)
 // container
 
 SWTypeExtContainer SWTypeExtContainer::Instance;
-
-bool SWTypeExtContainer::LoadAll(PhobosStreamReader& stm)
-{
-	if (!stm
-		.Process(SWTypeExtData::TempSuper)
-	.Process(SWTypeExtData::LauchData)
-		)
-		return false;
-
-	return this->base_SaveLoad_t::LoadAll(stm);
-}
-
-bool SWTypeExtContainer::SaveAll(PhobosStreamWriter& stm)
-{
-	if (!stm
-		.Process(SWTypeExtData::TempSuper)
-	.Process(SWTypeExtData::LauchData)
-		)
-		return false;
-
-	return this->base_SaveLoad_t::SaveAll(stm);
-}
-
 SuperWeaponTypeClass* SWTypeExtData::CurrentSWType;
 SuperClass* SWTypeExtData::TempSuper;
-SuperClass* SWTypeExtData::LauchData;
 bool SWTypeExtData::Handled;
+SuperClass* SWTypeExtData::LauchData;
 
 void SWTypeExtContainer::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {

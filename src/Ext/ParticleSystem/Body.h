@@ -183,13 +183,17 @@ private:
 	void Serialize(T& Stm);
 };
 
-class ParticleSystemExtContainer final : public Container<ParticleSystemExtData>, public ContainerSaveLoad<ParticleSystemExtContainer, true>
+class ParticleSystemExtContainer final : public Container<ParticleSystemExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "ParticleSystemExtContainer";
 
 public:
 	static ParticleSystemExtContainer Instance;
+
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
+
 };
 
 class ParticleSystemTypeExtData;

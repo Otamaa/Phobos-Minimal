@@ -690,7 +690,7 @@ void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 				)
 				*/
 			{
-				uint16_t buff = *reinterpret_cast<uint16_t*>(ABuffer::Instance->GetBuffer(outClient.X, y_copy - ABuffer::Instance->Area.Y));
+				uintptr_t buff = *reinterpret_cast<uint16_t*>(ABuffer::Instance->GetBuffer(outClient.X, y_copy - ABuffer::Instance->Area.Y));
 
 				if (buff == 0)
 				{
@@ -699,7 +699,7 @@ void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 
 
 				{
-					uint16_t ZBuff = *reinterpret_cast<uint16_t*>((ZBuffer::Instance->GetBuffer(outClient.X, outClient.Y - ZBuffer::Instance->Area.Y)));
+					int ZBuff = *reinterpret_cast<uint16_t*>((ZBuffer::Instance->GetBuffer(outClient.X, outClient.Y - ZBuffer::Instance->Area.Y)));
 					int Zadjust = Game::AdjustHeight(Coord.Z);
 
 					uint16_t zTest = static_cast<uint16_t>(
@@ -733,25 +733,24 @@ void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 							static_cast<double>(movement.ColorFactor)
 						);
 
-						uint32_t data_r;
-						uint32_t data_g;
-						uint32_t data_b;
+						uint32_t pixelColor;
 
-						if (buff >= 127u) {
+						if (buff >= 127u)
+						{
 							// Full brightness - use color directly
-							data_r = finalColor.R;
-							data_g = finalColor.G;
-							data_b = finalColor.B;
-						} else {
+							pixelColor = finalColor.ToInit();
+						}
+						else
+						{
 							// Dim the color based on alpha buffer value
-							// buff is 0-127, so this darkens the color proportionally
-							data_r = (buff * finalColor.R) >> 7;
-							data_g = (buff * finalColor.G) >> 7;
-							data_b = (buff * finalColor.B) >> 7;
+														// buff is 0-127, so this darkens the color proportionally
+							uint32_t data_r = (buff * finalColor.R) >> 7;  // Divide by 128
+							uint32_t data_g = (buff * finalColor.G) >> 7;
+							uint32_t data_b = (buff * finalColor.B) >> 7;
+							pixelColor = DSurface::RGB_To_Pixel(data_r, data_g, data_b);
 						}
 
-						DSurface::Temp->Put_Pixel(outClient, DSurface::Build_Hicolor_Pixel_RBG(data_r, data_g, data_b));
-
+						DSurface::Temp->Put_Pixel(outClient, pixelColor);
 					}
 				}
 			}
@@ -844,6 +843,7 @@ void ParticleSystemExtData::Serialize(T& Stm)
 // =============================
 // container
 ParticleSystemExtContainer ParticleSystemExtContainer::Instance;
+
 // =============================
 // container hooks
 
@@ -852,7 +852,6 @@ ParticleSystemExtContainer ParticleSystemExtContainer::Instance;
 ASMJIT_PATCH(0x62DF05, ParticleSystemClass_CTOR, 0x5)
 {
 	GET(ParticleSystemClass*, pItem, ESI);
-	if (!Phobos::Otamaa::DoingLoadGame) 
 	ParticleSystemExtContainer::Instance.Allocate(pItem);
 	return 0;
 }

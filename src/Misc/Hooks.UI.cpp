@@ -17,9 +17,6 @@
 #include <Utilities/Debug.h>
 #include <Utilities/EnumFunctions.h>
 
-#include <Misc/Spawner/Main.h>
-
-
 ASMJIT_PATCH(0x777C41, UI_ApplyAppIcon, 0x9)
 {
 	GET(HINSTANCE , instance , ESI);
@@ -666,6 +663,70 @@ ASMJIT_PATCH(0x4E43C0, Game_InitDropdownColors, 5)
 	}
 
 	return 0;
+}
+#include <Misc/Spawner/Main.h>
+
+ASMJIT_PATCH(0x69A310, SessionClass_GetPlayerColorScheme, 7)
+{
+	GET_STACK(PlayerColorSlot, idx, 0x4);
+	GET_STACK(DWORD, caller, 0x0);
+
+	int ret = 0;
+
+	// Game_GetLinkedColor converts vanilla dropdown color index into color scheme index ([Colors] from rules)
+	// if spawner feeds us a number, it will be used to look up color scheme directly
+	// Original Author : Morton
+
+	if (SpawnerMain::Configs::Enabled && Phobos::UI::UnlimitedColor && idx != PlayerColorSlot::Random)
+	{
+		ret = Math::abs((int)idx) << 1;
+	}
+	else
+	{
+
+		{
+
+			// get the slot
+			ColorData* slot = nullptr;
+			if (idx == PlayerColorSlot::Random || idx == Phobos::Config::colorCount)
+			{
+				// observer color
+				slot = &Phobos::UI::Colors[0];
+			}
+			else if (idx < Phobos::Config::colorCount)
+			{
+				// house color
+				slot = &Phobos::UI::Colors[idx + 1];
+			}
+
+			// retrieve the color scheme index
+
+			if (slot)
+			{
+				if (slot->colorSchemeIndex == -1)
+				{
+					slot->colorSchemeIndex = ColorScheme::FindIndex(slot->colorScheme);
+
+					if (slot->colorSchemeIndex == -1)
+					{
+						Debug::LogInfo("Color scheme \"{}\" not found.", slot->colorScheme);
+						slot->colorSchemeIndex = 4;
+					}
+				}
+
+				ret = slot->colorSchemeIndex;
+			}
+		}
+	}
+
+	ret += 1;
+	const int ColorShemeArrayCount = ColorScheme::Array->Count;
+
+	if ((size_t)ret >= (size_t)ColorShemeArrayCount)
+		Debug::FatalErrorAndExit("Address[%x] Trying To get Player Color[idx %d , %d(%d)] that more than ColorScheme Array Count [%d]!", caller, idx, ret, ret - 1, ColorShemeArrayCount);
+
+	R->EAX(ret);
+	return 0x69A334;
 }
 
 // return the tool tip describing this color

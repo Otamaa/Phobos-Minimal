@@ -373,8 +373,7 @@ void AITriggerTypeExtContainer::WriteToINI(AITriggerTypeClass* key, CCINIClass* 
 ASMJIT_PATCH(0x41E471, AITriggerTypeClass_CTOR, 0x7)
 {
 	GET(AITriggerTypeClass*, pThis, ESI);
-	if(!Phobos::Otamaa::DoingLoadGame)
-	AITriggerTypeExtContainer::Instance.Allocate(pThis);
+	AITriggerTypeExtContainer::Instance.FindOrAllocate(pThis);
 	return 0x0;
 }
 

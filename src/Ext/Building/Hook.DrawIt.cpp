@@ -37,8 +37,9 @@ void  FakeBuildingClass::_Draw_It(
 	if (!shape)
 		return;
 
+	auto curMission = this->GetCurrentMission();
 
-	if (this->BState == BStateType::Construction && this->GetCurrentMission() == Mission::Selling) {
+	if (this->BState == BStateType::Construction && curMission == Mission::Selling) {
 		for (auto& anim : this->Anims) {
 			if (anim) {
 				anim->Invisible = true;
@@ -50,7 +51,7 @@ void  FakeBuildingClass::_Draw_It(
 	SHPStruct* depthShape = FileSystem::BUILDINGZ_SHA();
 	bool  openRoof = false;
 
-	if (this->GetCurrentMission() == Mission::Unload){
+	if (curMission == Mission::Unload){
 		if (TechnoClass* contactUnit = this->GetRadioContact()) {
 			TechnoTypeClass* unitType = GET_TECHNOTYPE(contactUnit);
 			if (unitType->JumpJet || unitType->BalloonHover) {
@@ -78,7 +79,7 @@ void  FakeBuildingClass::_Draw_It(
 	auto pBuildingCell = MapClass::Instance->GetCellAt(cellIdx);
 	auto& door = this->UnloadTimer;
 
-	if (this->GetCurrentMission() == Mission::Open && (door.IsOpening() || door.IsClosing() || door.IsOpen()))
+	if (curMission == Mission::Open && (door.IsOpening() || door.IsClosing() || door.IsOpen()))
 	{
 		// Calculate gate frame based on door state
 		int gateFrame = (int)(door.GetCompletePercent()
@@ -130,8 +131,8 @@ void  FakeBuildingClass::_Draw_It(
 		return;
 	}
 
-	if (this->GetCurrentMission() == Mission::Unload) {
-		if (openRoof) {
+	if (curMission == Mission::Unload) {
+		if (openRoof && type->RoofDeployingAnim) {
 			if (this->Type->RoofDeployingAnim) {
 				shape = this->Type->RoofDeployingAnim;
 				zAdjust = -40;
@@ -148,8 +149,7 @@ void  FakeBuildingClass::_Draw_It(
 	int zShapeY = 446;
 
 	{
-		auto curMission = this->GetCurrentMission();
-		const bool applyZShape = ( this->GetCurrentMission() != Mission::Construction && curMission != Mission::Selling) || pTypeExt->ZShapePointMove_OnBuildup;
+		const bool applyZShape = (curMission != Mission::Construction && curMission != Mission::Selling) || pTypeExt->ZShapePointMove_OnBuildup;
 
 		if (applyZShape)
 		{
@@ -258,46 +258,24 @@ void  FakeBuildingClass::_Draw_It(
 		}
 	}
 
-	if (this->GetCurrentMission() != Mission::Unload)
+	if (curMission != Mission::Unload)
 		return;
 
-	if (openRoof) {
-		if (const auto RoofAnim = this->Type->UnderRoofDoorAnim) {
-			this->Draw_Object(
-				RoofAnim,
-				this->GetHealthRatio() <= RulesClass::Instance->ConditionYellow ? 1 : 0,
-				pPixel,
-				pBound,
-				DirType::North, 256,  // rotation, scale
-				-Game::AdjustHeight(this->GetZ()),  // height adjust
-				ZGradient::Ground, 1,  // ZGradient, useZBuffer
-				 (int16)this->Type->ExtraLight + pBuildingCell->Color1.Red,
-				tintColor,
-				0, 0, 0, 0, BlitterFlags::None  // z-shape params
-			);
-		}
-
-	}else{
-		
-		if (const auto RoofAnim = this->Type->UnderDoorAnim) {
-			this->Draw_Object(
-				RoofAnim,
-				this->GetHealthRatio() <= RulesClass::Instance->ConditionYellow ? 1 : 0,
-				pPixel,
-				pBound,
-				DirType::North, 256,  // rotation, scale
-				-Game::AdjustHeight(this->GetZ()),  // height adjust
-				ZGradient::Ground, 1,  // ZGradient, useZBuffer
-				 (int16)this->Type->ExtraLight + pBuildingCell->Color1.Red,
-				tintColor,
-				0, 0, 0, 0, BlitterFlags::None  // z-shape params
-			);
-		}
+	if (const auto RoofAnim = openRoof ? this->Type->UnderRoofDoorAnim : this->Type->UnderDoorAnim)
+	{
+		this->Draw_Object(
+			RoofAnim,
+			this->GetHealthRatio() <= RulesClass::Instance->ConditionYellow ? 1 : 0,
+			pPixel,
+			pBound,
+			DirType::North, 256,  // rotation, scale
+			-Game::AdjustHeight(this->GetZ()),  // height adjust
+			ZGradient::Ground, 1,  // ZGradient, useZBuffer
+			 (int16)this->Type->ExtraLight + pBuildingCell->Color1.Red,
+			tintColor,
+			0, 0, 0, 0, BlitterFlags::None  // z-shape params
+		);
 	}
 
 	return;
 }
-
-////DEFINE_FUNCTION_JUMP(CALL6, 0x43D005, FakeBuildingClass::_Draw_It)
-DEFINE_FUNCTION_JUMP(LJMP, 0x43D290, FakeBuildingClass::_Draw_It)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3FD0, FakeBuildingClass::_Draw_It)

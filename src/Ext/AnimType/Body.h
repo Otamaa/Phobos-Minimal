@@ -251,7 +251,7 @@ private:
 
 class AnimClass;
 class AnimTypeExtContainer final : public Container<AnimTypeExtData>
-	, public ReadWriteContainerInterfaces<AnimTypeExtData>, public ContainerSaveLoad<AnimTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<AnimTypeExtData>
 {
 public:
 
@@ -259,6 +259,9 @@ public:
 
 public:
 	static AnimTypeExtContainer Instance;
+
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void LoadFromINI(AnimTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(AnimTypeClass* key, CCINIClass* pINI);

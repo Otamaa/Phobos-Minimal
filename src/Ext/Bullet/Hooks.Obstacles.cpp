@@ -223,3 +223,33 @@ ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 // 	return SkipGameCode;
 // }
 
+ASMJIT_PATCH(0x41810F, AircraftClass_MissionAttack_WeaponRangeCheck1, 0x6)
+{
+	enum { WithinDistance = 0x418117, NotWithinDistance = 0x418131 };
+
+	GET(AircraftClass*, pThis, ESI);
+	GET(WeaponTypeClass*, pWeapon, EDI);
+	GET(int, distance, EAX);
+
+	int range = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, (TechnoClass*)pThis);
+
+	if (distance < range)
+		return WithinDistance;
+
+	return NotWithinDistance;
+}
+
+ASMJIT_PATCH(0x418BA8, AircraftClass_MissionAttack_WeaponRangeCheck2, 0x6)
+{
+	enum { SkipGameCode = 0x418BAE };
+
+	GET(AircraftClass*, pThis, ESI);
+	GET(WeaponTypeClass*, pWeapon, EAX);
+
+	R->EAX(WeaponTypeExtData::GetRangeWithModifiers(pWeapon, (TechnoClass*)pThis));
+
+	return SkipGameCode;
+}
+
+// Skip a forced detonation check for Level=true projectiles that is now handled in Hooks.Obstacles.cpp.
+DEFINE_JUMP(LJMP, 0x468D08, 0x468D2F);

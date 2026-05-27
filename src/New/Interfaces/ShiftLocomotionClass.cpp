@@ -468,7 +468,7 @@ void _stdcall ShiftLocomotionClass::Move_To(CoordStruct /*to*/)
 		this->IsShifting = true;
 }
 
-HRESULT __stdcall ShiftLocomotionClass::Link_To_Object(FootClass* pointer)
+HRESULT __stdcall ShiftLocomotionClass::Link_To_Object(void* pointer)
 {
 	auto result = LocomotionClass::Link_To_Object(pointer);
 

@@ -5,14 +5,6 @@
 class MapSnapshotCommandClass : public PhobosCommandClass
 {
 public:
-	MapSnapshotCommandClass() : PhobosCommandClass()
-	{
-		this->IsDeveloper = true;
-	}
-
-	virtual ~MapSnapshotCommandClass() = default;
-
-public:
 
 	virtual const char* GetName() const override;
 	virtual const wchar_t* GetUIName() const override;

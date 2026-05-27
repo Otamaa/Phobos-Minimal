@@ -105,13 +105,17 @@ public:
 	static void Unlimbo(TerrainClass* pThis, CoordStruct* pCoord);
 };
 
-class TerrainExtContainer final : public Container<TerrainExtData>, public ContainerSaveLoad<TerrainExtContainer, true>
+class TerrainExtContainer final : public Container<TerrainExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "TerrainExtContainer";
 
 public:
 	static TerrainExtContainer Instance;
+
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
+
 };
 
 class TerrainTypeExtData;

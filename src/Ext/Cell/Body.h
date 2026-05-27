@@ -60,16 +60,12 @@ public:
 	int NewPowerups {-1};
 	int InfantryCount {};
 
-	//
-	bool IsvalidCell { false };
 #pragma endregion
 
 public:
 	CellExtData(CellClass* pObj) : AbstractExtended(pObj)
 	{
 		this->AbsType = CellClass::AbsID;
-		//dont save invalid cell
-		this->IsvalidCell = pObj != CellClass::Instance();
 	}
 
 	CellExtData(CellClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
@@ -113,13 +109,16 @@ public:
 	static int GetOverlayIndex(CellClass* pCell);
 };
 
-class CellExtContainer final : public Container<CellExtData>, public ContainerSaveLoad<CellExtContainer, false>
+class CellExtContainer final : public Container<CellExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "CellExtContainer";
 
 public:
 	static CellExtContainer Instance;
+
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 };
 
 enum class CollectResult : char {

@@ -57,7 +57,7 @@
 #include <Utilities/Macro.h>
 
 #include <Locomotor/Cast.h>
-#include <RadBeam.h>
+
 
 #include <memory>
 #include <TerrainTypeClass.h>
@@ -223,7 +223,6 @@ void TintColors::GetTints(int* tintColor, int* intensity)
 	}
 }
 
-//#pragma optimize("", off)
 bool NOINLINE TechnoExtData::IsHealer(TechnoClass* pThis)
 {
 	const int _result = pThis->CombatDamage(-1);
@@ -244,7 +243,6 @@ bool NOINLINE TechnoExtData::IsHealer(TechnoClass* pThis)
 	//}
 	return false;
 }
-//#pragma optimize("", on)
 
 bool TechnoExtData::IsAttackFriendlies(TechnoClass* pThis) {
 	const auto pThisExt = TechnoExtContainer::Instance.Find(pThis);
@@ -496,7 +494,7 @@ void TechnoExtData::PromoteImmedietely(TechnoClass* pExpReceiver, bool bSilent, 
 				pNewType = pTypeExt->Promote_Elite_Type;
 				promoteExp = pTypeExt->Promote_Elite_Exp;
 				Promoted_PlayAnim = pTypeExt->Promote_Elite_Anim.Get(RulesExtData::Instance()->Promote_Elite_Anim);
-				playSpotlight = pTypeExt->Promote_Elite_PlaySpotlight.Get(RulesExtData::Instance()->Promote_Elite_PlaySpotlight);
+				playSpotlight = pTypeExt->Promote_Vet_PlaySpotlight.Get(RulesExtData::Instance()->Promote_Vet_PlaySpotlight);
 			}
 
 			if (pNewType && TechnoExtData::ConvertToType(pExpReceiver, pNewType) && promoteExp != 0.0)
@@ -1997,6 +1995,7 @@ void TechnoExtData::RefineTiberium(TechnoClass* pThis, HouseClass* pHouse, float
 
 bool TechnoExtData::FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon , bool isHealer)
 {
+	const auto nRulesGreen = RulesClass::Instance->ConditionGreen;
 	const auto pThatTechnoExt = TechnoExtContainer::Instance.Find(pTarget);
 	const auto pThatShield = pThatTechnoExt->GetShield();
 
@@ -2695,8 +2694,9 @@ void FakeBuildingClass::_Repair_AI()
 		} else {
 			const int step = v6->__Repair_Step();
 			this->Owner->TakeMoney(cost);
-			this->Health = MinImpl(step + this->Health, v6->Strength);
-			this->EstimatedHealth = MinImpl(step + this->EstimatedHealth, v6->Strength);
+			const int _upp = MinImpl(step + this->EstimatedHealth, v6->Strength);
+			this->Health = _upp;
+			this->EstimatedHealth = _upp;
 
 			if (this->Health >= v6->Strength) {
 				this->IsBeingRepaired = 0;
@@ -4498,7 +4498,7 @@ bool NOINLINE TechnoExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* 
 			reloadPrev = pOldType->EmptyReload;
 			reloadNew = pToType->EmptyReload;
 		}
-		else
+		else if (pThis->Ammo)
 		{
 			reloadPrev = pOldType->Reload;
 			reloadNew = pToType->Reload;
@@ -4593,7 +4593,7 @@ bool NOINLINE TechnoExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* 
 			// a new one of the default type for this unit.
 			if (auto newLoco = LocomotionClass::CreateInstance(pToType->Locomotor))
 			{
-				newLoco->Link_To_Object((FootClass*)pThis);
+				newLoco->Link_To_Object(pThis);
 				((FootClass*)pThis)->Locomotor = std::move(newLoco);
 				//pThis->Override_Mission(prevMission, pTarget, pDest);
 			}
@@ -4610,7 +4610,7 @@ bool NOINLINE TechnoExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* 
 			// throw away old loco to ensure the new loco properties is properly adjusted
 			if (auto newLoco = LocomotionClass::CreateInstance(pToType->Locomotor))
 			{
-				newLoco->Link_To_Object((FootClass*)pThis);
+				newLoco->Link_To_Object(pThis);
 				((FootClass*)pThis)->Locomotor = std::move(newLoco);
 				((FootClass*)pThis)->Locomotor.GetInterfacePtr()->Move_To(pThis->Location);
 				pThis->Override_Mission(prevMission, pTarget, pDest);
@@ -5162,242 +5162,6 @@ int TechnoExtData::GetDeployingAnimIntensity(FootClass* pThis)
 	return intensity;
 }
 
-bool TechnoExtData::CanAttackMindControlled(TechnoClass* pControlled, TechnoClass* pRetaliator)
-{
-	const auto pMind = pControlled->MindControlledBy;
-
-	if (!pMind || pRetaliator->Berzerk)
-		return true;
-
-	const auto pManager = pMind->CaptureManager;
-
-	if (!pManager)
-		return true;
-
-	const auto pHome = pManager->GetOriginalOwner(pControlled);
-	const auto pHouse = pRetaliator->Owner;
-
-	if (!pHome || !pHouse || !pHouse->IsAlliedWith(pHome))
-		return true;
-
-	return TechnoExtContainer::Instance.Find(pControlled)->BeControlledThreatFrame <= Unsorted::CurrentFrame();
-}
-
-RadBeam* __fastcall  FakeTechnoClass::__FireBeam_Wrapper(TechnoClass* pThis, discard_t, AbstractClass* pTarget, RadBeamType type)
-{
-	
-	return __FireBeam(pThis, -1 , nullptr, pTarget, type);
-}
-
-RadBeam* FakeTechnoClass::__FireBeam(TechnoClass* pThis , WeaponTypeClass* pWeapon, CoordStruct flh, CoordStruct target_coord, RadBeamType type)
-{
-	auto const Rad = RadBeam::Allocate(type);
-
-	CoordStruct renderCoord = pThis->GetRenderCoords();
-
-	int heignt = 0;
-	if (flh.Y != renderCoord.Y)
-	{
-		auto flh_rend = TacticalClass::Instance->CoordsToClient(flh);
-		auto rend_rend = TacticalClass::Instance->CoordsToClient(renderCoord);
-		heignt = flh_rend.Y - rend_rend.Y;
-	}
-
-	WeaponTypeExtData* pData = WeaponTypeExtContainer::Instance.Find(pWeapon);
-
-	if (!pData->Beam_IsHouseColor) {
-		Rad->Color = pData->GetBeamColor();
-	} else {
-		Rad->Color = pThis->Owner->Color;
-	}
-
-	Rad->SourceLocation = flh;
-	Rad->TargetLocation = target_coord;
-	Rad->Period = pData->Beam_Duration;
-	Rad->Amplitude = pData->Beam_Amplitude;
-	Rad->unknown_C = heignt;
-
-	if (type == RadBeamType::Eruption) {
-		Rad->unknown_54 = 1;
-		Rad->unknown_59 = 1;
-		Rad->Owner = pThis;
-	}
-
-	return Rad;
-}
-
-RadBeam* FakeTechnoClass::__FireBeam(TechnoClass* pThis, int WeaponIDx, BulletClass* pBullet, CellClass* pObstacle, AbstractClass* pTarget, RadBeamType type)
-{
-	auto const Rad = RadBeam::Allocate(type);
-
-	if (WeaponIDx == -1)
-		WeaponIDx = 0;
-
-	CoordStruct flh = pThis->GetFLH(WeaponIDx, 0, 0, 0);
-	CoordStruct renderCoord = pThis->GetRenderCoords();
-
-
-	int heignt = 0;
-	if (flh.Y != renderCoord.Y)
-	{
-		auto flh_rend = TacticalClass::Instance->CoordsToClient(flh);
-		auto rend_rend = TacticalClass::Instance->CoordsToClient(renderCoord);
-		heignt = flh_rend.Y - rend_rend.Y;
-	}
-
-	CoordStruct target_coord {};
-	WeaponTypeExtData* pData = nullptr;
-
-	if (pBullet->WeaponType && !pObstacle) {
-		// The weapon may not have been set up
-		pData = WeaponTypeExtContainer::Instance.Find(pBullet->WeaponType);
-		target_coord = BulletExtData::GetTargetCoords(pBullet);
-
-	} else if (pObstacle) {
-		target_coord = pObstacle->GetCoordsWithBridge();
-	} else if (auto pTargetFoot = flag_cast_to<FootClass*>(pTarget)) {
-		target_coord = pTargetFoot->GetTargetCoords();
-	} else {
-		pTarget->GetCenterCoords(&target_coord);
-	}
-
-	if (pData && !pData->Beam_IsHouseColor) {
-		Rad->Color = pData->GetBeamColor();
-	} else {
-		Rad->Color = pThis->Owner->Color;
-	}
-
-	Rad->SourceLocation = flh;
-	Rad->TargetLocation = target_coord;
-	Rad->Period = pData ? pData->Beam_Duration : 15;
-	Rad->Amplitude = pData ? pData->Beam_Amplitude : 40.0;
-	Rad->unknown_C = heignt;
-
-	if (type == RadBeamType::Eruption)
-	{
-		Rad->unknown_54 = 1;
-		Rad->unknown_59 = 1;
-		Rad->Owner = pThis;
-
-		if (auto pTargetTech = flag_cast_to<TechnoClass*>(pTarget))
-		{
-			pTargetTech->FiringRadBeam = Rad;
-		}
-	}
-
-	return Rad;
-}
-
-RadBeam* FakeTechnoClass::__FireBeam(TechnoClass* pThis, int WeaponIDx,WeaponTypeClass* pWeapon, AbstractClass* pTarget, RadBeamType type)
-{
-	auto const Rad = RadBeam::Allocate(type);
-
-	if (WeaponIDx == -1)
-		WeaponIDx = 0;
-
-	if (!pWeapon)
-		pWeapon = pThis->GetWeapon(WeaponIDx)->WeaponType;
-
-	CoordStruct flh = pThis->GetFLH(WeaponIDx, 0, 0, 0);
-	CoordStruct renderCoord = pThis->GetRenderCoords();
-
-
-	int heignt = 0;
-	if(flh.Y != renderCoord.Y){ 
-		auto flh_rend = TacticalClass::Instance->CoordsToClient(flh);
-		auto rend_rend = TacticalClass::Instance->CoordsToClient(renderCoord);
-		heignt = flh_rend.Y - rend_rend.Y;
-	}
-
-	CoordStruct target_coord {};
-	if (auto pTargetFoot = flag_cast_to<FootClass*>(pTarget)) {
-		target_coord = pTargetFoot->GetTargetCoords();
-	} else {
-		pTarget->GetCenterCoords(&target_coord);
-	}
-	WeaponTypeExtData* pData = WeaponTypeExtContainer::Instance.Find(pWeapon);
-
-	if (!pData->Beam_IsHouseColor) {
-		Rad->Color = pData->GetBeamColor();
-	} else {
-		Rad->Color = pThis->Owner->Color;
-	}
-	
-	Rad->SourceLocation = flh;
-	Rad->TargetLocation = target_coord;
-	Rad->Period = pData->Beam_Duration;
-	Rad->Amplitude = pData->Beam_Amplitude;
-	Rad->unknown_C = heignt;
-
-	if (type == RadBeamType::Eruption) {
-		Rad->unknown_54 = 1;
-		Rad->unknown_59 = 1;
-		Rad->Owner = pThis;
-
-		if (auto pTargetTech = flag_cast_to<TechnoClass*>(pTarget)) {
-			pTargetTech->FiringRadBeam = Rad;
-		}
-	}
-
-	return Rad;
-}
-
-void FakeTechnoClass::__FireRadEruption(TechnoClass* pThis,WeaponTypeClass* pWeapon, float spread)
-{
-	ColorStruct clr = RulesClass::Instance->RadColor;
-
-	if (pWeapon) {
-		WeaponTypeExtData* pData = WeaponTypeExtContainer::Instance.Find(pWeapon);
-
-		if (!pData->Beam_IsHouseColor) {
-			clr = pData->GetBeamColor();
-		}
-		else {
-			clr = pThis->Owner->Color;
-		}
-	}
-
-	CoordStruct base = pThis->GetCoords();
-	CellStruct base_cell = CellClass::Coord2Cell(base);
-
-	for (int dy = -1; dy <= 1; ++dy) {
-		for (int dx = -1; dx <= 1; ++dx) {
-			if (dx == 0 && dy == 0)
-				continue;
-
-			// Target cell = centerCell + spread * (dx, dy)
-			CellStruct targetCell {
-				static_cast<short>(base_cell.X + spread * dx),
-				static_cast<short>(base_cell.Y + spread * dy)
-			};
-
-			CoordStruct targetCoord {};
-			MapClass::Instance->GetCellAt(targetCell)->GetCellCoords(&targetCoord);
-
-			targetCoord.X += Random2Class::NonCriticalRandomNumber->RandomRanged(-128, 128);
-			targetCoord.Y += Random2Class::NonCriticalRandomNumber->RandomRanged(-128, 128);
-
-			// --- Beam setup ---
-			RadBeam* pBeam = RadBeam::Allocate(RadBeamType::Eruption);
-			pBeam->Color = clr;
-			pBeam->SourceLocation = base;
-			pBeam->TargetLocation = targetCoord;
-			pBeam->Period = Random2Class::NonCriticalRandomNumber->RandomRanged(5, 20);;
-			pBeam->Amplitude = Random2Class::NonCriticalRandomNumber->RandomRanged(100, 500);
-			pBeam->unknown_48 = {};
-			pBeam->unknown_50 = Random2Class::NonCriticalRandomNumber->RandomRanged(0, 20);
-		}
-	}
-}
-
-void __fastcall  FakeTechnoClass::__FireRadEruption_Wrapper(TechnoClass* pThis, discard_t, int spread)
-{
-	__FireRadEruption(pThis, nullptr, spread);
-}
-
-DEFINE_FUNCTION_JUMP(LJMP, 0x6FD620, FakeTechnoClass::__FireBeam_Wrapper)
-DEFINE_FUNCTION_JUMP(LJMP, 0x6FD800, FakeTechnoClass::__FireRadEruption_Wrapper)
-
 bool __fastcall FakeTechnoClass::__Is_Allowed_To_Retaliate(TechnoClass* pThis , discard_t , TechnoClass* pSource, WarheadTypeClass* pWarhead)
 {
 	if (!pSource || !pSource->IsAlive || pSource->IsCrashing || pSource->IsSinking)
@@ -5435,9 +5199,6 @@ bool __fastcall FakeTechnoClass::__Is_Allowed_To_Retaliate(TechnoClass* pThis , 
 	if (pThis->SpawnManager)
 		return false;
 
-	if(!TechnoExtData::CanAttackMindControlled(pSource, pThis))
-		return false;
-	
 	const bool bIsPlayerControl = pThis->Owner->IsControlledByHuman();
 
 	if (bIsPlayerControl && pThis->Target)
@@ -6381,11 +6142,9 @@ bool __fastcall FakeTechnoClass::__TargetSomethingNearby(TechnoClass* pThis, dis
 	}
 
 	if (!pThis->Target) {
-		const auto potentialTarget = pThis->GreatestThreat((threat & (ThreatType::Range | ThreatType::Area)).operator ThreatType(), coord, 0);
-
 		if (pType->DistributedFire) {
 			pThis->DistributedFire();
-		} else if (potentialTarget) {
+		} else if (const auto potentialTarget = pThis->GreatestThreat((threat & (ThreatType::Range | ThreatType::Area)).operator ThreatType(), coord, 0)) {
 
 			pThis->SetTarget(potentialTarget);
 
@@ -8943,11 +8702,7 @@ AreaFireReturnFlag TechnoExtData::ApplyAreaFire(TechnoClass* pThis, CellClass*& 
 			CellClass* const tgtCell = MapClass::Instance->GetCellAt(tgtPos);
 			bool allowBridges = tgtCell && tgtCell->ContainsBridge() && (pThis->OnBridge || (tgtCell->Level + Unsorted::BridgeLevels) == pThis->GetCell()->Level);
 
-			if (pExt->SkipWeaponPicking 
-				|| EnumFunctions::AreCellAndObjectsEligibleSelfAware(tgtCell,
-					pExt->CanTarget.Get(), 
-					pExt->CanTargetHouses.Get(),
-					pThis->Owner, pThis, false , true, false, allowBridges))
+			if (pExt->SkipWeaponPicking || EnumFunctions::AreCellAndObjectsEligible(tgtCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), pThis->Owner, true, false, allowBridges))
 			{
 				pTargetCell = tgtCell;
 				return AreaFireReturnFlag::Continue;
@@ -8961,10 +8716,7 @@ AreaFireReturnFlag TechnoExtData::ApplyAreaFire(TechnoClass* pThis, CellClass*& 
 		if(pExt->SkipWeaponPicking)
 			return AreaFireReturnFlag::SkipSetTarget;
 
-		if (!EnumFunctions::AreCellAndObjectsEligibleSelfAware(pThis->GetCell(), 
-			pExt->CanTarget.Get(),
-			pExt->CanTargetHouses.Get(), 
-			pThis->Owner, pThis, false , false, false, pThis->OnBridge))
+		if (!EnumFunctions::AreCellAndObjectsEligible(pThis->GetCell(), pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), pThis->Owner, false, false, pThis->OnBridge))
 			return AreaFireReturnFlag::DoNotFire;
 
 		return AreaFireReturnFlag::SkipSetTarget;
@@ -8974,12 +8726,8 @@ AreaFireReturnFlag TechnoExtData::ApplyAreaFire(TechnoClass* pThis, CellClass*& 
 		auto pCell = pTargetCell;
 		bool allowBridges = pCell && pCell->ContainsBridge() && (pThis->OnBridge || (pCell->Level + Unsorted::BridgeLevels) == pThis->GetCell()->Level);
 
-		if (!pExt->SkipWeaponPicking && !EnumFunctions::AreCellAndObjectsEligibleSelfAware(pTargetCell,
-			pExt->CanTarget.Get(),
-			pExt->CanTargetHouses.Get(),
-			pThis->Owner, pThis, false, false, false, allowBridges)) {
+		if (!pExt->SkipWeaponPicking && !EnumFunctions::AreCellAndObjectsEligible(pTargetCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), pThis->Owner, false, false, allowBridges))
 			return AreaFireReturnFlag::DoNotFire;
-		}
 	}
 	}
 
@@ -9868,7 +9616,7 @@ const Nullable<CoordStruct>* TechnoExtData::GetInfrantyCrawlFLH(InfantryClass* p
 				return pThis->Veterancy.IsElite() ?
 					pTechnoType->E_ProneSecondaryFireFLH.isset() ?
 					&pTechnoType->E_ProneSecondaryFireFLH :
-					&pTechnoType->Elite_SecondaryCrawlFLH
+					&pTechnoType->E_ProneSecondaryFireFLH
 					:
 
 					pTechnoType->ProneSecondaryFireFLH.isset() ?
@@ -11375,8 +11123,6 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, 
 	}break;
 	case KillMethod::Vanish:
 	{
-		auto pExt = TechnoExtContainer::Instance.Find(pThis);
-
 		if (pWhat == BuildingClass::vtable) {
 			const auto pBld = static_cast<BuildingClass*>(pThis);
 
@@ -11386,51 +11132,15 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, 
 
 		// this shit is not really good idea to pull off
 		// some stuffs doesnt really handled properly , wtf
-		CoordStruct ValidCoord = pThis->Transporter ? pThis->Transporter->Location : pThis->Location;
-		const CellStruct ValicCell = CellClass::Coord2Cell(ValidCoord);
-		const bool HasValidLoc = (ValidCoord.IsValid() && ValicCell.IsValid());
 
-		if (pVanishAnim && HasValidLoc) {
-			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pVanishAnim, ValidCoord),
+		if (pVanishAnim && !pThis->InLimbo && (pThis->Location.IsValid() && pThis->InlineMapCoords().IsValid()))
+		{
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pVanishAnim, pThis->GetCoords()),
 				pThis->GetOwningHouse(),
 				nullptr,
 				 true
 			);
 		}
-
-		if (HasValidLoc && !pExt->PhobosAE.empty())
-		{
-			std::vector<std::pair<WeaponTypeClass*, TechnoClass*>> expireWeapons {};
-			std::set<PhobosAttachEffectTypeClass*> cumulativeTypes {};
-
-			for (auto const& attachEffect : pExt->PhobosAE)
-			{
-				auto const pAEType = attachEffect->GetType();
-				if (pAEType->ExpireWeapon && (pAEType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Death) != ExpireWeaponCondition::None)
-				{
-					if (!pAEType->Cumulative || !pAEType->ExpireWeapon_CumulativeOnlyOnce || !cumulativeTypes.contains(pAEType))
-					{
-						if (pAEType->Cumulative && pAEType->ExpireWeapon_CumulativeOnlyOnce)
-							cumulativeTypes.insert(pAEType);
-
-						if (pAEType->ExpireWeapon_UseInvokerAsOwner)
-						{
-							if (auto const pInvoker = attachEffect->GetInvoker())
-								expireWeapons.emplace_back(pAEType->ExpireWeapon, pInvoker);
-						}
-						else
-						{
-							expireWeapons.emplace_back(pAEType->ExpireWeapon, pThis);
-						}
-					}
-				}
-			}
-
-			PhobosAttachEffectClass::DetonateExpireWeapon(expireWeapons, ValidCoord);
-		}
-
-		if (!pThis->IsAlive)
-			return;
 
 		pThis->Stun();
 		bool skiptrackingremove = false;
@@ -11443,7 +11153,6 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, 
 		if (RegisterKill)
 			pThis->RegisterKill(pThis->Owner);
 
-		
 		//Debug::LogInfo(__FUNCTION__" Called ");
 		TechnoExtData::HandleRemove(pThis, nullptr, skiptrackingremove, false);
 
@@ -13453,24 +13162,16 @@ TechnoExtData::~TechnoExtData()
 	if(this->FallingDownTracked)
 		ScenarioExtData::Instance()->FallingDownTracker.erase(pThis);
 
-	//mimicking the original game stuffs
-	if (!Phobos::Otamaa::ExeTerminated && Game::IsActive())
+	if (!Phobos::Otamaa::ExeTerminated)
 	{
-		if (auto pTemp = std::exchange(this->MyOriginalTemporal, nullptr)) {
+		if (auto pTemp = std::exchange(this->MyOriginalTemporal, nullptr))
+		{
 			GameDelete<true, false>(pTemp);
 		}
 
 		//only update the SW if really needed it
-		//ony if the RecheckTechTree is false , otherwise we dont need to re-evaluate again
-		if (pThis->Owner && !pThis->Owner->RecheckTechTree && !pThis->Owner->Type->MultiplayPassive){
-
-			if(pThis->WhatAmI() != BuildingClass::AbsID && !this->TypeExtData->Linked_SW.empty())
-				((FakeHouseClass*)pThis->Owner)->_AI_Supers();
-
-			if (this->TypeExtData->IsGenericPrerequisite()) {
-				pThis->Owner->RecheckTechTree = true;
-			}
-		}
+		if (pThis->Owner && pThis->WhatAmI() != BuildingClass::AbsID && !this->TypeExtData->Linked_SW.empty())
+			((FakeHouseClass*)pThis->Owner)->_AI_Supers();
 	}
 
 	this->ClearElectricBolts();

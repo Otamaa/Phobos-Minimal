@@ -1594,34 +1594,11 @@ ASMJIT_PATCH(0x52D21F, Game_InitRules, 0x6)
 	return 0x0;
 }
 
-#include <Ext/Convert/Body.h>
-
-_GET_FUNCTION_ADDRESS(ConvertClassExt::AllocBlitters, GetConvertClassExtAllocBlittersAddress)
-_GET_FUNCTION_ADDRESS(ConvertClassExt::DeallocBlitters, GetConvertClassExtDeallocBlittersAddress)
-
 ASMJIT_PATCH(0x6BC0CD, _LoadRA2MD, 5)
 {
-	auto pRA2MD = CCINIClass::INI_RA2MD.operator->();
-
-	const char* const pDebugSection = "Debug";
-
-	if (pRA2MD->GetSection(pDebugSection)) {
-		char simdLevel[32] {};
-		pRA2MD->ReadString(pDebugSection, "MaxSimdLevel", Simd::GetLevelName(Phobos::Config::MaxSimdLevel), simdLevel);
-		Debug::Log("Config MaxSimdLevel raw value: %s\n", simdLevel);
-		Phobos::Config::MaxSimdLevel = Simd::ParseLevel(simdLevel, Phobos::Config::MaxSimdLevel);
-	}
-
 	PhobosGlobal::Instance()->LoadGlobalsConfig();
 	SpawnerMain::LoadConfigurations();
 	SpawnerMain::ApplyStaticOptions();
-
-	Simd::Initialize(Phobos::Config::MaxSimdLevel);
-
-	 if(Simd::GetCurrentLevel() > Simd::Level::Vanilla) {
-	 	Patch::Apply_LJMP(0x48EBF0, GetConvertClassExtAllocBlittersAddress());
-	 	Patch::Apply_LJMP(0x490490, GetConvertClassExtDeallocBlittersAddress());
-	 }
 
 	return 0;
 }

@@ -17,7 +17,6 @@ class EnumFunctions final
 public:
 
 	//simple enums
-	static COMPILETIMEEVAL OPTIONALINLINE auto PositionFollow_ToStrings = magic_enum::enum_entries<PositionFollow>();
 	static COMPILETIMEEVAL OPTIONALINLINE auto StackingMode_ToStrings = magic_enum::enum_entries<StackingMode>();
 	static COMPILETIMEEVAL OPTIONALINLINE auto ParabolaFireMode_ToStrings = magic_enum::enum_entries<ParabolaFireMode>();
 	static COMPILETIMEEVAL OPTIONALINLINE auto PassiveAcquireModes_ToStrings = magic_enum::enum_entries<PassiveAcquireModes>();
@@ -86,7 +85,6 @@ public:
 	static bool IsTechnoEligibleB(TechnoClass* const pTechno, AffectedTarget allowed);
 	static bool CanAffectTechnoResult(AbstractType type, AffectedTechno allowed);
 	static bool AreCellAndObjectsEligible(CellClass* const pCell, AffectedTarget allowed, AffectedHouse allowedHouses, HouseClass* owner, bool explicitEmptyCells = false, bool considerAircraftSeparately = false, bool allowBridges = false);
-	static bool AreCellAndObjectsEligibleSelfAware(CellClass* const pCell, AffectedTarget allowed, AffectedHouse allowedHouses, HouseClass* owner, ObjectClass* pAttacker , bool skipAttacker , bool explicitEmptyCells = false, bool considerAircraftSeparately = false, bool allowBridges = false);
 	static BlitterFlags GetTranslucentLevel(int nInt);
 	static TextPrintType CastAlignToFlags(HorizontalPosition pos);
 	static IronCurtainFlag GetICFlagResult(IronCurtainFlag Input);

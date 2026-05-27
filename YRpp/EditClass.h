@@ -58,4 +58,3 @@ public:
 	int Color;
 	bool IsReadOnly;
 };
-static_assert(sizeof(EditClass) == 0x48, "Invalid size.");

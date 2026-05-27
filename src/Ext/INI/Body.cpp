@@ -466,7 +466,7 @@ std::string INIClassExt::Get_TextBlock(char const* section)
 // *
 // *  @author: ZivDero
 // */
-//ASMJIT_PATCH(0x004DDD3A, _INIClass_this->WriteString_Cache_Inherits, 5)
+//DEFINE_HOOK(0x004DDD3A, _INIClass_this->WriteString_Cache_Inherits, 5)
 //{
 //	GET_STACK(INIClass::INISection*, secptr, 0x14);
 //	GET_STACK(char const*, entry, 0x50);
@@ -484,7 +484,7 @@ std::string INIClassExt::Get_TextBlock(char const* section)
 //	return 0;
 //}
 //
-//ASMJIT_PATCH(0x004DED22, _INIClass_INISection_DTOR_Clear_Inherits, 5)
+//DEFINE_HOOK(0x004DED22, _INIClass_INISection_DTOR_Clear_Inherits, 5)
 //{
 //	GET(INIClass::INISection*, secptr, ECX);
 //

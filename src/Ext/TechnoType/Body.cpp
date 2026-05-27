@@ -21,8 +21,6 @@
 #include <Utilities/Cast.h>
 #include <Utilities/EnumFunctions.h>
 
-#include <Utilities/SavegameDef.h>
-
 bool TechnoTypeExtData::SelectWeaponMutex = false;
 
 void TechnoTypeExtData::UpdateAdditionalAttributes(CCINIClass* const pINI)
@@ -419,6 +417,12 @@ void TechnoTypeExtData::Initialize()
 		Eva_ready = GameStrings::EVA_UnitReady();
 		Eva_sold = GameStrings::EVA_UnitSold();
 
+		if (this->AbsType == AircraftTypeClass::AbsID)
+		{
+			this->CustomMissileTrailerAnim = AnimTypeClass::Find(GameStrings::V3TRAIL());
+			this->CustomMissileTakeoffAnim = AnimTypeClass::Find(GameStrings::V3TAKEOFF());
+		}
+
 		this->EVA_UnitLost = VoxClass::FindIndexById(GameStrings::EVA_UnitLost());
 		const auto nPromotedEva = VoxClass::FindIndexById(GameStrings::EVA_UnitPromoted());
 		this->Promote_Elite_Eva = nPromotedEva;
@@ -664,23 +668,6 @@ void TechnoTypeExtData::LoadTurrets(TechnoTypeClass* pType, CCINIClass* pINI)
 		(*Data_).Frame.Read(iniEx, pSection, (std::string("InsigniaFrame.Weapon") + _number + ".%s").c_str());
 		(*Data_).Frames.Read(iniEx, pSection, (std::string("InsigniaFrames.Weapon") + _number).c_str());
 	}
-}
-
-void  TechnoTypeExtData::LoadFromStream(PhobosStreamReader& Stm)
-{
-	this->ObjectTypeExtData::LoadFromStream(Stm);
-	this->Serialize(Stm);
-
-	//wee
-	this->BarrelImageData.clear();
-	this->TurretImageData.clear();
-	this->SpawnAltData.~VoxelStruct();
-}
-
-void  TechnoTypeExtData::SaveToStream(PhobosStreamWriter& Stm)
-{
-	const_cast<TechnoTypeExtData*>(this)->ObjectTypeExtData::SaveToStream(Stm);
-	const_cast<TechnoTypeExtData*>(this)->Serialize(Stm);
 }
 
 int* TechnoTypeExtData::GetTurretWeaponIndex(TechnoTypeClass* pType, size_t idx)
@@ -1359,9 +1346,6 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->Healnumber_Offset.Read(exINI, pSection, "HealthNumber.Offset");
 		this->Healnumber_Decrement.Read(exINI, pSection, "HealthNumber.Decrement");
 
-		this->Landing_Anim.Read(exINI, pSection, "Landing.Anim");
-		this->Landing_AnimOnWater.Read(exINI, pSection, "Landing.AnimOnWater");
-
 		this->ParasiteExit_Sound.Read(exINI, pSection, "Parasite.ExitSound");
 
 		this->Overload_Count.Read(exINI, pSection, "Overload.Count");
@@ -1371,6 +1355,9 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->Overload_ParticleSys.Read(exINI, pSection, "Overload.ParticleSys");
 		this->Overload_ParticleSysCount.Read(exINI, pSection, "Overload.ParticleSysCount");
 		this->Overload_Warhead.Read(exINI, pSection, "Overload.Warhead", true);
+
+		this->Landing_Anim.Read(exINI, pSection, "Landing.Anim");
+		this->Landing_AnimOnWater.Read(exINI, pSection, "Landing.AnimOnWater");
 
 		this->FacingRotation_Disable.Read(exINI, pSection, "FacingRotation.Disabled");
 		this->FacingRotation_DisalbeOnEMP.Read(exINI, pSection, "FacingRotation.DisabledOnEMP");
@@ -1418,6 +1405,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->Gattling_Overload_ParticleSysCount.Read(exINI, pSection, "Gattling.Overload.ParticleSysCount");
 		this->Gattling_Overload_Warhead.Read(exINI, pSection, "Gattling.Overload.Warhead", true);
 
+		this->IsHero.Read(exINI, pSection, "Hero"); //TODO : Move to InfType Ext
 		this->IsDummy.Read(exINI, pSection, "Dummy");
 
 		{
@@ -1528,7 +1516,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		//TODO : properly Enable this
 		GenericPrerequisite::Parse(pINI, pSection, "BuildLimit.Requres", this->BuildLimit_Requires);
 
-		GenericPrerequisite::Parse(pINI, pSection, (std::string("Convert.Script.") + _Prerequisite_key).c_str(), this->Convert_Script_Prereq);
+		GenericPrerequisite::Parse(pINI, pSection, (std::string("Convert.Script.") + _Prerequisite_key).c_str(), this->Convert_Scipt_Prereq);
 
 		this->Prerequisite_Power.Read(exINI, pSection, (_Prerequisite_key + ".Power").c_str());
 		std::string _Prerequisite_StolenTechs_key = _Prerequisite_key+ ".StolenTechs";
@@ -2366,11 +2354,11 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->ExtraThreatCoefficient_InRangeDistance.Read(exINI, pSection, "ExtraThreatCoefficient.InRangeDistance");
 		this->ExtraThreatCoefficient_Facing.Read(exINI, pSection, "ExtraThreatCoefficient.Facing");
 		this->ExtraThreatCoefficient_DistanceToLastTarget.Read(exINI, pSection, "ExtraThreatCoefficient.DistanceToLastTarget");
-		this->ExtraThreat_Enabled = ExtraThreat_IsThreat.Get(RulesExtData::Instance()->ExtraThreat_IsThreat) != 0.0
-			|| ExtraThreat_InRange.Get(RulesExtData::Instance()->ExtraThreat_InRange) != 0.0
-			|| ExtraThreatCoefficient_InRangeDistance.Get(RulesExtData::Instance()->ExtraThreatCoefficient_InRangeDistance) != 0.0
-			|| ExtraThreatCoefficient_Facing.Get(RulesExtData::Instance()->ExtraThreatCoefficient_Facing) != 0.0
-			|| ExtraThreatCoefficient_DistanceToLastTarget.Get(RulesExtData::Instance()->ExtraThreatCoefficient_DistanceToLastTarget) != 0.0;
+		this->ExtraThreat_Enabled = ExtraThreat_IsThreat.Get(RulesExtData::Instance()->ExtraThreat_IsThreat) != 0
+			|| !ExtraThreat_InRange.Get(RulesExtData::Instance()->ExtraThreat_InRange) != 0
+			|| ExtraThreatCoefficient_InRangeDistance.Get(RulesExtData::Instance()->ExtraThreatCoefficient_InRangeDistance) != 0
+			|| ExtraThreatCoefficient_Facing.Get(RulesExtData::Instance()->ExtraThreatCoefficient_Facing) != 0
+			|| ExtraThreatCoefficient_DistanceToLastTarget.Get(RulesExtData::Instance()->ExtraThreatCoefficient_DistanceToLastTarget) != 0;
 
 		this->DriverKilled_KeptPassengers.Read(exINI, pSection, "DriverKilled.KeptPassengers");
 		this->DriverKilled_KillPassengers.Read(exINI, pSection, "DriverKilled.KillPassengers");

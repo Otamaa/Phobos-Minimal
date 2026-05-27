@@ -11,7 +11,6 @@ int FakeTechnoClass::_GetSight(TechnoClass* pThis) {
 	return  pThis->GetTechnoType()->Sight;
 }
 
-//#ifdef _Sight 
 void __fastcall FakeTechnoClass::__See(
 	TechnoClass* pThis, discard_t,
 	bool         incremental,
@@ -20,9 +19,7 @@ void __fastcall FakeTechnoClass::__See(
 	HouseClass* customHouse,
 	int          sightRangeOverride)
 {
-	if (!pThis->IsInPlayfield 
-		|| !pThis->Owner 
-		|| pThis->Owner->Type->MultiplayPassive)
+	if (!pThis->IsInPlayfield || !pThis->Owner || pThis->Owner->Type->MultiplayPassive)
 		return;
 
 	const int sight = _GetSight(pThis);
@@ -188,4 +185,3 @@ ASMJIT_PATCH(0x51E0E5, InfantryClass_Unlimbo_DynamicSight, 0x6)
 	R->EAX(FakeTechnoClass::_GetSight(pThis));
 	return R->Origin() + 0x6;
 }
-//#endif

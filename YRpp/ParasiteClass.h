@@ -78,4 +78,3 @@ public:
 	int             GrappleAnimDelay;
 	bool            GrappleAnimGotInvalid;
 };
-static_assert(sizeof(ParasiteClass) == 0x58);

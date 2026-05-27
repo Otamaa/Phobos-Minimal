@@ -100,22 +100,20 @@ private:
 };
 
 class IsometricTileTypeExtContainer final : public Container<IsometricTileTypeExtData>
-	, public ReadWriteContainerInterfaces<IsometricTileTypeExtData>, public ContainerSaveLoad<IsometricTileTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<IsometricTileTypeExtData>
 {
 public:
 
 	static COMPILETIMEEVAL const char* ClassName = "IsometricTileTypeExtContainer";
 	using base_t = Container<IsometricTileTypeExtData>;
-	using base_SaveLoad_t = ContainerSaveLoad<IsometricTileTypeExtContainer, true>;
 
 public:
 	static IsometricTileTypeExtContainer Instance;
-
 	std::map<std::string, std::map<TintStruct, LightConvertClass*>> LightConvertEntities;
 	int CurrentTileset;
 
-	virtual bool LoadAll(PhobosStreamReader& stm);
-	virtual bool SaveAll(PhobosStreamWriter& stm);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void Clear() { 
 		this->base_t::Clear();

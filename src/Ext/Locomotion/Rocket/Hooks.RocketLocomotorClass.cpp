@@ -2,7 +2,6 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/Techno/Body.h>
-#include <Ext/AircraftType/Body.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/Debug.h>
@@ -127,12 +126,11 @@ struct _RocketLocomotionClass
 {
 	static NOINLINE RocketStruct* GetRocketData(TechnoTypeClass* pType)
 	{
-		if(pType->WhatAmI() == AbstractType::AircraftType){
-			auto pTypeExt = AircraftTypeExtContainer::Instance.Find((AircraftTypeClass*)pType);
+		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-			if (pTypeExt->IsCustomMissile) {
-				return pTypeExt->CustomMissileData.operator->();
-			}
+		if (pTypeExt->IsCustomMissile)
+		{
+			return pTypeExt->CustomMissileData.operator->();
 		}
 
 		if (pType == RulesClass::Instance->CMisl.Type)
@@ -150,12 +148,10 @@ struct _RocketLocomotionClass
 
 	static NOINLINE WarheadTypeClass* GetRocketWarhead(TechnoTypeClass* pType, bool IsElite)
 	{
-		if(pType->WhatAmI() == AbstractType::AircraftType){
-			auto pTypeExt = AircraftTypeExtContainer::Instance.Find((AircraftTypeClass*)pType);
+		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-			if (pTypeExt->IsCustomMissile)
-				return IsElite ? pTypeExt->CustomMissileEliteWarhead : pTypeExt->CustomMissileWarhead;
-		}
+		if (pTypeExt->IsCustomMissile)
+			return IsElite ? pTypeExt->CustomMissileEliteWarhead : pTypeExt->CustomMissileWarhead;
 
 		if (pType == RulesClass::Instance->CMisl.Type)
 		{
@@ -172,84 +168,46 @@ struct _RocketLocomotionClass
 
 	static NOINLINE bool RocketHasWeapon(FootClass* pRocket, TechnoTypeClass* pType, bool IsElite, CoordStruct coords)
 	{
-		if (pType->WhatAmI() == AbstractType::AircraftType)
-		{
-			auto pTypeExt = AircraftTypeExtContainer::Instance.Find((AircraftTypeClass*)pType);
+		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-			if (auto const& pWeapon = IsElite ? pTypeExt->CustomMissileEliteWeapon : pTypeExt->CustomMissileWeapon)
-			{
-				WeaponTypeExtData::DetonateAt3(pWeapon, coords, pRocket, true, pRocket ? pRocket->Owner : nullptr);
-				return true;
-			}
+		if (auto const& pWeapon = IsElite ? pTypeExt->CustomMissileEliteWeapon : pTypeExt->CustomMissileWeapon)
+		{
+			WeaponTypeExtData::DetonateAt3(pWeapon, coords, pRocket, true, pRocket ? pRocket->Owner : nullptr);
+			return true;
 		}
 
 		return false;
 	}
 
+	static NOINLINE bool IsCruise(TechnoTypeClass* pType)
+	{
+		return pType == RulesClass::Instance->CMisl.Type;
+	}
+
 	static NOINLINE AnimTypeClass* GetTrailAnim(TechnoTypeClass* pType)
 	{
-		if (pType->WhatAmI() == AbstractType::AircraftType) {
-			return AircraftTypeExtContainer::Instance.Find((AircraftTypeClass*)pType)->CustomMissileTrailerAnim;
-		}
-
-		return AnimTypeClass::Find(GameStrings::V3TRAIL());
+		return TechnoTypeExtContainer::Instance.Find(pType)->CustomMissileTrailerAnim;
 	}
 
 	static NOINLINE AnimTypeClass* GetTakeOffAnim(TechnoTypeClass* pType)
 	{
-		if (pType->WhatAmI() == AbstractType::AircraftType) {
-			return AircraftTypeExtContainer::Instance.Find((AircraftTypeClass*)pType)->CustomMissileTakeoffAnim;
-		}
-		return  AnimTypeClass::Find(GameStrings::V3TAKEOFF());
+		return TechnoTypeExtContainer::Instance.Find(pType)->CustomMissileTakeoffAnim;
 	}
 
-	static NOINLINE bool IsCruise(TechnoTypeClass* pType, bool IsElite)
+	static NOINLINE bool CanRaise(TechnoTypeClass* pType, bool IsElite)
 	{
-		if (pType->WhatAmI() == AbstractType::AircraftType) {
-			const auto& _opt = AircraftTypeExtContainer::Instance.Find((AircraftTypeClass*)pType)->CustomMissileRaise;
-			const auto& _isSet = IsElite ? _opt.Elite : _opt.Rookie;
-
-			if (_isSet.isset())
-				return _isSet.Get();
-		}
-
-		return  pType == RulesClass::Instance->CMisl.Type;
+		const auto& _opt = TechnoTypeExtContainer::Instance.Find(pType)->CustomMissileRaise;
+		return IsElite ? _opt.Elite : _opt.Rookie;
 	}
 
 	static NOINLINE int GetTrailerSeparation(TechnoTypeClass* pType)
 	{
-		if (pType->WhatAmI() == AbstractType::AircraftType) {
-			return AircraftTypeExtContainer::Instance.Find((AircraftTypeClass*)pType)->CustomMissileTrailerSeparation;
-		}
-
-		return 3;
+		return TechnoTypeExtContainer::Instance.Find(pType)->CustomMissileTrailerSeparation;
 	}
 
 	static NOINLINE double GetCloseEnoughFactor(TechnoTypeClass* pType)
 	{
-		if (pType->WhatAmI() == AbstractType::AircraftType) {
-			return AircraftTypeExtContainer::Instance.Find((AircraftTypeClass*)pType)->CustomMissileCloseEnoughFactor;
-		}
-
-		return 1.0;
-	}
-
-	static NOINLINE double GetCustomMissileTrailAppearDelay(TechnoTypeClass* pType)
-	{
-		if (pType->WhatAmI() == AbstractType::AircraftType) {
-			return AircraftTypeExtContainer::Instance.Find((AircraftTypeClass*)pType)->CustomMissileTrailAppearDelay;
-		}
-
-		return 2;
-	}
-
-
-	static NOINLINE int GetCustomMissileInaccuracy(TechnoTypeClass* pType) {
-		if (pType->WhatAmI() == AbstractType::AircraftType) {
-			return AircraftTypeExtContainer::Instance.Find((AircraftTypeClass*)pType)->CustomMissileInaccuracy;
-		}
-
-		return  -1;
+		return TechnoTypeExtContainer::Instance.Find(pType)->CustomMissileCloseEnoughFactor;
 	}
 
 	static COMPILETIMEEVAL short NOINLINE GetFacing(RocketLocomotionClass* pThis) {
@@ -303,11 +261,12 @@ struct _RocketLocomotionClass
 			pRocket->MissionState = rocket->PauseFrames ? RocketMissionState::Pause : RocketMissionState::Tilt;
 			pRocket->MissionTimer.Start(rocket->PauseFrames ? rocket->PauseFrames : rocket->TiltFrames);
 			pRocket->CurrentPitch = (float)(rocket->PitchInitial * Math::DEG90_AS_RAD);
+			auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pAir->GetTechnoType());
 
 			/**
 			*  Apply some inaccuracy to the coordinate if the rocket type specifies so.
 			*/
-			int accur = GetCustomMissileInaccuracy(pAir->GetTechnoType());
+			int accur = pTypeExt->CustomMissileInaccuracy;
 
 			if (accur <= 0)
 			{
@@ -334,6 +293,7 @@ struct _RocketLocomotionClass
 		const auto pAir = pRocket->Owner;
 		const auto pAirType = pAir->GetTechnoType();
 		const RocketStruct* rocket = GetRocketData(pAirType);
+		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pAirType);
 		TechnoClass* spawn_owner = pAir->SpawnOwner;
 
 		switch (pRocket->MissionState)
@@ -343,7 +303,7 @@ struct _RocketLocomotionClass
 			pRocket->CurrentSpeed = 0.0;
 			pRocket->SpawnerIsElite = spawn_owner && spawn_owner->Veterancy.IsElite();
 
-			const bool iscruise = IsCruise(pAirType, pRocket->SpawnerIsElite);
+			const bool iscruise = IsCruise(pAirType);
 
 			if (!iscruise)
 			{
@@ -550,7 +510,7 @@ struct _RocketLocomotionClass
 		{
 			if (auto pAnim = GetTrailAnim(pAirType))
 			{
-				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, pAir->Location, GetCustomMissileTrailAppearDelay(pAirType), 1, 0x600),
+				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, pAir->Location, pTypeExt->CustomMissileTrailAppearDelay, 1, 0x600),
 					pAir->Owner,
 					pAir->Target ? pAir->Target->GetOwningHouse() : nullptr,
 					pAir,

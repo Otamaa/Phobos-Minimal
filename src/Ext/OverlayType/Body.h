@@ -72,12 +72,15 @@ private:
 };
 
 class OverlayTypeExtContainer final : public Container<OverlayTypeExtData>
-	, public ReadWriteContainerInterfaces<OverlayTypeExtData>, public ContainerSaveLoad<OverlayTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<OverlayTypeExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "OverlayTypeExtContainer";
 public:
 	static OverlayTypeExtContainer Instance;
+
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void LoadFromINI(OverlayTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(OverlayTypeClass* key, CCINIClass* pINI);

@@ -112,28 +112,6 @@ void IsometricTileTypeExtData::Serialize(T& Stm)
 
 IsometricTileTypeExtContainer IsometricTileTypeExtContainer::Instance;
 
-bool IsometricTileTypeExtContainer::LoadAll(PhobosStreamReader& stm)
-{
-	if (!stm
-		.Process(LightConvertEntities)
-		.Process(CurrentTileset)
-		)
-		return false;
-
-	return this->base_SaveLoad_t::LoadAll(stm);
-}
-
-bool IsometricTileTypeExtContainer::SaveAll(PhobosStreamWriter& stm)
-{
-	if (!stm
-		.Process(LightConvertEntities)
-		.Process(CurrentTileset)
-		)
-		return false;
-
-	return this->base_SaveLoad_t::SaveAll(stm);
-}
-
 // =============================
 // container hooks
 

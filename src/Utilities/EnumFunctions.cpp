@@ -499,34 +499,6 @@ bool EnumFunctions::CanAffectTechnoResult(AbstractType type, AffectedTechno allo
 	return false;
 }
 
-bool EnumFunctions::AreCellAndObjectsEligibleSelfAware(CellClass* const pCell, AffectedTarget allowed, AffectedHouse allowedHouses, HouseClass* owner, ObjectClass* pAttacker, bool skipAttacker, bool explicitEmptyCells, bool considerAircraftSeparately, bool allowBridges)
-{
-	if (!EnumFunctions::IsCellEligible(pCell, allowed, explicitEmptyCells, allowBridges))
-		return false;
-
-	for (auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject)
-	{
-		//dont want to evalueate the attacker if it is on the same cell as the target and skipAttacker is true
-		//to avoid issues with self-targeting abilities that would fail to target anything 
-		//if they also target units and the attacker is not eligible for some reason
-		if (!skipAttacker && pObject == pAttacker)
-			continue;
-
-		if (auto pTechno = flag_cast_to<TechnoClass*, false>(pObject))
-		{
-			if (owner && !EnumFunctions::CanTargetHouse(allowedHouses, owner, pTechno->Owner))
-			{
-				return false;
-			}
-
-			if (!EnumFunctions::IsTechnoEligible(pTechno, allowed, considerAircraftSeparately))
-				return false;
-		}
-	}
-
-	return true;
-}
-
 bool EnumFunctions::AreCellAndObjectsEligible(CellClass* const pCell, AffectedTarget allowed, AffectedHouse allowedHouses, HouseClass* owner, bool explicitEmptyCells, bool considerAircraftSeparately, bool allowBridges)
 {
 	if(!EnumFunctions::IsCellEligible(pCell, allowed, explicitEmptyCells , allowBridges))

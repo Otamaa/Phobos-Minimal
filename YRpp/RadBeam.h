@@ -73,7 +73,8 @@ public:
 	CoordStruct TargetLocation;
 	DWORD Period;
 	double Amplitude;
-	Point2D unknown_48;
+	DWORD unknown_48;
+	DWORD unknown_4C;
 	DWORD unknown_50;
 	DWORD unknown_54;
 	BYTE unknown_59;

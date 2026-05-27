@@ -35,8 +35,6 @@ public:
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
 	virtual int ClassSize() const override R0;
 
-	void AddTovector() { JMP_THIS(0x4A79D0); }
-
 	//non-virtual
 	void Fire(TechnoClass* pOwner, AbstractClass* pTarget, WeaponTypeClass* pWeapon, int nDamage)
 		{ JMP_THIS(0x4A71A0); }
@@ -68,5 +66,3 @@ public:
 	int DrawCounter;//inc per draw
 	int Damage;
 };
-
-static_assert(sizeof(DiskLaserClass) == 0x40, "Invalid Size !");

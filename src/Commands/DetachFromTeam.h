@@ -5,15 +5,6 @@
 class DetachFromTeamCommandClass : public PhobosCommandClass
 {
 public:
-	DetachFromTeamCommandClass() : PhobosCommandClass()
-	{
-		this->IsDeveloper = true;
-	}
-
-	virtual ~DetachFromTeamCommandClass() = default;
-
-public:
-
 	// CommandClass
 	virtual const char* GetName() const override;
 	virtual const wchar_t* GetUIName() const override;

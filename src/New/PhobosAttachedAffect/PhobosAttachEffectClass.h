@@ -31,11 +31,6 @@ public:
 	void UpdateCumulativeAnim(int count);
 	void TransferCumulativeAnim(PhobosAttachEffectClass* pSource);
 	bool CanShowAnim() const;
-
-	void FirePeriodicWeapon();
-	void LaunchPeriodicBullet(TechnoClass* pFirer, HouseClass* pFirerHouse,
-		WeaponTypeClass* pWeapon, TechnoClass* pTarget, CoordStruct firePos);
-
 	TechnoClass* GetInvoker() const
 	{
 		return this->Invoker;
@@ -99,7 +94,7 @@ public:
 	static int RemoveAllOfType(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, int minCount, int maxCount);
 
 	static void CumulateExpireWeapon(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, TechnoClass* pInvoker,	std::vector<std::pair<WeaponTypeClass*, TechnoClass*>>& expireContainer);
-	static void DetonateExpireWeapon(std::vector<std::pair<WeaponTypeClass*, TechnoClass*>>& expireContainer, CoordStruct& designation);
+	static void DetonateExpireWeapon(std::vector<std::pair<WeaponTypeClass*, TechnoClass*>>& expireContainer);
 
 	template <typename T>
 	bool Serialize(T& Stm);
@@ -112,7 +107,6 @@ public:
 	int InitialDelay { 0 };
 	int RecreationDelay { -1 };
 	int LastDiscardCheckFrame { -1 };
-	int PeriodicWeaponTimer { 0 };
 	PhobosAttachEffectTypeClass* Type { nullptr };
 	TechnoClass* Techno { nullptr };
 	HouseClass* InvokerHouse { nullptr };

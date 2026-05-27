@@ -794,35 +794,16 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 	if (!pTarget->IsAlive)
 		return;
 
-	if (this->RadarOutage_Duration != 0 || this->PowerOutage_Duration != 0) {
+	if (this->RadarOutage_Duration > 0 || this->PowerOutage_Duration > 0) {
 		for (const auto pTargetHouse : *HouseClass::Array) {
-
 			if (!pHouse->Defeated && !pHouse->IsObserver() && !pHouse->Type->MultiplayPassive) {
-				bool rechek = false;
 
-				if (this->PowerOutage_Duration != 0 && EnumFunctions::CanTargetHouse(this->PowerOutage_AffectsHouse, pHouse, pTargetHouse)) {
-					int _Outage_durr = Helpers::Alex::getCappedDuration(pTargetHouse->PowerBlackoutTimer.GetTimeLeft(), this->PowerOutage_Duration, this->PowerOutage_Max);
-
-					if (_Outage_durr <= 0) { pTargetHouse->PowerBlackoutTimer.Stop(); }
-					else { pTargetHouse->PowerBlackoutTimer.Start(_Outage_durr); }
-
-					rechek = true;
+				if (this->PowerOutage_Duration > 0 && EnumFunctions::CanTargetHouse(this->PowerOutage_AffectsHouse, pHouse, pTargetHouse)) {
+					pTargetHouse->CreatePowerOutage(this->PowerOutage_Duration);
 				}
 
-				if (this->RadarOutage_Duration != 0 && EnumFunctions::CanTargetHouse(this->RadarOutage_AffectsHouse, pHouse, pTargetHouse)) {
-					int _Outage_durr = Helpers::Alex::getCappedDuration(pTargetHouse->RadarBlackoutTimer.GetTimeLeft(), this->RadarOutage_Duration, this->RadarOutage_Max);
-
-					if (_Outage_durr < 0)
-						_Outage_durr = 0;
-
-					if (_Outage_durr <= 0) { pTargetHouse->RadarBlackoutTimer.Stop(); }
-					else { pTargetHouse->RadarBlackoutTimer.Start(_Outage_durr); }
-
-					rechek = true;
-				}
-
-				if (rechek) {
-					pTargetHouse->RecheckPower = true;
+				if (this->RadarOutage_Duration > 0 && EnumFunctions::CanTargetHouse(this->RadarOutage_AffectsHouse, pHouse, pTargetHouse)) {
+					pTargetHouse->CreateRadarOutage(this->RadarOutage_Duration);
 				}
 			}
 		}

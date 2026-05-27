@@ -37,7 +37,8 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x6A6140, MouseClassExt::__Factory_Link);
 
 const MouseCursor* MouseClassExt::GetCursorData(MouseCursorType nMouse)
 {
-	if (!CursorTypeClass::Array.empty() && (size_t)nMouse < CursorTypeClass::Array.size()) {
+	if (!CursorTypeClass::Array.empty())
+	{
 		return CursorTypeClass::Array[(int)nMouse]->CursorData.operator->();
 	}
 
@@ -190,13 +191,13 @@ Point2D MouseClassExt::_Get_Mouse_Hotspot(MouseCursorType mouse) const
 //5BE970 - Not a vtable
 int MouseClassExt::_Get_Mouse_Start_Frame(MouseCursorType mouse) const
 {
-	return GetCursorData(mouse)->StartFrame;
+	return GetCursorData(this->MouseCursorIndex)->StartFrame;
 }
 
 //5BE990 - Not a vtable
 int MouseClassExt::_Get_Mouse_Frame_Count(MouseCursorType mouse) const
 {
-	return GetCursorData(mouse)->FrameCount;
+	return GetCursorData(this->MouseCursorIndex)->FrameCount;
 }
 
 size_t MouseClassExt::GetActionIndex(Action nAction)

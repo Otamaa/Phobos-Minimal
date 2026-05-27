@@ -17,38 +17,39 @@
 // =============================
 // load / save
 
-template <typename T>
-void DiskLaserExtData::Serialize(T& Stm)
-{
-	Stm
-		.Process(this->WeaponIdx)
-		;
-}
+//template <typename T>
+//void DiskLaserExt::ExtData::Serialize(T& Stm)
+//{
+//	Stm
+//		.Process(this->Initialized)
+//		;
+//}
 
 // =============================
 // container
 
-DiskLaserExtContainer DiskLaserExtContainer::Instance;
+//DiskLaserExt::ExtContainer DiskLaserExt::ExtMap;
 
 // =============================
 // container hooks
 
-ASMJIT_PATCH(0x4A7A6A, DiskLaserClass_CTOR, 0x6)
-{
-	GET(DiskLaserClass*, pItem, ESI);
-	if(!Phobos::Otamaa::DoingLoadGame)
-	DiskLaserExtContainer::Instance.Allocate(pItem);
-	return 0;
-}
-
-ASMJIT_PATCH_AGAIN(0x4A7B00 , DiskLaserClass_SDDTOR, 0x8)
-ASMJIT_PATCH(0x4A7C90, DiskLaserClass_SDDTOR, 0x8)
-{
-	GET(DiskLaserClass *, pItem, ECX);
-	DiskLaserExtContainer::Instance.Remove(pItem);
-	return 0;
-}
-
+//ASMJIT_PATCH(0x4A7A6A, DiskLaserClass_CTOR, 0x6)
+//{
+//	GET(DiskLaserClass*, pItem, ESI);
+//#
+//	DiskLaserExt::ExtMap.Allocate(pItem);
+//
+//	return 0;
+//}
+//
+//ASMJIT_PATCH_AGAIN(0x4A7B00 , DiskLaserClass_SDDTOR, 0x8)
+//ASMJIT_PATCH(0x4A7C90, DiskLaserClass_SDDTOR, 0x8)
+//{
+//	GET(DiskLaserClass *, pItem, ECX);
+//	DiskLaserExt::ExtMap.Remove(pItem);
+//	return 0;
+//}
+//
 //ASMJIT_PATCH_AGAIN(0x4A7B90, DiskLaserClass_SaveLoad_Prefix, 0x5)
 //ASMJIT_PATCH(0x4A7C10, DiskLaserClass_SaveLoad_Prefix, 0x8)
 //{
@@ -120,7 +121,7 @@ void FakeDiskLaserClass::__AI()
 
 	// State == 0: Main firing logic
 	auto pFirer = this->Owner;
-	auto pTarget = this->Target; 
+	auto pTarget = this->Target;
 	auto pWeapon = this->Weapon;
 
 	auto pTypeExt = GET_TECHNOTYPEEXT(pFirer);
@@ -168,10 +169,7 @@ void FakeDiskLaserClass::__AI()
 	}
 
 	// Get weapon FLH position
-	CoordStruct flhCoords = pFirer->GetFLH(
-		DiskLaserExtContainer::Instance.Find(this)->WeaponIdx
-	,0,0,0);
-
+	CoordStruct flhCoords = pFirer->GetFLH(0,0,0,0);
 	int const z = flhCoords.Z;
 
 	// Calculate rotating indices
@@ -182,14 +180,13 @@ void FakeDiskLaserClass::__AI()
 	int const idx1 = (offset34 - offset38 + 16) % std::size(DiscLaserCoords); // Opposite position
 	int const idx2 = (offset34 + offset38 + 1) % std::size(DiscLaserCoords);  // Next position
 	int const idx3 = (offset34 - offset38 + 15) % std::size(DiscLaserCoords); // Opposite next
-	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
 	// ============================================================
 	// HOOK: 0x4A757B - DiskLaserClass_AI_Circle
 	// Update circle coords if weapon has custom circumference
 	// ============================================================
 	{
-
+		auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 		int const newCircumference = pWeaponExt->DiskLaser_Circumference;
 
 		if (WeaponTypeExtData::nOldCircumference != newCircumference) {
@@ -201,7 +198,6 @@ void FakeDiskLaserClass::__AI()
 			}
 		}
 	}
-	int zAdj = pWeaponExt->LaserZAdjust;
 	// ============================================================
 
 	// Determine colors
@@ -240,22 +236,14 @@ void FakeDiskLaserClass::__AI()
 		}
 
 		// Create final laser beam
-		auto pLaser_1 = GameCreate<LaserDrawClass>(
+		GameCreate<LaserDrawClass>(
 			laserStart,
 			laserEnd,
-			zAdj,
-			1u,
 			innerColor,
 			outerColor,
 			*pOuterSpread,
-			pWeapon->LaserDuration,
-			false,
-			true,
-			1.0f,
-			0.0f
+			pWeapon->LaserDuration
 		);
-
-		pLaser_1->SetThickness(pWeaponExt->Laser_Thickness);
 
 		if(!pTypeExt->DiskLaserDetonate){
 			// Deal damage at target
@@ -337,22 +325,14 @@ void FakeDiskLaserClass::__AI()
 		// ============================================================
 
 		// First laser
-		auto pLaser2 = GameCreate<LaserDrawClass>(
+		GameCreate<LaserDrawClass>(
 			start1,
 			end1,
-			zAdj,
-			1u,
 			innerColor,
 			outerColor,
 			*pOuterSpread,
-			duration,
-			false,
-			true,
-			1.0f,
-			0.5f
+			duration
 		);
-
-		pLaser2->SetThickness(pWeaponExt->Laser_Thickness);
 
 		// Second pair: idx1 -> idx3
 		CoordStruct const start2 {
@@ -368,22 +348,14 @@ void FakeDiskLaserClass::__AI()
 		};
 
 		// Second laser
-		auto pLaser3 = GameCreate<LaserDrawClass>(
+		GameCreate<LaserDrawClass>(
 			start2,
 			end2,
-			zAdj,
-			1u,
 			innerColor,
 			outerColor,
 			*pOuterSpread,
-			duration,
-			false,
-			true,
-			1.0f,
-			0.5f
+			duration
 		);
-
-		pLaser3->SetThickness(pWeaponExt->Laser_Thickness);
 
 		// Advance animation state
 		this->DrawRateCounter = 1;
@@ -391,44 +363,58 @@ void FakeDiskLaserClass::__AI()
 	}
 }
 
-void NOINLINE FakeDiskLaserClass::__Fire(TechnoClass* pFirer, AbstractClass* pTarget, WeaponTypeClass* pWeapon, int damageMultiplier)
+void FakeDiskLaserClass::__Fire(TechnoClass* pFirer, AbstractClass* pTarget, WeaponTypeClass* pWeapon, int damageMultiplier)
 {
 	// Validate all required parameters
-	if (pFirer && pTarget && pWeapon) {
-		// Initialize disk laser state
-		this->Owner = pFirer;
-		this->Damage = damageMultiplier;
-		this->Target = pTarget;
-		this->Weapon = pWeapon;
-
-		// Get center coordinates of target and firer
-		CoordStruct const targetCoords = pTarget->GetCoords();
-		CoordStruct const firerCoords = pFirer->GetCoords();
-
-		// Calculate angle from firer to target
-		// Atan2(firerY - targetY, targetX - firerX)
-		double const angle = Math::atan2(
-			static_cast<double>(firerCoords.Y - targetCoords.Y),
-			static_cast<double>(targetCoords.X - firerCoords.X)
-		);
-
-		// Convert angle to binary angle format
-		// Subtract 90 degrees and convert using BINARY_ANGLE_MAGIC
-		double const adjustedAngle = angle - Math::DEG90_AS_RAD;
-		int const binaryAngle = static_cast<int>(adjustedAngle * Math::BINARY_ANGLE_MAGIC);
-
-		// Calculate starting offset for laser animation
-		// Extract lower 16 bits, then calculate index
-		unsigned short const angleWord = static_cast<unsigned short>(binaryAngle);
-		const int offset = (((((angleWord >> 11) + 1) >> 1) & 0xF) + 8);
-
-		// Use signed mod 16 for final value
-		this->Facing = offset % std::size(DiscLaserCoords);
-		this->DrawRateCounter = 0;
-		this->DrawCounter = 0;
+	if (!pFirer) {
+		this->DrawRateCounter = -1;
 		return;
 	}
-	this->AddTovector();
+
+	if (!pTarget) {
+		this->DrawRateCounter = -1;
+		return;
+	}
+
+	if (!pWeapon) {
+		this->DrawRateCounter = -1;
+		return;
+	}
+
+	// Initialize disk laser state
+	this->Owner = pFirer;
+	this->Damage = damageMultiplier;
+	this->Target = pTarget;
+	this->Weapon = pWeapon;
+
+	// Get center coordinates of target and firer
+	CoordStruct const targetCoords = pTarget->GetCoords();
+	CoordStruct const firerCoords = pFirer->GetCoords();
+
+	// Calculate angle from firer to target
+	// Atan2(firerY - targetY, targetX - firerX)
+	double const angle = Math::atan2(
+		static_cast<double>(firerCoords.Y - targetCoords.Y),
+		static_cast<double>(targetCoords.X - firerCoords.X)
+	);
+
+	// Convert angle to binary angle format
+	// Subtract 90 degrees and convert using BINARY_ANGLE_MAGIC
+	double const adjustedAngle = angle - Math::DEG90_AS_RAD;
+	int const binaryAngle = static_cast<int>(adjustedAngle * Math::BINARY_ANGLE_MAGIC);
+
+	// Calculate starting offset for laser animation
+	// Extract lower 16 bits, then calculate index
+	unsigned short const angleWord = static_cast<unsigned short>(binaryAngle);
+	const int offset = (((((angleWord >> 11) + 1) >> 1) & 0xF) + 8);
+
+	// Use signed mod 16 for final value
+	this->Facing = offset % std::size(DiscLaserCoords);
+	this->DrawRateCounter = 0;
+	this->DrawCounter = 0;
+
+	// Add to the array for AI processing
+	AbstractClass::Array2->push_back(this);
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x4A71A0, FakeDiskLaserClass::__Fire)

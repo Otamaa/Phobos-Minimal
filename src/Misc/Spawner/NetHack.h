@@ -28,7 +28,7 @@ struct ListAddress
 class NetHack
 {
 public:
-	static bool RequirePortMatch;
+	static bool PortHack;
 
 	static
 		int WINAPI SendTo(

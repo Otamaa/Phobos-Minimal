@@ -92,7 +92,6 @@ void SmudgeTypeExtContainer::WriteToINI(ext_t::base_type* key, CCINIClass* pINI)
 ASMJIT_PATCH(0x6B52E1, SmudgeTypeClass_CTOR, 0x5)
 {
 	GET(SmudgeTypeClass*, pItem, ESI);
-	if (!Phobos::Otamaa::DoingLoadGame)
 	SmudgeTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }

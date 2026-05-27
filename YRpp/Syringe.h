@@ -58,46 +58,6 @@
 // SAFETY VALIDATION (Debug builds only, zero runtime cost in Release)
 // ============================================================================
 
-// x86 EFLAGS register proxy for readable conditional checks
-// Usage: auto eflags = R->EFLAGS(); if (eflags.ZF) { ... }
-
-struct EFlagsProxy
-{
-	DWORD raw;
-
-	// Individual flag accessors (bit positions)
-	constexpr bool CF() const noexcept { return (raw & (1 << 0)) != 0; }  // Carry
-	constexpr bool PF() const noexcept { return (raw & (1 << 2)) != 0; }  // Parity
-	constexpr bool AF() const noexcept { return (raw & (1 << 4)) != 0; }  // Auxiliary Carry
-	constexpr bool ZF() const noexcept { return (raw & (1 << 6)) != 0; }  // Zero
-	constexpr bool SF() const noexcept { return (raw & (1 << 7)) != 0; }  // Sign
-	constexpr bool TF() const noexcept { return (raw & (1 << 8)) != 0; }  // Trap
-	constexpr bool IF() const noexcept { return (raw & (1 << 9)) != 0; }  // Interrupt Enable
-	constexpr bool DF() const noexcept { return (raw & (1 << 10)) != 0; } // Direction
-	constexpr bool OF() const noexcept { return (raw & (1 << 11)) != 0; } // Overflow
-
-	// Common condition checks (matches x86 Jcc mnemonics)
-	constexpr bool IsZero() const noexcept { return ZF(); }                          // JZ/JE
-	constexpr bool IsNotZero() const noexcept { return !ZF(); }                      // JNZ/JNE
-	constexpr bool IsCarry() const noexcept { return CF(); }                         // JC/JB/JNAE
-	constexpr bool IsNotCarry() const noexcept { return !CF(); }                     // JNC/JAE/JNB
-	constexpr bool IsSign() const noexcept { return SF(); }                          // JS
-	constexpr bool IsNotSign() const noexcept { return !SF(); }                      // JNS
-	constexpr bool IsOverflow() const noexcept { return OF(); }                      // JO
-	constexpr bool IsNotOverflow() const noexcept { return !OF(); }                  // JNO
-	constexpr bool IsBelow() const noexcept { return CF(); }                         // JB (unsigned <)
-	constexpr bool IsAboveOrEqual() const noexcept { return !CF(); }                 // JAE (unsigned >=)
-	constexpr bool IsLessOrEqual() const noexcept { return ZF() || (SF() != OF()); } // JLE (signed <=)
-	constexpr bool IsGreater() const noexcept { return !ZF() && (SF() == OF()); }    // JG (signed >)
-	constexpr bool IsLess() const noexcept { return SF() != OF(); }                  // JL (signed <)
-	constexpr bool IsGreaterOrEqual() const noexcept { return SF() == OF(); }        // JGE (signed >=)
-	constexpr bool IsAbove() const noexcept { return !CF() && !ZF(); }               // JA (unsigned >)
-	constexpr bool IsBelowOrEqual() const noexcept { return CF() || ZF(); }          // JBE (unsigned <=)
-
-	// Implicit conversion back to DWORD for compatibility
-	constexpr operator DWORD() const noexcept { return raw; }
-};
-
 namespace SyringeInternal
 {
 #if defined(_DEBUG) && !defined(SYRINGE_NO_SAFETY_CHECKS)
@@ -574,11 +534,6 @@ public:
 	SYRINGE_FORCE_INLINE DWORD EFLAGS() const noexcept
 	{
 		return this->flags;
-	}
-
-	SYRINGE_FORCE_INLINE EFlagsProxy GetEFLAGS() const noexcept
-	{
-		return { this->flags };
 	}
 
 	SYRINGE_FORCE_INLINE void EFLAGS(DWORD value) noexcept
@@ -1315,25 +1270,12 @@ namespace SyringeData
 	namespace Hosts { };
 }
 
-#define _YR_PP_CAT_INNER(a, b) a##b
-#define _YR_PP_CAT(a, b) _YR_PP_CAT_INNER(a, b)
-#define _YR_PP_STRINGIZE_INNER(x) #x
-#define _YR_PP_STRINGIZE(x) _YR_PP_STRINGIZE_INNER(x)
-
-#define _YR_LINKER_FORCE_INCLUDE(symbol) \
-	__pragma(comment(linker, "/include:_" _YR_PP_STRINGIZE(symbol)))
-
-#define _YR_DEFINE_INCLUDE_ANCHOR(name, expr) \
-	extern "C" __declspec(selectany) const void* name = (expr); \
-	_YR_LINKER_FORCE_INCLUDE(name)
-
-#define declhost(exename, checksum) \
-namespace SyringeData { namespace Hosts { __declspec(allocate(".syexe00")) hostdecl _hst__ ## exename  { checksum, #exename }; }; }; \
-_YR_DEFINE_INCLUDE_ANCHOR(_YR_PP_CAT(YrKeepHost_, exename), &SyringeData::Hosts::_hst__ ## exename)
-
 #define declhook(hook, funcname, size) \
-namespace SyringeData { namespace Hooks { __declspec(allocate(".syhks00")) hookdecl _hk__ ## hook ## funcname  {  hook, size, #funcname }; }; }; \
-_YR_DEFINE_INCLUDE_ANCHOR(_YR_PP_CAT(YrKeepHook_, _YR_PP_CAT(hook, funcname)), &SyringeData::Hooks::_hk__ ## hook ## funcname)
+namespace SyringeData { \
+namespace Hooks { \
+__declspec(allocate(SYRINGE_HOOKS_SECTION_NAME)) \
+hookdecl _hk__ ## hook ## funcname = { hook, size, #funcname }; \
+}; };
 
 #define decl_asmjit_patch_data(hook, funcname, size) \
 namespace AsmjitPatchData { \

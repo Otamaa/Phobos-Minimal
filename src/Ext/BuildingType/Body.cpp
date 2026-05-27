@@ -1032,7 +1032,7 @@ SuperClass* BuildingTypeExtData::GetSuperWeaponByIndex(int index, HouseClass* pH
 {
 	if (auto pSuper = pHouse->Supers.get_or_default(this->GetSuperWeaponIndex(index)))
 	{
-		if (SWTypeExtData::IsAvailable(pHouse, pSuper))
+		if (SWTypeExtContainer::Instance.Find(pSuper->Type)->IsAvailable(pHouse))
 		{
 			return pSuper;
 		}
@@ -1046,8 +1046,7 @@ int BuildingTypeExtData::GetSuperWeaponIndex(const int index, HouseClass* pHouse
 	const size_t idxSW = this->GetSuperWeaponIndex(index);
 
 	if (idxSW < (size_t)pHouse->Supers.Count) {
-		auto pSuper = pHouse->Supers[idxSW];
-		if (!SWTypeExtData::IsAvailable(pHouse, pSuper)) {
+		if (!SWTypeExtContainer::Instance.Find(pHouse->Supers[idxSW]->Type)->IsAvailable(pHouse)) {
 			return -1;
 		}
 	}
@@ -1786,11 +1785,6 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->BuildingRadioLink_SyncOwner.Read(exINI, pSection, "BuildingRadioLink.SyncOwner");
 		this->ApplyPerTargetEffectsOnDetonate.Read(exINI, pSection, "ApplyPerTargetEffectsOnDetonate");
 		this->RevealToAll_Radius.Read(exINI, pSection, "RevealToAll.Radius");
-		this->DisplayIncome_Delay.Read(exINI, pSection, "DisplayIncome.Delay");
-		if (this->DisplayIncome_Delay.isset() && this->DisplayIncome_Delay == 0) {
-			Debug::Log("[Developer warning] [%s] DisplayIncome.Delay is set to 0, forcing to 1.\n", pSection);
-			this->DisplayIncome_Delay = 1;
-		}
 	}
 #pragma endregion
 	if (pArtINI->GetSection(pArtSection))
@@ -2257,7 +2251,6 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->ApplyPerTargetEffectsOnDetonate)
 		.Process(this->Adjacent_Disallowed_Prohibit)
 		.Process(this->RevealToAll_Radius)
-		.Process(this->DisplayIncome_Delay)
 
 		;
 }
@@ -2561,22 +2554,6 @@ void BuildingTypeExtData::Serialize(T& Stm)
 // container
 BuildingTypeExtContainer BuildingTypeExtContainer::Instance;
 
-bool BuildingTypeExtContainer::LoadAll(PhobosStreamReader& stm)
-{
-	if (!stm.Process(trenchKinds))
-		return false;
-
-	return this->base_SaveLoad_t::LoadAll(stm);
-}
-
-bool BuildingTypeExtContainer::SaveAll(PhobosStreamWriter& stm)
-{
-	if (!stm.Process(trenchKinds))
-		return false;
-
-	return this->base_SaveLoad_t::SaveAll(stm);
-}
-
 void BuildingTypeExtContainer::Clear()
 {
 	this->base_container_t::Clear();
@@ -2644,7 +2621,6 @@ void BuildingTypeExtContainer::WriteToINI(BuildingTypeClass* key, CCINIClass* pI
 ASMJIT_PATCH(0x45E50C, BuildingTypeClass_CTOR, 0x6)
 {
 	GET(BuildingTypeClass*, pItem, EAX);
-	if(!Phobos::Otamaa::DoingLoadGame)
 	BuildingTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }

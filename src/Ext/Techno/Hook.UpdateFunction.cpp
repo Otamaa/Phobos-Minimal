@@ -328,17 +328,19 @@ void FakeTechnoClass::__CheckTargetInRange(TechnoClass* pThis)
 			const int weaponIndex = pThis->SelectWeapon(pThis->Target);
 			const FireError threatResult = pThis->GetFireError(pThis->Target, weaponIndex, false);
 
-			//i forgot what this is for
-			// WeaponTypeClass* weapon = pThis->GetWeapon(weaponIndex)->WeaponType;
-			// 	const bool is_firing_particles = weapon && (
-			// 			(weapon->UseFireParticles && pThis->Sys.Fire)
-			// 		|| (weapon->IsRailgun && pThis->Sys.Railgun)
-			// 		|| (weapon->UseSparkParticles && pThis->Sys.Spark)
-			// 		|| (weapon->IsSonic && pThis->Wave));
 
-			//if (!is_firing_particles || threatResult == FireError::ILLEGAL || threatResult == FireError::CANT) {
-			if(threatResult == FireError::ILLEGAL || threatResult == FireError::CANT) {
+			if (threatResult == FireError::ILLEGAL || threatResult == FireError::CANT) {
+
+				WeaponTypeClass* weapon = pThis->GetWeapon(weaponIndex)->WeaponType;
+				const bool is_firing_particles = weapon && (
+						(weapon->UseFireParticles && pThis->Sys.Fire)
+					|| (weapon->IsRailgun && pThis->Sys.Railgun)
+					|| (weapon->UseSparkParticles && pThis->Sys.Spark)
+					|| (weapon->IsSonic && pThis->Wave));
+
+				if (!is_firing_particles || threatResult == FireError::ILLEGAL || threatResult == FireError::CANT) {
 					pThis->SetTarget(nullptr);
+				}
 			}
 		}
 	}
@@ -469,18 +471,16 @@ void FakeTechnoClass::__HandleTargetAcquisition(TechnoClass* pThis)
 
 	Mission mission = pThis->CurrentMission;
 	if ((mission == Mission::Move || mission == Mission::Harvest || mission == Mission::Guard)
-	) {
-		if(FakeTechnoClass::___ShouldPassiveAcquire(pThis)){
-			AbstractClass* oldTarget = pThis->Target;
-			pThis->__creationframe_4FC = Unsorted::CurrentFrame();
+		&& pThis->TechnoClass_709290()) {
 
-			CoordStruct centerCoord = pThis->GetCoords();
+		AbstractClass* oldTarget = pThis->Target;
+		pThis->__creationframe_4FC = Unsorted::CurrentFrame();
 
+		CoordStruct centerCoord = pThis->GetCoords();
 
-			if (pThis->TargetAndEstimateDamage(&centerCoord, ThreatType::Range)) {
-				if (pThis->Target != oldTarget) {
-					pThis->ShouldLoseTargetNow = 1;
-				}
+		if (pThis->TargetAndEstimateDamage(&centerCoord, ThreatType::Range)) {
+			if (pThis->Target != oldTarget) {
+				pThis->ShouldLoseTargetNow = 1;
 			}
 		}
 	}
@@ -785,7 +785,7 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 	}
 
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-	const auto IsBuilding = pExt->AbsType == BuildingClass::AbsID;
+	const auto IsBuilding = pThis->WhatAmI() == BuildingClass::AbsID;
 
 	TechnoExtData::Ares_technoUpdate(pThis);
 

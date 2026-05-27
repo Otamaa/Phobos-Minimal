@@ -5,14 +5,7 @@
 class AIBasePlanCommandClass : public PhobosCommandClass
 {
 public:
-	AIBasePlanCommandClass() : PhobosCommandClass()
-	{
-		this->IsDeveloper = true;
-	}
 
-	virtual ~AIBasePlanCommandClass() = default;
-
-public:
 	virtual const char* GetName() const override;
 	virtual const wchar_t* GetUIName() const override;
 	virtual const wchar_t* GetUICategory() const override;

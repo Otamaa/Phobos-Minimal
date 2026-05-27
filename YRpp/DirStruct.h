@@ -573,13 +573,6 @@ struct DirStruct
 	COMPILETIMEEVAL FORCEDINLINE DirStruct& operator+=(const DirStruct& rhs) { Raw += rhs.Raw; return *this; }
 	COMPILETIMEEVAL FORCEDINLINE DirStruct& operator-=(const DirStruct& rhs) { Raw -= rhs.Raw; return *this; }
 	COMPILETIMEEVAL FORCEDINLINE DirStruct operator-(const DirStruct& rhs) const { return DirStruct(*this) -= rhs; }
-
-	// Unary negation: returns the angular negation of this DirStruct.
-	// Implemented using signed-16 negation to preserve the game's
-	// wrap-aware signed subtraction semantics (useful when computing
-	// shortest angular differences via casts to `short`).
-	COMPILETIMEEVAL FORCEDINLINE DirStruct operator-() const { return DirStruct(static_cast<int>(-static_cast<short>(this->Raw))); }
-
 	COMPILETIMEEVAL FORCEDINLINE bool operator==(const DirStruct& another) const { return Raw == another.Raw; }
 	COMPILETIMEEVAL FORCEDINLINE bool operator!=(const DirStruct& another) const { return Raw != another.Raw; }
 

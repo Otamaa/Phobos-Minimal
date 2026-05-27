@@ -128,7 +128,7 @@ public:
 		MouseClass::Instance->SetCursor(MouseCursorType::NoMove, false);
 		MouseClass::Instance->RestoreCursor();
 
-		TabClass::Instance->Activate(1);
+		TabClass::Instance->Activate();
 		MouseClass::Instance->RedrawSidebar(0);
 	}
 

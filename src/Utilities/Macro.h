@@ -114,11 +114,7 @@ struct _VTABLE
 	{                                                             \
 		__declspec(allocate(PATCH_SECTION_NAME))                  \
 		Patch patch = {type ,offset, size, (BYTE*)data};                \
-	}\
-	_YR_DEFINE_INCLUDE_ANCHOR(                                    \
-		_YR_PP_CAT(YrKeepPatch_, offset),                        \
-		&STATIC_PATCH##offset::patch                              \
-	)
+	}
 
 #define DEFINE_PATCH_TYPED(type, offset, ...)                     \
 	namespace STATIC_PATCH##offset                                \
@@ -151,7 +147,7 @@ struct _VTABLE
 
 #define DEFINE_NAKED_HOOK(hook, funcname)                         \
 	void funcname();                                              \
-	DEFINE_FUNCTION_JUMP(LJMP, hook, funcname)                 \
+	DEFINE_FUNCTION_JUMP(LJMP, hook, GET_OFFSET(funcname))                 \
 	void NAKED funcname()
 
 #pragma endregion Static Patch

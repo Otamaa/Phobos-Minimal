@@ -189,7 +189,8 @@ ASMJIT_PATCH(0x414338, AircraftClass_Put_SpawnHigh, 0x6)
 	GET(AircraftClass*, pThis, ESI);
 	GET(AircraftTypeClass*, pType, ECX);
 
-	return pType->MissileSpawn || pThis->SpawnOwner ? 0x41438F : 0x414342;
+	R->EAX(pType->MissileSpawn || pThis->SpawnOwner);
+	return 0x41433E;
 }
 
 // aim for the cell for flying carriers

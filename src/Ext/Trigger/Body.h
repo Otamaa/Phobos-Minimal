@@ -15,6 +15,8 @@ public:
 	using base_type = TriggerClass;
 	static COMPILETIMEEVAL const char* ClassName = "TriggerExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "TriggerClass";
+	
+	
 
 public:
 
@@ -30,14 +32,19 @@ public:
 	PhobosMap<int, CDTimerClass> ParallelTimers {};
 	PhobosMap<int, int>          ParallelTimersOriginalValue {};
 
-	int SequentialSwitchModeIndex { -1 };
+	int SequentialSwitchModeIndex;
 
 #pragma endregion
 
 
 public:
 
-	TriggerExtData(TriggerClass* pObj);
+	TriggerExtData(TriggerClass* pObj) : AbstractExtended(pObj)
+	{
+		this->Name = pObj->Type->ID;
+		this->AbsType = TriggerClass::AbsID;
+	}
+
 	TriggerExtData(TriggerClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~TriggerExtData() = default;
@@ -70,13 +77,16 @@ private:
 };
 
 class TriggerExtContainer final : public Container<TriggerExtData>
-	, public ContainerSaveLoad<TriggerExtContainer, true>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "TriggerExtContainer";
 
 public:
 	static TriggerExtContainer Instance;
+
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
+
 };
 
 class NOVTABLE FakeTriggerClass : public TriggerClass

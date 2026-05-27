@@ -17,16 +17,15 @@ class ExtensionSwizzleManager
 {
 	struct ExtensionEntry {
 		uintptr_t ptr;
-		std::string ident;
 		void (*deleter)(uintptr_t); // Type-specific deleter
 		bool released = false;
 
-		ExtensionEntry(uintptr_t p,const char* id, void (*del)(uintptr_t))
-			: ptr(p), ident(id), deleter(del), released(false)
+		ExtensionEntry(uintptr_t p, void (*del)(uintptr_t))
+			: ptr(p), deleter(del), released(false)
 		{ }
 
 		ExtensionEntry()
-			: ptr(0), ident(), deleter(nullptr), released(true)
+			: ptr(0), deleter(nullptr), released(true)
 		{ }
 
 		// Delete copy constructor and copy assignment
@@ -36,7 +35,6 @@ class ExtensionSwizzleManager
 		// Default move constructor
 		ExtensionEntry(ExtensionEntry&& other) noexcept
 			: ptr(other.ptr)
-			, ident(other.ident)
 			, deleter(other.deleter)
 			, released(other.released)
 		{
@@ -56,7 +54,6 @@ class ExtensionSwizzleManager
 
 				// Move from other
 				ptr = other.ptr;
-				ident = other.ident;
 				deleter = other.deleter;
 				released = other.released;
 
@@ -82,10 +79,9 @@ class ExtensionSwizzleManager
 public:
 
 	template<typename T>
-	static ExtensionEntry makeEntry(T* extension, const char* id) {
+	static ExtensionEntry makeEntry(T* extension) {
 		return {
 			reinterpret_cast<uintptr_t>(extension),
-			id,
 			[](uintptr_t p) { delete reinterpret_cast<T*>(p); }
 		};
 	}
@@ -93,12 +89,10 @@ public:
 	template <typename T>
 	static void RegisterExtensionPointer(void* savedAddress, T* currentExtension)
 	{
-		using _TT = std::remove_pointer_t<T>;
-		extensionPointerMap[(uintptr_t)savedAddress] = makeEntry(currentExtension, _TT::ClassName);
+		extensionPointerMap[(uintptr_t)savedAddress] = makeEntry(currentExtension);
 	}
 
 	static bool SwizzleExtensionPointer(void** ptrToFix, AbstractClass* OwnerObj);
-	static bool SwizzleExtensionPointer(void** ptrToFix, AbstractClass* OwnerObj, DWORD Origin);
 
 	// Clean up orphaned extensions
 	static void CleanupUnmappedExtensions();

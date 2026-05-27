@@ -6,7 +6,6 @@
 class SelectCapturedCommandClass : public CommandClass
 {
 public:
-
 	// CommandClass
 	virtual const char* GetName() const override;
 	virtual const wchar_t* GetUIName() const override;

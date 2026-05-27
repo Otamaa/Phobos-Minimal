@@ -113,7 +113,6 @@ void TerrainExtData::Serialize(T& Stm)
 // =============================
 // container
 TerrainExtContainer TerrainExtContainer::Instance;
-//==============================
 
 // container hooks
 DEFINE_JUMP(LJMP, 0x71BC31 , 0x71BC86);
@@ -121,7 +120,6 @@ DEFINE_JUMP(LJMP, 0x71BC31 , 0x71BC86);
 ASMJIT_PATCH(0x71BE74, TerrainClass_CTOR, 0x5)
 {
 	GET(TerrainClass*, pItem, ESI);
-	if (!Phobos::Otamaa::DoingLoadGame)
 	TerrainExtContainer::Instance.Allocate(pItem);
 	//PointerExpiredNotification::NotifyInvalidObject->Add(pItem);
 	return 0;
@@ -160,7 +158,12 @@ ASMJIT_PATCH(0x71B824, TerrainClass_DTOR, 0x5)
 			pItem->AnnounceExpiredPointer();
 	}
 
-	TerrainExtContainer::Instance.Remove(pItem);
+	if(auto pExt = TerrainExtContainer::Instance.TryFind(pItem)) {
+		delete pExt;
+		TerrainExtContainer::Instance.ClearExtAttribute(pItem);
+		//PointerExpiredNotification::NotifyInvalidObject->Remove(pItem);
+	}
+
 	return 0x71B845;
 }
 

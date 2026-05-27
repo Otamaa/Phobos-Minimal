@@ -70,4 +70,3 @@ private:
 		unsigned int UncompCount;
 	} Header;
 };
-static_assert(sizeof(CStreamClass) == 0x2C, "Invalid size.");

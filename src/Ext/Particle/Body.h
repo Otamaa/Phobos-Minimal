@@ -21,7 +21,12 @@ public:
 #pragma endregion
 
 public:
-	ParticleExtData(ParticleClass* pObj);
+	ParticleExtData(ParticleClass* pObj) : ObjectExtData(pObj)
+	{
+		this->Name = pObj->Type->ID;
+		this->AbsType = ParticleClass::AbsID;
+	}
+
 	ParticleExtData(ParticleClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 
 	virtual ~ParticleExtData() = default;
@@ -63,13 +68,17 @@ private:
 	void Serialize(T& Stm);
 };
 
-class ParticleExtContainer final : public Container<ParticleExtData>, public ContainerSaveLoad<ParticleExtContainer, true>
+class ParticleExtContainer final : public Container<ParticleExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "ParticleExtContainer";
 
 public:
 	static ParticleExtContainer Instance;
+
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
+
 };
 
 class ParticleTypeExtData;
@@ -77,6 +86,9 @@ class NOVTABLE FakeParticleClass : public ParticleClass
 {
 public:
 	void _Detach(AbstractClass* target, bool all);
+
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	void __AI();
 	void __Coord_AI();

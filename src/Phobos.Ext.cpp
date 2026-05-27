@@ -14,7 +14,6 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
-#include <Ext/DiskLaser/Body.h>
 #include <Ext/Ebolt/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/HouseType/Body.h>
@@ -74,6 +73,7 @@
 #include <Ext/InfantryType/Body.h>
 #include <Ext/SHPReference/Body.h>
 #include <Ext/Cell/Body.h>
+#include <Ext/DiskLaser/Body.h>
 #include <Ext/Parasite/Body.h>
 #include <Ext/Particle/Body.h>
 #include <Ext/ParticleType/Body.h>
@@ -116,7 +116,7 @@ void Phobos::LoadGameDataAfter()
 	ScenarioClass::InitScenariostuff();
 	TabClass::Instance->Init_IO();
 	TabClass::Instance->Activate(1);
-	SidebarClass::Instance->InitGUI();
+	SidebarClass::Instance->CloseWindow();
 	TiberiumClass::sub_722D00();
 	TiberiumClass::sub_0x722240();
 	RadarClass::Instance->Map_AI();
@@ -212,8 +212,6 @@ unsigned Phobos::GetVersionNumber() {
 
 	version += sizeof(CellExtData);
 
-	version += sizeof(DiskLaserExtData);
-
 	version += sizeof(EboltExtData);
 
 	version += sizeof(HouseExtData);
@@ -307,6 +305,22 @@ unsigned Phobos::GetVersionNumber() {
 
 #include <New/Type/ActionTypeClass.h>
 
+HRESULT Phobos::LoadAllExtData(IStream* pStm)
+{
+	//Global
+
+	//Ext
+	return S_OK;
+}
+
+HRESULT Phobos::SaveAllExtData(IStream* pStm)
+{
+	//Global
+
+	//Ext
+	return S_OK;
+}
+
 #define CLEAR_CONTAIER_CLASS_AND_TYPE(CC) 	CC##ExtContainer::Instance.Clear(); CC##TypeExtContainer::Instance.Clear()
 #define CLEAR_CONTAIER_CLASS(CC) 	CC::Instance.Clear()
 #define CLEAR_CLASS(CC) 	CC::Clear()
@@ -318,6 +332,10 @@ unsigned Phobos::GetVersionNumber() {
 
 void Phobos::ClearAll()
 {
+
+	//we already clear the data dont need to do it twice
+	if (Phobos::Otamaa::DoingLoadGame)
+		return;
 
 	for (auto& hand : Handles::Array)
 	{

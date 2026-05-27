@@ -124,7 +124,6 @@ public:
 	int   MainShadeIndex;
 	PROTECTED_PROPERTY(BYTE,     unknown_334[0x8]);
 };
-static_assert(sizeof(ColorScheme) == 0x33C, "Invalid size.");
 
 struct SchemeNode
 {

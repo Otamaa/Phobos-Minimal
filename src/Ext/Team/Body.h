@@ -20,6 +20,8 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "TeamExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "TeamClass";
 	
+	
+
 public:
 
 #pragma region ClassMembers
@@ -105,13 +107,17 @@ private:
 	void Serialize(T& Stm);
 };
 
-class TeamExtContainer final : public Container<TeamExtData>, public ContainerSaveLoad<TeamExtContainer, true>
+class TeamExtContainer final : public Container<TeamExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "TeamExtContainer";
 
 public:
 	static TeamExtContainer Instance;
+
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
+
 };
 
 class NOVTABLE FakeTeamClass : public TeamClass

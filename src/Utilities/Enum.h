@@ -34,24 +34,6 @@
 #include <Helpers\EnumFlags.h>
 #include <GeneralDefinitions.h>
 
-enum class DrawDamageMode : BYTE
-{
-	disabled, damageOnly, withWH, count
-};
-
-enum class FPSCounterMode : BYTE
-{
-	disabled, Full, FPSOnly, FPSandAVG, FPSandLat, Lat, count
-};
-
-enum class PositionFollow : BYTE
-{
-	None = 0,
-	Firer = 1,
-	Target = 2,
-	All = 3
-};
-
 enum class StackingMode : BYTE
 {
 	Override = 0,

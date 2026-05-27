@@ -251,6 +251,7 @@ void RadSiteExtData::Serialize(T& Stm)
 // =============================
 // container
 RadSiteExtContainer RadSiteExtContainer::Instance;
+
 // =============================
 // container hooks
 
@@ -258,8 +259,6 @@ ASMJIT_PATCH(0x65B243, RadSiteClass_CTOR, 0x6)
 {
 
 	GET(RadSiteClass*, pThis, ESI);
-
-	if (!Phobos::Otamaa::DoingLoadGame) 
 	RadSiteExtContainer::Instance.Allocate(pThis);
 
 	return 0;

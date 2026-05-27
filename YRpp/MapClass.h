@@ -117,12 +117,6 @@ struct SubzoneTrackingStruct
 };
 static_assert(sizeof(SubzoneTrackingStruct) == 0x24, "Invalid Size !");
 
-struct MapClass_subzone_5824A0_Data {
-	DWORD dword0;
-	DWORD dword4;
-	DWORD dword8;
-	DWORD dwordC;
-};
 // helper class with static methods to detect projectile collisions
 struct TrajectoryHelper
 {
@@ -457,28 +451,29 @@ public:
 	 * 	GameCreate<AnimClass>(damageAnimType, location);
 	 * }
 	 */
-	static AnimTypeClass* __fastcall SelectDamageAnimation(int Damage, WarheadTypeClass* WH, LandType LandType, const CoordStruct& coords)
+	static AnimTypeClass* __fastcall SelectDamageAnimation
+	(int Damage, WarheadTypeClass* WH, LandType LandType, const CoordStruct& coords)
 	{
 		JMP_FAST(0x48A4F0);
 	}
 
-	static AnimTypeClass* __fastcall SelectDamageAnimation(int Damage, WarheadTypeClass* WH, LandType LandType, CoordStruct* pCoords)
+	static AnimTypeClass* __fastcall SelectDamageAnimation
+	(int Damage, WarheadTypeClass* WH, LandType LandType, CoordStruct* pCoords)
 	{
 		JMP_FAST(0x48A4F0);
 	}
 
-	static void __fastcall FlashbangWarheadAt(int Damage, WarheadTypeClass* WH,int X ,int Y, int Z, bool Force = 0, SpotlightFlags CLDisableFlags = SpotlightFlags::None) {
+	static void __fastcall FlashbangWarheadAt
+	(int Damage, WarheadTypeClass* WH, CoordStruct coords, bool Force = 0, SpotlightFlags CLDisableFlags = SpotlightFlags::None)
+	{
 		JMP_FAST(0x48A620);
 	}
 
-	static void FlashbangWarheadAt(int Damage, WarheadTypeClass* WH, CoordStruct coords, bool Force = 0, SpotlightFlags CLDisableFlags = SpotlightFlags::None)
+	static FORCEDINLINE void FlashbangWarheadAt
+	(int Damage, WarheadTypeClass* WH, CoordStruct* pCoord, bool Force, SpotlightFlags CLDisableFlags)
 	{
-		FlashbangWarheadAt(Damage, WH, coords.X , coords.Y , coords.Z, Force, CLDisableFlags);
-	}
-
-	static FORCEDINLINE void FlashbangWarheadAt(int Damage, WarheadTypeClass* WH, CoordStruct* pCoord, bool Force, SpotlightFlags CLDisableFlags)
-	{
-		FlashbangWarheadAt(Damage, WH, pCoord->X, pCoord->Y, pCoord->Z, Force, CLDisableFlags);
+		auto nCoord = *pCoord;
+		FlashbangWarheadAt(Damage, WH, nCoord, Force, CLDisableFlags);
 	}
 
 	// get the damage a warhead causes to specific armor
@@ -570,23 +565,6 @@ public:
 	void ResetZones(CellStruct const& cell) const
 	{ JMP_THIS(0x56D460); }
 
-	// Reinitialises all SubzoneTracking entries for one level (called during big reset).
-	void SubzoneReinit_581F90(int level)
-	{ JMP_THIS(0x581F90); }
-
-	// Flood-fills passable cells connected to pPassability at the given level,
-	// assigns them zone ID zoneID, and populates pTempConns with the found connections.
-	// pCell is an optional starting cell override (pass nullptr to derive from pPassability).
-	void SubzoneFloodFill_5824A0(CellLevelPassabilityStruct* pPassability, int level,
-		int zoneID, MapClass_subzone_5824A0_Data* pTempConns, CellStruct* pCell)
-	{
-		JMP_THIS(0x5824A0);
-	}
-
-	// Rebuilds zone-connection data for one ZoneConnectionClass entry at the given level.
-	void SubzoneUpdateZoneConn_582D70(ZoneConnectionClass* pConn, int level)
-	{ JMP_THIS(0x582D70); }
-
 	// Called on wall state updates etc
 	void RecalculateSubZones(CellStruct const& cell) const
 	{ JMP_THIS(0x584550); }
@@ -619,7 +597,6 @@ public:
 	 * TechnoClass::Fire uses this for RevealOnFire on player's own units (radius = 3)
 	 * TechnoClass::See uses this on all (singleCampaign || !MultiplayPassive) units
 	 * TalkBubble uses this to display the unit to the player
-	 *  Called : Sight_Form2
 	 */
 	void RevealArea1(
 		CoordStruct* Coords,
@@ -645,7 +622,6 @@ public:
 	 * PsychicReveal launch - reveal to user (0,0,0,0,x)
 	 * ActionClass::RevealWaypoint - reveal RevealTriggerRadius= to player (0,0,0,1,x)
 	 * ActionClass::RevealZoneOfWaypoint - reveal (r = 2) to player (0,0,0,1,x)
-	 * Called : Sight_Form2
 	 */
 	void RevealArea2(
 		CoordStruct* Coords,

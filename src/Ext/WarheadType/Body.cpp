@@ -15,7 +15,6 @@
 #include <Utilities/Macro.h>
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/Helpers.h>
-#include <Utilities/Macro.h>
 
 #include <New/Entity/FlyingStrings.h>
 #include <New/Entity/ShieldClass.h>
@@ -85,9 +84,9 @@ int __fastcall FakeWarheadTypeClass::ModifyDamageA(int damage, FakeWarheadTypeCl
 		 *	that at least one damage point is done.
 		 */
 		if (pExt->ApplyMindamage && distance < 4)
-			res = MaxImpl(res, pExt->MinDamage >= 0 ? pExt->MinDamage : RulesClass::Instance->MinDamage);
+			damage = MaxImpl(damage, pExt->MinDamage >= 0 ? pExt->MinDamage : RulesClass::Instance->MinDamage);
 
-		res = MinImpl(res, RulesClass::Instance->MaxDamage);
+		damage = MinImpl(damage, RulesClass::Instance->MaxDamage);
 
 	}
 	else
@@ -97,64 +96,6 @@ int __fastcall FakeWarheadTypeClass::ModifyDamageA(int damage, FakeWarheadTypeCl
 
 	return res;
 }
-
-#include <SpotlightClass.h>
-#include <GameOptionsClass.h>
-
-void __fastcall FakeWarheadTypeClass::DoFlash(int damage, WarheadTypeClass* pWH, int X, int Y, int Z, bool forced, SpotlightFlags CLDisableFlags)
-{
-	if (Phobos::Config::HideLightFlashEffects)
-		return;
-
-	bool checkColored = RulesExtData::Instance()->CombatLightDetailLevel_CheckColored;
-	int detailLevel = RulesExtData::Instance()->CombatLightDetailLevel;
-
-	if (pWH) {
-		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
-
-		if (pWHExt->CombatLightChance.isset() && pWHExt->CombatLightChance < Random2Class::Global->RandomDouble())
-			return;
-
-		detailLevel = pWHExt->CombatLightDetailLevel.Get(detailLevel);
-		checkColored = pWHExt->CombatLightDetailLevel_CheckColored.Get(checkColored);
-
-		if (pWHExt->CLIsBlack)
-			CLDisableFlags = SpotlightFlags::NoColor;
-	}
-
-	// (bitmask & 0xF) != 0) is true if any color channel is disabled.
-	if (((detailLevel <= GameOptionsClass::Instance->DetailLevel
-		&& RulesExtData::DetailsCurrentlyEnabled()) || (!checkColored
-		&& ((((int)CLDisableFlags) & 0xF) != 0))) && (forced || (pWH && pWH->Bright)))
-	{
-		double size_mult = pWH ? pWH->CombatLightSize : 0.0;
-		int size = 0;
-
-		if (size_mult <= 0.0) {
-			size = (damage >> 2);
-
-			if (size < 63) {
-				if (size <= 21) {
-					size = 21;
-				}
-			} else {
-				size = 63;
-			}
-		} else {
-			if (size_mult > 1.0) {
-				size_mult = 1.0;
-			}
-
-			size = (size_mult * 63.0);
-		}
-
-		auto pSPot = GameCreate<SpotlightClass>(X,Y,Z,size);
-		pSPot->DisableFlags |= CLDisableFlags;
-
-	}
-}
-DEFINE_FUNCTION_JUMP(LJMP, 0x48A620 , FakeWarheadTypeClass::DoFlash)
-
 void WarheadTypeExtData::InitializeConstant()
 {
 	this->AttachedEffect.Owner = this->This();
@@ -190,7 +131,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	{
 		auto& pArmor = ArmorTypeClass::Array[i];
 		const int nDefaultIdx = pArmor->DefaultTo;
-		Verses.push_back((nDefaultIdx == -1 || nDefaultIdx >= (int)i)
+		Verses.push_back((nDefaultIdx == -1 || nDefaultIdx > (int)i)
 				? pArmor->DefaultVersesValue
 				: Verses[nDefaultIdx]
 		);
@@ -849,15 +790,13 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Psychedelic_StackingMode.Read(exINI, pSection, "Psychedelic.StackingMode");
 
 	this->RadarOutage_Duration.Read(exINI, pSection, "RadarOutage.Duration");
-	this->RadarOutage_Max.Read(exINI, pSection, "RadarOutage.Max");
 	this->RadarOutage_AffectsHouse.Read(exINI, pSection, "RadarOutage.AffectsHouse");
 	this->PowerOutage_Duration.Read(exINI, pSection, "PowerOutage.Duration");
-	this->PowerOutage_Max.Read(exINI, pSection, "PowerOutage.Max");
 	this->PowerOutage_AffectsHouse.Read(exINI, pSection, "PowerOutage.AffectsHouse");
 
 	this->IsCellSpreadWH =
-		this->RadarOutage_Duration != 0||
-		this->PowerOutage_Duration != 0||
+		this->RadarOutage_Duration ||
+		this->PowerOutage_Duration ||
 		this->RemoveDisguise ||
 		this->RemoveMindControl ||
 		//this->Crit_Chance ||
@@ -2199,10 +2138,8 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->Psychedelic_StackingMode)
 
 		.Process(this->RadarOutage_Duration)
-		.Process(this->RadarOutage_Max)
 		.Process(this->RadarOutage_AffectsHouse)
 		.Process(this->PowerOutage_Duration)
-		.Process(this->PowerOutage_Max)
 		.Process(this->PowerOutage_AffectsHouse)
 		;
 }
@@ -3433,22 +3370,6 @@ void WarheadTypeExtData::ApplyBuildingUndeploy(TechnoClass* pTarget) {
 // =============================
 // container
 WarheadTypeExtContainer WarheadTypeExtContainer::Instance;
-
-bool WarheadTypeExtContainer::LoadAll(PhobosStreamReader& stm)
-{
-	if (!stm.Process(WarheadTypeExtData::IonBlastExt))
-		return false;
-
-	return this->base_SaveLoad_t::LoadAll(stm);
-}
-
-bool WarheadTypeExtContainer::SaveAll(PhobosStreamWriter& stm)
-{
-	if (!stm.Process(WarheadTypeExtData::IonBlastExt))
-		return false;
-
-	return this->base_SaveLoad_t::SaveAll(stm);
-}
 
 void WarheadTypeExtContainer::Clear()
 {

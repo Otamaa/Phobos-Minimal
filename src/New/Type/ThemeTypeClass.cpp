@@ -18,21 +18,6 @@ void ThemeTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->UIName.Read(exINI, this->Name.data(), "Name");
 }
 
-template <typename T>
-void ThemeTypeClass::Serialize(T& Stm)
-{
-	Stm
-		.Process(this->NextText)
-		.Process(this->HousesText)
-		.Process(this->UIName)
-		.Process(this->Normal)
-		.Process(this->Repeat)
-		.Process(this->Side)
-		;
-};
-
-void ThemeTypeClass::LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-void ThemeTypeClass::SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 /* these hooks detaching the theme from the game timer
 ASMJIT_PATCH(0x406FC6, sub_406F70_ThemeClass_AI_RemoveFromGameTimer, 0x5)
 {

@@ -200,7 +200,6 @@ public:
 	// ============================================================
 	// Valueable<bool> (1 byte each, packed together at the end)
 	// ============================================================
-	Valueable<bool> IsHero {};
 	Valueable<bool> Is_Deso {};
 	Valueable<bool> Is_Cow {};
 	Valueable<bool> HideWhenDeployAnimPresent {};
@@ -263,13 +262,16 @@ private:
 };
 
 class InfantryTypeExtContainer final : public Container<InfantryTypeExtData>
-	, public ReadWriteContainerInterfaces<InfantryTypeExtData>, public ContainerSaveLoad<InfantryTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<InfantryTypeExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "InfantryTypeExtContainer";
 
 public:
 	static InfantryTypeExtContainer Instance;
+
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void LoadFromINI(InfantryTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(InfantryTypeClass* key, CCINIClass* pINI);
@@ -279,7 +281,6 @@ class NOVTABLE FakeInfantryTypeClass : public InfantryTypeClass
 {
 public:
 
-	HRESULT __stdcall _Load(IStream* pStm);
 	bool _ReadFromINI(CCINIClass* pINI);
 
 	InfantryTypeExtData* _GetExtData() {

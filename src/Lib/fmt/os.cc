@@ -13,6 +13,7 @@
 #include "fmt/os.h"
 
 #ifndef FMT_MODULE
+#  include <climits>
 
 #  if FMT_USE_FCNTL
 #    include <sys/stat.h>
@@ -34,8 +35,6 @@
 
 #  ifdef _WIN32
 #    include <windows.h>
-
-#    include <climits>  // CHAR_BIT
 #  endif
 #endif
 

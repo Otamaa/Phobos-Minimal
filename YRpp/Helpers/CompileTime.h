@@ -391,13 +391,3 @@ public:
 
 	// operator&() intentionally absent — see mem_ref_base comment
 };
-
-
-#define DEFINE_NONSTATIC_REFERENCE(type, name, address) reference<UIP(type), address> const name {}
-#define DEFINE_REFERENCE(type, name, address) static COMPILETIMEEVAL DEFINE_NONSTATIC_REFERENCE(type, name, address);
-
-#define DEFINE_NONSTATIC_ARRAY_REFERENCE(type, size, name, address) reference<UIP(type), address , size> const name {}
-#define DEFINE_ARRAY_REFERENCE(type, size, name, address) static COMPILETIMEEVAL DEFINE_NONSTATIC_ARRAY_REFERENCE(type, size, name, address);
-
-#define DEFINE_NONSTATIC_POINTER(type, name, address) constant_ptr<UIP(type) , address> const name {}
-#define DEFINE_POINTER(type, name, address) static COMPILETIMEEVAL DEFINE_NONSTATIC_POINTER(type, name, address);

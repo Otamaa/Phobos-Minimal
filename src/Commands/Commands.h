@@ -8,16 +8,6 @@
 class PhobosCommandClass : public CommandClass
 {
 protected:
-	bool IsDeveloper;
-
-public:
-
-	PhobosCommandClass() : CommandClass(), IsDeveloper(false) {}
-	virtual ~PhobosCommandClass() {}
-
-	bool IsDeveloperOnly() const { return IsDeveloper; }
-
-protected:
 	bool CheckDebugDeactivated() const;
 
 };

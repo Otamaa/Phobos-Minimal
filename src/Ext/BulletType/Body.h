@@ -215,7 +215,7 @@ public:
 		return pRules->MissileROTVar;
 	}
 
-	COMPILETIMEEVAL int FORCEDINLINE GetMissileSaveAltitude(const RulesClass* const pRules) const
+	COMPILETIMEEVAL double FORCEDINLINE GetMissileSaveAltitude(const RulesClass* const pRules) const
 	{
 		if (MissileSafetyAltitude.isset())
 			return MissileSafetyAltitude.Get();
@@ -258,13 +258,16 @@ public:
 };
 
 class BulletTypeExtContainer final : public Container<BulletTypeExtData>
-	, public ReadWriteContainerInterfaces<BulletTypeExtData>, public ContainerSaveLoad<BulletTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<BulletTypeExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "BulletTypeExtContainer";
 
 public:
 	static BulletTypeExtContainer Instance;
+
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void LoadFromINI(BulletTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(BulletTypeClass* key, CCINIClass* pINI);

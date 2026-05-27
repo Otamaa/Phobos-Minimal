@@ -149,15 +149,6 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 
 		this->Animation_DrawOffsets.emplace_back(std::move(offset));
 	}
-
-	this->PeriodicWeapon.Read(exINI, pSection, "PeriodicWeapon", true);
-	this->PeriodicWeapon_AffectsHouse.Read(exINI, pSection, "PeriodicWeapon.AffectsHouse");
-	this->PeriodicWeapon_UseInvokerAsOwner.Read(exINI, pSection, "PeriodicWeapon.UseInvokerAsOwner");
-	this->PeriodicWeapon_Range.Read(exINI, pSection, "PeriodicWeapon.Range");
-	this->PeriodicWeapon_FiringDelay.Read(exINI, pSection, "PeriodicWeapon.FiringDelay");
-	this->PeriodicWeapon_FireAll.Read(exINI, pSection, "PeriodicWeapon.FireAll");
-	this->PeriodicWeapon_AffectTypes.Read(exINI, pSection, "PeriodicWeapon.AffectTypes");
-	this->PeriodicWeapon_IgnoreTypes.Read(exINI, pSection, "PeriodicWeapon.IgnoreTypes");
 }
 
 template <typename T>
@@ -250,15 +241,6 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->AffectTargets)
 
 		.Process(this->Animation_DrawOffsets)
-
-		.Process(this->PeriodicWeapon)
-		.Process(this->PeriodicWeapon_AffectsHouse)
-		.Process(this->PeriodicWeapon_UseInvokerAsOwner)
-		.Process(this->PeriodicWeapon_Range)
-		.Process(this->PeriodicWeapon_FiringDelay)
-		.Process(this->PeriodicWeapon_FireAll)
-		.Process(this->PeriodicWeapon_AffectTypes)
-		.Process(this->PeriodicWeapon_IgnoreTypes)
 		;
 }
 

@@ -48,48 +48,48 @@ ASMJIT_PATCH(0x55B68D, LogicClass_Update_House, 0x5) {
 }
 
 //separate the function
-// ASMJIT_PATCH(0x55B719, LogicClass_Update_late, 0x5)
-// {
-// //	HarmlessCommandClass::AI();
-// //	SWFirerClass::Update();
-// //	SWStateMachine::UpdateAll();
-// //	HouseExtData::UpdateAutoDeathObjects();
-// //	HouseExtData::UpdateTransportReloaders();
-// //
-// //	for (auto pHouse : *HouseClass::Array) {
-// //		AresHouseExt::UpdateTogglePower(pHouse);
-// //	}
-// //
-// //	for(auto pSuper : *SuperClass::Array){
-// //		auto pSuperExt = SuperExtContainer::Instance.Find(pSuper);
-// //
-// //		if (pSuperExt->MusicActive && pSuperExt->MusicTimer.Completed()) {
-// //
-// //			int configuredTheme = pSuperExt->Type->Music_Theme.Get();
-// //
-// //			if (configuredTheme >= 0 && ThemeClass::Instance->CurrentTheme == configuredTheme) {
-// //				// stop only if same theme and local house is affected
-// //				AffectedHouse affected = pSuperExt->Type->Music_AffectedHouses;
-// //
-// //				if (EnumFunctions::CanTargetHouse(affected, pSuper->Owner, HouseClass::CurrentPlayer)) {
-// //					ThemeClass::Instance->Stop();
-// //				}
-// //			}
-// //
-// //			pSuperExt->MusicTimer.Stop();
-// //			pSuperExt->MusicActive = false;
-// //		}
-// //	}
-// //
-// //	//remove all invalid teams
-// //	for (auto& [h, teams] : HouseExtContainer::HousesTeams) {
-// //		teams.remove_all_if([](TeamClass* pTeam) {
-// //			return !pTeam->Type;
-// //		});
-// //	}
-// //
-// 	return 0x0;
-// }
+ASMJIT_PATCH(0x55B719, LogicClass_Update_late, 0x5)
+{
+//	HarmlessCommandClass::AI();
+//	SWFirerClass::Update();
+//	SWStateMachine::UpdateAll();
+//	HouseExtData::UpdateAutoDeathObjects();
+//	HouseExtData::UpdateTransportReloaders();
+//
+//	for (auto pHouse : *HouseClass::Array) {
+//		AresHouseExt::UpdateTogglePower(pHouse);
+//	}
+//
+//	for(auto pSuper : *SuperClass::Array){
+//		auto pSuperExt = SuperExtContainer::Instance.Find(pSuper);
+//
+//		if (pSuperExt->MusicActive && pSuperExt->MusicTimer.Completed()) {
+//
+//			int configuredTheme = pSuperExt->Type->Music_Theme.Get();
+//
+//			if (configuredTheme >= 0 && ThemeClass::Instance->CurrentTheme == configuredTheme) {
+//				// stop only if same theme and local house is affected
+//				AffectedHouse affected = pSuperExt->Type->Music_AffectedHouses;
+//
+//				if (EnumFunctions::CanTargetHouse(affected, pSuper->Owner, HouseClass::CurrentPlayer)) {
+//					ThemeClass::Instance->Stop();
+//				}
+//			}
+//
+//			pSuperExt->MusicTimer.Stop();
+//			pSuperExt->MusicActive = false;
+//		}
+//	}
+//
+//	//remove all invalid teams
+//	for (auto& [h, teams] : HouseExtContainer::HousesTeams) {
+//		teams.remove_all_if([](TeamClass* pTeam) {
+//			return !pTeam->Type;
+//		});
+//	}
+//
+	return 0x0;
+}
 
 ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 {
@@ -375,7 +375,7 @@ ASMJIT_PATCH(0x41F0F1, AITriggerClass_IC_Ready, 0xA)
 	GET(FakeSuperClass*, pSuper, EDI);
 
 	return (pSuper->Type->Type == SuperWeaponType::IronCurtain
-		&& SWTypeExtData::IsAvailable(pSuper->Owner, pSuper))
+		&& pSuper->_GetTypeExtData()->IsAvailable(pSuper->Owner))
 		? breakloop : advance;
 }
 
@@ -393,7 +393,7 @@ ASMJIT_PATCH(0x41F180, AITriggerTypeClass_Chrono, 0x5)
 	//Debug::LogInfo("AITrigger[%s] With Owner[%s] Enemy[%s].", pThis->ID, pOwner->get_ID(), pEnemy->get_ID());
 	auto iter = pOwner->Supers.find_if([pOwner](SuperClass* pItem) {
 		return (pItem->Type->Type == SuperWeaponType::ChronoSphere
-			&& SWTypeExtData::IsAvailable(pOwner, pItem)) && pItem->Granted;
+			&& SWTypeExtContainer::Instance.Find(pItem->Type)->IsAvailable(pOwner)) && pItem->Granted;
 	});
 
 	if (iter == pOwner->Supers.end()) {
@@ -488,7 +488,7 @@ ASMJIT_PATCH(0x4468F4, BuildingClass_Place_AnnounceDetected, 6)
 
 		if(pData->EVA_Detected > -1) {
 
-			if(!pData->EVA_Detected_Simple && !SWTypeExtData::IsAvailable(pThis->Owner, pSuper))
+			if(!pData->EVA_Detected_Simple && !pData->IsAvailable(pThis->Owner))
 				return 0x44699A;
 
 			pData->PrintMessage(pData->Message_Detected, pThis->Owner);

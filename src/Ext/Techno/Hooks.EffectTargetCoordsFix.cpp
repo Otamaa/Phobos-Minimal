@@ -170,7 +170,106 @@ ASMJIT_PATCH(0x62D685, ParticleSystemClass_FireAt_Coords, 0x5)
 #endif
 
 #ifndef PERFORMANCE_HEAVY
+namespace FireAtTemp
+{
+	BulletClass* FireBullet = nullptr;
+	CoordStruct originalTargetCoords;
+	CellClass* pObstacleCell = nullptr;
+	AbstractClass* pOriginalTarget = nullptr;
+	AbstractClass* pWaveOwnerTarget = nullptr;
+}
 
+ASMJIT_PATCH(0x6FF08B, TechnoClass_Fire_RecordBullet, 0x6)
+{
+	GET(BulletClass*, pBullet, EBX);
+	FireAtTemp::FireBullet = pBullet;
+	return 0;
+}
+
+// https://github.com/Phobos-developers/Phobos/pull/825
+// Todo :  Otamaa : massive FPS drops !
+// Contains hooks that fix weapon graphical effects like lasers, railguns, electric bolts, beams and waves not interacting
+// correctly with obstacles between firer and target, as well as railgun / railgun particles being cut off by elevation.
+
+// Adjust target coordinates for laser drawing.
+ASMJIT_PATCH(0x6FD38D, TechnoClass_DrawSth_Coords, 0x7)
+{
+	GET(CoordStruct*, pTargetCoords, EAX);
+
+	const auto pBullet = FireAtTemp::FireBullet;
+
+	if (pBullet && pBullet->WeaponType)
+	{
+		// The weapon may not have been set up
+		const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pBullet->WeaponType);
+		// pBullet->Data.Location (0x4E1130) -> pBullet->Type->Inviso ? pBullet->Location : pBullet->TargetCoords
+		CoordStruct _targetCoords= pBullet->GetDestinationCoords();
+		if (pWeaponExt && pWeaponExt->VisualScatter)
+		{
+			const auto pRulesExt = RulesExtData::Instance();
+			auto min = pWeaponExt->VisualScatter_Min.Get(pRulesExt->VisualScatter_Min);
+			auto max = pWeaponExt->VisualScatter_Max.Get(pRulesExt->VisualScatter_Max);
+			const auto radius = ScenarioClass::Instance->Random.RandomRanged(min, max);
+			*pTargetCoords = MapClass::GetRandomCoordsNear(_targetCoords, radius, false);
+		}
+		else
+		{
+			*pTargetCoords = _targetCoords;
+		}
+	} else if (FireAtTemp::pObstacleCell)
+		*pTargetCoords = FireAtTemp::pObstacleCell->GetCoordsWithBridge();
+
+	R->EAX(pTargetCoords);
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x6FD70D, TechnoClass_DrawSth_Coords, 0x6) // CreateRBeam
+ASMJIT_PATCH_AGAIN(0x6FD514, TechnoClass_DrawSth_Coords, 0x7) // CreateEBolt
+
+// Cut railgun logic off at obstacle coordinates.
+ASMJIT_PATCH(0x70CA64, TechnoClass_Railgun_Obstacles, 0x5)
+{
+	enum { Continue = 0x70CA79, Stop = 0x70CAD8 };
+
+	REF_STACK(CoordStruct const, coords, STACK_OFFSET(0xC0, -0x80));
+
+	if (MapClass::Instance->GetCellAt(coords) == FireAtTemp::pObstacleCell)
+		return Stop;
+
+	return Continue;
+}
+
+// WaveClass requires the firer's target and wave's target to match so it needs bit of extra handling here for obstacle cell targets.
+ASMJIT_PATCH(0x762AFF, WaveClass_AI_TargetSet, 0x6)
+{
+	GET(WaveClass*, pThis, ESI);
+
+	if (pThis->Target && pThis->Owner)
+	{
+		auto const pObstacleCell = TechnoExtContainer::Instance.Find(pThis->Owner)->FiringObstacleCell;
+
+		if (pObstacleCell == pThis->Target && pThis->Owner->Target)
+		{
+			FireAtTemp::pWaveOwnerTarget = pThis->Owner->Target;
+			pThis->Owner->Target = pThis->Target;
+		}
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x762D57, WaveClass_AI_TargetUnset, 0x6)
+{
+	GET(WaveClass*, pThis, ESI);
+
+	if (FireAtTemp::pWaveOwnerTarget)
+	{
+		if (pThis->Owner->Target)
+			pThis->Owner->Target = FireAtTemp::pWaveOwnerTarget;
+
+		FireAtTemp::pWaveOwnerTarget = nullptr;
+	}
+
+	return 0;
+}
 
 #endif
 
@@ -178,6 +277,246 @@ ASMJIT_PATCH(0x62D685, ParticleSystemClass_FireAt_Coords, 0x5)
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/Wave/Body.h>
+
+// Adjust target for bolt / beam / wave drawing.
+// same hook with TechnoClass_FireAt_FeedbackWeapon
+#ifndef _disable
+ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(FakeWeaponTypeClass*, pWeapon, EBX);
+
+	REF_STACK(CoordStruct, crdSrc, 0xB0 -0x6C);
+	REF_STACK(CoordStruct, crdTgt, 0xB0 -0x28);
+	REF_STACK(CoordStruct, railgunCrrd_1, 0xB0  -0x1C);
+
+	GET_BASE(AbstractClass*, pOriginalTarget, 0x8);
+
+	GET_BASE(int, weaponIdx, 0xC);
+
+	auto coords = pOriginalTarget->GetCenterCoords();
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	if (const auto pBuilding = cast_to<BuildingClass*, false>(pOriginalTarget))
+		coords = pBuilding->GetTargetCoords();
+
+	// This is set to a temp variable as well, as accessing it everywhere needed from TechnoExt would be more complicated.
+	FireAtTemp::pObstacleCell = TrajectoryHelper::FindFirstObstacle(crdSrc, coords, pWeapon->Projectile, pThis->Owner);
+	pExt->FiringObstacleCell = FireAtTemp::pObstacleCell;
+
+	R->Stack(0x10, &crdSrc);
+
+	if (pWeapon->UseFireParticles && !pThis->Sys.Fire && pWeapon->AttachedParticleSystem) {
+		pThis->Sys.Fire = GameCreate<ParticleSystemClass>(
+			pWeapon->AttachedParticleSystem, crdSrc,
+			FireAtTemp::pObstacleCell  ? FireAtTemp::pObstacleCell : pOriginalTarget, pThis);
+	}
+
+	if (pWeapon->UseSparkParticles && !pThis->Sys.Spark && pWeapon->AttachedParticleSystem) {
+		pThis->Sys.Spark = GameCreate<ParticleSystemClass>(
+			pWeapon->AttachedParticleSystem, crdSrc,
+			FireAtTemp::pObstacleCell ? FireAtTemp::pObstacleCell : pOriginalTarget, pThis);
+	}
+
+	if (pWeapon->AttachedParticleSystem && (pWeapon->_GetExtData()->IsDetachedRailgun || (pWeapon->IsRailgun &&  !pThis->Sys.Railgun))) {
+		auto coord = pThis->DealthParticleDamage(&railgunCrrd_1, &crdSrc, pOriginalTarget, pWeapon);
+		auto pRailgun = GameCreate<ParticleSystemClass>(
+			pWeapon->AttachedParticleSystem, &crdSrc,
+			nullptr, pThis , coord , nullptr);
+
+		if (!pWeapon->_GetExtData()->IsDetachedRailgun)
+			pThis->Sys.Railgun = pRailgun;
+	}
+
+	++pThis->CurrentBurstIndex;
+	int ROF = pThis->GetROF(weaponIdx);
+
+	if (pThis->Berzerk) {
+		const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
+		const double multiplier = pTypeExt->BerserkROFMultiplier.Get(RulesExtData::Instance()->BerserkROFMultiplier);
+		ROF = static_cast<int>(ROF * multiplier);
+	}
+
+	TechnoExtData::SetChargeTurretDelay(pThis, ROF, pWeapon);
+
+	pThis->RearmTimer.Start(ROF);
+
+	// Issue #46: Laser is mirrored relative to FireFLH
+	// Author: Starkku
+	--pThis->CurrentBurstIndex;
+
+	AnimTypeClass* pFiringAnim = nullptr;
+	auto pWeaponExt = pWeapon->_GetExtData();
+
+	if (pThis->CanOccupyFire()) {
+		if (pWeaponExt->OccupantAnim_UseMultiple.Get() && !pWeaponExt->OccupantAnims.empty()) {
+			if(pWeaponExt->OccupantAnims.size() == 1) {
+				pFiringAnim = pWeaponExt->OccupantAnims[0];
+			} else {
+				pFiringAnim = pWeaponExt->OccupantAnims[ScenarioClass::Instance->Random.RandomFromMax(pWeaponExt->OccupantAnims.size() - 1)];
+			}
+
+		} else {
+			pFiringAnim = pWeapon->OccupantAnim;
+		}
+
+	} else {
+
+		if (pWeapon->Anim.Count > 0)
+		{
+			int nIdx = -1;
+
+			if (pWeapon->Anim.Count == 1)
+				nIdx = 0;
+			else {
+
+				DirStruct facing {};
+				pThis->GetRealFacing(&facing);
+
+				if (pWeapon->Anim.Count == 8) {
+					nIdx = (facing.GetFacing<8>() + 8 / 8) % 8;
+				}
+				else if (pWeapon->Anim.Count == 16) {
+					nIdx = (facing.GetFacing<16>() + 16 / 8) % 16;
+				}
+				else if (pWeapon->Anim.Count == 32) {
+					nIdx = (facing.GetFacing<32>() + 32 / 8) % 32;
+				}
+				else if (pWeapon->Anim.Count == 64) {
+					nIdx = (facing.GetFacing<64>() + 64 / 8) % 64;
+				} else {
+					//only execute if the anim count is more than 1
+					const auto highest = Conversions::Int2Highest(pWeapon->Anim.Count);
+
+					// 2^highest is the frame count, 3 means 8 frames
+					if (highest >= 3) {
+						nIdx = facing.GetValue(highest, 1u << (highest - 3));
+					}
+
+					nIdx %= pWeapon->Anim.Count;
+				}
+			}
+
+			pFiringAnim = pWeapon->Anim.Items[nIdx];
+		}
+	}
+
+	if (pWeapon->Report.Count > 0 && !GET_TECHNOTYPE(pThis)->IsGattling) {
+		if (pWeapon->Report.Count == 1) {
+			VocClass::SafeImmedietelyPlayAt(pWeapon->Report[0], &crdSrc, nullptr);
+		} else {
+			auto v116 = pThis->weapon_sound_randomnumber_3C8 % pWeapon->Report.Count;
+			VocClass::SafeImmedietelyPlayAt(pWeapon->Report[v116], &crdSrc, nullptr);
+		}
+	}
+
+	if (const auto pAnimType = pWeaponExt->Feedback_Anim.Get()) {
+			const auto nCoord = (pWeaponExt->Feedback_Anim_UseFLH ? crdSrc : pThis->GetCoords()) + pWeaponExt->Feedback_Anim_Offset; {
+			auto pFeedBackAnim = GameCreate<AnimClass>(pAnimType, nCoord);
+			AnimExtData::SetAnimOwnerHouseKind(pFeedBackAnim, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false, false);
+
+			if (pThis->WhatAmI() != BuildingClass::AbsID) {
+				pFeedBackAnim->SetOwnerObject(pThis);
+			}
+			else {
+				if (pThis->GetOccupantCount() > 0) {
+					pFeedBackAnim->ZAdjust = -200;
+				} else {
+					auto rend = pThis->GetRenderCoords();
+					pFeedBackAnim->ZAdjust = (crdSrc.Y - rend.Y) / -4 >= 0 ? 0 : (crdSrc.Y - rend.Y) / -4;
+				}
+			}
+		}
+	}
+
+	if (!pThis->IsAlive) {
+		return 0x6FF92F;
+	}
+
+	if (pFiringAnim)
+	{
+		auto pFiring = GameCreate<AnimClass>(pFiringAnim, crdSrc, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
+		AnimExtData::SetAnimOwnerHouseKind(pFiring, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false, false);
+		auto pAnimExt = AnimExtContainer::Instance.Find(pFiring);
+
+		if (pWeapon->_GetExtData()->Anim_Update.Get(RulesExtData::Instance()->FiringAnim_Update)) {
+			pAnimExt->FromWeapon = pWeapon;
+			pAnimExt->FromWeaponIdx = weaponIdx;
+			pAnimExt->FromBurstIdx = pThis->CurrentBurstIndex;
+		}
+		// if (pThis->WhatAmI() != BuildingClass::AbsID)
+		// {
+		// 	pFiring->SetOwnerObject(pThis);
+		// } else
+		{
+			if (pThis->GetOccupantCount() > 0) {
+				pFiring->ZAdjust = -200;
+			} else {
+				auto rend = pThis->GetRenderCoords();
+				pFiring->ZAdjust = (crdSrc.Y - rend.Y) / -4 >= 0 ? 0 : (crdSrc.Y - rend.Y) / -4;
+			}
+		}
+	}
+
+	if (!pThis->IsAlive) {
+		return 0x6FF92F;
+	}
+
+#ifndef PERFORMANCE_HEAVY
+	//TargetSet
+	FireAtTemp::originalTargetCoords = crdTgt;
+	FireAtTemp::pOriginalTarget = pOriginalTarget;
+
+	if (FireAtTemp::pObstacleCell)
+	{
+		crdTgt = FireAtTemp::pObstacleCell->GetCoordsWithBridge();
+		R->Base(8, FireAtTemp::pObstacleCell); // Replace original target so it gets used by Ares sonic wave stuff etc. as well.
+		pOriginalTarget = FireAtTemp::pObstacleCell;
+	}
+#endif
+
+	//FeedbackWeapon
+	if (auto fbWeapon = pWeaponExt->FeedbackWeapon.Get())
+	{
+		if (!pThis->InOpenToppedTransport || fbWeapon->FireInTransport){
+			WeaponTypeExtData::DetonateAt1(fbWeapon, pThis, pThis, true, nullptr);
+			//pThis techno was die after after getting affect of FeedbackWeapon
+			//if the function not bail out , it will crash the game because the vtable is already invalid
+			if (!pThis->IsAlive) {
+				return 0x6FF92F;
+			}
+		}
+	}
+
+	if (pExt->AE.flags.HasFeedbackWeapon) {
+		for (auto const& pAE : pExt->PhobosAE) {
+
+			if(!pAE|| !pAE->IsActive())
+				continue;
+
+			if (auto const pWeaponFeedback = pAE->GetType()->FeedbackWeapon)
+			{
+				if (pThis->InOpenToppedTransport && !pWeaponFeedback->FireInTransport)
+					return 0;
+
+				WeaponTypeExtData::DetonateAt1(pWeaponFeedback, pThis, pThis, true, nullptr);
+			}
+		}
+
+			//pThis techno was die after after getting affect of FeedbackWeapon
+			//if the function not bail out , it will crash the game because the vtable is already invalid
+			if (!pThis->IsAlive) {
+				return 0x6FF92F;
+			}
+	}
+
+	if(pWeapon->IsSonic){
+		pThis->Wave = WaveExtData::Create(crdSrc, crdTgt, pThis, WaveType::Sonic, pOriginalTarget, pWeapon);
+	}
+
+	return 0x6FF48A;
+}
+#endif
 
 #ifndef ENABLE_THESE_THINGS
 #include <Ext/WeaponType/Body.h>
@@ -219,3 +558,83 @@ ASMJIT_PATCH(0x70CBDA, TechnoClass_Railgun_AmbientDamageWarhead, 0x6)
 }
 #endif
 
+ASMJIT_PATCH(0x6FF656, TechnoClass_FireAt_Additionals_End, 0xA)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	GET_BASE(AbstractClass*, pTarget, 0x8);
+	GET(WeaponTypeClass* const, pWeaponType, EBX);
+	GET_STACK(BulletClass* const, pBullet, STACK_OFFS(0xB0, 0x74));
+	GET_BASE(int, weaponIndex, 0xC);
+	LEA_STACK(CoordStruct*, pTargetCoords, STACK_OFFSET(0xB0, -0x28));
+
+	//remove ammo rounds depending on weapon
+	TechnoExtData::DecreaseAmmo(pThis, pWeaponType);
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pThis);
+
+#ifndef PERFORMANCE_HEAVY
+	// Restore original target & coords
+	*pTargetCoords = FireAtTemp::originalTargetCoords;
+	R->Base(8, FireAtTemp::pOriginalTarget);
+	pTarget = FireAtTemp::pOriginalTarget;
+	R->EDI(FireAtTemp::pOriginalTarget);
+
+	// Reset temp values
+	FireAtTemp::originalTargetCoords = CoordStruct::Empty;
+	FireAtTemp::FireBullet = nullptr;
+	FireAtTemp::pObstacleCell = nullptr;
+	FireAtTemp::pOriginalTarget = nullptr;
+#endif
+
+	//TechnoClass_FireAt_ToggleLaserWeaponIndex
+	if (pThis->WhatAmI() == BuildingClass::AbsID && pWeaponType->IsLaser) {
+		if (pExt->CurrentLaserWeaponIndex.empty())
+			pExt->CurrentLaserWeaponIndex = weaponIndex;
+		else
+			pExt->CurrentLaserWeaponIndex.clear();
+	}
+
+	//TechnoClass_FireAt_BurstOffsetFix_2
+	++pThis->CurrentBurstIndex;
+	pThis->CurrentBurstIndex %= pWeaponType->Burst;
+
+	if (pExt->ForceFullRearmDelay)
+	{
+		pExt->ForceFullRearmDelay = false;
+		pThis->CurrentBurstIndex = 0;
+	}
+
+	if (auto const pTargetObject = cast_to<BulletClass* const, false>(pTarget))
+	{
+		if (TechnoExtContainer::Instance.Find(pThis)->IsInterceptor())
+		{
+			auto pBulletTargetExt = BulletExtContainer::Instance.Find(pTargetObject);
+			auto pBulletTypeTargetExt = BulletTypeExtContainer::Instance.Find(pTargetObject->Type);
+
+			if (!pBulletTypeTargetExt->Armor.isset())
+				pBulletTargetExt->InterceptedStatus |= InterceptedStatus::Locked;
+
+			const auto pBulletExt = BulletExtContainer::Instance.Find(pBullet);
+
+			pBulletExt->InterceptorTechnoType = GET_TECHNOTYPE(pThis);
+			pBulletExt->InterceptedStatus |= InterceptedStatus::Targeted;
+
+			if (!pTypeExt->Interceptor_ApplyFirepowerMult)
+				pBullet->Health = pWeaponType->Damage;
+		}
+	}
+
+	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeaponType);
+
+	if(!Phobos::Config::HideShakeEffects) {
+		if (!pWeaponExt->ShakeLocal.Get() || pThis->IsOnMyView())
+		{
+			if (pWeaponExt->Xhi || pWeaponExt->Xlo)
+				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, ScenarioClass::Instance->Random(pWeaponExt->Xlo, pWeaponExt->Xhi));
+
+			if (pWeaponExt->Yhi || pWeaponExt->Ylo)
+				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, ScenarioClass::Instance->Random(pWeaponExt->Ylo, pWeaponExt->Yhi));
+		}
+	}
+	return 0x6FF660;
+}

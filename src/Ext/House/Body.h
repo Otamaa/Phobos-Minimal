@@ -23,6 +23,37 @@
 
 class TActionClass;
 
+struct LauchData
+{
+	int LastFrame { Unsorted::CurrentFrame };
+	int Count { 0 };
+
+	COMPILETIMEEVAL void Update()
+	{
+		++Count;
+		LastFrame = Unsorted::CurrentFrame();
+	}
+
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{ return Serialize(Stm); }
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<LauchData*>(this)->Serialize(Stm); }
+
+protected:
+
+	template <typename T>
+	bool Serialize(T& Stm)
+	{
+		return Stm
+			.Process(LastFrame)
+			.Process(Count)
+			.Success()
+			//&& Stm.RegisterChange(this)
+			; // announce this type
+	}
+};
+
 struct TunnelData
 {
 	HelperedVector<FootClass*> Vector;
@@ -259,6 +290,7 @@ public:
 	// ============================================================
 	// Vectors (24 bytes each)
 	// ============================================================
+	std::vector<LauchData> LaunchDatas {};
 	std::vector<TunnelData> Tunnels {};
 	HelperedVector<SuperClass*> Batteries {};
 	HelperedVector<UnitClass*> OwnedDeployingUnits {};
@@ -372,6 +404,16 @@ public:
 	int GetInfantryTypeToProduce();
 
 	TechTreeTypeClass* GetTechTreeType();
+
+	void UpdateShotCount(SuperWeaponTypeClass* pFor);
+	void UpdateShotCountB(SuperWeaponTypeClass* pFor);
+
+	COMPILETIMEEVAL LauchData GetShotCount(SuperWeaponTypeClass* pFor){
+		if ((size_t)pFor->ArrayIndex < this->LaunchDatas.size())
+			return this->LaunchDatas[pFor->ArrayIndex];
+
+		return {};
+	}
 
 	void UpdateAcademy(BuildingClass* pAcademy, bool added);
 	void ApplyAcademy(TechnoClass* pTechno, AbstractType considerAs) const;
@@ -547,12 +589,12 @@ private:
 
 };
 
-class HouseExtContainer final : public Container<HouseExtData>, public ContainerSaveLoad<HouseExtContainer, true>
+class HouseExtContainer final : public Container<HouseExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "HouseExtContainer";
 	using base_t = Container<HouseExtData>;
-	using base_SaveLoad_t = ContainerSaveLoad<HouseExtContainer, true>;
+
 public:
 	static HouseExtContainer Instance;
 
@@ -576,8 +618,8 @@ public:
 
 public:
 
-	virtual bool LoadAll(PhobosStreamReader& stm);
-	virtual bool SaveAll(PhobosStreamWriter& stm);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void Clear();
 };

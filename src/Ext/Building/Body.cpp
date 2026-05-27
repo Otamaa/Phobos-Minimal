@@ -469,28 +469,25 @@ void BuildingExtData::DisplayIncomeString()
 {
 	auto const pTypeExt = (BuildingTypeExtData*)this->TypeExtData;
 
-	if (pTypeExt->DisplayIncome.Get(RulesExtData::Instance()->DisplayIncome) && this->AccumulatedIncome) {
-		int const delay = pTypeExt->DisplayIncome_Delay.Get(RulesExtData::Instance()->DisplayIncome_Delay);
-
-		if(Unsorted::CurrentFrame() % delay == 0) {
-
-			if (!RulesExtData::Instance()->DisplayIncome_AllowAI && !This()->Owner->IsControlledByHuman()) {
-				this->AccumulatedIncome = 0;
-				return;
-			}
-
-			FlyingStrings::Instance.AddMoneyString(
-				this->AccumulatedIncome,
-				this->AccumulatedIncome,
-				This(),
-				pTypeExt->DisplayIncome_Houses.Get(RulesExtData::Instance()->DisplayIncome_Houses),
-				This()->GetRenderCoords(),
-				pTypeExt->DisplayIncome_Offset, ColorStruct::Empty);
-
+	if (pTypeExt->DisplayIncome.Get(RulesExtData::Instance()->DisplayIncome) &&
+		this->AccumulatedIncome && Unsorted::CurrentFrame.get() % 15 == 0)
+	{
+		if (!RulesExtData::Instance()->DisplayIncome_AllowAI && !This()->Owner->IsControlledByHuman())
+		{
 			this->AccumulatedIncome = 0;
+			return;
 		}
-	}
 
+		FlyingStrings::Instance.AddMoneyString(
+			this->AccumulatedIncome,
+			this->AccumulatedIncome,
+			This(),
+			pTypeExt->DisplayIncome_Houses.Get(RulesExtData::Instance()->DisplayIncome_Houses),
+			This()->GetRenderCoords(),
+			pTypeExt->DisplayIncome_Offset, ColorStruct::Empty);
+
+		this->AccumulatedIncome = 0;
+	}
 }
 
 void BuildingExtData::UpdatePoweredKillSpawns() const
@@ -2465,7 +2462,7 @@ void FakeBuildingClass::_DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOrigi
 //	}
 //}
 
-//ASMJIT_PATCH(0x43D290,BuildingClass_Draw_It, 0x5)
+//DEFINE_HOOK(0x43D290,BuildingClass_Draw_It, 0x5)
 //{
 //	GET(FakeBuildingClass*, pThis, ECX);
 //	GET_STACK(Point2D*, pPoint, 0x4);
@@ -2477,13 +2474,16 @@ void FakeBuildingClass::_DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOrigi
 //}
 //
 //
-
+DEFINE_FUNCTION_JUMP(CALL6, 0x43D005, FakeBuildingClass::_Draw_It)
+DEFINE_FUNCTION_JUMP(LJMP, 0x43D290, FakeBuildingClass::_Draw_It)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3FD0, FakeBuildingClass::_Draw_It)
 
 int FakeBuildingClass::_BuildingClass_GetRangeOfRadial()
 {
 	BuildingTypeClass* pType = this->Type;
 	const auto pExt = this->_GetExtData();
 	auto const pTypeExt = (BuildingTypeExtData*)pExt->TypeExtData;
+
 
 	if (pTypeExt->RadialIndicatorRadius.isset())
 		return pTypeExt->RadialIndicatorRadius.Get();
@@ -2509,9 +2509,9 @@ int FakeBuildingClass::_BuildingClass_GetRangeOfRadial()
 				const int range = WeaponTypeExtData::GetRangeWithModifiers(pWeapon->WeaponType, this);
 				if(range > 0)
 					return range / 256;
+			} else {
+				return 0;
 			}
-
-			return 0;
 		}
 	}
 
@@ -3173,7 +3173,6 @@ BuildingExtContainer BuildingExtContainer::Instance;
 ASMJIT_PATCH(0x43B75C, BuildingClass_CTOR, 0x6)
 {
 	GET(BuildingClass*, pItem, ESI);
-	if(!Phobos::Otamaa::DoingLoadGame)
 	BuildingExtContainer::Instance.Allocate(pItem);
 	return 0;
 }

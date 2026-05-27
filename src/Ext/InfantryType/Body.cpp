@@ -77,7 +77,6 @@ bool InfantryTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	INI_EX iniEX_art(CCINIClass::INI_Art());
 	const auto pSection_art = this->This()->ImageFile;
 
-	this->IsHero.Read(exINI, pID, "Hero");
 	this->Is_Deso.Read(exINI, pID,  "IsDesolator");
 	this->Is_Cow.Read(exINI, pID, "IsCow");
 	this->C4Delay.Read(exINI, pID, "C4Delay");
@@ -156,7 +155,6 @@ template <typename T>
 void InfantryTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->IsHero)
 		.Process(this->Is_Deso)
 		.Process(this->Is_Cow)
 		.Process(this->C4Delay)
@@ -275,7 +273,6 @@ ASMJIT_PATCH(0x523876, InfantryTypeClass_CTOR, 6)
 	pItem->Sequence = (DoControls*)GameCreate<NewDoType>();
 	((NewDoType*)(pItem->Sequence))->Initialize();
 
-	if (!Phobos::Otamaa::DoingLoadGame) 
 	InfantryTypeExtContainer::Instance.Allocate(pItem);
 
 	return 0x523970;
@@ -290,18 +287,16 @@ ASMJIT_PATCH(0x5239D0, InfantryTypeClass_DTOR, 0x5)
 
 #include <Misc/ImageSwapModules.h>
 
-HRESULT __stdcall FakeInfantryTypeClass::_Load(IStream* pStm)
+ASMJIT_PATCH(0x524B53, InfantryTypeClass_Load_Suffix, 0x5)
 {
-	HRESULT hr = this->InfantryTypeClass::Load(pStm);
-
-	if (SUCCEEDED(hr)) {
-		if (Phobos::Config::ArtImageSwap)
-			TechnoImageReplacer::Replace(this);
+	if (Phobos::Config::ArtImageSwap) {
+		GET(BYTE*, poisonedVal, EDI);
+		poisonedVal -= 0xE20;
+		TechnoImageReplacer::Replace(reinterpret_cast<InfantryTypeClass*>(poisonedVal));
 	}
 
-	return hr;
+	return 0;
 }
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB624, FakeInfantryTypeClass::_Load)
 
 bool FakeInfantryTypeClass::_ReadFromINI(CCINIClass* pINI)
 {

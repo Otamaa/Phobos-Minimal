@@ -290,6 +290,7 @@ void ArmorTypeClass::Serialize(T& Stm)
 void ArmorTypeClass::LoadFromStream(PhobosStreamReader& Stm)
 {
 	this->Serialize(Stm);
+	this->RebuildTags();
 }
 
 void ArmorTypeClass::SaveToStream(PhobosStreamWriter& Stm)

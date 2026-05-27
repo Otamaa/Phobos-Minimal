@@ -117,32 +117,6 @@ void FakeSpawnManagerClass::_DetachB(AbstractClass* pTarget, bool removed)
 	}
 }
 
-int FakeSpawnManagerClass::_CountDockedSpawns()
-{
-	int nCur = 0;
-
-	if (this)
-	{ // some function call this without checking , so here it is the check
-		for (auto const& pNode : this->SpawnedNodes) {
-			const auto nStatus = pNode->Status;
-			const auto nEligible =
-				nStatus == SpawnNodeStatus::Idle
-				|| nStatus == SpawnNodeStatus::Reloading
-				|| nStatus == SpawnNodeStatus::Dead
-				// spawn timer should be updated somewhere ?
-				&& pNode->NodeSpawnTimer.IsNotActive();
-
-			if (nEligible) {
-				++nCur;
-			}
-
-		}
-	}
-
-	return nCur;
-}
-DEFINE_FUNCTION_JUMP(LJMP, 0x6B7D50, FakeSpawnManagerClass::_CountDockedSpawns);
-
 DEFINE_FUNCTION_JUMP(CALL, 0x6B7637, FakeSpawnManagerClass::_Detach);
 DEFINE_FUNCTION_JUMP(CALL, 0x6B7ACD, FakeSpawnManagerClass::_Detach);
 DEFINE_FUNCTION_JUMP(CALL, 0x6B7C16, FakeSpawnManagerClass::_Detach);

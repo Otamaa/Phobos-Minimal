@@ -560,7 +560,7 @@ ASMJIT_PATCH(0x440045, BuildingClass_UpdateDelayedFiring_PrefiringMark1, 0x6)
 
 #pragma region TurretAnim
 
-ASMJIT_PATCH(0x451242, BuildingClass_AnimationAI_TurretAnim, 0xA)
+DEFINE_HOOK(0x451242, BuildingClass_AnimationAI_TurretAnim, 0xA)
 {
 	enum { SkipGameCode = 0x451296 };
 
@@ -574,7 +574,7 @@ ASMJIT_PATCH(0x451242, BuildingClass_AnimationAI_TurretAnim, 0xA)
 	return SkipGameCode;
 }
 
-ASMJIT_PATCH(0x44B6C7, BuildingClass_Mission_Attack_TurretAnim, 0x6)
+DEFINE_HOOK(0x44B6C7, BuildingClass_Mission_Attack_TurretAnim, 0x6)
 {
 	enum { SkipFiring = 0x44B6FE };
 

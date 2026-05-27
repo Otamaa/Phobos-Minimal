@@ -17,7 +17,7 @@ struct LocoIdent
 };
 
 class Matrix3D;
-class LocomotionClass : public IPersistStream, public ILocomotion
+class NOVTABLE LocomotionClass : public IPersistStream, public ILocomotion
 {
 public:
 
@@ -43,7 +43,7 @@ public:
 	virtual int Size() = 0;
 
 	// ILocomotion
-	virtual HRESULT __stdcall Link_To_Object(FootClass* pointer) { JMP_STD(0x55A710); }
+	virtual HRESULT __stdcall Link_To_Object(void* pointer) { JMP_STD(0x55A710); }
 	virtual bool __stdcall Is_Moving() { JMP_STD(0x55ACD0); }
 	virtual CoordStruct __stdcall Destination() { JMP_STD(0x55AC70); }
 	virtual CoordStruct __stdcall Head_To_Coord() { JMP_STD(0x55ACA0); }
@@ -69,7 +69,7 @@ public:
 	virtual bool __stdcall Push(DirStruct dir) { JMP_STD(0x55AB70); }
 	virtual bool __stdcall Shove(DirStruct dir) { JMP_STD(0x55AB80); }
 	virtual void __stdcall Force_Track(int track, CoordStruct coord) { JMP_STD(0x55AC10); }
-	//virtual Layer __stdcall In_Which_Layer() = 0;
+	virtual Layer __stdcall In_Which_Layer() = 0;
 	virtual void __stdcall Force_Immediate_Destination(CoordStruct coord) { JMP_STD(0x55AC00); }
 	virtual void __stdcall Force_New_Slope(int ramp) { JMP_STD(0x55ACE0); }
 	virtual bool __stdcall Is_Moving_Now() { JMP_STD(0x4B6610); }

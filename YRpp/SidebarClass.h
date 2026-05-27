@@ -227,7 +227,7 @@ public:
 	virtual HRESULT Load(IStream* pStm) override JMP_THIS(0x6AC5D0);
 	virtual HRESULT Save(IStream* pStm) override JMP_THIS(0x6AC5E0);
 	virtual const wchar_t* GetToolTip(UINT nDlgID) override JMP_THIS(0x6AC210);
-	virtual void InitGUI() override JMP_THIS(0x6ABD30); //prolly wrong naming
+	virtual void CloseWindow() override JMP_THIS(0x6ABD30); //prolly wrong naming
 
 	//RadarClass
 	virtual void DisposeOfArt() override JMP_THIS(0x6A5BF0);

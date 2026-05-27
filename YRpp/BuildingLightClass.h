@@ -76,7 +76,6 @@ public:
 	ObjectClass* FollowingObject;
 	TechnoClass* OwnerObject;
 };
-static_assert(sizeof(BuildingLightClass) == 0xE8);
 
 struct UninitBuildingLight
 {

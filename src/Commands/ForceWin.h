@@ -5,15 +5,6 @@
 class ForceWinCommandClass : public PhobosCommandClass
 {
 public:
-	ForceWinCommandClass() : PhobosCommandClass()
-	{
-		this->IsDeveloper = true;
-	}
-
-	virtual ~ForceWinCommandClass() = default;
-
-public:
-
 	// CommandClass
 	virtual const char* GetName() const override;
 	virtual const wchar_t* GetUIName() const override;

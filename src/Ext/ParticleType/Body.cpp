@@ -184,7 +184,6 @@ void ParticleTypeExtContainer::WriteToINI(ext_t::base_type* key, CCINIClass* pIN
 ASMJIT_PATCH(0x644DBB, ParticleTypeClass_CTOR, 0x5)
 {
 	GET(ParticleTypeClass*, pItem, ESI);
-	if (!Phobos::Otamaa::DoingLoadGame) 
 	ParticleTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }

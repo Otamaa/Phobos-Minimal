@@ -52,14 +52,14 @@ bool PhobosCommandClass::CheckDebugDeactivated() const
 {
 	auto const bAllow = Phobos::Config::DevelopmentCommands || Phobos::Otamaa::IsAdmin;
 
-	if (this->IsDeveloperOnly() && !bAllow) {
+	if (!bAllow)
+	{
 		const wchar_t* text = StringTable::FetchString("TXT_COMMAND_DISABLED");
 		wchar_t msg[0x100] = L"\0";
 		wsprintfW(msg, text, this->GetUIName());
 		MessageListClass::Instance->PrintMessage(msg);
 		return true;
 	}
-
 	return false;
 }
 
@@ -86,23 +86,29 @@ void __fastcall Game_Init_Commands_Wrapper() {
 #pragma endregion Information
 
 #pragma region Adminexclusive
-	Make<PlaceVeinholeMonster>();
-	Make<RevealMapCommandClass>();
-	Make<CaptureObjectsCommandClass>();
-	Make<SetVeterancyCommandClass>();
-	Make<MemoryDumperCommandClass>();
-	Make<DumperTypesCommandClass>();
-	Make<MapSnapshotCommandClass>();
-	Make<DetachFromTeamCommandClass>();
-	Make<FrameByFrameCommandClass>();
-	FrameStepDispatch::Dispatch();
-	Make<AIBasePlanCommandClass>();
-	Make<AIControlCommandClass>();
-	Make<HarmlessCommandClass>();
-	Make<ForceWinCommandClass>();
-#pragma endregion Adminexclusive
+	if (Phobos::Otamaa::IsAdmin)
+	{
+		Make<PlaceVeinholeMonster>();
+		Make<RevealMapCommandClass>();
+		Make<CaptureObjectsCommandClass>();
+		Make<SetVeterancyCommandClass>();
+		Make<MemoryDumperCommandClass>();
+		Make<DumperTypesCommandClass>();
+		Make<MapSnapshotCommandClass>();
+		Make<DetachFromTeamCommandClass>();
+		Make<SelectCapturedCommandClass>();
 
-	Make<SelectCapturedCommandClass>();
+		Make<FrameByFrameCommandClass>();
+		FrameStepDispatch::Dispatch();
+
+		Make<AIBasePlanCommandClass>();
+
+		Make<AIControlCommandClass>();
+		Make<HarmlessCommandClass>();
+
+		Make<ForceWinCommandClass>();
+	}
+#pragma endregion Adminexclusive
 
 	Make<AggressiveModeClass>();
 	Make<AutoBuildingCommandClass>();

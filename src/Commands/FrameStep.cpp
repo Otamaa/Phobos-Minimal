@@ -101,17 +101,6 @@ ASMJIT_PATCH_AGAIN(0x55DEC1, MainLoop_FrameStep_End, 0x6)
 template<size_t Frame>
 class FrameStepCommandClass : public PhobosCommandClass
 {
-public:
-
-	FrameStepCommandClass<Frame>() : PhobosCommandClass()
-	{
-		this->IsDeveloper = true;
-	}
-
-	virtual ~FrameStepCommandClass<Frame>() = default;
-
-public:
-
 	virtual const char* GetName() const override;
 	virtual const wchar_t* GetUIName() const override;
 	virtual const wchar_t* GetUICategory() const override;

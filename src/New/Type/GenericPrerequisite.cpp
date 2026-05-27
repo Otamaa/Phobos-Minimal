@@ -12,7 +12,7 @@ GenericPrerequisite::GenericPrerequisite(const char* const pTitle)
 	: Enumerable<GenericPrerequisite>(pTitle)
 { }
 
-void GenericPrerequisite::Parse(CCINIClass* pINI, const char* section, const char* key, std::vector<int>& Vec)
+void GenericPrerequisite::Parse(CCINIClass* pINI, const char* section, const char* key, ValueableVector<int>& Vec)
 {
 	if (pINI->ReadString(section, key, Phobos::readDefval, Phobos::readBuffer) > 0)
 	{
@@ -58,10 +58,12 @@ void GenericPrerequisite::Parse(CCINIClass* pINI, const char* section, const cha
 			else
 			{
 				idx = GenericPrerequisite::FindIndexById(cur);
-				if (idx > -1) {
+				if (idx > -1)
+				{
 					Vec.push_back(-1 - idx);
 				}
-				else if (!GameStrings::IsNone(cur)) {
+				else
+				{
 					Debug::INIParseFailed(section, key, cur, "Expect valid GenericPrerequisite data");
 				}
 			}
@@ -229,12 +231,6 @@ bool Prereqs::ListContainsSpecific(Iterator<BuildingTypeClass*> items, int const
 	});
 }
 
-bool Prereqs::ListContainsSpecific(Iterator<BuildingTypeClass*> items, TechnoTypeClass* item){
-	return std::ranges::any_of(items, [&](BuildingTypeClass* item) {
-		return item == item;
-	});
-}
-
 bool Prereqs::ListContainsGeneric(Iterator<BuildingTypeClass*> items, int const Index)
 {
 	// hack - POWER is -1 , this way converts to 0, and onwards
@@ -245,16 +241,7 @@ bool Prereqs::ListContainsGeneric(Iterator<BuildingTypeClass*> items, int const 
 				return true;
 			}
 		}
-
-		for (const auto& indexalt : GenericPrerequisite::Array[idxPrereq]->Alternates) {
-			if (Prereqs::ListContainsSpecific(items, indexalt)) {
-				return true;
-			}
-		}
-
 	}
-
-
 	return false;
 }
 

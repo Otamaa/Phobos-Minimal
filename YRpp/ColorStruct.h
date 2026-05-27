@@ -49,21 +49,6 @@ struct ColorStruct
 		: R(c.R), G(c.G), B(c.B)
 	{ }
 
-	explicit COMPILETIMEEVAL ColorStruct(int rgb, bool wordcolor = false) noexcept
-	{
-		if (!wordcolor)
-		{
-			R = GetRValue(rgb);
-			G = GetGValue(rgb);
-			B = GetBValue(rgb);
-		}
-		else
-		{
-			R = (unsigned char)((unsigned short)rgb >> RedShiftLeft()) << RedShiftRight();
-			G = (unsigned char)((unsigned short)rgb >> GreenShiftLeft()) << GreenShiftRight();
-			B = (unsigned char)((unsigned short)rgb >> BlueShiftLeft()) << BlueShiftRight();
-		}
-	}
 	//template<bool WordColor = false >
 	//COMPILETIMEEVAL ColorStruct(const int& rgb)
 	//{
@@ -243,8 +228,6 @@ public:
 
 	BYTE R, G, B;
 };
-
-typedef ColorStruct RGBClass;
 #pragma pack(pop)
 
 struct HSVClass

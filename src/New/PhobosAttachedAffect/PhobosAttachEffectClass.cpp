@@ -11,7 +11,6 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/TEvent/Body.h>
-#include <Ext/Bullet/Body.h>
 
 PhobosAttachEffectClass::~PhobosAttachEffectClass()
 {
@@ -31,11 +30,10 @@ PhobosAttachEffectClass::~PhobosAttachEffectClass()
 void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, TechnoClass* pTechno, HouseClass* pInvokerHouse,
 	TechnoClass* pInvoker, AbstractClass* pSource, int durationOverride, int delay, int initialDelay, int recreationDelay)
 {
-	if (!pTechno->IsAlive)
+	if (!this->Techno->IsAlive)
 		return;
 
 	//Debug::LogInfo(__FUNCTION__" Executed [%s - %s]", pTechno->GetThisClassName(), pTechno->get_ID());
-	this->PeriodicWeaponTimer = pType->PeriodicWeapon_FiringDelay;
 	this->Duration = durationOverride != 0 ? durationOverride : pType->Duration;
 	this->DurationOverride = durationOverride;
 	this->Delay = delay;
@@ -139,17 +137,15 @@ void PhobosAttachEffectClass::AI()
 		return;
 	}
 
-	auto pType = this->Type;
-
 	if (!this->HasInitialized)
 	{
 		this->HasInitialized = true;
 		auto const pExt = TechnoExtContainer::Instance.Find(this->Techno);
 		auto const pTechno = this->Techno;
 
-		if (pType->ROFMultiplier != 1.0 && pType->ROFMultiplier > 0.0 && pType->ROFMultiplier_ApplyOnCurrentTimer)
+		if (this->Type->ROFMultiplier != 1.0 && this->Type->ROFMultiplier > 0.0 && this->Type->ROFMultiplier_ApplyOnCurrentTimer)
 		{
-			double ROFModifier = pType->ROFMultiplier;
+			double ROFModifier = this->Type->ROFMultiplier;
 
 			pTechno->RearmTimer.Start(static_cast<int>(pTechno->RearmTimer.GetTimeLeft() * ROFModifier));
 
@@ -157,7 +153,7 @@ void PhobosAttachEffectClass::AI()
 				pTechno->ROF = static_cast<int>(pTechno->ROF * ROFModifier);
 		}
 
-		if (pType->HasTint())
+		if (this->Type->HasTint())
 			pTechno->MarkForRedraw();
 
 		this->NeedsRecalculateStat = true;
@@ -220,17 +216,6 @@ void PhobosAttachEffectClass::AI()
 	this->CloakCheck();
 	this->OnlineCheck();
 	this->AnimCheck();
-
-	// --- Periodic Weapon Logic ---
-	if (pType->PeriodicWeapon && pType->PeriodicWeapon_FiringDelay > 0 && pType->PeriodicWeapon_Range.Get() > 0) {
-
-		this->PeriodicWeaponTimer--;
-
-		if (this->PeriodicWeaponTimer <= 0) {
-			this->PeriodicWeaponTimer = pType->PeriodicWeapon_FiringDelay;
-			this->FirePeriodicWeapon();
-		}
-	}
 }
 
 void PhobosAttachEffectClass::AI_Temporal()
@@ -263,152 +248,6 @@ void PhobosAttachEffectClass::AI_Temporal()
 				this->Animation->Pause();
 				this->Animation->UnderTemporal = true;
 				break;
-			}
-		}
-	}
-}
-
-void PhobosAttachEffectClass::FirePeriodicWeapon()
-{
-	auto const pType = this->Type;
-	auto const pWeapon = pType->PeriodicWeapon;
-
-	if (!pWeapon)
-		return;
-
-	auto const pTechno = this->Techno;
-
-	if (!pTechno || pTechno->InLimbo || pTechno->IsImmobilized)
-		return;
-
-	// 确定开火者
-	TechnoClass* pFirer = pType->PeriodicWeapon_UseInvokerAsOwner ? this->Invoker : pTechno;
-
-	if (!pFirer)
-		pFirer = pTechno;
-
-	if (!pFirer->IsAlive)
-		return;
-
-	HouseClass* pFirerHouse = pType->PeriodicWeapon_UseInvokerAsOwner
-		? (this->InvokerHouse ? this->InvokerHouse : pTechno->Owner)
-		: pTechno->Owner;
-
-	if (!pFirerHouse)
-		pFirerHouse = pTechno->Owner;
-
-	auto const pWH = pWeapon->Warhead;
-	const int searchRange = pType->PeriodicWeapon_Range.Get();  // ← 只定义一次，int类型
-	const auto firePos = pTechno->Location;
-
-	// === 索敌 ===
-	std::vector<TechnoClass*> validTargets;
-
-	for (auto const pTarget : *TechnoClass::Array)
-	{
-		if (!pTarget || pTarget == pTechno || pTarget->InLimbo)
-			continue;
-
-		// 1) 距离检查
-		const int dist = pTarget->DistanceFrom(pTechno);
-		if (dist > searchRange)
-			continue;
-
-		// 2) AffectsHouse 检查
-		if (!EnumFunctions::CanTargetHouse(pType->PeriodicWeapon_AffectsHouse, pFirerHouse, pTarget->Owner))
-			continue;
-
-		// 3) AffectTypes / IgnoreTypes 检查
-		auto const pTargetType = pTarget->GetTechnoType();
-
-		if (pType->PeriodicWeapon_AffectTypes.size() > 0)
-		{
-			bool found = false;
-			for (auto const& pAllowed : pType->PeriodicWeapon_AffectTypes)
-			{
-				if (pTargetType == pAllowed) { found = true; break; }
-			}
-			if (!found) continue;
-		}
-
-		if (pType->PeriodicWeapon_IgnoreTypes.size() > 0)
-		{
-			bool ignored = false;
-			for (auto const& pIgnored : pType->PeriodicWeapon_IgnoreTypes)
-			{
-				if (pTargetType == pIgnored) { ignored = true; break; }
-			}
-			if (ignored) continue;
-		}
-
-		// 4) 弹头护甲比率检查
-		const double versus = GeneralUtils::GetWarheadVersusArmor(pWH, pTarget->GetTechnoType()->Armor);
-		if (versus == 0.0)
-			continue;
-
-		// 5) 存活检查
-		if (!pTarget->IsAlive || pTarget->Health <= 0)
-			continue;
-
-		validTargets.push_back(pTarget);
-	}
-
-	if (validTargets.empty())
-		return;
-
-	// === 开火（内联，不走 LaunchPeriodicBullet）===
-	if (pType->PeriodicWeapon_FireAll)
-	{
-		for (auto const pTarget : validTargets)
-		{
-			auto const pBulletType = pWeapon->Projectile;
-			if (!pBulletType) continue;
-
-			BulletClass* pBullet = pBulletType->CreateBullet(
-				pTarget, pFirer, pWeapon->Damage, pWeapon->Warhead,
-				static_cast<int>(pWeapon->Speed), pWeapon->Bright);
-
-			if (!pBullet) continue;
-
-			pBullet->Owner = pFirer;
-			auto const pBulletExt = BulletExtContainer::Instance.Find(pBullet);
-			pBulletExt->Owner = pFirerHouse;
-			BulletExtData::SimulatedFiringUnlimbo(pBullet, pFirerHouse, pWeapon, firePos, false);
-			BulletExtData::SimulatedFiringEffects(pBullet, pFirerHouse, pFirer, true, true);
-		}
-	}
-	else
-	{
-		TechnoClass* pClosest = nullptr;
-		double closestDistSq = DBL_MAX;
-
-		for (auto const pTarget : validTargets)
-		{
-			const int d = pTarget->DistanceFrom(pTechno);
-			if (d < closestDistSq)
-			{
-				closestDistSq = d;
-				pClosest = pTarget;
-			}
-		}
-
-		if (pClosest)
-		{
-			auto const pBulletType = pWeapon->Projectile;
-			if (pBulletType)
-			{
-				BulletClass* pBullet = pBulletType->CreateBullet(
-					pClosest, pFirer, pWeapon->Damage, pWeapon->Warhead,
-					pWeapon->Speed, pWeapon->Bright);
-
-				if (pBullet)
-				{
-					pBullet->Owner = pFirer;
-					auto const pBulletExt = BulletExtContainer::Instance.Find(pBullet);
-					pBulletExt->Owner = pFirerHouse;
-					BulletExtData::SimulatedFiringUnlimbo(pBullet, pFirerHouse, pWeapon, firePos, false);
-					BulletExtData::SimulatedFiringEffects(pBullet, pFirerHouse, pFirer, true, true);
-				}
 			}
 		}
 	}
@@ -649,7 +488,6 @@ bool PhobosAttachEffectClass::ResetIfRecreatable()
 	this->KillAnim();
 	this->Duration = 0;
 	this->CurrentDelay = this->RecreationDelay;
-	this->NeedsDurationRefresh = true;
 
 	return true;
 }
@@ -1017,7 +855,7 @@ int PhobosAttachEffectClass::RemoveAllOfType(PhobosAttachEffectTypeClass* pType,
 		}
 	}
 
-	PhobosAttachEffectClass::DetonateExpireWeapon(expireWeapons, pTarget->Location);
+	PhobosAttachEffectClass::DetonateExpireWeapon(expireWeapons);
 
 	return detachedCount;
 }
@@ -1034,10 +872,10 @@ void PhobosAttachEffectClass::CumulateExpireWeapon(PhobosAttachEffectTypeClass* 
 	}
 }
 
-void PhobosAttachEffectClass::DetonateExpireWeapon(std::vector<std::pair<WeaponTypeClass*, TechnoClass*>>& expireContainer, CoordStruct& designation)
+void PhobosAttachEffectClass::DetonateExpireWeapon(std::vector<std::pair<WeaponTypeClass*, TechnoClass*>>& expireContainer)
 {
 	for (auto& [pWeapon, pTarget] : expireContainer) {
-		WeaponTypeExtData::DetonateAt5(pWeapon, designation, pTarget, pTarget, pWeapon->Damage, false, pTarget->Owner);
+		WeaponTypeExtData::DetonateAt5(pWeapon, pTarget->Location, pTarget, pTarget, pWeapon->Damage, false, pTarget->Owner);
 	}
 }
 
@@ -1153,7 +991,6 @@ bool PhobosAttachEffectClass::Serialize(T& Stm)
 	.Process(InitialDelay)
 	.Process(RecreationDelay)
 	.Process(LastDiscardCheckFrame)
-	.Process(PeriodicWeaponTimer)
 	.Process(Type)
 	.Process(Techno)
 	.Process(InvokerHouse)

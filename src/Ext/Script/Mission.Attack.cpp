@@ -10,7 +10,6 @@
 #include <Ext/House/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/Aircraft/Body.h>
-#include <Ext/InfantryType/Body.h>
 
 #include <TeamTypeClass.h>
 #include <InfantryClass.h>
@@ -1341,8 +1340,8 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 			}
 		//hero case
 		} else {
-			if (!pTechno->Owner->IsNeutral() && whatTech == InfantryClass::AbsID) {
-				return InfantryTypeExtContainer::Instance.Find(static_cast<InfantryTypeClass*>(pTechnoType))->IsHero.Get();
+			if (!pTechno->Owner->IsNeutral()) {
+				return TechnoTypeExtContainer::Instance.Find(pTechnoType)->IsHero.Get();
 			}
 		}
 

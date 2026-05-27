@@ -51,7 +51,7 @@ public:
 	virtual HRESULT Load(IStream* pStm) override JMP_THIS(0x6568A0);
 	virtual HRESULT Save(IStream* pStm) override JMP_THIS(0x656AC0);
 	virtual const wchar_t* GetToolTip(UINT nDlgID) override JMP_THIS(0x658770);
-	virtual void InitGUI() override JMP_THIS(0x654320); //prolly wrong naming
+	virtual void CloseWindow() override JMP_THIS(0x654320); //prolly wrong naming
 	virtual bool MapCell(CellStruct& cell, HouseClass* pHouse) override JMP_THIS(0x653810);
 	virtual bool RevealFogShroud(CellStruct& cell, HouseClass* pHouse, bool bIncreaseShroudCounter) override JMP_THIS(0x653830);
 

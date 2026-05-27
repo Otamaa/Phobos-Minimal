@@ -599,8 +599,8 @@ ASMJIT_PATCH(0x517AEB, InfantryClass_CTOR, 0x5)
 {
 	GET(InfantryClass*, pItem, ESI);
 
-	if (!Phobos::Otamaa::DoingLoadGame) 
-	InfantryExtContainer::Instance.Allocate(pItem);
+	if(pItem->Type)
+		InfantryExtContainer::Instance.Allocate(pItem);
 
 	return 0;
 }

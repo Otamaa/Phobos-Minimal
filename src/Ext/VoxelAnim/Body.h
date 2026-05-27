@@ -31,7 +31,12 @@ public:
 public:
 public:
 
-	VoxelAnimExtData(VoxelAnimClass* pObj);
+	VoxelAnimExtData(VoxelAnimClass* pObj) : ObjectExtData(pObj)
+	{
+		this->Name = pObj->Type->ID;
+		this->AbsType = VoxelAnimClass::AbsID;
+	}
+
 	VoxelAnimExtData(VoxelAnimClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 
 	virtual ~VoxelAnimExtData() = default;
@@ -87,13 +92,15 @@ public:
 	static TechnoClass* GetTechnoOwner(VoxelAnimClass* pThis);
 };
 
-class VoxelAnimExtContainer final : public Container<VoxelAnimExtData>, public ContainerSaveLoad<VoxelAnimExtContainer, true>
+class VoxelAnimExtContainer final : public Container<VoxelAnimExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "VoxelAnimExtContainer";
 
 public:
 	static VoxelAnimExtContainer Instance;
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 };
 
 class VoxelAnimTypeExtData;

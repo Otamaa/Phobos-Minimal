@@ -374,7 +374,7 @@ void EBoltClass::draw_bolts()
 		const int start_z = line_data.start_z - TacticalMap->Z_Lepton_To_Pixel(line_data.start.Z) - 2;
 		const int end_z = line_data.end_z - TacticalMap->Z_Lepton_To_Pixel(line_data.end.Z) - 2;
 
-		const auto color = DSurface::Build_Hicolor_Pixel(line_data.color.Red, line_data.color.Green, line_data.color.Blue);
+		const auto color = DSurface::RGB_To_Pixel(line_data.color.Red, line_data.color.Green, line_data.color.Blue);
 
 		CompositeSurface->Draw_Line_entry_34(TacticalRect, start_pixel, end_pixel, color, start_z, end_z);
 	}

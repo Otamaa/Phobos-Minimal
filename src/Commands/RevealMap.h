@@ -5,14 +5,6 @@
 class RevealMapCommandClass : public PhobosCommandClass
 {
 public:
-	RevealMapCommandClass() : PhobosCommandClass()
-	{
-		this->IsDeveloper = true;
-	}
-
-	virtual ~RevealMapCommandClass() = default;
-
-public:
 
 	static bool Given;
 

@@ -694,22 +694,6 @@ void TiberiumExtData::Serialize(T& Stm)
 
 TiberiumExtContainer TiberiumExtContainer::Instance;
 
-bool TiberiumExtContainer::LoadAll(PhobosStreamReader& stm)
-{
-	if (!stm.Process(LinkedType))
-		return false;
-
-	return this->base_SaveLoad_t::LoadAll(stm);
-}
-
-bool TiberiumExtContainer::SaveAll(PhobosStreamWriter& stm)
-{
-	if (!stm.Process(LinkedType))
-		return false;
-
-	return this->base_SaveLoad_t::SaveAll(stm);
-}
-
 void TiberiumExtContainer::LoadFromINI(TiberiumClass* key, CCINIClass* pINI, bool parseFailAddr)
 {
 	if (auto ptr = this->Find(key))
@@ -775,7 +759,6 @@ void TiberiumExtContainer::Clear()
 ASMJIT_PATCH(0x721876, TiberiumClass_CTOR, 0x5)
 {
 	GET(TiberiumClass*, pItem, ESI);
-	if (!Phobos::Otamaa::DoingLoadGame)
 	TiberiumExtContainer::Instance.Allocate(pItem);
 	return 0;
 }

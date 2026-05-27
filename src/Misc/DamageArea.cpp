@@ -1315,9 +1315,7 @@ namespace DamageAreaTemp
 {
 	const CellClass* CheckingCell = nullptr;
 	bool CheckingCellAlt = false;
-	bool AircraftTrackerChecked = false;
 }
-
 bool NOINLINE IsObjectEligible(ObjectClass* pObj, WarheadTypeExtData* pWHExt)
 {
 	if (!pObj)
@@ -1405,7 +1403,6 @@ ASMJIT_PATCH(0x4899B3, DamageArea_DamageItemsFix2, 0x5)
 
 ASMJIT_PATCH(0x489286, DamageArea, 0x6)
 {
-	DamageAreaTemp::AircraftTrackerChecked = false;
 	GET_BASE(WarheadTypeClass*, pWH, 0x0C);
 	if (auto const pWHExt = WarheadTypeExtContainer::Instance.TryFind(pWH))
 	{
@@ -1931,12 +1928,8 @@ ASMJIT_PATCH(0x4893BA, DamageArea_DamageAir, 0x9)
 
 	// damage units in air if detonation is above a threshold
 	auto const pExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
-	if(heightAboveGround > pExt->DamageAirThreshold){
-		DamageAreaTemp::AircraftTrackerChecked = true;
-		return 0x4893C3u;
-	}
 
-	return 0x48955Eu;
+	return heightAboveGround > pExt->DamageAirThreshold ? 0x4893C3u : 0x48955Eu;
 }
 
 ASMJIT_PATCH(0x489562, DamageArea_DestroyCliff, 6)
@@ -2067,14 +2060,6 @@ ASMJIT_PATCH(0x489710, MapClass_DamageArea_CheckHeight_2, 0x7)
 	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
 	GET(ObjectClass*, pObject, ESI);
 
- 	// have we checked AircraftTracker ?
-	if (DamageAreaTemp::AircraftTrackerChecked) {
-		const auto pTechno = flag_cast_to<TechnoClass*, true>(pObject);
-
-		if (pTechno && pTechno->GetLastFlightMapCoords() != CellStruct::Empty) // this means it is in AircraftTracker
-			return SkipThisObject;
-	}
-
 	auto pWHExt = pWH->_GetExtData();
 
 	if (pWHExt->AffectsInAir && pWHExt->AffectsGround)
@@ -2082,7 +2067,8 @@ ASMJIT_PATCH(0x489710, MapClass_DamageArea_CheckHeight_2, 0x7)
 
 	if (!pObject ||
 		((pWHExt->AffectsInAir && pObject->IsInAir()) ||
-			(pWHExt->AffectsGround && !pObject->IsInAir()))) {
+			(pWHExt->AffectsGround && !pObject->IsInAir())))
+	{
 		return 0;
 	}
 

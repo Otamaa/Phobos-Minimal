@@ -232,8 +232,6 @@ class ScriptExtData final
 {
 public:
 	using base_type = ScriptClass;
-	static COMPILETIMEEVAL const char* ClassName = CLASS_NAME(ScriptExtData);
-	static COMPILETIMEEVAL const char* BaseClassName = "ScriptClass";
 
 public:
 	// Nothing yet
@@ -358,4 +356,8 @@ public:
 
 public:
 	static ScriptExtContainer Instance;
+
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
+
 };

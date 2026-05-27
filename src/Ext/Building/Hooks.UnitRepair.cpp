@@ -118,33 +118,33 @@ int FakeBuildingClass::_Mission_Repair()
 				//   AnswerBlocked  (32) -> Detach+Exit, return 1 (no Guard)
 				//   QueryDone      (33) -> EVA + sound, then shared fallthrough
 				//   anything else       -> return 1
-				if (msg != RadioCommand::AnswerNegative)  // FIX 1: was AnswerPositive 
-				{			
-					if (msg == RadioCommand::AnswerBlocked)
+				if (msg == RadioCommand::AnswerNegative)  // FIX 1: was AnswerPositive
+				{
+					// fall through to Exit_Object + guard
+				}
+				else if (msg == RadioCommand::AnswerBlocked)
+				{
+					pThis->__ExitObject(pThis->Passengers.RemoveFirstPassenger(), CellStruct::Empty);
+					return 1;
+				}
+				else if (msg == RadioCommand::QueryDone)
+				{
+					if (pThis->Owner->ControlledByCurrentPlayer())
 					{
-						pThis->__ExitObject(pThis->Passengers.RemoveFirstPassenger(), CellStruct::Empty);
-						return 1;
-					}
-					else if (msg == RadioCommand::QueryDone)
-					{
-						if (pThis->Owner->ControlledByCurrentPlayer())
+						auto const cell = pThis->GetCell()->MapCoords;
+
+						if (RadarEventClass::Create(RadarEventType::UnitRepaired, cell))
 						{
-							auto const cell = pThis->GetCell()->MapCoords;
-
-							if (RadarEventClass::Create(RadarEventType::UnitRepaired, cell))
-							{
-								VoxClass::Play(GameStrings::EVA_UnitRepaired());
-							}
-
-							VocClass::ImmedietelyPlayAt(RulesClass::Instance->HealCrateSound, &pThis->Location, 0);
+							VoxClass::Play(GameStrings::EVA_UnitRepaired());
 						}
-					}
-					else
-					{
-						return 1;
-					}
 
-				}// fall through to Exit_Object + guard	
+						VocClass::ImmedietelyPlayAt(RulesClass::Instance->HealCrateSound, &pThis->Location, 0);
+					}
+				}
+				else
+				{
+					return 1;
+				}
 
 				// Shared Exit + return to guard (msg == AnswerNegative or QueryDone)
 				pThis->__ExitObject(pThis->Passengers.RemoveFirstPassenger(), CellStruct::Empty);

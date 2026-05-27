@@ -315,7 +315,7 @@ public:
 	Valueable<int> BattlePoints_DrainAmount { 0 };
 	Valueable<int> BattlePoints_DrainDelay { 0 };
 	Valueable<int> SuperWeaponSidebar_Significance { 0 };
-	Valueable<int> SW_TechLevel { 0 } ;
+
 	// ============================================================
 	// DWORD (4 bytes each)
 	// ============================================================
@@ -478,6 +478,9 @@ public:
 	}
 
 	//with arg(s)
+
+	// check shootamount
+	bool CanFire(HouseClass* pOwner) const;
 	bool CanFireAt(HouseClass* pOwner, const CellStruct& coords, bool manual);
 
 	bool IsAnimVisible(HouseClass* pFirer) const;
@@ -489,6 +492,7 @@ public:
 	bool IsCellEligible(CellClass* pCell, SuperWeaponTarget allowed);
 	bool IsTechnoEligible(TechnoClass* pTechno, SuperWeaponTarget allowed);
 	bool IsTechnoAffected(TechnoClass* pTechno);
+	bool IsAvailable(HouseClass* pHouse);
 
 	void UneableToTransactMoney(HouseClass* pHouse);
 	void UneableToTransactBattlePoints(HouseClass* pHouse);
@@ -514,7 +518,6 @@ public:
 public:
 
 	//statics
-	static bool IsAvailable(HouseClass* pHouse, SuperClass* pSuper);
 	static void Deactivate(SuperClass* pSuper, CellStruct const cell, bool const isPlayer);
 	static bool Activate(SuperClass* pSuper, CellStruct const cell, bool const isPlayer);
 	static AffectedHouse GetRelation(HouseClass* pFirer, HouseClass* pHouse);
@@ -557,21 +560,20 @@ public:
 };
 
 class SWTypeExtContainer final : public Container<SWTypeExtData>
-	, public ReadWriteContainerInterfaces<SWTypeExtData>, public ContainerSaveLoad<SWTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<SWTypeExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "SWTypeExtContainer";
 	using base_t = Container<SWTypeExtData>;
 	using ext_t = SWTypeExtData;
-	using base_SaveLoad_t = ContainerSaveLoad<SWTypeExtContainer, true>;
 
 public:
 	static SWTypeExtContainer Instance;
 
 public:
 
-	virtual bool LoadAll(PhobosStreamReader& stm);
-	virtual bool SaveAll(PhobosStreamWriter& stm);
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void Clear();
 

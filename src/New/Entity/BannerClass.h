@@ -56,13 +56,8 @@ public:
 	BannerManagerClass() = default;
 	virtual ~BannerManagerClass() = default;
 
-	virtual bool SaveGlobal(PhobosStreamWriter& root) {
-		return root.Process(Array);
-	}
-
-	virtual bool LoadGlobal(PhobosStreamReader& root) {
-		return root.Process(Array);
-	}	
+	virtual bool SaveGlobal(PhobosStreamWriter& root) { return true; }
+	virtual bool LoadGlobal(const PhobosStreamReader& root) { return true; }
 	virtual void Clear();
 
 public:

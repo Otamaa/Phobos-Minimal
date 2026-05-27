@@ -603,7 +603,7 @@ public:
 	TypeList<int >		 AICaptureLowPower;
 	TypeList<int >		 AICaptureLowMoney;
 	int				 AICaptureLowMoneyMark;
-	float				 AICaptureWoundedMark;
+	int				 AICaptureWoundedMark;
 	TypeList<int >		 AISuperDefenseProbability;
 	int				 AISuperDefenseFrames;
 	float				 AISuperDefenseDistance;

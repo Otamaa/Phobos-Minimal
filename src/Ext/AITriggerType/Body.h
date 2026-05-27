@@ -81,7 +81,7 @@ private:
 };
 
 class AITriggerTypeExtContainer final : public Container<AITriggerTypeExtData>
-	, public ReadWriteContainerInterfaces<AITriggerTypeExtData>, public ContainerSaveLoad<AITriggerTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<AITriggerTypeExtData>
 {
 public:
 
@@ -89,6 +89,9 @@ public:
 
 public:
 	static AITriggerTypeExtContainer Instance;
+
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void LoadFromINI(AITriggerTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(AITriggerTypeClass* key, CCINIClass* pINI);

@@ -607,6 +607,35 @@ ASMJIT_PATCH(0x70133E, TechnoClass_GetWeaponRange_Demacroize, 0x5)
 	return 0x701388;
 }
 
+ASMJIT_PATCH(0x6FE709, TechnoClass_Fire_BallisticScatter1, 6)
+{
+	GET_STACK(BulletTypeClass*, pProjectile, 0x68);
+	auto pExt = BulletTypeExtContainer::Instance.Find(pProjectile);
+
+	// defaults for FlakScatter && !Inviso
+	int min = pExt->BallisticScatterMin.Get(Leptons(0));
+	int max = pExt->BallisticScatterMax.Get(Leptons(RulesClass::Instance->BallisticScatter));
+	int scatter = ScenarioClass::Instance->Random.RandomRanged(min, max);
+
+	R->EAX(scatter);
+	return 0x6FE71C;
+}
+
+ASMJIT_PATCH(0x6FE7FE, TechnoClass_Fire_BallisticScatter2, 5)
+{
+	GET_STACK(BulletTypeClass*, pProjectile, 0x68);
+	auto pExt = BulletTypeExtContainer::Instance.Find(pProjectile);
+
+	// defaults for !FlakScatter || Inviso
+	int min = pExt->BallisticScatterMin.Get(Leptons(RulesClass::Instance->BallisticScatter / 2));
+	int max = pExt->BallisticScatterMax.Get(Leptons(RulesClass::Instance->BallisticScatter));
+	int scatter = ScenarioClass::Instance->Random.RandomRanged(min, max);
+
+	R->EAX(scatter);
+	return 0x6FE821;
+}
+
+
 // Fixed the issue that the time for units in the area guard mission to reacquire targets after eliminating the target is significantly longer than that in other missions
 ASMJIT_PATCH(0x707A2E, TechnoClass_PointerExpired_TargetExpired, 0x5)
 {
@@ -660,8 +689,63 @@ ASMJIT_PATCH(0x71136F, TechnoTypeClass_CTOR_Initialize, 0x6)
 //TechnoClass_GetActionOnObject_IvanBombsB
 DEFINE_JUMP(LJMP, 0x6FFF9E, 0x700006);
 
+namespace UnlimboDetonateFireTemp
+{
+	BulletClass* Bullet;
+	bool InSelected;
+	bool InLimbo;
+}
+
+ASMJIT_PATCH(0x6FE53F, TechnoClass_FireAt_CreateBullet, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(WeaponTypeClass*, pWeapon, EBX);
+	GET(int, speed, EAX);
+	GET(int, damage, EDI);
+	GET_BASE(AbstractClass*, pTarget, 0x8);
+
+
+	// replace skipped instructions
+	REF_STACK(int, Speed, 0x28);
+	Speed = speed;
+
+	auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+	auto pBulletExt = BulletTypeExtContainer::Instance.Find(pWeapon->Projectile);
+
+	// create a new bullet with projectile range
+	const auto ret = pBulletExt->CreateBullet(pTarget, pThis, damage, pWeapon->Warhead,
+		speed, pWeaponExt->GetProjectileRange(), pWeapon->Bright, false);
+
+	UnlimboDetonateFireTemp::Bullet = ret;
+	UnlimboDetonateFireTemp::InSelected = pThis->IsSelected;
+	UnlimboDetonateFireTemp::InLimbo = pThis->InLimbo;
+	R->EAX(ret);
+	return 0x6FE562;
+}
+
 #include <Ext/Scenario/Body.h>
 
+
+ASMJIT_PATCH(0x6FF7FF, TechnoClass_Fire_UnlimboDetonate, 0x6)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	GET(WarheadTypeClass* const, pWH, EAX);
+
+	const auto pBullet = UnlimboDetonateFireTemp::Bullet;
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
+
+	if (pThis->IsAlive && pThis->Health > 0 && pBullet
+		&& !UnlimboDetonateFireTemp::InLimbo && !pWH->Parasite && pWHExt->UnlimboDetonate) {
+		if (pWHExt->UnlimboDetonate_KeepSelected) {
+			TechnoExtContainer::Instance.Find(pThis)->IsSelected = UnlimboDetonateFireTemp::InSelected;
+			ScenarioExtData::Instance()->LimboLaunchers.emplace(pThis);
+		}
+
+		pBullet->Owner = pThis;
+	}
+
+	return 0;
+}
 
 ASMJIT_PATCH(0x48DC90, MapClass_UnselectAll_ClearLimboLaunchers, 0x5)
 {
@@ -690,6 +774,25 @@ ASMJIT_PATCH(0x7162B0, TechnoTypeClass_GetPipMax_MindControl, 0x6)
 
 	R->EAX(count);
 	return 0x7162BC;
+}
+
+ASMJIT_PATCH(0x6FE31C, TechnoClass_Fire_AllowDamage, 8)
+{
+	//GET(TechnoClass*, pThis, ESI);
+	GET(WeaponTypeClass*, pWeapon, EBX);
+
+	// whether conventional damage should be used
+	const bool applyDamage =
+		WeaponTypeExtContainer::Instance.Find(pWeapon)->ApplyDamage.Get(!pWeapon->IsSonic && !pWeapon->UseFireParticles);
+
+	if (!applyDamage)
+	{
+		// clear damage
+		R->EDI(0);
+		return 0x6FE3DFu;
+	}
+
+	return 0x6FE32Fu;
 }
 
 // health bar for detected submerged units
@@ -787,6 +890,38 @@ ASMJIT_PATCH(0x4DF4DB, FootClass_RefreshMegaMission_CheckMissionFix, 0xA)
 	return clearMegaMission ? ClearMegaMission : ContinueMegaMission;
 }
 
+ASMJIT_PATCH(0x4DF410, FootClass_UpdateAttackMove_TargetAcquired, 0x6)
+{
+	GET(FootClass* const, pThis, ESI);
+
+	auto const pType = GET_TECHNOTYPE(pThis);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	if (pThis->IsCloseEnoughToAttack(pThis->Target)
+		&& pTypeExt->AttackMove_StopWhenTargetAcquired.Get(RulesExtData::Instance()->AttackMove_StopWhenTargetAcquired.Get(!pType->OpportunityFire)))
+	{
+		if (auto const pJumpjetLoco = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor))
+		{
+			auto const crd = pThis->GetCoords();
+			pJumpjetLoco->HeadToCoord.X = crd.X;
+			pJumpjetLoco->HeadToCoord.Y = crd.Y;
+			pJumpjetLoco->Speed = 0;
+			pJumpjetLoco->__maxSpeed = 0;
+			pJumpjetLoco->NextState = JumpjetLocomotionClass::State::Hovering;
+			pThis->AbortMotion();
+		}
+		else
+		{
+			pThis->StopMoving();
+			pThis->AbortMotion();
+		}
+	}
+
+	if (pTypeExt->AttackMove_PursuitTarget)
+		pThis->SetDestination(pThis->Target, true);
+
+	return 0;
+}
 
 ASMJIT_PATCH(0x711E90, TechnoTypeClass_CanAttackMove_IgnoreWeapon, 0x6)
 {

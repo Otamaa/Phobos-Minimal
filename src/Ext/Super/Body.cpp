@@ -31,7 +31,7 @@ void SuperExtData::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 
 				//if AlwaysGranted and SWAvaible
 				pExt->Statusses.PowerSourced = !pSuper->IsPowered();
-				if (pExt->Type->SW_AlwaysGranted && SWTypeExtData::IsAvailable(pHouse, pSuper))
+				if (pExt->Type->SW_AlwaysGranted && pExt->Type->IsAvailable(pHouse))
 				{
 					pExt->Statusses.Available = true;
 					pExt->Statusses.Charging = true;
@@ -57,13 +57,12 @@ void SuperExtData::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 
 							if (idxSW >= 0)
 							{
-								auto pSuper = pHouse->Supers[idxSW];
-								const auto pSuperExt = SuperExtContainer::Instance.Find(pSuper);
+								const auto pSuperExt = SuperExtContainer::Instance.Find(pHouse->Supers[idxSW]);
 								auto& status = pSuperExt->Statusses;
 
 								if (!status.Charging)
 								{
-									if (SWTypeExtData::IsAvailable(pHouse, pSuper))
+									if (pSuperExt->Type->IsAvailable(pHouse))
 									{
 										status.Available = true;
 
@@ -142,7 +141,6 @@ void SuperExtData::Serialize(T& Stm) {
 		.Process(this->CameoFirstClickDone)
 		.Process(this->FirstClickAutoFireDone)
 		.Process(this->Statusses)
-		.Process(this->Data)
 		;
 }
 
@@ -157,41 +155,13 @@ SuperExtData::SuperExtData(SuperClass* pObj) : AbstractExtended(pObj)
 	this->Name = pObj->Type->ID;
 	this->AbsType = SuperClass::AbsID;
 }
-
-LauchData* SuperExtData::GetLauchDataPtr(SuperClass* pFor)
-{
-	return &SuperExtContainer::Instance.Find(pFor)->Data;
-}
-
-void SuperExtData::UpdateLauchDataTimer(SuperClass* pFor)
-{
-	auto nData = SuperExtData::GetLauchDataPtr(pFor);
-
-	if ((nData->LastFrame & 0x80000000) != 0)
-		nData->LastFrame = Unsorted::CurrentFrame();
-}
-
-void SuperExtData::UpdateLauchData(SuperClass* pFor)
-{
-	SuperExtData::GetLauchDataPtr(pFor)->Update();
-}
-
-bool SuperExtData::CanFire(SuperClass* pFor)
-{
-	const int nAmount = SWTypeExtContainer::Instance.Find(pFor->Type)->SW_Shots;
-
-	if (nAmount < 0)
-		return true;
-
-	return SuperExtData::GetLauchDataPtr(pFor)->Count < nAmount;
-}
 // =============================
 // container hooks
 
 ASMJIT_PATCH(0x6CB10E, SuperClass_CTOR, 0x7)
 {
 	GET(SuperClass*, pItem, ESI);
-	if (!Phobos::Otamaa::DoingLoadGame)
+
 	SuperExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
@@ -504,9 +474,9 @@ bool FakeSuperClass::_AI(bool isPlayer)
 		if (remainingDelay != 0)
 		{
 			int stage = this->GetCameoChargeState();
-
-			if (stage != this->CameoChargeState) {
-				this->CameoChargeState = stage;
+			if (stage != this->CameoChargeState)
+			{
+				this->CameoChargeState = this->GetCameoChargeState();
 				return true;
 			}
 			return false;
@@ -644,6 +614,7 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x6CB7B0, FakeSuperClass::_Remove)
 
 bool FakeSuperClass::_Discharged(bool isPlayer, CellStruct* pCell)
 {
+
 	auto const pType = this->Type;
 	auto const pExt = SWTypeExtContainer::Instance.Find(pType);
 	auto const pOwner = this->Owner;
@@ -695,7 +666,7 @@ bool FakeSuperClass::_Discharged(bool isPlayer, CellStruct* pCell)
 			this->IsCharged = false;
 		}
 
-		if (this->OneTime || !SuperExtData::CanFire(this))
+		if (this->OneTime || !pExt->CanFire(pOwner))
 		{
 			// remove this SW
 			this->OneTime = false;
@@ -790,7 +761,8 @@ bool FakeSuperClass::_Suspend(bool on)
 
 				this->ChargeDrainState = ChargeDrainState::Charging;
 
-				if (!pExt->SW_InitialReady || SuperExtData::GetLauchDataPtr(this)->Count)
+				if (!pExt->SW_InitialReady || HouseExtContainer::Instance.Find(this->Owner)
+					->GetShotCount(this->Type).Count)
 				{
 					this->RechargeTimer.Start(this->GetRechargeTime());
 				}
@@ -826,6 +798,7 @@ bool FakeSuperClass::_Grant(bool oneTime, bool announce, bool onHold)
 
 	//auto pExt = SuperExtContainer::Instance.Find(this);
 	auto pSuperExt = SWTypeExtContainer::Instance.Find(pType);
+	auto pHouseExt = HouseExtContainer::Instance.Find(this->Owner);
 
 	// Resume from suspended (on-hold) state
 	if (!oneTime && this->IsOnHold && this->CanHold)
@@ -912,8 +885,8 @@ bool FakeSuperClass::_Grant(bool oneTime, bool announce, bool onHold)
 			if (pType->UseChargeDrain)
 				this->ChargeDrainState = ChargeDrainState::Charging;
 
-			auto data = SuperExtData::GetLauchDataPtr(this);
-			const int nCharge = (!pSuperExt->SW_InitialReady || data->Count)
+			auto const [frame, count] = pHouseExt->GetShotCount(pType);
+			const int nCharge = (!pSuperExt->SW_InitialReady || count)
 				? this->GetRechargeTime() : 0;
 
 			this->RechargeTimer.Start(nCharge);
@@ -921,10 +894,10 @@ bool FakeSuperClass::_Grant(bool oneTime, bool announce, bool onHold)
 			auto nFrame = Unsorted::CurrentFrame();
 			if (pSuperExt->SW_VirtualCharge)
 			{
-				if ((data->LastFrame & 0x80000000) == 0)
+				if ((frame & 0x80000000) == 0)
 				{
-					this->RechargeTimer.StartTime = data->LastFrame ;
-					nFrame = data->LastFrame ;
+					this->RechargeTimer.StartTime = frame;
+					nFrame = frame;
 				}
 			}
 
@@ -941,7 +914,7 @@ bool FakeSuperClass::_Grant(bool oneTime, bool announce, bool onHold)
 				}
 			}
 
-			SuperExtData::UpdateLauchDataTimer(this);
+			pHouseExt->UpdateShotCountB(pType);
 			result = true;
 		}
 	}

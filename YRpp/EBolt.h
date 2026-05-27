@@ -64,4 +64,3 @@ public:
 	bool AlternateColor;
 
 };
-static_assert(sizeof(EBolt) == 0x30, "Invalid size.");

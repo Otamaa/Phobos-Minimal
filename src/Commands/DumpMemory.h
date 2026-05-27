@@ -4,14 +4,6 @@
 class MemoryDumperCommandClass : public PhobosCommandClass
 {
 public:
-	MemoryDumperCommandClass() : PhobosCommandClass()
-	{
-		this->IsDeveloper = true;
-	}
-
-	virtual ~MemoryDumperCommandClass() = default;
-
-public:
 
 	virtual const char* GetName() const override;
 	virtual const wchar_t* GetUIName() const override;

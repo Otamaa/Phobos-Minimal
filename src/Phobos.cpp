@@ -33,8 +33,6 @@
 #include <Phobos.Entity.h>
 #include <MessageBoxLogging.h>
 
-#include <Misc/Renderer/GlobalColorPacker.h>
-
 #pragma region defines
 HANDLE Phobos::hInstance;
 char Phobos::readBuffer[readLength] {};
@@ -197,8 +195,7 @@ int  Phobos::Config::colorCount { 8 };
 int  Phobos::Config::version;
 
 bool Phobos::Config::ShowPowerPlantEnhancerRange = false;
-bool Phobos::Config::FixTransparencyBlitters = false;
-Simd::Level Phobos::Config::MaxSimdLevel = Simd::Level::AVX2;
+
 bool Phobos::Misc::CustomGS { false };
 int Phobos::Misc::CustomGS_ChangeInterval[7] { -1, -1, -1, -1, -1, -1, -1 };
 int Phobos::Misc::CustomGS_ChangeDelay[7] { 0, 1, 2, 3, 4, 5, 6 };
@@ -801,8 +798,6 @@ void ShutdownAsmjit()
 #pragma region PhobosFunctions
 void Phobos::CheckProcessorFeatures()
 {
-#ifdef _REQ_SSE
-
 #if _M_IX86_FP != 2 //only SSE
 	static_assert(false, "Phobos compiled using unsupported architecture.");
 #endif
@@ -823,8 +818,6 @@ void Phobos::CheckProcessorFeatures()
 		Debug::Log("Game will now exit.\n");
 		Debug::ExitGame(533u);
 	}
-#endif
-
 }
 
 void Phobos::PassiveSaveGame()
@@ -1880,9 +1873,6 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 	{
 		if (IsGamemdExe(nullptr))
 		{
-			//this is dangerious but this keep shit from breaking early 
-			//GlobalColorPacker::SetColorPacker();
-
 			Patch::CurrentProcess = GetCurrentProcess();
 			Phobos::hInstance = hInstance;
 			saved_lpReserved = lpReserved;

@@ -177,10 +177,9 @@ ASMJIT_PATCH(0x6877EE, ScenarioClass_LoadINI_EVAIndex1, 5)
 	if(HouseIndex >= 0 && HouseIndex < HouseClass::Array->Count) {
 		auto pHouse = HouseClass::Array->Items[HouseIndex];
 		auto pSide = SideClass::Array->operator[](pHouse->Type->SideIndex);
-		auto pCurPlayerType = pHouse->Type;
-		auto pHouseTypeExt = HouseTypeExtContainer::Instance.Find(pCurPlayerType);
+		auto pHouseType = HouseTypeExtContainer::Instance.Find(HouseClass::CurrentPlayer()->Type);
 	
-		if(!pHouseTypeExt->EVAIndex.isset())
+		if(!pHouseType->EVAIndex.isset())
 			ScenarioExtData::Instance()->IsHouseTypeVoiceNeedCheck = false;
 
 		VoxClass::EVAIndex = SideExtContainer::Instance.Find(pSide)->EVAIndex;
@@ -200,7 +199,7 @@ ASMJIT_PATCH(0x6878A0, ScenarioClass_LoadINI_EVAIndex3, 5)
 	if(HouseIndex >= 0 && HouseIndex < HouseClass::Array->Count) {
 		auto pHouse = HouseClass::Array->Items[HouseIndex];
 		auto pSide = SideClass::Array->operator[](pHouse->Type->SideIndex);
-		auto pHouseType = HouseTypeExtContainer::Instance.Find(pHouse->Type);
+		auto pHouseType = HouseTypeExtContainer::Instance.Find(HouseClass::CurrentPlayer()->Type);
 
 		if(!pHouseType->EVAIndex.isset())
 			ScenarioExtData::Instance()->IsHouseTypeVoiceNeedCheck = false;
@@ -244,10 +243,8 @@ ASMJIT_PATCH(0x68776E, ScenarioClass_LoadINI_EVAIndex2, 8)
 		_SideIdx = pHouse->SideIndex;
 	}
 
-	if (_SideIdx >= 0)
-		VoxClass::EVAIndex = SideExtContainer::Instance.Find(SideClass::Array->operator[](_SideIdx))->EVAIndex;
-	else
-		VoxClass::EVAIndex = -1;
+	VoxClass::EVAIndex = SideExtContainer::Instance.Find(SideClass::Array->operator[](_SideIdx))->EVAIndex;
+	
 
 	R->ECX(_SideIdx);
 	return 0x6877B5;
@@ -255,7 +252,7 @@ ASMJIT_PATCH(0x68776E, ScenarioClass_LoadINI_EVAIndex2, 8)
 
 // decide to check it here because one of the hook path litelarry doest support direct house/housetype access
 // and changing that need more effort and code than doing this hack
-ASMJIT_PATCH(0x68AD0C, ScenarioClass_ReadMap_SetEVAIndex, 0x7)
+DEFINE_HOOK(0x68AD0C, ScenarioClass_ReadMap_SetEVAIndex, 0x7)
 {
 	if (const auto pHouse = HouseClass::CurrentPlayer()) {
 		if (ScenarioExtData::Instance()->IsHouseTypeVoiceNeedCheck)

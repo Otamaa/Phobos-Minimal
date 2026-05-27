@@ -14,18 +14,12 @@
 
 DEFINE_FUNCTION_JUMP(CALL, 0x4CD809, FakeAircraftClass::_Destroyed);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2504, FakeAircraftClass::_Mission_ParadropApproach)
-DEFINE_FUNCTION_JUMP(LJMP, 0x4158E0, FakeAircraftClass::_Mission_ParadropApproach)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2508, FakeAircraftClass::_Mission_ParadropOverfly)
-DEFINE_FUNCTION_JUMP(LJMP, 0x415960, FakeAircraftClass::_Mission_ParadropOverfly)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E24A8, FakeAircraftClass::_Mission_Sleep)
-DEFINE_FUNCTION_JUMP(LJMP, 0x5B2E10, FakeAircraftClass::_Mission_Sleep)
 DEFINE_FUNCTION_JUMP(LJMP, 0x416D50, FakeAircraftClass::_Mission_Move_ForCarryAll);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2510, FakeAircraftClass::_Mission_SpyPlaneApproach)
-DEFINE_FUNCTION_JUMP(LJMP, 0x4155F0, FakeAircraftClass::_Mission_SpyPlaneApproach)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2514, FakeAircraftClass::_Mission_SpyPlaneOverfly)
-DEFINE_FUNCTION_JUMP(LJMP, 0x4157C0, FakeAircraftClass::_Mission_SpyPlaneOverfly)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E24D0, FakeAircraftClass::_Mission_Move)
-DEFINE_FUNCTION_JUMP(LJMP, 0x4166C0, FakeAircraftClass::_Mission_Move)
 
 ASMJIT_PATCH(0x417A2E, AircraftClass_EnterIdleMode_Opentopped, 0x5)
 {

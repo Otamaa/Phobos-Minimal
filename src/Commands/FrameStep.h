@@ -7,15 +7,6 @@
 class FrameByFrameCommandClass : public PhobosCommandClass
 {
 public:
-	FrameByFrameCommandClass() : PhobosCommandClass()
-	{
-		this->IsDeveloper = true;
-	}
-
-	virtual ~FrameByFrameCommandClass() = default;
-
-public:
-
 	static size_t FrameStepCount;
 	static bool FrameStep;
 

@@ -3,9 +3,7 @@
 #include <Phobos.version.h>
 
 #include <GameStrings.h>
-
 #include <Utilities/Patch.h>
-#include <Utilities/Enum.h>
 
 #include <Wstring.h>
 #include <random>
@@ -27,13 +25,20 @@
 
 #include <Lib/magic_enum/magic_enum_all.hpp>
 
-#include <Utilities/Simd.h>
-
 #pragma warning( pop )
 
-
-
 class CSFText;
+
+enum class DrawDamageMode : BYTE
+{
+	disabled, damageOnly, withWH, count
+};
+
+enum class FPSCounterMode
+{
+	disabled, Full, FPSOnly, FPSandAVG, FPSandLat, Lat,  count
+};
+
 class CCINIClass;
 class AbstractClass;
 
@@ -284,8 +289,6 @@ public:
 		static int version;
 
 		static bool ShowPowerPlantEnhancerRange;
-		static bool FixTransparencyBlitters;
-		static Simd::Level MaxSimdLevel;
 	};
 
 	struct Misc

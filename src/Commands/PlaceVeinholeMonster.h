@@ -5,13 +5,6 @@
 class PlaceVeinholeMonster : public PhobosCommandClass
 {
 public:
-	PlaceVeinholeMonster() : PhobosCommandClass() {
-		this->IsDeveloper = true;
-	}
-
-	virtual ~PlaceVeinholeMonster() = default;
-
-public:
 
 	static bool Given;
 

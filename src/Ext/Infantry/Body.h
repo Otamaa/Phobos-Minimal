@@ -86,13 +86,17 @@ private:
 	void Serialize(T& Stm);
 };
 
-class InfantryExtContainer final : public Container<InfantryExtData>, public ContainerSaveLoad<InfantryExtContainer, true>
+class InfantryExtContainer final : public Container<InfantryExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "InfantryExtContainer";
 
 public:
 	static InfantryExtContainer Instance;
+
+	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
+	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
+
 };
 
 class InfantryTypeExtData;

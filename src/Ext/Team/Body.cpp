@@ -1245,7 +1245,7 @@ void FakeTeamClass::_Coordinate_Attack() {
 					&& (currentMission != Mission::Unload
 						|| !unitToProcess->CanDeployNow()))
 			{
-				unitToProcess->SendToFirstLink(RadioCommand::NotifyUnlink);
+				unitToProcess->SendToEachLink(RadioCommand::NotifyUnlink);
 				unitToProcess->QueueMission(Mission::Attack, 0);
 				unitToProcess->SetTarget(0);
 				unitToProcess->SetDestination(0, 1);
@@ -2085,7 +2085,7 @@ void FakeTeamClass::_AssignMissionTarget(AbstractClass* new_target)
 	if (new_target != this->QueuedFocus) {
 		FootClass* unit = this->FirstUnit;
 
-		if (this->QueuedFocus)
+		//if (this->QueuedFocus)
 		{
 			while (unit)
 			{
@@ -2283,16 +2283,16 @@ bool FakeTeamClass::_Recalculate() {
     // */
     if (this->IsLeavingMap) {
 		// Iterate in reverse since SpringEvent can remove tags from the array
-		for(int i = TagClass::ActiveTags->Count - 1; i >= 0; --i) {
-			if (TagClass::ActiveTags->Count == 0)
+		for(int i = TagClass::Array->Count - 1; i >= 0; --i) {
+			if (TagClass::Array->Count == 0)
 				break;
-			if (i >= TagClass::ActiveTags->Count)
-				i = TagClass::ActiveTags->Count - 1;
-			if (TagClass::ActiveTags->operator[](i)->SpringEvent(TriggerEvent::TeamLeavesMap,
+			if (i >= TagClass::Array->Count)
+				i = TagClass::Array->Count - 1;
+			if (TagClass::Array->operator[](i)->SpringEvent(TriggerEvent::TeamLeavesMap,
 				nullptr,
 				CellStruct::Empty,
 				false,
-				nullptr) && !TagClass::ActiveTags->Count)
+				nullptr) && !TagClass::Array->Count)
 				break;
 		}
     }
@@ -2990,10 +2990,7 @@ void FakeTeamClass::_TMission_Unload(ScriptActionNode* nNode, bool arg3)
 	bool hasAircraftInTaskForce = this->_has_aircraft();
 
 	// Process transport units
-	// nNode->Argument (0-3) is used as the removal mode, interpreted as TeamMissionType:
-	// 0 (Attack)   = keep all,  1 (Att_waypt) = lose units,
-	// 2 (Go_bezerk)= lose transport,  3 (Move) = lose both
-	ProcessTransports(this, static_cast<TeamMissionType>(nNode->Argument), hasAircraftInTaskForce);
+	ProcessTransports(this, nNode->Action, hasAircraftInTaskForce);
 
 	this->StepCompleted = true;
 }
@@ -3576,8 +3573,9 @@ void FakeTeamClass::_TMission_Chrono_prep_for_abwp(ScriptActionNode* nNode, bool
 	for (int i = 0; i < house->Supers.Count; i++) {
 
 		SuperClass* super = house->Supers.Items[i];
+		SWTypeExtData* pExt = SWTypeExtContainer::Instance.Find(super->Type);
 
-		if (!SWTypeExtData::IsAvailable(house, super))
+		if (!pExt->IsAvailable(house))
 			continue;
 
 		if (super->Type->Type == SuperWeaponType::ChronoSphere) // Chronosphere
@@ -3719,7 +3717,7 @@ void FakeTeamClass::_TMission_Iron_Curtain_Me(ScriptActionNode* nNode, bool arg3
 
 		if (pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain && pExt->SW_Group == nNode->Argument)
 		{
-			if (!SWTypeExtData::IsAvailable(pOwner, pSuper))
+			if (!pExt->IsAvailable(pOwner))
 				continue;
 
 			ironCurtain = pSuper;
@@ -3765,8 +3763,9 @@ void FakeTeamClass::_TMission_Chrono_prep_for_aq(ScriptActionNode* nNode, bool a
 	for (int i = 0; i < house->Supers.Count; i++)
 	{
 		SuperClass* super = (SuperClass*)house->Supers.Items[i];
+		SWTypeExtData* pExt = SWTypeExtContainer::Instance.Find(super->Type);
 
-		if (!SWTypeExtData::IsAvailable(house, super))
+		if (!pExt->IsAvailable(house))
 			continue;
 
 		if (super->Type->Type == SuperWeaponType::ChronoSphere) chronosphere = super;
@@ -4063,14 +4062,10 @@ void FakeTeamClass::_AI()
 			return;
 		}
 
-#ifdef _fix
 		// Team has no members but shouldn't dissolve yet
 		// Fall through to coordinate move
 		this->_CoordinateMove();
 		return;
-#else 
-		//isBeignWrapped remains false; fall through to IsMoving check
-#endif
 	} else {
 		isBeingWarped = pFirstUnit->IsBeingWarpedOut();
 	}
@@ -4493,28 +4488,9 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 	}
 	case TeamMissionType::Wait_till_fully_loaded:
 	{
-		// Pseudocode: loop through members. If any transport has room (MaxPassengers > Quantity),
-		// keep waiting (just return). If all transports are full or no members, advance.
-		FootClass* pMember = this->FirstUnit;
-		if (!pMember)
-		{
+		if (!this->FirstUnit)
 			this->StepCompleted = true;
-			return;
-		}
 
-		while (pMember)
-		{
-			TechnoTypeClass* pType = GET_TECHNOTYPE(pMember);
-			// If this member is a transport and has room for more passengers, keep waiting
-			if (pType->Passengers > pMember->Passengers.NumPassengers)
-			{
-				return; // Still waiting for loading to complete
-			}
-			pMember = pMember->NextTeamMember;
-		}
-
-		// All transports are full (or no transports found)
-		this->StepCompleted = true;
 		return;
 	}
 	case TeamMissionType::Force_facing:
@@ -4663,13 +4639,9 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 		if (this->Zone)
 		{
 			CoordStruct place = this->Zone->GetCoords();
-			// Pseudocode: Z = MapClass::Get_Z_Pos(coords), then add bridge height if on bridge
-			place.Z = MapClass::Instance->GetZPos(&place);
 			auto pCell = MapClass::Instance->GetCellAt(place);
-			if (pCell->ContainsBridgeEx())
-			{
-				place.Z += CellClass::BridgeHeight;
-			}
+			place.Z = pCell->ContainsBridgeEx() ? place.Z + CellClass::BridgeHeight : 0;
+
 			TacticalClass::Instance->FocusOn(&place, node.Argument);
 		}
 
@@ -4679,30 +4651,33 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 	}
 	case TeamMissionType::Self_destruct:
 	{
-		// Pseudocode: outer do-while loop repeats until no member was damaged in a pass.
-		// This ensures units that survive the first C4 hit get hit again.
-		//Debug::Log("[FakeTeam] %s: Self_destruct starting\n", this->Type->ID);
-		bool anyDamaged;
-		int passCount = 0;
-		do
+		FootClass* pCur = nullptr;
+		if (auto pFirst = this->FirstUnit)
 		{
-			anyDamaged = false;
-			passCount++;
-			for (FootClass* pMember = this->FirstUnit; pMember; pMember = pMember->NextTeamMember)
+			auto pNext = pFirst->NextTeamMember;
+			do
 			{
-				if (pMember->Health > 0 && pMember->IsAlive && pMember->IsOnMap && !pMember->InLimbo)
+				if (pFirst->Health > 0
+					&& pFirst->IsAlive
+					&& !pFirst->IsCrashing
+					&& !pFirst->IsSinking
+					&& !pFirst->InLimbo
+					)
 				{
-					int damage = pMember->Health;
-					pMember->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
-					anyDamaged = true;
+					int damage = pFirst->Health;
+					pFirst->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
 				}
+
+				pCur = pNext;
+
+				if (pNext)
+					pNext = pNext->NextTeamMember;
+
+				pFirst = pCur;
+
 			}
-
-			if (!this->FirstUnit)
-				break;
+			while (pCur);
 		}
-		while (anyDamaged);
-
 		this->StepCompleted = true;
 		return;
 	}
@@ -5560,6 +5535,7 @@ void TeamExtData::Serialize(T& Stm)
 // =============================
 // container
 TeamExtContainer TeamExtContainer::Instance;
+
 // =============================
 // container hooks
 
@@ -5567,7 +5543,6 @@ TeamExtContainer TeamExtContainer::Instance;
 ASMJIT_PATCH(0x6E8D05, TeamClass_CTOR, 0x5)
 {
 	GET(TeamClass*, pThis, ESI);
-	if (!Phobos::Otamaa::DoingLoadGame)
 	TeamExtContainer::Instance.Allocate(pThis);
 	return 0;
 }

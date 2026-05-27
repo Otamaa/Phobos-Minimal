@@ -12,8 +12,8 @@ ASMJIT_PATCH(0x727064, TriggerTypeClass_HasLocalSetOrClearedEvent, 0x5)
 
 	return
 		nIndex >= (int)PhobosTriggerEvent::LocalVariableGreaterThan && nIndex <= (int)PhobosTriggerEvent::LocalVariableAndIsTrue ||
-		nIndex >= (int)PhobosTriggerEvent::LocalVariableGreaterThanLocalVariable && nIndex <= (int)PhobosTriggerEvent::LocalVariableAndIsTrueLocalVariable ||
-		nIndex >= (int)PhobosTriggerEvent::LocalVariableGreaterThanGlobalVariable && nIndex <= (int)PhobosTriggerEvent::LocalVariableAndIsTrueGlobalVariable ||
+		nIndex >= (int)PhobosTriggerEvent::LocalVariableGreaterThanLocalVariable && nIndex >= (int)PhobosTriggerEvent::LocalVariableAndIsTrueLocalVariable ||
+		nIndex >= (int)PhobosTriggerEvent::LocalVariableGreaterThanGlobalVariable && nIndex >= (int)PhobosTriggerEvent::LocalVariableAndIsTrueGlobalVariable ||
 		nIndex == static_cast<int>(TriggerEvent::LocalSet) ?
 		0x72706E :
 		0x727069;
@@ -25,8 +25,8 @@ ASMJIT_PATCH(0x727024, TriggerTypeClass_HasGlobalSetOrClearedEvent, 0x5)
 
 	return
 		nIndex >= (int)PhobosTriggerEvent::GlobalVariableGreaterThan && nIndex <= (int)PhobosTriggerEvent::GlobalVariableAndIsTrue ||
-		nIndex >= (int)PhobosTriggerEvent::GlobalVariableGreaterThanLocalVariable && nIndex <= (int)PhobosTriggerEvent::GlobalVariableAndIsTrueLocalVariable ||
-		nIndex >= (int)PhobosTriggerEvent::GlobalVariableGreaterThanGlobalVariable && nIndex <= (int)PhobosTriggerEvent::GlobalVariableAndIsTrueGlobalVariable ||
+		nIndex >= (int)PhobosTriggerEvent::GlobalVariableGreaterThanLocalVariable && nIndex >= (int)PhobosTriggerEvent::GlobalVariableAndIsTrueLocalVariable ||
+		nIndex >= (int)PhobosTriggerEvent::GlobalVariableGreaterThanGlobalVariable && nIndex >= (int)PhobosTriggerEvent::GlobalVariableAndIsTrueGlobalVariable ||
 		nIndex == static_cast<int>(TriggerEvent::GlobalSet) ?
 		0x72702E :
 		0x727029;
@@ -197,10 +197,7 @@ ASMJIT_PATCH(0x7264C0, TriggerClass_RegisterEvent_ForceSequentialEvents, 0x7)
 
 			if (!alreadyOccured)
 			{
-				// Default: resolve owner from country name (matches original game behavior).
-				HouseClass* pEventOwner = HouseClass::FindByCountryName(pThis->Type->House->ID);
-
-				// In MP, override with the PlayerAtX-mapped house if one is registered for this trigger type.
+				HouseClass* pEventOwner = nullptr;
 				if (!SessionClass::IsCampaign()){
 
 					auto const& triggerOwners = ScenarioExtData::Instance()->TriggerTypePlayerAtXOwners;
@@ -258,30 +255,30 @@ ASMJIT_PATCH(0x7264C0, TriggerClass_RegisterEvent_ForceSequentialEvents, 0x7)
 		{
 			pThis->ResetTimers(); // Is really needed now? Maybe, because YRpp is incomplete and looks that each event have its own timer inside a struct... or something similar. I'll preserve this for now that doesn't hurt having this here...
 
-			for (auto& [i, timerValue] : pExt->ParallelTimersOriginalValue)
+			for (std::size_t i = 0; i < pExt->ParallelTimersOriginalValue.size(); i++)
 			{
-				int value = timerValue;
+				int timerValue = pExt->ParallelTimersOriginalValue[i];
 
-				if (value < 0)
+				if (timerValue < 0)
 				{
 					// Generate random value for event 51 "Delayed timer"
-					value = ScenarioClass::Instance->Random.RandomRanged(static_cast<int>(std::abs(value) * 0.5), static_cast<int>(std::abs(value) * 1.5));
+					timerValue = ScenarioClass::Instance->Random.RandomRanged(static_cast<int>(std::abs(timerValue) * 0.5), static_cast<int>(std::abs(timerValue) * 1.5));
 				}
 
-				pExt->ParallelTimers[i].Start(15 * value);
+				pExt->ParallelTimers[i].Start(15 * timerValue);
 			}
 
-			for (auto& [i, timerValue] : pExt->SequentialTimersOriginalValue)
+			for (std::size_t i = 0; i < pExt->SequentialTimersOriginalValue.size(); i++)
 			{
-				int value = timerValue;
+				int timerValue = pExt->SequentialTimersOriginalValue[i];
 
-				if (value < 0)
+				if (timerValue < 0)
 				{
 					// Generate random value for event 51 "Delayed timer"
-					value = ScenarioClass::Instance->Random.RandomRanged(static_cast<int>(std::abs(value) * 0.5), static_cast<int>(std::abs(value) * 1.5));
+					timerValue = ScenarioClass::Instance->Random.RandomRanged(static_cast<int>(std::abs(timerValue) * 0.5), static_cast<int>(std::abs(timerValue) * 1.5));
 				}
 
-				pExt->SequentialTimers[i].Start(15 * value);
+				pExt->SequentialTimers[i].Start(15 * timerValue);
 				pExt->SequentialTimers[i].Pause();
 			}
 		}

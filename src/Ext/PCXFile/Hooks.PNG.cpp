@@ -39,7 +39,11 @@ bool Write_PNG_File(FileClass* name, Surface& pic, const BytePalette* palette, b
 	 */
 	unsigned char* image = (unsigned char*)std::malloc(pic_height * pic_width * 3);
 
-	ColorStruct* imageptr = (ColorStruct*)image;
+	static struct rgb
+	{
+		unsigned char r, g, b;
+	};
+	rgb* imageptr = (rgb*)image;
 
 	for (int i = 0; i < (pic_width * pic_height); ++i)
 	{
@@ -47,9 +51,9 @@ bool Write_PNG_File(FileClass* name, Surface& pic, const BytePalette* palette, b
 		unsigned char r = (value & 0xF800) >> 11; // Extract the 5 R bits
 		unsigned char g = (value & 0x07E0) >> 5;  // Extract the 6 G bits
 		unsigned char b = (value & 0x001F);       // Extract the 5 B bits
-		imageptr[i].R = (r * 255) / 31;
-		imageptr[i].G = (g * 255) / 63;
-		imageptr[i].B = (b * 255) / 31;
+		imageptr[i].r = (r * 255) / 31;
+		imageptr[i].g = (g * 255) / 63;
+		imageptr[i].b = (b * 255) / 31;
 	}
 
 	/**
@@ -217,7 +221,7 @@ BSurface* Read_PNG_File(FileClass* name, unsigned char* palette, void* buff, lon
 			int g = *png_image++; // & 0xFF;
 			int b = *png_image++; // & 0xFF;
 
-			*buffptr++ = DSurface::Build_Hicolor_Pixel_BRG(r, g, b);
+			*buffptr++ = DSurface::RGB_To_Pixel(r, g, b);
 		}
 
 		pic->Unlock();
@@ -267,16 +271,13 @@ BSurface* __fastcall Read_PCX_File_Intercept(FileClass* file, unsigned char* pal
 	 */
 	char* file_name = std::strchr((char*)fnamebuffer, '.');
 
-	if (!file_name) { //invalid name
-		return nullptr;
-	}
 	/**
 	 *  Insert a null-char where the "." was. This will give us the actual
 	 *  file name without the extension, allowing us to rebuild it.
 	 */
 	*file_name = '\0';
 
-	const char* upper_filename = _strupr((char*)fnamebuffer);
+	const char* upper_filename = strupr((char*)fnamebuffer);
 
 	char png_buffer[32 - 4];
 	std::snprintf(png_buffer, sizeof(png_buffer), "%s.PNG", upper_filename);

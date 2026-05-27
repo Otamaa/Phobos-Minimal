@@ -12,18 +12,6 @@
 #include <UnitClass.h>
 #include <InfantryClass.h>
 
-VoxelAnimExtData::VoxelAnimExtData(VoxelAnimClass* pObj) : ObjectExtData(pObj)
-{
-	this->Name = pObj->Type->ID;
-	this->AbsType = VoxelAnimClass::AbsID;
-	const auto pTypeExt = VoxelAnimTypeExtContainer::Instance.Find(pObj->Type);
-
-	if (!pTypeExt->LaserTrail_Types.empty())
-		this->LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
-
-	this->InitializeLaserTrails(pTypeExt);
-}
-
 TechnoClass* VoxelAnimExtData::GetTechnoOwner(VoxelAnimClass* pThis)
 {
 	auto const pTypeExt = VoxelAnimTypeExtContainer::Instance.TryFind(pThis->Type);
@@ -86,13 +74,22 @@ void VoxelAnimExtData::Serialize(T& Stm)
 // =============================
 // container
 VoxelAnimExtContainer VoxelAnimExtContainer::Instance;
+
 // =================================
 ASMJIT_PATCH(0x7494CE , VoxelAnimClass_CTOR, 0x6)
 {
 	GET(VoxelAnimClass*, pItem, ESI);
 
-	if (!Phobos::Otamaa::DoingLoadGame)
-		VoxelAnimExtContainer::Instance.Allocate(pItem);
+	if(pItem->Type){
+
+		auto pExt = VoxelAnimExtContainer::Instance.Allocate(pItem);
+		const auto pTypeExt = VoxelAnimTypeExtContainer::Instance.Find(pItem->Type);
+
+		if (!pTypeExt->LaserTrail_Types.empty())
+				pExt->LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
+
+		pExt->InitializeLaserTrails(pTypeExt);
+	}
 
 	return 0;
 }

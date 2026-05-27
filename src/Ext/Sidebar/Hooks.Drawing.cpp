@@ -37,7 +37,7 @@ static COMPILETIMEEVAL int ObserverFlagPCXY = 70;
 static COMPILETIMEEVAL int ObserverFlagPCXWidth = 45;
 static COMPILETIMEEVAL int ObserverFlagPCXHeight = 21;
 
-class NOVTABLE FakeStripClass : public StripClass
+class FakeStripClass : public StripClass
 {
 public:
 	void __Draw_It(bool forceRedraw);
@@ -84,7 +84,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x6AABB3, FakeStripClass::_Activate);
 DEFINE_FUNCTION_JUMP(LJMP, 0x6A93F0, FakeStripClass::_Activate_Enable);
 DEFINE_FUNCTION_JUMP(LJMP, 0x6A94B0, FakeStripClass::_Deactivate_Disable);
 
-class NOVTABLE FakeSelectClass : public SelectClass
+class FakeSelectClass : public SelectClass
 {
 public:
 
