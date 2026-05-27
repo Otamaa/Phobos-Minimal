@@ -211,7 +211,7 @@ private:
 	void Serialize(T& Stm);
 };
 
-class BuildingExtContainer final : public Container<BuildingExtData>
+class BuildingExtContainer final : public Container<BuildingExtData>, public ContainerSaveLoad<BuildingExtContainer, true>
 {
 public:
 
@@ -219,9 +219,6 @@ public:
 
 public:
 	static BuildingExtContainer Instance;
-
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 };
 
 class NOVTABLE FakeBuildingClass : public BuildingClass

@@ -328,12 +328,7 @@ static void __fastcall FakeBuildingClass__DrawVoxels(
 				// Extension: full 3D translate using TechnoTypeExt::TurretOffset vector.
 				// TurretMultiOffsetOneByEightMult = 1/8 equivalent applied per-axis.
 				{
-					const auto* pTypeExt = TechnoTypeExtContainer::Instance.Find(type);
-					const auto& nOffs = pTypeExt->TurretOffset;
-					const float ox = static_cast<float>(nOffs->X * TechnoTypeExtData::TurretMultiOffsetOneByEightMult);
-					const float oy = static_cast<float>(nOffs->Y * TechnoTypeExtData::TurretMultiOffsetOneByEightMult);
-					const float oz = static_cast<float>(nOffs->Z * TechnoTypeExtData::TurretMultiOffsetOneByEightMult);
-					matB.Translate(ox, oy, oz);
+					TechnoTypeExtContainer::Instance.Find(type)->ApplyTurretOffset(&matB, TechnoTypeExtData::TurretMultiOffsetOneByEightMult);  // legacy offset application (scaled by 1.0 since already applied)
 				}
 
 				// Extract translation column from matB for the auxiliary matrix

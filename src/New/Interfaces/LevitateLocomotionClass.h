@@ -82,7 +82,7 @@ public:
 	}
 	virtual ~LevitateLocomotionClass() override = default; // should be SDDTOR in fact
 	virtual int Size() override { return sizeof(*this); }
-	virtual HRESULT __stdcall Link_To_Object(void* pointer) override {
+	virtual HRESULT __stdcall Link_To_Object(FootClass* pointer) override {
 		return LocomotionClass::Link_To_Object(pointer);
 	}
 

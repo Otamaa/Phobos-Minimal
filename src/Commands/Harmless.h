@@ -5,7 +5,14 @@
 class HarmlessCommandClass : public PhobosCommandClass
 {
 public:
+	HarmlessCommandClass() : PhobosCommandClass()
+	{
+		this->IsDeveloper = true;
+	}
 
+	virtual ~HarmlessCommandClass() = default;
+
+public:
 	static bool InHarmlessMode;
 
 	// CommandClass
@@ -14,7 +21,6 @@ public:
 	virtual const wchar_t* GetUICategory() const override;
 	virtual const wchar_t* GetUIDescription() const override;
 	virtual void Execute(WWKey eInput) const override;
-
 
 	static void AI();
 };

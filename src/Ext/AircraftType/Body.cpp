@@ -1,9 +1,16 @@
 #include "Body.h"
 #include <Utilities/Macro.h>
 
-#include "Body.h"
+#include <AircraftClass.h>
 
 AircraftTypeExtContainer AircraftTypeExtContainer::Instance;
+
+void AircraftTypeExtData::Initialize()
+{
+	this->TechnoTypeExtData::Initialize();
+	this->CustomMissileTrailerAnim = AnimTypeClass::Find(GameStrings::V3TRAIL());
+	this->CustomMissileTakeoffAnim = AnimTypeClass::Find(GameStrings::V3TAKEOFF());
+}
 
 bool AircraftTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
@@ -41,7 +48,6 @@ bool AircraftTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	this->IsCustomMissile.Read(exINI, pSection, "Missile.Custom");
 	this->CustomMissileData.Read(exINI, pSection, "Missile");
-	this->CustomMissileData->Type = pThis;
 	this->CustomMissileRaise.Read(exINI, pSection, "Missile.%sRaiseBeforeLaunching");
 	this->CustomMissileOffset.Read(exINI, pSection, "Missile.CoordOffset");
 	this->CustomMissileWarhead.Read(exINI, pSection, "Missile.Warhead");
@@ -85,8 +91,43 @@ bool AircraftTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	return true;
 }
 
-#include <AircraftClass.h>
-#include "Body.h"
+template <typename T>
+void AircraftTypeExtData::Serialize(T& Stm)
+{
+	Stm
+		.Process(this->TakeOff_Anim)
+		.Process(this->ExtendedAircraftMissions)
+		.Process(this->ExtendedAircraftMissions_SmoothMoving)
+		.Process(this->ExtendedAircraftMissions_EarlyDescend)
+		.Process(this->ExtendedAircraftMissions_RearApproach)
+		.Process(this->ExtendedAircraftMissions_FastScramble)
+		.Process(this->ExtendedAircraftMissions_UnlandDamage)
+		.Process(this->FiringForceScatter)
+		.Process(this->AttackingAircraftSightRange)
+		.Process(this->SpyplaneCameraSound)
+		.Process(this->ParadropRadius)
+		.Process(this->ParadropOverflRadius)
+		.Process(this->Paradrop_DropPassangers)
+		.Process(this->Paradrop_MaxAttempt)
+
+		.Process(this->IsCustomMissile)
+		.Process(this->CustomMissileData)
+		.Process(this->CustomMissileWarhead)
+		.Process(this->CustomMissileEliteWarhead)
+		.Process(this->CustomMissileTakeoffAnim)
+		.Process(this->CustomMissilePreLauchAnim)
+		.Process(this->CustomMissileTrailerAnim)
+		.Process(this->CustomMissileTrailerSeparation)
+		.Process(this->CustomMissileWeapon)
+		.Process(this->CustomMissileEliteWeapon)
+		.Process(this->CustomMissileInaccuracy)
+		.Process(this->CustomMissileTrailAppearDelay)
+		.Process(this->CustomMissileCloseEnoughFactor)
+		.Process(this->CustomMissileRaise)
+		.Process(this->CustomMissileOffset)
+
+		;
+}
 
 bool AircraftTypeExtData::ExtendedAircraftMissionsEnabled(AircraftClass* pAircraft) {
 	return AircraftTypeExtContainer::Instance.Find(pAircraft->Type)->ExtendedAircraftMissions.Get(RulesExtData::Instance()->ExpandAircraftMission);
@@ -145,6 +186,7 @@ void AircraftTypeExtContainer::WriteToINI(AircraftTypeClass* key, CCINIClass* pI
 ASMJIT_PATCH(0x41C91F, AircraftTypeClass_CTOR, 0x5)
 {
 	GET(AircraftTypeClass*, pItem, ESI);
+	if(!Phobos::Otamaa::DoingLoadGame)
 	AircraftTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
@@ -157,6 +199,21 @@ ASMJIT_PATCH(0x41CA46, AircraftTypeClass_DTOR, 0x6)
 
 	return 0;
 }
+
+#include <Misc/ImageSwapModules.h>
+
+HRESULT __stdcall FakeAircraftTypeClass::_Load(IStream* pStm)
+{
+	HRESULT hr = this->AircraftTypeClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (Phobos::Config::ArtImageSwap)
+			TechnoImageReplacer::Replace(this);
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E287C, FakeAircraftTypeClass::_Load)
 
 bool FakeAircraftTypeClass::_ReadFromINI(CCINIClass* pINI)
 {

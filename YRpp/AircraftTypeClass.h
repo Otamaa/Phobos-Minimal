@@ -76,3 +76,4 @@ public:
 	bool AirportBound;
 	bool Fighter;
 };
+static_assert(sizeof(AircraftTypeClass) == 0xE10, "Invalid size.");

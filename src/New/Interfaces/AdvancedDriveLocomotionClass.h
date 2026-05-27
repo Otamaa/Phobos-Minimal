@@ -143,8 +143,8 @@ public:
 //	virtual bool __stdcall Is_Really_Moving_Now() override { return this->Is_Moving_Now(); }
 //	virtual void __stdcall Stop_Movement_Animation() override {}
 //	virtual void __stdcall Limbo() override {}
-	virtual void __stdcall Lock() override { this->UnLocked = false; }
 	virtual void __stdcall Unlock() override { this->UnLocked = true; }
+	virtual void __stdcall Lock() override { this->UnLocked = false; }
 	virtual int __stdcall Get_Track_Number() override { return this->TrackNumber; }
 	virtual int __stdcall Get_Track_Index() override { return this->TrackIndex; }
 	virtual int __stdcall Get_Speed_Accum() override { return this->SpeedAccum; }

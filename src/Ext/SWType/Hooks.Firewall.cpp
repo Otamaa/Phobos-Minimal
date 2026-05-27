@@ -7,6 +7,8 @@
 #include <Ext/Tiberium/Body.h>
 #include <Ext/SWType/NewSuperWeaponType/Firewall.h>
 #include <Ext/House/Body.h>
+#include <Ext/Aircraft/Body.h>
+#include <Ext/AircraftType/Body.h>
 
 #include <Ext/Bullet/Body.h>
 #include <Ext/WarheadType/Body.h>
@@ -327,9 +329,11 @@ ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
 	 if(!pThis->IsAlive)
 	 	return SkipEverything;
 
+	auto pAir = cast_to<AircraftClass*, false>(pThis);
+
 	const bool IsMissisleSpawn = (RulesClass::Instance->V3Rocket.Type == pType ||
 	 pType == RulesClass::Instance->DMisl.Type || pType == RulesClass::Instance->CMisl.Type
-	 || TechnoTypeExtContainer::Instance.Find(pType)->IsCustomMissile);
+	 || (pAir && AircraftTypeExtContainer::Instance.Find(pAir->Type)->IsCustomMissile));
 
 	if (pThis->SpawnOwner && !IsMissisleSpawn
 		)
@@ -435,42 +439,3 @@ ASMJIT_PATCH(0x4688A9, BulletClass_SetMovement_Obstacle, 6)
 }
 
 #include <Ext/BulletType/Body.h>
-
-ASMJIT_PATCH(0x6FF008, TechnoClass_Fire_FSW, 8)
-{
-	REF_STACK(CoordStruct const, src, 0x44);
-	REF_STACK(CoordStruct const, tgt, 0x88);
-
-	const DWORD origin = R->Origin();
-	auto const Bullet = origin == 0x6FF860
-	? R->EDI<FakeBulletClass*>()
-	: R->EBX<FakeBulletClass*>()
-	;
-
-	if(origin != 0x6FF860){
-
-		GET_STACK(CoordStruct, crdOffset, STACK_OFFSET(0xB0, -0x1C));
-		GET_STACK(CoordStruct, fireCoords, STACK_OFFSET(0xB0, -0x6C));
-
-		const auto crdTgt = crdOffset + fireCoords;
-		if (Bullet->Type->Arcing && !Bullet->_GetTypeExtData()->Arcing_AllowElevationInaccuracy) {
-			REF_STACK(VelocityClass, velocity, STACK_OFFSET(0xB0, -0x60));
-			REF_STACK(CoordStruct, crdSrc, STACK_OFFSET(0xB0, -0x6C));
-
-			Bullet->_GetExtData()->ApplyArcingFix(crdSrc, crdTgt, velocity);
-		}
-	}
-
-	if (!HouseExtContainer::Instance.IsAnyFirestormActive || !Bullet->Type->IgnoresFirestorm) {
-		return 0;
-	}
-
-	auto const crd = MapClass::Instance->FindFirstFirestorm(src, tgt, Bullet->Owner->Owner);
-
-	if (crd.IsValid()) {
-		Bullet->Target = MapClass::Instance->GetCellAt(crd)->GetContent();
-		Bullet->Owner->ShouldLoseTargetNow = 1;
-	}
-
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x6FF860, TechnoClass_Fire_FSW, 8)

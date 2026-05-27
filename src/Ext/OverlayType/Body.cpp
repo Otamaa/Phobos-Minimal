@@ -132,7 +132,7 @@ void OverlayTypeExtContainer::WriteToINI(OverlayTypeClass* key, CCINIClass* pINI
 ASMJIT_PATCH(0x5FE3A2, OverlayTypeClass_CTOR, 0x5)
 {
 	GET(OverlayTypeClass*, pItem, EAX);
-
+	if (!Phobos::Otamaa::DoingLoadGame) 
 	OverlayTypeExtContainer::Instance.Allocate(pItem);
 
 	return 0;

@@ -34,7 +34,7 @@ public:
 	virtual bool __stdcall Process() override;
 	virtual void __stdcall Move_To(CoordStruct to) override; // Not allowed
 	// virtual void __stdcall Stop_Moving() override; // Not allowed
-	virtual HRESULT __stdcall Link_To_Object(void* pointer) override;
+	virtual HRESULT __stdcall Link_To_Object(FootClass* pointer) override;
 	// virtual Move __stdcall Can_Enter_Cell(CellStruct cell) override;
 	// virtual bool __stdcall Is_To_Have_Shadow() override;
 	// virtual Matrix3D __stdcall Draw_Matrix(VoxelIndexKey* pIndex) override; // TODO

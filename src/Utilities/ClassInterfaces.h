@@ -16,13 +16,12 @@ struct ReadWriteContainerInterfaces
 struct GlobalSaveable
 {
 	virtual bool SaveGlobal(PhobosStreamWriter& stm) = 0;
-	virtual bool LoadGlobal(const PhobosStreamReader& stm) = 0;
+	virtual bool LoadGlobal(PhobosStreamReader& stm) = 0;
 	virtual void Clear() = 0;
 };
 
 struct ContainerInterfaces
 {
-	virtual bool LoadAll(const PhobosStreamReader& stm) = 0;
-	virtual bool SaveAll(PhobosStreamWriter& stm) = 0;
 	virtual void Clear() = 0;
+	virtual void ClearNullAttachedObj() = 0;
 };

@@ -20,7 +20,7 @@
 
 #include <InfantryClass.h>
 
-ASMJIT_PATCH(0x7413FF, UnitClass_Fire_Ammo, 7)
+ASMJIT_PATCH(0x7413FF, UnitClass_FireAt_Ammo, 7)
 {
 	GET(UnitClass*, pThis, ESI);
 	GET_STACK(WeaponTypeClass*, pWeapon, STACK_OFFSET(0x20, 0x8));
@@ -32,7 +32,7 @@ ASMJIT_PATCH(0x7413FF, UnitClass_Fire_Ammo, 7)
 	return 0x741427;
 }
 
-ASMJIT_PATCH(0x51DF8C, InfantryClass_Fire_Ammo, 6)
+ASMJIT_PATCH(0x51DF8C, InfantryClass_FireAt_Ammo, 6)
 {
 	GET(InfantryClass*, pThis, ESI);
 	GET_STACK(int, nWeaponIdx, 0x10);

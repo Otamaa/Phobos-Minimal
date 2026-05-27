@@ -173,11 +173,13 @@ private:
 };
 
 class TiberiumExtContainer final : public Container<TiberiumExtData>
-				, public ReadWriteContainerInterfaces<TiberiumExtData>
+				, public ReadWriteContainerInterfaces<TiberiumExtData>, public ContainerSaveLoad<TiberiumExtContainer, true>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "TiberiumExtContainer";
 	using base_t = Container<TiberiumExtData>;
+	using base_SaveLoad_t = ContainerSaveLoad<TiberiumExtContainer, true>;
+
 public:
 
 	PhobosMap<OverlayTypeClass*, TiberiumClass*> LinkedType;
@@ -186,8 +188,8 @@ public:
 
 	static TiberiumExtContainer Instance;
 
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
+	virtual bool LoadAll(PhobosStreamReader& stm);
+	virtual bool SaveAll(PhobosStreamWriter& stm);
 	virtual void Clear();
 
 	virtual void LoadFromINI(TiberiumClass* key, CCINIClass* pINI, bool parseFailAddr);

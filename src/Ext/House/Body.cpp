@@ -307,7 +307,7 @@ std::pair<NewFactoryState, BuildingClass*> HouseExtData::HasFactory(
 
 		auto const pBType = pBld->Type;
 
-		if ((nWhat != pBType->Factory) || !pType->InOwners(bitsOwners))
+		if ((nWhat != pBType->Factory) || !pBType->InOwners(bitsOwners))
 			continue;
 
 		if (!bSkipAircraft && (nWhat == AbstractType::AircraftType) && pBld->HasAnyLink())
@@ -911,26 +911,10 @@ NOINLINE TunnelData* HouseExtData::GetTunnelVector(BuildingTypeClass* pBld, Hous
 	return HouseExtData::GetTunnelVector(pHouse, BuildingTypeExtContainer::Instance.Find(pBld)->TunnelType);
 }
 
-void HouseExtData::UpdateShotCount(SuperWeaponTypeClass* pFor)
-{
-	this->LaunchDatas.resize(SuperWeaponTypeClass::Array->Count);
-	this->LaunchDatas[pFor->ArrayIndex].Update();
-}
-
-void HouseExtData::UpdateShotCountB(SuperWeaponTypeClass* pFor)
-{
-	this->LaunchDatas.resize(SuperWeaponTypeClass::Array->Count);
-
-	auto& nData = this->LaunchDatas[pFor->ArrayIndex];
-
-	if ((nData.LastFrame & 0x80000000) != 0)
-		nData.LastFrame = Unsorted::CurrentFrame();
-}
-
 SuperClass* HouseExtData::IsSuperAvail(int nIdx, HouseClass* pHouse)
 {
 	if (const auto pSW = pHouse->Supers.get_or_default(nIdx)) {
-		if (SWTypeExtContainer::Instance.Find(pSW->Type)->IsAvailable(pHouse)) {
+		if (SWTypeExtData::IsAvailable(pHouse, pSW)) {
 			return pSW;
 		}
 	}
@@ -2794,7 +2778,6 @@ void HouseExtData::Serialize(T& Stm)
 	debugProcess(this->RepairBaseNodes, "RepairBaseNode");
 	debugProcess(this->LastBuiltNavalVehicleType, "LastBuiltNavalVehicleType");
 	debugProcess(this->ProducingNavalUnitTypeIndex, "ProducingNavalUnitTypeIndex");
-	debugProcess(this->LaunchDatas, "LaunchDatas");
 	debugProcess(this->CaptureObjectExecuted, "CaptureObjectExecuted");
 	debugProcess(this->DiscoverEvaDelay, "DiscoverEvaDelay");
 	debugProcess(this->Tunnels, "Tunnels");
@@ -2862,7 +2845,6 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->RepairBaseNodes)
 		.Process(this->LastBuiltNavalVehicleType)
 		.Process(this->ProducingNavalUnitTypeIndex)
-		.Process(this->LaunchDatas)
 		.Process(this->CaptureObjectExecuted)
 		.Process(this->DiscoverEvaDelay)
 		.Process(this->Tunnels)
@@ -2915,6 +2897,52 @@ void HouseExtData::Serialize(T& Stm)
 // container
 
 HouseExtContainer HouseExtContainer::Instance;
+
+bool HouseExtContainer::LoadAll(PhobosStreamReader& stm)
+{
+	if (!stm
+		.Process(Civilian)
+		.Process(Special)
+		.Process(Neutral)
+		.Process(CivilianSide)
+		.Process(AutoDeathObjects)
+		.Process(LimboTechno)
+
+		.Process(LastGrindingBlanceUnit)
+		.Process(LastGrindingBlanceInf)
+		.Process(LastHarvesterBalance)
+		.Process(LastSlaveBalance)
+
+		.Process(CloakEVASpeak)
+		.Process(SubTerraneanEVASpeak)
+		.Process(IsAnyFirestormActive))
+		return false;
+
+	return this->base_SaveLoad_t::LoadAll(stm);
+}
+
+bool HouseExtContainer::SaveAll(PhobosStreamWriter& stm)
+{
+	if (!stm
+		.Process(Civilian)
+		.Process(Special)
+		.Process(Neutral)
+		.Process(CivilianSide)
+		.Process(AutoDeathObjects)
+		.Process(LimboTechno)
+
+		.Process(LastGrindingBlanceUnit)
+		.Process(LastGrindingBlanceInf)
+		.Process(LastHarvesterBalance)
+		.Process(LastSlaveBalance)
+
+		.Process(CloakEVASpeak)
+		.Process(SubTerraneanEVASpeak)
+		.Process(IsAnyFirestormActive))
+		return false;
+
+	return this->base_SaveLoad_t::SaveAll(stm);
+}
 
 void HouseExtContainer::Clear()
 {
@@ -4685,7 +4713,9 @@ ASMJIT_PATCH(0x4F6532, HouseClass_CTOR, 0x5)
 	if (RulesExtData::Instance()->EnablePowerSurplus)
 		pItem->PowerSurplus = RulesClass::Instance->PowerSurplus;
 
-	HouseExtContainer::Instance.Allocate(pItem);
+	if (!Phobos::Otamaa::DoingLoadGame) {
+		HouseExtContainer::Instance.Allocate(pItem);
+	}
 
 	return 0;
 }
@@ -4711,6 +4741,8 @@ ASMJIT_PATCH(0x50114D, HouseClass_InitFromINI, 0x5)
 HRESULT __stdcall FakeHouseClass::__Load(IStream* pStm)
 {
 	auto hr = this->HouseClass::Load(pStm);
+
+	if (!SUCCEEDED(hr)) return hr;
 
 	this->TrackedBuiltAircraftTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
 	this->TrackedBuiltInfantryTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
@@ -4751,7 +4783,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8B4, FakeHouseClass::__Load)
 HRESULT __stdcall FakeHouseClass::__Save(IStream* pStm, BOOL fClearDirty)
 {
 	auto hr = this->HouseClass::Save(pStm, fClearDirty);
-
+	if (!SUCCEEDED(hr)) return hr;
 	hr = this->TrackedBuiltAircraftTypes.GetTrackerptr<PhobosUnitTrackerClass>()->Save(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 	hr = this->TrackedBuiltInfantryTypes.GetTrackerptr<PhobosUnitTrackerClass>()->Save(pStm);

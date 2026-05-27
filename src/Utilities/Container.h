@@ -10,6 +10,8 @@
 #include <Utilities/ClassInterfaces.h>
 #include <Utilities/Concepts.h>
 
+#include <Base/Always.h>
+
 class AbstractClass;
 static COMPILETIMEEVAL size_t AbstractExtOffset = 0x18;
 
@@ -134,6 +136,8 @@ public:
 	//the container is not handling the memory
 	//the object has the extension handling the memory
 	std::vector<T*> Array;
+	using ExtT = T;
+	using ExtTptr = T*;
 
 public:
 
@@ -197,5 +201,86 @@ public :
 
 		Array.clear();
 	}
+
+	virtual void ClearNullAttachedObj() final {
+		if constexpr (std::is_base_of_v<AbstractExtended , ExtT>){
+			Array.erase(
+				std::remove_if(Array.begin(), Array.end(),
+					[](T* p)
+					{
+						if (!p)
+							return true;
+
+						if (!p->AttachedToObject) {
+							delete  p;
+							return true;
+						}
+
+						return false;
+					}),
+				Array.end());
+		}
+	}
+
 };
 
+template<typename T , bool haNameItem>
+struct ContainerSaveLoad {
+
+	virtual bool LoadAll(PhobosStreamReader& stm)
+	{
+		int Count = 0;
+		if (!stm.Load(Count))
+			return false;
+
+		for (int i = 0; i < Count; ++i) {
+			uintptr_t savedPtr {};
+			if (!stm.Load(savedPtr))
+				return false;
+
+			auto buffer = new T::ExtT(nullptr, noinit_t());
+			Debug::Log("Loading %s [At (%d) - %x] to stream\n",
+					T::ClassName, i, savedPtr);
+
+			buffer->LoadFromStream(stm);
+			if (!stm.Success())
+				return false;
+
+			//specifically for immedietely restore the extension pointers 
+			ExtensionSwizzleManager::RegisterExtensionPointer((void*)savedPtr, buffer);
+			//for others that need to be remapped using vanilla swizzle manager
+			PhobosSwizzleManager.Here_I_Am(savedPtr, buffer);
+			((T*)this)->Array.emplace_back(buffer);
+		}
+
+		return true;
+	}
+
+	virtual bool SaveAll(PhobosStreamWriter& stm)
+	{
+		const int Count = (int)((T*)this)->Array.size();
+		if (!stm.Save(Count))
+			return false;
+
+		for (int i = 0; i < Count; ++i) {
+			uintptr_t savedPtr = (uintptr_t)((T*)this)->Array[i];
+
+			if constexpr (haNameItem) { 
+				Debug::Log("Saving %s [%s (%d) - %x] to stream\n",
+					T::ClassName, ((T*)this)->Array[i]->Name.c_str(), i, savedPtr);
+			} else {
+				Debug::Log("Saving %s [At Index %d - %x] to stream\n",
+						T::ClassName, i, savedPtr);
+			}
+
+			if (!stm.Save(savedPtr))
+				return false;
+
+			((T*)this)->Array[i]->SaveToStream(stm);
+			if (!stm.Success())
+				return false;
+		}
+
+		return true;
+	}
+};

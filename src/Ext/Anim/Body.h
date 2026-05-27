@@ -150,11 +150,12 @@ private:
 	void Serialize(T& Stm);
 };
 
-class AnimExtContainer final : public Container<AnimExtData>
+class AnimExtContainer final : public Container<AnimExtData>, public ContainerSaveLoad<AnimExtContainer, true>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "AnimExtContainer";
 	using base_container_t = Container<AnimExtData>;
+	using base_SaveLoad_t = ContainerSaveLoad<AnimExtContainer, true>;
 
 public:
 
@@ -166,8 +167,8 @@ public:
 
 public:
 
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
+	virtual bool LoadAll(PhobosStreamReader& stm) override;
+	virtual bool SaveAll(PhobosStreamWriter& stm) override;
 	virtual void Clear();
 };
 

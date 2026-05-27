@@ -37,7 +37,7 @@ public:
 	/**
 	 *  ILocomotion methods.
 	 */
-	IFACEMETHOD(Link_To_Object)(void* object);
+	IFACEMETHOD(Link_To_Object)(FootClass* object);
 	IFACEMETHOD_(bool, Is_Moving)() override;
 	IFACEMETHOD_(Coordinate, Destination)() override;
 	IFACEMETHOD_(Coordinate, Head_To_Coord)() override;

@@ -594,7 +594,7 @@ static KickOutResult HandleBarracksExit(
 
 	CoordStruct centerCoord = pBuilding->GetCoords();
 	int facing = CalculateFacingToCell(centerCoord, exitCell);
-	Debug::Log("6. Facing: %d\n", facing);
+	//Debug::Log("6. Facing: %d\n", facing);
 
 	++Unsorted::ScenarioInit;
 

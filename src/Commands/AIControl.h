@@ -5,6 +5,15 @@
 class AIControlCommandClass : public PhobosCommandClass
 {
 public:
+	AIControlCommandClass() : PhobosCommandClass()
+	{
+		this->IsDeveloper = true;
+	}
+
+	virtual ~AIControlCommandClass() = default;
+
+public:
+
 	//CommandClass
 	virtual const char* GetName() const override;
 	virtual const wchar_t* GetUIName() const override;

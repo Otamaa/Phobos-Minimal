@@ -567,8 +567,10 @@ ASMJIT_PATCH(0x6A4600, SideClass_CTOR, 0x6)
 	GET(SideClass*, pItem, ESI);
 	GET(int, nIdx, EAX);
 
-	if(auto pExt = SideExtContainer::Instance.Allocate(pItem))
-		pExt->ArrayIndex = nIdx;
+	if (!Phobos::Otamaa::DoingLoadGame) {
+		if(auto pExt = SideExtContainer::Instance.Allocate(pItem))
+			pExt->ArrayIndex = nIdx; //when loading the game the index is preserved
+	}
 
 	return 0;
 }

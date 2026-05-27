@@ -109,7 +109,7 @@ int AircraftExtData::GetDelay(AircraftClass* pThis, bool isLastShot)
 	{
 		pExt->Strafe_TargetCell = nullptr;
 		pThis->MissionStatus = (int)AirAttackStatus::FlyToPosition;
-		delay = pWeaponExt->Strafing_EndDelay.Get((pWeapon->Range + 1024) / pThis->Type->Speed);
+		delay = pWeaponExt->Strafing_EndDelay.Get((WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis) + 1024) / pThis->Type->Speed);
 	}
 
 	return delay;
@@ -369,8 +369,8 @@ int FakeAircraftClass::_Mission_Attack()
 		if (this->Is_Strafe())
 		{
 			// 0x4180F4 - use CurrentAircraftWeaponIndex instead of slot 0 for range check
-			auto const* wt = this->GetWeapon(pExt->CurrentAircraftWeaponIndex)->WeaponType;
-			if (this->DistanceFrom(this->Target) < wt->Range)
+			auto* wt = this->GetWeapon(pExt->CurrentAircraftWeaponIndex)->WeaponType;
+			if (this->DistanceFrom(this->Target) < WeaponTypeExtData::GetRangeWithModifiers(wt, this))
 			{
 				this->MissionStatus = static_cast<int>(AirAttackStatus::FireAtTarget);
 				return 1;
@@ -457,15 +457,22 @@ int FakeAircraftClass::_Mission_Attack()
 		case FireError::OK:
 		{
 			this->loseammo_6c8 = true; // 0x418403
-			AircraftExtData::FireWeapon(this, this->Target);
+			bool const fired = AircraftExtData::FireWeapon(this, this->Target);
 
 			if (this->Is_Strafe())
 			{
 				// 0x4184CC - Delay1A
 				auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(
 					this->GetWeapon(pExt->CurrentAircraftWeaponIndex)->WeaponType);
-				if (pWeaponExt->Strafing_TargetCell)
+				if (pWeaponExt->Strafing_TargetCell && this->Target)
 					pExt->Strafe_TargetCell = MapClass::Instance->GetCellAt(this->Target->GetCoords());
+
+				// Set destination toward target so aircraft flies through it during end-delay,
+				// matching STRAFE_FIRE_CASE behaviour and ensuring the aircraft leaves weapon range
+				// before FlyToPosition re-evaluates (fixes Strafing.Shots < 5 looping in place)
+				if (fired)
+					this->SetDestination(this->Target, true);
+
 				this->IsLocked = true;
 				this->MissionStatus = static_cast<int>(AirAttackStatus::FireAtTarget2_Strafe);
 				return AircraftExtData::GetDelay(this, false);
@@ -523,7 +530,8 @@ int FakeAircraftClass::_Mission_Attack()
 				return ReturnToBaseNow();
 			if (this->Is_Strafe())
 				return 1;
-			this->MissionStatus = static_cast<int>(AirAttackStatus::ReturnToBase);
+			// 0x418572 — original: Status = FireAtTarget2 (5), try secondary fire state
+			this->MissionStatus = static_cast<int>(AirAttackStatus::FireAtTarget2);
 			return 1;
 		}
 	}
@@ -708,7 +716,7 @@ int FakeAircraftClass::_Mission_ParadropOverfly()
 	}
 
 	const int distance = this->DistanceFrom(pTarCom);
-	const int nRadius = TechnoTypeExtContainer::Instance.Find(this->Type)->ParadropRadius.Get(RulesClass::Instance->ParadropRadius);
+	const int nRadius = AircraftTypeExtContainer::Instance.Find(this->Type)->ParadropRadius.Get(RulesClass::Instance->ParadropRadius);
 
 
 	if (distance > nRadius)
@@ -743,7 +751,7 @@ int FakeAircraftClass::_Mission_ParadropApproach()
 		if (auto pDest = this->Destination)
 		{
 			const int distance = this->DistanceFrom(pTarCom);
-			const int nRadius = TechnoTypeExtContainer::Instance.Find(this->Type)->ParadropRadius.Get(RulesClass::Instance->ParadropRadius);
+			const int nRadius = AircraftTypeExtContainer::Instance.Find(this->Type)->ParadropRadius.Get(RulesClass::Instance->ParadropRadius);
 
 			if (distance <= nRadius)
 			{
@@ -781,34 +789,6 @@ static FORCEDINLINE bool CheckSpyPlaneCameraCount(AircraftClass* pThis, WeaponTy
 
 	pExt->Strafe_BombsDroppedThisRound++;
 	return true;
-}
-
-ASMJIT_PATCH(0x41564C, AircraftClass_Mission_SpyPlaneApproach_MaxCount, 0x6)
-{
-	GET(AircraftClass*, pThis, ESI);
-	GET(int, range, EBX);
-
-	const auto pPrimary = pThis->GetWeapon(0);
-
-	if (range <= pPrimary->WeaponType->Range.value)
-	{
-
-		if (!CheckSpyPlaneCameraCount(pThis, pPrimary->WeaponType))
-			return 0x41570C;
-
-		pThis->vt_entry_48C(nullptr, 0u, false, nullptr);
-		pThis->UpdateSight(false, 0, false, nullptr, pPrimary->WeaponType->Damage);
-
-		MapRevealer const revealer(pThis->Location);
-		revealer.UpdateShroud(0u, static_cast<size_t>(MaxImpl(pThis->LastSightRange + 3, 0)), false);
-
-		auto cameraSound = TechnoTypeExtContainer::Instance.Find(pThis->Type)
-			->SpyplaneCameraSound.Get(RulesClass::Instance->SpyPlaneCamera);
-
-		VocClass::SafeImmedietelyPlayAt(cameraSound, &pThis->Location);
-	}
-
-	return 0x415700;
 }
 
 int FakeAircraftClass::_Mission_SpyPlaneOverfly()
@@ -1494,7 +1474,7 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 
 BulletClass* FakeAircraftClass::_FireAt(AbstractClass* pTarget, int nWeaponIdx) {
 
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
+	auto const pTypeExt = AircraftTypeExtContainer::Instance.Find(this->Type);
 	bool DropPassengers = pTypeExt->Paradrop_DropPassangers;
 
 	if (this->Passengers.FirstPassenger)
@@ -1556,12 +1536,11 @@ BulletClass* FakeAircraftClass::_FireAt(AbstractClass* pTarget, int nWeaponIdx) 
 			}
 
 			if (!mapped) {
-				CoordStruct tgtCenter = pTarget->GetCoords();
-				mapped = MapClass::Instance->IsLocationShrouded(tgtCenter);
+				mapped = MapClass::Instance->IsLocationShrouded(pTarget->GetCoords());
 			}
 
 			if (mapped) {
-				const int sightRange = TechnoTypeExtContainer::Instance.Find(this->Type)->AttackingAircraftSightRange.Get(RulesClass::Instance->AttackingAircraftSightRange);
+				const int sightRange = AircraftTypeExtContainer::Instance.Find(this->Type)->AttackingAircraftSightRange.Get(RulesClass::Instance->AttackingAircraftSightRange);
 				MapClass::Instance->RevealArea2(&coord, sightRange, this->Owner, 0, 0, 0, 1, 0);
 				MapClass::Instance->RevealArea2(&coord, sightRange, this->Owner, 0, 0, 0, 1, 1);
 			}
@@ -1702,6 +1681,7 @@ AircraftExtContainer AircraftExtContainer::Instance;
 ASMJIT_PATCH(0x413DB1, AircraftClass_CTOR, 0x6)
 {
 	GET(AircraftClass*, pItem, ESI);
+	if(!Phobos::Otamaa::DoingLoadGame)
 	AircraftExtContainer::Instance.Allocate(pItem);
 	return 0;
 }

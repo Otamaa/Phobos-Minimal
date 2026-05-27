@@ -217,14 +217,14 @@ struct CustomPalette::PaletteResource
 		if (this->Mode == PaletteMode::Temperate)
 		{
 			buffer = GameCreate<ConvertClass>(
-				*this->Palette.get(), FileSystem::TEMPERAT_PAL,
-				DSurface::Primary, 53, false);
+				*this->Palette.get(), FileSystem::TEMPERAT_PAL(),
+				DSurface::Primary(), 53, false);
 		}
 		else
 		{
 			buffer = GameCreate<ConvertClass>(
 				*this->Palette.get(), *this->Palette.get(),
-				DSurface::Alternate, 1, false);
+				DSurface::Alternate(), 1, false);
 		}
 		this->Convert.reset(buffer);
 

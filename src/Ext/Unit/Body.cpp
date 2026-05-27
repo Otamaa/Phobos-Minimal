@@ -508,7 +508,8 @@ DamageState FakeUnitClass::_Take_Damage(int* damage,
 ASMJIT_PATCH(0x73544D, UnitClass_CTOR, 0x7)
 {
 	GET(UnitClass*, pItem, ESI);
-	UnitExtContainer::Instance.Allocate(pItem);
+	if (!Phobos::Otamaa::DoingLoadGame)
+		UnitExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
@@ -553,7 +554,7 @@ bool FakeUnitClass::_Paradrop(CoordStruct* pCoords)
 	{
 		this->QueueMission(Mission::Hunt, false);
 	}
-	else if (this->Owner->IsControlledByHuman())
+	else if (!this->Owner->IsControlledByHuman())
 	{
 		this->QueueMission(pTypeExt->AIParadropMission.Get(RulesExtData::Instance()->AIParadropMission), false);
 	}

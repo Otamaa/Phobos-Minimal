@@ -214,3 +214,7 @@ ASMJIT_PATCH(0x468B72, BulletClass_MoveTo_End, 0x5)
 
 	return 0;
 }
+
+//BulletClass::Is_Forced_To_Explode
+// Skip a forced detonation check for Level=true projectiles that is now handled in Hooks.Obstacles.cpp.
+DEFINE_JUMP(LJMP, 0x468D08, 0x468D2F);

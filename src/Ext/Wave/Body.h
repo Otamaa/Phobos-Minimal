@@ -79,23 +79,20 @@ private:
 
 public:
 
-	static WaveClass* Create(CoordStruct nFrom, CoordStruct nTo, TechnoClass* pOwner, WaveType nType, AbstractClass* pTarget, WeaponTypeClass* pWeapon, bool FromSourceCoord = false);
+	static WaveClass* Create(CoordStruct nFrom, CoordStruct nTo, TechnoClass* pOwner, WaveType nType, AbstractClass* pTarget, WeaponTypeClass* pWeapon, int wpIdx, bool FromSourceCoord = false);
 	static bool ModifyWaveColor(WORD const src, WORD& dest, int const intensity, WaveClass* const pWave, WaveColorData const* colorDatas);
 	static Point3D GetIntent(WeaponTypeClass* pWeapon);
 	static ColorStruct GetColor(WeaponTypeClass* pWeapon, WaveClass* pWave);
 	static WaveColorData GetWaveColor(WaveClass* pWave);
 };
 
-class WaveExtContainer final : public Container<WaveExtData>
+class WaveExtContainer final : public Container<WaveExtData>, public ContainerSaveLoad<WaveExtContainer, false>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "WaveExtContainer";
 
 public:
 	static WaveExtContainer Instance;
-
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 };
 
 class NOVTABLE FakeWaveClass : public WaveClass

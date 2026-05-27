@@ -26,34 +26,34 @@
 // Armor::None (a representative pre-scan check; no specific target yet).
 // Iterates all WeaponCount slots so Gattling, Gunner, and MultiWeapon units
 // are handled correctly.
-static FORCEDINLINE bool IsEffectivelyHealer(TechnoClass* pThis, TechnoTypeClass* pType, int combatDamage)
-{
-	if (combatDamage < 0)
-		return true;
-	const int numWeapons = pType->WeaponCount;
-	for (int i = 0; i < numWeapons; ++i)
-	{
-		const auto* ws = pThis->GetWeapon(i);
-		if (!ws || !ws->WeaponType || !ws->WeaponType->Warhead || ws->WeaponType->Damage <= 0)
-			continue;
-		if (FakeWarheadTypeClass::ModifyDamage(ws->WeaponType->Damage, ws->WeaponType->Warhead, Armor::None, 0) < 0)
-			return true;
-	}
-	return false;
-}
-
-// Returns true when the selected weapon for pThis will effectively heal
-// the specific target (i.e. net damage is negative against that target's armor).
-static FORCEDINLINE bool IsEffectivelyHealingTarget(TechnoClass* pThis, WeaponTypeClass* lastWeapon, FakeWarheadTypeClass* pFakeWH, ObjectClass* target)
-{
-	if (pThis->CombatDamage(-1) < 0)
-		return true;
-	if (!pFakeWH || !lastWeapon || lastWeapon->Damage <= 0)
-		return false;
-	const Armor armor = TechnoExtData::GetTechnoArmor(target, pFakeWH);
-	const VersesData* vsData = pFakeWH->GetVersesData(armor);
-	return vsData && vsData->Verses < 0.0;
-}
+//static FORCEDINLINE bool IsEffectivelyHealer(TechnoClass* pThis, TechnoTypeClass* pType, int combatDamage)
+//{
+//	if (combatDamage < 0)
+//		return true;
+//	const int numWeapons = pType->WeaponCount;
+//	for (int i = 0; i < numWeapons; ++i)
+//	{
+//		const auto* ws = pThis->GetWeapon(i);
+//		if (!ws || !ws->WeaponType || !ws->WeaponType->Warhead || ws->WeaponType->Damage <= 0)
+//			continue;
+//		if (FakeWarheadTypeClass::ModifyDamage(ws->WeaponType->Damage, ws->WeaponType->Warhead, Armor::None, 0) < 0)
+//			return true;
+//	}
+//	return false;
+//}
+//
+//// Returns true when the selected weapon for pThis will effectively heal
+//// the specific target (i.e. net damage is negative against that target's armor).
+//static FORCEDINLINE bool IsEffectivelyHealingTarget(TechnoClass* pThis, WeaponTypeClass* lastWeapon, FakeWarheadTypeClass* pFakeWH, ObjectClass* target)
+//{
+//	if (pThis->CombatDamage(-1) < 0)
+//		return true;
+//	if (!pFakeWH || !lastWeapon || lastWeapon->Damage <= 0)
+//		return false;
+//	const Armor armor = TechnoExtData::GetTechnoArmor(target, pFakeWH);
+//	const VersesData* vsData = pFakeWH->GetVersesData(armor);
+//	return vsData && vsData->Verses < 0.0;
+//}
 
 static int GetMultiWeaponRange(TechnoClass* pThis)
 {
@@ -78,7 +78,7 @@ static int GetMultiWeaponRange(TechnoClass* pThis)
 	return range;
 }
 
-#pragma optimize("", off)
+//#pragma optimize("", off)
 
 // Helper function to evaluate a cell and update best target
 void NOINLINE EvaluateCellAndUpdate(TechnoClass* pThis,
@@ -140,20 +140,23 @@ void NOINLINE EvaluateCellAndUpdate(TechnoClass* pThis,
 		}
 	}
 }
+
 AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 	TechnoClass* pThis, discard_t, ThreatType method,
 	CoordStruct* coord, bool onlyEnemy)
 {
 	++TechnoClass::TargetScanCounter();
 	const auto pType = GET_TECHNOTYPE(pThis);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	//const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	const auto pOwner = pThis->Owner;
 	const bool isTechnoPlayerControlled = pOwner->IsControlledByHuman();
 	const bool attackFriendlies = TechnoExtData::IsAttackFriendlies(pThis);
+	const ThreatType backup_original = method;
 
 	// Early exit for NoAutoFire units under player control
-	if ((pType->NoAutoFire || (TechnoExtContainer::Instance.Find(pThis)->GetPassiveAcquireMode()) == PassiveAcquireModes::Ceasefire) && isTechnoPlayerControlled)
-	{
+	if ((pType->NoAutoFire 
+		|| (TechnoExtContainer::Instance.Find(pThis)->GetPassiveAcquireMode()) == PassiveAcquireModes::Ceasefire) 
+		&& isTechnoPlayerControlled) {
 		return nullptr;
 	}
 
@@ -165,6 +168,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 	ZoneType zone = ZoneType::None;
 	const AbstractType what = pThis->WhatAmI();
 	CoordStruct emptyCoord = CoordStruct::Empty;
+	//ThreatType result_method = ThreatType(-1) ;
 
 	// Determine zone for non-building, non-aircraft units without ThreatType::Range
 	if ((method & ThreatType::Range) == ThreatType::Normal
@@ -185,15 +189,13 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 	// pre-scan check (no specific target yet).
 	constexpr ThreatType ThreatType_HealerTargets = ThreatType::Air | ThreatType::Infantry | ThreatType::Vehicles | ThreatType::Buildings;
 
-
-
 	// Adjust method based on unit type and combat damage
 	if (what == AbstractType::Infantry)
 	{
 		if (isEffectivelyHealer)
 		{
 			// Healer infantry - target allied units
-			method = (method & (ThreatType::Area | ThreatType::Range)) | ThreatType::Threattype_4000 | ThreatType_HealerTargets;
+			method = (backup_original & (ThreatType::Area | ThreatType::Range)) | ThreatType::Threattype_4000 | ThreatType_HealerTargets;
 		}
 		else if (((InfantryClass*)pThis)->Type->Engineer)
 		{
@@ -371,19 +373,13 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 	// Calculate threat range
 	int threatRange = 0;
 
-	if (method & ThreatType::Range)
-	{
-		threatRange = pThis->GetGuardRange(0);
-	}
-	else if (method & ThreatType::Area)
-	{
-		if (pThis->CurrentMission == Mission::Patrol)
-		{
-			threatRange = pThis->GetGuardRange(2);
-		}
-		else
-		{
-			threatRange = pThis->GetGuardRange(1);
+	if (backup_original & ThreatType::Range) {
+		threatRange = FakeTechnoClass::__GetGuardRange(pThis, discard_t(), 0);
+	} else if (backup_original & ThreatType::Area) {
+		if (pThis->CurrentMission == Mission::Patrol) {
+			threatRange = FakeTechnoClass::__GetGuardRange(pThis, discard_t(), 2);
+		} else {
+			threatRange = FakeTechnoClass::__GetGuardRange(pThis, discard_t(), 1);
 		}
 	}
 
@@ -419,6 +415,10 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 					weaponRange = (range0 > range1) ? range0 : range1;
 				}
 			}
+		}
+		else // HasTurret && !IsGattling: use the selected turret weapon slot
+		{
+			weaponRange = pThis->GetWeaponRange(pThis->CurrentWeaponNumber);
 		}
 
 		cellRange = weaponRange / 256 + pType->AirRangeBonus / 256 + 1;
@@ -612,7 +612,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 
 	return bestTarget;
 }
-#pragma optimize("", on)
+//#pragma optimize("", on)
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x6F8DF0, FakeTechnoClass::__Greatest_Threat);
 DEFINE_FUNCTION_JUMP(CALL, 0x4D9942, FakeTechnoClass::__Greatest_Threat);//foot
@@ -633,36 +633,16 @@ DEFINE_FUNCTION_JUMP(CALL6, 0x4D5392, FakeTechnoClass::__TargetSomethingNearby);
 DEFINE_FUNCTION_JUMP(CALL, 0x6F8C00, FakeTechnoClass::__EvaluateObject);
 DEFINE_FUNCTION_JUMP(LJMP, 0x6F7CA0, FakeTechnoClass::__EvaluateObject);
 
-static bool CanAttackMindControlled(TechnoClass* pControlled, TechnoClass* pRetaliator)
-{
-	const auto pMind = pControlled->MindControlledBy;
 
-	if (!pMind || pRetaliator->Berzerk)
-		return true;
-
-	const auto pManager = pMind->CaptureManager;
-
-	if (!pManager)
-		return true;
-
-	const auto pHome = pManager->GetOriginalOwner(pControlled);
-	const auto pHouse = pRetaliator->Owner;
-
-	if (!pHome || !pHouse || !pHouse->IsAlliedWith(pHome))
-		return true;
-
-	return TechnoExtContainer::Instance.Find(pControlled)->BeControlledThreatFrame <= Unsorted::CurrentFrame();
-}
-
-ASMJIT_PATCH(0x7089E8, TechnoClass_AllowedToRetaliate_AttackMindControlledDelay, 0x6)
-{
-	enum { CannotRetaliate = 0x708B17 };
-
-	GET(TechnoClass* const, pThis, ESI);
-	GET(TechnoClass* const, pAttacker, EBP);
-
-	return CanAttackMindControlled(pAttacker, pThis) ? 0 : CannotRetaliate;
-}
+// ASMJIT_PATCH(0x7089E8, TechnoClass_AllowedToRetaliate_AttackMindControlledDelay, 0x6)
+// {
+// 	enum { CannotRetaliate = 0x708B17 };
+//
+// 	GET(TechnoClass* const, pThis, ESI);
+// 	GET(TechnoClass* const, pAttacker, EBP);
+//
+// 	return CanAttackMindControlled(pAttacker, pThis) ? 0 : CannotRetaliate;
+// }
 
 /**
  * Evaluates whether `target` is a valid threat candidate for the given techno.
@@ -951,7 +931,7 @@ bool FakeTechnoClass::__EvaluateObjectB(
 				// -----------------------------------------------------------------
 				if (pTechnoTarget)
 				{
-					if (pTechnoTarget->IsIronCurtained() || !TechnoExtData::FiringAllowed(pThis, pTechnoTarget, pFakeWeapon , isEffectivelyHealing))
+					if (pTechnoTarget->IsIronCurtained() || !TechnoExtData::FiringAllowed(pThis, pTechnoTarget, pFakeWeapon , true))
 						return false;
 
 				}
@@ -1430,7 +1410,7 @@ bool FakeTechnoClass::__EvaluateObjectB(
 	// -------------------------------------------------------------------------
 	if (pTechnoTarget)
 	{
-		if (!CanAttackMindControlled(pTechnoTarget, pThis))
+		if (!TechnoExtData::CanAttackMindControlled(pTechnoTarget, pThis))
 			return false;
 	}
 
@@ -1557,22 +1537,22 @@ bool __fastcall FakeTechnoClass::__EvaluateObject(
 //#pragma optimize("", on )
 
 
-ASMJIT_PATCH(0x6F90F8, TechnoClass_SelectAutoTarget_Demacroize, 6)
-{
-	GET(int, nVal1, EDI);
-	GET(int, nVal2, EAX);
-
-	R->EAX(nVal2 >= nVal1 ? nVal2 : nVal1);
-	return 0x6F9116;
-}
-
-ASMJIT_PATCH_AGAIN(0x6F8F1F, TechnoClass_SelectAutoTarget_Heal, 6)
-ASMJIT_PATCH(0x6F8EE3, TechnoClass_SelectAutoTarget_Heal, 6)
-{
-	GET(unsigned int, nVal, EBX);
-
-	nVal |= 0x403Cu;
-
-	R->EBX(nVal);
-	return 0x6F8F25;
-}
+//ASMJIT_PATCH(0x6F90F8, TechnoClass_SelectAutoTarget_Demacroize, 6)
+//{
+//	GET(int, nVal1, EDI);
+//	GET(int, nVal2, EAX);
+//
+//	R->EAX(nVal2 >= nVal1 ? nVal2 : nVal1);
+//	return 0x6F9116;
+//}
+//
+//ASMJIT_PATCH_AGAIN(0x6F8F1F, TechnoClass_SelectAutoTarget_Heal, 6)
+//ASMJIT_PATCH(0x6F8EE3, TechnoClass_SelectAutoTarget_Heal, 6)
+//{
+//	GET(unsigned int, nVal, EBX);
+//
+//	nVal |= 0x403Cu;
+//
+//	R->EBX(nVal);
+//	return 0x6F8F25;
+//}

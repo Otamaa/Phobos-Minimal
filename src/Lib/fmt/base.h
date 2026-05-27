@@ -224,9 +224,14 @@
 #  define FMT_PRAGMA_CLANG(x)
 #endif
 
+#ifndef FMT_USE_OPTIMIZE_PRAGMA
+#  define FMT_USE_OPTIMIZE_PRAGMA 1
+#endif
+
 // Enable minimal optimizations for more compact code in debug mode.
 FMT_PRAGMA_GCC(push_options)
-#if !defined(__OPTIMIZE__) && !defined(__CUDACC__) && !defined(FMT_MODULE)
+#if FMT_USE_OPTIMIZE_PRAGMA && !defined(__OPTIMIZE__) && \
+    !defined(__CUDACC__) && !defined(FMT_MODULE)
 FMT_PRAGMA_GCC(optimize("Og"))
 #endif
 
@@ -1872,10 +1877,10 @@ template <typename OutputIt, typename T, typename = void>
 struct has_insert : std::false_type {};
 
 template <typename OutputIt, typename T>
-struct has_insert<OutputIt, T,
-                  void_t<decltype(get_container(std::declval<OutputIt>())
-                                      .insert({}, std::declval<T>(),
-                                              std::declval<T>()))>>
+struct has_insert<
+    OutputIt, T,
+    void_t<decltype(get_container(std::declval<OutputIt>())
+                        .insert({}, std::declval<T>(), std::declval<T>()))>>
     : std::true_type {};
 
 // An optimized version of std::copy with the output value type (T).
@@ -2690,16 +2695,16 @@ template <typename... T> struct fstring {
     static_assert(count<(is_view<remove_cvref_t<T>>::value &&
                          std::is_reference<T>::value)...>() == 0,
                   "passing views as lvalues is disallowed");
-    if (FMT_USE_CONSTEVAL) parse_format_string<char>(s, checker(s, arg_pack()));
+    if (FMT_USE_CONSTEVAL)
+      parse_format_string<char>(str, checker(str, arg_pack()));
     constexpr bool unused = detail::enforce_compile_checks<sizeof(s) != 0>();
     (void)unused;
   }
   template <typename S,
             FMT_ENABLE_IF(std::is_convertible<const S&, string_view>::value)>
   FMT_CONSTEVAL FMT_ALWAYS_INLINE fstring(const S& s) : str(s) {
-    auto sv = string_view(str);
     if (FMT_USE_CONSTEVAL)
-      detail::parse_format_string<char>(sv, checker(sv, arg_pack()));
+      detail::parse_format_string<char>(str, checker(str, arg_pack()));
     constexpr bool unused = detail::enforce_compile_checks<sizeof(s) != 0>();
     (void)unused;
   }

@@ -14,7 +14,6 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "ParticleSystemTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "ParticleSystemTypeClass";
 	
-	
 public:
 
 #pragma region ClassMembers
@@ -79,7 +78,7 @@ private:
 };
 
 class ParticleSystemTypeExtContainer final : public Container<ParticleSystemTypeExtData>
-	, public ReadWriteContainerInterfaces<ParticleSystemTypeExtData>
+	, public ReadWriteContainerInterfaces<ParticleSystemTypeExtData>, public ContainerSaveLoad<ParticleSystemTypeExtContainer, true>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "BulletTypeExtContainer";
@@ -87,9 +86,6 @@ public:
 
 public:
 	static ParticleSystemTypeExtContainer Instance;
-
-	virtual bool LoadAll(const PhobosStreamReader& stm) { return true; }
-	virtual bool SaveAll(PhobosStreamWriter& stm){ return true; }
 
 	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(ext_t::base_type* key, CCINIClass* pINI);

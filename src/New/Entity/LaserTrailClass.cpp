@@ -14,7 +14,7 @@ bool LaserTrailClass::Update(CoordStruct const& location)
 	bool result = false;
 	auto pType = this->Type;
 
-	if (!this->LastLocation.has_value() || !this->LastLocation.get().IsValid())
+	if (!this->LastLocation.has_value() || !this->LastLocation->IsValid())
 	{
 		// The trail was just inited
 		this->LastLocation = location;
@@ -30,6 +30,7 @@ bool LaserTrailClass::Update(CoordStruct const& location)
 			{				// We spawn new laser segment if the distance is long enough, the game will do the rest - Kerbiter
 				LaserDrawClass* pLaser = GameCreate<LaserDrawClass>(
 					this->LastLocation.get(), location,
+					this->Type->Laser_ZAdjust, 1u,
 					this->CurrentColor, ColorStruct { 0, 0, 0 }, ColorStruct { 0, 0, 0 },
 					this->Type->FadeDuration.Get(64));
 
@@ -44,7 +45,7 @@ bool LaserTrailClass::Update(CoordStruct const& location)
 					pType->IsAlternateColor, pType->Bolt_Arcs, pType->FadeDuration.Get(64),
 					 pType->Bolt_Color[0] , pType->Bolt_Color[1] , pType->Bolt_Color[3]);
 
-				pBolt->Fire(this->LastLocation, location, 0);
+				pBolt->Fire(this->LastLocation, location, pType->Bolt_ZAdjust);
 				break;
 			}
 			case LaserTrailDrawType::RadBeam:

@@ -104,11 +104,11 @@ void WaveExtData::SetWeaponType(WeaponTypeClass* pWeapon, int nIdx)
 }
 
 WaveClass* WaveExtData::Create(CoordStruct nFrom, CoordStruct nTo, TechnoClass* pOwner, WaveType nType, AbstractClass* pTarget,
-	WeaponTypeClass* pWeapon, bool FromSourceCoord)
+	WeaponTypeClass* pWeapon, int wpIdx, bool FromSourceCoord)
 {
 	auto const pWave = GameCreate<WaveClass>(nFrom, nTo, pOwner, nType, pTarget);
 	const auto pExt = WaveExtContainer::Instance.Find(pWave);
-	const auto nWeaponIdx = !FromSourceCoord ? TechnoExtContainer::Instance.Find(pOwner)->CurrentWeaponIdx : -1;
+	const auto nWeaponIdx = !FromSourceCoord ? wpIdx : -1;
 	pExt->SetWeaponType(pWeapon, nWeaponIdx);
 	pExt->InitWeaponData();
 	pExt->SourceCoord = nFrom;
@@ -221,7 +221,6 @@ void WaveExtData::Serialize(T& Stm)
 // =============================
 // container
 WaveExtContainer WaveExtContainer::Instance;
-
 // =============================
 // container hooks
 //
@@ -229,7 +228,8 @@ WaveExtContainer WaveExtContainer::Instance;
 ASMJIT_PATCH(0x75EA66, WaveClass_CTOR, 0x5)
 {
 	GET(WaveClass*, pItem, ESI);
-	WaveExtContainer::Instance.FindOrAllocate(pItem);
+	if (!Phobos::Otamaa::DoingLoadGame)
+		WaveExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 

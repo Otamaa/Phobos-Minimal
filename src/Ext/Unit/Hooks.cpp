@@ -408,3 +408,23 @@ ASMJIT_PATCH(0x738703, UnitClass_Explode_ExplodeAnim, 0x5)
 
 	return 0x738748;
 }
+//#pragma optimize("", off)
+//class NOVTABLE FakeUnitClassDebug : public UnitClass
+//{
+//public:
+//
+//	FireError __getFireErrrWrapper(AbstractClass* pTarget, int nWeaponIndex, bool ignoreRange)
+//	{
+//		auto res = this->UnitClass::GetFireError(pTarget, nWeaponIndex , ignoreRange);
+//		return res;
+//	}
+//
+//	FireError __getFireErrrWrapperTT(AbstractClass* pTarget, int nWeaponIndex, bool ignoreRange)
+//	{
+//		auto res = FakeTechnoClass::__CanFireMod(this, pTarget, nWeaponIndex, ignoreRange, false, false);
+//		return res;
+//	}
+//};
+//#pragma optimize("", on)
+//DEFINE_FUNCTION_JUMP(CALL, 0x74103E, FakeUnitClassDebug::__getFireErrrWrapperTT);
+//DEFINE_FUNCTION_JUMP(CALL6, 0x736E3A, FakeUnitClassDebug::__getFireErrrWrapper);

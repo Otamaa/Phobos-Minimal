@@ -59,3 +59,4 @@ public:
 	int CreationTime;	//frame in which this EMP got created
 	int Duration;
 };
+static_assert(sizeof(EMPulseClass) == 0x34, "Invalid size.");

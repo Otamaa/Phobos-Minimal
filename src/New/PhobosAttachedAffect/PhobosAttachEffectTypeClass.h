@@ -138,6 +138,15 @@ public:
 
 	std::vector<AnimationDrawOffsetClass> Animation_DrawOffsets;
 
+	Valueable<WeaponTypeClass*> PeriodicWeapon;
+	Valueable<AffectedHouse> PeriodicWeapon_AffectsHouse;
+	Valueable<bool> PeriodicWeapon_UseInvokerAsOwner;
+	Valueable<Leptons> PeriodicWeapon_Range;
+	Valueable<int> PeriodicWeapon_FiringDelay;
+	Valueable<bool> PeriodicWeapon_FireAll;
+	ValueableVector<TechnoTypeClass*> PeriodicWeapon_AffectTypes;
+	ValueableVector<TechnoTypeClass*> PeriodicWeapon_IgnoreTypes;
+
 	PhobosAttachEffectTypeClass(const char* pTitle) : Enumerable<PhobosAttachEffectTypeClass>(pTitle)
 		, Duration { 0 }
 		, Duration_ApplyFirepowerMult { false }
@@ -228,6 +237,15 @@ public:
 		, AffectTargets { AffectedTarget::All }
 
 		, Animation_DrawOffsets {}
+
+		, PeriodicWeapon {}
+		, PeriodicWeapon_AffectsHouse { AffectedHouse::All }
+		, PeriodicWeapon_UseInvokerAsOwner { false }
+		, PeriodicWeapon_Range { Leptons(0) }
+		, PeriodicWeapon_FiringDelay { 0 }
+		, PeriodicWeapon_FireAll { false }
+		, PeriodicWeapon_AffectTypes {}
+		, PeriodicWeapon_IgnoreTypes {}
 	{};
 
 	COMPILETIMEEVAL FORCEDINLINE bool HasAnim() {

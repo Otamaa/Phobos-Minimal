@@ -281,6 +281,7 @@ void __fastcall FakeTechnoClass::__Draw_Pips(TechnoClass* techno, discard_t, Poi
 		}
 		case PipScale::Power: {
 			//none
+			break;
 		}
 		case PipScale(6):
 		{

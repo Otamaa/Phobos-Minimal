@@ -109,7 +109,10 @@ void VoxelAnimTypeExtContainer::WriteToINI(ext_t::base_type* key, CCINIClass* pI
 ASMJIT_PATCH(0x74AF5C, VoxelAnimTypeClass_CTOR, 0x7)
 {
 	GET(VoxelAnimTypeClass*, pItem, ESI);
-	VoxelAnimTypeExtContainer::Instance.Allocate(pItem);
+	
+	if (!Phobos::Otamaa::DoingLoadGame)
+		VoxelAnimTypeExtContainer::Instance.Allocate(pItem);
+
 	return 0;
 }
 

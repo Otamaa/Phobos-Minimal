@@ -30,5 +30,10 @@ public:
 	{ }
 
 	void LoadFromINI(CCINIClass* pINI);
+	void LoadFromStream(PhobosStreamReader& Stm);
+	void SaveToStream(PhobosStreamWriter& Stm);
 
+private:
+	template <typename T>
+	void Serialize(T& Stm);
 };

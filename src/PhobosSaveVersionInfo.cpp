@@ -439,7 +439,7 @@ HRESULT __fastcall PhobosSaveVersionInfo::Load(IStorage* storage)
 		{
 			return res;
 		}
-		strcpy(PlayerHouse, buffer);
+		strcpy_s(PlayerHouse, sizeof(PlayerHouse), buffer);
 
 		res = LoadIntSet(storageset, ID_VERSION, &Version);
 		if (FAILED(res))
@@ -476,14 +476,14 @@ HRESULT __fastcall PhobosSaveVersionInfo::Load(IStorage* storage)
 		{
 			return res;
 		}
-		strcpy(ExecutableName, buffer);
+		strcpy_s(ExecutableName, sizeof(ExecutableName), buffer);
 
 		res = LoadStringSet(storageset, ID_PLAYER_NAME, buffer, sizeof(buffer));
 		if (FAILED(res))
 		{
 			return res;
 		}
-		strcpy(PlayerName, buffer);
+		strcpy_s(PlayerName, sizeof(PlayerName), buffer);
 
 		res = LoadIntSet(storageset, ID_SCENARIO_NUMBER, &ScenarioNumber);
 		if (FAILED(res))
@@ -539,7 +539,7 @@ HRESULT __fastcall PhobosSaveVersionInfo::Load(IStorage* storage)
 	{
 		return res;
 	}
-	strcpy(PlayerHouse, buffer);
+	strcpy_s(PlayerHouse, sizeof(PlayerHouse), buffer);
 
 	res = LoadInt(storage, ID_VERSION, &Version);
 	if (FAILED(res))
@@ -576,14 +576,14 @@ HRESULT __fastcall PhobosSaveVersionInfo::Load(IStorage* storage)
 	{
 		return res;
 	}
-	strcpy(ExecutableName, buffer);
+	strcpy_s(ExecutableName, sizeof(ExecutableName), buffer);
 
 	res = LoadString(storage, ID_PLAYER_NAME, buffer, sizeof(buffer));
 	if (FAILED(res))
 	{
 		return res;
 	}
-	strcpy(PlayerName, buffer);
+	strcpy_s(PlayerName, sizeof(PlayerName), buffer);
 
 	res = LoadInt(storage, ID_SCENARIO_NUMBER, &ScenarioNumber);
 	if (FAILED(res))

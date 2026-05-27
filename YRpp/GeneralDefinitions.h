@@ -18,7 +18,16 @@
 #define SDDTOR_NODELETE				0x00
 #define SDDTOR_DELETE				0x01
 
-enum VQAAnimControlFlags
+enum class HicolorLayout : int
+{
+	RGB,
+	RBG,
+	GRB,
+	GBR,
+	BRG
+};
+
+enum class VQAAnimControlFlags
 {
 	VQAAnimControlFlags_0 = 0x0,
 	VQAAnimControlFlags_1 = 0x1,
@@ -92,7 +101,7 @@ enum class AITriggerConditionComparatorType : unsigned int
 	NotEqual = 5
 };
 
-enum PlayerColorSlot : int
+enum class PlayerColorSlot : int
 {
 	Gold = 0,
 	Red = 1,
@@ -107,7 +116,7 @@ enum PlayerColorSlot : int
 	None = -1
 };
 
-enum ProdFailType : byte
+enum class ProdFailType : byte
 {
 	OK = 0x0,
 	Limit = 0x1,
@@ -349,6 +358,7 @@ enum class LandTargetingType : int
 
 enum class ThreatType : int
 {
+	None = -1,
 	Normal = 0x0,
 	Range = 0x1,
 	Area = 0x2,
@@ -1634,8 +1644,8 @@ enum class MouseCursorType : uint32_t {
 MAKE_ENUM_FLAGS(MouseCursorType)
 
 enum class RadBeamType : int {
-	Temporal = 0,
-	RadBeam = 1,
+	RadBeam = 0,
+	Temporal = 1,
 	Eruption = 2 // this sets the beam color to MagnaBeamColor! There probably was no reason for that whatsoever.
 };
 

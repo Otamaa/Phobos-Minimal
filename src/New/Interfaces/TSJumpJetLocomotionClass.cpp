@@ -34,7 +34,7 @@ TSJumpJetLocomotionClass::TSJumpJetLocomotionClass() :
 
 }
 
-IFACEMETHODIMP TSJumpJetLocomotionClass::Link_To_Object(void* object)
+IFACEMETHODIMP TSJumpJetLocomotionClass::Link_To_Object(FootClass* object)
 {
 	JumpjetTurnRate = RulesClass::Instance->TurnRate;
 	JumpjetSpeed = RulesClass::Instance->Speed;
