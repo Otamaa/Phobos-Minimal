@@ -3576,7 +3576,6 @@ void FakeTeamClass::_TMission_Chrono_prep_for_abwp(ScriptActionNode* nNode, bool
 	for (int i = 0; i < house->Supers.Count; i++) {
 
 		SuperClass* super = house->Supers.Items[i];
-		SWTypeExtData* pExt = SWTypeExtContainer::Instance.Find(super->Type);
 
 		if (!SWTypeExtData::IsAvailable(house, super))
 			continue;
@@ -3766,7 +3765,6 @@ void FakeTeamClass::_TMission_Chrono_prep_for_aq(ScriptActionNode* nNode, bool a
 	for (int i = 0; i < house->Supers.Count; i++)
 	{
 		SuperClass* super = (SuperClass*)house->Supers.Items[i];
-		SWTypeExtData* pExt = SWTypeExtContainer::Instance.Find(super->Type);
 
 		if (!SWTypeExtData::IsAvailable(house, super))
 			continue;

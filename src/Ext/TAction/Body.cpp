@@ -13,6 +13,7 @@
 #include <RadSiteClass.h>
 #include <LightSourceClass.h>
 
+#include <Ext/Building/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/Scenario/Body.h>
@@ -25,7 +26,7 @@
 #include <Ext/SWType/Body.h>
 #include <Ext/SWType/NewSuperWeaponType/NuclearMissile.h>
 #include <Ext/Tactical/Body.h>
-
+#include <Ext/Infantry/Body.h>
 #include <New/Entity/BannerClass.h>
 #include <New/Type/BannerTypeClass.h>
 
@@ -42,7 +43,7 @@
 #include <RadarEventClass.h>
 #include <TActionClass.h>
 #include <TeamTypeClass.h>
-
+#include <ThemeClass.h>
 #include <UI.h>
 
 PhobosMap<int, std::vector<TriggerClass*>> TActionExtData::RandomTriggerPool;

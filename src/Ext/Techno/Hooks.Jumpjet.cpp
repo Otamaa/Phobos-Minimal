@@ -8,6 +8,14 @@
 
 #include <Locomotor/Cast.h>
 
+#include <Locomotor/JumpjetLocomotionClass.h>
+
+#include <Ext/Aircraft/Body.h>
+#include <Ext/Infantry/Body.h>
+#include <Ext/Terrain/Body.h>
+#include <Ext/Unit/Body.h>
+
+#include <SpawnManagerClass.h>
 
 ASMJIT_PATCH(0x4DE839, FootClass_AddSensorsAt_Record, 0x6)
 {
@@ -718,13 +726,13 @@ ASMJIT_PATCH(0x54CC9C, JumpjetLocomotionClass_ProcessCrashing_DropFix, 0x5)
 
 		const auto whatAmObject = object->WhatAmI();
 
-		if (whatAmObject == UnitClass::AbsID || whatAmObject == BuildingClass::AbsID || whatAmObject == AircraftClass::AbsID)
+		if (whatAmObject == AbstractType::Unit || whatAmObject == AbstractType::Building || whatAmObject == AbstractType::Aircraft)
 		{
 			fallOnSomething = true;
 			continue;
 		}
 
-		if (whatAmObject == InfantryClass::AbsID)
+		if (whatAmObject == AbstractType::Infantry)
 		{
 			const auto pInfantry = static_cast<InfantryClass*>(*object);
 
@@ -743,7 +751,7 @@ ASMJIT_PATCH(0x54CC9C, JumpjetLocomotionClass_ProcessCrashing_DropFix, 0x5)
 			continue;
 		}
 
-		if (whatAmObject == TerrainClass::AbsID)
+		if (whatAmObject == AbstractType::Terrain)
 		{
 			const auto pTerrain = static_cast<TerrainClass*>(*object);
 
