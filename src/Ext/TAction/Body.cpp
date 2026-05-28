@@ -3596,7 +3596,7 @@ bool FakeTActionClass::_OperatorBracket(HouseClass* pTargetHouse, ObjectClass* p
 //	return pThis->TriggerType == target ? 0x6DD2E3 : 0x6DD2E6;
 //}
 
-#ifdef _fucked
+#ifndef _fucked
 DEFINE_FUNCTION_JUMP(CALL , 0x726605, FakeTActionClass::_OperatorBracket)
 #else
 //DEFINE_FUNCTION_JUMP(LJMP, 0x6E1F60, FakeTActionClass::_TActionClass_Create_Team)

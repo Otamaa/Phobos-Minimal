@@ -58,13 +58,13 @@ ASMJIT_PATCH(0x65DD4E, TeamTypeClass_CreateGroub_MissingOwner, 0x7)
 	return 0x65DD55;
 }
 
-TeamClass* FakeTeamTypeClass::_CreateOneOf(HouseClass* pHouse){
+TeamClass* __fastcall FakeTeamTypeClass::_CreateOneOf(TeamTypeClass* pType, HouseClass* pHouse){
 
 	if (!pHouse) {
-		pHouse = this->Owner;
+		pHouse = pType->Owner;
 		if (!pHouse){
-			if (HouseClass::Index_IsMP(this->idxHouse)) {
-				pHouse = HouseClass::FindByPlayerAt(this->idxHouse);
+			if (HouseClass::Index_IsMP(pType->idxHouse)) {
+				pHouse = HouseClass::FindByPlayerAt(pType->idxHouse);
 			}
 		}
 	}
@@ -74,25 +74,25 @@ TeamClass* FakeTeamTypeClass::_CreateOneOf(HouseClass* pHouse){
 	}
 
 	if (!Unsorted::ScenarioInit()) {
-		if (this->Max >= 0) {
+		if (pType->Max >= 0) {
 			if (SessionClass::Instance->GameMode != GameMode::Campaign) {
-				if (pHouse->GetTeamCount(this) >= this->Max) {
+				if (pHouse->GetTeamCount(pType) >= pType->Max) {
 					return nullptr;
 				}
-			} else if (this->cntInstances >= this->Max) {
+			} else if (pType->cntInstances >= pType->Max) {
 				return nullptr;
 			}
 		}
 	}
 
-	const auto pTeam = GameCreate<TeamClass>(this, pHouse, false);
+	const auto pTeam = GameCreate<TeamClass>(pType, pHouse, false);
 
 	Debug::LogInfo("[{0} - {1}] Creating a new team named [{2} -{3}].",
-		pHouse->get_ID(), (void*)pHouse, this->ID, (void*)pTeam);
+		pHouse->get_ID(), (void*)pHouse, pType->ID, (void*)pTeam);
 
 	return pTeam;
 }
-DEFINE_FUNCTION_JUMP(LJMP, 0x6F09C0, FakeTeamTypeClass::_CreateOneOf)
+//DEFINE_FUNCTION_JUMP(LJMP, 0x6F09C0, FakeTeamTypeClass::_CreateOneOf)
 
 ASMJIT_PATCH(0x6F09C0, TeamTypeClass_CreateOneOf_Handled, 0x9)
 {

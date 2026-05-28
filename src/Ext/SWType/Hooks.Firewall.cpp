@@ -240,12 +240,9 @@ ASMJIT_PATCH(0x73F7B0, UnitClass_IsCellOccupied, 6)
 
 ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
 {
-		enum
-	{
-		CheckOtherState = 0x4DA63B,
+	enum {
 		SkipEverything = 0x4DAF00,
-		//Continue = 0x0,
-		ProcessRadSiteCheckVanilla = 0x4DA59F,
+		SightChecking = 0x4DA689
 	};
 
 	GET(FootClass* , pThis, ESI);
@@ -358,28 +355,14 @@ ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
 		}
 	}
 
-	const auto nLoc = pThis->InlineMapCoords();
-	auto const pUnit = cast_to<UnitClass*, false>(pThis);
+	//skip together radiation damaging it is now direclt applyed on undate of the RadSiteClass itself
+	//without this the sight wont properly updated
+	if(!pThis->IsOnMap && (pType->BalloonHover || pType->JumpJet)) {
+		if(MapClass::Instance->IsWithinUsableArea(pThis->GetCell(), true))
+			pThis->IsOnMap = true;
+	}
 
-	if ((pUnit && pUnit->DeathFrameCounter > 0) || !RadSiteClass::Array->Count)
-		return (CheckOtherState);
-
-	if (pThis->TemporalTargetingMe ||pThis->InLimbo || !pThis->Health || pThis->IsSinking || pThis->IsCrashing)
-		return (CheckOtherState);
-
-	if (pThis->IsInAir())
-		return (CheckOtherState);
-
-	if (GET_TECHNOTYPE(pThis)->Immune)
-		return (CheckOtherState);
-
-	if (pThis->IsBeingWarpedOut() || TechnoExtData::IsChronoDelayDamageImmune(pThis))
-		return (CheckOtherState);
-
-	if (TechnoExtData::IsRadImmune(pThis))
-		return (CheckOtherState);
-
-	return CheckOtherState;
+	return SightChecking;
 }
 
 ASMJIT_PATCH(0x4688A9, BulletClass_SetMovement_Obstacle, 6)
