@@ -11,6 +11,8 @@ public:
 	static HGLOBAL __fastcall GetResource(LPCTSTR lpName, LPCTSTR lpType)
 		{ JMP_FAST(0x4A3B40); }
 
+	static void __fastcall RegisterComboDropAndNewEditClasses() JMP_FAST(0x60D450)
+
 	static BOOL __fastcall StandardWndProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		{ JMP_FAST(0x622B50); }
 
@@ -28,6 +30,9 @@ public:
 
 	static void __fastcall FocusOnWindow(HWND hWnd)
 		{ JMP_FAST(0x622800); }
+
+	static void __fastcall RemoveModelessDialog(HWND hWnd) JMP_FAST(0x5D4ED0)
+	static void __fastcall CenterWindow(HWND hWnd) JMP_FAST(0x777060)
 
 	static void __fastcall RegisterWindow(HWND hWnd, LPARAM msg)
 		{ JMP_FAST(0x622820); }

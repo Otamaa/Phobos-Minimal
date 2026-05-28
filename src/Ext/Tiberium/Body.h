@@ -58,10 +58,10 @@ public:
 	};
 
 	std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem> SpreadQueue {};
-	std::vector<bool> SpreadState {};
+	std::vector<uint8_t> SpreadState {};
 
 	std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem> GrowthQueue {};
-	std::vector<bool> GrowthState {};
+	std::vector<uint8_t> GrowthState {};
 #pragma endregion
 
 public:

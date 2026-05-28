@@ -14,6 +14,21 @@ public:
 	static COMPILETIMEEVAL reference<BitFont*, 0x89C4D0> Instance {};
 
 public:
+	/// Properties
+	struct InternalData
+	{
+		int FontWidth;
+		int Stride;
+		int FontHeight;
+		int Lines;
+		int Count;
+		int SymbolDataSize;
+		short* SymbolTable;
+		char* Bitmaps;
+		int ValidSymbolCount;
+	};
+
+public:
 
 	BitFont(const char* pFileName) { JMP_THIS(0x433880); }
 
@@ -29,60 +44,22 @@ public:
 	bool UnLock(Surface* pSurface) { JMP_THIS(0x434990); }
 	unsigned char* GetCharacterBitmap(wchar_t wch) { JMP_THIS(0x4346C0); }
 
-	COMPILETIMEEVAL FORCEDINLINE bool SetByte41(BYTE s)
-	{
-		auto was = this->field_41;
-		this->field_41 = s;
-		return was;
+	COMPILETIMEEVAL FORCEDINLINE void SetRectangle(LTRBStruct* pRect) { this->SetBounds(pRect); }
+
+	COMPILETIMEEVAL FORCEDINLINE bool SetClipMode(bool drawClipped) {
+		return std::exchange(this->field_41, drawClipped);
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE void SetBounds(LTRBStruct* pBound)
-	{
-		if (pBound)
-			this->Bounds = *pBound;
-		else
-			this->Bounds = { 0,0,0,0 };
+	COMPILETIMEEVAL FORCEDINLINE void SetBounds(LTRBStruct* pBound) {
+		this->Bounds = pBound ? *pBound : LTRBStruct{};
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE void SetBounds_Rect(RectangleStruct* pBound)
-	{
-		if (pBound)
-		{
-			auto nTemp = *pBound;
-			this->Bounds = { nTemp.X , nTemp.Y ,nTemp.Width ,nTemp.Height };
-		}
-		else
-			this->Bounds = { 0,0,0,0 };
+	COMPILETIMEEVAL FORCEDINLINE void SetBounds(RectangleStruct* pBound) {
+		this->BoundsRect = pBound ? *pBound : RectangleStruct {};
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE void SetColor(WORD nColor)
-	{
-		this->Color = nColor;
-	}
-
-	COMPILETIMEEVAL FORCEDINLINE void SetField20(int x)
-	{
-		this->field_20 = x;
-	}
-
-	COMPILETIMEEVAL FORCEDINLINE void SetField41(char flag)
-	{
-		this->field_41 = flag;
-	}
-
-	/// Properties
-	struct InternalData
-	{
-		int FontWidth;
-		int Stride;
-		int FontHeight;
-		int Lines;
-		int Count;
-		int SymbolDataSize;
-		short* SymbolTable;
-		char* Bitmaps;
-		int ValidSymbolCount;
-	};
+	COMPILETIMEEVAL FORCEDINLINE void SetColor(WORD nColor) { this->Color = nColor; }
+	COMPILETIMEEVAL FORCEDINLINE void SetField20(int x) { this->field_20 = x; }
 
 	static InternalData* __fastcall LoadInternalData(const char* pFileName)
 		{ JMP_FAST(0x433990); }
@@ -96,10 +73,10 @@ public:
 	void SetSpacing(int nSpacing)
 		{ JMP_THIS(0x434100); }
 
-	int GetWidth(bool bHalf = false)
+	COMPILETIMEEVAL FORCEDINLINE int GetWidth(bool bHalf = false)
 		{ return bHalf ? InternalPTR->FontWidth / 2 : InternalPTR->FontWidth; }
 
-	int GetHeight(bool bHalf = false)
+	COMPILETIMEEVAL FORCEDINLINE int GetHeight(bool bHalf = false)
 		{ return bHalf ? InternalPTR->FontHeight / 2 : InternalPTR->FontHeight; }
 
 	static BitFont* __fastcall BitFontPtr(TextPrintType nType)
@@ -122,7 +99,10 @@ public:
 	short DefaultColor2;
 	int Unknown_28;
 	int State_2C;
-	LTRBStruct Bounds;
+	union{
+		LTRBStruct Bounds;
+		RectangleStruct BoundsRect;
+	};
 	bool Bool_40;
 	bool field_41;
 	bool field_42;

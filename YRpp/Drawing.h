@@ -52,6 +52,17 @@ struct Drawing
 	static COMPILETIMEEVAL reference<int, 0x8A0DD8> const BlueShiftLeft {};
 	static COMPILETIMEEVAL reference<int, 0x8A0DDC> const BlueShiftRight {};
 
+	// Perform rectangle clipping in preparation for a blit.
+	static bool __fastcall BlitClip(RectangleStruct& drect, const RectangleStruct& dwindow, RectangleStruct& srect, const RectangleStruct& swindow)
+	{
+		JMP_FAST(0x7BBE20);
+	}
+
+	static bool __fastcall BitBlit(Surface* dest, RectangleStruct* destrect, Surface* source, RectangleStruct* sourcerect, void* blitter, int z, ZGradient zgrad, int a, int tint)
+	{
+		JMP_FAST(0x437350);
+	}
+
 	static char __fastcall SetupVoxelDoubleLighting(
 		VoxLib* VXL,
 		int a2,

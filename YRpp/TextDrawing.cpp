@@ -55,8 +55,8 @@ Point2D TextDrawing::Simple_Text_Print_Wide(
 		rect->Y + rect->Height
 	};
 
-	pFont->SetByte41(true);
-	pFont->SetBounds_Rect(&textrect);
+	pFont->SetClipMode(true);
+	pFont->SetBounds(&textrect);
 	pFont->SetColor((WORD)fore);
 	BitText::Instance->Print(pFont, surface, text, xpos, ypos, 0, 0);
 	return { xpos  , ypos };
