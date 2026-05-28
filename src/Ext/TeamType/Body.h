@@ -50,9 +50,9 @@ class FootClass;
 class NOVTABLE FakeTeamTypeClass : public TeamTypeClass
 {
 public:
-	bool _DoReinforcement(int waypoint);
-	bool _TunnelMaybe(FootClass* pGroup, CellStruct waypointCell, bool inRadar);
-	FootClass* _CreateGroup();
+	static bool __fastcall _DoReinforcement(TeamTypeClass* pType, int waypoint);
+	static bool __fastcall _TunnelMaybe(TeamTypeClass* pType, FootClass* pGroup, CellStruct waypointCell, bool inRadar);
+	static FootClass* __fastcall _CreateGroup(TeamTypeClass* pType);
 	TeamClass* _CreateOneOf(HouseClass* pHouse);
 };
 static_assert(sizeof(FakeTeamTypeClass) == sizeof(TeamTypeClass), "Invalid Size !");

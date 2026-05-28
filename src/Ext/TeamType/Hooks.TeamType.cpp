@@ -181,14 +181,14 @@ ASMJIT_PATCH(0x65EC4A, TeamTypeClass_ValidateHouse, 6)
 //   TeamTypeClass_CreateGroup_IncreaseStorage (0x65DE6B) — dead after LJMP
 //   TeamTypeClass_CreateMembers_LoadOntoTransport (0x65DF67) — dead after LJMP
 // ============================================================================
-FootClass* FakeTeamTypeClass::_CreateGroup()
+FootClass* __fastcall FakeTeamTypeClass::_CreateGroup(TeamTypeClass* pType)
 {
 	// Integrate TeamTypeClass_CreateGroub_MissingOwner (0x65DD4E):
-	HouseClass* pOwner = this->GetHouse();
+	HouseClass* pOwner = pType->GetHouse();
 	if (!pOwner)
-		Debug::FatalErrorAndExit("Creating Team[%s] groub without proper Ownership may cause crash , Please check !", this->ID);
+		Debug::FatalErrorAndExit("Creating Team[%s] groub without proper Ownership may cause crash , Please check !", pType->ID);
 
-	auto* pTeam = GameCreate<TeamClass>(this, pOwner, false);
+	auto* pTeam = GameCreate<TeamClass>(pType, pOwner, false);
 	if (pTeam)
 	{
 		pTeam->IsForcedActive = true;
@@ -197,8 +197,10 @@ FootClass* FakeTeamTypeClass::_CreateGroup()
 
 	// Scan script for Unload mission
 	bool hasUnload = false;
-	if (auto* pScript = this->ScriptType) {
-		for (int i = 0; i < pScript->ActionsCount; ++i) {
+	if (auto* pScript = pType->ScriptType)
+	{
+		for (int i = 0; i < pScript->ActionsCount; ++i)
+		{
 			if (pScript->ScriptActions[i].Action == TeamMissionType::Unload)
 			{
 				hasUnload = true;
@@ -207,13 +209,15 @@ FootClass* FakeTeamTypeClass::_CreateGroup()
 		}
 	}
 
-	auto* pTaskForce = this->TaskForce;
+	auto* pTaskForce = pType->TaskForce;
 	const int classCount = pTaskForce->CountEntries;
 
 	// Scan for naval units in task force
 	bool hasNaval = false;
-	for (int i = 0; i < classCount; ++i) {
-		if (auto* pTType = pTaskForce->Entries[i].Type) {
+	for (int i = 0; i < classCount; ++i)
+	{
+		if (auto* pTType = pTaskForce->Entries[i].Type)
+		{
 			if (pTType->Naval)
 			{
 				hasNaval = true;
@@ -227,11 +231,13 @@ FootClass* FakeTeamTypeClass::_CreateGroup()
 	FootClass* pTransport = nullptr;
 	FootClass* pObject = nullptr;
 
-	for (int index = 0; index < classCount; ++index) {
+	for (int index = 0; index < classCount; ++index)
+	{
 		auto* pTType = pTaskForce->Entries[index].Type;
 		const int quantity = pTaskForce->Entries[index].Amount;
 
-		for (int sub = 0; sub < quantity; ++sub) {
+		for (int sub = 0; sub < quantity; ++sub)
+		{
 			++Unsorted::ScenarioInit();
 			auto* pUnit = static_cast<FootClass*>(pTType->CreateObject(pOwner));
 			--Unsorted::ScenarioInit();
@@ -241,18 +247,19 @@ FootClass* FakeTeamTypeClass::_CreateGroup()
 
 			// Integrate TeamTypeClass_CreateGroup_IncreaseStorage (0x65DE6B):
 			// Original used StorageClass::Increase_Amount; replaced by TiberiumStorage.DecreaseLevel
-			if (pTType->Storage > 0 && this->Full)
+			if (pTType->Storage > 0 && pType->Full)
 				TechnoExtContainer::Instance.Find(pUnit)->TiberiumStorage.DecreaseLevel(float(pTType->Storage), 0);
 
 			// Apply veterancy. VeteranLevel=1 is no-op per original code.
-			switch (this->VeteranLevel)
+			switch (pType->VeteranLevel)
 			{
 			case 0: pUnit->Veterancy.SetRookie();  break;
 			case 2: pUnit->Veterancy.SetVeteran(); break;
 			case 3: pUnit->Veterancy.SetElite();   break;
 			}
 
-			if (pTeam) {
+			if (pTeam)
+			{
 				++Unsorted::ScenarioInit();
 				pTeam->AddMember(pUnit, false);
 				--Unsorted::ScenarioInit();
@@ -262,15 +269,18 @@ FootClass* FakeTeamTypeClass::_CreateGroup()
 			// Classify unit as transport or payload
 			const AbstractType kind = pUnit->WhatAmI();
 			const bool isTransport = pTType->Passengers > 0
-				&& this->Full
+				&& pType->Full
 				&& ((hasAircraft && kind == AbstractType::Aircraft)
 					|| (!hasAircraft && kind == AbstractType::Unit))
 				&& (pTType->Naval || !hasNaval);
 
-			if (isTransport) {
+			if (isTransport)
+			{
 				pUnit->NextObject = pTransport;
 				pTransport = pUnit;
-			} else {
+			}
+			else
+			{
 				pUnit->NextObject = pObject;
 				pObject = pUnit;
 			}
@@ -278,18 +288,21 @@ FootClass* FakeTeamTypeClass::_CreateGroup()
 	}
 
 	// Integrate TeamTypeClass_CreateMembers_LoadOntoTransport (0x65DF67):
-	if (pTransport) {
+	if (pTransport)
+	{
 		TechnoExtContainer::Instance.Find(pTransport)->PayloadCreated = false;
 
-		if (!pObject || !this->Full)
+		if (!pObject || !pType->Full)
 			return pTransport;
 
 		// Enhanced passenger loading with OpenTopped/Gunner support
 		const bool isOpenTopped = pTransport->GetTechnoType()->OpenTopped;
 		FootClass* pGunner = nullptr;
 
-		for (auto* pNext = pObject; pNext; pNext = static_cast<FootClass*>(pNext->NextObject)) {
-			if (pNext != pTransport && pNext->Team == pTeam) {
+		for (auto* pNext = pObject; pNext; pNext = static_cast<FootClass*>(pNext->NextObject))
+		{
+			if (pNext != pTransport && pNext->Team == pTeam)
+			{
 				pGunner = pNext;
 				pNext->IsInPlayfield = true;
 				pNext->Transporter = pTransport;
@@ -314,7 +327,8 @@ FootClass* FakeTeamTypeClass::_CreateGroup()
 
 	// No transport: clear PayloadCreated for all team members in the object chain
 	for (auto* pNext = pObject; pNext && pNext->Team == pTeam;
-		 pNext = static_cast<FootClass*>(pNext->NextObject)) {
+		 pNext = static_cast<FootClass*>(pNext->NextObject))
+	{
 		TechnoExtContainer::Instance.Find(pNext)->PayloadCreated = false;
 	}
 
@@ -327,14 +341,16 @@ FootClass* FakeTeamTypeClass::_CreateGroup()
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x65DD30, FakeTeamTypeClass::_CreateGroup)
 
-bool FakeTeamTypeClass::_TunnelMaybe(FootClass* pGroup, CellStruct waypointCell, bool inRadar)
+bool __fastcall FakeTeamTypeClass::_TunnelMaybe(TeamTypeClass* pType, FootClass* pGroup, CellStruct waypointCell, bool inRadar)
 {
-	const bool isDroppod = this->DropPod;
+	const bool isDroppod = pType->DropPod;
 	bool allTunnel = true;
 
-	for (auto* pCheck = pGroup; pCheck; pCheck = static_cast<FootClass*>(pCheck->NextObject)) {
+	for (auto* pCheck = pGroup; pCheck; pCheck = static_cast<FootClass*>(pCheck->NextObject))
+	{
 		auto* pCheckType = GET_TECHNOTYPE(pCheck);
-		if (!pCheckType || pCheckType->Locomotor != TunnelLocomotionClass::ClassGUID.get()) {
+		if (!pCheckType || pCheckType->Locomotor != TunnelLocomotionClass::ClassGUID.get())
+		{
 			allTunnel = false;
 			break;
 		}
@@ -343,16 +359,19 @@ bool FakeTeamTypeClass::_TunnelMaybe(FootClass* pGroup, CellStruct waypointCell,
 	int edgeDir = 0;
 	CellStruct spawnCell = waypointCell;
 
-	if (isDroppod || allTunnel || inRadar) {
+	if (isDroppod || allTunnel || inRadar)
+	{
 		CellStruct closeTo = CellStruct::Empty;
 		auto* pLeaderType = pGroup ? GET_TECHNOTYPE(pGroup) : nullptr;
 		const SpeedType speedType = pLeaderType ? pLeaderType->SpeedType : SpeedType::None;
 		MapClass::Instance->NearByLocation(spawnCell, waypointCell, speedType, ZoneType::None, MovementZone::Normal,
 			false, 1, 1, false, false, false, true, closeTo, false, false);
-	} else {
+	}
+	else
+	{
 		Edge edge = Edge::North;
-
-		if (auto* pOwner = this->GetHouse()) {
+		if (auto* pOwner = pType->GetHouse())
+		{
 			edge = pOwner->GetCurrentEdge();
 			if (edge < Edge::North || edge > Edge::West)
 				edge = Edge::North;
@@ -367,7 +386,8 @@ bool FakeTeamTypeClass::_TunnelMaybe(FootClass* pGroup, CellStruct waypointCell,
 	if (pCurrent)
 		pCurrent->NextObject = nullptr;
 
-	while (pCurrent && (spawnCell.X != waypointCell.X || spawnCell.Y != waypointCell.Y)) {
+	while (pCurrent && (spawnCell.X != waypointCell.X || spawnCell.Y != waypointCell.Y))
+	{
 		const int baseFacing = (edgeDir << 13);
 		const int rawFacing = (pCurrent->WhatAmI() == AbstractType::Aircraft)
 			? ((baseFacing - 0x6001) & 0xE000)
@@ -377,45 +397,57 @@ bool FakeTeamTypeClass::_TunnelMaybe(FootClass* pGroup, CellStruct waypointCell,
 		++Unsorted::ScenarioInit();
 
 		bool placed = false;
-		if (isDroppod) {
+		if (isDroppod)
+		{
 			const CoordStruct targetCoord { spawnCell.X * 256 + 128, spawnCell.Y * 256 + 128, 0 };
 			pCurrent->SetLocation(targetCoord);
 			pCurrent->SetDestination(MapClass::Instance->GetCellAt(spawnCell), true);
-			pCurrent->Locomotor->Move_To(targetCoord);
+			if (pCurrent->Locomotor)
+				pCurrent->Locomotor->Move_To(targetCoord);
 			pCurrent->UpdateSight(false, 0, false, nullptr, 0);
 			placed = true;
-		} else if (allTunnel) {
+		}
+		else if (allTunnel)
+		{
 			auto* pCell = MapClass::Instance->GetCellAt(spawnCell);
 			const CoordStruct cellCoord = pCell->GetCoordsWithBridge();
 			const CoordStruct unlimboCoord { cellCoord.X, cellCoord.Y, cellCoord.Z - 400 };
 
 			placed = pCurrent->Unlimbo(unlimboCoord, dir);
-			if (placed) {
+			if (placed)
+			{
 				pCurrent->SetDestination(MapClass::Instance->GetCellAt(spawnCell), true);
 				pCurrent->SetSpeedPercentage(1.0);
 				const CoordStruct moveTo { spawnCell.X * 256 + 128, spawnCell.Y * 256 + 128, 0 };
 				if (pCurrent->Locomotor)
 					pCurrent->Locomotor->Move_To(moveTo);
 			}
-		} else {
+		}
+		else
+		{
 			auto* pCell = MapClass::Instance->GetCellAt(spawnCell);
 			const CoordStruct cellCoord = pCell->GetCoordsWithBridge();
 			placed = pCurrent->Unlimbo(cellCoord, dir);
 		}
 
-		if (placed) {
+		if (placed)
+		{
 			didPlaceAny = true;
-			if (pCurrent->WhatAmI() != AbstractType::Aircraft) {
+			if (pCurrent->WhatAmI() != AbstractType::Aircraft)
+			{
 				pCurrent->QueueMission(Mission::Guard, false);
 				pCurrent->NextMission();
 			}
 
-			if (isDroppod) {
+			if (isDroppod)
+			{
 				bool found = false;
-				for (int i = 0; i < 8; ++i) {
+				for (int i = 0; i < 8; ++i)
+				{
 					const auto& adj = CellSpread::AdjacentCell[i & 7];
 					CellStruct candidate { static_cast<short>(spawnCell.X + adj.X), static_cast<short>(spawnCell.Y + adj.Y) };
-					if (MapClass::Instance->CoordinatesLegal(candidate)) {
+					if (MapClass::Instance->CoordinatesLegal(candidate))
+					{
 						spawnCell = candidate;
 						found = true;
 						break;
@@ -424,30 +456,36 @@ bool FakeTeamTypeClass::_TunnelMaybe(FootClass* pGroup, CellStruct waypointCell,
 				if (!found)
 					spawnCell = waypointCell;
 			}
-		} else {
+		}
+		else
+		{
 			bool found = false;
-			for (int i = 0; i < 8; ++i) {
+			for (int i = 0; i < 8; ++i)
+			{
 				const auto& adj = CellSpread::AdjacentCell[i & 7];
 				CellStruct candidate { static_cast<short>(spawnCell.X + adj.X), static_cast<short>(spawnCell.Y + adj.Y) };
 
 				if (!MapClass::Instance->CoordinatesLegal(candidate))
 					continue;
 
-				if (pCurrent->Locomotor && pCurrent->Locomotor->Can_Enter_Cell(candidate) == Move::OK) {
+				if (pCurrent->Locomotor && pCurrent->Locomotor->Can_Enter_Cell(candidate) == Move::OK)
+				{
 					spawnCell = candidate;
 					found = true;
 					break;
 				}
 			}
 
-			if (!found || (spawnCell.X == waypointCell.X && spawnCell.Y == waypointCell.Y)) {
+			if (!found || (spawnCell.X == waypointCell.X && spawnCell.Y == waypointCell.Y))
+			{
 				spawnCell = waypointCell;
 				GameDelete(pCurrent);
 				pCurrent = nullptr;
 			}
 		}
 
-		if (pCurrent){
+		if (pCurrent)
+		{
 			pCurrent = pRemaining;
 			pRemaining = pCurrent ? static_cast<FootClass*>(pCurrent->NextObject) : nullptr;
 			if (pCurrent)
@@ -460,7 +498,8 @@ bool FakeTeamTypeClass::_TunnelMaybe(FootClass* pGroup, CellStruct waypointCell,
 	if (pCurrent)
 		GameDelete(pCurrent);
 
-	while (pRemaining) {
+	while (pRemaining)
+	{
 		auto* pNext = static_cast<FootClass*>(pRemaining->NextObject);
 		pRemaining->NextObject = nullptr;
 		GameDelete(pRemaining);
@@ -480,34 +519,35 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x65E010, FakeTeamTypeClass::_TunnelMaybe)
 //   Do_Reinforcement_ValidateHouse      (0x65DC11) — dead after LJMP
 // Note: ASMJIT_PATCH_AGAIN at 0x65EC4A (chrono reinforcements) is still active.
 // ============================================================================
-bool FakeTeamTypeClass::_DoReinforcement(int waypoint)
+bool __fastcall FakeTeamTypeClass::_DoReinforcement(TeamTypeClass* pType, int waypoint)
 {
 	// Integrate TeamTypeClass_ValidateHouse (0x65D8FB):
-	HouseClass* pOwner = this->GetHouse();
+	HouseClass* pOwner = pType->GetHouse();
 	if (!pOwner ||
-		(!this->Owner && SessionClass::Instance->GameMode != GameMode::Campaign && pOwner->Defeated))
+		(!pType->Owner && SessionClass::Instance->GameMode != GameMode::Campaign && pOwner->Defeated))
 		return false;
 
-	if (!this->TaskForce || this->TaskForce->CountEntries == 0)
+	if (!pType->TaskForce || pType->TaskForce->CountEntries == 0)
 		return false;
 
 	// Ensure the script has at least one action (Guard) so the team doesn't idle permanently
-	auto* pScript = this->ScriptType;
-
-	if (!pScript || pScript->ActionsCount == 0) {
-		if (!pScript) {
+	auto* pScript = pType->ScriptType;
+	if (!pScript || pScript->ActionsCount == 0)
+	{
+		if (!pScript)
+		{
 			pScript = GameCreate<ScriptTypeClass>(nullptr);
-			this->ScriptType = pScript;
+			pType->ScriptType = pScript;
 		}
-
-		if (pScript && pScript->ActionsCount < ScriptTypeClass::MaxActions) {
+		if (pScript && pScript->ActionsCount < ScriptTypeClass::MaxActions)
+		{
 			pScript->ScriptActions[pScript->ActionsCount] = ScriptActionNode(TeamMissionType::Guard, 0);
 			++pScript->ActionsCount;
 		}
 	}
 
-	const bool isDroppod = this->DropPod;
-	auto* pGroup = this->_CreateGroup();
+	const bool isDroppod = pType->DropPod;
+	auto* pGroup = FakeTeamTypeClass::_CreateGroup(pType);
 
 	if (!pGroup)
 		return false;
@@ -521,14 +561,16 @@ bool FakeTeamTypeClass::_DoReinforcement(int waypoint)
 	if (hasSpecificWaypoint)
 		ScenarioClass::Instance->GetWaypointCoords(&spawnCell, waypoint);
 	else
-		this->GetWaypoint(&spawnCell);
+		pType->GetWaypoint(&spawnCell);
 
 	const bool isInvalidCell = (spawnCell.X == -1 && spawnCell.Y == -1);
 
 	// Infantry-from-building pop path
-	if (!isDroppod && !isInvalidCell) {
+	if (!isDroppod && !isInvalidCell)
+	{
 		bool infantryOnly = true;
-		for (auto* pUnit = pGroup; pUnit; pUnit = static_cast<FootClass*>(pUnit->NextObject)) {
+		for (auto* pUnit = pGroup; pUnit; pUnit = static_cast<FootClass*>(pUnit->NextObject))
+		{
 			if (pUnit->WhatAmI() != AbstractType::Infantry)
 			{
 				infantryOnly = false;
@@ -536,34 +578,42 @@ bool FakeTeamTypeClass::_DoReinforcement(int waypoint)
 			}
 		}
 
-		if (infantryOnly) {
+		if (infantryOnly)
+		{
 			CellClass* pCell = MapClass::Instance->GetCellAt(spawnCell);
 			BuildingClass* pCandidate = nullptr;
 
 			// Check the cell and its 8 neighbours for a suitable building exit
-			for (int f = -1; f < 8; ++f) {
+			for (int f = -1; f < 8; ++f)
+			{
 				CellClass* pCheck = (f == -1) ? pCell : pCell->GetAdjacentCell(static_cast<FacingType>(f));
 				if (!pCheck)
 					continue;
 				BuildingClass* pBld = pCheck->GetBuilding();
-				if (pBld && pBld->Health > 0) {
+				if (pBld && pBld->Health > 0)
+				{
 					using HasExitCellFn = bool(__thiscall*)(BuildingClass*);
 					if (reinterpret_cast<HasExitCellFn>(0x459CA0)(pBld))
 						pCandidate = pBld;
 				}
 			}
 
-			if (pCandidate) {
+			if (pCandidate)
+			{
 				int exitCount = 0;
 				FootClass* pCurrent = pGroup;
-				while (pCurrent) {
+				while (pCurrent)
+				{
 					FootClass* pNext = static_cast<FootClass*>(pCurrent->NextObject);
 					pCurrent->NextObject = nullptr;
 
-					if (pCandidate->KickOutUnit(pCurrent, spawnCell) == KickOutResult::Succeeded) {
+					if (pCandidate->KickOutUnit(pCurrent, spawnCell) == KickOutResult::Succeeded)
+					{
 						pCandidate->SendToFirstLink(RadioCommand::NotifyUnlink);
 						++exitCount;
-					} else {
+					}
+					else
+					{
 						GameDelete(pCurrent);
 					}
 
@@ -578,7 +628,8 @@ bool FakeTeamTypeClass::_DoReinforcement(int waypoint)
 	const bool inRadar = hasSpecificWaypoint && MapClass::Instance->IsWithinUsableArea(spawnCell, true);
 	bool doRadarEvent = false;
 
-	if (isDroppod) {
+	if (isDroppod)
+	{
 		// Integrate TeamTypeClass_CreateInstance_Plane (0x65DBB3):
 		// Use per-house paradrop plane (HouseExtData) instead of global PDPLANE
 		auto* pPlaneType = HouseExtData::GetParadropPlane(pGroup->Owner);
@@ -596,17 +647,25 @@ bool FakeTeamTypeClass::_DoReinforcement(int waypoint)
 
 		// Determine which map edge to spawn the paradrop plane on
 		CellStruct planeBuf;
-		if (this->UseTransportOrigin) {
-			this->GetTransportWaypoint(&planeBuf);
-		} else {
+		if (pType->UseTransportOrigin)
+		{
+			pType->GetTransportWaypoint(&planeBuf);
+		}
+		else
+		{
 			// Integrate Do_Reinforcement_ValidateHouse (0x65DC11) edge logic:
 			Edge spawnEdge;
-			if (!pGroup->Owner) {
+			if (!pGroup->Owner)
+			{
 				spawnEdge = Edge::North;
-			} else if (pGroup->Owner->StaticData.StartingEdge < Edge::North
-				  || pGroup->Owner->StaticData.StartingEdge > Edge::West) {
+			}
+			else if (pGroup->Owner->StaticData.StartingEdge < Edge::North
+				  || pGroup->Owner->StaticData.StartingEdge > Edge::West)
+			{
 				spawnEdge = pGroup->Owner->GetHouseEdge();
-			} else {
+			}
+			else
+			{
 				spawnEdge = pGroup->Owner->StaticData.StartingEdge;
 			}
 
@@ -634,12 +693,15 @@ bool FakeTeamTypeClass::_DoReinforcement(int waypoint)
 		pPlane->EnterAsPassenger(pGroup);
 		pPlane->NextMission();
 		doRadarEvent = true;
-	} else {
-		doRadarEvent = this->_TunnelMaybe(pGroup, spawnCell, inRadar);
+	}
+	else
+	{
+		doRadarEvent = FakeTeamTypeClass::_TunnelMaybe(pType, pGroup, spawnCell, inRadar);
 	}
 
-	if (doRadarEvent) {
-		HouseClass* pTeamOwner = this->GetHouse();
+	if (doRadarEvent)
+	{
+		HouseClass* pTeamOwner = pType->GetHouse();
 		if (pTeamOwner && pTeamOwner->IsAlliedWith(HouseClass::CurrentPlayer.get()))
 			RadarEventClass::Create(spawnCell);
 	}
