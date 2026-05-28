@@ -4325,6 +4325,7 @@ void UpdateTypeData_Foot(FootClass* pThis, TechnoTypeClass* pOldType, TechnoType
 			{
 				const int turnrate = pCurrentType->JumpJetData.TurnRate >= 127 ? 127 : pCurrentType->JumpJetData.TurnRate;
 				pJJLoco->Speed = pCurrentType->JumpJetData.Speed;
+				pJJLoco->Climb = pCurrentType->JumpJetData.Climb;
 				pJJLoco->Acceleration = pCurrentType->JumpJetData.Accel;
 				pJJLoco->Crash = pCurrentType->JumpJetData.Crash;
 				pJJLoco->Deviation = pCurrentType->JumpJetData.Deviation;
