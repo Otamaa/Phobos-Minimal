@@ -1,5 +1,6 @@
 #pragma once
 #include <Utilities/Template.h>
+#include <Utilities/GeneralUtils.h>
 
 #include <WeaponTypeClass.h>
 #include <New/Entity/AEEligible.h>
