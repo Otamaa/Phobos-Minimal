@@ -49,7 +49,7 @@ struct AEExtraRange
 			if (!entry.Eligible(who))
 				continue;
 
-			initial = static_cast<int>(initial * MaxImpl(entry.rangeMult, 0.0));
+			initial = GeneralUtils::SafeMultiply(initial , MaxImpl(entry.rangeMult, 0.0));
 			add += static_cast<int>(entry.extraRange);
 		}
 
@@ -70,7 +70,7 @@ struct AEExtraRange
 		int add = 0;
 		for (const auto& entry : eligible)
 		{
-			initial = static_cast<int>(initial * MaxImpl(entry.rangeMult, 0.0));
+			initial = GeneralUtils::SafeMultiply(initial , MaxImpl(entry.rangeMult, 0.0));
 			add += static_cast<int>(entry.extraRange);
 		}
 

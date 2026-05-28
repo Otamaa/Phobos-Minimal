@@ -151,6 +151,8 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Range_IgnoreVertical.Read(exINI, pSection, "Range.IgnoreVertical");
 	// brought back from TS
 	this->ProjectileRange.Read(exINI, pSection, "ProjectileRange");
+	this->ProjectileRange_ApplyModifiers.Read(exINI, pSection, "ProjectileRange.ApplyModifiers");
+	this->ProjectileRange_UseAresBehaviour.Read(exINI, pSection, "ProjectileRange.UseAresBehaviour");
 	this->Decloak_InstantFire.Read(exINI, pSection, "DecloakInstantFire");
 
 	this->Feedback_Anim.Read(exINI, pSection, "FeedbackAnim");
@@ -540,6 +542,8 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->OccupantAnim_UseMultiple)
 		.Process(this->Range_IgnoreVertical)
 		.Process(this->ProjectileRange)
+		.Process(this->ProjectileRange_ApplyModifiers)
+		.Process(this->ProjectileRange_UseAresBehaviour)
 		.Process(this->Decloak_InstantFire)
 		.Process(this->Feedback_Anim)
 		.Process(this->Feedback_Anim_Offset)

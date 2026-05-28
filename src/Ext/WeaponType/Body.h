@@ -69,6 +69,9 @@ public:
 
 	// brought back from TS
 	Valueable<Leptons> ProjectileRange { Leptons(100000) };
+	Valueable<bool> ProjectileRange_ApplyModifiers { true };
+	Valueable<bool> ProjectileRange_UseAresBehaviour { false };
+
 	Nullable<bool> Decloak_InstantFire {};
 	Valueable<AnimTypeClass*> Feedback_Anim { nullptr };
 	Valueable<CoordStruct> Feedback_Anim_Offset { { 0, 0, 0 } };

@@ -51,6 +51,7 @@ public:
 	int CurrentStrength { 0 };
 	int DamageNumberOffset { INT32_MIN };
 	int ParabombFallRate { 0 };
+	double DistanceTraveled { };
 	InterceptedStatus InterceptedStatus { InterceptedStatus::None };
 
 	// ============================================================
