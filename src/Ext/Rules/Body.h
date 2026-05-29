@@ -319,6 +319,7 @@ public:
 	Nullable<bool> AttackMove_StopWhenTargetAcquired {};
 	Nullable<bool> ShowPowerPlantEnhancerRange {};
 	Valueable<bool> OpenTopped_DecloakToFire { false };
+	Valueable<bool> Temporal_ConsiderVersus { false };
 
 	// ============================================================
 	// Valueable<int> / ValueableIdx (4 bytes each)

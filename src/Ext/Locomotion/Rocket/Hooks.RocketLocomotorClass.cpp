@@ -253,7 +253,7 @@ struct _RocketLocomotionClass
 	}
 
 	static COMPILETIMEEVAL short NOINLINE GetFacing(RocketLocomotionClass* pThis) {
-		return pThis->Owner->PrimaryFacing.Current().GetFacing<32>();
+		return (short)pThis->Owner->PrimaryFacing.Current().GetFacing<32>();
 	}
 
 	static Matrix3D* __stdcall _Draw_Matrix(ILocomotion* pThis, Matrix3D* result, VoxelIndexKey* key)

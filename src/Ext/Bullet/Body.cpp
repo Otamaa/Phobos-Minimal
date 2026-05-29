@@ -854,7 +854,7 @@ bool BulletExtData::ApplyMCAlternative(BulletClass* pThis)
 		// Alternate warhead
 		WarheadTypeClass* pAltWarhead = pWarheadExt->MindControl_AlternateWarhead.Get();
 		// Get the damage the alternate warhead can produce against the target
-		auto const armor_ = TechnoExtData::GetArmor(pTarget);
+		auto const armor_ = TechnoExtData::GetTechnoArmor(pTarget, pAltWarhead);
 		int realDamage = FakeWarheadTypeClass::ModifyDamage(altDamage, pAltWarhead, armor_, 0);
 		const int animDamage = realDamage;
 

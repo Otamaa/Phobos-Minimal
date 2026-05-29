@@ -145,7 +145,7 @@ void __fastcall FakeWarheadTypeClass::DoFlash(int damage, WarheadTypeClass* pWH,
 				size_mult = 1.0;
 			}
 
-			size = (size_mult * 63.0);
+			size = int(size_mult * 63.0);
 		}
 
 		auto pSPot = GameCreate<SpotlightClass>(X,Y,Z,size);
@@ -405,6 +405,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->TemporalExpiredAnim.Read(exINI, pSection, "Temporal.ExpiredAnim");
 	this->TemporalDetachDamageFactor.Read(exINI, pSection, "Temporal.ExpiredDamageFactor");
 	this->TemporalExpiredApplyDamage.Read(exINI, pSection, "Temporal.ExpiredApplyDamage");
+	this->Temporal_ConsiderVersus.Read(exINI, pSection, "Temporal.ConsiderVersus");
 	this->DebrisAnimTypes.Read(exINI, pSection, "DebrisAnims");
 	this->Flammability.Read(exINI, pSection, "FlameChance");
 
@@ -1923,6 +1924,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->TemporalExpiredAnim)
 		.Process(this->TemporalExpiredApplyDamage)
 		.Process(this->TemporalDetachDamageFactor)
+		.Process(this->Temporal_ConsiderVersus)
 		.Process(this->Parasite_DisableRocking)
 		.Process(this->Parasite_GrappleAnim)
 		.Process(this->Parasite_ParticleSys)

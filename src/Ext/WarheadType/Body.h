@@ -218,6 +218,7 @@ public:
 	Valueable<AnimTypeClass*> TemporalExpiredAnim { nullptr };
 	Valueable<bool> TemporalExpiredApplyDamage { false };
 	Valueable<double> TemporalDetachDamageFactor { 1.0 };
+	Nullable<bool> Temporal_ConsiderVersus {};
 
 	Valueable<bool> Parasite_DisableRocking { false };
 	Nullable<AnimTypeClass*> Parasite_GrappleAnim {};

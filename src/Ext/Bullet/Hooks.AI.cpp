@@ -81,7 +81,7 @@ int __fastcall missile_maths(
 
 	const Point2D pTo2D { pCoordTo->X,   pCoordTo->Y };
 	const Point2D pFrom2D { pCoordFrom->X, pCoordFrom->Y };
-	const int distance2D = (pTo2D - pFrom2D).Length();
+	const int distance2D = static_cast<int>((pTo2D - pFrom2D).Length());
 
 	CoordStruct deltaToTarget {
 		pCoordFrom->X - pCoordTo->X,

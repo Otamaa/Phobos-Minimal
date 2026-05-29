@@ -640,6 +640,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	#pragma endregion
 
 	#pragma region CombatDamage
+	this->Temporal_ConsiderVersus.Read(exINI, GameStrings::CombatDamage, "Temporal.ConsiderVersus");
 	this->Shrapnel_IgnoreHitBuildings.Read(exINI, GameStrings::CombatDamage, "Shrapnel.IgnoreHitBuildings");
 	this->PenetratesTransport_Level.Read(exINI, GameStrings::CombatDamage, "PenetratesTransport.Level");
 	this->DamageWallRecursivly.Read(exINI, GameStrings::CombatDamage, "DamageWallRecursivly");
@@ -1358,6 +1359,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->AttackMove_StopWhenTargetAcquired)
 		.Process(this->ShowPowerPlantEnhancerRange)
 		.Process(this->OpenTopped_DecloakToFire)
+		.Process(this->Temporal_ConsiderVersus)
 		.Process(this->PenetratesTransport_Level)
 		.Process(this->DamageWallRecursivly)
 		.Process(this->AirstrikeLineZAdjust)

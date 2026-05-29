@@ -53,7 +53,7 @@ CoordStruct ShiftLocomotionClass::FindShiftDestination(FootClass* pTechno, Coord
 			return true;
 		};
 
-	auto cells = GeneralUtils::AdjacentCellsInRange((unsigned int)(std::floor(searchRange)));
+	auto cells = GeneralUtils::AdjacentCellsInRange((short)(std::floor(searchRange)));
 	auto idealMapCrd = CellClass::Coord2Cell(idealDest);
 	auto offset = idealDest - MapClass::Instance->GetCellAt(idealMapCrd)->GetCoordsWithBridge();
 

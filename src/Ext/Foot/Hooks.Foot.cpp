@@ -39,7 +39,7 @@ void ElectrictAssaultCheck(FootClass* pThis, bool updateIdleAction)
 				{
 
 					if (pWHExt->ElectricAssault_Requireverses && pWHExt->GetVerses(TechnoExtData::GetTechnoArmor(pBld, pWeapon->WeaponType->Warhead))
-					.Verses <= 0.0)
+					.Verses < 0.001)
 						continue;
 
 					pThis->SetTarget(pBld);

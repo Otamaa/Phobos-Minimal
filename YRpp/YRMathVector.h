@@ -226,9 +226,15 @@ public:
 	//scalar multiplication
 	COMPILETIMEEVAL Vector3D& operator*=(double r)
 	{
-		X *= r;
-		Y *= r;
-		Z *= r;
+		if constexpr (!std::is_same_v<T, double>){
+			X = (T)(X * r);
+			Y = (T)(Y * r);
+			Z = (T)(Z * r);
+		} else {
+			X *= r;
+			Y *= r;
+			Z *= r;
+		}
 		return *this;
 	}
 

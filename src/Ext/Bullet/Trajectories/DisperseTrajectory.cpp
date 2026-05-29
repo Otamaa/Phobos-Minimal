@@ -401,17 +401,17 @@ bool DisperseTrajectory::BulletRetargetTechno()
 						if (pTechno->CloakState == CloakState::Cloaked && !pCell->Sensors_InclHouse(pOwner->ArrayIndex))
 							continue;
 					}
-
-					if (FakeWarheadTypeClass::ModifyDamage(100, pBullet->WH, pTechnoType->Armor, 0) == 0)
-						continue;
-
+				
 					if (pTechno->GetCoords().DistanceFrom(retargetCoords) > retargetRange)
 						continue;
 
-					const auto pWeapon = pBullet->WeaponType;
-
-					if (pWeapon)
+					if (const auto pWeapon = pBullet->WeaponType)
 					{
+						auto pWHExt = WarheadTypeExtContainer::Instance.TryFind(pWeapon->Warhead ? pWeapon->Warhead : pBullet->WH);
+
+						if (pWHExt && pWHExt->GetVerses(TechnoExtData::GetTechnoArmor(pTechno, pWeapon->Warhead)).Verses < 0.001)
+							continue;
+
 						const auto pFirer = pBullet->Owner;
 
 						if (pTechno->GetCoords().DistanceFrom(pFirer ? pFirer->GetCoords() : pBullet->SourceCoords) > pWeapon->Range)
@@ -458,7 +458,7 @@ bool DisperseTrajectory::BulletRetargetTechno()
 					continue;
 			}
 
-			if (FakeWarheadTypeClass::ModifyDamage(100, pBullet->WH, pTechnoType->Armor, 0) == 0)
+			if (FakeWarheadTypeClass::ModifyDamage(100, pBullet->WH, TechnoExtData::GetTechnoArmor(pTechno, pBullet->WH), 0) == 0)
 				continue;
 
 			if (pTechno->GetCoords().DistanceFrom(retargetCoords) > retargetRange)
@@ -954,7 +954,7 @@ bool DisperseTrajectory::PrepareDisperseWeapon()
 									continue;
 							}
 
-							if (FakeWarheadTypeClass::ModifyDamage(100, pWeapon->Warhead, pTechnoType->Armor, 0) == 0)
+							if (FakeWarheadTypeClass::ModifyDamage(100, pWeapon->Warhead, TechnoExtData::GetTechnoArmor(pTechno, pWeapon->Warhead), 0) == 0)
 								continue;
 
 							if (!this->CheckWeaponCanTarget(pWeapon, pBullet->Owner, pTechno))
@@ -997,7 +997,7 @@ bool DisperseTrajectory::PrepareDisperseWeapon()
 							continue;
 					}
 
-					if (FakeWarheadTypeClass::ModifyDamage(100, pWeapon->Warhead, pTechnoType->Armor, 0) == 0)
+					if (FakeWarheadTypeClass::ModifyDamage(100, pWeapon->Warhead, TechnoExtData::GetTechnoArmor(pTechno, pWeapon->Warhead), 0) == 0)
 						continue;
 
 					if (!this->CheckWeaponCanTarget(pWeapon, pBullet->Owner, pTechno))

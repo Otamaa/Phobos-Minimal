@@ -1237,7 +1237,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 		pThis->Reveal();
 
 	const auto bCond1 = (!bAffected || !pWHExt->EffectsRequireDamage);
-	const auto bCond2 = (!pWHExt->EffectsRequireVerses || (pWHExt->GetVerses(TechnoExtData::GetTechnoArmor(pThis, warhead)).Verses >= 0.0001));
+	const auto bCond2 = (!pWHExt->EffectsRequireVerses || (pWHExt->GetVerses(TechnoExtData::GetTechnoArmor(pThis, warhead)).Verses >= 0.001));
 
 	if (bCond1 && bCond2)
 	{
@@ -2017,7 +2017,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 		pThis->Reveal();
 
 	const auto bCond1 = (!bAffected || !pWHExt->EffectsRequireDamage);
-	const auto bCond2 = (!pWHExt->EffectsRequireVerses || (pWHExt->GetVerses(TechnoExtData::GetTechnoArmor(pThis, args.WH)).Verses >= 0.0001));
+	const auto bCond2 = (!pWHExt->EffectsRequireVerses || (pWHExt->GetVerses(TechnoExtData::GetTechnoArmor(pThis, args.WH)).Verses >= 0.001));
 
 	if (bCond1 && bCond2)
 	{

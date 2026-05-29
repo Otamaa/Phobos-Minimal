@@ -1548,7 +1548,7 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 				});
 
 				// if more than allowed, sort them and remove the ones further away
-				if (Handled.size() > MaxAffect)
+				if ((int)Handled.size() > MaxAffect)
 				{
 					Helpers::Alex::selectionsort(
 						Handled.begin(), Handled.begin() + MaxAffect, Handled.end(),

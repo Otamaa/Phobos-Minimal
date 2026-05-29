@@ -58,13 +58,13 @@ ASMJIT_PATCH(0x65DD4E, TeamTypeClass_CreateGroub_MissingOwner, 0x7)
 	return 0x65DD55;
 }
 
-TeamClass* __fastcall FakeTeamTypeClass::_CreateOneOf(TeamTypeClass* pType, HouseClass* pHouse){
+TeamClass* FakeTeamTypeClass::_CreateOneOf(HouseClass* pHouse){
 
 	if (!pHouse) {
-		pHouse = pType->Owner;
+		pHouse = this->Owner;
 		if (!pHouse){
-			if (HouseClass::Index_IsMP(pType->idxHouse)) {
-				pHouse = HouseClass::FindByPlayerAt(pType->idxHouse);
+			if (HouseClass::Index_IsMP(this->idxHouse)) {
+				pHouse = HouseClass::FindByPlayerAt(this->idxHouse);
 			}
 		}
 	}
@@ -74,76 +74,76 @@ TeamClass* __fastcall FakeTeamTypeClass::_CreateOneOf(TeamTypeClass* pType, Hous
 	}
 
 	if (!Unsorted::ScenarioInit()) {
-		if (pType->Max >= 0) {
+		if (this->Max >= 0) {
 			if (SessionClass::Instance->GameMode != GameMode::Campaign) {
-				if (pHouse->GetTeamCount(pType) >= pType->Max) {
+				if (pHouse->GetTeamCount(this) >= this->Max) {
 					return nullptr;
 				}
-			} else if (pType->cntInstances >= pType->Max) {
+			} else if (this->cntInstances >= this->Max) {
 				return nullptr;
 			}
 		}
 	}
 
-	const auto pTeam = GameCreate<TeamClass>(pType, pHouse, false);
+	const auto pTeam = GameCreate<TeamClass>(this, pHouse, false);
 
 	Debug::LogInfo("[{0} - {1}] Creating a new team named [{2} -{3}].",
-		pHouse->get_ID(), (void*)pHouse, pType->ID, (void*)pTeam);
+		pHouse->get_ID(), (void*)pHouse, this->ID, (void*)pTeam);
 
 	return pTeam;
 }
-//DEFINE_FUNCTION_JUMP(LJMP, 0x6F09C0, FakeTeamTypeClass::_CreateOneOf)
+DEFINE_FUNCTION_JUMP(LJMP, 0x6F09C0, FakeTeamTypeClass::_CreateOneOf)
 
-ASMJIT_PATCH(0x6F09C0, TeamTypeClass_CreateOneOf_Handled, 0x9)
-{
-	GET(TeamTypeClass*, pThis, ECX);
-	GET_STACK(DWORD, caller, 0x0);
-	GET_STACK(HouseClass*, pHouse, 0x4);
-
-	if (!pHouse)
-	{
-		pHouse = pThis->Owner;
-		if (!pHouse)
-		{
-			if (HouseClass::Index_IsMP(pThis->idxHouse))
-			{
-				pHouse = HouseClass::FindByPlayerAt(pThis->idxHouse);
-			}
-		}
-	}
-
-	if (!pHouse)
-	{
-		R->EAX<TeamClass*>(nullptr);
-		return 0x6F0A2C;
-	}
-
-	if (!Unsorted::ScenarioInit())
-	{
-		if (pThis->Max >= 0)
-		{
-			if (SessionClass::Instance->GameMode != GameMode::Campaign)
-			{
-				if (pHouse->GetTeamCount(pThis) >= pThis->Max)
-				{
-					R->EAX<TeamClass*>(nullptr);
-					return 0x6F0A2C;
-				}
-			}
-			else if (pThis->cntInstances >= pThis->Max)
-			{
-				R->EAX<TeamClass*>(nullptr);
-				return 0x6F0A2C;
-			}
-		}
-	}
-
-	const auto pTeam = GameCreate<TeamClass>(pThis, pHouse, false);
-	Debug::LogInfo("[{0} - {1}] Creating a new team named [{2} -{3}] caller [{4:x}].",
-		pHouse->get_ID(), (void*)pHouse, pThis->ID, (void*)pTeam, caller);
-	R->EAX(pTeam);
-	return 0x6F0A2C;
-}
+//ASMJIT_PATCH(0x6F09C0, TeamTypeClass_CreateOneOf_Handled, 0x9)
+//{
+//	GET(TeamTypeClass*, pThis, ECX);
+//	GET_STACK(DWORD, caller, 0x0);
+//	GET_STACK(HouseClass*, pHouse, 0x4);
+//
+//	if (!pHouse)
+//	{
+//		pHouse = pThis->Owner;
+//		if (!pHouse)
+//		{
+//			if (HouseClass::Index_IsMP(pThis->idxHouse))
+//			{
+//				pHouse = HouseClass::FindByPlayerAt(pThis->idxHouse);
+//			}
+//		}
+//	}
+//
+//	if (!pHouse)
+//	{
+//		R->EAX<TeamClass*>(nullptr);
+//		return 0x6F0A2C;
+//	}
+//
+//	if (!Unsorted::ScenarioInit())
+//	{
+//		if (pThis->Max >= 0)
+//		{
+//			if (SessionClass::Instance->GameMode != GameMode::Campaign)
+//			{
+//				if (pHouse->GetTeamCount(pThis) >= pThis->Max)
+//				{
+//					R->EAX<TeamClass*>(nullptr);
+//					return 0x6F0A2C;
+//				}
+//			}
+//			else if (pThis->cntInstances >= pThis->Max)
+//			{
+//				R->EAX<TeamClass*>(nullptr);
+//				return 0x6F0A2C;
+//			}
+//		}
+//	}
+//
+//	const auto pTeam = GameCreate<TeamClass>(pThis, pHouse, false);
+//	Debug::LogInfo("[{0} - {1}] Creating a new team named [{2} -{3}] caller [{4:x}].",
+//		pHouse->get_ID(), (void*)pHouse, pThis->ID, (void*)pTeam, caller);
+//	R->EAX(pTeam);
+//	return 0x6F0A2C;
+//}
 
 // Dead code — superseded by DEFINE_FUNCTION_JUMP at 0x65D8E0; logic integrated into _DoReinforcement
 //ASMJIT_PATCH(0x65DBB3, TeamTypeClass_CreateInstance_Plane, 5)
@@ -156,8 +156,8 @@ ASMJIT_PATCH(0x6F09C0, TeamTypeClass_CreateOneOf_Handled, 0x9)
 
 // #1260: reinforcements via actions 7 and 80, and chrono reinforcements
 // via action 107 cause crash if house doesn't exist
-//ASMJIT_PATCH(0x65D8FB, TeamTypeClass_ValidateHouse, 6)
-ASMJIT_PATCH(0x65EC4A, TeamTypeClass_ValidateHouse, 6)
+ASMJIT_PATCH(0x65D8FB, TeamTypeClass_ValidateHouse, 6)
+
 {
 	GET(TeamTypeClass*, pThis, ECX);
 	HouseClass* pHouse = pThis->GetHouse();
@@ -171,9 +171,9 @@ ASMJIT_PATCH(0x65EC4A, TeamTypeClass_ValidateHouse, 6)
 	}
 
 	// no.
-	return //(R->Origin() == 0x65D8FB) ? 0x65DD1B : 0x65F301;
-	0x65F301;
-}
+	return (R->Origin() == 0x65D8FB) ? 0x65DD1B : 0x65F301;
+	//0x65F301;
+}ASMJIT_PATCH_AGAIN(0x65EC4A, TeamTypeClass_ValidateHouse, 6)
 // ============================================================================
 // Full backport of _Create_Group (65DD30–65E00E)
 // Integrates:
@@ -339,7 +339,7 @@ FootClass* __fastcall FakeTeamTypeClass::_CreateGroup(TeamTypeClass* pType)
 	return nullptr;
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x65DD30, FakeTeamTypeClass::_CreateGroup)
+//DEFINE_FUNCTION_JUMP(LJMP, 0x65DD30, FakeTeamTypeClass::_CreateGroup)
 
 bool __fastcall FakeTeamTypeClass::_TunnelMaybe(TeamTypeClass* pType, FootClass* pGroup, CellStruct waypointCell, bool inRadar)
 {
@@ -509,7 +509,7 @@ bool __fastcall FakeTeamTypeClass::_TunnelMaybe(TeamTypeClass* pType, FootClass*
 	return didPlaceAny;
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x65E010, FakeTeamTypeClass::_TunnelMaybe)
+//DEFINE_FUNCTION_JUMP(LJMP, 0x65E010, FakeTeamTypeClass::_TunnelMaybe)
 
 // ============================================================================
 // Full backport of Do_Reinforcements (65D8E0–65DD25)
@@ -709,4 +709,4 @@ bool __fastcall FakeTeamTypeClass::_DoReinforcement(TeamTypeClass* pType, int wa
 	return true;
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x65D8E0, FakeTeamTypeClass::_DoReinforcement)
+//DEFINE_FUNCTION_JUMP(LJMP, 0x65D8E0, FakeTeamTypeClass::_DoReinforcement)

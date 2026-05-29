@@ -707,8 +707,6 @@ struct OwnerDrawDialogElementLayoutVerifier
 
 enum WWControlMessage : UINT
 {
-	WW_GETITEMDATA = 0x199,
-	WW_SETITEMDATA = 0x19A,
 	WW_SLIDER_GETPOS = 0x400,
 	WW_SLIDER_GETRANGEMIN = 0x401,
 	WW_SLIDER_GETRANGEMAX = 0x402,

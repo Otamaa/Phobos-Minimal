@@ -1103,7 +1103,7 @@ int FakeAircraftClass::_Mission_Move()
 	default:
 	{
 		auto Current_Mission_Control = this->GetCurrentMissionControl();
-		return  (Current_Mission_Control->Rate * TICKS_PER_MINUTE) + ScenarioClass::Instance->Random.RandomRanged(0, 2);
+		return  int(Current_Mission_Control->Rate * TICKS_PER_MINUTE) + ScenarioClass::Instance->Random.RandomRanged(0, 2);
 	}
 	case 1:
 	{

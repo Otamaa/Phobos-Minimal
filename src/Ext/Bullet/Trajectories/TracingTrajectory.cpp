@@ -585,7 +585,7 @@ AbstractClass* TracingTrajectory::GetBulletTarget(TechnoClass* pTechno, HouseCla
 
 	if (pType->Synchronize)
 		return pBullet->Target;
-	auto pWHExt = pWeapon->Warhead ? WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead) : nullptr;
+	auto pWHExt = WarheadTypeExtContainer::Instance.TryFind(pWeapon->Warhead ? pWeapon->Warhead : pBullet->WH);
 
 	const auto vec = Helpers::Alex::getCellSpreadItems(pBullet->Location, (pWeapon->Range / 256.0),
 		true,
@@ -618,9 +618,8 @@ AbstractClass* TracingTrajectory::GetBulletTarget(TechnoClass* pTechno, HouseCla
 		if (pOpt->CloakState == CloakState::Cloaked && !pCell->Sensors_InclHouse(pOwner->ArrayIndex))
 			continue;
 
-		if (FakeWarheadTypeClass::ModifyDamage(100, pWeapon->Warhead, pOptType->Armor, 0) == 0)
+		if(pWHExt && pWHExt->GetVerses(TechnoExtData::GetTechnoArmor(pOpt, pWeapon->Warhead)).Verses < 0.001)
 			continue;
-
 		auto pExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 		if ((!EnumFunctions::IsTechnoEligible(pOpt, pExt->CanTarget, false) || !pExt->HasRequiredAttachedEffects(pOpt, pTechno)))
 			continue;

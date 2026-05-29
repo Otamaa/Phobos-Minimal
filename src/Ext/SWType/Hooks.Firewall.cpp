@@ -357,9 +357,9 @@ ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
 
 	//skip together radiation damaging it is now direclt applyed on undate of the RadSiteClass itself
 	//without this the sight wont properly updated
-	if(!pThis->IsOnMap && (pType->BalloonHover || pType->JumpJet)) {
+	if(!pThis->IsInPlayfield && (pType->BalloonHover || pType->JumpJet)) {
 		if(MapClass::Instance->IsWithinUsableArea(pThis->GetCell(), true))
-			pThis->IsOnMap = true;
+			pThis->IsInPlayfield = true;
 	}
 
 	return SightChecking;

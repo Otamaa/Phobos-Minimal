@@ -769,7 +769,7 @@ std::pair<bool, int> HealActionProhibited(TechnoClass* pTarget, WeaponTypeClass*
 	{
 		const auto pShieldType = pThatShield->GetType();
 
-		if (pWHExt->GetVerses(pShieldType->Armor).Verses <= 0.0)
+		if (pWHExt->GetVerses(pShieldType->Armor).Verses < 0.001)
 		{
 			return { true , -1 };
 		}
@@ -800,7 +800,7 @@ std::pair<bool, int> HealActionProhibited(TechnoClass* pTarget, WeaponTypeClass*
 		}
 	}
 
-	if (pWHExt->GetVerses(TechnoExtData::GetArmor(pTarget)).Verses <= 0.0)
+	if (pWHExt->GetVerses(TechnoExtData::GetArmor(pTarget)).Verses < 0.001)
 		return { true , -1 };
 
 	return { pTarget->IsFullHP() , -1 };

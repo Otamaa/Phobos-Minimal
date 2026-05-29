@@ -1888,30 +1888,39 @@ void TechnoExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* const pK
 
 int TechnoExtData::GetWarpPerStep(TemporalClass* pThis, int nStep)
 {
-	int totalStep = 0;
+	int sum = 0;
+	auto pTemporal = pThis;
 
-	if (!pThis)
-		return 0;
-
-	for (TemporalClass* pTemp = pThis; pTemp; pTemp = pTemp->PrevTemporal)
+	do
 	{
 		if (nStep > 50)
 			break;
 
 		++nStep;
+		auto pTempOwner = pTemporal->Owner;
 
-		if (auto pTempOwner = pTemp->Owner)
+		if (const auto pTarget = pTemporal->Target)
 		{
-
 			auto const pWeapon = pTempOwner->GetWeapon(TechnoExtContainer::Instance.Find(pTempOwner)->idxSlot_Warp)
 				->WeaponType;
 
-			totalStep += pWeapon->Damage;
-			pTemp->WarpPerStep = pWeapon->Damage;
-		}
-	}
+			const auto pWarhead = pWeapon->Warhead;
+			int warpPerStep = pWeapon->Damage;
 
-	return totalStep;
+			if (pWarhead) {
+				auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
+				if (pWHExt->Temporal_ConsiderVersus.Get(RulesExtData::Instance()->Temporal_ConsiderVersus)) {
+					warpPerStep = FakeWarheadTypeClass::ModifyDamage(warpPerStep, pWarhead, TechnoExtData::GetTechnoArmor(pTarget, pWarhead), 0);
+				}
+			}
+			sum += warpPerStep;
+			pTemporal->WarpPerStep = warpPerStep;
+			pTemporal = pTemporal->PrevTemporal;
+		}
+
+	}while (pTemporal);
+
+	return sum;
 }
 
 bool TechnoExtData::Warpable(TemporalClass* pTemp, TechnoClass* pTarget)
@@ -2656,8 +2665,8 @@ bool NOINLINE _CheckFirstPahse(FakeBuildingClass* pThis, bool isHumanControlled)
 			if (!isHumanControlled)
 			{
 				const int v3 = ScenarioClass::Instance->Random.RandomRanged(
-					(pThis->Owner->RepairDelay * 225.0),
-					(pThis->Owner->RepairDelay * 1800.0));
+					int(pThis->Owner->RepairDelay * 225.0),
+					int(pThis->Owner->RepairDelay * 1800.0));
 
 				pThis->Owner->RepairTimer.Start(v3);
 			}
@@ -5393,7 +5402,7 @@ void FakeTechnoClass::__FireRadEruption(TechnoClass* pThis,WeaponTypeClass* pWea
 
 void __fastcall  FakeTechnoClass::__FireRadEruption_Wrapper(TechnoClass* pThis, discard_t, int spread)
 {
-	__FireRadEruption(pThis, nullptr, spread);
+	__FireRadEruption(pThis, nullptr, (float)spread);
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x6FD620, FakeTechnoClass::__FireBeam_Wrapper)
@@ -9256,7 +9265,7 @@ bool TechnoExtData::TargetTechnoShieldAllowFiring(TechnoClass* pTarget, WeaponTy
 		{
 			if (!pShieldData->CanBePenetrated(pWeapon->Warhead))
 			{
-				if (pWHExt->GetVerses(pShieldData->GetType()->Armor).Verses < 0.0 && pShieldData->GetType()->CanBeHealed)
+				if (pWHExt->GetVerses(pShieldData->GetType()->Armor).Verses < 0.001 && pShieldData->GetType()->CanBeHealed)
 				{
 					const bool IsFullHP = pShieldData->GetHealthRatio() >= RulesClass::Instance->ConditionGreen;
 					if (!IsFullHP)

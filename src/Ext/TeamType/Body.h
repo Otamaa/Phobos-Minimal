@@ -53,6 +53,6 @@ public:
 	static bool __fastcall _DoReinforcement(TeamTypeClass* pType, int waypoint);
 	static bool __fastcall _TunnelMaybe(TeamTypeClass* pType, FootClass* pGroup, CellStruct waypointCell, bool inRadar);
 	static FootClass* __fastcall _CreateGroup(TeamTypeClass* pType);
-	static TeamClass* __fastcall _CreateOneOf(TeamTypeClass* pType, HouseClass* pHouse);
+	TeamClass* _CreateOneOf(HouseClass* pHouse);
 };
 static_assert(sizeof(FakeTeamTypeClass) == sizeof(TeamTypeClass), "Invalid Size !");
