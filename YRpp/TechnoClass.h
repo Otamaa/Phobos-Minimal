@@ -1061,7 +1061,7 @@ public:
 	BYTE             DiscoveredByCurrentPlayer;
 	BYTE             DiscoveredByComputer;
 	BYTE             unknown_bool_41D;
-	BYTE             unknown_bool_41E;
+	char             unknown_count_41E;
 	BYTE             unknown_bool_41F;
 	BYTE             SightIncrease; // used for LeptonsPerSightIncrease
 	BYTE             RecruitableA; //__Recruitable, these two are like Lenny and Carl, weird purpose and never seen separate

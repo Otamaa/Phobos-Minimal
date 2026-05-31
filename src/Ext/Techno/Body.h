@@ -2,8 +2,6 @@
 #include <TechnoClass.h>
 #include <AnimClass.h>
 
-#include <Phobos.Entity.h>
-
 #include <Helpers/Macro.h>
 
 #include <Utilities/TemplateDefB.h>
@@ -174,6 +172,9 @@ private:
 		debugProcess(this->OriginalHouseType, "OriginalHouseType");
 		debugProcess(this->CloakSkipTimer, "CloakSkipTimer");
 		debugProcess(this->HijackerHealth, "HijackerHealth");
+		debugProcess(this->ShieldEntity, "ShieldEntity");
+		debugProcess(this->PoweredUnitEntity, "PoweredUnitEntity");
+		debugProcess(this->RadarJammerEntity, "RadarJammerEntity");
 		debugProcess(this->HijackerOwner, "HijackerOwner");
 		debugProcess(this->HijackerVeterancy, "HijackerVeterancy");
 		debugProcess(this->Is_SurvivorsDone, "Is_SurvivorsDone");
@@ -397,9 +398,9 @@ public:
 	// ============================================================
 	// 4-byte aligned: int, DWORD, float, enums
 	// ============================================================
-	entt::entity ShieldEntity { entt::null };
-	entt::entity PoweredUnitEntity { entt::null };
-	entt::entity RadarJammerEntity { entt::null };
+	std::unique_ptr<ShieldClass> ShieldEntity {};
+	std::unique_ptr<PoweredUnitClass> PoweredUnitEntity {};
+	std::unique_ptr<RadarJammerClass> RadarJammerEntity {};
 	int HijackerHealth {};
 	int TechnoValueAmount {};
 	int Pos {};
@@ -488,9 +489,9 @@ public:
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
 		MyTargetingFrame = ScenarioClass::Instance->Random.RandomRanged(0, 15);
 		Tints.SetOwner(abs);
-		ShieldEntity = PhobosEntity::Create();
-		PoweredUnitEntity = PhobosEntity::Create();
-		RadarJammerEntity = PhobosEntity::Create();
+		//ShieldEntity = PhobosEntity::Create();
+		//PoweredUnitEntity = PhobosEntity::Create();
+		//RadarJammerEntity = PhobosEntity::Create();
 	};
 
 	TechnoExtData(TechnoClass* abs, noinit_t& noint) : RadioExtData(abs, noint) {};
@@ -524,17 +525,17 @@ public:
 
 	FORCEDINLINE ShieldClass* GetShield() const
 	{
-		return PhobosEntity::TryGet<ShieldClass>(this->ShieldEntity);
+		return this->ShieldEntity.get();
 	}
 
 	FORCEDINLINE PoweredUnitClass* GetPoweredUnit() const
 	{
-		return PhobosEntity::TryGet<PoweredUnitClass>(this->PoweredUnitEntity);
+		return this->PoweredUnitEntity.get();
 	}
 
 	FORCEDINLINE RadarJammerClass* GetRadarJammer() const
 	{
-		return PhobosEntity::TryGet<RadarJammerClass>(this->RadarJammerEntity);
+		return this->RadarJammerEntity.get();
 	}
 
 	void ClearElectricBolts()

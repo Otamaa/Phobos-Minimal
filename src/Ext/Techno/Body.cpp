@@ -4746,13 +4746,11 @@ void NOINLINE UpdatePoweredBy(TechnoClass* pThis, TechnoTypeExtData* pTypeData)
 	{
 		auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-		auto pTr = pExt->GetPoweredUnit();
-
-		if (!pTr) {
-			pTr = & PhobosEntity::Emplace<PoweredUnitClass>(pExt->PoweredUnitEntity , pThis);
+		if (!pExt->PoweredUnitEntity) {
+			pExt->PoweredUnitEntity = std::make_unique<PoweredUnitClass>(pThis);
 		}
 
-		if (!pTr->Update())
+		if (!pExt->PoweredUnitEntity->Update())
 		{
 			TechnoExtData::Destroy(pThis, nullptr, nullptr, nullptr);
 		}
@@ -4824,7 +4822,6 @@ void NOINLINE UpdateRadarJammer(TechnoExtData* pData, TechnoTypeExtData* pTypeDa
 	auto const pThis = pData->This();
 
 	// prevent disabled units from driving around.
-	auto pJam = pData->GetRadarJammer();
 
 	if (pThis->Deactivated)
 	{
@@ -4839,9 +4836,9 @@ void NOINLINE UpdateRadarJammer(TechnoExtData* pData, TechnoTypeExtData* pTypeDa
 
 		// dropping Radar Jammers (#305) here for now; should check if another TechnoClass::Update hook might be better ~Ren
 		;
-		if (pJam)
+		if (pData->RadarJammerEntity)
 		{ // RadarJam should only be non-null if the object is an active radar jammer
-			pJam->UnjamAll();
+			pData->RadarJammerEntity->UnjamAll();
 		}
 	}
 	else
@@ -4849,11 +4846,11 @@ void NOINLINE UpdateRadarJammer(TechnoExtData* pData, TechnoTypeExtData* pTypeDa
 		// dropping Radar Jammers (#305) here for now; should check if another TechnoClass::Update hook might be better ~Ren
 		if (pTypeData->RadarJamRadius)
 		{
-			if (!pJam) {
-				pJam = &PhobosEntity::Emplace<RadarJammerClass>(pData->RadarJammerEntity, pThis);
+			if (!pData->RadarJammerEntity) {
+				pData->RadarJammerEntity = std::make_unique<RadarJammerClass>(pThis);
 			}
 
-			pJam->Update();
+			pData->RadarJammerEntity->Update();
 		}
 	}
 }
@@ -6923,7 +6920,7 @@ bool TechnoExtData::MultiWeaponCanFire(TechnoClass* const pThis, AbstractClass* 
 		return false;
 
 	if(auto pObj = flag_cast_to<ObjectClass*>(pTarget)){
-		if (GeneralUtils::GetWarheadVersusArmor(pWH, TechnoExtData::GetTechnoArmor(pObj, pWH)) == 0.0)
+		if (GeneralUtils::GetWarheadVersusArmor(pWH, TechnoExtData::GetTechnoArmor(pObj, pWH)) < 0.001)
 			return false;
 	}
 
@@ -10599,7 +10596,7 @@ void TechnoExtData::UpdateInterceptor()
 {
 	auto const pThis = This();
 
-	if (!this->IsInterceptor())
+	if (!this->IsInterceptor() || !pThis->IsArmed())
 		return;
 
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(GET_TECHNOTYPE(pThis));
@@ -10626,8 +10623,15 @@ void TechnoExtData::UpdateInterceptor()
 	if (TechnoExtData::IsInWarfactory(pThis))
 		return;
 
-	if (pThis->WhatAmI() == AircraftClass::AbsID && !pThis->IsInAir())
+	auto what = pThis->WhatAmI();
+
+	if (what == AircraftClass::AbsID && !pThis->IsInAir())
 		return;
+
+	if (what == AbstractType::Building && 
+		(pThis->CurrentMission == Mission::Selling || pThis->CurrentMission == Mission::Construction)) {
+		return;
+	}
 
 	if (auto const pTransport = pThis->Transporter)
 	{
@@ -10646,6 +10650,7 @@ void TechnoExtData::UpdateInterceptor()
 
 
 	BulletClass* pTargetBullet = nullptr;
+	BulletClass* pOptionalTarget = nullptr;
 
 	const auto& guardRange = pTypeExt->Interceptor_GuardRange.Get(pThis);
 	const double guardRangeSq = guardRange * guardRange;
@@ -10663,9 +10668,11 @@ void TechnoExtData::UpdateInterceptor()
 	// DO NOT iterate BulletExt::ExtMap here, the order of items is not deterministic
 	// so it can differ across players throwing target management out of sync.
 	int i = 0;
+	const bool isCylinc = pTypeExt->Interceptor_GuardRange_IsCylindrical;
+	const bool considerWeaponRange = pTypeExt->Interceptor_ConsiderWeaponRange.Get();
+	const auto canTargetHouse = pTypeExt->Interceptor_CanTargetHouses;
 
-	for (; i < count; ++i)
-	{
+	for (; i < count; ++i) {
 		const auto& pBullet = BulletClass::Array->Items[i];
 		const auto pBulletExt = BulletExtContainer::Instance.Find(pBullet);
 		const auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pBullet->Type);
@@ -10680,9 +10687,14 @@ void TechnoExtData::UpdateInterceptor()
 		if (pTargetBullet && isTargetedOrLocked)
 			continue;
 
-		const auto distanceSq = pBullet->Location.DistanceFromSquared(pThis->Location);
+		auto bulletLoc = pBullet->Location;
 
-		if (pTypeExt->Interceptor_ConsiderWeaponRange.Get() &&
+		if (isCylinc)
+			bulletLoc.Z = pThis->Location.Z;
+
+		const auto distanceSq = bulletLoc.DistanceFromSquared(pThis->Location);
+
+		if (considerWeaponRange &&
 			(distanceSq > wpnRangeS1q || distanceSq < wpnminRangeS1q))
 			continue;
 
@@ -10700,7 +10712,7 @@ void TechnoExtData::UpdateInterceptor()
 
 		const auto bulletOwner = pBullet->Owner ? pBullet->Owner->Owner : pBulletExt->Owner;
 
-		if (!EnumFunctions::CanTargetHouse(pTypeExt->Interceptor_CanTargetHouses, pThis->Owner, bulletOwner))
+		if (!EnumFunctions::CanTargetHouse(canTargetHouse, pThis->Owner, bulletOwner))
 			continue;
 
 		if (!pTargetBullet && isTargetedOrLocked)
@@ -10710,9 +10722,21 @@ void TechnoExtData::UpdateInterceptor()
 			break;
 		}
 
-		// Establish target
-		pThis->SetTarget(pBullet);
-		return;
+		// There is no more suitable target, establish optional target
+		if (!pTargetBullet && pOptionalTarget)
+			pTargetBullet = pOptionalTarget;
+
+		if (pTargetBullet)
+		{
+			pThis->SetTarget(pTargetBullet);
+
+			// Skip normal transition from idle to attack for building interceptors.
+			if (what == AbstractType::Building)
+			{
+				pThis->QueueMission(Mission::Attack, false);
+				pThis->NextMission();
+			}
+		}
 	}
 
 	if (pTargetBullet)
@@ -10869,6 +10893,18 @@ void TechnoExtData::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 		pExt->LaserTrails.clear();
 
 	auto const pOwner = pThis->GetOwningHouse() ? pThis->GetOwningHouse() : HouseExtData::FindFirstCivilianHouse();
+
+	auto& map = pTypeExt->DestroyAnimSpecific;
+	auto& trail = pTypeExt->LaserTrailData;
+
+	Debug::Log(
+		"[DiagnosticCheck] DestroyAnimSpecific: size=%zu capacity=%zu | "
+		"LaserTrailData ptr=%p size=%zu\n",
+		map.AsPair()->size(),
+		map.AsPair()->capacity(),
+		trail.data(),
+		trail.size()
+	);
 
 	if (pExt->LaserTrails.empty())
 	{
@@ -12552,10 +12588,11 @@ void TechnoExtData::UpdateShield()
 		this->CurrentShieldType = pTypeExt->ShieldType;
 
 	// Create shield class instance if it does not exist.
-	if (this->CurrentShieldType && this->CurrentShieldType->Strength && !PhobosEntity::Has<ShieldClass>(this->ShieldEntity))
-	{
-		auto& shield = PhobosEntity::Emplace<ShieldClass>(this->ShieldEntity, pThis);
-		shield.UpdateTint();
+	if (this->CurrentShieldType && this->CurrentShieldType->Strength && !this->ShieldEntity) {
+		this->ShieldEntity = std::make_unique<ShieldClass>(pThis);
+
+		if(this->ShieldEntity)
+			this->ShieldEntity->UpdateTint();
 	}
 
 	if (const  auto pShieldData = this->GetShield())
@@ -13419,17 +13456,17 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved, Abstrac
 		break;
 	}
 	case AbstractType::Airstrike:
-		AnnounceInvalidPointer(AirstrikeTargetingMe, ptr);
+		AnnounceInvalidPointer(AirstrikeTargetingMe, ptr, bRemoved);
 		break;
 	case AbstractType::BuildingLight:
-		AnnounceInvalidPointer(BuildingLight, ptr);
+		AnnounceInvalidPointer(BuildingLight, ptr, bRemoved);
 		break;
 	case AbstractType::House:
-		AnnounceInvalidPointer(this->ShiftApplierHouse, ptr);
-		AnnounceInvalidPointer(OriginalPassengerOwner, ptr);
+		AnnounceInvalidPointer(this->ShiftApplierHouse, ptr, bRemoved);
+		AnnounceInvalidPointer(OriginalPassengerOwner, ptr, bRemoved);
 		break;
 	case AbstractType::Super:
-		AnnounceInvalidPointer(LinkedSW, ptr);
+		AnnounceInvalidPointer(LinkedSW, ptr, bRemoved);
 
 		break;
 	default:break;
@@ -13504,9 +13541,10 @@ TechnoExtData::~TechnoExtData()
 		}
 	}
 
-	PhobosEntity::DestroyEntity<true>(this->ShieldEntity);
-	PhobosEntity::DestroyEntity<true>(this->PoweredUnitEntity);
-	PhobosEntity::DestroyEntity<true>(this->RadarJammerEntity);
+	this->ShieldEntity.reset();
+	this->PoweredUnitEntity.reset();
+	this->RadarJammerEntity.reset();
+
 }
 
 // =============================

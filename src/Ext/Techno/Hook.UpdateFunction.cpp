@@ -397,8 +397,8 @@ void FakeTechnoClass::__HandleDoorAndTimers(TechnoClass* pThis)
 		pThis->UnloadTimer.Update();
 	}
 
-	if (pThis->unknown_bool_41E > 0) {
-		pThis->unknown_bool_41E--;
+	if (pThis->unknown_count_41E > 0) {
+		pThis->unknown_count_41E--;
 	}
 }
 

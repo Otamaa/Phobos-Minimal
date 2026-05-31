@@ -132,16 +132,16 @@ ASMJIT_PATCH(0x71BCA5, TerrainClass_CTOR_MoveAndAllocate, 0x5)
 	GET(TerrainClass*, pItem, ESI);
 	GET_STACK(CellStruct*, pCoord, 0x24);
 
-	auto pExt = TerrainExtContainer::Instance.FindOrAllocate(pItem);
+	if(auto pExt = TerrainExtContainer::Instance.Allocate(pItem)){
+		if (pCoord->IsValid()) {
+			//vtable may not instantiated
+			if (!pItem->TerrainClass::Unlimbo(CellClass::Cell2Coord(*pCoord), static_cast<DirType>(0))) {
+				pItem->ObjectClass::UnInit();
+			}
 
-	if (pCoord->IsValid()) {
-		//vtable may not instantiated
-		if (!pItem->TerrainClass::Unlimbo(CellClass::Cell2Coord(*pCoord), static_cast<DirType>(0))) {
-			pItem->ObjectClass::UnInit();
-		}
-
-		if(pItem->Type){
-			GeneralUtils::AdjacentCellsInRange(pExt->AdjacentCells, (short)TerrainTypeExtContainer::Instance.Find(pItem->Type)->SpawnsTiberium_Range);
+			if(pItem->Type){
+				GeneralUtils::AdjacentCellsInRange(pExt->AdjacentCells, (short)TerrainTypeExtContainer::Instance.Find(pItem->Type)->SpawnsTiberium_Range);
+			}
 		}
 	}
 

@@ -242,7 +242,7 @@ ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
 {
 	enum {
 		SkipEverything = 0x4DAF00,
-		SightChecking = 0x4DA689
+		SightChecking = 0x4DA677
 	};
 
 	GET(FootClass* , pThis, ESI);

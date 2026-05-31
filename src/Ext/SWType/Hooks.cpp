@@ -511,36 +511,17 @@ ASMJIT_PATCH(0x50CFAA, HouseClass_PickOffensiveSWTarget, 0xA)
 	return 0x50CFC9;
 }
 
-ASMJIT_PATCH(0x457630, BuildingClass_SWAvailable, 9)
-{
-	GET(BuildingClass*, pThis, ECX);
-
-	auto nSuper = pThis->Type->SuperWeapon2;
-	if (nSuper >= 0 && !HouseExtData::IsSuperAvail(nSuper, pThis->Owner))
-		nSuper = -1;
-
-	R->EAX(nSuper);
-	return 0x457688;
-}
-
-ASMJIT_PATCH(0x457690, BuildingClass_SW2Available, 9)
-{
-	GET(BuildingClass*, pThis, ECX);
-
-	auto nSuper = pThis->Type->SuperWeapon2;
-	if (nSuper >= 0 && !HouseExtData::IsSuperAvail(nSuper, pThis->Owner))
-		nSuper = -1;
-
-	R->EAX(nSuper);
-	return 0x4576E8;
-}
 
 ASMJIT_PATCH(0x43BE50, BuildingClass_DTOR_HasAnySW, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	return (BuildingExtData::GetFirstSuperWeaponIndex(pThis) != -1)
-		? 0x43BEEAu : 0x43BEF5u;
+	if (BuildingExtData::GetFirstSuperWeaponIndex(pThis) != -1) {
+		return 0x43BEEA;
+		//FakeHouseClass::__SuperWeaponHandler(pThis->Owner);
+	}
+
+	return 0x43BEF5u;
 }
 
 ASMJIT_PATCH(0x449716, BuildingClass_Mission_Guard_HasFirstSW, 6)

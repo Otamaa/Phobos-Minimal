@@ -199,7 +199,7 @@ ASMJIT_PATCH(0x777998, Game_WndProc_ScrollMouseWheel, 0x6)
 }
 
 //this is still 0.A code , need check the new one ,..
-void __fastcall ScreenCaptureCommandClass_Process(CommandClass* pThis, DWORD)
+void __fastcall ScreenCaptureCommandClass_Process(CommandClass* pThis)
 {
 	RECT Viewport = {};
 	if (Imports::GetWindowRect.invoke()(Game::hWnd, &Viewport))

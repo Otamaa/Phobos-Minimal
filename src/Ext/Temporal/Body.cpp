@@ -104,10 +104,10 @@ void HandleDestruction(TemporalClass* pTemporal , TechnoClass* target , WeaponTy
 		}
 	}
 
-	PhobosEntity::Remove<RadarJammerClass>(pTargetExt->RadarJammerEntity);
+	pTargetExt->RadarJammerEntity.reset();
 
 	if (target && target->IsAlive) {
-		AresAE::UpdateTempoal(&pTargetExt->AeData, target);
+		AresAE::UpdateTempoal(&pTargetExt->AeData, target);	
 
 		if (target && target->IsAlive) {
 			for (auto& ae : pTargetExt->PhobosAE) {

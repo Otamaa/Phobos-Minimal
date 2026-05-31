@@ -133,6 +133,7 @@ public:
 	// ============================================================
 	Nullable<PartialVector3D<int>> AIBuildCounts {};
 	Nullable<PartialVector3D<int>> AIExtraCounts {};
+	Nullable<PartialVector2D<int>> GuardRetryDelay {};
 
 	// ============================================================
 	// Valueable<CoordStruct> (12 bytes)

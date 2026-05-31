@@ -142,7 +142,9 @@ int __fastcall FakeTechnoClass::__WhatWeaponShouldIUse(TechnoClass* pThis, disca
 						return false;
 					if (pShield && pShield->IsActive() && !pShield->CanBeTargeted(pWeapon))
 						return false;
-					if (GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead, armor) == 0.0)
+
+					auto armor = TechnoExtData::GetArmor(pTargetTechno);
+					if (GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead, armor) < 0.001)
 						return false;
 					return true;
 				};

@@ -867,3 +867,47 @@ DEFINE_JUMP(LJMP, 0x4417A7, 0x44180A)
 
 //BuildingClass_Mission_Unload_DisableLog
 DEFINE_JUMP(LJMP, 0x44DE2F, 0x44DE3C);
+
+
+#pragma region Mission_Guard_Attack
+
+static int HandleArmedBuildingGuard(BuildingClass* pThis)
+{
+	auto const pType = pThis->Type;
+	pThis->IsReadyToCommence = true;
+
+	// May 29, 2026 - Starkku: The EMPulseCannon and SW checks are most likely superfluous,
+	// but kept them here just in case removing them would break something.
+	if (pType->EMPulseCannon 
+		|| pThis->FirstActiveSWIdx() >= 0 
+		|| (pType->CanBeOccupied && pThis->Occupants.Count <= 0) || !pThis->Target)
+	{
+		auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
+		auto const& delay = (pTypeExt->GuardRetryDelay.isset() ?
+			pTypeExt->GuardRetryDelay : RulesExtData::Instance()->BuildingGuardRetryDelay);
+
+		if (delay.isset())
+			return GeneralUtils::GetRangedRandomOrSingleValue(delay);
+
+		return static_cast<int>(pThis->GetCurrentMissionControl()->AARate * 900 + ScenarioClass::Instance->Random.RandomRanged(0, 2));
+	}
+	else
+	{
+		pThis->QueueMission(Mission::Attack, false);
+		pThis->NextMission();
+
+		return 1;
+	}
+}
+
+ASMJIT_PATCH(0x4496FB, BuildingClass_Mission_Guard_Armed, 0x6)
+{
+	enum { ReturnFromFunction = 0x4497A7 };
+
+	GET(BuildingClass*, pThis, ESI);
+
+	R->EAX(HandleArmedBuildingGuard(pThis));
+	return ReturnFromFunction;
+}
+
+#pragma endregion

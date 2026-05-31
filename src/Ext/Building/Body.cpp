@@ -1057,7 +1057,7 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		}
 
 		pBuildingExt->LimboID = ID;
-		PhobosEntity::Remove<ShieldClass>(pBuildingExt->ShieldEntity);
+		pBuildingExt->ShieldEntity.reset();
 		//pBuildingExt->Trails.clear();
 		pBuildingExt->RevengeWeapons.clear();
 		//pBuildingExt->DamageSelfState.release();
@@ -1185,6 +1185,26 @@ constexpr int GetRepairValue(BuildingClass* pTarget, int repair)
 
 	return repairAmount;
 };
+
+int FakeBuildingClass::_SWAvailable()
+{
+	auto nSuper = this->Type->SuperWeapon;
+	if (nSuper >= 0 && !HouseExtData::IsSuperAvail(nSuper, this->Owner))
+		nSuper = -1;
+
+	return nSuper;
+}
+DEFINE_FUNCTION_JUMP(LJMP, 0x457630, FakeBuildingClass::_SWAvailable)
+
+int FakeBuildingClass::_SW2Available()
+{
+	auto nSuper = this->Type->SuperWeapon2;
+	if (nSuper >= 0 && !HouseExtData::IsSuperAvail(nSuper, this->Owner))
+		nSuper = -1;
+
+	return nSuper;
+}
+DEFINE_FUNCTION_JUMP(LJMP, 0x457690, FakeBuildingClass::_SW2Available)
 
 void FakeBuildingClass::_OnFinishRepairB(InfantryClass* pEngineer)
 {

@@ -984,118 +984,104 @@ void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 	if (!pTarget)
 		return;
 
-	auto pExt = TechnoExtContainer::Instance.Find(pTarget);
-
-	const bool has_shield = PhobosEntity::Has<ShieldClass>(pExt->ShieldEntity);
-	ShieldClass* ptr = nullptr;
-
+	auto const pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
+	auto& pShield = pTargetExt->ShieldEntity;
 	int shieldIndex = -1;
-	double oldRatio = 1.0;
+	double ratio = 1.0;
 
 	// Remove shield.
-	if (has_shield) {
-		ptr = PhobosEntity::Get<ShieldClass>(pExt->ShieldEntity);
+	if (pShield)
+	{
+		const auto shieldType = pShield->GetType();
+		shieldIndex = this->Shield_RemoveTypes.IndexOf(shieldType);
 
-		shieldIndex = this->Shield_RemoveTypes.IndexOf(ptr->GetType());
-
-		if (shieldIndex >= 0 || this->Shield_RemoveAll) {
-			oldRatio = ptr->GetHealthRatio();
-			pExt->CurrentShieldType = ShieldTypeClass::FindOrAllocate(DEFAULT_STR2);;
-			PhobosEntity::Remove<ShieldClass>(pExt->ShieldEntity);
+		if (shieldIndex >= 0 || this->Shield_RemoveAll)
+		{
+			ratio = pShield->GetHealthRatio();
+			pTargetExt->CurrentShieldType = nullptr;
+			pShield->KillAnim();
+			pShield = nullptr;
 		}
 	}
 
 	// Attach shield.
-	if (!this->Shield_AttachTypes.empty())
+	if (this->Shield_AttachTypes.size() > 0)
 	{
 		ShieldTypeClass* shieldType = nullptr;
 
 		if (this->Shield_ReplaceOnly)
 		{
 			if (shieldIndex >= 0)
-			{
-				const int nMax = (Shield_AttachTypes.size() - 1);
-				shieldType = Shield_AttachTypes[MinImpl(shieldIndex, nMax)];
-			}
+				shieldType = this->Shield_AttachTypes[MinImpl(shieldIndex, (signed)this->Shield_AttachTypes.size() - 1)];
 			else if (this->Shield_RemoveAll)
-				shieldType = Shield_AttachTypes[0];
-
+				shieldType = this->Shield_AttachTypes[0];
 		}
 		else
 		{
-			shieldType = Shield_AttachTypes[0];
+			shieldType = this->Shield_AttachTypes[0];
 		}
 
-		bool create = !ptr;
-
-		if(ptr){
-			create = this->Shield_ReplaceNonRespawning && ptr->IsBrokenAndNonRespawning() && ptr->GetFramesSinceLastBroken() >= this->Shield_MinimumReplaceDelay;
-		}
-
-		if (shieldType && shieldType->Strength && create )
+		if (shieldType)
 		{
-			pExt->CurrentShieldType = shieldType;
-			if (ptr) {
-				PhobosEntity::Remove<ShieldClass>(pExt->ShieldEntity);
-				ptr = nullptr;
-			}
+			if (shieldType->Strength
+				&& (!pShield
+					|| (this->Shield_ReplaceNonRespawning
+						&& pShield->IsBrokenAndNonRespawning()
+						&& pShield->GetFramesSinceLastBroken() >= this->Shield_MinimumReplaceDelay)))
+			{
+				pTargetExt->CurrentShieldType = shieldType;
+				pShield = std::make_unique<ShieldClass>(pTarget, true);
+				pShield->UpdateTint();
 
-			ptr = &PhobosEntity::Emplace<ShieldClass>(pExt->ShieldEntity, pTarget, true);
-			ptr->UpdateTint();
+				if (this->Shield_ReplaceOnly && this->Shield_InheritStateOnReplace)
+				{
+					pShield->SetHP((int)(shieldType->Strength * ratio));
 
-			if (this->Shield_ReplaceOnly && this->Shield_InheritStateOnReplace) {
-						ptr->SetHP((int)(shieldType->Strength * oldRatio));
+					if (this->Shield_ReplaceOnly && this->Shield_InheritStateOnReplace)
+					{
+						pShield->SetHP((int)(shieldType->Strength * ratio));
 
-				if (ptr->GetHP() == 0) {
-					ptr->SetRespawn(
-								shieldType->Respawn_Rate,
-								shieldType->Respawn,
-								shieldType->Respawn_Rate,
-								shieldType->Respawn_RestartInCombat,
-								-1,
-								true,
-								&shieldType->Respawn_Anim.AsVector()
-					);
+						if (pShield->GetHP() == 0)
+						{
+							pShield->SetRespawn(shieldType->Respawn_Rate, shieldType->Respawn, shieldType->Respawn_Rate,
+								shieldType->Respawn_RestartInCombat, -1, true, &shieldType->Respawn_Anim.AsVector());
+						}
+					}
 				}
-			 }
+			}
 		}
 	}
 
 	// Apply other modifiers.
-	if (ptr) {
-		const auto pCurrentType = ptr->GetType();
+	if (pShield)
+	{
+		const auto shieldType = pShield->GetType();
 
-		if (!this->Shield_AffectTypes.empty() && !this->Shield_AffectTypes.Contains(pCurrentType))
-			return;
+		auto isShieldTypeEligible = [pTargetExt, shieldType](Iterator<ShieldTypeClass*> pShieldTypeList) -> bool
+			{
+				return !(pShieldTypeList.size() > 0 && !pShieldTypeList.contains(shieldType));
+			};
 
-		if (this->Shield_Break && ptr->IsActive() && this->Shield_Break_Types.Eligible(this->Shield_AffectTypes, pCurrentType))
-			ptr->BreakShield(this->Shield_BreakAnim, this->Shield_BreakWeapon);
+		if (this->Shield_Break && pShield->IsActive() && isShieldTypeEligible(this->Shield_Break_Types.GetElements(this->Shield_AffectTypes)))
+			pShield->BreakShield(this->Shield_BreakAnim, this->Shield_BreakWeapon);
 
-		if ((this->Shield_Respawn_Duration > 0 || this->Shield_Respawn_RestartTimer)
-			&& this->Shield_Respawn_Types.Eligible(this->Shield_AffectTypes, pCurrentType)) {
-				ptr->SetRespawn(
-					this->Shield_Respawn_Duration,
-					this->Shield_Respawn_Amount.Get(pCurrentType->Respawn),
-					this->Shield_Respawn_Rate,
-					this->Shield_Respawn_RestartInCombat.Get(pCurrentType->Respawn_RestartInCombat),
-					this->Shield_Respawn_RestartInCombatDelay,
-					this->Shield_Respawn_RestartTimer,
-					&this->Shield_Respawn_Anim.AsVector(),
-					this->Shield_Respawn_Weapon
-				);
+		if ((this->Shield_Respawn_Duration > 0 || this->Shield_Respawn_RestartTimer) && isShieldTypeEligible(this->Shield_Respawn_Types.GetElements(this->Shield_AffectTypes)))
+		{
+			const double amount = this->Shield_Respawn_Amount.Get(shieldType->Respawn);
+
+			pShield->SetRespawn(this->Shield_Respawn_Duration, amount, this->Shield_Respawn_Rate,
+				this->Shield_Respawn_RestartInCombat.Get(shieldType->Respawn_RestartInCombat),
+				this->Shield_Respawn_RestartInCombatDelay, this->Shield_Respawn_RestartTimer,
+				&this->Shield_Respawn_Anim.AsVector(), this->Shield_Respawn_Weapon);
 		}
 
-		if ((this->Shield_SelfHealing_Duration > 0 || this->Shield_SelfHealing_RestartTimer)
-		 	&& this->Shield_SelfHealing_Types.Eligible(this->Shield_AffectTypes, pCurrentType))
+		if ((this->Shield_SelfHealing_Duration > 0 || this->Shield_SelfHealing_RestartTimer) && isShieldTypeEligible(this->Shield_SelfHealing_Types.GetElements(this->Shield_AffectTypes)))
 		{
-			ptr->SetSelfHealing(
-				this->Shield_SelfHealing_Duration,
-				this->Shield_SelfHealing_Amount.Get(pCurrentType->SelfHealing),
-				this->Shield_SelfHealing_Rate,
-				this->Shield_SelfHealing_RestartInCombat.Get(pCurrentType->SelfHealing_RestartInCombat),
-				this->Shield_SelfHealing_RestartInCombatDelay,
-				this->Shield_SelfHealing_RestartTimer
-			);
+			const double amount = this->Shield_SelfHealing_Amount.Get(shieldType->SelfHealing);
+
+			pShield->SetSelfHealing(this->Shield_SelfHealing_Duration, amount, this->Shield_SelfHealing_Rate,
+				this->Shield_SelfHealing_RestartInCombat.Get(shieldType->SelfHealing_RestartInCombat),
+				this->Shield_SelfHealing_RestartInCombatDelay, this->Shield_SelfHealing_RestartTimer);
 		}
 	}
 }

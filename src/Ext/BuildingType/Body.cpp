@@ -722,7 +722,7 @@ void BuildingTypeExtData::CreateLimboBuilding(BuildingClass* pBuilding, Building
 		}
 
 		pBuildingExt->LimboID = ID;
-		PhobosEntity::Remove<ShieldClass>(pBuildingExt->ShieldEntity);
+		pBuildingExt->ShieldEntity.reset();
 	/*	pBuildingExt->Trails.clear();*/
 		pBuildingExt->RevengeWeapons.clear();
 		pBuildingExt->ExtraWeaponTimers.clear();
@@ -1657,6 +1657,7 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		this->AIBuildCounts.Read(exINI, pSection, "AIBuildCounts");
 		this->AIExtraCounts.Read(exINI, pSection, "AIExtraCounts");
+		this->GuardRetryDelay.Read(exINI, pSection, "GuardRetryDelay");
 		this->LandingDir.Read(exINI, pSection, "LandingDir");
 
 		std::string _boons = "SecretLab.PossibleBoons";
@@ -2140,6 +2141,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->MessageLost)
 		.Process(this->AIBuildCounts)
 		.Process(this->AIExtraCounts)
+		.Process(this->GuardRetryDelay)
 		.Process(this->LandingDir)
 		.Process(this->SellFrames)
 

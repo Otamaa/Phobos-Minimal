@@ -631,6 +631,8 @@ public:
 	Valueable<bool> DriverKilled_KillPassengers {};
 
 	Valueable<StackingMode> Psychedelic_StackingMode { StackingMode::Override };
+
+	Nullable<PartialVector2D<int>> BuildingGuardRetryDelay {};
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

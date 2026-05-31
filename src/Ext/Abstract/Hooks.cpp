@@ -49,9 +49,10 @@ ASMJIT_PATCH(0x410182, AbstractClass_cleaupPtr_B, 0x6)
 	if (Phobos::Otamaa::DoingLoadGame) {
 		if (pAbs != pThis) //avoid missmatching
 			LastKnown = 0;
+
+		pThis->unknown_18 = std::exchange(LastKnown, 0u);
 	}
 
-	pThis->unknown_18 = std::exchange(LastKnown, 0u);
 	pThis->RefCount = 0l;
 	return 0x410188;
 }
@@ -64,8 +65,9 @@ ASMJIT_PATCH(0x4101E4, AbstractClass_cleaupPtr, 0x7)
 
 		if (pAbs != pThis) //avoid missmatching
 			LastKnown = 0;
+
+		pThis->unknown_18 = std::exchange(LastKnown, 0u);
 	}
 
-	pThis->unknown_18 = std::exchange(LastKnown, 0u);
 	return 0x0;
 }

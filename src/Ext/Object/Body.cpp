@@ -93,7 +93,7 @@ int __fastcall FakeObjectClass::_GetDistanceOfCoord(ObjectClass* pThis, discard_
 	return cell_Distance_Squared(nThisCoord, *pThat);
 }
 
-CellClass* __fastcall FakeObjectClass::_GetCell(ObjectClass* pThis, discard_t)
+CellClass* __fastcall FakeObjectClass::_GetCell(ObjectClass* pThis)
 {
 	return MapClass::Instance->GetCellAt(pThis->Location);
 }

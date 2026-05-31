@@ -224,6 +224,8 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->InfantrySpeedData.Crawls.Read(iniEX, GameStrings::General, "ProneSpeed.Crawls");
 	pData->InfantrySpeedData.NoCrawls.Read(iniEX, GameStrings::General, "ProneSpeed.NoCrawls");
 
+	pData->BuildingGuardRetryDelay.Read(iniEX, GameStrings::General, "BuildingGuardRetryDelay");
+
 	pData->VoxelLightSource.Read(iniEX, GameStrings::AudioVisual, "VoxelLightSource");
 	pData->VoxelShadowLightSource.Read(iniEX, GameStrings::AudioVisual, "VoxelShadowLightSource");
 	pData->UseFixedVoxelLighting.Read(iniEX, GameStrings::AudioVisual, "UseFixedVoxelLighting");
@@ -1422,6 +1424,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->ExtraThreatCoefficient_DistanceToLastTarget)
 		.Process(this->DriverKilled_KillPassengers)
 		.Process(this->Psychedelic_StackingMode)
+		.Process(this->BuildingGuardRetryDelay)
 		.Process(this->DisableOveroptimizationInTargeting)
 
 		.Process(this->AreaGuard_UseSelfAsCenter)

@@ -615,7 +615,7 @@ bool BulletExtData::ShrapnelTargetEligible(BulletClass* pThis,
 			{
 				if (const auto pType = pTargetObj->GetType())
 				{
-					if (GeneralUtils::GetWarheadVersusArmor(pWH, pType->Armor) < 0.001)
+					if (GeneralUtils::GetWarheadVersusArmor(pWH, TechnoExtData::GetTechnoArmor(pTargetObj, pWH)) < 0.001)
 					{
 						return false;
 					}

@@ -537,7 +537,7 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 					if(GeneralUtils::GetWarheadVersusArmor(
 						weaponType->Warhead,
 						TechnoExtData::GetTechnoArmor(object , weaponType->Warhead))
-						== 0.0
+						< 0.001
 					)
 						continue;
 					}

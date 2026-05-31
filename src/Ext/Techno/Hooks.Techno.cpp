@@ -200,9 +200,10 @@ ASMJIT_PATCH(0x6F6AC9, TechnoClass_Limbo_Early, 6)
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	// if the removed object is a radar jammer, unjam all jammed radars
-	PhobosEntity::Remove<RadarJammerClass>(pExt->RadarJammerEntity);
+	pExt->RadarJammerEntity.reset();
+
 	// #617 powered units
-	PhobosEntity::Remove<PoweredUnitClass>(pExt->PoweredUnitEntity);
+	pExt->PoweredUnitEntity.reset();
 
 	//#1573, #1623, #255 attached effects
 	AresAE::Remove(&TechnoExtContainer::Instance.Find(pThis)->AeData , pThis);

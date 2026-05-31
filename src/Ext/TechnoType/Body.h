@@ -197,6 +197,7 @@ public:
 	Valueable<bool> Interceptor { false };
 	Valueable<AffectedHouse> Interceptor_CanTargetHouses { AffectedHouse::Enemies };
 	Promotable<Leptons> Interceptor_GuardRange {};
+	Valueable<bool> Interceptor_GuardRange_IsCylindrical { false };
 	Promotable<Leptons> Interceptor_MinimumGuardRange {};
 	Promotable<int> Interceptor_TargetingDelay { 1 };
 

@@ -16,6 +16,7 @@
 
 class BuildingTypeExtData;
 class InfantryClass;
+class SuperClass;
 class BuildingExtData : public TechnoExtData
 {
 public:
@@ -260,6 +261,9 @@ public:
 	void _DrawRadialIndicator(int val);
 	int _BuildingClass_GetRangeOfRadial();
 	int __GetPower();
+
+	int _SWAvailable();
+	int _SW2Available();
 
 	bool _SetOwningHouse(HouseClass* pHouse, bool announce)
 	{

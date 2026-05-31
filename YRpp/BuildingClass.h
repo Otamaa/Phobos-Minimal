@@ -469,5 +469,8 @@ public:
 	int BunkerState; // used in UpdateBunker and friends 0x718
 	DWORD unused_71C;
 };
-
+static_assert(offsetof(BuildingClass, RequiresDamageFires) == 0x5E8, "ClassMember Shifted !");
+static_assert(offsetof(BuildingClass, Upgrades[0]) == 0x5EC, "ClassMember Shifted !");
+static_assert(offsetof(BuildingClass, Upgrades[1]) == 0x5F0, "ClassMember Shifted !");
+static_assert(offsetof(BuildingClass, Upgrades[2]) == 0x5F4, "ClassMember Shifted !");
 static_assert(sizeof(BuildingClass) == 0x720 , "Invalid Size");

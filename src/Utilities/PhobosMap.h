@@ -13,17 +13,21 @@ class PhobosMap
 	using container_t = std::vector<pair_t, customMem>;
 public:
 
-	constexpr FORCEINLINE container_t* AsPair(){
+	COMPILETIMEEVAL FORCEINLINE container_t* AsPair(){
 		return &this->values;
 	}
 
-	TValue& operator[] (const TKey& key)
+	COMPILETIMEEVAL FORCEINLINE TValue& operator[] (const TKey& key)
 	{
-		if (auto pValue = this->tryfind(key))
-		{
-			return *pValue;
-		}
-		return this->insert_unchecked(key, TValue());
+		auto it = this->get_key_iterator(key);
+		if (it != this->values.end())
+			return it->second;
+
+		if (this->values.size() == this->values.capacity())
+			this->values.reserve(this->values.capacity() * 2 + 1);
+
+		this->values.emplace_back(key, TValue());
+		return this->values.back().second;
 	}
 
 	COMPILETIMEEVAL TValue* tryfind(const TKey& key)
@@ -196,10 +200,12 @@ public:
 		});
 	}
 
-	TValue& insert_unchecked(const TKey& key, TValue value)
+	void insert_unchecked(const TKey& key, TValue value)
 	{
+		if (this->values.size() == this->values.capacity())
+			this->values.reserve(this->values.capacity() * 2 + 1);
+
 		this->values.emplace_back(key, std::move(value));
-		return this->values.back().second;
 	}
 
 private:

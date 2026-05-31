@@ -3427,7 +3427,7 @@ NOINLINE std::string AresNewTriggerAction_ToString(AresNewTriggerAction action)
 	case AresNewTriggerAction::KillDriversOf: return "KillDriversOf";
 	case AresNewTriggerAction::SetEVAVoice: return "SetEVAVoice";
 	case AresNewTriggerAction::SetGroup: return "SetGroup";
-	default: return "";
+	default: return {};
 	}
 }
 
@@ -3480,19 +3480,22 @@ NOINLINE std::string PhobosTriggerAction_ToString(PhobosTriggerAction action)
 	case PhobosTriggerAction::ScoreCampaignText: return "ScoreCampaignText";
 	case PhobosTriggerAction::ScoreCampaignTheme: return "ScoreCampaignTheme";
 	case PhobosTriggerAction::SetNextMission: return "SetNextMission";
-	default: return "";
+	default: return {};
 	}
 }
 
 bool FakeTActionClass::_OperatorBracket(HouseClass* pTargetHouse, ObjectClass* pSourceObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	std::string_view name = magic_enum::enum_name(this->ActionKind);
+	std::string_view name;;
 
 	if (name.empty())
 		name = AresNewTriggerAction_ToString((AresNewTriggerAction)this->ActionKind);
 
 	if (name.empty())
 		name = PhobosTriggerAction_ToString((PhobosTriggerAction)this->ActionKind);
+
+	if(name.empty())
+		name = magic_enum::enum_name(this->ActionKind);
 
 	Debug::LogInfo("TAction[{} - {}] triggering [{}]", (void*)this, name, (int)this->ActionKind);
 	bool ret = true;
@@ -3598,6 +3601,7 @@ bool FakeTActionClass::_OperatorBracket(HouseClass* pTargetHouse, ObjectClass* p
 
 #ifndef _fucked
 DEFINE_FUNCTION_JUMP(CALL , 0x726605, FakeTActionClass::_OperatorBracket)
+DEFINE_FUNCTION_JUMP(LJMP , 0x6DD8B0, FakeTActionClass::_OperatorBracket)
 #else
 //DEFINE_FUNCTION_JUMP(LJMP, 0x6E1F60, FakeTActionClass::_TActionClass_Create_Team)
 
