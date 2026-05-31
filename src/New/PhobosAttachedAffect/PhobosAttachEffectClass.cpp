@@ -342,8 +342,9 @@ void PhobosAttachEffectClass::FirePeriodicWeapon()
 		}
 
 		// 4) 弹头护甲比率检查
-		const double versus = GeneralUtils::GetWarheadVersusArmor(pWH, pTarget->GetTechnoType()->Armor);
-		if (versus == 0.0)
+		auto armor = TechnoExtData::GetTechnoArmor(pTarget, pWH);
+		const double versus = GeneralUtils::GetWarheadVersusArmor(pWH, armor);
+		if (versus < 0.001)
 			continue;
 
 		// 5) 存活检查
@@ -679,7 +680,9 @@ bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 
 		if (auto const pFoot = flag_cast_to<FootClass*, false>(this->Techno))
 		{
-			bool isMoving = pFoot->Locomotor->Is_Really_Moving_Now();
+			const bool isMoving = this->Type->DiscardOn_ConsiderHoverAsMoving.Get(RulesExtData::Instance()->DiscardOn_ConsiderHoverAsMoving)
+				? pFoot->Locomotor->Is_Moving()
+				: pFoot->Locomotor->Is_Really_Moving_Now();
 
 			if (isMoving && (this->Type->DiscardOn & DiscardCondition::Move) != DiscardCondition::None)
 				return _retTrue(this->LastDiscardCheckValue);

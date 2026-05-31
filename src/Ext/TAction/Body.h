@@ -51,6 +51,9 @@ enum class PhobosTriggerAction : unsigned int
 	//#1164
 	UndeployToWaypoint = 511,
 
+	//#2234
+	SetFollowsIndexForVehicle = 512,
+
 	SetDropCrate = 600, // Only change this number if the PR is merged into develop!
 
 	//#1549
@@ -146,6 +149,8 @@ public:
 	ACTION_FUNC(LightningStormStrikeAtObject);
 
 	ACTION_FUNC(UndeployToWaypoint);
+	
+	ACTION_FUNC(SetFollowsIndexForVehicle);
 
 	ACTION_FUNC(PrintMessageRemainingTechnos);
 

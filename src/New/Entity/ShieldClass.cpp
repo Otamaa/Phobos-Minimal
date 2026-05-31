@@ -268,14 +268,17 @@ void ShieldClass::SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo)
 		}
 	} else {
 		pToExt->CurrentShieldType = pFromExt->CurrentShieldType;
-		auto&shield =PhobosEntity::Emplace<ShieldClass>(pToExt->ShieldEntity, pTo, true);
-		shield.KillAnim();
-		shield.Techno = pTo;
-		shield.CreateAnim();
+		pToExt->ShieldEntity = std::make_unique<ShieldClass>(pTo, true);
+
+		if(pToExt->ShieldEntity){
+			pToExt->ShieldEntity->KillAnim();
+			pToExt->ShieldEntity->Techno = pTo;
+			pToExt->ShieldEntity->CreateAnim();
+		}
 	}
 
-	if (pFrom->WhatAmI() == AbstractType::Building && PhobosEntity::Has<ShieldClass>(pFromExt->ShieldEntity))
-		PhobosEntity::Remove<ShieldClass>(pFromExt->ShieldEntity);
+	if (pFrom->WhatAmI() == AbstractType::Building && pFromExt->ShieldEntity)
+		pFromExt->ShieldEntity.reset();
 }
 
 void ShieldClass::OnRemove() { KillAnim(); }
@@ -494,7 +497,7 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 
 void ShieldClass::ResponseAttack(WarheadTypeClass* pWarhead) const
 {
-	if (this->Techno->Owner != HouseClass::CurrentPlayer
+	if (this->Techno->Owner != HouseClass::CurrentPlayer()
 		|| GET_TECHNOTYPE(this->Techno)->Insignificant)
 		return;
 
@@ -634,7 +637,7 @@ void ShieldClass::OnUpdate()
 
 	if (this->Techno->Health <= 0 || !this->Techno->IsAlive || this->Techno->IsSinking)
 	{
-		PhobosEntity::Remove<ShieldClass>(TechnoExtContainer::Instance.Find(this->Techno)->ShieldEntity);
+		TechnoExtContainer::Instance.Find(this->Techno)->ShieldEntity.reset();
 		return;
 	}
 
@@ -803,7 +806,7 @@ bool ShieldClass::ConvertCheck()
 		// Case 1: Old shield is not allowed to transfer or there's no eligible new shield type -> delete shield.
 		this->KillAnim();
 		pTechnoExt->CurrentShieldType = ShieldTypeClass::FindOrAllocate(DEFAULT_STR2);
-		PhobosEntity::Remove<ShieldClass>(pTechnoExt->ShieldEntity);
+		pTechnoExt->ShieldEntity.reset();
 		this->UpdateTint();
 
 		return true;

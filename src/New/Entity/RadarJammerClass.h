@@ -77,3 +77,12 @@ private:
 			;
 	}
 };
+
+template <>
+struct Savegame::ObjectFactory<RadarJammerClass>
+{
+	std::unique_ptr<RadarJammerClass> operator() (PhobosStreamReader& Stm) const
+	{
+		return std::make_unique<RadarJammerClass>();
+	}
+};

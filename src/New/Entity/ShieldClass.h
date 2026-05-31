@@ -282,3 +282,12 @@ private:
 	ShieldClass& operator=(const ShieldClass& other) = delete;
 
 };
+
+template <>
+struct Savegame::ObjectFactory<ShieldClass>
+{
+	std::unique_ptr<ShieldClass> operator() (PhobosStreamReader& Stm) const
+	{
+		return std::make_unique<ShieldClass>();
+	}
+};

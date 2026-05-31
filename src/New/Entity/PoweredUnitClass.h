@@ -63,3 +63,12 @@ private:
 			;
 	}
 };
+
+template <>
+struct Savegame::ObjectFactory<PoweredUnitClass>
+{
+	std::unique_ptr<PoweredUnitClass> operator() (PhobosStreamReader& Stm) const
+	{
+		return std::make_unique<PoweredUnitClass>();
+	}
+};

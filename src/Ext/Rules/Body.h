@@ -633,6 +633,7 @@ public:
 	Valueable<StackingMode> Psychedelic_StackingMode { StackingMode::Override };
 
 	Nullable<PartialVector2D<int>> BuildingGuardRetryDelay {};
+	Valueable<bool> DiscardOn_ConsiderHoverAsMoving { false };
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

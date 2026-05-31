@@ -53,6 +53,7 @@ public:
 	Valueable<bool> Powered;
 	Valueable<DiscardCondition> DiscardOn;
 	Nullable<Leptons> DiscardOn_RangeOverride;
+	Nullable<bool> DiscardOn_ConsiderHoverAsMoving;
 	Valueable<bool> PenetratesIronCurtain;
 	Nullable<bool> PenetratesForceShield;
 	Valueable<AnimTypeClass*> Animation;
@@ -157,6 +158,7 @@ public:
 		, Powered { false }
 		, DiscardOn { DiscardCondition::None }
 		, DiscardOn_RangeOverride {}
+		, DiscardOn_ConsiderHoverAsMoving {}
 		, PenetratesIronCurtain { false }
 		, PenetratesForceShield {}
 		, Animation {}

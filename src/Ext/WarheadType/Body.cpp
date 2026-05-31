@@ -2382,7 +2382,141 @@ void WarheadTypeExtData::ApplyKnockUp(TechnoClass* pTarget)
 }
 
 void WarheadTypeExtData::ApplyTraction(TechnoClass * pTarget, const CoordStruct & coords)
-{}
+{
+if (!this->Traction)
+		return;
+
+	auto pTargetFoot = flag_cast_to<FootClass*, true>(pTarget);
+
+	if (!pTargetFoot)
+		return;
+
+	if (coords == CoordStruct::Empty)
+		return;
+
+	// same locomotor? no point to change
+	CLSID targetCLSID { };
+	CLSID inflictCLSID = __uuidof(ShiftLocomotionClass);
+	IPersistPtr pLocoPersist = pTargetFoot->Locomotor;
+	if (SUCCEEDED(pLocoPersist->GetClassID(&targetCLSID)) && targetCLSID == inflictCLSID)
+		return;
+
+	// prevent endless piggyback
+	IPiggybackPtr pTargetPiggy = pTargetFoot->Locomotor;
+	if (pTargetPiggy != nullptr && pTargetPiggy->Is_Piggybacking())
+		return;
+
+	int tractionSpeed = this->Traction_Speed.Get();
+	int tractionRange = this->Traction_Range.Get();
+
+	if (tractionSpeed <= 0 || tractionRange <= 0)
+		return;
+
+	CoordStruct startCoords = pTargetFoot->GetCoords();
+	auto startCell = MapClass::Instance->GetCellAt(startCoords);
+	auto offset = startCoords - startCell->GetCoordsWithBridge();
+
+	CoordStruct destCoords = startCoords;
+	auto destMapCrd = startCell->MapCoords;
+	int tractionRangeUnused = tractionRange;
+
+	for (; tractionRangeUnused > 0;)
+	{
+		double bestCos = 0;
+		double bestCost = std::numeric_limits<double>::max();
+		std::vector<size_t> bestDirs;
+
+		for (size_t i = 0; i < 8; ++i)
+		{
+			auto calcStepResult = [&](CellStruct currentMapCrd) -> std::pair<double, double>
+				{
+					auto dirOffset = CellSpread::GetNeighbourOffset(i);
+					auto nextMapCrd = currentMapCrd + dirOffset;
+					auto nextCell = MapClass::Instance->GetCellAt(nextMapCrd);
+
+					if (pTarget->IsCellOccupied(nextCell, FacingType::None, -1, nullptr, true) != Move::OK)
+						return { 0.0, std::numeric_limits<double>::max() };
+
+					auto dirOffsetCrd = Point2D(dirOffset.X * Unsorted::LeptonsPerCell, dirOffset.Y * Unsorted::LeptonsPerCell);
+					auto dirDelta = dirOffsetCrd.Length();
+					auto tractionVector = coords - CellClass::Cell2Coord(currentMapCrd);
+					auto tractionVector2D = Vector2D<int>(tractionVector.X, tractionVector.Y);
+					auto angleCos = Vector2D<int>(dirOffsetCrd.X, dirOffsetCrd.Y).AngleCosTo(tractionVector2D);
+
+					if (angleCos <= 0)
+						return { angleCos, std::numeric_limits<double>::max() };
+
+					return { angleCos, dirDelta / angleCos };
+				};
+
+			auto stepResult = calcStepResult(destMapCrd);
+			auto angleCos = stepResult.first;
+			auto cost = stepResult.second;
+
+			if (cost > tractionRangeUnused)
+				continue;
+
+			if (angleCos > bestCos)
+			{
+				bestCos = angleCos;
+				bestCost = cost;
+				bestDirs.clear();
+				bestDirs.push_back(i);
+			}
+			else if (angleCos == bestCos)
+			{
+				if (cost > bestCost)
+				{
+					bestCost = cost;
+					bestDirs.clear();
+					bestDirs.push_back(i);
+				}
+				else if (cost == bestCost)
+				{
+					bestDirs.push_back(i);
+				}
+			}
+		}
+
+		// If no valid direction found, exit the loop
+		if (bestDirs.empty())
+			break;
+
+		// Randomly select one of the best directions if multiple exist
+		size_t selectedDir = bestDirs[ScenarioClass::Instance->Random.RandomRanged(0, bestDirs.size() - 1)];
+		// Move one step in the selected direction
+		auto dirOffset = CellSpread::GetNeighbourOffset(selectedDir);
+		destMapCrd += dirOffset;
+		tractionRangeUnused -= static_cast<int>(bestCost);
+	}
+
+	if (destMapCrd != startCell->MapCoords)
+	{
+		// Convert final map coordinates back to world coordinates
+		destCoords = MapClass::Instance->GetCellAt(destMapCrd)->GetCoordsWithBridge() + offset;
+
+		// Create linear shift schedule for traction
+		auto sampleStart = ShiftSchedule::Sample(
+			startCoords,
+			pTargetFoot->PrimaryFacing.Current(),
+			0.0f, 0.0f, false);
+
+		auto sampleEnd = ShiftSchedule::Sample(
+			destCoords,
+			pTargetFoot->PrimaryFacing.Current(),
+			0.0f, 0.0f, true);
+
+		auto params = LinearParams { tractionSpeed };
+		auto schedule = LinearShiftSchedule(sampleStart, sampleEnd, &params);
+
+		auto pExt = TechnoExtContainer::Instance.Find(pTargetFoot);
+		pExt->QueuedShift = std::make_unique<LinearShiftSchedule>(schedule);
+
+		// Change locomotor
+		LocomotionClass::ChangeLocomotorTo(pTargetFoot, inflictCLSID);
+	}
+
+}
 
 void WarheadTypeExtData::ApplyAttachEffects(TechnoClass* pTarget, HouseClass* pInvokerHouse, TechnoClass* pInvoker)
 {

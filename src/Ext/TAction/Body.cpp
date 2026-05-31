@@ -69,6 +69,53 @@ TActionExtData::ExtContainer TActionExtData::ExtMap;
 */
 
 //==============================
+bool TActionExtData::SetFollowsIndexForVehicle(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	int followerIndex = pThis->Param3;
+
+	if (followerIndex < 0 || followerIndex >= UnitClass::Array->Count)
+		return false;
+
+	UnitClass* pNewFollower = UnitClass::Array->Items[followerIndex];
+	if (!pNewFollower)
+		return false;
+
+	for (auto const pTechno : *TechnoClass::Array)
+	{
+
+		UnitClass* pFoot = cast_to<UnitClass*>(pTechno);
+
+		if (!pFoot)
+			continue;
+
+		if (!pFoot->AttachedTag || !pFoot->AttachedTag->ContainsTrigger(pTrigger))
+			continue;
+
+		UnitClass* pLeader = static_cast<UnitClass*>(pFoot);
+
+		if (UnitClass* pOldFollower = pLeader->FollowerCar)
+		{
+			pOldFollower->IsFollowerCar = false;
+			pLeader->FollowerCar = nullptr;
+		}
+
+		for (auto pOther : *UnitClass::Array)
+		{
+			if (pOther && pOther->FollowerCar == pNewFollower)
+			{
+				pOther->FollowerCar = nullptr;
+				break;
+			}
+		}
+
+		pLeader->FollowerCar = pNewFollower;
+		pNewFollower->IsFollowerCar = true;
+
+	}
+
+	return true;
+}
+
 bool TActionExtData::AdjustHouseModifier(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	const int amount = pThis->Param3;
@@ -843,6 +890,9 @@ bool NOINLINE TActionExtData::Occured(TActionClass* pThis, ActionArgs const& arg
 		break;
 	case PhobosTriggerAction::UndeployToWaypoint:
 		ret = TActionExtData::UndeployToWaypoint(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::SetFollowsIndexForVehicle:
+		ret = TActionExtData::SetFollowsIndexForVehicle(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
 	case PhobosTriggerAction::PrintMessageRemainingTechnos:
 		ret = TActionExtData::PrintMessageRemainingTechnos(pThis, pHouse, pObject, pTrigger, args.plocation);
