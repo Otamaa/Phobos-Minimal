@@ -392,7 +392,6 @@ void Phobos::ClearAll()
 
 	MouseClassExt::ClearCameos();
 	MouseClassExt::ClearMappedAction();
-	PhobosEntity::OnClear();
 }
 
 #pragma endregion

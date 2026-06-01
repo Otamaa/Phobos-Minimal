@@ -77,27 +77,6 @@ ASMJIT_PATCH(0x452218, BuildingClass_Enable_Temporal_Factories, 6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x442D1B, BuildingClass_Init_Academy, 6)
-{
-	GET(BuildingClass*, pThis, ESI);
-
-	if (!pThis->Owner)
-		return 0x0;
-
-	if (HouseTypeExtContainer::Instance.Find(pThis->Owner->Type)->VeteranBuildings.Contains(pThis->Type))
-	{
-		pThis->Veterancy.Veterancy = 1.0f;
-	}
-
-	if (pThis->Type->Trainable && HouseExtContainer::Instance.Find(pThis->Owner)->Is_ConstructionYardSpied)
-		pThis->Veterancy.Veterancy = 1.0f;
-
-
-	HouseExtData::ApplyAcademy(pThis->Owner, pThis, AbstractType::Building);
-
-	return 0;
-}
-
 ASMJIT_PATCH(0x43FE8E, BuildingClass_Update_Reload, 6)
 {
 	GET(BuildingClass*, B, ESI);
@@ -738,19 +717,6 @@ ASMJIT_PATCH(0x4430E8, BuildingClass_Destroyed_SurvivourLog, 0x6)
 
 	Debug::LogInfo("[{}][{} - {}] Creating survivor type '{}' ", (void*)pThis, pBldID, pOwnedID, pInfID);
 	return 0x443109;
-}
-
-/* #183 - cloakable on Buildings and Aircraft */
-ASMJIT_PATCH(0x442CE0, BuildingClass_Init_Cloakable, 0x6)
-{
-	GET(BuildingClass*, Item, ESI);
-
-	if (Item->Type->Cloakable)
-	{
-		Item->Cloakable = true;
-	}
-
-	return 0;
 }
 
 // if this is a radar, drop the new owner from the bitfield

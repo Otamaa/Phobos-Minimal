@@ -77,6 +77,9 @@ public:
 // ============================================================================
 class NOVTABLE FakeLaserDrawClass : public LaserDrawClass
 {
+protected:
+	FakeLaserDrawClass() = delete;
+	 ~FakeLaserDrawClass() = delete;
 public:
 
 	// ========================================================================

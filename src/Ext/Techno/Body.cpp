@@ -10897,14 +10897,14 @@ void TechnoExtData::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 	auto& map = pTypeExt->DestroyAnimSpecific;
 	auto& trail = pTypeExt->LaserTrailData;
 
-	Debug::Log(
-		"[DiagnosticCheck] DestroyAnimSpecific: size=%zu capacity=%zu | "
-		"LaserTrailData ptr=%p size=%zu\n",
-		map.AsPair()->size(),
-		map.AsPair()->capacity(),
-		trail.data(),
-		trail.size()
-	);
+	//Debug::Log(
+	//	"[DiagnosticCheck] DestroyAnimSpecific: size=%zu capacity=%zu | "
+	//	"LaserTrailData ptr=%p size=%zu\n",
+	//	map.AsPair()->size(),
+	//	map.AsPair()->capacity(),
+	//	trail.data(),
+	//	trail.size()
+	//);
 
 	if (pExt->LaserTrails.empty())
 	{

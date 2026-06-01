@@ -118,9 +118,9 @@ void HugeBar::LoadFromINI(CCINIClass* pINI)
 
 void HugeBar::InvalidatePointer(void* ptr, bool removed)
 {
-	if (removed)
+	if (removed && !Technos.empty())
 	{
-		const auto it = std::find(Technos.cbegin(), Technos.cend(), ptr);
+		const auto it = std::find(Technos.begin(), Technos.end(), ptr);
 
 		if (it != Technos.end())
 			Technos.erase(it);

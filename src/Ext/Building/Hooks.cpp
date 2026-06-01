@@ -670,13 +670,6 @@ ASMJIT_PATCH(0x447E90, BuildingClass_GetDestinationCoord_Helipad, 0x6)
 	return 0x447F06;
 }
 
-ASMJIT_PATCH(0x442CCF, BuildingClass_Init_Sellable, 0x7)
-{
-	GET(BuildingClass*, pThis, ESI);
-	pThis->IsAllowedToSell = !pThis->Type->Unsellable;
-	return 0x0;
-}
-
 ASMJIT_PATCH(0x458291, BuildingClass_GarrisonAI_AbandonedSound, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);

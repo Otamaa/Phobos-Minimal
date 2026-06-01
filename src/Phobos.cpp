@@ -30,7 +30,6 @@
 #include <Phobos.Lua.h>
 #include <Phobos.UI.h>
 #include <Phobos.Defines.h>
-#include <Phobos.Entity.h>
 #include <MessageBoxLogging.h>
 
 #include <Misc/Renderer/GlobalColorPacker.h>
@@ -1158,7 +1157,6 @@ void Phobos::ExeRun()
 	Debug::Log("Running on %s API.\n", gRuntimeAPI.GetName());
 	TheaterTypeClass::AddDefaults();
 	CursorTypeClass::AddDefaults();
-	PhobosEntity::OnStartup();
 }
 
 void Phobos::ExeTerminate()
@@ -1174,7 +1172,6 @@ void Phobos::ExeTerminate()
 		}
 		Handles::Array.clear();
 		Patch::ModuleDatas.clear();
-		PhobosEntity::OnExit();
 		CustomPalette::ClearRegistry();
 	}
 }
