@@ -2843,3 +2843,41 @@ ASMJIT_PATCH(0x737086, UnitClass_FiringAI_Gattling, 0x9)
 
 	return SkipGameCode;
 }
+
+//std::string GuidToString(const GUID& guid)
+//{
+//	wchar_t ws[40];
+//
+//	if (StringFromGUID2(guid, ws, 40) == 0)
+//	{
+//		return "";
+//	}
+//
+//	std::wstring wstr(ws);
+//	return std::string(wstr.begin(), wstr.end());
+//}
+//
+//ASMJIT_PATCH(0x4D94B0, FootClass_AssignDest_log, 0x5)
+//{
+//	GET(FootClass*, pThis, ECX);
+//
+//	auto coord = pThis->GetCoords();
+//	auto loco = pThis->Locomotor.GetInterfacePtr();
+//	CLSID _id {};
+//	((LocomotionClass*)loco)->GetClassID(&_id);
+//
+//	Debug::Log("FootClass::AssignDest called for [%s - %x] Owner [%s] at [%d, %d , %d] status : alive %d , loco [%x , GUID : %s] \n", 
+//		pThis->GetTechnoType()->ID, pThis, pThis->Owner->Type->ID, coord.X, coord.Y, coord.Z, pThis->IsAlive, loco, GuidToString(_id).c_str());
+//
+//	return 0x0;
+//
+//}
+
+ASMJIT_PATCH(0x54C8F6, JumpjetLocomotionClass_State4_PCP_checkAlive, 0x5) {
+	GET(JumpjetLocomotionClass*, pThis, ESI);
+
+	if (!pThis->LinkedTo || !pThis->LinkedTo->IsAlive)
+		return 0x54CA7C;//dead
+
+	return 0x0;
+}

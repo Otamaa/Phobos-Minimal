@@ -330,7 +330,8 @@ void FakeLaserDrawClass::_UpdateLaser()
 
 	// Check if laser has expired
 	if (Progress.Stage >= Duration) {
-		GameDelete(this);
+		this->LaserDrawClass::~LaserDrawClass();
+		GameDelete<false , false>(this);
 	}
 }
 
@@ -369,7 +370,8 @@ void FakeLaserDrawClass::_DestroyAllLasers()
 
 	while (LaserDrawClass::Array->Count > 0) {
 		if (auto* pLaser = (*LaserDrawClass::Array)[0]) {
-			GameDelete(pLaser);
+			pLaser->LaserDrawClass::~LaserDrawClass();
+			GameDelete<false, false>(pLaser);
 		}
 	}
 }
@@ -989,12 +991,12 @@ DEFINE_FUNCTION_JUMP(CALL, 0x6D4669, FakeLaserDrawClass::_DrawAllLasers);
 DEFINE_FUNCTION_JUMP(CALL, 0x550256, FakeLaserDrawClass::_DrawLaser);
 DEFINE_FUNCTION_JUMP(LJMP, 0x550260, FakeLaserDrawClass::_DrawLaser);
 
-//
-//// ============================================================================
-//// Hook: LaserDrawClass::Draw_In_House_Color (0x5509F0)
-//// Replaces the house-color laser rendering (__thiscall)
-//// Uses smooth exponential falloff instead of harsh >>1 halving
-//// ============================================================================
+
+// ============================================================================
+// Hook: LaserDrawClass::Draw_In_House_Color (0x5509F0)
+// Replaces the house-color laser rendering (__thiscall)
+// Uses smooth exponential falloff instead of harsh >>1 halving
+// ============================================================================
 DEFINE_FUNCTION_JUMP(CALL, 0x55027B, FakeLaserDrawClass::_DrawInHouseColor);
 DEFINE_FUNCTION_JUMP(LJMP, 0x5509F0, FakeLaserDrawClass::_DrawInHouseColor);
 
@@ -1030,12 +1032,14 @@ ASMJIT_PATCH(0x54FFB0, LaserDrawClass_DTOR_Update, 7)
 
 ASMJIT_PATCH(0x5501D7 , LaserDrawClass_Remove_InlineDTOR, 0x5) {
 	GET(LaserDrawClass*, pLaser, ESI);
-	GameDelete(pLaser);
+	pLaser->LaserDrawClass::~LaserDrawClass();
+	GameDelete<false, false>(pLaser);
 	return R->Origin() + 0x51;
 }ASMJIT_PATCH_AGAIN(0x5500EF ,LaserDrawClass_Remove_InlineDTOR, 0x5)
 
 ASMJIT_PATCH(0x550016 ,LaserDrawClass_Remove_InlineDTOR_BB, 0x6 ){
-		GET(LaserDrawClass*, pLaser, ESI);
-	GameDelete(pLaser);
+	GET(LaserDrawClass*, pLaser, ESI);
+	pLaser->LaserDrawClass::~LaserDrawClass();
+	GameDelete<false, false>(pLaser);
 	return R->Origin() + 0x52;
 }
