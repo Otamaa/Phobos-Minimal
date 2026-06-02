@@ -82,7 +82,7 @@ void GenericWarheadStateMachine::Update()
 	{
 		auto pData = this->GetTypeExtData();
 
-		pData->PrintMessage(pData->Message_Activate, this->Super->Owner);
+		pData->PrintMessage_Activate(this->Super->Owner);
 
 		const auto sound = pData->SW_ActivationSound.Get(-1);
 		if (sound != -1) {

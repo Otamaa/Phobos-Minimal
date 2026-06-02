@@ -78,7 +78,7 @@ void SonarPulseStateMachine::Update()
 
 void SonarPulseStateMachine::SendSonarPulse(SuperClass* pSuper, SWTypeExtData* pData, SWTypeHandler* pNewType, const CellStruct& loc)
 {
-	pData->PrintMessage(pData->Message_Activate, pSuper->Owner);
+	pData->PrintMessage_Activate(pSuper->Owner);
 
 	auto const sound = pData->SW_ActivationSound.Get(-1);
 	if (sound != -1) {

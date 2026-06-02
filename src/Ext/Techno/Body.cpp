@@ -1909,10 +1909,12 @@ int TechnoExtData::GetWarpPerStep(TemporalClass* pThis, int nStep)
 
 			if (pWarhead) {
 				auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
-				if (pWHExt->Temporal_ConsiderVersus.Get(RulesExtData::Instance()->Temporal_ConsiderVersus)) {
-					warpPerStep = FakeWarheadTypeClass::ModifyDamage(warpPerStep, pWarhead, TechnoExtData::GetTechnoArmor(pTarget, pWarhead), 0);
-				}
+				const bool applyVerses = pWHExt->Temporal_ConsiderVersus.Get(RulesExtData::Instance()->Temporal_ConsiderVersus);
+				const bool applyMult = pWHExt->Temporal_ApplyMultiplier.Get(RulesExtData::Instance()->Temporal_ApplyMultiplier);
+	
+				warpPerStep = FakeTechnoClass::__AdjustDamageB(pTempOwner , pTarget , pWeapon ,warpPerStep, applyVerses, applyMult , true);
 			}
+
 			sum += warpPerStep;
 			pTemporal->WarpPerStep = warpPerStep;
 			pTemporal = pTemporal->PrevTemporal;
@@ -6171,6 +6173,42 @@ int __fastcall FakeTechnoClass::__AdjustDamage(TechnoClass* pThis, discard_t,Tec
 	return damage;
 }
 
+//another type of this , literally only used for one part of the code 
+//but i rather do this than calculating the multiplier twices 
+//making the code look more nice
+int FakeTechnoClass::__AdjustDamageB(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon, int damage, bool ApplyVerses, bool ApplyMult, bool ApplyAdditionalMut)
+{
+	auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
+
+	if (ApplyMult) {
+		//default damage multiplier
+		double  dDamage = TechnoExtData::GetDamageMult(pThis, (double)damage); 
+
+		if (ApplyAdditionalMut) {
+			//another damage multiplier for more specific cases
+			dDamage = TechnoExtData::GetAdditionalDamageMult(pThis, dDamage);
+		
+			//idk why it is even here but okay , the PR #2231 does this so 
+			if (const auto pTargetInfantry = cast_to<InfantryClass*, true>(pTarget)) {
+				if (pTargetInfantry->IsDeployed())
+					dDamage *= pWHExt->DeployedDamage.Get(pTarget);
+				else if (pTargetInfantry->Crawling)
+					dDamage *= pWeapon->Warhead->ProneDamage;
+			}
+		}
+
+		//calculate armor multiplier at last phase here
+		damage = (int)TechnoExtData::GetArmorMult(pTarget, dDamage, pWeapon->Warhead);
+	}
+
+	if (ApplyVerses) {
+		//yes , forward the result to the very last decision maker , then add more multiplier on top of it 
+		if(!pWeapon->IsSonic && !pWeapon->UseFireParticles && damage > 0)
+			damage = FakeWarheadTypeClass::ModifyDamage(damage, pWeapon->Warhead, TechnoExtData::GetTechnoArmor(pTarget, pWeapon->Warhead), 0);
+	}
+
+	return damage;
+}
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x6FDB80, FakeTechnoClass::__AdjustDamage);
 DEFINE_FUNCTION_JUMP(CALL, 0x6FE61D, FakeTechnoClass::__AdjustDamage);
@@ -9794,6 +9832,47 @@ double TechnoExtData::GetDamageMult(TechnoClass* pSource, double damageIn , bool
 	}
 
 	return _result;
+}
+
+// apply the additional damage mult from some vanilla tags
+double TechnoExtData::GetAdditionalDamageMult(TechnoClass* pThis, double damageIn)
+{
+	auto rtti = pThis->WhatAmI();
+	double finalDamage = damageIn;
+	auto pTechnoTypeExt = GET_TECHNOTYPEEXT(pThis);
+
+	if (pThis->CanOccupyFire())
+	{
+		float mult = (rtti == AbstractType::Building)
+			? BuildingTypeExtContainer::Instance.Find(
+				static_cast<BuildingClass*>(pThis)->Type)
+			->BuildingOccupyDamageMult.Get(RulesClass::Instance->OccupyDamageMultiplier)
+			: RulesClass::Instance->OccupyDamageMultiplier;
+
+		finalDamage = (finalDamage * mult);
+	}
+
+	if (pThis->BunkerLinkedItem && rtti != AbstractType::Building)
+	{
+		const double bonusses = pThis->BunkerLinkedItem->WhatAmI() == AbstractType::Building ?
+			BuildingTypeExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis->BunkerLinkedItem)->Type)
+			->BuildingBunkerDamageMult.Get(RulesClass::Instance->BunkerDamageMultiplier) :
+			RulesClass::Instance->BunkerDamageMultiplier;
+
+		finalDamage = (finalDamage * bonusses);
+	}
+
+	if (pThis->InOpenToppedTransport)
+	{
+		finalDamage = (finalDamage * pTechnoTypeExt->OpenTransport_DamageMultiplier);
+
+		finalDamage = (finalDamage * (pThis->Transporter
+			? GET_TECHNOTYPEEXT(pThis->Transporter)->OpenTopped_DamageMultiplier
+			.Get(RulesClass::Instance->OpenToppedDamageMultiplier)
+			: RulesClass::Instance->OpenToppedDamageMultiplier));
+	}
+
+	return finalDamage;
 }
 
 const BurstFLHBundle* TechnoExtData::PickFLHs(TechnoClass* pThis, int weaponidx)

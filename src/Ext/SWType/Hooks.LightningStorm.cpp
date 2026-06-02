@@ -115,7 +115,7 @@ ASMJIT_PATCH(0x539EB0, LightningStorm_Start, 5)
 			if (pExt->Weather_PrintText.Get(
 				RulesClass::Instance->LightningPrintText))
 			{
-				pExt->PrintMessage(pExt->Message_Activate, pSuper->Owner);
+				pExt->PrintMessage_Activate(pSuper->Owner);
 			}
 
 			auto const sound = pExt->SW_ActivationSound.Get(

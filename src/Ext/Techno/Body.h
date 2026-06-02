@@ -645,6 +645,8 @@ public:
 
 	static void TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClass* pTechnoTo);
 	static double GetDamageMult(TechnoClass* pSouce, double damageIn, bool ForceDisable = false);
+	static double GetAdditionalDamageMult(TechnoClass* pSouce, double damageIn);
+
 	static double GetArmorMult(TechnoClass* pSouce, double damageIn, WarheadTypeClass* pWarhead);
 
 	static void InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType);
@@ -1021,6 +1023,7 @@ public:
 	static int __fastcall _EvaluateJustCell(TechnoClass* pThis, discard_t, CellStruct* where);
 	static bool __fastcall __TargetSomethingNearby(TechnoClass* pThis, discard_t, CoordStruct* coord, ThreatType threat);
 	static int __fastcall __AdjustDamage(TechnoClass* pThis, discard_t, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
+	static int __AdjustDamageB(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon, int damage ,bool ApplyVerses ,  bool ApplyMult , bool ApplyAdditionalMut);
 	static void __fastcall __DrawAirstrikeFlare(TechnoClass* pThis, discard_t, const CoordStruct& startCoord, int startHeight, int endHeight, const CoordStruct& endCoord);
 	static AbstractClass* __fastcall __Greatest_Threat(TechnoClass* techno, discard_t, ThreatType method, CoordStruct* location, bool a4);
 	static 	bool __fastcall __EvaluateObject(

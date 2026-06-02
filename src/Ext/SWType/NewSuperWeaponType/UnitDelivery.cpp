@@ -53,7 +53,7 @@ void UnitDeliveryStateMachine::Update()
 
 		const auto pData = SWTypeExtContainer::Instance.Find(this->Super->Type);
 
-		pData->PrintMessage(pData->Message_Activate, this->Super->Owner);
+		pData->PrintMessage_Activate(this->Super->Owner);
 		VocClass::SafeImmedietelyPlayAt(pData->SW_ActivationSound, &coords, nullptr);
 
 		this->PlaceUnits();

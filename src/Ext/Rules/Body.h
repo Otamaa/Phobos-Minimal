@@ -320,7 +320,7 @@ public:
 	Nullable<bool> ShowPowerPlantEnhancerRange {};
 	Valueable<bool> OpenTopped_DecloakToFire { false };
 	Valueable<bool> Temporal_ConsiderVersus { false };
-
+	Valueable<bool> Temporal_ApplyMultiplier { false };
 	// ============================================================
 	// Valueable<int> / ValueableIdx (4 bytes each)
 	// ============================================================

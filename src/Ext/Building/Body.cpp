@@ -9,6 +9,7 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ext/Side/Body.h>
 #include <Ext/Tactical/Body.h>
+#include <Ext/HouseType/Body.h>
 
 #include <Ext/Aircraft/Body.h>
 #include <Ext/Infantry/Body.h>
@@ -2238,6 +2239,82 @@ void FakeBuildingClass::_DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOrigi
 		}
 	}
 }
+
+void FakeBuildingClass::_Init()
+{
+	if (!this->Owner && this->Type) {
+		Debug::Log("Missing Ownership %s[%s]/n", this->Type->ID, this->Type->Name);
+		return; //someone messed up, but dont crash
+	}
+	else if (!this->Owner && !this->Type)
+	{
+		return; //dont bother
+	}
+
+	this->TechnoClass::Init();
+
+	auto pBldExt = BuildingExtContainer::Instance.Find(this);
+
+	pBldExt->MyPrismForwarding = std::make_unique<PrismForwarding>();
+	pBldExt->MyPrismForwarding->Owner = this;
+
+	this->OwnerCountryIndex = this->Owner->Type->ParentIdx;
+	this->Owner->AddTracking(this);
+
+	auto const pBldTypeExt = BuildingTypeExtContainer::Instance.Find(this->Type);
+
+	const int __HP = pBldTypeExt->InitialStrength.Get(this->Type->Strength);
+	this->Health = __HP;
+	this->EstimatedHealth = __HP;
+
+	int ammo = this->Type->InitialAmmo;
+	if (this->Type->InitialAmmo == -1)
+		ammo = this->Type->Ammo;
+	this->Ammo = ammo;
+
+	this->PrimaryFacing.Set_ROT(this->Type->ROT);
+
+	if (this->Type->LoadBuildup())
+	{
+		this->Type->ClearBuildUp();
+		this->IsAllowedToSell = !this->Type->Unsellable;
+	}
+	else
+	{
+		this->IsAllowedToSell = false;
+	}
+
+	if (this->Type->Cloakable)
+	{
+		this->Cloakable = true;
+	}
+
+	if (this->Owner->WarFactoryInfiltrated)
+	{
+		if (!this->Type->Naval && this->Type->Trainable && this->Type->UndeploysInto)
+		{
+			this->Veterancy.Veterancy = 1.0f;
+		}
+	}
+
+	if (HouseTypeExtContainer::Instance.Find(this->Owner->Type)->VeteranBuildings.Contains(this->Type))
+	{
+		this->Veterancy.Veterancy = 1.0f;
+	}
+
+	if (this->Type->Trainable && HouseExtContainer::Instance.Find(this->Owner)->Is_ConstructionYardSpied)
+		this->Veterancy.Veterancy = 1.0f;
+
+
+	HouseExtData::ApplyAcademy(this->Owner, this, AbstractType::Building);
+	if (this->Type->SecretLab)
+	{
+		BuildingClass::Secrets->push_back(this);
+	}
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3EE0, FakeBuildingClass::_Init)
+DEFINE_FUNCTION_JUMP(CALL, 0x43BB29, FakeBuildingClass::_Init)
 
 //void FakeBuildingClass::_Draw_It(Point2D* screenPos, RectangleStruct* clipRect)
 //{

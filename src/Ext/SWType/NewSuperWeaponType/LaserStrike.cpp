@@ -106,7 +106,7 @@ void LaserStrikeStateMachine::Update()
 	if (pData->LaserStrikeRadius >= 0)
 	{
 		// activation stuff
-		pData->PrintMessage(pData->Message_Activate, Super->GetOwningHouse());
+		pData->PrintMessage_Activate(this->Super->Owner);
 
 		auto const sound = pData->SW_ActivationSound.Get(-1);
 		if (sound != -1)

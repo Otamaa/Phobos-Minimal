@@ -287,6 +287,7 @@ public:
 	void _DrawExtras(Point2D* pLocation, RectangleStruct* pBounds);
 	void _DrawVisible(Point2D* pLocation , RectangleStruct* pBounds);
 	void _DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect);
+	void _Init();
 	KickOutResult __ExitObject(TechnoClass* object, CellStruct exitCell);
 
 	InfantryTypeClass* __GetCrew();

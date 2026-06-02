@@ -405,7 +405,8 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->TemporalExpiredAnim.Read(exINI, pSection, "Temporal.ExpiredAnim");
 	this->TemporalDetachDamageFactor.Read(exINI, pSection, "Temporal.ExpiredDamageFactor");
 	this->TemporalExpiredApplyDamage.Read(exINI, pSection, "Temporal.ExpiredApplyDamage");
-	this->Temporal_ConsiderVersus.Read(exINI, pSection, "Temporal.ConsiderVersus");
+	this->Temporal_ConsiderVersus.Read(exINI, pSection, "Temporal.ApplyVersus");
+	this->Temporal_ApplyMultiplier.Read(exINI, pSection, "Temporal.ApplyMultiplier");
 	this->DebrisAnimTypes.Read(exINI, pSection, "DebrisAnims");
 	this->Flammability.Read(exINI, pSection, "FlameChance");
 
@@ -1925,6 +1926,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->TemporalExpiredApplyDamage)
 		.Process(this->TemporalDetachDamageFactor)
 		.Process(this->Temporal_ConsiderVersus)
+		.Process(this->Temporal_ApplyMultiplier)
 		.Process(this->Parasite_DisableRocking)
 		.Process(this->Parasite_GrappleAnim)
 		.Process(this->Parasite_ParticleSys)

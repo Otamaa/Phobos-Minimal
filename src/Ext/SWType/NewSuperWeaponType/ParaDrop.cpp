@@ -539,7 +539,7 @@ void ParaDropStateMachine::Update()
 
 	auto pData = this->GetTypeExtData();
 
-	pData->PrintMessage(pData->Message_Activate, this->Super->Owner);
+	pData->PrintMessage_Activate(this->Super->Owner);
 
 	auto const sound = pData->SW_ActivationSound.Get(-1);
 	if (sound != -1)

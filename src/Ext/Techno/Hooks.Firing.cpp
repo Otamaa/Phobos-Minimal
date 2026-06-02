@@ -548,25 +548,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 	// ╔═══ HOOK: TechnoClass_FireAt_OccupyDamageBonus @ 0x6FE3E3 ═══════════════╗
 	// W5: Replaces OccupyDamage + BunkerDamage + OpenTopped + DiskLaser.
 	{
-		if (pThis->CanOccupyFire())
-		{
-			float mult = (rtti == AbstractType::Building)
-				? BuildingTypeExtContainer::Instance.Find(
-					static_cast<BuildingClass*>(pThis)->Type)
-				->BuildingOccupyDamageMult.Get(RulesClass::Instance->OccupyDamageMultiplier)
-				: RulesClass::Instance->OccupyDamageMultiplier;
-
-			finalDamage = (int)(finalDamage * mult);
-		}
-
-		if (pThis->InOpenToppedTransport)
-		{
-			finalDamage = (int)(finalDamage * pTechnoTypeExt->OpenTransport_DamageMultiplier);
-			finalDamage = (int)(finalDamage * (pThis->Transporter
-				? GET_TECHNOTYPEEXT(pThis->Transporter)->OpenTopped_DamageMultiplier
-				.Get(RulesClass::Instance->OpenToppedDamageMultiplier)
-				: RulesClass::Instance->OpenToppedDamageMultiplier));
-		}
+		finalDamage = int(TechnoExtData::GetAdditionalDamageMult(pThis, finalDamage));
 
 		if (pWeapon->DiskLaser)
 		{

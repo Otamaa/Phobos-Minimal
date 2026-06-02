@@ -719,7 +719,7 @@ bool CloneableLighningStormStateMachine::Start(CellStruct& cell, int nDuration, 
 		if (pData->Weather_PrintText.Get(
 			RulesClass::Instance->LightningPrintText))
 		{
-			pData->PrintMessage(pData->Message_Activate, Super->GetOwningHouse());
+			pData->PrintMessage_Activate(this->Super->Owner);
 		}
 
 		auto const sound = pData->SW_ActivationSound.Get(

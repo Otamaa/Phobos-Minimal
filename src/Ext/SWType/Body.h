@@ -418,7 +418,7 @@ public:
 public:
 
 	SWTypeExtData(SuperWeaponTypeClass* pObj);
-	SWTypeExtData(SuperWeaponTypeClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }
+	SWTypeExtData(SuperWeaponTypeClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) {}
 	virtual ~SWTypeExtData();
 
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) override
@@ -473,7 +473,8 @@ public:
 
 	bool PreParse(CCINIClass* pINI);
 
-	OPTIONALINLINE const char* get_ID(){
+	OPTIONALINLINE const char* get_ID()
+	{
 		return this->Name.data();
 	}
 
@@ -496,6 +497,9 @@ public:
 
 	bool ApplyDrainMoney(int timeLeft, HouseClass* pHouse);
 	bool ApplyDrainBattlePoint(int timeLeft, HouseClass* pHouse);
+
+	void PrintMessage_Activate(HouseClass* pFirer);
+	void Play_EvaActivated(HouseClass* pFirer);
 
 	//no arg(s)
 	COMPILETIMEEVAL OPTIONALINLINE double GetChargeToDrainRatio() const {

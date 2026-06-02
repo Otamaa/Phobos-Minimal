@@ -840,10 +840,8 @@ bool SWTypeExtData::Launch(SWTypeHandler* pNewType, SuperClass* pSuper, CellStru
 		pHouseExt->SWLastIndex = curSuperIdx;
 	}
 
-	if ((flags & SuperWeaponFlags::NoEVA) == SuperWeaponFlags::None && !Unsorted::MuteSWLaunches.get())
-	{
-		if (pData->EVA_Activated >= 0)
-			VoxClass::PlayIndex(pData->EVA_Activated);
+	if ((flags & SuperWeaponFlags::NoEVA) == SuperWeaponFlags::None && !Unsorted::MuteSWLaunches.get()) {
+		pData->Play_EvaActivated(pOwner);
 	}
 
 	if ((flags & SuperWeaponFlags::NoMoney) == SuperWeaponFlags::None)
@@ -1811,6 +1809,19 @@ bool SWTypeExtData::ApplyDrainBattlePoint(int timeLeft, HouseClass* pHouse) {
 
 	return true;
 }
+
+// TODO : when PR #2196 is merget , here is the place to put them
+void SWTypeExtData::PrintMessage_Activate(HouseClass* pFirer)
+{
+	this->PrintMessage(this->Message_Activate, pFirer);
+}
+
+void SWTypeExtData::Play_EvaActivated(HouseClass* pFirer)
+{
+	if (this->EVA_Activated >= 0)
+		VoxClass::PlayIndex(this->EVA_Activated);
+}
+//
 
 void SWTypeExtData::ClearChronoAnim(SuperClass* pThis)
 {
