@@ -40,6 +40,7 @@ void FakeTechnoClass::__HandleVoicePlayback(TechnoClass* pThis)
 		int voiceToPlay = pThis->QueuedVoiceIndex;
 		pThis->__LastVoicePlayed = voiceToPlay;
 		VocClass::PlayGlobal(voiceToPlay, Panning::Center, 1.0, &pThis->Audio6);
+		pThis->QueuedVoiceIndex = -1;
 	} else if (pThis->__LastVoicePlayed == pThis->QueuedVoiceIndex) {
 		pThis->QueuedVoiceIndex = -1;
 	}
@@ -191,16 +192,13 @@ void FakeTechnoClass::__HandleDrainTarget(TechnoClass* pThis)
 
 void FakeTechnoClass::__HandleHiddenState(TechnoClass* pThis)
 {
-	if (pThis->InOpenToppedTransport)
-		return;
-
-	const auto pType = GET_TECHNOTYPEEXT(pThis);
-	if (pType->IsDummy)
-		return;
+	const bool isInOpentopped = pThis->InOpenToppedTransport;
+	const bool isDummy = GET_TECHNOTYPEEXT(pThis)->IsDummy;
+	bool isLimboDelivered = false;
 
 	if (const auto pBld = cast_to<BuildingClass*, false>(pThis)) {
 		if (BuildingExtContainer::Instance.Find(pBld)->LimboID >= 0) {
-			return;
+			isLimboDelivered = true;
 		}
 	}
 
@@ -210,9 +208,12 @@ void FakeTechnoClass::__HandleHiddenState(TechnoClass* pThis)
 
 	TechnoTypeClass* techType = GET_TECHNOTYPE(pThis);
 
-	bool shouldBeHidden = techType->CanBeHidden
+	const bool shouldBeHidden = techType->CanBeHidden
 		&& cell->IsCovered()
-		&& pThis->WhatAmI() != AircraftClass::AbsID;
+		&& pThis->WhatAmI() != AircraftClass::AbsID
+		&& !isInOpentopped
+		&& !isDummy
+		&& !isLimboDelivered;
 
 	if (!shouldBeHidden) {
 		if (auto& pHidden = pThis->BehindAnim) {
@@ -252,10 +253,10 @@ void FakeTechnoClass::__ClearInvalidAllyTarget(TechnoClass* pThis)
 	if (TechnoClass* transport = pThis->Transporter) {
 		TechnoTypeClass* transportType = GET_TECHNOTYPE(transport);
 
-		if(TechnoTypeExtContainer::Instance.Find(transportType)
+		if(transportType->OpenTopped && TechnoTypeExtContainer::Instance.Find(transportType)
 			->Passengers_SyncOwner.Get()){
-			if (transportType->OpenTopped && transport->MindControlledBy) {
-				controllingHouse = transport->MindControlledBy->Owner;
+			if (auto* originalOwner = transport->GetOriginalOwner()) {
+				controllingHouse = originalOwner;
 				isInOpenToppedTransport = true;
 			}
 		}
