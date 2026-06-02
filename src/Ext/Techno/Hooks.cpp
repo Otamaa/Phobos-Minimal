@@ -1969,7 +1969,7 @@ bool NOINLINE __fastcall ___CanPassiveAquire(TechnoClass* pThis)
 		}
 	}
 
-	if(pType->Naval && !pExt->TypeExtData->CanPassiveAquire_Naval.isset()){
+	if(pType->Naval && pExt->TypeExtData->CanPassiveAquire_Naval.isset()){
 		if(!pExt->TypeExtData->CanPassiveAquire_Naval)
 			return false;
 	}

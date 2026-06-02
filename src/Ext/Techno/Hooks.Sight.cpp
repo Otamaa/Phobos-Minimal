@@ -102,12 +102,28 @@ void FakeAircraftClass::__Look(bool incremental, int arg_4)
 
 		MapClass::Instance->RevealArea2(&coord, sightRange, pOwner,
 					   incremental, arg_4, /*a7*/false, /*a8*/true, /*a9*/true);
-	}
-	else if (sightRange == 0 && (ScenarioClass::Instance->SpecialFlags.RawFlags & 0x1000) != 0)
-	{
 
-		const int fogRange = RulesClass::Instance->AircraftFogReveal;    
-		const int halfFlight = RulesClass::Instance->FlightLevel / 2;    
+		return;
+	}
+	
+	if (sightRange == 0)
+	{
+		CoordStruct& coord = this->Location;
+		HouseClass* pOwner = this->Owner;
+
+		MapClass::Instance->RevealArea2(&coord, sightRange, pOwner,
+					   incremental, arg_4, /*a7*/false, /*a8*/true, /*a9*/false);
+
+		MapClass::Instance->RevealArea2(&coord, sightRange, pOwner,
+					   incremental, arg_4, /*a7*/false, /*a8*/true, /*a9*/true);
+
+		return;
+	}
+
+	if ((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x1000) != 0)
+	{
+		const int fogRange = RulesClass::Instance->AircraftFogReveal;
+		const int halfFlight = RulesClass::Instance->FlightLevel / 2;
 		CoordStruct& coord = this->Location;
 
 		const bool low1 = (this->GetHeight() < halfFlight);

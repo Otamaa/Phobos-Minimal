@@ -259,9 +259,7 @@ int __fastcall FakeTechnoClass::__WhatWeaponShouldIUse(TechnoClass* pThis, disca
 		}
 	}
 
-	// ===== Self is Unit — flag at +0x6CA (vanilla 0x6F3648) =====
-	// VERIFY: UnitClass+0x6CA — IDA shows BYTE2(FollowerCar), likely a byte flag
-	//         (e.g. UnitClass::HasDeployFireWeapon?)
+	// ===== Self is Aircraft — flag at +0x6CA (vanilla 0x6F3648) =====
 	if (pThis->WhatAmI() == AbstractType::Aircraft
 		&& static_cast<AircraftClass*>(pThis)->IsKamikaze)
 	{

@@ -567,7 +567,7 @@ bool bIgnoreDisableWeapon)
 
 	// In-air target without AA
 	if (bTargetInAir && !pProjectile->AA)
-		return (pTarget != pThis->Target) ? FireError::ILLEGAL : FireError::REARM;
+		return (pTarget != pThis->LocomotorTarget) ? FireError::ILLEGAL : FireError::REARM;
 
 	// [HOOK 0x6FC749] Layer-based checks for foot-class targets
 	if (pFootT)
@@ -628,12 +628,15 @@ bool bIgnoreDisableWeapon)
 			return FireError::ILLEGAL;
 
 		// [HOOK 0x6FC815] Bridge-aware cell targeting
-		if(pCellTarget && (pCellTarget->ContainsBridge()
-			|| pCellTarget->LandType == LandType::Water && pThisType->NavalTargeting == NavalTargetingType::Naval_none
-			|| pCellTarget->LandType == LandType::Beach || pCellTarget->LandType == LandType::Water))
-		{
-			if (pThisType->LandTargeting == LandTargetingType::Land_not_okay)
-				return FireError::ILLEGAL;
+		if(pCellTarget) {
+			auto land = pCellTarget->LandType ;
+			if(land == LandType::Water || land == LandType::Beach)
+			{
+				if (pThisType->NavalTargeting == NavalTargetingType::Naval_none)
+					return FireError::ILLEGAL;
+			} else if(pCellTarget->ContainsBridge() || pThisType->LandTargeting == LandTargetingType::Land_not_okay){
+					return FireError::ILLEGAL;
+			}
 		}
 	}
 
