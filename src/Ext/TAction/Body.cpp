@@ -62,11 +62,11 @@ void TActionExtData::ExtData::Serialize(T& Stm)
 		//.Process(this->Parm6)
 		;
 }
-
+*/
 // =============================
 // container
-TActionExtData::ExtContainer TActionExtData::ExtMap;
-*/
+TActionExtContainer TActionExtContainer::Instance;
+
 
 //==============================
 bool TActionExtData::SetFollowsIndexForVehicle(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)

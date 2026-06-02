@@ -9,6 +9,7 @@
 #include <Utilities/VectorHelper.h>
 #include <Utilities/PhobosMap.h>
 #include <Utilities/Enum.h>
+#include <Utilities/Container.h>
 
 class HouseClass;
 class ObjectClass;
@@ -100,6 +101,10 @@ enum class PhobosTriggerAction : unsigned int
 
 class TActionExtData
 {
+public:
+	using base_type = TActionClass;
+	static COMPILETIMEEVAL const char* ClassName = "TActionExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "TActionClass";
 public:
 
 	static void RecreateLightSources();
@@ -209,30 +214,43 @@ public:
 	static bool Retint(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location, DefaultColorList col);
 	static bool Execute(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location, bool& ret);
 	static PhobosMap<int, std::vector<TriggerClass*>> RandomTriggerPool;
+};
 
-	static void Clear() {
-		RandomTriggerPool.clear();
+class TActionExtContainer final : 
+	public Container<TActionExtData>, 
+	public ContainerSaveLoad<TActionExtContainer, false>
+{
+public:
+	static COMPILETIMEEVAL const char* ClassName = "TActionExtContainer";
+
+	virtual bool LoadAll(PhobosStreamReader& Stm) override
+	{
+		Stm.Process(TActionExtData::RandomTriggerPool);
+		return Stm.Success();
 	}
 
-	static void InvalidatePointer(AbstractClass* ptr, bool bRemoved) {
-		for (auto& nMap : RandomTriggerPool) {
+	virtual bool SaveAll(PhobosStreamWriter& Stm) override
+	{
+		Stm.Process(TActionExtData::RandomTriggerPool);
+		return Stm.Success();
+	}
+
+	void InvalidatePointer(AbstractClass* ptr, bool bRemoved)
+	{
+		for (auto& nMap : TActionExtData::RandomTriggerPool) {
 			if (bRemoved) {
 				fast_remove_if(nMap.second, [ptr](auto _el) { return  ptr == _el; });
 			}
 		}
 	}
 
-	static bool LoadGlobals(PhobosStreamReader& Stm) {
-		Stm.Process(RandomTriggerPool);
-		return Stm.Success();
+	void Clear() {
+		TActionExtData::RandomTriggerPool.clear();
 	}
 
-	static bool SaveGlobals(PhobosStreamWriter& Stm){
-		Stm.Process(RandomTriggerPool);
-		return Stm.Success();
-	}
+public:
+	static TActionExtContainer Instance;
 };
-
 
 class NOVTABLE FakeTActionClass : public TActionClass
 {

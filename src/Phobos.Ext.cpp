@@ -140,7 +140,7 @@ void PhobosExt::InvalidatePointers(AbstractClass* const pInvalid, bool const rem
 {
 
 	if(type == AbstractType::Trigger) {
-		TActionExtData::InvalidatePointer(pInvalid, removed);
+		TActionExtContainer::Instance.InvalidatePointer(pInvalid, removed);
 	}
 	
 	if(pInvalid->AbstractFlags & AbstractFlags::Techno) {
@@ -354,9 +354,9 @@ void Phobos::ClearAll()
 	CLEAR_CONTAIER_CLASS(WarheadTypeExtContainer);
 	CLEAR_CONTAIER_CLASS(WeaponTypeExtContainer);
 	CLEAR_CONTAIER_CLASS(WaveExtContainer);
+	CLEAR_CONTAIER_CLASS(TActionExtContainer);
 
 	CLEAR_CLASS(EboltExtData);
-	CLEAR_CLASS(TActionExtData);
 	CLEAR_CLASS(HugeBar);
 
 	PhobosPCXFile::LoadedMap.clear();

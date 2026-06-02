@@ -538,7 +538,20 @@ public:
 
 	virtual ~WarheadTypeExtData() = default;
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) override { }
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) override { 
+		
+		switch (type)
+		{
+		case AbstractType::Unit:
+		case AbstractType::Aircraft:
+		case AbstractType::Building:
+		case AbstractType::Infantry:
+			AnnounceInvalidPointer(this->IntendedTarget, ptr, bRemoved);
+			break;
+		default:
+			break;
+		}	
+	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
@@ -736,6 +749,7 @@ class NOVTABLE FakeWarheadTypeClass : public WarheadTypeClass
 public:
 
 	bool _ReadFromINI(CCINIClass* pINI);
+	void _Detach(AbstractClass* target, bool all);
 
 	static int __fastcall ModifyDamageA(int damage, FakeWarheadTypeClass* pWH, Armor armor, int distance);
 	static void __fastcall DoFlash(int Damage, WarheadTypeClass* WH, int X, int Y, int Z, bool Force , SpotlightFlags CLDisableFlags);

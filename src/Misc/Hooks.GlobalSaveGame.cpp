@@ -403,9 +403,6 @@ HRESULT Phobos::SaveAllExtData(IStream* pStm)
 	hr = WriteBlocksToStream<SWStateMachine, false>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
-	hr = WriteBlocksToStream<TActionExtData, false>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
 	hr = WriteBlocksToStream<ShieldClass>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
@@ -448,10 +445,12 @@ HRESULT Phobos::SaveAllExtData(IStream* pStm)
 	//	if (!SUCCEEDED(hr)) return hr;
 	//hr = WriteBlocksToStreamC(ScriptExtContainer::Instance, pStm);
 	//if (!SUCCEEDED(hr)) return hr;
+	hr = WriteBlocksToStreamC(TriggerExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
 	hr = WriteBlocksToStreamC(AITriggerTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	//hr = WriteBlocksToStreamC(TActionExtContainer::Instance, pStm);
-	//if (!SUCCEEDED(hr)) return hr;
+	hr = WriteBlocksToStreamC(TActionExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
 	hr = WriteBlocksToStreamC(TEventExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
 	hr = WriteBlocksToStreamC(VoxelAnimTypeExtContainer::Instance, pStm);

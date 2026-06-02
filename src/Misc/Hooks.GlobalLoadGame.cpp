@@ -464,9 +464,6 @@ HRESULT Phobos::LoadAllExtData(IStream* pStm)
 	hr = ReadBlocksFromStream<SWStateMachine>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
-	hr = ReadBlocksFromStream<TActionExtData>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
 	hr = ReadBlocksFromStream<ShieldClass>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
@@ -509,10 +506,12 @@ HRESULT Phobos::LoadAllExtData(IStream* pStm)
 	//	if (!SUCCEEDED(hr)) return hr;
 	//hr = ReadBlocksFromStreamStreamC(ScriptExtContainer::Instance, pStm);
 	//if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(TriggerExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
 	hr = ReadBlocksFromStreamStreamC(AITriggerTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	//hr = ReadBlocksFromStreamStreamC(TActionExtContainer::Instance, pStm);
-	//if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamC(TActionExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
 	hr = ReadBlocksFromStreamStreamC(TEventExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
 	hr = ReadBlocksFromStreamStreamC(VoxelAnimTypeExtContainer::Instance, pStm);
@@ -565,7 +564,6 @@ HRESULT Phobos::LoadAllExtData(IStream* pStm)
 	//if (!SUCCEEDED(hr)) return hr;
 	hr = ReadBlocksFromStreamStreamC(RadSiteExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-
 	//more
 	return hr;
 }

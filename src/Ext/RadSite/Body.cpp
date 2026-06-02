@@ -218,7 +218,7 @@ const RadSiteExtData::DamagingState RadSiteExtData::ApplyRadiationDamage(TechnoC
 		{
 			auto const coords = pTarget->GetCoords();
 			HouseClass* const pOwner = this->TechOwner ? this->TechOwner->Owner : this->HouseOwner;
-			WarheadTypeExtData::DetonateAt(pWarhead, pTarget, coords , this->TechOwner, damage , pOwner);
+			WarheadTypeExtContainer::Instance.Find(pWarhead)->DamageAreaWithTarget(coords, damage, this->TechOwner, pWarhead, true, pOwner, pTarget);
 
 			if ((pUnit && pUnit->DeathFrameCounter > 0))
 				return RadSiteExtData::DamagingState::Ignore;

@@ -74,7 +74,8 @@ void FakeBombClass::__Detonate() {
 			const auto OwningHouse = this->GetOwningHouse();
 			
 			/*WarheadTypeExtData::DetonateAt(pBombWH, pTarget, coords, pThis->Owner, nDamage);*/
-			DamageArea::Apply(&coords, nDamage, this->Owner, pBombWH, pBombWH->Tiberium, OwningHouse);
+			WarheadTypeExtContainer::Instance.Find(pBombWH)->DamageAreaWithTarget
+			(coords, nDamage, this->Owner, pBombWH, pBombWH->Tiberium, this->OwnerHouse, flag_cast_to<TechnoClass*>(this->Target));
 			MapClass::Instance->FlashbangWarheadAt(nDamage, pBombWH, coords);
 			const auto pDetonateCoords = MapClass::Instance->GetCellAt(coords);
 

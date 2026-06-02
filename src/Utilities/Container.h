@@ -229,58 +229,70 @@ struct ContainerSaveLoad {
 
 	virtual bool LoadAll(PhobosStreamReader& stm)
 	{
-		int Count = 0;
-		if (!stm.Load(Count))
-			return false;
-
-		for (int i = 0; i < Count; ++i) {
-			uintptr_t savedPtr {};
-			if (!stm.Load(savedPtr))
+		//common extension can use container too , but need to 
+		//implement these themself
+		if constexpr  (std::is_base_of_v<AbstractExtended, T::ExtT>) {
+			int Count = 0;
+			if (!stm.Load(Count))
 				return false;
 
-			auto buffer = new T::ExtT(nullptr, noinit_t());
-			Debug::Log("Loading %s [At (%d) - %x] to stream\n",
-					T::ClassName, i, savedPtr);
+			for (int i = 0; i < Count; ++i)
+			{
+				uintptr_t savedPtr {};
+				if (!stm.Load(savedPtr))
+					return false;
 
-			buffer->LoadFromStream(stm);
-			if (!stm.Success())
-				return false;
+				auto buffer = new T::ExtT(nullptr, noinit_t());
+				Debug::Log("Loading %s [At (%d) - %x] to stream\n",
+						T::ClassName, i, savedPtr);
 
-			//specifically for immedietely restore the extension pointers 
-			ExtensionSwizzleManager::RegisterExtensionPointer((void*)savedPtr, buffer);
-			//for others that need to be remapped using vanilla swizzle manager
-			PhobosSwizzleManager.Here_I_Am(savedPtr, buffer);
-			((T*)this)->Array.emplace_back(buffer);
+				buffer->LoadFromStream(stm);
+				if (!stm.Success())
+					return false;
+
+				//specifically for immedietely restore the extension pointers 
+				ExtensionSwizzleManager::RegisterExtensionPointer((void*)savedPtr, buffer);
+				//for others that need to be remapped using vanilla swizzle manager
+				PhobosSwizzleManager.Here_I_Am(savedPtr, buffer);
+				((T*)this)->Array.emplace_back(buffer);
+			}
 		}
 
 		return true;
 	}
 
 	virtual bool SaveAll(PhobosStreamWriter& stm)
-	{
-		const int Count = (int)((T*)this)->Array.size();
-		if (!stm.Save(Count))
-			return false;
+	{	
+		//common extension can use container too , but need to 
+		//implement these themself
+		if constexpr (std::is_base_of_v<AbstractExtended, T::ExtT>) {
+			const int Count = (int)((T*)this)->Array.size();
+			if (!stm.Save(Count))
+				return false;
 
-		for (int i = 0; i < Count; ++i) {
-			uintptr_t savedPtr = (uintptr_t)((T*)this)->Array[i];
+			for (int i = 0; i < Count; ++i)
+			{
+				uintptr_t savedPtr = (uintptr_t)((T*)this)->Array[i];
 
-			if constexpr (haNameItem) { 
-				Debug::Log("Saving %s [%s (%d) - %x] to stream\n",
-					T::ClassName, ((T*)this)->Array[i]->Name.c_str(), i, savedPtr);
-			} else {
-				Debug::Log("Saving %s [At Index %d - %x] to stream\n",
-						T::ClassName, i, savedPtr);
+				if constexpr (haNameItem)
+				{
+					Debug::Log("Saving %s [%s (%d) - %x] to stream\n",
+						T::ClassName, ((T*)this)->Array[i]->Name.c_str(), i, savedPtr);
+				}
+				else
+				{
+					Debug::Log("Saving %s [At Index %d - %x] to stream\n",
+							T::ClassName, i, savedPtr);
+				}
+
+				if (!stm.Save(savedPtr))
+					return false;
+
+				((T*)this)->Array[i]->SaveToStream(stm);
+				if (!stm.Success())
+					return false;
 			}
-
-			if (!stm.Save(savedPtr))
-				return false;
-
-			((T*)this)->Array[i]->SaveToStream(stm);
-			if (!stm.Success())
-				return false;
 		}
-
 		return true;
 	}
 };

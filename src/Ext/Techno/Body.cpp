@@ -135,16 +135,17 @@ void TintColors::Update()
 	//}
 }
 
-void TintColors::GetTints(int* tintColor, int* intensity)
+void TintColors::GetTints(TechnoClass* pOwner, int* tintColor, int* intensity)
 {
+	auto pOwnerExt = TechnoExtContainer::Instance.Find(pOwner);
+	auto& thetint = pOwnerExt->Tints;
+
 	const bool CalculateIntensity = intensity != nullptr;
 	const bool calculateTint = tintColor != nullptr;
 
 	if (!calculateTint && !CalculateIntensity)
 		return;
 
-	auto const pOwner = this->Owner->Owner;
-	auto pOwnerExt = TechnoExtContainer::Instance.Find(this->Owner);
 
 	//for (auto& [wh, paint] : pOwnerExt->PaintBallStates) {
 	//	if (paint.IsActive() && paint.AllowDraw(this->Owner)) {
@@ -157,7 +158,7 @@ void TintColors::GetTints(int* tintColor, int* intensity)
 	//	}
 	//}
 
-	auto const pTypeExt = GET_TECHNOTYPEEXT(this->Owner);
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pOwner);
 	const bool hasTechnoTint = pTypeExt->Tint_Color.isset() || pTypeExt->Tint_Intensity;
 	bool hasShieldTint = false;
 	auto pShield = pOwnerExt->GetShield();
@@ -166,14 +167,14 @@ void TintColors::GetTints(int* tintColor, int* intensity)
 		hasShieldTint = pShield->IsActive() && pShield->GetType()->HasTint();
 	}
 
-	this->Reset();
+	thetint.Reset();
 
 	// bail out early if no custom tint is applied.
 	if (!hasTechnoTint && !pOwnerExt->AE.flags.HasTint && !hasShieldTint)
 		return;
 
 	if (hasTechnoTint)
-		this->Calculate(pTypeExt->Tint_Color->ToInit(), static_cast<int>(pTypeExt->Tint_Intensity * 1000), pTypeExt->Tint_VisibleToHouses);
+		thetint.Calculate(pTypeExt->Tint_Color->ToInit(), static_cast<int>(pTypeExt->Tint_Intensity * 1000), pTypeExt->Tint_VisibleToHouses);
 
 	if (pOwnerExt->AE.flags.HasTint)
 	{
@@ -187,39 +188,39 @@ void TintColors::GetTints(int* tintColor, int* intensity)
 			if (!attachEffect->IsActive() || !type->HasTint())
 				continue;
 
-			this->Calculate(type->Tint_Color->ToInit(), static_cast<int>(type->Tint_Intensity * 1000), type->Tint_VisibleToHouses);
+			thetint.Calculate(type->Tint_Color->ToInit(), static_cast<int>(type->Tint_Intensity * 1000), type->Tint_VisibleToHouses);
 		}
 	}
 
 	if (hasShieldTint)
 	{
 		auto const pShieldType = pShield->GetType();
-		this->Calculate(pShieldType->Tint_Color->ToInit(), static_cast<int>(pShieldType->Tint_Intensity * 1000), pShieldType->Tint_VisibleToHouses);
+		thetint.Calculate(pShieldType->Tint_Color->ToInit(), static_cast<int>(pShieldType->Tint_Intensity * 1000), pShieldType->Tint_VisibleToHouses);
 	}
 
-	if (pOwner == HouseClass::CurrentPlayer.get())
+	if (pOwner->Owner == HouseClass::CurrentPlayer.get())
 	{
 		if(calculateTint)
-			*tintColor |= this->ColorOwner;
+			*tintColor |= thetint.ColorOwner;
 
 		if (CalculateIntensity)
-			*intensity += this->IntensityOwner;
+			*intensity += thetint.IntensityOwner;
 	}
-	else if (pOwner->IsAlliedWith(HouseClass::CurrentPlayer.get()))
+	else if (pOwner->Owner->IsAlliedWith(HouseClass::CurrentPlayer.get()))
 	{
 		if (calculateTint)
-			*tintColor |= this->ColorAllies;
+			*tintColor |= thetint.ColorAllies;
 
 		if (CalculateIntensity)
-			*intensity += this->IntensityAllies;
+			*intensity += thetint.IntensityAllies;
 	}
 	else
 	{
 		if (calculateTint)
-			*tintColor |= this->ColorEnemies;
+			*tintColor |= thetint.ColorEnemies;
 
 		if (CalculateIntensity)
-			*intensity += this->IntensityEnemies;
+			*intensity += thetint.IntensityEnemies;
 	}
 }
 
@@ -4968,7 +4969,7 @@ void TechnoExtData::ApplyCustomTint(TechnoClass* pThis, int* tintColor, int* int
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
-	pExt->Tints.GetTints(tintColor, intensity);
+	TintColors::GetTints(pThis, tintColor, intensity);
 
 	bool calculateIntensity = intensity != nullptr;
 	//const bool calculateTintColor = tintColor != nullptr;
@@ -13551,7 +13552,7 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved, Abstrac
 	default:break;
 	}
 
-	if (auto pSpawn = (FakeSpawnManagerClass*)This()->SpawnManager)
+	if (FakeSpawnManagerClass* pSpawn = (FakeSpawnManagerClass*)this->This()->SpawnManager)
 		pSpawn->_DetachB(ptr, bRemoved);
 
 	AnnounceInvalidPointer(WebbyLastTarget, ptr);

@@ -3673,3 +3673,13 @@ bool FakeWarheadTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6B94, FakeWarheadTypeClass::_ReadFromINI)
+
+void FakeWarheadTypeClass::_Detach(AbstractClass* target, bool all)
+{
+	if (auto pExt = this->_GetExtData())
+		pExt->InvalidatePointer(target, all, target->WhatAmI());
+
+	this->WarheadTypeClass::PointerExpired(target, all);
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6B58, FakeWarheadTypeClass::_Detach)

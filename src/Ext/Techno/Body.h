@@ -38,7 +38,6 @@ struct TintColors
 {
 private:
 
-	TechnoClass* Owner;
 	int ColorOwner;
 	int ColorAllies;
 	int ColorEnemies;
@@ -48,8 +47,6 @@ private:
 
 
 public:
-
-	void SetOwner(TechnoClass* abs) { this->Owner = abs; };
 
 	bool FORCEDINLINE Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
@@ -73,7 +70,7 @@ public:
 
 	void Update();
 
-	void GetTints(int* tintColor, int* intensity);
+	static void GetTints(TechnoClass* owner, int* tintColor, int* intensity);
 
 private:
 
@@ -83,7 +80,6 @@ private:
 	bool FORCEDINLINE Serialize(T& Stm)
 	{
 		return Stm
-			.Process(this->Owner)
 			.Process(this->ColorOwner)
 			.Process(this->ColorAllies)
 			.Process(this->ColorEnemies)
@@ -488,10 +484,6 @@ public:
 	{
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
 		MyTargetingFrame = ScenarioClass::Instance->Random.RandomRanged(0, 15);
-		Tints.SetOwner(abs);
-		//ShieldEntity = PhobosEntity::Create();
-		//PoweredUnitEntity = PhobosEntity::Create();
-		//RadarJammerEntity = PhobosEntity::Create();
 	};
 
 	TechnoExtData(TechnoClass* abs, noinit_t& noint) : RadioExtData(abs, noint) {};
