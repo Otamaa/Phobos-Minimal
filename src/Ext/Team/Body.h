@@ -19,7 +19,8 @@ public:
 	using base_type = TeamClass;
 	static COMPILETIMEEVAL const char* ClassName = "TeamExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "TeamClass";
-	
+	static COMPILETIMEEVAL DWORD Canary = 0x9C9C9505;
+
 public:
 
 #pragma region ClassMembers
@@ -61,7 +62,7 @@ public:
 		this->AbsType = TeamClass::AbsID;
 	}
 
-	TeamExtData(TeamClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
+	TeamExtData() = default;
 
 	virtual ~TeamExtData() = default;
 
@@ -105,18 +106,25 @@ private:
 	void Serialize(T& Stm);
 };
 
-class TeamExtContainer final : public Container<TeamExtData>, public ContainerSaveLoad<TeamExtContainer, true>
+class TeamExtContainer final : public Container<TeamExtData>
+	, public ContainerSaveLoad<TeamExtContainer, TeamExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "TeamExtContainer";
 
 public:
 	static TeamExtContainer Instance;
+
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
 };
 
 class NOVTABLE FakeTeamClass : public TeamClass
 {
 public:
+
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	void _Detach(AbstractClass* target, bool all);
 

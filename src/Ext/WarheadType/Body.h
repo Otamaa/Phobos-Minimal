@@ -29,6 +29,7 @@ public:
 	using base_type = WarheadTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "WarheadTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "WarheadTypeClass";
+	static COMPILETIMEEVAL DWORD Canary = 0xA52BD10D;
 
 public:
 
@@ -61,6 +62,7 @@ public:
 
 	Valueable<bool> RemoveDisguise { false };
 	Valueable<bool> RemoveMindControl { false };
+	Nullable<bool> RemoveMindControl_Silent {};
 	Nullable<bool> AnimList_PickRandom {};
 	Valueable<bool> AnimList_CreateAll { false };
 	Valueable<int> AnimList_CreationInterval { 0 };
@@ -534,7 +536,7 @@ public:
 
 	void Initialize();
 
-	WarheadTypeExtData(WarheadTypeClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }
+	WarheadTypeExtData() = default;
 
 	virtual ~WarheadTypeExtData() = default;
 
@@ -723,19 +725,19 @@ public:
 };
 
 class WarheadTypeExtContainer final : public Container<WarheadTypeExtData>
-	, public ReadWriteContainerInterfaces<WarheadTypeExtData>, public ContainerSaveLoad<WarheadTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<WarheadTypeExtData>
+	, public ContainerSaveLoad<WarheadTypeExtContainer, WarheadTypeExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "WarheadTypeExtContainer";
 	using base_t = Container<WarheadTypeExtData>;
 	using ext_t = WarheadTypeExtData;
-	using base_SaveLoad_t = ContainerSaveLoad<WarheadTypeExtContainer, true>;
 
 public:
 	static WarheadTypeExtContainer Instance;
 
-	virtual bool LoadAll(PhobosStreamReader& stm);
-	virtual bool SaveAll(PhobosStreamWriter& stm);
+	virtual bool LoadGlobal(PhobosStreamReader& stm);
+	virtual bool SaveGlobal(PhobosStreamWriter& stm);
 
 	virtual void Clear();
 
@@ -747,6 +749,8 @@ public:
 class NOVTABLE FakeWarheadTypeClass : public WarheadTypeClass
 {
 public:
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	bool _ReadFromINI(CCINIClass* pINI);
 	void _Detach(AbstractClass* target, bool all);

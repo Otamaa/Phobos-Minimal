@@ -616,11 +616,16 @@ bool BuildingExtData::RubbleYell(bool beingRepaired) const
 				{
 					// percentage of original health
 					const auto nDecided = ((-strength * pNew->Type->Strength) / 100);
-					pNew->Health = MaxImpl(nDecided, 1);
+					const auto nResult = MaxImpl(nDecided, 1);
+
+					pNew->Health = nResult;
+					pNew->EstimatedHealth = nResult;
 				}
 				else if (strength > 0)
 				{
-					pNew->Health = MinImpl(strength, pNew->Type->Strength);
+					const auto nResult = MinImpl(strength, pNew->Type->Strength);
+					pNew->Health = nResult;
+					pNew->EstimatedHealth = nResult;
 				} /* else Health = Strength*/
 
 				// The building is created?
@@ -685,7 +690,7 @@ bool BuildingExtData::HasSuperWeapon(const int index, const bool withUpgrades) c
 		}
 	}
 
-	if (withUpgrades)
+	if (withUpgrades && pThis->UpgradeLevel)
 	{
 		for (auto const& pUpgrade : pThis->Upgrades)
 		{
@@ -1238,7 +1243,7 @@ void FakeBuildingClass::_OnFinishRepair()
 
 	this->Mark(MarkType::Change);
 	this->Health = this->Type->Strength;
-	this->EstimatedHealth = this->Health;
+	this->EstimatedHealth = this->Type->Strength;
 	this->SetRepairState(0);
 
 	if ((this->GetHealthRatio() <= RulesClass::Instance->ConditionYellow) != wasDamaged)
@@ -3305,3 +3310,29 @@ void FakeBuildingClass::_DetachAnim(AnimClass* pAnim)
 	}
 }
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3F1C, FakeBuildingClass::_DetachAnim)
+
+HRESULT __stdcall FakeBuildingClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->BuildingClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!BuildingExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3ED0, FakeBuildingClass::__Load)
+
+HRESULT __stdcall FakeBuildingClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->BuildingClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!BuildingExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3ED4, FakeBuildingClass::__Save)

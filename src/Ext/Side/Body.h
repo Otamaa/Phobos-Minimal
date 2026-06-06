@@ -20,9 +20,8 @@ public:
 	using base_type = SideClass;
 	static COMPILETIMEEVAL const char* ClassName = "SideExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "SideClass";
+	static COMPILETIMEEVAL DWORD Canary = 0x0AE3C117;
 	
-	
-
 public:
 #pragma region ClassMembers
 	// ============================================================
@@ -158,7 +157,7 @@ public:
 		this->Initialize();
 	}
 
-	SideExtData(SideClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }
+	SideExtData() = default;
 
 	virtual ~SideExtData() = default;
 
@@ -251,7 +250,8 @@ private:
 };
 
 class SideExtContainer final : public Container<SideExtData>
-	, public ReadWriteContainerInterfaces<SideExtData>, public ContainerSaveLoad<SideExtContainer, true>
+	, public ReadWriteContainerInterfaces<SideExtData>
+	, public ContainerSaveLoad<SideExtContainer, SideExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "SideExtContainer";
@@ -260,15 +260,18 @@ public:
 public:
 	static SideExtContainer Instance;
 
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
 	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(ext_t::base_type* key, CCINIClass* pINI);
 };
 
-class FakeSideClass final : public SideClass
+class NOVTABLE FakeSideClass final : public SideClass
 {
 public:
-	HRESULT __stdcall _Load(IStream* pStm) { return S_OK;  };
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty) { return S_OK; };
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 };
 

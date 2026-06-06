@@ -251,77 +251,28 @@ ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
 	auto const pType = GET_TECHNOTYPE(pThis);
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (pExt->HasRemainingWarpInDelay) {
-		if (pExt->LastWarpInDelay) {
-			pExt->LastWarpInDelay--;
-		}
-		else {
-			pExt->HasRemainingWarpInDelay = false;
-			pExt->IsBeingChronoSphered = false;
-			pThis->WarpingOut = false;
-		}
-	}
+	pExt->UpdateWarpInDelay();
+	pExt->UpdateTiberiumEater();
 
-	if (HouseExtContainer::Instance.IsAnyFirestormActive) {
-		if (pThis->IsAlive && !pThis->InLimbo && !pThis->InOpenToppedTransport && !pType->IgnoresFirestorm) {
-			if (auto const pBld = pThis->GetCell()->GetBuilding()) {
-				if (BuildingExtData::IsActiveFirestormWall(pBld, nullptr)) {
-					BuildingExtData::ImmolateVictim(pBld, pThis, true);
-				}
-			}
-		}
-	}
+	if(!pThis->IsAlive)
+		return SkipEverything;
 
-	// tiberium heal, as in Tiberian Sun, but customizable per Tiberium type
-	if (pThis->IsAlive && RulesExtData::Instance()->Tiberium_HealEnabled
-		&& pThis->GetHeight() <= RulesClass::Instance->HoverHeight)
-	{
-		if (pType->TiberiumHeal || pThis->HasAbility(AbilityType::TiberiumHeal))
-		{
-			if (pThis->Health > 0 && pThis->Health < pType->Strength)
-			{
-				bool wasDamaged = pThis->GetHealthRatio() <= RulesClass::Instance->ConditionYellow;
-				auto const pCell = (FakeCellClass*)pThis->GetCell();
+	pExt->AmmoAutoConvertActions();
 
-				if (pCell->LandType == LandType::Tiberium)
-				{
-					auto delay = RulesClass::Instance->TiberiumHeal;
-					auto health = pType->GetRepairStep();
+	if(!pThis->IsAlive)
+		return SkipEverything;
 
-					int idxTib = pCell->_GetTiberiumType();
-					if (auto const pTib = TiberiumClass::Array->get_or_default(idxTib))
-					{
-						auto pTibExt = TiberiumExtContainer::Instance.Find(pTib);
-						delay = pTibExt->GetHealDelay();
-						health = pTibExt->GetHealStep(pThis);
-					}
+	pExt->DeployConvertAction();
 
-					if (health != 0)
-					{
-						if (!(Unsorted::CurrentFrame.get() % int(delay * 900.0)))
-						{
-							pThis->Health += health;
+	if(!pThis->IsAlive)
+		return SkipEverything;
 
-							if (pThis->Health > pType->Strength) {
-								pThis->Health = pType->Strength;
-							}
+	pExt->ImmolateVictim();
 
-							if (wasDamaged
-								&& (pThis->GetHealthRatio() > RulesClass::Instance->ConditionYellow
-								|| pThis->GetHeight() < -10))
-							{
-								if (auto& dmgParticle = pThis->Sys.Damage)
-								{
-									dmgParticle->UnInit();
-									dmgParticle = nullptr;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+	if(!pThis->IsAlive)
+		return SkipEverything;
+
+	pExt->UpdateTiberiumHeal();
 
 	 if(!pThis->IsAlive)
 	 	return SkipEverything;

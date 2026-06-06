@@ -23,7 +23,7 @@ public:
 	using base_type = BuildingClass;
 	static COMPILETIMEEVAL const char* ClassName = "BuildingExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "BuildingClass";
-	
+	static COMPILETIMEEVAL DWORD Canary = 0xEB3C8264;
 
 public:
 #pragma region ClassMember
@@ -104,7 +104,7 @@ public:
 public:
 	BuildingExtData(BuildingClass* pObj);
 
-	BuildingExtData(BuildingClass* pObj, noinit_t nn) : TechnoExtData(pObj, nn) { }
+	BuildingExtData() = default;
 
 	virtual ~BuildingExtData();
 
@@ -212,7 +212,8 @@ private:
 	void Serialize(T& Stm);
 };
 
-class BuildingExtContainer final : public Container<BuildingExtData>, public ContainerSaveLoad<BuildingExtContainer, true>
+class BuildingExtContainer final : public Container<BuildingExtData>
+	, public ContainerSaveLoad<BuildingExtContainer, BuildingExtData>
 {
 public:
 
@@ -220,11 +221,18 @@ public:
 
 public:
 	static BuildingExtContainer Instance;
+
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
 };
 
 class NOVTABLE FakeBuildingClass : public BuildingClass
 {
 public:
+
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	void _Sell_Back(int control);
 	void _Repair_AI();

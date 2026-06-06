@@ -23,6 +23,7 @@ public:
 	using base_type = HouseTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "HouseTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "HouseTypeClass";
+	static COMPILETIMEEVAL DWORD Canary = 0x90C1E3CD;
 
 public:
 
@@ -119,7 +120,7 @@ public:
 		this->InitiliazeConstants();
 	}
 
-	HouseTypeExtData(HouseTypeClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }
+	HouseTypeExtData() = default;
 
 	virtual ~HouseTypeExtData() = default;
 
@@ -173,7 +174,8 @@ private:
 };
 
 class HouseTypeExtContainer final : public Container<HouseTypeExtData>
-	, public ReadWriteContainerInterfaces<HouseTypeExtData>, public ContainerSaveLoad<HouseTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<HouseTypeExtData>
+	, public ContainerSaveLoad<HouseTypeExtContainer, HouseTypeExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "HouseTypeExtContainer";
@@ -181,6 +183,9 @@ public:
 public:
 	static HouseTypeExtContainer Instance;
 	
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
 	virtual void LoadFromINI(HouseTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(HouseTypeClass* key, CCINIClass* pINI);
 };
@@ -188,6 +193,9 @@ public:
 class NOVTABLE FakeHouseTypeClass : public HouseTypeClass
 {
 public:
+
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	bool _ReadFromINI(CCINIClass* pINI);
 

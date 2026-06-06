@@ -154,7 +154,8 @@ public:
 	using base_type = InfantryTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "InfantryTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "InfantryTypeClass";
-	
+	static COMPILETIMEEVAL DWORD Canary = 0x89A72AAE;
+
 public:
 
 #pragma region ClassMembers
@@ -222,7 +223,7 @@ public:
 		this->Is_Cow = IS_SAME_STR_(pObj->ID, GameStrings::COW());
 	}
 
-	InfantryTypeExtData(InfantryTypeClass* pObj, noinit_t nn) : FootTypeExtData(pObj, nn) { }
+	InfantryTypeExtData() = default;
 
 	virtual ~InfantryTypeExtData() = default;
 
@@ -263,13 +264,17 @@ private:
 };
 
 class InfantryTypeExtContainer final : public Container<InfantryTypeExtData>
-	, public ReadWriteContainerInterfaces<InfantryTypeExtData>, public ContainerSaveLoad<InfantryTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<InfantryTypeExtData>
+	, public ContainerSaveLoad<InfantryTypeExtContainer, InfantryTypeExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "InfantryTypeExtContainer";
 
 public:
 	static InfantryTypeExtContainer Instance;
+
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
 
 	virtual void LoadFromINI(InfantryTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(InfantryTypeClass* key, CCINIClass* pINI);
@@ -279,7 +284,9 @@ class NOVTABLE FakeInfantryTypeClass : public InfantryTypeClass
 {
 public:
 
-	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
+
 	bool _ReadFromINI(CCINIClass* pINI);
 
 	InfantryTypeExtData* _GetExtData() {

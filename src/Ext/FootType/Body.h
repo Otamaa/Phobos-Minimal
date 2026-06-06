@@ -9,7 +9,7 @@ public:
 	FootTypeExtData(TechnoTypeClass* abs) : TechnoTypeExtData(abs)
 	{ };
 
-	FootTypeExtData(TechnoTypeClass* abs, noinit_t& noint) : TechnoTypeExtData(abs, noint) { };
+	FootTypeExtData() = default;
 
 	virtual ~FootTypeExtData() = default;
 

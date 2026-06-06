@@ -64,8 +64,10 @@ public:
 
 	template<typename T>
 	void FORCEDINLINE DeallocateTrackerptr() {
-		delete ((T*)this->ModifiedData.Pointer);
-		this->ModifiedData.Pointer = 0u;
+		if(this->ModifiedData.Pointer) {
+			delete ((T*)this->ModifiedData.Pointer);
+			this->ModifiedData.Pointer = 0u;
+		}
 	}
 
 	template<typename T>

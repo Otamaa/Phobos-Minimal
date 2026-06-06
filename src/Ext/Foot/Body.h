@@ -12,7 +12,7 @@ public:
 	FootExtData(FootClass* abs) : TechnoExtData(abs)
 	{ };
 
-	FootExtData(FootClass* abs, noinit_t& noint) : TechnoExtData(abs, noint) { };
+	FootExtData() = default;
 
 	virtual ~FootExtData() = default;
 

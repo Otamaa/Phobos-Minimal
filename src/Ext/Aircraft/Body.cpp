@@ -1672,12 +1672,38 @@ ASMJIT_PATCH(0x413DB1, AircraftClass_CTOR, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x41426F, AircraftClass_DTOR, 0x7)
+ASMJIT_PATCH(0x41412A, AircraftClass_DTOR, 0x6)
 {
 	GET(AircraftClass*, pItem, EDI);
 	AircraftExtContainer::Instance.Remove(pItem);
 	return 0;
 }
+
+HRESULT __stdcall FakeAircraftClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->AircraftClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!AircraftExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E22B8, FakeAircraftClass::__Load)
+
+HRESULT __stdcall FakeAircraftClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->AircraftClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!AircraftExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E22BC, FakeAircraftClass::__Save)
 
 void FakeAircraftClass::_Detach(AbstractClass* target, bool all)
 {

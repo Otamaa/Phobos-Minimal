@@ -19,7 +19,8 @@ public:
 	using base_type = BulletClass;
 	static COMPILETIMEEVAL const char* ClassName = "BulletExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "BulletClass";
-	
+	static COMPILETIMEEVAL DWORD Canary = 0x45821583;
+
 public:
 #pragma region ClassMembers
 	// ============================================================
@@ -51,7 +52,9 @@ public:
 	int CurrentStrength { 0 };
 	int DamageNumberOffset { INT32_MIN };
 	int ParabombFallRate { 0 };
-	double DistanceTraveled { };
+	double DistanceTraveled { 1.0 };
+	double FirepowerMult {};
+
 	InterceptedStatus InterceptedStatus { InterceptedStatus::None };
 
 	// ============================================================
@@ -62,6 +65,10 @@ public:
 	bool BrightCheckDone { false };
 	bool IsInstantDetonation { false };
 	// 4 bools = 4 bytes, naturally aligned
+
+	TechnoClass* PrismRelayMaster {};
+	bool PrismRelaySupportBullet {};
+	bool PrismRelayCounted {};
 #pragma endregion
 
 public:
@@ -70,7 +77,7 @@ public:
 		this->AbsType = BulletClass::AbsID;
 	}
 
-	BulletExtData(BulletClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
+	BulletExtData() = default;
 
 	virtual ~BulletExtData() = default;
 	// {
@@ -156,11 +163,14 @@ public:
 	static CoordStruct GetTargetCoords(BulletClass* pBullet);
 };
 
-class BulletExtContainer final : public Container<BulletExtData>, public ContainerSaveLoad<BulletExtContainer, true>
+class BulletExtContainer final : public Container<BulletExtData>
+	, public ContainerSaveLoad<BulletExtContainer,BulletExtData>
 {
 public:
 
 	static COMPILETIMEEVAL const char* ClassName = "BulletExtContainer";
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
 
 public:
 	static BulletExtContainer Instance;
@@ -174,6 +184,9 @@ class FakeWeaponType;
 class NOVTABLE FakeBulletClass : public BulletClass
 {
 public:
+
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	void _AnimPointerExpired(AnimClass* pTarget)
 	{

@@ -4,6 +4,7 @@
 #include <AircraftClass.h>
 #include <Ext/Foot/Body.h>
 
+
 class AircraftTypeExtData;
 class AbstractClass;
 class AircraftClass;
@@ -14,7 +15,8 @@ public:
 	using base_type = AircraftClass;
 	static COMPILETIMEEVAL const char* ClassName = CLASS_NAME(AircraftExtData);
 	static COMPILETIMEEVAL const char* BaseClassName = "AircraftClass";
-	
+	static COMPILETIMEEVAL DWORD Canary = 0xB78D268D;
+
 public:
 
 	int Strafe_BombsDroppedThisRound {};
@@ -22,8 +24,8 @@ public:
 	CellClass* Strafe_TargetCell {};
 
 	AircraftExtData(AircraftClass* pObj);
+	AircraftExtData() = default;
 
-	AircraftExtData(AircraftClass * pObj, noinit_t nn) : FootExtData(pObj, nn) { }
 	virtual ~AircraftExtData() = default;
 
 	FORCEDINLINE AircraftClass* This() const { return reinterpret_cast<AircraftClass*>(this->AttachedToObject); }
@@ -36,6 +38,7 @@ public:
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) {
 		this->FootExtData::InvalidatePointer(ptr, bRemoved, type);
 	}
+
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) {
 		this->FootExtData::LoadFromStream(Stm);
@@ -69,11 +72,15 @@ public :
 	static int GetDelay(AircraftClass* pThis, bool isLastShot);
 };
 
-class AircraftExtContainer final : public Container<AircraftExtData> , public ContainerSaveLoad<AircraftExtContainer, true>
+class AircraftExtContainer final : public Container<AircraftExtData> 
+	, public ContainerSaveLoad<AircraftExtContainer, AircraftExtData>
 {
 public:
 
 	static COMPILETIMEEVAL const char* ClassName = "AircraftExtContainer";
+
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
 
 public:
 	static AircraftExtContainer Instance;
@@ -83,6 +90,10 @@ class AbstractClass;
 class NOVTABLE FakeAircraftClass : public AircraftClass
 {
 public:
+
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
+
 	void __Look(bool incremental, int arg_4);
 
 	WeaponStruct* _GetWeapon(int weaponIndex);

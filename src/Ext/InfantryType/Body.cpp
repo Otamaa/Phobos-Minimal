@@ -290,18 +290,34 @@ ASMJIT_PATCH(0x5239D0, InfantryTypeClass_DTOR, 0x5)
 
 #include <Misc/ImageSwapModules.h>
 
-HRESULT __stdcall FakeInfantryTypeClass::_Load(IStream* pStm)
+HRESULT __stdcall FakeInfantryTypeClass::__Load(IStream* pStm)
 {
 	HRESULT hr = this->InfantryTypeClass::Load(pStm);
 
 	if (SUCCEEDED(hr)) {
+		//if (!InfantryTypeExtContainer::Instance.LoadByKey(this, pStm))
+		//	return PHOBOS_E_EXTDATA_LOAD_FAILED;
+
 		if (Phobos::Config::ArtImageSwap)
 			TechnoImageReplacer::Replace(this);
 	}
 
 	return hr;
 }
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB624, FakeInfantryTypeClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB624, FakeInfantryTypeClass::__Load)
+
+//HRESULT __stdcall FakeInfantryTypeClass::__Save(IStream* pStm, BOOL fClearDirty)
+//{
+//	HRESULT hr = this->InfantryTypeClass::Save(pStm, fClearDirty);
+//
+//	if (SUCCEEDED(hr)) {
+//		if (!InfantryTypeExtContainer::Instance.SaveByKey(this, pStm))
+//			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+//	}
+//
+//	return hr;
+//}
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB628, FakeInfantryTypeClass::__Save)
 
 bool FakeInfantryTypeClass::_ReadFromINI(CCINIClass* pINI)
 {

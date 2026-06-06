@@ -167,3 +167,29 @@ ASMJIT_PATCH(0x62E430, ParticleSystemClass_AddTovector_nullptrParticle, 0x9)
 
 	return 0x0;
 }
+
+HRESULT __stdcall FakeParticleSystemTypeClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->ParticleSystemTypeClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!ParticleSystemTypeExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F00BC, FakeParticleSystemTypeClass::__Load)
+
+HRESULT __stdcall FakeParticleSystemTypeClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->ParticleSystemTypeClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!ParticleSystemTypeExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F00C0, FakeParticleSystemTypeClass::__Save)

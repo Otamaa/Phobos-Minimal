@@ -36,9 +36,8 @@ public:
 	using base_type = CellClass;
 	static COMPILETIMEEVAL const char* ClassName = "CellExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "CellClass";
+	static COMPILETIMEEVAL DWORD Canary = 0x99922FEA;
 	
-	
-
 public:
 
 #pragma region ClassMembers
@@ -72,7 +71,7 @@ public:
 		this->IsvalidCell = pObj != CellClass::Instance();
 	}
 
-	CellExtData(CellClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
+	CellExtData() = default;
 
 	virtual ~CellExtData() = default;
 
@@ -113,13 +112,18 @@ public:
 	static int GetOverlayIndex(CellClass* pCell);
 };
 
-class CellExtContainer final : public Container<CellExtData>, public ContainerSaveLoad<CellExtContainer, false>
+class CellExtContainer final : public Container<CellExtData>
+	, public ContainerSaveLoad<CellExtContainer, CellExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "CellExtContainer";
 
 public:
 	static CellExtContainer Instance;
+
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
 };
 
 enum class CollectResult : char {
@@ -130,6 +134,9 @@ class NOVTABLE FakeCellClass : public CellClass
 {
 public:
 
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
+
 	CollectResult _CollecCrate(FootClass* pCollector);
 	bool _SpreadTiberium(bool force);
 	bool _SpreadTiberium_2(TerrainClass* pTerrain, bool force);
@@ -138,6 +145,7 @@ public:
 	bool _CanTiberiumGerminate(TiberiumClass* tiberium);
 	bool _CanPlaceVeins();
 	int _Reduce_Tiberium(int levels_reducer);
+	int _GetRampLevel(CellStruct* where);
 
 	static void __fastcall _ChainReaction(CellStruct* coords);
 

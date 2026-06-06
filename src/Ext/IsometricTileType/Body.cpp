@@ -112,36 +112,34 @@ void IsometricTileTypeExtData::Serialize(T& Stm)
 
 IsometricTileTypeExtContainer IsometricTileTypeExtContainer::Instance;
 
-bool IsometricTileTypeExtContainer::LoadAll(PhobosStreamReader& stm)
+bool IsometricTileTypeExtContainer::LoadGlobal(PhobosStreamReader& stm)
 {
-	if (!stm
-		.Process(LightConvertEntities)
-		.Process(CurrentTileset)
-		)
-		return false;
+	//return stm
+	//	.Process(LightConvertEntities)
+	//	.Process(CurrentTileset)
+	//	;
 
-	return this->base_SaveLoad_t::LoadAll(stm);
+	return true;
 }
 
-bool IsometricTileTypeExtContainer::SaveAll(PhobosStreamWriter& stm)
+bool IsometricTileTypeExtContainer::SaveGlobal(PhobosStreamWriter& stm)
 {
-	if (!stm
-		.Process(LightConvertEntities)
-		.Process(CurrentTileset)
-		)
-		return false;
+	//return stm
+	//	.Process(LightConvertEntities)
+	//	.Process(CurrentTileset);
 
-	return this->base_SaveLoad_t::SaveAll(stm);
+	return true;
 }
 
 // =============================
 // container hooks
-
+//
 //ASMJIT_PATCH(0x5449F2, IsometricTileTypeClass_CTOR, 0x5)
 //{
 //	GET(IsometricTileTypeClass*, pItem, EBP);
 //
-//	IsometricTileTypeExtContainer::Instance.Allocate(pItem);
+//	if (!Phobos::Otamaa::DoingLoadGame)
+//		IsometricTileTypeExtContainer::Instance.Allocate(pItem);
 //
 //	return 0;
 //}
@@ -166,7 +164,33 @@ bool IsometricTileTypeExtContainer::SaveAll(PhobosStreamWriter& stm)
 //
 //ASMJIT_PATCH(0x545FA3, IsometricTileTypeClass_LoadFromINI_SetTileSet, 0x8)
 //{
-//	IsometricTileTypeExtContainer::CurrentTileset = R->EDI();
+//	IsometricTileTypeExtContainer::Instance.CurrentTileset = R->EDI();
 //
 //	return 0;
 //}
+//
+//HRESULT __stdcall FakeIsometricTileTypeClass::__Load(IStream* pStm)
+//{
+//	HRESULT hr = this->IsometricTileTypeClass::Load(pStm);
+//
+//	if (SUCCEEDED(hr)) {
+//		if (!IsometricTileTypeExtContainer::Instance.LoadByKey(this, pStm))
+//			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+//	}
+//
+//	return hr;
+//}
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECC5C, FakeIsometricTileTypeClass::__Load)
+//
+//HRESULT __stdcall FakeIsometricTileTypeClass::__Save(IStream* pStm, BOOL fClearDirty)
+//{
+//	HRESULT hr = this->IsometricTileTypeClass::Save(pStm, fClearDirty);
+//
+//	if (SUCCEEDED(hr)) {
+//		if (!IsometricTileTypeExtContainer::Instance.SaveByKey(this, pStm))
+//			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+//	}
+//
+//	return hr;
+//}
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECC60, FakeIsometricTileTypeClass::__Save)

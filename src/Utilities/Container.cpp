@@ -6,11 +6,6 @@ AbstractExtended::AbstractExtended(AbstractClass* abs) : AttachedToObject(abs)
  , Initialized()
 { };
 
-AbstractExtended::AbstractExtended(AbstractClass* abs, noinit_t) : AttachedToObject(abs)
-	, AbsType()
-	, Initialized()
-{ };
-
 void AbstractExtended::Internal_LoadFromStream(PhobosStreamReader& Stm)
 {
 	Stm

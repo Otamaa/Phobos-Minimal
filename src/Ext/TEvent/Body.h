@@ -94,9 +94,8 @@ public:
 	using base_type = TEventClass;
 	static COMPILETIMEEVAL const char* ClassName = "TEventExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "TEventClass";
+	static COMPILETIMEEVAL DWORD Canary = 0x634EE2D7;
 	
-	
-
 public:
 	OptionalStruct<TechnoTypeClass*, false> TechnoType;
 
@@ -106,7 +105,7 @@ public:
 		this->AbsType = TEventClass::AbsID;
 	}
 
-	TEventExtData(TEventClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
+	TEventExtData() = default;
 
 	virtual ~TEventExtData() = default;
 
@@ -316,18 +315,29 @@ public:
 	static bool HasOccured(TEventClass* pThis, EventArgs& Args, bool& result);
 };
 
-class TEventExtContainer final : public Container<TEventExtData>, public ContainerSaveLoad<TEventExtContainer, false>
+class TEventExtContainer final : public Container<TEventExtData>
+, public ContainerSaveLoad<TEventExtContainer, TEventExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "TEventExtContainer";
 
 public:
 	static TEventExtContainer Instance;
+
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
+	virtual void LoadFromINI(AircraftTypeClass* key, CCINIClass* pINI, bool parseFailAddr) {}
+	virtual void WriteToINI(AircraftTypeClass* key, CCINIClass* pINI) {}
+
 };
 
 class NOVTABLE FakeTEventClass : public TEventClass
 {
 public:
+
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	bool _Occured(TriggerEvent event, HouseClass* house, ObjectClass* obj, CDTimerClass* td, bool* bool1, AbstractClass* source);
 

@@ -13,7 +13,8 @@ public:
 	using base_type = OverlayTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "OverlayTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "OverlayTypeClass";
-	
+	static COMPILETIMEEVAL DWORD Canary = 0x6AA401CE;
+
 public:
 
 #pragma region ClassMembeers
@@ -28,7 +29,7 @@ public:
 	{
 		this->AbsType = OverlayTypeClass::AbsID;
 	}
-	OverlayTypeExtData(OverlayTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
+	OverlayTypeExtData() = default;
 
 	virtual ~OverlayTypeExtData() = default;
 
@@ -72,12 +73,16 @@ private:
 };
 
 class OverlayTypeExtContainer final : public Container<OverlayTypeExtData>
-	, public ReadWriteContainerInterfaces<OverlayTypeExtData>, public ContainerSaveLoad<OverlayTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<OverlayTypeExtData>
+	, public ContainerSaveLoad<OverlayTypeExtContainer, OverlayTypeExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "OverlayTypeExtContainer";
 public:
 	static OverlayTypeExtContainer Instance;
+
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
 
 	virtual void LoadFromINI(OverlayTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(OverlayTypeClass* key, CCINIClass* pINI);
@@ -86,5 +91,8 @@ public:
 class NOVTABLE FakeOverlayTypeClass : public OverlayTypeClass
 {
 public:
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
+
 	bool _ReadFromINI(CCINIClass* pINI);
 };

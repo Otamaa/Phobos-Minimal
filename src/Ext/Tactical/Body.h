@@ -88,6 +88,8 @@ private:
 public:
 
 	static COMPILETIMEEVAL size_t Canary = 0x51DEBA12;
+	static COMPILETIMEEVAL const char* ClassName = "TacticalExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "TacticalClass";
 	using base_type = TacticalClass;
 
 	base_type* AttachedToObject {};

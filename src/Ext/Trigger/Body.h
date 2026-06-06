@@ -15,6 +15,7 @@ public:
 	using base_type = TriggerClass;
 	static COMPILETIMEEVAL const char* ClassName = "TriggerExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "TriggerClass";
+	static COMPILETIMEEVAL DWORD Canary = 0x030376D3;
 
 public:
 
@@ -38,7 +39,7 @@ public:
 public:
 
 	TriggerExtData(TriggerClass* pObj);
-	TriggerExtData(TriggerClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
+	TriggerExtData() = default;
 
 	virtual ~TriggerExtData() = default;
 
@@ -70,18 +71,25 @@ private:
 };
 
 class TriggerExtContainer final : public Container<TriggerExtData>
-	, public ContainerSaveLoad<TriggerExtContainer, true>
+	, public ContainerSaveLoad<TriggerExtContainer, TriggerExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "TriggerExtContainer";
 
 public:
 	static TriggerExtContainer Instance;
+
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
 };
 
 class NOVTABLE FakeTriggerClass : public TriggerClass
 {
 public:
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
+
 	void _Detach(AbstractClass* target, bool all);
 	
 	TriggerExtData* _GetExtData()

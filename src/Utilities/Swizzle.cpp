@@ -3,6 +3,8 @@
 #include <Surface.h>
 #include <Exception.h>
 
+#define ENABLE_SWIZZLE_DEBUG_PRINTING
+
 void Clear_All_Surfaces()
 {
 	if (DSurface::Primary()) DSurface::Primary->Clear();
@@ -25,8 +27,7 @@ bool ExtensionSwizzleManager::SwizzleExtensionPointer(void** ptrToFix, AbstractC
 	auto it = extensionPointerMap.find((uintptr_t)*ptrToFix);
 	if (it != extensionPointerMap.end())
 	{
-		if (it->second.ptr)
-		{
+		if (it->second.ptr && !it->second.Ownerptr) {
 			auto currentExtension = (AbstractExtended*)it->second.ptr;
 
 			// Fix bidirectional pointers
@@ -35,7 +36,8 @@ bool ExtensionSwizzleManager::SwizzleExtensionPointer(void** ptrToFix, AbstractC
 
 			currentExtension->SetAttached(OwnerObj);
 			*ptrToFix = currentExtension;
-			it->second.release();
+			//store the owner pointer for hand over later
+			it->second.Ownerptr = (uintptr_t)OwnerObj;
 			return true;
 		} else if (it->second.released) {
 			return true;//the pointer already handed on , nothing to do
@@ -55,7 +57,7 @@ bool ExtensionSwizzleManager::SwizzleExtensionPointer(void** ptrToFix, AbstractC
 
 	if (it != extensionPointerMap.end())
 	{
-		if(it->second.ptr){
+		if(it->second.ptr && !it->second.Ownerptr){
 			auto currentExtension = (AbstractExtended*)it->second.ptr;
 
 			// Fix bidirectional pointers
@@ -64,7 +66,8 @@ bool ExtensionSwizzleManager::SwizzleExtensionPointer(void** ptrToFix, AbstractC
 
 			currentExtension->SetAttached(OwnerObj);
 			*ptrToFix = currentExtension;
-			it->second.release();
+			//store the owner pointer for hand over later
+			it->second.Ownerptr = (uintptr_t)OwnerObj;
 			return true;
 		} else if (it->second.released) {
 			return true;//the pointer already handed on , nothing to do
@@ -72,6 +75,40 @@ bool ExtensionSwizzleManager::SwizzleExtensionPointer(void** ptrToFix, AbstractC
 	}
 
 	Debug::Log("[ExtensionSwizzleManager] Cannot Find ext pointer of %x from %x caller %x !\n", *ptrToFix, OwnerObj, origin);
+	return false;
+}
+
+//secondary mechanism to hand over the extension pointer 
+//this is needed because the loaded class itself will do noInit CTOR 
+//so it will reset the previous attempt to swizzle the pointer
+//also to ensure the extension pointer are handed over to the correct owner
+bool ExtensionSwizzleManager::HandOverExtension(void** ptrToFix, AbstractClass* OwnerObj)
+{
+	if (!OwnerObj) // nothing to fix
+		return true;
+
+	for (auto& [key, entry] : extensionPointerMap) {
+		if (!entry.ptr || entry.released)
+			continue;
+
+		auto currentExtension = (AbstractExtended*)entry.ptr;
+
+		if (entry.Ownerptr == (uintptr_t)OwnerObj) {
+
+			if(currentExtension->AttachedToObject != OwnerObj)
+				Debug::FatalErrorAndExit("ExtensionSwizzleManager::HandOverExtension Owner pointer mismatch for %s! Expected %x but got %x\n"
+				, entry.ident.c_str(), OwnerObj, currentExtension->AttachedToObject);
+
+			Debug::Log("ExtensionSwizzleManager::HandOverExtension Handing Over Extension Pointer of %s from %x to %x \n"
+				, entry.ident.c_str(), entry.ptr, OwnerObj);
+
+			*ptrToFix = (void*)entry.ptr;
+			entry.ptr = NULL;
+			entry.release();
+			return true;
+		}
+	}
+	
 	return false;
 }
 
@@ -685,6 +722,44 @@ LONG STDAPICALLTYPE PhobosSwizzleManagerClass::Swizzle_Dbg(void** pointer, const
 	return S_OK;
 }
 
+LONG STDAPICALLTYPE PhobosSwizzleManagerClass::ManualSwizzle(void** pointer, uintptr_t oldie)
+{
+	if (pointer == nullptr)
+	{
+		return E_POINTER;
+	}
+
+	if (!oldie) {
+		return S_OK;
+	}
+
+	RequestTable.emplace_back(oldie, pointer);
+
+	*pointer = nullptr;
+
+	return S_OK;
+}
+
+LONG STDAPICALLTYPE PhobosSwizzleManagerClass::ManualSwizzle_Dbg(void** pointer, uintptr_t oldie, const char* file, const int line, const char* func, const char* var)
+{
+	if (pointer == nullptr) {
+		return E_POINTER;
+	}
+
+	if (!oldie) {
+		return S_OK;
+	}
+
+	RequestTable.emplace_back(oldie, pointer, file, line, func, var);
+
+	*pointer = nullptr;
+
+#ifdef ENABLE_SWIZZLE_DEBUG_PRINTING
+	Debug::Log("SwizzleManager::Swizzle() - Requested remap for \"%s\" (0x%08X) in %s.\n", var, oldie, func);
+#endif
+
+	return S_OK;
+}
 
 /**
  *  Convert pointer to ID number. [Debug version]

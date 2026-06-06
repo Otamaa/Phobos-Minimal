@@ -90,3 +90,12 @@ private:
 			;
 	}
 };
+
+template <>
+struct Savegame::ObjectFactory<FactoryPlantClass>
+{
+	std::unique_ptr<FactoryPlantClass> operator() (PhobosStreamReader& Stm) const
+	{
+		return std::make_unique<FactoryPlantClass>();
+	}
+};

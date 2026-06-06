@@ -79,6 +79,7 @@ public:
 	using base_type = SuperClass;
 	static COMPILETIMEEVAL const char* ClassName = "SuperExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "SuperClass";
+	static COMPILETIMEEVAL DWORD Canary = 0xB9DEA35C;
 
 public:
 
@@ -117,7 +118,7 @@ public:
 
 public:
 	SuperExtData(SuperClass* pObj);
-	SuperExtData(SuperClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
+	SuperExtData() = default;
 
 	virtual ~SuperExtData() = default;
 
@@ -157,18 +158,26 @@ private:
 	void Serialize(T& Stm);
 };
 
-class SuperExtContainer final : public Container<SuperExtData>, public ContainerSaveLoad<SuperExtContainer, true>
+class SuperExtContainer final : public Container<SuperExtData>
+	, public ContainerSaveLoad<SuperExtContainer, SuperExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "SuperExtContainer";
 public:
 	static SuperExtContainer Instance;
+
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
 };
 
 class SWTypeExtData;
 class NOVTABLE FakeSuperClass : public SuperClass
 {
 public:
+
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	int _GetAnimStage();
 

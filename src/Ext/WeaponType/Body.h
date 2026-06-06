@@ -19,12 +19,16 @@ public:
 	using base_type = WeaponTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "WeaponTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "WeaponTypeClass";
+	static COMPILETIMEEVAL DWORD Canary = 0x1617E79B;
 
 public:
 
 #pragma region ClassMember
 	Valueable<double> DiskLaser_Radius { 38.2 };
 	Valueable<int> DiskLaser_Circumference { 240 };
+	Valueable<bool> DiskLaser_SimulatedFire { };
+	NullableIdx<VocClass> DiskLaser_ChargeUp {};
+
 	Nullable<RadTypeClass*> RadType {};
 	Valueable<bool> Rad_NoOwner { true };
 
@@ -138,6 +142,8 @@ public:
 	ValueableVector<int> ExtraWarheads_DamageOverrides {};
 	ValueableVector<double> ExtraWarheads_DetonationChances {};
 	ValueableVector<bool> ExtraWarheads_FullDetonation {};
+	ValueableVector<float> ExtraWarheads_RollChances {};
+	std::vector<ValueableVector<int>> ExtraWarheads_WeightsData {};
 
 	Valueable<double> Burst_Retarget { 0.0 };
 	Nullable<bool> KickOutPassenger {};
@@ -230,7 +236,7 @@ public:
 
 	void Initialize();
 
-	WeaponTypeExtData(WeaponTypeClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }
+	WeaponTypeExtData() = default;
 
 	virtual ~WeaponTypeExtData() = default;
 
@@ -321,7 +327,8 @@ public:
 };
 
 class WeaponTypeExtContainer final :public Container<WeaponTypeExtData>
-	, public ReadWriteContainerInterfaces<WeaponTypeExtData>, public ContainerSaveLoad<WeaponTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<WeaponTypeExtData>
+	, public ContainerSaveLoad<WeaponTypeExtContainer, WeaponTypeExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "WeaponTypeExtContainer";
@@ -330,6 +337,9 @@ public:
 
 public:
 	static WeaponTypeExtContainer Instance;
+
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
 
 	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(ext_t::base_type* key, CCINIClass* pINI);
@@ -343,8 +353,8 @@ class NOVTABLE FakeWeaponTypeClass : public WeaponTypeClass
 {
 public:
 
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	bool _ReadFromINI(CCINIClass* pINI);
 

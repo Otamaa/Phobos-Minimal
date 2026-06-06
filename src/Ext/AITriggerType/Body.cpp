@@ -3,6 +3,9 @@
 #include <Ext/Rules/Body.h>
 #include <Utilities/TemplateDef.h>
 
+#include <Utilities/Patch.h>
+#include <Utilities/Macro.h>
+
 #include <string>
 // =============================
 // container
@@ -384,6 +387,32 @@ ASMJIT_PATCH(0x41E4AF, AITriggerTypeClass_DTOR, 0x6)
 	AITriggerTypeExtContainer::Instance.Remove(pThis);
 	return 0x0;
 }
+
+HRESULT __stdcall FakeAITriggerTypeClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->AITriggerTypeClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!AITriggerTypeExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2A64, FakeAITriggerTypeClass::__Load)
+
+HRESULT __stdcall FakeAITriggerTypeClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->AITriggerTypeClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!AITriggerTypeExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2A68, FakeAITriggerTypeClass::__Save)
 
 ASMJIT_PATCH(0x41E8FF, AITriggerTypeClass_NewTeam_CheckConditions, 0x9) // ConditionMet() in YRpp
 {

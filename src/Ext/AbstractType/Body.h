@@ -13,7 +13,7 @@ public:
 	AbstractTypeExtData(AbstractTypeClass* pObj) : AbstractExtended(pObj) {
 		this->Name = pObj->ID;
 	}
-	AbstractTypeExtData(AbstractTypeClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
+	AbstractTypeExtData() = default;
 
 	virtual ~AbstractTypeExtData() = default;
 

@@ -582,3 +582,29 @@ ASMJIT_PATCH(0x6A499F, SideClass_SDDTOR, 0x6)
 	SideExtContainer::Instance.Remove(pItem);
 	return 0;
 }
+
+HRESULT __stdcall FakeSideClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->SideClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!SideExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F2ED4, FakeSideClass::__Load)
+
+HRESULT __stdcall FakeSideClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->SideClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!SideExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F2ED8, FakeSideClass::__Save)

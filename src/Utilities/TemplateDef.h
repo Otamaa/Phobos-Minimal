@@ -452,6 +452,9 @@ namespace detail
 	bool read<PositionFollow>(PositionFollow& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
+	bool read<PeriodicWeaponTargetingMode>(PeriodicWeaponTargetingMode& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
+
+	template <>
 	bool read<CLSID>(CLSID& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <typename T, bool clearvec = true>
@@ -1053,25 +1056,25 @@ void OPTIONALINLINE ValueableVector<std::string>::Read(INI_EX& parser, const cha
 template <typename T>
 bool OPTIONALINLINE ValueableVector<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	return Stm.Process(this->AsVector());
+	return Stm.Process(this->AsVector()) && Stm.RegisterChange(this);
 }
 
 template <typename T>
 bool OPTIONALINLINE ValueableVector<T>::Save(PhobosStreamWriter& Stm) const
 {
-	return Stm.Process(this->AsVector());
+	return Stm.Process(this->AsVector()) && Stm.RegisterChange(this);
 }
 
 template <>
 bool OPTIONALINLINE ValueableVector<bool>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	return Stm.Process(this->AsVector());
+	return Stm.Process(this->AsVector()) && Stm.RegisterChange(this);
 }
 
 template <>
 bool OPTIONALINLINE ValueableVector<bool>::Save(PhobosStreamWriter& Stm) const
 {
-	return Stm.Process(this->AsVector());
+	return Stm.Process(this->AsVector()) && Stm.RegisterChange(this);
 }
 
 // NullableVector

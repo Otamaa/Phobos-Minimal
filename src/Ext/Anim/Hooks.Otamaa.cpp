@@ -415,11 +415,12 @@ void NOINLINE FakeAnimClass::_ApplyHideIfNoOre()
 
 void FakeAnimClass::UpdateAsFiringAnim()
 {
-	auto pOwner = flag_cast_to<TechnoClass*>(this->OwnerObject);
 	auto pExt = this->_GetExtData();
+	if(!pExt->FromWeapon)
+		return;
 
-	if (pExt->FromWeapon && pOwner)
-	{	
+	if (auto pOwner = flag_cast_to<TechnoClass*>(this->OwnerObject))
+	{
 		AnimTypeClass* pNewType = GeneralUtils::GetItemForDirection(make_iterator(pExt->FromWeapon->Anim), pOwner->GetRealFacing());
 
 		if(!pNewType)
@@ -602,8 +603,8 @@ void FakeAnimClass::_AI()
 			this->Invisible = !GameOptionsClass::Instance->ShowHidden;
 		}
 
-		this->_ApplyHideIfNoOre();
 		this->UpdateAsFiringAnim();
+		this->_ApplyHideIfNoOre();
 		this->_CreateFootApplyOccupyBits();
 
 		if (this->Unpaused && this->PausedAnimFrame == this->Animation.Stage) {

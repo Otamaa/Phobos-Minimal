@@ -304,27 +304,30 @@ static_assert(!std::is_polymorphic_v<PhobosUnitTrackerClass>, "PhobosUnitTracker
 ASMJIT_PATCH(0x4F58E9, HouseClass_CTOR_Trackers, 0x6){
 	GET(HouseClass*, pThis ,EBP);
 
-	pThis->TrackedBuiltAircraftTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
-	pThis->TrackedBuiltInfantryTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
-	pThis->TrackedBuiltUnitTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
-	pThis->TrackedBuiltBuildingTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
-	pThis->TrackedKilledAircraftTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
-	pThis->TrackedKilledInfantryTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
-	pThis->TrackedKilledUnitTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
-	pThis->TrackedKilledBuildingTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
-	pThis->TrackedCapturedBuildings.AllocateTrackerptr<PhobosUnitTrackerClass>();
-	pThis->TrackedCollectedCrates.AllocateTrackerptr<PhobosUnitTrackerClass>();
 
-	GET_Tracker(pThis->TrackedBuiltAircraftTypes)->Populate(AircraftTypeClass::Array->Count);
-	GET_Tracker(pThis->TrackedBuiltInfantryTypes)->Populate(InfantryTypeClass::Array->Count);
-	GET_Tracker(pThis->TrackedBuiltUnitTypes)->Populate(UnitTypeClass::Array->Count);
-	GET_Tracker(pThis->TrackedBuiltBuildingTypes)->Populate(BuildingTypeClass::Array->Count);
-	GET_Tracker(pThis->TrackedKilledAircraftTypes)->Populate(AircraftTypeClass::Array->Count);
-	GET_Tracker(pThis->TrackedKilledInfantryTypes)->Populate(InfantryTypeClass::Array->Count);
-	GET_Tracker(pThis->TrackedKilledUnitTypes)->Populate(UnitTypeClass::Array->Count);
-	GET_Tracker(pThis->TrackedKilledBuildingTypes)->Populate(BuildingTypeClass::Array->Count);
-	GET_Tracker(pThis->TrackedCapturedBuildings)->Populate(BuildingTypeClass::Array->Count);
-	GET_Tracker(pThis->TrackedCollectedCrates)->Populate(CrateTypeClass::Array.size());
+
+	if(!Phobos::Otamaa::DoingLoadGame){
+		pThis->TrackedBuiltAircraftTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+		pThis->TrackedBuiltInfantryTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+		pThis->TrackedBuiltUnitTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+		pThis->TrackedBuiltBuildingTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+		pThis->TrackedKilledAircraftTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+		pThis->TrackedKilledInfantryTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+		pThis->TrackedKilledUnitTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+		pThis->TrackedKilledBuildingTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
+		pThis->TrackedCapturedBuildings.AllocateTrackerptr<PhobosUnitTrackerClass>();
+		pThis->TrackedCollectedCrates.AllocateTrackerptr<PhobosUnitTrackerClass>();
+		GET_Tracker(pThis->TrackedBuiltAircraftTypes)->Populate(AircraftTypeClass::Array->Count);
+		GET_Tracker(pThis->TrackedBuiltInfantryTypes)->Populate(InfantryTypeClass::Array->Count);
+		GET_Tracker(pThis->TrackedBuiltUnitTypes)->Populate(UnitTypeClass::Array->Count);
+		GET_Tracker(pThis->TrackedBuiltBuildingTypes)->Populate(BuildingTypeClass::Array->Count);
+		GET_Tracker(pThis->TrackedKilledAircraftTypes)->Populate(AircraftTypeClass::Array->Count);
+		GET_Tracker(pThis->TrackedKilledInfantryTypes)->Populate(InfantryTypeClass::Array->Count);
+		GET_Tracker(pThis->TrackedKilledUnitTypes)->Populate(UnitTypeClass::Array->Count);
+		GET_Tracker(pThis->TrackedKilledBuildingTypes)->Populate(BuildingTypeClass::Array->Count);
+		GET_Tracker(pThis->TrackedCapturedBuildings)->Populate(BuildingTypeClass::Array->Count);
+		GET_Tracker(pThis->TrackedCollectedCrates)->Populate(CrateTypeClass::Array.size());
+	}
 
 	return 0x4F5957;
 }

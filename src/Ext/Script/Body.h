@@ -3,6 +3,7 @@
 #include <ScriptClass.h>
 
 #include <Utilities/Container.h>
+#include <Utilities/PhobosFixedString.h>
 
 enum class MoveMissionEndModes : int
 {
@@ -228,13 +229,16 @@ enum class DistanceMode : int
 	Furtherst = 3
 };
 
-class ScriptExtData final
+class ScriptExtData final : public AbstractExtended
 {
 public:
 	using base_type = ScriptClass;
-	static COMPILETIMEEVAL const char* ClassName = CLASS_NAME(ScriptExtData);
+	static COMPILETIMEEVAL const char* ClassName = "ScriptExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "ScriptClass";
+	static COMPILETIMEEVAL DWORD Canary = 0xC836D6BB;
 
+public:
+	PhobosFixedString<0x18> Name {};
 public:
 	// Nothing yet
 
@@ -332,12 +336,39 @@ public:
 	static void PlaySpeech(TeamClass* pTeam);
 	static bool Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bThirdArd);
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
+public:
+	ScriptExtData(base_type* pObj) : AbstractExtended(pObj)
 	{
-		return sizeof(ScriptExtData) -
-			(4u //AttachedToObject
-			 );
+		this->AbsType = ScriptClass::AbsID;
+		this->Name = pObj->Type->ID;
 	}
+
+	ScriptExtData() = default;
+
+	virtual ~ScriptExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) override
+	{ }
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->AbstractExtended::Internal_LoadFromStream(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		const_cast<ScriptExtData*>(this)->AbstractExtended::Internal_SaveToStream(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{ }
+
+	base_type* This() const { return reinterpret_cast<base_type*>(this->AttachedToObject); }
+	const base_type* This_Const() const { return reinterpret_cast<const base_type*>(this->AttachedToObject); }
+
 private:
 	static void ModifyCurrentTriggerWeight(TeamClass* pTeam, bool forceJumpLine, double modifier);
 	static bool MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, FootClass* pLeader, int mode);
@@ -352,10 +383,25 @@ private:
 };
 
 class ScriptExtContainer final : public Container<ScriptExtData>
+	, public ContainerSaveLoad<ScriptExtContainer, ScriptExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "ScriptExtContainer";
 
 public:
 	static ScriptExtContainer Instance;
+
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
 };
+
+class NOVTABLE FakeScriptClass : public ScriptClass
+{
+public:
+
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
+
+};
+

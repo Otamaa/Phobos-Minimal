@@ -11,7 +11,7 @@ public:
 	MissionExtData(MissionClass* abs) : ObjectExtData(abs)
 	{ };
 
-	MissionExtData(MissionClass* abs, noinit_t& noint) : ObjectExtData(abs, noint) { };
+	MissionExtData() = default;
 
 	virtual ~MissionExtData() = default;
 

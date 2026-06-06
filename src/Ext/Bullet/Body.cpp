@@ -16,6 +16,7 @@
 #include <Utilities/Helpers.h>
 
 #include <New/Entity/FlyingStrings.h>
+#include <New/Entity/PrismRelay.h>
 
 #include <InfantryClass.h>
 #include <AircraftClass.h>
@@ -920,6 +921,7 @@ void BulletExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved, Abstrac
 	default:
 
 		AnnounceInvalidPointer(OriginalTarget, ptr, bRemoved);
+		AnnounceInvalidPointer(PrismRelayMaster, ptr, bRemoved);
 
 		if (auto& pTraj = Trajectory)
 			pTraj->InvalidatePointer(ptr, bRemoved);
@@ -1423,6 +1425,7 @@ void BulletExtData::Serialize(T& Stm)
 	debugProcess(this->OriginalTarget, "OriginalTarget");
 	debugProcess(this->ParabombFallRate, "ParabombFallRate");
 	debugProcess(this->DistanceTraveled, "DistanceTraveled");
+	debugProcess(this->FirepowerMult, "FirepowerMult");
 	debugProcess(this->IsInstantDetonation, "IsInstantDetonation");
 	PhobosTrajectory::ProcessFromStream(Stm, this->Trajectory);
 }
@@ -1449,9 +1452,8 @@ ASMJIT_PATCH(0x4664BA, BulletClass_CTOR, 0x5)
 ASMJIT_PATCH(0x4665E9, BulletClass_DTOR, 0xA)
 {
 	GET(BulletClass*, pItem, ESI);
-
+	PrismRelay::NotifyBulletDestroyed(pItem);
 	BulletExtContainer::Instance.Remove(pItem);
-
 	return 0;
 }
 
@@ -1464,3 +1466,29 @@ void FakeBulletClass::_Detach(AbstractClass* target, bool all)
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E470C, FakeBulletClass::_Detach)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4744, FakeBulletClass::_AnimPointerExpired)
+
+HRESULT __stdcall FakeBulletClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->BulletClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!BulletExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E46F8, FakeBulletClass::__Load)
+
+HRESULT __stdcall FakeBulletClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->BulletClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!BulletExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E46FC, FakeBulletClass::__Save)

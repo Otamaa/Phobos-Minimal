@@ -38,7 +38,7 @@ std::pair<bool, int> AnimExtData::DetonateWarhead(int nDamage, WarheadTypeClass*
 {
 	if (pWarhead)
 	{
-		auto nResultDamage = static_cast<int>(TechnoExtData::GetDamageMult(pInvoker, nDamage, !DamageConsiderVet));
+		auto nResultDamage = static_cast<int>(TechnoExtData::ApplyDamageMult(pInvoker, nDamage, !DamageConsiderVet));
 
 		if (bWarheadDetonate)
 		{
@@ -62,7 +62,7 @@ std::pair<bool, int> AnimExtData::Detonate(Nullable<WeaponTypeClass*> const& pWe
 		return DetonateWarhead(nDamage, pWarhead, bWarheadDetonate, Where, pInvoker, pOwner, DamageConsiderVet);
 	}
 
-	auto nResultDamage = static_cast<int>(TechnoExtData::GetDamageMult(pInvoker, nDamage, !DamageConsiderVet));
+	auto nResultDamage = static_cast<int>(TechnoExtData::ApplyDamageMult(pInvoker, nDamage, !DamageConsiderVet));
 	WeaponTypeExtData::DetonateAt4(pWeapon, Where, pInvoker, nResultDamage, false, pInvoker ? pInvoker->Owner : nullptr);
 	return { false , 0 };
 }
@@ -310,7 +310,8 @@ void ApplyDamage(AnimClass* pThis , AnimExtData* pExt , AnimTypeExtData* pTypeEx
 		auto const pWarhead = pThis->Type->Warhead ? pThis->Type->Warhead :
 			!pTypeExt->IsInviso ? RulesClass::Instance->FlameDamage2 : RulesClass::Instance->C4Warhead;
 
-		const auto nDamageResult = static_cast<int>(TechnoExtData::GetDamageMult(pInvoker, appliedDamage, !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
+		
+		const auto nDamageResult = static_cast<int>(TechnoExtData::ApplyDamageMult(pInvoker, appliedDamage, !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
 
 		if (pTypeExt->Warhead_Detonate.Get())
 		{
@@ -492,9 +493,8 @@ bool AnimExtData::OnMiddle(AnimClass* pThis)
 		if (auto pWeapon = pTypeExt->WeaponToCarry) {
 			AbstractClass* pTarget = AnimExtData::GetTarget(pThis);
 			TechnoClass* const pInvoker = AnimExtData::GetTechnoInvoker(pThis);
-			//const auto nDamageResult = static_cast<int>(TechnoExtData::GetDamageMult(pInvoker, pWeapon->Damage , !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
+			//const auto nDamageResult = static_cast<int>(TechnoExtData::ApplyDamageMult(pInvoker, pWeapon->Damage , !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
 			const auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->Owner : nullptr;
-
 			WeaponTypeExtData::DetonateAt1(pWeapon, pTarget, pInvoker, pTypeExt->Damage_ConsiderOwnerVeterancy, pOwner);
 		}
 	}
@@ -888,25 +888,20 @@ void AnimExtData::Serialize(T& Stm)
 		.Process(this->DelayedFireRemoveOnNoDelay)
 		.Process(this->DamagingState)
 		.Process(this->AEDrawOffset)
+		.Process(this->FirepowerMult)
 		;
 }
 
 AnimExtContainer AnimExtContainer::Instance;
 
-bool AnimExtContainer::LoadAll(PhobosStreamReader& stm)
+bool AnimExtContainer::LoadGlobal(PhobosStreamReader& stm)
 {
-	if(!stm.Process(AnimsWithAttachedParticles))
-		return false;
-
-	return this->base_SaveLoad_t::LoadAll(stm);
+	return stm.Process(AnimsWithAttachedParticles);
 }
 
-bool AnimExtContainer::SaveAll(PhobosStreamWriter& stm)
+bool AnimExtContainer::SaveGlobal(PhobosStreamWriter& stm)
 {
-	if (!stm.Process(AnimsWithAttachedParticles))
-		return false;
-
-	return this->base_SaveLoad_t::SaveAll(stm);
+	return stm.Process(AnimsWithAttachedParticles);
 }
 
 void AnimExtContainer::Clear()
@@ -988,6 +983,32 @@ ASMJIT_PATCH(0x422A52, AnimClass_DTOR, 0x6)
 	AnimExtContainer::Instance.Remove(pItem);
 	return 0;
 }
+
+HRESULT __stdcall FakeAnimClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->AnimClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!AnimExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3368, FakeAnimClass::__Load)
+
+HRESULT __stdcall FakeAnimClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->AnimClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!AnimExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E336C, FakeAnimClass::__Save)
 
 ASMJIT_PATCH(0x425164, AnimClass_Detach, 0x6)
 {

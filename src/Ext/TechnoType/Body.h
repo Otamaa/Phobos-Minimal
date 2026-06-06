@@ -381,7 +381,6 @@ public:
 	Valueable<bool> DontShake { true };
 	NullableIdx<VocClass> DiskLaserChargeUp {};
 	Valueable<bool> DiskLaserDetonate { false };
-
 	Nullable<AnimTypeClass*> DrainAnimationType {};
 	Nullable<int> DrainMoneyFrameDelay {};
 	Nullable<int> DrainMoneyAmount {};
@@ -567,12 +566,17 @@ public:
 	//Nullable<bool> Crashable { };
 
 	Valueable<TechnoTypeClass*> Convert_Deploy { nullptr };
+	Valueable<TechnoTypeClass*> Convert_Undeploy { nullptr };
 	Valueable<int> Convert_Deploy_Delay { -1 };
 	Valueable<TechnoTypeClass*> Convert_Script { nullptr };
 	ValueableVector<int> Convert_Script_Prereq {};
 	Valueable<TechnoTypeClass*> Convert_Water { nullptr };
 	Valueable<TechnoTypeClass*> Convert_Land { nullptr };
 	Valueable<bool> Convert_ResetMindControl { false };
+
+	Valueable<int> Ammo_AutoConvertMinimumAmount { -1 };
+	Valueable<int> Ammo_AutoConvertMaximumAmount { -1 };
+	Nullable<TechnoTypeClass*> Ammo_AutoConvertType { nullptr };
 
 	Nullable<Leptons> Harvester_LongScan {};
 	Nullable<Leptons> Harvester_ShortScan {};
@@ -1275,7 +1279,7 @@ public:
 	void InitializeConstant();
 	virtual void Initialize();
 
-	TechnoTypeExtData(TechnoTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
+	TechnoTypeExtData() = default;
 
 	virtual ~TechnoTypeExtData() = default;
 
@@ -1709,6 +1713,7 @@ private:
 		debugProcess(this->NoManualEject, "NoManualEject");
 		debugProcess(this->Passengers_BySize, "Passengers_BySize");
 		debugProcess(this->Convert_Deploy, "Convert_Deploy");
+		debugProcess(this->Convert_Undeploy, "Convert_Undeploy");
 		debugProcess(this->Convert_Deploy_Delay, "Convert_Deploy_Delay");
 		debugProcess(this->Convert_Script, "Convert_Script");
 		debugProcess(this->Convert_Water, "Convert_Water");
@@ -2105,6 +2110,9 @@ private:
 		debugProcess(this->BattlePoints, "BattlePoints");
 		debugProcess(this->ForceWeapon_Check, "ForceWeapon_Check");
 		debugProcess(this->Convert_ResetMindControl, "Convert_ResetMindControl");
+		debugProcess(this->Ammo_AutoConvertMinimumAmount, "Ammo_AutoConvertMinimumAmount");
+		debugProcess(this->Ammo_AutoConvertMaximumAmount, "Ammo_AutoConvertMaximumAmount");
+		debugProcess(this->Ammo_AutoConvertType, "Ammo_AutoConvertType");
 		debugProcess(this->FireUp, "FireUp");
 		debugProcess(this->FireUp_ResetInRetarget, "FireUp_ResetInRetarget");
 		debugProcess(this->DigitalDisplay_Health_FakeAtDisguise, "DigitalDisplay_Health_FakeAtDisguise");

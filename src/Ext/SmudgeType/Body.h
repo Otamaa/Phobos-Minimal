@@ -8,6 +8,7 @@ public:
 	using base_type = SmudgeTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "SmudgeTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "SmudgeTypeClass";
+	static COMPILETIMEEVAL DWORD Canary = 0x9BBF4B19;
 
 public:
 
@@ -19,7 +20,7 @@ public:
  		this->AbsType = SmudgeTypeClass::AbsID;
 	}
 
-	SmudgeTypeExtData(SmudgeTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
+	SmudgeTypeExtData() = default;
 
 	virtual ~SmudgeTypeExtData() = default;
 
@@ -60,7 +61,8 @@ private:
 };
 
 class SmudgeTypeExtContainer final : public Container<SmudgeTypeExtData>
-	, public ReadWriteContainerInterfaces<SmudgeTypeExtData>, public ContainerSaveLoad<SmudgeTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<SmudgeTypeExtData>
+	, public ContainerSaveLoad<SmudgeTypeExtContainer, SmudgeTypeExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "SmudgeTypeExtContainer";
@@ -69,6 +71,9 @@ public:
 public:
 	static SmudgeTypeExtContainer Instance;
 
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
 	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(ext_t::base_type* key, CCINIClass* pINI);
 };
@@ -76,6 +81,9 @@ public:
 class NOVTABLE FakeSmudgeTypeClass : public SmudgeTypeClass
 {
 public:
+
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	bool _CanPlaceHere(CellStruct*origin, bool underbuildings);
 

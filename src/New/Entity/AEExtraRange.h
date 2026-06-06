@@ -14,12 +14,33 @@ struct AEExtraRange
 	{
 		double rangeMult { 1.0 };
 		double extraRange { 0.0 };
-		const ValueableVector<WeaponTypeClass*>* allow { nullptr };
-		const ValueableVector<WeaponTypeClass*>* disallow { nullptr };
+		ValueableVector<WeaponTypeClass*>* allow { nullptr };
+		ValueableVector<WeaponTypeClass*>* disallow { nullptr };
 
-		COMPILETIMEEVAL bool Eligible(WeaponTypeClass* who) const
-		{
+		COMPILETIMEEVAL bool Eligible(WeaponTypeClass* who) const {
 			return AEIsEligible(who, allow, disallow);
+		}
+
+		bool Load(PhobosStreamReader& Stm, bool RegisterForChange) {
+			return this->Serialize(Stm);
+		}
+
+		bool Save(PhobosStreamWriter& Stm) const {
+			return const_cast<RangeData*>(this)->Serialize(Stm);
+		}
+
+	protected:
+
+		template <typename T>
+		bool Serialize(T& Stm)
+		{
+			return Stm
+				.Process(this->rangeMult)
+				.Process(this->extraRange)
+				.Process(this->allow)
+				.Process(this->disallow)
+				.Success() && Stm.RegisterChange(this)
+				;
 		}
 	};
 
@@ -76,5 +97,26 @@ struct AEExtraRange
 		}
 
 		return initial + add;
+	}
+
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		return this->Serialize(Stm);
+	}
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{
+		return const_cast<AEExtraRange*>(this)->Serialize(Stm);
+	}
+
+protected:
+
+	template <typename T>
+	bool Serialize(T& Stm)
+	{
+		return Stm
+			.Process(this->ranges)
+			.Success() && Stm.RegisterChange(this)
+			;
 	}
 };

@@ -92,7 +92,7 @@ BulletClass* BulletTypeExtData::CreateBullet(AbstractClass* pTarget, TechnoClass
 BulletClass* BulletTypeExtData::CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner,
 	int damage, WarheadTypeClass* pWarhead, int speed, int range, bool bright, bool addDamage) const
 {
-	damage = (int)(TechnoExtData::GetDamageMult(pOwner , damage , !addDamage));
+	damage = (int)(TechnoExtData::ApplyDamageMult(pOwner , damage , !addDamage));
 
 	auto pBullet = This()->CreateBullet(pTarget, pOwner, damage, pWarhead, speed, bright);
 
@@ -409,6 +409,32 @@ ASMJIT_PATCH(0x46C8B6, BulletTypeClass_SDDTOR, 0x6)
 	BulletTypeExtContainer::Instance.Remove(pItem);
 	return 0;
 }
+
+HRESULT __stdcall FakeBulletTypeClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->BulletTypeClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!BulletTypeExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E495C, FakeBulletTypeClass::__Load)
+
+HRESULT __stdcall FakeBulletTypeClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->BulletTypeClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!BulletTypeExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4960, FakeBulletTypeClass::__Save)
 
 bool FakeBulletTypeClass::_ReadFromINI(CCINIClass* pINI)
 {

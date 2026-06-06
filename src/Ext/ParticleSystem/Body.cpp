@@ -827,66 +827,6 @@ void ParticleSystemExtData::UpdateInAir()
 	}
 }
 
-//DEFINE_JUMP(LJMP, 0x62ED53, 0x62ED61);
-
-template <typename T>
-void ParticleSystemExtData::Serialize(T& Stm)
-{
-	Stm
-		.Process(this->What)
-		.Process(this->OtherParticleData)
-		.Process(this->SmokeData)
-		.Process(this->HeldType)
-		.Process(this->AlphaIsLightFlash)
-		;
-}
-
-// =============================
-// container
-ParticleSystemExtContainer ParticleSystemExtContainer::Instance;
-// =============================
-// container hooks
-
-#include <Ext/Anim/Body.h>
-
-ASMJIT_PATCH(0x62DF05, ParticleSystemClass_CTOR, 0x5)
-{
-	GET(ParticleSystemClass*, pItem, ESI);
-	if (!Phobos::Otamaa::DoingLoadGame) 
-	ParticleSystemExtContainer::Instance.Allocate(pItem);
-	return 0;
-}
-
-ASMJIT_PATCH(0x62E26B, ParticleSystemClass_DTOR, 0x6)
-{
-	GET(ParticleSystemClass* const, pItem, ESI);
-
-	if (pItem->Owner && pItem->Owner->WhatAmI() == AnimClass::AbsID)
-	{
-		for (AnimClass* anim : AnimExtContainer::Instance.AnimsWithAttachedParticles)
-		{
-			auto pAnimExt = AnimExtContainer::Instance.Find(anim);
-
-			if (pAnimExt->AttachedSystem == pItem)
-			{
-				pAnimExt->AttachedSystem.detachptr();
-			}
-		}
-	}
-
-	ParticleSystemExtContainer::Instance.Remove(pItem);
-	return 0;
-}
-
-ASMJIT_PATCH(0x62FFBB, ParticleSystemClass_Load_OwnerHouse, 0x8)
-{
-
-	GET(ParticleSystemClass*, pThis, EDI);
-
-	SWIZZLE(pThis->OwnerHouse);
-
-	return 0;
-}
 
 Vector3D<float> GetRandomPerturbation(float coefficient)
 {
@@ -932,7 +872,8 @@ class NOVTABLE FakeParticleSystemClass2 : public ParticleSystemClass
 {
 public:
 
-	void UpdateSmoke() {
+	void UpdateSmoke()
+	{
 		JMP_THIS(0x62ED40);
 	}
 };
@@ -999,7 +940,9 @@ void FakeParticleSystemClass::__AI()
 			this->IsAlive = false;
 			AbstractClass::Array2->push_back(this);
 		}
-	} else {
+	}
+	else
+	{
 
 		if (this->Lifetime-- == 1)
 			this->TimeToDie = true;
@@ -1419,7 +1362,7 @@ void FakeParticleSystemClass::UpdateSmokeAttachedPosition()
 	CoordStruct ownerCenter = owner->GetCoords();
 
 	// Apply spawn offset
-	CoordStruct newPos = ownerCenter  + this->SpawnDistanceToOwner;
+	CoordStruct newPos = ownerCenter + this->SpawnDistanceToOwner;
 
 	this->SetLocation(newPos);
 }
@@ -1525,7 +1468,7 @@ void FakeParticleSystemClass::UpdatePositionFromOwner(TechnoClass* owner)
 	// Update target and system position
 	CoordStruct newPos { (int)offsetX, (int)offsetY, ownerPos.Z };
 	this->TargetCoords = newPos;
-	CoordStruct flh = owner->GetFLH(0, 0,0,0);
+	CoordStruct flh = owner->GetFLH(0, 0, 0, 0);
 	this->SetLocation(flh);
 }
 
@@ -1763,6 +1706,92 @@ void FakeParticleSystemClass::CreateLaserBeam()
 
 #pragma endregion
 
+//DEFINE_JUMP(LJMP, 0x62ED53, 0x62ED61);
+
+template <typename T>
+void ParticleSystemExtData::Serialize(T& Stm)
+{
+	Stm
+		.Process(this->What)
+		.Process(this->OtherParticleData)
+		.Process(this->SmokeData)
+		.Process(this->HeldType)
+		.Process(this->AlphaIsLightFlash)
+		;
+}
+
+// =============================
+// container
+ParticleSystemExtContainer ParticleSystemExtContainer::Instance;
+// =============================
+// container hooks
+
+#include <Ext/Anim/Body.h>
+
+ASMJIT_PATCH(0x62DF05, ParticleSystemClass_CTOR, 0x5)
+{
+	GET(ParticleSystemClass*, pItem, ESI);
+	if (!Phobos::Otamaa::DoingLoadGame) 
+	ParticleSystemExtContainer::Instance.Allocate(pItem);
+	return 0;
+}
+
+ASMJIT_PATCH(0x62E26B, ParticleSystemClass_DTOR, 0x6)
+{
+	GET(ParticleSystemClass* const, pItem, ESI);
+
+	if (pItem->Owner && pItem->Owner->WhatAmI() == AnimClass::AbsID)
+	{
+		for (AnimClass* anim : AnimExtContainer::Instance.AnimsWithAttachedParticles)
+		{
+			auto pAnimExt = AnimExtContainer::Instance.Find(anim);
+
+			if (pAnimExt->AttachedSystem == pItem)
+			{
+				pAnimExt->AttachedSystem.detachptr();
+			}
+		}
+	}
+
+	ParticleSystemExtContainer::Instance.Remove(pItem);
+	return 0;
+}
+
+ASMJIT_PATCH(0x62FFBB, ParticleSystemClass_Load_OwnerHouse, 0x8)
+{
+
+	GET(ParticleSystemClass*, pThis, EDI);
+
+	SWIZZLE(pThis->OwnerHouse);
+
+	return 0;
+}
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFBF8, FakeParticleSystemClass::__AI)
 DEFINE_FUNCTION_JUMP(LJMP, 0x62FD60, FakeParticleSystemClass::__AI)
+
+HRESULT __stdcall FakeParticleSystemClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->ParticleSystemClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!ParticleSystemExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFBB0, FakeParticleSystemClass::__Load)
+
+HRESULT __stdcall FakeParticleSystemClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->ParticleSystemClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!ParticleSystemExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFBB4, FakeParticleSystemClass::__Save)

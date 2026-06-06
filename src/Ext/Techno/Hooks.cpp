@@ -50,14 +50,8 @@ void TechnoExtData::InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType)
 	}
 }
 
-
-ASMJIT_PATCH(0x7363C9, UnitClass_AI_AnimationPaused, 0x6)
-{
-	enum { SkipGameCode = 0x7363DE , Continue = 0x0 };
-
-	GET(UnitClass*, pThis, ESI);
-	return TechnoExtContainer::Instance.Find(pThis)->DelayedFireSequencePaused?  SkipGameCode : Continue;
-}
+// Skip vanilla animation counter code in UnitClass::AI.
+DEFINE_JUMP(LJMP, 0x7363C9, 0x7363DE);
 
 // AFAIK, only used by the teleport of the Chronoshift SW
 ASMJIT_PATCH(0x70337D, HouseClass_RegisterDestruction_SaveKillerInfo, 0x6)
@@ -522,6 +516,17 @@ ASMJIT_PATCH(0x736480, UnitClass_AI_KeepTargetOnMove, 0x6)
 	pExt->DepletedAmmoActions();
 	UpdateSubterraneanHarvester(pThis);
 	//pExt->UpdateGattlingRateDownReset();
+
+	// Replace vanilla animation counter code in UnitClass::AI.
+	if (pThis->IsAlive && !pExt->DelayedFireSequencePaused && !((pThis->IsWarpingIn() && pThis->TemporalTargetingMe) || pThis->IsBeingWarpedOut()))
+	{
+		int animCounter = pThis->CurrentFiringFrame - 1;
+
+		if (animCounter < -1)
+			animCounter = -1;
+
+		pThis->CurrentFiringFrame = animCounter;
+	}
 
 	return 0;
 }

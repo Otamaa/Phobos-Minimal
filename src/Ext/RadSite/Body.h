@@ -14,6 +14,7 @@ public:
 	using base_type = RadSiteClass;
 	static COMPILETIMEEVAL const char* ClassName = "RadSiteExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "RadSiteClass";
+	static COMPILETIMEEVAL DWORD Canary = 0x2564AAB9;
 
 public:
 
@@ -52,7 +53,7 @@ public:
 		this->AbsType = RadSiteClass::AbsID;
 	}
 
-	RadSiteExtData(RadSiteClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
+	RadSiteExtData() = default;
 
 	virtual ~RadSiteExtData() = default;
 
@@ -102,18 +103,26 @@ private:
 	void Serialize(T& Stm);
 };
 
-class RadSiteExtContainer final : public Container<RadSiteExtData>, public ContainerSaveLoad<RadSiteExtContainer, true>
+class RadSiteExtContainer final : public Container<RadSiteExtData>
+	, public ContainerSaveLoad<RadSiteExtContainer, RadSiteExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "RadSiteExtContainer";
 
 public:
 	static RadSiteExtContainer Instance;
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
 };
 
 class NOVTABLE FakeRadSiteClass : public RadSiteClass
 {
 public:
+
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
+
 	void _Detach(AbstractClass* target, bool all);
 	HouseClass* _GetOwningHouse();
 	CoordStruct __GetAltCoords()

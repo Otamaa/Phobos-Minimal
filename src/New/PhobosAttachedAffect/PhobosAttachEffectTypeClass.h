@@ -148,6 +148,23 @@ public:
 	ValueableVector<TechnoTypeClass*> PeriodicWeapon_AffectTypes;
 	ValueableVector<TechnoTypeClass*> PeriodicWeapon_IgnoreTypes;
 
+	Valueable<bool> PrismRelay;
+	Valueable<int> PrismRelay_NetworkID;
+	Valueable<bool> PrismRelay_Provider;
+	Valueable<bool> PrismRelay_Receiver;
+	Valueable<WeaponTypeClass*> PrismRelay_SupportWeapon;
+	Valueable<int> PrismRelay_MaxReceiveLinks;
+	Valueable<int> PrismRelay_MaxNodeLinks;
+	Valueable<int> PrismRelay_SupportFireDelay;
+	Valueable<double> PrismRelay_SupportMultiplier;
+	Valueable<int> PrismRelay_DamageAdd;
+	Valueable<bool> PrismRelay_ToAllies;
+	ValueableVector<WeaponTypeClass*> PrismRelay_AllowWeapons;
+	ValueableVector<WeaponTypeClass*> PrismRelay_DisallowWeapons;
+	Valueable<int> PrismRelay_MasterWeaponIndex;
+	Valueable<bool> PrismRelay_MasterWeaponUseMultiWeaponSelection;
+	Valueable<int> PrismRelay_SupportTimeout;
+
 	PhobosAttachEffectTypeClass(const char* pTitle) : Enumerable<PhobosAttachEffectTypeClass>(pTitle)
 		, Duration { 0 }
 		, Duration_ApplyFirepowerMult { false }
@@ -248,6 +265,23 @@ public:
 		, PeriodicWeapon_FireAll { false }
 		, PeriodicWeapon_AffectTypes {}
 		, PeriodicWeapon_IgnoreTypes {}
+
+		, PrismRelay { false }
+		, PrismRelay_NetworkID { 0 }
+		, PrismRelay_Provider { true }
+		, PrismRelay_Receiver { true }
+		, PrismRelay_SupportWeapon {}
+		, PrismRelay_MaxReceiveLinks { -1 }
+		, PrismRelay_MaxNodeLinks { -1 }
+		, PrismRelay_SupportFireDelay { 0 }
+		, PrismRelay_SupportMultiplier { 1.0 }
+		, PrismRelay_DamageAdd { 0 }
+		, PrismRelay_ToAllies { false }
+		, PrismRelay_AllowWeapons {}
+		, PrismRelay_DisallowWeapons {}
+		, PrismRelay_MasterWeaponIndex { -1 }
+		, PrismRelay_MasterWeaponUseMultiWeaponSelection { false }
+		, PrismRelay_SupportTimeout { 45 }
 	{};
 
 	COMPILETIMEEVAL FORCEDINLINE bool HasAnim() {

@@ -20,7 +20,8 @@ public:
 	using base_type = IsometricTileTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "IsometricTileTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "IsometricTileTypeClass";
-	
+	static COMPILETIMEEVAL DWORD Canary = 0xD5B017CE;
+
 public :
 
 #pragma region ClassMembers
@@ -55,7 +56,7 @@ public:
 		this->AbsType = IsometricTileTypeClass::AbsID;
 	}
 
-	IsometricTileTypeExtData(IsometricTileTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
+	IsometricTileTypeExtData() = default;
 
 	virtual ~IsometricTileTypeExtData() = default;
 
@@ -100,13 +101,13 @@ private:
 };
 
 class IsometricTileTypeExtContainer final : public Container<IsometricTileTypeExtData>
-	, public ReadWriteContainerInterfaces<IsometricTileTypeExtData>, public ContainerSaveLoad<IsometricTileTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<IsometricTileTypeExtData>
+	, public ContainerSaveLoad<IsometricTileTypeExtContainer, IsometricTileTypeExtData>
 {
 public:
 
 	static COMPILETIMEEVAL const char* ClassName = "IsometricTileTypeExtContainer";
 	using base_t = Container<IsometricTileTypeExtData>;
-	using base_SaveLoad_t = ContainerSaveLoad<IsometricTileTypeExtContainer, true>;
 
 public:
 	static IsometricTileTypeExtContainer Instance;
@@ -114,8 +115,8 @@ public:
 	std::map<std::string, std::map<TintStruct, LightConvertClass*>> LightConvertEntities;
 	int CurrentTileset;
 
-	virtual bool LoadAll(PhobosStreamReader& stm);
-	virtual bool SaveAll(PhobosStreamWriter& stm);
+	virtual bool LoadGlobal(PhobosStreamReader& stm);
+	virtual bool SaveGlobal(PhobosStreamWriter& stm);
 
 	virtual void Clear() { 
 		this->base_t::Clear();
@@ -127,8 +128,9 @@ public:
 	virtual void WriteToINI(IsometricTileTypeClass* key, CCINIClass* pINI) { }
 };
 
-class FakeIsometricTileTypeClass : public IsometricTileTypeClass
+class NOVTABLE FakeIsometricTileTypeClass : public IsometricTileTypeClass
 {
 public:
-
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 };

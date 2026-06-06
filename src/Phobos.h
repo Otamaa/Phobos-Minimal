@@ -97,8 +97,11 @@ public:
 	static void LoadGameDataAfter();
 	static void ClearAll();
 	static void PassiveSaveGame();
-	static HRESULT LoadAllExtData(IStream* pStm);
-	static HRESULT SaveAllExtData(IStream* pStm);
+	static HRESULT LoadAllEarlyData(IStream* pStm);
+	static HRESULT SaveAllEarlyData(IStream* pStm);
+
+	static HRESULT LoadAllLateData(IStream* pStm);
+	static HRESULT SaveAllLateData(IStream* pStm);
 
 	//variables
 	static HANDLE hInstance;

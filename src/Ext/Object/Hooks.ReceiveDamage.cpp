@@ -548,9 +548,10 @@ DamageState __fastcall FakeObjectClass::__Take_Damage(ObjectClass* pThis, discar
 	const int flash = Math::abs(pWHExt->Flash_Duration.Get(7));
 	const int _oldStr = pThis->Health;
 	const int _adj = _oldStr - *args.Damage;
+	const int _HP = MinImpl(_adj, maxstrength);
 
-	pThis->Health = MinImpl(_adj, maxstrength);
-
+	pThis->Health = _HP;
+	pThis->EstimatedHealth = _HP;
 	if (flash > 0)
 	{
 		if (auto pTechno = flag_cast_to<TechnoClass*>(pThis))

@@ -101,7 +101,14 @@ static void HandleAfterEffects(
 	// GetAmmo loop in TechnoExtData::DecreaseAmmo already handles positive values.
 	if (WeaponTypeExtContainer::Instance.Find(pWeapon)->Ammo > 0)
 		pThis->DecreaseAmmo();
+	
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
+	if (pThis->CurrentBurstIndex == 0 && pWeapon->Burst > 0) {
+		pExt->PrismRelayBurstChainBuilt = false;
+		pExt->PrismRelayCachedNetworkId = 0;
+		pExt->PrismRelayCachedProviders.clear();
+	}
 	pThis->Mark(MarkType::Change);
 
 	CoordStruct center = pThis->GetCoords();
@@ -383,6 +390,9 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 				}
 			}
 
+			if (PrismRelay::TryHandleFireAt(pThis, pTarget, pWeapon, which))
+				return nullptr;
+
 			if (pWeapon->Suicide && pThis->IsAlive) {
 				RunEndHook(pThis, pWeapon);
 				if (pThis->IsAlive) {
@@ -537,7 +547,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 		{
 			// ╔═══ HOOK: TechnoClass_FireAt_DamageMult @ 0x6FE337 ══════════════╗
 			// W4: Replaces FP*FP*dmg + vet bonus. §VET_BONUS is dead code.
-			finalDamage = (int)TechnoExtData::GetDamageMult(pThis, (double)finalDamage);
+			finalDamage = (int)TechnoExtData::ApplyDamageMult(pThis, (double)finalDamage);
 			// ╚══════════════════════════════════════════════════════════════════╝
 		}
 	}
@@ -548,7 +558,10 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 	// ╔═══ HOOK: TechnoClass_FireAt_OccupyDamageBonus @ 0x6FE3E3 ═══════════════╗
 	// W5: Replaces OccupyDamage + BunkerDamage + OpenTopped + DiskLaser.
 	{
-		finalDamage = int(TechnoExtData::GetAdditionalDamageMult(pThis, finalDamage));
+		finalDamage = int(TechnoExtData::ApplyAdditionalDamageMult(pThis, finalDamage));
+
+		if (pExt->PrismRelayBurstChainBuilt && !pExt->PrismRelayCachedProviders.empty())
+			finalDamage = PrismRelay::ApplyDamageBonus(finalDamage, pExt->PrismRelayCachedProviders, pExt->PrismRelayCachedNetworkId);
 
 		if (pWeapon->DiskLaser)
 		{
@@ -1210,7 +1223,7 @@ ASMJIT_PATCH(0x6FE337, TechnoClass_FireAt_DamageMult, 0x6)
 	GET(int, damage, EDI);
 	GET(TechnoClass*, pThis, ESI);
 
-	int _damage = (int)TechnoExtData::GetDamageMult(pThis, (double)damage);
+	int _damage = (int)TechnoExtData::ApplyDamageMult(pThis, (double)damage);
 	R->Stack(0x28, GET_TECHNOTYPE(pThis));
 	R->EDI(_damage);
 	R->EAX(_damage);
@@ -1378,6 +1391,9 @@ ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 				PhobosAttachEffectClass::DetachByGroups(pTargetTechno, info);
 			}
 		}
+
+		if (PrismRelay::TryHandleFireAt(pThis, pTarget, pWeapon, weaponIndex))
+			return SkipFiring;
 
 		if (pWeapon->Suicide && pThis->IsAlive)
 		{

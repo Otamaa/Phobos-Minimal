@@ -105,6 +105,8 @@ public:
 	using base_type = TActionClass;
 	static COMPILETIMEEVAL const char* ClassName = "TActionExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "TActionClass";
+	static COMPILETIMEEVAL DWORD Canary = 0x0F4E8D87;
+
 public:
 
 	static void RecreateLightSources();
@@ -216,23 +218,21 @@ public:
 	static PhobosMap<int, std::vector<TriggerClass*>> RandomTriggerPool;
 };
 
-class TActionExtContainer final : 
-	public Container<TActionExtData>, 
-	public ContainerSaveLoad<TActionExtContainer, false>
+class TActionExtContainer final //: 
+	//public Container<TActionExtData>, 
+	//public ContainerSaveLoad<TActionExtContainer, TActionExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "TActionExtContainer";
 
-	virtual bool LoadAll(PhobosStreamReader& Stm) override
+	bool LoadGlobal(PhobosStreamReader& Stm)
 	{
-		Stm.Process(TActionExtData::RandomTriggerPool);
-		return Stm.Success();
+		return Stm.Process(TActionExtData::RandomTriggerPool);
 	}
 
-	virtual bool SaveAll(PhobosStreamWriter& Stm) override
+	bool SaveGlobal(PhobosStreamWriter& Stm)
 	{
-		Stm.Process(TActionExtData::RandomTriggerPool);
-		return Stm.Success();
+		return Stm.Process(TActionExtData::RandomTriggerPool);
 	}
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved)

@@ -64,6 +64,8 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	{ // DiskLaser_Radius
 		this->DiskLaser_Radius.Read(exINI, pSection, "DiskLaser.Radius");
 		this->DiskLaser_Circumference = (int)(this->DiskLaser_Radius * Math::GAME_TWOPI);
+		this->DiskLaser_SimulatedFire.Read(exINI, pSection, "DiskLaser.SimulateFire");
+		this->DiskLaser_ChargeUp.Read(exINI, pSection, "DiskLaser.ChargeUp");
 	}
 
 #ifdef _Enable
@@ -226,6 +228,32 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->ExtraWarheads_DamageOverrides.Read(exINI, pSection, "ExtraWarheads.DamageOverrides");
 	this->ExtraWarheads_DetonationChances.Read(exINI, pSection, "ExtraWarheads.DetonationChances");
 	this->ExtraWarheads_FullDetonation.Read(exINI, pSection, "ExtraWarheads.FullDetonation");
+
+	this->ExtraWarheads_RollChances.Read(exINI, pSection, "ExtraWarheads.RollChances");
+
+	// ExtraWarheads.RandomWeights
+	std::string random_weights_tag = "ExtraWarheads.RandomWeights";
+
+	for (size_t i = 0; ; ++i) {
+		ValueableVector<int> weights3 {};
+		weights3.Read(exINI, pSection, (random_weights_tag + std::to_string(i)).c_str());
+
+		if (!weights3.size())
+			break;
+
+		this->ExtraWarheads_WeightsData.emplace_back(std::move(weights3));
+	}
+
+	ValueableVector<int> weights3_b {};
+	weights3_b.Read(exINI, pSection, random_weights_tag.c_str());
+
+	if (weights3_b.size()) {
+		if (this->ExtraWarheads_WeightsData.size())
+			this->ExtraWarheads_WeightsData[0] = std::move(weights3_b);
+		else
+			this->ExtraWarheads_WeightsData.emplace_back(std::move(weights3_b));
+	}
+
 	this->Burst_Retarget.Read(exINI, pSection, "Burst.Retarget");
 	this->KickOutPassenger.Read(exINI, pSection, "KickOutPassenger");
 
@@ -501,6 +529,8 @@ void WeaponTypeExtData::Serialize(T& Stm)
 	Stm
 		.Process(this->DiskLaser_Radius)
 		.Process(this->DiskLaser_Circumference)
+		.Process(this->DiskLaser_SimulatedFire)
+		.Process(this->DiskLaser_ChargeUp)
 		.Process(this->Rad_NoOwner)
 		.Process(this->Bolt_Disables[0])
 		.Process(this->Bolt_Disables[1])
@@ -595,6 +625,8 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->ExtraWarheads_DamageOverrides)
 		.Process(this->ExtraWarheads_DetonationChances)
 		.Process(this->ExtraWarheads_FullDetonation)
+		.Process(this->ExtraWarheads_RollChances)
+		.Process(this->ExtraWarheads_WeightsData)
 		.Process(this->Burst_Retarget)
 		.Process(this->KickOutPassenger)
 
@@ -1389,3 +1421,29 @@ bool FakeWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F741C, FakeWeaponTypeClass::_ReadFromINI)
+
+HRESULT __stdcall FakeWeaponTypeClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->WeaponTypeClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!WeaponTypeExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F73CC, FakeWeaponTypeClass::__Load)
+
+HRESULT __stdcall FakeWeaponTypeClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->WeaponTypeClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!WeaponTypeExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F73D0, FakeWeaponTypeClass::__Save)

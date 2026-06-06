@@ -2898,9 +2898,9 @@ void HouseExtData::Serialize(T& Stm)
 
 HouseExtContainer HouseExtContainer::Instance;
 
-bool HouseExtContainer::LoadAll(PhobosStreamReader& stm)
+bool HouseExtContainer::LoadGlobal(PhobosStreamReader& stm)
 {
-	if (!stm
+	return stm
 		.Process(Civilian)
 		.Process(Special)
 		.Process(Neutral)
@@ -2915,15 +2915,13 @@ bool HouseExtContainer::LoadAll(PhobosStreamReader& stm)
 
 		.Process(CloakEVASpeak)
 		.Process(SubTerraneanEVASpeak)
-		.Process(IsAnyFirestormActive))
-		return false;
-
-	return this->base_SaveLoad_t::LoadAll(stm);
+		.Process(IsAnyFirestormActive)
+		;
 }
 
-bool HouseExtContainer::SaveAll(PhobosStreamWriter& stm)
+bool HouseExtContainer::SaveGlobal(PhobosStreamWriter& stm)
 {
-	if (!stm
+	return stm
 		.Process(Civilian)
 		.Process(Special)
 		.Process(Neutral)
@@ -2938,10 +2936,7 @@ bool HouseExtContainer::SaveAll(PhobosStreamWriter& stm)
 
 		.Process(CloakEVASpeak)
 		.Process(SubTerraneanEVASpeak)
-		.Process(IsAnyFirestormActive))
-		return false;
-
-	return this->base_SaveLoad_t::SaveAll(stm);
+		.Process(IsAnyFirestormActive);
 }
 
 void HouseExtContainer::Clear()
@@ -4872,7 +4867,6 @@ ASMJIT_PATCH(0x50114D, HouseClass_InitFromINI, 0x5)
 HRESULT __stdcall FakeHouseClass::__Load(IStream* pStm)
 {
 	auto hr = this->HouseClass::Load(pStm);
-
 	if (!SUCCEEDED(hr)) return hr;
 
 	this->TrackedBuiltAircraftTypes.AllocateTrackerptr<PhobosUnitTrackerClass>();
@@ -4907,6 +4901,9 @@ HRESULT __stdcall FakeHouseClass::__Load(IStream* pStm)
 	hr = this->TrackedCollectedCrates.GetTrackerptr<PhobosUnitTrackerClass>()->Load(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
+	if (!HouseExtContainer::Instance.LoadByKey(this, pStm))
+		return PHOBOS_E_EXTDATA_LOAD_FAILED;
+
 	return hr;
 }
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8B4, FakeHouseClass::__Load)
@@ -4914,6 +4911,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8B4, FakeHouseClass::__Load)
 HRESULT __stdcall FakeHouseClass::__Save(IStream* pStm, BOOL fClearDirty)
 {
 	auto hr = this->HouseClass::Save(pStm, fClearDirty);
+
 	if (!SUCCEEDED(hr)) return hr;
 	hr = this->TrackedBuiltAircraftTypes.GetTrackerptr<PhobosUnitTrackerClass>()->Save(pStm);
 	if (!SUCCEEDED(hr)) return hr;
@@ -4935,6 +4933,9 @@ HRESULT __stdcall FakeHouseClass::__Save(IStream* pStm, BOOL fClearDirty)
 	if (!SUCCEEDED(hr)) return hr;
 	hr = this->TrackedCollectedCrates.GetTrackerptr<PhobosUnitTrackerClass>()->Save(pStm);
 	if (!SUCCEEDED(hr)) return hr;
+
+	if (!HouseExtContainer::Instance.SaveByKey(this, pStm))
+		return PHOBOS_E_EXTDATA_SAVE_FAILED;
 
 	return hr;
 }

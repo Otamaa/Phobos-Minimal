@@ -202,3 +202,29 @@ DEFINE_FUNCTION_JUMP(CALL, 0x4C7849, FakeBombClass::__Detonate)
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x438A00, FakeBombClass::__GetBombFrame)
 DEFINE_FUNCTION_JUMP(CALL, 0x6F5230, FakeBombClass::__GetBombFrame)
+
+HRESULT __stdcall FakeBombClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->BombClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!BombExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3D24, FakeBombClass::__Load)
+
+HRESULT __stdcall FakeBombClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->BombClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!BombExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3D28, FakeBombClass::__Save)

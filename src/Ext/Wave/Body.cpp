@@ -268,3 +268,29 @@ void FakeWaveClass::_Detach(AbstractClass* target , bool all)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6C1C, FakeWaveClass::_Detach)
+
+HRESULT __stdcall FakeWaveClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->WaveClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!WaveExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6C08, FakeWaveClass::__Load)
+
+HRESULT __stdcall FakeWaveClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->WaveClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!WaveExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6C0C, FakeWaveClass::__Save)

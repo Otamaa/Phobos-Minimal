@@ -168,18 +168,15 @@ struct NOVTABLE PhobosUnitTrackerClass
 	{
 		int count = 0;
 		HRESULT hr = pStm->Read(&count, sizeof(count), nullptr);
-		if (FAILED(hr))
-		{
+		if (FAILED(hr)) {
 			return hr;
 		}
 
-		this->Items.resize(count);
+		this->Items.resize(count, 0);
 
-		for (int i = 0; i < count; i++)
-		{
+		for (int i = 0; i < count; i++) {
 			hr = pStm->Read(&Items[i], sizeof(Items[i]), nullptr);
-			if (FAILED(hr))
-			{
+			if (FAILED(hr)) {
 				return hr;
 			}
 
@@ -192,8 +189,7 @@ struct NOVTABLE PhobosUnitTrackerClass
 	{
 		int count = (int)this->Items.size();
 		HRESULT hr = pStm->Write(&count, sizeof(int), nullptr);
-		if (FAILED(hr))
-		{
+		if (FAILED(hr)) {
 			return hr;
 		}
 
@@ -221,7 +217,8 @@ public:
 	using base_type = HouseClass;
 	static COMPILETIMEEVAL const char* ClassName = "HouseExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "HouseClass";
-	
+	static COMPILETIMEEVAL DWORD Canary = 0x553308BE;
+
 public:
 
 #pragma region ClassMembers
@@ -337,7 +334,7 @@ public:
 		this->AbsType = HouseClass::AbsID;
 	}
 
-	HouseExtData(HouseClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
+	HouseExtData() = default;
 
 	virtual ~HouseExtData() = default;
 
@@ -547,12 +544,13 @@ private:
 
 };
 
-class HouseExtContainer final : public Container<HouseExtData>, public ContainerSaveLoad<HouseExtContainer, true>
+class HouseExtContainer final : public Container<HouseExtData>
+	, public ContainerSaveLoad<HouseExtContainer, HouseExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "HouseExtContainer";
 	using base_t = Container<HouseExtData>;
-	using base_SaveLoad_t = ContainerSaveLoad<HouseExtContainer, true>;
+
 public:
 	static HouseExtContainer Instance;
 
@@ -576,8 +574,8 @@ public:
 
 public:
 
-	virtual bool LoadAll(PhobosStreamReader& stm);
-	virtual bool SaveAll(PhobosStreamWriter& stm);
+	virtual bool LoadGlobal(PhobosStreamReader& stm);
+	virtual bool SaveGlobal(PhobosStreamWriter& stm);
 
 	virtual void Clear();
 };

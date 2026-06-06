@@ -2479,26 +2479,18 @@ void SWTypeExtData::ApplyLinkedSW(SuperClass* pSW)
 
 SWTypeExtContainer SWTypeExtContainer::Instance;
 
-bool SWTypeExtContainer::LoadAll(PhobosStreamReader& stm)
+bool SWTypeExtContainer::LoadGlobal(PhobosStreamReader& stm)
 {
-	if (!stm
+	return stm
 		.Process(SWTypeExtData::TempSuper)
-	.Process(SWTypeExtData::LauchData)
-		)
-		return false;
-
-	return this->base_SaveLoad_t::LoadAll(stm);
+		.Process(SWTypeExtData::LauchData);
 }
 
-bool SWTypeExtContainer::SaveAll(PhobosStreamWriter& stm)
+bool SWTypeExtContainer::SaveGlobal(PhobosStreamWriter& stm)
 {
-	if (!stm
+	return stm
 		.Process(SWTypeExtData::TempSuper)
-	.Process(SWTypeExtData::LauchData)
-		)
-		return false;
-
-	return this->base_SaveLoad_t::SaveAll(stm);
+		.Process(SWTypeExtData::LauchData);
 }
 
 SuperWeaponTypeClass* SWTypeExtData::CurrentSWType;
@@ -2581,3 +2573,29 @@ bool FakeSuperWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F40F4, FakeSuperWeaponTypeClass::_ReadFromINI)
+
+HRESULT __stdcall FakeSuperWeaponTypeClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->SuperWeaponTypeClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!SWTypeExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F40A4, FakeSuperWeaponTypeClass::__Load)
+
+HRESULT __stdcall FakeSuperWeaponTypeClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->SuperWeaponTypeClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!SWTypeExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F40A8, FakeSuperWeaponTypeClass::__Save)

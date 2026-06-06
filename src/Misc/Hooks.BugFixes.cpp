@@ -34,6 +34,8 @@
 
 #include <Locomotor/Cast.h>
 
+DEFINE_PATCH(0x40F271, 0x00, 0x00, 0x00, 0x08); // 128M voxel cache
+
 /*
 	Allow usage of TileSet of 255 and above without making NE-SW broken bridges unrepairable
 
@@ -3031,3 +3033,11 @@ ASMJIT_PATCH(0x46B0E1, BulletClass_DrawAVXL_LightingFix, 0x5)
 }
 
 #pragma endregion
+
+ASMJIT_PATCH_AGAIN(0x701681, TechnoClass_SetOwningHouse_TunnelFix, 0x6)
+ASMJIT_PATCH(0x701664, TechnoClass_SetOwningHouse_TunnelFix, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	R->AL(pThis->InLimbo || (flag_cast_to<FootClass*, false>(pThis) && static_cast<FootClass*>(pThis)->TubeIndex != -1));
+	return R->Origin() + 0x6;
+}

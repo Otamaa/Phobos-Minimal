@@ -17,8 +17,7 @@ public:
 	using base_type = TerrainClass;
 	static COMPILETIMEEVAL const char* ClassName = "TerrainExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "TerrainClass";
-	
-	
+	static COMPILETIMEEVAL DWORD Canary = 0x7048C551;
 
 public:
 
@@ -40,7 +39,7 @@ public:
 		this->AbsType = TerrainClass::AbsID;
 	}
 
-	TerrainExtData(TerrainClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
+	TerrainExtData() = default;
 
 	virtual ~TerrainExtData() = default;
 
@@ -105,19 +104,27 @@ public:
 	static void Unlimbo(TerrainClass* pThis, CoordStruct* pCoord);
 };
 
-class TerrainExtContainer final : public Container<TerrainExtData>, public ContainerSaveLoad<TerrainExtContainer, true>
+class TerrainExtContainer final : public Container<TerrainExtData>
+	, public ContainerSaveLoad<TerrainExtContainer, TerrainExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "TerrainExtContainer";
 
 public:
 	static TerrainExtContainer Instance;
+
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
 };
 
 class TerrainTypeExtData;
 class NOVTABLE FakeTerrainClass : public TerrainClass
 {
 public:
+
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	void _Detach(AbstractClass* target, bool all);
 	void _AI();

@@ -14,7 +14,8 @@ public:
 	using base_type = TiberiumClass;
 	static COMPILETIMEEVAL const char* ClassName = "TiberiumExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "TiberiumClass";
-	
+	static COMPILETIMEEVAL DWORD Canary = 0x64281A0A;
+
 public:
 
 #pragma region ClassMember
@@ -70,7 +71,7 @@ public:
 		this->AbsType = TiberiumClass::AbsID;
 	}
 
-	TiberiumExtData(TiberiumClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }
+	TiberiumExtData() = default;
 
 	virtual ~TiberiumExtData() = default;
 
@@ -173,12 +174,12 @@ private:
 };
 
 class TiberiumExtContainer final : public Container<TiberiumExtData>
-				, public ReadWriteContainerInterfaces<TiberiumExtData>, public ContainerSaveLoad<TiberiumExtContainer, true>
+	, public ReadWriteContainerInterfaces<TiberiumExtData>
+	, public ContainerSaveLoad<TiberiumExtContainer, TiberiumExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "TiberiumExtContainer";
 	using base_t = Container<TiberiumExtData>;
-	using base_SaveLoad_t = ContainerSaveLoad<TiberiumExtContainer, true>;
 
 public:
 
@@ -188,8 +189,9 @@ public:
 
 	static TiberiumExtContainer Instance;
 
-	virtual bool LoadAll(PhobosStreamReader& stm);
-	virtual bool SaveAll(PhobosStreamWriter& stm);
+	virtual bool LoadGlobal(PhobosStreamReader& stm);
+	virtual bool SaveGlobal(PhobosStreamWriter& stm);
+
 	virtual void Clear();
 
 	virtual void LoadFromINI(TiberiumClass* key, CCINIClass* pINI, bool parseFailAddr);
@@ -222,8 +224,8 @@ public:
 		TiberiumExtContainer::Instance.Find(this)->SpreadState[cellindex] = false;
 	}
 
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	TiberiumExtData* _GetExtData() {
 		return *reinterpret_cast<TiberiumExtData**>(((DWORD)this) + AbstractExtOffset);

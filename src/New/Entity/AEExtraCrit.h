@@ -10,12 +10,36 @@ struct AEExtraCrit
 	{
 		double Mult { 1.0 };
 		double extra { 0.0 };
-		const ValueableVector<WarheadTypeClass*>* allow { nullptr };
-		const ValueableVector<WarheadTypeClass*>* disallow { nullptr };
+		ValueableVector<WarheadTypeClass*>* allow { nullptr };
+		ValueableVector<WarheadTypeClass*>* disallow { nullptr };
 
 		COMPILETIMEEVAL bool Eligible(WarheadTypeClass* who) const
 		{
 			return AEIsEligible(who, allow, disallow);
+		}
+
+		bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+		{
+			return this->Serialize(Stm);
+		}
+
+		bool Save(PhobosStreamWriter& Stm) const
+		{
+			return const_cast<CritData*>(this)->Serialize(Stm);
+		}
+
+	protected:
+
+		template <typename T>
+		bool Serialize(T& Stm)
+		{
+			return Stm
+				.Process(this->Mult)
+				.Process(this->extra)
+				.Process(this->allow)
+				.Process(this->disallow)
+				.Success() && Stm.RegisterChange(this)
+				;
 		}
 	};
 
@@ -71,5 +95,26 @@ struct AEExtraCrit
 		}
 
 		return initial + add;
+	}
+
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		return this->Serialize(Stm);
+	}
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{
+		return const_cast<AEExtraCrit*>(this)->Serialize(Stm);
+	}
+
+protected:
+
+	template <typename T>
+	bool Serialize(T& Stm)
+	{
+		return Stm
+			.Process(this->ranges)
+			.Success() && Stm.RegisterChange(this)
+			;
 	}
 };

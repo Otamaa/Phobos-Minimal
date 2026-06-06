@@ -7,7 +7,7 @@ class AresAttachEffectTypeClass
 {
 public:
 
-	const AbstractTypeClass* Owner { nullptr };
+	AbstractTypeClass* Owner { nullptr };
 
 	Valueable<int> Duration { 0 };
 	Valueable<bool> Cumulative { false };
@@ -58,7 +58,7 @@ public:
 	bool Save(PhobosStreamWriter& Stm) const;
 
 	AresAttachEffectTypeClass() = default;
-	AresAttachEffectTypeClass(const AbstractTypeClass* pOwner) { Owner = pOwner;  }
+	AresAttachEffectTypeClass(AbstractTypeClass* pOwner) { Owner = pOwner;  }
 	~AresAttachEffectTypeClass() noexcept = default;
 
 	AresAttachEffectTypeClass(const AresAttachEffectTypeClass& other) = default;

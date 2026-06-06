@@ -371,30 +371,117 @@ HRESULT ReadBlocksFromStreamStreamC(T& who_, IStream* pStm)
 	return S_OK;
 }
 
-HRESULT Phobos::LoadAllExtData(IStream* pStm)
+template<typename T>
+HRESULT ReadBlocksFromStreamStreamD(T& who_, IStream* pStm , DWORD canary)
+{
+	using Base = std::remove_const_t<std::remove_pointer_t<T>>;
+	const auto typeName = PhobosCRT::GetTypeIDName<Base>();
+	Debug::Log("[ExtLoad] Loading (B) %s ...\n", typeName.c_str());
+
+	PhobosByteStream loader(0);
+	if (!loader.ReadFromStream(pStm))
+	{
+		Debug::Log("[ExtLoad]   FAILED (B) %s - ReadFromStream returned false\n", typeName.c_str());
+		return S_FALSE;
+	}
+
+	PhobosStreamReader reader(loader);
+
+	if (!reader.Expect(canary))
+		return false;
+
+	int Count = 0;
+	if (!reader.Load(Count))
+		return false;
+
+	for (int i = 0; i < Count; ++i)
+	{
+		uintptr_t savedPtr {};
+		if (!reader.Load(savedPtr))
+			return false;
+
+		auto buffer = new Base::ExtT();
+
+		//specifically for immedietely restore the extension pointers 
+		ExtensionSwizzleManager::RegisterExtensionPointer((void*)savedPtr, buffer);
+		//for others that need to be remapped using vanilla swizzle manager
+		PhobosSwizzleManager.Here_I_Am(savedPtr, buffer);
+
+		Debug::Log("Loading %s [At (%d) - %x] to stream\n",
+				Base::ClassName, i, savedPtr);
+
+		buffer->LoadFromStream(reader);
+		if (!reader.Success())
+			return false;
+
+		who_.Array.emplace_back(buffer);
+	}
+
+	if (!reader.ExpectEndOfBlock())
+	{
+		Debug::Log("[ExtLoad]   FAILED (B) %s - ExpectEndOfBlock (stream desync or leftover bytes)\n", typeName.c_str());
+		return S_FALSE;
+	}
+
+	Debug::Log("[ExtLoad]   OK (B) %s\n", typeName.c_str());
+	return S_OK;
+}
+
+HRESULT Phobos::LoadAllEarlyData(IStream* pStm)
 {
 	HRESULT hr = S_OK;
 
-	//Global
 	hr = ReadBlocksFromStream<Phobos>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
 	hr = ReadBlocksFromStream<CursorTypeClass>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
-	hr = ReadBlocksFromStream<MouseClassExt>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
 	hr = ReadBlocksFromStream<TheaterTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = ReadBlocksFromStream<GenericPrerequisite>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
 	hr = ReadBlocksFromStream<BannerTypeClass>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
 	hr = ReadBlocksFromStream<ArmorTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<ThemeTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStreamStreamB(FlyingStrings::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStreamStreamD(CellExtContainer::Instance, pStm, CellExtData::Canary);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStreamStreamD(TiberiumExtContainer::Instance, pStm, TiberiumExtData::Canary);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStreamStreamD(UnitTypeExtContainer::Instance, pStm, UnitTypeExtData::Canary);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStreamStreamD(InfantryTypeExtContainer::Instance, pStm, InfantryTypeExtData::Canary);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStreamStreamD(BuildingTypeExtContainer::Instance, pStm, BuildingTypeExtData::Canary);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStreamStreamD(AircraftTypeExtContainer::Instance, pStm, AircraftTypeExtData::Canary);
+	if (!SUCCEEDED(hr)) return hr;
+
+	//more
+	return hr;
+}
+
+HRESULT Phobos::LoadAllLateData(IStream* pStm)
+{
+	HRESULT hr = S_OK;
+
+	hr = ReadBlocksFromStream<MouseClassExt>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<GenericPrerequisite>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
 	//hr = ReadBlocksFromStream<BarTypeClass>(pStm);
@@ -436,9 +523,6 @@ HRESULT Phobos::LoadAllExtData(IStream* pStm)
 	hr = ReadBlocksFromStream<TechTreeTypeClass>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
-	hr = ReadBlocksFromStream<ThemeTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
 	hr = ReadBlocksFromStream<TunnelTypeClass>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
@@ -446,8 +530,6 @@ HRESULT Phobos::LoadAllExtData(IStream* pStm)
 	if (!SUCCEEDED(hr)) return hr;
 
 	//
-	hr = ReadBlocksFromStreamStreamB(FlyingStrings::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
 
 	hr = ReadBlocksFromStreamStreamB(SWFirerManagerClass::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
@@ -468,101 +550,90 @@ HRESULT Phobos::LoadAllExtData(IStream* pStm)
 	if (!SUCCEEDED(hr)) return hr;
 
 	//Ext
-	hr = ReadBlocksFromStreamStreamC(SideExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(SideExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(AnimTypeExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(AnimTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(CellExtContainer::Instance, pStm);
+
+	hr = ReadBlocksFromStreamStreamB(HouseTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(TiberiumExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(HouseExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(HouseTypeExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(UnitExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(HouseExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(InfantryExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(UnitTypeExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(BuildingExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(UnitExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(AircraftExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(InfantryTypeExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(AnimExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(InfantryExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(BuildingTypeExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(BuildingExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(AircraftTypeExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(AircraftExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(AnimExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	//hr = ReadBlocksFromStreamStreamC(TeamTypeExtContainer::Instance, pStm);
+	//hr = ReadBlocksFromStreamStreamB(TeamTypeExtContainer::Instance, pStm);
 	//	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(TeamExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(TeamExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	//hr = ReadBlocksFromStreamStreamC(ScriptTypeExtContainer::Instance, pStm);
+	//hr = ReadBlocksFromStreamStreamB(ScriptTypeExtContainer::Instance, pStm);
 	//	if (!SUCCEEDED(hr)) return hr;
-	//hr = ReadBlocksFromStreamStreamC(ScriptExtContainer::Instance, pStm);
+	//hr = ReadBlocksFromStreamStreamB(ScriptExtContainer::Instance, pStm);
 	//if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(TriggerExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(TriggerExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(AITriggerTypeExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(AITriggerTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(TActionExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(TActionExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(TEventExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(TEventExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(VoxelAnimTypeExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(VoxelAnimTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(VoxelAnimExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(VoxelAnimExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(WarheadTypeExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(WarheadTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(WeaponTypeExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(WeaponTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(ParticleTypeExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(ParticleTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(ParticleExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(ParticleExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(ParticleSystemTypeExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(ParticleSystemTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(ParticleSystemExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(ParticleSystemExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(BulletTypeExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(BulletTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(BulletExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(BulletExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(SmudgeTypeExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(SmudgeTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(OverlayTypeExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(OverlayTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(SWTypeExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(SWTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(SuperExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(SuperExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(TerrainTypeExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(TerrainTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(TerrainExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(TerrainExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(WaveExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(WaveExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	//hr = ReadBlocksFromStreamStreamC(CaptureManagerExtContainer::Instance, pStm);
+	//hr = ReadBlocksFromStreamStreamB(CaptureManagerExtContainer::Instance, pStm);
 	//	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(DiskLaserExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(DiskLaserExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	//hr = ReadBlocksFromStreamStreamC(ParasiteExtContainer::Instance, pStm);
+	//hr = ReadBlocksFromStreamStreamB(ParasiteExtContainer::Instance, pStm);
 	//	if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(TemporalExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(TemporalExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	//hr = ReadBlocksFromStreamStreamC(AirstrikeExtContainer::Instance, pStm);
+	//hr = ReadBlocksFromStreamStreamB(AirstrikeExtContainer::Instance, pStm);
 	//	if (!SUCCEEDED(hr)) return hr;
-	//hr = ReadBlocksFromStreamStreamC(SpawnManagerExtContainer::Instance, pStm);
+	//hr = ReadBlocksFromStreamStreamB(SpawnManagerExtContainer::Instance, pStm);
 	// if (!SUCCEEDED(hr)) return hr;
-	//hr = ReadBlocksFromStreamStreamC(SlaveManagerExtContainer::Instance, pStm);
+	//hr = ReadBlocksFromStreamStreamB(SlaveManagerExtContainer::Instance, pStm);
 	//if (!SUCCEEDED(hr)) return hr;
-	hr = ReadBlocksFromStreamStreamC(RadSiteExtContainer::Instance, pStm);
+	hr = ReadBlocksFromStreamStreamB(RadSiteExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
 	//more
 	return hr;
@@ -901,6 +972,7 @@ bool RetFlag(bool flag) // set the DoingLoadGame flag to false
 	Phobos::Otamaa::DoingLoadGame = false;
 	return flag;
 }
+#include <ProgressScreenClass.h>
 
 bool __fastcall Make_Load_Game(const char* file_name, bool)
 {
@@ -986,31 +1058,37 @@ bool __fastcall Make_Load_Game(const char* file_name, bool)
 	}
 
 	// clear the scenario here very ahead 
+	ProgressScreenClass::Instance->Init(100.0, 0, NULL);
+	Debug::Log("Begin clearing scenario.\n");
 	ScenarioClass::ClearScenario();
 
+	constexpr bool  Save_CompressionEnabled = false;
+	const std::string _IsCompressed = Save_CompressionEnabled ? "compressed" : "uncompressed";
+
 	// -----------------------------------------------------------------
-	// PHOBOS_EXT — load extension data (types must be ready
+	// PHOBOS_DATA_EARLY — load dll data (that must be ready
 	// before game objects reference them)
 	// -----------------------------------------------------------------
 	{
-		CompressedStream ext;
-		hr = ext.Open(storage, L"PHOBOS_EXT");
+
+		CompressedStream<!Save_CompressionEnabled> ext {};
+		hr = ext.Open(storage, L"PHOBOS_DATA_EARLY");
 
 		if (SUCCEEDED(hr))
 		{
-			Debug::Log("Loading Phobos extension data (compressed).\n");
-			hr = Phobos::LoadAllExtData(ext.Stream);
+			Debug::Log("Loading Phobos early data (%s).\n", _IsCompressed.c_str());
+			hr = Phobos::LoadAllEarlyData(ext.Stream);
 			ext.Close();
 
 			if (FAILED(hr))
 			{
-				Debug::FatalError("Failed to load extension data. hr=0x%08X\n", hr);
+				Debug::FatalError("Failed to load Phobos early. hr=0x%08X\n", hr);
 				return RetFlag(false);
 			}
 		}
 		else
 		{
-			Debug::Log("No PHOBOS_EXT stream — vanilla or legacy save.\n");
+			Debug::Log("No PHOBOS_DATA_EARLY stream — vanilla or legacy save.\n");
 		}
 	}
 
@@ -1020,7 +1098,7 @@ bool __fastcall Make_Load_Game(const char* file_name, bool)
 	{
 		Debug::Log("Calling Get_All_Pointers().\n");
 
-		CompressedStream game;
+		CompressedStream<!Save_CompressionEnabled> game;
 		hr = game.Open(storage, L"C");
 		if (FAILED(hr))
 		{
@@ -1035,6 +1113,33 @@ bool __fastcall Make_Load_Game(const char* file_name, bool)
 		{
 			Debug::FatalError("Get_All_Pointers failed. hr=0x%08X\n", hr);
 			return RetFlag(false);
+		}
+	}
+	
+	// -----------------------------------------------------------------
+	// PHOBOS_DATA_LATE — load dll data (that must be ready
+	// after game objects references )
+	// -----------------------------------------------------------------
+	{
+
+		CompressedStream<!Save_CompressionEnabled> ext {};
+		hr = ext.Open(storage, L"PHOBOS_DATA_LATE");
+
+		if (SUCCEEDED(hr))
+		{
+			Debug::Log("Loading Phobos late data (%s).\n", _IsCompressed.c_str());
+			hr = Phobos::LoadAllLateData(ext.Stream);
+			ext.Close();
+
+			if (FAILED(hr))
+			{
+				Debug::FatalError("Failed to load Phobos late. hr=0x%08X\n", hr);
+				return RetFlag(false);
+			}
+		}
+		else
+		{
+			Debug::Log("No PHOBOS_DATA_LATE stream — vanilla or legacy save.\n");
 		}
 	}
 

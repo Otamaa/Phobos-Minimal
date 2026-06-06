@@ -16,7 +16,7 @@ bool AEFlags::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 		bits = (bits & ~(1u << i)) | (uint32_t(bit) << i);
 	}
 
-	return true;
+	return Stm.RegisterChange(this);
 }
 
 bool AEFlags::Save(PhobosStreamWriter& Stm) const
@@ -31,5 +31,5 @@ bool AEFlags::Save(PhobosStreamWriter& Stm) const
 		}
 	}
 
-	return true;
+	return Stm.RegisterChange(this);
 }

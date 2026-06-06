@@ -25,8 +25,7 @@ public:
 	using base_type = AITriggerTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "AITriggerTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "AITriggerTypeClass";
-	
-	
+	static COMPILETIMEEVAL DWORD Canary = 0xBE032C9F;
 
 public:
 
@@ -34,7 +33,7 @@ public:
 		: AbstractTypeExtData(pObj)
 	{ }
 
-	AITriggerTypeExtData(AITriggerTypeClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }
+	AITriggerTypeExtData() = default;
 
 	virtual ~AITriggerTypeExtData() = default;
 
@@ -81,11 +80,14 @@ private:
 };
 
 class AITriggerTypeExtContainer final : public Container<AITriggerTypeExtData>
-	, public ReadWriteContainerInterfaces<AITriggerTypeExtData>, public ContainerSaveLoad<AITriggerTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<AITriggerTypeExtData>
+	, public ContainerSaveLoad<AITriggerTypeExtContainer, AITriggerTypeExtData>
 {
 public:
 
 	static COMPILETIMEEVAL const char* ClassName = "AITriggerTypeExtContainer";
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
 
 public:
 	static AITriggerTypeExtContainer Instance;
@@ -93,3 +95,13 @@ public:
 	virtual void LoadFromINI(AITriggerTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(AITriggerTypeClass* key, CCINIClass* pINI);
 };
+
+class NOVTABLE FakeAITriggerTypeClass : public AITriggerTypeClass
+{
+public:
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
+
+};
+
+static_assert(sizeof(FakeAITriggerTypeClass) == sizeof(AITriggerTypeClass), "Invalid Size !");

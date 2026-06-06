@@ -70,6 +70,15 @@ int FakeCellClass::_Reduce_Tiberium(int levels)
 	return 0;
 }
 
+int FakeCellClass::_GetRampLevel(CellStruct* where)
+{
+	int level = this->GetRampLevel(where);
+	if (level > 11)
+		return -1;
+
+	return level;
+}
+
 TiberiumClass* CellExtData::GetTiberium(CellClass* pCell)
 {
 	int overlay_ = CellExtData::GetTiberiumType(pCell->OverlayTypeIndex);
@@ -915,3 +924,29 @@ DEFINE_FUNCTION_JUMP(CALL, 0x745CFE, MouseClassExt::__NearByLocation);
 DEFINE_FUNCTION_JUMP(CALL, 0x745E4F, MouseClassExt::__NearByLocation);
 DEFINE_FUNCTION_JUMP(CALL, 0x745F14, MouseClassExt::__NearByLocation);
 DEFINE_FUNCTION_JUMP(CALL, 0x745FA5, MouseClassExt::__NearByLocation);
+
+//HRESULT __stdcall FakeCellClass::__Load(IStream* pStm)
+//{
+//	HRESULT hr = this->CellClass::Load(pStm);
+//
+//	if (SUCCEEDED(hr)) {
+//		if (!CellExtContainer::Instance.LoadByKey(this, pStm))
+//			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+//	}
+//
+//	return hr;
+//}
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F00, FakeCellClass::__Load)
+//
+//HRESULT __stdcall FakeCellClass::__Save(IStream* pStm, BOOL fClearDirty)
+//{
+//	HRESULT hr = this->CellClass::Save(pStm, fClearDirty);
+//
+//	if (SUCCEEDED(hr)) {
+//		if (!CellExtContainer::Instance.SaveByKey(this, pStm))
+//			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+//	}
+//
+//	return hr;
+//}
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F04, FakeCellClass::__Save)

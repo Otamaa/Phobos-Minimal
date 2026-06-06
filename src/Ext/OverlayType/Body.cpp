@@ -153,3 +153,29 @@ bool FakeOverlayTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF664, FakeOverlayTypeClass::_ReadFromINI)
+
+HRESULT __stdcall FakeOverlayTypeClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->OverlayTypeClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!OverlayTypeExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF614, FakeOverlayTypeClass::__Load)
+
+HRESULT __stdcall FakeOverlayTypeClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->OverlayTypeClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!OverlayTypeExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF618, FakeOverlayTypeClass::__Save)

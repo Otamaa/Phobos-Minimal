@@ -12,6 +12,11 @@
 
 #include <Base/Always.h>
 
+#define FACILITY_PHOBOS 0x069
+
+#define PHOBOS_E_EXTDATA_LOAD_FAILED  ((HRESULT)(0xE0690001UL))
+#define PHOBOS_E_EXTDATA_SAVE_FAILED  ((HRESULT)(0xE0690002UL))
+
 class AbstractClass;
 static COMPILETIMEEVAL size_t AbstractExtOffset = 0x18;
 
@@ -103,7 +108,7 @@ public:
 	AbstractExtended(AbstractClass* abs);
 
 	//with noint_t less instasiation
-	AbstractExtended(AbstractClass* abs, noinit_t);
+	AbstractExtended() = default;
 
 	virtual ~AbstractExtended() = default;
 
@@ -136,43 +141,30 @@ public:
 	//the container is not handling the memory
 	//the object has the extension handling the memory
 	std::vector<T*> Array;
+
 	using ExtT = T;
 	using ExtTptr = T*;
-
+	using TheContainer = ContainerExtHandler<T>;
 public:
 
 	Container() = default;
 	virtual ~Container() = default;
 
-	T* Allocate(T::base_type* key) {
+	virtual T* Allocate(T::base_type* key) {
 		auto pExt = new T(key);
 		ContainerExtHandler<T>::SetExtAttribute(key ,pExt);
 		Array.emplace_back(pExt);
 		return pExt;
 	}
 
-	T* AllocateNoInit(T::base_type* key) {
-		ContainerExtHandler<T>::ClearExtAttribute(key);
-		auto pExt = new T(key, noinit_t());
-		ContainerExtHandler<T>::SetExtAttribute(key, pExt);
-		Array.emplace_back(pExt);
-		return pExt;
-	}
-
-	T* AllocateNoInit() {
-		auto pExt = new T(nullptr, noinit_t());
-		Array.emplace_back(pExt);
-		return pExt;
-	}
-
-	T* FindOrAllocate(T::base_type* key) {
+	virtual T* FindOrAllocate(T::base_type* key) {
 		if (T* const ptr = ContainerExtHandler<T>::TryFind(key))
 			return ptr;
 
 		return this->Allocate(key);
 	}
 
-	void Remove(T::base_type* key) {
+	virtual void Remove(T::base_type* key) {
 		if (T* Item = ContainerExtHandler<T>::TryFind(key)) {
 
 			auto iter = std::ranges::find(Array, Item);
@@ -183,12 +175,6 @@ public:
 			ContainerExtHandler<T>::RemoveExtOf(key, Item);
 		}
 	}
-
-	//void InvalidatePointerFor(T::base_type* key, AbstractClass* const ptr, bool bRemoved) {
-	//	if (T* Extptr = ContainerExtHandler<T>TryFind(key)) {
-	//			Extptr->InvalidatePointer(ptr, bRemoved);
-	//	}
-	//}
 
 public :
 
@@ -224,75 +210,76 @@ public :
 
 };
 
-template<typename T , bool haNameItem>
+template<typename Container , typename ExtT>
 struct ContainerSaveLoad {
-
-	virtual bool LoadAll(PhobosStreamReader& stm)
+	virtual bool LoadByKey(ExtT::base_type* key, IStream* pStm)
 	{
 		//common extension can use container too , but need to 
 		//implement these themself
-		if constexpr  (std::is_base_of_v<AbstractExtended, T::ExtT>) {
-			int Count = 0;
-			if (!stm.Load(Count))
-				return false;
+		if constexpr (std::is_base_of_v<AbstractExtended, ExtT>) {
 
-			for (int i = 0; i < Count; ++i)
+			auto buffer = new ExtT();//default construct
+			Container::SetExtAttribute(key, buffer);
+			((Container*)this)->Array.emplace_back(buffer);
+			buffer->SetAttached(key);
+
+			PhobosByteStream loader(sizeof(ExtT));
+			if (!loader.ReadFromStream(pStm))
 			{
-				uintptr_t savedPtr {};
-				if (!stm.Load(savedPtr))
-					return false;
+				Debug::Log("LoadByKey - Failed to read %s data from save stream?!\n", 
+							ExtT::ClassName);
+				return false;
+			}
 
-				auto buffer = new T::ExtT(nullptr, noinit_t());
-				Debug::Log("Loading %s [At (%d) - %x] to stream\n",
-						T::ClassName, i, savedPtr);
+			PhobosStreamReader reader(loader);
 
-				buffer->LoadFromStream(stm);
-				if (!stm.Success())
-					return false;
+			if (!reader.Expect(ExtT::Canary)){
+				return false;
+			}
 
-				//specifically for immedietely restore the extension pointers 
-				ExtensionSwizzleManager::RegisterExtensionPointer((void*)savedPtr, buffer);
-				//for others that need to be remapped using vanilla swizzle manager
-				PhobosSwizzleManager.Here_I_Am(savedPtr, buffer);
-				((T*)this)->Array.emplace_back(buffer);
+			if (!reader.RegisterChange(buffer)) {
+				return false;
+			}
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock()) {
+				return false;
 			}
 		}
 
 		return true;
 	}
 
-	virtual bool SaveAll(PhobosStreamWriter& stm)
+	virtual bool SaveByKey(ExtT::base_type* key, IStream* pStm)
 	{	
-		//common extension can use container too , but need to 
-		//implement these themself
-		if constexpr (std::is_base_of_v<AbstractExtended, T::ExtT>) {
-			const int Count = (int)((T*)this)->Array.size();
-			if (!stm.Save(Count))
-				return false;
+		if constexpr (std::is_base_of_v<AbstractExtended, ExtT>) {
 
-			for (int i = 0; i < Count; ++i)
+			auto buffer = ((Container*)this)->Find(key);
+
 			{
-				uintptr_t savedPtr = (uintptr_t)((T*)this)->Array[i];
+				PhobosByteStream saver(sizeof(ExtT));
+				PhobosStreamWriter writer(saver);
 
-				if constexpr (haNameItem)
-				{
-					Debug::Log("Saving %s [%s (%d) - %x] to stream\n",
-						T::ClassName, ((T*)this)->Array[i]->Name.c_str(), i, savedPtr);
-				}
-				else
-				{
-					Debug::Log("Saving %s [At Index %d - %x] to stream\n",
-							T::ClassName, i, savedPtr);
+				if(!writer.Save(ExtT::Canary)){
+					return false;
 				}
 
-				if (!stm.Save(savedPtr))
+				if(!writer.Save(buffer)){
 					return false;
+				}
 
-				((T*)this)->Array[i]->SaveToStream(stm);
-				if (!stm.Success())
+				buffer->SaveToStream(writer);
+
+				if (!saver.WriteToStream(pStm)) {
 					return false;
+				}
 			}
 		}
+
 		return true;
 	}
+
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) = 0;
+	virtual bool LoadGlobal(PhobosStreamReader& stm) = 0;
 };

@@ -345,7 +345,7 @@ ASMJIT_PATCH(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 	enum { FinishDrawing = 0x4148A5 };
 
 	auto loco = pThis->Locomotor.GetInterfacePtr();
-	if (pThis->Type->NoShadow || pThis->CloakState != CloakState::Uncloaked ||  !loco->Is_To_Have_Shadow() || pThis->IsSinking)
+	if (pThis->Type->NoShadow || pThis->CloakState != CloakState::Uncloaked || pThis->IsSinking || !loco->Is_To_Have_Shadow() )
 		return FinishDrawing;
 
 	const auto aTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
@@ -698,12 +698,14 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 	//Debug::LogInfo(__FUNCTION__" Exec");
 	GET(UnitClass*, pThis, EBP);
 
+	enum { SkipDrawing = 0x73C5C9 };
+
 	auto const loco = pThis->Locomotor.GetInterfacePtr();
 
 	if (pThis->Type->NoShadow
 		|| pThis->CloakState != CloakState::Uncloaked
 		|| !loco->Is_To_Have_Shadow())
-		return 0x73C5C9;
+		return SkipDrawing;
 
 	REF_STACK(Matrix3D, shadow_matrix, STACK_OFFSET(0x1C4, -0x130));
 	GET_STACK(VoxelIndexKey, vxl_index_key, STACK_OFFSET(0x1C4, -0x1B0));
@@ -791,7 +793,6 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 	// sorry but you're fucked
 	if (tur && tur->VXL && tur->HVA)
 	{
-
 		auto bar = TechnoTypeExtData::GetBarrelsVoxelFixedUp(pType, pThis->CurrentTurretNumber);
 		auto haveBar = bar && bar->VXL && bar->HVA && !bar->VXL->LoadFailed;
 

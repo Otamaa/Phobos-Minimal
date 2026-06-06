@@ -126,7 +126,7 @@ void ConvertClassExt::DeallocBlitters16()
 	switch (Simd::GetCurrentLevel())
 	{
 	case Simd::Level::AVX512:
-		delete reinterpret_cast<BlitterPack16AVX512*>(this->Blitters[0]);
+		//delete reinterpret_cast<BlitterPack16AVX512*>(this->Blitters[0]);
 		return;
 	case Simd::Level::AVX2:
 		delete reinterpret_cast<BlitterPack16AVX2*>(this->Blitters[0]);

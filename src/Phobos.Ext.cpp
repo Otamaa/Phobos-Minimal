@@ -155,6 +155,8 @@ void PhobosExt::InvalidatePointers(AbstractClass* const pInvalid, bool const rem
 		AnnounceInvalidPointer(SWTypeExtData::LauchData, pInvalid);
 	}
 
+	ScenarioExtData::Instance()->InvalidatePointer(pInvalid, removed);
+
 	if (removed) {
 		if(pInvalid->AbstractFlags & AbstractFlags::Techno) {
 			ScenarioExtData::Instance()->UndergroundTracker.erase((TechnoClass*)pInvalid);

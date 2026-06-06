@@ -202,18 +202,35 @@ ASMJIT_PATCH(0x41CA46, AircraftTypeClass_DTOR, 0x6)
 
 #include <Misc/ImageSwapModules.h>
 
-HRESULT __stdcall FakeAircraftTypeClass::_Load(IStream* pStm)
+HRESULT __stdcall FakeAircraftTypeClass::__Load(IStream* pStm)
 {
 	HRESULT hr = this->AircraftTypeClass::Load(pStm);
 
 	if (SUCCEEDED(hr)) {
+		//if (!AircraftTypeExtContainer::Instance.SaveByKey(this, pStm))
+		//	return PHOBOS_E_EXTDATA_SAVE_FAILED;
+
 		if (Phobos::Config::ArtImageSwap)
 			TechnoImageReplacer::Replace(this);
 	}
 
 	return hr;
 }
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E287C, FakeAircraftTypeClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E287C, FakeAircraftTypeClass::__Load)
+
+//HRESULT __stdcall FakeAircraftTypeClass::__Save(IStream* pStm, BOOL fClearDirty)
+//{
+//	HRESULT hr = this->AircraftTypeClass::Save(pStm, fClearDirty);
+//
+//	if (SUCCEEDED(hr)) {
+//		if (!AircraftTypeExtContainer::Instance.SaveByKey(this, pStm))
+//			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+//	}
+//
+//	return hr;
+//}
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2880, FakeAircraftTypeClass::__Save)
+
 
 bool FakeAircraftTypeClass::_ReadFromINI(CCINIClass* pINI)
 {

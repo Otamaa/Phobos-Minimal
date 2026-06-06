@@ -217,7 +217,7 @@ public:
 						return false;
 
 					auto newPtr = FindOrAllocate(name.data());
-					PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, newPtr, T::ClassName)
+					PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, newPtr, T::ClassName);
 					newPtr->LoadFromStream(Stm);
 				}
 			}

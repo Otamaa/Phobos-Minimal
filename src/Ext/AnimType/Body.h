@@ -19,6 +19,7 @@ public:
 	using base_type = AnimTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "AnimTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "AnimTypeClass";
+	static COMPILETIMEEVAL DWORD Canary = 0x6E62C573;
 
 public:
 #pragma region ClassMembers
@@ -161,7 +162,7 @@ public:
 		this->IsInviso = IS_SAME_STR_(pObj->ID, GameStrings::Anim_INVISO());
 	}
 
-	AnimTypeExtData(AnimTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
+	AnimTypeExtData() = default;
 
 	virtual ~AnimTypeExtData() = default;
 
@@ -251,7 +252,8 @@ private:
 
 class AnimClass;
 class AnimTypeExtContainer final : public Container<AnimTypeExtData>
-	, public ReadWriteContainerInterfaces<AnimTypeExtData>, public ContainerSaveLoad<AnimTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<AnimTypeExtData>
+	, public ContainerSaveLoad<AnimTypeExtContainer, AnimTypeExtData>
 {
 public:
 
@@ -260,6 +262,8 @@ public:
 public:
 	static AnimTypeExtContainer Instance;
 
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
 	virtual void LoadFromINI(AnimTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(AnimTypeClass* key, CCINIClass* pINI);
 };
@@ -267,6 +271,8 @@ public:
 class NOVTABLE FakeAnimTypeClass : public AnimTypeClass
 {
 public:
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	bool _ReadFromINI(CCINIClass* pINI);
 

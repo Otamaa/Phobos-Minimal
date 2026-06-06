@@ -2332,6 +2332,24 @@ bool detail::read<PositionFollow>(PositionFollow& value, INI_EX& parser, const c
 	return false;
 }
 
+
+template <>
+bool detail::read<PeriodicWeaponTargetingMode>(PeriodicWeaponTargetingMode& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+{
+	if (parser.ReadString(pSection, pKey)) {
+		for (const auto& [val, str] : EnumFunctions::PeriodicWeaponTargetingMode_ToStrings) {
+			if (PhobosCRT::iequals(parser.value(), str)) {
+				value = val;
+				return true;
+			}
+		}
+
+		Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a PeriodicWeaponTargetingMode mode (None, Firer, Target, All)");
+	}
+
+	return false;
+}
+
 template <>
 bool detail::read<CLSID>(CLSID& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 {

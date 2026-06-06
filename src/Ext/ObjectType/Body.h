@@ -8,7 +8,7 @@ class ObjectTypeExtData : public AbstractTypeExtData
 public:
 
 	ObjectTypeExtData(ObjectTypeClass* pObj) : AbstractTypeExtData(pObj) { }
-	ObjectTypeExtData(ObjectTypeClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }
+	ObjectTypeExtData() = default;
 
 	virtual ~ObjectTypeExtData() = default;
 

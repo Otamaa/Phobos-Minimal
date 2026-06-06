@@ -15,8 +15,8 @@
 template <typename T, typename ContainerA, typename ContainerD>
 COMPILETIMEEVAL bool AEIsEligible(
 	T* who,
-	const ContainerA& allow,
-	const ContainerD& disallow)
+	ContainerA& allow,
+	ContainerD& disallow)
 {
 	if (!who)
 		return true;
@@ -36,8 +36,8 @@ COMPILETIMEEVAL bool AEIsEligible(
 template <typename T, typename ContainerA, typename ContainerD>
 COMPILETIMEEVAL bool AEIsEligible(
 	T* who,
-	const ContainerA* allow,
-	const ContainerD* disallow)
+	ContainerA* allow,
+	ContainerD* disallow)
 {
 	if (!who)
 		return true;

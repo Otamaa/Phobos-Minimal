@@ -15,6 +15,7 @@
 #include <New/Entity/AresAttachedAffects.h>
 #include <New/Entity/NewTiberiumStorageClass.h>
 #include <New/Entity/ShiftSchedule.h>
+#include <New/Entity/PrismRelay.h>
 
 #include <New/Type/DigitalDisplayTypeClass.h>
 
@@ -278,6 +279,12 @@ private:
 		debugProcess(this->ExtraBarrelRecoil, "ExtraBarrelRecoil");
 		debugProcess(this->OnParachuted, "OnParachuted");
 		debugProcess(this->HoverShutdown, "HoverShutdown");
+		debugProcess(this->HasDeployConvertedInCurrentSequence, "HasDeployConvertedInCurrentSequence");
+		debugProcess(this->PrismRelay, "PrismRelay");
+		debugProcess(this->PrismRelayCooldown, "PrismRelayCooldown");
+		debugProcess(this->PrismRelayBurstChainBuilt, "PrismRelayBurstChainBuilt");
+		debugProcess(this->PrismRelayCachedNetworkId, "PrismRelayCachedNetworkId");
+		debugProcess(this->PrismRelayCachedProviders, "PrismRelayCachedProviders");
 	}
 
 public:
@@ -473,8 +480,14 @@ public:
 	bool JumpjetStraightAscend {};
 	bool OnParachuted {};
 	bool HoverShutdown {};
+	bool HasDeployConvertedInCurrentSequence {};
 	// 33 bools = 33 bytes, add 1 padding byte for 32 (4-byte alignment)
 
+	TechnoPrismRelaySession PrismRelay {};
+	CDTimerClass PrismRelayCooldown {};
+	bool PrismRelayBurstChainBuilt {};
+	int PrismRelayCachedNetworkId {};
+	std::vector<TechnoClass*> PrismRelayCachedProviders {};
 
 #pragma endregion
 
@@ -486,7 +499,7 @@ public:
 		MyTargetingFrame = ScenarioClass::Instance->Random.RandomRanged(0, 15);
 	};
 
-	TechnoExtData(TechnoClass* abs, noinit_t& noint) : RadioExtData(abs, noint) {};
+	TechnoExtData() = default;
 
 	virtual ~TechnoExtData();
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) override;
@@ -594,6 +607,11 @@ public:
 	void UpdateRecoilData();
 	void RecordRecoilData();
 	void UpdateLastTargetCrd();
+	void AmmoAutoConvertActions();
+	void DeployConvertAction();
+	void UpdateWarpInDelay();
+	void ImmolateVictim();
+	void UpdateTiberiumHeal();
 
 public:
 
@@ -636,8 +654,9 @@ public:
 	static std::pair<bool, CoordStruct> GetInfantryFLH(InfantryClass* pThis, int weaponInde);
 
 	static void TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, TechnoClass* pTechnoTo);
-	static double GetDamageMult(TechnoClass* pSouce, double damageIn, bool ForceDisable = false);
-	static double GetAdditionalDamageMult(TechnoClass* pSouce, double damageIn);
+	static double ApplyDamageMult(TechnoClass* pSouce, double damageIn, bool ForceDisable = false);
+	static double ApplyAdditionalDamageMult(TechnoClass* pSouce, double damageIn);
+	static double GetDamageMult(TechnoClass* pSource);
 
 	static double GetArmorMult(TechnoClass* pSouce, double damageIn, WarheadTypeClass* pWarhead);
 

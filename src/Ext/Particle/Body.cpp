@@ -1130,3 +1130,29 @@ void FakeParticleClass::_Detach(AbstractClass* pTarget, bool bRemove)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF97C, FakeParticleClass::_Detach)
+
+HRESULT __stdcall FakeParticleClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->ParticleClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!ParticleExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF968, FakeParticleClass::__Load)
+
+HRESULT __stdcall FakeParticleClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->ParticleClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!ParticleExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF96C, FakeParticleClass::__Save)

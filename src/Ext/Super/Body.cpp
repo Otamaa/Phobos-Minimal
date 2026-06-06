@@ -961,3 +961,29 @@ bool FakeSuperClass::_Grant(bool oneTime, bool announce, bool onHold)
 	return result;
 }
 DEFINE_FUNCTION_JUMP(LJMP, 0x6CB560, FakeSuperClass::_Grant)
+
+HRESULT __stdcall FakeSuperClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->SuperClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!SuperExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F3FFC, FakeSuperClass::__Load)
+
+HRESULT __stdcall FakeSuperClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->SuperClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!SuperExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4000, FakeSuperClass::__Save)

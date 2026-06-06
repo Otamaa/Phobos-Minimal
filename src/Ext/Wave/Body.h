@@ -11,9 +11,8 @@ class WaveExtData final : public ObjectExtData
 public:
 	using base_type = WaveClass;
 	static COMPILETIMEEVAL const char* ClassName = "WaveExtData";
-	static COMPILETIMEEVAL const char* BaseClassName = "WaveClass";
-	
-	
+	static COMPILETIMEEVAL const char* BaseClassName = "WaveClass";	
+	static COMPILETIMEEVAL DWORD Canary = 0x56DE6D07;
 
 public:
 #pragma region ClassMembers
@@ -35,7 +34,7 @@ public:
 	}
 
 
-	WaveExtData(WaveClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
+	WaveExtData() = default;
 
 	virtual ~WaveExtData() = default;
 
@@ -86,18 +85,25 @@ public:
 	static WaveColorData GetWaveColor(WaveClass* pWave);
 };
 
-class WaveExtContainer final : public Container<WaveExtData>, public ContainerSaveLoad<WaveExtContainer, false>
+class WaveExtContainer final : public Container<WaveExtData>
+	, public ContainerSaveLoad<WaveExtContainer, WaveExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "WaveExtContainer";
 
 public:
 	static WaveExtContainer Instance;
+
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
 };
 
 class NOVTABLE FakeWaveClass : public WaveClass
 {
 public:
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	void _Detach(AbstractClass* target, bool all);
 	void _DamageCell(CoordStruct* pLoc);

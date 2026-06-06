@@ -11,7 +11,7 @@ public:
 	using base_type = AircraftTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "AircraftTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "AircraftTypeClass";
-	
+	static COMPILETIMEEVAL DWORD Canary = 0xFDA6EFB2;
 
 public:
 	Nullable<AnimTypeClass*> TakeOff_Anim {};
@@ -55,9 +55,7 @@ public:
 		this->InitializeConstant();
 	}
 
-	void Initialize() override;
-
-	AircraftTypeExtData(AircraftTypeClass* pObj, noinit_t nn) : FootTypeExtData(pObj, nn) { }
+	AircraftTypeExtData() = default;
 
 	virtual ~AircraftTypeExtData() = default;
 
@@ -84,6 +82,8 @@ public:
 	virtual void CalculateCRC(CRCEngine& crc) const {
 		this->FootTypeExtData::CalculateCRC(crc);
 	}
+	
+	void Initialize() override;
 
 	AircraftTypeClass* This() const { return reinterpret_cast<AircraftTypeClass*>(this->AttachedToObject); }
 	const AircraftTypeClass* This_Const() const { return reinterpret_cast<const AircraftTypeClass*>(this->AttachedToObject); }
@@ -105,11 +105,14 @@ private:
 };
 
 class AircraftTypeExtContainer final : public Container<AircraftTypeExtData>
-	, public ReadWriteContainerInterfaces<AircraftTypeExtData>, public ContainerSaveLoad<AircraftTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<AircraftTypeExtData>,
+	public ContainerSaveLoad<AircraftTypeExtContainer, AircraftTypeExtData>
 {
 public:
 
 	static COMPILETIMEEVAL const char* ClassName = "AircraftTypeExtContainer";
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
 
 public:
 	static AircraftTypeExtContainer Instance;
@@ -121,7 +124,8 @@ public:
 class NOVTABLE FakeAircraftTypeClass : public AircraftTypeClass {
 public:
 
-	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	bool _CanUseWaypoint(){
 		return !this->Spawned;

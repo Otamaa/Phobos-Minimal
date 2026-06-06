@@ -14,7 +14,8 @@ public:
 	using base_type = InfantryClass;
 	static COMPILETIMEEVAL const char* ClassName = "InfantryExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "InfantryClass";
-	
+	static COMPILETIMEEVAL DWORD Canary = 0xBC4402DE;
+
 public:
 
 #pragma region ClassMembers
@@ -40,7 +41,7 @@ public:
 public:
 	InfantryExtData(InfantryClass* pObj);
 
-	InfantryExtData(InfantryClass* pObj, noinit_t nn) : FootExtData(pObj, nn) { }
+	InfantryExtData() = default;
 
 	virtual ~InfantryExtData() = default;
 
@@ -86,19 +87,28 @@ private:
 	void Serialize(T& Stm);
 };
 
-class InfantryExtContainer final : public Container<InfantryExtData>, public ContainerSaveLoad<InfantryExtContainer, true>
+class InfantryExtContainer final : public Container<InfantryExtData>
+	, public ContainerSaveLoad<InfantryExtContainer, InfantryExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "InfantryExtContainer";
 
 public:
 	static InfantryExtContainer Instance;
+
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
 };
 
 class InfantryTypeExtData;
 class NOVTABLE FakeInfantryClass : public InfantryClass
 {
 public:
+
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
+
 	bool _Paradrop(CoordStruct* pCoords);
 	void _Dummy(Mission, bool) RX;
 	void _DummyScatter(const CoordStruct& crd, bool ignoreMission, bool ignoreDestination) RX;

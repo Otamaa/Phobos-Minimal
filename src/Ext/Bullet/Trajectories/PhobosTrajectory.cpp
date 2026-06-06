@@ -202,7 +202,7 @@ void PhobosTrajectoryType::ProcessFromStream(PhobosStreamReader& Stm, std::uniqu
 		//create the new type
 		if(PhobosTrajectoryType::UpdateType(pType, nFlag)) {
 			// register the change if succeeded
-			PHOBOS_SWIZZLE_REGISTER_POINTER(pOld, pType.get(), pType->Name())
+			PHOBOS_SWIZZLE_REGISTER_POINTER(pOld, pType.get(), pType->Name());
 			pType->Load(Stm, true);
 		}
 	}

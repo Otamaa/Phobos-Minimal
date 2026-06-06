@@ -11,7 +11,8 @@ public:
 	using base_type = TerrainTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "TerrainTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "TerrainTypeClass";
-	
+	static COMPILETIMEEVAL DWORD Canary = 0x83F6CB34;
+
 public:
 
 #pragma region ClassMember
@@ -63,7 +64,7 @@ public:
 		this->Initialize();
 	}
 
-	TerrainTypeExtData(TerrainTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
+	TerrainTypeExtData() = default;
 
 	virtual ~TerrainTypeExtData() = default;
 
@@ -134,7 +135,8 @@ public:
 };
 
 class TerrainTypeExtContainer final : public Container<TerrainTypeExtData>
-	, public ReadWriteContainerInterfaces<TerrainTypeExtData>, public ContainerSaveLoad<TerrainTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<TerrainTypeExtData>
+	, public ContainerSaveLoad<TerrainTypeExtContainer, TerrainTypeExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "TerrainTypeExtContainer";
@@ -143,6 +145,8 @@ public:
 
 public:
 	static TerrainTypeExtContainer Instance;
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
 
 	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(ext_t::base_type* key, CCINIClass* pINI);
@@ -151,6 +155,9 @@ public:
 class NOVTABLE FakeTerrainTypeClass : public TerrainTypeClass
 {
 public:
+
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	bool _ReadFromINI(CCINIClass* pINI);
 

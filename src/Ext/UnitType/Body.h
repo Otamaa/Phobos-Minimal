@@ -8,6 +8,7 @@ public:
 	using base_type = UnitTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "UnitTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "UnitTypeClass";
+	static COMPILETIMEEVAL DWORD Canary = 0xC91F6301;
 
 public:
 
@@ -21,7 +22,7 @@ public:
 		this->AbsType = UnitTypeClass::AbsID;
 		this->InitializeConstant();
 	}
-	UnitTypeExtData(UnitTypeClass* pObj, noinit_t nn) : FootTypeExtData(pObj, nn) { }
+	UnitTypeExtData() = default;
 
 	virtual ~UnitTypeExtData() = default;
 
@@ -73,7 +74,8 @@ private:
 };
 
 class UnitTypeExtContainer final : public Container<UnitTypeExtData>
-	, public ReadWriteContainerInterfaces<UnitTypeExtData>, public ContainerSaveLoad<UnitTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<UnitTypeExtData>
+	, public ContainerSaveLoad<UnitTypeExtContainer, UnitTypeExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "UnitTypeExtContainer";
@@ -83,6 +85,9 @@ public:
 public:
 	static UnitTypeExtContainer Instance;
 
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
 	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(ext_t::base_type* key, CCINIClass* pINI);
 };
@@ -90,8 +95,9 @@ public:
 class NOVTABLE FakeUnitTypeClass : public UnitTypeClass
 {
 public:
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
-	HRESULT __stdcall _Load(IStream* pStm);
 	bool _ReadFromINI(CCINIClass* pINI);
 
 	UnitTypeExtData* _GetExtData() {

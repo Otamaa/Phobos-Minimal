@@ -126,3 +126,29 @@ void FakeTriggerClass::_Detach(AbstractClass* pTarget, bool bRemove)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5880, FakeTriggerClass::_Detach)
+
+HRESULT __stdcall FakeTriggerClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->TriggerClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!TriggerExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F586C, FakeTriggerClass::__Load)
+
+HRESULT __stdcall FakeTriggerClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->TriggerClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!TriggerExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5870, FakeTriggerClass::__Save)

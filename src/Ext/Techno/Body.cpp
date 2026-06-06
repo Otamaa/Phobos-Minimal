@@ -30,6 +30,7 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
+#include <Ext/Cell/Body.h>
 #include <Ext/Bomb/Body.h>
 #include <Ext/CaptureManager/Body.h>
 #include <Ext/WarheadType/Body.h>
@@ -47,6 +48,7 @@
 #include <Ext/UnitType/Body.h>
 #include <Ext/Tactical/Body.h>
 #include <Ext/Terrain/Body.h>
+#include <Ext/Tiberium/Body.h>
 
 #include <Locomotor/Cast.h>
 
@@ -312,6 +314,65 @@ void TechnoExtData::AddAirstrikeFactor(TechnoClass*& pKiller, double& d_factor)
 				d_factor *= pDesignatorExt->AirstrikeExperienceModifier;
 			}
 		}
+	}
+}
+
+void TechnoExtData::DeployConvertAction()
+{
+	auto const pTypeExt = this->TypeExtData;
+	if (!pTypeExt->Convert_Deploy && !pTypeExt->Convert_Undeploy)
+		return;
+
+	auto const pThis = this->This();
+	if (pThis->WhatAmI() != AbstractType::Infantry)
+		return;
+
+	auto const pInf = static_cast<InfantryClass*>(pThis);
+	const auto curSeq = pInf->SequenceAnim;
+
+	if (curSeq != DoType::Deploy && curSeq != DoType::Undeploy)
+	{
+		this->HasDeployConvertedInCurrentSequence = false;
+		return;
+	}
+
+	if (this->HasDeployConvertedInCurrentSequence)
+		return;
+
+	if (curSeq == DoType::Deploy && pTypeExt->Convert_Deploy)
+	{
+		this->HasDeployConvertedInCurrentSequence = true;
+		TechnoExtData::ConvertToType(pInf, pTypeExt->Convert_Deploy);
+	}
+	else if (curSeq == DoType::Undeploy && pTypeExt->Convert_Undeploy)
+	{
+		this->HasDeployConvertedInCurrentSequence = true;
+		TechnoExtData::ConvertToType(pInf, pTypeExt->Convert_Undeploy);
+	}
+}
+
+void TechnoExtData::AmmoAutoConvertActions()
+{
+	const auto pTypeExt = this->TypeExtData;
+
+	if (!pTypeExt->Ammo_AutoConvertType.isset())
+		return;
+
+	const int min = pTypeExt->Ammo_AutoConvertMinimumAmount;
+	const int max = pTypeExt->Ammo_AutoConvertMaximumAmount;
+
+	if (min < 0 && max < 0)
+		return;
+
+	if (pTypeExt->This()->Ammo <= 0)
+		return;
+
+	const auto pThis = this->This();
+	const int ammo = pThis->Ammo;
+
+	if ((min < 0 || ammo >= min) && (max < 0 || ammo <= max)) {
+		const auto pFoot = flag_cast_to<FootClass*>(pThis);
+		TechnoExtData::ConvertToType(pFoot, pTypeExt->Ammo_AutoConvertType);
 	}
 }
 
@@ -3432,18 +3493,16 @@ void TechnoExtData::KickOutOfRubble(BuildingClass* pBld)
 {
 	std::vector<std::pair<FootClass*, bool>> KickList;
 
+	KickList.reserve(16); // arbitrary, but should be enough for most cases and prevent some allocations
+
 	auto const location = MapClass::Instance->GetCellAt(pBld->Location)->MapCoords;
 	// get the number of non-end-marker cells and a pointer to the cell data
-	for (auto i = pBld->Type->FoundationData; *i != CellStruct::EOL; ++i)
-	{
+	for (auto i = pBld->Type->FoundationData; *i != CellStruct::EOL; ++i) {
 		// remove every techno that resides on this cell
 		for (NextObject obj(MapClass::Instance->GetCellAt(location + *i)->
-			GetContent()); obj; ++obj)
-		{
-			if (auto const pFoot = flag_cast_to<FootClass*>(*obj))
-			{
-				if (pFoot->Limbo())
-				{
+			GetContent()); obj; ++obj) {
+			if (auto const pFoot = flag_cast_to<FootClass*>(*obj)) {
+				if (pFoot->Limbo()) {
 					KickList.emplace_back(pFoot, pFoot->IsSelected);
 				}
 			}
@@ -3451,18 +3510,100 @@ void TechnoExtData::KickOutOfRubble(BuildingClass* pBld)
 	}
 
 	// this part kicks out all units we found in the rubble
-	for (auto const& [pFoot, bIsSelected] : KickList)
-	{
-		if (pBld->KickOutUnit(pFoot, location) == KickOutResult::Succeeded)
-		{
-			if (bIsSelected)
-			{
+	for (auto const& [pFoot, bIsSelected] : KickList) {
+		if (pBld->KickOutUnit(pFoot, location) == KickOutResult::Succeeded) {
+			if (bIsSelected) {
 				pFoot->Select();
 			}
-		}
-		else
-		{
+		} else {
 			pFoot->UnInit();
+		}
+	}
+}
+
+void TechnoExtData::UpdateTiberiumHeal()
+{
+	auto pThis = this->This();
+
+	// tiberium heal, as in Tiberian Sun, but customizable per Tiberium type
+	if (RulesExtData::Instance()->Tiberium_HealEnabled &&
+		pThis->GetHeight() <= RulesClass::Instance->HoverHeight)
+	{
+		if (this->CurrentType->TiberiumHeal || pThis->HasAbility(AbilityType::TiberiumHeal))
+		{
+			if (pThis->Health > 0 && pThis->Health < this->CurrentType->Strength)
+			{
+				bool wasDamaged = pThis->GetHealthRatio() <= RulesClass::Instance->ConditionYellow;
+				auto const pCell = (FakeCellClass*)pThis->GetCell();
+
+				if (pCell->LandType == LandType::Tiberium)
+				{
+					auto delay = RulesClass::Instance->TiberiumHeal;
+					auto health = this->CurrentType->GetRepairStep();
+
+					int idxTib = pCell->_GetTiberiumType();
+					if (auto const pTib = TiberiumClass::Array->get_or_default(idxTib))
+					{
+						auto pTibExt = TiberiumExtContainer::Instance.Find(pTib);
+						delay = pTibExt->GetHealDelay();
+						health = pTibExt->GetHealStep(pThis);
+					}
+
+					if (health != 0)
+					{
+						if (!(Unsorted::CurrentFrame.get() % int(delay * 900.0)))
+						{
+							pThis->Health += health;
+							pThis->EstimatedHealth += health;
+
+							if (pThis->Health > this->CurrentType->Strength) {
+								pThis->Health = this->CurrentType->Strength;
+								pThis->EstimatedHealth = this->CurrentType->Strength;
+							}
+
+							if (wasDamaged
+								&& (pThis->GetHealthRatio() > RulesClass::Instance->ConditionYellow
+									|| pThis->GetHeight() < -10))
+							{
+								if (auto& dmgParticle = pThis->Sys.Damage)
+								{
+									dmgParticle->UnInit();
+									dmgParticle = nullptr;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+void TechnoExtData::ImmolateVictim()
+{
+	auto pThis = this->This();
+
+	if (HouseExtContainer::Instance.IsAnyFirestormActive) {
+		if (!pThis->InLimbo && !pThis->InOpenToppedTransport && !this->CurrentType->IgnoresFirestorm) {
+			if (auto const pBld = pThis->GetCell()->GetBuilding()) {
+				if (BuildingExtData::IsActiveFirestormWall(pBld, nullptr))
+				{
+					BuildingExtData::ImmolateVictim(pBld, pThis, true);
+				}
+			}
+		}
+	}
+}
+
+void TechnoExtData::UpdateWarpInDelay()
+{
+	if (this->HasRemainingWarpInDelay) {
+		if (this->LastWarpInDelay) {
+			this->LastWarpInDelay--;
+		} else {
+			this->HasRemainingWarpInDelay = false;
+			this->IsBeingChronoSphered = false;
+			this->This()->WarpingOut = false;
 		}
 	}
 }
@@ -3784,16 +3925,19 @@ void NOINLINE SetType(TechnoClass* pThis, AbstractType rtti, TechnoTypeClass* pT
 	case AbstractType::Infantry:
 	case AbstractType::InfantryType:
 		TechnoExtContainer::Instance.Find(pThis)->TypeExtData = TechnoTypeExtContainer::Instance.Find(pToType);
+		TechnoExtContainer::Instance.Find(pThis)->CurrentType = pToType;
 		((InfantryClass*)pThis)->Type = (InfantryTypeClass*)pToType;
 		break;
 	case AbstractType::Unit:
 	case AbstractType::UnitType:
 		TechnoExtContainer::Instance.Find(pThis)->TypeExtData = TechnoTypeExtContainer::Instance.Find(pToType);
+		TechnoExtContainer::Instance.Find(pThis)->CurrentType = pToType;
 		((UnitClass*)pThis)->Type = (UnitTypeClass*)pToType;
 		break;
 	case AbstractType::Aircraft:
 	case AbstractType::AircraftType:
 		TechnoExtContainer::Instance.Find(pThis)->TypeExtData = TechnoTypeExtContainer::Instance.Find(pToType);
+		TechnoExtContainer::Instance.Find(pThis)->CurrentType = pToType;
 		((AircraftClass*)pThis)->Type = (AircraftTypeClass*)pToType;
 		break;
 	default:
@@ -4966,7 +5110,6 @@ int TechnoExtData::ApplyTintColor(TechnoClass* pThis, bool invulnerability, bool
 
 void TechnoExtData::ApplyCustomTint(TechnoClass* pThis, int* tintColor, int* intensity)
 {
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	TintColors::GetTints(pThis, tintColor, intensity);
@@ -6163,7 +6306,7 @@ int __fastcall FakeTechnoClass::__AdjustDamage(TechnoClass* pThis, discard_t,Tec
 	if (pTarget && !pWeapon->IsSonic && !pWeapon->UseFireParticles && pWeapon->Damage > 0)
 	{
 
-		double _damage = TechnoExtData::GetDamageMult(pThis, (double)pWeapon->Damage);
+		double _damage = TechnoExtData::ApplyDamageMult(pThis, (double)pWeapon->Damage);
 		int _damage_int = (int)TechnoExtData::GetArmorMult(pTarget, _damage, pWeapon->Warhead);
 		if (_damage_int < 1)
 			_damage_int = 1;
@@ -6183,11 +6326,11 @@ int FakeTechnoClass::__AdjustDamageB(TechnoClass* pThis, TechnoClass* pTarget, W
 
 	if (ApplyMult) {
 		//default damage multiplier
-		double  dDamage = TechnoExtData::GetDamageMult(pThis, (double)damage); 
+		double  dDamage = TechnoExtData::ApplyDamageMult(pThis, (double)damage); 
 
 		if (ApplyAdditionalMut) {
 			//another damage multiplier for more specific cases
-			dDamage = TechnoExtData::GetAdditionalDamageMult(pThis, dDamage);
+			dDamage = TechnoExtData::ApplyAdditionalDamageMult(pThis, dDamage);
 		
 			//idk why it is even here but okay , the PR #2231 does this so 
 			if (const auto pTargetInfantry = cast_to<InfantryClass*, true>(pTarget)) {
@@ -9810,37 +9953,37 @@ double TechnoExtData::GetArmorMult(TechnoClass* pSource, double damageIn, Warhea
 	return _result;
 }
 
-double TechnoExtData::GetDamageMult(TechnoClass* pSource, double damageIn , bool ForceDisable)
-{
-	if (ForceDisable || !pSource || !pSource->IsAlive)
-		return damageIn;
-
-	const auto pType = GET_TECHNOTYPE(pSource);
-
-	if (!pType)
-		return damageIn;
-
-	double _result = damageIn;
+double TechnoExtData::GetDamageMult(TechnoClass* pSource){
+	double mult = pSource->FirepowerMultiplier;
 
 	if(pSource->Owner) {
-		_result *= pSource->Owner->FirepowerMultiplier;
+		mult *= pSource->Owner->FirepowerMultiplier;
 	}
-
-	_result *= pSource->FirepowerMultiplier;
 
 	if(pSource->HasAbility(AbilityType::Firepower)){
-		_result *= RulesClass::Instance->VeteranCombat;
+		mult *= RulesClass::Instance->VeteranCombat;
 	}
 
-	return _result;
+	return mult;
+}
+
+double TechnoExtData::ApplyDamageMult(TechnoClass* pSource, double damageIn , bool ForceDisable)
+{
+	if (ForceDisable || !pSource)
+		return damageIn;
+
+	return (damageIn * TechnoExtData::GetDamageMult(pSource));
 }
 
 // apply the additional damage mult from some vanilla tags
-double TechnoExtData::GetAdditionalDamageMult(TechnoClass* pThis, double damageIn)
+double TechnoExtData::ApplyAdditionalDamageMult(TechnoClass* pThis, double damageIn)
 {
-	auto rtti = pThis->WhatAmI();
 	double finalDamage = damageIn;
-	auto pTechnoTypeExt = GET_TECHNOTYPEEXT(pThis);
+
+	if(!pThis)
+		return finalDamage;
+
+	auto rtti = pThis->WhatAmI();
 
 	if (pThis->CanOccupyFire())
 	{
@@ -9865,6 +10008,8 @@ double TechnoExtData::GetAdditionalDamageMult(TechnoClass* pThis, double damageI
 
 	if (pThis->InOpenToppedTransport)
 	{
+		auto pTechnoTypeExt = GET_TECHNOTYPEEXT(pThis);
+
 		finalDamage = (finalDamage * pTechnoTypeExt->OpenTransport_DamageMultiplier);
 
 		finalDamage = (finalDamage * (pThis->Transporter
@@ -10974,8 +11119,8 @@ void TechnoExtData::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 
 	auto const pOwner = pThis->GetOwningHouse() ? pThis->GetOwningHouse() : HouseExtData::FindFirstCivilianHouse();
 
-	auto& map = pTypeExt->DestroyAnimSpecific;
-	auto& trail = pTypeExt->LaserTrailData;
+	//auto& map = pTypeExt->DestroyAnimSpecific;
+	//auto& trail = pTypeExt->LaserTrailData;
 
 	//Debug::Log(
 	//	"[DiagnosticCheck] DestroyAnimSpecific: size=%zu capacity=%zu | "
@@ -12804,8 +12949,8 @@ bool TechnoExtData::SimpleDeployerAllowedToDeploy(UnitClass* pThis, bool default
 void TechnoExtData::DepletedAmmoActions()
 {
 	auto const pThis = this->This();
-	auto const pType = GET_TECHNOTYPE(pThis);
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	auto const pType = this->CurrentType;
+	auto const pTypeExt = this->TypeExtData;
 
 	if (pType->Ammo <= 0)
 		return;
@@ -13532,32 +13677,35 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved, Abstrac
 			}
 
 			AnnounceInvalidPointer(this->ShiftApplier, ptr);
+			AnnounceInvalidPointer(this->PrismRelayCachedProviders, ptr);
 		}
 		break;
 	}
 	case AbstractType::Airstrike:
-		AnnounceInvalidPointer(AirstrikeTargetingMe, ptr, bRemoved);
+		AnnounceInvalidPointer(this->AirstrikeTargetingMe, ptr, bRemoved);
 		break;
 	case AbstractType::BuildingLight:
-		AnnounceInvalidPointer(BuildingLight, ptr, bRemoved);
+		AnnounceInvalidPointer(this->BuildingLight, ptr, bRemoved);
 		break;
 	case AbstractType::House:
 		AnnounceInvalidPointer(this->ShiftApplierHouse, ptr, bRemoved);
-		AnnounceInvalidPointer(OriginalPassengerOwner, ptr, bRemoved);
+		AnnounceInvalidPointer(this->OriginalPassengerOwner, ptr, bRemoved);
 		break;
 	case AbstractType::Super:
-		AnnounceInvalidPointer(LinkedSW, ptr, bRemoved);
+		AnnounceInvalidPointer(this->LinkedSW, ptr, bRemoved);
 
 		break;
 	default:break;
 	}
 
-	if (FakeSpawnManagerClass* pSpawn = (FakeSpawnManagerClass*)this->This()->SpawnManager)
-		pSpawn->_DetachB(ptr, bRemoved);
+	this->PrismRelay.InvalidatePointer(ptr, bRemoved);
 
-	AnnounceInvalidPointer(WebbyLastTarget, ptr);
+	if (SpawnManagerClass* pSpawn = this->This()->SpawnManager)
+		((FakeSpawnManagerClass*)pSpawn)->_DetachB(ptr, bRemoved);
 
-	for (auto& _phobos_AE : PhobosAE) {
+	AnnounceInvalidPointer(this->WebbyLastTarget, ptr);
+
+	for (auto& _phobos_AE : this->PhobosAE) {
 		if (_phobos_AE) {
 			_phobos_AE->InvalidatePointer(ptr, bRemoved, type);
 		}

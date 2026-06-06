@@ -10,7 +10,8 @@ public:
 	using base_type = UnitClass;
 	static COMPILETIMEEVAL const char* ClassName = "UnitExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "UnitClass";
-	
+	static COMPILETIMEEVAL DWORD Canary = 0x0AE020BF;
+
 public:
 #pragma region classMembers
 
@@ -27,7 +28,7 @@ public:
 
 	UnitExtData(UnitClass* pObj);
 
-	UnitExtData(UnitClass* pObj, noinit_t nn) : FootExtData(pObj, nn) { }
+	UnitExtData() = default;
 
 	virtual ~UnitExtData() = default;
 
@@ -71,7 +72,8 @@ public:
 
 };
 
-class UnitExtContainer final : public Container<UnitExtData>, public ContainerSaveLoad<UnitExtContainer, true>
+class UnitExtContainer final : public Container<UnitExtData>
+	, public ContainerSaveLoad<UnitExtContainer, UnitExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "UnitExtContainer";
@@ -82,12 +84,19 @@ public:
 	static bool HasDeployingAnim(TechnoTypeClass* pUnitType);
 	static bool CheckDeployRestrictions(FootClass* pUnit, bool isDeploying);
 	static void CreateDeployingAnim(UnitClass* pUnit, bool isDeploying);
+
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
 };
 
 class UnitTypeExtData;
 class NOVTABLE FakeUnitClass : public UnitClass
 {
 public:
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
+
 	bool _Paradrop(CoordStruct* pCoords);
 	CoordStruct* _GetFLH(CoordStruct* buffer, int wepon, int baseX , int baseY , int baseZ);
 	int _Mission_Attack();

@@ -513,7 +513,7 @@ ASMJIT_PATCH(0x73544D, UnitClass_CTOR, 0x7)
 	return 0;
 }
 
-ASMJIT_PATCH(0x7359DC, UnitClass_DTOR, 0x7)
+ASMJIT_PATCH(0x735897, UnitClass_DTOR, 0x6)
 {
 	GET(UnitClass*, pItem, ESI);
 	UnitExtContainer::Instance.Remove(pItem);
@@ -661,3 +661,29 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D64, FakeUnitClass::_ClearOccupyBit);
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x7441B0, FakeUnitClass::_SetOccupyBit);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D60, FakeUnitClass::_SetOccupyBit);
+
+HRESULT __stdcall FakeUnitClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->UnitClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!UnitExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5C84, FakeUnitClass::__Load)
+
+HRESULT __stdcall FakeUnitClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->UnitClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!UnitExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5C88, FakeUnitClass::__Save)

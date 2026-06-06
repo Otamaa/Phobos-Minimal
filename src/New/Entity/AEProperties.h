@@ -6,6 +6,7 @@
 #include <New/Entity/AEFlags.h>
 
 class TechnoClass;
+class PhobosAttachEffectClass;
 struct AEProperties
 {
 	// Transient — rebuilt every Recalculate(), not serialized.
@@ -25,6 +26,9 @@ struct AEProperties
 public:
 
 	static void Recalculate(TechnoClass* pTechno);
+	// ActuallyNeedRecalc is used to override function recalc handler , it will send signal to the outside variable to do reset , just after everything is done
+	// so it wont repeatedly calling the mark redraw function
+	static void RecalculateSingle(TechnoClass* pTechno, PhobosAttachEffectClass* pAE, bool* forceDecloakResult, bool* ActuallyNeedRecalc, bool recalc);
 
 public:
 
@@ -43,11 +47,6 @@ protected:
 	template <typename T>
 	bool Serialize(T& Stm)
 	{
-		// ExtraRange / ExtraCrit / ArmorMultData are transient:
-		// they hold pointers into AE type objects and are rebuilt
-		// every Recalculate(). Serializing them is unnecessary
-		// (and impossible now that they store pointers).
-		// Just call Recalculate() after loading.
 		return Stm
 			.Process(this->Crate_FirepowerMultiplier)
 			.Process(this->Crate_ArmorMultiplier)
@@ -55,7 +54,9 @@ protected:
 			.Process(this->ROFMultiplier)
 			.Process(this->ReceiveRelativeDamageMult)
 			.Process(this->flags)
-
+			.Process(this->ExtraRange)
+			.Process(this->ExtraCrit)
+			.Process(this->ArmorMultData)
 			.Success() && Stm.RegisterChange(this)
 			;
 	}

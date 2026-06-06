@@ -91,19 +91,6 @@ ASMJIT_PATCH(0x747316, UnitTypeClass_DTOR, 0x6)
 
 #include <Misc/ImageSwapModules.h>
 
-HRESULT __stdcall FakeUnitTypeClass::_Load(IStream* pStm)
-{
-	HRESULT hr = this->UnitTypeClass::Load(pStm);
-
-	if (SUCCEEDED(hr)) {
-		if (Phobos::Config::ArtImageSwap)
-			TechnoImageReplacer::Replace(this);
-	}
-
-	return hr;
-}
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F622C, FakeUnitTypeClass::_Load)
-
 bool FakeUnitTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
 	bool status = this->UnitTypeClass::LoadFromINI(pINI);
@@ -112,3 +99,32 @@ bool FakeUnitTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F627C, FakeUnitTypeClass::_ReadFromINI)
+
+HRESULT __stdcall FakeUnitTypeClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->UnitTypeClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		//if (!UnitTypeExtContainer::Instance.LoadByKey(this, pStm))
+		//	return PHOBOS_E_EXTDATA_LOAD_FAILED;
+
+		if (Phobos::Config::ArtImageSwap)
+			TechnoImageReplacer::Replace(this);
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F622C, FakeUnitTypeClass::__Load)
+
+//HRESULT __stdcall FakeUnitTypeClass::__Save(IStream* pStm, BOOL fClearDirty)
+//{
+//	HRESULT hr = this->UnitTypeClass::Save(pStm, fClearDirty);
+//
+//	if (SUCCEEDED(hr)) {
+//		if (!UnitTypeExtContainer::Instance.SaveByKey(this, pStm))
+//			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+//	}
+//
+//	return hr;
+//}
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6230, FakeUnitTypeClass::__Save)

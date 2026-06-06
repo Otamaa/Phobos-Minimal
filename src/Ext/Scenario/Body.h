@@ -41,7 +41,7 @@ class ScenarioExtData final
 private:
 	static std::unique_ptr<ScenarioExtData> Data;
 public:
-	static COMPILETIMEEVAL size_t Canary = 0xABCD1595;
+	static COMPILETIMEEVAL DWORD Canary = 0x642EC48E;
 	using base_type = ScenarioClass;
 
 	base_type* AttachedToObject {};
@@ -93,6 +93,10 @@ public:
 	bool SWSidebar_Enable { true };
 	bool IsHouseTypeVoiceNeedCheck { true };
 	// 3 bools = 3 bytes, pads to 4 for alignment
+
+	int PrismRelayClaimFrame { -1 };
+	TechnoClass* PrismRelayClaimMaster { nullptr };
+	int PrismRelayClaimWeaponIndex { -1 };
 
 #pragma endregion
 
@@ -156,6 +160,10 @@ private:
 			.Process(this->LimboLaunchers)
 			.Process(this->UndergroundTracker)
 			.Process(this->FallingDownTracker)
+
+			.Process(this->PrismRelayClaimFrame)
+			.Process(this->PrismRelayClaimMaster)
+			.Process(this->PrismRelayClaimWeaponIndex)
 			;
 
 	}
@@ -169,6 +177,11 @@ public:
 	static void Remove(ScenarioClass* pThis);
 
 	static void s_LoadFromINIFile(ScenarioClass* pThis, CCINIClass* pINI);
+
+	void OPTIONALINLINE InvalidatePointer(AbstractClass* ptr, bool bRemove)
+	{
+		AnnounceInvalidPointer(PrismRelayClaimMaster, ptr, bRemove);
+	}
 
 	COMPILETIMEEVAL FORCEDINLINE static ScenarioExtData* Instance()
 	{

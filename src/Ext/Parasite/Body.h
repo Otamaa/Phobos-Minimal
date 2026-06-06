@@ -8,6 +8,8 @@
 class ParasiteExtData
 {
 public:
+	static COMPILETIMEEVAL DWORD Canary = 0xE609F40B;
+
 	/*
 	class ExtData final : public Extension<ParasiteClass>
 	{

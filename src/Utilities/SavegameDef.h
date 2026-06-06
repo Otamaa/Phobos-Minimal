@@ -147,6 +147,20 @@ namespace Savegame
 						return false;
 					}
 				}
+			else if constexpr (std::is_pointer_v<T>)
+				{
+					// Handle pointer types
+					uintptr_t old_ptr {};
+					if (!stm.Load(old_ptr))
+						return false;
+
+					//request remap table update for this pointer
+					if (FAILED(PHOBOS_SWIZZLE_REQUEST_MANUAL_POINTER_REMAP(value, old_ptr, PhobosCRT::GetTypeIDName<T>().c_str()))) {
+						return false;
+					}
+
+					return true;
+				}
 				else if constexpr (has_phobos_stream_object_v<T>)
 				{
 					static_assert(std::is_same_v<T, T>, "Using generic PhobosStreamObject");
@@ -184,6 +198,12 @@ namespace Savegame
 									  "Create PhobosStreamObject<T[N]> specialization for your array type.");
 						return false;
 					}
+				}
+				else if constexpr (std::is_pointer_v<T>)
+				{
+					// Handle pointer types
+					uintptr_t raw_ptr = reinterpret_cast<uintptr_t>(value);
+					return stm.Save(raw_ptr);
 				}
 				else if constexpr (has_phobos_stream_object_v<T>)
 				{
@@ -225,9 +245,8 @@ namespace Savegame
 			bool ret = stm.Load(value);
 			if COMPILETIMEEVAL(std::is_pointer<T>::value)
 			{
-				if (register_for_change)
-				{
-					PHOBOS_SWIZZLE_REQUEST_POINTER_REMAP(value, PhobosCRT::GetTypeIDName<T>().c_str());
+				if(FAILED(PHOBOS_SWIZZLE_REQUEST_POINTER_REMAP(value, PhobosCRT::GetTypeIDName<T>().c_str()))) {
+					return false;
 				}
 			}
 
@@ -1645,7 +1664,7 @@ namespace Savegame
 				{
 					Value = ptrNew;
 					SavegameGlobal::GlobalSharedRegistry[ptrOld] = ptrNew;
-					PHOBOS_SWIZZLE_REGISTER_POINTER(ptrOld, ptrNew.get(), PhobosCRT::GetTypeIDName<T>().c_str())
+					PHOBOS_SWIZZLE_REGISTER_POINTER(ptrOld, ptrNew.get(), PhobosCRT::GetTypeIDName<T>().c_str());
 				}
 			}
 

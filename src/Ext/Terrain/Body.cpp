@@ -230,3 +230,29 @@ void FakeTerrainClass::_AnimPointerExpired(AnimClass* pAnim) {
 	}
 }
 DEFINE_FUNCTION_JUMP(VTABLE ,0x7F528C, FakeTerrainClass::_AnimPointerExpired)
+
+HRESULT __stdcall FakeTerrainClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->TerrainClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!TerrainExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5240, FakeTerrainClass::__Load)
+
+HRESULT __stdcall FakeTerrainClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->TerrainClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!TerrainExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5244, FakeTerrainClass::__Save)

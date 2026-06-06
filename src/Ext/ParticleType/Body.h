@@ -16,7 +16,8 @@ public:
 	using base_type = ParticleTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "ParticleTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "ParticleTypeClass";
-	
+	static COMPILETIMEEVAL DWORD Canary = 0xB9167056;
+
 public:
 
 #pragma region ClassMembers
@@ -71,7 +72,7 @@ public:
 		LaserTrail_Types.reserve(2);
 	}
 
-	ParticleTypeExtData(ParticleTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
+	ParticleTypeExtData() = default;
 
 	virtual ~ParticleTypeExtData() = default;
 
@@ -112,7 +113,8 @@ private:
 };
 
 class ParticleTypeExtContainer final : public Container<ParticleTypeExtData>
-	, public ReadWriteContainerInterfaces<ParticleTypeExtData>, public ContainerSaveLoad<ParticleTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<ParticleTypeExtData>
+	, public ContainerSaveLoad<ParticleTypeExtContainer, ParticleTypeExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "ParticleTypeExtContainer";
@@ -121,6 +123,9 @@ public:
 public:
 	static ParticleTypeExtContainer Instance;
 
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
 	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(ext_t::base_type* key, CCINIClass* pINI);
 };
@@ -128,6 +133,8 @@ public:
 class NOVTABLE FakeParticleTypeClass : public ParticleTypeClass
 {
 public:
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	bool _ReadFromINI(CCINIClass* pINI);
 

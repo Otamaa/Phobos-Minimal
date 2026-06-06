@@ -225,7 +225,7 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->InfantrySpeedData.NoCrawls.Read(iniEX, GameStrings::General, "ProneSpeed.NoCrawls");
 
 	pData->BuildingGuardRetryDelay.Read(iniEX, GameStrings::General, "BuildingGuardRetryDelay");
-	pData->DiscardOn_ConsiderHoverAsMoving.Read(iniEX, GameStrings::General, "DiscardOn.ConsiderHoverAsMoving");
+	pData->DiscardOn_ConsiderHoverAsMoving.Read(iniEX, GameStrings::General, "DiscardOn.MoveBasedOnDestination");
 
 	pData->VoxelLightSource.Read(iniEX, GameStrings::AudioVisual, "VoxelLightSource");
 	pData->VoxelShadowLightSource.Read(iniEX, GameStrings::AudioVisual, "VoxelShadowLightSource");
@@ -474,7 +474,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	INI_EX exINI(pINI);
 
 	#pragma region General
-
+	this->PrismRelay_SupportTimeout.Read(exINI, GameStrings::General, "PrismRelay.SupportTimeout");
 	exINI.Read3Bool(GameStrings::General, "CampaignAllowHarvesterScanUnderShroud", this->CampaignAllowHarvesterScanUnderShroud);
 	this->AttackMove_IgnoreWeaponCheck.Read(exINI, GameStrings::General, "AttackMove.IgnoreWeaponCheck");
 	this->AttackMove_StopWhenTargetAcquired.Read(exINI, GameStrings::General, "AttackMove.StopWhenTargetAcquired");
@@ -710,6 +710,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	#pragma endregion
 
 	#pragma region AudioVisual
+	this->RemoveMindControl_Silent.Read(exINI, GameStrings::AudioVisual, "RemoveMindControl.Silent");
 	this->DisplayIncome_Delay.Read(exINI, GameStrings::AudioVisual, "DisplayIncome.Delay");
 	if (!this->DisplayIncome_Delay) {
 		Debug::Log("[Developer warning] [AudioVisual] DisplayIncome.Delay is set 0 which would cause a crash, set to 1 instead.\n");
@@ -1435,6 +1436,8 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->AreaGuard_TargetingInRange)
 		.Process(this->AreaGuard_StrayIgnoreDestination)
 		.Process(this->Shrapnel_IgnoreHitBuildings)
+		.Process(this->PrismRelay_SupportTimeout)
+		.Process(this->RemoveMindControl_Silent)
 		;
 }
 
@@ -1465,17 +1468,14 @@ ASMJIT_PATCH(0x675210, RulesClass_SaveLoad_Prefix, 0x5)
 	GET(RulesClass*, pItem, ECX);
 	GET_STACK(IStream*, pStm, 0x4);
 
-	if (R->Origin() == 0x675210)
-	{
-		pItem->BarrelDebris.clear();
-		pItem->DeadBodies.clear();
-		pItem->DropPod.clear();
-		pItem->MetallicDebris.clear();
-		pItem->BridgeExplosions.clear();
-		pItem->DamageFireTypes.clear();
-		pItem->WeatherConClouds.clear();
-		pItem->WeatherConBolts.clear();
-	}
+	pItem->BarrelDebris.clear();
+	pItem->DeadBodies.clear();
+	pItem->DropPod.clear();
+	pItem->MetallicDebris.clear();
+	pItem->BridgeExplosions.clear();
+	pItem->DamageFireTypes.clear();
+	pItem->WeatherConClouds.clear();
+	pItem->WeatherConBolts.clear();
 
 	RulesExtData::g_pStm = pStm;
 

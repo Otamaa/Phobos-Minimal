@@ -40,7 +40,8 @@ public:
 	using base_type = SuperWeaponTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "SWTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "SuperWeaponTypeClass";
-	
+	static COMPILETIMEEVAL DWORD Canary = 0xB4836FAB;
+
 public:
 #pragma region ClassMembers
 
@@ -418,7 +419,7 @@ public:
 public:
 
 	SWTypeExtData(SuperWeaponTypeClass* pObj);
-	SWTypeExtData(SuperWeaponTypeClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) {}
+	SWTypeExtData() = default;
 	virtual ~SWTypeExtData();
 
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) override
@@ -561,21 +562,21 @@ public:
 };
 
 class SWTypeExtContainer final : public Container<SWTypeExtData>
-	, public ReadWriteContainerInterfaces<SWTypeExtData>, public ContainerSaveLoad<SWTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<SWTypeExtData>
+	, public ContainerSaveLoad<SWTypeExtContainer, SWTypeExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "SWTypeExtContainer";
 	using base_t = Container<SWTypeExtData>;
 	using ext_t = SWTypeExtData;
-	using base_SaveLoad_t = ContainerSaveLoad<SWTypeExtContainer, true>;
 
 public:
 	static SWTypeExtContainer Instance;
 
 public:
 
-	virtual bool LoadAll(PhobosStreamReader& stm);
-	virtual bool SaveAll(PhobosStreamWriter& stm);
+	virtual bool LoadGlobal(PhobosStreamReader& stm);
+	virtual bool SaveGlobal(PhobosStreamWriter& stm);
 
 	virtual void Clear();
 
@@ -589,6 +590,8 @@ public:
 class NOVTABLE FakeSuperWeaponTypeClass : public SuperWeaponTypeClass
 {
 public:
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	bool _ReadFromINI(CCINIClass* pINI);
 

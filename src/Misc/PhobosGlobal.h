@@ -67,8 +67,8 @@ class PhobosGlobal
 
 	COMPILETIMEEVAL WORD BuildPcxMask()
 	{
-		return (0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft)
-			| (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft);
+		return (0xFFu >> ColorStruct::BlueShiftRight() << ColorStruct::BlueShiftLeft())
+			| (0xFFu >> ColorStruct::RedShiftRight() << ColorStruct::RedShiftLeft());
 	}
 
 public:

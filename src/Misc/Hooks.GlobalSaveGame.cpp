@@ -310,30 +310,111 @@ HRESULT WriteBlocksToStreamC(T& who_, IStream* pStm)
 	return S_FALSE;
 }
 
-HRESULT Phobos::SaveAllExtData(IStream* pStm)
+template<typename T, bool hasNameItem = true>
+HRESULT WriteBlocksToStreamD(T& who_, IStream* pStm, DWORD canary)
+{
+	using Base = std::remove_const_t<std::remove_pointer_t<T>>;
+	const auto typeName = PhobosCRT::GetTypeIDName<Base>();
+	Debug::Log("[ExtSave] Saving (B) %s ...\n", typeName.c_str());
+
+	//reserve the stream block
+	PhobosByteStream saver(sizeof(sizeof(Base)));
+	PhobosStreamWriter writer(saver);
+
+	if (!writer.Save(canary))
+		return false;
+
+	const int Count = (int)who_.Array.size();
+	if (!writer.Save(Count))
+		return false;
+
+	for (int i = 0; i < Count; ++i)
+	{
+		uintptr_t savedPtr = (uintptr_t)who_.Array[i];
+
+		if constexpr (hasNameItem)
+		{
+			Debug::Log("Saving %s [%s (%d) - %x] to stream\n",
+				Base::ClassName, who_.Array[i]->Name.c_str(), i, savedPtr);
+		}
+		else
+		{
+			Debug::Log("Saving %s [(%d) - %x] to stream\n",
+				Base::ClassName, i, savedPtr);
+		}
+
+		if (!writer.Save(savedPtr))
+			return false;
+
+		who_.Array[i]->SaveToStream(writer);
+		if (!writer.Success())
+			return false;
+	}
+
+	if (saver.WriteToStream(pStm))
+	{
+		Debug::Log("[ExtSave]   OK (B) %s\n", typeName.c_str());
+		return S_OK;
+	}
+
+	return S_FALSE;
+}
+
+HRESULT Phobos::SaveAllEarlyData(IStream* pStm)
 {
 	HRESULT hr = S_OK;
 
-	//Global
 	hr = WriteBlocksToStream<Phobos, false>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
 	hr = WriteBlocksToStream<CursorTypeClass>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
-	hr = WriteBlocksToStream<MouseClassExt, false>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
 	hr = WriteBlocksToStream<TheaterTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<GenericPrerequisite>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
 	hr = WriteBlocksToStream<BannerTypeClass>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
 	hr = WriteBlocksToStream<ArmorTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = WriteBlocksToStream<ThemeTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = WriteBlocksToStreamB(FlyingStrings::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = WriteBlocksToStreamD<CellExtContainer,false>(CellExtContainer::Instance, pStm, CellExtData::Canary);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = WriteBlocksToStreamD(TiberiumExtContainer::Instance, pStm, TiberiumExtData::Canary);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = WriteBlocksToStreamD(UnitTypeExtContainer::Instance, pStm, UnitTypeExtData::Canary);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = WriteBlocksToStreamD(InfantryTypeExtContainer::Instance, pStm, InfantryTypeExtData::Canary);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = WriteBlocksToStreamD(BuildingTypeExtContainer::Instance, pStm, BuildingTypeExtData::Canary);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = WriteBlocksToStreamD(AircraftTypeExtContainer::Instance, pStm, AircraftTypeExtData::Canary);
+	if (!SUCCEEDED(hr)) return hr;
+
+	//more
+	return hr;
+}
+
+HRESULT Phobos::SaveAllLateData(IStream* pStm)
+{
+	HRESULT hr = S_OK;
+
+	hr = WriteBlocksToStream<MouseClassExt, false>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = WriteBlocksToStream<GenericPrerequisite>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
 	//hr = WriteBlocksToStream<BarTypeClass>(pStm);
@@ -375,9 +456,6 @@ HRESULT Phobos::SaveAllExtData(IStream* pStm)
 	hr = WriteBlocksToStream<TechTreeTypeClass>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
-	hr = WriteBlocksToStream<ThemeTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
 	hr = WriteBlocksToStream<TunnelTypeClass>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
@@ -385,9 +463,6 @@ HRESULT Phobos::SaveAllExtData(IStream* pStm)
 	if (!SUCCEEDED(hr)) return hr;
 
 	//
-	hr = WriteBlocksToStreamB(FlyingStrings::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
 	hr = WriteBlocksToStreamB(SWFirerManagerClass::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
@@ -400,114 +475,100 @@ HRESULT Phobos::SaveAllExtData(IStream* pStm)
 	hr = WriteBlocksToStream<HugeBar, false>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
-	hr = WriteBlocksToStream<SWStateMachine, false>(pStm);
+	hr = WriteBlocksToStream<SWStateMachine>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
 	hr = WriteBlocksToStream<ShieldClass>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
 	//Ext
-	hr = WriteBlocksToStreamC(SideExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(SideExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(AnimTypeExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(AnimTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(CellExtContainer ::Instance, pStm);
+	hr = WriteBlocksToStreamB(HouseTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(TiberiumExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(HouseExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(HouseTypeExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(UnitExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(HouseExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(InfantryExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(UnitTypeExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(BuildingExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(UnitExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(AircraftExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(InfantryTypeExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(AnimExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(InfantryExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(BuildingTypeExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(BuildingExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(AircraftTypeExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(AircraftExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(AnimExtContainer::Instance, pStm);
-	if (!SUCCEEDED(hr)) return hr;
-	//hr = WriteBlocksToStreamC(TeamTypeExtContainer::Instance, pStm);
+	//hr = WriteBlocksToStreamB(TeamTypeExtContainer::Instance, pStm);
 	//	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(TeamExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(TeamExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	//hr = WriteBlocksToStreamC(ScriptTypeExtContainer::Instance, pStm);
+	//hr = WriteBlocksToStreamB(ScriptTypeExtContainer::Instance, pStm);
 	//	if (!SUCCEEDED(hr)) return hr;
-	//hr = WriteBlocksToStreamC(ScriptExtContainer::Instance, pStm);
+	//hr = WriteBlocksToStreamB(ScriptExtContainer::Instance, pStm);
 	//if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(TriggerExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(TriggerExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(AITriggerTypeExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(AITriggerTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(TActionExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(TActionExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(TEventExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(TEventExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(VoxelAnimTypeExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(VoxelAnimTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(VoxelAnimExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(VoxelAnimExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(WarheadTypeExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(WarheadTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(WeaponTypeExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(WeaponTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(ParticleTypeExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(ParticleTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(ParticleExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(ParticleExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(ParticleSystemTypeExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(ParticleSystemTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(ParticleSystemExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(ParticleSystemExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(BulletTypeExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(BulletTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(BulletExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(BulletExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(SmudgeTypeExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(SmudgeTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(OverlayTypeExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(OverlayTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(SWTypeExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(SWTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(SuperExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(SuperExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(TerrainTypeExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(TerrainTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(TerrainExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(TerrainExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(WaveExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(WaveExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	//hr = WriteBlocksToStreamC(CaptureManagerExtContainer::Instance, pStm);
+	//hr = WriteBlocksToStreamB(CaptureManagerExtContainer::Instance, pStm);
 	//	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(DiskLaserExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(DiskLaserExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	//hr = WriteBlocksToStreamC(ParasiteExtContainer::Instance, pStm);
+	//hr = WriteBlocksToStreamB(ParasiteExtContainer::Instance, pStm);
 	//	if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(TemporalExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(TemporalExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	//hr = WriteBlocksToStreamC(AirstrikeExtContainer::Instance, pStm);
+	//hr = WriteBlocksToStreamB(AirstrikeExtContainer::Instance, pStm);
 	//	if (!SUCCEEDED(hr)) return hr;
-	//hr = WriteBlocksToStreamC(SpawnManagerExtContainer::Instance, pStm);
+	//hr = WriteBlocksToStreamB(SpawnManagerExtContainer::Instance, pStm);
 	// if (!SUCCEEDED(hr)) return hr;
-	//hr = WriteBlocksToStreamC(SlaveManagerExtContainer::Instance, pStm);
+	//hr = WriteBlocksToStreamB(SlaveManagerExtContainer::Instance, pStm);
 	//if (!SUCCEEDED(hr)) return hr;
-	hr = WriteBlocksToStreamC(RadSiteExtContainer::Instance, pStm);
+	hr = WriteBlocksToStreamB(RadSiteExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
 	//more
-
 	return hr;
 }
-
 
 HRESULT Put_All_Pointers(LPSTREAM pStm)
 {
@@ -844,6 +905,9 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 		}
 	}
 
+	constexpr bool  Save_CompressionEnabled = false;
+	const std::string _IsCompressed = Save_CompressionEnabled ? "compressed" : "uncompressed";
+
 	// -----------------------------------------------------------------
 	// "C" — compressed game data, immediately after property set
 	// This matches the original: property set then "C", nothing else
@@ -851,7 +915,7 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 	{
 		Debug::Log("Calling Put_All_Pointers().\n");
 
-		CompressedStream game;
+		CompressedStream<!Save_CompressionEnabled> game;
 		hr = game.Create(storage, L"C");
 		if (FAILED(hr))
 		{
@@ -906,26 +970,52 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 	}
 
 	// -----------------------------------------------------------------
-	// PHOBOS_EXT — compressed extension data
+	// PHOBOS_DATA_EARLY —  early dll data
 	// -----------------------------------------------------------------
 	{
-		Debug::Log("Saving Phobos extension data (compressed).\n");
+		Debug::Log("Saving Phobos early data (%s).\n", _IsCompressed.c_str());
 
-		CompressedStream ext;
-		hr = ext.Create(storage, L"PHOBOS_EXT");
+		CompressedStream<!Save_CompressionEnabled> ext {};
+		hr = ext.Create(storage, L"PHOBOS_DATA_EARLY");
 		if (FAILED(hr))
 		{
-			Debug::FatalError("Failed to create PHOBOS_EXT stream. hr=0x%08X\n", hr);
+			Debug::FatalError("Failed to create PHOBOS_DATA_EARLY stream. hr=0x%08X\n", hr);
 			storage.Release();
 			return false;
 		}
 
-		hr = Phobos::SaveAllExtData(ext.Stream);
+		hr = Phobos::SaveAllEarlyData(ext.Stream);
 		ext.Close();
 
 		if (FAILED(hr))
 		{
-			Debug::FatalError("Failed to save extension data. hr=0x%08X\n", hr);
+			Debug::FatalError("Failed to save extension early data. hr=0x%08X\n", hr);
+			storage.Release();
+			return false;
+		}
+	}
+	
+	// -----------------------------------------------------------------
+	// PHOBOS_DATA_LATE —  late dll data
+	// -----------------------------------------------------------------
+	{
+		Debug::Log("Saving Phobos late data (%s).\n", _IsCompressed.c_str());
+
+		CompressedStream<!Save_CompressionEnabled> ext {};
+		hr = ext.Create(storage, L"PHOBOS_DATA_LATE");
+		if (FAILED(hr))
+		{
+			Debug::FatalError("Failed to create PHOBOS_DATA_LATE stream. hr=0x%08X\n", hr);
+			storage.Release();
+			return false;
+		}
+
+		hr = Phobos::SaveAllLateData(ext.Stream);
+		ext.Close();
+
+		if (FAILED(hr))
+		{
+			Debug::FatalError("Failed to save extension late data. hr=0x%08X\n", hr);
 			storage.Release();
 			return false;
 		}

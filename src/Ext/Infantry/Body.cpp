@@ -672,3 +672,29 @@ ASMJIT_PATCH(0x522352, InfantryClass_Approach_Target_DisallowMoving, 0x6)
 
 	return 0x0;
 }
+
+HRESULT __stdcall FakeInfantryClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->InfantryClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!InfantryExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB06C, FakeInfantryClass::__Load)
+
+HRESULT __stdcall FakeInfantryClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->InfantryClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!InfantryExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB070, FakeInfantryClass::__Save)

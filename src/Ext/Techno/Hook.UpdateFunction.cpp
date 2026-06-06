@@ -795,6 +795,13 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 		return;
 	}
 
+	PrismRelay::UpdateSessionTimeouts(pThis);
+
+	if (!pThis->IsAlive){
+		OnUpdateEnd(pThis);
+		return;
+	}
+
 	if (!IsBuilding) {
 		pExt->UpdateLaserTrails();
 		//TrailsManager::AI((FootClass*)pThis);
@@ -846,10 +853,10 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 	pExt->UpdateInterceptor();
 
 	//pExt->UpdateFireSelf();
-	pExt->UpdateTiberiumEater();
 	pExt->UpdateMCRangeLimit();
 	pExt->UpdateRecountBurst();
 	pExt->UpdateRearmInEMPState();
+	pExt->UpdateLastTargetCrd();
 
 	if (pExt->AttackMoveFollowerTempCount)
 	{

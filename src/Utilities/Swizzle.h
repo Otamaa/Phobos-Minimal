@@ -17,16 +17,17 @@ class ExtensionSwizzleManager
 {
 	struct ExtensionEntry {
 		uintptr_t ptr;
+		uintptr_t Ownerptr;
 		std::string ident;
 		void (*deleter)(uintptr_t); // Type-specific deleter
 		bool released = false;
 
 		ExtensionEntry(uintptr_t p,const char* id, void (*del)(uintptr_t))
-			: ptr(p), ident(id), deleter(del), released(false)
+			: ptr(p), Ownerptr(0), ident(id), deleter(del), released(false)
 		{ }
 
 		ExtensionEntry()
-			: ptr(0), ident(), deleter(nullptr), released(true)
+			: ptr(0), Ownerptr(0), ident(), deleter(nullptr), released(true)
 		{ }
 
 		// Delete copy constructor and copy assignment
@@ -36,6 +37,7 @@ class ExtensionSwizzleManager
 		// Default move constructor
 		ExtensionEntry(ExtensionEntry&& other) noexcept
 			: ptr(other.ptr)
+			, Ownerptr(other.Ownerptr)
 			, ident(other.ident)
 			, deleter(other.deleter)
 			, released(other.released)
@@ -56,6 +58,7 @@ class ExtensionSwizzleManager
 
 				// Move from other
 				ptr = other.ptr;
+				Ownerptr = other.Ownerptr;
 				ident = other.ident;
 				deleter = other.deleter;
 				released = other.released;
@@ -99,7 +102,7 @@ public:
 
 	static bool SwizzleExtensionPointer(void** ptrToFix, AbstractClass* OwnerObj);
 	static bool SwizzleExtensionPointer(void** ptrToFix, AbstractClass* OwnerObj, DWORD Origin);
-
+	static bool HandOverExtension(void** ptrToFix, AbstractClass* OwnerObj);
 	// Clean up orphaned extensions
 	static void CleanupUnmappedExtensions();
 };
@@ -181,6 +184,9 @@ public:
 	STDMETHOD_(LONG, Get_Unresolved_Count)(LONG* count);
 	STDMETHOD_(void, Set_Cleanup_Mode)(BOOL null_dangling_pointers);
 
+	STDMETHOD_(LONG, ManualSwizzle)(void** pointer, uintptr_t oldie);
+	STDMETHOD_(LONG, ManualSwizzle_Dbg)(void** pointer, uintptr_t oldie, const char* file, const int line, const char* func = nullptr, const char* var = nullptr);
+
 public:
 	PhobosSwizzleManagerClass();
 	virtual ~PhobosSwizzleManagerClass();
@@ -215,10 +221,11 @@ extern PhobosSwizzleManagerClass PhobosSwizzleManager;
         PhobosSwizzleManager.Reset(); \
     }
 
+#define PHOBOS_SWIZZLE_REQUEST_MANUAL_POINTER_REMAP(pointer, old, variable) \
+     PhobosSwizzleManager.ManualSwizzle_Dbg((void**)&pointer,old,  __FILE__, __LINE__, __FUNCTION__##"()", variable) \
+
 #define PHOBOS_SWIZZLE_REQUEST_POINTER_REMAP(pointer, variable) \
-    { \
-        PhobosSwizzleManager.Swizzle_Dbg((void**)&pointer, __FILE__, __LINE__, __FUNCTION__##"()", variable); \
-    }
+     PhobosSwizzleManager.Swizzle_Dbg((void**)&pointer, __FILE__, __LINE__, __FUNCTION__##"()", variable) \
 
 #define PHOBOS_SWIZZLE_REQUEST_POINTER_REMAP_LIST(vector, variable) \
     { \
@@ -233,9 +240,7 @@ extern PhobosSwizzleManagerClass PhobosSwizzleManager;
     }
 
 #define PHOBOS_SWIZZLE_REGISTER_POINTER(id, pointer, variable) \
-    { \
-        PhobosSwizzleManager.Here_I_Am_Dbg(id, pointer, __FILE__, __LINE__, __FUNCTION__##"()", variable); \
-    }
+    PhobosSwizzleManager.Here_I_Am_Dbg(id, pointer, __FILE__, __LINE__, __FUNCTION__##"()", variable) \
 
 // New macro for registering dependent pointers
 #define PHOBOS_SWIZZLE_REGISTER_DEPENDENT(dependent_ptr, referenced_id, variable) \

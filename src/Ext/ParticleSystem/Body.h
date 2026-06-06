@@ -16,6 +16,7 @@ public:
 	using base_type = ParticleSystemClass;
 	static COMPILETIMEEVAL const char* ClassName = "ParticleSystemExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "ParticleSystemClass";
+	static COMPILETIMEEVAL DWORD Canary = 0x5BB8B243;
 
 public:
 #pragma region ClassMembers
@@ -131,7 +132,7 @@ public:
 
 public:
 	ParticleSystemExtData(ParticleSystemClass* pObj);
-	ParticleSystemExtData(ParticleSystemClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
+	ParticleSystemExtData() = default;
 
 	virtual ~ParticleSystemExtData() = default;
 
@@ -183,19 +184,27 @@ private:
 	void Serialize(T& Stm);
 };
 
-class ParticleSystemExtContainer final : public Container<ParticleSystemExtData>, public ContainerSaveLoad<ParticleSystemExtContainer, true>
+class ParticleSystemExtContainer final : public Container<ParticleSystemExtData>
+	, public ContainerSaveLoad<ParticleSystemExtContainer, ParticleSystemExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "ParticleSystemExtContainer";
 
 public:
 	static ParticleSystemExtContainer Instance;
+
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
 };
 
 class ParticleSystemTypeExtData;
 class NOVTABLE FakeParticleSystemClass : public ParticleSystemClass
 {
 public:
+
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	void __AI();
 	void __Smoke_AI();

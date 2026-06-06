@@ -1086,10 +1086,13 @@ void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 	}
 }
 
+#include <Ext/CaptureManager/Body.h>
+
 HouseClass*  WarheadTypeExtData::ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass* pTarget) const
 {
 	if (const auto pController = pTarget->MindControlledBy) {
-		pController->CaptureManager->FreeUnit(pTarget);
+		const bool silent = this->RemoveMindControl_Silent.Get(RulesExtData::Instance()->RemoveMindControl_Silent);
+		((FakeCaptureManagerClass*)pController->CaptureManager)->__FreeUnit(pTarget , silent);
 		return pTarget->Owner;
 	}
 
@@ -1175,8 +1178,7 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 		}
 	}
 
-	auto damage = this->Crit_ExtraDamage.Get();
-		damage = static_cast<int>(TechnoExtData::GetDamageMult(pOwner, damage, !this->Crit_ExtraDamage_ApplyFirepowerMult));
+	auto damage = static_cast<int>(TechnoExtData::ApplyDamageMult(pOwner, this->Crit_ExtraDamage, !this->Crit_ExtraDamage_ApplyFirepowerMult));
 
 	if (this->Crit_Warhead)
 	{

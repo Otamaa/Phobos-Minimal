@@ -10,12 +10,35 @@ struct AEArmorMults
 	struct MultData
 	{
 		double Mult { 1.0 };
-		const ValueableVector<WarheadTypeClass*>* allow { nullptr };
-		const ValueableVector<WarheadTypeClass*>* disallow { nullptr };
+		ValueableVector<WarheadTypeClass*>* allow { nullptr };
+		ValueableVector<WarheadTypeClass*>* disallow { nullptr };
 
 		COMPILETIMEEVAL bool Eligible(WarheadTypeClass* who) const
 		{
 			return AEIsEligible(who, allow, disallow);
+		}
+
+		bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+		{
+			return this->Serialize(Stm);
+		}
+
+		bool Save(PhobosStreamWriter& Stm) const
+		{
+			return const_cast<MultData*>(this)->Serialize(Stm);
+		}
+
+	protected:
+
+		template <typename T>
+		bool Serialize(T& Stm)
+		{
+			return Stm
+				.Process(this->Mult)
+				.Process(this->allow)
+				.Process(this->disallow)
+				.Success() && Stm.RegisterChange(this)
+				;
 		}
 	};
 
@@ -59,5 +82,26 @@ struct AEArmorMults
 			initial *= mult;
 
 		return initial;
+	}
+
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		return this->Serialize(Stm);
+	}
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{
+		return const_cast<AEArmorMults*>(this)->Serialize(Stm);
+	}
+
+protected:
+
+	template <typename T>
+	bool Serialize(T& Stm)
+	{
+		return Stm
+			.Process(this->mults)
+			.Success() && Stm.RegisterChange(this)
+			;
 	}
 };

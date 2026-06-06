@@ -8,6 +8,7 @@ class HouseClass;
 class TriggerTypeExtData
 {
 public:
+	static COMPILETIMEEVAL DWORD Canary = 0xD7C3483F;
 /*
 	class ExtData final : public Extension<TriggerTypeClass>
 	{

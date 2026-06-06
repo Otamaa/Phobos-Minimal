@@ -16,6 +16,9 @@ private:
 public:
 
 	static COMPILETIMEEVAL size_t Canary = 0x51DEBA12;
+	static COMPILETIMEEVAL const char* ClassName = "SidebarExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "SidebarClass";
+
 	using base_type = SidebarClass;
 
 	base_type* AttachedToObject {};

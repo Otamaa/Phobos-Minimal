@@ -32,141 +32,95 @@ namespace Savegame
 	bool WritePhobosStream(PhobosStreamWriter& Stm, const T& Value);
 }
 
-class PhobosByteStreamBase
-{
-public:
-	// Enhanced markers with versioning and checksums
-	static COMPILETIMEEVAL const char* START_MARKER = "PHOBOS_DATA_START";
-	static COMPILETIMEEVAL const char* END_MARKER = "PHOBOS_DATA_END";
-	static COMPILETIMEEVAL size_t START_MARKER_LEN = std::char_traits<char>::length("PHOBOS_DATA_START");
-	static COMPILETIMEEVAL size_t END_MARKER_LEN = std::char_traits<char>::length("PHOBOS_DATA_END");
-
-	virtual bool WriteToStream(LPSTREAM stream) = 0;
-	virtual bool ReadFromStream(LPSTREAM stream) = 0;
-
-
-	virtual size_t Size() const = 0;
-	virtual size_t Offset() const = 0;
-};
-
-class PhobosByteStream : public PhobosByteStreamBase
+class PhobosByteStream
 {
 public:
 	using data_t = unsigned char;
 
-
-	// Performance and safety constants
-	static COMPILETIMEEVAL size_t MAX_STREAM_SIZE = 500 * 1024 * 1024;     // 500MB total limit
-	static COMPILETIMEEVAL size_t MAX_SINGLE_OPERATION = 80 * 1024 * 1024; // 80MB per operation
-	static COMPILETIMEEVAL size_t INITIAL_BUFFER_SIZE = 4 * 1024;          // 4KB initial size
-	static COMPILETIMEEVAL size_t MIN_BUFFER_GROWTH = 64 * 1024;           // 64KB minimum growth
-	static COMPILETIMEEVAL size_t MAX_BUFFER_GROWTH = 16 * 1024 * 1024;    // 16MB maximum growth per reallocation
-
-	// Helper constants for size conversions
-	static COMPILETIMEEVAL size_t BYTES_PER_KB = 1024;
-	static COMPILETIMEEVAL size_t BYTES_PER_MB = 1024 * 1024;
-	static COMPILETIMEEVAL size_t BYTES_PER_GB = 1024 * 1024 * 1024;
-	static COMPILETIMEEVAL size_t BIG_SIZE = 8u;
-
 	std::vector<data_t> data;
 	size_t position;
 
-private:
-
-	// Helper function to convert bytes to megabytes for logging
-	static COMPILETIMEEVAL float BytesToMB(size_t bytes)
-	{
-		return static_cast<float>(bytes) / BYTES_PER_MB;
-	}
-
-	// Simple integrity checking flag (no complex checksums)
-	static bool integrity_check_enabled;
-
-	// Performance optimization: reusable verification buffer
-	mutable std::vector<data_t> verify_buffer;
-	mutable std::vector<char> verify_buffer_integration;
 
 public:
 	PhobosByteStream() : data(), position(0) { }
-	PhobosByteStream(size_t initialSize) : data(), position(0)
+	PhobosByteStream(DWORD initialSize = 0x1000) : data(), position(0)
 	{
-		data.reserve(MaxImpl(initialSize, BYTES_PER_KB));
+		data.reserve(initialSize);
 	}
 
-	virtual ~PhobosByteStream() = default;
+	~PhobosByteStream() = default;
 
 private:
-	// Validate buffer and size parameters
-	bool ValidateParameters(const void* buffer, size_t size, const char* operation) const
+
+	bool Write(const void* buffer, size_t size)
 	{
-		if (size == 0) return true;
-
-		if (!buffer)
-		{
-			GameDebugLog::Log("[PhobosByteStream::%s] Null buffer with non-zero size %zu\n", operation, size);
-			DebugBreak();
-			return false;
-		}
-
-		if (size > MAX_SINGLE_OPERATION)
-		{
-			GameDebugLog::Log("[PhobosByteStream::%s] Single operation size %zu exceeds limit %zu\n",
-				operation, size, MAX_SINGLE_OPERATION);
-			DebugBreak();
-			return false;
-		}
+		this->data.insert(this->data.end(),
+			static_cast<const uint8_t*>(buffer),
+			static_cast<const uint8_t*>(buffer) + size
+		);
 
 		return true;
 	}
 
-	bool Write(const void* buffer, size_t size);
-	bool Read(void* buffer, size_t size);
+	bool Read(void* buffer, size_t size)
+	{
+		bool ret = false;
+
+		if (this->data.size() >= this->position + size)
+		{
+			auto Position = &this->data[this->position];
+			std::memcpy(buffer, Position, size);
+			ret = true;
+		}
+
+		this->position += size;
+		return ret;
+	}
+
 
 public:
 
-	virtual bool WriteToStream(LPSTREAM stream);
-	virtual bool ReadFromStream(LPSTREAM stream);
-	virtual size_t Size() const {
+	bool WriteToStream(LPSTREAM pStm)
+	{
+		const size_t length = this->data.size();
+		ULONG out_len = 0;
+
+		if (SUCCEEDED(pStm->Write(&length, sizeof(length), &out_len))) {
+			ULONG out = 0;
+			return SUCCEEDED(pStm->Write(reinterpret_cast<const void*>(this->data.data()), length, &out)) && out == length;
+		}
+		
+		return false;
+	}
+
+	bool ReadFromStream(LPSTREAM pStm)
+	{
+		ULONG out_len = 0;
+		size_t length = 0;
+
+		if (SUCCEEDED(pStm->Read(&length, sizeof(length), &out_len))) {
+			this->data.resize(length);
+			ULONG out = 0;
+			auto success = pStm->Read(reinterpret_cast<void*>(this->data.data()), length, &out);
+			return (SUCCEEDED(success) && out == length);
+		}
+
+		return false;
+	}
+
+	size_t Size() const {
 		return this->data.size();
 	}
 
-	virtual size_t Offset() const {
+	size_t Offset() const {
 		return this->position;
-	}
-
-	COMPILETIMEEVAL size_t GetStreamSize() const
-	{
-		return START_MARKER_LEN +     // Start marker
-			sizeof(DWORD) +            // Data size
-			sizeof(uint32_t) +         // Checksum placeholder
-			data.size() +              // Actual data
-			END_MARKER_LEN;            // End marker
 	}
 
 	void Reset()
 	{
 		data.clear();
 		position = 0;
-		verify_buffer.clear();
-		verify_buffer_integration.clear();
 	}
-
-	// Performance control toggles
-	void SetIntegrityCheck(bool enabled) { integrity_check_enabled = enabled; }
-	bool GetIntegrityCheck() const { return integrity_check_enabled; }
-
-	void SetPerformanceMode(bool highPerformance)
-	{
-		integrity_check_enabled = !highPerformance;
-	}
-
-	// Simplified integrity verification
-	bool VerifyIntegrity() const
-	{
-		return true; // Always pass - real verification happens in Write operations
-	}
-
-	void LogStreamInfo() const;
 
 	template<typename T>
 	bool Load(T& Value)
@@ -181,8 +135,6 @@ public:
 	template<typename T>
 	bool Load(T& Value, size_t size)
 	{
-		if (!ValidateParameters(&Value, size, "Load")) return false;
-
 		auto Bytes = reinterpret_cast<data_t*>(&Value);
 		std::memset(&Value, 0, MinImpl(sizeof(T), size));
 		return this->Read(Bytes, size);
@@ -191,97 +143,13 @@ public:
 	template<typename T>
 	bool Save(const T& Value, size_t size)
 	{
-		if (!ValidateParameters(&Value, size, "Save")) return false;
-
 		auto Bytes = reinterpret_cast<const data_t*>(&Value);
-		const bool result = this->Write(Bytes, size);
-
-		if (!result)
-		{
-			return false;
-		}
-
-		// Simple verification: only if integrity check is enabled
-		if (integrity_check_enabled)
-		{
-
-			// Reuse verification buffer for performance
-			if (verify_buffer.size() < size)
-			{
-				verify_buffer.resize(size);
-			}
-
-			// Quick verification without position manipulation
-			size_t verify_pos = this->Offset() - size;
-			if (verify_pos + size <= data.size())
-			{
-				std::memcpy(verify_buffer.data(), data.data() + verify_pos, size);
-
-				if (std::memcmp(Bytes, verify_buffer.data(), size) != 0)
-				{
-					GameDebugLog::Log("[WRITE CORRUPTION] Data mismatch for %zu bytes\n", size);
-					DebugBreak();
-					return false;
-				}
-			}
-		}
-
-		return result;
+		return this->Write(Bytes, size);
 	}
 
 	bool SaveChar(const char* Value, size_t size)
 	{
-		if (!ValidateParameters(Value, size, "SaveChar")) return false;
-
-		size_t pos_before = this->Offset();
-		const bool result = this->Write(Value, size);
-
-		if (!result)
-		{
-			return false;
-		}
-
-		if (integrity_check_enabled)
-		{
-
-			// Reuse verification buffer for performance
-			if (verify_buffer_integration.size() < size)
-			{
-				verify_buffer_integration.resize(size + 1);
-			}
-
-			size_t pos_save = this->Offset();
-			this->position = pos_before;
-
-			bool verify_result = this->Read(verify_buffer_integration.data(), size);
-			this->position = pos_save;
-
-			if (!verify_result)
-			{
-				GameDebugLog::Log("[WRITE CORRUPTION] Char load verification failed for %zu bytes at offset %zu\n",
-					size, pos_before);
-				DebugBreak();
-				return false;
-			}
-
-			if (std::memcmp(Value, verify_buffer_integration.data(), size) != 0)
-			{
-				GameDebugLog::Log("[WRITE CORRUPTION] Char data mismatch for %zu bytes at offset %zu\n",
-					size, pos_before);
-
-				static size_t COMPILETIMEEVAL MinStringValidationSize = 50u;
-
-				std::string original_str(Value, MinImpl(size, MinStringValidationSize));
-				std::string verify_str(verify_buffer_integration.data(), MinImpl(size, MinStringValidationSize));
-
-				GameDebugLog::Log("[WRITE CORRUPTION] Original string: '%.50s'\n", original_str.c_str());
-				GameDebugLog::Log("[WRITE CORRUPTION] Readback string: '%.50s'\n", verify_str.c_str());
-				DebugBreak();
-				return false;
-			}
-		}
-
-		return result;
+		return this->Write(Value, size);
 	}
 
 	template<typename T>
@@ -290,13 +158,6 @@ public:
 		static_assert(sizeof(T) > 0, "Cannot serialize empty types");
 		return Save(Value, sizeof(T));
 	}
-};
-
-class PhobosAppendedStream : public PhobosByteStream
-{
-public:
-	virtual bool WriteToStream(LPSTREAM stream);
-	virtual bool ReadFromStream(LPSTREAM stream);
 };
 
 template<typename T>

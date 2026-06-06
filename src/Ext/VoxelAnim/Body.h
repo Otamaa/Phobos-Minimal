@@ -15,9 +15,8 @@ public:
 	using base_type = VoxelAnimClass;
 	static COMPILETIMEEVAL const char* ClassName = "VoxelAnimExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "VoxelAnimClass";
+	static COMPILETIMEEVAL DWORD Canary = 0x4C5379D6;
 	
-	
-
 public:
 
 #pragma region ClassMember
@@ -32,7 +31,7 @@ public:
 public:
 
 	VoxelAnimExtData(VoxelAnimClass* pObj);
-	VoxelAnimExtData(VoxelAnimClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
+	VoxelAnimExtData() = default;
 
 	virtual ~VoxelAnimExtData() = default;
 
@@ -87,19 +86,26 @@ public:
 	static TechnoClass* GetTechnoOwner(VoxelAnimClass* pThis);
 };
 
-class VoxelAnimExtContainer final : public Container<VoxelAnimExtData>, public ContainerSaveLoad<VoxelAnimExtContainer, true>
+class VoxelAnimExtContainer final : public Container<VoxelAnimExtData>
+	, public ContainerSaveLoad<VoxelAnimExtContainer, VoxelAnimExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "VoxelAnimExtContainer";
 
 public:
 	static VoxelAnimExtContainer Instance;
+
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
 };
 
 class VoxelAnimTypeExtData;
 class NOVTABLE FakeVoxelAnimClass : public VoxelAnimClass
 {
 public:
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	void _Detach(AbstractClass* target, bool all);
 	void _RemoveThis()

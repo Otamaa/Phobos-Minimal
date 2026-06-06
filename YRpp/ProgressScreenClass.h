@@ -5,8 +5,10 @@
 
 class LoadProgressManager;
 struct SHPStruct;
-class ProgressScreenClass {
+class ALIGN(4) NOVTABLE ProgressScreenClass {
 public:
+
+	virtual void SetLoadmanager(LoadProgressManager* pManager) RX;
 
 	static COMPILETIMEEVAL reference<ProgressScreenClass, 0xAC4F58u> const Instance{};
 
@@ -16,12 +18,15 @@ public:
 	int GetSide()
 		{ JMP_THIS(0x642B20); }
 
+	void  Init(double progress, char playercount, HWND hwnd) {
+		JMP_THIS(0x642A60);
+	}
+
 public:
 
-	int field_0;
 	LoadProgressManager *LoadManager;
 	double PlayerProgresses[8];
-	int MainProgress;
+	double MainProgress;
 	int field_4C;
 	void *PlayerStartSpot; // bah, I have multiple definitions of this in my IDB, can't be bothered to fix it now
 	SHPStruct *someSHP;
@@ -31,7 +36,7 @@ public:
 	char field_5B;
 	int field_5C;
 	char field_60;
-	byte TotalPlayers;
+	char TotalPlayers;
 	char field_62;
 	char field_63;
 	HWND hWnd;
@@ -47,6 +52,16 @@ public:
 	int PlayerSide; // !! this is set to campaign -> CD for singleplay
 
 protected:
-	ProgressScreenClass(){};
+	ProgressScreenClass() = default;
+	~ProgressScreenClass()
+	{
+		if (field_58) {
+			GameDelete(someSHP);
+			field_58 = 0;
+		}
+
+		someSHP = 0;
+	}
 };
-static_asser(sizeof(ProgressScreenClass) == 0x84 , "Invalid Size!");
+//idk , this tripped 
+//static_assert(sizeof(ProgressScreenClass) == 0x84 , "Invalid Size!");

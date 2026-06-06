@@ -11,7 +11,7 @@ public:
 	RadioExtData(RadioClass* abs) : MissionExtData(abs)
 	{ };
 
-	RadioExtData(RadioClass* abs, noinit_t& noint) : MissionExtData(abs, noint) { };
+	RadioExtData() = default;
 
 	virtual ~RadioExtData() = default;
 

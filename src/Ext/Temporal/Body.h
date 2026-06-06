@@ -12,14 +12,15 @@ public:
 	 using base_type = TemporalClass;
 	 static COMPILETIMEEVAL const char* ClassName = "TemporalExtData";
 	 static COMPILETIMEEVAL const char* BaseClassName = "TemporalClass";
-	 
+	 static COMPILETIMEEVAL DWORD Canary = 0x35FAA5E7;
+
 public:
 
 	TemporalExtData(TemporalClass* pObj) : AbstractExtended(pObj) {
 		this->AbsType = TemporalClass::AbsID;
 	}
 
-	TemporalExtData(TemporalClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
+	TemporalExtData() = default;
 
 	virtual ~TemporalExtData() = default;
 
@@ -51,18 +52,25 @@ private:
 };
 
 class TemporalExtContainer final : public Container<TemporalExtData>
-	, public ContainerSaveLoad<TemporalExtContainer, false>
+	, public ContainerSaveLoad<TemporalExtContainer, TemporalExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "TemporalExtContainer";
 
 public:
 	static TemporalExtContainer Instance;
+
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
 };
 
 class NOVTABLE FakeTemporalClass : public TemporalClass
 {
 public:
+
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	void CreateWarpAwayAnimation(WeaponTypeClass* pWeapon);
 

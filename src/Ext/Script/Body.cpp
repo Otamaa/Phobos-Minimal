@@ -3,6 +3,8 @@
 #include <Utilities/Cast.h>
 #include <Utilities/Debug.h>
 #include <AITriggerTypeClass.h>
+#include <Utilities/Patch.h>
+#include <Utilities/Macro.h>
 
 #include <Ext/Techno/Body.h>
 #include <Ext/Building/Body.h>
@@ -2845,51 +2847,45 @@ void ScriptExtData::SimpleDeployerDeploy(TeamClass* pTeam, int mode)
 	pTeam->StepCompleted = allUnitsProcessed;
 }
 
-//
-//ASMJIT_PATCH(0x6913F8, ScriptClass_CTOR, 0x5)
-//{
-//	GET(ScriptClass* const, pThis, ESI);
-//	ScriptExtData::ExtMap.FindOrAllocate(pThis);
-//	return 0x0;
-//}
-//
-//ASMJIT_PATCH_AGAIN(0x691F06, ScriptClass_DTOR, 0x6)
-//ASMJIT_PATCH(0x691486, ScriptClass_DTOR, 0x6)
-//{
-//	GET(ScriptClass*, pThis, ESI);
-//	ScriptExtData::ExtMap.Remove(pThis);
-//	return 0x0;
-//}
-//
-//
-//ASMJIT_PATCH_AGAIN(0x691690, ScriptClass_SaveLoad_Prefix, 0x8)
-//ASMJIT_PATCH(0x691630, ScriptClass_SaveLoad_Prefix, 0x5)
-//{
-//	GET_STACK(ScriptClass*, pItem, 0x4);
-//	GET_STACK(IStream*, pStm, 0x8);
-//	ScriptExtData::ExtMap.PrepareStream(pItem, pStm);
-//	return 0;
-//}
-//
-//ASMJIT_PATCH(0x69166F, ScriptClass_Load_Suffix, 0x9)
-//{
-//	GET(ScriptClass*, pThis, ESI);
-//
-//	SwizzleManagerClass::Instance->Swizzle((void**)&pThis->Type);
-//	TeamExtContainer::Instance.LoadStatic();
-//
-//	return 0x69167D;
-//}
-//
-//ASMJIT_PATCH(0x6916A4, ScriptClass_Save_Suffix, 0x6)
-//{
-//	GET(HRESULT const, nRes, EAX);
-//
-//	if (SUCCEEDED(nRes))
-//	{
-//		TeamExtContainer::Instance.SaveStatic();
-//		return 0x6916A8;
-//	}
-//
-//	return 0x6916AA;
-//}
+
+ASMJIT_PATCH(0x6913F8, ScriptClass_CTOR, 0x5)
+{
+	GET(ScriptClass* const, pThis, ESI);
+	if (!Phobos::Otamaa::DoingLoadGame)
+		ScriptExtContainer::Instance.Allocate(pThis);
+	return 0x0;
+}
+
+ASMJIT_PATCH_AGAIN(0x691F06, ScriptClass_DTOR, 0x6)
+ASMJIT_PATCH(0x691486, ScriptClass_DTOR, 0x6)
+{
+	GET(ScriptClass*, pThis, ESI);
+	ScriptExtContainer::Instance.Remove(pThis);
+	return 0x0;
+}
+
+HRESULT __stdcall FakeScriptClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->ScriptClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!ScriptExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0F8C, FakeScriptClass::__Load)
+
+HRESULT __stdcall FakeScriptClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->ScriptClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!ScriptExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0F90, FakeScriptClass::__Save)

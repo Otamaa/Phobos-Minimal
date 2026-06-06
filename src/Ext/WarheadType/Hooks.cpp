@@ -26,6 +26,7 @@
 #include <TacticalClass.h>
 
 #pragma region DETONATION
+
 void ApplyExtraWarheads(
 	BulletClass* pBullet,
 	std::vector<WarheadTypeClass*>& exWH,
@@ -38,6 +39,11 @@ void ApplyExtraWarheads(
 	const size_t fulldetonation_size = exWHFull.size();
 	const size_t chance_size = exWHChances.size();
 	int damage = pBullet->WeaponType ? pBullet->WeaponType->Damage : 0;
+	auto const pTarget = flag_cast_to<TechnoClass*>(pBullet->Target);
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pBullet->WH);
+
+	if (pTarget && (!pWHExt->IsHealthInThreshold(pTarget) || !pWHExt->IsVeterancyInThreshold(pTarget)))
+		return;
 
 	for (size_t i = 0; i < exWH.size(); i++)
 	{
@@ -68,9 +74,106 @@ void ApplyExtraWarheads(
 				WarheadTypeExtData::DetonateAt(pWH, pBullet->Target ? pBullet->Target : MapClass::Instance->GetCellAt(coords), *coords, pBullet->Owner, damage , pOwner);
 			else
 				WarheadTypeExtContainer::Instance.Find(pWH)->DamageAreaWithTarget(*coords, damage, pBullet->Owner, pWH, true, pOwner,
-				flag_cast_to<TechnoClass*>(pBullet->Target));
+				pTarget);
 		}
 	}
+}
+
+void ApplyNewExtraWarheads(
+	BulletClass* pBullet,
+	std::vector<WarheadTypeClass*>& exWH,
+	std::vector<int>& exWHDamageOverrides,
+	std::vector<double>& exWHChances,
+	std::vector<bool>& exWHFull,
+	std::vector<ValueableVector<int>>& exWHWeights,
+	ValueableVector<float>& exWHRollChances,
+	CoordStruct* coords, HouseClass* pOwner) {
+
+	auto const pTarget = flag_cast_to<TechnoClass*>(pBullet->Target);
+	const int defaultDamage = pBullet->WeaponType->Damage;
+	auto& random = ScenarioClass::Instance->Random;
+
+	auto detonateWarhead = [&](int index)
+			{
+				if (index < 0 || index >= static_cast<int>(exWH.size()))
+					return;
+
+				auto const pWH = exWH[index];
+				auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
+
+				if (pTarget && (!pWHExt->IsHealthInThreshold(pTarget) || !pWHExt->IsVeterancyInThreshold(pTarget)))
+					return;
+
+				int damage = defaultDamage;
+				size_t size = exWHDamageOverrides.size();
+				if (size > static_cast<size_t>(index))
+					damage = exWHDamageOverrides[index];
+				else if (size > 0)
+					damage = exWHDamageOverrides[size - 1];
+
+				size = exWHFull.size();
+				bool isFull = true;
+				if (size > static_cast<size_t>(index))
+					isFull = exWHFull[index];
+				else if (size > 0)
+					isFull = exWHFull[size - 1];
+
+				if (isFull)
+					WarheadTypeExtData::DetonateAt(pWH, pBullet->Target ? pBullet->Target : MapClass::Instance->GetCellAt(coords), *coords, pBullet->Owner, damage , pOwner);
+				else
+					WarheadTypeExtContainer::Instance.Find(pWH)->DamageAreaWithTarget(*coords, damage, pBullet->Owner, pWH, true, pOwner,
+				flag_cast_to<TechnoClass*>(pBullet->Target));
+	};
+
+	if (exWHWeights.size() > 0)
+		{
+			size_t rollCount = exWHRollChances.size();
+			if (rollCount == 0)
+				rollCount = 1;
+
+			for (size_t i = 0; i < rollCount; i++)
+			{
+				double dice = random.RandomDouble();
+				if (exWHRollChances.size() > 0 && dice > exWHRollChances[i])
+					continue;
+
+				const size_t weightIndex = MinImpl(i, exWHWeights.size() - 1);
+				const auto& weights = exWHWeights[weightIndex];
+
+				int selectedIndex = GeneralUtils::ChooseOneWeighted(dice, weights);
+
+				bool detonate = true;
+				size_t chanceSize = exWHChances.size();
+				if (chanceSize > 0)
+				{
+					double chanceDice = random.RandomDouble();
+					if (chanceSize > static_cast<size_t>(selectedIndex))
+						detonate = exWHChances[selectedIndex] >= chanceDice;
+					else
+						detonate = exWHChances[chanceSize - 1] >= chanceDice;
+				}
+
+				if (detonate)
+					detonateWarhead(selectedIndex);
+			}
+		}
+		else
+		{
+			for (size_t i = 0; i < exWH.size(); i++)
+			{
+				size_t size = exWHChances.size();
+				bool detonate = true;
+				if (size > i)
+					detonate = exWHChances[i] >= random.RandomDouble();
+				else if (size > 0)
+					detonate = exWHChances[size - 1] >= random.RandomDouble();
+
+				if (!detonate)
+					continue;
+
+				detonateWarhead(static_cast<int>(i));
+			}
+		}
 }
 
 void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * pThis , CoordStruct* coords) {
@@ -80,7 +183,14 @@ void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * 
 
 	if(pThis->WeaponType){
 		auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pThis->WeaponType);
-		ApplyExtraWarheads(pThis , pWeaponExt->ExtraWarheads, pWeaponExt->ExtraWarheads_DamageOverrides, pWeaponExt->ExtraWarheads_DetonationChances, pWeaponExt->ExtraWarheads_FullDetonation, coords, pOwner);
+		ApplyNewExtraWarheads(pThis ,
+			pWeaponExt->ExtraWarheads,
+			pWeaponExt->ExtraWarheads_DamageOverrides,
+			pWeaponExt->ExtraWarheads_DetonationChances,
+			pWeaponExt->ExtraWarheads_FullDetonation,
+			pWeaponExt->ExtraWarheads_WeightsData,
+			pWeaponExt->ExtraWarheads_RollChances,
+			coords, pOwner);
 	}
 
 		// Return to sender
@@ -112,7 +222,7 @@ void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * 
 		if (pTypeExt->ReturnWeapon && pThis->Owner && pThis->Owner->IsAlive)
 		{
 			auto const RpWeapon = pTypeExt->ReturnWeapon.Get();
-			int damage = (int)TechnoExtData::GetDamageMult(pThis->Owner  , RpWeapon->Damage, !pTypeExt->ReturnWeapon_ApplyFirepowerMult);
+			int damage = (int)TechnoExtData::ApplyDamageMult(pThis->Owner  , RpWeapon->Damage, !pTypeExt->ReturnWeapon_ApplyFirepowerMult);
 
 			if (BulletClass* pBullet = RpWeapon->Projectile->CreateBullet(pThis->Owner, pThis->Owner,
 				damage, RpWeapon->Warhead, RpWeapon->Speed, RpWeapon->Bright))

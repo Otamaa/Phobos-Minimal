@@ -1,5 +1,7 @@
 #include <Ext/TechnoType/Body.h>
-
+#include <Ext/Cell/Body.h>
+#include <Utilities/Patch.h>
+#include <Utilities/Macro.h>
 
 ASMJIT_PATCH(0x5D6BF1, MultiplayerGameMode_SetBaseSpawnCell_CheckAvail, 0x5)
 {
@@ -91,16 +93,19 @@ ASMJIT_PATCH(0x65DC11, Do_Reinforcement_ValidateHouse, 0x6)
 	return 0x65DC2B;
 }
 
-ASMJIT_PATCH(0x43A002, Bounclass_Update_FixCrash, 0x9)
-{
-	GET(int, ramp, EAX);
-	//GET_STACK(BounceClass* , pThis , 0x24);
+//ASMJIT_PATCH(0x43A002, Bounclass_Update_FixCrash, 0x9)
+//{
+//	GET(int, ramp, EAX);
+//	//GET_STACK(BounceClass* , pThis , 0x24);
+//
+//	//the fuck this ramp result is wrong ,..
+//	if (ramp > 11)
+//	{
+//		//Debug::LogInfo("Updating Bounce with rampIdx %d", ramp);
+//		return 0x43A05D;
+//	}
+//
+//	return 0x0;
+//}
 
-	//the fuck this ramp result is wrong ,..
-	if(ramp > 11){
-		//Debug::LogInfo("Updating Bounce with rampIdx %d", ramp);
-		return 0x43A05D;
-	}
-
-	return 0x0;
-}
+DEFINE_FUNCTION_JUMP(CALL , 0x439FF8, FakeCellClass::_GetRampLevel)

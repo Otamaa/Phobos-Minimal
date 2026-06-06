@@ -1305,7 +1305,7 @@ int BuildingTypeExtData::GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseCl
 				isUpgrade = true;
 				for (auto const& pBld : pHouse->Buildings)
 				{
-					if (pBld->Type == pTPowersUp)
+					if (pBld->UpgradeLevel && pBld->Type == pTPowersUp)
 					{
 						for (auto const& pUpgrade : pBld->Upgrades)
 						{
@@ -2563,20 +2563,14 @@ void BuildingTypeExtData::Serialize(T& Stm)
 // container
 BuildingTypeExtContainer BuildingTypeExtContainer::Instance;
 
-bool BuildingTypeExtContainer::LoadAll(PhobosStreamReader& stm)
+bool BuildingTypeExtContainer::LoadGlobal(PhobosStreamReader& stm)
 {
-	if (!stm.Process(trenchKinds))
-		return false;
-
-	return this->base_SaveLoad_t::LoadAll(stm);
+	return stm.Process(trenchKinds);
 }
 
-bool BuildingTypeExtContainer::SaveAll(PhobosStreamWriter& stm)
+bool BuildingTypeExtContainer::SaveGlobal(PhobosStreamWriter& stm)
 {
-	if (!stm.Process(trenchKinds))
-		return false;
-
-	return this->base_SaveLoad_t::SaveAll(stm);
+	return stm.Process(trenchKinds);
 }
 
 void BuildingTypeExtContainer::Clear()
@@ -2676,3 +2670,28 @@ bool FakeBuildingTypeClass::_ReadFromINI(CCINIClass* pINI)
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E45D4, FakeBuildingTypeClass::_ReadFromINI)
 
+//HRESULT __stdcall FakeBuildingTypeClass::__Load(IStream* pStm)
+//{
+//	HRESULT hr = this->BuildingTypeClass::Load(pStm);
+//
+//	if (SUCCEEDED(hr)) {
+//		if (!BuildingTypeExtContainer::Instance.LoadByKey(this, pStm))
+//			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+//	}
+//
+//	return hr;
+//}
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4584, FakeBuildingTypeClass::__Load)
+//
+//HRESULT __stdcall FakeBuildingTypeClass::__Save(IStream* pStm, BOOL fClearDirty)
+//{
+//	HRESULT hr = this->BuildingTypeClass::Save(pStm, fClearDirty);
+//
+//	if (SUCCEEDED(hr)) {
+//		if (!BuildingTypeExtContainer::Instance.SaveByKey(this, pStm))
+//			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+//	}
+//
+//	return hr;
+//}
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4588, FakeBuildingTypeClass::__Save)

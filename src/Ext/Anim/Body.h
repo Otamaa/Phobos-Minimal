@@ -16,7 +16,8 @@ public:
 	using base_type = AnimClass;
 	static COMPILETIMEEVAL const char* ClassName = "AnimExData";
 	static COMPILETIMEEVAL const char* BaseClassName = "AnimClass";
-	
+	static COMPILETIMEEVAL DWORD Canary = 0xE150B636;
+
 public:
 
 #pragma region ClassMembers
@@ -66,6 +67,7 @@ public:
 	bool DelayedFireRemoveOnNoDelay {};
 	// 4 bools = 4 bytes, naturally aligns to next 4-byte boundary
 
+	double FirepowerMult { 1.0 };
 #pragma endregion
 
 public:
@@ -74,7 +76,7 @@ public:
 		this->Name = pObj->Type->ID;
 		this->AbsType = AnimClass::AbsID;
 	}
-	AnimExtData(AnimClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) {}
+	AnimExtData() = default;
 
 	virtual ~AnimExtData() = default;
 	//{
@@ -150,12 +152,11 @@ private:
 	void Serialize(T& Stm);
 };
 
-class AnimExtContainer final : public Container<AnimExtData>, public ContainerSaveLoad<AnimExtContainer, true>
+class AnimExtContainer final : public Container<AnimExtData>
+	, public ContainerSaveLoad<AnimExtContainer, AnimExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "AnimExtContainer";
-	using base_container_t = Container<AnimExtData>;
-	using base_SaveLoad_t = ContainerSaveLoad<AnimExtContainer, true>;
 
 public:
 
@@ -164,11 +165,12 @@ public:
 public:
 
 	static AnimExtContainer Instance;
+	using base_container_t = Container<AnimExtData>;
 
 public:
 
-	virtual bool LoadAll(PhobosStreamReader& stm) override;
-	virtual bool SaveAll(PhobosStreamWriter& stm) override;
+	virtual bool SaveGlobal(PhobosStreamWriter& stm);
+	virtual bool LoadGlobal(PhobosStreamReader& stm);
 	virtual void Clear();
 };
 
@@ -176,6 +178,9 @@ class AnimTypeExtData;
 class NOVTABLE FakeAnimClass : public AnimClass
 {
 public:
+
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	FORCEDINLINE HouseClass* _GetOwningHouse() {
 		return this->Owner;

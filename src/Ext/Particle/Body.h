@@ -14,7 +14,8 @@ public:
 	using base_type = ParticleClass;
 	static COMPILETIMEEVAL const char* ClassName = "ParticleExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "ParticleClass";
-	
+	static COMPILETIMEEVAL DWORD Canary = 0xA3457750;
+
 public:
 #pragma region ClassMembers
 	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails {};
@@ -22,7 +23,7 @@ public:
 
 public:
 	ParticleExtData(ParticleClass* pObj);
-	ParticleExtData(ParticleClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
+	ParticleExtData() = default;
 
 	virtual ~ParticleExtData() = default;
 
@@ -63,19 +64,28 @@ private:
 	void Serialize(T& Stm);
 };
 
-class ParticleExtContainer final : public Container<ParticleExtData>, public ContainerSaveLoad<ParticleExtContainer, true>
+class ParticleExtContainer final : public Container<ParticleExtData>
+	, public ContainerSaveLoad<ParticleExtContainer, ParticleExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "ParticleExtContainer";
 
 public:
 	static ParticleExtContainer Instance;
+
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
 };
 
 class ParticleTypeExtData;
 class NOVTABLE FakeParticleClass : public ParticleClass
 {
 public:
+
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
+
 	void _Detach(AbstractClass* target, bool all);
 
 	void __AI();

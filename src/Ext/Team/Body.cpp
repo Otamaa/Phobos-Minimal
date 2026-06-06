@@ -22,7 +22,6 @@
 template<typename Func, typename... Args>
 concept ReturnsBool = std::same_as<std::invoke_result_t<Func, Args...>, bool>;
 
-
 // Helper function for comparator operations
 static NOINLINE COMPILETIMEEVAL bool EvaluateComparator(int counter, AITriggerConditionComparator comp, bool ret)
 {
@@ -5588,3 +5587,29 @@ void FakeTeamClass::_Detach(AbstractClass* target, bool all)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4758, FakeTeamClass::_Detach)
+
+HRESULT __stdcall FakeTeamClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->TeamClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!TeamExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4744, FakeTeamClass::__Load)
+
+HRESULT __stdcall FakeTeamClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->TeamClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!TeamExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4748, FakeTeamClass::__Save)

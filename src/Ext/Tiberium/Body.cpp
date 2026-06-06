@@ -752,20 +752,14 @@ void TiberiumExtData::Serialize(T& Stm)
 
 TiberiumExtContainer TiberiumExtContainer::Instance;
 
-bool TiberiumExtContainer::LoadAll(PhobosStreamReader& stm)
+bool TiberiumExtContainer::LoadGlobal(PhobosStreamReader& stm)
 {
-	if (!stm.Process(LinkedType))
-		return false;
-
-	return this->base_SaveLoad_t::LoadAll(stm);
+	return stm.Process(LinkedType);
 }
 
-bool TiberiumExtContainer::SaveAll(PhobosStreamWriter& stm)
+bool TiberiumExtContainer::SaveGlobal(PhobosStreamWriter& stm)
 {
-	if (!stm.Process(LinkedType))
-		return false;
-
-	return this->base_SaveLoad_t::SaveAll(stm);
+	return stm.Process(LinkedType);
 }
 
 void TiberiumExtContainer::LoadFromINI(TiberiumClass* key, CCINIClass* pINI, bool parseFailAddr)
@@ -906,3 +900,29 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x722390, _Deinitialize_Tiberium_Spread_System);
 DEFINE_FUNCTION_JUMP(LJMP, 0x722D00, _Initialize_Tiberium_Growth_System);
 DEFINE_FUNCTION_JUMP(LJMP, 0x722E50, _Deinitialize_Tiberium_Growth_System);
 DEFINE_FUNCTION_JUMP(LJMP, 0x722AB0, TiberiumExtData::Clear_Tiberium_Spread_State);
+
+//HRESULT __stdcall FakeTiberiumClass::__Load(IStream* pStm)
+//{
+//	HRESULT hr = this->TiberiumClass::Load(pStm);
+//
+//	if (SUCCEEDED(hr)) {
+//		if (!TiberiumExtContainer::Instance.LoadByKey(this, pStm))
+//			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+//	}
+//
+//	return hr;
+//}
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F573C, FakeTiberiumClass::__Load)
+//
+//HRESULT __stdcall FakeTiberiumClass::__Save(IStream* pStm, BOOL fClearDirty)
+//{
+//	HRESULT hr = this->TiberiumClass::Save(pStm, fClearDirty);
+//
+//	if (SUCCEEDED(hr)) {
+//		if (!TiberiumExtContainer::Instance.SaveByKey(this, pStm))
+//			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+//	}
+//
+//	return hr;
+//}
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5740, FakeTiberiumClass::__Save)

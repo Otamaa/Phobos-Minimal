@@ -28,6 +28,7 @@ public:
 	using base_type = BuildingTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "BuildingTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "BuildingTypeClass";
+	static COMPILETIMEEVAL DWORD Canary = 0x5F02B0F4;
 
 public:
 
@@ -382,7 +383,7 @@ public:
 		this->AbsType = BuildingTypeClass::AbsID;
 	}
 
-	BuildingTypeExtData(BuildingTypeClass* pObj, noinit_t nn) : TechnoTypeExtData(pObj, nn) { }
+	BuildingTypeExtData() = default;
 
 	virtual ~BuildingTypeExtData() = default;
 
@@ -506,12 +507,12 @@ public:
 };
 
 class BuildingTypeExtContainer final : public Container<BuildingTypeExtData>
-	, public ReadWriteContainerInterfaces<BuildingTypeExtData>, public ContainerSaveLoad<BuildingTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<BuildingTypeExtData>
+	, public ContainerSaveLoad<BuildingTypeExtContainer, BuildingTypeExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "BuildingTypeExtContainer";
 	using base_container_t = Container<BuildingTypeExtData>;
-	using base_SaveLoad_t = ContainerSaveLoad<BuildingTypeExtContainer, true>;
 
 public:
 
@@ -522,8 +523,8 @@ public:
 
 	virtual void Clear();
 
-	virtual bool LoadAll(PhobosStreamReader& stm);
-	virtual bool SaveAll(PhobosStreamWriter& stm);
+	virtual bool SaveGlobal(PhobosStreamWriter& stm);
+	virtual bool LoadGlobal(PhobosStreamReader& stm);
 
 	virtual void LoadFromINI(BuildingTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(BuildingTypeClass* key, CCINIClass* pINI);
@@ -532,6 +533,9 @@ public:
 class NOVTABLE FakeBuildingTypeClass : public BuildingTypeClass
 {
 public:
+
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	int __Repair_Cost();
 	int __Repair_Step();

@@ -34,6 +34,12 @@
 #include <Helpers\EnumFlags.h>
 #include <GeneralDefinitions.h>
 
+enum class PeriodicWeaponTargetingMode : unsigned char {
+	Closest = 0,
+	All = 1,
+	Custom = 2
+};
+
 enum class DrawDamageMode : BYTE
 {
 	disabled, damageOnly, withWH, count

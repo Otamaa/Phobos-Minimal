@@ -9,7 +9,8 @@ public:
 	using base_type = VoxelAnimTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "VoxelAnimTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "VoxelAnimTypeClass";
-	
+	static COMPILETIMEEVAL DWORD Canary = 0x4B7DC8D8;
+
 public:
 #pragma region ClassMember
 
@@ -63,7 +64,7 @@ public:
 
 	void Initialize();
 
-	VoxelAnimTypeExtData(VoxelAnimTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
+	VoxelAnimTypeExtData() = default;
 
 	virtual ~VoxelAnimTypeExtData() = default;
 
@@ -104,7 +105,8 @@ private:
 };
 
 class VoxelAnimTypeExtContainer final : public Container<VoxelAnimTypeExtData>
-	, public ReadWriteContainerInterfaces<VoxelAnimTypeExtData>, public ContainerSaveLoad<VoxelAnimTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<VoxelAnimTypeExtData>
+	, public ContainerSaveLoad<VoxelAnimTypeExtContainer, VoxelAnimTypeExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "VoxelAnimTypeExtContainer";
@@ -114,6 +116,9 @@ public:
 public:
 	static VoxelAnimTypeExtContainer Instance;
 
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
 	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(ext_t::base_type* key, CCINIClass* pINI);
 };
@@ -121,6 +126,8 @@ public:
 class NOVTABLE FakeVoxelAnimTypeClass : public VoxelAnimTypeClass
 {
 public:
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	bool _ReadFromINI(CCINIClass* pINI);
 

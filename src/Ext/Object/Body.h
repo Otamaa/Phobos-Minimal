@@ -14,7 +14,7 @@ public:
 
 	ObjectExtData(ObjectClass* abs) : AbstractExtended(abs) {};
 
-	ObjectExtData(ObjectClass* abs, noinit_t& noint) : AbstractExtended(abs, noint) { };
+	ObjectExtData() = default;
 
 	virtual ~ObjectExtData() = default;
 

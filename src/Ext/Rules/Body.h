@@ -31,7 +31,7 @@ private:
 	static std::unique_ptr<RulesExtData> Data;
 
 public:
-	static COMPILETIMEEVAL size_t Canary = 0x12341234;
+	static COMPILETIMEEVAL DWORD Canary = 0x126E225E;
 	using base_type = RulesClass;
 
 	base_type* AttachedToObject {};
@@ -634,6 +634,9 @@ public:
 
 	Nullable<PartialVector2D<int>> BuildingGuardRetryDelay {};
 	Valueable<bool> DiscardOn_ConsiderHoverAsMoving { false };
+
+	Valueable<int> PrismRelay_SupportTimeout {};
+	Valueable<bool> RemoveMindControl_Silent { false };
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

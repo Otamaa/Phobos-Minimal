@@ -22,7 +22,8 @@ public:
 	using base_type = BulletTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "BulletTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "BulletTypeClass";
-	
+	static COMPILETIMEEVAL DWORD Canary = 0xAD2BF3E6;
+
 public:
 
 #pragma region ClassMembers
@@ -164,7 +165,7 @@ public:
 		this->AbsType = BulletTypeClass::AbsID;
 	}
 
-	BulletTypeExtData(BulletTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
+	BulletTypeExtData() = default;
 
 	virtual ~BulletTypeExtData() = default;
 
@@ -258,13 +259,17 @@ public:
 };
 
 class BulletTypeExtContainer final : public Container<BulletTypeExtData>
-	, public ReadWriteContainerInterfaces<BulletTypeExtData>, public ContainerSaveLoad<BulletTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<BulletTypeExtData>
+	, public ContainerSaveLoad<BulletTypeExtContainer, BulletTypeExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "BulletTypeExtContainer";
 
 public:
 	static BulletTypeExtContainer Instance;
+
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
 
 	virtual void LoadFromINI(BulletTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(BulletTypeClass* key, CCINIClass* pINI);
@@ -281,6 +286,9 @@ public:
 		static COMPILETIMEEVAL const char* ClassName = "FakeBulletTypeClass";
 
 public:
+
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	bool _ReadFromINI(CCINIClass* pINI);
 

@@ -13,7 +13,8 @@ public:
 	using base_type = ParticleSystemTypeClass;
 	static COMPILETIMEEVAL const char* ClassName = "ParticleSystemTypeExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "ParticleSystemTypeClass";
-	
+	static COMPILETIMEEVAL DWORD Canary = 0x813F40DC;
+
 public:
 
 #pragma region ClassMembers
@@ -37,7 +38,7 @@ public:
 		this->AbsType = ParticleSystemTypeClass::AbsID;
 	}
 
-	ParticleSystemTypeExtData(ParticleSystemTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
+	ParticleSystemTypeExtData() = default;
 
 	virtual ~ParticleSystemTypeExtData() = default;
 
@@ -78,7 +79,8 @@ private:
 };
 
 class ParticleSystemTypeExtContainer final : public Container<ParticleSystemTypeExtData>
-	, public ReadWriteContainerInterfaces<ParticleSystemTypeExtData>, public ContainerSaveLoad<ParticleSystemTypeExtContainer, true>
+	, public ReadWriteContainerInterfaces<ParticleSystemTypeExtData>
+	, public ContainerSaveLoad<ParticleSystemTypeExtContainer, ParticleSystemTypeExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "BulletTypeExtContainer";
@@ -87,6 +89,9 @@ public:
 public:
 	static ParticleSystemTypeExtContainer Instance;
 
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
 	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
 	virtual void WriteToINI(ext_t::base_type* key, CCINIClass* pINI);
 };
@@ -94,6 +99,9 @@ public:
 class NOVTABLE FakeParticleSystemTypeClass : public ParticleSystemTypeClass
 {
 public:
+
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	bool _ReadFromINI(CCINIClass* pINI);
 

@@ -168,7 +168,10 @@ bool PhobosPCXFile::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 				Debug::LogInfo("PCX file[{}] not found.", this->filename.data());
 			}
 
-			PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr,  this->Surface, "BSurface")
+			std::string _reg = "BSurface ";
+						_reg += this->filename.data();
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr,  this->Surface, _reg.c_str());
 		} else {
 			this->Surface = iter.surface;
 		}

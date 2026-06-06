@@ -9,6 +9,7 @@
 class TeamTypeExtData
 {
 public:
+	static COMPILETIMEEVAL DWORD Canary = 0xD2F52D0C;
 	/*
 	class ExtData final : public Extension<TeamTypeClass>
 	{

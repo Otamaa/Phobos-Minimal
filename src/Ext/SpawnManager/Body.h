@@ -7,6 +7,7 @@
 
 class SpawnManagerExtData
 {
+	static COMPILETIMEEVAL DWORD Canary = 0xF1873186;
 public:
 	/*
 	class ExtData final : public Extension<SpawnManagerClass>

@@ -1672,10 +1672,15 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		this->Passengers_BySize.Read(exINI, pSection, "Passengers.BySize");
 		this->Convert_Deploy.Read(exINI, pSection, "Convert.Deploy");
+		this->Convert_Undeploy.Read(exINI, pSection, "Convert.Undeploy");
 		this->Convert_Deploy_Delay.Read(exINI, pSection, "Convert.DeployDelay");
 		this->Convert_Script.Read(exINI, pSection, "Convert.Script");
 		this->Convert_Water.Read(exINI, pSection, "Convert.Water");
 		this->Convert_Land.Read(exINI, pSection, "Convert.Land");
+
+		this->Ammo_AutoConvertMinimumAmount.Read(exINI, pSection, "Ammo.AutoConvertMinimumAmount");
+		this->Ammo_AutoConvertMaximumAmount.Read(exINI, pSection, "Ammo.AutoConvertMaximumAmount");
+		this->Ammo_AutoConvertType.Read(exINI, pSection, "Ammo.AutoConvertType");
 
 		this->Harvester_LongScan.Read(exINI, pSection, "Harvester.LongScan");
 		this->Harvester_ShortScan.Read(exINI, pSection, "Harvester.ShortScan");

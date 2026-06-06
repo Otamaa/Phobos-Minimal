@@ -3,6 +3,7 @@
 #include <atlcomcli.h>
 #include <CStreamClass.h>
 
+template<bool disableCompressor>
 struct CompressedStream
 {
 	ATL::CComPtr<IStream> Raw;
@@ -16,13 +17,21 @@ struct CompressedStream
 			0, 0, &Raw);
 		if (FAILED(hr)) return hr;
 
-		Compressor = new CStreamClass();
-		if (!Compressor) return E_OUTOFMEMORY;
+		if constexpr (!disableCompressor)
+		{
+			Compressor = new CStreamClass();
+			if (!Compressor) return E_OUTOFMEMORY;
 
-		hr = Compressor->Link_Stream(Raw);
-		if (FAILED(hr)) return hr;
+			hr = Compressor->Link_Stream(Raw);
+			if (FAILED(hr)) return hr;
 
-		return Compressor->QueryInterface(__uuidof(IStream), (void**)&Stream);
+			return Compressor->QueryInterface(__uuidof(IStream), (void**)&Stream);
+		}
+		else
+		{
+			Stream = Raw;
+			return S_OK;
+		}
 	}
 
 	HRESULT Open(IStorage* storage, const OLECHAR* name)
@@ -31,13 +40,21 @@ struct CompressedStream
 			STGM_READ | STGM_SHARE_EXCLUSIVE, 0, &Raw);
 		if (FAILED(hr)) return hr;
 
-		Compressor = new CStreamClass();
-		if (!Compressor) return E_OUTOFMEMORY;
+		if constexpr (!disableCompressor)
+		{
+			Compressor = new CStreamClass();
+			if (!Compressor) return E_OUTOFMEMORY;
 
-		hr = Compressor->Link_Stream(Raw);
-		if (FAILED(hr)) return hr;
+			hr = Compressor->Link_Stream(Raw);
+			if (FAILED(hr)) return hr;
 
-		return Compressor->QueryInterface(__uuidof(IStream), (void**)&Stream);
+			return Compressor->QueryInterface(__uuidof(IStream), (void**)&Stream);
+		}
+		else
+		{
+			Stream = Raw;
+			return S_OK;
+		}
 	}
 
 	void Close()

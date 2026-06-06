@@ -244,6 +244,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	this->RemoveDisguise.Read(exINI, pSection, "RemoveDisguise");
 	this->RemoveMindControl.Read(exINI, pSection, "RemoveMindControl");
+	this->RemoveMindControl_Silent.Read(exINI, pSection, "RemoveMindControl.Silent");
 	this->AnimList_PickRandom.Read(exINI, pSection, "AnimList.PickRandom");
 	this->AnimList_CreateAll.Read(exINI, pSection, "AnimList.CreateAll");
 	this->AnimList_CreationInterval.Read(exINI, pSection, "AnimList.CreationInterval");
@@ -1788,6 +1789,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->SplashList_ScatterMax)
 		.Process(this->RemoveDisguise)
 		.Process(this->RemoveMindControl)
+		.Process(this->RemoveMindControl_Silent)
 		.Process(this->AnimList_PickRandom)
 		.Process(this->AnimList_CreateAll)
 		.Process(this->AnimList_CreationInterval)
@@ -3572,20 +3574,14 @@ void WarheadTypeExtData::ApplyBuildingUndeploy(TechnoClass* pTarget) {
 // container
 WarheadTypeExtContainer WarheadTypeExtContainer::Instance;
 
-bool WarheadTypeExtContainer::LoadAll(PhobosStreamReader& stm)
+bool WarheadTypeExtContainer::LoadGlobal(PhobosStreamReader& stm)
 {
-	if (!stm.Process(WarheadTypeExtData::IonBlastExt))
-		return false;
-
-	return this->base_SaveLoad_t::LoadAll(stm);
+	return stm.Process(WarheadTypeExtData::IonBlastExt);
 }
 
-bool WarheadTypeExtContainer::SaveAll(PhobosStreamWriter& stm)
+bool WarheadTypeExtContainer::SaveGlobal(PhobosStreamWriter& stm)
 {
-	if (!stm.Process(WarheadTypeExtData::IonBlastExt))
-		return false;
-
-	return this->base_SaveLoad_t::SaveAll(stm);
+	return stm.Process(WarheadTypeExtData::IonBlastExt);
 }
 
 void WarheadTypeExtContainer::Clear()
@@ -3683,3 +3679,29 @@ void FakeWarheadTypeClass::_Detach(AbstractClass* target, bool all)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6B58, FakeWarheadTypeClass::_Detach)
+
+HRESULT __stdcall FakeWarheadTypeClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->WarheadTypeClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!WarheadTypeExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6B44, FakeWarheadTypeClass::__Load)
+
+HRESULT __stdcall FakeWarheadTypeClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->WarheadTypeClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!WarheadTypeExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6B48, FakeWarheadTypeClass::__Save)

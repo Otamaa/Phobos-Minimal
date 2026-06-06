@@ -9,6 +9,7 @@ public:
 	using base_type = DiskLaserClass;
 	static COMPILETIMEEVAL const char* ClassName = "DiskLaserExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "DiskLaserClass";
+	static COMPILETIMEEVAL DWORD Canary = 0x94B84025;
 
 public :
 	int WeaponIdx { 0 };
@@ -18,7 +19,7 @@ public :
 		this->AbsType = DiskLaserClass::AbsID;
 	}
 
-	DiskLaserExtData(DiskLaserClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) {}
+	DiskLaserExtData() = default;
 
 	virtual ~DiskLaserExtData() = default;
 
@@ -48,18 +49,24 @@ private:
 };
 
 class DiskLaserExtContainer final : public Container<DiskLaserExtData>
-	, public ContainerSaveLoad<DiskLaserExtContainer, false>
+	, public ContainerSaveLoad<DiskLaserExtContainer, DiskLaserExtData>
 {
 public:
 	static COMPILETIMEEVAL const char* ClassName = "DiskLaserExtContainer";
 
 public:
 	static DiskLaserExtContainer Instance;
+
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
 };
 
 class NOVTABLE FakeDiskLaserClass : public DiskLaserClass
 {
 public:
+
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	void __AI();
 	void __Fire(TechnoClass* firer, AbstractClass* target, WeaponTypeClass* weapon, int damage_multiplier);

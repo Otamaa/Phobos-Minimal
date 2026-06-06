@@ -10,7 +10,8 @@ public:
 	using base_type = BombClass;
 	static COMPILETIMEEVAL const char* ClassName = "BombExtData";
 	static COMPILETIMEEVAL const char* BaseClassName = "BombClass";
-	
+	static COMPILETIMEEVAL DWORD Canary = 0x5353FF6F;
+
 public:
 
 	WeaponTypeExtData* Weapon { nullptr };
@@ -21,7 +22,7 @@ public:
 		this->AbsType = BombClass::AbsID;
 	}
 
-	BombExtData(BombClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
+	BombExtData() = default;
 
 	virtual ~BombExtData() = default;
 
@@ -52,7 +53,7 @@ private:
 };
 
 class BombExtContainer final : public Container<BombExtData>
-	, public ContainerSaveLoad<BombExtContainer, false>
+	, public ContainerSaveLoad<BombExtContainer, BombExtData>
 {
 public:
 
@@ -61,11 +62,17 @@ public:
 public:
 	static BombExtContainer Instance;
 
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
 };
 
 class NOVTABLE FakeBombClass : public BombClass
 {
 public:
+
+	HRESULT __stdcall __Load(IStream* pStm);
+	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	HouseClass* _GetOwningHouse() {
 		return this->OwnerHouse;

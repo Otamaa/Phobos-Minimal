@@ -675,3 +675,29 @@ void FakeRadSiteClass::__AI()
 		}
 	});
 }
+
+HRESULT __stdcall FakeRadSiteClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->RadSiteClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!RadSiteExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0824, FakeRadSiteClass::__Load)
+
+HRESULT __stdcall FakeRadSiteClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->RadSiteClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!RadSiteExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0828, FakeRadSiteClass::__Save)

@@ -3,6 +3,155 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/WarheadType/Body.h>
 
+void AEProperties::RecalculateSingle(TechnoClass* pTechno, PhobosAttachEffectClass* pAE, bool* forceDecloakResult, bool* ActuallyNeedRecalc, bool recalc)
+{
+	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
+	auto const type = pAE->GetType();
+	auto _AEProp = &pExt->AE;
+
+	double ROF_Mult = _AEProp->ROFMultiplier;
+	double ReceiveRelativeDamageMult = _AEProp->ReceiveRelativeDamageMult;
+	double FP_Mult = _AEProp->Crate_FirepowerMultiplier;
+	double Armor_Mult = _AEProp->Crate_ArmorMultiplier;
+	double Speed_Mult = _AEProp->Crate_SpeedMultiplier;
+
+	FP_Mult *= type->FirepowerMultiplier;
+	Speed_Mult *= type->SpeedMultiplier;
+	ROF_Mult *= type->ROFMultiplier;
+	Armor_Mult *= type->ArmorMultiplier;
+	ReceiveRelativeDamageMult += type->ReceiveRelativeDamageMult;
+
+	bool Cloak = GET_TECHNOTYPE(pTechno)->Cloakable
+		|| pTechno->HasAbility(AbilityType::Cloak)
+		|| pExt->AE.flags.Cloakable;
+	
+	bool forceDecloak = _AEProp->flags.ForceDecloak;
+	bool disableWeapons = _AEProp->flags.DisableWeapons;
+	bool disableSelfHeal = _AEProp->flags.DisableSelfHeal;
+	bool untrackable = _AEProp->flags.Untrackable;
+	bool disableRadar = _AEProp->flags.DisableRadar;
+	bool disableSpySat = _AEProp->flags.DisableSpySat;
+	bool unkillable = _AEProp->flags.Unkillable;
+	bool hasExtraWH = _AEProp->flags.HasExtraWarheads;
+	bool hasFeedbackWeapon = _AEProp->flags.HasFeedbackWeapon;
+
+	bool wasTint = _AEProp->flags.HasTint;
+	bool hasTint = false;
+	bool reflectsDamage = _AEProp->flags.ReflectDamage;
+	bool hasOnFireDiscardables = _AEProp->flags.HasOnFireDiscardables;
+
+	auto extraRangeData = &_AEProp->ExtraRange;
+	auto extraCritData = &_AEProp->ExtraCrit;
+	auto armormultData = &_AEProp->ArmorMultData;
+
+	Cloak |= type->Cloakable;
+	forceDecloak |= type->ForceDecloak;
+	disableWeapons |= type->DisableWeapons;
+	disableSelfHeal |= type->DisableSelfHeal;
+	untrackable |= type->Untrackable;
+	disableRadar |= type->DisableRadar;
+	disableSpySat |= type->DisableSpySat;
+	unkillable |= type->Unkillable;
+	hasExtraWH |= !type->ExtraWarheads.empty();
+	hasFeedbackWeapon |= type->FeedbackWeapon != nullptr;
+	hasTint |= type->HasTint();
+	reflectsDamage |= type->ReflectDamage;
+	hasOnFireDiscardables |= (type->DiscardOn & DiscardCondition::Firing) != DiscardCondition::None;
+
+	std::optional<double> cur_timerAE {};
+
+	if (type->ROFMultiplier_ApplyOnCurrentTimer)
+	{
+		if (!cur_timerAE.has_value())
+			cur_timerAE = type->ROFMultiplier;
+		else
+			cur_timerAE.value() *= type->ROFMultiplier;
+	}
+
+	if (type->WeaponRange_Multiplier != 1.0 || type->WeaponRange_ExtraRange != 0.0)
+	{
+		auto& entry = extraRangeData->ranges.emplace_back();
+		entry.rangeMult = type->WeaponRange_Multiplier;
+		entry.extraRange = type->WeaponRange_ExtraRange * Unsorted::LeptonsPerCell;
+		entry.allow = &type->WeaponRange_AllowWeapons;
+		entry.disallow = &type->WeaponRange_DisallowWeapons;
+	}
+
+	if (type->Crit_Multiplier != 1.0 || type->Crit_ExtraChance != 0.0)
+	{
+		auto& entry = extraCritData->ranges.emplace_back();
+		entry.Mult = type->Crit_Multiplier;
+		entry.extra = type->Crit_ExtraChance;
+		entry.allow = &type->Crit_AllowWarheads;
+		entry.disallow = &type->Crit_DisallowWarheads;
+	}
+
+	if (type->ArmorMultiplier != 1.0)
+	{
+		auto& entry = armormultData->mults.emplace_back();
+		entry.Mult = type->ArmorMultiplier;
+		entry.allow = &type->ArmorMultiplier_AllowWarheads;
+		entry.disallow = &type->ArmorMultiplier_DisallowWarheads;
+	}
+
+	// #region Apply ROF timer adjustment
+
+	if (cur_timerAE.has_value() && cur_timerAE > 0.0)
+	{
+		const int timeleft = pTechno->RearmTimer.GetTimeLeft();
+
+		if (timeleft > 0)
+			pTechno->RearmTimer.Start(int(timeleft * cur_timerAE.value()));
+		else
+			pTechno->RearmTimer.Stop();
+
+		pTechno->ROF = static_cast<int>(pTechno->ROF * cur_timerAE.value());
+	}
+
+	// #endregion
+
+	// #region Write back results
+
+	pTechno->FirepowerMultiplier = FP_Mult;
+	pTechno->ArmorMultiplier = Armor_Mult;
+	_AEProp->ROFMultiplier = ROF_Mult;
+	_AEProp->ReceiveRelativeDamageMult = ReceiveRelativeDamageMult;
+	pTechno->Cloakable = Cloak;
+
+	*forceDecloakResult |= _AEProp->flags.ForceDecloak = forceDecloak;
+	_AEProp->flags.DisableWeapons = disableWeapons;
+	_AEProp->flags.DisableSelfHeal = disableSelfHeal;
+	_AEProp->flags.Untrackable = untrackable;
+	_AEProp->flags.HasTint = hasTint;
+	_AEProp->flags.ReflectDamage = reflectsDamage;
+	_AEProp->flags.HasOnFireDiscardables = hasOnFireDiscardables;
+	_AEProp->flags.Unkillable = unkillable;
+	_AEProp->flags.HasExtraWarheads = hasExtraWH;
+	_AEProp->flags.HasFeedbackWeapon = hasFeedbackWeapon;
+
+	if (((bool)_AEProp->flags.DisableRadar != disableRadar) || ((bool)_AEProp->flags.DisableSpySat != disableSpySat))
+		pTechno->Owner->RecheckRadar = true;
+
+	_AEProp->flags.DisableRadar = disableRadar;
+	_AEProp->flags.DisableSpySat = disableSpySat;
+
+	if (pTechno->AbstractFlags & AbstractFlags::Foot)
+		((FootClass*)pTechno)->SpeedMultiplier = Speed_Mult;
+
+	if (wasTint || hasTint) {
+		if(!ActuallyNeedRecalc){
+			if (recalc)
+				pTechno->MarkForRedraw();
+			pExt->Tints.Update();
+		} else {
+			*ActuallyNeedRecalc = true;
+		}
+	}
+
+
+	// #endregion
+}
+
 void AEProperties::Recalculate(TechnoClass* pTechno)
 {
 	auto pExt = TechnoExtContainer::Instance.Find(pTechno);

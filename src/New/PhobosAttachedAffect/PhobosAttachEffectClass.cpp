@@ -55,7 +55,7 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 	}
 
 	if (pInvoker && pInvoker->IsAlive) {
-		this->Duration = (int)TechnoExtData::GetDamageMult(pInvoker, this->Duration, !pType->Duration_ApplyFirepowerMult);
+		this->Duration = (int)TechnoExtData::ApplyDamageMult(pInvoker, this->Duration, !pType->Duration_ApplyFirepowerMult);
 	}
 
 	if (pType->Duration_ApplyArmorMultOnTarget && this->Duration > 0) // count its own ArmorMultiplier as well
@@ -157,10 +157,12 @@ void PhobosAttachEffectClass::AI()
 				pTechno->ROF = static_cast<int>(pTechno->ROF * ROFModifier);
 		}
 
-		if (pType->HasTint())
-			pTechno->MarkForRedraw();
+		bool decloak = false;
+		AEProperties::RecalculateSingle(this->Techno, this, &decloak, nullptr, true);
 
-		this->NeedsRecalculateStat = true;
+		if(decloak)
+			this->Techno->Uncloak(true);
+
 		HandleEvent(pTechno);
 	}
 
@@ -181,7 +183,6 @@ void PhobosAttachEffectClass::AI()
 		if (!this->ShouldBeDiscardedNow())
 		{
 			this->RefreshDuration();
-			this->NeedsRecalculateStat = true;
 			this->NeedsDurationRefresh = false;
 			HandleEvent(this->Techno);
 		}
@@ -506,7 +507,12 @@ void PhobosAttachEffectClass::OnlineCheck()
 	this->IsOnline = isActive;
 
 	if (isActive != this->LastActiveStat) {
-		this->NeedsRecalculateStat = true;
+		bool decloak = false;
+		AEProperties::RecalculateSingle(this->Techno, this, &decloak, nullptr, true);
+
+		if(decloak)
+			this->Techno->Uncloak(true);
+
 		this->LastActiveStat = isActive;
 	}
 
@@ -625,7 +631,7 @@ void PhobosAttachEffectClass::RefreshDuration(int durationOverride)
 	}
 
 	if (this->Invoker && this->Invoker->IsAlive) {
-		this->Duration = (int)TechnoExtData::GetDamageMult(this->Invoker, this->Duration, !this->Type->Duration_ApplyFirepowerMult);
+		this->Duration = (int)TechnoExtData::ApplyDamageMult(this->Invoker, this->Duration, !this->Type->Duration_ApplyFirepowerMult);
 	}
 
 	if (this->Type->Duration_ApplyArmorMultOnTarget && this->Duration > 0) // count its own ArmorMultiplier as well
@@ -742,6 +748,7 @@ int PhobosAttachEffectClass::Attach(TechnoClass* pTarget, HouseClass* pInvokerHo
 	auto const pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
 	int attachedCount = 0;
 	bool markForRedraw = false;
+	bool decloak = false;
 	double ROFModifier = 1.0;
 	bool selfOwned = pTarget == pSource;
 
@@ -756,11 +763,10 @@ int PhobosAttachEffectClass::Attach(TechnoClass* pTarget, HouseClass* pInvokerHo
 
 			if (params.InitialDelay <= 0)
 			{
+				AEProperties::RecalculateSingle(pTarget, pAE, &decloak, &markForRedraw, false);
+
 				if (pType->ROFMultiplier > 0.0 && pType->ROFMultiplier_ApplyOnCurrentTimer)
 					ROFModifier *= pType->ROFMultiplier;
-
-				if (pType->HasTint())
-					markForRedraw = true;
 
 				if (pType->Cumulative && pType->CumulativeAnimations.size() > 0)
 					PhobosAEFunctions::UpdateCumulativeAttachEffects(pTarget, pType , nullptr);
@@ -775,10 +781,14 @@ int PhobosAttachEffectClass::Attach(TechnoClass* pTarget, HouseClass* pInvokerHo
 	}
 
 	if (attachedCount > 0){
-		AEProperties::Recalculate(pTarget);
 
-		if (markForRedraw)
+		if (markForRedraw) {
 			pTarget->MarkForRedraw();
+			pTargetExt->Tints.Update();
+		}
+
+		if (decloak && pTarget->CloakState == CloakState::Cloaked)
+			pTarget->Uncloak(true);
 	}
 
 	return attachedCount;
