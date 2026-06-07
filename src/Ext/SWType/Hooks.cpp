@@ -31,7 +31,59 @@
 #include <FPSCounter.h>
 #include <EventClass.h>
 
+//TODO :
+// check Fire_SW calls they using types in the dll but in the game mostly using array index 
 #pragma endregion
+ASMJIT_PATCH(0x4F6202, Houclass_CTOR_CreateSupers, 0x6) {
+	GET(HouseClass*, pThis, EBP);
+
+	for (auto& pSWType : *SuperWeaponTypeClass::Array) {
+		pThis->Supers.emplace_back(GameCreate<SuperClass>(pSWType, pThis));
+	}
+
+	return 0x4F6296;
+}
+
+ASMJIT_PATCH(0x4F71A3, HouseClass_DTOR_ClearSupers, 0x6)
+{
+	GET(HouseClass*, pThis, ESI);
+
+	for (auto& pSW : pThis->Supers) {
+		CallDTOR(pSW);
+		pSW = nullptr;
+	}
+
+	pThis->Supers.clear();
+	return 0x4F71DD;
+}
+
+ASMJIT_PATCH(0x692B06, ScrillClass_ChooseAction_SW, 0x5)
+{
+	GET(ObjectClass*, pSrc, ESI);
+	GET(CellStruct*, pDest, EBP);
+
+	Action _result = Action::None;
+
+	if (auto pSW = SuperWeaponTypeClass::Array
+		->get_or_default(Unsorted::CurrentSWType())) { 
+		CoordStruct buffer {};
+		_result = pSW->MouseOverObject(*pDest, pSrc);
+	}
+
+	R->EAX(_result);
+	return 0x692B20;
+}
+
+ASMJIT_PATCH(0x6DC1AF, TacticalClass_DrawTargetingLines, 0x5)
+{
+	if (SuperWeaponTypeClass* pSW = SuperWeaponTypeClass::Array
+		->get_or_default(Unsorted::CurrentSWType())) {
+		R->EDI(pSW);
+		return 0x6DC1C6;
+	}
+	
+	return 0x6DC3F3;
+}
 
 //ASMJIT_PATCH_AGAIN(0x55B6F8, LogicClass_Update, 0xC) //_End
 std::chrono::high_resolution_clock::time_point lastFrameTime;
@@ -41,6 +93,7 @@ ASMJIT_PATCH(0x55B68D, LogicClass_Update_House, 0x5) {
 	for (auto pHouse : *HouseClass::Array) {
 		if (pHouse) {
 			pHouse->Update();
+			HouseExtData::UpdateTogglePower(pHouse);
 		}
 	}
 
@@ -101,56 +154,12 @@ ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 	HouseExtData::UpdateAutoDeathObjects();
 	HouseExtData::UpdateTransportReloaders();
 
-	for (auto pHouse : *HouseClass::Array) {
-		HouseExtData::UpdateTogglePower(pHouse);
-	}
-
 	for(auto pSuper : *SuperClass::Array){
 		pSuper->Update();
 	}
 
-	//auto pCellbegin = MapClass::Instance->Cells.Items;
-	//auto pCellCount = MapClass::Instance->Cells.Capacity;
-	//auto pCellend = MapClass::Instance->Cells.Items + pCellCount;
-
-	//for (auto begin = pCellbegin; begin != pCellend; ++begin)
-	//{
-	//	if(auto pCell = *begin)
-	//	{
-	//		std::wstring pText((size_t)(0x18 + 1), L'#');
-	//		mbstowcs(&pText[0], std::to_string((int)pCell->Flags).c_str(), 0x18);
-	//
-	//		Point2D pixelOffset = Point2D::Empty;
-	//		int width = 0, height = 0;
-	//		BitFont::Instance->GetTextDimension(pText.c_str(), &width, &height, 120);
-	//		pixelOffset.X -= (width / 2);
-	//
-	//		auto pos = TacticalClass::Instance->CoordsToView(pCell->GetCoords());
-	//		pos += pixelOffset;
-	//		auto bound = DSurface::Temp->Get_Rect_WithoutBottomBar();
-	//
-	//		auto const pOWner = HouseClass::CurrentPlayer();
-	//
-	//		if (!(pos.X < 0 || pos.Y < 0 || pos.X > bound.Width || pos.Y > bound.Height))
-	//		{
-	//			Point2D tmp { 0,0 };
-	//			Fancy_Text_Print_Wide(tmp, pText.c_str(), DSurface::Temp(), bound, pos, ColorScheme::Array->Items[pOWner->ColorSchemeIndex), 0, TextPrintType::Center, 1);
-	//		}
-	//	}
-	//}
-
-	//remove all invalid teams
-	// for (auto&[h, teams] : HouseExtContainer::HousesTeams) {
-	// 	teams.remove_all_if([](TeamClass* pTeam) {
-	// 		return !pTeam->Type ||
-	// 		// team changing owner
-	// 		 (pTeam->FirstUnit && pTeam->OwnerHouse != pTeam->FirstUnit->Owner);
-	// 	});
-	// }
-
 	return 0x0;
 }//
-
 
 void FakeTacticalClass::__DrawAllTacticalText(wchar_t* text)
 {
@@ -581,33 +590,27 @@ ASMJIT_PATCH(0x4F9004 ,HouseClass_Update_TrySWFire, 7)
 	return Continue;
 }
 
-ASMJIT_PATCH(0x6CEEB0, SuperWeaponTypeClass_FindFirstOfAction, 8)
-{
-	GET(Action, action, ECX);
-
+SuperWeaponTypeClass *__fastcall From_Action(Action action) {
 	SuperWeaponTypeClass* pFound = nullptr;
 
 	// this implementation is as stupid as short sighted, but it should work
 	// for the moment. as there are no actions any more, this has to be
 	// reworked if powerups are expanded. for now, it only has to find a nuke.
 	// Otama : can be use for `TeamClass_IronCurtain` stuffs
-	for (auto pType : *SuperWeaponTypeClass::Array)
-	{
-		if (pType->Action == action)
-		{
+	for (auto pType : *SuperWeaponTypeClass::Array) {
+		if (pType->Action == action) {
 			pFound = pType;
 			break;
 		}
 	}
 
 	// put a hint into the debug log to explain why we will crash now.
-	if (!pFound)
-	{
-		Debug::FatalErrorAndExit("Failed finding an Action=Nuke or Type=MultiMissile super weapon to be granted by ICBM crate.");
+	if (!pFound) {
+		Debug::Log("Failed finding an Action=Nuke or Type=MultiMissile super weapon to be granted by ICBM crate.");
+		return nullptr;
 	}
 
-	R->EAX(pFound);
-	return 0x6CEEE5;
+	return pFound;
 }
 
 // ASMJIT_PATCH(0x6D49D1, TacticalClass_Draw_TimerVisibility, 5)
@@ -629,6 +632,7 @@ ASMJIT_PATCH(0x6CEEB0, SuperWeaponTypeClass_FindFirstOfAction, 8)
 // 	return pThis->IsOnHold ? DrawSuspended : DrawNormal;
 // }
 
+DEFINE_FUNCTION_JUMP(LJMP, 0x6CEEB0 , From_Action)
 DEFINE_FUNCTION_JUMP(LJMP, 0x5098F0, FakeHouseClass::_AITryFireSW)
 
 ASMJIT_PATCH(0x4C78D6, Networking_RespondToEvent_SpecialPlace, 8)

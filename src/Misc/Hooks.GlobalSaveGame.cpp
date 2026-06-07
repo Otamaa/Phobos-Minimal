@@ -403,6 +403,8 @@ HRESULT Phobos::SaveAllEarlyData(IStream* pStm)
 	hr = WriteBlocksToStreamD(AircraftTypeExtContainer::Instance, pStm, AircraftTypeExtData::Canary);
 	if (!SUCCEEDED(hr)) return hr;
 
+	hr = WriteBlocksToStreamD(AnimExtContainer::Instance, pStm, AnimExtData::Canary);
+	if (!SUCCEEDED(hr)) return hr;
 	//more
 	return hr;
 }

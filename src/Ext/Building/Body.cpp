@@ -759,8 +759,6 @@ void BuildingExtData::StoreTiberium(BuildingClass* pThis, float amount, int idxT
 	}
 }
 
-static std::vector<BuildingClass*> airFactoryBuilding;
-
 void BuildingExtData::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 {
 	auto pOwner = pThis->Owner;
@@ -3155,6 +3153,86 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x459ED0, FakeBuildingClass::__GetUIName)
 	  }
   }
 
+#include <Ext/Super/Body.h>
+
+  void NOINLINE AddSuperToArray(int idx, BuildingClass* pBld) {
+	  const auto pSuperType = SuperWeaponTypeClass::Array->Items[idx];
+	  auto pBldExt = BuildingExtContainer::Instance.Find(pBld);
+
+	  if (SWTypeExtContainer::Instance.Find(pSuperType)->SW_Unique) {
+		  if (pBld->Owner->Supers.any_of([pSuperType](SuperClass* pSuper) {
+				  return pSuper->Type == pSuperType;
+			  })) return;
+	  }
+
+	  auto pSuper = GameCreate<SuperClass>(pSuperType, pBld->Owner);
+	  pBld->Owner->Supers.emplace_back(pSuper);
+	  pBldExt->Supers.push_back(pSuper);
+	  SuperExtContainer::Instance.Find(pSuper)->Firer = pBld;
+  }
+
+  //Add own supers to respective arrays
+  void BuildingExtData::AddSupers()
+  {
+	  auto pBldType = this->GetTypeExtData()->This();
+	  auto pBld = this->This();
+
+	  if (pBldType->SuperWeapon != -1) {
+		  AddSuperToArray(pBldType->SuperWeapon, pBld);
+	  }
+
+	  if (pBldType->SuperWeapon2 != -1) {
+		  AddSuperToArray(pBldType->SuperWeapon2, pBld);
+	  }
+
+	  for (auto spr : this->GetTypeExtData()->SuperWeapons) {
+		  if (spr != -1)
+			  AddSuperToArray(spr, pBld);
+	  }
+
+	  if (!this->Supers.empty()) {
+		  //TODO : call the SW update
+		  this->This()->Owner->RecheckTechTree = true;
+	  }
+  }
+
+  //add upgrade supers to parent arrays
+  void BuildingExtData::AddSupers(BuildingClass* pDest)
+  {
+	  auto pBldType = this->GetTypeExtData()->This();
+	  auto pDestExt = BuildingExtContainer::Instance.Find(pDest);
+
+	  if (pBldType->SuperWeapon != -1) {
+		  AddSuperToArray(pBldType->SuperWeapon, pDest);
+	  }
+
+	  if (pBldType->SuperWeapon2 != -1) {
+		  AddSuperToArray(pBldType->SuperWeapon2, pDest);
+	  }
+
+	  for (auto spr : this->GetTypeExtData()->SuperWeapons) {
+		  if (spr != -1)
+			  AddSuperToArray(spr, pDest);
+	  }
+
+	  if (!pDestExt->Supers.empty()) {
+		  //TODO : call the SW update
+		  pDest->Owner->RecheckTechTree = true;
+	  }
+  }
+
+  //remove all supers from respective array
+  void BuildingExtData::RemoveSupers()
+  {
+	  for (auto& pSW : this->Supers) {
+		  this->This()->Owner->Supers.erase(pSW);
+		  GameDelete(pSW);
+	  }
+
+	  //TODO : call the SW update
+	  this->This()->Owner->RecheckTechTree = true;
+  }
+
   int BuildingExtData::GetImageFrameIndex(BuildingClass* pThis)
   {
 	  BuildingTypeExtData* pData = BuildingTypeExtContainer::Instance.Find(pThis->Type);
@@ -3260,6 +3338,7 @@ void BuildingExtData::Serialize(T& Stm)
 		.Process(this->TurretAnimRateTick)
 		.Process(this->FactoryBuildingMe)
 		.Process(this->airFactoryBuilding)
+		.Process(this->Supers)
 		.Process(this->FreeUnitDone)
 		.Process(this->SeparateRepair)
 		;

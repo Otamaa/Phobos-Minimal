@@ -141,6 +141,8 @@ public:
 	Valueable<bool> Splits_TargetingDistance_Cylindrical { false };
 	Valueable<bool> Splits_AllowRepeatTargets { false };
 	Valueable<bool> AirburstWeapon_UseFiringEffects { false };
+	Valueable<bool> AirburstWeapon_HeadToTarget {};
+	Valueable<int> AirburstWeapon_RadialFireSegments {};
 	Valueable<bool> BounceOnTerrain { true };
 	Valueable<bool> BounceOnBuilding { false };
 	Valueable<bool> BounceOnInfantry { false };

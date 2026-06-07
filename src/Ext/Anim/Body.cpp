@@ -889,6 +889,11 @@ void AnimExtData::Serialize(T& Stm)
 		.Process(this->DamagingState)
 		.Process(this->AEDrawOffset)
 		.Process(this->FirepowerMult)
+		.Process(this->FiringAnim_Weapon)
+		.Process(this->FiringAnim_WeaponIndex)
+		.Process(this->FiringAnim_BurstIndex)
+		.Process(this->FiringAnim_LastFacing)
+		.Process(this->FiringAnim_LastCoords)
 		;
 }
 
@@ -983,32 +988,32 @@ ASMJIT_PATCH(0x422A52, AnimClass_DTOR, 0x6)
 	AnimExtContainer::Instance.Remove(pItem);
 	return 0;
 }
-
-HRESULT __stdcall FakeAnimClass::__Load(IStream* pStm)
-{
-	HRESULT hr = this->AnimClass::Load(pStm);
-
-	if (SUCCEEDED(hr)) {
-		if (!AnimExtContainer::Instance.LoadByKey(this, pStm))
-			return PHOBOS_E_EXTDATA_LOAD_FAILED;
-	}
-
-	return hr;
-}
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3368, FakeAnimClass::__Load)
-
-HRESULT __stdcall FakeAnimClass::__Save(IStream* pStm, BOOL fClearDirty)
-{
-	HRESULT hr = this->AnimClass::Save(pStm, fClearDirty);
-
-	if (SUCCEEDED(hr)) {
-		if (!AnimExtContainer::Instance.SaveByKey(this, pStm))
-			return PHOBOS_E_EXTDATA_SAVE_FAILED;
-	}
-
-	return hr;
-}
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E336C, FakeAnimClass::__Save)
+//
+//HRESULT __stdcall FakeAnimClass::__Load(IStream* pStm)
+//{
+//	HRESULT hr = this->AnimClass::Load(pStm);
+//
+//	if (SUCCEEDED(hr)) {
+//		if (!AnimExtContainer::Instance.LoadByKey(this, pStm))
+//			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+//	}
+//
+//	return hr;
+//}
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3368, FakeAnimClass::__Load)
+//
+//HRESULT __stdcall FakeAnimClass::__Save(IStream* pStm, BOOL fClearDirty)
+//{
+//	HRESULT hr = this->AnimClass::Save(pStm, fClearDirty);
+//
+//	if (SUCCEEDED(hr)) {
+//		if (!AnimExtContainer::Instance.SaveByKey(this, pStm))
+//			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+//	}
+//
+//	return hr;
+//}
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E336C, FakeAnimClass::__Save)
 
 ASMJIT_PATCH(0x425164, AnimClass_Detach, 0x6)
 {

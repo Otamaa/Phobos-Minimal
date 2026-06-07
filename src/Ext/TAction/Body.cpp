@@ -2379,7 +2379,7 @@ bool TActionExtData::SetFreeRadar(TActionClass* pThis, HouseClass* pHouse, Objec
 
 bool TActionExtData::SetTeamDelay(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	const int timer = MaxImpl(pThis->Param3, 0);
+	const int timer = pThis->Param3 < 0 ? RulesClass::Instance->TeamDelays.Items[pHouse->GetAIDifficultyIndex()] : pThis->Param3;
 	HouseExtContainer::Instance.Find(pHouse)->TeamDelay = timer;
 
 	auto& Timer = pHouse->TeamDelayTimer;

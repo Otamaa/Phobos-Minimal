@@ -307,7 +307,7 @@ void FakeDiskLaserClass::__AI()
 
 			if (const auto pBullet = pWeapon->Projectile->CreateBullet(this->Target, this->Owner, this->Damage, pWeapon->Warhead, weaponSpeedspeed, pWeapon->Bright))
 			{
-				BulletExtData::SimulatedFiringUnlimbo(pBullet, this->Owner->Owner, pWeapon, laserStart, false);
+				BulletExtData::SimulatedFiringUnlimbo(pBullet, this->Owner->Owner, pWeapon, laserStart, false, {});
 				BulletExtData::SimulatedFiringEffects(pBullet, this->Owner->Owner, this->Owner, true, false);
 			}
 		}

@@ -13,6 +13,8 @@
 
 #include <New/Entity/ElectricBoltClass.h>
 
+#include <Utilities/RandomWeights.h>
+
 class WeaponTypeExtData final : public AbstractTypeExtData
 {
 public:
@@ -142,8 +144,8 @@ public:
 	ValueableVector<int> ExtraWarheads_DamageOverrides {};
 	ValueableVector<double> ExtraWarheads_DetonationChances {};
 	ValueableVector<bool> ExtraWarheads_FullDetonation {};
-	ValueableVector<float> ExtraWarheads_RollChances {};
-	std::vector<ValueableVector<int>> ExtraWarheads_WeightsData {};
+
+	RandomWeights ExtraWarheads_Randoms {};
 
 	Valueable<double> Burst_Retarget { 0.0 };
 	Nullable<bool> KickOutPassenger {};

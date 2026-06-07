@@ -655,7 +655,7 @@ ASMJIT_PATCH(0x4FB1EA, HouseClass_UnitFromFactory_HangUpPlaceEvent, 0x5)
 		return BuildSucceeded;
 	}
 
-	const bool expand = RulesExtData::Instance()->ExtendedBuildingPlacing && !pBuildingType->PlaceAnywhere && !pBuildingType->PowersUpBuilding[0];
+	const bool expand = RulesExtData::Instance()->ExtendedBuildingPlacing && !pBuildingType->PlaceAnywhere && pTypeExt->PowersUp_Buildings.empty();
 	if (pTypeExt->PlaceBuilding_OnWater || pTypeExt->PlaceBuilding_OnLand)
 	{
 		if (!SessionClass::IsMultiplayer())

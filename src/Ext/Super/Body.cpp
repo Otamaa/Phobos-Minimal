@@ -136,7 +136,8 @@ void SuperExtData::Serialize(T& Stm) {
 
 	Stm
 		.Process(this->Name)
-		.Process(this->Type, true)
+		.Process(this->Type)
+		.Process(this->Firer)
 		.Process(this->Temp_CellStruct)
 		.Process(this->Temp_IsPlayer)
 		.Process(this->CameoFirstClickDone)
@@ -420,7 +421,7 @@ bool FakeSuperClass::_AI(bool isPlayer)
 	// Dynamic ChronoWarp check instead of hardcoded SPC_CHRONOWARP == 4
 	{
 		bool isChronoWarp = false;
-		int curSW = Unsorted::CurrentSWType;
+		int curSW = Unsorted::CurrentSWType();
 
 		if (static_cast<size_t>(curSW) < static_cast<size_t>(SuperWeaponTypeClass::Array->Count))
 			isChronoWarp = (SuperWeaponTypeClass::Array->Items[curSW]->Type == SuperWeaponType::ChronoWarp);

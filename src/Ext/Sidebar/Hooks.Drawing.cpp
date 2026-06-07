@@ -45,6 +45,169 @@ public:
 	void __Add_Internal(AbstractType type, int id);
 	bool __Recalc();
 
+	bool IsHigherPriority(AbstractType type1, int id1, AbstractType rtti2, int type2)
+	{
+		// ── Phase 1 [6A8433]: Fetch both techno types ─────────────────────────
+		TechnoTypeClass* pTT1 = ObjectTypeClass::FetchTechnoType(type1, id1);  // var_8 / edi
+		TechnoTypeClass* pTT2 = ObjectTypeClass::FetchTechnoType(rtti2, type2); // var_4 / edx
+
+		// If rtti2 == 0 (RTTI_NONE), item1 always wins  [6A8455]
+		if (rtti2 == AbstractType::None)
+			return true;
+
+		// ── Phase 2 [6A8463]: CameoPriority extension sort (inlined from hook) ──
+		// EXTENSION: replaces ASMJIT_PATCH @ 0x6A8463
+		auto IsSuperWeaponRtti = [](AbstractType rtti) -> bool
+			{
+				return rtti == AbstractType::Special
+					|| rtti == AbstractType::Super
+					|| rtti == AbstractType::SuperWeaponType;
+			};
+
+		{
+			const auto pLeftSWExt = IsSuperWeaponRtti(type1)
+				? SWTypeExtContainer::Instance.TryFind(SuperWeaponTypeClass::Array->get_or_default(id1))
+				: nullptr;
+			const auto pRightSWExt = IsSuperWeaponRtti(rtti2)
+				? SWTypeExtContainer::Instance.TryFind(SuperWeaponTypeClass::Array->get_or_default(type2))
+				: nullptr;
+
+			const auto pLeftTechnoExt = TechnoTypeExtContainer::Instance.TryFind(pTT1);
+			const auto pRightTechnoExt = TechnoTypeExtContainer::Instance.TryFind(pTT2);
+
+			if ((pLeftTechnoExt || pLeftSWExt) && (pRightTechnoExt || pRightSWExt))
+			{
+				const int leftPriority = pLeftTechnoExt ? pLeftTechnoExt->CameoPriority : pLeftSWExt->CameoPriority;
+				const int rightPriority = pRightTechnoExt ? pRightTechnoExt->CameoPriority : pRightSWExt->CameoPriority;
+
+				if (leftPriority > rightPriority) return true;
+				if (rightPriority > leftPriority) return false;
+				// equal priority → fall through to vanilla sort
+			}
+		}
+
+		// ── Phase 2b [6A8463]: Vanilla SW classification ──────────────────────
+		bool item1IsSW = IsSuperWeaponRtti(type1);
+		bool item2IsSW = IsSuperWeaponRtti(rtti2);
+
+		// ── Phase 3 [6A84A5]: SuperWeapon vs SuperWeapon comparison ───────────
+		if (item1IsSW && item2IsSW)
+		{
+			// VERIFY: SuperWeaponTypeClass::Array->get_or_default vs SuperWeaponTypes.Vector_Item — confirm correct accessor
+			SuperWeaponTypeClass* pSW1 = SuperWeaponTypeClass::Array->get_or_default(id1);
+			SuperWeaponTypeClass* pSW2 = SuperWeaponTypeClass::Array->get_or_default(type2);
+
+			// Sort by RechargeTime ascending  [6A84B1]
+			// VERIFY: offset 0xB0 = RechargeTime on SuperWeaponTypeClass
+			int rc1 = pSW1->RechargeTime;
+			int rc2 = pSW2->RechargeTime;
+			if (rc1 < rc2) return true;
+			if (rc1 > rc2) return false;
+
+			// Tie-break by UIName  [6A84E1 → 6A86F3]
+			// VERIFY: offset 0x60 = UIName (wchar_t*) on AbstractTypeClass
+			return wcscmp(pSW1->UIName, pSW2->UIName) <= 0;
+		}
+
+		// ── Phase 4 [6A84E6]: Non-SW vs Non-SW side affinity check ───────────
+		// Only when NEITHER item is a SW; if exactly one is SW we skip to Phase 5.
+		if (!item1IsSW && !item2IsSW)
+		{
+			// VERIFY: HouseClass::CurrentPlayer->Type->Side; offset 0x34 = Class, 0xBC = Side
+			//int playerSide = HouseClass::CurrentPlayer->Type->SideIndex;
+
+			// VERIFY: offset 0x6D0 = AIBasePlanningSide on TechnoTypeClass
+			//bool tt1MatchesSide = (playerSide == pTT1->AIBasePlanningSide) /* field[0x6D0] VERIFY */);
+			//bool tt2MatchesSide = (playerSide == pTT2->AIBasePlanningSide /* field[0x6D0] VERIFY */);
+
+			// SUSPECT: the asm reads [edx+6D0h] and [edi+6D0h] then setz into cl/al
+			// Preserved verbatim pending field-name confirmation from YRpp
+			// Real intent: favour item matching player's side
+			// ORIG: mov ebx,[edx+6D0h]; mov ecx,[edi+6D0h]; setz cl; setz al; ...
+			bool side1Match = (HouseClass::CurrentPlayer->Type->SideIndex == pTT1->AIBasePlanningSide);
+			bool side2Match = (HouseClass::CurrentPlayer->Type->SideIndex == pTT2->AIBasePlanningSide);
+
+			if (side1Match && !side2Match) return true;
+			if (!side1Match && side2Match) return false;
+			// else: both match or neither — fall through to Phase 5
+		}
+
+		// ── Phase 5 [6A853A]: Aircraft/Naval classification ───────────────────
+		// RTTI 0x28=40=AircraftType, 0x03=InfantryType  VERIFY: confirm RTTI values
+		// VERIFY: offset 0xCCE = ConsideredAircraft (bool), 0xD96 = IsNaval (bool)
+		auto ClassifyUnit = [](TechnoTypeClass* pTT, AbstractType rtti) -> std::pair<bool /*isAir*/, bool /*isNaval*/>
+			{
+				bool isAirRtti = (rtti == AbstractType::UnitType || rtti == AbstractType::AircraftType);
+				bool isAir = false;
+				bool isNaval = false;
+
+				if (isAirRtti)
+				{
+					isAir = pTT->ConsideredAircraft; // VERIFY offset 0xCCE
+					isNaval = isAir && pTT->Naval;   // VERIFY offset 0xD96
+				}
+				return { isAir, isNaval };
+			};
+
+		auto [air1, naval1] = ClassifyUnit(pTT1, type1);
+		auto [air2, naval2] = ClassifyUnit(pTT2, rtti2);
+
+		// Consolidated "neither is aerial-naval" flag  [6A85CC]
+		bool bothGround = !air2 && !naval2;
+
+		// ── Phase 6 [6A85D2]: Sort by unit class (SW / aircraft / naval / ground)
+		if (item1IsSW)
+		{
+			// item1 is SW, item2 is not → item1 always before IF item2 is air/naval/ground
+			if (air2 || naval2 || bothGround)
+				return true;
+			// else fall through to Level/Cost/Name
+		}
+		else if (air1)
+		{
+			// item1 is aircraft
+			if (item2IsSW)    return false;
+			if (air2)         return true;  // both air, fall through
+			if (!air2)        return false; // SUSPECT: original logic; item1 air > item2 non-air
+		}
+		else if (naval1)
+		{
+			// item1 is naval
+			if (item2IsSW)                return false;
+			if (!air2 && !naval2) { /* fall through */ }
+			else if (air2 || naval2)     return false;
+			else                         return false; // SUSPECT: collapsed branch
+		}
+		// else: item1 is ground — fall through in all cases
+
+		// ── Phase 7 [6A8682]: Sort by TechType.Level ──────────────────────────
+		// VERIFY: offset 0x634 = Level on TechnoTypeClass
+		int lvl1 = pTT1->TechLevel;
+		int lvl2 = pTT2->TechLevel;  // SUSPECT: pTT2 maps to ebp=v26 at this point; confirm no rebind
+		if (lvl1 < lvl2) return true;
+		if (lvl1 > lvl2) return false;
+
+		// ── Phase 8 [6A86AC]: Sort by Cost_Of(HouseClass::CurrentPlayer()) ─────────────────────
+		// VERIFY: vtable offset 0x84 = Cost_Of virtual call
+		int cost1 = pTT1->GetActualCost(HouseClass::CurrentPlayer());
+		int cost2 = pTT2->GetActualCost(HouseClass::CurrentPlayer());  // SUSPECT: confirm pTT2 not rebound before this
+		if (cost1 < cost2) return true;
+		if (cost1 > cost2) return false;
+
+		// ── Phase 9 [6A86F3]: Final tie-break by UIName ───────────────────────
+		// VERIFY: offset 0x60 = UIName (wchar_t*) on AbstractTypeClass
+		return wcscmp(pTT1->UIName, pTT2->UIName) <= 0;
+	}
+
+	SHPStruct* __GetSpecialCameo(int specialIdx) {
+		SHPStruct* _result = 0;
+		if (auto pSW = SuperWeaponTypeClass::Array->get_or_default(specialIdx)) {
+			_result = pSW->SidebarImage;
+		}
+
+		return _result;
+	}
+
 	void _Deactivate(){
 		for (auto begin = SidebarClass::SelectButtonCombined.begin();
 			begin != SidebarClass::SelectButtonCombined.end();
@@ -77,6 +240,9 @@ public:
 	}
 };
 
+DEFINE_FUNCTION_JUMP(CALL, 0x6A8742, FakeStripClass::IsHigherPriority);
+DEFINE_FUNCTION_JUMP(LJMP, 0x6A8420, FakeStripClass::IsHigherPriority);
+DEFINE_FUNCTION_JUMP(LJMP, 0x6A8180, FakeStripClass::__GetSpecialCameo);
 DEFINE_FUNCTION_JUMP(LJMP, 0x6A83E0, FakeStripClass::_Deactivate);
 DEFINE_FUNCTION_JUMP(CALL, 0x6AAB7A, FakeStripClass::_Deactivate);
 DEFINE_FUNCTION_JUMP(LJMP, 0x6A8330, FakeStripClass::_Activate);
@@ -487,6 +653,7 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 
 #ifndef _backport
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F3048, FakeSelectClass::__Action)
+DEFINE_FUNCTION_JUMP(LJMP, 0x6AAD00 ,  FakeSelectClass::__Action)
 #else
 ASMJIT_PATCH(0x6AAD2F, SelectClass_ProcessInput_LoadCameo1, 7)
 {
@@ -713,6 +880,7 @@ const wchar_t* FakeStripClass::__Help_Text(int index)
 }
 
 DEFINE_FUNCTION_JUMP(CALL, 0x6AC3C3, FakeStripClass::__Help_Text);
+DEFINE_FUNCTION_JUMP(LJMP, 0x6A92E0, FakeStripClass::__Help_Text);
 
 template<typename T, typename Compare>
 bool insert_sorted_unique(std::vector<T>& vec, T item, Compare comp) {
@@ -1853,3 +2021,4 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 }
 
 DEFINE_FUNCTION_JUMP(CALL, 0x6A6FDF, FakeStripClass::__Draw_It)
+DEFINE_FUNCTION_JUMP(LJMP, 0x6A9540, FakeStripClass::__Draw_It)

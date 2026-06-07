@@ -2344,7 +2344,44 @@ bool detail::read<PeriodicWeaponTargetingMode>(PeriodicWeaponTargetingMode& valu
 			}
 		}
 
-		Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a PeriodicWeaponTargetingMode mode (None, Firer, Target, All)");
+		Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid PeriodicWeaponTargetingMode)");
+	}
+
+	return false;
+}
+
+template <>
+bool detail::read<DynamicTeamDelayType>(DynamicTeamDelayType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+{
+	if (parser.ReadString(pSection, pKey)) {
+		for (const auto& [val, str] : EnumFunctions::DynamicTeamDelayType_ToStrings) {
+			if (PhobosCRT::iequals(parser.value(), str)) {
+				value = val;
+				return true;
+			}
+		}
+
+		Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid DynamicTeamDelayType");
+	}
+
+	return false;
+}
+
+template <>
+bool detail::read<Action>(Action& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+{
+	if (parser.ReadString(pSection, pKey)) {
+		for (const auto& [val, str] : EnumFunctions::Action_ToStrings) {
+			if (PhobosCRT::iequals(parser.value(), str)) {
+				if (val == Action::count)
+					return false;
+
+				value = val;
+				return true;
+			}
+		}
+
+		Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid Action");
 	}
 
 	return false;

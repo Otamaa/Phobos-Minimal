@@ -227,47 +227,6 @@ ASMJIT_PATCH(0x715A4D, Replace_XXICON_With_New, 0x7)         //TechnoTypeClass::
 ASMJIT_PATCH_AGAIN(0x6CEE31, Replace_XXICON_With_New, 0x7)   //SWTypeClass::ReadINI
 ASMJIT_PATCH_AGAIN(0x716D13, Replace_XXICON_With_New, 0x7)   //TechnoTypeClass::Load
 
-
-ASMJIT_PATCH(0x6A8463, StripClass_OperatorLessThan_CameoPriority, 5)
-{
-	enum {
-		rTrue = 0x6A8692,
-		rFalse = 0x6A86A0,
-		rTrue_ = 0x6A8477,
-		rFalse_ = 0x6A8468
-	};
-
-	GET_STACK(TechnoTypeClass* const, pLeft, STACK_OFFS(0x1C, 0x8));
-	GET_STACK(TechnoTypeClass* const, pRight, STACK_OFFS(0x1C, 0x4));
-	GET_STACK(int const, idxLeft, STACK_OFFS(0x1C, -0x8));
-	GET_STACK(int const, idxRight, STACK_OFFS(0x1C, -0x10));
-	GET_STACK(AbstractType const, rttiLeft, STACK_OFFS(0x1C, -0x4));
-	GET_STACK(AbstractType const, rttiRight, STACK_OFFS(0x1C, -0xC));
-
-	const auto pLeftTechnoExt = TechnoTypeExtContainer::Instance.TryFind(pLeft);
-	const auto pRightTechnoExt = TechnoTypeExtContainer::Instance.TryFind(pRight);
-
-	const auto pLeftSWExt = (rttiLeft == AbstractType::Special || rttiLeft == AbstractType::Super || rttiLeft == AbstractType::SuperWeaponType)
-		? SWTypeExtContainer::Instance.TryFind(SuperWeaponTypeClass::Array->get_or_default(idxLeft)) : nullptr;
-	const auto pRightSWExt = (rttiRight == AbstractType::Special || rttiRight == AbstractType::Super || rttiRight == AbstractType::SuperWeaponType)
-		? SWTypeExtContainer::Instance.TryFind(SuperWeaponTypeClass::Array->get_or_default(idxRight)) : nullptr;
-
-	if ((pLeftTechnoExt || pLeftSWExt) && (pRightTechnoExt || pRightSWExt))
-	{
-		const auto leftPriority = pLeftTechnoExt ? pLeftTechnoExt->CameoPriority : pLeftSWExt->CameoPriority;
-		const auto rightPriority = pRightTechnoExt ? pRightTechnoExt->CameoPriority : pRightSWExt->CameoPriority;
-
-		if (leftPriority > rightPriority)
-			return rTrue;
-		else if (rightPriority > leftPriority)
-			return rFalse;
-	}
-
-	// Restore overridden instructions
-	GET(AbstractType, rtti1, ESI);
-	return rtti1 == AbstractType::Special ? rTrue_ : rFalse_;
-}
-
 namespace BriefingTemp
 {
 	bool ShowBriefing = false;

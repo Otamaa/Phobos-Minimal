@@ -680,7 +680,7 @@ static bool FireSupportBullet(TechnoClass* pFrom, TechnoClass* pTo, WeaponTypeCl
 	pBulletExt->PrismRelaySupportBullet = true;
 
 	const auto firePos = pFrom->Location;
-	BulletExtData::SimulatedFiringUnlimbo(pBullet, pFrom->Owner, pWeapon, firePos, false);
+	BulletExtData::SimulatedFiringUnlimbo(pBullet, pFrom->Owner, pWeapon, firePos, false, {});
 	BulletExtData::SimulatedFiringEffects(pBullet, pFrom->Owner, pFrom, true, true);
 
 	return true;

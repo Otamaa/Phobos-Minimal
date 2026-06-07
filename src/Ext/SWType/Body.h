@@ -4,6 +4,7 @@
 #include <Ext/AbstractType/Body.h>
 #include <Utilities/PhobosPCXFile.h>
 #include <Utilities/PhobosFixedString.h>
+#include <Utilities/RandomWeights.h>
 
 #include <New/Type/CursorTypeClass.h>
 #include <New/Type/DroppodProperties.h>
@@ -84,9 +85,6 @@ public:
 	// ============================================================
 	// Vectors of vectors
 	// ============================================================
-	std::vector<std::vector<int>> LimboDelivery_RandomWeightsData {};
-	std::vector<std::vector<int>> SW_Next_RandomWeightsData {};
-	std::vector<std::vector<int>> SW_Link_RandomWeightsData {};
 	std::vector<TechnoTypeConvertData> ConvertsPair {};
 
 	// ============================================================
@@ -94,11 +92,9 @@ public:
 	// ============================================================
 	ValueableVector<BuildingTypeClass*> LimboDelivery_Types {};
 	ValueableVector<int> LimboDelivery_IDs {};
-	ValueableVector<float> LimboDelivery_RollChances {};
 	ValueableVector<int> LimboKill_IDs {};
 	ValueableVector<int> LimboKill_Counts {};
 	ValueableIdxVector<SuperWeaponTypeClass*> SW_Next {};
-	ValueableVector<float> SW_Next_RollChances {};
 	ValueableVector<TechnoTypeClass*> SW_Inhibitors {};
 	ValueableVector<TechnoTypeClass*> SW_Designators {};
 	ValueableVector<TechnoTypeClass*> SW_Suppressors {};
@@ -130,8 +126,10 @@ public:
 	ValueableVector<TechnoTypeClass*> Neg_Techno {};
 	ValueableVector<BuildingTypeClass*> SW_Lauchsites {};
 	ValueableIdxVector<SuperWeaponTypeClass> SW_Link {};
-	ValueableVector<float> SW_Link_RollChances {};
 
+	RandomWeights SW_Link_Randoms {};
+	RandomWeights SW_Next_Randoms {};
+	RandomWeights LimboDelivery_Randoms {};
 	// ============================================================
 	// Valueable<SWRange> (likely 8+ bytes)
 	// ============================================================
@@ -242,6 +240,13 @@ public:
 	ValueableIdx<ColorScheme> Message_ColorScheme { -1 };
 	ValueableIdx<CursorTypeClass*> CursorType { (int)MouseCursorType::Attack };
 	ValueableIdx<CursorTypeClass*> NoCursorType { (int)MouseCursorType::NoMove };
+
+	Valueable<CSFText> Message_Activated_Owner { };
+	Valueable<CSFText> Message_Activated_Allies { };
+	Valueable<CSFText> Message_Activated_Enemies { };
+	NullableIdx<VoxClass> EVA_Activated_Owner { };
+	NullableIdx<VoxClass> EVA_Activated_Allies { };
+	NullableIdx<VoxClass> EVA_Activated_Enemies { };
 
 	// ============================================================
 	// Valueable<ColorStruct> (3-4 bytes each)
@@ -414,6 +419,7 @@ public:
 	Valueable<bool> SW_Link_Reset { false };
 	Valueable<bool> CrateGoodies { false };
 
+	Valueable<bool> SW_Unique { true };
 #pragma endregion
 
 public:
@@ -534,8 +540,6 @@ public:
 
 private:
 
-	std::vector<int> WeightedRollsHandler(std::vector<float>* chances, std::vector<std::vector<int>>* weights, size_t size);
-
 	void ApplyLimboDelivery(HouseClass* pHouse);
 	void ApplyLimboKill(HouseClass* pHouse);
 
@@ -551,7 +555,6 @@ public:
 public:
 
 	static void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID);
-	static void WeightedRollsHandler(std::vector<int>& nResult, Valueable<double>& RandomBuffer, const ValueableVector<float>& rolls, const ValueableVector<ValueableVector<int>>& weights, size_t size);
 	static void Launch(SuperClass* pFired, HouseClass* pHouse, SWTypeExtData* pLauncherTypeExt, int pLaunchedType, const CellStruct& cell, bool IsPlayer);
 	static void ClearChronoAnim(SuperClass* pThis);
 	static void CreateChronoAnim(SuperClass* pThis, const CoordStruct& Coords, AnimTypeClass* pAnimType);

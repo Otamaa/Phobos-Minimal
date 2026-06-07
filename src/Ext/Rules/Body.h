@@ -637,6 +637,10 @@ public:
 
 	Valueable<int> PrismRelay_SupportTimeout {};
 	Valueable<bool> RemoveMindControl_Silent { false };
+
+	Valueable<DynamicTeamDelayType> TeamDelays_DynamicType { DynamicTeamDelayType::StartingPoint };
+	Valueable<PartialVector3D<int>> TeamDelays[8] {};
+
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

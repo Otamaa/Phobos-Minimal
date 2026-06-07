@@ -474,6 +474,16 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	INI_EX exINI(pINI);
 
 	#pragma region General
+	this->TeamDelays_DynamicType.Read(exINI, GameStrings::General, "TeamDelays.DynamicType");
+	this->TeamDelays[0].Read(exINI, GameStrings::General, "TeamDelays.Count1");
+	this->TeamDelays[1].Read(exINI, GameStrings::General, "TeamDelays.Count2");
+	this->TeamDelays[2].Read(exINI, GameStrings::General, "TeamDelays.Count3");
+	this->TeamDelays[3].Read(exINI, GameStrings::General, "TeamDelays.Count4");
+	this->TeamDelays[4].Read(exINI, GameStrings::General, "TeamDelays.Count5");
+	this->TeamDelays[5].Read(exINI, GameStrings::General, "TeamDelays.Count6");
+	this->TeamDelays[6].Read(exINI, GameStrings::General, "TeamDelays.Count7");
+	this->TeamDelays[7].Read(exINI, GameStrings::General, "TeamDelays.Count8");
+
 	this->PrismRelay_SupportTimeout.Read(exINI, GameStrings::General, "PrismRelay.SupportTimeout");
 	exINI.Read3Bool(GameStrings::General, "CampaignAllowHarvesterScanUnderShroud", this->CampaignAllowHarvesterScanUnderShroud);
 	this->AttackMove_IgnoreWeaponCheck.Read(exINI, GameStrings::General, "AttackMove.IgnoreWeaponCheck");
@@ -710,6 +720,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	#pragma endregion
 
 	#pragma region AudioVisual
+	detail::getindex<VocClass>(this->AttachedToObject->DeploySound, exINI, GameStrings::AudioVisual, "DeploySound");
 	this->RemoveMindControl_Silent.Read(exINI, GameStrings::AudioVisual, "RemoveMindControl.Silent");
 	this->DisplayIncome_Delay.Read(exINI, GameStrings::AudioVisual, "DisplayIncome.Delay");
 	if (!this->DisplayIncome_Delay) {
@@ -1438,6 +1449,15 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->Shrapnel_IgnoreHitBuildings)
 		.Process(this->PrismRelay_SupportTimeout)
 		.Process(this->RemoveMindControl_Silent)
+		.Process(this->TeamDelays_DynamicType)
+		.Process(this->TeamDelays[0])
+		.Process(this->TeamDelays[1])
+		.Process(this->TeamDelays[2])
+		.Process(this->TeamDelays[3])
+		.Process(this->TeamDelays[4])
+		.Process(this->TeamDelays[5])
+		.Process(this->TeamDelays[6])
+		.Process(this->TeamDelays[7])
 		;
 }
 
@@ -1802,7 +1822,7 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 		if (pItem->Strength <= 0)
 		{
-			const bool IsUpgradeBld = what == BuildingTypeClass::AbsID && *((BuildingTypeClass*)pItem)->PowersUpBuilding && strlen(((BuildingTypeClass*)pItem)->PowersUpBuilding) > 0;
+			const bool IsUpgradeBld = what == BuildingTypeClass::AbsID && !BuildingTypeExtContainer::Instance.Find((BuildingTypeClass*)pItem)->PowersUp_Buildings.empty();
 
 			if ((!IsVanillaDummy(pItem->ID) || !pExt->IsDummy) && !IsUpgradeBld)
 			{

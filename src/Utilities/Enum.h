@@ -34,6 +34,16 @@
 #include <Helpers\EnumFlags.h>
 #include <GeneralDefinitions.h>
 
+enum class DynamicTeamDelayType : int {
+	StartingPoint = 0,
+	PlayerCount = 1,
+	Allies = 2,
+	Enemies = 3,
+	AliveCount = 4,
+	AliveAllies = 5,
+	AliveEnemies = 6
+};
+
 enum class PeriodicWeaponTargetingMode : unsigned char {
 	Closest = 0,
 	All = 1,

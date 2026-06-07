@@ -26,6 +26,9 @@
     <ClCompile Include="src\Commands\ToggleSuperTimers.cpp" />
     <ClCompile Include="src\Ext\AbstractType\Body.cpp" />
     <ClCompile Include="src\Ext\Abstract\Hooks.cpp" />
+    <ClCompile Include="src\Ext\Aircraft\Hooks.Aircraft.cpp" />
+    <ClCompile Include="src\Ext\Aircraft\Hooks.cpp" />
+    <ClCompile Include="src\Ext\Aircraft\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\AITriggerType\Hooks.cpp" />
     <ClCompile Include="src\Ext\AStar\Body.cpp" />
     <ClCompile Include="src\Ext\BitFont\Body.cpp" />
@@ -38,6 +41,7 @@
     <ClCompile Include="src\Ext\Convert\BlitterPack\BlitterPack.byte.scalar.cpp" />
     <ClCompile Include="src\Ext\Convert\BlitterPack\BlitterPack.byte.sse2.cpp" />
     <ClCompile Include="src\Ext\Convert\BlitterPack\BlitterPack.word.avx2.cpp" />
+    <ClCompile Include="src\Ext\Convert\BlitterPack\BlitterPack.word.avx512.cpp" />
     <ClCompile Include="src\Ext\Convert\BlitterPack\BlitterPack.word.scalar.cpp" />
     <ClCompile Include="src\Ext\Convert\BlitterPack\BlitterPack.word.sse2.cpp" />
     <ClCompile Include="src\Ext\Convert\Body.cpp" />
@@ -152,6 +156,7 @@
     <ClCompile Include="src\New\Entity\CreateUnitTypeClass.cpp" />
     <ClCompile Include="src\New\Entity\EVAVoices.cpp" />
     <ClCompile Include="src\New\Entity\PowerPlantEnhancerClass.cpp" />
+    <ClCompile Include="src\New\Entity\PrismRelay.cpp" />
     <ClCompile Include="src\New\Entity\ShiftSchedule.cpp" />
     <ClCompile Include="src\New\Entity\TiberiumEaterTypeClass.cpp" />
     <ClCompile Include="src\New\Entity\AEArmorMults.cpp" />
@@ -199,8 +204,6 @@
     <ClCompile Include="src\Commands\ToggleDigitalDisplay.cpp" />
     <ClCompile Include="src\Commands\ToggleRadialIndicatorDrawMode.cpp" />
     <ClCompile Include="src\Commands\ToggleSWSidebar.cpp" />
-    <ClCompile Include="src\Ext\Aircraft\Hooks.cpp" />
-    <ClCompile Include="src\Ext\Aircraft\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.Drawings.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.Otamaa.cpp" />
@@ -346,7 +349,6 @@
     <ClCompile Include="src\Commands\MapSnapshot.cpp" />
     <ClCompile Include="src\Commands\TogglePower.cpp" />
     <ClCompile Include="src\Misc\Hook.Init.cpp" />
-    <ClCompile Include="src\Ext\Aircraft\Hooks.Aircraft.cpp" />
     <ClCompile Include="src\Ext\Object\Hooks.Alpha.cpp" />
     <ClCompile Include="src\Ext\Anim\Hooks.Anim.cpp" />
     <ClCompile Include="src\Ext\Bomb\Hooks.Bomb.cpp" />
@@ -390,7 +392,6 @@
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.cpp" />
     <ClCompile Include="src\Misc\Hooks.Theaters.cpp" />
     <ClCompile Include="src\Misc\ImageSwapModules.cpp" />
-    <ClCompile Include="src\Misc\Hooks.Render.cpp" />
     <ClCompile Include="src\Misc\Hooks.UI.cpp" />
     <ClCompile Include="src\Misc\MapRevealer.cpp" />
     <ClCompile Include="src\Misc\Multithread.cpp" />
@@ -480,7 +481,6 @@
     <ClCompile Include="src\Ext\WeaponType\Body.cpp" />
     <ClCompile Include="src\Commands\ObjectInfo.cpp" />
     <ClCompile Include="src\Phobos.Config.cpp" />
-    <ClCompile Include="src\Phobos.Entity.cpp" />
     <ClCompile Include="src\Phobos.Ext.cpp" />
     <ClCompile Include="src\Phobos.Hooks.cpp" />
     <ClCompile Include="src\Phobos.Lua.cpp" />
@@ -504,6 +504,7 @@
     <ClCompile Include="src\Utilities\PhobosFixedString.cpp" />
     <ClCompile Include="src\Utilities\PhobosPCXFile.cpp" />
     <ClCompile Include="src\Utilities\PlacingBuildingStruct.cpp" />
+    <ClCompile Include="src\Utilities\RandomWeights.cpp" />
     <ClCompile Include="src\Utilities\SavegameDef.cpp" />
     <ClCompile Include="src\Utilities\ShapeTextPrinter.cpp" />
     <ClCompile Include="src\Utilities\Simd.cpp" />
@@ -537,6 +538,7 @@
     <ClInclude Include="src\Ext\Convert\BlitterPack\BlitterPack.h" />
     <ClInclude Include="src\Ext\Convert\BlitterPack\BlitterPack.levels.h" />
     <ClInclude Include="src\Ext\Convert\BlitterPack\BlitterPack.word.avx2.h" />
+    <ClInclude Include="src\Ext\Convert\BlitterPack\BlitterPack.word.avx512.h" />
     <ClInclude Include="src\Ext\Convert\BlitterPack\BlitterPack.word.scalar.h" />
     <ClInclude Include="src\Ext\Convert\BlitterPack\BlitterPack.word.sse2.h" />
     <ClInclude Include="src\Ext\Convert\Blitters\BlitPlainXlat.h" />
@@ -670,83 +672,6 @@
     <ClInclude Include="src\Ext\Trigger\Body.h" />
     <ClInclude Include="src\Ext\UnitType\Body.h" />
     <ClInclude Include="src\Ext\Unit\Body.h" />
-    <ClInclude Include="src\Lib\entt\config\config.h" />
-    <ClInclude Include="src\Lib\entt\config\macro.h" />
-    <ClInclude Include="src\Lib\entt\config\version.h" />
-    <ClInclude Include="src\Lib\entt\container\dense_map.hpp" />
-    <ClInclude Include="src\Lib\entt\container\dense_set.hpp" />
-    <ClInclude Include="src\Lib\entt\container\fwd.hpp" />
-    <ClInclude Include="src\Lib\entt\container\table.hpp" />
-    <ClInclude Include="src\Lib\entt\core\algorithm.hpp" />
-    <ClInclude Include="src\Lib\entt\core\any.hpp" />
-    <ClInclude Include="src\Lib\entt\core\attribute.h" />
-    <ClInclude Include="src\Lib\entt\core\bit.hpp" />
-    <ClInclude Include="src\Lib\entt\core\compressed_pair.hpp" />
-    <ClInclude Include="src\Lib\entt\core\enum.hpp" />
-    <ClInclude Include="src\Lib\entt\core\family.hpp" />
-    <ClInclude Include="src\Lib\entt\core\fwd.hpp" />
-    <ClInclude Include="src\Lib\entt\core\hashed_string.hpp" />
-    <ClInclude Include="src\Lib\entt\core\ident.hpp" />
-    <ClInclude Include="src\Lib\entt\core\iterator.hpp" />
-    <ClInclude Include="src\Lib\entt\core\memory.hpp" />
-    <ClInclude Include="src\Lib\entt\core\monostate.hpp" />
-    <ClInclude Include="src\Lib\entt\core\ranges.hpp" />
-    <ClInclude Include="src\Lib\entt\core\tuple.hpp" />
-    <ClInclude Include="src\Lib\entt\core\type_info.hpp" />
-    <ClInclude Include="src\Lib\entt\core\type_traits.hpp" />
-    <ClInclude Include="src\Lib\entt\core\utility.hpp" />
-    <ClInclude Include="src\Lib\entt\entity\component.hpp" />
-    <ClInclude Include="src\Lib\entt\entity\entity.hpp" />
-    <ClInclude Include="src\Lib\entt\entity\fwd.hpp" />
-    <ClInclude Include="src\Lib\entt\entity\group.hpp" />
-    <ClInclude Include="src\Lib\entt\entity\handle.hpp" />
-    <ClInclude Include="src\Lib\entt\entity\helper.hpp" />
-    <ClInclude Include="src\Lib\entt\entity\mixin.hpp" />
-    <ClInclude Include="src\Lib\entt\entity\organizer.hpp" />
-    <ClInclude Include="src\Lib\entt\entity\ranges.hpp" />
-    <ClInclude Include="src\Lib\entt\entity\registry.hpp" />
-    <ClInclude Include="src\Lib\entt\entity\runtime_view.hpp" />
-    <ClInclude Include="src\Lib\entt\entity\snapshot.hpp" />
-    <ClInclude Include="src\Lib\entt\entity\sparse_set.hpp" />
-    <ClInclude Include="src\Lib\entt\entity\storage.hpp" />
-    <ClInclude Include="src\Lib\entt\entity\view.hpp" />
-    <ClInclude Include="src\Lib\entt\entt.hpp" />
-    <ClInclude Include="src\Lib\entt\fwd.hpp" />
-    <ClInclude Include="src\Lib\entt\graph\adjacency_matrix.hpp" />
-    <ClInclude Include="src\Lib\entt\graph\dot.hpp" />
-    <ClInclude Include="src\Lib\entt\graph\flow.hpp" />
-    <ClInclude Include="src\Lib\entt\graph\fwd.hpp" />
-    <ClInclude Include="src\Lib\entt\locator\locator.hpp" />
-    <ClInclude Include="src\Lib\entt\meta\adl_pointer.hpp" />
-    <ClInclude Include="src\Lib\entt\meta\container.hpp" />
-    <ClInclude Include="src\Lib\entt\meta\context.hpp" />
-    <ClInclude Include="src\Lib\entt\meta\factory.hpp" />
-    <ClInclude Include="src\Lib\entt\meta\fwd.hpp" />
-    <ClInclude Include="src\Lib\entt\meta\meta.hpp" />
-    <ClInclude Include="src\Lib\entt\meta\node.hpp" />
-    <ClInclude Include="src\Lib\entt\meta\pointer.hpp" />
-    <ClInclude Include="src\Lib\entt\meta\policy.hpp" />
-    <ClInclude Include="src\Lib\entt\meta\range.hpp" />
-    <ClInclude Include="src\Lib\entt\meta\resolve.hpp" />
-    <ClInclude Include="src\Lib\entt\meta\template.hpp" />
-    <ClInclude Include="src\Lib\entt\meta\type_traits.hpp" />
-    <ClInclude Include="src\Lib\entt\meta\utility.hpp" />
-    <ClInclude Include="src\Lib\entt\poly\fwd.hpp" />
-    <ClInclude Include="src\Lib\entt\poly\poly.hpp" />
-    <ClInclude Include="src\Lib\entt\process\fwd.hpp" />
-    <ClInclude Include="src\Lib\entt\process\process.hpp" />
-    <ClInclude Include="src\Lib\entt\process\scheduler.hpp" />
-    <ClInclude Include="src\Lib\entt\resource\cache.hpp" />
-    <ClInclude Include="src\Lib\entt\resource\fwd.hpp" />
-    <ClInclude Include="src\Lib\entt\resource\loader.hpp" />
-    <ClInclude Include="src\Lib\entt\resource\resource.hpp" />
-    <ClInclude Include="src\Lib\entt\signal\delegate.hpp" />
-    <ClInclude Include="src\Lib\entt\signal\dispatcher.hpp" />
-    <ClInclude Include="src\Lib\entt\signal\emitter.hpp" />
-    <ClInclude Include="src\Lib\entt\signal\fwd.hpp" />
-    <ClInclude Include="src\Lib\entt\signal\sigh.hpp" />
-    <ClInclude Include="src\Lib\entt\tools.hpp" />
-    <ClInclude Include="src\Lib\entt\tools\davey.hpp" />
     <ClInclude Include="src\Lib\fast_remove_if.h" />
     <ClInclude Include="src\Misc\BuildingFoundations.h" />
     <ClInclude Include="src\Misc\Hooks.CRT.h" />
@@ -756,6 +681,7 @@
     <ClInclude Include="src\New\Entity\CreateUnitTypeClass.h" />
     <ClInclude Include="src\New\Entity\EVAVoices.h" />
     <ClInclude Include="src\New\Entity\PowerPlantEnhancerClass.h" />
+    <ClInclude Include="src\New\Entity\PrismRelay.h" />
     <ClInclude Include="src\New\Entity\ShiftSchedule.h" />
     <ClInclude Include="src\New\Entity\TiberiumEaterTypeClass.h" />
     <ClInclude Include="src\New\Entity\AEArmorMults.h" />
@@ -822,7 +748,6 @@
     <ClInclude Include="src\New\Type\ThemeTypeClass.h" />
     <ClInclude Include="src\Phobos.COM.h" />
     <ClInclude Include="src\Phobos.Defines.h" />
-    <ClInclude Include="src\Phobos.Entity.h" />
     <ClInclude Include="src\Phobos.lib.h" />
     <ClInclude Include="src\Phobos.Lua.h" />
     <ClInclude Include="src\Commands\PlaceVeinholeMonster.h" />
@@ -1002,6 +927,8 @@
     <ClInclude Include="src\Utilities\PhobosMap.h" />
     <ClInclude Include="src\Utilities\PhobosPCXFile.h" />
     <ClInclude Include="src\Utilities\PlacingBuildingStruct.h" />
+    <ClInclude Include="src\Utilities\RadialFireStruct.h" />
+    <ClInclude Include="src\Utilities\RandomWeights.h" />
     <ClInclude Include="src\Utilities\Savegame.h" />
     <ClInclude Include="src\Utilities\SavegameDef.h" />
     <ClInclude Include="src\Utilities\ShapeTextPrinter.h" />
@@ -1135,13 +1062,13 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <Optimization>Full</Optimization>
+      <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <SDLCheck>
       </SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <DiagnosticsFormat>Column</DiagnosticsFormat>
-      <OmitFramePointers>true</OmitFramePointers>
+      <OmitFramePointers>false</OmitFramePointers>
       <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;ASMJIT_NO_TEXT;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;MAKE_LIB;SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;_ATL_NO_SECURITY;_ATL_NO_AUTOMATIC_NAMESPACE;_ATL_NO_MODULE;_ATL_NO_COM_MODULE;_ATL_NO_WIN_SUPPORT;YR_SIMD_COMPILE_AVX2;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>SyncCThrow</ExceptionHandling>
@@ -1163,13 +1090,13 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>
       <BuildStlModules>false</BuildStlModules>
       <MinimalRebuild>false</MinimalRebuild>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <EnableVectorLength>NotSet</EnableVectorLength>
@@ -1237,12 +1164,12 @@
       <DisableSpecificWarnings>4100;4530;4731;4740;4505;4201;26495</DisableSpecificWarnings>
       <EnableModules>false</EnableModules>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <LanguageStandard_C>stdclatest</LanguageStandard_C>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>
       <BuildStlModules>false</BuildStlModules>

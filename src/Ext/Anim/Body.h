@@ -26,7 +26,7 @@ public:
 	// ============================================================
 	TechnoClass* Invoker {};
 	BuildingClass* ParentBuilding {};
-	WeaponTypeClass* FromWeapon {};
+	WeaponTypeClass* FiringAnim_Weapon {};
 	Handle<ParticleSystemClass*, MarkForDeathDeleterB<ParticleSystemClass>> AttachedSystem {};
 
 	// ============================================================
@@ -55,9 +55,11 @@ public:
 	// ============================================================
 	// 4-byte aligned: int
 	// ============================================================
-	int FromWeaponIdx {};
-	int FromBurstIdx {};
+	int FiringAnim_WeaponIndex {};
+	int FiringAnim_BurstIndex {};
 
+	DirStruct FiringAnim_LastFacing {};
+	CoordStruct FiringAnim_LastCoords {};
 	// ============================================================
 	// 1-byte aligned: bool (packed together)
 	// ============================================================

@@ -342,6 +342,11 @@ static void FireSingleBullet(
 	WeaponTypeClass* pWeapon,
 	HouseClass* pBulletHouseOwner,
 	AbstractClass* pTarget,
+	RadialFireStruct& radial,
+	DirStruct& targetDir,
+	int& radialFireCounter,
+	int radialFireSegments,
+	bool headToTarget,
 	bool useFiringEffects)
 {
 	auto* pBullet = BulletTypeExtContainer::Instance
@@ -357,8 +362,15 @@ static void FireSingleBullet(
 		Debug::LogInfo("Airburst [{}] targeting Target [{}]", pWeapon->get_ID(), pTechno->get_ID());
 #endif
 
+	if (radialFireSegments > 0) {
+		radial.Segments = radialFireSegments;
+		radial.Index = radialFireCounter;
+		radial.Direction = targetDir;
+		radialFireCounter = (radialFireCounter + 1) % radialFireSegments;
+	}
+
 	const CoordStruct sourceCoords = CalcSourceCoords(pThis, pExt, pTarget);
-	BulletExtData::SimulatedFiringUnlimbo(pBullet, pBulletHouseOwner, pWeapon, sourceCoords, true);
+	BulletExtData::SimulatedFiringUnlimbo(pBullet, pBulletHouseOwner, pWeapon, sourceCoords, true, radial);
 	BulletExtData::SimulatedFiringEffects(pBullet, pBulletHouseOwner, nullptr, useFiringEffects, true);
 }
 
@@ -392,11 +404,18 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 		: BuildCellTargetList(crdDest, pExt, cluster);
 
 	// shared loop state
+	AbstractClass* const targetForDir = MapClass::Instance->TryGetCellAt(crdDest);
+	auto targetDir = pThis->GetDirectionOverObject(targetForDir ? targetForDir: pThis);
 	const bool   allowRepeat = pExt->Splits_AllowRepeatTargets;
 	const double retargetSelfProb = pExt->RetargetSelf_Probability;
 	const bool   useFiringEffects = pExt->AirburstWeapon_UseFiringEffects;
 	auto& rng = ScenarioClass::Instance->Random;
 	int cycledIdx = allowRepeat ? rng.RandomRanged(0, static_cast<int>(targets.size()) - 1) : 0;
+	bool const headToTarget = pExt->AirburstWeapon_HeadToTarget;
+	int const radialFireSegments = pExt->AirburstWeapon_RadialFireSegments;
+	int radialFireCounter = 0;
+
+	RadialFireStruct radialFire  {};
 
 	// fire one bullet per cluster slot
 	for (int i = 0; i < cluster; ++i)
@@ -416,7 +435,7 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 		}
 
 		if (pTarget)
-			FireSingleBullet(pThis, pExt, pWeapon, pHouseOwner, pTarget, useFiringEffects);
+			FireSingleBullet(pThis, pExt, pWeapon, pHouseOwner, pTarget, radialFire,targetDir, radialFireCounter, radialFireSegments, headToTarget , useFiringEffects);
 	}
 }
 
@@ -1316,41 +1335,105 @@ void BulletExtData::SimulatedFiringParticleSystem(BulletClass* pBullet, HouseCla
 }
 
 // Make sure pBullet is not empty before call
-void BulletExtData::SimulatedFiringUnlimbo(BulletClass* pBullet, HouseClass* pHouse, WeaponTypeClass* pWeapon, const CoordStruct& sourceCoords, bool randomVelocity)
+void BulletExtData::SimulatedFiringUnlimbo(BulletClass* pBullet, HouseClass* pHouse, WeaponTypeClass* pWeapon, const CoordStruct& sourceCoords, bool headToTarget, const RadialFireStruct& radialFire)
 {
 	// Velocity
-	auto velocity = VelocityClass::Empty;
-	if (pBullet->Type->FirersPalette)
+	VelocityClass velocity = VelocityClass::Empty;
+	const auto pType = pBullet->Type;
+
+	if (pType->FirersPalette)
 		pBullet->InheritedColor = pHouse->ColorSchemeIndex;
 
-	const auto gravity = BulletTypeExtData::GetAdjustedGravity(pBullet->Type);
-	const auto targetCoords = pBullet->Target->GetCenterCoords();
-	const auto distanceCoords = targetCoords - sourceCoords;
-	const auto horizontalDistance = Point2D { distanceCoords.X, distanceCoords.Y }.Length();
-	const bool lobber = pWeapon->Lobber || static_cast<int>(horizontalDistance) < distanceCoords.Z; // 0x70D590
-	// The lower the horizontal velocity, the higher the trajectory
-	// WW calculates the launch angle (and limits it) before calculating the velocity
-	// Here, some magic numbers are used to directly simulate its calculation
-	const auto speedMult = (lobber ? 0.45 : (distanceCoords.Z > 0 ? 0.68 : 1.0)); // Simulated 0x48A9D0
-	const auto speed = static_cast<int>(speedMult * Math::sqrt(horizontalDistance * gravity * 1.2)); // 0x48AB90
-
-	// Simulate firing Arcing bullet
-	if (horizontalDistance < 1e-10 || speed < 1e-10)
+	if (pType->Arcing)
 	{
-		// No solution
-		velocity.Z = speed;
-	}
-	else
+		// The target must exist during launch
+		const auto targetCoords = pBullet->Target->GetCenterCoords();
+		auto pTypeExtData = BulletTypeExtContainer::Instance.Find(pType);
+		const auto gravity = pTypeExtData->GetAdjustedGravity();
+		const auto distanceCoords = targetCoords - sourceCoords;
+		const auto horizontalDistance = distanceCoords.LengthXY();
+		const bool lobber = pWeapon->Lobber || static_cast<int>(horizontalDistance) < distanceCoords.Z; // 0x70D590
+		// The lower the horizontal velocity, the higher the trajectory
+		// WW calculates the launch angle (and limits it) before calculating the velocity
+		// Here, some magic numbers are used to directly simulate its calculation
+		const auto speedMult = (lobber ? 0.45 : (distanceCoords.Z > 0 ? 0.68 : 1.0)); // Simulated 0x48A9D0
+		const auto speed = speedMult * sqrt(horizontalDistance * gravity * 1.2); // 0x48AB90
+
+		// Simulate firing Arcing bullet
+		if (horizontalDistance < 1e-10 || speed < 1e-10)
+		{
+			// No solution
+			velocity.Z = speed;
+		}
+		else
+		{
+			const auto mult = speed / horizontalDistance;
+			velocity.X = static_cast<double>(distanceCoords.X) * mult;
+			velocity.Y = static_cast<double>(distanceCoords.Y) * mult;
+			velocity.Z = static_cast<double>(distanceCoords.Z) * mult + (gravity * horizontalDistance) / (2 * speed);
+		}
+	}else
 	{
-		const auto mult = speed / horizontalDistance;
+		const double speed = pBullet->Speed;
 
-		velocity.X = static_cast<double>(distanceCoords.X) * mult;
-		velocity.Y = static_cast<double>(distanceCoords.Y) * mult;
-		velocity.Z = static_cast<double>(distanceCoords.Z) * mult + (gravity * horizontalDistance) / (2 * speed);
+		if (headToTarget) // Home in on target.
+		{
+			const auto targetCoords = pBullet->Target->GetCenterCoords();
+			const auto distanceCoords = targetCoords - sourceCoords;
+
+			Vector3D<double> distanceVector {
+				static_cast<double>(distanceCoords.X),
+				static_cast<double>(distanceCoords.Y),
+				static_cast<double>(distanceCoords.Z) };
+
+			double len = distanceVector.Length();
+
+			if (len > 0.0)
+			{
+				distanceVector /= len;
+				velocity = { distanceVector.X * speed, distanceVector.Y * speed, distanceVector.Z * speed };
+			}
+		}
+		else // Drop down.
+		{
+			DirStruct dir;
+			dir.SetValue<5>(ScenarioClass::Instance->Random.RandomRanged(0, 31));
+			const auto cos_factor = -2.44921270764e-16; // cos(1.5 * Math::Pi * 1.00001)
+			const auto flatSpeed = cos_factor * speed;
+			const auto radians = dir.GetRadian<32>();
+			velocity = { Math::cos(radians) * flatSpeed, Math::sin(radians) * flatSpeed, -speed };
+		}
 	}
 
+	if (radialFire.Segments > 0)
+	velocity = ApplyRadialFireVelocityWarp(velocity, radialFire);
+	
 	// Unlimbo
 	pBullet->MoveTo(sourceCoords, velocity);
+}
+
+VelocityClass BulletExtData::ApplyRadialFireVelocityWarp(VelocityClass& velocity, const RadialFireStruct& radialFire)
+{
+	if (radialFire.Segments <= 0)
+		return velocity;
+
+	const double speedXY = std::hypot(velocity.X, velocity.Y);
+
+	if (speedXY <= 0.0)
+		return velocity;
+
+	const double offset =
+		(Math::GAME_PI / radialFire.Segments)
+		* radialFire.Index
+		- Math::PI_BY_TWO_ACCURATE;
+
+	const double baseAngle = radialFire.Direction.GetRadian<32>();
+	const double angle = baseAngle + offset;
+
+	velocity.X = Math::cos(angle) * speedXY;
+	velocity.Y = -Math::sin(angle) * speedXY;
+
+	return velocity;
 }
 
 // Make sure pBullet and pBullet->WeaponType is not empty before call

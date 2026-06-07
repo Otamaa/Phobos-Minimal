@@ -94,6 +94,7 @@ public:
 	// 8-byte aligned: Pointer
 	// ============================================================
 	SWTypeExtData* Type {};
+	TechnoClass* Firer {};
 
 	// ============================================================
 	// 4-byte aligned: int
@@ -127,7 +128,10 @@ public:
 	static void UpdateLauchData(SuperClass* pFor);
 	static bool CanFire(SuperClass* pFor);
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType type) override {}
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType type) override {
+		AnnounceInvalidPointer(this->Firer, ptr, bRemoved);
+	
+	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{

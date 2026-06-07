@@ -613,6 +613,14 @@ public:
 	void ImmolateVictim();
 	void UpdateTiberiumHeal();
 
+	//Add own supers to respective arrays
+	void AddSupers();
+	//add upgrade supers to parent arrays
+	void AddSupers(TechnoClass* pDest);
+	//remove all supers from respective array
+	void RemoveSupers();
+
+
 public:
 
 	static void InitializeUnitIdleAction(TechnoClass* pThis, TechnoTypeClass* pType);

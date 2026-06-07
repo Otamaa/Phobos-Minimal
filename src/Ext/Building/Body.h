@@ -59,7 +59,8 @@ public:
 	std::vector<int> DockReloadTimers {};
 	HelperedVector<TechnoClass*> RegisteredJammers {};
 	std::vector<BuildingClass*> airFactoryBuilding {};
-
+	std::vector<SuperClass*> Supers {};
+	
 	// ============================================================
 	// Large compound: std::array of CDTimerClass
 	// ============================================================
@@ -141,6 +142,13 @@ public:
 	void UpdateAutoSellTimer();
 	void UpdateSpyEffecAnimDisplay();
 	void UpdateMainEvaVoice();
+
+	//Add own supers to respective arrays
+	void AddSupers();
+	//add upgrade supers to parent arrays
+	void AddSupers(BuildingClass* pDest);
+	//remove all supers from respective array
+	void RemoveSupers();
 
 public:
 	static void StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType);

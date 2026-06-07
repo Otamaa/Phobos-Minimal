@@ -470,6 +470,9 @@ HRESULT Phobos::LoadAllEarlyData(IStream* pStm)
 	hr = ReadBlocksFromStreamStreamD(AircraftTypeExtContainer::Instance, pStm, AircraftTypeExtData::Canary);
 	if (!SUCCEEDED(hr)) return hr;
 
+	hr = ReadBlocksFromStreamStreamD(AnimExtContainer::Instance, pStm, AnimExtData::Canary);
+	if (!SUCCEEDED(hr)) return hr;
+
 	//more
 	return hr;
 }

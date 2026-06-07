@@ -4,6 +4,7 @@
 #include <Helpers/Macro.h>
 
 #include <Utilities/TemplateDef.h>
+#include <Utilities/RadialFireStruct.h>
 
 #include <New/Entity/LaserTrailClass.h>
 
@@ -69,6 +70,7 @@ public:
 	TechnoClass* PrismRelayMaster {};
 	bool PrismRelaySupportBullet {};
 	bool PrismRelayCounted {};
+
 #pragma endregion
 
 public:
@@ -152,7 +154,8 @@ private:
 
 public:
 
-	static void SimulatedFiringUnlimbo(BulletClass* pBullet, HouseClass* pHouse, WeaponTypeClass* pWeapon, const CoordStruct& sourceCoords, bool randomVelocity);
+	static void SimulatedFiringUnlimbo(BulletClass* pBullet, HouseClass* pHouse, WeaponTypeClass* pWeapon, const CoordStruct& sourceCoords, bool headToTarget, const RadialFireStruct& radialFire);
+	static VelocityClass ApplyRadialFireVelocityWarp(VelocityClass& velocity, const RadialFireStruct& radialFire);
 	static void SimulatedFiringEffects(BulletClass* pBullet, HouseClass* pHouse, ObjectClass* pAttach, bool firingEffect, bool visualEffect);
 	static void SimulatedFiringAnim(BulletClass* pBullet, HouseClass* pHouse, ObjectClass* pAttach);
 	static void SimulatedFiringReport(BulletClass* pBullet);

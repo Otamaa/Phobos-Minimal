@@ -416,23 +416,34 @@ void NOINLINE FakeAnimClass::_ApplyHideIfNoOre()
 void FakeAnimClass::UpdateAsFiringAnim()
 {
 	auto pExt = this->_GetExtData();
-	if(!pExt->FromWeapon)
+	if(!pExt->FiringAnim_Weapon)
 		return;
 
 	if (auto pOwner = flag_cast_to<TechnoClass*>(this->OwnerObject))
 	{
-		AnimTypeClass* pNewType = GeneralUtils::GetItemForDirection(make_iterator(pExt->FromWeapon->Anim), pOwner->GetRealFacing());
+		auto const currentFacing = pOwner->GetRealFacing();
 
-		if(!pNewType)
-			return;
+		bool facingChanged = currentFacing != pExt->FiringAnim_LastFacing;
+	
+		if (facingChanged)
+		{
+			pExt->FiringAnim_LastFacing = currentFacing;
+			if (AnimTypeClass* pNewType = GeneralUtils::GetItemForDirection<AnimTypeClass*>( pExt->FiringAnim_Weapon->Anim, currentFacing)) {
+				AnimExtData::ChangeAnimType(this, pNewType, false , false);
+			}
+		}
 
-		this->Type = pNewType;
+		auto const currentCoords = pOwner->GetRenderCoords();
 
-		auto burstIdx = pOwner->CurrentBurstIndex;
-		pOwner->CurrentBurstIndex = pExt->FromBurstIdx;
-		CoordStruct flh = pOwner->GetFLH(pExt->FromWeaponIdx, 0,0,0);
-		pOwner->CurrentBurstIndex = burstIdx;
-		this->SetLocation(flh - pOwner->GetCoords());
+		if (currentCoords != pExt->FiringAnim_LastCoords || facingChanged)
+		{
+			pExt->FiringAnim_LastCoords = currentCoords;
+			auto burstIdx = pOwner->CurrentBurstIndex;
+			pOwner->CurrentBurstIndex = pExt->FiringAnim_BurstIndex;
+			auto flh = pOwner->GetFLH(pExt->FiringAnim_WeaponIndex, 0,0,0);
+			pOwner->CurrentBurstIndex = burstIdx;
+			this->SetLocation(flh - currentCoords);
+		}
 	}
 }
 

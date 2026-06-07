@@ -229,30 +229,7 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->ExtraWarheads_DetonationChances.Read(exINI, pSection, "ExtraWarheads.DetonationChances");
 	this->ExtraWarheads_FullDetonation.Read(exINI, pSection, "ExtraWarheads.FullDetonation");
 
-	this->ExtraWarheads_RollChances.Read(exINI, pSection, "ExtraWarheads.RollChances");
-
-	// ExtraWarheads.RandomWeights
-	std::string random_weights_tag = "ExtraWarheads.RandomWeights";
-
-	for (size_t i = 0; ; ++i) {
-		ValueableVector<int> weights3 {};
-		weights3.Read(exINI, pSection, (random_weights_tag + std::to_string(i)).c_str());
-
-		if (!weights3.size())
-			break;
-
-		this->ExtraWarheads_WeightsData.emplace_back(std::move(weights3));
-	}
-
-	ValueableVector<int> weights3_b {};
-	weights3_b.Read(exINI, pSection, random_weights_tag.c_str());
-
-	if (weights3_b.size()) {
-		if (this->ExtraWarheads_WeightsData.size())
-			this->ExtraWarheads_WeightsData[0] = std::move(weights3_b);
-		else
-			this->ExtraWarheads_WeightsData.emplace_back(std::move(weights3_b));
-	}
+	this->ExtraWarheads_Randoms.Read(exINI, pSection, "ExtraWarheads");
 
 	this->Burst_Retarget.Read(exINI, pSection, "Burst.Retarget");
 	this->KickOutPassenger.Read(exINI, pSection, "KickOutPassenger");
@@ -625,8 +602,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->ExtraWarheads_DamageOverrides)
 		.Process(this->ExtraWarheads_DetonationChances)
 		.Process(this->ExtraWarheads_FullDetonation)
-		.Process(this->ExtraWarheads_RollChances)
-		.Process(this->ExtraWarheads_WeightsData)
+		.Process(this->ExtraWarheads_Randoms)
 		.Process(this->Burst_Retarget)
 		.Process(this->KickOutPassenger)
 

@@ -1045,7 +1045,7 @@ static BuildingPlacementOutcome TryExtendedBuildingPlacement(
 	}
 
 	// Handle power-up buildings
-	if (pBuildingType->PowersUpBuilding[0])
+	if (!BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.empty())
 	{
 		CellClass* pCell = MapClass::Instance->GetCellAt(placeCell);
 		BuildingClass* pCellBuilding = pCell->GetBuilding();
@@ -1124,12 +1124,13 @@ static CellStruct FindBuildingPlacementCell(
 	BaseNodeClass* pNode)
 {
 	CellStruct placeCell = CellStruct::Empty;
+	bool haAnyUpgrades = !BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.empty();
 
 	if (pNode && pNode->MapCoords.IsValid())
 	{
 		CellStruct* pNodeCell = &pNode->MapCoords;
 
-		if (pBuildingType->PowersUpBuilding[0] ||
+		if (haAnyUpgrades ||
 			pBuilding->Owner->HasSpaceFor(pBuildingType, pNodeCell))
 		{
 			placeCell = *pNodeCell;
@@ -1146,7 +1147,7 @@ static CellStruct FindBuildingPlacementCell(
 	}
 	else
 	{
-		if (pBuildingType->PowersUpBuilding[0])
+		if (haAnyUpgrades)
 			pBuilding->Owner->GetPoweups(&placeCell, pBuildingType);
 		else
 			pBuilding->Owner->FindBuildLocation(
@@ -1193,7 +1194,7 @@ static KickOutResult HandleBuildingExit(
 	if (!placeCell.IsValid())
 	{
 		// Handle power-up building with no valid location
-		if (pBuildingType->PowersUpBuilding[0])
+		if (!BuildingTypeExtContainer::Instance.Find(pBuildingType)->PowersUp_Buildings.empty())
 		{
 			if (pFactoryBuilding->Owner->Base.NextBuildable(-1) == pNode)
 			{

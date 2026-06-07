@@ -183,6 +183,13 @@ void PhobosAttachEffectClass::AI()
 		if (!this->ShouldBeDiscardedNow())
 		{
 			this->RefreshDuration();
+
+			bool decloak = false;
+			AEProperties::RecalculateSingle(this->Techno, this, &decloak, nullptr, true);
+
+			if(decloak)
+				this->Techno->Uncloak(true);
+
 			this->NeedsDurationRefresh = false;
 			HandleEvent(this->Techno);
 		}
@@ -375,7 +382,7 @@ void PhobosAttachEffectClass::FirePeriodicWeapon()
 			pBullet->Owner = pFirer;
 			auto const pBulletExt = BulletExtContainer::Instance.Find(pBullet);
 			pBulletExt->Owner = pFirerHouse;
-			BulletExtData::SimulatedFiringUnlimbo(pBullet, pFirerHouse, pWeapon, firePos, false);
+			BulletExtData::SimulatedFiringUnlimbo(pBullet, pFirerHouse, pWeapon, firePos, false, {});
 			BulletExtData::SimulatedFiringEffects(pBullet, pFirerHouse, pFirer, true, true);
 		}
 	}
@@ -408,7 +415,7 @@ void PhobosAttachEffectClass::FirePeriodicWeapon()
 					pBullet->Owner = pFirer;
 					auto const pBulletExt = BulletExtContainer::Instance.Find(pBullet);
 					pBulletExt->Owner = pFirerHouse;
-					BulletExtData::SimulatedFiringUnlimbo(pBullet, pFirerHouse, pWeapon, firePos, false);
+					BulletExtData::SimulatedFiringUnlimbo(pBullet, pFirerHouse, pWeapon, firePos, false, {});
 					BulletExtData::SimulatedFiringEffects(pBullet, pFirerHouse, pFirer, true, true);
 				}
 			}

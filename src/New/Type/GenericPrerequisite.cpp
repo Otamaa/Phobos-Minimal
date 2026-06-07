@@ -155,29 +155,38 @@ bool Prereqs::HouseOwnsGeneric(HouseClass const* const pHouse, int const Index)
 	return false;
 }
 
+#include <Ext/BuildingType/Body.h>
+
 bool Prereqs::HouseOwnsSpecific(HouseClass const* const pHouse, int const Index)
 {
 	const auto pType = BuildingTypeClass::Array->Items[Index];
-	const auto pPowerup = pType->PowersUpBuilding;
+	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
 
-	if (*pPowerup)
+	if (!pTypeExt->PowersUp_Buildings.empty())
 	{
-		auto const pCore = BuildingTypeClass::Find(pPowerup);
+		bool found_any = false;
 
-		if (!pCore || pHouse->ActiveBuildingTypes.get_count(pCore->ArrayIndex) < 1) {
-			return false;
-		}
+		for(auto& pUbg : pTypeExt->PowersUp_Buildings){
 
-		for (auto const& pBld : pHouse->Buildings)
-		{
-			const auto Types = pBld->GetTypes();
-
-			if (Types[0] != pCore) {
+			if(!pUbg)
 				continue;
-			}
 
-			if(Types[1] == pType || Types[2] == pType || Types[3] == pType) {
-				return true;
+			if(pHouse->ActiveBuildingTypes.get_count(pUbg->ArrayIndex) < 1)
+				continue;
+			else {
+				for (auto const& pBld : pHouse->Buildings) {
+					const auto Types = pBld->GetTypes();
+
+					if (Types[0] != pUbg) {
+						continue;
+					}
+
+					if (Types[1] == pType 
+						|| Types[2] == pType 
+						|| Types[3] == pType) {
+						return true;
+					}
+				}
 			}
 		}
 

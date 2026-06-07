@@ -1167,7 +1167,7 @@ void DisperseTrajectory::CreateDisperseBullets(WeaponTypeClass* pWeapon, Abstrac
 
 	if (const auto pCreateBullet = pWeapon->Projectile->CreateBullet(pTarget, pBullet->Owner, finalDamage, pWeapon->Warhead, pWeapon->Speed, pWeapon->Bright))
 	{
-		BulletExt::SimulatedFiringUnlimbo(pCreateBullet, pOwner, pWeapon, pBullet->Location, false);
+		BulletExt::SimulatedFiringUnlimbo(pCreateBullet, pOwner, pWeapon, pBullet->Location, false, {});
 		const auto pBulletExt = BulletExt::ExtMap.Find(pCreateBullet);
 
 		if (const auto pTraj = pBulletExt->Trajectory.get())

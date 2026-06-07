@@ -17,6 +17,8 @@ class EnumFunctions final
 public:
 
 	//simple enums
+	static COMPILETIMEEVAL OPTIONALINLINE auto Action_ToStrings = magic_enum::enum_entries<Action>();
+	static COMPILETIMEEVAL OPTIONALINLINE auto DynamicTeamDelayType_ToStrings = magic_enum::enum_entries<DynamicTeamDelayType>();
 	static COMPILETIMEEVAL OPTIONALINLINE auto PeriodicWeaponTargetingMode_ToStrings = magic_enum::enum_entries<PeriodicWeaponTargetingMode>();
 	static COMPILETIMEEVAL OPTIONALINLINE auto PositionFollow_ToStrings = magic_enum::enum_entries<PositionFollow>();
 	static COMPILETIMEEVAL OPTIONALINLINE auto StackingMode_ToStrings = magic_enum::enum_entries<StackingMode>();

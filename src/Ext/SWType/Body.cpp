@@ -1087,6 +1087,13 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->EVA_Detected.Read(exINI, pSection, "EVA.Detected");
 	this->EVA_Detected_Simple.Read(exINI, pSection, "EVA.Detected.Simple");
 
+	this->Message_Activated_Owner.Read(exINI, pSection, "Message.Activated.Owner");
+	this->Message_Activated_Allies.Read(exINI, pSection, "Message.Activated.Allies");
+	this->Message_Activated_Enemies.Read(exINI, pSection, "Message.Activated.Enemies");
+	this->EVA_Activated_Owner.Read(exINI, pSection, "EVA.Activated.Owner");
+	this->EVA_Activated_Allies.Read(exINI, pSection, "EVA.Activated.Allies");
+	this->EVA_Activated_Enemies.Read(exINI, pSection, "EVA.Activated.Enemies");
+
 	this->Message_Launch.Read(exINI, pSection, "Message.Launch");
 	this->Message_FirerColor.Read(exINI, pSection, "Message.FirerColor");
 
@@ -1099,28 +1106,8 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->CameoPriority.Read(exINI, pSection, "CameoPriority");
 	this->LimboDelivery_Types.Read(exINI, pSection, "LimboDelivery.Types");
 	this->LimboDelivery_IDs.Read(exINI, pSection, "LimboDelivery.IDs");
-	this->LimboDelivery_RollChances.Read(exINI, pSection, "LimboDelivery.RollChances");
-	this->LimboDelivery_RandomWeightsData.clear();
 
-	for (size_t i = 0; ; ++i)
-	{
-		ValueableVector<int> weights {};
-		weights.Read(exINI, pSection, (std::string("LimboDelivery.RandomWeights") + std::to_string(i)).c_str());
-
-		if (weights.empty())
-			break;
-
-		this->LimboDelivery_RandomWeightsData.push_back(std::move(weights));
-	}
-
-	std::vector<int> weights {};
-	detail::ReadVectors(weights, exINI, pSection, "LimboDelivery.RandomWeights");
-	if (!weights.empty()) {
-		if (this->LimboDelivery_RandomWeightsData.size())
-			this->LimboDelivery_RandomWeightsData[0] = std::move(weights);
-		else
-			this->LimboDelivery_RandomWeightsData.push_back(std::move(weights));
-	}
+	this->LimboDelivery_Randoms.Read(exINI, pSection, "LimboDelivery");
 
 	this->LimboKill_Affected.Read(exINI, pSection, "LimboKill.Affected");
 	this->LimboKill_Affected.Read(exINI, pSection, "LimboKill.AffectsHouse");
@@ -1209,28 +1196,8 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_Next_RealLaunch.Read(exINI, pSection, "SW.Next.RealLaunch");
 	this->SW_Next_IgnoreInhibitors.Read(exINI, pSection, "SW.Next.IgnoreInhibitors");
 	this->SW_Next_IgnoreDesignators.Read(exINI, pSection, "SW.Next.IgnoreDesignators");
-	this->SW_Next_RollChances.Read(exINI, pSection, "SW.Next.RollChances");
-	this->SW_Next_RandomWeightsData.clear();
 
-	std::string basetag = "SW.Next.RandomWeights";
-	for (size_t i = 0; ; ++i) {
-		ValueableVector<int> weights2;
-		weights2.Read(exINI, pSection, (basetag + std::to_string(i)).c_str());
-
-		if (!weights2.size())
-			break;
-
-		this->SW_Next_RandomWeightsData.push_back(weights2);
-	}
-
-	ValueableVector<int> weights2;
-	weights2.Read(exINI, pSection, basetag.c_str());
-	if (weights2.size()) {
-		if (this->SW_Next_RandomWeightsData.size())
-			this->SW_Next_RandomWeightsData[0] = std::move(weights2);
-		else
-			this->SW_Next_RandomWeightsData.push_back(std::move(weights2));
-	}
+	this->SW_Next_Randoms.Read(exINI, pSection, "SW.Next");
 
 	//
 	this->Converts_UseSWRange.Read(exINI, pSection, "Converts.UseSWRange");
@@ -1325,28 +1292,8 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_Link_Reset.Read(exINI, pSection, "SW.Link.Reset");
 	this->Message_LinkedSWAcquired.Read(exINI, pSection, "Message.LinkedSWAcquired");
 	this->EVA_LinkedSWAcquired.Read(exINI, pSection, "EVA.LinkedSWAcquired");
-	this->SW_Link_RollChances.Read(exINI, pSection, "SW.Link.RollChances");
 
-	std::string _tag("SW.Link.RandomWeights");
-	for (size_t i = 0; ; ++i)
-	{
-		ValueableVector<int> weights3;
-		weights3.Read(exINI, pSection, (_tag + std::to_string(i)).c_str());
-
-		if (!weights3.size())
-			break;
-
-		this->SW_Link_RandomWeightsData.push_back(std::move(weights3));
-	}
-	ValueableVector<int> weights3;
-	weights3.Read(exINI, pSection, "SW.Link.RandomWeights");
-	if (weights3.size())
-	{
-		if (this->SW_Link_RandomWeightsData.size())
-			this->SW_Link_RandomWeightsData[0] = std::move(weights3);
-		else
-			this->SW_Link_RandomWeightsData.push_back(std::move(weights3));
-	}
+	this->SW_Link_Randoms.Read(exINI, pSection, "SW.Link");
 
 	if(pThis->Type != SuperWeaponType::Invalid)
 	{
@@ -1374,88 +1321,18 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	return true;
 }
 
-// Universal handler of the rolls-weights system
-void SWTypeExtData::WeightedRollsHandler(std::vector<int>& nResult, Valueable<double>& RandomBuffer, const ValueableVector<float>& rolls, const ValueableVector<ValueableVector<int>>& weights, size_t size)
-{
-	bool rollOnce = false;
-	size_t rollsSize = rolls.size();
-	size_t weightsSize = weights.size();
-	int index = 0;
-	//std::vector<int> indices;
-
-	// if no RollChances are supplied, do only one roll
-	if (rollsSize == 0)
-	{
-		rollsSize = 1;
-		rollOnce = true;
-	}
-
-	for (size_t i = 0; i < rollsSize; i++)
-	{
-		RandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
-		if (!rollOnce && RandomBuffer > Math::abs(rolls[i]))
-			continue;
-
-		// If there are more rolls than weight lists, use the last weight list
-		size_t j = MinImpl(i, weightsSize - 1);
-		index = GeneralUtils::ChooseOneWeighted(RandomBuffer, weights[j]);
-
-		// If modder provides more weights than there are objects and we hit one of these, ignore it
-		// otherwise add
-		if (size_t(index) < size)
-			nResult.push_back(index);
-	}
-}
-
-std::vector<int> SWTypeExtData::WeightedRollsHandler(std::vector<float>* rolls, std::vector<std::vector<int>>* weights, size_t size)
-{
-	std::vector<int> nResult {};
-	bool rollOnce = false;
-	size_t rollsSize = rolls->size();
-	size_t weightsSize = weights->size();
-	int index = 0;
-
-	// Safety check: if weights is empty, return empty result
-	if (weightsSize == 0 || size == 0)
-		return nResult;
-
-	// if no RollChances are supplied, do only one roll
-	if (rollsSize == 0)
-	{
-		rollsSize = 1;
-		rollOnce = true;
-	}
-
-	for (size_t i = 0; i < rollsSize; i++)
-	{
-		this->RandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
-		if (!rollOnce && this->RandomBuffer > Math::abs((*rolls)[i]))
-			continue;
-
-		// If there are more rolls than weight lists, use the last weight list
-		size_t j = MinImpl(i, weightsSize - 1);
-		index = GeneralUtils::ChooseOneWeighted(this->RandomBuffer, (*weights)[j]);
-
-		// If modder provides more weights than there are objects and we hit one of these, ignore it
-		// otherwise add
-		if (index >= 0 && size_t(index) < size)
-			nResult.push_back(index);
-	}
-
-	return nResult;
-}
-
 void SWTypeExtData::ApplyLimboDelivery(HouseClass* pHouse)
 {
 	if (!pHouse || pHouse->Type->MultiplayPassive)
 		return;
 
 	// random mode
-	if (!this->LimboDelivery_RandomWeightsData.empty())
+
+	if (!this->LimboDelivery_Randoms.Weights.empty())
 	{
 		int id = -1;
 		size_t idsSize = this->LimboDelivery_IDs.size();
-		std::vector<int> results = this->WeightedRollsHandler(&this->LimboDelivery_RollChances, &this->LimboDelivery_RandomWeightsData, this->LimboDelivery_Types.size());
+		std::vector<int> results = this->LimboDelivery_Randoms.RollWeighted(this->LimboDelivery_Types.size(), this->RandomBuffer);
 
 		for (const size_t& result : results)
 		{
@@ -1546,14 +1423,9 @@ void SWTypeExtData::ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, const C
 void SWTypeExtData::ApplySWNext(SuperClass* pSW, const CellStruct& cell, bool IsPlayer)
 {
 	// random mode
-	if (!this->SW_Next_RandomWeightsData.empty()) {
-		for (const int& result :
-			this->WeightedRollsHandler(
-				&this->SW_Next_RollChances,
-				&this->SW_Next_RandomWeightsData,
-				this->SW_Next.size())
-			)
-		{
+	
+	if (!this->SW_Next_Randoms.Weights.empty()) {
+		for (const int& result : this->SW_Next_Randoms.RollWeighted(this->SW_Next.size(), this->RandomBuffer)) {
 			SWTypeExtData::Launch(pSW, pSW->Owner, this, this->SW_Next[result], cell , IsPlayer);
 		}
 	}
@@ -1814,12 +1686,32 @@ bool SWTypeExtData::ApplyDrainBattlePoint(int timeLeft, HouseClass* pHouse) {
 void SWTypeExtData::PrintMessage_Activate(HouseClass* pFirer)
 {
 	this->PrintMessage(this->Message_Activate, pFirer);
+
+	if(!this->Message_Activated_Owner->empty() || !this->Message_Activated_Allies->empty() || !this->Message_Activated_Enemies->empty()) {
+		const auto& messages = pFirer->ControlledByCurrentPlayer()
+			? this->Message_Activated_Owner
+			: (pFirer->IsAlliedWith(HouseClass::CurrentPlayer())
+				? this->Message_Activated_Allies
+				: this->Message_Activated_Enemies);
+
+		this->PrintMessage(messages, pFirer);
+	}
 }
 
 void SWTypeExtData::Play_EvaActivated(HouseClass* pFirer)
 {
-	if (this->EVA_Activated >= 0)
-		VoxClass::PlayIndex(this->EVA_Activated);
+	VoxClass::PlayIndex(this->EVA_Activated);
+
+	if(this->EVA_Activated_Owner.isset() || this->EVA_Activated_Allies.isset() || this->EVA_Activated_Enemies.isset()){
+		const auto pEva = pFirer->ControlledByCurrentPlayer()
+			? &this->EVA_Activated_Owner
+			: (pFirer->IsAlliedWith(HouseClass::CurrentPlayer())
+				? &this->EVA_Activated_Allies
+				: &this->EVA_Activated_Enemies);
+
+		if (pEva->isset())
+			VoxClass::PlayIndex(pEva->Get());
+	}
 }
 //
 
@@ -2039,8 +1931,7 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->CameoPriority)
 		.Process(this->LimboDelivery_Types)
 		.Process(this->LimboDelivery_IDs)
-		.Process(this->LimboDelivery_RandomWeightsData)
-		.Process(this->LimboDelivery_RollChances)
+		.Process(this->LimboDelivery_Randoms)
 		.Process(this->LimboKill_Affected)
 		.Process(this->LimboKill_IDs)
 		.Process(this->LimboKill_Counts)
@@ -2050,8 +1941,7 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->SW_Next_RealLaunch)
 		.Process(this->SW_Next_IgnoreInhibitors)
 		.Process(this->SW_Next_IgnoreDesignators)
-		.Process(this->SW_Next_RollChances)
-		.Process(this->SW_Next_RandomWeightsData)
+		.Process(this->SW_Next_Randoms)
 
 		.Process(this->SW_Inhibitors_Houses)
 		.Process(this->SW_Inhibitors)
@@ -2349,6 +2239,7 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->UseWeeds_ReadinessAnimationPercentage)
 
 		.Process(this->CrateGoodies)
+		.Process(this->SW_Unique)
 		.Process(this->SuperWeaponSidebar_Allow)
 		.Process(this->SuperWeaponSidebar_PriorityHouses)
 		.Process(this->SuperWeaponSidebar_RequiredHouses)
@@ -2363,11 +2254,16 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->SW_Link_Grant)
 		.Process(this->SW_Link_Ready)
 		.Process(this->SW_Link_Reset)
-		.Process(this->SW_Link_RandomWeightsData)
-		.Process(this->SW_Link_RollChances)
+		.Process(this->SW_Link_Randoms)
 		.Process(this->Message_LinkedSWAcquired)
 		.Process(this->EVA_LinkedSWAcquired)
 
+		.Process(this->Message_Activated_Owner)
+		.Process(this->Message_Activated_Allies)
+		.Process(this->Message_Activated_Enemies)
+		.Process(this->EVA_Activated_Owner)
+		.Process(this->EVA_Activated_Allies)
+		.Process(this->EVA_Activated_Enemies)
 		;
 
 }
@@ -2445,9 +2341,10 @@ void SWTypeExtData::ApplyLinkedSW(SuperClass* pSW)
 	bool isActive = false;
 
 	// random mode
-	if (this->SW_Link_RandomWeightsData.size())
+
+	if (this->SW_Link_Randoms.Weights.size())
 	{
-		const auto results = this->WeightedRollsHandler(&this->SW_Link_RollChances, &this->SW_Link_RandomWeightsData, this->SW_Link.size());
+		const auto results = this->SW_Link_Randoms.RollWeighted(this->SW_Link.size(), this->RandomBuffer);
 
 		for (const int &result : results)
 		{

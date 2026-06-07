@@ -2461,24 +2461,18 @@ int HouseExtData::CountOwnedNowTotal(
 	{
 	case AbstractType::BuildingType:
 	{
-		const BuildingTypeClass* pBType = static_cast<BuildingTypeClass const*>(pItem);
-		const char* pPowersUp = pBType->PowersUpBuilding;
+		BuildingTypeClass* pBType = static_cast<BuildingTypeClass*>(pItem);
 		int sum = 0;
 
-		if (pPowersUp[0])
+		if (!BuildingTypeExtContainer::Instance.Find(pBType)->PowersUp_Buildings.empty())
 		{
-			if (auto const pTPowersUp = BuildingTypeClass::Find(pPowersUp))
+			for (auto const& pBld : pHouse->Buildings)
 			{
-				for (auto const& pBld : pHouse->Buildings)
-				{
-					if (pBld->Type == pTPowersUp)
-					{
-						for (auto const& pUpgrade : pBld->Upgrades)
+				if(BuildingTypeExtContainer::Instance.Find(pBType)->PowersUp_Buildings.Contains(pBld->Type)){
+					for (auto const& pUpgrade : pBld->Upgrades) {
+						if (pUpgrade == pBType)
 						{
-							if (pUpgrade == pBType)
-							{
-								++sum;
-							}
+							++sum;
 						}
 					}
 				}

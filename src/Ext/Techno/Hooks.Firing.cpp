@@ -1870,9 +1870,9 @@ ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 
 		if (pWeapon->_GetExtData()->Anim_Update.Get(RulesExtData::Instance()->FiringAnim_Update))
 		{
-			pAnimExt->FromWeapon = pWeapon;
-			pAnimExt->FromWeaponIdx = weaponIdx;
-			pAnimExt->FromBurstIdx = pThis->CurrentBurstIndex;
+			pAnimExt->FiringAnim_Weapon = pWeapon;
+			pAnimExt->FiringAnim_WeaponIndex = weaponIdx;
+			pAnimExt->FiringAnim_BurstIndex = pThis->CurrentBurstIndex;
 		}
 		// if (pThis->WhatAmI() != BuildingClass::AbsID)
 		// {

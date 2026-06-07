@@ -754,7 +754,7 @@ void TracingTrajectory::CreateTracingBullets(WeaponTypeClass* pWeapon)
 
 	if (const auto pCreateBullet = pWeapon->Projectile->CreateBullet(pTarget, pTechno, finalDamage, pWeapon->Warhead, pWeapon->Speed, pWeapon->Bright))
 	{
-		BulletExt::SimulatedFiringUnlimbo(pCreateBullet, pOwner, pWeapon, fireCoord, false);
+		BulletExt::SimulatedFiringUnlimbo(pCreateBullet, pOwner, pWeapon, fireCoord, false, {});
 		const auto pBulletExt = BulletExt::ExtMap.Find(pCreateBullet);
 
 		if (const auto pTraj = pBulletExt->Trajectory.get())

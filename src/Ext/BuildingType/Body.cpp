@@ -572,7 +572,7 @@ bool BuildingTypeExtData::AutoPlaceBuilding(BuildingClass* pBuilding)
 
 		return false;
 	}
-	else if (pType->PowersUpBuilding[0])
+	else if (!BuildingTypeExtContainer::Instance.Find(pType)->PowersUp_Buildings.empty())
 	{
 		for (const auto& pOwned : pHouse->Buildings)
 		{
@@ -1013,14 +1013,10 @@ bool BuildingTypeExtData::CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass
 	const auto pUpgradeExt = BuildingTypeExtContainer::Instance.Find(pUpgradeType);
 	if (EnumFunctions::CanTargetHouse(pUpgradeExt->PowersUp_Owner, pUpgradeOwner, pBuilding->Owner))
 	{
-		// PowersUpBuilding
-		if (_stricmp(pBuilding->Type->ID, pUpgradeType->PowersUpBuilding) == 0)
-			return true;
-
 		// PowersUp.Buildings
 		for (auto& pPowerUpBuilding : pUpgradeExt->PowersUp_Buildings)
 		{
-			if (_stricmp(pBuilding->Type->ID, pPowerUpBuilding->ID) == 0)
+			if (pBuilding->Type == pPowerUpBuilding)
 				return true;
 		}
 	}
@@ -1288,11 +1284,10 @@ double BuildingTypeExtData::GetExternalFactorySpeedBonus(TechnoClass* pWhat)
 
 int BuildingTypeExtData::GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass* pHouse) // not including producing upgrades
 {
-	if(!BuildingTypeExtContainer::Instance.Find(pBuilding)->PowersUp_Buildings.empty() || BuildingTypeClass::Find(pBuilding->PowersUpBuilding)) {
+	if(!BuildingTypeExtContainer::Instance.Find(pBuilding)->PowersUp_Buildings.empty()) {
 
 		int result = 0;
 		bool isUpgrade = false;
-		auto pPowersUp = pBuilding->PowersUpBuilding;
 
 		if (!pHouse)
 			return -1;
@@ -1315,11 +1310,6 @@ int BuildingTypeExtData::GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseCl
 					}
 				}
 			};
-
-		if (pPowersUp[0]) {
-			if (auto const pTPowersUp = BuildingTypeClass::Find(pPowersUp))
-				checkUpgrade(pTPowersUp);
-		}
 
 		for (auto pTPowersUp : BuildingTypeExtContainer::Instance.Find(pBuilding)->PowersUp_Buildings)
 			checkUpgrade(pTPowersUp);
@@ -1371,9 +1361,6 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->PowerPlantEnhancer_Range.Read(exINI, pSection, "PowerPlantEnhancer.Range");
 		this->PowerPlantEnhancer_Factor.Read(exINI, pSection, "PowerPlantEnhancer.Factor");
 		this->PowerPlantEnhancer_MaxCount.Read(exINI, pSection, "PowerPlantEnhancer.MaxCount");
-
-		if (pThis->PowersUpBuilding[0] == NULL && !this->PowersUp_Buildings.empty())
-			PhobosCRT::strCopy(pThis->PowersUpBuilding, this->PowersUp_Buildings[0]->ID);
 
 		//this->AllowAirstrike.Read(exINI, pSection, "AllowAirstrike");
 
@@ -1451,6 +1438,16 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->PlaceBuilding_OnWater.Read(exINI, pSection, "PlaceBuilding.OnWater");
 
 		this->Cameo_ShouldCount.Read(exINI, pSection, "Cameo.ShouldCount");
+
+
+		if (pThis->PowersUpBuilding[0] == NULL && this->PowersUp_Buildings.size() > 0) {
+			strcpy_s(pThis->PowersUpBuilding, this->PowersUp_Buildings[0]->ID);
+		} else if (pThis->PowersUpBuilding[0]) {
+			auto pPowerUpType = BuildingTypeClass::Find(pThis->PowersUpBuilding);
+
+			if (pPowerUpType && !this->PowersUp_Buildings.Contains(pPowerUpType))
+				this->PowersUp_Buildings.emplace_back(pPowerUpType);
+		}
 
 #pragma region Otamaa
 		//   this->Get()->StartFacing = 32 * ((std::clamp(pINI->ReadInteger(pSection, "StartFacing", 0), 0, 255)) << 5);

@@ -85,8 +85,7 @@ void ApplyNewExtraWarheads(
 	std::vector<int>& exWHDamageOverrides,
 	std::vector<double>& exWHChances,
 	std::vector<bool>& exWHFull,
-	std::vector<ValueableVector<int>>& exWHWeights,
-	ValueableVector<float>& exWHRollChances,
+	RandomWeights& exWHRand,
 	CoordStruct* coords, HouseClass* pOwner) {
 
 	auto const pTarget = flag_cast_to<TechnoClass*>(pBullet->Target);
@@ -125,55 +124,27 @@ void ApplyNewExtraWarheads(
 				flag_cast_to<TechnoClass*>(pBullet->Target));
 	};
 
-	if (exWHWeights.size() > 0)
-		{
-			size_t rollCount = exWHRollChances.size();
-			if (rollCount == 0)
-				rollCount = 1;
+	if (exWHRand.Weights.size() > 0)  {
+		int selectedIndex = -1;
 
-			for (size_t i = 0; i < rollCount; i++)
-			{
-				double dice = random.RandomDouble();
-				if (exWHRollChances.size() > 0 && dice > exWHRollChances[i])
-					continue;
+		if (exWHRand.TryRollChance(selectedIndex, exWHChances))
+			detonateWarhead(selectedIndex);
+	}
+	else {
+		for (size_t i = 0; i < exWH.size(); i++) {
+			size_t size = exWHChances.size();
+			bool detonate = true;
+			if (size > i)
+				detonate = exWHChances[i] >= random.RandomDouble();
+			else if (size > 0)
+				detonate = exWHChances[size - 1] >= random.RandomDouble();
 
-				const size_t weightIndex = MinImpl(i, exWHWeights.size() - 1);
-				const auto& weights = exWHWeights[weightIndex];
+			if (!detonate)
+				continue;
 
-				int selectedIndex = GeneralUtils::ChooseOneWeighted(dice, weights);
-
-				bool detonate = true;
-				size_t chanceSize = exWHChances.size();
-				if (chanceSize > 0)
-				{
-					double chanceDice = random.RandomDouble();
-					if (chanceSize > static_cast<size_t>(selectedIndex))
-						detonate = exWHChances[selectedIndex] >= chanceDice;
-					else
-						detonate = exWHChances[chanceSize - 1] >= chanceDice;
-				}
-
-				if (detonate)
-					detonateWarhead(selectedIndex);
-			}
+			detonateWarhead(static_cast<int>(i));
 		}
-		else
-		{
-			for (size_t i = 0; i < exWH.size(); i++)
-			{
-				size_t size = exWHChances.size();
-				bool detonate = true;
-				if (size > i)
-					detonate = exWHChances[i] >= random.RandomDouble();
-				else if (size > 0)
-					detonate = exWHChances[size - 1] >= random.RandomDouble();
-
-				if (!detonate)
-					continue;
-
-				detonateWarhead(static_cast<int>(i));
-			}
-		}
+	}
 }
 
 void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * pThis , CoordStruct* coords) {
@@ -188,8 +159,7 @@ void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * 
 			pWeaponExt->ExtraWarheads_DamageOverrides,
 			pWeaponExt->ExtraWarheads_DetonationChances,
 			pWeaponExt->ExtraWarheads_FullDetonation,
-			pWeaponExt->ExtraWarheads_WeightsData,
-			pWeaponExt->ExtraWarheads_RollChances,
+			pWeaponExt->ExtraWarheads_Randoms,
 			coords, pOwner);
 	}
 
@@ -231,7 +201,7 @@ void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * 
 				auto const pRBulletExt = BulletExtContainer::Instance.Find(pBullet);
 				pRBulletExt->Owner = BulletExtContainer::Instance.Find(pThis)->Owner;
 
-				BulletExtData::SimulatedFiringUnlimbo(pBullet, pThis->Owner->Owner, pWeapon, pThis->Location, false);
+				BulletExtData::SimulatedFiringUnlimbo(pBullet, pThis->Owner->Owner, pWeapon, pThis->Location, false, {});
 				BulletExtData::SimulatedFiringEffects(pBullet, pThis->Owner->Owner, nullptr, false, false);
 			}
 		}

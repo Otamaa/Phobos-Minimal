@@ -178,6 +178,8 @@ bool BulletTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->Splits_TargetingDistance_Cylindrical.Read(exINI, pSection, "Splits.TargetingDistance.Cylindrical");
 		this->Splits_AllowRepeatTargets.Read(exINI, pSection, "Splits.AllowRepeatTargets");
 		this->AirburstWeapon_UseFiringEffects.Read(exINI, pSection, "AirburstWeapon.UseFiringEffects");
+		this->AirburstWeapon_HeadToTarget.Read(exINI, pSection, "AirburstWeapon.HeadToTarget");
+		this->AirburstWeapon_RadialFireSegments.Read(exINI, pSection, "AirburstWeapon.RadialFireSegments");
 		this->Cluster_Scatter_Min.Read(exINI, pSection, "ClusterScatter.Min");
 		this->Cluster_Scatter_Max.Read(exINI, pSection, "ClusterScatter.Max");
 
@@ -290,6 +292,8 @@ void BulletTypeExtData::Serialize(T& Stm)
 		.Process(this->Splits_TargetingDistance_Cylindrical)
 		.Process(this->Splits_AllowRepeatTargets)
 		.Process(this->AirburstWeapon_UseFiringEffects)
+		.Process(this->AirburstWeapon_HeadToTarget)
+		.Process(this->AirburstWeapon_RadialFireSegments)
 		.Process(this->BounceAmount)
 		.Process(this->BounceHitWeapon)
 		.Process(this->BounceOnTerrain)
