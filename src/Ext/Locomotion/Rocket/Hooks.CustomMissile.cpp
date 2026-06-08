@@ -103,7 +103,7 @@ ASMJIT_PATCH(0x6B7498, SpawnManagerClass_AI_Statte0_Handlestuffs, 0x8)
 	animCoord.Z += 10;
 
 	auto priFacing = pThis->Owner->PrimaryFacing.Current();
-	if(pSpawned->Unlimbo(animCoord, (DirType)priFacing.GetFacing<8>())){
+	if(pSpawned->Unlimbo(animCoord, (DirType)priFacing.GetFacing<256>())){
 		if (_pAnim) {
 			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(_pAnim, pSpawned->Location, 2, 1, 0x600, -10, false),
 				pSpawned->Owner,
@@ -115,6 +115,9 @@ ASMJIT_PATCH(0x6B7498, SpawnManagerClass_AI_Statte0_Handlestuffs, 0x8)
 	}
 
 	R->EBX(R->Stack<int>(0x14));
+	R->Stack(0x2C, animCoord.X);
+	R->Stack(0x30, animCoord.Y);
+	R->Stack(0x34, animCoord.Z);
 	return 0x6B757A;
 }
 //#pragma optimize("", on )
