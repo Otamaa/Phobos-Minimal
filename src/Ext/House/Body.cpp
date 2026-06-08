@@ -3376,15 +3376,14 @@ void  __fastcall FakeHouseClass::__SuperWeaponHandler(HouseClass* pHouse)
 					continue;
 
 				// Check upgrades for this SW type (slots 1..3)
-				for (int u = 0; u <= 3; ++u) {
+				for (int u = 0; u < 3; ++u) {
 
-					if (!pBuilding->Upgrades[u])
-						continue;
-
-					if (pBuilding->Upgrades[u]->SuperWeapon == type || pBuilding->Upgrades[u]->SuperWeapon2 == type) {
-						hasBuilding = true;
-						if (!hasPower)
-							hasPower = pBuilding->HasPower;
+					if (pBuilding->Upgrades[u]){ 
+						if (pBuilding->Upgrades[u]->SuperWeapon == type || pBuilding->Upgrades[u]->SuperWeapon2 == type) {
+							hasBuilding = true;
+							if (!hasPower)
+								hasPower = pBuilding->HasPower;
+						}
 					}
 				}
 

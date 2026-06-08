@@ -1280,6 +1280,11 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->SuperWeaponSidebar_RequiredHouses = pINI->ReadHouseTypesList(pSection, "SuperWeaponSidebar.RequiredHouses", this->SuperWeaponSidebar_RequiredHouses);
 	this->TabIndex.Read(exINI, pSection, "TabIndex");
 
+	if(this->TabIndex.Get() > 3 || this->TabIndex.Get() < 0) {
+		this->TabIndex = 3;
+		Debug::Log("[%s - %x]Max tab index is 3 (0 index based )\n", pSection , this->This());
+	}
+
 	this->BattlePoints_Amount.Read(exINI, pSection, "BattlePoints.Amount");
 	this->BattlePoints_DrainAmount.Read(exINI, pSection, "BattlePoints.DrainAmount");
 	this->BattlePoints_DrainDelay.Read(exINI, pSection, "BattlePoints.DrainDelay");

@@ -17,15 +17,17 @@ int __fastcall WhichTab(AbstractType rtti, int idx, int unused)
 		return 3;
 	case AbstractType::Building:
 	case AbstractType::BuildingType:
-		return (int)ObjectTypeClass::IsBuildCat5(rtti, idx);
+		return ObjectTypeClass::IsBuildCat5(rtti, idx) == BuildCat::Combat ? 1 : 0;
 	case AbstractType::Special:
 	case AbstractType::Super:
 	case AbstractType::SuperWeaponType:
 	{
-		if ((size_t)idx < (size_t)SuperWeaponTypeClass::Array->Count)
-			return SWTypeExtContainer::Instance.Find(SuperWeaponTypeClass::Array->Items[idx])->TabIndex;
+		int tab = 1;
 
-		return 1;
+		if ((size_t)idx < (size_t)SuperWeaponTypeClass::Array->Count)
+			tab = SWTypeExtContainer::Instance.Find(SuperWeaponTypeClass::Array->Items[idx])->TabIndex.Get();
+
+		return tab;
 	}
 	default:
 		return -1;
