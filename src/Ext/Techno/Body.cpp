@@ -3146,7 +3146,7 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 						if (pHouse->IsCurrentPlayer())
 							SidebarClass::Instance->AddCameo(AbstractType::Special, idx);
 					}
-					SidebarClass::Instance->RepaintSidebar(1);
+					SidebarClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(AbstractType::Super, idx, false));
 				}
 			};
 

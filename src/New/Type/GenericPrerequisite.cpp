@@ -164,8 +164,6 @@ bool Prereqs::HouseOwnsSpecific(HouseClass const* const pHouse, int const Index)
 
 	if (!pTypeExt->PowersUp_Buildings.empty())
 	{
-		bool found_any = false;
-
 		for(auto& pUbg : pTypeExt->PowersUp_Buildings){
 
 			if(!pUbg)

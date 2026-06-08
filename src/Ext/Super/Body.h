@@ -94,7 +94,7 @@ public:
 	// 8-byte aligned: Pointer
 	// ============================================================
 	SWTypeExtData* Type {};
-	TechnoClass* Firer {};
+	BuildingClass* Firer {};
 
 	// ============================================================
 	// 4-byte aligned: int

@@ -2,6 +2,36 @@
 #include <Utilities/Macro.h>
 
 #pragma region SW TabIndex
+
+int __fastcall WhichTab(AbstractType rtti, int idx, int unused)
+{
+	switch (rtti)
+	{
+	case AbstractType::Infantry:
+	case AbstractType::InfantryType:
+		return 2;
+	case AbstractType::Unit:
+	case AbstractType::UnitType:
+	case AbstractType::Aircraft:
+	case AbstractType::AircraftType:
+		return 3;
+	case AbstractType::Building:
+	case AbstractType::BuildingType:
+		return (int)ObjectTypeClass::IsBuildCat5(rtti, idx);
+	case AbstractType::Special:
+	case AbstractType::Super:
+	case AbstractType::SuperWeaponType:
+	{
+		if ((size_t)idx < (size_t)SuperWeaponTypeClass::Array->Count)
+			return SWTypeExtContainer::Instance.Find(SuperWeaponTypeClass::Array->Items[idx])->TabIndex;
+
+		return 1;
+	}
+	default:
+		return -1;
+	}
+}
+
 ASMJIT_PATCH(0x6A5F6E, SidebarClass_6A5F20_TabIndex, 0x8)
 {
 	enum { ApplyTabIndex = 0x6A5FD3 };
@@ -9,23 +39,10 @@ ASMJIT_PATCH(0x6A5F6E, SidebarClass_6A5F20_TabIndex, 0x8)
 	GET(AbstractType const, absType, ESI);
 	GET(int const, typeIdx, EAX);
 
-	R->EAX(SidebarClass::GetObjectTabIdx(absType, typeIdx, 0));
+	R->EAX(WhichTab(absType, typeIdx, 0));
 	return ApplyTabIndex;
 }
 
-ASMJIT_PATCH(0x6ABC9D, SidebarClass_GetObjectTabIndex_Super, 0x5)
-{
-	enum { ApplyTabIndex = 0x6ABCA2 };
-
-	GET(int const, typeIdx, EDX);
-
-	if ((size_t)typeIdx < (size_t)SuperWeaponTypeClass::Array->Count) { 
-		R->EAX(SWTypeExtContainer::Instance.Find(SuperWeaponTypeClass::Array->Items[typeIdx])->TabIndex);
-		return ApplyTabIndex;
-	}
-
-	return 0;
-}
-
+DEFINE_FUNCTION_JUMP(LJMP, 0x6ABC60, WhichTab)
  // Skip tabIndex check
 #pragma endregion

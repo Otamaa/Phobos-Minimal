@@ -3412,7 +3412,7 @@ void  __fastcall FakeHouseClass::__SuperWeaponHandler(HouseClass* pHouse)
 			hasPower = false;
 		}
 
-		const int tabIndex = SidebarClass::GetObjectTabIdx(AbstractType::Special, pSWType->ArrayIndex, 0);
+		const int tabIndex = SidebarClass::GetObjectTabIdx(AbstractType::Special, type, 0);
 
 		// Collapses LABEL_52 + LABEL_53 — clear targeting if needed, then flag redraw
 		auto NotifyPlayer = [&](int swIdx)
@@ -3462,11 +3462,11 @@ void  __fastcall FakeHouseClass::__SuperWeaponHandler(HouseClass* pHouse)
 		pHouse->RecheckTechTree = true;
 	}
 }
-//DEFINE_FUNCTION_JUMP(CALL, 0x4F92F6, FakeHouseClass::__SuperWeaponHandler)
-//DEFINE_FUNCTION_JUMP(CALL, 0x451739, FakeHouseClass::__SuperWeaponHandler)
-//DEFINE_FUNCTION_JUMP(CALL, 0x451700, FakeHouseClass::__SuperWeaponHandler)
-//DEFINE_FUNCTION_JUMP(CALL, 0x508DDB, FakeHouseClass::__SuperWeaponHandler)
-//DEFINE_FUNCTION_JUMP(LJMP, 0x50AF10, FakeHouseClass::__SuperWeaponHandler)
+DEFINE_FUNCTION_JUMP(CALL, 0x4F92F6, FakeHouseClass::__SuperWeaponHandler)
+DEFINE_FUNCTION_JUMP(CALL, 0x451739, FakeHouseClass::__SuperWeaponHandler)
+DEFINE_FUNCTION_JUMP(CALL, 0x451700, FakeHouseClass::__SuperWeaponHandler)
+DEFINE_FUNCTION_JUMP(CALL, 0x508DDB, FakeHouseClass::__SuperWeaponHandler)
+DEFINE_FUNCTION_JUMP(LJMP, 0x50AF10, FakeHouseClass::__SuperWeaponHandler)
 
 int FakeHouseClass::_AI_Supers()
 {
@@ -3491,7 +3491,8 @@ int FakeHouseClass::_AI_Supers()
 								continue;
 
 							MouseClass::Instance->AddCameo(AbstractType::Super, i);
-							MouseClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(AbstractType::Super, i, 0));
+							const int tab = SidebarClass::GetObjectTabIdx(AbstractType::Super, i, false);
+							MouseClass::Instance->RepaintSidebar(tab);
 
 						}
 					}
