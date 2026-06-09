@@ -111,6 +111,7 @@ public:
 	bool Temp_IsPlayer {};
 	bool CameoFirstClickDone {};
 	bool FirstClickAutoFireDone {};
+	bool IsFromBuilding {};
 	// 4 bools = 4 bytes, naturally aligned
 
 	LauchData Data {};

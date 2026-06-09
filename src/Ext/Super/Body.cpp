@@ -142,6 +142,7 @@ void SuperExtData::Serialize(T& Stm) {
 		.Process(this->Temp_IsPlayer)
 		.Process(this->CameoFirstClickDone)
 		.Process(this->FirstClickAutoFireDone)
+		.Process(this->IsFromBuilding)
 		.Process(this->Statusses)
 		.Process(this->Data)
 		;
