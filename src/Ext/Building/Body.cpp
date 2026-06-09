@@ -3155,21 +3155,26 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x459ED0, FakeBuildingClass::__GetUIName)
   }
 
 #include <Ext/Super/Body.h>
-
+// Bug(s) :
+// - Building Anim not updated properly 
   void NOINLINE AddSuperToArray(int idx, BuildingClass* pBld) {
 	  const auto pSuperType = SuperWeaponTypeClass::Array->Items[idx];
 	  auto pBldExt = BuildingExtContainer::Instance.Find(pBld);
 
 	  if (SWTypeExtContainer::Instance.Find(pSuperType)->SW_Unique) {
 		  if (pBld->Owner->Supers.any_of([pSuperType](SuperClass* pSuper) {
-				  return pSuper->Type == pSuperType;
-			  })) return;
+			return SuperExtContainer::Instance.Find(pSuper)->IsFromBuilding 
+				&& pSuper->Type == pSuperType;
+			})) return;
 	  }
 
 	  auto pSuper = GameCreate<SuperClass>(pSuperType, pBld->Owner);
+	  auto pSuperExt = SuperExtContainer::Instance.Find(pSuper);
 	  pBld->Owner->Supers.emplace_back(pSuper);
 	  pBldExt->Supers.push_back(pSuper);
-	  SuperExtContainer::Instance.Find(pSuper)->Firer = pBld;
+
+	  pSuperExt->IsFromBuilding = true;
+	  pSuperExt->Firer = pBld;
   }
 
   //Add own supers to respective arrays
@@ -3230,8 +3235,49 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x459ED0, FakeBuildingClass::__GetUIName)
 		  GameDelete(pSW);
 	  }
 
+	  this->Supers.clear();
 	  //TODO : call the SW update
 	  this->This()->Owner->RecheckTechTree = true;
+  }
+
+  //transfer building supers to new owner
+  void BuildingExtData::TransferSupers(HouseClass* pNewOwner)
+  {
+	  int oldCount = pNewOwner->Supers.Count;
+	  auto pThisOwner = this->This()->Owner;
+
+	  std::vector<SuperClass*> _DeleteCandidate {};
+
+	  _DeleteCandidate.reserve(this->Supers.size());
+
+	  for (auto& pSW : this->Supers) {
+		  pThisOwner->Supers.erase(pSW);
+		  auto pSuperType = pSW->Type;
+
+		  if (SWTypeExtContainer::Instance.Find(pSuperType)->SW_Unique) {
+			  if (pNewOwner->Supers.any_of([pSuperType](SuperClass* pSuper)
+				  {
+					  return SuperExtContainer::Instance.Find(pSuper)->IsFromBuilding
+						  && pSuper->Type == pSuperType;
+				  })) {
+				  //gather the list first so it wont get immedietely detached by the DTOR
+				  _DeleteCandidate.emplace_back(pSW);
+				  continue;
+			  }
+		  }
+
+		  pNewOwner->Supers.emplace_back(pSW);
+		  pSW->Owner = pNewOwner;
+	  }
+
+	  this->Supers.clear();
+
+	  for (auto& pDeleteSW : _DeleteCandidate) {
+		  GameDelete(pDeleteSW);
+	  }
+
+	  //the techtree checking bool is already set to yes 
+	  //only do operation here later it got bulk updated
   }
 
   int BuildingExtData::GetImageFrameIndex(BuildingClass* pThis)

@@ -149,6 +149,8 @@ public:
 	void AddSupers(BuildingClass* pDest);
 	//remove all supers from respective array
 	void RemoveSupers();
+	//transfer building supers to new owner
+	void TransferSupers(HouseClass* pNewOwner);
 
 public:
 	static void StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType);
