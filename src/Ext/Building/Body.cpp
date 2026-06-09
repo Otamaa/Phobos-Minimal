@@ -2280,6 +2280,7 @@ void FakeBuildingClass::_Init()
 	if (this->Type->LoadBuildup())
 	{
 		this->Type->ClearBuildUp();
+		this->HasBuildup = true;
 		this->IsAllowedToSell = !this->Type->Unsellable;
 	}
 	else
