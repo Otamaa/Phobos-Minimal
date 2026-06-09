@@ -1166,6 +1166,22 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 				int buildableIndex = column + 2 * (topIndex + rowIndex);
 				int buildableCount = pStrip->BuildableCount;
 
+				// ==========================================================================
+				// FIX: Out-of-bounds check moved BEFORE SelectButton/hover reads.
+				//
+				// BUG: The original code did `return` here, exiting the entire function
+				//      instead of just skipping this slot. More critically, `isMouseOver`
+				//      was still read from pSelectButton->__MouseOver (a valid screen-space
+				//      button that exists regardless of buildable count), causing hover state
+				//      and subsequently tooltip/UIName/darken state to "bleed" from the last
+				//      valid item into empty slots.
+				//
+				//      Changed to `continue` so we skip drawing for this empty slot without
+				//      touching any draw state, and without aborting the rest of the loop.
+				// ==========================================================================
+				if (buildableIndex >= buildableCount)
+					continue; // slot exists on screen but no item - skip cleanly
+
 				// Calculate screen position
 				int stripX = pStrip->Location.X;
 				int screenX = stripX + column * SidebarClass::ObjectWidth.get() - DSurface::SidebarBounds->X;
