@@ -475,14 +475,11 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	#pragma region General
 	this->TeamDelays_DynamicType.Read(exINI, GameStrings::General, "TeamDelays.DynamicType");
-	this->TeamDelays[0].Read(exINI, GameStrings::General, "TeamDelays.Count1");
-	this->TeamDelays[1].Read(exINI, GameStrings::General, "TeamDelays.Count2");
-	this->TeamDelays[2].Read(exINI, GameStrings::General, "TeamDelays.Count3");
-	this->TeamDelays[3].Read(exINI, GameStrings::General, "TeamDelays.Count4");
-	this->TeamDelays[4].Read(exINI, GameStrings::General, "TeamDelays.Count5");
-	this->TeamDelays[5].Read(exINI, GameStrings::General, "TeamDelays.Count6");
-	this->TeamDelays[6].Read(exINI, GameStrings::General, "TeamDelays.Count7");
-	this->TeamDelays[7].Read(exINI, GameStrings::General, "TeamDelays.Count8");
+	std::string _teamDelay_tag = "TeamDelays.Count";
+	
+	for (size_t i = 0; i < 8; i++) {
+		this->TeamDelays[i].Read(exINI, GameStrings::General, (_teamDelay_tag + std::to_string(i + 1)).c_str());
+	}
 
 	this->PrismRelay_SupportTimeout.Read(exINI, GameStrings::General, "PrismRelay.SupportTimeout");
 	exINI.Read3Bool(GameStrings::General, "CampaignAllowHarvesterScanUnderShroud", this->CampaignAllowHarvesterScanUnderShroud);
@@ -1450,14 +1447,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->PrismRelay_SupportTimeout)
 		.Process(this->RemoveMindControl_Silent)
 		.Process(this->TeamDelays_DynamicType)
-		.Process(this->TeamDelays[0])
-		.Process(this->TeamDelays[1])
-		.Process(this->TeamDelays[2])
-		.Process(this->TeamDelays[3])
-		.Process(this->TeamDelays[4])
-		.Process(this->TeamDelays[5])
-		.Process(this->TeamDelays[6])
-		.Process(this->TeamDelays[7])
+		.Process(this->TeamDelays)
 		;
 }
 
