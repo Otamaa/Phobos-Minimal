@@ -671,73 +671,74 @@ ASMJIT_PATCH(0x4C78D6, Networking_RespondToEvent_SpecialPlace, 8)
 	return 0x4C78F8;
 }
 
-ASMJIT_PATCH(0x50AF10, HouseClass_UpdateSuperWeaponsOwned, 5)
-{
-	GET(HouseClass*, pThis, ECX);
+// ASMJIT_PATCH(0x50AF10, HouseClass_UpdateSuperWeaponsOwned, 5)
+// {
+// 	GET(HouseClass*, pThis, ECX);
 
-	if (pThis->IsNeutral())
-		return 0x50B1CA;
+// 	if (pThis->IsNeutral())
+// 		return 0x50B1CA;
 
-	SuperExtData::UpdateSuperWeaponStatuses(pThis);
+// 	SuperExtData::UpdateSuperWeaponStatuses(pThis);
 
-	// now update every super weapon that is valid.
-	// if this weapon has not been granted there's no need to update
-	for (auto& pSuper : pThis->Supers)
-	{
-		if (pSuper->Granted)
-		{
-			auto pType = pSuper->Type;
-			auto index = pType->ArrayIndex;
-			auto& status = SuperExtContainer::Instance.Find(pSuper)->Statusses;
+// 	// now update every super weapon that is valid.
+// 	// if this weapon has not been granted there's no need to update
+// 	for (int i = 0; i < pThis->Supers.Count; i++)
+// 	{
+// 		auto pSuper = pThis->Supers.Items[i];
 
-			auto Update = [&]()
-				{
-					// only the human player can see the sidebar.
-					if (pThis->IsCurrentPlayer())
-					{
-						if (Unsorted::CurrentSWType.get() == index)
-							Unsorted::CurrentSWType.get() = -1;
+// 		if (pSuper->Granted)
+// 		{
+// 			auto pType = pSuper->Type;
+// 			auto& status = SuperExtContainer::Instance.Find(pSuper)->Statusses;
 
-						MouseClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(SuperClass::AbsID, index, 0));
-					}
-					pThis->RecheckTechTree = true;
-				};
+// 			auto Update = [&]()
+// 				{
+// 					// only the human player can see the sidebar.
+// 					if (pThis->IsCurrentPlayer())
+// 					{
+// 						if (Unsorted::CurrentSWType.get() == i)
+// 							Unsorted::CurrentSWType.get() = -1;
 
-			// is this a super weapon to be updated?
-			// sw is bound to a building and no single-shot => create goody otherwise
-			if (pSuper->CanHold && !pSuper->OneTime || pThis->Defeated)
-			{
-				if (!status.Available || pThis->Defeated)
-				{
-					if ((pSuper->Lose() && HouseClass::CurrentPlayer.get()))
-						Update();
-				}
-				else if (status.Charging && !pSuper->IsPowered())
-				{
-					if (pSuper->IsOnHold && pSuper->SetOnHold(false))
-						Update();
-				}
-				else if (!status.Charging && !pSuper->IsPowered())
-				{
-					if (!pSuper->IsOnHold && pSuper->SetOnHold(true))
-						Update();
-				}
-				else if (!status.PowerSourced)
-				{
-					if (pSuper->IsPowered() && pSuper->SetOnHold(true))
-						Update();
-				}
-				else
-				{
-					if (status.PowerSourced && pSuper->SetOnHold(false))
-						Update();
-				}
-			}
-		}
-	}
+// 						MouseClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(SuperClass::AbsID, i, 0));
+// 					}
+// 					pThis->RecheckTechTree = true;
+// 				};
 
-	return 0x50B1CA;
-}
+// 			// is this a super weapon to be updated?
+// 			// sw is bound to a building and no single-shot => create goody otherwise
+// 			if (pSuper->CanHold && !pSuper->OneTime || pThis->Defeated)
+// 			{
+// 				if (!status.Available || pThis->Defeated)
+// 				{
+// 					if ((pSuper->Lose() && HouseClass::CurrentPlayer.get()))
+// 						Update();
+// 				}
+// 				else if (status.Charging && !pSuper->IsPowered())
+// 				{
+// 					if (pSuper->IsOnHold && pSuper->SetOnHold(false))
+// 						Update();
+// 				}
+// 				else if (!status.Charging && !pSuper->IsPowered())
+// 				{
+// 					if (!pSuper->IsOnHold && pSuper->SetOnHold(true))
+// 						Update();
+// 				}
+// 				else if (!status.PowerSourced)
+// 				{
+// 					if (pSuper->IsPowered() && pSuper->SetOnHold(true))
+// 						Update();
+// 				}
+// 				else
+// 				{
+// 					if (status.PowerSourced && pSuper->SetOnHold(false))
+// 						Update();
+// 				}
+// 			}
+// 		}
+// 	}
+
+// 	return 0x50B1CA;
+// }
 
 ASMJIT_PATCH(0x4555D5, BuildingClass_IsPowerOnline_KeepOnline, 5)
 {

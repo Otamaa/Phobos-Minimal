@@ -1470,42 +1470,38 @@ std::vector<TeamTypeClass*> NOINLINE Suggested_New_Team(HouseClass* forHouse_, b
  	int delay = pHouseExt->TeamDelay;
 
 	if(delay < 0){
+		int playerCount = ScenarioClass::Instance->NumberStartingPoints;
+		auto rulesExt = RulesExtData::Instance();
 
-	int playerCount = ScenarioClass::Instance->NumberStartingPoints;
-	auto rulesExt = RulesExtData::Instance();
+		if (playerCount >= 2 && !SessionClass::IsCampaign()) {
+			const auto teamDelayType = rulesExt->TeamDelays_DynamicType;
 
-	if (playerCount >= 2 && !SessionClass::IsCampaign())
-	{
-		const auto teamDelayType = rulesExt->TeamDelays_DynamicType;
+			if (teamDelayType != DynamicTeamDelayType::StartingPoint) {
+				playerCount = 0;
+				const bool byAlivePlayers = teamDelayType == DynamicTeamDelayType::AliveCount
+						|| teamDelayType == DynamicTeamDelayType::AliveAllies
+						|| teamDelayType == DynamicTeamDelayType::AliveEnemies;
+				const bool checkAllies = teamDelayType == DynamicTeamDelayType::Allies
+						|| teamDelayType == DynamicTeamDelayType::AliveAllies;
+				const bool checkEnemies = teamDelayType == DynamicTeamDelayType::Enemies
+						|| teamDelayType == DynamicTeamDelayType::AliveEnemies;
 
-		if (teamDelayType != DynamicTeamDelayType::StartingPoint)
-		{
-			playerCount = 0;
-			const bool byAlivePlayers = teamDelayType == DynamicTeamDelayType::AliveCount
-				|| teamDelayType == DynamicTeamDelayType::AliveAllies
-				|| teamDelayType == DynamicTeamDelayType::AliveEnemies;
-			const bool checkAllies = teamDelayType == DynamicTeamDelayType::Allies
-				|| teamDelayType == DynamicTeamDelayType::AliveAllies;
-			const bool checkEnemies = teamDelayType == DynamicTeamDelayType::Enemies
-				|| teamDelayType == DynamicTeamDelayType::AliveEnemies;
-
-			for (auto const pHouse : *HouseClass::Array)
-			{
-				if ((!byAlivePlayers || !pHouse->Defeated)
-					&& !pHouse->IsObserver()
-					&& !pHouse->Type->MultiplayPassive
-					&& (!checkAllies || (pThis != pHouse && pThis->IsAlliedWith(pHouse)))
-					&& (!checkEnemies || !pThis->IsAlliedWith(pHouse)))
-				{
-					playerCount += 1;
+				for (auto const pHouse : *HouseClass::Array) {
+					if ((!byAlivePlayers || !pHouse->Defeated)
+						&& !pHouse->IsObserver()
+						&& !pHouse->Type->MultiplayPassive
+						&& (!checkAllies || (pThis != pHouse && pThis->IsAlliedWith(pHouse)))
+						&& (!checkEnemies || !pThis->IsAlliedWith(pHouse))) {
+						playerCount += 1;
+					}
 				}
 			}
 		}
-	}
 
-		const int AIDifficulty = pThis->GetAIDifficultyIndex();
-
-		delay =  (rulesExt->TeamDelays[playerCount - 1].Get())[AIDifficulty];
+		if(playerCount < 1 || playerCount > 8)
+			delay = (rulesExt->TeamDelays[playerCount - 1].Get())[pThis->GetAIDifficultyIndex()];
+		else
+			delay = 0;
 	}
 
  	if(!UpdateTeam(pThis, delay)){

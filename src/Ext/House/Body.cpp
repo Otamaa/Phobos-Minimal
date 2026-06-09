@@ -3337,130 +3337,61 @@ BuildingClass* __fastcall FakeHouseClass::_Find_Unit_Repair_Station(HouseClass* 
 DEFINE_FUNCTION_JUMP(CALL, 0x7367AC, FakeHouseClass::_Find_Unit_Repair_Station)
 DEFINE_FUNCTION_JUMP(LJMP, 0x455DD0, FakeHouseClass::_Find_Unit_Repair_Station)
 
-//this funtion has same functionality as SuperWeaponStatusses where it updating the SW stated based on building if avaible 
-//and various checks 
-//i suppose ares want to run this function as it isand re-updating them again later thru SW statusses
 void  __fastcall FakeHouseClass::__SuperWeaponHandler(HouseClass* pHouse)
 {
-	if (!Game::IsActive())
+	if (pHouse->IsNeutral())
 		return;
 
-	const bool isCurrentPlayer = (HouseClass::CurrentPlayer() == pHouse);
+	SuperExtData::UpdateSuperWeaponStatuses(pHouse);
 
-	for (int type = 0; type < pHouse->Supers.Count; ++type)
+	// now update every super weapon that is valid.
+	// if this weapon has not been granted there's no need to update
+	for (int i = 0; i < pHouse->Supers.Count; i++)
 	{
-		FakeSuperClass* pSuper = (FakeSuperClass*)pHouse->Supers[type];
+		auto pSuper = pHouse->Supers.Items[i];
 
-		// Skip SWs that shouldn't be updated this tick
-		const bool shouldSkip = !pSuper->Granted
-			|| ((!pSuper->CanHold 
-				|| (pSuper->OneTime && pSuper->Granted))
-				&& !pHouse->Defeated);
-
-		if (shouldSkip)
-			continue;
-
-		bool hasPower = false;
-		bool hasBuilding = false;
-
-		if (!pHouse->Defeated)
+		if (pSuper->Granted)
 		{
-			for (int i = 0; i < BuildingClass::Array->Count; ++i)
-			{
-				FakeBuildingClass* pBuilding = (FakeBuildingClass*)BuildingClass::Array->Items[i];
+			auto pType = pSuper->Type;
+			auto& status = SuperExtContainer::Instance.Find(pSuper)->Statusses;
 
-				if (pBuilding->InLimbo || !pBuilding->IsAlive)
-					continue;
-
-				if (pBuilding->Owner != pHouse)
-					continue;
-
-				// Check upgrades for this SW type (slots 1..3)
-				for (int u = 0; u < 3; ++u) {
-
-					if (pBuilding->Upgrades[u]){ 
-						if (pBuilding->Upgrades[u]->SuperWeapon == type || pBuilding->Upgrades[u]->SuperWeapon2 == type) {
-							hasBuilding = true;
-							if (!hasPower)
-								hasPower = pBuilding->HasPower;
-						}
-					}
-				}
-
-				// Check direct SW availability on this building
-				if (pBuilding->_SWAvailable() == type || pBuilding->_SW2Available() == type)
+			auto Update = [&]()
 				{
-					hasBuilding = true;
-					if (!hasPower)
-						hasPower = pBuilding->HasPower;
-				}
+					// only the human player can see the sidebar.
+					if (pHouse->IsCurrentPlayer())
+					{
+						if (Unsorted::CurrentSWType.get() == i)
+							Unsorted::CurrentSWType.get() = -1;
 
-				if (hasPower && hasBuilding)
-					break;
+						MouseClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(SuperClass::AbsID, i, 0));
+					}
+					pHouse->RecheckTechTree = true;
+				};
+
+			// is this a super weapon to be updated?
+			// sw is bound to a building and no single-shot => create goody otherwise
+			if (pSuper->CanHold && !pSuper->OneTime || pHouse->Defeated) {
+				if (!status.Available || pHouse->Defeated) {
+					if ((pSuper->Lose() && HouseClass::CurrentPlayer.get()))
+						Update();
+				} else if (status.Charging && !pSuper->IsPowered()) {
+					if (pSuper->IsOnHold && pSuper->SetOnHold(false))
+						Update();
+				} else if (!status.Charging && !pSuper->IsPowered()) {
+					if (!pSuper->IsOnHold && pSuper->SetOnHold(true))
+						Update();
+				} else if (!status.PowerSourced) {
+					if (pSuper->IsPowered() && pSuper->SetOnHold(true))
+						Update();
+				} else {
+					if (status.PowerSourced && pSuper->SetOnHold(false))
+						Update();
+				}
 			}
 		}
-
-		SuperWeaponTypeClass* pSWType = pSuper->Type;
-
-		if (pSWType->DisableableFromShell && !GameModeOptionsClass::Instance->SWAllowed)
-			hasBuilding = false;
-
-		// Underpowered house loses power flag
-		if (pHouse->HasLowPower() && (pHouse->GetPowerPercentage() < 1.0))
-		{
-			hasPower = false;
-		}
-
-		const int tabIndex = SidebarClass::GetObjectTabIdx(AbstractType::Special, type, 0);
-
-		// Collapses LABEL_52 + LABEL_53 — clear targeting if needed, then flag redraw
-		auto NotifyPlayer = [&](int swIdx)
-			{
-				if (Unsorted::CurrentSWType() == swIdx)
-					Unsorted::CurrentSWType = -1;
-
-				SidebarClass::Instance->RepaintSidebar(tabIndex);
-			};
-
-		// --- Remove path (no building or house defeated) ---
-		if (!hasBuilding || pHouse->Defeated)
-		{
-			if (!pSuper ->_Remove()|| !HouseClass::CurrentPlayer())
-				continue; // LABEL_55: no recalc needed
-
-			if (isCurrentPlayer)
-				NotifyPlayer(type); // LABEL_52/53 collapsed
-
-			pHouse->RecheckTechTree = true;
-			continue;
-		}
-
-		// --- Has building: handle power state change ---
-		bool stateChanged = false;
-
-		if (!hasPower)
-		{
-			// Transitioning to unpowered — suspend if it was powered
-			if (pSuper->IsPowered() && pSuper->_Suspend(true))
-				stateChanged = true;
-		}
-		else
-		{
-			// Has power — unsuspend (resume)
-			if (pSuper->_Suspend(false))
-				stateChanged = true;
-		}
-
-		if (!stateChanged)
-			continue; // LABEL_55: no sidebar update needed
-
-		// LABEL_45 collapsed — notify player and mark recalc
-		if (isCurrentPlayer)
-			NotifyPlayer(type);
-
-		pHouse->RecheckTechTree = true;
 	}
 }
+
 DEFINE_FUNCTION_JUMP(CALL, 0x4F92F6, FakeHouseClass::__SuperWeaponHandler)
 DEFINE_FUNCTION_JUMP(CALL, 0x451739, FakeHouseClass::__SuperWeaponHandler)
 DEFINE_FUNCTION_JUMP(CALL, 0x451700, FakeHouseClass::__SuperWeaponHandler)
