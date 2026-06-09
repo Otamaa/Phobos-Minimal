@@ -1,5 +1,21 @@
 #include "Body.h"
 
+ #include <Utilities/Patch.h>
+#include <Utilities/Macro.h>
+
+bool TeamTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
+{
+	if (parseFailAddr)
+		return false;
+
+	auto pThis = this->This();
+	const char* pSection = pThis->ID;
+	INI_EX exINI(pINI);
+
+	//this->IsDischargedMemberAutocreateRecruitable.Read(exINI, pSection, "IsDischargedMemberAutocreateRecruitable");
+	return true;
+}
+
 /*
 void TeamTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
@@ -32,62 +48,116 @@ void TeamTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 // =============================
 // container
-//TeamTypeExt::ExtContainer TeamTypeExt::ExtMap;
+TeamTypeExtContainer TeamTypeExtContainer::Instance;
 
+void TeamTypeExtContainer::LoadFromINI(TeamTypeClass* key, CCINIClass* pINI, bool parseFailAddr)
+{
+	if (auto ptr = this->Find(key))
+	{
+		if (!pINI)
+		{
+			return;
+		}
+
+
+		// Rules first 
+		// Other files 
+		// when this doesnt match the case it will causing weirdd issues like some value wont be initialized or replaced to default value after parsing
+		switch (ptr->Initialized)
+		{
+		case InitState::Blank:
+		{
+			if (pINI == CCINIClass::INI_Rules())
+			{
+				ptr->SetInitState(InitState::Inited);
+				//ptr->Initialize();
+			}
+			[[fallthrough]];
+		}
+		case InitState::Inited:
+		case InitState::Ruled:
+		{
+			ptr->LoadFromINI(pINI, parseFailAddr);
+			ptr->SetInitState(InitState::Ruled);
+			[[fallthrough]];
+		}
+		default:
+			break;
+		}
+	}
+
+}
+
+void TeamTypeExtContainer::WriteToINI(TeamTypeClass* key, CCINIClass* pINI)
+{
+
+	if (auto ptr = this->TryFind(key))
+	{
+		if (!pINI)
+		{
+			return;
+		}
+
+		ptr->WriteToINI(pINI);
+	}
+}
 // =============================
 // container hooks
 //ToDo : Check Size !
 
-//ASMJIT_PATCH(0x6F08E4, TeamTypeClass_CTOR, 0x5)
-//{
-//	GET(TeamTypeClass*, pItem, ESI);
-//
-//	TeamTypeExt::ExtMap.Allocate(pItem);
-//
-//	return 0;
-//}
-//
-//ASMJIT_PATCH_AGAIN(0x6F2106 , TeamTypeClass_DTOR, 0x7)
-//ASMJIT_PATCH(0x6F0926, TeamTypeClass_DTOR, 0x7)
-//{
-//	GET(TeamTypeClass*, pItem, ESI);
-//	TeamTypeExt::ExtMap.Remove(pItem);
-//	return 0;
-//}
-//
-//ASMJIT_PATCH_AGAIN(0x6F1BB0, TeamTypeClass_SaveLoad_Prefix, 0x5)
-//ASMJIT_PATCH(0x6F1B90, TeamTypeClass_SaveLoad_Prefix, 0x8)
-//{
-//	GET_STACK(TeamTypeClass*, pItem, 0x4);
-//	GET_STACK(IStream*, pStm, 0x8);
-//	TeamTypeExt::ExtMap.PrepareStream(pItem, pStm);
-//	return 0;
-//}
-//
-//ASMJIT_PATCH(0x6F1C22, TeamTypeClass_Load_Suffix, 0x6)
-//{
-//	GET(TeamTypeClass*, pItem, ESI);
-//
-//	SwizzleManagerClass::Instance->Swizzle((void**)&pItem->TaskForce);
-//	TeamTypeExt::ExtMap.LoadStatic();
-//	return 0x6F1C33;
-//}
-//
-//ASMJIT_PATCH(0x6F1BA8, TeamTypeClass_Save_Suffix, 0x5)
-//{
-//	TeamTypeExt::ExtMap.SaveStatic();
-//	return 0;
-//}
-//
-//ASMJIT_PATCH_AGAIN(0x6F1535, TeamTypeClass_LoadFromINI, 0xA)
-//ASMJIT_PATCH(0x6F1528, TeamTypeClass_LoadFromINI, 0xA)
-//{
-//	GET(TeamTypeClass*, pItem, ESI);
-//	GET(CCINIClass*, pINI, EBX);
-//	TeamTypeExt::ExtMap.LoadFromINI(pItem, pINI , R->Origin() == 0x6F1535);
-//	return 0x0;
-//}
-//
+ASMJIT_PATCH(0x6F08E4, TeamTypeClass_CTOR, 0x5)
+{
+	GET(TeamTypeClass*, pItem, ESI);
+
+	if (!Phobos::Otamaa::DoingLoadGame)
+		TeamTypeExtContainer::Instance.Allocate(pItem);
+
+	return 0;
+}
+
+ASMJIT_PATCH_AGAIN(0x6F2106 , TeamTypeClass_DTOR, 0x7)
+ASMJIT_PATCH(0x6F0926, TeamTypeClass_DTOR, 0x7)
+{
+	GET(TeamTypeClass*, pItem, ESI);
+	TeamTypeExtContainer::Instance.Remove(pItem);
+	return 0;
+}
+
+HRESULT __stdcall FakeTeamTypeClass::__Load(IStream* pStm)
+{
+	HRESULT hr = this->TeamTypeClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		if (!TeamTypeExtContainer::Instance.LoadByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_LOAD_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F47E4, FakeTeamTypeClass::__Load)
+
+HRESULT __stdcall FakeTeamTypeClass::__Save(IStream* pStm, BOOL fClearDirty)
+{
+	HRESULT hr = this->TeamTypeClass::Save(pStm, fClearDirty);
+
+	if (SUCCEEDED(hr)) {
+		if (!TeamTypeExtContainer::Instance.SaveByKey(this, pStm))
+			return PHOBOS_E_EXTDATA_SAVE_FAILED;
+	}
+
+	return hr;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F47E8, FakeTeamTypeClass::__Save)
+
+ASMJIT_PATCH_AGAIN(0x6F1535, TeamTypeClass_LoadFromINI, 0xA)
+ASMJIT_PATCH(0x6F1528, TeamTypeClass_LoadFromINI, 0xA)
+{
+	GET(TeamTypeClass*, pItem, ESI);
+	GET(CCINIClass*, pINI, EBX);
+	TeamTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x6F1535);
+	return 0x0;
+}
+
 //ASMJIT_PATCH(0x6F1836, TeamTypeClass_WriteToINI, 0x6)
 //{
 //	GET(TeamTypeClass*, pItem, ESI);

@@ -2149,8 +2149,8 @@ void ScriptExtData::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeam
 	if (pTargetCell)
 	{
 		auto coords = pTeam->Zone->GetCoords();
-		pOwner->Fire_SW(pSuperChronosphere->Type->ArrayIndex, CellClass::Coord2Cell(coords));
-		pOwner->Fire_SW(pSuperChronowarp->Type->ArrayIndex, pTargetCell->MapCoords);
+		pOwner->Fire_SW(pSuperChronosphere->GetArrayIndex(), CellClass::Coord2Cell(coords));
+		pOwner->Fire_SW(pSuperChronowarp->GetArrayIndex(), pTargetCell->MapCoords);
 		pTeam->AssignMissionTarget(pTargetCell);
 	}
 

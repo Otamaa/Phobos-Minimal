@@ -235,6 +235,7 @@ unsigned Phobos::GetVersionNumber() {
 	version += sizeof(ScenarioExtData);
 	version += sizeof(SidebarExtData);
 
+	version += sizeof(TeamTypeExtData);
 	version += sizeof(TeamExtData);
 	version += sizeof(SmudgeTypeExtData);
 
