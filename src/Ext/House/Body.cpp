@@ -3398,6 +3398,8 @@ DEFINE_FUNCTION_JUMP(CALL, 0x451700, FakeHouseClass::__SuperWeaponHandler)
 DEFINE_FUNCTION_JUMP(CALL, 0x508DDB, FakeHouseClass::__SuperWeaponHandler)
 DEFINE_FUNCTION_JUMP(LJMP, 0x50AF10, FakeHouseClass::__SuperWeaponHandler)
 
+#include <New/SuperWeaponSidebar/SWSidebarClass.h>
+
 int FakeHouseClass::_AI_Supers()
 {
 	if (!this->IsNeutral() && this->Supers.Count > 0 && this->Supers.IsAllocated) {
@@ -3431,11 +3433,25 @@ int FakeHouseClass::_AI_Supers()
 		}
 	}
 
+	if (this->IsCurrentPlayer())
+		SWSidebarClass::RecheckCameo();
+
 	return TICKS_PER_SECOND;
 }
-//causing crash dont enable
-//DEFINE_FUNCTION_JUMP(CALL, 0x4409EF, FakeHouseClass::_AI_Supers)
-//DEFINE_FUNCTION_JUMP(CALL, 0x4F92FD, FakeHouseClass::_AI_Supers)
+
+int FakeHouseClass::_AI_Supers_B()
+{
+	int rr = this->_AI_Supers();
+
+	if (this->IsCurrentPlayer())
+		SWSidebarClass::RecheckCameo();
+
+	return rr;
+}
+
+
+DEFINE_FUNCTION_JUMP(CALL, 0x4409EF, FakeHouseClass::_AI_Supers)
+DEFINE_FUNCTION_JUMP(CALL, 0x4F92FD, FakeHouseClass::_AI_Supers_B)
 DEFINE_FUNCTION_JUMP(LJMP, 0x50B1D0, FakeHouseClass::_AI_Supers)
 
 int FakeHouseClass::_AI_Aircraft()

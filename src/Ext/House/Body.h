@@ -605,6 +605,7 @@ public:
 	CanBuildResult _Can_Build(TechnoTypeClass* type, char buildLimitOnly, char includeInProduction);
 	int _FactoryCount(AbstractType nWhat, bool IsNaval);
 	int _AI_Supers();
+	int _AI_Supers_B();
 	int _AI_Aircraft();
 	int _AI_Infantry();
 	int _AI_Unit();

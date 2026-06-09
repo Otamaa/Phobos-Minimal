@@ -802,7 +802,12 @@ const wchar_t* FakeStripClass::__Help_Text(int index)
 	if(tab.empty())
 		return nullptr;
 
-	auto& cameo = tab[index + 2 * this->TopRowIndex];
+	const int _index = index + 2 * this->TopRowIndex;
+
+	if (_index >= this->BuildableCount)
+		return nullptr;
+
+	auto& cameo = tab[_index];
 
 	if (cameo.ItemType == AbstractType::None)
 	{

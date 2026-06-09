@@ -213,7 +213,7 @@ struct _RocketLocomotionClass
 				return _isSet.Get();
 		}
 
-		return  pType != RulesClass::Instance->CMisl.Type;
+		return  pType == RulesClass::Instance->CMisl.Type;
 	}
 
 	static NOINLINE int GetTrailerSeparation(TechnoTypeClass* pType)
