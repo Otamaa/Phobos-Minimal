@@ -966,6 +966,8 @@ bool FakeSuperClass::_Discharged(bool isPlayer, CellStruct* pCell)
 
 			if (!willRemove)
 			{
+				const int dischargeAmt = SWChargePool::GetDischarge(pType);
+
 				if (pPool->Charges >= dischargeAmt)
 				{
 					// Still enough to fire again immediately.
