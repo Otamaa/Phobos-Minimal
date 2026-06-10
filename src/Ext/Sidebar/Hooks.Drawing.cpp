@@ -1197,6 +1197,7 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 				BSurface* CameoPCXSurface = nullptr;
 				ConvertClass* CameoConvert = nullptr;
 				AbstractTypeClass* pBuildableItem = nullptr;
+				SuperWeaponTypeClass* pSuperType = nullptr;
 
 				auto pSideExt = SideExtContainer::Instance.Find(SideClass::Array->Items[pPlayer->SideIndex]);
 
@@ -1263,7 +1264,7 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 					{
 						int superIndex = pBuildable->ItemIndex;
 						SuperClass* pSuper = pPlayer->Supers.Items[superIndex];
-						SuperWeaponTypeClass* pSuperType = pSuper->Type;
+						pSuperType = pSuper->Type;
 						pBuildableItem = pSuperType;
 						pUIName = pSuperType->UIName;
 
@@ -1835,6 +1836,50 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 								}
 							}
 						}
+
+						// ---- SW charge pool count overlay ----
+						{
+							const int maxCharges = SWChargePool::GetMax(pSuperType);
+							if (maxCharges >= 0)
+							{
+								auto pPool = SWChargePool::Get(pPlayer, pSuperType);
+								if (pPool->Charges > 0)
+								{
+									// Format: "2/5"
+									static fmt::basic_memory_buffer<wchar_t> chargeBuf;
+									chargeBuf.clear();
+									fmt::format_to(std::back_inserter(chargeBuf),
+										L"{}/{}", pPool->Charges, maxCharges);
+									chargeBuf.push_back(L'\0');
+
+									// Bottom-right corner, same style as queued count
+									const int chargeX = screenX + 60;
+									const int chargeY = screenY + 35; // bottom area, above UIName row
+									Point2D chargePos { chargeX, chargeY };
+
+									// Dark background pill (matches queued count style)
+									RectangleStruct chargeBgRect;
+									Drawing::GetTextDimensions(
+										&chargeBgRect,
+										chargeBuf.data(),
+										chargePos,
+										TextPrintType::Right | TextPrintType::FullShadow | TextPrintType::Point8,
+										Point2D(2, 1));
+									LoadProgressManager::FillRectWithColor(chargeBgRect, SidebarSurface, 0, 0xAF);
+
+									// Draw count text
+									TextDrawing::Fancy_Text_Print_Wide_NoFormat(
+										chargeBuf.data(),
+										SidebarSurface,
+										&clipRect,
+										&chargePos,
+										textColor,
+										0,
+										TextPrintType::Right | TextPrintType::FullShadow | TextPrintType::Point8);
+								}
+							}
+						}
+						// ---- end SW charge pool count overlay ----
 					}
 				} // end column loop
 			} // end row loop

@@ -23,6 +23,62 @@
 
 class TActionClass;
 
+struct SWChargePool
+{
+	int Charges { 0 };  // current stored charges
+
+	// --------------------------------------------------------
+	// Returns true if charges < max (timer should run).
+	// Returns false if charges == max (timer frozen at 0).
+	// MaxCharges < 0 means feature disabled for this type.
+	// --------------------------------------------------------
+	bool CanAccumulate(int maxCharges) const
+	{
+		if (maxCharges < 0)
+			return false;           // feature disabled
+		return Charges < maxCharges;
+	}
+
+	// Clamp on increment so we never exceed max
+	void Increment(int maxCharges)
+	{
+		if (maxCharges < 0)
+			return;
+		if (Charges < maxCharges)
+			++Charges;
+	}
+
+	// Returns false if already at 0 (fire should be blocked)
+	bool Decrement()
+	{
+		if (Charges <= 0)
+			return false;
+		--Charges;
+		return true;
+	}
+
+	static SWChargePool* Get(HouseClass* pHouse, SuperWeaponTypeClass* pType);
+	static int GetMax(SuperWeaponTypeClass* pType);
+
+	// --------------------------------------------------------
+	// Serialization
+	// --------------------------------------------------------
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{ return Serialize(Stm); }
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<SWChargePool*>(this)->Serialize(Stm); }
+
+private:
+	template<typename T>
+	bool Serialize(T& Stm)
+	{
+		return Stm
+			.Process(Charges)
+			.Success();
+	}
+};
+
 struct TunnelData
 {
 	HelperedVector<FootClass*> Vector;
@@ -241,6 +297,7 @@ public:
 	PhobosMap<BuildingTypeClass*, int> Building_OrePurifiersCounter {};
 	PhobosMap<BuildingTypeClass*, int> BattlePointsCollectors {};
 	PhobosMap<SuperClass*, std::vector<SuperClass*>> SuspendedEMPulseSWs {};
+	std::map<SuperWeaponTypeClass*, SWChargePool> SWCharges {};
 
 	// ============================================================
 	// VectorSet (likely vector-based, ~24+ bytes each)

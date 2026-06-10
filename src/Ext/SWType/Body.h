@@ -419,7 +419,9 @@ public:
 	Valueable<bool> SW_Link_Reset { false };
 	Valueable<bool> CrateGoodies { false };
 
-	Valueable<bool> SW_Unique { true };
+	Valueable<bool> SW_Unique { false };
+	Valueable<int> SW_MaxCharges { -1 };
+	Valueable<int> SW_ChargesPerCycle { 1 };
 #pragma endregion
 
 public:

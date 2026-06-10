@@ -373,7 +373,7 @@ bool SWTypeExtData::LauchSuper(SuperClass* pSuper)
 	{
 		if (!autofire && !unstoppable)
 		{
-			const auto swIndex = pSuper->Type->ArrayIndex;
+			const auto swIndex = pSuper->GetArrayIndex();
 
 			if (pSuper->Type->Action == Action::None || pSWExt->SW_UseAITargeting)
 			{
@@ -433,6 +433,14 @@ bool SWTypeExtData::DrawDarken(SuperClass* pSuper)
 	const auto pSWExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
 	const auto pHouseExt = HouseExtContainer::Instance.Find(pSuper->Owner);
 	const auto pCurrent = pSuper->Owner;
+	const int maxCharges = SWChargePool::GetMax(pSuper->Type);
+
+	if (maxCharges >= 0)
+	{
+		const auto pPool = SWChargePool::Get(pCurrent, pSuper->Type);
+		if (pPool->Charges <= 0)
+			return true;    // no charges stored — grey out
+	}
 
 	if (pSuper->CanFire())
 	{
@@ -525,7 +533,7 @@ bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 				 	MapClass::UnselectAll();
 				 }
 
-				return pThis->Owner->Fire_SW(pThis->Type->ArrayIndex, Cell);
+				return pThis->Owner->Fire_SW(pThis->GetArrayIndex(), Cell);
 			}
 		}
 	}
@@ -1299,6 +1307,8 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->EVA_LinkedSWAcquired.Read(exINI, pSection, "EVA.LinkedSWAcquired");
 
 	this->SW_Link_Randoms.Read(exINI, pSection, "SW.Link");
+	this->SW_MaxCharges.Read(exINI, pSection, "SW.MaxCharges");
+	this->SW_ChargesPerCycle.Read(exINI, pSection, "SW.ChargesPerCycle");
 
 	if(pThis->Type != SuperWeaponType::Invalid)
 	{
@@ -2245,6 +2255,8 @@ void SWTypeExtData::Serialize(T& Stm)
 
 		.Process(this->CrateGoodies)
 		.Process(this->SW_Unique)
+		.Process(this->SW_MaxCharges)
+		.Process(this->SW_ChargesPerCycle)
 		.Process(this->SuperWeaponSidebar_Allow)
 		.Process(this->SuperWeaponSidebar_PriorityHouses)
 		.Process(this->SuperWeaponSidebar_RequiredHouses)

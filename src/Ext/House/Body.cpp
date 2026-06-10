@@ -28,6 +28,19 @@
 #include <CaptureManagerClass.h>
 #include <RadarEventClass.h>
 
+SWChargePool* SWChargePool::Get(HouseClass* pHouse, SuperWeaponTypeClass* pType)
+{
+	auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
+	// operator[] default-constructs SWChargePool{} if key absent
+	return &pHouseExt->SWCharges[pType];
+}
+
+int SWChargePool::GetMax(SuperWeaponTypeClass* pType)
+{
+	auto pTypeExt = SWTypeExtContainer::Instance.Find(pType);
+	return pTypeExt->SW_MaxCharges;   // -1 = feature disabled
+}
+
 void HouseExtData::InitializeTrackers(HouseClass* pHouse)
 {
 }
@@ -2874,6 +2887,7 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->NumConYards_NonMFB)
 		.Process(this->NumShipyards_NonMFB)
 		.Process(this->SuspendedEMPulseSWs)
+		.Process(this->SWCharges)
 		.Process(this->ForceEnemyIndex)
 		.Process(this->BattlePoints)
 		.Process(this->TeamDelay)
