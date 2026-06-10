@@ -316,20 +316,6 @@ ASMJIT_PATCH(0x4E1A84, GadgetClass_DTOR_ClearCurrentOverGadget, 0x6)
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x4E13B2, GadgetClass_DTOR_ClearCurrentOverGadget, 0x6)
 
-ASMJIT_PATCH(0x4F92FB, HouseClass_UpdateTechTree_SWSidebar, 0x7)
-{
-	enum { SkipGameCode = 0x4F9302 };
-
-	GET(HouseClass*, pHouse, ESI);
-
-	((FakeHouseClass*)pHouse)->_AI_Supers();
-
-	if (pHouse->IsCurrentPlayer())
-		SWSidebarClass::RecheckCameo();
-
-	return SkipGameCode;
-}
-
 ASMJIT_PATCH(0x6A6316, SidebarClass_AddCameo_SuperWeapon_SWSidebar, 0x6)
 {
 	enum { ReturnFalse = 0x6A65FF };
