@@ -123,6 +123,8 @@ bool SWButtonClass::Draw(bool forced)
 		}
 	}
 
+	SWTypeExtData::DrawSWChargedCount(pSuper->Type, pSurface , location.X, location.Y, bounds, Drawing::TooltipColor->ToInit());
+
 	if (pSuper->ShouldDrawProgress())
 	{
 		Point2D loc = { location.X, location.Y };

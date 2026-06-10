@@ -539,6 +539,7 @@ public:
 	static bool IsResourceAvailable(SuperClass* pSuper);
 	static bool LauchSuper(SuperClass* pSuper);
 	static bool DrawDarken(SuperClass* pSuper);
+	static void DrawSWChargedCount(SuperWeaponTypeClass* pType,DSurface* pSurface, int screenX, int screenY, RectangleStruct clipRect, int textColor);
 
 private:
 

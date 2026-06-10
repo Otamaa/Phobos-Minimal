@@ -457,6 +457,50 @@ bool SWTypeExtData::DrawDarken(SuperClass* pSuper)
 	return false;
 }
 
+#include <TextDrawing.h>
+#include <LoadProgressManager.h>
+
+void SWTypeExtData::DrawSWChargedCount(SuperWeaponTypeClass* pSuperType, DSurface* pSurface, int screenX, int screenY, RectangleStruct clipRect, int textColor)
+{
+	const int maxCharges = SWChargePool::GetMax(pSuperType);
+	if (maxCharges < 0)
+		return;
+
+	auto pPlayer = HouseClass::CurrentPlayer();
+	auto pPool = SWChargePool::Get(pPlayer, pSuperType);
+
+	// Always show — "0/5" when empty, "3/5" when partial, "5/5" when full
+	static fmt::basic_memory_buffer<wchar_t> chargeBuf;
+	chargeBuf.clear();
+	fmt::format_to(std::back_inserter(chargeBuf),
+		L"{}/{}", pPool->Charges, maxCharges);
+	chargeBuf.push_back(L'\0');
+
+	// Bottom-right corner of the cameo (60x48 standard size)
+	const int chargeX = screenX + 60;
+	const int chargeY = screenY + 35;
+	Point2D chargePos { chargeX, chargeY };
+
+	RectangleStruct chargeBgRect;
+	Drawing::GetTextDimensions(
+		&chargeBgRect,
+		chargeBuf.data(),
+		chargePos,
+		TextPrintType::Right | TextPrintType::FullShadow | TextPrintType::Point8,
+		Point2D(2, 1));
+
+	LoadProgressManager::FillRectWithColor(chargeBgRect, pSurface, 0, 0xAF);
+
+	TextDrawing::Fancy_Text_Print_Wide_NoFormat(
+		chargeBuf.data(),
+		pSurface,
+		&clipRect,
+		&chargePos,
+		textColor,
+		0,
+		TextPrintType::Right | TextPrintType::FullShadow | TextPrintType::Point8);
+}
+
 bool SWTypeExtData::IsTargetConstraintsEligible(SuperClass* pThis, bool IsPlayer)
 {
 	const auto pExt = SWTypeExtContainer::Instance.Find(pThis->Type);
