@@ -952,7 +952,7 @@ bool FakeSuperClass::_Grant(bool oneTime, bool announce, bool onHold)
 	if (onHold && this->Granted && !this->OneTime
 		&& !this->IsOnHold && this->CanHold)
 	{
-		this->RechargeTimer.Stop();
+		this->RechargeTimer.Pause();
 		this->IsOnHold = true;
 	}
 

@@ -3433,9 +3433,6 @@ int FakeHouseClass::_AI_Supers()
 		}
 	}
 
-	if (this->IsCurrentPlayer())
-		SWSidebarClass::RecheckCameo();
-
 	return TICKS_PER_SECOND;
 }
 
