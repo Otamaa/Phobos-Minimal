@@ -187,29 +187,39 @@ void SuperExtData::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 
 			const int maxCharges = SWChargePool::GetMax(pSuper->Type);
 			if (maxCharges < 0)
-				return;     // feature disabled for this type
+				return;
 
+			const int dischargeAmt = SWChargePool::GetDischarge(pSuper->Type);
 			auto pPool = SWChargePool::Get(pHouse, pSuper->Type);
 
 			if (pPool->Charges >= maxCharges)
 			{
-				// Pool full — freeze timer at 0 (appear ready)
-				// Stop any running recharge so it doesn't tick past 0
+				// Pool full — freeze timer
 				if (pSuper->RechargeTimer.IsTicking())
 					pSuper->RechargeTimer.Pause();
-
 				pSuper->IsCharged = true;
-	}
+			}
+			else if (pPool->Charges >= dischargeAmt)
+			{
+				// above threshold but not full — ready,
+				// but leave the timer running for accumulation.
+				pSuper->IsCharged = true;
+				// Resume if somehow stopped without being full
+				if (!pSuper->RechargeTimer.IsTicking()
+					&& !pSuper->IsOnHold)
+				{
+					const int t = pSuper->GetRechargeTime();
+					pSuper->RechargeTimer.Start((t > 0) ? t : 1);
+				}
+			}
 			else if (!pSuper->RechargeTimer.IsTicking()
 					 && !pSuper->IsCharged
 					 && !pSuper->IsOnHold)
 			{
-				// Pool has room and timer isn't running — restart it.
-				// Covers the case where a charge was consumed and we
-				// need to resume accumulation.
-				const int rechargeTime = pSuper->GetRechargeTime();
-				pSuper->RechargeTimer.Start(rechargeTime);
-}
+				// Below threshold and timer stopped — restart
+				const int t = pSuper->GetRechargeTime();
+				pSuper->RechargeTimer.Start((t > 0) ? t : 1);
+			}
 		});
 	}
 }
@@ -525,8 +535,22 @@ bool FakeSuperClass::_AI(bool isPlayer)
 	if (!this->Granted)
 		return false;
 
-	if (this->IsCharged && !this->Type->UseChargeDrain)
-		return false;
+	// Vanilla: exit when IsCharged && !UseChargeDrain
+	 // New:     also continue if pool has room (timer must tick)
+	if (this->IsCharged && !this->Type->UseChargeDrain) {
+		const int maxCharges = SWChargePool::GetMax(this->Type);
+
+		if (maxCharges >= 0) {
+			// Pool feature on — only exit if pool is full
+			// (timer already paused, nothing to accumulate)
+			auto pPool = SWChargePool::Get(this->Owner, this->Type);
+			if (pPool->Charges >= maxCharges)
+				return false;
+			// else: fall through — timer still needs to run
+		} else {
+			return false;   // feature off — vanilla exit
+		}
+	}
 
 	if (this->IsOnHold)
 		return false;
@@ -662,71 +686,77 @@ bool FakeSuperClass::_AI(bool isPlayer)
 	// PATCH: charge pool accumulation replaces bare IsCharged=true
 	// --------------------------------------------------------
 	{
-	const int maxCharges = SWChargePool::GetMax(pType);
+		const int maxCharges = SWChargePool::GetMax(pType);
 		const int perCycle = SWCharges_GetPerCycle(pType);
-		const auto pTypeExt = this->_GetTypeExtData();   // already in scope above
+		const int dischargeAmt = SWChargePool::GetDischarge(pType);
 		auto pLauchData = SuperExtData::GetLauchDataPtr(this);
 
-		// Near-zero timer guard: if rechargeTime==0, Start(0) would
-		// make _AI see a completed timer every single frame, filling
-		// the pool instantly. Enforce a 1-frame minimum so the pool
-		// path behaves consistently regardless of rechargeTime.
-	if (maxCharges >= 0)
-	{
-		auto pPool = SWChargePool::Get(this->Owner, pType);
+		auto StartRecharge = [this]()
+			{
+				this->IsCharged = false;
+				const int t = this->GetRechargeTime();
+				this->RechargeTimer.Start((t > 0) ? t : 1);
+			};
 
-			// VirtualCharge first-grant guard (from SWCharges_Fixes.cpp)
+		if (maxCharges >= 0)
+		{
+			auto pPool = SWChargePool::Get(this->Owner, pType);
+
+			// VirtualCharge first-grant guard
 			const bool isVirtualFirstGrant =
 				pTypeExt->SW_VirtualCharge && pLauchData->Count == 0;
 
-		if (!isVirtualFirstGrant)
+			if (!isVirtualFirstGrant)
 			{
-				// Increment by perCycle, clamped so we never exceed max
 				const int available = maxCharges - pPool->Charges;
 				const int toAdd = (perCycle < available) ? perCycle : available;
 				pPool->Charges += toAdd;
 			}
 
-			if (!isVirtualFirstGrant && pPool->Charges < maxCharges)
-		{
-				// Pool not full yet — restart timer for next cycle
-				SWCharges_BeginRecharge(this);
-		}
-			else if (isVirtualFirstGrant)
+			if (isVirtualFirstGrant)
 			{
-				// Virtual first grant — honour vanilla IsCharged=true
+				// Honour vanilla VirtualCharge first-grant behaviour
 				this->IsCharged = true;
 			}
+			else if (pPool->Charges >= maxCharges)
+			{
+				// Pool full — freeze timer, SW stays ready
+				this->IsCharged = true;
+				this->RechargeTimer.Pause();
+			}
+			else if (pPool->Charges >= dischargeAmt)
+			{
+				// PATCH 1b: reached firing threshold but not full.
+				// SW becomes ready (IsCharged=true) but timer
+				// keeps running to accumulate further charges.
+				this->IsCharged = true;
+				// Do NOT pause — leave timer ticking.
+				// Next _AI call will hit the early-exit patch above
+				// and fall through to keep accumulating.
+			}
+			else
+			{
+				// Below threshold — not ready yet
+				StartRecharge();
+			}
+		}
 		else
 		{
-				// Pool full — freeze at 0
-	this->IsCharged = true;
-			this->RechargeTimer.Pause();
+			// Feature disabled — vanilla
+			this->IsCharged = true;
 		}
-	}
-	else
-	{
-			// Feature disabled — vanilla path
-			// Near-zero guard still applies: Start(0) on a normal SW
-			// is fine (vanilla behaviour), but document it here.
-		this->IsCharged = true;
-			// rechargeTime==0 with feature off → vanilla instant-ready,
-			// no guard needed (pool doesn't restart the timer).
-	}
 
-	// === Hook: SuperClass_AI_AnnounceReady (0x6CBDD7) ===
-		// Only announce when pool is actually full (IsCharged=true)
+		// Announce only when SW first becomes ready
 		if (this->IsCharged && isPlayer)
 		{
-		pTypeExt->PrintMessage(pTypeExt->Message_Ready, HouseClass::CurrentPlayer);
-		if (pTypeExt->EVA_Ready != -1)
-			VoxClass::PlayIndex(pTypeExt->EVA_Ready);
+			pTypeExt->PrintMessage(pTypeExt->Message_Ready, HouseClass::CurrentPlayer);
+			if (pTypeExt->EVA_Ready != -1)
+				VoxClass::PlayIndex(pTypeExt->EVA_Ready);
+		}
+
+		this->ReadinessFrame = Unsorted::CurrentFrame();
+		return true;
 	}
-
-	this->ReadinessFrame = Unsorted::CurrentFrame();
-	return true;
-}
-
 }
 DEFINE_FUNCTION_JUMP(LJMP, 0x6CBCA0, FakeSuperClass::_AI)
 
@@ -930,23 +960,36 @@ bool FakeSuperClass::_Discharged(bool isPlayer, CellStruct* pCell)
 		if (maxCharges >= 0 && !pType->PostClick && !pType->PreClick)
 		{
 			auto pPool = SWChargePool::Get(pOwner, pType);
-			pPool->Decrement();
+			pPool->DecrementBy(pExt->SW_DischargeAmount);
 
-			if (pPool->Charges > 0)
+			const bool willRemove = this->OneTime || !SuperExtData::CanFire(this);
+
+			if (!willRemove)
 			{
-				// Still have stored charges — stay frozen at 0
-				SWCharges_SetPoolFull(this);
-			}
-			else
-		{
-				// Pool empty — begin recharge
-				// Guard: don't restart if OneTime / CanFire will
-				// remove the SW in the block below
-				const bool willRemove = this->OneTime
-					|| !SuperExtData::CanFire(this);
+				if (pPool->Charges >= dischargeAmt)
+				{
+					// Still enough to fire again immediately.
+					// Keep IsCharged=true. If pool < max, timer
+					// is still running (from the accumulation path)
+					// so no action needed here.
+					this->IsCharged = true;
 
-				if (!willRemove)
-					SWCharges_BeginRecharge(this);
+					// If timer isn't running (was frozen at max),
+					// restart it now that we dropped below max.
+					if (!this->RechargeTimer.IsTicking()
+						&& pPool->Charges < maxCharges)
+					{
+						const int t = this->GetRechargeTime();
+						this->RechargeTimer.Start((t > 0) ? t : 1);
+					}
+				}
+				else
+				{
+					// Below threshold — no longer ready
+					this->IsCharged = false;
+					const int t = this->GetRechargeTime();
+					this->RechargeTimer.Start((t > 0) ? t : 1);
+				}
 			}
 		}
 

@@ -39,6 +39,10 @@ struct SWChargePool
 		return Charges < maxCharges;
 	}
 
+	bool CanFire(int dischargeAmount) const {
+		return Charges >= dischargeAmount;
+	}
+
 	// Clamp on increment so we never exceed max
 	void Increment(int maxCharges)
 	{
@@ -57,8 +61,15 @@ struct SWChargePool
 		return true;
 	}
 
+	int DecrementBy(int amount) {
+		const int toConsume = (amount < Charges) ? amount : Charges;
+		Charges -= toConsume;
+		return toConsume;
+	}
+
 	static SWChargePool* Get(HouseClass* pHouse, SuperWeaponTypeClass* pType);
 	static int GetMax(SuperWeaponTypeClass* pType);
+	static int GetDischarge(SuperWeaponTypeClass* pType);
 
 	// --------------------------------------------------------
 	// Serialization

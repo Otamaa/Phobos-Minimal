@@ -422,6 +422,7 @@ public:
 	Valueable<bool> SW_Unique { false };
 	Valueable<int> SW_MaxCharges { -1 };
 	Valueable<int> SW_ChargesPerCycle { 1 };
+	Valueable<int> SW_DischargeAmount { 1 };
 #pragma endregion
 
 public:

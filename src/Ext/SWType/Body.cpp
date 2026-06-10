@@ -437,9 +437,11 @@ bool SWTypeExtData::DrawDarken(SuperClass* pSuper)
 
 	if (maxCharges >= 0)
 	{
-		const auto pPool = SWChargePool::Get(pCurrent, pSuper->Type);
-		if (pPool->Charges <= 0)
-			return true;    // no charges stored — grey out
+		// darken until DischargeAmount threshold is met
+		const int dischargeAmt = SWChargePool::GetDischarge(pSuper->Type);
+		auto pPool = SWChargePool::Get(pCurrent, pSuper->Type);
+		if (pPool->Charges < dischargeAmt)
+			return true;
 	}
 
 	if (pSuper->CanFire())
@@ -1353,6 +1355,33 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_Link_Randoms.Read(exINI, pSection, "SW.Link");
 	this->SW_MaxCharges.Read(exINI, pSection, "SW.MaxCharges");
 	this->SW_ChargesPerCycle.Read(exINI, pSection, "SW.ChargesPerCycle");
+	this->SW_DischargeAmount.Read(exINI, pSection, "SW.DischargeAmount");
+
+	// Sanitize: DischargeAmount must be in [1, MaxCharges].
+	// Checked only when MaxCharges feature is active.
+	{
+		const int maxCharges = this->SW_MaxCharges;
+
+		if (maxCharges >= 0)
+		{
+			int discharge = this->SW_DischargeAmount;
+
+			if (discharge < 1)
+			{
+				Debug::Log("[%s] SW.DischargeAmount=%d is < 1, clamped to 1.\n",
+					pSection, discharge);
+				discharge = 1;
+			}
+			else if (discharge > maxCharges)
+			{
+				Debug::Log("[%s] SW.DischargeAmount=%d exceeds SW.MaxCharges=%d, clamped.\n",
+					pSection, discharge, maxCharges);
+				discharge = maxCharges;
+			}
+
+			this->SW_DischargeAmount = discharge;
+		}
+	}
 
 	if(pThis->Type != SuperWeaponType::Invalid)
 	{

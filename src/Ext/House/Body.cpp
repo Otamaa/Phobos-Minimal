@@ -41,6 +41,13 @@ int SWChargePool::GetMax(SuperWeaponTypeClass* pType)
 	return pTypeExt->SW_MaxCharges;   // -1 = feature disabled
 }
 
+int SWChargePool::GetDischarge(SuperWeaponTypeClass* pType)
+{
+	const auto pTypeExt = SWTypeExtContainer::Instance.Find(pType);
+	const int d = pTypeExt->SW_DischargeAmount;
+	return (d < 1) ? 1 : d;
+}
+
 void HouseExtData::InitializeTrackers(HouseClass* pHouse)
 {
 }
