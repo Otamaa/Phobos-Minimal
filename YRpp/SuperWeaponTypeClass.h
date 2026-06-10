@@ -74,7 +74,8 @@ protected:
 
 public:
 
-	int     ArrayIndex;
+	//int     ArrayIndex;
+	int ArrIdx;
 	WeaponTypeClass* WeaponType;
 
 	//I believe these four are the leftover TS sounds

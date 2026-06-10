@@ -392,7 +392,7 @@ bool SWTypeHandler::IsLaunchsiteAlive(BuildingClass* pBuilding) const
 
 bool SWTypeHandler::IsSWTypeAttachedToThis(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
-	return  BuildingExtContainer::Instance.Find(pBuilding)->HasSuperWeapon(pData->This()->ArrayIndex, true);
+	return  BuildingExtContainer::Instance.Find(pBuilding)->HasSuperWeapon(pData->This()->ArrIdx, true);
 }
 
 void SWTypeHandler::PlayAnim(SuperClass* pSuper, CoordStruct& coord) {
@@ -427,10 +427,17 @@ void SWTypeHandler::PlayAnim(SuperClass* pSuper, CoordStruct& coord) {
 
 bool SWTypeHandler::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
+	const auto pExt = BuildingExtContainer::Instance.Find(pBuilding);
+
 	if (!this->IsLaunchsiteAlive(pBuilding))
 		return false;
 
-	return BuildingExtContainer::Instance.Find(pBuilding)->HasSuperWeapon(pData->This()->ArrayIndex, true);
+	for (auto& pSuper : pExt->Supers) {
+		if (pSuper->Type == pData->This())
+			return true;
+	}
+
+	return BuildingExtContainer::Instance.Find(pBuilding)->HasSuperWeapon(pData->This()->ArrIdx, true);
 }
 
 std::pair<double, double> SWTypeHandler::GetLaunchSiteRange(const SWTypeExtData* pData, BuildingClass* pBuilding) const

@@ -588,7 +588,9 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 					{
 						if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer)
 						{
-							SidebarClass::Instance->AddCameo(AbstractType::Special, (*iter)->Type->ArrayIndex);
+							int idx = (*iter)->GetArrayIndex();
+							SidebarClass::Instance->AddCameo(AbstractType::Special, idx);
+							SidebarClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(AbstractType::Special, idx, false));
 						}
 					}
 
@@ -698,16 +700,17 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 				{
 					Debug::LogInfo("Crate at {},{} contains Squad", this->MapCoords.X, this->MapCoords.Y);
 
-					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
- {
-	 return pSuper->Type->Type == SuperWeaponType::AmerParaDrop && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
+					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper) {
+						return pSuper->Type->Type == SuperWeaponType::AmerParaDrop && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
 					});
 
 					if (iter != pCollectorOwner->Supers.end())
 					{
 						if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer)
 						{
-							SidebarClass::Instance->AddCameo(AbstractType::Special, (*iter)->Type->ArrayIndex);
+							int idx = (*iter)->GetArrayIndex();
+							SidebarClass::Instance->AddCameo(AbstractType::Special, idx);
+							SidebarClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(AbstractType::Special, idx, false));
 						}
 					}
 					else
@@ -731,7 +734,9 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 					{
 						if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer)
 						{
-							SidebarClass::Instance->AddCameo(AbstractType::Special, (*iter)->Type->ArrayIndex);
+							int idx = (*iter)->GetArrayIndex();
+							SidebarClass::Instance->AddCameo(AbstractType::Special, idx);
+							SidebarClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(AbstractType::Special, idx, false));
 						}
 					}
 
@@ -750,7 +755,9 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 					{
 						if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer)
 						{
-							SidebarClass::Instance->AddCameo(AbstractType::Special, (*iter)->Type->ArrayIndex);
+							int idx = (*iter)->GetArrayIndex();
+							SidebarClass::Instance->AddCameo(AbstractType::Special, idx);
+							SidebarClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(AbstractType::Special, idx, false));
 						}
 					}
 
@@ -769,7 +776,9 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 					{
 						if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer)
 						{
-							SidebarClass::Instance->AddCameo(AbstractType::Special, (*iter)->Type->ArrayIndex);
+							int idx = (*iter)->GetArrayIndex();
+							SidebarClass::Instance->AddCameo(AbstractType::Special, idx);
+							SidebarClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(AbstractType::Special, idx, false));
 						}
 					}
 

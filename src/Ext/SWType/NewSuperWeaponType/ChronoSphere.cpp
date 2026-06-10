@@ -39,11 +39,11 @@ bool SW_ChronoSphere::Activate(SuperClass* const pThis, const CellStruct& Coords
 			int idxWarp = SuperWeaponTypeClass::FindIndexById(pData->SW_PostDependent);
 
 			// fallback to use the first warp if there is no specific one
-			auto const& Types = *SuperWeaponTypeClass::Array;
+			auto const& Types = pThis->Owner->Supers;
 
-			if (!Types.valid_index(idxWarp) || Types[idxWarp]->Type != SuperWeaponType::ChronoWarp) {
+			if (!Types.valid_index(idxWarp) || Types[idxWarp]->Type->Type != SuperWeaponType::ChronoWarp) {
 				for (int aI = 0; aI < Types.Count; ++aI) {
-					if (Types.valid_index(aI) && Types[aI] && Types[aI]->Type == SuperWeaponType::ChronoWarp) {
+					if (Types.valid_index(aI) && Types[aI]->Type->Type == SuperWeaponType::ChronoWarp) {
 						idxWarp = aI;
 						break;
 					}

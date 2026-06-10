@@ -275,9 +275,7 @@ ASMJIT_PATCH(0x6A4EA5, SidebarClass_CameosList, 6)
 	MouseClassExt::ClearCameos();
 	return 0;
 }
-
 ASMJIT_PATCH_AGAIN(0x6A4FD8, SidebarClass_CameosList, 6)
-
 
 ASMJIT_PATCH(0x6A633D, SidebarClass_AddCameo_TabIndex, 0x5)
 {

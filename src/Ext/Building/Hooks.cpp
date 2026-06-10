@@ -24,8 +24,25 @@ ASMJIT_PATCH(0x441553, BuildingClass_Unlimbo_PowerPlantEnhancer, 0x6)
 	auto pExt = BuildingExtContainer::Instance.Find(pThis);
 
 	pExt->PowerPlantEnhancer.Register();
+	
 
 	return 0;
+}
+
+ASMJIT_PATCH(0x440580, BuildingClass_Unlimbo_Additional, 0x5)
+{
+	GET(BuildingClass*, pThis, ECX);
+	auto pExt = BuildingExtContainer::Instance.Find(pThis);
+	pExt->AddSupers();
+	return 0;
+}
+
+ASMJIT_PATCH(0x445880, BuildingClass_Limbo_Additional, 0x5)
+{
+	GET(BuildingClass*, pThis, ECX);
+	auto pExt = BuildingExtContainer::Instance.Find(pThis);
+	pExt->RemoveSupers();
+	return 0x0;
 }
 
 ASMJIT_PATCH(0x448A78, BuildingClass_SetOwningHouse_RemovePowerPlantEnhancer, 0x6)
@@ -37,18 +54,19 @@ ASMJIT_PATCH(0x448A78, BuildingClass_SetOwningHouse_RemovePowerPlantEnhancer, 0x
 	// We need to get the new owner too — depends on where in the function we hook
 	// For the Remove hook, we just unregister from old
 	pExt->PowerPlantEnhancer.Unregister();
-
+	
 	return 0;
 }
 
 ASMJIT_PATCH(0x449197, BuildingClass_SetOwningHouse_AddPowerPlantEnhancer, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
-	//GET(HouseClass*, pNewOwner, EBP);
+	GET(HouseClass*, pNewOwner, EBP);
 	auto pExt = BuildingExtContainer::Instance.Find(pThis);
 
 	// Re-register (AttachedToObject->Owner should now be pNewOwner)
 	pExt->PowerPlantEnhancer.Register();
+	pExt->TransferSupers(pNewOwner);
 
 	return 0;
 }

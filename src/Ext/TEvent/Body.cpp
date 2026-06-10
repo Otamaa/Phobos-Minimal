@@ -391,7 +391,7 @@ bool TEventExtData::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 			result = isSameEvent()
 				&& Args.Source
 				&& Args.Source->WhatAmI() == AbstractType::Super
-				&& ((SuperClass*)Args.Source)->Type->ArrayIndex == pThis->Value;
+				&& ((SuperClass*)Args.Source)->GetArrayIndex() == pThis->Value;
 
 			return true;
 		}

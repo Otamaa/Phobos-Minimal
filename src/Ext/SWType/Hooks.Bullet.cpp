@@ -7,6 +7,9 @@
 #include <Ext/Bullet/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/House/Body.h>
+
+#include <SuperClass.h>
 
 // create a downward pointing missile if the launched one leaves the map.
 ASMJIT_PATCH(0x46B371, BulletClass_NukeMaker, 5)
@@ -19,8 +22,8 @@ ASMJIT_PATCH(0x46B371, BulletClass_NukeMaker, 5)
 	{
 		pNukeSW = pNuke;
 	}
-	else if (auto pLinkedNuke = SuperWeaponTypeClass::Array->
-		get_or_default(WarheadTypeExtContainer::Instance.Find(pThis->WH)->NukePayload_LinkedSW))
+	else if (auto pLinkedNuke = 
+		HouseClass::CurrentPlayer->Supers.Items[(WarheadTypeExtContainer::Instance.Find(pThis->WH)->NukePayload_LinkedSW)]->Type)
 	{
 		pNukeSW = pLinkedNuke;
 	}

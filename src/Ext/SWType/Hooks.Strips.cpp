@@ -8,19 +8,38 @@
 #include <Ext/HouseType/Body.h>
 #include <Ext/Mouse/Body.h>
 #include <Ext/Tactical/Body.h>
+#include <Ext/House/Body.h>
 
 #include <Utilities/Macro.h>
+
 
 #include <InfantryClass.h>
 #include <UnitClass.h>
 #include <AircraftClass.h>
 #include <BuildingClass.h>
+#include <SuperClass.h>
+#include <EventClass.h>
 
 // 4AC20C, 7
 // translates SW click to type
+// cannot fire because it will input type index instead 
+// look at 0x4AC21C 
+// intercept call to SuperWeaponTypeClass::From_Action
+void NOINLINE CreateEvent(SuperClass* pSuper , CellStruct* pWhere){
+
+	EventClass Event {
+		HouseClass::CurrentPlayer->ArrayIndex ,
+		EventType::SPECIAL_PLACE ,
+		pSuper->GetArrayIndex() ,
+		*pWhere
+	};
+
+	EventClass::AddEvent(&Event);
+}
 ASMJIT_PATCH(0x4AC20C, DisplayClass_LeftMouseButtonUp, 7)
 {
 	GET_STACK(Action, nAction, 0x9C);
+	GET_STACK(CellStruct* , pCellStruct, 0x94);
 
 	if (nAction < (Action)PhobosNewActionType::SuperWeaponDisallowed)
 	{
@@ -30,23 +49,28 @@ ASMJIT_PATCH(0x4AC20C, DisplayClass_LeftMouseButtonUp, 7)
 		// action of the found type as the no-cursor represents a different
 		// action and we don't want to start a force shield even tough the UI
 		// says no.
-		auto pSW = SuperWeaponTypeClass::Array->get_or_default(Unsorted::CurrentSWType());
-		if (pSW && (pSW->Action != nAction))
+		auto pSW = HouseClass::CurrentPlayer->Supers.get_or_default(Unsorted::CurrentSWType());
+		if (pSW && (pSW->Type->Action != nAction))
 		{
 			pSW = nullptr;
 		}
 
-		R->EAX(pSW);
-		return pSW ? 0x4AC21C : 0x4AC294;
+		if (pSW) {
+			CreateEvent(pSW, pCellStruct);
+		}
+
+		return 0x4AC294;
 	}
 	else if (nAction == (Action)PhobosNewActionType::SuperWeaponDisallowed)
 	{
-		R->EAX(0);
 		return 0x4AC294;
 	}
 
-	R->EAX(SWTypeExtData::CurrentSWType);
-	return 0x4AC21C;
+	if (auto pSW = SWTypeExtData::CurrentSWType) {
+		CreateEvent(pSW, pCellStruct);
+	}
+
+	return 0x4AC294;
 }
 
 //ASMJIT_PATCH(0x653B3A, RadarClass_GetMouseAction_CustomSWAction, 7)
@@ -338,7 +362,7 @@ int __fastcall  RadarClass_RTacticalClass_Action(GadgetClass* pThis, discard_t
 		}
 		else {
 			Action swAction = SWTypeExtData::GetAction(
-				SuperWeaponTypeClass::Array->Items[currentSWType],
+				HouseClass::CurrentPlayer->Supers.Items[currentSWType],
 				&cell);
 
 			if (swAction != Action::None)

@@ -41,7 +41,7 @@ bool SW_NuclearMissile::Activate(SuperClass* const pThis, const CellStruct& Coor
 		if (pSilo)
 		{
 			// setup the missile and start the fire mission
-			pSilo->FiringSWType = pType->ArrayIndex;
+			pSilo->FiringSWType = pThis->GetArrayIndex();
 			TechnoExtContainer::Instance.Find(pSilo)->SuperTarget = Coords;
 			pThis->Owner->NukeTarget = Coords;
 

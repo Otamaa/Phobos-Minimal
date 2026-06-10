@@ -383,7 +383,7 @@ TargetResult TargetingFuncs::GetLighningRandomTarget(SWTypeHandler* pNewType, co
 TargetResult TargetingFuncs::GetOwnerBuildingAsTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting, bool checkLauchsite)
 {
 	// find the first building providing super
-	auto index = pTargeting->TypeExt->This()->ArrayIndex;
+	auto index = pTargeting->TypeExt->This()->ArrIdx;
 	const auto& buildings = pTargeting->Owner->Buildings;
 	// Ares < 0.9 didn't check power
 	const auto it = buildings.find_if([index, pTargeting, checkLauchsite, pNewType](BuildingClass* pBld)

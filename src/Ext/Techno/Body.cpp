@@ -3179,14 +3179,15 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 			effectApplied = true;
 		}
 
-		if (auto pSuperType = pTypeExt->SpyEffect_SuperWeapon)
+		auto pSuperType = pTypeExt->SpyEffect_SuperWeapon;
+
+		if (pSuperType >= 0)
 		{
-			const auto nIdx = pSuperType->ArrayIndex;
-			const auto pSuper = Enterer->Supers.Items[nIdx];
+			const auto pSuper = Enterer->Supers.Items[pSuperType];
 			const bool Onetime = !pTypeExt->SpyEffect_SuperWeaponPermanent;
 			bool CanLauch = true;
 
-			if (!pSuperType->IsPowered || Enterer->PowerDrain == 0 || Enterer->PowerOutput >= Enterer->PowerDrain)
+			if (!pSuper->Type->IsPowered || Enterer->PowerDrain == 0 || Enterer->PowerOutput >= Enterer->PowerDrain)
 				CanLauch = false;
 
 			const bool IsCurrentPlayer = Enterer->IsCurrentPlayer();
@@ -3198,8 +3199,8 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 
 				if (IsCurrentPlayer)
 				{
-					SidebarClass::Instance->AddCameo(AbstractType::Special, nIdx);
-					const auto nTab = SidebarClass::GetObjectTabIdx(AbstractType::Special, nIdx, false);
+					SidebarClass::Instance->AddCameo(AbstractType::Special, pSuperType);
+					const auto nTab = SidebarClass::GetObjectTabIdx(AbstractType::Special, pSuperType, false);
 					SidebarClass::Instance->RepaintSidebar(nTab);
 				}
 

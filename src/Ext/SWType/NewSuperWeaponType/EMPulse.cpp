@@ -76,7 +76,7 @@ bool SW_EMPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 
 			TechnoExtContainer::Instance.Find(pBld)->SuperTarget = Coords;
 			// setup the cannon and start the fire mission
-			pBld->FiringSWType = pThis->Type->ArrayIndex;
+			pBld->FiringSWType = pThis->GetArrayIndex();
 			pBld->QueueMission(Mission::Missile, false);
 			pBld->NextMission();
 		}

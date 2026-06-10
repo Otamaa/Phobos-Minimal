@@ -69,7 +69,7 @@ bool LauchSWData::ReadSingle(INI_EX& exINI, const char* pID, int Prefix){
 
 bool LauchSWData::Read(INI_EX& exINI, const char* pID, int Prefix, SuperWeaponTypeClass* pReaded)
 {
-	LaunchWhat = pReaded->ArrayIndex;
+	LaunchWhat = pReaded->ArrIdx;
 	return this->ReadSingle(exINI,pID , Prefix);
 }
 

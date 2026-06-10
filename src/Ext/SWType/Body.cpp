@@ -129,23 +129,18 @@ SWTypeExtData::SWTypeExtData(SuperWeaponTypeClass* pObj) : AbstractTypeExtData(p
 
 SWTypeExtData::~SWTypeExtData()
 {
-	SuperWeaponTypeClass* pCopy = SWTypeExtData::CurrentSWType;
-	if (This() == SWTypeExtData::CurrentSWType)
-		pCopy = nullptr;
-
-	SWTypeExtData::CurrentSWType = pCopy;
 };
 
 void SWTypeExtData::Initialize()
 {
 }
 
-Action SWTypeExtData::GetAction(SuperWeaponTypeClass* pSuper, CellStruct* pTarget)
+Action SWTypeExtData::GetAction(SuperClass* pSuper, CellStruct* pTarget)
 {
-	if ((PhobosNewActionType)pSuper->Action != PhobosNewActionType::SuperWeaponAllowed)
+	if ((PhobosNewActionType)pSuper->Type->Action != PhobosNewActionType::SuperWeaponAllowed)
 		return Action::None;
 
-	const auto pExt = SWTypeExtContainer::Instance.Find(pSuper);
+	const auto pExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
 
 	auto result = PhobosNewActionType::SuperWeaponAllowed;
 
@@ -2451,7 +2446,7 @@ bool SWTypeExtContainer::SaveGlobal(PhobosStreamWriter& stm)
 		.Process(SWTypeExtData::LauchData);
 }
 
-SuperWeaponTypeClass* SWTypeExtData::CurrentSWType;
+SuperClass* SWTypeExtData::CurrentSWType;
 SuperClass* SWTypeExtData::TempSuper;
 SuperClass* SWTypeExtData::LauchData;
 bool SWTypeExtData::Handled;
@@ -2460,6 +2455,7 @@ void SWTypeExtContainer::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(SWTypeExtData::TempSuper, ptr);
 	AnnounceInvalidPointer(SWTypeExtData::LauchData, ptr);
+	AnnounceInvalidPointer(SWTypeExtData::CurrentSWType, ptr);
 }
 
 void SWTypeExtContainer::LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr)

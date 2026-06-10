@@ -134,10 +134,12 @@ bool SWSidebarClass::AddButton(int superIdx)
 	if (!Phobos::UI::SuperWeaponSidebar || this->DisableEntry)
 		return false;
 
-	const auto pSWType = SuperWeaponTypeClass::Array->get_or_default(superIdx);
-	if (!pSWType)
+	const auto pSW = HouseClass::CurrentPlayer->Supers.get_or_default(superIdx);
+
+	if(!pSW)
 		return false;
 
+	const auto pSWType = pSW->Type;
 	const auto pSWExt = SWTypeExtContainer::Instance.Find(pSWType);
 
 	if (!pSWExt->SW_ShowCameo || pSWExt->SW_AutoFire || !pSWExt->SuperWeaponSidebar_Allow.Get(RulesExtData::Instance()->SuperWeaponSidebar_AllowByDefault))
@@ -191,8 +193,13 @@ void SWSidebarClass::SortButtons()
 
 	std::ranges::stable_sort(vec_Buttons, [ownerBits](SWButtonClass* const a, SWButtonClass* const b)
 	{
-		const auto pExtA = SWTypeExtContainer::Instance.TryFind(SuperWeaponTypeClass::Array->get_or_default(a->SuperIndex));
-		const auto pExtB = SWTypeExtContainer::Instance.TryFind(SuperWeaponTypeClass::Array->get_or_default(b->SuperIndex));
+		auto get_sw_type =[](int idx){
+			auto pSW = HouseClass::CurrentPlayer->Supers.get_or_default(idx);
+			return pSW ? pSW->Type : nullptr;
+		};
+
+		const auto pExtA = SWTypeExtContainer::Instance.TryFind(get_sw_type(a->SuperIndex));
+		const auto pExtB = SWTypeExtContainer::Instance.TryFind(get_sw_type(b->SuperIndex));
 
 		if (pExtB && (pExtB->SuperWeaponSidebar_PriorityHouses & ownerBits) && (!pExtA || !(pExtA->SuperWeaponSidebar_PriorityHouses & ownerBits)))
 			return false;

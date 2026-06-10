@@ -1,5 +1,8 @@
 #include <Ext/SWType/Body.h>
+#include <Ext/House/Body.h>
+
 #include <Utilities/Macro.h>
+#include <SuperClass.h>
 
 #pragma region SW TabIndex
 
@@ -24,8 +27,8 @@ int __fastcall WhichTab(AbstractType rtti, int idx, int unused)
 	{
 		int tab = 1;
 
-		if ((size_t)idx < (size_t)SuperWeaponTypeClass::Array->Count)
-			tab = SWTypeExtContainer::Instance.Find(SuperWeaponTypeClass::Array->Items[idx])->TabIndex.Get();
+		if ((size_t)idx < (size_t)HouseClass::CurrentPlayer->Supers.Count)
+			tab = SWTypeExtContainer::Instance.Find(HouseClass::CurrentPlayer->Supers.Items[idx]->Type)->TabIndex.Get();
 
 		return tab;
 	}

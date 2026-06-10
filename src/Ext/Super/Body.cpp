@@ -100,47 +100,48 @@ void SuperExtData::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 						}
 					}
 				}else{
-				// check for upgrades. upgrades can give super weapons, too.
-				for (const auto type : pBld->GetTypes())
-				{
-					if (auto pUpgradeExt = BuildingTypeExtContainer::Instance.TryFind(const_cast<BuildingTypeClass*>(type)))
+					// check for upgrades. upgrades can give super weapons, too.
+					for (const auto type : pBld->GetTypes())
 					{
-						for (auto i = 0; i < pUpgradeExt->GetSuperWeaponCount(); ++i)
+						if (auto pUpgradeExt = BuildingTypeExtContainer::Instance.TryFind(const_cast<BuildingTypeClass*>(type)))
 						{
-							const auto idxSW = pUpgradeExt->GetSuperWeaponIndex(i);
-
-							if (idxSW >= 0)
+							for (auto i = 0; i < pUpgradeExt->GetSuperWeaponCount(); ++i)
 							{
-								auto pSuper = pHouse->Supers[idxSW];
-								const auto pSuperExt = SuperExtContainer::Instance.Find(pSuper);
-								auto& status = pSuperExt->Statusses;
+								const auto idxSW = pUpgradeExt->GetSuperWeaponIndex(i);
 
-								if (!status.Charging)
+								if (idxSW >= 0)
 								{
-									if (SWTypeExtData::IsAvailable(pHouse, pSuper))
+									auto pSuper = pHouse->Supers[idxSW];
+									const auto pSuperExt = SuperExtContainer::Instance.Find(pSuper);
+									auto& status = pSuperExt->Statusses;
+
+									if (!status.Charging)
 									{
-										status.Available = true;
-
-										if (!PowerChecked)
+										if (SWTypeExtData::IsAvailable(pHouse, pSuper))
 										{
-											HasPower = pBld->HasPower
-												&& !pBld->IsUnderEMP()
-												&& (TechnoExtContainer::Instance.Find(pBld)->Is_Operated || TechnoExtData::IsOperated(pBld));
+											status.Available = true;
 
-											PowerChecked = true;
-										}
-
-										if (!status.Charging && HasPower)
-										{
-											status.PowerSourced = true;
-
-											if (!pBld->IsBeingWarpedOut()
-												&& (pBld->CurrentMission != Mission::Construction)
-												&& (pBld->CurrentMission != Mission::Selling)
-												&& (pBld->QueuedMission != Mission::Construction)
-												&& (pBld->QueuedMission != Mission::Selling))
+											if (!PowerChecked)
 											{
-												status.Charging = true;
+												HasPower = pBld->HasPower
+													&& !pBld->IsUnderEMP()
+													&& (TechnoExtContainer::Instance.Find(pBld)->Is_Operated || TechnoExtData::IsOperated(pBld));
+
+												PowerChecked = true;
+											}
+
+											if (!status.Charging && HasPower)
+											{
+												status.PowerSourced = true;
+
+												if (!pBld->IsBeingWarpedOut()
+													&& (pBld->CurrentMission != Mission::Construction)
+													&& (pBld->CurrentMission != Mission::Selling)
+													&& (pBld->QueuedMission != Mission::Construction)
+													&& (pBld->QueuedMission != Mission::Selling))
+												{
+													status.Charging = true;
+												}
 											}
 										}
 									}
@@ -149,7 +150,6 @@ void SuperExtData::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 						}
 					}
 				}
-			}
 			}
 		});
 
@@ -199,7 +199,7 @@ void SuperExtData::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 					pSuper->RechargeTimer.Pause();
 
 				pSuper->IsCharged = true;
-	}
+			}
 			else if (!pSuper->RechargeTimer.IsTicking()
 					 && !pSuper->IsCharged
 					 && !pSuper->IsOnHold)
@@ -209,7 +209,7 @@ void SuperExtData::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 				// need to resume accumulation.
 				const int rechargeTime = pSuper->GetRechargeTime();
 				pSuper->RechargeTimer.Start(rechargeTime);
-}
+			}
 		});
 	}
 }
@@ -507,12 +507,14 @@ bool FakeSuperClass::_AI(bool isPlayer)
 
 	// === Hook: SuperClass_AI_Animation (0x6CBCDE) ===
 	// Dynamic ChronoWarp check instead of hardcoded SPC_CHRONOWARP == 4
-	{
-		bool isChronoWarp = false;
-		int curSW = Unsorted::CurrentSWType();
+	int curSW = Unsorted::CurrentSWType();
 
-		if (static_cast<size_t>(curSW) < static_cast<size_t>(SuperWeaponTypeClass::Array->Count))
-			isChronoWarp = (SuperWeaponTypeClass::Array->Items[curSW]->Type == SuperWeaponType::ChronoWarp);
+	if(curSW >= 0) {
+		
+		bool isChronoWarp = this->Owner->Supers[curSW]->Type->Type == SuperWeaponType::ChronoWarp;
+
+		//if (static_cast<size_t>(curSW) < static_cast<size_t>(SuperWeaponTypeClass::Array->Count))
+		//	isChronoWarp = (SuperWeaponTypeClass::Array->Items[curSW]->Type == SuperWeaponType::ChronoWarp);
 
 		if (!isChronoWarp && this->Animation != nullptr)
 		{
@@ -644,7 +646,6 @@ bool FakeSuperClass::_AI(bool isPlayer)
 		if (this->ChargeDrainState == ChargeDrainState::Draining)
 		{
 			// === Hook: SuperClass_AI_Progress_Charged (0x6CBD86) ===
-			// Deactivate replaces the original ChargeDrainState = None
 			SWTypeExtData::Deactivate(this, CellStruct::Empty, true);
 			this->RechargeTimer.Start(this->GetRechargeTime());
 			return true;
@@ -662,24 +663,23 @@ bool FakeSuperClass::_AI(bool isPlayer)
 	// PATCH: charge pool accumulation replaces bare IsCharged=true
 	// --------------------------------------------------------
 	{
-	const int maxCharges = SWChargePool::GetMax(pType);
+		const int maxCharges = SWChargePool::GetMax(pType);
 		const int perCycle = SWCharges_GetPerCycle(pType);
-		const auto pTypeExt = this->_GetTypeExtData();   // already in scope above
 		auto pLauchData = SuperExtData::GetLauchDataPtr(this);
 
 		// Near-zero timer guard: if rechargeTime==0, Start(0) would
 		// make _AI see a completed timer every single frame, filling
 		// the pool instantly. Enforce a 1-frame minimum so the pool
 		// path behaves consistently regardless of rechargeTime.
-	if (maxCharges >= 0)
-	{
-		auto pPool = SWChargePool::Get(this->Owner, pType);
+		if (maxCharges >= 0)
+		{
+			auto pPool = SWChargePool::Get(this->Owner, pType);
 
 			// VirtualCharge first-grant guard (from SWCharges_Fixes.cpp)
 			const bool isVirtualFirstGrant =
 				pTypeExt->SW_VirtualCharge && pLauchData->Count == 0;
 
-		if (!isVirtualFirstGrant)
+			if (!isVirtualFirstGrant)
 			{
 				// Increment by perCycle, clamped so we never exceed max
 				const int available = maxCharges - pPool->Charges;
@@ -688,44 +688,44 @@ bool FakeSuperClass::_AI(bool isPlayer)
 			}
 
 			if (!isVirtualFirstGrant && pPool->Charges < maxCharges)
-		{
+			{
 				// Pool not full yet — restart timer for next cycle
 				SWCharges_BeginRecharge(this);
-		}
+			}
 			else if (isVirtualFirstGrant)
 			{
 				// Virtual first grant — honour vanilla IsCharged=true
 				this->IsCharged = true;
 			}
+			else
+			{
+				// Pool full — freeze at 0
+				this->IsCharged = true;
+				this->RechargeTimer.Pause();
+			}
+		}
 		else
 		{
-				// Pool full — freeze at 0
-	this->IsCharged = true;
-			this->RechargeTimer.Pause();
-		}
-	}
-	else
-	{
 			// Feature disabled — vanilla path
 			// Near-zero guard still applies: Start(0) on a normal SW
 			// is fine (vanilla behaviour), but document it here.
-		this->IsCharged = true;
+			this->IsCharged = true;
 			// rechargeTime==0 with feature off → vanilla instant-ready,
 			// no guard needed (pool doesn't restart the timer).
-	}
+		}
 
-	// === Hook: SuperClass_AI_AnnounceReady (0x6CBDD7) ===
+		// === Hook: SuperClass_AI_AnnounceReady (0x6CBDD7) ===
 		// Only announce when pool is actually full (IsCharged=true)
 		if (this->IsCharged && isPlayer)
 		{
-		pTypeExt->PrintMessage(pTypeExt->Message_Ready, HouseClass::CurrentPlayer);
-		if (pTypeExt->EVA_Ready != -1)
-			VoxClass::PlayIndex(pTypeExt->EVA_Ready);
-	}
+			pTypeExt->PrintMessage(pTypeExt->Message_Ready, HouseClass::CurrentPlayer);
+			if (pTypeExt->EVA_Ready != -1)
+				VoxClass::PlayIndex(pTypeExt->EVA_Ready);
+		}
 
-	this->ReadinessFrame = Unsorted::CurrentFrame();
-	return true;
-}
+		this->ReadinessFrame = Unsorted::CurrentFrame();
+		return true;
+	}
 
 }
 DEFINE_FUNCTION_JUMP(LJMP, 0x6CBCA0, FakeSuperClass::_AI)
@@ -796,8 +796,8 @@ void FakeSuperClass::_Forced_Charge(bool isPlayer)
 	else
 	{
 		// Vanilla behaviour
-	this->IsCharged = true;
-	this->RechargeTimer.Start(0);
+		this->IsCharged = true;
+		this->RechargeTimer.Start(0);
 	}
 
 	const auto pData = this->_GetTypeExtData();
@@ -829,11 +829,11 @@ bool FakeSuperClass::_Remove()
 		if (SuperClass::ShowTimers->erase(this))
 		{
 			std::ranges::sort(*SuperClass::ShowTimers,
-			[](SuperClass* a, SuperClass* b) {
-				 const auto aExt = SWTypeExtContainer::Instance.Find(a->Type);
-				 const auto bExt = SWTypeExtContainer::Instance.Find(b->Type);
-				 return aExt->SW_Priority.Get() > bExt->SW_Priority.Get();
-			});
+				[](SuperClass* a, SuperClass* b) {
+					const auto aExt = SWTypeExtContainer::Instance.Find(a->Type);
+					const auto bExt = SWTypeExtContainer::Instance.Find(b->Type);
+					return aExt->SW_Priority.Get() > bExt->SW_Priority.Get();
+				});
 		}
 
 		if (this->Type->UseChargeDrain
@@ -883,7 +883,6 @@ bool FakeSuperClass::_Discharged(bool isPlayer, CellStruct* pCell)
 
 	if (!pType->UseChargeDrain)
 	{
-		//change done
 		if ((this->RechargeTimer.StartTime < 0
 			|| !this->Granted
 			|| !this->IsCharged)
@@ -892,36 +891,27 @@ bool FakeSuperClass::_Discharged(bool isPlayer, CellStruct* pCell)
 			return false;
 		}
 
-		// auto-abort if no resources
 		if (!pOwner->CanTransactMoney(pExt->Money_Amount))
 		{
 			if (pOwner->IsCurrentPlayer())
-			{
 				pExt->UneableToTransactMoney(pOwner);
-			}
 			return false;
 		}
 
 		if (!pHouseExt->CanTransactBattlePoints(pExt->BattlePoints_Amount))
 		{
 			if (pOwner->IsCurrentPlayer())
-			{
 				pExt->UneableToTransactBattlePoints(pOwner);
-			}
 			return false;
 		}
 
 		auto pNewType = SWTypeHandler::get_Handler(pExt->HandledType);
 
-		// can this super weapon fire now?
 		if (pNewType->AbortFire(this, isPlayer))
-		{
 			return false;
-		}
 
 		this->_Place(pCell, isPlayer);
 
-		// the others will be reset after the PostClick SW fired
 		if (!pType->PostClick && !pType->PreClick)
 			this->IsCharged = false;
 
@@ -938,7 +928,7 @@ bool FakeSuperClass::_Discharged(bool isPlayer, CellStruct* pCell)
 				SWCharges_SetPoolFull(this);
 			}
 			else
-		{
+			{
 				// Pool empty — begin recharge
 				// Guard: don't restart if OneTime / CanFire will
 				// remove the SW in the block below
@@ -952,7 +942,6 @@ bool FakeSuperClass::_Discharged(bool isPlayer, CellStruct* pCell)
 
 		if (this->OneTime || !SuperExtData::CanFire(this))
 		{
-			// remove this SW
 			this->OneTime = false;
 			return this->Lose();
 		}
@@ -964,7 +953,6 @@ bool FakeSuperClass::_Discharged(bool isPlayer, CellStruct* pCell)
 			this->CameoChargeState = -1;
 			this->RechargeTimer.Start(time);
 			this->RechargeTimer.Pause();
-
 		}
 		else if (!pType->PreClick && !pType->PostClick)
 		{
@@ -976,10 +964,8 @@ bool FakeSuperClass::_Discharged(bool isPlayer, CellStruct* pCell)
 		// ChargeDrain path — unchanged, no pool interaction
 		if (this->ChargeDrainState == ChargeDrainState::Draining)
 		{
-			// deactivate for human players
 			this->ChargeDrainState = ChargeDrainState::Ready;
 			auto const left = this->RechargeTimer.GetTimeLeft();
-
 			auto const duration = int(this->GetRechargeTime()
 				- (left / pExt->GetChargeToDrainRatio()));
 			this->RechargeTimer.Start(duration);
@@ -990,8 +976,8 @@ bool FakeSuperClass::_Discharged(bool isPlayer, CellStruct* pCell)
 			this->ChargeDrainState = ChargeDrainState::Draining;
 			auto const left = this->RechargeTimer.GetTimeLeft();
 			auto const duration = int(
-					(this->GetRechargeTime() - left)
-					* pExt->GetChargeToDrainRatio());
+				(this->GetRechargeTime() - left)
+				* pExt->GetChargeToDrainRatio());
 			this->RechargeTimer.Start(duration);
 			this->_Place(pCell, isPlayer);
 		}
@@ -1036,8 +1022,8 @@ bool FakeSuperClass::_Suspend(bool on)
 			else
 			{
 				// Feature off — vanilla resume
-			this->RechargeTimer.Resume();
-		}
+				this->RechargeTimer.Resume();
+			}
 		}
 
 		this->IsOnHold = on;

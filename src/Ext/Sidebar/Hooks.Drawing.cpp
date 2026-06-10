@@ -10,6 +10,7 @@
 #include <Ext/Side/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/Mouse/Body.h>
+#include <Ext/House/Body.h>
 
 #include <Misc/PhobosToolTip.h>
 #include <Misc/CSF.h>
@@ -55,6 +56,11 @@ public:
 		if (rtti2 == AbstractType::None)
 			return true;
 
+		auto getSWType =[](int idx){
+			auto sw = HouseClass::CurrentPlayer->Supers.get_or_default(idx);
+			return sw ? sw->Type : nullptr;
+		};
+
 		// ── Phase 2 [6A8463]: CameoPriority extension sort (inlined from hook) ──
 		// EXTENSION: replaces ASMJIT_PATCH @ 0x6A8463
 		auto IsSuperWeaponRtti = [](AbstractType rtti) -> bool
@@ -66,10 +72,10 @@ public:
 
 		{
 			const auto pLeftSWExt = IsSuperWeaponRtti(type1)
-				? SWTypeExtContainer::Instance.TryFind(SuperWeaponTypeClass::Array->get_or_default(id1))
+				? SWTypeExtContainer::Instance.TryFind(getSWType(id1))
 				: nullptr;
 			const auto pRightSWExt = IsSuperWeaponRtti(rtti2)
-				? SWTypeExtContainer::Instance.TryFind(SuperWeaponTypeClass::Array->get_or_default(type2))
+				? SWTypeExtContainer::Instance.TryFind(getSWType(type2))
 				: nullptr;
 
 			const auto pLeftTechnoExt = TechnoTypeExtContainer::Instance.TryFind(pTT1);
@@ -94,8 +100,8 @@ public:
 		if (item1IsSW && item2IsSW)
 		{
 			// VERIFY: SuperWeaponTypeClass::Array->get_or_default vs SuperWeaponTypes.Vector_Item — confirm correct accessor
-			SuperWeaponTypeClass* pSW1 = SuperWeaponTypeClass::Array->get_or_default(id1);
-			SuperWeaponTypeClass* pSW2 = SuperWeaponTypeClass::Array->get_or_default(type2);
+			SuperWeaponTypeClass* pSW1 = getSWType(id1);
+			SuperWeaponTypeClass* pSW2 = getSWType(type2);
 
 			// Sort by RechargeTime ascending  [6A84B1]
 			// VERIFY: offset 0xB0 = RechargeTime on SuperWeaponTypeClass
@@ -201,8 +207,8 @@ public:
 
 	SHPStruct* __GetSpecialCameo(int specialIdx) {
 		SHPStruct* _result = 0;
-		if (auto pSW = SuperWeaponTypeClass::Array->get_or_default(specialIdx)) {
-			_result = pSW->SidebarImage;
+		if (auto pSW = HouseClass::CurrentPlayer->Supers.get_or_default(specialIdx)) {
+			_result = pSW->Type->SidebarImage;
 		}
 
 		return _result;
@@ -823,7 +829,7 @@ const wchar_t* FakeStripClass::__Help_Text(int index)
 	{
 
 		PhobosToolTip::Instance.IsCameo = true;
-		auto pSW = SuperWeaponTypeClass::Array->Items[cameo.ItemIndex];
+		auto pSW = HouseClass::CurrentPlayer->Supers.Items[cameo.ItemIndex]->Type;
 		const auto pData = SWTypeExtContainer::Instance.Find(pSW);
 
 		if (pData->Money_Amount < 0)
@@ -1232,10 +1238,6 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 					originalScreenY = screenY;
 				}
 
-				if (buildableIndex >= buildableCount) { // dont proceed further if the index is out of bounds
-					return;
-				}
-
 				BuildType* pBuildable = &MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex][buildableIndex];
 
 				// 006A9714-006A9727: Process buildable item if within bounds
@@ -1335,14 +1337,19 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 							//       RulesExtData::Instance()->ExpandBuildingQueue is enabled
 							// ==========================================================================
 
-							if (!RulesExtData::Instance()->ExpandBuildingQueue){
-								if (pTechnoType->WhatAmI() == AbstractType::BuildingType && hasActiveProduction) {
+							if (!RulesExtData::Instance()->ExpandBuildingQueue)
+							{
+								if (pTechnoType->WhatAmI() == AbstractType::BuildingType && hasActiveProduction)
+								{
 									shouldDisable = true;
 								}
 							}
-							else if (const auto pBuildingType = type_cast<BuildingTypeClass*, false>(pTechnoType)) {
-								if (const auto pFactory = pPlayer->GetPrimaryFactory(AbstractType::BuildingType, pTechnoType->Naval, pBuildingType->BuildCat)) {
-									if (const auto pProduct = cast_to<BuildingClass*>(pFactory->Object)) {
+							else if (const auto pBuildingType = type_cast<BuildingTypeClass*, false>(pTechnoType))
+							{
+								if (const auto pFactory = pPlayer->GetPrimaryFactory(AbstractType::BuildingType, pTechnoType->Naval, pBuildingType->BuildCat))
+								{
+									if (const auto pProduct = cast_to<BuildingClass*>(pFactory->Object))
+									{
 										if (pFactory->IsDone() && pProduct->Type != pTechnoType && ((pProduct->Type->BuildCat != BuildCat::Combat) ^ (pBuildingType->BuildCat == BuildCat::Combat)))
 											shouldDisable = true;
 									}
@@ -1350,9 +1357,12 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 							}
 
 							{// 006A978C-006A97B2: Check if cameo should be disabled
-								if (!pTechnoType->FindFactory(true, true, true, pPlayer)) {
+								if (!pTechnoType->FindFactory(true, true, true, pPlayer))
+								{
 									shouldDisable = true;
-								} else {
+								}
+								else
+								{
 									// 006A97B4-006A97F9: Check Can_Build and ShouldDisableCameo
 									pFactoryType = TechnoTypeClass::FetchTechnoType(pBuildable->ItemType, pBuildable->ItemIndex);
 
@@ -1417,7 +1427,8 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 									int completion = 0;
 									if (pBuildable->Status != BuildState::Building) //transition check
 										progressFrame = completion;
-									else {
+									else
+									{
 										int storedProgress = pBuildable->Progress.Stage;
 										if (storedProgress > completion)
 											completion = (storedProgress + completion) / 2;
@@ -1448,7 +1459,9 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 									shouldDarken = false;
 									break;
 								}
-							} else {
+							}
+							else
+							{
 								// ------------------------------------------------
 								// Factory exists - 006A981D-006A9877
 								// ------------------------------------------------
@@ -1465,8 +1478,10 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 								// 006A9822-006A982D: Check if completed
 								isCompleted = pBuildCameo->IsDone();
 
-								if (isCompleted) {
-									if (auto pBuilding = cast_to<BuildingClass*, false>(pBuildCameo->Object)) {
+								if (isCompleted)
+								{
+									if (auto pBuilding = cast_to<BuildingClass*, false>(pBuildCameo->Object))
+									{
 										isCompleted = pBuilding->FindFactory(true, true) != nullptr;
 									}
 								}
@@ -1844,9 +1859,9 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 						// ---- end SW charge pool count overlay ----
 					}
 				} // end pBuildableItem block
-				} // end column loop
-			} // end row loop
-		}
+			} // end column loop
+		} // end row loop
+	}
 
 	// ========================================================================
 	// OBSERVER MODE: Draw house info panels
@@ -1875,7 +1890,8 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 			HouseTypeClass* pHouseType = pObservedHouse->Type;
 			const wchar_t* diff = nullptr;
 
-			if(!pObservedHouse->ControlledByCurrentPlayer()){
+			if (!pObservedHouse->ControlledByCurrentPlayer())
+			{
 				switch (pObservedHouse->AIDifficulty)
 				{
 				case AIDifficulty::Hard:
@@ -1991,12 +2007,12 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 			Point2D textPos = { panelX + 8, adjustedPanelY + 4 };
 
 			// Draw house name
-			if(diff)
-			TextDrawing::Fancy_Text_Print_Wide_externalBuffer(Sidebar_UIName.get(), L"%ls (%ls)", SidebarSurface, &clipRect, &textPos,
-								  pColorScheme, 0, TextPrintType::FullShadow | TextPrintType::Point8, pObservedHouse->UIName , diff);
+			if (diff)
+				TextDrawing::Fancy_Text_Print_Wide_externalBuffer(Sidebar_UIName.get(), L"%ls (%ls)", SidebarSurface, &clipRect, &textPos,
+									  pColorScheme, 0, TextPrintType::FullShadow | TextPrintType::Point8, pObservedHouse->UIName, diff);
 			else
-			TextDrawing::Fancy_Text_Print_Wide_externalBuffer(Sidebar_UIName.get(), L"%ls", SidebarSurface, &clipRect, &textPos,
-								  pColorScheme, 0, TextPrintType::FullShadow | TextPrintType::Point8, pObservedHouse->UIName);
+				TextDrawing::Fancy_Text_Print_Wide_externalBuffer(Sidebar_UIName.get(), L"%ls", SidebarSurface, &clipRect, &textPos,
+									  pColorScheme, 0, TextPrintType::FullShadow | TextPrintType::Point8, pObservedHouse->UIName);
 
 			wchar_t textBuffer[64];
 			wchar_t rankStr[16], killsStr[16], unitsStr[16], creditsStr[16];

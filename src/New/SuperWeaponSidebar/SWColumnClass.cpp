@@ -6,7 +6,9 @@
 #include <Ext/Side/Body.h>
 #include <Ext/SWType/Body.h>
 #include <Ext/Scenario/Body.h>
+#include <Ext/House/Body.h>
 
+#include <SuperClass.h>
 #include <Memory.h>
 
 SWColumnClass::SWColumnClass(int maxButtons, int x, int y, int width, int height)
@@ -86,11 +88,15 @@ bool SWColumnClass::AddButton(int superIdx)
 	if (buttonCount >= this->MaxButtons && !sidebar->AddColumn())
 	{
 		const unsigned int ownerBits = 1u << HouseClass::CurrentPlayer->Type->ArrayIndex;
+		auto get_sw_type =[](int idx){
+			auto pSW = HouseClass::CurrentPlayer->Supers.get_or_default(idx);
+			return pSW ? pSW->Type : nullptr;
+		};
 
-		auto Compare = [ownerBits](const int left, const int right)
+		auto Compare = [ownerBits, get_sw_type](const int left, const int right)
 		{
-			const auto pExtA = SWTypeExtContainer::Instance.Find(SuperWeaponTypeClass::Array->get_or_default(left));
-			const auto pExtB = SWTypeExtContainer::Instance.Find(SuperWeaponTypeClass::Array->get_or_default(right));
+			const auto pExtA = SWTypeExtContainer::Instance.Find(get_sw_type(left));
+			const auto pExtB = SWTypeExtContainer::Instance.Find(get_sw_type(right));
 
 			if (pExtB && (pExtB->SuperWeaponSidebar_PriorityHouses & ownerBits) && (!pExtA || !(pExtA->SuperWeaponSidebar_PriorityHouses & ownerBits)))
 				return false;

@@ -14,6 +14,7 @@
 #include <unknwn.h>
 
 struct TacticalSelectableStruct;
+class SuperClass;
 class AbstractClass;
 class SideClass;
 class HouseClass;
@@ -996,6 +997,7 @@ namespace Unsorted
 
 	COMPILETIMEEVAL constant_ptr<ColorPacker, 0x8A0DD0> const ColorPackData {};
 	COMPILETIMEEVAL reference<int, 0x8809A0> const CurrentSWType {};
+	COMPILETIMEEVAL reference<SuperClass*, 0x8809A0> const CurrentSWT {};
 	COMPILETIMEEVAL reference<bool, 0x88099A> const PowerToggleMode {};
 	COMPILETIMEEVAL reference<bool, 0x88099B> const PlanningMode {};
 	COMPILETIMEEVAL reference<bool, 0x88099C> const PlaceBeaconMode {};

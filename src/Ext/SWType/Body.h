@@ -531,7 +531,7 @@ public:
 	static void Deactivate(SuperClass* pSuper, CellStruct const cell, bool const isPlayer);
 	static bool Activate(SuperClass* pSuper, CellStruct const cell, bool const isPlayer);
 	static AffectedHouse GetRelation(HouseClass* pFirer, HouseClass* pHouse);
-	static Action GetAction(SuperWeaponTypeClass* pSuper, CellStruct* pTarget);
+	static Action GetAction(SuperClass* pSuper, CellStruct* pTarget);
 	static bool TryFire(SuperClass* pThis, bool IsPlayer);
 	static bool IsTargetConstraintsEligible(SuperClass* pThis, bool IsPlayer);
 	static TargetResult PickSuperWeaponTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting, const SuperClass* pSuper);
@@ -553,7 +553,7 @@ public:
 	static bool Handled;
 	static SuperClass* TempSuper;
 	static SuperClass* LauchData;
-	static SuperWeaponTypeClass* CurrentSWType;
+	static SuperClass* CurrentSWType;
 
 public:
 

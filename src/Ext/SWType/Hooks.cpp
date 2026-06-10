@@ -37,9 +37,9 @@
 ASMJIT_PATCH(0x4F6202, Houclass_CTOR_CreateSupers, 0x6) {
 	GET(HouseClass*, pThis, EBP);
 
-	for (auto& pSWType : *SuperWeaponTypeClass::Array) {
-		pThis->Supers.emplace_back(GameCreate<SuperClass>(pSWType, pThis));
-	}
+	//for (auto& pSWType : *SuperWeaponTypeClass::Array) {
+	//	pThis->Supers.emplace_back(GameCreate<SuperClass>(pSWType, pThis));
+	//}
 
 	return 0x4F6296;
 }
@@ -48,26 +48,51 @@ ASMJIT_PATCH(0x4F71A3, HouseClass_DTOR_ClearSupers, 0x6)
 {
 	GET(HouseClass*, pThis, ESI);
 
-	for (auto& pSW : pThis->Supers) {
-		CallDTOR(pSW);
-		pSW = nullptr;
-	}
+	//for (auto& pSW : pThis->Supers) {
+	//	if(!SuperExtContainer::Instance.Find(pSW)->IsFromBuilding)
+	//		CallDTOR(pSW);
+
+	//	pSW = nullptr;
+	//}
 
 	pThis->Supers.clear();
 	return 0x4F71DD;
 }
 
-ASMJIT_PATCH(0x692B06, ScrillClass_ChooseAction_SW, 0x5)
+Action GetAction(SuperClass* pSuper, CellStruct* pDest , ObjectClass* pSrc)
+{
+	const auto nAction = SWTypeExtData::GetAction(pSuper, pDest);
+
+	if (nAction != Action::None) {
+		return nAction;
+	}
+
+	// Force Shield requires a valid allied building target; anything else uses default action
+	if (pSuper->Type->Action != Action::ForceShield)
+		return pSuper->Type->Action;
+
+	if (auto pBld = cast_to<BuildingClass*>(pSrc))
+	{
+		HouseClass* pHouse = pBld->Owner;
+		if (pHouse->IsAlliedWith(HouseClass::CurrentPlayer()))
+			return pSuper->Type->Action;
+	}
+
+	return Action::NoForceShield;
+}
+
+ASMJIT_PATCH(0x692B06, ScrollClass_ChooseAction_SW, 0x5)
 {
 	GET(ObjectClass*, pSrc, ESI);
 	GET(CellStruct*, pDest, EBP);
 
 	Action _result = Action::None;
 
-	if (auto pSW = SuperWeaponTypeClass::Array
-		->get_or_default(Unsorted::CurrentSWType())) { 
+	if (auto pSW = HouseClass::CurrentPlayer->Supers
+		.get_or_default(Unsorted::CurrentSWType())) { 
 		CoordStruct buffer {};
-		_result = pSW->MouseOverObject(*pDest, pSrc);
+		_result = GetAction(pSW, pDest, pSrc);
+			//pSW->Type->MouseOverObject(*pDest, pSrc);
 	}
 
 	R->EAX(_result);
@@ -76,9 +101,9 @@ ASMJIT_PATCH(0x692B06, ScrillClass_ChooseAction_SW, 0x5)
 
 ASMJIT_PATCH(0x6DC1AF, TacticalClass_DrawTargetingLines, 0x5)
 {
-	if (SuperWeaponTypeClass* pSW = SuperWeaponTypeClass::Array
-		->get_or_default(Unsorted::CurrentSWType())) {
-		R->EDI(pSW);
+	if (SuperClass* pSW = HouseClass::CurrentPlayer->Supers
+		.get_or_default(Unsorted::CurrentSWType())) {
+		R->EDI(pSW->Type);
 		return 0x6DC1C6;
 	}
 	
@@ -337,7 +362,7 @@ ASMJIT_PATCH(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 	if (!ToggleDesignatorRangeCommandClass::ShowDesignatorRange || Unsorted::CurrentSWType.get() < 0)
 		return 0;
 
-	const auto pSuperType = SuperWeaponTypeClass::Array()->Items[Unsorted::CurrentSWType.get()];
+	const auto pSuperType = HouseClass::CurrentPlayer->Supers.Items[Unsorted::CurrentSWType.get()]->Type;
 	const auto pExt = SWTypeExtContainer::Instance.Find(pSuperType);
 
 	if (!pExt->ShowDesignatorRange)
@@ -437,18 +462,20 @@ ASMJIT_PATCH(0x41F180, AITriggerTypeClass_Chrono, 0x5)
 
 ASMJIT_PATCH(0x6CEF84, SuperWeaponTypeClass_GetAction, 7)
 {
-	GET_STACK(CellStruct*, pMapCoords, 0x0C);
-	GET(SuperWeaponTypeClass*, pType, ECX);
+	Debug::FatalErrorAndExit("Forbidden !");
 
-	const auto nAction = SWTypeExtData::GetAction(pType, pMapCoords);
+	//GET_STACK(CellStruct*, pMapCoords, 0x0C);
+	//GET(SuperWeaponTypeClass*, pType, ECX);
 
-	if (nAction != Action::None)
-	{
-		R->EAX(nAction);
-		return 0x6CEFD9;
-	}
+	//const auto nAction = SWTypeExtData::GetAction(pType, pMapCoords);
 
-	//use vanilla action
+	//if (nAction != Action::None)
+	//{
+	//	R->EAX(nAction);
+	//	return 0x6CEFD9;
+	//}
+
+	////use vanilla action
 	return 0x0;
 }
 

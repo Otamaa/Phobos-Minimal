@@ -86,7 +86,7 @@ public:
 	// Valueable<pointer> (8 bytes each)
 	// ============================================================
 	Valueable<WeaponTypeClass*> Grinding_Weapon { nullptr };
-	Valueable<SuperWeaponTypeClass*> SpyEffect_SuperWeapon { nullptr };
+	ValueableIdx<SuperWeaponTypeClass*> SpyEffect_SuperWeapon { -1 };
 	Valueable<BuildingTypeClass*> RubbleIntact { nullptr };
 	Valueable<BuildingTypeClass*> RubbleDestroyed { nullptr };
 	Valueable<AnimTypeClass*> RubbleDestroyedAnim { nullptr };

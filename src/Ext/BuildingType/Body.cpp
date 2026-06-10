@@ -1054,7 +1054,6 @@ int BuildingTypeExtData::GetSuperWeaponIndex(const int index, HouseClass* pHouse
 int BuildingTypeExtData::GetSuperWeaponIndex(const int index) const
 {
 	const auto pThis = this->This();
-
 	if (index < 2)
 	{
 		return !index ? pThis->SuperWeapon : pThis->SuperWeapon2;
