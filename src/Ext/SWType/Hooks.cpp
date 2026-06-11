@@ -57,7 +57,7 @@ ASMJIT_PATCH(0x4F71A3, HouseClass_DTOR_ClearSupers, 0x6)
 	return 0x4F71DD;
 }
 
-ASMJIT_PATCH(0x692B06, ScrillClass_ChooseAction_SW, 0x5)
+ASMJIT_PATCH(0x692B06, ScrollClass_ChooseAction_SW, 0x5)
 {
 	GET(ObjectClass*, pSrc, ESI);
 	GET(CellStruct*, pDest, EBP);

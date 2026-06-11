@@ -456,6 +456,17 @@ int BuildingExtData::GetFirstSuperWeaponIndex(BuildingClass* pThis)
 
 SuperClass* BuildingExtData::GetFirstSuperWeapon(BuildingClass* pThis)
 {
+	auto pExt = BuildingExtContainer::Instance.Find(pThis);
+
+	if (!pExt->Supers.empty()){
+		for(auto& pSuper : pExt->Supers){
+			if (!SWTypeExtData::IsAvailable(pThis->Owner, pSuper))
+				continue;
+
+			return pSuper;
+		}
+	}
+
 	const int idx = GetFirstSuperWeaponIndex(pThis);
 
 	if (idx >= 0 && idx < pThis->Owner->Supers.Count)
