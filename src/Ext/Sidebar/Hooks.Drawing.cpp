@@ -1301,6 +1301,15 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 
 						// 006A9966-006A99B1: Get super weapon state
 						isCompleted = !pSuper->ShouldDrawProgress();
+						{
+							const int maxCharges = SWChargePool::GetMax(pSuperType);
+							if (maxCharges >= 0 && pSuper->IsCharged)
+							{
+								auto pPool = SWChargePool::Get(pPlayer, pSuperType);
+								if (pPool->Charges < maxCharges)
+									isCompleted = false;  // accumulating — show clock
+							}
+						}
 						statusText = pSuper->NameReadiness();
 						progressFrame = ((FakeSuperClass*)pSuper)->_GetAnimStage();
 

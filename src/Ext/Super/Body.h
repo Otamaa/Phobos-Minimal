@@ -187,6 +187,7 @@ public:
 	int _GetAnimStage();
 
 	const wchar_t* _NameReadiness();
+	bool _Recharge(bool player);
 	void _Place(CellStruct* cell, bool player);
 	void _Detach(AbstractClass* target, bool all);
 	bool _Grant(bool oneTime, bool announce, bool onHold);
