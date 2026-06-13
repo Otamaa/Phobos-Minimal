@@ -27,15 +27,15 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x4157C0, FakeAircraftClass::_Mission_SpyPlaneOverfly
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E24D0, FakeAircraftClass::_Mission_Move)
 DEFINE_FUNCTION_JUMP(LJMP, 0x4166C0, FakeAircraftClass::_Mission_Move)
 
-ASMJIT_PATCH(0x417A2E, AircraftClass_EnterIdleMode_Opentopped, 0x5)
-{
-	GET(AircraftClass*, pThis, ESI);
+// ASMJIT_PATCH(0x417A2E, AircraftClass_EnterIdleMode_Opentopped, 0x5)
+// {
+// 	GET(AircraftClass*, pThis, ESI);
 
-	R->EDI(2);
+// 	R->EDI(2);
 
-	//this plane stuck on mission::Move ! so letst redirect it to other address that deal with this
-	return !pThis->Spawned &&
-		pThis->Type->OpenTopped &&
-		(pThis->QueuedMission != Mission::Attack) && !pThis->Target
-		? 0x417944 : 0x417AD4;
-}
+// 	//this plane stuck on mission::Move ! so letst redirect it to other address that deal with this
+// 	return !pThis->Spawned &&
+// 		pThis->Type->OpenTopped &&
+// 		(pThis->QueuedMission != Mission::Attack) && !pThis->Target
+// 		? 0x417944 : 0x417AD4;
+// }

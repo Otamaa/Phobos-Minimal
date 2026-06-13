@@ -111,6 +111,8 @@ public:
 	int _Mission_Move_ForCarryAll();
 	int _Mission_Move();
 
+	bool _Enter_Idle_Mode(bool initial, bool bool2);
+
 	void _FootClass_Update_Wrapper();
 	DamageState __Take_Damage(int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse);
 

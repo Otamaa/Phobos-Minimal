@@ -21,34 +21,34 @@
 
 // Idle: should not crash immediately
 
-ASMJIT_PATCH(0x4179F7, AircraftClass_EnterIdleMode_NoCrash, 0x6)
-{
-	enum { SkipGameCode = 0x417B69 };
+// ASMJIT_PATCH(0x4179F7, AircraftClass_EnterIdleMode_NoCrash, 0x6)
+// {
+// 	enum { SkipGameCode = 0x417B69 };
 
-	GET(AircraftClass* const, pThis, ESI);
+// 	GET(AircraftClass* const, pThis, ESI);
 
-	if (pThis->Airstrike || pThis->Spawned)
-		return 0;
+// 	if (pThis->Airstrike || pThis->Spawned)
+// 		return 0;
 
-	if (AircraftTypeExtContainer::Instance.Find(pThis->Type)->ExtendedAircraftMissions_UnlandDamage
-			.Get(RulesExtData::Instance()->ExtendedAircraftMissions_UnlandDamage) < 0)
-		return 0;
+// 	if (AircraftTypeExtContainer::Instance.Find(pThis->Type)->ExtendedAircraftMissions_UnlandDamage
+// 			.Get(RulesExtData::Instance()->ExtendedAircraftMissions_UnlandDamage) < 0)
+// 		return 0;
 
-	if (!pThis->Team && (pThis->CurrentMission != Mission::Area_Guard || !pThis->ArchiveTarget))
-	{
-		const auto pCell = pThis->GoodLandingZone_();
-		pThis->SetDestination(pCell, true);
-		pThis->SetArchiveTarget(pCell);
-		pThis->QueueMission(Mission::Area_Guard, true);
-	}
-	else if (!pThis->Destination)
-	{
-		const auto pCell =  pThis->GoodLandingZone_();
-		pThis->SetDestination(pCell, true);
-	}
+// 	if (!pThis->Team && (pThis->CurrentMission != Mission::Area_Guard || !pThis->ArchiveTarget))
+// 	{
+// 		const auto pCell = pThis->GoodLandingZone_();
+// 		pThis->SetDestination(pCell, true);
+// 		pThis->SetArchiveTarget(pCell);
+// 		pThis->QueueMission(Mission::Area_Guard, true);
+// 	}
+// 	else if (!pThis->Destination)
+// 	{
+// 		const auto pCell =  pThis->GoodLandingZone_();
+// 		pThis->SetDestination(pCell, true);
+// 	}
 
-	return SkipGameCode;
-}ASMJIT_PATCH_AGAIN(0x417B82, AircraftClass_EnterIdleMode_NoCrash, 0x6)
+// 	return SkipGameCode;
+// }ASMJIT_PATCH_AGAIN(0x417B82, AircraftClass_EnterIdleMode_NoCrash, 0x6)
 
 ASMJIT_PATCH(0x4DF42A, FootClass_UpdateAttackMove_AircraftHoldAttackMoveTarget2, 0x6) // When it have MegaTarget
 {

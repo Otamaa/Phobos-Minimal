@@ -131,6 +131,376 @@ long __stdcall AircraftClass_IFlyControl_IsStrafe(IFlyControl* ifly)
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2268, AircraftClass_IFlyControl_IsStrafe);
 
+// AircraftClass::Enter_Idle_Mode
+// Vanilla address: 0x4176F0
+// Goto-free cleanup — structure preserved 1:1 from ASM/pseudocode.
+// Hooks integrated inline; each marked with vanilla address + macro name.
+
+bool FakeAircraftClass::_Enter_Idle_Mode(bool initial, bool bool2)
+{
+	// ── tail helpers ─────────────────────────────────────────────────────────
+	
+	// LABEL_51: assign Good_LZ dest, mission = Move (2)
+	const auto assign_good_lz_move = [&](Mission& missionOut)
+		{
+			CellClass* lz = this->GoodLandingZone_();
+			this->SetDestination(lz, true);
+			missionOut = Mission::Move; // 2
+		};
+
+	// LABEL_56: clear target/dest, mission = Retreat (4)
+	const auto loaner_retire = [&](Mission& missionOut)
+		{
+			this->SetTarget(nullptr);
+			this->SetDestination(nullptr, true);
+			missionOut = Mission::Retreat; // 4
+		};
+
+	// LABEL_66 tail: assign mission + optional Commence. Returns v6.
+	const auto assign_and_commence = [&](Mission mission, bool v6) -> bool
+		{
+			if (this->HasAnyLink())
+				mission = Mission::Enter; // 7
+
+			this->QueueMission(mission, false);
+
+			if (this->ReadyToNextMission())
+				this->NextMission();
+
+			return v6;
+		};
+
+	// ── HOOK: 0x4179F7 / 0x417B82  AircraftClass_EnterIdleMode_NoCrash (size 6) ──
+	// Replaces vanilla Prevent_Remove+return false at both AirportBound sites.
+	// PATCH_AGAIN 0x417B82 is the ground docking-miss path; same logic applies.
+	// Returns engaged value (skip game code) or nullopt (fall through to vanilla).
+	const auto hook_NoCrash = [&](bool v6) -> std::optional<bool>
+		{
+			if (this->Airstrike || this->Spawned)
+				return std::nullopt;
+
+			if (AircraftTypeExtContainer::Instance.Find(this->Type)
+					->ExtendedAircraftMissions_UnlandDamage
+					.Get(RulesExtData::Instance()->ExtendedAircraftMissions_UnlandDamage) < 0)
+				return std::nullopt;
+
+			if (!this->Team
+				&& (this->CurrentMission != Mission::Area_Guard || !this->ArchiveTarget))
+			{
+				const auto pCell = this->GoodLandingZone_();
+				this->SetDestination(pCell, true);
+				this->SetArchiveTarget(pCell);
+				this->QueueMission(Mission::Area_Guard, true);
+			}
+			else if (!this->Destination)
+			{
+				const auto pCell = this->GoodLandingZone_();
+				this->SetDestination(pCell, true);
+			}
+
+			return v6; // SkipGameCode → 0x417B69
+		};
+
+	// ── 1. Mission_Overriden branch (0x4176F8) ───────────────────────────────
+	if (this->MissionIsOverriden())
+	{
+		this->Mission_Revert();
+		if (this->CurrentMission == Mission::Patrol) // 25
+		{
+			this->MissionStatus = 0;
+			this->IsLocked = 0;
+		}
+		return false;
+	}
+
+	// ── 2. Switch: airstrike-mission guard (0x417733) ────────────────────────
+	switch (this->CurrentMission)
+	{
+	case Mission::Retreat:            // 4
+	case Mission::ParadropApproach:   // 26
+	case Mission::ParadropOverfly:    // 27
+	case Mission::SpyplaneApproach:   // 30
+	case Mission::SpyplaneOverfly:    // 31
+		if (!this->Airstrike)
+			return false;
+		break;
+	default:
+		break;
+	}
+
+	// ── 3. MissionQueue early Commence (0x41775E) ────────────────────────────
+	{
+		Mission q = this->QueuedMission;
+		if (q == Mission::ParadropApproach || q == Mission::SpyplaneApproach) {
+			this->NextMission();
+			return false;
+		}
+	}
+
+	// ── 4. FootClass base call + initial mission select (0x417782) ───────────
+	bool v6 = FootClass::EnterIdleMode(initial, bool2);
+
+	// ASM 0x4177AE: mov edi, 0Bh (11) on weapon-equipped AI branch.
+	// 11 = Mission::Area_Guard — NOT Mission::Attack (1). Pseudocode label was misleading.
+	Mission missionSelect;
+	if (this->Owner->ControlledByCurrentPlayer()
+		|| this->Team
+		|| !this->IsArmed())
+		missionSelect = Mission::Guard;      // 5
+	else
+		missionSelect = Mission::Area_Guard; // 11 — ASM: mov edi, 0Bh
+
+	// ── 5. Flying / above-landing-altitude path ──────────────────────────────
+	int landingAlt = this->Landing_Altitude();
+
+	const bool aboveGround =
+		this->InWhichLayer() != Layer::Ground
+		&& this->GetHeight() > landingAlt
+		&& !this->Type->MissileSpawn;
+
+	const bool isLoaner = this->Spawned;
+	const bool hasCargo = this->Passengers.FirstPassenger != nullptr;
+
+	if (aboveGround)
+	{
+		if (hasCargo)
+		{
+			if (isLoaner)
+			{
+				if (!this->Team)
+				{
+					// loaner + cargo + no team → Good_LZ, mission = Unload (16)
+					CellClass* lz = this->GoodLandingZone_();
+					this->SetDestination(lz, true);
+					missionSelect = Mission::Unload; // 16 — ASM: mov edi, 10h; verified
+				}
+				else
+				{
+					missionSelect = Mission::Guard; // 5
+				}
+			}
+			else
+			{
+				assign_good_lz_move(missionSelect);
+			}
+			return assign_and_commence(missionSelect, v6);
+		}
+
+		// no cargo ────────────────────────────────────────────────────────────
+		{
+			bool shouldRemoveFromTeam =
+				(isLoaner && this->Owner->ControlledByCurrentPlayer())
+				|| (!this->Owner->ControlledByCurrentPlayer() && !this->Type->Ammo);
+
+			if (shouldRemoveFromTeam)
+			{
+				if (TeamClass* team = this->Team)
+					if (team->HasEnteredMap())
+						team->RemoveMember(this, -1, false);
+			}
+
+			if (this->GetWeapon(0)->WeaponType)
+			{
+				const int ammo = this->Ammo;
+
+				if (isLoaner)
+				{
+					if (!ammo)
+					{
+						if (TeamClass* team = this->Team)
+							team->RemoveMember(this, -1, false);
+
+						loaner_retire(missionSelect);
+						return assign_and_commence(missionSelect, v6);
+					}
+
+					if (!this->Team)
+						missionSelect = Mission::Hunt; // 15 — ASM: mov edi, 0Fh; verified
+
+					return assign_and_commence(missionSelect, v6);
+				}
+				else // !isLoaner
+				{
+					bool wantsAttack =
+						(ammo && this->Target
+						 && this->GetCurrentMission() == Mission::Attack)
+						|| this->QueuedMission == Mission::Attack;
+
+					if (wantsAttack)
+					{
+						missionSelect = Mission::Attack; // 1
+						return assign_and_commence(missionSelect, v6);
+					}
+
+					// ── FIX: OpenTopped armed aircraft docking (replaces misplaced HOOK 0x417A2E) ──
+					//
+					// VANILLA BUG — armed OpenTopped aircraft loops forever on Mission::Move.
+					//
+					//   The original hook at 0x417A2E only fires in loc_417A1A (no-weapon path).
+					//   Armed aircraft (WeaponType != null) never reach that label — they exit
+					//   this !isLoaner branch via one of two paths below, both missed by the hook:
+					//
+					//   PATH A — Dock.ActiveCount > 0, all bays busy, !AirportBound:
+					//     Find_Docking_Bay → null → assign_good_lz_move → Mission::Move
+					//     → Enter_Idle_Mode next frame → same result → infinite loop.
+					//
+					//   PATH B — In_Air guard fails entirely (not airborne, NavCom+Enter,
+					//     ActiveCount == 0, or IsLocked=false with a Team):
+					//     Falls through the dock block with no action, assigns Guard/Area_Guard.
+					//
+					// WHY OpenTopped IS SPECIAL:
+					//   Vanilla assumed OpenTopped aircraft are unarmed transports.
+					//   Projectile interception breaks this: interceptors are OpenTopped AND
+					//   carry a weapon (or gain one via passenger upgrade).  Vanilla's weapon
+					//   branch only retries docking when TarCom or queued Attack exists.
+					//   An idle armed interceptor has neither, so it always hits the Move-loop.
+					//
+					// FIX — opentopped_try_dock lambda, applied at both Path A and Path B:
+					//   If OpenTopped + non-Spawned + no attack intent + dock slot exists
+					//   → attempt RADIO_HELLO to bay → Mission::Enter.
+					//   If no bay accepts → QueueMission Area_Guard so the aircraft orbits
+					//   instead of beelining to a random cell and looping on Mission::Move.
+					// ─────────────────────────────────────────────────────────────────────
+
+					const auto opentopped_try_dock = [&]() -> bool
+						{
+							if (this->Spawned || !this->Type->OpenTopped)
+								return false;
+							if (this->QueuedMission == Mission::Attack || this->Target)
+								return false;
+
+							if (this->Type->Dock.Count <= 0)
+								return false;
+							if (!this->IsLocked && this->Team)
+								return false;
+
+							TechnoClass* bay = this->FindDockingBayInVector(
+								reinterpret_cast<DynamicVectorClass<TechnoTypeClass*>*>(&this->Type->Dock), false, false);
+							this->SetDestination(nullptr, true);
+
+							if (bay && this->SendCommand(RadioCommand::RequestLink, bay) == RadioCommand::AnswerPositive)
+							{
+								this->SetDestination(bay, true);
+								missionSelect = Mission::Enter; // 7 — dock accepted
+								return true;
+							}
+
+							// No bay free: orbit until one opens rather than Mission::Move loop.
+							this->QueueMission(Mission::Area_Guard, true);
+							missionSelect = Mission::Area_Guard; // 11
+							return true;
+						};
+
+					if (this->IsInAir()
+						&& (!this->NavCom || this->CurrentMission != Mission::Enter))
+					{
+						if (this->Type->Dock.Count > 0
+							&& (this->IsLocked || !this->Team))
+						{
+
+							TechnoClass* bay = this->FindDockingBayInVector(
+								reinterpret_cast<DynamicVectorClass<TechnoTypeClass*>*>(&this->Type->Dock)
+								, false, false);
+							this->SetDestination(nullptr, true);
+
+							if (bay && this->SendCommand(RadioCommand::RequestLink, bay) == RadioCommand::AnswerPositive)
+							{
+								this->SetDestination(bay, true);
+								missionSelect = Mission::Enter; // 7
+								return assign_and_commence(missionSelect, v6);
+							}
+
+							if (this->Type->AirportBound)
+							{
+								// ── HOOK: 0x4179F7  AircraftClass_EnterIdleMode_NoCrash (size 6) ──
+								// Vanilla: Prevent_Remove + return false.
+								// Extension: redirect to Area_Guard landing instead of crashing.
+								if (auto r = hook_NoCrash(v6); r.has_value())
+									return *r;
+
+								this->Crash(nullptr);
+								return false;
+							}
+
+							// PATH A: all bays busy, !AirportBound.
+							// Fix fires before vanilla assign_good_lz_move → Move loop.
+							if (opentopped_try_dock())
+								return assign_and_commence(missionSelect, v6);
+
+							assign_good_lz_move(missionSelect);
+							return assign_and_commence(missionSelect, v6);
+						}
+					}
+
+					// PATH B: In_Air guard failed — vanilla exits with no dock attempt at all.
+					// Fix gives OpenTopped interceptor a dock retry before the tail.
+					if (opentopped_try_dock())
+						return assign_and_commence(missionSelect, v6);
+
+					return assign_and_commence(missionSelect, v6);
+				}
+			}
+			else // no weapon
+			{
+				if (!this->Team)
+					assign_good_lz_move(missionSelect);
+
+				return assign_and_commence(missionSelect, v6);
+			}
+		}
+	}
+	else // on ground / below landing alt
+	{
+		if (isLoaner)
+		{
+			if (hasCargo)
+			{
+				missionSelect = this->Team ? Mission::Guard : Mission::Unload; // 5 or 16
+				return assign_and_commence(missionSelect, v6);
+			}
+
+			if (this->Team)
+				return assign_and_commence(missionSelect, v6);
+
+			loaner_retire(missionSelect);
+			return assign_and_commence(missionSelect, v6);
+		}
+
+		// not loaner, on ground
+		this->SetDestination(nullptr, true);
+		this->SetTarget(nullptr);
+
+		if (this->Owner->ControlledByCurrentPlayer() || this->Team)
+		{
+			missionSelect = Mission::Guard; // 5
+		}
+		else
+		{
+			missionSelect = Mission::Area_Guard; // 11 — ASM: mov edi, 0Bh
+			if (!this->IsArmed())
+				missionSelect = Mission::Guard;   // 5
+		}
+
+		// loc_417B72: AirportBound check on ground docking-miss path.
+		if (this->Type->AirportBound)
+		{
+			// ── HOOK: 0x417B82  ASMJIT_PATCH_AGAIN  AircraftClass_EnterIdleMode_NoCrash (size 6) ──
+			// Vanilla: Prevent_Remove + return false.
+			// Same extension handler as 0x4179F7.
+			if (auto r = hook_NoCrash(v6); r.has_value())
+				return *r;
+
+			this->Crash(nullptr);
+			return false;
+		}
+
+		return assign_and_commence(missionSelect, v6);
+	}
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2728, FakeAircraftClass::_Enter_Idle_Mode);
+DEFINE_FUNCTION_JUMP(LJMP, 0x4176F0, FakeAircraftClass::_Enter_Idle_Mode);
+
 int FakeAircraftClass::_Mission_Attack()
 {
 	auto* pExt = AircraftExtContainer::Instance.Find(this);
