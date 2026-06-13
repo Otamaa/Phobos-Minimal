@@ -202,6 +202,7 @@ bool AnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->ConstrainFireAnimsToCellSpots.Read(exINI, pID, "ConstrainFireAnimsToCellSpots");
 	this->FireAnimDisallowedLandTypes.Read(exINI, pID, "FireAnimDisallowedLandTypes");
 	this->AttachFireAnimsToParent.Read(exINI, pID, "AttachFireAnimsToParent");
+	this->TheaterPalette.Read(exINI, pID, "TheaterPalette");
 	this->SmallFireCount.Read(exINI, pID, "SmallFireCount");
 	this->SmallFireAnims.Read(exINI, pID, "SmallFireAnims");
 	this->SmallFireChances.Read(exINI, pID, "SmallFireChances");
@@ -635,6 +636,7 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->ConstrainFireAnimsToCellSpots)
 		.Process(this->FireAnimDisallowedLandTypes)
 		.Process(this->AttachFireAnimsToParent)
+		.Process(this->TheaterPalette)
 		.Process(this->SmallFireCount)
 		.Process(this->SmallFireAnims)
 		.Process(this->SmallFireChances)

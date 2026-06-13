@@ -1268,6 +1268,8 @@ public:
 	Valueable<bool> DriverKilled_KeptPassengers {};
 	Nullable<bool> DriverKilled_KillPassengers {};
 
+	Nullable<bool> Parasite_AllowWaterExit {};
+
 	int TintColorAirstrike {};
 #pragma endregion
 
@@ -2195,6 +2197,7 @@ private:
 		debugProcess(this->BurstPerTurret, "BurstPerTurret");
 		debugProcess(this->DriverKilled_KeptPassengers, "DriverKilled_KeptPassengers");
 		debugProcess(this->DriverKilled_KillPassengers, "DriverKilled_KillPassengers");
+		debugProcess(this->Parasite_AllowWaterExit, "Parasite_AllowWaterExit");
 		debugProcess(this->TintColorAirstrike, "TintColorAirstrike");
 
 	}

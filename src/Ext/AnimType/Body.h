@@ -93,7 +93,7 @@ public:
 	Nullable<bool> Layer_UseObjectLayer {};
 	Nullable<bool> SpawnCrater {};
 	Nullable<bool> AttachFireAnimsToParent {};
-
+	Nullable<bool> TheaterPalette {};
 	// ============================================================
 	// NullableIdx (likely int + bool ≈ 8 bytes)
 	// ============================================================

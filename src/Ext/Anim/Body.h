@@ -73,11 +73,7 @@ public:
 #pragma endregion
 
 public:
-	AnimExtData(AnimClass* pObj) : ObjectExtData(pObj)
-	{
-		this->Name = pObj->Type->ID;
-		this->AbsType = AnimClass::AbsID;
-	}
+	AnimExtData(AnimClass* pObj);
 	AnimExtData() = default;
 
 	virtual ~AnimExtData() = default;

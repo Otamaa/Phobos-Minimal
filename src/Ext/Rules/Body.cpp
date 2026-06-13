@@ -481,6 +481,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 		this->TeamDelays[i].Read(exINI, GameStrings::General, (_teamDelay_tag + std::to_string(i + 1)).c_str());
 	}
 
+	this->DefaultSquidAnim.Read(exINI, GameStrings::AudioVisual, "Parasite.GrappleAnim");
+	
 	this->PrismRelay_SupportTimeout.Read(exINI, GameStrings::General, "PrismRelay.SupportTimeout");
 	exINI.Read3Bool(GameStrings::General, "CampaignAllowHarvesterScanUnderShroud", this->CampaignAllowHarvesterScanUnderShroud);
 	this->AttackMove_IgnoreWeaponCheck.Read(exINI, GameStrings::General, "AttackMove.IgnoreWeaponCheck");
@@ -507,6 +509,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AllowDeployControlledMCV.Read(exINI, GameStrings::General, "AllowDeployControlledMCV");
 	this->TypeSelectUseIFVMode.Read(exINI, GameStrings::General, "TypeSelectUseIFVMode");
 	this->BuildingRadioLink_SyncOwner.Read(exINI, GameStrings::General, "BuildingRadioLink.SyncOwner");
+	this->Parasite_AllowWaterExit.Read(exINI, GameStrings::General, "Parasite.AllowWaterExit");
 
 	this->ChasingExtraRange.Read(exINI, GameStrings::General, "ChasingExtraRange");
 	this->ChasingExtraRange_CloseRangeOnly.Read(exINI, GameStrings::General, "ChasingExtraRange.CloseRangeOnly");
@@ -1448,6 +1451,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->RemoveMindControl_Silent)
 		.Process(this->TeamDelays_DynamicType)
 		.Process(this->TeamDelays)
+		.Process(this->Parasite_AllowWaterExit )
 		;
 }
 

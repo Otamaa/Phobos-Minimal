@@ -641,6 +641,7 @@ public:
 	Valueable<DynamicTeamDelayType> TeamDelays_DynamicType { DynamicTeamDelayType::StartingPoint };
 	Valueable<PartialVector3D<int>> TeamDelays[8] {};
 
+	Nullable<bool> Parasite_AllowWaterExit {};
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

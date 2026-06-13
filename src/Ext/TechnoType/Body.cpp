@@ -2379,6 +2379,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		this->DriverKilled_KeptPassengers.Read(exINI, pSection, "DriverKilled.KeptPassengers");
 		this->DriverKilled_KillPassengers.Read(exINI, pSection, "DriverKilled.KillPassengers");
+		this->Parasite_AllowWaterExit.Read(exINI, pSection, "Parasite.AllowWaterExit");
 	}
 
 	this->TintColorAirstrike = GeneralUtils::GetColorFromColorAdd(this->LaserTargetColor.Get(RulesClass::Instance->LaserTargetColor));

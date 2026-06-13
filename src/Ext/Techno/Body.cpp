@@ -8308,6 +8308,7 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 				return superWeapons.size() > 0 ? &pHouse->Supers.operator[](superWeapons[0])->RechargeTimer : nullptr;
 			};
 
+			//TODO : fix this
 			if (const auto pTimer = getSuperTimer())
 			{
 				value = pTimer->GetTimeLeft();

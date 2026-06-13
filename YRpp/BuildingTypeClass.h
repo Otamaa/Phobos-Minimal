@@ -2,6 +2,8 @@
 
 #include <CRT.h>
 #include <TechnoTypeClass.h>
+#include <EnumArray.h>
+
 class OverlayTypeClass;
 class IsometricTileTypeClass;
 
@@ -246,7 +248,7 @@ public:
 
 	BuildingAnimFrameStruct BuildingAnimFrame[6];
 
-	BuildingAnimStruct BuildingAnim[0x15];
+	EnumArray<BuildingAnimStruct, BuildingAnimSlot, 21> BuildingAnim;
 
 	int Upgrades;
 	SHPStruct* DeployingAnim;

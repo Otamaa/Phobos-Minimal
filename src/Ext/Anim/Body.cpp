@@ -20,6 +20,11 @@
 #include <TerrainClass.h>
 
 #include <Misc/DamageArea.h>
+AnimExtData::AnimExtData(AnimClass* pObj) : ObjectExtData(pObj) {
+	this->Name = pObj->Type->ID;
+	this->AbsType = AnimClass::AbsID;
+	pObj->__lighting__celldraw_196 = AnimTypeExtContainer::Instance.Find(pObj->Type)->TheaterPalette.Get(false);
+}
 
 AnimTypeClass* AnimExtData::PickSplashAnim(NullableVector<AnimTypeClass*> const& nSplash, Nullable<AnimTypeClass*> const& nWake, bool Random, bool IsMeteor)
 {
@@ -860,6 +865,8 @@ void AnimExtData::ChangeAnimType(AnimClass* pAnim, AnimTypeClass* pNewType, bool
 
 	const auto pExt = ((FakeAnimClass*)pAnim)->_GetExtData();
 	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pNewType);
+
+	pAnim->__lighting__celldraw_196 = pTypeExt->TheaterPalette.Get(pAnim->__lighting__celldraw_196);
 
 	if (pExt->AttachedSystem && pExt->AttachedSystem->Type != pTypeExt->AttachedSystem.Get())
 		pExt->AttachedSystem.detachptr();

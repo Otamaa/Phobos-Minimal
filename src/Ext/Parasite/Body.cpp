@@ -275,9 +275,8 @@ void FakeParasiteClass::__Grapple_AI()
 		this->Victim->AngleRotatedSideways = 0.0f;
 
 		auto const pWeaponExt = WarheadTypeExtContainer::Instance.Find(weaponType->Warhead);
-		auto const pAnimType = pWeaponExt->Parasite_GrappleAnim.Get(RulesExtData::Instance()->DefaultSquidAnim.Get());
 
-		if (pAnimType) {
+		if (auto const pAnimType = pWeaponExt->Parasite_GrappleAnim.Get(RulesExtData::Instance()->DefaultSquidAnim)) {
 			if (AnimClass* newAnim = GameCreate<AnimClass>(pAnimType, victimCoord, 0, 1, AnimFlag::AnimFlag_600, 0, 0)) {
 					this->GrappleAnim = newAnim;
 					auto const Invoker = (this->Owner) ? this->Owner->GetOwningHouse() : nullptr;
@@ -862,6 +861,15 @@ bool FakeParasiteClass::__Victims_Cell_Valid()
 
 	// Naval parasites have different rules
 	if (pOwnerType->Naval) {
+
+		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pOwnerType);
+		const auto& globalVal = RulesExtData::Instance()->Parasite_AllowWaterExit;
+
+		if (pTypeExt->Parasite_AllowWaterExit.isset() && !pTypeExt->Parasite_AllowWaterExit.Get())
+			return false;
+		else if (globalVal.isset() && !globalVal.Get())
+			return  false;
+
 		// Naval parasites work on water - check for buildings
 		return victim->GetCell()->GetBuilding() == nullptr;
 	}

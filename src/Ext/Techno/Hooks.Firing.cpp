@@ -1003,6 +1003,32 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 					pTarget, fireOrigin, coord1, finalDamage, which, velocity);
 		}
 
+		if (const auto pAnimType = pWeaponExt->Feedback_Anim.Get())
+		{
+			const auto nCoord = (pWeaponExt->Feedback_Anim_UseFLH ? fireOrigin : pThis->GetCoords()) + pWeaponExt->Feedback_Anim_Offset;
+			{
+				auto pFeedBackAnim = GameCreate<AnimClass>(pAnimType, nCoord);
+				AnimExtData::SetAnimOwnerHouseKind(pFeedBackAnim, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false, false);
+
+				if (pThis->WhatAmI() != BuildingClass::AbsID)
+				{
+					pFeedBackAnim->SetOwnerObject(pThis);
+				}
+				else
+				{
+					if (pThis->GetOccupantCount() > 0)
+					{
+						pFeedBackAnim->ZAdjust = -200;
+					}
+					else
+					{
+						auto rend = pThis->GetRenderCoords();
+						pFeedBackAnim->ZAdjust = (fireOrigin.Y - rend.Y) / -4 >= 0 ? 0 : (fireOrigin.Y - rend.Y) / -4;
+					}
+				}
+			}
+		}
+
 		if (pExt->AE.flags.HasFeedbackWeapon)
 		{
 			for (auto const& pAE : pExt->PhobosAE)
@@ -1025,9 +1051,25 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 			AnimExtData::SetAnimOwnerHouseKind(pAn, pThis->GetOwningHouse(),
 				pThis->Target ? pThis->Target->GetOwningHouse() : nullptr,
 				pThis, false, false);
-			const auto rend = pThis->GetRenderCoords();
-			pAn->ZAdjust = pThis->GetOccupantCount() > 0
-				? -200 : ((fireOrigin.Y - rend.Y) / -4 >= 0 ? 0 : (fireOrigin.Y - rend.Y) / -4);
+
+			if (pWeaponExt->Anim_Update.Get(RulesExtData::Instance()->FiringAnim_Update))
+			{
+				auto pAnimExt = AnimExtContainer::Instance.Find(pAn);
+
+				pAnimExt->FiringAnim_Weapon = pWeapon;
+				pAnimExt->FiringAnim_WeaponIndex = which;
+				pAnimExt->FiringAnim_BurstIndex = pThis->CurrentBurstIndex;
+				pAn->SetOwnerObject(pThis);
+			}else{
+
+				if (pThis->WhatAmI() != BuildingClass::AbsID) {
+					pAn->SetOwnerObject(pThis);
+				}else{
+					const auto rend = pThis->GetRenderCoords();
+					pAn->ZAdjust = pThis->GetOccupantCount() > 0
+					? -200 : ((fireOrigin.Y - rend.Y) / -4 >= 0 ? 0 : (fireOrigin.Y - rend.Y) / -4);
+				}
+			}
 		}
 
 		// Redirect to obstacle cell if any

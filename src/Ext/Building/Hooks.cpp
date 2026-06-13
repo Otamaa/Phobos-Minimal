@@ -272,6 +272,33 @@ ASMJIT_PATCH(0x445FD6, BuildingTypeClass_GrandOpening_StorageActiveAnimations, 0
 
 #include <Ext/SWType/Body.h>
 
+void NOINLINE UpdateSWChargeAnim(BuildingClass* pThis, int timeLeft)
+{
+	// 0.0011111111f == 1/900.0f exactly (same IEEE-754 bits: 0x3A91A2B4).
+	// ChargedAnimTime is normalized [0.0, 1.0] against a 900-frame full-charge cycle.
+	static constexpr float SW_CHARGE_FRAME_INV = 1.0f / 900.0f;
+
+	const auto* pType = pThis->Type;
+	const float ratio = static_cast<float>(timeLeft) * SW_CHARGE_FRAME_INV;
+
+	const bool bPastThreshold = ratio > pType->ChargedAnimTime;
+	const auto slotDestroy = bPastThreshold ? BuildingAnimSlot::SuperThree : BuildingAnimSlot::Super;
+	const auto slotPlay = bPastThreshold ? BuildingAnimSlot::SuperFour : BuildingAnimSlot::SuperTwo;
+
+	if (!pThis->Anims[slotDestroy])
+		return;
+
+	pThis->DestroyNthAnim(slotDestroy);
+
+	const bool bDamaged = pThis->GetHealthRatio() <= RulesClass::Instance->ConditionYellow;
+	const auto* pStage = bDamaged
+		? pType->BuildingAnim[slotPlay].Damaged
+		: pType->BuildingAnim[slotPlay].Anim;
+
+	if (pStage && pStage[0])
+		pThis->PlayAnim(pStage, slotPlay, bDamaged, 0, 0);
+}
+
 ASMJIT_PATCH(0x450D9C, BuildingClass_AI_Anims_IncludeWeeder_1, 0x6)
 {
 	GET(FakeBuildingClass*, pThis, ESI);
@@ -288,25 +315,30 @@ ASMJIT_PATCH(0x450D9C, BuildingClass_AI_Anims_IncludeWeeder_1, 0x6)
 		return 0x450DDC;
 	}
 
-	const auto pSuper = BuildingExtData::GetFirstSuperWeapon(pThis);
-
-	if (!pSuper)
-		return 0x451145;
-
 	const auto miss = pThis->GetCurrentMission();
+
 	if (miss == Mission::Construction || miss == Mission::Selling || pThis->Type->ChargedAnimTime > 990.0)
 		return 0x451145;
 
-	R->EDI(pThis->Type);
-	// Do not advance SuperAnim for buildings with superweapons if the recharge timer hasn't actually started at any point yet.
-	if (pSuper->RechargeTimer.StartTime == 0
-		&& pSuper->RechargeTimer.TimeLeft == 0
-		&& !SWTypeExtContainer::Instance.Find(pSuper->Type)->SW_InitialReady)
-		return 0x451048;
+	if (pThis->QueuedMission == Mission::Selling)
+		return 0x451145;
 
+	if (const auto pSuper = BuildingExtData::GetFirstSuperWeapon(pThis))
+	{
+		// Do not advance SuperAnim for buildings with superweapons if the recharge timer hasn't actually started at any point yet.
+		// 0 mean it paused
+		// -1 mean it stopped
+		const bool isEvenStarted = pSuper->RechargeTimer.StartTime == 0 || pSuper->RechargeTimer.StartTime == -1;
 
-	R->EAX(pSuper);
-	return 0x451030;
+		if (isEvenStarted
+			&& pSuper->RechargeTimer.TimeLeft == 0
+			&& !SWTypeExtContainer::Instance.Find(pSuper->Type)->SW_InitialReady)
+			return 0x451145;
+
+		UpdateSWChargeAnim(pThis, pSuper->RechargeTimer.GetTimeLeft());
+	}
+
+	return 0x451145;
 }
 
 ASMJIT_PATCH(0x44EFD8, BuildingClass_FindExitCell_BarracksExitCell, 0x6)

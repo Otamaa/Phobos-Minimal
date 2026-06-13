@@ -6,6 +6,8 @@
 
 #include <Ext/Tiberium/Body.h>
 #include <Ext/Mouse/Body.h>
+#include <Ext/Anim/Body.h>
+#include <Ext/AnimType/Body.h>
 
 #include <TacticalClass.h>
 #include <IsometricTileTypeClass.h>
@@ -15,6 +17,17 @@
 
 #include <cmath>
 #include <algorithm>
+
+ASMJIT_PATCH(0x47DA74, CellClass_RecalcAttributes_TileAnimDrawer, 0x7)
+{
+	enum { SkipGameCode = 0x47DA7B };
+
+	GET(AnimClass*, pAnim, EAX);
+
+	pAnim->__lighting__celldraw_196 = AnimTypeExtContainer::Instance.Find(pAnim->Type)->TheaterPalette.Get(true);
+
+	return SkipGameCode;
+}
 
 int FakeCellClass::_Reduce_Tiberium(int levels)
 {

@@ -10,6 +10,7 @@
 #include <ProgressTimer.h>
 #include <GeneralStructures.h>
 #include <ArrayClasses.h>
+#include <EnumArray.h>
 
 class FactoryClass;
 class InfantryClass;
@@ -390,8 +391,8 @@ public:
 	AnimClass* PsiWarnAnim; //pointer
 	CDTimerClass FactoryRetryTimer; //550
 
-	AnimClass * Anims [0x15];
-	bool AnimStates [0x15]; // one flag for each of the above anims (whether the anim was enabled when power went offline?)
+	EnumArray<AnimClass*, BuildingAnimSlot, 21> Anims;
+	EnumArray<bool, BuildingAnimSlot, 21> AnimStates; // one flag for each of the above anims (whether the anim was enabled when power went offline?)
 
 	PROTECTED_PROPERTY(BYTE, align_5C5[3]);
 
