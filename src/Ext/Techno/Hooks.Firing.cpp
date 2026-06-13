@@ -335,6 +335,9 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 	if (Unsorted::MAP_DEBUG_MODE() || !pTarget || (pTargetFoot && pTargetFoot->InLimbo))
 	{ RunEndHook(pThis, pWeapon); return nullptr; }
 
+	// ── Fire origin (fireOrigin) ──────────────────────────────────────────────
+	CoordStruct fireOrigin = pThis->GetFLH(which, 0, 0, 0); // fire origin (FLH)
+
 	// ╔═══ HOOK: TechnoClass_FireAt_Early @ 0x6FDDC0 ══════════════════════════╗
 	// W1: Replaces §SUICIDE.  Handles AE discardables, DelayedFire, Suicide,
 	//     OnlyAttacker, AttachEffect.  Returns 0x6FDE0E or 0x6FDE03.
@@ -367,10 +370,29 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 					if (!timer.HasStarted())
 					{
 						pExt->DelayedFireWeaponIndex = which;
+
 						timer.Start(MaxImpl(GeneralUtils::GetRangedRandomOrSingleValue(
 							pWeaponExt->DelayedFire_Duration), 0));
-						// DelayedFire anim creation omitted – see hook source
-						RunEndHook(pThis, pWeapon); return nullptr;
+						
+						auto pAnimType = pWeaponExt->DelayedFire_Animation;
+
+						if (pThis->Transporter && pWeaponExt->DelayedFire_OpenToppedAnimation.isset())
+							pAnimType = pWeaponExt->DelayedFire_OpenToppedAnimation.Get();
+
+						auto firingCoords = fireOrigin;
+
+						if (pWeaponExt->DelayedFire_AnimOffset.isset())
+							firingCoords = pWeaponExt->DelayedFire_AnimOffset;
+
+						pExt->CreateDelayedFireAnim(pAnimType, which, pWeaponExt->DelayedFire_AnimIsAttached, pWeaponExt->DelayedFire_CenterAnimOnFirer,
+						pWeaponExt->DelayedFire_RemoveAnimOnNoDelay, pWeaponExt->DelayedFire_AnimOnTurret, firingCoords);
+
+						if (pWeaponExt->DelayedFire_InitialBurstSymmetrical)
+							pExt->CreateDelayedFireAnim(pAnimType, which, pWeaponExt->DelayedFire_AnimIsAttached, pWeaponExt->DelayedFire_CenterAnimOnFirer,
+								pWeaponExt->DelayedFire_RemoveAnimOnNoDelay, pWeaponExt->DelayedFire_AnimOnTurret, { firingCoords.X, -firingCoords.Y, firingCoords.Z });
+
+						RunEndHook(pThis, pWeapon);						
+						return nullptr;
 					}
 					else pExt->ResetDelayedFireTimer();
 				}
@@ -515,9 +537,6 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 			? pTargetFoot->GetTargetCoords()
 			: pTarget->GetCoords();
 	}
-
-	// ── Fire origin (fireOrigin) ──────────────────────────────────────────────
-	CoordStruct fireOrigin = pThis->GetFLH(which, 0, 0, 0); // fire origin (FLH)
 
 	const bool bulletHasROTorVertical =
 		pBulletType->ROT > 0 || pBulletType->Vertical;
@@ -870,8 +889,6 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 	if (!pWeaponExt->TurretRecoil_Suppress)
 		TechnoExtContainer::Instance.Find(pThis)->RecordRecoilData();
 	// ╚═══════════════════════════════════════════════════════════════════════╝
-#if 0 // ⚠ §RECOIL  DEAD CODE – W6
-#endif
 
 	// ╔═══ HOOK: TechnoClass_FireAt_Additionals_Start @ 0x6FF15F ═══════════════╗
 	// W7: §PARTICLES / §ROF / §ANIM / §SOUND are dead code.
@@ -1083,8 +1100,6 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 	}
 	// Resumes at 0x6FF48A (TargetLaser + IsLaser)
 	// ╚═══════════════════════════════════════════════════════════════════════╝
-#if 0 // ⚠ §PARTICLES / §ROF / §ANIM / §SOUND  DEAD CODE – W7
-#endif
 
 	// ╔═══ HOOK: TechnoClass_FireAt_IsLaser @ 0x6FF48D ═════════════════════════╗
 	// W8: Handles TargetLaser timer and replaces laser drawing.
@@ -1133,8 +1148,6 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 		}
 	}
 	// ╚═══════════════════════════════════════════════════════════════════════╝
-#if 0 // ⚠ §LASER  DEAD CODE – W8
-#endif
 
 	// Not IsLaser → 0x6FF57D: ElectricBolt / RadBeam / RadEruption
 	if (pWeapon->IsElectricBolt)
@@ -1195,8 +1208,6 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 		}
 	}
 	// ╚═══════════════════════════════════════════════════════════════════════╝
-#if 0 // ⚠ §MAGBEAM  DEAD CODE – W9
-#endif
 
 	// 0x6FF660: Made_A_Kill / visibility / cleanup
 	HandleAfterEffects(pThis, pWeapon, pTarget);
