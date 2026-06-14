@@ -113,7 +113,7 @@ public:
 	Valueable<int> CreateUnit_SpawnHeight { -1 };
 	Valueable<int> LargeFireCount { 1 };
 	Valueable<int> Damaging_Rate { -1 };
-
+	Valueable<int> Tiled_Interval { 0 };
 	// ============================================================
 	// Valueable<enum> (4 bytes each, assuming 4-byte enums)
 	// ============================================================

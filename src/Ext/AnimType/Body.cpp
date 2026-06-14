@@ -214,6 +214,7 @@ bool AnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	this->Damaging_UseSeparateState.Read(exINI, pID, "Damaging.UseSeparateState");
 	this->Damaging_Rate.Read(exINI, pID, "Damaging.Rate");
+	this->Tiled_Interval.Read(exINI, pID, "Tiled.Interval");
 
 	return true;
 }
@@ -647,6 +648,7 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->LargeFireDistances)
 		.Process(this->Damaging_UseSeparateState)
 		.Process(this->Damaging_Rate)
+		.Process(this->Tiled_Interval)
 		;
 }
 

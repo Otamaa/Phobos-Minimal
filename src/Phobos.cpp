@@ -904,8 +904,6 @@ NOINLINE void ApplyEarlyFuncs()
 			exit(ERROR);
 
 		const auto time = Debug::GetCurTimeA();
-
-
 		const char* loadMode = saved_lpReserved ? "statically" : "dynamicly";
 
 		Debug::Log("Phobos is being loaded (%s) %s.\n", time.c_str(), loadMode);
@@ -916,15 +914,13 @@ NOINLINE void ApplyEarlyFuncs()
 		int len = Patch::GetSection(Phobos::hInstance, PATCH_SECTION_NAME, &buffer);
 
 		//msvc add padding between them so dont forget !
-		struct _patch : public Patch
-		{
+		struct _patch : public Patch {
 			BYTE _paddings[3];
 		};
 
 		_patch* end = (_patch*)((DWORD)buffer + len);
 
-		for (_patch* begin = (_patch*)buffer; begin < end; begin++)
-		{
+		for (_patch* begin = (_patch*)buffer; begin < end; begin++) {
 			begin->Apply();
 		}
 
@@ -938,8 +934,7 @@ NOINLINE void ApplyEarlyFuncs()
 
 		char buf[1024] {};
 
-		if (GetEnvironmentVariable("__COMPAT_LAYER", buf, sizeof(buf)))
-		{
+		if (GetEnvironmentVariable("__COMPAT_LAYER", buf, sizeof(buf))) {
 			Debug::Log("Compatibility modes detected : %s .\n", buf);
 		}
 	}
@@ -1103,13 +1098,12 @@ bool __fastcall Parse_Command_Line(int argc, char* argv[]) {
 }
 
 bool __fastcall Phobos_Parse_Command_Line(int argc, char* argv[]) {
-	if (argc > 1)
-	{
+
+	if (argc > 1) {
 		Debug::Log("Parsing command line arguments...\n");
 	}
 
-	if (!Parse_Command_Line(argc, argv))
-	{
+	if (!Parse_Command_Line(argc, argv)) {
 		return false;
 	}
 
@@ -1121,8 +1115,59 @@ bool __fastcall Phobos_Parse_Command_Line(int argc, char* argv[]) {
 	MathTesters::InspectMathDetailed();
 #endif
 
-
 	return true;
+}
+
+void ParseEarlyArgs(LPWSTR* argv , int argc)
+{
+	std::wstring args {};
+	Debug::GenerateDefaultMessage();
+	Debug::PrepareLogFile(); //prepare directory
+	Debug::LogFileRemove(); //remove previous debug log file if presents
+
+	if (argv) {
+		for (int i = 1; i < argc; i++) {
+			args += L" ";
+			args += argv[i];
+
+			if (IS_SAME_WSTR(argv[i], L"-Icon") && i + 1 < argc) {
+				// Convert wide string to narrow string
+				char buffer[MAX_PATH];
+				WideCharToMultiByte(CP_ACP, 0, argv[i + 1], -1, buffer, MAX_PATH, NULL, NULL);
+				Phobos::AppIconPath = buffer;
+			} else  if (IS_SAME_WSTR(argv[i], L"-b=" _STR(BUILD_NUMBER))) {
+				Phobos::Config::HideWarning = true;
+			} else if (IS_SAME_WSTR(argv[i], L"-LOG")) {
+				Debug::LogEnabled = true;
+				Debug::InitLogger();
+			} else  if (IS_SAME_WSTR(argv[i], L"-AI-CONTROL")) {
+				Phobos::Otamaa::AllowAIControl = true;
+			} else if (IS_SAME_WSTR(argv[i], L"-LOG-CSF")) {
+				Phobos::Otamaa::OutputMissingStrings = true;
+			} else if (IS_SAME_WSTR(argv[i], L"-LOG-AUDIO")) {
+				Phobos::Otamaa::OutputAudioLogs = true;
+			} else if (IS_SAME_WSTR(argv[i], L"-STRICT")) {
+				Phobos::Otamaa::StrictParser = true;
+			} else if (IS_SAME_WSTR(argv[i], L"-NOLOGO")) {
+				Phobos::Otamaa::NoLogo = true;
+			} else if (IS_SAME_WSTR(argv[i], L"-CD")) {
+				Phobos::Otamaa::NoCD = true;
+			} else if (IS_SAME_WSTR(argv[i], L"-Inheritance")) {
+				Phobos::Config::UseNewInheritance = true;
+			} else if (IS_SAME_WSTR(argv[i], L"-Include")) {
+				Phobos::Config::UseNewIncludes = true;
+			}
+		}
+
+		LocalFree(argv);
+	}
+
+	if (Debug::LogEnabled) {
+		Debug::Log("DLL injection successful, logging enabled via command line.\n");
+		Debug::Log("Initialized Phobos " PRODUCT_VERSION ".\n");
+		Debug::Log("args %ls\n", args.c_str());
+		CRTHooks::Print_FPUMode();
+	}
 }
 
 BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
@@ -1159,76 +1204,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			Patch::Apply_TYPED<DWORD>(0x7B853C, { 1 });
 			Patch::Apply_TYPED<char>(0x82612C + 13, { '\n' });
 
-			static std::wstring args {};
-
-			Debug::GenerateDefaultMessage();
-			Debug::PrepareLogFile(); //prepare directory
-			Debug::LogFileRemove(); //remove previous debug log file if presents
-
-			if (argv) {
-				for (int i = 1; i < argc; i++) {
-
-					args += L" ";
-					args += argv[i];
-
-					if (IS_SAME_WSTR(argv[i], L"-Icon") && i + 1 < argc) {
-						// Convert wide string to narrow string
-						char buffer[MAX_PATH];
-						WideCharToMultiByte(CP_ACP, 0, argv[i + 1], -1, buffer, MAX_PATH, NULL, NULL);
-						Phobos::AppIconPath = buffer;
-					}
-					else  if (IS_SAME_WSTR(argv[i], L"-b=" _STR(BUILD_NUMBER)))
-					{
-						Phobos::Config::HideWarning = true;
-					}
-					else if (IS_SAME_WSTR(argv[i], L"-LOG")) {
-						Debug::LogEnabled = true;
-						Debug::InitLogger();
-					}
-					else  if (IS_SAME_WSTR(argv[i], L"-AI-CONTROL"))
-					{
-						Phobos::Otamaa::AllowAIControl = true;
-					}
-					else if (IS_SAME_WSTR(argv[i], L"-LOG-CSF"))
-					{
-						Phobos::Otamaa::OutputMissingStrings = true;
-					}
-					else if (IS_SAME_WSTR(argv[i], L"-LOG-AUDIO"))
-					{
-						Phobos::Otamaa::OutputAudioLogs = true;
-					}
-					else if (IS_SAME_WSTR(argv[i], L"-STRICT"))
-					{
-						Phobos::Otamaa::StrictParser = true;
-					}
-					else if (IS_SAME_WSTR(argv[i], L"-NOLOGO"))
-					{
-						Phobos::Otamaa::NoLogo = true;
-					}
-					else if (IS_SAME_WSTR(argv[i], L"-CD"))
-					{
-						Phobos::Otamaa::NoCD = true;
-					}
-					else if (IS_SAME_WSTR(argv[i], L"-Inheritance"))
-					{
-						Phobos::Config::UseNewInheritance = true;
-					}
-					else if (IS_SAME_WSTR(argv[i], L"-Include"))
-					{
-						Phobos::Config::UseNewIncludes = true;
-					}
-				}
-				LocalFree(argv);
-			}
-
-			if (Debug::LogEnabled) {
-				Debug::Log("DLL injection successful, logging enabled via command line.\n");
-				Debug::Log("Initialized Phobos " PRODUCT_VERSION ".\n");
-				Debug::Log("args %ls\n", args.c_str());
-
-
-				CRTHooks::Print_FPUMode();
-			}
+			ParseEarlyArgs(argv, argc);
 		}
 	}
 	break;

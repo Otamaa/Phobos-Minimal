@@ -373,7 +373,7 @@ bool SWTypeExtData::LauchSuper(SuperClass* pSuper)
 	{
 		if (!autofire && !unstoppable)
 		{
-			const auto swIndex = pSuper->GetArrayIndex();
+			const auto swIndex = pSuper->Type->ArrayIndex;
 
 			if (pSuper->Type->Action == Action::None || pSWExt->SW_UseAITargeting)
 			{
@@ -509,20 +509,18 @@ bool SWTypeExtData::IsTargetConstraintsEligible(SuperClass* pThis, bool IsPlayer
 	auto pOwner = pThis->Owner;
 	auto const& [nFlag , SkipOffensiveClear] = pExt->GetAITargetingConstraints();
 
-	auto valid = [](const CellStruct& nVal) { return nVal.X || nVal.Y; };
-
 	if (!SkipOffensiveClear) {
-		if (((nFlag & TargetingConstraints::OffensiveCellClear) != TargetingConstraints::None) && valid(pOwner->PreferredTargetCell))
+		if (((nFlag & TargetingConstraints::OffensiveCellClear) != TargetingConstraints::None) && pOwner->PreferredTargetCell.IsValid())
 			return false;
 	}
 
-	if (((nFlag & TargetingConstraints::OffensiveCellSet) != TargetingConstraints::None) && !valid(pOwner->PreferredTargetCell))
+	if (((nFlag & TargetingConstraints::OffensiveCellSet) != TargetingConstraints::None) && !pOwner->PreferredTargetCell.IsValid())
 		return false;
 
-	if (((nFlag & TargetingConstraints::DefensifeCellClear) != TargetingConstraints::None) && valid(pOwner->PreferredDefensiveCell2))
+	if (((nFlag & TargetingConstraints::DefensifeCellClear) != TargetingConstraints::None) && pOwner->PreferredDefensiveCell2.IsValid())
 		return false;
 
-	if (((nFlag & TargetingConstraints::DefensiveCellSet) != TargetingConstraints::None) && !valid(pOwner->PreferredDefensiveCell2))
+	if (((nFlag & TargetingConstraints::DefensiveCellSet) != TargetingConstraints::None) && !pOwner->PreferredDefensiveCell2.IsValid())
 		return false;
 
 	if (((nFlag & TargetingConstraints::Enemy) != TargetingConstraints::None) && pOwner->EnemyHouseIndex < 0)
@@ -536,7 +534,7 @@ bool SWTypeExtData::IsTargetConstraintsEligible(SuperClass* pThis, bool IsPlayer
 		if (((nFlag & TargetingConstraints::DominatorInactive) != TargetingConstraints::None) && PsyDom::IsActive())
 			return false;
 
-		if (((nFlag & TargetingConstraints::Attacked) != TargetingConstraints::None) && (!pOwner->LATime || ((pOwner->LATime + 75) < Unsorted::CurrentFrame.get())))
+		if (((nFlag & TargetingConstraints::Attacked) != TargetingConstraints::None) && (!pOwner->LATime || ((pOwner->LATime + 75) < Unsorted::CurrentFrame())))
 			return false;
 
 		if (((nFlag & TargetingConstraints::LowPower) != TargetingConstraints::None) && pOwner->HasFullPower())

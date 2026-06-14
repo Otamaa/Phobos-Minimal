@@ -69,18 +69,23 @@ ASMJIT_PATCH(0x4AB35A, DisplayClass_SetAction_CustomCursor, 0x6)
 ASMJIT_PATCH(0x6929FC, DisplayClass_ChooseAction_CanSell, 7)
 {
 	GET(TechnoClass*, Target, ESI);
+	//GET(CellStruct*, pDest, EBP);
+
 	switch (Target->WhatAmI())
 	{
 	case AbstractType::Aircraft:
 	case AbstractType::Unit:
 		R->Stack(0x10, Action::SellUnit);
-		return 0x692B06;
+		break;
 	case AbstractType::Building:
 		R->Stack(0x10, Target->IsStrange() ? Action::NoSell : Action::Sell);
-		return 0x692B06;
+		break;
 	default:
-		return 0x692AFE;
+		R->Stack(0x10, Action::NoSell);
+		break;
 	}
+
+	return 0x692B06;
 }
 
 // WeaponCursor

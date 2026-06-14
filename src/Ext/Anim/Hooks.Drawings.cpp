@@ -28,6 +28,24 @@ ASMJIT_PATCH(0x423855, AnimClass_DrawIt_ShadowLocation, 0x7)
 	return SkipGameCode;
 }
 
+ASMJIT_PATCH(0x423654, AnimClass_DrawIt_Tiled_Interval, 0x5)
+{
+	GET(FakeAnimClass*, pThis, ESI);
+	GET(RectangleStruct*, pBounds, EAX);
+	GET(int*, pValue, EDI);
+
+	int height = pBounds->Height;
+
+	auto const pTypeExt = pThis->_GetTypeExtData();
+
+	if (pTypeExt->Tiled_Interval > 0)
+		height = pTypeExt->Tiled_Interval;
+
+	R->EAX(height);
+	R->ECX(*pValue);
+	return 0x423659;
+}
+
 #ifdef fullbackport 
 
 static int PackDSurfaceColor(int colorIndex)

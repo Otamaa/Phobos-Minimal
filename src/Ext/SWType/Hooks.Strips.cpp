@@ -15,38 +15,53 @@
 #include <UnitClass.h>
 #include <AircraftClass.h>
 #include <BuildingClass.h>
+#include <EventClass.h>
+
+void NOINLINE CreateEvent(SuperWeaponTypeClass* pSuper, CellStruct* pWhere)
+{
+	EventClass Event {
+		HouseClass::CurrentPlayer->ArrayIndex ,
+		EventType::SPECIAL_PLACE ,
+		pSuper->ArrayIndex ,
+		*pWhere
+	};
+	EventClass::AddEvent(&Event);
+}
 
 // 4AC20C, 7
 // translates SW click to type
 ASMJIT_PATCH(0x4AC20C, DisplayClass_LeftMouseButtonUp, 7)
 {
 	GET_STACK(Action, nAction, 0x9C);
+	GET_STACK(CellStruct*, pCellStruct, 0x94);
 
-	if (nAction < (Action)PhobosNewActionType::SuperWeaponDisallowed)
-	{
+	SuperWeaponTypeClass* pSW = nullptr;
+
+	if (nAction == (Action)PhobosNewActionType::SuperWeaponDisallowed) {
+		return 0x4AC294;
+	}
+
+	if (nAction < (Action)PhobosNewActionType::SuperWeaponDisallowed) {
 		// get the actual firing SW type instead of just the first type of the
 		// requested action. this allows clones to work for legacy SWs (the new
 		// ones use SW_*_CURSORs). we have to check that the action matches the
 		// action of the found type as the no-cursor represents a different
 		// action and we don't want to start a force shield even tough the UI
 		// says no.
-		auto pSW = SuperWeaponTypeClass::Array->get_or_default(Unsorted::CurrentSWType());
-		if (pSW && (pSW->Action != nAction))
-		{
-			pSW = nullptr;
+		pSW = SuperWeaponTypeClass::Array->get_or_default(Unsorted::CurrentSWType());
+
+		if (pSW && (pSW->Action != nAction)) {
+			return 0x4AC294;
 		}
-
-		R->EAX(pSW);
-		return pSW ? 0x4AC21C : 0x4AC294;
-	}
-	else if (nAction == (Action)PhobosNewActionType::SuperWeaponDisallowed)
-	{
-		R->EAX(0);
-		return 0x4AC294;
+	} else if (nAction == (Action)PhobosNewActionType::SuperWeaponAllowed && SWTypeExtData::CurrentSWType) {
+		pSW = SWTypeExtData::CurrentSWType;
 	}
 
-	R->EAX(SWTypeExtData::CurrentSWType);
-	return 0x4AC21C;
+	if (pSW) {
+		CreateEvent(pSW, pCellStruct);
+	}
+
+	return 0x4AC294;
 }
 
 //ASMJIT_PATCH(0x653B3A, RadarClass_GetMouseAction_CustomSWAction, 7)

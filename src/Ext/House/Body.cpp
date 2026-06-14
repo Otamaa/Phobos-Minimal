@@ -3373,7 +3373,6 @@ void  __fastcall FakeHouseClass::__SuperWeaponHandler(HouseClass* pHouse)
 
 		if (pSuper->Granted)
 		{
-			auto pType = pSuper->Type;
 			auto& status = SuperExtContainer::Instance.Find(pSuper)->Statusses;
 
 			auto Update = [&]()

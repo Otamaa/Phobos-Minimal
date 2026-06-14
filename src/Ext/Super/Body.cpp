@@ -40,22 +40,17 @@ static int SWCharges_GetPerCycle(SuperWeaponTypeClass* pType)
 void SuperExtData::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 {
 	// look at every sane building this player owns, if it is not defeated already.
-	if (!pHouse->Defeated && !pHouse->IsObserver())
-	{
+	if (!pHouse->Defeated && !pHouse->IsObserver()) {
 		if (pHouse->Supers.Count > 0) {
 			pHouse->Supers.for_each([pHouse](SuperClass* pSuper) {
 				auto pExt = SuperExtContainer::Instance.Find(pSuper);
 				pExt->Statusses.reset();
 
-				/*auto pTypeExt = pExt->Type;*/
-
 				//if AlwaysGranted and SWAvaible
 				pExt->Statusses.PowerSourced = !pSuper->IsPowered();
-				if (pExt->Type->SW_AlwaysGranted && SWTypeExtData::IsAvailable(pHouse, pSuper))
-				{
-					pExt->Statusses.Available = true;
-					pExt->Statusses.Charging = true;
-					pExt->Statusses.PowerSourced = true;
+
+				if (pExt->Type->SW_AlwaysGranted && SWTypeExtData::IsAvailable(pHouse, pSuper)) {
+					pExt->Statusses.SetAllState(true);
 				}
 			});
 		}
@@ -100,47 +95,39 @@ void SuperExtData::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 						}
 					}
 				}else{
-				// check for upgrades. upgrades can give super weapons, too.
-				for (const auto type : pBld->GetTypes())
-				{
-					if (auto pUpgradeExt = BuildingTypeExtContainer::Instance.TryFind(const_cast<BuildingTypeClass*>(type)))
-					{
-						for (auto i = 0; i < pUpgradeExt->GetSuperWeaponCount(); ++i)
-						{
-							const auto idxSW = pUpgradeExt->GetSuperWeaponIndex(i);
+					// check for upgrades. upgrades can give super weapons, too.
+					for (const auto type : pBld->GetTypes()) {
+						if (auto pUpgradeExt = BuildingTypeExtContainer::Instance.TryFind(const_cast<BuildingTypeClass*>(type))) {
+							for (auto i = 0; i < pUpgradeExt->GetSuperWeaponCount(); ++i) {
+								const auto idxSW = pUpgradeExt->GetSuperWeaponIndex(i);
 
-							if (idxSW >= 0)
-							{
-								auto pSuper = pHouse->Supers[idxSW];
-								const auto pSuperExt = SuperExtContainer::Instance.Find(pSuper);
-								auto& status = pSuperExt->Statusses;
+								if (idxSW >= 0) {
+									auto pSuper = pHouse->Supers[idxSW];
+									const auto pSuperExt = SuperExtContainer::Instance.Find(pSuper);
+									auto& status = pSuperExt->Statusses;
 
-								if (!status.Charging)
-								{
-									if (SWTypeExtData::IsAvailable(pHouse, pSuper))
-									{
-										status.Available = true;
+									if (!status.Charging) {
+										if (SWTypeExtData::IsAvailable(pHouse, pSuper)) {
+											status.Available = true;
 
-										if (!PowerChecked)
-										{
-											HasPower = pBld->HasPower
-												&& !pBld->IsUnderEMP()
-												&& (TechnoExtContainer::Instance.Find(pBld)->Is_Operated || TechnoExtData::IsOperated(pBld));
+											if (!PowerChecked) {
+												HasPower = pBld->HasPower
+													&& !pBld->IsUnderEMP()
+													&& (TechnoExtContainer::Instance.Find(pBld)->Is_Operated || TechnoExtData::IsOperated(pBld));
 
-											PowerChecked = true;
-										}
+												PowerChecked = true;
+											}
 
-										if (!status.Charging && HasPower)
-										{
-											status.PowerSourced = true;
+											if (!status.Charging && HasPower) {
+												status.PowerSourced = true;
 
-											if (!pBld->IsBeingWarpedOut()
-												&& (pBld->CurrentMission != Mission::Construction)
-												&& (pBld->CurrentMission != Mission::Selling)
-												&& (pBld->QueuedMission != Mission::Construction)
-												&& (pBld->QueuedMission != Mission::Selling))
-											{
-												status.Charging = true;
+												if (!pBld->IsBeingWarpedOut()
+													&& (pBld->CurrentMission != Mission::Construction)
+													&& (pBld->CurrentMission != Mission::Selling)
+													&& (pBld->QueuedMission != Mission::Construction)
+													&& (pBld->QueuedMission != Mission::Selling)) {
+													status.Charging = true;
+												}
 											}
 										}
 									}
@@ -148,7 +135,6 @@ void SuperExtData::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 							}
 						}
 					}
-				}
 			}
 			}
 		});
@@ -159,74 +145,62 @@ void SuperExtData::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 		const bool isCampaign = SessionClass::Instance->GameMode == GameMode::Campaign;
 		const bool bIsSWShellEnabled = Unsorted::SWAllowed() || isCampaign;
 
-		if (!hasPower || !bIsSWShellEnabled) {
-			pHouse->Supers.for_each([&](SuperClass* pSuper) {
+		pHouse->Supers.for_each([&](SuperClass* pSuper) {
 
+			if (!hasPower || !bIsSWShellEnabled) {
 				const auto pExt = SuperExtContainer::Instance.Find(pSuper);
 				auto& nStatus = pExt->Statusses;
 
 				// turn off super weapons that are disallowed.
-				if (!bIsSWShellEnabled && pSuper->Type->DisableableFromShell)
-				{
+				if (!bIsSWShellEnabled && pSuper->Type->DisableableFromShell) {
 					nStatus.Available = false;
 				}
 
 				// if the house is generally on low power,
 				// powered super weapons aren't powered
-				if (!hasPower && pSuper->IsPowered())
-				{
+				if (!hasPower && pSuper->IsPowered()) {
 					nStatus.PowerSourced &= hasPower;
 				}
-			});
-		}
-
-		pHouse->Supers.for_each([pHouse](SuperClass* pSuper)
-		{
-			if (!pSuper->Granted)
-				return;
-
-			const int maxCharges = SWChargePool::GetMax(pSuper->Type);
-			if (maxCharges < 0)
-				return;
-
-			const int dischargeAmt = SWChargePool::GetDischarge(pSuper->Type);
-			auto pPool = SWChargePool::Get(pHouse, pSuper->Type);
-
-			if (pPool->Charges >= maxCharges)
-			{
-				// Pool full — freeze timer
-				if (pSuper->RechargeTimer.IsTicking())
-					pSuper->RechargeTimer.Pause();
-				pSuper->IsCharged = true;
 			}
-			else if (pPool->Charges >= dischargeAmt)
-			{
-				// Ready to fire, still accumulating.
-				// Keep IsCharged=true + StartTime=-1 (Paused).
-				// Restart timer ONLY if it's fully stopped
-				// (not ticking AND TimeLeft==0) — meaning we
-				// just Paused() it from the full-pool path or
-				// _AI completed a cycle and Paused for us.
-				pSuper->IsCharged = true;
 
-				if (!pSuper->RechargeTimer.IsTicking()
-					&& pSuper->RechargeTimer.TimeLeft <= 0
-					&& !pSuper->IsOnHold)
-				{
-					// Begin next accumulation cycle.
-					// Start() sets StartTime >= 0 briefly, but
-					// _AI will immediately Pause() on completion.
-					const int t = pSuper->GetRechargeTime();
-					pSuper->RechargeTimer.Start((t > 0) ? t : 1);
+			if (pSuper->Granted) {
+				const int maxCharges = SWChargePool::GetMax(pSuper->Type);
+				if (maxCharges >= 0) {
+					const int dischargeAmt = SWChargePool::GetDischarge(pSuper->Type);
+					auto pPool = SWChargePool::Get(pHouse, pSuper->Type);
+
+					if (pPool->Charges >= maxCharges) {
+						// Pool full — freeze timer
+						if (pSuper->RechargeTimer.IsTicking())
+							pSuper->RechargeTimer.Pause();
+
+						pSuper->IsCharged = true;
+					} else if (pPool->Charges >= dischargeAmt) {
+						// Ready to fire, still accumulating.
+						// Keep IsCharged=true + StartTime=-1 (Paused).
+						// Restart timer ONLY if it's fully stopped
+						// (not ticking AND TimeLeft==0) — meaning we
+						// just Paused() it from the full-pool path or
+						// _AI completed a cycle and Paused for us.
+						pSuper->IsCharged = true;
+
+						if (!pSuper->RechargeTimer.IsTicking()
+							&& pSuper->RechargeTimer.TimeLeft <= 0
+							&& !pSuper->IsOnHold) {
+							// Begin next accumulation cycle.
+							// Start() sets StartTime >= 0 briefly, but
+							// _AI will immediately Pause() on completion.
+							const int t = pSuper->GetRechargeTime();
+							pSuper->RechargeTimer.Start((t > 0) ? t : 1);
+						}
+					} else if (!pSuper->RechargeTimer.IsTicking()
+							 && !pSuper->IsCharged
+							 && !pSuper->IsOnHold) {
+						// Below threshold — restart timer toward next charge
+						const int t = pSuper->GetRechargeTime();
+						pSuper->RechargeTimer.Start((t > 0) ? t : 1);
+					}
 				}
-			}
-			else if (!pSuper->RechargeTimer.IsTicking()
-					 && !pSuper->IsCharged
-					 && !pSuper->IsOnHold)
-			{
-				// Below threshold — restart timer toward next charge
-				const int t = pSuper->GetRechargeTime();
-				pSuper->RechargeTimer.Start((t > 0) ? t : 1);
 			}
 		});
 	}
@@ -373,51 +347,39 @@ int FakeSuperClass::_GetAnimStage()
 	auto pType = this->Type;
 	auto pTypeExt = SWTypeExtContainer::Instance.Find(pType);
 
-	int customRechargeTime = this->CustomChargeTime;
-	int rechargeTime = (customRechargeTime == -1)
-		? pType->RechargeTime : customRechargeTime;
-
+	int rechargeTime = this->GetRechargeTime();
 	int delayTime = this->RechargeTimer.TimeLeft;
 	int started = this->RechargeTimer.StartTime;
 
-	if (started != -1)
-	{
+	if (started != -1) {
 		int elapsed = Unsorted::CurrentFrame() - started;
 		delayTime = (elapsed >= delayTime) ? 0 : (delayTime - elapsed);
 	}
 
 	double progress = 0.0;
 
-	if (pTypeExt->UseWeeds)
-	{
+	if (pTypeExt->UseWeeds) {
 		if (this->IsCharged) return 54;
-		if (pTypeExt->UseWeeds_StorageTimer)
-		{
+		if (pTypeExt->UseWeeds_StorageTimer) {
 			int p = int(54.0 * this->Owner->OwnedWeed.GetTotalAmount()
 						/ (double)pTypeExt->UseWeeds_Amount);
 			return (p > 54) ? 54 : p;
 		}
+
 		return 0;
 	}
 
-	if (pType->UseChargeDrain)
-	{
-		if (this->ChargeDrainState == ChargeDrainState::Draining)
-		{
+	if (pType->UseChargeDrain) {
+		if (this->ChargeDrainState == ChargeDrainState::Draining) {
 			const double ratio = pTypeExt->GetChargeToDrainRatio();
 			progress = (Math::abs(rechargeTime * ratio) > 0.001)
 				? 1.0 - (rechargeTime * ratio - delayTime) / (rechargeTime * ratio)
 				: 0.0;
+		} else {
+			rechargeTime = this->GetRechargeTime();
+			progress = (double)(rechargeTime - delayTime) / rechargeTime;
 		}
-		else
-		{
-			int divisor = (customRechargeTime == -1)
-				? pType->RechargeTime : customRechargeTime;
-			progress = (double)(rechargeTime - delayTime) / divisor;
-		}
-	}
-	else
-	{
+	} else {
 		// FIX 3a: only short-circuit to 54 when pool is FULL or feature off.
 		// When accumulating (IsCharged=true but Charges < MaxCharges),
 		// show real timer progress so the clock animates.
@@ -428,13 +390,12 @@ int FakeSuperClass::_GetAnimStage()
 		if (this->IsCharged && !isAccumulating)
 			return 54;   // pool full or feature off — no clock
 
-		int divisor = (customRechargeTime == -1)
-			? pType->RechargeTime : customRechargeTime;
+		rechargeTime = this->GetRechargeTime();
 
-		if (divisor <= 0)
+		if (rechargeTime <= 0)
 			return 0;
 
-		progress = (double)(rechargeTime - delayTime) / divisor;
+		progress = (double)(rechargeTime - delayTime) / rechargeTime;
 	}
 
 	int stage = (int)(progress * 54.0);
@@ -533,10 +494,8 @@ bool FakeSuperClass::_AI(bool isPlayer)
 		return false;
 
 	// Timer not running — check if CameoChargeState needs reset
-	if (this->RechargeTimer.StartTime == -1)
-	{
-		if (this->CameoChargeState != -1)
-		{
+	if (this->RechargeTimer.StartTime == -1) {
+		if (this->CameoChargeState != -1) {
 			this->CameoChargeState = -1;
 			return true;
 		}
@@ -948,7 +907,7 @@ bool FakeSuperClass::_Discharged(bool isPlayer, CellStruct* pCell)
 			else
 			{
 				// Vanilla: use timer guard (feature off)
-				if (this->RechargeTimer.StartTime < 0
+				if (this->RechargeTimer.StartTime == -1
 					|| !this->Granted
 					|| !this->IsCharged)
 					return false;
@@ -979,7 +938,7 @@ bool FakeSuperClass::_Discharged(bool isPlayer, CellStruct* pCell)
 		if (!pType->PostClick && !pType->PreClick)
 			this->IsCharged = false;
 
-		const int maxCharges = SWChargePool::GetMax(pType);
+		int maxCharges = SWChargePool::GetMax(pType);
 		if (maxCharges >= 0 && !pType->PostClick && !pType->PreClick)
 		{
 			const int dischargeAmt = SWChargePool::GetDischarge(pType);
@@ -1018,8 +977,6 @@ bool FakeSuperClass::_Discharged(bool isPlayer, CellStruct* pCell)
 		}
 		else if (!pType->PreClick && !pType->PostClick)
 		{
-			const int maxCharges = SWChargePool::GetMax(pType);
-
 			if (maxCharges >= 0)
 			{
 				auto pPool = SWChargePool::Get(pOwner, pType);
@@ -1274,7 +1231,6 @@ bool FakeSuperClass::_Grant(bool oneTime, bool announce, bool onHold)
 					nFrame = data->LastFrame ;
 				}
 			}
-
 
 			if (nFrame != -1)
 			{

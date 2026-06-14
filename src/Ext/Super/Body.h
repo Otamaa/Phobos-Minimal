@@ -49,6 +49,14 @@ struct SWStatus
 		Charging = 0;
 	}
 
+
+	COMPILETIMEEVAL void FORCEDINLINE SetAllState(bool state)
+	{
+		Available = state;
+		PowerSourced = state;
+		Charging = state;
+	}
+
 public:
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)

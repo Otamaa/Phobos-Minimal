@@ -734,46 +734,37 @@ void PhobosHookers::ApplyasmjitPatch()
 {
 	std::vector<unsigned int> failedHooks;
 
-	for (auto& [addr, data] : Hooks)
-	{
+	for (auto& [addr, data] : Hooks) {
 		auto& [sm_vec, org_vec] = data;
 
-		if (sm_vec.empty())
-		{
+		if (sm_vec.empty()) {
 			Debug::Log("hook at 0x%x is empty !\n", addr);
 			continue;
 		}
 
-		if (sm_vec.size() > 1)
-		{
+		if (sm_vec.size() > 1) {
 			Debug::Log("hook at 0x%x , has %d functions registered ! only the first will be installed.\n",
 				addr, sm_vec.size());
 		}
 
-		if (!InstallSingleHook(addr, sm_vec[0], org_vec))
-		{
+		if (!InstallSingleHook(addr, sm_vec[0], org_vec)) {
 			failedHooks.push_back(addr);
 		}
 
-		if (sm_vec.size() > 1)
-		{
+		if (sm_vec.size() > 1) {
 			Debug::Log("remaining hook function(s) at 0x%x ignored (multi-hook chaining not implemented).\n", addr);
 		}
 	}
 
-	if (!failedHooks.empty())
-	{
+	if (!failedHooks.empty()) {
 		Debug::Log("\n==== asmjit hook installation summary ====\n");
 		Debug::Log("%d hook(s) FAILED to install:\n", static_cast<int>(failedHooks.size()));
-		for (auto a : failedHooks)
-		{
+		for (auto a : failedHooks) {
 			Debug::Log("    0x%x\n", a);
 		}
 		Debug::Log("All other hooks installed successfully.\n");
 		Debug::Log("===========================================\n\n");
-	}
-	else
-	{
+	} else {
 		Debug::Log("All %d asmjit hook(s) installed successfully.\n", static_cast<int>(Hooks.size()));
 	}
 }
@@ -788,8 +779,7 @@ void PhobosHookers::Initasmjit()
 	hookdeclfunc* end = (hookdeclfunc*)((DWORD)buffer + len);
 	Debug::Log("Applying %d asmjit hooks.\n", std::distance((hookdeclfunc*)buffer, end));
 
-	for (hookdeclfunc* begin = (hookdeclfunc*)buffer; begin < end; begin++)
-	{
+	for (hookdeclfunc* begin = (hookdeclfunc*)buffer; begin < end; begin++) {
 		Hooks[begin->hookAddr].summary.emplace_back(begin->hookFunc, begin->hookSize);
 	}
 
