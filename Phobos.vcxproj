@@ -482,8 +482,10 @@
     <ClCompile Include="src\Commands\ObjectInfo.cpp" />
     <ClCompile Include="src\Phobos.Config.cpp" />
     <ClCompile Include="src\Phobos.Ext.cpp" />
+    <ClCompile Include="src\Phobos.Hookers.cpp" />
     <ClCompile Include="src\Phobos.Hooks.cpp" />
     <ClCompile Include="src\Phobos.Lua.cpp" />
+    <ClCompile Include="src\Phobos.Math.cpp" />
     <ClCompile Include="src\Phobos.UI.cpp" />
     <ClCompile Include="src\PhobosSaveVersionInfo.cpp" />
     <ClCompile Include="src\Utilities\Anchor.cpp" />
@@ -748,6 +750,7 @@
     <ClInclude Include="src\New\Type\ThemeTypeClass.h" />
     <ClInclude Include="src\Phobos.COM.h" />
     <ClInclude Include="src\Phobos.Defines.h" />
+    <ClInclude Include="src\Phobos.Hookers.h" />
     <ClInclude Include="src\Phobos.lib.h" />
     <ClInclude Include="src\Phobos.Lua.h" />
     <ClInclude Include="src\Commands\PlaceVeinholeMonster.h" />

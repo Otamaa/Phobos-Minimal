@@ -190,13 +190,12 @@ ASMJIT_PATCH(0x446816, BuildingClass_Place_RevealToAll_UpdateSight, 0x5)
 	return SkipGameCode;
 }
 
-ASMJIT_PATCH_AGAIN(0x440819, BuildingClass_Unlimbo_DynamicSight, 0x6);
 ASMJIT_PATCH(0x440842, BuildingClass_Unlimbo_DynamicSight, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	R->EDX(FakeTechnoClass::_GetSight(pThis));
 	return R->Origin() + 0x6;
-}
+}ASMJIT_PATCH_AGAIN(0x440819, BuildingClass_Unlimbo_DynamicSight, 0x6)
 
 ASMJIT_PATCH(0x51E0E5, InfantryClass_Unlimbo_DynamicSight, 0x6)
 {

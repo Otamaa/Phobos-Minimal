@@ -210,6 +210,16 @@ public:
 	bool AddCameo(AbstractType absType, int idxType)
 	{ JMP_THIS(0x6A6300); }
 
+	void AddSpecialCameo(int idxType){
+		// unify the calling of this for superWeapon
+		// so i dont need to repeat this specific pattern and make mistake somewhere that undetected
+		if(this->AddCameo(AbstractType::Special, idxType)) {
+			this->RepaintSidebar(SidebarClass::GetObjectTabIdx
+				(AbstractType::Special, idxType, false));
+		}
+
+	}
+
 	//virtual void Draw(DWORD dwUnk) override
 	//	{ JMP_THIS(0x6A6C30); }
 

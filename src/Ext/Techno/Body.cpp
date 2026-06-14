@@ -3143,8 +3143,9 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 					else
 					{
 						pSuper->Grant(true, false, false);
-						if (pHouse->IsCurrentPlayer())
-							SidebarClass::Instance->AddCameo(AbstractType::Special, idx);
+						if (pHouse->IsCurrentPlayer()) {
+							SidebarClass::Instance->AddSpecialCameo(idx);
+						}
 					}
 					SidebarClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(AbstractType::Super, idx, false));
 				}
@@ -3198,9 +3199,7 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 
 				if (IsCurrentPlayer)
 				{
-					SidebarClass::Instance->AddCameo(AbstractType::Special, nIdx);
-					const auto nTab = SidebarClass::GetObjectTabIdx(AbstractType::Special, nIdx, false);
-					SidebarClass::Instance->RepaintSidebar(nTab);
+					SidebarClass::Instance->AddSpecialCameo(nIdx);
 				}
 
 				if (evaForOwner || evaForEnterer)

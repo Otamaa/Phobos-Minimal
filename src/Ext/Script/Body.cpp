@@ -2856,13 +2856,12 @@ ASMJIT_PATCH(0x6913F8, ScriptClass_CTOR, 0x5)
 	return 0x0;
 }
 
-ASMJIT_PATCH_AGAIN(0x691F06, ScriptClass_DTOR, 0x6)
 ASMJIT_PATCH(0x691486, ScriptClass_DTOR, 0x6)
 {
 	GET(ScriptClass*, pThis, ESI);
 	ScriptExtContainer::Instance.Remove(pThis);
 	return 0x0;
-}
+}ASMJIT_PATCH_AGAIN(0x691F06, ScriptClass_DTOR, 0x6)
 
 HRESULT __stdcall FakeScriptClass::__Load(IStream* pStm)
 {

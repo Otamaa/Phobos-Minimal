@@ -586,9 +586,8 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 
 					if (iter != pCollectorOwner->Supers.end())
 					{
-						if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer)
-						{
-							SidebarClass::Instance->AddCameo(AbstractType::Special, (*iter)->Type->ArrayIndex);
+						if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer) {
+							SidebarClass::Instance->AddSpecialCameo((*iter)->Type->ArrayIndex);
 						}
 					}
 
@@ -705,9 +704,8 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 
 					if (iter != pCollectorOwner->Supers.end())
 					{
-						if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer)
-						{
-							SidebarClass::Instance->AddCameo(AbstractType::Special, (*iter)->Type->ArrayIndex);
+						if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer) {
+							SidebarClass::Instance->AddSpecialCameo((*iter)->Type->ArrayIndex);
 						}
 					}
 					else
@@ -729,9 +727,8 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 
 					if (iter != pCollectorOwner->Supers.end())
 					{
-						if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer)
-						{
-							SidebarClass::Instance->AddCameo(AbstractType::Special, (*iter)->Type->ArrayIndex);
+						if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer) {
+							SidebarClass::Instance->AddSpecialCameo((*iter)->Type->ArrayIndex);
 						}
 					}
 
@@ -748,9 +745,8 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 
 					if (iter != pCollectorOwner->Supers.end())
 					{
-						if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer)
-						{
-							SidebarClass::Instance->AddCameo(AbstractType::Special, (*iter)->Type->ArrayIndex);
+						if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer) {
+							SidebarClass::Instance->AddSpecialCameo((*iter)->Type->ArrayIndex);
 						}
 					}
 
@@ -767,9 +763,8 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 
 					if (iter != pCollectorOwner->Supers.end())
 					{
-						if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer)
-						{
-							SidebarClass::Instance->AddCameo(AbstractType::Special, (*iter)->Type->ArrayIndex);
+						if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer) {
+							SidebarClass::Instance->AddSpecialCameo((*iter)->Type->ArrayIndex);
 						}
 					}
 

@@ -361,7 +361,7 @@ const wchar_t* FakeSuperClass::_NameReadiness()
 		}
 	}
 
-	return (*text)->empty() ? L"" : (*text)->Text;
+	return (*text)->empty() ? nullptr: (*text)->Text;
 }
 DEFINE_FUNCTION_JUMP(LJMP, 0x6CC2B0, FakeSuperClass::_NameReadiness)
 

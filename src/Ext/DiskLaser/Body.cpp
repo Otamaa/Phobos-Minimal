@@ -43,13 +43,12 @@ ASMJIT_PATCH(0x4A7A6A, DiskLaserClass_CTOR, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH_AGAIN(0x4A7B00, DiskLaserClass_SDDTOR, 0x8)
 ASMJIT_PATCH(0x4A7C90, DiskLaserClass_SDDTOR, 0x8)
 {
 	GET(DiskLaserClass*, pItem, ECX);
 	DiskLaserExtContainer::Instance.Remove(pItem);
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x4A7B00, DiskLaserClass_SDDTOR, 0x8)
 
 static Point2D DiscLaserCoords[16] = {
 	{    0, -240 },  // 0  - Top

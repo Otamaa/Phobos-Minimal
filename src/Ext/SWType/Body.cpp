@@ -2416,10 +2416,8 @@ void SWTypeExtData::ApplyLinkedSW(SuperClass* pSW)
 					}
 				}
 
-				if (granted && notObserver && pHouse->IsCurrentPlayer())
-				{
-					if (MouseClass::Instance->AddCameo(AbstractType::Special, swIdxToAdd))
-						MouseClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(AbstractType::Super, swIdxToAdd, false));
+				if (granted && notObserver && pHouse->IsCurrentPlayer()) {
+					SidebarClass::Instance->AddSpecialCameo(swIdxToAdd);
 				}
 
 				return isActive;

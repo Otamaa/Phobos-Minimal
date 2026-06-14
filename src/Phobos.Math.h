@@ -125,3 +125,8 @@ namespace PhobosMathCache
 	//	return Entries[i].cached;
 	//}
 }
+
+struct MathTesters
+{
+	static bool InspectMathDetailed();
+};

@@ -50,14 +50,94 @@ public:
 
 	~LooseAudioCache() = default;
 
+	// Opens the WAV file and parses its header into `Data` if not already
+	// cached. Locked: the read-check (`Data.Size < 0`) and the subsequent
+	// writes to `Data.Size`/`Data.Offset`/`Data.Data` happen atomically
+	// with respect to other callers on this same LooseAudioCache instance.
 	FileStruct GetFileStruct()
 	{
-		CCFileClass* pFile = pFile = GameCreate<CCFileClass>(WavName.c_str());
+		std::lock_guard<std::mutex> lock(EntryMutex);
+		return GetFileStructLocked();
+	}
 
-		if (!pFile->Exists()) {
-			if (Phobos::Otamaa::IsAdmin) {
-				Debug::Log("LooseAudioCache: File does not exist: %s\n",
-				WavName.c_str());
+	// Returns a pointer to this entry's cached AudioSampleData, loading it
+	// first if necessary. Locked for the same reason as GetFileStruct().
+	//
+	// NOTE: the returned pointer aliases `Data.Data`, which lives for the
+	// lifetime of the LooseAudioCache (never destroyed/reallocated), so it
+	// remains valid after the lock is released -- the CALLER's subsequent
+	// memcpy from this pointer is safe PROVIDED no other thread is
+	// CONCURRENTLY calling GetAudioSampleData()/GetFileStruct() on this
+	// same entry and re-writing `Data.Data` mid-copy.
+	//
+	// If that residual race matters for your engine's calling pattern
+	// (e.g. the audio thread re-validates/reloads samples while another
+	// thread is mid-memcpy), see the alternative `CopySampleDataInto()`
+	// below, which does the memcpy WHILE HOLDING the lock.
+	AudioSampleData* GetAudioSampleData()
+	{
+		std::lock_guard<std::mutex> lock(EntryMutex);
+
+		if (Data.Size < 0)
+		{
+			if (Phobos::Otamaa::IsAdmin)
+				Debug::Log("LooseAudioCache: Failed to parse WAV file: %s\n", WavName.c_str());
+
+			auto file = GetFileStructLocked();
+			if (file.File && file.Allocated)
+			{
+				GameDelete<true, false>(file.File);
+			}
+		}
+
+		return &Data.Data;
+	}
+
+	// Preferred entry point for 0x401640 (AudioIndex_GetSampleInformation):
+	// loads (if needed) AND copies the sample data into `out` while holding
+	// the lock for the ENTIRE operation, eliminating the residual
+	// "valid pointer but data changes mid-memcpy" race described above.
+	//
+	// Returns true if `out->SampleRate` is non-zero after the copy (i.e.
+	// a real cached sample was found), matching the original hook's check.
+	bool CopySampleDataInto(AudioSampleData* out)
+	{
+		std::lock_guard<std::mutex> lock(EntryMutex);
+
+		if (Data.Size < 0)
+		{
+			if (Phobos::Otamaa::IsAdmin)
+				Debug::Log("LooseAudioCache: Failed to parse WAV file: %s\n", WavName.c_str());
+
+			auto file = GetFileStructLocked();
+			if (file.File && file.Allocated)
+			{
+				GameDelete<true, false>(file.File);
+			}
+		}
+
+		if (Data.Data.SampleRate)
+		{
+			std::memcpy(out, &Data.Data, sizeof(AudioSampleData));
+			return true;
+		}
+
+		return false;
+	}
+
+	const std::string& GetName() const { return Name; }
+
+private:
+	// Must be called with EntryMutex held.
+	FileStruct GetFileStructLocked()
+	{
+		CCFileClass* pFile = GameCreate<CCFileClass>(WavName.c_str());
+
+		if (!pFile->Exists())
+		{
+			if (Phobos::Otamaa::IsAdmin)
+			{
+				Debug::Log("LooseAudioCache: File does not exist: %s\n", WavName.c_str());
 			}
 
 			GameDelete<true, false>(pFile);
@@ -65,43 +145,30 @@ public:
 			return { Data.Size, Data.Offset, pFile, pFile != nullptr };
 		}
 
-		if (!pFile->Open(FileAccessMode::Read)) {
+		if (!pFile->Open(FileAccessMode::Read))
+		{
 			GameDelete<true, false>(pFile);
 			pFile = nullptr;
 			return { Data.Size, Data.Offset, pFile, pFile != nullptr };
-		} else{
+		}
+		else
+		{
 			if (Phobos::Otamaa::IsAdmin)
 				Debug::Log("LooseAudioCache: successfully open file: %s\n", WavName.c_str());
 		}
 
-		if (Data.Size < 0 && Audio::ReadWAVFile(pFile, &Data.Data, &Data.Size)) {
+		if (Data.Size < 0 && Audio::ReadWAVFile(pFile, &Data.Data, &Data.Size))
+		{
 			Data.Offset = pFile->Seek(0, FileSeekMode::Current);
 		}
 
 		return { Data.Size, Data.Offset, pFile, pFile != nullptr };
 	}
 
-	AudioSampleData* GetAudioSampleData()
-	{
-		if (Data.Size < 0)
-		{
-			if (Phobos::Otamaa::IsAdmin)
-				Debug::Log("LooseAudioCache: Failed to parse WAV file: %s\n", WavName.c_str());
-
-			auto file = GetFileStruct();
-			if (file.File && file.Allocated)
-			{
-				GameDelete<true, false>(file.File);
-			}
-		}
-		return &Data.Data;
-	}
-
-	const std::string& GetName() const { return Name; }
-private:
 	std::string Name;
 	std::string WavName;
 	LooseAudioFile Data;
+	std::mutex EntryMutex;
 };
 
 class LooseAudioCacheManager
@@ -537,15 +604,12 @@ ASMJIT_PATCH(0x401640, AudioIndex_GetSampleInformation, 5)
 	GET(const int, idxSample, EDX);
 	GET_STACK(AudioSampleData*, pAudioSample, 0x4);
 
-	if (auto pData = LooseAudioCacheManager::FindByIndexPtr(idxSample)) {
-
-		auto sampleData = pData->GetAudioSampleData();
-
-		if (sampleData->SampleRate) {
-			std::memcpy(pAudioSample, sampleData, sizeof(AudioSampleData));
-		}
-		else
+	if (auto pData = LooseAudioCacheManager::FindByIndexPtr(idxSample))
+	{
+		if (!pData->CopySampleDataInto(pAudioSample))
 		{
+			// No cached sample available -- fall back to default PCM format,
+			// same defaults as the original implementation.
 			pAudioSample->Data = 4;
 			pAudioSample->Format = 0;
 			pAudioSample->SampleRate = 22050;

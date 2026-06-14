@@ -21,8 +21,7 @@ ScriptTypeExtContainer ScriptTypeExtContainer::Instance;
 // =============================
 // container hooks
 //
-ASMJIT_PATCH_AGAIN(0x691D05, ScriptTypeClass_CTOR, 0x6)
-ASMJIT_PATCH_AGAIN(0x691ACC, ScriptTypeClass_CTOR, 0x5)
+
 ASMJIT_PATCH(0x691769, ScriptTypeClass_CTOR, 0x6)
 {
 	GET(ScriptTypeClass*, pThis, ESI);
@@ -30,7 +29,8 @@ ASMJIT_PATCH(0x691769, ScriptTypeClass_CTOR, 0x6)
 		ScriptTypeExtContainer::Instance.Allocate(pThis);
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x691D05, ScriptTypeClass_CTOR, 0x6)
+ASMJIT_PATCH_AGAIN(0x691ACC, ScriptTypeClass_CTOR, 0x5)
 
 ASMJIT_PATCH(0x691796, ScriptTypeClass_DTOR, 0x6)
 {

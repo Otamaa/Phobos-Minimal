@@ -27,9 +27,7 @@ bool Helpers::Otamaa::LauchSW(const LauchSWData& nData,
 			if (nData.LaunchGrant || nData.LaunchSW_Manual) {
 				if (pSuper->Grant(nData.LaunchGrant_OneTime, !bIsCurrentPlayer, nData.LaunchGrant_OnHold)) {
 					if (!bIsCurrentPlayer && (nData.LaunchSW_Manual || nData.LaunchGrant_RepaintSidebar)) {
-						if (MouseClass::Instance->AddCameo(AbstractType::Special, nData.LaunchWhat)) {
-							MouseClass::Instance->RepaintSidebar(1);
-						}
+						SidebarClass::Instance->AddSpecialCameo(nData.LaunchWhat);
 					}
 				}
 			}

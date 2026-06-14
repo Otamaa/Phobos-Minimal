@@ -3443,10 +3443,7 @@ int FakeHouseClass::_AI_Supers()
 							if (!pExt->Type->SW_ShowCameo || pExt->Type->SW_AutoFire)
 								continue;
 
-							MouseClass::Instance->AddCameo(AbstractType::Super, i);
-							const int tab = SidebarClass::GetObjectTabIdx(AbstractType::Super, i, false);
-							MouseClass::Instance->RepaintSidebar(tab);
-
+							SidebarClass::Instance->AddSpecialCameo(i);
 						}
 					}
 				}

@@ -236,7 +236,7 @@ DEFINE_JUMP(CALL6, 0x4148AB, 0x5F4300); // Set_Height restore
 // ============================================================
 
 // Single-player crate removal path.
-DEFINE_HOOK(0x4A1BEF, CrateClass_Get_Crate_RecalcAttributes, 0x6)
+ASMJIT_PATCH(0x4A1BEF, CrateClass_Get_Crate_RecalcAttributes, 0x6)
 {
 	GET(CellClass*, pCell, EBX);
 	pCell->RecalcAttributes(DWORD(-1));
@@ -244,7 +244,7 @@ DEFINE_HOOK(0x4A1BEF, CrateClass_Get_Crate_RecalcAttributes, 0x6)
 }
 
 // Multiplayer crate removal path.
-DEFINE_HOOK(0x56C1DA, MapClass_Remove_Crate_RecalcAttributes, 0x6)
+ASMJIT_PATCH(0x56C1DA, MapClass_Remove_Crate_RecalcAttributes, 0x6)
 {
 	GET(CellClass*, pCell, EBX);
 	pCell->RecalcAttributes(DWORD(-1));
@@ -256,7 +256,7 @@ DEFINE_HOOK(0x56C1DA, MapClass_Remove_Crate_RecalcAttributes, 0x6)
 // ============================================================
 
 // HouseClass::Flag_Remove: clears the flag home cell overlay without RecalcAttributes.
-DEFINE_HOOK(0x4FBF3C, HouseClass_Flag_Remove_RecalcAttributes, 0x5)
+ASMJIT_PATCH(0x4FBF3C, HouseClass_Flag_Remove_RecalcAttributes, 0x5)
 {
 	GET(CellClass*, pCell, EAX);
 	pCell->RecalcAttributes(DWORD(-1));
@@ -270,7 +270,7 @@ DEFINE_HOOK(0x4FBF3C, HouseClass_Flag_Remove_RecalcAttributes, 0x5)
 // VeinholeMonsterClass constructor directly writes SlopeIndex, IsoTileTypeIndex,
 // Height, and Level for a 3x3 cell grid without calling RecalcAttributes.
 // Hook after the last per-cell write (Level) each iteration to fix all 9 cells.
-DEFINE_HOOK(0x74C775, VeinholeMonster_Constructor_RecalcAttributes, 0x6)
+ASMJIT_PATCH(0x74C775, VeinholeMonster_Constructor_RecalcAttributes, 0x6)
 {
 	GET(CellClass*, pCell, EAX);
 	pCell->Level = (char)R->DL(); // write Level-1 before RecalcAttributes
@@ -305,7 +305,7 @@ static void BridgeCellDamaged(CellClass* pCell)
 // Bridge hooks - Group A: ESI = CellClass*, OverlayTypeIndex = -1 (7 bytes)
 // ============================================================
 
-DEFINE_HOOK(0x56EFF2, MapBridge_56EF50_RecalcCell, 0x7)
+ASMJIT_PATCH(0x56EFF2, MapBridge_56EF50_RecalcCell, 0x7)
 {
 	GET(CellClass*, pCell, ESI);
 	pCell->OverlayTypeIndex = -1;
@@ -313,7 +313,7 @@ DEFINE_HOOK(0x56EFF2, MapBridge_56EF50_RecalcCell, 0x7)
 	return 0x56EFF9;
 }
 
-DEFINE_HOOK(0x56F392, MapBridge_56F2F0_RecalcCell, 0x7)
+ASMJIT_PATCH(0x56F392, MapBridge_56F2F0_RecalcCell, 0x7)
 {
 	GET(CellClass*, pCell, ESI);
 	pCell->OverlayTypeIndex = -1;
@@ -321,7 +321,7 @@ DEFINE_HOOK(0x56F392, MapBridge_56F2F0_RecalcCell, 0x7)
 	return 0x56F399;
 }
 
-DEFINE_HOOK(0x56F956, MapBridge_Destroy_56F8B0_RecalcCell, 0x7)
+ASMJIT_PATCH(0x56F956, MapBridge_Destroy_56F8B0_RecalcCell, 0x7)
 {
 	GET(CellClass*, pCell, ESI);
 	pCell->OverlayTypeIndex = -1;
@@ -329,7 +329,7 @@ DEFINE_HOOK(0x56F956, MapBridge_Destroy_56F8B0_RecalcCell, 0x7)
 	return 0x56F95D;
 }
 
-DEFINE_HOOK(0x56FD26, MapBridge_56FCC0_RecalcCell, 0x7)
+ASMJIT_PATCH(0x56FD26, MapBridge_56FCC0_RecalcCell, 0x7)
 {
 	GET(CellClass*, pCell, ESI);
 	pCell->OverlayTypeIndex = -1;
@@ -337,7 +337,7 @@ DEFINE_HOOK(0x56FD26, MapBridge_56FCC0_RecalcCell, 0x7)
 	return 0x56FD2D;
 }
 
-DEFINE_HOOK(0x5721C2, MapBridge_572100_RecalcCell_A, 0x7)
+ASMJIT_PATCH(0x5721C2, MapBridge_572100_RecalcCell_A, 0x7)
 {
 	GET(CellClass*, pCell, ESI);
 	pCell->OverlayTypeIndex = -1;
@@ -345,7 +345,7 @@ DEFINE_HOOK(0x5721C2, MapBridge_572100_RecalcCell_A, 0x7)
 	return 0x5721C9;
 }
 
-DEFINE_HOOK(0x5724E2, MapBridge_572480_RecalcCell, 0x7)
+ASMJIT_PATCH(0x5724E2, MapBridge_572480_RecalcCell, 0x7)
 {
 	GET(CellClass*, pCell, ESI);
 	pCell->OverlayTypeIndex = -1;
@@ -353,7 +353,7 @@ DEFINE_HOOK(0x5724E2, MapBridge_572480_RecalcCell, 0x7)
 	return 0x5724E9;
 }
 
-DEFINE_HOOK(0x572882, MapBridge_572820_RecalcCell, 0x7)
+ASMJIT_PATCH(0x572882, MapBridge_572820_RecalcCell, 0x7)
 {
 	GET(CellClass*, pCell, ESI);
 	pCell->OverlayTypeIndex = -1;
@@ -361,7 +361,7 @@ DEFINE_HOOK(0x572882, MapBridge_572820_RecalcCell, 0x7)
 	return 0x572889;
 }
 
-DEFINE_HOOK(0x572E46, MapBridge_572DE0_RecalcCell, 0x7)
+ASMJIT_PATCH(0x572E46, MapBridge_572DE0_RecalcCell, 0x7)
 {
 	GET(CellClass*, pCell, ESI);
 	pCell->OverlayTypeIndex = -1;
@@ -369,7 +369,7 @@ DEFINE_HOOK(0x572E46, MapBridge_572DE0_RecalcCell, 0x7)
 	return 0x572E4D;
 }
 
-DEFINE_HOOK(0x573216, MapBridge_5731B0_RecalcCell, 0x7)
+ASMJIT_PATCH(0x573216, MapBridge_5731B0_RecalcCell, 0x7)
 {
 	GET(CellClass*, pCell, ESI);
 	pCell->OverlayTypeIndex = -1;
@@ -377,7 +377,7 @@ DEFINE_HOOK(0x573216, MapBridge_5731B0_RecalcCell, 0x7)
 	return 0x57321D;
 }
 
-DEFINE_HOOK(0x57779F, MapBridge_577740_RecalcCell, 0x7)
+ASMJIT_PATCH(0x57779F, MapBridge_577740_RecalcCell, 0x7)
 {
 	GET(CellClass*, pCell, ESI);
 	pCell->OverlayTypeIndex = -1;
@@ -385,7 +385,7 @@ DEFINE_HOOK(0x57779F, MapBridge_577740_RecalcCell, 0x7)
 	return 0x5777A6;
 }
 
-DEFINE_HOOK(0x5778BB, MapBridge_577860_RecalcCell, 0x7)
+ASMJIT_PATCH(0x5778BB, MapBridge_577860_RecalcCell, 0x7)
 {
 	GET(CellClass*, pCell, ESI);
 	pCell->OverlayTypeIndex = -1;
@@ -397,7 +397,7 @@ DEFINE_HOOK(0x5778BB, MapBridge_577860_RecalcCell, 0x7)
 // Bridge hooks - Group B: EAX = CellClass*, OverlayData change (7 bytes)
 // ============================================================
 
-DEFINE_HOOK(0x56F712, MapBridge_56F690_Damaged_EAX_F1, 0x7)
+ASMJIT_PATCH(0x56F712, MapBridge_56F690_Damaged_EAX_F1, 0x7)
 {
 	GET(CellClass*, pCell, EAX);
 	pCell->OverlayData = 0xF;
@@ -405,7 +405,7 @@ DEFINE_HOOK(0x56F712, MapBridge_56F690_Damaged_EAX_F1, 0x7)
 	return 0x56F719;
 }
 
-DEFINE_HOOK(0x56F71B, MapBridge_56F690_Damaged_EAX_E1, 0x7)
+ASMJIT_PATCH(0x56F71B, MapBridge_56F690_Damaged_EAX_E1, 0x7)
 {
 	GET(CellClass*, pCell, EAX);
 	pCell->OverlayData = 0xE;
@@ -413,7 +413,7 @@ DEFINE_HOOK(0x56F71B, MapBridge_56F690_Damaged_EAX_E1, 0x7)
 	return 0x56F722;
 }
 
-DEFINE_HOOK(0x56F822, MapBridge_56F7A0_Damaged_EAX_F2, 0x7)
+ASMJIT_PATCH(0x56F822, MapBridge_56F7A0_Damaged_EAX_F2, 0x7)
 {
 	GET(CellClass*, pCell, EAX);
 	pCell->OverlayData = 0xF;
@@ -421,7 +421,7 @@ DEFINE_HOOK(0x56F822, MapBridge_56F7A0_Damaged_EAX_F2, 0x7)
 	return 0x56F829;
 }
 
-DEFINE_HOOK(0x56F82B, MapBridge_56F7A0_Damaged_EAX_D2, 0x7)
+ASMJIT_PATCH(0x56F82B, MapBridge_56F7A0_Damaged_EAX_D2, 0x7)
 {
 	GET(CellClass*, pCell, EAX);
 	pCell->OverlayData = 0xD;
@@ -429,7 +429,7 @@ DEFINE_HOOK(0x56F82B, MapBridge_56F7A0_Damaged_EAX_D2, 0x7)
 	return 0x56F832;
 }
 
-DEFINE_HOOK(0x572C02, MapBridge_572BC0_Damaged_EAX_F3, 0x7)
+ASMJIT_PATCH(0x572C02, MapBridge_572BC0_Damaged_EAX_F3, 0x7)
 {
 	GET(CellClass*, pCell, EAX);
 	pCell->OverlayData = 0xF;
@@ -437,7 +437,7 @@ DEFINE_HOOK(0x572C02, MapBridge_572BC0_Damaged_EAX_F3, 0x7)
 	return 0x572C09;
 }
 
-DEFINE_HOOK(0x572C0B, MapBridge_572BC0_Damaged_EAX_E3, 0x7)
+ASMJIT_PATCH(0x572C0B, MapBridge_572BC0_Damaged_EAX_E3, 0x7)
 {
 	GET(CellClass*, pCell, EAX);
 	pCell->OverlayData = 0xE;
@@ -445,7 +445,7 @@ DEFINE_HOOK(0x572C0B, MapBridge_572BC0_Damaged_EAX_E3, 0x7)
 	return 0x572C12;
 }
 
-DEFINE_HOOK(0x572D12, MapBridge_572CD0_Damaged_EAX_F4, 0x7)
+ASMJIT_PATCH(0x572D12, MapBridge_572CD0_Damaged_EAX_F4, 0x7)
 {
 	GET(CellClass*, pCell, EAX);
 	pCell->OverlayData = 0xF;
@@ -453,7 +453,7 @@ DEFINE_HOOK(0x572D12, MapBridge_572CD0_Damaged_EAX_F4, 0x7)
 	return 0x572D19;
 }
 
-DEFINE_HOOK(0x572D1B, MapBridge_572CD0_Damaged_EAX_D4, 0x7)
+ASMJIT_PATCH(0x572D1B, MapBridge_572CD0_Damaged_EAX_D4, 0x7)
 {
 	GET(CellClass*, pCell, EAX);
 	pCell->OverlayData = 0xD;
@@ -465,7 +465,7 @@ DEFINE_HOOK(0x572D1B, MapBridge_572CD0_Damaged_EAX_D4, 0x7)
 // Bridge hooks - Group C: ESI = CellClass*, OverlayData change (7 bytes)
 // ============================================================
 
-DEFINE_HOOK(0x572101, MapBridge_572100_Damaged_ESI, 0x7)
+ASMJIT_PATCH(0x572101, MapBridge_572100_Damaged_ESI, 0x7)
 {
 	GET(CellClass*, pCell, ESI);
 	pCell->OverlayData = 0xF;
@@ -473,7 +473,7 @@ DEFINE_HOOK(0x572101, MapBridge_572100_Damaged_ESI, 0x7)
 	return 0x572108;
 }
 
-DEFINE_HOOK(0x5777FC, MapBridge_577740_Damaged_ESI, 0x7)
+ASMJIT_PATCH(0x5777FC, MapBridge_577740_Damaged_ESI, 0x7)
 {
 	GET(CellClass*, pCell, ESI);
 	pCell->OverlayData = 0xF;
@@ -486,7 +486,7 @@ DEFINE_HOOK(0x5777FC, MapBridge_577740_Damaged_ESI, 0x7)
 // ============================================================
 
 // VeinholeMonsterClass area bridge cell clear (0x74CBEE).
-DEFINE_HOOK(0x74CBEE, VeinholeArea_Bridge_RecalcCell, 0x7)
+ASMJIT_PATCH(0x74CBEE, VeinholeArea_Bridge_RecalcCell, 0x7)
 {
 	GET(CellClass*, pCell, EBP);
 	pCell->OverlayTypeIndex = -1;
@@ -498,7 +498,7 @@ DEFINE_HOOK(0x74CBEE, VeinholeArea_Bridge_RecalcCell, 0x7)
 // Bridge hooks - Group E: ESI = CellClass*, OverlayData + OverlayTypeIndex (10 bytes)
 // ============================================================
 
-DEFINE_HOOK(0x576721, MapBridge_576200_RecalcCell, 0xA)
+ASMJIT_PATCH(0x576721, MapBridge_576200_RecalcCell, 0xA)
 {
 	GET(CellClass*, pCell, ESI);
 	pCell->OverlayData = 0;

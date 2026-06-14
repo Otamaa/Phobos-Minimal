@@ -32,6 +32,9 @@
 #include <cstring>
 #include <xmmintrin.h>  // SSE intrinsics
 #include <emmintrin.h>  // SSE2 intrinsics
+#include <mutex>
+#include <thread>
+#include <atomic>
 
 // ============================================================================
 // CONFIGURATION
@@ -1328,11 +1331,11 @@ namespace SyringeData
 	_YR_LINKER_FORCE_INCLUDE(name)
 
 #define declhost(exename, checksum) \
-namespace SyringeData { namespace Hosts { __declspec(allocate(".syexe00")) hostdecl _hst__ ## exename  { checksum, #exename }; }; }; \
+namespace SyringeData { namespace Hosts { __declspec(allocate(SYRINGE_HOOKS_SECTION_NAME)) hostdecl _hst__ ## exename  { checksum, #exename }; }; }; \
 _YR_DEFINE_INCLUDE_ANCHOR(_YR_PP_CAT(YrKeepHost_, exename), &SyringeData::Hosts::_hst__ ## exename)
 
 #define declhook(hook, funcname, size) \
-namespace SyringeData { namespace Hooks { __declspec(allocate(".syhks00")) hookdecl _hk__ ## hook ## funcname  {  hook, size, #funcname }; }; }; \
+namespace SyringeData { namespace Hooks { __declspec(allocate(SYRINGE_HOOKS_SECTION_NAME)) hookdecl _hk__ ## hook ## funcname  {  hook, size, #funcname }; }; }; \
 _YR_DEFINE_INCLUDE_ANCHOR(_YR_PP_CAT(YrKeepHook_, _YR_PP_CAT(hook, funcname)), &SyringeData::Hooks::_hk__ ## hook ## funcname)
 
 #define decl_asmjit_patch_data(hook, funcname, size) \
@@ -1359,11 +1362,11 @@ hookdeclfunc _hk__ ## hook ## funcname { hook, size, &funcname }; \
 #ifndef DEBUG_HOOK
 
 #define ASMJIT_PATCH_AGAIN(hook, funcname, size) \
-	declhook(hook, funcname, size)
+	decl_asmjit_patch_data(hook, funcname, size)
 
 #define ASMJIT_PATCH(hook, funcname, size) \
 	EXPORT_FUNC(funcname); \
-	declhook(hook, funcname, size) \
+	decl_asmjit_patch_data(hook, funcname, size) \
 	EXPORT_FUNC(funcname)
 
 #define DEFINE_HOOK(hook, funcname, size) \
@@ -1419,6 +1422,96 @@ static_assert(alignof(REGISTERS) <= 4,
 static_assert(sizeof(LimitedRegister) == sizeof(DWORD));
 static_assert(sizeof(ExtendedRegister) == sizeof(DWORD));
 static_assert(sizeof(StackRegister) == sizeof(DWORD));
+
+// ============================================================================
+// Thread-safety helpers for hook handlers that may run on the audio thread
+// (or any non-main thread) and touch shared extension data such as:
+//   - HouseExtData::SWCharges
+//   - TechnoTypeExtContainer / SWTypeExtContainer lookups
+//   - FakeStripClass / sidebar render state
+//
+// USAGE
+// -----
+// 1. Record the main thread's ID once, early in init (e.g. in DllMain or
+//    your mod's main entry point, BEFORE any hooks can fire):
+//
+//        PhobosThreadGuard::SetMainThread();
+//
+// 2. In any hook handler that touches shared extension containers, guard
+//    the access:
+//
+//        DWORD __stdcall MyHookHandler(REGISTERS* R)
+//        {
+//            PHOBOS_AUDIO_THREAD_GUARD(SWChargesMutex);
+//
+//            auto pExt = HouseExtContainer::Instance.Find(pHouse);
+//            pExt->SWCharges[...] += 1;
+//            ...
+//        }
+//
+//    PHOBOS_AUDIO_THREAD_GUARD expands to a lock_guard ONLY if the current
+//    thread is NOT the main thread, avoiding any locking overhead for the
+//    overwhelming majority of hooks that only ever run on the main thread.
+//
+// 3. If you discover (via logging, see below) that a particular hook is
+//    NEVER called from a non-main thread in practice, you can remove the
+//    guard from that handler -- it's an opt-in safety net, not a mandate.
+//
+// DIAGNOSTIC MODE
+// ----------------
+// PHOBOS_AUDIO_THREAD_GUARD also logs (once per hook address, via a static
+// local) if it ever detects a non-main-thread call. This lets you build up
+// real evidence of WHICH hooks are audio-reachable over a play session,
+// instead of guessing from static analysis. After a few play sessions,
+// search your log for "non-main-thread call detected" to get the real list.
+// ============================================================================
+namespace PhobosThreadGuard
+{
+	inline std::atomic<std::thread::id> g_mainThreadId {};
+	inline std::atomic<bool> g_mainThreadSet { false };
+
+	// Call once, early, from the main thread (before hooks can fire).
+	inline void SetMainThread()
+	{
+		g_mainThreadId.store(std::this_thread::get_id(), std::memory_order_relaxed);
+		g_mainThreadSet.store(true, std::memory_order_release);
+	}
+
+	inline bool IsMainThread()
+	{
+		if (!g_mainThreadSet.load(std::memory_order_acquire))
+		{
+			// SetMainThread() was never called -- fail safe: treat every
+			// call as "not main thread" so guards always engage. This is
+			// slower but never incorrect.
+			return false;
+		}
+
+		return std::this_thread::get_id() == g_mainThreadId.load(std::memory_order_relaxed);
+	}
+}
+
+// Lightweight RAII guard: locks `mutexName` only if the current thread is
+// not the recorded main thread. `mutexName` must be a static (or otherwise
+// shared) std::mutex declared in the enclosing scope or as a file-static.
+//
+// __LINE__ / __COUNTER__ used to make the diagnostic-log static unique per
+// call site without requiring the caller to name it.
+#define PHOBOS_AUDIO_THREAD_GUARD(mutexName)                                   \
+    std::unique_lock<std::mutex> _phobos_guard_lock;                          \
+    if (!PhobosThreadGuard::IsMainThread())                                   \
+    {                                                                          \
+        static std::atomic<bool> _phobos_guard_logged{ false };               \
+        if (!_phobos_guard_logged.exchange(true))                             \
+        {                                                                      \
+            GameDebugLog::Log(                                                       \
+                "[ThreadGuard] %s:%d : non-main-thread call detected, "       \
+                "locking " #mutexName "\n",                                   \
+                __FUNCTION__, __LINE__);                                       \
+        }                                                                      \
+        _phobos_guard_lock = std::unique_lock<std::mutex>(mutexName);         \
+    }
+
 
 // ============================================================================
 // END OF HEADER

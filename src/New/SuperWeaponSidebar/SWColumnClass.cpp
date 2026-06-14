@@ -108,8 +108,7 @@ bool SWColumnClass::AddButton(int superIdx)
 
 		this->RemoveButton(backIdx);
 		sidebar->DisableEntry = true;
-		SidebarClass::Instance->AddCameo(AbstractType::Special, backIdx);
-		SidebarClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(AbstractType::Super, backIdx, false));
+		SidebarClass::Instance->AddSpecialCameo(backIdx);
 		sidebar->DisableEntry = false;
 	}
 

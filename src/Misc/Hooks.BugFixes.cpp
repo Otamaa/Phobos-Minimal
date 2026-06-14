@@ -3034,10 +3034,9 @@ ASMJIT_PATCH(0x46B0E1, BulletClass_DrawAVXL_LightingFix, 0x5)
 
 #pragma endregion
 
-ASMJIT_PATCH_AGAIN(0x701681, TechnoClass_SetOwningHouse_TunnelFix, 0x6)
 ASMJIT_PATCH(0x701664, TechnoClass_SetOwningHouse_TunnelFix, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	R->AL(pThis->InLimbo || (flag_cast_to<FootClass*, false>(pThis) && static_cast<FootClass*>(pThis)->TubeIndex != -1));
 	return R->Origin() + 0x6;
-}
+}ASMJIT_PATCH_AGAIN(0x701681, TechnoClass_SetOwningHouse_TunnelFix, 0x6)

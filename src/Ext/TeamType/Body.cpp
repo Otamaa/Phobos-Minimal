@@ -115,13 +115,12 @@ ASMJIT_PATCH(0x6F08E4, TeamTypeClass_CTOR, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH_AGAIN(0x6F2106 , TeamTypeClass_DTOR, 0x7)
 ASMJIT_PATCH(0x6F0926, TeamTypeClass_DTOR, 0x7)
 {
 	GET(TeamTypeClass*, pItem, ESI);
 	TeamTypeExtContainer::Instance.Remove(pItem);
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x6F2106, TeamTypeClass_DTOR, 0x7)
 
 HRESULT __stdcall FakeTeamTypeClass::__Load(IStream* pStm)
 {
@@ -149,14 +148,13 @@ HRESULT __stdcall FakeTeamTypeClass::__Save(IStream* pStm, BOOL fClearDirty)
 }
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F47E8, FakeTeamTypeClass::__Save)
 
-ASMJIT_PATCH_AGAIN(0x6F1535, TeamTypeClass_LoadFromINI, 0xA)
 ASMJIT_PATCH(0x6F1528, TeamTypeClass_LoadFromINI, 0xA)
 {
 	GET(TeamTypeClass*, pItem, ESI);
 	GET(CCINIClass*, pINI, EBX);
 	TeamTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x6F1535);
 	return 0x0;
-}
+}ASMJIT_PATCH_AGAIN(0x6F1535, TeamTypeClass_LoadFromINI, 0xA)
 
 //ASMJIT_PATCH(0x6F1836, TeamTypeClass_WriteToINI, 0x6)
 //{
