@@ -57,23 +57,21 @@ static bool inline IsDisableChatEnabled()
 // preventing players from re-enabling chat via the alliances menu.
 ASMJIT_PATCH(0x55DDA5, MainLoop_AfterRender__DisableChat, 0x5)
 {
-	if (IsDisableChatEnabled())
-	{
-		for (int i = 0; i < 8; i++){
-			Game::ChatMask[i] = false;
+	static int LastDisableChatFeedbackFrame = -1000;
+
+	if (IsDisableChatEnabled()) {
+		const int currentFrame = Unsorted::CurrentFrame;
+
+		if (currentFrame < LastDisableChatFeedbackFrame)
+			LastDisableChatFeedbackFrame = -1000; // new match started
+
+		if (currentFrame - LastDisableChatFeedbackFrame >= 90) {
+			MessageListClass::Instance->PrintMessage(L"Chat is disabled. Message not sent.");
+			LastDisableChatFeedbackFrame = currentFrame;
 		}
 
-	}
-
-	return 0;
-}
-
-// Don't send message to others when DisableChat is active.
-// Mirrors: hack 0x0055EF38, 0x0055EF3E in chat_disable.asm
-ASMJIT_PATCH(0x55EF38, MessageSend_DisableChat, 0x6)
-{
-	if (IsDisableChatEnabled())
 		return 0x55F056; // skip the send
+	}
 
 	return 0; // execute original: cmp edi, ebx; mov [esp+0x14], ebx
 }
@@ -82,57 +80,28 @@ ASMJIT_PATCH(0x55EF38, MessageSend_DisableChat, 0x6)
 // (i.e. the message was suppressed). Mirrors: hack 0x0048D97E in chat_disable.asm
 ASMJIT_PATCH(0x48D97E, NetworkCallBack_NetMessage_Sound, 0x5)
 {
-	static int LastDisableChatFeedbackFrame = -1000;
-
-	if (IsDisableChatEnabled())
-	{
-		const int currentFrame = Unsorted::CurrentFrame;
-
-		if (currentFrame - LastDisableChatFeedbackFrame >= 90)
-		{
-			MessageListClass::Instance->PrintMessage(L"Chat is disabled. Message not sent.");
-			LastDisableChatFeedbackFrame = currentFrame;
-		}
-
-		return 0x55F056; // skip the send
-	}
+	if (!R->EAX<void*>())
+		return 0x48D99A; // skip sound
 
 	return 0; // execute original: mov eax, [0x8871E0]
 }
 
 // In diplomacy dialog, make chat checkbox non-interactive for each player,
 // matching the existing Player_MuteSWLaunches disabled-checkbox behavior.
-// Hook point is after `push 0` (lParam), so jumping to 0x657FC0 preserves stack layout.
-ASMJIT_PATCH(0x657F95, RadarClass_Diplomacy_DisableChatToggleUI, 0x2)
+// Replaces `mov eax, Player_MuteSWLaunches` (5 bytes at 0x657F8E).
+// The subsequent `push 0; test eax, eax; jnz 0x657FC0` remains intact and
+// branches to the disabled-checkbox path when EAX is non-zero.
+ASMJIT_PATCH(0x657F8E, RadarClass_Diplomacy_DisableChatToggleUI, 0x5)
 {
-	return IsDisableChatEnabled()
-		? 0x657FC0
-		: 0;
-}
-
-// Continuously enforce DisableChat by resetting ChatMask every frame,
-// preventing re-enabling chat from the alliance menu.
-ASMJIT_PATCH(0x55DDA5, MainLoop_AfterRender_DisableChat, 0x5)
-{
-	auto const Original = reinterpret_cast<int(__thiscall*)(void*)>(0x5D4430);
-	GET(void*, pThis, ECX);
-	Original(pThis);
-
-	if (IsDisableChatEnabled())
-	{
-		for (int i = 0; i < 8; ++i)
-			Game::ChatMask[i] = false;
-	}
-
-	return 0x55DDAA;
+	R->EAX(IsDisableChatEnabled() ? 1 : Unsorted::MuteSWLaunches());
+	return 0;
 }
 
 // The non-interactive branch (loc_657FC0) sets BM_SETCHECK(1) before disabling.
 // Force it back to OFF for DisableChat so visuals match the intended locked state.
 ASMJIT_PATCH(0x657FDB, RadarClass_Diplomacy_ForceDisabledChatVisualOff, 0x5)
 {
-	if (IsDisableChatEnabled())
-	{
+	if (IsDisableChatEnabled()) {
 		GET(HWND, hWnd, EBP);
 		SendMessageA(hWnd, BM_SETCHECK, BST_UNCHECKED, 0);
 	}
@@ -140,13 +109,24 @@ ASMJIT_PATCH(0x657FDB, RadarClass_Diplomacy_ForceDisabledChatVisualOff, 0x5)
 	return 0;
 }
 
-#pragma endregion
+// Continuously enforce DisableChat by resetting ChatMask every frame,
+// preventing re-enabling chat from the alliance menu.
+ASMJIT_PATCH(0x55DDA5, MainLoop_AfterRender_DisableChat, 0x5)
+{
+	GET(MessageListClass*, pThis, ECX);
+
+	pThis->Manage();
+
+	if (IsDisableChatEnabled()) {
+		for (int i = 0; i < 8; ++i)
+			Game::ChatMask[i] = false;
+	}
+
+	return 0x55DDAA;
+}
 
 ASMJIT_PATCH(0x48D92B, NetworkCallBack_NetMessage_Print, 0x5)
 {
-	if (!SpawnerMain::Configs::Enabled)
-		return 0;
-
 	enum { SkipMessage = 0x48DAD3, PrintMessage = 0x48D937 };
 
 	if (IsDisableChatEnabled())
@@ -156,7 +136,7 @@ ASMJIT_PATCH(0x48D92B, NetworkCallBack_NetMessage_Print, 0x5)
 
 	if (houseIndex < 8 && Game::ChatMask[houseIndex]) {
 		if (HouseClass* pHouse = HouseClass::Array->get_or_default(houseIndex)) {
-			GlobalPacket_NetMessage::Instance->Color = (BYTE)pHouse->ColorSchemeIndex;
+			GlobalPacket_NetMessage::Instance->Color = (byte)pHouse->ColorSchemeIndex;
 			R->ESI(pHouse->UIName);
 			return PrintMessage;
 		}
@@ -167,30 +147,22 @@ ASMJIT_PATCH(0x48D92B, NetworkCallBack_NetMessage_Print, 0x5)
 
 ASMJIT_PATCH(0x48D95B, NetworkCallBack_NetMessage_SetColor, 0x6)
 {
-	if (!SpawnerMain::Configs::Enabled)
-		return 0;
-
 	R->EAX(R->ECX());
 	return 0x48D966;
 }
 
 ASMJIT_PATCH(0x55EDD2, MessageInput_Write, 0x5)
 {
-	if (!SpawnerMain::Configs::Enabled)
-		return 0;
-
 	HouseClass* pHouse = HouseClass::CurrentPlayer;
 	wcscpy_s(GlobalPacket_NetMessage::Instance->PlayerName, pHouse->UIName);
-	GlobalPacket_NetMessage::Instance->HouseIndex = (BYTE)pHouse->ArrayIndex;
+	GlobalPacket_NetMessage::Instance->HouseIndex = (byte)pHouse->ArrayIndex;
 
 	return 0x55EE00;
 }
 
 ASMJIT_PATCH(0x55F0A8, MessageInput_Print, 0x5)
 {
-	if (!SpawnerMain::Configs::Enabled)
-		return 0;
-
 	R->EAX(GlobalPacket_NetMessage::Instance->PlayerName);
 	return 0x55F0B2;
 }
+#pragma endregion
