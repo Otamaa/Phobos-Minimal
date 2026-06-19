@@ -3,15 +3,19 @@
 #include <LoadOptionsClass.h>
 
 #include <Helpers/Macro.h>
+#include <Utilities/Macro.h>
+#include <Utilities/Patch.h>
 
-ASMJIT_PATCH(0x74fdc0, GetModuleVersion, 5)
-{
-	R->EAX("Ares r21.352.1218");
-	return 0x74FEEF;
-}
+#include <VersionClass.h>
 
-ASMJIT_PATCH(0x74fae0, GetModuleInternalVersion, 5)
+const char* __fastcall Version_Name()
 {
-	R->EAX("1.001/Ares 3.0p1");
-	return 0x74FC7B;
+	return "Ares r21.352.1218";
 }
+DEFINE_FUNCTION_JUMP(LJMP, 0x74fdc0, Version_Name)
+
+const char* __fastcall GetModule_InternalVersion_Name(VersionClass*)
+{
+	return "1.001/Ares 3.0p1";
+}
+DEFINE_FUNCTION_JUMP(LJMP, 0x74fae0, GetModule_InternalVersion_Name)

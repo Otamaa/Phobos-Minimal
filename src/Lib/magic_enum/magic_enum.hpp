@@ -5,11 +5,11 @@
 // | |  | | (_| | (_| | | (__  | |____| | | | |_| | | | | | | | |____|_|   |_|
 // |_|  |_|\__,_|\__, |_|\___| |______|_| |_|\__,_|_| |_| |_|  \_____|
 //                __/ | https://github.com/Neargye/magic_enum
-//               |___/  version 0.9.7
+//               |___/  version 0.9.8
 //
 // Licensed under the MIT License <http://opensource.org/licenses/MIT>.
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2019 - 2024 Daniil Goncharov <neargye@gmail.com>.
+// Copyright (c) 2019 - 2026 Daniil Goncharov <neargye@gmail.com>.
 //
 // Permission is hereby  granted, free of charge, to any  person obtaining a copy
 // of this software and associated  documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@
 
 #define MAGIC_ENUM_VERSION_MAJOR 0
 #define MAGIC_ENUM_VERSION_MINOR 9
-#define MAGIC_ENUM_VERSION_PATCH 7
+#define MAGIC_ENUM_VERSION_PATCH 8
 
 #ifndef MAGIC_ENUM_USE_STD_MODULE
 #include <array>
@@ -316,14 +316,14 @@ class static_str {
 
   constexpr string_view str() const noexcept { return string_view(data(), size()); }
 
+  char_type chars_[static_cast<std::size_t>(N) + 1];
+
  private:
   template <std::uint16_t... I>
   constexpr static_str(const char* str, std::integer_sequence<std::uint16_t, I...>) noexcept : chars_{static_cast<char_type>(str[I])..., static_cast<char_type>('\0')} {}
 
   template <std::uint16_t... I>
   constexpr static_str(string_view str, std::integer_sequence<std::uint16_t, I...>) noexcept : chars_{str[I]..., static_cast<char_type>('\0')} {}
-
-  char_type chars_[static_cast<std::size_t>(N) + 1];
 };
 
 template <>
@@ -341,7 +341,6 @@ class static_str<0> {
 
   constexpr string_view str() const noexcept { return string_view(data(), size()); }
 
-private:
   static constexpr char_type chars_[1] = {};
 };
 
@@ -948,6 +947,12 @@ struct is_unscoped_enum : std::false_type {};
 template <typename T>
 struct is_unscoped_enum<T, true> : std::bool_constant<std::is_convertible_v<T, std::underlying_type_t<T>>> {};
 
+template <typename T, bool = std::is_enum_v<T>>
+struct is_flags_enum : std::false_type {};
+
+template <typename T>
+struct is_flags_enum<T, true> : std::bool_constant<subtype_v<T> == enum_subtype::flags> {};
+
 template <typename T, bool = std::is_enum_v<std::decay_t<T>>>
 struct underlying_type {};
 
@@ -1124,7 +1129,7 @@ constexpr bool has_duplicate() noexcept {
       } else if constexpr (CallValue == case_call_t::value) {                                                                 \
         if constexpr (std::is_invocable_r_v<result_t, Lambda, enum_constant<values[val + Page]>>) {                           \
           return detail::invoke_r<result_t>(std::forward<Lambda>(lambda), enum_constant<values[val + Page]>{});               \
-        } else if constexpr (std::is_invocable_r_v<result_t, Lambda, enum_constant<values[val + Page]>>) {                    \
+        } else if constexpr (std::is_invocable_v<Lambda, enum_constant<values[val + Page]>>) {                                \
           MAGIC_ENUM_ASSERT(false && "magic_enum::detail::constexpr_switch wrong result type.");                                         \
         }                                                                                                                     \
       }                                                                                                                       \
@@ -1188,6 +1193,13 @@ struct is_scoped_enum : detail::is_scoped_enum<T> {};
 
 template <typename T>
 inline constexpr bool is_scoped_enum_v = is_scoped_enum<T>::value;
+
+// Returns true if T is a flags enumeration type (i.e., enum_range<T>::is_flags == true).
+template <typename T>
+struct is_flags_enum : detail::is_flags_enum<T> {};
+
+template <typename T>
+inline constexpr bool is_flags_v = is_flags_enum<T>::value;
 
 // If T is a complete enumeration type, provides a member typedef type that names the underlying type of T.
 // Otherwise, if T is not an enumeration type, there is no member type. Otherwise (T is an incomplete enumeration type), the program is ill-formed.

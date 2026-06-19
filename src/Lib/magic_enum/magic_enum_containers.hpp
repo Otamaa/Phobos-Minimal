@@ -5,11 +5,11 @@
 // | |  | | (_| | (_| | | (__  | |____| | | | |_| | | | | | | | |____|_|   |_|
 // |_|  |_|\__,_|\__, |_|\___| |______|_| |_|\__,_|_| |_| |_|  \_____|
 //                __/ | https://github.com/Neargye/magic_enum
-//               |___/  version 0.9.7
+//               |___/  version 0.9.8
 //
 // Licensed under the MIT License <http://opensource.org/licenses/MIT>.
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2019 - 2024 Daniil Goncharov <neargye@gmail.com>.
+// Copyright (c) 2019 - 2026 Daniil Goncharov <neargye@gmail.com>.
 // Copyright (c) 2022 - 2023 Bela Schaum <schaumb@gmail.com>.
 //
 // Permission is hereby  granted, free of charge, to any  person obtaining a copy
@@ -34,6 +34,20 @@
 #define NEARGYE_MAGIC_ENUM_CONTAINERS_HPP
 
 #include "magic_enum.hpp"
+
+#if __has_include(<bit>) && (__cplusplus >= 202002L || (defined(_MSVC_LANG) && _MSVC_LANG >= 202002L))
+#  include <bit>
+#endif
+
+#if (!defined(__cpp_lib_bitops) || (__cpp_lib_bitops < 201907L)) && defined(_MSC_VER) && !defined(__clang__)
+#  include <intrin.h>
+#  pragma intrinsic(_BitScanForward)
+#  pragma intrinsic(_BitScanReverse)
+#  ifdef _WIN64
+#    pragma intrinsic(_BitScanForward64)
+#    pragma intrinsic(_BitScanReverse64)
+#  endif
+#endif
 
 #if !defined(MAGIC_ENUM_NO_EXCEPTION) && (defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND))
 #ifndef MAGIC_ENUM_USE_STD_MODULE
@@ -101,6 +115,8 @@ constexpr std::size_t popcount(T x) noexcept {
   return c;
 }
 
+namespace impl {
+
 template <typename Cmp = std::less<>, typename ForwardIt, typename E>
 constexpr ForwardIt lower_bound(ForwardIt first, ForwardIt last, E&& e, Cmp&& comp = {}) {
   auto count = std::distance(first, last);
@@ -117,10 +133,12 @@ constexpr ForwardIt lower_bound(ForwardIt first, ForwardIt last, E&& e, Cmp&& co
   return first;
 }
 
+} // namespace impl
+
 template <typename Cmp = std::less<>, typename BidirIt, typename E>
 constexpr auto equal_range(BidirIt begin, BidirIt end, E&& e, Cmp&& comp = {}) {
-  const auto first = lower_bound(begin, end, e, comp);
-  return std::pair{first, lower_bound(std::make_reverse_iterator(end), std::make_reverse_iterator(first), e, [&comp](auto&& lhs, auto&& rhs) { return comp(rhs, lhs); }).base()};
+  const auto first = impl::lower_bound(begin, end, e, comp);
+  return std::pair{first, impl::lower_bound(std::make_reverse_iterator(end), std::make_reverse_iterator(first), e, [&comp](auto&& lhs, auto&& rhs) { return comp(rhs, lhs); }).base()};
 }
 
 template <typename E = void, typename Cmp = std::less<E>, typename = void>
@@ -310,6 +328,68 @@ struct FilteredIterator {
   [[nodiscard]] friend constexpr bool operator!=(const FilteredIterator& lhs, const FilteredIterator& rhs) { return lhs.current != rhs.current; }
 };
 
+template<class T> constexpr int countr_zero(T x) noexcept {
+#if __cpp_lib_bitops >= 201907L
+  return std::countr_zero(x);
+#elif defined(_MSC_VER) && !defined(__clang__)
+  unsigned long index;
+  if constexpr (sizeof(T) <= sizeof(unsigned long)) {
+    return _BitScanForward(&index, static_cast<unsigned long>(x)) ? static_cast<int>(index) : static_cast<int>(sizeof(T) * 8);
+  } else {
+#  ifdef _WIN64
+    return _BitScanForward64(&index, static_cast<unsigned __int64>(x)) ? static_cast<int>(index) : static_cast<int>(sizeof(T) * 8);
+#  else
+    if (_BitScanForward(&index, static_cast<unsigned long>(x))) { return static_cast<int>(index); }
+    return _BitScanForward(&index, static_cast<unsigned long>(x >> 32)) ? static_cast<int>(index) + 32 : static_cast<int>(sizeof(T) * 8);
+#  endif
+  }
+#else
+  if constexpr (sizeof(T) <= sizeof(unsigned int)) {
+    return x ? __builtin_ctz(static_cast<unsigned int>(x)) : static_cast<int>(sizeof(T) * 8);
+  } else if constexpr (sizeof(T) <= sizeof(unsigned long)) {
+    return x ? __builtin_ctzl(static_cast<unsigned long>(x)) : static_cast<int>(sizeof(T) * 8);
+  } else {
+    return x ? __builtin_ctzll(static_cast<unsigned long long>(x)) : static_cast<int>(sizeof(T) * 8);
+  }
+#endif
+}
+
+template<class T> constexpr int countl_zero(T x) noexcept {
+#if __cpp_lib_bitops >= 201907L
+  return std::countl_zero(x);
+#elif defined(_MSC_VER) && !defined(__clang__)
+  unsigned long index;
+  if constexpr (sizeof(T) <= sizeof(unsigned long)) {
+    return _BitScanReverse(&index, static_cast<unsigned long>(x)) ? static_cast<int>(sizeof(T) * 8) - static_cast<int>(index) - 1 : static_cast<int>(sizeof(T) * 8);
+  } else {
+#  ifdef _WIN64
+    return _BitScanReverse64(&index, static_cast<unsigned __int64>(x)) ? static_cast<int>(sizeof(T) * 8) - static_cast<int>(index) - 1 : static_cast<int>(sizeof(T) * 8);
+#  else
+    if (_BitScanReverse(&index, static_cast<unsigned long>(x >> 32))) { return static_cast<int>(sizeof(T) * 8) - static_cast<int>(index) - 33; }
+    return _BitScanReverse(&index, static_cast<unsigned long>(x)) ? static_cast<int>(sizeof(T) * 8) - static_cast<int>(index) - 1 : static_cast<int>(sizeof(T) * 8);
+#  endif
+  }
+#else
+  // __builtin_clz* counts leading zeros in the promoted type width, not in T.
+  // We must subtract the extra bits introduced by zero-extension.
+  if constexpr (sizeof(T) <= sizeof(unsigned int)) {
+    return x ? __builtin_clz(static_cast<unsigned int>(x)) - static_cast<int>((sizeof(unsigned int) - sizeof(T)) * 8) : static_cast<int>(sizeof(T) * 8);
+  } else if constexpr (sizeof(T) <= sizeof(unsigned long)) {
+    return x ? __builtin_clzl(static_cast<unsigned long>(x)) - static_cast<int>((sizeof(unsigned long) - sizeof(T)) * 8) : static_cast<int>(sizeof(T) * 8);
+  } else {
+    return x ? __builtin_clzll(static_cast<unsigned long long>(x)) - static_cast<int>((sizeof(unsigned long long) - sizeof(T)) * 8) : static_cast<int>(sizeof(T) * 8);
+  }
+#endif
+}
+
+template<class T> constexpr int bit_width(T x) noexcept {
+#if __cpp_lib_int_pow2 >= 202002L
+  return std::bit_width(x);
+#else
+  return std::numeric_limits<T>::digits - countl_zero(x);
+#endif
+}
+
 } // namespace detail
 
 template <typename E = void>
@@ -400,17 +480,17 @@ struct array {
 
   [[nodiscard]] constexpr const_iterator cend() const noexcept { return a.cend(); }
 
-  [[nodiscard]] constexpr iterator rbegin() noexcept { return a.rbegin(); }
+  [[nodiscard]] constexpr reverse_iterator rbegin() noexcept { return a.rbegin(); }
 
-  [[nodiscard]] constexpr const_iterator rbegin() const noexcept { return a.rbegin(); }
+  [[nodiscard]] constexpr const_reverse_iterator rbegin() const noexcept { return a.rbegin(); }
 
-  [[nodiscard]] constexpr const_iterator crbegin() const noexcept { return a.crbegin(); }
+  [[nodiscard]] constexpr const_reverse_iterator crbegin() const noexcept { return a.crbegin(); }
 
-  [[nodiscard]] constexpr iterator rend() noexcept { return a.rend(); }
+  [[nodiscard]] constexpr reverse_iterator rend() noexcept { return a.rend(); }
 
-  [[nodiscard]] constexpr const_iterator rend() const noexcept { return a.rend(); }
+  [[nodiscard]] constexpr const_reverse_iterator rend() const noexcept { return a.rend(); }
 
-  [[nodiscard]] constexpr const_iterator crend() const noexcept { return a.crend(); }
+  [[nodiscard]] constexpr const_reverse_iterator crend() const noexcept { return a.crend(); }
 
   [[nodiscard]] constexpr bool empty() const noexcept { return a.empty(); }
 
@@ -552,11 +632,115 @@ class bitset {
     return res;
   }
 
+  template <typename parent_t = bitset*>
+  class iterator_impl {
+    friend class bitset;
+
+    parent_t parent = nullptr;
+    std::size_t num_index = 0;
+    base_type bit_index = 0;
+   public:
+    using iterator_category = std::bidirectional_iterator_tag;
+    using value_type = const E;
+    using difference_type = std::ptrdiff_t;
+    using pointer = value_type*;
+    using reference = value_type&;
+
+    constexpr iterator_impl() noexcept = default;
+    constexpr iterator_impl(const iterator_impl&) noexcept = default;
+    constexpr iterator_impl& operator=(const iterator_impl&) noexcept = default;
+    constexpr iterator_impl(iterator_impl&&) noexcept = default;
+    constexpr iterator_impl& operator=(iterator_impl&&) noexcept = default;
+
+    template <typename OtherParent, typename = std::enable_if_t<std::is_convertible_v<OtherParent, parent_t>>>
+    constexpr iterator_impl(const iterator_impl<OtherParent>& other) noexcept
+        : parent(other.parent), num_index(other.num_index), bit_index(other.bit_index) {}
+
+   private:
+    template <typename OtherParent>
+    friend class iterator_impl;
+    constexpr iterator_impl(parent_t p, std::size_t i) noexcept : iterator_impl(p, std::pair{i / bits_per_base, base_type{1} << (i % bits_per_base)}) {}
+
+    constexpr iterator_impl(parent_t p, std::pair<std::size_t, base_type> i) noexcept : parent(p), num_index(std::get<0>(i)), bit_index(std::get<1>(i)) {}
+
+    [[nodiscard]] static constexpr iterator_impl begin(parent_t p) noexcept{
+      for (std::size_t num_index = 0; num_index < base_type_count; ++num_index) {
+        if (p->a[num_index] > 0) {
+          base_type bit_index = static_cast<base_type>(p->a[num_index] & -p->a[num_index]);
+          return iterator_impl(p, std::pair{num_index, bit_index});
+        }
+      }
+      return end(p);
+    }
+    [[nodiscard]] static constexpr iterator_impl end(parent_t p) noexcept {
+      return iterator_impl(p, enum_count<E>());
+    }
+  
+   public:
+    [[nodiscard]] constexpr reference operator*() const noexcept { return *Index::it(num_index * bits_per_base + static_cast<std::size_t>(detail::countr_zero(bit_index))); }
+
+    [[nodiscard]] constexpr pointer operator->() const noexcept { return std::addressof(**this); }
+
+    constexpr iterator_impl& operator++() noexcept {
+      base_type remaining_bits = static_cast<base_type>(parent->a[num_index] & ~((bit_index << 1) - 1));
+      while (remaining_bits == 0 && ++num_index < base_type_count) {
+        remaining_bits = parent->a[num_index];
+      }
+      if (num_index >= base_type_count) {
+        return *this = end(parent);
+      }
+      bit_index = static_cast<base_type>(remaining_bits & -remaining_bits);
+      return *this;
+    }
+
+    [[nodiscard]] constexpr iterator_impl operator++(int) noexcept {
+      iterator_impl cp = *this;
+      ++*this;
+      return cp;
+    }
+
+    constexpr iterator_impl& operator--() noexcept {
+      base_type search_mask;
+      if (num_index >= base_type_count) {
+        num_index = base_type_count - 1;
+        search_mask = last_value_max;
+      } else if (num_index == base_type_count - 1 && bit_index > last_value_max) {
+        search_mask = last_value_max;
+      } else {
+        search_mask = bit_index - 1;
+      }
+
+      base_type remaining_bits = parent->a[num_index] & search_mask;
+      while (remaining_bits == 0 && num_index != 0) {
+        remaining_bits = parent->a[--num_index];
+      }
+      if (remaining_bits == 0) {
+        num_index = std::numeric_limits<std::size_t>::max();
+        bit_index = static_cast<base_type>(base_type{1} << (bits_per_base - 1));
+        return *this;
+      }
+      bit_index = static_cast<base_type>(base_type{1} << (detail::bit_width(remaining_bits) - 1));
+      return *this;
+    }
+
+    [[nodiscard]] constexpr iterator_impl operator--(int) noexcept {
+      iterator_impl cp = *this;
+      --*this;
+      return cp;
+    }
+
+    [[nodiscard]] friend constexpr bool operator==(const iterator_impl& lhs, const iterator_impl& rhs) { return lhs.parent == rhs.parent && lhs.num_index == rhs.num_index && lhs.bit_index == rhs.bit_index; }
+
+    [[nodiscard]] friend constexpr bool operator!=(const iterator_impl& lhs, const iterator_impl& rhs) { return !(lhs == rhs); }
+  };
+
  public:
   using index_type = Index;
   using container_type = std::array<base_type, base_type_count>;
   using reference = reference_impl<>;
   using const_reference = reference_impl<const bitset*>;
+  using iterator = iterator_impl<>;
+  using const_iterator = iterator_impl<const bitset*>;
 
   constexpr explicit bitset(detail::raw_access_t = raw_access) noexcept : a{{}} {}
 
@@ -647,6 +831,32 @@ class bitset {
   [[nodiscard]] constexpr reference operator[](E pos) {
     auto i = index_type::at(pos);
     return MAGIC_ENUM_ASSERT(i), reference{this, *i};
+  }
+
+  [[nodiscard]] constexpr iterator begin() noexcept { return iterator::begin(this); }
+
+  [[nodiscard]] constexpr const_iterator begin() const noexcept { return const_iterator::begin(this); }
+
+  [[nodiscard]] constexpr const_iterator cbegin() const noexcept { return const_iterator::begin(this); }
+
+  [[nodiscard]] constexpr iterator end() noexcept { return iterator::end(this); }
+
+  [[nodiscard]] constexpr const_iterator end() const noexcept { return const_iterator::end(this); }
+
+  [[nodiscard]] constexpr const_iterator cend() const noexcept { return const_iterator::end(this); }
+
+  [[nodiscard]] constexpr const_iterator find(E pos) const noexcept {
+    if (auto i = index_type::at(pos); i && static_cast<bool>(const_reference(this, *i))) {
+      return const_iterator(this, *i);
+    }
+    return end();
+  }
+
+  [[nodiscard]] constexpr iterator find(E pos) noexcept {
+    if (auto i = index_type::at(pos); i && static_cast<bool>(const_reference(this, *i))) {
+      return iterator(this, *i);
+    }
+    return end();
   }
 
   constexpr bool test(E pos) const {
@@ -815,7 +1025,7 @@ class bitset {
 
   [[nodiscard]] constexpr unsigned long long to_ullong(detail::raw_access_t raw) const { return to_<unsigned long long>(raw); }
 
-  [[nodiscard]] constexpr unsigned long long to_ulong(detail::raw_access_t raw) const { return to_<unsigned long>(raw); }
+  [[nodiscard]] constexpr unsigned long to_ulong(detail::raw_access_t raw) const { return to_<unsigned long>(raw); }
 
   friend std::ostream& operator<<(std::ostream& o, const bitset& bs) { return o << bs.to_string(); }
 
@@ -894,9 +1104,11 @@ class set {
   constexpr set& operator=(const set&) noexcept = default;
   constexpr set& operator=(set&&) noexcept = default;
   constexpr set& operator=(std::initializer_list<E> ilist) {
+    clear();
     for (auto e : ilist) {
       insert(e);
     }
+    return *this;
   }
 
   constexpr const_iterator begin() const noexcept {
@@ -965,7 +1177,7 @@ class set {
 
   template <typename... Args>
   constexpr std::pair<iterator, bool> emplace(Args&&... args) noexcept {
-    return insert({std::forward<Args>(args)...});
+    return insert(value_type{std::forward<Args>(args)...});
   }
 
   template <typename... Args>
@@ -1004,9 +1216,8 @@ class set {
   }
 
   void swap(set& other) noexcept {
-    set cp = *this;
-    *this = other;
-    other = cp;
+    std::swap(a, other.a);
+    std::swap(s, other.s);
   }
 
   [[nodiscard]] constexpr size_type count(const key_type& key) const noexcept { return index_type::at(key) && a[key]; }
@@ -1170,5 +1381,12 @@ constexpr std::enable_if_t<std::is_same_v<decltype(Enum), E> && enum_contains(En
 }
 
 } // namespace magic_enum::containers
+
+template <typename E, typename Index>
+struct std::hash<magic_enum::containers::bitset<E, Index>> {
+  std::size_t operator()(const magic_enum::containers::bitset<E, Index>& bs) const {
+    return std::hash<unsigned long long>{}(bs.to_ullong(magic_enum::containers::raw_access));
+  }
+};
 
 #endif // NEARGYE_MAGIC_ENUM_CONTAINERS_HPP
