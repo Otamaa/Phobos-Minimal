@@ -104,11 +104,29 @@ void GenericPrerequisite::SaveToStream(PhobosStreamWriter& Stm)
 		.Process(this->Alternates);
 }
 
-void GenericPrerequisite::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
+void GenericPrerequisite::LoadFromINIOnlyTheList(CCINIClass* pINI, bool bDebug)
 {
-	if (!pINI)
+	const char* pSection = GenericPrerequisite::MainSection;
+
+	if (!pINI->GetSection(pSection))
 		return;
 
+	auto const pkeyCount = pINI->GetKeyCount(pSection);
+
+	if (!pkeyCount)
+		return;
+
+	if (pkeyCount > (int)Array.size())
+		Array.reserve(pkeyCount);
+
+	//Allocate the thing first
+	for (int i = 0; i < pkeyCount; ++i) { 
+		FindOrAllocate(pINI->GetKeyName(pSection, i));
+	}
+}
+
+void GenericPrerequisite::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
+{
 	for(auto& defaultItem : Array) { //load all the default data first
 		defaultItem->LoadFromINI(pINI);
 	}

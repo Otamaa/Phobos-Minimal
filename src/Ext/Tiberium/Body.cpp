@@ -79,7 +79,7 @@ void TiberiumExtData::Spread_AI()
 			{
 				// Use local cell instead of cellptr->MapCoords
 				SpreadQueue.emplace(
-					Unsorted::CurrentFrame() + ScenarioClass::Instance->Random.RandomRanged(0, 49),
+					(float)(Unsorted::CurrentFrame() + ScenarioClass::Instance->Random.RandomRanged(0, 49)),
 					cell);
 				SetSpreadState(SpreadState, cellIdx, true);
 			}
@@ -107,7 +107,7 @@ void TiberiumExtData::Recalc_Spread()
 	{
 		if (iter->GetContainedTiberiumIndex() == This()->ArrayIndex && iter->CanTiberiumSpread())
 		{
-			SpreadQueue.emplace(0.0, iter->MapCoords);
+			SpreadQueue.emplace(0.0f, iter->MapCoords);
 			SpreadState[Map_Cell_Index(iter->MapCoords)] = true;
 		}
 		iter = MapClass::Instance->CellIteratorNext();
@@ -141,7 +141,7 @@ void TiberiumExtData::Queue_Spread(CellStruct const& cell)
 	}
 
 	SpreadQueue.emplace(
-		Unsorted::CurrentFrame() + ScenarioClass::Instance->Random.RandomRanged(0, 49),
+		(float)(Unsorted::CurrentFrame() + ScenarioClass::Instance->Random.RandomRanged(0, 49)),
 		cell);
 	SetSpreadState(SpreadState, cellIdx, true);
 }
@@ -183,7 +183,7 @@ void TiberiumExtData::Growth_AI()
 			if (cellptr->OverlayData < This()->NumFrames - 1)
 			{
 				GrowthQueue.emplace(
-					Unsorted::CurrentFrame() + ScenarioClass::Instance->Random.RandomRanged(0, 49),
+					(float)(Unsorted::CurrentFrame() + ScenarioClass::Instance->Random.RandomRanged(0, 49)),
 					cell);
 				SetSpreadState(GrowthState, cellIdx, true);
 				Queue_Spread(cell);
@@ -212,7 +212,7 @@ void TiberiumExtData::Recalc_Growth()
 	{
 		if (iter->GetContainedTiberiumIndex() == This()->ArrayIndex && iter->CanTiberiumGrowth())
 		{
-			GrowthQueue.emplace(0.0, iter->MapCoords);
+			GrowthQueue.emplace(0.0f, iter->MapCoords);
 			GrowthState[Map_Cell_Index(iter->MapCoords)] = true;
 		}
 		iter = MapClass::Instance->CellIteratorNext();
@@ -250,7 +250,7 @@ void TiberiumExtData::Queue_Growth(CellStruct const& cell)
 	}
 
 	GrowthQueue.emplace(
-		Unsorted::CurrentFrame() + ScenarioClass::Instance->Random.RandomRanged(0, 49),
+		(float)(Unsorted::CurrentFrame() + ScenarioClass::Instance->Random.RandomRanged(0, 49)),
 		cell);
 	SetSpreadState(GrowthState, cellIdx, true);
 }

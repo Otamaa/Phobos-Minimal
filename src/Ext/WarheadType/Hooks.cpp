@@ -42,8 +42,13 @@ void ApplyExtraWarheads(
 	auto const pTarget = flag_cast_to<TechnoClass*>(pBullet->Target);
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pBullet->WH);
 
-	if (pTarget && (!pWHExt->IsHealthInThreshold(pTarget) || !pWHExt->IsVeterancyInThreshold(pTarget)))
-		return;
+	if(pTarget){
+		if (!pWHExt->IsHealthInThreshold(pTarget) || !pWHExt->IsVeterancyInThreshold(pTarget))
+			return;
+
+		if(!pWHExt->IsInvokerAllowed(pTarget,  pBullet->Owner))
+			return;
+	}
 
 	for (size_t i = 0; i < exWH.size(); i++)
 	{
@@ -100,8 +105,13 @@ void ApplyNewExtraWarheads(
 				auto const pWH = exWH[index];
 				auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
-				if (pTarget && (!pWHExt->IsHealthInThreshold(pTarget) || !pWHExt->IsVeterancyInThreshold(pTarget)))
-					return;
+				if(pTarget){
+					if (!pWHExt->IsHealthInThreshold(pTarget) || !pWHExt->IsVeterancyInThreshold(pTarget))
+						return;
+
+					if(!pWHExt->IsInvokerAllowed(pTarget,  pBullet->Owner))
+						return;
+				}
 
 				int damage = defaultDamage;
 				size_t size = exWHDamageOverrides.size();

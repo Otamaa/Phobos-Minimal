@@ -1413,7 +1413,7 @@ std::vector<TeamTypeClass*> NOINLINE Suggested_New_Team(HouseClass* forHouse_, b
 					continue;
 				}
 
-				unsigned int weight = triggerType->Weight_Current;
+				unsigned int weight = (int)triggerType->Weight_Current;
 
 				if (weight == 5000) {
 					if (!foundMaxWeight) {
@@ -1509,7 +1509,7 @@ std::vector<TeamTypeClass*> NOINLINE Suggested_New_Team(HouseClass* forHouse_, b
  		std::vector<TeamTypeClass*> possible_teams = Suggested_New_Team(pThis, false);
  		Debug::LogInfo("[{} - {}] Able to use {} team !", pThis->Type->ID, (void*)pThis, possible_teams.size());
 
- 		for(int i = 0; i < possible_teams.size(); ++i){
+ 		for(size_t i = 0; i < possible_teams.size(); ++i){
  			possible_teams[i]->CreateTeam(pThis);
  		}
 

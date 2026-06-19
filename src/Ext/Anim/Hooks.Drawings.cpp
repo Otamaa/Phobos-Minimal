@@ -47,35 +47,17 @@ ASMJIT_PATCH(0x423654, AnimClass_DrawIt_Tiled_Interval, 0x5)
 }
 
 #ifdef fullbackport 
-
-static int PackDSurfaceColor(int colorIndex)
-{
-	// Color components are stored at base + 6260/6261/6262
-	auto base = (char*)Rule + 3 * colorIndex;
-	uint8_t r = base[6260];
-	uint8_t g = base[6261];
-	uint8_t b = base[6262];
-
-	int mode = DSurface::ColorMode();
-	if (mode == 1)       // 555
-		return ((b >> 1) & 0x1F) | (((g >> 1) & 0x1F) << 5) | (((r >> 1) & 0x1F) << 10);
-	else if (mode == 2)  // 565
-		return (b >> 3) | ((g >> 2) << 5) | ((r >> 3) << 11);
-	else                 // 888 / 32-bit
-		return b | (g << 8) | (r << 16);
-}
-
-void AnimClass::Draw_It(Point2DStruct* arg_0, Rect* a6)
+void FakeAnimClass::_Draw_It(Point2D* arg_0, RectangleStruct* a6)
 {
 	// === D3D RING1 special path ===
-	if (D3DIsUsable && ZBufferPTR && ObjectClass_SameName(&this->o, "RING1"))
+	if (Game::bDirect3DIsUseable() && ZBuffer::Instance() && ObjectClass_SameName(&this->o, "RING1"))
 	{
 		int started = this->stage.Timer.Started;
 		int rate = this->stage.Rate;
 		int delay = this->stage.Timer.DelayTime;
 
 		if (started != -1)
-			delay = (Frame - started >= delay) ? 0 : delay - (Frame - started);
+			delay = (Unsorted::CurrentFrame() - started >= delay) ? 0 : delay - (Unsorted::CurrentFrame() - started);
 
 		int progress = rate + this->stage.Stage * rate - delay;
 		int totalDuration = rate * ((int(__thiscall*)(AnimClass*))this->o.a.vftable->t.r.m.Commence)(this);
@@ -117,9 +99,9 @@ void AnimClass::Draw_It(Point2DStruct* arg_0, Rect* a6)
 		float szTop = (float)(uint16_t)(zBase + radius) * 0.000015259022f;
 		float szBottom = (float)(uint16_t)(zBase - radius) * 0.000015259022f;
 
-		CD3DTriangle in1, in2;
-		CD3DTriangle::Set_Color(&in1, (uint8_t)alpha, (uint8_t)green, blue);
-		CD3DTriangle::Set_Color(&in2, (uint8_t)alpha, (uint8_t)green, blue);
+		CD3DTriangle in1, in2;	
+		in1.Set_Color((uint8_t)alpha, (uint8_t)green, blue);
+		in2.Set_Color((uint8_t)alpha, (uint8_t)green, blue);
 
 		float fLeftX = (float)leftX;
 		float fTopY = (float)topY;
@@ -127,15 +109,16 @@ void AnimClass::Draw_It(Point2DStruct* arg_0, Rect* a6)
 		float fRightX = (float)rightX;
 
 		// Triangle fan forming a quad
-		CD3DTriangle::Set_Coords(&in1, 0, fLeftX, fTopY, szTop, 0.0f, 0.0f);
-		CD3DTriangle::Set_Coords(&in1, 1, fLeftX, fBottomY, szBottom, 0.0f, 1.0f);
-		CD3DTriangle::Set_Coords(&in1, 2, fRightX, fBottomY, szBottom, 1.0f, 1.0f);
-		CD3DTriangle::Set_Coords(&in2, 0, fLeftX, fTopY, szTop, 0.0f, 0.0f);
-		CD3DTriangle::Set_Coords(&in2, 1, fRightX, fBottomY, szBottom, 1.0f, 1.0f);
-		CD3DTriangle::Set_Coords(&in2, 2, fRightX, fTopY, szTop, 1.0f, 0.0f);
+		in1.Set_Coords(0, fLeftX, fTopY, szTop, 0.0f, 0.0f);
+		in1.Set_Coords(1, fLeftX, fBottomY, szBottom, 0.0f, 1.0f);
+		in1.Set_Coords(2, fRightX, fBottomY, szBottom, 1.0f, 1.0f);
+		in2.Set_Coords(0, fLeftX, fTopY, szTop, 0.0f, 0.0f);
+		in2.Set_Coords(1, fRightX, fBottomY, szBottom, 1.0f, 1.0f);
+		in2.Set_Coords( 2, fRightX, fTopY, szTop, 1.0f, 0.0f);
 
-		CD3DTriangleBuffer::Add(CD3DTriangleInstance, &in1);
-		CD3DTriangleBuffer::Add(CD3DTriangleInstance, &in2);
+	
+		DSurface::CD3DTriangleInstance->Add(&in1);
+		DSurface::CD3DTriangleInstance->Add(&in2);
 		return;
 	}
 

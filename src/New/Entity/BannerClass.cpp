@@ -72,6 +72,14 @@ void BannerClass::RenderPCX(Point2D position)
 	BSurface* pcx = this->Type->PCX.GetSurface();
 	position.X -= pcx->Width / 2;
 	position.Y -= pcx->Height / 2;
+
+	// Clamp the position to keep the PCX within the visible area,
+	// preventing it from being drawn partially off-screen.
+	int maxX = std::max(0, DSurface::ViewBounds->Width - pcx->Width);
+	int maxY = std::max(0, DSurface::ViewBounds->Height - pcx->Height);
+	position.X = std::clamp(position.X, 0, maxX);
+	position.Y = std::clamp(position.Y, 0, maxY);
+
 	RectangleStruct bounds(position.X, position.Y, pcx->Width, pcx->Height);
 	PCXImages::Instance->BlitToSurface(&bounds, DSurface::Composite, pcx);
 }
@@ -82,6 +90,13 @@ void BannerClass::RenderSHP(Point2D position)
 	ConvertClass* palette = this->Type->Palette.GetOrDefaultConvert(FileSystem::PALETTE_PAL);
 	position.X -= shape->Width / 2;
 	position.Y -= shape->Height / 2;
+
+	// Clamp the position to keep the SHP within the visible area,
+	// preventing it from being drawn partially off-screen.
+	int maxX = std::max(0, DSurface::ViewBounds->Width - shape->Width);
+	int maxY = std::max(0, DSurface::ViewBounds->Height - shape->Height);
+	position.X = std::clamp(position.X, 0, maxX);
+	position.Y = std::clamp(position.Y, 0, maxY);
 
 	DSurface::Composite->DrawSHP
 	(
@@ -144,18 +159,26 @@ void BannerClass::RenderCSF(Point2D position)
 	buffer.push_back(L'\0');
 
 	TextPrintType textFlags = TextPrintType::UseGradPal
-		| TextPrintType::Center
 		| TextPrintType::Metal12
 		| (this->Type->CSF_Background
 			? TextPrintType::Background
 			: TextPrintType::LASTPOINT);
 
-	RectangleStruct rect = DSurface::ViewBounds;
+		// Measure the text, manually center, then clamp to screen bounds
+	// (same pattern as RenderPCX and RenderSHP).
+	RectangleStruct textRect = Drawing::GetTextDimensions(
+		buffer.data(), position, textFlags, 0 , 0);
+	position.X -= textRect.Width / 2;
+	position.Y -= textRect.Height / 2;
+	int maxX = std::max(0, DSurface::ViewBounds->Width - textRect.Width);
+	int maxY = std::max(0, DSurface::ViewBounds->Height - textRect.Height);
+	position.X = std::clamp(position.X, 0, maxX);
+	position.Y = std::clamp(position.Y, 0, maxY);
 
 	DSurface::Composite->DSurfaceDrawText
 	(
 		buffer.data(),
-		&rect,
+		&textRect,
 		&position,
 		this->Type->CSF_Color.Get(Drawing::TooltipColor).ToInit(),
 		0,

@@ -239,7 +239,7 @@ float FactoryPlantClass::GetCostMultiplier(HouseClass* pHouse, TechnoTypeClass* 
 		}
 
 		// Apply per-TechnoType multiplier (Ares feature)
-		mult *= (1.0f - currentMult * pTechnoTypeExt->FactoryPlant_Multiplier);
+		mult *= float(1.0f - currentMult * pTechnoTypeExt->FactoryPlant_Multiplier);
 	}
 
 	return mult;

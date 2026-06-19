@@ -16,6 +16,7 @@
 
 #include <ExtraHeaders/StackVector.h>
 
+#ifdef _Old
 // what is the boolean return for , heh
 CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 {
@@ -785,6 +786,972 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 
 	return CollectResult::can;
 }
+#else
+// CrateContext bundles the values every crate-effect helper needs, so we
+// don't pass 6+ args around or recompute the same loc/cellLoc repeatedly.
+struct CrateContext
+{
+	FakeCellClass* pCell;
+	FootClass* pCollector;
+	HouseClass* pCollectorOwner;
+	CoordStruct      loc;       // CellClass::Cell2Coord at floor height + 200 (anim height)
+	CoordStruct      locSound;  // CellClass::Cell2Coord at floor height (sound/effect height)
+	Powerup          data;      // valid Powerup only if pType->ArrayIndex < Powerups::Effects.size()
+	CrateTypeClass* pType;      // the actual resolved crate type (vanilla OR custom)
+	double           something; // pType->Argument
+	bool isControlledByPlayer;
+
+	// True if this crate type corresponds to a real Powerup enumerator
+	// (i.e. it's one of the vanilla Powerups::Effects entries).
+	bool IsVanillaPowerup() const;
+};
+
+// Picks the crate reward type (weighted random / fixed OverlayData).
+Powerup Crate_DetermineRewardType(FakeCellClass* pCell, FootClass* pCollector);
+
+// Multiplayer-only sanity pass that may downgrade `data` to Money if the
+// chosen reward doesn't make sense for the collector (e.g. already cloaked).
+Powerup Crate_EvaluateMultiplayerReward(Powerup data, FootClass* pCollector,
+	HouseClass* pCollectorOwner, LandType landType, bool& force_mcv);
+
+// Campaign-only: resolves fixed solo-crate overlay types (silver/wood/water)
+// and sets soloCrateMoney from RulesClass::SoloCrateMoney.
+Powerup Crate_ResolveCampaignReward(FakeCellClass* pCell, int& soloCrateMoney);
+
+// Grants money to the collector (handles solo random range + flying string).
+void Crate_GiveMoney(const CrateContext& ctx, int& soloCrateMoney);
+
+// One handler per Powerup effect. Each returns the CollectResult that the
+// caller (_CollecCrate) should propagate. CollectResult::can means
+// "fall through to default visuals are already handled inside"; the caller
+// just returns what's given. Handlers that want the default switch fallthrough
+// behavior (Unit -> HealBase historically) are merged explicitly where needed.
+CollectResult Crate_Handle_Unit(CrateContext& ctx, int& soloCrateMoney);
+CollectResult Crate_Handle_HealBase(const CrateContext& ctx);
+CollectResult Crate_Handle_Explosion(const CrateContext& ctx);
+CollectResult Crate_Handle_Napalm(const CrateContext& ctx);
+CollectResult Crate_Handle_Darkness(const CrateContext& ctx);
+CollectResult Crate_Handle_Reveal(const CrateContext& ctx);
+CollectResult Crate_Handle_Armor(const CrateContext& ctx);
+CollectResult Crate_Handle_Speed(const CrateContext& ctx);
+CollectResult Crate_Handle_Firepower(const CrateContext& ctx);
+CollectResult Crate_Handle_Cloak(const CrateContext& ctx);
+CollectResult Crate_Handle_ICBM(const CrateContext& ctx);
+CollectResult Crate_Handle_Veteran(const CrateContext& ctx);
+CollectResult Crate_Handle_Gas(const CrateContext& ctx);
+CollectResult Crate_Handle_Tiberium(const CrateContext& ctx);
+CollectResult Crate_Handle_Squad(CrateContext& ctx, int& soloCrateMoney);
+CollectResult Crate_Handle_Invulnerability(const CrateContext& ctx);
+CollectResult Crate_Handle_IonStorm(const CrateContext& ctx);
+CollectResult Crate_Handle_Pod(const CrateContext& ctx);
+CollectResult Crate_Handle_Default(const CrateContext& ctx);
+
+// Generic helper: finds the first non-granted super of `type` whose
+// SWTypeExt has CrateGoodies set, grants it, and shows the cameo if the
+// collector belongs to the current player. Returns true if granted.
+bool Crate_GrantSuperOfType(HouseClass* pOwner, FootClass* pCollector, SuperWeaponType type);
+
+// Same as above but for a NewSuperType (e.g. DropPod).
+bool Crate_GrantNewSuperOfType(HouseClass* pOwner, FootClass* pCollector, NewSuperType type);
+
+// ---------------------------------------------------------------------
+// Custom crate type dispatch
+// ---------------------------------------------------------------------
+//
+// CrateTypeClass::Array entries with ArrayIndex >= Powerups::Effects.size()
+// are modder-defined ("custom") crate types that don't correspond to any
+// real Powerup enumerator. Their effect is selected by SECTION NAME, not
+// by Powerup index. Register a handler for a given section name with
+// Crate_RegisterCustomHandler(); Crate_Dispatch will look it up by name
+// when ctx.data falls outside the vanilla Powerup range.
+
+using CrateCustomHandler = CollectResult(*)(CrateContext& ctx, int& soloCrateMoney);
+
+// Call during init (e.g. after CrateTypeClass::ReadFromINIList) to bind a
+// handler to a [CrateTypes] section name.
+void Crate_RegisterCustomHandler(const char* sectionName, CrateCustomHandler handler);
+
+// Looks up a registered handler by the crate type's Name. Returns nullptr
+// if none registered (caller should fall back to Crate_Handle_Default).
+CrateCustomHandler Crate_FindCustomHandler(const char* sectionName);
+
+// Top-level entry point used by _CollecCrate. Handles the vanilla/custom
+// split internally:
+//  - vanilla Powerup        -> Crate_Dispatch (switch on ctx.data)
+//  - custom type, registered -> the registered CrateCustomHandler
+//  - custom type, unregistered -> Crate_Handle_Default (Anim/Sound only)
+CollectResult Crate_HandleCrate(CrateContext& ctx, int& soloCrateMoney);
+
+// ---------------------------------------------------------------------
+// CrateContext
+// ---------------------------------------------------------------------
+
+bool CrateContext::IsVanillaPowerup() const
+{
+	return (size_t)this->pType->ArrayIndex < Powerups::Effects.size();
+}
+
+// ---------------------------------------------------------------------
+// Reward type determination
+// ---------------------------------------------------------------------
+
+Powerup Crate_DetermineRewardType(FakeCellClass* pCell, FootClass* pCollector)
+{
+	if (pCell->OverlayData < CrateTypeClass::Array.size())
+		return (Powerup)pCell->OverlayData;
+
+	int total_shares = 0;
+	StackVector<Powerup, 19> crates {};
+
+	for (size_t i = 0; i < CrateTypeClass::Array.size(); i++)
+	{
+		auto crate = CrateTypeClass::Array[i].get();
+
+		if (pCell->LandType == LandType::Water && !crate->Naval)
+			continue;
+
+		if (!pCell->IsClearToMove(crate->Speed, true, true, ZoneType::None, MovementZone::Normal, -1, true))
+			continue;
+
+		if (crate->Weight > 0)
+		{
+			total_shares += crate->Weight;
+			crates->push_back((Powerup)i);
+		}
+	}
+
+	if (total_shares <= 0 || crates->size() == 0)
+		return Powerup::Money; // VERIFY: vanilla fallback when nothing is eligible
+
+	const int random = ScenarioClass::Instance->Random.RandomRanged(1, total_shares);
+	int share_count = 0;
+
+	for (size_t i = 0; i < crates->size(); i++)
+	{
+		share_count += CrateTypeClass::Array[(size_t)crates[i]]->Weight;
+		if (random <= share_count)
+			return crates[i];
+	}
+
+	return Powerup::Money;
+}
+
+// ---------------------------------------------------------------------
+// Multiplayer reward sanity pass
+// ---------------------------------------------------------------------
+
+Powerup Crate_EvaluateMultiplayerReward(Powerup data, FootClass* pCollector,
+	HouseClass* pCollectorOwner, LandType landType, bool& force_mcv)
+{
+	const auto pBase = pCollectorOwner->PickUnitFromTypeList(RulesClass::Instance->BaseUnit);
+
+	if (GameModeOptionsClass::Instance->Bases
+		&& !pCollectorOwner->OwnedBuildings
+		&& pCollectorOwner->Available_Money() > RulesExtData::Instance()->FreeMCV_CreditsThreshold
+		&& !pCollectorOwner->OwnedUnitTypes.get_count(pBase->ArrayIndex))
+	{
+		data = Powerup::Unit;
+		force_mcv = true;
+	}
+
+	switch (data)
+	{
+	case Powerup::Unit:
+	{
+		if (RulesExtData::Instance()->UnitCrateVehicleCap < 0)
+			break;
+
+		if (pCollectorOwner->OwnedUnits >= RulesExtData::Instance()->UnitCrateVehicleCap
+			|| landType == LandType::Water
+			|| landType == LandType::Beach)
+		{
+			data = Powerup::Money;
+		}
+		break;
+	}
+	case Powerup::Cloak:
+	{
+		if (!GET_TECHNOTYPEEXT(pCollector)->CloakAllowed
+			|| pCollector->CanICloakByDefault()
+			|| TechnoExtContainer::Instance.Find(pCollector)->AE.flags.Cloakable)
+		{
+			data = Powerup::Money;
+		}
+		break;
+	}
+	case Powerup::Squad:
+	{
+		if (pCollectorOwner->OwnedInfantry > 100
+			|| landType == LandType::Water
+			|| landType == LandType::Beach)
+		{
+			data = Powerup::Money;
+		}
+		break;
+	}
+	case Powerup::Armor:
+	{
+		if (TechnoExtContainer::Instance.Find(pCollector)->AE.Crate_ArmorMultiplier != 1.0)
+			data = Powerup::Money;
+		break;
+	}
+	case Powerup::Speed:
+	{
+		if (TechnoExtContainer::Instance.Find(pCollector)->AE.Crate_SpeedMultiplier != 1.0
+			|| pCollector->WhatAmI() == AbstractType::Aircraft)
+		{
+			data = Powerup::Money;
+		}
+		break;
+	}
+	case Powerup::Firepower:
+	{
+		if (TechnoExtContainer::Instance.Find(pCollector)->AE.Crate_FirepowerMultiplier != 1.0
+			|| !pCollector->IsArmed())
+		{
+			data = Powerup::Money;
+		}
+		break;
+	}
+	case Powerup::Veteran:
+	{
+		if (!GET_TECHNOTYPE(pCollector)->Trainable || pCollector->Veterancy.IsElite())
+			data = Powerup::Money;
+		break;
+	}
+	// both of these are useless for AI, really
+	case Powerup::Darkness:
+	case Powerup::Reveal:
+	{
+		if (!pCollectorOwner->IsControlledByHuman())
+			data = Powerup::Money;
+		break;
+	}
+	default:
+		break;
+	}
+
+	return data;
+}
+
+// ---------------------------------------------------------------------
+// Campaign solo crate resolution
+// ---------------------------------------------------------------------
+
+Powerup Crate_ResolveCampaignReward(FakeCellClass* pCell, int& soloCrateMoney)
+{
+	if (pCell->OverlayData)
+		return (Powerup)pCell->OverlayData;
+
+	soloCrateMoney = RulesClass::Instance->SoloCrateMoney;
+
+	const auto pOverlay = OverlayTypeClass::Array->Items[pCell->OverlayTypeIndex];
+
+	if (pOverlay == RulesClass::Instance->CrateImg)
+		pCell->OverlayData = (unsigned char)RulesClass::Instance->SilverCrate;
+	else if (pOverlay == RulesClass::Instance->WoodCrateImg)
+		pCell->OverlayData = (unsigned char)RulesClass::Instance->WoodCrate;
+	else if (pOverlay == RulesClass::Instance->WaterCrateImg)
+		pCell->OverlayData = (unsigned char)RulesClass::Instance->WaterCrate;
+
+	return (Powerup)pCell->OverlayData;
+}
+
+// ---------------------------------------------------------------------
+// Money
+// ---------------------------------------------------------------------
+
+void Crate_GiveMoney(const CrateContext& ctx, int& soloCrateMoney)
+{
+	Debug::LogInfo("Crate at {},{} contains money", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y);
+
+	if (!soloCrateMoney)
+	{
+		const auto nAdd = RulesExtData::Instance()->RandomCrateMoney;
+		int crateMax = 900;
+
+		if (nAdd > 0)
+			crateMax += ScenarioClass::Instance->Random.RandomFromMax<int>(nAdd);
+
+		soloCrateMoney = ScenarioClass::Instance->Random.RandomRanged(
+			(int)ctx.something, (int)ctx.something + crateMax);
+	}
+
+	const auto pHouseDest =
+		ctx.pCollectorOwner->ControlledByCurrentPlayer() || SessionClass::Instance->GameMode != GameMode::Campaign
+		? ctx.pCollectorOwner
+		: HouseClass::CurrentPlayer();
+
+	pHouseDest->TransactMoney(soloCrateMoney);
+
+	if (ctx.pCollectorOwner->ControlledByCurrentPlayer()) {
+		FlyingStrings::Instance.AddMoneyString(true, soloCrateMoney, pHouseDest,
+			AffectedHouse::Owner, ctx.locSound, Point2D::Empty, ColorStruct::Empty);
+	}
+
+	ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+}
+
+// ---------------------------------------------------------------------
+// Super-weapon crate goodies (ICBM / Squad / Invulnerability / IonStorm / Pod)
+// ---------------------------------------------------------------------
+
+bool Crate_GrantSuperOfType(HouseClass* pOwner, FootClass* pCollector, SuperWeaponType type)
+{
+	const auto iter = pOwner->Supers.find_if([type](SuperClass* pSuper)
+	{
+		return pSuper->Type->Type == type
+			&& !pSuper->Granted
+			&& SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
+	});
+
+	if (iter == pOwner->Supers.end())
+		return false;
+
+	if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer)
+		SidebarClass::Instance->AddSpecialCameo((*iter)->Type->ArrayIndex);
+
+	return true;
+}
+
+bool Crate_GrantNewSuperOfType(HouseClass* pOwner, FootClass* pCollector, NewSuperType type)
+{
+	const auto iter = pOwner->Supers.find_if([type](SuperClass* pSuper)
+	{
+		return (NewSuperType)pSuper->Type->Type == type
+			&& !pSuper->Granted
+			&& SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
+	});
+
+	if (iter == pOwner->Supers.end())
+		return false;
+
+	if ((*iter)->Grant(true, false, false) && pCollector->IsOwnedByCurrentPlayer)
+		SidebarClass::Instance->AddSpecialCameo((*iter)->Type->ArrayIndex);
+
+	return true;
+}
+
+// ---------------------------------------------------------------------
+// Per-powerup handlers
+// ---------------------------------------------------------------------
+
+// NOTE: ICBM's SuperWeaponType::Nuke had no "!pSuper->Granted" check in the
+// original code (unlike Squad/Invulnerability/IonStorm/Pod), so this preserves
+// that asymmetry by NOT using Crate_GrantSuperOfType (which requires !Granted).
+CollectResult Crate_Handle_ICBM(const CrateContext& ctx)
+{
+	Debug::LogInfo("Crate at {},{} contains ICBM", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y);
+
+	const auto iter = ctx.pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
+	{
+		return pSuper->Type->Type == SuperWeaponType::Nuke
+			&& SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
+	});
+
+	if (iter != ctx.pCollectorOwner->Supers.end())
+	{
+		if ((*iter)->Grant(true, false, false) && ctx.pCollector->IsOwnedByCurrentPlayer)
+			SidebarClass::Instance->AddSpecialCameo((*iter)->Type->ArrayIndex);
+	}
+
+	ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+	return CollectResult::can;
+}
+
+CollectResult Crate_Handle_Squad(CrateContext& ctx, int& soloCrateMoney)
+{
+	Debug::LogInfo("Crate at {},{} contains Squad", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y);
+
+	if (!Crate_GrantSuperOfType(ctx.pCollectorOwner, ctx.pCollector, SuperWeaponType::AmerParaDrop))
+	{
+		Crate_GiveMoney(ctx, soloCrateMoney);
+		return CollectResult::can;
+	}
+
+	ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+	return CollectResult::can;
+}
+
+CollectResult Crate_Handle_Invulnerability(const CrateContext& ctx)
+{
+	Debug::LogInfo("Crate at {},{} contains Invulnerability", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y);
+
+	Crate_GrantSuperOfType(ctx.pCollectorOwner, ctx.pCollector, SuperWeaponType::IronCurtain);
+
+	ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+	return CollectResult::can;
+}
+
+CollectResult Crate_Handle_IonStorm(const CrateContext& ctx)
+{
+	Debug::LogInfo("Crate at {},{} contains IonStorm", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y);
+
+	Crate_GrantSuperOfType(ctx.pCollectorOwner, ctx.pCollector, SuperWeaponType::LightningStorm);
+
+	ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+	return CollectResult::can;
+}
+
+CollectResult Crate_Handle_Pod(const CrateContext& ctx)
+{
+	Debug::LogInfo("Crate at {},{} contains Pod", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y);
+
+	Crate_GrantNewSuperOfType(ctx.pCollectorOwner, ctx.pCollector, NewSuperType::DropPod);
+
+	ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+	return CollectResult::can;
+}
+
+CollectResult Crate_Handle_HealBase(const CrateContext& ctx)
+{
+	Debug::LogInfo("Crate at {},{} contains base healing", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y);
+
+	ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+
+	for (int i = 0; i < MapClass::Logics->Count; ++i)
+	{
+		if (auto pTechno = flag_cast_to<TechnoClass*>(MapClass::Logics->Items[i]))
+		{
+			if (pTechno->IsAlive && pTechno->GetOwningHouse() == ctx.pCollectorOwner)
+			{
+				int heal = pTechno->Health - GET_TECHNOTYPE(pTechno)->Strength;
+				pTechno->ReceiveDamage(&heal, 0, RulesClass::Instance->C4Warhead, 0, 1, 1, nullptr);
+			}
+		}
+	}
+
+	return CollectResult::can;
+}
+
+CollectResult Crate_Handle_Explosion(const CrateContext& ctx)
+{
+	Debug::LogInfo("Crate at {},{} contains explosives", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y);
+
+	int damage = (int)ctx.something;
+	ctx.pCollector->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, 0, 1, 0, 0);
+
+	for (int i = 5; i > 0; --i)
+	{
+		const int scatterDistance = ScenarioClass::Instance->Random.RandomFromMax(512);
+		auto randomCoords = MapClass::GetRandomCoordsNear(ctx.locSound, scatterDistance, false);
+
+		DamageArea::Apply(&randomCoords, damage, nullptr, RulesClass::Instance->C4Warhead, true, nullptr);
+
+		if (auto pAnim = MapClass::SelectDamageAnimation(damage, RulesClass::Instance->C4Warhead, LandType::Clear, randomCoords))
+			GameCreate<AnimClass>(pAnim, randomCoords, 0, 1, 0x2600, -15, false);
+
+		MapClass::FlashbangWarheadAt(damage, RulesClass::Instance->C4Warhead, randomCoords);
+	}
+
+	ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+	return CollectResult::can;
+}
+
+CollectResult Crate_Handle_Napalm(const CrateContext& ctx)
+{
+	Debug::LogInfo("Crate at {},{} contains napalm", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y);
+
+	auto collectorLoc = (ctx.pCollector->GetCoords() + ctx.locSound) / 2;
+
+	GameCreate<AnimClass>(AnimTypeClass::Array->Items[0], collectorLoc, 0, 1, 0x600, 0, 0);
+
+	int damage = (int)ctx.something;
+	ctx.pCollector->ReceiveDamage(&damage, 0, RulesClass::Instance->FlameDamage, nullptr, 1, false, 0);
+	DamageArea::Apply(&collectorLoc, damage, nullptr, RulesClass::Instance->FlameDamage, true, nullptr);
+
+	ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+	return CollectResult::can;
+}
+
+CollectResult Crate_Handle_Darkness(const CrateContext& ctx)
+{
+	Debug::LogInfo("Crate at {},{} contains 'shroud'", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y);
+
+	MapClass::Instance->Reshroud(ctx.pCollectorOwner);
+	ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+	return CollectResult::can;
+}
+
+CollectResult Crate_Handle_Reveal(const CrateContext& ctx)
+{
+	Debug::LogInfo("Crate at {},{} contains 'reveal'", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y);
+
+	MapClass::Instance->Reveal(ctx.pCollectorOwner->IsControlledByHuman()
+		? HouseClass::CurrentPlayer
+		: ctx.pCollectorOwner);
+
+	ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+	return CollectResult::can;
+}
+
+// Shared body for Armor / Speed / Firepower: scan layer-2 objects within
+// CrateRadius and apply a multiplier exactly once.
+template <typename TFilter, typename TApply>
+static void Crate_ApplyAreaMultiplier(const CrateContext& ctx, TFilter&& filter, TApply&& apply)
+{
+	for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
+	{
+		auto pTechno = flag_cast_to<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]);
+		if (!pTechno || !pTechno->IsAlive)
+			continue;
+
+		if (!filter(pTechno))
+			continue;
+
+		const auto place = ctx.locSound - pTechno->GetCoords();
+		if ((int)place.Length() >= RulesClass::Instance->CrateRadius)
+			continue;
+
+		apply(pTechno);
+	}
+}
+
+CollectResult Crate_Handle_Armor(const CrateContext& ctx)
+{
+	Debug::LogInfo("Crate at {},{} contains armor", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y);
+
+	Crate_ApplyAreaMultiplier(ctx,
+		[](TechnoClass* pTechno) { return true; },
+		[&](TechnoClass* pTechno)
+		{
+			auto pExt = TechnoExtContainer::Instance.Find(pTechno);
+			if (pExt->AE.Crate_ArmorMultiplier != 1.0)
+				return;
+
+			pExt->AE.Crate_ArmorMultiplier = ctx.something;
+			AEProperties::Recalculate(pTechno);
+		});
+
+	ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+	return CollectResult::can;
+}
+
+CollectResult Crate_Handle_Speed(const CrateContext& ctx)
+{
+	Debug::LogInfo("Crate at {},{} contains speed", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y);
+
+	Crate_ApplyAreaMultiplier(ctx,
+		[](TechnoClass* pTechno) { return pTechno->WhatAmI() != AbstractType::Aircraft; },
+		[&](TechnoClass* pTechno)
+		{
+			auto pExt = TechnoExtContainer::Instance.Find(pTechno);
+			if (pExt->AE.Crate_SpeedMultiplier != 1.0)
+				return;
+
+			pExt->AE.Crate_SpeedMultiplier = ctx.something;
+			AEProperties::Recalculate(pTechno);
+
+		});
+
+	ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+	return CollectResult::can;
+}
+
+CollectResult Crate_Handle_Firepower(const CrateContext& ctx)
+{
+	Debug::LogInfo("Crate at {},{} contains firepower", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y);
+
+	Crate_ApplyAreaMultiplier(ctx,
+		[](TechnoClass* pTechno) { return true; },
+		[&](TechnoClass* pTechno)
+		{
+			auto pExt = TechnoExtContainer::Instance.Find(pTechno);
+			if (pExt->AE.Crate_FirepowerMultiplier != 1.0)
+				return;
+
+			pExt->AE.Crate_FirepowerMultiplier = ctx.something;
+			AEProperties::Recalculate(pTechno);
+		});
+
+	ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+	return CollectResult::can;
+}
+
+CollectResult Crate_Handle_Cloak(const CrateContext& ctx)
+{
+	Debug::LogInfo("Crate at {},{} contains cloaking device", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y);
+
+	for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
+	{
+		auto pTechno = flag_cast_to<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]);
+		if (!pTechno || !pTechno->IsAlive || !pTechno->IsOnMap)
+			continue;
+
+		const auto place = ctx.locSound - pTechno->GetCoords();
+		if ((int)place.Length() < RulesClass::Instance->CrateRadius)
+		{
+			TechnoExtContainer::Instance.Find(pTechno)->AE.flags.Cloakable = true;
+			AEProperties::Recalculate(pTechno);
+		}
+	}
+
+	ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+	return CollectResult::can;
+}
+
+CollectResult Crate_Handle_Veteran(const CrateContext& ctx)
+{
+	Debug::LogInfo("Crate at {},{} contains veterancy(TM)", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y);
+
+	const int MaxPromotedCount = (int)ctx.something;
+
+	if (MaxPromotedCount > 0)
+	{
+		for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
+		{
+			auto pTechno = flag_cast_to<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]);
+			if (!pTechno || !pTechno->IsAlive || !pTechno->IsOnMap || !GET_TECHNOTYPE(pTechno)->Trainable)
+				continue;
+
+			const auto place = ctx.locSound - pTechno->GetCoords();
+			if ((int)place.Length() >= RulesClass::Instance->CrateRadius)
+				continue;
+
+			// Original loop incremented a counter up to MaxPromotedCount while
+			// repeatedly promoting the SAME unit (Rookie->Veteran->Elite, then
+			// stuck at Elite for remaining iterations). Preserved as-is below.
+			for (int promoted = 0; promoted < MaxPromotedCount; ++promoted)
+			{
+				if (pTechno->Veterancy.IsVeteran())
+					pTechno->Veterancy.SetElite();
+				else if (pTechno->Veterancy.IsRookie())
+					pTechno->Veterancy.SetVeteran();
+				else if (pTechno->Veterancy.IsNegative())
+					pTechno->Veterancy.SetRookie();
+			}
+		}
+	}
+
+	ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+	return CollectResult::can;
+}
+
+CollectResult Crate_Handle_Gas(const CrateContext& ctx)
+{
+	Debug::LogInfo("Crate at {},{} contains poison gas", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y);
+
+	if (auto WH = WarheadTypeClass::Array->get_or_default(WarheadTypeClass::FindIndexById("GAS")))
+	{
+		const int damage = (int)ctx.something;
+		auto collectorCellLoc = ctx.pCell->GetCoords();
+
+		DamageArea::Apply(&collectorCellLoc, damage, nullptr, WH, true, nullptr);
+
+		CellClass* pDestCell = ctx.pCell;
+		for (int i = 0; i < 8; ++i)
+		{
+			CellStruct dest {};
+			MapClass::GetAdjacentCell(&dest, &ctx.pCell->MapCoords, (FacingType)i);
+			pDestCell = MapClass::Instance->GetCellAt(dest);
+
+			auto damageArea = pDestCell->GetCoords();
+			DamageArea::Apply(&damageArea, damage, nullptr, WH, true, nullptr);
+		}
+	}
+
+	ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+	return CollectResult::can;
+}
+
+CollectResult Crate_Handle_Tiberium(const CrateContext& ctx)
+{
+	Debug::LogInfo("Crate at {},{} contains tiberium", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y);
+
+	int tibToSpawn = ScenarioClass::Instance->Random.RandomFromMax(TiberiumClass::Array->Count - 1);
+	if (tibToSpawn == 1)
+		tibToSpawn = 0;
+
+	ctx.pCell->IncreaseTiberium(tibToSpawn, 1);
+
+	for (int i = ScenarioClass::Instance->Random.RandomRanged(10, 20); i > 0; --i)
+	{
+		const int distance = ScenarioClass::Instance->Random.RandomFromMax(300);
+		const auto destLoc = MapClass::GetRandomCoordsNear(ctx.pCell->GetCoords(), distance, true);
+		MapClass::Instance->GetCellAt(destLoc)->IncreaseTiberium(tibToSpawn, 1);
+	}
+
+	ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+	return CollectResult::can;
+}
+
+CollectResult Crate_Handle_Default(const CrateContext& ctx)
+{
+	Debug::LogInfo("Crate at {},{} contains {}", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y,
+		ctx.pType->Name.data());
+	
+	ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+	return CollectResult::can;
+}
+
+// ---------------------------------------------------------------------
+// Custom crate type registry
+// ---------------------------------------------------------------------
+
+#include <unordered_map>
+
+static std::unordered_map<std::string, CrateCustomHandler>& Crate_CustomRegistry()
+{
+	// Function-local static: avoids global init-order issues with other
+	// statics (e.g. CrateTypeClass::Array) that might register handlers
+	// during their own static init.
+	static std::unordered_map<std::string, CrateCustomHandler> registry;
+	return registry;
+}
+
+void Crate_RegisterCustomHandler(const char* sectionName, CrateCustomHandler handler)
+{
+	Crate_CustomRegistry()[sectionName] = handler;
+}
+
+CrateCustomHandler Crate_FindCustomHandler(const char* sectionName)
+{
+	auto& registry = Crate_CustomRegistry();
+	auto it = registry.find(sectionName);
+	return it != registry.end() ? it->second : nullptr;
+}
+
+// ---------------------------------------------------------------------
+// Top-level dispatch: vanilla Powerup switch vs custom-type registry
+// ---------------------------------------------------------------------
+
+// Forward decl of the vanilla switch, defined in FakeCellClass_CollecCrate.cpp
+CollectResult Crate_Dispatch(CrateContext& ctx, int& soloCrateMoney);
+
+CollectResult Crate_HandleCrate(CrateContext& ctx, int& soloCrateMoney)
+{
+	if (ctx.IsVanillaPowerup())
+	{
+		// ctx.data is a real Powerup enumerator -> normal switch dispatch.
+		return Crate_Dispatch(ctx, soloCrateMoney);
+	}
+
+	// Custom crate type (ArrayIndex >= Powerups::Effects.size()).
+	// Look up by section name; fall back to Anim/Sound-only default.
+	if (auto handler = Crate_FindCustomHandler(ctx.pType->Name.data()))
+		return handler(ctx, soloCrateMoney);
+
+	return Crate_Handle_Default(ctx);
+}
+
+// ---------------------------------------------------------------------
+// Unit crate (rewritten retry loop)
+// ---------------------------------------------------------------------
+//
+// Original code had a `while(true)` whose exit conditions never reliably
+// terminated and ended with a dangling expression statement
+// `(finish && !currentPlayer && !force_mcv);` that did nothing.
+// Rewritten as: pick candidates, validate against CrateGoodie / reroll
+// chance / BaseUnit list, bounded retry count to avoid infinite loop.
+
+CollectResult Crate_Handle_Unit(CrateContext& ctx, int& soloCrateMoney)
+{
+	Debug::LogInfo("Crate at {},{} contains a unit", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y);
+
+	UnitTypeClass* Given = nullptr;
+	bool force_mcv = false; // VERIFY: caller should pass force_mcv in via ctx if needed elsewhere
+
+	if (force_mcv)
+		Given = ctx.pCollectorOwner->PickUnitFromTypeList(RulesClass::Instance->BaseUnit);
+
+	if (!Given) {
+		const bool hasRefinery =
+			ctx.pCollectorOwner->OwnedBuildingTypes.get_count(RulesClass::Instance->BuildRefinery[0]->ArrayIndex) > 0
+			|| ctx.pCollectorOwner->OwnedBuildingTypes.get_count(RulesClass::Instance->BuildRefinery[1]->ArrayIndex) > 0;
+
+		const bool hasHarvester =
+			ctx.pCollectorOwner->OwnedUnitTypes.get_count(RulesClass::Instance->HarvesterUnit[0]->ArrayIndex) > 0
+			|| ctx.pCollectorOwner->OwnedUnitTypes.get_count(RulesClass::Instance->HarvesterUnit[1]->ArrayIndex) > 0;
+
+		if (hasRefinery && !hasHarvester)
+			Given = ctx.pCollectorOwner->PickUnitFromTypeList(RulesClass::Instance->HarvesterUnit);
+	}
+
+	if (RulesClass::Instance->UnitCrateType)
+		Given = RulesClass::Instance->UnitCrateType;
+
+	if (!Given) {
+		// Helper: is `type` present in the BaseUnit list?
+		auto isBaseUnit = [](UnitTypeClass* type) -> bool {
+			if (RulesClass::Instance->BaseUnit.Count <= 0)
+				return false;
+
+			for (auto it = RulesClass::Instance->BaseUnit.begin(); it != RulesClass::Instance->BaseUnit.end(); ++it) {
+				if (*it == type)
+					return true;
+			}
+			return false;
+		};
+
+		constexpr int MaxRerollAttempts = 64; // bounded retry to avoid infinite loop (was unbounded while(true))
+
+		for (int attempt = 0; attempt < MaxRerollAttempts; ++attempt) {
+			auto candidate = UnitTypeClass::Array->Items[
+				ScenarioClass::Instance->Random.RandomFromMax(UnitTypeClass::Array->Count - 1)];
+
+			if (!candidate->CrateGoodie)
+				continue;
+
+			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(candidate);
+			if (pTypeExt->CrateGoodie_RerollChance > 0.0
+				&& pTypeExt->CrateGoodie_RerollChance < ScenarioClass::Instance->Random.RandomDouble()) {
+				continue;
+			}
+
+			// VERIFY: original logic excluded BaseUnit-list units for AI/non-current-player
+			// when bases are disabled. `isBaseUnit` kept here for that filter.
+			if (!GameModeOptionsClass::Instance->Bases
+				&& isBaseUnit(candidate)
+				&& !ctx.pCollectorOwner->ControlledByCurrentPlayer()) {
+				continue;
+			}
+
+			Given = candidate;
+			break;
+		}
+	}
+
+	if (Given) {
+		if (auto pCreatedUnit = Given->CreateObject(ctx.pCollectorOwner)) {
+			if (!pCreatedUnit->Unlimbo(ctx.locSound, DirType::Min)) {
+				ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+				return CollectResult::cannot;
+			}
+
+			const auto alternativeCell = MapClass::Instance->NearByLocation(
+				ctx.pCell->MapCoords, Given->SpeedType, ZoneType::None,
+				Given->MovementZone, 0, 1, 1, 0, 0, 0, 1, CellStruct::Empty, false, false);
+
+			if (alternativeCell.IsValid()) {
+				if (pCreatedUnit->Unlimbo(CellClass::Cell2Coord(alternativeCell), DirType::Min)) {
+					ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+					return CollectResult::cannot;
+				}
+			}
+
+			GameDelete<true, false>(pCreatedUnit);
+			Crate_GiveMoney(ctx, soloCrateMoney);
+			return CollectResult::can;
+		} else {
+			ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+			Crate_GiveMoney(ctx, soloCrateMoney);
+			return CollectResult::can;
+		}
+	}
+
+	// No valid unit type found at all -> fall back to money (was implicit
+	// fallthrough to HealBase in the original switch; treated as Money instead
+	// since that matches the GiveMoney fallback used elsewhere).
+	Crate_GiveMoney(ctx, soloCrateMoney);
+	return CollectResult::can;
+}
+
+// Dispatch table: maps Powerup -> handler. Built once on first use.
+// To add a new VANILLA crate effect: write Crate_Handle_X in
+// FakeCellClass_Crate.cpp, declare it in the header, and add one line here.
+// For CUSTOM crate types (not in the Powerup enum), use
+// Crate_RegisterCustomHandler() instead — see FakeCellClass_Crate.h.
+CollectResult Crate_Dispatch(CrateContext& ctx, int& soloCrateMoney)
+{
+	switch (ctx.data)
+	{
+	case Powerup::Money:        Crate_GiveMoney(ctx, soloCrateMoney); return CollectResult::can;
+	case Powerup::Unit:          return Crate_Handle_Unit(ctx, soloCrateMoney);
+	case Powerup::HealBase:       return Crate_Handle_HealBase(ctx);
+	case Powerup::Explosion:      return Crate_Handle_Explosion(ctx);
+	case Powerup::Napalm:         return Crate_Handle_Napalm(ctx);
+	case Powerup::Darkness:       return Crate_Handle_Darkness(ctx);
+	case Powerup::Reveal:         return Crate_Handle_Reveal(ctx);
+	case Powerup::Armor:          return Crate_Handle_Armor(ctx);
+	case Powerup::Speed:          return Crate_Handle_Speed(ctx);
+	case Powerup::Firepower:       return Crate_Handle_Firepower(ctx);
+	case Powerup::Cloak:          return Crate_Handle_Cloak(ctx);
+	case Powerup::ICBM:           return Crate_Handle_ICBM(ctx);
+	case Powerup::Veteran:        return Crate_Handle_Veteran(ctx);
+	case Powerup::Gas:            return Crate_Handle_Gas(ctx);
+	case Powerup::Tiberium:       return Crate_Handle_Tiberium(ctx);
+	case Powerup::Squad:          return Crate_Handle_Squad(ctx, soloCrateMoney);
+	case Powerup::Invulnerability: return Crate_Handle_Invulnerability(ctx);
+	case Powerup::IonStorm:       return Crate_Handle_IonStorm(ctx);
+	case Powerup::Pod:            return Crate_Handle_Pod(ctx);
+	default:                      return Crate_Handle_Default(ctx);
+	}
+}
+
+CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
+{
+	if (!pCollector || this->OverlayTypeIndex <= -1)
+		return CollectResult::can;
+
+	const auto pOverlay = OverlayTypeClass::Array->Items[this->OverlayTypeIndex];
+
+	if (!pOverlay->Crate)
+		return CollectResult::can;
+
+	const auto pCollectorOwner = pCollector->Owner;
+
+	const bool isPassiveSkip =
+		SessionClass::Instance->GameMode != GameMode::Campaign && pCollectorOwner->Type->MultiplayPassive;
+
+	if (isPassiveSkip)
+		return CollectResult::can;
+
+	// --- Trigger spring ---
+	if (pOverlay->CrateTrigger && pCollector->AttachedTag)
+	{
+		Debug::LogInfo("Springing trigger on crate at {},{}", this->MapCoords.X, this->MapCoords.Y);
+		pCollector->AttachedTag->SpringEvent(TriggerEvent::PickupCrate, pCollector, CellStruct::Empty);
+
+		if (!pCollector->IsAlive)
+			return CollectResult::cannot;
+
+		ScenarioClass::Instance->PickedUpAnyCrate = true;
+	}
+
+	// --- Determine reward ---
+	bool force_mcv = false;
+	int soloCrateMoney = 0;
+	Powerup data = Crate_DetermineRewardType(this, pCollector);
+
+	if (SessionClass::Instance->GameMode != GameMode::Campaign)
+	{
+		data = Crate_EvaluateMultiplayerReward(data, pCollector, pCollectorOwner, this->LandType, force_mcv);
+		HouseExtData::IncremetCrateTracking(pCollectorOwner, data);
+	}
+	else
+	{
+		data = Crate_ResolveCampaignReward(this, soloCrateMoney);
+	}
+
+	// --- Remove crate / spawn replacement ---
+	MapClass::Instance->Remove_Crate(&this->MapCoords);
+
+	if (SessionClass::Instance->GameMode != GameMode::Campaign && GameModeOptionsClass::Instance->Crates)
+		MapClass::Instance->Place_Random_Crate();
+
+	// --- Build context and dispatch ---
+	CrateContext ctx {};
+	ctx.pCell = this;
+	ctx.pCollector = pCollector;
+	ctx.pCollectorOwner = pCollectorOwner;
+	ctx.loc = CellClass::Cell2Coord(this->MapCoords, this->GetFloorHeight({ 128, 128 }) + 200);
+	ctx.locSound = CellClass::Cell2Coord(this->MapCoords, this->GetFloorHeight({ 128, 128 }));
+	ctx.data = data;
+	// `data` carries the resolved CrateTypeClass::Array index (cast through
+	// Powerup). This is valid for BOTH vanilla entries (index < Powerups::
+	// Effects.size(), matches a real Powerup enumerator) and custom entries
+	// (index >= that size, no matching enumerator -> IsVanillaPowerup() == false).
+	ctx.pType = CrateTypeClass::Array[(int)data].get();
+	ctx.something = ctx.pType->Argument.Get();
+	ctx.isControlledByPlayer = pCollectorOwner->ControlledByCurrentPlayer();
+
+	// NOTE: force_mcv was passed into the original Unit handler via outer scope.
+	// Crate_Handle_Unit currently hardcodes force_mcv = false (see TODO comment
+	// there) — wire `force_mcv` through CrateContext if MCV-forcing crates need
+	// to be preserved exactly.
+	return Crate_HandleCrate(ctx, soloCrateMoney);
+}
+#endif
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x481A00, FakeCellClass::_CollecCrate)
 DEFINE_FUNCTION_JUMP(CALL, 0x4B0D1B, FakeCellClass::_CollecCrate)
@@ -814,9 +1781,9 @@ ASMJIT_PATCH(0x475A44, CCINIClass_Put_CrateType, 0x7)
 	GET_STACK(int, crateType, 0x8);
 
 	const auto pCrate = CrateTypeClass::FindFromIndexFix(crateType);
-	if (!pCrate)
-	{
-		Debug::FatalErrorAndExit(__FUNCTION__" Missing CrateType Pointer for[%d]!", crateType);
+
+	if (!pCrate) {
+		Debug::FatalErrorAndExit(__FUNCTION__" Missing CrateType[size %d] Pointer for[%d]!", CrateTypeClass::Array.size() , crateType);
 	}
 
 	R->EDX(pCrate->Name.data());
@@ -827,10 +1794,11 @@ ASMJIT_PATCH(0x475A1F, RulesClass_Put_CrateType, 0x5)
 	GET(const char*, crate, ECX);
 
 	const int idx = CrateTypeClass::FindIndexById(crate);
-	if (idx <= -1)
-	{
-		Debug::FatalErrorAndExit(__FUNCTION__" Missing CrateType index for[%s]!", crate);
+
+	if (idx < 0) {
+		Debug::FatalErrorAndExit(__FUNCTION__" Missing CrateType[size %d] index for[%s]!", CrateTypeClass::Array.size(), crate);
 	}
+
 	R->EAX(idx);
 	return 0x475A24;
 }
@@ -839,13 +1807,13 @@ ASMJIT_PATCH(0x48DE79, CrateTypeFromName, 0x7)
 {
 	GET(const char*, readedName, EBX);
 
-	const auto type = CrateTypeClass::FindIndexById(readedName);
+	const auto idx = CrateTypeClass::FindIndexById(readedName);
 
-	if (type != -1)
-	{
-		R->EDI(type);
+	if (idx >= 0) {
+		R->EDI(idx);
 		return 0x48DEA2;
 	}
 
+	Debug::FatalErrorAndExit(__FUNCTION__" Missing CrateType[size %d] index for[%s]!", CrateTypeClass::Array.size(), readedName);
 	return 0x48DE9C;
 }

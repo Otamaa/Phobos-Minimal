@@ -21,6 +21,9 @@ public:
 	MOVEABLE_ONLY(Enumerable<T>);
 public:
 
+	static FORCEDINLINE COMPILETIMEEVAL const container_t& GetArray() { return Array; }
+	static FORCEDINLINE COMPILETIMEEVAL size_t Count() { return Array.size(); }
+	static FORCEDINLINE COMPILETIMEEVAL bool Empty() { return Array.empty(); }
 	static container_t Array;
 
 	static int FindOrAllocateIndex(const char* Title)
@@ -36,13 +39,11 @@ public:
 		return nResult;
 	}
 
-	static int FindIndexById(const char* Title)
+	static OPTIONALINLINE int FindIndexById(const char* Title)
 	{
-		for (auto pos = Array.begin();
-			pos != Array.end();
-			++pos) {
-			if (IS_SAME_STR_(pos->get()->Name.c_str(), Title)) {
-				return std::distance(Array.begin(), pos);
+		for (auto& eNum : Array) {
+			if (IS_SAME_STR_(eNum->Name.c_str(), Title)) {
+				return eNum->ArrayIndex;
 			}
 		}
 
@@ -62,10 +63,7 @@ public:
 	static OPTIONALINLINE COMPILETIMEEVAL int FindIndexFromType(T* pType)
 	{
 		if (pType) {
-			for (size_t i = 0; i < Array.size(); ++i) {
-				if (Array[i].get() == pType)
-					return i;
-			}
+			return pType->ArrayIndex;
 		}
 
 		return -1;
@@ -73,7 +71,7 @@ public:
 
 	static OPTIONALINLINE COMPILETIMEEVAL T* TryFindFromIndex(int Idx) {
 
-		if (size_t(Idx) > Array.size())
+		if (size_t(Idx) >= Array.size())
 			return nullptr;
 
 		return Array[static_cast<size_t>(Idx)].get();
@@ -91,7 +89,7 @@ public:
 		if (Array.empty())
 			return nullptr;
 
-		return Array[size_t(Idx) > Array.size() ? 0 : Idx].get();
+		return Array[size_t(Idx) >= Array.size() ? 0 : Idx].get();
 	}
 
 	static OPTIONALINLINE COMPILETIMEEVAL T* Allocate(const char* Title)
@@ -203,17 +201,17 @@ public:
 		Clear();
 
 		int Count = 0;
-		if (Stm.Load(Count)) {
+		if (Stm.Process(Count)) {
 			if (Count > 0) {
 				Array.reserve(Count);
 				for (int i = 0; i < Count; ++i) {
-					long oldPtr = 0l;
+					uintptr_t oldPtr = 0l;
 
-					if (!Stm.Load(oldPtr))
+					if (!Stm.Process(oldPtr))
 						return false;
 
-					decltype(Name) name;
-					if (!Stm.Load(name))
+					decltype(Name) name {};
+					if (!Stm.Process(name))
 						return false;
 
 					auto newPtr = FindOrAllocate(name.data());
@@ -232,13 +230,18 @@ public:
 
 		//save it as int instead of size_t
 		const int Count = (int)Array.size();
-		if (!Stm.Save(Count))
+		if (!Stm.Process(Count))
 			return false;
 
 		for (int i = 0; i < Count; ++i) {
 			Debug::Log("Saving %s [%s - %x] to stream\n", T::ClassName, Array[i]->Name.data(), (long)Array[i].get());
-			Stm.Save((long)Array[i].get());
-			Stm.Process(Array[i]->Name);
+
+			if(!Stm.Save((uintptr_t)Array[i].get()))
+				return false;
+
+			if(!Stm.Process(Array[i]->Name))
+				return false;
+
 			Array[i]->SaveToStream(Stm);
 		}
 
@@ -246,8 +249,13 @@ public:
 	}
 
 	PhobosFixedString<0x18> Name {};
+	int ArrayIndex { -1 }; //Array index are not serialized , it will re-new every creation
 
-	COMPILETIMEEVAL Enumerable(const char* name) : Name { name } {}
+	COMPILETIMEEVAL Enumerable(const char* name) :
+		Name { name }
+		// capturing the array size before item added so this always correct
+		, ArrayIndex { static_cast<int>(Array.size()) }
+	{}
 
 	virtual ~Enumerable() = default;
 };

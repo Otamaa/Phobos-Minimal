@@ -62,7 +62,7 @@ public:
 	static std::array<const char*, 21u> TileType_ToStrings;
 	static std::array<const char*, 6u> DamageState_to_strings;
 	static std::array<const char*, 8u> FacingType_to_strings;
-	static std::array<const char*, 6u> ExpireWeaponCondition_to_strings;
+	static std::array<std::pair<const char* ,ExpireWeaponCondition>, 6u> ExpireWeaponCondition_to_strings;
 
 	static std::array<std::pair<const char*, AffectedVeterancy>, 5u> AffectedVeterancy_ToStrings;
 	static std::array<std::pair<const char*, TextAlign>, 4u> TextAlign_ToStrings;
@@ -77,7 +77,7 @@ public:
 	static std::array<std::pair<const char*, MouseHotSpotY>, 3u> MouseHotSpotY_ToStrings;
 	static std::array<const char*, (size_t)NewCrateType::count> NewCrateType_ToStrings;
 	static std::array<const char*, (size_t)TrajectoryCheckReturnType::count> TrajectoryCheckReturnType_to_strings;
-	static std::array<const char*, (size_t)DiscardCondition::count> DiscardCondition_to_strings;
+	static std::array<std::pair<const char* ,DiscardCondition>, (size_t)DiscardCondition::count> DiscardCondition_to_strings;
 
 
 public:

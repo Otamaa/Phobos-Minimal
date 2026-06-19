@@ -133,14 +133,7 @@ void RulesExtData::s_LoadFromINIFile(RulesClass* pThis, CCINIClass* pINI)
 // to makesure everything is properly allocated from the list
 void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
-	ArmorTypeClass::LoadFromINIList_New(pINI);
-	ColorTypeClass::LoadFromINIList_New(pINI);
-	CursorTypeClass::LoadFromINIList_New(pINI);
 	InsigniaTypeClass::LoadFromINIList(pINI);
-
-	TunnelTypeClass::LoadFromINIList(pINI);
-
-	CrateTypeClass::ReadFromINIList(pINI); //yeah ,..
 
 	// we override it , so it loaded before any type read happen , so all the properties will correcly readed
 	pThis->Read_CrateRules(pINI);
@@ -151,11 +144,8 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pThis->Read_AudioVisual(pINI);
 	pThis->Read_SpecialWeapons(pINI);
 
-	CrateTypeClass::AddDefaults();
 	RadTypeClass::AddDefaults();
-	GenericPrerequisite::AddDefaults();
 	HoverTypeClass::AddDefaults();
-	ShieldTypeClass::AddDefaults();
 
 	ImmunityTypeClass::LoadFromINIList(pINI);
 	ArmorTypeClass::EvaluateDefault();
@@ -164,10 +154,8 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	RadTypeClass::LoadFromINIOnlyTheList(pINI);
 
-	ShieldTypeClass::LoadFromINIOnlyTheList(pINI);
 	HoverTypeClass::LoadFromINIOnlyTheList(pINI);
-
-	LaserTrailTypeClass::LoadFromINIList(&CCINIClass::INI_Art.get());
+	LaserTrailTypeClass::LoadFromINIList(CCINIClass::INI_Art.operator->());
 	DigitalDisplayTypeClass::LoadFromINIList(pINI);
 	SelectBoxTypeClass::LoadFromINIList(pINI);
 
@@ -199,7 +187,6 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
 	INI_EX iniEX(pINI);
 	auto pData = RulesExtData::Instance();
-
 	CrateTypeClass::ReadListFromINI(pINI);
 	HoverTypeClass::ReadListFromINI(pINI);
 	ShieldTypeClass::ReadListFromINI(pINI);
@@ -469,8 +456,6 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 		this->XGRYSML1_ = AnimTypeClass::FindOrAllocate("XGRYSML1");
 	}
 
-	GenericPrerequisite::LoadFromINIList_New(pINI);
-
 	INI_EX exINI(pINI);
 
 	#pragma region General
@@ -656,6 +641,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->Temporal_ConsiderVersus.Read(exINI, GameStrings::CombatDamage, "Temporal.ApplyVersus");
 	this->Temporal_ApplyMultiplier.Read(exINI, GameStrings::CombatDamage, "Temporal.ApplyMultiplier");
 	this->Shrapnel_IgnoreHitBuildings.Read(exINI, GameStrings::CombatDamage, "Shrapnel.IgnoreHitBuildings");
+	this->AffectsInvokerOnly_IgnoreInvokerState.Read(exINI, GameStrings::CombatDamage, "AffectsInvokerOnly.IgnoreInvokerState");
+	this->Shrapnel_ObeyWarheadTriggerConditions.Read(exINI, GameStrings::CombatDamage, "Shrapnel.ObeyWarheadTriggerConditions");
 	this->PenetratesTransport_Level.Read(exINI, GameStrings::CombatDamage, "PenetratesTransport.Level");
 	this->DamageWallRecursivly.Read(exINI, GameStrings::CombatDamage, "DamageWallRecursivly");
 	this->AdjacentWallDamage.Read(exINI, GameStrings::CombatDamage, "AdjacentWallDamage");
@@ -720,6 +707,16 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	#pragma endregion
 
 	#pragma region AudioVisual
+	this->FlyNoWobbles.Read(exINI, GameStrings::AudioVisual, "FlyNoWobbles");
+
+	this->DropShip_LandAnim.Read(exINI, GameStrings::AudioVisual, "DefaultLandingAnim.Dropship");
+	this->CarryAll_LandAnim.Read(exINI, GameStrings::AudioVisual, "DefaultLandingAnim.Carryall");
+	this->CarryAll_LandAnim.Read(exINI, GameStrings::AudioVisual(), "LandingAnim.Carryall", true);
+	this->DropShip_LandAnim.Read(exINI, GameStrings::AudioVisual(), "LandingAnim.Dropship", true);
+	this->Aircraft_LandAnim.Read(exINI, GameStrings::AudioVisual(), "LandingAnim.Aircraft", true);
+	this->LandingAnim .Read(exINI, GameStrings::AudioVisual(), "DefaultLandingAnim", true);
+
+
 	detail::getindex<VocClass>(this->AttachedToObject->DeploySound, exINI, GameStrings::AudioVisual, "DeploySound");
 	this->RemoveMindControl_Silent.Read(exINI, GameStrings::AudioVisual, "RemoveMindControl.Silent");
 	this->DisplayIncome_Delay.Read(exINI, GameStrings::AudioVisual, "DisplayIncome.Delay");
@@ -786,9 +783,6 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->DrawInsignia_UsePixelSelectionBracketDelta.Read(exINI, GameStrings::AudioVisual, "DrawInsignia.UsePixelSelectionBracketDelta");
 	this->DisplayCreditsDelay.Read(exINI, GameStrings::AudioVisual(), "DisplayCreditsDelay");
 	this->VeinholeParticle.Read(exINI, GameStrings::AudioVisual(), "VeinholeSpawnParticleType", true);
-	this->CarryAll_LandAnim.Read(exINI, GameStrings::AudioVisual(), "LandingAnim.Carryall", true);
-	this->DropShip_LandAnim.Read(exINI, GameStrings::AudioVisual(), "LandingAnim.Dropship", true);
-	this->Aircraft_LandAnim.Read(exINI, GameStrings::AudioVisual(), "LandingAnim.Aircraft", true);
 	this->Aircraft_TakeOffAnim.Read(exINI, GameStrings::AudioVisual(), "TakeOffAnim.Aircraft", true);
 	this->ElectricDeath.Read(exINI, GameStrings::AudioVisual(), "InfantryElectrocuted");
 	this->DrawTurretShadow.Read(exINI, GameStrings::AudioVisual(), "DrawTurretShadow");
@@ -895,11 +889,32 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 void RulesExtData::LoadEarlyOptios(RulesClass* pThis, CCINIClass* pINI)
 { }
 
+//most of here is either do  :
+// 1. Do add default value if any
+// 2. Load the list from the ini before parsing it later
+// the purpose is preparing the list before any parsing happen after this , because when the list is not ready and it is get parsed 
+// everything just fall all over the places
 void RulesExtData::LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI)
 {
-	ArmorTypeClass::AddDefaults();
 	CursorTypeClass::AddDefaults();
+	CursorTypeClass::LoadFromINIList_New(pINI);
+	ColorTypeClass::LoadFromINIList_New(pINI);
 	SelectBoxTypeClass::AddDefaults();
+
+	ArmorTypeClass::LoadFromINIList_New(pINI);
+	CrateTypeClass::ReadFromINIList(pINI);
+	TunnelTypeClass::LoadFromINIList(pINI);
+
+	RocketTypeClass::AddDefaults();
+	RocketTypeClass::LoadFromINIOnlyTheList(pINI);
+
+	GenericPrerequisite::AddDefaults();
+	GenericPrerequisite::LoadFromINIOnlyTheList(pINI);
+
+	LaserTrailTypeClass::LoadFromINIOnlyTheList(CCINIClass::INI_Art.operator->());
+
+	ShieldTypeClass::AddDefaults();
+	ShieldTypeClass::LoadFromINIOnlyTheList(pINI);
 }
 
 bool RulesExtData::DetailsCurrentlyEnabled()
@@ -921,6 +936,7 @@ bool RulesExtData::DetailsCurrentlyEnabled(int const minDetailLevel)
 
 void RulesExtData::LoadBeforeGeneralData(RulesClass* pThis, CCINIClass* pINI)
 {
+	GenericPrerequisite::LoadFromINIList_New(pINI);
 }
 
 void RulesExtData::LoadAfterAllLogicData(RulesClass* pThis, CCINIClass* pINI)
@@ -1054,6 +1070,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->CarryAll_LandAnim)
 		.Process(this->DropShip_LandAnim)
 		.Process(this->Aircraft_LandAnim)
+		.Process(this->LandingAnim)
 		.Process(this->Aircraft_TakeOffAnim)
 
 		.Process(this->DisablePathfindFailureLog)
@@ -1447,11 +1464,15 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->AreaGuard_TargetingInRange)
 		.Process(this->AreaGuard_StrayIgnoreDestination)
 		.Process(this->Shrapnel_IgnoreHitBuildings)
+		.Process(this->AffectsInvokerOnly_IgnoreInvokerState)
+		.Process(this->Shrapnel_ObeyWarheadTriggerConditions)
 		.Process(this->PrismRelay_SupportTimeout)
 		.Process(this->RemoveMindControl_Silent)
 		.Process(this->TeamDelays_DynamicType)
 		.Process(this->TeamDelays)
-		.Process(this->Parasite_AllowWaterExit )
+		.Process(this->Parasite_AllowWaterExit)
+		.Process(this->FlyNoWobbles)
+		.Process(this->ColorAdds)
 		;
 }
 
@@ -1585,14 +1606,19 @@ ASMJIT_PATCH(0x668D86, RulesData_Process_PreFillTypeListData, 0x6)
 	return 0x668DD2;
 }
 
+void FakeRulesClass::_ReadPowerups(CCINIClass* pINI)
+{
+	CrateTypeClass::ReadFromPowerups(pINI);
+}
+DEFINE_FUNCTION_JUMP(CALL, 0x668ED0, FakeRulesClass::_ReadPowerups);
+DEFINE_FUNCTION_JUMP(LJMP, 0x673E80, FakeRulesClass::_ReadPowerups);
+
 void FakeRulesClass::_ReadColors(CCINIClass* pINI)
 {
 	RulesExtData::LoadEarlyBeforeColor(this, pINI);
 
 	this->Read_JumpjetControls(pINI);
 	this->Read_Colors(pINI);
-
-	RocketTypeClass::LoadFromINIList(pINI);
 }
 
 void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
@@ -1600,7 +1626,6 @@ void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 	RulesExtData::LoadBeforeGeneralData(this, pINI);
 	this->Read_General(pINI);
 
-	RocketTypeClass::AddDefaults();
 	RocketTypeClass::ReadListFromINI(pINI);
 
 	SideClass::Array->for_each([pINI](SideClass* pSide) {
@@ -1740,11 +1765,11 @@ ASMJIT_PATCH(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 
 // remove reading warhead from `SpecialWeapon`
 DEFINE_PATCH_TYPED(BYTE, 0x669193
-	, 0x5B //pop EBX
-	, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90
-	, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90
-	, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90
-	, 0x90, 0x90, 0x90, 0x90, 0x90
+	, 0x90, 0x90, 0x90, 0x90, 0x90  // NOP: mov eax, Warheads.ActiveCount
+	, 0x90, 0x90                     // NOP: xor esi, esi
+	, 0x5B                           // pop ebx (correct position: 0x66919A)
+	, 0x90, 0x90                     // NOP: test eax, eax
+	, 0xEB, 0x18                     // jmp short loc_6691B7
 );
 
 ASMJIT_PATCH(0x685005, Game_InitData_GlobalParticleSystem, 0x5)
@@ -2838,25 +2863,23 @@ static void ProcessColorAdd(CCINIClass* pINI)
 
 		//this was for debugging purposes
 		//the code below can be simplified
-		std::vector<temp_rgb> v_buffer(count);
+		RulesExtData::Instance()->ColorAdds.resize(count);
 
-		for (size_t i = 0; i < v_buffer.size(); ++i)
-		{
-			pINI->Read3Bytes((v_buffer[i]).operator unsigned char* ()
+		for (int i = 0; i < count; ++i) {
+			pINI->Read3Bytes(RulesExtData::Instance()->ColorAdds[i].asPointer()
 				, GameStrings::ColorAdd
 				, pINI->GetKeyName(GameStrings::ColorAdd, i)
-				, (v_buffer[i]).operator unsigned char* ());
+				,RulesExtData::Instance()->ColorAdds[i].asPointer());
 		}
 
-		if (v_buffer.size() >= RulesClass::Instance->ColorAdd.size())
+		if (RulesExtData::Instance()->ColorAdds.size() >= RulesClass::Instance->ColorAdd.size())
 		{
-			Debug::LogInfo("Attempt to read ColorAdd more than array size {}", count);
+			Debug::LogInfo("Readed ColorAdd and the size is more than 16 max , parsed size {}", count);
 			Debug::RegisterParserError();
 		}
 
-		for (size_t a = 0; a < RulesClass::Instance->ColorAdd.size(); ++a)
-		{
-			RulesClass::Instance->ColorAdd[a] = v_buffer[a];
+		for (size_t a = 0; a < RulesClass::Instance->ColorAdd.size(); ++a) {
+			RulesClass::Instance->ColorAdd[a] = RulesExtData::Instance()->ColorAdds[a];
 		}
 
 	}

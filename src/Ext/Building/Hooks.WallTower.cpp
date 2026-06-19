@@ -36,9 +36,16 @@ ASMJIT_PATCH(0x4514F9, BuildingClass_AnimLogic_WallTowers, 0x6)
 	return Nvec.Contains(pThis->Type) ? 0x45150B : 0x4515E9;
 }
 
+#include <Ext/OverlayType/Body.h>
+
 ASMJIT_PATCH(0x45EF11, BuildingClass_FlushForPlacement_WallTowers, 0x6)
 {
 	GET(BuildingTypeClass*, pThis, EBX);
+	GET(int, overlayTypeIndex, ECX);
+
+	if (OverlayTypeExtData::CanBeBuiltOn(overlayTypeIndex, pThis, false))
+		return 0x45EF2C;
+
 	R->EDX(RulesClass::Instance());
 	const auto& Nvec = RulesExtData::Instance()->WallTowers;
 	return Nvec.Contains(pThis) ? 0x45EF23 : 0x45F00B;

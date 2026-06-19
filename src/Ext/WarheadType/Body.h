@@ -413,6 +413,7 @@ public:
 	Valueable<int> MinDamage { -1 };
 
 	TechnoClass* IntendedTarget { nullptr };
+	TechnoClass* DamageAreaInvoker { nullptr };
 
 	Valueable<WeaponTypeClass*> KillWeapon { nullptr };
 	Valueable<WeaponTypeClass*> KillWeapon_OnFirer { nullptr };
@@ -525,6 +526,10 @@ public:
 	Valueable<int> PowerOutage_Duration { 0 };
 	Valueable<int> PowerOutage_Max {};
 	Valueable<AffectedHouse> PowerOutage_AffectsHouse { AffectedHouse::Owner };
+
+	Valueable<bool> AffectsInvokerOnly {};
+	Valueable<bool> AffectsInvokerOnly_Reverse {};
+	Nullable<bool> AffectsInvokerOnly_IgnoreInvokerState {};
 #pragma endregion
 
 public:
@@ -625,7 +630,7 @@ public:
 	void InterceptBullets(TechnoClass* pOwner, BulletClass* pBullet, CoordStruct coords);
 	bool CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTargetHouse) const;
 	bool CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage = false) const;
-	bool CanDealDamage(TechnoClass* pTechno, bool Bypass = false, bool SkipVerses = false , bool checkImmune = true , bool checkLimbo = true) const;
+	bool CanDealDamage(TechnoClass* pTechno, bool Bypass = false, bool SkipVerses = false , bool checkImmune = true , bool checkLimbo = true , bool bypassWHCheckings = false) const;
 	bool CanAffectInvulnerable(TechnoClass* pTarget) const;
 	bool IsVeterancyInThreshold(TechnoClass* pTarget) const;
 	FullMapDetonateResult EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner) const;
@@ -653,6 +658,7 @@ public:
 
 
 	bool IsHealthInThreshold(ObjectClass* pTarget) const;
+	bool IsInvokerAllowed(TechnoClass* pTarget, TechnoClass* pInvoker) const;
 
 	AnimTypeClass* GetArmorHitAnim(int Armor);
 
@@ -722,6 +728,23 @@ public:
 	static void DisableEMPEffect(TechnoClass* const pVictim);
 	static bool EnableEMPEffect2(TechnoClass* const pVictim);
 	static void DisableEMPEffect2(TechnoClass* const pVictim);
+};
+
+struct InvokerGuard
+{
+	WarheadTypeExtData* pExt;
+	TechnoClass* pOldInvoker;
+
+	InvokerGuard(WarheadTypeExtData* pExt, TechnoClass* pInvoker)
+		: pExt(pExt), pOldInvoker(pExt->DamageAreaInvoker)
+	{
+		pExt->DamageAreaInvoker = pInvoker;
+	}
+
+	~InvokerGuard()
+	{
+		pExt->DamageAreaInvoker = pOldInvoker;
+	}
 };
 
 class WarheadTypeExtContainer final : public Container<WarheadTypeExtData>

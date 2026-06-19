@@ -1269,8 +1269,12 @@ public:
 	Nullable<bool> DriverKilled_KillPassengers {};
 
 	Nullable<bool> Parasite_AllowWaterExit {};
+	Nullable<bool> FlyNoWobbles {};
+	Nullable<int> EliteSight {};
+	Nullable<int> VeteranSight {};
 
 	int TintColorAirstrike {};
+
 #pragma endregion
 
 public:
@@ -2198,6 +2202,9 @@ private:
 		debugProcess(this->DriverKilled_KeptPassengers, "DriverKilled_KeptPassengers");
 		debugProcess(this->DriverKilled_KillPassengers, "DriverKilled_KillPassengers");
 		debugProcess(this->Parasite_AllowWaterExit, "Parasite_AllowWaterExit");
+		debugProcess(this->FlyNoWobbles, "FlyNoWobbles");
+		debugProcess(this->EliteSight, "EliteSight");
+		debugProcess(this->VeteranSight, "VeteranSight");
 		debugProcess(this->TintColorAirstrike, "TintColorAirstrike");
 
 	}

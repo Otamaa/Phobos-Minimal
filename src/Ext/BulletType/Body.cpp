@@ -223,7 +223,7 @@ bool BulletTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->EMPulseCannon_InaccurateRadius.Read(exINI, pSection, "EMPulseCannon.InaccurateRadius");
 		this->UpdateImmediately.Read(exINI, pSection, "UpdateImmediately");
 		this->Shrapnel_IgnoreHitBuildings.Read(exINI, pSection, "Shrapnel.IgnoreHitBuildings");
-
+		this->Shrapnel_ObeyWarheadTriggerConditions.Read(exINI, pSection, "Shrapnel.ObeyWarheadTriggerConditions");
 		if (pThis->Inviso) {
 			trailReaded = true;
 			this->LaserTrail_Types.Read(exINI, pSection, "LaserTrail.Types");
@@ -330,6 +330,7 @@ void BulletTypeExtData::Serialize(T& Stm)
 		.Process(this->VerticalInitialFacing)
 
 		.Process(this->AU)
+		.Process(this->Shrapnel_ObeyWarheadTriggerConditions)
 		.Process(this->UpdateImmediately)
 		.Process(this->Shrapnel_IgnoreHitBuildings)
 

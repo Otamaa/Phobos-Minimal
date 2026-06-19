@@ -11,6 +11,7 @@
 #include <vector>
 #include <memory>
 
+#include <Base/Always.h>
 class JitErrorHandler : public asmjit::ErrorHandler
 {
 public:
@@ -27,19 +28,8 @@ struct FunctionTrampoline
 	void* original_address;
 	void* trampoline_address;
 	std::vector<uint8_t> original_bytes;
+	std::vector<uint8_t> modified_original_bytes;
 	size_t hook_size;
-};
-
-struct HookEntry
-{
-	const void* func;
-	size_t size;
-};
-
-struct HooksData
-{
-	std::vector<HookEntry> summary {};
-	std::vector<uint8_t> originalOpcode {};
 };
 
 struct PhobosHookers
@@ -47,7 +37,7 @@ struct PhobosHookers
 	static JitErrorHandler gJitErrorHandler;
 	static std::unique_ptr<asmjit::JitRuntime> gJitRuntime;
 	static std::unordered_map<unsigned int, FunctionTrampoline> g_trampolines;
-	static std::map<unsigned int, HooksData> Hooks;
+	static std::map<unsigned int, std::map<const void*, size_t>> Hooks;
 
 	static void InitMinHook();
 	static void Initasmjit();
@@ -55,6 +45,5 @@ struct PhobosHookers
 	static void CleanupTrampolines();
 	static bool SetupTrampoline(unsigned int target_address, size_t hook_size);
 
-	static bool InstallSingleHook(unsigned int addr, const HookEntry& sm_vec0, std::vector<uint8_t>& org_vec);
-
+	static bool InstallSingleHook(unsigned int addr, std::map<const void*, size_t>& sm_vec0);
 };

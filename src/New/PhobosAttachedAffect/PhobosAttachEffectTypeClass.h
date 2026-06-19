@@ -344,7 +344,7 @@ public:
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 	static OPTIONALINLINE COMPILETIMEEVAL void Clear() {
-		Array.clear();
+		Enumerable<PhobosAttachEffectTypeClass>::Clear();
 		GroupsMap.clear();
 	}
 

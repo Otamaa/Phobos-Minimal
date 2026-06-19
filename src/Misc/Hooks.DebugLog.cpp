@@ -7,7 +7,7 @@
 #include <SessionClass.h>
 
 //use the padding ,...
-DEFINE_HOOK_AGAIN(0x4A4AC0, Debug_Log, 1)
+
 DEFINE_HOOK(0x4068E0, Debug_Log, 1)
 {
 	LEA_STACK(va_list const, args, 0x8);
@@ -19,7 +19,7 @@ DEFINE_HOOK(0x4068E0, Debug_Log, 1)
 	}
 
 	return 0x4A4AF9; // changed to co-op with YDE
-}
+}DEFINE_HOOK_AGAIN(0x4A4AC0, Debug_Log, 1)
 
 ASMJIT_PATCH(0x4C850B, Exception_Dialog, 5)
 {

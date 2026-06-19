@@ -618,6 +618,16 @@ bool BulletExtData::ShrapnelTargetEligible(BulletClass* pThis,
 				if (!pTargetType->LegalTarget || !pWhExt->CanDealDamage(static_cast<TechnoClass*>(pTargetObj), false, false))
 					return false;
 
+				if (pBulletExt->Shrapnel_ObeyWarheadTriggerConditions.Get(RulesExtData::Instance()->Shrapnel_ObeyWarheadTriggerConditions)) {
+					if(!pWhExt->CanDealDamage(static_cast<TechnoClass*>(pTargetObj), false, false))
+						return false;
+	
+					if (!pWhExt->IsHealthInThreshold(static_cast<TechnoClass*>(pTargetObj))
+						|| (!pWhExt->AffectsNeutral && static_cast<TechnoClass*>(pTargetObj)->Owner->IsNeutral())
+						|| !pWhExt->IsInvokerAllowed(static_cast<TechnoClass*>(pTargetObj), pThis->Owner))
+						return false;
+				}
+
 				if (!pWeaponExt->SkipWeaponPicking)
 				{
 					if (!EnumFunctions::IsTechnoEligible(static_cast<TechnoClass*>(pTargetObj), pWeaponExt->CanTarget, false))

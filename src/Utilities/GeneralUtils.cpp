@@ -63,13 +63,23 @@ int  GeneralUtils::GetRandomValue<false>(const Point2D point, int defVal)
 
 int GeneralUtils::GetColorFromColorAdd(int colorIndex)
 {
-	auto const& colorAdd = RulesClass::Instance->ColorAdd;
+	auto const& colorAdd = RulesExtData::Instance()->ColorAdds;
 	const int colorValue = GetColorIndexForColorAdd(colorIndex);
 
 	if (RulesExtData::Instance()->ColorAddUse8BitRGB)
 		return colorAdd[colorValue].ToInit();
 
 	return GetColorFromColorAdd(colorAdd[colorValue]);
+}
+
+ColorStruct GeneralUtils::GetColorStructFromColorAdd(int colorIndex)
+{
+	return RulesExtData::Instance()->ColorAdds[GetColorIndexForColorAdd(colorIndex)];
+}
+
+int GeneralUtils::GetColorIndexForColorAdd(int colorIndex) //this one fixup the index
+{
+	return ((size_t)colorIndex >= RulesExtData::Instance()->ColorAdds.size()) ? 0 : colorIndex;
 }
 
 int GeneralUtils::GetColorFromColorAdd(ColorStruct const& colors)

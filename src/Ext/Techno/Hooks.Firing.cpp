@@ -244,7 +244,12 @@ static BulletClass* HandlePostBulletLogic(
 				->SkipTargetChangeResetSequence = true;
 		}
 		// ╚═══════════════════════════════════════════════════════════════════╝
-
+		if(auto pFoot = flag_cast_to<FootClass*, false>(pThis)){
+			if(auto pTeam = pFoot->Team){
+				pTeam->AssignMissionTarget(nullptr);
+				pTeam->StepCompleted = true;
+			}
+		}
 		// ╔═══ HOOK: TechnoClass_FireAt_FireOnce_B @ 0x6FF923 ══════════════════╗
 		pThis->SetTarget(nullptr);
 		if (auto* pUnit = cast_to<UnitClass*, false>(pThis))

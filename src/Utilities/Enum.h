@@ -170,9 +170,9 @@ enum class PassiveAcquireModes : BYTE
 enum class DisplayShowType : BYTE
 {
 	None = 0x0,
-	CursorHover = 0x1,
-	Selected = 0x2,
-	Idle = 0x4,
+	CursorHover = 1 << 0,
+	Selected = 1 << 1,
+	Idle = 1 << 2,
 
 	Select = CursorHover | Selected,
 	All = CursorHover | Selected | Idle
@@ -180,13 +180,14 @@ enum class DisplayShowType : BYTE
 
 MAKE_ENUM_FLAGS(DisplayShowType);
 
-enum class AffectedTechno : BYTE
+enum class AffectedTechno : uint8_t
 {
-	None = 0x0,
-	Infantry = 0x1,
-	Unit = 0x2,
-	Building = 0x3,
-	Aircraft = 0x4
+	None = 0,
+
+	Infantry = 1 << 0,
+	Unit = 1 << 1,
+	Building = 1 << 2,
+	Aircraft = 1 << 3,
 };
 
 MAKE_ENUM_FLAGS(AffectedTechno);
@@ -252,33 +253,37 @@ FORCEDINLINE bool IsLandTypeInFlags(LandTypeFlags flags, LandType type)
 	return (bool)((LandTypeFlags)(1 << (char)type) & flags);
 }
 
-enum class DiscardCondition : BYTE
+enum class DiscardCondition : uint16_t
 {
-	None = 0x0,
-	Entry ,
-	Move ,
-	Stationary ,
-	Drain ,
-	InRange ,
-	OutOfRange ,
-	InvokerDeleted,
-	Firing,
+	None            = 0,
+	Entry           = 1 << 0,  // 0x0001
+	Move            = 1 << 1,  // 0x0002
+	Stationary      = 1 << 2,  // 0x0004
+	Drain           = 1 << 3,  // 0x0008
+	InRange         = 1 << 4,  // 0x0010
+	OutOfRange      = 1 << 5,  // 0x0020
+	InvokerDeleted  = 1 << 6,  // 0x0040
+	Firing          = 1 << 7,  // 0x0080
+	Selling         = 1 << 8,  // 0x0100
+	Undeploying     = 1 << 9,  // 0x0200
+	Harvesting      = 1 << 10, // 0x0400
+
 	count
 };
-
 MAKE_ENUM_FLAGS(DiscardCondition);
 
 enum class ExpireWeaponCondition : BYTE
 {
-	None = 0x0,
-	Expire = 0x1,
-	Remove = 0x2,
-	Death = 0x4,
-	Discard = 0x5,
+	None = 0,
 
-	All = 0xFF,
+	Expire = 1 << 0, // 0x01
+	Remove = 1 << 1, // 0x02
+	Death = 1 << 2, // 0x04
+
+	Discard = Expire | Death,
+
+	All = Expire | Remove | Death
 };
-
 MAKE_ENUM_FLAGS(ExpireWeaponCondition);
 
 enum class EntityType : int
@@ -389,33 +394,35 @@ enum class SpotlightAttachment : BYTE {
 
 enum class SuperWeaponTarget : BYTE
 {
-	None = 0x0,
-	Land = 0x1,
-	Water = 0x2,
-	Empty = 0x4,
-	Infantry = 0x8,
-	Unit = 0x10,
-	Building = 0x20,
+	None = 0,
 
-	All = 0xFF,
+	Land = 1 << 0,
+	Water = 1 << 1,
+	Empty = 1 << 2,
+	Infantry = 1 << 3,
+	Unit = 1 << 4,
+	Building = 1 << 5,
+
 	AllCells = Land | Water,
 	AllTechnos = Infantry | Unit | Building,
-	AllContents = Empty | AllTechnos
+	AllContents = Empty | AllTechnos,
+
+	All = Land | Water | Empty | Infantry | Unit | Building
 };
 MAKE_ENUM_FLAGS(SuperWeaponTarget);
 
-enum class TargetingConstraints : size_t
+enum class TargetingConstraints : uint16_t
 {
-	None = 0x0,
-	OffensiveCellClear = 0x1,
-	DefensifeCellClear = 0x2,
-	Enemy = 0x4,
-	LighningStormInactive = 0x8,
-	DominatorInactive = 0x10,
-	Attacked = 0x20,
-	LowPower = 0x40,
-	OffensiveCellSet = 0x80,
-	DefensiveCellSet = 0x100
+	None = 0,
+	OffensiveCellClear = 1 << 0,
+	DefensifeCellClear = 1 << 1,
+	Enemy = 1 << 2,
+	LighningStormInactive = 1 << 3,
+	DominatorInactive = 1 << 4,
+	Attacked = 1 << 5,
+	LowPower = 1 << 6,
+	OffensiveCellSet = 1 << 7,
+	DefensiveCellSet = 1 << 8,
 };
 MAKE_ENUM_FLAGS(TargetingConstraints);
 
@@ -525,12 +532,12 @@ enum class PhobosAbilityType : int
 
 enum class ChronoSparkleDisplayPosition : BYTE
 {
-	None = 0x0,
-	Building = 0x1,
-	Occupants = 0x2,
-	OccupantSlots = 0x3,
+	None = 0,
+	Building = 1 << 0, // 0x01
+	Occupants = 1 << 1, // 0x02
+	OccupantSlots = 1 << 2, // 0x04
 
-	All = 0xFF,
+	All = Building | Occupants | OccupantSlots // 0x07
 };
 
 MAKE_ENUM_FLAGS(ChronoSparkleDisplayPosition);
@@ -559,10 +566,10 @@ enum class TransactValueType : int
 };
 
 enum class AttachedAnimFlag : int {
-	None = 0x0,
-	Hides = 0x1,
-	Temporal = 0x2,
-	Paused = 0x4,
+	None = 0,
+	Hides = 1 << 0,
+	Temporal = 1 << 1,
+	Paused = 1 << 2,
 
 	PausedTemporal = Paused | Temporal
 };
@@ -631,10 +638,10 @@ enum class AffectedTarget : BYTE {
 MAKE_ENUM_FLAGS(AffectedTarget);
 
 enum class AffectedHouse : BYTE {
-	None = 0x0,
-	Owner = 0x1,
-	Allies = 0x2,
-	Enemies = 0x4,
+	None = 0,
+	Owner = 1 << 0,
+	Allies = 1 << 1,
+	Enemies = 1 << 2,
 
 	Team = Owner | Allies,
 	NotAllies = Owner | Enemies,
@@ -646,7 +653,10 @@ MAKE_ENUM_FLAGS(AffectedHouse);
 
 enum class AffectPlayerType : BYTE
 {
-	None = 0x0 , Computer , Player  , Observer
+	None = 0x0 ,
+	Computer = 1 << 0,
+	Player = 1 << 1,
+	Observer = 1 << 2
 };
 MAKE_ENUM_FLAGS(AffectPlayerType);
 
@@ -664,16 +674,16 @@ enum class OwnerHouseKind : BYTE {
 // this flag is used to disable certain features that already handled when superweapon Lauched at SWTypeExt !
 enum class SuperWeaponFlags : unsigned short {
 	None = 0x0,
-	NoAnim = 0x1,
-	NoSound = 0x2,
-	NoPower = 0x3,
-	NoEvent = 0x4,
-	NoEVA = 0x8,
-	NoMoney = 0x10,
-	NoCleanup = 0x20,
-	NoMessage = 0x40,
-	PreClick = 0x80,
-	PostClick = 0x100
+	NoAnim = 1 << 0,
+	NoSound = 1 << 1,
+	NoPower = 1 << 2,
+	NoEvent = 1 << 3,
+	NoEVA = 1 << 4,
+	NoMoney = 1 << 5,
+	NoCleanup = 1 << 6,
+	NoMessage = 1 << 7,
+	PreClick = 1 << 8,
+	PostClick = 1 << 9
 };
 
 MAKE_ENUM_FLAGS(SuperWeaponFlags);
@@ -730,9 +740,9 @@ enum class FeedBackType : BYTE
 enum class InterceptedStatus : BYTE
 {
 	None = 0x0,
-	Targeted = 0x1,
-	Intercepted = 0x2,
-	Locked = 0x4
+	Targeted = 1 << 0,
+	Intercepted = 1 << 1,
+	Locked = 1 << 2
 };
 
 MAKE_ENUM_FLAGS(InterceptedStatus);
@@ -796,10 +806,10 @@ enum class BannerNumberType : BYTE
 enum class AffectedVeterancy : BYTE
 {
 	None = 0x0,
-	Rookie = 0x1,
-	Veteran = 0x2,
-	Elite = 0x4,
-	All = 0x7
+	Rookie = 1 << 0,
+	Veteran = 1 << 1,
+	Elite = 1 << 2,
+	All = Rookie | Veteran | Elite,
 };
 
 MAKE_ENUM_FLAGS(AffectedVeterancy)

@@ -10,7 +10,7 @@
 #include <semaphore>
 
 #define PATCH_MOUSE(addrsize, addrret ,name)\
-DEFINE_HOOK(addrsize, name, 0x5) { \
+ASMJIT_PATCH(addrsize, name, 0x5) { \
 	DXMouse::Instance = GameCreate<DXMouse>(DSurface::Primary(), Game::hWnd());	\
 	R->EAX(DXMouse::Instance.get());\
 	return addrret; }
@@ -55,10 +55,9 @@ static void __fastcall _DXMouse_ProcessMouse(DXMouse* This) {
 }
 DEFINE_FUNCTION_JUMP(LJMP, 0x7BA090, _DXMouse_ProcessMouse);
 
-DEFINE_HOOK_AGAIN(0x72429E, DXMouse_TooltipManager_GetMousePosition, 0xA);
-DEFINE_HOOK(0x724359, DXMouse_TooltipManager_GetMousePosition, 0xA) {
+ASMJIT_PATCH(0x724359, DXMouse_TooltipManager_GetMousePosition, 0xA) {
 	GET(ToolTipManager*, pThis, ESI);
 	pThis->CurrentMousePosition = DXMouse::Instance->Get_Mouse_Point();
 	R->EBX(&pThis->CurrentMousePosition);
 	return R->Origin() + 0x15;
-}
+}ASMJIT_PATCH_AGAIN(0x72429E, DXMouse_TooltipManager_GetMousePosition, 0xA)

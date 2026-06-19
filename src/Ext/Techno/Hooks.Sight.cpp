@@ -8,7 +8,17 @@
 #include <Utilities/Patch.h>
 
 int FakeTechnoClass::_GetSight(TechnoClass* pThis) {
-	return  pThis->GetTechnoType()->Sight;
+	auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
+
+	if (pThis->Veterancy.IsElite() && pTypeExt->EliteSight.isset()) {
+		return pTypeExt->EliteSight;
+	}
+
+	if (pThis->Veterancy.IsVeteran() && pTypeExt->VeteranSight.isset()) {
+		return pTypeExt->VeteranSight;
+	}
+
+	return  pTypeExt->This()->Sight;
 }
 
 //#ifdef _Sight 

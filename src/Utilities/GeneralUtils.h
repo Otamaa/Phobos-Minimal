@@ -85,16 +85,8 @@ public:
 	// Gets integer representation of color from ColorAdd corresponding to given index, or 0 if there's no color found.
 	// Code is pulled straight from game's draw functions that deal with the tint colors.
 	static int GetColorFromColorAdd(int colorIndex);
-
-	static  COMPILETIMEEVAL OPTIONALINLINE ColorStruct GetColorStructFromColorAdd(int colorIndex)
-	{
-		return RulesClass::Instance->ColorAdd[GetColorIndexForColorAdd(colorIndex)];
-	}
-
-	static COMPILETIMEEVAL OPTIONALINLINE int GetColorIndexForColorAdd(int colorIndex) //this one fixup the index
-	{
-		return ((size_t)colorIndex >= RulesClass::Instance->ColorAdd.size()) ? 0 : colorIndex;
-	}
+	static ColorStruct GetColorStructFromColorAdd(int colorIndex);;
+	static int GetColorIndexForColorAdd(int colorIndex);
 
 	static COMPILETIMEEVAL OPTIONALINLINE void GetRandomAnimVal(int& Idx, int count, int facing, bool bRandom)
 	{

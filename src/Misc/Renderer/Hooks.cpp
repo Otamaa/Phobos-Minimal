@@ -141,12 +141,12 @@ DEFINE_FUNCTION_JUMP(LJMP,0x4A44F0, RenderDX::ResetVideoMode);
 DEFINE_FUNCTION_JUMP(LJMP,0x560BF0, RenderDX::ChangeDisplayMode);
 
 // Update the window surface when the game updates its PrimarySurface
-DEFINE_HOOK(0x4F4B7E, DXRender_UpdateScreen_GScreenClass_Blit, 0x5) {
+ASMJIT_PATCH(0x4F4B7E, DXRender_UpdateScreen_GScreenClass_Blit, 0x5) {
 	RenderDX::UpdateScreen(DSurface::Primary());
 	return 0;
 }
 
-DEFINE_HOOK(0x5D233A, DXRender_UpdateScreen_MSEngine_Blit_Rects, 0x5) {
+ASMJIT_PATCH(0x5D233A, DXRender_UpdateScreen_MSEngine_Blit_Rects, 0x5) {
 	const auto eflags = R->GetEFLAGS();
 	// not JLE
 	if (!eflags.IsLessOrEqual()) {
@@ -155,12 +155,12 @@ DEFINE_HOOK(0x5D233A, DXRender_UpdateScreen_MSEngine_Blit_Rects, 0x5) {
 	return 0;
 }
 
-DEFINE_HOOK(0x5D1F15, DXRender_UpdateScreen_MSEngine_Frame_Update, 0x5) 	{
+ASMJIT_PATCH(0x5D1F15, DXRender_UpdateScreen_MSEngine_Frame_Update, 0x5) 	{
 	RenderDX::UpdateScreen(DSurface::Primary());
 	return 0;
 }
 
-DEFINE_HOOK(0x690228, DXRender_UpdateScreen_ScoreClass_Call_Back_Delay, 0x6) {
+ASMJIT_PATCH(0x690228, DXRender_UpdateScreen_ScoreClass_Call_Back_Delay, 0x6) {
 	RenderDX::UpdateScreen(DSurface::Primary());
 	return 0;
 }
@@ -188,13 +188,12 @@ static LRESULT CALLBACK OwnerDraw_Window_Procedure_(HWND hwnd, UINT msg, WPARAM 
 }
 DEFINE_FUNCTION_JUMP(VTABLE, 0x60FF06, OwnerDraw_Window_Procedure_);
 
-DEFINE_HOOK_AGAIN(0x611FB0, DXRender_UpdateScreen_OwnerDraw_Window, 0x6);
-DEFINE_HOOK(0x61187D, DXRender_UpdateScreen_OwnerDraw_Window, 0xA) {
+ASMJIT_PATCH(0x61187D, DXRender_UpdateScreen_OwnerDraw_Window, 0xA) {
 	RenderDX::UpdateScreen(DSurface::Primary());
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x611FB0, DXRender_UpdateScreen_OwnerDraw_Window, 0x6)
 
-DEFINE_HOOK(0x7776B5, MainWindowProc_WMPAINT, 0x6) {
+ASMJIT_PATCH(0x7776B5, MainWindowProc_WMPAINT, 0x6) {
 	RenderDX::MainProcHandlePaint();
 	return 0x7779B5;
 }

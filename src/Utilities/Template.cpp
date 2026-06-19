@@ -701,29 +701,29 @@ template <>
 bool detail::read<RocketStruct>(RocketStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 {
 	auto ret = false;
-	std::string _buffer(pKey);
+	std::string baseKey(pKey);
 
-	ret |= read(value.PauseFrames, parser, pSection, (_buffer + ".PauseFrames").c_str());
-	ret |= read(value.TiltFrames, parser, pSection, (_buffer + ".TiltFrames").c_str());
-	ret |= read(value.PitchInitial, parser, pSection, (_buffer + ".PitchInitial").c_str());
-	ret |= read(value.PitchFinal, parser, pSection, (_buffer + ".PitchFinal").c_str());
-	ret |= read(value.TurnRate, parser, pSection, (_buffer + ".TurnRate").c_str());
+	ret |= read(value.PauseFrames, parser, pSection, (baseKey + ".PauseFrames").c_str());
+	ret |= read(value.TiltFrames, parser, pSection, (baseKey + ".TiltFrames").c_str());
+	ret |= read(value.PitchInitial, parser, pSection, (baseKey + ".PitchInitial").c_str());
+	ret |= read(value.PitchFinal, parser, pSection, (baseKey + ".PitchFinal").c_str());
+	ret |= read(value.TurnRate, parser, pSection, (baseKey + ".TurnRate").c_str());
 
 	// sic! integer read like a float.
 	float buffer = 0.0f;
-	if (read(buffer, parser, pSection, (_buffer + ".RaiseRate").c_str()))
+	if (read(buffer, parser, pSection, (baseKey + ".RaiseRate").c_str()))
 	{
 		value.RaiseRate = int(buffer);
 		ret = true;
 	}
 
-	ret |= read(value.Acceleration, parser, pSection, (_buffer + ".Acceleration").c_str());
-	ret |= read(value.Altitude, parser, pSection, (_buffer + ".Altitude").c_str());
-	ret |= read(value.Damage, parser, pSection, (_buffer + ".Damage").c_str());
-	ret |= read(value.EliteDamage, parser, pSection, (_buffer + ".EliteDamage").c_str());
-	ret |= read(value.BodyLength, parser, pSection, (_buffer + ".BodyLength").c_str());
-	ret |= read(value.LazyCurve, parser, pSection, (_buffer + ".LazyCurve").c_str());
-	ret |= read(value.Type, parser, pSection, (_buffer + ".Type").c_str());
+	ret |= read(value.Acceleration, parser, pSection, (baseKey + ".Acceleration").c_str());
+	ret |= read(value.Altitude, parser, pSection, (baseKey + ".Altitude").c_str());
+	ret |= read(value.Damage, parser, pSection, (baseKey + ".Damage").c_str());
+	ret |= read(value.EliteDamage, parser, pSection, (baseKey + ".EliteDamage").c_str());
+	ret |= read(value.BodyLength, parser, pSection, (baseKey + ".BodyLength").c_str());
+	ret |= read(value.LazyCurve, parser, pSection, (baseKey + ".LazyCurve").c_str());
+	ret |= read(value.Type, parser, pSection, (baseKey + ".Type").c_str());
 
 	return ret;
 }
@@ -1305,37 +1305,18 @@ bool detail::read<DiscardCondition>(DiscardCondition& value, INI_EX& parser, con
 			cur;
 			cur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
-			size_t result = 0;
-			bool found = false;
-			for (const auto& pStrings : EnumFunctions::DiscardCondition_to_strings)
-			{
-				if (IS_SAME_STR_(cur, pStrings))
-				{
-					found = true;
+			bool foundAny = false;
+			for (const auto& [pStrings, item] : EnumFunctions::DiscardCondition_to_strings) {
+				if (IS_SAME_STR_(cur, pStrings)) {
+					foundAny = true;
+					resultData |= item;
 					break;
 				}
-				++result;
 			}
 
-			if (!found)
-			{
+			if (!foundAny) {
 				Debug::INIParseFailed(pSection, pKey, cur, "Expected a DiscardCondition");
 				return false;
-			}
-			else
-			{
-				switch (result)
-				{
-				case 0: resultData |= DiscardCondition::None; break;
-				case 1: resultData |= DiscardCondition::Entry; break;
-				case 2: resultData |= DiscardCondition::Move; break;
-				case 3: resultData |= DiscardCondition::Stationary; break;
-				case 4: resultData |= DiscardCondition::Drain; break;
-				case 5: resultData |= DiscardCondition::InRange; break;
-				case 6: resultData |= DiscardCondition::OutOfRange; break;
-				case 7: resultData |= DiscardCondition::InvokerDeleted; break;
-				case 8: resultData |= DiscardCondition::Firing; break;
-				}
 			}
 		}
 
@@ -1358,34 +1339,18 @@ bool detail::read<ExpireWeaponCondition>(ExpireWeaponCondition& value, INI_EX& p
 			cur = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
 
-			size_t result = 0;
 			bool found = false;
-			for (const auto& pStrings : EnumFunctions::ExpireWeaponCondition_to_strings)
-			{
-				if (IS_SAME_STR_(cur, pStrings))
-				{
+			for (const auto& [pStrings, item] : EnumFunctions::ExpireWeaponCondition_to_strings) {
+				if (IS_SAME_STR_(cur, pStrings)) {
 					found = true;
+					resultData |= item;
 					break;
 				}
-				++result;
 			}
 
-			if (!found)
-			{
+			if (!found) {
 				Debug::INIParseFailed(pSection, pKey, cur, "Expected a ExpireWeaponCondition");
 				return false;
-			}
-			else
-			{
-				switch (result)
-				{
-				case 0: resultData |= ExpireWeaponCondition::None; break;
-				case 1: resultData |= ExpireWeaponCondition::Expire; break;
-				case 2: resultData |= ExpireWeaponCondition::Remove; break;
-				case 3: resultData |= ExpireWeaponCondition::Death; break;
-				case 4: resultData |= ExpireWeaponCondition::Discard; break;
-				case 5: resultData = ExpireWeaponCondition::All; break;
-				}
 			}
 		}
 

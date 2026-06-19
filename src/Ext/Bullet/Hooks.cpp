@@ -177,6 +177,9 @@ ASMJIT_PATCH(0x4690D4, BulletClass_Logics_ApplyAdditionals, 0x6)
 		if(!pWarhead->_GetExtData()->CanAffectHouse(pBulletHouseOwner, pTarget->GetOwningHouse())){
 			return GoToExtras;
 		}
+
+		if(pTargetTech && !pWarhead->_GetExtData()->IsInvokerAllowed(pTargetTech, pBulletOwner))
+			return GoToExtras;
 	}
 
 	return SkipShaking;

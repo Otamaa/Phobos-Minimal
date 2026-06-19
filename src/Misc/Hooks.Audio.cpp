@@ -559,11 +559,15 @@ ASMJIT_PATCH(0x4016F0, IDXContainer_LoadSample, 6)
 	return 0x4018B8;
 }
 
+std::mutex g_vocAddSampleMutex;
+
 // add saple is assemble an idex then put it onto some list
 ASMJIT_PATCH(0x4064A0, VocClassData_AddSample, 6) // Complete rewrite of VocClass::AddSample
 {
 	GET(AudioEventClassTag*, pVoc, ECX);
 	GET(const char*, pSampleName, EDX);
+
+	PHOBOS_AUDIO_THREAD_GUARD(g_vocAddSampleMutex);
 
 	if (!AudioIDXData::Instance())
 		Debug::FatalError("AudioIDXData is missing!");

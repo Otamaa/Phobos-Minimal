@@ -86,7 +86,7 @@ void DrawEllipse(DSurface* surface, RectangleStruct& clip,
 
 void NOINLINE DrawCenterCross(DSurface* surface, RectangleStruct& clip, Point2D& center)
 {
-	unsigned short white = DSurface::Build_Hicolor_Pixel_RGB(255, 255, 255);
+	unsigned short white = (unsigned short)DSurface::Build_Hicolor_Pixel_RGB(255, 255, 255);
 
 	// Small cross for visibility
 	Point2D _c1_start { center.X - 2, center.Y };
@@ -220,8 +220,8 @@ void NOINLINE DrawCollisionBox(FootClass* obj, DSurface* surface,
 	if (tech_loc.IsEmpty())
 		return;
 
-	unsigned short red = DSurface::Build_Hicolor_Pixel_RGB(255, 0, 0);
-	unsigned short yellow = DSurface::Build_Hicolor_Pixel_RGB(255, 255, 0);
+	unsigned short red = (unsigned short)DSurface::Build_Hicolor_Pixel_RGB(255, 0, 0);
+	unsigned short yellow = (unsigned short)DSurface::Build_Hicolor_Pixel_RGB(255, 255, 0);
 
 	// Convert world coords to screen
 	auto [outClient, visible] = TacticalClass::Instance->GetCoordsToClientSituation(tech_loc);
@@ -270,16 +270,16 @@ void NOINLINE DrawCollisionBox(FootClass* obj, DSurface* surface,
 	switch (shape)
 	{
 	case CollisionBoxShape::Rectangle:
-		DrawRectangle(surface, bounds, screen, width, height, color);
+		DrawRectangle(surface, bounds, screen, width, height, (unsigned short)color);
 		break;
 	case CollisionBoxShape::Diamond:
-		DrawDiamond(surface, bounds, screen, width, height, color);
+		DrawDiamond(surface, bounds, screen, width, height, (unsigned short)color);
 		break;
 	case CollisionBoxShape::Ellipse:
-		DrawEllipse(surface, bounds, screen, width, height, color);
+		DrawEllipse(surface, bounds, screen, width, height, (unsigned short)color);
 		break;
 	case CollisionBoxShape::Circle:
-		DrawEllipse(surface, bounds, screen, width, width / 2, color);  // Circle in isometric
+		DrawEllipse(surface, bounds, screen, width, width / 2, (unsigned short)color);  // Circle in isometric
 		break;
 	default:
 		break;
@@ -292,7 +292,7 @@ void NOINLINE DrawCollisionBox(FootClass* obj, DSurface* surface,
 
 template<typename T>
 void NOINLINE Draws(COLORREF color, DSurface* pSurface , RectangleStruct& bounds) {
-	unsigned short pixelColor = DSurface::Build_Hicolor_Pixel_RGB(
+	unsigned short pixelColor = (unsigned short)DSurface::Build_Hicolor_Pixel_RGB(
 		(color >> 16) & 0xFF,  // R
 		(color >> 8) & 0xFF,   // G
 		color & 0xFF           // B
@@ -350,7 +350,7 @@ void NOINLINE DrawLines()
 	Debug::Log("bounds: X=%d Y=%d W=%d H=%d\n", bounds.X, bounds.Y, bounds.Width, bounds.Height);
 
 	Debug::Log("Converting color...\n");
-	unsigned short green = DSurface::Build_Hicolor_Pixel_RGB(0, 255, 0);
+	unsigned short green = (unsigned short)DSurface::Build_Hicolor_Pixel_RGB(0, 255, 0);
 	Debug::Log("green = %04X\n", green);
 
 	Debug::Log("Creating points...\n");
@@ -665,7 +665,7 @@ void FakeTacticalClass::__DrawRadialIndicator(
 	if (concentric) {
 		size = (int)radius;
 	} else {
-		size = int((double)radius + 0.5) / Math::SQRT_TWO * double(Unsorted::CellWidthInPixels); // should be cell size global?
+		size = int(((double)radius + 0.5) / Math::SQRT_TWO * double(Unsorted::CellWidthInPixels)); // should be cell size global?
 	}
 
 	Point2D center_pixel = TacticalClass::Instance->CoordsToClient(center_coord);

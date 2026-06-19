@@ -50,12 +50,12 @@ struct DiplomacyChatToggleState
 
 static bool inline IsDisableChatEnabled()
 {
-	return SpawnerMain::Configs::Enabled && SpawnerMain::GetGameConfigs()->DisableChat;
+	return SpawnerMain::GetGameConfigs()->DisableChat || !SpawnerMain::GetMainConfigs()->AllowChat;
 }
 
 // Continuously enforce DisableChat by resetting ChatMask every frame,
 // preventing players from re-enabling chat via the alliances menu.
-ASMJIT_PATCH(0x55DDA5, MainLoop_AfterRender__DisableChat, 0x5)
+ASMJIT_PATCH(0x55EF38, MainLoop_AfterRender__DisableChat, 0x6)
 {
 	static int LastDisableChatFeedbackFrame = -1000;
 
@@ -80,6 +80,9 @@ ASMJIT_PATCH(0x55DDA5, MainLoop_AfterRender__DisableChat, 0x5)
 // (i.e. the message was suppressed). Mirrors: hack 0x0048D97E in chat_disable.asm
 ASMJIT_PATCH(0x48D97E, NetworkCallBack_NetMessage_Sound, 0x5)
 {
+	if(!SpawnerMain::GetMainConfigs()->AllowChat)
+		return 0x48D99A;
+
 	if (!R->EAX<void*>())
 		return 0x48D99A; // skip sound
 

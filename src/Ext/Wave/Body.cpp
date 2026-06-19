@@ -143,7 +143,7 @@ WORD const src, WORD& dest, int const intensity, WaveClass* const pWave, WaveCol
 	ApplyIntensityToChannel(&Point3D::Y, &ColorStruct::G);
 	ApplyIntensityToChannel(&Point3D::Z, &ColorStruct::B);
 
-	dest = modified.ToInit();
+	dest = (WORD)modified.ToInit();
 
 	return true;
 }

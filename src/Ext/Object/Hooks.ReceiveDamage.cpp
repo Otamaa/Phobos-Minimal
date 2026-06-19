@@ -631,9 +631,10 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 {
 
     DamageState _res = DamageState::Unaffected;
+	auto pWHExt = WarheadTypeExtContainer::Instance.Find(warhead);
+
 	bool _isNegativeDamage = *damage < 0;
 	auto pType = GET_TECHNOTYPE(pThis);
-	auto pWHExt = WarheadTypeExtContainer::Instance.Find(warhead);
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	const auto pSourceHouse = source ? source->Owner : sourceHouse;
@@ -675,8 +676,11 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 	 };
 
 	 	// Apply warhead effects
-	if (damage && !pWHExt->ApplyPerTargetEffectsOnDetonate.Get(RulesExtData::Instance()->ApplyPerTargetEffectsOnDetonate))
-		pWHExt->DetonateOnOneUnit(pSourceHouse, pThis, pThis->Location, *damage, source);
+	if (damage && !pWHExt->ApplyPerTargetEffectsOnDetonate.Get(RulesExtData::Instance()->ApplyPerTargetEffectsOnDetonate)){
+			auto pOldInvoker = std::exchange(pWHExt->DamageAreaInvoker, source);
+			pWHExt->DetonateOnOneUnit(pSourceHouse, pThis, pThis->Location, *damage, source);
+			pWHExt->DamageAreaInvoker = pOldInvoker;
+		}
 
 	if (source && (!source->IsAlive || source->Health <= 0) && !source->Owner)
 		source = nullptr; //clean up;
@@ -685,18 +689,12 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 		return DamageState::NowDead;
 
 	pWHExt->ApplyDamageMult(pThis, source, sourceHouse, damage);
+	if(*damage  == 0)
+		return DamageState::Unaffected;
+
 	applyCombatAlert(pThis, &args);
 
-	if (source && (!source->IsAlive || source->Health <= 0) && !source->Owner)
-		source = nullptr; //clean up;
-
-	const bool canTergetHouse = pWHExt->CanTargetHouse(pSourceHouse, pThis);
-
-	if (!canTergetHouse) {
-		*damage = 0;
-		return DamageState::Unaffected;
-	} else
-		pExt->LastHurtFrame = Unsorted::CurrentFrame.get();
+	pExt->LastHurtFrame = Unsorted::CurrentFrame.get();
 
 	if (!pThis || !pThis->IsAlive || pThis->Health <= 0) {
 		return DamageState::NowDead;

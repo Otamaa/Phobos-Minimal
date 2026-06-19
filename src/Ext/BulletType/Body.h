@@ -158,6 +158,7 @@ public:
 	Valueable<bool> Parachuted_Remap { true };
 	Valueable<bool> Vertical_AircraftFix { true };
 	Valueable<bool> AU { false };
+	Nullable<bool> Shrapnel_ObeyWarheadTriggerConditions {};
 	// 35 Valueable<bool> = 35 bytes, pads to 36 for 4-byte alignment
 #pragma endregion
 

@@ -62,16 +62,3 @@ ASMJIT_PATCH(0x47C9A7, CellClass_IsClearToBuild_Overlays, 0x5)
 
 	return ReturnFromFunction;
 }
-
-ASMJIT_PATCH(0x45EF11, BuildingTypeClass_FlushForPlacement_Overlays, 0x6)
-{
-	enum { Continue = 0x45EF2C };
-
-	GET(BuildingTypeClass*, pThis, EBX);
-	GET(int, overlayTypeIndex, ECX);
-
-	if (OverlayTypeExtData::CanBeBuiltOn(overlayTypeIndex, pThis, false))
-		return Continue;
-
-	return 0;
-}

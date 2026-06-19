@@ -1,17 +1,90 @@
 #include "CrateTypeClass.h"
 
+#include <AnimClass.h>
+
 Enumerable<CrateTypeClass>::container_t Enumerable<CrateTypeClass>::Array;
+
+void CrateTypeClass::PlayAllAffects(CoordStruct loc, CoordStruct locsound, bool isPlayerControlled) const
+{
+	if (const auto pAnimType = this->Anim) {
+		GameCreate<AnimClass>(pAnimType, loc, 0, 1, 0x600, 0, 0);
+	}
+
+	if (!isPlayerControlled)
+		return;
+
+	VocClass::SafeImmedietelyPlayAt(this->Sound, &locsound, nullptr);
+	VoxClass::PlayIndex(this->Eva);
+}
+
+void CrateTypeClass::AddDefaults()
+{
+	if (Empty()) {
+		for (auto crate : Powerups::Effects) {
+			Debug::LogInfo("Creating default Crate of [{}]", crate);
+			Allocate(crate);
+		}
+	}
+}
+
+void CrateTypeClass::ReadFromPowerups(CCINIClass* pINI)
+{
+	if (!pINI->GetSection("Powerups"))
+		return;
+
+	for (size_t i = 0; i < CrateTypeClass::Count(); ++i) {
+		auto& pCrate = CrateTypeClass::Array[i];
+		char readBuffer[Phobos::readLength];
+
+		if (!pINI->ReadString(
+			"Powerups",
+			pCrate->Name.data(),
+			"0,NONE",
+			readBuffer))
+		{
+			continue;
+		}
+
+		// Share count
+		if (char* token = strtok(readBuffer, ",")) {
+			pCrate->Weight = atoi(PhobosCRT::trim(token).c_str());
+		}
+
+		// Animation
+		if (char* token = strtok(nullptr, ",")) {
+			pCrate->Anim = AnimTypeClass::Find(PhobosCRT::trim(token).c_str());
+		}
+
+		// Placeable on water
+		if (char* token = strtok(nullptr, ",")) {
+			auto _Naval = PhobosCRT::trim(token);
+			if (IS_SAME_STR_(_Naval.c_str(), "yes")) {
+				pCrate->Naval = true;
+			} else if (IS_SAME_STR_(_Naval.c_str(), "no")) {
+				pCrate->Naval = false;
+			}
+		}
+
+		// Crate value/chance
+		if (char* token = strtok(nullptr, ",")) {
+			auto arg = PhobosCRT::trim(token);
+
+			if (strchr(arg.c_str(), '%')) {
+				pCrate->Argument = (atof(arg.c_str()) * 0.01);
+			} else {
+				pCrate->Argument = atof(arg.c_str());
+			}
+		}
+	}
+}
 
 void CrateTypeClass::ReadListFromINI(CCINIClass* pINI) {
 
-	for (size_t i = 0; i < Array.size(); ++i) {
+	for (size_t i = 0; i < CrateTypeClass::Count(); ++i) {
 
 		if(i < Powerups::Effects.size()) {
-			if(auto pAlloc = CrateTypeClass::Find(Powerups::Effects[i])){
-				pAlloc->Weight = Powerups::Weights[i];
-				pAlloc->Argument = Powerups::Arguments[i];
-				pAlloc->Naval = Powerups::Naval[i];
-				pAlloc->Anim = AnimTypeClass::Array->get_or_default(Powerups::Anims[i]);
+			//the array is same position and size dont need to do shit
+			if(auto pAlloc = CrateTypeClass::Array[i].get()){
 
 				switch (Powerup(i))
 				{
@@ -21,10 +94,13 @@ void CrateTypeClass::ReadListFromINI(CCINIClass* pINI) {
 					pAlloc->Sound = RulesClass::Instance->HealCrateSound; break;
 				case Powerup::Armor:
 					pAlloc->Sound = RulesClass::Instance->CrateArmourSound; break;
+					pAlloc->Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitArmorUpgraded());
 				case Powerup::Speed:
 					pAlloc->Sound = RulesClass::Instance->CrateSpeedSound; break;
+					pAlloc->Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitSpeedUpgraded());
 				case Powerup::Firepower:
 					pAlloc->Sound = RulesClass::Instance->CrateFireSound; break;
+					pAlloc->Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitFirePowerUpgraded());
 				case Powerup::Reveal:
 					pAlloc->Sound = RulesClass::Instance->CrateRevealSound; break;
 				case Powerup::Unit:
@@ -37,7 +113,7 @@ void CrateTypeClass::ReadListFromINI(CCINIClass* pINI) {
 			}
 		}
 
-		Array[i]->LoadFromINI(pINI);
+		CrateTypeClass::GetArray()[i]->LoadFromINI(pINI);
 	}
 }
 
@@ -58,7 +134,9 @@ void CrateTypeClass::LoadFromINI(CCINIClass *pINI)
 	this->Argument.Read(exINI, section, "Crate.Argument");
 	this->Naval.Read(exINI, section, "Crate.Naval");
 	this->Sound.Read(exINI, section, "Crate.Sound");
+	this->Eva.Read(exINI, section, "Crate.EVA");
 	this->Speed = pINI->ReadSpeedType(section, "Crate.SpeedType", this->Speed);
+
 	//this->Super.Read(exINI, section, "Crate.SuperWeapon",true);
 	//this->SuperGrant.Read(exINI, section, "Crate.SuperWeaponGrant");
 
@@ -87,6 +165,7 @@ void CrateTypeClass::Serialize(T& Stm)
 		.Process(this->Argument)
 		.Process(this->Naval)
 		.Process(this->Sound)
+		.Process(this->Eva)
 		.Process(this->Speed)
 		;
 }

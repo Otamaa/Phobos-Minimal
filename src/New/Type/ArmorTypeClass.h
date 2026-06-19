@@ -11,6 +11,9 @@ public:
 	static COMPILETIMEEVAL const char* MainSection = "ArmorTypes";
 	static COMPILETIMEEVAL const char* ClassName = "ArmorTypeClass";
 
+	//faster handling for looking up the default chains
+	static std::unordered_map<std::string, int> ArmorLookup;
+
 public:
 
 	int DefaultTo;
@@ -26,12 +29,7 @@ public:
 
 	ArmorTypeClass(const char* const pTitle);
 
-	static COMPILETIMEEVAL void AddDefaults() {
-		for (auto const& nDefault : Unsorted::ArmorNameArray) {
-			if (auto pVanillaArmor = FindOrAllocate(nDefault))
-				pVanillaArmor->IsVanillaArmor = true;
-		}
-	}
+	static void AddDefaults();
 
 	void LoadFromINI(CCINIClass* pINI);
 	void LoadFromStream(PhobosStreamReader& Stm);
@@ -40,7 +38,6 @@ public:
 	void RebuildTags();
 	void FreeTags();
 
-	static bool IsDefault(const char* pName);
 	static void LoadFromINIList_New(CCINIClass* pINI, bool bDebug = false);
 	static void LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH);
 	static void LoadForWarhead_NoParse(WarheadTypeClass* pWH);
@@ -48,6 +45,11 @@ public:
 
 	static void EvaluateDefault();
 
+	static void Clear()
+	{
+		Enumerable<ArmorTypeClass>::Clear();
+		ArmorLookup.clear();
+	}
 private:
 	template <typename T>
 	void Serialize(T& Stm);

@@ -252,7 +252,7 @@ ASMJIT_PATCH(0x42146E, TacticalClass_UpdateAlphasInRectangle_Header, 5)
 ASMJIT_PATCH(0x42152C, TacticalClass_UpdateAlphasInRectangle_Body, 8)
 {
 	GET_STACK(int, AlphaLightIndex, STACK_OFFS(0xA4, 0x78));
-	GET(SHPStruct*, pImage, ECX);
+	GET(SHPStruct*, pImage, EDI);
 
 	const auto pAlpha = AlphaShapeClass::Array->Items[AlphaLightIndex];
 	if (const auto pTechno = flag_cast_to<TechnoClass*>(pAlpha->AttachedTo)) {

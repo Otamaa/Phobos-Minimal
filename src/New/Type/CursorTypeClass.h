@@ -33,11 +33,8 @@ public:
 
 	static void LoadFromINIList_New(CCINIClass* pINI, bool bDebug = false);
 
-	static OPTIONALINLINE COMPILETIMEEVAL size_t AllocateWithDefault(const char* Title , const MouseCursor& cursor) {
-		size_t sz = Array.size();
-			Array.emplace_back((std::make_unique<CursorTypeClass>(Title)));
-			Array.back()->CursorData = cursor;
-		return sz;
+	static OPTIONALINLINE COMPILETIMEEVAL void AllocateWithDefault(const char* Title , const MouseCursor& cursor) {
+		Allocate(Title)->CursorData = cursor;
 	}
 
 private:
@@ -60,7 +57,8 @@ struct IndexFinder<CursorTypeClass*>{
 				return true;
 			}
 
-			if (int idx = CursorTypeClass::FindIndexById(parser.value());  idx != -1) {
+			int idx = CursorTypeClass::FindIndexById(parser.value());
+			if (idx != -1) {
 				value = idx;
 				return true;
 			}
@@ -75,18 +73,8 @@ struct IndexFinder<CursorTypeClass*>{
 					secondaryname += "_";
 					secondaryname += pKey;
 
-					CursorTypeClass* pCursor = nullptr;
-					int outIndex = -1;
-
-					//already registered by the secondary name
-					if (int idxb = CursorTypeClass::FindIndexById(secondaryname.c_str());  idxb != -1) {
-						pCursor = CursorTypeClass::Array[idxb].get();
-						outIndex = idxb;
-					} else {
-						outIndex = (int)CursorTypeClass::Array.size();
-						pCursor = CursorTypeClass::Array.emplace_back((std::make_unique<CursorTypeClass>(secondaryname.data()))).get();
-					}
-
+					CursorTypeClass* pCursor = CursorTypeClass::FindOrAllocate(secondaryname.c_str());
+	
 					auto contexes = PhobosCRT::split<7>(val_);
 					auto cursor = pCursor->CursorData.operator->();
 					Parser<int>::Parse(std::string(contexes[0]).c_str(), &cursor->StartFrame);
@@ -97,7 +85,7 @@ struct IndexFinder<CursorTypeClass*>{
 					MouseCursorHotSpotX::Parse(std::string(contexes[5]).c_str(), &cursor->X);
 					MouseCursorHotSpotY::Parse(std::string(contexes[6]).c_str(), &cursor->Y);
 
-					value = outIndex;
+					value = pCursor->ArrayIndex;
 					return true;
 				}
 			}

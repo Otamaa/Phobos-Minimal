@@ -672,6 +672,7 @@ bool _retTrue(bool& check) {
 	check = true;
 	return true;
 }
+
 bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 {
 	if (this->LastDiscardCheckFrame == Unsorted::CurrentFrame())
@@ -690,9 +691,7 @@ bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 		return _retTrue(this->LastDiscardCheckValue);
 
 	if(this->Type->DiscardOn != DiscardCondition::None){
-
-		if (auto const pFoot = flag_cast_to<FootClass*, false>(this->Techno))
-		{
+		if (auto const pFoot = flag_cast_to<FootClass*, false>(this->Techno)) {
 			const bool isMoving = this->Type->DiscardOn_ConsiderHoverAsMoving.Get(RulesExtData::Instance()->DiscardOn_ConsiderHoverAsMoving)
 				? pFoot->Locomotor->Is_Moving()
 				: pFoot->Locomotor->Is_Really_Moving_Now();
@@ -702,18 +701,24 @@ bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 
 			if (!isMoving && (this->Type->DiscardOn & DiscardCondition::Stationary) != DiscardCondition::None)
 				return _retTrue(this->LastDiscardCheckValue);
+
+			const auto mission = pFoot->CurrentMission;
+
+			if ((this->Type->DiscardOn & DiscardCondition::Harvesting) != DiscardCondition::None
+				&& mission == Mission::Harvest
+				&& !pFoot->Locomotor->Is_Really_Moving_Now()
+				&& pFoot->GetCell()->LandType == LandType::Tiberium)
+				return _retTrue(this->LastDiscardCheckValue);
 		}
 
 		if (this->Techno->DrainingMe && (this->Type->DiscardOn & DiscardCondition::Drain) != DiscardCondition::None)
 			return _retTrue(this->LastDiscardCheckValue);
 
-		if (this->Techno->Target)
-		{
+		if (this->Techno->Target) {
 			bool inRange = (this->Type->DiscardOn & DiscardCondition::InRange) != DiscardCondition::None;
 			bool outOfRange = (this->Type->DiscardOn & DiscardCondition::OutOfRange) != DiscardCondition::None;
 
-			if (inRange || outOfRange)
-			{
+			if (inRange || outOfRange) {
 				int distance = -1;
 
 				if (this->Type->DiscardOn_RangeOverride.isset())
@@ -736,6 +741,15 @@ bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 			}
 		}
 
+		if (auto const pBuilding = cast_to<BuildingClass*, true>(this->Techno)) {
+			if (pBuilding->CurrentMission == Mission::Selling) {
+				if (pBuilding->ArchiveTarget) {
+					if ((this->Type->DiscardOn & DiscardCondition::Undeploying) != DiscardCondition::None)
+						return _retTrue(this->LastDiscardCheckValue);
+				} else if ((this->Type->DiscardOn & DiscardCondition::Selling) != DiscardCondition::None) 
+					return _retTrue(this->LastDiscardCheckValue);
+			}
+		}
 	}
 
 	this->LastDiscardCheckValue = false;

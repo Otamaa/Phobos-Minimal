@@ -17,6 +17,17 @@
 
 #include <Misc/DamageArea.h>
 
+ASMJIT_PATCH(0x4CF8B1, FlyLocomotionClass_Draw_Point_NoWobbles, 0x6)
+{
+	enum { Continue = 0x4CF8B7 };
+	GET(TechnoTypeClass*, pType, EAX);
+
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	const auto& globalVal = RulesExtData::Instance()->FlyNoWobbles;
+	R->CL(pTypeExt->FlyNoWobbles.Get(globalVal.Get(pType->IsDropship)));
+	return Continue;
+}
+
 ASMJIT_PATCH(0x4CDE64, FlyLocomotionClass_sub_4CD600_HunterSeeker_Ascent, 6)
 {
 	GET(FlyLocomotionClass* const, pThis, ESI);
@@ -597,14 +608,15 @@ ASMJIT_PATCH(0x4CEB51, FlyLocomotionClass_0x4CE680_LandingAnim, 0x8)
 
 		auto GetDefaultType = [pLinked, &IsAir, pType]() {
 				if (pType->IsDropship)
-					return RulesExtData::Instance()->DropShip_LandAnim.Get();
-				else if (auto pAir = cast_to<AircraftClass*, false>(pLinked)){
+					return RulesExtData::Instance()->DropShip_LandAnim;
+
+				if (auto pAir = cast_to<AircraftClass*, false>(pLinked)){
 					IsAir = true;
 					if(pAir->Type->Carryall)
-						return RulesExtData::Instance()->CarryAll_LandAnim.Get();
+						return RulesExtData::Instance()->CarryAll_LandAnim;
 				}
 
-			return (AnimTypeClass*)nullptr;
+			return RulesExtData::Instance()->LandingAnim;
 		};
 
 		auto GetLandingAnim = [&](){

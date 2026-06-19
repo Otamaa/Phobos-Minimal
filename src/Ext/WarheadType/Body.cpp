@@ -912,7 +912,10 @@ void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, TechnoClass* pSou
 
 	// AffectsAbove/BelowPercent & AffectsNeutral can ignore IgnoreDefenses like AffectsAllies/Enmies/Owner
 	// They should be checked here to cover all cases that directly use ReceiveDamage to deal damage
-	if (!this->IsHealthInThreshold(pVictim) || !this->IsVeterancyInThreshold(pVictim) || (!this->AffectsNeutral && pVictim->Owner->IsNeutral())) {
+	if (!this->IsHealthInThreshold(pVictim)
+	|| !this->CanTargetHouse(pSourceHouse, pVictim)
+	|| !this->IsVeterancyInThreshold(pVictim)
+	|| !this->IsInvokerAllowed(pVictim, pSource)) {
 		*pDamage = 0;
 		return;
 	}
@@ -1070,7 +1073,7 @@ bool WarheadTypeExtData::CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTa
 	return true;
 }
 
-bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool SkipVerses , bool CheckImmune, bool checkLimbo) const
+bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool SkipVerses , bool CheckImmune, bool checkLimbo , bool bypassWHCheckings) const
 {
 	if (pTechno)
 	{
@@ -1089,8 +1092,13 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool S
 		if (CheckImmune && pType->Immune)
 			return false;
 
-		if (!IsVeterancyInThreshold(pTechno))
-			return false;
+		if(!bypassWHCheckings){
+			if (!IsVeterancyInThreshold(pTechno))
+				return false;
+
+			if (!IsInvokerAllowed(pTechno, this->DamageAreaInvoker))
+				return false;
+		}
 
 		if (auto const pBld = cast_to<BuildingClass*, false>(pTechno))
 		{
@@ -1612,6 +1620,24 @@ void WarheadTypeExtData::DetonateAt(
 	//
 	//	BulletExtData::DetonateAt(pBullet, pTarget, pOwner, coords, pFiringHouse);
 	//}
+}
+
+bool WarheadTypeExtData::IsInvokerAllowed(TechnoClass* pTarget, TechnoClass* pInvoker) const
+{
+	if (!this->AffectsInvokerOnly)
+		return true;
+
+	const bool invokerExists = (pInvoker != nullptr);
+	const bool targetIsInvoker = invokerExists && (pTarget == pInvoker);
+
+	if (invokerExists)
+	{
+		return this->AffectsInvokerOnly_Reverse ? !targetIsInvoker : targetIsInvoker;
+	}
+	else
+	{
+		return !this->AffectsInvokerOnly_IgnoreInvokerState.Get(RulesExtData::Instance()->AffectsInvokerOnly_IgnoreInvokerState);
+	}
 }
 
 void WarheadTypeExtData::CreateIonBlast(WarheadTypeClass* pThis, const CoordStruct& coords)

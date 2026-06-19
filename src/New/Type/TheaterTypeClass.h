@@ -93,12 +93,15 @@ public:
 	static void AddDefaults();
 	static void LoadAllTheatersToArray();
 	static TheaterTypeClass* FindFromTheaterType(TheaterType nType) {
-		return (nType != TheaterType::None && (size_t)nType < Array.size() ?
-			 Array[(int)nType] : Array[0]).get();
+		
+		if (auto pTH = TryFindFromIndex((int)nType))
+			return pTH;
+			
+		return GetArray()[0].get();
 	}
 
 	static FORCEDINLINE TheaterTypeClass* FindFromTheaterType_NoCheck(TheaterType nType) {
-		return Array[(int)nType].get();
+		return GetArray()[(int)nType].get();
 	}
 
 	static OPTIONALINLINE void AllocateWithDefault(const char* Title, const Theater& theater, bool IsArtic, bool AllowMapGen, bool islunar) {

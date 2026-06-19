@@ -12,28 +12,31 @@
 
 #include <Utilities/GeneralUtils.h>
 
-std::array<const char*, (size_t)DiscardCondition::count>  EnumFunctions::DiscardCondition_to_strings {
+std::array<std::pair<const char* ,DiscardCondition>, (size_t)DiscardCondition::count>  EnumFunctions::DiscardCondition_to_strings {
  {
-	{ "none" } ,
-	{ "entry" } ,
-	{ "move" } ,
-	{ "stationary" } ,
-	{ "drain" } ,
-	{ "inrange" } ,
-	{ "outofrange" },
-	{ "InvokerDeleted" },
-	{ "firing"}
+	{ "none" , DiscardCondition::None } ,
+	{ "entry", DiscardCondition::Entry } ,
+	{ "move", DiscardCondition::Move } ,
+	{ "stationary", DiscardCondition::Stationary  } ,
+	{ "drain", DiscardCondition::Drain  } ,
+	{ "inrange", DiscardCondition::InRange  } ,
+	{ "outofrange", DiscardCondition::OutOfRange  },
+	{ "invokerdeleted", DiscardCondition::InvokerDeleted  },
+	{ "firing", DiscardCondition::Firing },
+	{ "selling", DiscardCondition::Selling },
+	{ "undeploying", DiscardCondition::Undeploying },
+	{ "harvesting", DiscardCondition::Harvesting }
  }
 };
 
-std::array<const char*, 6u>  EnumFunctions::ExpireWeaponCondition_to_strings {
+std::array<std::pair<const char* ,ExpireWeaponCondition>, 6u>  EnumFunctions::ExpireWeaponCondition_to_strings {
  {
-	{ "none" } ,
-	{ "expire" } ,
-	{ "remove" } ,
-	{ "death" } ,
-	{ "discard" },
-	{ "all" }
+	{ "none" , ExpireWeaponCondition::None } ,
+	{ "expire" , ExpireWeaponCondition::Expire } ,
+	{ "remove" , ExpireWeaponCondition::Remove } ,
+	{ "death" , ExpireWeaponCondition::Death } ,
+	{ "discard" , ExpireWeaponCondition::Discard },
+	{ "all" , ExpireWeaponCondition::All }
  }
 };
 

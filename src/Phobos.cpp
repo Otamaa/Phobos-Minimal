@@ -1087,7 +1087,6 @@ static COMPILETIMEEVAL referencefunc<FP_GetVersion, 0x7E1288> const Game_GetVers
 DWORD __stdcall GetVersion_Wrapper() {
 	auto ver = Game_GetVersion.invoke()();
 	CRTHooks::_set_fp_mode();
-	ApplyEarlyFuncs();
 	//LuaData::ApplyCoreHooks();
 	Phobos::ExeRun();
 	return ver;
@@ -1205,6 +1204,8 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			Patch::Apply_TYPED<char>(0x82612C + 13, { '\n' });
 
 			ParseEarlyArgs(argv, argc);
+
+			ApplyEarlyFuncs();
 		}
 	}
 	break;

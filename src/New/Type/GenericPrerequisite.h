@@ -31,6 +31,7 @@ public:
 	static void Parse(CCINIClass* pINI, const char* section, const char* key, std::vector<int>& Vec);
 	static void Parse(CCINIClass* pINI, const char* section, const char* key, DynamicVectorClass<int>& Vec);
 	static void LoadFromINIList_New(CCINIClass* pINI, bool bDebug = false);
+	static void LoadFromINIOnlyTheList(CCINIClass* pINI, bool bDebug = false);
 
 	ValueableVector<int> Prereqs;
 	ValueableVector<TechnoTypeClass*> Alternates;

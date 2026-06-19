@@ -149,6 +149,7 @@ public:
 	Valueable<AnimTypeClass*> DefaultSquidAnim { nullptr };
 	Valueable<AnimTypeClass*> CarryAll_LandAnim { nullptr };
 	Valueable<AnimTypeClass*> DropShip_LandAnim { nullptr };
+	Valueable<AnimTypeClass*> LandingAnim { nullptr };
 	Valueable<AnimTypeClass*> Aircraft_LandAnim { nullptr };
 	Valueable<AnimTypeClass*> Aircraft_TakeOffAnim { nullptr };
 	Valueable<AircraftTypeClass*> DefaultParaPlane { nullptr };
@@ -607,7 +608,9 @@ public:
 	Valueable<bool> AreaGuard_StrayIgnoreDestination {};
 
 	Valueable<bool> Shrapnel_IgnoreHitBuildings { false };
-
+	Valueable<bool> AffectsInvokerOnly_IgnoreInvokerState {};
+	Valueable<bool> Shrapnel_ObeyWarheadTriggerConditions {};
+	
 	// ============================================================
 	// Plain bool arrays and plain bools (at the very end)
 	// ============================================================
@@ -642,6 +645,8 @@ public:
 	Valueable<PartialVector3D<int>> TeamDelays[8] {};
 
 	Nullable<bool> Parasite_AllowWaterExit {};
+	Nullable<bool> FlyNoWobbles {};
+	ValueableVector<ColorStruct> ColorAdds {};
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
@@ -701,5 +706,6 @@ class NOVTABLE FakeRulesClass : public RulesClass
 public:
 	void _ReadColors(CCINIClass* pINI);
 	void _ReadGeneral(CCINIClass* pINI);
+	void _ReadPowerups(CCINIClass* pINI);
 };
 static_assert(sizeof(FakeRulesClass) == sizeof(RulesClass), "Invalid Size !");

@@ -154,9 +154,9 @@ ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 	HouseExtData::UpdateAutoDeathObjects();
 	HouseExtData::UpdateTransportReloaders();
 
-	for(auto pSuper : *SuperClass::Array){
-		pSuper->Update();
-	}
+	//for(auto pSuper : *SuperClass::Array){
+	//	pSuper->Update();
+	//}
 
 	return 0x0;
 }//

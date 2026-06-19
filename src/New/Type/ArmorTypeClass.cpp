@@ -8,6 +8,7 @@
 #include <Conversions.h>
 
 Enumerable<ArmorTypeClass>::container_t Enumerable<ArmorTypeClass>::Array;
+std::unordered_map<std::string, int> ArmorTypeClass::ArmorLookup;
 
 ArmorTypeClass::ArmorTypeClass(const char* const pTitle) : Enumerable<ArmorTypeClass>(pTitle)
 , DefaultTo { -1 }
@@ -22,15 +23,15 @@ ArmorTypeClass::ArmorTypeClass(const char* const pTitle) : Enumerable<ArmorTypeC
 {
 }
 
-bool ArmorTypeClass::IsDefault(const char* pName)
-{
-	for (auto const& nDefault : Unsorted::ArmorNameArray)
-	{
-		if (IS_SAME_STR_(pName, nDefault))
-			return true;
-	}
+void ArmorTypeClass::AddDefaults() {
+	for (auto const& nDefault : Unsorted::ArmorNameArray) {
+		if (auto pVanillaArmor = FindOrAllocate(nDefault)) {
+			Debug::Log("ArmorLookUp %s - %d \n" , pVanillaArmor->Name.data(), pVanillaArmor->ArrayIndex);
+			ArmorLookup.emplace(pVanillaArmor->Name.data(), pVanillaArmor->ArrayIndex);
+			pVanillaArmor->IsVanillaArmor = true;
+		}
 
-	return false;
+	}
 }
 
 void ArmorTypeClass::LoadFromINI(CCINIClass* pINI)
@@ -38,7 +39,7 @@ void ArmorTypeClass::LoadFromINI(CCINIClass* pINI)
 	const char* pName = this->Name.data();
 
 	// Vanilla armors get their verses from the engine directly
-	if (!IsDefault(pName))
+	if (!this->IsVanillaArmor)
 	{
 		INI_EX exINI(pINI);
 
@@ -64,36 +65,38 @@ void ArmorTypeClass::LoadFromINI(CCINIClass* pINI)
 // ---------------------------------------------------------------------------
 void ArmorTypeClass::EvaluateDefault()
 {
-	for (size_t i = 0; i < Array.size(); ++i)
-	{
+	for (size_t i = 0; i < Array.size(); ++i) {
+
 		auto pArmor = Array[i].get();
 
-		if (IsDefault(pArmor->Name.data()) || pArmor->DefaultString.empty())
+		if (pArmor->IsVanillaArmor || pArmor->DefaultString.empty())
 			continue;
 
-		if (pArmor->DefaultTo == -1)
-		{
-			const auto nDefault = FindIndexById(pArmor->DefaultString.c_str());
+		const auto it = ArmorLookup.find(pArmor->DefaultString);
 
-			if (nDefault < 0 || nDefault >= (int)Array.size())
-			{
-				Debug::LogInfo("[Phobos] Armor[{} - {}] references unknown default '{}', ignoring.",
-					i, pArmor->Name.data(), pArmor->DefaultString.c_str());
-				continue;
-			}
+		if (it == ArmorLookup.end()) {
+			Debug::LogInfo("[Phobos] Armor[{} - {}] references unknown default '{}', ignoring.",
+				i, pArmor->Name.data(), pArmor->DefaultString.c_str());
 
-			if ((int)i < nDefault)
-			{
-				const auto pDefault = Array[nDefault].get();
+			continue;
+		} else {
+
+			if ((int)i < it->second) {
+				const auto pDefault = Array[it->second].get();
+
 				Debug::LogInfo("[Phobos] Armor[{} - {}] forward-references Armor[{} - {}] (higher index). "
 					"This is supported but may cause ordering issues if chained.",
 					i, pArmor->Name.data(),
-					nDefault, pDefault->Name.data());
+					it->second, pDefault->Name.data());
 			}
-
-			pArmor->DefaultTo = nDefault;
 		}
+
+		pArmor->DefaultTo = it->second;
 	}
+
+	// do not clear this 
+	// will be used again for some reason
+	//ArmorLookup = {};
 }
 
 void ArmorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
@@ -111,17 +114,13 @@ void ArmorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 
 	auto const pkeyCount = pINI->GetKeyCount(pSection);
 
-	if (!pkeyCount)
-		return;
-
-	if (pkeyCount > (int)Array.size())
-		Array.reserve(pkeyCount);
-
-	for (int i = 0; i < pkeyCount; ++i)
-	{
+	for (int i = 0; i < pkeyCount; ++i) {
 		const auto pKeyHere = pINI->GetKeyName(pSection, i);
-		if (auto const pAlloc = FindOrAllocate(pKeyHere))
+		if (auto const pAlloc = FindOrAllocate(pKeyHere)) {
+			Debug::Log("ArmorLookUp %s - %d - I %d \n" , pAlloc->Name.data(), pAlloc->ArrayIndex , i);
+			ArmorLookup.emplace(pAlloc->Name.data(), pAlloc->ArrayIndex);
 			pAlloc->LoadFromINI(pINI);
+		}
 	}
 }
 
