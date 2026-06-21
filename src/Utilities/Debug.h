@@ -9,14 +9,21 @@
 #include <MessageListClass.h>
 #include <WWMouseClass.h>
 
-#include <chrono>
+#include <ostream>
+#include <fstream>
+#include <iostream>
+
+enum class DebugType : int {
+	NORMAL, INFO, WARN, ERR, FATAL, TRACE, GAME
+};
 
 class AbstractClass;
 class REGISTERS;
 class Debug final
 {
 public:
-	static FILE* LogFile;
+	static std::ofstream LogFile;
+	static bool LogFileOpen;
 
 	static bool LogEnabled;
 	static std::wstring ApplicationFilePath;
@@ -42,7 +49,7 @@ public:
 	static std::wstring PrepareSnapshotDirectory();
 	static void LogFileRemove();
 	static void FreeMouse();
-
+	
 	struct Result
 	{
 		DWORD Rules { 0 };
@@ -52,23 +59,24 @@ public:
 
 	static Result GetINIChecksums();
 
+	static void ApplyHooks();
+	static void Log_Raw(DebugType type, const char* file, const char* function, int line, std::string_view message);
+
 	template <typename... TArgs>
 	static void NOINLINE LogInfo(const fmt::format_string<TArgs...> _Fmt, TArgs&&... _Args) {
-		if (LogFileActive()){
+		if (Debug::LogEnabled){
 			std::string fmted = fmt::vformat(_Fmt.get(), fmt::make_format_args(_Args...));
 			fmted += "\n";
-			fwrite(fmted.data(), 1, fmted.size(), Debug::LogFile);
-			Debug::Flush();
+			Debug::Log_Raw(DebugType::INFO, nullptr, nullptr, -1, fmted);
 		}
 	}
 
 	template <typename... TArgs>
 	static void NOINLINE LogError(const fmt::format_string<TArgs...> _Fmt, TArgs&&... _Args) {
-		if (LogFileActive()) {
+		if (Debug::LogEnabled) {
 			std::string fmted = fmt::vformat(_Fmt.get(), fmt::make_format_args(_Args...));
 			fmted += "\n";
-			fwrite(fmted.data(), 1, fmted.size(), Debug::LogFile);
-			Debug::Flush();
+			Log_Raw(DebugType::ERR, nullptr, nullptr, -1, fmted);
 		}
 	}
 
@@ -76,15 +84,6 @@ public:
 
 	//this will be used to replace game debug prints
 	static void __cdecl CLog(const char* pFormat, ...);
-
-	// Log file not checked
-	static void LogUnflushed(const char* pFormat, ...);
-
-	void LogFlushed(const char* const pFormat, ...);
-
-	static FORCEINLINE void Flush() {
-		fflush(Debug::LogFile);
-	}
 
 	static void LogDeferred(const char* pFormat, ...);
 
@@ -102,16 +101,10 @@ public:
 		WWMouseClass::Instance->CaptureMouse();
 	}
 
-	static NOINLINE void DumpStack(REGISTERS* R, size_t len, int startAt = 0);
-
-	static COMPILETIMEEVAL FORCEDINLINE bool LogFileActive() {
-		return Debug::LogEnabled && Debug::LogFile;
-	}
-
 	template <typename... TArgs>
 	static NOINLINE void LogAndMessage(const char* pFormat, TArgs&&... args)
 	{
-		if (!Debug::LogFileActive())
+		if (!Debug::LogEnabled)
 			return;
 
 		IMPL_SNPRNINTF(Debug::LogMessageBuffer, sizeof(LogMessageBuffer), pFormat, std::forward<TArgs>(args)...);
@@ -197,6 +190,9 @@ public:
 		}
 	}
 
+	static void RegisterParserError();
+	static NOINLINE void INIParseFailed(const char* section, const char* flag, const char* value, const char* Message = nullptr);
+
 	static NOINLINE void FatalErrorCore(bool Dump, const std::string& msg);
 
 	template <typename... TArgs>
@@ -227,8 +223,4 @@ public:
 		if(condition)
 			FatalErrorAndExit(0u, pFormat, std::forward<TArgs>(args)...);
 	}
-
-	static void RegisterParserError();
-
-	static NOINLINE void INIParseFailed(const char* section, const char* flag, const char* value, const char* Message = nullptr);
 };

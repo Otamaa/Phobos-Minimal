@@ -13,9 +13,10 @@ DEFINE_HOOK(0x4068E0, Debug_Log, 1)
 	LEA_STACK(va_list const, args, 0x8);
 	GET_STACK(const char*, fmt, 0x4);
 
-	if (Debug::LogFileActive()) {
-		vfprintf(Debug::LogFile, fmt, args);
-		Debug::Flush();
+	if (Debug::LogEnabled) {
+		char buffer[4096];
+		std::vsnprintf(buffer, sizeof(buffer), fmt, args);
+		Debug::Log_Raw(DebugType::INFO, nullptr, nullptr, -1, buffer);
 	}
 
 	return 0x4A4AF9; // changed to co-op with YDE

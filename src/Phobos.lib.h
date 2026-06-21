@@ -1,24 +1,27 @@
 #pragma once
 
+//#pragma comment(lib, "src\\Lib\\SDL3\\SDL3.lib")
 #pragma comment(lib, "Version.lib")
 #pragma comment(lib, "DbgHelp.lib")
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "ole32.lib")
+#pragma comment(lib, "oleaut32.lib")
 #pragma comment(lib, "imm32.lib")
 #pragma comment(lib, "comctl32.lib")
 #pragma comment(lib, "gdi32.lib")
+#pragma comment(lib, "user32.lib")
+#pragma comment(lib, "uuid.lib")
+#pragma comment(lib, "setupapi.lib")
+#pragma comment(lib, "shell32.lib")
+#pragma comment(lib, "advapi32.lib")
 
 #ifdef _TTT
 #pragma comment(linker, "/NODEFAULTLIB")
 
 #pragma comment(lib, "kernel32.lib")
-#pragma comment(lib, "user32.lib")
+
 //#pragma comment(lib, "winspool.lib")
 //#pragma comment(lib, "comdlg32.lib")
-//#pragma comment(lib, "advapi32.lib")
-//#pragma comment(lib, "shell32.lib")
-//#pragma comment(lib, "oleaut32.lib")
-//#pragma comment(lib, "uuid.lib")
 //#pragma comment(lib, "odbc32.lib")
 //#pragma comment(lib, "odbccp32.lib")
 #pragma comment(lib, "winmm.lib")

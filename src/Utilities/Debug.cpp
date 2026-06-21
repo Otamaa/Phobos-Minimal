@@ -28,7 +28,9 @@
 #include <filesystem>
 #pragma region declarations
 
-FILE* Debug::LogFile {};
+std::ofstream Debug::LogFile;
+bool Debug::LogFileOpen {};
+
 bool Debug::LogEnabled {};
 std::wstring Debug::ApplicationFilePath {};
 std::wstring Debug::DefaultFEMessage {};
@@ -47,45 +49,37 @@ bool Debug::made {};
 
 #pragma endregion
 
-void Debug::InitLogger() {
+#pragma region _MainFunc
+#include <CriticalSection.h>
 
-	if (!std::filesystem::exists(Debug::LogFilePathName.c_str())) {
-		Debug::FatalError("Uneable to find %ls path !", Debug::LogFilePathName.c_str());
-		Debug::LogEnabled = false;
-		return;
+Debug::Result Debug::GetINIChecksums()
+{
+	Result nBuffer;
+	if (SessionClass::Instance->GameMode != GameMode::LAN)
+	{
+		nBuffer = { CCINIClass::RulesHash() , CCINIClass::ArtHash() ,  CCINIClass::AIHash() };
+	}
+	else
+	{
+		nBuffer = { CCINIClass::RulesHash_Internet() , CCINIClass::ArtHash_Internet() ,  CCINIClass::AIHash_Internet() };
 	}
 
-	Debug::LogFile = _wfsopen(Debug::LogFileFullPath.c_str(), L"w", _SH_DENYWR);
+	if (!nBuffer.Rules)
+		nBuffer.Rules = ScenarioClass::GetRulesUniqueID();
 
-	if (!LogFile) {
-		Debug::LogEnabled = false;
-		return;
-	}
+	if (!nBuffer.Art)
+		nBuffer.Art = ScenarioClass::GetArtUniqueID();
 
-	Debug::Log("Log File [%ls].\n", Debug::LogFileFullPath.c_str());
+	if (!nBuffer.AI)
+		nBuffer.AI = ScenarioClass::GetAIUniqueID();
+
+	return nBuffer;
 }
 
-void Debug::DeactivateLogger()
-{
-	if (Debug::LogFile) {
-		fclose(Debug::LogFile);
-		Debug::LogFile = nullptr;
-		Debug::LogEnabled = false;
-	}
-}
-
-void Debug::DetachLogger()
-{
-	if (Debug::LogFileActive() && Debug::made) {
-
-		//Debug::g_MainLogger->info("Closing log file on program termination");
-
-		Debug::DeactivateLogger();
-
-		if (std::filesystem::exists(Debug::LogFileFullPath.c_str())) {
-			CopyFileW(Debug::LogFileFullPath.c_str(), Debug::LogFileMainFormattedName.c_str(), FALSE);
-		}
-	}
+void Debug::ApplyHooks() {
+	Debug::GenerateDefaultMessage();
+	Debug::PrepareLogFile(); //prepare directory
+	Debug::LogFileRemove(); //remove previous debug log file if presents
 }
 
 void Debug::PrepareLogFile()
@@ -98,88 +92,167 @@ void Debug::PrepareLogFile()
 		Debug::LogFilePathName += L"\\debug";
 		std::filesystem::path logDir = std::filesystem::path(Debug::LogFilePathName);
 		std::error_code ec;
-		std::filesystem::create_directories(logDir , ec);
+		std::filesystem::create_directories(logDir, ec);
 
-		if(ec){
-			Debug::FatalErrorAndExit("Failedtocreate dir %ls reason %s!\n" , Debug::LogFilePathName.c_str() , ec.message().c_str());
+		if (ec)
+		{
+			Debug::FatalErrorAndExit("Failedtocreate dir %ls reason %s!\n", Debug::LogFilePathName.c_str(), ec.message().c_str());
 			return;
 		}
 
-		Debug::LogFileFullPath = logDir.wstring() + L"\\" +  (Debug::LogFileMainName + Debug::LogFileExt);
+		Debug::LogFileFullPath = logDir.wstring() + L"\\" + (Debug::LogFileMainName + Debug::LogFileExt);
 		Debug::LogFileMainFormattedName = Debug::LogFilePathName + L"\\" + Debug::LogFileMainName + L"." + GetCurTime() + Debug::LogFileExt;
 
 		made = 1;
 	}
 }
 
-void Debug::DumpStack(REGISTERS* R, size_t len, int startAt)
+void Debug::Log_Raw(DebugType type, const char* file, const char* function, int line, std::string_view message)
 {
-	if (!Debug::LogFileActive()) {
+	static SimpleCriticalSectionClass DebugMutex;
+	ScopedCriticalSectionClass mutex(&DebugMutex);
+
+	char buffer[4096];
+	char filebuff[4096];
+	bool write_to_file = false;
+
+	/**
+	 *  Copy the incoming message into a null-terminated stack buffer so the
+	 *  existing snprintf / ofstream plumbing below can be reused unchanged.
+	 *  Truncation matches the historical 4 KB limit of Vinifera_Printf.
+	 */
+	const size_t len = std::min(message.size(), sizeof(buffer) - 1);
+	std::memcpy(buffer, message.data(), len);
+	buffer[len] = '\0';
+
+	/**
+	 *  Strip path from "file".
+	 */
+	if (file != nullptr) {
+		file = (std::strrchr(file, '\\') ? std::strrchr(file, '\\') + 1 : file);
+	}
+
+	switch (type) {
+	case DebugType::GAME:
+	case DebugType::NORMAL:
+	case DebugType::INFO:
+	{
+		IMPL_SNPRNINTF(filebuff, sizeof(filebuff), "[INFO] %s", buffer);
+
+		write_to_file = true;
+
+		break;
+	}
+
+	case DebugType::WARN:
+	{
+		IMPL_SNPRNINTF(filebuff, sizeof(filebuff), "[WARNING] %s", buffer);
+
+		write_to_file = true;
+
+		break;
+	}
+
+	case DebugType::ERR:
+	{
+		IMPL_SNPRNINTF(filebuff, sizeof(filebuff), "[ERROR] %s", buffer);
+
+		write_to_file = true;
+
+		break;
+	}
+
+	case DebugType::FATAL:
+	{
+		IMPL_SNPRNINTF(filebuff, sizeof(filebuff), "[FATAL] %s", buffer);
+
+		write_to_file = true;
+
+		break;
+	}
+
+	case DebugType::TRACE:
+	{
+		IMPL_SNPRNINTF(filebuff,
+			sizeof(filebuff),
+			"[TRACE] File: %s\n"
+			"  Func: %s\n"
+			"  Line: %d\n"
+			"  Msg:  %s"
+			"\n"
+			,
+			file, function, line, buffer);
+
+		break;
+	}
+
+	default: break;
+	};
+
+	/**
+	 *  Write the log file if flagged to do so.
+	 */
+	if (write_to_file && LogEnabled) {
+
+		if (!LogFileOpen) {
+			LogFile.open(Debug::LogFileFullPath, std::ios::app | std::ios::binary);
+			LogFileOpen = true;
+		}
+
+		/**
+		 *  Write the buffer to the log file.
+		 */
+		LogFile << filebuff;
+
+		if (LogFileOpen) {
+			LogFile.close();
+			LogFileOpen = false;
+		}
+	}
+}
+
+void Debug::InitLogger() {
+
+	if (!std::filesystem::exists(Debug::LogFilePathName.c_str())) {
+		Debug::FatalError("Uneable to find %ls path !", Debug::LogFilePathName.c_str());
+		Debug::LogEnabled = false;
 		return;
 	}
 
-	fprintf_s(Debug::LogFile, "Dumping %d bytes of stack\n" , len);
-	auto const end = len / 4;
-	auto const* const mem = R->lea_Stack<DWORD*>(startAt);
-	for (auto i = 0u; i < end; ++i)
-	{
-
-		const char* suffix = "";
-		const char* Object = "";
-		const uintptr_t ptr = mem[i];
-		if (ptr >= 0x401000 && ptr <= 0xB79BE4)
-			suffix = "GameMemory!";
-		else
-		{
-			for (auto begin = Patch::ModuleDatas.begin() + 1; begin != Patch::ModuleDatas.end(); ++begin)
-			{
-				if (ptr >= begin->BaseAddr && ptr <= (begin->BaseAddr + begin->Size))
-				{
-					suffix = (begin->ModuleName + " Memory!").c_str();
-					break;
-				}
-			}
-		}
-
-		if (ptr != 0u && ptr != std::numeric_limits<uintptr_t>::max() && ptr != std::numeric_limits<uintptr_t>::min())
-		{
-			switch (VTable::Get((mem + i)))
-			{
-#define DECLARE_VTABLE_STRING(x) case x::vtable: Object = #x; break;
-				DECLARE_VTABLE_STRING(AnimClass)
-				DECLARE_VTABLE_STRING(UnitClass)
-				DECLARE_VTABLE_STRING(AircraftClass)
-				DECLARE_VTABLE_STRING(InfantryClass)
-				DECLARE_VTABLE_STRING(BuildingClass)
-				DECLARE_VTABLE_STRING(WeaponTypeClass)
-				DECLARE_VTABLE_STRING(WarheadTypeClass)
-				DECLARE_VTABLE_STRING(BulletClass)
-				DECLARE_VTABLE_STRING(BulletTypeClass)
-				DECLARE_VTABLE_STRING(HouseClass)
-				DECLARE_VTABLE_STRING(HouseTypeClass)
-#undef DECLARE_VTABLE_STRING
-			default:
-				break;
-			}
-		}
-		fprintf_s(Debug::LogFile, "esp+%04X = %08X %s %s\n", i * 4, mem[i], suffix , Object);
-	}
-
-	fprintf_s(Debug::LogFile, "====================Done.\n");
-	Debug::Flush();
+	Debug::Log("Log File [%ls].\n", Debug::LogFileFullPath.c_str());
 }
 
-std::wstring Debug::PrepareSnapshotDirectory()
-{
+void Debug::DeactivateLogger() {
+	if (LogFileOpen) {
+		LogFile.close();
+		LogFileOpen = false;
+		LogEnabled = false;
+	}
+}
+
+void Debug::DetachLogger() {
+	if (Debug::LogEnabled && Debug::made) {
+
+		//Debug::g_MainLogger->info("Closing log file on program termination");
+
+		Debug::DeactivateLogger();
+
+		if (std::filesystem::exists(Debug::LogFileFullPath.c_str())) {
+			CopyFileW(Debug::LogFileFullPath.c_str(), Debug::LogFileMainFormattedName.c_str(), FALSE);
+		}
+	}
+}
+
+std::wstring Debug::PrepareSnapshotDirectory() {
 	const std::wstring buffer = Debug::LogFilePathName + L"\\snapshot-" + Debug::GetCurTime();
 	std::error_code ec;
-	std::filesystem::create_directories(buffer,ec);
+	std::filesystem::create_directories(buffer, ec);
 
 	if (ec) {
 		std::wstring msg = fmt::format(L"Log file failed to create snapshor dir {} .\n Error code = {}",
-			Debug::LogFileFullPath , PhobosCRT::StringToWideString(ec.message()));
+			Debug::LogFileFullPath, PhobosCRT::StringToWideString(ec.message()));
 
-		MessageBoxW(Game::hWnd.get(), msg.c_str(), L"Error!" , MB_OK | MB_ICONEXCLAMATION);
+		MessageBoxW(Game::hWnd.get(), msg.c_str(), L"Error!", MB_OK | MB_ICONEXCLAMATION);
 		Phobos::ExeTerminate();
 		exit(errno);
 	}
@@ -193,8 +266,7 @@ void Debug::LogFileRemove() {
 	}
 }
 
-void Debug::FreeMouse()
-{
+void Debug::FreeMouse() {
 	Game::StreamerThreadFlush();
 	const auto pMouse = MouseClass::Instance();
 
@@ -241,116 +313,125 @@ void Debug::FreeMouse()
 	ShowCursor(TRUE);
 }
 
-Debug::Result Debug::GetINIChecksums()
-{
-	Result nBuffer;
-	if (SessionClass::Instance->GameMode != GameMode::LAN)
-	{
-		nBuffer = { CCINIClass::RulesHash() , CCINIClass::ArtHash() ,  CCINIClass::AIHash() };
-	}
-	else
-	{
-		nBuffer = { CCINIClass::RulesHash_Internet() , CCINIClass::ArtHash_Internet() ,  CCINIClass::AIHash_Internet() };
-	}
-
-	if (!nBuffer.Rules)
-		nBuffer.Rules = ScenarioClass::GetRulesUniqueID();
-
-	if (!nBuffer.Art)
-		nBuffer.Art = ScenarioClass::GetArtUniqueID();
-
-	if (!nBuffer.AI)
-		nBuffer.AI = ScenarioClass::GetAIUniqueID();
-
-	return nBuffer;
-}
-
 void Debug::FatalErrorCore(bool Dump, const std::string& msg)
 {
-	const bool log = Debug::LogFileActive();
+	const bool log = Debug::LogEnabled;
 
-	if (msg.empty()) {
+	if (msg.empty())
+	{
 
-		if (log)
-			fprintf_s(Debug::LogFile, "Fatal Error: %ls\n", DefaultFEMessage.c_str());
+		if (log && Debug::LogEnabled)
+		{
+			char tracebuff[4096];
+			IMPL_SNPRNINTF(tracebuff,
+				sizeof(tracebuff),
+				"[FATAL]  %ls", DefaultFEMessage.c_str());
+
+			if (!LogFileOpen)
+			{
+				LogFile.open(Debug::LogFileFullPath, std::ios::app | std::ios::binary);
+				LogFileOpen = true;
+			}
+
+			/**
+			 *  Write the buffer to the log file.
+			 */
+			LogFile << tracebuff;
+
+			if (LogFileOpen)
+			{
+				LogFile.close();
+				LogFileOpen = false;
+			}
+		}
 
 		Debug::FreeMouse();
 		MessageBoxW(Game::hWnd, DefaultFEMessage.c_str(), L"Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
-	} else {
+	}
+	else
+	{
 
-		if (log)
-			fprintf_s(Debug::LogFile, "Fatal Error: %s\n", msg.c_str());
+		if (log && Debug::LogEnabled)
+		{
+			char tracebuff[4096];
+			IMPL_SNPRNINTF(tracebuff,
+				sizeof(tracebuff),
+				"[FATAL]  %s", msg.c_str());
+
+			if (!LogFileOpen)
+			{
+				LogFile.open(Debug::LogFileFullPath, std::ios::app | std::ios::binary);
+				LogFileOpen = true;
+			}
+
+			/**
+			 *  Write the buffer to the log file.
+			 */
+			LogFile << tracebuff;
+
+			if (LogFileOpen)
+			{
+				LogFile.close();
+				LogFileOpen = false;
+			}
+		}
 
 		Debug::FreeMouse();
 		MessageBoxA(Game::hWnd, msg.c_str(), "Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
 	}
 
-	if (Dump) {
+	if (Dump)
+	{
 		Debug::FullDump();
 	}
 }
+
+#pragma endregion
 
 void Debug::INIParseFailed(const char* section, const char* flag, const char* value, const char* Message)
 {
 	if (Phobos::Otamaa::TrackParserErrors && Debug::LogEnabled) {
 
+		std::string formatted;
 		if (!Message) {
-			fprintf_s(Debug::LogFile, "[Phobos] Failed to parse INI file content: [%s]%s=%s.\n", section, flag, value);
+			formatted = fmt::format("[Phobos] Failed to parse INI file content: [{}]{}={}.\n", section, flag, value);
 		} else {
-			fprintf_s(Debug::LogFile, "[Phobos] Failed to parse INI file content: [%s]%s=%s (%s).\n", section, flag, value, Message);
+			formatted = fmt::format("[Phobos] Failed to parse INI file content: [{}]{}={} ({}).\n", section, flag, value, Message);
 		}
-
+		Debug::Log_Raw(DebugType::WARN, nullptr, nullptr, -1, formatted);
 		Debug::RegisterParserError();
 	}
 }
 
 void Debug::Log(const char* pFormat, ...)
 {
-	if (Debug::LogFileActive())
+	if (Debug::LogEnabled)
 	{
+		char buffer[4096];
 		va_list args;
 		va_start(args, pFormat);
-		vfprintf(Debug::LogFile, pFormat, args);
+		std::vsnprintf(buffer, sizeof(buffer), pFormat, args);
 		va_end(args);
 
-		Debug::Flush();
+		Log_Raw(DebugType::GAME, nullptr, nullptr, -1, buffer);
 	}
 }
 
 //this will be used to replace game debug prints
 void __cdecl Debug::CLog(const char* pFormat, ...)
 {
-	if (Debug::LogFileActive())
+	if (Debug::LogEnabled)
 	{
+		char buffer[4096];
 		va_list args;
 		va_start(args, pFormat);
-		vfprintf(Debug::LogFile, pFormat, args);
+		std::vsnprintf(buffer, sizeof(buffer), pFormat, args);
 		va_end(args);
 
-		Debug::Flush();
+		Log_Raw(DebugType::GAME, nullptr, nullptr, -1, buffer);
 	}
 }
 
-// Log file not checked
-void Debug::LogUnflushed(const char* pFormat, ...)
-{
-	va_list args;
-	va_start(args, pFormat);
-	vfprintf(Debug::LogFile, pFormat, args);
-	va_end(args);
-}
-
-void Debug::LogFlushed(const char* const pFormat, ...)
-{
-	if (Debug::LogFileActive())
-	{
-		va_list args;
-		va_start(args, pFormat);
-		vfprintf(Debug::LogFile, pFormat, args);
-		Debug::Flush();
-		va_end(args);
-	}
-}
 
 void Debug::LogDeferred(const char* pFormat, ...)
 {
@@ -363,18 +444,14 @@ void Debug::LogDeferred(const char* pFormat, ...)
 
 void Debug::LogDeferredFinalize()
 {
-	if (Debug::LogFileActive())
-	{
-		for (auto& __log : Debug::DefferedVector)
-		{
-			if (!__log.empty())
-			{
-				fwrite(__log.data(), 1, __log.size(), Debug::LogFile);
+	if (Debug::LogEnabled) {
+		for (auto& __log : Debug::DefferedVector) {
+			if (!__log.empty()) {
+				Log_Raw(DebugType::GAME, nullptr, nullptr, -1, __log);
 			}
 		}
 	}
 
-	Debug::Flush();
 	Debug::DefferedVector.clear();
 }
 

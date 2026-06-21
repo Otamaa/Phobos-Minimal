@@ -42,7 +42,7 @@ static COMPILETIMEEVAL reference<DynamicVectorClass<ObjectClass*>*, 0x87F778u> c
 		MB_YESNO | MB_ICONERROR) == IDYES)
 	{
 
-		Debug::DumpStack(R, 8084);
+		//Debug::DumpStack(R, 8084);
 
 		HCURSOR loadCursor = LoadCursor(nullptr, IDC_WAIT);
 		if (hwnd)

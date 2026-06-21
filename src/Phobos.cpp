@@ -1068,10 +1068,10 @@ bool GetModuleSectionInfo(ImageSectionInfo &info)
 
 				return info.SectionCount > 0;
 			}
-        }
-    }
+		}
+	}
 
-    return false;
+	return false;
 }
 
 struct ProtectedSectionInfo
@@ -1116,7 +1116,7 @@ bool StartPatching() {
 	}
 
 	bool success = false;
-    ImageSectionInfo info;
+	ImageSectionInfo info;
 
 	if (GetModuleSectionInfo(info)) {
         success = true;
@@ -1128,17 +1128,17 @@ bool StartPatching() {
 
 			if (VirtualProtect(section.Base, section.Size, PAGE_EXECUTE_READWRITE, &original_protect) == FALSE) {
 				DWORD error = GetLastError();
-            success = false;
+				success = false;
 				RestoreProtectedSections();
 				break;
-        }
+			}
 
 			ProtectedSectionInfo& protected_section = ProtectedSections[ProtectedSectionCount++];
 			protected_section.Base = section.Base;
 			protected_section.Size = section.Size;
 			protected_section.OriginalProtect = original_protect;
 			std::memcpy(protected_section.Name, section.Name, sizeof(protected_section.Name));
-        }
+		}
     }
 
 	startPatching = success;
@@ -1285,6 +1285,8 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			IsInitialized = true;
 			PhobosHookers::InitMinHook();
 			CRTHooks::Apply();
+
+			Debug::ApplyHooks();
 
 			Patch::Apply_CALL(0x6BC08C, Phobos_Parse_Command_Line);
 			Patch::Apply_CALL6(0x7CD835, GetVersion_Wrapper);
