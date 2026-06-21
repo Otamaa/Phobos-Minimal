@@ -792,7 +792,6 @@ void Phobos::ExecuteLua()
 						result->second = lua_tostring(L, -1);
 						lua_pop(L, 1);
 
-						DWORD protectFlag;
 						if (Phobos::Otamaa::IsAdmin)
 						{
 							std::string copy = PhobosCRT::trim(result->second.c_str());
@@ -800,7 +799,7 @@ void Phobos::ExecuteLua()
 						}
 
 						// do not exceed maximum length of the string , otherwise it will broke the .exe file
-						Patch::Apply_withmemcpy(addr, result->second.c_str(), protectFlag, PAGE_READWRITE, (size_t)maxlen);
+						Patch::WriteToProcessMemory(addr, result->second.c_str(), (size_t)maxlen);
 					}
 				}
 				lua_pop(L, 1);

@@ -131,6 +131,265 @@ long __stdcall AircraftClass_IFlyControl_IsStrafe(IFlyControl* ifly)
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2268, AircraftClass_IFlyControl_IsStrafe);
 
+Action FakeAircraftClass::_MouseOverCell(CellStruct const& cell, bool checkFog, bool ignoreForce)
+{
+	if (!this->Owner->ControlledByCurrentPlayer()) {
+		return Action::None;
+	}
+
+	Action action = FootClass::MouseOverCell(cell, checkFog, ignoreForce);
+
+	if (action == Action::Attack && !this->GetWeapon(0)->WeaponType) {
+		return Action::None;
+	}
+
+	return action;
+}
+DEFINE_FUNCTION_JUMP(LJMP, 0x417F80, FakeAircraftClass::_MouseOverCell);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2314, FakeAircraftClass::_MouseOverCell);
+
+void FakeAircraftClass::_DropOffCarryallCargo()
+{
+	auto pFirstCargo = this->Passengers.RemoveFirstPassenger();
+
+	CoordStruct loc = this->Location;
+	if (MapClass::Instance->GetCellAt(loc)->ContainsBridge()) {
+		loc.Z += MapClass::Instance->GetZPos(&this->Location);
+		pFirstCargo->OnBridge = true;
+	} else {
+		pFirstCargo->OnBridge = false;
+	}
+	const auto pCargoType = GET_TECHNOTYPE(pFirstCargo);
+
+	pFirstCargo->Locomotor.Release();
+	auto NewLoco = LocomotionClass::CreateInstance(pCargoType->Locomotor);
+	pFirstCargo->Locomotor = NewLoco;
+	NewLoco->Link_To_Object(pFirstCargo);
+
+	const auto nFacing = this->TurretFacing();
+	//[0x416C3A - AircraftClass_Carryall_Unload_Facing]
+	if (pFirstCargo->Unlimbo(loc, (DirType)(nFacing.GetFacing<256>()))) {
+		const auto pCorgoTypeExt = TechnoTypeExtContainer::Instance.Find(pCargoType);
+		const auto nRot = pCargoType->ROT;
+
+		pFirstCargo->PrimaryFacing.Set_ROT(nRot);
+		pFirstCargo->SecondaryFacing.Set_ROT(pCorgoTypeExt->TurretRot.Get(nRot));
+
+		pFirstCargo->IsOnCarryall = false;
+		pFirstCargo->vt_entry_48C(nullptr, 0, false, nullptr);
+		pFirstCargo->UpdateSight(0, 0, 0, 0, 0);
+		int lastSigt = pFirstCargo->LastSightRange;
+		MapClass::Instance->RevealArea3(&this->Location, lastSigt - 3, lastSigt + 3, 0);
+		CellStruct nearbyLanding;
+		this->TechnoClass::NearbyLocation(&nearbyLanding, nullptr);
+	
+		if (this->GetNthLink() == pFirstCargo) {
+			this->SendToFirstLink(RadioCommand::RequestUntether);
+			this->SendToFirstLink(RadioCommand::NotifyUnlink);
+		}
+
+		if (!nearbyLanding.IsValid()) {
+			this->SetDestination(nullptr, true);
+		} else {
+			this->SetDestination(MapClass::Instance->GetCellAt(nearbyLanding), true);
+		}
+
+		return;
+	}
+
+	//fail unlimbo 
+	//destroy both cargo and the aircraft 
+	//[0x416C4D - AircraftClass_Carryall_Unload_DestroyCargo]
+
+	int Damage = pCargoType->Strength;
+	pFirstCargo->ReceiveDamage(&Damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
+
+	Damage = this->Type->Strength;
+	this->ReceiveDamage(&Damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x416AF0, FakeAircraftClass::_DropOffCarryallCargo);
+
+Action  FakeAircraftClass::_MouseOverObject(ObjectClass* pObject, bool ignoreForce) const
+{
+	//[0x417CCB - AircraftClass_GetActionOnObject_Deactivated]
+	if (this->Deactivated)
+		return TechnoExtData::GetAction((TechnoClass*)this, pObject);
+
+	// -----------------------------------------------------------------
+   // LABEL_24 tail — lambda eliminates the forward jmp at 0x417D7A.
+   // Entry (a): CanTote hook takes the Tote path → RunTail(Action::Tote).
+   // Entry (b): normal fall-through after LABEL_18.
+   // -----------------------------------------------------------------
+	const auto RunTail = [&](Action act) -> Action {
+			// 0x417DFC: ControlledByCurrentPlayer + action==Select → dock block
+			if (this->Owner->ControlledByCurrentPlayer() && act == Action::Select) {
+				// 0x417E0E: Kind_Of == RTTI_BUILDING
+				if (auto pBldTarget = cast_to<BuildingClass*>(pObject)) {
+	
+					// -------------------------------------------------------
+					// EXTENSION_Dock @ 0x417E16 (size 6)
+					// Vanilla: loads [edi+520h] (pBuilding->Type via planningpath),
+					//          reads [ebp+16A9h] (Helipad flag), then linear-scans
+					//          this->Type->Dock vector.
+					// Hook: replaces both the Helipad check and the vector scan.
+					//   return 0x417E4B → can dock, proceed to radio/cargo checks.
+					//   return 0x417E7D → cannot dock, skip to continuation.
+					// -------------------------------------------------------
+					if (this->Type->Dock.contains(pBldTarget->Type)) {
+						// 0x417E4B path onwards
+						// 0x417E4E: RadioClass::In_Radio_Contact(pBuilding->r, this->r)
+						const bool inContact = pBldTarget->ContainsLink(this) != 0;
+						// 0x417E57: [edi+118h] → pBuilding CargoHold
+						// VERIFY: 0x118 == CargoHold on FootClass
+						const bool targetFull = pBldTarget->Passengers.FirstPassenger;
+
+						if (!inContact || targetFull)
+						{
+							act = Action::NoEnter; // LABEL_36: 0x1F
+						}
+						else
+						{
+							// 0x417E68: Transmit_Message(RADIO_CAN_LOAD=0x0F, pBuilding)
+							// VERIFY: vtable 0x278 == Transmit_Message; 0x0F == RADIO_CAN_LOAD
+							const auto reply = ((AircraftClass*)this)->SendCommand(RadioCommand::QueryCanEnter, pBldTarget);
+
+							act = (reply == RadioCommand::AnswerPositive)
+								? Action::Enter    // 0x417E71: act = 3
+								: Action::NoEnter; // LABEL_36:  act = 0x1F
+						}
+					}
+					// else: Dock.contains == false → hook returns 0x417E7D
+					// act unchanged (Action::Select), falls to continuation below
+				}
+			}
+
+			// 0x417E7D continuation
+			// IsCarryall && action==Tote → land-spot vacancy check
+			if (this->Type->Carryall && act == Action::Tote)
+			{
+				CellStruct pickupCell = pObject->GetMapCoords();
+				if (pickupCell.IsValid()) {
+					if (auto pBldCell = MapClass::Instance->GetCellAt(pickupCell)->GetBuilding()) {
+						if (pBldCell->Type->WeaponsFactory)
+							return Action::None; // 0x417EF0: early retn
+					}
+				}
+				return act; // 0x417EFB: early retn with Tote
+			}
+			// 0x417EFE / 0x417F4A: mutually exclusive else-if chain
+			else if (act == Action::NoMove) {
+				if (pObject->IsDisguised()) {
+					if (!pObject->GetDisguiseHouse(1)) {
+						if (pObject->GetDisguise(1)->WhatAmI() == AbstractType::OverlayType)
+							return Action::Move; // 0x417F39: early retn (1)
+					}
+				}
+			} else if (act == Action::Attack) {
+				if(pObject->GetType()->Immune){
+
+					if(auto pTargetTech = flag_cast_to<TechnoClass*>(pObject)){
+						const auto& [allow1, allow2, canBeDefused] = TechnoExtData::CanBeAffectedByFakeEngineer((AircraftClass*)this, pTargetTech, true, true, true);
+					
+						if (allow1 || allow2 || canBeDefused)
+							return act;
+					}
+
+					act = Action::NoMove;
+				}
+			}
+
+			return act; // 0x417F68
+		};
+
+	// -----------------------------------------------------------------
+	// 0x417CD3: FootClass::What_Action
+	// -----------------------------------------------------------------
+	Action action = FootClass::MouseOverObject(pObject, ignoreForce);
+
+	// 0x417CDA: ToggleSelect early return
+	if (action == Action::ToggleSelect)
+		return action;
+
+	// 0x417CE9: GuardArea + AirportBound → None
+	// VERIFY: 0x6C4 == Class ptr; 0xE0D == AirportBound on AircraftTypeClass
+	if (action == Action::GuardArea && this->Type->AirportBound)
+		action = Action::None;
+
+	// -----------------------------------------------------------------
+	// 0x417D00: IsCarryall + ControlledByCurrentPlayer gate
+	// VERIFY: 0xDFC == IsCarryall on AircraftTypeClass
+	// -----------------------------------------------------------------
+	if (this->Type->Carryall && this->Owner->ControlledByCurrentPlayer()) {
+		// 0x417D1F/0x417D24: jnz 0x417DCD when action != None && action != Select
+		if (action == Action::None || action == Action::Select) {
+			if (this->Owner->IsAlliedWith(pObject)) {
+				bool passesOwnerCheck = true;
+				if (pObject != nullptr) {
+					if (auto pTechno = flag_cast_to<TechnoClass*, false>(pObject)) {
+						if(auto pOrigOwner = pTechno->GetOriginalOwner()){
+							passesOwnerCheck = (pOrigOwner->IsAlliedWith(this) != 0);
+						}
+					}
+				}
+
+				if (passesOwnerCheck) {
+					UnitClass* targetIsUnit = cast_to<UnitClass*>(pObject);
+
+					if ((this->Passengers.FirstPassenger == 0) && targetIsUnit) {
+						if (TechnoTypeExtData::CarryallCanLift(this->Type, targetIsUnit))
+							return RunTail(Action::Tote); // hook returned 0x417DF6
+						// else hook returned 0: skip Tote, fall through to 0x417D7C
+					}
+				}
+			}
+		}
+		// action != None && action != Select → fall through to LABEL_18
+	}
+
+	// -----------------------------------------------------------------
+	// 0x417D7C: action == None → call What_Action1 via vt[70h]
+	// Converges from: jz 0x417D3A, jz 0x417D5D, jz 0x417D67,
+	//                 jnz 0x417D7E (action != 0 skips this block).
+	// -----------------------------------------------------------------
+	if (action == Action::None) {
+		action = this->MouseOverCell(CellClass::Coord2Cell(pObject->GetCoords()), 0, ignoreForce);
+	}
+
+	// -----------------------------------------------------------------
+	// LABEL_18 (0x417DCD): Self_Deploy / Attack edge cases
+	// -----------------------------------------------------------------
+	// 0x417DCD: cmp ebx, 4 (Action::Self_Deploy)
+	if (action == Action::Self_Deploy) {
+		// -----------------------------------------------------------
+		// EXTENSION_NoManualUnload @ 0x417DD2 (size 6)
+		// Vanilla: mov eax,[esi+114h] / test eax,eax / jnz LABEL_24
+		//   → if Quantity != 0, keep Self_Deploy; else zero it.
+		// Hook comment: skip the Quantity check entirely for UnitRepair
+		//   compatibility; use NoManualUnload ext flag instead.
+		//   return 0x417DF4 → prohibit unload (action = None, LABEL_23).
+		//   return 0        → allow unload (keep Self_Deploy, fall to LABEL_24).
+		// VERIFY: 0x114 == Cargo::Quantity on TechnoClass (vanilla check removed)
+		// -----------------------------------------------------------
+		if (TechnoTypeExtContainer::Instance.Find(this->Type)->NoManualUnload)
+			action = Action::None; // mirrors hook returning 0x417DF4 (LABEL_23: xor ebx,ebx)
+		// else: keep Self_Deploy, fall through to LABEL_24
+	}
+	// 0x417DDE: cmp ebx, 5 (Action::Attack)
+	else if (action == Action::Attack) {	
+		if (!this->GetWeapon(0)->WeaponType)
+			action = Action::None;
+	}
+
+	// -----------------------------------------------------------------
+	// LABEL_24 (0x417DF6)
+	// -----------------------------------------------------------------
+	return RunTail(action);
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x417CC0, FakeAircraftClass::_MouseOverObject);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2318, FakeAircraftClass::_MouseOverObject);
+
 // AircraftClass::Enter_Idle_Mode
 // Vanilla address: 0x4176F0
 // Goto-free cleanup — structure preserved 1:1 from ASM/pseudocode.
@@ -1376,7 +1635,7 @@ int FakeAircraftClass::_Mission_Move_ForCarryAll()
 				this->IsCarryallNotLanding = 1;
 			} else {
 				this->Mark(MarkType::Remove);
-				this->DropOffParadropCargo();
+				this->_DropOffCarryallCargo();
 				this->Mark(MarkType::Put);
 				this->MissionStatus = 0;
 			}
@@ -1606,87 +1865,6 @@ int FakeAircraftClass::_Mission_Move()
 		}
 		return 1;
 	}
-	}
-}
-
-void FakeAircraftClass::_FootClass_Update_Wrapper()
-{
-	//auto pExt = TechnoExtContainer::Instance.Find(this);
-
-	//const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
-
-
-	//pExt->UpdateAircraftOpentopped();
-	//AircraftPutDataFunctional::AI(pExt, pTypeExt);
-	//AircraftDiveFunctional::AI(pExt, pTypeExt);
-	//FighterAreaGuardFunctional::AI(pExt, pTypeExt);
-
-	//if (pThis->IsAlive && pThis->SpawnOwner != nullptr)
-	//{
-	//
-	//	/**
-	//	 *  If we are close enough to our owner, delete us and return true
-	//	 *  to signal to the challer that we were deleted.
-	//	 */
-	//	if (Spawned_Check_Destruction(pThis))
-	//	{
-	//		pThis->UnInit();
-	//		return 0x414F99;
-	//	}
-	//}
-
-	this->FootClass::Update();
-
-	if (this->IsAlive && this->Type->AirportBound && !this->Airstrike && !this->Spawned)
-	{
-		bool extendedMissions = AircraftTypeExtData::ExtendedAircraftMissionsEnabled(this);
-
-		if (extendedMissions)
-		{
-			// Check area guard range
-			if (const auto pArchive = this->ArchiveTarget)
-			{
-				if (this->Target && !this->IsFiring && !this->IsLocked
-					&& this->DistanceFromSquared(pArchive) > static_cast<int>(this->GetGuardRange(1) * 1.1))
-				{
-					this->SetTarget(nullptr);
-					this->SetDestination(pArchive, true);
-				}
-			}
-
-			// Check dock building
-			this->FindDockingBayInVector(reinterpret_cast<TypeList<TechnoTypeClass*>*>(&this->Type->Dock), 0, 0);
-		}
-
-		if (this->DockedTo)
-		{
-			// Exit the aimless hovering state and return to the new airport
-			if (this->GetCurrentMission() == Mission::Area_Guard && this->MissionStatus)
-			{
-				this->SetArchiveTarget(nullptr);
-				this->EnterIdleMode(false, true);
-			}
-		}
-		else if (this->IsInAir())
-		{
-			int damage = AircraftTypeExtContainer::Instance.Find(this->Type)->ExtendedAircraftMissions_UnlandDamage.Get(RulesExtData::Instance()->ExtendedAircraftMissions_UnlandDamage);
-
-			if (damage > 0)
-			{
-				if (!extendedMissions && !this->IsCrushingSomething && this->FindDockingBayInVector(reinterpret_cast<TypeList<TechnoTypeClass*>*>(&this->Type->Dock), 0, 0))
-					return;
-
-				// Injury every four frames
-				if (!((Unsorted::CurrentFrame.get() - this->LastFireBulletFrame + this->UniqueID) & 0x3))
-					this->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
-			}
-			else if (damage < 0)
-			{
-				// Avoid using circular movement paths to prevent the aircraft from crashing
-				if (extendedMissions)
-					this->Crash(nullptr);
-			}
-		}
 	}
 }
 

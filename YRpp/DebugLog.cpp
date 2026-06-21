@@ -5,7 +5,7 @@
 void GameDebugLog::HookLogEnd(DWORD addr , const char* pFormat, size_t size , long long time)
 {
 
-	if (!Debug::LogFileActive())
+	if (!Debug::LogEnabled)
 		return;
 
 	const int time_i = (int)time;
@@ -18,7 +18,7 @@ void GameDebugLog::HookLogEnd(DWORD addr , const char* pFormat, size_t size , lo
 
 void GameDebugLog::HookLogStart(DWORD addr, const char* pFormat, size_t size)
 {
-	if (!Debug::LogFileActive())
+	if (!Debug::LogEnabled)
 		return;
 
 	Debug::LogInfo("[{0:x}] {1} [{2}] , Start", addr, pFormat, size);

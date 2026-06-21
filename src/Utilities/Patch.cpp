@@ -47,34 +47,6 @@ void Patch::ApplyStatic()
 	}
 }
 
-void Patch::Apply()
-{
-	void* pAddress = (void*)this->offset;
-
-	DWORD protect_flag {};
-	DWORD protect_flagb {};
-	VirtualProtect(pAddress, this->size, PAGE_EXECUTE_READWRITE, &protect_flag);
-	if(this->type == PatchType::VTABLE_) {
-		*reinterpret_cast<LPVOID*>(this->offset) = LPVOID(reinterpret_cast<const _VTABLE*>(this->pData)->pointer);
-	} else {
-		std::memcpy(pAddress, this->pData, this->size);
-	}
-	VirtualProtect(pAddress, this->size, protect_flag, &protect_flagb);
-	FlushInstructionCache(CurrentProcess, (LPVOID)pAddress, size);
-}
-
-void Patch::Apply_RAW(uintptr_t offset, size_t sz , PatchType type, const BYTE* data)
-{
-	Patch dummy {
-		.type = type,
-		.offset = offset,
-		.size = sz,
-		.pData = data
-	};
-
-	dummy.Apply();
-}
-
 void Patch::Apply_LJMP(uintptr_t offset, uintptr_t pointer)
 {
 	const _LJMP data(offset, pointer);

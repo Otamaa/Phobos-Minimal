@@ -1354,48 +1354,46 @@ std::vector<TeamTypeClass*> NOINLINE Suggested_New_Team(HouseClass* forHouse_, b
 	std::vector<TeamTypeClass*> suggestedTeams;
 
 	HouseClass* pEnemy = nullptr;
-	if (forHouse_->EnemyHouseIndex != -1) {
+	if (forHouse_->EnemyHouseIndex != -1)
 		pEnemy = HouseClass::Array->Items[forHouse_->EnemyHouseIndex];
-	}
 
-	int Difficulty = (int)forHouse_->AIDifficulty;
-	int teamCapValue = RulesClass::Instance->TotalAITeamCap.Items[Difficulty];
+	const int Difficulty = static_cast<int>(forHouse_->AIDifficulty);
+	const int teamCapValue = RulesClass::Instance->TotalAITeamCap.Items[Difficulty];
 	suggestedTeams.reserve(teamCapValue);
 
-	if (ScenarioClass::Instance->Random.RandomRanged(1, 100) <= forHouse_->RatioAITriggerTeam
-		&& forHouse_->AITriggersActive) {
-		int counter = 0;
-		int baseDefenseCount = 0;
+	const bool triggerRollPassed =
+		ScenarioClass::Instance->Random.RandomRanged(1, 100) <= forHouse_->RatioAITriggerTeam
+		&& forHouse_->AITriggersActive;
+
+	if (triggerRollPassed) {
+		// --- OPTIMISATION 1: single pass replaces two separate TeamClass loops ---
+		int        counter = 0;
+		int        baseDefenseCount = 0;
+		TeamClass* oldestDefenseTeam = nullptr;
+		int        oldestCreationFrame = 0x7FFFFFFF;
 
 		for (int i = 0; i < TeamClass::Array->Count; ++i) {
-			auto team = TeamClass::Array->Items[i];
-			if (team->OwnerHouse == forHouse_) {
-				++counter;
-				if (team->Type->IsBaseDefense) {
-					++baseDefenseCount;
-				}
-			}
-		}
+			auto* team = TeamClass::Array->Items[i];
+			if (team->OwnerHouse != forHouse_)
+				continue;
 
-		bool skip = false;
-
-		if (counter < teamCapValue || baseDefenseCount < counter / 2) {
-			if (baseDefenseCount > RulesClass::Instance->MaximumAIDefensiveTeams.Items[Difficulty]) {
-				skip = true;
-			}
-		}
-		else {
-			TeamClass* oldestDefenseTeam = nullptr;
-			int oldestCreationFrame = 0x7FFFFFFF;
-
-			for (int i = 0; i < TeamClass::Array->Count; ++i) {
-				auto team = TeamClass::Array->Items[i];
-				if (team->OwnerHouse == forHouse_ && team->Type->IsBaseDefense && team->CreationFrame < oldestCreationFrame) {
+			++counter;
+			if (team->Type->IsBaseDefense) {
+				++baseDefenseCount;
+				if (team->CreationFrame < oldestCreationFrame) {
 					oldestDefenseTeam = team;
 					oldestCreationFrame = team->CreationFrame;
 				}
 			}
+		}
+		// --- end single pass ---
 
+		bool skip = false;
+
+		if (counter < teamCapValue || baseDefenseCount < counter / 2) {
+			if (baseDefenseCount > RulesClass::Instance->MaximumAIDefensiveTeams.Items[Difficulty])
+				skip = true;
+		} else {
 			if (oldestDefenseTeam) {
 				--counter;
 				skip = true;
@@ -1407,13 +1405,13 @@ std::vector<TeamTypeClass*> NOINLINE Suggested_New_Team(HouseClass* forHouse_, b
 			DiscreteDistribution<AITriggerTypeClass*> triggerDistribution;
 			bool foundMaxWeight = false;
 
-			for (int i = 0; i < AITriggerTypeClass::Array->Count; ++i) {
-				auto triggerType = AITriggerTypeClass::Array->Items[i];
-				if (!triggerType || triggerType->ConditionMet(forHouse_, pEnemy, skip) != 1) {
+			for (int i = 0; i < AITriggerTypeClass::Array->Count; ++i)
+			{
+				auto* triggerType = AITriggerTypeClass::Array->Items[i];
+				if (!triggerType || triggerType->ConditionMet(forHouse_, pEnemy, skip) != 1)
 					continue;
-				}
 
-				unsigned int weight = (int)triggerType->Weight_Current;
+				const unsigned int weight = static_cast<unsigned int>(triggerType->Weight_Current);
 
 				if (weight == 5000) {
 					if (!foundMaxWeight) {
@@ -1432,32 +1430,32 @@ std::vector<TeamTypeClass*> NOINLINE Suggested_New_Team(HouseClass* forHouse_, b
 			triggerDistribution.select(ScenarioClass::Instance->Random, &selectedTrigger);
 
 			if (selectedTrigger) {
-				if (auto teamType1 = selectedTrigger->Team1) {
+				if (auto* teamType1 = selectedTrigger->Team1)
 					suggestedTeams.push_back(teamType1);
-				}
-
-				if (auto teamType2 = selectedTrigger->Team2) {
+				if (auto* teamType2 = selectedTrigger->Team2)
 					suggestedTeams.push_back(teamType2);
-				}
 			}
 		}
 	}
 
-	// Check if any existing team matches our suggestions
-	for (int i = 0; i < TeamClass::Array->Count; ++i) {
-		auto team = TeamClass::Array->Items[i];
-		if (team->OwnerHouse == forHouse_ && (team->IsReforming || !team->IsMoving)) {
-			for (auto suggested : suggestedTeams) {
-				if (team->Type == suggested) {
+	// --- OPTIMISATION 2: set for O(1) duplicate check ---
+	// suggestedTeams has at most 2 entries today; set construction cost is negligible.
+	if (!suggestedTeams.empty()) {
+		const std::unordered_set<TeamTypeClass*> suggestedSet(
+			suggestedTeams.begin(), suggestedTeams.end());
+
+		for (int i = 0; i < TeamClass::Array->Count; ++i) {
+			auto* team = TeamClass::Array->Items[i];
+			if (team->OwnerHouse == forHouse_ && (team->IsReforming || !team->IsMoving)) {
+				if (suggestedSet.count(team->Type)) {
 					suggestedTeams.clear();
 					return suggestedTeams;
 				}
 			}
 		}
-	}
 
-	for (auto suggested : suggestedTeams) {
-		suggested->Autocreate = 1;
+		for (auto* suggested : suggestedTeams)
+			suggested->Autocreate = 1;
 	}
 
 	return suggestedTeams;
@@ -1507,7 +1505,7 @@ std::vector<TeamTypeClass*> NOINLINE Suggested_New_Team(HouseClass* forHouse_, b
  	if(!UpdateTeam(pThis, delay)){
 
  		std::vector<TeamTypeClass*> possible_teams = Suggested_New_Team(pThis, false);
- 		Debug::LogInfo("[{} - {}] Able to use {} team !", pThis->Type->ID, (void*)pThis, possible_teams.size());
+ 		//Debug::LogInfo("[{} - {}] Able to use {} team !", pThis->Type->ID, (void*)pThis, possible_teams.size());
 
  		for(size_t i = 0; i < possible_teams.size(); ++i){
  			possible_teams[i]->CreateTeam(pThis);

@@ -13,50 +13,278 @@
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/Team/Body.h>
+#include <Ext/AircraftType/Body.h>
 
 #include <SpawnManagerClass.h>
 
-ASMJIT_PATCH(0x415085, AircraftClass_Update_DamageSmoke, 7)
+void FakeAircraftClass::_AI()
 {
-	GET(AircraftClass*, pThis, ESI);
+	// -----------------------------------------------------------------------
+		// Reset spy counter for non-relevant missions
+		// -----------------------------------------------------------------------
+	switch (this->CurrentMission)
+	{
+	case Mission::Attack:
+	case Mission::ParadropOverfly:
+	case Mission::SpyplaneApproach:
+	case Mission::SpyplaneOverfly:
+		break;
+	default:
+		this->IsLocked = 0;
+		break;
+	}
 
-	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+	// -----------------------------------------------------------------------
+	// Tick temporal targeting object if present
+	// -----------------------------------------------------------------------
+	TechnoExtData::IsTechnoShouldBeAliveAfterTemporal(this);
 
-	AnimTypeClass* pType = pExt->SmokeAnim.Get(RulesExtData::Instance()->DefaultAircraftDamagedSmoke);
-	if(!pType)
-		return 0x41512C;
+	// -----------------------------------------------------------------------
+	// ChronoSparkle anim every 24 frames
+	// -----------------------------------------------------------------------
+	const bool isWarpedOut = this->IsBeingWarpedOut();
+	const bool isWarpingIn = this->IsWarpingIn();
 
-	const int chance = (pThis->Health > 0) ? pExt->SmokeChanceRed.Get(10) : pExt->SmokeChanceDead.Get(80);
+	if ((isWarpedOut || isWarpingIn)) {
+		TechnoExtData::PlayChronoSparkleAnim(this, &this->Location, 0, RulesExtData::Instance()->ChronoSparkleDisplayDelay);
+	}
 
-	if(chance <= 0 )
-		return 0x41512C;
+	const bool needsLocoProcess = isWarpingIn
+		|| (isWarpedOut && this->IsImmobilized);
 
-	if (pThis->GetHealthRatio() < RulesClass::Instance->ConditionRed) {
-		if (pThis->GetHeight() > 0) {
-			if (ScenarioClass::Instance->Random.RandomFromMax(99) < chance) {
-				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pThis->Location),
-					pThis->Owner,
+	if (needsLocoProcess) {
+		this->Locomotor->Process();
+	}
+
+	if (this->IsAlive) {
+		// Clear-targets condition (original LABEL_69 outer if)
+		if ((isWarpingIn && this->TemporalTargetingMe) || isWarpedOut) {
+			if (this->TarCom)
+				this->SetTarget(0);
+
+			if (this->NavCom)
+				this->SetDestination(0, 1);
+
+			return; // no further processing in chrono/temporal state
+		}
+
+		// --------------------------------------------------------------------
+		// Normal else path: target validity
+		// --------------------------------------------------------------------
+		if (auto pTargetTechno = flag_cast_to<TechnoClass*>(this->TarCom)) {
+			if (!this->Owner->IsAlliedWith(pTargetTechno)
+				&& pTargetTechno->CloakState == CloakState::Cloaked
+				&& !pTargetTechno->IsSensorVisibleToHouse(this->Owner)) {
+				this->SetTarget(0);
+			}
+		}
+
+		auto pExt = TechnoExtContainer::Instance.Find(this);
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
+
+		//pExt->UpdateAircraftOpentopped();
+		//AircraftPutDataFunctional::AI(pExt, pTypeExt);
+		//AircraftDiveFunctional::AI(pExt, pTypeExt);
+		//FighterAreaGuardFunctional::AI(pExt, pTypeExt);
+
+		//if (pThis->IsAlive && pThis->SpawnOwner != nullptr)
+		//{
+		//
+		//	/**
+		//	 *  If we are close enough to our owner, delete us and return true
+		//	 *  to signal to the challer that we were deleted.
+		//	 */
+		//	if (Spawned_Check_Destruction(pThis))
+		//	{
+		//		pThis->UnInit();
+		//		return 0x414F99;
+		//	}
+		//}
+
+		FakeFootClass::_AI(this);
+
+		if (this->IsAlive && this->Type->AirportBound && !this->Airstrike && !this->Spawned) {
+			bool extendedMissions = AircraftTypeExtData::ExtendedAircraftMissionsEnabled(this);
+
+			if (extendedMissions) {
+				if (const auto pArchive = this->ArchiveTarget) {
+					if (this->Target && !this->IsFiring && !this->IsLocked
+						&& this->DistanceFromSquared(pArchive) > static_cast<int>(this->GetGuardRange(1) * 1.1)) {
+						this->SetTarget(nullptr);
+						this->SetDestination(pArchive, true);
+					}
+				}
+
+				this->FindDockingBayInVector(reinterpret_cast<TypeList<TechnoTypeClass*>*>(&this->Type->Dock), 0, 0);
+			}
+
+			if (this->DockedTo) {
+				if (this->GetCurrentMission() == Mission::Area_Guard && this->MissionStatus) {
+					this->SetArchiveTarget(nullptr);
+					this->EnterIdleMode(false, true);
+				}
+			} else if (this->IsInAir()) {
+				int damage = AircraftTypeExtContainer::Instance.Find(this->Type)
+					->ExtendedAircraftMissions_UnlandDamage
+					.Get(RulesExtData::Instance()->ExtendedAircraftMissions_UnlandDamage);
+
+				if (damage > 0) {
+					if (!extendedMissions
+						&& !this->IsCrushingSomething
+						&& this->FindDockingBayInVector(reinterpret_cast<TypeList<TechnoTypeClass*>*>(&this->Type->Dock), 0, 0))
+						return;
+
+					// Injury every four frames
+					if (!((Unsorted::CurrentFrame.get() - this->LastFireBulletFrame + this->UniqueID) & 0x3))
+						this->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
+				} else if (damage < 0) {
+					// Avoid using circular movement paths to prevent the aircraft from crashing
+					if (extendedMissions)
+						this->Crash(nullptr);
+				}
+			}
+		}
+
+		if (!this->IsAlive)
+			return;
+
+		// --------------------------------------------------------------------
+		// Sinking logic
+		// --------------------------------------------------------------------
+		if (this->IsSinking) {
+			CoordStruct v29 = this->Location;
+			v29.Z -= 5;
+
+			this->SetLocation(v29);
+			const int height = this->GetHeight();
+
+			if (height < -400) {
+				this->RegisterKill(0);
+				this->UnInit();
+				return;
+			}
+
+			if (auto pWakeType = TechnoTypeExtData::GetSinkAnim(this)) {
+				if ((Unsorted::CurrentFrame() & 3) == 0) {
+
+					CoordStruct coord = this->Location;
+					coord.X += ScenarioClass::Instance->Random.RandomRanged(-170, 170);
+					coord.Y += ScenarioClass::Instance->Random.RandomRanged(-170, 170);
+					coord.Z -= height;
+
+					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pWakeType, coord),
+						this->GetOwningHouse(),
+						nullptr,
+						this,
+						false, false
+					);
+				}
+			}
+		}
+
+		// --------------------------------------------------------------------
+		// Trailer anim
+		// --------------------------------------------------------------------
+		{
+			CoordStruct v30 = this->Location;
+
+			if (this->Type->Trailer && !(Unsorted::CurrentFrame() % this->Type->SpawnDelay)) {
+				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Type->Trailer, v30, 1, 1),
+					this->GetOwningHouse(),
 					nullptr,
-					nullptr,
+					this,
 					false, false
 				);
 			}
 		}
+
+		// --------------------------------------------------------------------
+		// Map bounds / FlyBy / FlyBack check
+		// SUSPECT: v19 and v27 are IDA decompiler stack artifacts.
+		// VERIFY: Grand_Opening_SOMETHINGELSETOO second overload signature —
+		//         the (this, v27) call with out-char v19 is unclear; preserved verbatim.
+		// --------------------------------------------------------------------
+		{
+			CellStruct cellBuf = this->GetMapCoords();
+
+			// -- Check 1: radar/flyby guard --
+			if (!this->Type->FlyBy
+				&& !this->Type->FlyBack
+				&& !MapClass::Instance->IsWithinUsableArea(cellBuf, 1)
+				&& this->IsLeavingMap()) {
+				this->UnInit();
+				return;
+			}
+
+			// -- Check 2: map cell guard --
+			if (!MapClass::Instance->CoordinatesLegal(cellBuf) && this->IsLeavingMap()) {
+				this->UnInit();
+				return;
+			}
+		}
+
+		// --------------------------------------------------------------------
+		// WorkingCell sentinel handling
+		// --------------------------------------------------------------------
+		if (this->TarCom == CellClass::Instance() || this->NavCom == CellClass::Instance()) {
+			this->SetDestination(0, 1);
+			this->SetTarget(0);
+			this->_Enter_Idle_Mode(0, 1);
+		}
+
+		// --------------------------------------------------------------------
+		// Ready to commence
+		// --------------------------------------------------------------------
+		if (this->ReadyToNextMission())
+			this->NextMission();
+
+		// --------------------------------------------------------------------
+		// Ammo loss outside MISSION_ATTACK
+		// --------------------------------------------------------------------
+		if (this->loseammo_6c8 && this->CurrentMission != Mission::Attack) {
+			int v20 = this->Ammo;
+			this->loseammo_6c8 = 0;
+			this->Ammo = v20 - 1;
+		}
+
+		// --------------------------------------------------------------------
+		// Damage smoke anim
+		// --------------------------------------------------------------------
+
+		if (AnimTypeClass* pType = pTypeExt->SmokeAnim.Get(RulesExtData::Instance()->DefaultAircraftDamagedSmoke)) {
+			const int chance = (this->Health > 0) ?
+				pTypeExt->SmokeChanceRed.Get(10) : pTypeExt->SmokeChanceDead.Get(80);
+
+			if (chance > 0) {
+				if (this->GetHealthRatio() < RulesClass::Instance->ConditionRed) {
+					if (this->GetHeight() > 0) {
+						if (ScenarioClass::Instance->Random.RandomFromMax(99) < chance) {
+							AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, this->Location),
+								this->Owner,
+								nullptr,
+								nullptr,
+								false, false
+							);
+						}
+					}
+				}
+			}
+		}
+
+		// --------------------------------------------------------------------
+		// Carryall cargo sync
+		// --------------------------------------------------------------------
+		if (this->Passengers.FirstPassenger && this->Type->Carryall) {
+			FootClass* attached = this->Passengers.FirstPassenger;
+			attached->PrimaryFacing = this->SecondaryFacing;
+			attached->SecondaryFacing = this->SecondaryFacing;
+			attached->SetLocation(this->Location);
+		}
 	}
-
-	return 0x41512C;
 }
 
-ASMJIT_PATCH(0x417D75, AircraftClass_GetActionOnObject_CanTote, 5)
-{
-	GET(AircraftClass*, pCarryall, ESI);
-	GET(UnitClass*, pTarget, EDI);
-
-	return (TechnoTypeExtData::CarryallCanLift(pCarryall->Type, pTarget))
-		? 0u
-		: 0x417DF6u
-		;
-}
+DEFINE_FUNCTION_JUMP(LJMP, 0x414BB0, FakeAircraftClass::_AI)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2300, FakeAircraftClass::_AI)
 
 ASMJIT_PATCH(0x41949F, AircraftClass_ReceivedRadioCommand_SpecificPassengers, 6)
 {
@@ -110,20 +338,6 @@ ASMJIT_PATCH(0x416C94, AircraftClass_Carryall_Unload_UpdateCargo, 0x6)
 	}
 
 	return 0;
-}
-
-// skip the check for UnitRepair, as it does not play well with UnitReload and
-// Factory=AircraftType at all. in fact, it's prohibited, and thus docking to
-// other structures was never allowed.
-ASMJIT_PATCH(0x417E16, AircraftClass_GetActionOnObject_Dock, 0x6)
-{
-	// target is known to be a building
-	GET(AircraftClass* const, pThis, ESI);
-	GET(BuildingClass* const, pBuilding, EDI);
-
-	// enter and no-enter cursors only if aircraft can dock
-	// or show select cursor
-	return pThis->Type->Dock.contains(pBuilding->Type) ? 0x417E4B : 0x417E7D;
 }
 
 ASMJIT_PATCH(0x413FA3, AircraftClass_Init_Cloakable, 0x5)
@@ -213,44 +427,4 @@ ASMJIT_PATCH(0x41D887, AirstrikeClass_Fire, 0x6)
 	}
 
 	return 0x0;
-}
-
-ASMJIT_PATCH(0x416C4D, AircraftClass_Carryall_Unload_DestroyCargo, 0x5)
-{
-	GET(AircraftClass*, pCarryall, EDI);
-	GET(UnitClass*, pCargo, ESI);
-
-	int Damage = pCargo->Type->Strength;
-	pCargo->ReceiveDamage(&Damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
-
-	Damage = pCarryall->Type->Strength;
-	pCarryall->ReceiveDamage(&Damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
-
-	return 0x416C53;
-}
-
-ASMJIT_PATCH(0x416C3A, AircraftClass_Carryall_Unload_Facing, 0x5)
-{
-	enum
-	{
-		RetFailed = 0x416C49,
-		RetSucceeded = 0x416C5A
-	};
-
-	GET(FootClass*, pCargo, ESI);
-	GET(CoordStruct*, pCoord, ECX);
-	GET(AircraftClass*, pThis, EDI);
-
-	const auto nFacing = pThis->TurretFacing();
-
-	if (!pCargo->Unlimbo(*pCoord, (DirType)(nFacing.GetFacing<256>()))) // convert 16-bit BAM to 8-directional facing
-		return RetFailed;
-
-	const auto pCargoType = GET_TECHNOTYPE(pCargo);
-	const auto pCorgoTypeExt = TechnoTypeExtContainer::Instance.Find(pCargoType);
-	const auto nRot = pCargoType->ROT;
-
-	pCargo->PrimaryFacing.Set_ROT(nRot);
-	pCargo->SecondaryFacing.Set_ROT(pCorgoTypeExt->TurretRot.Get(nRot));
-	return RetSucceeded;
 }

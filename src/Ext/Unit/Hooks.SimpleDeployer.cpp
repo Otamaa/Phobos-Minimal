@@ -115,27 +115,6 @@ ASMJIT_PATCH(0x514E05, HoverLocomotionClass_MoveTo_DeployToLand, 0x5)
 
 #pragma endregion
 
-ASMJIT_PATCH(0x4DA9C9, FootClass_Update_DeployToLandSound, 0xA)
-{
-	GET(TechnoTypeClass* const, pType, EAX);
-	GET(FootClass* const, pThis, ESI);
-
-	return !pType->JumpJet || pThis->GetHeight() <= 0 ? 0x4DAA01 : 0x4DA9D7;
-}
-
-// DeployToLand units increment WalkingFramesSoFar on every frame, on hover units this causes weird behaviour with move sounds etc.
-ASMJIT_PATCH(0x4DA9F3, FootClass_AI_DeployToLand, 0x6)
-{
-	enum { SkipGameCode = 0x4DAA01 };
-
-	GET(FootClass*, pThis, ESI);
-
-	if (GET_TECHNOTYPE(pThis)->Locomotor == HoverLocomotionClass::ClassGUID())
-		return SkipGameCode;
-
-	return 0;
-}
-
 // Allow keeping unit visible while displaying DeployingAnim.
 ASMJIT_PATCH(0x73CF46, UnitClass_Draw_It_KeepUnitVisible, 0x6)
 {

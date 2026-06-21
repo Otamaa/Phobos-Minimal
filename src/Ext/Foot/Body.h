@@ -72,4 +72,5 @@ public:
 	static DamageState __fastcall __Take_Damage(FootClass* pThis, discard_t, int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse);
 	static bool __fastcall __Try_Grinding(FootClass* pThis);
 	static int __fastcall _Mission_Hunt(FootClass* pThis);
+	static void __fastcall _AI(FootClass* pThis); 
 };

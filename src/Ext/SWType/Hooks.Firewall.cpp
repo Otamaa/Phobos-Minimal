@@ -13,6 +13,7 @@
 #include <Ext/Bullet/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/RadSite/Body.h>
+#include <Ext/BulletType/Body.h>
 
 #include <Misc/AresTrajectoryHelper.h>
 
@@ -238,84 +239,6 @@ ASMJIT_PATCH(0x73F7B0, UnitClass_IsCellOccupied, 6)
 #include <Ext/Cell/Body.h>
 #include <SpawnManagerClass.h>
 
-ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
-{
-	enum {
-		SkipEverything = 0x4DAF00,
-		SightChecking = 0x4DA677
-	};
-
-	GET(FootClass* , pThis, ESI);
-
-	pThis->isidle_6B3 = false;
-	auto const pType = GET_TECHNOTYPE(pThis);
-	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-
-	pExt->UpdateWarpInDelay();
-	pExt->UpdateTiberiumEater();
-
-	if(!pThis->IsAlive)
-		return SkipEverything;
-
-	pExt->AmmoAutoConvertActions();
-
-	if(!pThis->IsAlive)
-		return SkipEverything;
-
-	pExt->DeployConvertAction();
-
-	if(!pThis->IsAlive)
-		return SkipEverything;
-
-	pExt->ImmolateVictim();
-
-	if(!pThis->IsAlive)
-		return SkipEverything;
-
-	pExt->UpdateTiberiumHeal();
-
-	 if(!pThis->IsAlive)
-	 	return SkipEverything;
-
-	auto pAir = cast_to<AircraftClass*, false>(pThis);
-
-	const bool IsMissisleSpawn = (RulesClass::Instance->V3Rocket.Type == pType ||
-	 pType == RulesClass::Instance->DMisl.Type || pType == RulesClass::Instance->CMisl.Type
-	 || (pAir && AircraftTypeExtContainer::Instance.Find(pAir->Type)->IsCustomMissile));
-
-	if (pThis->SpawnOwner && !IsMissisleSpawn
-		)
-	{
-		//auto pSpawnTechnoType = GET_TECHNOTYPE(pThis->SpawnOwner);
-		//auto pSpawnTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pSpawnTechnoType);
-
-		if (const auto pTargetTech = flag_cast_to<TechnoClass*>(pThis->Target))
-		{
-			//Spawnee trying to chase Aircraft that go out of map until it reset
-			//fix this , so reset immedietely if target is not on map
-			if (!MapClass::Instance->IsValid(pTargetTech->Location)
-				|| pTargetTech->TemporalTargetingMe
-				)
-			{
-				if (pThis->SpawnOwner->Target == pThis->Target)
-					pThis->SpawnOwner->SetTarget(nullptr);
-
-				pThis->SpawnOwner->SpawnManager->ResetTarget();
-			}
-
-		}
-	}
-
-	//skip together radiation damaging it is now direclt applyed on undate of the RadSiteClass itself
-	//without this the sight wont properly updated
-	if(!pThis->IsInPlayfield && (pType->BalloonHover || pType->JumpJet)) {
-		if(MapClass::Instance->IsWithinUsableArea(pThis->GetCell(), true))
-			pThis->IsInPlayfield = true;
-	}
-
-	return SightChecking;
-}
-
 ASMJIT_PATCH(0x4688A9, BulletClass_SetMovement_Obstacle, 6)
 {
 	GET(BulletClass* const, pThis, EBX);
@@ -372,4 +295,3 @@ ASMJIT_PATCH(0x4688A9, BulletClass_SetMovement_Obstacle, 6)
 	return 0x468A3F;
 }
 
-#include <Ext/BulletType/Body.h>

@@ -17,6 +17,7 @@
 #include <Misc/Patches.h>
 #include <Misc/PhobosGlobal.h>
 #include <Misc/Spawner/Main.h>
+#include <Misc/Hooks.CRT.h>
 
 #include <Dbghelp.h>
 #include <tlhelp32.h>
@@ -26,6 +27,7 @@
 #include <CD.h>
 #include <aclapi.h>
 #include <GameOptionsClass.h>
+#include <LaserDrawClass.h>
 
 #include <Phobos.Lua.h>
 #include <Phobos.UI.h>
@@ -940,15 +942,20 @@ NOINLINE void ApplyEarlyFuncs()
 	}
 }
 
-static bool startPatching = false;
-static DWORD OriginalCodeProtect = 0;
-static DWORD OriginalDataProtect = 0;
+constexpr int MAX_MODULE_SECTIONS = 96;
 
-struct ImageSectionInfo {
-    LPVOID BaseOfCode;
-    LPVOID BaseOfData;
-    SIZE_T SizeOfCode;
-    SIZE_T SizeOfData;
+struct ImageSectionRange
+{
+	LPVOID Base;
+	SIZE_T Size;
+	DWORD Characteristics;
+	char Name[IMAGE_SIZEOF_SHORT_NAME + 1];
+};
+
+struct ImageSectionInfo
+{
+	ImageSectionRange Sections[MAX_MODULE_SECTIONS];
+	int SectionCount;
 };
 
 class MapViewOfFileClass {
@@ -1013,23 +1020,95 @@ private:
 
 bool GetModuleSectionInfo(ImageSectionInfo &info)
 {
-    wchar_t fileName[MAX_PATH] = { 0 };
+	info = {};
 
-    if (GetModuleFileNameW(NULL, fileName, std::size(fileName)) != 0) {
-        MapViewOfFileClass mapView(fileName);
-        PIMAGE_OPTIONAL_HEADER OptionalHeader = mapView.GetOptionalHeader();
+	HMODULE module = GetModuleHandleW(NULL);
+	if (module != NULL)
+	{
+		auto module_base = reinterpret_cast<uintptr_t>(module);
+		auto DosHeader = reinterpret_cast<PIMAGE_DOS_HEADER>(module_base);
 
-        if (OptionalHeader != NULL) {
-            info.BaseOfCode = LPVOID(OptionalHeader->ImageBase + OptionalHeader->BaseOfCode);
-            info.BaseOfData = LPVOID(OptionalHeader->ImageBase + OptionalHeader->BaseOfData);
-            info.SizeOfCode = SIZE_T(OptionalHeader->SizeOfCode);
-            info.SizeOfData = SIZE_T(OptionalHeader->SizeOfInitializedData + OptionalHeader->SizeOfUninitializedData);
+		if (DosHeader->e_magic == IMAGE_DOS_SIGNATURE)
+		{
+			auto NTHeader = reinterpret_cast<PIMAGE_NT_HEADERS>(module_base + DosHeader->e_lfanew);
 
-            return true;
+			if (NTHeader->Signature == IMAGE_NT_SIGNATURE)
+			{
+				PIMAGE_SECTION_HEADER section_headers = IMAGE_FIRST_SECTION(NTHeader);
+
+				for (WORD index = 0; index < NTHeader->FileHeader.NumberOfSections; ++index)
+				{
+					const IMAGE_SECTION_HEADER& section = section_headers[index];
+					const DWORD section_size = section.Misc.VirtualSize != 0 ? section.Misc.VirtualSize : section.SizeOfRawData;
+					const DWORD section_content_flags = IMAGE_SCN_CNT_CODE | IMAGE_SCN_CNT_INITIALIZED_DATA | IMAGE_SCN_CNT_UNINITIALIZED_DATA;
+					const DWORD section_memory_flags = IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE;
+
+					if (section_size == 0)
+					{
+						continue;
+					}
+
+					if ((section.Characteristics & section_content_flags) == 0 || (section.Characteristics & section_memory_flags) == 0)
+					{
+						continue;
+					}
+
+					if (info.SectionCount >= MAX_MODULE_SECTIONS)
+					{
+						return false;
+					}
+
+					ImageSectionRange& range = info.Sections[info.SectionCount++];
+					range.Base = reinterpret_cast<LPVOID>(module_base + section.VirtualAddress);
+					range.Size = SIZE_T(section_size);
+					range.Characteristics = section.Characteristics;
+					std::memcpy(range.Name, section.Name, IMAGE_SIZEOF_SHORT_NAME);
+					range.Name[IMAGE_SIZEOF_SHORT_NAME] = '\0';
+				}
+
+				return info.SectionCount > 0;
+			}
         }
     }
+
     return false;
 }
+
+struct ProtectedSectionInfo
+{
+	LPVOID Base;
+	SIZE_T Size;
+	DWORD OriginalProtect;
+	char Name[IMAGE_SIZEOF_SHORT_NAME + 1];
+};
+
+static bool startPatching = false;
+int ProtectedSectionCount = 0;
+ProtectedSectionInfo ProtectedSections[MAX_MODULE_SECTIONS];
+
+static bool RestoreProtectedSections()
+{
+	bool success = true;
+
+	for (int index = ProtectedSectionCount - 1; index >= 0; --index) {
+		DWORD old_protect;
+		ProtectedSectionInfo& section = ProtectedSections[index];
+
+		if (VirtualProtect(section.Base, section.Size, section.OriginalProtect, &old_protect) == FALSE)
+		{
+			DWORD error = GetLastError();
+			success = false;
+			break;
+		}
+	}
+
+	if (success) {
+		ProtectedSectionCount = 0;
+	}
+
+	return success;
+}
+
 
 bool StartPatching() {
 	if(startPatching){
@@ -1041,12 +1120,24 @@ bool StartPatching() {
 
 	if (GetModuleSectionInfo(info)) {
         success = true;
-        HANDLE process = Patch::CurrentProcess;
-        if (VirtualProtectEx(process, info.BaseOfCode, info.SizeOfCode, PAGE_EXECUTE_READWRITE, &OriginalCodeProtect) == FALSE) {
+		ProtectedSectionCount = 0;
+
+		for (int index = 0; index < info.SectionCount; ++index) {
+			DWORD original_protect;
+			const ImageSectionRange& section = info.Sections[index];
+
+			if (VirtualProtect(section.Base, section.Size, PAGE_EXECUTE_READWRITE, &original_protect) == FALSE) {
+				DWORD error = GetLastError();
             success = false;
+				RestoreProtectedSections();
+				break;
         }
-        if (VirtualProtectEx(process, info.BaseOfData, info.SizeOfData, PAGE_EXECUTE_READWRITE, &OriginalDataProtect) == FALSE) {
-            success = false;
+
+			ProtectedSectionInfo& protected_section = ProtectedSections[ProtectedSectionCount++];
+			protected_section.Base = section.Base;
+			protected_section.Size = section.Size;
+			protected_section.OriginalProtect = original_protect;
+			std::memcpy(protected_section.Name, section.Name, sizeof(protected_section.Name));
         }
     }
 
@@ -1057,29 +1148,16 @@ bool StartPatching() {
 
 bool StopPatching()
 {
-    bool success = false;
-    DWORD old_protect;
-    ImageSectionInfo info;
+	if (!startPatching) {
+		return true;
+	}
 
-    if (GetModuleSectionInfo(info)) {
-        success = true;
-        HANDLE process = Patch::CurrentProcess;
-        if (VirtualProtectEx(process, info.BaseOfCode, info.SizeOfCode, OriginalCodeProtect, &old_protect) == FALSE) {
-            success = false;
-        }
-        if (VirtualProtectEx(process, info.BaseOfData, info.SizeOfData, OriginalDataProtect, &old_protect) == FALSE) {
-            success = false;
-        }
-    }
+	bool success = RestoreProtectedSections();
 
-    startPatching = false;
+    startPatching = success;
 
     return success;
 }
-
-#include <LaserDrawClass.h>
-
-#include <Misc/Hooks.CRT.h>
 
 typedef DWORD(__stdcall* FP_GetVersion)();
 static COMPILETIMEEVAL referencefunc<FP_GetVersion, 0x7E1288> const Game_GetVersion {};
@@ -1120,9 +1198,6 @@ bool __fastcall Phobos_Parse_Command_Line(int argc, char* argv[]) {
 void ParseEarlyArgs(LPWSTR* argv , int argc)
 {
 	std::wstring args {};
-	Debug::GenerateDefaultMessage();
-	Debug::PrepareLogFile(); //prepare directory
-	Debug::LogFileRemove(); //remove previous debug log file if presents
 
 	if (argv) {
 		for (int i = 1; i < argc; i++) {
@@ -1169,6 +1244,16 @@ void ParseEarlyArgs(LPWSTR* argv , int argc)
 	}
 }
 
+/**
+ *  Stack reserved by SetThreadStackGuarantee so the SEH filter has room to run
+ *  after EXCEPTION_STACK_OVERFLOW (which fires with only ~1 page of stack left).
+ *  64 KB comfortably covers the gate + Suspend_Other_Threads + dumper handoff on
+ *  the crashing thread; the heavy dump itself runs on the dumper's full stack.
+ *  Costs nothing unless used; trims ~64 KB off a 1 MB stack, which is negligible.
+ */
+static constexpr ULONG EXCEPTION_STACK_GUARANTEE = 64 * 1024;
+
+
 BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
 	switch (ul_reason_for_call)
@@ -1184,6 +1269,9 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			PhobosThreadGuard::SetMainThread();
 			Phobos::hInstance = hInstance;
 			saved_lpReserved = lpReserved;
+			ULONG guarantee = EXCEPTION_STACK_GUARANTEE;
+			SetThreadStackGuarantee(&guarantee); // Ignore failure - best effort.
+
 			int argc;
 			LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 

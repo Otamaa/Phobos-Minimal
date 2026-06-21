@@ -133,5 +133,3 @@ bool Spawned_Check_Destruction(AircraftClass* aircraft)
 
 	return false;
 }
-
-DEFINE_FUNCTION_JUMP(CALL , 0x414DA3  , FakeAircraftClass::_FootClass_Update_Wrapper);

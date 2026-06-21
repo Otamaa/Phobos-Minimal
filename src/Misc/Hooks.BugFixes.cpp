@@ -123,7 +123,7 @@ static bool NOINLINE IsTemporalptrValid(TemporalClass* pThis)
 	return VTable::Get(pThis) == TemporalClass::vtable;
 }
 
-static NOINLINE void IsTechnoShouldBeAliveAfterTemporal(TechnoClass* pThis)
+NOINLINE void TechnoExtData::IsTechnoShouldBeAliveAfterTemporal(TechnoClass* pThis)
 {
 	if (pThis->TemporalTargetingMe)
 	{
@@ -154,25 +154,19 @@ static NOINLINE void IsTechnoShouldBeAliveAfterTemporal(TechnoClass* pThis)
 // Author: secsome
 ASMJIT_PATCH(0x43FCF9, BuildingClass_AI_TemporalTargetingMe, 0x6) // BuildingClass
 {
-	IsTechnoShouldBeAliveAfterTemporal(R->ESI<BuildingClass*>());
+	TechnoExtData::IsTechnoShouldBeAliveAfterTemporal(R->ESI<BuildingClass*>());
 	return 0x43FD08;
-}
-
-ASMJIT_PATCH(0x414BDB, AircraftClass_AI_TemporalTargetingMe, 0x6) //
-{
-	IsTechnoShouldBeAliveAfterTemporal(R->ESI<AircraftClass*>());
-	return 0x414BEA;
 }
 
 ASMJIT_PATCH(0x736204, UnitClass_AI_TemporalTargetingMe, 0x6) //
 {
-	IsTechnoShouldBeAliveAfterTemporal(R->ESI<UnitClass*>());
+	TechnoExtData::IsTechnoShouldBeAliveAfterTemporal(R->ESI<UnitClass*>());
 	return 0x736213;
 }
 
 ASMJIT_PATCH(0x51BB6E, InfantryClass_AI_TemporalTargetingMe_Fix, 0x6) //
 {
-	IsTechnoShouldBeAliveAfterTemporal(R->ESI<InfantryClass*>());
+	TechnoExtData::IsTechnoShouldBeAliveAfterTemporal(R->ESI<InfantryClass*>());
 	return 0x51BB7D;
 }
 
@@ -340,43 +334,6 @@ ASMJIT_PATCH(0x73EFD8, UnitClass_Mission_Hunt_DeploysInto, 0x6)
 // correctly if killed by damage that has owner house but no owner techno (animation warhead damage, radiation with owner etc.
 // Author: Starkku (modified by Otamaa)
 DEFINE_JUMP(LJMP, 0x7032BC, 0x7032D0); //this was checking (IsActive) twice , wtf
-
-// Fix unit will play crash voice when crashing after attacked by locomotor warhead
-// Author : NetsuNegi
-ASMJIT_PATCH(0x4DACDD, FootClass_CrashingVoice, 0x6)
-{
-	GET(FootClass*, pThis, ESI);
-
-	if (pThis->IsCrashing != pThis->WasCrashingAlready)
-	{
-		if (pThis->IsCrashing)
-		{
-			pThis->MoveSoundAudioController.ShutUp();
-			auto const nCoord = pThis->GetCoords();
-
-			if (!pThis->IsAttackedByLocomotor)
-			{
-				const auto pType = GET_TECHNOTYPE(pThis);
-
-				if (pThis->Owner->IsControlledByHuman())
-					VocClass::SafeImmedietelyPlayAt(pType->VoiceCrashing, &nCoord);
-
-				VocClass::SafeImmedietelyPlayAt(pType->CrashingSound, &nCoord, &pThis->MoveSoundAudioController);
-
-			}
-			else
-			{
-				VocClass::SafeImmedietelyPlayAt(RulesClass::Instance->ScoldSound, &nCoord, &pThis->MoveSoundAudioController);
-			}
-		}
-		else if (pThis->IsMoveSoundPlaying ) // done playing
-			pThis->MoveSoundAudioController.ShutUp();
-
-		pThis->WasCrashingAlready = pThis->IsCrashing;
-	}
-
-	return 0x4DADC8;
-}
 
 // Bugfix: TAction 7,80,107.
 ASMJIT_PATCH(0x65DF67, TeamTypeClass_CreateMembers_LoadOntoTransport, 0x6)
@@ -2797,20 +2754,6 @@ ASMJIT_PATCH(0x469A0D, BulletClass_Logics_DisguiseStuffs, 0x6)
 
 	R->ECX(pThis->Owner);
 	return 0x469A1B;
-}
-
-ASMJIT_PATCH(0x4DAD06, FootClass_AI_IsCrashing_VoiceAndSound, 0xA)
-{
-	enum { SkipVoiceAndSound = 0x4DADBC, ContinueAfter = 0x4DAD10 };
-
-	GET(FootClass*, pThis, ESI);
-
-	if (pThis->IsAttackedByLocomotor)
-		return SkipVoiceAndSound;
-
-	// Restore overriden instructions
-	R->EAX(pThis->GetTechnoType());
-	return ContinueAfter;
 }
 
 // https://modenc.renegadeprojects.com/IsLocomotor

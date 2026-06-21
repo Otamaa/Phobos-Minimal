@@ -13,5 +13,3 @@ DECLARE_INTERFACE_IID_(ISwizzle, IUnknown, "5FF0CA70-8B12-11D1-B708-00A024DDAFD1
 	STDMETHOD(Load_Interface)(IStream * stream, CLSID * riid, void** pointer) PURE;
 	STDMETHOD_(LONG, Get_Save_Size)(LONG * size) PURE;
 };
-
-_COM_SMARTPTR_TYPEDEF(ISwizzle, __uuidof(ISwizzle));

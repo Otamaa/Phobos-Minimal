@@ -2009,18 +2009,3 @@ inline int AdvancedDriveLocomotionClass::UpdateSpeedAccum(int& speedAccum)
 }
 
 // Hooks
-
-ASMJIT_PATCH(0x4DA9FB, FootClass_Update_WalkedFrames, 0x6)
-{
-	enum { SkipGameCode = 0x4DAA01 };
-
-	GET(FootClass* const, pThis, ESI);
-
-	if (AdvancedDriveLocomotionClass::IsReversing(pThis))
-	{
-		--pThis->WalkedFramesSoFar;
-		return SkipGameCode;
-	}
-
-	return 0; // ++pThis->WalkedFramesSoFar;
-}

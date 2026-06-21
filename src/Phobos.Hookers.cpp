@@ -105,7 +105,7 @@ std::vector<BYTE> RebuildInstructions(
 				Debug::Log(
 					__FUNCTION__ ": Failed to decode instruction at 0x%08X, "
 					"copying remaining %u bytes verbatim. This could mean "
-					"there is a faulty return 0 hook at 0x%08X.",
+					"there is a faulty return 0 hook at 0x%08X.\n",
 					static_cast<DWORD>(srcAddr), static_cast<unsigned>(size - offset),
 					originalAddr);
 
@@ -164,7 +164,7 @@ std::vector<BYTE> RebuildInstructions(
 										__FUNCTION__ ": Relative instruction "
 										"at 0x%08X has an intra-prologue target "
 										"but no near encoding. Hook at 0x%08X "
-										"may not work correctly.",
+										"may not work correctly.\n",
 										static_cast<DWORD>(srcAddr),
 										originalAddr);
 								}
@@ -263,7 +263,7 @@ std::vector<BYTE> RebuildInstructions(
 			Debug::Log(
 				__FUNCTION__ ": Failed to re-encode instruction at 0x%08X, "
 				"copying %u bytes verbatim. This could mean there is a "
-				"faulty return 0 hook at 0x%08X.",
+				"faulty return 0 hook at 0x%08X.\n",
 				static_cast<DWORD>(srcAddr), info.srcLength,
 				originalAddr);
 
@@ -333,6 +333,25 @@ std::string PrintAssembly(const void* code, size_t codeSize, uintptr_t runtimeAd
 	return disassemblyResult;
 }
 
+COMPILETIMEEVAL FORCEDINLINE void EmitPopfdPopadReplica(asmjit::x86::Assembler& assembly)
+{
+	assembly.popfd();
+	assembly.pop(asmjit::x86::edi);
+	assembly.pop(asmjit::x86::esi);
+	assembly.pop(asmjit::x86::ebp);
+	assembly.pop(asmjit::x86::ebx);   // EBX = temp holder for new ESP
+
+	// MOV EAX, [ESP + 0xC]  (restore EAX, last in PUSHAD order)
+	assembly.mov(asmjit::x86::eax, asmjit::x86::ptr(asmjit::x86::esp, 0xC));
+	// MOV [ESP + 0xC], EBX  (place new ESP value there)
+	assembly.mov(asmjit::x86::ptr(asmjit::x86::esp, 0xC), asmjit::x86::ebx);
+
+	assembly.pop(asmjit::x86::ebx);
+	assembly.pop(asmjit::x86::edx);
+	assembly.pop(asmjit::x86::ecx);
+	assembly.pop(asmjit::x86::esp);   // restore ESP last
+}
+
 bool PhobosHookers::InstallSingleHook(unsigned int addr, std::map<const void*, size_t>& sm_vec0)
 {
 	auto hookTo = sm_vec0.begin();
@@ -341,6 +360,7 @@ bool PhobosHookers::InstallSingleHook(unsigned int addr, std::map<const void*, s
 		Debug::Log("Hook at 0x%x size is %d less than 5 bytes(JMP).\n", hookTo->second, addr);
 
 	size_t hookSize = MaxImpl(hookTo->second, 5u);
+	const auto hookProc = hookTo->first;
 
 	if (!SetupTrampoline(addr, hookSize)) {
 		Debug::Log("Failed to setup trampoline for hook at 0x%x, skipping!\n", addr);
@@ -363,26 +383,66 @@ bool PhobosHookers::InstallSingleHook(unsigned int addr, std::map<const void*, s
 		Debug::Log("Failed to allocate label for hook at 0x%x (newLabel returned invalid id)\n", addr);
 		return false;
 	}
+
 	// Original non-recursive version
-	assembly.pushad();
-	assembly.pushfd();
-	assembly.push(addr);
-	assembly.sub(asmjit::x86::esp, 4);
-	assembly.lea(asmjit::x86::eax, asmjit::x86::ptr(asmjit::x86::esp, 4));
-	assembly.push(asmjit::x86::eax);
-	assembly.call(hookTo->first);
-	assembly.add(asmjit::x86::esp, 0xC);
-	assembly.mov(asmjit::x86::ptr(asmjit::x86::esp, -8), asmjit::x86::eax);
-	assembly.popfd();
+	{
+#ifndef _work
+		assembly.pushad();
+		assembly.pushfd();
+		assembly.push(asmjit::imm(static_cast<uint32_t>(addr)));
+		assembly.sub(asmjit::x86::esp, 4);
+		assembly.lea(asmjit::x86::eax, asmjit::x86::ptr(asmjit::x86::esp, 4));
+		assembly.push(asmjit::x86::eax);
+		assembly.call(hookProc);
+		assembly.add(asmjit::x86::esp, 0xC);
+		assembly.mov(asmjit::x86::ptr(asmjit::x86::esp, -8), asmjit::x86::eax);
+		assembly.popfd();
+		assembly.popad();
+		assembly.cmp(asmjit::x86::dword_ptr(asmjit::x86::esp, -0x2C), 0);
+		assembly.jz(l_origin);
+		assembly.jmp(asmjit::x86::ptr(asmjit::x86::esp, -0x2C));
+		assembly.bind(l_origin);
+#else
+		assembly.pushad();
+		assembly.pushfd();
+		assembly.push(asmjit::imm(static_cast<uint32_t>(addr)));
+		assembly.push(asmjit::x86::esp);
+		assembly.call(asmjit::imm(hookProc));
+		assembly.add(asmjit::x86::esp, 0x8);
 
-	// POPAD replica
-	assembly.popad();
+		// store Eax -> Fs[0x14]
+		assembly.db(0x64); // FS segment prefix
+		assembly.db(0xA3); // MOV moffs32, EAX
+		assembly.dd(0x14); // displacement (4 bytes, written as imm32)
 
-	assembly.cmp(asmjit::x86::dword_ptr(asmjit::x86::esp, -0x2C), 0);
-	assembly.jz(l_origin);
-	assembly.jmp(asmjit::x86::ptr(asmjit::x86::esp, -0x2C));
+		// access the Fs[0x14] -> compare it with 0
+		assembly.db(0x64); // FS segment prefix
+		assembly.db(0x83); // CMP r/m32, imm8 (opcode group)
+		assembly.db(0x3D); // ModRM: mod=00, reg=111(/7 = CMP), rm=101 (disp32, no base)
+		assembly.dd(0x14); // disp32 = 0x14
+		assembly.db(0x00); // imm8 = 0
 
-	assembly.bind(l_origin);
+		// return 0 , apply the override bits then return
+		assembly.je(l_origin);
+
+		//pop the register clean
+		EmitPopfdPopadReplica(assembly);
+
+		//jump to specific addres listed under Fs[0x14-
+		assembly.db(0x64); // FS segment prefix
+		assembly.db(0xFF); // opcode group FF
+		assembly.db(0x25); // ModRM: mod=00, reg=100(/4 = JMP), rm=101 (disp32, no base)
+		assembly.dd(0x14); // disp32 = 0x14
+
+		assembly.bind(l_origin);
+
+		//pop the register clean
+		EmitPopfdPopadReplica(assembly);
+#endif
+
+		//overwritten bytes here
+	}
+
 	void* hookAddress = reinterpret_cast<void*>(addr);
 
 	// Recursive version: use bytes from trampoline backup
@@ -390,26 +450,45 @@ bool PhobosHookers::InstallSingleHook(unsigned int addr, std::map<const void*, s
 	memcpy(trampoline.modified_original_bytes.data(), trampoline.original_bytes.data(), hookSize);
 
 	// Fix relative jump or call
-	if (trampoline.modified_original_bytes[0] == Assembly::CALL || trampoline.modified_original_bytes[0] == Assembly::JMP) {
-		DWORD dest = addr + 5 + *reinterpret_cast<DWORD*>(trampoline.modified_original_bytes.data() + 1);
-		switch (trampoline.modified_original_bytes[0])
+	{
+		uint32_t const newAddr = addr + static_cast<uint32_t>(assembly.offset());
+		auto rebuilt = RebuildInstructions(trampoline.modified_original_bytes.data(), trampoline.modified_original_bytes.size(), addr, newAddr);
+		if (rebuilt.size() != trampoline.modified_original_bytes.size())
 		{
-		case Assembly::JMP: // jmp
-			assembly.jmp(dest);
-			trampoline.modified_original_bytes.erase(trampoline.modified_original_bytes.begin(), trampoline.modified_original_bytes.begin() + 5);
-			Debug::Log("hook at 0x%x is placed at JMP fixing the relative addr !\n", addr);
-			break;
-		case Assembly::CALL: // call
-			assembly.call(dest);
-			trampoline.modified_original_bytes.erase(trampoline.modified_original_bytes.begin(), trampoline.modified_original_bytes.begin() + 5);
-			Debug::Log("hook at 0x%x is placed at CALL fixing the relative addr !\n", addr);
-			break;
-		default: break;
+			Debug::Log(
+				"hook at 0x%x: overwritten bytes rebuilt from %u to %u bytes "
+				"(relative branch re-encoded to near form)\n",
+				addr, static_cast<unsigned int>(trampoline.modified_original_bytes.size()),
+				static_cast<unsigned int>(rebuilt.size()));
 		}
+		trampoline.modified_original_bytes = std::move(rebuilt);
 	}
+
+	//if (trampoline.modified_original_bytes[0] == Assembly::CALL || trampoline.modified_original_bytes[0] == Assembly::JMP) {
+	//	DWORD dest = addr + 5 + *reinterpret_cast<DWORD*>(trampoline.modified_original_bytes.data() + 1);
+	//	switch (trampoline.modified_original_bytes[0])
+	//	{
+	//	case Assembly::JMP: // jmp
+	//		assembly.jmp(dest);
+	//		trampoline.modified_original_bytes.erase(trampoline.modified_original_bytes.begin(), trampoline.modified_original_bytes.begin() + 5);
+	//		Debug::Log("hook at 0x%x is placed at JMP fixing the relative addr !\n", addr);
+	//		break;
+	//	case Assembly::CALL: // call
+	//		assembly.call(dest);
+	//		trampoline.modified_original_bytes.erase(trampoline.modified_original_bytes.begin(), trampoline.modified_original_bytes.begin() + 5);
+	//		Debug::Log("hook at 0x%x is placed at CALL fixing the relative addr !\n", addr);
+	//		break;
+	//	default: break;
+	//	}
+	//}
 
 	assembly.embed(trampoline.modified_original_bytes.data(), trampoline.modified_original_bytes.size());
 	assembly.jmp(addr + hookSize);
+
+	if (gJitErrorHandler.hadError) {
+		Debug::Log("Aborting hook 0x%x: error during overwritten-bytes/jmp-back emission\n", addr);
+		return false;
+	}
 
 	const void* fn {};
 	gJitRuntime->add(&fn, &code);
@@ -421,16 +500,10 @@ bool PhobosHookers::InstallSingleHook(unsigned int addr, std::map<const void*, s
 	code.flatten();
 	code.resolve_cross_section_fixups();
 	code.relocate_to_base(addr);
-
-	DWORD protect_flag {};
-	DWORD protect_flagb {};
-	VirtualProtect(hookAddress, hookSize, PAGE_EXECUTE_READWRITE, &protect_flag);
 	code.copy_flattened_data(hookAddress, hookSize);
-	VirtualProtect(hookAddress, hookSize, protect_flag, &protect_flagb);
-	FlushInstructionCache(Game::hInstance(), hookAddress, hookSize);
 
 	Debug::Log("Hook installed at 0x%x (size: %d bytes)\n", addr, hookSize);
-	
+
 	return true;
 }
 

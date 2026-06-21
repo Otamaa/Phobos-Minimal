@@ -8,5 +8,3 @@ DECLARE_INTERFACE_IID_(ILinkStream, IUnknown, "0D5CD78E-6470-11D2-9B74-00104B972
 	virtual HRESULT __stdcall Link_Stream(IUnknown* stream) PURE;
 	virtual HRESULT __stdcall Unlink_Stream(IUnknown** stream) PURE;
 };
-
-_COM_SMARTPTR_TYPEDEF(ILinkStream, __uuidof(ILinkStream));

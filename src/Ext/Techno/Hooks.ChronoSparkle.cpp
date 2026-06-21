@@ -5,7 +5,12 @@
 
 #include <TacticalClass.h>
 
-void PlayChronoSparkleAnim(TechnoClass* pTechno, CoordStruct* pLoc, int X_Offs = 120, int nDelay = 24 , bool bHidden = false , int ZAdjust = 0)
+void TechnoExtData::PlayChronoSparkleAnim(TechnoClass* pTechno,
+	CoordStruct* pLoc,
+	int X_Offs,
+	int nDelay,
+	bool bHidden,
+	int ZAdjust)
 {
 	if (bHidden || (Unsorted::CurrentFrame.get() % nDelay))
 		return;
@@ -44,23 +49,16 @@ void PlayChronoSparkleAnim(TechnoClass* pTechno, CoordStruct* pLoc, int X_Offs =
 ASMJIT_PATCH(0x73622F, UnitClass_AI_ChronoSparkle, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
-	PlayChronoSparkleAnim(pThis, &pThis->Location, 120 , RulesExtData::Instance()->ChronoSparkleDisplayDelay);
+	TechnoExtData::PlayChronoSparkleAnim(pThis, &pThis->Location, 120 , RulesExtData::Instance()->ChronoSparkleDisplayDelay);
 	return 0x7362A7;
 }
 
 ASMJIT_PATCH(0x51BAF6, InfantryClass_AI_ChronoSparkle, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
-	PlayChronoSparkleAnim(pThis, &pThis->Location, 120, RulesExtData::Instance()->ChronoSparkleDisplayDelay);
+	TechnoExtData::PlayChronoSparkleAnim(pThis, &pThis->Location, 120, RulesExtData::Instance()->ChronoSparkleDisplayDelay);
 	return 0x51BB6E;
 
-}
-
-ASMJIT_PATCH(0x414C06, AircraftClass_AI_ChronoSparkle, 0x5)
-{
-	GET(TechnoClass*, pThis, ESI);
-	PlayChronoSparkleAnim(pThis, &pThis->Location, 0, RulesExtData::Instance()->ChronoSparkleDisplayDelay);
-	return 0x414C78;
 }
 
 ASMJIT_PATCH(0x4403D4, BuildingClass_AI_ChronoSparkle, 0x6)
@@ -114,7 +112,7 @@ ASMJIT_PATCH(0x4403D4, BuildingClass_AI_ChronoSparkle, 0x6)
 
 		if ((!showOccupy || displayOnBuilding)) {
 			auto nLoc = pThis->GetCenterCoords();
-			PlayChronoSparkleAnim(pThis, &nLoc, 0);
+			TechnoExtData::PlayChronoSparkleAnim(pThis, &nLoc, 0);
 		}
 	}
 

@@ -109,18 +109,6 @@ ASMJIT_PATCH(0x4197F3, AircraftClass_GetFireLocation_Strafing, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x414F21, AircraftClass_AI_TrailerInheritOwner, 0x6)
-{
-	GET(AircraftClass*, pThis, ESI);
-	GET(AnimClass*, pAnim, EAX);
-	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x40, 0xC));
-
-	pAnim->AnimClass::AnimClass(pThis->Type->Trailer, nCoord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-	AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, pThis, false, false);
-
-	return 0x414F47;
-}
-
 enum class AirAttackStatusP : int
 {
 	AIR_ATT_VALIDATE_AZ = 0x0,
@@ -258,26 +246,6 @@ ASMJIT_PATCH(0x4DDD66, FootClass_IsLZClear_ReplaceHardcode, 0x6) // To avoid tha
  	return SkipGameCode;
  }
 
-// Idle: clear the target if no ammo
-ASMJIT_PATCH(0x414D36, AircraftClass_Update_ClearTarget, 0x6)
-{
-	enum { ClearTarget = 0x414D3F, DonotClearTarget = 0x414D4D };
-	//GET(AircraftClass* const, pThis, ESI);
-
-	// if (RulesExtData::Instance()->ExpandAircraftMission) {
-	// 	if (!pThis->Spawned && !pThis->Airstrike &&
-	// 		!pThis->Ammo && !SessionClass::IsCampaign()) {
-	//
-	// 		if (TeamClass* const pTeam = pThis->Team)
-	// 			pTeam->LiberateMember(pThis);
-	//
-	// 		return ClearTarget;
-	// 	}
-	// }
-
-	return DonotClearTarget; //AircraftClass_Update_DontloseTargetInAir
-}
-
 // GreatestThreat: for all the mission that should let the aircraft auto select a target
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2668, FakeAircraftClass::_GreatestThreat);
 
@@ -317,18 +285,6 @@ ASMJIT_PATCH(0x4C72F2, EventClass_Execute__AircraftAreaGuard_Untether, 0x6)
 	}
 
 	return 0;
-}
-
-ASMJIT_PATCH(0x414EAA, AircraftClass_IsSinking_SinkAnim, 0x6)
-{
-	GET(AnimClass*, pAnim, EAX);
-	GET(AircraftClass* const, pThis, ESI);
-	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x40, 0x24));
-
-	pAnim->AnimClass::AnimClass(TechnoTypeExtData::GetSinkAnim(pThis), nCoord, 0, 1, AnimFlag::AnimFlag_600, 0, false);
-	AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
-
-	return 0x414ED0;
 }
 
 ASMJIT_PATCH(0x415302, AircraftClass_Mission_Unload_IsDropship, 0x6)

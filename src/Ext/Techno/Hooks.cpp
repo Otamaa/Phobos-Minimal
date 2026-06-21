@@ -1482,21 +1482,6 @@ ASMJIT_PATCH(0x74049A, UnitClass_WhatAction_Immune_FakeEngineer2, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x417F63, AircraftClass_WhatAction_Immune_FakeEngineer, 0x5)
-{
-	enum { ForceNewValue = 0x417F68 };
-
-	GET(TechnoClass* const, pThis, ESI);
-	GET(BuildingClass* const, pBuilding, EDI);
-
-	const auto& [allow1, allow2, canBeDefused] = TechnoExtData::CanBeAffectedByFakeEngineer(pThis, pBuilding, true, true, true);
-
-	if (allow1  || allow2 || canBeDefused)
-		return ForceNewValue;
-
-	return 0;
-}
-
 ASMJIT_PATCH(0x447527, BuildingClass_WhatAction_Immune_FakeEngineer, 0x5)
 {
 	enum { ForceNewValue = 0x44752C };

@@ -59,20 +59,20 @@ struct NOVTABLE
 	size_t size;
 	const BYTE* pData;
 
+public:
+	void Apply() {
+		Patch::WriteToProcessMemory(this->offset, this->pData, this->size);
+	}
+
 	static void ApplyStatic();
-	void Apply();
 
 	static std::vector<dllData> ModuleDatas;
 
 	template<typename To>
-	static OPTIONALINLINE void Apply_withmemcpy(uintptr_t addrFrom, To toImpl, DWORD& protect_flag, DWORD ReadFlag = PAGE_READWRITE, size_t size = 4u)
+	static OPTIONALINLINE void WriteToProcessMemory(uintptr_t addrFrom, To toImpl, size_t size = 4u)
 	{
-		DWORD protect_flagb {};
-		if (VirtualProtect((LPVOID)addrFrom, size, ReadFlag, &protect_flag) == TRUE) {
-			std::memcpy((void*)addrFrom, toImpl, size);
-			VirtualProtect((LPVOID)addrFrom, size, protect_flag, &protect_flagb);
-			FlushInstructionCache(CurrentProcess, (LPVOID)addrFrom, size);
-		}
+		SIZE_T bytes_written;
+		WriteProcessMemory(CurrentProcess, (void*)addrFrom, toImpl, size, &bytes_written);
 	}
 
 	/**
@@ -100,7 +100,17 @@ struct NOVTABLE
 		return reinterpret_cast<T>(rawptr + amount);
 	}
 
-	static void Apply_RAW(uintptr_t offset, size_t sz, PatchType type, const BYTE* data);
+	static OPTIONALINLINE void Apply_RAW(uintptr_t offset, size_t sz, PatchType type, const BYTE* data)
+	{
+		Patch dummy {
+			.type = type,
+			.offset = offset,
+			.size = sz,
+			.pData = data
+		};
+
+		dummy.Apply();
+	}
 
 	static FORCEDINLINE void Apply_RAW(uintptr_t offset, std::initializer_list<BYTE> data) {
 		Patch::Apply_RAW(offset, data.size(), PatchType::PATCH_, const_cast<byte*>(data.begin()));

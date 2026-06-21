@@ -647,6 +647,7 @@ public:
 	Nullable<bool> Parasite_AllowWaterExit {};
 	Nullable<bool> FlyNoWobbles {};
 	ValueableVector<ColorStruct> ColorAdds {};
+	Valueable<bool> EnhancedBerzerk { false };
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

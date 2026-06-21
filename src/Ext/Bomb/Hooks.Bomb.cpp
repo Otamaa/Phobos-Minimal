@@ -163,19 +163,6 @@ ASMJIT_PATCH(0x51E440, InfantryClass_GetActionOnObject_Deactivated, 8)
 	return 0;
 }
 
-ASMJIT_PATCH(0x417CCB, AircraftClass_GetActionOnObject_Deactivated, 5)
-{
-	GET(AircraftClass* const, pThis, ECX);
-	GET_STACK(ObjectClass*, pThat, 0x20);
-
-	if (pThis->Deactivated) {
-		R->EAX(TechnoExtData::GetAction(pThis, pThat));
-		return 0x417CDF;
-	}
-
-	return 0;
-}
-
 ASMJIT_PATCH(0x6FFEC0, TechnoClass_GetActionOnObject_Additionals, 5)
 {
 	GET(TechnoClass* , pThis, ECX);

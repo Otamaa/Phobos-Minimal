@@ -150,21 +150,21 @@ public:
 	Container() = default;
 	virtual ~Container() = default;
 
-	virtual T* Allocate(T::base_type* key) {
+	T* Allocate(T::base_type* key) {
 		auto pExt = new T(key);
 		ContainerExtHandler<T>::SetExtAttribute(key ,pExt);
 		Array.emplace_back(pExt);
 		return pExt;
 	}
 
-	virtual T* FindOrAllocate(T::base_type* key) {
+	T* FindOrAllocate(T::base_type* key) {
 		if (T* const ptr = ContainerExtHandler<T>::TryFind(key))
 			return ptr;
 
 		return this->Allocate(key);
 	}
 
-	virtual void Remove(T::base_type* key) {
+	void Remove(T::base_type* key) {
 		if (T* Item = ContainerExtHandler<T>::TryFind(key)) {
 
 			auto iter = std::ranges::find(Array, Item);

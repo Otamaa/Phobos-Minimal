@@ -679,14 +679,6 @@ ASMJIT_PATCH(0x740031, UnitClass_GetActionOnObject_NoManualUnload, 6)
 	return TechnoTypeExtContainer::Instance.Find(pThis->Type)->NoManualUnload ? 0x740115u : 0u;
 }
 
-ASMJIT_PATCH(0x417DD2, AircraftClass_GetActionOnObject_NoManualUnload, 6)
-{
-	enum { RetDefault = 0, NoUnload = 0x417DF4 };
-
-	GET(AircraftClass const* const, pThis, ESI);
-	return TechnoTypeExtContainer::Instance.Find(pThis->Type)->NoManualUnload ? 0x417DF4u : 0u;
-}
-
 ASMJIT_PATCH(0x73D800, UnitClass_Mission_Unload_NoManualUnload, 0x5){
 	enum { Continue = 0x0 , AssignMissionGuard = 0x73D81C };
 	GET(UnitClass const* const, pThis, ESI);

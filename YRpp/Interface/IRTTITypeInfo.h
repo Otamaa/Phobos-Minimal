@@ -10,5 +10,3 @@ DECLARE_INTERFACE_IID_(IRTTITypeInfo, IUnknown, "170DAC82-12E4-11D2-8175-0060080
 	virtual int __stdcall Fetch_ID() const PURE;
 	virtual void __stdcall Create_ID() PURE;
 };
-
-_COM_SMARTPTR_TYPEDEF(IRTTITypeInfo, __uuidof(IRTTITypeInfo));

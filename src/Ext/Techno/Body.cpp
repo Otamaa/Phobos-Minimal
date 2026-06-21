@@ -9295,7 +9295,8 @@ void TechnoExtData::SetMissionAfterBerzerk(TechnoClass* pThis, bool Immediete)
 	auto const pType = GET_TECHNOTYPE(pThis);
 
 	const Mission nEndMission = pThis->IsArmed() ?
-		(pThis->Owner->IsHumanPlayer ? Mission::Hunt : Mission::Guard) :
+		!RulesExtData::Instance()->EnhancedBerzerk ? (pThis->Owner->IsHumanPlayer ? Mission::Hunt : Mission::Guard) : Mission::Area_Guard
+		:
 		(!pType->ResourceGatherer ? Mission::Sleep : Mission::Harvest);
 
 	pThis->QueueMission(nEndMission, Immediete);
@@ -11728,7 +11729,9 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, 
 			if (pBld->HasBuildup && (pBld->CurrentMission != Mission::Selling || pBld->CurrentMission != Mission::Unload))
 			{
 				BuildingExtContainer::Instance.Find(pBld)->Silent = true;
-				pBld->Sell(true);
+				pBld->QueueMission(Mission::Selling, false);
+				pBld->NextMission();
+				PhobosAEFunctions::UpdateAttachEffects(pBld);
 				return;
 			}
 		}

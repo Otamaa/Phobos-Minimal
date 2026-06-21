@@ -370,23 +370,29 @@ public:
 	}
 
 	// Patch the function pointer at Address with RWX memory protection
-	template <typename T2>
+	template <typename T2, bool EnableProtect = false>
 	FORCEDINLINE bool operator=(T2 rhs) const
 	{
-		DWORD protection = PAGE_EXECUTE_READWRITE;
-		DWORD protectionb {};
-		if (VirtualProtect((LPVOID)Address, sizeof(LPVOID), protection, &protection) == TRUE)
-		{
+		if constexpr (EnableProtect){
+			DWORD protection = PAGE_EXECUTE_READWRITE;
+			DWORD protectionb {};
+			if (VirtualProtect((LPVOID)Address, sizeof(LPVOID), protection, &protection) == TRUE)
+			{
+				*reinterpret_cast<LPVOID*>(Address) = rhs;
+				VirtualProtect((LPVOID)Address, sizeof(LPVOID), protection, &protectionb);
+				FlushInstructionCache(
+					*reinterpret_cast<HINSTANCE*>(0xB732F0u),
+					(LPVOID)Address,
+					sizeof(LPVOID)
+				);
+				return true;
+			}
+
+			return false;
+		} else {
 			*reinterpret_cast<LPVOID*>(Address) = rhs;
-			VirtualProtect((LPVOID)Address, sizeof(LPVOID), protection, &protectionb);
-			FlushInstructionCache(
-				*reinterpret_cast<HINSTANCE*>(0xB732F0u),
-				(LPVOID)Address,
-				sizeof(LPVOID)
-			);
 			return true;
 		}
-		return false;
 	}
 
 	// operator&() intentionally absent — see mem_ref_base comment

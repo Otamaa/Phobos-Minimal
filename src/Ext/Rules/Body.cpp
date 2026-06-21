@@ -239,6 +239,7 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->DamageAlliesMultiplier_NotAffectsEnemies.Read(iniEX, GameStrings::CombatDamage, "DamageAlliesMultiplier.NotAffectsEnemies");
 	pData->DriverKilled_KillPassengers.Read(iniEX, GameStrings::CombatDamage, "DriverKilled.KillPassengers");
 	pData->Psychedelic_StackingMode.Read(iniEX, GameStrings::CombatDamage, "Psychedelic.StackingMode");
+	pData->EnhancedBerzerk.Read(iniEX, GameStrings::CombatDamage, "EnhancedBerzerk");
 
 	pData->FactoryProgressDisplay.Read(iniEX, GameStrings::AudioVisual, "FactoryProgressDisplay");
 	pData->MainSWProgressDisplay.Read(iniEX, GameStrings::AudioVisual, "MainSWProgressDisplay");
@@ -1473,6 +1474,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->Parasite_AllowWaterExit)
 		.Process(this->FlyNoWobbles)
 		.Process(this->ColorAdds)
+		.Process(this->EnhancedBerzerk)
 		;
 }
 

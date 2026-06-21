@@ -96,12 +96,15 @@ public:
 
 	void __Look(bool incremental, int arg_4);
 
+	Action _MouseOverCell(CellStruct const& cell, bool checkFog = false, bool ignoreForce = false);
+	Action _MouseOverObject(ObjectClass* pObject, bool ignoreForce = false) const;
+
 	WeaponStruct* _GetWeapon(int weaponIndex);
 	void _SetTarget(AbstractClass* pTarget);
 	void _Destroyed(int mult);
 	AbstractClass* _GreatestThreat(ThreatType threatType, CoordStruct* pSelectCoords, bool onlyTargetHouseEnemy);
 	int _Mission_Sleep();
-
+	void _AI();
 	bool  __Unlimbo_Wrapper(const CoordStruct& coords, DirType facing);
 
 	int _Mission_ParadropOverfly();
@@ -110,10 +113,10 @@ public:
 	int _Mission_SpyPlaneApproach();
 	int _Mission_Move_ForCarryAll();
 	int _Mission_Move();
+	void _DropOffCarryallCargo();
 
 	bool _Enter_Idle_Mode(bool initial, bool bool2);
 
-	void _FootClass_Update_Wrapper();
 	DamageState __Take_Damage(int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse);
 
 	BulletClass* _FireAt(AbstractClass* target, int which);

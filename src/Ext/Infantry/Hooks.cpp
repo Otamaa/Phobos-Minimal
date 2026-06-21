@@ -593,3 +593,50 @@ ASMJIT_PATCH(0x51EB48, InfantryClass_GetActionOnObject_IvanGrinder, 0xA)
 
 	return 0;
 }
+
+// Deploy case: DoAction(Deployed)
+ASMJIT_PATCH(0x520B3E, InfantryClass_DoingAI_DeployConvert_Deploy, 0x6)
+{
+	GET(InfantryClass*, pThis, ESI);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	if (pTypeExt->Convert_Deploy && !pExt->HasDeployConverted) {
+		pExt->HasDeployConverted = true;
+		pExt->HasUndeployConverted = false;
+		TechnoExtData::ConvertToType(pThis, pTypeExt->Convert_Deploy);
+	}
+
+	return 0;
+}
+
+// Undeploy case: DoAction(Ready)
+ASMJIT_PATCH(0x520B99, InfantryClass_DoingAI_DeployConvert_Undeploy, 0x6)
+{
+	GET(InfantryClass*, pThis, ESI);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	if (pTypeExt->Convert_Undeploy && !pExt->HasUndeployConverted) {
+		pExt->HasUndeployConverted = true;
+		pExt->HasDeployConverted = false;
+		TechnoExtData::ConvertToType(pThis, pTypeExt->Convert_Undeploy);
+	}
+
+	return 0;
+}
+
+// Reset mark when Deploy/Undeploy
+ASMJIT_PATCH(0x520E75, InfantryClass_DoingAI_DeployConvert_ResetFlags, 0x6)
+{
+	GET(InfantryClass*, pThis, ESI);
+	const auto curSeq = pThis->SequenceAnim;
+
+	if (curSeq != DoType::Deploy && curSeq != DoType::Undeploy) {
+		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+		pExt->HasDeployConverted = false;
+		pExt->HasUndeployConverted = false;
+	}
+
+	return 0;
+}

@@ -33,6 +33,8 @@ public:
 	virtual void Update() override JMP_THIS(0x4DA530);
 
 	//ObjectClass
+	virtual Action MouseOverCell(CellStruct const& cell, bool checkFog = false, bool ignoreForce = false) const { JMP_THIS(0x417F80); }
+	virtual Action MouseOverObject(ObjectClass const* pObject, bool ignoreForce = false) const { JMP_THIS(0x4DDED0); }
 	virtual CoordStruct GetFLH(int idxWeapon, int BaseCoordsX , int BaseCoordsY , int BaseCoordsZ) const override { JMP_THIS(0x6F3AD0); };
 	virtual DamageState ReceiveDamage(int* pDamage, int DistanceFromEpicenter, WarheadTypeClass* pWH,
 	ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseClass* pAttackingHouse) override JMP_THIS(0x4D7330);

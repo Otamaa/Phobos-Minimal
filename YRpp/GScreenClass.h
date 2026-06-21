@@ -8,7 +8,6 @@
 #include <comip.h>
 #include <comdef.h>
 
-_COM_SMARTPTR_TYPEDEF(IGameMap, __uuidof(IGameMap));
 struct RectangleStruct;
 class DSurface;
 class GadgetClass;

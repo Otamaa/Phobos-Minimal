@@ -280,6 +280,8 @@ private:
 		debugProcess(this->OnParachuted, "OnParachuted");
 		debugProcess(this->HoverShutdown, "HoverShutdown");
 		debugProcess(this->HasDeployConvertedInCurrentSequence, "HasDeployConvertedInCurrentSequence");
+		debugProcess(this->HasDeployConverted , "HasDeployConverted");
+		debugProcess(this->HasUndeployConverted , "HasUndeployConverted");
 		debugProcess(this->PrismRelay, "PrismRelay");
 		debugProcess(this->PrismRelayCooldown, "PrismRelayCooldown");
 		debugProcess(this->PrismRelayBurstChainBuilt, "PrismRelayBurstChainBuilt");
@@ -481,6 +483,10 @@ public:
 	bool OnParachuted {};
 	bool HoverShutdown {};
 	bool HasDeployConvertedInCurrentSequence {};
+
+	bool HasDeployConverted {};
+	bool HasUndeployConverted {};
+
 	// 33 bools = 33 bytes, add 1 padding byte for 32 (4-byte alignment)
 
 	TechnoPrismRelaySession PrismRelay {};
@@ -990,7 +996,8 @@ public:
 	static bool IsHealer(TechnoClass* pThis);
 	static bool IsAttackFriendlies(TechnoClass* pTarget);
 	static bool CanAttackMindControlled(TechnoClass* pControlled, TechnoClass* pRetaliator);
-
+	static void IsTechnoShouldBeAliveAfterTemporal(TechnoClass* pThis);
+	static void PlayChronoSparkleAnim(TechnoClass* pTechno, CoordStruct* pLoc, int X_Offs = 120, int nDelay = 24, bool bHidden = false, int ZAdjust = 0);
 public:
 	static UnitClass* Deployer;
 

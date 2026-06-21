@@ -12,8 +12,6 @@
 #include <comip.h>
 #include <comdef.h>
 
-//_COM_SMARTPTR_TYPEDEF(IFlyControl, __uuidof(IFlyControl));
-
 //AircraftClass
 class DECLSPEC_UUID("0E272DC2-9C0F-11D1-B709-00A024DDAFD1")
 	NOVTABLE AircraftClass : public FootClass, public IFlyControl

@@ -526,6 +526,7 @@
     <ClCompile Include="src\Utilities\Patch.cpp" />
     <ClCompile Include="src\Utilities\Template.cpp" />
     <ClCompile Include="src\Utilities\TranslucencyLevel.cpp" />
+    <ClCompile Include="YRpp\Interface\IPiggyback.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="B:\Projects\Unused\LambdaFunctionArgCount.h" />
