@@ -75,6 +75,7 @@ ASMJIT_PATCH(0x51E488, InfantryClass_GetCursorOverObject2, 5)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3D4C, FakeBombClass::_GetOwningHouse);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3D38, FakeBombClass::_Detach);
 
+//TechnoClass_Maybe_Draw_It_TechnoClass_DrawExtras_CheckFog
 DEFINE_PATCH(0x6F51FD, 0x58);
 
 ASMJIT_PATCH(0x46934D, IvanBombs_Spread, 6)

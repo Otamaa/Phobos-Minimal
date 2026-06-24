@@ -5,7 +5,7 @@
 class IPXConnClass;
 class IPXGlobalConnClass;
 class ConnectionClass;
-
+class IPXAddressClass;
 class IPXManagerClass
 {
 public:
@@ -17,6 +17,21 @@ public:
 
 	int ResponseTime()
 		{ JMP_THIS(0x542450) }
+
+	// Sends an out-of-band global packet. With address == nullptr it broadcasts
+	// to every global peer; otherwise it targets the given peer (use a node's
+	// Address from SessionClass::Players). Returns nonzero on success.
+	int Send_Global_Message(void* buf, int buflen, int ack_req = 0, IPXAddressClass* address = nullptr, unsigned short port = 0, int packet_id = 0)
+		{ JMP_THIS(0x5410F0) }
+
+	// Services the network layer (flushes queued sends / pumps receives).
+	void Service()
+		{ JMP_THIS(0x541820) }
+
+	// Tears down the connection to the given peer (by connection id / house id).
+	// Used when rebuilding connections after a mid-game save load.
+	bool Delete_Connection(int id)
+		{ JMP_THIS(0x540F00) }
 
 	// Properties
 private:

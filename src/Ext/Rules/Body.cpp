@@ -228,7 +228,8 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	pData->AIChronoSphereSW.Read(iniEX, GameStrings::General, "AIChronoSphereSW");
 	pData->AIChronoWarpSW.Read(iniEX, GameStrings::General, "AIChronoWarpSW");
-
+	pData->AutoRemoveEarliestBeacon.Read(iniEX, GameStrings::General, "AutoRemoveEarliestBeacon");
+	pData->AllowChatBoxInSinglePlayer.Read(iniEX, GameStrings::General, "AllowChatBoxInSinglePlayer");
 	pData->DamageOwnerMultiplier.Read(iniEX, GameStrings::CombatDamage, "DamageOwnerMultiplier");
 	pData->DamageAlliesMultiplier.Read(iniEX, GameStrings::CombatDamage, "DamageAlliesMultiplier");
 	pData->DamageEnemiesMultiplier.Read(iniEX, GameStrings::CombatDamage, "DamageEnemiesMultiplier");
@@ -239,7 +240,7 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->DamageAlliesMultiplier_NotAffectsEnemies.Read(iniEX, GameStrings::CombatDamage, "DamageAlliesMultiplier.NotAffectsEnemies");
 	pData->DriverKilled_KillPassengers.Read(iniEX, GameStrings::CombatDamage, "DriverKilled.KillPassengers");
 	pData->Psychedelic_StackingMode.Read(iniEX, GameStrings::CombatDamage, "Psychedelic.StackingMode");
-	pData->EnhancedBerzerk.Read(iniEX, GameStrings::CombatDamage, "EnhancedBerzerk");
+	pData->BerzerkMission.Read(iniEX, GameStrings::CombatDamage, "BerzerkMission");
 
 	pData->FactoryProgressDisplay.Read(iniEX, GameStrings::AudioVisual, "FactoryProgressDisplay");
 	pData->MainSWProgressDisplay.Read(iniEX, GameStrings::AudioVisual, "MainSWProgressDisplay");
@@ -493,6 +494,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AIAirTargetingFix.Read(exINI, GameStrings::General, "AIAirTargetingFix");
 	this->SortCameoByName.Read(exINI, GameStrings::General, "SortCameoByName");
 	this->AllowDeployControlledMCV.Read(exINI, GameStrings::General, "AllowDeployControlledMCV");
+	this->AllowBeaconHotKeyInSinglePlayer.Read(exINI, GameStrings::General, "AllowBeaconHotKeyInSinglePlayer");
 	this->TypeSelectUseIFVMode.Read(exINI, GameStrings::General, "TypeSelectUseIFVMode");
 	this->BuildingRadioLink_SyncOwner.Read(exINI, GameStrings::General, "BuildingRadioLink.SyncOwner");
 	this->Parasite_AllowWaterExit.Read(exINI, GameStrings::General, "Parasite.AllowWaterExit");
@@ -636,6 +638,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AreaGuard_UseSelfAsCenter.Read(exINI, GameStrings::General, "AreaGuard.UseSelfAsCenter");
 	this->AreaGuard_TargetingInRange.Read(exINI, GameStrings::General, "AreaGuard.TargetingInRange");
 	this->AreaGuard_StrayIgnoreDestination.Read(exINI, GameStrings::General, "AreaGuard.StrayIgnoreDestination");
+	this->BunkerStateUpdateDelay.Read(exINI, GameStrings::General, "BunkerStateUpdateDelay");
 	#pragma endregion
 
 	#pragma region CombatDamage
@@ -1425,6 +1428,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->AIAirTargetingFix)
 		.Process(this->SortCameoByName)
 		.Process(this->AllowDeployControlledMCV)
+		.Process(this->AllowBeaconHotKeyInSinglePlayer)
 		.Process(this->TypeSelectUseIFVMode)
 		.Process(this->BuildingRadioLink_SyncOwner)
 		.Process(this->ApplyPerTargetEffectsOnDetonate)
@@ -1467,6 +1471,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->Shrapnel_IgnoreHitBuildings)
 		.Process(this->AffectsInvokerOnly_IgnoreInvokerState)
 		.Process(this->Shrapnel_ObeyWarheadTriggerConditions)
+		.Process(this->BunkerStateUpdateDelay)
 		.Process(this->PrismRelay_SupportTimeout)
 		.Process(this->RemoveMindControl_Silent)
 		.Process(this->TeamDelays_DynamicType)
@@ -1474,7 +1479,9 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->Parasite_AllowWaterExit)
 		.Process(this->FlyNoWobbles)
 		.Process(this->ColorAdds)
-		.Process(this->EnhancedBerzerk)
+		.Process(this->BerzerkMission)
+		.Process(this->AutoRemoveEarliestBeacon)
+		.Process(this->AllowChatBoxInSinglePlayer)
 		;
 }
 
@@ -1552,6 +1559,7 @@ ASMJIT_PATCH(0x675205, RulesClass_Save_Suffix, 0x8)
 	return 0;
 }
 
+//Game_Init , remove early init for read ini for Anim and building type that causing alot of logging error
 DEFINE_JUMP(LJMP, 0x52C9C4, 0x52CA37);
 
 // Read on very first RulesClass::Process function
@@ -2739,8 +2747,6 @@ OPTIONALINLINE void ParseVector_loc(DynamicVectorClass<T>& List, INI_EX& IniEx, 
 	}
 };
 // ============= [General] =============
-std::optional<int> ATOI_Count;
-
 ASMJIT_PATCH(0x66D55E, Buf_General, 6)
 {
 	GET(RulesClass*, pRules, ESI);
@@ -2759,12 +2765,6 @@ ASMJIT_PATCH(0x66D55E, Buf_General, 6)
 	detail::ParseVector(pRules->YuriParaDropNum, exINI, section, GameStrings::YuriParaDropNum, "Expect valid number");
 
 	detail::ParseVector<InfantryTypeClass*, true>(pRules->AnimToInfantry, exINI, section, GameStrings::AnimToInfantry, "Expect valid InfantryType");
-
-	//if (!ATOI_Count.has_value() || !ATOI_Count.value())
-	//	ATOI_Count = pRules->AnimToInfantry.Count;
-	//else if(pRules->AnimToInfantry.Count != ATOI_Count.value()) {
-	//	Debug::FatalError("ATOI Array missmatch was %d cur %d", ATOI_Count.value(), pRules->AnimToInfantry.Count);
-	//}
 
 	detail::ParseVector<InfantryTypeClass*>(pRules->SecretInfantry, exINI, section, GameStrings::SecretInfantry, "Expect valid InfantryType");
 	detail::ParseVector<UnitTypeClass*>(pRules->SecretUnits, exINI, section, GameStrings::SecretUnits, "Expect valid UnitType");
@@ -2958,25 +2958,25 @@ ASMJIT_PATCH(0x5A920D, galite_5A91E0_SpecialHouse, 0x5)
 	return 0x5A921E;
 }
 
-// HTExt_Unlimit1
+// GDlgSupp_4E3690, remove country limit
 DEFINE_JUMP(LJMP, 0x4E3792, 0x4E37AD);
 
-//HTExt_Unlimit2
+//GDlgSupp_4E3A00, remove country limit
 DEFINE_JUMP(LJMP, 0x4E3A9C, 0x4E3AA1);
 
-//HTExt_Unlimit3
+//GDlgSupp_4E3CE0, remove country limit
 DEFINE_JUMP(LJMP, 0x4E3F31, 0x4E3F4C);
 
-//HTExt_Unlimit4
+//GDlgSupp_4E3F70, remove country limit
 DEFINE_JUMP(LJMP, 0x4E412C, 0x4E4147);
 
-//HTExt_Unlimit5
+//GDlgSupp_4E4170, remove country limit
 DEFINE_JUMP(LJMP, 0x4E41A7, 0x4E41C3);
 
-//OptionsDlg_WndProc_RemoveResLimit
+//OptionsDlg_WndProc_RemoveResLimit / MainOptions_Options_Dialog
 DEFINE_JUMP(LJMP, 0x56017A, 0x560183);
 
-//OptionsDlg_WndProc_RemoveHiResCheck
+//OptionsDlg_WndProc_RemoveHiResCheck / MainOptions_Options_Dialog
 DEFINE_JUMP(LJMP, 0x5601E3, 0x5601FC);
 
 ASMJIT_PATCH(0x74C8FB, VeinholeMonsterClass_CTOR_SetArmor, 0x6)
@@ -3047,11 +3047,11 @@ ASMJIT_PATCH(0x5D3ADE, MessageListClass_Init_MessageMax, 0x6)
 }
 
 // Skip log spam "Unable to locate scenario %s - No digest info"
-//MultiMission CTOR
+//MultiMission_CTOR
 DEFINE_JUMP(LJMP, 0x69A797, 0x69A937);
 
 //allow `VeinholeMonster` to be placed anywhere flat
-//VeinholeClass CTOR
+//VeinholeClass_CTOR
 DEFINE_JUMP(LJMP, 0x74C688, 0x74C697);
 
 ASMJIT_PATCH(0x4A267D, CreditClass_AI_MissingCurPlayerPtr, 0x6)

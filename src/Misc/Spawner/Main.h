@@ -160,6 +160,7 @@ struct SpawnerMain
 		int PreCalcMaxAhead;
 		byte MaxLatencyLevel;
 		bool ForceMultiplayer;
+		bool Host; // True on the machine hosting the game; announces itself as the game master at start.
 
 		// Tunnel Options
 		int  TunnelId;
@@ -206,6 +207,7 @@ struct SpawnerMain
 
 	static void LoadConfigurations(); // Early load settings from ra2md
 	static void ApplyStaticOptions(); // Apply all the settings
+	static void Announce_Master();
 
 	static COMPILETIMEEVAL Configs* GetMainConfigs() {
 		return &Configs::m_Ptr;

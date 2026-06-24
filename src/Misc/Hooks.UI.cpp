@@ -19,6 +19,7 @@
 
 #include <Misc/Spawner/Main.h>
 
+#include <OwnerDraw.h>
 
 ASMJIT_PATCH(0x777C41, UI_ApplyAppIcon, 0x9)
 {

@@ -332,7 +332,8 @@ ASMJIT_PATCH(0x4F58E9, HouseClass_CTOR_Trackers, 0x6){
 	return 0x4F5957;
 }
 
-DEFINE_JUMP(LJMP, 0x4F638F, 0x4F643B)
+//HouseClass_CTOR_TYPE
+DEFINE_JUMP(LJMP, 0x4F638F, 0x4F643B) // remove the tracker init
 
 ASMJIT_PATCH(0x4F7527, HouseClass_DTOR_Trackers, 0x6){
 	GET(HouseClass*, pThis ,ESI);

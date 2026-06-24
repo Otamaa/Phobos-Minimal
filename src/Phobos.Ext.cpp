@@ -120,8 +120,8 @@ void Phobos::LoadGameDataAfter()
 	TiberiumClass::sub_722D00();
 	TiberiumClass::sub_0x722240();
 	RadarClass::Instance->Map_AI();
-	Game::InScenario2 = 1;
-	Game::InScenario1 = 1;
+	Game::UserInputLocked = 1;
+	Game::TacticalActive = 1;
 	ScenarioClass::ToggleDisplayMode(1);
 	Game::Reset_SomeShapes_Post_Movie();
 

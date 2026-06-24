@@ -1023,33 +1023,6 @@ ASMJIT_PATCH(0x73FF8F, UnitClass_MouseOverObject_ShowDeployCursor, 0x6)
 	return 0;
 }
 
-// Buildable-upon TechnoTypes Hook #10 -> sub_4C6CB0 - Stop deploy when get stop command
-ASMJIT_PATCH(0x4C7665, EventClass_RespondToEvent_StopDeployInIdleEvent, 0x6)
-{
-	if (RulesExtData::Instance()->ExtendedBuildingPlacing) // This IF check is not so necessary
-	{
-		GET(UnitClass*, pUnit, ESI);
-
-		if (pUnit->Type->DeploysInto)
-		{
-			const auto mission = pUnit->CurrentMission;
-
-			if (mission == Mission::Guard || mission == Mission::Unload)
-			{
-				if (const auto pHouseExt = HouseExtContainer::Instance.Find(pUnit->Owner))
-				{
-					auto& vec = pHouseExt->OwnedDeployingUnits;
-
-					if (!vec.empty())
-						vec.remove(pUnit);
-				}
-			}
-		}
-	}
-
-	return 0;
-}
-
 // Buildable-upon TechnoTypes Hook #11 -> sub_4F8440 - Check whether can place again in each house
 ASMJIT_PATCH(0x4F8DB1, HouseClass_Update_CheckHangUpBuilding, 0x6)
 {

@@ -2,10 +2,9 @@
 
 #include <Utilities/Savegame.h>
 #include <Utilities/VectorHelper.h>
-
-#include <Point2D.h>
-
 #include <Utilities/ClassInterfaces.h>
+
+#include <Surface.h>
 
 class BannerTypeClass;
 
@@ -38,6 +37,11 @@ public:
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	bool Save(PhobosStreamWriter& Stm) const;
+
+	static COMPILETIMEEVAL FORCEDINLINE void Clamp(Point2D& point, int W, int H) {
+		point.X = std::clamp(point.X, 0, std::max(0, DSurface::ViewBounds->Width - W));
+		point.Y = std::clamp(point.Y, 0, std::max(0, DSurface::ViewBounds->Height - H));
+	}
 
 private:
 	template <typename T>

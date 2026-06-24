@@ -9294,10 +9294,9 @@ void TechnoExtData::SetMissionAfterBerzerk(TechnoClass* pThis, bool Immediete)
 {
 	auto const pType = GET_TECHNOTYPE(pThis);
 
-	const Mission nEndMission = pThis->IsArmed() ?
-		!RulesExtData::Instance()->EnhancedBerzerk ? (pThis->Owner->IsHumanPlayer ? Mission::Hunt : Mission::Guard) : Mission::Area_Guard
-		:
-		(!pType->ResourceGatherer ? Mission::Sleep : Mission::Harvest);
+	const Mission nEndMission = RulesExtData::Instance()->BerzerkMission.Get(pThis->IsArmed() ?
+		(pThis->Owner->IsHumanPlayer ? Mission::Hunt : Mission::Guard) :
+		(!pType->ResourceGatherer ? Mission::Sleep : Mission::Harvest));
 
 	pThis->QueueMission(nEndMission, Immediete);
 }

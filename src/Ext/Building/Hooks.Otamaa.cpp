@@ -48,5 +48,5 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4140, FakeBuildingClass::_IsFactory);
 #pragma endregion
 
 // use GetCenterCoords instead of GetCoords for
-// TechnoClass::FireLaser
+// TechnoClass_FireLaser
 DEFINE_PATCH(0x6FD338 ,0x58);

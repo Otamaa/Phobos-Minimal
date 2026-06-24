@@ -105,11 +105,6 @@ ASMJIT_PATCH(0x647DF2, QueueAIMultiplayer_ProtocolZero3, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x4C8011, EventClassExecute_ProtocolZero_DisableGame, 0x8)
-{
-	return EventExt::ProtocolZero::Enable ? 0x4C8024 : 0;
-}
-
 ASMJIT_PATCH(0x64C598, ExecuteDoList_ProtocolZero_DisableLog, 0x6)
 {
 	enum { break_ = 0x64C63D };

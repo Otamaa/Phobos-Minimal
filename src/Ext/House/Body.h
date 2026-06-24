@@ -392,6 +392,8 @@ public:
 	bool ForceRadar {};
 	bool PlayerAutoRepair {};
 	// 9 bools = 9 bytes, pads to 12 for 4-byte alignment
+
+	std::array<int, 3> BeaconsPlacedOrder {};
 #pragma endregion
 
 public:

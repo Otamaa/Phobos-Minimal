@@ -577,6 +577,7 @@ public:
 	Valueable<bool> AIAirTargetingFix { false };
 	Valueable<bool> SortCameoByName { false };
 	Valueable<bool> AllowDeployControlledMCV { false };
+	Valueable<bool> AllowBeaconHotKeyInSinglePlayer { false };
 	Valueable<bool> TypeSelectUseIFVMode { false };
 	Valueable<bool> BuildingRadioLink_SyncOwner { true };
 	Valueable<bool> ApplyPerTargetEffectsOnDetonate { true };
@@ -610,7 +611,7 @@ public:
 	Valueable<bool> Shrapnel_IgnoreHitBuildings { false };
 	Valueable<bool> AffectsInvokerOnly_IgnoreInvokerState {};
 	Valueable<bool> Shrapnel_ObeyWarheadTriggerConditions {};
-	
+	Valueable<int> BunkerStateUpdateDelay { 15 };
 	// ============================================================
 	// Plain bool arrays and plain bools (at the very end)
 	// ============================================================
@@ -647,7 +648,9 @@ public:
 	Nullable<bool> Parasite_AllowWaterExit {};
 	Nullable<bool> FlyNoWobbles {};
 	ValueableVector<ColorStruct> ColorAdds {};
-	Valueable<bool> EnhancedBerzerk { false };
+	Nullable<Mission> BerzerkMission { };
+	Valueable<bool> AutoRemoveEarliestBeacon {};
+	Valueable<bool> AllowChatBoxInSinglePlayer {};
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

@@ -1753,6 +1753,7 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->Units_RepairStep.Read(exINI, pSection, "Units.RepairStep");
 		this->Units_RepairPercent.Read(exINI, pSection, "Units.RepairPercent");
 		this->Units_UseRepairCost.Read(exINI, pSection, "Units.UseRepairCost");
+		this->BunkerStateUpdateDelay.Read(exINI, pSection, "BunkerStateUpdateDelay");
 
 		this->PowerPlant_DamageFactor.Read(exINI, pSection, "PowerPlant.DamageFactor");
 
@@ -2206,6 +2207,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->Units_RepairStep)
 		.Process(this->Units_RepairPercent)
 		.Process(this->Units_UseRepairCost)
+		.Process(this->BunkerStateUpdateDelay)
 		.Process(this->PowerPlant_DamageFactor)
 
 		.Process(this->NextBuilding_Prev)

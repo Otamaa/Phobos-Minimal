@@ -615,6 +615,11 @@ public:
 	//        MAP REVEAL BRAINDAMAGE
 	// ====================================
 
+	void RevealRadius(CoordStruct* a2, int RevealTriggerRadius)
+		{ JMP_THIS(0x567F70); }
+
+	void RevealFOG() 
+		{ JMP_THIS(0x578100); }
 	/*
 	 * TechnoClass::Fire uses this for RevealOnFire on player's own units (radius = 3)
 	 * TechnoClass::See uses this on all (singleCampaign || !MultiplayPassive) units
@@ -858,6 +863,15 @@ public:
 	// Checks if the area is in the visible portion of map.
 	bool InLocalRadar(RectangleStruct* pRect, bool checkLevel)
 	{ JMP_THIS(0x578390); }
+
+	void ClearAllSmudges()
+	{ JMP_THIS(0x588AC0); }
+
+	void ResizeMap()
+	{ JMP_THIS(0x578850); }
+
+	CellClass* GetResizedCell()
+	{ JMP_THIS(0x578710); }
 
 	//find_type 0 - 3 ,range and threadposed related
 	static BuildingClass* __fastcall FindEnemyBuilding(BuildingTypeClass* type, HouseClass* house, TechnoClass* attacker, int find_type, bool OnlyTargetHouseEnemy)

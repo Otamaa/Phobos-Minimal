@@ -36,6 +36,9 @@ public:
 	bool StartListening()
 	{ JMP_THIS(0x7B1BC0) }
 
+	void StopListening()
+	{ JMP_THIS(0x7B1C50) }
+
 	void DiscardInBuffers()
 	{ JMP_THIS(0x7B1CA0) }
 

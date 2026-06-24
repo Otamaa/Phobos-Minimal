@@ -38,5 +38,7 @@ public:
 	virtual void Execute(WWKey eInput) const = 0;
 
 	static void __fastcall InitCommand() { JMP_FAST(0x532150); }
+	static void __fastcall JumpHomeCommand() { JMP_FAST(0x7315A0); }
+
 };
 static_assert(sizeof(CommandClass) == 0x4, "Invalid size.");

@@ -291,6 +291,13 @@ struct _RocketLocomotionClass
 		return result;
 	}
 
+	// Shadow_Point of RocketLoco was forgotten to be set to {0,0}. It was an oversight.
+	static Point2D* __stdcall _Shadow_Point(ILocomotion* pThis, Point2D* a2) {
+		a2->X = 0;
+		a2->Y = 0;
+		return a2;
+	}
+
 	static void __stdcall _Move_To(ILocomotion* pThis, CoordStruct to)
 	{
 		auto pRocket = static_cast<RocketLocomotionClass*>(pThis);
@@ -668,6 +675,7 @@ public:
 	}
 };
 
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0B4C, _RocketLocomotionClass::_Shadow_Point);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0B60, _RocketLocomotionClass::_Move_To);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0B40, _RocketLocomotionClass::_Draw_Matrix);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0B9C, _RocketLocomotionClass::_Is_Moving_Now);

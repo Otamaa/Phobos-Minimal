@@ -9,6 +9,7 @@
 #include <Unsorted.h>
 #include <CCINIClass.h>
 #include <StringTable.h>
+#include <OwnerDraw.h>
 
 class MoviesList
 {

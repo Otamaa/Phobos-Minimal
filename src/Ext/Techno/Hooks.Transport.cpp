@@ -388,6 +388,7 @@ ASMJIT_PATCH(0x69FFB6, ShipLocomotionClass_Process_CheckUnload, 0x5)
 }
 
 // Enter building
+// BuildingClass_Receive_Message
 DEFINE_JUMP(LJMP, 0x43C38D, 0x43C3FF); // Skip amphibious and naval check if no Ares
 
 // Enter unit

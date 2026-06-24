@@ -64,7 +64,8 @@ public:
 	void Push_Cell(CellStruct* a2)JMP_THIS(0x6551C0);
 
 	void UpdateRadarStatus(bool status) { JMP_THIS(0x656DF0); }
-
+	void RadarClass_reinit() { JMP_THIS(0x655990); }
+	
 	Point2D* GetCrdOnRadar(Point2D* pOutBuffer, CoordStruct* pCrd, bool bRestrictToBound) {
 		JMP_THIS(0x6557F0);
 	}

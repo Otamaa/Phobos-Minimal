@@ -113,6 +113,9 @@ public:
 	static void __fastcall ImmedietelyPlayAt(int n, const CoordStruct* coords, AudioController* pCtrl)
 		{ JMP_FAST(0x7509E0); }
 
+	static void __fastcall StopPlayAt(CoordStruct* pCoord , int arg)
+		{ JMP_FAST(0x750F40); }
+
 	static void SafeImmedietelyPlayAt(int n, const CoordStruct* coords, AudioController* pCtrl = nullptr){
 		if(n < 0)
 			return;

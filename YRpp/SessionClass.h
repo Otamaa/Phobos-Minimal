@@ -641,6 +641,51 @@ public:
 
 	void Resume()
 		{ JMP_THIS(0x69BAB0) }
+
+	// Is the given house (or the local player, when null) the game's master/host?
+	// Reads MasterPlayerID, falling back to MasterPlayerName, then to the first
+	// non-defeated human house.
+	bool Am_I_Master(HouseClass* who = nullptr)
+		{ JMP_THIS(0x697E70) }
+
+	// --- Fields the static layout above does not name, accessed by fixed offset.
+	//     Offsets verified against gamemd.exe.
+
+	// Non-zero while the session is suspended: the dialog message handler then
+	// services Call_Back() instead of recursively running the main loop.
+	int& Suspended()
+		{ return *reinterpret_cast<int*>(reinterpret_cast<char*>(this) + 0x287C); }
+
+	// Non-zero while an in-game frame is running (set by the resume routine at
+	// 0x69BAB0, cleared by the pause routine at 0x69BB40). The owner-draw painter
+	// (OwnerDraw::Draw_Menu) checks this to choose the dialog backdrop: when set
+	// it redraws the in-game sidebar behind a band-1 dialog, when clear it draws
+	// the full multiplayer menu screen (mpyscrnl). Clear it to give an in-game
+	// dialog the menu backdrop, and restore it afterwards.
+	bool& InGameFrameActive()
+		{ return *reinterpret_cast<bool*>(reinterpret_cast<char*>(this) + 0x30D8); }
+
+	// House index of the current game master/host, or -1 if none assigned.
+	int& MasterPlayerID()
+		{ return *reinterpret_cast<int*>(reinterpret_cast<char*>(this) + 0x3074); }
+
+	// UTF-16 name of the current game master/host (wchar_t[21]).
+	wchar_t* MasterPlayerName()
+		{ return reinterpret_cast<wchar_t*>(reinterpret_cast<char*>(this) + 0x3020); }
+
+	// Drops a player's connection by house index: prints the "connection
+	// lost" (error == 1) / "left game" (error == 0) message, deletes the IPX
+	// connection, queues the remove-player event and reassigns the host.
+	static void __fastcall Destroy_Connection(int id, int error)
+		{ JMP_STD(0x5DA750) }
+
+	// Incoming global-packet receive buffers, filled by
+	// IPXManagerClass::Get_Global_Message. GlobalReceivePacket is the raw packet
+	// (engine GlobalPacketType, 0x1C7 bytes; cast to the desired packet struct);
+	// GlobalReceiveAddress is the sender's address.
+	DEFINE_REFERENCE(char, GlobalReceivePacket, 0xA8D638)
+	DEFINE_REFERENCE(IPXAddressClass, GlobalReceiveAddress, 0xA8D804)
+
 public:
 	GameMode GameMode;
 	MPGameModeClass* MPGameMode;

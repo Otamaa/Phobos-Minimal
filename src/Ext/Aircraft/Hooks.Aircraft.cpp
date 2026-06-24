@@ -79,7 +79,7 @@ void FakeAircraftClass::_AI()
 			}
 		}
 
-		auto pExt = TechnoExtContainer::Instance.Find(this);
+		//auto pExt = TechnoExtContainer::Instance.Find(this);
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
 
 		//pExt->UpdateAircraftOpentopped();

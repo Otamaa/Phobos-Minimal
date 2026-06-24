@@ -54,7 +54,7 @@ ASMJIT_PATCH(0x692686, DisplayClass_WhatAction_Cloak, 0x6)
 // }
 
 // Fixed the issue where non-repairer units needed sensors to attack cloaked friendly units.
-DEFINE_JUMP(LJMP, 0x6FC278, 0x6FC289);
+//DEFINE_JUMP(LJMP, 0x6FC278, 0x6FC289);
 
 ASMJIT_PATCH(0x703A09, TechnoClass_VisualCharacter_CloakVisibility, 0x7)
 {

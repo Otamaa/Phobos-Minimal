@@ -70,15 +70,16 @@ void BannerClass::Render()
 void BannerClass::RenderPCX(Point2D position)
 {
 	BSurface* pcx = this->Type->PCX.GetSurface();
+
+	if (!pcx)
+		return;
+
 	position.X -= pcx->Width / 2;
 	position.Y -= pcx->Height / 2;
 
-	// Clamp the position to keep the PCX within the visible area,
-	// preventing it from being drawn partially off-screen.
-	int maxX = std::max(0, DSurface::ViewBounds->Width - pcx->Width);
-	int maxY = std::max(0, DSurface::ViewBounds->Height - pcx->Height);
-	position.X = std::clamp(position.X, 0, maxX);
-	position.Y = std::clamp(position.Y, 0, maxY);
+	if(this->Type->ClampToScreen) {
+		BannerClass::Clamp(position, pcx->Width,pcx->Height);
+	}
 
 	RectangleStruct bounds(position.X, position.Y, pcx->Width, pcx->Height);
 	PCXImages::Instance->BlitToSurface(&bounds, DSurface::Composite, pcx);
@@ -87,16 +88,16 @@ void BannerClass::RenderPCX(Point2D position)
 void BannerClass::RenderSHP(Point2D position)
 {
 	SHPStruct* shape = this->Type->Shape;
+	if (!shape)
+		return;
+
 	ConvertClass* palette = this->Type->Palette.GetOrDefaultConvert(FileSystem::PALETTE_PAL);
 	position.X -= shape->Width / 2;
 	position.Y -= shape->Height / 2;
 
-	// Clamp the position to keep the SHP within the visible area,
-	// preventing it from being drawn partially off-screen.
-	int maxX = std::max(0, DSurface::ViewBounds->Width - shape->Width);
-	int maxY = std::max(0, DSurface::ViewBounds->Height - shape->Height);
-	position.X = std::clamp(position.X, 0, maxX);
-	position.Y = std::clamp(position.Y, 0, maxY);
+	if(this->Type->ClampToScreen) {
+		BannerClass::Clamp(position, shape->Width, shape->Height);
+	}
 
 	DSurface::Composite->DrawSHP
 	(
@@ -125,9 +126,8 @@ void BannerClass::RenderSHP(Point2D position)
 
 void BannerClass::RenderCSF(Point2D position)
 {
-	static fmt::basic_memory_buffer<wchar_t> buffer;
-
-	buffer.clear();
+	// the banner is multiple instances, so sharing static buffer is kind a doesnt make sense here
+	fmt::basic_memory_buffer<wchar_t> buffer {};
 
 	if (this->Type->CSF_VariableFormat != BannerNumberType::None) {
 
@@ -147,38 +147,44 @@ void BannerClass::RenderCSF(Point2D position)
 			case BannerNumberType::Suffixed:
 				fmt::format_to(std::back_inserter(buffer), L"{}{}", this->Type->CSF.Get().Text, it->second.Value);
 				break;
+			default:
+				//Debug::Log("Variation is not recognized for BannerNumberType !\n");
+				return;
 			}
 		}
 	} else {
 		fmt::format_to(std::back_inserter(buffer), L"{}", this->Type->CSF.Get().Text);
 	}
 
-	if (buffer.size() == 0)
+	if (buffer.size() == 0) {
+		//Debug::Log("Cannot Draw Empty string with BannerClass::RenderCSF !\n");
 		return;
-
+	}
+		
 	buffer.push_back(L'\0');
 
 	TextPrintType textFlags = TextPrintType::UseGradPal
+
 		| TextPrintType::Metal12
 		| (this->Type->CSF_Background
 			? TextPrintType::Background
-			: TextPrintType::LASTPOINT);
+			: TextPrintType::LASTPOINT)
+		| (this->Type->ClampToScreen
+			? TextPrintType::LASTPOINT
+			: TextPrintType::Center);
 
-		// Measure the text, manually center, then clamp to screen bounds
-	// (same pattern as RenderPCX and RenderSHP).
-	RectangleStruct textRect = Drawing::GetTextDimensions(
+	if(this->Type->ClampToScreen) {
+		RectangleStruct textRect = Drawing::GetTextDimensions(
 		buffer.data(), position, textFlags, 0 , 0);
-	position.X -= textRect.Width / 2;
-	position.Y -= textRect.Height / 2;
-	int maxX = std::max(0, DSurface::ViewBounds->Width - textRect.Width);
-	int maxY = std::max(0, DSurface::ViewBounds->Height - textRect.Height);
-	position.X = std::clamp(position.X, 0, maxX);
-	position.Y = std::clamp(position.Y, 0, maxY);
+		position.X -= textRect.Width / 2;
+		position.Y -= textRect.Height / 2;
+		BannerClass::Clamp(position, textRect.Width, textRect.Height);
+	}
 
 	DSurface::Composite->DSurfaceDrawText
 	(
 		buffer.data(),
-		&textRect,
+		&DSurface::ViewBounds(),
 		&position,
 		this->Type->CSF_Color.Get(Drawing::TooltipColor).ToInit(),
 		0,
@@ -210,4 +216,3 @@ bool BannerClass::Save(PhobosStreamWriter& stm) const
 {
 	return const_cast<BannerClass*>(this)->Serialize(stm);
 }
-

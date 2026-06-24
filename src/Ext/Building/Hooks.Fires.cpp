@@ -89,6 +89,7 @@ ASMJIT_PATCH(0x44EA1A, BuildingClass_DetachOrInvalidPtr_handle, 0x8)
 }
 
 //remove it from load
+//BuildingClass_Load
 DEFINE_JUMP(LJMP, 0x454154, 0x454170);
 
 #endif

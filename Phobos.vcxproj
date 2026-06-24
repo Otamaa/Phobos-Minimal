@@ -96,6 +96,7 @@
     <ClCompile Include="src\Ext\Unit\Hooks.Unit.cpp" />
     <ClCompile Include="src\Lib\lodepng\lodepng.cpp" />
     <ClCompile Include="src\Misc\Renderer\GlobalColorPacker.cpp" />
+    <ClCompile Include="src\Misc\Spawner\DesyncHandler.cpp" />
     <ClCompile Include="src\New\Entity\FactoryPlantClass.cpp" />
     <ClCompile Include="src\Commands\AggressiveModeClass.cpp" />
     <ClCompile Include="src\Commands\CeasefireModeClass.cpp" />
@@ -365,7 +366,7 @@
     <ClCompile Include="src\Ext\INI\Hooks.INIFiles.cpp" />
     <ClCompile Include="src\Ext\Mouse\Hooks.MouseCursors.cpp" />
     <ClCompile Include="src\Misc\Hooks.Movies.cpp" />
-    <ClCompile Include="src\Misc\Hooks.Networking.cpp" />
+    <ClCompile Include="src\Ext\Event\Hooks.cpp" />
     <ClCompile Include="src\Ext\ParticleSystem\Hooks.Particle.cpp" />
     <ClCompile Include="src\Misc\Hooks.Perf.cpp" />
     <ClCompile Include="src\Ext\Building\Hooks.Prism.cpp" />
@@ -650,6 +651,7 @@
     <ClInclude Include="src\Ext\Session\Body.h" />
     <ClInclude Include="src\Lib\lodepng\lodepng.h" />
     <ClInclude Include="src\Misc\Renderer\GlobalColorPacker.h" />
+    <ClInclude Include="src\Misc\Spawner\UI\DesyncDialog.Resource.h" />
     <ClInclude Include="src\New\Entity\FactoryPlantClass.h" />
     <ClInclude Include="src\Commands\AggressiveModeClass.h" />
     <ClInclude Include="src\Commands\CeasefireModeClass.h" />
@@ -974,6 +976,7 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\Misc\MultiplayerGameOptionsDialog.rc" />
+    <ResourceCompile Include="src\Misc\Spawner\UI\DesyncDialog.rc" />
     <ResourceCompile Include="src\version.rc" />
   </ItemGroup>
   <ItemGroup>

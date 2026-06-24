@@ -93,6 +93,7 @@ ASMJIT_PATCH(0x649851, WaitForPlayers_OnlineOptimizations, 0x5)
  //	, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90
  //);
 
+ //ObjectClass_Mark
  DEFINE_JUMP(LJMP, 0x5F5896 , 0x5F58E1);
 //  ASMJIT_PATCH(0x5F5893, ObjectClass_Mark_Unessesarycalls, 0x5) {
 //  	return R->EBX<int>() == 1 ? 0x5F58EC : 0x5F58E7;
@@ -154,6 +155,7 @@ ASMJIT_PATCH(0x50C8F4, HouseClass_Flag_To_Chear_Disable ,0x5)
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x6D8640, FakeTacticalClass::__ClampTacticalPos)
 
+//Start_Mouse_Thread
 DEFINE_PATCH_ADDR_OFFSET(DWORD , 0x7B8536, 6, 1);
 
 #pragma region InfBlockTreeFix

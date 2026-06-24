@@ -71,6 +71,8 @@ public:
 		return outBuffer;
 	}
 
+	void EnroachShadow() const { JMP_THIS(0x4ACAC0); }
+
 	void RemoveObject(ObjectClass* pObject) const
 	   { JMP_THIS(0x4A9770); }
 

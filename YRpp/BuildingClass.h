@@ -467,7 +467,7 @@ public:
 	CoordStruct PrismTargetCoords;
 	int DelayBeforeFiring; //714
 
-	int BunkerState; // used in UpdateBunker and friends 0x718
+	TankBunkerState CurrentTankBunkerState; // used in UpdateBunker and friends 0x718
 	DWORD unused_71C;
 };
 static_assert(offsetof(BuildingClass, RequiresDamageFires) == 0x5E8, "ClassMember Shifted !");

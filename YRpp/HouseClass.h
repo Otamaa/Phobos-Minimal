@@ -1165,6 +1165,24 @@ public:
 	
 	void GenerateAIBuildList()
 		{ JMP_THIS(0x5054B0); }
+	
+	void BuildBaseBuilding()
+	    { JMP_THIS(0x50C210); }
+
+	void ClearDefensiveTarget()
+		{ JMP_THIS(0x50DA50); }
+
+	void SetDefensiveTarget(CellStruct cell)
+		{ JMP_THIS(0x50DA20); }
+
+	void RestoreMindControlledBase(HouseClass* pOriginalOwner)
+		{ JMP_THIS(0x50D2D0); }
+
+	void MindControlBaseOf(HouseClass* pToOwner) 
+		{ JMP_THIS(0x50D290); }
+
+	void TeleportAllTo(CellStruct a2)
+		{ JMP_THIS(0x50D6D0); }
 
 	//Constructor
 	HouseClass(HouseTypeClass* pCountry) noexcept
@@ -1237,7 +1255,10 @@ public:
 	bool                  CiviliansEvacuated; // used by the CivEvac triggers
 	bool                  FirestormActive;
 	bool                  HasThreatNode;
-	bool                  RecheckTechTree;
+	union {
+		bool                 IsRecalcNeeded;
+		bool                  RecheckTechTree;
+	};
 	int					  IPAddress;
 	int					  TournamentTeamID;
 	bool				  LostConnection;
@@ -1415,7 +1436,7 @@ public:
 	int                   RatioAITriggerTeam;
 	int                   RatioTeamAircraft;
 	int                   RatioTeamInfantry;
-	int                   RatioTeamBuildings;
+	int                   RatioTeamUnits;
 	int                   BaseDefenseTeamCount;
 	DECLARE_PROPERTY_ARRAY(DropshipStruct, DropshipData, 3);
 	int                   CurrentDropshipIndex;

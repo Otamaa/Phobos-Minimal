@@ -119,7 +119,7 @@
 // 	return IsHuman &&  Allow || !IsHuman && AllowAI
 // 		? BypassCheck : ContinueCheck;
 // }
-DEFINE_JUMP(LJMP, 0x6FC22A, 0x6FC24D) // Skip IronCurtain check
+//DEFINE_JUMP(LJMP, 0x6FC22A, 0x6FC24D) // Skip IronCurtain check
 
 static_assert(offsetof(HouseClass, IsHumanPlayer) == 0x1EC, "ClassMember Shifted !");
 static_assert(offsetof(HouseClass, IsInPlayerControl) == 0x1ED, "ClassMember Shifted !");
@@ -1671,7 +1671,7 @@ ASMJIT_PATCH(0x42CCC8, AStarClass_FindPath_Exit, 0x6)
 //	return 0;
 //}
 
-DEFINE_JUMP(LJMP, 0x4184FC, 0x418506);
+//DEFINE_JUMP(LJMP, 0x4184FC, 0x418506);
 // ASMJIT_PATCH(0x4184FC, AircraftClass_Mission_Attack_Fire_Zero, 0x6) {
 // 	return 0x418506;
 // }

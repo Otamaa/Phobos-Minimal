@@ -114,6 +114,19 @@ static bool IsPrefiring(TechnoClass* pThis, WeaponTypeClass* pWeapon)
 	}
 }
 
+// westwood does firingUnit->WhatAmI() == abs_AircraftType
+// which naturally never works
+// let's see what this change does
+// ASMJIT_PATCH(0x6F7561, TechnoClass_Targeting_Arcing_Aircraft, 0x5)
+// {
+// 	GET(AbstractType, pTarget, EAX);
+// 	GET(CoordStruct*, pCoord, ESI);
+// 	R->EAX(pCoord->X);
+//	return pTarget == AbstractType::Aircraft ? 0x6F75B2 : 0x6F7568;
+// }
+// check 6F7220
+DEFINE_PATCH_ADDR_OFFSET(byte, 0x6F7561, 0x2 , 0x2);
+
 ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 {
 	enum { ContinueCheck = 0x6F72E3, RetTrue = 0x6F7256, RetFalse = 0x6F7655 };
@@ -214,12 +227,12 @@ ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 // ASMJIT_PATCH(0x70CF6F, TechnoClass_ThreatCoefficients_WeaponRange, 0x6)
 // {
 // 	enum { SkipGameCode = 0x70CF75 };
-
+//
 // 	GET(TechnoClass*, pThis, EDI);
 // 	GET(WeaponTypeClass*, pWeapon, EBX);
-
+//
 // 	R->EAX(WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis));
-
+//
 // 	return SkipGameCode;
 // }
 

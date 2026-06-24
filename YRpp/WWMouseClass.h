@@ -63,7 +63,10 @@ public:
 	virtual void CaptureMouse()
 		{ JMP_THIS(0x7B9A60); }
 
-	virtual byte GetField10()
+	// Non-zero while the game owns (draws) the software mouse cursor. The engine's
+	// in-game dialogs release the mouse on open and re-capture it on close only
+	// when this is set (e.g. Wait_For_Players @0x648C7C).
+	virtual byte IsCaptured()
 		{ JMP_THIS(0x7BA330); }
 
 	virtual void func_20(int x_pos, int y_pos, int width, int height)

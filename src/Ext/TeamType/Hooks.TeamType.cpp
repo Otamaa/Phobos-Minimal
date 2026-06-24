@@ -94,59 +94,8 @@ TeamClass* FakeTeamTypeClass::_CreateOneOf(HouseClass* pHouse){
 }
 DEFINE_FUNCTION_JUMP(LJMP, 0x6F09C0, FakeTeamTypeClass::_CreateOneOf)
 
-//ASMJIT_PATCH(0x6F09C0, TeamTypeClass_CreateOneOf_Handled, 0x9)
-//{
-//	GET(TeamTypeClass*, pThis, ECX);
-//	GET_STACK(DWORD, caller, 0x0);
-//	GET_STACK(HouseClass*, pHouse, 0x4);
-//
-//	if (!pHouse)
-//	{
-//		pHouse = pThis->Owner;
-//		if (!pHouse)
-//		{
-//			if (HouseClass::Index_IsMP(pThis->idxHouse))
-//			{
-//				pHouse = HouseClass::FindByPlayerAt(pThis->idxHouse);
-//			}
-//		}
-//	}
-//
-//	if (!pHouse)
-//	{
-//		R->EAX<TeamClass*>(nullptr);
-//		return 0x6F0A2C;
-//	}
-//
-//	if (!Unsorted::ScenarioInit())
-//	{
-//		if (pThis->Max >= 0)
-//		{
-//			if (SessionClass::Instance->GameMode != GameMode::Campaign)
-//			{
-//				if (pHouse->GetTeamCount(pThis) >= pThis->Max)
-//				{
-//					R->EAX<TeamClass*>(nullptr);
-//					return 0x6F0A2C;
-//				}
-//			}
-//			else if (pThis->cntInstances >= pThis->Max)
-//			{
-//				R->EAX<TeamClass*>(nullptr);
-//				return 0x6F0A2C;
-//			}
-//		}
-//	}
-//
-//	const auto pTeam = GameCreate<TeamClass>(pThis, pHouse, false);
-//	Debug::LogInfo("[{0} - {1}] Creating a new team named [{2} -{3}] caller [{4:x}].",
-//		pHouse->get_ID(), (void*)pHouse, pThis->ID, (void*)pTeam, caller);
-//	R->EAX(pTeam);
-//	return 0x6F0A2C;
-//}
-
 // Dead code — superseded by DEFINE_FUNCTION_JUMP at 0x65D8E0; logic integrated into _DoReinforcement
-//ASMJIT_PATCH(0x65DBB3, TeamTypeClass_CreateInstance_Plane, 5)
+//ASMJIT_PATCH(0x65DBB3, TeamTypeClass_CreateInstance_Plane_DoReinforcement, 5)
 //{
 //	GET(FootClass*, pFoot, EBP);
 //	R->ECX(HouseExtData::GetParadropPlane(pFoot->Owner));
@@ -156,24 +105,26 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x6F09C0, FakeTeamTypeClass::_CreateOneOf)
 
 // #1260: reinforcements via actions 7 and 80, and chrono reinforcements
 // via action 107 cause crash if house doesn't exist
-ASMJIT_PATCH(0x65D8FB, TeamTypeClass_ValidateHouse, 6)
+//ASMJIT_PATCH(0x65D8FB, TeamTypeClass_Do_Reinforcement_ValidateHouse, 6)
+//
+//{
+//	GET(TeamTypeClass*, pThis, ECX);
+//	HouseClass* pHouse = pThis->GetHouse();
+//
+//	// house exists; it's either declared explicitly (not Player@X) or a in campaign mode
+//	// (we don't second guess those), or it's still alive in a multiplayer game
+//	if (pHouse &&
+//		(pThis->Owner || SessionClass::Instance->GameMode == GameMode::Campaign || !pHouse->Defeated))
+//	{
+//		return 0;
+//	}
+//
+//	// no.
+//	return (R->Origin() == 0x65D8FB) ? 0x65DD1B : 0x65F301;
+//	//0x65F301;
+//}ASMJIT_PATCH_AGAIN(0x65EC4A, TeamTypeClass_Do_Reinforcement_ValidateHouse, 6)
 
-{
-	GET(TeamTypeClass*, pThis, ECX);
-	HouseClass* pHouse = pThis->GetHouse();
 
-	// house exists; it's either declared explicitly (not Player@X) or a in campaign mode
-	// (we don't second guess those), or it's still alive in a multiplayer game
-	if (pHouse &&
-		(pThis->Owner || SessionClass::Instance->GameMode == GameMode::Campaign || !pHouse->Defeated))
-	{
-		return 0;
-	}
-
-	// no.
-	return (R->Origin() == 0x65D8FB) ? 0x65DD1B : 0x65F301;
-	//0x65F301;
-}ASMJIT_PATCH_AGAIN(0x65EC4A, TeamTypeClass_ValidateHouse, 6)
 // ============================================================================
 // Full backport of _Create_Group (65DD30–65E00E)
 // Integrates:
@@ -189,8 +140,7 @@ FootClass* __fastcall FakeTeamTypeClass::_CreateGroup(TeamTypeClass* pType)
 		Debug::FatalErrorAndExit("Creating Team[%s] groub without proper Ownership may cause crash , Please check !", pType->ID);
 
 	auto* pTeam = GameCreate<TeamClass>(pType, pOwner, false);
-	if (pTeam)
-	{
+	if (pTeam) {
 		pTeam->IsForcedActive = true;
 		pTeam->IsUnderStrength = false;
 	}
@@ -335,11 +285,13 @@ FootClass* __fastcall FakeTeamTypeClass::_CreateGroup(TeamTypeClass* pType)
 	if (pObject)
 		return pObject;
 
-	GameDelete(pTeam);
+	//call DTOR , dont delete the pointer immedietely , let the game process it
+	// and handle it automatically
+	CallDTOR(pTeam);
 	return nullptr;
 }
 
-//DEFINE_FUNCTION_JUMP(LJMP, 0x65DD30, FakeTeamTypeClass::_CreateGroup)
+DEFINE_FUNCTION_JUMP(LJMP, 0x65DD30, FakeTeamTypeClass::_CreateGroup)
 
 bool __fastcall FakeTeamTypeClass::_TunnelMaybe(TeamTypeClass* pType, FootClass* pGroup, CellStruct waypointCell, bool inRadar)
 {
@@ -402,8 +354,7 @@ bool __fastcall FakeTeamTypeClass::_TunnelMaybe(TeamTypeClass* pType, FootClass*
 			const CoordStruct targetCoord { spawnCell.X * 256 + 128, spawnCell.Y * 256 + 128, 0 };
 			pCurrent->SetLocation(targetCoord);
 			pCurrent->SetDestination(MapClass::Instance->GetCellAt(spawnCell), true);
-			if (pCurrent->Locomotor)
-				pCurrent->Locomotor->Move_To(targetCoord);
+			pCurrent->Locomotor->Move_To(targetCoord);
 			pCurrent->UpdateSight(false, 0, false, nullptr, 0);
 			placed = true;
 		}
@@ -419,7 +370,6 @@ bool __fastcall FakeTeamTypeClass::_TunnelMaybe(TeamTypeClass* pType, FootClass*
 				pCurrent->SetDestination(MapClass::Instance->GetCellAt(spawnCell), true);
 				pCurrent->SetSpeedPercentage(1.0);
 				const CoordStruct moveTo { spawnCell.X * 256 + 128, spawnCell.Y * 256 + 128, 0 };
-				if (pCurrent->Locomotor)
 					pCurrent->Locomotor->Move_To(moveTo);
 			}
 		}
@@ -479,7 +429,7 @@ bool __fastcall FakeTeamTypeClass::_TunnelMaybe(TeamTypeClass* pType, FootClass*
 			if (!found || (spawnCell.X == waypointCell.X && spawnCell.Y == waypointCell.Y))
 			{
 				spawnCell = waypointCell;
-				GameDelete(pCurrent);
+				CallDTOR(pCurrent);
 				pCurrent = nullptr;
 			}
 		}
@@ -496,20 +446,20 @@ bool __fastcall FakeTeamTypeClass::_TunnelMaybe(TeamTypeClass* pType, FootClass*
 	}
 
 	if (pCurrent)
-		GameDelete(pCurrent);
+		CallDTOR(pCurrent);
 
 	while (pRemaining)
 	{
 		auto* pNext = static_cast<FootClass*>(pRemaining->NextObject);
 		pRemaining->NextObject = nullptr;
-		GameDelete(pRemaining);
+		CallDTOR(pRemaining);
 		pRemaining = pNext;
 	}
 
 	return didPlaceAny;
 }
 
-//DEFINE_FUNCTION_JUMP(LJMP, 0x65E010, FakeTeamTypeClass::_TunnelMaybe)
+DEFINE_FUNCTION_JUMP(LJMP, 0x65E010, FakeTeamTypeClass::_TunnelMaybe)
 
 // ============================================================================
 // Full backport of Do_Reinforcements (65D8E0–65DD25)
@@ -614,7 +564,7 @@ bool __fastcall FakeTeamTypeClass::_DoReinforcement(TeamTypeClass* pType, int wa
 					}
 					else
 					{
-						GameDelete(pCurrent);
+						CallDTOR(pCurrent);
 					}
 
 					pCurrent = pNext;
@@ -685,7 +635,7 @@ bool __fastcall FakeTeamTypeClass::_DoReinforcement(TeamTypeClass* pType, int wa
 
 		if (!placed)
 		{
-			GameDelete(pPlane);
+			CallDTOR(pPlane);
 			return true;
 		}
 
@@ -709,4 +659,4 @@ bool __fastcall FakeTeamTypeClass::_DoReinforcement(TeamTypeClass* pType, int wa
 	return true;
 }
 
-//DEFINE_FUNCTION_JUMP(LJMP, 0x65D8E0, FakeTeamTypeClass::_DoReinforcement)
+DEFINE_FUNCTION_JUMP(LJMP, 0x65D8E0, FakeTeamTypeClass::_DoReinforcement)

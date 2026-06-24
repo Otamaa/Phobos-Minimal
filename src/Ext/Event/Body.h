@@ -203,4 +203,12 @@ public:
 	}
 };
 
+
+class FakeEventClass : public EventClass
+{
+	void _Execute();
+};
+
+static_assert(sizeof(FakeEventClass) == sizeof(EventClass), "Size Missmatch !");
+
 #undef SET_DEFAULT_PROP

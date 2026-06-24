@@ -116,6 +116,9 @@ TerrainExtContainer TerrainExtContainer::Instance;
 //==============================
 
 // container hooks
+
+//TerrainClass_CTOR
+// override the placing/unlimbo check to add way to generate AdjecentCellsInRange 
 DEFINE_JUMP(LJMP, 0x71BC31 , 0x71BC86);
 
 ASMJIT_PATCH(0x71BE74, TerrainClass_CTOR, 0x5)
@@ -134,7 +137,7 @@ ASMJIT_PATCH(0x71BCA5, TerrainClass_CTOR_MoveAndAllocate, 0x5)
 
 	if(auto pExt = TerrainExtContainer::Instance.Allocate(pItem)){
 		if (pCoord->IsValid()) {
-			//vtable may not instantiated
+			//call directly dont use vtable
 			if (!pItem->TerrainClass::Unlimbo(CellClass::Cell2Coord(*pCoord), static_cast<DirType>(0))) {
 				pItem->ObjectClass::UnInit();
 			}

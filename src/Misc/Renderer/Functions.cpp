@@ -521,7 +521,7 @@ int* __fastcall RenderDX::EnumDisplayModes(DWORD minw, DWORD minh, DWORD maxw, D
 
 void __fastcall RenderDX::MainProcHandlePaint() {
 	if (DXMouse::Instance() && DSurface::Primary() && DSurface::Hidden() && DSurface::Composite()) {
-		if (Game::InScenario2()) {
+		if (Game::UserInputLocked()) {
 			Game::Update_Visible_Surface(DXMouse::Instance->Is_Captured(), DSurface::Composite(), nullptr);
 			SidebarClass::Instance->Do_Blit(true);
 		}

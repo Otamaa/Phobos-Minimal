@@ -116,6 +116,7 @@ ASMJIT_PATCH(0x443892, BuildingClass_SetRallyPoint_Naval_UndeploysInto, 0x6)
 
 // issue #232: Naval=yes overrides WaterBound=no and prevents move orders onto Land cells
 // Author: Uranusian
+// CellClass_Is_Clear_To_Build
 DEFINE_JUMP(LJMP, 0x47CA05, 0x47CA33);
 
 static bool NOINLINE IsTemporalptrValid(TemporalClass* pThis)
@@ -333,6 +334,7 @@ ASMJIT_PATCH(0x73EFD8, UnitClass_Mission_Hunt_DeploysInto, 0x6)
 // Fixes an issue in TechnoClass::Record_The_Kill that prevents vehicle kills from being recorded
 // correctly if killed by damage that has owner house but no owner techno (animation warhead damage, radiation with owner etc.
 // Author: Starkku (modified by Otamaa)
+// TechnoClass::Record_The_Kill2
 DEFINE_JUMP(LJMP, 0x7032BC, 0x7032D0); //this was checking (IsActive) twice , wtf
 
 // Bugfix: TAction 7,80,107.
@@ -698,13 +700,6 @@ ASMJIT_PATCH(0x68C4C4, GenerateColorSpread_ShadeCountSet, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x4C780A, EventClass_Execute_DeployEvent_NoVoiceFix, 0x6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	pThis->VoiceDeploy();
-	return 0x0;
-}
-
 ASMJIT_PATCH(0x730D0F, ProcessDeployCommand_LowDeployPriority, 0x6)
 {
 	enum { SkipDeploy = 0x730D24 };
@@ -804,8 +799,8 @@ ASMJIT_PATCH(0x6B75AC, SpawnManagerClass_AI_SetDestinationForMissiles, 0x5)
 	return 0x6B75BC;
 }
 
-DEFINE_JUMP(LJMP, 0x6E0BD4, 0x6E0BFE);
-DEFINE_JUMP(LJMP, 0x6E0C1D, 0x6E0C8B);//Simplify TAction 36
+//DEFINE_JUMP(LJMP, 0x6E0BD4, 0x6E0BFE);
+//DEFINE_JUMP(LJMP, 0x6E0C1D, 0x6E0C8B);//Simplify TAction 36
 
 #include <Ext/Scenario/Body.h>
 
@@ -826,9 +821,13 @@ ASMJIT_PATCH(0x689EB0, ScenarioClass_ReadMap_SkipHeaderInCampaign, 0x6)
 }
 
 // Skip incorrect load ctor call in various LocomotionClass_Load
+//TeleportLocomotionClass_Load
 DEFINE_JUMP(LJMP, 0x719CBC, 0x719CD8);//Teleport, notorious CLEG frozen state removal on loading game
+//TunnelLocomotionClass_Load
 DEFINE_JUMP(LJMP, 0x72A16A, 0x72A186);//Tunnel, not a big deal
+//RocketLocomotionClass_Load
 DEFINE_JUMP(LJMP, 0x663428, 0x663445);//Rocket, not a big deal
+//HoverLocomotionClass_Load
 DEFINE_JUMP(LJMP, 0x5170CE, 0x5170E0);//Hover, not a big deal
 
 ASMJIT_PATCH(0x4D4B43, FootClass_Mission_Capture_ForbidUnintended, 0x6)
@@ -1573,6 +1572,7 @@ ASMJIT_PATCH(0x50C186, GetHouseIndexFromName_PlayerAtX, 0x6)
 }
 
 // Skip check that prevents buildings from being created for local player.
+//BuildingClass_Read_INI
 DEFINE_JUMP(LJMP, 0x44F8D5, 0x44F8E1);
 
 // Starkku: These fix issues with follower train cars etc) indices being thrown off by preplaced vehicles not being created, having other vehicles as InitialPayload etc.
@@ -1668,92 +1668,6 @@ ASMJIT_PATCH_AGAIN(0x54DADC, LocomotionClass_End_Piggyback_PowerOn, 0x5)//Jumpje
 
 #pragma endregion
 
-ASMJIT_PATCH(0x4C75DA, EventClass_RespondToEvent_Stop, 0x6)
-{
-	enum { SkipGameCode = 0x4C762A };
-
-	GET(TechnoClass* const, pTechno, ESI);
-
-	// Check aircraft
-	const auto pAircraft = cast_to<AircraftClass* , false>(pTechno);
-	const bool commonAircraft = pAircraft && !pAircraft->Airstrike && !pAircraft->Spawned;
-	const auto mission = pTechno->CurrentMission;
-
-	// To avoid aircraft overlap by keep link if is returning or is in airport now.
-	if (!commonAircraft || (mission != Mission::Sleep && mission != Mission::Guard && mission != Mission::Enter)
-		|| !pAircraft->DockedTo || (pAircraft->DockedTo != pAircraft->GetNthLink()))
-	{
-		pTechno->SendToEachLink(RadioCommand::NotifyUnlink);
-	}
-
-	// To avoid technos being unable to stop in attack move mega mission
-	if (pTechno->MegaMissionIsAttackMove())
-		pTechno->ClearMegaMissionData();
-
-	// Clearing the current target should still be necessary for all technos
-	pTechno->SetTarget(nullptr);
-
-	// Stop any enter action
-	pTechno->QueueUpToEnter = nullptr;
-
-	if (commonAircraft)
-	{
-		if (pAircraft->Type->AirportBound)
-		{
-			// To avoid `AirportBound=yes` aircraft with ammo at low altitudes cannot correctly receive stop command and queue Mission::Guard with a `Destination`.
-			if (pAircraft->Ammo)
-				pTechno->SetDestination(nullptr, true);
-
-			// To avoid `AirportBound=yes` aircraft pausing in the air and let they returning to air base immediately.
-			if (!pAircraft->DockedTo || (pAircraft->DockedTo != pAircraft->GetNthLink())) // If the aircraft have no valid dock, try to find a new one
-				pAircraft->EnterIdleMode(false, true);
-		}
-		else if (pAircraft->Ammo)
-		{
-			// To avoid `AirportBound=no` aircraft ignoring the stop task or directly return to the airport.
-			if (pAircraft->Destination && static_cast<int>(CellClass::Coord2Cell(pAircraft->Destination->GetCoords()).DistanceFromSquared(pAircraft->GetMapCoords())) > 2) // If the aircraft is moving, find the forward cell then stop in it
-				pAircraft->SetDestination(pAircraft->GetCell()->GetNeighbourCell(static_cast<FacingType>(pAircraft->PrimaryFacing.Current().GetValue<3>())), true);
-		}
-		else if (!pAircraft->DockedTo || (pAircraft->DockedTo != pAircraft->GetNthLink()))
-		{
-			pAircraft->EnterIdleMode(false, true);
-		}
-		// Otherwise landing or idling normally without answering the stop command
-	}
-	else
-	{
-		const auto pFoot = flag_cast_to<FootClass* , false>(pTechno);
-
-		// Clear archive target for infantries and vehicles like receive a mega mission
-		if (pFoot && !pAircraft)
-			pTechno->SetArchiveTarget(nullptr);
-
-		// Only stop when it is not under the bridge (meeting the original conditions which has been skipped)
-		if (!pTechno->vt_entry_2B0() || pTechno->OnBridge || pTechno->IsInAir() || pTechno->GetCell()->SlopeIndex)
-		{
-			// To avoid foots stuck in Mission::Area_Guard
-			if (pTechno->CurrentMission == Mission::Area_Guard
-					&& !GET_TECHNOTYPE(pTechno)->DefaultToGuardArea)
-				pTechno->QueueMission(Mission::Guard, true);
-
-			// Check Jumpjets
-			const auto pJumpjetLoco = pFoot ? locomotion_cast<JumpjetLocomotionClass*>(pFoot->Locomotor) : nullptr;
-
-			// To avoid jumpjets falling into a state of standing idly by
-			if (!pJumpjetLoco) // If is not jumpjet, clear the destination is enough
-				pTechno->SetDestination(nullptr, true);
-			else if (!pFoot->Destination) // When in attack move and have had a target, the destination will be cleaned up, enter the guard mission can prevent the jumpjets stuck in a status of standing idly by
-				pTechno->QueueMission(Mission::Guard, true);
-			else if (static_cast<int>(CellClass::Coord2Cell(pFoot->Destination->GetCoords()).DistanceFromSquared(pTechno->GetMapCoords())) > 2) // If the jumpjet is moving, find the forward cell then stop in it
-				pTechno->SetDestination(pTechno->GetCell()->GetNeighbourCell(static_cast<FacingType>(pJumpjetLoco->Facing.Current().GetValue<3>())), true);
-
-			// Otherwise landing or idling normally without answering the stop command
-		}
-	}
-
-	return SkipGameCode;
-}
-
 size_t __fastcall Gamestrtohex(char* str) {
 	JMP_FAST(0x412610);
 }
@@ -1793,9 +1707,10 @@ ASMJIT_PATCH(0x6E8300, HexStr2Int_replacement_logTaskForce, 0xA)
 //DEFINE_FUNCTION_JUMP(CALL, 0x6E5FA6, HexStr2Int_replacement); // TagType
 
 // Save GameModeOptions in campaign modes
-DEFINE_JUMP(LJMP, 0x67E3BD, 0x67E3D3); // Save
-DEFINE_JUMP(LJMP, 0x67F72E, 0x67F744); // Load
-DEFINE_JUMP(LJMP, 0x65B3F7, 0x65B416);//RadSite, no effect
+//DEFINE_JUMP(LJMP, 0x67E3BD, 0x67E3D3); // Save //TODO A8B250
+//DEFINE_JUMP(LJMP, 0x67F72E, 0x67F744); // Load
+//RadSiteClass_Load
+DEFINE_JUMP(LJMP, 0x65B3F7, 0x65B416);//RadSite, resetting level timer on load game
 
 #pragma region TeamCloseRangeFix
 
@@ -1974,17 +1889,6 @@ ASMJIT_PATCH(0x4DFB28, FootClass_FindGrinder_CheckValid, 0x8)
 }
 #endif
 
-ASMJIT_PATCH(0x4C7643, EventClass_RespondToEvent_StopTemporal, 0x6)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	auto const pTemporal = pTechno->TemporalImUsing;
-
-	if (pTemporal && pTemporal->Target)
-		pTemporal->LetGo();
-
-	return 0;
-}
-
 // I don't know how can WW miscalculated
 // In fact, there should be three different degrees of tilt angles
 // - EBX -> atan((2*104)/(256√2)) should only be used on the steepest slopes (13-16)
@@ -2013,9 +1917,8 @@ ASMJIT_PATCH(0x73C43F, UnitClass_DrawAsVXL_Shadow_IsLocomotorFix, 0x6)
 }
 
 // Skip incorrect copy, why do copy like this?
-DEFINE_JUMP(LJMP, 0x715326, 0x715333); // TechnoTypeClass::LoadFromINI
+DEFINE_JUMP(LJMP, 0x715326, 0x715333); // TechnoTypeClass_ReadFromINI
 // Then EDI is BarrelAnimData now, not incorrect TurretAnimData
-
 
 ASMJIT_PATCH(0x481778, CellClass_ScatterContent_Scatter, 0x6)
 {
@@ -2152,8 +2055,6 @@ ASMJIT_PATCH(0x51A298, InfantryClass_UpdatePosition_EnterBuilding_CheckSize, 0x6
 	return (pThis->SendCommand(RadioCommand::QueryCanEnter, pDestination) == RadioCommand::AnswerPositive) ? 0 : CannotEnter;
 }
 
-DEFINE_JUMP(LJMP, 0x4C752A, 0x4C757D); // Skip cell under bridge check
-
 // Fix a potential edge case where aircraft gets stuck in 'sleep' (reload/repair) on dock if it gets assigned target from team mission etc.
 ASMJIT_PATCH(0x41915D, AircraftClass_ReceiveCommand_QueryPreparedness, 0x8)
 {
@@ -2287,6 +2188,7 @@ ASMJIT_PATCH(0x70E126, TechnoClass_GetDeployWeapon_InfantryDeployFireWeapon, 0x6
 	return 0x70E12C;
 }
 
+//TechnoClass_Cloaking_AI
 DEFINE_JUMP(LJMP, 0x6FBC0B, 0x6FBC38) // TechnoClass::UpdateCloak
 
 #pragma region AStarBuffer
@@ -2624,28 +2526,6 @@ ASMJIT_PATCH(0x692AD6, ScrollClass_ChooseAction_SellWall, 0x6)
 	return 0;
 }
 
-static bool inline CanBeSold(TechnoClass* pTechno, AbstractType rtti)
-{
-	if (rtti == AbstractType::Building || rtti == AbstractType::Unit || rtti == AbstractType::Aircraft)
-		return pTechno->CanBeSold();
-
-	return false;
-}
-
-// Verify if object can be sold at event level.
-ASMJIT_PATCH(0x4C6F55, EventClass_Execute_Sell, 0x5)
-{
-	enum { SkipGameCode = 0x4C6FA8 };
-
-	GET(TechnoClass*, pTechno, EDI);
-	GET(AbstractType, rtti, EAX);
-
-	if (CanBeSold(pTechno, rtti))
-		pTechno->Sell(-1);
-
-	return SkipGameCode;
-}
-
 ASMJIT_PATCH(0x4D4203, FootClass_Mission_Move_EndCheckFix1, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
@@ -2780,7 +2660,7 @@ ASMJIT_PATCH(0x54B3E7, JumpjetLocomotionClass_Move_To_LocomotorWarheadFix, 0x5)
 
 // Skip the check for Teleporter here; this is an unreasonable check.
 // This check determines whether miners on a Guard mission near the refinery should return to the Harvest mission.
-DEFINE_JUMP(LJMP, 0x740943, 0x740957);
+DEFINE_JUMP(LJMP, 0x740943, 0x740957); //UnitClass_Mission_Guard
 
 
 //These map cells are what SpySat skips revealing in MP normally.
@@ -2894,7 +2774,7 @@ ASMJIT_PATCH(0x73EEA6, UnitClass_Mission_Harvest_AllOreGathered, 0x6)
 }
 
 // Skip incorrect mission queued in InfantryClass::EnterIdleMode
-DEFINE_JUMP(LJMP, 0x51CBE5, 0x51CC1F);
+DEFINE_JUMP(LJMP, 0x51CBE5, 0x51CC1F); //InfantryClass_Enter_Idle_Mode
 
 // Fix crash descent for aircraft/units off-map.
 // In all three locomotors below, MapClass::In_Radar blocks position/coordinate updates
@@ -2937,7 +2817,7 @@ ASMJIT_PATCH(0x662FD5, RocketLocomotionClass_Process_OffMap, 0x6)
 
 // Skip the vanilla call at HouseClass::RegisterUnpresent.
 // This should be called when the techno is destroyed, not disappeared.
-DEFINE_JUMP(LJMP, 0x502630, 0x50263B);
+DEFINE_JUMP(LJMP, 0x502630, 0x50263B); //HouseClass_Update_Counts_0
 
 static void __fastcall _KillPassengersWrapper(TechnoClass* pThis, discard_t , TechnoClass* pKiller){
 	pThis->KillPassengers(pKiller);
@@ -2948,7 +2828,9 @@ DEFINE_FUNCTION_JUMP(CALL , 0x5F660D, _KillPassengersWrapper)
 #pragma endregion
 
 // Enable InGameMovie TAction in non-campaign mode.
+//Play_Ingame_Movie2
 DEFINE_JUMP(LJMP, 0x5BF3B0, 0x5BF3BD);
+//Play_Ingame_Movie1
 DEFINE_JUMP(LJMP, 0x5BF2BB, 0x5BF2C1); // Func unused in vanilla, but maybe someone will use it.
 
 #pragma region VoxelLightingFix

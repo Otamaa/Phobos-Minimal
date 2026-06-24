@@ -79,52 +79,6 @@ ASMJIT_PATCH(0x73DCEF, UnitClass_Mission_Unload_DeployFire, 0x6)
 	return SkipGameCode;
 }
 
-ASMJIT_PATCH(0x4C77E4, EventClass_Execute_UnitDeployFire, 0x6)
-{
-	enum { DoNotExecute = 0x4C8109 };
-
-	GET(TechnoClass* const, pThis, ESI);
-
-	auto const pUnit = cast_to<UnitClass*, false>(pThis);
-
-	/// Do not execute deploy command if the vehicle has only just fired its once-firing deploy weapon.
-	if (pUnit && pUnit->Type->DeployFire
-		&& !pUnit->Type->IsSimpleDeployer
-		&& TechnoExtContainer::Instance.Find(pThis)->DeployFireTimer.InProgress())
-	{
-		return DoNotExecute;
-	}
-
-	return 0x0;
-}
-
-// issue #112 Make FireOnce=yes work on other TechnoTypes
-// Author: Starkku
-ASMJIT_PATCH(0x4C7518, EventClass_Execute_StopUnitDeployFire, 0x9)
-{
-	GET(TechnoClass* const, pThis, ESI);
-
-	if (auto const pUnit = cast_to<UnitClass*, false>(pThis)) {
-
-		if(pUnit->CurrentMission == Mission::Unload
-		&& pUnit->Type->DeployFire
-		&& !pUnit->Type->IsSimpleDeployer)
-		{
-			pUnit->SetTarget(nullptr);
-			pUnit->QueueMission(Mission::Guard, true);
-		}
-
-		// Explicit stop command should reset subterranean harvester state machine.
-		auto const pExt = TechnoExtContainer::Instance.Find(pUnit);
-		pExt->CurrentSubterraneanHarvStatus = SubterraneanHarvStatus::None;
-		pExt->SubterraneanHarvRallyPoint = nullptr;
-	}
-
-	// Restore overridden instructions
-	GET(Mission, eax, EAX);
-	return eax == Mission::Construction ? 0x4C8109 : 0x4C7521;
-}
-
 ASMJIT_PATCH(0x746CD0, UnitClass_WhatWeaponShouldIUse_Replacements, 0x6)
 {
 	GET(UnitClass*, pThis, ECX);

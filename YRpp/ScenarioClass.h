@@ -133,7 +133,7 @@ public:
 
 	static int __fastcall PauseGame() JMP_FAST(0x683EB0);
 	static int __fastcall ResumeGame() JMP_FAST(0x683FB0);
-	static void __fastcall PauseGameFor() JMP_FAST(0x684060);
+	static void __fastcall PauseGameFor(int value) JMP_FAST(0x684060);
 	static int __fastcall PauseGameWait() JMP_FAST(0x684180); //
 	static int __fastcall LockInput() JMP_FAST(0x684240);
 	static int __fastcall UnlockInput() JMP_FAST(0x684290);

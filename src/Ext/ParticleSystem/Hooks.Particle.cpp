@@ -169,4 +169,4 @@ ASMJIT_PATCH(0x62E2AD, ParticleSystemClass_Draw, 6)
 }
 
 //donot detach the type so we can identify bug
-DEFINE_JUMP(LJMP, 0x62E15D, 0x62E163);
+//DEFINE_JUMP(LJMP, 0x62E15D, 0x62E163);

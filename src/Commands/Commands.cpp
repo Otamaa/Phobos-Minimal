@@ -48,6 +48,8 @@
 
 #include <WWKeyboardClass.h>
 
+#include <Ext/Rules/Body.h>
+
 bool PhobosCommandClass::CheckDebugDeactivated() const
 {
 	auto const bAllow = Phobos::Config::DevelopmentCommands || Phobos::Otamaa::IsAdmin;
@@ -317,3 +319,15 @@ ASMJIT_PATCH(0x730E39, GuardCommandClass_IncludeWeeder, 0x6)
 // AttackMove Only for Foot
 //CommandClass_Attack_Move
 DEFINE_PATCH_TYPED(BYTE, 0x731B67, 4u);
+
+
+DEFINE_HOOK(0x5370A0, BeaconPlacementCommandClass_ExecuteSub_Start, 0x5)
+{
+	if (RulesExtData::Instance()->AllowBeaconHotKeyInSinglePlayer)
+		return 0x5370AE;
+
+	return 0;
+}
+
+//BeaconPlacement_Place
+DEFINE_JUMP(LJMP, 0x430CD4, 0x430CEA);

@@ -914,16 +914,11 @@ HRESULT Decode_All_Pointers(LPSTREAM stream)
 	hr = LoadObjectVector(stream, *RadSiteClass::Array);
 	if (!SUCCEEDED(hr)) return hr;
 
-	// Game options section (known problematic area)
-	if (SessionClass::Instance->GameMode == GameMode::Skirmish)
-	{
-		Debug::Log("Reading Skirmish Session.Options\n");
-		const bool save_GameOptionsType = GameOptionsType::Instance->Load(stream);
-		if (!save_GameOptionsType)
-		{
-			Debug::Log("\t***** GameOptionsType LOAD FAILED!\n");
-			return E_FAIL;
-		}
+	// this was change from only for skirmish but for all modes
+	// DEFINE_JUMP(LJMP, 0x67F72E, 0x67F744);
+	if (!GameOptionsType::Instance->Load(stream)) {
+		Debug::Log("\t***** GameOptionsType LOAD FAILED!\n");
+		return E_FAIL;
 	}
 
 	// Audio/visual systems

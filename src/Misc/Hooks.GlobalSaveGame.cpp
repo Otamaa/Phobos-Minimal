@@ -804,15 +804,12 @@ HRESULT Put_All_Pointers(LPSTREAM pStm)
 	hr = SaveObjectVector(pStm, *RadSiteClass::Array);
 	if (!SUCCEEDED(hr)) return hr;
 
-	// Game options section (known problematic area)
-	if (SessionClass::Instance->GameMode == GameMode::Skirmish)
-	{
-		Debug::Log("Writing Skirmish Session.Options\n");
-		if (!GameOptionsType::Instance->Save(pStm))
-		{
-			Debug::Log("\t***** GameOptionsType SAVE FAILED!\n");
-			return E_FAIL;
-		}
+	// this was change from only for skirmish but for all modes
+	// DEFINE_JUMP(LJMP, 0x67E3BD, 0x67E3D3);
+	//Debug::Log("Writing Skirmish Session.Options\n");
+	if (!GameOptionsType::Instance->Save(pStm)) {
+		Debug::Log("\t***** GameOptionsType SAVE FAILED!\n");
+		return E_FAIL;
 	}
 
 	hr = VocClass::Save(pStm);

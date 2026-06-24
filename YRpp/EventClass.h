@@ -188,6 +188,18 @@ public:
 	static COMPILETIMEEVAL reference<DWORD, 0xB04474, 256u> const LatestFramesCRC {};
 	static COMPILETIMEEVAL reference<DWORD, 0xAC51FC> const CurrentFrameCRC {};
 
+	// The engine's out-of-sync sync dump, called from Execute_DoList (0x64CC68)
+	// when a FRAMEINFO CRC mismatch is found: writes SYNC*.TXT for the offending
+	// event so a desync can be diagnosed. Print_CRCs_Current_Player writes the
+	// local player's SYNC<player>.TXT; Print_CRCs_All_Players writes
+	// SYNC<player>_<slot>.TXT for each of the 256 frame slots, and the engine
+	// only uses it when Unsorted::EnableMPSyncDebug is set.
+	static void __fastcall Print_CRCs_Current_Player(EventClass* ev)
+		{ JMP_STD(0x64DEA0); }
+
+	static void __fastcall Print_CRCs_All_Players(int frame_slot, EventClass* ev)
+		{ JMP_STD(0x6516F0); }
+
 	static bool AddEvent(EventClass* pEvent) {
 		return OutList->Add(pEvent);
 	}

@@ -215,6 +215,7 @@ public:
 	Nullable<bool> AISellCapturedBuilding {};
 	Nullable<bool> BuildingRadioLink_SyncOwner {};
 	Nullable<bool> Units_UseRepairCost {};
+	Nullable<int> BunkerStateUpdateDelay {};
 
 	// ============================================================
 	// Valueable<int> (4 bytes each)

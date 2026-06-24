@@ -321,3 +321,8 @@ void EventExt::TogglePlayerAutoRepair::Respond(EventClass* Event)
 		}
 	}
 }
+
+void FakeEventClass::_Execute()
+{
+
+}

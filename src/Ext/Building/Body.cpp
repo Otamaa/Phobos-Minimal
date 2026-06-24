@@ -3473,3 +3473,27 @@ HRESULT __stdcall FakeBuildingClass::__Save(IStream* pStm, BOOL fClearDirty)
 	return hr;
 }
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3ED4, FakeBuildingClass::__Save)
+
+Move FakeBuildingClass::_Can_Enter_Cell(CellClass* cell, FacingType dir, int cell_height, CellClass*, bool) const {
+	if (this->Type->UndeploysInto && this->IsOnMap && !this->InLimbo) {
+		auto passability = cell->Passability;
+
+		if (this->Type->Naval) {
+			if (passability != PassabilityType::Beach || cell->ContainsBridge()) {
+				return Move::No;
+			}
+		}
+		else {
+			if (passability != PassabilityType::Passable && !cell->ContainsBridge()) {
+				return Move::No;
+			}
+		}
+
+		return Move::OK;
+	}
+
+	return this->Type->CanPlaceHere(&cell->MapCoords, this->Owner) ? Move::OK : Move::No;
+}
+
+//DEFINE_FUNCTION_JUMP(LJMP,0x449440, FakeBuildingClass::_Can_Enter_Cell)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4068, FakeBuildingClass::_Can_Enter_Cell)

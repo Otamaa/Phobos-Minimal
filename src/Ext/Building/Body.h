@@ -308,6 +308,8 @@ public:
 	void _Init();
 	KickOutResult __ExitObject(TechnoClass* object, CellStruct exitCell);
 
+	Move _Can_Enter_Cell(CellClass* cell, FacingType dir, int cell_height, CellClass*, bool) const;
+
 	InfantryTypeClass* __GetCrew();
 	int  __GetCrewCount();
 	const wchar_t* __GetUIName();

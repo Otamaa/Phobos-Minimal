@@ -66,6 +66,9 @@ public:
 	bool Occured(HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 		{ JMP_THIS(0x6DD8B0); }
 
+	static bool __fastcall Do_Chrono_Reinforcements(TeamTypeClass* teamtype, int waypoint)
+		{ JMP_FAST(0x65EC30); }
+
 	// BIG LIST OF EXECUTE'S SLAVE FUNCTIONS - feel free to use
 
 	// NOTE: most of these are defined as separate functions AS WELL AS inlined in Execute() above.

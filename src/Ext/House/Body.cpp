@@ -2904,6 +2904,7 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->BestChoicesNaval)
 		.Process(this->AITriggers_ValidList)
 		.Process(this->PlayerAutoRepair)
+		.Process(this->BeaconsPlacedOrder)
 		;
 }
 #endif

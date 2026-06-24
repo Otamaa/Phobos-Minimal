@@ -541,8 +541,8 @@ static double DecideScaleAndIndex(Matrix3D* mtx, TechnoClass* pThis, TechnoTypeC
 	return currentScale;
 }
 
-// Shadow_Point of RocketLoco was forgotten to be set to {0,0}. It was an oversight.
-DEFINE_JUMP(VTABLE, 0x7F0B4C, 0x4CF940);
+//TechnoClass_Voxel_Shadow
+//removing the cloak , noShadow , vxl::LoadFailded check
 DEFINE_JUMP(LJMP, 0x706BDD, 0x706C01); // I checked it a priori
 
 #ifdef _fromPR1983

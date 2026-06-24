@@ -73,7 +73,7 @@ ASMJIT_PATCH(0x52C5E0, Ares_NOLOGO, 0x7)
 }
 
 //MapClass CTOR
-DEFINE_JUMP(LJMP, 0x565215, 0x56522D);
+DEFINE_JUMP(LJMP, 0x565215, 0x56522D); // i assume this one for fixing bug that crate are gone when loading the game
 
 //ASMJIT_PATCH(0x6E2290, ActionClass_PlayAnimAt, 0x6)
 //{
@@ -102,7 +102,8 @@ DEFINE_JUMP(LJMP, 0x565215, 0x56522D);
 //	return 0x6E2387;
 //}
 
-DEFINE_JUMP(LJMP, 0x6AD0ED, 0x6AD16C);
+//Skirmish_DialogFunc_MultiEngineer
+DEFINE_JUMP(LJMP, 0x6AD0ED, 0x6AD16C); //Allow solo skirmish
 
 ASMJIT_PATCH(0x437CCC, BSurface_DrawSHPFrame1_Buffer, 0x8)
 {
@@ -191,8 +192,8 @@ ASMJIT_PATCH(0x4C6DDB, Networking_RespondToEvent_Selling, 0x8)
 	return 0x4C6DE3;
 }
 
-// #895374: skip the code that removes the crates (size 7)
-DEFINE_JUMP(LJMP, 0x483BF1, 0x483BFE);
+//CellClass_Load
+DEFINE_JUMP(LJMP, 0x483BF1, 0x483BFE);// #895374: skip the code that removes the crates (size 7)
 
 ASMJIT_PATCH(0x699C1C, Game_ParsePKTs_ClearFile, 0x7)
 {
@@ -600,7 +601,7 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x551A30, FakeLayerClass::__short);
 
 static void __fastcall AnnounceInvalidatePointerWrapper(ObjectClass* pObject, bool removed)
 {
-	if (!pObject->Limbo())
+	if (!pObject->Limbo()) // when object failed to be unlimbo , immedietely announce them dead
 		pObject->AnnounceExpiredPointer(removed);
 }
 //ObjectClass_RemoveThis -> re-reoute the Invalidation call
@@ -1629,5 +1630,38 @@ ASMJIT_PATCH(0x6BC0CD, _LoadRA2MD, 5)
 ASMJIT_PATCH(0x7C89D4, DDRAW_Create, 6)
 {
 	R->Stack<DWORD>(0x4, Phobos::Config::GFX_DX_Force);
+	return 0;
+}
+
+
+ASMJIT_PATCH(0x55E477, Game_ComScenarioDialog_ChatBox, 0x5)
+{
+	if (RulesExtData::Instance()->AllowChatBoxInSinglePlayer)
+		return 0x55E48D;
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x55E62F, Game_ComScenarioDialog_ChatBox2, 0x6)
+{
+	if (RulesExtData::Instance()->AllowChatBoxInSinglePlayer)
+		return 0x55E637;
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x55E693, Game_ComScenarioDialog_ChatBox3, 0x6)
+{
+	if (RulesExtData::Instance()->AllowChatBoxInSinglePlayer)
+		return 0x55E69B;
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x55E746, Game_ComScenarioDialog_ChatBox4, 0x5)
+{
+	if (RulesExtData::Instance()->AllowChatBoxInSinglePlayer)
+		return 0x55E77B;
+
 	return 0;
 }

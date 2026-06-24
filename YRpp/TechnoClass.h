@@ -393,11 +393,11 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	virtual void DrawExtraInfo(Point2D const* location, Point2D const* originalLocation, RectangleStruct const* bounds) const RX;
 	virtual void Uncloak(bool bPlaySound) RX;
 	virtual void Cloak(bool bPlaySound) RX;
-	virtual int GetFlashingIntensity(int currentIntensity) const R0;
-	virtual void UpdateRefinerySmokeSystems() RX;
-	virtual DWORD DisguiseAs(AbstractClass* pTarget) R0;
-	virtual void ClearDisguise() RX;
-	virtual bool IsItTimeForIdleActionYet() const R0;
+	virtual int GetFlashingIntensity(int currentIntensity) const R0;// 0x464
+	virtual void UpdateRefinerySmokeSystems() RX;// 0x468
+	virtual DWORD DisguiseAs(AbstractClass* pTarget) R0;// 0x46C
+	virtual void ClearDisguise() RX;// 0x470
+	virtual bool IsItTimeForIdleActionYet() const R0;// 0x474
 	virtual bool UpdateIdleAction() JMP_THIS(0x41C040); // Random_Animate , 0x478
 	virtual void vt_entry_47C(DWORD dwUnk) RX;
 	virtual void SetDestination(AbstractClass* pDest, bool bUnk) RX;

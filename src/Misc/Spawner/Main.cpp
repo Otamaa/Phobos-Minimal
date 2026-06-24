@@ -86,6 +86,7 @@ SpawnerMain::GameConfigs::GameConfigs()
 	, PreCalcMaxAhead { 0 }
 	, MaxLatencyLevel { 0xFF }
 	, ForceMultiplayer { false }
+	, Host { false }
 
 	// Tunnel Options
 	, TunnelId { 0 }
@@ -397,6 +398,8 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 		PreCalcMaxAhead = pINI->ReadInteger(GameStrings::Settings(), "PreCalcMaxAhead", PreCalcMaxAhead);
 		MaxLatencyLevel = (byte)pINI->ReadInteger(GameStrings::Settings(), "MaxLatencyLevel", (int)MaxLatencyLevel);
 		ForceMultiplayer = pINI->ReadBool(GameStrings::Settings(), "ForceMultiplayer", ForceMultiplayer);
+		Host             = pINI->ReadBool(GameStrings::Settings(), "Host", Host);
+
 	}
 
 	{ // Tunnel Options
@@ -1024,14 +1027,26 @@ bool SpawnerMain::GameConfigs::StartScenario(const char* pScenarioName) {
 			return false;
 
 		pSession->GameMode = GameMode::LAN;
+
+		// Until the host announces itself there is no known game master. This
+		// makes our Am_I_Master replacement fall back to the "first human house"
+		// heuristic, and clears any stale value from a previous game (the session
+		// is a reused singleton). Mirrors Vinifera's spawner.
+		pSession->MasterPlayerID() = -1;
+		pSession->MasterPlayerName()[0] = L'\0';
+
 		if (SpawnerMain::GameConfigs::m_Ptr.LoadSaveGame && !SpawnerMain::GameConfigs::Reconcile_Players())
 			return false;
 
 		if (!pSession->CreateConnections())
 			return false;
 
-		if (!SpawnerMain::GetMainConfigs()->AllowChat)
-		{
+		// Let the other players know who the game host is, so the master is known
+		// on every machine (host migration, the desync dialog's host icon, etc.).
+		if (SpawnerMain::GameConfigs::m_Ptr.Host)
+			Announce_Master();
+	
+		if (!SpawnerMain::GetMainConfigs()->AllowChat || SpawnerMain::GameConfigs::m_Ptr.DisableChat) {
 			Game::ChatMask[0] = false;
 			Game::ChatMask[1] = false;
 			Game::ChatMask[2] = false;

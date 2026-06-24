@@ -587,18 +587,6 @@ ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 	return 0x6F42F7;
 }
 
-// westwood does firingUnit->WhatAmI() == abs_AircraftType
-// which naturally never works
-// let's see what this change does
-// ASMJIT_PATCH(0x6F7561, TechnoClass_Targeting_Arcing_Aircraft, 0x5)
-// {
-// 	GET(AbstractType, pTarget, EAX);
-// 	GET(CoordStruct*, pCoord, ESI);
-// 	R->EAX(pCoord->X);
-//	return pTarget == AbstractType::Aircraft ? 0x6F75B2 : 0x6F7568;
-// }
-DEFINE_PATCH_ADDR_OFFSET(byte, 0x6F7561, 0x2 , 0x2);
-
 ASMJIT_PATCH(0x70133E, TechnoClass_GetWeaponRange_Demacroize, 0x5)
 {
 	GET(int, nVal1, EDI);
@@ -659,6 +647,7 @@ ASMJIT_PATCH(0x71136F, TechnoTypeClass_CTOR_Initialize, 0x6)
 }
 
 //TechnoClass_GetActionOnObject_IvanBombsB
+//TechnoClass_What_Action
 DEFINE_JUMP(LJMP, 0x6FFF9E, 0x700006);
 
 #include <Ext/Scenario/Body.h>

@@ -80,9 +80,10 @@ ASMJIT_PATCH(0x41A5C7, AircraftClass_Mission_Guard_StartAreaGuard, 0x6)
 }
 
 // Skip duplicated aircraft check
+//FlyLocomotionClass_ILocomotion_4CEFB0
 DEFINE_PATCH(0x4CF033, 0x8B, 0x06, 0xEB, 0x18); // mov eax, [esi] ; jmp short loc_4CF04F ;
 //AircraftClass_EnterIdleMode : Aicraft with no team stuffs
-DEFINE_JUMP(LJMP, 0x4179E2, 0x417B44);
+//DEFINE_JUMP(LJMP, 0x4179E2, 0x417B44);
 
 // If strafing weapon target is in air, consider the cell it is on as the firing position instead of the object itself if can fire at it.
 ASMJIT_PATCH(0x4197F3, AircraftClass_GetFireLocation_Strafing, 0x5)
@@ -248,44 +249,6 @@ ASMJIT_PATCH(0x4DDD66, FootClass_IsLZClear_ReplaceHardcode, 0x6) // To avoid tha
 
 // GreatestThreat: for all the mission that should let the aircraft auto select a target
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2668, FakeAircraftClass::_GreatestThreat);
-
-// Handle assigning area guard mission to aircraft.
-ASMJIT_PATCH(0x4C7403, EventClass_Execute_AircraftAreaGuard, 0x6)
-{
-	enum { SkipGameCode = 0x4C7435 };
-
-	GET(EventClass* const, pThis, ESI);
-	GET(TechnoClass* const, pTechno, EDI);
-
-	if (pTechno->WhatAmI() == AbstractType::Aircraft && AircraftTypeExtData::ExtendedAircraftMissionsEnabled((AircraftClass*)pTechno))
-	{
-		// Skip assigning destination / target here.
-		R->ESI(&pThis->Data.MegaMission.Target);
-		return 0x4C7426 ;
-	}
-
-	return 0;
-}
-
-// Do not untether aircraft when assigning area guard mission by default.
-ASMJIT_PATCH(0x4C72F2, EventClass_Execute__AircraftAreaGuard_Untether, 0x6)
-{
-	enum { SkipGameCode = 0x4C7349 };
-
-	GET(EventClass* const, pThis, ESI);
-	GET(TechnoClass* const, pTechno, EDI);
-
-	if (pTechno->WhatAmI() == AbstractType::Aircraft && AircraftTypeExtData::ExtendedAircraftMissionsEnabled((AircraftClass*)pTechno)
-		&& pThis->Data.MegaMission.Mission == (char)Mission::Area_Guard
-		&& (pTechno->CurrentMission != Mission::Sleep || !pTechno->Ammo)
-		)
-	{
-		// If we're on dock reloading but have ammo, untether from dock and try to scan for targets.
-		return SkipGameCode;
-	}
-
-	return 0;
-}
 
 ASMJIT_PATCH(0x415302, AircraftClass_Mission_Unload_IsDropship, 0x6)
 {

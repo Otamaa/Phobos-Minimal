@@ -398,7 +398,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2318, FakeAircraftClass::_MouseOverObject);
 bool FakeAircraftClass::_Enter_Idle_Mode(bool initial, bool bool2)
 {
 	// ── tail helpers ─────────────────────────────────────────────────────────
-	
+
 	// LABEL_51: assign Good_LZ dest, mission = Move (2)
 	const auto assign_good_lz_move = [&](Mission& missionOut)
 		{
@@ -415,8 +415,11 @@ bool FakeAircraftClass::_Enter_Idle_Mode(bool initial, bool bool2)
 			missionOut = Mission::Retreat; // 4
 		};
 
-	// LABEL_66 tail: assign mission + optional Commence. Returns v6.
-	const auto assign_and_commence = [&](Mission mission, bool v6) -> bool
+	// loc_417B44: radio-contact override + QueueMission + NextMission.
+	// DEFINE_JUMP(LJMP, 0x4179E2, 0x417B44)
+	// Successful RADIO_ROGER dock path jumps straight here, bypassing loc_417AD4.
+	// Reason: bay is confirmed — no need to re-run the ammo/rearm-dock guard below.
+	const auto assign_and_commence_direct = [&](Mission mission, bool v6) -> bool
 		{
 			if (this->HasAnyLink())
 				mission = Mission::Enter; // 7
@@ -430,7 +433,7 @@ bool FakeAircraftClass::_Enter_Idle_Mode(bool initial, bool bool2)
 		};
 
 	// ── HOOK: 0x4179F7 / 0x417B82  AircraftClass_EnterIdleMode_NoCrash (size 6) ──
-	// Replaces vanilla Prevent_Remove+return false at both AirportBound sites.
+	// Replaces vanilla Crash()+return false at both AirportBound sites.
 	// PATCH_AGAIN 0x417B82 is the ground docking-miss path; same logic applies.
 	// Returns engaged value (skip game code) or nullopt (fall through to vanilla).
 	const auto hook_NoCrash = [&](bool v6) -> std::optional<bool>
@@ -460,6 +463,39 @@ bool FakeAircraftClass::_Enter_Idle_Mode(bool initial, bool bool2)
 			return v6; // SkipGameCode → 0x417B69
 		};
 
+	// loc_417AD4 full tail: ammo/rearm-dock guard → loc_417B44.
+	// All paths that did NOT just confirm a RADIO_ROGER bay converge here.
+	// Checks ammo: if empty + armed + not already in radio contact → try rearm dock.
+	const auto assign_and_commence = [&](Mission mission, bool v6) -> bool
+		{
+			if (!this->Ammo && this->IsArmed() && !this->HasAnyLink())
+			{
+				TechnoClass* rearmBay = this->FindDockingBayInVector(
+					reinterpret_cast<DynamicVectorClass<TechnoTypeClass*>*>(&this->Type->Dock),
+					false, false);
+
+				if (rearmBay)
+				{
+					this->SetDestination(rearmBay, true);
+					this->SetTarget(nullptr);
+					mission = Mission::Enter; // 7
+					// falls through to loc_417B44 below
+				}
+				else if (this->Type->AirportBound)
+				{
+					// ── HOOK: 0x4179F7 (rearm-dock-miss AirportBound path at loc_417AD4) ──
+					// Same NoCrash handler — no free rearm bay and AirportBound set.
+					if (auto r = hook_NoCrash(v6); r.has_value())
+						return *r;
+
+					this->Crash(nullptr);
+					return false;
+				}
+			}
+
+			return assign_and_commence_direct(mission, v6);
+		};
+
 	// ── 1. Mission_Overriden branch (0x4176F8) ───────────────────────────────
 	if (this->MissionIsOverriden())
 	{
@@ -475,11 +511,11 @@ bool FakeAircraftClass::_Enter_Idle_Mode(bool initial, bool bool2)
 	// ── 2. Switch: airstrike-mission guard (0x417733) ────────────────────────
 	switch (this->CurrentMission)
 	{
-	case Mission::Retreat:            // 4
-	case Mission::ParadropApproach:   // 26
-	case Mission::ParadropOverfly:    // 27
-	case Mission::SpyplaneApproach:   // 30
-	case Mission::SpyplaneOverfly:    // 31
+	case Mission::Retreat:          // 4
+	case Mission::ParadropApproach: // 26
+	case Mission::ParadropOverfly:  // 27
+	case Mission::SpyplaneApproach: // 30
+	case Mission::SpyplaneOverfly:  // 31
 		if (!this->Airstrike)
 			return false;
 		break;
@@ -517,6 +553,7 @@ bool FakeAircraftClass::_Enter_Idle_Mode(bool initial, bool bool2)
 		&& this->GetHeight() > landingAlt
 		&& !this->Type->MissileSpawn;
 
+	// Hoisted outside both branches — used in aboveGround and ground paths.
 	const bool isLoaner = this->Spawned;
 	const bool hasCargo = this->Passengers.FirstPassenger != nullptr;
 
@@ -599,12 +636,12 @@ bool FakeAircraftClass::_Enter_Idle_Mode(bool initial, bool bool2)
 					//   Armed aircraft (WeaponType != null) never reach that label — they exit
 					//   this !isLoaner branch via one of two paths below, both missed by the hook:
 					//
-					//   PATH A — Dock.ActiveCount > 0, all bays busy, !AirportBound:
-					//     Find_Docking_Bay → null → assign_good_lz_move → Mission::Move
+					//   PATH A — Dock.Count > 0, all bays busy, !AirportBound:
+					//     FindDockingBayInVector → null → assign_good_lz_move → Mission::Move
 					//     → Enter_Idle_Mode next frame → same result → infinite loop.
 					//
-					//   PATH B — In_Air guard fails entirely (not airborne, NavCom+Enter,
-					//     ActiveCount == 0, or IsLocked=false with a Team):
+					//   PATH B — IsInAir() guard fails entirely (not airborne, NavCom+Enter,
+					//     Count == 0, or IsLocked=false with a Team):
 					//     Falls through the dock block with no action, assigns Guard/Area_Guard.
 					//
 					// WHY OpenTopped IS SPECIAL:
@@ -616,7 +653,7 @@ bool FakeAircraftClass::_Enter_Idle_Mode(bool initial, bool bool2)
 					//
 					// FIX — opentopped_try_dock lambda, applied at both Path A and Path B:
 					//   If OpenTopped + non-Spawned + no attack intent + dock slot exists
-					//   → attempt RADIO_HELLO to bay → Mission::Enter.
+					//   → attempt RadioCommand::RequestLink to bay → Mission::Enter.
 					//   If no bay accepts → QueueMission Area_Guard so the aircraft orbits
 					//   instead of beelining to a random cell and looping on Mission::Move.
 					// ─────────────────────────────────────────────────────────────────────
@@ -627,21 +664,23 @@ bool FakeAircraftClass::_Enter_Idle_Mode(bool initial, bool bool2)
 								return false;
 							if (this->QueuedMission == Mission::Attack || this->Target)
 								return false;
-
 							if (this->Type->Dock.Count <= 0)
 								return false;
 							if (!this->IsLocked && this->Team)
 								return false;
 
 							TechnoClass* bay = this->FindDockingBayInVector(
-								reinterpret_cast<DynamicVectorClass<TechnoTypeClass*>*>(&this->Type->Dock), false, false);
+								reinterpret_cast<DynamicVectorClass<TechnoTypeClass*>*>(&this->Type->Dock),
+								false, false);
 							this->SetDestination(nullptr, true);
 
-							if (bay && this->SendCommand(RadioCommand::RequestLink, bay) == RadioCommand::AnswerPositive)
-							{
+							if (bay
+								&& this->SendCommand(RadioCommand::RequestLink, bay)
+								   == RadioCommand::AnswerPositive) {
 								this->SetDestination(bay, true);
 								missionSelect = Mission::Enter; // 7 — dock accepted
-								return true;
+								// Bay confirmed — same DEFINE_JUMP logic: skip ammo/rearm guard.
+								return true; // caller uses assign_and_commence_direct
 							}
 
 							// No bay free: orbit until one opens rather than Mission::Move loop.
@@ -654,25 +693,25 @@ bool FakeAircraftClass::_Enter_Idle_Mode(bool initial, bool bool2)
 						&& (!this->NavCom || this->CurrentMission != Mission::Enter))
 					{
 						if (this->Type->Dock.Count > 0
-							&& (this->IsLocked || !this->Team))
-						{
-
+							&& (this->IsLocked || !this->Team)) {
 							TechnoClass* bay = this->FindDockingBayInVector(
-								reinterpret_cast<DynamicVectorClass<TechnoTypeClass*>*>(&this->Type->Dock)
-								, false, false);
+								reinterpret_cast<DynamicVectorClass<TechnoTypeClass*>*>(&this->Type->Dock),
+								false, false);
 							this->SetDestination(nullptr, true);
 
-							if (bay && this->SendCommand(RadioCommand::RequestLink, bay) == RadioCommand::AnswerPositive)
-							{
+							if (bay
+								&& this->SendCommand(RadioCommand::RequestLink, bay)
+								   == RadioCommand::AnswerPositive) {
 								this->SetDestination(bay, true);
 								missionSelect = Mission::Enter; // 7
-								return assign_and_commence(missionSelect, v6);
+								// DEFINE_JUMP(LJMP, 0x4179E2, 0x417B44)
+								// Bay confirmed — skip loc_417AD4 ammo/rearm guard, jump to loc_417B44.
+								return assign_and_commence_direct(missionSelect, v6);
 							}
 
-							if (this->Type->AirportBound)
-							{
+							if (this->Type->AirportBound) {
 								// ── HOOK: 0x4179F7  AircraftClass_EnterIdleMode_NoCrash (size 6) ──
-								// Vanilla: Prevent_Remove + return false.
+								// Vanilla: Crash(nullptr) + return false.
 								// Extension: redirect to Area_Guard landing instead of crashing.
 								if (auto r = hook_NoCrash(v6); r.has_value())
 									return *r;
@@ -683,18 +722,24 @@ bool FakeAircraftClass::_Enter_Idle_Mode(bool initial, bool bool2)
 
 							// PATH A: all bays busy, !AirportBound.
 							// Fix fires before vanilla assign_good_lz_move → Move loop.
+							// opentopped_try_dock sets Mission::Enter on ROGER (bay confirmed → _direct),
+							// or Mission::Area_Guard on failure (no confirmed bay → full tail).
 							if (opentopped_try_dock())
-								return assign_and_commence(missionSelect, v6);
+								return missionSelect == Mission::Enter
+								? assign_and_commence_direct(missionSelect, v6)
+								: assign_and_commence(missionSelect, v6);
 
 							assign_good_lz_move(missionSelect);
 							return assign_and_commence(missionSelect, v6);
 						}
 					}
 
-					// PATH B: In_Air guard failed — vanilla exits with no dock attempt at all.
+					// PATH B: IsInAir() guard failed — vanilla exits with no dock attempt at all.
 					// Fix gives OpenTopped interceptor a dock retry before the tail.
 					if (opentopped_try_dock())
-						return assign_and_commence(missionSelect, v6);
+						return missionSelect == Mission::Enter
+						? assign_and_commence_direct(missionSelect, v6)
+						: assign_and_commence(missionSelect, v6);
 
 					return assign_and_commence(missionSelect, v6);
 				}
@@ -737,14 +782,13 @@ bool FakeAircraftClass::_Enter_Idle_Mode(bool initial, bool bool2)
 		{
 			missionSelect = Mission::Area_Guard; // 11 — ASM: mov edi, 0Bh
 			if (!this->IsArmed())
-				missionSelect = Mission::Guard;   // 5
+				missionSelect = Mission::Guard; // 5
 		}
 
 		// loc_417B72: AirportBound check on ground docking-miss path.
-		if (this->Type->AirportBound)
-		{
+		if (this->Type->AirportBound) {
 			// ── HOOK: 0x417B82  ASMJIT_PATCH_AGAIN  AircraftClass_EnterIdleMode_NoCrash (size 6) ──
-			// Vanilla: Prevent_Remove + return false.
+			// Vanilla: Crash(nullptr) + return false.
 			// Same extension handler as 0x4179F7.
 			if (auto r = hook_NoCrash(v6); r.has_value())
 				return *r;

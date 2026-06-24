@@ -199,8 +199,8 @@ ASMJIT_PATCH(0x7776B5, MainWindowProc_WMPAINT, 0x6) {
 }
 
 // Call Set_Video_Mode even when windowed.
-DEFINE_JUMP(LJMP, 0x6BD9D9, 0x6BDA61);
-DEFINE_JUMP(LJMP, 0x6BDB16, 0x6BDB6D);
+DEFINE_JUMP(LJMP, 0x6BD9D9, 0x6BDA61); //WinMain
+DEFINE_JUMP(LJMP, 0x6BDB16, 0x6BDB6D); //WinMain
 
 // Disable DirectDraw.
 DEFINE_JUMP(LJMP, 0x4A3FD0, 0x4A4019); // Skip Prep_Direct_Draw

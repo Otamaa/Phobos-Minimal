@@ -171,8 +171,10 @@ bool bIgnoreDisableWeapon)
 		// Visibility: VISUAL_HIDDEN and not sensed
 		if (pTechnoT->VisualCharacter(true, pThis->Owner) == VisualType::Hidden
 			&& !pCoordsCellT->Sensors_InclHouse(pThis->Owner->ArrayIndex)
-			&& (pThis->CombatDamage(-1) > 0
-				|| !pTechnoT->Owner->IsAlliedWith(pThis->Owner)))
+			// Fixed the issue where non-repairer units needed sensors to attack cloaked friendly units.
+			// DEFINE_JUMP(LJMP, 0x6FC278, 0x6FC289);
+			&& (//pThis->CombatDamage(-1) > 0 ||
+				!pTechnoT->Owner->IsAlliedWith(pThis->Owner)))
 		{
 			return FireError::CANT;
 		}

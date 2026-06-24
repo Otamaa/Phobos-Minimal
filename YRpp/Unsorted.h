@@ -142,8 +142,12 @@ struct Game
 	static COMPILETIMEEVAL reference<int, 0xB0BD90u> const PacketSize {};
 	static COMPILETIMEEVAL reference<bool, 0xA8F900u> const StaticPacketSent {};
 
-	static COMPILETIMEEVAL reference<bool, 0xA8E378u> const InScenario1 {};
-	static COMPILETIMEEVAL reference<bool, 0xA8ED5Cu> const InScenario2 {};
+	// Whether the tactical map is being updated/drawn. Cleared to halt the
+	// battlefield behind a full-screen dialog and restored afterwards.
+	static COMPILETIMEEVAL reference<bool, 0xA8E378> const TacticalActive {};
+
+	// Locks the game's own input processing so a modal dialog owns input.
+	static COMPILETIMEEVAL reference<bool, 0xA8ED9C> const UserInputLocked {};
 
 	static COMPILETIMEEVAL reference<CoordStruct, 0x89C870u> const RelativeCoordCenter {};
 
@@ -186,6 +190,11 @@ struct Game
 
 	static void __fastcall GetKeyboardKeyString(unsigned short key, wchar_t* buffer)
 	{ JMP_FAST(0x61EF70); }
+
+	// Fills lpRect with a dialog control's rectangle in display (surface)
+	// coordinates, accounting for the full-screen owner-draw scaling. This is
+	// how the engine's reconnect dialog positions its per-player sync bars.
+	static void __fastcall GetDisplayRect(HWND hwnd, LPRECT lpRect) JMP_FAST(0x775690)
 
 	static bool __fastcall File_Finder_Start(char* filename)
 	{ JMP_FAST(0x47AF70); }
@@ -444,6 +453,14 @@ struct Game
 
 	static void SendStatisticsPacket()
 	{ JMP_STD(0x6C6F50); }
+
+	// has index bound checking
+	static void __fastcall Play_Ingame_Movie2(int index, char state)
+	{ JMP_FAST(0x5BF390); }
+
+	// has no index bound checking
+	static void __fastcall Play_Ingame_Movie1(char* name, char state)
+	{ JMP_FAST(0x5BF2B0); }
 };
 
 // this fake class contains the IIDs used by the game

@@ -50,7 +50,8 @@ void TechnoExtData::InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType)
 	}
 }
 
-// Skip vanilla animation counter code in UnitClass::AI.
+// Skip vanilla animation counter code in 
+// UnitClass_AI.
 DEFINE_JUMP(LJMP, 0x7363C9, 0x7363DE);
 
 // AFAIK, only used by the teleport of the Chronoshift SW
@@ -328,7 +329,7 @@ ASMJIT_PATCH(0x4D9992, FootClass_PointerGotInvalid_Parasite, 0x7)
 	GET(FootClass*, pParasiteOwner, EAX);
 	GET(bool, bRemoved, EBX);
 
-	if (pParasiteOwner == pAbstract && (!pParasiteOwner->Health || !Game::InScenario2())) {
+	if (pParasiteOwner == pAbstract && (!pParasiteOwner->Health || !Game::UserInputLocked())) {
 		pThis->ParasiteEatingMe = nullptr;
 		return SkipGameCode;
 	}
@@ -359,41 +360,6 @@ ASMJIT_PATCH(0x5F46AE, ObjectClass_Select, 0x7)
 ASMJIT_PATCH_AGAIN(0x5F4718, ObjectClass_Select, 0x7)
 
 #include <EventClass.h>
-
-// Do not explicitly reset target for KeepTargetOnMove vehicles when issued move command.
-ASMJIT_PATCH(0x4C7462, EventClass_Execute_KeepTargetOnMove, 0x5)
-{
-	enum { SkipGameCode = 0x4C74C0 };
-
-	GET(EventClass*, pThis, ESI);
-	GET(TechnoClass*, pTechno, EDI);
-	GET(AbstractClass*, pTarget, EBX);
-
-	if (pTechno->WhatAmI() != AbstractType::Unit)
-		return 0;
-
-	auto const mission = static_cast<Mission>(pThis->Data.MegaMission.Mission);
-	auto const pExt = TechnoExtContainer::Instance.Find(pTechno);
-	auto const pTypeExt = GET_TECHNOTYPEEXT(pTechno);
-
-	if ((mission == Mission::Move))
-	{
-		// Explicitly reset subterranean harvester state machine.
-		pExt->CurrentSubterraneanHarvStatus = SubterraneanHarvStatus::None;
-		pExt->SubterraneanHarvRallyPoint = nullptr;
-
-
-		if (pTypeExt->KeepTargetOnMove && pTechno->Target && !pTarget && pTechno->IsCloseEnoughToAttack(pTechno->Target))
-		{
-			auto const pDestination = pThis->Data.MegaMission.Destination.As_Abstract();
-			pTechno->SetDestination(pDestination, true);
-			pExt->KeepTargetOnMove = true;
-			return SkipGameCode;
-		}
-	}
-	pExt->KeepTargetOnMove = false;
-	return 0;
-}
 
 void UpdateKeepTargetOnMove(TechnoClass* pThis)
 {	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
@@ -2397,6 +2363,7 @@ ASMJIT_PATCH_AGAIN(0x41B17B, TechnoClass_FromINI_CreateForHouse, 0x7)
 ASMJIT_PATCH_AGAIN(0x51FB6B, TechnoClass_FromINI_CreateForHouse, 0x7)
 
 // Skips checking the gamemode or who the player is when assigning houses
+// BuildingClass::Read_INI
 DEFINE_JUMP(LJMP, 0x44F8CB, 0x44F8E1)
 
 //TechnoClass_KillCargo_SupplyKiller

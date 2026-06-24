@@ -13,6 +13,9 @@
 #include <Utilities/Macro.h>
 #include <Utilities/Patch.h>
 
+#include <BeaconClass.h>
+#include <BeaconManagerClass.h>
+
 ASMJIT_PATCH(0x4FD95F, HouseClass_CheckFireSale_LimboID, 0x6)
 {
 	GET(BuildingClass*, pBld, EAX);
@@ -500,3 +503,64 @@ ASMJIT_PATCH(0x4FB7CA, HouseClass_RegisterJustBuild_CreateSound_PlayerOnly, 0x6)
 
 	return Continue;
 }
+
+#pragma region BeaconOrder
+
+ASMJIT_PATCH(0x43131B, BeaconManagerClass_DeleteBeacon_RecordOrder, 0x5)
+{
+	GET(int, beaconIdx, EBX);
+	GET(int, houseIdx, ECX);
+
+	const auto pHouse = HouseClass::Array->at(houseIdx);
+	const auto pExt = HouseExtContainer::Instance.Find(pHouse);
+
+	const int oldValue = std::exchange(pExt->BeaconsPlacedOrder[beaconIdx],0);
+
+	if (oldValue != 0) {
+		for (int i = 0; i < 3; ++i) {
+			if (i != beaconIdx && pExt->BeaconsPlacedOrder[i] > oldValue)
+				--pExt->BeaconsPlacedOrder[i];
+		}
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x430C64, BeaconManagerClass_PlaceBeacon_RecordOrder, 0x5)
+{
+	GET(int, beaconIdx, EAX);
+	GET(int, houseIdx, EBX);
+
+	const auto pHouse = HouseClass::Array->at(houseIdx);
+	const auto pExt = HouseExtContainer::Instance.Find(pHouse);
+
+	pExt->BeaconsPlacedOrder[beaconIdx] = 
+		std::max({ pExt->BeaconsPlacedOrder[0]
+			, pExt->BeaconsPlacedOrder[1]
+			, pExt->BeaconsPlacedOrder[2] 
+			}) + 1;
+
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x430E5D, BeaconManagerClass_PlaceBeacon_RecordOrder, 0x5)
+
+ASMJIT_PATCH(0x4AC9B2, MouseClass_ToggleBeaconMode_AllUsed, 0x6)
+{
+	GET(bool, canPlace, EAX);
+
+	if (canPlace)
+		return 0x4AC9B8;
+
+	const auto pHouse = HouseClass::CurrentPlayer();
+	const auto pExt = HouseExtContainer::Instance.Find(pHouse);
+
+	for (int i = 0; i < 3; ++i) {
+		if (pExt->BeaconsPlacedOrder[i] == 1) {
+			BeaconManagerClass::Instance->DeleteBeacon(pHouse->ArrayIndex, i);
+			break;
+		}
+	}
+
+	return 0x4AC9B8;
+}
+
+#pragma endregion
