@@ -8,6 +8,7 @@
 
 #include <GeneralDefinitions.h>
 #include <ArrayClasses.h>
+#include <CoordStruct.h>
 
 class IonBlastClass
 {
@@ -26,6 +27,8 @@ public:
 	//Constructor, Destructor
 	IonBlastClass(CoordStruct Crd)
 		{ JMP_THIS(0x53CB10); }
+
+	IonBlastClass() = default;
 
 	~IonBlastClass()
 		{ JMP_THIS(0x53CB90); }

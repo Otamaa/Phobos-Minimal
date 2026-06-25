@@ -129,6 +129,7 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/Mouse/Body.h>
+#include <Ext/IonBlast/Body.h>
 
 #include <Misc/Spawner/Main.h>
 #include <Misc/Spawner/SavedGamesInSubdir.h>
@@ -568,7 +569,11 @@ HRESULT Phobos::SaveAllLateData(IStream* pStm)
 	//if (!SUCCEEDED(hr)) return hr;
 	hr = WriteBlocksToStreamB(RadSiteExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	//more
+	
+
+	hr = WriteBlocksToStream<FakeIonBlastClass, false>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
 	return hr;
 }
 

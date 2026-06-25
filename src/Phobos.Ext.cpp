@@ -42,6 +42,7 @@
 #include <Ext/ParticleSystem/Body.h>
 #include <Ext/ParticleSystemType/Body.h>
 #include <Ext/Mouse/Body.h>
+#include <Ext/IonBlast/Body.h>
 
 //#include <Misc/TriggerMPOwner.h>
 
@@ -391,6 +392,7 @@ void Phobos::ClearAll()
 	CLEAR_TYPE_CLASS(Shield);
 	CLEAR_TYPE_CLASS(Tunnel);
 
+	CLEAR_CLASS(FakeIonBlastClass);
 	CLEAR_CLASS(PhobosGlobal);
 
 	MouseClassExt::ClearCameos();

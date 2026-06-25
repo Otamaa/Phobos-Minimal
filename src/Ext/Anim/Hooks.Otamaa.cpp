@@ -477,7 +477,7 @@ void NOINLINE FakeAnimClass::_CreateFoot()
 
 		const auto& toInf = RulesClass::Instance->AnimToInfantry;
 
-if ((size_t)this->Type->MakeInfantry < toInf.size() && toInf.Items[this->Type->MakeInfantry]) {
+		if ((size_t)this->Type->MakeInfantry < toInf.size() && toInf.Items[this->Type->MakeInfantry]) {
 
 
 			if (HouseClass* pInfOwner = !this->Owner || this->Owner->Defeated ?
