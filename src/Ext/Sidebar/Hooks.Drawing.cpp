@@ -55,6 +55,26 @@ public:
 		if (rtti2 == AbstractType::None)
 			return true;
 
+		auto IseligibleByName = [](AbstractTypeClass* pTT1 , AbstractTypeClass* pTT2) -> bool{
+			if (RulesExtData::Instance()->SortCameoByName) {
+				const int result = strcmp(pTT1->Name, pTT2->Name);
+
+				if (result < 0)
+					return true;
+				else if (result > 0)
+					return true;
+			}
+
+			return wcscmp(pTT1->UIName, pTT2->UIName) <= 0;
+		};
+
+		auto IseligibleByCost = [](int cost1 , int cost2 , bool def)-> bool {
+			if (cost1 < cost2) return true;
+			if (cost1 > cost2) return false;
+
+			return def;
+		};
+
 		// ── Phase 2 [6A8463]: CameoPriority extension sort (inlined from hook) ──
 		// EXTENSION: replaces ASMJIT_PATCH @ 0x6A8463
 		auto IsSuperWeaponRtti = [](AbstractType rtti) -> bool
@@ -64,12 +84,15 @@ public:
 					|| rtti == AbstractType::SuperWeaponType;
 			};
 
+		bool item1IsSW = IsSuperWeaponRtti(type1);
+		bool item2IsSW = IsSuperWeaponRtti(rtti2);
+
 		{
-			const auto pLeftSWExt = IsSuperWeaponRtti(type1)
-				? SWTypeExtContainer::Instance.TryFind(SuperWeaponTypeClass::Array->get_or_default(id1))
+			const auto pLeftSWExt = item1IsSW
+				? SWTypeExtContainer::Instance.Find(SuperWeaponTypeClass::Array->Items[id1])
 				: nullptr;
-			const auto pRightSWExt = IsSuperWeaponRtti(rtti2)
-				? SWTypeExtContainer::Instance.TryFind(SuperWeaponTypeClass::Array->get_or_default(type2))
+			const auto pRightSWExt = item2IsSW
+				? SWTypeExtContainer::Instance.Find(SuperWeaponTypeClass::Array->Items[type2])
 				: nullptr;
 
 			const auto pLeftTechnoExt = TechnoTypeExtContainer::Instance.TryFind(pTT1);
@@ -87,15 +110,14 @@ public:
 		}
 
 		// ── Phase 2b [6A8463]: Vanilla SW classification ──────────────────────
-		bool item1IsSW = IsSuperWeaponRtti(type1);
-		bool item2IsSW = IsSuperWeaponRtti(rtti2);
+
 
 		// ── Phase 3 [6A84A5]: SuperWeapon vs SuperWeapon comparison ───────────
 		if (item1IsSW && item2IsSW)
 		{
 			// VERIFY: SuperWeaponTypeClass::Array->get_or_default vs SuperWeaponTypes.Vector_Item — confirm correct accessor
-			SuperWeaponTypeClass* pSW1 = SuperWeaponTypeClass::Array->get_or_default(id1);
-			SuperWeaponTypeClass* pSW2 = SuperWeaponTypeClass::Array->get_or_default(type2);
+			SuperWeaponTypeClass* pSW1 = SuperWeaponTypeClass::Array->Items[id1];
+			SuperWeaponTypeClass* pSW2 = SuperWeaponTypeClass::Array->Items[type2];
 
 			// Sort by RechargeTime ascending  [6A84B1]
 			// VERIFY: offset 0xB0 = RechargeTime on SuperWeaponTypeClass
@@ -104,9 +126,16 @@ public:
 			if (rc1 < rc2) return true;
 			if (rc1 > rc2) return false;
 
-			// Tie-break by UIName  [6A84E1 → 6A86F3]
-			// VERIFY: offset 0x60 = UIName (wchar_t*) on AbstractTypeClass
-			return wcscmp(pSW1->UIName, pSW2->UIName) <= 0;
+			//if(!RulesExtData::Instance()->SortSWCameoByMoneyAmount){
+				// Tie-break by UIName  [6A84E1 → 6A86F3]
+				// VERIFY: offset 0x60 = UIName (wchar_t*) on AbstractTypeClass
+				return IseligibleByName(pSW1, pSW2);
+			//}
+
+			// const auto pLeftSWExt = SWTypeExtContainer::Instance.Find(pSW1);
+			// const auto pRightSWExt = SWTypeExtContainer::Instance.Find(pSW2);
+
+			// return IseligibleByCost(pLeftSWExt->Money_Amount, pRightSWExt->Money_Amount , IseligibleByName(pSW1, pSW2));
 		}
 
 		// ── Phase 4 [6A84E6]: Non-SW vs Non-SW side affinity check ───────────
@@ -191,12 +220,10 @@ public:
 		// VERIFY: vtable offset 0x84 = Cost_Of virtual call
 		int cost1 = pTT1->GetActualCost(HouseClass::CurrentPlayer());
 		int cost2 = pTT2->GetActualCost(HouseClass::CurrentPlayer());  // SUSPECT: confirm pTT2 not rebound before this
-		if (cost1 < cost2) return true;
-		if (cost1 > cost2) return false;
 
 		// ── Phase 9 [6A86F3]: Final tie-break by UIName ───────────────────────
 		// VERIFY: offset 0x60 = UIName (wchar_t*) on AbstractTypeClass
-		return wcscmp(pTT1->UIName, pTT2->UIName) <= 0;
+		return  IseligibleByCost(cost1 , cost2 , IseligibleByName(pTT1, pTT2));
 	}
 
 	SHPStruct* __GetSpecialCameo(int specialIdx) {

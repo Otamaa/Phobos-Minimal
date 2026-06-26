@@ -13,6 +13,7 @@
 #include <Utilities/Debug.h>
 #include <Utilities/Iterator.h>
 #include <Utilities/PhobosMap.h>
+#include <Utilities/PhobosPCXFile.h>
 
 #include <string.h>
 #include <iterator>
@@ -677,4 +678,7 @@ public:
 	static FORCEDINLINE COMPILETIMEEVAL bool Contains(T thisEnum, T thatEnum) {
 		return (thisEnum & thatEnum) != T::None;
 	}
+
+	static bool DrawImage(DSurface* pSurface, RectangleStruct destinationRect, BSurface* pPCXSurface, SHPStruct* fileSHP, ConvertClass* pPalette, int frameIndex = 0, int zAdjust = 0, BlitterFlags blitterFlags = BlitterFlags::None);
+	static std::unique_ptr<std::vector<PhobosPCXFile>> GetAnimationPCX(const std::string& baseFilename);
 };

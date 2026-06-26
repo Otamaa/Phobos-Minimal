@@ -145,6 +145,7 @@ public:
 		return
 			Stm
 			.Process(this->values, RegisterForChange)
+			.RegisterChange(this)
 			;
 	}
 	bool save(PhobosStreamWriter& Stm) const
@@ -152,6 +153,7 @@ public:
 		return
 			Stm
 			.Process(this->values)
+			.RegisterChange(this)
 			;
 	}
 

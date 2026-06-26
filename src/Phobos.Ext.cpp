@@ -278,6 +278,8 @@ unsigned Phobos::GetVersionNumber() {
 	version += sizeof(FlyingStrings);
 	version += sizeof(FlyingStrings::ItemSize);
 
+	version += sizeof(IonBlastClass);
+
 #define AddTypeOf(cccc) version += sizeof(cccc##TypeClass);
 		AddTypeOf(Armor)
 		AddTypeOf(Banner)

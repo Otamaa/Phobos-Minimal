@@ -19,6 +19,7 @@
 #define IS_SAME_STR_N(a ,b) (IMPL_STRCMP(a,b) == 0)
 #define IS_SAME_STR_I(a,b) ( _stricmp(a,b) == 0)
 #define IS_SAME_WSTR(a,b) (IMPL_WSTRCMPI(a,b) == 0)
+#define IS_SAME_WSTR_N(a,b) (wcscmp(a,b) <= 0)
 
 COMPILETIMEEVAL OPTIONALINLINE const char* NULL_STR { "null" };
 COMPILETIMEEVAL OPTIONALINLINE const char* NULL_STR2 { "<null>" };

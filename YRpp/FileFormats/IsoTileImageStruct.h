@@ -2,7 +2,7 @@
 
 #include <Drawing.h>
 
-#pragma pack(4)
+#pragma pack(push,4)
 struct IsoTileImageStruct
 {
 	signed int  XPos;
@@ -22,9 +22,9 @@ struct IsoTileImageStruct
 	ColorStruct HighColor;
 	unsigned char field_31[3];
 };
-#pragma pack()
+#pragma pack(pop)
 
-#pragma pack(4)
+#pragma pack(push,4)
 struct IsoTileHeaderStruct
 {
 	signed int  Width;
@@ -32,7 +32,7 @@ struct IsoTileHeaderStruct
 	signed int  ImageWidth;
 	signed int  ImageHeight;
 };
-#pragma pack()
+#pragma pack(pop)
 
 //#pragma pack(4)
 //struct IsoTileFileStruct

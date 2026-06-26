@@ -30,8 +30,6 @@
 
 #pragma warning( pop )
 
-
-
 class CSFText;
 class CCINIClass;
 class AbstractClass;

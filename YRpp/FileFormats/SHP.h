@@ -145,7 +145,7 @@ OPTIONALINLINE const SHPFile* SHPStruct::AsFile() const {
 	return !IsReference() ? static_cast<const SHPFile*>(this) : nullptr;
 }
 
-#pragma pack(4)
+#pragma pack(push,4)
 struct ShapeFileStruct
 {
 public:
@@ -169,7 +169,7 @@ private:
 	 */
 	SHPFrame FrameData;
 };
-#pragma pack()
+#pragma pack(pop)
 
 //=== GLOBAL LINKED LIST OF ALL LOADED SHP FILES
 // defined but not used

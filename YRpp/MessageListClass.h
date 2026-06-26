@@ -13,7 +13,7 @@
 
 struct MessageArrayStruct
 {
-	__int16 buffer[162];
+	wchar_t buffer[162];
 };
 
 class MessageListClass

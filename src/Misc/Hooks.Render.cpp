@@ -69,7 +69,7 @@ bool IsOnMyView(CoordStruct& coords)
 // 			}
 // 		}
 // 	}*/
-
-
+//
+//
 // 	return 0;
 // }

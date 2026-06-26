@@ -965,7 +965,7 @@ bool OPTIONALINLINE Promotable<T>::Load(PhobosStreamReader& Stm, bool RegisterFo
 	return Stm
 		.Process(this->Rookie, RegisterForChange)
 		.Process(this->Veteran, RegisterForChange)
-		.Process(this->Elite, RegisterForChange)
+		.Process(this->Elite, RegisterForChange) && Stm.RegisterChange(this)
 		;
 }
 
@@ -975,7 +975,7 @@ bool OPTIONALINLINE Promotable<T>::Save(PhobosStreamWriter& Stm) const
 	return Stm
 		.Process(this->Rookie)
 		.Process(this->Veteran)
-		.Process(this->Elite)
+		.Process(this->Elite) && Stm.RegisterChange(this)
 		;
 }
 
@@ -1021,7 +1021,8 @@ bool OPTIONALINLINE NullablePromotable<T>::Load(PhobosStreamReader& Stm, bool Re
 	return Stm
 		.Process(this->Rookie, RegisterForChange)
 		.Process(this->Veteran, RegisterForChange)
-		.Process(this->Elite, RegisterForChange);
+		.Process(this->Elite, RegisterForChange)
+		&& Stm.RegisterChange(this);
 }
 
 template <typename T>
@@ -1030,7 +1031,8 @@ bool OPTIONALINLINE NullablePromotable<T>::Save(PhobosStreamWriter& Stm) const
 	return Stm
 		.Process(this->Rookie)
 		.Process(this->Veteran)
-		.Process(this->Elite);
+		.Process(this->Elite) 
+		&& Stm.RegisterChange(this);
 }
 
 // ValueableVector
@@ -1182,7 +1184,7 @@ bool OPTIONALINLINE Damageable<T>::Load(PhobosStreamReader& Stm, bool RegisterFo
 	return Stm
 		.Process(this->BaseValue, RegisterForChange)
 		.Process(this->ConditionYellow, RegisterForChange)
-		.Process(this->ConditionRed, RegisterForChange);
+		.Process(this->ConditionRed, RegisterForChange) && Stm.RegisterChange(this);
 }
 
 template <typename T>
@@ -1191,7 +1193,7 @@ bool OPTIONALINLINE Damageable<T>::Save(PhobosStreamWriter& Stm) const
 	return Stm
 		.Process(this->BaseValue)
 		.Process(this->ConditionYellow)
-		.Process(this->ConditionRed);
+		.Process(this->ConditionRed) && Stm.RegisterChange(this);
 }
 
 bool OPTIONALINLINE HealthOnFireData::Read(INI_EX& parser, const char* pSection, const char* pKey)
@@ -1231,7 +1233,7 @@ bool OPTIONALINLINE HealthOnFireData::Load(PhobosStreamReader& Stm, bool Registe
 	return Stm
 		.Process(this->RedOnFire, RegisterForChange)
 		.Process(this->GreenOnFire, RegisterForChange)
-		.Process(this->YellowOnFire, RegisterForChange);
+		.Process(this->YellowOnFire, RegisterForChange) && Stm.RegisterChange(this);
 }
 
 bool OPTIONALINLINE HealthOnFireData::Save(PhobosStreamWriter& Stm) const
@@ -1239,7 +1241,7 @@ bool OPTIONALINLINE HealthOnFireData::Save(PhobosStreamWriter& Stm) const
 	return Stm
 		.Process(this->RedOnFire)
 		.Process(this->GreenOnFire)
-		.Process(this->YellowOnFire);
+		.Process(this->YellowOnFire) && Stm.RegisterChange(this);
 }
 
 // DamageableVector
@@ -1278,7 +1280,9 @@ bool OPTIONALINLINE DamageableVector<T>::Load(PhobosStreamReader& Stm, bool Regi
 		.Process(this->BaseValue, RegisterForChange)
 		.Process(this->ConditionYellow, RegisterForChange)
 		.Process(this->ConditionRed, RegisterForChange)
-		.Process(this->MaxValue, RegisterForChange);
+		.Process(this->MaxValue, RegisterForChange)
+		&& Stm.RegisterChange(this)
+		;
 }
 
 template <typename T>
@@ -1288,7 +1292,9 @@ bool OPTIONALINLINE DamageableVector<T>::Save(PhobosStreamWriter& Stm) const
 		.Process(this->BaseValue)
 		.Process(this->ConditionYellow)
 		.Process(this->ConditionRed)
-		.Process(this->MaxValue);
+		.Process(this->MaxValue)
+		&& Stm.RegisterChange(this)
+		;
 }
 
 // TimedWarheadEffect
@@ -1299,7 +1305,7 @@ bool OPTIONALINLINE TimedWarheadValue<T>::Load(PhobosStreamReader& Stm, bool Reg
 		.Process(this->Value, RegisterForChange)
 		.Process(this->Timer, RegisterForChange)
 		.Process(this->ApplyToHouses, RegisterForChange)
-		.Process(this->SourceWarhead, RegisterForChange);
+		.Process(this->SourceWarhead, RegisterForChange) && Stm.RegisterChange(this);
 }
 
 template <typename T>
@@ -1309,7 +1315,7 @@ bool OPTIONALINLINE TimedWarheadValue<T>::Save(PhobosStreamWriter& Stm) const
 		.Process(this->Value)
 		.Process(this->Timer)
 		.Process(this->ApplyToHouses)
-		.Process(this->SourceWarhead);
+		.Process(this->SourceWarhead) && Stm.RegisterChange(this);
 }
 
 // MultiflagValueableVector
@@ -1409,7 +1415,7 @@ bool OPTIONALINLINE Animatable<TValue>::KeyframeDataEntry::Load(PhobosStreamRead
 {
 	return Stm
 		.Process(this->Percentage, RegisterForChange)
-		.Process(this->Value, RegisterForChange);
+		.Process(this->Value, RegisterForChange) && Stm.RegisterChange(this);
 }
 
 template <typename TValue>
@@ -1417,7 +1423,7 @@ bool OPTIONALINLINE Animatable<TValue>::KeyframeDataEntry::Save(PhobosStreamWrit
 {
 	return Stm
 		.Process(this->Percentage)
-		.Process(this->Value);
+		.Process(this->Value) && Stm.RegisterChange(this);
 }
 
 template <typename TValue>
@@ -1512,11 +1518,11 @@ void OPTIONALINLINE Animatable<TValue>::Read(INI_EX& parser, const char* const p
 template <typename TValue>
 bool OPTIONALINLINE Animatable<TValue>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	return Stm.Process(this->KeyframeData, RegisterForChange);
+	return Stm.Process(this->KeyframeData, RegisterForChange) && Stm.RegisterChange(this);
 }
 
 template <typename TValue>
 bool OPTIONALINLINE Animatable<TValue>::Save(PhobosStreamWriter& Stm) const
 {
-	return Stm.Process(this->KeyframeData);
+	return Stm.Process(this->KeyframeData) && Stm.RegisterChange(this);
 }

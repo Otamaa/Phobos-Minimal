@@ -151,10 +151,18 @@ public:
 	}
 };
 
+template<TimerType Clock>
+struct TimerStruct : public TimerClass<Clock>
+{};
+
+static_assert(sizeof(TimerStruct<FrameTimer>) == sizeof(TimerClass<FrameTimer>), "Invalid Size !");
+
 using SystemTimerClass = TimerClass<SystemTimer>;
+using SysTimerClass = TimerClass<SystemTimer>;
 using MSTimerClass = TimerClass<MSTimer>;
 
 static_assert(offsetof(SystemTimerClass, TimeLeft) == 0x8);
+static_assert(offsetof(SysTimerClass, TimeLeft) == 0x8);
 static_assert(offsetof(MSTimerClass, TimeLeft) == 0x8);
 
 static_assert(sizeof(SystemTimerClass) == 0xC, "Invalid Size !");

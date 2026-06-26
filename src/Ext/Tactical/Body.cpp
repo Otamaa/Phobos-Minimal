@@ -32,6 +32,8 @@
 #include <BuildingClass.h>
 #include <UnitClass.h>
 
+#include <New/Entity/FlyingStrings.h>
+
 #include <Phobos.h>
 
 enum class CollisionBoxShape : BYTE{
@@ -1694,6 +1696,8 @@ void FakeTacticalClass::_Render(DSurface* pSurface, bool flag, TacticalRenderMod
 	RadBeam::Draw_All();
 
 	this->Draw_super_lines_circles();
+
+	FlyingStrings::Instance.UpdateAll();
 
 	BeaconManagerClass::Instance->Draw(
 		DSurface::Temp(),

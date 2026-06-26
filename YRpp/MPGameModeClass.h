@@ -467,11 +467,12 @@ protected:
 
 static_assert(sizeof(MPSiegeClass) == 0x40, "Invalid Size!");
 
+#pragma pack(push, 4)
 struct MPlayerScoreType
 {
 	static COMPILETIMEEVAL reference<MPlayerScoreType, 0xA8D1FCu, 8u> MPScores { };
 
-	char Name[0x40];
+	char Name[40];
 	int Scheme;
 	int NonGameOvers;
 	int Lost[4];
@@ -479,6 +480,8 @@ struct MPlayerScoreType
 	int Builts[4];
 	int Score[4];
 };
+static_assert(sizeof(MPlayerScoreType) == 0x70,   "MPlayerScoreType wrong size");
+#pragma pack(pop)
 
 class MPCooperative : public MPGameModeClass
 {

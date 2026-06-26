@@ -651,6 +651,7 @@ public:
 	Nullable<Mission> BerzerkMission { };
 	Valueable<bool> AutoRemoveEarliestBeacon {};
 	Valueable<bool> AllowChatBoxInSinglePlayer {};
+
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

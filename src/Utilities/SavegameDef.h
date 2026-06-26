@@ -723,7 +723,7 @@ namespace Savegame
 
 			value.Raw = static_cast<unsigned short>(tmp_int);
 			// Note: Pad is not serialized as it appears to be just alignment padding
-			return true;
+			return stm.RegisterChange(&value);
 		}
 
 		bool WriteToStream(PhobosStreamWriter& stm, const DirStruct& value) const
@@ -732,7 +732,7 @@ namespace Savegame
 				return false;
 
 			// Note: Pad is not serialized as it appears to be just alignment padding
-			return true;
+			return stm.RegisterChange(&value);
 		}
 	};
 
@@ -903,7 +903,7 @@ namespace Savegame
 					return false;
 			}
 
-			return true;
+			return stm.RegisterChange(&value);
 		}
 
 		bool WriteToStream(PhobosStreamWriter& stm, const VectorClass<T>& value) const
@@ -917,7 +917,7 @@ namespace Savegame
 					return false;
 			}
 
-			return true;
+			return stm.RegisterChange(&value);
 		}
 	};
 
@@ -943,7 +943,7 @@ namespace Savegame
 					return false;
 			}
 
-			return true;
+			return stm.RegisterChange(&value);
 		}
 
 		bool WriteToStream(PhobosStreamWriter& stm, const DynamicVectorClass<T>& value) const
@@ -963,7 +963,7 @@ namespace Savegame
 					return false;
 			}
 
-			return true;
+			return stm.RegisterChange(&value);
 		}
 	};
 
@@ -975,7 +975,7 @@ namespace Savegame
 			if (!Savegame::ReadPhobosStream<DynamicVectorClass<T>>(stm, value, register_for_change))
 				return false;
 
-			return Savegame::ReadPhobosStream(stm, value.unknown_18, register_for_change);
+			return Savegame::ReadPhobosStream(stm, value.unknown_18, register_for_change) && stm.RegisterChange(&value);
 		}
 
 		bool WriteToStream(PhobosStreamWriter& stm, const TypeList<T>& value) const
@@ -983,7 +983,7 @@ namespace Savegame
 			if (!Savegame::WritePhobosStream<DynamicVectorClass<T>>(stm, value))
 				return false;
 
-			return Savegame::WritePhobosStream(stm, value.unknown_18);
+			return Savegame::WritePhobosStream(stm, value.unknown_18) && stm.RegisterChange(&value);
 		}
 	};
 
@@ -1093,7 +1093,7 @@ namespace Savegame
 			if (!Savegame::ReadPhobosStream(stm, value.BarrelLength, register_for_change)) return false;
 			if (!Savegame::ReadPhobosStream(stm, value.BarrelThickness, register_for_change)) return false;
 			if (!Savegame::ReadPhobosStream(stm, value.TurretLocked, register_for_change)) return false;
-			return true;
+			return 	stm.RegisterChange(&value);;
 		}
 
 		bool WriteToStream(PhobosStreamWriter& stm, const WeaponStruct& value) const
@@ -1103,7 +1103,7 @@ namespace Savegame
 			if (!Savegame::WritePhobosStream(stm, value.BarrelLength)) return false;
 			if (!Savegame::WritePhobosStream(stm, value.BarrelThickness)) return false;
 			if (!Savegame::WritePhobosStream(stm, value.TurretLocked)) return false;
-			return true;
+			return 	stm.RegisterChange(&value);;
 		}
 	};
 
@@ -1159,7 +1159,7 @@ namespace Savegame
 			if (!Savegame::ReadPhobosStream<VectorClass<int>>(stm, value, register_for_change))
 				return false;
 
-			return Savegame::ReadPhobosStream(stm, value.Total, register_for_change);
+			return Savegame::ReadPhobosStream(stm, value.Total, register_for_change) && stm.RegisterChange(&value);
 		}
 
 		bool WriteToStream(PhobosStreamWriter& stm, const CounterClass& value) const
@@ -1167,7 +1167,7 @@ namespace Savegame
 			if (!Savegame::WritePhobosStream<VectorClass<int>>(stm, value))
 				return false;
 
-			return Savegame::WritePhobosStream(stm, value.Total);
+			return Savegame::WritePhobosStream(stm, value.Total) && stm.RegisterChange(&value);
 		}
 	};
 
@@ -1431,7 +1431,7 @@ namespace Savegame
 			if (!Savegame::ReadPhobosStream(Stm, Value.Progress)) return false;
 			if (!Savegame::ReadPhobosStream(Stm, Value.FlashEndFrame)) return false;
 
-			return true;
+			return 	Stm.RegisterChange(&Value);
 		}
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const BuildType& Value) const
@@ -1444,7 +1444,7 @@ namespace Savegame
 			if (!Savegame::WritePhobosStream(Stm, Value.Progress)) return false;
 			if (!Savegame::WritePhobosStream(Stm, Value.FlashEndFrame)) return false;
 
-			return true;
+			return 	Stm.RegisterChange(&Value);
 		}
 	};
 
@@ -1731,6 +1731,9 @@ namespace Savegame
 			bool HasValue = false;
 			if (Savegame::ReadPhobosStream(Stm, HasValue))
 			{
+				if (!Stm.RegisterChange(&Value))
+					return false;
+
 				if (!HasValue)
 				{
 					return true;
@@ -1740,7 +1743,7 @@ namespace Savegame
 				if (Savegame::ReadPhobosStream(Stm, nOld, RegisterForChange))
 				{
 					Value = nOld;
-					return true;
+					return ;
 				}
 			}
 
@@ -1752,8 +1755,11 @@ namespace Savegame
 			if (!Savegame::WritePhobosStream(Stm, Value.has_value()))
 				return false;
 
+			if (!Stm.RegisterChange(&Value))
+				return false;
+
 			if (Value.has_value())
-				return (Savegame::WritePhobosStream(Stm, Value.value()));
+				return Savegame::WritePhobosStream(Stm, Value.value());
 
 			return true;
 		}
@@ -1814,7 +1820,7 @@ namespace Savegame
 			}
 
 			Debug::Log("Successfully loaded vector %s with %d elements\n", name.c_str(), Count);
-			return true;
+			return 	Stm.RegisterChange(&Value);;
 		}
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::vector<T, Alloc>& Value) const
@@ -1829,7 +1835,7 @@ namespace Savegame
 					return false;
 			}
 
-			return true;
+			return 	Stm.RegisterChange(&Value);;
 		}
 	};
 
@@ -1882,7 +1888,7 @@ namespace Savegame
 				Value.insert(buffer);
 			}
 
-			return true;
+			return 	Stm.RegisterChange(&Value);
 		}
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::map<TKey, TValue, cmp, Alloc>& Value) const
@@ -1896,7 +1902,7 @@ namespace Savegame
 					return false;
 			}
 
-			return true;
+			return 	Stm.RegisterChange(&Value);;
 		}
 	};
 
@@ -1939,7 +1945,7 @@ namespace Savegame
 					}
 				}
 			}
-			return true;
+			return 	Stm.RegisterChange(&Value);
 		}
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::unordered_set<T, Hash, KeyEqual, Alloc>& Value) const
@@ -1957,7 +1963,7 @@ namespace Savegame
 					}
 				}
 			}
-			return true;
+			return 	Stm.RegisterChange(&Value);
 		}
 	};
 
@@ -2055,7 +2061,7 @@ namespace Savegame
 				Value.push_back(buffer);
 			}
 
-			return true;
+			return 	Stm.RegisterChange(&Value);
 		}
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::list<T, Alloc>& Value) const
@@ -2075,7 +2081,7 @@ namespace Savegame
 				}
 			}
 
-			return true;
+			return 	Stm.RegisterChange(&Value);
 		}
 	};
 
@@ -2099,7 +2105,7 @@ namespace Savegame
 				}
 			}
 
-			return true;
+			return 	Stm.RegisterChange(&Value);
 		}
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::deque<T, Alloc>& Value) const
@@ -2116,7 +2122,7 @@ namespace Savegame
 					return false;
 			}
 
-			return true;
+			return 	Stm.RegisterChange(&Value);
 		}
 	};
 
@@ -2140,7 +2146,7 @@ namespace Savegame
 				Value.push(buffer);
 			}
 
-			return true;
+			return 	Stm.RegisterChange(&Value);
 		}
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::queue<T, Container>& Value) const
@@ -2163,7 +2169,7 @@ namespace Savegame
 				}
 			}
 
-			return true;
+			return 	Stm.RegisterChange(&Value);
 		}
 	};
 
@@ -2190,7 +2196,7 @@ namespace Savegame
 				}
 			}
 
-			return true;
+			return 	Stm.RegisterChange(&Value);
 		}
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::priority_queue<T, Container, Compare>& Value) const
@@ -2215,7 +2221,7 @@ namespace Savegame
 				}
 			}
 
-			return true;
+			return 	Stm.RegisterChange(&Value);
 		}
 	};
 
@@ -2291,7 +2297,7 @@ namespace Savegame
 				}
 			}
 
-			return true;
+			return 	Stm.RegisterChange(&Value);
 		}
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::unordered_map<TKey, TValue, hasher, cmp, Alloc>& Value) const
@@ -2309,7 +2315,7 @@ namespace Savegame
 				}
 			}
 
-			return true;
+			return 	Stm.RegisterChange(&Value);
 		}
 	};
 
@@ -2345,7 +2351,7 @@ namespace Savegame
 				}
 			}
 
-			return true;
+			return 	Stm.RegisterChange(&Value);
 		}
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::multimap<TKey, TValue, Cmp, Alloc>& Value) const
@@ -2364,7 +2370,7 @@ namespace Savegame
 				}
 			}
 
-			return true;
+			return 	Stm.RegisterChange(&Value);
 		}
 	};
 

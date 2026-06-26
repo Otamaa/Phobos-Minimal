@@ -44,11 +44,11 @@ public:
 	ShapeButtonClass() noexcept
 		:ShapeButtonClass(noinit_t()) { JMP_THIS(0x69DCF0); }
 
-	ShapeButtonClass(unsigned int nID, int nX, int nY, int nWidth, int nHeight, bool bIsAlpha) noexcept
+	ShapeButtonClass(unsigned int nID, SHPStruct* pShape , int nX, int nY, int nWidth, int nHeight, bool bIsAlpha) noexcept
 		: ShapeButtonClass(noinit_t()) { JMP_THIS(0x69DD30); }
 
-	ShapeButtonClass(unsigned int nID, RectangleStruct atRect, bool bIsAlpha) noexcept
-		: ShapeButtonClass(nID, atRect.X , atRect.Y , atRect.Width, atRect.Height, bIsAlpha) {}
+	ShapeButtonClass(unsigned int nID, SHPStruct* pShape, RectangleStruct atRect, bool bIsAlpha) noexcept
+		: ShapeButtonClass(nID, pShape, atRect.X , atRect.Y , atRect.Width, atRect.Height, bIsAlpha) {}
 
 protected:
 	explicit __forceinline ShapeButtonClass(noinit_t)  noexcept

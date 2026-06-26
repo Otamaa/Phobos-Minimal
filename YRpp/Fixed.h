@@ -11,8 +11,8 @@
 #pragma warning(disable : 4324)
 
 //__declspec(align(4)) class Fixed
-ALIGN(4)
-class Fixed
+
+class ALIGN(4) Fixed
 {
 	static COMPILETIMEEVAL unsigned int PRECISION = 1 << 8;
 	typedef unsigned char data_type;
@@ -111,20 +111,15 @@ public:
 	static const Fixed _2_3;
 
 public:
-#pragma pack(4) // Ensure union member is padded to 4 byte alignment.
+#pragma pack(push, 4) // Ensure union member is padded to 4 byte alignment.
 	union {
 		struct {
-#ifdef SYSTEM_BIG_ENDIAN
-			unsigned char Whole;
-			unsigned char Fraction;
-#else
 			unsigned char Fraction;
 			unsigned char Whole;
-#endif
 		} Composite;
 		unsigned short Raw;
 	} Data;
-#pragma pack()
+#pragma pack(pop)
 };
 
 #pragma warning(pop)
