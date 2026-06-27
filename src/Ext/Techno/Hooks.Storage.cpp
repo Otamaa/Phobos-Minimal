@@ -159,18 +159,18 @@ ASMJIT_PATCH(0x7438B0, UnitClass_CreditLoad_Handle, 0xA)
 	return 0x7438E1;
 }
 
-ASMJIT_PATCH(0x73D4A4, UnitClass_Harvest_IncludeWeeder, 0x6)
-{
-	enum { retFalse = 0x73D5FE, retTrue = 0x73D4DA };
-	GET(UnitTypeClass*, pType, EDX);
-	GET(UnitClass*, pThis, ESI);
-	GET(CellClass*, pCell, EBP);
-	const bool canharvest = (pType->Harvester && pCell->LandType == LandType::Tiberium) || (pType->Weeder && pCell->LandType == LandType::Weeds);
-	const auto storagesPercent = pThis->GetStoragePercentage();
-	const bool canStoreHarvest = storagesPercent < 1.0;
-
-	return canharvest && canStoreHarvest ? retTrue : retFalse;
-}
+//ASMJIT_PATCH(0x73D4A4, UnitClass_Harvest_IncludeWeeder, 0x6)
+//{
+//	enum { retFalse = 0x73D5FE, retTrue = 0x73D4DA };
+//	GET(UnitTypeClass*, pType, EDX);
+//	GET(UnitClass*, pThis, ESI);
+//	GET(CellClass*, pCell, EBP);
+//	const bool canharvest = (pType->Harvester && pCell->LandType == LandType::Tiberium) || (pType->Weeder && pCell->LandType == LandType::Weeds);
+//	const auto storagesPercent = pThis->GetStoragePercentage();
+//	const bool canStoreHarvest = storagesPercent < 1.0;
+//
+//	return canharvest && canStoreHarvest ? retTrue : retFalse;
+//}
 
 ASMJIT_PATCH(0x73E3BF, UnitClass_Mission_Unload_replace, 0x6)
 {

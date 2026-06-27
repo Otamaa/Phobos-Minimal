@@ -1285,6 +1285,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			IsInitialized = true;
 			PhobosHookers::InitMinHook();
 			CRTHooks::Apply();
+			Debug::PrepareLogFile();
 
 			Patch::Apply_CALL(0x6BC08C, Phobos_Parse_Command_Line);
 			Patch::Apply_CALL6(0x7CD835, GetVersion_Wrapper);

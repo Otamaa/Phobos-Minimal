@@ -219,7 +219,16 @@ static_assert(sizeof(MultiMission) == 0x1BC, " Invalid Size ! ");
 class SessionClass
 {
 public:
-	static COMPILETIMEEVAL reference<SessionClass, 0xA8B238u> const Instance {};
+	DEFINE_REFERENCE(SessionClass, Instance, 0xA8B238u)
+
+	// Incoming global-packet receive buffers, filled by
+	// IPXManagerClass::Get_Global_Message. GlobalReceivePacket is the raw packet
+	// (engine GlobalPacketType, 0x1C7 bytes; cast to the desired packet struct);
+	// GlobalReceiveAddress is the sender's address.
+	DEFINE_REFERENCE(char, GlobalReceivePacket, 0xA8D638)
+	DEFINE_REFERENCE(IPXAddressClass, GlobalReceiveAddress, 0xA8D804)
+
+public:
 
 	void Callback(int progress) const {
 		JMP_THIS(0x69AE90);
@@ -229,24 +238,24 @@ public:
 		JMP_THIS(0x69A310)
 	}
 
-	static bool IsSkirmish()
-	{
-		return Instance->GameMode == GameMode::Skirmish;
-	}
+	static bool FORCEDINLINE IsSkirmish() 
+	{ return Instance->GameMode == GameMode::Skirmish; }
 
-	static bool IsCampaign()
+	static bool FORCEDINLINE IsCampaign()
 	{ return Instance->GameMode == GameMode::Campaign; }
 
-	static bool IsSingleplayer()
-	{
-		return IsCampaign() || IsSkirmish();
-	}
+	static bool FORCEDINLINE IsSingleplayer()
+	{ return IsCampaign() || IsSkirmish(); }
 
-	static bool IsMultiplayer()
-	{
-		return Instance->GameMode == GameMode::LAN
-			|| Instance->GameMode == GameMode::Internet;
-	}
+	static FORCEDINLINE bool IsMultiplayer()
+	{ return Instance->GameMode == GameMode::LAN
+			|| Instance->GameMode == GameMode::Internet; }
+
+	// Drops a player's connection by house index: prints the "connection
+	// lost" (error == 1) / "left game" (error == 0) message, deletes the IPX
+	// connection, queues the remove-player event and reassigns the host.
+	static void __fastcall Destroy_Connection(int id, int error)
+	{ JMP_STD(0x5DA750) }
 
 	void ReadScenarioDescriptions()
 		{ JMP_THIS(0x699980) }
@@ -268,8 +277,8 @@ public:
 
 	// Non-zero while the session is suspended: the dialog message handler then
 	// services Call_Back() instead of recursively running the main loop.
-	int& Suspended()
-		{ return *reinterpret_cast<int*>(reinterpret_cast<char*>(this) + 0x287C); }
+	FORCEDINLINE int& Suspended()
+		{ return this->pendingoutofsyncmessages; }
 
 	// Non-zero while an in-game frame is running (set by the resume routine at
 	// 0x69BAB0, cleared by the pause routine at 0x69BB40). The owner-draw painter
@@ -277,29 +286,16 @@ public:
 	// it redraws the in-game sidebar behind a band-1 dialog, when clear it draws
 	// the full multiplayer menu screen (mpyscrnl). Clear it to give an in-game
 	// dialog the menu backdrop, and restore it afterwards.
-	bool& InGameFrameActive()
-		{ return *reinterpret_cast<bool*>(reinterpret_cast<char*>(this) + 0x30D8); }
+	FORCEDINLINE bool& InGameFrameActive()
+		{ return this->CurrentlyInGame; }
 
 	// House index of the current game master/host, or -1 if none assigned.
-	int& MasterPlayerID()
-		{ return *reinterpret_cast<int*>(reinterpret_cast<char*>(this) + 0x3074); }
+	FORCEDINLINE int& MasterPlayerID()
+		{ return this->chatid_3074; }
 
 	// UTF-16 name of the current game master/host (wchar_t[21]).
-	wchar_t* MasterPlayerName()
-		{ return reinterpret_cast<wchar_t*>(reinterpret_cast<char*>(this) + 0x3020); }
-
-	// Drops a player's connection by house index: prints the "connection
-	// lost" (error == 1) / "left game" (error == 0) message, deletes the IPX
-	// connection, queues the remove-player event and reassigns the host.
-	static void __fastcall Destroy_Connection(int id, int error)
-		{ JMP_STD(0x5DA750) }
-
-	// Incoming global-packet receive buffers, filled by
-	// IPXManagerClass::Get_Global_Message. GlobalReceivePacket is the raw packet
-	// (engine GlobalPacketType, 0x1C7 bytes; cast to the desired packet struct);
-	// GlobalReceiveAddress is the sender's address.
-	DEFINE_REFERENCE(char, GlobalReceivePacket, 0xA8D638)
-	DEFINE_REFERENCE(IPXAddressClass, GlobalReceiveAddress, 0xA8D804)
+	FORCEDINLINE wchar_t* MasterPlayerName()
+		{ return this->newgamehost; }
 
 public:
 	GameMode GameMode;
@@ -466,8 +462,7 @@ public:
 	char field_301A;
 	char field_301B;
 	int PortNumberOverride;
-	wchar_t newgamehost[20];
-	short word_3048;
+	wchar_t newgamehost[21];
 	char field_304A;
 	char field_304B;
 	int timings_304C[8];
@@ -542,7 +537,7 @@ static_assert(offsetof(SessionClass, KeepAliveTimerCount) == 0x2FEC, "KeepAliveT
 static_assert(offsetof(SessionClass, PortNumberOverride) == 0x301C, "PortNumberOverride wrong size");
 static_assert(offsetof(SessionClass, timings_304C) == 0x304C, "timings_304C wrong size");
 static_assert(offsetof(SessionClass, chatid_3074) == 0x3074, "chatid_3074 wrong size");
-
+static_assert(offsetof(SessionClass, newgamehost) == 0x3020, "newgamehost wrong size");
 static_assert(alignof(MessageListClass) == 4);
 static_assert(alignof(CCFileClass) == 4);
 static_assert(alignof(NodeNameType) == 1);

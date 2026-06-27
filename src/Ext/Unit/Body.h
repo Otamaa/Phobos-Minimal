@@ -98,6 +98,8 @@ public:
 	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	bool _Paradrop(CoordStruct* pCoords);
+	bool _Harvesting();
+
 	CoordStruct* _GetFLH(CoordStruct* buffer, int wepon, int baseX , int baseY , int baseZ);
 	int _Mission_Attack();
 	int _Mission_AreaGuard();

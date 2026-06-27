@@ -8,6 +8,7 @@
 #include <Ext/UnitType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/AnimType/Body.h>
+#include <Ext/Cell/Body.h>
 
 #include <RadarEventClass.h>
 #include <SlaveManagerClass.h>
@@ -661,6 +662,63 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D64, FakeUnitClass::_ClearOccupyBit);
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x7441B0, FakeUnitClass::_SetOccupyBit);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D60, FakeUnitClass::_SetOccupyBit);
+
+bool FakeUnitClass::_Harvesting()
+{
+	CoordStruct loc = this->Location;
+	auto pCell = (FakeCellClass*)MapClass::Instance->GetCellAt(loc);
+	if (this->NavCom)
+		return true;
+
+	const bool canharvest = (this->Type->Harvester && pCell->LandType == LandType::Tiberium) 
+		|| (this->Type->Weeder && pCell->LandType == LandType::Weeds);
+	const auto storagesPercent = this->GetStoragePercentage();
+	const bool canStoreHarvest = storagesPercent < 1.0;
+
+	if (canharvest && canStoreHarvest) {
+		auto pExt = TechnoExtContainer::Instance.Find(this);
+
+		auto storage = &pExt->TiberiumStorage;
+		if (storage->m_values.empty())
+			storage->m_values.resize(TiberiumClass::Array->Count);
+		
+		auto const pTypeExt = UnitExtContainer::Instance.Find(this)->GetTypeExtData();
+		int loadRate = pTypeExt->HarvesterLoadRate.Get(RulesClass::Instance->HarvesterLoadRate);
+
+		if (this->Type->Weeder) {
+			pCell->RemoveWeed();
+			storage->IncreaseAmount(RulesExtData::Instance()->Veins_PerCellAmount, 0);
+			this->Animation.Start(loadRate* 3);
+			return true;
+		} else {
+
+			double amount = 1.0;
+
+			int tibType = pCell->_GetTiberiumType();
+			double cur = storage->GetAmounts();
+
+			if (((double)this->Type->Storage - cur) <= 1.0) {
+				amount = (double)this->Type->Storage - cur;
+			}
+
+			int reduced = pCell->_Reduce_Tiberium((int)amount);
+
+			if (reduced > 0) {
+				storage->IncreaseAmount((float)amount, tibType);
+				this->Animation.Start(loadRate);
+				return true;
+			}
+		}
+
+	} else {
+		this->Animation.Start(0);
+	}
+
+	return false;
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x73D450, FakeUnitClass::_Harvesting);
+DEFINE_FUNCTION_JUMP(CALL, 0x73E987, FakeUnitClass::_Harvesting);
 
 HRESULT __stdcall FakeUnitClass::__Load(IStream* pStm)
 {

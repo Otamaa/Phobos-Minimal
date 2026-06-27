@@ -831,18 +831,6 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 			pShieldData->SetAnimationVisibility(true);
 	}
 
-	if (pExt->UpdateKillSelf_Slave())
-	{
-		OnUpdateEnd(pThis);
-		return;
-	}
-
-	if (pExt->CheckDeathConditions())
-	{
-		OnUpdateEnd(pThis);
-		return;
-	}
-
 	pExt->UpdateBuildingLightning();
 	pExt->UpdateShield();
 	if (!pThis->IsAlive)
@@ -850,7 +838,6 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 		OnUpdateEnd(pThis);
 		return;
 	}
-	pExt->UpdateInterceptor();
 
 	//pExt->UpdateFireSelf();
 	pExt->UpdateMCRangeLimit();
@@ -863,6 +850,18 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 		pExt->AttackMoveFollowerTempCount--;
 	}
 
+	if (pExt->UpdateKillSelf_Slave())
+	{
+		OnUpdateEnd(pThis);
+		return;
+	}
+
+	if (pExt->CheckDeathConditions())
+	{
+		OnUpdateEnd(pThis);
+		return;
+	}
+
 	pExt->UpdateSpawnLimitRange();
 	pExt->UpdateEatPassengers();
 	if (!pThis->IsAlive)
@@ -870,6 +869,9 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 		OnUpdateEnd(pThis);
 		return;
 	}
+
+	pExt->UpdateInterceptor();
+
 	pExt->UpdateGattlingOverloadDamage();
 	if (!pThis->IsAlive)
 	{

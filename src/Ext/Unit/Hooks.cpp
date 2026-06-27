@@ -13,7 +13,7 @@
 #include <UnitClass.h>
 #include <UnitTypeClass.h>
 
-ASMJIT_PATCH(0x73E361, UnitClass_Harvesting_HarvesterDumpRate, 6)
+ASMJIT_PATCH(0x73E361, UnitClass_MI_Unload_HarvesterDumpRate, 6)
 {
 	GET(UnitClass* const, pThis, ESI);
 
@@ -197,41 +197,41 @@ ASMJIT_PATCH(0x7368C6, UnitClass_Update_WeederMissionMove2, 0x6)
 	return 0x7368CC;
 }
 
-ASMJIT_PATCH(0x73D4DA, UnitClass_Harvest_VeinsStorageAmount, 0x6)
-{
-	GET(UnitClass*, pThis, ESI);
-	GET(FakeCellClass*, pCell, EBP);
-
-	auto storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
-	if (storage->m_values.empty())
-		storage->m_values.resize(TiberiumClass::Array->Count);
-
-	double amount = 1.0;
-
-	if (pThis->Type->Weeder)
-	{
-		pCell->RemoveWeed();
-		TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.IncreaseAmount(RulesExtData::Instance()->Veins_PerCellAmount, 0);
-		return 0x73D502;
-	}
-
-	int tibType = pCell->_GetTiberiumType();
-	double cur = storage->GetAmounts();
-
-	if (((double)pThis->Type->Storage - cur) <= 1.0)
-	{
-		amount = (double)pThis->Type->Storage - cur;
-	}
-
-	int reduced = pCell->ReduceTiberium((int)amount);
-
-	if (reduced > 0)
-	{
-		storage->IncreaseAmount((float)amount, tibType);
-		return 0x73D5BE;
-	}
-	return 0x73D623;
-}
+//ASMJIT_PATCH(0x73D4DA, UnitClass_Harvest_VeinsStorageAmount, 0x6)
+//{
+//	GET(UnitClass*, pThis, ESI);
+//	GET(FakeCellClass*, pCell, EBP);
+//
+//	auto storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
+//	if (storage->m_values.empty())
+//		storage->m_values.resize(TiberiumClass::Array->Count);
+//
+//	double amount = 1.0;
+//
+//	if (pThis->Type->Weeder)
+//	{
+//		pCell->RemoveWeed();
+//		TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.IncreaseAmount(RulesExtData::Instance()->Veins_PerCellAmount, 0);
+//		return 0x73D502;
+//	}
+//
+//	int tibType = pCell->_GetTiberiumType();
+//	double cur = storage->GetAmounts();
+//
+//	if (((double)pThis->Type->Storage - cur) <= 1.0)
+//	{
+//		amount = (double)pThis->Type->Storage - cur;
+//	}
+//
+//	int reduced = pCell->ReduceTiberium((int)amount);
+//
+//	if (reduced > 0)
+//	{
+//		storage->IncreaseAmount((float)amount, tibType);
+//		return 0x73D5BE;
+//	}
+//	return 0x73D623;
+//}
 
 ASMJIT_PATCH(0x746AFF, UnitClass_Disguise_Update_MoveToClear, 0xA)
 {
