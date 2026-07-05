@@ -555,7 +555,12 @@ ASMJIT_PATCH(0x4AC9B2, MouseClass_ToggleBeaconMode_AllUsed, 0x6)
 
 	for (int i = 0; i < 3; ++i) {
 		if (pExt->BeaconsPlacedOrder[i] == 1) {
-			BeaconManagerClass::Instance->DeleteBeacon(pHouse->ArrayIndex, i);
+			auto& pBeacon = BeaconManagerClass::Instance->Beacons[pHouse->ArrayIndex][i];
+			// Select and delete beacon.
+			// If you don't select the beacon, the game will not send the IPX packet.
+			MapClass::UnselectAll();
+			pBeacon->Bitfield |= 2;
+			BeaconManagerClass::Instance->DeleteBeacon(-1, -1);
 			break;
 		}
 	}

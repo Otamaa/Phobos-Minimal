@@ -781,7 +781,7 @@ int TechnoClass::GetIonCannonValue(AIDifficulty difficulty, int maxHealth) const
 	return this->GetIonCannonValue(difficulty);
 }
 
-bool PCXImages::LoadFile(const char *pFileName, int flag1, int flag2)
+bool PCXImages::LoadFile(const char *pFileName, int flag1, bool flag2)
 {
 	if (this->GetSurface(pFileName, nullptr)) {
 		return true;
@@ -1202,7 +1202,7 @@ ConvertClass* ConvertClass::CreateFromFile(const char* pal_filename) {
 
 	CCFileClass file{ pal_filename };
 
-	if (!file.Exists() || !file.Open(FileAccessMode::Read)) {
+	if (!file.IsAvaible() || !file.Open1(FileAccessMode::Read)) {
 		return nullptr;
 	}
 

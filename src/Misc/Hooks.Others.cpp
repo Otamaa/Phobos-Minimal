@@ -178,20 +178,6 @@ ASMJIT_PATCH(0x56BC54, ThreatPosedEstimates_GetIndex, 0x5)
 	return 0x56BC7D;
 }
 
-// don't set the focus when selling (true selling, thus no focus set atm)
-ASMJIT_PATCH(0x4C6DDB, Networking_RespondToEvent_Selling, 0x8)
-{
-	GET(TechnoClass* const, pTechno, EDI);
-	GET(AbstractClass* const, pFocus, EAX);
-
-	if (pTechno->CurrentMission != Mission::Selling || pTechno->ArchiveTarget)
-	{
-		pTechno->SetArchiveTarget(pFocus);
-	}
-
-	return 0x4C6DE3;
-}
-
 //CellClass_Load
 DEFINE_JUMP(LJMP, 0x483BF1, 0x483BFE);// #895374: skip the code that removes the crates (size 7)
 
@@ -599,16 +585,6 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x551A30, FakeLayerClass::__short);
 //}
 #endif
 
-static void __fastcall AnnounceInvalidatePointerWrapper(ObjectClass* pObject, bool removed)
-{
-	if (!pObject->Limbo()) // when object failed to be unlimbo , immedietely announce them dead
-		pObject->AnnounceExpiredPointer(removed);
-}
-//ObjectClass_RemoveThis -> re-reoute the Invalidation call
-DEFINE_FUNCTION_JUMP(CALL, 0x5F6616, AnnounceInvalidatePointerWrapper)
-//ObjectClass_RemoveThis -> remove the unlimbo call
-DEFINE_JUMP(LJMP,0x5F661B , 0x5F6625)
-
 //speeds up preview drawing by insane amounts
 ASMJIT_PATCH(0x5FED00, OverlayTypeClass_GetRadarColor, 0x6)
 {
@@ -619,67 +595,12 @@ ASMJIT_PATCH(0x5FED00, OverlayTypeClass_GetRadarColor, 0x6)
 	return 0x5FEDDA;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2460, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3510, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3C8C, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4078, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E48A0, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E8E50, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB214, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EC414, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EDE7C, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF21C, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF590, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFB10, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFD58, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F06C4, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F34B8, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4B1C, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F53E8, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5E2C, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F64D4, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6864, FakeObjectClass::_GetCell);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6DB0, FakeObjectClass::_GetCell);
-
 //Handle_Static_Messages_LoopingMovie
 DEFINE_JUMP(LJMP, 0x615BD3, 0x615BE0);
 //sub_789960_RemoveWOLResolutionCheck
 DEFINE_JUMP(LJMP, 0x78997B, 0x789A58);
 //DSurface_CTOR_SkipVRAM
 DEFINE_JUMP(LJMP, 0x4BA61B, 0x4BA623);
-
-ASMJIT_PATCH(0x74A884, VoxelAnimClass_UpdateBounce_Damage, 0x6)
-{
-	GET(VoxelAnimClass*, pThis, EBX);
-
-	const auto pType = pThis->Type;
-	const auto nRadius = pType->DamageRadius;
-
-	if (nRadius < 0 || !pType->Damage || !pType->Warhead)
-		return 0x74A934;
-
-	const auto nCoord = pThis->Bounce.GetCoords();
-	const auto pCell = MapClass::Instance->GetCellAt(nCoord);
-	const auto pInvoker = VoxelAnimExtData::GetTechnoOwner(pThis);
-
-	for (NextObject j(pCell->GetContent()); j; ++j)
-	{
-		const auto pObj = *j;
-
-		if (!pObj->IsAlive || pObj->InLimbo || pObj->Health <= 0)
-			continue;
-
-		const auto nLoc = pObj->Location;
-		const auto nDist = abs(nLoc.X - nCoord.X) + abs(nLoc.Y - nCoord.Y);
-
-		if (nDist < nRadius)
-		{
-			pObj->ReceiveDamage(&pType->Damage, Game::AdjustHeight(nDist), pType->Warhead, pInvoker, false, false, pInvoker ? pInvoker->Owner : nullptr);
-		}
-	}
-
-	return 0x74A934;
-}
 
 ASMJIT_PATCH(0x545904, IsometricTileTypeClass_CreateFromINIList_MediansFix, 0x7)
 {
@@ -710,13 +631,13 @@ ASMJIT_PATCH(0x65EA43, SendReinforcement_Opentopped, 0x6)
 }
 
 // PrismSupportModifier repair
-ASMJIT_PATCH(0x671152, RulesClass_Addition_General_PrismSupportModifier, 0x6)
-{
-	GET(RulesClass*, pThis, ESI);
-	REF_STACK(double, param, 0x0);
-	param = pThis->PrismSupportModifier / 100.0;
-	return 0x67115B;
-}
+//ASMJIT_PATCH(0x671152, RulesClass_Addition_General_PrismSupportModifier, 0x6)
+//{
+//	GET(RulesClass*, pThis, ESI);
+//	REF_STACK(double, param, 0x0);
+//	param = pThis->PrismSupportModifier / 100.0;
+//	return 0x67115B;
+//}
 
 ASMJIT_PATCH(0x6B72F9, SpawnManagerClass_Update_Buildings, 0x5)
 {
@@ -857,16 +778,6 @@ void __fastcall FakeCellClass::_ChainReaction(CellStruct* cell)
 //DEFINE_SKIP_HOOK(0x715857, TechnoTypeClass_LoadFromINI_LimitPalettes, 5, 715876)
 DEFINE_JUMP(LJMP, 0x715857, 0x715876);
 
-ASMJIT_PATCH(0x711EE0, TechnoTypeClass_GetBuildSpeed, 6)
-{
-	GET(TechnoTypeClass* const, pThis, ECX);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis);
-	const auto nSeed = pTypeExt->BuildTime_Speed.Get(RulesClass::Instance->BuildSpeed);
-	const auto nCost = pTypeExt->BuildTime_Cost.Get(pThis->Cost);
-	R->EAX(int(nSeed * nCost / 1000.0 * 900.0));
-	return 0x711EDE;
-}
-
 //WinMain_LogGameClasses
 DEFINE_JUMP(LJMP, 0x6BB9DD, 0x6BBE2B);
 
@@ -940,15 +851,6 @@ ASMJIT_PATCH(0x5CB0B1, Game_QueryPerformance, 5)
 	return 0;
 }
 
-// TiberiumTransmogrify is never initialized explitly, thus do that here
-ASMJIT_PATCH(0x66748A, RulesClass_CTOR_TiberiumTransmogrify, 6)
-{
-	GET(RulesClass*, pThis, ESI);
-	pThis->TiberiumTransmogrify = 0;
-	return 0;
-}
-
-
 ASMJIT_PATCH(0x657D3D, MapClass_MinimapChanged_Lock, 6)
 {
 	RadarClass::RadarEvenSurface->Lock();
@@ -989,243 +891,6 @@ ASMJIT_PATCH(0x4B769B, ScenarioClass_GenerateDropshipLoadout, 5)
 }
 
 #include <Ext/Scenario/Body.h>
-
-int Get_FallDamage(
-	double ratio,
-	const TechnoClass* pTechno,
-	const TechnoTypeClass* pTechnoType)
-{
-	if (ratio < 0.0)
-		return static_cast<int>(pTechno->Health * Math::abs(ratio));
-
-	if (ratio >= 0.0 && ratio <= 1.0)
-		return static_cast<int>(pTechnoType->Strength * ratio);
-
-	return static_cast<int>(ratio);
-}
-
-
-ASMJIT_PATCH(0x514C07, HoverLocomotionClass_Process_HoverShutdown, 0x5)
-{
-	enum { SkipGameCode = 0x514C12 };
-
-	GET(LocomotionClass* const, pThis, ESI);
-
-	const auto pTechno = pThis->Owner;
-	pTechno->DropAsBomb();
-	TechnoExtContainer::Instance.Find(pTechno)->HoverShutdown = true;
-
-	return SkipGameCode;
-}
-
-bool IsTechnoFalling(ObjectClass* pThis)
-{
-	pThis->FallRate = 0;
-
-	if (const auto pTechno = flag_cast_to<TechnoClass*, true>(pThis))
-	{
-		const auto pExt = TechnoExtContainer::Instance.Find(pTechno);
-		const auto pType = pTechno->GetTechnoType();
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-		const bool onParachuted = pExt->OnParachuted;
-		pExt->OnParachuted = false;
-
-		if (pThis->IsABomb && pThis->IsAlive)
-		{
-			const bool hoverShutdown = pExt->HoverShutdown;
-			pExt->HoverShutdown = false;
-
-			if (hoverShutdown)
-			{
-				if (pTypeExt->HoverDrownable)
-				{
-					int damage = pThis->Health;
-					pTechno->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
-				}
-
-				pThis->IsABomb = false;
-				return true;
-			}
-
-			const auto pCell = pTechno->GetCell();
-			const bool onBridge = pCell->ContainsBridge();
-
-			int damage = 0;
-
-			if (!pCell->IsClearToMove(pType->SpeedType, true, true, ZoneType::None, pType->MovementZone, -1, onBridge))
-			{
-				damage = pThis->Health;
-				pTechno->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
-
-				return true;
-			}
-
-			const LandType landType = pCell->LandType;
-			const bool inWater = !onBridge && (landType == LandType::Water || landType == LandType::Beach);
-
-			if (!onParachuted)
-			{
-				if (!pTypeExt->FallingDownDamage_AllowEMP && pTechno->EMPLockRemaining > 0)
-				{
-					damage = pThis->Health;
-					pTechno->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
-
-					return true;
-				}
-
-				double ratio = pCell->LandType == LandType::Water && !pTechno->OnBridge ?
-					pTypeExt->FallingDownDamage_Water.Get(pTypeExt->FallingDownDamage.Get())
-					: pTypeExt->FallingDownDamage.Get();
-
-				damage = Get_FallDamage(ratio, pTechno, pType);
-			}
-
-			if (damage == 0
-				|| pThis->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr) != DamageState::NowDead)
-			{
-				pThis->IsABomb = false;
-				const auto abs = pThis->WhatAmI();
-
-				if (abs == AbstractType::Infantry)
-				{
-					const auto pInf = static_cast<InfantryClass*>(pTechno);
-					const auto sequenceAnim = pInf->SequenceAnim;
-					pInf->ShouldDeploy = false;
-
-					if (inWater)
-					{
-						if (sequenceAnim != DoType::Swim)
-							pInf->PlayAnim(DoType::Swim, true, false);
-					}
-					else if (sequenceAnim != DoType::Guard)
-					{
-						pInf->PlayAnim(DoType::Ready, true, false);
-					}
-
-					ObjectClass* pObject = pCell->GetContent();
-
-					while (pObject->NextObject)
-					{
-						pObject = pObject->NextObject;
-					}
-
-					if (pObject != pInf)
-						pInf->Scatter(pInf->GetCoords(), true, false);
-				}
-				else if (abs == AbstractType::Unit)
-				{
-					static_cast<UnitClass*>(pTechno)->UpdatePosition(PCPType::During);
-				}
-			}
-		}
-
-		return true;
-	}
-
-	return false;
-}
-
-ASMJIT_PATCH(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
-{
-	GET(ObjectClass*, pThis, ESI);
-	GET(Layer, curLayer, EBP);
-
-	const auto pTechnoType = pThis->GetTechnoType();
-	const bool bAnimAttached = pTechnoType ? pThis->Parachute != 0 : pThis->HasParachute;
-
-	int nFallRate = 1;
-	int nMaxFallRate = bAnimAttached ? RulesClass::Instance->ParachuteMaxFallRate : RulesClass::Instance->NoParachuteMaxFallRate;
-
-	if (pTechnoType)
-	{
-		const auto pExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
-		nFallRate = (!bAnimAttached ? pExt->FallRate_NoParachute : pExt->FallRate_Parachute).Get();
-		auto& nCustomMaxFallRate = (!bAnimAttached ? pExt->FallRate_NoParachuteMax : pExt->FallRate_ParachuteMax);
-
-		if (nCustomMaxFallRate.isset())
-			nMaxFallRate = nCustomMaxFallRate;
-	}
-
-	if (pThis->FallRate - nFallRate >= nMaxFallRate)
-		nMaxFallRate = pThis->FallRate - nFallRate;
-
-	pThis->FallRate = nMaxFallRate;
-
-	if (curLayer != pThis->InWhichLayer())
-	{
-		DisplayClass::Instance->SubmitObject(pThis);
-	}
-
-	if (pThis->IsFallingDown)
-		return 0x5F4151;
-
-	if (IsTechnoFalling(pThis))
-		return pThis->IsAlive ? 0x5F405B : 0x5F4151;
-
-	if (pThis->IsABomb && pThis->Health > 0 && pThis->IsAlive)
-	{
-		int damage = pThis->Health;
-		pThis->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
-
-		if (!pThis->IsAlive)
-			return 0x5F4151;
-	}
-
-	return 0x5F405B;
-}
-
-ASMJIT_PATCH(0x5F5965, ObjectClass_SpawnParachuted_Track, 0x7)
-{
-	GET(ObjectClass*, pThis, ESI);
-
-	if (RulesExtData::Instance()->FallingDownTargetingFix && (pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
-	{
-		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
-		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = true;
-	}
-	return 0;
-}
-
-ASMJIT_PATCH(0x5F4160, ObjectClass_DropAsBomb_Track, 0x6)
-{
-	GET(ObjectClass*, pThis, ECX);
-
-	if (RulesExtData::Instance()->FallingDownTargetingFix && (pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
-	{
-		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
-		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = true;
-	}
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x5F3F86, ObjectClass_Update_Track, 0x7)
-{
-	GET(ObjectClass*, pThis, ESI);
-
-	if (RulesExtData::Instance()->FallingDownTargetingFix && (pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
-	{
-		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
-		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = false;
-	}
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x413FD2, AircraftClass_Init_Academy, 6)
-{
-	GET(AircraftClass*, pThis, ESI);
-
-	if (pThis->Owner)
-	{
-		if (pThis->Type->Trainable && HouseExtContainer::Instance.Find(pThis->Owner)->Is_AirfieldSpied)
-			pThis->Veterancy.Veterancy = 1.0f;
-
-		HouseExtData::ApplyAcademy(pThis->Owner, pThis, AbstractType::Aircraft);
-	}
-
-	return 0;
-}
 
 // issue #279: per unit AirstrikeAttackVoice and AirstrikeAbortSound
 ASMJIT_PATCH(0x41D940, AirstrikeClass_Fire_AirstrikeAttackVoice, 5)
@@ -1363,68 +1028,58 @@ bool NOINLINE  __fastcall MixFilesBoostrap()
 	CD::SetReqCD(-2);
 
 	auto pKey = MixFileClass::Key();
+	auto AllocateMix = [pKey](const char* mixName, MixFileClass*& mix) {
+		mix = GameCreate<MixFileClass>(mixName, pKey);
+		Debug::LogInfo("Loading {}", mixName);
+		return mix;
+	};
 
-	if (SpawnerMain::Configs::Enabled)
-	{
-		for (auto& preloadMix : SpawnerMain::GetGameConfigs()->PreloadMixes)
-		{
+	if (SpawnerMain::Configs::Enabled) {
+		for (auto& preloadMix : SpawnerMain::GetGameConfigs()->PreloadMixes) {
 			SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>(preloadMix.c_str(), pKey));
 			Debug::LogInfo("Loading Preloaded Mix Name : {} ", preloadMix.c_str());
 		}
 	}
 
-	for (int i = 99; i >= 0; --i)
-	{
+	for (int i = 99; i >= 0; --i) {
 		char buffer[256];
 		_snprintf(buffer, sizeof(buffer) - 1, GameStrings::EXPANDMD02d(), i);
-		RawFileClass _raw(buffer);
-		if (_raw.Exists())
-		{
-			Debug::LogInfo("Loading {}", buffer);
-			MixFileClass::Array->push_back(GameCreate<MixFileClass>(buffer, pKey));
+		CCFileClass _raw(buffer);
+		if (_raw.IsAvaible()) {
+			auto pFileName = _raw.FileName();
+
+			Debug::LogInfo("Loading [{} - {}]", buffer, pFileName);
+			auto mix = GameCreate<MixFileClass>(&_raw, pKey);
+
+			if (!mix->IsValid()) {
+				Debug::LogInfo("Failed Loading [{} - {}]", buffer, pFileName);
+				continue;
+			}
+
+			MixFileClass::Array->push_back(mix);
 		}
 	}
 
-	Debug::LogInfo("Loading {}", RA2MD_MIX());
-	RA2MD = GameCreate<MixFileClass>(RA2MD_MIX(), pKey);
-
-	if (!RA2MD())
+	if (!AllocateMix(RA2MD_MIX(), RA2MD()))
 		return false;
 
-	Debug::LogInfo("Loading {}", RA2_MIX());
-	RA2 = GameCreate<MixFileClass>(RA2_MIX, pKey);
-
-	if (!RA2())
+	if (!AllocateMix(RA2_MIX(), RA2()))
 		return false;
 
-	Debug::LogInfo("Loading {}", CACHEMD_MIX());
-	CACHEMD = GameCreate<MixFileClass>(CACHEMD_MIX(), pKey);
-
-	if (!CACHEMD())
+	if (!AllocateMix(CACHEMD_MIX(), CACHEMD()))
 		return false;
 
-	Debug::LogInfo("Loading {}", CACHE_MIX());
-	CACHE = GameCreate<MixFileClass>(CACHE_MIX(), pKey);
-
-	if (!CACHE())
+	if (!AllocateMix(CACHE_MIX(), CACHE()))
 		return false;
 
-	Debug::LogInfo("Loading {}", LOCALMD_MIX());
-	LOCALMD = GameCreate<MixFileClass>(LOCALMD_MIX(), pKey);
-
-	if (!LOCALMD())
+	if (!AllocateMix(LOCALMD_MIX(), LOCALMD()))
 		return false;
 
-	Debug::LogInfo("Loading {}", LOCAL_MIX());
-	LOCAL = GameCreate<MixFileClass>(LOCAL_MIX, pKey);
-
-	if (!LOCAL())
+	if (!AllocateMix(LOCAL_MIX(), LOCAL()))
 		return false;
 
-	if (SpawnerMain::Configs::Enabled)
-	{
-		for (auto& postloadMix : SpawnerMain::GetGameConfigs()->PostloadMixes)
-		{
+	if (SpawnerMain::Configs::Enabled) {
+		for (auto& postloadMix : SpawnerMain::GetGameConfigs()->PostloadMixes) {
 			SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>(postloadMix.c_str(), pKey));
 			Debug::LogInfo("Loading Postload Mix Name : {} ", postloadMix.c_str());
 		}
@@ -1438,16 +1093,19 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x5301A0, MixFilesBoostrap);
 
 ASMJIT_PATCH(0x6BD7D5, Expand_MIX_Reorg, 7)
 {
-	PhobosGlobal::Instance()->aresMIX.reset(GameCreate<MixFileClass>("ares.mix", MixFileClass::Key()));
-	if (SpawnerMain::Configs::Enabled)
-	{
-		SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>("cncnet.mix", MixFileClass::Key()));
+	SpawnerMain::GameConfigs::Init();
+
+	auto pKey = MixFileClass::Key();
+
+	PhobosGlobal::Instance()->aresMIX.reset(GameCreate<MixFileClass>("ares.mix", pKey));
+	if (SpawnerMain::Configs::Enabled) {
+		SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>("cncnet.mix", pKey));
 	}
 
 	MixFilesBoostrap();
 
-	Language = GameCreate<MixFileClass>(LANGUAGE_MIX(), MixFileClass::Key());
-	LangMD = GameCreate<MixFileClass>(LANGMD_MIX(), MixFileClass::Key());
+	Language = GameCreate<MixFileClass>(LANGUAGE_MIX(), pKey);
+	LangMD = GameCreate<MixFileClass>(LANGMD_MIX(), pKey);
 
 	return 0x6BD835;
 }
@@ -1460,8 +1118,8 @@ static COMPILETIMEEVAL constant_ptr<const char, 0x827DA0> const NTRLMD_MIX {};
 static COMPILETIMEEVAL reference<MixFileClass*, 0x884E5C> const NEUTRAL {};
 static COMPILETIMEEVAL constant_ptr<const char, 0x827D80> const NEUTRAL_MIX {};
 
-void NOINLINE __fastcall Release_Neutral()
-{
+void NOINLINE __fastcall Release_Neutral() {
+
 	if (NEUTRAL())
 	{
 		Debug::LogInfo("Releasing {} ", NEUTRAL_MIX());
@@ -1510,22 +1168,238 @@ DEFINE_FUNCTION_JUMP(CALL, 0x72ACFA, Release_Neutral);
 DEFINE_FUNCTION_JUMP(CALL, 0x72DFA0, Release_Neutral);
 DEFINE_FUNCTION_JUMP(CALL, 0x72E060, Release_Neutral);
 
-//TODO these , aaaa lot
-// static inline bool LoadSecondaryMixFiles()
-// {
-// 	CDFileClass _cd(CONQMD_MIX());
-// 	if(_cd.Exists()) {
-// 		CONQMD = GameCreate<MixFileClass>(CONQMD_MIX() , MixFileClass::Key());
-// 	}
+#include <ThemeClass.h>
 
-// 	if(!CONQMD())
-// 		return false;
-// }
+static COMPILETIMEEVAL reference<MixFileClass*, 0x826820> const GENERMD {};
+static COMPILETIMEEVAL constant_ptr<const char, 0x884E18> const GENERMD_MIX {};
 
-// ASMJIT_PATCH(0x530460, InitSecondaryMixfiles, 0x6){
-// 	R->EAX(LoadSecondaryMixFiles());
-// 	return 0x5304FE;
-// }
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884E14> const GENERIC {};
+static COMPILETIMEEVAL constant_ptr<const char, 0x826814> const GENERIC_MIX {};
+
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884E24> const ISOGEN {};
+static COMPILETIMEEVAL constant_ptr<const char, 0x8267F8> const ISOGEN_MIX {};
+
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884E28> const ISOGENMD {};
+static COMPILETIMEEVAL constant_ptr<const char, 0x826804> const ISOGENMD_MIX {};
+
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884E3C> const CONQUER {};
+static COMPILETIMEEVAL constant_ptr<const char, 0x8267EC> const CONQUER_MIX {};
+
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884E40> const CAMEOMD {};
+static COMPILETIMEEVAL constant_ptr<const char, 0x8267D0> const CAMEOMD_MIX {};
+
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884E44> const CAMEO {};
+static COMPILETIMEEVAL constant_ptr<const char, 0x8267B4> const CAMEO_MIX {};
+
+static COMPILETIMEEVAL constant_ptr<const char, 0x826790> const MAPS__MIX {};
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884E60> const MAPS {};
+
+static COMPILETIMEEVAL constant_ptr<const char, 0x82679C> const MAPSMD__MIX {};
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884E64> const MAPSMD {};
+
+static COMPILETIMEEVAL constant_ptr<const char, 0x81C2EC> const MAPSMD___MIX {};
+static COMPILETIMEEVAL constant_ptr<const char, 0x81C2C4> const MAPS___MIX {};
+
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884DD8> const MULTIMD {};
+static COMPILETIMEEVAL constant_ptr<const char, 0x826780> const MULTIMD_MIX {};
+
+static COMPILETIMEEVAL constant_ptr<const char, 0x81C24C> const THEMEMD_MIX {};
+static COMPILETIMEEVAL constant_ptr<const char, 0x81C220> const THEME_MIX {};
+static COMPILETIMEEVAL reference<MixFileClass*, 0x87E738> const THEME {};
+
+// ---------------------------------------------------------------------------
+// Init_Secondary_Mixfiles
+// ---------------------------------------------------------------------------
+bool __fastcall Init_Secondary_Mixfiles()
+{
+	auto pKey = MixFileClass::Key();
+	Debug::LogInfo("\n");
+
+	auto LoadMixWildcard = [pKey](const char* pattern, MixFileClass*& primary, DynamicVectorClass<MixFileClass*>& vec)
+		{
+			char v73[260];
+			strcpy(v73, pattern);
+
+			if (!Game::File_Finder_Start(v73))
+				return false;
+
+			Debug::LogInfo("Loading {}", v73);
+
+			primary = GameCreate<MixFileClass>(v73, pKey);
+
+			while (Game::File_Finder_Next_Name(v73))
+			{
+				Debug::LogInfo("Loading {}", v73);
+				vec.emplace_back(GameCreate<MixFileClass>(v73, pKey));
+			}
+
+			Game::File_Finder_End();
+			return true;
+		};
+
+	auto CheckAndAllocateMix = [pKey](const char* mixName, MixFileClass*& mix) {
+		CCFileClass tmp(mixName);
+
+		if (tmp.IsAvaible(0)) {
+			mix = GameCreate<MixFileClass>(&tmp, pKey);
+			const auto pFileName = tmp.FileName();
+
+			Debug::LogInfo("Loading [{} - {}]", mixName , pFileName);
+			
+			if (!mix->IsValid()) {
+				Debug::LogInfo("Failed Loading [{} - {}]", mixName , pFileName);
+				return false;
+			}
+		}
+
+		return true;
+	};
+	
+	// ------------------------------------------------------------------
+	// CONQMD.MIX — required; bail if missing
+	// ------------------------------------------------------------------
+	if (!CheckAndAllocateMix(CONQMD_MIX(), CONQMD()))
+		return false;
+
+	// ------------------------------------------------------------------
+	// GENERMD.MIX / GENERIC.MIX / ISOGENMD.MIX / ISOGEN.MIX
+	// ------------------------------------------------------------------
+	CheckAndAllocateMix(GENERMD_MIX(), GENERMD());
+	CheckAndAllocateMix(GENERIC_MIX(), GENERIC());
+	CheckAndAllocateMix(ISOGENMD_MIX(), ISOGENMD());
+	CheckAndAllocateMix(ISOGEN_MIX(), ISOGEN());
+
+	// ------------------------------------------------------------------
+	// CONQUER.MIX — required; bail if missing
+	// ------------------------------------------------------------------
+	if (!CheckAndAllocateMix(CONQUER_MIX(), CONQUER()))
+		return false;
+
+	// ------------------------------------------------------------------
+	// CAMEOMD.MIX — required; bail if missing
+	// ------------------------------------------------------------------
+	if (!CheckAndAllocateMix(CAMEOMD_MIX(), CAMEOMD()))
+		return false;
+
+	// ------------------------------------------------------------------
+	// CAMEO.MIX — required; bail if missing
+	// ------------------------------------------------------------------
+	if (!CheckAndAllocateMix(CAMEO_MIX(), CAMEO()))
+		return false;
+
+	// ------------------------------------------------------------------
+	// MAPS*.MIX / MAPSMD*.MIX
+	// ------------------------------------------------------------------
+	const int cdIndex = Game::Get_Volume_Index(60) + 1;
+
+	if (CD::IsLocal()) {
+		if (!LoadMixWildcard(MAPSMD__MIX(), MAPSMD(), MixFileClass::Maps()))
+			LoadMixWildcard(MAPS__MIX(), MAPS(), MixFileClass::Maps());
+	} else {
+		char v73[260];
+		sprintf(v73, MAPSMD___MIX(), cdIndex);
+		CheckAndAllocateMix(v73, MAPSMD());
+		sprintf(v73, MAPS___MIX(), cdIndex);
+		CheckAndAllocateMix(v73, MAPS());
+	}
+
+	if (!MAPSMD())
+		return false;
+
+	// ------------------------------------------------------------------
+	// MULTIMD.MIX — required; bail if missing
+	// ------------------------------------------------------------------
+	if(!CheckAndAllocateMix(MULTIMD_MIX, MULTIMD()))
+		return false;
+
+	// ------------------------------------------------------------------
+	// THEMEMD.MIX / THEME.MIX (optional — missing ThemeMix is non-fatal)
+	// ------------------------------------------------------------------
+	if (!CheckAndAllocateMix(THEMEMD_MIX, THEME()) && !CheckAndAllocateMix(THEME_MIX, THEME())) {
+		Debug::Log("Successfully finding Theme mix file\n");
+		ThemeClass::ScoresPresent = 1;
+		ThemeClass::Instance->Scan();
+	}
+
+	// ------------------------------------------------------------------
+	// MOVMD*.MIX / MOVIES*.MIX
+	// ------------------------------------------------------------------
+	char v73[260];
+	static COMPILETIMEEVAL reference<MixFileClass*, 0x884E2C> const MoviesMix {};
+	static COMPILETIMEEVAL constant_ptr<const char, 0x826738> const MOVIES01_MIX {};
+	static COMPILETIMEEVAL constant_ptr<const char, 0x826714> const MIXFILES_MOVIES01_MIX {};
+	static COMPILETIMEEVAL constant_ptr<const char, 0x8266F0> const MOVMD01_MIX {};
+	static COMPILETIMEEVAL constant_ptr<const char, 0x8266D8> const MIXFILES_MOVMD01_MIX {};
+	static COMPILETIMEEVAL constant_ptr<const char, 0x8266B8> const MOVMD03_MIX {};
+	static COMPILETIMEEVAL constant_ptr<const char, 0x8266A0> const MIXFILES_MOVMD03_MIX {};
+	static COMPILETIMEEVAL constant_ptr<const char, 0x8266FC> const MIXFILES_MOVIES__MIX {};
+	static COMPILETIMEEVAL constant_ptr<const char, 0x8266C4> const MIXFILES_MOVMD__MIX {};
+	static COMPILETIMEEVAL constant_ptr<const char, 0x82672C> const MOVIES__MIX {};
+	static COMPILETIMEEVAL constant_ptr<const char, 0x81C200> const MOVIES02d_MIX {};
+	static COMPILETIMEEVAL constant_ptr<const char, 0x81C210> const MOVMD02d_MIX {};
+	static COMPILETIMEEVAL constant_ptr<const char, 0x826748> const MOVMD__MIX {};
+
+	if (CD::IsLocal()) {
+
+		// Probe for the best-matching movie wildcard pattern.
+		// Original checks several sentinel filenames in priority order to
+		// pick a search pattern; last match wins.
+		const struct { const char* probe; const char* pattern; } movieProbes[] =
+		{
+			{ MOVIES01_MIX(),           MOVIES__MIX() },
+			{ MIXFILES_MOVIES01_MIX(), MIXFILES_MOVIES__MIX() },
+			{ MOVMD01_MIX(),             MOVMD__MIX() },
+			{ MIXFILES_MOVMD01_MIX(),  MIXFILES_MOVMD__MIX() },
+			{ MOVMD03_MIX(),             MOVMD__MIX() },
+			{ MIXFILES_MOVMD03_MIX(),  MIXFILES_MOVMD__MIX() },
+		};
+
+		strcpy(v73, MOVMD__MIX()); // default pattern
+
+		for (const auto& p : movieProbes) {
+			RawFileClass probe(p.probe);
+			if (probe.IsAvaible(0))
+				strcpy(v73, p.pattern);
+		}
+
+		if (Game::File_Finder_Start(v73)) {
+			CheckAndAllocateMix(v73, MoviesMix());
+
+			while (Game::File_Finder_Next_Name(v73))
+			{
+				Debug::LogInfo("Loading {}", v73);
+				MixFileClass::Movies->emplace_back(GameCreate<MixFileClass>(v73, pKey));
+			}
+		}
+		else
+		{
+			strcpy(v73, MOVIES__MIX());
+			CheckAndAllocateMix(v73, MoviesMix());
+
+			while (Game::File_Finder_Next_Name(v73))
+			{
+				Debug::LogInfo("Loading {}", v73);
+				MixFileClass::Movies->emplace_back(GameCreate<MixFileClass>(v73, pKey));
+			}
+		}
+
+		Game::File_Finder_End();
+		return MoviesMix() != nullptr;
+	}
+
+	// CD/disc movie files — numbered.
+	sprintf(v73, MOVMD02d_MIX(), cdIndex);
+	if(!CheckAndAllocateMix(v73, MoviesMix())) {
+		// MOVMD not present — try MOVIES##.MIX instead.
+		sprintf(v73, MOVIES02d_MIX(), cdIndex);
+		CheckAndAllocateMix(v73, MoviesMix());
+	}
+
+	Debug::LogInfo("Loading {}", v73);
+	return MoviesMix() != nullptr;
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x530460, Init_Secondary_Mixfiles);
 
 ASMJIT_PATCH(0x6BE9BD, Game_ProgramEnd_ClearResource, 6)
 {
@@ -1538,14 +1412,15 @@ ASMJIT_PATCH(0x6BE9BD, Game_ProgramEnd_ClearResource, 6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x531413, Game_Start, 5)
-{
-	int topActive = 500;
-	DSurface::Hidden->DrawText_Old(L"Ares is active.", 10, topActive, COLOR_GREEN);
-	DSurface::Hidden->DrawText_Old(L"Ares is © The Ares Contributors 2007 - 2021.", 10, 520, COLOR_GREEN);
-	DSurface::Hidden->DrawText_Old(L"Ares version: 3.0p1 Backport", 10, 540, COLOR_RED | COLOR_GREEN);
-	return 0;
-}
+//we dont use this anymore lmao
+//ASMJIT_PATCH(0x531413, Load_Game_LoadScreen_Add, 5)
+//{
+//	int topActive = 500;
+//	DSurface::Hidden->DrawText_Old(L"Ares is active.", 10, topActive, COLOR_GREEN);
+//	DSurface::Hidden->DrawText_Old(L"Ares is © The Ares Contributors 2007 - 2021.", 10, 520, COLOR_GREEN);
+//	DSurface::Hidden->DrawText_Old(L"Ares version: 3.0p1 Backport", 10, 540, COLOR_RED | COLOR_GREEN);
+//	return 0;
+//}
 
 //
 typedef BOOL(__stdcall* FP_MoveWindow)(HWND hWnd, int X, int Y, int nWidth, int nHeight, BOOL bRepaint);
@@ -1589,18 +1464,12 @@ ASMJIT_PATCH(0x5FACDF, Options_LoadFromINI, 5)
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x52D21F, Game_InitRules, 0x6)
-{
-	Phobos::Config::Read_RULESMD();
-	return 0x0;
-}
-
 #include <Ext/Convert/Body.h>
 
 _GET_FUNCTION_ADDRESS(ConvertClassExt::AllocBlitters, GetConvertClassExtAllocBlittersAddress)
 _GET_FUNCTION_ADDRESS(ConvertClassExt::DeallocBlitters, GetConvertClassExtDeallocBlittersAddress)
 
-ASMJIT_PATCH(0x6BC0CD, _LoadRA2MD, 5)
+ASMJIT_PATCH(0x6BC0CD, WinMain_LoadRA2MD, 5)
 {
 	auto pRA2MD = CCINIClass::INI_RA2MD.operator->();
 

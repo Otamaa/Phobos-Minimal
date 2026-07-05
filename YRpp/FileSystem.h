@@ -44,6 +44,19 @@ public:
 	MOVEABLE_ONLY(VoxelStruct);
 };
 
+// ---------------------------------------------------------------------------
+// Retrieve — CRC-keyed file data cache (sorted linked list)
+//
+// OWNERSHIP WARNING:
+//   LoadedFileCache does NOT own FilePtr.
+//   FilePtr points to memory allocated by either:
+//     - Load_Alloc_Data()  → raw heap buffer (YRMemory::Allocate)
+//     - ShapeCache ctor    → ShapeCache heap object
+//
+//   This memory is NEVER freed for the lifetime of the game session.
+//   WW design intent: "load once, live forever, OS cleans up on exit."
+//
+// ---------------------------------------------------------------------------
 class NOVTABLE FakeFileLoader
 {
 public:
@@ -83,6 +96,7 @@ public:
 	static COMPILETIMEEVAL reference<BytePalette, 0x885780u> TEMPERAT_PAL{};
 	static COMPILETIMEEVAL reference<BytePalette, 0xABBED0u> ISOx_PAL {};
 	static COMPILETIMEEVAL reference<BytePalette*, 0xA8F790u> GRFXTXT_PAL{};
+	static COMPILETIMEEVAL reference<BytePalette , 0x886380> UNITPAL{};
 
 	static COMPILETIMEEVAL reference<ConvertClass*, 0x87F6B0u> CAMEO_PAL{};
 	static COMPILETIMEEVAL reference<ConvertClass*, 0x87F6B4u> UNITx_PAL{};
@@ -139,7 +153,7 @@ public:
 
 		T* buffer = static_cast<T*>(file.ReadWholeFile());
 		if (!buffer)
-			GameDebugLog::Log("File[%s] Doesnt Exist ! \n ", file.FileName);
+			GameDebugLog::Log("File[%s] Doesnt Exist ! \n ", file.Filename);
 
 		file.Close();
 

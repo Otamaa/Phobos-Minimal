@@ -629,7 +629,7 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 		}
 		else if (this->Reveal > 0)
 		{
-			SW_Reveal::RevealMap(CellClass::Coord2Cell(coords), (float)this->Reveal.Get(), 0, pHouse);
+			SW_Reveal::RevealMap(CellClass::Coord2Cell(coords), (float)this->Reveal.Get(), 0, pHouse, false);
 		}
 
 		this->applyTransactMoney(pOwner, pHouse, pBullet, coords);

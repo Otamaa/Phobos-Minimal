@@ -511,6 +511,11 @@ ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 		if (pHouseExt && pTypeExt->Harvester_Counted)
 			pHouseExt->OwnedCountedHarvesters.emplace(pThis);
 
+		if (!(pThis->Owner->IsControlledByHuman() && RulesExtData::Instance()->DistributeTargetingFrame_AIOnly)
+		&& pTypeExt->DistributeTargetingFrame.Get(RulesExtData::Instance()->DistributeTargetingFrame)) {
+			pThis->TargetingTimer.Start(ScenarioClass::Instance->Random.RandomRanged(45, 60));
+		}
+
 		if (pType->Spawns) {
 			pSpawnManager = GameCreate<SpawnManagerClass>(pThis, pType->Spawns, pType->SpawnsNumber, pType->SpawnRegenRate, pType->SpawnReloadRate);
 		}

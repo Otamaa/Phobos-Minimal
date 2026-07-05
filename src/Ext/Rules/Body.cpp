@@ -62,8 +62,32 @@ void RulesExtData::Remove(RulesClass* pThis)
 	Data = nullptr;
 }
 
-void RulesExtData::Initialize()
+//most of here is either do  :
+// 1. Do add default value if any
+// 2. Load the list from the ini before parsing it later
+// the purpose is preparing the list before any parsing happen after this , because when the list is not ready and it is get parsed 
+// everything just fall all over the places
+void RulesExtData::Initialize(CCINIClass* pINI)
 {
+	CursorTypeClass::AddDefaults();
+	CursorTypeClass::LoadFromINIList_New(pINI);
+	ColorTypeClass::LoadFromINIList_New(pINI);
+	SelectBoxTypeClass::AddDefaults();
+
+	ArmorTypeClass::LoadFromINIList_New(pINI);
+	CrateTypeClass::ReadFromINIList(pINI);
+	TunnelTypeClass::LoadFromINIList(pINI);
+
+	RocketTypeClass::AddDefaults();
+	RocketTypeClass::LoadFromINIOnlyTheList(pINI);
+
+	GenericPrerequisite::AddDefaults();
+	GenericPrerequisite::LoadFromINIOnlyTheList(pINI);
+
+	LaserTrailTypeClass::LoadFromINIOnlyTheList(CCINIClass::INI_Art.operator->());
+
+	ShieldTypeClass::AddDefaults();
+	ShieldTypeClass::LoadFromINIOnlyTheList(pINI);
 }
 
 void RulesExtData::ReplaceVoxelLightSources()
@@ -88,56 +112,15 @@ void RulesExtData::ReplaceVoxelLightSources()
 		Game::DestroyVoxelCaches();
 }
 
-void RulesExtData::LoadVeryEarlyBeforeAnyData(RulesClass* pRules, CCINIClass* pINI)
-{
-}
-
-void RulesExtData::LoadEndOfAudioVisual(RulesClass* pRules, CCINIClass* pINI)
-{
-	INI_EX iniEX(pINI);
-	auto pData = RulesExtData::Instance();
-
-	Nullable<double> Shield_ConditionGreen_d {};
-	Nullable<double> Shield_ConditionYellow_d {};
-	Nullable<double> Shield_ConditionRed_d {};
-	Nullable<double> ConditionYellow_Terrain_d {};
-
-	Shield_ConditionGreen_d.Read(iniEX, GameStrings::AudioVisual(), "Shield.ConditionGreen");// somewhat never used , man
-	Shield_ConditionYellow_d.Read(iniEX, GameStrings::AudioVisual(), "Shield.ConditionYellow");
-	Shield_ConditionRed_d.Read(iniEX, GameStrings::AudioVisual(), "Shield.ConditionRed");
-	ConditionYellow_Terrain_d.Read(iniEX, GameStrings::AudioVisual(), "ConditionYellow.Terrain");
-
-	pData->Shield_ConditionGreen = Shield_ConditionGreen_d.Get(pRules->ConditionGreen);
-	pData->Shield_ConditionYellow = Shield_ConditionYellow_d.Get(pRules->ConditionYellow);
-	pData->Shield_ConditionRed = Shield_ConditionRed_d.Get(pRules->ConditionRed);
-	pData->ConditionYellow_Terrain = ConditionYellow_Terrain_d.Get(pRules->ConditionYellow);
-}
-
-ASMJIT_PATCH(0x66B8E2, RulesClass_ReadAudioVisual_End, 0x5)
-{
-	GET(DWORD, ptr, ESI);
-	GET(CCINIClass*, pINI, EDI);
-
-	RulesClass* pRules = reinterpret_cast<RulesClass*>(ptr - 0x18B8);
-	RulesExtData::LoadEndOfAudioVisual(pRules, pINI);
-	return 0x0;
-}
-
-void RulesExtData::s_LoadFromINIFile(RulesClass* pThis, CCINIClass* pINI)
-{
-	Data->Initialize();
-	Data->LoadFromINIFile(pINI, false);
-}
-
 // do everything before `TypeData::ReadFromINI` executed
 // to makesure everything is properly allocated from the list
-void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
+void RulesExtData::s_LoadBeforeTypeData(FakeRulesClass* pThis, CCINIClass* pINI)
 {
 	InsigniaTypeClass::LoadFromINIList(pINI);
 
 	// we override it , so it loaded before any type read happen , so all the properties will correcly readed
 	pThis->Read_CrateRules(pINI);
-	pThis->Read_CombatDamage(pINI);
+	pThis->_ReadCombatDamage(pINI);
 	pThis->Read_Radiation(pINI);
 	pThis->Read_ElevationModel(pINI);
 	pThis->Read_WallModel(pINI);
@@ -185,8 +168,10 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 // but [GenericPrerequisites] have to go earlier because they're used in parsing TypeData
 void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
-	INI_EX iniEX(pINI);
+	INI_EX exINI(pINI);
+
 	auto pData = RulesExtData::Instance();
+
 	CrateTypeClass::ReadListFromINI(pINI);
 	HoverTypeClass::ReadListFromINI(pINI);
 	ShieldTypeClass::ReadListFromINI(pINI);
@@ -194,115 +179,40 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	PhobosAttachEffectTypeClass::ReadListFromINI(pINI);
 	TechTreeTypeClass::ReadListFromINI(pINI);
 
-	pData->BattlePoints.Read(iniEX, GameStrings::General, "BattlePoints");
-	pData->BattlePoints_DefaultValue.Read(iniEX, GameStrings::General, "BattlePoints.DefaultValue");
-	pData->BattlePoints_DefaultFriendlyValue.Read(iniEX, GameStrings::General, "BattlePoints.DefaultFriendlyValue");
+	pData->BattlePoints.Read(exINI, GameStrings::General, "BattlePoints");
+	pData->BattlePoints_DefaultValue.Read(exINI, GameStrings::General, "BattlePoints.DefaultValue");
+	pData->BattlePoints_DefaultFriendlyValue.Read(exINI, GameStrings::General, "BattlePoints.DefaultFriendlyValue");
 
-	pData->SuperWeaponSidebar_AllowByDefault.Read(iniEX, GameStrings::AudioVisual, "SuperWeaponSidebar.AllowByDefault");
+	pData->DamagedSpeed.Read(exINI, GameStrings::General, "DamagedSpeed");
 
-	pData->DamagedSpeed.Read(iniEX, GameStrings::General, "DamagedSpeed");
-	pData->ColorAddUse8BitRGB.Read(iniEX, GameStrings::AudioVisual, "ColorAddUse8BitRGB");
-	pData->IronCurtain_ExtraTintIntensity.Read(iniEX, GameStrings::AudioVisual, "IronCurtain.ExtraTintIntensity");
-	pData->ForceShield_ExtraTintIntensity.Read(iniEX, GameStrings::AudioVisual, "ForceShield.ExtraTintIntensity");
+	pData->InfantrySpeedData.Crawls.Read(exINI, GameStrings::General, "ProneSpeed.Crawls");
+	pData->InfantrySpeedData.NoCrawls.Read(exINI, GameStrings::General, "ProneSpeed.NoCrawls");
 
-	pData->DefaultInfantrySelectBox.Read(iniEX, GameStrings::AudioVisual, "DefaultInfantrySelectBox");
-	pData->DefaultUnitSelectBox.Read(iniEX, GameStrings::AudioVisual, "DefaultUnitSelectBox");
-
-	pData->InfantrySpeedData.Crawls.Read(iniEX, GameStrings::General, "ProneSpeed.Crawls");
-	pData->InfantrySpeedData.NoCrawls.Read(iniEX, GameStrings::General, "ProneSpeed.NoCrawls");
-
-	pData->BuildingGuardRetryDelay.Read(iniEX, GameStrings::General, "BuildingGuardRetryDelay");
-	pData->DiscardOn_ConsiderHoverAsMoving.Read(iniEX, GameStrings::General, "DiscardOn.MoveBasedOnDestination");
-
-	pData->VoxelLightSource.Read(iniEX, GameStrings::AudioVisual, "VoxelLightSource");
-	pData->VoxelShadowLightSource.Read(iniEX, GameStrings::AudioVisual, "VoxelShadowLightSource");
-	pData->UseFixedVoxelLighting.Read(iniEX, GameStrings::AudioVisual, "UseFixedVoxelLighting");
+	pData->BuildingGuardRetryDelay.Read(exINI, GameStrings::General, "BuildingGuardRetryDelay");
+	pData->DiscardOn_ConsiderHoverAsMoving.Read(exINI, GameStrings::General, "DiscardOn.MoveBasedOnDestination");
 
 	//got invalidated early , so parse it again
-	detail::ParseVector(iniEX, pData->AITargetTypesLists, "AITargetTypes");
-	detail::ParseVector<ScriptTypeClass*, true>(iniEX, pData->AIScriptsLists, "AIScriptsList");
-	detail::ParseVector<HouseTypeClass*>(iniEX, pData->AIHateHousesLists, "AIHateHousesList");
-	detail::ParseVector<HouseTypeClass*>(iniEX, pData->AIHousesLists, "AIHousesList");
-	detail::ParseVector(iniEX, pData->AIConditionsLists, "AIConditionsList", true, false, "/");
-	detail::ParseVector<AITriggerTypeClass*, true>(iniEX, pData->AITriggersLists, "AITriggersList");
+	detail::ParseVector(exINI, pData->AITargetTypesLists, "AITargetTypes");
+	detail::ParseVector<ScriptTypeClass*, true>(exINI, pData->AIScriptsLists, "AIScriptsList");
+	detail::ParseVector<HouseTypeClass*>(exINI, pData->AIHateHousesLists, "AIHateHousesList");
+	detail::ParseVector<HouseTypeClass*>(exINI, pData->AIHousesLists, "AIHousesList");
+	detail::ParseVector(exINI, pData->AIConditionsLists, "AIConditionsList", true, false, "/");
+	detail::ParseVector<AITriggerTypeClass*, true>(exINI, pData->AITriggersLists, "AITriggersList");
 
-	pData->AIChronoSphereSW.Read(iniEX, GameStrings::General, "AIChronoSphereSW");
-	pData->AIChronoWarpSW.Read(iniEX, GameStrings::General, "AIChronoWarpSW");
-	pData->AutoRemoveEarliestBeacon.Read(iniEX, GameStrings::General, "AutoRemoveEarliestBeacon");
-	pData->AllowChatBoxInSinglePlayer.Read(iniEX, GameStrings::General, "AllowChatBoxInSinglePlayer");
-	pData->DamageOwnerMultiplier.Read(iniEX, GameStrings::CombatDamage, "DamageOwnerMultiplier");
-	pData->DamageAlliesMultiplier.Read(iniEX, GameStrings::CombatDamage, "DamageAlliesMultiplier");
-	pData->DamageEnemiesMultiplier.Read(iniEX, GameStrings::CombatDamage, "DamageEnemiesMultiplier");
-	pData->DamageOwnerMultiplier_Berzerk.Read(iniEX, GameStrings::CombatDamage, "DamageOwnerMultiplier.Berzerk");
-	pData->DamageAlliesMultiplier_Berzerk.Read(iniEX, GameStrings::CombatDamage, "DamageAlliesMultiplier.Berzerk");
-	pData->DamageEnemiesMultiplier_Berzerk.Read(iniEX, GameStrings::CombatDamage, "DamageEnemiesMultiplier.Berzerk");
-	pData->DamageOwnerMultiplier_NotAffectsEnemies.Read(iniEX, GameStrings::CombatDamage, "DamageOwnerMultiplier.NotAffectsEnemies");
-	pData->DamageAlliesMultiplier_NotAffectsEnemies.Read(iniEX, GameStrings::CombatDamage, "DamageAlliesMultiplier.NotAffectsEnemies");
-	pData->DriverKilled_KillPassengers.Read(iniEX, GameStrings::CombatDamage, "DriverKilled.KillPassengers");
-	pData->Psychedelic_StackingMode.Read(iniEX, GameStrings::CombatDamage, "Psychedelic.StackingMode");
-	pData->BerzerkMission.Read(iniEX, GameStrings::CombatDamage, "BerzerkMission");
-
-	pData->FactoryProgressDisplay.Read(iniEX, GameStrings::AudioVisual, "FactoryProgressDisplay");
-	pData->MainSWProgressDisplay.Read(iniEX, GameStrings::AudioVisual, "MainSWProgressDisplay");
-	pData->CombatAlert.Read(iniEX, GameStrings::AudioVisual, "CombatAlert");
-	pData->CombatAlert_MakeAVoice.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.MakeAVoice");
-	pData->CombatAlert_IgnoreBuilding.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.IgnoreBuilding");
-	pData->CombatAlert_EVA.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.EVA");
-	pData->CombatAlert_UseFeedbackVoice.Read(iniEX,GameStrings::AudioVisual, "CombatAlert.UseFeedbackVoice");
-	pData->CombatAlert_UseAttackVoice.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.UseAttackVoice");
-	pData->CombatAlert_SuppressIfInScreen.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.SuppressIfInScreen");
-	pData->CombatAlert_Interval.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.Interval");
-	pData->CombatAlert_SuppressIfAllyDamage.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.SuppressIfAllyDamage");
-	pData->SubterraneanHeight.Read(iniEX, GameStrings::General, "SubterraneanHeight");
-
-	pData->StartDistributionModeSound.Read(iniEX, GameStrings::AudioVisual, "StartDistributionModeSound");
-	pData->EndDistributionModeSound.Read(iniEX, GameStrings::AudioVisual, "EndDistributionModeSound");
-	pData->AddDistributionModeCommandSound.Read(iniEX, GameStrings::AudioVisual, "AddDistributionModeCommandSound");
-
-	pData->ForceShield_KillOrganicsWarhead.Read(iniEX, GameStrings::CombatDamage(), "ForceShield.KillOrganicsWarhead");
-
-	if (!pData->ForceShield_KillOrganicsWarhead)
-		pData->ForceShield_KillOrganicsWarhead = pThis->C4Warhead;
-
-		pData->AllowWeaponSelectAgainstWalls.Read(iniEX, GameStrings::CombatDamage, "AllowWeaponSelectAgainstWalls");
-	pData->IronCurtain_KillOrganicsWarhead.Read(iniEX, GameStrings::CombatDamage(), "IronCurtain.KillOrganicsWarhead");
-
-	if (!pData->IronCurtain_KillOrganicsWarhead)
-		pData->IronCurtain_KillOrganicsWarhead = pThis->C4Warhead;
+	pData->AIChronoSphereSW.Read(exINI, GameStrings::General, "AIChronoSphereSW");
+	pData->AIChronoWarpSW.Read(exINI, GameStrings::General, "AIChronoWarpSW");
+	pData->AutoRemoveEarliestBeacon.Read(exINI, GameStrings::General, "AutoRemoveEarliestBeacon");
+	pData->AllowChatBoxInSinglePlayer.Read(exINI, GameStrings::General, "AllowChatBoxInSinglePlayer");
 
 	pData->DefaultAircraftDamagedSmoke = AnimTypeClass::Find(GameStrings::SGRYSMK1());
-	pData->FirestormActiveAnim.Read(iniEX, GameStrings::AudioVisual(), "FirestormActiveAnim");
-	pData->FirestormIdleAnim.Read(iniEX, GameStrings::AudioVisual(), "FirestormIdleAnim");
-	pData->FirestormGroundAnim.Read(iniEX, GameStrings::AudioVisual(), "FirestormGroundAnim");
-	pData->FirestormAirAnim.Read(iniEX, GameStrings::AudioVisual(), "FirestormAirAnim");
-	pData->FirestormWarhead.Read(iniEX, GameStrings::CombatDamage(), "FirestormWarhead");
-	pData->DamageToFirestormDamageCoefficient.Read(iniEX, GameStrings::General(), "DamageToFirestormDamageCoefficient");
 
-	pData->Bounty_Enablers.Read(iniEX, GameStrings::General(), "BountyEnablers");
-	pData->Bounty_Display.Read(iniEX, GameStrings::AudioVisual(), "BountyDisplay");
-	pData->CloakAnim.Read(iniEX, GameStrings::AudioVisual(), "CloakAnim");
-	pData->DecloakAnim.Read(iniEX, GameStrings::AudioVisual(), "DecloakAnim");
-	pData->Cloak_KickOutParasite.Read(iniEX, GameStrings::CombatDamage, "Cloak.KickOutParasite");
+	pData->DamageToFirestormDamageCoefficient.Read(exINI, GameStrings::General(), "DamageToFirestormDamageCoefficient");
+	pData->Bounty_Enablers.Read(exINI, GameStrings::General(), "BountyEnablers");
 
-	pData->Veinhole_Warhead.Read(iniEX, GameStrings::CombatDamage(), "VeinholeWarhead");
+	Data->WallTowers.Read(exINI, GameStrings::General(), "WallTowers");
 
-	pData->WallTowers.Read(iniEX, GameStrings::General(), "WallTowers");
 	if (pThis->WallTower && !pData->WallTowers.Contains(pThis->WallTower))
 		pData->WallTowers.push_back(pThis->WallTower);
-
-	pData->Promote_Vet_Anim.Read(iniEX, GameStrings::AudioVisual(), "Promote.VeteranAnim");
-	pData->Promote_Elite_Anim.Read(iniEX, GameStrings::AudioVisual(), "Promote.EliteAnim");
-
-	pData->Promote_Vet_PlaySpotlight.Read(iniEX, GameStrings::AudioVisual(), "Promote.VeteranPlaySpotLight");
-	pData->Promote_Elite_PlaySpotlight .Read(iniEX, GameStrings::AudioVisual(), "Promote.ElitePlaySpotLight");
-
-	pData->PrimaryFactoryIndicator.Read(iniEX, GameStrings::AudioVisual(), "PrimaryFactoryIndicator");
-	pData->PrimaryFactoryIndicator_Palette.Read(iniEX, GameStrings::AudioVisual(), "PrimaryFactoryIndicator.Palette");
-
-	pData->DefaultExplodeFireAnim.Read(iniEX, GameStrings::AudioVisual(), "DefaultExplodeOverlayFireAnim");
-
-	if (!pData->DefaultExplodeFireAnim)
-		pData->DefaultExplodeFireAnim = AnimTypeClass::Find(GameStrings::Anim_FIRE3);
 
 	for (int i = 0; i < WeaponTypeClass::Array->Count; ++i)
 	{
@@ -429,12 +339,6 @@ static COMPILETIMEEVAL FORCEDINLINE void FillSecrets(DynamicVectorClass<T>& secr
 	}
 }
 
-// earliest loader - can't really do much because nothing else is initialized yet, so lookups won't work
-void RulesExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
-{
-
-}
-
 void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 {
 	if (pINI == CCINIClass::INI_Rules())
@@ -468,13 +372,11 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 		this->TeamDelays[i].Read(exINI, GameStrings::General, (_teamDelay_tag + std::to_string(i + 1)).c_str());
 	}
 
-	this->DefaultSquidAnim.Read(exINI, GameStrings::AudioVisual, "Parasite.GrappleAnim");
-	
 	this->PrismRelay_SupportTimeout.Read(exINI, GameStrings::General, "PrismRelay.SupportTimeout");
 	exINI.Read3Bool(GameStrings::General, "CampaignAllowHarvesterScanUnderShroud", this->CampaignAllowHarvesterScanUnderShroud);
 	this->AttackMove_IgnoreWeaponCheck.Read(exINI, GameStrings::General, "AttackMove.IgnoreWeaponCheck");
 	this->AttackMove_StopWhenTargetAcquired.Read(exINI, GameStrings::General, "AttackMove.StopWhenTargetAcquired");
-	this->ShowPowerPlantEnhancerRange.Read(exINI, GameStrings::AudioVisual, "ShowPowerPlantEnhancerRange");
+
 	this->OpenTopped_DecloakToFire.Read(exINI, GameStrings::General, "OpenTopped.DecloakToFire");
 	this->AISellCapturedBuilding.Read(exINI, GameStrings::General, "AISellCapturedBuilding");
 	this->InfantryAutoDeploy.Read(exINI, GameStrings::General, "InfantryAutoDeploy");
@@ -511,6 +413,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->PrefiringExtraRange.Read(exINI, GameStrings::General, "ExtraRange.Prefiring");
 	this->PrefiringExtraRange_IncludeBurst.Read(exINI, GameStrings::General, "ExtraRange.Prefiring.IncludeBurst");
 
+	this->SecondaryFireSequenceLandOnly.Read(exINI, GameStrings::General, "SecondaryFireSequenceLandOnly");
 
 	this->ExtendedPlayerRepair.Read(exINI, GameStrings::General, "ExtendedPlayerRepair");
 	this->UpdateInvisoImmediately.Read(exINI, GameStrings::General, "UpdateInvisoImmediately");
@@ -641,234 +544,6 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->BunkerStateUpdateDelay.Read(exINI, GameStrings::General, "BunkerStateUpdateDelay");
 	#pragma endregion
 
-	#pragma region CombatDamage
-	this->Temporal_ConsiderVersus.Read(exINI, GameStrings::CombatDamage, "Temporal.ApplyVersus");
-	this->Temporal_ApplyMultiplier.Read(exINI, GameStrings::CombatDamage, "Temporal.ApplyMultiplier");
-	this->Shrapnel_IgnoreHitBuildings.Read(exINI, GameStrings::CombatDamage, "Shrapnel.IgnoreHitBuildings");
-	this->AffectsInvokerOnly_IgnoreInvokerState.Read(exINI, GameStrings::CombatDamage, "AffectsInvokerOnly.IgnoreInvokerState");
-	this->Shrapnel_ObeyWarheadTriggerConditions.Read(exINI, GameStrings::CombatDamage, "Shrapnel.ObeyWarheadTriggerConditions");
-	this->PenetratesTransport_Level.Read(exINI, GameStrings::CombatDamage, "PenetratesTransport.Level");
-	this->DamageWallRecursivly.Read(exINI, GameStrings::CombatDamage, "DamageWallRecursivly");
-	this->AdjacentWallDamage.Read(exINI, GameStrings::CombatDamage, "AdjacentWallDamage");
-	this->IvanBombAttachToCenter.Read(exINI, GameStrings::CombatDamage, "IvanBombAttachToCenter");
-	this->AllowBerzerkOnAllies.Read(exINI, GameStrings::CombatDamage, "AllowBerzerkOnAllies");
-	this->ApplyPerTargetEffectsOnDetonate.Read(exINI, GameStrings::CombatDamage, "ApplyPerTargetEffectsOnDetonate");
-	this->BerzerkTargeting.Read(exINI, GameStrings::CombatDamage, "BerzerkTargeting");
-	this->Infantry_IgnoreBuildingSizeLimit.Read(exINI, GameStrings::CombatDamage, "InfantryIgnoreBuildingSizeLimit");
-	this->MergeBuildingDamage.Read(exINI, GameStrings::CombatDamage, "MergeBuildingDamage");
-	this->IronCurtain_KeptOnDeploy.Read(exINI, GameStrings::CombatDamage(), "IronCurtain.KeptOnDeploy");
-	this->ForceShield_KeptOnDeploy.Read(exINI, GameStrings::CombatDamage(), "ForceShield.KeptOnDeploy");
-	this->ForceShield_EffectOnOrganics.Read(exINI, GameStrings::CombatDamage, "ForceShield.EffectOnOrganics");
-	this->IronCurtain_EffectOnOrganics.Read(exINI, GameStrings::CombatDamage, "IronCurtain.EffectOnOrganics");
-	this->ROF_RandomDelay.Read(exINI, GameStrings::CombatDamage, "ROF.RandomDelay");
-	this->Tiberium_ExplosiveWarhead.Read(exINI, GameStrings::CombatDamage(), "TiberiumExplosiveWarhead");
-	this->AlliedSolidTransparency.Read(exINI, GameStrings::CombatDamage(), "AlliedSolidTransparency");
-	this->ChainReact_Multiplier.Read(exINI, GameStrings::CombatDamage(), "ChainReact.Multiplier");
-	this->ChainReact_SpreadChance.Read(exINI, GameStrings::CombatDamage(), "ChainReact.SpreadChance");
-	this->ChainReact_MinDelay.Read(exINI, GameStrings::CombatDamage(), "ChainReact.MinDelay");
-	this->ChainReact_MaxDelay.Read(exINI, GameStrings::CombatDamage(), "ChainReact.MaxDelay");
-	this->DamageAirConsiderBridges.Read(exINI, GameStrings::CombatDamage(), "DamageAirConsiderBridges");
-	this->BerserkROFMultiplier.Read(exINI, GameStrings::CombatDamage(), "BerserkROFMultiplier");
-	this->DoggiePanicMax.Read(exINI, GameStrings::CombatDamage(), "DoggiePanicMax");
-	this->HunterSeeker_Damage.Read(exINI, GameStrings::CombatDamage(), "HunterSeekerDamage");
-	this->AutoRepelAI.Read(exINI, GameStrings::CombatDamage(), "AutoRepel");
-	this->AutoRepelPlayer.Read(exINI, GameStrings::CombatDamage(), "PlayerAutoRepel");
-	this->CanTargetAI_IronCurtained.Read(exINI, GameStrings::CombatDamage, "CanTargetAI.IronCurtained");
-	this->CanTarget_IronCurtained.Read(exINI, GameStrings::CombatDamage, "CanTarget.IronCurtained");
-	this->AutoTarget_IronCurtained.Read(exINI, GameStrings::CombatDamage, "AutoTarget.IronCurtained");
-	this->EMPAIRecoverMission.Read(exINI, GameStrings::CombatDamage(), "EMPAIRecoverMission");
-	this->ShieldUseArmorplier.Read(exINI, GameStrings::CombatDamage, "ShieldApplyArmorMult");
-	#pragma endregion
-
-	#pragma region AI
-	this->AIAdjacentMax.Read(exINI, GameStrings::AI, "AIAdjacentMax");
-	this->AIAdjacentMax_Campaign.Read(exINI, GameStrings::AI, "AIAdjacentMax.Campaign");
-	this->AIAutoDeployMCV.Read(exINI, GameStrings::AI, "AIAutoDeployMCV");
-	this->AISetBaseCenter.Read(exINI, GameStrings::AI, "AISetBaseCenter");
-	this->AIBiasSpawnCell.Read(exINI, GameStrings::AI, "AIBiasSpawnCell");
-	this->AIForbidConYard.Read(exINI, GameStrings::AI, "AIForbidConYard");
-	this->AINodeWallsOnly.Read(exINI, GameStrings::AI, "AINodeWallsOnly");
-	this->AICleanWallNode.Read(exINI, GameStrings::AI, "AICleanWallNode");
-	this->EnablePowerSurplus.Read(exINI, GameStrings::AI, "EnablePowerSurplus");
-	this->NewTeamsSelector.Read(exINI,  GameStrings::AI, "NewTeamsSelector");
-	this->NewTeamsSelector_SplitTriggersByCategory.Read(exINI,  GameStrings::AI, "NewTeamsSelector.SplitTriggersByCategory");
-	this->NewTeamsSelector_EnableFallback.Read(exINI,  GameStrings::AI, "NewTeamsSelector.EnableFallback");
-	this->NewTeamsSelector_MergeUnclassifiedCategoryWith.Read(exINI,  GameStrings::AI, "NewTeamsSelector.MergeUnclassifiedCategoryWith");
-	this->NewTeamsSelector_UnclassifiedCategoryPercentage.Read(exINI,  GameStrings::AI, "NewTeamsSelector.UnclassifiedCategoryPercentage");
-	this->NewTeamsSelector_GroundCategoryPercentage.Read(exINI,  GameStrings::AI, "NewTeamsSelector.GroundCategoryPercentage");
-	this->NewTeamsSelector_AirCategoryPercentage.Read(exINI,  GameStrings::AI, "NewTeamsSelector.AirCategoryPercentage");
-	this->NewTeamsSelector_NavalCategoryPercentage.Read(exINI,  GameStrings::AI, "NewTeamsSelector.NavalCategoryPercentage");
-	this->PowerSurplus_ScaleToDrainAmount.Read(exINI, GameStrings::AI, "PowerSurplus.ScaleToDrainAmount");
-	#pragma endregion
-
-	#pragma region Radiation
-	this->RadApplicationDelay_Building.Read(exINI, GameStrings::Radiation(), "RadApplicationDelay.Building");
-	this->RadBuildingDamageMaxCount.Read(exINI, GameStrings::Radiation, "RadBuildingDamageMaxCount");
-	this->RadWarhead_Detonate.Read(exINI, GameStrings::Radiation(), "RadSiteWarhead.Detonate");
-	this->RadHasOwner.Read(exINI, GameStrings::Radiation(), "RadHasOwner");
-	this->RadHasInvoker.Read(exINI, GameStrings::Radiation(), "RadHasInvoker");
-	this->UseGlobalRadApplicationDelay.Read(exINI, GameStrings::Radiation, "UseGlobalRadApplicationDelay");
-	#pragma endregion
-
-	#pragma region AudioVisual
-	this->FlyNoWobbles.Read(exINI, GameStrings::AudioVisual, "FlyNoWobbles");
-
-	this->DropShip_LandAnim.Read(exINI, GameStrings::AudioVisual, "DefaultLandingAnim.Dropship");
-	this->CarryAll_LandAnim.Read(exINI, GameStrings::AudioVisual, "DefaultLandingAnim.Carryall");
-	this->CarryAll_LandAnim.Read(exINI, GameStrings::AudioVisual(), "LandingAnim.Carryall", true);
-	this->DropShip_LandAnim.Read(exINI, GameStrings::AudioVisual(), "LandingAnim.Dropship", true);
-	this->Aircraft_LandAnim.Read(exINI, GameStrings::AudioVisual(), "LandingAnim.Aircraft", true);
-	this->LandingAnim .Read(exINI, GameStrings::AudioVisual(), "DefaultLandingAnim", true);
-
-
-	detail::getindex<VocClass>(this->AttachedToObject->DeploySound, exINI, GameStrings::AudioVisual, "DeploySound");
-	this->RemoveMindControl_Silent.Read(exINI, GameStrings::AudioVisual, "RemoveMindControl.Silent");
-	this->DisplayIncome_Delay.Read(exINI, GameStrings::AudioVisual, "DisplayIncome.Delay");
-	if (!this->DisplayIncome_Delay) {
-		Debug::Log("[Developer warning] [AudioVisual] DisplayIncome.Delay is set 0 which would cause a crash, set to 1 instead.\n");
-		this->DisplayIncome_Delay = 1;
-	}
-	this->LaserZAdjust.Read(exINI, GameStrings::AudioVisual, "LaserZAdjust");
-	this->EBoltZAdjust.Read(exINI, GameStrings::AudioVisual, "EBoltZAdjust");
-	this->EBoltZAdjust_ClampInitialDepthForBuilding.Read(exINI, GameStrings::AudioVisual, "EBoltZAdjust.ClampInitialDepthForBuilding");
-	this->AirstrikeLineZAdjust.Read(exINI, GameStrings::AudioVisual, "AirstrikeLineZAdjust");
-	this->UseRetintFix.Read(exINI, GameStrings::AudioVisual, "UseRetintFix");
-	this->WarheadAnimZAdjust.Read(exINI, GameStrings::AudioVisual, "WarheadAnimZAdjust");
-	this->FiringAnim_Update.Read(exINI, GameStrings::AudioVisual, "FiringAnim.Update");
-	this->WalkLocomotorMakesWake.Read(exINI, GameStrings::AudioVisual, "WalkLocomotorMakesWake");
-	this->VisualScatter_Min.Read(exINI, GameStrings::AudioVisual, "VisualScatter.Min");
-	this->VisualScatter_Max.Read(exINI, GameStrings::AudioVisual, "VisualScatter.Max");
-	this->JumpjetTilt.Read(exINI, GameStrings::AudioVisual, "JumpjetTilt");
-	this->AirstrikeLineColor.Read(exINI, GameStrings::AudioVisual, "AirstrikeLineColor");
-	this->Cameo_AlwaysExist.Read(exINI, GameStrings::AudioVisual, "Cameo.AlwaysExist");
-	this->Cameo_OverlayShapes.Read(exINI, GameStrings::AudioVisual, "Cameo.OverlayShapes");
-	this->Cameo_OverlayFrames.Read(exINI, GameStrings::AudioVisual, "Cameo.OverlayFrames");
-	this->Cameo_OverlayPalette.Read(exINI, GameStrings::AudioVisual, "Cameo.OverlayPalette");
-	this->UnitIdleRotateTurret.Read(exINI, GameStrings::AudioVisual, "UnitIdleRotateTurret");
-	this->UnitIdlePointToMouse.Read(exINI, GameStrings::AudioVisual, "UnitIdlePointToMouse");
-	this->UnitIdleActionRestartMin.Read(exINI, GameStrings::AudioVisual, "UnitIdleActionRestartMin");
-	this->UnitIdleActionRestartMax.Read(exINI, GameStrings::AudioVisual, "UnitIdleActionRestartMax");
-	this->UnitIdleActionIntervalMin.Read(exINI, GameStrings::AudioVisual, "UnitIdleActionIntervalMin");
-	this->UnitIdleActionIntervalMax.Read(exINI, GameStrings::AudioVisual, "UnitIdleActionIntervalMax");
-	this->ShakeScreenUseTSCalculation.Read(exINI, GameStrings::AudioVisual, "ShakeScreenUseTSCalculation");
-	this->CheckExpandPlaceGrid.Read(exINI, GameStrings::AudioVisual, "CheckExpandPlaceGrid");
-	this->ExpandLandGridFrames.Read(exINI, GameStrings::AudioVisual, "ExpandLandGridFrames");
-	this->ExpandWaterGridFrames.Read(exINI, GameStrings::AudioVisual, "ExpandWaterGridFrames");
-	this->VeinsAttack_interval.Read(exINI, GameStrings::AudioVisual, "VeinsAttackInterval");
-	this->BuildingFlameSpawnBlockFrames.Read(exINI, GameStrings::AudioVisual, "BuildingFlameSpawnBlockFrames");
-	this->AircraftLevelLightMultiplier.Read(exINI, GameStrings::AudioVisual, "AircraftLevelLightMultiplier");
-	this->AircraftCellLightLevelMultiplier.Read(exINI, GameStrings::AudioVisual, "AircraftCellLightLevelMultiplier");
-	this->JumpjetLevelLightMultiplier.Read(exINI, GameStrings::AudioVisual, "JumpjetLevelLightMultiplier");
-	this->JumpjetCellLightLevelMultiplier.Read(exINI, GameStrings::AudioVisual, "JumpjetCellLightLevelMultiplier");
-	this->JumpjetCellLightApplyBridgeHeight.Read(exINI, GameStrings::AudioVisual, "JumpjetCellLightApplyBridgeHeight");
-	double AirShadowBaseScale = 0.0;
-	if (detail::read<double>(AirShadowBaseScale, exINI, GameStrings::AudioVisual, "AirShadowBaseScale") && AirShadowBaseScale > 0)
-		this->AirShadowBaseScale_log = -std::log(std::min(AirShadowBaseScale, 1.0));
-
-	this->HeightShadowScaling.Read(exINI, GameStrings::AudioVisual, "HeightShadowScaling");
-
-	if (AirShadowBaseScale > 0.98 && this->HeightShadowScaling.Get())
-		this->HeightShadowScaling = false;
-
-	this->HeightShadowScaling_MinScale.Read(exINI, GameStrings::AudioVisual, "HeightShadowScaling.MinScale");
-	this->Buildings_DefaultDigitalDisplayTypes.Read(exINI, GameStrings::AudioVisual, "Buildings.DefaultDigitalDisplayTypes");
-	this->Infantry_DefaultDigitalDisplayTypes.Read(exINI, GameStrings::AudioVisual, "Infantry.DefaultDigitalDisplayTypes");
-	this->Vehicles_DefaultDigitalDisplayTypes.Read(exINI, GameStrings::AudioVisual, "Vehicles.DefaultDigitalDisplayTypes");
-	this->Aircraft_DefaultDigitalDisplayTypes.Read(exINI, GameStrings::AudioVisual, "Aircraft.DefaultDigitalDisplayTypes");
-	this->DisplayIncome.Read(exINI, GameStrings::AudioVisual, "DisplayIncome");
-	this->DisplayIncome_Houses.Read(exINI, GameStrings::AudioVisual, "DisplayIncome.Houses");
-	this->DisplayIncome_AllowAI.Read(exINI, GameStrings::AudioVisual, "DisplayIncome.AllowAI");
-	this->Droppod_ImageInfantry.Read(exINI, GameStrings::AudioVisual, "DropPod.InfantryPodImage");
-	this->DrawInsigniaOnlyOnSelected.Read(exINI, GameStrings::AudioVisual, "DrawInsigniaOnlyOnSelected");
-	this->DrawInsignia_AdjustPos_Infantry.Read(exINI, GameStrings::AudioVisual, "DrawInsignia.AdjustPos.Infantry");
-	this->DrawInsignia_AdjustPos_Buildings.Read(exINI, GameStrings::AudioVisual, "DrawInsignia.AdjustPos.Buildings");
-	this->DrawInsignia_AdjustPos_BuildingsAnchor.Read(exINI, GameStrings::AudioVisual, "DrawInsignia.AdjustPos.BuildingsAnchor");
-	this->DrawInsignia_AdjustPos_Units.Read(exINI, GameStrings::AudioVisual, "DrawInsignia.AdjustPos.Units");
-	this->DrawInsignia_UsePixelSelectionBracketDelta.Read(exINI, GameStrings::AudioVisual, "DrawInsignia.UsePixelSelectionBracketDelta");
-	this->DisplayCreditsDelay.Read(exINI, GameStrings::AudioVisual(), "DisplayCreditsDelay");
-	this->VeinholeParticle.Read(exINI, GameStrings::AudioVisual(), "VeinholeSpawnParticleType", true);
-	this->Aircraft_TakeOffAnim.Read(exINI, GameStrings::AudioVisual(), "TakeOffAnim.Aircraft", true);
-	this->ElectricDeath.Read(exINI, GameStrings::AudioVisual(), "InfantryElectrocuted");
-	this->DrawTurretShadow.Read(exINI, GameStrings::AudioVisual(), "DrawTurretShadow");
-	this->AnimRemapDefaultColorScheme.Read(exINI, GameStrings::AudioVisual(), "AnimRemapDefaultColorScheme");
-	this->StealthSpeakDelay.Read(exINI, GameStrings::AudioVisual(), "StealthSpeakDelay");
-	this->SubterraneanSpeakDelay.Read(exINI, GameStrings::AudioVisual(), "SubterraneanSpeakDelay");
-	this->DeactivateDim_Powered.Read(exINI, GameStrings::AudioVisual(), "DeactivateDimPowered");
-	this->DeactivateDim_EMP.Read(exINI, GameStrings::AudioVisual(), "DeactivateDimEMP");
-	this->DeactivateDim_Operator.Read(exINI, GameStrings::AudioVisual(), "DeactivateDimOperator");
-	this->Building_PlacementPreview.Read(exINI, GameStrings::AudioVisual(), "ShowBuildingPlacementPreview");
-	this->Building_PlacementPreview.Read(exINI, GameStrings::AudioVisual(), "PlacementPreview");
-	this->PlacementGrid_TranslucencyWithPreview.Read(exINI, GameStrings::AudioVisual, "PlacementGrid.TranslucencyWithPreview");
-	this->CreateSound_PlayerOnly.Read(exINI, GameStrings::AudioVisual(), "CreateSound.AffectOwner");
-	this->Pips_Shield.Read(exINI, GameStrings::AudioVisual(), "Pips.Shield");
-	this->Pips_Shield_Buildings.Read(exINI, GameStrings::AudioVisual(), "Pips.Shield.Building");
-	this->MissingCameo.Read(pINI, GameStrings::AudioVisual(), "MissingCameo");
-	this->PlacementGrid_TranslucentLevel.Read(exINI, GameStrings::AudioVisual(), !Phobos::Otamaa::CompatibilityMode ? "BuildingPlacementGrid.TranslucentLevel" : "PlacementGrid.Translucency");
-	this->BuildingPlacementPreview_TranslucentLevel.Read(exINI, GameStrings::AudioVisual(), !Phobos::Otamaa::CompatibilityMode ? "BuildingPlacementPreview.DefaultTranslucentLevel" : "PlacementPreview.Translucency");
-	this->Pips_Shield.Read(exINI, GameStrings::AudioVisual(), "Pips.Shield");
-	this->Pips_Shield_Background_SHP.Read(exINI, GameStrings::AudioVisual(), "Pips.Shield.Background");
-	this->Pips_Shield_Building.Read(exINI, GameStrings::AudioVisual(), "Pips.Shield.Building");
-	this->Pips_Shield_Building_Empty.Read(exINI, GameStrings::AudioVisual(), "Pips.Shield.Building.Empty");
-	this->Pips_SelfHeal_Infantry.Read(exINI, GameStrings::AudioVisual(), "Pips.SelfHeal.Infantry");
-	this->Pips_SelfHeal_Units.Read(exINI, GameStrings::AudioVisual(), "Pips.SelfHeal.Units");
-	this->Pips_SelfHeal_Buildings.Read(exINI, GameStrings::AudioVisual(), "Pips.SelfHeal.Buildings");
-	this->Pips_SelfHeal_Infantry_Offset.Read(exINI, GameStrings::AudioVisual(), "Pips.SelfHeal.Infantry.Offset");
-	this->Pips_SelfHeal_Units_Offset.Read(exINI, GameStrings::AudioVisual(), "Pips.SelfHeal.Units.Offset");
-	this->Pips_SelfHeal_Buildings_Offset.Read(exINI, GameStrings::AudioVisual(), "Pips.SelfHeal.Buildings.Offset");
-	this->Pips_Generic_Size.Read(exINI, GameStrings::AudioVisual, "Pips.Generic.Size");
-	this->Pips_Generic_Buildings_Size.Read(exINI, GameStrings::AudioVisual, "Pips.Generic.Buildings.Size");
-	this->Pips_Ammo_Size.Read(exINI, GameStrings::AudioVisual, "Pips.Ammo.Size");
-	this->Pips_Ammo_Buildings_Size.Read(exINI, GameStrings::AudioVisual, "Pips.Ammo.Buildings.Size");
-	this->Pips_Tiberiums_Frames.Read(exINI, GameStrings::AudioVisual, "Pips.Tiberiums.Frames");
-	this->Pips_Tiberiums_DisplayOrder.Read(exINI, GameStrings::AudioVisual, "Pips.Tiberiums.DisplayOrder");
-	this->ToolTip_Background_Color.Read(exINI, GameStrings::AudioVisual(), "ToolTip.Background.Color");
-	this->ToolTip_Background_Opacity.Read(exINI, GameStrings::AudioVisual(), "ToolTip.Background.Opacity");
-	this->ToolTip_Background_BlurSize.Read(exINI, GameStrings::AudioVisual(), "ToolTip.Background.BlurSize");
-	this->ToolTip_ExcludeSidebar.Read(exINI, GameStrings::AudioVisual(), "ToolTip.ExcludeSidebar");
-	this->UseSelectBrd.Read(exINI, GameStrings::AudioVisual(), "UseSelectBrd");
-	this->SHP_SelectBrdSHP_INF.Read(exINI, GameStrings::AudioVisual(), "SelectBrd.SHP.Infantry");
-	this->SHP_SelectBrdPAL_INF.Read(exINI, GameStrings::AudioVisual(), "SelectBrd.PAL.Infantry");
-	this->SelectBrd_Frame_Infantry.Read(exINI, GameStrings::AudioVisual(), "SelectBrd.Frame.Infantry");
-	this->SelectBrd_DrawOffset_Infantry.Read(exINI, GameStrings::AudioVisual(), "SelectBrd.DrawOffset.Infantry");
-	this->SHP_SelectBrdSHP_UNIT.Read(exINI, GameStrings::AudioVisual(), "SelectBrd.SHP.Unit");
-	this->SHP_SelectBrdPAL_UNIT.Read(exINI, GameStrings::AudioVisual(), "SelectBrd.PAL.Unit");
-	this->SelectBrd_Frame_Unit.Read(exINI, GameStrings::AudioVisual(), "SelectBrd.Frame.Unit");
-	this->SelectBrd_DrawOffset_Unit.Read(exINI, GameStrings::AudioVisual(), "SelectBrd.DrawOffset.Unit");
-	this->SelectBrd_DefaultTranslucentLevel.Read(exINI, GameStrings::AudioVisual(), "SelectBrd.DefaultTranslucentLevel");
-	this->SelectBrd_DefaultShowEnemy.Read(exINI, GameStrings::AudioVisual(), "SelectBrd.DefaultShowEnemy");
-	this->VeteranFlashTimer.Read(exINI, GameStrings::AudioVisual(), "VeteranFlashTimer");
-	this->Tiberium_ExplosiveAnim.Read(exINI, GameStrings::AudioVisual(), "TiberiumExplosiveAnim");
-	this->DecloakSound.Read(exINI, GameStrings::AudioVisual(), "DecloakSound");
-	this->IC_Flash.Read(exINI, GameStrings::AudioVisual(), "IronCurtainFlash");
-	this->DiskLaserAnimEnabled.Read(exINI, GameStrings::AudioVisual(), "DiskLaserAnimEnabled");
-	this->TimerBlinkColorScheme.Read(exINI, GameStrings::AudioVisual, "TimerBlinkColorScheme");
-
-	this->SelectFlashTimer.Read(exINI, GameStrings::AudioVisual, "SelectFlashTimer");
-	this->SelectFlashTimer.Read(exINI, GameStrings::AudioVisual, "SelectionFlashDuration");
-
-	this->WarheadParticleAlphaImageIsLightFlash.Read(exINI, GameStrings::AudioVisual, "WarheadParticleAlphaImageIsLightFlash");
-	this->CombatLightDetailLevel.Read(exINI, GameStrings::AudioVisual, "CombatLightDetailLevel");
-	this->CombatLightDetailLevel_CheckColored.Read(exINI, GameStrings::AudioVisual, "CombatLightDetailLevel.CheckColored");
-	this->LightFlashAlphaImageDetailLevel.Read(exINI, GameStrings::AudioVisual, "LightFlashAlphaImageDetailLevel");
-
-	this->DrainMoneyDisplay.Read(exINI, GameStrings::AudioVisual, "DrainMoneyDisplay");
-	this->DrainMoneyDisplay_Houses.Read(exINI, GameStrings::AudioVisual, "DrainMoneyDisplay.Houses");
-	this->DrainMoneyDisplay_OnTarget.Read(exINI, GameStrings::AudioVisual, "DrainMoneyDisplay.OnTarget");
-	this->DrainMoneyDisplay_OnTarget_UseDisplayIncome.Read(exINI, GameStrings::AudioVisual, "DrainMoneyDisplay.OnTarget.UseDisplayIncome");
-	#pragma endregion
-
-	#pragma region CrateRules
-	this->RandomCrateMoney.Read(exINI, GameStrings::CrateRules, "RandomCrateMoney");
-	this->Crate_LandOnly.Read(exINI, GameStrings::CrateRules(), "Crate.LandOnly");
-	this->UnitCrateVehicleCap.Read(exINI, GameStrings::CrateRules, "UnitCrateVehicleCap");
-	this->FreeMCV_CreditsThreshold.Read(exINI, GameStrings::CrateRules, "FreeMCV.CreditsThreshold");
-	#pragma endregion
-
-	#pragma region SpecialWeapons
-	this->HunterSeekerBuildings.Read(exINI, GameStrings::SpecialWeapons(), "HSBuilding");
-	this->NukeWarheadName.Read(exINI.GetINI(), GameStrings::SpecialWeapons(), "NukeWarhead");
-	#pragma endregion
-
 	#pragma region GlobalControls
 	if (pINI->ReadString(GLOBALCONTROLS_SECTION, "AllowBypassBuildLimit", "", Phobos::readBuffer) > 0) 	{
 		bool temp[3] {};
@@ -884,41 +559,6 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->ForbidParallelAIQueues_Aircraft.Read(exINI, GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Aircraft");
 	this->ForbidParallelAIQueues_Building.Read(exINI, GLOBALCONTROLS_SECTION, "ForbidParallelAIQueues.Building");
 	#pragma endregion
-
-	#pragma region IQ
-	this->TogglePowerIQ.Read(exINI, "IQ", "TogglePower");
-	#pragma endregion
-}
-
-void RulesExtData::LoadEarlyOptios(RulesClass* pThis, CCINIClass* pINI)
-{ }
-
-//most of here is either do  :
-// 1. Do add default value if any
-// 2. Load the list from the ini before parsing it later
-// the purpose is preparing the list before any parsing happen after this , because when the list is not ready and it is get parsed 
-// everything just fall all over the places
-void RulesExtData::LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI)
-{
-	CursorTypeClass::AddDefaults();
-	CursorTypeClass::LoadFromINIList_New(pINI);
-	ColorTypeClass::LoadFromINIList_New(pINI);
-	SelectBoxTypeClass::AddDefaults();
-
-	ArmorTypeClass::LoadFromINIList_New(pINI);
-	CrateTypeClass::ReadFromINIList(pINI);
-	TunnelTypeClass::LoadFromINIList(pINI);
-
-	RocketTypeClass::AddDefaults();
-	RocketTypeClass::LoadFromINIOnlyTheList(pINI);
-
-	GenericPrerequisite::AddDefaults();
-	GenericPrerequisite::LoadFromINIOnlyTheList(pINI);
-
-	LaserTrailTypeClass::LoadFromINIOnlyTheList(CCINIClass::INI_Art.operator->());
-
-	ShieldTypeClass::AddDefaults();
-	ShieldTypeClass::LoadFromINIOnlyTheList(pINI);
 }
 
 bool RulesExtData::DetailsCurrentlyEnabled()
@@ -938,17 +578,7 @@ bool RulesExtData::DetailsCurrentlyEnabled(int const minDetailLevel)
 		&& DetailsCurrentlyEnabled();
 }
 
-void RulesExtData::LoadBeforeGeneralData(RulesClass* pThis, CCINIClass* pINI)
-{
-	GenericPrerequisite::LoadFromINIList_New(pINI);
-}
-
-void RulesExtData::LoadAfterAllLogicData(RulesClass* pThis, CCINIClass* pINI)
-{
-}
-
-// =============================
-// load / save
+#pragma region save_load
 
 template <typename T>
 void RulesExtData::Serialize(T& Stm)
@@ -1482,11 +1112,13 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->BerzerkMission)
 		.Process(this->AutoRemoveEarliestBeacon)
 		.Process(this->AllowChatBoxInSinglePlayer)
+		.Process(this->SecondaryFireSequenceLandOnly)
 		;
 }
 
-// =============================
-// container hooks
+#pragma endregion
+
+#pragma region ContainerHooks
 
 ASMJIT_PATCH(0x667A1D, RulesClass_CTOR, 0x5)
 {
@@ -1526,7 +1158,6 @@ ASMJIT_PATCH(0x675210, RulesClass_SaveLoad_Prefix, 0x5)
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x674730, RulesClass_SaveLoad_Prefix, 0x6)
 
-
 ASMJIT_PATCH(0x678841, RulesClass_Load_Suffix, 0x7)
 {
 	auto buffer = RulesExtData::Instance();
@@ -1559,82 +1190,552 @@ ASMJIT_PATCH(0x675205, RulesClass_Save_Suffix, 0x8)
 	return 0;
 }
 
+#pragma endregion
+
 //Game_Init , remove early init for read ini for Anim and building type that causing alot of logging error
 DEFINE_JUMP(LJMP, 0x52C9C4, 0x52CA37);
-
-// Read on very first RulesClass::Process function
-ASMJIT_PATCH(0x668BF0, RulesClass_Process_Addition, 0x5)
-{
-	GET(RulesClass*, pItem, ECX);
-	GET_STACK(CCINIClass*, pINI, 0x4);
-
-	RulesExtData::s_LoadFromINIFile(pItem, pINI);
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x668D86, RulesData_Process_PreFillTypeListData, 0x6)
-{
-	GET(CCINIClass*, pINI, ESI);
-
-	for (int nn = 0; nn < pINI->GetKeyCount("Projectiles"); ++nn)
-	{
-		if (pINI->GetString("Projectiles", pINI->GetKeyName("Projectiles", nn), Phobos::readBuffer))
-		{
-			BulletTypeClass::FindOrAllocate(Phobos::readBuffer);
-		}
-	}
-
-	for (int i = 0; i < pINI->GetKeyCount(GameStrings::Tiberiums()); ++i)
-	{
-		if (pINI->ReadString(GameStrings::Tiberiums(), pINI->GetKeyName(GameStrings::Tiberiums(), i), Phobos::readDefval, Phobos::readBuffer) > 0)
-		{
-			TiberiumClass::FindOrAllocate(Phobos::readBuffer);
-		}
-	}
-
-	RulesExtData::Instance()->DefaultBulletType = BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
-	if(!RulesExtData::Instance()->DefaultBulletType)
-		Debug::FatalError("Uneable to Allocate {} BulletType ! " , DEFAULT_STR2);
-
-	for (int nn = 0; nn < pINI->GetKeyCount("WeaponTypes"); ++nn)
-	{
-		if (pINI->GetString("WeaponTypes", pINI->GetKeyName("WeaponTypes", nn), Phobos::readBuffer))
-		{
-			WeaponTypeClass::FindOrAllocate(Phobos::readBuffer);
-		}
-	}
-
-	for (int nn = 0; nn < pINI->GetKeyCount("Warheads"); ++nn)
-	{
-		if (pINI->GetString("Warheads", pINI->GetKeyName("Warheads", nn), Phobos::readBuffer))
-		{
-			WarheadTypeClass::FindOrAllocate(Phobos::readBuffer);
-		}
-	}
-
-	return 0x668DD2;
-}
 
 void FakeRulesClass::_ReadPowerups(CCINIClass* pINI)
 {
 	CrateTypeClass::ReadFromPowerups(pINI);
 }
-DEFINE_FUNCTION_JUMP(CALL, 0x668ED0, FakeRulesClass::_ReadPowerups);
 DEFINE_FUNCTION_JUMP(LJMP, 0x673E80, FakeRulesClass::_ReadPowerups);
-
-void FakeRulesClass::_ReadColors(CCINIClass* pINI)
-{
-	RulesExtData::LoadEarlyBeforeColor(this, pINI);
-
-	this->Read_JumpjetControls(pINI);
-	this->Read_Colors(pINI);
-}
 
 void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 {
-	RulesExtData::LoadBeforeGeneralData(this, pINI);
-	this->Read_General(pINI);
+	static constexpr const char* section = "General";
+
+	if (!pINI->GetSection(section))
+		return;
+
+	GenericPrerequisite::LoadFromINIList_New(pINI);
+
+	INI_EX exINI(pINI);
+
+	// -------------------------------------------------------------------------
+	// TypeList<AnimTypeClass*>
+	// -------------------------------------------------------------------------
+	detail::ParseVector(this->DamageFireTypes, exINI, section, "DamageFireTypes");
+	detail::ParseVector(this->DropPod, exINI, section, "DropPod");
+	detail::ParseVector(this->DeadBodies, exINI, section, "DeadBodies");
+	detail::ParseVector(this->MetallicDebris, exINI, section, "MetallicDebris");
+	detail::ParseVector(this->BridgeExplosions, exINI, section, "BridgeExplosions");
+	detail::ParseVector(this->WeatherConClouds, exINI, section, "WeatherConClouds");
+	detail::ParseVector(this->WeatherConBolts, exINI, section, "WeatherConBolts");
+
+	// -------------------------------------------------------------------------
+	// TypeList<VoxelAnimTypeClass*>
+	// -------------------------------------------------------------------------
+	detail::ParseVector(this->BarrelDebris, exINI, section, "BarrelDebris");
+	detail::ParseVector(this->ExplosiveVoxelDebris, exINI, section, "ExplosiveVoxelDebris");
+
+	// -------------------------------------------------------------------------
+	// TypeList<BuildingTypeClass*>
+	// -------------------------------------------------------------------------
+	detail::ParseVector(this->RepairBay, exINI, section, "RepairBay");
+	detail::ParseVector(this->Shipyard, exINI, section, "Shipyard");
+
+	// -------------------------------------------------------------------------
+	// TypeList<UnitTypeClass*>
+	// -------------------------------------------------------------------------
+	detail::ParseVector(this->BaseUnit, exINI, section, "BaseUnit");
+	detail::ParseVector(this->HarvesterUnit, exINI, section, "HarvesterUnit");
+
+	// -------------------------------------------------------------------------
+	// TypeList<InfantryTypeClass*>
+	// -------------------------------------------------------------------------
+	detail::ParseVector(this->SecretInfantry, exINI, section, "SecretInfantry");
+	detail::ParseVector(this->AmerParaDropInf, exINI, section, "AmerParaDropInf");
+	detail::ParseVector(this->AllyParaDropInf, exINI, section, "AllyParaDropInf");
+	detail::ParseVector(this->SovParaDropInf, exINI, section, "SovParaDropInf");
+	detail::ParseVector(this->YuriParaDropInf, exINI, section, "YuriParaDropInf");
+	detail::ParseVector(this->AnimToInfantry, exINI, section, "AnimToInfantry");
+
+	// -------------------------------------------------------------------------
+	// TypeList<UnitTypeClass*> (vehicles)
+	// -------------------------------------------------------------------------
+	detail::ParseVector(this->SecretUnits, exINI, section, "SecretUnits");
+
+	// -------------------------------------------------------------------------
+	// TypeList<BuildingTypeClass*> (secret)
+	// -------------------------------------------------------------------------
+	detail::ParseVector(this->SecretBuildings, exINI, section, "SecretBuildings");
+
+	// Recompute SecretSum after loading all three secret lists
+	this->SecretSum = this->SecretInfantry.Count
+		+ this->SecretUnits.Count
+		+ this->SecretBuildings.Count;
+
+	// -------------------------------------------------------------------------
+	// TypeList<AircraftTypeClass*>
+	// -------------------------------------------------------------------------
+	detail::ParseVector(this->PadAircraft, exINI, section, "PadAircraft");
+
+	// -------------------------------------------------------------------------
+	// TypeList<TerrainTypeClass*>
+	// -------------------------------------------------------------------------
+	detail::ParseVector(this->DefaultMirageDisguises, exINI, section, "DefaultMirageDisguises");
+
+	// -------------------------------------------------------------------------
+	// Prerequisite TypeList<int> — vanilla uses CCINIClass::Get_PrerequisiteTypes
+	// VERIFY: confirm detail::ParseVector handles prerequisite int lists correctly
+	// -------------------------------------------------------------------------
+	GenericPrerequisite::Parse(pINI, section, "PrerequisitePower", this->PrerequisitePower);
+	GenericPrerequisite::Parse(pINI, section, "PrerequisiteFactory", this->PrerequisiteFactory);
+	GenericPrerequisite::Parse(pINI, section, "PrerequisiteBarracks", this->PrerequisiteBarracks);
+	GenericPrerequisite::Parse(pINI, section, "PrerequisiteRadar", this->PrerequisiteRadar);
+	GenericPrerequisite::Parse(pINI, section, "PrerequisiteTech", this->PrerequisiteTech);
+	GenericPrerequisite::Parse(pINI, section, "PrerequisiteProc", this->PrerequisiteProc);
+
+	// -------------------------------------------------------------------------
+	// AI TypeList<int> — vanilla uses CCINIClass::Get_TypeList
+	// -------------------------------------------------------------------------
+	detail::ParseVector(this->TeamDelays, exINI, section, "TeamDelays");
+	detail::ParseVector(this->AIHateDelays, exINI, section, "AIHateDelays");
+	detail::ParseVector(this->FillEarliestTeamProbability, exINI, section, "FillEarliestTeamProbability");
+	detail::ParseVector(this->MinimumAIDefensiveTeams, exINI, section, "MinimumAIDefensiveTeams");
+	detail::ParseVector(this->MaximumAIDefensiveTeams, exINI, section, "MaximumAIDefensiveTeams");
+	detail::ParseVector(this->TotalAITeamCap, exINI, section, "TotalAITeamCap");
+	detail::ParseVector(this->AlliedBaseDefenseCounts, exINI, section, "AlliedBaseDefenseCounts");
+	detail::ParseVector(this->SovietBaseDefenseCounts, exINI, section, "SovietBaseDefenseCounts");
+	detail::ParseVector(this->ThirdBaseDefenseCounts, exINI, section, "ThirdBaseDefenseCounts");
+	detail::ParseVector(this->AIPickWallDefensePercent, exINI, section, "AIPickWallDefensePercent");
+	detail::ParseVector(this->DisabledDisguiseDetectionPercent, exINI, section, "DisabledDisguiseDetectionPercent");
+	detail::ParseVector(this->AIAutoDeployFrameDelay, exINI, section, "AIAutoDeployFrameDelay");
+	detail::ParseVector(this->AISuperDefenseProbability, exINI, section, "AISuperDefenseProbability");
+	detail::ParseVector(this->AICaptureNormal, exINI, section, "AICaptureNormal");
+	detail::ParseVector(this->AICaptureWounded, exINI, section, "AICaptureWounded");
+	detail::ParseVector(this->AICaptureLowPower, exINI, section, "AICaptureLowPower");
+	detail::ParseVector(this->AICaptureLowMoney, exINI, section, "AICaptureLowMoney");
+	detail::ParseVector(this->MultiplayerAICM, exINI, section, "MultiplayerAICM");
+	detail::ParseVector(this->AIVirtualPurifiers, exINI, section, "AIVirtualPurifiers");
+	detail::ParseVector(this->AISlaveMinerNumber, exINI, section, "AISlaveMinerNumber");
+	detail::ParseVector(this->HarvestersPerRefinery, exINI, section, "HarvestersPerRefinery");
+	detail::ParseVector(this->AIExtraRefineries, exINI, section, "AIExtraRefineries");
+	detail::ParseVector(this->AmerParaDropNum, exINI, section, "AmerParaDropNum");
+	detail::ParseVector(this->AllyParaDropNum, exINI, section, "AllyParaDropNum");
+	detail::ParseVector(this->SovParaDropNum, exINI, section, "SovParaDropNum");
+	detail::ParseVector(this->YuriParaDropNum, exINI, section, "YuriParaDropNum");
+	detail::ParseVector(this->AIIonCannonConYardValue, exINI, section, "AIIonCannonConYardValue");
+	detail::ParseVector(this->AIIonCannonWarFactoryValue, exINI, section, "AIIonCannonWarFactoryValue");
+	detail::ParseVector(this->AIIonCannonPowerValue, exINI, section, "AIIonCannonPowerValue");
+	detail::ParseVector(this->AIIonCannonTechCenterValue, exINI, section, "AIIonCannonTechCenterValue");
+	detail::ParseVector(this->AIIonCannonEngineerValue, exINI, section, "AIIonCannonEngineerValue");
+	detail::ParseVector(this->AIIonCannonThiefValue, exINI, section, "AIIonCannonThiefValue");
+	detail::ParseVector(this->AIIonCannonHarvesterValue, exINI, section, "AIIonCannonHarvesterValue");
+	detail::ParseVector(this->AIIonCannonMCVValue, exINI, section, "AIIonCannonMCVValue");
+	detail::ParseVector(this->AIIonCannonAPCValue, exINI, section, "AIIonCannonAPCValue");
+	detail::ParseVector(this->AIIonCannonBaseDefenseValue, exINI, section, "AIIonCannonBaseDefenseValue");
+	detail::ParseVector(this->AIIonCannonPlugValue, exINI, section, "AIIonCannonPlugValue");
+	detail::ParseVector(this->AIIonCannonHelipadValue, exINI, section, "AIIonCannonHelipadValue");
+	detail::ParseVector(this->AIIonCannonTempleValue, exINI, section, "AIIonCannonTempleValue");
+	detail::ParseVector(this->RadarEventSuppressionDistances, exINI, section, "RadarEventSuppressionDistances");
+	detail::ParseVector(this->RadarEventVisibilityDurations, exINI, section, "RadarEventVisibilityDurations");
+	detail::ParseVector(this->RadarEventDurations, exINI, section, "RadarEventDurations");
+
+	// -------------------------------------------------------------------------
+	// Single AnimTypeClass* pointers — Find_Or_Make → pass true
+	// -------------------------------------------------------------------------
+	detail::read(this->OreTwinkle, exINI, section, "OreTwinkle", true);
+	detail::read(this->NukeTakeOff, exINI, section, "NukeTakeOff", true);
+	detail::read(this->Wake, exINI, section, "Wake", true);
+	detail::read(this->IonBlast, exINI, section, "IonBlast", true);
+	detail::read(this->IonBeam, exINI, section, "IonBeam", true);
+	detail::read(this->WeatherConBoltExplosion, exINI, section, "WeatherConBoltExplosion", true);
+	detail::read(this->DominatorFirstAnim, exINI, section, "DominatorFirstAnim", true);
+	detail::read(this->DominatorSecondAnim, exINI, section, "DominatorSecondAnim", true);
+	detail::read(this->ChronoPlacement, exINI, section, "ChronoPlacement", true);
+	detail::read(this->ChronoBeam, exINI, section, "ChronoBeam", true);
+	detail::read(this->ChronoBlast, exINI, section, "ChronoBlast", true);
+	detail::read(this->ChronoBlastDest, exINI, section, "ChronoBlastDest", true);
+	detail::read(this->WarpIn, exINI, section, "WarpIn", true);
+	detail::read(this->WarpOut, exINI, section, "WarpOut", true);
+	detail::read(this->WarpAway, exINI, section, "WarpAway", true);
+	detail::read(this->IronCurtainInvokeAnim, exINI, section, "IronCurtainInvokeAnim", true);
+	detail::read(this->ForceShieldInvokeAnim, exINI, section, "ForceShieldInvokeAnim", true);
+	detail::read(this->WeaponNullifyAnim, exINI, section, "WeaponNullifyAnim", true);
+	detail::read(this->ChronoSparkle1, exINI, section, "ChronoSparkle1", true); // key is "ChronoSparkle1", not "ChronoSparkle"
+	detail::read(this->InfantryExplode, exINI, section, "InfantryExplode", true);
+	detail::read(this->FlamingInfantry, exINI, section, "FlamingInfantry", true);
+	detail::read(this->InfantryHeadPop, exINI, section, "InfantryHeadPop", true);
+	detail::read(this->InfantryNuked, exINI, section, "InfantryNuked", true);
+	detail::read(this->InfantryVirus, exINI, section, "InfantryVirus", true);
+	detail::read(this->InfantryBrute, exINI, section, "InfantryBrute", true);
+	detail::read(this->InfantryMutate, exINI, section, "InfantryMutate", true);
+	detail::read(this->Behind, exINI, section, "Behind", true);
+	detail::read(this->MoveFlash, exINI, section, "MoveFlash", true);
+	detail::read(this->Parachute, exINI, section, "Parachute", true);
+	detail::read(this->BombParachute, exINI, section, "BombParachute", true);
+	detail::read(this->DropZoneAnim, exINI, section, "DropZoneAnim", true);
+	detail::read(this->EMPulseSparkles, exINI, section, "EMPulseSparkles", true);
+
+	// -------------------------------------------------------------------------
+	// Single VoxelAnimTypeClass* pointers
+	// -------------------------------------------------------------------------
+	detail::read(this->TireVoxelDebris, exINI, section, "TireVoxelDebris", true);
+	detail::read(this->ScrapVoxelDebris, exINI, section, "ScrapVoxelDebris", true);
+
+	// -------------------------------------------------------------------------
+	// Single BuildingTypeClass* pointers
+	// -------------------------------------------------------------------------
+	detail::read(this->GDIGateOne, exINI, section, "GDIGateOne", true);
+	detail::read(this->GDIGateTwo, exINI, section, "GDIGateTwo", true);
+	detail::read(this->NodGateOne, exINI, section, "NodGateOne", true);
+	detail::read(this->NodGateTwo, exINI, section, "NodGateTwo", true);
+	detail::read(this->GDIPowerPlant, exINI, section, "GDIPowerPlant", true);
+	detail::read(this->NodRegularPower, exINI, section, "NodRegularPower", true);
+	detail::read(this->NodAdvancedPower, exINI, section, "NodAdvancedPower", true);
+	detail::read(this->ThirdPowerPlant, exINI, section, "ThirdPowerPlant", true);
+	detail::read(this->PrismType, exINI, section, "PrismType", true); // ini_BuildingTypeClass::Find_Or_Make in vanilla
+
+	// -------------------------------------------------------------------------
+	// Single UnitTypeClass* pointers
+	// -------------------------------------------------------------------------
+	detail::read(this->LargeVisceroid, exINI, section, "LargeVisceroid", true);
+	detail::read(this->SmallVisceroid, exINI, section, "SmallVisceroid", true);
+	detail::read(this->PrerequisiteProcAlternate, exINI, section, "PrerequisiteProcAlternate", true);
+
+	// -------------------------------------------------------------------------
+	// Single InfantryTypeClass* pointers — ini_InfantryTypeClass::Find_Or_Make
+	// -------------------------------------------------------------------------
+	detail::read(this->Paratrooper, exINI, section, "Paratrooper", true);
+	detail::read(this->AlliedDisguise, exINI, section, "AlliedDisguise", true);
+	detail::read(this->SovietDisguise, exINI, section, "SovietDisguise", true);
+	detail::read(this->ThirdDisguise, exINI, section, "ThirdDisguise", true);
+	detail::read(this->Engineer, exINI, section, "Engineer", true);
+	detail::read(this->Technician, exINI, section, "Technician", true);
+	detail::read(this->Pilot, exINI, section, "Pilot", true);
+	detail::read(this->AlliedCrew, exINI, section, "AlliedCrew", true);
+	detail::read(this->SovietCrew, exINI, section, "SovietCrew", true);
+	detail::read(this->ThirdCrew, exINI, section, "ThirdCrew", true);
+
+	// -------------------------------------------------------------------------
+	// Single WeaponTypeClass*
+	// -------------------------------------------------------------------------
+	detail::read(this->DropPodWeapon, exINI, section, "DropPodWeapon", true);
+
+	// -------------------------------------------------------------------------
+	// Single WarheadTypeClass*
+	// -------------------------------------------------------------------------
+	detail::read(this->DominatorWarhead, exINI, section, "DominatorWarhead", true);
+	detail::read(this->LightningWarhead, exINI, section, "LightningWarhead", true); // ini_WarheadTypeClass::Find_Or_Make
+
+	// -------------------------------------------------------------------------
+	// Single ParticleSystemTypeClass*
+	// -------------------------------------------------------------------------
+	detail::read(this->BarrelParticle, exINI, section, "BarrelParticle", true);
+
+	// -------------------------------------------------------------------------
+	// Single BarrelExplode AnimTypeClass*
+	// -------------------------------------------------------------------------
+	detail::read(this->BarrelExplode, exINI, section, "BarrelExplode", true);
+
+	// -------------------------------------------------------------------------
+	// Single AircraftTypeClass* — ini_AircraftTypeClass::Find_Or_Make
+	// -------------------------------------------------------------------------
+	detail::read(this->V3Rocket.Type, exINI, section, "V3RocketType", true);
+	detail::read(this->DMisl.Type, exINI, section, "DMislType", true);
+	detail::read(this->CMisl.Type, exINI, section, "CMislType", true);
+
+	// -------------------------------------------------------------------------
+	// Single TerrainTypeClass*
+	// -------------------------------------------------------------------------
+	detail::read(this->VeinholeTypeClass, exINI, section, "VeinholeTypeClass", true);
+
+	// -------------------------------------------------------------------------
+	// Scalar doubles
+	// -------------------------------------------------------------------------
+	detail::read(this->TiberiumHeal, exINI, section, "TiberiumHeal");
+	detail::read(this->ZoomInFactor, exINI, section, "ZoomInFactor");
+	detail::read(this->MinLowPowerProductionSpeed, exINI, section, "MinLowPowerProductionSpeed");
+	detail::read(this->MaxLowPowerProductionSpeed, exINI, section, "MaxLowPowerProductionSpeed");
+	detail::read(this->LowPowerPenaltyModifier, exINI, section, "LowPowerPenaltyModifier");
+	detail::read(this->MultipleFactory, exINI, section, "MultipleFactory");
+	detail::read(this->TreeFlammability, exINI, section, "TreeFlammability");
+	detail::read(this->MissileROTVar, exINI, section, "MissileROTVar");
+	detail::read(this->MissileSpeedVar, exINI, section, "MissileSpeedVar");
+	detail::read(this->CrewEscape, exINI, section, "CrewEscape");
+	detail::read(this->TunnelSpeed, exINI, section, "TunnelSpeed");
+	detail::read(this->HoverDampen, exINI, section, "HoverDampen");
+	detail::read(this->HoverBob, exINI, section, "HoverBob");
+	detail::read(this->HoverBoost, exINI, section, "HoverBoost");
+	detail::read(this->HoverAcceleration, exINI, section, "HoverAcceleration");
+	detail::read(this->HoverBrake, exINI, section, "HoverBrake");
+	detail::read(this->VeteranRatio, exINI, section, "VeteranRatio");
+	detail::read(this->VeteranCombat, exINI, section, "VeteranCombat");
+	detail::read(this->VeteranSpeed, exINI, section, "VeteranSpeed");
+	detail::read(this->VeteranSight, exINI, section, "VeteranSight");
+	detail::read(this->VeteranArmor, exINI, section, "VeteranArmor");
+	detail::read(this->VeteranROF, exINI, section, "VeteranROF");
+	detail::read(this->VeteranCap, exINI, section, "VeteranCap");
+	detail::read(this->ShipSinkingWeight, exINI, section, "ShipSinkingWeight");
+	detail::read(this->IceCrackingWeight, exINI, section, "IceCrackingWeight");
+	detail::read(this->IceBreakingWeight, exINI, section, "IceBreakingWeight");
+	detail::read(this->PlacementDelay, exINI, section, "PlacementDelay");
+	detail::read(this->TrackedUphill, exINI, section, "TrackedUphill");
+	detail::read(this->TrackedDownhill, exINI, section, "TrackedDownhill");
+	detail::read(this->WheeledUphill, exINI, section, "WheeledUphill");
+	detail::read(this->WheeledDownhill, exINI, section, "WheeledDownhill");
+	detail::read(this->SpyMoneyStealPercent, exINI, section, "SpyMoneyStealPercent");
+	detail::read(this->PurifierBonus, exINI, section, "PurifierBonus");
+	detail::read(this->AIUseTurbineUpgradeProbability, exINI, section, "AIUseTurbineUpgradeProbability");
+	detail::read(this->AIMinorSuperReadyPercent, exINI, section, "AIMinorSuperReadyPercent");
+	detail::read(this->AICaptureWoundedMark, exINI, section, "AICaptureWoundedMark");
+	detail::read(this->CloakDelay, exINI, section, "CloakDelay");
+	detail::read(this->GameSpeedBias, exINI, section, "GameSpeedBias");
+	detail::read(this->BaseBias, exINI, section, "BaseBias"); // note: field is NervousBias, key is "BaseBias"
+	detail::read(this->BaseDefenseDelay, exINI, section, "BaseDefenseDelay");
+	detail::read(this->SuspendDelay, exINI, section, "SuspendDelay");
+	detail::read(this->SurvivorRate, exINI, section, "SurvivorRate"); // field SurvivorFraction, key "SurvivorRate"
+	detail::read(this->ReloadRate, exINI, section, "ReloadRate");
+	detail::read(this->BuildupTime, exINI, section, "BuildupTime");
+	detail::read(this->HarvesterDumpRate, exINI, section, "HarvesterDumpRate");
+	detail::read(this->BuildSpeed, exINI, section, "BuildSpeed"); // field BuildSpeedBias, key "BuildSpeed"
+	detail::read(this->DamageDelay, exINI, section, "DamageDelay");
+	detail::read(this->GrowthRate, exINI, section, "GrowthRate");
+	detail::read(this->RefundPercent, exINI, section, "RefundPercent");
+	detail::read(this->RepairPercent, exINI, section, "RepairPercent");
+	detail::read(this->RepairRate, exINI, section, "RepairRate");
+	detail::read(this->URepairRate, exINI, section, "URepairRate");
+	detail::read(this->IRepairRate, exINI, section, "IRepairRate");
+	detail::read(this->RadarEventSpeed, exINI, section, "RadarEventSpeed");
+	detail::read(this->RadarEventRotationSpeed, exINI, section, "RadarEventRotationSpeed");
+	detail::read(this->RadarEventColorSpeed, exINI, section, "RadarEventColorSpeed");
+	detail::read(this->MyEffectivenessCoefficientDefault, exINI, section, "MyEffectivenessCoefficientDefault");
+	detail::read(this->TargetEffectivenessCoefficientDefault, exINI, section, "TargetEffectivenessCoefficientDefault");
+	detail::read(this->TargetSpecialThreatCoefficientDefault, exINI, section, "TargetSpecialThreatCoefficientDefault");
+	detail::read(this->TargetStrengthCoefficientDefault, exINI, section, "TargetStrengthCoefficientDefault");
+	detail::read(this->TargetDistanceCoefficientDefault, exINI, section, "TargetDistanceCoefficientDefault");
+	detail::read(this->DumbMyEffectivenessCoefficient, exINI, section, "DumbMyEffectivenessCoefficient");
+	detail::read(this->DumbTargetEffectivenessCoefficient, exINI, section, "DumbTargetEffectivenessCoefficient");
+	detail::read(this->DumbTargetSpecialThreatCoefficient, exINI, section, "DumbTargetSpecialThreatCoefficient");
+	detail::read(this->DumbTargetStrengthCoefficient, exINI, section, "DumbTargetStrengthCoefficient");
+	detail::read(this->DumbTargetDistanceCoefficient, exINI, section, "DumbTargetDistanceCoefficient");
+	detail::read(this->EnemyHouseThreatBonus, exINI, section, "EnemyHouseThreatBonus");
+	detail::read(this->AITriggerSuccessWeightDelta, exINI, section, "AITriggerSuccessWeightDelta");
+	detail::read(this->AITriggerFailureWeightDelta, exINI, section, "AITriggerFailureWeightDelta");
+	detail::read(this->AITriggerTrackRecordCoefficient, exINI, section, "AITriggerTrackRecordCoefficient");
+	detail::read(this->ConditionYellowSparkingProbability, exINI, section, "ConditionYellowSparkingProbability");
+	detail::read(this->ConditionRedSparkingProbability, exINI, section, "ConditionRedSparkingProbability");
+	detail::read(this->WallBuildSpeedCoefficient, exINI, section, "WallBuildSpeedCoefficient");
+	detail::read(this->ChargeToDrainRatio, exINI, section, "ChargeToDrainRatio");
+	detail::read(this->SpotlightSpeed, exINI, section, "SpotlightSpeed");
+	detail::read(this->SpotlightAcceleration, exINI, section, "SpotlightAcceleration");
+	detail::read(this->SpotlightAngle, exINI, section, "SpotlightAngle");
+	detail::read(this->EngineerCaptureLevel, exINI, section, "EngineerCaptureLevel");
+
+	// SUSPECT: vanilla reads EngineerDamage using key "EngineerCaptureLevel" (same key as above — likely a copy-paste bug)
+	// VERIFY: confirm intended key for EngineerDamage vs EngineerCaptureLevel
+	detail::read(this->EngineerDamage, exINI, section, "EngineerDamage");
+
+	// V3Rocket sub-struct
+	detail::read(this->V3Rocket.PitchInitial, exINI, section, "V3RocketPitchInitial");
+	detail::read(this->V3Rocket.PitchFinal, exINI, section, "V3RocketPitchFinal");
+	detail::read(this->V3Rocket.TurnRate, exINI, section, "V3RocketTurnRate");
+	detail::read(this->V3Rocket.RaiseRate, exINI, section, "V3RocketRaiseRate");
+	detail::read(this->V3Rocket.Acceleration, exINI, section, "V3RocketAcceleration");
+
+	// DMisl sub-struct
+	detail::read(this->DMisl.PitchInitial, exINI, section, "DMislPitchInitial");
+	detail::read(this->DMisl.PitchFinal, exINI, section, "DMislPitchFinal");
+	detail::read(this->DMisl.TurnRate, exINI, section, "DMislTurnRate");
+	detail::read(this->DMisl.RaiseRate, exINI, section, "DMislRaiseRate");
+	detail::read(this->DMisl.Acceleration, exINI, section, "DMislAcceleration");
+
+	// CMisl sub-struct
+	detail::read(this->CMisl.PitchInitial, exINI, section, "CMislPitchInitial");
+	detail::read(this->CMisl.PitchFinal, exINI, section, "CMislPitchFinal");
+	detail::read(this->CMisl.TurnRate, exINI, section, "CMislTurnRate");
+	detail::read(this->CMisl.RaiseRate, exINI, section, "CMislRaiseRate");
+	// SUSPECT: vanilla reads CMisl.Acceleration with default this->DMisl.Acceleration (not CMisl)
+	// Preserving vanilla behaviour; VERIFY if intentional
+	detail::read(this->CMisl.Acceleration, exINI, section, "CMislAcceleration");
+
+	// -------------------------------------------------------------------------
+	// PrismSupportModifier — vanilla multiplies by 100 after read
+	// VERIFY: confirm the stored value is ×100 of the INI value (percentage stored as integer × 100?)
+	// -------------------------------------------------------------------------
+	{
+		double prismMod = this->PrismSupportModifier;
+		detail::read(prismMod, exINI, section, "PrismSupportModifier");
+		this->PrismSupportModifier = int(prismMod / 100.0);
+	}
+
+	// TalkBubbleTime — vanilla stores as frames (value × 60); INI is in seconds
+	// VERIFY: confirm conversion direction matches vanilla
+	{
+		double talkBubbleSec = this->TalkBubbleTime * (1.0 / 60.0);
+		detail::read(talkBubbleSec, exINI, section, "TalkBubbleTime");
+		this->TalkBubbleTime = float(talkBubbleSec * 60.0);
+	}
+
+	// -------------------------------------------------------------------------
+	// Scalar ints
+	// -------------------------------------------------------------------------
+	detail::read(this->SelfHealInfantryFrames, exINI, section, "SelfHealInfantryFrames");
+	detail::read(this->SelfHealInfantryAmount, exINI, section, "SelfHealInfantryAmount");
+	detail::read(this->SelfHealUnitFrames, exINI, section, "SelfHealUnitFrames");
+	detail::read(this->SelfHealUnitAmount, exINI, section, "SelfHealUnitAmount");
+	detail::read(this->DominatorFireAtPercentage, exINI, section, "DominatorFireAtPercentage");
+	detail::read(this->DominatorCaptureRange, exINI, section, "DominatorCaptureRange");
+	detail::read(this->DominatorDamage, exINI, section, "DominatorDamage");
+	detail::read(this->MissileSafetyAltitude, exINI, section, "MissileSafetyAltitude");
+	detail::read(this->DropPodHeight, exINI, section, "DropPodHeight");
+	detail::read(this->DropPodSpeed, exINI, section, "DropPodSpeed");
+	detail::read(this->HoverHeight, exINI, section, "HoverHeight");
+	detail::read(this->BridgeVoxelMax, exINI, section, "BridgeVoxelMax");
+	detail::read(this->CloakingStages, exINI, section, "CloakingStages");
+	detail::read(this->CliffBackImpassability, exINI, section, "CliffBackImpassability");
+	detail::read(this->WindDirection, exINI, section, "WindDirection");
+	detail::read(this->FlightLevel, exINI, section, "FlightLevel");
+	detail::read(this->ParachuteMaxFallRate, exINI, section, "ParachuteMaxFallRate");
+	detail::read(this->NoParachuteMaxFallRate, exINI, section, "NoParachuteMaxFallRate");
+	detail::read(this->MaximumCheerRate, exINI, section, "MaximumCheerRate");
+	detail::read(this->SpyPowerBlackout, exINI, section, "SpyPowerBlackout");
+	detail::read(this->AIAlternateProductionCreditCutoff, exINI, section, "AIAlternateProductionCreditCutoff");
+	detail::read(this->DissolveUnfilledTeamDelay, exINI, section, "DissolveUnfilledTeamDelay");
+	detail::read(this->AISafeDistance, exINI, section, "AISafeDistance");
+	detail::read(this->HarvesterTooFarDistance, exINI, section, "HarvesterTooFarDistance");
+	detail::read(this->ChronoHarvTooFarDistance, exINI, section, "ChronoHarvTooFarDistance");
+	detail::read(this->AIRestrictReplaceTime, exINI, section, "AIRestrictReplaceTime");
+	detail::read(this->ThreatPerOccupant, exINI, section, "ThreatPerOccupant");
+	detail::read(this->ApproachTargetResetMultiplier, exINI, section, "ApproachTargetResetMultiplier");
+	detail::read(this->CampaignMoneyDeltaEasy, exINI, section, "CampaignMoneyDeltaEasy");
+	detail::read(this->CampaignMoneyDeltaHard, exINI, section, "CampaignMoneyDeltaHard");
+	detail::read(this->GuardAreaTargetingDelay, exINI, section, "GuardAreaTargetingDelay");
+	detail::read(this->NormalTargetingDelay, exINI, section, "NormalTargetingDelay");
+	detail::read(this->AINavalYardAdjacency, exINI, section, "AINavalYardAdjacency");
+	detail::read(this->MaximumBuildingPlacementFailures, exINI, section, "MaximumBuildingPlacementFailures");
+	detail::read(this->SlaveMinerKickFrameDelay, exINI, section, "SlaveMinerKickFrameDelay");
+	detail::read(this->AISuperDefenseFrames, exINI, section, "AISuperDefenseFrames");
+	detail::read(this->AICaptureLowMoneyMark, exINI, section, "AICaptureLowMoneyMark");
+	detail::read(this->ChronoDelay, exINI, section, "ChronoDelay");
+	detail::read(this->ChronoReinfDelay, exINI, section, "ChronoReinfDelay");
+	detail::read(this->ChronoDistanceFactor, exINI, section, "ChronoDistanceFactor");
+	detail::read(this->ChronoMinimumDelay, exINI, section, "ChronoMinimumDelay");
+	detail::read(this->ChronoRangeMinimum, exINI, section, "ChronoRangeMinimum");
+	detail::read(this->SuspendPriority, exINI, section, "SuspendPriority");
+	detail::read(this->AlliedSurvivorDivisor, exINI, section, "AlliedSurvivorDivisor");
+	detail::read(this->SovietSurvivorDivisor, exINI, section, "SovietSurvivorDivisor");
+	detail::read(this->ThirdSurvivorDivisor, exINI, section, "ThirdSurvivorDivisor");
+	detail::read(this->HarvesterLoadRate, exINI, section, "HarvesterLoadRate");
+	detail::read(this->RepairStep, exINI, section, "RepairStep");
+	detail::read(this->IRepairStep, exINI, section, "IRepairStep");
+	detail::read(this->AttackingAircraftSightRange, exINI, section, "AttackingAircraftSightRange");
+	detail::read(this->LeptonsPerSightIncrease, exINI, section, "LeptonsPerSightIncrease");
+	detail::read(this->TiberiumTransmogrify, exINI, section, "TiberiumTransmogrify");
+	detail::read(this->LightningDeferment, exINI, section, "LightningDeferment");
+	detail::read(this->LightningDamage, exINI, section, "LightningDamage");
+	detail::read(this->LightningStormDuration, exINI, section, "LightningStormDuration");
+	detail::read(this->LightningHitDelay, exINI, section, "LightningHitDelay");
+	detail::read(this->LightningScatterDelay, exINI, section, "LightningScatterDelay");
+	detail::read(this->LightningCellSpread, exINI, section, "LightningCellSpread");
+	detail::read(this->LightningSeparation, exINI, section, "LightningSeparation");
+	detail::read(this->ForceShieldRadius, exINI, section, "ForceShieldRadius");
+	detail::read(this->ForceShieldDuration, exINI, section, "ForceShieldDuration");
+	detail::read(this->ForceShieldBlackoutDuration, exINI, section, "ForceShieldBlackoutDuration");
+	detail::read(this->ForceShieldPlayFadeSoundTime, exINI, section, "ForceShieldPlayFadeSoundTime");
+	detail::read(this->PrismSupportMax, exINI, section, "PrismSupportMax");
+	detail::read(this->PrismSupportDelay, exINI, section, "PrismSupportDelay");
+	detail::read(this->PrismSupportDuration, exINI, section, "PrismSupportDuration");
+	detail::read(this->PrismSupportHeight, exINI, section, "PrismSupportHeight");
+	detail::read(this->ParadropRadius, exINI, section, "ParadropRadius");
+	detail::read(this->SpotlightMovementRadius, exINI, section, "SpotlightMovementRadius");
+	detail::read(this->SpotlightLocationRadius, exINI, section, "SpotlightLocationRadius");
+	detail::read(this->SpotlightRadius, exINI, section, "SpotlightRadius");
+	detail::read(this->RevealTriggerRadius, exINI, section, "RevealTriggerRadius");
+	detail::read(this->WeedCapacity, exINI, section, "WeedCapacity");
+	detail::read(this->FlashFrameTime, exINI, section, "FlashFrameTime");
+	detail::read(this->RadarCombatFlashTime, exINI, section, "RadarCombatFlashTime");
+	detail::read(this->RadarEventMinRadius, exINI, section, "RadarEventMinRadius");
+	detail::read(this->VeinholeMonsterStrength, exINI, section, "VeinholeMonsterStrength");
+	detail::read(this->MaxVeinholeGrowth, exINI, section, "MaxVeinholeGrowth");
+	detail::read(this->VeinholeGrowthRate, exINI, section, "VeinholeGrowthRate");
+	detail::read(this->VeinholeShrinkRate, exINI, section, "VeinholeShrinkRate");
+	detail::read(this->VeinDamage, exINI, section, "VeinDamage");
+	detail::read(this->InfantryBlinkDisguiseTime, exINI, section, "InfantryBlinkDisguiseTime");
+	detail::read(this->MaximumQueuedObjects, exINI, section, "MaximumQueuedObjects");
+	detail::read(this->MaxWaypointPathLength, exINI, section, "MaxWaypointPathLength");
+	detail::read(this->TreeStrength, exINI, section, "TreeStrength");
+
+	// V3Rocket / DMisl / CMisl int fields
+	detail::read(this->V3Rocket.PauseFrames, exINI, section, "V3RocketPauseFrames");
+	detail::read(this->V3Rocket.TiltFrames, exINI, section, "V3RocketTiltFrames");
+	detail::read(this->V3Rocket.Altitude, exINI, section, "V3RocketAltitude");
+	detail::read(this->V3Rocket.Damage, exINI, section, "V3RocketDamage");
+	detail::read(this->V3Rocket.EliteDamage, exINI, section, "V3RocketEliteDamage");
+	detail::read(this->V3Rocket.BodyLength, exINI, section, "V3RocketBodyLength");
+	detail::read(this->DMisl.PauseFrames, exINI, section, "DMislPauseFrames");
+	detail::read(this->DMisl.TiltFrames, exINI, section, "DMislTiltFrames");
+	detail::read(this->DMisl.Altitude, exINI, section, "DMislAltitude");
+	detail::read(this->DMisl.Damage, exINI, section, "DMislDamage");
+	detail::read(this->DMisl.EliteDamage, exINI, section, "DMislEliteDamage");
+	detail::read(this->DMisl.BodyLength, exINI, section, "DMislBodyLength");
+	detail::read(this->CMisl.PauseFrames, exINI, section, "CMislPauseFrames");
+	detail::read(this->CMisl.TiltFrames, exINI, section, "CMislTiltFrames");
+	detail::read(this->CMisl.Altitude, exINI, section, "CMislAltitude");
+	detail::read(this->CMisl.Damage, exINI, section, "CMislDamage");
+	detail::read(this->CMisl.EliteDamage, exINI, section, "CMislEliteDamage");
+	detail::read(this->CMisl.BodyLength, exINI, section, "CMislBodyLength");
+
+	// -------------------------------------------------------------------------
+	// Lepton fields (int, read via CCINIClass::Get_Lepton in vanilla)
+	// VERIFY: confirm detail::read<int> handles leptons the same way (no implicit cell→lepton scaling)
+	// -------------------------------------------------------------------------
+	detail::read(this->CameraRange, exINI, section, "CameraRange");
+	detail::read(this->Stray, exINI, section, "Stray");
+	detail::read(this->RelaxedStray, exINI, section, "RelaxedStray");
+	detail::read(this->GuardModeStray, exINI, section, "GuardModeStray");
+	detail::read(this->GuardModeStray, exINI, section, "GuardModeStray");
+	detail::read(this->TiberiumShortScan, exINI, section, "TiberiumShortScan");
+	detail::read(this->TiberiumLongScan, exINI, section, "TiberiumLongScan");
+	detail::read(this->SlaveMinerShortScan, exINI, section, "SlaveMinerShortScan");
+	detail::read(this->SlaveMinerSlaveScan, exINI, section, "SlaveMinerSlaveScan");
+	detail::read(this->SlaveMinerLongScan, exINI, section, "SlaveMinerLongScan");
+	detail::read(this->SlaveMinerScanCorrection, exINI, section, "SlaveMinerScanCorrection");
+	detail::read(this->AISuperDefenseDistance, exINI, section, "AISuperDefenseDistance");
+
+	// -------------------------------------------------------------------------
+	// Bool fields
+	// -------------------------------------------------------------------------
+	detail::read(this->RevealByHeight, exINI, section, "RevealByHeight");
+	detail::read(this->AllowShroudedSubteranneanMoves, exINI, section, "AllowShroudedSubteranneanMoves");
+	detail::read(this->NodAIBuildsWalls, exINI, section, "NodAIBuildsWalls");
+	detail::read(this->AIBuildsWalls, exINI, section, "AIBuildsWalls");
+	detail::read(this->UseMinDefenseRule, exINI, section, "UseMinDefenseRule");
+	detail::read(this->CurleyShuffle, exINI, section, "CurleyShuffle");
+	detail::read(this->FineDiffControl, exINI, section, "FineDiffControl");
+	detail::read(this->AttackCursorOnDisguise, exINI, section, "AttackCursorOnDisguise");
+	detail::read(this->ChronoTrigger, exINI, section, "ChronoTrigger");
+	detail::read(this->BlendedFog, exINI, section, "BlendedFog");
+	detail::read(this->SeparateAircraft, exINI, section, "SeparateAircraft");
+	detail::read(this->MutateExplosion, exINI, section, "MutateExplosion");
+	detail::read(this->LightningPrintText, exINI, section, "LightningPrintText");
+	detail::read(this->AircraftFogReveal, exINI, section, "AircraftFogReveal"); // VERIFY: stored as int in vanilla but read via Get_Int
+	detail::read(this->V3Rocket.LazyCurve, exINI, section, "V3RocketLazyCurve");
+	detail::read(this->DMisl.LazyCurve, exINI, section, "DMislLazyCurve");
+	detail::read(this->CMisl.LazyCurve, exINI, section, "CMislLazyCurve");
+
+	// -------------------------------------------------------------------------
+	// DropPodAngle — clamped after read [pi/8 .. 3pi/8]
+	// -------------------------------------------------------------------------
+	{
+		double angle = this->DropPodAngle;
+		detail::read(angle, exINI, section, "DropPodAngle");
+		// vanilla constants: max = 1.178097245096172 (3π/8), min = 0.3926990816987241 (π/8)
+		constexpr double kDropPodAngleMax = 1.178097245096172;
+		constexpr double kDropPodAngleMin = 0.3926990816987241;
+		this->DropPodAngle = std::clamp(angle, kDropPodAngleMin, kDropPodAngleMax);
+	}
+
+	if (pINI->ReadString(section, GameStrings::WallTower, nullptr, Phobos::readBuffer) > 0) {
+		if (const auto pBuilding = BuildingTypeClass::FindOrAllocate(Phobos::readBuffer)) {
+			this->WallTower = pBuilding;
+		} else {
+			Debug::LogInfo("WallTower Building readed as [{}] but it is nullptr ! ", Phobos::readBuffer);
+		}
+	}
+
 
 	RocketTypeClass::ReadListFromINI(pINI);
 
@@ -1674,16 +1775,12 @@ void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 
 	RulesExtData::LoadAfterTypeData(this, pINI);
 	this->Read_Difficulties(pINI);
-	RulesExtData::LoadAfterAllLogicData(this, pINI);
 
 	for (auto pTib : *TiberiumClass::Array) {
 		//Debug::LogInfo("Reading Tiberium[{}] Configurations!", pTib->ID);
 		pTib->LoadFromINI(pINI);
 	}
 }
-
-DEFINE_FUNCTION_JUMP(CALL, 0x668BFE, FakeRulesClass::_ReadColors);
-DEFINE_FUNCTION_JUMP(CALL, 0x668EE8, FakeRulesClass::_ReadGeneral);
 
 void RulesExtData::InitializeAfterAllRulesLoaded()
 {
@@ -1697,23 +1794,6 @@ void RulesExtData::InitializeAfterAllRulesLoaded()
 		g_instance->ColorDatas.LaserTarget_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->LaserTargetColor);
 		g_instance->ColorDatas.Berserk_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->BerserkColor);
 	}
-}
-
-ASMJIT_PATCH(0x668EED, RulesData_InitializeAfterAllLoaded, 0x8)
-{
-	RulesExtData::InitializeAfterAllRulesLoaded();
-	return 0x668F6A;
-}
-
-ASMJIT_PATCH(0x6744E4, RulesClass_ReadJumpjetControls_Extra, 0x7)
-{
-	GET(CCINIClass*, pINI, EDI);
-	INI_EX exINI(pINI);
-
-	RulesExtData::Instance()->JumpjetCrash.Read(exINI, GameStrings::JumpjetControls, "Crash");
-	RulesExtData::Instance()->JumpjetNoWobbles.Read(exINI, GameStrings::JumpjetControls, "NoWobbles");
-
-	return 0;
 }
 
 ASMJIT_PATCH(0x68684A, Game_ReadScenario_FinishReadingScenarioINI, 0x7) //9
@@ -1773,15 +1853,6 @@ ASMJIT_PATCH(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 	return 0x0;
 }
 
-// remove reading warhead from `SpecialWeapon`
-DEFINE_PATCH_TYPED(BYTE, 0x669193
-	, 0x90, 0x90, 0x90, 0x90, 0x90  // NOP: mov eax, Warheads.ActiveCount
-	, 0x90, 0x90                     // NOP: xor esi, esi
-	, 0x5B                           // pop ebx (correct position: 0x66919A)
-	, 0x90, 0x90                     // NOP: test eax, eax
-	, 0xEB, 0x18                     // jmp short loc_6691B7
-);
-
 ASMJIT_PATCH(0x685005, Game_InitData_GlobalParticleSystem, 0x5)
 {
 
@@ -1800,7 +1871,6 @@ ASMJIT_PATCH(0x685005, Game_InitData_GlobalParticleSystem, 0x5)
 	R->EAX(pMem);
 	return 0x685040;
 }
-
 
 ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 {
@@ -1821,7 +1891,7 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	FillSecrets(RulesClass::Instance->SecretBuildings);
 
 	auto pINI = CCINIClass::INI_Rules();
-	INI_EX iniEX(pINI);
+	INI_EX exINI(pINI);
 
 	for (auto pItem : *TechnoTypeClass::Array)
 	{
@@ -2354,7 +2424,7 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			//if (auto pNew = pSuperExt->GetNewSWType()) {
 			//	pNew->ValidateData(pSuperExt);
 			//}
-			//_Temp_MouseCursor.Read(iniEX, pSuper->ID, "Cursor");
+			//_Temp_MouseCursor.Read(exINI, pSuper->ID, "Cursor");
 			//if (_Temp_MouseCursor.isset()) {
 			//	std::string _name = pSuper->ID;
 			//	_name += "Cursor";
@@ -2429,7 +2499,7 @@ ASMJIT_PATCH(0x547043, IsometricTileTypeClass_ReadFromFile, 0x6)
 	if (FileSize == 0)
 	{
 		auto what = (pTileType->ID + strlen(pTileType->ID) + 1 - pTileType->ID);
-		auto pFileName = pFile->FileName;
+		auto pFileName = pFile->Filename;
 
 		if (what > 9)
 		{
@@ -2472,24 +2542,6 @@ ASMJIT_PATCH(0x7272B5, TriggerTypeClass_LoadFromINI_House, 6)
 
 	return 0x7272C1;
 }
-
-static bool CounterLog = false;
-ASMJIT_PATCH(0x749088, FixedWidthCounter_ResetWithGivenCount, 6)
-{
-	GET(unsigned int, Width, EAX);
-
-	if (Width > 512)
-	{
-
-		if (CounterLog)
-			Debug::LogInfo("Counter attempted to overflow (given width of {} exceeds maximum allowed width of 512).", Width);
-
-		R->EAX(512);
-	}
-
-	return 0;
-}
-
 
 ASMJIT_PATCH(0x72749B, TriggerTypeClass_LoadFromINI_Buffers, 0x8)
 {
@@ -2581,7 +2633,1295 @@ ASMJIT_PATCH(0x475260, CCINIClass_ReadAlly_Buffers, 0xA)
 	return 0x4752D9;
 }
 
-// == WeaponType ==
+void FakeRulesClass::_ReadSpecialWeapons(CCINIClass* pINI)
+{
+	const char* section = GameStrings::SpecialWeapons;
+
+	if (!pINI->GetSection(section))
+		return;
+
+	INI_EX exINI(pINI);
+
+	// WarheadTypeClass* pointers
+	detail::read(this->NukeWarhead, exINI, section, "NukeWarhead", true);
+	detail::read(this->MutateWarhead, exINI, section, "MutateWarhead", true);
+	detail::read(this->MutateExplosionWarhead, exINI, section, "MutateExplosionWarhead", true);
+	detail::read(this->EMPulseWarhead, exINI, section, "EMPulseWarhead", true);
+
+	// BulletTypeClass* pointers
+	detail::read(this->NukeProjectile, exINI, section, "NukeProjectile", true);
+	detail::read(this->NukeDown, exINI, section, "NukeDown", true);
+	detail::read(this->EMPulseProjectile, exINI, section, "EMPulseProjectile", true);
+
+	//Ext
+	auto pData = RulesExtData::Instance();
+
+	pData->HunterSeekerBuildings.Read(exINI, GameStrings::SpecialWeapons(), "HSBuilding");
+	pData->NukeWarheadName.Read(exINI.GetINI(), GameStrings::SpecialWeapons(), "NukeWarhead");
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x668FB0, FakeRulesClass::_ReadSpecialWeapons)
+
+void FakeRulesClass::_ReadElevationModel(CCINIClass* pINI)
+{
+	const char* section = "ElevationModel";
+
+	if (!pINI->GetSection(section))
+		return;
+
+	INI_EX exINI(pINI);
+	detail::read(this->ElevationIncrement, exINI, section, "ElevationIncrement", true);
+	detail::read(this->ElevationIncrementBonus, exINI, section, "ElevationIncrementBonus", true);
+	detail::read(this->ElevationBonusCap, exINI, section, "ElevationBonusCap", true);
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x66D150, FakeRulesClass::_ReadElevationModel)
+
+void FakeRulesClass::_ReadWallModel(CCINIClass* pINI)
+{
+	const char* section = "WallModel";
+
+	if (!pINI->GetSection(section))
+		return;
+
+	INI_EX exINI(pINI);
+	detail::read(this->AlliedWallTransparency, exINI, section, "AlliedWallTransparency", true);
+	detail::read(this->WallPenetratorThreshold, exINI, section, "WallPenetratorThreshold", true);
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x66D1F0, FakeRulesClass::_ReadWallModel)
+
+void FakeRulesClass::_ReadLandTypes(CCINIClass* pINI)
+{
+	static constexpr const char* LandTypeSections[] = {
+	   "Clear",    // index 0  — 0x839D68
+	   "Road",     // index 1  — 0x839D6C
+	   "Water",    // index 2  — 0x839D70
+	   "Rock",     // index 3  — 0x839D74
+	   "Wall",     // index 4  — 0x839D78
+	   "Tiberium", // index 5  — 0x839D7C
+	   "Beach",    // index 6  — 0x839D80
+	   "Rough",    // index 7  — 0x839D84
+	   "Ice",      // index 8  — 0x839D88
+	   "Railroad", // index 9  — 0x839D8C
+	   "Tunnel",   // index 10 — 0x839D90
+	   "Weeds",    // index 11 — 0x839D94
+	};
+
+	auto ReadSpeedCost = [](INI_EX& exINI, const char* section, const char* key) {
+		double _buffer = 1.0;
+		detail::read<double>(_buffer, exINI, section, key);
+		return float((_buffer >= 1.0) ? 1.0 : _buffer);
+	};
+
+	for (int i = 0; i < GroundType::Array.size(); ++i) {
+		const char* section = LandTypeSections[i];
+
+		if (!pINI->GetSection(section))
+			continue;
+
+		INI_EX exINI(pINI);
+		RulesExtData::Instance()->LandTypeConfigExts[i].Bounce_Elasticity.
+			Read(exINI, section, "Bounce.Elasticity");
+
+		auto& grnd = GroundType::Array[i];
+		grnd.Cost[SpeedType::Foot] = ReadSpeedCost(exINI, section, "Foot");
+		grnd.Cost[SpeedType::Track] = ReadSpeedCost(exINI, section, "Track");
+		grnd.Cost[SpeedType::Wheel] = ReadSpeedCost(exINI, section, "Wheel");
+		grnd.Cost[SpeedType::Hover] = ReadSpeedCost(exINI, section, "Hover");
+		grnd.Cost[SpeedType::Float] = ReadSpeedCost(exINI, section, "Float");
+		grnd.Cost[SpeedType::Amphibious] = ReadSpeedCost(exINI, section, "Amphibious");
+		grnd.Cost[SpeedType::FloatBeach] = ReadSpeedCost(exINI, section, "FloatBeach");
+
+		detail::read<bool>(grnd.Build, exINI, section, "Buildable");
+		Debug::LogInfo("Reading LandTypeData of [{} - {}]", section, i);
+	}
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x674000, FakeRulesClass::_ReadLandTypes)
+
+void FakeRulesClass::_ReadIQ(CCINIClass* pINI)
+{
+	static constexpr const char* section = "IQ";
+
+	if (!pINI->GetSection(section))
+		return;
+	
+	INI_EX exINI(pINI);
+
+	detail::read(this->IQData.MaxLevels, exINI, section, "MaxIQLevels");
+	detail::read(this->IQData.SuperWeapons, exINI, section, "SuperWeapons");
+	detail::read(this->IQData.Production, exINI, section, "Production");
+	detail::read(this->IQData.GuardArea, exINI, section, "GuardArea");
+	detail::read(this->IQData.RepairSell, exINI, section, "RepairSell");
+	detail::read(this->IQData.AutoCrush, exINI, section, "AutoCrush");   // field IQCrush, key "AutoCrush"
+	detail::read(this->IQData.Scatter, exINI, section, "Scatter");
+	detail::read(this->IQData.ContentScan, exINI, section, "ContentScan");
+	detail::read(this->IQData.Aircraft, exINI, section, "Aircraft");
+	detail::read(this->IQData.Harvester, exINI, section, "Harvester");
+	detail::read(this->IQData.SellBack, exINI, section, "SellBack");
+
+	//Ext
+	auto pData = RulesExtData::Instance();
+
+	pData->TogglePowerIQ.Read(exINI, section, "TogglePower");
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x674240, FakeRulesClass::_ReadIQ)
+
+void FakeRulesClass::_ReadDifficulty(CCINIClass* pINI)
+{
+	auto DiffGet = [](DifficultyStruct& value, CCINIClass* pINI, const char* section)
+		{
+			if (pINI->GetSection(section)) {
+				INI_EX exINI(pINI);
+
+				// Doubles — hardcoded defaults from vanilla
+				detail::read(value.Firepower, exINI, section, "FirePower");
+				detail::read(value.GroundSpeed, exINI, section, "Groundspeed");
+				detail::read(value.AirSpeed, exINI, section, "Airspeed");
+				detail::read(value.Armor, exINI, section, "Armor");
+				detail::read(value.ROF, exINI, section, "ROF");
+				detail::read(value.Cost, exINI, section, "Cost");
+				detail::read(value.RepairDelay, exINI, section, "RepairDelay");
+				detail::read(value.BuildDelay, exINI, section, "BuildDelay");
+				detail::read(value.BuildTime, exINI, section, "BuildTime");
+
+				// Bools — hardcoded defaults (0 = false, 1 = true)
+				detail::read(value.BuildSlowdown, exINI, section, "BuildSlowdown", false);
+				detail::read(value.DestroyWalls, exINI, section, "DestroyWalls", true);
+				detail::read(value.ContentScan, exINI, section, "ContentScan", false);
+			}
+		};
+
+	DiffGet(this->DifficultyConfigs[ParsedDifficulty::Easy], pINI, "Easy");
+	DiffGet(this->DifficultyConfigs[ParsedDifficulty::Normal], pINI, "Normal");
+	DiffGet(this->DifficultyConfigs[ParsedDifficulty::Hard], pINI, "Hard");
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x674500, FakeRulesClass::_ReadDifficulty)
+
+void FakeRulesClass::_ReadAudioVisual(CCINIClass* pINI)
+{
+	const char* section = GameStrings::AudioVisual;
+
+	if (!pINI->GetSection(section))
+		return;
+
+	INI_EX exINI(pINI);
+
+	// -------------------------------------------------------------------------
+	// Scalar ints
+	// -------------------------------------------------------------------------
+	detail::read(this->DetailMinFrameRateNormal, exINI, section, "DetailMinFrameRateNormal");
+	detail::read(this->DetailMinFrameRateMovie, exINI, section, "DetailMinFrameRateMovie");
+	detail::read(this->DetailBufferZoneWidth, exINI, section, "DetailBufferZoneWidth");
+	detail::read(this->PoseDir, exINI, section, "PoseDir");
+	detail::read(this->WaypointAnimationSpeed, exINI, section, "WaypointAnimationSpeed");
+	detail::read(this->SpyPlaneCameraFrames, exINI, section, "SpyPlaneCameraFrames");
+	detail::read(this->EliteFlashTimer, exINI, section, "EliteFlashTimer");
+	detail::read(this->ShakeScreen, exINI, section, "ShakeScreen");
+	detail::read(this->Gravity, exINI, section, "Gravity");
+	detail::read(this->IceSolidifyFrameTime, exINI, section, "IceSolidifyFrameTime");
+	detail::read(this->OreTwinkleChance, exINI, section, "OreTwinkleChance");
+	detail::read(this->LaserTargetColor, exINI, section, "LaserTargetColor");
+	detail::read(this->IronCurtainColor, exINI, section, "IronCurtainColor");
+	detail::read(this->BerserkColor, exINI, section, "BerserkColor");
+	detail::read(this->ForceShieldColor, exINI, section, "ForceShieldColor");
+
+	// DeployDir — vanilla stores as (INI value << 5); reads back as (stored >> 5) for default
+	// VERIFY: confirm the shift factor of 5 (i.e. stored value = INI_value * 32)
+	{
+		int deployDirRaw = this->DeployDir >> 5;
+		detail::read(deployDirRaw, exINI, section, "DeployDir");
+		this->DeployDir = deployDirRaw * 32;
+	}
+
+	// -------------------------------------------------------------------------
+	// Scalar doubles
+	// -------------------------------------------------------------------------
+	detail::read(this->ScrollMultiplier, exINI, section, "ScrollMultiplier");
+	detail::read(this->ConditionRed, exINI, section, "ConditionRed");
+	detail::read(this->ConditionYellow, exINI, section, "ConditionYellow");
+	detail::read(this->IdleActionFrequency, exINI, section, "IdleActionFrequency"); // field RandomAnimateTime, key "IdleActionFrequency"
+	detail::read(this->MessageDelay, exINI, section, "MessageDelay");
+	detail::read(this->MovieTime, exINI, section, "MovieTime");
+	detail::read(this->SavourDelay, exINI, section, "SavourDelay");
+	detail::read(this->ShroudRate, exINI, section, "ShroudRate");
+	detail::read(this->FogRate, exINI, section, "FogRate");
+	detail::read(this->VeinGrowthRate, exINI, section, "VeinGrowthRate");
+	detail::read(this->IceGrowthRate, exINI, section, "IceGrowthRate");
+	detail::read(this->AmbientChangeRate, exINI, section, "AmbientChangeRate");
+	detail::read(this->AmbientChangeStep, exINI, section, "AmbientChangeStep");
+	detail::read(this->SpeakDelay, exINI, section, "SpeakDelay");
+	detail::read(this->TimerWarning, exINI, section, "TimerWarning");
+	detail::read(this->DirectRockingCoefficient, exINI, section, "DirectRockingCoefficient");
+	detail::read(this->FallBackCoefficient, exINI, section, "FallBackCoefficient");
+
+	// ExtraUnitLight / ExtraInfantryLight / ExtraAircraftLight
+	// Vanilla: default passed as (field / 1000.0), stored as (result * 1000.0)
+	// VERIFY: confirm integer field scaled by 1000 (i.e. stored = INI_double * 1000, not a float field)
+	{
+		double v = this->ExtraUnitLight / 1000.0;
+		detail::read(v, exINI, section, "ExtraUnitLight");
+		this->ExtraUnitLight = float(v * 1000.0);
+	}
+	{
+		double v = this->ExtraInfantryLight / 1000.0;
+		detail::read(v, exINI, section, "ExtraInfantryLight");
+		this->ExtraInfantryLight = float(v * 1000.0);
+	}
+	{
+		double v = this->ExtraAircraftLight / 1000.0;
+		detail::read(v, exINI, section, "ExtraAircraftLight");
+		this->ExtraAircraftLight = float(v * 1000.0);
+	}
+
+	// -------------------------------------------------------------------------
+	// Bool fields
+	// -------------------------------------------------------------------------
+	detail::read(this->ShroudGrow, exINI, section, "ShroudGrow");
+	detail::read(this->AllyReveal, exINI, section, "AllyReveal");
+	detail::read(this->EnemyHealth, exINI, section, "EnemyHealth");  // field IsHealthBar, key "EnemyHealth"
+	detail::read(this->NamedCivilians, exINI, section, "NamedCivilians");
+
+	// -------------------------------------------------------------------------
+	// Lepton field
+	// VERIFY: confirm detail::read<int> handles lepton scaling same as CCINIClass::Get_Lepton
+	// -------------------------------------------------------------------------
+	detail::read(this->DropZoneRadius, exINI, section, "DropZoneRadius");
+
+	// -------------------------------------------------------------------------
+	// ConditionGreen — hardcoded to 1.0 in vanilla, not read from INI
+	// -------------------------------------------------------------------------
+	this->ConditionGreen = 1.0; // 0x3FF0000000000000 IEEE 754 double
+
+	// -------------------------------------------------------------------------
+	// RGB color fields
+	// VERIFY: confirm detail::read handles CCINIClass::Get_RGB equivalent for ColorStruct
+	// -------------------------------------------------------------------------
+	detail::read(this->LocalRadarColor, exINI, section, "LocalRadarColor");
+	detail::read(this->LineTrailColorOverride, exINI, section, "LineTrailColorOverride");
+	detail::read(this->ChronoBeamColor, exINI, section, "ChronoBeamColor");
+	detail::read(this->MagnaBeamColor, exINI, section, "MagnaBeamColor");
+
+	// -------------------------------------------------------------------------
+	// AnimTypeClass* pointers — Find_Or_Make → pass true
+	// -------------------------------------------------------------------------
+	detail::read(this->DropPodPuff, exINI, section, "DropPodPuff", true);
+	detail::read(this->VeinAttack, exINI, section, "VeinAttack", true);
+	detail::read(this->Dig, exINI, section, "Dig", true);
+	detail::read(this->AtmosphereEntry, exINI, section, "AtmosphereEntry", true);
+	detail::read(this->SmallFire, exINI, section, "SmallFire", true);
+	detail::read(this->LargeFire, exINI, section, "LargeFire", true);
+
+	// SUSPECT: both Smoke1 and Smoke2 use the same INI key "Smoke" — likely vanilla reads same value twice
+	// VERIFY: confirm this is intentional (two fields from one key) or if Smoke2 should use a different key
+	detail::read(this->Smoke, exINI, section, "Smoke", true);
+	detail::read(this->Smoke_, exINI, section, "Smoke", true);
+
+	// -------------------------------------------------------------------------
+	// TypeList<AnimTypeClass*>
+	// -------------------------------------------------------------------------
+	detail::ParseVector(this->TreeFire, exINI, section, "TreeFire");
+	detail::ParseVector(this->OnFire, exINI, section, "OnFire");
+
+	// -------------------------------------------------------------------------
+	// TypeList<int> — sound ID lists
+	// -------------------------------------------------------------------------
+	detail::ParseVector(this->CreditTicks, exINI, section, "CreditTicks");
+	detail::ParseVector(this->LightningSounds, exINI, section, "LightningSounds");
+	detail::ParseVector(this->IceCrackSounds, exINI, section, "IceCrackSounds");
+
+	// -------------------------------------------------------------------------
+	// Sound fields (VocType / int ID via VocClass::Get_ID_From_Name)
+	// Vanilla falls back to existing value if key missing OR if name resolves to -1.
+	// VERIFY: confirm detail::read<VocType> preserves the -1 fallback behaviour.
+	// -------------------------------------------------------------------------
+	detail::read(this->DigSound, exINI, section, "DigSound");
+	detail::read(this->GUIMainButtonSound, exINI, section, "GUIMainButtonSound");
+	detail::read(this->GUIBuildSound, exINI, section, "GUIBuildSound");
+	detail::read(this->GUITabSound, exINI, section, "GUITabSound");
+	detail::read(this->GUIOpenSound, exINI, section, "GUIOpenSound");
+	detail::read(this->GUICloseSound, exINI, section, "GUICloseSound");
+	detail::read(this->GUIMoveOutSound, exINI, section, "GUIMoveOutSound");
+	detail::read(this->GUIMoveInSound, exINI, section, "GUIMoveInSound");
+	detail::read(this->GUIComboOpenSound, exINI, section, "GUIComboOpenSound");
+	detail::read(this->GUIComboCloseSound, exINI, section, "GUIComboCloseSound");
+	detail::read(this->GUICheckboxSound, exINI, section, "GUICheckboxSound");
+	detail::read(this->ScoreAnimSound, exINI, section, "ScoreAnimSound");
+	detail::read(this->CheerSound, exINI, section, "CheerSound");
+	detail::read(this->DefaultChronoSound, exINI, section, "DefaultChronoSound");
+	detail::read(this->StartPlanningModeSound, exINI, section, "StartPlanningModeSound");
+	detail::read(this->EndPlanningModeSound, exINI, section, "EndPlanningModeSound");
+	detail::read(this->CrateMoneySound, exINI, section, "CrateMoneySound");
+	detail::read(this->CrateRevealSound, exINI, section, "CrateRevealSound");
+	detail::read(this->CrateFireSound, exINI, section, "CrateFireSound");
+	detail::read(this->CrateArmourSound, exINI, section, "CrateArmourSound");
+	detail::read(this->CrateSpeedSound, exINI, section, "CrateSpeedSound");
+	detail::read(this->CrateUnitSound, exINI, section, "CrateUnitSound");
+	detail::read(this->CratePromoteSound, exINI, section, "CratePromoteSound");
+	detail::read(this->ImpactWaterSound, exINI, section, "ImpactWaterSound");
+	detail::read(this->ImpactLandSound, exINI, section, "ImpactLandSound");
+	detail::read(this->SinkingSound, exINI, section, "SinkingSound");
+	detail::read(this->ChronoInSound, exINI, section, "ChronoInSound");
+	detail::read(this->ChronoOutSound, exINI, section, "ChronoOutSound");
+	detail::read(this->BombTickingSound, exINI, section, "BombTickingSound");
+	detail::read(this->BombAttachSound, exINI, section, "BombAttachSound");
+	detail::read(this->YuriMindControlSound, exINI, section, "YuriMindControlSound");
+	detail::read(this->AddPlanningModeCommandSound, exINI, section, "AddPlanningModeCommandSound");
+	detail::read(this->ExecutePlanSound, exINI, section, "ExecutePlanSound");
+	detail::read(this->PlaceBeaconSound, exINI, section, "PlaceBeaconSound");
+	detail::read(this->BuildingGarrisonedSound, exINI, section, "BuildingGarrisonedSound");
+	detail::read(this->BuildingAbandonedSound, exINI, section, "BuildingAbandonedSound");
+	detail::read(this->BuildingRepairedSound, exINI, section, "BuildingRepairedSound");
+	detail::read(this->BaseUnderAttackSound, exINI, section, "BaseUnderAttackSound");
+	detail::read(this->UpgradeVeteranSound, exINI, section, "UpgradeVeteranSound");
+	detail::read(this->UpgradeEliteSound, exINI, section, "UpgradeEliteSound");
+	detail::read(this->VoiceIFVRepair, exINI, section, "VoiceIFVRepair");
+	detail::read(this->SlavesFreeSound, exINI, section, "SlavesFreeSound");
+	detail::read(this->SlaveMinerDeploySound, exINI, section, "SlaveMinerDeploySound");
+	detail::read(this->SlaveMinerUndeploySound, exINI, section, "SlaveMinerUndeploySound");
+	detail::read(this->BunkerWallsUpSound, exINI, section, "BunkerWallsUpSound");
+	detail::read(this->BunkerWallsDownSound, exINI, section, "BunkerWallsDownSound");
+	detail::read(this->RepairBridgeSound, exINI, section, "RepairBridgeSound");
+	detail::read(this->PsychicDominatorActivateSound, exINI, section, "PsychicDominatorActivateSound");
+	detail::read(this->GeneticMutatorActivateSound, exINI, section, "GeneticMutatorActivateSound");
+	detail::read(this->PsychicRevealActivateSound, exINI, section, "PsychicRevealActivateSound");
+	detail::read(this->MasterMindOverloadDeathSound, exINI, section, "MasterMindOverloadDeathSound");
+	detail::read(this->AirstrikeAbortSound, exINI, section, "AirstrikeAbortSound");
+	detail::read(this->AirstrikeAttackVoice, exINI, section, "AirstrikeAttackVoice");
+	detail::read(this->MindClearedSound, exINI, section, "MindClearedSound");
+	detail::read(this->EnterGrinderSound, exINI, section, "EnterGrinderSound");
+	detail::read(this->LeaveGrinderSound, exINI, section, "LeaveGrinderSound");
+	detail::read(this->EnterBioReactorSound, exINI, section, "EnterBioReactorSound");
+	detail::read(this->LeaveBioReactorSound, exINI, section, "LeaveBioReactorSound");
+	detail::read(this->ActivateSound, exINI, section, "ActivateSound");
+	detail::read(this->DeactivateSound, exINI, section, "DeactivateSound");
+	detail::read(this->SpyPlaneCamera, exINI, section, "SpyPlaneCamera");
+	detail::read(this->LetsDoTheTimeWarpOutAgain, exINI, section, "LetsDoTheTimeWarpOutAgain");
+	detail::read(this->LetsDoTheTimeWarpInAgain, exINI, section, "LetsDoTheTimeWarpInAgain");
+	detail::read(this->DiskLaserChargeUp, exINI, section, "DiskLaserChargeUp");
+	detail::read(this->CreateUnitSound, exINI, section, "CreateUnitSound");
+	detail::read(this->CreateInfantrySound, exINI, section, "CreateInfantrySound");
+	detail::read(this->CreateAircraftSound, exINI, section, "CreateAircraftSound");
+	detail::read(this->IFVTransformSound, exINI, section, "IFVTransformSound");
+	detail::read(this->PsychicSensorDetectSound, exINI, section, "PsychicSensorDetectSound");
+	detail::read(this->SpySatActivationSound, exINI, section, "SpySatActivationSound");
+	detail::read(this->SpySatDeactivationSound, exINI, section, "SpySatDeactivationSound");
+	detail::read(this->ShellButtonSlideSound, exINI, section, "ShellButtonSlideSound");
+	detail::read(this->CloakSound, exINI, section, "CloakSound");
+	detail::read(this->SellSound, exINI, section, "SellSound");
+	detail::read(this->GameClosed, exINI, section, "GameClosed");
+	detail::read(this->IncomingMessage, exINI, section, "IncomingMessage");
+	detail::read(this->MessageCharTyped, exINI, section, "MessageCharTyped");
+	detail::read(this->SystemError, exINI, section, "SystemError");
+	detail::read(this->OptionsChanged, exINI, section, "OptionsChanged");
+	detail::read(this->GameForming, exINI, section, "GameForming");
+	detail::read(this->PlayerLeft, exINI, section, "PlayerLeft");
+	detail::read(this->PlayerJoined, exINI, section, "PlayerJoined");
+	detail::read(this->Construction, exINI, section, "Construction");
+	detail::read(this->GateUp, exINI, section, "GateUp");
+	detail::read(this->GateDown, exINI, section, "GateDown");
+	detail::read(this->ScoldSound, exINI, section, "ScoldSound");
+	detail::read(this->TeslaCharge, exINI, section, "TeslaCharge");
+	detail::read(this->TeslaZap, exINI, section, "TeslaZap");
+	detail::read(this->ChuteSound, exINI, section, "ChuteSound");
+	detail::read(this->GenericClick, exINI, section, "GenericClick");
+	detail::read(this->GenericBeep, exINI, section, "GenericBeep");
+	detail::read(this->BuildingDrop, exINI, section, "BuildingDrop");
+	detail::read(this->StopSound, exINI, section, "StopSound");
+	detail::read(this->GuardSound, exINI, section, "GuardSound");
+	detail::read(this->ScatterSound, exINI, section, "ScatterSound");
+	detail::read(this->StormSound, exINI, section, "StormSound");
+
+	// Field/key mismatches — preserved from vanilla
+	detail::read(this->BuildingDieSound, exINI, section, "BuildingDieSound");    // field CrumbleSound, key "BuildingDieSound"
+	detail::read(this->BuildingDamageSound, exINI, section, "BuildingDamageSound"); // field BlowupSound, key "BuildingDamageSound"
+
+	auto pData = RulesExtData::Instance();
+
+	Nullable<double> Shield_ConditionGreen_d {};
+	Nullable<double> Shield_ConditionYellow_d {};
+	Nullable<double> Shield_ConditionRed_d {};
+	Nullable<double> ConditionYellow_Terrain_d {};
+
+	Shield_ConditionGreen_d.Read(exINI, GameStrings::AudioVisual(), "Shield.ConditionGreen");// somewhat never used , man
+	Shield_ConditionYellow_d.Read(exINI, GameStrings::AudioVisual(), "Shield.ConditionYellow");
+	Shield_ConditionRed_d.Read(exINI, GameStrings::AudioVisual(), "Shield.ConditionRed");
+	ConditionYellow_Terrain_d.Read(exINI, GameStrings::AudioVisual(), "ConditionYellow.Terrain");
+
+	pData->Shield_ConditionGreen = Shield_ConditionGreen_d.Get(this->ConditionGreen);
+	pData->Shield_ConditionYellow = Shield_ConditionYellow_d.Get(this->ConditionYellow);
+	pData->Shield_ConditionRed = Shield_ConditionRed_d.Get(this->ConditionRed);
+	pData->ConditionYellow_Terrain = ConditionYellow_Terrain_d.Get(this->ConditionYellow);
+
+	pData->DefaultSquidAnim.Read(exINI, section, "Parasite.GrappleAnim");
+	pData->FactoryProgressDisplay.Read(exINI, section, "FactoryProgressDisplay");
+	pData->MainSWProgressDisplay.Read(exINI, section, "MainSWProgressDisplay");
+	pData->CombatAlert.Read(exINI, section, "CombatAlert");
+	pData->CombatAlert_MakeAVoice.Read(exINI, section, "CombatAlert.MakeAVoice");
+	pData->CombatAlert_IgnoreBuilding.Read(exINI, section, "CombatAlert.IgnoreBuilding");
+	pData->CombatAlert_EVA.Read(exINI, section, "CombatAlert.EVA");
+	pData->CombatAlert_UseFeedbackVoice.Read(exINI, section, "CombatAlert.UseFeedbackVoice");
+	pData->CombatAlert_UseAttackVoice.Read(exINI, section, "CombatAlert.UseAttackVoice");
+	pData->CombatAlert_SuppressIfInScreen.Read(exINI, section, "CombatAlert.SuppressIfInScreen");
+	pData->CombatAlert_Interval.Read(exINI, section, "CombatAlert.Interval");
+	pData->CombatAlert_SuppressIfAllyDamage.Read(exINI, section, "CombatAlert.SuppressIfAllyDamage");
+	pData->SubterraneanHeight.Read(exINI, GameStrings::General, "SubterraneanHeight");
+
+	pData->StartDistributionModeSound.Read(exINI, section, "StartDistributionModeSound");
+	pData->EndDistributionModeSound.Read(exINI, section, "EndDistributionModeSound");
+	pData->AddDistributionModeCommandSound.Read(exINI, section, "AddDistributionModeCommandSound");
+	pData->FirestormActiveAnim.Read(exINI, section, "FirestormActiveAnim");
+	pData->FirestormIdleAnim.Read(exINI, section, "FirestormIdleAnim");
+	pData->FirestormGroundAnim.Read(exINI, section, "FirestormGroundAnim");
+	pData->FirestormAirAnim.Read(exINI, section, "FirestormAirAnim");
+	pData->Bounty_Display.Read(exINI, section, "BountyDisplay");
+	pData->CloakAnim.Read(exINI, section, "CloakAnim");
+	pData->DecloakAnim.Read(exINI, section, "DecloakAnim");
+
+	pData->Promote_Vet_Anim.Read(exINI, section, "Promote.VeteranAnim");
+	pData->Promote_Elite_Anim.Read(exINI, section, "Promote.EliteAnim");
+
+	pData->Promote_Vet_PlaySpotlight.Read(exINI, section, "Promote.VeteranPlaySpotLight");
+	pData->Promote_Elite_PlaySpotlight.Read(exINI, section, "Promote.ElitePlaySpotLight");
+
+	pData->PrimaryFactoryIndicator.Read(exINI, section, "PrimaryFactoryIndicator");
+	pData->PrimaryFactoryIndicator_Palette.Read(exINI, section, "PrimaryFactoryIndicator.Palette");
+
+	pData->DefaultExplodeFireAnim.Read(exINI, section, "DefaultExplodeOverlayFireAnim");
+	pData->SuperWeaponSidebar_AllowByDefault.Read(exINI, section, "SuperWeaponSidebar.AllowByDefault");
+
+	pData->ColorAddUse8BitRGB.Read(exINI, section, "ColorAddUse8BitRGB");
+	pData->IronCurtain_ExtraTintIntensity.Read(exINI, section, "IronCurtain.ExtraTintIntensity");
+	pData->ForceShield_ExtraTintIntensity.Read(exINI, section, "ForceShield.ExtraTintIntensity");
+
+	pData->DefaultInfantrySelectBox.Read(exINI, section, "DefaultInfantrySelectBox");
+	pData->DefaultUnitSelectBox.Read(exINI, section, "DefaultUnitSelectBox");
+
+	pData->VoxelLightSource.Read(exINI, section, "VoxelLightSource");
+	pData->VoxelShadowLightSource.Read(exINI, section, "VoxelShadowLightSource");
+	pData->UseFixedVoxelLighting.Read(exINI, section, "UseFixedVoxelLighting");
+	pData->ShowPowerPlantEnhancerRange.Read(exINI, section, "ShowPowerPlantEnhancerRange");
+
+	if (!pData->DefaultExplodeFireAnim)
+		pData->DefaultExplodeFireAnim = AnimTypeClass::Find(GameStrings::Anim_FIRE3);
+
+	pData->FlyNoWobbles.Read(exINI, section, "FlyNoWobbles");
+
+	pData->DropShip_LandAnim.Read(exINI, section, "DefaultLandingAnim.Dropship");
+	pData->CarryAll_LandAnim.Read(exINI, section, "DefaultLandingAnim.Carryall");
+	pData->CarryAll_LandAnim.Read(exINI, section, "LandingAnim.Carryall", true);
+	pData->DropShip_LandAnim.Read(exINI, section, "LandingAnim.Dropship", true);
+	pData->Aircraft_LandAnim.Read(exINI, section, "LandingAnim.Aircraft", true);
+	pData->LandingAnim.Read(exINI, section, "DefaultLandingAnim", true);
+
+
+	detail::getindex<VocClass>(pData->AttachedToObject->DeploySound, exINI, section, "DeploySound");
+	pData->RemoveMindControl_Silent.Read(exINI, section, "RemoveMindControl.Silent");
+	pData->DisplayIncome_Delay.Read(exINI, section, "DisplayIncome.Delay");
+	if (!pData->DisplayIncome_Delay)
+	{
+		Debug::Log("[Developer warning] [AudioVisual] DisplayIncome.Delay is set 0 which would cause a crash, set to 1 instead.\n");
+		pData->DisplayIncome_Delay = 1;
+	}
+	pData->LaserZAdjust.Read(exINI, section, "LaserZAdjust");
+	pData->EBoltZAdjust.Read(exINI, section, "EBoltZAdjust");
+	pData->EBoltZAdjust_ClampInitialDepthForBuilding.Read(exINI, section, "EBoltZAdjust.ClampInitialDepthForBuilding");
+	pData->AirstrikeLineZAdjust.Read(exINI, section, "AirstrikeLineZAdjust");
+	pData->UseRetintFix.Read(exINI, section, "UseRetintFix");
+	pData->WarheadAnimZAdjust.Read(exINI, section, "WarheadAnimZAdjust");
+	pData->FiringAnim_Update.Read(exINI, section, "FiringAnim.Update");
+	pData->WalkLocomotorMakesWake.Read(exINI, section, "WalkLocomotorMakesWake");
+	pData->VisualScatter_Min.Read(exINI, section, "VisualScatter.Min");
+	pData->VisualScatter_Max.Read(exINI, section, "VisualScatter.Max");
+	pData->JumpjetTilt.Read(exINI, section, "JumpjetTilt");
+	pData->AirstrikeLineColor.Read(exINI, section, "AirstrikeLineColor");
+	pData->Cameo_AlwaysExist.Read(exINI, section, "Cameo.AlwaysExist");
+	pData->Cameo_OverlayShapes.Read(exINI, section, "Cameo.OverlayShapes");
+	pData->Cameo_OverlayFrames.Read(exINI, section, "Cameo.OverlayFrames");
+	pData->Cameo_OverlayPalette.Read(exINI, section, "Cameo.OverlayPalette");
+	pData->UnitIdleRotateTurret.Read(exINI, section, "UnitIdleRotateTurret");
+	pData->UnitIdlePointToMouse.Read(exINI, section, "UnitIdlePointToMouse");
+	pData->UnitIdleActionRestartMin.Read(exINI, section, "UnitIdleActionRestartMin");
+	pData->UnitIdleActionRestartMax.Read(exINI, section, "UnitIdleActionRestartMax");
+	pData->UnitIdleActionIntervalMin.Read(exINI, section, "UnitIdleActionIntervalMin");
+	pData->UnitIdleActionIntervalMax.Read(exINI, section, "UnitIdleActionIntervalMax");
+	pData->ShakeScreenUseTSCalculation.Read(exINI, section, "ShakeScreenUseTSCalculation");
+	pData->CheckExpandPlaceGrid.Read(exINI, section, "CheckExpandPlaceGrid");
+	pData->ExpandLandGridFrames.Read(exINI, section, "ExpandLandGridFrames");
+	pData->ExpandWaterGridFrames.Read(exINI, section, "ExpandWaterGridFrames");
+	pData->VeinsAttack_interval.Read(exINI, section, "VeinsAttackInterval");
+	pData->BuildingFlameSpawnBlockFrames.Read(exINI, section, "BuildingFlameSpawnBlockFrames");
+	pData->AircraftLevelLightMultiplier.Read(exINI, section, "AircraftLevelLightMultiplier");
+	pData->AircraftCellLightLevelMultiplier.Read(exINI, section, "AircraftCellLightLevelMultiplier");
+	pData->JumpjetLevelLightMultiplier.Read(exINI, section, "JumpjetLevelLightMultiplier");
+	pData->JumpjetCellLightLevelMultiplier.Read(exINI, section, "JumpjetCellLightLevelMultiplier");
+	pData->JumpjetCellLightApplyBridgeHeight.Read(exINI, section, "JumpjetCellLightApplyBridgeHeight");
+	double AirShadowBaseScale = 0.0;
+	if (detail::read<double>(AirShadowBaseScale, exINI, section, "AirShadowBaseScale") && AirShadowBaseScale > 0)
+		pData->AirShadowBaseScale_log = -std::log(std::min(AirShadowBaseScale, 1.0));
+
+	pData->HeightShadowScaling.Read(exINI, section, "HeightShadowScaling");
+
+	if (AirShadowBaseScale > 0.98 && pData->HeightShadowScaling.Get())
+		pData->HeightShadowScaling = false;
+
+	pData->HeightShadowScaling_MinScale.Read(exINI, section, "HeightShadowScaling.MinScale");
+	pData->Buildings_DefaultDigitalDisplayTypes.Read(exINI, section, "Buildings.DefaultDigitalDisplayTypes");
+	pData->Infantry_DefaultDigitalDisplayTypes.Read(exINI, section, "Infantry.DefaultDigitalDisplayTypes");
+	pData->Vehicles_DefaultDigitalDisplayTypes.Read(exINI, section, "Vehicles.DefaultDigitalDisplayTypes");
+	pData->Aircraft_DefaultDigitalDisplayTypes.Read(exINI, section, "Aircraft.DefaultDigitalDisplayTypes");
+	pData->DisplayIncome.Read(exINI, section, "DisplayIncome");
+	pData->DisplayIncome_Houses.Read(exINI, section, "DisplayIncome.Houses");
+	pData->DisplayIncome_AllowAI.Read(exINI, section, "DisplayIncome.AllowAI");
+	pData->Droppod_ImageInfantry.Read(exINI, section, "DropPod.InfantryPodImage");
+	pData->DrawInsigniaOnlyOnSelected.Read(exINI, section, "DrawInsigniaOnlyOnSelected");
+	pData->DrawInsignia_AdjustPos_Infantry.Read(exINI, section, "DrawInsignia.AdjustPos.Infantry");
+	pData->DrawInsignia_AdjustPos_Buildings.Read(exINI, section, "DrawInsignia.AdjustPos.Buildings");
+	pData->DrawInsignia_AdjustPos_BuildingsAnchor.Read(exINI, section, "DrawInsignia.AdjustPos.BuildingsAnchor");
+	pData->DrawInsignia_AdjustPos_Units.Read(exINI, section, "DrawInsignia.AdjustPos.Units");
+	pData->DrawInsignia_UsePixelSelectionBracketDelta.Read(exINI, section, "DrawInsignia.UsePixelSelectionBracketDelta");
+	pData->DisplayCreditsDelay.Read(exINI, section, "DisplayCreditsDelay");
+	pData->VeinholeParticle.Read(exINI, section, "VeinholeSpawnParticleType", true);
+	pData->Aircraft_TakeOffAnim.Read(exINI, section, "TakeOffAnim.Aircraft", true);
+	pData->ElectricDeath.Read(exINI, section, "InfantryElectrocuted");
+	pData->DrawTurretShadow.Read(exINI, section, "DrawTurretShadow");
+	pData->AnimRemapDefaultColorScheme.Read(exINI, section, "AnimRemapDefaultColorScheme");
+	pData->StealthSpeakDelay.Read(exINI, section, "StealthSpeakDelay");
+	pData->SubterraneanSpeakDelay.Read(exINI, section, "SubterraneanSpeakDelay");
+	pData->DeactivateDim_Powered.Read(exINI, section, "DeactivateDimPowered");
+	pData->DeactivateDim_EMP.Read(exINI, section, "DeactivateDimEMP");
+	pData->DeactivateDim_Operator.Read(exINI, section, "DeactivateDimOperator");
+	pData->Building_PlacementPreview.Read(exINI, section, "ShowBuildingPlacementPreview");
+	pData->Building_PlacementPreview.Read(exINI, section, "PlacementPreview");
+	pData->PlacementGrid_TranslucencyWithPreview.Read(exINI, section, "PlacementGrid.TranslucencyWithPreview");
+	pData->CreateSound_PlayerOnly.Read(exINI, section, "CreateSound.AffectOwner");
+	pData->Pips_Shield.Read(exINI, section, "Pips.Shield");
+	pData->Pips_Shield_Buildings.Read(exINI, section, "Pips.Shield.Building");
+	pData->MissingCameo.Read(pINI, section, "MissingCameo");
+	pData->PlacementGrid_TranslucentLevel.Read(exINI, section, !Phobos::Otamaa::CompatibilityMode ? "BuildingPlacementGrid.TranslucentLevel" : "PlacementGrid.Translucency");
+	pData->BuildingPlacementPreview_TranslucentLevel.Read(exINI, section, !Phobos::Otamaa::CompatibilityMode ? "BuildingPlacementPreview.DefaultTranslucentLevel" : "PlacementPreview.Translucency");
+	pData->Pips_Shield.Read(exINI, section, "Pips.Shield");
+	pData->Pips_Shield_Background_SHP.Read(exINI, section, "Pips.Shield.Background");
+	pData->Pips_Shield_Building.Read(exINI, section, "Pips.Shield.Building");
+	pData->Pips_Shield_Building_Empty.Read(exINI, section, "Pips.Shield.Building.Empty");
+	pData->Pips_SelfHeal_Infantry.Read(exINI, section, "Pips.SelfHeal.Infantry");
+	pData->Pips_SelfHeal_Units.Read(exINI, section, "Pips.SelfHeal.Units");
+	pData->Pips_SelfHeal_Buildings.Read(exINI, section, "Pips.SelfHeal.Buildings");
+	pData->Pips_SelfHeal_Infantry_Offset.Read(exINI, section, "Pips.SelfHeal.Infantry.Offset");
+	pData->Pips_SelfHeal_Units_Offset.Read(exINI, section, "Pips.SelfHeal.Units.Offset");
+	pData->Pips_SelfHeal_Buildings_Offset.Read(exINI, section, "Pips.SelfHeal.Buildings.Offset");
+	pData->Pips_Generic_Size.Read(exINI, section, "Pips.Generic.Size");
+	pData->Pips_Generic_Buildings_Size.Read(exINI, section, "Pips.Generic.Buildings.Size");
+	pData->Pips_Ammo_Size.Read(exINI, section, "Pips.Ammo.Size");
+	pData->Pips_Ammo_Buildings_Size.Read(exINI, section, "Pips.Ammo.Buildings.Size");
+	pData->Pips_Tiberiums_Frames.Read(exINI, section, "Pips.Tiberiums.Frames");
+	pData->Pips_Tiberiums_DisplayOrder.Read(exINI, section, "Pips.Tiberiums.DisplayOrder");
+	pData->ToolTip_Background_Color.Read(exINI, section, "ToolTip.Background.Color");
+	pData->ToolTip_Background_Opacity.Read(exINI, section, "ToolTip.Background.Opacity");
+	pData->ToolTip_Background_BlurSize.Read(exINI, section, "ToolTip.Background.BlurSize");
+	pData->ToolTip_ExcludeSidebar.Read(exINI, section, "ToolTip.ExcludeSidebar");
+	pData->UseSelectBrd.Read(exINI, section, "UseSelectBrd");
+	pData->SHP_SelectBrdSHP_INF.Read(exINI, section, "SelectBrd.SHP.Infantry");
+	pData->SHP_SelectBrdPAL_INF.Read(exINI, section, "SelectBrd.PAL.Infantry");
+	pData->SelectBrd_Frame_Infantry.Read(exINI, section, "SelectBrd.Frame.Infantry");
+	pData->SelectBrd_DrawOffset_Infantry.Read(exINI, section, "SelectBrd.DrawOffset.Infantry");
+	pData->SHP_SelectBrdSHP_UNIT.Read(exINI, section, "SelectBrd.SHP.Unit");
+	pData->SHP_SelectBrdPAL_UNIT.Read(exINI, section, "SelectBrd.PAL.Unit");
+	pData->SelectBrd_Frame_Unit.Read(exINI, section, "SelectBrd.Frame.Unit");
+	pData->SelectBrd_DrawOffset_Unit.Read(exINI, section, "SelectBrd.DrawOffset.Unit");
+	pData->SelectBrd_DefaultTranslucentLevel.Read(exINI, section, "SelectBrd.DefaultTranslucentLevel");
+	pData->SelectBrd_DefaultShowEnemy.Read(exINI, section, "SelectBrd.DefaultShowEnemy");
+	pData->VeteranFlashTimer.Read(exINI, section, "VeteranFlashTimer");
+	pData->Tiberium_ExplosiveAnim.Read(exINI, section, "TiberiumExplosiveAnim");
+	pData->DecloakSound.Read(exINI, section, "DecloakSound");
+	pData->IC_Flash.Read(exINI, section, "IronCurtainFlash");
+	pData->DiskLaserAnimEnabled.Read(exINI, section, "DiskLaserAnimEnabled");
+	pData->TimerBlinkColorScheme.Read(exINI, section, "TimerBlinkColorScheme");
+
+	pData->SelectFlashTimer.Read(exINI, section, "SelectFlashTimer");
+	pData->SelectFlashTimer.Read(exINI, section, "SelectionFlashDuration");
+
+	pData->WarheadParticleAlphaImageIsLightFlash.Read(exINI, section, "WarheadParticleAlphaImageIsLightFlash");
+	pData->CombatLightDetailLevel.Read(exINI, section, "CombatLightDetailLevel");
+	pData->CombatLightDetailLevel_CheckColored.Read(exINI, section, "CombatLightDetailLevel.CheckColored");
+	pData->LightFlashAlphaImageDetailLevel.Read(exINI, section, "LightFlashAlphaImageDetailLevel");
+
+	pData->DrainMoneyDisplay.Read(exINI, section, "DrainMoneyDisplay");
+	pData->DrainMoneyDisplay_Houses.Read(exINI, section, "DrainMoneyDisplay.Houses");
+	pData->DrainMoneyDisplay_OnTarget.Read(exINI, section, "DrainMoneyDisplay.OnTarget");
+	pData->DrainMoneyDisplay_OnTarget_UseDisplayIncome.Read(exINI, section, "DrainMoneyDisplay.OnTarget.UseDisplayIncome");
+
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x6691E0, FakeRulesClass::_ReadAudioVisual)
+
+void FakeRulesClass::_ReadCrateRules(CCINIClass* pINI)
+{
+	static constexpr const char* section = "CrateRules";
+
+	if (!pINI->GetSection(section))
+		return;
+
+	INI_EX exINI(pINI);
+
+	// Bool
+	detail::read(this->FreeMCV, exINI, section, "FreeMCV");
+
+	// OverlayTypeClass* pointers — Find_Or_Make → pass true
+	detail::read(this->WoodCrateImg, exINI, section, "WoodCrateImg", true);
+	detail::read(this->CrateImg, exINI, section, "CrateImg", true);
+	detail::read(this->WaterCrateImg, exINI, section, "WaterCrateImg", true);
+
+	// Sound ID (VocClass::Get_ID_From_Name — no true needed)
+	// VERIFY: confirm detail::read<VocType> preserves the -1 fallback behaviour
+	detail::read(this->HealCrateSound, exINI, section, "HealCrateSound");
+
+	// Scalar ints
+	detail::read(this->CrateMinimum, exINI, section, "CrateMinimum");
+	detail::read(this->CrateMaximum, exINI, section, "CrateMaximum");
+	detail::read(this->SoloCrateMoney, exINI, section, "SoloCrateMoney");
+
+	// Lepton
+	detail::read(this->CrateRadius, exINI, section, "CrateRadius");
+
+	// Double — key is "CrateRegen", field is CrateTime
+	detail::read(this->CrateRegen, exINI, section, "CrateRegen");
+
+	// UnitTypeClass* — Find_Or_Make → pass true
+	detail::read(this->UnitCrateType, exINI, section, "UnitCrateType", true);
+
+	// CrateType enum fields — SUSPECT: vanilla calls Put_CrateType (a write), then assigns result back.
+	// Almost certainly IDA misidentified Get_CrateType as Put_CrateType. Cross-check assembly.
+	// VERIFY: replace with correct Get_CrateType call once confirmed.
+	detail::getindex<CrateTypeClass*>(this->SilverCrate_I, exINI, section, "SilverCrate"); // VERIFY: CrateType enum read
+	detail::getindex<CrateTypeClass*>(this->WoodCrate_I, exINI, section, "WoodCrate");   // VERIFY: CrateType enum read
+	detail::getindex<CrateTypeClass*>(this->WaterCrate_I, exINI, section, "WaterCrate");  // VERIFY: CrateType enum read
+
+	// Ext 
+	auto pData = RulesExtData::Instance();
+
+	pData->RandomCrateMoney.Read(exINI, section, "RandomCrateMoney");
+	pData->Crate_LandOnly.Read(exINI, section, "Crate.LandOnly");
+	pData->UnitCrateVehicleCap.Read(exINI, section, "UnitCrateVehicleCap");
+	pData->FreeMCV_CreditsThreshold.Read(exINI, section, "FreeMCV.CreditsThreshold");
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x66B900, FakeRulesClass::_ReadCrateRules)
+
+void FakeRulesClass::_ReadRadiation(CCINIClass* pINI)
+{
+	static constexpr const char* section = "Radiation";
+
+	if (!pINI->GetSection(section))
+		return;
+
+	INI_EX exINI(pINI);
+
+	// Scalar ints
+	detail::read(this->RadDurationMultiple, exINI, section, "RadDurationMultiple");
+	detail::read(this->RadApplicationDelay, exINI, section, "RadApplicationDelay");
+	detail::read(this->RadLevelMax, exINI, section, "RadLevelMax");
+	detail::read(this->RadLevelDelay, exINI, section, "RadLevelDelay");
+	detail::read(this->RadLightDelay, exINI, section, "RadLightDelay");
+
+	// Scalar doubles
+	detail::read(this->RadLevelFactor, exINI, section, "RadLevelFactor");
+	detail::read(this->RadLightFactor, exINI, section, "RadLightFactor");
+	detail::read(this->RadTintFactor, exINI, section, "RadTintFactor");
+
+	// RGB color
+	// VERIFY: confirm detail::read<ColorStruct/RGBClass> handles CCINIClass::Get_RGB equivalent
+	detail::read(this->RadColor, exINI, section, "RadColor");
+
+	// WarheadTypeClass* — Find_Or_Make_0 in vanilla
+	detail::read(this->RadSiteWarhead, exINI, section, "RadSiteWarhead", true);
+
+	// Ext 
+	auto pData = RulesExtData::Instance();
+
+	pData->RadApplicationDelay_Building.Read(exINI, section, "RadApplicationDelay.Building");
+	pData->RadBuildingDamageMaxCount.Read(exINI, section, "RadBuildingDamageMaxCount");
+	pData->RadWarhead_Detonate.Read(exINI, section, "RadSiteWarhead.Detonate");
+	pData->RadHasOwner.Read(exINI, section, "RadHasOwner");
+	pData->RadHasInvoker.Read(exINI, section, "RadHasInvoker");
+	pData->UseGlobalRadApplicationDelay.Read(exINI, section, "UseGlobalRadApplicationDelay");
+
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x66CF70, FakeRulesClass::_ReadRadiation)
+
+void FakeRulesClass::_ReadMPlayer(CCINIClass* pINI)
+{
+	const char* section = "MultiplayerDialogSettings";
+
+	if (!pINI->GetSection(section))
+		return;
+
+	INI_EX exINI(pINI);
+
+	// Scalar ints
+	detail::read(this->MinMoney, exINI, section, "MinMoney");
+	detail::read(this->Money, exINI, section, "Money");       // field MPDefaultMoney, key "Money"
+	detail::read(this->MaxMoney, exINI, section, "MaxMoney");
+	detail::read(this->MoneyIncrement, exINI, section, "MoneyIncrement");
+	detail::read(this->MinUnitCount, exINI, section, "MinUnitCount");
+	detail::read(this->UnitCount, exINI, section, "UnitCount");   // field MPUnitCount, key "UnitCount"
+	detail::read(this->MaxUnitCount, exINI, section, "MaxUnitCount");
+	detail::read(this->TechLevel, exINI, section, "TechLevel");   // field MPTechLevel, key "TechLevel"
+	detail::read(this->GameSpeed, exINI, section, "GameSpeed");
+	detail::read(this->AIDifficulty, exINI, section, "AIDifficulty");
+	detail::read(this->AIPlayers, exINI, section, "AIPlayers");
+
+	// Bool fields
+	detail::read(this->BridgeDestruction, exINI, section, "BridgeDestruction");
+	detail::read(this->ShadowGrow, exINI, section, "ShadowGrow");
+	detail::read(this->Shroud, exINI, section, "Shroud");
+	detail::read(this->Bases, exINI, section, "Bases");
+	detail::read(this->TiberiumGrows, exINI, section, "TiberiumGrows");
+	detail::read(this->Crates, exINI, section, "Crates");
+	detail::read(this->CaptureTheFlag, exINI, section, "CaptureTheFlag");
+	detail::read(this->HarvesterTruce, exINI, section, "HarvesterTruce");
+	detail::read(this->MultiEngineer, exINI, section, "MultiEngineer");
+	detail::read(this->AlliesAllowed, exINI, section, "AlliesAllowed");
+	detail::read(this->AllyChangeAllowed, exINI, section, "AllyChangeAllowed");
+	detail::read(this->ShortGame, exINI, section, "ShortGame");
+	detail::read(this->SuperWeaponsAllowed, exINI, section, "SuperWeaponsAllowed");
+	detail::read(this->BuildOffAlly, exINI, section, "BuildOffAlly");
+	detail::read(this->FogOfWar, exINI, section, "FogOfWar");
+	detail::read(this->MCVRedeploys, exINI, section, "MCVRedeploys");
+	// Ext
+	auto pData = RulesExtData::Instance();
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x671EA0, FakeRulesClass::_ReadMPlayer)
+
+void FakeRulesClass::_ReadJumpjetControls(CCINIClass* pINI)
+{
+	const char* section = GameStrings::JumpjetControls;
+
+	if (!pINI->GetSection(section))
+		return;
+
+	INI_EX exINI(pINI);
+
+	// Scalar ints
+	detail::read(this->TurnRate, exINI, section, "TurnRate");
+	detail::read(this->Speed, exINI, section, "Speed");
+	detail::read(this->CruiseHeight, exINI, section, "CruiseHeight");
+	detail::read(this->WobbleDeviation, exINI, section, "WobbleDeviation");
+
+	// Scalar doubles
+	detail::read(this->Climb, exINI, section, "Climb");
+	detail::read(this->Acceleration, exINI, section, "Acceleration");
+	detail::read(this->WobblesPerSecond, exINI, section, "WobblesPerSecond");
+
+	// Ext
+	auto pData = RulesExtData::Instance();
+
+	pData->JumpjetCrash.Read(exINI, GameStrings::JumpjetControls, "Crash");
+	pData->JumpjetNoWobbles.Read(exINI, GameStrings::JumpjetControls, "NoWobbles");
+
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x6743D0, FakeRulesClass::_ReadJumpjetControls)
+
+template<typename T>
+void ReadArray(CCINIClass* pINI, const char* pSection) {
+
+	Debug::Log("Processing %s.\n" , pSection);
+
+	if (!pINI->GetSection(pSection))
+		return;
+
+	for (int i = 0; i < pINI->GetKeyCount(pSection); ++i) {
+		char _buffer[32];
+		if (pINI->GetString(pSection, pINI->GetKeyName(pSection, i), _buffer)) {
+			T::FindOrAllocate(_buffer);
+		}
+	}
+};
+
+void FakeRulesClass::_Process(CCINIClass* pINI)
+{
+	RulesExtData::Instance()->Initialize(pINI);
+
+	this->_ReadColors(pINI);
+	this->_ReadJumpjetControls(pINI);
+	this->Read_ColorAdd(pINI);
+	
+	ReadArray<HouseTypeClass>(pINI, "Countries");
+	this->Read_Sides(pINI);
+	ReadArray<OverlayTypeClass>(pINI, "OverlayTypes");
+	ReadArray<SuperWeaponTypeClass>(pINI, "SuperWeaponTypes");
+
+	//0x668D86 RulesData_Process_PreFillTypeListData
+
+	{
+		ReadArray<BulletTypeClass>(pINI, "Projectiles");
+
+		RulesExtData::Instance()->DefaultBulletType = BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
+		if (!RulesExtData::Instance()->DefaultBulletType)
+			Debug::FatalError("Uneable to Allocate {} BulletType ! ", DEFAULT_STR2);
+
+		ReadArray<WarheadTypeClass>(pINI, "WeaponTypes");
+
+		ReadArray<WarheadTypeClass>(pINI, "Warheads");
+
+		ReadArray<TiberiumClass>(pINI, "Tiberiums");
+	}
+
+	ReadArray<SmudgeTypeClass>(pINI, "SmudgeTypes");
+	ReadArray<TerrainTypeClass>(pINI, "TerrainTypes");
+	ReadArray<BuildingTypeClass>(pINI, "BuildingTypes");
+	ReadArray<UnitTypeClass>(pINI, "VehicleTypes");
+	ReadArray<AircraftTypeClass>(pINI, "AircraftTypes");
+	ReadArray<InfantryTypeClass>(pINI, "InfantryTypes");
+	ReadArray<AnimTypeClass>(pINI, "Animations");
+	ReadArray<VoxelAnimTypeClass>(pINI, "VoxelAnims");
+	ReadArray<ParticleTypeClass>(pINI, "Particles");
+	ReadArray<ParticleSystemTypeClass>(pINI, "ParticleSystems");
+
+	this->_ReadMPlayer(pINI);
+	this->_ReadAI(pINI);
+	this->_ReadPowerups(pINI);
+	this->_ReadLandTypes(pINI);
+	this->_ReadIQ(pINI);
+	this->_ReadGeneral(pINI);
+	RulesExtData::InitializeAfterAllRulesLoaded();
+	this->_ReadCrateRules(pINI);
+	this->_ReadRadiation(pINI);
+	this->_ReadElevationModel(pINI);
+	this->_ReadWallModel(pINI);
+	this->_ReadAudioVisual(pINI);
+	this->_ReadSpecialWeapons(pINI);
+
+	this->Read_AdvancedCommandBar(pINI, SessionClass::Instance->IsSingleplayer());
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x668BF0, FakeRulesClass::_Process)
+
+void FakeRulesClass::_ReadColorAdd(CCINIClass* pINI)
+{
+	if (!pINI->GetSection(GameStrings::ColorAdd))
+		return;
+
+	const int count = pINI->GetKeyCount(GameStrings::ColorAdd);
+
+	if (count > 0)
+	{
+		struct temp_rgb
+		{
+			byte r, g, b;
+
+			operator ColorStruct()
+			{
+				return *reinterpret_cast<ColorStruct*>(this);
+			}
+
+			operator byte* ()
+			{
+				return reinterpret_cast<byte*>(this);
+			}
+		};
+
+		//this was for debugging purposes
+		//the code below can be simplified
+		RulesExtData::Instance()->ColorAdds.resize(count);
+
+		for (int i = 0; i < count; ++i)
+		{
+			pINI->Read3Bytes(RulesExtData::Instance()->ColorAdds[i].asPointer()
+				, GameStrings::ColorAdd
+				, pINI->GetKeyName(GameStrings::ColorAdd, i)
+				, RulesExtData::Instance()->ColorAdds[i].asPointer());
+		}
+
+		if (RulesExtData::Instance()->ColorAdds.size() >= RulesClass::Instance->ColorAdd.size())
+		{
+			Debug::LogInfo("Readed ColorAdd and the size is more than 16 max , parsed size {}", count);
+			Debug::RegisterParserError();
+		}
+
+		for (size_t a = 0; a < RulesClass::Instance->ColorAdd.size(); ++a)
+		{
+			RulesClass::Instance->ColorAdd[a] = RulesExtData::Instance()->ColorAdds[a];
+		}
+
+	}
+	else
+	{
+		Debug::FatalErrorAndExit("Empty ColorAdd\n");
+	}
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x66D480, FakeRulesClass::_ReadColorAdd)
+
+void FakeRulesClass::_ReadColors(CCINIClass* pINI)
+{
+	const char* section = GameStrings::Colors;
+
+	if (!pINI->GetSection(section))
+		return;
+
+	INI_EX exINI(pINI);
+
+	const int count = pINI->GetKeyCount(section);
+	for (int i = 0; i < count; ++i) {
+		const char* pName = pINI->GetKeyName(section, i);
+		HSVClass _buffer {};
+		detail::read<HSVClass>(_buffer, exINI, section, pName);
+		Game::AddColor(pName, &_buffer);
+		ColorScheme::FindOrAllocatePTR(pName, &_buffer, FileSystem::UNITPAL.operator->(), FileSystem::TEMPERAT_PAL.operator->(), 1);
+		ColorScheme::FindOrAllocatePTR(pName, &_buffer, FileSystem::UNITPAL.operator->(), FileSystem::TEMPERAT_PAL.operator->(), 53);
+	}
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x66D3A0, FakeRulesClass::_ReadColors)
+
+void FakeRulesClass::_ReadAI(CCINIClass* pINI)
+{
+	const char* section = GameStrings::AI;
+
+	if (!pINI->GetSection(section))
+		return;
+
+	INI_EX exINI(pINI);
+
+	auto pData = RulesExtData::Instance();
+
+	pData->AIAdjacentMax.Read(exINI, section, "AIAdjacentMax");
+	pData->AIAdjacentMax_Campaign.Read(exINI, section, "AIAdjacentMax.Campaign");
+	pData->AIAutoDeployMCV.Read(exINI, section, "AIAutoDeployMCV");
+	pData->AISetBaseCenter.Read(exINI, section, "AISetBaseCenter");
+	pData->AIBiasSpawnCell.Read(exINI, section, "AIBiasSpawnCell");
+	pData->AIForbidConYard.Read(exINI, section, "AIForbidConYard");
+	pData->AINodeWallsOnly.Read(exINI, section, "AINodeWallsOnly");
+	pData->AICleanWallNode.Read(exINI, section, "AICleanWallNode");
+	pData->EnablePowerSurplus.Read(exINI, section, "EnablePowerSurplus");
+	pData->NewTeamsSelector.Read(exINI, section, "NewTeamsSelector");
+	pData->NewTeamsSelector_SplitTriggersByCategory.Read(exINI, section, "NewTeamsSelector.SplitTriggersByCategory");
+	pData->NewTeamsSelector_EnableFallback.Read(exINI, section, "NewTeamsSelector.EnableFallback");
+	pData->NewTeamsSelector_MergeUnclassifiedCategoryWith.Read(exINI, section, "NewTeamsSelector.MergeUnclassifiedCategoryWith");
+	pData->NewTeamsSelector_UnclassifiedCategoryPercentage.Read(exINI, section, "NewTeamsSelector.UnclassifiedCategoryPercentage");
+	pData->NewTeamsSelector_GroundCategoryPercentage.Read(exINI, section, "NewTeamsSelector.GroundCategoryPercentage");
+	pData->NewTeamsSelector_AirCategoryPercentage.Read(exINI, section, "NewTeamsSelector.AirCategoryPercentage");
+	pData->NewTeamsSelector_NavalCategoryPercentage.Read(exINI, section, "NewTeamsSelector.NavalCategoryPercentage");
+	pData->PowerSurplus_ScaleToDrainAmount.Read(exINI, section, "PowerSurplus.ScaleToDrainAmount");
+
+	detail::ParseVector<BuildingTypeClass*>(this->BuildConst, exINI, section, GameStrings::BuildConst, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*>(this->BuildPower, exINI, section, GameStrings::BuildPower, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*>(this->BuildRefinery, exINI, section, GameStrings::BuildRefinery, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*>(this->BuildBarracks, exINI, section, GameStrings::BuildBarracks, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*>(this->BuildTech, exINI, section, GameStrings::BuildTech, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*>(this->BuildWeapons, exINI, section, GameStrings::BuildWeapons, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*>(this->AlliedBaseDefenses, exINI, section, GameStrings::AlliedBaseDefenses, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*>(this->SovietBaseDefenses, exINI, section, GameStrings::SovietBaseDefenses, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*>(this->ThirdBaseDefenses, exINI, section, GameStrings::ThirdBaseDefenses, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*>(this->BuildDefense, exINI, section, GameStrings::BuildDefense, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*>(this->BuildPDefense, exINI, section, GameStrings::BuildPDefense, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*>(this->BuildAA, exINI, section, GameStrings::BuildAA, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*>(this->BuildHelipad, exINI, section, GameStrings::BuildHelipad, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*>(this->BuildRadar, exINI, section, GameStrings::BuildRadar, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*>(this->ConcreteWalls, exINI, section, GameStrings::ConcreteWalls, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*>(this->NSGates, exINI, section, GameStrings::NSGates, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*>(this->EWGates, exINI, section, GameStrings::EWGates, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*>(this->BuildNavalYard, exINI, section, GameStrings::BuildNavalYard, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*>(this->BuildDummy, exINI, section, GameStrings::BuildDummy, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*>(this->NeutralTechBuildings, exINI, section, GameStrings::NeutralTechBuildings, "Expect valid BuildingType");
+	detail::ParseVector(this->AIForcePredictionFudge, exINI, section, GameStrings::AIForcePredictionFudge, "Expect valid number");
+
+	detail::read<double>(this->AttackInterval, exINI, section, "AttackInterval");
+	detail::read<double>(this->AttackDelay, exINI, section, "AttackDelay");
+	detail::read<double>(this->PatrolScan, exINI, section, "PatrolScan");
+	detail::read<int>(this->CreditReserve, exINI, section, "CreditReserve");
+	detail::read<double>(this->PathDelay, exINI, section, "PathDelay");
+	detail::read<int>(this->BlockagePathDelay, exINI, section, "BlockagePathDelay");
+	detail::read<double>(this->AutocreateTime, exINI, section, "AutocreateTime");
+	detail::read<int>(this->InfantryReserve, exINI, section, "InfantryReserve");
+	detail::read<int>(this->InfantryBaseMult, exINI, section, "InfantryBaseMult");
+	detail::read<int>(this->PowerSurplus, exINI, section, "PowerSurplus");
+	detail::read<int>(this->BaseSizeAdd, exINI, section, "BaseSizeAdd");
+
+	detail::read<double>(this->RefineryRatio, exINI, section, "RefineryRatio");
+	detail::read<int>(this->RefineryLimit, exINI, section, "RefineryLimit");
+
+	detail::read<double>(this->BarracksRatio, exINI, section, "BarracksRatio");
+	detail::read<int>(this->BarracksLimit, exINI, section, "BarracksLimit");
+
+	detail::read<double>(this->WarRatio, exINI, section, "WarRatio");
+	detail::read<int>(this->WarLimit, exINI, section, "WarLimit");
+
+	detail::read<double>(this->DefenseRatio, exINI, section, "DefenseRatio");
+	detail::read<int>(this->DefenseLimit, exINI, section, "DefenseLimit");
+
+	detail::read<double>(this->AARatio, exINI, section, "AARatio");
+	detail::read<int>(this->AALimit, exINI, section, "AALimit");
+
+	detail::read<double>(this->TeslaRatio, exINI, section, "TeslaRatio");
+	detail::read<int>(this->TeslaLimit, exINI, section, "TeslaLimit");
+
+	detail::read<double>(this->HelipadRatio, exINI, section, "HelipadRatio");
+	detail::read<int>(this->HelipadLimit, exINI, section, "HelipadLimit");
+
+	detail::read<double>(this->AirstripRatio, exINI, section, "AirstripRatio");
+	detail::read<int>(this->AirstripLimit, exINI, section, "AirstripLimit");
+
+	detail::read<bool>(this->CompEasyBonus, exINI, section, "CompEasyBonus");
+	detail::read<bool>(this->Paranoid, exINI, section, "Paranoid");
+
+	detail::read<double>(this->PowerEmergency, exINI, section, "PowerEmergency");
+	detail::read<int>(this->AIBaseSpacing, exINI, section, "AIBaseSpacing");
+
+	detail::read<double>(this->GDIWallDefense, exINI, section, "GDIWallDefense");
+	detail::read<double>(this->GDIWallDefenseCoefficient, exINI, section, "GDIWallDefenseCoefficient");
+	detail::read<double>(this->NodBaseDefenseCoefficient, exINI, section, "NodBaseDefenseCoefficient");
+	detail::read<double>(this->GDIBaseDefenseCoefficient, exINI, section, "GDIBaseDefenseCoefficient");
+
+	detail::read<int>(this->MaximumBaseDefenseValue, exINI, section, "MaximumBaseDefenseValue");
+	detail::read<int>(this->ComputerBaseDefenseResponse, exINI, section, "ComputerBaseDefenseResponse");
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x672AE0, FakeRulesClass::_ReadAI)
+
+void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
+{
+	INI_EX exINI(pINI);
+
+	const char* section = GameStrings::CombatDamage;
+
+	if (!pINI->GetSection(section))
+		return;
+
+	detail::ParseVector<SmudgeTypeClass*>(this->Scorches, exINI, section, GameStrings::Scorches, "Expect valid SmudgeType");
+	detail::ParseVector<SmudgeTypeClass*>(this->Scorches1, exINI, section, GameStrings::Scorches1, "Expect valid SmudgeType");
+	detail::ParseVector<SmudgeTypeClass*>(this->Scorches2, exINI, section, GameStrings::Scorches2, "Expect valid SmudgeType");
+	detail::ParseVector<SmudgeTypeClass*>(this->Scorches3, exINI, section, GameStrings::Scorches3, "Expect valid SmudgeType");
+	detail::ParseVector<SmudgeTypeClass*>(this->Scorches4, exINI, section, GameStrings::Scorches4, "Expect valid SmudgeType");
+	detail::ParseVector<AnimTypeClass*>(this->SplashList, exINI, section, GameStrings::SplashList, "Expect valid AnimType");
+
+	detail::read<int>(this->AmmoCrateDamage, exINI, section, "AmmoCrateDamage");
+	detail::read<int>(this->IonCannonDamage, exINI, section, "IonCannonDamage");
+	detail::read<int>(this->RailgunDamageRadius, exINI, section, "RailgunDamageRadius");
+	detail::read<int>(this->TiberiumExplosionDamage, exINI, section, "TiberiumExplosionDamage");
+
+	detail::read(this->FlameDamage, exINI, section, "FlameDamage", true);
+	detail::read(this->FlameDamage2, exINI, section, "FlameDamage2", true);
+	detail::read(this->C4Warhead, exINI, section, "C4Warhead", true);
+	detail::read(this->CrushWarhead, exINI, section, "CrushWarhead", true);
+	detail::read(this->V3Warhead, exINI, section, "V3Warhead", true);
+	detail::read(this->DMislWarhead, exINI, section, "DMislWarhead", true);
+	detail::read(this->V3EliteWarhead, exINI, section, "V3EliteWarhead", true);
+	detail::read(this->DMislEliteWarhead, exINI, section, "DMislEliteWarhead", true);
+	detail::read(this->CMislWarhead, exINI, section, "CMislWarhead", true);
+	detail::read(this->CMislEliteWarhead, exINI, section, "CMislEliteWarhead", true);
+	detail::read(this->IvanWarhead, exINI, section, "IvanWarhead", true);
+
+	detail::read<bool>(this->CanDetonateTimeBomb, exINI, section, "CanDetonateTimeBomb");
+	detail::read<bool>(this->CanDetonateDeathBomb, exINI, section, "CanDetonateDeathBomb");
+
+	detail::read(this->DeathWeapon, exINI, section, "DeathWeapon");
+
+	detail::read<int>(this->IvanDamage, exINI, section, "IvanDamage");
+	detail::read<int>(this->IvanTimedDelay, exINI, section, "IvanTimedDelay");
+
+	this->BOMBCURS_SHP = (SHPStruct*)FakeFileLoader::Retrieve("BOMBCURS.SHP", 0);
+	this->CHRONOSK_SHP = (SHPStruct*)FakeFileLoader::Retrieve("CHRONOSK.SHP", 0);
+
+	detail::read<int>(this->IvanIconFlickerRate, exINI, section, "IvanIconFlickerRate");
+	detail::read<int>(this->IronCurtainDuration, exINI, section, "IronCurtainDuration");
+	detail::read<int>(this->PsychicRevealRadius, exINI, section, "PsychicRevealRadius");
+
+	auto ReadDoubleToFloat = [](float& value, INI_EX& exINI, const char* section, const char* key)
+		{
+			double _buffer = value;
+			if (detail::read<double>(_buffer, exINI, section, key))
+				value = _buffer;
+		};
+
+	ReadDoubleToFloat(this->OccupyDamageMultiplier, exINI, section, "OccupyDamageMultiplier");
+	ReadDoubleToFloat(this->OccupyROFMultiplier, exINI, section, "OccupyROFMultiplier");
+	detail::read<int>(this->OccupyWeaponRange, exINI, section, "OccupyWeaponRange");
+
+	ReadDoubleToFloat(this->BunkerDamageMultiplier, exINI, section, "BunkerDamageMultiplier");
+	ReadDoubleToFloat(this->BunkerROFMultiplier, exINI, section, "BunkerROFMultiplier");
+	detail::read<int>(this->BunkerWeaponRangeBonus, exINI, section, "BunkerWeaponRangeBonus");
+
+	ReadDoubleToFloat(this->OpenToppedDamageMultiplier, exINI, section, "OpenToppedDamageMultiplier");
+	detail::read<int>(this->OpenToppedRangeBonus, exINI, section, "OpenToppedRangeBonus");
+	detail::read<int>(this->OpenToppedWarpDistance, exINI, section, "OpenToppedWarpDistance");
+
+	detail::ParseVector<int>(this->OverloadCount, exINI, section, "OverloadCount");
+	detail::ParseVector<int>(this->OverloadDamage, exINI, section, "OverloadDamage");
+	detail::ParseVector<int>(this->OverloadFrames, exINI, section, "OverloadFrames");
+
+	detail::read<int>(this->MindControlAttackLineFrames, exINI, section, "MindControlAttackLineFrames");
+
+	detail::read(this->DrainAnimationType, exINI, section, "DrainAnimationType");
+
+	detail::read<int>(this->DrainMoneyFrameDelay, exINI, section, "DrainMoneyFrameDelay");
+	detail::read<int>(this->DrainMoneyAmount, exINI, section, "DrainMoneyAmount");
+
+	ReadDoubleToFloat(this->FallingDamageMultiplier, exINI, section, "FallingDamageMultiplier");
+	detail::read<bool>(this->CurrentStrengthDamage, exINI, section, "CurrentStrengthDamage");
+
+	detail::read(this->ControlledAnimationType, exINI, section, "ControlledAnimationType", true);
+	detail::read(this->PermaControlledAnimationType, exINI, section, "PermaControlledAnimationType", true);
+	detail::read(this->IonCannonWarhead, exINI, section, "IonCannonWarhead");
+
+	detail::read(this->DefaultLargeGreySmokeSystem, exINI, section, "DefaultLargeGreySmokeSystem", true);
+	detail::read(this->DefaultSmallGreySmokeSystem, exINI, section, "DefaultSmallGreySmokeSystem", true);
+	detail::read(this->DefaultSparkSystem, exINI, section, "DefaultSparkSystem", true);
+	detail::read(this->DefaultLargeRedSmokeSystem, exINI, section, "DefaultLargeRedSmokeSystem", true);
+	detail::read(this->DefaultSmallRedSmokeSystem, exINI, section, "DefaultSmallRedSmokeSystem", true);
+	detail::read(this->DefaultDebrisSmokeSystem, exINI, section, "DefaultDebrisSmokeSystem", true);
+	detail::read(this->DefaultFireStreamSystem, exINI, section, "DefaultFireStreamSystem", true);
+	detail::read(this->DefaultTestParticleSystem, exINI, section, "DefaultTestParticleSystem", true);
+	detail::read(this->DefaultRepairParticleSystem, exINI, section, "DefaultRepairParticleSystem", true);
+
+	detail::read<bool>(this->BerzerkAllowed, exINI, section, "BerzerkAllowed");
+	detail::read<double>(this->TurboBoost, exINI, section, "TurboBoost");
+	detail::read<int>(this->AtomDamage, exINI, section, "AtomDamage");
+
+	detail::read<Leptons>(this->BallisticScatter, exINI, section, "BallisticScatter");
+
+	detail::read<int>(this->BridgeStrength, exINI, section, "BridgeStrength");
+	detail::read<double>(this->C4Delay, exINI, section, "C4Delay");
+
+	detail::read<Leptons>(this->Crush, exINI, section, "Crush");
+
+	detail::read<double>(this->ExpSpread, exINI, section, "ExpSpread");
+
+	detail::read<int>(this->FireSupress, exINI, section, "FireSupress");
+	detail::read<int>(this->HomingScatter, exINI, section, "HomingScatter");
+
+	detail::read<int>(this->MaxDamage, exINI, section, "MaxDamage");
+	detail::read<int>(this->MinDamage, exINI, section, "MinDamage");
+
+	detail::read<bool>(this->TiberiumExplosive, exINI, section, "TiberiumExplosive");
+	detail::read<bool>(this->PlayerAutoCrush, exINI, section, "PlayerAutoCrush");
+	detail::read<bool>(this->PlayerReturnFire, exINI, section, "PlayerReturnFire");
+	detail::read<bool>(this->PlayerScatter, exINI, section, "PlayerScatter");
+	detail::read<bool>(this->TreeTargeting, exINI, section, "TreeTargeting");
+
+	auto ReadIncoming = [](int& value, INI_EX& exINI, const char* section, const char* key) -> void
+		{
+
+			int buffer_ = -1;
+			detail::read<int>(buffer_, exINI, section, key);
+
+			if (buffer_ != -1)
+			{
+				if (buffer_ >= 100)
+				{
+					buffer_ = 100;
+				}
+
+				buffer_ = ((buffer_ <= 0 ? 0 : buffer_) << 8) / 100;
+
+				if (buffer_ >= 255)
+				{
+					buffer_ = 255;
+				}
+
+				value = buffer_;
+			}
+		};
+
+	ReadIncoming(this->Incoming, exINI, section, "Incoming");
+
+	detail::read<int>(this->CollapseChance, exINI, section, "CollapseChance");
+
+	auto ReadStrictInitVector = [](TypeList<int>& value, INI_EX& exINI, const char* section, const char* key, int minCount, int maxCount)-> void
+		{
+			detail::ParseVector<int>(value, exINI, section, key, "Expect valid integer");
+			if (value.Count < minCount)
+			{
+				Debug::Log("ReadStrictInitVector Vector[%s - %s] Count %d is less than %d fill it properly !", section, key, value.Count, minCount);
+				return;
+			}
+
+			if (value.Count > maxCount)
+			{
+				Debug::Log("ReadStrictInitVector Vector[%s- %s] Count %d is more than %d remove the extra item !", section, key, value.Count, maxCount);
+				return;
+			}
+		};
+
+	ReadStrictInitVector(this->OverloadCount, exINI, section, "OverloadCount", 4, 4);
+	ReadStrictInitVector(this->OverloadDamage, exINI, section, "OverloadDamage", 4, 4);
+	ReadStrictInitVector(this->OverloadFrames, exINI, section, "OverloadFrames", 4, 4);
+
+	auto pData = RulesExtData::Instance();
+	pData->DamageOwnerMultiplier.Read(exINI, section, "DamageOwnerMultiplier");
+	pData->DamageAlliesMultiplier.Read(exINI, section, "DamageAlliesMultiplier");
+	pData->DamageEnemiesMultiplier.Read(exINI, section, "DamageEnemiesMultiplier");
+	pData->DamageOwnerMultiplier_Berzerk.Read(exINI, section, "DamageOwnerMultiplier.Berzerk");
+	pData->DamageAlliesMultiplier_Berzerk.Read(exINI, section, "DamageAlliesMultiplier.Berzerk");
+	pData->DamageEnemiesMultiplier_Berzerk.Read(exINI, section, "DamageEnemiesMultiplier.Berzerk");
+	pData->DamageOwnerMultiplier_NotAffectsEnemies.Read(exINI, section, "DamageOwnerMultiplier.NotAffectsEnemies");
+	pData->DamageAlliesMultiplier_NotAffectsEnemies.Read(exINI, section, "DamageAlliesMultiplier.NotAffectsEnemies");
+	pData->DriverKilled_KillPassengers.Read(exINI, section, "DriverKilled.KillPassengers");
+	pData->Psychedelic_StackingMode.Read(exINI, section, "Psychedelic.StackingMode");
+	pData->BerzerkMission.Read(exINI, section, "BerzerkMission");
+	pData->ForceShield_KillOrganicsWarhead.Read(exINI, section, "ForceShield.KillOrganicsWarhead");
+
+	if (!pData->ForceShield_KillOrganicsWarhead)
+		pData->ForceShield_KillOrganicsWarhead = this->C4Warhead;
+
+	pData->AllowWeaponSelectAgainstWalls.Read(exINI, section, "AllowWeaponSelectAgainstWalls");
+	pData->IronCurtain_KillOrganicsWarhead.Read(exINI, section, "IronCurtain.KillOrganicsWarhead");
+
+	if (!pData->IronCurtain_KillOrganicsWarhead)
+		pData->IronCurtain_KillOrganicsWarhead = this->C4Warhead;
+
+	pData->Temporal_ConsiderVersus.Read(exINI, section, "Temporal.ApplyVersus");
+	pData->Temporal_ApplyMultiplier.Read(exINI, section, "Temporal.ApplyMultiplier");
+	pData->Shrapnel_IgnoreHitBuildings.Read(exINI, section, "Shrapnel.IgnoreHitBuildings");
+	pData->AffectsInvokerOnly_IgnoreInvokerState.Read(exINI, section, "AffectsInvokerOnly.IgnoreInvokerState");
+	pData->Shrapnel_ObeyWarheadTriggerConditions.Read(exINI, section, "Shrapnel.ObeyWarheadTriggerConditions");
+	pData->PenetratesTransport_Level.Read(exINI, section, "PenetratesTransport.Level");
+	pData->DamageWallRecursivly.Read(exINI, section, "DamageWallRecursivly");
+	pData->AdjacentWallDamage.Read(exINI, section, "AdjacentWallDamage");
+	pData->IvanBombAttachToCenter.Read(exINI, section, "IvanBombAttachToCenter");
+	pData->AllowBerzerkOnAllies.Read(exINI, section, "AllowBerzerkOnAllies");
+	pData->ApplyPerTargetEffectsOnDetonate.Read(exINI, section, "ApplyPerTargetEffectsOnDetonate");
+	pData->BerzerkTargeting.Read(exINI, section, "BerzerkTargeting");
+	pData->Infantry_IgnoreBuildingSizeLimit.Read(exINI, section, "InfantryIgnoreBuildingSizeLimit");
+	pData->MergeBuildingDamage.Read(exINI, section, "MergeBuildingDamage");
+	pData->IronCurtain_KeptOnDeploy.Read(exINI, section, "IronCurtain.KeptOnDeploy");
+	pData->ForceShield_KeptOnDeploy.Read(exINI, section, "ForceShield.KeptOnDeploy");
+	pData->ForceShield_EffectOnOrganics.Read(exINI, section, "ForceShield.EffectOnOrganics");
+	pData->IronCurtain_EffectOnOrganics.Read(exINI, section, "IronCurtain.EffectOnOrganics");
+	pData->ROF_RandomDelay.Read(exINI, section, "ROF.RandomDelay");
+	pData->Tiberium_ExplosiveWarhead.Read(exINI, section, "TiberiumExplosiveWarhead");
+	pData->AlliedSolidTransparency.Read(exINI, section, "AlliedSolidTransparency");
+	pData->ChainReact_Multiplier.Read(exINI, section, "ChainReact.Multiplier");
+	pData->ChainReact_SpreadChance.Read(exINI, section, "ChainReact.SpreadChance");
+	pData->ChainReact_MinDelay.Read(exINI, section, "ChainReact.MinDelay");
+	pData->ChainReact_MaxDelay.Read(exINI, section, "ChainReact.MaxDelay");
+	pData->DamageAirConsiderBridges.Read(exINI, section, "DamageAirConsiderBridges");
+	pData->BerserkROFMultiplier.Read(exINI, section, "BerserkROFMultiplier");
+	pData->DoggiePanicMax.Read(exINI, section, "DoggiePanicMax");
+	pData->HunterSeeker_Damage.Read(exINI, section, "HunterSeekerDamage");
+	pData->AutoRepelAI.Read(exINI, section, "AutoRepel");
+	pData->AutoRepelPlayer.Read(exINI, section, "PlayerAutoRepel");
+	pData->CanTargetAI_IronCurtained.Read(exINI, section, "CanTargetAI.IronCurtained");
+	pData->CanTarget_IronCurtained.Read(exINI, section, "CanTarget.IronCurtained");
+	pData->AutoTarget_IronCurtained.Read(exINI, section, "AutoTarget.IronCurtained");
+	pData->EMPAIRecoverMission.Read(exINI, section, "EMPAIRecoverMission");
+	pData->ShieldUseArmorplier.Read(exINI, section, "ShieldApplyArmorMult");
+	pData->FirestormWarhead.Read(exINI, section, "FirestormWarhead");
+	pData->Cloak_KickOutParasite.Read(exINI, section, "Cloak.KickOutParasite");
+	pData->Veinhole_Warhead.Read(exINI, section, "VeinholeWarhead");
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x66BBB0, FakeRulesClass::_ReadCombatDamage)
+
+#pragma region WeaponTypeBuffer
+
 ASMJIT_PATCH(0x772462, WeaponTypeClass_LoadFromINI_ListLength, 0x9)
 {
 	GET(WeaponTypeClass*, pThis, ESI);
@@ -2593,6 +3933,9 @@ ASMJIT_PATCH(0x772462, WeaponTypeClass_LoadFromINI_ListLength, 0x9)
 
 	return 0x77255F;
 }
+#pragma endregion
+
+#pragma region WarheadTypeBuffer
 
 // == WarheadType ==
 ASMJIT_PATCH(0x75D660, WarheadTypeClass_LoadFromINI_ListLength, 9)
@@ -2611,6 +3954,10 @@ ASMJIT_PATCH(0x75D660, WarheadTypeClass_LoadFromINI_ListLength, 9)
 
 //WarheadTypeClass_LoadFromINI_SkipLists
 DEFINE_JUMP(LJMP, 0x75DAE6, 0x75DDCC);
+
+#pragma endregion
+
+#pragma region TechnoTypeBuffer
 
 ASMJIT_PATCH(0x713171, TechnoTypeClass_LoadFromINI_SkipLists1, 9)
 {
@@ -2649,185 +3996,9 @@ ASMJIT_PATCH(0x7125DF, TechnoTypeClass_LoadFromINI_ListLength, 7)
 	return 0x712830;
 }
 
-// ============= [AI] =============
+#pragma endregion
 
-ASMJIT_PATCH(0x672B0E, Buf_AI, 6)
-{
-	GET(RulesClass*, pRules, ESI);
-	GET(CCINIClass*, pINI, EDI);
-
-	INI_EX exINI(pINI);
-	const char* section = GameStrings::AI;
-	detail::ParseVector<BuildingTypeClass*>(pRules->BuildConst, exINI, section, GameStrings::BuildConst, "Expect valid BuildingType");
-	detail::ParseVector<BuildingTypeClass*>(pRules->BuildPower, exINI, section, GameStrings::BuildPower, "Expect valid BuildingType");
-	detail::ParseVector<BuildingTypeClass*>(pRules->BuildRefinery, exINI, section, GameStrings::BuildRefinery, "Expect valid BuildingType");
-	detail::ParseVector<BuildingTypeClass*>(pRules->BuildBarracks, exINI, section, GameStrings::BuildBarracks, "Expect valid BuildingType");
-	detail::ParseVector<BuildingTypeClass*>(pRules->BuildTech, exINI, section, GameStrings::BuildTech, "Expect valid BuildingType");
-	detail::ParseVector<BuildingTypeClass*>(pRules->BuildWeapons, exINI, section, GameStrings::BuildWeapons, "Expect valid BuildingType");
-	detail::ParseVector<BuildingTypeClass*>(pRules->AlliedBaseDefenses, exINI, section, GameStrings::AlliedBaseDefenses, "Expect valid BuildingType");
-	detail::ParseVector<BuildingTypeClass*>(pRules->SovietBaseDefenses, exINI, section, GameStrings::SovietBaseDefenses, "Expect valid BuildingType");
-	detail::ParseVector<BuildingTypeClass*>(pRules->ThirdBaseDefenses, exINI, section, GameStrings::ThirdBaseDefenses, "Expect valid BuildingType");
-	detail::ParseVector<BuildingTypeClass*>(pRules->BuildDefense, exINI, section, GameStrings::BuildDefense, "Expect valid BuildingType");
-	detail::ParseVector<BuildingTypeClass*>(pRules->BuildPDefense, exINI, section, GameStrings::BuildPDefense, "Expect valid BuildingType");
-	detail::ParseVector<BuildingTypeClass*>(pRules->BuildAA, exINI, section, GameStrings::BuildAA, "Expect valid BuildingType");
-	detail::ParseVector<BuildingTypeClass*>(pRules->BuildHelipad, exINI, section, GameStrings::BuildHelipad, "Expect valid BuildingType");
-	detail::ParseVector<BuildingTypeClass*>(pRules->BuildRadar, exINI, section, GameStrings::BuildRadar, "Expect valid BuildingType");
-	detail::ParseVector<BuildingTypeClass*>(pRules->ConcreteWalls, exINI, section, GameStrings::ConcreteWalls, "Expect valid BuildingType");
-	detail::ParseVector<BuildingTypeClass*>(pRules->NSGates, exINI, section, GameStrings::NSGates, "Expect valid BuildingType");
-	detail::ParseVector<BuildingTypeClass*>(pRules->EWGates, exINI, section, GameStrings::EWGates, "Expect valid BuildingType");
-	detail::ParseVector<BuildingTypeClass*>(pRules->BuildNavalYard, exINI, section, GameStrings::BuildNavalYard, "Expect valid BuildingType");
-	detail::ParseVector<BuildingTypeClass*>(pRules->BuildDummy, exINI, section, GameStrings::BuildDummy, "Expect valid BuildingType");
-	detail::ParseVector<BuildingTypeClass*>(pRules->NeutralTechBuildings, exINI, section, GameStrings::NeutralTechBuildings, "Expect valid BuildingType");
-
-	detail::ParseVector(pRules->AIForcePredictionFudge, exINI, section, GameStrings::AIForcePredictionFudge, "Expect valid number");
-
-	return 0x673950;
-}
-
-// ============= [CombatDamage] =============
-ASMJIT_PATCH(0x66BC71, Buf_CombatDamage, 9)
-{
-	GET(RulesClass*, pRules, ESI);
-	GET(CCINIClass*, pINI, EDI);
-
-	pRules->TiberiumStrength = R->EAX<int>();
-
-	INI_EX exINI(pINI);
-	detail::ParseVector<SmudgeTypeClass*>(pRules->Scorches, exINI, GameStrings::CombatDamage(), GameStrings::Scorches, "Expect valid SmudgeType");
-	detail::ParseVector<SmudgeTypeClass*>(pRules->Scorches1, exINI, GameStrings::CombatDamage(), GameStrings::Scorches1, "Expect valid SmudgeType");
-	detail::ParseVector<SmudgeTypeClass*>(pRules->Scorches2, exINI, GameStrings::CombatDamage(), GameStrings::Scorches2, "Expect valid SmudgeType");
-	detail::ParseVector<SmudgeTypeClass*>(pRules->Scorches3, exINI, GameStrings::CombatDamage(), GameStrings::Scorches3, "Expect valid SmudgeType");
-	detail::ParseVector<SmudgeTypeClass*>(pRules->Scorches4, exINI, GameStrings::CombatDamage(), GameStrings::Scorches4, "Expect valid SmudgeType");
-	detail::ParseVector<AnimTypeClass*>(pRules->SplashList, exINI, GameStrings::CombatDamage(), GameStrings::SplashList, "Expect valid AnimType");
-	return 0x66C287;
-}
-
-template<typename T, bool Allocate = false, bool Unique = false>
-OPTIONALINLINE void ParseVector_loc(DynamicVectorClass<T>& List, INI_EX& IniEx, const char* section, const char* key, const char* message = nullptr)
-{
-	if (IniEx.ReadString(section, key))
-	{
-		List.Reset();
-		char* context = nullptr;
-
-		using BaseType = std::remove_pointer_t<T>;
-		Debug::LogInfo("Parsing [{}] form [{}] result {}", key, section, IniEx.value());
-
-		for (char* cur = strtok_s(IniEx.value(), Phobos::readDelims, &context); cur;
-			 cur = strtok_s(nullptr, Phobos::readDelims, &context))
-		{
-			BaseType* buffer = nullptr;
-			if COMPILETIMEEVAL(Allocate)
-			{
-				buffer = BaseType::FindOrAllocate(cur);
-			}
-			else
-			{
-				buffer = BaseType::Find(cur);
-			}
-
-			if (buffer)
-			{
-				if COMPILETIMEEVAL(!Unique)
-				{
-					List.push_back(buffer);
-				}
-				else
-				{
-					List.AddUnique(buffer);
-				}
-			}
-			else if (!GameStrings::IsNone(cur))
-			{
-				Debug::INIParseFailed(section, key, cur, message);
-			}
-		}
-		Debug::LogInfo("count : {}", List.Count);
-
-	}
-};
-// ============= [General] =============
-ASMJIT_PATCH(0x66D55E, Buf_General, 6)
-{
-	GET(RulesClass*, pRules, ESI);
-	GET(CCINIClass*, pINI, EDI);
-
-	INI_EX exINI(pINI);
-	const char* section = GameStrings::General();
-	detail::ParseVector<InfantryTypeClass*>(pRules->AmerParaDropInf, exINI, section, GameStrings::AmerParaDropInf, "Expect valid InfantryType");
-	detail::ParseVector<InfantryTypeClass*>(pRules->AllyParaDropInf, exINI, section, GameStrings::AllyParaDropInf, "Expect valid InfantryType");
-	detail::ParseVector<InfantryTypeClass*>(pRules->SovParaDropInf, exINI, section, GameStrings::SovParaDropInf, "Expect valid InfantryType");
-	detail::ParseVector<InfantryTypeClass*>(pRules->YuriParaDropInf, exINI, section, GameStrings::YuriParaDropInf, "Expect valid InfantryType");
-
-	detail::ParseVector(pRules->AmerParaDropNum, exINI, section, GameStrings::AmerParaDropNum, "Expect valid number");
-	detail::ParseVector(pRules->AllyParaDropNum, exINI, section, GameStrings::AllyParaDropNum, "Expect valid number");
-	detail::ParseVector(pRules->SovParaDropNum, exINI, section, GameStrings::SovParaDropNum, "Expect valid number");
-	detail::ParseVector(pRules->YuriParaDropNum, exINI, section, GameStrings::YuriParaDropNum, "Expect valid number");
-
-	detail::ParseVector<InfantryTypeClass*, true>(pRules->AnimToInfantry, exINI, section, GameStrings::AnimToInfantry, "Expect valid InfantryType");
-
-	detail::ParseVector<InfantryTypeClass*>(pRules->SecretInfantry, exINI, section, GameStrings::SecretInfantry, "Expect valid InfantryType");
-	detail::ParseVector<UnitTypeClass*>(pRules->SecretUnits, exINI, section, GameStrings::SecretUnits, "Expect valid UnitType");
-	detail::ParseVector<BuildingTypeClass*>(pRules->SecretBuildings, exINI, section, GameStrings::SecretBuildings, "Expect valid BuildingType");
-
-	pRules->SecretSum = pRules->SecretInfantry.Count
-		+ pRules->SecretUnits.Count
-		+ pRules->SecretBuildings.Count;
-
-	detail::ParseVector<UnitTypeClass*>(pRules->HarvesterUnit, exINI, section, GameStrings::HarvesterUnit, "Expect valid UnitType");
-	detail::ParseVector<UnitTypeClass*>(pRules->BaseUnit, exINI, section, GameStrings::BaseUnit, "Expect valid UnitType");
-	detail::ParseVector<AircraftTypeClass*>(pRules->PadAircraft, exINI, section, GameStrings::PadAircraft, "Expect valid AircraftType");
-
-	detail::ParseVector<BuildingTypeClass*>(pRules->Shipyard, exINI, section, GameStrings::Shipyard, "Expect valid BuildingType");
-	detail::ParseVector<BuildingTypeClass*>(pRules->RepairBay, exINI, section, GameStrings::RepairBay, "Expect valid BuildingType");
-
-	detail::ParseVector<AnimTypeClass*>(pRules->WeatherConClouds, exINI, section, GameStrings::WeatherConClouds, "Expect valid AnimType");
-	detail::ParseVector<AnimTypeClass*>(pRules->WeatherConBolts, exINI, section, GameStrings::WeatherConBolts, "Expect valid AnimType");
-	detail::ParseVector<AnimTypeClass*>(pRules->BridgeExplosions, exINI, section, GameStrings::BridgeExplosions, "Expect valid AnimType");
-
-	detail::ParseVector<TerrainTypeClass*>(pRules->DefaultMirageDisguises, exINI, section, GameStrings::DefaultMirageDisguises, "Expect valid TerrainType");
-
-	if (pINI->ReadString(section, GameStrings::WallTower, nullptr, Phobos::readBuffer) > 0)
-	{
-		if (const auto pBuilding = BuildingTypeClass::FindOrAllocate(Phobos::readBuffer))
-		{
-			pRules->WallTower = pBuilding;
-		}
-		else
-		{
-			Debug::LogInfo("WallTower Building readed as [{}] but it is nullptr ! ", Phobos::readBuffer);
-		}
-	}
-
-	return 0;
-}
-
-//Buf_SecretBoons
-DEFINE_JUMP(LJMP, 0x66FA13, 0x66FAD6);
-//Buf_Shipyard
-DEFINE_JUMP(LJMP, 0x66f589, 0x66F68C);
-//Buf_AnimToInf_Paradrop
-DEFINE_JUMP(LJMP, 0x67062F, 0x6707FE);
-
-ASMJIT_PATCH(0x66F7C0, Buf_PPA, 9)
-{
-	GET(RulesClass*, Rules, ESI);
-	GET(UnitTypeClass*, Pt, EAX); // recreating overwritten bits
-	Rules->PrerequisiteProcAlternate = Pt;
-	return 0x66F9FA;
-}
-
-ASMJIT_PATCH(0x66F34B, Buf_RepairBay, 5)
-{
-	GET(RulesClass*, Rules, ESI);
-	Rules->NoParachuteMaxFallRate = R->EAX<int>();
-	return 0x66F450;
-}
-
-// Buf_WeatherArt
-DEFINE_JUMP(LJMP, 0x66DD13, 0x66DF19);
-//Buf_BridgeExplosions
-DEFINE_JUMP(LJMP, 0x66DB93, 0x66DC96);
+#pragma region HouseTypeBuffer
 
 ASMJIT_PATCH(0x511D16, HouseTypeClass_LoadFromINI_Buffer_CountryVeteran, 9)
 {
@@ -2842,68 +4013,9 @@ ASMJIT_PATCH(0x511D16, HouseTypeClass_LoadFromINI_Buffer_CountryVeteran, 9)
 	return 0x51208C;
 }
 
-static void ProcessColorAdd(CCINIClass* pINI)
-{
-	const int count = pINI->GetKeyCount(GameStrings::ColorAdd);
+#pragma endregion
 
-	if (count > 0)
-	{
-		struct temp_rgb
-		{
-			byte r, g, b;
-
-			operator ColorStruct()
-			{
-				return *reinterpret_cast<ColorStruct*>(this);
-			}
-
-			operator byte* ()
-			{
-				return reinterpret_cast<byte*>(this);
-			}
-		};
-
-		//this was for debugging purposes
-		//the code below can be simplified
-		RulesExtData::Instance()->ColorAdds.resize(count);
-
-		for (int i = 0; i < count; ++i) {
-			pINI->Read3Bytes(RulesExtData::Instance()->ColorAdds[i].asPointer()
-				, GameStrings::ColorAdd
-				, pINI->GetKeyName(GameStrings::ColorAdd, i)
-				,RulesExtData::Instance()->ColorAdds[i].asPointer());
-		}
-
-		if (RulesExtData::Instance()->ColorAdds.size() >= RulesClass::Instance->ColorAdd.size())
-		{
-			Debug::LogInfo("Readed ColorAdd and the size is more than 16 max , parsed size {}", count);
-			Debug::RegisterParserError();
-		}
-
-		for (size_t a = 0; a < RulesClass::Instance->ColorAdd.size(); ++a) {
-			RulesClass::Instance->ColorAdd[a] = RulesExtData::Instance()->ColorAdds[a];
-		}
-
-	}
-	else
-	{
-		Debug::FatalErrorAndExit("Empty ColorAdd\n");
-	}
-}
-
-ASMJIT_PATCH(0x668C24, RulesClass_Process_ColorAdd, 0x6)
-{
-	GET(CCINIClass*, pINI, ESI);
-	ProcessColorAdd(pINI);
-	return 0x668C8B;
-}
-
-ASMJIT_PATCH(0x668B29, RulesClass_Init_ColorAdd, 0x6)
-{
-	GET(CCINIClass*, pINI, EDI);
-	ProcessColorAdd(pINI);
-	return 0x668B8E;
-}
+#pragma region GlobalHousePTR
 
 ASMJIT_PATCH(0x581646, MapClass_CollapseCliffs_DefaultAnim, 0x5)
 {
@@ -2958,6 +4070,10 @@ ASMJIT_PATCH(0x5A920D, galite_5A91E0_SpecialHouse, 0x5)
 	return 0x5A921E;
 }
 
+#pragma endregion
+
+#pragma region HouseUnlimit
+
 // GDlgSupp_4E3690, remove country limit
 DEFINE_JUMP(LJMP, 0x4E3792, 0x4E37AD);
 
@@ -2978,6 +4094,8 @@ DEFINE_JUMP(LJMP, 0x56017A, 0x560183);
 
 //OptionsDlg_WndProc_RemoveHiResCheck / MainOptions_Options_Dialog
 DEFINE_JUMP(LJMP, 0x5601E3, 0x5601FC);
+
+#pragma endregion
 
 ASMJIT_PATCH(0x74C8FB, VeinholeMonsterClass_CTOR_SetArmor, 0x6)
 {
@@ -3012,13 +4130,6 @@ ASMJIT_PATCH(0x4AD097, DisplayClass_ReadINI_add, 0x6)
 	SmudgeTypeClass::TheaterInit(nTheater);
 	VeinholeMonsterClass::TheaterInit(nTheater);
 	return 0x4AD0A8;
-}
-
-ASMJIT_PATCH(0x52D36F, RulesClass_init_AIMD, 0x5)
-{
-	GET(CCFileClass*, pFile, EAX);
-	Debug::LogInfo("Init {} file", pFile->GetFileName());
-	return 0x0;
 }
 
 ASMJIT_PATCH(0x74D0D2, VeinholeMonsterClass_AI_SelectParticle, 0x5)
@@ -3140,20 +4251,17 @@ ASMJIT_PATCH(0x52C5A1, InitGame_SecondaryMixInit, 0x9)
 	return 0x52C5D3;
 }
 
-ASMJIT_PATCH(0x674028, RulesClass_ReadLandTypeData_Additionals, 0x7)
-{
-	GET(CCINIClass*, pINI, EDI);
-	GET(const char**, pSection_iter, ESI);
-	INI_EX ex_INI(pINI);
-	RulesExtData::Instance()->LandTypeConfigExts[PhobosGlobal::Instance()->LandTypeParseCounter].Bounce_Elasticity.Read(ex_INI, *pSection_iter, "Bounce.Elasticity");
-	Debug::LogInfo("Reading LandTypeData of [{} - {}]", *pSection_iter, PhobosGlobal::Instance()->LandTypeParseCounter);
-	++PhobosGlobal::Instance()->LandTypeParseCounter;
-	return 0;
-}
-
 ASMJIT_PATCH(0x691A32, ReadScenarion_RemoveInline, 0x5)
 {
 	LEA_STACK(char*, pName, 0x18);
 	R->ESI(GameCreate<ScriptTypeClass>(pName));
 	return 0x691B01;
+}
+
+// TiberiumTransmogrify is never initialized explitly, thus do that here
+ASMJIT_PATCH(0x66748A, RulesClass_CTOR_TiberiumTransmogrify, 6)
+{
+	GET(RulesClass*, pThis, ESI);
+	pThis->TiberiumTransmogrify = 0;
+	return 0;
 }

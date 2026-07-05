@@ -577,7 +577,7 @@ ASMJIT_PATCH(0x4F9004 ,HouseClass_Update_TrySWFire, 7)
 				pExt->AISuperWeaponDelayTimer.Start(delay);
 			}
 
-			if (!SessionClass::IsCampaign() || pThis->IQLevel2 >= RulesClass::Instance->SuperWeapons)
+			if (!SessionClass::IsCampaign() || pThis->IQLevel2 >= RulesClass::Instance->IQData.SuperWeapons)
 				pThis->_AITryFireSW();
 		}
 

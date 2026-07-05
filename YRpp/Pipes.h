@@ -1,6 +1,8 @@
 #pragma once
 
 #include <CCFileClass.h>
+#include <Base64.h>
+#include <PKey.h>
 
 class Pipe
 {
@@ -13,7 +15,7 @@ public:
 			this->ChainTo->ChainFrom = this->ChainFrom;
 
 		if (this->ChainFrom)
-			this->ChainFrom->Put_To(this->ChainTo);
+			this->ChainFrom->Pipe::Put_To(this->ChainTo);
 
 		this->ChainFrom = nullptr;
 		this->ChainTo = nullptr;
@@ -51,8 +53,6 @@ public:
 		}
 	}
 
-	void Put_To(Pipe& pipe) { Put_To(&pipe); }
-
 	virtual int Put(void const* source, int length)
 	{
 		if (this->ChainTo)
@@ -60,6 +60,10 @@ public:
 
 		return length;
 	}
+
+	virtual void Put_To(Pipe& pipe) { Put_To(&pipe); }
+
+private:
 
 	Pipe* ChainTo { nullptr };
 	Pipe* ChainFrom { nullptr };
@@ -77,7 +81,7 @@ public:
 	{
 	}
 
-	virtual ~BufferPipe() override { }
+	virtual ~BufferPipe() override = default;
 
 	virtual int Put(void const* pSource, int nLength) override final
 	{
@@ -131,7 +135,11 @@ public:
 	{
 		YRMemory::Deallocate(this->Buffer);
 		YRMemory::Deallocate(this->Buffer2);
+		this->Pipe::~Pipe();
 	}
+
+	static void __fastcall LCW_Comp(unsigned int source, unsigned int dest, unsigned int datasize)
+		JMP_THIS(0x551E50);
 
 	virtual int Flush() override final
 	{
@@ -142,6 +150,8 @@ public:
 	{
 		JMP_THIS(0x5520A0);
 	}
+
+public:
 
 	BOOL Control;
 	int Counter;
@@ -173,14 +183,222 @@ public:
 		this->Pipe::~Pipe();
 	}
 
-	void Destroy()
-	{
-		JMP_THIS(0x7BA420);
+	void Destroy() {
+
+		if (this->File && this->HasOpened)
+		{
+			this->File->Close();
+			this->HasOpened = 0;
+			this->File = 0;
+		}
+		this->Pipe::~Pipe();
 	}
 
-	virtual int End() { JMP_THIS(0x7BA450); }
-	virtual int Put(void const* source, int length) { JMP_THIS(0x7BA480); }
+	virtual int End() {
+		const int retval = this->Flush();
+
+		if (this->File && this->HasOpened ) {
+				this->HasOpened = 0;
+				this->File->Close();
+		}
+
+		return retval;
+	}
+
+	virtual int Put(void const* source, int length) {
+		if(!this->File || !source || length <= 0)
+			return 0;
+
+		if(!this->File->IsOpen()) {
+			this->HasOpened = true;
+			this->File->Open1(FileAccessMode::Write);
+		}
+
+		return this->File->Write((void*)source, length);
+	}
+
+public:
 
 	FileClass* File;
 	bool HasOpened;
+};
+
+class Base64Pipe : public Pipe
+{
+public:
+	enum class CodeControl {
+		ENCODE,
+		DECODE
+	};
+
+	Base64Pipe(CodeControl control) : Pipe(), Control(control), Counter(0), CBuffer(), PBuffer() {}
+	virtual ~Base64Pipe() = default;
+
+	virtual int Flush() override { 
+		int len = 0;
+		if(this->Counter) {
+			int decoded = 0;
+			char* pBuffer = nullptr;
+
+			if (this->Control == CodeControl::ENCODE) {
+				pBuffer = this->PBuffer;
+				decoded = Base64::Encode(this->PBuffer, this->Counter, this->CBuffer, 4);
+			} else {
+				pBuffer = this->CBuffer;
+				decoded = Base64::Decode(this->CBuffer, this->Counter, this->PBuffer, 3);
+			}
+
+			len = this->Pipe::Put(pBuffer, decoded);
+			this->Counter = 0;
+		}
+
+		return len + this->Pipe::Flush();
+	}
+
+	virtual int Put(const void* source, int slen) override
+	{
+		if (!source || slen < 1) {
+			return this->Pipe::Put(source, slen);
+		}
+
+		const char* pSource = static_cast<const char*>(source);
+		size_t written = 0;
+
+		const int inputBlock  = this->Control != CodeControl::ENCODE ? 4 : 3;
+		const int outputBlock = this->Control != CodeControl::ENCODE ? 3 : 4;
+
+		char* const inputBuffer  = this->Control != CodeControl::ENCODE ? this->CBuffer : this->PBuffer;
+		char* const outputBuffer = this->Control != CodeControl::ENCODE ? this->PBuffer : this->CBuffer;
+
+		auto ConvertBlock = [&](const void* src) -> int
+		{
+			return this->Control == CodeControl::ENCODE
+				? Base64::Encode(src, inputBlock, outputBuffer, outputBlock)
+				: Base64::Decode(src, inputBlock, outputBuffer, outputBlock);
+		};
+
+		// Finish a partially buffered block.
+		if (this->Counter > 0) {
+			int count = std::min(slen, inputBlock - this->Counter);
+
+			std::memmove(
+				inputBuffer + this->Counter,
+				pSource,
+				count
+			);
+
+			this->Counter += count;
+			pSource += count;
+			slen -= count;
+
+			if (this->Counter == inputBlock) {
+				written += this->Pipe::Put(
+					outputBuffer,
+					ConvertBlock(inputBuffer)
+				);
+
+				this->Counter = 0;
+			}
+		}
+
+		// Process complete blocks directly.
+		while (slen >= inputBlock) {
+			written += this->Pipe::Put(
+				outputBuffer,
+				ConvertBlock(pSource)
+			);
+
+			pSource += inputBlock;
+			slen -= inputBlock;
+		}
+
+		// Buffer any remaining bytes.
+		if (slen > 0) {
+			std::memmove(inputBuffer, pSource, slen);
+			this->Counter = slen;
+		}
+
+		return static_cast<int>(written);
+	}
+
+private:
+	CodeControl Control;
+	int Counter;
+	char CBuffer[4];
+	char PBuffer[3];
+
+private:
+	Base64Pipe(const Base64Pipe& rvalue) = delete;
+	Base64Pipe& operator=(const Base64Pipe&) = delete;
+};
+
+class BlowPipe : public Pipe
+{
+public:
+	enum class CryptControl {
+		ENCRYPT,
+		DECRYPT
+	};
+
+public:
+	BlowPipe(CryptControl control) : 
+		BlowFish(nullptr), 
+		CurrentBlock(),
+		Counter(0),
+		Control(control) {}
+
+	virtual ~BlowPipe() JMP_THIS(0x632F90);
+
+	virtual int Flush() override final {
+		JMP_THIS(0x438060);
+	}
+
+	virtual int Put(void const* pSource, int nLength) override final {
+		JMP_THIS(0x4380A0);
+	}
+
+	void Key(void* key, void* length) JMP_THIS(0x4381D0);
+
+private:
+  void* BlowFish;
+  char CurrentBlock[8];
+  int Counter;
+  CryptControl Control;
+
+private:
+	BlowPipe(const BlowPipe& rvalue) = delete;
+	BlowPipe& operator=(const BlowPipe&) = delete;
+};
+
+class Straw;
+class PKPipe : public Pipe
+{
+public:
+	virtual ~PKPipe() JMP_THIS(0x632FF0);
+
+	virtual void Put_To(Pipe* pPipe) {
+		JMP_THIS(0x632D10);
+	}
+
+	virtual int Put(void const* source, int length) {
+		JMP_THIS(0x632DC0);
+	}
+
+	void Key(PKey* a2) JMP_THIS(0x632D60);
+	PKey* Encrypted_Key_Length() JMP_THIS(0x632F30);
+	PKey* Plain_Key_Length() JMP_THIS(0x632F60);
+
+private:
+  char IsGettingKey;
+  Straw *Rand;
+  BlowPipe BF;
+  int Control;
+  PKey* CipherKey;
+  char Buffer[256];
+  int Counter;
+  int BytesLeft;
+
+private:
+	PKPipe(const PKPipe& rvalue) = delete;
+	PKPipe& operator=(const PKPipe&) = delete;
 };

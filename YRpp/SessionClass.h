@@ -200,6 +200,7 @@ struct  ALIGN(4) MPStatsStruct
 };
 static_assert(sizeof(MPStatsStruct)  == 0x68,   "MPStatsStruct wrong size");
 
+class INIClass;
 class ALIGN(4) MultiMission
 {
 public:
@@ -212,6 +213,13 @@ public:
 	DynamicVectorClass<int> DiskIDs;
 	char field_1A0;
 	DynamicVectorClass<const char*> GameModeStrings;
+
+public:
+	MultiMission(INIClass* a2, const char* section) { JMP_THIS(0x69A3B0); }
+	MultiMission(const char* filename, const wchar_t* description, const char* digest, int official, int somestring2, int minplayers, int maxplayers)
+	{ JMP_THIS(0x69A980); }
+
+	~MultiMission() = default;
 };
 
 static_assert(sizeof(MultiMission) == 0x1BC, " Invalid Size ! ");

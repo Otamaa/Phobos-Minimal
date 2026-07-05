@@ -286,7 +286,7 @@ public:
 	Valueable<int> RelativeDamage_Infantry { 0 };
 	Valueable<int> RelativeDamage_Building { 0 };
 	Valueable<int> RelativeDamage_Terrain { 0 };
-
+	
 	std::vector<VersesData> Verses {};
 
 	Nullable<int> Berzerk_dur {};
@@ -554,6 +554,7 @@ public:
 		case AbstractType::Building:
 		case AbstractType::Infantry:
 			AnnounceInvalidPointer(this->IntendedTarget, ptr, bRemoved);
+			AnnounceInvalidPointer(this->DamageAreaInvoker, ptr, bRemoved);
 			break;
 		default:
 			break;
@@ -648,14 +649,21 @@ public:
 	void ApplyKnockUp(TechnoClass* pTarget);
 	void ApplyTraction(TechnoClass* pTarget, const CoordStruct& coords);
 
-	COMPILETIMEEVAL VersesData& GetVerses(Armor armor) {
+	COMPILETIMEEVAL FORCEDINLINE VersesData& GetVerses(Armor armor) {
 		return this->Verses[static_cast<int>(armor)];
 	}
 
-	COMPILETIMEEVAL const VersesData& GetVerses(Armor armor) const {
+	COMPILETIMEEVAL FORCEDINLINE const VersesData& GetVerses(Armor armor) const {
 		return this->Verses[static_cast<int>(armor)];
 	}
 
+	COMPILETIMEEVAL FORCEDINLINE VersesData& GetVerses(int armor) {
+		return this->Verses[armor];
+	}
+
+	COMPILETIMEEVAL FORCEDINLINE const VersesData& GetVerses(int armor) const {
+		return this->Verses[armor];
+	}
 
 	bool IsHealthInThreshold(ObjectClass* pTarget) const;
 	bool IsInvokerAllowed(TechnoClass* pTarget, TechnoClass* pInvoker) const;

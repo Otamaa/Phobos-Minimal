@@ -328,16 +328,16 @@ int __fastcall FakeTechnoClass::__WhatWeaponShouldIUse(TechnoClass* pThis, disca
 		else
 		{
 			// --- Armor/verses check (hook 0x6F36DB tail — extended armor types) ---
-			const int nArmor = static_cast<int>(TechnoExtData::GetArmor(pTargetTechno));
+			const auto nArmor = TechnoExtData::GetArmor(pTargetTechno);
 
 			const auto vsSecondary =
-				&WarheadTypeExtContainer::Instance.Find(pSecondaryWH)->Verses[nArmor];
+				&WarheadTypeExtContainer::Instance.Find(pSecondaryWH)->GetVerses(nArmor);
 
 			if (vsSecondary->Verses == 0.0)
 				return 0;
 
 			const auto vsPrimary =
-				&WarheadTypeExtContainer::Instance.Find(pPrimary->Warhead)->Verses[nArmor];
+				&WarheadTypeExtContainer::Instance.Find(pPrimary->Warhead)->GetVerses(nArmor);
 
 			if (vsPrimary->Verses == 0.0)
 				return 1;

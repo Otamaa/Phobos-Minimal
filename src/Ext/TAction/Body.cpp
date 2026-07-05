@@ -2327,13 +2327,13 @@ bool TActionExtData::DumpVariables(TActionClass* pThis, HouseClass* pHouse, Obje
 	const auto fileName = (pThis->Param3 != 0) ? "globals.ini" : "locals.ini";
 	CCFileClass file { fileName };
 
-	if (!file.Exists()) {
-		if (!file.CreateFileA()) {
+	if (!file.IsAvaible()) {
+		if (!file.Create()) {
 			return false;
 		}
 	}
 
-	if (!file.Open(FileAccessMode::ReadWrite)) {
+	if (!file.Open1(FileAccessMode::ReadWrite)) {
 		Debug::LogInfo(__FUNCTION__" Failed to Open file {} for", fileName);
 		return false;
 	}

@@ -187,7 +187,6 @@ public:
 
 	PathfindLastData PathfindTechno { };
 	ColorsData ColorDatas { };
-	int LandTypeParseCounter { };
 	bool Disappear_removed { false };
 
 	PhobosMap<ObjectClass*, AlphaShapeClass*> ObjectLinkedAlphas {};
@@ -224,7 +223,6 @@ private:
 			.Process(this->PathfindTechno)
 			.Process(this->CurCopyArray)
 			.Process(this->ColorDatas)
-			.Process(this->LandTypeParseCounter)
 			.Process(this->LastAnimName)
 			.Process(this->Disappear_removed)
 			.Process(this->ObjectLinkedAlphas)

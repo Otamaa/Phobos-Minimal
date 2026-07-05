@@ -404,7 +404,7 @@ private:
 	unsigned long bf_S[4][UCHAR_MAX + 1];
 };
 
-class BlowStraw : public Straw
+class PhobosBlowStraw : public Straw
 {
 public:
 	typedef enum CryptControl
@@ -414,8 +414,8 @@ public:
 	} CryptControl;
 
 public:
-	BlowStraw(CryptControl control) : BF(nullptr), Buffer {}, Counter(0), Control(control) { }
-	virtual ~BlowStraw() { GameDelete(BF); BF = nullptr; }
+	PhobosBlowStraw(CryptControl control) : BF(nullptr), Buffer {}, Counter(0), Control(control) { }
+	virtual ~PhobosBlowStraw() { GameDelete(BF); BF = nullptr; }
 
 	virtual int Get(void* source, int slen) override
 	{
@@ -493,11 +493,11 @@ private:
 	CryptControl Control;
 
 private:
-	BlowStraw(BlowStraw&) = delete;
-	BlowStraw& operator = (const BlowStraw&) = delete;
+	PhobosBlowStraw(PhobosBlowStraw&) = delete;
+	PhobosBlowStraw& operator = (const PhobosBlowStraw&) = delete;
 };
 
-class BlowPipe : public Pipe
+class PhobosBlowPipe : public Pipe
 {
 public:
 	enum class CryptControl {
@@ -506,8 +506,8 @@ public:
 	};
 
 public:
-	BlowPipe(CryptControl control) : BF(nullptr), Buffer {}, Counter(0), Control(control) { }
-	virtual ~BlowPipe() { GameDelete(BF); BF = nullptr; }
+	PhobosBlowPipe(CryptControl control) : BF(nullptr), Buffer {}, Counter(0), Control(control) { }
+	virtual ~PhobosBlowPipe() { GameDelete(BF); BF = nullptr; }
 
 	virtual int Flush() override
 	{
@@ -606,6 +606,6 @@ private:
 	CryptControl Control;
 
 private:
-	BlowPipe(BlowPipe&) = delete;
-	BlowPipe& operator = (const BlowPipe&) = delete;
+	PhobosBlowPipe(PhobosBlowPipe&) = delete;
+	PhobosBlowPipe& operator = (const PhobosBlowPipe&) = delete;
 };

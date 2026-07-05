@@ -11,7 +11,7 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/WarheadType/Body.h>
-#include <Ext/AircraftType/Body.h>
+#include <Ext/House/Body.h>
 
 #include <Misc/MapRevealer.h>
 
@@ -58,6 +58,21 @@ ASMJIT_PATCH(0x4DF42A, FootClass_UpdateAttackMove_AircraftHoldAttackMoveTarget2,
 
 	// Although if the target selected by CS is an object rather than cell.
 	return (pThis->WhatAmI() == AbstractType::Aircraft && AircraftTypeExtData::ExtendedAircraftMissionsEnabled((AircraftClass*)pThis) ) ? HoldTarget : ContinueCheck;
+}
+
+ASMJIT_PATCH(0x413FD2, AircraftClass_Init_Academy, 6)
+{
+	GET(AircraftClass*, pThis, ESI);
+
+	if (pThis->Owner)
+	{
+		if (pThis->Type->Trainable && HouseExtContainer::Instance.Find(pThis->Owner)->Is_AirfieldSpied)
+			pThis->Veterancy.Veterancy = 1.0f;
+
+		HouseExtData::ApplyAcademy(pThis->Owner, pThis, AbstractType::Aircraft);
+	}
+
+	return 0;
 }
 
 ASMJIT_PATCH(0x41A5C7, AircraftClass_Mission_Guard_StartAreaGuard, 0x6)

@@ -53,9 +53,9 @@ ASMJIT_PATCH(0x6C856C, SendStatisticsPacket_WriteStatisticsDump, 0x5)
 		GET(void*, buf, EAX);
 
 		CCFileClass statsFile { LuaData::StatisticPacketName.c_str() };
-		if (statsFile.Open(FileAccessMode::Write))
+		if (statsFile.Open1(FileAccessMode::Write))
 		{
-			statsFile.WriteBytes(buf, Game::SendStatistic_PacketSize());
+			statsFile.Write(buf, Game::SendStatistic_PacketSize());
 			statsFile.Close();
 		}
 

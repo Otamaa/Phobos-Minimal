@@ -1934,7 +1934,7 @@ ASMJIT_PATCH(0x481778, CellClass_ScatterContent_Scatter, 0x6)
 	GET_STACK(const bool, ignoreDestination, STACK_OFFSET(0x2C, 0xC));
 
 	if (ignoreDestination || pTechno->HasAbility(AbilityType::Scatter)
-		|| (pTechno->Owner->IsControlledByHuman() ? RulesClass::Instance->PlayerScatter : pTechno->Owner->IQLevel2 >= RulesClass::Instance->Scatter))
+		|| (pTechno->Owner->IsControlledByHuman() ? RulesClass::Instance->PlayerScatter : pTechno->Owner->IQLevel2 >= RulesClass::Instance->IQData.Scatter))
 		pTechno->Scatter(*pCoords, ignoreMission, ignoreDestination);
 
 	return NextTechno;

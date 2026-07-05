@@ -46,6 +46,22 @@ void TechnoExtData::PlayChronoSparkleAnim(TechnoClass* pTechno,
 	AnimExtData::SetAnimOwnerHouseKind(pAnim, pOwner, pVictim, pTInvoker, false, false);
 }
 
+
+//TODO : complete
+void TechnoExtData::DrawUnitPassengers(TechnoClass* pThis, bool Allow)
+{
+	if (!Allow)
+		return;
+
+	std::map<TechnoTypeClass*, int> passengerCounts;
+	for (auto pPassenger = pThis->Passengers.GetFirstPassenger(); pPassenger; pPassenger = flag_cast_to<FootClass*>(pPassenger->NextObject)){
+		passengerCounts[pPassenger->GetTechnoType()]++;
+	}
+
+	if (passengerCounts.empty())
+		return;
+}
+
 ASMJIT_PATCH(0x73622F, UnitClass_AI_ChronoSparkle, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);

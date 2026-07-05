@@ -25,6 +25,7 @@ class WarheadTypeClass;
 class DigitalDisplayTypeClass;
 class CursorTypeClass;
 class SelectBoxTypeClass;
+class FakeRulesClass;
 class RulesExtData final
 {
 private:
@@ -651,14 +652,14 @@ public:
 	Nullable<Mission> BerzerkMission { };
 	Valueable<bool> AutoRemoveEarliestBeacon {};
 	Valueable<bool> AllowChatBoxInSinglePlayer {};
+	Valueable<bool> SecondaryFireSequenceLandOnly { true };
 
 #pragma endregion
 
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();
 
-	void Initialize();
+	void Initialize(CCINIClass* pINI);
 
 	void LoadFromStream(PhobosStreamReader& Stm) {
 		this->Serialize(Stm);
@@ -679,15 +680,8 @@ public:
 	static void Allocate(RulesClass* pThis);
 	static void Remove(RulesClass* pThis);
 
-	static void s_LoadFromINIFile(RulesClass* pThis, CCINIClass* pINI);
-	static void s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
+	static void s_LoadBeforeTypeData(FakeRulesClass* pThis, CCINIClass* pINI);
 	static void LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI);
-	static void LoadBeforeGeneralData(RulesClass* pThis, CCINIClass* pINI);
-	static void LoadAfterAllLogicData(RulesClass* pThis, CCINIClass* pINI);
-	static void LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI);
-	static void LoadEarlyOptios(RulesClass* pThis, CCINIClass* pINI);
-	static void LoadVeryEarlyBeforeAnyData(RulesClass* pRules, CCINIClass* pINI);
-	static void LoadEndOfAudioVisual(RulesClass* pRules, CCINIClass* pINI);
 	static void InitializeAfterAllRulesLoaded();
 
 	COMPILETIMEEVAL FORCEDINLINE static RulesExtData* Instance()
@@ -709,8 +703,24 @@ public:
 class NOVTABLE FakeRulesClass : public RulesClass
 {
 public:
-	void _ReadColors(CCINIClass* pINI);
 	void _ReadGeneral(CCINIClass* pINI);
 	void _ReadPowerups(CCINIClass* pINI);
+	void _ReadAI(CCINIClass* pINI);
+	void _ReadCombatDamage(CCINIClass* pINI);
+	void _ReadSpecialWeapons(CCINIClass* pINI);
+	void _ReadAudioVisual(CCINIClass* pINI);
+	void _ReadWallModel(CCINIClass* pINI);
+	void _ReadElevationModel(CCINIClass* pINI);
+	void _ReadRadiation(CCINIClass* pINI);
+	void _ReadCrateRules(CCINIClass* pINI);
+	void _ReadDifficulty(CCINIClass* pINI);
+	void _ReadIQ(CCINIClass* pINI);
+	void _ReadLandTypes(CCINIClass* pINI);
+	void _ReadMPlayer(CCINIClass* pINI);
+	void _ReadJumpjetControls(CCINIClass* pINI);
+	void _ReadColorAdd(CCINIClass* pINI);
+	void _ReadColors(CCINIClass* pINI);
+
+	void _Process(CCINIClass* pINI);
 };
 static_assert(sizeof(FakeRulesClass) == sizeof(RulesClass), "Invalid Size !");

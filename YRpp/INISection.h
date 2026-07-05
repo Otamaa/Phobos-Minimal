@@ -9,26 +9,23 @@ class INISection : public Node<INISection>
 {
 public:
 	using EntryIndexType = IndexClass<int, INIEntry*>;
+	using AsNode = Node<INISection>;
+
+public:
 
 	char* Name;
 	List<INIEntry*> Entries;
 	EntryIndexType EntryIndex;
 	INIComment* Comments;
 
-	//virtual ~INISection() = default;
-	//INISection() = delete; //TODO
+public:
 
-	void DeallocINISection()
-	{
-		JMP_THIS(0x52AB80);
-	}
+	INISection() :Name(), Entries(), EntryIndex(), Comments()
+	{}
 
-	void VectorDealloc(char args)
-	{
-		JMP_THIS(0x52AE00);
-	}
+	virtual ~INISection();
 
-
+	INIEntry* FindEntry(const char* entry) const;
 private:
 	INISection(INISection const& rvalue) = delete;
 	INISection operator=(INISection const& that) = delete;

@@ -37,6 +37,7 @@ public:
 	Valueable<WarheadTypeClass*> CustomMissileWarhead { nullptr };
 	Valueable<WarheadTypeClass*> CustomMissileEliteWarhead { nullptr };
 	Valueable<AnimTypeClass*> CustomMissileTakeoffAnim { nullptr };
+	Valueable<int> CustomMissileTakeoffSeparation { 24 };
 	Valueable<AnimTypeClass*> CustomMissilePreLauchAnim { nullptr };
 	Valueable<AnimTypeClass*> CustomMissileTrailerAnim { nullptr };
 	Valueable<int> CustomMissileTrailerSeparation { 3 };
@@ -46,6 +47,7 @@ public:
 	Valueable<int> CustomMissileTrailAppearDelay { 2 };
 	Valueable<double> CustomMissileCloseEnoughFactor { 1.0 };
 	NullablePromotable<bool> CustomMissileRaise { };
+	Nullable<bool> IsCruiseMissile { };
 	Nullable<Point2D> CustomMissileOffset {};
 
 	AircraftTypeExtData(AircraftTypeClass* pObj) : FootTypeExtData(pObj)

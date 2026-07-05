@@ -30,6 +30,7 @@ class BuildingClass;
 class BuildingTypeClass;
 class Surface;
 struct DirStruct;
+struct HSVClass;
 struct PacketField {
 	char str[4];
 	char pad[4];
@@ -191,6 +192,7 @@ struct Game
 	static void __fastcall GetKeyboardKeyString(unsigned short key, wchar_t* buffer)
 	{ JMP_FAST(0x61EF70); }
 
+	static void __fastcall AddColor(const char* pName , HSVClass* pColor){ JMP_FAST(0x626AB0); }
 	// Fills lpRect with a dialog control's rectangle in display (surface)
 	// coordinates, accounting for the full-screen owner-draw scaling. This is
 	// how the engine's reconnect dialog positions its per-player sync bars.

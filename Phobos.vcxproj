@@ -48,6 +48,7 @@
     <ClCompile Include="src\Ext\Factory\Hooks.cpp" />
     <ClCompile Include="src\Ext\Infantry\Hooks.Assaulter.cpp" />
     <ClCompile Include="src\Ext\INI\Body.cpp" />
+    <ClCompile Include="src\Ext\INI\Hook.Load.cpp" />
     <ClCompile Include="src\Ext\IonBlast\Body.cpp" />
     <ClCompile Include="src\Ext\Locomotion\Rocket\Hooks.CustomMissile.cpp" />
     <ClCompile Include="src\Ext\Locomotion\Rocket\Hooks.RocketLocomotorClass.cpp" />
@@ -55,7 +56,9 @@
     <ClCompile Include="src\Ext\Object\Body.cpp" />
     <ClCompile Include="src\Ext\Object\Hooks.cpp" />
     <ClCompile Include="src\Ext\PCXFile\Hooks.PNG.cpp" />
+    <ClCompile Include="src\Ext\Rules\Hooks.Initilize.cpp" />
     <ClCompile Include="src\Ext\Session\Body.cpp" />
+    <ClCompile Include="src\Ext\Session\Hooks.ScenarioDecriptions.cpp" />
     <ClCompile Include="src\Ext\SlaveManager\Hooks.cpp" />
     <ClCompile Include="src\Ext\Surface\Hooks.cpp" />
     <ClCompile Include="src\Ext\Techno\Hook.HealthBar.cpp" />
@@ -530,7 +533,11 @@
     <ClCompile Include="src\Utilities\Patch.cpp" />
     <ClCompile Include="src\Utilities\Template.cpp" />
     <ClCompile Include="src\Utilities\TranslucencyLevel.cpp" />
+    <ClCompile Include="YRpp\CCFileClass.cpp" />
+    <ClCompile Include="YRpp\INIEntry.cpp" />
+    <ClCompile Include="YRpp\INISection.cpp" />
     <ClCompile Include="YRpp\Interface\IPiggyback.cpp" />
+    <ClCompile Include="YRpp\MixFileClass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="B:\Projects\Unused\LambdaFunctionArgCount.h" />

@@ -43,6 +43,7 @@
 #include <Ext/ParticleSystemType/Body.h>
 #include <Ext/Mouse/Body.h>
 #include <Ext/IonBlast/Body.h>
+#include <Ext/INI/Body.h>
 
 //#include <Misc/TriggerMPOwner.h>
 
@@ -186,11 +187,44 @@ void PhobosExt::InvalidatePointers(AbstractClass* const pInvalid, bool const rem
 
 }
 
+//on;y do it once
+int randomizedExecCount;
+
+void WhoHaveTheAINW() {
+	for (auto mix = MixFileClass::MIXes->First(); mix; mix = mix->Next()) {
+		if(mix->IsValid()){
+			for (int i = 0; i < mix->Count; ++i) {
+				const auto& h = mix->Headers[i];
+				if(h.ID == 0xb0bba08a){
+					Debug::LogInfo("ARTNW.INI AtMIX: {} | Count={} | DataStart={:#x} | DataSize={:#x} ===",
+							mix->Filename, mix->Count, mix->DataStart, mix->DataSize);
+					
+					const bool outOfBounds = (h.Offset + h.Size) > static_cast<DWORD>(mix->DataSize);
+					Debug::LogInfo("  [{:04d}] CRC={:#010x} Offset={:#010x} Size={:#010x}{}",
+						i, h.ID, h.Offset, h.Size,
+						outOfBounds ? " *** OUT OF BOUNDS ***" : "");
+				
+					CCFileClass test(mix->Filename);
+					Debug::LogInfo("  [AICheck] Owner file IsAvailable={} IsOpen={}",
+						test.IsAvaible(false), test.IsOpen());
+				}
+			}
+		}
+	}
+}
+
 void PhobosExt::EnsureSeeded(unsigned long seed)
 {
 	auto _seed = (DWORD)Game::Seed();
 	Debug::Log("Init Phobos Randomizer seed %x.\n", _seed);
 	Phobos::Random::SetRandomSeed(Game::Seed());
+
+	//if(++randomizedExecCount == 2) {
+	//	MixFileClass::DumpAllEntries();
+	//	WhoHaveTheAINW();
+	//	randomizedExecCount = 0;
+	//}
+
 }
 
 #include <New/Interfaces/AdvancedDriveLocomotionClass.h>
@@ -399,6 +433,9 @@ void Phobos::ClearAll()
 
 	MouseClassExt::ClearCameos();
 	MouseClassExt::ClearMappedAction();
+
+	//reset the IteratorValue counter for the parser
+	FakeCCINIClass::Reset();
 }
 
 #pragma endregion

@@ -15,7 +15,7 @@ bool SW_Reveal::Activate(SuperClass* const pThis, const CellStruct& Coords, bool
 
 		if (nDeferement <= 0) {
 			auto const range = this->GetRange(pData);
-			SW_Reveal::RevealMap(Coords, range.WidthOrRange, range.Height, pThis->Owner);
+			SW_Reveal::RevealMap(Coords, range.WidthOrRange, range.Height, pThis->Owner, false);
 		}
 		else
 			this->newStateMachine(nDeferement, Coords, pThis);
@@ -70,53 +70,59 @@ SWRange SW_Reveal::GetRange(const SWTypeExtData* pData) const
 	return pData->SW_Range;
 }
 
-void SW_Reveal::RevealMap(const CellStruct& Coords, float range, int height, HouseClass* Owner)
+void SW_Reveal::RevealMap(const CellStruct& Coords, float range, int height, HouseClass* Owner, bool useOldAlgorithm)
 {
-	MapRevealer const revealer(Coords);
+	if(!useOldAlgorithm){
+		MapRevealer const revealer(Coords);
 
-	if (revealer.AffectsHouse(Owner))
-	{
-		auto Apply = [=, &revealer](bool add)
+		if (revealer.AffectsHouse(Owner))
 		{
-			if (range < 0.0)
+			auto Apply = [=, &revealer](bool add)
 			{
-				// reveal all cells without hundred thousands function calls
-				MapClass::Instance->CellIteratorReset();
-				while (auto const pCell = MapClass::Instance->CellIteratorNext())
+				if (range < 0.0)
 				{
-					if (revealer.IsCellAvailable(pCell->MapCoords) && revealer.IsCellAllowed(pCell->MapCoords))
+					// reveal all cells without hundred thousands function calls
+					MapClass::Instance->CellIteratorReset();
+					while (auto const pCell = MapClass::Instance->CellIteratorNext())
 					{
-						revealer.Process1(pCell, false, add);
-					}
-				}
-
-				//if (SessionClass::Instance->GameMode == GameMode::Internet || SessionClass::Instance->GameMode == GameMode::LAN)
-				//	EventExt::Handlers::RaiseRevealMap(Owner);
-			}
-			else
-			{
-				// default way to reveal, but reveal one cell at a time.
-				auto const& base = revealer.Base();
-
-				Helpers::Alex::for_each_in_rect_or_range<CellClass>(base, range, height,
-					[=, &revealer](CellClass* pCell) -> bool
-				{
-					auto const& cell = pCell->MapCoords;
-					if (revealer.IsCellAvailable(cell) && revealer.IsCellAllowed(cell))
-					{
-						if (height > 0 || cell.DistanceFrom(base) < range)
+						if (revealer.IsCellAvailable(pCell->MapCoords) && revealer.IsCellAllowed(pCell->MapCoords))
 						{
 							revealer.Process1(pCell, false, add);
 						}
 					}
-					return true;
-				});
-			}
-		};
-		Apply(false);
-		Apply(true);
 
-		MapClass::Instance->MarkNeedsRedraw(1);
+					//if (SessionClass::Instance->GameMode == GameMode::Internet || SessionClass::Instance->GameMode == GameMode::LAN)
+					//	EventExt::Handlers::RaiseRevealMap(Owner);
+				}
+				else
+				{
+					// default way to reveal, but reveal one cell at a time.
+					auto const& base = revealer.Base();
+
+					Helpers::Alex::for_each_in_rect_or_range<CellClass>(base, range, height,
+						[=, &revealer](CellClass* pCell) -> bool
+					{
+						auto const& cell = pCell->MapCoords;
+						if (revealer.IsCellAvailable(cell) && revealer.IsCellAllowed(cell))
+						{
+							if (height > 0 || cell.DistanceFrom(base) < range)
+							{
+								revealer.Process1(pCell, false, add);
+							}
+						}
+						return true;
+					});
+				}
+			};
+			Apply(false);
+			Apply(true);
+
+			MapClass::Instance->MarkNeedsRedraw(1);
+		}
+	} else {
+		CoordStruct _there = CellClass::Cell2Coord(Coords);
+		MapClass::Instance->RevealArea2(&_there, range, Owner, 0, 0, 0, 0, 0);
+		MapClass::Instance->RevealArea2(&_there, range, Owner, 0, 0, 0, 0, 1);
 	}
 }
 
@@ -135,6 +141,6 @@ void RevealStateMachine::Update()
 
 		auto const range = pData->GetNewSWType()->GetRange(pData);
 
-		SW_Reveal::RevealMap(this->Coords, range.WidthOrRange, range.Height, this->Super->Owner);
+		SW_Reveal::RevealMap(this->Coords, range.WidthOrRange, range.Height, this->Super->Owner, false);
 	}
 }

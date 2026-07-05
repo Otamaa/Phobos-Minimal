@@ -15,6 +15,39 @@
 #include <Ext/VoxelAnimType/Body.h>
 #include <Ext/WeaponType/Body.h>
 
+ASMJIT_PATCH(0x74A884, VoxelAnimClass_UpdateBounce_Damage, 0x6)
+{
+	GET(VoxelAnimClass*, pThis, EBX);
+
+	const auto pType = pThis->Type;
+	const auto nRadius = pType->DamageRadius;
+
+	if (nRadius < 0 || !pType->Damage || !pType->Warhead)
+		return 0x74A934;
+
+	const auto nCoord = pThis->Bounce.GetCoords();
+	const auto pCell = MapClass::Instance->GetCellAt(nCoord);
+	const auto pInvoker = VoxelAnimExtData::GetTechnoOwner(pThis);
+
+	for (NextObject j(pCell->GetContent()); j; ++j)
+	{
+		const auto pObj = *j;
+
+		if (!pObj->IsAlive || pObj->InLimbo || pObj->Health <= 0)
+			continue;
+
+		const auto nLoc = pObj->Location;
+		const auto nDist = abs(nLoc.X - nCoord.X) + abs(nLoc.Y - nCoord.Y);
+
+		if (nDist < nRadius)
+		{
+			pObj->ReceiveDamage(&pType->Damage, Game::AdjustHeight(nDist), pType->Warhead, pInvoker, false, false, pInvoker ? pInvoker->Owner : nullptr);
+		}
+	}
+
+	return 0x74A934;
+}
+
 ASMJIT_PATCH(0x74A70E, VoxelAnimClass_AI_Additional, 0x6) // C
 {
 	GET(VoxelAnimClass* const, pThis, EBX);

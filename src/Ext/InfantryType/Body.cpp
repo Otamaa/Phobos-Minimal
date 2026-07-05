@@ -74,8 +74,8 @@ bool InfantryTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	const char* pID = this->This()->ID;
 
 	INI_EX exINI(pINI);
-	INI_EX iniEX_art(CCINIClass::INI_Art());
-	const auto pSection_art = this->This()->ImageFile;
+	INI_EX exArtINI(CCINIClass::INI_Art());
+	const auto pArtSection = this->This()->ImageFile;
 
 	this->IsHero.Read(exINI, pID, "Hero");
 	this->Is_Deso.Read(exINI, pID,  "IsDesolator");
@@ -88,7 +88,7 @@ bool InfantryTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->DeathBodies_UseDieSequenceAsIndex.Read(exINI, pID, "DeathBodies.UseDieSequenceAsIndex");
 	this->VoiceGarrison.Read(exINI, pID, "VoiceGarrison");
 
-	this->OnlyUseLandSequences.Read(iniEX_art, pSection_art, "OnlyUseLandSequences");
+	this->OnlyUseLandSequences.Read(exArtINI, pArtSection, "OnlyUseLandSequences");
 
 	this->WhenInfiltrate_Warhead.Read(exINI, pID, "WhenInfiltrate.Warhead.%s");
 	this->WhenInfiltrate_Weapon.Read(exINI, pID, "WhenInfiltrate.Weapon.%s");
@@ -100,6 +100,7 @@ bool InfantryTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->ProneSpeed.Read(exINI, pID, "ProneSpeed");
 
 	this->InfantryAutoDeploy.Read(exINI, pID, "InfantryAutoDeploy");
+	this->SecondaryFireSequenceLandOnly.Read(exArtINI, pArtSection, "SecondaryFireSequenceLandOnly");
 
 	// TODO , this stupid parsing thing
 	//auto const nPriData = this->Get()->GetWeapon(0);

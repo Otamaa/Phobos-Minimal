@@ -1,4 +1,4 @@
-#include <CCINIClass.h>
+#include "Body.h"
 
 #include <Utilities/Debug.h>
 #include <Utilities/Parser.h>
@@ -126,7 +126,9 @@ ASMJIT_PATCH(0x526CC0, INIClass_Section_GetKeyName, 7)
 	return 0x526D8A;
 }
 
-ASMJIT_PATCH(0x5260d9, INIClass_Parse_Override, 7)
+#ifdef _oldCodes 
+
+ASMJIT_PATCH(0x5260d9, INIClass_Parse_Override_RemoveDuplicates, 7)
 {
 	struct INIClass_ {
 		BYTE gap[44];
@@ -206,6 +208,7 @@ ASMJIT_PATCH(0x525D23, INIClass_Parse_IteratorChar2, 5)
 }
 #endif
 
+#ifndef INHERITANCE
 struct IniSectionIncludes
 {
 	static INISection* includedSection;
@@ -224,7 +227,6 @@ void IniSectionIncludes::CopySection(CCINIClass* ini, INISection* source, const 
 	}
 }
 
-#ifndef INHERITANCE
 ASMJIT_PATCH(0x525E44, INIClass_Parse_IniSectionIncludes_CopySection2, 7)
 {
 	if (IniSectionIncludes::includedSection)
@@ -316,7 +318,6 @@ NOINLINE INISection* GetInheritedSection(INIClass* pThis, char* ptr)
 	return nullptr;
 }
 
-
 ASMJIT_PATCH(0x525CA5, INIClass_Parse_IniSectionIncludes_PreProcess1, 8)
 {
 	GET(char*, ptr, EAX);
@@ -338,34 +339,40 @@ ASMJIT_PATCH(0x525DDB, INIClass_Parse_IniSectionIncludes_PreProcess2, 5)
 	IniSectionIncludes::includedSection = GetInheritedSection(pThis, ptr + 1);
 	return 0x525DEA;
 }
+
 #endif
 
-class NOVTABLE FakeCCIniClass : public CCINIClass {
-public:
-	int __GetPipType(const char* pSection, const char* pKey, int fallback) {
-		if (this->ReadString(pSection, pKey, Phobos::readDefval, Phobos::readBuffer) > 0)
+#endif
+
+int FakeCCINIClass::__GetPipType(const char* pSection, const char* pKey, int fallback)
+{
+	if (this->ReadString(pSection, pKey, Phobos::readDefval, Phobos::readBuffer) > 0)
+	{
+		int nbuffer;
+		if (Parser<int>::TryParse(Phobos::readBuffer, &nbuffer))
 		{
-			int nbuffer;
-			if (Parser<int>::TryParse(Phobos::readBuffer, &nbuffer)) {
-				return nbuffer;
-			} else {
-				// find the pip value with the name specified
-				for (const auto& data : TechnoTypeClass::PipsTypeName) {
-					if (data == Phobos::readBuffer) {
-						//Debug::LogInfo("[%s]%s=%s ([%d] from [%s]) ", pSection, pKey, Phobos::readBuffer, it->Value, it->Name);
-						return data.Value;
-					}
+			return nbuffer;
+		}
+		else
+		{
+			// find the pip value with the name specified
+			for (const auto& data : TechnoTypeClass::PipsTypeName)
+			{
+				if (data == Phobos::readBuffer)
+				{
+					//Debug::LogInfo("[%s]%s=%s ([%d] from [%s]) ", pSection, pKey, Phobos::readBuffer, it->Value, it->Name);
+					return data.Value;
 				}
 			}
-
-			Debug::INIParseFailed(pSection, pKey, Phobos::readBuffer, "Expect valid pip");
 		}
 
-		return fallback;
+		Debug::INIParseFailed(pSection, pKey, Phobos::readBuffer, "Expect valid pip");
 	}
-};
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x4748A0, FakeCCIniClass::__GetPipType)
+	return fallback;
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x4748A0, FakeCCINIClass::__GetPipType)
 
 // invalid or not set edge reads array out of bounds
 ASMJIT_PATCH(0x4759D4, INIClass_WriteEdge, 0x7)

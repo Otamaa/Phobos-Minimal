@@ -11,6 +11,20 @@ std::vector<dllData> Patch::ModuleDatas {};
 HANDLE Patch::CurrentProcess {};
 std::string Patch::WindowsVersion {};
 
+void Patch::ShowWriteError(DWORD errorCode, uintptr_t address)
+{
+	// Format the address as a hexadecimal string and get the error code
+	std::wstring res = 
+		fmt::format(L"WriteProcessMemory failed.\n\nTarget Address : 0x {}\nError Code: {}", address , errorCode);
+
+	MessageBoxW(
+		NULL,
+		res.c_str(),
+		L"Memory Write Error",
+		MB_OK | MB_ICONERROR | MB_SYSTEMMODAL
+	);
+}
+
 int Patch::GetSection(HANDLE hInstance, const char* sectionName, void** pVirtualAddress)
 {
 	char buf[MAX_PATH + 1] = { 0 };

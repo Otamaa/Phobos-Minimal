@@ -10,3 +10,4 @@ void __fastcall Emergency_Exit(int code)
 {
 	JMP_FAST(0x6BEC50);
 }
+

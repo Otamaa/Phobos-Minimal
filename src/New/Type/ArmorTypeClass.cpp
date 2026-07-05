@@ -117,7 +117,7 @@ void ArmorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 	for (int i = 0; i < pkeyCount; ++i) {
 		const auto pKeyHere = pINI->GetKeyName(pSection, i);
 		if (auto const pAlloc = FindOrAllocate(pKeyHere)) {
-			Debug::Log("ArmorLookUp %s - %d - I %d \n" , pAlloc->Name.data(), pAlloc->ArrayIndex , i);
+			Debug::Log("ArmorLookUp %s - %d - Inherited %d \n" , pAlloc->Name.data(), pAlloc->ArrayIndex , i);
 			ArmorLookup.emplace(pAlloc->Name.data(), pAlloc->ArrayIndex);
 			pAlloc->LoadFromINI(pINI);
 		}

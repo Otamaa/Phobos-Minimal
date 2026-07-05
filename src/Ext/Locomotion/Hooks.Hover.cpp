@@ -191,3 +191,16 @@ ASMJIT_PATCH(0x516305, HoverLocomotionClass_sub_515ED0, 0x9)
 
 	return 0x51630E;
 }
+
+ASMJIT_PATCH(0x514C07, HoverLocomotionClass_Process_HoverShutdown, 0x5)
+{
+	enum { SkipGameCode = 0x514C12 };
+
+	GET(LocomotionClass* const, pThis, ESI);
+
+	const auto pTechno = pThis->Owner;
+	pTechno->DropAsBomb();
+	TechnoExtContainer::Instance.Find(pTechno)->HoverShutdown = true;
+
+	return SkipGameCode;
+}

@@ -69,10 +69,10 @@ bool Parser<double>::TryParse(const char* pValue, OutType* outValue)
 
 	float floatValue = static_cast<float>(value);
 
-	if (strchr(pValue, '%'))
-	{
-		floatValue *= 0.01f;
-	}
+	// if (strchr(pValue, '%'))
+	// {
+	// 	floatValue *= 0.01f;
+	// }
 
 	if (outValue)
 	{

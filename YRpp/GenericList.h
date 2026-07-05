@@ -15,7 +15,6 @@ public:
 	GenericNode& operator = (GenericNode& node);
 
 
-	GenericList* MainList() const;
 	GenericNode* Next() const { return this->NextNode; }
 	GenericNode* NextValid() const { return (NextNode != nullptr && NextNode->NextNode != nullptr) ? NextNode : nullptr; }
 	GenericNode* Prev() const { return this->PrevNode; }
@@ -68,15 +67,15 @@ protected:
 };
 
 template<class T> class List;
+
 template<class T>
 class Node : public GenericNode
 {
 public:
-	List<T>* MainList() const { return reinterpret_cast<List<T>*>(GenericNode::MainList()); }
-	T Next() const { return reinterpret_cast<T>(GenericNode::Next()); }
-	T NextValid() const { return reinterpret_cast<T>(GenericNode::NextValid()); }
-	T Prev() const { return reinterpret_cast<T>(GenericNode::Prev()); }
-	T PrevValid() const { return reinterpret_cast<T>(GenericNode::PrevValid()); }
+	T* Next() const { return reinterpret_cast<T*>(GenericNode::Next()); }
+	T* NextValid() const { return reinterpret_cast<T*>(GenericNode::NextValid()); }
+	T* Prev() const { return reinterpret_cast<T*>(GenericNode::Prev()); }
+	T* PrevValid() const { return reinterpret_cast<T*>(GenericNode::PrevValid()); }
 	bool Is_Valid() const { return GenericNode::IsValid(); }
 
 };

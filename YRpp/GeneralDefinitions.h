@@ -637,6 +637,12 @@ enum class AIDifficulty : uint32_t {
 	Easy = 2
 };
 
+enum class ParsedDifficulty : uint32_t {
+	Easy = 0,
+	Normal = 1,
+	Hard = 2
+};
+
 enum class TextPrintType : int
 {
 	LASTPOINT = 0x0, //*

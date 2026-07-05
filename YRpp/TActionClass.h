@@ -97,6 +97,8 @@ public:
 				(ActionFuncTable[idx].address)(this, pHouse , pObj , pTrig , pCell);
 	}
 
+#ifdef _OriginalFUnc
+
 #pragma push_macro("ACTION_FUNC")
 
 #define ACTION_FUNC(name, addr) \
@@ -250,6 +252,7 @@ public:
 #undef ACTION_FUNC
 #pragma pop_macro("ACTION_FUNC")
 	// WHEEEEEW. End of slave functions.
+#endif
 
 	HouseClass* FindHouseByIndex(TriggerClass* pTrigger, int idxHouse) const
 		{ JMP_THIS(0x6E45E0); }

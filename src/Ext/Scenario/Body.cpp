@@ -16,17 +16,17 @@ void ScenarioExtData::SaveVariablesToFile(bool isGlobal)
 
 	bool is_newFile = false;
 
-	if(!pFile->Exists()){
-		if(!pFile->CreateFileA()) {
+	if(!pFile->IsAvaible()){
+		if(!pFile->Create()) {
 			return;
 		}
 
 		is_newFile = true;
-		if (!pFile->Exists())
+		if (!pFile->IsAvaible())
 			return;
 	}
 
-	if(!pFile->Open(FileAccessMode::Write)) {
+	if(!pFile->Open1(FileAccessMode::Write)) {
 		Debug::LogInfo(__FUNCTION__" Failed to Open file {} for" , fileName);
 		return;
 	}
@@ -50,12 +50,12 @@ void ScenarioExtData::LoadVariablesToFile(bool isGlobal)
 	const auto fileName = isGlobal ? "globals.ini" : "locals.ini";
 	CCFileClass file { fileName };
 
-	if (!file.Exists())
+	if (!file.IsAvaible())
 	{
 		return;
 	}
 
-	if (!file.Open(FileAccessMode::ReadWrite))
+	if (!file.Open1(FileAccessMode::ReadWrite))
 	{
 		Debug::LogInfo(" {} Failed to Open file {} for", __FUNCTION__, fileName);
 		return;
@@ -225,13 +225,13 @@ void ScenarioExtData::ReadMissionMDINI()
 {
 	CCFileClass file { GameStrings::MISSIONMD_INI };
 
-	if (!file.Exists()) {
-		Debug::LogInfo(__FUNCTION__ " Failed to Find file {} for", file.FileName);
+	if (!file.IsAvaible()) {
+		Debug::LogInfo(__FUNCTION__ " Failed to Find file {} for", file.Filename);
 		return;
 	}
 
-	if (!file.Open(FileAccessMode::ReadWrite)) {
-		Debug::LogInfo(__FUNCTION__ " Failed to Open file {} for", file.FileName);
+	if (!file.Open1(FileAccessMode::ReadWrite)) {
+		Debug::LogInfo(__FUNCTION__ " Failed to Open file {} for", file.Filename);
 		return;
 	}
 

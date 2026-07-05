@@ -8,11 +8,10 @@
 struct GameConfig
 {
 
-	GameConfig(const char* pFilename) noexcept : File { nullptr }
+	GameConfig(const char* pFilename) noexcept : RequestedFile { pFilename } 
+		, File { GameCreate<CCFileClass>(pFilename) }
 		, Ini { nullptr }
-	{
-		this->File.reset(GameCreate<CCFileClass>(pFilename));
-	}
+	{ }
 
 	~GameConfig() noexcept = default;
 
@@ -58,7 +57,7 @@ struct GameConfig
 
 	FORCEDINLINE const char* filename() noexcept
 	{
-		return File->FileName;
+		return File->Filename;
 	}
 
 	FORCEDINLINE CCINIClass* get() noexcept
@@ -72,6 +71,7 @@ struct GameConfig
 	}
 
 protected:
-	UniqueGamePtr<CCFileClass> File;
-	UniqueGamePtr<CCINIClass> Ini;
+	std::string RequestedFile; //original requested file name
+	UniqueGamePtr<CCFileClass> File; //pointer to CCFileClass but when requesting name here it will return the mix name usually
+	UniqueGamePtr<CCINIClass> Ini; //pointer to INI
 };

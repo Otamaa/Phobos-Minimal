@@ -16,6 +16,20 @@
 #include <Locomotor/Cast.h>
 #include <Locomotor/JumpjetLocomotionClass.h>
 
+// don't set the focus when selling (true selling, thus no focus set atm)
+ASMJIT_PATCH(0x4C6DDB, Networking_RespondToEvent_Selling, 0x8)
+{
+	GET(TechnoClass* const, pTechno, EDI);
+	GET(AbstractClass* const, pFocus, EAX);
+
+	if (pTechno->CurrentMission != Mission::Selling || pTechno->ArchiveTarget)
+	{
+		pTechno->SetArchiveTarget(pFocus);
+	}
+
+	return 0x4C6DE3;
+}
+
 ASMJIT_PATCH(0x64C314, Breakup_Receive_Packet_PayloadSize2, 0x8)
 {
 	GET(EventType, eventType, ESI);

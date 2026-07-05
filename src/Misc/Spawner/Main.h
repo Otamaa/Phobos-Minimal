@@ -63,7 +63,7 @@ struct SpawnerMain
 
 	struct GameConfigs {
 		static void Init();
-		static bool StartGame();
+		static bool __fastcall StartGame(bool a1);
 		static void AssignHouses();
 		static void After_Main_Loop();
 		static void RespondToSaveGame(EventClass* event);

@@ -40,7 +40,7 @@ public:
 	static COMPILETIMEEVAL reference<bool, 0xB04470u> const NeedToRelease {};
 
 	virtual ~WWMouseClass()
-		{ JMP_THIS(0x0); }
+		{ JMP_THIS(0x7B88D0); }
 
 	virtual void Draw(Point2D const& coords, SHPStruct const* pImage, int idxFrame)
 		{ JMP_THIS(0x7B8A00); }

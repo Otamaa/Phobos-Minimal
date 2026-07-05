@@ -1927,7 +1927,7 @@ bool HouseExtData::UpdateHarvesterProduction()
 			? RulesClass::Instance->HarvestersPerRefinery[AIDifficulty] * pThis->CountResourceDestinations
 			: RulesClass::Instance->AISlaveMinerNumber[AIDifficulty];
 
-		if (pThis->IQLevel2 >= RulesClass::Instance->Harvester && !pThis->IsTiberiumShort
+		if (pThis->IQLevel2 >= RulesClass::Instance->IQData.Harvester && !pThis->IsTiberiumShort
 			&& !pThis->IsControlledByHuman() && harvesters < maxHarvesters
 			&& pThis->StaticData.TechLevel >= pHarvesterUnit->TechLevel)
 		{
@@ -2904,7 +2904,7 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->BestChoicesNaval)
 		.Process(this->AITriggers_ValidList)
 		.Process(this->PlayerAutoRepair)
-		.Process(this->BeaconsPlacedOrder)
+		//.Process(this->BeaconsPlacedOrder)
 		;
 }
 #endif
@@ -3087,7 +3087,7 @@ int FakeHouseClass::_Expert_AI()
 	 */
 
 	if (!RulesExtData::Instance()->AISuperWeaponDelay.isset()
-		&& (!SessionClass::IsCampaign() || this->IQLevel2 >= RulesClass::Instance->SuperWeapons)) {
+		&& (!SessionClass::IsCampaign() || this->IQLevel2 >= RulesClass::Instance->IQData.SuperWeapons)) {
 		this->_AITryFireSW();
 	}
 

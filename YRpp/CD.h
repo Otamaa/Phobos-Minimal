@@ -8,7 +8,8 @@ class CDDriveManagerClass
 {
 public:
 	//Static
-	static COMPILETIMEEVAL reference<CDDriveManagerClass*, 0x89E414u> const Instance_unknown {}; //???
+	static COMPILETIMEEVAL reference<int, 0x89E414u> const DriveIndex {}; //???
+	static COMPILETIMEEVAL reference<int, 0x89E418u> const LastDriveIndex {};
 	static COMPILETIMEEVAL reference<CDDriveManagerClass, 0xA8E8E8> const Instance {};
 
 protected:
@@ -23,8 +24,8 @@ public:
 	1 = RA2 Soviet,
 	2 = YR
 	*/
-	int GetCDNumber()
-		{ JMP_THIS(0x4A80D0); }
+	static int __fastcall GetCDNumber(int cd_drive,int timeout)
+		{ JMP_FAST(0x4A80D0); }
 
 	//Properties
 
@@ -42,9 +43,10 @@ public:
 	static COMPILETIMEEVAL reference<bool, 0x89E3A0> const IsLocal { };
 
 	virtual bool ForceAvailable(int cdNumber) JMP_THIS(0x4790E0);
-	virtual bool InsertCDDialog() JMP_THIS(0x479110);
+	virtual bool InsertCDDialog(int index) JMP_THIS(0x479110);
 	virtual void SwapToDisk() JMP_THIS(0x4791F0);
 
+	//4790B0
 	static COMPILETIMEEVAL void SetReqCD(int cd)
 	{
 		if (CD::IsLocal()) {

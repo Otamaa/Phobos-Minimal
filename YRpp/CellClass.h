@@ -591,6 +591,9 @@ public:
 	int GetZPosAdjent() const
 		{ JMP_THIS(0x485080); }
 
+	bool CanEnterCell()
+		{ JMP_THIS(0x486FF0); }
+
 	int GetZPosAdjentWithBridge()const
 	{
 		auto ret = this->GetZPosAdjent();

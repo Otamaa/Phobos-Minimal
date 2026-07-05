@@ -62,23 +62,24 @@ ASMJIT_PATCH(0x51D7E0, InfantryClass_DoAction_SecondaryWetAttack, 0x5)
 
 	if (pThis->_GetTypeExtData()->OnlyUseLandSequences)
 	{
-		R->EBP(false);
+		R->EBP(0);
 		return SkipWaterSequences;
 	}
 
 	if (type == DoType::Walk || type == DoType::Crawl) // Restore overridden instructions.
 	{
-		R->EBP(false);
+		R->EBP(0);
 		return UseSwim;
 	}
 
 	if (type == DoType::SecondaryFire || type == DoType::SecondaryProne)
 	{
-		R->EBP(false);
+		R->EBP(0);
 
 		if (!((NewDoType*)pThis->Type->Sequence)->GetSequence(DoType(43)).CountFrames)
 		{
-			return UseWetAttack;
+			const auto pTypeExt = InfantryTypeExtContainer::Instance.Find(pThis->Type);
+			return pTypeExt->SecondaryFireSequenceLandOnly.Get(RulesExtData::Instance()->SecondaryFireSequenceLandOnly) ? UseWetAttack : Continue;
 		}
 
 		R->EDI(DoType(43));

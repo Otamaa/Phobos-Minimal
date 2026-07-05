@@ -328,6 +328,9 @@ public:
 		JMP_THIS(0x6DA180);
 	}
 
+	CellStruct* coordmap_math(CellStruct* arg0, CoordStruct* a2)
+	{ JMP_THIS(0x6D6410); }
+
 	TacticalClass() noexcept
 		: TacticalClass(noinit_t())
 	{ JMP_THIS(0x6D1C20); }

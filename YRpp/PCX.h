@@ -46,11 +46,11 @@ public:
 	{ JMP_FAST(0x630310); }
 
 	// Load a PCX file
-	bool ForceLoadFile(const char* pFileName, int flag1, int flag2)
+	bool ForceLoadFile(const char* pFileName, int bpp = 2, bool applyPalette = 0)
 		{ JMP_THIS(0x6B9D00); }
 
 	//Load a PCX file
-	bool LoadFile(const char *pFileName, int flag1 = 2, int flag2 = 0);
+	bool LoadFile(const char *pFileName, int bpp = 2, bool applyPalette = 0);
 
 	// Get a BSurface for a PCX file. File needs to be loaded some time first!
 	BSurface* GetSurface(const char* pFileName, BytePalette * pPalette = nullptr)

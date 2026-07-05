@@ -15,6 +15,7 @@
 #include <Ext/Event/Body.h>
 
 #include <Ext/House/Body.h>
+#include <Ext/INI/Body.h>
 
 #include "DumpTypeDataArrayToFile.h"
 #include "NetHack.h"
@@ -310,128 +311,296 @@ COMPILETIMEEVAL const char* AlliancesTagArray[8] = {
 	"HouseAllyEight"
 };
 
-class CCINIClassDummy : public CCINIClass {
-public:
+int  FakeCCINIClass::GetStringOld(const char* section, const char* entry, const char* defvalue, char* buffer, size_t length)
+{
+	EPILOG_THISCALL;
+	// It's 5 bytes corrupted by the ares hook
+	_asm { sub  esp, 0xC };
+	_asm { xor eax, eax };
 
-	int NOINLINE ReadString_WithoutAresHook(const char* pSection, const char* pKey, const char* pDefault, char* pBuffer, size_t szBufferSize)
+	_asm { mov edx, 0x528A10 + 5 };
+	_asm { jmp edx }
+	/*
+		// --- Early-out guards (original order preserved) ---
+		if (!buffer)    return 0;
+		if (length < 2) return 0;
+		if (!section)   return 0;
+		if (!entry)     return 0;
+
+		// Helper lambda: write defvalue (or "") into buffer and return length.
+		// Replaces LABEL_36 block.
+		auto finalise = [&]() -> int
+			{
+				if (!defvalue)
+				{
+					buffer[0] = '\0';
+					return 0;
+				}
+				CRT::strncpy(buffer, defvalue, length);
+				buffer[length - 1] = '\0';
+				CRT::strtrim(buffer);
+				return static_cast<int>(strlen(buffer));
+			};
+
+		// --- Section lookup ---
+		INISection* sectionPtr = nullptr;
+
+		if (section == this->CurrentSectionName)
+		{
+			// Cache hit — skip CRC + index search.
+			sectionPtr = this->CurrentSection;
+		}
+		else
+		{
+			uint32_t sectionHash = SafeChecksummer {}(section, strlen(section));
+
+			if (!this->SectionIndex.IsPresent(sectionHash))
+			{
+				this->CurrentSectionName = nullptr;
+				this->CurrentSection = nullptr;
+				return finalise();
+			}
+
+			// FetchIndex returns nullptr (TValue{}) on miss; IsPresent already guarded above.
+			sectionPtr = this->SectionIndex.FetchIndex(sectionHash);
+
+			if (!sectionPtr)
+			{
+				this->CurrentSectionName = nullptr;
+				this->CurrentSection = nullptr;
+				return finalise();
+			}
+
+			this->CurrentSection = sectionPtr;
+			this->CurrentSectionName = section;
+		}
+
+		if (!sectionPtr)
+			return finalise();
+
+		uint32_t entryHash = SafeChecksummer {}(entry, strlen(entry));
+
+		auto& entryIndex = sectionPtr->EntryIndex;
+
+		if (!entryIndex.IsPresent(entryHash))
+			return finalise();
+
+		INIEntry* entryPtr = entryIndex.FetchIndex(entryHash);
+		if (!entryPtr)
+			return finalise();
+
+		const char* value = entryPtr->Value;
+		if (!value)
+			return finalise();
+
+		CRT::strncpy(buffer, value, length);
+		buffer[length - 1] = '\0';
+		CRT::strtrim(buffer);
+		return static_cast<int>(strlen(buffer));
+	*/
+}
+
+bool FakeCCINIClass::WriteStringOld(const char* section, const char* entry, const char* string)
+{
+	if (!section || !entry)
+		return false;
+
+	// -----------------------------------------------------------------------
+	// 1. Find or create the target section
+	// -----------------------------------------------------------------------
+	const int sectionCrc = SafeChecksummer()(section, std::strlen(section));
+
+	INISection* pSection = nullptr;
+
+	if (this->SectionIndex.IsPresent(sectionCrc))
 	{
-		EPILOG_THISCALL;
-
-		// It's 5 bytes corrupted by the ares hook
-		_asm { sub  esp, 0xC };
-		_asm { xor eax, eax };
-
-		_asm { mov edx, 0x528A10 + 5 };
-		_asm { jmp edx }
+		pSection = this->SectionIndex.Archive->Data;
 	}
-};
-static_assert(sizeof(CCINIClassDummy) == sizeof(CCINIClass), "Invalid Size !");
+	else
+	{
+		pSection = GameCreate<INISection>();
 
+		if (!pSection)
+			return false;
+
+		pSection->Name = _strdup(section);
+		pSection->Comments = nullptr;
+
+		this->Sections.AddTail(pSection);
+
+		const int newSectionCrc = SafeChecksummer()(pSection->Name, std::strlen(pSection->Name));
+
+		this->SectionIndex.AddIndex(newSectionCrc, pSection);
+	}
+
+	// -----------------------------------------------------------------------
+	// 2. Find existing entry — save comment fields, erase from index + list
+	// -----------------------------------------------------------------------
+	INIComment* savedComments = nullptr;
+	char* savedCommentString = nullptr;
+	int         savedPreIndent = 0;
+	int         savedPostIndent = 0;
+	int         savedCommentCursor = 0;
+
+	if (pSection->EntryIndex.IsPresent(SafeChecksummer()(entry, std::strlen(entry)))) {
+
+		INIEntry* existing = pSection->EntryIndex.Archive->Data;
+
+		// Lift comment fields off the old entry before destroying it
+		savedComments = existing->Comments;
+		savedCommentString = existing->CommentString;
+		savedPreIndent = existing->PreIndentCursor;
+		savedPostIndent = existing->PostIndentCursor;
+		savedCommentCursor = existing->CommentCursor;
+
+		existing->Comments = nullptr;
+		existing->CommentString = nullptr;
+
+		// Remove from EntryIndex
+		pSection->EntryIndex.RemoveIndex(SafeChecksummer()(existing->Key, std::strlen(existing->Key)));
+		GameDelete<true, false>(existing);
+	}
+
+	// -----------------------------------------------------------------------
+	// 3. Erase-only: null/empty string means just remove the entry
+	// -----------------------------------------------------------------------
+	if (!string || !std::strlen(string))
+		return true;
+
+	// -----------------------------------------------------------------------
+	// 4. Allocate and link the new entry
+	// -----------------------------------------------------------------------
+	auto cleanup = [&]() -> bool
+		{
+			std::free(savedCommentString);
+			Free_Comment_List(savedComments);
+			return false;
+		};
+
+	INIEntry* newEntry = GameCreate<INIEntry>(
+		_strdup(entry),
+		_strdup(string),
+		savedComments,
+		savedCommentString,
+		savedCommentCursor,
+		savedPreIndent,
+		savedPostIndent);
+
+	if (!newEntry)
+		return cleanup();
+
+	pSection->Entries.AddTail(newEntry);
+	pSection->EntryIndex.AddIndex(SafeChecksummer()(newEntry->Key, std::strlen(newEntry->Key)), newEntry);
+	return true;
+}
 #include <string>
 
 void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 {
-	if (!pINI || !pINI->GetSection(GameStrings::Settings()))
+	if (!pINI)
 		return;
 
-	{ // Game Mode Options
-		MPModeIndex = pINI->ReadInteger(GameStrings::Settings(), GameStrings::GameMode, MPModeIndex);
-		Bases = pINI->ReadBool(GameStrings::Settings(), GameStrings::Bases, Bases);
-		Credits = pINI->ReadInteger(GameStrings::Settings(), GameStrings::Credits, Credits);
-		BridgeDestroy = pINI->ReadBool(GameStrings::Settings(), "BridgeDestroy", BridgeDestroy);
-		Crates = pINI->ReadBool(GameStrings::Settings(), GameStrings::Crates, Crates);
-		ShortGame = pINI->ReadBool(GameStrings::Settings(), GameStrings::ShortGame, ShortGame);
-		// cncnet/spawner using `Superweapons` is this typo or intention ? , idk
-		// please report if there is a problem @Otamaa
-		SuperWeapons = pINI->ReadBool(GameStrings::Settings(), GameStrings::SuperWeapons, SuperWeapons);
-		SuperWeapons = pINI->ReadBool(GameStrings::Settings(), "Superweapons", SuperWeapons);
-		BuildOffAlly = pINI->ReadBool(GameStrings::Settings(), GameStrings::BuildOffAlly, BuildOffAlly);
-		GameSpeed = pINI->ReadInteger(GameStrings::Settings(), GameStrings::GameSpeed, GameSpeed);
-		MultiEngineer = pINI->ReadBool(GameStrings::Settings(), GameStrings::MultiEngineer, MultiEngineer);
-		UnitCount = pINI->ReadInteger(GameStrings::Settings(), GameStrings::UnitCount, UnitCount);
-		AIPlayers = pINI->ReadInteger(GameStrings::Settings(), GameStrings::AIPlayers, AIPlayers);
-		AIDifficulty = pINI->ReadInteger(GameStrings::Settings(), GameStrings::AIDifficulty, AIDifficulty);
-		AlliesAllowed = pINI->ReadBool(GameStrings::Settings(), GameStrings::AlliesAllowed, AlliesAllowed);
-		HarvesterTruce = pINI->ReadBool(GameStrings::Settings(), GameStrings::HarvesterTruce, HarvesterTruce);
-		FogOfWar = pINI->ReadBool(GameStrings::Settings(), GameStrings::FogOfWar, FogOfWar);
-		MCVRedeploy = pINI->ReadBool(GameStrings::Settings(), GameStrings::MCVRedeploy, MCVRedeploy);
+	if(pINI->GetSection(GameStrings::Settings())){
 
-		if (((CCINIClassDummy*)pINI)->ReadString_WithoutAresHook(GameStrings::Settings(), "UIGameMode", Phobos::readDefval, Phobos::readBuffer, Phobos::readLength) > 0)
-			MultiByteToWideChar(CP_UTF8, 0, Phobos::readBuffer, strlen(Phobos::readBuffer), UIGameMode, std::size(UIGameMode));
-	}
+		{ // Game Mode Options
+			MPModeIndex = pINI->ReadInteger(GameStrings::Settings(), GameStrings::GameMode, MPModeIndex);
+			Bases = pINI->ReadBool(GameStrings::Settings(), GameStrings::Bases, Bases);
+			Credits = pINI->ReadInteger(GameStrings::Settings(), GameStrings::Credits, Credits);
+			BridgeDestroy = pINI->ReadBool(GameStrings::Settings(), "BridgeDestroy", BridgeDestroy);
+			Crates = pINI->ReadBool(GameStrings::Settings(), GameStrings::Crates, Crates);
+			ShortGame = pINI->ReadBool(GameStrings::Settings(), GameStrings::ShortGame, ShortGame);
+			// cncnet/spawner using `Superweapons` is this typo or intention ? , idk
+			// please report if there is a problem @Otamaa
+			SuperWeapons = pINI->ReadBool(GameStrings::Settings(), GameStrings::SuperWeapons, SuperWeapons);
+			SuperWeapons = pINI->ReadBool(GameStrings::Settings(), "Superweapons", SuperWeapons);
+			BuildOffAlly = pINI->ReadBool(GameStrings::Settings(), GameStrings::BuildOffAlly, BuildOffAlly);
+			GameSpeed = pINI->ReadInteger(GameStrings::Settings(), GameStrings::GameSpeed, GameSpeed);
+			MultiEngineer = pINI->ReadBool(GameStrings::Settings(), GameStrings::MultiEngineer, MultiEngineer);
+			UnitCount = pINI->ReadInteger(GameStrings::Settings(), GameStrings::UnitCount, UnitCount);
+			AIPlayers = pINI->ReadInteger(GameStrings::Settings(), GameStrings::AIPlayers, AIPlayers);
+			AIDifficulty = pINI->ReadInteger(GameStrings::Settings(), GameStrings::AIDifficulty, AIDifficulty);
+			AlliesAllowed = pINI->ReadBool(GameStrings::Settings(), GameStrings::AlliesAllowed, AlliesAllowed);
+			HarvesterTruce = pINI->ReadBool(GameStrings::Settings(), GameStrings::HarvesterTruce, HarvesterTruce);
+			FogOfWar = pINI->ReadBool(GameStrings::Settings(), GameStrings::FogOfWar, FogOfWar);
+			MCVRedeploy = pINI->ReadBool(GameStrings::Settings(), GameStrings::MCVRedeploy, MCVRedeploy);
 
-	// SaveGame Options
-	LoadSaveGame = pINI->ReadBool(GameStrings::Settings(), "LoadSaveGame", LoadSaveGame);
-	/* SavedGameDir */
-	pINI->ReadString(GameStrings::Settings(), "SavedGameDir", SavedGameDir, SavedGameDir, sizeof(SavedGameDir));
-	/* SaveGameName */
-	pINI->ReadString(GameStrings::Settings(), "SaveGameName", SaveGameName, SaveGameName, sizeof(SaveGameName));
-
-	AutoSaveCount = pINI->ReadInteger(GameStrings::Settings(), "AutoSaveCount", AutoSaveCount);
-	AutoSaveInterval = pINI->ReadInteger(GameStrings::Settings(), "AutoSaveInterval", AutoSaveInterval);
-	NextAutoSaveNumber = pINI->ReadInteger(GameStrings::Settings(), "NextAutoSaveNumber", NextAutoSaveNumber);
-
-	CustomMissionID = pINI->ReadInteger(GameStrings::Settings(), "CampaignID", CustomMissionID);
-
-	{ // Scenario Options
-		Seed = pINI->ReadInteger(GameStrings::Settings(), "Seed", Seed);
-		TechLevel = pINI->ReadInteger(GameStrings::Settings(), GameStrings::TechLevel, TechLevel);
-		IsCampaign = pINI->ReadBool(GameStrings::Settings(), "IsSinglePlayer", IsCampaign);
-		Tournament = pINI->ReadInteger(GameStrings::Settings(), "Tournament", Tournament);
-		WOLGameID = pINI->ReadInteger(GameStrings::Settings(), "GameID", WOLGameID);
-		/* ScenarioName*/
-		pINI->ReadString(GameStrings::Settings(), GameStrings::Scenario, ScenarioName, ScenarioName, sizeof(ScenarioName));
-		/* MapHash*/
-		pINI->ReadString(GameStrings::Settings(), "MapHash", MapHash, MapHash, sizeof(MapHash));
-		ReadMissionSection = pINI->ReadBool(GameStrings::Settings(), "ReadMissionSection", ReadMissionSection);
-
-		if (((CCINIClassDummy*)pINI)->ReadString_WithoutAresHook(GameStrings::Settings(), "UIMapName", "", Phobos::readBuffer, Phobos::readLength) > 0)
-			MultiByteToWideChar(CP_UTF8, 0, Phobos::readBuffer, strlen(Phobos::readBuffer), UIMapName, std::size(UIMapName));
-	}
-
-	{ // Network Options
-		Protocol = pINI->ReadInteger(GameStrings::Settings(), "Protocol", Protocol);
-		FrameSendRate = pINI->ReadInteger(GameStrings::Settings(), "FrameSendRate", FrameSendRate);
-		ReconnectTimeout = pINI->ReadInteger(GameStrings::Settings(), "ReconnectTimeout", ReconnectTimeout);
-		ConnTimeout = pINI->ReadInteger(GameStrings::Settings(), "ConnTimeout", ConnTimeout);
-		MaxAhead = pINI->ReadInteger(GameStrings::Settings(), "MaxAhead", MaxAhead);
-		PreCalcMaxAhead = pINI->ReadInteger(GameStrings::Settings(), "PreCalcMaxAhead", PreCalcMaxAhead);
-		MaxLatencyLevel = (byte)pINI->ReadInteger(GameStrings::Settings(), "MaxLatencyLevel", (int)MaxLatencyLevel);
-		ForceMultiplayer = pINI->ReadBool(GameStrings::Settings(), "ForceMultiplayer", ForceMultiplayer);
-		Host             = pINI->ReadBool(GameStrings::Settings(), "Host", Host);
-
-	}
-
-	{ // Tunnel Options
-		// Otama : ?????????
-		TunnelId = pINI->ReadInteger(GameStrings::Settings(), "Port", TunnelId);
-		ListenPort = pINI->ReadInteger(GameStrings::Settings(), "Port", ListenPort);
-
-		if (pINI->GetSection(GameStrings::Tunnel())) {
-			pINI->ReadString(GameStrings::Tunnel(), "Ip", TunnelIp, TunnelIp, sizeof(TunnelIp));
-			TunnelPort = pINI->ReadInteger(GameStrings::Tunnel(), "Port", TunnelPort);
+			if (((FakeCCINIClass*)pINI)->GetStringOld(GameStrings::Settings(), "UIGameMode", Phobos::readDefval, Phobos::readBuffer, Phobos::readLength) > 0)
+				MultiByteToWideChar(CP_UTF8, 0, Phobos::readBuffer, strlen(Phobos::readBuffer), UIGameMode, std::size(UIGameMode));
 		}
+
+		// SaveGame Options
+		LoadSaveGame = pINI->ReadBool(GameStrings::Settings(), "LoadSaveGame", LoadSaveGame);
+		/* SavedGameDir */
+		pINI->ReadString(GameStrings::Settings(), "SavedGameDir", SavedGameDir, SavedGameDir, sizeof(SavedGameDir));
+		/* SaveGameName */
+		pINI->ReadString(GameStrings::Settings(), "SaveGameName", SaveGameName, SaveGameName, sizeof(SaveGameName));
+
+		AutoSaveCount = pINI->ReadInteger(GameStrings::Settings(), "AutoSaveCount", AutoSaveCount);
+		AutoSaveInterval = pINI->ReadInteger(GameStrings::Settings(), "AutoSaveInterval", AutoSaveInterval);
+		NextAutoSaveNumber = pINI->ReadInteger(GameStrings::Settings(), "NextAutoSaveNumber", NextAutoSaveNumber);
+
+		CustomMissionID = pINI->ReadInteger(GameStrings::Settings(), "CampaignID", CustomMissionID);
+
+		{ // Scenario Options
+			Seed = pINI->ReadInteger(GameStrings::Settings(), "Seed", Seed);
+			TechLevel = pINI->ReadInteger(GameStrings::Settings(), GameStrings::TechLevel, TechLevel);
+			IsCampaign = pINI->ReadBool(GameStrings::Settings(), "IsSinglePlayer", IsCampaign);
+			Tournament = pINI->ReadInteger(GameStrings::Settings(), "Tournament", Tournament);
+			WOLGameID = pINI->ReadInteger(GameStrings::Settings(), "GameID", WOLGameID);
+			/* ScenarioName*/
+			pINI->ReadString(GameStrings::Settings(), GameStrings::Scenario, ScenarioName, ScenarioName, sizeof(ScenarioName));
+			/* MapHash*/
+			pINI->ReadString(GameStrings::Settings(), "MapHash", MapHash, MapHash, sizeof(MapHash));
+			ReadMissionSection = pINI->ReadBool(GameStrings::Settings(), "ReadMissionSection", ReadMissionSection);
+
+			if (((FakeCCINIClass*)pINI)->GetStringOld(GameStrings::Settings(), "UIMapName", "", Phobos::readBuffer, Phobos::readLength) > 0)
+				MultiByteToWideChar(CP_UTF8, 0, Phobos::readBuffer, strlen(Phobos::readBuffer), UIMapName, std::size(UIMapName));
+		}
+
+		{ // Network Options
+			Protocol = pINI->ReadInteger(GameStrings::Settings(), "Protocol", Protocol);
+			FrameSendRate = pINI->ReadInteger(GameStrings::Settings(), "FrameSendRate", FrameSendRate);
+			ReconnectTimeout = pINI->ReadInteger(GameStrings::Settings(), "ReconnectTimeout", ReconnectTimeout);
+			ConnTimeout = pINI->ReadInteger(GameStrings::Settings(), "ConnTimeout", ConnTimeout);
+			MaxAhead = pINI->ReadInteger(GameStrings::Settings(), "MaxAhead", MaxAhead);
+			PreCalcMaxAhead = pINI->ReadInteger(GameStrings::Settings(), "PreCalcMaxAhead", PreCalcMaxAhead);
+			MaxLatencyLevel = (byte)pINI->ReadInteger(GameStrings::Settings(), "MaxLatencyLevel", (int)MaxLatencyLevel);
+			ForceMultiplayer = pINI->ReadBool(GameStrings::Settings(), "ForceMultiplayer", ForceMultiplayer);
+			Host             = pINI->ReadBool(GameStrings::Settings(), "Host", Host);
+
+		}
+
+		{ // Tunnel Options
+			// Otama : ?????????
+			TunnelId = pINI->ReadInteger(GameStrings::Settings(), "Port", TunnelId);
+			ListenPort = pINI->ReadInteger(GameStrings::Settings(), "Port", ListenPort);
+		}
+
+		// Extended Options
+		SpawnerHackMPNodes = pINI->ReadBool(GameStrings::Settings(), "UseMPAIBaseNodes", SpawnerHackMPNodes);
+		DisableGameSpeed = pINI->ReadBool(GameStrings::Settings(), "DisableGameSpeed", DisableGameSpeed);
+		QuickMatch = pINI->ReadBool(GameStrings::Settings(), "QuickMatch", QuickMatch);
+		SkipScoreScreen = pINI->ReadBool(GameStrings::Settings(), "SkipScoreScreen", SkipScoreScreen);
+		WriteStatistics = pINI->ReadBool(GameStrings::Settings(), "WriteStatistics", WriteStatistics);
+		AINamesByDifficulty = pINI->ReadBool(GameStrings::Settings(), "AINamesByDifficulty", AINamesByDifficulty);
+		ContinueWithoutHumans = pINI->ReadBool(GameStrings::Settings(), "ContinueWithoutHumans", ContinueWithoutHumans);
+		DefeatedBecomesObserver = pINI->ReadBool(GameStrings::Settings(), "DefeatedBecomesObserver", DefeatedBecomesObserver);
+		Observer_ShowAIOnSidebar = pINI->ReadBool(GameStrings::Settings(), "Observer.ShowAIOnSidebar", Observer_ShowAIOnSidebar);
+		Observer_ShowMultiplayPassive = pINI->ReadBool(GameStrings::Settings(), "Observer.ShowMultiplayPassiveOnSidebar",  Phobos::Otamaa::IsAdmin  ? true : Observer_ShowMultiplayPassive);
+		DisableChat = pINI->ReadBool(GameStrings::Settings(), "DisableChat", DisableChat);
 	}
 
-	// Players Options
-	for (char i = 0; i < (char)std::size(Players); ++i)
-	{
+	if (pINI->GetSection(GameStrings::Tunnel())) {
+		pINI->ReadString(GameStrings::Tunnel(), "Ip", TunnelIp, TunnelIp, sizeof(TunnelIp));
+		TunnelPort = pINI->ReadInteger(GameStrings::Tunnel(), "Port", TunnelPort);
+	}
+
+			// Players Options
+	for (char i = 0; i < (char)std::size(Players); ++i) {
 		(&Players[i])->LoadFromINIFile(pINI, i);
 		(&Houses[i])->LoadFromINIFile(pINI, i);
 	}
 
-	// Extended Options
-	SpawnerHackMPNodes = pINI->ReadBool(GameStrings::Settings(), "UseMPAIBaseNodes", SpawnerHackMPNodes);
-	DisableGameSpeed = pINI->ReadBool(GameStrings::Settings(), "DisableGameSpeed", DisableGameSpeed);
-	QuickMatch = pINI->ReadBool(GameStrings::Settings(), "QuickMatch", QuickMatch);
-	SkipScoreScreen = pINI->ReadBool(GameStrings::Settings(), "SkipScoreScreen", SkipScoreScreen);
-	WriteStatistics = pINI->ReadBool(GameStrings::Settings(), "WriteStatistics", WriteStatistics);
-	AINamesByDifficulty = pINI->ReadBool(GameStrings::Settings(), "AINamesByDifficulty", AINamesByDifficulty);
-	ContinueWithoutHumans = pINI->ReadBool(GameStrings::Settings(), "ContinueWithoutHumans", ContinueWithoutHumans);
-	DefeatedBecomesObserver = pINI->ReadBool(GameStrings::Settings(), "DefeatedBecomesObserver", DefeatedBecomesObserver);
-	Observer_ShowAIOnSidebar = pINI->ReadBool(GameStrings::Settings(), "Observer.ShowAIOnSidebar", Observer_ShowAIOnSidebar);
-	Observer_ShowMultiplayPassive = pINI->ReadBool(GameStrings::Settings(), "Observer.ShowMultiplayPassiveOnSidebar",  Phobos::Otamaa::IsAdmin  ? true : Observer_ShowMultiplayPassive);
-	DisableChat = pINI->ReadBool(GameStrings::Settings(), "DisableChat", DisableChat);
 	// Custom Mixes
 	ReadListFromSection(pINI, "PreloadMixes", PreloadMixes);
 	ReadListFromSection(pINI, "PostloadMixes", PostloadMixes);
@@ -450,7 +619,7 @@ void SpawnerMain::GameConfigs::PlayerConfig::LoadFromINIFile(CCINIClass* pINI, i
 		this->IsHuman = true;
 		this->Difficulty = -1;
 
-		if (((CCINIClassDummy*)pINI)->ReadString_WithoutAresHook(pSection, "Name", Phobos::readDefval, Phobos::readBuffer, Phobos::readLength))
+		if (((FakeCCINIClass*)pINI)->GetStringOld(pSection, "Name", Phobos::readDefval, Phobos::readBuffer, Phobos::readLength))
 			MultiByteToWideChar(CP_UTF8, 0, Phobos::readBuffer, -1, this->Name, std::size(this->Name));
 
 		this->Color = pINI->ReadInteger(pSection, GameStrings::Color(), this->Color);
@@ -539,10 +708,10 @@ void SpawnerMain::GameConfigs::Init() {
 	Patch::Apply_LJMP(0x6D1639, 0x6D1640); // TabClass_6D1610
 
 	// Skip load *.PKT, *.YRO and *.YRM map files
-	Patch::Apply_LJMP(0x699AE0, 0x69A1B2); // SessionClass::Read_Scenario_Descriptions
+	//Patch::Apply_LJMP(0x699AE0, 0x69A1B2); // SessionClass::Read_Scenario_Descriptions
 }
 
-bool SpawnerMain::GameConfigs::StartGame() {
+bool __fastcall SpawnerMain::GameConfigs::StartGame(bool a1) {
 
 	if (SpawnerMain::Configs::Active)
 		return 0;
@@ -730,7 +899,7 @@ bool SpawnerMain::GameConfigs::Reconcile_Players() {
 			 */
 			pHouse->IsHumanPlayer = false;
 			pHouse->Production = true;
-			pHouse->StaticData.IQLevel = RulesClass::Instance->MaxIQLevels;
+			pHouse->StaticData.IQLevel = RulesClass::Instance->IQData.MaxLevels;
 
 			static fmt::basic_memory_buffer<wchar_t> buffer;
 			buffer.clear();
@@ -1149,16 +1318,13 @@ void SpawnerMain::GameConfigs::LoadSidesStuff()
 	RulesClass* pRules = RulesClass::Instance;
 	CCINIClass* pINI = CCINIClass::INI_Rules;
 
+	//read early
 	pRules->Read_Countries(pINI);
 	pRules->Read_Sides(pINI);
 
+	//load some avaible assets 
 	for (auto const& pItem : *HouseTypeClass::Array)
 		pItem->LoadFromINI(pINI);
-}
-
-ASMJIT_PATCH(0x6BD7CB, WinMain_SpawnerInit, 0x5) {
-	SpawnerMain::GameConfigs::Init();
-	return 0x0;
 }
 
 // Display UIGameMode if is set

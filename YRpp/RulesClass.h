@@ -6,6 +6,7 @@
 
 #include <Leptons.h>
 #include <RocketStruct.h>
+#include <EnumArray.h>
 
 //forward declarations
 class AbstractClass;
@@ -25,6 +26,21 @@ class WarheadTypeClass;
 class WeaponTypeClass;
 
 struct SHPStruct;
+
+struct IQStruct
+{
+	int	MaxLevels;
+	int	SuperWeapons;
+	int	Production;
+	int	GuardArea;
+	int	RepairSell;
+	int	AutoCrush;
+	int	Scatter;
+	int	ContentScan;
+	int	Aircraft;
+	int	Harvester;
+	int SellBack;
+};
 
 //Difficulty
 struct DifficultyStruct
@@ -187,7 +203,7 @@ public:
 	void Read_Movies(CCINIClass *pINI)
 		{ JMP_THIS(0x674550); }
 
-	void Read_AdvancedCommandBar(CCINIClass *pINI)
+	void Read_AdvancedCommandBar(CCINIClass *pINI, bool a3)
 		{ JMP_THIS(0x674650); }
 
 	void PointerGotInvalid(AbstractClass* pInvalid, bool removed)
@@ -200,7 +216,6 @@ public:
 		{ JMP_THIS(0x674730); }
 
 	//CTOR / DTOR
-protected:
 	RulesClass() JMP_THIS(0x665650);
 	~RulesClass() JMP_THIS(0x667A30);
 
@@ -740,21 +755,20 @@ public:
 	double			 BaseBias;
 	double			 ExpSpread;
 	int				 FireSupress;
-	int				 MaxIQLevels;
-	int				 SuperWeapons;
-	int				 Production;
-	int				 GuardArea;
-	int				 RepairSell;
-	int				 AutoCrush;
-	int				 Scatter;
-	int				 ContentScan;
-	int				 Aircraft;
-	int				 Harvester;
-	int				 SellBack;
+	IQStruct		IQData;
 	int				 AIBaseSpacing;
-	Powerup			 SilverCrate;
-	Powerup			 WoodCrate;
-	Powerup			 WaterCrate;
+	union {
+		Powerup		SilverCrate;
+		int			SilverCrate_I;
+	};
+	union {
+		Powerup		WoodCrate;
+		int			WoodCrate_I;
+	};
+	union {
+		Powerup		 WaterCrate;
+		int			 WaterCrate_I;
+	};
 	int				 CrateMinimum;
 	int				 CrateMaximum;
 	int				 LZScanRadius;	//defaults to 0x2000 ,1478
@@ -768,7 +782,7 @@ public:
 	int				 MaxUnitCount;
 	int				 TechLevel;
 	int				 GameSpeed;
-	int				 AIDifficultyStruct;
+	int				 AIDifficulty;
 	int				 AIPlayers;
 	bool				 BridgeDestruction;
 	bool				 ShadowGrow;
@@ -803,10 +817,7 @@ public:
 	int				 HarvesterLoadRate;
 	double			 HarvesterDumpRate;
 	int				 AtomDamage;
-//	DifficultyStruct			 Easy;
-//	DifficultyStruct			 Normal;
-//	DifficultyStruct			 Difficult;
-	DifficultyStruct	AIDiffs[3];
+	EnumArray<DifficultyStruct, ParsedDifficulty, 3> DifficultyConfigs;
 	DWORD align_1628[4];
 	double			 GrowthRate;
 	double			 ShroudRate;
@@ -846,7 +857,7 @@ public:
 	Leptons			 Crush;
 	int				 CrateRadius;
 	int				 HomingScatter;
-	int				 BallisticScatter;
+	Leptons			BallisticScatter;
 	double			 RefundPercent;
 	int				 BridgeStrength;
 	double			 BuildSpeed;
@@ -903,7 +914,7 @@ public:
 	bool				 UseMinDefenseRule;
 	AnimTypeClass*			 EMPulseSparkles;
 	float				 EngineerCaptureLevel;
-	float				 EngineerCaptureLevel_;
+	float				 EngineerDamage;
 	float				 TalkBubbleTime;
 	int				 RadDurationMultiple;
 	int				 RadApplicationDelay;

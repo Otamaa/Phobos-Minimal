@@ -41,58 +41,58 @@ DEFINE_JUMP(LJMP, 0x6BD6CA, 0x6BD71D);
 
 ASMJIT_PATCH(0x438300, BlowStraw_Key_replace, 0x6)
 {
-	GET(BlowStraw*, pThis, ECX);
+	GET(PhobosBlowStraw*, pThis, ECX);
 	GET_STACK(void*, pKey, 0x4);
 	GET_STACK(int, len, 0x8);
-	pThis->BlowStraw::Key(pKey, len);
+	pThis->PhobosBlowStraw::Key(pKey, len);
 	return 0x43833D;
 }
 
 ASMJIT_PATCH(0x438210, BlowStraw_Get_replace, 0x5)
 {
-	GET(BlowStraw*, pThis, ECX);
+	GET(PhobosBlowStraw*, pThis, ECX);
 	GET_STACK(void*, pDest, 0x4);
 	GET_STACK(int, len, 0x8);
-	R->EAX(pThis->BlowStraw::Get(pDest, len));
+	R->EAX(pThis->PhobosBlowStraw::Get(pDest, len));
 	return 0x4382F0;
 }
 
 ASMJIT_PATCH(0x438060, BlowPipe_Flush_replace, 0x6)
 {
-	GET(BlowPipe*, pThis, ECX);
-	R->EAX(pThis->BlowPipe::Flush());
+	GET(PhobosBlowPipe*, pThis, ECX);
+	R->EAX(pThis->PhobosBlowPipe::Flush());
 	return 0x438094;
 }
 
 ASMJIT_PATCH(0x4380A0, BlowPipe_Put_replace, 0x5)
 {
-	GET(BlowPipe*, pThis, ECX);
+	GET(PhobosBlowPipe*, pThis, ECX);
 	GET_STACK(void*, pSource, 0x4);
 	GET_STACK(int, len, 0x8);
-	R->EAX(pThis->BlowPipe::Put(pSource, len));
+	R->EAX(pThis->PhobosBlowPipe::Put(pSource, len));
 	return 0x4381B1;
 }
 
 ASMJIT_PATCH(0x4381D0, BlowPipe_Key_replace, 0x6)
 {
-	GET(BlowPipe*, pThis, ECX);
+	GET(PhobosBlowPipe*, pThis, ECX);
 	GET_STACK(void*, pKey, 0x4);
 	GET_STACK(int, len, 0x8);
-	pThis->BlowPipe::Key(pKey, len);
+	pThis->PhobosBlowPipe::Key(pKey, len);
 	return 0x43820D;
 }
 
 ASMJIT_PATCH(0x437F50, BlowfishEngine_CTOR, 0x6)
 {
 	//GET(BlowfishEngine*, pThis, ECX);
-	R->EAX(new BlowfishEngine());
+	R->EAX(GameCreate<BlowfishEngine>());
 	return 0x437FBD;
 }
 
 ASMJIT_PATCH(0x437FC0, BlowfishEngine_DTOR, 0x6)
 {
-	//GET(BlowfishEngine*, pThis, ECX);
-	//pThis->BlowfishEngine::~BlowfishEngine();
+	GET(BlowfishEngine*, pThis, ECX);
+	pThis->BlowfishEngine::~BlowfishEngine();
 	return 0x437FCC;
 }
 

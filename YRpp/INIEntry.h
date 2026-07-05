@@ -5,6 +5,9 @@ struct INIComment;
 class INIEntry : public Node<INIEntry>
 {
 public:
+	using AsNode = Node<INIEntry>;
+
+public:
 	char* Key;
 	char* Value;
 	INIComment* Comments;
@@ -13,7 +16,31 @@ public:
 	int PostIndentCursor;
 	int CommentCursor;
 
-	virtual ~INIEntry() = default;
+	virtual ~INIEntry();
+
+	INIEntry(
+		char* entry,
+		char* value, 
+		INIComment* comments,
+		char* commentstring, 
+		int preindentcursor, 
+		int postindentcursor,
+		int commentcursor) :
+		Key(entry) , Value(value) ,
+		Comments(comments) , CommentString(commentstring) ,
+		PreIndentCursor(preindentcursor) , PostIndentCursor(postindentcursor) ,
+		CommentCursor(commentcursor)
+	{}
+
+	INIEntry() :
+		Key(),
+		Value(),
+		Comments(),
+		CommentString(),
+		PreIndentCursor(), 
+		PostIndentCursor(),
+		CommentCursor()
+	{}
 
 private:
 	INIEntry(INIEntry const& rvalue) = delete;

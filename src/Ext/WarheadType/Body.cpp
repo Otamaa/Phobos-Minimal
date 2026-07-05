@@ -2131,6 +2131,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->ApplyMindamage)
 		.Process(this->MinDamage)
 		.Process(this->IntendedTarget)
+		.Process(this->DamageAreaInvoker)
 
 		.Process(this->KillWeapon)
 		.Process(this->KillWeapon_OnFirer)

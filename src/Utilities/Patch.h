@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <Helpers/CompileTime.h>
+#include <functional>
 
 struct module_export
 {
@@ -60,6 +61,8 @@ struct NOVTABLE
 	const BYTE* pData;
 
 public:
+	static void ShowWriteError(DWORD errorCode, uintptr_t address);
+
 	void Apply() {
 		Patch::WriteToProcessMemory(this->offset, this->pData, this->size);
 	}
@@ -72,7 +75,11 @@ public:
 	static OPTIONALINLINE void WriteToProcessMemory(uintptr_t addrFrom, To toImpl, size_t size = 4u)
 	{
 		SIZE_T bytes_written;
-		WriteProcessMemory(CurrentProcess, (void*)addrFrom, toImpl, size, &bytes_written);
+		const auto result = WriteProcessMemory(CurrentProcess, (void*)addrFrom, toImpl, size, &bytes_written);
+		if (!result) {
+			const DWORD errorCode = GetLastError();
+			ShowWriteError(errorCode, addrFrom);
+		}
 	}
 
 	/**

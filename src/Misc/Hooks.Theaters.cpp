@@ -38,7 +38,7 @@ ASMJIT_PATCH(0x54547F, IsometricTileTypeClass_ReadINI_SetPaletteISO, 0x6)
 	//0x8295F4 -> 'ISO%s.PAL'
 	CRT::sprintf(outBuffs, reinterpret_cast<const char*>(0x8295F4), buffer);
 	file_c->CCFileClass::CCFileClass(outBuffs);
-	const bool Exist = file_c->Exists();
+	const bool Exist = file_c->IsAvaible();
 
 	if (!Exist)
 		Debug::Log("Failed to load IsometricTileTypeClass Palette %s For [%s]", outBuffs, pTheater->Name.data());
@@ -335,7 +335,7 @@ ASMJIT_PATCH(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 	else
 		CRT::strcpy(pDataMix, pTheater->DataMix.c_str());
 
-	Debug::Log("Theater[%s] Mix [%s , %s , %s , %s , %s]", pTheater->Name.data(),
+	Debug::Log("Theater[%s] Mix [%s , %s , %s , %s , %s]\n", pTheater->Name.data(),
 	pRootMix, pRootMixMD, pExpansionMixMD, pSuffixMix, pDataMix);
 
 	// any errors triggered before this line are irrelevant

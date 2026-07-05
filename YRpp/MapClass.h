@@ -8,6 +8,7 @@
 #include <SpecificStructures.h>
 #include <Powerups.h>
 #include <HashTable.h>
+#include <EnumArray.h>
 
 class BulletTypeClass;
 class ObjectClass;
@@ -24,8 +25,8 @@ typedef enum GScreenRedrawFlags
 // Terrain ground type
 struct GroundType
 {
-	std::array<float, 8u> Cost; // Terrain speed multipliers.
-	char Build; // Can build on this terrain?
+	EnumArray<float, SpeedType, 8> Cost;// Terrain speed multipliers.
+	bool Build; // Can build on this terrain?
 public:
 
 	static COMPILETIMEEVAL reference<GroundType, 0x89EA40u, 12u> const Array {};

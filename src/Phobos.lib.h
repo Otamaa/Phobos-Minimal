@@ -7,6 +7,7 @@
 #pragma comment(lib, "imm32.lib")
 #pragma comment(lib, "comctl32.lib")
 #pragma comment(lib, "gdi32.lib")
+#pragma comment(lib, "Bcrypt.lib")
 
 #ifdef _TTT
 #pragma comment(linker, "/NODEFAULTLIB")

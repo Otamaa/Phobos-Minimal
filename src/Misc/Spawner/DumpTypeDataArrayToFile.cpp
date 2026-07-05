@@ -21,7 +21,7 @@
 
 void DumpTypeDataArrayToFile::writeLog(CCFileClass* file, const char* pSectionName)
 {
-	file->WriteBytes(const_cast<char*>(pSectionName), strlen(pSectionName));
+	file->Write(const_cast<char*>(pSectionName), strlen(pSectionName));
 }
 
 template <typename T>

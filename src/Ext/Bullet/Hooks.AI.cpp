@@ -220,7 +220,7 @@ int __fastcall missile_maths(
 	}
 
 	// ORIG: VelocityStruct_5B2A30 @ 0x5B28EC
-	pVeloc->Func_5B2A30(&newPitch);
+	pVeloc->SetPitch(&newPitch);
 
 	// ORIG @ 0x5B28F8-0x5B290F: airburst → Z=0, else sar 2 (signed /4)
 	if (airburst)

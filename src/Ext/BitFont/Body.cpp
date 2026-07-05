@@ -41,7 +41,7 @@ int FakeBitFont::_Draw(const wchar_t* text, int xLeft, int yTop, int max_chars, 
 			{
 				ColorStruct rgb = Drawing::Int_To_RGB(saved_color);
 							rgb.Adjust(adjust_ratio, ColorStruct::Empty);
-				this->Color = rgb.ToInit();
+				this->Color = (WORD)rgb.ToInit();
 			}
 
 			adjust_ratio += 31;

@@ -120,28 +120,34 @@ public:
 	Matrix3D(const Vector3D<float>* axis, float angle) noexcept
 	{
 		//JMP_THIS(0x5AE750);
-		float c = Math::cos((double)angle);
-		double s = Math::sin((double)angle);
-		double v7 = axis->X * axis->X;
-		this->Row[0][0] = static_cast<float>((1.0 - v7) * c + v7);
-		double v8 = 1.0 - c;
-		this->Row[0][1] = static_cast<float>(axis->X * axis->Y * v8 - s * axis->Z);
-		double v9 = axis->Z * axis->X * v8;
-		double v10 = s * axis->Y;
+		const double cosA = Math::cos(static_cast<double>(angle));
+		const double sinA = Math::sin(static_cast<double>(angle));
+		const double omcA = 1.0 - cosA; // "one minus cos(angle)" — common Rodrigues factor
+
+		const double xx = axis->X * axis->X;
+		const double yy = axis->Y * axis->Y;
+		const double zz = axis->Z * axis->Z;
+		const double xy = axis->X * axis->Y * omcA;
+		const double xz = axis->Z * axis->X * omcA;
+		const double yz = axis->Z * axis->Y * omcA;
+
+		// Row 0
+		this->Row[0][0] = static_cast<float>((1.0 - xx) * cosA + xx);
+		this->Row[0][1] = static_cast<float>(xy - sinA * axis->Z);
+		this->Row[0][2] = static_cast<float>(xz + sinA * axis->Y);
 		this->Row[0][3] = 0.0f;
-		this->Row[0][2] = static_cast<float>(v9 + v10);
-		this->Row[1][0] = static_cast<float>(axis->X * axis->Y * v8 + s * axis->Z);
-		double v11 = axis->Y * axis->Y;
-		this->Row[1][1] = static_cast<float>((1.0 - v11) * c + v11);
-		double v12 = axis->Z * axis->Y * v8;
-		double v13 = s * axis->X;
+
+		// Row 1
+		this->Row[1][0] = static_cast<float>(xy + sinA * axis->Z);
+		this->Row[1][1] = static_cast<float>((1.0 - yy) * cosA + yy);
+		this->Row[1][2] = static_cast<float>(yz - sinA * axis->X);
 		this->Row[1][3] = 0.0f;
-		this->Row[1][2] = static_cast<float>(v12 - v13);
-		this->Row[2][0] = static_cast<float>(axis->Z * axis->X * v8 - s * axis->Y);
-		this->Row[2][1] = static_cast<float>(axis->Z * axis->Y * v8 + s * axis->X);
-		double v14 = axis->Z * axis->Z;
+
+		// Row 2
+		this->Row[2][0] = static_cast<float>(xz - sinA * axis->Y);
+		this->Row[2][1] = static_cast<float>(yz + sinA * axis->X);
+		this->Row[2][2] = static_cast<float>((1.0 - zz) * cosA + zz);
 		this->Row[2][3] = 0.0f;
-		this->Row[2][2] = static_cast<float>((1.0 - v14) * c + v14);
 	}
 
 	static FORCEDINLINE Matrix3D GetIdentity() {
@@ -200,7 +206,33 @@ public:
 	}
 
 	// Non virtual
-	static Matrix3D* __fastcall TransposeMatrix(Matrix3D* buffer, const Matrix3D* mat) { JMP_FAST(0x5AFC20); }
+	static Matrix3D* //__fastcall
+		TransposeMatrix(Matrix3D* buffer, const Matrix3D* A) {
+		// Transpose the 3x3 rotation block
+		buffer->Row[0][0] = A->Row[0][0];
+		buffer->Row[0][1] = A->Row[1][0];
+		buffer->Row[0][2] = A->Row[2][0];
+
+		buffer->Row[1][0] = A->Row[0][1];
+		buffer->Row[1][1] = A->Row[1][1];
+		buffer->Row[1][2] = A->Row[2][1];
+
+		buffer->Row[2][0] = A->Row[0][2];
+		buffer->Row[2][1] = A->Row[1][2];
+		buffer->Row[2][2] = A->Row[2][2];
+
+		// Translation column: -(R^T * T)
+		// IDA interleaved these with the transpose assignments — reordered for clarity, same values.
+		const double tx = A->Row[0][3];
+		const double ty = A->Row[1][3];
+		const double tz = A->Row[2][3];
+
+		buffer->Row[0][3] = static_cast<float>(-(buffer->Row[0][0] * tx + buffer->Row[0][1] * ty + buffer->Row[0][2] * tz));
+		buffer->Row[1][3] = static_cast<float>(-(buffer->Row[1][0] * tx + buffer->Row[1][1] * ty + buffer->Row[1][2] * tz));
+		buffer->Row[2][3] = static_cast<float>(-(buffer->Row[2][0] * tx + buffer->Row[2][1] * ty + buffer->Row[2][2] * tz));
+
+		return buffer;
+	}
 	static Matrix3D TransposeMatrix(const Matrix3D& A)
 	{
 		Matrix3D v7 {};
@@ -382,7 +414,6 @@ public:
 
 	static COMPILETIMEEVAL Matrix3D* __fastcall MatrixMultiply(Matrix3D* ret, const Matrix3D* A, const Matrix3D* B)// { JMP_FAST(0x5AF980); }
 	{
-
 		for (int i = 0; i < 3; ++i)
 		{
 			for (int j = 0; j < 3; ++j)

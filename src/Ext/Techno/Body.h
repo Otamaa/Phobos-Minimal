@@ -998,6 +998,9 @@ public:
 	static bool CanAttackMindControlled(TechnoClass* pControlled, TechnoClass* pRetaliator);
 	static void IsTechnoShouldBeAliveAfterTemporal(TechnoClass* pThis);
 	static void PlayChronoSparkleAnim(TechnoClass* pTechno, CoordStruct* pLoc, int X_Offs = 120, int nDelay = 24, bool bHidden = false, int ZAdjust = 0);
+
+	static void DrawUnitPassengers(TechnoClass* pThis, bool Allow);
+
 public:
 	static UnitClass* Deployer;
 

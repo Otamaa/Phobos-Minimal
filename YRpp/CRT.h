@@ -170,6 +170,9 @@ namespace CRT
 	static  OPTIONALINLINE NAKED char* __cdecl strcpy(char* StrTo, const char* StrFrom)
 	{ JMP(0x7D4BF0); }
 
+	static  OPTIONALINLINE NAKED int __cdecl strncmp(const char* a1, const char* a2, size_t a3)
+	{ JMP(0x7CA610); }
+
 	static  OPTIONALINLINE NAKED int __cdecl strcmpi(const char* lhs, const char* rhs)
 	{ JMP(0x7C8D20); }
 

@@ -25,11 +25,11 @@ void CSFLoader::LoadAdditionalCSF(const char* pFileName, bool ignoreLanguage)
 	{
 		CCFileClass file { pFileName };
 
-		if (file.Exists() && file.Open(FileAccessMode::Read))
+		if (file.IsAvaible() && file.Open1(FileAccessMode::Read))
 		{
 			CSFHeader header {};
 
-			if (file.Read(header))
+			if (file.ReadByes(header))
 			{
 				if (header.Signature == CSF_SIGNATURE &&
 					header.CSFVersion >= 2 &&
@@ -80,12 +80,12 @@ ASMJIT_PATCH(0x7349cf, StringTable_ParseFile_Buffer, 7)
 
 	if (!R->Stack<void*>(0x80))
 	{
-		const auto size = pFile->GetFileSize();
+		const auto size = pFile->Size();
 		void* ptr = nullptr;
 		if (size > 0)
 			ptr = YRMemory::AllocateChecked(size);
 
-		pFile->ReadBytes(ptr, size);
+		pFile->Read(ptr, size);
 		const auto IsAllocated = R->Stack<bool>(0x88);
 		const auto tempPtr = R->Stack<void*>(0x80);
 

@@ -72,7 +72,7 @@ ASMJIT_PATCH(0x5997AB, MapGeneratorClass_Init_RandomMap, 0x9)
 		const char* pName = &Game::ScenarioName();
 		CCFileClass file { pName };
 
-		if (file.Exists())
+		if (file.IsAvaible())
 			pINI->ReadCCFile(&file);
 	}
 

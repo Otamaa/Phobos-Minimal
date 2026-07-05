@@ -133,7 +133,7 @@ private:
 	{
 		CCFileClass* pFile = GameCreate<CCFileClass>(WavName.c_str());
 
-		if (!pFile->Exists())
+		if (!pFile->IsAvaible())
 		{
 			if (Phobos::Otamaa::IsAdmin)
 			{
@@ -145,7 +145,7 @@ private:
 			return { Data.Size, Data.Offset, pFile, pFile != nullptr };
 		}
 
-		if (!pFile->Open(FileAccessMode::Read))
+		if (!pFile->Open1(FileAccessMode::Read))
 		{
 			GameDelete<true, false>(pFile);
 			pFile = nullptr;
@@ -254,7 +254,7 @@ public:
 			if (Phobos::Otamaa::OutputAudioLogs)
 				Debug::LogInfo("Reading {}" , filename);
 
-			if (pIndex.Exists() && pIndex.Open(FileAccessMode::Read))
+			if (pIndex.IsAvaible() && pIndex.Open1(FileAccessMode::Read))
 			{
 				filename[filebase_len + 1] = 'b';
 				filename[filebase_len + 2] = 'a';
@@ -265,14 +265,15 @@ public:
 
 				auto pBag = UniqueGamePtr<CCFileClass>(GameCreateUnchecked<CCFileClass>(filename.c_str()));
 
-				if (pBag->Exists()
-					&& pBag->Open(FileAccessMode::Read))
+				if (pBag->IsAvaible()
+					&& pBag->Open1(FileAccessMode::Read))
 				{
 					AudioIDXHeader headerIndex {};
-					if(pIndex.ReadBytes(&headerIndex, sizeof(AudioIDXHeader)) == sizeof(AudioIDXHeader))
+					if(pIndex.Read(&headerIndex, sizeof(AudioIDXHeader)) == sizeof(AudioIDXHeader))
 					{
 						if (Phobos::Otamaa::OutputAudioLogs) {
-							Debug::LogInfo("Reading [{} from {}] file with [{}] samples!.", filename.c_str(), pIndex.GetFileName(), headerIndex.numSamples);
+							Debug::LogInfo("Reading [{} from {}] file with [{}] samples!.",
+								filename.c_str(), pIndex.FileName(), headerIndex.numSamples);
 						}
 
 						if (headerIndex.numSamples > 0)
@@ -286,7 +287,7 @@ public:
 							{
 								for (auto& entry : this->Entries)
 								{
-									while (pIndex.ReadBytes(&entry, readBytes) == readBytes)
+									while (pIndex.Read(&entry, readBytes) == readBytes)
 									{
 										entry.ChunkSize = 0;
 									}
@@ -295,12 +296,13 @@ public:
 							else
 							{
 								const auto headerSize = headerIndex.numSamples * IdxEntrysize;
-								const auto readed = pIndex.ReadBytes(&this->Entries[0], static_cast<int>(headerSize));
+								const auto readed = pIndex.Read(&this->Entries[0], static_cast<int>(headerSize));
 
 								if (readed != (int)headerSize)
 								{
 									if(Phobos::Otamaa::OutputAudioLogs)
-										Debug::LogInfo("Failed Reading [{} from {}] file with [{}] samples , due to missmatch header size [readed {} vs intended {}]].", filename.c_str(), pIndex.GetFileName(), headerIndex.numSamples , readed, headerSize);
+										Debug::LogInfo("Failed Reading [{} from {}] file with [{}] samples , due to missmatch header size [readed {} vs intended {}]].",
+											filename.c_str(), pIndex.FileName(), headerIndex.numSamples , readed, headerSize);
 									return false;
 								}
 							}
@@ -350,10 +352,10 @@ public:
 							Debug::LogInfo("Replacing audio `{}` from : [{} - ({} - {})] to : [{} - ({} - {})].",
 								ent.Name,
 								idx,
-								file->FileName ,
+								file->Filename ,
 								bagFileName.c_str(),
 								i,
-								this->Bags[i].Bag->FileName,
+								this->Bags[i].Bag->Filename,
 								this->Bags[i].BagFile.c_str()
 							);
 						}

@@ -140,6 +140,7 @@ public:
 		static int SuperWeaponSidebar_CameoHeight;
 		static int SuperWeaponSidebar_Max;
 		static int SuperWeaponSidebar_MaxColumns;
+		static int CreditsIndicator_MaxStep;
 		static bool SuperWeaponSidebar_Pyramid;
 
 		static const wchar_t* CostLabel;

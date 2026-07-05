@@ -78,7 +78,7 @@ PhobosPCXFile& PhobosPCXFile::Assign(const char* pFilename)
 	this->filename = pFilename;
 
 	BSurface* pSource = PCXImages::Instance->GetSurface(this->filename);
-	if (!pSource && PCXImages::Instance->LoadFile(this->filename))
+	if (!pSource && PCXImages::Instance->ForceLoadFile(this->filename))
 		pSource = PCXImages::Instance->GetSurface(this->filename);
 
 	this->Surface = pSource;
@@ -92,9 +92,6 @@ void PhobosPCXFile::Insert(const char* pFilename)
 
 	if (!cachedWithExt.empty() && cachedWithExt[0]) {
 		_strlwr(cachedWithExt.data());
-
-		if (cachedWithExt.find(".pcx") == std::string::npos)
-			cachedWithExt += ".pcx";
 
 		auto& iter = LoadedMap[cachedWithExt];
 
@@ -114,9 +111,6 @@ bool PhobosPCXFile::Read(INIClass* pINI, const char* pSection, const char* pKey,
 	{
 		std::string cachedWithExt = _strlwr(buffer);
 
-		if (cachedWithExt.find(".pcx") == std::string::npos)
-			cachedWithExt += ".pcx";
-
 		auto& iter = LoadedMap[cachedWithExt];
 
 		if (!iter.surface) {
@@ -131,7 +125,6 @@ bool PhobosPCXFile::Read(INIClass* pINI, const char* pSection, const char* pKey,
 		} else {
 			this->Surface = iter.surface;
 		}
-
 	}
 
 	return buffer[0] != 0;
@@ -157,7 +150,7 @@ bool PhobosPCXFile::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 		if(!iter.surface){
 
 			BSurface* pSource = PCXImages::Instance->GetSurface(this->filename);
-			if (!pSource && PCXImages::Instance->LoadFile(this->filename))
+			if (!pSource && PCXImages::Instance->ForceLoadFile(this->filename))
 				pSource = PCXImages::Instance->GetSurface(this->filename, nullptr);
 
 			this->Surface = pSource;

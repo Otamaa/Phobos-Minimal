@@ -2,8 +2,9 @@
 
 #include <GeneralDefinitions.h>
 #include <YRAllocator.h>
-#include <GenericList.h>
+
 #include <Helpers/VTable.h>
+#include <CRT.h>
 
 #include <array>
 
@@ -15,6 +16,7 @@ enum class FileAccessMode : unsigned int {
 };
 
 MAKE_ENUM_FLAGS(FileAccessMode);
+
 enum class FileSeekMode : unsigned int {
 	Set = 0, // SEEK_SET
 	Current = 1, // SEEK_CUR
@@ -42,45 +44,47 @@ enum class FileErrorType : int
 	 *  are defined in the standard header file <errno.h>.
 	 */
 	ZERO = 0,                    // Non-error.
-	PERM = EPERM,                // Operation not permitted.
-	NOENT = ENOENT,              // No such file or directory.
-	SRCH = ESRCH,                // No such process.
-	INTR = EINTR,                // Interrupted function call.
-	IO = EIO,                    // Input/output error.
-	NXIO = ENXIO,                // No such device or address.
-	TOOBIG = E2BIG,                // Argument list too long.
-	NOEXEC = ENOEXEC,            // Exec format error.
-	BADF = EBADF,                // Bad file descriptor.
-	CHILD = ECHILD,              // No child processes.
-	AGAIN = EAGAIN,              // Resource temporarily unavailable.
-	NOMEM = ENOMEM,              // Not enough space/cannot allocate memory.
-	ACCES = EACCES,              // Permission denied.
-	FAULT = EFAULT,              // Bad address.
-	BUSY = EBUSY,                // Device or resource busy.
-	EXIST = EEXIST,              // File exists.
-	XDEV = EXDEV,                // Improper link.
-	NODEV = ENODEV,              // No such device.
-	NOTDIR = ENOTDIR,            // Not a directory.
-	ISDIR = EISDIR,              // Is a directory.
-	INVAL = EINVAL,              // Invalid argument.
-	NFILE = ENFILE,              // Too many open files in system.
-	MFILE = EMFILE,              // Too many open files.
-	NOTTY = ENOTTY,              // Inappropriate I/O control operation.
-	FBIG = EFBIG,                // File too large.
-	NOSPC = ENOSPC,              // No space left on device.
-	SPIPE = ESPIPE,              // Invalid seek.
-	ROFS = EROFS,                // Read-only filesystem.
-	MLINK = EMLINK,              // Too many links.
-	PIPE = EPIPE,                // Broken pipe.
-	DOM = EDOM,                  // Mathematics argument out of domain of function.
-	RANGE = ERANGE,              // Result too large.
-	DEADLK = EDEADLK,            // Resource deadlock avoided.
-	NAMETOOLONG = ENAMETOOLONG,  // Filename too long.
-	NOLCK = ENOLCK,              // No locks available.
-	NOSYS = ENOSYS,              // Function not implemented.
-	NOTEMPTY = ENOTEMPTY,        // Directory not empty.
-	ILSEQ = EILSEQ,              // Invalid or incomplete multibyte or wide character.
+	PERM = 1,                    // Operation not permitted.
+	NOENT = 2,                   // No such file or directory.
+	SRCH = 3,                    // No such process.
+	INTR = 4,                    // Interrupted function call.
+	IO = 5,                      // Input/output error.
+	NXIO = 6,                    // No such device or address.
+	TOOBIG = 7,                  // Argument list too long.
+	NOEXEC = 8,                  // Exec format error.
+	BADF = 9,                    // Bad file descriptor.
+	CHILD = 10,                  // No child processes.
+	AGAIN = 11,                  // Resource temporarily unavailable.
+	NOMEM = 12,                  // Not enough space/cannot allocate memory.
+	ACCES = 13,                  // Permission denied.
+	FAULT = 14,                  // Bad address.
+	BUSY = 16,                   // Device or resource busy.
+	EXIST = 17,                  // File exists.
+	XDEV = 18,                   // Improper link.
+	NODEV = 19,                  // No such device.
+	NOTDIR = 20,                 // Not a directory.
+	ISDIR = 21,                  // Is a directory.
+	INVAL = 22,                  // Invalid argument.
+	NFILE = 23,                  // Too many open files in system.
+	MFILE = 24,                  // Too many open files.
+	NOTTY = 25,                  // Inappropriate I/O control operation.
+	FBIG = 27,                   // File too large.
+	NOSPC = 28,                  // No space left on device.
+	SPIPE = 29,                  // Invalid seek.
+	ROFS = 30,                   // Read-only filesystem.
+	MLINK = 31,                  // Too many links.
+	PIPE = 32,                   // Broken pipe.
+	DOM = 33,                    // Mathematics argument out of domain of function.
+	RANGE = 34,                  // Result too large.
+	DEADLK = 36,                 // Resource deadlock avoided.
+	NAMETOOLONG = 38,            // Filename too long.
+	NOLCK = 39,                  // No locks available.
+	NOSYS = 40,                  // Function not implemented.
+	NOTEMPTY = 41,               // Directory not empty.
+	ILSEQ = 42,                  // Invalid or incomplete multibyte or wide character.
 };
+
+MAKE_ENUM_FLAGS(FileErrorType);
 
 //--------------------------------------------------------------------
 //Abstract File class
@@ -92,23 +96,24 @@ public:
 	static const char* const FileErrorToString[];
 
 	//Destructor
-	virtual	~FileClass() RX;
+	virtual	~FileClass() = default;
+
 	//FileClass
-	virtual const char* GetFileName() const = 0;
+	virtual const char* FileName() const = 0;
 	virtual const char* SetFileName(const char* pFileName) = 0;
-	virtual BOOL CreateFile() = 0;
-	virtual BOOL DeleteFile() = 0;
-	virtual bool Exists(bool writeShared = false) = 0;
-	virtual bool HasHandle() = 0;
-	virtual bool Open(FileAccessMode access) = 0;
-	virtual bool OpenEx(const char* pFileName, FileAccessMode access) = 0;
-	virtual int ReadBytes(void* pBuffer, int nNumBytes) = 0; //Returns number of bytes read.
+	virtual BOOL Create() = 0;
+	virtual BOOL Delete() = 0;
+	virtual bool IsAvaible(bool writeShared = false) = 0;
+	virtual bool IsOpen() = 0;
+	virtual bool Open1(FileAccessMode access) = 0;
+	virtual bool Open2(const char* pFileName, FileAccessMode access) = 0;
+	virtual int Read(void* pBuffer, int nNumBytes) = 0; //Returns number of bytes read.
 	virtual off_t Seek(off_t offset, FileSeekMode seek) = 0;
-	virtual off_t GetFileSize() = 0;
-	virtual int WriteBytes(void* pBuffer, int nNumBytes) = 0; //Returns number of bytes written.
+	virtual off_t Size() = 0;
+	virtual int Write(void* pBuffer, int nNumBytes) = 0; //Returns number of bytes written.
 	virtual void Close() = 0;
-	virtual LONG GetFileTime() = 0; //LoWORD = FatTime, HiWORD = FatDate
-	virtual bool SetFileTime(LONG FileTime) = 0;
+	virtual LONG GetDataTime() = 0; //LoWORD = FatTime, HiWORD = FatDate
+	virtual bool SetDateTime(LONG FileTime) = 0;
 	virtual void Error(FileErrorType error, bool can_retry = false, const char *filename = nullptr) = 0;
 
 	static void* __fastcall ReadWholeFile(FileClass* pFile)
@@ -120,25 +125,26 @@ public:
 	off_t Tell() { return Seek(0, FileSeekMode::Current); }
 
 	template <typename T>
-	bool Read(T& obj, int size = sizeof(T)) {
-		return this->ReadBytes(&obj, size) == size;
+	bool ReadByes(T& obj, int size = sizeof(T)) {
+		return this->Read(&obj, size) == size;
 	}
 
 	template <typename T>
-	bool Write(T& obj, int size = sizeof(T)) {
-		return this->WriteBytes(&obj, size) == size;
+	bool WriteBytes(T& obj, int size = sizeof(T)) {
+		return this->Write(&obj, size) == size;
 	}
 
-	operator const char* () { return GetFileName(); }
+	operator const char* () { return FileName(); }
 
-	static const char* File_Error_To_String(FileErrorType error) {
+	static COMPILETIMEEVAL const char* File_Error_To_String(FileErrorType error) {
 		if(static_cast<int>(error) >= 42 || static_cast<int>(error) < 0)
 			return "Unknown error. ";
 		else
 			return FileErrorToString[static_cast<int>(error)];
 	}
 
-	//FileClass() { VTable::Set(this, vtable); }
+	FileClass(): SkipCDCheck()
+	{ VTable::Set(this, vtable); }
 
 protected:
 	explicit __forceinline FileClass(noinit_t)
@@ -150,57 +156,78 @@ public:
 	bool SkipCDCheck;
 };
 static_assert(sizeof(FileClass) == 0x8, "Invalid size.");
+
 //--------------------------------------------------------------------
 //Files in the game directory
 //--------------------------------------------------------------------
 class NOVTABLE RawFileClass : public FileClass
 {
 public:
+	void FORCEDINLINE RaiseLastError() {
+		this->Error((FileErrorType)GetLastError(), false, this->Filename);
+	}
+
+public:
 	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7F0904;
+	DEFINE_REFERENCE(bool, StreamerIsCurrentlyAccessing, 0xB04BEC);
 
 	//Destructor
-	virtual ~RawFileClass() {JMP_THIS(0x65CA00);}
+	virtual ~RawFileClass();
 
 	//FileClass
-	virtual const char* GetFileName() const override { JMP_THIS(0x401940); }
-	virtual const char* SetFileName(const char* pFileName) override {JMP_THIS(0x65CAC0);}
-	virtual BOOL CreateFile() override { JMP_THIS(0x65D150); }
-	virtual BOOL DeleteFile() override { JMP_THIS(0x65D190); }
-	virtual bool Exists(bool writeShared = false) override { JMP_THIS(0x65CBF0); }
-	virtual bool HasHandle() override { JMP_THIS(0x65D420); }
-	virtual bool Open(FileAccessMode access) override {JMP_THIS(0x65CB50);}
-	virtual bool OpenEx(const char* pFileName, FileAccessMode access) override {JMP_THIS(0x65CB30);}
-	virtual int ReadBytes(void* pBuffer, int nNumBytes) override { JMP_THIS(0x65CCE0); }
-	virtual off_t Seek(off_t offset, FileSeekMode seek) override { JMP_THIS(0x65CF00); }
-	virtual off_t GetFileSize() override { JMP_THIS(0x65D0D0); }
-	virtual int WriteBytes(void* pBuffer, int nNumBytes) override { JMP_THIS(0x65CDD0); }
-	virtual void Close() override { JMP_THIS(0x65CCA0); }
-	virtual LONG GetFileTime() override { JMP_THIS(0x65D1F0); }
-	virtual bool SetFileTime(LONG date_time) override { JMP_THIS(0x65D240); }
+	virtual const char* FileName() const override { return this->Filename; }
+	virtual const char* SetFileName(const char* pFileName) override;	
+	virtual BOOL Create() override;
+	virtual BOOL Delete() override;
+	virtual bool IsAvaible(bool writeShared = false) override;
+	virtual bool IsOpen() override { return this->Handle != INVALID_HANDLE_VALUE; }
+	virtual bool Open1(FileAccessMode access) override;
+
+	virtual bool Open2(const char* pFileName, FileAccessMode access) override {
+		//Modified from original to check the filename 
+		return this->SetFileName(pFileName) && this->Open1(access);
+	}
+
+	virtual int Read(void* pBuffer, int nNumBytes) override;
+	virtual off_t Seek(off_t offset, FileSeekMode whence) override;
+	virtual off_t Size() override;
+	virtual int Write(void* buffer, int length) override;
+	virtual void Close() override;
+	virtual LONG GetDataTime() override;
+	virtual bool SetDateTime(LONG wFatTime) override;
 	virtual void Error(FileErrorType error, bool can_retry = false, const char *filename = nullptr) override RX;
 
-	void Bias(off_t start, int length = -1)
-	{ JMP_THIS(0x65D2B0); }
-
+	void Bias(off_t offset, int length = -1);
 	HANDLE Get_File_Handle() const { return Handle; }
 	int Transfer_Block_Size() { return (int)((unsigned)UINT_MAX) - 16L; }
-	const char* Get_Safe_File_Name() const { return (FileName != nullptr && FileName[0] != '\0') ? FileName : "<unknown>"; }
+	const char* Get_Safe_File_Name() const { return (Filename != nullptr && Filename[0] != '\0') ? Filename : "<unknown>"; }
 
 	//Constructor
 	RawFileClass(const char* pFileName)
-		: RawFileClass(noinit_t())
-	{ JMP_THIS(0x65CA80); }
+		:
+		FileClass(noinit_t()),
+		Rights(FileAccessMode::Read),
+		BiasStart(0),
+		BiasLength(-1),
+		Handle(INVALID_HANDLE_VALUE),
+		Filename(pFileName),
+		Date(0),
+		Time(0),
+		Allocated(false)
+	{
+		VTable::Set(this, vtable);
+	}
 
 	RawFileClass() :
 		FileClass(noinit_t()),
-		FileAccess(FileAccessMode::Read),
-		FilePointer(0),
-		FileSize(-1),
+		Rights(FileAccessMode::Read),
+		BiasStart(0),
+		BiasLength(-1),
 		Handle(INVALID_HANDLE_VALUE),
-		FileName(nullptr),
+		Filename(nullptr),
 		Date(0),
 		Time(0),
-		FileNameAllocated(false)
+		Allocated(false)
 	{
 		VTable::Set(this, vtable);
 	}
@@ -210,21 +237,20 @@ protected:
 		: FileClass(noinit_t())
 	{ }
 
-	DWORD Raw_Seek(int nPos, FileSeekMode whence = FileSeekMode::Current) { JMP_THIS(0x65D320); }
-
-	//Properties
+	DWORD Raw_Seek(int pos, LONG dir);
 
 public:
-	FileAccessMode FileAccess;
-	int FilePointer;
-	int FileSize;
+	FileAccessMode Rights;
+	int BiasStart;
+	int BiasLength;
 	HANDLE Handle;
-	char* FileName;
+	const char* Filename;
 	WORD Date;
 	WORD Time;
-	bool FileNameAllocated;
+	bool Allocated;
 };
 static_assert(sizeof(RawFileClass) == 0x24, "Invalid size.");
+
 //--------------------------------------------------------------------
 //Files that get buffered in some way?
 //--------------------------------------------------------------------
@@ -233,62 +259,134 @@ class NOVTABLE BufferIOFileClass : public RawFileClass
 public:
 	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E3A2C;
 	static COMPILETIMEEVAL int MinimumBufferSize = 1024;
+
 	//Destructor
-	virtual ~BufferIOFileClass() { JMP_THIS(0x431B80); }
+	virtual ~BufferIOFileClass() { 
+		this->Free();
+		this->RawFileClass::~RawFileClass();
+	}
 
 	//FileClass
-	virtual const char* GetFileName() const override { return ((RawFileClass*)(this))->GetFileName(); }
-	virtual const char* SetFileName(const char* pFileName) override { JMP_THIS(0x431E80); }
-	virtual BOOL CreateFile() override { return ((RawFileClass*)(this))->CreateFile(); }
-	virtual BOOL DeleteFile() override { return ((RawFileClass*)(this))->DeleteFile(); }
-	virtual bool Exists(bool writeShared = false) override { JMP_THIS(0x431F10); }
-	virtual bool HasHandle() override { JMP_THIS(0x431F30); }
-	virtual bool Open(FileAccessMode access) override { JMP_THIS(0x431F70); }
-	virtual bool OpenEx(const char* pFileName, FileAccessMode access) override { JMP_THIS(0x431F50); }
-	virtual int ReadBytes(void* pBuffer, int nNumBytes) override { JMP_THIS(0x4322A0); }
-	virtual off_t Seek(off_t offset, FileSeekMode seek) override { JMP_THIS(0x4324B0); }
-	virtual off_t GetFileSize() override { JMP_THIS(0x4325A0); }
-	virtual int WriteBytes(void* pBuffer, int nNumBytes) override { JMP_THIS(0x432050); }
-	virtual void Close() override { JMP_THIS(0x4325C0); }
-	virtual LONG GetFileTime() override { return ((RawFileClass*)(this))->GetFileTime(); }
-	virtual bool SetFileTime(LONG date_time) override { return ((RawFileClass*)(this))->SetFileTime(date_time); }
-	virtual void Error(FileErrorType error, bool can_retry = false, const char *filename = nullptr) override { ((RawFileClass*)(this))->Error(error, can_retry, filename); };
+	virtual const char* FileName() const override { return this->RawFileClass::FileName(); }
 
-	bool Cache(int size, void* pBuffer)
-	{ JMP_THIS(0x431BC0); }
+	virtual const char* SetFileName(const char* pFileName) override;
 
-	void Free()
-	{ JMP_THIS(0x431D90); }
+	virtual BOOL Create() override { return this->RawFileClass::Create(); }
 
-	bool Commit()
-	{ JMP_THIS(0x431DD0); }
+	virtual BOOL Delete() override { return this->RawFileClass::Delete(); }
+
+	virtual bool IsAvaible(bool writeShared = false) override { 
+		if (this->UseBuffer)
+			return true;
+
+		return this->RawFileClass::IsAvaible();
+	}
+
+	virtual bool IsOpen() override { 
+		if (!this->Is_Open || !this->UseBuffer)
+			return this->Handle != INVALID_HANDLE_VALUE;
+
+		return true;
+	}
+
+	virtual bool Open1(FileAccessMode rights) override;
+
+	virtual bool Open2(const char* pFileName, FileAccessMode access) override { 
+		return this->SetFileName(pFileName) && this->BufferIOFileClass::Open1(access);
+	}
+
+	virtual int Read(void* buffer, int length) override;
+	virtual off_t Seek(off_t offset, FileSeekMode whence) override;
+
+	virtual off_t Size() override { 
+		if (this->Is_Open && this->UseBuffer)
+			return this->FileSize;
+
+		return this->RawFileClass::Size();
+	}
+
+	virtual int Write(void* buffer, int size) override;
+	virtual void Close() override;
+	virtual LONG GetDataTime() override { return this->RawFileClass::GetDataTime(); }
+	virtual bool SetDateTime(LONG date_time) override { return this->RawFileClass::SetDateTime(date_time); }
+	virtual void Error(FileErrorType error, bool can_retry = false, const char *filename = nullptr) override { this->RawFileClass::Error(error, can_retry, filename); };
+
+	bool Cache(int size, void* buffer);
+	void Free();
+	bool Commit();
 
 	//Constructor
 	BufferIOFileClass()
-		: BufferIOFileClass(noinit_t())
-	{ JMP_THIS(0x431B20); }
+		: RawFileClass()
+		, IsAllocated()
+		, Is_Open()
+		, IsDiskOpen()
+		, IsCached()
+		, IsChanged()
+		, UseBuffer()
+		, BufferRights()
+		, BufferPtr()
+		, BufferedSize()
+		, BufferPos()
+		, BufferFilePos()
+		, BufferChangeBeg(-1)
+		, BufferChangeEnd(-1)
+		, FileSize()
+		, FilePos()
+		, TrueFileStart()
+	{
+		VTable::Set(this, vtable);
+	}
 
 	BufferIOFileClass(const char* pFilename)
-		: BufferIOFileClass(noinit_t())
-	{ JMP_THIS(0x431A30); }
+		: RawFileClass()
+		, IsAllocated()
+		, Is_Open()
+		, IsDiskOpen()
+		, IsCached()
+		, IsChanged()
+		, UseBuffer()
+		, BufferRights()
+		, BufferPtr()
+		, BufferedSize()
+		, BufferPos()
+		, BufferFilePos()
+		, BufferChangeBeg(-1)
+		, BufferChangeEnd(-1)
+		, FileSize()
+		, FilePos()
+		, TrueFileStart()
+	{
+		VTable::Set(this, vtable);
+
+		if (this->Filename && this->UseBuffer) {
+			if (!CRT::strcmp(pFilename, this->Filename)) {
+				return;
+			}
+
+			this->BufferIOFileClass::Commit();
+			this->IsCached = false;
+		}
+
+		this->RawFileClass::SetFileName(pFilename);
+	}
 
 protected:
 	explicit __forceinline BufferIOFileClass(noinit_t)
 		: RawFileClass(noinit_t())
 	{ }
 
-	//Properties
-
 public:
 	bool IsAllocated;
-	bool IsOpen;
+	bool Is_Open;
 	bool IsDiskOpen;
 	bool IsCached;
 	bool IsChanged;
 	bool UseBuffer;
+	char pad[2];
 	int BufferRights;
 	void* BufferPtr;
-	long BufferSize;
+	long BufferedSize;
 	long BufferPos;
 	long BufferFilePos;
 	long BufferChangeBeg;
@@ -298,6 +396,12 @@ public:
 	long TrueFileStart;
 };
 static_assert(sizeof(BufferIOFileClass) == 0x54, "Invalid size.");
+
+struct SearchDriveType {
+	SearchDriveType* Next;
+	void* Path;
+};
+
 //--------------------------------------------------------------------
 //Files on a CD?
 //--------------------------------------------------------------------
@@ -305,69 +409,63 @@ class NOVTABLE CDFileClass : public BufferIOFileClass
 {
 public:
 	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E1668;
+	static COMPILETIMEEVAL reference<int, 0x89E414u> const CurrentCDDrive {};
+	static COMPILETIMEEVAL reference<char, 0x89E41C, 512> const RawPath {};
+	DEFINE_REFERENCE(SearchDriveType*, CDFileFirst, 0x89E410);
 
 	//Destructor
-	virtual ~CDFileClass() { JMP_THIS(0x535A60); }
+	virtual ~CDFileClass() = default;
 
 	//FileClass
-	virtual const char* GetFileName() const override { return ((BufferIOFileClass*)(this))->GetFileName(); }
-	virtual const char* SetFileName(const char* pFileName) override { JMP_THIS(0x47AE10); }
-	virtual BOOL CreateFile() override { return ((BufferIOFileClass*)(this))->CreateFile(); }
-	virtual BOOL DeleteFile() override { return ((BufferIOFileClass*)(this))->DeleteFile(); }
-	virtual bool Exists(bool writeShared = false) override { return ((BufferIOFileClass*)(this))->Exists(writeShared); }
-	virtual bool HasHandle() override { return ((BufferIOFileClass*)(this))->HasHandle(); }
-	virtual bool Open(FileAccessMode access) override { JMP_THIS(0x47AAB0); }
-	virtual bool OpenEx(const char* pFileName, FileAccessMode access) override { JMP_THIS(0x47AF10); }
-	virtual int ReadBytes(void* pBuffer, int nNumBytes) override { return ((BufferIOFileClass*)(this))->ReadBytes(pBuffer, nNumBytes); }
-	virtual off_t Seek(off_t offset, FileSeekMode seek) override { return ((BufferIOFileClass*)(this))->Seek(offset, seek); }
-	virtual off_t GetFileSize() override { return ((BufferIOFileClass*)(this))->GetFileSize(); }
-	virtual int WriteBytes(void* pBuffer, int nNumBytes) override { return ((BufferIOFileClass*)(this))->WriteBytes(pBuffer, nNumBytes); }
-	virtual void Close() override { ((BufferIOFileClass*)(this))->Close(); }
-	virtual LONG GetFileTime() override { return ((BufferIOFileClass*)(this))->GetFileTime(); }
-	virtual bool SetFileTime(LONG date_time) override { return ((BufferIOFileClass*)(this))->SetFileTime(date_time); }
-	virtual void Error(FileErrorType error, bool can_retry = false, const char *filename = nullptr) override { ((BufferIOFileClass*)(this))->Error(error, can_retry, filename); }
+	virtual const char* FileName() const override { return this->BufferIOFileClass::FileName(); }
+	virtual const char* SetFileName(const char* filename) override;
+
+	virtual BOOL Create() override { return this->BufferIOFileClass::Create(); }
+	virtual BOOL Delete() override { return this->BufferIOFileClass::Delete(); }
+	virtual bool IsAvaible(bool writeShared = false) override { return this->BufferIOFileClass::IsAvaible(writeShared); }
+	virtual bool IsOpen() override { return this->BufferIOFileClass::IsOpen(); }
+	virtual bool Open1(FileAccessMode access) override { return this->BufferIOFileClass::Open1(access); }
+	virtual bool Open2(const char* pFileName, FileAccessMode rights) override;
+	virtual int Read(void* pBuffer, int nNumBytes) override { return this->BufferIOFileClass::Read(pBuffer, nNumBytes); }
+	virtual off_t Seek(off_t offset, FileSeekMode seek) override { return this->BufferIOFileClass::Seek(offset, seek); }
+	virtual off_t Size() override { return this->BufferIOFileClass::Size(); }
+	virtual int Write(void* pBuffer, int nNumBytes) override { return this->BufferIOFileClass::Write(pBuffer, nNumBytes); }
+	virtual void Close() override { this->BufferIOFileClass::Close(); }
+	virtual LONG GetDataTime() override { return this->BufferIOFileClass::GetDataTime(); }
+	virtual bool SetDateTime(LONG date_time) override { return this->BufferIOFileClass::SetDateTime(date_time); }
+	virtual void Error(FileErrorType error, bool can_retry = false, const char *filename = nullptr) override { this->BufferIOFileClass::Error(error, can_retry, filename); }
 
 	void Searching(int on) { IsDisabled = !on; }
 
-	static void __fastcall Refresh()
-	{ JMP_FAST(0x47AAC0); }
-
-	static bool __fastcall SetPath(const char* pPath)
-	{ JMP_FAST(0x47AB10); }
-
-	static void __fastcall AddPath(const char* pPath)
-	{ JMP_FAST(0x47AD50); }
-
-	static void __fastcall SetCDDrive(int nDriveNumber)
-	{ JMP_FAST(0x47ADA0); }
-
-	static HRESULT __fastcall Clear()
-	{ JMP_FAST(0x47ADA0); }
+	static void __fastcall Refresh();
+	static bool __fastcall SetPath(const char* pPath);
+	static void __fastcall AddPath(const char* pPath);
+	static void __fastcall SetCDDrive(int nDriveNumber);
 
 	//Constructor
 	CDFileClass()
-		: CDFileClass(noinit_t())
-	{ JMP_THIS(0x47AA30); }
+		: BufferIOFileClass(), IsDisabled()
+	{
+		VTable::Set(this, vtable);
+	}
 
 	CDFileClass(const char* pFilename)
-		: CDFileClass(noinit_t())
-	{ JMP_THIS(0x47A9D0); }
-
-	CDFileClass(wchar_t* pWideFilename)
-		: CDFileClass(noinit_t())
-	{ JMP_THIS(0x47AA00); }
+		: BufferIOFileClass(), IsDisabled()
+	{ 
+		VTable::Set(this, vtable);
+		this->CDFileClass::SetFileName(pFilename);
+	}
 
 protected:
 	explicit __forceinline CDFileClass(noinit_t)
 		: BufferIOFileClass(noinit_t())
 	{ }
 
-	//Property
-
 public:
 	bool IsDisabled; //54
 };
 static_assert(sizeof(CDFileClass) == 0x58, "Invalid size.");
+
 //--------------------------------------------------------------------
 //Files in MIXes
 //--------------------------------------------------------------------
@@ -377,58 +475,61 @@ public:
 	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E16B0;
 
 	//Destructor
-	virtual ~CCFileClass() { JMP_THIS(0x535A70); }
+	virtual ~CCFileClass() {
+		this->Position = 0;
+		this->Buffer.~MemoryBuffer();
+		this->CDFileClass::~CDFileClass();
+	}
 
 	//FileClass
-	virtual const char* GetFileName() const override { return ((CDFileClass*)(this))->GetFileName(); }
-	virtual const char* SetFileName(const char* pFileName) override { JMP_THIS(0x473FC0); }
-	virtual BOOL CreateFile() override { return ((CDFileClass*)(this))->CreateFile(); }
-	virtual BOOL DeleteFile() override { return ((CDFileClass*)(this))->DeleteFile(); }
-	virtual bool Exists(bool writeShared = false) override { JMP_THIS(0x473C50); }
-	virtual bool HasHandle() override { JMP_THIS(0x473CD0); }
-	virtual bool Open(FileAccessMode access) override { JMP_THIS(0x473D10); }
-	virtual bool OpenEx(const char* pFileName, FileAccessMode access) override { JMP_THIS(0x401980); }
-	virtual int ReadBytes(void* pBuffer, int nNumBytes) override { JMP_THIS(0x473B10); }
-	virtual off_t Seek(off_t offset, FileSeekMode seek) override { JMP_THIS(0x473BA0); }
-	virtual off_t GetFileSize() override { JMP_THIS(0x473C00); }
-	virtual int WriteBytes(void* pBuffer, int nNumBytes) override { JMP_THIS(0x473AE0); }
-	virtual void Close() override { JMP_THIS(0x473CE0); }
-	virtual LONG GetFileTime() override { JMP_THIS(0x473E50); }
-	virtual bool SetFileTime(LONG date_time) override { JMP_THIS(0x473F00); }
-	virtual void Error(FileErrorType error, bool can_retry = false, const char *filename = nullptr) override { JMP_THIS(0x473AB0); }
+	virtual const char* FileName() const override { return this->CDFileClass::FileName(); }
 
-	static void* Load_Alloc_Data(FileClass& file)
-	{
-		const long size = file.GetFileSize();
-
-		if (void* ptr = new char[size]) {
-			if(file.Read(ptr, size))
-				return ptr;
-			else
-				delete[] ptr;
-		}
-
-		return nullptr;
+	virtual const char* SetFileName(const char* pFileName) override {
+		this->Availablility = 0;
+		return this->CDFileClass::SetFileName(pFileName);
 	}
 
-	static void* Load_Alloc_Data(char const* name)
-	{
-		CCFileClass file(name);
-		return Load_Alloc_Data(file);
+	virtual BOOL Create() override { return this->CDFileClass::Create(); }
+	virtual BOOL Delete() override { return this->CDFileClass::Delete(); }
+	virtual bool IsAvaible(bool writeShared = false) override;
+	virtual bool IsOpen() override;
+	virtual bool Open1(FileAccessMode rights) override;
+
+	virtual bool Open2(const char* pFileName, FileAccessMode access) override { 
+		return this->SetFileName(pFileName) && this->Open1(access);
 	}
+
+	virtual int Read(void* buffer, int size) override;
+	virtual off_t Seek(off_t pos, FileSeekMode dir) override;
+	virtual off_t Size() override;
+	virtual int Write(void* buffer, int length) override;
+	virtual void Close() override;
+	virtual LONG GetDataTime() override;
+	virtual bool SetDateTime(LONG datetime) override;
+	virtual void Error(FileErrorType error, bool can_retry = false, const char* filename = nullptr) override;
+
+	static void* Load_Alloc_Data(FileClass& file);
+	static void* Load_Alloc_Data(char const* name);
 
 	//Constructor
 	CCFileClass(const char* pFileName)
-		: CCFileClass(noinit_t())
-	{ JMP_THIS(0x4739F0); }
+		: CDFileClass()
+		, Buffer()
+		, Position()
+		, Availablility()
+	{ 
+		VTable::Set(this, vtable);
+		this->CDFileClass::SetFileName(pFileName);
+	}
 
 	CCFileClass()
-		: CCFileClass(noinit_t())
-	{ JMP_THIS(0x473A80); }
-
-	CCFileClass(wchar_t* pWideName)
-		: CCFileClass(noinit_t())
-	{ JMP_THIS(0x473A30); }
+		: CDFileClass()
+		, Buffer()
+		, Position()
+		, Availablility()
+	{
+		VTable::Set(this, vtable);
+	}
 
 protected:
 	explicit __forceinline CCFileClass(noinit_t)
@@ -455,30 +556,81 @@ class NOVTABLE RAMFileClass : public FileClass
 public:
 	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7F0874;
 
-	virtual ~RAMFileClass() { JMP_THIS(0x65C2A0); }
+	virtual ~RAMFileClass() { 
+		this->Is_Open = false;
 
-	virtual const char* GetFileName() const override { JMP_THIS(0x65C550); }
-	virtual const char* SetFileName(const char* pFileName) override { JMP_THIS(0x65C560); }
-	virtual BOOL CreateFile() override { JMP_THIS(0x65C2E0); }
-	virtual BOOL DeleteFile() override { JMP_THIS(0x65C300); }
-	virtual bool Exists(bool writeShared = false) override { JMP_THIS(0x65C320); }
-	virtual bool HasHandle() override { JMP_THIS(0x65C330); }
-	virtual bool Open(FileAccessMode access) override { JMP_THIS(0x65C350); };
-	virtual bool OpenEx(const char* pFileName, FileAccessMode access) override { JMP_THIS(0x65C340); }
-	virtual int ReadBytes(void* pBuffer, int nNumBytes) override { JMP_THIS(0x65C3A0); }
-	virtual off_t Seek(off_t offset, FileSeekMode seek) override { JMP_THIS(0x65C420); }
-	virtual off_t GetFileSize() override { JMP_THIS(0x65C4A0); }
-	virtual int WriteBytes(void* pBuffer, int nNumBytes) override { JMP_THIS(0x65C4B0); }
-	virtual void Close() override { JMP_THIS(0x65C540); }
-	virtual LONG GetFileTime() override { JMP_THIS(0x65C570); }
-	virtual bool SetFileTime(LONG date_time) override { JMP_THIS(0x65C580); }
-	virtual void Error(FileErrorType error, bool can_retry = false, const char *filename = nullptr) override { JMP_THIS(0x65C590); }
+		if (this->IsAllocated) {
+			YRMemory::Deallocate(this->Buffer);
+			this->Buffer = nullptr;
+			this->IsAllocated = false;
+		}
+	}
+
+	virtual const char* FileName() const override { return "UNKNOWN"; }
+	virtual const char* SetFileName(const char* pFileName) override { return "UNKNOWN"; }
+	virtual BOOL Create() override {
+		if (this->IsOpen()) {
+			return 0;
+		}
+
+		this->Length = 0;
+		return 1;
+	}
+
+	virtual BOOL Delete() override {
+		if (this->IsOpen()) {
+			return 0;
+		}
+
+		this->Length = 0;
+		return 1;
+	}
+	virtual bool IsAvaible(bool writeShared = false) override { return 1; }
+	virtual bool IsOpen() override { return this->Is_Open; }
+	virtual bool Open1(FileAccessMode access) override { 
+		if (!this->Buffer || this->IsOpen()) {
+			return 0;
+		}
+
+		this->Offset = 0;
+		this->Access = access;
+		this->Is_Open = 1;
+		if ((DWORD)access == 2) {
+			this->Length = 0;
+		}
+		return this->IsOpen();
+	};
+
+	virtual bool Open2(const char* pFileName, FileAccessMode access) override { return this->Open1(access); }
+	virtual int Read(void* buffer, int length) override;
+	virtual off_t Seek(off_t offset, FileSeekMode whence) override;
+	virtual off_t Size() override { return this->Length; }
+	virtual int Write(void* buffer, int length) override;
+	virtual void Close() override { this->Is_Open = false; }
+	virtual LONG GetDataTime() override { return 0; }
+	virtual bool SetDateTime(LONG date_time) override { return 1; }
+	virtual void Error(FileErrorType error, bool can_retry = false, const char *filename = nullptr) override { }
 
 	//Constructor
 	RAMFileClass(void* pData, size_t nSize)
-		: RAMFileClass(noinit_t())
-	{ JMP_THIS(0x65C250); }
+		: FileClass()
+	{
+		VTable::Set(this, vtable);
+		if (!pData && nSize > 0) {
+			this->Buffer = (char*)YRMemory::Allocate(nSize);
+			this->IsAllocated = 1;
+		}
+	}
 
+	OPTIONALINLINE void SetManualBufer(char* pBuffer, int len, int offs = 0)
+	{
+		if (pBuffer) {
+			this->Buffer = pBuffer;
+			this->MaxLength = len;
+			this->Length = len;
+			this->Offset = offs;
+		}
+	}
 protected:
 	explicit __forceinline RAMFileClass(noinit_t)
 		: FileClass(noinit_t())
@@ -489,8 +641,8 @@ private:
 	int MaxLength;
 	int Length;
 	int Offset;
-	FileAccessType Access;
-	bool IsOpen;
+	FileAccessMode Access;
+	bool Is_Open;
 	bool IsAllocated;
 };
 

@@ -84,6 +84,9 @@ public:
 	static ColorScheme * __fastcall FindOrAllocate(const char* pID, const ColorStruct &BaseColor, const BytePalette &Pal1, const BytePalette &Pal2, int ShadeCount)
 		{ JMP_THIS(0x68C9C0); }
 
+	static ColorScheme* __fastcall FindOrAllocatePTR(const char* pID, const HSVClass* BaseColor, const BytePalette* Pal1, const BytePalette* Pal2, int ShadeCount)
+		{ JMP_THIS(0x68C9C0); }
+	
 	static DynamicVectorClass<ColorScheme*>* __fastcall GeneratePalette(char* name)
 		{ JMP_FAST(0x6263D0); }
 

@@ -230,30 +230,30 @@ void UnTranform_buffer(std::vector<char>& buffer, std::string key, uint32_t crc 
 	ApplyCore(buffer, key);
 }
 
-void* __fastcall FakeFileLoader::_Retrieve(const char* pFilename, bool bLoadAsSHP)
-{
-	//void* pData = FakeFileLoader::Retrieve(pFilename, bLoadAsSHP);
+// void* __fastcall FakeFileLoader::_Retrieve(const char* pFilename, bool bLoadAsSHP)
+// {
+// 	//void* pData = FakeFileLoader::Retrieve(pFilename, bLoadAsSHP);
 
-	//if (pData && IsActive)
-	//{
-	//	if (pFilename)
-	//	{
-	//		auto it = SafeFiles.find(pFilename);
+// 	//if (pData && IsActive)
+// 	//{
+// 	//	if (pFilename)
+// 	//	{
+// 	//		auto it = SafeFiles.find(pFilename);
 
-	//		if (it != SafeFiles.end())
-	//		{
-	//			long fileSize = 0;
-	//			if (MixFileClass::Offset(pFilename, nullptr, nullptr, nullptr, &fileSize)) {
-	//				if (fileSize > 0) {
-	//					ApplyCore(static_cast<char*>(pData), static_cast<size_t>(fileSize));
-	//				}
-	//			}
-	//		}
-	//	}
-	//}
+// 	//		if (it != SafeFiles.end())
+// 	//		{
+// 	//			long fileSize = 0;
+// 	//			if (MixFileClass::Offset(pFilename, nullptr, nullptr, nullptr, &fileSize)) {
+// 	//				if (fileSize > 0) {
+// 	//					ApplyCore(static_cast<char*>(pData), static_cast<size_t>(fileSize));
+// 	//				}
+// 	//			}
+// 	//		}
+// 	//	}
+// 	//}
 
-	return FakeFileLoader::Retrieve(pFilename, bLoadAsSHP);
-}
+// 	return FakeFileLoader::Retrieve(pFilename, bLoadAsSHP);
+// }
 
 struct FakeFileData
 {
@@ -441,122 +441,7 @@ BOOL WINAPI _SetFileTime(
 
 #pragma region _Retrieve
 
-DEFINE_FUNCTION_JUMP(CALL, 0x41CAF7, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x41CB08, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x4279DA, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x427A04, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x427B15, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x427BE9, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x427C07, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x42891E, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x4309FD, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x430A61, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x45E904, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x45E988, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x45E999, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x45EA16, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x45EA79, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x45F28D, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x45F2A5, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x45F525, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x45F543, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x45F615, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x45F6E9, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x45F7C1, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x45F82D, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x45F84B, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x45F91D, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x45FA0B, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x45FA39, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x45FA6B, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x47EFFD, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x47F00E, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x47F26A, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x4A38DE, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x4A3985, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x4A8862, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x4A8873, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x4B6D07, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x4B6D1A, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x4B6D2D, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x4B6E52, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x4B6F41, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x4B7349, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x4B73A8, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x51916D, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x5194FF, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x52BBE3, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x52BC55, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x52BCFD, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x52BE6D, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x52BF26, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x52BFDA, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x52C08E, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x52C142, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x531381, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x534C04, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x534CC3, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x546725, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x5468DB, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x5468F8, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x5469BF, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x560D7B, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x561093, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x5D2EBA, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x5F76EE, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x5F773C, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x5F778A, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x5F77D8, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x5F9249, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x5F9267, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x5F9281, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x5F9685, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x5F9931, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x5FE68C, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x5FE6AE, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x5FE6F6, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x5FE714, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x5FE928, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x5FEBEC, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x62769F, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x66C5F4, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x66C606, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x677FAC, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x677FBE, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x690660, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x6906BD, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x69071A, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x690A4D, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x690B1D, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x6A5012, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x6A8167, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x6ABD57, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x6ABD68, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x6ABD79, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x6B1B94, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x6B1BCE, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x6B57C2, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x6CE89B, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x6CE8B1, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x6CEE20, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x6CEE38, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x6DAE07, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x715820, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x715A38, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x715A54, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x715B05, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x716C77, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x716D04, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x716D1A, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x716D6F, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x71DFBB, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x73CEE0, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x73D3EF, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x747490, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x7474A1, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x747BB4, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x748093, FakeFileLoader::_Retrieve);
-DEFINE_FUNCTION_JUMP(CALL, 0x74D47D, FakeFileLoader::_Retrieve);
+
 #pragma endregion
 
 using uintptr_string_pair = std::pair<uintptr_t, std::string>;

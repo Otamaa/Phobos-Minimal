@@ -203,10 +203,23 @@ struct _RocketLocomotionClass
 		return  AnimTypeClass::Find(GameStrings::V3TAKEOFF());
 	}
 
+	static NOINLINE int GetTakeOffAnimSeparation(TechnoTypeClass* pType)
+	{
+		if (pType->WhatAmI() == AbstractType::AircraftType)
+		{
+			return AircraftTypeExtContainer::Instance.Find((AircraftTypeClass*)pType)->CustomMissileTakeoffSeparation;
+		}
+		return 24;
+	}
+
 	static NOINLINE bool IsCruise(TechnoTypeClass* pType, bool IsElite)
 	{
 		if (pType->WhatAmI() == AbstractType::AircraftType) {
-			const auto& _opt = AircraftTypeExtContainer::Instance.Find((AircraftTypeClass*)pType)->CustomMissileRaise;
+			auto pExt = AircraftTypeExtContainer::Instance.Find((AircraftTypeClass*)pType);
+			if (pExt->IsCruiseMissile.isset())
+				return pExt->IsCruiseMissile.Get();
+
+			const auto& _opt = pExt->CustomMissileRaise;
 			const auto& _isSet = IsElite ? _opt.Elite : _opt.Rookie;
 
 			if (_isSet.isset())
@@ -369,7 +382,7 @@ struct _RocketLocomotionClass
 						  true, false);
 					}
 
-					pRocket->TrailerTimer.Start(24);
+					pRocket->TrailerTimer.Start(GetTakeOffAnimSeparation(pAirType));
 				}
 
 				if (pRocket->NeedToSubmit)
@@ -523,7 +536,7 @@ struct _RocketLocomotionClass
 					  true, false);
 				}
 
-				pRocket->TrailerTimer.Start(24);
+				pRocket->TrailerTimer.Start(GetTakeOffAnimSeparation(pAirType));
 			}
 
 			if (pRocket->MissionTimer.Percent_Expired() != 1.0)

@@ -2610,7 +2610,7 @@ ImageStatusses ImageStatusses::ReadVoxel(const char* const nKey)
 	_buffer += ".VXL";
 	CCFileClass CCFileV { _buffer.c_str() };
 
-	if (CCFileV.Exists())
+	if (CCFileV.IsAvaible())
 	{
 		MotLib* pLoadedHVA = nullptr;
 		VoxLib* pLoadedVXL = GameCreate<VoxLib>(&CCFileV, false);
@@ -2619,7 +2619,7 @@ ImageStatusses ImageStatusses::ReadVoxel(const char* const nKey)
 		_buffer[key_len + 3] = 'A';
 		CCFileClass  CCFileH { _buffer.c_str() };
 
-		if (CCFileH.Open(FileAccessMode::Read)) {
+		if (CCFileH.Open1(FileAccessMode::Read)) {
 			pLoadedHVA = GameCreate<MotLib>(&CCFileH);
 		}
 

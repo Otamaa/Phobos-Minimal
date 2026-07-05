@@ -581,12 +581,12 @@ CoordStruct* FakeUnitClass::_GetFLH(CoordStruct* outBuffer, int weaponIdx, int b
 		{
 			if (const int idx = pTransporter->Passengers.IndexOf(pThis))
 			{
-				*outBuffer = pTransporter->GetFLH(-idx,0,0,0);
+				*outBuffer = pTransporter->GetFLH(-idx, baseX , baseY , baseZ);
 				break;
 			}
 		}
 
-		FakeTechnoClass::__Get_FLH(pThis, discard_t(), outBuffer, weaponIdx, CoordStruct::Empty);
+		FakeTechnoClass::__Get_FLH(pThis, discard_t(), outBuffer, weaponIdx, {baseX , baseY , baseZ});
 	}
 	while (false);
 

@@ -235,7 +235,7 @@ void __fastcall ScreenCaptureCommandClass_Process(CommandClass* pThis)
 				//char fName[0x80];
 				const std::string fName = "SCRN." + Debug::GetCurTimeA() + ".BMP";
 				CCFileClass ScreenShot { fName.c_str() };
-				ScreenShot.Open(FileAccessMode::Write);
+				ScreenShot.Open1(FileAccessMode::Write);
 
 #pragma pack(push, 1)
 				struct bmpfile_full_header
@@ -285,7 +285,7 @@ void __fastcall ScreenCaptureCommandClass_Process(CommandClass* pThis)
 				h.bmp_offset = sizeof(h);
 				h.filesz = h.bmp_offset + h.bmp_bytesz;
 
-				ScreenShot.WriteBytes(&h, sizeof(h));
+				ScreenShot.Write(&h, sizeof(h));
 				std::vector<WORD> _pixelData(arrayLen);
 				WORD* pixels = _pixelData.data();
 				int pitch = Surface->VideoSurfaceDescription->lPitch;
@@ -296,7 +296,7 @@ void __fastcall ScreenCaptureCommandClass_Process(CommandClass* pThis)
 					buffer += pitch / 2; // /2 because buffer is a WORD * and pitch is in bytes
 				}
 
-				ScreenShot.WriteBytes(_pixelData.data(), arrayLen * 2);
+				ScreenShot.Write(_pixelData.data(), arrayLen * 2);
 				ScreenShot.Close();
 				Debug::LogInfo("Wrote screenshot to file {}", fName);
 				Surface->Unlock();

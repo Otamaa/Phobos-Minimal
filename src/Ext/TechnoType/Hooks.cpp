@@ -816,3 +816,18 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x7120D0, TechnoTypeExtContainer::__Repair_Cost);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2918, TechnoTypeExtContainer::__Repair_Cost);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4F88, TechnoTypeExtContainer::__Repair_Cost);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F62C8, TechnoTypeExtContainer::__Repair_Cost);
+
+int __thiscall  TechnoTypeExtContainer::__Time_To_Build(TechnoTypeClass* pThis)
+{
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis);
+	const auto nSeed = pTypeExt->BuildTime_Speed.Get(RulesClass::Instance->BuildSpeed);
+	const auto nCost = pTypeExt->BuildTime_Cost.Get(pThis->Cost);
+	return (int(nSeed * nCost / 1000.0 * 900.0));
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x711EE0, TechnoTypeExtContainer::__Time_To_Build);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E28F0, TechnoTypeExtContainer::__Time_To_Build);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E45F8, TechnoTypeExtContainer::__Time_To_Build);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB698, TechnoTypeExtContainer::__Time_To_Build);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4F60, TechnoTypeExtContainer::__Time_To_Build);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F62A0, TechnoTypeExtContainer::__Time_To_Build);

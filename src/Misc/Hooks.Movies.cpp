@@ -84,7 +84,7 @@ void MoviesList::LoadListFromINI()
 
 	CCFileClass file { PhobosGlobal::Instance()->MovieMDINI.c_str() };
 
-	if (file.Exists())
+	if (file.IsAvaible())
 	{
 		CCINIClass ini {};
 		ini.ReadCCFile(&file);

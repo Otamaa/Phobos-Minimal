@@ -25,7 +25,7 @@ public:
 	virtual int GetSound(const SWTypeExtData* pData) const override;
 	virtual SWRange GetRange(const SWTypeExtData* pData) const override;
 
-	static void RevealMap(const CellStruct& Coords , float range , int height , HouseClass* Owner);
+	static void RevealMap(const CellStruct& Coords , float range , int height , HouseClass* Owner , bool useOldAlgorithm);
 
 protected:
 	void newStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper) {

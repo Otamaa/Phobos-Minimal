@@ -28,25 +28,51 @@ public:
 
 	const char* CurrentSectionName;
 	INISection* CurrentSection;
-	DECLARE_PROPERTY(List<INISection*>, Sections);
-	DECLARE_PROPERTY(IndexType, SectionIndex); // <CRCValue of the Name, Pointer to the section>
+	List<INISection*> Sections;
+	IndexType SectionIndex; // <CRCValue of the Name, Pointer to the section>
 	INIComment* LineComments;
 
 public:
 
-	INIClass()
-	{ JMP_THIS(0x535AA0); }
+	INIClass() = default;
 
-	virtual ~INIClass() { JMP_THIS(0x5256F0); };
+	virtual ~INIClass() {
+		this->Clear(0,0);
+		this->SectionIndex.IndexType::~IndexType();
+		this->Sections.List<INISection*>::~List<INISection*>();
+	};
 
 	DWORD CalculateTextCRCChecksums(const char* pText);
 
 	static void __fastcall Strip_Comments(const char* buffer) {
-		JMP_FAST(0x52AA90);
+		char* comment; // eax
+
+		if (buffer) {
+			comment = CRT::strchr((char*)buffer, ';');
+			if (comment) {
+				*comment = 0;
+				CRT::strtrim((char*)buffer);
+			}
+		}
 	}
 
 	static bool __fastcall Line_Contains_Section(char* str) {
-		JMP_FAST(0x52AAC0);
+		if (!str)
+			return false;
+
+		// Skip leading whitespace/control chars (anything <= ' ').
+		while (*str && static_cast<unsigned char>(*str) <= ' ')
+			++str;
+
+		// A section line starts with '[' and has a matching ']' somewhere after it.
+		return (*str == '[' && CRT::strchr(str, ']') != nullptr);
+	}
+
+	// fsldargh who the fuck decided to pass structures by value here
+	static TypeList<int>* __fastcall GetPrerequisites(TypeList<int>* pBuffer, INIClass* pINI,
+		const char* pSection, const char* pKey, TypeList<int> ndefaults)
+	{
+		JMP_FAST(0x4770E0);
 	}
 
 	bool Section_Present(char const* section) { return this->GetSection(section) != nullptr; }
@@ -82,6 +108,10 @@ public:
 
 	bool Load(FileStraw* straw, bool loadcomments) {
 		JMP_THIS(0x525A60);
+	}
+
+	bool Load(FileClass* file, bool loadcomments) {
+		JMP_THIS(0x525A10);
 	}
 
 	void Reset()
@@ -394,11 +424,6 @@ public:
 	}
 
 
-	// fsldargh who the fuck decided to pass structures by value here
-	static TypeList<int>* __fastcall GetPrerequisites(TypeList<int>* pBuffer, INIClass* pINI,
-		const char* pSection, const char* pKey, TypeList<int> ndefaults)
-			{ JMP_FAST(0x4770E0); }
-
 	TypeList<int>* GetTypeList(TypeList<int>* ret , const char* pSection , const char* pKey , TypeList<int> def)
 		{ JMP_THIS(0x475D70); }
 
@@ -451,7 +476,7 @@ public:
 	{
 		CCINIClass* pINI = GameCreate<CCINIClass>();
 		if(CCFileClass* pFile = GameCreate<CCFileClass>(pFileName)){
-			if (pFile->Exists())
+			if (pFile->IsAvaible())
 				pINI->ReadCCFile(pFile);
 
 			GameDelete<true,false>(pFile);
@@ -489,6 +514,9 @@ public:
 	template<class T>
 	bool Put_TypeList(const char* section, const char* entry, const TypeList<T*> value);
 
+	static void __fastcall ReadBasic(const char* filename, const wchar_t* description, const char* digest, bool a4, bool official, int minplayers, int maxplayers)
+	{ JMP_FAST(0x6994F0); }
+
 	DWORD GetCRC()
 		{ JMP_THIS(0x476D80); }
 
@@ -498,6 +526,7 @@ public:
 	FINDORMAKETYPE(AircraftTypeClass, 0x67BD30u)
 	FINDORMAKETYPE(InfantryTypeClass, 0x67BAC0u)
 	FINDORMAKETYPE(WarheadTypeClass , 0x67B500u)
+
 #undef FINDORMAKETYPE
 
 	//Properties

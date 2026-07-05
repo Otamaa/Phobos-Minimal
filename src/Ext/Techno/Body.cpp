@@ -2674,7 +2674,7 @@ bool NOINLINE _CheckFirstPahse(FakeBuildingClass* pThis, bool isHumanControlled)
 			return true;
 		}
 	} else { //Noot Human check the IQ first
-		if (pThis->Owner->IQLevel2 < RulesClass::Instance->RepairSell) {
+		if (pThis->Owner->IQLevel2 < RulesClass::Instance->IQData.RepairSell) {
 
 			if (!pThis->IsBeingRepaired)
 				return false;
@@ -2696,7 +2696,7 @@ bool NOINLINE _CheckFirstPahse(FakeBuildingClass* pThis, bool isHumanControlled)
 		// Low money: attempt sell-back
 		if ((!SessionClass::Instance->IsCampaign() || pThis->IsAllowedToSell) &&
 			pThis->IsTickedOff &&
-			pThis->Owner->StaticData.IQLevel >= RulesClass::Instance->SellBack &&
+			pThis->Owner->StaticData.IQLevel >= RulesClass::Instance->IQData.SellBack &&
 			ScenarioClass::Instance->Random.RandomRanged(0, 50) < pThis->Owner->StaticData.TechLevel &&
 			!pThis->AttachedTag &&
 			pThis->Type->Factory != AbstractType::BuildingType &&
@@ -5654,7 +5654,7 @@ bool __fastcall FakeTechnoClass::__Is_Allowed_To_Retaliate(TechnoClass* pThis , 
 	}
 
 	// Player-controlled units without SmartDefense should only retaliate in guard missions
-	if (bIsPlayerControl && !RulesClass::Instance->Scatter && !pThisBld) {
+	if (bIsPlayerControl && !RulesClass::Instance->IQData.Scatter && !pThisBld) {
 		if (pThis->CurrentMission != Mission::Area_Guard
 			&& pThis->CurrentMission != Mission::Guard
 			&& pThis->CurrentMission != Mission::Patrol){
@@ -6291,6 +6291,7 @@ CoordStruct* __fastcall FakeTechnoClass::__Get_FLH(TechnoClass* pThis, discard_t
 	if (useBurstMirroring && pThis->CurrentBurstIndex % 2 != 0)
 		flh.Y = -flh.Y;
 
+	flh += offset;
 	*pBuffer = TechnoExtData::GetFLHAbsoluteCoords(pThis, flh, allowOnTurret);
 	return pBuffer;
 }
@@ -6627,7 +6628,7 @@ int __fastcall FakeTechnoClass::_EvaluateJustCell(TechnoClass* pThis , discard_t
 	// **  Even then, if the difficulty indicates that it shouldn't search for wall
 	// **  targets, then don't allow it to do so.
 	// */
-	if (!RulesClass::Instance->AIDiffs[(int)pThis->Owner->AIDifficulty].DestroyWalls)
+	if (!RulesClass::Instance->DifficultyConfigs[(int)pThis->Owner->AIDifficulty].DestroyWalls)
 	{
 		return 0;
 	}

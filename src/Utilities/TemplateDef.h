@@ -392,6 +392,9 @@ namespace detail
 	bool read<ColorStruct>(ColorStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
+	bool read<HSVClass>(HSVClass& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
+
+	template <>
 	bool read<DamageDelayTargetFlag>(DamageDelayTargetFlag& value, INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate);
 
 	template <>

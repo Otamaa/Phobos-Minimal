@@ -3254,7 +3254,6 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x459ED0, FakeBuildingClass::__GetUIName)
   //transfer building supers to new owner
   void BuildingExtData::TransferSupers(HouseClass* pNewOwner)
   {
-	  int oldCount = pNewOwner->Supers.Count;
 	  auto pThisOwner = this->This()->Owner;
 
 	  std::vector<SuperClass*> _DeleteCandidate {};

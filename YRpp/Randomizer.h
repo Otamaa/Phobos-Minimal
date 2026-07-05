@@ -8,20 +8,55 @@ class RandomClass
 {
 protected:
 	explicit RandomClass(unsigned seed) noexcept
-	{
-		JMP_THIS(0x65C630);
-	}
+		: Seed(seed)
+	{ }
+
 public:
 	operator int() { return operator()(); }
 
 	int operator()()
 	{
-		JMP_THIS(0x65C640);
+		constexpr uint32_t Multiplier = 0x41C64E6D;
+		constexpr uint32_t Increment = 0x3039;
+
+		this->Seed = this->Seed * Multiplier + Increment;
+		return (this->Seed >> 10) & 0x7FFF;
 	}
 
-	int operator()(int minval, int maxval)
+	int operator()(int min, int max)
 	{
-		JMP_THIS(0x65C660)
+		if (min == max) {
+			return min;
+		}
+
+		if (min > max) {
+			std::swap(min, max);
+		}
+
+		const int range = max - min;
+
+		int highestBit = 14;
+		while (highestBit > 0 && ((1 << highestBit) & range) == 0) {
+			--highestBit;
+		}
+
+		const int mask = ~(-1 << (highestBit + 1));
+		int value = range + 1;
+		constexpr uint32_t Multiplier = 0x41C64E6D;
+		constexpr uint32_t Increment = 0x3039;
+
+		// Preserve the original overflow guard.
+		if ((range + 1) > range && (range + 1) != range)
+		{
+			do
+			{
+				this->Seed = this->Seed * Multiplier + Increment;
+				value = ((this->Seed >> 10) & 0x7FFF) & mask;
+			}
+			while (value > range);
+		}
+
+		return min + value;
 	}
 
 	template<typename T> T operator()(T minval, T maxval) { return (T)(*this)(int(minval), int(maxval)); }
@@ -41,72 +76,124 @@ public:
 
 public:
 
-	//COMPILETIMEEVAL explicit Random2Class(std::uint32_t seed) noexcept {
-	//	Index1 = 0;
-	//	Index2 = 103;
+	//65C6D0
+	COMPILETIMEEVAL explicit Random2Class(std::uint32_t seed) noexcept {
+		static constexpr int    kMixPasses = 4;    // inner loop: 4 passes (ebx 0,4,8,12 < 0x10)
+		static constexpr int    kBitHalf = 16;   // 32-bit split midpoint for avalanche
+		static constexpr size_t kTableSize = 250; // Random2Class::Table capacity
+		static constexpr int    kInitIndex2 = 103; // Initial Index2 offset (empirical Westwood value)
 
-	//	for (size_t i = 0; i < Table.size(); ++i) {
-	//		int v8 = 0;
-	//		for (int a = 0; a < 4; ++a) {
-	//			const int v7 = static_cast<int>(i) ^ FirstTable[a];
+		this->Index1 = 0;
+		this->Index2 = kInitIndex2;
 
-	//			v8 = seed ^ ((static_cast<std::uint16_t>(v7) * (v7 >> 16))
-	//			+ (SecondTable[a] ^ ((((static_cast<std::uint16_t>(v7) * static_cast<std::uint16_t>(v7)
-	//			+ ~(v7 >> 16) * (v7 >> 16)) << 16) |
-	//			((static_cast<std::uint16_t>(v7) * static_cast<std::uint16_t>(v7)
-	//			+ ~(v7 >> 16) * (v7 >> 16)) >> 16)))));
-	//		}
-	//		this->Table[i] = v8;
-	//	}
+		for (size_t slotIdx = 0; slotIdx < kTableSize; ++slotIdx)
+		{
+			// BUGFIX: 'runningValue' threads through all 4 inner passes — it is NOT
+			// reset to slotIdx each pass. IDA pseudocode showed a simple per-pass
+			// recompute from slotIdx; assembly confirms esi carries the output of
+			// each pass as the input to the next (0x65C70F mov eax,esi / 0x65C74B mov esi,ecx).
+			int runningValue = static_cast<int>(slotIdx);
+
+			for (int pass = 0; pass < kMixPasses; ++pass)
+			{
+				// XOR running state with the first mixing table constant.
+				const int  mixed = runningValue ^ FirstTable[pass];
+
+				// Split 'mixed' at the 16-bit boundary (SAR 10h in asm → signed).
+				const auto low16 = static_cast<std::uint16_t>(mixed);
+				const int  high16 = mixed >> kBitHalf;
+
+				// Three multiplies: high²,  high×low (cross),  low²
+				const int highSq = high16 * high16;
+				const int crossProd = high16 * static_cast<int>(low16);
+				const int lowSq = static_cast<int>(low16) * static_cast<int>(low16);
+
+				// Squaring mix: (~high² + low²), then bit-swap the two halves.
+				const int squareMix = (~highSq) + lowSq;
+				const int folded = (squareMix << kBitHalf) | (squareMix >> kBitHalf);
+
+				// Inject second table constant via XOR, then ADD crossProd.
+				// BUGFIX: assembly uses ADD at 0x65C744 (add ecx,edi), not XOR.
+				// IDA pseudocode incorrectly showed this as XOR — corrected here.
+				const int withTable = folded ^ SecondTable[pass];
+				const int withCross = withTable + crossProd;
+
+				// Final seed mix; result becomes input to the next pass.
+				runningValue = static_cast<int>(seed) ^ withCross;
+			}
+
+			this->Table[slotIdx] = runningValue;
+		}
+
+		this->unknownBool_00 = false;
+	}
+
+	//Random2Class(std::uint32_t seed) noexcept {
+	//	JMP_THIS(0x65C6D0);
 	//}
 
-	Random2Class(std::uint32_t seed) noexcept {
-		JMP_THIS(0x65C6D0);
-	}
-
-	int Random() noexcept
-	{
-		JMP_THIS(0x65C780);
-	}
-
-	int RandomRanged(int min, int max) noexcept
-	{
-		JMP_THIS(0x65C7E0);
-	}
-
-	//[[nodiscard]] COMPILETIMEEVAL int Random() noexcept {
-	//	if (unknownBool_00) return 0;
-
-	//	Table[Index1] ^= Table[Index2];
-	//	int result = Table[Index1++];
-
-	//	if (++Index2 >= (int)Table.size()) Index2 = 0;
-	//	if (Index1 >= (int)Table.size()) Index1 = 0;
-
-	//	return result;
+	//int Random() noexcept
+	//{
+	//	JMP_THIS(0x65C780);
 	//}
 
-	//[[nodiscard]] COMPILETIMEEVAL int RandomRanged(int min, int max) noexcept {
- //       if (min == max) return min;
+	//int RandomRanged(int min, int max) noexcept
+	//{
+	//	JMP_THIS(0x65C7E0);
+	//}
 
- //       if (min > max) std::swap(min, max);
-	//	const int range = max - min;
-	//	const unsigned int unsignedRange = static_cast<unsigned int>(range);
+	[[nodiscard]] COMPILETIMEEVAL int Random() noexcept {
+		if (this->unknownBool_00) return 0;
 
- //       int bitmask = (1 << (std::bit_width(unsignedRange) - 1)) - 1;
- //       int randomValue;
+		this->Table[Index1] ^= this->Table[Index2];
+		int result = this->Table[Index1++];
 
- //       do {
- //           randomValue = Table[Index1] ^= Table[Index2];
+		if (++this->Index2 >= (int)this->Table.size()) this->Index2 = 0;
+		if (this->Index1 >= (int)this->Table.size()) this->Index1 = 0;
 
-	//		if (++Index2 >= (int)Table.size()) Index2 = 0;
- //           if (++Index1 >= (int)Table.size()) Index1 = 0;
+		return result;
+	}
 
- //           randomValue &= bitmask;
- //       } while (randomValue > range);
+	[[nodiscard]] COMPILETIMEEVAL int RandomRanged(int min, int max) noexcept {
+        if (min == max) return min;
 
- //       return min + randomValue;
- //   }
+        if (min > max) std::swap(min, max);
+
+		const int range = max - min;
+		int highestBit = 31;
+		while (highestBit > 0 && ((1 << highestBit) & range) == 0)
+		{
+			--highestBit;
+		}
+
+		const int mask = ~(-1 << (highestBit + 1));
+		int value = range + 1;
+
+		// Preserve the original overflow guard.
+		if ((range + 1) > range && (range + 1) != range) {
+			do {
+				int random;
+
+				if (this->unknownBool_00) {
+					random = 0;
+				} else {
+
+					this->Table[this->Index1] ^= this->Table[this->Index2];
+
+					random = this->Table[this->Index1];
+
+					if (++this->Index1 >= (int)this->Table.size()) this->Index1 = 0;
+					if (++this->Index2 >= (int)this->Table.size()) this->Index2 = 0;
+				}
+
+				value = random & mask;
+
+			}
+			while (value > range);
+		}
+
+		return min + value;
+    }
 
 	[[nodiscard]] FORCEDINLINE int RandomRanged(const Point2D& nMinMax)
 	{ return RandomRanged(nMinMax.X, nMinMax.Y); }
@@ -186,167 +273,3 @@ public:
 };
 
 static_assert(sizeof(Random2Class) == 0x3F4);
-
-class Random3Class
-{
-protected:
-
-	explicit Random3Class(unsigned seed1 , unsigned seed2 ) noexcept {
-		JMP_THIS(0x65C890);
-	}
-
-public:
-	operator int() { return operator()(); }
-
-	int operator()()
-	{
-		JMP_THIS(0x65C8B0);
-	}
-
-	int operator()(int minval, int maxval)
-	{
-		JMP_THIS(0x65C910);
-	}
-
-	template<typename T> T operator()(T minval, T maxval) { return (T)(*this)(int(minval), int(maxval)); }
-
-protected:
-	int Seed;
-	int Index;
-
-private:
-	static unsigned Mix1[20];
-	static unsigned Mix2[20];
-};
-
-class Random4Class
-{
-	// Period parameters
-	static COMPILETIMEEVAL OPTIONALINLINE int N = 624;
-	static COMPILETIMEEVAL OPTIONALINLINE int M = 397;
-	static COMPILETIMEEVAL OPTIONALINLINE unsigned int MATRIX_A = 0x9908b0df; // constant vector a
-	static COMPILETIMEEVAL OPTIONALINLINE unsigned int UPPER_MASK = 0x80000000; // most significant w-r bits
-	static COMPILETIMEEVAL OPTIONALINLINE unsigned int LOWER_MASK = 0x7fffffff;// least significant r bits
-
-	// Tempering parameters
-	static COMPILETIMEEVAL OPTIONALINLINE unsigned int  TEMPERING_MASK_B = 0x9d2c5680;
-	static COMPILETIMEEVAL OPTIONALINLINE unsigned int  TEMPERING_MASK_C = 0xefc60000;
-
-	static COMPILETIMEEVAL unsigned int mag01[2] = { 0x0, MATRIX_A };
-
-	template<typename T>
-	static COMPILETIMEEVAL auto TEMPERING_SHIFT_U(T y) { return y >> 11; }
-
-	template<typename T>
-	static COMPILETIMEEVAL auto TEMPERING_SHIFT_S(T y) { return y << 7; }
-
-	template<typename T>
-	static COMPILETIMEEVAL auto TEMPERING_SHIFT_T(T y) { return y << 15; }
-
-	template<typename T>
-	static COMPILETIMEEVAL auto TEMPERING_SHIFT_L(T y) { return y >> 18; }
-
-public:
-	COMPILETIMEEVAL Random4Class(unsigned int seed = 4357) {
-		if (!seed)
-		{
-			seed = 4375;
-		}
-
-		mt[0] = seed & 0xffffffff;
-
-		for (mti = 1; mti < N; mti++)
-		{
-			mt[mti] = (69069 * mt[mti - 1]) & 0xffffffff;
-		}
-	};
-
-	COMPILETIMEEVAL operator int() { return operator()(); }
-	COMPILETIMEEVAL int operator()()
-	{
-		unsigned int y;
-
-		if (mti >= N)
-		{
-			int kk;
-
-			for (kk = 0; kk < N - M; kk++)
-			{
-				y = (mt[kk] & UPPER_MASK) | (mt[kk + 1] & LOWER_MASK);
-				mt[kk] = mt[kk + M] ^ (y >> 1) ^ mag01[y & 0x1];
-			}
-			for (; kk < N - 1; kk++)
-			{
-				y = (mt[kk] & UPPER_MASK) | (mt[kk + 1] & LOWER_MASK);
-				mt[kk] = mt[kk + (M - N)] ^ (y >> 1) ^ mag01[y & 0x1];
-			}
-			y = (mt[N - 1] & UPPER_MASK) | (mt[0] & LOWER_MASK);
-			mt[N - 1] = mt[M - 1] ^ (y >> 1) ^ mag01[y & 0x1];
-
-			mti = 0;
-		}
-
-		y = mt[mti++];
-		y ^= TEMPERING_SHIFT_U(y);
-		y ^= TEMPERING_SHIFT_S(y) & TEMPERING_MASK_B;
-		y ^= TEMPERING_SHIFT_T(y) & TEMPERING_MASK_C;
-		y ^= TEMPERING_SHIFT_L(y);
-
-		int* x = (int*)&y;
-
-		return *x;
-	}
-
-	COMPILETIMEEVAL int operator()(int minval, int maxval)
-	{
-		return Pick_Random_Number(*this, minval, maxval);
-	}
-
-	template<typename T> T operator()(T minval, T maxval) { return (T)(*this)(int(minval), int(maxval)); }
-
-	COMPILETIMEEVAL float Get_Float()
-	{
-		int x = (*this)();
-		unsigned int* y = (unsigned int*)&x;
-
-		return (*y) * 2.3283064370807973754314699618685e-10f;
-	}
-
-	enum class Bits
-	{
-		SIGNIFICANT = 32 // Random number bit significance.
-	};
-
-	template<class T>
-	static COMPILETIMEEVAL int Pick_Random_Number(T& generator, int minval, int maxval) {
-		if (minval == maxval) return minval;
-
-		if (minval > maxval)
-		{
-			int temp = minval;
-			minval = maxval;
-			maxval = temp;
-		}
-
-		int magnitude = maxval - minval;
-		int highbit = (int)T::Bits::SIGNIFICANT - 1;
-		while ((magnitude & (1 << highbit)) == 0 && highbit > 0)
-		{
-			highbit--;
-		}
-
-		int mask = ~((~0L) << (highbit + 1));
-
-		int pick = magnitude + 1;
-		while (pick > magnitude)
-		{
-			pick = generator() & mask;
-		}
-
-		return pick + minval;
-	}
-
-protected:
-	unsigned int mt[624]; // state vector
-	int mti; // index
-};

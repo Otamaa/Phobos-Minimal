@@ -3,6 +3,9 @@
 #include <CRT.h>
 #include <CCFileClass.h>
 
+class PKey;
+class Random3Straw;
+
 class Straw
 {
 public:
@@ -13,10 +16,10 @@ public:
 	virtual ~Straw()
 	{
 		if (this->ChainTo)
-			ChainTo->ChainFrom = this->ChainFrom;
+			this->ChainTo->ChainFrom = this->ChainFrom;
 
 		if (this->ChainFrom)
-			ChainFrom->Get_From(ChainTo);
+			this->ChainFrom->Straw::Get_From(this->ChainTo);
 
 		this->ChainFrom = nullptr;
 		this->ChainTo = nullptr;
@@ -105,10 +108,14 @@ class BufferStraw : public Straw
 {
 public:
 	COMPILETIMEEVAL explicit BufferStraw() = delete;
-	explicit BufferStraw(void* pBuffer, int nLength) : Straw {}, Buffer { pBuffer,nLength }
+
+	explicit BufferStraw(void* pBuffer, int nLength) 
+		: Straw {}, Buffer { pBuffer,nLength }
 	{ }
 
 	virtual ~BufferStraw() override final {
+		this->Buffer.~MemoryBuffer();
+		this->Straw::~Straw();
 	}
 
 	virtual int Get(void* pBuffer, int slen) override final
@@ -146,24 +153,29 @@ class LCWStraw : public Straw
 public:
 	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7ECF44l;
 
-	COMPILETIMEEVAL explicit LCWStraw() = delete;
-	explicit LCWStraw(BOOL bControl, size_t nBlockSize) : Straw {}
+	explicit LCWStraw() = delete;
+
+	explicit LCWStraw(BOOL bControl, size_t nBlockSize) : Straw(),
+		Control(bControl),
+		Counter(),
+		Buffer(nullptr),
+		Buffer2(nullptr),
+		BlockSize(nBlockSize),
+		SafetyMargin(nBlockSize / 0x80 + 1),
+		BlockHeader_CompCount(),
+		BlockHeader_UncompCount()
 	{
-		this->Control = bControl;
-		this->SafetyMargin = nBlockSize / 0x80 + 1;
-		this->Counter = 0;
-		this->Buffer = nullptr;
-		this->Buffer2 = nullptr;
-		this->BlockSize = nBlockSize;
-		this->Buffer = YRMemory::AllocateChecked(this->BlockSize + this->SafetyMargin);
-		if (!this->Control)
-			this->Buffer2 = YRMemory::AllocateChecked(this->BlockSize + this->SafetyMargin);
+		const auto safety = nBlockSize / 0x80 + 1;
+		this->Buffer = YRMemory::AllocateChecked(nBlockSize + safety);
+		if (!bControl)
+			this->Buffer2 = YRMemory::AllocateChecked(nBlockSize + safety);
 	}
 
 	virtual ~LCWStraw() override final {
 		YRMemory::Deallocate(this->Buffer);
-		if (this->Buffer2)
-			YRMemory::Deallocate(this->Buffer2);
+		YRMemory::Deallocate(this->Buffer2);
+
+		this->Straw::~Straw();
 	}
 
 	virtual int Get(void* pBuffer, int slen) override final {
@@ -191,6 +203,10 @@ public:
 
 	static OPTIONALINLINE COMPILETIMEEVAL DWORD vtable = 0x7E4D90;
 
+	FileStraw(FileClass* pFile) : 
+		Straw(), File(pFile), HasOpened(0)
+	{}
+
 	virtual ~FileStraw() override final {
 		if (this->File && this->HasOpened)
 		{
@@ -217,65 +233,58 @@ static_assert(sizeof(FileStraw) == 0x14);
 class CacheStraw : public Straw
 {
 public:
-	CacheStraw(const MemoryBuffer& buffer) : BufferPtr(buffer), Index(0), Length(0) {}
-	CacheStraw(int length = 4096) : BufferPtr(length), Index(0), Length(0) {}
-	virtual ~CacheStraw() {}
+	CacheStraw(const MemoryBuffer& buffer) : Straw(), BufferPtr(buffer), Index(0), Length(0) {}
+	CacheStraw(int length = 4096) : Straw(), BufferPtr(length), Index(0), Length(0) {}
+
+	virtual ~CacheStraw() {
+		this->BufferPtr.~MemoryBuffer();
+		this->Straw::~Straw();
+	}
 
 	virtual int Get(void* source, int slen) override
 	{
-		int result; // eax
-		char* v5; // ebp
-		int v6; // ebx
-		signed int v7; // edi
-		int v8; // ecx
-		int v9; // eax
-		int v10; // [esp+10h] [ebp-4h]
+		if (!this->BufferPtr.Is_Valid() || !source || slen <= 0) {
+        	return 0;
+   		}
 
-		result = 0;
-		v10 = 0;
-		if (this->BufferPtr.Is_Valid())
-		{
-			v5 = (char*)source;
-			if (source)
-			{
-				v6 = slen;
-				if (slen > 0)
-				{
-					do
-					{
-						v7 = this->Length;
-						if (v7 > 0)
-						{
-							if (v7 >= v6)
-							{
-								v7 = v6;
-							}
-							memcpy(v5, (const void*)((this->BufferPtr.operator char*()) + this->Index), v7);
-							v8 = this->Length - v7;
-							v6 -= v7;
-							this->Index += v7;
-							v10 += v7;
-							this->Length = v8;
-							v5 += v7;
-						}
-						if (!v6)
-						{
-							break;
-						}
-						v9 = Straw::Get(this->BufferPtr.Get_Buffer(), this->BufferPtr.Size);
-						this->Length = v9;
-						this->Index = 0;
-						if (!v9)
-						{
-							break;
-						}
-					}
-					while (v6 > 0);
-					result = v10;
-				}
+		auto* pDest = static_cast<char*>(source);
+		int remaining = slen;
+		int totalRead = 0;
+
+		while (remaining > 0) {
+			if (this->Length > 0) {
+				const int count = std::min(this->Length, remaining);
+
+				memcpy(
+					pDest,
+					this->BufferPtr.operator char*() + this->Index,
+					count
+				);
+
+				this->Index += count;
+				this->Length -= count;
+
+				pDest += count;
+				remaining -= count;
+				totalRead += count;
+			}
+
+			if (remaining == 0) {
+				break;
+			}
+
+			this->Length = Straw::Get(
+				this->BufferPtr.Get_Buffer(),
+				this->BufferPtr.Size
+			);
+			this->Index = 0;
+
+			if (this->Length == 0) {
+				break;
 			}
 		}
-		return result;
+
+    	return totalRead;
 	}
 
 private:
@@ -289,4 +298,130 @@ private:
 private:
 	CacheStraw(const CacheStraw&) = delete;
 	CacheStraw& operator=(const CacheStraw&) = delete;
+};
+
+class Base64Straw : public Straw
+{
+public:
+	enum class CodeControl {
+		ENCODE,
+		DECODE
+	};
+
+public:
+    Base64Straw(CodeControl control) :
+		Straw(),
+		Control(control),
+		Counter(0),
+		CBuffer(), 
+		PBuffer()
+	{}
+
+	virtual ~Base64Straw() = default;
+
+    virtual int Get(void* source, int slen) override { JMP_THIS(0x42DF90); }
+
+private:
+    CodeControl Control;
+    int Counter;
+    char CBuffer[4];
+    char PBuffer[3];
+
+private:
+    Base64Straw(const Base64Straw&) = delete;
+    Base64Straw& operator=(const Base64Straw&) = delete;
+};
+
+class BlowStraw : public Straw
+{
+public:
+
+	enum class CryptControl {
+		ENCRYPT,
+		DECRYPT
+	};
+
+public:
+  BlowStraw(CryptControl control) 
+	  : Straw() , BF(nullptr), Buffer(), Counter(0), Control(control) {}
+
+  virtual ~BlowStraw() override { 
+		if(this->BF) {
+			ReleaseBFObj(this->BF);
+			YRMemory::free(this->BF);
+		}
+
+		this->BF = nullptr;
+		this->Straw::~Straw();
+
+    }
+
+  virtual int Get(void* source, int slen) override { JMP_THIS(0x438210); }
+
+  void Key(void* source, int slen){ JMP_THIS(0x438300); }
+protected:
+	void __fastcall ReleaseBFObj(void* pBF){
+		JMP_THIS(0x437FC0);
+	}
+
+private:
+  void* BF; //Blowfish smart pointer for interface i presume
+  char Buffer[8];
+  int Counter;
+  CryptControl Control;
+
+private:
+    BlowStraw(const BlowStraw&) = delete;
+    BlowStraw& operator=(const BlowStraw&) = delete;
+};
+
+class Random3Straw;
+class PKStraw : public Straw
+{
+public:
+	enum class CodeControl {
+		ENCODE,
+		DECODE
+	};
+
+  PKStraw(PKStraw::CodeControl control , Random3Straw* rand ) :
+	 Straw(),
+  	 IsGettingKey(1),
+	 Rand(rand),
+	 BF((BlowStraw::CryptControl)control),
+	 Control(control),
+	 CipherKey(nullptr),
+	 Buffer(),
+	 Counter(0),
+	 BytesLeft(0) {
+	this->PKStraw::Get_From(&this->BF);
+  }
+
+  virtual ~PKStraw() override {
+		this->BF.~BlowStraw();
+		this->Straw::~Straw();
+  }
+
+  virtual int Get(void* source, int slen) override { JMP_THIS(0x633130); }
+
+  void Key(PKey* key){ JMP_THIS(0x633110); }
+
+  void Get_From(Straw *straw) JMP_THIS(0x6330C0);
+  int Plain_Key_Length() JMP_THIS(0x633330);
+  int Encrypted_Key_Length() JMP_THIS(0x633300);
+  BlowStraw* GetBF() { return &this->BF; }
+
+private:
+  char IsGettingKey;
+  Random3Straw* Rand;
+  BlowStraw BF;
+  CodeControl Control;
+  void *CipherKey;
+  char Buffer[256];
+  int Counter;
+  int BytesLeft;
+
+private:
+    PKStraw(const PKStraw&) = delete;
+    PKStraw& operator=(const PKStraw&) = delete;
 };

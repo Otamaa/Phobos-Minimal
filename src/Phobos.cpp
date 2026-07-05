@@ -32,6 +32,8 @@
 #include <Phobos.Lua.h>
 #include <Phobos.UI.h>
 #include <Phobos.Defines.h>
+#include <Phobos.ZIP.h>
+
 #include <MessageBoxLogging.h>
 
 #include <Misc/Renderer/GlobalColorPacker.h>
@@ -75,6 +77,7 @@ int Phobos::UI::SuperWeaponSidebar_LeftOffset { 0 };
 int Phobos::UI::SuperWeaponSidebar_CameoHeight { 48 };
 int Phobos::UI::SuperWeaponSidebar_Max { 0 };
 int Phobos::UI::SuperWeaponSidebar_MaxColumns { INT32_MAX };
+int Phobos::UI::CreditsIndicator_MaxStep = 143;
 bool Phobos::UI::SuperWeaponSidebar_Pyramid = true;
 
 const wchar_t* Phobos::UI::CostLabel { L"" };
@@ -755,6 +758,12 @@ void Phobos::ExeRun()
 	Debug::Log("Running on %s API.\n", gRuntimeAPI.GetName());
 	TheaterTypeClass::AddDefaults();
 	CursorTypeClass::AddDefaults();
+
+	ZipFileSystem::Instance().Clear();
+	ZipFileSystem::Instance().ScanDirectory();
+	ZipFileSystem::Instance().ForEach([](const ZipEntry& entry) {
+		Debug::Log("[ZipFS] %s  <-  %s\n", entry.EntryName.c_str(), entry.ArchivePath.c_str());
+	});
 }
 
 void Phobos::ExeTerminate()
@@ -1096,7 +1105,6 @@ static bool RestoreProtectedSections()
 
 		if (VirtualProtect(section.Base, section.Size, section.OriginalProtect, &old_protect) == FALSE)
 		{
-			DWORD error = GetLastError();
 			success = false;
 			break;
 		}
@@ -1127,8 +1135,7 @@ bool StartPatching() {
 			const ImageSectionRange& section = info.Sections[index];
 
 			if (VirtualProtect(section.Base, section.Size, PAGE_EXECUTE_READWRITE, &original_protect) == FALSE) {
-				DWORD error = GetLastError();
-            success = false;
+				 success = false;
 				RestoreProtectedSections();
 				break;
         }

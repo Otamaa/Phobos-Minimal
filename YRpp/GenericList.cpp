@@ -13,16 +13,6 @@ GenericNode& GenericNode::operator = (GenericNode& node)
 	return *this;
 }
 
-GenericList* GenericNode::MainList() const
-{
-	GenericNode const* node = this;
-
-	while (node->PrevNode)
-		node = this->PrevNode;
-
-	return (GenericList*)this;
-}
-
 void GenericNode::Link(GenericNode* pNode)
 {
 	pNode->Unlink();

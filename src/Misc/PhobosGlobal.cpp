@@ -19,7 +19,6 @@ void PhobosGlobal::Clear()
 	pInstance->ColorDatas.reset();
 	pInstance->PathfindTechno.Clear();
 	pInstance->CurCopyArray.clear();
-	pInstance->LandTypeParseCounter = 0;
 	pInstance->ObjectLinkedAlphas.clear();
 	pInstance->ShpCompression1Buffer.clear();
 	pInstance->TriggerCounts.clear();
@@ -60,19 +59,23 @@ bool PhobosGlobal::LoadGlobals(PhobosStreamReader& stm)
 void PhobosGlobal::LoadGlobalsConfig()
 {
 	GameConfig ares_ini { "Ares.ini" };
-	ares_ini.OpenINIAction([](CCINIClass* pINI)
- {
-	 if (pINI->ReadString("Graphics.Advanced", "DirectX.Force", Phobos::readDefval, Phobos::readBuffer))
-	 {
-		 if (IS_SAME_STR_(Phobos::readBuffer, "hardware"))
-		 {
-			 Phobos::Config::GFX_DX_Force = 0x01l; //HW
-		 }
-		 else if (IS_SAME_STR_(Phobos::readBuffer, "emulation"))
-		 {
-			 Phobos::Config::GFX_DX_Force = 0x02l; //EM
-		 }
-	 }
+	ares_ini.OpenINIAction([](CCINIClass* pINI) {
+
+		if(!pINI->GetSection("Graphics.Advanced")) {
+			return;
+		}
+
+		if (pINI->ReadString("Graphics.Advanced", "DirectX.Force", Phobos::readDefval, Phobos::readBuffer))
+		{
+			if (IS_SAME_STR_(Phobos::readBuffer, "hardware"))
+			{
+				Phobos::Config::GFX_DX_Force = 0x01l; //HW
+			}
+			else if (IS_SAME_STR_(Phobos::readBuffer, "emulation"))
+			{
+				Phobos::Config::GFX_DX_Force = 0x02l; //EM
+			}
+		}
 	});
 
 	if (IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_VISTA), LOBYTE(_WIN32_WINNT_VISTA), 0))

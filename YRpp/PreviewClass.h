@@ -10,8 +10,13 @@ class PreviewClass
 {
 public:
 
-	PreviewClass() JMP_THIS(0x6406E0);
-	~PreviewClass() JMP_THIS(0x6406F0);
+	PreviewClass() : ImageSurface(nullptr) {}
+	~PreviewClass() {
+		if(this->ImageSurface)
+			GameDelete<true, false>(this->ImageSurface);
+
+		this->ImageSurface = nullptr;
+	}
 
 public:
 

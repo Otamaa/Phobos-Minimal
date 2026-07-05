@@ -1754,6 +1754,20 @@ bool detail::read<SpotlightFlags>(SpotlightFlags& value, INI_EX& parser, const c
 }
 
 template <>
+bool detail::read<HSVClass>(HSVClass& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+{
+	if (!parser.Read3Bytes(pSection, pKey, (BYTE*)(&value))) {
+		if (!parser.empty()) { 
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid H,S,V values");
+		}
+
+		return false;
+	}
+
+	return true;
+}
+
+template <>
 bool detail::read<ColorStruct>(ColorStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 {
 	if (!parser.Read3Bytes(pSection, pKey, (BYTE*)(&value)))

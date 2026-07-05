@@ -59,7 +59,7 @@ ASMJIT_PATCH(0x641EE0, PreviewClass_ReadPreview, 0x6)
 	CCFileClass file { lpMapFile };
 	bool bResult = false;
 
-	if (file.Exists() && file.Open(FileAccessMode::Read))
+	if (file.IsAvaible() && file.Open1(FileAccessMode::Read))
 	{
 		CCINIClass ini {};
 		ini.ReadCCFile(&file, true);
@@ -73,6 +73,20 @@ ASMJIT_PATCH(0x641EE0, PreviewClass_ReadPreview, 0x6)
 
 	R->EAX(bResult);
 	return 0x64203D;
+}
+
+ASMJIT_PATCH(0x4A2729, CreditClass_AI_CreditsStepClamp, 0x5)
+{
+    int maxStep = Phobos::UI::CreditsIndicator_MaxStep;
+    if (maxStep < 1)
+        return 0;
+
+    int current = R->EAX();
+    if (current > maxStep)
+        current = maxStep;
+    R->EAX(current);
+
+    return 0x4A2735;
 }
 
 ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)

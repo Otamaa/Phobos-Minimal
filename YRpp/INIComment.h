@@ -1,4 +1,5 @@
 #pragma once
+#include <YRMath.h>
 
 struct INIComment
 {

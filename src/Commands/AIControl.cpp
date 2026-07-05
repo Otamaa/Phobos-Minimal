@@ -41,8 +41,8 @@ void AIControlCommandClass::Execute(WWKey dwUnk) const
 		pPlayer->Production = pPlayer->AutocreateAllowed = true;
 
 		//give full capabilities
-		pPlayer->StaticData.IQLevel = RulesClass::Global()->MaxIQLevels;
-		pPlayer->IQLevel2 = RulesClass::Global()->MaxIQLevels;
+		pPlayer->StaticData.IQLevel = RulesClass::Instance()->IQData.MaxLevels;
+		pPlayer->IQLevel2 = RulesClass::Instance()->IQData.MaxLevels;
 		pPlayer->AIDifficulty = AIDifficulty::Hard;	//brutal!
 
 		//notify

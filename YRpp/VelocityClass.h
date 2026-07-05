@@ -59,6 +59,36 @@ public:
        		 X = 100.0;
     }
 
-	void Func_5B2A30(DirStruct* pFixed)
-	{ JMP_THIS(0x5B2A30); }
+	//Func_5B2A30
+	void SetPitch (DirStruct* pFixed) {   
+		// Horizontal magnitude of XY plane
+		double const xyLen = Math::sqrt(this->X * this->X + this->Y * this->Y);
+
+		// Current pitch angle in radians (angle from horizontal, converted from binary angle units)
+		double const currentPitchRad =
+			((Math::atan2(this->Z, xyLen) - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC - Math::BINARY_ANGLE_MASK)
+			* Math::DIRECTION_FIXED_MAGIC;
+
+		// Total 3D speed magnitude (used to recompute Z after repitch)
+		double const speed3D = Math::sqrt(
+			this->Z * this->Z + this->X * this->X + this->Y * this->Y);
+
+		// Un-pitch XY: divide out current pitch cosine to recover flat horizontal components.
+		// Guard: skip when currentPitchRad == 0 (already horizontal; cos(0)==1, divide is no-op).
+		if (currentPitchRad != 0.0) {
+			double const cosCurrentPitch = Math::cos(currentPitchRad);
+			this->X /= cosCurrentPitch;
+			this->Y /= cosCurrentPitch;
+		}
+
+		// New pitch angle in radians
+		double const newPitchRad = (pFixed->Raw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC;
+		double const cosNewPitch = Math::cos(newPitchRad);
+		double const sinNewPitch = Math::sin(newPitchRad);
+
+		// Re-apply new pitch to XY and recompute Z from total speed
+		this->X = cosNewPitch * this->X;
+		this->Y = cosNewPitch * this->Y;
+		this->Z = sinNewPitch * speed3D;
+	}
 };

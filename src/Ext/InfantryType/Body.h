@@ -197,6 +197,7 @@ public:
 	// Nullable<bool> (bool + bool ≈ 2-4 bytes)
 	// ============================================================
 	Nullable<bool> InfantryAutoDeploy {};
+	Nullable<bool> SecondaryFireSequenceLandOnly {};
 
 	// ============================================================
 	// Valueable<bool> (1 byte each, packed together at the end)

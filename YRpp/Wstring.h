@@ -14,51 +14,51 @@ struct CharTrait
 {
 	size_t Length(const char* pString) const
 	{
-		return CRT::strlen(pString);
+		return strlen(pString);
 	}
 
 	size_t Find(const char* _Str, const char* _Control)
 	{
-		return CRT::strcspn(_Str, _Control);
+		return strcspn(_Str, _Control);
 	}
 
 	const char* Find(const char* _String, char _Ch)
 	{
-		return CRT::strchr(_String, _Ch);
+		return strchr(_String, _Ch);
 	}
 
 	int ToInteger(const char* _String)
 	{
-		return CRT::atoi(_String);
+		return atoi(_String);
 	}
 
 	char* CopyN(char* _Destination, const char* _Source, size_t _Count)
 	{
-		return CRT::strncpy(_Destination, _Source, _Count);
+		return strncpy(_Destination, _Source, _Count);
 	}
 
 	char* Copy(char* _Dest, const char* _Source)
 	{
-		return CRT::strcpy(_Dest, _Source);
+		return strcpy(_Dest, _Source);
 	}
 
 	char* ConcatN(char* _Dest, const char* _Source, size_t _Count)
 	{
-		return CRT::strncat(_Dest, _Source, _Count);
+		return strncat(_Dest, _Source, _Count);
 	}
 
 	char* Concat(char* _Destination, const char* _Source)
 	{
-		return CRT::strcat(_Destination, _Source);
+		return strcat(_Destination, _Source);
 	}
 
 	template<bool IgnoreCase = false>
 	int Compare(const char* _Str1, const char* _Str2)
 	{
 		if COMPILETIMEEVAL (!IgnoreCase)
-		return CRT::strcmp(_Str1, _Str2);
+		return strcmp(_Str1, _Str2);
 		else
-		return CRT::strcmpi(_Str1, _Str2);
+		return strcmpi(_Str1, _Str2);
 	}
 
 	static int(__cdecl* Format)(char* Buffer, const char* Format, ...);
@@ -70,7 +70,7 @@ private:
 	char Dummy;
 };
 
-__declspec(selectany) int(__cdecl* CharTrait::Format)(char*, const char*, ...) = CRT::sprintf;
+__declspec(selectany) int(__cdecl* CharTrait::Format)(char*, const char*, ...) = sprintf;
 __declspec(selectany) const char* CharTrait::IntegerFormatString = "%d";
 __declspec(selectany) const char* CharTrait::LeadingZeroIntegerFormatString = "%%0%dd";
 __declspec(selectany) char CharTrait::Null = '\0';
@@ -79,17 +79,17 @@ struct WCharTrait
 {
 	size_t Length(const wchar_t* pString) const
 	{
-		return CRT::wcslen(pString);
+		return wcslen(pString);
 	}
 
 	size_t Find(const wchar_t* _Str, const wchar_t* _Control)
 	{
-		return CRT::wcscspn(_Str, _Control);
+		return wcscspn(_Str, _Control);
 	}
 
 	const wchar_t* Find(const wchar_t* _String, wchar_t _Ch)
 	{
-		return CRT::wcschr(_String, _Ch);
+		return wcschr(_String, _Ch);
 	}
 
 	int ToInteger(const wchar_t* _String)
@@ -99,27 +99,27 @@ struct WCharTrait
 
 	wchar_t* CopyN(wchar_t* _Destination, const wchar_t* _Source, size_t _Count)
 	{
-		return CRT::wcsncpy(_Destination, _Source, _Count);
+		return wcsncpy(_Destination, _Source, _Count);
 	}
 
 	wchar_t* Copy(wchar_t* _Dest, const wchar_t* _Source)
 	{
-		return CRT::wcscpy(_Dest, _Source);
+		return wcscpy(_Dest, _Source);
 	}
 
 	wchar_t* ConcatN(wchar_t* _Dest, const wchar_t* _Source, size_t _Count)
 	{
-		return CRT::wcsncat(_Dest, _Source, _Count);
+		return wcsncat(_Dest, _Source, _Count);
 	}
 
 	wchar_t* Concat(wchar_t* _Destination, const wchar_t* _Source, size_t _Count)
 	{
-		return CRT::wcscat(_Destination, _Source);
+		return wcscat(_Destination, _Source);
 	}
 
 	int Compare(const wchar_t* _Str1, const wchar_t* _Str2)
 	{
-		return CRT::wcscmp(_Str1, _Str2);
+		return wcscmp(_Str1, _Str2);
 	}
 
 	static int(__cdecl* Format)(wchar_t* Buffer, const wchar_t* Format, ...);
@@ -131,7 +131,7 @@ private:
 	char Dummy;
 };
 
-__declspec(selectany) int(__cdecl* WCharTrait::Format)(wchar_t*, const wchar_t*, ...) = CRT::swprintf;
+__declspec(selectany) int(__cdecl* WCharTrait::Format)(wchar_t*, const wchar_t*, ...) = swprintf;
 __declspec(selectany) const wchar_t* WCharTrait::IntegerFormatString = L"%d";
 __declspec(selectany) const wchar_t* WCharTrait::LeadingZeroIntegerFormatString = L"%%0%dd";
 __declspec(selectany) wchar_t WCharTrait::Null = L'\0';
@@ -536,12 +536,121 @@ public:
 	}
 
 	// To be implemented -Starkku
-	int Token(size_t nIdx, TChar* cDelim, My_Type& ret)
-	{ JMP_THIS(0x7B5F10); }
+	// 0x7B5F10
+	int Token(int index, TChar* delimiters, My_Type& output)
+	{
+		if (index < 0)
+			return -1;
+
+		// Skip leading delimiters
+		while (true)
+		{
+			const int len = this->Buffer ? static_cast<int>(strlen(this->Buffer)) : 0;
+			if (index >= len || !strchr(delimiters, this->Buffer[index]))
+				break;
+			++index;
+		}
+
+		// Bounds check after skip
+		const int totalLen = this->Buffer ? static_cast<int>(strlen(this->Buffer)) : 0;
+		if (index >= totalLen)
+			return -1;
+
+		const int tokenStart = index;
+
+		// Scan to end of token
+		while (true)
+		{
+			const int len = this->Buffer ? static_cast<int>(strlen(this->Buffer)) : 0;
+			if (index >= len || strchr(delimiters, this->Buffer[index]))
+				break;
+			++index;
+		}
+
+		const int tokenEnd = index - 1; // inclusive last char of token
+		const size_t tokenLen = static_cast<size_t>(tokenEnd - tokenStart + 1);
+
+		// Build token substring [tokenStart .. tokenEnd]
+		const char* src = this->Buffer ? (this->Buffer + tokenStart) : " ";
+		char* tokenBuf = static_cast<char*>(operator new(tokenLen + 2));
+		*tokenBuf = '\0';
+		if (src)
+			strncpy(tokenBuf, src, tokenLen);
+		tokenBuf[tokenLen] = '\0';
+
+		// Assign into output->Buffer (free old, copy new)
+		if (output.Buffer)
+			YRMemory::free(output.Buffer);
+		output.Buffer = nullptr;
+
+		const char* finalSrc = tokenBuf ? tokenBuf : " ";
+		const size_t finalSize = finalSrc ? strlen(finalSrc) + 1 : 1;
+		char* finalBuf = static_cast<char*>(operator new(finalSize));
+		*finalBuf = '\0';
+		if (finalSrc)
+			strcpy(finalBuf, finalSrc);
+		output.Buffer = finalBuf;
+
+		if (tokenBuf)
+			YRMemory::free(tokenBuf);
+
+		return tokenEnd + 1;
+	}
 
 	// To be implemented -Starkku
-	int NextLine(unsigned nIdx, My_Type& ret)
-	{ JMP_THIS(0x7B60E0); }
+	//0x7B60E0
+	int NextLine(unsigned index, My_Type& output)
+	{
+		// Bounds check
+		const int totalLen = this->Buffer ? static_cast<int>(strlen(this->Buffer)) : 0;
+		if (index >= totalLen)
+			return -1;
+
+		// Scan forward to find end-of-line or end-of-buffer
+		int lineEnd = index;
+		while (true)
+		{
+			const int len = this->Buffer ? static_cast<int>(strlen(this->Buffer)) : 0;
+			if (lineEnd >= len || strchr("\r\n", this->Buffer[lineEnd]))
+				break;
+			++lineEnd;
+		}
+
+		// If \r\n pair, consume the \r so next-line start skips both chars
+		int nextLineStart = lineEnd;
+		if (this->Buffer[lineEnd] == '\r' && this->Buffer[lineEnd + 1] == '\n')
+			nextLineStart = lineEnd + 1;
+
+		// Line length (excludes the newline char(s))
+		const size_t lineLen = static_cast<size_t>(nextLineStart - index);
+
+		// Build the output substring [index .. nextLineStart)
+		const char* src = this->Buffer ? (this->Buffer + index) : " ";
+		char* lineBuf = static_cast<char*>(operator new(lineLen + 2));
+		*lineBuf = '\0';
+		if (src)
+			strncpy(lineBuf, src, lineLen);
+		lineBuf[lineLen] = '\0';
+
+		// Assign into output->Buffer (free old, copy new)
+		if (output.Buffer)
+			YRMemory::free(output.Buffer);
+
+		output.Buffer = nullptr;
+
+		const char* finalSrc = lineBuf ? lineBuf : " ";
+		const size_t  finalSize = finalSrc ? strlen(finalSrc) + 1 : 1;
+		char* finalBuf = static_cast<char*>(operator new(finalSize));
+		*finalBuf = '\0';
+		if (finalSrc)
+			strcpy(finalBuf, finalSrc);
+		output.Buffer = finalBuf;
+
+		if (lineBuf)
+			YRMemory::free(lineBuf);
+
+		return nextLineStart + 1;
+	}
 
 	int AsInteger() const
 	{

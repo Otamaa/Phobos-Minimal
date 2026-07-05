@@ -149,7 +149,7 @@ struct INIInheritance
 		char* split = strtok_s(inherits_result.data(), Phobos::readDelims, &state);
 		do
 		{
-			const int splitsCRC = CRCEngine()(split, strlen(split));
+			const int splitsCRC = SafeChecksummer()(split, strlen(split));
 
 			// if we've found anything, we're done
 			resultLen = INIInheritance::ReadString(ini, splitsCRC, entryCRC, defaultValue, buffer, length, false);
@@ -211,10 +211,6 @@ struct INIInheritance
 	}
 };
 
-CCINIClass* INIInheritance::LastINIFile;
-std::set<std::string> INIInheritance::SavedIncludes;
-std::unordered_map<int, std::string, Passthrough> INIInheritance::Inherits;
-
 // INIClass__GetInt__Hack // pop edi, jmp + 6, nop
 DEFINE_PATCH(0x5278C6, 0x5F, 0xEB, 0x06, 0x90);
 
@@ -255,6 +251,10 @@ ASMJIT_PATCH(0x527920, INIClass_ReadGUID_Overwrite, 0x6) // locomotor
 	return 0x527B43;
 }
 
+CCINIClass* INIInheritance::LastINIFile;
+std::set<std::string> INIInheritance::SavedIncludes;
+std::unordered_map<int, std::string, Passthrough> INIInheritance::Inherits;
+
 ASMJIT_PATCH(0x528BAC, INIClass_GetString_Inheritance_NoEntry, 0x6)
 {
 	if (!Phobos::Config::UseNewInheritance)
@@ -287,7 +287,7 @@ ASMJIT_PATCH(0x528BAC, INIClass_GetString_Inheritance_NoEntry, 0x6)
 
 #pragma region INCLUDES
 
-ASMJIT_PATCH(0x474230, CCINIClass_ReadCCFile1, 5)
+ASMJIT_PATCH(0x474230, CCINIClass_Parse, 5)
 {
 	GET(CCINIClass*, pINI, ESI);
 	//LEA_STACK(FileStraw*, pStraw, 0xBC);
@@ -323,7 +323,7 @@ ASMJIT_PATCH(0x474230, CCINIClass_ReadCCFile1, 5)
 				INIInheritance::SavedIncludes.insert(std::move(nodefilename));
 
 				CCFileClass nFile { node.Data->Value };
-				if (nFile.Exists()) {
+				if (nFile.IsAvaible()) {
 					if(Phobos::Otamaa::IsAdmin)
 						Debug::Log("Reading Included INI file %s !\n", node.Data->Value);
 

@@ -49,10 +49,12 @@ bool AircraftTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->IsCustomMissile.Read(exINI, pSection, "Missile.Custom");
 	this->CustomMissileData.Read(exINI, pSection, "Missile");
 	this->CustomMissileRaise.Read(exINI, pSection, "Missile.%sRaiseBeforeLaunching");
+	this->IsCruiseMissile.Read(exINI, pSection, "Missile.Cruise");
 	this->CustomMissileOffset.Read(exINI, pSection, "Missile.CoordOffset");
 	this->CustomMissileWarhead.Read(exINI, pSection, "Missile.Warhead");
 	this->CustomMissileEliteWarhead.Read(exINI, pSection, "Missile.EliteWarhead");
 	this->CustomMissileTakeoffAnim.Read(exINI, pSection, "Missile.TakeOffAnim");
+	this->CustomMissileTakeoffSeparation.Read(exINI, pSection, "Missile.TakeOffSeparation");
 	this->CustomMissilePreLauchAnim.Read(exINI, pSection, "Missile.PreLaunchAnim");
 	this->CustomMissileTrailerAnim.Read(exINI, pSection, "Missile.TrailerAnim");
 	this->CustomMissileTrailerSeparation.Read(exINI, pSection, "Missile.TrailerSeparation");
@@ -115,6 +117,7 @@ void AircraftTypeExtData::Serialize(T& Stm)
 		.Process(this->CustomMissileWarhead)
 		.Process(this->CustomMissileEliteWarhead)
 		.Process(this->CustomMissileTakeoffAnim)
+		.Process(this->CustomMissileTakeoffSeparation)
 		.Process(this->CustomMissilePreLauchAnim)
 		.Process(this->CustomMissileTrailerAnim)
 		.Process(this->CustomMissileTrailerSeparation)
@@ -124,6 +127,7 @@ void AircraftTypeExtData::Serialize(T& Stm)
 		.Process(this->CustomMissileTrailAppearDelay)
 		.Process(this->CustomMissileCloseEnoughFactor)
 		.Process(this->CustomMissileRaise)
+		.Process(this->IsCruiseMissile)
 		.Process(this->CustomMissileOffset)
 
 		;

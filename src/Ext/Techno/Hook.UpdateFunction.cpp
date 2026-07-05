@@ -439,13 +439,15 @@ void FakeTechnoClass::__HandleTargetAcquisition(TechnoClass* pThis)
 	auto const pRulesExt = RulesExtData::Instance();
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(GET_TECHNOTYPE(pThis));
 
-	if ((!pThis->Owner->IsControlledByHuman() || !pRulesExt->DistributeTargetingFrame_AIOnly) && pTypeExt->DistributeTargetingFrame.Get(pRulesExt->DistributeTargetingFrame)) {
-		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-
-		if (Unsorted::CurrentFrame.get() % 16 != pExt->MyTargetingFrame) {
-			return;
-		}
-	}
+	//if ((!pThis->Owner->IsControlledByHuman() || !pRulesExt->DistributeTargetingFrame_AIOnly) 
+	//		&& pTypeExt->DistributeTargetingFrame.Get(pRulesExt->DistributeTargetingFrame)) {
+	//	//auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+	//
+	//	//if (Unsorted::CurrentFrame.get() % 16 != pExt->MyTargetingFrameMyTargetingFrame) {
+	//	//	return;
+	//	//}
+	//	pThis->TargetingTimer.Start(ScenarioClass::Instance->Random.RandomRanged(45, 60));
+	//}
 
 	if (pThis->MegaMissionIsAttackMove()) {
 		auto pAircraft = cast_to<AircraftClass*, false>(pThis);

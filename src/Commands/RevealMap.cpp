@@ -70,7 +70,7 @@ void RevealMapCommandClass::Execute(WWKey eInput) const
 	if (!pPlayer)
 		return;
 
-	SW_Reveal::RevealMap(pPlayer->GetBaseCenter(), -1.0f, 0, pPlayer);
+	SW_Reveal::RevealMap(pPlayer->GetBaseCenter(), -1.0f, 0, pPlayer, false);
 
 	//ClearDumped();
 	//GrupDumped();

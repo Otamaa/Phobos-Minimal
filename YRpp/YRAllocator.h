@@ -23,6 +23,19 @@ public:
 		}
 	}
 
+	MemoryBuffer* Release(void* buffer, int size) {
+		this->Buffer = buffer;
+		this->Size = size;
+		this->Allocated = 0;
+
+		if (!buffer && size > 0) {
+			this->Buffer = YRMemory::AllocateChecked(static_cast<size_t>(size));
+			this->Allocated = 1;
+		}
+
+		return this;
+	}
+
 	COMPILETIMEEVAL MemoryBuffer(MemoryBuffer const& other) noexcept
 		: Buffer(other.Buffer), Size(other.Size)
 	{ }
