@@ -126,7 +126,7 @@ ASMJIT_PATCH(0x526CC0, INIClass_Section_GetKeyName, 7)
 	return 0x526D8A;
 }
 
-#ifdef _oldCodes 
+#ifndef _oldCodes 
 
 ASMJIT_PATCH(0x5260d9, INIClass_Parse_Override_RemoveDuplicates, 7)
 {

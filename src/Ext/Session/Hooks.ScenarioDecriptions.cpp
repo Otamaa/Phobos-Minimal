@@ -101,7 +101,8 @@ namespace
 void FakeSessionClass::_Read_Scenario_Descriptions()
 {
  // Spawner : Skip load *.PKT, *.YRO and *.YRM map files
-
+ auto& scenarios = this->MultiMission;
+ scenarios.clear(); 
 #ifdef IDK_WHY_DISABLED
 
 	auto& scenarios = this->MultiMission;

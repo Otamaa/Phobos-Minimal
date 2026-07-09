@@ -235,6 +235,8 @@ public:
 	// GlobalReceiveAddress is the sender's address.
 	DEFINE_REFERENCE(char, GlobalReceivePacket, 0xA8D638)
 	DEFINE_REFERENCE(IPXAddressClass, GlobalReceiveAddress, 0xA8D804)
+	DEFINE_REFERENCE(DynamicVectorClass<MultiMission*>, MPlayerScenarios, 0xA8B8C8)
+
 
 public:
 

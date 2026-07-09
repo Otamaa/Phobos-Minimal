@@ -89,10 +89,10 @@ MAKE_ENUM_FLAGS(FileErrorType);
 //--------------------------------------------------------------------
 //Abstract File class
 //--------------------------------------------------------------------
-class NOVTABLE FileClass
+class FileClass
 {
 public:
-	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7F08BC;
+	//static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7F08BC;
 	static const char* const FileErrorToString[];
 
 	//Destructor
@@ -117,10 +117,20 @@ public:
 	virtual void Error(FileErrorType error, bool can_retry = false, const char *filename = nullptr) = 0;
 
 	static void* __fastcall ReadWholeFile(FileClass* pFile)
-	{ JMP_FAST(0x4A3890); }
+	{
+		return pFile->ReadWholeFile();
+	}
 
-	void* ReadWholeFile()
-	{ JMP_THIS(0x4A3890); }
+	void* ReadWholeFile() {
+		void* buffer = nullptr;
+		if (this->IsAvaible()) {
+			auto sz = this->Size();
+			buffer = YRMemory::Allocate(sz);
+			this->Read(buffer, sz);
+		}
+
+		return buffer;	
+	}
 
 	off_t Tell() { return Seek(0, FileSeekMode::Current); }
 
@@ -144,7 +154,8 @@ public:
 	}
 
 	FileClass(): SkipCDCheck()
-	{ VTable::Set(this, vtable); }
+	{ //VTable::Set(this, vtable); 
+	}
 
 protected:
 	explicit __forceinline FileClass(noinit_t)
@@ -160,7 +171,7 @@ static_assert(sizeof(FileClass) == 0x8, "Invalid size.");
 //--------------------------------------------------------------------
 //Files in the game directory
 //--------------------------------------------------------------------
-class NOVTABLE RawFileClass : public FileClass
+class RawFileClass : public FileClass
 {
 public:
 	void FORCEDINLINE RaiseLastError() {
@@ -172,7 +183,7 @@ public:
 	DEFINE_REFERENCE(bool, StreamerIsCurrentlyAccessing, 0xB04BEC);
 
 	//Destructor
-	virtual ~RawFileClass();
+		virtual ~RawFileClass() {JMP_THIS(0x65CA00);}
 
 	//FileClass
 	virtual const char* FileName() const override { return this->Filename; }
@@ -204,19 +215,7 @@ public:
 
 	//Constructor
 	RawFileClass(const char* pFileName)
-		:
-		FileClass(noinit_t()),
-		Rights(FileAccessMode::Read),
-		BiasStart(0),
-		BiasLength(-1),
-		Handle(INVALID_HANDLE_VALUE),
-		Filename(pFileName),
-		Date(0),
-		Time(0),
-		Allocated(false)
-	{
-		VTable::Set(this, vtable);
-	}
+		: FileClass(noinit_t())	{ JMP_THIS(0x65CA80); }
 
 	RawFileClass() :
 		FileClass(noinit_t()),
@@ -254,17 +253,15 @@ static_assert(sizeof(RawFileClass) == 0x24, "Invalid size.");
 //--------------------------------------------------------------------
 //Files that get buffered in some way?
 //--------------------------------------------------------------------
-class NOVTABLE BufferIOFileClass : public RawFileClass
+class BufferIOFileClass : public RawFileClass
 {
 public:
 	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E3A2C;
 	static COMPILETIMEEVAL int MinimumBufferSize = 1024;
 
 	//Destructor
-	virtual ~BufferIOFileClass() { 
-		this->Free();
-		this->RawFileClass::~RawFileClass();
-	}
+	virtual ~BufferIOFileClass() { JMP_THIS(0x431B80); }
+
 
 	//FileClass
 	virtual const char* FileName() const override { return this->RawFileClass::FileName(); }
@@ -317,59 +314,13 @@ public:
 
 	//Constructor
 	BufferIOFileClass()
-		: RawFileClass()
-		, IsAllocated()
-		, Is_Open()
-		, IsDiskOpen()
-		, IsCached()
-		, IsChanged()
-		, UseBuffer()
-		, BufferRights()
-		, BufferPtr()
-		, BufferedSize()
-		, BufferPos()
-		, BufferFilePos()
-		, BufferChangeBeg(-1)
-		, BufferChangeEnd(-1)
-		, FileSize()
-		, FilePos()
-		, TrueFileStart()
-	{
-		VTable::Set(this, vtable);
-	}
+		: BufferIOFileClass(noinit_t())
+	{ JMP_THIS(0x431B20); }
 
 	BufferIOFileClass(const char* pFilename)
-		: RawFileClass()
-		, IsAllocated()
-		, Is_Open()
-		, IsDiskOpen()
-		, IsCached()
-		, IsChanged()
-		, UseBuffer()
-		, BufferRights()
-		, BufferPtr()
-		, BufferedSize()
-		, BufferPos()
-		, BufferFilePos()
-		, BufferChangeBeg(-1)
-		, BufferChangeEnd(-1)
-		, FileSize()
-		, FilePos()
-		, TrueFileStart()
-	{
-		VTable::Set(this, vtable);
+		: BufferIOFileClass(noinit_t())
+	{ JMP_THIS(0x431A30); }
 
-		if (this->Filename && this->UseBuffer) {
-			if (!CRT::strcmp(pFilename, this->Filename)) {
-				return;
-			}
-
-			this->BufferIOFileClass::Commit();
-			this->IsCached = false;
-		}
-
-		this->RawFileClass::SetFileName(pFilename);
-	}
 
 protected:
 	explicit __forceinline BufferIOFileClass(noinit_t)
@@ -405,7 +356,7 @@ struct SearchDriveType {
 //--------------------------------------------------------------------
 //Files on a CD?
 //--------------------------------------------------------------------
-class NOVTABLE CDFileClass : public BufferIOFileClass
+class CDFileClass : public BufferIOFileClass
 {
 public:
 	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E1668;
@@ -414,7 +365,7 @@ public:
 	DEFINE_REFERENCE(SearchDriveType*, CDFileFirst, 0x89E410);
 
 	//Destructor
-	virtual ~CDFileClass() = default;
+	virtual ~CDFileClass() { JMP_THIS(0x535A60); }
 
 	//FileClass
 	virtual const char* FileName() const override { return this->BufferIOFileClass::FileName(); }
@@ -444,17 +395,13 @@ public:
 
 	//Constructor
 	CDFileClass()
-		: BufferIOFileClass(), IsDisabled()
-	{
-		VTable::Set(this, vtable);
-	}
+		: CDFileClass(noinit_t())
+	{ JMP_THIS(0x47AA30); }
+
 
 	CDFileClass(const char* pFilename)
-		: BufferIOFileClass(), IsDisabled()
-	{ 
-		VTable::Set(this, vtable);
-		this->CDFileClass::SetFileName(pFilename);
-	}
+		: CDFileClass(noinit_t())
+	{ JMP_THIS(0x47A9D0); }
 
 protected:
 	explicit __forceinline CDFileClass(noinit_t)
@@ -469,17 +416,14 @@ static_assert(sizeof(CDFileClass) == 0x58, "Invalid size.");
 //--------------------------------------------------------------------
 //Files in MIXes
 //--------------------------------------------------------------------
-class NOVTABLE CCFileClass : public CDFileClass
+class CCFileClass : public CDFileClass
 {
 public:
-	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E16B0;
+	//static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E16B0;
 
 	//Destructor
-	virtual ~CCFileClass() {
-		this->Position = 0;
-		this->Buffer.~MemoryBuffer();
-		this->CDFileClass::~CDFileClass();
-	}
+	virtual ~CCFileClass() { JMP_THIS(0x535A70); }
+
 
 	//FileClass
 	virtual const char* FileName() const override { return this->CDFileClass::FileName(); }
@@ -513,23 +457,14 @@ public:
 
 	//Constructor
 	CCFileClass(const char* pFileName)
-		: CDFileClass()
-		, Buffer()
-		, Position()
-		, Availablility()
-	{ 
-		VTable::Set(this, vtable);
-		this->CDFileClass::SetFileName(pFileName);
-	}
+		: CCFileClass(noinit_t())
+	{ JMP_THIS(0x4739F0); }
+
 
 	CCFileClass()
-		: CDFileClass()
-		, Buffer()
-		, Position()
-		, Availablility()
-	{
-		VTable::Set(this, vtable);
-	}
+		: CCFileClass(noinit_t())
+	{ JMP_THIS(0x473A80); }
+
 
 protected:
 	explicit __forceinline CCFileClass(noinit_t)
@@ -551,7 +486,7 @@ static_assert(sizeof(CCFileClass) == 0x6C, "Invalid size.");
 //--------------------------------------------------------------------
 //Files in RAM
 //--------------------------------------------------------------------
-class NOVTABLE RAMFileClass : public FileClass
+class RAMFileClass : public FileClass
 {
 public:
 	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7F0874;
@@ -615,7 +550,7 @@ public:
 	RAMFileClass(void* pData, size_t nSize)
 		: FileClass()
 	{
-		VTable::Set(this, vtable);
+		//VTable::Set(this, vtable);
 		if (!pData && nSize > 0) {
 			this->Buffer = (char*)YRMemory::Allocate(nSize);
 			this->IsAllocated = 1;
@@ -631,6 +566,7 @@ public:
 			this->Offset = offs;
 		}
 	}
+
 protected:
 	explicit __forceinline RAMFileClass(noinit_t)
 		: FileClass(noinit_t())

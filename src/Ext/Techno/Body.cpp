@@ -5067,7 +5067,7 @@ void TechnoExtData::Ares_AddMoneyStrings(TechnoClass* pThis, bool forcedraw)
 			? Drawing::DefaultColors[(int)DefaultColorList::Green] :
 			Drawing::DefaultColors[(int)DefaultColorList::Red];
 
-		fmt::format_to(std::back_inserter(moneyStr), L"{}{}{}", isPositive ? L"+" : L"-", Phobos::UI::CostLabel, Math::abs(value));
+		fmt::format_to(std::back_inserter(moneyStr), L"{}{}{}", isPositive ? L"+" : L"-", Phobos::UI::CostLabel.GetText(), Math::abs(value));
 		moneyStr.push_back(L'\0');
 
 		CoordStruct loc = pThis->GetCoords();

@@ -1,6 +1,9 @@
 #pragma once
 
 #include <cstring>
+#include <array>
+
+#include <ASMMacros.h>
 
 class PKey
 {

@@ -28,6 +28,8 @@
 
 #include <Utilities/Simd.h>
 
+#include <Utilities/NullableCSF.h>
+
 #pragma warning( pop )
 
 class CSFText;
@@ -143,12 +145,12 @@ public:
 		static int CreditsIndicator_MaxStep;
 		static bool SuperWeaponSidebar_Pyramid;
 
-		static const wchar_t* CostLabel;
-		static const wchar_t* PowerLabel;
-		static const wchar_t* PowerBlackoutLabel;
-		static const wchar_t* TimeLabel;
-		static const wchar_t* HarvesterLabel;
-		static const wchar_t* PercentLabel;
+		static NullableCSF CostLabel;
+		static NullableCSF PowerLabel;
+		static NullableCSF PowerBlackoutLabel;
+		static NullableCSF TimeLabel;
+		static NullableCSF HarvesterLabel;
+		static NullableCSF PercentLabel;
 
 		static const wchar_t* BuidingRadarJammedLabel;
 		static const wchar_t* BuidingFakeLabel;
@@ -162,10 +164,10 @@ public:
 		static const wchar_t* Spysat_Label;
 		static const wchar_t* Tech_Label;
 
-		static const wchar_t* SWShotsFormat;
+		static NullableCSF SWShotsFormat;
 
-		static const wchar_t* BattlePoints_Label;
-		static const wchar_t* BattlePointsSidebar_Label;
+		static NullableCSF BattlePoints_Label;
+		static NullableCSF BattlePointsSidebar_Label;
 		static bool BattlePointsSidebar_Label_InvertPosition;
 		static bool BattlePointsSidebar_AlwaysShow;
 

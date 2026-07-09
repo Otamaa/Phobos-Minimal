@@ -6,6 +6,8 @@
 #include <MessageListClass.h>
 #include <RulesClass.h>
 
+#include <Utilities/GeneralUtils.h>
+
 CSFText::CSFText(const char* label) noexcept
 {
 	*this = label;

@@ -720,7 +720,7 @@ public:
 	void _ReadJumpjetControls(CCINIClass* pINI);
 	void _ReadColorAdd(CCINIClass* pINI);
 	void _ReadColors(CCINIClass* pINI);
-
+	void _ReadMovies(CCINIClass* pINI);
 	void _Process(CCINIClass* pINI);
 };
 static_assert(sizeof(FakeRulesClass) == sizeof(RulesClass), "Invalid Size !");

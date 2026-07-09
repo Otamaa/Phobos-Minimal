@@ -671,7 +671,7 @@ void Phobos::ExecuteLua()
 								result = &LuaData::map_replaceAddrTo.emplace_back(addr, "");
 						}
 
-						const auto maxlen = strlen((const char*)result->first);
+						const auto maxlen = std::char_traits<char>::length((const char*)result->first);
 						lua_pushstring(L, "To");
 						lua_gettable(L, -2);
 						result->second = lua_tostring(L, -1);

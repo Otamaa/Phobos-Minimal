@@ -64,14 +64,6 @@
 
 #include <Misc/Spawner/Main.h>
 
-ASMJIT_PATCH(0x52C5E0, Ares_NOLOGO, 0x7)
-{
-	if (SpawnerMain::Configs::Enabled)
-		return 0x52C5F8; //skip showing looading screen
-
-	return Phobos::Otamaa::NoLogo ? 0x52C5F3 : 0x0;
-}
-
 //MapClass CTOR
 DEFINE_JUMP(LJMP, 0x565215, 0x56522D); // i assume this one for fixing bug that crate are gone when loading the game
 
@@ -1044,12 +1036,12 @@ bool NOINLINE  __fastcall MixFilesBoostrap()
 	for (int i = 99; i >= 0; --i) {
 		char buffer[256];
 		_snprintf(buffer, sizeof(buffer) - 1, GameStrings::EXPANDMD02d(), i);
-		CCFileClass _raw(buffer);
+		RawFileClass _raw(buffer);
 		if (_raw.IsAvaible()) {
 			auto pFileName = _raw.FileName();
 
 			Debug::LogInfo("Loading [{} - {}]", buffer, pFileName);
-			auto mix = GameCreate<MixFileClass>(&_raw, pKey);
+			auto mix = GameCreate<MixFileClass>(buffer, pKey);
 
 			if (!mix->IsValid()) {
 				Debug::LogInfo("Failed Loading [{} - {}]", buffer, pFileName);
@@ -1213,24 +1205,23 @@ static COMPILETIMEEVAL reference<MixFileClass*, 0x87E738> const THEME {};
 bool __fastcall Init_Secondary_Mixfiles()
 {
 	auto pKey = MixFileClass::Key();
-	Debug::LogInfo("\n");
+	Debug::LogInfo("");
 
 	auto LoadMixWildcard = [pKey](const char* pattern, MixFileClass*& primary, DynamicVectorClass<MixFileClass*>& vec)
 		{
-			char v73[260];
-			strcpy(v73, pattern);
+			std::string v73 = pattern;
 
-			if (!Game::File_Finder_Start(v73))
+			if (!Game::File_Finder_Start(v73.c_str()))
 				return false;
 
-			Debug::LogInfo("Loading {}", v73);
+			Debug::LogInfo("Loading {}", v73.c_str());
 
-			primary = GameCreate<MixFileClass>(v73, pKey);
+			primary = GameCreate<MixFileClass>(v73.c_str(), pKey);
 
-			while (Game::File_Finder_Next_Name(v73))
+			while (Game::File_Finder_Next_Name(v73.c_str()))
 			{
-				Debug::LogInfo("Loading {}", v73);
-				vec.emplace_back(GameCreate<MixFileClass>(v73, pKey));
+				Debug::LogInfo("Loading {}", v73.c_str());
+				vec.emplace_back(GameCreate<MixFileClass>(v73.c_str(), pKey));
 			}
 
 			Game::File_Finder_End();
@@ -1240,8 +1231,16 @@ bool __fastcall Init_Secondary_Mixfiles()
 	auto CheckAndAllocateMix = [pKey](const char* mixName, MixFileClass*& mix) {
 		CCFileClass tmp(mixName);
 
-		if (tmp.IsAvaible(0)) {
-			mix = GameCreate<MixFileClass>(&tmp, pKey);
+		if (!tmp.IsAvaible(0))
+			return false;
+
+		if (mix) {
+			GameDelete<true, false>(mix);
+			mix = nullptr;
+		}
+
+		{
+			mix = GameCreate<MixFileClass>(mixName, pKey);
 			const auto pFileName = tmp.FileName();
 
 			Debug::LogInfo("Loading [{} - {}]", mixName , pFileName);
@@ -1297,9 +1296,9 @@ bool __fastcall Init_Secondary_Mixfiles()
 			LoadMixWildcard(MAPS__MIX(), MAPS(), MixFileClass::Maps());
 	} else {
 		char v73[260];
-		sprintf(v73, MAPSMD___MIX(), cdIndex);
+		sprintf_s(v73, MAPSMD___MIX(), cdIndex);
 		CheckAndAllocateMix(v73, MAPSMD());
-		sprintf(v73, MAPS___MIX(), cdIndex);
+		sprintf_s(v73, MAPS___MIX(), cdIndex);
 		CheckAndAllocateMix(v73, MAPS());
 	}
 
@@ -1324,82 +1323,93 @@ bool __fastcall Init_Secondary_Mixfiles()
 	// ------------------------------------------------------------------
 	// MOVMD*.MIX / MOVIES*.MIX
 	// ------------------------------------------------------------------
+	bool MoviesFound = false;
+	bool IsLocal = false;
 	char v73[260];
-	static COMPILETIMEEVAL reference<MixFileClass*, 0x884E2C> const MoviesMix {};
-	static COMPILETIMEEVAL constant_ptr<const char, 0x826738> const MOVIES01_MIX {};
-	static COMPILETIMEEVAL constant_ptr<const char, 0x826714> const MIXFILES_MOVIES01_MIX {};
-	static COMPILETIMEEVAL constant_ptr<const char, 0x8266F0> const MOVMD01_MIX {};
-	static COMPILETIMEEVAL constant_ptr<const char, 0x8266D8> const MIXFILES_MOVMD01_MIX {};
-	static COMPILETIMEEVAL constant_ptr<const char, 0x8266B8> const MOVMD03_MIX {};
-	static COMPILETIMEEVAL constant_ptr<const char, 0x8266A0> const MIXFILES_MOVMD03_MIX {};
-	static COMPILETIMEEVAL constant_ptr<const char, 0x8266FC> const MIXFILES_MOVIES__MIX {};
-	static COMPILETIMEEVAL constant_ptr<const char, 0x8266C4> const MIXFILES_MOVMD__MIX {};
-	static COMPILETIMEEVAL constant_ptr<const char, 0x82672C> const MOVIES__MIX {};
-	static COMPILETIMEEVAL constant_ptr<const char, 0x81C200> const MOVIES02d_MIX {};
-	static COMPILETIMEEVAL constant_ptr<const char, 0x81C210> const MOVMD02d_MIX {};
-	static COMPILETIMEEVAL constant_ptr<const char, 0x826748> const MOVMD__MIX {};
 
-	if (CD::IsLocal()) {
+	{
 
-		// Probe for the best-matching movie wildcard pattern.
-		// Original checks several sentinel filenames in priority order to
-		// pick a search pattern; last match wins.
-		const struct { const char* probe; const char* pattern; } movieProbes[] =
-		{
-			{ MOVIES01_MIX(),           MOVIES__MIX() },
-			{ MIXFILES_MOVIES01_MIX(), MIXFILES_MOVIES__MIX() },
-			{ MOVMD01_MIX(),             MOVMD__MIX() },
-			{ MIXFILES_MOVMD01_MIX(),  MIXFILES_MOVMD__MIX() },
-			{ MOVMD03_MIX(),             MOVMD__MIX() },
-			{ MIXFILES_MOVMD03_MIX(),  MIXFILES_MOVMD__MIX() },
-		};
+		static COMPILETIMEEVAL reference<MixFileClass*, 0x884E2C> const MoviesMix {};
+		static COMPILETIMEEVAL constant_ptr<const char, 0x826738> const MOVIES01_MIX {};
+		static COMPILETIMEEVAL constant_ptr<const char, 0x826714> const MIXFILES_MOVIES01_MIX {};
+		static COMPILETIMEEVAL constant_ptr<const char, 0x8266F0> const MOVMD01_MIX {};
+		static COMPILETIMEEVAL constant_ptr<const char, 0x8266D8> const MIXFILES_MOVMD01_MIX {};
+		static COMPILETIMEEVAL constant_ptr<const char, 0x8266B8> const MOVMD03_MIX {};
+		static COMPILETIMEEVAL constant_ptr<const char, 0x8266A0> const MIXFILES_MOVMD03_MIX {};
+		static COMPILETIMEEVAL constant_ptr<const char, 0x8266FC> const MIXFILES_MOVIES__MIX {};
+		static COMPILETIMEEVAL constant_ptr<const char, 0x8266C4> const MIXFILES_MOVMD__MIX {};
+		static COMPILETIMEEVAL constant_ptr<const char, 0x82672C> const MOVIES__MIX {};
+		static COMPILETIMEEVAL constant_ptr<const char, 0x81C200> const MOVIES02d_MIX {};
+		static COMPILETIMEEVAL constant_ptr<const char, 0x81C210> const MOVMD02d_MIX {};
+		static COMPILETIMEEVAL constant_ptr<const char, 0x826748> const MOVMD__MIX {};
 
-		strcpy(v73, MOVMD__MIX()); // default pattern
+		if (CD::IsLocal()) {
 
-		for (const auto& p : movieProbes) {
-			RawFileClass probe(p.probe);
-			if (probe.IsAvaible(0))
-				strcpy(v73, p.pattern);
-		}
-
-		if (Game::File_Finder_Start(v73)) {
-			CheckAndAllocateMix(v73, MoviesMix());
-
-			while (Game::File_Finder_Next_Name(v73))
+			IsLocal = true;
+			// Probe for the best-matching movie wildcard pattern.
+			// Original checks several sentinel filenames in priority order to
+			// pick a search pattern; last match wins.
+			const struct { const char* probe; const char* pattern; } movieProbes[] =
 			{
-				Debug::LogInfo("Loading {}", v73);
+				{ MOVIES01_MIX(),           MOVIES__MIX() },
+				{ MIXFILES_MOVIES01_MIX(), MIXFILES_MOVIES__MIX() },
+				{ MOVMD01_MIX(),             MOVMD__MIX() },
+				{ MIXFILES_MOVMD01_MIX(),  MIXFILES_MOVMD__MIX() },
+				{ MOVMD03_MIX(),             MOVMD__MIX() },
+				{ MIXFILES_MOVMD03_MIX(),  MIXFILES_MOVMD__MIX() },
+			};
+
+			strcpy_s(v73, MOVMD__MIX()); // default pattern
+
+			for (const auto& p : movieProbes) {
+				RawFileClass probe(p.probe);
+				if (probe.IsAvaible(0))
+					strcpy_s(v73, p.pattern);
+			}
+
+			if (!LoadMixWildcard(v73, MoviesMix, MixFileClass::Movies())) {
 				MixFileClass::Movies->emplace_back(GameCreate<MixFileClass>(v73, pKey));
 			}
-		}
-		else
-		{
-			strcpy(v73, MOVIES__MIX());
-			CheckAndAllocateMix(v73, MoviesMix());
 
-			while (Game::File_Finder_Next_Name(v73))
-			{
-				Debug::LogInfo("Loading {}", v73);
-				MixFileClass::Movies->emplace_back(GameCreate<MixFileClass>(v73, pKey));
+			MoviesFound =  MoviesMix() != nullptr;
+		}else{
+
+			// CD/disc movie files — numbered.
+			sprintf_s(v73, MOVMD02d_MIX(), cdIndex);
+			if(!CheckAndAllocateMix(v73, MoviesMix())) {
+				// MOVMD not present — try MOVIES##.MIX instead.
+				sprintf_s(v73, MOVIES02d_MIX(), cdIndex);
+				CheckAndAllocateMix(v73, MoviesMix());
 			}
+
+			Debug::LogInfo("Loading {}", v73);
+			MoviesFound = MoviesMix() != nullptr;
 		}
-
-		Game::File_Finder_End();
-		return MoviesMix() != nullptr;
 	}
 
-	// CD/disc movie files — numbered.
-	sprintf(v73, MOVMD02d_MIX(), cdIndex);
-	if(!CheckAndAllocateMix(v73, MoviesMix())) {
-		// MOVMD not present — try MOVIES##.MIX instead.
-		sprintf(v73, MOVIES02d_MIX(), cdIndex);
-		CheckAndAllocateMix(v73, MoviesMix());
-	}
+	if(!MoviesFound)
+		Debug::LogInfo("FailedToLoad Movies local {}" , IsLocal);
 
-	Debug::LogInfo("Loading {}", v73);
-	return MoviesMix() != nullptr;
+	return MoviesFound;
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x530460, Init_Secondary_Mixfiles);
+
+ASMJIT_PATCH(0x52C58F, InitGame_SecondaryMixInit, 0x5)
+{
+	Debug::LogInfo("Init Secondary Mixfiles.....");
+	const bool result = Init_Secondary_Mixfiles();
+	Debug::LogInfo(" ...{} !!!", !result ? "FAILED" : "OK");
+	
+	if (!SpawnerMain::Configs::Enabled) {
+		if (!Phobos::Otamaa::NoLogo)
+			Game::PlayMovie("EA_WWLOGO", -1, true, true, true, false);
+
+		Game::PlayLoadingScreen();
+	}
+	
+	return 0x52C5F8;
+}
 
 ASMJIT_PATCH(0x6BE9BD, Game_ProgramEnd_ClearResource, 6)
 {

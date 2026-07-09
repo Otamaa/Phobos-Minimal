@@ -28,20 +28,15 @@ public:
 
 	const char* CurrentSectionName;
 	INISection* CurrentSection;
-	List<INISection*> Sections;
-	IndexType SectionIndex; // <CRCValue of the Name, Pointer to the section>
+	DECLARE_PROPERTY(List<INISection*>, Sections);
+	DECLARE_PROPERTY(IndexType, SectionIndex); // <CRCValue of the Name, Pointer to the section>
 	INIComment* LineComments;
 
 public:
 
-	INIClass() = default;
+	INIClass()	{ JMP_THIS(0x535AA0); }
 
-	virtual ~INIClass() {
-		this->Clear(0,0);
-		this->SectionIndex.IndexType::~IndexType();
-		this->Sections.List<INISection*>::~List<INISection*>();
-	};
-
+	virtual ~INIClass() { JMP_THIS(0x5256F0); };
 	DWORD CalculateTextCRCChecksums(const char* pText);
 
 	static void __fastcall Strip_Comments(const char* buffer) {

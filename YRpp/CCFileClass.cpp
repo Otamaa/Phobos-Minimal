@@ -7,25 +7,25 @@
 
 #pragma region RawFileClass
 
-RawFileClass::~RawFileClass()
-{
-	if (this->RawFileClass::IsOpen())
-	{
-		if (!CloseHandle(this->Handle))
-		{
-			this->RaiseLastError();
-		}
-
-		this->Handle = INVALID_HANDLE_VALUE;
-	}
-
-	if (this->Allocated && this->Filename)
-	{
-		YRMemory::Deallocate((void*)this->Filename);
-		this->Filename = nullptr;
-		this->Allocated = false;
-	}
-}
+//RawFileClass::~RawFileClass()
+//{
+//	if (this->RawFileClass::IsOpen())
+//	{
+//		if (!CloseHandle(this->Handle))
+//		{
+//			this->RaiseLastError();
+//		}
+//
+//		this->Handle = INVALID_HANDLE_VALUE;
+//	}
+//
+//	if (this->Allocated && this->Filename)
+//	{
+//		YRMemory::Deallocate((void*)this->Filename);
+//		this->Filename = nullptr;
+//		this->Allocated = false;
+//	}
+//}
 
 const char* RawFileClass::SetFileName(const char* pFileName)
 {

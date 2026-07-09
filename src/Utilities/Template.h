@@ -69,6 +69,24 @@ public:
 
 	COMPILETIMEEVAL ~Valueable() = default;
 
+	Valueable<T>& operator()(INI_EX& parser,
+				  const char* pSection,
+					  const char* pKey,
+						  bool Allocate)&
+	{
+		this->Read(parser, pSection, pKey, Allocate);
+		return *this;
+	}
+
+	Valueable<T>&& operator()(INI_EX& parser,
+					  const char* section,
+					  const char* key,
+					  bool allocate)&&
+	{
+		this->Read(parser, section, key, allocate);
+		return std::move(*this);
+	}
+
 	COMPILETIMEEVAL Valueable& operator = (Valueable const& value) = default;
 	COMPILETIMEEVAL Valueable& operator = (Valueable&& value) = default;
 
@@ -187,6 +205,23 @@ public:
 	COMPILETIMEEVAL Nullable(Nullable const& other) = default;
 	COMPILETIMEEVAL Nullable(Nullable&& other) = default;
 	COMPILETIMEEVAL ~Nullable() = default;
+
+	Nullable<T>& operator()(INI_EX& parser,
+					  const char* pSection,
+		                  const char* pKey,
+		                      bool Allocate) & {
+		this->Read(parser, pSection, pKey, Allocate);
+		return *this;
+	}
+
+	Nullable<T>&& operator()(INI_EX& parser,
+					  const char* section,
+					  const char* key,
+					  bool allocate) &&
+	{
+		this->Read(parser, section, key, allocate);
+		return std::move(*this);
+	}
 
 	COMPILETIMEEVAL Nullable& operator = (Nullable const& value) = default;
 	COMPILETIMEEVAL Nullable& operator = (Nullable&& value) = default;
@@ -311,6 +346,22 @@ public:
 
 	COMPILETIMEEVAL NullableIdx& operator = (NullableIdx const& value) = default;
 	COMPILETIMEEVAL NullableIdx& operator = (NullableIdx&& value) = default;
+
+	NullableIdx<Lookuper>& operator()(INI_EX& parser,
+		  const char* pSection,
+			  const char* pKey)&
+	{
+		this->Read(parser, pSection, pKey);
+		return *this;
+	}
+
+	NullableIdx<Lookuper>&& operator()(INI_EX& parser,
+					  const char* section,
+					  const char* key)&&
+	{
+		this->Read(parser, section, key);
+		return std::move(*this);
+	}
 
 	template <typename Val, typename = std::enable_if_t<std::is_assignable<int&, Val&&>::value>>
 	COMPILETIMEEVAL NullableIdx& operator = (Val value)
@@ -443,6 +494,24 @@ public:
 	//ValueableVector(size_t Reserve) = delete;
 
 	//~ValueableVector() = default;
+
+	ValueableVector<T>& operator()(INI_EX& parser,
+				  const char* pSection,
+					  const char* pKey,
+						  bool Allocate)&
+	{
+		this->Read(parser, pSection, pKey, Allocate);
+		return *this;
+	}
+
+	ValueableVector<T>&& operator()(INI_EX& parser,
+					  const char* section,
+					  const char* key,
+					  bool allocate)&&
+	{
+		this->Read(parser, section, key, allocate);
+		return std::move(*this);
+	}
 
 	std::vector<T>& AsVector() {
 		return *reinterpret_cast<std::vector<T>*>(this);
@@ -694,6 +763,23 @@ template<typename Lookuper>
 class NullableIdxVector : public NullableVector<int>
 {
 public:
+
+	NullableIdxVector<Lookuper>& operator()(INI_EX& parser,
+			  const char* pSection,
+				  const char* pKey)&
+	{
+		this->Read(parser, pSection, pKey);
+		return *this;
+	}
+
+	NullableIdxVector<Lookuper>&& operator()(INI_EX& parser,
+					  const char* section,
+					  const char* key)&&
+	{
+		this->Read(parser, section, key);
+		return std::move(*this);
+	}
+
 	OPTIONALINLINE void Read(INI_EX& parser, const char* pSection, const char* pKey);
 };
 

@@ -16,6 +16,8 @@
 //   9. Load AIMD.INI.
 
 #include "Body.h"
+#include <Utilities/Macro.h>
+#include <Utilities/Patch.h>
 
 #ifdef ORIGINAL
 
@@ -280,6 +282,8 @@ bool Init_Rules()
 *	- Added log for AIMD loading error
 *   - Remove most part that community never use or not use
 */
+#include <Phobos.INI.h>
+
 bool __fastcall Init_Rules()
 {
 	//Rules
@@ -289,7 +293,9 @@ bool __fastcall Init_Rules()
 		CCFileClass rulesFile(GameStrings::RULESMD_INI());
 		CCINIClass::INI_Rules = GameCreate<CCINIClass>();
 
-		if (!CCINIClass::INI_Rules->ReadCCFile(&rulesFile)) {
+		PhobosINIContainer::Rules_INI =  std::make_unique<PhobosINIClass>();
+
+		if (!CCINIClass::INI_Rules->ReadCCFile(&rulesFile) || !PhobosINIContainer::Rules_INI->LoadFile(&rulesFile)) {
 			Debug::Log("Failed to load CRC %x [%s - %s]!\n", crc, _realName , rulesFile.Filename);
 			return false;
 		} else {
@@ -297,14 +303,14 @@ bool __fastcall Init_Rules()
 		}
 	}
 
-
 	//Art
 	{
 		const char* _realName = GameStrings::ARTMD_INI();
 		const auto crc = SafeChecksummer()(_realName, strlen(_realName));
 		CCFileClass artFile(GameStrings::ARTMD_INI());
+		PhobosINIContainer::Art_INI = std::make_unique<PhobosINIClass>();
 
-		if (!CCINIClass::INI_Art->ReadCCFile(&artFile, true)) {
+		if (!CCINIClass::INI_Art->ReadCCFile(&artFile, true) || !PhobosINIContainer::Art_INI->LoadFile(&artFile)) {
 			Debug::Log("Failed to load CRC %x [%s - %s]!\n", crc, _realName, artFile.Filename);
 			return false;
 		} else {
@@ -317,7 +323,8 @@ bool __fastcall Init_Rules()
 		FakeRulesClass* pRules = (FakeRulesClass*)RulesClass::Instance();
 
 		pRules->_ReadColors(CCINIClass::INI_Rules());
-		pRules->Read_Movies(CCINIClass::INI_Rules());
+		pRules->_ReadColorAdd(CCINIClass::INI_Rules());
+		pRules->_ReadMovies(CCINIClass::INI_Rules());
 		pRules->_ReadAudioVisual(CCINIClass::INI_Rules());
 		pRules->_ReadMPlayer(CCINIClass::INI_Rules());
 
@@ -342,14 +349,29 @@ bool __fastcall Init_Rules()
 
 		//ASMJIT_PATCH(0x52D21F, Game_InitRules, 0x6)
 		Phobos::Config::Read_RULESMD();
+	
+		//{
+		//	const char* _realName = "LANGRULE.INI";
+		//	const auto crc = SafeChecksummer()(_realName, strlen(_realName));
+		//	CCFileClass rulesFile(_realName);
+		//
+		//	if (!CCINIClass::INI_Rules->ReadCCFile(&rulesFile) || !PhobosINIContainer::Rules_INI->LoadFile(&rulesFile)) {
+		//		Debug::Log("Failed to load CRC %x [%s - %s]!\n", crc, _realName, rulesFile.Filename);
+		//	} else {
+		//		Debug::Log("Succes to load CRC %x [%s - %s]!\n", crc, _realName, rulesFile.Filename);	
+		//	}
+		//}
 	}
 
 	//AI
 	{
+
 		const char* _realName = GameStrings::AIMD_INI();
 		const auto crc = SafeChecksummer()(_realName, strlen(_realName));
 		CCFileClass aiFile(GameStrings::AIMD_INI());
-		if(!CCINIClass::INI_AI->ReadCCFile(&aiFile, true)) {
+		PhobosINIContainer::Ai_INI = std::make_unique<PhobosINIClass>();
+
+		if(!CCINIClass::INI_AI->ReadCCFile(&aiFile, false) || !PhobosINIContainer::Ai_INI->LoadFile(&aiFile)) {
 			Debug::Log("Failed to load CRC %x [%s - %s]!\n", crc, _realName , aiFile.Filename);
 		} else {
 			Debug::Log("Succes to load CRC %x [%s - %s]!\n", crc, _realName ,aiFile.Filename);
@@ -361,3 +383,15 @@ bool __fastcall Init_Rules()
 
 DEFINE_FUNCTION_JUMP(LJMP , 0x52CD70 , Init_Rules)
 DEFINE_FUNCTION_JUMP(CALL, 0x52C95C, Init_Rules)
+
+DEFINE_JUMP(LJMP, 0x687683 , 0x687694)
+DEFINE_JUMP(LJMP, 0x535331 , 0x535342)
+
+//stupid crash
+ASMJIT_PATCH(0x68796B, _ReadScenario_ConfigureAdvancedCommandBar, 0x6)
+{
+	const bool isSinglePlayer = SessionClass::Instance->IsSingleplayer();
+	RulesClass::Instance->Read_AdvancedCommandBar(CCINIClass::INI_UIMD.operator->(), isSinglePlayer ? 0 : 1);
+	RulesClass::Instance->Read_AdvancedCommandBar(CCINIClass::INI_Rules.operator->(), isSinglePlayer ? 0 : 1);
+	return 0x687975;
+}

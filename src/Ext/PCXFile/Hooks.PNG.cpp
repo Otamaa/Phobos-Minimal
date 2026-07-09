@@ -593,6 +593,11 @@ DEFINE_FUNCTION_JUMP(CALL,0x7B04C6,  Read_PCX_File_Intercept)
 DEFINE_FUNCTION_JUMP(CALL,0x7B050F,  Read_PCX_File_Intercept)
 DEFINE_FUNCTION_JUMP(CALL,0x7B0558,  Read_PCX_File_Intercept)
 
+ASMJIT_PATCH(0x6B9D9C, RGB_PCX_Loader, 0x7)
+{
+	GET(BSurface* const, pSurf, EDI);
+	return (pSurf->BytesPerPixel == 2) ? 0x6B9EE7 : 0x0;
+}
 
 ASMJIT_PATCH(0x5535D0, LoadProgressMgr_Draw_PCXLoadingScreen, 0x6)
 {
@@ -805,5 +810,5 @@ public:
 	}
 };
 
- DEFINE_FUNCTION_JUMP(LJMP, 0x6B9D00, FakePCXImages::_Add);
- DEFINE_FUNCTION_JUMP(LJMP, 0x6BA140, FakePCXImages::GetSurface);
+  DEFINE_FUNCTION_JUMP(LJMP, 0x6B9D00, FakePCXImages::_Add);
+  DEFINE_FUNCTION_JUMP(LJMP, 0x6BA140, FakePCXImages::GetSurface);

@@ -23,7 +23,7 @@ public:
 	INISection() :Name(), Entries(), EntryIndex(), Comments()
 	{}
 
-	virtual ~INISection();
+	virtual ~INISection() JMP_THIS(0x52AE00);
 
 	INIEntry* FindEntry(const char* entry) const;
 private:

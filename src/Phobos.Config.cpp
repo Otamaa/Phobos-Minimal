@@ -12,45 +12,58 @@
 #include <GameOptionsClass.h>
 #include <StringTable.h>
 
+#include <Phobos.INI.h>
+
+ASMJIT_PATCH(0x6BC099 , WInMain_CreateRA2MD_Override, 0x7){
+
+	PhobosINIContainer::Ra2_INI = std::make_unique<PhobosINIClass>();
+	auto _ra2MD = GameCreate<RawFileClass>(GameStrings::RA2MD_INI());
+
+	PhobosINIContainer::Ra2_INI ->LoadFile(_ra2MD);
+	R->EAX(_ra2MD);
+	return 0x6BC0B7;
+}
+
 void Phobos::Config::Read_RA2MD()
 {
 	auto const& pRA2MD = CCINIClass::INI_RA2MD;
+	
+	if (pRA2MD->GetSection(PHOBOS_STR)){
 
-	if (!pRA2MD->GetSection(PHOBOS_STR))
-		return;
+		Phobos::Config::ToolTipDescriptions = pRA2MD->ReadBool(PHOBOS_STR, "ToolTipDescriptions", Phobos::Config::ToolTipDescriptions);
+		Phobos::Config::ToolTipBlur = pRA2MD->ReadBool(PHOBOS_STR, "ToolTipBlur", Phobos::Config::ToolTipBlur);
+		Phobos::Config::PrioritySelectionFiltering = pRA2MD->ReadBool(PHOBOS_STR, "PrioritySelectionFiltering", Phobos::Config::PrioritySelectionFiltering);
+		Phobos::Config::PriorityDeployFiltering = pRA2MD->ReadBool(PHOBOS_STR, "PriorityDeployFiltering", Phobos::Config::PriorityDeployFiltering);
+		Phobos::Config::TypeSelectUseIFVMode = pRA2MD->ReadBool(PHOBOS_STR, "TypeSelectUseIFVMode", Phobos::Config::TypeSelectUseIFVMode);
+		Phobos::Config::EnableBuildingPlacementPreview = pRA2MD->ReadBool(PHOBOS_STR, "ShowBuildingPlacementPreview", Phobos::Config::EnableBuildingPlacementPreview);
+		Phobos::Config::EnableSelectBox = pRA2MD->ReadBool(PHOBOS_STR, "EnableSelectBox", Phobos::Config::EnableSelectBox);
 
-	Phobos::Config::ToolTipDescriptions = pRA2MD->ReadBool(PHOBOS_STR, "ToolTipDescriptions", Phobos::Config::ToolTipDescriptions);
-	Phobos::Config::ToolTipBlur = pRA2MD->ReadBool(PHOBOS_STR, "ToolTipBlur", Phobos::Config::ToolTipBlur);
-	Phobos::Config::PrioritySelectionFiltering = pRA2MD->ReadBool(PHOBOS_STR, "PrioritySelectionFiltering", Phobos::Config::PrioritySelectionFiltering);
-	Phobos::Config::PriorityDeployFiltering = pRA2MD->ReadBool(PHOBOS_STR, "PriorityDeployFiltering", Phobos::Config::PriorityDeployFiltering);
-	Phobos::Config::TypeSelectUseIFVMode = pRA2MD->ReadBool(PHOBOS_STR, "TypeSelectUseIFVMode", Phobos::Config::TypeSelectUseIFVMode);
-	Phobos::Config::EnableBuildingPlacementPreview = pRA2MD->ReadBool(PHOBOS_STR, "ShowBuildingPlacementPreview", Phobos::Config::EnableBuildingPlacementPreview);
-	Phobos::Config::EnableSelectBox = pRA2MD->ReadBool(PHOBOS_STR, "EnableSelectBox", Phobos::Config::EnableSelectBox);
+		//Phobos::Config::RealTimeTimers = pRA2MD->ReadBool(PHOBOS_STR, "RealTimeTimers", Phobos::Config::RealTimeTimers);
+		//Phobos::Config::RealTimeTimers_Adaptive = pRA2MD->ReadBool(PHOBOS_STR, "RealTimeTimers.Adaptive", Phobos::Config::RealTimeTimers_Adaptive);
+		Phobos::Config::DigitalDisplay_Enable = pRA2MD->ReadBool(PHOBOS_STR, "DigitalDisplay.Enable", Phobos::Config::DigitalDisplay_Enable);
+		Phobos::Config::MessageDisplayInCenter = pRA2MD->ReadBool(PHOBOS_STR, "MessageDisplayInCenter", Phobos::Config::MessageDisplayInCenter);
+		Phobos::Config::MessageApplyHoverState = pRA2MD->ReadBool(PHOBOS_STR, "MessageApplyHoverState", Phobos::Config::MessageApplyHoverState);
+		Phobos::Config::MessageDisplayInCenter_BoardOpacity = pRA2MD->ReadInteger(PHOBOS_STR, "MessageDisplayInCenter.BoardOpacity", Phobos::Config::MessageDisplayInCenter_BoardOpacity);
+		Phobos::Config::MessageDisplayInCenter_LabelsCount = pRA2MD->ReadInteger(PHOBOS_STR, "MessageDisplayInCenter.LabelsCount", Phobos::Config::MessageDisplayInCenter_LabelsCount);
+		Phobos::Config::MessageDisplayInCenter_RecordsCount = pRA2MD->ReadInteger(PHOBOS_STR, "MessageDisplayInCenter.RecordsCount", Phobos::Config::MessageDisplayInCenter_RecordsCount);
 
-	//Phobos::Config::RealTimeTimers = pRA2MD->ReadBool(PHOBOS_STR, "RealTimeTimers", Phobos::Config::RealTimeTimers);
-	//Phobos::Config::RealTimeTimers_Adaptive = pRA2MD->ReadBool(PHOBOS_STR, "RealTimeTimers.Adaptive", Phobos::Config::RealTimeTimers_Adaptive);
-	Phobos::Config::DigitalDisplay_Enable = pRA2MD->ReadBool(PHOBOS_STR, "DigitalDisplay.Enable", Phobos::Config::DigitalDisplay_Enable);
-	Phobos::Config::MessageDisplayInCenter = pRA2MD->ReadBool(PHOBOS_STR, "MessageDisplayInCenter", Phobos::Config::MessageDisplayInCenter);
-	Phobos::Config::MessageApplyHoverState = pRA2MD->ReadBool(PHOBOS_STR, "MessageApplyHoverState", Phobos::Config::MessageApplyHoverState);
-	Phobos::Config::MessageDisplayInCenter_BoardOpacity = pRA2MD->ReadInteger(PHOBOS_STR, "MessageDisplayInCenter.BoardOpacity", Phobos::Config::MessageDisplayInCenter_BoardOpacity);
-	Phobos::Config::MessageDisplayInCenter_LabelsCount = pRA2MD->ReadInteger(PHOBOS_STR, "MessageDisplayInCenter.LabelsCount", Phobos::Config::MessageDisplayInCenter_LabelsCount);
-	Phobos::Config::MessageDisplayInCenter_RecordsCount = pRA2MD->ReadInteger(PHOBOS_STR, "MessageDisplayInCenter.RecordsCount", Phobos::Config::MessageDisplayInCenter_RecordsCount);
+		Phobos::Config::ShowBuildingStatistics = pRA2MD->ReadBool(PHOBOS_STR, "ShowBuildingStatistics", Phobos::Config::ShowBuildingStatistics);
+		Phobos::Config::ShowFlashOnSelecting = pRA2MD->ReadBool(PHOBOS_STR, "ShowFlashOnSelecting", Phobos::Config::ShowFlashOnSelecting);
+		Phobos::Config::SuperWeaponSidebar_RequiredSignificance = pRA2MD->ReadInteger(PHOBOS_STR, "SuperWeaponSidebar.RequiredSignificance", Phobos::Config::SuperWeaponSidebar_RequiredSignificance);
+		Phobos::Config::HideLightFlashEffects = pRA2MD->ReadBool(PHOBOS_STR, "HideLightFlashEffects", Phobos::Config::HideLightFlashEffects);
+		Phobos::Config::HideLaserTrailEffects = pRA2MD->ReadBool(PHOBOS_STR, "HideLaserTrailEffects", Phobos::Config::HideLaserTrailEffects);
+		Phobos::Config::HideShakeEffects = pRA2MD->ReadBool(PHOBOS_STR, "HideShakeEffects", Phobos::Config::HideShakeEffects);
+		Phobos::Config::SaveGameOnScenarioStart = pRA2MD->ReadBool(PHOBOS_STR, "SaveGameOnScenarioStart", Phobos::Config::SaveGameOnScenarioStart);
 
-	Phobos::Config::ShowBuildingStatistics = pRA2MD->ReadBool(PHOBOS_STR, "ShowBuildingStatistics", Phobos::Config::ShowBuildingStatistics);
-	Phobos::Config::ShowFlashOnSelecting = pRA2MD->ReadBool(PHOBOS_STR, "ShowFlashOnSelecting", Phobos::Config::ShowFlashOnSelecting);
-	Phobos::Config::SuperWeaponSidebar_RequiredSignificance = pRA2MD->ReadInteger(PHOBOS_STR, "SuperWeaponSidebar.RequiredSignificance", Phobos::Config::SuperWeaponSidebar_RequiredSignificance);
-	Phobos::Config::HideLightFlashEffects = pRA2MD->ReadBool(PHOBOS_STR, "HideLightFlashEffects", Phobos::Config::HideLightFlashEffects);
-	Phobos::Config::HideLaserTrailEffects = pRA2MD->ReadBool(PHOBOS_STR, "HideLaserTrailEffects", Phobos::Config::HideLaserTrailEffects);
-	Phobos::Config::HideShakeEffects = pRA2MD->ReadBool(PHOBOS_STR, "HideShakeEffects", Phobos::Config::HideShakeEffects);
-	Phobos::Config::SaveGameOnScenarioStart = pRA2MD->ReadBool(PHOBOS_STR, "SaveGameOnScenarioStart", Phobos::Config::SaveGameOnScenarioStart);
+		Phobos::Config::ApplyNoMoveCommand = pRA2MD->ReadBool(PHOBOS_STR, "DefaultApplyNoMoveCommand", true);
+		Phobos::Config::DistributionSpreadMode = pRA2MD->ReadInteger(PHOBOS_STR, "DefaultDistributionSpreadMode", 2);
+		Phobos::Config::DistributionFilterMode = pRA2MD->ReadInteger(PHOBOS_STR, "DefaultDistributionFilterMode", 2);	
 
-	Phobos::Config::ApplyNoMoveCommand = pRA2MD->ReadBool(PHOBOS_STR, "DefaultApplyNoMoveCommand", true);
-	Phobos::Config::DistributionSpreadMode = pRA2MD->ReadInteger(PHOBOS_STR, "DefaultDistributionSpreadMode", 2);
+		Phobos::Config::ShowPowerPlantEnhancerRange = pRA2MD->ReadBool(PHOBOS_STR, "ShowPowerPlantEnhancerRange", Phobos::Config::ShowPowerPlantEnhancerRange);
+	}
+
 	Phobos::Config::DistributionSpreadMode = std::clamp(Phobos::Config::DistributionSpreadMode, 0, 3);
-	Phobos::Config::DistributionFilterMode = pRA2MD->ReadInteger(PHOBOS_STR, "DefaultDistributionFilterMode", 2);
 	Phobos::Config::DistributionFilterMode = std::clamp(Phobos::Config::DistributionFilterMode, 0, 3);
-
-	Phobos::Config::ShowPowerPlantEnhancerRange = pRA2MD->ReadBool(PHOBOS_STR, "ShowPowerPlantEnhancerRange", Phobos::Config::ShowPowerPlantEnhancerRange);
 
 	if (!Phobos::Otamaa::IsAdmin)
 	{
@@ -75,10 +88,23 @@ void Phobos::Config::Read_UIMD()
 {
 	CCFileClass file(GameStrings::UIMD_INI());
 
+	Phobos::UI::Power_Label = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_POWER_FORMAT_B", L"Power = %d");
+	Phobos::UI::Drain_Label = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DRAIN_FORMAT_B", L"Drain = %d");
+	Phobos::UI::Storage_Label = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_STORAGE_FORMAT", L"Storage = %.3lf");
+	Phobos::UI::BuidingFakeLabel = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_FAKE", L"FAKE");
+	Phobos::UI::Radar_Label = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_RADAR", L"Radar");
+	Phobos::UI::Tech_Label = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_TECHBUILDING", L"TechBuilding");
+	Phobos::UI::Spysat_Label = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_SPYSAT", L"SpySat");
+	Phobos::UI::BuidingRadarJammedLabel = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_RADARJAMMED", L"Radar Jammed");
+	Phobos::UI::ShowBriefingResumeButtonLabel = GeneralUtils::LoadStringUnlessMissingNoChecks("GUI:Resume", L"");
+
 	if (!file.IsAvaible())
 		return;
 
+	PhobosINIContainer::Ui_INI = std::make_unique<PhobosINIClass>();
+
 	CCINIClass::INI_UIMD->ReadCCFile(&file, false, false);
+	PhobosINIContainer::Ui_INI ->LoadFile(&file);
 
 	//theoritically this is fine , it is global instance
 	//it never became null just empty state
@@ -153,40 +179,40 @@ void Phobos::Config::Read_UIMD()
 				// blunt stuff
 				ReadColor(Slot_tags[14], Phobos::UI::Colors[15], DefaultColors[8], "NOSTR:LightGrey", GameStrings::LightGrey);
 				ReadColor(Slot_tags[15], Phobos::UI::Colors[16], DefaultColors[8], "NOSTR:LightGrey", GameStrings::LightGrey);
+			}
 
+			auto const section = "UISettings";
 
-				auto const section = "UISettings";
+			if (pINI->GetSection(section))
+			{
+				// menu colors. the color of labels, button texts, list items, stuff and others
+				Phobos::UI::uiColorText = ParseColorInt(section, "Color.Text", 0xFFFF);
 
-				if (pINI->GetSection(section)) {
-					// menu colors. the color of labels, button texts, list items, stuff and others
-					Phobos::UI::uiColorText = ParseColorInt(section, "Color.Text", 0xFFFF);
-
-					Phobos::UI::uiColorTextButton = ParseColorInt(section, "Color.Button.Text", Phobos::UI::uiColorText);
-					Phobos::UI::uiColorTextRadio = ParseColorInt(section, "Color.Radio.Text", Phobos::UI::uiColorText);
-					Phobos::UI::uiColorTextCheckbox = ParseColorInt(section, "Color.Checkbox.Text", Phobos::UI::uiColorText);
-					Phobos::UI::uiColorTextLabel = ParseColorInt(section, "Color.Label.Text", Phobos::UI::uiColorText);
-					Phobos::UI::uiColorTextList = ParseColorInt(section, "Color.List.Text", Phobos::UI::uiColorText);
-					Phobos::UI::uiColorTextCombobox = ParseColorInt(section, "Color.Combobox.Text", Phobos::UI::uiColorText);
-					Phobos::UI::uiColorTextGroupbox = ParseColorInt(section, "Color.Groupbox.Text", Phobos::UI::uiColorText);
-					Phobos::UI::uiColorTextSlider = ParseColorInt(section, "Color.Slider.Text", Phobos::UI::uiColorText);
-					Phobos::UI::uiColorTextEdit = ParseColorInt(section, "Color.Edit.Text", Phobos::UI::uiColorText);
-					Phobos::UI::uiColorTextObserver = ParseColorInt(section, "Color.Observer.Text", 0xEEEEEE);
-					Phobos::UI::uiColorCaret = ParseColorInt(section, "Color.Caret", 0xFFFF);
-					Phobos::UI::uiColorSelection = ParseColorInt(section, "Color.Selection", 0xFF);
-					Phobos::UI::uiColorSelectionCombobox = ParseColorInt(section, "Color.Combobox.Selection", Phobos::UI::uiColorSelection);
-					Phobos::UI::uiColorSelectionList = ParseColorInt(section, "Color.List.Selection", Phobos::UI::uiColorSelection);
-					Phobos::UI::uiColorSelectionObserver = ParseColorInt(section, "Color.Observer.Selection", 0x626262);
-					Phobos::UI::uiColorBorder1 = ParseColorInt(section, "Color.Border1", 0xC5BEA7);
-					Phobos::UI::uiColorBorder2 = ParseColorInt(section, "Color.Border2", 0x807A68);
-					Phobos::UI::uiColorDisabled = ParseColorInt(section, "Color.Disabled", 0x9F);
-					Phobos::UI::uiColorDisabledLabel = ParseColorInt(section, "Color.Label.Disabled", Phobos::UI::uiColorDisabled);
-					Phobos::UI::uiColorDisabledCombobox = ParseColorInt(section, "Color.Combobox.Disabled", Phobos::UI::uiColorDisabled);
-					Phobos::UI::uiColorDisabledSlider = ParseColorInt(section, "Color.Slider.Disabled", Phobos::UI::uiColorDisabled);
-					Phobos::UI::uiColorDisabledButton = ParseColorInt(section, "Color.Button.Disabled", 0xA7);
-					Phobos::UI::uiColorDisabledCheckbox = ParseColorInt(section, "Color.Checkbox.Disabled", Phobos::UI::uiColorDisabled);
-					Phobos::UI::uiColorDisabledList = ParseColorInt(section, "Color.List.Disabled", Phobos::UI::uiColorDisabled);
-					Phobos::UI::uiColorDisabledObserver = ParseColorInt(section, "Color.Observer.Disabled", 0x8F8F8F);
-				}
+				Phobos::UI::uiColorTextButton = ParseColorInt(section, "Color.Button.Text", Phobos::UI::uiColorText);
+				Phobos::UI::uiColorTextRadio = ParseColorInt(section, "Color.Radio.Text", Phobos::UI::uiColorText);
+				Phobos::UI::uiColorTextCheckbox = ParseColorInt(section, "Color.Checkbox.Text", Phobos::UI::uiColorText);
+				Phobos::UI::uiColorTextLabel = ParseColorInt(section, "Color.Label.Text", Phobos::UI::uiColorText);
+				Phobos::UI::uiColorTextList = ParseColorInt(section, "Color.List.Text", Phobos::UI::uiColorText);
+				Phobos::UI::uiColorTextCombobox = ParseColorInt(section, "Color.Combobox.Text", Phobos::UI::uiColorText);
+				Phobos::UI::uiColorTextGroupbox = ParseColorInt(section, "Color.Groupbox.Text", Phobos::UI::uiColorText);
+				Phobos::UI::uiColorTextSlider = ParseColorInt(section, "Color.Slider.Text", Phobos::UI::uiColorText);
+				Phobos::UI::uiColorTextEdit = ParseColorInt(section, "Color.Edit.Text", Phobos::UI::uiColorText);
+				Phobos::UI::uiColorTextObserver = ParseColorInt(section, "Color.Observer.Text", 0xEEEEEE);
+				Phobos::UI::uiColorCaret = ParseColorInt(section, "Color.Caret", 0xFFFF);
+				Phobos::UI::uiColorSelection = ParseColorInt(section, "Color.Selection", 0xFF);
+				Phobos::UI::uiColorSelectionCombobox = ParseColorInt(section, "Color.Combobox.Selection", Phobos::UI::uiColorSelection);
+				Phobos::UI::uiColorSelectionList = ParseColorInt(section, "Color.List.Selection", Phobos::UI::uiColorSelection);
+				Phobos::UI::uiColorSelectionObserver = ParseColorInt(section, "Color.Observer.Selection", 0x626262);
+				Phobos::UI::uiColorBorder1 = ParseColorInt(section, "Color.Border1", 0xC5BEA7);
+				Phobos::UI::uiColorBorder2 = ParseColorInt(section, "Color.Border2", 0x807A68);
+				Phobos::UI::uiColorDisabled = ParseColorInt(section, "Color.Disabled", 0x9F);
+				Phobos::UI::uiColorDisabledLabel = ParseColorInt(section, "Color.Label.Disabled", Phobos::UI::uiColorDisabled);
+				Phobos::UI::uiColorDisabledCombobox = ParseColorInt(section, "Color.Combobox.Disabled", Phobos::UI::uiColorDisabled);
+				Phobos::UI::uiColorDisabledSlider = ParseColorInt(section, "Color.Slider.Disabled", Phobos::UI::uiColorDisabled);
+				Phobos::UI::uiColorDisabledButton = ParseColorInt(section, "Color.Button.Disabled", 0xA7);
+				Phobos::UI::uiColorDisabledCheckbox = ParseColorInt(section, "Color.Checkbox.Disabled", Phobos::UI::uiColorDisabled);
+				Phobos::UI::uiColorDisabledList = ParseColorInt(section, "Color.List.Disabled", Phobos::UI::uiColorDisabled);
+				Phobos::UI::uiColorDisabledObserver = ParseColorInt(section, "Color.Observer.Disabled", 0x8F8F8F);
 			}
 
 			auto sectionVersionInfo = "VersionInfo";
@@ -205,8 +231,8 @@ void Phobos::Config::Read_UIMD()
 				}
 
 				SafeChecksummer crc {};
-				crc.operator()(ModName);
-				crc.operator()(ModVersion);
+				crc.operator()((const char*)ModName);
+				crc.operator()((const char*)ModVersion);
 				ModIdentifier = pINI->ReadInteger("VersionInfo", "Identifier", static_cast<int>(crc.operator unsigned int()));
 
 				Debug::LogInfo("Color count is {}", colorCount);
@@ -232,14 +258,6 @@ void Phobos::Config::Read_UIMD()
 
 		pINI->ReadString(UISETTINGS_SECTION, "ShowBriefingResumeButtonStatusLabel", "STT:BriefingButtonReturn", Phobos::readBuffer);
 		strcpy_s(Phobos::UI::ShowBriefingResumeButtonStatusLabel, Phobos::readBuffer);
-
-		Phobos::UI::Power_Label = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_POWER_FORMAT_B", L"Power = %d");
-		Phobos::UI::Drain_Label = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DRAIN_FORMAT_B", L"Drain = %d");
-		Phobos::UI::Storage_Label = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_STORAGE_FORMAT", L"Storage = %.3lf");
-		Phobos::UI::BuidingFakeLabel = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_FAKE", L"FAKE");
-		Phobos::UI::Radar_Label = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_RADAR", L"Radar");
-		Phobos::UI::Tech_Label = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_TECHBUILDING", L"TechBuilding");
-		Phobos::UI::Spysat_Label = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_SPYSAT", L"SpySat");
 	}
 
 	if (pINI->GetSection(PHOBOS_STR)) {
@@ -254,38 +272,20 @@ void Phobos::Config::Read_UIMD()
 		Phobos::UI::AnchoredToolTips = pINI->ReadBool(GameStrings::ToolTips(), "AnchoredToolTips", Phobos::UI::AnchoredToolTips);
 		Phobos::UI::MaxToolTipWidth = pINI->ReadInteger(GameStrings::ToolTips(), "MaxWidth", Phobos::UI::MaxToolTipWidth);
 
-		pINI->ReadString(GameStrings::ToolTips(), "CostLabel", GameStrings::NoneStr(), Phobos::readBuffer);
-		Phobos::UI::CostLabel = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"$");
-
-		pINI->ReadString(GameStrings::ToolTips(), "PowerLabel", GameStrings::NoneStr(), Phobos::readBuffer);
-		Phobos::UI::PowerLabel = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"\u26a1"); // ⚡
-
-		pINI->ReadString(GameStrings::ToolTips(), "PowerBlackoutLabel", GameStrings::NoneStr(), Phobos::readBuffer);
-		Phobos::UI::PowerBlackoutLabel = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"\u26a1\u274c"); // ⚡❌
-
-		pINI->ReadString(GameStrings::ToolTips(), "TimeLabel", GameStrings::NoneStr(), Phobos::readBuffer);
-		Phobos::UI::TimeLabel = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"\u231a"); // ⌚
-
-		pINI->ReadString(GameStrings::ToolTips(), "PercentLabel", GameStrings::NoneStr(), Phobos::readBuffer);
-		Phobos::UI::PercentLabel = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"\u231a"); // ⌚
-
-		pINI->ReadString(GameStrings::ToolTips(), "RadarJammedLabel", GameStrings::NoneStr(), Phobos::readBuffer);
-		Phobos::UI::BuidingRadarJammedLabel = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"Radar Jammed");
-
-		pINI->ReadString(GameStrings::ToolTips(), "SWShotsFormat", GameStrings::NoneStr(), Phobos::readBuffer);
-		Phobos::UI::SWShotsFormat = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"%d/%d shots");
-
-		pINI->ReadString(GameStrings::ToolTips, "BattlePoints.Label", GameStrings::NoneStr(), Phobos::readBuffer);
-		Phobos::UI::BattlePoints_Label = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"\u2605: "); // ★:
-
+		Phobos::UI::CostLabel.Read(pINI, GameStrings::ToolTips(), "CostLabel");
+		Phobos::UI::PowerLabel.Read(pINI, GameStrings::ToolTips(), "PowerLabel");
+		Phobos::UI::PowerBlackoutLabel.Read(pINI, GameStrings::ToolTips(), "PowerBlackoutLabel");
+		Phobos::UI::TimeLabel.Read(pINI, GameStrings::ToolTips(), "TimeLabel");
+		Phobos::UI::PercentLabel.Read(pINI, GameStrings::ToolTips(), "PercentLabel");
+		Phobos::UI::SWShotsFormat.Read(pINI, GameStrings::ToolTips(), "SWShotsFormat");
+		Phobos::UI::BattlePoints_Label.Read(pINI, GameStrings::ToolTips(), "BattlePoints.Label");
 	}
 
 	if (pINI->GetSection(SIDEBAR_SECTION_T)) {
 		Phobos::UI::ShowHarvesterCounter =
 			pINI->ReadBool(SIDEBAR_SECTION_T, "HarvesterCounter.Show", Phobos::UI::ShowHarvesterCounter);
 
-		pINI->ReadString(SIDEBAR_SECTION_T, "HarvesterCounter.Label", GameStrings::NoneStr(), Phobos::readBuffer);
-		Phobos::UI::HarvesterLabel = GeneralUtils::LoadStringOrDefault(Phobos::readBuffer, L"\u26cf"); // ⛏
+		Phobos::UI::HarvesterLabel.Read(pINI, SIDEBAR_SECTION_T, "HarvesterCounter.Label");
 
 		Phobos::UI::HarvesterCounter_ConditionYellow =
 			pINI->ReadDouble(SIDEBAR_SECTION_T, "HarvesterCounter.ConditionYellow", Phobos::UI::HarvesterCounter_ConditionYellow);
@@ -314,8 +314,7 @@ void Phobos::Config::Read_UIMD()
 		Phobos::UI::CenterPauseMenuBackground =
 			pINI->ReadBool(SIDEBAR_SECTION_T, "CenterPauseMenuBackground", Phobos::UI::CenterPauseMenuBackground);
 
-		pINI->ReadString(SIDEBAR_SECTION_T, "BattlePointsSidebar.Label", GameStrings::NoneStr(), Phobos::readBuffer);
-		Phobos::UI::BattlePointsSidebar_Label = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"\u2605: "); // ★:
+		Phobos::UI::BattlePointsSidebar_Label.Read(pINI, SIDEBAR_SECTION_T, "BattlePointsSidebar.Label");
 
 		Phobos::UI::BattlePointsSidebar_Label_InvertPosition =
 			pINI->ReadBool(SIDEBAR_SECTION_T, "BattlePointsSidebar.Label.InvertPosition", Phobos::UI::BattlePointsSidebar_Label_InvertPosition);

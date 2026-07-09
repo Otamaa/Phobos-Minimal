@@ -1,26 +1,18 @@
 #pragma once
-// ZipFileSystem.h
-// Provides transparent zip-backed asset loading for YR/Phobos.
-// Modders drop .zip files next to the game exe; files inside are found
-// before Mix/disk. Uses miniz (miniz.h, single-header, no extra deps).
-//
-// Load order (highest priority first):
-//   1. Zip files (last registered wins, like Mix priority)
-//   2. Mix files (vanilla)
-//   3. Loose disk files
-//
-// Integration: call ZipFileSystem::ScanDirectory() early in startup
-// (e.g. in a DEFINE_HOOK on the game init path).
+
 #define MINIZ_IMPLEMENTATION
 #include  <Lib/miniz/miniz.h>
 
-#include <CCFileClass.h>
+#include <windows.h>
 #include <string>
 #include <vector>
 #include <unordered_map>
 #include <memory>
 #include <functional>
 #include <bcrypt.h>
+
+#include <Phobos.FileClass.h>
+#include <CCFileClass.h>
 
 // Password/encryption support layer for ZipFileSystem.
 //
@@ -129,7 +121,6 @@ private:
 	BCRYPT_ALG_HANDLE  m_HashAlg = nullptr;
 };
 
-
 // -------------------------------------------------------------------------- -
 // ZipEntry — one file inside a registered zip
 // ---------------------------------------------------------------------------
@@ -211,107 +202,6 @@ private:
 	std::unique_ptr<ZipArchiveDecryptor>          m_DefaultDecryptor;
 };
 
-// Phobos extension of RAMFileClass that adds an optional debug name.
-//
-// WHY a subclass and not patching RAMFileClass directly:
-//   - RAMFileClass has a static_assert(sizeof == 0x20) that must not change.
-//   - The binary vtable at 0x7F0874 expects exactly 0x20 bytes.
-//   - Adding a field to RAMFileClass would silently corrupt every engine
-//     site that stack-allocates it (e.g. the PublicKey INI usage in MixFile).
-//
-// This subclass adds zero cost to vanilla usage — only Phobos code
-// that explicitly uses NamedRAMFileClass gets the name field.
-//
-// Usage:
-//   // Wrap a const string literal (no copy, zero alloc):
-//   NamedRAMFileClass f("[PublicKey] ini text...", len, "PublicKey-INI");
-//
-//   // Wrap an existing heap buffer (no copy):
-//   NamedRAMFileClass f(myBuf, mySize, "SHP:conyard.shp");
-//
-//   // Allocate a fresh buffer (RAMFileClass allocates internally):
-//   NamedRAMFileClass f(nullptr, size, "WriteBuffer:temp");
-//
-//   f.FileName();   // returns "SHP:conyard.shp" instead of "UNKNOWN"
-
-class NamedRAMFileClass : public RAMFileClass
-{
-public:
-	// ------------------------------------------------------------------
-	// Constructors
-	// ------------------------------------------------------------------
-
-	// Wrap an existing buffer with a debug name.
-	// If pData == nullptr and nSize > 0, RAMFileClass allocates internally.
-	// DebugName is a caller-owned string literal or long-lived pointer —
-	// this class does NOT copy or free it.
-	NamedRAMFileClass(void* pData, size_t nSize, const char* debugName)
-		: RAMFileClass(pData, nSize)
-		, m_DebugName(debugName)
-	{}
-
-	// Convenience: wrap a const char* string directly (e.g. inline INI text).
-	// The string pointer must outlive this object — no copy is made.
-	NamedRAMFileClass(const char* stringData, size_t nSize, const char* debugName)
-		: RAMFileClass(const_cast<void*>(static_cast<const void*>(stringData)), nSize)
-		, m_DebugName(debugName)
-	{}
-
-	// Default: unnamed (falls back to "UNKNOWN" from base).
-	explicit NamedRAMFileClass(void* pData, size_t nSize)
-		: RAMFileClass(pData, nSize)
-		, m_DebugName(nullptr)
-	{}
-
-	virtual ~NamedRAMFileClass() override = default;
-
-	// ------------------------------------------------------------------
-	// FileClass overrides
-	// ------------------------------------------------------------------
-
-	// Returns the debug name if set, otherwise vanilla "UNKNOWN".
-	virtual const char* FileName() const override
-	{
-		return m_DebugName ? m_DebugName : RAMFileClass::FileName();
-	}
-
-	// SetFileName: store the new name pointer (no alloc — caller owns it).
-	virtual const char* SetFileName(const char* name) override
-	{
-		m_DebugName = name;
-		return m_DebugName;
-	}
-
-	// ------------------------------------------------------------------
-	// Debug helper
-	// ------------------------------------------------------------------
-
-	// Useful for logging: "RAMFile[SHP:conyard.shp](size=12345)"
-	// Returns a stack-allocated string — do not store the pointer.
-	// Only available in debug builds to avoid overhead in release.
-//#ifndef NDEBUG
-//	const char* DebugDescription(char* buf, size_t bufSize) const
-//	{
-//		_snprintf_s(buf, bufSize, _TRUNCATE,
-//			"RAMFile[%s](size=%d)",
-//			m_DebugName ? m_DebugName : "UNKNOWN",
-//			static_cast<int>(this->Size()));
-//		return buf;
-//	}
-//#endif
-
-private:
-	// Pointer to a caller-owned name string. Not freed on destruction.
-	// Typical usage: string literal ("SHP:conyard.shp") or a persistent
-	// std::string::c_str() from a longer-lived owner.
-	const char* m_DebugName;
-};
-
-// No sizeof assert here — size depends on compiler padding of m_DebugName,
-// and this class is never used in binary-layout-sensitive positions.
-
-
-// Now inherits NamedRAMFileClass instead of raw FileClass.
 // This means:
 //   - FileName() returns the actual zip entry name automatically.
 //   - No need to override FileName() / SetFileName() ourselves.
@@ -321,7 +211,7 @@ private:
 //
 // NOTE: RAMFileClass::Read/Seek/Write/Close work correctly on the internal
 // buffer once we call Open1(). We no longer need our own Read/Seek/Close.
-class ZipBackedFileClass : public NamedRAMFileClass
+class ZipBackedFileClass : public PhobosRAMFileClass
 {
 public:
 	// Construct from a zip entry name. Check Valid() before use.
@@ -334,20 +224,20 @@ public:
 	// --- Minimal overrides ---
 
 	// Guard: zip files are read-only.
-	virtual bool Open1(FileAccessMode access) override;
+	virtual bool Open(PhobosFileAccessMode access) override;
 
 	// Use our extraction result, not the base buffer check.
-	virtual bool IsAvaible(bool writeShared = false) override { return Valid(); }
+	virtual bool IsAvailable(bool = false) override { return Valid(); }
 
 	// Write is meaningless on a zip-backed buffer.
 	virtual int Write(void* /*buf*/, int /*len*/) override { return 0; }
 
 	// GetDataTime / SetDateTime: no meaningful timestamp from zip.
-	virtual LONG GetDataTime()          override { return 0; }
+	virtual LONG GetDateTime()          override { return 0; }
 	virtual bool SetDateTime(LONG)      override { return false; }
 
 	// Silence error output — missing zip files are handled by caller.
-	virtual void Error(FileErrorType, bool, const char*) override {}
+	virtual void Error(PhobosFileErrorType, bool, const char*) override {}
 
 private:
 	// Heap buffer extracted from the zip. Kept alive for the object's lifetime.
@@ -356,6 +246,3 @@ private:
 	std::unique_ptr<uint8_t[]> m_Buffer;
 	size_t                     m_Size = 0;
 };
-
-
-void* __fastcall _RetrieveFile(char* name, char force_shape_cache);

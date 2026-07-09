@@ -6,47 +6,43 @@
 class CRCEngine
 {
 public:
-	CRCEngine() : CRC(0), Index(0) {
+	 CRCEngine() : CRC(0), Index(0) {
 		Buffer.Composite = 0;
 	}
 
-	COMPILETIMEEVAL void Reset() {
+	 void Reset() {
 		CRC = 0;
 		Index = 0;
 		Buffer.Composite = 0;
 	}
 
-	COMPILETIMEEVAL uint32_t Updata_external(const void* data, int length) {
+	 uint32_t Updata_external(const void* data, int length) {
 		return Update(data, length);
 	}
 
-	COMPILETIMEEVAL uint32_t operator()(const void* data, int length) {
+	 uint32_t operator()(const void* data, int length) {
 		return Update(data, length);
 	}
 
 	template<typename T>
-	COMPILETIMEEVAL uint32_t operator()(T data) {
+	 uint32_t operator()(T data) {
 		return Update(&data, sizeof(T));
 	}
 
-	COMPILETIMEEVAL uint32_t operator()(const char* data) {
+	 uint32_t operator()(const char* data) {
 		if (!data)
 			return 0u;
 
-		return Update((const void*)data, strlen(data));
+		return Update((const void*)data, std::char_traits<char>::length(data));
 	}
 
 	// operator()() to get current CRC value without finalizing
-	COMPILETIMEEVAL  uint32_t operator()() const {
-		return CRC;
-	}
+	 uint32_t operator()() const { return CRC; }
 
 	// operator uint32_t() for implicit conversion
-	COMPILETIMEEVAL operator uint32_t() const {
-		return CRC;
-	}
+	 operator uint32_t() const { return CRC; }
 
-	COMPILETIMEEVAL  uint32_t Finalize() {
+	 uint32_t Finalize() {
 		if (Index > 0)
 		{
 			Buffer.Buffer[Index] = static_cast<uint8_t>(Index);
@@ -59,7 +55,7 @@ public:
 		return CRC;
 	}
 
-	static COMPILETIMEEVAL uint32_t Memory(const void* data, int length, uint32_t crc) {
+	static  uint32_t Memory(const void* data, int length, uint32_t crc) {
 		const uint8_t* bytes = static_cast<const uint8_t*>(data);
 		uint32_t result = ~crc;
 
@@ -71,7 +67,7 @@ public:
 
 private:
 
-	COMPILETIMEEVAL uint32_t Update(const void* data, int length) {
+	 uint32_t Update(const void* data, int length) {
 		const uint8_t* bytes = static_cast<const uint8_t*>(data);
 
 		// Fill staging buffer until aligned
@@ -113,7 +109,7 @@ private:
 		return Finalize();
 	}
 
-	COMPILETIMEEVAL void PadAndHash() {
+	void PadAndHash() {
 		for (int i = Index + 1; i < 4; ++i)
 			Buffer.Buffer[i] = Buffer.Buffer[0];
 

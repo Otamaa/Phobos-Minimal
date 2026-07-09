@@ -611,19 +611,13 @@ void TechnoTypeExtData::LoadTurrets(TechnoTypeClass* pType, CCINIClass* pINI)
 
 	//char buffer[0x100u];
 	//read default
-	for (size_t i = 0; i < SubName.size(); ++i)
-	{
-		Valueable<int> read_buff { -1 };
-		read_buff.Read(iniEx, pSection, SubName[i].first);
+	for (size_t i = 0; i < SubName.size(); ++i) {
+		auto read_buff = Valueable<int>(-1)(iniEx, pSection, SubName[i].first, false);
 
-		if (read_buff >= 0)
-		{
+		if (read_buff >= 0) {
+			auto read_buff_ = Valueable<int> (int(i < 4u ? i : 0u))(iniEx, pSection, SubName[i].second, false);
 
-			Valueable<int> read_buff_ { int(i < 4u ? i : 0u) };
-			read_buff_.Read(iniEx, pSection, SubName[i].second);
-
-			if (read_buff_ >= 0)
-			{
+			if (read_buff_ >= 0) {
 				*(read_buff < 18 ? (pType->TurretWeapon + read_buff) :
 				(pExt->AdditionalTurrentWeapon.data() + (read_buff - TechnoTypeClass::MaxWeapons))) = read_buff_;
 			}
@@ -1018,13 +1012,11 @@ void TechnoTypeExtData::ParseVoiceWeaponAttacks(INI_EX& exINI, const char* pSect
 	char tempBuff[64];
 	for (int index = 0; index < WeaponCount; index++)
 	{
-		NullableIdx<VocClass> VoiceAttack;
 		IMPL_SNPRNINTF(tempBuff, sizeof(tempBuff), "VoiceWeapon%dAttack", index + 1);
-		VoiceAttack.Read(exINI, pSection, tempBuff);
+		auto VoiceAttack = NullableIdx<VocClass>()(exINI, pSection, tempBuff);
 
-		NullableIdx<VocClass> VoiceEliteAttack;
 		IMPL_SNPRNINTF(tempBuff, sizeof(tempBuff), "VoiceEliteWeapon%dAttack", index + 1);
-		VoiceEliteAttack.Read(exINI, pSection, tempBuff);
+		auto VoiceEliteAttack = NullableIdx<VocClass>()(exINI, pSection, tempBuff);
 
 		if (int(n.size()) > index) {
 			n[index] = VoiceAttack.Get(n[index]);
@@ -1280,8 +1272,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->UseDisguiseMovementSpeed.Read(exINI, pSection, "UseDisguiseMovementSpeed");
 
 		// insignia type
-		Nullable<InsigniaTypeClass*> InsigniaType;
-		InsigniaType.Read(exINI, pSection, "InsigniaType");
+		auto InsigniaType = Nullable<InsigniaTypeClass*>()(exINI, pSection, "InsigniaType", false);
 
 		if (InsigniaType.isset() && InsigniaType)
 		{
@@ -1559,9 +1550,9 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 #ifndef _Handle_Old_
 		this->AttachedEffect.Read(exINI);
 #else
-		int _AE_Dur { 0 };
+		auto _AE_Dur = Valueable<int>(0)(exINI, pSection, "AttachEffect.Duration", false);
 		this->AttachEffect_AttachTypes.clear();
-		if (detail::read(_AE_Dur, exINI, pSection, "AttachEffect.Duration") && _AE_Dur != 0) {
+		if (_AE_Dur != 0) {
 			auto& back = this->AttachEffect_AttachTypes.emplace_back(PhobosAttachEffectTypeClass::FindOrAllocate(pSection));
 			back->Duration = _AE_Dur;
 			back->Cumulative.Read(exINI, pSection, "AttachEffect.Cumulative");
@@ -1571,15 +1562,13 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 			back->Animation_ResetOnReapply.Read(exINI, pSection, "AttachEffect.AnimResetOnReapply");
 
-			bool AE_TemporalHidesAnim {};
-			if (detail::read(AE_TemporalHidesAnim, exINI, pSection, "AttachEffect.TemporalHidesAnim") && AE_TemporalHidesAnim)
+			if (Valueable<bool>()(AE_TemporalHidesAnim, exINI, pSection, "AttachEffect.TemporalHidesAnim", false).Get())
 				back->Animation_TemporalAction = AttachedAnimFlag::Hides;
 
 			back->ForceDecloak.Read(exINI, pSection, "AttachEffect.ForceDecloak");
 
-			bool AE_DiscardOnEntry {};
-			if(detail::read(AE_DiscardOnEntry, exINI, pSection, "AttachEffect.DiscardOnEntry") && AE_DiscardOnEntry)
-				back->DiscardOn = DiscardCondition::Entry;
+			if(Valueable<bool>()(AE_DiscardOnEntry, exINI, pSection, "AttachEffect.DiscardOnEntry", false).Get())
+				back->DiscardOn |= DiscardCondition::Entry;
 
 			back->FirepowerMultiplier.Read(exINI, pSection, "AttachEffect.FirepowerMultiplier");
 			back->ArmorMultiplier.Read(exINI, pSection, "AttachEffect.ArmorMultiplier");
@@ -2133,13 +2122,13 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		}
 
 		this->Convert_ToHouseOrCountry.clear();
-		Nullable<TechnoTypeClass*> technoType;
+
 		// put all sides into the map
 		this->Convert_ToHouseOrCountry.reserve(SideClass::Array->Count + HouseTypeClass::Array->Count);
 
 		for (auto const& pSide : *SideClass::Array) {
 			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Convert.To%s", pSide->ID);
-			technoType.Read(exINI, pSection, tempBuffer);
+			auto technoType= Nullable<TechnoTypeClass*>()(exINI, pSection, tempBuffer, false);
 			if (technoType.isset()) {
 				this->Convert_ToHouseOrCountry.insert(pSide, technoType.Get());
 			}
@@ -2148,7 +2137,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		// put all countries into the map
 		for (auto const& pTHouse : *HouseTypeClass::Array) {
 			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Convert.To%s", pTHouse->ID);
-			technoType.Read(exINI, pSection, tempBuffer);
+			auto technoType = Nullable<TechnoTypeClass*>()(exINI, pSection, tempBuffer, false);
 			if (technoType.isset()) {
 				this->Convert_ToHouseOrCountry.insert(pTHouse, technoType.Get());
 			}
@@ -2223,12 +2212,10 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->Harvester_CanGuardArea.Read(exINI, pSection, "Harvester.CanGuardArea");
 		this->Harvester_CanGuardArea_RequireTarget.Read(exINI, pSection, "Harvester.CanGuardArea.RequireTarget");
 
-		Nullable<int> transDelay {};
-		transDelay.Read(exINI, pSection, "TiberiumEater.TransDelay");
+		auto transDelay = Nullable<int>()(exINI, pSection, "TiberiumEater.TransDelay", false);
 
 		if (transDelay.isset() && transDelay >= 0 && !this->TiberiumEaterType)
 			this->TiberiumEaterType = std::make_unique<TiberiumEaterTypeClass>();
-
 
 		if (this->TiberiumEaterType) {
 
@@ -2253,9 +2240,8 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 			for (size_t i = 0; i < passengers; i++)
 			{
-				Nullable<InsigniaTypeClass*> InsigniaType_Passengers;
 				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "InsigniaType.Passengers%d", i);
-				InsigniaType_Passengers.Read(exINI, pSection, tempBuffer);
+				auto InsigniaType_Passengers = Nullable<InsigniaTypeClass*>()(exINI, pSection, tempBuffer, false);
 
 				if (InsigniaType_Passengers.isset())
 				{
@@ -2401,9 +2387,8 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		{
 			for (int i = 0; i < this->ExtraBarrelCount; ++i)
 			{
-				Valueable<int> extraBarrelOffset;
 				_snprintf_s(tempBuffer, sizeof(tempBuffer), "ExtraBarrelOffset%u", i);
-				extraBarrelOffset.Read(exArtINI, pArtSection, tempBuffer);
+				auto extraBarrelOffset = Valueable<int>()(exArtINI, pArtSection, tempBuffer, false);
 				this->ExtraBarrelOffsets.emplace_back(extraBarrelOffset.Get());
 			}
 		}
@@ -2418,10 +2403,8 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		{
 			for (int i = 0; i < this->ExtraTurretCount; ++i)
 			{
-				Valueable<CoordStruct> extraTurretOffset;
 				_snprintf_s(tempBuffer, sizeof(tempBuffer), "ExtraTurretOffset%u", i);
-				extraTurretOffset.Read(exArtINI, pArtSection, tempBuffer);
-				this->ExtraTurretOffsets.emplace_back(extraTurretOffset.Get());
+				this->ExtraTurretOffsets.emplace_back(Valueable<CoordStruct>()(exArtINI, pArtSection, tempBuffer, false).Get());
 			}
 			this->BurstPerTurret.Read(exArtINI, pArtSection, "BurstPerTurret");
 		}
@@ -2480,13 +2463,10 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 			}
 		}
 
-		std::vector<int> shadow_indices {};
-		detail::ReadVectors(shadow_indices, exArtINI, pArtSection, "ShadowIndices");
-		std::vector<int> shadow_indices_frame {};
-		detail::ReadVectors(shadow_indices_frame, exArtINI, pArtSection, "ShadowIndices.Frame");
+		auto shadow_indices = ValueableVector<int>()(exArtINI, pArtSection, "ShadowIndices", false);
+		auto shadow_indices_frame = ValueableVector<int>()(exArtINI, pArtSection, "ShadowIndices.Frame", false);
 
-		if (shadow_indices_frame.size() != shadow_indices.size())
-		{
+		if (shadow_indices_frame.size() != shadow_indices.size()) {
 			if (!shadow_indices_frame.empty())
 				Debug::LogInfo("[Developer warning] {} ShadowIndices.Frame size ({}) does not match ShadowIndices size ({}) "
 					, pSection, shadow_indices_frame.size(), shadow_indices.size());
@@ -2524,9 +2504,8 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		for (size_t i = 0; ; ++i)
 		{
-			Nullable<CoordStruct> alternateFLH;
-			alternateFLH.Read(exArtINI, pArtSection, (std::string("AlternateFLH") + std::to_string(i)).c_str());
-
+			auto alternateFLH = Nullable<CoordStruct>()(exArtINI, pArtSection, (std::string("AlternateFLH") + std::to_string(i)).c_str(), false);
+			
 			if (!alternateFLH.isset()) {
 				if( i < 5){
 					this->AlternateFLHs.emplace_back();

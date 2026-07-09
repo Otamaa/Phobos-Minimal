@@ -16,7 +16,7 @@ public:
 	int PostIndentCursor;
 	int CommentCursor;
 
-	virtual ~INIEntry();
+	virtual ~INIEntry() JMP_THIS(0x52AAF0);
 
 	INIEntry(
 		char* entry,

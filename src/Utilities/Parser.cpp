@@ -67,12 +67,14 @@ bool Parser<double>::TryParse(const char* pValue, OutType* outValue)
 	if (pValue == end || errno == ERANGE || !std::isfinite(value))
 		return false;
 
-	float floatValue = static_cast<float>(value);
+	while (std::isspace(static_cast<unsigned char>(*end)))
+		++end;
 
-	// if (strchr(pValue, '%'))
-	// {
-	// 	floatValue *= 0.01f;
-	// }
+	 if (strchr(end, '%')) {
+		 value *= 0.01;
+	 }
+
+	 float floatValue = static_cast<float>(value);
 
 	if (outValue)
 	{

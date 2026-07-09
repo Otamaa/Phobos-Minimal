@@ -5,7 +5,7 @@
 #include <Helpers/CompileTime.h>
 #include <PKey.h>
 
-class CCFileClass;
+class RawFileClass;
 struct MixHeaderData
 {
 	DWORD ID;
@@ -147,7 +147,7 @@ public:
 static_assert(sizeof(LoadedFileCache) == 0x10);
 
 class MemoryBuffer;
-class ALIGN(4) NOVTABLE MixFileClass : public Node<MixFileClass>
+class ALIGN(4) MixFileClass : public Node<MixFileClass>
 {
 	struct GenericMixFiles
 	{
@@ -203,13 +203,13 @@ public:
 	static bool Bootstrap()
 		{ JMP_THIS(0x5301A0); }
 
-	virtual ~MixFileClass()
-	{
-		YRMemory::free((void*)this->Filename);
-		this->Free();
-		this->FreeHeader();
-		this->Node<MixFileClass>::~Node<MixFileClass>();
-	}
+	virtual ~MixFileClass() JMP_THIS(0x5B3F50);
+	//{
+	//	YRMemory::free((void*)this->Filename);
+	//	this->Free();
+	//	this->FreeHeader();
+	//	this->Node<MixFileClass>::~Node<MixFileClass>();
+	//}
 
     void Free() {
 
@@ -246,12 +246,12 @@ public:
 
 	static void DumpAllEntries();
 
-	MixFileClass(const char* pFileName, PKey* pKey);
-	MixFileClass(CCFileClass* pFile, PKey* pKey);
+	MixFileClass(const char* pFileName, PKey* pKey) JMP_THIS(0x5B3C20);
+	//MixFileClass(RawFileClass* pFile, PKey* pKey);
 
 private:
-	void ReadFromCCFile(CCFileClass* pFile, PKey* pKey);
-	void ReadFromCCFIleWithoutStraws(CCFileClass* pFile, PKey* pKey);
+	void ReadFromCCFile(RawFileClass* pFile, PKey* pKey);
+	void ReadFromCCFIleWithoutStraws(RawFileClass* pFile, PKey* pKey);
 
 public:
 	const char* Filename;

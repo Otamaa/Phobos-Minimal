@@ -4,6 +4,8 @@
 #include <Ext/House/Body.h>
 #include <Ext/HouseType/Body.h>
 
+#include <Phobos.INI.h>
+
 std::unique_ptr<ScenarioExtData> ScenarioExtData::Data;
 IStream* ScenarioExtData::g_pStm;
 bool ScenarioExtData::CellParsed;
@@ -223,20 +225,26 @@ void ScenarioExtData::DetonateMasterBullet(const CoordStruct& coords, TechnoClas
 
 void ScenarioExtData::ReadMissionMDINI()
 {
-	CCFileClass file { GameStrings::MISSIONMD_INI };
+	const char* _requested = //SpawnerMain::Configs::Active ? "SPAWN.INI" :
+		GameStrings::MISSIONMD_INI;
+	CCFileClass file { _requested };
 
 	if (!file.IsAvaible()) {
-		Debug::LogInfo(__FUNCTION__ " Failed to Find file {} for", file.Filename);
+		Debug::LogInfo(__FUNCTION__ " Failed to Find file {} - {} for", _requested, file.Filename);
 		return;
 	}
 
 	if (!file.Open1(FileAccessMode::ReadWrite)) {
-		Debug::LogInfo(__FUNCTION__ " Failed to Open file {} for", file.Filename);
+		Debug::LogInfo(__FUNCTION__ " Failed to Open file {} - {} for", _requested , file.Filename);
 		return;
 	}
 
+	PhobosINIContainer::Mission_INI = std::make_unique<PhobosINIClass>();
+
 	CCINIClass ini {};
 	ini.ReadCCFile(&file);
+	PhobosINIContainer::Mission_INI->LoadFile(&file);
+
 	auto pThis = this->AttachedToObject;
 	auto const scenarioName = pThis->FileName;
 	auto const defaultsSection = "Defaults";

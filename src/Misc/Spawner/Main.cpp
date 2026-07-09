@@ -25,6 +25,25 @@
 #include <WWMessageBox.h>
 #include <BeaconManagerClass.h>
 
+ASMJIT_PATCH(0x683B97, StartScenarion_WhyCrash, 0x5)
+{
+	const auto opt = GameModeOptionsClass::Instance->ScenarioIndex;
+	
+	//Otamaa : not sure if this ScenarioIndex set properly ?
+	// because the MPMission vector was also not allocated 
+	// so something wrong here
+	if (opt != -1) {
+		DynamicVectorClass<MultiMission*>* pMult = SessionClass::MPlayerScenarios.operator->();
+		if(pMult->IsAllocated){
+			const auto pItem = pMult->Items[opt];
+			R->ESI(pItem);
+			return 0x683BAA;
+		}
+	}
+
+	return 0x683BCE;
+}
+
 #pragma region defines
 std::list<MixFileClass*> SpawnerMain::LoadedMixFiles;
 SpawnerMain::GameConfigs SpawnerMain::GameConfigs::m_Ptr {};
@@ -711,7 +730,7 @@ void SpawnerMain::GameConfigs::Init() {
 	//Patch::Apply_LJMP(0x699AE0, 0x69A1B2); // SessionClass::Read_Scenario_Descriptions
 }
 
-bool __fastcall SpawnerMain::GameConfigs::StartGame(bool a1) {
+bool __fastcall SpawnerMain::GameConfigs::StartGame() {
 
 	if (SpawnerMain::Configs::Active)
 		return 0;

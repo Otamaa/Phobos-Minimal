@@ -18,7 +18,7 @@ void DroppodProperties::Read(INI_EX& exINI, const char* pSection)
 
 	this->Droppod_Speed.Read(exINI, pSection, "DropPod.Speed");
 	this->Droppod_Height.Read(exINI, pSection, "DropPod.Height");
-	this->Droppod_Weapon.Read(exINI, pSection, "DropPod.Weapon");
+	this->Droppod_Weapon.Read(exINI, pSection, "DropPod.Weapon", true);
 	this->Droppod_GroundPodAnim.Read(exINI, pSection, "DropPod.Pods");
 
 	this->Droppod_Trailer.Read(exINI, pSection, "DropPod.Trailer");
@@ -61,7 +61,7 @@ void NullableDroppodProperties::Read(INI_EX& exINI, const char* pSection)
 
 	this->Droppod_Speed.Read(exINI, pSection, "DropPod.Speed");
 	this->Droppod_Height.Read(exINI, pSection, "DropPod.Height");
-	this->Droppod_Weapon.Read(exINI, pSection, "DropPod.Weapon");
+	this->Droppod_Weapon.Read(exINI, pSection, "DropPod.Weapon", true);
 	this->Droppod_GroundPodAnim.Read(exINI, pSection, "DropPod.Pods");
 
 	this->Droppod_Trailer.Read(exINI, pSection, "DropPod.Trailer");

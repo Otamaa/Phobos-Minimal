@@ -22,21 +22,21 @@ INIEntry* INISection::FindEntry(const char* entry) const
 	return this->EntryIndex.Archive->Data;
 }
 
-INISection::~INISection()
-{
-	YRMemory::free(this->Name);
-	this->Entries.List<INIEntry*>::~List<INIEntry*>();
-	this->EntryIndex.EntryIndexType::~EntryIndexType();
-	if (this->Comments) {
-
-		do {
-			YRMemory::free(this->Comments->Value);
-			INIComment* next = this->Comments->Next;
-			YRMemory::free(this->Comments);
-			this->Comments = next;
-		}
-		while (this->Comments);
-	}
-
-	this->AsNode::~AsNode();
-}
+//INISection::~INISection()
+//{
+//	YRMemory::free(this->Name);
+//	this->Entries.List<INIEntry*>::~List<INIEntry*>();
+//	this->EntryIndex.EntryIndexType::~EntryIndexType();
+//	if (this->Comments) {
+//
+//		do {
+//			YRMemory::free(this->Comments->Value);
+//			INIComment* next = this->Comments->Next;
+//			YRMemory::free(this->Comments);
+//			this->Comments = next;
+//		}
+//		while (this->Comments);
+//	}
+//
+//	this->AsNode::~AsNode();
+//}

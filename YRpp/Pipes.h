@@ -15,7 +15,7 @@ public:
 			this->ChainTo->ChainFrom = this->ChainFrom;
 
 		if (this->ChainFrom)
-			this->ChainFrom->Pipe::Put_To(this->ChainTo);
+			this->ChainFrom->Put_To(this->ChainTo);
 
 		this->ChainFrom = nullptr;
 		this->ChainTo = nullptr;
@@ -401,4 +401,37 @@ private:
 private:
 	PKPipe(const PKPipe& rvalue) = delete;
 	PKPipe& operator=(const PKPipe&) = delete;
+};
+
+class LZOPipe : public Pipe
+{
+public:
+	enum class CodeControl {
+		ENCODE,
+		DECODE
+	};
+
+	LZOPipe(LZOPipe::CodeControl a2, int size) { JMP_THIS(0x55C2B0); }
+	virtual ~LZOPipe() JMP_THIS(0x55C6D0);
+
+	virtual int Put(void const* source, int length)
+	{
+		JMP_THIS(0x55C350);
+	}
+	
+	int Flush() JMP_THIS(0x55C5E0);
+
+private:
+	LZOPipe::CodeControl Control;
+	int Counter;
+	char* Buffer1;
+	char* Buffer2;
+	int BlockSize;
+	int MxBlockSize;
+	short CompressedBytes;
+	short UncompressedBytes;
+
+private:
+	LZOPipe(const LZOPipe& rvalue) = delete;
+	LZOPipe& operator=(const LZOPipe&) = delete;
 };

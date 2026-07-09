@@ -59,7 +59,7 @@ bool PhobosGlobal::LoadGlobals(PhobosStreamReader& stm)
 void PhobosGlobal::LoadGlobalsConfig()
 {
 	GameConfig ares_ini { "Ares.ini" };
-	ares_ini.OpenINIAction([](CCINIClass* pINI) {
+	ares_ini.OpenINIAction([](CCINIClass* pINI, CCFileClass* pFile) {
 
 		if(!pINI->GetSection("Graphics.Advanced")) {
 			return;

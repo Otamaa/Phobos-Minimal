@@ -19,7 +19,7 @@ public:
 			this->ChainTo->ChainFrom = this->ChainFrom;
 
 		if (this->ChainFrom)
-			this->ChainFrom->Straw::Get_From(this->ChainTo);
+			this->ChainFrom->Get_From(this->ChainTo);
 
 		this->ChainFrom = nullptr;
 		this->ChainTo = nullptr;
@@ -424,4 +424,53 @@ private:
 private:
     PKStraw(const PKStraw&) = delete;
     PKStraw& operator=(const PKStraw&) = delete;
+};
+
+class LZOtraw : public Straw
+{
+public:
+	enum class CodeControl {
+		ENCODE,
+		DECODE
+	};
+
+	LZOtraw(LZOtraw::CodeControl control, int size) :
+		Straw(),
+		Control(control),
+		Buffer1((char*)YRMemory::Allocate(2 * size)),	
+		Buffer2(control == LZOtraw::CodeControl::ENCODE ? 
+			(char*)YRMemory::Allocate(2 * size)
+			: nullptr),
+		BlockSize(size),
+		SafetyMargin(size),
+		CompressedBytes(),
+		UncompressedBytes()
+	{ }
+
+	virtual ~LZOtraw() override
+	{
+		YRMemory::free(this->Buffer1);
+		YRMemory::free(this->Buffer2);
+		this->Straw::~Straw();
+	}
+
+	virtual int Get(void* source, int slen) override { JMP_THIS(0x55C7C0); }
+
+	static int __fastcall  lzo1x_Compress(const char* in, unsigned int in_len, char* out, unsigned int* out_len, void* wrkmem)
+	{ JMP_FAST(0x55BB90); }
+
+	static int __fastcall lzo1x_decompress(const char* in, unsigned int in_len, char* out, unsigned int* out_len, void* wrkmem)
+	{ JMP_FAST(0x55C0E0); }
+
+private:
+	LZOtraw::CodeControl Control;
+	char* Buffer1;
+	char* Buffer2;
+	int BlockSize;
+	int SafetyMargin;
+	short CompressedBytes;
+	short UncompressedBytes;
+private:
+	LZOtraw(const LZOtraw&) = delete;
+	LZOtraw& operator=(const LZOtraw&) = delete;
 };

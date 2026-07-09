@@ -178,9 +178,9 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 		L"{}\n{}{}{} {}{:02}:{:02}",
 		pType->UIName,
 		(cost < 0 ? L"+" : L""),
-		Phobos::UI::CostLabel,
+		Phobos::UI::CostLabel.GetText(),
 		Math::abs(cost),
-		Phobos::UI::TimeLabel,
+		Phobos::UI::TimeLabel.GetText(),
 		nMin,
 		nSec
 	);
@@ -188,7 +188,7 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 	if (auto const nPower = this->GetPower(pType)) {
 		fmt::format_to(std::back_inserter(this->TextBuffer),
 			L" {}{}{:01}",
-			Phobos::UI::PowerLabel,
+			Phobos::UI::PowerLabel.GetText(),
 			nPower > 0 ? L"+" : L"",
 			nPower);
 	}
@@ -210,15 +210,15 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 	std::wostringstream oss;
 	oss << pType->UIName << L"\n"
 		<< (cost < 0 ? L"+" : L"")
-		<< Phobos::UI::CostLabel << Math::abs(cost) << L" "
-		<< Phobos::UI::TimeLabel
+		<< Phobos::UI::CostLabel.GetText() << Math::abs(cost) << L" "
+		<< Phobos::UI::TimeLabel.GetText()
 		// << std::setw(2) << std::setfill(L'0') << nHour << L":"
 		<< std::setw(2) << std::setfill(L'0') << nMin << L":"
 		<< std::setw(2) << std::setfill(L'0') << nSec;
 
 	if (auto const nPower = this->GetPower(pType))
 	{
-		oss << L" " << Phobos::UI::PowerLabel;
+		oss << L" " << Phobos::UI::PowerLabel.GetText();
 		if (nPower > 0)
 			oss << L"+";
 		oss << std::setw(1) << nPower;
@@ -288,7 +288,7 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 		fmt::format_to(std::back_inserter(this->TextBuffer),
 			L"\n{}{}{}",
 			pData->Money_Amount > 0 ? L"+" : L"",
-			Phobos::UI::CostLabel,
+			Phobos::UI::CostLabel.GetText(),
 			nCost
 		);
 
@@ -298,7 +298,7 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 	if (int nPoints = Math::abs(pData->BattlePoints_Amount.Get())) {
 		fmt::format_to(std::back_inserter(this->TextBuffer),
 			L"\n{}{}{}",
-			Phobos::UI::BattlePoints_Label,
+			Phobos::UI::BattlePoints_Label.GetText(),
 			pData->BattlePoints_Amount > 0 ? L"+" : L"-",
 			nPoints
 		);
@@ -318,7 +318,7 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 				L"{}{}{} {:02}{:02}:{:02}",
 				!showSth ? L"\n" : L"",
 				showSth ? L" " : L"",
-				Phobos::UI::TimeLabel,
+				Phobos::UI::TimeLabel.GetText(),
 				nHour,
 				nMin,
 				nSec
@@ -330,7 +330,7 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 				L"{}{}{} {:02}:{:02}",
 				!showSth ? L"\n" : L"",
 				showSth ? L" " : L"",
-				Phobos::UI::TimeLabel,
+				Phobos::UI::TimeLabel.GetText(),
 				nMin,
 				nSec
 			);
@@ -344,7 +344,7 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 
 	if (pData->SW_Shots > 0) {
 		wchar_t buffer[64];
-		swprintf_s(buffer, Phobos::UI::SWShotsFormat, (pData->SW_Shots - lData->Count), pData->SW_Shots);
+		swprintf_s(buffer, Phobos::UI::SWShotsFormat.c_str(), (pData->SW_Shots - lData->Count), pData->SW_Shots);
 
 		fmt::format_to(std::back_inserter(this->TextBuffer),
 			L"{}{}{}",
@@ -360,7 +360,7 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 		if (nPower != 0) {
 			fmt::format_to(std::back_inserter(this->TextBuffer),
 				L" {}{}{:01}",
-				Phobos::UI::PowerLabel,
+				Phobos::UI::PowerLabel.GetText(),
 				(nPower ? L"+" : L""),
 				nPower
 			);
@@ -385,7 +385,7 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 		if (pData->Money_Amount > 0)
 			oss << '+';
 
-		oss << Phobos::UI::CostLabel << nCost;
+		oss << Phobos::UI::CostLabel.operator const wchar_t* () << nCost;
 		showSth = true;
 	}
 
@@ -394,9 +394,9 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 		oss << L"\n";
 
 		if (pData->BattlePoints_Amount > 0)
-			oss << Phobos::UI::BattlePoints_Label << L"+" << nPoints;
+			oss << Phobos::UI::BattlePoints_Label.operator const wchar_t* () << L"+" << nPoints;
 		else if (pData->BattlePoints_Amount < 0)
-			oss << Phobos::UI::BattlePoints_Label << L"-" << nPoints;
+			oss << Phobos::UI::BattlePoints_Label.operator const wchar_t* () << L"-" << nPoints;
 
 		showSth = true;
 	}
@@ -412,7 +412,7 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 		const int nMin = rechargeTime / 60 /* % 60*/;
 		// int nHour = TickTimeToSeconds(pType->RechargeTime) / 60 / 60;
 
-		oss << (showSth ? L" " : L"") << Phobos::UI::TimeLabel
+		oss << (showSth ? L" " : L"") << Phobos::UI::TimeLabel.operator const wchar_t* ()
 			// << std::setw(2) << std::setfill(L'0') << nHour << L":"
 			<< std::setw(2) << std::setfill(L'0') << nMin << L":"
 			<< std::setw(2) << std::setfill(L'0') << nSec;
@@ -429,7 +429,7 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 			oss << L"\n";
 
 		wchar_t buffer[64];
-		swprintf_s(buffer, Phobos::UI::SWShotsFormat, remain_shots, sw_shots);
+		swprintf_s(buffer, Phobos::UI::SWShotsFormat.operator const wchar_t* (), remain_shots, sw_shots);
 		oss << (showSth ? L" " : L"") << buffer;
 	}
 
@@ -437,7 +437,7 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 		const auto nPower = pData->SW_Power;
 
 		if (nPower != 0) {
-			oss << (L" ") << Phobos::UI::PowerLabel;
+			oss << (L" ") << Phobos::UI::PowerLabel.operator const wchar_t* ();
 			if (nPower > 0)
 				oss << L"+";
 

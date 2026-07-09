@@ -305,13 +305,11 @@ bool TiberiumExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	this->LinkedOverlayType.Read(exINI, pSection, "OverlayType.Initial");
 
-	int Image = -1;
-	detail::read<int>(Image, exINI, pSection, GameStrings::Image());
 	this->PipIndex.Read(exINI, pSection, "PipIndex");
 
 	bool slopes = false;
 
-	switch (Image)
+	switch (Valueable<int>(-1)(exINI, pSection, GameStrings::Image(), false).Get())
 	{
 	case -1:
 		if (this->PipIndex == -1)
@@ -347,9 +345,8 @@ bool TiberiumExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	}
 
 	detail::read<bool>(slopes, exINI, pSection, "UseSlopes");
-	Nullable<int> Variety { };
+	auto Variety = Nullable<int>()(exINI, pSection, "Variety", false);
 
-	Variety.Read(exINI, pSection, "Variety");
 	int MaxCount = !slopes ? 12 : 20;
 
 	if (Variety.isset()) {

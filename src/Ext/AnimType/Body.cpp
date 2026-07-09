@@ -30,8 +30,7 @@ bool AnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	INI_EX exINI(pINI);
 	this->Palette.Read(exINI, pID, "CustomPalette");
 
-	Valueable<TechnoTypeClass*> createUnit { nullptr };
-	createUnit.Read(exINI, pID, "CreateUnit");
+	auto createUnit = Valueable<TechnoTypeClass*>()(exINI, pID, "CreateUnit", false);
 
 	if(createUnit && !this->CreateUnitType)
 		this->CreateUnitType = std::make_unique<CreateUnitTypeClass>();
@@ -86,8 +85,7 @@ bool AnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Warhead_Detonate.Read(exINI, pID, "Warhead.Detonate");
 	this->Damage_TargetFlag.Read(exINI, pID, "Damage.TargetFlag");
 
-	bool Damage_TargetInvoker;
-	if (detail::read(Damage_TargetInvoker, exINI, pID, "Damage.TargetInvoker") && Damage_TargetInvoker)
+	if (Valueable<bool>()(exINI, pID, "Damage.TargetInvoker", false).Get())
 		this->Damage_TargetFlag = DamageDelayTargetFlag::Invoker;
 
 	this->MakeInfantryOwner.Read(exINI, pID, "MakeInfantryOwner");

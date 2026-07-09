@@ -12,9 +12,7 @@ public:
 
 	PreviewClass() : ImageSurface(nullptr) {}
 	~PreviewClass() {
-		if(this->ImageSurface)
-			GameDelete<true, false>(this->ImageSurface);
-
+		GameDelete<true, true>(this->ImageSurface);
 		this->ImageSurface = nullptr;
 	}
 

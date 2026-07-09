@@ -103,7 +103,7 @@ void SW_NuclearMissile::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 
 	INI_EX exINI(pINI);
 
-	pData->Nuke_Payload.Read(exINI, section, "Nuke.Payload");
+	pData->Nuke_Payload.Read(exINI, section, "Nuke.Payload", true);
 	pData->Nuke_TakeOff.Read(exINI, section, "Nuke.TakeOff");
 	pData->Nuke_PsiWarning.Read(exINI, section, "Nuke.PsiWarning");
 	pData->Nuke_SiloLaunch.Read(exINI, section, "Nuke.SiloLaunch");

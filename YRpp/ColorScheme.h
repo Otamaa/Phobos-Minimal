@@ -93,7 +93,7 @@ public:
 	static int __fastcall GetNumberOfSchemes()
 		{ JMP_FAST(0x626C60); }
 
-	void CreateLightConvert(const BytePalette& Pal1, const BytePalette& Pal2, const ColorStruct& basecolor) const
+	void CreateLightConvert(const BytePalette* Pal1, const BytePalette* Pal2, int r , int g , int b) const
 		{ JMP_THIS(0x68C860); }
 
 	bool IsSame(const ColorScheme* pColor) const

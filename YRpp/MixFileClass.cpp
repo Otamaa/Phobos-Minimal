@@ -131,7 +131,7 @@ struct PKStrawGuard
 	PKStraw* pPK;
 	FileStraw* pFStraw;
 
-	PKStrawGuard(CCFileClass* pFile , PKStraw::CodeControl decode , Random3Straw* pRand)
+	PKStrawGuard(FileClass* pFile , PKStraw::CodeControl decode , Random3Straw* pRand)
 		: pPK(GameCreate<PKStraw>(decode, pRand)) , pFStraw(GameCreate<FileStraw>(pFile))
 	{ }
 	
@@ -158,7 +158,7 @@ struct PKStrawGuard
 //
 // Uses PhobosBlowStraw + BlowfishEngine directly — avoids the WW PKStraw/BlowStraw
 // chain entirely, which had fragile manual vtable/lifetime requirements.
-void MixFileClass::ReadFromCCFIleWithoutStraws(CCFileClass* pFile, PKey* pKey)
+void MixFileClass::ReadFromCCFIleWithoutStraws(RawFileClass* pFile, PKey* pKey)
 {
 	this->Filename = _strdup(pFile->Filename);
 
@@ -308,7 +308,7 @@ void MixFileClass::ReadFromCCFIleWithoutStraws(CCFileClass* pFile, PKey* pKey)
 // the straws dtors it weird interaction between them that causing me written the 
 // alternate version that more easier to digest and mantain than this original code
 // but put it here for educational purposes , use it at your own risk
-void MixFileClass::ReadFromCCFile(CCFileClass * pFile, PKey* pKey)
+void MixFileClass::ReadFromCCFile(RawFileClass * pFile, PKey* pKey)
 {
 	this->Filename = _strdup(pFile->Filename);
 
@@ -363,17 +363,53 @@ void MixFileClass::ReadFromCCFile(CCFileClass * pFile, PKey* pKey)
 	}
 }
 
+// ---------------------------------------------------------------------------
+// Binary search over a sorted MixHeaderData array.
+// Mirrors the vanilla inner loop exactly but in legible C++.
+// Returns pointer to the matching entry, or nullptr if not found.
+// ---------------------------------------------------------------------------
+static MixHeaderData* BinarySearchHeaders(
+	MixHeaderData* headers,
+	int                  count,
+	int                  crc)
+{
+	MixHeaderData* base = headers;
+	int remaining = count;
+
+	while (remaining > 0)
+	{
+		MixHeaderData* mid = base + (remaining / 2);
+
+		if ((int)mid->ID == crc)
+			return mid;
+
+		if ((int)mid->ID < crc)
+		{
+			// Narrow to upper half.
+			base = mid + 1;
+			remaining = remaining - 1 - (remaining / 2);
+		}
+		else
+		{
+			// Narrow to lower half.
+			remaining /= 2;
+		}
+	}
+
+	return nullptr;
+}
+
 //0x5B4430
 bool __fastcall MixFileClass::Offset(const char* filename, void** realptr, MixFileClass** mixfile, int* offset, int* size)
 {
 	if (!filename)
 		return false;
-
+	
 	char filenameUpper[260];
 	CRT::strcpy(filenameUpper, filename);
 	CRT::strupr(filenameUpper);
 
-	const int hash = SafeChecksummer()(filenameUpper, strlen(filenameUpper));
+	int hash = SafeChecksummer()(filenameUpper, strlen(filenameUpper));
 
 	MixFileClass* ptr = MixFileClass::MIXes->First();
 	MixHeaderData* foundBlock = nullptr;
@@ -384,59 +420,9 @@ bool __fastcall MixFileClass::Offset(const char* filename, void** realptr, MixFi
 		if (!ptr || !ptr->NextNode || !ptr->PrevNode)
 			return false; // reached list sentinel / not found anywhere
 
-		// --- Inner "binary search" over ptr->HeaderBuffer[0..Count) ---
-		// VERIFY: v7 here is a shrinking remaining-count, not a hi/lo bound pair.
-		int remaining = ptr->Count;
-		MixHeaderData* base = ptr->Headers;
-		MixHeaderData* block = nullptr;
-		bool advanceToNextMixfile = false;
+		MixHeaderData* block = BinarySearchHeaders(ptr->Headers, ptr->Count, hash);
 
-		if (remaining <= 0)
-		{
-			advanceToNextMixfile = true;
-		}
-		else
-		{
-			while (true)
-			{
-				block = &base[remaining / 2];
-				const int midCRC = block->ID;
-
-				if (midCRC <= hash)
-				{
-					// Found a candidate <= hash — exit inner search loop to check equality.
-					if (midCRC != hash)
-					{
-						// Not an exact match — narrow search to the upper half.
-						base = block + 1;
-						remaining += -1 - remaining / 2;
-
-						if (remaining <= 0)
-						{
-							advanceToNextMixfile = true;
-						}
-						else
-						{
-							continue; // keep searching within this mixfile
-						}
-					}
-					// else: exact match found, midCRC == hash — fall through with `block` set.
-					break;
-				}
-
-				// midCRC > hash — narrow search to the lower half.
-				remaining /= 2;
-				if (remaining <= 0)
-				{
-					advanceToNextMixfile = true;
-					break;
-				}
-				// else continue loop with smaller `remaining`, same `base`.
-			}
-		}
-
-		if (advanceToNextMixfile)
-		{
+		if (!block) {
 			ptr = ptr->Next();
 			continue;
 		}
@@ -472,48 +458,48 @@ bool __fastcall MixFileClass::Offset(const char* filename, void** realptr, MixFi
 	return true;
 }
 
-MixFileClass::MixFileClass(const char* filename, PKey* pKey) :
-	Node<MixFileClass>(),
-	Filename(nullptr),
-	IsDigest(false),
-	IsEncrypted(false),
-	IsAllocated(false),
-	Count(0),
-	DataSize(0),
-	DataStart(0),
-	Headers(nullptr),
-	Data(nullptr)
-{
-	CD cdd;
-	if (!cdd.ForceAvailable(CD::Disk())) {
-		Debug::FreeMouse();
-		Debug::ExitGame(1);
-	}
-
-	CCFileClass file(filename);
-
-	if (file.IsAvaible(false)) {
-		this->ReadFromCCFIleWithoutStraws(&file, pKey);
-	}
-}
-
-MixFileClass::MixFileClass(CCFileClass* pFile, PKey* pKey) :
-	Node<MixFileClass>(),
-	Filename(nullptr),
-	IsDigest(false),
-	IsEncrypted(false),
-	IsAllocated(false),
-	Count(0),
-	DataSize(0),
-	DataStart(0),
-	Headers(nullptr),
-	Data(nullptr) {
-		CD cdd;
-		if (!cdd.ForceAvailable(CD::Disk())) {
-			Debug::FreeMouse();
-			Debug::ExitGame(1);
-		}
-
-		this->ReadFromCCFIleWithoutStraws(pFile, pKey);
-	}
+//MixFileClass::MixFileClass(const char* filename, PKey* pKey) :
+//	Node<MixFileClass>(),
+//	Filename(nullptr),
+//	IsDigest(false),
+//	IsEncrypted(false),
+//	IsAllocated(false),
+//	Count(0),
+//	DataSize(0),
+//	DataStart(0),
+//	Headers(nullptr),
+//	Data(nullptr)
+//{
+//	CD cdd;
+//	if (!cdd.ForceAvailable(CD::Disk())) {
+//		Debug::FreeMouse();
+//		Debug::ExitGame(1);
+//	}
+//
+//	CCFileClass file(filename);
+//
+//	if (file.IsAvaible(false)) {
+//		this->ReadFromCCFIleWithoutStraws(&file, pKey);
+//	}
+//}
+//
+//MixFileClass::MixFileClass(RawFileClass* pFile, PKey* pKey) :
+//	Node<MixFileClass>(),
+//	Filename(nullptr),
+//	IsDigest(false),
+//	IsEncrypted(false),
+//	IsAllocated(false),
+//	Count(0),
+//	DataSize(0),
+//	DataStart(0),
+//	Headers(nullptr),
+//	Data(nullptr) {
+//		CD cdd;
+//		if (!cdd.ForceAvailable(CD::Disk())) {
+//			Debug::FreeMouse();
+//			Debug::ExitGame(1);
+//		}
+//
+//		this->ReadFromCCFIleWithoutStraws(pFile, pKey);
+//	}
 #pragma endregion

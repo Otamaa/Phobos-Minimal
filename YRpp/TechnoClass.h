@@ -1042,8 +1042,8 @@ public:
 	WORD            weapon_sound_randomnumber_3C8;
 	WORD             __shipsink_3CA;
 	BYTE             CountedAsOwned; // is this techno contained in OwningPlayer->Owned... counts?
-	BYTE             IsSinking;
-	BYTE             WasSinkingAlready; // if(IsSinking && !WasSinkingAlready) { play SinkingSound; WasSinkingAlready = 1; }
+	bool             IsSinking;
+	bool             WasSinkingAlready; // if(IsSinking && !WasSinkingAlready) { play SinkingSound; WasSinkingAlready = 1; }
 	BYTE             __ProtectMe_3CF;
 	BYTE             IsUseless; //3D0
 	BYTE			 IsTickedOff; //HasBeenAttacked //3D1
@@ -1068,8 +1068,8 @@ public:
 	BYTE             RecruitableB; //__AIRecruitable, they're usually set on preplaced objects in maps
 	BYTE             IsRadarTracked;
 	BYTE             IsOnCarryall;
-	BYTE             IsCrashing;
-	BYTE             WasCrashingAlready;
+	bool             IsCrashing;
+	bool             WasCrashingAlready;
 	BYTE             IsBeingManipulated;
 	TechnoClass*     BeingManipulatedBy; // set when something is being molested by a locomotor such as magnetron
 	                                       // the pointee will be marked as the killer of whatever the victim falls onto

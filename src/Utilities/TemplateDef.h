@@ -580,6 +580,34 @@ namespace detail
 		}
 	}
 
+	template <typename Lookuper, typename T>
+	OPTIONALINLINE void parse_indexes(DynamicVectorClass<T>& vector, INI_EX& parser, const char* pSection, const char* pKey)
+	{
+		vector.clear();
+		char* context = nullptr;
+		for (auto pCur = strtok_s(parser.value(), Phobos::readDelims, &context);
+			pCur;
+			pCur = strtok_s(nullptr, Phobos::readDelims, &context))
+		{
+			int idx = -1;
+			if COMPILETIMEEVAL(std::is_pointer<Lookuper>::value)
+			{
+				using base_type = std::remove_pointer_t<Lookuper>;
+				idx = base_type::FindIndexById(pCur);
+			}
+			else { idx = Lookuper::FindIndexById(pCur); }
+
+			if (idx != -1 || GameStrings::IsNone(pCur))
+			{
+				vector.push_back(idx);
+			}
+			else
+			{
+				Debug::INIParseFailed(pSection, pKey, pCur);
+			}
+		}
+	}
+
 	void ParseVector(INI_EX& IniEx, std::vector<std::vector<std::string>>& nVecDest, const char* pSection, bool bDebug = true, bool bVerbose = false, const char* Delims = Phobos::readDelims, const char* message = nullptr);
 
 	template<typename T, bool Alloc = false>

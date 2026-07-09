@@ -198,13 +198,13 @@ struct Game
 	// how the engine's reconnect dialog positions its per-player sync bars.
 	static void __fastcall GetDisplayRect(HWND hwnd, LPRECT lpRect) JMP_FAST(0x775690)
 
-	static bool __fastcall File_Finder_Start(char* filename)
+	static bool __fastcall File_Finder_Start(const char* filename)
 	{ JMP_FAST(0x47AF70); }
 
 	static BuildingTypeClass* __fastcall Set_Sidebar_Tab_Object(BuildingClass* pThis)
 	{ JMP_FAST(0x734250); }
 
-	static bool __fastcall File_Finder_Next_Name(char* filename)
+	static bool __fastcall File_Finder_Next_Name(const char* filename)
 	{ JMP_FAST(0x47B0C0); }
 
 	static void __cdecl File_Finder_End()
@@ -291,20 +291,24 @@ struct Game
 	// { SET_REG32(ECX, 0xA8B238); JMP_STD(0x69AE90); }
 
 	static void __fastcall Update_Visible_Surface(bool, Surface*, RectangleStruct*) 
-		{ JMP_FAST(0x4F4780); }
+	{ JMP_FAST(0x4F4780); }
 
 	static void __fastcall Focus_Loss()
-		{	JMP_FAST(0x7773C0); }
+	{	JMP_FAST(0x7773C0); }
 
 	static void __fastcall Focus_Restore()
-		{ JMP_FAST(0x777420); }
+	{ JMP_FAST(0x777420); }
 
 	static bool __fastcall Set_Video_Mode(HWND__* hwnd, int w, int h, int bits_per_pixel)
-		{ JMP_FAST(0x4A42F0); }
+	{ JMP_FAST(0x4A42F0); }
 
+	static void CallBack()
+	{
+		reinterpret_cast<void(__cdecl*)()>(0x48D080)();
+	}
 
-	static void __cdecl CallBack()
-	{ JMP(0x48D080); }
+	static void __fastcall INIColors_6267A0(int theater)
+	{ JMP_FAST(0x6267A0); }
 
 	static int __fastcall GetResource(int ID, int Type)
 	{ JMP_FAST(0x4A3B40); }
@@ -369,12 +373,15 @@ struct Game
 	static void __fastcall PlayMovie(
 		const char* movieName,
 		int queue_theme = -1,
-		char use_hidden_surface1 = -1,
-		char stretch_movie = -1,
-		char use_hidden_surface2 = -1,
-		char set_state_1 = -1
+		char use_hidden_surface1 = false ,
+		char stretch_movie = false,
+		char use_hidden_surface2 = false,
+		char set_state_1 = false
 	)
 	{ JMP_FAST(0x5BED40); }
+
+	static void __fastcall PlayLoadingScreen()
+	{ JMP_FAST(0x5312A0); }
 
 	static AbstractType __fastcall WhichTab(AbstractType Type, int heapId, int a3 = 0)
 	{ JMP_FAST(0x6ABC60); }

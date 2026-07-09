@@ -88,6 +88,8 @@ void RulesExtData::Initialize(CCINIClass* pINI)
 
 	ShieldTypeClass::AddDefaults();
 	ShieldTypeClass::LoadFromINIOnlyTheList(pINI);
+
+	DigitalDisplayTypeClass::LoadFromINIOnlyTheList(pINI);
 }
 
 void RulesExtData::ReplaceVoxelLightSources()
@@ -119,13 +121,13 @@ void RulesExtData::s_LoadBeforeTypeData(FakeRulesClass* pThis, CCINIClass* pINI)
 	InsigniaTypeClass::LoadFromINIList(pINI);
 
 	// we override it , so it loaded before any type read happen , so all the properties will correcly readed
-	pThis->Read_CrateRules(pINI);
+	pThis->_ReadCrateRules(pINI);
 	pThis->_ReadCombatDamage(pINI);
-	pThis->Read_Radiation(pINI);
-	pThis->Read_ElevationModel(pINI);
-	pThis->Read_WallModel(pINI);
-	pThis->Read_AudioVisual(pINI);
-	pThis->Read_SpecialWeapons(pINI);
+	pThis->_ReadRadiation(pINI);
+	pThis->_ReadElevationModel(pINI);
+	pThis->_ReadWallModel(pINI);
+	pThis->_ReadAudioVisual(pINI);
+	pThis->_ReadSpecialWeapons(pINI);
 
 	RadTypeClass::AddDefaults();
 	HoverTypeClass::AddDefaults();
@@ -1527,29 +1529,43 @@ void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 	// SUSPECT: vanilla reads EngineerDamage using key "EngineerCaptureLevel" (same key as above — likely a copy-paste bug)
 	// VERIFY: confirm intended key for EngineerDamage vs EngineerCaptureLevel
 	detail::read(this->EngineerDamage, exINI, section, "EngineerDamage");
+	auto ReadAsFloat = [](int& val, INI_EX& exINI , const char* pSection, const char* pKey){
+		float buffer = val;
+		if(detail::read<float>(buffer, exINI, pSection, pKey))
+			val = buffer;
+	};
+
+	auto ReadAsDouble= [] (float& val, INI_EX& exINI, const char* pSection, const char* pKey , float* default_val = nullptr){
+		double buffer = val;
+		if(detail::read<double>(buffer, exINI , pSection, pKey))
+			val = buffer;
+		else if(default_val)
+			val = *default_val;
+	};
+
 
 	// V3Rocket sub-struct
-	detail::read(this->V3Rocket.PitchInitial, exINI, section, "V3RocketPitchInitial");
-	detail::read(this->V3Rocket.PitchFinal, exINI, section, "V3RocketPitchFinal");
-	detail::read(this->V3Rocket.TurnRate, exINI, section, "V3RocketTurnRate");
-	detail::read(this->V3Rocket.RaiseRate, exINI, section, "V3RocketRaiseRate");
-	detail::read(this->V3Rocket.Acceleration, exINI, section, "V3RocketAcceleration");
+	ReadAsDouble(this->V3Rocket.PitchInitial, exINI, section, "V3RocketPitchInitial");
+	ReadAsDouble(this->V3Rocket.PitchFinal, exINI, section, "V3RocketPitchFinal");
+	ReadAsDouble(this->V3Rocket.TurnRate, exINI, section, "V3RocketTurnRate");
+	ReadAsFloat(this->V3Rocket.RaiseRate, exINI, section, "V3RocketRaiseRate");
+	ReadAsDouble(this->V3Rocket.Acceleration, exINI, section, "V3RocketAcceleration");
 
 	// DMisl sub-struct
-	detail::read(this->DMisl.PitchInitial, exINI, section, "DMislPitchInitial");
-	detail::read(this->DMisl.PitchFinal, exINI, section, "DMislPitchFinal");
-	detail::read(this->DMisl.TurnRate, exINI, section, "DMislTurnRate");
-	detail::read(this->DMisl.RaiseRate, exINI, section, "DMislRaiseRate");
-	detail::read(this->DMisl.Acceleration, exINI, section, "DMislAcceleration");
+	ReadAsDouble(this->DMisl.PitchInitial, exINI, section, "DMislPitchInitial");
+	ReadAsDouble(this->DMisl.PitchFinal, exINI, section, "DMislPitchFinal");
+	ReadAsDouble(this->DMisl.TurnRate, exINI, section, "DMislTurnRate");
+	ReadAsFloat(this->DMisl.RaiseRate, exINI, section, "DMislRaiseRate");
+	ReadAsDouble(this->DMisl.Acceleration, exINI, section, "DMislAcceleration");
 
 	// CMisl sub-struct
-	detail::read(this->CMisl.PitchInitial, exINI, section, "CMislPitchInitial");
-	detail::read(this->CMisl.PitchFinal, exINI, section, "CMislPitchFinal");
-	detail::read(this->CMisl.TurnRate, exINI, section, "CMislTurnRate");
-	detail::read(this->CMisl.RaiseRate, exINI, section, "CMislRaiseRate");
+	ReadAsDouble(this->CMisl.PitchInitial, exINI, section, "CMislPitchInitial");
+	ReadAsDouble(this->CMisl.PitchFinal, exINI, section, "CMislPitchFinal");
+	ReadAsDouble(this->CMisl.TurnRate, exINI, section, "CMislTurnRate");
+	ReadAsFloat(this->CMisl.RaiseRate, exINI, section, "CMislRaiseRate");
 	// SUSPECT: vanilla reads CMisl.Acceleration with default this->DMisl.Acceleration (not CMisl)
 	// Preserving vanilla behaviour; VERIFY if intentional
-	detail::read(this->CMisl.Acceleration, exINI, section, "CMislAcceleration");
+	ReadAsDouble(this->CMisl.Acceleration, exINI, section, "CMislAcceleration", &this->DMisl.Acceleration);
 
 	// -------------------------------------------------------------------------
 	// PrismSupportModifier — vanilla multiplies by 100 after read
@@ -1665,12 +1681,14 @@ void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 	detail::read(this->V3Rocket.Damage, exINI, section, "V3RocketDamage");
 	detail::read(this->V3Rocket.EliteDamage, exINI, section, "V3RocketEliteDamage");
 	detail::read(this->V3Rocket.BodyLength, exINI, section, "V3RocketBodyLength");
+
 	detail::read(this->DMisl.PauseFrames, exINI, section, "DMislPauseFrames");
 	detail::read(this->DMisl.TiltFrames, exINI, section, "DMislTiltFrames");
 	detail::read(this->DMisl.Altitude, exINI, section, "DMislAltitude");
 	detail::read(this->DMisl.Damage, exINI, section, "DMislDamage");
 	detail::read(this->DMisl.EliteDamage, exINI, section, "DMislEliteDamage");
 	detail::read(this->DMisl.BodyLength, exINI, section, "DMislBodyLength");
+
 	detail::read(this->CMisl.PauseFrames, exINI, section, "CMislPauseFrames");
 	detail::read(this->CMisl.TiltFrames, exINI, section, "CMislTiltFrames");
 	detail::read(this->CMisl.Altitude, exINI, section, "CMislAltitude");
@@ -1736,7 +1754,6 @@ void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 		}
 	}
 
-
 	RocketTypeClass::ReadListFromINI(pINI);
 
 	SideClass::Array->for_each([pINI](SideClass* pSide) {
@@ -1774,7 +1791,7 @@ void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 	}
 
 	RulesExtData::LoadAfterTypeData(this, pINI);
-	this->Read_Difficulties(pINI);
+	this->_ReadDifficulty(pINI);
 
 	for (auto pTib : *TiberiumClass::Array) {
 		//Debug::LogInfo("Reading Tiberium[{}] Configurations!", pTib->ID);
@@ -2929,127 +2946,127 @@ void FakeRulesClass::_ReadAudioVisual(CCINIClass* pINI)
 	// -------------------------------------------------------------------------
 	// TypeList<int> — sound ID lists
 	// -------------------------------------------------------------------------
-	detail::ParseVector(this->CreditTicks, exINI, section, "CreditTicks");
-	detail::ParseVector(this->LightningSounds, exINI, section, "LightningSounds");
-	detail::ParseVector(this->IceCrackSounds, exINI, section, "IceCrackSounds");
+	if (exINI.ReadString(section, "CreditTicks"))
+		detail::parse_indexes<VocClass>(this->CreditTicks, exINI, section, "CreditTicks");
+
+	if (exINI.ReadString(section, "LightningSounds"))
+		detail::parse_indexes<VocClass>(this->LightningSounds, exINI, section, "LightningSounds");
+
+	if (exINI.ReadString(section, "IceCrackSounds"))
+		detail::parse_indexes<VocClass>(this->IceCrackSounds, exINI, section, "IceCrackSounds");
 
 	// -------------------------------------------------------------------------
 	// Sound fields (VocType / int ID via VocClass::Get_ID_From_Name)
 	// Vanilla falls back to existing value if key missing OR if name resolves to -1.
 	// VERIFY: confirm detail::read<VocType> preserves the -1 fallback behaviour.
 	// -------------------------------------------------------------------------
-	detail::read(this->DigSound, exINI, section, "DigSound");
-	detail::read(this->GUIMainButtonSound, exINI, section, "GUIMainButtonSound");
-	detail::read(this->GUIBuildSound, exINI, section, "GUIBuildSound");
-	detail::read(this->GUITabSound, exINI, section, "GUITabSound");
-	detail::read(this->GUIOpenSound, exINI, section, "GUIOpenSound");
-	detail::read(this->GUICloseSound, exINI, section, "GUICloseSound");
-	detail::read(this->GUIMoveOutSound, exINI, section, "GUIMoveOutSound");
-	detail::read(this->GUIMoveInSound, exINI, section, "GUIMoveInSound");
-	detail::read(this->GUIComboOpenSound, exINI, section, "GUIComboOpenSound");
-	detail::read(this->GUIComboCloseSound, exINI, section, "GUIComboCloseSound");
-	detail::read(this->GUICheckboxSound, exINI, section, "GUICheckboxSound");
-	detail::read(this->ScoreAnimSound, exINI, section, "ScoreAnimSound");
-	detail::read(this->CheerSound, exINI, section, "CheerSound");
-	detail::read(this->DefaultChronoSound, exINI, section, "DefaultChronoSound");
-	detail::read(this->StartPlanningModeSound, exINI, section, "StartPlanningModeSound");
-	detail::read(this->EndPlanningModeSound, exINI, section, "EndPlanningModeSound");
-	detail::read(this->CrateMoneySound, exINI, section, "CrateMoneySound");
-	detail::read(this->CrateRevealSound, exINI, section, "CrateRevealSound");
-	detail::read(this->CrateFireSound, exINI, section, "CrateFireSound");
-	detail::read(this->CrateArmourSound, exINI, section, "CrateArmourSound");
-	detail::read(this->CrateSpeedSound, exINI, section, "CrateSpeedSound");
-	detail::read(this->CrateUnitSound, exINI, section, "CrateUnitSound");
-	detail::read(this->CratePromoteSound, exINI, section, "CratePromoteSound");
-	detail::read(this->ImpactWaterSound, exINI, section, "ImpactWaterSound");
-	detail::read(this->ImpactLandSound, exINI, section, "ImpactLandSound");
-	detail::read(this->SinkingSound, exINI, section, "SinkingSound");
-	detail::read(this->ChronoInSound, exINI, section, "ChronoInSound");
-	detail::read(this->ChronoOutSound, exINI, section, "ChronoOutSound");
-	detail::read(this->BombTickingSound, exINI, section, "BombTickingSound");
-	detail::read(this->BombAttachSound, exINI, section, "BombAttachSound");
-	detail::read(this->YuriMindControlSound, exINI, section, "YuriMindControlSound");
-	detail::read(this->AddPlanningModeCommandSound, exINI, section, "AddPlanningModeCommandSound");
-	detail::read(this->ExecutePlanSound, exINI, section, "ExecutePlanSound");
-	detail::read(this->PlaceBeaconSound, exINI, section, "PlaceBeaconSound");
-	detail::read(this->BuildingGarrisonedSound, exINI, section, "BuildingGarrisonedSound");
-	detail::read(this->BuildingAbandonedSound, exINI, section, "BuildingAbandonedSound");
-	detail::read(this->BuildingRepairedSound, exINI, section, "BuildingRepairedSound");
-	detail::read(this->BaseUnderAttackSound, exINI, section, "BaseUnderAttackSound");
-	detail::read(this->UpgradeVeteranSound, exINI, section, "UpgradeVeteranSound");
-	detail::read(this->UpgradeEliteSound, exINI, section, "UpgradeEliteSound");
-	detail::read(this->VoiceIFVRepair, exINI, section, "VoiceIFVRepair");
-	detail::read(this->SlavesFreeSound, exINI, section, "SlavesFreeSound");
-	detail::read(this->SlaveMinerDeploySound, exINI, section, "SlaveMinerDeploySound");
-	detail::read(this->SlaveMinerUndeploySound, exINI, section, "SlaveMinerUndeploySound");
-	detail::read(this->BunkerWallsUpSound, exINI, section, "BunkerWallsUpSound");
-	detail::read(this->BunkerWallsDownSound, exINI, section, "BunkerWallsDownSound");
-	detail::read(this->RepairBridgeSound, exINI, section, "RepairBridgeSound");
-	detail::read(this->PsychicDominatorActivateSound, exINI, section, "PsychicDominatorActivateSound");
-	detail::read(this->GeneticMutatorActivateSound, exINI, section, "GeneticMutatorActivateSound");
-	detail::read(this->PsychicRevealActivateSound, exINI, section, "PsychicRevealActivateSound");
-	detail::read(this->MasterMindOverloadDeathSound, exINI, section, "MasterMindOverloadDeathSound");
-	detail::read(this->AirstrikeAbortSound, exINI, section, "AirstrikeAbortSound");
-	detail::read(this->AirstrikeAttackVoice, exINI, section, "AirstrikeAttackVoice");
-	detail::read(this->MindClearedSound, exINI, section, "MindClearedSound");
-	detail::read(this->EnterGrinderSound, exINI, section, "EnterGrinderSound");
-	detail::read(this->LeaveGrinderSound, exINI, section, "LeaveGrinderSound");
-	detail::read(this->EnterBioReactorSound, exINI, section, "EnterBioReactorSound");
-	detail::read(this->LeaveBioReactorSound, exINI, section, "LeaveBioReactorSound");
-	detail::read(this->ActivateSound, exINI, section, "ActivateSound");
-	detail::read(this->DeactivateSound, exINI, section, "DeactivateSound");
-	detail::read(this->SpyPlaneCamera, exINI, section, "SpyPlaneCamera");
-	detail::read(this->LetsDoTheTimeWarpOutAgain, exINI, section, "LetsDoTheTimeWarpOutAgain");
-	detail::read(this->LetsDoTheTimeWarpInAgain, exINI, section, "LetsDoTheTimeWarpInAgain");
-	detail::read(this->DiskLaserChargeUp, exINI, section, "DiskLaserChargeUp");
-	detail::read(this->CreateUnitSound, exINI, section, "CreateUnitSound");
-	detail::read(this->CreateInfantrySound, exINI, section, "CreateInfantrySound");
-	detail::read(this->CreateAircraftSound, exINI, section, "CreateAircraftSound");
-	detail::read(this->IFVTransformSound, exINI, section, "IFVTransformSound");
-	detail::read(this->PsychicSensorDetectSound, exINI, section, "PsychicSensorDetectSound");
-	detail::read(this->SpySatActivationSound, exINI, section, "SpySatActivationSound");
-	detail::read(this->SpySatDeactivationSound, exINI, section, "SpySatDeactivationSound");
-	detail::read(this->ShellButtonSlideSound, exINI, section, "ShellButtonSlideSound");
-	detail::read(this->CloakSound, exINI, section, "CloakSound");
-	detail::read(this->SellSound, exINI, section, "SellSound");
-	detail::read(this->GameClosed, exINI, section, "GameClosed");
-	detail::read(this->IncomingMessage, exINI, section, "IncomingMessage");
-	detail::read(this->MessageCharTyped, exINI, section, "MessageCharTyped");
-	detail::read(this->SystemError, exINI, section, "SystemError");
-	detail::read(this->OptionsChanged, exINI, section, "OptionsChanged");
-	detail::read(this->GameForming, exINI, section, "GameForming");
-	detail::read(this->PlayerLeft, exINI, section, "PlayerLeft");
-	detail::read(this->PlayerJoined, exINI, section, "PlayerJoined");
-	detail::read(this->Construction, exINI, section, "Construction");
-	detail::read(this->GateUp, exINI, section, "GateUp");
-	detail::read(this->GateDown, exINI, section, "GateDown");
-	detail::read(this->ScoldSound, exINI, section, "ScoldSound");
-	detail::read(this->TeslaCharge, exINI, section, "TeslaCharge");
-	detail::read(this->TeslaZap, exINI, section, "TeslaZap");
-	detail::read(this->ChuteSound, exINI, section, "ChuteSound");
-	detail::read(this->GenericClick, exINI, section, "GenericClick");
-	detail::read(this->GenericBeep, exINI, section, "GenericBeep");
-	detail::read(this->BuildingDrop, exINI, section, "BuildingDrop");
-	detail::read(this->StopSound, exINI, section, "StopSound");
-	detail::read(this->GuardSound, exINI, section, "GuardSound");
-	detail::read(this->ScatterSound, exINI, section, "ScatterSound");
-	detail::read(this->StormSound, exINI, section, "StormSound");
+	detail::getindex<VocClass>(this->DigSound, exINI, section, "DigSound");
+	detail::getindex<VocClass>(this->GUIMainButtonSound, exINI, section, "GUIMainButtonSound");
+	detail::getindex<VocClass>(this->GUIBuildSound, exINI, section, "GUIBuildSound");
+	detail::getindex<VocClass>(this->GUITabSound, exINI, section, "GUITabSound");
+	detail::getindex<VocClass>(this->GUIOpenSound, exINI, section, "GUIOpenSound");
+	detail::getindex<VocClass>(this->GUICloseSound, exINI, section, "GUICloseSound");
+	detail::getindex<VocClass>(this->GUIMoveOutSound, exINI, section, "GUIMoveOutSound");
+	detail::getindex<VocClass>(this->GUIMoveInSound, exINI, section, "GUIMoveInSound");
+	detail::getindex<VocClass>(this->GUIComboOpenSound, exINI, section, "GUIComboOpenSound");
+	detail::getindex<VocClass>(this->GUIComboCloseSound, exINI, section, "GUIComboCloseSound");
+	detail::getindex<VocClass>(this->GUICheckboxSound, exINI, section, "GUICheckboxSound");
+	detail::getindex<VocClass>(this->ScoreAnimSound, exINI, section, "ScoreAnimSound");
+	detail::getindex<VocClass>(this->CheerSound, exINI, section, "CheerSound");
+	detail::getindex<VocClass>(this->DefaultChronoSound, exINI, section, "DefaultChronoSound");
+	detail::getindex<VocClass>(this->StartPlanningModeSound, exINI, section, "StartPlanningModeSound");
+	detail::getindex<VocClass>(this->EndPlanningModeSound, exINI, section, "EndPlanningModeSound");
+	detail::getindex<VocClass>(this->CrateMoneySound, exINI, section, "CrateMoneySound");
+	detail::getindex<VocClass>(this->CrateRevealSound, exINI, section, "CrateRevealSound");
+	detail::getindex<VocClass>(this->CrateFireSound, exINI, section, "CrateFireSound");
+	detail::getindex<VocClass>(this->CrateArmourSound, exINI, section, "CrateArmourSound");
+	detail::getindex<VocClass>(this->CrateSpeedSound, exINI, section, "CrateSpeedSound");
+	detail::getindex<VocClass>(this->CrateUnitSound, exINI, section, "CrateUnitSound");
+	detail::getindex<VocClass>(this->CratePromoteSound, exINI, section, "CratePromoteSound");
+	detail::getindex<VocClass>(this->ImpactWaterSound, exINI, section, "ImpactWaterSound");
+	detail::getindex<VocClass>(this->ImpactLandSound, exINI, section, "ImpactLandSound");
+	detail::getindex<VocClass>(this->SinkingSound, exINI, section, "SinkingSound");
+	detail::getindex<VocClass>(this->ChronoInSound, exINI, section, "ChronoInSound");
+	detail::getindex<VocClass>(this->ChronoOutSound, exINI, section, "ChronoOutSound");
+	detail::getindex<VocClass>(this->BombTickingSound, exINI, section, "BombTickingSound");
+	detail::getindex<VocClass>(this->BombAttachSound, exINI, section, "BombAttachSound");
+	detail::getindex<VocClass>(this->YuriMindControlSound, exINI, section, "YuriMindControlSound");
+	detail::getindex<VocClass>(this->AddPlanningModeCommandSound, exINI, section, "AddPlanningModeCommandSound");
+	detail::getindex<VocClass>(this->ExecutePlanSound, exINI, section, "ExecutePlanSound");
+	detail::getindex<VocClass>(this->PlaceBeaconSound, exINI, section, "PlaceBeaconSound");
+	detail::getindex<VocClass>(this->BuildingGarrisonedSound, exINI, section, "BuildingGarrisonedSound");
+	detail::getindex<VocClass>(this->BuildingAbandonedSound, exINI, section, "BuildingAbandonedSound");
+	detail::getindex<VocClass>(this->BuildingRepairedSound, exINI, section, "BuildingRepairedSound");
+	detail::getindex<VocClass>(this->BaseUnderAttackSound, exINI, section, "BaseUnderAttackSound");
+	detail::getindex<VocClass>(this->UpgradeVeteranSound, exINI, section, "UpgradeVeteranSound");
+	detail::getindex<VocClass>(this->UpgradeEliteSound, exINI, section, "UpgradeEliteSound");
+	detail::getindex<VocClass>(this->VoiceIFVRepair, exINI, section, "VoiceIFVRepair");
+	detail::getindex<VocClass>(this->SlavesFreeSound, exINI, section, "SlavesFreeSound");
+	detail::getindex<VocClass>(this->SlaveMinerDeploySound, exINI, section, "SlaveMinerDeploySound");
+	detail::getindex<VocClass>(this->SlaveMinerUndeploySound, exINI, section, "SlaveMinerUndeploySound");
+	detail::getindex<VocClass>(this->BunkerWallsUpSound, exINI, section, "BunkerWallsUpSound");
+	detail::getindex<VocClass>(this->BunkerWallsDownSound, exINI, section, "BunkerWallsDownSound");
+	detail::getindex<VocClass>(this->RepairBridgeSound, exINI, section, "RepairBridgeSound");
+	detail::getindex<VocClass>(this->PsychicDominatorActivateSound, exINI, section, "PsychicDominatorActivateSound");
+	detail::getindex<VocClass>(this->GeneticMutatorActivateSound, exINI, section, "GeneticMutatorActivateSound");
+	detail::getindex<VocClass>(this->PsychicRevealActivateSound, exINI, section, "PsychicRevealActivateSound");
+	detail::getindex<VocClass>(this->MasterMindOverloadDeathSound, exINI, section, "MasterMindOverloadDeathSound");
+	detail::getindex<VocClass>(this->AirstrikeAbortSound, exINI, section, "AirstrikeAbortSound");
+	detail::getindex<VocClass>(this->AirstrikeAttackVoice, exINI, section, "AirstrikeAttackVoice");
+	detail::getindex<VocClass>(this->MindClearedSound, exINI, section, "MindClearedSound");
+	detail::getindex<VocClass>(this->EnterGrinderSound, exINI, section, "EnterGrinderSound");
+	detail::getindex<VocClass>(this->LeaveGrinderSound, exINI, section, "LeaveGrinderSound");
+	detail::getindex<VocClass>(this->EnterBioReactorSound, exINI, section, "EnterBioReactorSound");
+	detail::getindex<VocClass>(this->LeaveBioReactorSound, exINI, section, "LeaveBioReactorSound");
+	detail::getindex<VocClass>(this->ActivateSound, exINI, section, "ActivateSound");
+	detail::getindex<VocClass>(this->DeactivateSound, exINI, section, "DeactivateSound");
+	detail::getindex<VocClass>(this->SpyPlaneCamera, exINI, section, "SpyPlaneCamera");
+	detail::getindex<VocClass>(this->LetsDoTheTimeWarpOutAgain, exINI, section, "LetsDoTheTimeWarpOutAgain");
+	detail::getindex<VocClass>(this->LetsDoTheTimeWarpInAgain, exINI, section, "LetsDoTheTimeWarpInAgain");
+	detail::getindex<VocClass>(this->DiskLaserChargeUp, exINI, section, "DiskLaserChargeUp");
+	detail::getindex<VocClass>(this->CreateUnitSound, exINI, section, "CreateUnitSound");
+	detail::getindex<VocClass>(this->CreateInfantrySound, exINI, section, "CreateInfantrySound");
+	detail::getindex<VocClass>(this->CreateAircraftSound, exINI, section, "CreateAircraftSound");
+	detail::getindex<VocClass>(this->IFVTransformSound, exINI, section, "IFVTransformSound");
+	detail::getindex<VocClass>(this->PsychicSensorDetectSound, exINI, section, "PsychicSensorDetectSound");
+	detail::getindex<VocClass>(this->SpySatActivationSound, exINI, section, "SpySatActivationSound");
+	detail::getindex<VocClass>(this->SpySatDeactivationSound, exINI, section, "SpySatDeactivationSound");
+	detail::getindex<VocClass>(this->ShellButtonSlideSound, exINI, section, "ShellButtonSlideSound");
+	detail::getindex<VocClass>(this->CloakSound, exINI, section, "CloakSound");
+	detail::getindex<VocClass>(this->SellSound, exINI, section, "SellSound");
+	detail::getindex<VocClass>(this->GameClosed, exINI, section, "GameClosed");
+	detail::getindex<VocClass>(this->IncomingMessage, exINI, section, "IncomingMessage");
+	detail::getindex<VocClass>(this->MessageCharTyped, exINI, section, "MessageCharTyped");
+	detail::getindex<VocClass>(this->SystemError, exINI, section, "SystemError");
+	detail::getindex<VocClass>(this->OptionsChanged, exINI, section, "OptionsChanged");
+	detail::getindex<VocClass>(this->GameForming, exINI, section, "GameForming");
+	detail::getindex<VocClass>(this->PlayerLeft, exINI, section, "PlayerLeft");
+	detail::getindex<VocClass>(this->PlayerJoined, exINI, section, "PlayerJoined");
+	detail::getindex<VocClass>(this->Construction, exINI, section, "Construction");
+	detail::getindex<VocClass>(this->GateUp, exINI, section, "GateUp");
+	detail::getindex<VocClass>(this->GateDown, exINI, section, "GateDown");
+	detail::getindex<VocClass>(this->ScoldSound, exINI, section, "ScoldSound");
+	detail::getindex<VocClass>(this->TeslaCharge, exINI, section, "TeslaCharge");
+	detail::getindex<VocClass>(this->TeslaZap, exINI, section, "TeslaZap");
+	detail::getindex<VocClass>(this->ChuteSound, exINI, section, "ChuteSound");
+	detail::getindex<VocClass>(this->GenericClick, exINI, section, "GenericClick");
+	detail::getindex<VocClass>(this->GenericBeep, exINI, section, "GenericBeep");
+	detail::getindex<VocClass>(this->BuildingDrop, exINI, section, "BuildingDrop");
+	detail::getindex<VocClass>(this->StopSound, exINI, section, "StopSound");
+	detail::getindex<VocClass>(this->GuardSound, exINI, section, "GuardSound");
+	detail::getindex<VocClass>(this->ScatterSound, exINI, section, "ScatterSound");
+	detail::getindex<VocClass>(this->StormSound, exINI, section, "StormSound");
 
 	// Field/key mismatches — preserved from vanilla
-	detail::read(this->BuildingDieSound, exINI, section, "BuildingDieSound");    // field CrumbleSound, key "BuildingDieSound"
-	detail::read(this->BuildingDamageSound, exINI, section, "BuildingDamageSound"); // field BlowupSound, key "BuildingDamageSound"
+	detail::getindex<VocClass>(this->BuildingDieSound, exINI, section, "BuildingDieSound");    // field CrumbleSound, key "BuildingDieSound"
+	detail::getindex<VocClass>(this->BuildingDamageSound, exINI, section, "BuildingDamageSound"); // field BlowupSound, key "BuildingDamageSound"
 
 	auto pData = RulesExtData::Instance();
 
-	Nullable<double> Shield_ConditionGreen_d {};
-	Nullable<double> Shield_ConditionYellow_d {};
-	Nullable<double> Shield_ConditionRed_d {};
-	Nullable<double> ConditionYellow_Terrain_d {};
-
-	Shield_ConditionGreen_d.Read(exINI, GameStrings::AudioVisual(), "Shield.ConditionGreen");// somewhat never used , man
-	Shield_ConditionYellow_d.Read(exINI, GameStrings::AudioVisual(), "Shield.ConditionYellow");
-	Shield_ConditionRed_d.Read(exINI, GameStrings::AudioVisual(), "Shield.ConditionRed");
-	ConditionYellow_Terrain_d.Read(exINI, GameStrings::AudioVisual(), "ConditionYellow.Terrain");
+	auto Shield_ConditionGreen_d = Nullable<double>()(exINI, GameStrings::AudioVisual(), "Shield.ConditionGreen", false);
+	auto Shield_ConditionYellow_d = Nullable<double>()(exINI, GameStrings::AudioVisual(), "Shield.ConditionYellow", false);
+	auto Shield_ConditionRed_d = Nullable<double>()(exINI, GameStrings::AudioVisual(), "Shield.ConditionRed", false);
+	auto ConditionYellow_Terrain_d = Nullable<double>()(exINI, GameStrings::AudioVisual(), "ConditionYellow.Terrain", false);
 
 	pData->Shield_ConditionGreen = Shield_ConditionGreen_d.Get(this->ConditionGreen);
 	pData->Shield_ConditionYellow = Shield_ConditionYellow_d.Get(this->ConditionYellow);
@@ -3277,7 +3294,7 @@ void FakeRulesClass::_ReadCrateRules(CCINIClass* pINI)
 
 	// Sound ID (VocClass::Get_ID_From_Name — no true needed)
 	// VERIFY: confirm detail::read<VocType> preserves the -1 fallback behaviour
-	detail::read(this->HealCrateSound, exINI, section, "HealCrateSound");
+	detail::getindex<VocClass>(this->HealCrateSound, exINI, section, "HealCrateSound");
 
 	// Scalar ints
 	detail::read(this->CrateMinimum, exINI, section, "CrateMinimum");
@@ -3396,7 +3413,7 @@ void FakeRulesClass::_ReadMPlayer(CCINIClass* pINI)
 	auto pData = RulesExtData::Instance();
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x671EA0, FakeRulesClass::_ReadMPlayer)
+DEFINE_FUNCTION_JUMP(LJMP, 0x671EA0, FakeRulesClass::_ReadMPlayer);
 
 void FakeRulesClass::_ReadJumpjetControls(CCINIClass* pINI)
 {
@@ -3444,13 +3461,15 @@ void ReadArray(CCINIClass* pINI, const char* pSection) {
 	}
 };
 
+DEFINE_POINTER(RectangleStruct, _SomeRect , 0xB0FC68)
+
 void FakeRulesClass::_Process(CCINIClass* pINI)
 {
 	RulesExtData::Instance()->Initialize(pINI);
 
 	this->_ReadColors(pINI);
 	this->_ReadJumpjetControls(pINI);
-	this->Read_ColorAdd(pINI);
+	this->_ReadColorAdd(pINI);
 	
 	ReadArray<HouseTypeClass>(pINI, "Countries");
 	this->Read_Sides(pINI);
@@ -3497,8 +3516,6 @@ void FakeRulesClass::_Process(CCINIClass* pINI)
 	this->_ReadWallModel(pINI);
 	this->_ReadAudioVisual(pINI);
 	this->_ReadSpecialWeapons(pINI);
-
-	this->Read_AdvancedCommandBar(pINI, SessionClass::Instance->IsSingleplayer());
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x668BF0, FakeRulesClass::_Process)
@@ -3571,11 +3588,35 @@ void FakeRulesClass::_ReadColors(CCINIClass* pINI)
 	const int count = pINI->GetKeyCount(section);
 	for (int i = 0; i < count; ++i) {
 		const char* pName = pINI->GetKeyName(section, i);
-		HSVClass _buffer {};
-		detail::read<HSVClass>(_buffer, exINI, section, pName);
+		auto _buffer = Valueable<HSVClass>()(exINI, section , pName, false).Get();
 		Game::AddColor(pName, &_buffer);
 		ColorScheme::FindOrAllocatePTR(pName, &_buffer, FileSystem::UNITPAL.operator->(), FileSystem::TEMPERAT_PAL.operator->(), 1);
 		ColorScheme::FindOrAllocatePTR(pName, &_buffer, FileSystem::UNITPAL.operator->(), FileSystem::TEMPERAT_PAL.operator->(), 53);
+	}
+}
+
+int __fastcall VQ_From_Name(void* a1) JMP_FAST(0x48DF30);
+
+void FakeRulesClass::_ReadMovies(CCINIClass* pINI)
+{
+	const char* section = "Movies";
+
+	if (!pINI->GetSection(section))
+		return;
+
+	INI_EX exINI(pINI);
+	const int count = pINI->GetKeyCount(section);
+	for (int i = 0; i < count; ++i) {
+		auto pName = pINI->GetKeyName(section, i);
+		
+		char _buffer[256];
+		if (pINI->ReadString(section, pName, GameStrings::NoneStr(), _buffer)) {	
+			//does this mean <none> will still valid ? , i suppose
+			if (VQ_From_Name(_buffer) != -1)
+				continue;
+
+			MovieInfoArray->emplace_back(_strdup(pName));
+		}
 	}
 }
 
@@ -3722,7 +3763,7 @@ void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
 	detail::read<bool>(this->CanDetonateTimeBomb, exINI, section, "CanDetonateTimeBomb");
 	detail::read<bool>(this->CanDetonateDeathBomb, exINI, section, "CanDetonateDeathBomb");
 
-	detail::read(this->DeathWeapon, exINI, section, "DeathWeapon");
+	detail::read(this->DeathWeapon, exINI, section, "DeathWeapon", true);
 
 	detail::read<int>(this->IvanDamage, exINI, section, "IvanDamage");
 	detail::read<int>(this->IvanTimedDelay, exINI, section, "IvanTimedDelay");
@@ -3738,7 +3779,7 @@ void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
 		{
 			double _buffer = value;
 			if (detail::read<double>(_buffer, exINI, section, key))
-				value = _buffer;
+				value = (float)_buffer;
 		};
 
 	ReadDoubleToFloat(this->OccupyDamageMultiplier, exINI, section, "OccupyDamageMultiplier");
@@ -3794,8 +3835,8 @@ void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
 
 	detail::read<double>(this->ExpSpread, exINI, section, "ExpSpread");
 
-	detail::read<int>(this->FireSupress, exINI, section, "FireSupress");
-	detail::read<int>(this->HomingScatter, exINI, section, "HomingScatter");
+	detail::read(this->FireSupress, exINI, section, "FireSupress");
+	detail::read(this->HomingScatter, exINI, section, "HomingScatter");
 
 	detail::read<int>(this->MaxDamage, exINI, section, "MaxDamage");
 	detail::read<int>(this->MinDamage, exINI, section, "MinDamage");
@@ -4242,13 +4283,6 @@ ASMJIT_PATCH(0x477590, CCINIClass_ReadVHPScan_Replace, 0x6)
 
 	R->EAX(vHp);
 	return 0x477613;
-}
-
-ASMJIT_PATCH(0x52C5A1, InitGame_SecondaryMixInit, 0x9)
-{
-	const bool result = R->AL();
-	Debug::LogInfo(" ...{} !!!", !result ? "FAILED" : "OK");
-	return 0x52C5D3;
 }
 
 ASMJIT_PATCH(0x691A32, ReadScenarion_RemoveInline, 0x5)

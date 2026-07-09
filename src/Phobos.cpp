@@ -80,18 +80,21 @@ int Phobos::UI::SuperWeaponSidebar_MaxColumns { INT32_MAX };
 int Phobos::UI::CreditsIndicator_MaxStep = 143;
 bool Phobos::UI::SuperWeaponSidebar_Pyramid = true;
 
-const wchar_t* Phobos::UI::CostLabel { L"" };
-const wchar_t* Phobos::UI::PowerLabel { L"" };
-const wchar_t* Phobos::UI::PowerBlackoutLabel { L"" };
-const wchar_t* Phobos::UI::TimeLabel { L"" };
-const wchar_t* Phobos::UI::HarvesterLabel { L"" };
-const wchar_t* Phobos::UI::PercentLabel { L"" };
+NullableCSF Phobos::UI::CostLabel { L"$" };
+NullableCSF Phobos::UI::PowerLabel { L"\u26a1" }; // ⚡
+NullableCSF Phobos::UI::PowerBlackoutLabel { L"\u26a1\u274c" };// ⚡❌
+NullableCSF Phobos::UI::TimeLabel { L"\u231a" };// ⌚
+NullableCSF Phobos::UI::HarvesterLabel { L"\u26cf" };// ⛏
+NullableCSF Phobos::UI::PercentLabel { L"\u231a" };// ⌚
+NullableCSF Phobos::UI::SWShotsFormat { L"%d/%d shots" };
+NullableCSF Phobos::UI::BattlePoints_Label { L"\u2605: " }; // ★: 
+NullableCSF Phobos::UI::BattlePointsSidebar_Label { L"\u2605: " };// ★:
 
-const wchar_t* Phobos::UI::BuidingRadarJammedLabel { L"" };
-const wchar_t* Phobos::UI::BuidingFakeLabel { L"" };
 const wchar_t* Phobos::UI::ShowBriefingResumeButtonLabel { L"" };
 char Phobos::UI::ShowBriefingResumeButtonStatusLabel[0x20] { "" };
 
+const wchar_t* Phobos::UI::BuidingRadarJammedLabel { L"" };
+const wchar_t* Phobos::UI::BuidingFakeLabel { L"" };
 const wchar_t* Phobos::UI::Power_Label { L"" };
 const wchar_t* Phobos::UI::Drain_Label { L"" };
 const wchar_t* Phobos::UI::Storage_Label { L"" };
@@ -99,10 +102,6 @@ const wchar_t* Phobos::UI::Radar_Label { L"" };
 const wchar_t* Phobos::UI::Tech_Label { L"" };
 const wchar_t* Phobos::UI::Spysat_Label { L"" };
 
-const wchar_t* Phobos::UI::SWShotsFormat { L"" };
-
-const wchar_t* Phobos::UI::BattlePoints_Label { L"" };
-const wchar_t* Phobos::UI::BattlePointsSidebar_Label { L"" };
 
 int Phobos::UI::uiColorText;
 int Phobos::UI::uiColorTextButton { 0xFFFF }; // #1644: needed for CD prompt

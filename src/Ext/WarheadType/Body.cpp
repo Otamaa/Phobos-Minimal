@@ -227,8 +227,8 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	// Miscs
 	this->Reveal.Read(exINI, pSection, "Reveal");
 
-	bool spySat;
-	if (detail::read(spySat, exINI, pSection, GameStrings::SpySat()) && spySat)
+	
+	if (Valueable<bool>()(exINI, pSection, GameStrings::SpySat(), false).Get())
 		this->Reveal = -1;
 
 	this->BigGap.Read(exINI, pSection, "BigGap");
@@ -415,7 +415,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Parasite_GrappleAnim.Read(exINI, pSection, "Parasite.GrappleAnim");
 	this->Parasite_ParticleSys.Read(exINI, pSection, "Parasite.ParticleSystem");
 	this->Parasite_TreatInfantryAsVehicle.Read(exINI, pSection, "Parasite.TreatInfantryAsVehicle");
-	this->Parasite_InvestationWP.Read(exINI, pSection, "Parasite.DamagingWeapon");
+	this->Parasite_InvestationWP.Read(exINI, pSection, "Parasite.DamagingWeapon", true);
 	this->Parasite_Damaging_Chance.Read(exINI, pSection, "Parasite.DamagingChance");
 
 	std::vector<AnimTypeClass*> hitAnim {};
@@ -521,9 +521,10 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 #ifndef _Handle_Old_
 	this->AttachedEffect.Read(exINI);
 #else
-	int _AE_Dur { 0 };
+	auto _AE_Dur  = Valuable<int>()(exINI, pSection, "AttachEffect.Duration", false);
+
 	this->AttachEffect_AttachTypes.clear();
-	if (detail::read(_AE_Dur, exINI, pSection, "AttachEffect.Duration") && _AE_Dur != 0)
+	if (_AE_Dur.Get() != 0)
 	{
 		auto& back = this->AttachEffect_AttachTypes.emplace_back(PhobosAttachEffectTypeClass::FindOrAllocate(pSection));
 		back->Duration = _AE_Dur;
@@ -531,15 +532,13 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		back->Animation.Read(exINI, pSection, "AttachEffect.Animation", true);
 		back->Animation_ResetOnReapply.Read(exINI, pSection, "AttachEffect.AnimResetOnReapply");
 
-		bool AE_TemporalHidesAnim {};
-		if (detail::read(AE_TemporalHidesAnim, exINI, pSection, "AttachEffect.TemporalHidesAnim") && AE_TemporalHidesAnim)
+		if (Valueable<bool>()(exINI, pSection, "AttachEffect.TemporalHidesAnim", false).Get())
 			back->Animation_TemporalAction = AttachedAnimFlag::Hides;
 
 		back->ForceDecloak.Read(exINI, pSection, "AttachEffect.ForceDecloak");
 
-		bool AE_DiscardOnEntry {};
-		if (detail::read(AE_DiscardOnEntry, exINI, pSection, "AttachEffect.DiscardOnEntry") && AE_DiscardOnEntry)
-			back->DiscardOn = DiscardCondition::Entry;
+		if (Valueable<bool>()(exINI, pSection, "AttachEffect.DiscardOnEntry", false).Get())
+			back->DiscardOn |= DiscardCondition::Entry;
 
 		back->FirepowerMultiplier.Read(exINI, pSection, "AttachEffect.FirepowerMultiplier");
 		back->ArmorMultiplier.Read(exINI, pSection, "AttachEffect.ArmorMultiplier");
@@ -562,7 +561,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	}
 #endif
 
-	this->DetonatesWeapons.Read(exINI, pSection, "DetonatesWeapons");
+	this->DetonatesWeapons.Read(exINI, pSection, "DetonatesWeapons", true);
 	this->LimboKill_IDs.Read(exINI, pSection, "LimboKill.IDs");
 	this->LimboKill_Affected.Read(exINI, pSection, "LimboKill.Affected");
 	this->LimboKill_Affected.Read(exINI, pSection, "LimboKill.AffectsHouse");
@@ -663,15 +662,11 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->DamageSourceHealthMultiplier.Read(exINI, pSection, "DamageSourceHealthMultiplier");
 	this->DamageTargetHealthMultiplier.Read(exINI, pSection, "DamageTargetHealthMultiplier");
 
-	ValueableVector<InfantryTypeClass*> InfDeathAnims_List {};
+	auto InfDeathAnims_List = ValueableVector<InfantryTypeClass*>()(exINI, pSection, "InfDeathAnim.LinkedList", false);
 
-	InfDeathAnims_List.Read(exINI, pSection, "InfDeathAnim.LinkedList");
-
-	if (!InfDeathAnims_List.empty())
-	{
+	if (!InfDeathAnims_List.empty()) {
 		this->InfDeathAnims.reserve(InfDeathAnims_List.size());
-		for (size_t i = 0; i < InfDeathAnims_List.size(); ++i)
-		{
+		for (size_t i = 0; i < InfDeathAnims_List.size(); ++i) {
 			detail::read(this->InfDeathAnims[InfDeathAnims_List[i]], exINI, pSection, (std::string("InfDeathAnim") + std::to_string(i)).c_str());
 		}
 	}
@@ -705,8 +700,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		std::string base("SpawnsCrate");
 		std::string base_Num = base + std::to_string(i);
 
-		NullableIdx<CrateTypeClass> Idx;
-		Idx.Read(exINI, pSection, (base_Num + ".Type").c_str());
+		auto Idx = NullableIdx<CrateTypeClass>()(exINI, pSection, (base_Num + ".Type").c_str());
 
 		if (i == 0 && !Idx.isset())
 			Idx.Read(exINI, pSection, (base + ".Type").c_str());
@@ -714,8 +708,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		if (!Idx.isset() || Idx == -1)
 			break;
 
-		Nullable<int> weight;
-		weight.Read(exINI, pSection, (base_Num + ".Weight").c_str());
+		auto weight = Nullable<int>()(exINI, pSection, (base_Num + ".Weight").c_str(), false);
 
 		if (i == 0 && !weight.isset())
 			weight.Read(exINI, pSection, (base + ".Weight").c_str());

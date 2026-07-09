@@ -130,11 +130,11 @@ void FlyingStrings::AddMoneyString(bool Display, int amount, TechnoClass* owner,
 		{
 			bool isPositive = amount > 0;
 			color = isPositive ? Drawing::DefaultColors[(int)DefaultColorList::Green] : Drawing::DefaultColors[(int)DefaultColorList::Red];
-			fmt::format_to(std::back_inserter(moneyStr), L"{}{}{}", amount > 0 ? L"+" : L"-", Phobos::UI::CostLabel, Math::abs(amount));
+			fmt::format_to(std::back_inserter(moneyStr), L"{}{}{}", amount > 0 ? L"+" : L"-", Phobos::UI::CostLabel.GetText(), Math::abs(amount));
 		}
 		else
 		{
-			fmt::format_to(std::back_inserter(moneyStr), L"+{}{}", Phobos::UI::CostLabel, Math::abs(amount));
+			fmt::format_to(std::back_inserter(moneyStr), L"+{}{}", Phobos::UI::CostLabel.GetText(), Math::abs(amount));
 		}
 
 		moneyStr.push_back(L'\0');
@@ -166,11 +166,11 @@ void FlyingStrings::AddMoneyString(bool Display, int amount, HouseClass* owner, 
 		{
 			bool isPositive = amount > 0;
 			color = isPositive ? Drawing::DefaultColors[(int)DefaultColorList::Green] : Drawing::DefaultColors[(int)DefaultColorList::Red];
-			fmt::format_to(std::back_inserter(moneyStr), L"{}{}{}", amount > 0 ? L"+" : L"-", Phobos::UI::CostLabel, Math::abs(amount));
+			fmt::format_to(std::back_inserter(moneyStr), L"{}{}{}", amount > 0 ? L"+" : L"-", Phobos::UI::CostLabel.GetText(), Math::abs(amount));
 		}
 		else
 		{
-			fmt::format_to(std::back_inserter(moneyStr), L"+{}{}", Phobos::UI::CostLabel, Math::abs(amount));
+			fmt::format_to(std::back_inserter(moneyStr), L"+{}{}", Phobos::UI::CostLabel.GetText(), Math::abs(amount));
 		}
 
 		moneyStr.push_back(L'\0');
@@ -224,7 +224,7 @@ void FlyingStrings::AddNumberString(int amount, HouseClass* owner, AffectedHouse
 		const wchar_t* sign_symbol = (sign && amount != 0) ? (isPositive ? L"+" : L"-") : L"";
 		static fmt::basic_memory_buffer<wchar_t> buffer;
 		buffer.clear();
-		fmt::format_to(std::back_inserter(buffer), L"{}{}{}", sign_symbol, prefix ? prefix : Phobos::UI::CostLabel, Math::abs(amount));
+		fmt::format_to(std::back_inserter(buffer), L"{}{}{}", sign_symbol, prefix ? prefix : Phobos::UI::CostLabel.GetText(), Math::abs(amount));
 		buffer.push_back(L'\0');
 		Dimensions nDim {};
 		BitFont::Instance->GetTextDimension(buffer.data(), &nDim.Width, &nDim.Height, 120);

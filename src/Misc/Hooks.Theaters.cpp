@@ -277,6 +277,7 @@ ASMJIT_PATCH(0x5F96B0, ObjectTypeClass_TheaterSpecificID, 6)
 // if both not specified , game will decide it with their naming convention
 
 TheaterType lastTheater;
+#ifdef _OLDCODE
 
 ASMJIT_PATCH(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 {
@@ -360,10 +361,339 @@ ASMJIT_PATCH(0x534A9D, ScenarioClass_initTheater_TheaterType_ArticCheck, 0x6)
 		AllocateMix : NextFunc;
 }
 
+ASMJIT_PATCH(0x534BEE, ScenarioClass_initTheater_TheaterType_OverlayPalette, 0x5)
+{
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
+
+	if (const auto& data = pTheater->PaletteOverlay)
+	{
+		R->EAX(FakeFileLoader::_Retrieve(data.c_str(), false));
+		return 0x534C09;
+	}
+
+	return 0x0;
+}
+
+ASMJIT_PATCH(0x534CA9, ScenarioClass_initTheater_TheaterType_SetPaletteUnit, 0x8)
+{
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
+
+	if (auto const& data = pTheater->PaletteUnit)
+	{
+		R->ESI(FakeFileLoader::_Retrieve(data.c_str(), false));
+		return 0x534CCA;
+	}
+
+	return 0x0;
+}
+#endif
+
+static constexpr double satBase = std::bit_cast<double>(0x3FEBECDE5DA115A9ULL); // 0.8726646259971648
+static constexpr double satStep = std::bit_cast<double>(0x3FA7D45E2DC37C4CULL); // 0.04654211338651545
+static constexpr double valBase = std::bit_cast<double>(0x3FD657184AE74487ULL); // 0.3490658503988659
+static constexpr double valStep = std::bit_cast<double>(0x3FB4D9D2680B0CC2ULL); // 0.08144869842640204
+static constexpr double valAngleFirstIter = std::bit_cast<double>(0x3FC921FB54442D19ULL); // 0.1963495408493621 (11.25°)
+
+LightConvertClass* __fastcall Generate_Color_Spread_Light_Convert(
+	HSVClass* hsv,
+	BytePalette* pal1,
+	BytePalette* pal2,
+	BytePalette* pal3,
+	Surface* surface,
+	int                 count,
+	int                 r,
+	int                 g,
+	int                 b,
+	char* indexes)
+{
+	// Extract base HSV components.
+	// IDA shows Val loaded into a pointer-typed register — artifact of register reuse.
+	// All three fields are plain uint8_t.
+	const int   baseHue = hsv->Hue;
+	const double baseSat = static_cast<double>(hsv->Saturation);
+	const double baseVal = static_cast<double>(hsv->Value);
+
+	// Copy pal1 into pal3; pal3 is the working palette that will be modified
+	// with the 16-step color spread before being passed to LightConvertClass.
+	*pal3 = *pal1;
+
+	// --- 16-step HSV color spread ---
+	// Each iteration computes a slightly rotated Sat and Val using sin/cos angle progressions,
+	// converts the resulting HSV to RGB, and writes it into pal3->Entries[(i + 16) % 256].
+	// Hue is held constant; only Sat and Val rotate per step.
+	//
+	// Angle progressions (per-step increments derived from the IDA constants):
+	//   satAngle: starts at 0.8726646... rad (~50°), steps by 0.04654... rad (~2.67°)
+	//   valAngle: starts at 0.3490658... rad (~20°), steps by 0.08144... rad (~4.67°)
+	// First iteration overrides valAngle to 0.1963495... rad (11.25°) — special-cased in vanilla.
+	//
+	// IDA artifact: vanilla reused the cosval stack slot as both a double and an int counter.
+	// Cleaned up into a proper loop with a separate iteration double for the angle math.
+
+	for (int i = 0; i < 16; ++i) {
+
+		const double id = static_cast<double>(i);
+
+		double valAngle = id * valStep + valBase;
+		double satAngle = id * satStep + satBase;
+
+		// First iteration uses a fixed valAngle override (11.25°).
+		// Vanilla special-cases i==0 explicitly; preserved verbatim.
+		if (i == 0)
+			valAngle = valAngleFirstIter;
+
+		// Compute new Sat and Val by scaling base values through sin/cos.
+		// Results are cast to uint8_t (truncation, intentional — mirrors vanilla behavior).
+		HSVClass tempHSV(baseHue , Math::sin(satAngle) * baseSat ,Math::cos(valAngle) * baseVal);
+		// Convert HSV → RGB.
+		// IDA: HSVClass::operator RGBClass writes into a stack buffer (reused_sat).
+		// Cleaned up to a proper local RGBClass.
+		ColorStruct rgb = tempHSV.operator ColorStruct();
+
+		// Write into pal3 at offset (i + 16), wrapping at 256.
+		// IDA expanded this as pointer arithmetic: pal3->Entries + 2*(idx) + idx
+		// which is just &pal3->Entries[idx] with sizeof(RGBClass)==3 factored out manually.
+		pal3->Entries[(i + 16) % 256] = rgb;
+	}
+
+	return GameCreate<LightConvertClass>(pal3, pal2, surface, r, g, b, false, (BYTE*)indexes, (size_t)count);
+}
+
+DEFINE_FUNCTION_JUMP(CALL , 0x68C7E9 , Generate_Color_Spread_Light_Convert)
+
+void __fastcall Init_Theaters(TheaterType theater)
+{
+
+	auto DestroyMix = [](MixFileClass* mix) {
+		GameDelete<true,true>(mix);
+	};
+
+	auto NewMix = [](const char* filename) {
+		auto pKey = MixFileClass::Key();
+		return GameCreate<MixFileClass>(filename, pKey);
+	};
+
+    // --- Hook 0x5349E3: resolve MIX filenames via TheaterTypeClass ---
+    // Vanilla built these with wsprintfA from Theaters[].Root/Suffix/etc.
+    // Phobos uses TheaterTypeClass fields with per-field overrides.
+    {
+        const auto thName = theater == TheaterType::None
+            ? "unknown"
+            : TheaterTypeClass::Array[(size_t)theater]->Name.data();
+        Debug::LogInfo("Init For Theater [{} - {}]", (int)theater, thName);
+    }
+ 
+    if (theater == TheaterType::None)
+        Debug::FatalError("TheaterType is invalid ! , fallback to Temperate!");
+ 
+    const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
+ 
+    // Each name: use Phobos override field if set, else build from vanilla template string.
+    char rootMix[16];
+    if (!pTheater->RootMix)
+        sprintf_s(rootMix, GameStrings::STRFORMAT_DOT_MIX(), pTheater->ControlFileName.data());
+    else
+        strcpy_s(rootMix, pTheater->RootMix.c_str());
+ 
+    char rootMixMD[16];
+    if (!pTheater->RootMixMD)
+        sprintf_s(rootMixMD, GameStrings::STRFORMAT_MD_DOT_MIX(), pTheater->ControlFileName.data());
+    else
+        strcpy_s(rootMixMD, pTheater->RootMixMD.c_str());
+ 
+    char expansionMixMD[16];
+    if (!pTheater->ExpansionMDMix)
+        sprintf_s(expansionMixMD, GameStrings::STRFORMAT_MD_DOT_MIX(), pTheater->PaletteFileName.data());
+    else
+        strcpy_s(expansionMixMD, pTheater->ExpansionMDMix.c_str());
+ 
+    char suffixMix[16];
+    if (!pTheater->SuffixMix)
+        sprintf_s(suffixMix, GameStrings::STRFORMAT_DOT_MIX(), pTheater->Extension.data());
+    else
+        strcpy_s(suffixMix, pTheater->SuffixMix.c_str());
+ 
+    char dataMix[16];
+    if (!pTheater->DataMix)
+        sprintf_s(dataMix, GameStrings::STRFORMAT_DOT_MIX(), pTheater->ArtFileName.data());
+    else
+        strcpy_s(dataMix, pTheater->DataMix.c_str());
+ 
+    Debug::Log("Theater[%s] Mix [%s , %s , %s , %s , %s]\n",
+        pTheater->Name.data(),
+        rootMix, rootMixMD, expansionMixMD, suffixMix, dataMix);
+ 
+    // Parser error tracking: errors before this point are irrelevant
+    // (section read before global lists are initialized).
+    Phobos::Otamaa::TrackParserErrors = true;
+ 
+    ScenarioClass::Instance->Theater = theater;
+    lastTheater = theater;
+    SessionClass::Instance->Callback(8);
+ 
+	DEFINE_REFERENCE(MixFileClass*, TheaterRoot ,0x884E0C)
+
+    // Note: vanilla had a LastTheater early-return guard here.
+    // Hook 0x5349E3 skipped it (always reloads); Phobos always proceeds.
+ 
+    // --- Destroy and reload theater MIX chain ---
+ 
+    // Hook 0x534A9D: arctic/custom-MD check replaces vanilla THEATER_SNOW check.
+    // Vanilla: only allocate TheaterRoot for THEATER_SNOW.
+    // Phobos:  also allocate if RootMixMD override is set OR IsArctic flag.
+    DestroyMix(TheaterRoot);
+    TheaterRoot = nullptr;
+    if (pTheater->RootMixMD || pTheater->IsArctic) {
+        TheaterRoot = NewMix(rootMixMD);
+    }
+ 
+	DEFINE_REFERENCE(MixFileClass*,  dword_884E08, 0x884E08)
+
+    // <root>.MIX (unnamed theater data global)
+    DestroyMix(dword_884E08);
+    dword_884E08 = NewMix(rootMix);
+ 
+	DEFINE_REFERENCE(MixFileClass*,  MixFile_Theater_TEM, 0x884E10)
+
+    // <suffix>.MIX
+    DestroyMix(MixFile_Theater_TEM);
+    MixFile_Theater_TEM = NewMix(suffixMix);
+ 
+    SessionClass::Instance->Callback(6);
+ 
+	DEFINE_REFERENCE(MixFileClass*,  MixFile_Theater_ISOTEM, 0x884E20)
+    // <expMix>MD.MIX
+    DestroyMix(MixFile_Theater_ISOTEM);
+    MixFile_Theater_ISOTEM = NewMix(expansionMixMD);
+ 
+	DEFINE_REFERENCE(MixFileClass*,  MixFile_Theater_ISOTEMP, 0x884E1C)
+    // <dataMix>.MIX
+    DestroyMix(MixFile_Theater_ISOTEMP);
+    MixFile_Theater_ISOTEMP = NewMix(dataMix);
+ 
+    SessionClass::Instance->Callback(12);
+
+    // --- Load game palette ---
+    // Hook 0x534BEE: try PaletteOverlay first; fall back to vanilla <root>.PAL retrieve.
+    {
+		BytePalette* palFile = nullptr;
+ 
+        if (const auto& overlay = pTheater->PaletteOverlay) {
+            // Phobos override: retrieve directly by name from FakeFileLoader.
+			palFile = static_cast<BytePalette*>(FakeFileLoader::_Retrieve(overlay.c_str(), false));
+        } else  {
+            // Vanilla path: retrieve <root>.PAL from MIX.
+            char palName[16];
+            sprintf_s(palName, "%s.PAL", pTheater->ControlFileName.data());
+			palFile = static_cast<BytePalette*>(FakeFileLoader::Retrieve(palName, 0));
+        }
+ 
+        if (palFile) {
+            // Each palette entry is 3 bytes [R, G, B] in 6-bit VGA format; shift left 2 → 8-bit.
+            for (int i = 0; i < 256; ++i) {
+                ColorStruct& entry = FileSystem::TEMPERAT_PAL->Entries[i];
+
+				entry.R = palFile->Entries[i].R << 2;
+				entry.G = palFile->Entries[i].G << 2;
+				entry.B = palFile->Entries[i].B << 2;
+            }
+        } else {
+            // Fallback: synthesize gradient palette.
+            // Assembly: Red=i, Green=0xFF-i, Blue=i*4.
+            for (int i = 0; i < 256; ++i) {
+                ColorStruct& entry = FileSystem::TEMPERAT_PAL->Entries[i];
+
+                entry.R   = static_cast<uint8_t>(i);
+                entry.G = static_cast<uint8_t>(0xFF - i);
+                entry.B  = static_cast<uint8_t>(i * 4);
+            }
+        }
+    }
+ 
+	DEFINE_REFERENCE(BytePalette, Plaette, 0x885A80)
+    Plaette = FileSystem::TEMPERAT_PAL();
+ 
+    // --- Load unit palette from UNIT<suffix>.PAL ---
+    {
+		BytePalette* unitPalData = nullptr;
+
+		if (auto const& data = pTheater->PaletteUnit){
+			unitPalData = static_cast<BytePalette*>(FakeFileLoader::Retrieve(data.c_str(), 0));
+		} else {
+			char unitPalName[16];
+			sprintf_s(unitPalName, "UNIT%s.PAL", pTheater->Extension.data());
+			unitPalData = static_cast<BytePalette*>(FakeFileLoader::Retrieve(unitPalName, 0));
+		}
+
+        Game::CallBack();
+ 
+        if (unitPalData)
+            FileSystem::UNITPAL = *unitPalData;
+ 
+        // Shift all unit palette entries from 6-bit to 8-bit.
+        for (int j = 0; j < 256; ++j) {
+            ColorStruct& entry = FileSystem::UNITPAL->Entries[j];
+
+            entry.R   = static_cast<uint8_t>(entry.R)   << 2;
+            entry.G = static_cast<uint8_t>(entry.G) << 2;
+            entry.B  = static_cast<uint8_t>(entry.B)  << 2;
+        }
+    }
+ 
+    // --- Build color scheme light converts ---
+    // Progress steps 12..25 distributed proportionally across ColorSchemes.
+    {
+		DEFINE_NONSTATIC_ARRAY_REFERENCE(char, 256, _ColorBuffer, 0x83E1AC);
+
+        const int count    = ColorScheme::Array->Count;
+        const int divisor  = count / 13; // 0x4EC4EC4F reciprocal in asm — exact /13
+        int       progress = 12;
+ 
+        for (int i = 0; i < count; ++i)  {
+			auto pCS = ColorScheme::Array->Items[i];
+
+			if (pCS->LightConvert) {
+				GameDelete<true,false>(pCS->LightConvert);
+				pCS->LightConvert = nullptr;
+			}
+
+			pCS->LightConvert = Generate_Color_Spread_Light_Convert(
+				&pCS->BaseColor,
+				FileSystem::UNITPAL.operator->(),
+				 FileSystem::TEMPERAT_PAL.operator->(),
+				&pCS->Colors,
+				DSurface::Primary(),
+				pCS->ShadeCount,
+				1000, 1000, 1000,
+				_ColorBuffer()
+			);
+
+            int newProgress = (divisor > 0) ? (i / divisor + 12) : 12;
+            if (newProgress >= 25)
+                newProgress = 25;
+ 
+            if (newProgress != progress) {
+                SessionClass::Instance->Callback(newProgress);
+                progress = newProgress;
+            }
+ 
+            Game::CallBack();
+        }
+    }
+ 
+    Game::INIColors_6267A0((int)theater);
+    TechnoTypeClass::SetPalettes();
+    SessionClass::Instance->Callback(25);
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x5349C0 , Init_Theaters)
+
 #pragma endregion
 
 #pragma region replacedMakepath
-//#pragma optimize("", off )
+
 
 ////AnimType
 ASMJIT_PATCH(0x4279BB, AnimTypeClass_TheaterSuffix_1, 0x6)
@@ -621,34 +951,6 @@ ASMJIT_PATCH(0x74D450, TheaterTypeClass_ProcessVeinhole, 0x7)
 	CRT::sprintf(buffer, GameStrings::VEINHOLE_(), TheaterTypeClass::FindFromTheaterType_NoCheck(index)->Extension.c_str());
 	VeinholeMonsterClass::VeinSHPData = (SHPFrame*)FakeFileLoader::_Retrieve(buffer, false);
 	return 0x74D48A;
-}
-
-ASMJIT_PATCH(0x534CA9, Init_Theaters_SetPaletteUnit, 0x8)
-{
-	auto theater = ScenarioClass::Instance->Theater;
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
-
-	if (auto const& data = pTheater->PaletteUnit)
-	{
-		R->ESI(FakeFileLoader::_Retrieve(data.c_str(), false));
-		return 0x534CCA;
-	}
-
-	return 0x0;
-}
-
-ASMJIT_PATCH(0x534BEE, ScenarioClass_initTheater_TheaterType_OverlayPalette, 0x5)
-{
-	auto theater = ScenarioClass::Instance->Theater;
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
-
-	if (const auto& data = pTheater->PaletteOverlay)
-	{
-		R->EAX(FakeFileLoader::_Retrieve(data.c_str(), false));
-		return 0x534C09;
-	}
-
-	return 0x0;
 }
 
 ASMJIT_PATCH(0x546C8B, IsometricTileTypeClass_ReadData_LunarLimitation, 0x8)

@@ -1693,14 +1693,9 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->PurifierBonus_RequirePower.Read(exINI, pSection, "PurifierBonus.RequirePower");
 		this->FactoryPlant_RequirePower.Read(exINI, pSection, "FactoryPlant.RequirePower");
 		this->SpySat_RequirePower.Read(exINI, pSection, "SpySat.RequirePower");
+
 		this->Cloning_RequirePower.Read(exINI, pSection, "Cloning.RequirePower");
-
-		Valueable<bool> Cloning_Powered;
-
-		Cloning_Powered.Read(exINI, pSection, "Cloning.Powered");
-
-		if(Cloning_Powered)
-			this->Cloning_RequirePower = true;
+		this->Cloning_RequirePower.Read(exINI, pSection, "Cloning.Powered");
 
 		this->Radar_RequirePower.Read(exINI, pSection, "Radar.RequirePower");
 		this->SpawnCrewOnlyOnce.Read(exINI, pSection, "SpawnCrewOnlyOnce");
@@ -1721,8 +1716,7 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 				this->DockPoseDir.resize(pThis->NumberOfDocks);
 				std::string base_tag ("AircraftDockingDir");
 
-				Nullable<DirType> nLandingDir;
-				nLandingDir.Read(exINI, pSection, "AircraftDockingDir");
+				auto nLandingDir = Nullable<DirType>()(exINI, pSection, "AircraftDockingDir", false);
 
 				if (nLandingDir.isset())
 					this->DockPoseDir[0] = (FacingType)nLandingDir.Get();

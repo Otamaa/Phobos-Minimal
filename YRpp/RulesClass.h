@@ -506,7 +506,7 @@ public:
 	double			 SpotlightAngle;
 	int				 SpotlightRadius;
 	int				 WindDirection;
-	int				 CameraRange;
+	Leptons				 CameraRange;
 	int				 FlightLevel;
 	int				 ParachuteMaxFallRate;
 	int				 NoParachuteMaxFallRate;
@@ -621,7 +621,7 @@ public:
 	float				 AICaptureWoundedMark;
 	TypeList<int >		 AISuperDefenseProbability;
 	int				 AISuperDefenseFrames;
-	float				 AISuperDefenseDistance;
+	Leptons				 AISuperDefenseDistance;
 	TypeList<int >		 OverloadCount;
 	TypeList<int >		 OverloadDamage;
 	TypeList<int >		 OverloadFrames;
@@ -754,7 +754,7 @@ public:
 	double			 GameSpeedBias;
 	double			 BaseBias;
 	double			 ExpSpread;
-	int				 FireSupress;
+	Leptons			FireSupress;
 	IQStruct		IQData;
 	int				 AIBaseSpacing;
 	union {
@@ -800,7 +800,7 @@ public:
 	bool				 SuperWeaponsAllowed;
 	bool				 BuildOffAlly;
 	bool				 AllyChangeAllowed;
-	int				 DropZoneRadius;
+	Leptons				 DropZoneRadius;
 	double			 MessageDelay;
 	double			 SavourDelay;
 	int				 Players;
@@ -850,14 +850,14 @@ public:
 	double			 ConditionYellow;
 	double			 ConditionRed;
 	double			 IdleActionFrequency;
-	Leptons			CloseEnough;
-	int				 Stray;
-	int				 RelaxedStray;
-	int				 GuardModeStray;
+	Leptons			 CloseEnough;
+	Leptons			 Stray;
+	Leptons			 RelaxedStray;
+	Leptons			 GuardModeStray;
 	Leptons			 Crush;
-	int				 CrateRadius;
-	int				 HomingScatter;
-	Leptons			BallisticScatter;
+	Leptons		     CrateRadius;
+	Leptons		     HomingScatter;
+	Leptons			 BallisticScatter;
 	double			 RefundPercent;
 	int				 BridgeStrength;
 	double			 BuildSpeed;

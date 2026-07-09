@@ -94,7 +94,7 @@ bool AES256Decryptor::DeriveKey(const char* password)
 		nullptr, 0, 0)))
 		return false;
 
-	const DWORD pwLen = static_cast<DWORD>(strlen(password));
+	const DWORD pwLen = static_cast<DWORD>(std::char_traits<char>::length(password));
 	bool ok = BCRYPT_SUCCESS(BCryptHashData(hHash, (PUCHAR)password, pwLen, 0))
 		&& BCRYPT_SUCCESS(BCryptFinishHash(hHash, m_Key, 32, 0));
 
@@ -442,26 +442,27 @@ ZipFileSystem::OpenArchive* ZipFileSystem::GetOrOpen(const char* zipPath,
 // Constructor
 // ---------------------------------------------------------------------------
 ZipBackedFileClass::ZipBackedFileClass(const char* filename)
-	: NamedRAMFileClass((void*)nullptr, 0, filename)   // name set, no buffer yet
+	: PhobosRAMFileClass(filename,(void*)nullptr, 0 )   // name set, no buffer yet
 {
 	// Extract from zip into our owned buffer.
 	m_Buffer = ZipFileSystem::Instance().Extract(filename, m_Size);
-	this->SetManualBufer(reinterpret_cast<char*>(m_Buffer.get()), static_cast<int>(m_Size));
+	this->SetManualBuffer(reinterpret_cast<char*>(m_Buffer.get()), static_cast<int>(m_Size));
 }
 
 // ---------------------------------------------------------------------------
 // Open1 — read-only guard
 // ---------------------------------------------------------------------------
-bool ZipBackedFileClass::Open1(FileAccessMode access)
+bool ZipBackedFileClass::Open(PhobosFileAccessMode access)
 {
 	if (!Valid())
 		return false;
 
-	if (access == FileAccessMode::Write || access == FileAccessMode::ReadWrite)
+	if (access == PhobosFileAccessMode::Write || access == PhobosFileAccessMode::ReadWrite)
 		return false;   // zip buffers are immutable
 
-	return RAMFileClass::Open1(access);
+	return PhobosRAMFileClass::Open(access);
 }
+
 #include <MixFileClass.h>
 #include <map>
 
@@ -476,6 +477,8 @@ std::unordered_map<std::string, void*> g_GlobalFileLinks {};
 
 void* __fastcall FakeFileLoader::_Retrieve(const char* name, bool forceShapeCache)
 {
+#ifdef ReplaceImpl
+
 	if (!name)
 		return nullptr;
 
@@ -559,9 +562,12 @@ void* __fastcall FakeFileLoader::_Retrieve(const char* name, bool forceShapeCach
 		g_GlobalFileLinks.emplace(upperName, pPtr);
 
 	return pPtr;
+#endif
+
+	return Retrieve(name, forceShapeCache);
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x5B40B0, FakeFileLoader::_Retrieve)
+//DEFINE_FUNCTION_JUMP(LJMP, 0x5B40B0, FakeFileLoader::_Retrieve)
 DEFINE_FUNCTION_JUMP(CALL, 0x41CAF7, FakeFileLoader::_Retrieve)
 DEFINE_FUNCTION_JUMP(CALL, 0x41CB08, FakeFileLoader::_Retrieve);
 DEFINE_FUNCTION_JUMP(CALL, 0x4279DA, FakeFileLoader::_Retrieve);
