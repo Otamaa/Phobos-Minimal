@@ -1162,8 +1162,8 @@ DEFINE_FUNCTION_JUMP(CALL, 0x72E060, Release_Neutral);
 
 #include <ThemeClass.h>
 
-static COMPILETIMEEVAL reference<MixFileClass*, 0x826820> const GENERMD {};
-static COMPILETIMEEVAL constant_ptr<const char, 0x884E18> const GENERMD_MIX {};
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884E18> const GENERMD {};
+static COMPILETIMEEVAL constant_ptr<const char, 0x826820> const GENERMD_MIX {};
 
 static COMPILETIMEEVAL reference<MixFileClass*, 0x884E14> const GENERIC {};
 static COMPILETIMEEVAL constant_ptr<const char, 0x826814> const GENERIC_MIX {};
