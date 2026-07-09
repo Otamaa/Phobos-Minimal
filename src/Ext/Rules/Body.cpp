@@ -3485,23 +3485,23 @@ void FakeRulesClass::_Process(CCINIClass* pINI)
 		if (!RulesExtData::Instance()->DefaultBulletType)
 			Debug::FatalError("Uneable to Allocate {} BulletType ! ", DEFAULT_STR2);
 
-		ReadArray<WarheadTypeClass>(pINI, "WeaponTypes");
+		ReadArray<WeaponTypeClass>(pINI,"WeaponTypes");
 
-		ReadArray<WarheadTypeClass>(pINI, "Warheads");
+		ReadArray<WarheadTypeClass>(pINI,"Warheads");
 
-		ReadArray<TiberiumClass>(pINI, "Tiberiums");
+		ReadArray<TiberiumClass>(pINI,"Tiberiums");
 	}
 
-	ReadArray<SmudgeTypeClass>(pINI, "SmudgeTypes");
-	ReadArray<TerrainTypeClass>(pINI, "TerrainTypes");
-	ReadArray<BuildingTypeClass>(pINI, "BuildingTypes");
-	ReadArray<UnitTypeClass>(pINI, "VehicleTypes");
-	ReadArray<AircraftTypeClass>(pINI, "AircraftTypes");
-	ReadArray<InfantryTypeClass>(pINI, "InfantryTypes");
-	ReadArray<AnimTypeClass>(pINI, "Animations");
-	ReadArray<VoxelAnimTypeClass>(pINI, "VoxelAnims");
-	ReadArray<ParticleTypeClass>(pINI, "Particles");
-	ReadArray<ParticleSystemTypeClass>(pINI, "ParticleSystems");
+	ReadArray<SmudgeTypeClass>(pINI,"SmudgeTypes");
+	ReadArray<TerrainTypeClass>(pINI,"TerrainTypes");
+	ReadArray<BuildingTypeClass>(pINI,"BuildingTypes");
+	ReadArray<UnitTypeClass>(pINI,"VehicleTypes");
+	ReadArray<AircraftTypeClass>(pINI,"AircraftTypes");
+	ReadArray<InfantryTypeClass>(pINI,"InfantryTypes");
+	ReadArray<AnimTypeClass>(pINI,"Animations");
+	ReadArray<VoxelAnimTypeClass>(pINI,"VoxelAnims");
+	ReadArray<ParticleTypeClass>(pINI,"Particles");
+	ReadArray<ParticleSystemTypeClass>(pINI,"ParticleSystems");
 
 	this->_ReadMPlayer(pINI);
 	this->_ReadAI(pINI);
