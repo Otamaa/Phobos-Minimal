@@ -115,6 +115,7 @@ public:
 	Valueable<int> AnimLength { 0 };
 	Valueable<int> EMPulseCannon_InaccurateRadius { 0 };
 	Valueable<int> Parachuted_FallRate { 1 };
+	Valueable<int> ZAdjust { 0 };
 
 	// ============================================================
 	// Valueable<bool> (1 byte each, packed together at the end)

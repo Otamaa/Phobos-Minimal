@@ -220,7 +220,9 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	}
 
 	ArmorTypeClass::LoadForWarhead(pINI, pThis);
-
+	//for (int i = 0; i < this->Verses.size(); ++i) {
+	//	Debug::Log("WH [%s] Armor %s verses %f\n", pSection, ArmorTypeClass::Array[i]->Name.data() , this->Verses[i].Verses * 100);
+	//}
 	//this will break targeting , so use it with caution !
 	pThis->IsOrganic = exINI.ReadBool(pSection, "IsOrganic", &pThis->IsOrganic);
 

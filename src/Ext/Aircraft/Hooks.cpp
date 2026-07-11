@@ -309,3 +309,20 @@ ASMJIT_PATCH(0x415302, AircraftClass_Mission_Unload_IsDropship, 0x6)
 
 	return 0x41530C;
 }
+
+// Allow edge of the map processing on Paradrop_Overfly mission if paradrop end delay is infinite.
+ASMJIT_PATCH(0x4CD54C, FlyLocomotionClass_EdgeOfTheWorldAI_Paradrop, 0x8)
+{
+	enum { Continue = 0x4CD55D, ReturnFromFunction = 0x4CD5F7 };
+
+	GET(AircraftClass*, pLinkedTo, ECX);
+
+	if (pLinkedTo->CurrentMission == Mission::Retreat || (pLinkedTo->CurrentMission == Mission::ParadropOverfly
+		&& AircraftTypeExtContainer::Instance.Find(pLinkedTo->Type)->ParadropEndDelay.Get(RulesExtData::Instance()->ParadropEndDelay) < 0
+		&& !pLinkedTo->Passengers.NumPassengers))
+	{
+		return Continue;
+	}
+
+	return ReturnFromFunction;
+}

@@ -54,7 +54,7 @@ void PhobosAEFunctions::UpdateCumulativeAttachEffects(TechnoClass* pTechno, Phob
 		{
 			pAEWithAnim = attachEffect.get();
 		}
-		else if (attachEffect->CanShowAnim())
+		else if (attachEffect->CanShowAnim(true))
 		{
 			int currentDuration = attachEffect->GetRemainingDuration();
 

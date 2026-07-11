@@ -188,9 +188,9 @@ private:
 
 	void RespawnShield();
 
-	void CreateAnim();
-	void UpdateIdleAnim();
-	AnimTypeClass* GetIdleAnimType() const;
+	void CreateAnim(ShieldTypeClass* pType, AnimTypeClass* idleAnimType = nullptr);
+	void UpdateIdleAnim(ShieldTypeClass* pType, double ratio = 0.0);
+	AnimTypeClass* GetIdleAnimType(ShieldTypeClass* pType, bool idleAnimSet, bool idleAnimDamagedSet, double ratio = 0.0) const;
 
 	void WeaponNullifyAnim(AnimTypeClass* pHitAnim = nullptr);
 	void ResponseAttack(WarheadTypeClass* pWarhead) const;

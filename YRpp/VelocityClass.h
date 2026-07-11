@@ -60,9 +60,9 @@ public:
     }
 
 	//Func_5B2A30
-	void SetPitch (DirStruct* pFixed) {   
+	void SetPitch (DirStruct* pFixed) {  
 		// Horizontal magnitude of XY plane
-		double const xyLen = Math::sqrt(this->X * this->X + this->Y * this->Y);
+		double const xyLen = this->LengthXY();
 
 		// Current pitch angle in radians (angle from horizontal, converted from binary angle units)
 		double const currentPitchRad =

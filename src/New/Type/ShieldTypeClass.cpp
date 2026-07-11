@@ -11,8 +11,8 @@ AnimTypeClass* ShieldTypeClass::GetIdleAnimType(bool isDamaged, double healthRat
 
 	if (isDamaged && damagedAnim)
 		return damagedAnim;
-	else
-		return this->IdleAnim.Get(healthRatio, condYellow, condRed);
+	
+	return this->IdleAnim.Get(healthRatio, condYellow, condRed);
 }
 
 void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)

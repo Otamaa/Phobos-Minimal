@@ -2367,6 +2367,23 @@ bool detail::read<Action>(Action& value, INI_EX& parser, const char* pSection, c
 }
 
 template <>
+bool detail::read<EdgeType>(EdgeType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+{
+	if (parser.ReadString(pSection, pKey)) {
+		for (const auto& [val, str] : EnumFunctions::EdgeType_ToStrings) {
+			if (PhobosCRT::iequals(parser.value(), str)) {
+				value = val;
+				return true;
+			}
+		}
+
+		Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid EdgeType");
+	}
+
+	return false;
+}
+
+template <>
 bool detail::read<CLSID>(CLSID& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 {
 	if (!parser.ReadString(pSection, pKey))

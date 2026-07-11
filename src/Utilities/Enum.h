@@ -34,6 +34,13 @@
 #include <Helpers\EnumFlags.h>
 #include <GeneralDefinitions.h>
 
+enum class EdgeType : BYTE
+{
+	Owner = 0,
+	Closest = 1,
+	Random = 2
+};
+
 enum class DynamicTeamDelayType : int {
 	StartingPoint = 0,
 	PlayerCount = 1,

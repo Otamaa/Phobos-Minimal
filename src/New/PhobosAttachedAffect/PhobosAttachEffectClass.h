@@ -30,7 +30,7 @@ public:
 	void CreateAnim();
 	void UpdateCumulativeAnim(int count);
 	void TransferCumulativeAnim(PhobosAttachEffectClass* pSource);
-	bool CanShowAnim() const;
+	bool CanShowAnim(bool skipAnimCheck = false) const;
 
 	void FirePeriodicWeapon();
 	void LaunchPeriodicBullet(TechnoClass* pFirer, HouseClass* pFirerHouse,

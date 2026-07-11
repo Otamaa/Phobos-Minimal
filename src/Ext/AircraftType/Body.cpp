@@ -90,6 +90,12 @@ bool AircraftTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	this->FiringForceScatter.Read(exINI, pSection, "FiringForceScatter");
 
+	this->SpawnFromEdge.Read(exINI, pSection, "SpawnFromEdge");
+	this->RetreatToEdge.Read(exINI, pSection, "RetreatToEdge");
+
+	this->ParadropDelay.Read(exINI, pSection, "ParadropDelay");
+	this->ParadropEndDelay.Read(exINI, pSection, "ParadropEndDelay");
+
 	return true;
 }
 
@@ -129,7 +135,10 @@ void AircraftTypeExtData::Serialize(T& Stm)
 		.Process(this->CustomMissileRaise)
 		.Process(this->IsCruiseMissile)
 		.Process(this->CustomMissileOffset)
-
+		.Process(this->SpawnFromEdge)
+		.Process(this->RetreatToEdge)
+		.Process(this->ParadropDelay)
+		.Process(this->ParadropEndDelay)
 		;
 }
 

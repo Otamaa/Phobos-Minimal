@@ -817,7 +817,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2918, TechnoTypeExtContainer::__Repair_Cost);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4F88, TechnoTypeExtContainer::__Repair_Cost);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F62C8, TechnoTypeExtContainer::__Repair_Cost);
 
-int __thiscall  TechnoTypeExtContainer::__Time_To_Build(TechnoTypeClass* pThis)
+int __fastcall  TechnoTypeExtContainer::__Time_To_Build(TechnoTypeClass* pThis)
 {
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis);
 	const auto nSeed = pTypeExt->BuildTime_Speed.Get(RulesClass::Instance->BuildSpeed);

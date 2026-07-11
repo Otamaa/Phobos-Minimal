@@ -1024,7 +1024,7 @@ void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 
 		if (shieldType)
 		{
-			if (shieldType->Strength
+			if (shieldType->Strength > 0
 				&& (!pShield
 					|| (this->Shield_ReplaceNonRespawning
 						&& pShield->IsBrokenAndNonRespawning()

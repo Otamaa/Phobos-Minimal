@@ -67,6 +67,7 @@ public :
 	static bool IsValidLandingZone(AircraftClass* pThis);
 
 	static bool PlaceReinforcementAircraft(AircraftClass* pThis, CellStruct edgeCell);
+	static CellStruct PickEdgeCellForPlane(AircraftTypeClass* pPlaneType, CellStruct destCell, Edge edge, bool isOnRetreat = false);
 
 	static bool FireWeapon(AircraftClass* pAir, AbstractClass* pTarget);
 	static int GetDelay(AircraftClass* pThis, bool isLastShot);
@@ -113,6 +114,8 @@ public:
 	int _Mission_SpyPlaneApproach();
 	int _Mission_Move_ForCarryAll();
 	int _Mission_Move();
+	int _Mission_Retreat();
+
 	void _DropOffCarryallCargo();
 
 	bool _Enter_Idle_Mode(bool initial, bool bool2);

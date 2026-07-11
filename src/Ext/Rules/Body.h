@@ -654,6 +654,10 @@ public:
 	Valueable<bool> AllowChatBoxInSinglePlayer {};
 	Valueable<bool> SecondaryFireSequenceLandOnly { true };
 
+	Valueable<int> ParadropDelay { 5 };
+	Valueable<int> ParadropEndDelay { 5 };
+
+	Valueable<bool> DiscardOn_ConsiderHarvestingAsStationary { true };
 #pragma endregion
 
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);

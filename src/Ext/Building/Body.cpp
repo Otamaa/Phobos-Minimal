@@ -1012,7 +1012,7 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		//auto const pOwnerExt = HouseExtContainer::Instance.Find(pOwner);
 
 		// BuildLimit check goes before creation
-		if (((BuildLimitStatus)HouseExtData::BuildLimitGroupCheck(pOwner, pType, true, false)) != BuildLimitStatus::NotReached && HouseExtData::CheckBuildLimit(pOwner, pType, true) != BuildLimitStatus::NotReached)
+		if (((BuildLimitStatus)HouseExtData::BuildLimitGroupUpgradeCheck(pOwner, pType, true, false)) != BuildLimitStatus::NotReached && HouseExtData::CheckBuildLimit(pOwner, pType, true) != BuildLimitStatus::NotReached)
 		{
 			Debug::LogInfo("Fail to Create Limbo Object[{}] because of BuildLimit ! ", pType->get_ID());
 			return;

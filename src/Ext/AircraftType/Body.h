@@ -50,6 +50,12 @@ public:
 	Nullable<bool> IsCruiseMissile { };
 	Nullable<Point2D> CustomMissileOffset {};
 
+	Valueable<EdgeType> SpawnFromEdge { EdgeType::Owner };
+	Valueable<EdgeType> RetreatToEdge { EdgeType::Owner };
+
+	Nullable<int> ParadropDelay {};
+	Nullable<int> ParadropEndDelay {};
+
 	AircraftTypeExtData(AircraftTypeClass* pObj) : FootTypeExtData(pObj)
 	{
 		this->AbsType = AircraftTypeClass::AbsID;

@@ -1389,11 +1389,10 @@ int FakeAircraftClass::_Mission_ParadropOverfly()
 	}
 
 	const int distance = this->DistanceFrom(pTarCom);
+	auto pTypeExt = AircraftTypeExtContainer::Instance.Find(this->Type);
 	const int nRadius = AircraftTypeExtContainer::Instance.Find(this->Type)->ParadropRadius.Get(RulesClass::Instance->ParadropRadius);
 
-
-	if (distance > nRadius)
-	{
+	if (distance > nRadius) {
 		auto paradrop_attempts = this->NumParadropsLeft;
 		this->IsLocked = 0;
 
@@ -1409,12 +1408,22 @@ int FakeAircraftClass::_Mission_ParadropOverfly()
 		return 5;
 	}
 
-	if (MapClass::Instance->IsWithinUsableArea(this->Location))
-	{
+	int delay = 5;
+
+	if (MapClass::Instance->IsWithinUsableArea(this->Location)) {
+
 		this->DropOffParadropCargo();
+		if (this->Passengers.NumPassengers) {
+			delay = pTypeExt->ParadropDelay.Get(RulesExtData::Instance()->ParadropDelay);
+		} else {
+			delay = pTypeExt->ParadropEndDelay.Get(RulesExtData::Instance()->ParadropEndDelay);
+
+			if (delay < 0)
+				delay = INT32_MAX;
+		}
 	}
 
-	return 5;
+	return delay;
 }
 
 int FakeAircraftClass::_Mission_ParadropApproach()
@@ -1751,6 +1760,33 @@ OverrideFlag OverrideMoving(AircraftClass* const pThis , CoordStruct* const pCoo
 		pThis->EnterIdleMode(false, true);
 
 	return OverrideFlag::Idle;
+}
+
+int FakeAircraftClass::_Mission_Retreat()
+{
+	// --- Branch A: NavCom already set ---
+	if (this->NavCom) {
+		// If already AT the nav destination, clear it
+		CellClass* currentCell = this->GetCell();
+
+		if (this->NavCom == currentCell) {
+			this->SetDestination(nullptr, true);
+		}
+		return 3;
+	}
+
+	// --- Branch B: No NavCom — find a retreat cell ---
+	auto edge = this->Owner->GetHouseEdge();
+
+	// Calculate a retreat cell on the map edge
+	CellStruct retreatCell = AircraftExtData::PickEdgeCellForPlane(this->Type, this	->GetMapCoords(), edge, true);
+
+	// Only assign if we got a valid (non-default) cell back
+	if (retreatCell.IsValid()) {
+		this->SetDestination(MapClass::Instance->GetCellAt(retreatCell), true);
+	}
+
+	return 3;
 }
 
 int FakeAircraftClass::_Mission_Move()
@@ -2162,18 +2198,20 @@ bool AircraftExtData::PlaceReinforcementAircraft(AircraftClass* pThis, CellStruc
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	auto coords = CellClass::Cell2Coord(edgeCell);
-	AbstractClass* pTarget = nullptr;
+	AbstractClass* pTarget = pThis->Target ? pThis->Target : pThis->Destination;
+	auto dir = DirType::North;
 
-	if (pTypeExt->SpawnDistanceFromTarget.isset())
-	{
-		pTarget = pThis->Target ? pThis->Target : pThis->Destination;
+	if (pTarget) {
+		auto const pTargetCoords = pTarget->GetCoords();
 
-		if (pTarget)
-			coords = GeneralUtils::CalculateCoordsFromDistance(CellClass::Cell2Coord(edgeCell), pTarget->GetCoords(), pTypeExt->SpawnDistanceFromTarget.Get());
+		if (pTypeExt->SpawnDistanceFromTarget.isset())
+			coords = GeneralUtils::CalculateCoordsFromDistance(CellClass::Cell2Coord(edgeCell), pTargetCoords, pTypeExt->SpawnDistanceFromTarget.Get());
+		
+		dir = GeneralUtils::GetDirectionBetweenCoords(coords, pTargetCoords).GetDir();
 	}
 
 	++Unsorted::ScenarioInit;
-	const bool result = pThis->Unlimbo(coords, DirType::North);
+	const bool result = pThis->Unlimbo(coords, dir);
 	--Unsorted::ScenarioInit;
 
 	pThis->SetHeight(pTypeExt->SpawnHeight.Get(pThis->Type->GetFlightLevel()));
@@ -2182,6 +2220,48 @@ bool AircraftExtData::PlaceReinforcementAircraft(AircraftClass* pThis, CellStruc
 		pThis->PrimaryFacing.Set_Desired(pThis->GetDirectionOverObject(pTarget));
 
 	return result;
+}
+
+CellStruct AircraftExtData::PickEdgeCellForPlane(AircraftTypeClass* pPlaneType, CellStruct destCell, Edge edge, bool isOnRetreat)
+{
+	auto const pTypeExt = AircraftTypeExtContainer::Instance.Find(pPlaneType);
+	auto const edgeMode = !isOnRetreat ? pTypeExt->SpawnFromEdge : pTypeExt->RetreatToEdge;
+	auto spawnEdge = edge;
+	auto refCell = CellStruct::Empty;
+
+	switch (edgeMode)
+	{
+	case EdgeType::Closest:
+	{
+		if (destCell != CellStruct::Empty)
+		{
+			spawnEdge = Edge::None;
+			refCell = destCell;
+
+			// Scatter the coords a bit to randomize spawn cell a little - otherwise multiple planes sent at same target
+			// from same source might end up overlapping - still a possibility, just less likely.
+			// The edge cell picking function itself will do no randomization on Edge::None + waypoint cell set mode.
+			int const randomRange = 5;
+			short const randomX = static_cast<short>(ScenarioClass::Instance->Random.RandomRanged(-randomRange, randomRange));
+			short const randomY = static_cast<short>(ScenarioClass::Instance->Random.RandomRanged(-randomRange, randomRange));
+			refCell += CellStruct { randomX, randomY };
+		}
+		break;
+	}
+	case EdgeType::Random:
+	{
+		int const min = static_cast<int>(Edge::North);
+		int const max = static_cast<int>(Edge::West);
+		spawnEdge = static_cast<Edge>(ScenarioClass::Instance->Random.RandomRanged(min, max));
+		break;
+	}
+	default:
+	{
+		break;
+	}
+	}
+
+	return MapClass::Instance->PickCellOnEdge(spawnEdge, refCell, CellStruct::Empty, SpeedType::Winged, true, MovementZone::Normal);
 }
 
 void AircraftExtData::TriggerCrashWeapon(AircraftClass* pThis, int nMult)

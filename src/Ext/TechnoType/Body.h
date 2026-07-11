@@ -3228,7 +3228,7 @@ public:
 
 
 	static int __fastcall __Repair_Cost(TechnoTypeClass* pThis);
-	static int __thiscall  __Time_To_Build(TechnoTypeClass* pThis);
+	static int __fastcall  __Time_To_Build(TechnoTypeClass* pThis);
 
 	COMPILETIMEEVAL FORCEDINLINE  TechnoTypeExtData* GetExtAttribute(TechnoTypeClass* key)
 	{

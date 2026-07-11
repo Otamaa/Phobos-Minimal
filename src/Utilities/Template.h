@@ -836,6 +836,16 @@ public:
 		return Get(pTechno->GetHealthRatio(), RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed);
 	}
 
+	COMPILETIMEEVAL bool isset() const noexcept
+	{
+		return this->BaseValue || this->ConditionYellow.isset() || this->ConditionRed.isset();
+	}
+
+	COMPILETIMEEVAL bool isDamagedValueSet() const noexcept
+	{
+		return this->ConditionYellow.isset() || this->ConditionRed.isset();
+	}
+
 	COMPILETIMEEVAL const T& Get(double ratio) const noexcept
 	{
 		return Get(ratio, RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed);

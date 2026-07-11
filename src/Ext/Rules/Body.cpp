@@ -118,17 +118,6 @@ void RulesExtData::ReplaceVoxelLightSources()
 // to makesure everything is properly allocated from the list
 void RulesExtData::s_LoadBeforeTypeData(FakeRulesClass* pThis, CCINIClass* pINI)
 {
-	InsigniaTypeClass::LoadFromINIList(pINI);
-
-	// we override it , so it loaded before any type read happen , so all the properties will correcly readed
-	pThis->_ReadCrateRules(pINI);
-	pThis->_ReadCombatDamage(pINI);
-	pThis->_ReadRadiation(pINI);
-	pThis->_ReadElevationModel(pINI);
-	pThis->_ReadWallModel(pINI);
-	pThis->_ReadAudioVisual(pINI);
-	pThis->_ReadSpecialWeapons(pINI);
-
 	RadTypeClass::AddDefaults();
 	HoverTypeClass::AddDefaults();
 
@@ -215,27 +204,13 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	if (pThis->WallTower && !pData->WallTowers.Contains(pThis->WallTower))
 		pData->WallTowers.push_back(pThis->WallTower);
-
-	for (int i = 0; i < WeaponTypeClass::Array->Count; ++i)
-	{
-		WeaponTypeClass::Array->Items[i]->LoadFromINI(pINI);
-	}
-
-	for (int i = 0; i < BuildingTypeClass::Array->Count; ++i)
-	{
-		BuildingTypeExtContainer::Instance.Find(BuildingTypeClass::Array->Items[i])
-			->CompleteInitialization();
-	}
-
-	pData->ReplaceVoxelLightSources();
 }
 
 static bool NOINLINE IsVanillaDummy(const char* ID)
 {
 	static COMPILETIMEEVAL const char* exception[] = { "DeathDummy" , "WEEDGUY" , "YDUM" };
 
-	for (auto const& gameDummy : exception)
-	{
+	for (auto const& gameDummy : exception) {
 		if (IS_SAME_STR_(ID, gameDummy))
 			return true;
 	}
@@ -374,6 +349,9 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 		this->TeamDelays[i].Read(exINI, GameStrings::General, (_teamDelay_tag + std::to_string(i + 1)).c_str());
 	}
 
+	this->ParadropDelay.Read(exINI, GameStrings::General, "ParadropDelay");
+	this->ParadropEndDelay.Read(exINI, GameStrings::General, "ParadropEndDelay");
+	this->DiscardOn_ConsiderHarvestingAsStationary.Read(exINI, GameStrings::General, "DiscardOn.ConsiderHarvestingAsStationary");
 	this->PrismRelay_SupportTimeout.Read(exINI, GameStrings::General, "PrismRelay.SupportTimeout");
 	exINI.Read3Bool(GameStrings::General, "CampaignAllowHarvesterScanUnderShroud", this->CampaignAllowHarvesterScanUnderShroud);
 	this->AttackMove_IgnoreWeaponCheck.Read(exINI, GameStrings::General, "AttackMove.IgnoreWeaponCheck");
@@ -1115,6 +1093,9 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->AutoRemoveEarliestBeacon)
 		.Process(this->AllowChatBoxInSinglePlayer)
 		.Process(this->SecondaryFireSequenceLandOnly)
+		.Process(this->ParadropDelay)
+		.Process(this->ParadropEndDelay)
+		.Process(this->DiscardOn_ConsiderHarvestingAsStationary)
 		;
 }
 
@@ -1755,48 +1736,6 @@ void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 	}
 
 	RocketTypeClass::ReadListFromINI(pINI);
-
-	SideClass::Array->for_each([pINI](SideClass* pSide) {
-		SideExtContainer::Instance.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
-	});
-
-	HouseTypeClass::Array->for_each([pINI](HouseTypeClass* pHouse) {
-		HouseTypeExtContainer::Instance.LoadFromINI(pHouse, pINI, !pINI->GetSection(pHouse->ID));
-	});
-
-	// All TypeClass Created but not yet read INI
-	//	RulesClass::Initialized = true;
-
-	RulesExtData::s_LoadBeforeTypeData(this, pINI);
-	this->Read_Types(pINI);
-
-	// Ensure entry not fail because of late instantiation
-	// add more if needed , it will double the error log at some point
-	// but it will take care some of missing stuffs that previously loaded late
-
-	for (auto pWeapon : *WeaponTypeClass::Array) {
-		pWeapon->LoadFromINI(pINI);
-	}
-
-	for (auto pBullet : *BulletTypeClass::Array) {
-		pBullet->LoadFromINI(pINI);
-	}
-
-	for (auto pWarhead : *WarheadTypeClass::Array) {
-		pWarhead->LoadFromINI(pINI);
-	}
-
-	for (auto pAnims : *AnimTypeClass::Array) {
-		pAnims->LoadFromINI(pINI);
-	}
-
-	RulesExtData::LoadAfterTypeData(this, pINI);
-	this->_ReadDifficulty(pINI);
-
-	for (auto pTib : *TiberiumClass::Array) {
-		//Debug::LogInfo("Reading Tiberium[{}] Configurations!", pTib->ID);
-		pTib->LoadFromINI(pINI);
-	}
 }
 
 void RulesExtData::InitializeAfterAllRulesLoaded()
@@ -2813,7 +2752,7 @@ void FakeRulesClass::_ReadDifficulty(CCINIClass* pINI)
 
 	DiffGet(this->DifficultyConfigs[ParsedDifficulty::Easy], pINI, "Easy");
 	DiffGet(this->DifficultyConfigs[ParsedDifficulty::Normal], pINI, "Normal");
-	DiffGet(this->DifficultyConfigs[ParsedDifficulty::Hard], pINI, "Hard");
+	DiffGet(this->DifficultyConfigs[ParsedDifficulty::Hard], pINI, "Difficult");
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x674500, FakeRulesClass::_ReadDifficulty)
@@ -3450,12 +3389,14 @@ void ReadArray(CCINIClass* pINI, const char* pSection) {
 
 	Debug::Log("Processing %s.\n" , pSection);
 
-	if (!pINI->GetSection(pSection))
+	if (!pINI->GetSection(pSection)) {
+		Debug::Log("Cannot Find %s section.\n", pSection);
 		return;
+	}
 
 	for (int i = 0; i < pINI->GetKeyCount(pSection); ++i) {
 		char _buffer[32];
-		if (pINI->GetString(pSection, pINI->GetKeyName(pSection, i), _buffer)) {
+		if (pINI->GetString(pSection, pINI->GetKeyName(pSection, i), _buffer) > 0) {
 			T::FindOrAllocate(_buffer);
 		}
 	}
@@ -3470,38 +3411,41 @@ void FakeRulesClass::_Process(CCINIClass* pINI)
 	this->_ReadColors(pINI);
 	this->_ReadJumpjetControls(pINI);
 	this->_ReadColorAdd(pINI);
-	
-	ReadArray<HouseTypeClass>(pINI, "Countries");
-	this->Read_Sides(pINI);
-	ReadArray<OverlayTypeClass>(pINI, "OverlayTypes");
-	ReadArray<SuperWeaponTypeClass>(pINI, "SuperWeaponTypes");
-
-	//0x668D86 RulesData_Process_PreFillTypeListData
 
 	{
-		ReadArray<BulletTypeClass>(pINI, "Projectiles");
+		ReadArray<HouseTypeClass>(pINI, "Countries");
+		//for (int i = 0; i < HouseTypeClass::Array->Count; ++i)
+		//	Debug::Log("House [%s] At %d FP %f\n", HouseTypeClass::Array->Items[i]->ID, i, HouseTypeClass::Array->Items[i]->FirepowerMult);
 
-		RulesExtData::Instance()->DefaultBulletType = BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
-		if (!RulesExtData::Instance()->DefaultBulletType)
-			Debug::FatalError("Uneable to Allocate {} BulletType ! ", DEFAULT_STR2);
+		this->Read_Sides(pINI);
+		ReadArray<OverlayTypeClass>(pINI, "OverlayTypes");
+		ReadArray<SuperWeaponTypeClass>(pINI, "SuperWeaponTypes");
 
-		ReadArray<WeaponTypeClass>(pINI,"WeaponTypes");
+		//0x668D86 RulesData_Process_PreFillTypeListData
 
-		ReadArray<WarheadTypeClass>(pINI,"Warheads");
+		{
+			ReadArray<BulletTypeClass>(pINI, "Projectiles");
+			ReadArray<TiberiumClass>(pINI, "Tiberiums");
 
-		ReadArray<TiberiumClass>(pINI,"Tiberiums");
+			RulesExtData::Instance()->DefaultBulletType = BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
+			if (!RulesExtData::Instance()->DefaultBulletType)
+				Debug::FatalError("Uneable to Allocate {} BulletType ! ", DEFAULT_STR2);
+
+			ReadArray<WeaponTypeClass>(pINI,"WeaponTypes");
+			ReadArray<WarheadTypeClass>(pINI,"Warheads");		
+		}
+
+		ReadArray<SmudgeTypeClass>(pINI,"SmudgeTypes");
+		ReadArray<TerrainTypeClass>(pINI,"TerrainTypes");
+		ReadArray<BuildingTypeClass>(pINI,"BuildingTypes");
+		ReadArray<UnitTypeClass>(pINI,"VehicleTypes");
+		ReadArray<AircraftTypeClass>(pINI,"AircraftTypes");
+		ReadArray<InfantryTypeClass>(pINI,"InfantryTypes");
+		ReadArray<AnimTypeClass>(pINI,"Animations");
+		ReadArray<VoxelAnimTypeClass>(pINI,"VoxelAnims");
+		ReadArray<ParticleTypeClass>(pINI,"Particles");
+		ReadArray<ParticleSystemTypeClass>(pINI,"ParticleSystems");
 	}
-
-	ReadArray<SmudgeTypeClass>(pINI,"SmudgeTypes");
-	ReadArray<TerrainTypeClass>(pINI,"TerrainTypes");
-	ReadArray<BuildingTypeClass>(pINI,"BuildingTypes");
-	ReadArray<UnitTypeClass>(pINI,"VehicleTypes");
-	ReadArray<AircraftTypeClass>(pINI,"AircraftTypes");
-	ReadArray<InfantryTypeClass>(pINI,"InfantryTypes");
-	ReadArray<AnimTypeClass>(pINI,"Animations");
-	ReadArray<VoxelAnimTypeClass>(pINI,"VoxelAnims");
-	ReadArray<ParticleTypeClass>(pINI,"Particles");
-	ReadArray<ParticleSystemTypeClass>(pINI,"ParticleSystems");
 
 	this->_ReadMPlayer(pINI);
 	this->_ReadAI(pINI);
@@ -3509,13 +3453,70 @@ void FakeRulesClass::_Process(CCINIClass* pINI)
 	this->_ReadLandTypes(pINI);
 	this->_ReadIQ(pINI);
 	this->_ReadGeneral(pINI);
-	RulesExtData::InitializeAfterAllRulesLoaded();
-	this->_ReadCrateRules(pINI);
-	this->_ReadRadiation(pINI);
-	this->_ReadElevationModel(pINI);
-	this->_ReadWallModel(pINI);
-	this->_ReadAudioVisual(pINI);
-	this->_ReadSpecialWeapons(pINI);
+
+	{	SideClass::Array->for_each([pINI](SideClass* pSide) {
+			SideExtContainer::Instance.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
+		});
+
+	//
+		HouseTypeClass::Array->for_each([pINI](HouseTypeClass* pHouse) {
+			HouseTypeExtContainer::Instance.LoadFromINI(pHouse, pINI, !pINI->GetSection(pHouse->ID));
+		});
+	}
+
+	{
+		InsigniaTypeClass::LoadFromINIList(pINI);
+
+		this->_ReadCrateRules(pINI);
+		this->_ReadCombatDamage(pINI);
+		this->_ReadRadiation(pINI);
+		this->_ReadElevationModel(pINI);
+		this->_ReadWallModel(pINI);
+		this->_ReadAudioVisual(pINI);
+		this->_ReadSpecialWeapons(pINI);
+
+		RulesExtData::s_LoadBeforeTypeData(this, pINI);
+		this->Read_Types(pINI);
+		RulesExtData::LoadAfterTypeData(this, pINI);
+
+		// Ensure entry not fail because of late instantiation
+		// add more if needed , it will double the error log at some point
+		// but it will take care some of missing stuffs that previously loaded late
+
+		for (int i = 0; i < BuildingTypeClass::Array->Count; ++i) {
+			BuildingTypeExtContainer::Instance.Find(BuildingTypeClass::Array->Items[i])
+				->CompleteInitialization();
+		}
+
+		RulesExtData::Instance()->ReplaceVoxelLightSources();
+
+		for (auto pWeapon : *WeaponTypeClass::Array) {
+			pWeapon->LoadFromINI(pINI);
+		}
+
+		for (auto pBullet : *BulletTypeClass::Array) {
+			pBullet->LoadFromINI(pINI);
+		}
+
+		for(int i = 0; i < WarheadTypeClass::Array->Count; ++i) {
+			Debug::Log("WH [%s] At %d\n", WarheadTypeClass::Array->Items[i]->ID, i);
+
+			WarheadTypeClass::Array->Items[i]->LoadFromINI(pINI);
+		}
+
+		for (auto pAnims : *AnimTypeClass::Array) {
+			pAnims->LoadFromINI(pINI);
+		}
+
+		this->_ReadDifficulty(pINI);
+
+		for (auto pTib : *TiberiumClass::Array) {
+			//Debug::LogInfo("Reading Tiberium[{}] Configurations!", pTib->ID);
+			pTib->LoadFromINI(pINI);
+		}
+
+		RulesExtData::InitializeAfterAllRulesLoaded();
+	}
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x668BF0, FakeRulesClass::_Process)

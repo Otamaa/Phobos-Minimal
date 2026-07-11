@@ -552,9 +552,10 @@ public:
 	static int BuildBuildingLimitRemaining(HouseClass* pHouse, BuildingTypeClass* pItem);
 	static int CheckBuildingBuildLimit(HouseClass* pHouse, BuildingTypeClass* pItem, bool const includeQueued);
 	static int CountOwnedIncludeDeploy(const HouseClass* pThis, const TechnoTypeClass* pItem);
-
+	static CanBuildResult BuildLimitGroupUpgradeCheck(HouseClass* pThis, TechnoTypeClass* pItem, bool buildLimitOnly, bool includeQueued);
+	static CanBuildResult BuildLimitGroupCheck(HouseClass* pThis, TechnoTypeClass* pItem, bool buildLimitOnly, bool includeQueued);//old version of BuildLimitGroupUpgradeCheck
 	static std::vector<int> GetBuildLimitGroupLimits(HouseClass* pHouse,TechnoTypeClass* pType);
-	static CanBuildResult BuildLimitGroupCheck(HouseClass* pThis, TechnoTypeClass* pItem, bool buildLimitOnly, bool includeQueued);
+
 	static int QueuedNum(const HouseClass* pHouse, const TechnoTypeClass* pType);
 	static void RemoveProduction(const HouseClass* pHouse, const TechnoTypeClass* pType, int num);
 	static bool ReachedBuildLimit(HouseClass* pHouse, TechnoTypeClass* pType, bool ignoreQueued);

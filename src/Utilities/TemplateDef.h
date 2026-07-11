@@ -464,6 +464,9 @@ namespace detail
 	bool read<Action>(Action& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
+	bool read<EdgeType>(EdgeType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
+
+	template <>
 	bool read<CLSID>(CLSID& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <typename T, bool clearvec = true>

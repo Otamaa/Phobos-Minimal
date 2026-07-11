@@ -488,11 +488,14 @@ void PhobosAttachEffectClass::TransferCumulativeAnim(PhobosAttachEffectClass* pS
 	pSource->HasCumulativeAnim = false;
 }
 
-bool PhobosAttachEffectClass::CanShowAnim() const
+bool PhobosAttachEffectClass::CanShowAnim(bool skipAnimCheck) const
 {
-	return (!this->IsUnderTemporal || this->Type->Animation_TemporalAction != AttachedAnimFlag::Hides)
-		&& (this->IsOnline || this->Type->Animation_OfflineAction != AttachedAnimFlag::Hides)
-		&& !this->IsCloaked && !this->IsInTunnel && !this->IsAnimHidden;
+	const auto pType = this->Type;
+
+	return pType->Animation || skipAnimCheck || this->HasCumulativeAnim
+		&& (this->IsOnline || pType->Animation_OfflineAction != AttachedAnimFlag::Hides)
+		&& (!this->IsUnderTemporal || pType->Animation_TemporalAction != AttachedAnimFlag::Hides)
+		&& !this->IsAnimHidden && !this->IsInTunnel;
 }
 
 void PhobosAttachEffectClass::OnlineCheck()
@@ -569,12 +572,10 @@ void PhobosAttachEffectClass::CloakCheck()
 void PhobosAttachEffectClass::CreateAnim()
 {
 	//Debug::LogInfo(__FUNCTION__" Executed [%s - %s]", this->Techno->GetThisClassName(), this->Techno->get_ID());
-	if (!this->Type)
-		return;
-
+	auto const pType = this->Type;
 	AnimTypeClass* pAnimType = nullptr;
 
-	if (this->Type->Cumulative && this->Type->CumulativeAnimations.HasValue())
+	if (pType->Cumulative && pType->CumulativeAnimations.HasValue())
 	{
 		if (!this->HasCumulativeAnim || this->Type->CumulativeAnimations.empty())
 			return;
@@ -587,6 +588,9 @@ void PhobosAttachEffectClass::CreateAnim()
 	{
 		pAnimType = this->SelectedAnim;
 	}
+
+	if(!pAnimType)
+		return;
 
 	if (this->IsCloaked && AnimTypeExtContainer::Instance.Find(pAnimType)->DetachOnCloak)
 		return;
@@ -673,6 +677,15 @@ bool _retTrue(bool& check) {
 	return true;
 }
 
+bool _retFalse(bool& check)
+{
+	check = false;
+	return false;
+}
+
+
+#include <InfantryClass.h>
+
 bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 {
 	if (this->LastDiscardCheckFrame == Unsorted::CurrentFrame())
@@ -692,23 +705,41 @@ bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 
 	if(this->Type->DiscardOn != DiscardCondition::None){
 		if (auto const pFoot = flag_cast_to<FootClass*, false>(this->Techno)) {
-			const bool isMoving = this->Type->DiscardOn_ConsiderHoverAsMoving.Get(RulesExtData::Instance()->DiscardOn_ConsiderHoverAsMoving)
+			const bool isMoving = this->Type->DiscardOn_MoveBasedOnDestination.Get(RulesExtData::Instance()->DiscardOn_ConsiderHoverAsMoving)
 				? pFoot->Locomotor->Is_Moving()
 				: pFoot->Locomotor->Is_Really_Moving_Now();
 
 			if (isMoving && (this->Type->DiscardOn & DiscardCondition::Move) != DiscardCondition::None)
 				return _retTrue(this->LastDiscardCheckValue);
+			else
+			{
+				//notMoving
+				//short circuit 
+				if(this->Type->DiscardOn_ConsiderHarvestingAsStationary.Get(RulesExtData::Instance()->DiscardOn_ConsiderHarvestingAsStationary)) {
+					if ((this->Type->DiscardOn & DiscardCondition::Stationary) != DiscardCondition::None)
+						return _retTrue(this->LastDiscardCheckValue);
+				}
+				else // other path
+				{
+					const auto mission = pFoot->CurrentMission;
+					bool isHarvestingNow = false;
 
-			if (!isMoving && (this->Type->DiscardOn & DiscardCondition::Stationary) != DiscardCondition::None)
-				return _retTrue(this->LastDiscardCheckValue);
+					if (auto const pUnit = cast_to<UnitClass*>(pFoot))
+						isHarvestingNow = pUnit->IsHarvesting;
+					else if (auto const pInf = cast_to<InfantryClass*>(pFoot))
+						isHarvestingNow = (pInf->SequenceAnim == DoType::Shovel);
 
-			const auto mission = pFoot->CurrentMission;
-
-			if ((this->Type->DiscardOn & DiscardCondition::Harvesting) != DiscardCondition::None
-				&& mission == Mission::Harvest
-				&& !pFoot->Locomotor->Is_Really_Moving_Now()
-				&& pFoot->GetCell()->LandType == LandType::Tiberium)
-				return _retTrue(this->LastDiscardCheckValue);
+					if (isHarvestingNow && (this->Type->DiscardOn & DiscardCondition::Harvesting) != DiscardCondition::None) {
+						return _retTrue(this->LastDiscardCheckValue);
+					}
+					else if (pFoot->CurrentMission == Mission::Harvest && pFoot->GetCell()->LandType == LandType::Tiberium) {
+						// Handle the intermediate state that is about to start harvesting but does not satisfy the above judgment.
+						return _retFalse(this->LastDiscardCheckValue);
+					} else if ((this->Type->DiscardOn & DiscardCondition::Stationary) != DiscardCondition::None) {
+						return _retTrue(this->LastDiscardCheckValue);
+					}
+				}
+			}
 		}
 
 		if (this->Techno->DrainingMe && (this->Type->DiscardOn & DiscardCondition::Drain) != DiscardCondition::None)
@@ -752,8 +783,7 @@ bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 		}
 	}
 
-	this->LastDiscardCheckValue = false;
-	return false;
+	return _retFalse(this->LastDiscardCheckValue);
 }
 
 #pragma region StaticFunctions_AttachDetachTransfer

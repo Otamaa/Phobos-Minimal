@@ -137,26 +137,44 @@ ASMJIT_PATCH(0x6F01B0, TMission_ChronoShiftToTarget_SuperWeapons, 0x6)
 	return SkipGameCode;
 }
 
-ASMJIT_PATCH(0x65EB8D, HouseClass_SendSpyPlanes_PlaceAircraft, 0x6)
-{
-	enum { SkipGameCode = 0x65EBE5, SkipGameCodeNoSuccess = 0x65EC12 };
-
-	GET(AircraftClass* const, pAircraft, ESI);
-	GET(CellStruct const, edgeCell, EDI);
-
-	bool result = AircraftExtData::PlaceReinforcementAircraft(pAircraft, edgeCell);
-
-	return result ? SkipGameCode : SkipGameCodeNoSuccess;
-}
-
 ASMJIT_PATCH(0x65E997, HouseClass_SendAirstrike_PlaceAircraft, 0x6)
 {
 	enum { SkipGameCode = 0x65E9EE, SkipGameCodeNoSuccess = 0x65EA8B };
 
-	GET(AircraftClass* const, pAircraft, ESI);
-	GET(CellStruct const, edgeCell, EDI);
+	GET(AircraftClass*, pAircraft, ESI);
+	GET(CellStruct, edgeCell, EDI);
 
-	bool result = AircraftExtData::PlaceReinforcementAircraft(pAircraft, edgeCell);
+	const bool result = AircraftExtData::PlaceReinforcementAircraft(pAircraft, edgeCell);
+
+	return result ? SkipGameCode : SkipGameCodeNoSuccess;
+}
+
+ASMJIT_PATCH(0x65E881, HouseClass_SendAirstrike_PickEdgeCell, 0x5)
+{
+	enum { SkipGameCode = 0x65E8A0 };
+
+	GET(AircraftTypeClass* const, pAircraftType, EBP);
+	GET(Edge const, edge, EAX);
+	GET_STACK(AbstractClass* const, navCom, STACK_OFFSET(0x38, 0x10));
+	GET_STACK(AbstractClass* const, tarCom, STACK_OFFSET(0x38, 0xC));
+	REF_STACK(CellStruct, edgeCell, STACK_OFFSET(0x38, -0x1C));
+
+	const auto pTarget = tarCom ? tarCom : navCom;
+	const auto targetCell = pTarget ? CellClass::Coord2Cell(pTarget->GetCoords()) : CellStruct::Empty;
+	edgeCell = AircraftExtData::PickEdgeCellForPlane(pAircraftType, targetCell, edge);
+
+	R->EAX(&edgeCell);
+	return SkipGameCode;
+}
+
+ASMJIT_PATCH(0x65E73A, HouseClass_SendParadrop_PlaceAircraft, 0x5)
+{
+	enum { SkipGameCode = 0x65E79B, SkipGameCodeNoSuccess = 0x65E82C };
+
+	GET(AircraftClass* const, pAircraft, ESI);
+	GET(CellStruct, edgeCell, EDI);
+
+	const bool result = AircraftExtData::PlaceReinforcementAircraft(pAircraft, edgeCell);
 
 	return result ? SkipGameCode : SkipGameCodeNoSuccess;
 }

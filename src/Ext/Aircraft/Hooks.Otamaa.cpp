@@ -26,7 +26,8 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2514, FakeAircraftClass::_Mission_SpyPlaneOverf
 DEFINE_FUNCTION_JUMP(LJMP, 0x4157C0, FakeAircraftClass::_Mission_SpyPlaneOverfly)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E24D0, FakeAircraftClass::_Mission_Move)
 DEFINE_FUNCTION_JUMP(LJMP, 0x4166C0, FakeAircraftClass::_Mission_Move)
-
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E24D4, FakeAircraftClass::_Mission_Retreat)
+DEFINE_FUNCTION_JUMP(LJMP, 0x415A50, FakeAircraftClass::_Mission_Retreat)
 // ASMJIT_PATCH(0x417A2E, AircraftClass_EnterIdleMode_Opentopped, 0x5)
 // {
 // 	GET(AircraftClass*, pThis, ESI);

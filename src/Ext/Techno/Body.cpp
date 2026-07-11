@@ -9542,8 +9542,6 @@ void TechnoExtData::SendPlane(AircraftTypeClass* Aircraft, size_t Amount, HouseC
 			continue ;
 
 		pPlane->Spawned = true;
-		//randomized
-		const auto nCell = MapClass::Instance->PickCellOnEdge(edge, CellStruct::Empty, CellStruct::Empty, SpeedType::Winged, true, MovementZone::Normal);
 		pPlane->QueueMission(result, false);
 
 		if (SendRank != Rank::Rookie && SendRank != Rank::Invalid && pPlane->CurrentRanking < SendRank)
@@ -9555,6 +9553,7 @@ void TechnoExtData::SendPlane(AircraftTypeClass* Aircraft, size_t Amount, HouseC
 		if (pTarget)
 			pPlane->SetTarget(pTarget);
 
+		const auto nCell = AircraftExtData::PickEdgeCellForPlane(Aircraft, pTarget ? CellClass::Coord2Cell(pTarget->GetCoords()) : pDest ? CellClass::Coord2Cell(pDest->GetCoords()) : CellStruct::Empty, edge);
 		bool UnLimboSucceeded = AircraftExtData::PlaceReinforcementAircraft(pPlane , nCell);
 
 		if (!UnLimboSucceeded)  {
@@ -9953,11 +9952,13 @@ double TechnoExtData::GetArmorMult(TechnoClass* pSource, double damageIn, Warhea
 
 	return _result;
 }
-
+//#pragma optimize("", off )
 double TechnoExtData::GetDamageMult(TechnoClass* pSource){
 	double mult = pSource->FirepowerMultiplier;
 
-	if(pSource->Owner) {
+	//Debug::Log("User , FP %f\n", pSource->Owner->FirepowerMultiplier);
+
+	if(pSource->Owner && pSource->Owner->FirepowerMultiplier != 0.0) {
 		mult *= pSource->Owner->FirepowerMultiplier;
 	}
 
@@ -9975,7 +9976,7 @@ double TechnoExtData::ApplyDamageMult(TechnoClass* pSource, double damageIn , bo
 
 	return (damageIn * TechnoExtData::GetDamageMult(pSource));
 }
-
+//#pragma optimize("", on )
 // apply the additional damage mult from some vanilla tags
 double TechnoExtData::ApplyAdditionalDamageMult(TechnoClass* pThis, double damageIn)
 {

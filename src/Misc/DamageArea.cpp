@@ -1308,6 +1308,7 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 //DEFINE_FUNCTION_JUMP(CALL, 0x74A1E1, DamageArea::Apply);
 
 #ifndef _ENABLE
+//#pragma optimize("", off )
 
 // Obviously, it is unreasonable for a large-scale damage like a nuke to only cause damage to units
 // located on or under the bridge that are in the same position as the damage center point
@@ -1791,6 +1792,50 @@ ASMJIT_PATCH(0x48964F, DamageArea_CellChainReaction, 5)
 	return 0;
 }
 
+//ASMJIT_PATCH(0x489280, DamageArea_Entry, 0x6)
+//{
+//	GET_STACK(DWORD, caller, 0x0);
+//	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
+//	GET(int, Damage, ESI);
+//	auto pExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
+//
+//	for (int i = 0; i < pExt->Verses.size(); ++i) {
+//		Debug::Log("DamageArea_Entry caller %d WH [%s] Armor %s verses %f\n", caller , pWarhead->ID, ArmorTypeClass::Array[i]->Name.data(), pExt->Verses[i].Verses * 100);
+//	}
+//
+//	return 0x0;
+//}
+//
+//DamageAreaResult __fastcall DamageArea_Apply2(CoordStruct* pCoord,
+//		int damage,
+//		TechnoClass* pSource,
+//		WarheadTypeClass* pWarhead,
+//		bool affectTiberium,
+//		HouseClass* pHouse)
+//{
+//
+//	JMP_FAST(0x489280);
+//}
+//
+//DamageAreaResult __fastcall DamageArea_Apply2W(CoordStruct* pCoord,
+//		int damage,
+//		TechnoClass* pSource,
+//		WarheadTypeClass* pWarhead,
+//		bool affectTiberium,
+//		HouseClass* pHouse)
+//{
+//	return DamageArea_Apply2(pCoord, damage, pSource, pWarhead, affectTiberium, pHouse);
+//}
+//#include <BulletClass.h>
+//
+//ASMJIT_PATCH(0x469A56, BulletClass_Logics_Probe, 0x7)
+//{
+//	GET(BulletClass*, pThis, ESI);
+//	GET_BASE(CoordStruct*, pCoord, 0x8);
+//	DamageArea_Apply2(pCoord, pThis->Health, pThis->Owner, pThis->WH, true, pThis->Owner->Owner);
+//	return 0x469A88;
+//}
+
 ASMJIT_PATCH(0x4892BE, DamageArea_NullDamage, 0x6)
 {
 	enum
@@ -1802,9 +1847,15 @@ ASMJIT_PATCH(0x4892BE, DamageArea_NullDamage, 0x6)
 	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
 	GET(int, Damage, ESI);
 
+	auto pExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
+
+	//for (int i = 0; i < pExt->Verses.size(); ++i) {
+	//	Debug::Log("DamageArea_NullDamage WH [%s] Armor %s verses %f\n", pWarhead->ID, ArmorTypeClass::Array[i]->Name.data(), pExt->Verses[i].Verses * 100);
+	//}
+
 	if (!pWarhead
 		|| ((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x20) != 0)
-		|| !Damage && !WarheadTypeExtContainer::Instance.Find(pWarhead)->AllowZeroDamage)
+		|| !Damage && !pExt->AllowZeroDamage)
 		return DeleteDamageAreaVector;
 
 	R->ESI(pWarhead);
@@ -2104,3 +2155,4 @@ ASMJIT_PATCH(0x489710, MapClass_DamageArea_CheckHeight_2, 0x7)
 //}
 //
 //DEFINE_FUNCTION_JUMP(CALL6, 0x489AB6, TT_ReceiveDamage);
+//#pragma optimize("", on )

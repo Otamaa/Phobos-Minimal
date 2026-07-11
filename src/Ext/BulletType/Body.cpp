@@ -232,7 +232,7 @@ bool BulletTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	if (pArtInI && pArtInI->GetSection(pArtSection)){
 		INI_EX exArtINI(pArtInI);
-
+		this->ZAdjust.Read(exArtINI, pSection, "ZAdjust");
 		//LineTrailData::LoadFromINI(this->LineTrailData, exArtINI, pArtSection);
 		this->Parachute.Read(exArtINI, pArtSection, GameStrings::Parachute());
 		if(!trailReaded) {
@@ -311,6 +311,7 @@ void BulletTypeExtData::Serialize(T& Stm)
 		.Process(this->ImageConvert)
 		.Process(this->Parachuted)
 		.Process(this->Parachuted_FallRate)
+		.Process(this->ZAdjust)
 		.Process(this->Parachuted_MaxFallRate)
 		.Process(this->Parachuted_Remap)
 		.Process(this->AnimLength)
