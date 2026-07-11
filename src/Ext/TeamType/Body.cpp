@@ -11,40 +11,27 @@ bool TeamTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	auto pThis = this->This();
 	const char* pSection = pThis->ID;
 	INI_EX exINI(pINI);
-
-	//this->IsDischargedMemberAutocreateRecruitable.Read(exINI, pSection, "IsDischargedMemberAutocreateRecruitable");
+	this->IsDischargedMemberAutocreateRecruitable.Read(exINI, pSection, "IsDischargedMemberAutocreateRecruitable");
+	this->AI_SafeDIstance.Read(exINI, pSection, "AISafeDistance");
+	this->AI_FriendlyDistance.Read(exINI, pSection, "AIFriendlyDistance");
+	this->AttackWaypoint_AllowCell.Read(exINI, pSection, "AttackWaypoint.AllowCell");
 	return true;
 }
 
-/*
-void TeamTypeExt::ExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
-{
-	auto pThis = this->Get();
-	const char* pSection = pThis->ID;
-
-	if (!pINI->GetSection(pSection))
-		return;
-
-	INI_EX exINI(pINI);
-	this->AI_SafeDIstance.Read(exINI, pSection, "AISafeDistance");
-	this->AI_FriendlyDistance.Read(exINI, pSection, "AIFriendlyDistance");
-	//this->AttackWaypoint_AllowCell.Read(exINI, pSection, "AttackWaypoint.AllowCell");
-}
-*/
 // =============================
 // load / save
 
-//template <typename T>
-//void TeamTypeExt::ExtData::Serialize(T& Stm)
-//{
-//	Stm
-//		.Process(this->Initialized)
-//		.Process(this->AI_SafeDIstance)
-//		.Process(this->AI_FriendlyDistance)
-//		.Process(this->AttackWaypoint_AllowCell)
-//		;
-//
-//}
+template <typename T>
+void TeamTypeExtData::Serialize(T& Stm)
+{
+	Stm
+		.Process(this->AI_SafeDIstance)
+		.Process(this->AI_FriendlyDistance)
+		.Process(this->IsDischargedMemberAutocreateRecruitable)
+		.Process(this->AttackWaypoint_AllowCell)
+		;
+
+}
 
 // =============================
 // container

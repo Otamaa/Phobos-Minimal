@@ -101,6 +101,8 @@ public:
 	static bool IsEligible(TechnoClass* pGoing, TechnoTypeClass* reinfocement);
 	static bool IsEligible(TechnoTypeClass* pGoing, TechnoTypeClass* reinfocement);
 
+	static int GetSafeFriendlyDistance(TeamTypeClass* pTeam, int arg);
+	static int GetSafeDistance(TeamTypeClass* pTeam, int arg);
 private:
 	template <typename T>
 	void Serialize(T& Stm);

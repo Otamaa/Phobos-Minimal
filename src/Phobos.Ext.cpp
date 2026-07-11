@@ -395,6 +395,7 @@ void Phobos::ClearAll()
 	CLEAR_CONTAIER_CLASS(WeaponTypeExtContainer);
 	CLEAR_CONTAIER_CLASS(WaveExtContainer);
 	CLEAR_CONTAIER_CLASS(TActionExtContainer);
+	CLEAR_CONTAIER_CLASS(TeamTypeExtContainer);
 
 	CLEAR_CLASS(EboltExtData);
 	CLEAR_CLASS(HugeBar);

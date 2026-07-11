@@ -1589,7 +1589,7 @@ int HouseExtData::TotalHarvesterCount(HouseClass* pThis)
 }
 
 // This basically gets same cell that AI script action 53 Gather at Enemy Base uses, and code for that (0x6EF700) was used as reference here.
-CellClass* HouseExtData::GetEnemyBaseGatherCell(HouseClass* pTargetHouse, HouseClass* pCurrentHouse, const CoordStruct& defaultCurrentCoords, SpeedType speedTypeZone, int extraDistance)
+CellClass* HouseExtData::GetEnemyBaseGatherCell(TeamTypeClass* pTeam , HouseClass* pTargetHouse, HouseClass* pCurrentHouse, const CoordStruct& defaultCurrentCoords, SpeedType speedTypeZone, int extraDistance)
 {
 	if (!pTargetHouse || !pCurrentHouse)
 		return nullptr;
@@ -1606,7 +1606,7 @@ CellClass* HouseExtData::GetEnemyBaseGatherCell(HouseClass* pTargetHouse, HouseC
 
 	//const int deltaX = currentCoords.X - targetBaseCoords.X;
 	//const int deltaY = targetBaseCoords.Y - currentCoords.Y;
-	const int distance = (RulesClass::Instance->AISafeDistance + extraDistance) * Unsorted::LeptonsPerCell;
+	const int distance = TeamExtData::GetSafeDistance(pTeam , extraDistance);
 	auto newCoords = GeneralUtils::CalculateCoordsFromDistance(currentCoords, targetBaseCoords, distance);
 	auto cellStruct = CellClass::Coord2Cell(newCoords);
 	cellStruct = MapClass::Instance->NearByLocation(cellStruct, speedTypeZone, ZoneType::None, MovementZone::Normal, false, 3, 3, false, false, false, true, cellStruct, false, false);

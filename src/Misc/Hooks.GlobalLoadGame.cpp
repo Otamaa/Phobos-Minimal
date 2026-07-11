@@ -116,6 +116,7 @@
 #include <Ext/Tactical/Body.h>
 #include <Ext/TerrainType/Body.h>
 #include <Ext/Terrain/Body.h>
+#include <Ext/TeamType/Body.h>
 #include <Ext/Team/Body.h>
 #include <Ext/Temporal/Body.h>
 #include <Ext/TEvent/Body.h>
@@ -573,8 +574,8 @@ HRESULT Phobos::LoadAllLateData(IStream* pStm)
 	if (!SUCCEEDED(hr)) return hr;
 	hr = ReadBlocksFromStreamStreamB(AnimExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	//hr = ReadBlocksFromStreamStreamB(TeamTypeExtContainer::Instance, pStm);
-	//	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamB(TeamTypeExtContainer::Instance, pStm);
+		if (!SUCCEEDED(hr)) return hr;
 	hr = ReadBlocksFromStreamStreamB(TeamExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
 	//hr = ReadBlocksFromStreamStreamB(ScriptTypeExtContainer::Instance, pStm);

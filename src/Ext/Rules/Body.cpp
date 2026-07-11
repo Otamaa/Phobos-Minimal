@@ -351,6 +351,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	this->ParadropDelay.Read(exINI, GameStrings::General, "ParadropDelay");
 	this->ParadropEndDelay.Read(exINI, GameStrings::General, "ParadropEndDelay");
+	this->IsDischargedMemberAutocreateRecruitable.Read(exINI, GameStrings::General, "IsDischargedMemberAutocreateRecruitable");
 	this->DiscardOn_ConsiderHarvestingAsStationary.Read(exINI, GameStrings::General, "DiscardOn.ConsiderHarvestingAsStationary");
 	this->PrismRelay_SupportTimeout.Read(exINI, GameStrings::General, "PrismRelay.SupportTimeout");
 	exINI.Read3Bool(GameStrings::General, "CampaignAllowHarvesterScanUnderShroud", this->CampaignAllowHarvesterScanUnderShroud);
@@ -1096,6 +1097,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->ParadropDelay)
 		.Process(this->ParadropEndDelay)
 		.Process(this->DiscardOn_ConsiderHarvestingAsStationary)
+		.Process(this->IsDischargedMemberAutocreateRecruitable)
 		;
 }
 

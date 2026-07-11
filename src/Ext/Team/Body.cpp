@@ -16,6 +16,7 @@
 #include <SuperClass.h>
 
 #include <Ext/Tactical/Body.h>
+#include <Ext/TeamType/Body.h>
 
 #include <TeamTypeClass.h>
 
@@ -69,6 +70,20 @@ void LoopThruMembers(TeamClass* pTeam, Func&& act)
 }
 
 #pragma region ExtFuncs
+
+int TeamExtData::GetSafeFriendlyDistance(TeamTypeClass* pTeam, int arg)
+{
+	int default_Distance = RulesExtData::Instance()->AIFriendlyDistance.Get(RulesClass::Instance->AISafeDistance);
+	auto pTeamDistance = TeamTypeExtContainer::Instance.Find(pTeam)->AI_FriendlyDistance.Get(default_Distance);
+	return (pTeamDistance + arg) * Unsorted::LeptonsPerCell;
+}
+
+int TeamExtData::GetSafeDistance(TeamTypeClass* pTeam, int arg)
+{
+	int default_Distance = RulesClass::Instance->AISafeDistance;
+	auto pTeamDistance = TeamTypeExtContainer::Instance.Find(pTeam)->AI_SafeDIstance.Get(default_Distance);
+	return (pTeamDistance + arg) * Unsorted::LeptonsPerCell;
+}
 
 bool TeamExtData::IsEligible(TechnoTypeClass* pGoing, TechnoTypeClass* reinfocement){
 
@@ -417,8 +432,8 @@ void FakeTeamClass::_TMission_GatherAtBase(ScriptActionNode* nNode, bool arg3)
 	// ------------------------------------------------------------
 	int adjustedAngle = static_cast<short>(binaryAngle) - 0x3FFF;
 	double radians = adjustedAngle * Math::DIRECTION_FIXED_MAGIC;
-
-	int safeDistance = (RulesExtData::Instance()->AIFriendlyDistance.Get(RulesClass::Instance->AISafeDistance) + nNode->Argument) << 8;
+	
+	int safeDistance = TeamExtData::GetSafeFriendlyDistance(this->Type, nNode->Argument);
 
 	int targetY = static_cast<int>(ourBase.Y - Math::sin(radians) * safeDistance);
 	int targetX = static_cast<int>(ourBase.X + Math::cos(radians) * safeDistance);
@@ -547,7 +562,7 @@ void FakeTeamClass::_TMission_GatherAtEnemy(ScriptActionNode* nNode, bool arg3)
 	int adjustedAngle = static_cast<short>(binaryAngle) - 0x3FFF;
 	double radians = adjustedAngle * Math::DIRECTION_FIXED_MAGIC;
 
-	int safeDistance = (RulesClass::Instance->AISafeDistance + nNode->Argument) << 8;
+	int safeDistance = TeamExtData::GetSafeDistance(this->Type, nNode->Argument);
 
 	int rawY = static_cast<int>(enemyBase.Y - Math::sin(radians) * safeDistance);
 	int rawX = static_cast<int>(Math::cos(radians) * safeDistance + enemyBase.X);
@@ -895,7 +910,14 @@ bool NOINLINE RemoveMemberFromChain(TeamClass* team, FootClass* memberToRemove)
 
 bool FakeTeamClass::_Remove(FootClass* obj, int typeindex, bool enterIdleMode) {
 	TeamClass* Team = obj->Team;
-	obj->RecruitableB = true;
+	const auto pTeamTypeExt = TeamTypeExtContainer::Instance.Find(Team->Type);
+	const int value = pTeamTypeExt->IsDischargedMemberAutocreateRecruitable.Get(RulesExtData::Instance()->IsDischargedMemberAutocreateRecruitable);
+
+	if (value > 0)
+		obj->RecruitableB = true;
+	else if (value == 0)
+		obj->RecruitableB = false;
+
 	obj->removed = 1;
 	// /*
 	// **   Make sure that the object is in fact a member of this team. If not, then it can't
@@ -3923,7 +3945,7 @@ void FakeTeamClass::_TMission_Attack_Waypoint(ScriptActionNode* nNode, bool arg3
 			bool revealed = (pWaypCell->Flags & CellFlags::CenterRevealed) != CellFlags::Empty;
 			if (auto pObj = pWaypCell->GetSomeObject(Point2D::Empty, revealed)) {
 				pTarget = pObj;
-			} else {
+			} else if(TeamTypeExtContainer::Instance.Find(this->Type)->AttackWaypoint_AllowCell){
 				pTarget = pWaypCell;
 			}
 		}

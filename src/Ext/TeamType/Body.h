@@ -13,6 +13,11 @@ public:
 
 public:
 
+	Nullable<int> IsDischargedMemberAutocreateRecruitable {};
+	Nullable<int> AI_SafeDIstance {};
+	Nullable<int> AI_FriendlyDistance {};
+	Valueable<bool> AttackWaypoint_AllowCell { true };
+
 	TeamTypeExtData(base_type* pObj) : AbstractTypeExtData(pObj)
 	{
 		this->AbsType = base_type::AbsID;
@@ -55,44 +60,7 @@ public:
 
 private:
 	template <typename T>
-	void Serialize(T& Stm)
-	{
-		//Stm.Process()
-	}
-	/*
-	class ExtData final : public Extension<TeamTypeClass>
-	{
-	public:
-		static COMPILETIMEEVAL size_t Canary = 0xBEE79008;
-		using base_type = TeamTypeClass;
-
-	public:
-
-		Nullable<int> AI_SafeDIstance { };
-		Nullable<int> AI_FriendlyDistance { };
-		Nullable<bool> AttackWaypoint_AllowCell { };
-
-		ExtData(TeamTypeClass* OwnerObject) : Extension<TeamTypeClass>(OwnerObject)
-		{ }
-
-		virtual ~ExtData() override = default;
-		void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public Container<TeamTypeExt::ExtData>
-	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(TeamTypeExt::ExtData, "TeamTypeClass");
-	};
-
-	static ExtContainer ExtMap;
-	*/
+	void Serialize(T& Stm);
 };
 
 class TeamTypeExtContainer final : public Container<TeamTypeExtData>

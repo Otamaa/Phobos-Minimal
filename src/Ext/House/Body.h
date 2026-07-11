@@ -465,7 +465,7 @@ public:
 
 	static int ActiveHarvesterCount(HouseClass* pThis);
 	static int TotalHarvesterCount(HouseClass* pThis);
-	static CellClass* GetEnemyBaseGatherCell(HouseClass* pTargetHouse, HouseClass* pCurrentHouse, const CoordStruct& defaultCurrentCoords, SpeedType speedTypeZone, int extraDistance = 0);
+	static CellClass* GetEnemyBaseGatherCell(TeamTypeClass* pTeam , HouseClass* pTargetHouse, HouseClass* pCurrentHouse, const CoordStruct& defaultCurrentCoords, SpeedType speedTypeZone, int extraDistance = 0);
 
 	// Some non playable countries will set SideIndex to -1
 	static SideClass* GetSide(HouseClass* pHouse)

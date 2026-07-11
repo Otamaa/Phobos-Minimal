@@ -658,6 +658,7 @@ public:
 	Valueable<int> ParadropEndDelay { 5 };
 
 	Valueable<bool> DiscardOn_ConsiderHarvestingAsStationary { true };
+	Valueable<int> IsDischargedMemberAutocreateRecruitable { -1 };
 #pragma endregion
 
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
