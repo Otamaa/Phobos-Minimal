@@ -437,3 +437,264 @@ ASMJIT_PATCH(0x41E8FF, AITriggerTypeClass_NewTeam_CheckConditions, 0x9) // Condi
 		break;
 	}
 }
+
+//AbstractTypeClass* ResolveTechType(const char* name)
+//{
+//	int idx = InfantryTypeClass::From_Name(name);
+//	if (idx != -1)
+//		return InfantryTypes.Vector[idx]; // VERIFY: YRpp accessor name
+//
+//	idx = UnitTypeClass::From_Name(name);
+//	if (idx != -1)
+//		return UnitTypes.Vector[idx];     // VERIFY: YRpp accessor name
+//
+//	idx = AircraftTypeClass::From_Name(name);
+//	if (idx != -1)
+//		return AircraftTypes.Vector[idx]; // VERIFY: YRpp accessor name
+//
+//	idx = BuildingTypeClass::From_Name(name);
+//	if (idx != -1)
+//		return BuildingTypes.Vector[idx]; // VERIFY: YRpp accessor name
+//
+//	return nullptr;
+//}
+//
+//void ParseConditions(const char* str, AITriggerTypeClass* self)
+//{
+//	// Vanilla lookup table initializer from stack:
+//	//   var_270 = word_818170 (global 2-byte value)
+//	//   var_270+2 = byte_818172 (global 1-byte value)
+//	//   anonymous_0 (qword) = 0
+//	// Together: a 3-entry sorted array used as the binary search range.
+//	// VERIFY: these globals and their exact layout in YRpp/assembly
+//	unsigned short lookup[2];
+//	lookup[0] = '00'; // VERIFY: global name
+//	reinterpret_cast<uint8_t*>(lookup)[2] = '0'; // VERIFY: global name
+//	const unsigned short* const lookupEnd = reinterpret_cast<const unsigned short*>(
+//		reinterpret_cast<const uint8_t*>(lookup) + sizeof(unsigned short) + 1);
+//
+//	unsigned int count = 0;
+//	const char* p = str;
+//
+//	while (*p && count < 0x20)
+//	{
+//		// skip whitespace
+//		while (*p && std::isspace(static_cast<unsigned char>(*p)))
+//			++p;
+//
+//		// read two characters as a pair
+//		unsigned short pair = 0;
+//		reinterpret_cast<char*>(&pair)[0] = *p;
+//		if (*p) ++p;
+//
+//		const char second = *p;
+//		reinterpret_cast<char*>(&pair)[1] = second ? second : '\0';
+//		if (second) ++p;
+//
+//		// binary search into lookup table
+//		// vanilla: std::lower_bound(&var_270, &anonymous_0, 0x10)
+//		// stores result byte (al) into Conditions[count]
+//		const unsigned short* found = std::lower_bound(lookup, lookupEnd, static_cast<unsigned short>(0x10));
+//		self->Conditions[count] = static_cast<uint8_t>(
+//			reinterpret_cast<const uint8_t*>(found)[0]); // VERIFY: result extraction
+//
+//		++count;
+//
+//		if (!*p)
+//			break;
+//	}
+//}
+
+bool  FakeAITriggerTypeClass::_SaveToINI(CCINIClass* pINI)
+{
+	/*
+	* 
+	char v44[512];
+
+	INIClass::Clear_Section_Cache(iniHandle);
+
+	if (!INIClass::Get_String(iniHandle, "AITriggerTypes", this->IniName, // VERIFY: field name
+		&Wstring::EmptyString, v44, 512))
+		return 0;
+
+	// --- token 1: name (48 chars + null) ---
+	// Vanilla: strncpy into destination[48]+sentinel, then rep movsd(x12)+movsb
+	// into this->at.Name. Stack bounce preserved semantically via strncpy limit.
+	const char* tok = strtok(v44, ",");
+	if (!tok)
+		return 0;
+
+	std::strncpy(this->Name, tok, 48u); // VERIFY: field name in YRpp
+	this->Name[48] = '\0';
+
+	// --- token 2: TeamTypeOne ---
+	tok = strtok(nullptr, ",");
+	if (!tok)
+		return 0;
+
+	{
+		char buf[24];
+		std::strncpy(buf, tok, 23u);
+		buf[23] = '\0';
+		strtrim(buf); // VERIFY: strtrim signature
+
+		this->TeamTypeOne = nullptr; // VERIFY: field name
+		if (_strcmpi(buf, none_str)) // VERIFY: none_str global
+			this->TeamTypeOne = TeamTypeClass::From_Name(buf);
+	}
+
+	// --- token 3: owning house ---
+	tok = strtok(nullptr, ",");
+	if (!tok)
+		return 0;
+
+	{
+		char buf[24];
+		std::strncpy(buf, tok, 23u);
+		buf[23] = '\0';
+		strtrim(buf);
+
+		this->OwnHouseType = 0;  // VERIFY: field name
+		this->OwningHouse = -1; // VERIFY: field name
+
+		if (!_strcmpi(buf, alllstring)) // VERIFY: alllstring global
+		{
+			this->OwnHouseType = 2;
+		}
+		else if (_strcmpi(buf, none_str))
+		{
+			const int houseIdx = HouseTypeClass::From_Name(buf);
+			this->OwningHouse = houseIdx;
+			if (houseIdx != -1)
+				this->OwnHouseType = 1;
+		}
+	}
+
+	// --- token 4: discarded (reserved field) ---
+	// Assembly: strtok called, result checked for null but value unused.
+	if (!strtok(nullptr, ","))
+		return 0;
+
+	// --- token 5: TechLevel (always initialized to 0 before token consumption) ---
+	this->TechLevel = 0; // VERIFY: field name
+	tok = strtok(nullptr, ",");
+	if (!tok)
+		return 0;
+	this->ConditionType = std::atoi(tok); // VERIFY: field name
+
+	// --- token 6: ConditionType ---
+	tok = strtok(nullptr, ",");
+	if (!tok)
+		return 0;
+	this->ConditionType = std::atoi(tok); // VERIFY: field name — assembly: [ebp+98h]
+
+	// --- token 7: ConditionObject (tech type name) ---
+	tok = strtok(nullptr, ",");
+	if (!tok)
+		return 0;
+
+	{
+		char buf[24];
+		std::strncpy(buf, tok, 23u);
+		buf[23] = '\0';
+		strtrim(buf);
+
+		// Vanilla: tries all four type vectors in order, stores raw pointer
+		// Assembly: esi = resolved pointer, stored at [ebp+0D8h]
+		this->ConditionObject = ResolveTechType(buf); // VERIFY: field name
+	}
+
+	// --- token 8: Conditions hex-pair string ---
+	tok = strtok(nullptr, ",");
+	if (!tok)
+		return 0;
+
+	ParseConditions(tok, this);
+
+	// --- token 9: WeightCur (optional from here) ---
+	// Vanilla: atof -> __ftol -> fild -> fstp double
+	// Replaced with std::stod for equivalent precision.
+	tok = strtok(nullptr, ",");
+	if (tok)
+		this->WeightCur = std::stod(tok); // VERIFY: field name, [ebp+0B8h]
+
+	// --- token 10: WeightMin ---
+	tok = strtok(nullptr, ",");
+	if (tok)
+		this->WeightMin = std::stod(tok); // VERIFY: field name, [ebp+0C0h]
+
+	// --- token 11: WeightMax ---
+	tok = strtok(nullptr, ",");
+	if (tok)
+		this->WeightMax = std::stod(tok); // VERIFY: field name, [ebp+0C8h]
+
+	// --- token 12: IsForSkirmish ---
+	tok = strtok(nullptr, ",");
+	if (tok)
+		this->IsForSkirmish = std::atoi(tok) != 0; // VERIFY: field name, [ebp+0D0h]
+
+	// --- token 13: discarded (second reserved slot) ---
+	// Assembly: 0x41F93C — two consecutive strtok calls; first result unused.
+	strtok(nullptr, ",");
+
+	// --- token 14: OwningCountry ---
+	tok = strtok(nullptr, ",");
+	if (tok)
+		this->OwningCountry = std::atoi(tok); // VERIFY: field name, [ebp+0ACh]
+
+	// --- token 15: IsForBaseDefense ---
+	tok = strtok(nullptr, ",");
+	if (tok)
+		this->IsForBaseDefense = std::atoi(tok) != 0; // VERIFY: field name, [ebp+0D1h]
+
+	// --- token 16: TeamTypeTwo ---
+	tok = strtok(nullptr, ",");
+	if (tok)
+	{
+		char buf[24];
+		std::strncpy(buf, tok, 23u);
+		buf[23] = '\0';
+		strtrim(buf);
+
+		this->TeamTypeTwo = nullptr; // VERIFY: field name, [ebp+0E0h]
+		if (_strcmpi(buf, none_str))
+			this->TeamTypeTwo = TeamTypeClass::From_Name(buf);
+	}
+
+	// --- token 17: EnabledInEasy ---
+	tok = strtok(nullptr, ",");
+	if (tok)
+		this->EnabledInEasy = std::atoi(tok) != 0; // VERIFY: field name, [ebp+0D2h]
+
+	// --- token 18: EnabledInMedium ---
+	tok = strtok(nullptr, ",");
+	if (tok)
+		this->EnabledInMedium = std::atoi(tok) != 0; // VERIFY: field name, [ebp+0D3h]
+
+	// --- token 19: EnabledInHard ---
+	tok = strtok(nullptr, ",");
+	if (tok)
+		this->EnabledInHard = std::atoi(tok) != 0; // VERIFY: field name, [ebp+0D4h]
+
+	// --- TechLevel derivation from TaskForce requirements ---
+	// Vanilla: TechLevel = max(TechLevel, TaskForce::Tech_Level_Required(team->TaskForce))
+	// Assembly: 0x41FA5C-0x41FAE3; both teams checked independently.
+	// [TeamTypeClass+0E4h] = TaskForce pointer  VERIFY in YRpp
+
+	if (this->TeamTypeOne)
+	{
+		const int required = TaskForceClass::Tech_Level_Required(
+			this->TeamTypeOne->TaskForce); // VERIFY: field name
+		this->TechLevel = std::max(this->TechLevel, required);
+	}
+
+	if (this->TeamTypeTwo)
+	{
+		const int required = TaskForceClass::Tech_Level_Required(
+			this->TeamTypeTwo->TaskForce); // VERIFY: field name
+		this->TechLevel = std::max(this->TechLevel, required);
+	}
+
+	return 1;
+	*/
+}

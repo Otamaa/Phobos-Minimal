@@ -93,38 +93,6 @@ TeamClass* FakeTeamTypeClass::_CreateOneOf(HouseClass* pHouse){
 	return pTeam;
 }
 DEFINE_FUNCTION_JUMP(LJMP, 0x6F09C0, FakeTeamTypeClass::_CreateOneOf)
-
-// Dead code — superseded by DEFINE_FUNCTION_JUMP at 0x65D8E0; logic integrated into _DoReinforcement
-//ASMJIT_PATCH(0x65DBB3, TeamTypeClass_CreateInstance_Plane_DoReinforcement, 5)
-//{
-//	GET(FootClass*, pFoot, EBP);
-//	R->ECX(HouseExtData::GetParadropPlane(pFoot->Owner));
-//	++Unsorted::ScenarioInit();
-//	return 0x65DBD0;
-//}
-
-// #1260: reinforcements via actions 7 and 80, and chrono reinforcements
-// via action 107 cause crash if house doesn't exist
-//ASMJIT_PATCH(0x65D8FB, TeamTypeClass_Do_Reinforcement_ValidateHouse, 6)
-//
-//{
-//	GET(TeamTypeClass*, pThis, ECX);
-//	HouseClass* pHouse = pThis->GetHouse();
-//
-//	// house exists; it's either declared explicitly (not Player@X) or a in campaign mode
-//	// (we don't second guess those), or it's still alive in a multiplayer game
-//	if (pHouse &&
-//		(pThis->Owner || SessionClass::Instance->GameMode == GameMode::Campaign || !pHouse->Defeated))
-//	{
-//		return 0;
-//	}
-//
-//	// no.
-//	return (R->Origin() == 0x65D8FB) ? 0x65DD1B : 0x65F301;
-//	//0x65F301;
-//}ASMJIT_PATCH_AGAIN(0x65EC4A, TeamTypeClass_Do_Reinforcement_ValidateHouse, 6)
-
-
 // ============================================================================
 // Full backport of _Create_Group (65DD30–65E00E)
 // Integrates:
@@ -540,10 +508,8 @@ bool __fastcall FakeTeamTypeClass::_DoReinforcement(TeamTypeClass* pType, int wa
 				if (!pCheck)
 					continue;
 				BuildingClass* pBld = pCheck->GetBuilding();
-				if (pBld && pBld->Health > 0)
-				{
-					using HasExitCellFn = bool(__thiscall*)(BuildingClass*);
-					if (reinterpret_cast<HasExitCellFn>(0x459CA0)(pBld))
+				if (pBld && pBld->Health > 0) {
+					if (pBld->HasValidExitCell())
 						pCandidate = pBld;
 				}
 			}
@@ -605,23 +571,18 @@ bool __fastcall FakeTeamTypeClass::_DoReinforcement(TeamTypeClass* pType, int wa
 		{
 			// Integrate Do_Reinforcement_ValidateHouse (0x65DC11) edge logic:
 			Edge spawnEdge;
-			if (!pGroup->Owner)
-			{
+			if (!pGroup->Owner) {
 				spawnEdge = Edge::North;
 			}
 			else if (pGroup->Owner->StaticData.StartingEdge < Edge::North
-				  || pGroup->Owner->StaticData.StartingEdge > Edge::West)
-			{
+				  || pGroup->Owner->StaticData.StartingEdge > Edge::West) {
 				spawnEdge = pGroup->Owner->GetHouseEdge();
 			}
-			else
-			{
+			else {
 				spawnEdge = pGroup->Owner->StaticData.StartingEdge;
 			}
 
-			static constexpr CellStruct kNoCell { -1, -1 };
-			MapClass::Instance->PickCellOnEdge(planeBuf, spawnEdge,
-				kNoCell, kNoCell, SpeedType::Winged, true, MovementZone::Normal);
+			planeBuf = AircraftExtData::PickEdgeCellForPlane(pPlaneType, spawnCell, spawnEdge);
 		}
 
 		pPlane->QueueMission(Mission::ParadropApproach, false);
@@ -629,9 +590,7 @@ bool __fastcall FakeTeamTypeClass::_DoReinforcement(TeamTypeClass* pType, int wa
 		pPlane->SetTarget(MapClass::Instance->GetCellAt(spawnCell));
 
 		const CoordStruct spawnCoord { planeBuf.X * 256 + 128, planeBuf.Y * 256 + 128, 0 };
-		++Unsorted::ScenarioInit();
-		const bool placed = pPlane->Unlimbo(spawnCoord, DirType::North);
-		--Unsorted::ScenarioInit();
+		const bool placed = AircraftExtData::PlaceReinforcementAircraft(pPlane, CellClass::Coord2Cell(spawnCoord));
 
 		if (!placed)
 		{

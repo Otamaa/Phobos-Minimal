@@ -363,6 +363,8 @@ public:
 	bool CanUpgradeBuilding(const BuildingTypeClass* pType, const HouseClass* pHouse) const
 		{ JMP_THIS(0x452670); }
 
+	bool HasValidExitCell() const 
+		{ JMP_THIS(0x459CA0); }
 	//Constructor
 	BuildingClass(BuildingTypeClass* pType, HouseClass* pOwner) noexcept
 		: BuildingClass(noinit_t())

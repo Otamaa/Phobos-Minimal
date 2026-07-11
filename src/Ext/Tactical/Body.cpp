@@ -392,6 +392,8 @@ void FakeTacticalClass::_Draw_Pixel_Effects(RectangleStruct* tactical_rect, Rect
 
 DEFINE_FUNCTION_JUMP(CALL, 0x6D492B, FakeTacticalClass::_Draw_Pixel_Effects)
 
+// Bugfix, #issue 429: Retint map script disables RGB settings on light source
+// Author: secsome, Starkku
 void FakeTacticalClass::_Render_Objects_Near_Shroud(bool arg0, Point2D pos, RectangleStruct* a5) {
 	// Update light sources if they have been flagged to be updated.
 	if (ScenarioExtData::UpdateLightSources) {

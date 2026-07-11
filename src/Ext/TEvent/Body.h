@@ -313,6 +313,8 @@ public:
 	// the function return is deciding if the case is handled or not
 	// the bool result pointer is for the result of the Event itself
 	static bool HasOccured(TEventClass* pThis, EventArgs& Args, bool& result);
+
+	static LogicNeedType ClassifyEvent(int event);
 };
 
 class TEventExtContainer final : public Container<TEventExtData>
@@ -329,18 +331,24 @@ public:
 
 	virtual void LoadFromINI(AircraftTypeClass* key, CCINIClass* pINI, bool parseFailAddr) {}
 	virtual void WriteToINI(AircraftTypeClass* key, CCINIClass* pINI) {}
-
 };
 
 class NOVTABLE FakeTEventClass : public TEventClass
 {
+public:
+	static TriggerAttachType __fastcall AttachesTo(unsigned int a1);
+
 public:
 
 	HRESULT __stdcall __Load(IStream* pStm);
 	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	bool _Occured(TriggerEvent event, HouseClass* house, ObjectClass* obj, CDTimerClass* td, bool* bool1, AbstractClass* source);
+	bool _IsPresistable();
+	bool _IsTemporal();
 
+	void _ReadINI();
+	std::string _BuildINIEntry();
 	TEventExtData* _GetExtData() {
 		return *reinterpret_cast<TEventExtData**>(((DWORD)this) + AbstractExtOffset);
 	}

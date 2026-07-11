@@ -3593,20 +3593,7 @@ void FakeTeamClass::_TMission_Chrono_prep_for_abwp(ScriptActionNode* nNode, bool
 	// Find Chronosphere and Chronoshift superweapons
 	SuperClass* chronosphere = nullptr;
 	SuperClass* chronoshift = nullptr;
-
-	for (int i = 0; i < house->Supers.Count; i++) {
-
-		SuperClass* super = house->Supers.Items[i];
-
-		if (!SWTypeExtData::IsAvailable(house, super))
-			continue;
-
-		if (super->Type->Type == SuperWeaponType::ChronoSphere) // Chronosphere
-			chronosphere = super;
-
-		if (super->Type->Type == SuperWeaponType::ChronoWarp) // Chronoshift
-			chronoshift = super;
-	}
+	TeamExtData::GetAIChronoshiftSupers(house, chronosphere, chronoshift);
 
 	if (!chronosphere || !chronoshift) {
 		this->StepCompleted = true;
@@ -3782,17 +3769,7 @@ void FakeTeamClass::_TMission_Chrono_prep_for_aq(ScriptActionNode* nNode, bool a
 	// Find superweapons
 	SuperClass* chronosphere = nullptr;
 	SuperClass* chronoshift = nullptr;
-
-	for (int i = 0; i < house->Supers.Count; i++)
-	{
-		SuperClass* super = (SuperClass*)house->Supers.Items[i];
-
-		if (!SWTypeExtData::IsAvailable(house, super))
-			continue;
-
-		if (super->Type->Type == SuperWeaponType::ChronoSphere) chronosphere = super;
-		if (super->Type->Type == SuperWeaponType::ChronoWarp) chronoshift = super;
-	}
+	TeamExtData::GetAIChronoshiftSupers(house, chronosphere, chronoshift);
 
 	if (!chronosphere || !chronoshift)
 	{

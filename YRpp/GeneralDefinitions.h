@@ -1568,6 +1568,22 @@ enum class SuperWeaponType : int {
 	count
 };
 
+enum class ParamType : int
+{
+	None = 0,  // "%d,%d,%d,%d,%d,%d,%d,%s" with heapid + waypoint
+	AsTeam = 1,  // "%d,%d,%s,%d,%d,%d,%d,%s" with str + waypoint
+	AsTrigger = 2,  // "%d,%d,%s,%d,%d,%d,%d,%s" with str + waypoint
+	AsTag = 3,  // "%d,%d,%s,%d,%d,%d,%d,%s" with str + waypoint
+	AsText = 4,  // "%d,%d,%s,%d,%d,%d,%d,%s" with str + waypoint
+	Team2 = 5,  // "%d,%d,%s,%d,%d,%d,%d,%d" with str + Value
+	AsSpeech = 6,  // "%d,%d,%s,%d,%d,%d,%d,%s" with str + waypoint
+	AsSound = 7,  // "%d,%d,%s,%d,%d,%d,%d,%s" with str + waypoint
+	AsTheme = 8,  // "%d,%d,%s,%d,%d,%d,%d,%s" with str + waypoint
+	Str1TechLevel = 9,  // "%d,%d,%s,%d,%d,%d,%d,%d" with str + Value
+	Str2Waypoint = 10, // "%d,%d,%s,%d,%d,%d,%d,%s" with str2 + waypoint
+	Number3Percent = 11, // "%d,%d,%d,%d,%d,%d,%d,%d" with str1 + Value2
+};
+
 enum class MouseCursorType : uint32_t {
 	Default = 0x0,
 	Move_N = 0x1,

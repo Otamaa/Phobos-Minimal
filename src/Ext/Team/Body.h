@@ -103,6 +103,8 @@ public:
 
 	static int GetSafeFriendlyDistance(TeamTypeClass* pTeam, int arg);
 	static int GetSafeDistance(TeamTypeClass* pTeam, int arg);
+
+	static void GetAIChronoshiftSupers(HouseClass* pThis, SuperClass*& pSuperCSphere, SuperClass*& pSuperCWarp);
 private:
 	template <typename T>
 	void Serialize(T& Stm);

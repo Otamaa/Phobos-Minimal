@@ -8,6 +8,7 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ext/SWType/Body.h>
 #include <Ext/Event/Body.h>
+#include <Ext/Team/Body.h>
 
 #include <Utilities/Cast.h>
 #include <Utilities/Macro.h>
@@ -73,8 +74,9 @@ ASMJIT_PATCH(0x4FF9C9, HouseClass_ExcludeFromMultipleFactoryBonus, 0x6)
 }ASMJIT_PATCH_AGAIN(0x4FFA99, HouseClass_ExcludeFromMultipleFactoryBonus, 0x6)
 
 // Gets the superweapons used by AI for Chronoshift script actions.
-void GetAIChronoshiftSupers(HouseClass* pThis, SuperClass*& pSuperCSphere, SuperClass*& pSuperCWarp)
+void TeamExtData::GetAIChronoshiftSupers(HouseClass* pThis, SuperClass*& pSuperCSphere, SuperClass*& pSuperCWarp)
 {
+	//Bypass the avaible checking entirely
 	int idxCS = RulesExtData::Instance()->AIChronoSphereSW;
 	int idxCW = RulesExtData::Instance()->AIChronoWarpSW;
 
@@ -100,41 +102,15 @@ void GetAIChronoshiftSupers(HouseClass* pThis, SuperClass*& pSuperCSphere, Super
 
 	for (auto const pSuper : pThis->Supers)
 	{
+		if (!SWTypeExtData::IsAvailable(pThis, pSuper))
+			continue;
+
 		if (pSuper->Type->Type == SuperWeaponType::ChronoSphere)
 			pSuperCSphere = pSuper;
 
 		if (pSuper->Type->Type == SuperWeaponType::ChronoWarp)
 			pSuperCWarp = pSuper;
 	}
-}
-
-ASMJIT_PATCH(0x6EFEFB, TMission_ChronoShiftToBuilding_SuperWeapons, 0x6)
-{
-	enum { SkipGameCode = 0x6EFF22 };
-
-	GET(HouseClass*, pHouse, EBP);
-
-	SuperClass* pSuperCSphere = nullptr;
-	SuperClass* pSuperCWarp = nullptr;
-	GetAIChronoshiftSupers(pHouse, pSuperCSphere, pSuperCWarp);
-	R->ESI(pSuperCSphere);
-	R->EBX(pSuperCWarp);
-
-	return SkipGameCode;
-}
-
-ASMJIT_PATCH(0x6F01B0, TMission_ChronoShiftToTarget_SuperWeapons, 0x6)
-{
-	enum { SkipGameCode = 0x6F01D9 };
-
-	GET(HouseClass*, pHouse, EDI);
-	REF_STACK(SuperClass*, pSuperCWarp, STACK_OFFSET(0x30, -0x1C));
-
-	SuperClass* pSuperCSphere = nullptr;
-	GetAIChronoshiftSupers(pHouse, pSuperCSphere, pSuperCWarp);
-	R->EBX(pSuperCSphere);
-
-	return SkipGameCode;
 }
 
 ASMJIT_PATCH(0x65E997, HouseClass_SendAirstrike_PlaceAircraft, 0x6)
@@ -253,7 +229,6 @@ ASMJIT_PATCH(0x70173B , TechnoClass_SetOwningHouse_AfterHouseWasSet, 0x5)
 
 	return 0x0;
 }
-
 
 ASMJIT_PATCH(0x7015EB, TechnoClass_SetOwningHouse_UpdateTracking, 0x7)
 {

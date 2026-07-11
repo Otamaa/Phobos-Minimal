@@ -131,6 +131,9 @@ public:
 		ImmedietelyPlayAt(n, coords, pCtrl);
 	}
 
+	static const char* __fastcall GetName(int index)
+	{ JMP_FAST(0x751590); }
+
 	// calls `PlayAt` - with sanity check
 	static VocAudioStruct* __fastcall PlayIndexAtPos(int n, const CoordStruct& coords, bool isGlobal)
 		{ JMP_FAST(0x750E20); }

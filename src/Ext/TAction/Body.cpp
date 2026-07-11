@@ -32,6 +32,9 @@
 #include <Ext/Team/Body.h>
 #include <Ext/TeamType/Body.h>
 
+#include <TagTypeClass.h>
+#include <WaypointPathClass.h>
+
 #include <New/Entity/BannerClass.h>
 #include <New/Type/BannerTypeClass.h>
 
@@ -1771,6 +1774,7 @@ bool TActionExtData::Retint(TActionClass* pAction, HouseClass* pHouse, ObjectCla
 		copy_.Blue *= 10;
 		ScenarioClass::RecalcLighting(copy_.Red, copy_.Green, copy_.Blue, false);
 		ScenarioClass::Instance->NormalLighting.Tint.Green = pAction->Value;
+
 		break;
 	case DefaultColorList::Blue:
 		copy_.Blue = pAction->Value * 10;
@@ -3176,10 +3180,12 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 	}
 	case TriggerAction::DestroyAttachedObject:
 	{
-		for (auto& pTech : *TechnoClass::Array) { 
-			if (pTech->Health > 0 && !pTech->IsCrashing && !pTech->IsSinking && pTech->IsOnMap) {
-				if (!pTech->InLimbo) { 
+		for (int i = 0; i < TechnoClass::Array->Count; ++i) {
+			
+			auto pTech = TechnoClass::Array->Items[i];
 
+			if (pTech->Health > 0 && !pTech->IsCrashing && !pTech->IsSinking && pTech->IsOnMap) {
+				if (!pTech->InLimbo) {
 					if (auto pTag = pTech->AttachedTag) {
 						if (pTag->ContainsTrigger(pTrigger)) {
 							bool normalKill = true;
@@ -3194,10 +3200,15 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 								}
 							}
 
-							if (normalKill) {
+							if (normalKill)
+							{
 								ret = true;
 								int str = pTech->Health;
-								pTech->ReceiveDamage(&str, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, 0);
+								auto state = pTech->ReceiveDamage(&str, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, 0);
+								if (state < DamageState::NowDead) //0x6E20D8, TActionClass_DestroyAttached_Loop, 0x5
+									continue;
+								else
+									--i;
 							}
 						}
 					}
@@ -4167,6 +4178,182 @@ bool FakeTActionClass::_OperatorBracket(HouseClass* pTargetHouse, ObjectClass* p
 	}
 }
 
+std::string FakeTActionClass::_BuildINIEntry()
+{
+	const int           action = (int)this->ActionKind;    // [esi+2Ch]
+	const LogicNeedType needs = (LogicNeedType)TActionClass::GetMode(action);
+	const int           value = this->Value;     // [esi+90h]
+
+	// --- phase 1: classify into ParamType + resolve str/heapid ---
+	// Vanilla: series of cmp+jmp before the shared sprintf block.
+
+	ParamType   param = ParamType::None;
+	const char* str = nullptr;
+	int         heapid = value;   // default: Value used as numeric arg
+	int         str1 = 0;       // used only by Number3Percent
+	int         v17 = 0;       // used only by Number3Percent (Value2)
+
+	switch (needs)
+	{
+	case LogicNeedType::BuildingNNumber:
+		// 0x6DD32B: ebx=9, ebp=&String1
+		param = ParamType::Str1TechLevel;
+		str = this->TechnoID;             // [esi+54h]  VERIFY: field name
+		break;
+
+	case LogicNeedType::NumberNSuper:
+		// 0x6DD340: ebx=11, str1=Value(ecx=[esi+90h]), v17=Value2([esi+48h])
+		param = ParamType::Number3Percent;
+		str1 = value;
+		v17 = this->Value2;              // [esi+48h]  VERIFY: field name
+		break;
+
+	case LogicNeedType::NumberNTech:
+		// 0x6DD357: ebx=9, ebp=&String1
+		param = ParamType::Str1TechLevel;
+		str = this->TechnoID;             // [esi+54h]  VERIFY: field name
+		break;
+
+	case LogicNeedType::BuildingNWaypoint:
+		// 0x6DD369: ebx=10, ebp=&String1
+		param = ParamType::Str2Waypoint;
+		str = this->TechnoID;             // [esi+54h]  VERIFY: field name
+		break;
+
+	default:
+	{
+		// Team checks — [esi+30h]
+		TeamTypeClass* team = this->TeamType;  // VERIFY: field name
+		if (team)
+		{
+			if (needs == LogicNeedType::Team2)
+			{
+				// 0x6DD382: ebx=5, heapid=[edx+98h], ebp=[edx+24h]
+				param = ParamType::Team2;
+				heapid = team->ArrayIndex;         // [team+98h]  VERIFY: field name
+				str = team->ID;    // [team+24h]  VERIFY: field name
+				break;
+			}
+
+			if (needs == LogicNeedType::Team || needs == LogicNeedType::TeamNWaypoint)
+			{
+				// 0x6DD3A7: ebx=1, heapid=[edx+98h], ebp=[edx+24h]
+				param = ParamType::AsTeam;
+				heapid = team->ArrayIndex;         // [team+98h]  VERIFY: field name
+				str = team->ID;    // [team+24h]  VERIFY: field name
+				break;
+			}
+		}
+
+		// Trigger check — [esi+50h]
+		TriggerTypeClass* trigger = this->TriggerType; // VERIFY: field name
+		if (trigger && needs == LogicNeedType::Trigger)
+		{
+			// 0x6DD3CA: ebx=2, heapid=[edx+98h], ebp=[edx+24h]
+			param = ParamType::AsTrigger;
+			heapid = trigger->ArrayIndex;        // [trigger+98h]  VERIFY: field name
+			str = trigger->ID;     // [trigger+24h]  VERIFY: field name
+			break;
+		}
+
+		// Tag check — [esi+4Ch]
+		TagTypeClass* tag = this->TagType;     // VERIFY: field name
+		if (tag && needs == LogicNeedType::Tag)
+		{
+			// 0x6DD3EA: ebx=3, heapid=[edx+98h], ebp=[edx+24h]
+			param = ParamType::AsTag;
+			heapid = tag->ArrayIndex;            // [tag+98h]  VERIFY: field name
+			str = tag->ID;         // [tag+24h]  VERIFY: field name
+			break;
+		}
+
+		// Text check — [esi+6Dh] = String2[0]
+		if (needs == LogicNeedType::Text)
+		{
+			// 0x6DD403: ebp=&String2[0]; if (!String2[0] || !ebp) ebp="-1"
+			// Note: IDA's "this == -109" is garbage — assembly is just test ebp,ebp
+			str = (this->Text && this->Text[0]) ? this->Text : "-1";
+			param = ParamType::AsText;
+			break;
+		}
+
+		// Audio name lookups
+		switch (needs)
+		{
+		case LogicNeedType::Speech:
+			// 0x6DD422: ebx=6, call Name_From_Vox(value)
+			param = ParamType::AsSpeech;
+			str = VoxClass::GetName(value);  // VERIFY: signature
+			break;
+
+		case LogicNeedType::Sound:
+		case LogicNeedType::SoundNWaypoint:
+			// 0x6DD44F: ebx=7, call VocClass::Get_Name_Vector(value)
+			param = ParamType::AsSound;
+			str = VocClass::GetName(value); // VERIFY: signature
+			break;
+
+		case LogicNeedType::Theme:
+			// 0x6DD443: ebx=8, call ThemeClass::Get_Name_Vector(&Theme, value)
+			param = ParamType::AsTheme;
+			str = ThemeClass::Instance->GetID(value); // VERIFY: signature
+			break;
+
+		default:
+			break;
+		}
+
+		break;
+	}
+	}
+
+	// --- phase 2: format output ---
+	// Vanilla: repne scasb (inline strlen) to find end of buffer, then sprintf.
+	// Replaced with fmt::format returning std::string directly.
+
+	const int bx = this->Bounds.X;      // [esi+34h]  VERIFY: field name
+	const int by = this->Bounds.Y;      // [esi+38h]  VERIFY: field name
+	const int bw = this->Bounds.Width;  // [esi+3Ch]  VERIFY: field name
+	const int bh = this->Bounds.Height; // [esi+40h]  VERIFY: field name
+
+	switch (param)
+	{
+	case ParamType::Number3Percent:
+		// Vanilla: "%d,%d,%d,%d,%d,%d,%d,%d" — action,11,str1,X,Y,W,H,Value2
+		// 0x6DD497
+		return fmt::format("{},{},{},{},{},{},{},{}", action, 11, str1, bx, by, bw, bh, v17);
+
+	case ParamType::Str2Waypoint:
+	{
+		// Vanilla: "%d,%d,%s,%d,%d,%d,%d,%s" — action,10,str,X,Y,W,H,waypoint
+		// 0x6DD4B6: Waypoint_To_String(this->Waypoint)
+		const char* wp = WaypointPathClass::WaypointIdxToString(this->Waypoint); // VERIFY: signature
+		return fmt::format("{},{},{},{},{},{},{},{}", action, 10, str, bx, by, bw, bh, wp);
+	}
+
+	case ParamType::Team2:
+	case ParamType::Str1TechLevel:
+		// Vanilla: "%d,%d,%s,%d,%d,%d,%d,%d" — action,param,str,X,Y,W,H,Value
+		// 0x6DD571 (param=5,9)
+		return fmt::format("{},{},{},{},{},{},{},{}", action, static_cast<int>(param), str, bx, by, bw, bh, value);
+
+	default:
+	{
+		const char* wp = WaypointPathClass::WaypointIdxToString(this->Waypoint); // VERIFY: signature
+
+		if (param != ParamType::None)
+		{
+			// Vanilla: "%d,%d,%s,%d,%d,%d,%d,%s" — action,param,str,X,Y,W,H,waypoint
+			// 0x6DD4FE (param != 0, != 5, != 9, != 10, != 11)
+			return fmt::format("{},{},{},{},{},{},{},{}", action, static_cast<int>(param), str, bx, by, bw, bh, wp);
+		}
+
+		// Vanilla: "%d,%d,%d,%d,%d,%d,%d,%s" — action,0,heapid,X,Y,W,H,waypoint
+		// 0x6DD535 (param == 0)
+		return fmt::format("{},{},{},{},{},{},{},{}", action, 0, heapid, bx, by, bw, bh, wp);
+	}
+	}
+}
 // =============================
 // container hooks
 //

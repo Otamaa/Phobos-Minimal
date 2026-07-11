@@ -47,3 +47,13 @@ public:
 
 	static HouseClass* ResolveHouseParam(int const param, HouseClass* const pOwnerHouse);
 };
+
+class NOVTABLE FakeTriggerTypeClass : public TriggerTypeClass
+{
+public:
+
+	bool _SaveToINI(CCINIClass* pINI);
+
+
+};
+static_assert(sizeof(FakeTriggerTypeClass) == sizeof(TriggerTypeClass), "Invalid Size !");

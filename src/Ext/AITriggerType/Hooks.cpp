@@ -91,7 +91,7 @@ ASMJIT_PATCH(0x41F783, AITriggerTypeClass_ParseConditionType, 0x5)
 	if (!result)
 		result = BuildingTypeClass::Find(pBuffer);
 
-	if (Phobos::Otamaa::IsAdmin)
+	if (Phobos::Otamaa::IsAdmin && !GameStrings::IsNone(pBuffer))
 		Debug::LogInfo("Condition Object[{} - {}] for [{}]", pBuffer, result ? result->GetThisClassName() : GameStrings::NoneStrb(), pThis->ID);
 
 	R->ESI(result);

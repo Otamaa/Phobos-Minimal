@@ -102,6 +102,7 @@ public:
 	HRESULT __stdcall __Load(IStream* pStm);
 	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
+	bool _SaveToINI(CCINIClass* pINI);
 };
 
 static_assert(sizeof(FakeAITriggerTypeClass) == sizeof(AITriggerTypeClass), "Invalid Size !");

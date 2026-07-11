@@ -257,5 +257,9 @@ class NOVTABLE FakeTActionClass : public TActionClass
 public:
 
 	bool _OperatorBracket(HouseClass* pTargetHouse, ObjectClass* pSourceObject, TriggerClass* pTrigger, CellStruct* plocation);
+	std::string _BuildINIEntry();
+
+	static TriggerAttachType __fastcall AttachesTo(int type);
+	static LogicNeedType __fastcall ActionNeeds(int type);
 
 }; static_assert(sizeof(FakeTActionClass) == 0x94, "Invalid Size !");

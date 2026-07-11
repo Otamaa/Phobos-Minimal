@@ -84,7 +84,11 @@ protected:
 public:
 	int               ArrayIndex;
 	TEventClass*      NextEvent;
-	TriggerEvent      EventKind;
+	
+	union {
+		TriggerEvent      EventKind;
+		int Event;
+	};
 	TeamTypeClass*    TeamType; // If this event needs to reference a team type, then this is the pointer to the team type object.
 	int               Value;
 	char		      String[0x1C];

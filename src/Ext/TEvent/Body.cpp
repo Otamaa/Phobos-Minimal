@@ -1394,68 +1394,461 @@ bool FakeTEventClass::_Occured(TriggerEvent event, HouseClass* house, ObjectClas
 	default:
 		return HandleDefaultEvents(this, event, house, obj, bool1, source);
 	}
-
 }
 
-ASMJIT_PATCH(0x71F9C0, TEventClass_Persistable, 6)
+bool FakeTEventClass::_IsPresistable()
 {
-	GET(TEventClass*, pThis, ECX);
-
-	switch (pThis->EventKind) {
+	switch (this->EventKind)
+	{
 		case TriggerEvent::SpiedBy:
 		case TriggerEvent::SpyAsHouse:
 		case TriggerEvent::SpyAsInfantry:
+		case TriggerEvent::AttackedByAnybody:
+		case TriggerEvent::AttackedByHouse:
+		case TriggerEvent::EnteredOrOverflownBy:
 		{
-			R->EAX(false);
-			return 0x71F9DF;
+			return false;
 		};
 	}
 
 	std::pair<bool, bool> result =
-		TEventExtData::GetPersistableFlag((AresTriggerEvents)pThis->EventKind);
+		TEventExtData::GetPersistableFlag((AresTriggerEvents)this->EventKind);
 
 	if (!result.second)
-		result = TEventExtData::GetPersistableFlag((PhobosTriggerEvent)pThis->EventKind);
+		result = TEventExtData::GetPersistableFlag((PhobosTriggerEvent)this->EventKind);
 
 	if (!result.second)
-		return 0x0;
+		return true; // default
 
-	R->EAX(result.first);
-	return 0x71F9DF;
+	return result.first;
 }
+DEFINE_FUNCTION_JUMP(LJMP, 0x71F9C0, FakeTEventClass::_IsPresistable);
+DEFINE_FUNCTION_JUMP(CALL, 0x726579, FakeTEventClass::_IsPresistable);
 
-ASMJIT_PATCH(0x71F39B, TEventClass_SaveToINI, 5)
+bool FakeTEventClass::_IsTemporal()
 {
-	GET(AresTriggerEvents, nAction, EDX);
-
-	std::pair<LogicNeedType, bool > result = TEventExtData::GetLogicNeed(nAction);
-
-	if (!result.second)
-		result = TEventExtData::GetLogicNeed((PhobosTriggerEvent)nAction);
-
-	if (!result.second)
-		return (int)nAction > 61 ? 0x71F3FC : 0x71F3A0;
-
-	R->EAX(result.first);
-	return 0x71F3FE;
+	switch (this->EventKind)
+	{
+	case TriggerEvent::EnteredBy:
+	case TriggerEvent::SpiedBy:
+	case TriggerEvent::ThievedBy:
+	case TriggerEvent::DiscoveredByPlayer:
+	case TriggerEvent::AttackedByAnybody:
+	case TriggerEvent::DestroyedByAnybody:
+	case TriggerEvent::CiviliansEvacuated:
+	case TriggerEvent::BuildBuildingType:
+	case TriggerEvent::BuildUnitType:
+	case TriggerEvent::BuildInfantryType:
+	case TriggerEvent::BuildAircraftType:
+	case TriggerEvent::TeamLeavesMap:
+	case TriggerEvent::ZoneEntryBy:
+	case TriggerEvent::CrossesHorizontalLine:
+	case TriggerEvent::CrossesVerticalLine:
+	case TriggerEvent::DestroyedFakesAll:
+	case TriggerEvent::AllBridgesDestroyed:
+	case TriggerEvent::SelectedByPlayer:
+	case TriggerEvent::ComesNearWaypoint:
+	case TriggerEvent::EnemyInSpotlight:
+	case TriggerEvent::FirstDamaged_combatonly:
+	case TriggerEvent::HalfHealth_combatonly:
+	case TriggerEvent::QuarterHealth_combatonly:
+	case TriggerEvent::FirstDamaged_anysource:
+	case TriggerEvent::HalfHealth_anysource:
+	case TriggerEvent::QuarterHealth_anysource:
+	case TriggerEvent::AttackedByHouse:
+	case TriggerEvent::DestroyedByAnything:
+	case TriggerEvent::PickupCrate:
+	case TriggerEvent::PickupCrate_any:
+	case TriggerEvent::SpyAsHouse:
+	case TriggerEvent::SpyAsInfantry:
+	case TriggerEvent::EnteredOrOverflownBy:
+		return 1;
+	default:
+		return 0;
+	}
 }
+DEFINE_FUNCTION_JUMP(LJMP, 0x71F950, FakeTEventClass::_IsTemporal);
+DEFINE_FUNCTION_JUMP(CALL, 0x72656E, FakeTEventClass::_IsTemporal);
 
-ASMJIT_PATCH(0x71f683, TEventClass_GetFlags, 5)
+TriggerAttachType __fastcall FakeTEventClass::AttachesTo(unsigned int a1)
 {
-	GET(AresTriggerEvents, nAction, ECX);
-
-	std::pair<TriggerAttachType, bool> result = TEventExtData::GetAttachFlags(nAction);
+	std::pair<TriggerAttachType, bool> result = TEventExtData::GetAttachFlags((AresTriggerEvents)nAction);
 
 	if (!result.second)
 		result = TEventExtData::GetTriggetAttach((PhobosTriggerEvent)nAction);
 
-	if (result.second)
-	{
-		R->EAX(result.first);
-		return 0x71F6F6;
+	TriggerAttachType attach = TriggerAttachType::None;
+	if (result.second) {
+		attach = result.first;
+	}
+	else {
+		switch ((TriggerEvent)nAction)
+		{
+		case TriggerEvent::None:
+		case TriggerEvent::EnteredBy:
+		case TriggerEvent::DiscoveredByPlayer:
+		case TriggerEvent::AnyEvent:
+		case TriggerEvent::ZoneEntryBy:
+		case TriggerEvent::CrossesHorizontalLine:
+		case TriggerEvent::CrossesVerticalLine:
+		case TriggerEvent::AllBridgesDestroyed:
+		case TriggerEvent::SpyAsHouse:
+		case TriggerEvent::SpyAsInfantry:
+		case TriggerEvent::EnteredOrOverflownBy:
+			attach = TriggerAttachType::Global;
+			break;
+		default:
+			break;
+		}
+
+		switch ((TriggerEvent)nAction)
+		{
+		case TriggerEvent::None:
+		case TriggerEvent::EnteredBy:
+		case TriggerEvent::SpiedBy:
+		case TriggerEvent::DiscoveredByPlayer:
+		case TriggerEvent::AttackedByAnybody:
+		case TriggerEvent::DestroyedByAnybody:
+		case TriggerEvent::AnyEvent:
+		case TriggerEvent::DestroyedFakesAll:
+		case TriggerEvent::SelectedByPlayer:
+		case TriggerEvent::ComesNearWaypoint:
+		case TriggerEvent::EnemyInSpotlight:
+		case TriggerEvent::FirstDamaged_combatonly:
+		case TriggerEvent::HalfHealth_combatonly:
+		case TriggerEvent::QuarterHealth_combatonly:
+		case TriggerEvent::FirstDamaged_anysource:
+		case TriggerEvent::HalfHealth_anysource:
+		case TriggerEvent::QuarterHealth_anysource:
+		case TriggerEvent::AttackedByHouse:
+		case TriggerEvent::DestroyedByAnything:
+		case TriggerEvent::PickupCrate:
+			attach |= TriggerAttachType::Object;
+			break;
+		default:
+			break;
+		}
+
+		if ((TriggerEvent)nAction == TriggerEvent::AnyEvent
+			|| (TriggerEvent)nAction == TriggerEvent::ZoneEntryBy)
+		{
+			attach |= TriggerAttachType::Map;
+		}
+
+		switch ((TriggerEvent)nAction)
+		{
+		case TriggerEvent::ThievedBy:
+		case TriggerEvent::HouseDiscovered:
+		case TriggerEvent::AnyEvent:
+		case TriggerEvent::DestroyedUnitsAll:
+		case TriggerEvent::DestroyedBuildingsAll:
+		case TriggerEvent::DestroyedAll:
+		case TriggerEvent::CreditsExceed:
+		case TriggerEvent::DestroyedBuildingsNum:
+		case TriggerEvent::DestroyedUnitsNum:
+		case TriggerEvent::NoFactoriesLeft:
+		case TriggerEvent::CiviliansEvacuated:
+		case TriggerEvent::BuildBuildingType:
+		case TriggerEvent::BuildUnitType:
+		case TriggerEvent::BuildInfantryType:
+		case TriggerEvent::BuildAircraftType:
+		case TriggerEvent::LowPower:
+		case TriggerEvent::BuildingExists:
+		case TriggerEvent::CreditsBelow:
+		case TriggerEvent::DestroyedUnitsNaval:
+		case TriggerEvent::DestroyedUnitsLand:
+		case TriggerEvent::BuildingDoesNotExist:
+		case TriggerEvent::PowerFull:
+			attach |= TriggerAttachType::House;
+			break;
+		default:
+			break;
+		}
+
+		switch ((TriggerEvent)nAction)
+		{
+		case TriggerEvent::AnyEvent:
+		case TriggerEvent::ElapsedTime:
+		case TriggerEvent::MissionTimerExpired:
+		case TriggerEvent::TeamLeavesMap:
+		case TriggerEvent::GlobalSet:
+		case TriggerEvent::GlobalCleared:
+		case TriggerEvent::LocalSet:
+		case TriggerEvent::LocalCleared:
+		case TriggerEvent::AmbientLightBelow:
+		case TriggerEvent::AmbientLightAbove:
+		case TriggerEvent::ElapsedScenarioTime:
+		case TriggerEvent::PickupCrate_any:
+		case TriggerEvent::RandomDelay:
+		case TriggerEvent::TechTypeExists:
+		case TriggerEvent::TechTypeDoesntExist:
+			attach |= TriggerAttachType::Logic;
+			break;
+		default:
+			break;
+		}
 	}
 
-	return (int)nAction > 59 ? 0x71F69C : 0x71F688;
+	return attach;
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x71F680 , FakeTEventClass::AttachesTo)
+
+void FakeTEventClass::_ReadINI()
+{
+	
+	this->Value = 0;
+	this->EventKind = static_cast<TriggerEvent>(std::atoi(std::strtok(nullptr, ",")));
+
+	const int   code = std::atoi(std::strtok(nullptr, ","));
+	char* const text = std::strtok(nullptr, ",");
+	const int   val = std::atoi(text);
+
+	// --- token consumption pass ---
+	char* fourth_arg = nullptr;
+	char* fifth_arg = nullptr;
+
+	switch (code)
+	{
+	case 4: // three numeric args: consume two more tokens
+		fourth_arg = std::strtok(nullptr, ",");
+		fifth_arg = std::strtok(nullptr, ",");
+		break;
+
+	case 2: // FALLTHROUGH
+	case 3: // two args: consume one more token
+		fourth_arg = std::strtok(nullptr, ",");
+		break;
+	default:
+		break;
+	}
+
+	switch (code)
+	{
+	case 0:
+		this->Value = val;
+		break;
+
+	case 1:
+		this->TeamType = TeamTypeClass::Find(text);
+		break;
+
+	case 2:
+	{
+		this->Value = val;
+
+		// BUGFIX: vanilla strncpy limit was 24, leaving String[25..27] untouched.
+		 //         Use full 27 chars + null to utilize the complete char[28] field.
+		std::strncpy(this->String, fourth_arg ? fourth_arg : "", sizeof(this->String) - 1);
+		this->String[sizeof(this->String) - 1] = '\0';
+		break;
+	}
+
+	default:
+		// param1 >= 3: vanilla falls through silently — no operation.
+		break;
+	}
+
+	//0x71F58B, TEventClass_ReadINI_MaskedTEvents, 0x7
+	switch (static_cast<PhobosTriggerEvent>(this->EventKind))
+	{
+	case PhobosTriggerEvent::EnteredByByID:
+		this->Value = HouseTypeClass::FindIndexByIdAndName(this->String);
+		this->EventKind = TriggerEvent::EnteredBy;
+		break;
+	case PhobosTriggerEvent::SpiedByByID:
+		this->Value = HouseTypeClass::FindIndexByIdAndName(this->String);
+		this->EventKind = TriggerEvent::SpiedBy;
+		break;
+	case PhobosTriggerEvent::HouseDiscoveredByID:
+		this->Value = HouseTypeClass::FindIndexByIdAndName(this->String);
+		this->EventKind = TriggerEvent::HouseDiscovered;
+		break;
+	case PhobosTriggerEvent::DestroyedUnitsAllByID:
+		this->Value = UnitTypeClass::FindIndexById(this->String);
+		this->EventKind = TriggerEvent::DestroyedUnitsAll;
+		break;
+	case PhobosTriggerEvent::DestroyedBuildingsAllByID:
+		this->Value = BuildingTypeClass::FindIndexById(this->String);
+		this->EventKind = TriggerEvent::DestroyedBuildingsAll;
+		break;
+	case PhobosTriggerEvent::DestroyedAllByID:
+		this->Value = HouseTypeClass::FindIndexByIdAndName(this->String);
+		this->EventKind = TriggerEvent::DestroyedAll;
+		break;
+	case PhobosTriggerEvent::BuildBuildingTypeByID:
+		this->Value = BuildingTypeClass::FindIndexById(this->String);
+		this->EventKind = TriggerEvent::BuildBuildingType;
+		break;
+	case PhobosTriggerEvent::BuildUnitTypeByID:
+		this->Value = UnitTypeClass::FindIndexById(this->String);
+		this->EventKind = TriggerEvent::BuildUnitType;
+		break;
+	case PhobosTriggerEvent::BuildInfantryTypeByID:
+		this->Value = InfantryTypeClass::FindIndexById(this->String);
+		this->EventKind = TriggerEvent::BuildInfantryType;
+		break;
+	case PhobosTriggerEvent::BuildAircraftTypeByID:
+		this->Value = AircraftTypeClass::FindIndexById(this->String);
+		this->EventKind = TriggerEvent::BuildAircraftType;
+		break;
+	case PhobosTriggerEvent::ZoneEntryByByID:
+		this->Value = HouseTypeClass::FindIndexByIdAndName(this->String);
+		this->EventKind = TriggerEvent::ZoneEntryBy;
+		break;
+	case PhobosTriggerEvent::CrossesHorizontalLineByID:
+		this->Value = HouseTypeClass::FindIndexByIdAndName(this->String);
+		this->EventKind = TriggerEvent::CrossesHorizontalLine;
+		break;
+	case PhobosTriggerEvent::CrossesVerticalLineByID:
+		this->Value = HouseTypeClass::FindIndexByIdAndName(this->String);
+		this->EventKind = TriggerEvent::CrossesVerticalLine;
+		break;
+	case PhobosTriggerEvent::LowPowerByID:
+		this->Value = HouseTypeClass::FindIndexByIdAndName(this->String);
+		this->EventKind = TriggerEvent::LowPower;
+		break;
+	case PhobosTriggerEvent::BuildingExistsByID:
+		this->Value = BuildingTypeClass::FindIndexById(this->String);
+		this->EventKind = TriggerEvent::BuildingExists;
+		break;
+	case PhobosTriggerEvent::AttackedByHouseByID:
+		this->Value = HouseTypeClass::FindIndexByIdAndName(this->String);
+		this->EventKind = TriggerEvent::AttackedByHouse;
+		break;
+	case PhobosTriggerEvent::SpyAsHouseByID:
+		this->Value = HouseTypeClass::FindIndexByIdAndName(this->String);
+		this->EventKind = TriggerEvent::SpyAsHouse;
+		break;
+	case PhobosTriggerEvent::SpyAsInfantryByID:
+		this->Value = InfantryTypeClass::FindIndexById(this->String);
+		this->EventKind = TriggerEvent::SpyAsInfantry;
+		break;
+	case PhobosTriggerEvent::DestroyedUnitsNavalByID:
+		this->Value = HouseTypeClass::FindIndexByIdAndName(this->String);
+		this->EventKind = TriggerEvent::DestroyedUnitsNaval;
+		break;
+	case PhobosTriggerEvent::DestroyedUnitsLandByID:
+		this->Value = HouseTypeClass::FindIndexByIdAndName(this->String);
+		this->EventKind = TriggerEvent::DestroyedUnitsLand;
+		break;
+	case PhobosTriggerEvent::BuildingDoesNotExistByID:
+		this->Value = BuildingTypeClass::FindIndexById(this->String);
+		this->EventKind = TriggerEvent::BuildingDoesNotExist;
+		break;
+	case PhobosTriggerEvent::PowerFullByID:
+		this->Value = HouseTypeClass::FindIndexByIdAndName(this->String);
+		this->EventKind = TriggerEvent::PowerFull;
+		break;
+	case PhobosTriggerEvent::EnteredOrOverflownByByID:
+		this->Value = HouseTypeClass::FindIndexByIdAndName(this->String);
+		this->EventKind = TriggerEvent::EnteredOrOverflownBy;
+		break;
+
+	default:
+		break;
+	}
+}
+DEFINE_FUNCTION_JUMP(LJMP, 0x71F4E0, FakeTEventClass::_ReadINI);
+DEFINE_FUNCTION_JUMP(CALL, 0x7274FF, FakeTEventClass::_ReadINI);
+
+LogicNeedType TEventExtData::ClassifyEvent(int event)
+{
+	// Ares extended events
+	std::pair<LogicNeedType, bool> result = TEventExtData::GetLogicNeed(
+		static_cast<AresTriggerEvents>(event));
+
+	if (result.second)
+		return result.first;
+
+	// Phobos extended events
+	result = TEventExtData::GetLogicNeed(static_cast<PhobosTriggerEvent>(event));
+
+	if (result.second)
+		return result.first;
+
+	switch (static_cast<TriggerEvent>(event))
+	{
+	case TriggerEvent::EnteredBy:
+	case TriggerEvent::ThievedBy:
+	case TriggerEvent::HouseDiscovered:
+	case TriggerEvent::DestroyedUnitsAll:
+	case TriggerEvent::DestroyedBuildingsAll:
+	case TriggerEvent::DestroyedAll:
+	case TriggerEvent::ZoneEntryBy:
+	case TriggerEvent::CrossesHorizontalLine:
+	case TriggerEvent::CrossesVerticalLine:
+	case TriggerEvent::LowPower:
+	case TriggerEvent::AttackedByHouse:
+	case TriggerEvent::SpyAsHouse:
+	case TriggerEvent::DestroyedUnitsNaval:
+	case TriggerEvent::DestroyedUnitsLand:
+	case TriggerEvent::PowerFull:
+	case TriggerEvent::EnteredOrOverflownBy:
+		return LogicNeedType::House;
+
+	case TriggerEvent::CreditsExceed:
+	case TriggerEvent::ElapsedTime:
+	case TriggerEvent::DestroyedBuildingsNum:
+	case TriggerEvent::DestroyedUnitsNum:
+	case TriggerEvent::AmbientLightBelow:
+	case TriggerEvent::AmbientLightAbove:
+	case TriggerEvent::ElapsedScenarioTime:
+	case TriggerEvent::RandomDelay:
+	case TriggerEvent::CreditsBelow:
+		return LogicNeedType::Number;
+
+	case TriggerEvent::BuildBuildingType:
+	case TriggerEvent::BuildingExists:
+	case TriggerEvent::BuildingDoesNotExist:
+		return LogicNeedType::Structure;
+
+	case TriggerEvent::BuildUnitType:
+		return LogicNeedType::Unit;
+
+	case TriggerEvent::BuildInfantryType:
+	case TriggerEvent::SpyAsInfantry:
+		return LogicNeedType::Infantry;
+
+	case TriggerEvent::BuildAircraftType:
+		return LogicNeedType::Aircraft;
+
+	case TriggerEvent::TeamLeavesMap:
+		return LogicNeedType::Team;
+
+	case TriggerEvent::GlobalSet:
+	case TriggerEvent::GlobalCleared:
+		return LogicNeedType::Global;
+
+	case TriggerEvent::ComesNearWaypoint:
+		return LogicNeedType::Waypoint;
+
+	case TriggerEvent::LocalSet:
+	case TriggerEvent::LocalCleared:
+		return LogicNeedType::Local;
+
+	case TriggerEvent::TechTypeExists:
+	case TriggerEvent::TechTypeDoesntExist:
+		return LogicNeedType::NumberNTech;
+
+	default:
+		return LogicNeedType::None;
+	}
+}
+
+std::string FakeTEventClass::_BuildINIEntry()
+{
+	const int           event = this->Event;
+	const int           value2 = this->Value;
+	const LogicNeedType need = TEventExtData::ClassifyEvent(event);
+
+	if (this->TeamType)
+		return fmt::format("{},{},{}", event, 1, this->TeamType->ID);
+
+	if (need == LogicNeedType::NumberNTech)
+		return fmt::format("{},{},{},{}", event, 2, value2, this->String);
+
+	return fmt::format("{},{},{}", event, 0, value2);
 }
 
 DEFINE_FUNCTION_JUMP(CALL , 0x726540, FakeTEventClass::_Occured)
@@ -1481,113 +1874,6 @@ ASMJIT_PATCH(0x71E856, TEventClass_SDDTOR, 0x6)
 	TEventExtContainer::Instance.Remove(pItem);
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x71FAA6, TEventClass_SDDTOR, 0x6) // Factory
-
-
-ASMJIT_PATCH(0x71F58B, TEventClass_ReadINI_MaskedTEvents, 0x7)
-{
-	REF_STACK(TEventClass*, pThis, 0x4);
-
-	switch (static_cast<PhobosTriggerEvent>(pThis->EventKind))
-	{
-	case PhobosTriggerEvent::EnteredByByID:
-		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
-		pThis->EventKind = TriggerEvent::EnteredBy;
-		break;
-	case PhobosTriggerEvent::SpiedByByID:
-		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
-		pThis->EventKind = TriggerEvent::SpiedBy;
-		break;
-	case PhobosTriggerEvent::HouseDiscoveredByID:
-		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
-		pThis->EventKind = TriggerEvent::HouseDiscovered;
-		break;
-	case PhobosTriggerEvent::DestroyedUnitsAllByID:
-		pThis->Value = UnitTypeClass::FindIndexById(pThis->String);
-		pThis->EventKind = TriggerEvent::DestroyedUnitsAll;
-		break;
-	case PhobosTriggerEvent::DestroyedBuildingsAllByID:
-		pThis->Value = BuildingTypeClass::FindIndexById(pThis->String);
-		pThis->EventKind = TriggerEvent::DestroyedBuildingsAll;
-		break;
-	case PhobosTriggerEvent::DestroyedAllByID:
-		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
-		pThis->EventKind = TriggerEvent::DestroyedAll;
-		break;
-	case PhobosTriggerEvent::BuildBuildingTypeByID:
-		pThis->Value = BuildingTypeClass::FindIndexById(pThis->String);
-		pThis->EventKind = TriggerEvent::BuildBuildingType;
-		break;
-	case PhobosTriggerEvent::BuildUnitTypeByID:
-		pThis->Value = UnitTypeClass::FindIndexById(pThis->String);
-		pThis->EventKind = TriggerEvent::BuildUnitType;
-		break;
-	case PhobosTriggerEvent::BuildInfantryTypeByID:
-		pThis->Value = InfantryTypeClass::FindIndexById(pThis->String);
-		pThis->EventKind = TriggerEvent::BuildInfantryType;
-		break;
-	case PhobosTriggerEvent::BuildAircraftTypeByID:
-		pThis->Value = AircraftTypeClass::FindIndexById(pThis->String);
-		pThis->EventKind = TriggerEvent::BuildAircraftType;
-		break;
-	case PhobosTriggerEvent::ZoneEntryByByID:
-		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
-		pThis->EventKind = TriggerEvent::ZoneEntryBy;
-		break;
-	case PhobosTriggerEvent::CrossesHorizontalLineByID:
-		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
-		pThis->EventKind = TriggerEvent::CrossesHorizontalLine;
-		break;
-	case PhobosTriggerEvent::CrossesVerticalLineByID:
-		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
-		pThis->EventKind = TriggerEvent::CrossesVerticalLine;
-		break;
-	case PhobosTriggerEvent::LowPowerByID:
-		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
-		pThis->EventKind = TriggerEvent::LowPower;
-		break;
-	case PhobosTriggerEvent::BuildingExistsByID:
-		pThis->Value = BuildingTypeClass::FindIndexById(pThis->String);
-		pThis->EventKind = TriggerEvent::BuildingExists;
-		break;
-	case PhobosTriggerEvent::AttackedByHouseByID:
-		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
-		pThis->EventKind = TriggerEvent::AttackedByHouse;
-		break;
-	case PhobosTriggerEvent::SpyAsHouseByID:
-		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
-		pThis->EventKind = TriggerEvent::SpyAsHouse;
-		break;
-	case PhobosTriggerEvent::SpyAsInfantryByID:
-		pThis->Value = InfantryTypeClass::FindIndexById(pThis->String);
-		pThis->EventKind = TriggerEvent::SpyAsInfantry;
-		break;
-	case PhobosTriggerEvent::DestroyedUnitsNavalByID:
-		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
-		pThis->EventKind = TriggerEvent::DestroyedUnitsNaval;
-		break;
-	case PhobosTriggerEvent::DestroyedUnitsLandByID:
-		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
-		pThis->EventKind = TriggerEvent::DestroyedUnitsLand;
-		break;
-	case PhobosTriggerEvent::BuildingDoesNotExistByID:
-		pThis->Value = BuildingTypeClass::FindIndexById(pThis->String);
-		pThis->EventKind = TriggerEvent::BuildingDoesNotExist;
-		break;
-	case PhobosTriggerEvent::PowerFullByID:
-		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
-		pThis->EventKind = TriggerEvent::PowerFull;
-		break;
-	case PhobosTriggerEvent::EnteredOrOverflownByByID:
-		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
-		pThis->EventKind = TriggerEvent::EnteredOrOverflownBy;
-		break;
-
-	default:
-		break;
-	}
-
-	return 0;
-}
 
 HRESULT __stdcall FakeTEventClass::__Load(IStream* pStm)
 {

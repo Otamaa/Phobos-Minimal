@@ -2,7 +2,11 @@
 
 #include <string>
 #include <Ext/Rules/Body.h>
+#include <Ext/TEvent/Body.h>
+#include <Ext/TAction/Body.h>
+
 #include <Utilities/TemplateDef.h>
+#include <Utilities/Macro.h>
 
 #include <TriggerClass.h>
 #include <TagTypeClass.h>
@@ -127,3 +131,62 @@ ASMJIT_PATCH(0x727C94, TriggerTypeClass_Save_Suffix, 6)
 
 	return 0x727C9A;
 }*/
+
+bool FakeTriggerTypeClass::_SaveToINI(CCINIClass* pINIs)
+{
+	// Vanilla: v3 = AttachedTrigger; v4 = v3->IniName; if (!v3) v4 = "<none>"
+	// IDA had null check after dereference — reconstruction error, fixed here.
+	const char* const attachedName = this->NextTrigger
+		? this->NextTrigger->ID
+		: "<none>";
+
+	const char* const houseName = this->House
+		? this->House->ID
+		: "<none>";
+
+	// --- [Triggers] ---
+	// Vanilla: sprintf(a2, "%s,%s,%s,%d,%d,%d,%d,%d", ...)
+	// IsActive == 0 written as disabled flag (inverted).
+	const std::string triggerEntry = fmt::format("{},{},{},{},{},{},{},{}",
+		houseName,
+		attachedName,
+		this->ID, 
+		this->Enabled == 0,
+		this->Difficulty[0] != 0,
+		this->Difficulty[1] != 0,
+		this->Difficulty[2] != 0,
+		this->MustTransfer != 0);
+
+	pINIs->WriteString("Triggers", this->ID, triggerEntry.c_str());
+
+	// --- [Events] ---
+	// Vanilla: count loop -> sprintf(a2,"%d",count) -> strcat/Build_INI_Entry loop.
+	int eventCount = 0;
+	for (TEventClass* e = this->FirstEvent; e; e = e->NextEvent)
+		++eventCount;
+
+	std::string eventEntry = fmt::format("{}", eventCount);
+
+	for (FakeTEventClass* e = (FakeTEventClass*)this->FirstEvent; e; e = (FakeTEventClass*)e->NextEvent)
+		eventEntry += ',' + e->_BuildINIEntry();
+
+	pINIs->WriteString("Events", this->ID, eventEntry.c_str());
+
+	// --- [Actions] ---
+	// Same pattern as events.
+	int actionCount = 0;
+	for (TActionClass* a = this->FirstAction; a; a = a->NextAction)
+		++actionCount;
+
+	std::string actionEntry = fmt::format("{}", actionCount);
+
+	for (FakeTActionClass* a = (FakeTActionClass*)this->FirstAction; a; a = (FakeTActionClass*)a->NextAction)
+		actionEntry += ',' + a->_BuildINIEntry();
+
+	pINIs->WriteString("Actions", this->ID, actionEntry.c_str());
+
+	return 1;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F596C, FakeTriggerTypeClass::_SaveToINI)
+DEFINE_FUNCTION_JUMP(LJMP, 0x7276A0, FakeTriggerTypeClass::_SaveToINI)
