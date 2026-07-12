@@ -61,6 +61,8 @@
     <ClCompile Include="src\Ext\Session\Hooks.ScenarioDecriptions.cpp" />
     <ClCompile Include="src\Ext\SlaveManager\Hooks.cpp" />
     <ClCompile Include="src\Ext\Surface\Hooks.cpp" />
+    <ClCompile Include="src\Ext\TagType\Body.cpp" />
+    <ClCompile Include="src\Ext\TaskForce\Body.cpp" />
     <ClCompile Include="src\Ext\Techno\Hook.HealthBar.cpp" />
     <ClCompile Include="src\Ext\Techno\Hook.Pip.cpp" />
     <ClCompile Include="src\Ext\Techno\Hook.UpdateFunction.cpp" />
@@ -664,6 +666,8 @@
     <ClInclude Include="src\Ext\INI\Body.h" />
     <ClInclude Include="src\Ext\IonBlast\Body.h" />
     <ClInclude Include="src\Ext\Session\Body.h" />
+    <ClInclude Include="src\Ext\TagType\Body.h" />
+    <ClInclude Include="src\Ext\TaskForce\Body.h" />
     <ClInclude Include="src\Lib\lodepng\lodepng.h" />
     <ClInclude Include="src\Lib\miniz\miniz.h" />
     <ClInclude Include="src\Misc\Renderer\GlobalColorPacker.h" />

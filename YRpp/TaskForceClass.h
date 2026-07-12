@@ -21,6 +21,12 @@ struct TaskForceEntryStruct
 	bool operator!= (TaskForceEntryStruct const& rhs) const {
 		return !((*this) == rhs);
 	}
+
+	void Read(char* a2)
+	{ JMP_THIS(0x4C4EF0); }
+
+	char* Write()
+	{ JMP_THIS(0x4C4F90); }
 };
 
 class DECLSPEC_UUID("61DE341E-0774-11D2-ACA5-006008055BB5")

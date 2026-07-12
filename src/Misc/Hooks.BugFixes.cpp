@@ -1668,44 +1668,6 @@ ASMJIT_PATCH_AGAIN(0x54DADC, LocomotionClass_End_Piggyback_PowerOn, 0x5)//Jumpje
 
 #pragma endregion
 
-size_t __fastcall Gamestrtohex(char* str) {
-	JMP_FAST(0x412610);
-}
-
-#include <TaskForceClass.h>
-
-// Suppress Ares' swizzle warning
-static size_t __fastcall HexStr2Int_replacement(const char* str) {
-	// Fake a pointer to trick Ares
-	return std::hash<std::string_view>{}(str) & 0xFFFFFF;
-}
-
-ASMJIT_PATCH(0x6E5FA3, HexStr2Int_replacement_logTagType, 0x8) {
-	GET(char*, HexID, EDI);
-	//GET(TagTypeClass*, pType, ESI);
-
-	size_t ID = Gamestrtohex(HexID);
-	Debug::Log("TagType[%s] want to remap as [%x] \n", HexID, ID);
-	//PhobosSwizzle::Instance.Here_I_Am((void*)ID, pType);
-
-	return 0x6E5FB6;
-}
-
-ASMJIT_PATCH(0x6E8300, HexStr2Int_replacement_logTaskForce, 0xA)
-{
-	LEA_STACK(char*, HexID, 0x18);
-	//GET(TaskForceClass*, pType, ESI);
-
-	size_t ID = Gamestrtohex(HexID);
-	Debug::Log("TaskForce[%s] want to remap as [%x] \n", HexID , ID);
-	//PhobosSwizzle::Instance.Here_I_Am((void*)ID, pType);
-
-	return 0x6E8315;
-}
-
-//DEFINE_FUNCTION_JUMP(CALL, 0x6E8305, HexStr2Int_replacement); // TaskForce
-//DEFINE_FUNCTION_JUMP(CALL, 0x6E5FA6, HexStr2Int_replacement); // TagType
-
 // Save GameModeOptions in campaign modes
 //DEFINE_JUMP(LJMP, 0x67E3BD, 0x67E3D3); // Save //TODO A8B250
 //DEFINE_JUMP(LJMP, 0x67F72E, 0x67F744); // Load

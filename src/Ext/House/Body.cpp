@@ -5037,8 +5037,6 @@ bool HouseExtData::CanEnterTunnel(std::vector<FootClass*>* pTunnelData, Building
 
 // =============================
 // container hooks
-std::vector<HouseClass*> WhatTheFuck {};
-
 ASMJIT_PATCH(0x4F6532, HouseClass_CTOR, 0x5)
 {
 	GET(HouseClass*, pItem, EAX);
@@ -5050,11 +5048,6 @@ ASMJIT_PATCH(0x4F6532, HouseClass_CTOR, 0x5)
 		HouseExtContainer::Instance.Allocate(pItem);
 	}
 
-	if (IS_SAME_STR_(pItem->Type->ID, "League"))
-		Debug::Log("User , FP %f\n", pItem->FirepowerMultiplier);
-
-	WhatTheFuck.push_back(pItem);
-
 	return 0;
 }
 
@@ -5063,11 +5056,6 @@ ASMJIT_PATCH(0x4F7371, HouseClass_DTOR, 0x6)
 	GET(HouseClass*, pItem, ESI);
 
 	HouseExtContainer::Instance.Remove(pItem);
-	auto iter = std::ranges::find(WhatTheFuck, pItem);
-
-	if (iter != WhatTheFuck.end())
-		WhatTheFuck.erase(iter);
-
 	return 0;
 }
 

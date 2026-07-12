@@ -3501,7 +3501,7 @@ void FakeRulesClass::_Process(CCINIClass* pINI)
 		}
 
 		for(int i = 0; i < WarheadTypeClass::Array->Count; ++i) {
-			Debug::Log("WH [%s] At %d\n", WarheadTypeClass::Array->Items[i]->ID, i);
+			//Debug::Log("WH [%s] At %d\n", WarheadTypeClass::Array->Items[i]->ID, i);
 
 			WarheadTypeClass::Array->Items[i]->LoadFromINI(pINI);
 		}
