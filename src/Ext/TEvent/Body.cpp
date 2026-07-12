@@ -1470,7 +1470,7 @@ bool FakeTEventClass::_IsTemporal()
 DEFINE_FUNCTION_JUMP(LJMP, 0x71F950, FakeTEventClass::_IsTemporal);
 DEFINE_FUNCTION_JUMP(CALL, 0x72656E, FakeTEventClass::_IsTemporal);
 
-TriggerAttachType __fastcall FakeTEventClass::AttachesTo(unsigned int a1)
+TriggerAttachType __fastcall FakeTEventClass::AttachesTo(unsigned int nAction)
 {
 	std::pair<TriggerAttachType, bool> result = TEventExtData::GetAttachFlags((AresTriggerEvents)nAction);
 

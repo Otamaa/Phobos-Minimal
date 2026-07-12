@@ -31,7 +31,6 @@
 
 #include <TEventClass.h>
 #include <TActionClass.h>
-}
 
 ASMJIT_PATCH(0x41E893, AITriggerTypeClass_ConditionMet_SideIndex, 0xA)
 {

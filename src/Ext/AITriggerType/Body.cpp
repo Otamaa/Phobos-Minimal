@@ -694,7 +694,6 @@ bool  FakeAITriggerTypeClass::_SaveToINI(CCINIClass* pINI)
 			this->TeamTypeTwo->TaskForce); // VERIFY: field name
 		this->TechLevel = std::max(this->TechLevel, required);
 	}
-
-	return 1;
 	*/
+	return 1;
 }

@@ -231,7 +231,7 @@ struct Game
 	static HRESULT __fastcall Load_Misc_Values(LPSTREAM a1)
 	{ JMP_FAST(0x67F9C0); }
 
-	static void __fastcall UnlockImput()
+	static void __fastcall UnlockInput()
 	{ JMP_FAST(0x684290); }
 
 	static void __fastcall UIStuffs_MenuStuffs()

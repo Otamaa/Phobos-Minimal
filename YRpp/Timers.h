@@ -136,10 +136,17 @@ public:
 		return this->IsTicking() || this->HasTimeLeft();
 	}
 
+	COMPILETIMEEVAL FORCEDINLINE void operator+=(int factor) { this->Add(factor); }
+	COMPILETIMEEVAL FORCEDINLINE void operator-=(int factor) { this->Sub(factor); }
+
 	COMPILETIMEEVAL FORCEDINLINE void Add(int nTime) {
-		this->Pause();
-		this->TimeLeft += nTime;
-		this->Resume();
+		const int timeLeft = this->GetTimeLeft();
+		this->Start(timeLeft + nTime);
+	}
+
+	COMPILETIMEEVAL FORCEDINLINE void Sub(int subTime) {
+		const int timeLeft = this->GetTimeLeft();
+		this->Start(timeLeft > subTime ? timeLeft - subTime : 0);
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE bool IsTicking() const {
