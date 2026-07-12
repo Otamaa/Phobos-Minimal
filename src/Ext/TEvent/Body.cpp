@@ -1045,7 +1045,9 @@ bool CheckNoFactories(HouseClass* house)
 	for (int i = 0; i < house->Buildings.Count; ++i)
 	{
 		BuildingClass* building = house->Buildings.Items[i];
-		if (building && !building->InLimbo && building->Type->Factory != AbstractType::None)
+		if (building && 
+			!building->InLimbo &&
+			 building->Type->Factory != AbstractType::None)
 		{
 			return false;
 		}
@@ -1345,15 +1347,33 @@ bool FakeTEventClass::_Occured(TriggerEvent event, HouseClass* house, ObjectClas
 	{
 	case TriggerEvent::ElapsedTime:
 	case TriggerEvent::RandomDelay:
+	{
 		// Pseudocode: if Started==-1 return (DelayTime==0); else return (Frame-Started >= DelayTime)
 		// Expired() returns true for any non-ticking timer regardless of TimeLeft, which is wrong
 		// when the timer hasn't started but still has time remaining.
-		return td->GetTimeLeft() <= 0;
+		const int started = td->StartTime;
+		const int delayTime = td->TimeLeft;
 
+		if (started == -1)
+			return delayTime == 0;
+
+		const int elapsed = Unsorted::CurrentFrame() - started;
+		if (elapsed < delayTime)
+			return (delayTime - elapsed) == 0;
+
+		return true;
+	}
 	case TriggerEvent::MissionTimerExpired:
+	{
 		// Pseudocode: if Started==-1 return false; else return (Frame-Started >= DelayTime)
 		// Expired() returns true when not ticking, but original returns false when not started.
-		return ScenarioClass::Instance->MissionTimer.Completed();
+		auto& mt = ScenarioClass::Instance->MissionTimer;
+		if (mt.StartTime == -1)
+			return false;
+
+		return (Unsorted::CurrentFrame() - mt.StartTime) >= mt.TimeLeft;
+
+	}
 
 	case TriggerEvent::GlobalSet:
 		ScenarioClass::Instance->GetGlobalVarValue_ptr(this->Value, bool1);
