@@ -842,6 +842,31 @@ bool NOINLINE TActionExtData::Occured(TActionClass* pThis, ActionArgs const& arg
 		//case PhobosTriggerAction::AdjustLighting:
 		//	ret = TActionExtData::AdjustLighting(pThis, pHouse, pObject, pTrigger, args.plocation);
 		//	break;
+
+	case PhobosTriggerAction::AttachSoundToObjects:
+	{
+		if(pThis->Value >= 0) {		
+			for (auto& pObj : *ObjectClass::Array) {
+				if (pObj && pObj->IsAlive && pObj->IsOnMap && pThis->TagType && pThis->TagType->ContainsTrigger(pTrigger->Type)) {
+					pObj->AttachSound(pThis->Value);
+					ret = true;
+				}
+			}
+		}
+
+		return true;
+	}
+	case PhobosTriggerAction::RemoveSoundFromObjects:
+	{
+		for (auto& pObj : *ObjectClass::Array) {
+			if (pObj && pObj->IsAlive && pObj->IsOnMap && pThis->TagType && pThis->TagType->ContainsTrigger(pTrigger->Type)) {
+					pObj->AttachSound(-1);
+					ret = true;
+			}
+		}
+		return true;
+	}
+
 	case PhobosTriggerAction::RunSuperWeaponAtLocation:
 		ret = TActionExtData::RunSuperWeaponAtLocation(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
@@ -1412,38 +1437,6 @@ static NOINLINE HouseClass* GetPlayerAt(int param, HouseClass* const pOwnerHouse
 
 	return HouseClass::FindByCountryIndex(param);
 }
-
-std::pair<TriggerAttachType, bool> TActionExtData::GetTriggetAttach(AresNewTriggerAction nAction)
-{
-	switch (nAction)
-	{
-	case AresNewTriggerAction::AuxiliaryPower:
-	case AresNewTriggerAction::SetEVAVoice:
-		return { TriggerAttachType::None , true };
-	case AresNewTriggerAction::KillDriversOf:
-	case AresNewTriggerAction::SetGroup:
-		return { TriggerAttachType::Object , true };
-	default:
-		return { TriggerAttachType::None , false };
-	}
-}
-
-std::pair<LogicNeedType, bool> TActionExtData::GetLogicNeed(AresNewTriggerAction nAction)
-{
-	switch (nAction)
-	{
-	case AresNewTriggerAction::AuxiliaryPower:
-		return { LogicNeedType::NumberNSuper  , true };
-	case AresNewTriggerAction::KillDriversOf:
-		return { LogicNeedType::None , true };
-	case AresNewTriggerAction::SetEVAVoice:
-	case AresNewTriggerAction::SetGroup:
-		return { LogicNeedType::Number, true };
-	default:
-		return { LogicNeedType::None , false };
-	}
-}
-
 
 bool TActionExtData::ActivateFirestorm(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
 {

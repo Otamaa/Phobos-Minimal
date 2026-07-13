@@ -1118,6 +1118,9 @@ public:
 		return nBuffer;
 	}
 
+	bool CanInstantiateTeam(TeamTypeClass* teamtype) { JMP_THIS(0x509610); }
+	int TeamTypeCount(TeamTypeClass* teamtype) { JMP_THIS(0x5095D0); }
+
 	double GetSpeedMult(TechnoTypeClass* pWho) const 
 		{ JMP_THIS(0x50C050); }
 

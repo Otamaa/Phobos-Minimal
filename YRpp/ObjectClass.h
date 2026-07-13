@@ -32,6 +32,7 @@ public:
 	static const auto AbsDerivateID = AbstractFlags::Object;
 
 	//global arrays
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<ObjectClass*>, 0xA8E360u> const Array {};
 	static COMPILETIMEEVAL reference<DynamicVectorClass<ObjectClass*>, 0xA8ECB8u> const CurrentObjects{};
 
 	//IUnknown

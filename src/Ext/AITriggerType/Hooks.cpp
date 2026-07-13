@@ -4,25 +4,6 @@
 #include <Ext/Rules/Body.h>
 #include <Ext/House/Body.h>
 
-// TODO
-//static bool CheckPrereq(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pHouse2)
-//{
-//	if (const auto pItem = pThis->ConditionObject)
-//		return HouseExtData::PrereqValidate(pHouse2, pItem, false, true) == CanBuildResult::Buildable;
-//
-//	return false;
-//}
-
-//static bool CheckBridgeCondition(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pHouse2) {
-//	if (auto const pCiv = HouseClass::FindBySideIndex(RulesExtData::Instance()->CivilianSideIndex)) {
-//		return pCiv->Buildings.any_of([](BuildingClass* const pBld) {
-//			return pBld->Type->BridgeRepairHut && pBld->Type->Repairable && MapClass::Instance->IsBridgeRepairNeeded(pBld->InlineMapCoords());
-//		});
-//	}
-//
-//	return false;
-//}
-
 //ASMJIT_PATCH_AGAIN(0x41E8DD, Phobos_AITrigger_Handler, 0x8)
 //ASMJIT_PATCH(0x41E8F0, Phobos_AITrigger_Handler, 0x8)
 //{

@@ -117,6 +117,30 @@ ASMJIT_PATCH(0x72617D, TriggerClass_DTOR, 0xF)
 	return 0;
 }
 
+// receiving reset signal from local/global variable 
+// do something about it 
+void FakeTriggerClass::_Reset()
+{
+	int atPlace = 0;
+
+	for (auto i = this->Type->FirstEvent; i; ++atPlace) {
+		if (i->EventKind == TriggerEvent::ElapsedTime) {
+			this->Timer.Start((3 * i->Value) * 5);
+			this->OccuredEvents &= ~(1 << atPlace);
+		}
+
+		if (i->EventKind == TriggerEvent::RandomDelay) {
+			const int rand = ScenarioClass::Instance->Random.RandomFromMax(i->Value);
+			this->Timer.Start(15 * (rand + i->Value / 2));
+			this->OccuredEvents &= ~(1 << atPlace);
+		}
+
+		//TODO add more if needed
+		i = i->NextEvent;
+	}
+}
+DEFINE_FUNCTION_JUMP(LJMP, 0x726400, FakeTriggerClass::_Reset);
+
 void FakeTriggerClass::_Detach(AbstractClass* pTarget, bool bRemove)
 {
 	if(auto pExt = this->_GetExtData())

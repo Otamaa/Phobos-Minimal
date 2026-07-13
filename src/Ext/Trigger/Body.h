@@ -91,7 +91,8 @@ public:
 	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	void _Detach(AbstractClass* target, bool all);
-	
+	void _Reset();
+
 	TriggerExtData* _GetExtData()
 	{
 		return *reinterpret_cast<TriggerExtData**>(((DWORD)this) + AbstractExtOffset);

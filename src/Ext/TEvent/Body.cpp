@@ -1431,6 +1431,7 @@ bool FakeTEventClass::_IsPresistable()
 		};
 	}
 
+		//todo : CHECK IF ARES AND PHOBOS STUFFS IS IN THIS AREA
 	std::pair<bool, bool> result =
 		TEventExtData::GetPersistableFlag((AresTriggerEvents)this->EventKind);
 
@@ -1447,6 +1448,8 @@ DEFINE_FUNCTION_JUMP(CALL, 0x726579, FakeTEventClass::_IsPresistable);
 
 bool FakeTEventClass::_IsTemporal()
 {
+	//todo : CHECK IF ARES AND PHOBOS STUFFS IS IN THIS AREA
+
 	switch (this->EventKind)
 	{
 	case TriggerEvent::EnteredBy:
@@ -1893,7 +1896,8 @@ ASMJIT_PATCH(0x71E856, TEventClass_SDDTOR, 0x6)
 	GET(TEventClass*, pItem, ESI);
 	TEventExtContainer::Instance.Remove(pItem);
 	return 0;
-}ASMJIT_PATCH_AGAIN(0x71FAA6, TEventClass_SDDTOR, 0x6) // Factory
+}
+ASMJIT_PATCH_AGAIN(0x71FAA6, TEventClass_SDDTOR, 0x6) // Factory
 
 HRESULT __stdcall FakeTEventClass::__Load(IStream* pStm)
 {

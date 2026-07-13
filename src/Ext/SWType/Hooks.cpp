@@ -378,60 +378,6 @@ ASMJIT_PATCH(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 	return 0;
 }
 
-ASMJIT_PATCH(0x41F0F1, AITriggerClass_IC_Ready, 0xA)
-{
-	enum { advance = 0x41F0FD, breakloop = 0x41F10D };
-	GET(FakeSuperClass*, pSuper, EDI);
-
-	return (pSuper->Type->Type == SuperWeaponType::IronCurtain
-		&& SWTypeExtData::IsAvailable(pSuper->Owner, pSuper))
-		? breakloop : advance;
-}
-
-ASMJIT_PATCH(0x41F180, AITriggerTypeClass_Chrono, 0x5)
-{
-	//GET(AITriggerTypeClass*, pThis, ECX);
-	GET_STACK(HouseClass*, pOwner, 0x4);
-	//GET_STACK(HouseClass*, pEnemy, 0x8);
-
-	if (!pOwner || pOwner->Supers.Count <= 0) {
-		R->EAX(false);
-		return 0x41F1BA;
-	}
-
-	//Debug::LogInfo("AITrigger[%s] With Owner[%s] Enemy[%s].", pThis->ID, pOwner->get_ID(), pEnemy->get_ID());
-	auto iter = pOwner->Supers.find_if([pOwner](SuperClass* pItem) {
-		return (pItem->Type->Type == SuperWeaponType::ChronoSphere
-			&& SWTypeExtData::IsAvailable(pOwner, pItem)) && pItem->Granted;
-	});
-
-	if (iter == pOwner->Supers.end()) {
-		R->EAX(false);
-		return 0x41F1BA;
-	}
-	auto pSuper = *iter;
-	auto v8 = pSuper->RechargeTimer.StartTime;
-	auto v9 = pSuper->RechargeTimer.TimeLeft;
-	const auto rechargePercent = (1.0 - RulesClass::Instance->AIMinorSuperReadyPercent);
-
-	if (v8 == -1) {
-		const auto result1 = rechargePercent >= (v9 / (double)pSuper->GetRechargeTime());
-		R->EAX(result1);
-		return 0x41F1BA;
-	}
-
-	const auto chargeTime = Unsorted::CurrentFrame.get() - v8;
-	if (chargeTime < v9) {
-		v9 = (v9 - chargeTime);
-		const auto result2 = rechargePercent >= (v9 / (double)pSuper->GetRechargeTime());
-		R->EAX(result2);
-		return 0x41F1BA;
-	}
-
-	const auto result3 = rechargePercent >= (0 / (double)pSuper->GetRechargeTime());
-	R->EAX(result3);
-	return 0x41F1BA;
-}
 
 #include <Ext/Team/Body.h>
 

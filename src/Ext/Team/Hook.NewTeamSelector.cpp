@@ -6,6 +6,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Foot/Body.h>
+#include <Ext/AITriggerType/Body.h>
 
 #include <Utilities/Cast.h>
 
@@ -104,309 +105,6 @@ COMPILETIMEEVAL bool IsValidTechno(TechnoClass* pTechno)
 			|| pTechno->WhatAmI() == AbstractType::Aircraft);
 
 	return isValid;
-}
-
-enum class ComparatorOperandTypes
-{
-	LessThan, LessOrEqual, Equal, MoreOrEqual, More, NotSame
-};
-
-COMPILETIMEEVAL void ModifyOperand(bool& result, int counter, AITriggerConditionComparator& cond)
-{
-	switch ((ComparatorOperandTypes)cond.Type)
-	{
-	case ComparatorOperandTypes::LessThan:
-		result = counter < cond.Operand;
-		break;
-	case ComparatorOperandTypes::LessOrEqual:
-		result = counter <= cond.Operand;
-		break;
-	case ComparatorOperandTypes::Equal:
-		result = counter == cond.Operand;
-		break;
-	case ComparatorOperandTypes::MoreOrEqual:
-		result = counter >= cond.Operand;
-		break;
-	case ComparatorOperandTypes::More:
-		result = counter > cond.Operand;
-		break;
-	case ComparatorOperandTypes::NotSame:
-		result = counter != cond.Operand;
-		break;
-	default:
-		break;
-	}
-}
-
-bool OwnStuffs(TechnoTypeClass* pItem, TechnoClass* list) {
-	if (auto pItemUnit = type_cast<UnitTypeClass*, false>(pItem)) {
-		if (auto pListBld = cast_to<BuildingClass*, false>(list))
-		{
-			if (pItemUnit->DeploysInto == pListBld->Type)
-				return true;
-
-			if (pListBld->Type->UndeploysInto == pItemUnit)
-				return true;
-		}
-	}
-
-	if (auto pItemUnit = type_cast<BuildingTypeClass*, false>(pItem))
-	{
-		if (auto pListBld = cast_to<UnitClass*, false>(list))
-		{
-			if (pItemUnit->UndeploysInto == pListBld->Type)
-				return true;
-
-			if (pListBld->Type->DeploysInto == pItemUnit)
-				return true;
-		}
-	}
-
-	//check type
-	//return TechnoExtContainer::Instance.Find(list)->CurrentType == pItem || list->GetTechnoType() == pItem;
-	return TeamExtData::IsEligible(GET_TECHNOTYPE(list), pItem);
-}
-
-NOINLINE bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, std::vector<TechnoTypeClass*>& list)
-{
-	bool result = false;
-	int counter = 0;
-
-	// Count all objects of the list, like an OR operator
-	for (auto pItem : list)
-	{
-		for (auto pObject : *TechnoClass::Array)
-		{
-			if (!IsValidTechno(pObject) || !pObject->Owner) continue;
-
-			if (((!allies && pObject->Owner == pHouse) || (allies && pHouse != pObject->Owner && pHouse->IsAlliedWith(pObject->Owner)))
-				&& !pObject->Owner->Type->MultiplayPassive
-				&& OwnStuffs(pItem,pObject))
-			{
-				counter++;
-			}
-		}
-	}
-
-	ModifyOperand(result, counter, *pThis->Conditions);
-	return result;
-}
-
-NOINLINE bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, TechnoTypeClass* pItem)
-{
-	bool result = false;
-	int counter = 0;
-
-	// Count all objects of the list, like an OR operator
-
-	for (auto pObject : *TechnoClass::Array)
-	{
-		if (!IsValidTechno(pObject) || !pObject->Owner) continue;
-
-		if (((!allies && pObject->Owner == pHouse) || (allies && pHouse != pObject->Owner && pHouse->IsAlliedWith(pObject->Owner)))
-			&& !pObject->Owner->Type->MultiplayPassive
-			&& OwnStuffs(pItem, pObject))
-		{
-			counter++;
-		}
-	}
-
-	ModifyOperand(result, counter, *pThis->Conditions);
-	return result;
-}
-
-NOINLINE bool EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, bool onlySelectedEnemy, TechnoTypeClass* pItem)
-{
-	bool result = false;
-	int counter = 0;
-
-	if (pEnemy && pHouse->IsAlliedWith(pEnemy) && !onlySelectedEnemy)
-		pEnemy = nullptr;
-
-	// Count all objects of the list, like an OR operator
-
-	for (auto const pObject : *TechnoClass::Array)
-	{
-		if (!IsValidTechno(pObject) || !pObject->Owner) continue;
-
-		if (pObject->Owner != pHouse
-			&& (!pEnemy || !pHouse->IsAlliedWith(pObject->Owner))
-			&& !pObject->Owner->Type->MultiplayPassive
-			&& OwnStuffs(pItem, pObject))
-		{
-			counter++;
-		}
-	}
-
-	ModifyOperand(result, counter, *pThis->Conditions);
-	return result;
-}
-
-NOINLINE bool EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, bool onlySelectedEnemy, std::vector<TechnoTypeClass*>& list)
-{
-	bool result = false;
-	int counter = 0;
-
-	if (pEnemy && pHouse->IsAlliedWith(pEnemy) && !onlySelectedEnemy)
-		pEnemy = nullptr;
-
-	// Count all objects of the list, like an OR operator
-	for (auto const pItem : list)
-	{
-		for (auto const pObject : *TechnoClass::Array)
-		{
-			if (!IsValidTechno(pObject) || !pObject->Owner) continue;
-
-			if (pObject->Owner != pHouse
-				&& (!pEnemy || !pHouse->IsAlliedWith(pObject->Owner))
-				&& !pObject->Owner->Type->MultiplayPassive
-				&& OwnStuffs(pItem, pObject))
-			{
-				counter++;
-			}
-		}
-	}
-
-	ModifyOperand(result, counter, *pThis->Conditions);
-	return result;
-}
-
-NOINLINE bool NeutralOwns(AITriggerTypeClass* pThis, std::vector<TechnoTypeClass*>& list)
-{
-	bool result = false;
-	int counter = 0;
-	auto pCiv = HouseExtData::FindFirstCivilianHouse();
-
-	// Count all objects of the list, like an OR operator
-	for (auto const pItem : list)
-	{
-		for (auto const pObject : *TechnoClass::Array)
-		{
-			if (!IsValidTechno(pObject) || !pObject->Owner) continue;
-
-			if (pObject->Owner == pCiv && OwnStuffs(pItem, pObject))
-				counter++;
-		}
-	}
-
-	ModifyOperand(result, counter, *pThis->Conditions);
-	return result;
-}
-
-NOINLINE bool NeutralOwns(AITriggerTypeClass* pThis, TechnoTypeClass* pItem)
-{
-	bool result = false;
-	int counter = 0;
-	auto pCiv = HouseExtData::FindFirstCivilianHouse();
-
-	for (auto const pObject : *TechnoClass::Array)
-	{
-		if (!IsValidTechno(pObject) || !pObject->Owner) continue;
-
-		if (pObject->Owner == pCiv && GET_TECHNOTYPE(pObject) == pItem)
-			counter++;
-	}
-
-	ModifyOperand(result, counter, *pThis->Conditions);
-	return result;
-}
-
-NOINLINE bool HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, std::vector<TechnoTypeClass*>& list)
-{
-	bool result = true;
-
-	// Count all objects of the list, like an AND operator
-	for (auto const pItem : list)
-	{
-		if (!result)
-			break;
-
-		int counter = 0;
-		result = true;
-
-		for (auto const pObject : *TechnoClass::Array)
-		{
-			if (!IsValidTechno(pObject) || !pObject->Owner) continue;
-
-			if (pObject->Owner == pHouse && GET_TECHNOTYPE(pObject) == pItem)
-				counter++;
-		}
-
-		ModifyOperand(result, counter, *pThis->Conditions);
-	}
-
-	return result;
-}
-
-NOINLINE bool EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, std::vector<TechnoTypeClass*>& list)
-{
-	bool result = true;
-
-	if (pEnemy && pHouse->IsAlliedWith(pEnemy))
-		pEnemy = nullptr;
-
-	// Count all objects of the list, like an AND operator
-	for (auto const pItem : list)
-	{
-		if (!result)
-			break;
-
-		int counter = 0;
-		result = true;
-
-		for (auto const pObject : *TechnoClass::Array)
-		{
-			if (!IsValidTechno(pObject) || !pObject->Owner) continue;
-
-			if (pObject->Owner != pHouse
-				&& (!pEnemy || !pHouse->IsAlliedWith(pObject->Owner))
-				&& !pObject->Owner->Type->MultiplayPassive
-				&& GET_TECHNOTYPE(pObject) == pItem)
-			{
-				counter++;
-			}
-		}
-
-		ModifyOperand(result, counter, *pThis->Conditions);
-	}
-
-	return result;
-}
-
-NOINLINE bool NeutralOwnsAll(AITriggerTypeClass* pThis, std::vector<TechnoTypeClass*>& list)
-{
-	bool result = true;
-
-	auto pCiv = HouseExtData::FindFirstCivilianHouse();
-
-	// Count all objects of the list, like an AND operator
-	for (auto const pItem : list)
-	{
-		int counter = 0;
-
-		for (auto const pObject : *TechnoClass::Array)
-		{
-			if (!IsValidTechno(pObject) || !pObject->Owner) continue;
-
-			if (pObject->Owner == pCiv && GET_TECHNOTYPE(pObject) == pItem)
-				counter++;
-		}
-
-		ModifyOperand(result, counter, *pThis->Conditions);
-	}
-
-	return result;
-}
-
-NOINLINE bool CountConditionMet(AITriggerTypeClass* pThis, int nObjects)
-{
-	bool result = true;
-
-	if (nObjects < 0)
-		return false;
-
-	ModifyOperand(result, nObjects, *pThis->Conditions);
-	return result;
 }
 
 #include <TriggerTypeClass.h>
@@ -606,9 +304,7 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 			Debug::LogInfo("DEBUG: House [{}] (idx: {}) reached the TotalAITeamCap value!", pHouse->Type->ID, pHouse->ArrayIndex);
 			return true;
 		}
-
-		int destroyedBridgesCount = 0;
-		int undamagedBridgesCount = 0;
+;
 		PhobosMap<TechnoTypeClass*, int> ownedRecruitables;
 		bool hasInfantryFactory = false;
 		bool hasUnitFactory = false;
@@ -625,16 +321,6 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 			{
 				auto const pBuilding = static_cast<BuildingClass*>(pTechno);
 				auto const pBuildingType = pBuilding->Type;
-				if (pBuilding && pBuilding->Type->BridgeRepairHut)
-				{
-
-					CellStruct cell = pTechno->GetCell()->MapCoords;
-
-					if (MapClass::Instance->IsLinkedBridgeDestroyed(cell))
-						destroyedBridgesCount++;
-					else
-						undamagedBridgesCount++;
-				}
 
 				if (pBuilding->Owner == pHouse)
 				{
@@ -718,6 +404,7 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 			if (onlyPickDefensiveTeams && !pTrigger->IsForBaseDefense)
 				continue;
 
+			//remove
 			int triggerHouse = pTrigger->HouseIndex;
 			int triggerSide = pTrigger->SideIndex;
 
@@ -737,160 +424,21 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 				}
 
 				// The trigger must be compatible with the owner
-				if ((triggerHouse == -1 || houseTypeIdx == triggerHouse) && (triggerSide == 0 || sideTypeIdx == triggerSide))
+				if ((triggerHouse == -1 || houseTypeIdx == triggerHouse) && (triggerSide < 0 || sideTypeIdx == triggerSide))
 				{
-					// "ConditionType=-1" will be skipped, always is valid
-					if ((int)pTrigger->ConditionType >= 0)
-					{
-						switch ((int)pTrigger->ConditionType)
-						{
-						case 0:
-						{
-							// Simulate case 0: "enemy owns"
-							if (!pTrigger->ConditionObject)
-								continue;
+					
+					auto ToRange = [](int value) {
+						if (value < 0 || value > 19)
+							return value; //just proceedit
 
-							if (!EnemyOwns(pTrigger, pHouse, targetHouse, true, pTrigger->ConditionObject))
-								continue;
-						}
-						break;
-						case 1:
-						{
-							// Simulate case 1: "house owns"
-							if (!pTrigger->ConditionObject)
-								continue;
+						return value + 12; // convert the original AITriggerCondition tor fit phobos generalized one
+					};
 
-							if (!HouseOwns(pTrigger, pHouse, false, pTrigger->ConditionObject))
-								continue;
-						}	break;
-						case 7:
-						{
-							// Simulate case 7: "civilian owns"
-							if (!pTrigger->ConditionObject)
-								continue;
+					int condType = ToRange((int)pTrigger->ConditionType);
 
-							if (!NeutralOwns(pTrigger, pTrigger->ConditionObject))
-								continue;
-						}	break;
-						case 8:
-						{
-							// Simulate case 0: "enemy owns" but instead of restrict it against the main enemy house it is done against all enemies
-							if (!pTrigger->ConditionObject)
-								continue;
-
-							if (!EnemyOwns(pTrigger, pHouse, nullptr, false, pTrigger->ConditionObject))
-								continue;
-						}	break;
-						case 9:
-						{
-							if ((size_t)pTrigger->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
-							{
-								// New case 9: Like in case 0 but instead of 1 unit for comparisons there is a full list from [AITargetTypes] owned by the enemy.
-								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								if (!EnemyOwns(pTrigger, pHouse, targetHouse, false, RulesExtData::Instance()->AITargetTypesLists[pTrigger->Conditions[3].Operand]))
-									continue;
-							}
-						}	break;
-						case 10:
-						{
-							if ((size_t)pTrigger->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
-							{
-								// New case 10: Like in case 1 but instead of 1 unit for comparisons there is a full list from [AITargetTypes] owned by the house.
-								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								if (!HouseOwns(pTrigger, pHouse, false, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].Operand)]))
-									continue;
-							}
-						}	break;
-						case 11:
-						{
-							if ((size_t)pTrigger->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
-							{
-								// New case 11: Like in case 7 but instead of 1 unit for comparisons there is a full list from [AITargetTypes] owned by the Civilians.
-								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								if (!NeutralOwns(pTrigger, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].Operand)]))
-									continue;
-							}
-						}	break;
-						case 12:
-						{
-							if ((size_t)pTrigger->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
-							{
-								// New case 12: Like in case 0 & 9 but instead of a specific enemy this checks in all enemies.
-								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								if (!EnemyOwns(pTrigger, pHouse, nullptr, false, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].Operand)]))
-									continue;
-							}
-						}	break;
-						case 13:
-						{
-							if ((size_t)pTrigger->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
-							{
-								// New case 13: Like in case 1 & 10 but instead checking the house now checks the allies.
-								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								if (!HouseOwns(pTrigger, pHouse, true, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].Operand)]))
-									continue;
-							}
-						}	break;
-						case 14:
-						{
-							if ((size_t)pTrigger->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
-							{
-								// New case 14: Like in case 9 but instead of meet any comparison now is required all.
-								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								if (!EnemyOwnsAll(pTrigger, pHouse, targetHouse, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].Operand)]))
-									continue;
-							}
-						}	break;
-						case 15:
-						{
-							if ((size_t)pTrigger->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
-							{
-								// New case 15: Like in case 10 but instead of meet any comparison now is required all.
-								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								if (!HouseOwnsAll(pTrigger, pHouse, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].Operand)]))
-									continue;
-							}
-						}	break;
-						case 16:
-						{
-							if ((size_t)pTrigger->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
-							{
-								// New case 16: Like in case 11 but instead of meet any comparison now is required all.
-								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								if (!NeutralOwnsAll(pTrigger, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].Operand)]))
-									continue;
-							}
-						}	break;
-						case 17:
-						{
-							if ((size_t)pTrigger->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
-							{
-								// New case 17: Like in case 14 but instead of meet any comparison now is required all. Check all enemies
-								// Caution: Little Endian hexadecimal value stored here: 00000000000000000000000000000000000000000000000000000000AABBCCDD; examples: 255 is 0xFF (in AA) and 256 is 0x0001 (in AABB)
-								if (!EnemyOwnsAll(pTrigger, pHouse, nullptr, RulesExtData::Instance()->AITargetTypesLists[(pTrigger->Conditions[3].Operand)]))
-									continue;
-							}
-						}	break;
-						case 18:
-						{
-							// New case 18: Check destroyed bridges
-							if (!CountConditionMet(pTrigger, destroyedBridgesCount))
-								continue;
-						}	break;
-						case 19:
-						{
-							// New case 19: Check undamaged bridges
-							if (!CountConditionMet(pTrigger, undamagedBridgesCount))
-								continue;
-						}	break;
-						default:
-						{
-							// Other cases from vanilla game
-							if (!pTrigger->ConditionMet(pHouse, targetHouse, hasReachedMaxDefensiveTeamsLimit))
-								continue;
-						}	break;
-						}
-					}
+					if(!AITriggerTypeExtData::CheckConditionType(pTrigger, (AITriggerCondition)condType, pHouse, targetHouse, true))
+						continue;
+					//
 
 					// All triggers below 5000 in current weight will get discarded if this mode is enabled
 					if (onlyCheckImportantTriggers)
@@ -1408,7 +956,7 @@ std::vector<TeamTypeClass*> NOINLINE Suggested_New_Team(HouseClass* forHouse_, b
 			for (int i = 0; i < AITriggerTypeClass::Array->Count; ++i)
 			{
 				auto* triggerType = AITriggerTypeClass::Array->Items[i];
-				if (!triggerType || triggerType->ConditionMet(forHouse_, pEnemy, skip) != 1)
+				if (!triggerType || ((FakeAITriggerTypeClass*)triggerType)->_NewTeam(forHouse_, pEnemy, skip) != 1)
 					continue;
 
 				const unsigned int weight = static_cast<unsigned int>(triggerType->Weight_Current);

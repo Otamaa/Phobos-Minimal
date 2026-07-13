@@ -46,15 +46,15 @@ ASMJIT_PATCH(0x723CA1, TeamMissionClass_FillIn_StringsSupport_and_id_masks, 0xB)
 		switch (static_cast<PhobosScripts>(action))
 		{
 		case PhobosScripts::ChangeToScriptByID:
-			action = 17;
+			action = (int)TeamMissionType::Change_script;
 			index = ScriptTypeClass::FindIndexById(buff);
 			break;
 		case PhobosScripts::ChangeToTeamTypeByID:
-			action = 18;
+			action = (int)TeamMissionType::Change_team;
 			index = TeamTypeClass::FindIndexById(buff);
 			break;
 		case PhobosScripts::ChangeToHouseByID:
-			action = 20;
+			action = (int)TeamMissionType::Change_house;
 			index = HouseTypeClass::FindIndexByIdAndName(buff);
 
 			if (index < 0)
@@ -62,16 +62,16 @@ ASMJIT_PATCH(0x723CA1, TeamMissionClass_FillIn_StringsSupport_and_id_masks, 0xB)
 
 			break;
 		case PhobosScripts::PlaySpeechByID: // Note: PR 1900 needs to be merged into develop
-			action = static_cast<int>(TeamMissionType::Play_speech);
+			action = (int)TeamMissionType::Play_speech;
 			index = VoxClass::FindIndexById(buff);
 			break;
 		case PhobosScripts::PlaySoundByID:
-			action = 25;
+			action = (int)TeamMissionType::Play_sound;
 			index = VocClass::FindIndexById(buff);
 			break;
 		case PhobosScripts::PlayMovieByID:
 			// Note: action "26" is currently impossible without an expert Phobos developer declaring the Movies class... in that case I could code the right FindIndex(textArgument) so sadly I'll skip "26" for now :-(
-			action = 26;
+			action = (int)TeamMissionType::Play_movie;
 				for(int i = 0; i < MovieInfoArray->Count; ++i){
 					if(MovieInfoArray->Items[i] == buff){
 						index = i;
@@ -80,11 +80,11 @@ ASMJIT_PATCH(0x723CA1, TeamMissionClass_FillIn_StringsSupport_and_id_masks, 0xB)
 				}
 			break;
 		case PhobosScripts::PlayThemeByID:
-			action = 27;
+			action = (int)TeamMissionType::Play_music;
 			index = ThemeClass::Instance->FindIndex(buff);
 			break;
 		case PhobosScripts::PlayAnimationByID:
-			action = 51;
+			action = (int)TeamMissionType::Play_anim;
 			index = AnimTypeClass::FindIndexById(buff);
 			break;
 		case PhobosScripts::AttackEnemyStructureByID:
@@ -92,13 +92,13 @@ ASMJIT_PATCH(0x723CA1, TeamMissionClass_FillIn_StringsSupport_and_id_masks, 0xB)
 		case PhobosScripts::ChronoshiftTaskForceToStructureByID:
 		case PhobosScripts::MoveToFriendlyStructureByID:{
 			if (PhobosScripts::AttackEnemyStructureByID == static_cast<PhobosScripts>(action))
-				action = 46;
+				action = (int)TeamMissionType::Attack_enemy_building;
 			else if (PhobosScripts::MoveToEnemyStructureByID == static_cast<PhobosScripts>(action))
-				action = 47;
+				action = (int)TeamMissionType::Moveto_enemy_building;
 			else if (PhobosScripts::ChronoshiftTaskForceToStructureByID == static_cast<PhobosScripts>(action))
-				action = 56;
+				action = (int)TeamMissionType::Chrono_prep_for_abwp;
 			else if (PhobosScripts::MoveToFriendlyStructureByID == static_cast<PhobosScripts>(action))
-				action = 58;
+				action = (int)TeamMissionType::Chrono_prep_for_aq;
 
 			/* BwP check:
 			Information from https://modenc.renegadeprojects.com/ScriptTypes/ScriptActions

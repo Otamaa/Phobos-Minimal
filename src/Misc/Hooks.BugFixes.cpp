@@ -171,25 +171,6 @@ ASMJIT_PATCH(0x51BB6E, InfantryClass_AI_TemporalTargetingMe_Fix, 0x6) //
 	return 0x51BB7D;
 }
 
-// Fix the issue that AITriggerTypes do not recognize building upgrades
-// Author: Uranusian
-ASMJIT_PATCH(0x41EB43, AITriggerTypeClass_Condition_SupportPowersup, 0x7)		//AITriggerTypeClass_EnemyHouseOwns_SupportPowersup
-{
-	GET(HouseClass* const, pHouse, EDX);
-	GET(int const, idxBld, EBP);
-
-	const auto pType = BuildingTypeClass::Array->Items[idxBld];
-	int count = BuildingTypeExtData::GetUpgradesAmount(pType, pHouse);
-
-	if (count == -1)
-		count = pHouse->ActiveBuildingTypes.get_count(idxBld);
-
-	R->EAX(count);
-
-	return R->Origin() + 0xC;
-}ASMJIT_PATCH_AGAIN(0x41EEE3, AITriggerTypeClass_Condition_SupportPowersup, 0x7)	//AITriggerTypeClass_OwnerHouseOwns_SupportPowersup
-
-
 // Dehardcode the stupid Wall-Gate relationships
 // Author: Uranusian
 ASMJIT_PATCH(0x441053, BuildingClass_Unlimbo_EWGate, 0x6)

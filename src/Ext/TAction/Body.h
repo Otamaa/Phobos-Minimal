@@ -54,7 +54,8 @@ enum class PhobosTriggerAction : unsigned int
 
 	//#2234
 	SetFollowsIndexForVehicle = 512,
-
+	AttachSoundToObjects = 513,
+	RemoveSoundFromObjects = 514,
 	SetDropCrate = 600, // Only change this number if the PR is merged into develop!
 
 	//#1549
@@ -95,6 +96,37 @@ enum class PhobosTriggerAction : unsigned int
 
 	//DrawLaserBetweenWeaypoints = 9940,
 	//AdjustLighting = 505,
+	
+	// PR #1932 , adjusted +2
+	WinByID = 19003,
+	LoseByID = 19004,
+	ProductionBeginsByID = 19005,
+	AllToHuntByID = 19006,
+	PlayMovieByID = 19007,
+	FireSaleByID = 19008,
+	AutocreateBeginsByID = 19009,
+	ChangeHouseByID = 19010,
+	PlayMusicThemeByID = 19011,
+	AddOneTimeSuperWeaponByID = 19012,
+	AddRepeatingSuperWeaponByID = 19013,
+	AllChangeHouseByID = 19014,
+	MakeAllyByID = 19015,
+	MakeEnemyByID = 19016,
+	PlayAnimAtByID = 19017,
+	DoExplosionAtByID = 19018,
+	CreateVoxelAnimByID = 19019,
+	AITriggersBeginByID = 19020,
+	AITriggersStopByID = 19021,
+	ParticleAnimByID = 19022,
+	MakeHouseCheerByID = 19023,
+	DestroyAllByID = 19024,
+	DestroyAllBuildingsByID = 19025,
+	DestroyAllLandUnitsByID = 19026,
+	DestroyAllNavalUnitsByID = 19027,
+	MindControlBaseByID = 19028,
+	RestoreMindControlledBaseByID = 19029,
+	RestoreStartingUnitsByID = 19030,
+	RestoreStartingBuildingsByID = 19031,
 
 	count
 };
@@ -112,9 +144,6 @@ public:
 	static void RecreateLightSources();
 	static bool Occured(TActionClass* pThis, ActionArgs const& args , bool& bHandled);
 	static bool RunSuperWeaponAt(TActionClass* pThis, int X, int Y);
-
-	static std::pair<TriggerAttachType, bool> GetTriggetAttach(AresNewTriggerAction nAction);
-	static std::pair<LogicNeedType, bool> GetLogicNeed(AresNewTriggerAction nAction);
 
 #define ACTION_FUNC(name) \
 	static bool name(TActionClass* pThis, HouseClass* pHouse, \

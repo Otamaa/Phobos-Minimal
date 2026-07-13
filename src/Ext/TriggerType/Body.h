@@ -53,7 +53,7 @@ class NOVTABLE FakeTriggerTypeClass : public TriggerTypeClass
 public:
 
 	bool _SaveToINI(CCINIClass* pINI);
-
-
+	bool _HasGlobalSetOrClearedEvent(int a2);
+	bool _HasLocalSetOrClearedEvent(int a2);
 };
 static_assert(sizeof(FakeTriggerTypeClass) == sizeof(TriggerTypeClass), "Invalid Size !");

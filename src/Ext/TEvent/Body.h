@@ -16,30 +16,35 @@ enum class PhobosTriggerEvent : int
 	LocalVariableGreaterThanOrEqualsTo = 503,
 	LocalVariableLessThanOrEqualsTo = 504,
 	LocalVariableAndIsTrue = 505,
+
 	GlobalVariableGreaterThan = 506,
 	GlobalVariableLessThan = 507,
 	GlobalVariableEqualsTo = 508,
 	GlobalVariableGreaterThanOrEqualsTo = 509,
 	GlobalVariableLessThanOrEqualsTo = 510,
 	GlobalVariableAndIsTrue = 511,
+
 	LocalVariableGreaterThanLocalVariable = 512,
 	LocalVariableLessThanLocalVariable = 513,
 	LocalVariableEqualsToLocalVariable = 514,
 	LocalVariableGreaterThanOrEqualsToLocalVariable = 515,
 	LocalVariableLessThanOrEqualsToLocalVariable = 516,
 	LocalVariableAndIsTrueLocalVariable = 517,
+
 	GlobalVariableGreaterThanLocalVariable = 518,
 	GlobalVariableLessThanLocalVariable = 519,
 	GlobalVariableEqualsToLocalVariable = 520,
 	GlobalVariableGreaterThanOrEqualsToLocalVariable = 521,
 	GlobalVariableLessThanOrEqualsToLocalVariable = 522,
 	GlobalVariableAndIsTrueLocalVariable = 523,
+
 	LocalVariableGreaterThanGlobalVariable = 524,
 	LocalVariableLessThanGlobalVariable = 525,
 	LocalVariableEqualsToGlobalVariable = 526,
 	LocalVariableGreaterThanOrEqualsToGlobalVariable = 527,
 	LocalVariableLessThanOrEqualsToGlobalVariable = 528,
 	LocalVariableAndIsTrueGlobalVariable = 529,
+
 	GlobalVariableGreaterThanGlobalVariable = 530,
 	GlobalVariableLessThanGlobalVariable = 531,
 	GlobalVariableEqualsToGlobalVariable = 532,
@@ -51,6 +56,7 @@ enum class PhobosTriggerEvent : int
 	HouseOwnsTechnoType = 601,
 	HouseDoesntOwnTechnoType = 602,
 
+	//PR #1071
 	HousesDestroyed = 603,
 
 	CellHasTechnoType = 604,
@@ -60,6 +66,7 @@ enum class PhobosTriggerEvent : int
 
 	ForceSequentialEvents = 1000,
 
+	//PR #1925
 	EnteredByByID = 19001,
 	SpiedByByID = 19002,
 	HouseDiscoveredByID = 19005,

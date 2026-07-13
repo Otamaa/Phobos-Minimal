@@ -139,9 +139,9 @@ public:
 	ScriptTypeClass*  ScriptType; //E0
 	TaskForceClass*   TaskForce; //E4
 	int      IsGlobal; //E8
-	int      field_EC; //EC
+	MovementZone      MovementZone; //EC
 	bool     field_F0; //F0
-	bool     field_F1; //F1
+	bool     RequireDifferentZone; //F1
 	bool     AvoidThreats; //F2
 	bool     IonImmune; //F3
 	bool     TransportsReturnOnUnload; //F4

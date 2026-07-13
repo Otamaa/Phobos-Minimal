@@ -3611,7 +3611,7 @@ void FakeRulesClass::_ReadMovies(CCINIClass* pINI)
 	const int count = pINI->GetKeyCount(section);
 	for (int i = 0; i < count; ++i) {
 		auto pName = pINI->GetKeyName(section, i);
-		
+
 		char _buffer[256];
 		if (pINI->ReadString(section, pName, GameStrings::NoneStr(), _buffer)) {	
 			//does this mean <none> will still valid ? , i suppose

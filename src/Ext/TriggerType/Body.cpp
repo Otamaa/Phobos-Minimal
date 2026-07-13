@@ -190,3 +190,131 @@ bool FakeTriggerTypeClass::_SaveToINI(CCINIClass* pINIs)
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F596C, FakeTriggerTypeClass::_SaveToINI)
 DEFINE_FUNCTION_JUMP(LJMP, 0x7276A0, FakeTriggerTypeClass::_SaveToINI)
+
+static bool Is_Global_Variable_Event(TriggerEvent event)
+{
+	switch (event)
+	{
+	case TriggerEvent::GlobalSet:
+	case TriggerEvent::GlobalCleared:
+		return true;
+	default:
+		break;
+	}
+
+	//i reckon they has none so eh
+	switch ((AresTriggerEvents)event)
+	{
+	default:
+		break;
+	}
+
+	//this the only i know
+	switch (static_cast<PhobosTriggerEvent>(event))
+	{
+	case PhobosTriggerEvent::GlobalVariableGreaterThan:
+	case PhobosTriggerEvent::GlobalVariableLessThan:
+	case PhobosTriggerEvent::GlobalVariableEqualsTo:
+	case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsTo:
+	case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsTo:
+	case PhobosTriggerEvent::GlobalVariableAndIsTrue:
+	case PhobosTriggerEvent::GlobalVariableGreaterThanLocalVariable:
+	case PhobosTriggerEvent::GlobalVariableLessThanLocalVariable:
+	case PhobosTriggerEvent::GlobalVariableEqualsToLocalVariable:
+	case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsToLocalVariable:
+	case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsToLocalVariable:
+	case PhobosTriggerEvent::GlobalVariableAndIsTrueLocalVariable:
+	case PhobosTriggerEvent::GlobalVariableGreaterThanGlobalVariable:
+	case PhobosTriggerEvent::GlobalVariableLessThanGlobalVariable:
+	case PhobosTriggerEvent::GlobalVariableEqualsToGlobalVariable:
+	case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsToGlobalVariable:
+	case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsToGlobalVariable:
+	case PhobosTriggerEvent::GlobalVariableAndIsTrueGlobalVariable:
+		return true;
+
+	default:
+		break;
+	}
+
+	return false;
+}
+
+
+static bool Is_Local_Variable_Event(TriggerEvent event)
+{
+	switch (event)
+	{
+	case TriggerEvent::LocalSet:
+		case TriggerEvent::LocalCleared:
+		return true;
+	default:
+		break;
+	}
+
+	//i reckon they has none so eh
+	switch ((AresTriggerEvents)event)
+	{
+	default:
+		break;
+	}
+
+	//this the only i know
+	switch (static_cast<PhobosTriggerEvent>(event))
+	{
+	case PhobosTriggerEvent::LocalVariableGreaterThan:
+	case PhobosTriggerEvent::LocalVariableLessThan:
+	case PhobosTriggerEvent::LocalVariableEqualsTo:
+	case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsTo:
+	case PhobosTriggerEvent::LocalVariableLessThanOrEqualsTo:
+	case PhobosTriggerEvent::LocalVariableAndIsTrue:
+	case PhobosTriggerEvent::LocalVariableGreaterThanLocalVariable:
+	case PhobosTriggerEvent::LocalVariableLessThanLocalVariable:
+	case PhobosTriggerEvent::LocalVariableEqualsToLocalVariable:
+	case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsToLocalVariable:
+	case PhobosTriggerEvent::LocalVariableLessThanOrEqualsToLocalVariable:
+	case PhobosTriggerEvent::LocalVariableAndIsTrueLocalVariable:
+	case PhobosTriggerEvent::LocalVariableGreaterThanGlobalVariable:
+	case PhobosTriggerEvent::LocalVariableLessThanGlobalVariable:
+	case PhobosTriggerEvent::LocalVariableEqualsToGlobalVariable:
+	case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsToGlobalVariable:
+	case PhobosTriggerEvent::LocalVariableLessThanOrEqualsToGlobalVariable:
+	case PhobosTriggerEvent::LocalVariableAndIsTrueGlobalVariable:
+		return true;
+
+	default:
+		break;
+	}
+
+	return false;
+}
+
+bool FakeTriggerTypeClass::_HasGlobalSetOrClearedEvent(int global)
+{
+	bool tied = false;
+	TEventClass* event = this->FirstEvent;
+	while (event != nullptr) {
+		if (Is_Global_Variable_Event(event->EventKind) && event->Value == global) {
+			tied = true;
+			break;
+		}
+		event = event->NextEvent;
+	}
+	return tied;
+}
+DEFINE_FUNCTION_JUMP(LJMP, 0x727010, FakeTriggerTypeClass::_HasGlobalSetOrClearedEvent)
+
+bool FakeTriggerTypeClass::_HasLocalSetOrClearedEvent(int local)
+{
+	bool tied = false;
+	TEventClass* event = this->FirstEvent;
+	while (event != nullptr) {
+		if (Is_Local_Variable_Event(event->EventKind) && event->Value == local) {
+			tied = true;
+			break;
+		}
+		event = event->NextEvent;
+	}
+
+	return tied;
+}
+DEFINE_FUNCTION_JUMP(LJMP, 0x727050, FakeTriggerTypeClass::_HasLocalSetOrClearedEvent)

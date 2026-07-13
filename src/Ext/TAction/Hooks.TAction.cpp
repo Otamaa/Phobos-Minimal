@@ -32,23 +32,6 @@
 #include <TEventClass.h>
 #include <TActionClass.h>
 
-ASMJIT_PATCH(0x41E893, AITriggerTypeClass_ConditionMet_SideIndex, 0xA)
-{
-	GET(HouseClass*, House, EDI);
-	GET(int, triggerSide, EAX);
-
-	enum { Eligible = 0x41E8D7, NotEligible = 0x41E8A1 };
-
-	if (!triggerSide) {
-		return Eligible;
-	}
-
-	return((triggerSide - 1) == House->SideIndex)
-		? Eligible
-		: NotEligible
-		;
-}
-
 #include <Ext/TEvent/Body.h>
 
 TriggerAttachType __fastcall FakeTActionClass::AttachesTo(int type)
@@ -56,12 +39,27 @@ TriggerAttachType __fastcall FakeTActionClass::AttachesTo(int type)
 	//TODO : Phobos TAction has no proper AttachesTo set 
 	// 
 	//0x6E3EE0, TActionClass_GetFlags, 5
-	std::pair<TriggerAttachType, bool> _result = TActionExtData::GetTriggetAttach((AresNewTriggerAction)type);
+	//std::pair<TriggerAttachType, bool> _result = TActionExtData::GetTriggetAttach();
 
-	if (_result.second) {
-		return (_result.first);
+	switch ((AresNewTriggerAction)type)
+	{
+	case AresNewTriggerAction::AuxiliaryPower:
+	case AresNewTriggerAction::SetEVAVoice:
+		return TriggerAttachType::None;
+	case AresNewTriggerAction::KillDriversOf:
+	case AresNewTriggerAction::SetGroup:
+		return TriggerAttachType::Object;
+	default:
+		break;	//Most Stuffs are none , define here for more specific handling
 	}
-
+	switch ((PhobosTriggerAction)type)
+	{
+	case PhobosTriggerAction::AttachSoundToObjects:
+	case PhobosTriggerAction::RemoveSoundFromObjects:
+		return TriggerAttachType::Object;
+	default:
+		break; 	//Most Stuffs are none , define here for more specific handling
+	}
 	switch ((TriggerAction)type)
 	{
 		
@@ -84,12 +82,30 @@ LogicNeedType __fastcall  FakeTActionClass::ActionNeeds(int type)
 {
 	//TODO : Phobos TAction has no proper GetLogicNeed set 
 
-	std::pair<LogicNeedType, bool> _result = TActionExtData::GetLogicNeed((AresNewTriggerAction)type);
+	//std::pair<LogicNeedType, bool> _result = TActionExtData::GetLogicNeed((AresNewTriggerAction)type);
 
-	if (_result.second) {
-		return (_result.first);
+	switch ((AresNewTriggerAction)type)
+	{
+	case AresNewTriggerAction::AuxiliaryPower:
+		return LogicNeedType::NumberNSuper;
+	case AresNewTriggerAction::KillDriversOf:
+		return LogicNeedType::None;
+	case AresNewTriggerAction::SetEVAVoice:
+	case AresNewTriggerAction::SetGroup:
+		return LogicNeedType::Number;
+	default:
+		//Most Stuffs are none , define here for more specific handling
+		break;
 	}
-
+	switch (PhobosTriggerAction(type))
+	{
+	case PhobosTriggerAction::AttachSoundToObjects:
+	case PhobosTriggerAction::RemoveSoundFromObjects:
+		return LogicNeedType::Sound;
+	default:
+		//Most Stuffs are none , define here for more specific handling
+		break;
+	}
 	switch (TriggerAction(type))
 	{
 		// --- LogicNeedType::House ---
