@@ -978,9 +978,11 @@ bool HandleEntryEvents(TEventClass* evt, TriggerEvent event, ObjectClass* obj, b
 	return true;
 }
 
+// accept 53 and 54
+// 0x71ECE1, TriggerClass_SpyAsInfantryOrHouse, 0x8
 bool HandleSpyAsHouse(TEventClass* evt, TriggerEvent event, ObjectClass* obj, bool* bool1)
 {
-	if (event != TriggerEvent::SpyAsHouse || !obj) {
+	if ((event != TriggerEvent::SpyAsInfantry && event != TriggerEvent::SpyAsHouse) || !obj) {
 		return false;
 	}
 
@@ -1003,9 +1005,11 @@ bool HandleSpyAsHouse(TEventClass* evt, TriggerEvent event, ObjectClass* obj, bo
 	return false;
 }
 
+// accept 53 and 54
+// 0x71ED5E, TriggerClass_SpyAsInfantryOrHouse, 0x8
 bool HandleSpyAsInfantry(TEventClass* evt, TriggerEvent event, ObjectClass* obj, bool* bool1)
 {
-	if (event != TriggerEvent::SpyAsInfantry || !obj) {
+	if ((event != TriggerEvent::SpyAsInfantry && event != TriggerEvent::SpyAsHouse) || !obj) {
 		return false;
 	}
 
@@ -1237,13 +1241,14 @@ bool HandleDefaultEvents(
 {
 
 	// Constexpr lookup table for events that require exact event matching
+	//53 and 54 are modified to accept both between
 	static constexpr bool RequiresEventMatch[static_cast<int>(TriggerEvent::count)] = {
 		false, true,  true,  true,  true,  false, true,  true,  false, false, // 0-9
 		false, false, false, false, false, false, false, false, true,  false, // 10-19
 		false, false, false, true,  true,  true,  true,  false, false, true,  // 20-29
 		false, true,  false, true,  true,  true,  false, false, true,  true,  // 30-39
 		true,  true,  true,  true,  true,  false, false, false, true,  true,  // 40-49
-		true,  false, false, true,  true,  false, false, false, false, true,  // 50-59
+		true,  false, false, false,  false,  false, false, false, false, true,  // 50-59
 		false, false                                                           // 60-61
 	};
 
