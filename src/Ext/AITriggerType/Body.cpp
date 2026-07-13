@@ -42,9 +42,6 @@ int AITriggerTypeExtData::CountOwnedType(TechnoTypeClass* pType, HouseClass* pHo
 		if (count == -1)
 			count = pHouse->ActiveBuildingTypes.get_count(heapID);
 
-		if (count == -1)
-			count = pHouse->ActiveBuildingTypes.get_count(heapID);
-
 		return count;
 	}
 	case AbstractType::InfantryType:
