@@ -38,6 +38,7 @@
 #include <Utilities/TemplateDef.h>
 
 #include <Misc/PhobosGlobal.h>
+#include <Misc/CSF.h>
 
 #include <TriggerTypeClass.h>
 #include <GameStrings.h>
@@ -2445,6 +2446,7 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		pArmor->FreeTags();
 	}
 
+	Debug::LogInfo("Currently Loaded CSF Strings {} , Dynamicly Loaded CSF Strings {}", CSFLoader::LabelMap.size() , CSFLoader::DynamicStrings.size());
 	return 0x0;
 }
 

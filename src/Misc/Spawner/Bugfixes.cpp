@@ -40,9 +40,6 @@ ASMJIT_PATCH(0x55E08F, KeyboardProcess_PressTab, 0x5)
 	return 0x55E099;
 }
 
-// skip error "А mouse is required for playing Yurts Revenge" - remove the GetSystemMetrics check
-DEFINE_JUMP(LJMP, 0x6BD8A4, 0x6BD8C2); // WinMain
-
 // Prevents accidental exit when pressing the spacebar while waiting
 // Remove focus from the Leave Game button in the player waiting window
 ASMJIT_PATCH(0x648CCC, WaitForPlayers_RemoveFocusFromLeaveGameBtn, 0x6)

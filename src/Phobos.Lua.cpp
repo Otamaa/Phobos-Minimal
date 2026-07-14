@@ -19,6 +19,7 @@ std::string LuaData::filename = "\\renameinternal.lua";
 std::string LuaData::LuaDir;
 std::string LuaData::CoreHandles;
 std::vector<std::pair<uintptr_t, std::string>> LuaData::map_replaceAddrTo;
+std::string LuaData::AdditionalStringTableFmt { "stringtable{:02}.csf" };
 std::string LuaData::MainWindowStr;
 std::string LuaData::FontName = GameStrings::GAME_FNT();
 std::string LuaData::StatisticPacketName = "stats.dmp";
@@ -737,6 +738,7 @@ void Phobos::ExecuteLua()
 
 		Lua.getGlobalString("DesyncLogName", Debug::SyncFileFormat, true);
 		Lua.getGlobalString("DesyncLogName2", Debug::SyncFileFormat2, true);
+		Lua.getGlobalString("AdditionalStringtableFormat", LuaData::AdditionalStringTableFmt, true);
 		Lua.getGlobalBool("CompatibilityMode", Phobos::Otamaa::CompatibilityMode);
 		Lua.getGlobalBool("ReplaceGameMemoryAllocator", Phobos::Otamaa::ReplaceGameMemoryAllocator);
 		Lua.getGlobalBool("AllowMultipleInstances", Phobos::Otamaa::AllowMultipleInstance);

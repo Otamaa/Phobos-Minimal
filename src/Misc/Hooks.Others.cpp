@@ -1083,6 +1083,53 @@ bool NOINLINE  __fastcall MixFilesBoostrap()
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x5301A0, MixFilesBoostrap);
 
+#include <Misc/CSF.h>
+
+void __cdecl Prog_End() {
+	JMP_STD(0x6BE1C0);
+}
+
+int __cdecl atexitCall(void (__cdecl *a1)()) {
+	JMP_STD(0x7C978A);
+}
+
+void __fastcall Start_Mouse_Thread(){
+	JMP_FAST(0x7B84F0);
+}
+
+int SystemMessageDialog(HWND hwnd, const WCHAR* message, LPCWSTR caption, UINT uType){
+	const std::string msg = PhobosCRT::WideStringToString(message);
+	const std::string cap = PhobosCRT::WideStringToString(caption);
+	return MessageBoxA(hwnd, msg.c_str(), cap.c_str(), uType);
+}
+
+#include <shlwapi.h>  // DLLVERSIONINFO, DLLGETVERSIONPROC
+
+int Get_DLL_Version(LPCSTR lpLibFileName){
+
+	HMODULE hLib = LoadLibraryA(lpLibFileName);
+
+	if (!hLib)
+		return 0;
+
+	int result = 0;
+
+	if (auto dllver = reinterpret_cast<DLLGETVERSIONPROC>(GetProcAddress(hLib, "DllGetVersion"))) {
+		DLLVERSIONINFO info {};
+		info.cbSize = sizeof(DLLVERSIONINFO);
+
+		if (dllver(&info) >= 0)
+			result = LOWORD(info.dwMinorVersion) | (LOWORD(info.dwMajorVersion) << 16);
+	}
+
+	FreeLibrary(hLib);
+	return result;
+}
+
+#include <Phobos.Lua.h>
+
+static COMPILETIMEEVAL constant_ptr<const char, 0x840D40> const ra2md_str {};
+
 ASMJIT_PATCH(0x6BD7D5, Expand_MIX_Reorg, 7)
 {
 	SpawnerMain::GameConfigs::Init();
@@ -1098,8 +1145,68 @@ ASMJIT_PATCH(0x6BD7D5, Expand_MIX_Reorg, 7)
 
 	Language = GameCreate<MixFileClass>(LANGUAGE_MIX(), pKey);
 	LangMD = GameCreate<MixFileClass>(LANGMD_MIX(), pKey);
+	CD::SetReqCD(R->ESI<int>());
+	atexitCall(Prog_End);
+	Start_Mouse_Thread();
 
-	return 0x6BD835;
+	if (!CSFLoader::PhobosInit(ra2md_str())) {
+		const std::string _msg = fmt::format(
+			"Unable to initialize '{0}', please reinstall {1}.\n"
+			"Keine Initialisierung von '{0}' möglich. Bitte installieren Sie {1} erneut.\n"
+			"Initialisation de '{0}' impossible. Veuillez réinstaller {1}.",
+			ra2md_str(), LuaData::MainWindowStr);
+
+		MessageBoxA(NULL, _msg.c_str(), LuaData::MainWindowStr.c_str(), 0x10u);
+		return 0x6BD86F;
+	}
+
+	fmt::basic_memory_buffer<char, 60> buffer {};
+
+	CSFLoader::LoadAdditionalCSF("ares.csf", true);
+
+	buffer.clear();
+	std::string res = "us";
+	if (const auto* language = StringTable::GetLanguage(StringTable::Language()))
+		res = language->Letter;
+
+	fmt::format_to(std::back_inserter(buffer), "ares_{}.csf", res);
+	buffer.push_back('\0');
+	CSFLoader::LoadAdditionalCSF(buffer.data());
+	buffer.clear();
+
+	for (int idx = 0; idx < 100; ++idx) {
+		fmt::format_to(std::back_inserter(buffer), fmt::runtime(LuaData::AdditionalStringTableFmt) , idx);
+		buffer.push_back('\0');
+		CSFLoader::LoadAdditionalCSF(buffer.data());
+		buffer.clear();
+	}
+
+	// skip error "А mouse is required for playing Yurts Revenge" - remove the GetSystemMetrics check
+	//DEFINE_JUMP(LJMP, 0x6BD8A4, 0x6BD8C2); // WinMain
+	//if (!GetSystemMetrics(SM_MOUSEPRESENT) || !GetSystemMetrics(SM_CMOUSEBUTTONS)) {
+	//	auto v208 = CSFLoader::FetchStringManager("TXT_SHORT_TITLE", nullptr, nullptr, -1);
+	//	auto v202 = CSFLoader::FetchStringManager("TXT_MOUSE_REQUIRED", nullptr, nullptr, -1);
+	//	SystemMessageDialog(0, v202, v208, 0x10u);
+	//	Phobos::ExeTerminate();
+	//	CRT::exit_returnsomething(1, 0, 0);
+	//	Debug::DetachLogger();
+	//}
+
+	const auto comctlVer = Get_DLL_Version("comctl32.dll");
+	if (comctlVer < 0x40046) {
+		wchar_t a2[512];
+		auto v185 = CSFLoader::FetchStringManager("TXT_DLL_INVALID", nullptr, nullptr, -1);
+		_swprintf(a2, v185, "comctl32.dll", 4, 70, "comctl32.dll");
+		auto v186 = CSFLoader::FetchStringManager("TXT_SHORT_TITLE", nullptr, nullptr, -1);
+		SystemMessageDialog(0, a2, v186, 0x10u);
+		Phobos::ExeTerminate();
+		CRT::exit_returnsomething(1, 0, 0);
+		Debug::DetachLogger();
+	} else {
+		Debug::LogInfo("comctl dll version {} detected.", (unsigned)comctlVer);
+	}
+
+	return 0x6BD934;
 }
 
 DEFINE_JUMP(LJMP, 0x52BB64, 0x52BB95) //Expand_MIX_Deorg

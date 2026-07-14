@@ -77,9 +77,13 @@ CrashDumpFileName= "extcrashdump.dmp"
 StatisticPacketName = "stats.dmp"
 
 -- Please dont change the %..d format , it is internal code for _snprintf_s
--- you can ad more digit by changing the number after the %
+-- you can add more digit by changing the number after the %
 DesyncLogName = "SYNC%01d.TXT"
 DesyncLogName2 = "SYNC%01d_%03d.TXT"
+
+-- Please dont change the {:02} format , it is internal code for fmt::format
+-- you can add more digit by changing the number after the :02
+AdditionalStringtableFormat = "stringtable{:02}.csf"
 
 --Activate this to enable certain compatibily settings
 -- Phobos Develop `Convert` tags now readed as it is

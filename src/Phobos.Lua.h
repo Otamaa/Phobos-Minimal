@@ -24,6 +24,7 @@ using unique_luastate = std::unique_ptr<lua_State, luastatedeleter>;
 struct LuaData {
 	static std::string LuaDir;
 	static std::string MainWindowStr;
+	static std::string AdditionalStringTableFmt;
 	static std::string FontName;
 	static std::string StatisticPacketName;
 	static std::string filename;

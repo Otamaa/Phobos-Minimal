@@ -464,50 +464,6 @@ ASMJIT_PATCH(0x734D30, CSF_Deinit, 5)
 	return 0;
 }
 
-static COMPILETIMEEVAL constant_ptr<const char, 0x840D40> const ra2md_str {};
-
-ASMJIT_PATCH(0x6BD84E, CSF_LoadExtraFiles, 5)
-{
-	if (!CSFLoader::PhobosInit(ra2md_str()))
-	{
-		const std::string _msg = fmt::format(
-			"Unable to initialize '{0}', please reinstall {1}.\n"
-			"Keine Initialisierung von '{0}' möglich. Bitte installieren Sie {1} erneut.\n"
-			"Initialisation de '{0}' impossible. Veuillez réinstaller {1}.",
-			ra2md_str(), LuaData::MainWindowStr);
-
-		Imports::MessageBoxA.invoke()(NULL, _msg.c_str(),
-			LuaData::MainWindowStr.c_str(), 0x10u);
-
-		return 0x6BD86F;
-	}
-
-	static fmt::basic_memory_buffer<char, 60> buffer {};
-
-	CSFLoader::LoadAdditionalCSF("ares.csf", true);
-
-	buffer.clear();
-	std::string res = "us";
-	if (const auto* language = StringTable::GetLanguage(StringTable::Language()))
-		res = language->Letter;
-
-	fmt::format_to(std::back_inserter(buffer), "ares_{}.csf", res);
-	buffer.push_back('\0');
-	CSFLoader::LoadAdditionalCSF(buffer.data());
-	buffer.clear();
-
-	for (int idx = 0; idx < 100; ++idx)
-	{
-		fmt::format_to(std::back_inserter(buffer), "stringtable{:02}.csf", idx);
-		buffer.push_back('\0');
-		CSFLoader::LoadAdditionalCSF(buffer.data());
-		buffer.clear();
-	}
-
-	R->AL(1);
-	return 0x6BD88B;
-}
-
 DEFINE_FUNCTION_JUMP(LJMP, 0x734E60, CSFLoader::FetchStringManager);
 DEFINE_FUNCTION_JUMP(CALL, 0x41099B, CSFLoader::FetchStringManager);
 DEFINE_FUNCTION_JUMP(CALL, 0x410B52, CSFLoader::FetchStringManager);
