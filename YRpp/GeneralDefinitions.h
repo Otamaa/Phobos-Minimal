@@ -20,7 +20,8 @@
 
 enum class TaskForceType : int
 {
-	Global , Local
+	Local , // the TaskForce is loaded from MapFile
+	Global , //the TaskForce is loaded from AIMD.ini
 };
 
 enum class TankBunkerState : int

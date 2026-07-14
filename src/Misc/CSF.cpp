@@ -149,7 +149,14 @@ bool CSFLoader::ParseCSFFile(std::string_view pFileName, bool ignoreLanguage)
 
 		CSFEntry entry {};
 		bool     firstValueStored = false;
-		auto [it, inserted] = LabelMap.emplace(labelName, RecordedCSFEntry {});
+		auto it = LabelMap.find(labelName);
+		const bool found = (it != LabelMap.end());
+		
+		if (!found) {
+			it = LabelMap.emplace(labelName, RecordedCSFEntry {}).first;
+		} else {
+			Debug::LogInfo("[ParseCSF] Replacing {} Signature from [{} to {}].", labelName, it->second.Source, pFileName);
+		}
 
 		it->second.Source = pFileName;
 
@@ -158,10 +165,12 @@ bool CSFLoader::ParseCSFFile(std::string_view pFileName, bool ignoreLanguage)
 			DWORD valueSig {};
 			if (!file.ReadByes(valueSig))
 			{
+				
 				Debug::LogInfo("[ParseCSF] Cannot Read {} Signature at [{}] from [{}].", labelName , v, pFileName);
 
 				// Short read inside value loop — mirrors LABEL_42: return success
-				it->second.Entry = std::move(entry); //empty entry
+				if(!found)
+					it->second.Entry = std::move(entry); //empty entry
 				return true;
 			}
 
@@ -171,7 +180,8 @@ bool CSFLoader::ParseCSFFile(std::string_view pFileName, bool ignoreLanguage)
 			{
 				Debug::LogInfo("[ParseCSF] {} Unknown Signature at [{}] from [{}].", labelName , v, pFileName);
 				// Store what we have so far, then abort
-				it->second.Entry = std::move(entry); //empty entry
+				if (!found)
+					it->second.Entry = std::move(entry); //empty entry
 				return false;
 			}
 
@@ -186,8 +196,7 @@ bool CSFLoader::ParseCSFFile(std::string_view pFileName, bool ignoreLanguage)
 
 			// Vanilla: if len == 0 skips Read, tbuffer[0] = 0 (empty wstring)
 			// We mirror: only read if valueLength > 0
-			if (valueLength > 0)
-			{
+			if (valueLength > 0) {
 
 				std::wstring decoded(static_cast<size_t>(valueLength), L'\0');
 				file.Read(decoded.data(),
@@ -231,7 +240,6 @@ bool CSFLoader::ParseCSFFile(std::string_view pFileName, bool ignoreLanguage)
 		}
 
 		// Store label — duplicate key = override, last-loaded wins
-
 		it->second.Entry = std::move(entry);
 
 		// Confirmed: Read next blockId at 0x734C87–CA7

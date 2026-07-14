@@ -3,8 +3,8 @@
 
 #include <Utilities/Macro.h>
 #include <Utilities/Debug.h>
-#pragma optimize("", off )
-bool __fastcall FakTaskForceClass::_LoadEntryINI(CCINIClass* pINI, discard_t, TaskForceType type)
+
+bool __fastcall FakTaskForceClass::_LoadEntryINI(CCINIClass* pINI, TaskForceType type)
 {
 	auto String_To_ID = [](const char* str)
 		{
@@ -72,7 +72,7 @@ bool __fastcall FakTaskForceClass::_LoadEntryINI(CCINIClass* pINI, discard_t, Ta
 
 	return true;
 }
-#pragma optimize("", on )
+
 DEFINE_FUNCTION_JUMP(LJMP, 0x6E8220, FakTaskForceClass::_LoadEntryINI);
 DEFINE_FUNCTION_JUMP(CALL, 0x6879B4, FakTaskForceClass::_LoadEntryINI);
 DEFINE_FUNCTION_JUMP(CALL, 0x6879BD, FakTaskForceClass::_LoadEntryINI);
