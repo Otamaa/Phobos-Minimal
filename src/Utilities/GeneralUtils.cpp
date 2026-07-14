@@ -148,7 +148,7 @@ const wchar_t* GeneralUtils::LoadStringOrDefault(const char* key, const wchar_t*
 	if (!GeneralUtils::IsValidString(key))
 		return defaultValue;
 
-	return StringTable::FetchString(key);
+	return CSFLoader::FetchStringManager(key, nullptr, nullptr, -1);
 }
 
 const wchar_t* GeneralUtils::LoadStringUnlessMissing(const char* key, const wchar_t* defaultValue)
@@ -156,14 +156,7 @@ const wchar_t* GeneralUtils::LoadStringUnlessMissing(const char* key, const wcha
 	if (!GeneralUtils::IsValidString(key))
 		return defaultValue;
 
-	auto pCSF = CSFLoader::FindOrAllocateDynamicStrings(key);
-
-	if (pCSF->IsMissingValue) {
-		wcscpy_s(pCSF->Text, std::size(pCSF->Text), defaultValue);
-		pCSF->IsMissingValue = false; // enforce it to false, since we dont want to do this operation again
-	}
-
-	return pCSF->Text;
+	return GeneralUtils::LoadStringUnlessMissingNoChecks(key, defaultValue);
 }
 
 const wchar_t* GeneralUtils::LoadStringUnlessMissingNoChecks(const char* key, const wchar_t* defaultValue)
@@ -171,11 +164,11 @@ const wchar_t* GeneralUtils::LoadStringUnlessMissingNoChecks(const char* key, co
 	auto pCSF = CSFLoader::FindOrAllocateDynamicStrings(key);
 
 	if (pCSF->IsMissingValue) {
-		wcscpy_s(pCSF->Text, std::size(pCSF->Text), defaultValue);
+		pCSF->Text = defaultValue;
 		pCSF->IsMissingValue = false; // enforce it to false, since we dont want to do this operation again
 	}
 
-	return pCSF->Text;
+	return pCSF->Text.c_str();
 }
 
 void GeneralUtils::AdjacentCellsInRange(std::vector<CellStruct>& nCells, short range, bool clearFirst)

@@ -276,6 +276,9 @@ public:
 	void Resume()
 		{ JMP_THIS(0x69BAB0) }
 
+	void CallWaitString() 
+		{ JMP_THIS(0x6977C0); }
+
 	// Is the given house (or the local player, when null) the game's master/host?
 	// Reads MasterPlayerID, falling back to MasterPlayerName, then to the first
 	// non-defeated human house.

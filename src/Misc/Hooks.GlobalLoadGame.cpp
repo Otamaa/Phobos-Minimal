@@ -980,22 +980,17 @@ bool RetFlag(bool flag) // set the DoingLoadGame flag to false
 
 bool __fastcall Make_Load_Game(const char* file_name, bool)
 {
-	WCHAR wide_file_name[PATH_MAX];
+	std::wstring wide_file_name;
 	HRESULT hr;
 
 	// -----------------------------------------------------------------
 	// Resolve file path
 	// -----------------------------------------------------------------
 	{
-		if (SpawnerMain::Configs::Enabled && SavedGames::CreateSubdir())
-		{
-			MultiByteToWideChar(CP_ACP, 0, SavedGames::FormatPath(file_name), -1,
-				wide_file_name, std::size(wide_file_name));
-		}
-		else
-		{
-			MultiByteToWideChar(CP_ACP, 0, file_name, -1,
-				wide_file_name, std::size(wide_file_name));
+		if (SpawnerMain::Configs::Enabled && SavedGames::CreateSubdir()) {
+			wide_file_name =  PhobosCRT::StringToWideString(SavedGames::FormatPath(file_name));
+		} else {
+			wide_file_name =  PhobosCRT::StringToWideString(file_name);
 		}
 	}
 
@@ -1007,7 +1002,7 @@ bool __fastcall Make_Load_Game(const char* file_name, bool)
 	// -----------------------------------------------------------------
 	ATL::CComPtr<IStorage> storage;
 	{
-		hr = StgOpenStorage(wide_file_name, nullptr,
+		hr = StgOpenStorage(wide_file_name.c_str(), nullptr,
 			STGM_READ | STGM_SHARE_EXCLUSIVE,
 			nullptr, 0, &storage);
 

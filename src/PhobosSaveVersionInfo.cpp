@@ -805,8 +805,7 @@ HRESULT __fastcall PhobosSaveVersionInfo::LoadIntSet(IPropertySetStorage* storag
 HRESULT __fastcall PhobosSaveVersionInfo::SaveString(IStorage* storage, int id, char* string)
 {
 	WCHAR buffer[128];
-
-	MultiByteToWideChar(CP_ACP, 0, string, -1, buffer, sizeof(buffer) / sizeof(WCHAR) - 1);
+	PhobosCRT::StringToWideString(buffer, 128, string);
 
 	IStreamPtr stm(nullptr);
 
@@ -859,9 +858,7 @@ HRESULT __fastcall PhobosSaveVersionInfo::SaveString(IStorage* storage, int id, 
 
 HRESULT __fastcall PhobosSaveVersionInfo::SaveStringSet(IPropertySetStorage* storageset, int id, const char* string)
 {
-	WCHAR buffer[128];
-
-	MultiByteToWideChar(CP_ACP, 0, string, -1, buffer, sizeof(buffer) / sizeof(WCHAR) - 1);
+	auto wname = PhobosCRT::StringToWideString(string);
 
 	HRESULT res;
 	IPropertyStoragePtr storage;
@@ -882,7 +879,7 @@ HRESULT __fastcall PhobosSaveVersionInfo::SaveStringSet(IPropertySetStorage* sto
 	PROPVARIANT propvar;
 
 	propvar.vt = VT_LPWSTR;
-	propvar.pwszVal = buffer;
+	propvar.pwszVal = wname.data();
 
 	res = storage->WriteMultiple(1, &propsec, &propvar, 2);
 	if (FAILED(res))
@@ -1137,11 +1134,9 @@ const WCHAR* __fastcall PhobosStreamNameFromID(int id)
 bool __fastcall PhobosGetSavefileInfo(const char* name, PhobosSaveVersionInfo* info)
 {
 	IStoragePtr storage;
-	WCHAR wname[PATH_MAX];
+	auto wname = PhobosCRT::StringToWideString(name);
 
-	MultiByteToWideChar(0, 0, name, -1, wname, sizeof(wname) / sizeof(WCHAR));
-
-	HRESULT result = StgOpenStorage(wname, nullptr, STGM_SHARE_EXCLUSIVE | STGM_READWRITE, nullptr, 0, &storage);
+	HRESULT result = StgOpenStorage(wname.c_str(), nullptr, STGM_SHARE_EXCLUSIVE | STGM_READWRITE, nullptr, 0, &storage);
 	if (FAILED(result))
 	{
 		return false;

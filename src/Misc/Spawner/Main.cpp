@@ -544,8 +544,8 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 			MCVRedeploy = pINI->ReadBool(GameStrings::Settings(), GameStrings::MCVRedeploy, MCVRedeploy);
 
 			if (((FakeCCINIClass*)pINI)->GetStringOld(GameStrings::Settings(), "UIGameMode", Phobos::readDefval, Phobos::readBuffer, Phobos::readLength) > 0)
-				MultiByteToWideChar(CP_UTF8, 0, Phobos::readBuffer, strlen(Phobos::readBuffer), UIGameMode, std::size(UIGameMode));
-		}
+				PhobosCRT::StringToWideString(this->UIGameMode, sizeof(this->UIGameMode) / sizeof(wchar_t) , Phobos::readBuffer);
+			}
 
 		// SaveGame Options
 		LoadSaveGame = pINI->ReadBool(GameStrings::Settings(), "LoadSaveGame", LoadSaveGame);
@@ -573,8 +573,8 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 			ReadMissionSection = pINI->ReadBool(GameStrings::Settings(), "ReadMissionSection", ReadMissionSection);
 
 			if (((FakeCCINIClass*)pINI)->GetStringOld(GameStrings::Settings(), "UIMapName", "", Phobos::readBuffer, Phobos::readLength) > 0)
-				MultiByteToWideChar(CP_UTF8, 0, Phobos::readBuffer, strlen(Phobos::readBuffer), UIMapName, std::size(UIMapName));
-		}
+				PhobosCRT::StringToWideString(this->UIMapName, sizeof(this->UIMapName) / sizeof(wchar_t) , Phobos::readBuffer);
+			}
 
 		{ // Network Options
 			Protocol = pINI->ReadInteger(GameStrings::Settings(), "Protocol", Protocol);
@@ -638,8 +638,9 @@ void SpawnerMain::GameConfigs::PlayerConfig::LoadFromINIFile(CCINIClass* pINI, i
 		this->IsHuman = true;
 		this->Difficulty = -1;
 
-		if (((FakeCCINIClass*)pINI)->GetStringOld(pSection, "Name", Phobos::readDefval, Phobos::readBuffer, Phobos::readLength))
-			MultiByteToWideChar(CP_UTF8, 0, Phobos::readBuffer, -1, this->Name, std::size(this->Name));
+		if (((FakeCCINIClass*)pINI)->GetStringOld(pSection, "Name", Phobos::readDefval, Phobos::readBuffer, Phobos::readLength)){
+			PhobosCRT::StringToWideString(this->Name, sizeof(this->Name) / sizeof(wchar_t) , Phobos::readBuffer);
+		}
 
 		this->Color = pINI->ReadInteger(pSection, GameStrings::Color(), this->Color);
 		this->Country = pINI->ReadInteger(pSection, "Side", this->Country);

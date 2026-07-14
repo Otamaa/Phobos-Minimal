@@ -517,12 +517,10 @@ CLSID FakeCCINIClass::_Get_UUID(char const* section, char const* entry, CLSID de
 {
 	char buffer[128];
 
-	if (this->_ReadString(section, entry, "", buffer, sizeof(buffer)))
-	{
-		wchar_t wBuffer[128];
-		MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, buffer, -1, wBuffer, std::size(wBuffer));
+	if (this->_ReadString(section, entry, "", buffer, sizeof(buffer))) {
+		auto wBuffer = PhobosCRT::StringToWideString(buffer);
 		CLSID uuid;
-		if (SUCCEEDED(CLSIDFromString(wBuffer, &uuid)))
+		if (SUCCEEDED(CLSIDFromString(wBuffer.c_str(), &uuid)))
 		{
 			return uuid;
 		}

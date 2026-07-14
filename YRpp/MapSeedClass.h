@@ -18,6 +18,9 @@ public:
 	virtual ~MapSeedClass()
 		{ JMP_THIS(0x5AC270); }
 
+	wchar_t* SetDescription()
+		{ JMP_THIS(0x595710); }
+
 	//Loads an SED file
 	virtual bool LoadMission(const char* pFilename) const override
 		{ JMP_THIS(0x597A30); }

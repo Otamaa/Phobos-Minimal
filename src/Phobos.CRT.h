@@ -166,41 +166,15 @@ public:
 		return ret;
 	}
 
-	COMPILETIMEEVAL static std::wstring StringToWideString(const std::string& str)
-	{
-		if (str.empty())
-		{
-			return {};
-		}
+	// Narrow → wide, no embedded null handling. Preferred for label names,
+	// NOSTR values, general INI/CSF content.
+	static std::wstring StringToWideStringSimple(std::string_view str);
+	static void         StringToWideStringSimple(wchar_t* ret, size_t len, std::string_view str);
 
-		size_t pos;
-		size_t begin = 0;
-		std::wstring ret;
-
-		int size = 0;
-		pos = str.find(static_cast<char>(0), begin);
-		while (pos != std::string::npos)
-		{
-			std::string segment = std::string(&str[begin], pos - begin);
-			std::wstring converted = std::wstring(segment.size() + 1, 0);
-			size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, &segment[0], segment.size(), &converted[0], converted.length());
-			converted.resize(size);
-			ret.append(converted);
-			ret.append({ 0 });
-			begin = pos + 1;
-			pos = str.find(static_cast<char>(0), begin);
-		}
-		if (begin < str.length())
-		{
-			std::string segment = std::string(&str[begin], str.length() - begin);
-			std::wstring converted = std::wstring(segment.size() + 1, 0);
-			size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, segment.c_str(), segment.size(), &converted[0], converted.length());
-			converted.resize(size);
-			ret.append(converted);
-		}
-
-		return ret;
-	}
+	// Narrow → wide with embedded null support. Use only when input is a
+	// binary blob known to contain null bytes.
+	static std::wstring StringToWideString(const std::string& str);
+	static void         StringToWideString(wchar_t* ret, size_t len, const std::string& str);
 
 	static COMPILETIMEEVAL std::string FORCEDINLINE trim(const char* source)
 	{

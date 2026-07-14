@@ -87,7 +87,7 @@ public:
 
 	int     Group;
 	int     CountEntries;
-	bool    IsGlobal;
+	TaskForceType    Type;
 	TaskForceEntryStruct Entries [0x6];
 };
 static_assert(sizeof(TaskForceClass) == 0xD4, "Invalid Size !");

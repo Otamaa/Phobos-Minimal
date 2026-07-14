@@ -40,6 +40,7 @@ struct CSFHeader
 	DWORD unused_0xC;
 	CSFLanguages Language; //CSF_LANG_*, forced to US if CSFVersion < 2
 };
+static_assert(sizeof(CSFHeader) == 0x18, "Invalid Size !");
 
 struct CSFLabel
 {

@@ -2423,18 +2423,8 @@ bool detail::read<CLSID>(CLSID& value, INI_EX& parser, const char* pSection, con
 		return false;
 	}
 
-	CHAR bytestr[128];
-	WCHAR wcharstr[128];
-
-	strncpy(bytestr, parser.value(), 128);
-	bytestr[127] = NULL;
-	CRT::strtrim(bytestr);
-
-	if (!strlen(bytestr))
-		return false;
-
-	MultiByteToWideChar(0, 1, bytestr, -1, wcharstr, 128);
-	const unsigned hr = CLSIDFromString(wcharstr, &value);
+	auto _buffer = PhobosCRT::StringToWideString(parser.value());
+	const unsigned hr = CLSIDFromString(_buffer.c_str(), &value);
 
 	if (!SUCCEEDED(hr))
 	{

@@ -5067,7 +5067,7 @@ void TechnoExtData::Ares_AddMoneyStrings(TechnoClass* pThis, bool forcedraw)
 			? Drawing::DefaultColors[(int)DefaultColorList::Green] :
 			Drawing::DefaultColors[(int)DefaultColorList::Red];
 
-		fmt::format_to(std::back_inserter(moneyStr), L"{}{}{}", isPositive ? L"+" : L"-", Phobos::UI::CostLabel.GetText(), Math::abs(value));
+		fmt::format_to(std::back_inserter(moneyStr), L"{}{}{}", isPositive ? L"+" : L"-", Phobos::UI::CostLabel.c_str(), Math::abs(value));
 		moneyStr.push_back(L'\0');
 
 		CoordStruct loc = pThis->GetCoords();
@@ -10603,15 +10603,6 @@ void TechnoExtData::ForceJumpjetTurnToTarget(TechnoClass* pThis)
 			}
 		}
 	}
-}
-
-// convert UTF-8 string to wstring
-static std::wstring Str2Wstr(const std::string& str)
-{
-	int size_needed = MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), NULL, 0);
-	std::wstring wstrTo(size_needed, 0);
-	MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), &wstrTo[0], size_needed);
-	return wstrTo;
 }
 
 void TechnoExtData::DisplayDamageNumberString(TechnoClass* pThis, int damage, bool isShieldDamage, WarheadTypeClass* pWH)

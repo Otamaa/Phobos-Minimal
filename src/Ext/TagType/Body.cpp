@@ -6,7 +6,7 @@
 
 #include <TriggerTypeClass.h>
 
-bool FakeTagTypeClass::_LoadEntryINI(CCINIClass* pINI)
+bool __fastcall FakeTagTypeClass::_LoadEntryINI(CCINIClass* pINI)
 {
 	auto String_To_ID = [](const char* str)
 		{
@@ -88,6 +88,7 @@ bool FakeTagTypeClass::_LoadEntryINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x6E5ED0, FakeTagTypeClass::_LoadEntryINI);
+DEFINE_FUNCTION_JUMP(CALL, 0x6879CB, FakeTagTypeClass::_LoadEntryINI);
 
 bool FakeTagTypeClass::_LoadFromINI(CCINIClass* pINI)
 {

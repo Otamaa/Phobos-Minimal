@@ -178,9 +178,9 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 		L"{}\n{}{}{} {}{:02}:{:02}",
 		pType->UIName,
 		(cost < 0 ? L"+" : L""),
-		Phobos::UI::CostLabel.GetText(),
+		Phobos::UI::CostLabel.c_str(),
 		Math::abs(cost),
-		Phobos::UI::TimeLabel.GetText(),
+		Phobos::UI::TimeLabel.c_str(),
 		nMin,
 		nSec
 	);
@@ -188,7 +188,7 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 	if (auto const nPower = this->GetPower(pType)) {
 		fmt::format_to(std::back_inserter(this->TextBuffer),
 			L" {}{}{:01}",
-			Phobos::UI::PowerLabel.GetText(),
+			Phobos::UI::PowerLabel.c_str(),
 			nPower > 0 ? L"+" : L"",
 			nPower);
 	}
@@ -288,7 +288,7 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 		fmt::format_to(std::back_inserter(this->TextBuffer),
 			L"\n{}{}{}",
 			pData->Money_Amount > 0 ? L"+" : L"",
-			Phobos::UI::CostLabel.GetText(),
+			Phobos::UI::CostLabel.c_str(),
 			nCost
 		);
 
@@ -298,7 +298,7 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 	if (int nPoints = Math::abs(pData->BattlePoints_Amount.Get())) {
 		fmt::format_to(std::back_inserter(this->TextBuffer),
 			L"\n{}{}{}",
-			Phobos::UI::BattlePoints_Label.GetText(),
+			Phobos::UI::BattlePoints_Label.c_str(),
 			pData->BattlePoints_Amount > 0 ? L"+" : L"-",
 			nPoints
 		);
@@ -318,7 +318,7 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 				L"{}{}{} {:02}{:02}:{:02}",
 				!showSth ? L"\n" : L"",
 				showSth ? L" " : L"",
-				Phobos::UI::TimeLabel.GetText(),
+				Phobos::UI::TimeLabel.c_str(),
 				nHour,
 				nMin,
 				nSec
@@ -330,7 +330,7 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 				L"{}{}{} {:02}:{:02}",
 				!showSth ? L"\n" : L"",
 				showSth ? L" " : L"",
-				Phobos::UI::TimeLabel.GetText(),
+				Phobos::UI::TimeLabel.c_str(),
 				nMin,
 				nSec
 			);
@@ -360,7 +360,7 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 		if (nPower != 0) {
 			fmt::format_to(std::back_inserter(this->TextBuffer),
 				L" {}{}{:01}",
-				Phobos::UI::PowerLabel.GetText(),
+				Phobos::UI::PowerLabel.c_str(),
 				(nPower ? L"+" : L""),
 				nPower
 			);

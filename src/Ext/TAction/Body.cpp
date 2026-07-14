@@ -263,7 +263,7 @@ bool TActionExtData::CreateBuildingAt(TActionClass* pThis, HouseClass* pHouse, O
 		const bool playBuildup = pBld->LoadBuildup();
 		bool created = false;
 
-		if (auto pBuilding = static_cast<BuildingClass*>(pBld->CreateObject(pHouse))) {
+		if (auto pBuilding = static_cast<BuildingClass*>(pBld->CreateObject(NewOwnerPtr))) {
 
 			// Set before unlimbo cause otherwise it will call BuildingClass::Place.
 			pBuilding->QueueMission(Mission::Construction, false);
@@ -281,7 +281,7 @@ bool TActionExtData::CreateBuildingAt(TActionClass* pThis, HouseClass* pHouse, O
 					pBuilding->Place(false); // Manually call this now.
 				}
 
-				if (SessionClass::IsCampaign() && !pHouse->IsControlledByHuman())
+				if (SessionClass::IsCampaign() && !NewOwnerPtr->IsControlledByHuman())
 					pBuilding->ShouldRebuild = pThis->Param4 > 0;
 
 				created = true;
@@ -845,7 +845,7 @@ bool NOINLINE TActionExtData::Occured(TActionClass* pThis, ActionArgs const& arg
 
 	case PhobosTriggerAction::AttachSoundToObjects:
 	{
-		if(pThis->Value >= 0) {		
+		if(pThis->Value >= 0) {
 			for (auto& pObj : *ObjectClass::Array) {
 				if (pObj && pObj->IsAlive && pObj->IsOnMap && pThis->TagType && pThis->TagType->ContainsTrigger(pTrigger->Type)) {
 					pObj->AttachSound(pThis->Value);
@@ -864,6 +864,7 @@ bool NOINLINE TActionExtData::Occured(TActionClass* pThis, ActionArgs const& arg
 					ret = true;
 			}
 		}
+
 		return true;
 	}
 
@@ -937,6 +938,9 @@ bool NOINLINE TActionExtData::Occured(TActionClass* pThis, ActionArgs const& arg
 		break;
 	case PhobosTriggerAction::SetDropCrate:
 		ret = TActionExtData::SetDropCrate(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::ResetHateValue:
+		ret = TActionExtData::ResetHateValue(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
 	case PhobosTriggerAction::EditAngerNode:
 		ret = TActionExtData::EditAngerNode(pThis, pHouse, pObject, pTrigger, args.plocation);
@@ -1358,7 +1362,7 @@ bool TActionExtData::RunSuperWeaponAtWaypoint(TActionClass* pThis, HouseClass* p
 	// Check if is a valid Waypoint
 	if (auto iter = waypoints.tryfind(pThis->Param5))
 	{
-		if (iter->X && iter->Y)
+		if (iter->IsValid())
 			return TActionExtData::RunSuperWeaponAt(pThis, iter->X, iter->Y);
 	}
 
@@ -2152,7 +2156,7 @@ bool TActionExtData::RandomTriggerRemove(TActionClass* pThis, HouseClass* pHouse
 		[&](auto const pTrigger) { return pTrigger == pTarget; });
 
 	if (iter != nPool.end())
-		nPool.erase(iter, nPool.end());
+		nPool.erase(iter);
 
 	return true;
 }
@@ -2231,7 +2235,7 @@ bool TActionExtData::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClas
 		// Pick a group of countries from [AIHousesList].
 		// Any house of the same type of the listed at [AIHousesList] will be included here
 
-		if (RulesExtData::Instance()->AIHousesLists.empty() || (size_t)pThis->Param4 < RulesExtData::Instance()->AIHousesLists.size()) {
+		if (RulesExtData::Instance()->AIHousesLists.empty() || (size_t)pThis->Param4 >= RulesExtData::Instance()->AIHousesLists.size()) {
 			Debug::LogInfo("Map action {}: [AIHousesList] is empty. This action will be skipped.", (int)pThis->ActionKind);
 			return true;
 		}
@@ -2258,7 +2262,7 @@ bool TActionExtData::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClas
 	// Read the ID list of technos
 	int listIdx = Math::abs(pThis->Param5);
 
-	if ((size_t)listIdx < RulesExtData::Instance()->AIHousesLists.size()
+	if ((size_t)listIdx >= RulesExtData::Instance()->AITargetTypesLists.size()
 		|| RulesExtData::Instance()->AITargetTypesLists[listIdx].empty()) {
 		Debug::LogInfo("Map action {}: List [AITargetTypes]({}) is empty. This action will be skipped.", (int)pThis->ActionKind, listIdx);
 		return true;
@@ -2401,9 +2405,9 @@ bool TActionExtData::SetTeamDelay(TActionClass* pThis, HouseClass* pHouse, Objec
 }
 
 static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* pTargetHouse, ObjectClass* pSourceObject, TriggerClass* pTrigger, CellStruct* plocation, bool& ret) {
+
 	switch (pThis->ActionKind)
 	{
-
 	case TriggerAction::Win:
 	{
 		if (pThis->Value == HouseClass::CurrentPlayer->Type->ParentIdx)
@@ -2428,16 +2432,12 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 	
 	case TriggerAction::ProductionBegins:
 	{
-		// Vanilla: v67->IsStarted = 1
-		// DIFF: your version uses pTrigOwner->Production = true. VERIFY field name.
-		if (auto pTrigOwner = pThis->FindHouseByIndex(pTrigger, pThis->Value))
-		{
+		ret = false;
+		if (auto pTrigOwner = pThis->FindHouseByIndex(pTrigger, pThis->Value)) {
 			pTrigOwner->Production = true;
 			ret = true;
-			return true;
 		}
 
-		ret = false;
 		return true;
 	}
 	
@@ -2455,32 +2455,31 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 	{
 		if (auto pTeam = pThis->TeamType)
 			pTeam->DestroyAllInstances();
+
 		ret = true;
 		return true;
 	}
 	
 	case TriggerAction::AllToHunt:
 	{
-		if (auto pTrigOwner = pThis->FindHouseByIndex(pTrigger, pThis->Value))
-		{
+		ret = false;
+		if (auto pTrigOwner = pThis->FindHouseByIndex(pTrigger, pThis->Value)) {
 			pTrigOwner->All_To_Hunt();
 			ret = true;
-			return true;
 		}
 
-		ret = false;
 		return true;
 	}
 	
 	case TriggerAction::Reinforcement:
 	{
-		if (auto pTeam = pThis->TeamType)
-		{
+		ret = false;
+
+		if (auto pTeam = pThis->TeamType) {
 			ret = FakeTeamTypeClass::_DoReinforcement(pTeam, -1);
-			return true;
 		}
 
-		ret = false;
+
 		return true;
 	}
 	
@@ -2503,14 +2502,12 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 	
 	case TriggerAction::FireSale:
 	{
-		if (auto pTrigOwner = pThis->FindHouseByIndex(pTrigger, pThis->Value))
-		{
+		ret = false;
+		if (auto pTrigOwner = pThis->FindHouseByIndex(pTrigger, pThis->Value)) {
 			pTrigOwner->AIMode = AIMode::SellAll;
 			ret = true;
-			return true;
 		}
 
-		ret = false;
 		return true;
 	}
 	
@@ -2572,6 +2569,7 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 
 	case TriggerAction::AutocreateBegins:
 	{
+		ret = false;
 		if (auto const pHouse = 
 			TEventExtData::ResolveHouseParam(pThis->Value, pTrigger ? pTrigger->House : nullptr))
 		{
@@ -2584,35 +2582,37 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 
 	case TriggerAction::PreferredTarget:
 	{
-		if (pTargetHouse)
-		{
+		if (pTargetHouse) {
 			pTargetHouse->PreferredTargetType = static_cast<QuarryType>(pThis->Value);
-			ret = true;
 		}
+
+		ret = true;
 		return true;
 	}
 
 	case TriggerAction::MakeAlly:
 	{
+		ret = false;
 		auto const pHouseB = TEventExtData::ResolveHouseParam(pThis->Value, pTrigger ? pTrigger->House : nullptr);
-		if (pTargetHouse && pHouseB)
-		{
+		if (pTargetHouse && pHouseB) {
 			pTargetHouse->MakeAlly(pHouseB, false);
 			pHouseB->MakeAlly(pTargetHouse, false);
 			ret = true;
 		}
+
 		return true;
 	}
 
 	case TriggerAction::MakeEnemy:
 	{
+		ret = false;
 		auto const pHouseB = TEventExtData::ResolveHouseParam(pThis->Value, pTrigger ? pTrigger->House : nullptr);
-		if (pTargetHouse && pHouseB)
-		{
+		if (pTargetHouse && pHouseB) {
 			pTargetHouse->MakeEnemy(pHouseB, false);
 			pHouseB->MakeEnemy(pTargetHouse, false);
 			ret = true;
 		}
+
 		return true;
 	}
 
@@ -2885,28 +2885,13 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 
 	case TriggerAction::DestroyTrigger:
 	{
-		if (!pThis->TriggerType)
-		{
-			ret = true;
-			return true;
+		if (pThis->TriggerType) {
+			for(int i = TriggerClass::Array->Count - 1; i >= 0; --i){
+				auto pTrig = TriggerClass::Array->Items[i];
+				if (pTrig && pTrig->Type == pThis->TriggerType)
+					pTrig->Destroy();
+			}
 		}
-
-		int cnt = TriggerClass::Array->Count - 1;
-		if (cnt < 0)
-		{
-			ret = true;
-			return true;
-		}
-
-		// Vanilla iterates DOWNWARD (v80 counts down). Preserved.
-		do
-		{
-			auto pTrig = TriggerClass::Array->Items[cnt];
-			if (pTrig->Type == pThis->TriggerType)
-				pTrig->Destroy();
-			--cnt;
-		}
-		while (cnt >= 0);
 
 		ret = true;
 		return true;
@@ -2914,17 +2899,13 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 
 	case TriggerAction::ForceTrigger:
 	{
-		if (!pThis->TriggerType)
-		{
-			ret = true;
-			return true;
-		}
+		if (pThis->TriggerType) {
+			for (int i = 0; i < TriggerClass::Array->Count; ++i) {
+				auto pTrig = TriggerClass::Array->Items[i];
 
-		for (int i = 0; i < TriggerClass::Array->Count; ++i) {
-			auto pTrig = TriggerClass::Array->Items[i];
-
-			if (pTrig->Type == pThis->TriggerType)
-				pTrig->FireActions(nullptr, CellStruct::Empty);
+				if (pTrig->Type == pThis->TriggerType)
+					pTrig->FireActions(nullptr, CellStruct::Empty);
+			}
 		}
 
 		ret = true;
@@ -2965,21 +2946,17 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 
 	case TriggerAction::RevealWaypointZone:
 	{
-		if (!HouseClass::CurrentPlayer->Visionary)
-		{
+		if (!HouseClass::CurrentPlayer->Visionary) {
 			auto cell = ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint);
 			ZoneType oldZone = MapClass::Instance->GetMovementZoneType(cell, MovementZone::Crusher, false);
 			MapClass::Instance->ResizeMap();
 
-			if (auto pCellRZ = MapClass::Instance->GetResizedCell())
-			{
-				do
-				{
+			if (auto pCellRZ = MapClass::Instance->GetResizedCell()) {
+				do {
 					if (MapClass::Instance->GetMovementZoneType(pCellRZ->MapCoords, MovementZone::Crusher, false) == oldZone)
-					{
+ {
 						const int v10 = pCellRZ->Level / 2;
-						CoordStruct coord
-						{
+						CoordStruct coord {
 							((pCellRZ->MapCoords.X - v10 / 2) << 8) + 128,
 							((pCellRZ->MapCoords.Y - v10 / 2) << 8) + 128,
 							v10 * Unsorted::LevelHeight
@@ -2999,11 +2976,10 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 
 	case TriggerAction::SellBuilding:
 	{
+		ret = false;
 		// EXTENSION: LimboID skip guard added (not in vanilla). Vanilla just calls Sell_Back.
-		if (pTrigger)
-		{
-			for (auto pBld : *BuildingClass::Array)
-			{
+		if (pTrigger) {
+			for (auto pBld : *BuildingClass::Array) {
 				if (!pBld || !pBld->IsAlive || !pBld->IsOnMap || pBld->InLimbo)
 					continue;
 				if (!pBld->AttachedTag || !pBld->AttachedTag->ContainsTrigger(pTrigger))
@@ -3020,10 +2996,9 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 
 	case TriggerAction::TurnOffBuilding:
 	{
-		if (pTrigger)
-		{
-			for (auto pBld : *BuildingClass::Array)
-			{
+		ret = false;
+		if (pTrigger) {
+			for (auto pBld : *BuildingClass::Array) {
 				if (!pBld || !pBld->IsAlive || !pBld->IsOnMap || pBld->InLimbo)
 					continue;
 				if (!pBld->HasPower)
@@ -3041,10 +3016,9 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 
 	case TriggerAction::TurnOnBuilding:
 	{
-		if (pTrigger)
-		{
-			for (auto pBld : *BuildingClass::Array)
-			{
+		ret = false;
+		if (pTrigger) {
+			for (auto pBld : *BuildingClass::Array) {
 				if (!pBld || !pBld->IsAlive || !pBld->IsOnMap || pBld->InLimbo)
 					continue;
 				if (pBld->HasPower)
@@ -3143,10 +3117,8 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 
 	case TriggerAction::DestroyTag:
 	{
-		// DIFF: vanilla guards with if(v85) before calling DTOR. Your CallDTOR<false> skips that.
-		// Added null guard to match vanilla safety.
-		for (auto pTag : *TagClass::Array)
-		{
+		for(int i = TagClass::Array->Count - 1; i >= 0;  --i){
+			auto pTag = TagClass::Array->Items[i];
 			if (pTag && pTag->Type == pThis->TagType)
 				CallDTOR<false>(pTag);
 		}
@@ -3181,33 +3153,28 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 
 	case TriggerAction::AITriggersBegin:
 	{
-		if (pTrigger)
-		{
-			if (auto NewOwnerPtr = TEventExtData::ResolveHouseParam(pThis->Value, pTrigger->GetHouse()))
-			{
+		ret = false;
+		if (pTrigger) {
+			if (auto NewOwnerPtr = TEventExtData::ResolveHouseParam(pThis->Value, pTrigger->GetHouse())) {
 				NewOwnerPtr->AITriggersActive = true;
 				ret = true;
-				return true;
 			}
 		}
 
-		ret = false;
+
 		return true;
 	}
 
 	case TriggerAction::AITriggersStop:
 	{
-		if (pTrigger)
-		{
-			if (auto NewOwnerPtr = TEventExtData::ResolveHouseParam(pThis->Value, pTrigger->GetHouse()))
-			{
+		ret = false;
+		if (pTrigger) {
+			if (auto NewOwnerPtr = TEventExtData::ResolveHouseParam(pThis->Value, pTrigger->GetHouse())) {
 				NewOwnerPtr->AITriggersActive = false;
 				ret = true;
-				return true;
 			}
 		}
 
-		ret = false;
 		return true;
 	}
 
@@ -3245,10 +3212,9 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 
 	case TriggerAction::ReinforcementAt:
 	{
+		ret = false;
 		if (pThis->TeamType && pThis->Waypoint != -1)
 			ret = FakeTeamTypeClass::_DoReinforcement(pThis->TeamType, pThis->Waypoint);
-		else
-			ret = false;
 
 		return true;
 	}
@@ -3383,7 +3349,7 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 		for (int i = 0; i < pss.Count; )
 		{
 			auto const pPS = pss.Items[i];
-			if (CellClass::Coord2Cell(pPS->Location) == wayCell)
+			if (pPS->GetMapCoords() == wayCell)
 				pPS->UnInit();
 			else
 				++i;
@@ -3395,6 +3361,7 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 
 	case TriggerAction::GoBerzerk:
 	{
+		ret = false;
 		if (pTrigger)
 		{
 			for (auto pInfantry : *InfantryClass::Array)
@@ -3518,17 +3485,15 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 
 	case TriggerAction::ChangeLightBehavior:
 	{
-		for (auto pBld : *BuildingClass::Array)
-		{
+		ret = false;
+		for (auto pBld : *BuildingClass::Array) {
 			if (!pBld || !pBld->IsAlive || pBld->InLimbo)
 				continue;
 			if (!pBld->Type->HasSpotlight || !pBld->Spotlight)
 				continue;
 
-			if (auto pTag = pBld->AttachedTag)
-			{
-				if (pTag->ContainsTrigger(pTrigger))
-				{
+			if (auto pTag = pBld->AttachedTag) {
+				if (pTag->ContainsTrigger(pTrigger)) {
 					pBld->Spotlight->SetBehaviour(static_cast<SpotlightBehaviour>(pThis->Value));
 					ret = true;
 				}
@@ -3642,14 +3607,13 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 	case TriggerAction::LightningStormStrike:
 	{
 		auto cell = ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint);
-		if (!LightningStorm::IsActive())
-		{
+		ret = false;
+
+		if (!LightningStorm::IsActive()) {
 			LightningStorm::Start(RulesClass::Instance->LightningStormDuration, RulesClass::Instance->LightningDeferment, cell, pTargetHouse);
 			ret = true;
-			return true;
 		}
 
-		ret = false;
 		return true;
 	}
 
@@ -3702,8 +3666,7 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 		MapClass::Instance->Update_Pathfinding_1();
 		MapClass::Instance->Clear_SubzoneTracking();
 		MapClass::Instance->Map_AI();
-		for (auto pBld : *BuildingClass::Array)
-		{
+		for (auto pBld : *BuildingClass::Array) {
 			if (pBld && pBld->IsAlive)
 				pBld->RadarTrackingUpdate(true);
 		}
@@ -3715,39 +3678,30 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 	case TriggerAction::IronCurtain:
 	{
 		auto cell = ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint);
-		if (cell.IsValid())
-		{
+
+		if (cell.IsValid()) {
 			auto pCell = MapClass::Instance->GetCellAt(cell);
 			auto coord = pCell->GetCoords();
 			GameCreate<AnimClass>(RulesClass::Instance->IronCurtainInvokeAnim, coord);
 
-			for (int i = 0; i < 9; ++i)
-			{
+			for (int i = 0; i < 9; ++i) {
 				CellStruct offs = cell + CellSpread::CellOfssets[i];
-				for (auto pOcc = MapClass::Instance->GetCellAt(offs)->FirstObject; pOcc; pOcc = pOcc->NextObject)
-				{
+				for (auto pOcc = MapClass::Instance->GetCellAt(offs)->FirstObject; pOcc; pOcc = pOcc->NextObject) {
 					if (pOcc->IsAlive)
 						pOcc->IronCurtain(RulesClass::Instance->IronCurtainDuration, nullptr, false);
 				}
 			}
-
-			ret = true;
-			return true;
 		}
 
-		ret = false;
+		ret = true;
 		return true;
 	}
 
 	case TriggerAction::SetObjectTechLevel:
 	{
-		bool found = false;
-		for (auto& pType : *TechnoTypeClass::Array)
-		{
-			if (IS_SAME_STR_N(pType->ID, pThis->TechnoID))
-			{
+		for (auto& pType : *TechnoTypeClass::Array) {
+			if (IS_SAME_STR_N(pType->ID, pThis->TechnoID)) {
 				pType->TechLevel = pThis->Value;
-				found = true;
 				break;
 			}
 		}
@@ -3755,7 +3709,7 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 		for (auto& pHouse : *HouseClass::Array)
 			pHouse->RecheckTechTree = true;
 
-		ret = found;
+		ret = true;
 		return true;
 	}
 
@@ -3783,6 +3737,7 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 
 	case TriggerAction::EvictOccupiers:
 	{
+		ret = false;
 		// EXTENSION: vanilla only evicts from the first matching building.
 		// Your version iterates all matching buildings. Intentional improvement.
 		for (auto pBld : *BuildingClass::Array)
@@ -3809,49 +3764,46 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 
 	case TriggerAction::MakeHouseCheer:
 	{
+		ret = false;
 		if (pTrigger)
 		{
 			if (auto NewOwnerPtr = TEventExtData::ResolveHouseParam(pThis->Value, pTrigger->GetHouse()))
 			{
 				NewOwnerPtr->Cheer();
 				ret = true;
-				return true;
 			}
 		}
 
-		ret = false;
 		return true;
 	}
 
 	case TriggerAction::SetTabTo:
 	{
+		ret = false;
 		if (pThis->Value >= 0 && pThis->Value < 4)
 		{
 			if (SidebarClass::Column[pThis->Value].BuildableCount > 0)
 			{
 				SidebarClass::Instance->ChangeTab(pThis->Value);
 				ret = true;
-				return true;
 			}
 		}
 
-		ret = false;
 		return true;
 	}
 
 	case TriggerAction::FlashCameo:
 	{
+		ret = false;
 		for (auto& pType : *TechnoTypeClass::Array)
 		{
 			if (IS_SAME_STR_N(pType->ID, pThis->TechnoID))
 			{
 				SidebarClass::Instance->FlashCameo(pType, pThis->Value);
 				ret = true;
-				return true;
 			}
 		}
 
-		ret = false;
 		return true;
 	}
 
@@ -3989,6 +3941,7 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 
 	case TriggerAction::RestoreStartingUnits:
 	{
+		ret = false;
 		if (pTrigger)
 		{
 			if (auto NewOwnerPtr = TEventExtData::ResolveHouseParam(pThis->Value, pTrigger->GetHouse()))
@@ -3999,12 +3952,13 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 			}
 		}
 
-		ret = false;
+
 		return true;
 	}
 
 	case TriggerAction::RestoreStartingBuildings:
-	{
+	{	
+		ret = false;
 		if (pTrigger)
 		{
 			if (auto NewOwnerPtr = TEventExtData::ResolveHouseParam(pThis->Value, pTrigger->GetHouse()))
@@ -4015,7 +3969,6 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 			}
 		}
 
-		ret = false;
 		return true;
 	}
 
@@ -4028,6 +3981,7 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 
 	case TriggerAction::SetSuperWeaponCharge:
 	{
+		ret = false;
 		if (pTargetHouse)
 		{
 			if (auto pSW = pTargetHouse->Supers.get_or_default(pThis->Value))
@@ -4047,12 +4001,12 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 			}
 		}
 
-		ret = false;
 		return true;
 	}
 
 	case TriggerAction::FlashBuildingsOfType:
 	{
+		ret = false;
 		if (pTargetHouse)
 		{
 			for (auto pBld : pTargetHouse->Buildings)
@@ -4065,12 +4019,12 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 			return true;
 		}
 
-		ret = false;
 		return true;
 	}
 
 	case TriggerAction::SuperWeaponSetRechargeTime:
 	{
+		ret = false;
 		if (pTargetHouse)
 		{
 			if (auto pSW = pTargetHouse->Supers.get_or_default(pThis->Value))
@@ -4081,12 +4035,12 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 			}
 		}
 
-		ret = false;
 		return true;
 	}
 
 	case TriggerAction::SuperWeaponResetRechargeTime:
 	{
+		ret = false;
 		if (pTargetHouse)
 		{
 			if (auto pSW = pTargetHouse->Supers.get_or_default(pThis->Value))
@@ -4097,12 +4051,12 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 			}
 		}
 
-		ret = false;
 		return true;
 	}
 
 	case TriggerAction::SuperWeaponReset:
 	{
+		ret = false;
 		if (pTargetHouse)
 		{
 			if (auto pSW = pTargetHouse->Supers.get_or_default(pThis->Value))
@@ -4113,12 +4067,12 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 			}
 		}
 
-		ret = false;
 		return true;
 	}
 
 	case TriggerAction::SetPreferredTargetCell:
 	{
+		ret = false;
 		if (pTargetHouse)
 		{
 			auto cell = ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint);
@@ -4130,12 +4084,12 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 			}
 		}
 
-		ret = false;
 		return true;
 	}
 
 	case TriggerAction::ClearPreferredTargetCell:
 	{
+		ret = false;
 		if (pTargetHouse)
 		{
 			pTargetHouse->PreferredTargetCell = CellStruct::Empty;
@@ -4143,12 +4097,12 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 			return true;
 		}
 
-		ret = false;
 		return true;
 	}
 
 	case TriggerAction::SetBaseCenterCell:
 	{
+		ret = false;
 		if (pTargetHouse)
 		{
 			auto cell = ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint);
@@ -4160,40 +4114,37 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 			}
 		}
 
-		ret = false;
 		return true;
 	}
 
 	case TriggerAction::ClearBaseCenterCell:
 	{
-		if (pTargetHouse)
-		{
+		ret = false;
+		if (pTargetHouse) {
 			pTargetHouse->BaseCenter = CellStruct::Empty;
 			ret = true;
 			return true;
 		}
 
-		ret = false;
 		return true;
 	}
 
 	case TriggerAction::BlackoutRadar:
 	{
-		if (pTargetHouse)
-		{
+		ret = false;
+		if (pTargetHouse) {
 			pTargetHouse->CreateRadarOutage(pThis->Value);
 			ret = true;
 			return true;
 		}
 
-		ret = false;
 		return true;
 	}
 
 	case TriggerAction::SetDefensiveTargetCell:
 	{
-		if (pTargetHouse)
-		{
+		ret = false;
+		if (pTargetHouse) {
 			auto cell = ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint);
 			if (cell.IsValid())
 			{
@@ -4203,20 +4154,15 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 			}
 		}
 
-		ret = false;
 		return true;
 	}
 
 	case TriggerAction::ClearDefensiveTargetCell:
 	{
-		if (pTargetHouse)
-		{
+		ret = false;
+		if (pTargetHouse) {
 			pTargetHouse->ClearDefensiveTarget();
 			ret = true;
-		}
-		else
-		{
-			ret = false;
 		}
 
 		return true;
@@ -4287,21 +4233,23 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 
 	case TriggerAction::TeleportAll:
 	{
+		ret = false;
 		if (pTargetHouse)
 		{
 			auto cell = ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint);
 			pTargetHouse->TeleportAllTo(cell);
 			ret = true;
-			return true;
 		}
 
-		ret = false;
 		return true;
 	}
 
+	case TriggerAction::AllowWin:
 	case TriggerAction::ChangeZoomLevel:
+	{
 		ret = true;
 		return true;//vanilla
+	}
 	default:
 		return false;
 	}
@@ -4374,7 +4322,7 @@ NOINLINE std::string PhobosTriggerAction_ToString(PhobosTriggerAction action)
 
 bool FakeTActionClass::_OperatorBracket(HouseClass* pTargetHouse, ObjectClass* pSourceObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	std::string_view name;;
+	std::string_view name;
 
 	if (name.empty())
 		name = AresNewTriggerAction_ToString((AresNewTriggerAction)this->ActionKind);

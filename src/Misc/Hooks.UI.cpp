@@ -117,9 +117,9 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 		int points = pHouseExt->BattlePoints;
 
 		if (Phobos::UI::BattlePointsSidebar_Label_InvertPosition)
-			fmt::format_to(std::back_inserter(counter), L"{}{}", points, Phobos::UI::BattlePointsSidebar_Label.GetText());
+			fmt::format_to(std::back_inserter(counter), L"{}{}", points, Phobos::UI::BattlePointsSidebar_Label.c_str());
 		else
-			fmt::format_to(std::back_inserter(counter), L"{}{}", Phobos::UI::BattlePointsSidebar_Label.GetText(), points);
+			fmt::format_to(std::back_inserter(counter), L"{}{}", Phobos::UI::BattlePointsSidebar_Label.c_str(), points);
 
 		counter.push_back(L'\0');
 		Point2D vPos = {
@@ -146,11 +146,11 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 	 		? pSideExt->Sidebar_HarvesterCounter_Yellow : pSideExt->Sidebar_HarvesterCounter_Red;
 
 		if (pSideExt->Sidebar_HarvesterCounter_HideMaxValue)
-			fmt::format_to(std::back_inserter(Harv), L"{}{}", Phobos::UI::HarvesterLabel.GetText(), nActive);
+			fmt::format_to(std::back_inserter(Harv), L"{}{}", Phobos::UI::HarvesterLabel.c_str(), nActive);
 		else if (pSideExt->Sidebar_HarvesterCounter_OnlyMaxValue)
-			fmt::format_to(std::back_inserter(Harv), L"{}{}", Phobos::UI::HarvesterLabel.GetText(), nTotal);
+			fmt::format_to(std::back_inserter(Harv), L"{}{}", Phobos::UI::HarvesterLabel.c_str(), nTotal);
 		else
-			fmt::format_to(std::back_inserter(Harv), L"{}{}/{}", Phobos::UI::HarvesterLabel.GetText(), nActive, nTotal);
+			fmt::format_to(std::back_inserter(Harv), L"{}{}/{}", Phobos::UI::HarvesterLabel.c_str(), nActive, nTotal);
 
 		Harv.push_back(L'\0');
 
@@ -173,7 +173,8 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 		if (pPlayer->PowerBlackoutTimer.InProgress())
 		{
 			clrToolTip = pSideExt->Sidebar_PowerDelta_Grey.Get();
-			ShowPower.append(Phobos::UI::PowerBlackoutLabel.GetText());
+			std::wstring str_b (Phobos::UI::PowerBlackoutLabel.c_str());
+			ShowPower.append(str_b);
 		}
 		else
 		{
@@ -186,7 +187,7 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 				? pSideExt->Sidebar_PowerDelta_Green.Get() : LESS_EQUAL(percent, Phobos::UI::PowerDelta_ConditionRed)
 				? pSideExt->Sidebar_PowerDelta_Yellow.Get() : pSideExt->Sidebar_PowerDelta_Red;
 
-			fmt::format_to(std::back_inserter(ShowPower),L"{}{}", Phobos::UI::PowerLabel.GetText(), delta);
+			fmt::format_to(std::back_inserter(ShowPower),L"{}{}", Phobos::UI::PowerLabel.c_str(), delta);
 
 		}
 		ShowPower.push_back(L'\0');

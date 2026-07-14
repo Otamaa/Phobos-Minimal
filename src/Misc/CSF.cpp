@@ -10,207 +10,486 @@
 
 #include <Phobos.Lua.h>
 
-#pragma region defines
+#include <SessionClass.h>
+#include <MapSeedClass.h>
+
+// ---------------------------------------------------------------------------
+// Statics — defined once, in CSFLoader.cpp
+// ---------------------------------------------------------------------------
+#pragma region statics
 int CSFLoader::CSFCount {};
-int CSFLoader::NextValueIndex {};
-std::unordered_map<std::string, CSFLoader::CSFStringStorage> CSFLoader::DynamicStrings {};
+std::unordered_map<std::string, CSFLoader::RecordedCSFEntry,
+	CaseInsensitiveHash,
+	CaseInsensitiveCompare>         CSFLoader::LabelMap {};
+std::unordered_map<std::string, CSFLoader::CSFStringStorage,
+	CaseInsensitiveHash,
+	CaseInsensitiveCompare> CSFLoader::DynamicStrings {};
 #pragma endregion
 
-void CSFLoader::LoadAdditionalCSF(const char* pFileName, bool ignoreLanguage)
+// =============================================================================
+// StripSpaces — mirrors vanilla whitespace normalisation loop exactly.
+// Confirmed from IDA assembly at 0x734B4B–0x734BB4.
+// =============================================================================
+static void StripSpaces(std::wstring& str)
 {
-	bool _loaded = false;
-	//The main stringtable must have been loaded (memory allocation)
-	//To do that, use StringTable::LoadFile.
-	if (StringTable::IsLoaded.get() && std::strlen(pFileName) > 0 && *pFileName)
+	if (str.empty())
+		return;
+
+	std::wstring out;
+	out.reserve(str.size());
+
+	wchar_t last = 0;
+	bool    prevWhitespace = true;
+
+	for (const wchar_t ch : str)
 	{
-		CCFileClass file { pFileName };
-
-		if (file.IsAvaible() && file.Open1(FileAccessMode::Read))
+		if (ch == L' ')
 		{
-			CSFHeader header {};
+			if (last == L' ' || prevWhitespace)
+				continue;
+		}
+		else if (ch == L'\n' || ch == L'\t')
+		{
+			// Strip trailing space before \n / \t — confirmed: sub ecx,2 at 0x734B90
+			if (last == L' ' && !out.empty())
+				out.pop_back();
 
-			if (file.ReadByes(header))
+			out.push_back(ch);
+			prevWhitespace = true;
+			last = ch;
+			continue;
+		}
+
+		out.push_back(ch);
+		last = ch;
+		prevWhitespace = false;
+	}
+
+	// Strip trailing space — confirmed: cmp dx,20h / sub ecx,2 at 0x734BAB–BB1
+	if (!out.empty() && out.back() == L' ')
+		out.pop_back();
+
+	str = std::move(out);
+}
+
+// =============================================================================
+// GetCsfFileName — strip extension and append .csf
+// =============================================================================
+static std::string GetCsfFileName(std::string_view pFileName)
+{
+	std::string result(pFileName);
+	const size_t lastDot = result.find_last_of('.');
+	if (lastDot != std::string::npos)
+		result.erase(lastDot);
+	result += ".csf";
+	return result;
+}
+
+// =============================================================================
+// CSFLoader::ParseCSFFile
+// Full replacement for TextManager::ParseCSF (0x734990).
+// Opens its own CCFileClass — no shared file handle, no lifetime issues.
+//
+// Confirmed from IDA:
+//   - XOR decode: NOT per wchar_t (~ch) at 0x734B35
+//   - StripSpaces after XOR at 0x734B4B–BB4
+//   - WRTS: only allocated if extraLen > 0 (jz 0x734C29)
+//   - Outer loop reads next blockId at 0x734C87; exits on short read
+//   - Returns 1 success (0x734CD9), 0 error (0x734D15)
+// =============================================================================
+bool CSFLoader::ParseCSFFile(std::string_view pFileName, bool ignoreLanguage)
+{
+	CCFileClass file { pFileName.data() };
+
+	if (!file.IsAvaible() || !file.Open1(FileAccessMode::Read))
+		return false;
+
+	CSFHeader header {};
+	if (!file.ReadByes(header))
+		return false;
+
+	if (header.Signature != CSF_SIGNATURE)
+		return false;
+
+	// Version < 2 forces US — confirmed: setl/dec/and at 0x7347B1–CF
+	const CSFLanguages effectiveLang =
+		header.CSFVersion < 2 ? CSFLanguages::US : header.Language;
+
+	const bool languageMatch =
+		effectiveLang == StringTable::Language.get() ||
+		effectiveLang == static_cast<CSFLanguages>(-1) ||
+		ignoreLanguage;
+
+	if (!languageMatch)
+		return false;
+
+	LabelMap.reserve(LabelMap.size() + static_cast<size_t>(header.NumLabels));
+
+	// Confirmed: separate Read of first blockId before loop at 0x734A04
+	// Short read here → LABEL_42 → return 1 (success/EOF)
+	DWORD blockId {};
+	if (!file.ReadByes(blockId))
+		return true;
+
+	while (blockId == CSF_LABEL_SIGNATURE) // 'LBL ' — confirmed at 0x734A0A
+	{
+		int numValues {};
+		int nameLength {};
+
+		file.ReadByes(numValues);  // Read(&num_strings, 4) at 0x734A1C
+		file.ReadByes(nameLength); // Read(&len, 4) at 0x734A30
+
+		// Vanilla: if len == 0 skips Read but still writes buffer[0]=0 and strcpy.
+		// We always read nameLength bytes (Read of 0 is a no-op).
+		// Result is an empty labelName string — valid, continue loop.
+		std::string labelName(static_cast<size_t>(nameLength > 0 ? nameLength : 0), '\0');
+		if (nameLength > 0)
+			file.Read(labelName.data(), nameLength);
+		// labelName is empty string when nameLength == 0 — mirrors vanilla behavior
+
+		CSFEntry entry {};
+		bool     firstValueStored = false;
+		auto [it, inserted] = LabelMap.emplace(labelName, RecordedCSFEntry {});
+
+		it->second.Source = pFileName;
+
+		for (int v = 0; v < numValues; ++v)
+		{
+			DWORD valueSig {};
+			if (!file.ReadByes(valueSig))
 			{
-				if (header.Signature == CSF_SIGNATURE &&
-					header.CSFVersion >= 2 &&
-					(header.Language == StringTable::Language.get() //should stay in one language
-						|| header.Language == static_cast<CSFLanguages>(-1)
-						|| ignoreLanguage))
+				Debug::LogInfo("[ParseCSF] Cannot Read {} Signature at [{}] from [{}].", labelName , v, pFileName);
+
+				// Short read inside value loop — mirrors LABEL_42: return success
+				it->second.Entry = std::move(entry); //empty entry
+				return true;
+			}
+
+			// Unknown signature — mirrors vanilla "goto quit": abort entire parse
+			if (valueSig != CSF_VALUE_SIGNATURE &&
+				valueSig != CSF_EXVALUE_SIGNATURE)
+			{
+				Debug::LogInfo("[ParseCSF] {} Unknown Signature at [{}] from [{}].", labelName , v, pFileName);
+				// Store what we have so far, then abort
+				it->second.Entry = std::move(entry); //empty entry
+				return false;
+			}
+
+			int valueLength {};
+			file.ReadByes(valueLength); // Read(&len, 4) at 0x734AF4
+
+			//Debug::LogInfo("[ParseCSF] label='{}' numValues={} nameLength={}",
+			//				labelName, numValues, nameLength);
+
+			//Debug::LogInfo("[ParseCSF] label='{}' v={} valueSig=0x{:08X} valueLength={} raw bytes follow",
+			//			labelName, v, valueSig, valueLength);
+
+			// Vanilla: if len == 0 skips Read, tbuffer[0] = 0 (empty wstring)
+			// We mirror: only read if valueLength > 0
+			if (valueLength > 0)
+			{
+
+				std::wstring decoded(static_cast<size_t>(valueLength), L'\0');
+				file.Read(decoded.data(),
+						  valueLength * static_cast<int>(sizeof(wchar_t)));
+
+				// XOR decode — confirmed: NOT per wchar_t at 0x734B35
+				for (wchar_t& ch : decoded)
+					ch = ~ch;
+
+				// Whitespace strip — confirmed: 0x734B4B–0x734BB4
+				StripSpaces(decoded);
+
+				// Only first value stored — vanilla always uses FirstValueIndex
+				if (!firstValueStored) {
+					entry.Value = std::move(decoded);
+					firstValueStored = true;
+				}
+
+			} else {
+				Debug::LogInfo("[ParseCSF] Reading {} result an 0 valueLength at [{}] from [{}].", labelName , v, pFileName);
+			}
+			// valueLength == 0: vanilla sets tbuffer[0]=0, StripSpaces produces
+			// empty string, wcscpy stores empty — entry.Value stays L"" which
+			// is correct. firstValueStored stays false so next value can fill it.
+
+			if (valueSig == CSF_EXVALUE_SIGNATURE) // 'STRW'
+			{
+				int extraLength {};
+				file.ReadByes(extraLength);
+
+				// Confirmed: only allocated if length > 0 — jz loc_734C67 at 0x734C29
+				if (extraLength > 0)
 				{
-					++CSFCount;
-					const bool succeeded = StringTable::ReadFile(pFileName); //must be modified to do the rest ;)
+					std::string extra(static_cast<size_t>(extraLength), '\0');
+					file.Read(extra.data(), extraLength);
 
-					if(succeeded){
-						std::sort(StringTable::Labels(), StringTable::Labels() + StringTable::LabelCount(),
-							[](const CSFLabel& lhs, const CSFLabel& rhs) {
-							return IMPL_STRCMPI(lhs.Name, rhs.Name) < 0;
-						});
-					}
-
-					_loaded =  succeeded;
+					if (v == 0)
+						entry.ExtraValue = std::move(extra);
 				}
 			}
 		}
+
+		// Store label — duplicate key = override, last-loaded wins
+
+		it->second.Entry = std::move(entry);
+
+		// Confirmed: Read next blockId at 0x734C87–CA7
+		// Short read → LABEL_42 → return 1 (success/EOF)
+		if (!file.ReadByes(blockId))
+			return true;
 	}
 
-	if (_loaded)
-		Debug::LogInfo("Successfully load {} !", pFileName);
+	return true;
 }
 
-const wchar_t* CSFLoader::GetDynamicString(const char* pLabelName, const wchar_t* pPattern, const char* pDefault, bool isNostr)
+// =============================================================================
+// CSFLoader::PhobosInit
+// Full replacement for TextManager::Init (0x7346A0).
+// Opens header-only file for validation, then calls ParseCSFFile with a
+// fresh handle — no shared state between the two opens.
+// =============================================================================
+bool CSFLoader::PhobosInit(const char* pFileName)
+{
+	if (StringTable::IsLoaded.get())
+		return true;
+
+	if (!pFileName || !*pFileName)
+		return false;
+
+	StringTable::FileName = const_cast<char*>(pFileName);
+
+	const std::string csfFile = GetCsfFileName(pFileName);
+
+	// Header-only open for language detection.
+	// This file handle is closed before ParseCSFFile opens its own.
+	{
+		CCFileClass headerFile { csfFile.c_str() };
+		if (!headerFile.IsAvaible() || !headerFile.Open1(FileAccessMode::Read))
+			return false;
+
+		CSFHeader header {};
+		if (!headerFile.ReadByes(header))
+			return false;
+
+		if (header.Signature != CSF_SIGNATURE)
+			return false;
+
+		if (!header.NumValues || !header.NumLabels)
+			return false;
+
+		const CSFLanguages lang =
+			header.CSFVersion < 2 ? CSFLanguages::US : header.Language;
+
+		StringTable::Language = lang;
+
+	} // headerFile closed here — ParseCSFFile opens a fresh handle below
+
+	StringTable::IsLoaded = true;
+	CSFLoader::CSFCount = 0;
+
+	if (!ParseCSFFile(csfFile))
+	{
+		StringTable::IsLoaded = false;
+		return false;
+	}
+
+	if (const auto* lang = StringTable::GetLanguage(StringTable::Language()))
+		Debug::LogInfo("Language: {}", lang->Name);
+	else
+		Debug::LogInfo("Language: unknown");
+
+	// Confirmed: both call TextManager::Fetch internally — must fire after
+	// LabelMap is populated. CallWaitStrings at 0x734973, SetDescription at 0x73497D.
+	SessionClass::Instance->CallWaitString();
+	MapSeedClass::Instance->SetDescription();
+
+	return true;
+}
+
+// =============================================================================
+// CSFLoader::ReleaseStorage
+// =============================================================================
+void CSFLoader::ReleaseStorage()
+{
+	LabelMap.clear();
+	DynamicStrings.clear();
+	CSFCount = 0;
+
+	StringTable::Labels = nullptr;
+	StringTable::Values = nullptr;
+	StringTable::ExtraValues = nullptr;
+	StringTable::LabelCount = 0;
+	StringTable::ValueCount = 0;
+}
+
+// =============================================================================
+// CSFLoader::LoadAdditionalCSF
+// =============================================================================
+void CSFLoader::LoadAdditionalCSF(std::string_view pFileName, bool ignoreLanguage)
+{
+	if (!StringTable::IsLoaded.get() || pFileName.empty())
+		return;
+
+	if (ParseCSFFile(pFileName, ignoreLanguage))
+	{
+		++CSFCount;
+		Debug::LogInfo("Successfully load {} !", pFileName.data());
+	}
+}
+
+// =============================================================================
+// CSFLoader::GetDynamicString
+// Write-once cache — pointer returned by c_str() is stable for entry lifetime.
+// =============================================================================
+const wchar_t* CSFLoader::GetDynamicString(const char* pLabelName,
+											const char* pDefault,
+											bool isNostr)
 {
 	auto pData = FindOrAllocateDynamicStrings(pLabelName);
 
-	if(!pData->TextLoaded) {
-		swprintf_s(pData->Text, std::size(pData->Text), pPattern, pDefault);
+	if (!pData->TextLoaded)
+	{
+		std::wstring wide = PhobosCRT::StringToWideStringSimple(pDefault);
+
+		pData->Text = isNostr
+			? std::move(wide)
+			: fmt::format(L"MISSING:'{}'", wide);
+
 		pData->TextLoaded = true;
 		pData->IsMissingValue = !isNostr;
 
-		if(Phobos::Otamaa::OutputMissingStrings && !isNostr) {
-			Debug::LogInfo("[CSFLoader] ***NO_STRING*** label \"{}\" with value \"{}\".", pLabelName, PhobosCRT::WideStringToString(pData->Text));
-		}
-	}
-
-	return pData->Text;
-}
-
-ASMJIT_PATCH(0x7349cf, StringTable_ParseFile_Buffer, 7)
-{
-	LEA_STACK(CCFileClass*, pFile, 0x28);
-
-	if (!R->Stack<void*>(0x80))
-	{
-		const auto size = pFile->Size();
-		void* ptr = nullptr;
-		if (size > 0)
-			ptr = YRMemory::AllocateChecked(size);
-
-		pFile->Read(ptr, size);
-		const auto IsAllocated = R->Stack<bool>(0x88);
-		const auto tempPtr = R->Stack<void*>(0x80);
-
-		R->Stack(0x80, ptr);
-		R->Stack(0x84, size);
-		R->Stack(0x88, size > 0);
-
-		if (IsAllocated)
-			YRMemory::Deallocate(tempPtr);
-	}
-
-	return 0x0;
-}
-
-ASMJIT_PATCH(0x7346D0, CSF_LoadBaseFile, 6)
-{
-	StringTable::IsLoaded = true;
-	CSFLoader::CSFCount = 0;
-	return 0;
-}
-
-ASMJIT_PATCH(0x734823, CSF_AllocateMemory, 6)
-{
-	//aaaah... finally, some serious hax :)
-	//we don't allocate memory by the amount of labels in the base CSF,
-	//but enough for exactly MaxEntries entries.
-	//We're assuming we have only one value for one label, which is standard.
-
-	StringTable::Labels = GameCreateArray<CSFLabel>(CSFLoader::MaxEntries);
-	StringTable::Values = GameCreateArray<wchar_t*>(CSFLoader::MaxEntries);
-	StringTable::ExtraValues = GameCreateArray<char*>(CSFLoader::MaxEntries);
-
-	return 0x7348BC;
-}
-
-ASMJIT_PATCH(0x734A5F, CSF_AddOrOverrideLabel, 5)
-{
-	if (CSFLoader::CSFCount > 0)
-	{
-		if (CSFLabel* pLabel = static_cast<CSFLabel*>(bsearch(
-			StringTable::GlobalBuffer(), //label buffer, char[4096]
-			StringTable::Labels(),
-			(size_t)StringTable::LabelCount(),
-			sizeof(CSFLabel),
-			(int(__cdecl*)(const void*, const void*))_strcmpi)))
+		if (Phobos::Otamaa::OutputMissingStrings && !isNostr)
 		{
-			//Label already exists - override!
-
-			//If you study the CSF format deeply, you'll call this method suboptimal,
-			//because it assumes that we have only one value assigned to one label.
-			//This is always the case for RA2, but in no way a limit!
-			//Just adding this as a note.
-			int idx = pLabel->FirstValueIndex;
-			CSFLoader::NextValueIndex = idx;
-
-			wchar_t** pValues = StringTable::Values;
-			if (pValues[idx])
-			{
-				YRMemory::Deallocate(pValues[idx]);
-				pValues[idx] = nullptr;
-			}
-
-			char** pExtraValues = StringTable::ExtraValues.get();
-			if (pExtraValues[idx])
-			{
-				YRMemory::Deallocate(pExtraValues[idx]);
-				pExtraValues[idx] = nullptr;
-			}
-
-			auto ix = pLabel - StringTable::Labels.get();
-			R->EBP(ix * sizeof(CSFLabel));
-		}
-		else
-		{
-			//Label doesn't exist yet - add!
-			int idx = StringTable::ValueCount;
-			CSFLoader::NextValueIndex = idx;
-			StringTable::ValueCount = idx + 1;
-			StringTable::LabelCount = StringTable::LabelCount.get() + 1;
-
-			R->EBP(idx * sizeof(CSFLabel)); //set the index
+			Debug::LogInfo("[CSFLoader] ***NO_STRING*** label \"{}\" with value \"{}\".",
+				pLabelName, PhobosCRT::WideStringToString(pData->Text));
 		}
 	}
 
-	return 0;
+	return pData->Text.c_str();
 }
 
-ASMJIT_PATCH(0x734A97, CSF_SetIndex, 6)
+// =============================================================================
+// CSFLoader::FetchStringManager — replaces StringTable::FetchString (0x734E60)
+//
+// Pre-init path (IsLoaded == false):
+//   Returns stable pointer from DynamicStrings (write-once, never reallocates).
+//   Does NOT insert into LabelMap — keeps LabelMap clean for ParseCSFFile.
+//   Pre-init callers that cache the pointer see MISSING until they re-fetch,
+//   which they do after scenario/map init anyway.
+//
+// Post-init path (IsLoaded == true):
+//   Looks up LabelMap first. On miss, falls through to DynamicStrings cache.
+//   insert_or_assign in ParseCSFFile may have overwritten pre-init placeholders
+//   but DynamicStrings entries are independent and stable.
+// =============================================================================
+const wchar_t* __fastcall CSFLoader::FetchStringManager(const char* label,
+                                                          char* speech,
+                                                          const char* /*file*/,
+                                                          int         /*line*/)
 {
-	R->EDX(StringTable::Labels());
-	R->ECX(CSFLoader::CSFCount > 0 ? CSFLoader::NextValueIndex : R->Stack32(0x18));
-	return 0x734AA1;
+    if (speech)
+        *speech = 0;
+
+    if (!label)
+        return L"***FATAL*** String Manager failed to initialize properly";
+
+    constexpr size_t len_nostr = sizeof("NOSTR:") - 1;
+
+    if (strncmp(label, "NOSTR:", len_nostr) == 0)
+        return CSFLoader::GetDynamicString(label, &label[len_nostr], true);
+
+    auto it = LabelMap.find(label);
+    const bool found = (it != LabelMap.end());
+
+    if(StringTable::IsLoaded()){
+        if (found) {
+            // Confirmed from IDA: vanilla strcpy into caller-owned speech buffer.
+            // VERIFY: caller buffer size — check FetchString call sites in IDA.
+            //if (speech && !it->second.ExtraValue.empty())
+            //    CRT::strcpy(speech, it->second.ExtraValue.c_str());
+            //this string table are marked missing but it has Label entry
+            //fix that up
+
+            return it->second.Entry.Value.c_str();
+        }
+    }
+    else //if the string table is not yet loaded then put it inside the label map as empty
+    {
+        if (!found) {
+            //create new entry that will be fixed when parsing file later
+            auto insertion_result = LabelMap.emplace(label, CSFEntry {});
+            it = insertion_result.first;
+			std::wstring wide_label = PhobosCRT::StringToWideStringSimple(label);
+            it->second.Entry.Value = std::move(fmt::format(L"MISSING:'{}'", wide_label));
+        }
+
+        //return the result that already composed
+        return it->second.Entry.Value.c_str();
+    }
+
+    //the string table are loaded , but there is not entry , declare it missing
+    return CSFLoader::GetDynamicString(label, label, false);
+}
+
+// =============================================================================
+// HOOKS
+// =============================================================================
+
+ASMJIT_PATCH(0x7346A0, CSF_Init_FullReplace, 6)
+{
+	const char* pFileName = R->ECX<const char*>();
+	R->EAX(CSFLoader::PhobosInit(pFileName) ? 1 : 0);
+	return 0x73498F;
+}
+
+ASMJIT_PATCH(0x734990, CSF_ParseCSF_FullReplace, 6)
+{
+	const char* pFileName = R->ECX<const char*>();
+	R->EAX(CSFLoader::ParseCSFFile(pFileName) ? 1 : 0);
+	return 0x734CE8;
+}
+
+ASMJIT_PATCH(0x734D30, CSF_Deinit, 5)
+{
+	CSFLoader::ReleaseStorage();
+	return 0;
 }
 
 static COMPILETIMEEVAL constant_ptr<const char, 0x840D40> const ra2md_str {};
 
 ASMJIT_PATCH(0x6BD84E, CSF_LoadExtraFiles, 5)
 {
-	if (!StringTable::LoadFile(ra2md_str())) {
-		const std::string _msg = fmt::format("Unable to initialize '{0}', please reinstall {1}.\n"
+	if (!CSFLoader::PhobosInit(ra2md_str()))
+	{
+		const std::string _msg = fmt::format(
+			"Unable to initialize '{0}', please reinstall {1}.\n"
 			"Keine Initialisierung von '{0}' möglich. Bitte installieren Sie {1} erneut.\n"
-			"Initialisation de '{0}' impossible. Veuillez réinstaller {1}."
-			, ra2md_str() , LuaData::MainWindowStr);
+			"Initialisation de '{0}' impossible. Veuillez réinstaller {1}.",
+			ra2md_str(), LuaData::MainWindowStr);
 
-		Imports::MessageBoxA.invoke()(NULL,
-			_msg.c_str(),
+		Imports::MessageBoxA.invoke()(NULL, _msg.c_str(),
 			LuaData::MainWindowStr.c_str(), 0x10u);
 
 		return 0x6BD86F;
 	}
 
-	static fmt::basic_memory_buffer<char , 60> buffer {};
+	static fmt::basic_memory_buffer<char, 60> buffer {};
+
 	CSFLoader::LoadAdditionalCSF("ares.csf", true);
+
 	buffer.clear();
 	std::string res = "us";
-	if (const auto language = StringTable::GetLanguage(StringTable::Language()))
+	if (const auto* language = StringTable::GetLanguage(StringTable::Language()))
 		res = language->Letter;
 
 	fmt::format_to(std::back_inserter(buffer), "ares_{}.csf", res);
 	buffer.push_back('\0');
 	CSFLoader::LoadAdditionalCSF(buffer.data());
-
 	buffer.clear();
 
-	for (int idx = 0; idx < 100; ++idx) {
+	for (int idx = 0; idx < 100; ++idx)
+	{
 		fmt::format_to(std::back_inserter(buffer), "stringtable{:02}.csf", idx);
 		buffer.push_back('\0');
 		CSFLoader::LoadAdditionalCSF(buffer.data());
@@ -221,41 +500,7 @@ ASMJIT_PATCH(0x6BD84E, CSF_LoadExtraFiles, 5)
 	return 0x6BD88B;
 }
 
-const wchar_t* __fastcall CSFLoader::FetchStringManager(const char* label, char* speech, const char* file, int line) {
-
-	if (speech) {
-		*speech = 0;
-	}
-
-	if (!StringTable::Labels()) {
-		return L"***FATAL*** String Manager failed to initilaized properly";
-	}
-
-	if (strncmp(label, "NOSTR:", 6) == 0) {
-		return CSFLoader::GetDynamicString(label, L"%hs", &label[6] , true);
-	}
-
-	CSFLabel* pLabel = static_cast<CSFLabel*>(bsearch(
-		label,
-		StringTable::Labels(),
-		(size_t)StringTable::LabelCount(),
-		sizeof(CSFLabel),
-		(int(__cdecl*)(const void*, const void*))_strcmpi));
-
-	if (pLabel)
-	{
-		if (speech)
-		{
-			speech = StringTable::ExtraValues[pLabel->FirstValueIndex];
-		}
-		return StringTable::Values[pLabel->FirstValueIndex];
-	}
-
-	return CSFLoader::GetDynamicString(label, L"MISSING:'%hs'", label, false);
-}
-
 DEFINE_FUNCTION_JUMP(LJMP, 0x734E60, CSFLoader::FetchStringManager);
-
 DEFINE_FUNCTION_JUMP(CALL, 0x41099B, CSFLoader::FetchStringManager);
 DEFINE_FUNCTION_JUMP(CALL, 0x410B52, CSFLoader::FetchStringManager);
 DEFINE_FUNCTION_JUMP(CALL, 0x430D1D, CSFLoader::FetchStringManager);

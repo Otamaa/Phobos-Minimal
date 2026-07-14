@@ -3,8 +3,8 @@
 
 #include <Utilities/Macro.h>
 #include <Utilities/Debug.h>
-
-bool FakTaskForceClass::_LoadEntryINI(CCINIClass* pINI, bool isGlobal)
+#pragma optimize("", off )
+bool __fastcall FakTaskForceClass::_LoadEntryINI(CCINIClass* pINI, discard_t, TaskForceType type)
 {
 	auto String_To_ID = [](const char* str)
 		{
@@ -66,14 +66,16 @@ bool FakTaskForceClass::_LoadEntryINI(CCINIClass* pINI, bool isGlobal)
 
 		if (pTag) {
 			pTag->LoadFromINI(pINI);
-			pTag->IsGlobal = isGlobal;
+			pTag->Type = type;
 		}
 	}
 
 	return true;
 }
-
+#pragma optimize("", on )
 DEFINE_FUNCTION_JUMP(LJMP, 0x6E8220, FakTaskForceClass::_LoadEntryINI);
+DEFINE_FUNCTION_JUMP(CALL, 0x6879B4, FakTaskForceClass::_LoadEntryINI);
+DEFINE_FUNCTION_JUMP(CALL, 0x6879BD, FakTaskForceClass::_LoadEntryINI);
 
 bool FakTaskForceClass::_LoadFromINI(CCINIClass* pINI)
 {
@@ -98,8 +100,8 @@ bool FakTaskForceClass::_LoadFromINI(CCINIClass* pINI)
 	this->Group = pINI->ReadInteger(this->ID, "Group", this->Group);
 	return true;
 }
-DEFINE_FUNCTION_JUMP(LJMP, 0x7F46E4, FakTaskForceClass::_LoadFromINI);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x6E8420, FakTaskForceClass::_LoadFromINI);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F46E4, FakTaskForceClass::_LoadFromINI);
+DEFINE_FUNCTION_JUMP(LJMP , 0x6E8420, FakTaskForceClass::_LoadFromINI);
 
 bool FakTaskForceClass::_WriteToINI(CCINIClass* pINI)
 {

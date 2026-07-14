@@ -18,6 +18,11 @@
 #define SDDTOR_NODELETE				0x00
 #define SDDTOR_DELETE				0x01
 
+enum class TaskForceType : int
+{
+	Global , Local
+};
+
 enum class TankBunkerState : int
 {
 	Idle = 0,            // Waiting for tank to be positioned inside bunker

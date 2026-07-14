@@ -19,10 +19,6 @@ PhobosINIEntry* PhobosINISection::FindEntry(std::string_view key)
 	return &this->Entries[it->second];
 }
 
-const PhobosINIEntry* PhobosINISection::FindEntry(std::string_view key) const {
-	return const_cast<const PhobosINIEntry*>(this->PhobosINISection::FindEntry(key));
-}
-
 bool PhobosINISection::SetEntry(std::string_view key, std::string_view value)
 {
 	const int crc = ComputeCRC(key);
@@ -61,13 +57,13 @@ bool PhobosINISection::RemoveEntry(std::string_view key)
 	return true;
 }
 
-const char* PhobosINISection::GetKeyName(int index) const
+const char* PhobosINISection::GetKeyName(int index)
 {
 	const std::string str = this->GetKeyNameA(index);
 	return str.empty() ? nullptr : str.c_str();
 }
 
-std::string PhobosINISection::GetKeyNameA(int index) const
+std::string PhobosINISection::GetKeyNameA(int index)
 {
 	if (index < 0 || static_cast<size_t>(index) >= this->Entries.size())
 		return {};
@@ -225,11 +221,6 @@ PhobosINISection* PhobosINIClass::GetSection(std::string_view name)
 	return sec;
 }
 
-const PhobosINISection* PhobosINIClass::GetSection(std::string_view name) const
-{
-	return const_cast<const PhobosINISection*>(this->PhobosINIClass::GetSection(name));
-}
-
 PhobosINISection& PhobosINIClass::GetOrCreateSection(std::string_view name)
 {
 	const int crc = CRC(name);
@@ -286,7 +277,7 @@ void PhobosINIClass::Clear()
 
 std::string PhobosINIClass::ReadString(std::string_view section, std::string_view key, const char* pDefault)
 {
-	if (const PhobosINISection* sec = this->GetSection(section)) {
+	if (PhobosINISection* sec = this->GetSection(section)) {
 		if (const PhobosINIEntry* entry = sec->FindEntry(key)) {
 			return entry->Value;
 		}
@@ -301,33 +292,33 @@ bool PhobosINIClass::WriteString(std::string_view section, std::string_view key,
 	return true;
 }
 
-int PhobosINIClass::GetKeyCount(std::string_view section) const
+int PhobosINIClass::GetKeyCount(std::string_view section)
 {
-	if (const PhobosINISection* sec = this->GetSection(section)) {
+	if (PhobosINISection* sec = this->GetSection(section)) {
 		return sec->GetKeyCount();
 	}
 
 	return 0;
 }
 
-const char* PhobosINIClass::GetKeyName(std::string_view section, int index) const
+const char* PhobosINIClass::GetKeyName(std::string_view section, int index)
 {
 	const std::string ret = this->GetKeyNameA(section, index);
 
 	return ret.empty() ? nullptr : ret.c_str();
 }
 
-std::string PhobosINIClass::GetKeyNameA(std::string_view section, int index) const
+std::string PhobosINIClass::GetKeyNameA(std::string_view section, int index)
 {
-	if (const PhobosINISection* sec = this->GetSection(section))
+	if (PhobosINISection* sec = this->GetSection(section))
 		return sec->GetKeyNameA(index);
 
 	return {};
 }
 
-bool PhobosINIClass::KeyPresent(std::string_view section, std::string_view key) const
+bool PhobosINIClass::KeyPresent(std::string_view section, std::string_view key)
 {
-	if (const PhobosINISection* sec = GetSection(section)) {
+	if (PhobosINISection* sec = GetSection(section)) {
 		if (sec->FindEntry(key)) {
 			return true;
 		}
@@ -360,7 +351,7 @@ void PhobosINIClass::ProcessIncludes(bool useNewIncludes)
 	const char* primary = useNewIncludes ? NewPrimary : AresPrimary;
 	const char* fallback = useNewIncludes ? NewFallback : AresFallback;
 
-	const PhobosINISection* sec = this->GetSection(primary);
+	PhobosINISection* sec = this->GetSection(primary);
 	if (!sec)
 		sec = this->GetSection(fallback);
 
@@ -587,7 +578,7 @@ bool PhobosINIClass::Load(Straw* straw, bool loadcomments)
 	}
 }
 
-int PhobosINIClass::SaveToPipe(Pipe* pipe) const
+int PhobosINIClass::SaveToPipe(Pipe* pipe)
 {
 	if (!pipe)
 		return 0;
@@ -596,7 +587,7 @@ int PhobosINIClass::SaveToPipe(Pipe* pipe) const
 
 	for (size_t si = 0; si < SectionList.size(); ++si)
 	{
-		const PhobosINISection& sec = SectionList[si];
+		PhobosINISection& sec = SectionList[si];
 
 		// Blank line between sections (vanilla writes one when no leading comment).
 		if (si > 0)
@@ -620,7 +611,7 @@ int PhobosINIClass::SaveToPipe(Pipe* pipe) const
 	return total + pipe->End();
 }
 
-bool PhobosINIClass::SaveToFile(FileClass* file) const
+bool PhobosINIClass::SaveToFile(FileClass* file)
 {
 	if (!file)
 		return false;
@@ -631,9 +622,9 @@ bool PhobosINIClass::SaveToFile(FileClass* file) const
 	return written > 0;
 }
 
-std::string PhobosINIClass::GetTextBlock(std::string_view section) const
+std::string PhobosINIClass::GetTextBlock(std::string_view section)
 {
-	const PhobosINISection* sec = GetSection(section);
+	PhobosINISection* sec = this->GetSection(section);
 	if (!sec || sec->Entries.empty())
 		return {};
 
@@ -657,7 +648,7 @@ std::string PhobosINIClass::GetTextBlock(std::string_view section) const
 	return result;
 }
 
-int PhobosINIClass::GetTextBlock(std::string_view section, char* buffer, int len) const
+int PhobosINIClass::GetTextBlock(std::string_view section, char* buffer, int len)
 {
 	if (!buffer || len <= 0)
 		return 0;
@@ -767,15 +758,6 @@ PhobosINIClass& PhobosINIContainer::GetOrCreate(const void* pINI)
 }
 
 PhobosINIClass* PhobosINIContainer::Find(const void* pINI)
-{
-	const auto it = this->Map.find(pINI);
-	if (it == this->Map.end())
-		return nullptr;
-
-	return &it->second;
-}
-
-const PhobosINIClass* PhobosINIContainer::Find(const void* pINI) const
 {
 	const auto it = this->Map.find(pINI);
 	if (it == this->Map.end())

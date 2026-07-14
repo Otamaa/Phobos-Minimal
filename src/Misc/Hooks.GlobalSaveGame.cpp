@@ -834,7 +834,7 @@ HRESULT Put_All_Pointers(LPSTREAM pStm)
 
 bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool)
 {
-	WCHAR wide_file_name[PATH_MAX];
+	std::wstring wide_file_name;
 	HRESULT hr;
 	bool result = false;
 
@@ -842,15 +842,11 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 	// Resolve file path
 	// -----------------------------------------------------------------
 	{
-		if (SpawnerMain::Configs::Enabled && SavedGames::CreateSubdir())
-		{
-			MultiByteToWideChar(CP_ACP, 0, SavedGames::FormatPath(file_name), -1,
-				wide_file_name, std::size(wide_file_name));
+		if (SpawnerMain::Configs::Enabled && SavedGames::CreateSubdir()) {
+			wide_file_name = PhobosCRT::StringToWideString(SavedGames::FormatPath(file_name));
 		}
-		else
-		{
-			MultiByteToWideChar(CP_ACP, 0, file_name, -1,
-				wide_file_name, std::size(wide_file_name));
+		else {
+			wide_file_name = PhobosCRT::StringToWideString(file_name);
 		}
 	}
 
@@ -868,7 +864,7 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 	// Create compound file
 	// -----------------------------------------------------------------
 	{
-		hr = StgCreateDocfile(wide_file_name,
+		hr = StgCreateDocfile(wide_file_name.c_str(),
 			STGM_CREATE | STGM_READWRITE | STGM_SHARE_EXCLUSIVE,
 			0, &storage);
 
@@ -963,7 +959,7 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 	// -----------------------------------------------------------------
 	{
 		Debug::Log("Reopening storage for extension data.\n");
-		hr = StgOpenStorage(wide_file_name, nullptr,
+		hr = StgOpenStorage(wide_file_name.c_str(), nullptr,
 			STGM_READWRITE | STGM_SHARE_EXCLUSIVE,
 			nullptr, 0, &storage);
 

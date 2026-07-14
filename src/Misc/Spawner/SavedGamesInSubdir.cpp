@@ -74,11 +74,10 @@ ASMJIT_PATCH(0x559921, LoadOptionsClass_FillList_FilterFiles, 0x6)
 		return NullThisEntry;
 	};
 	*/
-	OLECHAR wNameBuffer[0x100] {};
-	MultiByteToWideChar(CP_UTF8, 0, SavedGames::FormatPath(pEntry->Filename.data()), -1, wNameBuffer, std::size(wNameBuffer));
+	auto _wName = PhobosCRT::StringToWideString(SavedGames::FormatPath(pEntry->Filename.data()));
 	IStoragePtr pStorage = nullptr;
 	bool shouldDelete = false;
-	if (SUCCEEDED(StgOpenStorage(wNameBuffer, NULL,
+	if (SUCCEEDED(StgOpenStorage(_wName.c_str(), NULL,
 		STGM_READWRITE | STGM_SHARE_EXCLUSIVE,
 		0, 0, &pStorage)
 	))

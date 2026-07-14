@@ -535,7 +535,6 @@ public:
 
 	// Returns nullptr if not found.
 	PhobosINIEntry* FindEntry(std::string_view key);
-	const PhobosINIEntry* FindEntry(std::string_view key) const;
 
 	// Adds or overwrites. Returns true if key was new.
 	bool SetEntry(std::string_view key, std::string_view value);
@@ -546,8 +545,8 @@ public:
 	bool RemoveEntry(std::string_view key);
 
 	// Returns key name at insertion-order index, nullptr if out of range.
-	const char* GetKeyName(int index) const;
-	std::string GetKeyNameA(int index) const;
+	const char* GetKeyName(int index);
+	std::string GetKeyNameA(int index);
 
 	int GetKeyCount() const { return static_cast<int>(Entries.size()); }
 
@@ -611,7 +610,6 @@ public:
 	// ---- Section API -------------------------------------------------------
 
 	PhobosINISection* GetSection(std::string_view name);
-	const PhobosINISection* GetSection(std::string_view name) const;
 
 	// Returns existing section or creates a new one.
 	PhobosINISection& GetOrCreateSection(std::string_view name);
@@ -629,21 +627,24 @@ public:
 	// Creates section if needed. Always returns true (throws on OOM).
 	bool WriteString(std::string_view section, std::string_view key, std::string_view value);
 
-	int         GetKeyCount(std::string_view section) const;
-	const char* GetKeyName(std::string_view section, int index) const;
-	std::string GetKeyNameA(std::string_view section, int index) const;
+	int         GetKeyCount(std::string_view section);
+	const char* GetKeyName(std::string_view section, int index);
+	std::string GetKeyNameA(std::string_view section, int index);
 
-	bool SectionPresent(std::string_view section) const { return GetSection(section) != nullptr; }
-	bool KeyPresent(std::string_view section, std::string_view key) const;
+	bool SectionPresent(std::string_view section) {
+		return this->GetSection(section) != nullptr; 
+	}
+
+	bool KeyPresent(std::string_view section, std::string_view key);
 
 	bool Load(Straw* straw, bool loadcomments = false);
 	bool LoadFile(RawFileClass* file);
 
-	int  SaveToPipe(Pipe* pipe) const;
-	bool SaveToFile(FileClass* file) const;
+	int  SaveToPipe(Pipe* pipe);
+	bool SaveToFile(FileClass* file);
 
-	std::string GetTextBlock(std::string_view section) const;
-	int         GetTextBlock(std::string_view section, char* buffer, int len) const;
+	std::string GetTextBlock(std::string_view section);
+	int         GetTextBlock(std::string_view section, char* buffer, int len);
 	bool        PutTextBlock(std::string_view section, std::string_view text);
 
 	// -----------------------------------------------------------------------
@@ -652,10 +653,10 @@ public:
 
    // Returns parsed value or nullopt. Logs on parse failure.
 	template<typename T>
-	std::optional<T> Read(std::string_view section, std::string_view key) const
+	std::optional<T> Read(std::string_view section, std::string_view key)
 	{
-		if (const PhobosINISection* sec = GetSection(section)) {
-			if (const PhobosINIEntry* entry = sec->FindEntry(key)) {
+		if (PhobosINISection* sec = this->GetSection(section)) {
+			if (PhobosINIEntry* entry = sec->FindEntry(key)) {
 				auto result = PhobosParser<T, 1>::From(entry->Value);
 
 				if (!result) {
@@ -744,13 +745,13 @@ public:
 	// Invalid tokens skipped + logged. Missing key returns empty vector.
 	template<typename T>
 	std::vector<T> ReadList(std::string_view section, std::string_view key,
-							char delim = ',') const
+							char delim = ',')
 	{
-		const PhobosINISection* sec = GetSection(section);
+		PhobosINISection* sec = GetSection(section);
 		if (!sec)
 			return {};
 
-		const PhobosINIEntry* entry = sec->FindEntry(key);
+		PhobosINIEntry* entry = sec->FindEntry(key);
 		if (!entry)
 			return {};
 
@@ -782,7 +783,7 @@ public:
 	// Raw string list — no strtok, owned strings.
 	std::vector<std::string> ParseList(std::string_view section,
 									   std::string_view key,
-									   char delim = ',') const
+									   char delim = ',')
 	{
 		return ReadList<std::string>(section, key, delim);
 	}
@@ -790,7 +791,7 @@ public:
 	// -----------------------------------------------------------------------
 	// Speed helper (mirrors INI_EX::ReadSpeed)
 	// -----------------------------------------------------------------------
-	bool ReadSpeed(std::string_view section, std::string_view key, int* out) const
+	bool ReadSpeed(std::string_view section, std::string_view key, int* out)
 	{
 		const auto v = Read<double>(section, key);
 		if (!v.has_value() || !out)
@@ -855,7 +856,7 @@ public:
    // Rate helpers — value stored as decimal fraction of 900 frames.
    // e.g. "0.5" <-> 450 frames. Mirrors INIClass::ReadRate/WriteRate.
    // -----------------------------------------------------------------------
-	bool ReadRate(std::string_view section, std::string_view key, int* out) const
+	bool ReadRate(std::string_view section, std::string_view key, int* out)
 	{
 		const auto v = Read<PhobosRate>(section, key);
 		if (!v.has_value() || !out)
@@ -873,7 +874,7 @@ public:
 	// Percent helpers — "50%" or "0.5" both read as 0.5 (double 0..1).
 	// Write always emits "50%" style.
 	// -----------------------------------------------------------------------
-	bool ReadPercent(std::string_view section, std::string_view key, double* out) const
+	bool ReadPercent(std::string_view section, std::string_view key, double* out)
 	{
 		const auto v = Read<PhobosPercent>(section, key);
 		if (!v.has_value() || !out)
@@ -889,7 +890,7 @@ public:
 
 	// Reads "1%,1%,0%,..." -> std::vector<double> (0..1 range).
 	// Accepts mixed "50%" and "0.5" tokens in the same list.
-	std::vector<double> ReadPercentList(std::string_view section, std::string_view key) const
+	std::vector<double> ReadPercentList(std::string_view section, std::string_view key)
 	{
 		const auto raw = ReadList<PhobosPercent>(section, key);
 		std::vector<double> result;
@@ -944,7 +945,6 @@ public:
 
 	PhobosINIClass& GetOrCreate(const void* pINI);
 	PhobosINIClass* Find(const void* pINI);
-	const PhobosINIClass* Find(const void* pINI) const;
 	void Remove(const void* pINI);
 	void Clear();
 
