@@ -330,6 +330,8 @@ public:
 
 	virtual const char* FileName()  const override;
 	virtual const char* SetFileName(const char* pFileName) override;
+	virtual BOOL        Create()   override { return 1; }
+	virtual BOOL        Delete()   override { return 1; }
 	virtual bool        IsAvailable(bool writeShared = false) override;
 	virtual bool        IsOpen()   override;
 	virtual bool        Open(PhobosFileAccessMode rights) override;

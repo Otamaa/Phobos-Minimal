@@ -465,7 +465,6 @@ DEFINE_FUNCTION_JUMP(CALL , 0x68C7E9 , Generate_Color_Spread_Light_Convert)
 
 void __fastcall Init_Theaters(TheaterType theater)
 {
-
 	auto DestroyMix = [](MixFileClass* mix) {
 		GameDelete<true,true>(mix);
 	};
@@ -891,6 +890,7 @@ ASMJIT_PATCH(0x4758D4, CCINIClass_PutTheater_replace, 0x6)
 	R->EDX(TheaterTypeClass::FindFromTheaterType_NoCheck(nTheater)->Name.data());
 	return 0x4758DA;
 }
+
 #pragma endregion
 
 //RMG not fully supported YET !

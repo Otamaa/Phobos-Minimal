@@ -1195,6 +1195,15 @@ public:
 	void TeleportAllTo(CellStruct a2)
 		{ JMP_THIS(0x50D6D0); }
 
+	// flags the house to be defeated once its borrowed time expires,
+	// unless it is already flagged to win, lose or die
+	bool FlagToDie()
+		{ JMP_THIS(0x4FC980); }
+
+	// counts human-controlled houses other than this one that are not yet defeated
+	int CountOtherUndefeatedHumanHouses() const
+		{ JMP_THIS(0x5E2BA0); }
+
 	//Constructor
 	HouseClass(HouseTypeClass* pCountry) noexcept
 		: HouseClass(noinit_t())

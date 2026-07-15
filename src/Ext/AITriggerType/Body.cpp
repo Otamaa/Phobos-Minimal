@@ -36,8 +36,8 @@ int AITriggerTypeExtData::CountOwnedType(TechnoTypeClass* pType, HouseClass* pHo
 		// Author: Uranusian
 		//0x41EB43, AITriggerTypeClass_Condition_SupportPowersup, 0x7
 		//0x41EEE3, AITriggerTypeClass_Condition_SupportPowersup, 0x7
-		const auto pType = BuildingTypeClass::Array->Items[heapID];
-		int count = BuildingTypeExtData::GetUpgradesAmount(pType, pHouse);
+		int count = BuildingTypeExtData::GetUpgradesAmount(
+			(BuildingTypeClass*)pType, pHouse);
 
 		if (count == -1)
 			count = pHouse->ActiveBuildingTypes.get_count(heapID);
@@ -196,8 +196,6 @@ bool AITriggerTypeExtData::IsValidTechno(TechnoClass* pTechno)
 
 bool AITriggerTypeExtData::CountConditionMet(AITriggerTypeClass* pThis, int nObjects)
 {
-	bool result = true;
-
 	if (nObjects < 0)
 		return false;
 
@@ -1095,13 +1093,10 @@ bool NOINLINE AITriggerTypeExtData::CheckConditionType(AITriggerTypeClass* pThis
 		{
 			int destroyedBridgesCount = 0;
 
-			for (auto const pBuilding : *BuildingClass::Array)
-			{
+			for (auto const pBuilding : *BuildingClass::Array) {
 				if (!IsValidTechno(pBuilding)) continue;
 
-				auto const pBuildingType = pBuilding->Type;
-				if (pBuilding && pBuilding->Type->BridgeRepairHut)
-				{
+				if (pBuilding && pBuilding->Type->BridgeRepairHut) {
 					if (MapClass::Instance->IsLinkedBridgeDestroyed(pBuilding->GetCell()->MapCoords))
 						destroyedBridgesCount++;
 				}

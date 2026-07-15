@@ -476,8 +476,6 @@ enum class AresTriggerEvents : int
 	TechnoTypeDoesntExistMoreThan = 86 ,
 	AllKeepAlivesDestroyed = 87,
 	AllKeppAlivesBuildingDestroyed = 88 ,
-
-	count
 };
 
 enum class NewMouseCursorType : size_t

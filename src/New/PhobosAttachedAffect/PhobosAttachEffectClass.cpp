@@ -721,7 +721,7 @@ bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 				}
 				else // other path
 				{
-					const auto mission = pFoot->CurrentMission;
+					//const auto mission = pFoot->CurrentMission;
 					bool isHarvestingNow = false;
 
 					if (auto const pUnit = cast_to<UnitClass*>(pFoot))

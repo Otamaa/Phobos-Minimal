@@ -93,13 +93,19 @@ public:
 	static const Point2D SnapCell;
 
 	// Reference, no write permission
-	static COMPILETIMEEVAL reference<Point2D, 0x89F6D8, 8u> const CoordDirections {};
 	static COMPILETIMEEVAL reference<TurnTrackType, 0x7E7B28, 72u> const TurnTrack {};
 	static COMPILETIMEEVAL reference<RawTrackType, 0x7E7A28, 16u> const RawTrack {};
 
 	// the height of a bridge in leptons
 	static COMPILETIMEEVAL constant_ptr<CellClass,0xABDC50u> const Instance{};
-	static COMPILETIMEEVAL reference<CoordStruct , 0x89E9F0u , 5u> const StoppingCoords{};
+	//static COMPILETIMEEVAL reference<CoordStruct , 0x89E9F0u , 5u> const StoppingCoords{};
+	static COMPILETIMEEVAL std::array<CoordStruct, 5> StoppingCoords = { {
+		{128, 128, 0},
+		{64, 64, 0},
+		{192, 64, 0},
+		{64, 192, 0},
+		{192, 192, 0}
+	} };
 	static COMPILETIMEEVAL reference<const char* const, 0x81DA28u , 12u> const LandTypeToStrings {};
 	static COMPILETIMEEVAL reference<const char* const, 0x81DA58u, 8u> const SpeedTypeToStrings {};
 	static COMPILETIMEEVAL reference<const char* const, 0x81DA78u, 5u> const LayerToStrings {};

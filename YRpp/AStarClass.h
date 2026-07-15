@@ -4,6 +4,221 @@
 #include <CellClass.h>
 #include <PriorityQueueClass.h>
 
+template<typename T, typename Pr = std::less<T>>
+class SafePriorityQueueClass
+{
+public:
+	SafePriorityQueueClass(int capacity) :
+		Count(0),
+		Capacity(capacity),
+		MaxPointer(nullptr),
+		MinPointer(reinterpret_cast<T*>(~0ULL))
+	{
+		if (capacity <= 0)
+		{
+			//Debug::FatalError("PriorityQueue created with invalid capacity: %d\n", capacity);
+			capacity = 1;
+		}
+
+		Nodes = static_cast<T**>(YRMemory::AllocateChecked(sizeof(T*) * (capacity + 1)));
+		std::memset(Nodes, 0, sizeof(T*) * (capacity + 1));
+	}
+
+	~SafePriorityQueueClass()
+	{
+		Clear();
+		YRMemory::Deallocate(Nodes);
+		Nodes = nullptr;
+	}
+
+	bool Push(T* pValue)
+	{
+		// Null check
+		if (!pValue)
+		{
+			//Debug::Log("Attempt to push null into PriorityQueue\n");
+			return false;
+		}
+
+		// Capacity check
+		if (Count >= Capacity)
+		{
+			//Debug::Log("PriorityQueue overflow: Count=%d, Capacity=%d\n", Count, Capacity);
+			return false;
+		}
+
+		// Insert at end
+		Nodes[++Count] = pValue;
+
+		// Bubble up
+		int current = Count;
+		while (current > 1)
+		{
+			int parent = current / 2;
+
+			// Null safety
+			if (!Nodes[current] || !Nodes[parent])
+			{
+				//Debug::Log("Null node during bubble-up at index %d\n", current);
+				break;
+			}
+
+			if (!Comp(Nodes[current], Nodes[parent]))
+				break;
+
+			std::swap(Nodes[current], Nodes[parent]);
+			current = parent;
+		}
+
+		// Update bounds
+		UpdatePointerBounds(pValue);
+
+		return true;
+	}
+
+	T* Pop()
+	{
+		if (Count <= 0)
+			return nullptr;
+
+		T* result = Nodes[1];
+
+		// Move last to root
+		Nodes[1] = Nodes[Count];
+		Nodes[Count] = nullptr;
+		--Count;
+
+		// Heapify down
+		if (Count > 0)
+			HeapifyDown(1);
+
+		return result;
+	}
+
+	T* Top() const
+	{
+		return (Count > 0) ? Nodes[1] : nullptr;
+	}
+
+	void Clear()
+	{
+		int clearCount = std::min(Count + 1, Capacity + 1);
+		for (int i = 0; i < clearCount; ++i)
+		{
+			Nodes[i] = nullptr;
+		}
+		Count = 0;
+		MaxPointer = nullptr;
+		MinPointer = reinterpret_cast<T*>(~0ULL);
+	}
+
+	bool IsEmpty() const { return Count <= 0; }
+	int GetCount() const { return Count; }
+	int GetCapacity() const { return Capacity; }
+
+	// Debug validation
+	bool ValidateHeap() const
+	{
+		for (int i = 1; i <= Count; ++i)
+		{
+			if (!Nodes[i])
+			{
+				//Debug::Log("Null node at index %d (Count=%d)\n", i, Count);
+				return false;
+			}
+
+			int left = i * 2;
+			int right = left + 1;
+
+			if (left <= Count && Nodes[left] && Comp(Nodes[left], Nodes[i]))
+			{
+				//Debug::Log("Heap property violated: left child %d < parent %d\n", left, i);
+				return false;
+			}
+
+			if (right <= Count && Nodes[right] && Comp(Nodes[right], Nodes[i]))
+			{
+				//Debug::Log("Heap property violated: right child %d < parent %d\n", right, i);
+				return false;
+			}
+		}
+		return true;
+	}
+
+private:
+	void HeapifyDown(int index)
+	{
+		while (true)
+		{
+			int smallest = index;
+			int left = index * 2;
+			int right = left + 1;
+
+			if (left <= Count && left <= Capacity)
+			{
+				if (Nodes[left] && Nodes[smallest] && Comp(Nodes[left], Nodes[smallest]))
+					smallest = left;
+			}
+
+			if (right <= Count && right <= Capacity)
+			{
+				if (Nodes[right] && Nodes[smallest] && Comp(Nodes[right], Nodes[smallest]))
+					smallest = right;
+			}
+
+			if (smallest == index)
+				break;
+
+			std::swap(Nodes[index], Nodes[smallest]);
+			index = smallest;
+		}
+	}
+
+	bool Comp(T* p1, T* p2) const
+	{
+		if (!p1 || !p2)
+			return p1 < p2;
+		return Pr()(*p1, *p2);
+	}
+
+	void UpdatePointerBounds(T* pValue)
+	{
+		if (pValue > MaxPointer)
+			MaxPointer = pValue;
+		if (pValue < MinPointer)
+			MinPointer = pValue;
+	}
+
+public:
+	int Count;
+	int Capacity;
+	T** Nodes;
+	T* MaxPointer;
+	T* MinPointer;
+};
+
+template<typename T>
+static SafePriorityQueueClass<T>* AllocPriorityQueue(int capacity, std::size_t nodeBytes)
+{
+	auto* q = static_cast<SafePriorityQueueClass<T>*>(operator new(sizeof(SafePriorityQueueClass<T>)));
+	if (!q)
+		return nullptr;
+
+	q->Count = 0;
+	q->Capacity = capacity;
+	q->MaxPointer = (T*)0u;
+	q->MinPointer = (T*)0xFFFFFFFFu;
+	q->Nodes = static_cast<T**>(operator new(nodeBytes));
+
+	// Vanilla: memset(Nodes, 0, sizeof(T*)*(Count+1)) — Count==0 at this point → 1 slot.
+	// BUT the element-zero loop runs 0..Capacity inclusive (asm at 0x42A77B / 0x42A7CD).
+	// SUSPECT: vanilla writes all (Capacity+1) slots here, not just (Count+1).
+	//          The nodeBytes alloc is sized for (Capacity+1) pointers, so this is safe.
+	std::memset(q->Nodes, 0, nodeBytes);
+
+	return q;
+}
+
 enum AStarPostProcessType : int
 {
 	ASTAR_PASS_0 = 0x0,
@@ -46,6 +261,7 @@ struct AStarQueueNodeHierarchical
 	float Score;
 	int Number;
 };
+static_assert(sizeof(AStarQueueNodeHierarchical) == 16, "Invalid Size !");
 
 struct PathType {
 	CellStruct Start;                // Starting cell number.
@@ -83,34 +299,67 @@ class AStarPathFinderClass
 public:
 	static COMPILETIMEEVAL reference<AStarPathFinderClass, 0x87E8B8> const Instance {};
 
-	AStarPathFinderClass() JMP_THIS(0x42A6D0);
-	~AStarPathFinderClass() JMP_THIS(0x42A900);
+	AStarPathFinderClass();
+	~AStarPathFinderClass();
 
 	static CellStruct* __fastcall Find_Some_Cell(CellStruct* retstr, CellStruct* cell, int count, int path) JMP_FAST(0x429780);
-	/*
-	AStarClass__Get_Movement_Cost        00429830
+	
+	//AStarClass__Get_Movement_Cost        00429830
+	double Calc_Float(
+		CellClass** arg0,
+		CellClass** a3,
+		int         a4,
+		int         a5,
+		int         a6) const;
+	
+	//	AStarClass__Create_Node        0042A460
+	AStarWorkPathStruct* Calc_sqrt(
+	AStarWorkPathStruct* parentNode,
+	CellClass** a3,
+	CellStruct* goalCell,
+	float                a5);
+
+	//	AStarClass__Cleanup        0042A5B0
+	void Init();
+
+	//	AStarClass_is_same_cost_Common        0042A690
+	bool IsVisited(int index, bool useAlt) const;
+
+	//	AStar_helper_facing        0042AA40
+	int __fastcall CellStruct_helper_distance(CellStruct* a1, CellStruct* a2);
+
+	//	AStarClass__Build_Final_Path_Regular        0042AA90
+	PathType* Get_Path(AStarWorkPathStruct* work_path, FacingType* moves);
+
+	// AStarClass__Reinit_Cost_Arrays        0042AC00
+	void Reset(RectangleStruct* rect);
+
+	//	AStarClass__Get_Occupier_Regular        0042B080
+	FootClass* Get_Occupier(CellStruct* pos, int level) const;
+
+	//	AStarClass__Post_Process_Cells        0042ACF
+	bool Process_Paths(TechnoClass* techno);
+
+	// Find_Adjacent_Cell_0        0042D490
+	CellStruct* __fastcall tube_42D490(CellStruct* a1, CellStruct* a2, int Facing);
+
+	// backported on Fake class
+	// AStarClass__AStar_Find_Path_Hierarchical        0042C290
+	
+	//	AStarClass__Fixup_Final_Path_Regular        0042B420
+
+	/*	
 	AStarClass__AStar_Find_Path_Regular        00429A90
-	AStarClass__Create_Node        0042A460
-	AStarClass__Cleanup        0042A5B0
-	AStarClass_is_same_cost_Common        0042A690
-	AStarClass__AStarClass        0042A6D0
-	AStarClass__DTOR        0042A900
-	AStar_helper_facing        0042AA40
-	AStarClass__Build_Final_Path_Regular        0042AA90
-	static_deinit_42ABF0        0042ABF0
-	AStarClass__Reinit_Cost_Arrays        0042AC00
-	AStarClass__Post_Process_Cells        0042ACF0
-	AStarClass__Get_Occupier_Regular        0042B080
-	CellStruct_totibarray_42B1C0        0042B1C0
-	two_times_width_times_height_plus_four        0042B1F0
+
 	AStarClass__Process_Final_Path_Regular        0042B210
-	AStarClass__Fixup_Final_Path_Regular        0042B420
+
 	AStarClass__Optimize_Final_Path        0042B7F0
 	AStarClass__Adjacent_Cell_Regular        0042BCA0
 	AStarClass__Plot_Straight_Line_Regular        0042BE20
-	*/
 	void AStarClass__Clear_Pointers()     JMP_THIS(0x42C1C0);
-	//AStarClass__AStar_Find_Path_Hierarchical        0042C290
+
+
+
 	PathType* AStarClass__Find_Path(CellStruct* a2,
 		CellStruct* dest,
 		TechnoClass* a4,
@@ -118,10 +367,14 @@ public:
 		int max_count,
 		MovementZone a7,
 		ZoneType cellPath)       JMP_THIS(0x42C900);
-	/*AStarClass__Init_Cell_Index_Sets        0042CCD0
-	AStarClass__Is_Cell_Index_Set_Registered        0042CEB0
-	AStarClass__Register_Cell_Index_Set        0042CF10
-	AStarClass__Register_Cell_Index_Sets        0042CF80*/
+
+
+		AStarClass__Init_Cell_Index_Sets        0042CCD0
+		AStarClass__Is_Cell_Index_Set_Registered        0042CEB0
+		AStarClass__Register_Cell_Index_Set        0042CF10
+		AStarClass__Register_Cell_Index_Sets        0042CF80
+	*/
+
 	int AttemptPath(
 		CellStruct* pFromMapCrd,
 		CellStruct* pToMapCrd,
@@ -129,10 +382,9 @@ public:
 		bool bFromAlt,
 		bool bToAlt,
 		MovementZone nMovementZone = MovementZone::None)
-		{ JMP_THIS(0x42D170); }
-	//__thiscall Cell::Cell(short,short)        0042D470
-	//Find_Adjacent_Cell_0        0042D490
-	//Cell const __thiscall Cell::operator+(Cell const &)        0042D510
+	{
+		JMP_THIS(0x42D170);
+	}
 	
 public:
 	char unknown_byte_0;
@@ -144,7 +396,7 @@ public:
 	PROTECTED_PROPERTY(BYTE, padding_9_B[3]);
 	AStarWorkPathStructDataHeap* PathNodeBuffer;
 	AStarWorkPathStructHeap* PathQueueBuffer;
-	TPriorityQueueClass<AStarWorkPathStruct>* PathQueue;
+	SafePriorityQueueClass<AStarWorkPathStruct>* PathQueue;
 	int* VisitCounts;
 	int* AltVisitCounts;
 	float* AltDistances;

@@ -182,7 +182,7 @@ ASMJIT_PATCH(0x4753F0, ArmorType_FindIndex, 0xA)
 	GET(CCINIClass*, pINI, ECX);
 
 	if(ArmorTypeClass::Array.empty())
-	 ArmorTypeClass::AddDefaults();
+		ArmorTypeClass::AddDefaults();
 
 	GET_STACK(const char*, Section, 0x4);
 	GET_STACK(const char*, Key, 0x8);

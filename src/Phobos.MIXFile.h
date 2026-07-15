@@ -43,7 +43,7 @@ struct PhobosMixFileHeader {
 };
 #pragma pack (pop)
 
-class RawFileClass;
+class PhobosRawFileClass;
 class PhobosMixFileClass
 {
 public:
@@ -52,7 +52,8 @@ public:
 
 public:
 
-	PhobosMixFileClass(RawFileClass* pFile, PKey* pKey);
+	PhobosMixFileClass(const char*, PKey* pKey);
+	PhobosMixFileClass(PhobosRawFileClass* pFile, PKey* pKey);
 	~PhobosMixFileClass();
 
 	static bool Offset(const char* pFilename, void** realptr = nullptr, PhobosMixFileClass** mixfile = nullptr, int* offset = nullptr, int* size = nullptr);

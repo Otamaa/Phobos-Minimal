@@ -791,7 +791,7 @@ public:
 		return true;
 	}
 
-	BSurface* GetSurface(const char* pFileName, BytePalette* pPalette = nullptr)
+	BSurface* _GetSurface(char* pFileName, BytePalette* pPalette = nullptr)
 	{
 		if (!pFileName)
 			return nullptr;
@@ -811,4 +811,4 @@ public:
 };
 
   DEFINE_FUNCTION_JUMP(LJMP, 0x6B9D00, FakePCXImages::_Add);
-  DEFINE_FUNCTION_JUMP(LJMP, 0x6BA140, FakePCXImages::GetSurface);
+  DEFINE_FUNCTION_JUMP(LJMP, 0x6BA140, FakePCXImages::_GetSurface);

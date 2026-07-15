@@ -105,6 +105,7 @@
     <ClCompile Include="src\Lib\miniz\miniz.c" />
     <ClCompile Include="src\Misc\Renderer\GlobalColorPacker.cpp" />
     <ClCompile Include="src\Misc\Spawner\DesyncHandler.cpp" />
+    <ClCompile Include="src\Misc\SyncLogging.cpp" />
     <ClCompile Include="src\New\Entity\FactoryPlantClass.cpp" />
     <ClCompile Include="src\Commands\AggressiveModeClass.cpp" />
     <ClCompile Include="src\Commands\CeasefireModeClass.cpp" />
@@ -425,7 +426,6 @@
     <ClCompile Include="src\Misc\Spawner\SkipScoreScreen.cpp" />
     <ClCompile Include="src\Misc\Spawner\Statistics.cpp" />
     <ClCompile Include="src\Misc\Spawner\VideoMode.cpp" />
-    <ClCompile Include="src\Misc\SyncLogging.cpp" />
     <ClCompile Include="src\Misc\TextInput.cpp" />
     <ClCompile Include="src\Misc\BlowfishEngine.cpp" />
     <ClCompile Include="src\New\Entity\BuildSpeedBonus.cpp" />
@@ -491,6 +491,7 @@
     <ClCompile Include="src\Commands\ObjectInfo.cpp" />
     <ClCompile Include="src\Phobos.Config.cpp" />
     <ClCompile Include="src\Phobos.Ext.cpp" />
+    <ClCompile Include="src\Phobos.FileClass.cpp" />
     <ClCompile Include="src\Phobos.Hookers.cpp" />
     <ClCompile Include="src\Phobos.Hooks.cpp" />
     <ClCompile Include="src\Phobos.INI.cpp" />
@@ -499,7 +500,6 @@
     <ClCompile Include="src\Phobos.MIXFile.cpp" />
     <ClCompile Include="src\Phobos.UI.cpp" />
     <ClCompile Include="src\Phobos.ZIP.cpp" />
-    <ClCompile Include="src\Phobos.FileClass.cpp" />
     <ClCompile Include="src\PhobosSaveVersionInfo.cpp" />
     <ClCompile Include="src\Utilities\Anchor.cpp" />
     <ClCompile Include="src\Utilities\Cast.cpp" />
@@ -673,6 +673,7 @@
     <ClInclude Include="src\Lib\miniz\miniz.h" />
     <ClInclude Include="src\Misc\Renderer\GlobalColorPacker.h" />
     <ClInclude Include="src\Misc\Spawner\UI\DesyncDialog.Resource.h" />
+    <ClInclude Include="src\Misc\SyncLogging.h" />
     <ClInclude Include="src\New\Entity\FactoryPlantClass.h" />
     <ClInclude Include="src\Commands\AggressiveModeClass.h" />
     <ClInclude Include="src\Commands\CeasefireModeClass.h" />
@@ -751,7 +752,6 @@
     <ClInclude Include="src\Misc\ImageSwapModules.h" />
     <ClInclude Include="src\Misc\Multithread.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />
-    <ClInclude Include="src\Misc\SyncLogging.h" />
     <ClInclude Include="src\Misc\BlowfishEngine.h" />
     <ClInclude Include="src\New\Entity\NewTiberiumStorageClass.h" />
     <ClInclude Include="src\New\Entity\SWFirerClass.h" />
@@ -774,6 +774,7 @@
     <ClInclude Include="src\New\Type\ThemeTypeClass.h" />
     <ClInclude Include="src\Phobos.COM.h" />
     <ClInclude Include="src\Phobos.Defines.h" />
+    <ClInclude Include="src\Phobos.FileClass.h" />
     <ClInclude Include="src\Phobos.Hookers.h" />
     <ClInclude Include="src\Phobos.INI.h" />
     <ClInclude Include="src\Phobos.lib.h" />
@@ -918,7 +919,6 @@
     <ClInclude Include="src\Phobos.MIXFile.h" />
     <ClInclude Include="src\Phobos.UI.h" />
     <ClInclude Include="src\Phobos.ZIP.h" />
-    <ClInclude Include="src\Phobos.FileClass.h" />
     <ClInclude Include="src\PhobosSaveVersionInfo.h" />
     <ClInclude Include="src\resource.h" />
     <ClInclude Include="src\Utilities\Anchor.h" />

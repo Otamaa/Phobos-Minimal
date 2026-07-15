@@ -1258,7 +1258,57 @@ void ParseEarlyArgs(LPWSTR* argv , int argc)
  *  Costs nothing unless used; trims ~64 KB off a 1 MB stack, which is negligible.
  */
 static constexpr ULONG EXCEPTION_STACK_GUARANTEE = 64 * 1024;
+DWORD Phobos_MainThreadId = 0;
+/**
+ *  Thread synchronization for the exception handler.
+ *
+ *  Lock ordering (acquire top→bottom; never reverse):
+ *    1. ExceptionCriticalSection (entry gate, recursive)
+ *    2. MiniDumpCriticalSection  (inside Create_Mini_Dump)
+ *    3. DbgHelp mutex            (inside Sym*, StackWalk64, MiniDumpWriteDump)
+ *
+ *  The exception path MUST NEVER acquire a game-subsystem lock (audio
+ *  manager mutexes, scan-thread mutexes, WinDialog internals, etc.) because
+ *  sibling threads are SUSPENDED holding them. Touching one of those locks
+ *  deadlocks the dumper.
+ */
+static CRITICAL_SECTION ExceptionCriticalSection;
+static bool ExceptionCriticalSectionReady = false;
+static std::atomic<DWORD> FirstCrashThreadId { 0 };
 
+/**
+ *  Initialize and tear down the entry-gate critical section. Called from
+ *  DllMain before any hook can fire / after all hooks are removed.
+ */
+void Init_Exception_Handler()
+{
+	if (!ExceptionCriticalSectionReady)
+	{
+		InitializeCriticalSection(&ExceptionCriticalSection);
+		ExceptionCriticalSectionReady = true;
+	}
+}
+
+
+void Shutdown_Exception_Handler()
+{
+	if (ExceptionCriticalSectionReady)
+	{
+		DeleteCriticalSection(&ExceptionCriticalSection);
+		ExceptionCriticalSectionReady = false;
+	}
+}
+
+/**
+ *  Terminate handler for escaped C++ exceptions. Re-raises as a structured
+ *  exception so the SEH machinery delivers proper EXCEPTION_POINTERS to
+ *  _Top_Level_Exception_Filter via SetUnhandledExceptionFilter.
+ */
+[[noreturn]] void __cdecl Phobos_Terminate_Handler()
+{
+	RaiseException(EXCEPTION_NONCONTINUABLE_EXCEPTION, EXCEPTION_NONCONTINUABLE, 0, nullptr);
+	ExitProcess(EXIT_FAILURE);
+}
 
 BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
@@ -1270,22 +1320,24 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		{
 			//this is dangerious but this keep shit from breaking early 
 			//GlobalColorPacker::SetColorPacker();
-
+			Phobos_MainThreadId = GetCurrentThreadId();
 			Patch::CurrentProcess = GetCurrentProcess();
 			PhobosThreadGuard::SetMainThread();
 			Phobos::hInstance = hInstance;
 			saved_lpReserved = lpReserved;
 			ULONG guarantee = EXCEPTION_STACK_GUARANTEE;
 			SetThreadStackGuarantee(&guarantee); // Ignore failure - best effort.
+			Init_Exception_Handler();
+			std::set_terminate(&Phobos_Terminate_Handler);
 
 			int argc;
 			LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 
-			CRTHooks::_set_fp_mode();
-
             if (!StartPatching()) {
                 return FALSE;
             }
+
+			CRTHooks::_set_fp_mode();
 
 			DisableThreadLibraryCalls((HMODULE)hInstance);
 			IsInitialized = true;
@@ -1306,15 +1358,17 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 	break;
 	case DLL_PROCESS_DETACH:
 	{
-
 		if (!StopPatching()) {
 			return FALSE;
 		}
+
+		Phobos::hInstance = nullptr;
 
 		bool g_isProcessTerminating = (lpReserved != nullptr);
 
 		if (g_isProcessTerminating && IsInitialized)
 		{
+			Shutdown_Exception_Handler();
 			Multithreading::ShutdownMultitheadMode();
 			Debug::DeactivateLogger();
 			PhobosHookers::CleanupTrampolines();

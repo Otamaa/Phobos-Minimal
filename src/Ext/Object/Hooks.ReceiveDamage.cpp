@@ -535,6 +535,15 @@ DamageState __fastcall FakeObjectClass::__Take_Damage(ObjectClass* pThis, discar
 						{
 							pThis->Mark(MarkType::Redraw);
 						}
+					} else if(_res == DamageState::NowDead){
+						if (pThis->AttachedTag) {
+							pThis->AttachedTag->RaiseEvent((TriggerEvent)AresTriggerEvents::AttackedOrDestroyedByHouse,
+								pThis,
+								CellStruct::Empty,
+								false,
+								nullptr
+							);
+						}
 					}
 
 					return _res;

@@ -88,7 +88,6 @@ namespace
 // ---------------------------------------------------------------------------
 // Init_Rules
 // ---------------------------------------------------------------------------
-
 bool Init_Rules()
 {
 	// --- Phase 1: glob scan for "RULEMD*.INI" ----------------------------
@@ -283,6 +282,7 @@ bool Init_Rules()
 *   - Remove most part that community never use or not use
 */
 #include <Phobos.INI.h>
+#include <MixFileClass.h>
 
 bool __fastcall Init_Rules()
 {
@@ -349,18 +349,6 @@ bool __fastcall Init_Rules()
 
 		//ASMJIT_PATCH(0x52D21F, Game_InitRules, 0x6)
 		Phobos::Config::Read_RULESMD();
-	
-		//{
-		//	const char* _realName = "LANGRULE.INI";
-		//	const auto crc = SafeChecksummer()(_realName, strlen(_realName));
-		//	CCFileClass rulesFile(_realName);
-		//
-		//	if (!CCINIClass::INI_Rules->ReadCCFile(&rulesFile) || !PhobosINIContainer::Rules_INI->LoadFile(&rulesFile)) {
-		//		Debug::Log("Failed to load CRC %x [%s - %s]!\n", crc, _realName, rulesFile.Filename);
-		//	} else {
-		//		Debug::Log("Succes to load CRC %x [%s - %s]!\n", crc, _realName, rulesFile.Filename);	
-		//	}
-		//}
 	}
 
 	//AI

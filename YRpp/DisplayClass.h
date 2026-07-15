@@ -165,10 +165,10 @@ public:
 	bool unknown_bool_11CC;
 	bool unknown_bool_11CD;
 	bool unknown_bool_11CE;
-	bool DraggingRectangle; //11CF IsRubberBand
+	bool LeftPressAndDraggingRectangle; //11CF IsRubberBand
 	bool IsTentative; //11D0
 	bool IsShadowPresen; //11D1
-	Point2D Band;
+	Point2D LeftDownPosition;
 	Point2D New;
 
 };

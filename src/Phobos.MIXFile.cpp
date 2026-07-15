@@ -1,4 +1,5 @@
 #include "Phobos.MIXFile.h"
+#include "Phobos.FileClass.h"
 
 #include <algorithm>
 #include <ranges>
@@ -80,7 +81,7 @@ bool PhobosMixFileClass::Offset(const char* filename, void** realptr, PhobosMixF
 	return false;
 }
 
-PhobosMixFileClass::PhobosMixFileClass(RawFileClass* pFile, PKey* pKey) :
+PhobosMixFileClass::PhobosMixFileClass(const char* pName, PKey* pKey) :
 	Filename(),
 	IsDigest(false),
 	IsEncrypted(false),
@@ -90,7 +91,137 @@ PhobosMixFileClass::PhobosMixFileClass(RawFileClass* pFile, PKey* pKey) :
 	Headers(),
 	Data(nullptr)
 {
-	this->Filename = _strdup(pFile->Filename);
+	PhobosRawFileClass _file(pName);
+	this->Filename = _strdup(pName);
+
+	if (_file.IsAvailable()) {
+		// Exact mirror of FileStraw::Get — same open/available checks
+		auto StrawGet = [&](void* buffer, int length) -> int
+			{
+				if (!buffer || length <= 0)
+					return 0;
+
+				if (!_file.IsOpen())
+				{
+					if (!_file.IsAvailable(false) || !_file.Open(PhobosFileAccessMode::Read))
+						return 0;
+				}
+
+				return _file.Read(buffer, length);
+			};
+
+		PhobosMixPeekHeader peekHeader {};
+		StrawGet(&peekHeader, sizeof(PhobosMixPeekHeader));
+		PhobosMixFileHeader fileHeader {};
+
+		if (!peekHeader.FileCount)
+		{
+			this->IsDigest = (peekHeader.FormatFlags & 1) != 0;
+			this->IsEncrypted = (peekHeader.FormatFlags & 2) != 0;
+
+			if (this->IsEncrypted)
+			{
+				// Mirror of PKStraw::Get DECODE path:
+				// 1. read encrypted key block
+				// 2. PKey::Decrypt -> session key
+				// 3. BlowStraw::Key(session key, 56)
+				// 4. all further reads go through BF decrypt
+				const int bytesPerBlock = (pKey->GetBitPrecision() - 1) / 8;
+				const int blocksNeeded = 55 / bytesPerBlock + 1;
+				const int encKeySize = (bytesPerBlock + 1) * blocksNeeded;
+				const int plainKeySize = bytesPerBlock * blocksNeeded;
+
+				std::vector<uint8_t> encKey(encKeySize, 0);
+				StrawGet(encKey.data(), encKeySize);
+
+				std::vector<uint8_t> plainKey(plainKeySize, 0);
+				pKey->Decrypt(encKey.data(), encKeySize, plainKey.data());
+
+				BlowfishEngine bf;
+				bf.Submit_Key(plainKey.data(), 56);
+
+				// Mirror of pStrawUsed->Get(&fileHeader, sizeof(MixFileHeader))
+				// BF stream read — 8 byte blocks, MixFileHeader = 6 bytes
+				constexpr int BF_BLOCK = 8;
+
+				uint8_t encFirst[BF_BLOCK] {};
+				uint8_t plainFirst[BF_BLOCK] {};
+				StrawGet(encFirst, BF_BLOCK);
+				bf.Decrypt(encFirst, BF_BLOCK, plainFirst);
+				std::memcpy(&fileHeader, plainFirst, sizeof(PhobosMixFileHeader));
+
+				this->Headers.resize(fileHeader.Count);
+				this->DataSize = fileHeader.DataSize;
+
+				if (!this->Headers.empty())
+				{
+					// Mirror of pStrawUsed->Get(this->Headers, sizeof(MixHeaderData) * this->Count)
+					// Carry 2 bytes from first decrypted block
+					constexpr int CARRY = BF_BLOCK - static_cast<int>(sizeof(PhobosMixFileHeader));
+					const int indexSize = static_cast<int>(sizeof(PhobosMixHeaderData) * fileHeader.Count);
+					const int remaining = indexSize - CARRY;
+
+					uint8_t* dst = reinterpret_cast<uint8_t*>(this->Headers.data());
+					std::memcpy(dst, plainFirst + sizeof(PhobosMixFileHeader), CARRY);
+					dst += CARRY;
+
+					if (remaining > 0)
+					{
+						const int remBlocks = (remaining + BF_BLOCK - 1) / BF_BLOCK;
+						const int remReadSize = remBlocks * BF_BLOCK;
+						std::vector<uint8_t> encRem(remReadSize, 0);
+						std::vector<uint8_t> plainRem(remReadSize, 0);
+						StrawGet(encRem.data(), remReadSize);
+						bf.Decrypt(encRem.data(), remReadSize, plainRem.data());
+						std::memcpy(dst, plainRem.data(), remaining);
+					}
+				}
+
+			}
+			else
+			{
+				StrawGet(&fileHeader, sizeof(PhobosMixFileHeader));
+
+				this->Headers.resize(fileHeader.Count);
+				this->DataSize = fileHeader.DataSize;
+
+				if (!this->Headers.empty())
+				{
+					StrawGet(this->Headers.data(), sizeof(PhobosMixHeaderData) * fileHeader.Count);
+				}
+			}
+		}
+		else
+		{
+			fileHeader = peekHeader;
+			StrawGet(&fileHeader.DataSizeHi, sizeof(short));
+
+			this->Headers.resize(fileHeader.Count);
+			this->DataSize = fileHeader.DataSize;
+
+			if (!this->Headers.empty())
+			{
+				StrawGet(this->Headers.data(), sizeof(PhobosMixHeaderData) * fileHeader.Count);
+			}
+		}
+
+		const int seekres = _file.Seek(0, PhobosFileSeekMode::Current);
+		this->DataStart = _file.BiasStart + seekres;
+		Array.emplace_back(this);
+	}
+}
+
+PhobosMixFileClass::PhobosMixFileClass(PhobosRawFileClass* pFile, PKey* pKey) :
+	Filename(),
+	IsDigest(false),
+	IsEncrypted(false),
+	IsAllocated(false),
+	DataSize(0),
+	DataStart(0),
+	Headers(),
+	Data(nullptr)
+{
+	this->Filename = _strdup(pFile->Filename.c_str());
 
 	// Exact mirror of FileStraw::Get — same open/available checks
 	auto StrawGet = [&](void* buffer, int length) -> int {
@@ -98,8 +229,8 @@ PhobosMixFileClass::PhobosMixFileClass(RawFileClass* pFile, PKey* pKey) :
 			return 0;
 
 		if (!pFile->IsOpen()) {
-				if (!pFile->IsAvaible(false) || !pFile->Open1(FileAccessMode::Read))
-					return 0;
+			if (!pFile->IsAvailable(false) || !pFile->Open(PhobosFileAccessMode::Read))
+				return 0;
 		}
 
 			return pFile->Read(buffer, length);
@@ -190,7 +321,7 @@ PhobosMixFileClass::PhobosMixFileClass(RawFileClass* pFile, PKey* pKey) :
 		}
 	}
 
-	const int seekres = pFile->Seek(0, FileSeekMode::Current);
+	const int seekres = pFile->Seek(0, PhobosFileSeekMode::Current);
 	this->DataStart = pFile->BiasStart + seekres;
 	Array.emplace_back(this);
 }

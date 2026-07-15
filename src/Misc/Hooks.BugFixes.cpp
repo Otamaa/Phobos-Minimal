@@ -621,17 +621,17 @@ ASMJIT_PATCH(0x68927B, ScenarioClass_ScanPlaceUnit_CheckMovement2, 0x5)
 }
 
 // WWP for some reason passed nullptr as source to On_Destroyed even though the real source existed
-ASMJIT_PATCH(0x738467, UnitClass_TakeDamage_FixOnDestroyedSource, 0x6)
-{
-	enum { Continue = 0x73866E, ForceKill = 0x73847B };
-
-	GET(UnitClass*, pThis, ESI);
-	GET_STACK(TechnoClass*, pSource, STACK_OFFSET(0x44, 0x10));
-
-	R->AL(pThis->Crash(pSource));
-	return 0x738473;
-	//return  ? Continue : ForceKill;
-}
+// ASMJIT_PATCH(0x738467, UnitClass_TakeDamage_FixOnDestroyedSource, 0x6)
+// {
+// 	enum { Continue = 0x73866E, ForceKill = 0x73847B };
+//
+// 	GET(UnitClass*, pThis, ESI);
+// 	GET_STACK(TechnoClass*, pSource, STACK_OFFSET(0x44, 0x10));
+//
+// 	R->AL(pThis->Crash(pSource));
+// 	return 0x738473;
+// 	//return  ? Continue : ForceKill;
+// }
 
 // Fixes second half of Colors list not getting retinted correctly by map triggers, superweapons etc.
 ASMJIT_PATCH(0x53AD85, IonStormClass_AdjustLighting_ColorSchemes, 0x5)
