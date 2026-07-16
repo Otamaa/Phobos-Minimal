@@ -545,16 +545,16 @@ static double DecideScaleAndIndex(Matrix3D* mtx, TechnoClass* pThis, TechnoTypeC
 //removing the cloak , noShadow , vxl::LoadFailded check
 DEFINE_JUMP(LJMP, 0x706BDD, 0x706C01); // I checked it a priori
 
-#ifdef _fromPR1983
-ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
+DEFINE_HOOK(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 {
 	enum { SkipDrawing = 0x73C5C9 };
-
 	GET(UnitClass* const, pThis, EBP);
 
-	auto const loco = pThis->Locomotor.GetInterfacePtr();
+	if (pThis->CloakState != CloakState::Uncloaked || pThis->Type->NoShadow)
+		return SkipDrawing;
 
-	if (pThis->CloakState != CloakState::Uncloaked || pThis->Type->NoShadow || !loco->Is_To_Have_Shadow())
+	auto const loco = pThis->Locomotor.GetInterfacePtr();
+	if (!loco->Is_To_Have_Shadow())
 		return SkipDrawing;
 
 	REF_STACK(Matrix3D, shadowMatrix, STACK_OFFSET(0x1C4, -0x130));
@@ -567,19 +567,20 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 	// This is not necessarily pThis->Type : UnloadingClass or WaterImage
 	// This is the very reason I need to do this here, there's no less hacky way to get this Type from those inner calls
 
-	const auto pDrawTypeExt = TechnoTypeExtContainer::Instance.Find(pDrawType);
 	const auto height = pThis->GetHeight();
-	DecideScaleAndIndex(&shadowMatrix, pThis, pDrawType, vxlIndexKey, loco, height);
-	VoxelStruct* main_vxl = GetmainVxl(pThis , pDrawType , vxlIndexKey);
+	double currentScale = DecideScaleAndIndex(&shadowMatrix, pThis, pDrawType, vxlIndexKey, loco, height);
 
+	VoxelStruct* main_vxl = GetmainVxl(pThis, pDrawType, vxlIndexKey);
 	auto shadowPoint = loco->Shadow_Point();
-	auto shadowCenter = pt->operator*(shadowPoint);
-	TranslateAngleRotated(&shadowMatrix, pThis, pDrawType , vxlIndexKey);
-	auto mtx = Game::VoxelDefaultMatrix->operator*(shadowMatrix);
+	auto shadowCenter = *pt + shadowPoint;
+	TranslateAngleRotated(&shadowMatrix, pThis, pDrawType, vxlIndexKey);
+
+	auto mtx = Game::VoxelDefaultMatrix() * shadowMatrix;
 
 	if (height > 0)
 		shadowPoint.Y += 1;
 
+	const auto pDrawTypeExt = TechnoTypeExtContainer::Instance.Find(pDrawType);
 	const bool notUseTurretShadow = pDrawType->WhatAmI() != AbstractType::UnitType || !static_cast<UnitTypeClass*>(pDrawType)->UseTurretShadow;
 
 	if (notUseTurretShadow)
@@ -605,15 +606,15 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 	if (main_vxl == &pDrawType->TurretVoxel || (notUseTurretShadow && !pDrawTypeExt->TurretShadow.Get(RulesExtData::Instance()->DrawTurretShadow)))
 		return SkipDrawing;
 
-	const auto pTurretVoxel = TechnoTypeExtData::GetTurretsVoxelFixedUp(pDrawType , pThis->CurrentTurretNumber);
+	const auto pTurretVoxel = TechnoTypeExtData::GetTurretsVoxelFixedUp(pDrawType, pThis->CurrentTurretNumber);
 
-	if (!(pTurretVoxel && pTurretVoxel->VXL && pTurretVoxel->HVA))
+	if (!(pTurretVoxel && pTurretVoxel->VXL && pTurretVoxel->HVA && !pTurretVoxel->VXL->LoadFailed))
 		return SkipDrawing;
 
 	if (vxlIndexKey.Is_Valid_Key())
 		vxlIndexKey.MinorVoxel.TurretFacing = pThis->SecondaryFacing.Current().GetFacing<32>();
 
-	const auto pBarrelVoxel = TechnoTypeExtData::GetTurretsVoxelFixedUp(pDrawType, pThis->CurrentTurretNumber);
+	const auto pBarrelVoxel = TechnoTypeExtData::GetBarrelsVoxelFixedUp(pDrawType, pThis->CurrentTurretNumber);
 
 	const auto haveBar = pBarrelVoxel && pBarrelVoxel->VXL && pBarrelVoxel->HVA && !pBarrelVoxel->VXL->LoadFailed;
 	auto pCache = &pDrawType->VoxelCaches.Shadow;
@@ -622,14 +623,16 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 	// Not available under multiple turrets/barrels due to different base positions
 	if (notUseTurretShadow)
 		pCache = (haveBar || pTurretVoxel != &pDrawType->TurretVoxel) ? nullptr : reinterpret_cast<decltype(pCache)>(&pDrawType->VoxelCaches.TurretBarrel);
+	
+		const double adjustedFactor = Math::Pixel_Per_Lepton / currentScale;
 
 	auto drawTurretShadow = [&](int turIdx)
 		{
 			auto mtx_turret = mtx;
-			pDrawTypeExt->ApplyTurretOffset(&mtx_turret, Math::Pixel_Per_Lepton, turIdx);
+			pDrawTypeExt->ApplyTurretOffset(&mtx_turret, adjustedFactor, turIdx);
 			mtx_turret.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>()));
 
-			const auto pTurData = pDrawType->TurretRecoil ? ((turIdx < 0 || turIdx < pExt->ExtraTurretRecoil.size()) ? &pThis->TurretRecoil : &pExt->ExtraTurretRecoil[turIdx]) : nullptr;
+			const auto pTurData = pDrawType->TurretRecoil ? ((turIdx >= 0) ? &pExt->ExtraTurretRecoil[turIdx] : &pThis->TurretRecoil) : nullptr;
 			const auto turretInRecoil = pTurData && pTurData->State != RecoilData::RecoilState::Inactive;
 			const auto shouldRedraw = turretInRecoil || turIdx >= 0;
 
@@ -688,170 +691,11 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 					drawTurretShadow(i);
 			}
 		};
+	
 	drawTurretsShadow();
 
 	return SkipDrawing;
 }
-#else
-ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
-{
-	//Debug::LogInfo(__FUNCTION__" Exec");
-	GET(UnitClass*, pThis, EBP);
-
-	enum { SkipDrawing = 0x73C5C9 };
-
-	auto const loco = pThis->Locomotor.GetInterfacePtr();
-
-	if (pThis->Type->NoShadow
-		|| pThis->CloakState != CloakState::Uncloaked
-		|| !loco->Is_To_Have_Shadow())
-		return SkipDrawing;
-
-	REF_STACK(Matrix3D, shadow_matrix, STACK_OFFSET(0x1C4, -0x130));
-	GET_STACK(VoxelIndexKey, vxl_index_key, STACK_OFFSET(0x1C4, -0x1B0));
-	LEA_STACK(RectangleStruct*, bounding, STACK_OFFSET(0x1C4, 0xC));
-	LEA_STACK(Point2D*, floor, STACK_OFFSET(0x1C4, -0x1A4));
-	GET_STACK(Surface* const, surface, STACK_OFFSET(0x1C4, -0x1A8));
-
-	GET(UnitTypeClass*, pType, EBX);
-	// This is not necessarily pThis->Type : UnloadingClass or WaterImage
-	// This is the very reason I need to do this here, there's no less hacky way to get this Type from those inner calls
-
-	const auto height = pThis->GetHeight();
-	double currentScale = DecideScaleAndIndex(&shadow_matrix, pThis, pType, vxl_index_key, loco, height);
-
-	VoxelStruct* main_vxl = GetmainVxl(pThis, pType, vxl_index_key);
-
-	// TODO : adjust shadow point according to height
-	// There was a bit deviation that I cannot decipher, might need help with that
-	// But it turns out it has basically no visual difference
-
-	auto shadow_point = loco->Shadow_Point();
-	auto why = *floor + shadow_point;
-	TranslateAngleRotated(&shadow_matrix, pThis, pType, vxl_index_key);
-
-	auto mtx = Game::VoxelDefaultMatrix() * (shadow_matrix);
-
-	if (height > 0)
-		shadow_point.Y += 1;
-
-	const auto uTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	if (!pType->UseTurretShadow)
-	{
-		if (uTypeExt->ShadowIndices.empty())
-		{
-			if (pType->ShadowIndex >= 0 && pType->ShadowIndex < main_vxl->HVA->LayerCount)
-				pThis->DrawVoxelShadow(
-					   main_vxl,
-					   pType->ShadowIndex,
-					   vxl_index_key,
-					   &pType->VoxelCaches.Shadow,
-					   bounding,
-					   &why,
-					   &mtx,
-					   true,
-					   surface,
-					   shadow_point
-				);
-		}
-		else
-		{
-			for (const auto& indices : uTypeExt->ShadowIndices)
-				pThis->DrawVoxelShadow(
-					   main_vxl,
-					   indices.first,
-					   indices.first == pType->ShadowIndex ? vxl_index_key : std::bit_cast<VoxelIndexKey>(-1),
-						&pType->VoxelCaches.Shadow,
-					   bounding,
-					   &why,
-					   &mtx,
-						indices.first == pType->ShadowIndex,
-					   surface,
-					   shadow_point
-				);
-		}
-	}
-
-	if (main_vxl == &pType->TurretVoxel
-		|| (!pType->UseTurretShadow
-			&& !uTypeExt->TurretShadow.Get(RulesExtData::Instance()->DrawTurretShadow)))
-		return 0x73C5C9;
-
-	
-	const double adjustedFactor = Math::Pixel_Per_Lepton / currentScale;
-	uTypeExt->ApplyTurretOffset(&mtx, adjustedFactor);
-	mtx.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - UnitExtData::GetPrimaryRadian(pThis)));
-
-	const bool inRecoil = pType->TurretRecoil && pThis->TurretRecoil.State != RecoilData::RecoilState::Inactive;
-
-	if (inRecoil)
-		mtx.TranslateX(-pThis->TurretRecoil.TravelSoFar);
-
-	auto tur = TechnoTypeExtData::GetTurretsVoxelFixedUp(pType, pThis->CurrentTurretNumber);
-
-	// sorry but you're fucked
-	if (tur && tur->VXL && tur->HVA)
-	{
-		auto bar = TechnoTypeExtData::GetBarrelsVoxelFixedUp(pType, pThis->CurrentTurretNumber);
-		auto haveBar = bar && bar->VXL && bar->HVA && !bar->VXL->LoadFailed;
-
-		if (vxl_index_key.Is_Valid_Key())
-			vxl_index_key.MinorVoxel.TurretFacing = pThis->SecondaryFacing.Current().GetFacing<32>();
-
-		auto* cache = &pType->VoxelCaches.Shadow;
-
-		if (!pType->UseTurretShadow)
-		{
-			if (haveBar)
-				cache = nullptr;
-			else
-				cache = tur != &pType->TurretVoxel ?
-				nullptr // man what can I say, you are fucked, for now
-				: reinterpret_cast<decltype(cache)>(&pType->VoxelCaches.TurretBarrel) // excuse me
-				;
-		}
-
-		pThis->DrawVoxelShadow(
-			tur,
-			0,
-			(inRecoil ? std::bit_cast<VoxelIndexKey>(-1) : vxl_index_key),
-			(inRecoil ? nullptr : cache),
-			bounding,
-			&why,
-			&mtx,
-			(!inRecoil && cache != nullptr),
-			surface,
-			shadow_point
-		);
-
-		// and you are utterly fucked
-		if (haveBar)
-		{
-
-			if (pType->TurretRecoil && pThis->BarrelRecoil.State != RecoilData::RecoilState::Inactive)
-				mtx.TranslateX(-pThis->BarrelRecoil.TravelSoFar);
-
-			mtx.ScaleX(static_cast<float>(Math::cos(-pThis->BarrelFacing.Current().GetRadian<32>())));
-
-			pThis->DrawVoxelShadow(
-				bar,
-				0,
-				std::bit_cast<VoxelIndexKey>(-1), // no cache, no use
-				nullptr,//no cache atm
-				bounding,
-				&why,
-				&mtx,
-				false,
-				surface,
-				shadow_point
-			);
-		}
-	}
-
-	return 0x73C5C9;
-}
-#endif
 
 ASMJIT_PATCH(0x73B4A0, UnitClass_DrawVXL_WaterType, 9)
 {

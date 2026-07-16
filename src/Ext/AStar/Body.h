@@ -8,5 +8,4 @@ class NOVTABLE FakeAStarPathFinderClass : public AStarPathFinderClass
 {
 public:
 
-	bool __Find_Path_Hierarchical(CellStruct* from, CellStruct* to, MovementZone mzone, FootClass* foot);
 };

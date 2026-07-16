@@ -243,7 +243,7 @@ bool bIgnoreDisableWeapon)
 	// MakesDisguise
 	if (pWeapon->Warhead->MakesDisguise && pObjectT)
 	{
-		if (!DisguiseAllowed(GET_TECHNOTYPEEXT(pThis), pObjectT->GetDisguise(true)))
+		if (!DisguiseAllowed(pThisTypeExt, pObjectT->GetDisguise(true)))
 			return FireError::ILLEGAL;
 	}
 
@@ -455,22 +455,32 @@ bool bIgnoreDisableWeapon)
 			if (pTransport->Transporter)
 				return FireError::ILLEGAL;
 
-			const bool isDeactivatedOrAttackedByLocomotor = pTransport->Deactivated
-			|| (pTransport->WhatAmI() != AbstractType::BuildingType
-			&& static_cast<FootClass*>(pTransport)->IsAttackedByLocomotor);
-
-
-			if (isDeactivatedOrAttackedByLocomotor 
-				&& !pTransTypeExt->OpenTopped_AllowFiringIfDeactivated)
-			{
-				return FireError::ILLEGAL;
-			}
-
 			if (pTransTypeExt->OpenTopped_CheckTransportDisableWeapons
 				&& TechnoExtData::HasWeaponsDisabled(pTransport)
 				&& pThisExt->CanFireWeaponType)
 			{
 				return FireError::REARM;
+			}
+
+			if (auto const pTransportFoot = flag_cast_to<FootClass*, false>(pTransport))
+			{
+				if(pTransport->Deactivated && !pTransTypeExt->OpenTopped_AllowFiringIfDeactivated)
+					return FireError::ILLEGAL;
+
+				if (pTransportFoot->IsAttackedByLocomotor && !pTransTypeExt->OpenTopped_AllowFiringIfAttackedByLocomotor.Get(RulesExtData::Instance()->OpenTopped_AllowFiringIfAttackedByLocomotor))
+					return FireError::ILLEGAL;
+
+				if (!pTransTypeExt->OpenTopped_FireWhileMoving.Get(RulesExtData::Instance()->OpenTopped_FireWhileMoving)
+					|| !pThisTypeExt->OpenTransport_FireWhileMoving.Get(RulesExtData::Instance()->OpenTransport_FireWhileMoving)
+					|| !pWeapon->FireWhileMoving)
+				{
+					if (pTransTypeExt->This()->BalloonHover) {
+						if (pTransportFoot->Locomotor->Is_Moving_Now())
+							return FireError::ILLEGAL;
+					} else if (pTransportFoot->Destination) {
+						return FireError::ILLEGAL;
+					}
+				}
 			}
 		}
 	}

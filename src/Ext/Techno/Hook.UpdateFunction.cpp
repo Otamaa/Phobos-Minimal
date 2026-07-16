@@ -436,8 +436,8 @@ void FakeTechnoClass::__HandleTargetAcquisition(TechnoClass* pThis)
 	if (!pThis->TargetingTimer.Expired()) {
 		return;
 	}
-	auto const pRulesExt = RulesExtData::Instance();
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(GET_TECHNOTYPE(pThis));
+	//auto const pRulesExt = RulesExtData::Instance();
+	//auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(GET_TECHNOTYPE(pThis));
 
 	//if ((!pThis->Owner->IsControlledByHuman() || !pRulesExt->DistributeTargetingFrame_AIOnly) 
 	//		&& pTypeExt->DistributeTargetingFrame.Get(pRulesExt->DistributeTargetingFrame)) {

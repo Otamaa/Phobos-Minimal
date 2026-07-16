@@ -3,6 +3,8 @@
 #include <Base/Always.h>
 #include <CellClass.h>
 #include <PriorityQueueClass.h>
+#include <algorithm>
+#include <functional>
 
 template<typename T, typename Pr = std::less<T>>
 class SafePriorityQueueClass
@@ -41,7 +43,7 @@ public:
 		}
 
 		// Capacity check
-		if (Count >= Capacity)
+		if (Count > Capacity)
 		{
 			//Debug::Log("PriorityQueue overflow: Count=%d, Capacity=%d\n", Count, Capacity);
 			return false;
@@ -197,28 +199,6 @@ public:
 	T* MinPointer;
 };
 
-template<typename T>
-static SafePriorityQueueClass<T>* AllocPriorityQueue(int capacity, std::size_t nodeBytes)
-{
-	auto* q = static_cast<SafePriorityQueueClass<T>*>(operator new(sizeof(SafePriorityQueueClass<T>)));
-	if (!q)
-		return nullptr;
-
-	q->Count = 0;
-	q->Capacity = capacity;
-	q->MaxPointer = (T*)0u;
-	q->MinPointer = (T*)0xFFFFFFFFu;
-	q->Nodes = static_cast<T**>(operator new(nodeBytes));
-
-	// Vanilla: memset(Nodes, 0, sizeof(T*)*(Count+1)) — Count==0 at this point → 1 slot.
-	// BUT the element-zero loop runs 0..Capacity inclusive (asm at 0x42A77B / 0x42A7CD).
-	// SUSPECT: vanilla writes all (Capacity+1) slots here, not just (Count+1).
-	//          The nodeBytes alloc is sized for (Capacity+1) pointers, so this is safe.
-	std::memset(q->Nodes, 0, nodeBytes);
-
-	return q;
-}
-
 enum AStarPostProcessType : int
 {
 	ASTAR_PASS_0 = 0x0,
@@ -239,17 +219,28 @@ struct __declspec(align(8)) AStarWorkPathStruct
 	float MovementCost;
 	float PathCost;
 	int PathLength;
+
+	bool operator<(const AStarWorkPathStruct& other) const
+	{
+		return PathCost < other.PathCost;
+	}
 };
 
 #pragma pack(push, 4)
 struct AStarWorkPathStructHeap
 {
+	AStarWorkPathStructHeap() = default;
+	~AStarWorkPathStructHeap() = default;
+
 	AStarWorkPathStruct Nodes[65536];
 	DWORD ActiveCount;
 };
 
 struct AStarWorkPathStructDataHeap
 {
+	AStarWorkPathStructDataHeap() = default;
+	~AStarWorkPathStructDataHeap() = default;
+
 	AStarWorkPathStructNode Nodes[131072];
 	DWORD ActiveCount;
 };
@@ -260,6 +251,10 @@ struct AStarQueueNodeHierarchical
 	DWORD Index;
 	float Score;
 	int Number;
+
+	bool operator<(const AStarQueueNodeHierarchical& other) const {
+		return Score < other.Score;
+	}
 };
 static_assert(sizeof(AStarQueueNodeHierarchical) == 16, "Invalid Size !");
 
@@ -274,18 +269,6 @@ struct PathType {
 	CellStruct LastFixup;            // stores position of last overlap
 };
 
-struct PriorityQueueClass_AStarHierarchical
-{
-	int Count;
-	int Capacity;
-	AStarQueueNodeHierarchical** Heap;
-	void* MaxNodePointer;
-	void* MinNodePointer;
-
-	void Heapify(bool shortitems = true) {
-		JMP_THIS(0x42DCA0);
-	}
-};
 #pragma pack(pop)
 
 struct AStarClass_PassabilityData
@@ -310,7 +293,7 @@ public:
 		CellClass** a3,
 		int         a4,
 		int         a5,
-		int         a6) const;
+		FootClass* a6) const;
 	
 	//	AStarClass__Create_Node        0042A460
 	AStarWorkPathStruct* Calc_sqrt(
@@ -345,47 +328,99 @@ public:
 
 	// backported on Fake class
 	// AStarClass__AStar_Find_Path_Hierarchical        0042C290
-	
+	bool __Find_Path_Hierarchical(CellStruct* from, CellStruct* to, MovementZone mzone, FootClass* foot);
+
 	//	AStarClass__Fixup_Final_Path_Regular        0042B420
+	int Tube_Crap(
+		FootClass* techno,
+		int* dirArray,
+		int* levelArray,
+		int         pathLen,
+		int         lookAhead,
+		CellStruct* posPtr);
 
-	/*	
-	AStarClass__AStar_Find_Path_Regular        00429A90
+	//	AStarClass__Process_Final_Path_Regular        0042B210
+	void Process_Moves(PathType* path, FootClass* techno);
 
-	AStarClass__Process_Final_Path_Regular        0042B210
+	//AStarClass__Adjacent_Cell_Regular        0042BCA0
+	void Adj_Cell(
+		int* dirArray,
+		int         startIdx,
+		int         minIdx,
+		int* outIdx,
+		CellStruct * posPtr);
 
-	AStarClass__Optimize_Final_Path        0042B7F0
-	AStarClass__Adjacent_Cell_Regular        0042BCA0
-	AStarClass__Plot_Straight_Line_Regular        0042BE20
-	void AStarClass__Clear_Pointers()     JMP_THIS(0x42C1C0);
+	// AStarClass__Is_Cell_Index_Set_Registered        0042CEB0
+	bool Is_Cell_In_Vector(unsigned int a, unsigned int b, int vectorNum) const;
 
+	//		AStarClass__Register_Cell_Index_Sets        0042CF80
+	void UpdateZoneVector(unsigned int zoneValue, int vectorIdx);
 
+	//		AStarClass__Register_Cell_Index_Set        0042CF10
+	void Add_Cell_To_Vector(unsigned int a, unsigned int b, int vectorNum);
 
-	PathType* AStarClass__Find_Path(CellStruct* a2,
+	//	AStarClass__Plot_Straight_Line_Regular        0042BE20
+	bool Generate_Moves(
+		int*		moves,
+		int         capacity,
+		CellStruct* startCell,
+		CellStruct* delta,
+		FootClass* techno,
+		int* levelPtr,
+		bool        tolerateThreats);
+
+	//void AStarClass__Clear_Pointers()     JMP_THIS(0x42C1C0);
+	void AllocZoneArrays();
+
+	//AStarClass__AStar_Find_Path_Regular        00429A90
+	PathType* Find_Path_Regular(
+		CellStruct* start,
 		CellStruct* dest,
-		TechnoClass* a4,
-		int* path,
-		int max_count,
-		MovementZone a7,
-		ZoneType cellPath)       JMP_THIS(0x42C900);
+		FootClass* techno,
+		int* moves,
+		int          maxCount,
+		bool         useHierarchical);
 
+	//AStarClass__Optimize_Final_Path        0042B7F0
+	void Calc_Moves(PathType* path, FootClass* techno);
 
-		AStarClass__Init_Cell_Index_Sets        0042CCD0
-		AStarClass__Is_Cell_Index_Set_Registered        0042CEB0
-		AStarClass__Register_Cell_Index_Set        0042CF10
-		AStarClass__Register_Cell_Index_Sets        0042CF80
-	*/
+	//PathType* AStarClass__Find_Path(CellStruct* a2,
+	//	CellStruct* dest,
+	//	TechnoClass* a4,
+	//	int* path,
+	//	int max_count,
+	//	MovementZone a7,
+	//	ZoneType cellPath)       JMP_THIS(0x42C900);
+	PathType* Find_Path(
+		CellStruct* start,
+		CellStruct* dest,
+		FootClass* techno,
+		int* moves,
+		int          maxCount,
+		MovementZone          mzoneOverride,
+		AStarPostProcessType          findModeOverride);
 
-	int AttemptPath(
-		CellStruct* pFromMapCrd,
-		CellStruct* pToMapCrd,
-		TechnoClass* pTechno,
-		bool bFromAlt,
-		bool bToAlt,
-		MovementZone nMovementZone = MovementZone::None)
-	{
-		JMP_THIS(0x42D170);
-	}
-	
+	//AStarClass__Init_Cell_Index_Sets        0042CCD0
+	void Fill_DVector(FootClass* techno);
+
+	//int AttemptPath(
+	//	CellStruct* pFromMapCrd,
+	//	CellStruct* pToMapCrd,
+	//	TechnoClass* pTechno,
+	//	bool bFromAlt,
+	//	bool bToAlt,
+	//	MovementZone nMovementZone = MovementZone::None)
+	//{
+	//	JMP_THIS(0x42D170);
+	//}
+	unsigned int Attempt(
+	CellStruct* startPos,
+	CellStruct* destPos,
+	FootClass* foot,
+	bool        bridge1,
+	bool        bridge2,
+	MovementZone         mzone = MovementZone::None);
+
 public:
 	char unknown_byte_0;
 	bool FindBridgeDir;
@@ -412,7 +447,7 @@ public:
 	int* OpenSetMarkers[3];
 	float* GCostArray[3];
 	AStarQueueNodeHierarchical* HierarchyBuffer;
-	PriorityQueueClass_AStarHierarchical* HierarchyQueue;
+	SafePriorityQueueClass<AStarQueueNodeHierarchical>* HierarchyQueue;
 	int PathLength;
 	CellStruct CellStructBuffer;
 	DynamicVectorClass<CellStruct> ZoneIndices[3];
@@ -420,131 +455,3 @@ public:
 	int PassabilityCounts[3];
 };
 static_assert(sizeof(AStarPathFinderClass) == 0xC80);
-
-/*
-bool Find_Path_Hierarchical(AStarPathFinderClass* pThis, CellStruct* from, CellStruct* to, MovementZone move , FootClass* pWho)
-{
-	double threat = 0.0;
-	HouseClass* Owner = nullptr;
-	bool Avaible = false;
-
-	if (pWho) {
-		threat = pWho->GetThreatAvoidanceCoefficient();
-		Owner = pWho->Owner;
-		Avaible = true;
-
-		if (threat <= 0.00001)
-		{
-			Avaible = false;
-
-		}
-
-		int some_startIndex = 2;
-		int some_startIndex2 = 2;
-		while (2)
-		{
-			/// Clear the hierarchialqueue
-			for (int i = 0; i < pThis->HierarchicalQueue->Count; ++i) {
-				pThis->HierarchicalQueue->Heap[i - 1] = 0;
-			}
-
-			pThis->HierarchicalQueue->Count = 0;
-			///
-
-			const auto CellsArray_From = GlobalPassabilityDatas[MapClass::Instance->MapClass_zone_56D3F0(from)].data[some_startIndex];
-			const auto CellsArray_To = GlobalPassabilityDatas[MapClass::Instance->MapClass_zone_56D3F0(to)].data[some_startIndex];
-
-			auto some_startIndex3 = some_startIndex == 2 ? 0 : pThis->ints_40_costs[some_startIndex + 1];
-
-			int* _ints_40_costs = pThis->ints_40_costs[some_startIndex];                                    // used by both
-			int* _ints_4C_costs = pThis->ints_4C_costs[some_startIndex];                                    // used only by "Hierarchical"
-			float* _HierarchicalCosts= pThis->HierarchicalCosts[some_startIndex];
-
-			_ints_40_costs[CellsArray_From] = pThis->initedcount;
-			_ints_40_costs[CellsArray_To] = pThis->initedcount;
-			if (CellsArray_From == CellsArray_To) {
-				if (!some_startIndex) {
-					auto something = pThis->BufferForHierarchicalQueue;
-					something->Index = CellsArray_From;
-					something->Score = 0.0f;
-				}
-
-				pThis->somearray_BC[500 * some_startIndex] = CellsArray_From;
-				pThis->maxvalues_field_C74[some_startIndex] = 0;
-
-			}
-
-			pThis->BufferForHierarchicalQueue->BufferDelta = -1;
-			pThis->BufferForHierarchicalQueue->Index = CellsArray_From;
-			pThis->BufferForHierarchicalQueue->Score = 0.0f;
-			pThis->BufferForHierarchicalQueue->Number = 0;
-
-			int HierarchicalQueue_count1 = pThis->HierarchicalQueue->Count + 1;
-			int HierarchicalQueue_count2 = HierarchicalQueue_count1 >> 1;
-
-			if (HierarchicalQueue_count1 < pThis->HierarchicalQueue->Capacity)
-			{
-				for (; HierarchicalQueue_count1 > 1; HierarchicalQueue_count2 >>= 1)
-				{
-					auto Elements = pThis->HierarchicalQueue->Heap;
-					if (Elements[HierarchicalQueue_count2]->Score <= 0.0)
-					{
-						break;
-					}
-
-					Elements[HierarchicalQueue_count1] = Elements[HierarchicalQueue_count2];
-				}
-
-				pThis->HierarchicalQueue->Heap[HierarchicalQueue_count1] = pThis->BufferForHierarchicalQueue;
-				++pThis->HierarchicalQueue->Count;
-
-				if ((uintptr_t)pThis->BufferForHierarchicalQueue > (uintptr_t)pThis->HierarchicalQueue->MaxNodePointer)
-				{
-					pThis->HierarchicalQueue->MaxNodePointer = pThis->BufferForHierarchicalQueue;
-				}
-
-				if ((uintptr_t)pThis->BufferForHierarchicalQueue < (uintptr_t)pThis->HierarchicalQueue->MinNodePointer)
-				{
-					pThis->HierarchicalQueue->MinNodePointer = pThis->BufferForHierarchicalQueue;
-				}
-
-				bool initial__ = true;
-				_ints_4C_costs[CellsArray_From] = pThis->initedcount;
-				_HierarchicalCosts[CellsArray_From] = 0.0f;
-				AStarQueueNodeHierarchical* someIdx_here = nullptr;
-
-				// pop front ???
-				if (pThis->HierarchicalQueue->Count)
-				{
-					someIdx_here = pThis->HierarchicalQueue->Heap[1];
-					pThis->HierarchicalQueue->Heap[1] = pThis->HierarchicalQueue->Heap[pThis->HierarchicalQueue->Count];
-					pThis->HierarchicalQueue->Heap[pThis->HierarchicalQueue->Count--] = 0;
-					pThis->HierarchicalQueue->Heapify();
-				}
-
-
-				if (!someIdx_here)
-				{
-					return false;
-				}
-
-				const bool CellIndexesIsInvalid = pThis->CellIndexesVector[some_startIndex].Count == 0;
-
-				int subzoneVectorIdx = some_startIndex >> 3;
-				while (true)
-				{
-					if (someIdx_here->Index == CellsArray_To)
-						break;
-
-					const auto data = SubzoneTrackingStruct::Array[0].Items + subzoneVectorIdx;
-					const auto data_Item = data->SubzoneConnections.Items + someIdx_here->Index;
-
-					for (int i = data->SubzoneConnections.Count; i > 0; --i) {
-
-					}
-				}
-			}
-		}
-	}
-}
-*/

@@ -45,7 +45,7 @@ CoordStruct ShiftLocomotionClass::FindShiftDestination(FootClass* pTechno, Coord
 				return false;
 
 			auto currentMapCrd = pTechno->GetMapCoords();
-			bool reachable = !pathReachable || AStarPathFinderClass::Instance->AttemptPath(&currentMapCrd, &mapCrd, pTechno, pTechno->OnBridge, pCell->ContainsBridge()) != INT_MAX;
+			bool reachable = !pathReachable || AStarPathFinderClass::Instance->Attempt(&currentMapCrd, &mapCrd, pTechno, pTechno->OnBridge, pCell->ContainsBridge()) != INT_MAX;
 
 			if (!reachable)
 				return false;

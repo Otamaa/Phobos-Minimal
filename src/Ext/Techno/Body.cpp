@@ -4306,22 +4306,8 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 
 	// FireAngle
 	pThis->BarrelFacing.Set_Current(DirStruct(0x4000 - (pCurrentType->FireAngle << 8)));
-
 	// Reset recoil data
-	{
-		auto& turretRecoil = pThis->TurretRecoil.Turret;
-		const auto& turretAnimData = pCurrentType->TurretAnimData;
-		turretRecoil.Travel = turretAnimData.Travel;
-		turretRecoil.CompressFrames = turretAnimData.CompressFrames;
-		turretRecoil.RecoverFrames = turretAnimData.RecoverFrames;
-		turretRecoil.HoldFrames = turretAnimData.HoldFrames;
-		auto& barrelRecoil = pThis->BarrelRecoil.Turret;
-		const auto& barrelAnimData = pCurrentType->BarrelAnimData;
-		barrelRecoil.Travel = barrelAnimData.Travel;
-		barrelRecoil.CompressFrames = barrelAnimData.CompressFrames;
-		barrelRecoil.RecoverFrames = barrelAnimData.RecoverFrames;
-		barrelRecoil.HoldFrames = barrelAnimData.HoldFrames;
-	}
+	TechnoExtData::InitializeRecoilData(pThis, pCurrentType);
 
 	// Clear AlphaImage
 	if (const auto pAlpha = PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pThis))
@@ -6291,8 +6277,14 @@ CoordStruct* __fastcall FakeTechnoClass::__Get_FLH(TechnoClass* pThis, discard_t
 	if (useBurstMirroring && pThis->CurrentBurstIndex % 2 != 0)
 		flh.Y = -flh.Y;
 
+	auto turIdx = -1;
+
+	if (pTypeExt->BurstPerTurret > 0)
+		turIdx = ((pThis->CurrentBurstIndex / pTypeExt->BurstPerTurret) % (pTypeExt->ExtraTurretCount + 1)) - 1;
+
 	flh += offset;
-	*pBuffer = TechnoExtData::GetFLHAbsoluteCoords(pThis, flh, allowOnTurret);
+	*pBuffer = TechnoExtData::GetFLHAbsoluteCoords(pThis, flh, allowOnTurret, turIdx);
+
 	return pBuffer;
 }
 DEFINE_FUNCTION_JUMP(LJMP, 0x6F3AD0, FakeTechnoClass::__Get_FLH);
@@ -11201,10 +11193,13 @@ Matrix3D TechnoExtData::GetTransform(TechnoClass* pThis, VoxelIndexKey* pKey, bo
 // reversed from 6F3D60
 CoordStruct TechnoExtData::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordStruct& flh, bool isOnTurret, int turIdx)
 {
-	auto const pType = GET_TECHNOTYPE(pThis);
+	//auto const pType = GET_TECHNOTYPE(pThis);
 	Matrix3D mtx = TechnoExtData::GetTransform(pThis);
-	auto pFoot = flag_cast_to<FootClass*>(pThis);
+	//auto pFoot = flag_cast_to<FootClass*>(pThis);
 
+	auto result = TechnoExtData::GetFLHMatrix(pThis, flh, isOnTurret, 1.0, false, turIdx).GetTranslation();
+
+#ifdef _Old
 	// Steps 2-3: turret offset and rotation
 	if (isOnTurret && (pThis->HasTurret() || !pFoot))
 	{
@@ -11226,6 +11221,7 @@ CoordStruct TechnoExtData::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordS
 	result.Y *= -1;
 
 	//auto result = mtx.GetTranslation();
+#endif
 
 	// Step 5: apply as an offset to global object coords
 	CoordStruct location = pThis->GetRenderCoords();
@@ -12488,10 +12484,10 @@ void TechnoExtData::TransformFLHForTurret(TechnoClass* pThis, Matrix3D& mtx, boo
 		TechnoTypeExtContainer::Instance.Find(pType)->ApplyTurretOffset(&mtx, factor, turIdx);
 		float angle {};
 
-		const double turretRad = pThis->TurretFacing().GetFacing<32>();
+		const double turretRad = pThis->TurretFacing().GetRadian<32>();
 
 		if (isFoot) {
-			angle = (float)(turretRad - pThis->PrimaryFacing.Current().GetFacing<32>());
+			angle = (float)(turretRad - pThis->PrimaryFacing.Current().GetRadian<32>());
 		}else {
 			angle = float(turretRad);
 		}
@@ -12507,8 +12503,6 @@ Matrix3D TechnoExtData::GetFLHMatrix(TechnoClass* pThis, const CoordStruct& nCoo
 
 	// apply FLH offset
 	nMTX.Translate((float)nCoord.X, (float)nCoord.Y, (float)nCoord.Z);
-
-
 
 	return nMTX;
 }

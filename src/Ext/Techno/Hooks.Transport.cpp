@@ -633,7 +633,68 @@ ASMJIT_PATCH(0x519776, InfantryClass_UpdatePosition_NoQueueUpToEnter, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x739FA2, UnitClassClass_UpdatePosition_NoQueueUpToEnter, 0x5)
+ASMJIT_PATCH(0x4D9510, FootClass_SetDestination_OpenToppedFireWhileMoving, 0x6)
+{
+	GET(FootClass*, pThis, EBP);
+	GET(void*, moving, ESI);
+
+	if (!moving)
+		return 0;
+
+	auto pUnit = cast_to<UnitClass*, false>(pThis);
+
+	if (!pUnit)
+		return 0;
+
+	auto pType = pUnit->Type;
+
+	if (pType->OpenTopped && pUnit->Passengers.NumPassengers > 0)
+	{
+		const bool fireWhileMoving = TechnoTypeExtContainer::Instance.Find(pType)->OpenTopped_FireWhileMoving.Get(RulesExtData::Instance()->OpenTopped_FireWhileMoving);
+		auto pPassenger = pUnit->Passengers.GetFirstPassenger();
+
+		while (pPassenger)
+		{
+			const bool canFire = fireWhileMoving && GET_TECHNOTYPEEXT(pPassenger)->OpenTransport_FireWhileMoving.Get(RulesExtData::Instance()->OpenTransport_FireWhileMoving);
+
+			// Technically these 2 can't exist in the same time, but just in case
+			if (auto const pLocoTarget = pPassenger->LocomotorTarget)
+			{
+				if (!canFire)
+				{
+					pPassenger->ReleaseLocomotor(true);
+				}
+				else if (auto const pWeapon = pPassenger->GetWeapon(pPassenger->SelectWeapon(pLocoTarget))->WeaponType)
+				{
+					if (pWeapon->Warhead->IsLocomotor && !pWeapon->FireWhileMoving)
+						pPassenger->ReleaseLocomotor(true);
+				}
+			}
+
+			if (auto const pTemporal = pPassenger->TemporalImUsing)
+			{
+				if (auto const pTarget = pTemporal->Target)
+				{
+					if (!canFire)
+					{
+						pTemporal->LetGo();
+					}
+					else if (auto const pWeapon = pPassenger->GetWeapon(pPassenger->SelectWeapon(pTarget))->WeaponType)
+					{
+						if (pWeapon->Warhead->Temporal && !pWeapon->FireWhileMoving)
+							pTemporal->LetGo();
+					}
+				}
+			}
+
+			pPassenger = flag_cast_to<FootClass*>(pPassenger->NextObject);
+		}
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x739FA2, UnitClass_UpdatePosition_NoQueueUpToEnter, 0x5)
 {
 	GET(UnitClass*, pThis, EBP);
 	GET(BuildingClass*, pBuilding, EBX);

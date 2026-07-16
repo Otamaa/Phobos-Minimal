@@ -1115,7 +1115,7 @@ bool NOINLINE AITriggerTypeExtData::CheckConditionType(AITriggerTypeClass* pThis
 			{
 				if (!IsValidTechno(pBuilding)) continue;
 
-				auto const pBuildingType = pBuilding->Type;
+				//auto const pBuildingType = pBuilding->Type;
 				if (pBuilding && pBuilding->Type->BridgeRepairHut)
 				{
 					if (!MapClass::Instance->IsLinkedBridgeDestroyed(pBuilding->GetCell()->MapCoords))

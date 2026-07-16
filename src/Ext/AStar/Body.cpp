@@ -9,732 +9,61 @@
 #include <MapClass.h>
 #include <HouseClass.h>
 #include <TubeClass.h>
+#include <InfantryClass.h>
+#include <UnitClass.h>
 
 #include <Misc/PhobosGlobal.h>
 
 #include <CellSpread.h>
 
+// -----------------------------------------------------------------------
+// Stamp a flat cell index as visited and record its movement cost.
+// useAlt selects the bridge (alt) layer vs ground layer arrays.
+// Consolidates the 6+ VisitCounts/AltVisitCounts stamp pairs in
+// Find_Path_Regular and Init.
+// -----------------------------------------------------------------------
+struct VisitStamper
+{
+	int* VisitCounts;
+	int* AltVisitCounts;
+	float* Distances;
+	float* AltDistances;
+	int   SearchID;
+
+	void Stamp(int flatIdx, float cost, bool useAlt) const
+	{
+		if (useAlt)
+		{
+			VisitCounts[flatIdx] = SearchID;
+			Distances[flatIdx] = cost;
+		}
+		else
+		{
+			AltVisitCounts[flatIdx] = SearchID;
+			AltDistances[flatIdx] = cost;
+		}
+	}
+
+	bool IsVisited(int flatIdx, bool useAlt) const
+	{
+		return useAlt
+			? (VisitCounts[flatIdx] == SearchID)
+			: (AltVisitCounts[flatIdx] == SearchID);
+	}
+
+	float GetDist(int flatIdx, bool useAlt) const
+	{
+		return useAlt ? Distances[flatIdx] : AltDistances[flatIdx];
+	}
+};
+
 static COMPILETIMEEVAL constant_ptr<float, 0x7E3794> _pathfind_adjusment {};
-
-static bool PriorityQueue_Insert_Safe(
-	PriorityQueueClass_AStarHierarchical* queue,
-	AStarQueueNodeHierarchical* element);
-
-static AStarQueueNodeHierarchical* PriorityQueue_Pop_Safe(
-	PriorityQueueClass_AStarHierarchical* queue);
-
-static void PriorityQueue_HeapifyDown_Safe(
-	PriorityQueueClass_AStarHierarchical* queue,
-	int index);
-
-// Safe insert into priority queue
-static bool PriorityQueue_Insert_Safe(
-	PriorityQueueClass_AStarHierarchical* queue,
-	AStarQueueNodeHierarchical* element)
-{
-	// Null checks
-	if (!queue || !element)
-	{
-		Debug::Log("[A* Queue] Insert failed: null queue or element\n");
-		return false;
-	}
-
-	if (!queue->Heap)
-	{
-		Debug::Log("[A* Queue] Insert failed: null heap array\n");
-		return false;
-	}
-
-	// Capacity check
-	int newPos = queue->Count + 1;
-	if (newPos >= queue->Capacity)
-	{
-		Debug::Log("[A* Queue] Insert failed: overflow (Count=%d, Capacity=%d)\n",
-			queue->Count, queue->Capacity);
-		return false;
-	}
-
-	// Bubble up
-	unsigned int insertPos = static_cast<unsigned int>(newPos);
-	unsigned int parentPos = insertPos >> 1;
-
-	while (insertPos > 1)
-	{
-		// Bounds check for parent
-		if (parentPos < 1 || parentPos > static_cast<unsigned int>(queue->Count))
-			break;
-
-		auto* parent = queue->Heap[parentPos];
-
-		// Null check for parent
-		if (!parent)
-		{
-			Debug::Log("[A* Queue] Insert: null parent at index %u\n", parentPos);
-			break;
-		}
-
-		// Compare scores (min-heap: parent should be <= child)
-		if (parent->Score <= element->Score)
-			break;
-
-		// Move parent down
-		queue->Heap[insertPos] = parent;
-		insertPos = parentPos;
-		parentPos >>= 1;
-	}
-
-	// Place element
-	queue->Heap[insertPos] = element;
-	++queue->Count;
-
-	// Update bounds pointers
-	if (element > queue->MaxNodePointer)
-		queue->MaxNodePointer = element;
-	if (element < queue->MinNodePointer)
-		queue->MinNodePointer = element;
-
-	return true;
-}
-
-// Safe pop from priority queue
-static AStarQueueNodeHierarchical* PriorityQueue_Pop_Safe(
-	PriorityQueueClass_AStarHierarchical* queue)
-{
-	// Null checks
-	if (!queue || !queue->Heap)
-	{
-		Debug::Log("[A* Queue] Pop failed: null queue or heap\n");
-		return nullptr;
-	}
-
-	if (queue->Count <= 0)
-		return nullptr;
-
-	// Bounds validation
-	if (queue->Count > queue->Capacity)
-	{
-		Debug::Log("[A* Queue] Pop: Count(%d) > Capacity(%d), resetting\n",
-			queue->Count, queue->Capacity);
-		queue->Count = 0;
-		return nullptr;
-	}
-
-	// Get root element
-	auto* result = queue->Heap[1];
-	if (!result)
-	{
-		Debug::Log("[A* Queue] Pop: root is null but Count=%d\n", queue->Count);
-		queue->Count = 0;
-		return nullptr;
-	}
-
-	// Move last element to root
-	queue->Heap[1] = queue->Heap[queue->Count];
-	queue->Heap[queue->Count] = nullptr;
-	--queue->Count;
-
-	// Heapify down if elements remain
-	if (queue->Count > 0)
-	{
-		PriorityQueue_HeapifyDown_Safe(queue, 1);
-	}
-
-	return result;
-}
-
-// Safe heapify down
-static void PriorityQueue_HeapifyDown_Safe(
-	PriorityQueueClass_AStarHierarchical* queue,
-	int index)
-{
-	if (!queue || !queue->Heap || queue->Count <= 0)
-		return;
-
-	const int count = queue->Count;
-	auto** heap = queue->Heap;
-
-	while (true)
-	{
-		int smallest = index;
-		int leftChild = index * 2;
-		int rightChild = leftChild + 1;
-
-		// Check left child
-		if (leftChild <= count && leftChild <= queue->Capacity)
-		{
-			auto* leftNode = heap[leftChild];
-			auto* currentNode = heap[smallest];
-
-			if (leftNode && currentNode && leftNode->Score < currentNode->Score)
-			{
-				smallest = leftChild;
-			}
-		}
-
-		// Check right child
-		if (rightChild <= count && rightChild <= queue->Capacity)
-		{
-			auto* rightNode = heap[rightChild];
-			auto* currentNode = heap[smallest];
-
-			if (rightNode && currentNode && rightNode->Score < currentNode->Score)
-			{
-				smallest = rightChild;
-			}
-		}
-
-		// If no swap needed, we're done
-		if (smallest == index)
-			break;
-
-		// Swap
-		auto* temp = heap[index];
-		heap[index] = heap[smallest];
-		heap[smallest] = temp;
-
-		index = smallest;
-	}
-}
-
-// Safe priority queue clear
-static void PriorityQueue_Clear_Safe(PriorityQueueClass_AStarHierarchical* queue)
-{
-	if (!queue || !queue->Heap)
-		return;
-
-	int clearCount = std::min(queue->Count + 1, queue->Capacity);
-	for (int i = 0; i <= clearCount; ++i)
-	{
-		queue->Heap[i] = nullptr;
-	}
-	queue->Count = 0;
-}
-
-bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
-	CellStruct* startCell,
-	CellStruct* destCell,
-	MovementZone mzone,
-	FootClass* foot)
-{
-	// NOTE: initedcount is NOT incremented here - it is managed by AStarClass::Init()
-	// which is called by Find_Path() before this function. The original pseudocode
-	// does not increment it in Find_Path_Hierarchical.
-
-	// Get global passability data pointer (original: MapClass___LevelAndPassabilityStruct2pointer_70)
-	GlobalPassabilityData* globalPassabilityArray = MapClass::Instance->LevelAndPassabilityStruct2pointer_70;
-
-	// Movement zone array for passability checks (original: MoveZones_AStarMoveAdjustArray[mzone])
-	const int mzoneIndex = static_cast<int>(mzone);
-	auto& moveZoneArray = MapClass::MovementAdjustArray[mzoneIndex];
-
-	// Game's actual adjustments data at 0x7E3794 (connection cost weights per MovementCostType)
-	const float* gameAdjustments = _pathfind_adjusment;
-
-	// Initialize threat avoidance (matches pseudocode flow exactly)
-	double threatAvoidance = 0.0;
-	HouseClass* ownerHouse = nullptr;
-	bool useThreatAvoidance = false;
-
-	if (foot)
-	{
-		threatAvoidance = foot->GetThreatAvoidanceCoefficient();
-		ownerHouse = foot->Owner;
-
-		if (threatAvoidance > 0.00001)
-			useThreatAvoidance = true;
-	}
-
-	// Get zone raw indices from cells (original: MapClass_zone_56D3F0)
-	const int startZoneRaw = MapClass::Instance->MapClass_zone_56D3F0(startCell);
-	const int destZoneRaw = MapClass::Instance->MapClass_zone_56D3F0(destCell);
-
-	// Process hierarchy levels 2, 1, 0 (coarse to fine)
-	for (int level = 2; level >= 0; --level)
-	{
-		// Clear hierarchical queue (original clears Elements[] and resets Count)
-		PriorityQueue_Clear_Safe(this->HierarchyQueue);
-
-		// Get subzone indices from GlobalPassabilityData::data[level]
-		// These are unsigned WORDs (zone indices), zero-extended to int
-		const unsigned short startZone = globalPassabilityArray[startZoneRaw].data[level];
-		const unsigned short destZone = globalPassabilityArray[destZoneRaw].data[level];
-
-		const bool isTopLevel = (level == 2);
-
-		// Parent level visited array (null for top level)
-		int* parentLevelVisited = isTopLevel ? nullptr : this->LevelVisitedMarkers[level + 1];
-
-		// Current level arrays
-		int* visitedArray = this->LevelVisitedMarkers[level];
-		int* openSetArray = this->OpenSetMarkers[level];
-		float* costArray = this->GCostArray[level];
-
-		// Mark start and dest as visited
-		visitedArray[startZone] = this->SearchID;
-		visitedArray[destZone] = this->SearchID;
-
-		// Early exit: start equals destination (original: if v10 == v75)
-		if (startZone == destZone)
-		{
-			if (level == 0)
-			{
-				this->HierarchyBuffer->Number = 0;
-				this->HierarchyBuffer->Index = static_cast<DWORD>(startZone);
-			}
-
-			this->PassabilityData[level].Indices[0] = static_cast<unsigned short>(startZone);
-			this->PassabilityCounts[level] = 1;
-			continue; // goto LABEL_85 equivalent
-		}
-
-		// Initialize first element in node buffer
-		AStarQueueNodeHierarchical* firstElement = this->HierarchyBuffer;
-		firstElement->BufferDelta = -1;  // No parent (sentinel)
-		firstElement->Index = static_cast<DWORD>(startZone);
-		firstElement->Score = 0.0f;
-		firstElement->Number = 0;
-
-		if (!PriorityQueue_Insert_Safe(this->HierarchyQueue, firstElement))
-			return false;
-
-		int elementCount = 1;                 // v69: tracks buffer allocation index
-		int bufferOffset = 1 * 16;            // v70: byte offset into buffer for next node
-
-		openSetArray[startZone] = this->SearchID;
-		costArray[startZone] = 0.0f;
-
-		// Pop initial element from queue
-		AStarQueueNodeHierarchical* currentElement = PriorityQueue_Pop_Safe(this->HierarchyQueue);
-		if (!currentElement)
-			return false;
-
-		const bool noBlockedPairs = (this->ZoneIndices[level].Count == 0);
-
-		// SubzoneTracking data for this level
-		auto& subzoneTrackingArray = SubzoneTrackingStruct::Array[level];
-
-		// Main A* search loop
-		while (true)
-		{
-			const int currentNode = static_cast<int>(currentElement->Index);
-
-			// Reached destination?
-			if (currentNode == static_cast<int>(destZone))
-				break;
-
-			// Get neighbor connections for current node
-			SubzoneTrackingStruct& currentSubzone = subzoneTrackingArray.Items[currentNode];
-			auto& connections = currentSubzone.SubzoneConnections;
-			const int neighborCount = connections.Count;
-
-			if (neighborCount > 0)
-			{
-				for (int n = 0; n < neighborCount; ++n)
-				{
-					SubzoneConnectionStruct& connection = connections.Items[n];
-
-					const int neighborNode = static_cast<int>(connection.NeighborSubzoneIndex);
-					const char connectionFlag = static_cast<char>(connection.ConnectionPenaltyFlag);
-
-					// Get neighbor's subzone data
-					SubzoneTrackingStruct& neighborSubzone = subzoneTrackingArray.Items[neighborNode];
-					const unsigned short parentZone = neighborSubzone.ParentZoneIndex;
-					const int movementType = static_cast<int>(neighborSubzone.MovementCostType);
-
-					// Calculate threat cost if applicable
-					int threatCost = 0;
-					if (useThreatAvoidance)
-					{
-						const int rawThreat = MapClass::Instance->subZone_585F40(
-							ownerHouse, level, currentNode, neighborNode);
-						threatCost = static_cast<int>(static_cast<double>(rawThreat) * threatAvoidance);
-					}
-
-					// Connection penalty (original: ptrfield_4 ? 0.001 : 0.0)
-					const float connectionPenalty = connectionFlag ? 0.001f : 0.0f;
-
-					// Calculate new cost using game's adjustment data at 0x7E3794
-					const float newCost = gameAdjustments[movementType]
-						+ currentElement->Score
-						+ static_cast<float>(threatCost)
-						+ connectionPenalty;
-
-					// Condition 1: Not in open set, or found a better path
-					if (openSetArray[neighborNode] == this->SearchID
-						&& !(costArray[neighborNode] > static_cast<double>(newCost)))
-					{
-						continue;
-					}
-
-					// Condition 2: Parent level connectivity check
-					// (isTopLevel || parentVisited[parentZone] == SearchID || movementType == 1)
-					if (!isTopLevel
-						&& parentLevelVisited[parentZone] != this->SearchID
-						&& movementType != 1)
-					{
-						continue;
-					}
-
-					// Condition 3: Movement zone passability check
-					if (moveZoneArray[movementType] != 1)
-						continue;
-
-					// Condition 4: Blocked cell pairs check
-					if (!noBlockedPairs)
-					{
-						unsigned short lo = static_cast<unsigned short>(neighborNode);
-						unsigned short hi = static_cast<unsigned short>(currentNode);
-
-						if (lo < hi)
-							std::swap(lo, hi);
-
-						const int pairKey = static_cast<int>(lo) | (static_cast<int>(hi) << 16);
-
-						auto& blockedVector = this->ZoneIndices[level];
-						bool isBlocked = false;
-
-						for (int searchIdx = blockedVector.Count - 1; searchIdx >= 0; --searchIdx)
-						{
-							if (*reinterpret_cast<int*>(&blockedVector.Items[searchIdx]) == pairKey)
-							{
-								isBlocked = true;
-								break;
-							}
-						}
-
-						if (isBlocked)
-							continue;
-					}
-
-					// Create new node in buffer and push to queue
-					char* buffer = reinterpret_cast<char*>(this->HierarchyBuffer);
-					AStarQueueNodeHierarchical* newElement = reinterpret_cast<AStarQueueNodeHierarchical*>(buffer + bufferOffset);
-
-					// BufferDelta = byte offset of parent in buffer, divided by 16
-					newElement->BufferDelta = static_cast<int>(
-						(reinterpret_cast<char*>(currentElement) - buffer) >> 4);
-					newElement->Index = static_cast<DWORD>(neighborNode);
-					newElement->Score = newCost;
-					newElement->Number = currentElement->Number + 1;
-
-					if (!PriorityQueue_Insert_Safe(this->HierarchyQueue, newElement))
-						continue;
-
-					// Update open set and cost
-					openSetArray[neighborNode] = this->SearchID;
-					costArray[neighborNode] = newCost;
-
-					++elementCount;
-					bufferOffset += 16;
-				}
-			}
-
-			// Pop next best element from queue
-			currentElement = PriorityQueue_Pop_Safe(this->HierarchyQueue);
-			if (!currentElement)
-			{
-				Debug::Log("[A* Hierarchical] No path at level %d: zones %u->%u\n",
-					level, startZone, destZone);
-				return false;
-			}
-		}
-
-		// currentElement now points to the destination node
-		if (!currentElement)
-			return false;
-
-		// Phase 1: Walk back through path, marking nodes as visited in visitedArray
-		// This is used by lower hierarchy levels to validate parent connectivity
-		auto* walkNode = currentElement;
-		if (walkNode->BufferDelta != -1)
-		{
-			do
-			{
-				visitedArray[walkNode->Index] = this->SearchID;
-
-				walkNode = reinterpret_cast<AStarQueueNodeHierarchical*>(
-					reinterpret_cast<char*>(this->HierarchyBuffer)
-					+ walkNode->BufferDelta * 16);
-			}
-			while (walkNode->BufferDelta != -1);
-		}
-
-		// Phase 2: Store path in PassabilityData array (reversed)
-		const int pathLength = currentElement->Number + 1;
-		this->PassabilityCounts[level] = pathLength;
-
-		int pathIdx = pathLength - 1;
-		auto* storeNode = currentElement;
-
-		if (pathIdx > 0)
-		{
-			short* resultPtr = reinterpret_cast<short*>(&this->PassabilityData[level].Indices[pathIdx]);
-
-			do
-			{
-				*resultPtr = static_cast<short>(storeNode->Index);
-				--resultPtr;
-
-				storeNode = reinterpret_cast<AStarQueueNodeHierarchical*>(
-					reinterpret_cast<char*>(this->HierarchyBuffer)
-					+ storeNode->BufferDelta * 16);
-				--pathIdx;
-			}
-			while (pathIdx > 0);
-		}
-
-		// Store first node (the start zone)
-		this->PassabilityData[level].Indices[0] = static_cast<unsigned short>(storeNode->Index);
-	}
-
-	return true;
-}
-
-DEFINE_FUNCTION_JUMP(LJMP, 0x42C290, FakeAStarPathFinderClass::__Find_Path_Hierarchical)
-
-
-ObjectClass* GetCellObj(CellClass* pCell,  bool alt)
-{
-	return alt ? pCell->AltObject : pCell->FirstObject;
-}
-
-AStarPathFinderClass::AStarPathFinderClass()
-	: unknown_byte_0 { 0 }
-	, FindBridgeDir { false }
-	, unknown_byte_2 { 0 }
-	, CanFindPath { true }                         // [esi+3] = 1
-	, PathCostFactor { 1.0f }                         // 3F800000h
-	, IsAlt { true }                         // [esi+8] = 1
-	, PathNodeBuffer { nullptr }                      // [esi+0Ch]
-	, PathQueueBuffer { nullptr }                      // [esi+10h]
-	, PathQueue { nullptr }                      // [esi+14h]
-	, VisitCounts { nullptr }                      // [esi+18h]
-	, AltVisitCounts { nullptr }                      // [esi+1Ch]
-	, AltDistances { nullptr }                      // [esi+20h]
-	, Distances { nullptr }                      // [esi+24h]
-	, SearchID { -1 }                           // [esi+28h]
-	, FinderSpeedType { static_cast<SpeedType>(-1) }   // [esi+2Ch]
-	, IsSearching { true }                         // [esi+38h]
-	, FindMode { ASTAR_PASS_0 }                 // [esi+3Ch]
-	, HierarchyBuffer { nullptr }                      // [esi+64h]
-	, HierarchyQueue { nullptr }                      // [esi+68h]
-	, PathLength { -1 }                           // [esi+6Ch]
-	, CellStructBuffer { 0, 0 }                         // [esi+70h/72h]
-{
-
-	// --- ZoneIndices[0..2] [0x42A718–0x42A73D] ---
-	// Asm: 3× DynamicVectorClass ctor + vftable fix-up + GrowthStep=10 + ActiveCount=0
-	for (int i = 0; i < 3; ++i)
-	{
-		ZoneIndices[i] = DynamicVectorClass<CellStruct>();
-	}
-
-	// --- PathQueue: TPriorityQueueClass<AStarWorkPathStruct> [0x42A73F–0x42A78D] ---
-	// 0x14-byte header + 0x40004 Nodes array (65537 × 4 bytes)
-	// IDA: AStarStruct1_14 → [esi+14h]
-	// VERIFY: confirm YRpp field name for [esi+14h]
-	PathQueue = AllocPriorityQueue<AStarWorkPathStruct>(0x10000, 0x40004u);
-
-	// --- HierarchyQueue: TPriorityQueueClass<AStarWorkPathStructNode> [0x42A78E–0x42A7DF] ---
-	// 0x14-byte header + 0x9C44 Nodes array
-	// IDA: AStarclass1_68 → [esi+68h]
-	// VERIFY: confirm YRpp field name for [esi+68h]; sizeof gap — see header
-	HierarchyQueue = reinterpret_cast<PriorityQueueClass_AStarHierarchical*>(
-		AllocPriorityQueue<AStarWorkPathStructNode>(0x2710, 0x9C44u));
-
-	// --- PathQueueBuffer: AStarWorkPathStructHeap [0x42A7E0–0x42A813] ---
-	// IDA: AStarStruct4_10 → [esi+10h]
-	// sizeof(AStarWorkPathStructHeap) = 16 × 65536 + 4 = 0x100004 ✓
-	// Asm zeroes @4,@8,@C of each AStarWorkPathStruct entry — skips @0 (Data*).
-	// SUSPECT: Data* left uninitialised by vanilla — intentional, set before use.
-	{
-		auto* buf = static_cast<AStarWorkPathStructHeap*>(operator new(0x100004u));
-		if (buf)
-		{
-			auto* cursor = reinterpret_cast<std::uint32_t*>(
-				reinterpret_cast<std::uint8_t*>(buf) + 8);
-
-			for (int n = 0x10000; n > 0; --n)
-			{
-				cursor[-1] = 0u;    // MovementCost
-				cursor[0] = 0u;    // PathCost
-				cursor[1] = 0u;    // PathLength
-				cursor += 4;
-			}
-
-			buf->ActiveCount = 0;
-			PathQueueBuffer = buf;
-		}
-	}
-
-	// --- PathNodeBuffer: AStarWorkPathStructDataHeap [0x42A814–0x42A834] ---
-	// IDA: AStarStruct3_C → [esi+0Ch]
-	// VERIFY: sizeof(AStarWorkPathStructNode) == 12 → 12 × 131072 = 0x180000 + 4 = 0x180004 ✓
-	{
-		auto* buf = static_cast<AStarWorkPathStructDataHeap*>(operator new(0x180004u));
-		if (buf)
-		{
-			buf->ActiveCount = 0;   // [eax+180000h] at 0x42A828
-			PathNodeBuffer = buf;
-		}
-
-		// BUGFIX[0x42A835]: vanilla writes sentinel again unconditionally — null-deref on failure.
-		if (PathNodeBuffer)
-			PathNodeBuffer->ActiveCount = 0;
-	}
-
-	// BUGFIX[0x42A840]: same pattern for PathQueueBuffer.
-	if (PathQueueBuffer)
-		PathQueueBuffer->ActiveCount = 0;
-
-	// --- PathQueue::Clear() inlined [0x42A846–0x42A85A] ---
-	// Redundant (Count already 0) but vanilla does it — reproduced for behavioral parity.
-	if (PathQueue)
-		PathQueue->Clear();
-
-	// --- HierarchyQueue::Clear() inlined [0x42A85D–0x42A873] ---
-	if (HierarchyQueue)
-		reinterpret_cast<TPriorityQueueClass<AStarWorkPathStructNode>*>(HierarchyQueue)->Clear();
-
-	// --- Triple init loop [0x42A876–0x42A8DE] ---
-	// asm: ebp=pThis+0x4C, writes [ebp-0xC]/[ebp]/[ebp+0xC] per iteration (ebp+=4)
-	// YRpp: LevelVisitedMarkers[3]@0x40, OpenSetMarkers[3]@0x4C, GCostArray[3]@0x58
-	// PassabilityCounts offset: 0x4C + 0xC28 = 0xC74 = PassabilityCounts[0] ✓
-	for (int i = 0; i < 3; ++i)
-	{
-		LevelVisitedMarkers[i] = nullptr;
-		OpenSetMarkers[i] = nullptr;
-		GCostArray[i] = nullptr;
-
-		ZoneIndices[i].clear();     // vtable [edx+0Ch] at 0x42A8A3
-
-		std::memset(&PassabilityData[i], 0, sizeof(AStarClass_PassabilityData));
-
-		PassabilityCounts[i] = 0;
-	}
-
-	// --- HierarchyBuffer: raw node pool [0x42A8E0–0x42A8ED] ---
-	// IDA: buffer4 → [esi+64h]
-	// VERIFY: sizeof(AStarQueueNodeHierarchical) == 16 → 0x27100 / 16 == 10000 nodes
-	HierarchyBuffer = static_cast<AStarQueueNodeHierarchical*>(operator new(0x27100u));
-}
-
-AStarPathFinderClass::~AStarPathFinderClass()
-{
-	// --- PathQueue: delete Nodes array then header [esi+14h] ---
-	// IDA: v2 = AStarStruct1_14; delete v2->Elements; delete v2;
-	if (PathQueue)
-	{
-		operator delete(PathQueue->Nodes);
-		operator delete(PathQueue);
-		PathQueue = nullptr;
-	}
-
-	// --- HierarchyQueue: same pattern [esi+68h] ---
-	// IDA: v3 = AStarclass1_68; delete v3->Elements; delete v3;
-	// Null written BEFORE v3 block in vanilla (this->AStarStruct1_14 = 0 between v2/v3).
-	// DIFF: we null after delete — functionally identical, cleaner.
-	if (HierarchyQueue)
-	{
-		auto* q = reinterpret_cast<TPriorityQueueClass<AStarWorkPathStructNode>*>(HierarchyQueue);
-		operator delete(q->Nodes);
-		operator delete(q);
-		HierarchyQueue = nullptr;
-	}
-
-	// --- PathQueueBuffer [esi+10h] ---
-	// IDA: v4 = AStarStruct4_10; delete v4;
-	if (PathQueueBuffer)
-	{
-		operator delete(PathQueueBuffer);
-		PathQueueBuffer = nullptr;
-	}
-
-	// --- PathNodeBuffer [esi+0Ch] ---
-	// IDA: v5 = AStarStruct3_C; delete v5;
-	if (PathNodeBuffer)
-	{
-		operator delete(PathNodeBuffer);
-		PathNodeBuffer = nullptr;
-	}
-
-	// --- VisitCounts [esi+18h] ---
-	// IDA: v6 = pvoid18; delete v6; pvoid18 = 0;
-	if (VisitCounts)
-	{
-		operator delete(VisitCounts);
-		VisitCounts = nullptr;
-	}
-
-	// --- AltVisitCounts [esi+1Ch] ---
-	if (AltVisitCounts)
-	{
-		operator delete(AltVisitCounts);
-		AltVisitCounts = nullptr;
-	}
-
-	// --- Distances [esi+24h] = costarray2 — deleted BEFORE AltDistances ---
-	// VERIFY: IDA deletes costarray2 before costarray1; confirm field order matters.
-	if (Distances)
-	{
-		operator delete(Distances);
-		Distances = nullptr;
-	}
-
-	// --- AltDistances [esi+20h] = costarray1 ---
-	if (AltDistances)
-	{
-		operator delete(AltDistances);
-		AltDistances = nullptr;
-	}
-
-	// --- LevelVisitedMarkers / OpenSetMarkers / GCostArray [0x42A876 pattern] ---
-	// IDA: v7 = pointers_4C; loop 3×: delete *(v7-3), delete *v7, delete v7[3]; ++v7
-	// v7 starts at OpenSetMarkers[0] (offset 0x4C).
-	// *(v7-3) = LevelVisitedMarkers[i] (offset 0x40 base)
-	// *v7     = OpenSetMarkers[i]      (offset 0x4C base)
-	// v7[3]   = GCostArray[i]          (offset 0x58 base)
-	for (int i = 0; i < 3; ++i)
-	{
-		if (LevelVisitedMarkers[i])
-		{
-			operator delete(LevelVisitedMarkers[i]);
-			LevelVisitedMarkers[i] = nullptr;
-		}
-
-		if (OpenSetMarkers[i])
-		{
-			operator delete(OpenSetMarkers[i]);
-			OpenSetMarkers[i] = nullptr;
-		}
-
-		if (GCostArray[i])
-		{
-			operator delete(GCostArray[i]);
-			GCostArray[i] = nullptr;
-		}
-	}
-
-	// --- HierarchyBuffer [esi+64h] ---
-	// IDA: delete buffer4 — no null written after, vanilla pattern reproduced.
-	operator delete(HierarchyBuffer);
-	HierarchyBuffer = nullptr;
-
-	// --- ZoneIndices[0..2]: DynamicVectorClass dtor ---
-	// IDA v9 loop is garbled — real intent confirmed by pattern:
-	//   checks internal buffer pointer, if IsAllocated frees it, zeros pointer + ActiveCount.
-	// Calling explicit dtor handles IsAllocated check internally.
-	// DIFF: vanilla iterates in descending order (v10 counts down from 3).
-	//   DynamicVectorClass dtor is order-independent here (no cross-references between slots).
-	for (int i = 2; i >= 0; --i)
-		ZoneIndices[i].~DynamicVectorClass<CellStruct>();
-}
 
 // Cost multiplier per pass/layer index (a5).
 // flt_81870C[0..6] = {1.0, 1000.0, 1.0, 1.0, 60.0, 20.0, 8.0}
 // VERIFY: indices 3..6 — only 0/1/2 used by AStarPostProcessType; rest may be
 //         used by other callers. Array size confirmed as 7 entries from segment dump.
-static constexpr float PassCostMultiplier[7] =
+static COMPILETIMEEVAL float PassCostMultiplier[7] =
 {
 	1.0f,     // ASTAR_PASS_0
 	1000.0f,  // ASTAR_PASS_1
@@ -749,7 +78,7 @@ static constexpr float PassCostMultiplier[7] =
 // dword_7E3710[0..7] = {-2,-2,0,1,1,1,0,-2}
 // Used when CellClass::Bitfield2 bit 0x800 is clear.
 // VERIFY: naming — "non-bridge neighbor offset table"
-static constexpr int NeighborIndexTable_Flat[8] =
+static COMPILETIMEEVAL int NeighborIndexTable_Flat[8] =
 {
 	-2, -2, 0, 1, 1, 1, 0, -2
 };
@@ -758,369 +87,20 @@ static constexpr int NeighborIndexTable_Flat[8] =
 // dword_7E3730[0..7] = {0,-1024,-1024,-1024,0,512,512,512}
 // Used when CellClass::Bitfield2 bit 0x800 is set.
 // VERIFY: naming — "bridge neighbor offset table"; large values suggest zone/buffer indexing
-static constexpr int NeighborIndexTable_Bridge[8] =
+static COMPILETIMEEVAL int NeighborIndexTable_Bridge[8] =
 {
 	0, -1024, -1024, -1024, 0, 512, 512, 512
-};
-
-// Cell delta to direction index LUT.
-// dword_7E3760[0..4] = {-1, 2, 5, 4, 3}
-// Indexed by: 3 * (target.Y - source.Y) + (target.X - source.X)
-// Maps a {dx,dy} delta in [-1,1] to a facing/direction index.
-// VERIFY: -1 entry at index 0 — may indicate invalid/diagonal-only direction.
-static constexpr int DeltaToDirectionIndex[5] =
-{
-	-1, 2, 5, 4, 3
 };
 
 // Scalar float constants confirmed from asm bit patterns:
 // flt_7E37B4 = 2.0f  (both-sides-bridge multiplier)
 // flt_7E37B8 = 10.0f (no-bridge penalty)
 // flt_7E37BC = 4.0f  (tunnel/wall cost multiplier, bit 0x40000)
-static constexpr float BridgeBothSidesMultiplier = 2.0f;
-static constexpr float NoBridgeMultiplier = 10.0f;
-static constexpr float TunnelCostMultiplier = 4.0f;
+static COMPILETIMEEVAL float BridgeBothSidesMultiplier = 2.0f;
+static COMPILETIMEEVAL float NoBridgeMultiplier = 10.0f;
+static COMPILETIMEEVAL float TunnelCostMultiplier = 4.0f;
 
-// -----------------------------------------------------------------------
-// AStarPathFinderClass::Calc_Float()  [0x429830]
-//
-// Calculates the movement cost multiplier for entering a target cell.
-//
-// arg0     : pointer to array of CellClass* — source cell neighborhood buffer
-// a3       : pointer to array of CellClass* — target cell neighborhood buffer
-// a4       : bool — use alt occupier (bridge layer)
-// a5       : pass/layer index → indexes PassCostMultiplier
-// a6       : unused in this function body (confirmed by asm — no reference after entry)
-//
-// VERIFY: a3 is CellClass** (neighborhood buffer pointer), not a single CellClass*.
-//         Pseudocode uses a3 as both array pointer and single-cell pointer — asm confirms
-//         [esi] dereference at entry, so *a3 is the target cell. Naming kept as-is.
-// VERIFY: return type — IDA says double but asm uses x87 float stack with single-precision
-//         constants (fld dword). SUSPECT: actually returns float promoted to double by ABI.
-// -----------------------------------------------------------------------
-double AStarPathFinderClass::Calc_Float(
-	CellClass** arg0,
-	CellClass** a3,
-	int         a4,
-	int         a5,
-	int         a6) const
-{
-	CellClass* targetCell = *a3;
-	CellClass* sourceCell = *arg0;
-
-	// Load base cost for this pass layer
-	float cost = PassCostMultiplier[a5];
-
-	// --- Occupier chain walk (only for pass layer 2) [0x42985C–0x4299A9] ---
-	// Walks the occupier linked list of the target cell to detect blocking units.
-	// Adjusts cost based on FindMode.
-	if (a5 == 2)
-	{
-		ObjectClass* occupier = GetCellObj(targetCell, a4);
-
-		int chainDepth = 0;
-		bool chainBroken = false;
-
-		if (!FindMode)
-		{
-			while (occupier)
-			{
-				// Check IsDisabled bit (TargetBitfield[0] & 4) — skip disabled units
-				if ((occupier->AbstractFlags & AbstractFlags::Foot) == AbstractFlags::None)
-				{
-					chainBroken = true;
-					break;
-				}
-
-				unsigned int facingIndex;
-				FootClass* pFootOccupy = (FootClass*)occupier;
-
-				if (pFootOccupy->SpeedPercentage == 0.0)
-				{
-					// Unit is stopped — use its queued path direction
-					facingIndex = pFootOccupy->PathDirections[0];
-					if (facingIndex == static_cast<unsigned int>(-1))
-						break; // no path queued — chain ends cleanly
-				}
-				else
-				{
-					// Unit is moving — derive facing from PrimaryFacing
-					// Asm: (FacingClass::Current >> 12 + 1) >> 1  & 7
-					DirStruct dir = pFootOccupy->PrimaryFacing.Current();
-					facingIndex = (((static_cast<unsigned int>(dir.Raw) >> 12) + 1) >> 1) & 7u;
-				}
-
-				// Get cell the occupier is heading toward
-				CellStruct occupierCell = occupier->GetMapCoords();
-				CellStruct nextCell =
-				{
-					static_cast<short>(CellSpread::AdjacentCell[facingIndex & 7u].X + occupierCell.X),
-					static_cast<short>(occupierCell.Y + CellSpread::AdjacentCell[facingIndex & 7u].Y)
-				};
-
-				CellClass* nextCellPtr = MapClass::Instance->GetCellAt(nextCell);
-
-				// Determine which occupier layer to follow into next cell
-				// Asm: checks Bitfield2 bit 0x100 (IsBridge?) and IsOnBridge / level delta
-				bool usesAlt = nextCellPtr->ContainsBridge()
-					&& (pFootOccupy->OnBridge
-						|| (pFootOccupy->GetCell()->Level - nextCellPtr->Level > 2));
-
-				occupier = GetCellObj(nextCellPtr, usesAlt);
-				++chainDepth;
-
-				if (chainDepth >= 10)
-				{
-					chainBroken = true;
-					break;
-				}
-			}
-		}
-		else
-		{
-			chainBroken = true;
-		}
-
-		// Apply cost penalty based on FindMode and chain result
-		// Asm at 0x42998D: FindMode != 0 → cost = 4.0
-		// Asm at 0x429995: FindMode == 2 → cost = 1000.0
-		if (chainBroken || FindMode)
-			cost = 4.0f;
-
-		if (FindMode == 2)
-			cost = 1000.0f;
-	}
-
-	// --- Tunnel/wall penalty [0x4299AA–0x4299C5] ---
-	// CellClass::Bitfield2 bit 0x40000 — tunnel or similar obstruction
-	int bitfield2 = targetCell->UINTFlags;
-	if (bitfield2 & 0x40000)
-		cost *= TunnelCostMultiplier;
-
-	// --- Early out: no alt layer or FindBridgeDir not set [0x4299C6–0x429A82] ---
-	if (!a4 || !FindBridgeDir)
-		return cost;
-
-	// --- Bridge direction cost adjustment [0x4299D7–0x429A7F] ---
-	// Computes which direction we're moving (dx,dy) then looks up neighbor cells
-	// to determine if we're crossing a bridge cleanly or at an angle.
-	// VERIFY: a3 here is the neighborhood buffer — [esi+ecx*4] indexes into it.
-
-	// Delta from source to target position
-	int dx = targetCell->MapCoords.X - sourceCell->MapCoords.X;
-	int dy = targetCell->MapCoords.Y - sourceCell->MapCoords.Y;
-
-	// Map (dx,dy) in {-1,0,1} → flat index [0..4] via: 3*dy + dx, offset by +4
-	// Asm: lea ecx,[ecx+ecx*2]; add ecx,eax → 3*dy+dx
-	int dirIndex = DeltaToDirectionIndex[3 * dy + dx + 4]; // VERIFY: +4 offset — confirm bounds
-
-	CellClass* neighborA;
-	CellClass* neighborB;
-	int        neighborBIdx;
-
-	if (bitfield2 & 0x800) // bridge cell flag
-	{
-		int idxA = NeighborIndexTable_Bridge[dirIndex];
-		neighborBIdx = NeighborIndexTable_Bridge[(dirIndex - 4) & 7];
-		neighborA = a3[idxA];
-		neighborB = a3[neighborBIdx];
-	} else {
-		int idxA = NeighborIndexTable_Flat[dirIndex];
-		neighborBIdx = NeighborIndexTable_Flat[(dirIndex - 4) & 7];
-		neighborA = a3[idxA];
-		neighborB = a3[neighborBIdx];
-	}
-
-	// neighborA not a bridge cell → heavy penalty
-	if (neighborA->ContainsBridge())
-		return NoBridgeMultiplier * cost;
-
-	// neighborB also a bridge cell → both-sides bridge, halved penalty
-	const float multiplier = neighborB->ContainsBridge() != 0 ?
-		BridgeBothSidesMultiplier : 1.0f;
-
-	return multiplier * cost;
-}
-
-AStarWorkPathStruct* AStarPathFinderClass::Calc_sqrt(
-	AStarWorkPathStruct* parentNode,
-	CellClass** a3,
-	CellStruct* goalCell,
-	float                a5)
-{
-	// --- Allocate next AStarWorkPathStruct from PathQueueBuffer [0x42A460–0x42A47E] ---
-	// asm: edx = [eax+100000h] (ActiveCount), esi = edx*16 + eax, then increment
-	AStarWorkPathStruct* newQueueNode =
-		&PathQueueBuffer->Nodes[PathQueueBuffer->ActiveCount++];
-
-	// --- Allocate next AStarWorkPathStructNode from PathNodeBuffer [0x42A47F–0x42A494] ---
-	// asm: edx = [eax+180000h] (ActiveCount), edi = edx*12 + eax, then increment
-	AStarWorkPathStructNode* newPathNode =
-		&PathNodeBuffer->Nodes[PathNodeBuffer->ActiveCount++];
-
-	// --- Init newPathNode->Cells [0x42A495–0x42A49C] ---
-	newPathNode->Cells = a3;
-
-	if (parentNode)
-	{
-		// --- Copy parent's Cells pointer into Prev [0x42A49F–0x42A4A4] ---
-		// asm: [edi+8] = [ebx]  where ebx=parentNode → *parentNode = parentNode->Data
-		newPathNode->Prev = parentNode->Data;
-
-		// --- CellLevel from target cell [0x42A4A4–0x42A4B5] ---
-		// asm: movsx edx,[eax+11Bh] where eax=*a3 → (*a3)->Level
-		CellClass* targetCell = *a3;
-		CellClass* parentFirst = *parentNode->Data->Cells; // ***a2 in pseudocode
-		int        targetLevel = targetCell->Level;        // byte at +0x11B, sign-extended
-
-		newPathNode->CellLevel = targetLevel;
-
-		// --- Bridge crossing level adjustment [0x42A4B6–0x42A522] ---
-		// targetCell is a bridge cell (Bitfield2 & 0x100)
-		if (targetCell->ContainsBridge())
-		{
-			bool parentIsBridge = parentFirst->ContainsBridge();
-
-			if (parentIsBridge)
-			{
-				// Both cells are bridge — check if parent level + 4 == parentFirst level
-				// asm: [ebp+4] == parentFirst->Level + 4
-				// VERIFY: [ebp+4] here is parentNode->Data->CellLevel (int at +4 in node)
-				if (parentNode->Data->CellLevel == parentFirst->Level + 4)
-				{
-					newPathNode->CellLevel = targetLevel + 1;
-					// falls through to LABEL_12
-				}
-				// else: parentIsBridge still set, falls to test below
-			}
-
-			if (!parentIsBridge)
-			{
-				// Parent is not a bridge — check level delta
-				// asm: abs(targetLevel - [edx+4] + 3) <= 1
-				// [edx+4] = parentNode->Data->CellLevel
-				// DIFF: IDA __int64 abs pattern = standard abs() on int
-				int delta = targetLevel - parentNode->Data->CellLevel + 3;
-				if (std::abs(delta) <= 1)
-				{
-					// Bump level by 4 (bridge entry)
-					newPathNode->CellLevel = newPathNode->CellLevel + 4;
-				}
-				// else: leave CellLevel as targetLevel (no adjustment needed)
-			}
-		}
-		// non-bridge target: CellLevel stays as targetLevel — no adjustment
-	}
-	else
-	{
-		// --- Root node (no parent) [0x42A516–0x42A521] ---
-		newPathNode->Prev = nullptr;
-		newPathNode->CellLevel = StartLevel;   // [ecx+30h] — VERIFY YRpp field name
-	}
-
-	// --- Link newQueueNode -> newPathNode [0x42A523–0x42A525] ---
-	newQueueNode->Data = newPathNode;
-
-	// --- Cost fields [0x42A526–0x42A549] ---
-	if (parentNode)
-	{
-		newQueueNode->MovementCost = a5 + parentNode->MovementCost;
-		newQueueNode->PathLength = parentNode->PathLength + 1;
-	}
-	else
-	{
-		newQueueNode->MovementCost = 0.0f;
-		newQueueNode->PathLength = 1;
-	}
-
-	// --- Heuristic: Euclidean distance to goal [0x42A54A–0x42A59E] ---
-	// asm: abs((*a3)->Position.X - goalCell->X) and abs((*a3)->Position.Y - goalCell->Y)
-	// then: Sqrt(dx*dx + dy*dy) + MovementCost → PathCost
-	// DIFF: IDA uses unsigned abs via cdq/xor/sub — std::abs on int is equivalent.
-	CellClass* targetCell = *a3;
-	int dx = std::abs(static_cast<int>(targetCell->MapCoords.X) - static_cast<int>(goalCell->X));
-	int dy = std::abs(static_cast<int>(targetCell->MapCoords.Y) - static_cast<int>(goalCell->Y));
-
-	newQueueNode->PathCost = static_cast<float>(Math::sqrt(
-		static_cast<double>(dx * dx + dy * dy))) + newQueueNode->MovementCost;
-
-	return newQueueNode;
-}
-
-COMPILETIMEEVAL reference<int, 0x89C2DC> const RegionSize {};
-COMPILETIMEEVAL constant_ptr<int*, 0x89C2DC> const MapClass___movezones {};
-
-void AStarPathFinderClass::Init()
-{
-	// --- Reset PathNodeBuffer and PathQueueBuffer write heads [0x42A5B3–0x42A5C8] ---
-	PathNodeBuffer->ActiveCount = 0;
-	PathQueueBuffer->ActiveCount = 0;
-
-	// --- PathQueue::Clear() [0x42A5C9–0x42A5E1] ---
-	if (PathQueue)
-		PathQueue->Clear();
-
-	// --- HierarchyQueue::Clear() [0x42A5E2–0x42A5FA] ---
-	if (HierarchyQueue)
-		reinterpret_cast<TPriorityQueueClass<AStarWorkPathStructNode>*>(
-			HierarchyQueue)->Clear();
-
-	// --- SearchID generation counter [0x42A5FB–0x42A602] ---
-	// Full zone clear only fires when SearchID wraps to 0 (every 2^32 calls).
-	++SearchID;
-	if (SearchID != 0)
-		return;
-
-	// === Full zone array reinit (SearchID overflow path only) ===
-
-	// --- VisitCounts / AltVisitCounts clear [0x42A608–0x42A623] ---
-	// Asm: counts down from (RegionSize² - 1) to 0, writes [edx+eax*4+4].
-	// VERIFY: +4 offset = 1-based slot indexing, slot 0 never written — intentional.
-	{
-		const int regionArea = RegionSize() * RegionSize();
-		for (int k = regionArea - 1; k >= 0; --k)
-		{
-			VisitCounts[k + 1] = 0;
-			AltVisitCounts[k + 1] = 0;
-		}
-	}
-
-	// --- Triple pass: zero LevelVisitedMarkers/OpenSetMarkers/GCostArray [0x42A624–0x42A67E] ---
-	// Asm: eax = (byte*)MapClass___movezones[4] - (byte*)this (fixed delta)
-	//      [eax + OpenSetMarkers[i]] reads the per-pass entry count from movezones.
-	// Confirmed double-index from sub_594B50: MapClass___movezones[MapType][PassType].
-	// Here index [4+i] selects the zone pass; inner index implicit (likely 0).
-	// SUSPECT: exact inner index — VERIFY which passability slot Init() uses.
-	// Inner loop zeroes entries [count-1..0] of all three parallel arrays.
-	for (int i = 0; i < 3; ++i)
-	{
-		// VERIFY: MapClass___movezones[4+i][0] as the count — confirm inner index.
-		int count = MapClass___movezones[4 + i]
-			? static_cast<int>(MapClass___movezones[4 + i][0])
-			: 0;
-
-		for (int k = count - 1; k >= 0; --k)
-		{
-			LevelVisitedMarkers[i][k] = 0;
-			OpenSetMarkers[i][k] = 0;
-			reinterpret_cast<int*>(GCostArray[i])[k] = 0;  // 0 bits == 0.0f, IEEE754 safe
-		}
-	}
-
-	// --- SearchID bumped again after full clear [0x42A683] ---
-	// Net: 0 → 1, so normal path skips the next (2^32 - 1) calls.
-	++SearchID;
-}
-
-bool AStarPathFinderClass::IsVisited(int index, bool useAlt) const
-{
-	if (useAlt)
-		return VisitCounts[index] == SearchID;
-
-	return AltVisitCounts[index] == SearchID;
-}
-
-static constexpr int CellAdjacencyDirectionLUT[9] =
+static COMPILETIMEEVAL int CellAdjacencyDirectionLUT[9] =
 {
 	3,   // (-1,-1) SW
 	4,   // (-1, 0) S
@@ -1133,167 +113,727 @@ static constexpr int CellAdjacencyDirectionLUT[9] =
 	7,   // (+1,+1) NW
 };
 
+COMPILETIMEEVAL std::array<int, 8> dword_7E3774 = {
+	-512, -511, 1, 513, 512, 511, -1, -513
+};
+
+COMPILETIMEEVAL double dbl_7E37C0 = std::bit_cast<double>(0x3FF024DD2F1A9FBEULL);
+COMPILETIMEEVAL reference<int, 0x89C2DC> const RegionSize {};
+COMPILETIMEEVAL reference<PathType, 0x89A2D8> const outpath {};
+COMPILETIMEEVAL reference<CellStruct, 0x89A324, 0x7D0> const MainOverlap {};
+COMPILETIMEEVAL reference<int, 0x89A304, 8> const adjust_89A304 {}; 
+
+ObjectClass* GetCellObj(CellClass* pCell, bool alt)
+{
+	return alt ? pCell->AltObject : pCell->FirstObject;
+}
+
+void ToggleBit40000(unsigned int* bitfield)
+{
+	*bitfield ^= (*bitfield ^ ~*bitfield) & 0x40000;
+}
+
+CellClass** CellArrayPtr(int x, int y)
+{
+	return &MapClass::Instance->Cells.Items[y * 512 + x];
+}
+
+int ChebyshevDist(CellStruct a, CellStruct b)
+{
+	return std::max(
+		Math::abs(static_cast<int>(a.X) - static_cast<int>(b.X)),
+		Math::abs(static_cast<int>(a.Y) - static_cast<int>(b.Y)));
+}
+
+// -----------------------------------------------------------------------
+// Resolve one movement step from currentPos in direction dir.
+// dir==8 → tunnel lookup; otherwise → AdjacentCell offset.
+// Consolidates ResolveStep() and the tube_42D490 duplicate (which also
+// had a bug: Items[facing] should be Items[tubeIdx]).
+// -----------------------------------------------------------------------
+static inline CellStruct ResolveStep(CellStruct currentPos, int dir)
+{
+	if (dir == 8)
+	{
+		const int tubeIdx = static_cast<int>(
+			MapClass::Instance->GetCellAt(currentPos)->TubeIndex);
+		if (tubeIdx == -1)
+			return { 0, 0 };
+		// BUGFIX: vanilla tube_42D490 incorrectly used Items[facing] here.
+		return TubeClass::Array->Items[tubeIdx]->ExitCell;
+	}
+	return currentPos + CellSpread::AdjacentCell[dir & 7];
+}
+
+// -----------------------------------------------------------------------
+// Walk the HierarchyBuffer back-pointer chain.
+// BufferDelta == -1 is the root sentinel.
+// bufferBase must be reinterpret_cast<char*>(HierarchyBuffer).
+// -----------------------------------------------------------------------
+static inline AStarQueueNodeHierarchical* HierarchyParent(
+	char* bufferBase,
+	AStarQueueNodeHierarchical* node)
+{
+	return reinterpret_cast<AStarQueueNodeHierarchical*>(
+		bufferBase + node->BufferDelta * 16);
+}
+
+static inline bool IsHierarchyRoot(AStarQueueNodeHierarchical* node)
+{
+	return node->BufferDelta == -1;
+}
+
+// -----------------------------------------------------------------------
+// AStarPathFinderClass ctor
+// -----------------------------------------------------------------------
+AStarPathFinderClass::AStarPathFinderClass()
+	: unknown_byte_0 { 0 }
+	, FindBridgeDir { false }
+	, unknown_byte_2 { 0 }
+	, CanFindPath { true }
+	, PathCostFactor { 1.0f }
+	, IsAlt { true }
+	, PathNodeBuffer { nullptr }
+	, PathQueueBuffer { nullptr }
+	, PathQueue { nullptr }
+	, VisitCounts { nullptr }
+	, AltVisitCounts { nullptr }
+	, AltDistances { nullptr }
+	, Distances { nullptr }
+	, SearchID { -1 }
+	, FinderSpeedType { static_cast<SpeedType>(-1) }
+	, IsSearching { true }
+	, FindMode { ASTAR_PASS_0 }
+	, HierarchyBuffer { }
+	, HierarchyQueue { nullptr }
+	, PathLength { -1 }
+	, CellStructBuffer { 0, 0 }
+{
+	for (int i = 0; i < 3; ++i)
+		ZoneIndices[i] = DynamicVectorClass<CellStruct>();
+
+	PathQueue = new SafePriorityQueueClass<AStarWorkPathStruct>(0x10000);
+	HierarchyQueue = new SafePriorityQueueClass<AStarQueueNodeHierarchical>(0x2710);
+
+	PathQueueBuffer = new AStarWorkPathStructHeap();
+	PathNodeBuffer = new AStarWorkPathStructDataHeap();
+
+	for (int i = 0; i < 3; ++i) {
+		LevelVisitedMarkers[i] = nullptr;
+		OpenSetMarkers[i] = nullptr;
+		GCostArray[i] = nullptr;
+		ZoneIndices[i].clear();
+		std::memset(&PassabilityData[i], 0, sizeof(AStarClass_PassabilityData));
+		PassabilityCounts[i] = 0;
+	}
+
+	HierarchyBuffer = static_cast<AStarQueueNodeHierarchical*>(operator new(0x2710 * sizeof(AStarQueueNodeHierarchical)));
+}
+
+// -----------------------------------------------------------------------
+// AStarPathFinderClass dtor
+// DIFF: delete () replaces 14 identical delete+nullptr pairs.
+// -----------------------------------------------------------------------
+AStarPathFinderClass::~AStarPathFinderClass()
+{
+	// PathQueue: delete internal Nodes array then the object itself
+	if (PathQueue) {
+		delete PathQueue;
+	}
+
+	if (HierarchyQueue) {
+		delete HierarchyQueue;
+	}
+
+	delete (PathQueueBuffer);
+	delete (PathNodeBuffer);
+	delete (VisitCounts);
+	delete (AltVisitCounts);
+
+	// VERIFY: IDA deletes Distances before AltDistances — order reproduced.
+	delete (Distances);
+	delete (AltDistances);
+
+	for (int i = 0; i < 3; ++i)
+	{
+		delete (LevelVisitedMarkers[i]);
+		delete (OpenSetMarkers[i]);
+		delete (GCostArray[i]);
+	}
+
+	// No null written after in vanilla — reproduced.
+	operator delete(HierarchyBuffer);
+	HierarchyBuffer = nullptr;
+
+	// DIFF: vanilla descends; order is independent here.
+	for (int i = 2; i >= 0; --i)
+		ZoneIndices[i].~DynamicVectorClass<CellStruct>();
+}
+
+// -----------------------------------------------------------------------
+// __Find_Path_Hierarchical
+// DIFF: HierarchyParent() / IsHierarchyRoot() replace the two inline
+//       back-pointer chain walks (phase-1 mark + phase-2 store).
+// -----------------------------------------------------------------------
+bool AStarPathFinderClass::__Find_Path_Hierarchical(
+	CellStruct* startCell,
+	CellStruct* destCell,
+	MovementZone mzone,
+	FootClass* foot)
+{
+	GlobalPassabilityData* globalPassabilityArray =
+		MapClass::Instance->LevelAndPassabilityStruct2pointer_70;
+
+	const int   mzoneIndex = static_cast<int>(mzone);
+	auto& moveZoneArray = MapClass::MovementAdjustArray[mzoneIndex];
+	const float* gameAdjustments = _pathfind_adjusment();
+
+	double     threatAvoidance = 0.0;
+	HouseClass* ownerHouse = nullptr;
+	bool        useThreatAvoidance = false;
+
+	if (foot)
+	{
+		threatAvoidance = foot->GetThreatAvoidanceCoefficient();
+		ownerHouse = foot->Owner;
+		if (threatAvoidance > 0.00001)
+			useThreatAvoidance = true;
+	}
+
+	const int startZoneRaw = MapClass::Instance->MapClass_zone_56D3F0(startCell);
+	const int destZoneRaw = MapClass::Instance->MapClass_zone_56D3F0(destCell);
+
+	char* const hierarchyBase = reinterpret_cast<char*>(this->HierarchyBuffer);
+
+	for (int level = 2; level >= 0; --level)
+	{
+		this->HierarchyQueue->Clear();
+
+		const unsigned short startZone =
+			globalPassabilityArray[startZoneRaw].data[level];
+		const unsigned short destZone =
+			globalPassabilityArray[destZoneRaw].data[level];
+
+		const bool isTopLevel = (level == 2);
+
+		int* parentLevelVisited = isTopLevel ? nullptr : this->LevelVisitedMarkers[level + 1];
+		int* visitedArray = this->LevelVisitedMarkers[level];
+		int* openSetArray = this->OpenSetMarkers[level];
+		float* costArray = this->GCostArray[level];
+
+		visitedArray[startZone] = this->SearchID;
+		visitedArray[destZone] = this->SearchID;
+
+		if (startZone == destZone)
+		{
+			if (level == 0)
+			{
+				this->HierarchyBuffer->Number = 0;
+				this->HierarchyBuffer->Index = static_cast<DWORD>(startZone);
+			}
+			this->PassabilityData[level].Indices[0] = static_cast<unsigned short>(startZone);
+			this->PassabilityCounts[level] = 1;
+			continue;
+		}
+
+		AStarQueueNodeHierarchical* firstElement = this->HierarchyBuffer;
+		firstElement->BufferDelta = -1;
+		firstElement->Index = static_cast<DWORD>(startZone);
+		firstElement->Score = 0.0f;
+		firstElement->Number = 0;
+
+		if (!this->HierarchyQueue->Push(firstElement))
+			return false;
+
+		int elementCount = 1;
+		int bufferOffset = 16;   // 1 * sizeof(AStarQueueNodeHierarchical)
+
+		openSetArray[startZone] = this->SearchID;
+		costArray[startZone] = 0.0f;
+
+		AStarQueueNodeHierarchical* currentElement = this->HierarchyQueue->Pop();
+		if (!currentElement)
+			return false;
+
+		const bool noBlockedPairs = (this->ZoneIndices[level].Count == 0);
+		auto& subzoneTrackingArray = SubzoneTrackingStruct::Array[level];
+
+		while (true)
+		{
+			const int currentNode = static_cast<int>(currentElement->Index);
+
+			if (currentNode == static_cast<int>(destZone))
+				break;
+
+			SubzoneTrackingStruct& currentSubzone = subzoneTrackingArray.Items[currentNode];
+			auto& connections = currentSubzone.SubzoneConnections;
+			const int neighborCount = connections.Count;
+
+			for (int n = 0; n < neighborCount; ++n)
+			{
+				SubzoneConnectionStruct& connection = connections.Items[n];
+				const int   neighborNode = static_cast<int>(connection.NeighborSubzoneIndex);
+				const char  connectionFlag = static_cast<char>(connection.ConnectionPenaltyFlag);
+
+				SubzoneTrackingStruct& neighborSubzone = subzoneTrackingArray.Items[neighborNode];
+				const unsigned short parentZone = neighborSubzone.ParentZoneIndex;
+				const int            movementType = static_cast<int>(neighborSubzone.MovementCostType);
+
+				int threatCost = 0;
+				if (useThreatAvoidance)
+				{
+					const int rawThreat = MapClass::Instance->subZone_585F40(
+						ownerHouse, level, currentNode, neighborNode);
+					threatCost = static_cast<int>(static_cast<double>(rawThreat) * threatAvoidance);
+				}
+
+				const float connectionPenalty = connectionFlag ? 0.001f : 0.0f;
+				const float newCost = gameAdjustments[movementType]
+					+ currentElement->Score
+					+ static_cast<float>(threatCost)
+					+ connectionPenalty;
+
+				if (openSetArray[neighborNode] == this->SearchID
+				 && !(costArray[neighborNode] > static_cast<double>(newCost)))
+					continue;
+
+				if (!isTopLevel
+				 && parentLevelVisited[parentZone] != this->SearchID
+				 && movementType != 1)
+					continue;
+
+				if (moveZoneArray[movementType] != 1)
+					continue;
+
+				if (!noBlockedPairs)
+				{
+					unsigned short lo = static_cast<unsigned short>(neighborNode);
+					unsigned short hi = static_cast<unsigned short>(currentNode);
+					if (lo < hi)
+						std::swap(lo, hi);
+
+					const int pairKey = static_cast<int>(lo) | (static_cast<int>(hi) << 16);
+
+					auto& blockedVector = this->ZoneIndices[level];
+					bool  isBlocked = false;
+					for (int searchIdx = blockedVector.Count - 1; searchIdx >= 0; --searchIdx)
+					{
+						if (*reinterpret_cast<int*>(&blockedVector.Items[searchIdx]) == pairKey)
+						{
+							isBlocked = true;
+							break;
+						}
+					}
+					if (isBlocked)
+						continue;
+				}
+
+				// Allocate new node from buffer
+				AStarQueueNodeHierarchical* newElement =
+					reinterpret_cast<AStarQueueNodeHierarchical*>(hierarchyBase + bufferOffset);
+
+				// BufferDelta: byte offset of parent >> 4 (sizeof == 16)
+				newElement->BufferDelta = static_cast<int>(
+					(reinterpret_cast<char*>(currentElement) - hierarchyBase) >> 4);
+				newElement->Index = static_cast<DWORD>(neighborNode);
+				newElement->Score = newCost;
+				newElement->Number = currentElement->Number + 1;
+
+				if (!this->HierarchyQueue->Push(newElement))
+					continue;
+
+				openSetArray[neighborNode] = this->SearchID;
+				costArray[neighborNode] = newCost;
+				++elementCount;
+				bufferOffset += 16;
+			}
+
+			currentElement = this->HierarchyQueue->Pop();
+			if (!currentElement) {
+				Debug::Log("[A* Hierarchical] No path at level %d: zones %u->%u\n",
+					level, startZone, destZone);
+				return false;
+			}
+		}
+
+		if (!currentElement)
+			return false;
+
+		// Phase 1: walk back and mark visited.
+		// DIFF: HierarchyParent() / IsHierarchyRoot() replace manual ptr arithmetic.
+		for (auto* walkNode = currentElement;
+			 !IsHierarchyRoot(walkNode);
+			 walkNode = HierarchyParent(hierarchyBase, walkNode))
+		{
+			visitedArray[walkNode->Index] = this->SearchID;
+		}
+
+		// Phase 2: store reversed path in PassabilityData.
+		const int pathLength = currentElement->Number + 1;
+		this->PassabilityCounts[level] = pathLength;
+
+		int   pathIdx = pathLength - 1;
+		auto* storeNode = currentElement;
+
+		short* resultPtr = reinterpret_cast<short*>(
+			&this->PassabilityData[level].Indices[pathIdx]);
+
+		while (pathIdx > 0)
+		{
+			*resultPtr = static_cast<short>(storeNode->Index);
+			--resultPtr;
+			storeNode = HierarchyParent(hierarchyBase, storeNode);
+			--pathIdx;
+		}
+
+		this->PassabilityData[level].Indices[0] =
+			static_cast<unsigned short>(storeNode->Index);
+	}
+
+	return true;
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x42C290, FakeAStarPathFinderClass::__Find_Path_Hierarchical)
+
+// -----------------------------------------------------------------------
+// Calc_Float
+// No structural changes — helpers already used via AStarHelpers.h.
+// -----------------------------------------------------------------------
+double AStarPathFinderClass::Calc_Float(
+	CellClass** arg0,
+	CellClass** a3,
+	int         a4,
+	int         a5,
+	FootClass* a6) const
+{
+	CellClass* targetCell = *a3;
+	CellClass* sourceCell = *arg0;
+
+	float cost = PassCostMultiplier[a5];
+
+	if (a5 == 2)
+	{
+		ObjectClass* occupier = GetCellObj(targetCell, a4);
+		int          chainDepth = 0;
+		bool         chainBroken = false;
+
+		if (!FindMode)
+		{
+			while (occupier)
+			{
+				if ((occupier->AbstractFlags & AbstractFlags::Foot) == AbstractFlags::None)
+				{
+					chainBroken = true;
+					break;
+				}
+
+				FootClass* pFootOccupy = (FootClass*)occupier;
+				unsigned int facingIndex;
+
+				if (pFootOccupy->SpeedPercentage == 0.0)
+				{
+					facingIndex = pFootOccupy->PathDirections[0];
+					if (facingIndex == static_cast<unsigned int>(-1))
+						break;
+				}
+				else
+				{
+					DirStruct dir = pFootOccupy->PrimaryFacing.Current();
+					facingIndex = (((static_cast<unsigned int>(dir.Raw) >> 12) + 1) >> 1) & 7u;
+				}
+
+				CellStruct occupierCell = occupier->GetMapCoords();
+				CellStruct nextCell =
+				{
+					static_cast<short>(CellSpread::AdjacentCell[facingIndex & 7u].X + occupierCell.X),
+					static_cast<short>(occupierCell.Y + CellSpread::AdjacentCell[facingIndex & 7u].Y)
+				};
+
+				CellClass* nextCellPtr = MapClass::Instance->GetCellAt(nextCell);
+				bool usesAlt = nextCellPtr->ContainsBridge()
+					&& (pFootOccupy->OnBridge
+						|| (pFootOccupy->GetCell()->Level - nextCellPtr->Level > 2));
+
+				occupier = GetCellObj(nextCellPtr, usesAlt);
+				if (++chainDepth >= 10)
+				{
+					chainBroken = true;
+					break;
+				}
+			}
+		}
+		else
+		{
+			chainBroken = true;
+		}
+
+		if (chainBroken || FindMode)
+			cost = 4.0f;
+		if (FindMode == 2)
+			cost = 1000.0f;
+	}
+
+	if (targetCell->UINTFlags & 0x40000)
+		cost *= TunnelCostMultiplier;
+
+	if (!a4 || !FindBridgeDir)
+		return cost;
+
+	const int dx = targetCell->MapCoords.X - sourceCell->MapCoords.X;
+	const int dy = targetCell->MapCoords.Y - sourceCell->MapCoords.Y;
+	const int dirIndex = CellAdjacencyDirectionLUT[3 * dy + dx + 4];
+
+	CellClass* neighborA;
+	CellClass* neighborB;
+
+	if (targetCell->UINTFlags & 0x800)
+	{
+		neighborA = a3[NeighborIndexTable_Bridge[dirIndex]];
+		neighborB = a3[NeighborIndexTable_Bridge[(dirIndex - 4) & 7]];
+	}
+	else
+	{
+		neighborA = a3[NeighborIndexTable_Flat[dirIndex]];
+		neighborB = a3[NeighborIndexTable_Flat[(dirIndex - 4) & 7]];
+	}
+
+	if (neighborA->ContainsBridge())
+		return NoBridgeMultiplier * cost;
+
+	const float multiplier = neighborB->ContainsBridge() ? BridgeBothSidesMultiplier : 1.0f;
+	return multiplier * cost;
+}
+
+// -----------------------------------------------------------------------
+// Calc_sqrt — unchanged structurally, no repetition to collapse here.
+// -----------------------------------------------------------------------
+AStarWorkPathStruct* AStarPathFinderClass::Calc_sqrt(
+	AStarWorkPathStruct* parentNode,
+	CellClass** a3,
+	CellStruct* goalCell,
+	float                a5)
+{
+	AStarWorkPathStruct* newQueueNode = &PathQueueBuffer->Nodes[PathQueueBuffer->ActiveCount++];
+	AStarWorkPathStructNode* newPathNode = &PathNodeBuffer->Nodes[PathNodeBuffer->ActiveCount++];
+
+	newPathNode->Cells = a3;
+
+	if (parentNode)
+	{
+		newPathNode->Prev = parentNode->Data;
+
+		CellClass* targetCell = *a3;
+		CellClass* parentFirst = *parentNode->Data->Cells;
+		int        targetLevel = targetCell->Level;
+
+		newPathNode->CellLevel = targetLevel;
+
+		if (targetCell->ContainsBridge())
+		{
+			const bool parentIsBridge = parentFirst->ContainsBridge();
+
+			if (parentIsBridge)
+			{
+				if (parentNode->Data->CellLevel == parentFirst->Level + 4)
+					newPathNode->CellLevel = targetLevel + 1;
+			}
+			else
+			{
+				const int delta = targetLevel - parentNode->Data->CellLevel + 3;
+				if (Math::abs(delta) <= 1)
+					newPathNode->CellLevel = newPathNode->CellLevel + 4;
+			}
+		}
+	}
+	else
+	{
+		newPathNode->Prev = nullptr;
+		newPathNode->CellLevel = StartLevel;
+	}
+
+	newQueueNode->Data = newPathNode;
+
+	if (parentNode)
+	{
+		newQueueNode->MovementCost = a5 + parentNode->MovementCost;
+		newQueueNode->PathLength = parentNode->PathLength + 1;
+	}
+	else
+	{
+		newQueueNode->MovementCost = 0.0f;
+		newQueueNode->PathLength = 1;
+	}
+
+	CellClass* targetCell = *a3;
+	const int dx = Math::abs(static_cast<int>(targetCell->MapCoords.X) - static_cast<int>(goalCell->X));
+	const int dy = Math::abs(static_cast<int>(targetCell->MapCoords.Y) - static_cast<int>(goalCell->Y));
+	newQueueNode->PathCost = static_cast<float>(Math::sqrt(
+		static_cast<double>(dx * dx + dy * dy))) + newQueueNode->MovementCost;
+
+	return newQueueNode;
+}
+
+// -----------------------------------------------------------------------
+// Init
+// DIFF: VisitStamper not used here (bulk-zero, not single-stamp).
+//       Loop structure unchanged.
+// -----------------------------------------------------------------------
+void AStarPathFinderClass::Init()
+{
+	PathNodeBuffer->ActiveCount = 0;
+	PathQueueBuffer->ActiveCount = 0;
+
+	if (PathQueue)
+		PathQueue->Clear();
+	if (HierarchyQueue)
+		HierarchyQueue->Clear();
+
+	++SearchID;
+	if (SearchID != 0)
+		return;
+
+	{
+		const int regionArea = RegionSize() * RegionSize();
+		for (int k = regionArea - 1; k >= 0; --k)
+		{
+			VisitCounts[k + 1] = 0;
+			AltVisitCounts[k + 1] = 0;
+		}
+	}
+
+	for (int i = 0; i < 3; ++i)
+	{
+		//std::array<int*, 13> MovementZones;
+				// CONFIRMED[0x42C1C0]: MovementZones[4+i] stores the subzone count as a raw
+		// integer in the pointer slot — not a real pointer, never dereferenced.
+		// Slots [0..3] are real uint16_t* zone-ID arrays; [4..6] are int-as-pointer counts.
+		const int count = static_cast<int>(reinterpret_cast<std::uintptr_t>(MapClass::Instance->MovementZones[4 + i]));
+		
+		for (int k = count - 1; k >= 0; --k) {
+			LevelVisitedMarkers[i][k] = 0;
+			OpenSetMarkers[i][k] = 0;
+			reinterpret_cast<int*>(GCostArray[i])[k] = 0;
+		}
+	}
+
+	++SearchID;
+}
+
+// -----------------------------------------------------------------------
+// IsVisited — trivial, unchanged.
+// -----------------------------------------------------------------------
+bool AStarPathFinderClass::IsVisited(int index, bool useAlt) const
+{
+	return useAlt
+		? (VisitCounts[index] == SearchID)
+		: (AltVisitCounts[index] == SearchID);
+}
+
+// -----------------------------------------------------------------------
+// CellStruct_helper_distance — unchanged.
+// -----------------------------------------------------------------------
 int __fastcall AStarPathFinderClass::CellStruct_helper_distance(CellStruct* a1, CellStruct* a2)
 {
 	static constexpr int InvalidAdjacency = 8;
-
 	const int dy = a2->Y - a1->Y;
-
-	if (std::abs(dy) > 1)
+	if (Math::abs(dy) > 1)
 		return InvalidAdjacency;
-
 	const int dx = a2->X - a1->X;
-
-	if (std::abs(dx) > 1)
+	if (Math::abs(dx) > 1)
 		return InvalidAdjacency;
-
 	return CellAdjacencyDirectionLUT[3 * dy + dx + 4];
 }
 
-COMPILETIMEEVAL reference<PathType, 0x89A2D8> const path {};
-COMPILETIMEEVAL reference<CellStruct, 0x89A324, 0x7D0> const MainOverlap {};
-
+// -----------------------------------------------------------------------
+// Get_Path — unchanged structurally.
+// -----------------------------------------------------------------------
 PathType* AStarPathFinderClass::Get_Path(AStarWorkPathStruct* work_path, FacingType* moves)
 {
-	// --- One-time atexit registration [0x42AA90–0x42AAB3] ---
-	// --- Init path fields [0x42AABC–0x42AAFB] ---
-	// path.Cost: ftol(PathCost) — truncate float to int
-	path->Cost = static_cast<int>(work_path->PathCost);
-	path->Length = work_path->PathLength;
-	path->field_10 = 0;
-	path->LastOverlap = { 0, 0 };       // asm: two word zeroes at path+0x18/0x1A
-	path->Command = moves;
-	path->Overlap = reinterpret_cast<CellStruct*>(MainOverlap());
+	outpath->Cost = static_cast<int>(work_path->PathCost);
+	outpath->Length = work_path->PathLength;
+	outpath->field_10 = 0;
+	outpath->LastOverlap = { 0, 0 };
+	outpath->Command = moves;
+	outpath->Overlap = reinterpret_cast<CellStruct*>(MainOverlap());
 
-	// --- Walk node chain [0x42AAFC–0x42ABA6] ---
-	// v5 = current node (start of chain = deepest/goal node)
-	// v6 = v5->Prev (parent — one step back toward start)
-	// Loop runs PathLength-1 steps, filling moves[] in reverse.
 	AStarWorkPathStructNode* curNode = work_path->Data;
 	AStarWorkPathStructNode* parentNode = work_path->Data->Prev;
 
-	// v15 starts at moves[PathLength-2], decrements each iteration
-	// asm: lea edi,[edx+eax*4] where eax=PathLength-2
 	const int loopCount = work_path->PathLength - 2;
 
 	if (loopCount >= 0)
 	{
-		// Byte delta: MainOverlap - moves (used to write overlap at same index as moves)
-		// asm: ecx = MainOverlap; sub ecx,edx → ecx = MainOverlap - moves (byte delta)
 		const std::ptrdiff_t overlapDelta =
 			reinterpret_cast<std::uint8_t*>(MainOverlap()) -
 			reinterpret_cast<std::uint8_t*>(moves);
 
-		FacingType* writePtr = moves + loopCount;   // starts at moves[PathLength-2]
+		FacingType* writePtr = moves + loopCount;
 		int         remaining = loopCount + 1;
 
 		do
 		{
 			if (parentNode)
 			{
-				// Write CellLevel into MainOverlap at same index as writePtr
-				// asm: [ecx+eax] = [ebx+4] where ecx=overlapDelta applied to writePtr
 				*reinterpret_cast<int*>(
 					reinterpret_cast<std::uint8_t*>(writePtr) + overlapDelta)
 					= parentNode->CellLevel;
 
-				// Direction from curNode's cell to parentNode's cell
 				CellStruct fromCell = (*curNode->Cells)->MapCoords;
 				CellStruct toCell = (*parentNode->Cells)->MapCoords;
-
-				// VERIFY: GetPosition() returns CellStruct* at +0x24 — asm: add ecx/esi,24h
 				*writePtr = static_cast<FacingType>(
 					CellStruct_helper_distance(&fromCell, &toCell));
 			}
 
-			// Advance both nodes toward start of chain
 			curNode = curNode->Prev;
 			parentNode = parentNode ? parentNode->Prev : nullptr;
-
 			--writePtr;
 			--remaining;
 		}
 		while (remaining);
 	}
 
-	// --- Terminate moves[] and write path.Start [0x42ABAF–0x42ABD3] ---
-	// moves[PathLength-1] = -1 (sentinel)
-	// asm: [edx + eax*4 - 4] = -1 where eax=PathLength → moves[PathLength-1]
 	moves[work_path->PathLength - 1] = static_cast<FacingType>(-1);
+	outpath->Start = (*curNode->Cells)->MapCoords;
 
-	// path.Start = position of the start cell (curNode after loop = root node)
-	// asm: mov ecx,[ebp]; mov edx,[ecx]; mov eax,[edx+24h] → (*curNode->Cells)->Position
-	path->Start = (*curNode->Cells)->MapCoords;    // VERIFY: Position at +0x24 in CellClass
+	if (!outpath->Cost)
+		outpath->Cost = 1;
 
-	// Clamp path.Cost to minimum 1
-	if (!path->Cost)
-		path->Cost = 1;
-
-	return path.operator->();
+	return outpath.operator->();
 }
 
-COMPILETIMEEVAL reference<int, 0x89A304, 8> const adjust_89A304 {};   // 
-
+// -----------------------------------------------------------------------
+// Reset — unchanged structurally.
+// -----------------------------------------------------------------------
 void AStarPathFinderClass::Reset(RectangleStruct* rect)
 {
-	// --- Free existing arrays [0x42AC06–0x42AC51] ---
-	// Delete order (from asm): VisitCounts, AltVisitCounts, Distances, AltDistances
-	if (VisitCounts) {
-		operator delete(VisitCounts);
-		VisitCounts = nullptr;
-	}
+	delete (VisitCounts);
+	delete (AltVisitCounts);
+	delete (Distances);
+	delete (AltDistances);
 
-	if (AltVisitCounts) {
-		operator delete(AltVisitCounts);
-		AltVisitCounts = nullptr;
-	}
-
-	if (Distances) {
-		operator delete(Distances);
-		Distances = nullptr;
-	}
-
-	if (AltDistances) {
-		operator delete(AltDistances);
-		AltDistances = nullptr;
-	}
-
-	// --- Compute RegionSize and allocation size [0x42AC52–0x42AC6F] ---
-	// asm: lea eax,[ecx+edx+1] where ecx=[eax+0Ch]=Height, edx=[eax+8]=Width
 	RegionSize = rect->Width + rect->Height + 1;
-	const int allocBytes = 4 * RegionSize() * RegionSize();   // sizeof(int) × RegionSize²
+	const int allocBytes = 4 * RegionSize() * RegionSize();
 
-	// --- Allocate arrays [0x42AC70–0x42AC91] ---
-	// Alloc order from asm: AltVisitCounts, VisitCounts, Distances, AltDistances
-	// DIFF: alloc order reversed vs delete order — reproduced faithfully.
 	AltVisitCounts = static_cast<int*>(operator new(static_cast<unsigned>(allocBytes)));
 	VisitCounts = static_cast<int*>(operator new(static_cast<unsigned>(allocBytes)));
 	Distances = static_cast<float*>(operator new(static_cast<unsigned>(allocBytes)));
 	AltDistances = static_cast<float*>(operator new(static_cast<unsigned>(allocBytes)));
 
-	// --- Rebuild adjust_89A304[8] [0x42AC93–0x42ACE3] ---
-	// Cell index stride for each of 8 directions at current RegionSize.
-	// Entry[i] = flat-index delta to move one cell in direction i.
-	// asm assignment order confirmed from offsets +0,+4,+8,+C,+10,+14,+18,+1C:
-	adjust_89A304[0] = -RegionSize();          // N   (row above)
-	adjust_89A304[1] = 1 - RegionSize();       // NE
-	adjust_89A304[2] = 1;                    // E
-	adjust_89A304[3] = RegionSize() + 1;       // SE
-	adjust_89A304[4] = RegionSize();           // S
-	adjust_89A304[5] = RegionSize() - 1;       // SW
-	adjust_89A304[6] = -1;                   // W
-	adjust_89A304[7] = -1 - RegionSize();      // NW
+	adjust_89A304[0] = -RegionSize();
+	adjust_89A304[1] = 1 - RegionSize();
+	adjust_89A304[2] = 1;
+	adjust_89A304[3] = RegionSize() + 1;
+	adjust_89A304[4] = RegionSize();
+	adjust_89A304[5] = RegionSize() - 1;
+	adjust_89A304[6] = -1;
+	adjust_89A304[7] = -1 - RegionSize();
 }
 
-static inline void ToggleBit40000(unsigned int* bitfield)
-{
-	*bitfield ^= (*bitfield ^ ~*bitfield) & 0x40000;
-}
-
+// -----------------------------------------------------------------------
+// Get_Occupier — unchanged structurally.
+// -----------------------------------------------------------------------
 FootClass* AStarPathFinderClass::Get_Occupier(CellStruct* pos, int level) const
 {
-	// World-space center of cell at given level
-	// asm: X<<8+128, Y<<8+128, level*dword_89C2D8
 	const int worldX = (static_cast<int>(pos->X) << 8) + 128;
 	const int worldY = (static_cast<int>(pos->Y) << 8) + 128;
 	const int worldZ = level * Unsorted::LevelHeight;
@@ -1302,71 +842,53 @@ FootClass* AStarPathFinderClass::Get_Occupier(CellStruct* pos, int level) const
 	{
 		for (int dx = -2; dx < 3; ++dx)
 		{
-			CellStruct searchCell =
-			{
-				static_cast<short>(pos->X + dx),
-				static_cast<short>(pos->Y + dy)
-			};
-
+			CellStruct  searchCell = { static_cast<short>(pos->X + dx), static_cast<short>(pos->Y + dy) };
 			CellClass* cell = MapClass::Instance->GetCellAt(searchCell);
-
-			// Bridge layer selection: abs(cell->Level - level) > 2
-			const int levelDelta = std::abs(static_cast<int>(cell->Level) - level);
+			const int   levelDelta = Math::abs(static_cast<int>(cell->Level) - level);
 			ObjectClass* occupier = GetCellObj(cell, (cell->ContainsBridge() && levelDelta > 2));
 
 			while (occupier)
 			{
 				if (auto pFoot = flag_cast_to<FootClass*>(occupier))
 				{
-					// Build CoordStruct and call Is_Moving_Here
 					CoordStruct coord { worldX, worldY, worldZ };
 					if (pFoot->Locomotor->Is_Moving_Here(coord))
 						return pFoot;
 				}
-
 				occupier = occupier->NextObject;
 			}
 		}
 	}
-
 	return nullptr;
 }
 
+// -----------------------------------------------------------------------
+// Process_Paths — unchanged structurally.
+// -----------------------------------------------------------------------
 bool AStarPathFinderClass::Process_Paths(TechnoClass* techno)
 {
 	if (!CanFindPath)
 		return false;
 
-	// --- Current cell and facing [0x42AD06–0x42AD88] ---
 	CellStruct curPos = techno->GetMapCoords();
 	CellClass* curCell = MapClass::Instance->GetCellAt(curPos);
 
-	// Derive facing index from PrimaryFacing — same pattern as Calc_Float
-	DirStruct facingDir = techno->PrimaryFacing.Current();
+	DirStruct        facingDir = techno->PrimaryFacing.Current();
 	const unsigned int facingIdx =
 		(((static_cast<unsigned int>(facingDir.Raw) >> 12) + 1) >> 1) & 7u;
 
-	CellStruct frontPos =
-	{
-		static_cast<short>(curPos.X + CellSpread::AdjacentCell[facingIdx].X),
-		static_cast<short>(curPos.Y + CellSpread::AdjacentCell[facingIdx].Y)
-	};
+	CellStruct frontPos = curPos + CellSpread::AdjacentCell[facingIdx];
 	CellClass* frontCell = MapClass::Instance->GetCellAt(frontPos);
 
-	// --- Bridge layer selection [0x42AD93–0x42ADD3] ---
-	// abs(curCell->Level - frontCell->Level) > 3 || techno->IsOnBridge → alt layer
-	const int levelDelta = std::abs(
+	const int  levelDelta = Math::abs(
 		static_cast<int>(curCell->Level) - static_cast<int>(frontCell->Level));
 	const bool useAlt = frontCell->ContainsBridge()
 		&& (levelDelta > 3 || techno->OnBridge);
 
 	ObjectClass* occupier = GetCellObj(frontCell, useAlt);
 
-	// --- Get_Occupier fallback [0x42ADD8–0x42ADF6] ---
 	if (!occupier)
 	{
-		// level = frontCell->Level + (useAlt ? 4 : 0)
-		// asm: neg al; sbb eax,eax; and eax,4 → useAlt ? 4 : 0
 		occupier = Get_Occupier(
 			&frontCell->MapCoords,
 			static_cast<int>(frontCell->Level) + (useAlt ? 4 : 0));
@@ -1375,27 +897,23 @@ bool AStarPathFinderClass::Process_Paths(TechnoClass* techno)
 	TechnoTypeClass* myType = techno->GetTechnoType();
 	bool             foundBlocker = false;
 
-	// --- Occupier chain walk [0x42AE09–0x42AFBE] ---
 	while (occupier)
 	{
 		const AbstractType kind = occupier->WhatAmI();
 
-		// Only Units (1) and Infantry (0xF)
 		if (kind != AbstractType::Unit && kind != AbstractType::Infantry)
 		{
 			occupier = occupier->NextObject;
 			continue;
 		}
 
-		CellStruct          occupierPos = ((FootClass*)occupier)->CurrentMapCoords;   // VERIFY: offset 0x558
+		CellStruct       occupierPos = ((FootClass*)occupier)->CurrentMapCoords;
 		TechnoTypeClass* occupierType = occupier->GetTechnoType();
 
-		// --- Yield condition [0x42AE4E–0x42AEF0] ---
-		// FindMode==2, OR (different type AND my MaxSpeed > their MaxSpeed AND in radar)
 		const bool shouldYield =
 			(FindMode == 2)
 			|| (myType != occupierType
-				&& myType->Speed > occupierType->Speed    // VERIFY: offset 0x678
+				&& myType->Speed > occupierType->Speed
 				&& MapClass::Instance->IsWithinUsableArea(occupierPos, true));
 
 		if (!shouldYield)
@@ -1404,19 +922,15 @@ bool AStarPathFinderClass::Process_Paths(TechnoClass* techno)
 			continue;
 		}
 
-		// --- Path validity check [0x42AE7D–0x42AEF0] ---
-		// Unit needs Path[0] and Path[1] valid; Infantry also needs Path[2].
-		// VERIFY: Path at [ebp+5E0h], Path[1] at [ebp+5E4h], Path[2] at [ebp+5E8h]
 		bool pathValid = false;
-
 		if (kind == AbstractType::Unit)
 		{
-			pathValid = (((FootClass*)occupier)->PathDirections[0] != -1 && ((FootClass*)occupier)->PathDirections[1] != -1);
+			pathValid = (((FootClass*)occupier)->PathDirections[0] != -1
+					  && ((FootClass*)occupier)->PathDirections[1] != -1);
 		}
-		else // Infantry
+		else
 		{
-			pathValid = (
-						 ((FootClass*)occupier)->PathDirections[0] != -1
+			pathValid = (((FootClass*)occupier)->PathDirections[0] != -1
 					  && ((FootClass*)occupier)->PathDirections[1] != -1
 					  && ((FootClass*)occupier)->PathDirections[2] != -1);
 		}
@@ -1427,7 +941,6 @@ bool AStarPathFinderClass::Process_Paths(TechnoClass* techno)
 			continue;
 		}
 
-		// --- Toggle path cells [0x42AEF1–0x42AFBA] ---
 		foundBlocker = true;
 
 		int* pathStep = ((FootClass*)occupier)->PathDirections;
@@ -1437,32 +950,19 @@ bool AStarPathFinderClass::Process_Paths(TechnoClass* techno)
 		{
 			if (*pathStep == 8)
 			{
-				// Tunnel: look up end cell from Tubes
-				// VERIFY: CellClass::TubeIndex at +0x116, TubeClass::EndCell at +0x28
-				const int tubeIdx = static_cast<int>(MapClass::Instance->GetCellAt(occupierPos)->TubeIndex);    // VERIFY: TubeIndex field name
-
-				if (tubeIdx == -1) {
-					occupierPos = { 0, 0 };
-				} else {
-					// asm: Tubes.Vector_Item[tubeIdx]->EndCell at [edx+28h]
-					occupierPos = TubeClass::Array->Items[tubeIdx]->ExitCell;
-				}
+				const int tubeIdx = static_cast<int>(
+					MapClass::Instance->GetCellAt(occupierPos)->TubeIndex);
+				occupierPos = (tubeIdx == -1)
+					? CellStruct { 0, 0 }
+				: TubeClass::Array->Items[tubeIdx]->ExitCell;
 			}
 			else
 			{
-				occupierPos =
-				{
-					static_cast<short>(occupierPos.X + CellSpread::AdjacentCell[*pathStep].X),
-					static_cast<short>(occupierPos.Y + CellSpread::AdjacentCell[*pathStep].Y)
-				};
+				occupierPos += CellSpread::AdjacentCell[*pathStep];
 			}
 
 			CellClass* stepCell = MapClass::Instance->GetCellAt(occupierPos);
-
-			// Toggle bit 0x40000 — asm reads Bitfield2 twice (same cell), XORs result
-			// SUSPECT: two Map[] calls to same cell in vanilla — likely redundant, one is enough
 			ToggleBit40000(&stepCell->UINTFlags);
-
 			++pathStep;
 			++stepCount;
 		}
@@ -1470,18 +970,12 @@ bool AStarPathFinderClass::Process_Paths(TechnoClass* techno)
 		occupier = occupier->NextObject;
 	}
 
-	// --- Post-loop: FindMode==1 early return [0x42AEB9–0x42AED5] ---
-	// Skip neighbor toggle only when no blocker was found AND FindMode==1.
-	// All other paths (foundBlocker, or FindMode!=1) fall through to the toggle.
 	if (!foundBlocker && FindMode == 1)
 	{
 		FindMode = ASTAR_PASS_0;
-		return true;    // asm: returns `this` cast to char — non-zero = true
+		return true;
 	}
 
-	// --- 5×5 neighbor toggle [0x42AFCB–0x42B068] ---
-	// Toggles bit 0x40000 on cells within ±2 of frontCell that have Flag set,
-	// excluding the origin cell (curPos). Then toggles frontCell itself.
 	for (int dy = -2; dy < 3; ++dy)
 	{
 		for (int dx = -2; dx < 3; ++dx)
@@ -1491,14 +985,10 @@ bool AStarPathFinderClass::Process_Paths(TechnoClass* techno)
 				static_cast<short>(frontCell->MapCoords.X + dx),
 				static_cast<short>(frontCell->MapCoords.Y + dy)
 			};
-
 			CellClass* neighbor = MapClass::Instance->GetCellAt(neighborPos);
 
-			// VERIFY: CellClass::Flag byte at offset 0x124
 			if (!neighbor->OccupationFlags)
 				continue;
-
-			// Skip origin cell
 			if (neighbor->MapCoords == curPos)
 				continue;
 
@@ -1506,41 +996,1422 @@ bool AStarPathFinderClass::Process_Paths(TechnoClass* techno)
 		}
 	}
 
-	// Toggle frontCell itself
 	ToggleBit40000(&frontCell->UINTFlags);
-
-	return false;   // asm: returns *Bitfield2 (the toggled value) — treated as bool at call sites
+	return false;
 }
 
+// -----------------------------------------------------------------------
+// tube_42D490
+// BUGFIX: original used Items[facing] — should be Items[tubeIdx].
+// DIFF: now delegates to ResolveStep() from AStarHelpers.h, eliminating
+//       the duplicate implementation.
+// -----------------------------------------------------------------------
 CellStruct* __fastcall AStarPathFinderClass::tube_42D490(CellStruct* a1, CellStruct* a2, int facing)
 {
-	if (facing == 8) {
-		int tubeIdx = MapClass::Instance->GetCellAt(a2)->TubeIndex;
-		if (tubeIdx == -1) {
-			*a1 = CellStruct::Empty;
-		} else {
-			*a1 = TubeClass::Array->Items[facing]->ExitCell;
-		}
-	} else {
-		*a1 = CellSpread::AdjacentCell[facing & 7].operator+(*a2);
-	}
-
+	*a1 = ResolveStep(*a2, facing);
 	return a1;
 }
 
-CellStruct ResolveStep(int dir, CellStruct currentPos)
+// -----------------------------------------------------------------------
+// Tube_Crap — ResolveStep() already replaces both local copies.
+// -----------------------------------------------------------------------
+int AStarPathFinderClass::Tube_Crap(
+	FootClass* techno,
+	int* dirArray,
+	int* levelArray,
+	int         pathLen,
+	int         lookAhead,
+	CellStruct* posPtr)
 {
-	if (dir == 8)
-	{
-		// Tunnel: look up EndCell from Tubes
-		const int tubeIdx = static_cast<int>(MapClass::Instance->GetCellAt(currentPos)->TubeIndex);  // VERIFY: field name
-		if (tubeIdx == -1)
-			return { 0, 0 };
+	const int firstDir = dirArray[0];
+	const int lastDir = dirArray[pathLen];
+	const int midDir = (firstDir + lastDir) >> 1;
+	const int midDirValue = ((midDir + 1 == lastDir) || (midDir + 1 == firstDir))
+		? midDir : 0;
 
-		// asm: Tubes.Vector_Item[tubeIdx] -> [edx+28h] = EndCell
-		return TubeClass::Array->Items[dir]->ExitCell;
+	if (firstDir == 8 || lastDir == 8)
+	{
+		const int  totalSteps = pathLen + lookAhead;
+		CellStruct pos = *posPtr;
+		for (int i = 0; i < totalSteps; ++i)
+			pos = ResolveStep(pos, dirArray[i]);
+		*posPtr = pos;
+		return totalSteps;
 	}
 
-	return currentPos + CellSpread::AdjacentCell[dir & 7];
+	CellStruct a1a = *posPtr;
+
+	if (pathLen < lookAhead)
+	{
+		lookAhead = pathLen;
+	}
+	else if (lookAhead < pathLen)
+	{
+		const int skipCount = pathLen - lookAhead;
+		for (int i = 0; i < skipCount; ++i)
+			a1a = ResolveStep(a1a, dirArray[i]);
+	}
+
+	const double threatFactor = techno->GetThreatAvoidanceCoefficient();
+	HouseClass* house = techno->Owner;
+
+	while (lookAhead > 0)
+	{
+		const int  scanCount = 2 * lookAhead;
+		int        scanLevel = levelArray[pathLen + lookAhead - scanCount];
+		bool       blocked = false;
+
+		CellStruct scanPos =
+		{
+			static_cast<short>(a1a.X + CellSpread::AdjacentCell[midDir & 7].X),
+			static_cast<short>(a1a.Y + CellSpread::AdjacentCell[midDir & 7].Y)
+		};
+		CellClass* scanCell = MapClass::Instance->GetCellAt(scanPos);
+
+		for (int s = scanCount; s > 0; --s)
+		{
+			if (techno->IsCellOccupied(scanCell, (FacingType)midDirValue, scanLevel, nullptr, true) == Move::OK
+			 && !(scanCell->UINTFlags & 0x40000))
+			{
+				const int threat = MapClass::Instance->GetThreatPosed(a1a, house);
+				blocked = static_cast<double>(threat) * threatFactor >= 1.0;
+			}
+			else
+			{
+				blocked = true;
+			}
+
+			scanPos += CellSpread::AdjacentCell[midDir & 7];
+			scanCell = MapClass::Instance->GetCellAt(scanPos);
+
+			const int newLevel = static_cast<int>(scanCell->Level);
+			if (scanLevel - newLevel == 4)
+			{
+				scanLevel = newLevel + 4;
+				if (scanCell->ContainsBridge())
+					continue;
+			}
+			scanLevel = newLevel;
+
+			if (blocked)
+				break;
+		}
+
+		if (!blocked)
+		{
+			const int fillStart = pathLen - lookAhead;
+			const int fillCount = 2 * lookAhead;
+			if (fillCount > 0)
+				std::fill_n(dirArray + fillStart, fillCount, midDirValue);
+
+			CellStruct pos = *posPtr;
+			const int  tailLen = pathLen - lookAhead;
+			for (int i = 0; i < tailLen; ++i)
+				pos = ResolveStep(pos, dirArray[i]);
+			*posPtr = pos;
+			return tailLen;
+		}
+
+		a1a += CellSpread::AdjacentCell[firstDir & 7];
+		--lookAhead;
+	}
+
+	{
+		CellStruct pos = *posPtr;
+		for (int i = 0; i < pathLen; ++i)
+			pos = ResolveStep(pos, dirArray[i]);
+		*posPtr = pos;
+	}
+
+	return pathLen;
 }
 
+// -----------------------------------------------------------------------
+// Process_Moves — unchanged structurally (ResolveStep already used).
+// -----------------------------------------------------------------------
+void AStarPathFinderClass::Process_Moves(PathType* path, FootClass* techno)
+{
+	FacingType* moves = path->Command;
+	int* overlap = reinterpret_cast<int*>(path->Overlap);
+	CellStruct  start = path->Start;
+
+	const int totalLen = path->Length - 1;
+	if (totalLen <= 0)
+		return;
+
+	FacingType prevDir = FacingType::None;
+	int        runLen = 0;
+	int        baseIdx = 0;
+	int        diagRunLen = 0;
+	int        scanOffset = 0;
+	bool       inDiagRun = false;
+	FacingType expectedDir = FacingType::None;
+
+	CellStruct curPos = start;
+	CellStruct endCell = start;
+
+	const auto UpdateEndCell = [&](FacingType dir)
+		{
+			if (dir == FacingType::Count)
+			{
+				const int tubeIdx = static_cast<int>(
+					MapClass::Instance->GetCellAt(endCell)->TubeIndex);
+				endCell = (tubeIdx == -1)
+					? CellStruct { 0, 0 }
+				: TubeClass::Array->Items[tubeIdx]->ExitCell;
+			}
+			else
+			{
+				endCell += CellSpread::AdjacentCell[(int)dir & 7];
+			}
+		};
+
+	while (true)
+	{
+		const bool pastEnd = (diagRunLen + scanOffset >= totalLen)
+			|| (baseIdx + runLen >= totalLen);
+
+		if (pastEnd)
+		{
+			if (inDiagRun)
+			{
+				Tube_Crap(techno,
+					(int*)&moves[baseIdx],
+					&overlap[baseIdx],
+					runLen, diagRunLen, &curPos);
+			}
+			return;
+		}
+
+		if (inDiagRun)
+		{
+			if (moves[diagRunLen + scanOffset] == expectedDir)
+			{
+				++diagRunLen;
+				UpdateEndCell(expectedDir);
+				continue;
+			}
+
+			baseIdx += Tube_Crap(techno,
+				(int*)&moves[baseIdx],
+				&overlap[baseIdx],
+				runLen, diagRunLen, &curPos);
+			runLen = 1;
+			inDiagRun = false;
+			diagRunLen = 0;
+			scanOffset = 0;
+
+			FacingType nextDir = FacingType((int)moves[baseIdx] & (int)FacingType::NorthWest);
+			endCell =
+			{
+				static_cast<short>(curPos.X + CellSpread::AdjacentCell[(int)nextDir].X),
+				static_cast<short>(curPos.Y + CellSpread::AdjacentCell[(int)nextDir].Y)
+			};
+			prevDir = moves[baseIdx];
+			UpdateEndCell(moves[baseIdx]);
+			continue;
+		}
+
+		const FacingType curDir = moves[baseIdx + runLen];
+		const int        delta = ((int)curDir - (int)prevDir) & 7;
+
+		if (curDir == prevDir)
+		{
+			++runLen;
+		}
+		else if ((delta == 2 || delta == 6)
+			  && prevDir != FacingType::None
+			  && prevDir != FacingType::Max
+			  && curDir != FacingType::Max)
+		{
+			inDiagRun = true;
+			expectedDir = curDir;
+			diagRunLen = 1;
+			scanOffset = baseIdx + runLen;
+		}
+		else
+		{
+			baseIdx += runLen;
+			runLen = 1;
+			prevDir = ((int)curDir & 1) ? curDir : FacingType::None;
+			curPos = endCell;
+		}
+
+		UpdateEndCell(curDir);
+	}
+}
+
+// -----------------------------------------------------------------------
+// Adj_Cell / Is_Cell_In_Vector / UpdateZoneVector / Add_Cell_To_Vector —
+// unchanged structurally; no repetition to collapse.
+// -----------------------------------------------------------------------
+void AStarPathFinderClass::Adj_Cell(
+	int* dirArray,
+	int         startIdx,
+	int         minIdx,
+	int* outIdx,
+	CellStruct* posPtr)
+{
+	if (startIdx < minIdx)
+	{
+		*outIdx = minIdx;
+		return;
+	}
+
+	CellStruct startPos = *posPtr;
+	CellStruct walkPos = startPos;
+
+	short accX = 0;
+	short accY = 0;
+	int   maxDist = 0;
+	bool  peaked = false;
+
+	int   curIdx = startIdx;
+	int* curPtr = &dirArray[startIdx];
+
+	while (curIdx >= minIdx)
+	{
+		if (*curPtr == -2)
+		{
+			--curIdx;
+			--curPtr;
+			continue;
+		}
+
+		const int revDir = (*curPtr - 4) & 7;
+		const int adjX = CellSpread::AdjacentCell[revDir].X;
+		const int adjY = CellSpread::AdjacentCell[revDir].Y;
+
+		const short newAccX = static_cast<short>(accX + adjX);
+		const short newAccY = static_cast<short>(accY + adjY);
+		const short newWalkX = static_cast<short>(walkPos.X + adjX);
+		const short newWalkY = static_cast<short>(walkPos.Y + adjY);
+
+		const int distX = Math::abs(static_cast<int>(newAccX));
+		const int distY = Math::abs(static_cast<int>(newAccY));
+		const int dist = std::max(distX, distY);
+
+		if (dist > maxDist)
+		{
+			if (peaked)
+			{
+				*outIdx = curIdx + 1;
+				const int fwdDir = (revDir - 4) & 7;
+				*posPtr =
+				{
+					static_cast<short>(newWalkX + CellSpread::AdjacentCell[fwdDir].X),
+					static_cast<short>(newWalkY + CellSpread::AdjacentCell[fwdDir].Y)
+				};
+				return;
+			}
+			maxDist = dist;
+		}
+		else
+		{
+			peaked = true;
+		}
+
+		accX = newAccX;
+		accY = newAccY;
+		walkPos = { newWalkX, newWalkY };
+		startPos = walkPos;
+		--curIdx;
+		--curPtr;
+	}
+
+	*outIdx = minIdx;
+	*posPtr = startPos;
+}
+
+bool AStarPathFinderClass::Is_Cell_In_Vector(unsigned int a, unsigned int b, int vectorNum) const
+{
+	if (b < a)
+		std::swap(a, b);
+
+	const CellStruct key = CellStruct::UnPack(((b & 0xFFFFu) << 16) | (a & 0xFFFFu));
+
+	auto& vec = this->ZoneIndices[vectorNum];
+	int   count = vec.Count - 1;
+
+	if (count < 0)
+		return false;
+
+	for (int i = count; i >= 0; --i)
+	{
+		if (vec[i] == key)
+			return true;
+	}
+	return false;
+}
+
+void AStarPathFinderClass::UpdateZoneVector(unsigned int zoneValue, int vectorIdx)
+{
+	const int count = PassabilityCounts[vectorIdx];
+	if (count <= 1)
+	{
+		IsSearching = false;
+		return;
+	}
+
+	const uint16_t* data = PassabilityData[vectorIdx].Indices;
+	int             foundIdx = -1;
+
+	for (int i = 0; i < count; ++i)
+	{
+		if (data[i] == static_cast<uint16_t>(zoneValue))
+		{
+			foundIdx = i;
+			break;
+		}
+	}
+
+	if (foundIdx < 0)
+	{
+		IsSearching = false;
+		return;
+	}
+
+	unsigned int zoneA, zoneB;
+	if (foundIdx == count - 1)
+	{
+		zoneA = data[foundIdx - 1];
+		zoneB = data[foundIdx];
+	}
+	else
+	{
+		zoneA = data[foundIdx];
+		zoneB = data[foundIdx + 1];
+	}
+
+	Add_Cell_To_Vector(zoneA, zoneB, vectorIdx);
+
+	auto& subzoneTrackingArray = SubzoneTrackingStruct::Array[vectorIdx];
+	SubzoneTrackingStruct& nodeA = subzoneTrackingArray.Items[zoneA];
+	SubzoneTrackingStruct& nodeB = subzoneTrackingArray.Items[zoneB];
+
+	const int countA = nodeA.SubzoneConnections.Count - 1;
+	for (int i = countA; i >= 0; --i)
+	{
+		const uint16_t entryZone = static_cast<uint16_t>(
+			nodeA.SubzoneConnections[i].NeighborSubzoneIndex);
+
+		if (entryZone == static_cast<uint16_t>(zoneB))
+			continue;
+
+		const int countB = nodeB.SubzoneConnections.Count - 1;
+		for (int j = countB; j >= 0; --j)
+		{
+			if (static_cast<uint16_t>(
+				nodeB.SubzoneConnections[j].NeighborSubzoneIndex) == entryZone)
+			{
+				Add_Cell_To_Vector(entryZone, zoneA, vectorIdx);
+			}
+		}
+	}
+}
+
+void AStarPathFinderClass::Add_Cell_To_Vector(unsigned int a, unsigned int b, int vectorNum)
+{
+	if (a == b)
+		return;
+	if (b < a)
+		std::swap(a, b);
+	this->ZoneIndices[vectorNum].push_back(CellStruct::UnPack((b << 16) | (a & 0xFFFFu)));
+}
+
+// -----------------------------------------------------------------------
+// Generate_Moves — unchanged structurally.
+// -----------------------------------------------------------------------
+bool AStarPathFinderClass::Generate_Moves(
+	int* moves,
+	int         capacity,
+	CellStruct* startCell,
+	CellStruct* delta,
+	FootClass* techno,
+	int* levelPtr,
+	bool        tolerateThreats)
+{
+	static constexpr double kThreatAvoidanceThreshold = 0.00001;
+	static constexpr double kCellThreatThreshold = 0.01;
+
+	const int dx = static_cast<int>(delta->X);
+	const int dy = static_cast<int>(delta->Y);
+
+	int diagDir = (dx < 0) ? (dy >= 0 ? 5 : 7) : (dy >= 0 ? 3 : 1);
+	int cardDir = ((dx - dy) > 0) ? ((dx + dy) > 0 ? 2 : 0) : ((dx + dy) > 0 ? 4 : 6);
+
+	const int absDx = Math::abs(dx);
+	const int absDy = Math::abs(dy);
+	int diagSteps = std::min(absDx, absDy);
+	int straightSteps = std::max(absDx, absDy) - diagSteps;
+
+	const double threatFactor = techno->GetThreatAvoidanceCoefficient();
+	HouseClass* house = techno->Owner;
+	const bool   checkThreats = (threatFactor > kThreatAvoidanceThreshold);
+
+	int retryCount = 0;
+
+	while (true)
+	{
+		int  threatCount = 0;
+		bool blocked = false;
+
+		if (diagSteps == 0)
+		{
+			std::swap(diagDir, cardDir);
+			std::swap(diagSteps, straightSteps);
+			if (++retryCount >= 2)
+				return false;
+			continue;
+		}
+
+		CellStruct curPos = *startCell;
+		int        curLevel = *levelPtr;
+
+		const auto UpdateLevel = [&](CellClass* cell)
+			{
+				const int cellLevel = static_cast<int>(cell->Level);
+				if (curLevel - cellLevel == 4)
+				{
+					curLevel = cellLevel + 4;
+					if (cell->ContainsBridge())
+						return;
+				}
+				curLevel = cellLevel;
+			};
+
+		const auto IsBlocked = [&](CellClass* cell, int dir) -> bool
+			{
+				if (checkThreats)
+				{
+					const int threat = MapClass::Instance->GetThreatPosed(curPos, house);
+					if (static_cast<double>(threat) * threatFactor >= kCellThreatThreshold)
+						++threatCount;
+				}
+				if (techno->IsCellOccupied(cell, (FacingType)dir, curLevel, nullptr, false) != Move::OK)
+					return true;
+				if (cell->UINTFlags & 0x40000)
+					return true;
+				if (threatCount > 3)
+					return true;
+				if (!tolerateThreats && threatCount > 0)
+					return true;
+				return false;
+			};
+
+		{
+			int remaining = diagSteps;
+			while (remaining > 0 && !blocked)
+			{
+				const int dirIdx = diagDir & 7;
+				curPos =
+				{
+					static_cast<short>(curPos.X + CellSpread::AdjacentCell[dirIdx].X),
+					static_cast<short>(curPos.Y + CellSpread::AdjacentCell[dirIdx].Y)
+				};
+				CellClass* cell = MapClass::Instance->GetCellAt(curPos);
+				blocked = IsBlocked(cell, diagDir);
+				UpdateLevel(cell);
+				--remaining;
+			}
+		}
+
+		if (!blocked && straightSteps > 0)
+		{
+			int remaining = straightSteps;
+			while (remaining > 0 && !blocked)
+			{
+				const int dirIdx = cardDir & 7;
+				curPos += CellSpread::AdjacentCell[dirIdx];
+				CellClass* cell = MapClass::Instance->GetCellAt(curPos);
+				blocked = IsBlocked(cell, cardDir);
+				UpdateLevel(cell);
+				--remaining;
+			}
+		}
+
+		if (blocked)
+		{
+			std::swap(diagDir, cardDir);
+			std::swap(diagSteps, straightSteps);
+			if (++retryCount >= 2)
+				return false;
+			continue;
+		}
+
+		int writeIdx = 0;
+		if (diagSteps > 0)
+		{
+			std::fill_n(moves, diagSteps, diagDir);
+			writeIdx += diagSteps;
+		}
+		if (straightSteps > 0)
+		{
+			std::fill_n(moves + writeIdx, straightSteps, cardDir);
+			writeIdx += straightSteps;
+		}
+		const int remainder = capacity - writeIdx;
+		if (remainder > 0)
+			std::fill_n(moves + writeIdx, remainder, -2);
+
+		return true;
+	}
+}
+
+// -----------------------------------------------------------------------
+// Attempt — unchanged structurally.
+// -----------------------------------------------------------------------
+unsigned int AStarPathFinderClass::Attempt(
+	CellStruct* startPos,
+	CellStruct* destPos,
+	FootClass* foot,
+	bool         bridge1,
+	bool         bridge2,
+	MovementZone mzone)
+{
+	IsSearching = true;
+	Init();
+
+	for (int i = 0; i < 3; ++i)
+		ZoneIndices[i].clear();
+
+	CellClass* startCell = MapClass::Instance->GetCellAt(startPos);
+	CellClass* destCell = MapClass::Instance->GetCellAt(destPos);
+
+	CellStruct subStart, subDest;
+	MapClass::Instance->Subzone_bridgecheck_583180(&subStart, startCell, bridge1);
+	MapClass::Instance->Subzone_bridgecheck_583180(&subDest, destCell, bridge2);
+
+	MovementZone resolvedMzone = mzone;
+	if (mzone == MovementZone::None)
+	{
+		resolvedMzone = foot
+			? foot->GetTechnoType()->MovementZone
+			: MovementZone::Normal;
+	}
+
+	if (!this->__Find_Path_Hierarchical(&subDest, &subStart, resolvedMzone, foot))
+		return 0x7FFFFFFFu;
+
+	const int baseDist = ChebyshevDist(*startPos, *destPos);
+	const int passCount0 = PassabilityCounts[0];
+	int       penalty = passCount0 * 2 - 2;
+
+	const auto TrySubzone = [&](CellClass* cell, CellStruct* endpoint,
+								uint16_t entry, CellStruct* fallback) -> bool
+		{
+			CellStruct result;
+			MapClass::Instance->Subzone_583820(&result, cell, 0, entry);
+
+			if (result == CellStruct::Empty)
+			{
+				if (!fallback)
+					return false;
+				result = *fallback;
+			}
+
+			if (result != CellStruct::Empty)
+				penalty += ChebyshevDist(result, *endpoint);
+
+			return (result != CellStruct::Empty);
+		};
+
+	bool bridge2Done = false;
+	if (bridge2)
+	{
+		if (bridge1)
+		{
+			ZoneType zoneA = MapClass::Instance->GetMovementZoneType(destPos, MovementZone::AmphibiousDestroyer, 0);
+			ZoneType zoneB = MapClass::Instance->GetMovementZoneType(startPos, MovementZone::AmphibiousDestroyer, 0);
+			if (zoneA == zoneB && zoneA != ZoneType::None)
+				return static_cast<unsigned int>(baseDist);
+		}
+
+		if (passCount0 >= 4)
+		{
+			const uint16_t entry = PassabilityData[0].Indices[passCount0 - 2];
+			if (TrySubzone(destCell, destPos, entry, nullptr))
+				bridge2Done = true;
+		}
+
+		if (!bridge2Done)
+		{
+			const uint16_t entry = PassabilityData[0].Indices[passCount0 - 1];
+			TrySubzone(destCell, destPos, entry, &subDest);
+		}
+	}
+
+	if (bridge1)
+	{
+		bool bridge1Done = false;
+
+		if (passCount0 >= 4)
+		{
+			const uint16_t entry = PassabilityData[0].Indices[1];
+			if (TrySubzone(startCell, startPos, entry, nullptr))
+				bridge1Done = true;
+		}
+
+		if (!bridge1Done)
+		{
+			const uint16_t entry = PassabilityData[0].Indices[0];
+			TrySubzone(startCell, startPos, entry, &subStart);
+		}
+	}
+
+	return static_cast<unsigned int>(std::max(penalty, baseDist));
+}
+
+// -----------------------------------------------------------------------
+// Fill_DVector — unchanged structurally.
+// -----------------------------------------------------------------------
+void AStarPathFinderClass::Fill_DVector(FootClass* techno)
+{
+	const int startZoneIdx = MapClass::Instance->MapClass_zone_56D3F0(&CellStructBuffer);
+	GlobalPassabilityData& startZoneStruct =
+		MapClass::Instance->LevelAndPassabilityStruct2pointer_70[startZoneIdx];
+
+	for (int passIdx = 0; passIdx < 3; ++passIdx)
+	{
+		const uint16_t startZoneValue = startZoneStruct.data[passIdx];
+
+		DynamicVectorClass<uint16_t> tempVec {};
+		CellClass* cell = MapClass::Instance->GetCellAt(CellStructBuffer);
+
+		if (MapClass::Instance->Subzone_5840C0(cell, passIdx, &tempVec, techno))
+		{
+			const int      cellZoneIdx = MapClass::Instance->MapClass_zone_56D3F0(&CellStructBuffer);
+			const uint16_t cellZoneValue =
+				MapClass::Instance->LevelAndPassabilityStruct2pointer_70[cellZoneIdx].data[passIdx];
+			UpdateZoneVector(static_cast<unsigned int>(cellZoneValue), passIdx);
+		}
+		else
+		{
+			for (int i = tempVec.Count - 1; i >= 0; --i)
+			{
+				Add_Cell_To_Vector(
+					static_cast<unsigned int>(tempVec[i]),
+					static_cast<unsigned int>(startZoneValue),
+					passIdx);
+			}
+		}
+	}
+}
+
+// -----------------------------------------------------------------------
+// AllocZoneArrays
+// DIFF: delete () replaces the 6 manual delete+null pairs.
+// -----------------------------------------------------------------------
+void AStarPathFinderClass::AllocZoneArrays()
+{
+	for (int i = 0; i < 3; ++i)
+	{
+		// CONFIRMED[0x42C1C0]: pointer slot stores the count as a raw integer, not a pointer.
+		const int count = static_cast<int>(
+			reinterpret_cast<std::uintptr_t>(MapClass::Instance->MovementZones[4 + i]));
+
+		delete (LevelVisitedMarkers[i]);
+		LevelVisitedMarkers[i] = static_cast<int*>(operator new(static_cast<unsigned>(count * 4)));
+		std::fill_n(LevelVisitedMarkers[i], count, 0);
+
+		delete (OpenSetMarkers[i]);
+		OpenSetMarkers[i] = static_cast<int*>(operator new(static_cast<unsigned>(count * 4)));
+		std::fill_n(OpenSetMarkers[i], count, 0);
+
+		delete (GCostArray[i]);
+		GCostArray[i] = reinterpret_cast<float*>(operator new(static_cast<unsigned>(count * 4)));
+		std::fill_n(reinterpret_cast<int*>(GCostArray[i]), count, 0);
+	}
+}
+
+// -----------------------------------------------------------------------
+// Find_Path
+// DIFF: VisitStamper used for the StartLevel/EndLevel stamp pairs.
+// -----------------------------------------------------------------------
+PathType* AStarPathFinderClass::Find_Path(
+	CellStruct* start,
+	CellStruct* dest,
+	FootClass* techno,
+	int* moves,
+	int                  maxCount,
+	MovementZone         mzoneOverride,
+	AStarPostProcessType findModeOverride)
+{
+	IsSearching = true;
+	Init();
+
+	for (int i = 0; i < 3; ++i)
+		ZoneIndices[i].clear();
+
+	FindMode = findModeOverride;
+
+	CellClass* startCell = MapClass::Instance->GetCellAt(start);
+	CellClass* destCell = MapClass::Instance->GetCellAt(dest);
+
+	MovementZone resolvedMzone = (mzoneOverride == MovementZone::None)
+		? techno->GetTechnoType()->MovementZone
+		: mzoneOverride;
+
+	const int startZone = MapClass::Instance->GetMapZone(start, resolvedMzone, techno->OnBridge);
+
+	MovementZone destMzone = (mzoneOverride == MovementZone::None)
+		? techno->GetTechnoType()->MovementZone
+		: mzoneOverride;
+
+	const bool destIsBridge = (destCell->UINTFlags >> 8) & 1;
+	const int  destZone = MapClass::Instance->GetMapZone(dest, destMzone, destIsBridge);
+
+	CellStruct subStart, subDest;
+	MapClass::Instance->Subzone_bridgecheck_583180(&subStart, startCell, techno->OnBridge);
+	MapClass::Instance->Subzone_bridgecheck_583180(&subDest, destCell, destIsBridge);
+
+	if (mzoneOverride == MovementZone::None)
+		mzoneOverride = techno->GetTechnoType()->MovementZone;
+
+	// VERIFY: infantry tunnel locomotion COM query — partial, see original for full detail
+	if (techno->WhatAmI() == AbstractType::Infantry)
+	{
+		auto* infType = ((InfantryClass*)techno)->Type;
+		if (infType->JumpJet)
+		{
+			mzoneOverride = MovementZone::Infantry;
+			auto& loco = techno->Locomotor;
+			static constexpr GUID CLSID_IPersist = {
+				0x0000010C, 0x0000, 0x0000,
+				{ 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46 }
+			};
+			IPersistStream* pStm;
+			loco.QueryInterface(CLSID_IPersist, (void**)&pStm);
+			ULARGE_INTEGER _size;
+			if (pStm->GetSizeMax(&_size))
+				pStm->Release();
+		}
+	}
+
+	bool useHierarchical = false;
+	{
+		const bool isTrain = techno->GetTechnoType()->IsTrain;
+		const bool isLocked = techno->IsInPlayfield;
+		const bool allowedToLeave = techno->IsAllowedToLeaveMap();
+		const bool startInRadar = MapClass::Instance->IsWithinUsableArea(subStart, true);
+		const bool destInRadar = MapClass::Instance->IsWithinUsableArea(subDest, true);
+
+		useHierarchical = !isTrain && isLocked && !allowedToLeave
+			&& startInRadar && destInRadar;
+	}
+
+	if (startZone == destZone)
+	{
+		if (useHierarchical
+		 && !this->__Find_Path_Hierarchical(&subStart, &subDest,
+			 static_cast<MovementZone>(mzoneOverride), techno))
+		{
+			Debug::Log("Hierarchical findpath failure: (%d,%d) to (%d, %d)\n",
+				subStart.X, subStart.Y, subDest.X, subDest.Y);
+			useHierarchical = false;
+		}
+	}
+	else if (useHierarchical)
+	{
+		return nullptr;
+	}
+
+	const int maxRetries = (maxCount == -1) ? 5 : 4;
+	int       retryCount = 0;
+	PathType* result = nullptr;
+
+	while (true)
+	{
+		if (!useHierarchical && (subStart.X != subDest.X || subStart.Y != subDest.Y))
+		{
+			Debug::Log("Warning.  A* without HS: (%d,%d) to (%d, %d)\n",
+				subStart.X, subStart.Y, subDest.X, subDest.Y);
+		}
+
+		result = this->Find_Path_Regular(start, dest, techno, moves, maxCount, useHierarchical);
+
+		if (result || !useHierarchical)
+			break;
+
+		{
+			const int cheb = std::max(
+				Math::abs(static_cast<int>(start->Y) - static_cast<int>(dest->Y)),
+				Math::abs(static_cast<int>(start->X) - static_cast<int>(dest->X)));
+			if (cheb > 1)
+			{
+				Debug::Log("Regular findpath failure: (%d,%d) to (%d, %d)\n",
+					subStart.X, subStart.Y, subDest.X, subDest.Y);
+			}
+		}
+
+		++retryCount;
+		Fill_DVector(techno);
+		Init();
+
+		useHierarchical = (IsSearching != 0);
+
+		if (retryCount >= maxRetries)
+			break;
+
+		if (useHierarchical
+		 && !this->__Find_Path_Hierarchical(&subStart, &subDest,
+			 static_cast<MovementZone>(mzoneOverride), (FootClass*)techno))
+			break;
+	}
+
+	return result;
+}
+
+// -----------------------------------------------------------------------
+// Calc_Moves — unchanged structurally.
+// -----------------------------------------------------------------------
+void AStarPathFinderClass::Calc_Moves(PathType* path, FootClass* techno)
+{
+	auto  moves = path->Command;
+	int* overlap = reinterpret_cast<int*>(path->Overlap);
+	CellStruct curCell = path->Start;
+
+	const int totalSteps = path->Length - 1;
+
+	int  stepIdx = 0;
+	int  validCount = 0;
+
+	short accDeltaX = 0;
+	short accDeltaY = 0;
+	short prevDeltaX = 0;
+	short prevDeltaY = 0;
+
+	int maxAbsX = 0;
+	int maxAbsY = 0;
+	int maxChebyshev = 0;
+
+	CellStruct  pivotCell = { 0, 0 };
+	int         pivotStep = 0;
+	int         adjStep = 0;
+
+	FacingType* stepPtr = moves;
+
+	if (totalSteps > 0)
+	{
+		while (stepIdx < totalSteps)
+		{
+			if (stepIdx >= 20)
+				break;
+
+			const FacingType dir = *stepPtr;
+
+			if (dir == FacingType::Count)
+			{
+				curCell += CellSpread::AdjacentCell[0];
+
+				++stepIdx;
+				++stepPtr;
+
+				accDeltaX = 0;
+				accDeltaY = 0;
+				prevDeltaX = 0;
+				prevDeltaY = 0;
+				maxAbsX = 0;
+				maxAbsY = 0;
+				maxChebyshev = 0;
+				pivotCell = { 0, 0 };
+				adjStep = stepIdx;
+				pivotStep = stepIdx;
+			}
+			else if (dir == (FacingType)-2)
+			{
+				++stepIdx;
+				++stepPtr;
+			}
+			else
+			{
+				const int   dirIdx = (int)dir & 7;
+				const short adjX = CellSpread::AdjacentCell[dirIdx].X;
+				const short adjY = CellSpread::AdjacentCell[dirIdx].Y;
+
+				const short newAccX = static_cast<short>(accDeltaX + adjX);
+				const short newAccY = static_cast<short>(accDeltaY + adjY);
+				const short newPrevX = static_cast<short>(prevDeltaX + adjX);
+				const short newPrevY = static_cast<short>(prevDeltaY + adjY);
+
+				const CellStruct newCell =
+				{
+					static_cast<short>(curCell.X + adjX),
+					static_cast<short>(curCell.Y + adjY)
+				};
+
+				const int absNewPrevX = Math::abs(static_cast<int>(newPrevX));
+				const int absNewPrevY = Math::abs(static_cast<int>(newPrevY));
+
+				if (absNewPrevX < maxAbsX || absNewPrevY < maxAbsY)
+				{
+					if (pivotCell.X || pivotCell.Y)
+					{
+						adjStep = pivotStep;
+						accDeltaX = static_cast<short>(pivotCell.X - curCell.X);
+						accDeltaY = static_cast<short>(pivotCell.Y - curCell.Y);
+						maxAbsX = 0;
+						maxAbsY = 0;
+						prevDeltaX = 0;
+						prevDeltaY = 0;
+
+						const int absDX = Math::abs(static_cast<int>(accDeltaX));
+						const int absDY = Math::abs(static_cast<int>(accDeltaY));
+						maxChebyshev = std::max(absDX, absDY);
+						pivotCell = curCell;
+						pivotStep = stepIdx;
+					}
+					else
+					{
+						maxAbsX = 0;
+						maxAbsY = 0;
+						prevDeltaX = 0;
+						prevDeltaY = 0;
+						pivotCell = curCell;
+						pivotStep = stepIdx;
+					}
+				}
+				else
+				{
+					maxAbsY = absNewPrevY;
+					prevDeltaX = newPrevX;
+					prevDeltaY = newPrevY;
+					maxAbsX = absNewPrevX;
+
+					const int absAccX = Math::abs(static_cast<int>(newAccX));
+					const int absAccY = Math::abs(static_cast<int>(newAccY));
+					const int newCheb = std::max(absAccX, absAccY);
+
+					const int subDirIdx = static_cast<unsigned int>(dir) & 7u;
+					const CellStruct stepCell = curCell + CellSpread::AdjacentCell[subDirIdx];
+					curCell = stepCell;
+
+					if (maxChebyshev >= newCheb)
+					{
+						CellStruct adjOutCell = stepCell;
+						int        adjOutStep = 0;
+
+						Adj_Cell((int*)moves, stepIdx, adjStep, &adjOutStep, &adjOutCell);
+
+						const CellStruct delta = stepCell - adjOutCell;
+
+						Generate_Moves(
+							((int*)&moves[adjOutStep]),
+							stepIdx - adjOutStep + 1,
+							&adjOutCell,
+							const_cast<CellStruct*>(&delta),
+							techno,
+							&overlap[adjOutStep],
+							false);
+					}
+					else
+					{
+						maxChebyshev = newCheb;
+					}
+
+					++stepIdx;
+					accDeltaX = newAccX;
+					accDeltaY = newAccY;
+					++stepPtr;
+				}
+
+				validCount = 0;
+			}
+		}
+
+		if (pivotCell.X || pivotCell.Y)
+		{
+			const int absDX = Math::abs(static_cast<int>(curCell.X - pivotCell.X));
+			const int absDY = Math::abs(static_cast<int>(curCell.Y - pivotCell.Y));
+			const int pivotCheb = std::max(absDX, absDY);
+
+			if ((stepIdx - 1 - pivotStep) > pivotCheb)
+			{
+				CellStruct adjOutCell = curCell;
+				int        adjOutStep = 0;
+
+				Adj_Cell((int*)moves, stepIdx - 1, pivotStep, &adjOutStep, &adjOutCell);
+
+				const CellStruct delta =
+				{
+					static_cast<short>(curCell.X - adjOutCell.X),
+					static_cast<short>(curCell.Y - adjOutCell.Y)
+				};
+
+				Generate_Moves(
+					((int*)&moves[adjOutStep]),
+					stepIdx - adjOutStep,
+					&adjOutCell,
+					const_cast<CellStruct*>(&delta),
+					techno,
+					&overlap[adjOutStep],
+					true);
+			}
+		}
+	}
+
+	{
+		FacingType* readPtr = moves;
+		FacingType* writePtr = moves;
+		int  readStep = 0;
+		validCount = 0;
+
+		int cur = (int)*readPtr;
+		if (cur != -1)
+		{
+			while (readStep < totalSteps && cur != -1)
+			{
+				if (cur != -2)
+				{
+					*writePtr++ = *readPtr;
+					++validCount;
+				}
+				cur = (int)readPtr[1];
+				++readPtr;
+				++readStep;
+			}
+		}
+	}
+
+	{
+		const int padUntil = path->Length + 1;
+		for (int i = validCount; i < padUntil; ++i)
+			moves[i] = FacingType::None;
+	}
+
+	path->Length = validCount + 1;
+}
+
+// -----------------------------------------------------------------------
+// Find_Path_Regular
+// DIFF: VisitStamper consolidates the 6 VisitCounts/AltVisitCounts pairs.
+//       WorkPath pop/push-swap idiom extracted to lambda QueueSwap.
+// -----------------------------------------------------------------------
+PathType* AStarPathFinderClass::Find_Path_Regular(
+	CellStruct* start,
+	CellStruct* dest,
+	FootClass* techno,
+	int* moves,
+	int         maxCount,
+	bool        useHierarchical)
+{
+	CellClass** destCellPtr = CellArrayPtr(dest->X, dest->Y);
+	CellClass** startCellPtr = CellArrayPtr(start->X, start->Y);
+
+	CellClass* destCell = *destCellPtr;
+	CellClass* startCell = *startCellPtr;
+
+	if (!destCell || !startCell)
+		return nullptr;
+
+	const bool technoIsAircraft = (techno->WhatAmI() == AbstractType::Aircraft);
+
+	int endLevel = static_cast<int>(destCell->Level);
+	if (!technoIsAircraft && destCell->ContainsBridge())
+		endLevel += 4;
+	EndLevel = endLevel;
+
+	int startLevel = static_cast<int>(startCell->Level);
+	if (!technoIsAircraft && techno->OnBridge)
+		startLevel += 4;
+	StartLevel = startLevel;
+
+	if (techno->GetTechnoType()->IsTrain && startCell->ContainsBridge())
+	{
+		const int coordLevel = techno->GetCoords().Z / Unsorted::LevelHeight;
+		if (Math::abs(coordLevel - StartLevel) > 2)
+			StartLevel += 4;
+	}
+
+	FinderSpeedType = static_cast<SpeedType>(techno->GetTechnoType()->Speed);
+	PathLength = 0;
+	CellStructBuffer = *start;
+
+	int* zoneArray = LevelVisitedMarkers[0];
+
+	AStarWorkPathStruct* workPath = Calc_sqrt(nullptr, destCellPtr, dest, 0.0f);
+
+	if (start->X == dest->X && start->Y == dest->Y && StartLevel == EndLevel)
+		return nullptr;
+
+	if (FindMode)
+		Process_Paths(reinterpret_cast<TechnoClass*>(techno));
+
+	// VisitStamper: consolidates all VisitCounts/AltVisitCounts stamp pairs.
+	VisitStamper stamper { VisitCounts, AltVisitCounts, Distances, AltDistances, SearchID };
+
+	const int startFlatIdx =
+		static_cast<int>(startCell->MapCoords.Y) * RegionSize()
+		+ static_cast<int>(startCell->MapCoords.X);
+
+	stamper.Stamp(startFlatIdx, 0.0f, StartLevel <= static_cast<int>(startCell->Level));
+
+	bool isTrain = techno->GetTechnoType()->IsTrain;
+
+	if (isTrain)
+	{
+		int facingIdx = 0;
+		for (auto neighborPtr = std::begin(dword_7E3774);
+			 neighborPtr <= std::end(dword_7E3774);
+			 ++neighborPtr, ++facingIdx)
+		{
+			DirStruct        facingDir = techno->PrimaryFacing.Current();
+			const unsigned int technoFacing =
+				(((static_cast<unsigned int>(facingDir.Raw) >> 12) + 1) >> 1) & 7u;
+
+			const int diff = Math::abs(static_cast<int>(technoFacing) - facingIdx);
+			if (diff > 2 && diff < 6 && neighborPtr != std::end(dword_7E3774))
+			{
+				CellClass* neighbor = startCellPtr[*neighborPtr];
+				if (neighbor)
+				{
+					const int flatIdx =
+						static_cast<int>(neighbor->MapCoords.Y) * RegionSize()
+						+ static_cast<int>(neighbor->MapCoords.X);
+					const int neighborLevel = static_cast<int>(neighbor->Level) + 1;
+					stamper.Stamp(flatIdx, 0.0f, StartLevel <= neighborLevel);
+				}
+			}
+		}
+	}
+
+	bool isPassive = false;
+	if (auto pUnit = cast_to<UnitClass* , false>(techno)) {
+		//TODO : killdriver
+		if (pUnit->Type->Passive)
+			isPassive = true;
+	}
+
+	if (maxCount < 0)
+		maxCount = 0xFFF7;
+
+	if (!workPath)
+	{
+		if (FindMode)
+			Process_Paths(techno);
+		return nullptr;
+	}
+
+	// QueueSwap: replaces the 3 identical pop/peek/push-back patterns.
+	// Selects the lower-cost head between bestNode and the queue top,
+	// pushing the other one back.
+	const auto QueueAdvance = [&](AStarWorkPathStruct*& work,
+								  AStarWorkPathStruct* best) -> bool
+		{
+			if (!best)
+			{
+				AStarWorkPathStruct* top = PathQueue->Top();
+				if (!top)
+				{
+					work = nullptr;
+					return false;
+				}
+				PathQueue->Pop();
+				work = top;
+				return true;
+			}
+
+			if (!PathQueue->Count || PathQueue->Top()->PathCost >= best->PathCost)
+			{
+				work = best;
+				return true;
+			}
+
+			AStarWorkPathStruct* top = PathQueue->Top();
+			PathQueue->Pop();
+			PathQueue->Push(best);
+			work = top;
+			return true;
+		};
+
+	int  iterCount = 0;
+	bool destinationReached = false;
+
+	while (workPath && !destinationReached)
+	{
+		if (iterCount >= maxCount)
+			break;
+
+		CellClass** curCells = workPath->Data->Cells;
+		CellClass* curFirstCell = *curCells;
+
+		if (curCells == destCellPtr && workPath->Data->CellLevel == EndLevel)
+		{
+			destinationReached = true;
+			break;
+		}
+
+		const int curFlatIdx =
+			static_cast<int>(curFirstCell->MapCoords.Y) * RegionSize()
+			+ static_cast<int>(curFirstCell->MapCoords.X);
+
+		AStarWorkPathStruct* bestNode = nullptr;
+
+		for (int facing = 0; facing <= 8 && !destinationReached; ++facing)
+		{
+			CellClass** neighborCellPtr;
+
+			if (facing == 8)
+			{
+				const int tubeIdx = static_cast<int>(curFirstCell->TubeIndex);
+				if (tubeIdx == -1)
+				{
+					*neighborCellPtr = nullptr;
+				}
+				else
+				{
+					CellStruct endCell = TubeClass::Array->Items[tubeIdx]->ExitCell;
+					neighborCellPtr = CellArrayPtr(endCell.X, endCell.Y);
+				}
+			}
+			else
+			{
+				neighborCellPtr = &curCells[dword_7E3774[facing]];
+			}
+
+			CellClass* neighborCell = *neighborCellPtr;
+			if (!neighborCell)
+				continue;
+
+			int neighborFlatIdx;
+			if (facing == 8)
+			{
+				neighborFlatIdx =
+					static_cast<int>(neighborCell->MapCoords.Y) * RegionSize()
+					+ static_cast<int>(neighborCell->MapCoords.X);
+			}
+			else
+			{
+				neighborFlatIdx = curFlatIdx + adjust_89A304[facing];
+			}
+
+			const bool neighborIsBridge = neighborCell->ContainsBridge();
+			bool useAlt;
+			if (neighborIsBridge)
+			{
+				const int levelDiff = Math::abs(StartLevel - static_cast<int>(neighborCell->Level));
+				useAlt = (levelDiff <= 1);
+			}
+			else
+			{
+				useAlt = true;
+			}
+
+			const int zone_ = MapClass::Instance->MapClass_zone_56D3F0(&neighborCell->MapCoords);
+			const int zoneVal = static_cast<int>(
+				MapClass::Instance->LevelAndPassabilityStruct2pointer_70[zone_].data[0]);
+
+			if (zoneArray[zoneVal] != SearchID)
+			{
+				if (useAlt && !neighborCell->BlockedNeighbours && useHierarchical)
+					continue;
+			}
+
+			const float prevCost = workPath->MovementCost;
+
+			// DIFF: stamper.IsVisited() / stamper.GetDist() replace the 2 symmetric if-blocks.
+			if (stamper.IsVisited(neighborFlatIdx, useAlt)
+			 && stamper.GetDist(neighborFlatIdx, useAlt) < static_cast<double>(prevCost) + dbl_7E37C0)
+				continue;
+
+			int canEnter = (int)techno->IsCellOccupied(
+				neighborCell,
+				static_cast<FacingType>(facing),
+				StartLevel,
+				*curCells,
+				IsAlt);
+
+			if (isTrain && canEnter < 7)
+				canEnter = 0;
+
+			float stepCost;
+			if (facing == 8)
+			{
+				const int dx = Math::abs(static_cast<int>(curFirstCell->MapCoords.X)
+									  - static_cast<int>(neighborCell->MapCoords.X));
+				const int dy = Math::abs(static_cast<int>(curFirstCell->MapCoords.Y)
+									  - static_cast<int>(neighborCell->MapCoords.Y));
+				stepCost = static_cast<float>(std::max(dx, dy));
+			}
+			else
+			{
+				const float calcFloat = Calc_Float(
+					curCells, neighborCellPtr,
+					useAlt ? 0 : 1,
+					canEnter,
+					techno);
+				stepCost = calcFloat * PathCostFactor + PassCostMultiplier[facing];
+			}
+
+			if (canEnter >= 7)
+			{
+				if (neighborCellPtr == destCellPtr && !isPassive)
+				{
+					const int levelDiff = Math::abs(StartLevel - EndLevel);
+					if (levelDiff <= 1)
+					{
+						destinationReached = true;
+						break;
+					}
+				}
+				continue;
+			}
+
+			if (stamper.IsVisited(neighborFlatIdx, useAlt))
+				continue;
+
+			{
+				AStarWorkPathStruct* newNode = Calc_sqrt(
+					workPath, neighborCellPtr, dest, stepCost);
+
+				if (!bestNode || newNode->PathCost < bestNode->PathCost)
+				{
+					if (bestNode)
+						PathQueue->Push(bestNode);
+					bestNode = newNode;
+				}
+				else
+				{
+					PathQueue->Push(newNode);
+				}
+
+				// DIFF: stamper.Stamp() replaces the 2 symmetric if/else stamp blocks.
+				stamper.Stamp(neighborFlatIdx, newNode->MovementCost, useAlt);
+
+				if (zoneVal == static_cast<int>(
+					PassabilityData[0].Indices[PathLength + 1]))
+				{
+					++PathLength;
+					CellStructBuffer = neighborCell->MapCoords;
+				}
+			}
+		}
+
+		if (!destinationReached)
+			QueueAdvance(workPath, bestNode);
+
+		if (workPath)
+			StartLevel = workPath->Data->CellLevel;
+
+		++iterCount;
+	}
+
+	if (iterCount == 10000
+	 || !workPath
+	 || iterCount == maxCount
+	 || workPath->PathLength < 2)
+	{
+		if (FindMode)
+			Process_Paths(techno);
+		return nullptr;
+	}
+
+	PathType* result = Get_Path(workPath, reinterpret_cast<FacingType*>(moves));
+	Process_Moves(result, techno);
+	Calc_Moves(result, techno);
+
+	if (FindMode)
+		Process_Paths(techno);
+
+	return result;
+}

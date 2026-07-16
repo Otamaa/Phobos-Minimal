@@ -752,6 +752,15 @@ public:
 	bool Place_Random_Crate()
 	{ JMP_THIS(0x56BD40); }
 
+	bool Subzone_5840C0(CellClass* cellptr, int a3, DynamicVectorClass<uint16_t>* a4, FootClass *a5)
+	{ JMP_THIS(0x5840C0); }
+
+	CellStruct* Subzone_583820(CellStruct* arg0, CellClass* a2, int a4, int a5)
+	{ JMP_THIS(0x583820); }
+
+	CellStruct* Subzone_bridgecheck_583180(CellStruct* cell, CellClass* cptr, int bridge)
+	{ JMP_THIS(0x583180); }
+
 	int GetMapZone(CellStruct* where, MovementZone movementZone, bool isBridge)
 	{ JMP_THIS(0x56D230); }
 
@@ -892,7 +901,30 @@ protected:
 public:
 	DWORD unknown_10;
 	HashTable<DWORD,DWORD>* unknown_pointer_14;
-	std::array<void*, 13> MovementZones;
+
+	// MovementZones — std::array<int*, 13> at 0x87F800 (MapClass member)
+	//
+	// SPLIT STORAGE: two completely different things sharing one array.
+	//
+	// [0..3] = real uint16_t* pointers — zone-ID lookup tables per passability pass.
+	//          Usage: MovementZones[pass][cell.ZoneArrayIndex] → zone color (uint16_t)
+	//          Two cells are in the same movement zone if their colors match.
+	//          Indexed by CellLevelPassabilityStruct::ZoneArrayIndex.
+	//          CONFIRMED: slot [0] used in MapClass_Zone_Reset_maybe @ 0x56D68D.
+	//
+	// [4..6] = NOT pointers — raw int counts stored in pointer slots.
+	//          [4] = subzone count for hierarchical level 0  (finest)
+	//          [5] = subzone count for hierarchical level 1
+	//          [6] = subzone count for hierarchical level 2  (coarsest)
+	//          Usage: drives allocation size of LevelVisitedMarkers/OpenSetMarkers/GCostArray.
+	//          Read as: static_cast<int>(reinterpret_cast<std::uintptr_t>(MovementZones[4+i]))
+	//          CONFIRMED: AStarClass_42C1C0 @ 0x42C1C3 — value used directly as alloc count.
+	//
+	// [7..12] = UNKNOWN — likely more zone-ID arrays mirroring [0..3]. Do not touch.
+	//
+	// NEVER dereference slots [4..6] — they are not valid pointers.
+
+	std::array<int*, 13> MovementZones;
 	DWORD somecount_4C;
 	DynamicVectorClass<ZoneConnectionClass> ZoneConnections;
 	CellLevelPassabilityStruct* LevelAndPassability;

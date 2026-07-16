@@ -933,7 +933,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 
 		// Anim index (temporarily revert burst index for Ares compat)
 		--pThis->CurrentBurstIndex;
-		
+
 		AnimTypeClass* pFiringAnim = nullptr;
 
 		if (pThis->CanOccupyFire())

@@ -321,6 +321,10 @@ public:
 	Nullable<bool> AttackMove_StopWhenTargetAcquired {};
 	Nullable<bool> ShowPowerPlantEnhancerRange {};
 	Valueable<bool> OpenTopped_DecloakToFire { false };
+	Valueable<bool> OpenTopped_FireWhileMoving { true  };
+	Valueable<bool> OpenTransport_FireWhileMoving { true  };
+	Valueable<bool> OpenTopped_AllowFiringIfAttackedByLocomotor { true  };
+
 	Valueable<bool> Temporal_ConsiderVersus { false };
 	Valueable<bool> Temporal_ApplyMultiplier { false };
 	// ============================================================
