@@ -4885,8 +4885,8 @@ bool HouseExtData::UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel, bool sil
 		NextCell = MapClass::Instance->GetCellAt(next);
 
 		const auto nLevel = pTunnel->GetCellLevel();
-		const auto nOccupyResult = pFoot->IsCellOccupied(CurrentAdj, (FacingType)nFacing, nLevel, nullptr, true);
-		const auto nNextnOccupyResult = pFoot->IsCellOccupied(NextCell, (FacingType)nFacing, nLevel, nullptr, true);
+		const auto nOccupyResult = pFoot->IsCellOccupied(CurrentAdj, nFacing, nLevel, nullptr, true);
+		const auto nNextnOccupyResult = pFoot->IsCellOccupied(NextCell, nFacing, nLevel, nullptr, true);
 
 		if ((!(int)nNextnOccupyResult) &&
 			(!IsLessThanseven || (!(int)nOccupyResult)) &&

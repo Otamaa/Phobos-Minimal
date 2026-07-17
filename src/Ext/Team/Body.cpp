@@ -2505,7 +2505,7 @@ void FakeTeamClass::_Calc_Center(AbstractClass** outCell, FootClass** outClosest
 				closestToTarget = this->FirstUnit;
 
 			// Verify closest member can enter the center cell
-			if (closestToTarget->IsCellOccupied(centerCell, FacingType::None, -1, 0, 1) != Move::OK)
+			if (closestToTarget->IsCellOccupied(centerCell, -1, -1, 0, 1) != Move::OK)
 			{
 				*outCell = closestToTarget;
 			}
@@ -5002,7 +5002,7 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 				if (ShouldFindNearbyLocation(this))
 				{
 					//can the leader move here ?
-					if (pLeader->IsCellOccupied(pCell, FacingType::None, -1, nullptr, false) > Move::OK)
+					if (pLeader->IsCellOccupied(pCell, -1, -1, nullptr, false) > Move::OK)
 					{
 						TechnoTypeClass* pLeaderType = GET_TECHNOTYPE(pLeader);
 						wp = MapClass::Instance->NearByLocation(wp,

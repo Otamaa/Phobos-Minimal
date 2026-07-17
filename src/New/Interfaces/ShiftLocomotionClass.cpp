@@ -1,12 +1,12 @@
 #include "ShiftLocomotionClass.h"
 
 #include <Ext/Scenario/Body.h>
+#include <Ext/AStar/Body.h>
 
 #include <Locomotor/Cast.h>
 #include <Locomotor/JumpjetLocomotionClass.h>
 #include <Locomotor/FlyLocomotionClass.h>
 
-#include <AStarClass.h>
 #include <AircraftTrackerClass.h>
 
 enum TrackerType
@@ -39,13 +39,13 @@ CoordStruct ShiftLocomotionClass::FindShiftDestination(FootClass* pTechno, Coord
 	auto checkMapCrd = [&](CellStruct mapCrd)
 		{
 			auto pCell = MapClass::Instance->GetCellAt(mapCrd);
-			bool clear = pTechno->IsCellOccupied(pCell, FacingType::None, -1, nullptr, true) == Move::OK;
+			bool clear = pTechno->IsCellOccupied(pCell, -1, -1, nullptr, true) == Move::OK;
 
 			if (!clear)
 				return false;
 
 			auto currentMapCrd = pTechno->GetMapCoords();
-			bool reachable = !pathReachable || AStarPathFinderClass::Instance->Attempt(&currentMapCrd, &mapCrd, pTechno, pTechno->OnBridge, pCell->ContainsBridge()) != INT_MAX;
+			bool reachable = !pathReachable || PhobosAStarPathFinderClass::Instance.Attempt(&currentMapCrd, &mapCrd, pTechno, pTechno->OnBridge, pCell->ContainsBridge()) != INT_MAX;
 
 			if (!reachable)
 				return false;

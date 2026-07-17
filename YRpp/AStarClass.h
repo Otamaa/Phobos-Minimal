@@ -5,6 +5,7 @@
 #include <PriorityQueueClass.h>
 #include <algorithm>
 #include <functional>
+#include <array>
 
 template<typename T, typename Pr = std::less<T>>
 class SafePriorityQueueClass
@@ -148,10 +149,8 @@ public:
 	}
 
 private:
-	void HeapifyDown(int index)
-	{
-		while (true)
-		{
+	void HeapifyDown(int index) {
+		while (true) {
 			int smallest = index;
 			int left = index * 2;
 			int right = left + 1;
@@ -176,8 +175,7 @@ private:
 		}
 	}
 
-	bool Comp(T* p1, T* p2) const
-	{
+	bool Comp(T* p1, T* p2) const {
 		if (!p1 || !p2)
 			return p1 < p2;
 		return Pr()(*p1, *p2);
@@ -199,22 +197,19 @@ public:
 	T* MinPointer;
 };
 
-enum AStarPostProcessType : int
-{
+enum AStarPostProcessType : int {
 	ASTAR_PASS_0 = 0x0,
 	ASTAR_PASS_1 = 0x1,
 	ASTAR_PASS_2 = 0x2,
 };
 
-struct AStarWorkPathStructNode
-{
+struct AStarWorkPathStructNode {
 	CellClass** Cells;
 	int CellLevel;
 	AStarWorkPathStructNode* Prev;
 };
 
-struct __declspec(align(8)) AStarWorkPathStruct
-{
+struct __declspec(align(8)) AStarWorkPathStruct {
 	AStarWorkPathStructNode* Data;
 	float MovementCost;
 	float PathCost;
@@ -227,26 +222,18 @@ struct __declspec(align(8)) AStarWorkPathStruct
 };
 
 #pragma pack(push, 4)
-struct AStarWorkPathStructHeap
-{
-	AStarWorkPathStructHeap() = default;
-	~AStarWorkPathStructHeap() = default;
 
-	AStarWorkPathStruct Nodes[65536];
+struct AStarWorkPathStructHeap {
+	std::array<AStarWorkPathStruct, 65536> Nodes;
 	DWORD ActiveCount;
 };
 
-struct AStarWorkPathStructDataHeap
-{
-	AStarWorkPathStructDataHeap() = default;
-	~AStarWorkPathStructDataHeap() = default;
-
-	AStarWorkPathStructNode Nodes[131072];
+struct AStarWorkPathStructDataHeap {
+	std::array<AStarWorkPathStructNode, 131072> Nodes;
 	DWORD ActiveCount;
 };
 
-struct AStarQueueNodeHierarchical
-{
+struct AStarQueueNodeHierarchical {
 	int BufferDelta;
 	DWORD Index;
 	float Score;
@@ -259,29 +246,30 @@ struct AStarQueueNodeHierarchical
 static_assert(sizeof(AStarQueueNodeHierarchical) == 16, "Invalid Size !");
 
 struct PathType {
-	CellStruct Start;                // Starting cell number.
-	int Cost;                    // Accumulated terrain cost.
-	int Length;                // Command string length.
-	FacingType* Command;            // Pointer to command string.
-	int field_10; //unused?
-	CellStruct* Overlap;            // Pointer to overlap list
-	CellStruct LastOverlap;        // stores position of last overlap
-	CellStruct LastFixup;            // stores position of last overlap
+	CellStruct Start;       // Starting cell number.
+	int Cost;               // Accumulated terrain cost.
+	int Length;             // Command string length.
+	int* Command;    // Pointer to command string.
+	int field_10;           // unused?
+	CellStruct* Overlap;    // Pointer to overlap list
+	CellStruct LastOverlap; // stores position of last overlap
+	CellStruct LastFixup;   // stores position of last overlap
 };
 
 #pragma pack(pop)
 
 struct AStarClass_PassabilityData
 {
-	unsigned short Indices[500];
+	std::array<unsigned short, 500> Indices;
 };
-
 static_assert(sizeof(AStarClass_PassabilityData) == 0x3E8);
+
 class AStarPathFinderClass
 {
 public:
 	static COMPILETIMEEVAL reference<AStarPathFinderClass, 0x87E8B8> const Instance {};
 
+#ifdef NUKED
 	AStarPathFinderClass();
 	~AStarPathFinderClass();
 
@@ -312,7 +300,7 @@ public:
 	int __fastcall CellStruct_helper_distance(CellStruct* a1, CellStruct* a2);
 
 	//	AStarClass__Build_Final_Path_Regular        0042AA90
-	PathType* Get_Path(AStarWorkPathStruct* work_path, FacingType* moves);
+	PathType* Get_Path(AStarWorkPathStruct* work_path, int* moves);
 
 	// AStarClass__Reinit_Cost_Arrays        0042AC00
 	void Reset(RectangleStruct* rect);
@@ -420,6 +408,7 @@ public:
 	bool        bridge1,
 	bool        bridge2,
 	MovementZone         mzone = MovementZone::None);
+#endif
 
 public:
 	char unknown_byte_0;

@@ -360,7 +360,7 @@ ASMJIT_PATCH(0x44EFD8, BuildingClass_FindExitCell_BarracksExitCell, 0x6)
 		if (MapClass::Instance->CoordinatesLegal(exitCell))
 		{
 			if (pTechno->IsCellOccupied(MapClass::Instance->GetCellAt(exitCell),
-				FacingType::None,
+				-1,
 				-1,
 				nullptr,
 				true)

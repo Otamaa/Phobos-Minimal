@@ -1931,7 +1931,7 @@ void TechnoExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* const pK
 			}
 			else if (passengerChance == -1 && what == UnitClass::AbsID)
 			{
-				const Move occupation = pPassenger->IsCellOccupied(pThis->GetCell(), FacingType::None, -1, nullptr, true);
+				const Move occupation = pPassenger->IsCellOccupied(pThis->GetCell(), -1, -1, nullptr, true);
 				trySpawn = (occupation == Move::OK || occupation == Move::MovingBlock);
 			}
 
@@ -9575,7 +9575,7 @@ bool TechnoExtData::CreateWithDroppod(FootClass* Object, const CoordStruct& XYZ)
 {
 	auto MyCell = MapClass::Instance->GetCellAt(XYZ);
 
-	if (Object->IsCellOccupied(MyCell, FacingType::None, -1, nullptr, false) != Move::OK)
+	if (Object->IsCellOccupied(MyCell, -1, -1, nullptr, false) != Move::OK)
 	{
 		return false;
 	}
@@ -10169,7 +10169,7 @@ CoordStruct TechnoExtData::PassengerKickOutLocation(TechnoClass* pThis, FootClas
 
 		pCell = MapClass::Instance->GetCellAt(placeCoords);
 
-		if ((pThis->IsCellOccupied(pCell, FacingType::None, -1, nullptr, false) == Move::OK) && MapClass::Instance->IsWithinUsableArea(pCell->GetCoordsWithBridge())) {
+		if ((pThis->IsCellOccupied(pCell, -1, -1, nullptr, false) == Move::OK) && MapClass::Instance->IsWithinUsableArea(pCell->GetCoordsWithBridge())) {
 			return pCell->GetCoordsWithBridge();
 		}
 
@@ -13398,7 +13398,7 @@ bool TechnoExtData::EjectRandomly(FootClass* pEjectee, CoordStruct const& locati
 			if (!pCell)
 				continue;
 
-			const auto occupied = pEjectee->IsCellOccupied(pCell, FacingType::None, -1, nullptr, true);
+			const auto occupied = pEjectee->IsCellOccupied(pCell, -1, -1, nullptr, true);
 
 			if (occupied != Move::OK && occupied != Move::MovingBlock)
 				continue;

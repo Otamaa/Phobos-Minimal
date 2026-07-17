@@ -930,10 +930,8 @@ public:
 	CellLevelPassabilityStruct* LevelAndPassability;
 	int ValidMapCellCount;
 	GlobalPassabilityData* LevelAndPassabilityStruct2pointer_70;
-	DWORD unknown_74;
-	DWORD unknown_78;
-	DWORD unknown_7C;
-	HashTable<DWORD, SubzoneConnectionStruct>* unknown_80[3]; // somehow connected to the 3 vectors below
+	std::array<int, 3> SubzoneCounts; // was unknown_74 / unknown_78 / unknown_7C
+	std::array <HashTable<DWORD, SubzoneConnectionStruct>*, 3> unknown_80; // somehow connected to the 3 vectors below
 	DynamicVectorClass<SubzoneTrackingStruct> SubzoneTracking1;
 	DynamicVectorClass<SubzoneTrackingStruct> SubzoneTracking2;
 	DynamicVectorClass<SubzoneTrackingStruct> SubzoneTracking3;

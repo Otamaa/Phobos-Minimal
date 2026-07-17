@@ -2460,7 +2460,7 @@ if (!this->Traction)
 					auto nextMapCrd = currentMapCrd + dirOffset;
 					auto nextCell = MapClass::Instance->GetCellAt(nextMapCrd);
 
-					if (pTarget->IsCellOccupied(nextCell, FacingType::None, -1, nullptr, true) != Move::OK)
+					if (pTarget->IsCellOccupied(nextCell, -1, -1, nullptr, true) != Move::OK)
 						return { 0.0, std::numeric_limits<double>::max() };
 
 					auto dirOffsetCrd = Point2D(dirOffset.X * Unsorted::LeptonsPerCell, dirOffset.Y * Unsorted::LeptonsPerCell);

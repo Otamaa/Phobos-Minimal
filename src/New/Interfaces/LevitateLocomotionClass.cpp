@@ -828,7 +828,7 @@ bool LevitateLocomotionClass::IsAdjentCellEligible(CoordStruct nArgsCoord)
 	int i = 8;
 	for (; i > 0 && nCoordCell->GetAdjacentCell((FacingType)i) != pCellInput; --i);
 
-	const auto CanEnter = LinkedTo->IsCellOccupied(pCellInput, (FacingType)i, LinkedTo->GetCellLevel(), nullptr, true);
+	const auto CanEnter = LinkedTo->IsCellOccupied(pCellInput, i, LinkedTo->GetCellLevel(), nullptr, true);
 
 	if (CanEnter == Move::OK)
 		return true;

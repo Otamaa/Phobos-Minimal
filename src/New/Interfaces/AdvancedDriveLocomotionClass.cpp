@@ -701,7 +701,7 @@ bool AdvancedDriveLocomotionClass::PassableCheck(bool* pStop, bool force, bool c
 				if (MapClass::Instance->IsWithinUsableArea(faceCell, true))
 				{
 					const auto pCell = MapClass::Instance->GetCellAt(faceCell);
-					const auto move = pLinked->IsCellOccupied(pCell, static_cast<FacingType>(primaryDir),
+					const auto move = pLinked->IsCellOccupied(pCell, primaryDir,
 						pLinked->GetCellLevel(), nullptr, true);
 
 					if (move == Move::ClosedGate)
@@ -788,7 +788,7 @@ bool AdvancedDriveLocomotionClass::PassableCheck(bool* pStop, bool force, bool c
 		if (MapClass::Instance->IsWithinUsableArea(pathCell, true))
 		{
 			const auto pCell = MapClass::Instance->GetCellAt(pathCell);
-			const auto move = pLinked->IsCellOccupied(pCell, static_cast<FacingType>(nowDir),
+			const auto move = pLinked->IsCellOccupied(pCell, nowDir,
 				pLinked->GetCellLevel(), nullptr, true);
 
 			if (move == Move::ClosedGate)
@@ -858,7 +858,7 @@ bool AdvancedDriveLocomotionClass::PassableCheck(bool* pStop, bool force, bool c
 	}
 
 	pLinked->Mark(MarkType::Up);
-	auto moveResult = pLinked->IsCellOccupied(pNextCell, static_cast<FacingType>(pathDir), cellLevel, nullptr, true);
+	auto moveResult = pLinked->IsCellOccupied(pNextCell, pathDir, cellLevel, nullptr, true);
 	pLinked->Mark(MarkType::Down);
 
 	if (moveResult < Move::No && pType->IsTrain
@@ -1161,7 +1161,7 @@ bool AdvancedDriveLocomotionClass::PassableCheck(bool* pStop, bool force, bool c
 			AdvancedDriveLocomotionClass::SetAdjacentCoord(nextPos, (nextDir & 7));
 			nextCell = CellClass::Coord2Cell(nextPos);
 			pNextCell = MapClass::Instance->GetCellAt(nextCell);
-			nextMoveResult = pLinked->IsCellOccupied(pNextCell, static_cast<FacingType>(nextDir), landLevel, nullptr, true);
+			nextMoveResult = pLinked->IsCellOccupied(pNextCell, nextDir, landLevel, nullptr, true);
 
 			if (nextMoveResult < Move::No && pType->IsTrain
 				|| (nextMoveResult == Move::FriendlyDestroyable || nextMoveResult == Move::Destroyable)
@@ -1838,7 +1838,7 @@ inline int AdvancedDriveLocomotionClass::UpdateSpeedAccum(int& speedAccum)
 				AdvancedDriveLocomotionClass::SetAdjacentCoord(coords, pathDir);
 				const auto pCell = MapClass::Instance->GetCellAt(coords);
 
-				switch (pLinked->IsCellOccupied(pCell, static_cast<FacingType>(pathDir),
+				switch (pLinked->IsCellOccupied(pCell, pathDir,
 					pLinked->GetCellLevel(), nullptr, true))
 				{
 					case Move::OK:

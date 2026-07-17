@@ -413,7 +413,7 @@ void TSJumpJetLocomotionClass::Process_Cruise()
 void TSJumpJetLocomotionClass::Process_Descent()
 {
 	CellClass* cellptr = MapClass::Instance->GetCellAt(HeadToCoord);
-	Move move = LinkedTo->IsCellOccupied(cellptr ,FacingType::None ,-1 , nullptr, true);
+	Move move = LinkedTo->IsCellOccupied(cellptr ,-1 ,-1 , nullptr, true);
 	int spot = Game::Spot_Index(&HeadToCoord);
 	bool stop = true;
 

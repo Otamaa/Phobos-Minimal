@@ -90,7 +90,7 @@ public:
 	virtual CoordStruct __stdcall Destination() override { return CoordStruct::Empty; }
 	virtual CoordStruct __stdcall Head_To_Coord() override { return LinkedTo->GetCoords(); }
 	virtual Move __stdcall Can_Enter_Cell(CellStruct cell) override {
-		return LinkedTo->IsCellOccupied(MapClass::Instance->GetCellAt(cell), FacingType::None, -1, nullptr, false);
+		return LinkedTo->IsCellOccupied(MapClass::Instance->GetCellAt(cell), -1, -1, nullptr, false);
 	}
 	virtual bool __stdcall Process() override;
 
