@@ -135,7 +135,6 @@
 // 	{15, 15, 0, 0, DirType::West,        0},
 // } };
 
-#pragma optimize("", off )
 // ===========================================================================
 // File-local tables and helpers — unchanged from the previous pass except
 // where noted. None of these touch the class layout.
@@ -2632,7 +2631,6 @@ unsigned int FakeAStarPathFinderClass::Attempt(CellStruct* startPos, CellStruct*
 //	return 0x0;
 //}
 
-#pragma optimize("", on )
 
 // ===========================================================================
 DEFINE_FUNCTION_JUMP(LJMP, 0x429830, FakeAStarPathFinderClass::Calc_Float)

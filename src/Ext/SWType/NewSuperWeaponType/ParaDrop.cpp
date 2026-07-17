@@ -372,7 +372,7 @@ void SW_ParaDrop::SendPDPlane(HouseClass* pOwner
 
 	pPlane->HasPassengers = true;
 	// Pick a random map-edge cell suitable for air units to spawn from
-	auto const spawn_cell = AircraftExtData::PickEdgeCellForPlane(pPlaneType, ((CellClass*)pPlane->Destination)->MapCoords,
+	auto const spawn_cell = AircraftExtData::PickEdgeCellForPlane(pPlaneType, ((CellClass*)pPlane->Target)->MapCoords,
 		pOwner->GetHouseEdge());
 
 	auto const bSpawned = AircraftExtData::PlaceReinforcementAircraft(pPlane, spawn_cell);
