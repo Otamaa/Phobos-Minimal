@@ -27,8 +27,8 @@
 #include <Lib/magic_enum/magic_enum_all.hpp>
 
 #include <Utilities/Simd.h>
-
 #include <Utilities/NullableCSF.h>
+#include <Utilities/THandle.h>
 
 #pragma warning( pop )
 
@@ -116,6 +116,7 @@ public:
 	static std::wstring CustomGameSaveDescription;
 	static PVOID pExceptionHandler;
 	static ExceptionHandlerMode ExceptionMode;
+	static HMODULE comctl32Handle;
 
 	static bool HasCNCnet;
 

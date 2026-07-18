@@ -70,10 +70,12 @@ enum class FPSCounterMode : BYTE
 enum class PositionFollow : BYTE
 {
 	None = 0,
-	Firer = 1,
-	Target = 2,
-	All = 3
+	Firer = 1 << 0 ,
+	Target = 2 << 1 ,
+
+	All = Firer | Target
 };
+MAKE_ENUM_FLAGS(PositionFollow);
 
 enum class StackingMode : BYTE
 {

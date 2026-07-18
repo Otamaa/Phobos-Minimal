@@ -672,6 +672,7 @@ public:
 	void _UpdateSpySat();
 	void _Attacked(BuildingClass* source, WarheadTypeClass* warhead);
 	static void __fastcall __SuperWeaponHandler(HouseClass* pHouse);
+	bool _FireSW(int id, CellStruct& cell);
 
 	CanBuildResult _Can_Build(TechnoTypeClass* type, char buildLimitOnly, char includeInProduction);
 	int _FactoryCount(AbstractType nWhat, bool IsNaval);

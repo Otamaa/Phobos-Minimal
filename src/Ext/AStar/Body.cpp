@@ -244,15 +244,15 @@ COMPILETIMEEVAL std::array<int, 8> dword_7E3774 = {
 	-512, -511, 1, 513, 512, 511, -1, -513
 };
 
-COMPILETIMEEVAL std::array<double, 8> const adjust_81872C = {
-	0.001,
-	0.0049999999,
-	0.0020000001,
-	0.0060000001,
-	0.003,
-	0.0070000002,
-	0.0040000002,
-	0.0080000004
+COMPILETIMEEVAL std::array<float, 8> const adjust_81872C = {
+	0.001f,
+	0.0049999999f,
+	0.0020000001f,
+	0.0060000001f,
+	0.003f,
+	0.0070000002f,
+	0.0040000002f,
+	0.0080000004f
 };
 
 COMPILETIMEEVAL double dbl_7E37C0 = std::bit_cast<double>(0x3FF024DD2F1A9FBEULL); //1.009
@@ -734,15 +734,17 @@ AStarWorkPathStruct* PhobosAStarPathFinderClass::Calc_sqrt(
 	CellStruct* goalCell,
 	float                a5)
 {
-	AStarWorkPathStruct* newQueueNode = &this->PathQueueBuffer->Nodes[this->PathQueueBuffer->ActiveCount++];
-	AStarWorkPathStructNode* newPathNode = &this->PathNodeBuffer->Nodes[this->PathNodeBuffer->ActiveCount++];
-	
+
 	if (this->PathQueueBuffer->ActiveCount >= this->PathQueueBuffer->Nodes.size()
 	 || this->PathNodeBuffer->ActiveCount >= this->PathNodeBuffer->Nodes.size())
 	{
 		Debug::Log("[A*] node arena exhausted\n");
 		return nullptr;
 	}
+
+	AStarWorkPathStruct* newQueueNode = &this->PathQueueBuffer->Nodes[this->PathQueueBuffer->ActiveCount++];
+	AStarWorkPathStructNode* newPathNode = &this->PathNodeBuffer->Nodes[this->PathNodeBuffer->ActiveCount++];
+
 	newPathNode->Cells = a3;
 
 	if (parentNode)

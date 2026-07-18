@@ -3,6 +3,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Script/Body.h>
+#include <Ext/House/Body.h>
 
 #include <Utilities/Macro.h>
 
@@ -3632,12 +3633,12 @@ void FakeTeamClass::_TMission_Chrono_prep_for_abwp(ScriptActionNode* nNode, bool
 			// Fire Chronosphere at team zone
 			CoordStruct zoneCoord = this->Zone->GetCoords();
 			CellStruct zoneCell = CellClass::Coord2Cell(zoneCoord);
-			house->Fire_SW(chronosphere->GetArrayIndex(), zoneCell);
+			((FakeHouseClass*)house)->_FireSW(chronosphere->Type->ArrayIndex, zoneCell);
 
 			// Fire Chronoshift at target building
 			CoordStruct targetCoord = targetBuilding->GetCoords();
 			CellStruct targetCell = CellClass::Coord2Cell(targetCoord);
-			house->Fire_SW(chronoshift->GetArrayIndex(), targetCell);
+			((FakeHouseClass*)house)->_FireSW(chronoshift->Type->ArrayIndex, targetCell);
 			this->_AssignMissionTarget(targetBuilding);
 		}
 
@@ -3745,8 +3746,8 @@ void FakeTeamClass::_TMission_Iron_Curtain_Me(ScriptActionNode* nNode, bool arg3
 	if (ironCurtain->IsCharged && (havePower || !ironCurtain->IsPowered()))
 	{
 		// Fire the super at team zone
-		auto nCoord = this->Zone->GetCoords();
-		pOwner->Fire_SW(ironCurtain->GetArrayIndex(), CellClass::Coord2Cell(nCoord));
+		auto firing = CellClass::Coord2Cell(this->Zone->GetCoords());
+		((FakeHouseClass*)pOwner)->_FireSW(ironCurtain->Type->ArrayIndex, firing);
 		this->StepCompleted = true;
 		return;
 	}
@@ -3792,12 +3793,12 @@ void FakeTeamClass::_TMission_Chrono_prep_for_aq(ScriptActionNode* nNode, bool a
 			// Fire Chronosphere at zone
 			CoordStruct zoneCoord = this->Zone->GetCoords();
 			CellStruct zoneCell = CellClass::Coord2Cell(zoneCoord);
-			house->Fire_SW(chronosphere->GetArrayIndex(), zoneCell);
+			((FakeHouseClass*)house)->_FireSW(chronosphere->Type->ArrayIndex, zoneCell);
 
 			// Fire Chronoshift at threat
 			CoordStruct threatCoord = threat->GetCoords();
 			CellStruct threatCell = CellClass::Coord2Cell(threatCoord);
-			house->Fire_SW(chronoshift->GetArrayIndex(), threatCell);
+			((FakeHouseClass*)house)->_FireSW(chronoshift->Type->ArrayIndex, threatCell);
 			this->_AssignMissionTarget(threat);
 		}
 

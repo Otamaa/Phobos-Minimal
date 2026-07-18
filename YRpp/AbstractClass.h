@@ -207,7 +207,7 @@ public:
 	virtual void ComputeCRC(CRCEngine& checksum) const RX;
 	virtual int GetOwningHouseIndex() const R0;
 	virtual HouseClass* GetOwningHouse() const R0;
-	virtual int GetArrayIndex() const R0;
+	virtual int GetArrayIndex() const R0; // this only works on Type classes , non TypeClasses will return 0 , some exception like : HouseClass
 	virtual bool IsDead() const R0;
 	virtual CoordStruct* GetCoords(CoordStruct* pCrd) const R0; //center coords
 	virtual CoordStruct* GetDestination(CoordStruct* pCrd, TechnoClass* pDocker = nullptr) const R0; // where this is moving, or a building's dock for a techno. iow, a rendez-vous point

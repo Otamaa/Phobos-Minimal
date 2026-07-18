@@ -32,11 +32,11 @@
 #include <Phobos.Lua.h>
 #include <Phobos.UI.h>
 #include <Phobos.Defines.h>
-#include <Phobos.ZIP.h>
 
 #include <MessageBoxLogging.h>
 
 #include <Misc/Renderer/GlobalColorPacker.h>
+#include <Misc/Exception/ExceptionHandler.h>
 
 #pragma region defines
 HANDLE Phobos::hInstance;
@@ -50,6 +50,7 @@ const wchar_t* Phobos::VersionDescription { L"Phobos Otamaa Unofficial developme
 bool Phobos::ShouldQuickSave { false };
 std::wstring Phobos::CustomGameSaveDescription {};
 PVOID Phobos::pExceptionHandler { nullptr };
+HMODULE Phobos::comctl32Handle { NULL };
 ExceptionHandlerMode Phobos::ExceptionMode { ExceptionHandlerMode::Default };
 
 bool Phobos::HasCNCnet { false };
@@ -441,6 +442,8 @@ void Phobos::PassiveSaveGame()
 void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 {
 	DWORD_PTR processAffinityMask = 1; // limit to first processor
+	// Enabled by default in all builds: an attached debugger receives
+	// exceptions first, so the handler does not get in the way of debugging.
 	bool dontSetExceptionHandler = false;
 
 	// > 1 because the exe path itself counts as an argument, too!
@@ -452,6 +455,8 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		if (IS_SAME_STR_I(pArg, "-EXCEPTION") == 0)
 		{
 			ExceptionMode = ExceptionHandlerMode::NoRemove;
+		} if (_stricmp(pArg, "-FullCrashDump") == 0) {
+			ExceptionHandler::GenerateFullCrashDump = true;
 		}
 		else if (!strncasecmp(pArg, "-AFFINITY:", 0xAu))
 		{
@@ -497,6 +502,12 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 	Game::DontSetExceptionHandler = dontSetExceptionHandler;
 	Debug::Log("ExceptionHandler is %s .\n", dontSetExceptionHandler ? "not present" : "present");
 
+	// Phobos replaces the game's exception handler with its own (see
+	// ExceptionHandler.cpp); it is reachable exactly when the game's main
+	// loop handler is armed, so it shares the -ExceptionHandler toggle.
+	if (!dontSetExceptionHandler)
+		ExceptionHandler::Init();
+	
 	if (processAffinityMask)
 	{
 		Debug::Log("Set Process Affinity: %d (%d).\n", processAffinityMask, processAffinityMask);
@@ -711,6 +722,41 @@ static std::string GetOsVersionQuick()
 	return aVer;
 }
 
+#include <commctrl.h>
+
+// gamemd.exe has no manifest, so its windows bind the ancient Common Controls
+// v5 and render Win9x-style. Activating Phobos' embedded manifest (resource 2,
+// carrying the comctl32 v6 dependency - see ExceptionHandler.rc) for the rest
+// of the process' lifetime makes every window created on the main thread use
+// modern visual styles: game dialogs, message boxes and the crash dialog.
+void ActivateCommonControls6()
+{
+	char modulePath[MAX_PATH] = { };
+	GetModuleFileNameA(static_cast<HMODULE>(Phobos::hInstance), modulePath, sizeof(modulePath));
+
+	ACTCTXA actCtx = { };
+	actCtx.cbSize = sizeof(actCtx);
+	actCtx.dwFlags = ACTCTX_FLAG_RESOURCE_NAME_VALID;
+	actCtx.lpSource = modulePath;
+	actCtx.lpResourceName = MAKEINTRESOURCEA(2); // ISOLATIONAWARE_MANIFEST_RESOURCE_ID
+
+	HANDLE const hActCtx = CreateActCtxA(&actCtx);
+	ULONG_PTR cookie = 0;
+	if (hActCtx != INVALID_HANDLE_VALUE)
+		ActivateActCtx(hActCtx, &cookie); // deliberately never deactivated
+
+	// gamemd.exe has no manifest, so it loaded Common Controls v5 at startup
+	// and the v6 theming subclasses were never installed. With the context
+	// now active, loading comctl32 resolves to the v6 side-by-side assembly;
+	// InitCommonControlsEx then registers its themed classes. Without this,
+	// activating the manifest alone leaves controls rendering unthemed.
+	using InitCommonControlsEx_t = BOOL(WINAPI*)(const INITCOMMONCONTROLSEX*);
+	if (auto const pInit = reinterpret_cast<InitCommonControlsEx_t>(GetProcAddress(Phobos::comctl32Handle, "InitCommonControlsEx"))) {
+			INITCOMMONCONTROLSEX icc = { sizeof(icc), ICC_STANDARD_CLASSES | ICC_WIN95_CLASSES };
+			pInit(&icc);
+	}
+}
+
 void Phobos::ExeRun()
 {
 	Phobos::Otamaa::ExeTerminated = false;
@@ -724,6 +770,13 @@ void Phobos::ExeRun()
 	MouseCursor::GetCursor(MouseCursorType::Detonate).FrameRate = 4;
 	MouseCursor::GetCursor(MouseCursorType::Cursor_36).FrameRate = 4;
 	MouseCursor::GetCursor(MouseCursorType::IvanBomb).FrameRate = 4;
+
+	Phobos::comctl32Handle = LoadLibraryA("comctl32.dll");
+
+	if (Phobos::comctl32Handle == NULL)
+		Debug::FatalErrorAndExit("Uneable to load comctl32.dll !");
+
+	ActivateCommonControls6();
 
 	Patch::PrintAllModuleAndBaseAddr();
 
@@ -757,12 +810,6 @@ void Phobos::ExeRun()
 	Debug::Log("Running on %s API.\n", gRuntimeAPI.GetName());
 	TheaterTypeClass::AddDefaults();
 	CursorTypeClass::AddDefaults();
-
-	ZipFileSystem::Instance().Clear();
-	ZipFileSystem::Instance().ScanDirectory();
-	ZipFileSystem::Instance().ForEach([](const ZipEntry& entry) {
-		Debug::Log("[ZipFS] %s  <-  %s\n", entry.EntryName.c_str(), entry.ArchivePath.c_str());
-	});
 }
 
 void Phobos::ExeTerminate()
@@ -1250,66 +1297,6 @@ void ParseEarlyArgs(LPWSTR* argv , int argc)
 	}
 }
 
-/**
- *  Stack reserved by SetThreadStackGuarantee so the SEH filter has room to run
- *  after EXCEPTION_STACK_OVERFLOW (which fires with only ~1 page of stack left).
- *  64 KB comfortably covers the gate + Suspend_Other_Threads + dumper handoff on
- *  the crashing thread; the heavy dump itself runs on the dumper's full stack.
- *  Costs nothing unless used; trims ~64 KB off a 1 MB stack, which is negligible.
- */
-static constexpr ULONG EXCEPTION_STACK_GUARANTEE = 64 * 1024;
-DWORD Phobos_MainThreadId = 0;
-/**
- *  Thread synchronization for the exception handler.
- *
- *  Lock ordering (acquire top→bottom; never reverse):
- *    1. ExceptionCriticalSection (entry gate, recursive)
- *    2. MiniDumpCriticalSection  (inside Create_Mini_Dump)
- *    3. DbgHelp mutex            (inside Sym*, StackWalk64, MiniDumpWriteDump)
- *
- *  The exception path MUST NEVER acquire a game-subsystem lock (audio
- *  manager mutexes, scan-thread mutexes, WinDialog internals, etc.) because
- *  sibling threads are SUSPENDED holding them. Touching one of those locks
- *  deadlocks the dumper.
- */
-static CRITICAL_SECTION ExceptionCriticalSection;
-static bool ExceptionCriticalSectionReady = false;
-static std::atomic<DWORD> FirstCrashThreadId { 0 };
-
-/**
- *  Initialize and tear down the entry-gate critical section. Called from
- *  DllMain before any hook can fire / after all hooks are removed.
- */
-void Init_Exception_Handler()
-{
-	if (!ExceptionCriticalSectionReady)
-	{
-		InitializeCriticalSection(&ExceptionCriticalSection);
-		ExceptionCriticalSectionReady = true;
-	}
-}
-
-
-void Shutdown_Exception_Handler()
-{
-	if (ExceptionCriticalSectionReady)
-	{
-		DeleteCriticalSection(&ExceptionCriticalSection);
-		ExceptionCriticalSectionReady = false;
-	}
-}
-
-/**
- *  Terminate handler for escaped C++ exceptions. Re-raises as a structured
- *  exception so the SEH machinery delivers proper EXCEPTION_POINTERS to
- *  _Top_Level_Exception_Filter via SetUnhandledExceptionFilter.
- */
-[[noreturn]] void __cdecl Phobos_Terminate_Handler()
-{
-	RaiseException(EXCEPTION_NONCONTINUABLE_EXCEPTION, EXCEPTION_NONCONTINUABLE, 0, nullptr);
-	ExitProcess(EXIT_FAILURE);
-}
-
 BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
 	switch (ul_reason_for_call)
@@ -1319,16 +1306,12 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		if (IsGamemdExe(nullptr))
 		{
 			//this is dangerious but this keep shit from breaking early 
-			//GlobalColorPacker::SetColorPacker();
-			Phobos_MainThreadId = GetCurrentThreadId();
+			//GlobalColorPacker::SetColorPacker();;
 			Patch::CurrentProcess = GetCurrentProcess();
 			PhobosThreadGuard::SetMainThread();
 			Phobos::hInstance = hInstance;
 			saved_lpReserved = lpReserved;
-			ULONG guarantee = EXCEPTION_STACK_GUARANTEE;
-			SetThreadStackGuarantee(&guarantee); // Ignore failure - best effort.
-			Init_Exception_Handler();
-			std::set_terminate(&Phobos_Terminate_Handler);
+			ExceptionHandler::ReserveExceptionStack();
 
 			int argc;
 			LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
@@ -1368,7 +1351,6 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 		if (g_isProcessTerminating && IsInitialized)
 		{
-			Shutdown_Exception_Handler();
 			Multithreading::ShutdownMultitheadMode();
 			Debug::DeactivateLogger();
 			PhobosHookers::CleanupTrampolines();

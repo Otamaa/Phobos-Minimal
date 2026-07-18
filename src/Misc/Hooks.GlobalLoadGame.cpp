@@ -451,6 +451,9 @@ HRESULT Phobos::LoadAllEarlyData(IStream* pStm)
 	hr = ReadBlocksFromStream<ThemeTypeClass>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
+	hr = ReadBlocksFromStream<DigitalDisplayTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
 	hr = ReadBlocksFromStreamStreamB(FlyingStrings::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
@@ -493,9 +496,6 @@ HRESULT Phobos::LoadAllLateData(IStream* pStm)
 	//if (!SUCCEEDED(hr)) return hr;
 
 	hr = ReadBlocksFromStream<CrateTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = ReadBlocksFromStream<DigitalDisplayTypeClass>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
 	hr = ReadBlocksFromStream<HealthBarTypeClass>(pStm);

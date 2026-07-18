@@ -926,8 +926,8 @@ public:
 	void AI_TryFireSW() const
 		{ JMP_THIS(0x5098F0); }
 
-	bool Fire_SW(int idx, const CellStruct &coords)
-		{ JMP_THIS(0x4FAE50); }
+	// bool Fire_SW(int idx, const CellStruct &coords)
+	// 	{ JMP_THIS(0x4FAE50); }
 
 	CellStruct* PickTargetByType(CellStruct &outBuffer, QuarryType targetType) const
 		{ JMP_THIS(0x50D170); }

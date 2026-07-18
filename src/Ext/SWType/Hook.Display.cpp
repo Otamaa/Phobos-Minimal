@@ -77,7 +77,7 @@ void NOINLINE CreateEvent(SuperClass* pSuper, CellStruct* pWhere)
 	EventClass Event {
 		HouseClass::CurrentPlayer->ArrayIndex,
 		EventType::SPECIAL_PLACE,
-		pSuper->GetArrayIndex(),
+		pSuper->Type->ArrayIndex,
 		*pWhere
 	};
 	EventClass::AddEvent(&Event);

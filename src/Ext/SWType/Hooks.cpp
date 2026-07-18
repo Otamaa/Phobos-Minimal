@@ -485,16 +485,16 @@ ASMJIT_PATCH(0x449716, BuildingClass_Mission_Guard_HasFirstSW, 6)
 	return pThis->FirstActiveSWIdx() != -1 ? 0x4497AFu : 0x449762u;
 }
 
-ASMJIT_PATCH(0x4FAE72, HouseClass_SWFire_PreDependent, 6)
-{
-	GET(HouseClass*, pThis, EBX);
-
-	// find the predependent SW. decouple this from the chronosphere.
-	// don't use a fixed SW type but the very one acutually fired last.
-	R->ESI(pThis->Supers.get_or_default(HouseExtContainer::Instance.Find(pThis)->SWLastIndex));
-
-	return 0x4FAE7B;
-}
+// ASMJIT_PATCH(0x4FAE72, HouseClass_SWFire_PreDependent, 6)
+// {
+// 	GET(HouseClass*, pThis, EBX);
+//
+// 	// find the predependent SW. decouple this from the chronosphere.
+// 	// don't use a fixed SW type but the very one acutually fired last.
+// 	R->ESI(pThis->Supers.get_or_default(HouseExtContainer::Instance.Find(pThis)->SWLastIndex));
+//
+// 	return 0x4FAE7B;
+// }
 
 ASMJIT_PATCH(0x4F9004 ,HouseClass_Update_TrySWFire, 7)
 {
@@ -586,9 +586,9 @@ ASMJIT_PATCH(0x4C78D6, Networking_RespondToEvent_SpecialPlace, 8)
 	//GET(CellStruct*, pCell, EDX);
 	//GET(int, Checksum, EAX);
 	GET(EventClass*, pEvent, ESI);
-	GET(HouseClass*, pHouse, EDI);
+	GET(FakeHouseClass*, pHouse, EDI);
 
-	const auto& specialplace = pEvent->Data.SpecialPlace;
+	auto& specialplace = pEvent->Data.SpecialPlace;
 	const auto pSuper = pHouse->Supers.Items[specialplace.ID];
 	const auto pExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
 
@@ -611,7 +611,7 @@ ASMJIT_PATCH(0x4C78D6, Networking_RespondToEvent_SpecialPlace, 8)
 	}
 	else
 	{
-		pHouse->Fire_SW(specialplace.ID, specialplace.Location);
+		pHouse->_FireSW(specialplace.ID, specialplace.Location);
 	}
 
 	return 0x4C78F8;

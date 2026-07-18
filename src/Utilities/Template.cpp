@@ -2297,15 +2297,49 @@ bool detail::read<StackingMode>(StackingMode& value, INI_EX& parser, const char*
 template <>
 bool detail::read<PositionFollow>(PositionFollow& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 {
-	if (parser.ReadString(pSection, pKey)) {
-		for (const auto& [val, str] : EnumFunctions::PositionFollow_ToStrings) {
-			if (PhobosCRT::iequals(parser.value(), str)) {
-				value = val;
-				return true;
+	if (parser.ReadString(pSection, pKey))
+	{
+		char* context = nullptr;
+		PositionFollow resultData = PositionFollow::None;
+
+		for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
+			cur;
+			cur = strtok_s(nullptr, Phobos::readDelims, &context))
+		{
+
+			PositionFollow result = PositionFollow::None;
+			bool found = false;
+			for (const auto& [val, str]: EnumFunctions::PositionFollow_ToStrings) {
+
+				if (PhobosCRT::iequals(cur, str)) {
+					found = true;
+					result = val;
+					break;
+				}
+			}
+
+			//one invalid will break all
+			if (!found) {
+				Debug::INIParseFailed(pSection, pKey, cur, "Expected a PositionFollow");
+				return false;
+			} else {
+				
+				switch (result)
+				{
+				//add to result
+				case PositionFollow::None: resultData |= PositionFollow::None; break;
+				case PositionFollow::Firer: resultData |= PositionFollow::Firer; break;
+				case PositionFollow::Target: resultData |= PositionFollow::Target; break;
+				//it is affecting all just bail and return true
+				case PositionFollow::All: value = PositionFollow::All; return true;
+					break;//switch break
+					break;//loop break
+				}
 			}
 		}
 
-		Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a position follow mode (None, Firer, Target, All)");
+		value = resultData;
+		return true;
 	}
 
 	return false;

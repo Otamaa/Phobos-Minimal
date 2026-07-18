@@ -339,7 +339,7 @@ void SyncLogger::SetTeamLoggingPadding(TeamClass* pTeam)
 }
 
 // Hooks. Anim contructor logging is in Ext/Anim/Body.cpp to reduce duplicate hooks
-
+// some of these stuffs probably absolute because backported
 // RNG call logging
 
 ASMJIT_PATCH(0x65C7D0, Random2Class_Random_SyncLog, 0x1)

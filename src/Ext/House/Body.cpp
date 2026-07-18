@@ -28,6 +28,56 @@
 #include <CaptureManagerClass.h>
 #include <RadarEventClass.h>
 
+bool FakeHouseClass::_FireSW(int id, CellStruct& cell)
+{
+	FakeSuperClass* super = (FakeSuperClass*)this->Supers[id];
+	FakeSuperClass* preDependent = nullptr;
+	SuperWeaponTypeClass* type = super->Type;
+
+	if (type->PostClick) {
+		//0x4FAE72, HouseClass_SWFire_PreDependent, 6
+		preDependent = (FakeSuperClass*)this->Supers.get_or_default(HouseExtContainer::Instance.Find(this)->SWLastIndex);
+		if (preDependent) {
+			super->ChronoMapCoords = preDependent->ChronoMapCoords;
+		}
+	}
+
+	const bool cur_player = this == HouseClass::CurrentPlayer();
+	super->_Discharged(cur_player, &cell);
+
+	if (type->PostClick && preDependent) {
+		preDependent->SetReadiness(false);
+		preDependent->_Recharge(cur_player);
+	}
+
+	for (int i = HouseClass::Array->Count - 1; i >= 0; --i) {
+		if (HouseClass* otherHouse = HouseClass::Array->Items[i]) {
+			otherHouse->basecenter_4FAF00(super, cell);
+		}
+	}
+
+	return true;
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x4FAE50, FakeHouseClass::_FireSW)
+DEFINE_FUNCTION_JUMP(CALL, 0x4C78F3, FakeHouseClass::_FireSW)
+DEFINE_FUNCTION_JUMP(CALL, 0x4FAE3F, FakeHouseClass::_FireSW)
+DEFINE_FUNCTION_JUMP(CALL, 0x509ACD, FakeHouseClass::_FireSW)
+DEFINE_FUNCTION_JUMP(CALL, 0x509BBB, FakeHouseClass::_FireSW)
+DEFINE_FUNCTION_JUMP(CALL, 0x509BF8, FakeHouseClass::_FireSW)
+DEFINE_FUNCTION_JUMP(CALL, 0x509CAB, FakeHouseClass::_FireSW)
+DEFINE_FUNCTION_JUMP(CALL, 0x509DEB, FakeHouseClass::_FireSW)
+DEFINE_FUNCTION_JUMP(CALL, 0x509EA8, FakeHouseClass::_FireSW)
+DEFINE_FUNCTION_JUMP(CALL, 0x509F55, FakeHouseClass::_FireSW)
+DEFINE_FUNCTION_JUMP(CALL, 0x50A13E, FakeHouseClass::_FireSW)
+DEFINE_FUNCTION_JUMP(CALL, 0x50A334, FakeHouseClass::_FireSW)
+DEFINE_FUNCTION_JUMP(CALL, 0x50A480, FakeHouseClass::_FireSW)
+DEFINE_FUNCTION_JUMP(CALL, 0x6EFDB4, FakeHouseClass::_FireSW)
+DEFINE_FUNCTION_JUMP(CALL, 0x6F0011, FakeHouseClass::_FireSW)
+DEFINE_FUNCTION_JUMP(CALL, 0x6F0068, FakeHouseClass::_FireSW)
+DEFINE_FUNCTION_JUMP(CALL, 0x6F02B6, FakeHouseClass::_FireSW)
+DEFINE_FUNCTION_JUMP(CALL, 0x6F030D, FakeHouseClass::_FireSW)
+
 SWChargePool* SWChargePool::Get(HouseClass* pHouse, SuperWeaponTypeClass* pType)
 {
 	auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);

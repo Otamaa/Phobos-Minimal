@@ -1106,23 +1106,22 @@ int SystemMessageDialog(HWND hwnd, const WCHAR* message, LPCWSTR caption, UINT u
 #include <shlwapi.h>  // DLLVERSIONINFO, DLLGETVERSIONPROC
 
 int Get_DLL_Version(LPCSTR lpLibFileName){
-
-	HMODULE hLib = LoadLibraryA(lpLibFileName);
-
-	if (!hLib)
-		return 0;
-
 	int result = 0;
 
-	if (auto dllver = reinterpret_cast<DLLGETVERSIONPROC>(GetProcAddress(hLib, "DllGetVersion"))) {
-		DLLVERSIONINFO info {};
-		info.cbSize = sizeof(DLLVERSIONINFO);
+	for (auto& dlls : Patch::ModuleDatas){
+		if (IS_SAME_STR_(dlls.ModuleName.c_str(), lpLibFileName)){
+			if (auto dllver = reinterpret_cast<DLLGETVERSIONPROC>(GetProcAddress(dlls.Handle, "DllGetVersion"))) {
+				DLLVERSIONINFO info {};
+				info.cbSize = sizeof(DLLVERSIONINFO);
 
-		if (dllver(&info) >= 0)
-			result = LOWORD(info.dwMinorVersion) | (LOWORD(info.dwMajorVersion) << 16);
+				if (dllver(&info) >= 0)
+					result = LOWORD(info.dwMinorVersion) | (LOWORD(info.dwMajorVersion) << 16);
+			}
+
+			break;
+		}
 	}
 
-	FreeLibrary(hLib);
 	return result;
 }
 
@@ -1130,7 +1129,9 @@ int Get_DLL_Version(LPCSTR lpLibFileName){
 
 static COMPILETIMEEVAL constant_ptr<const char, 0x840D40> const ra2md_str {};
 
-ASMJIT_PATCH(0x6BD7D5, Expand_MIX_Reorg, 7)
+DEFINE_JUMP(LJMP, 0x6BD7D5, 0x6BD83C);
+
+ASMJIT_PATCH(0x6BD84E, Expand_MIX_Reorg, 5)
 {
 	SpawnerMain::GameConfigs::Init();
 
@@ -1146,8 +1147,10 @@ ASMJIT_PATCH(0x6BD7D5, Expand_MIX_Reorg, 7)
 	Language = GameCreate<MixFileClass>(LANGUAGE_MIX(), pKey);
 	LangMD = GameCreate<MixFileClass>(LANGMD_MIX(), pKey);
 	CD::SetReqCD(R->ESI<int>());
-	atexitCall(Prog_End);
-	Start_Mouse_Thread();
+
+	//atexitCall(Prog_End);
+	// do not all this inside dll thread
+	//Start_Mouse_Thread();
 
 	if (!CSFLoader::PhobosInit(ra2md_str())) {
 		const std::string _msg = fmt::format(

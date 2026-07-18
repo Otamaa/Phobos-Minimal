@@ -384,6 +384,9 @@ HRESULT Phobos::SaveAllEarlyData(IStream* pStm)
 	hr = WriteBlocksToStream<ThemeTypeClass>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
+	hr = WriteBlocksToStream<DigitalDisplayTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
 	hr = WriteBlocksToStreamB(FlyingStrings::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
@@ -425,9 +428,6 @@ HRESULT Phobos::SaveAllLateData(IStream* pStm)
 	//if (!SUCCEEDED(hr)) return hr;
 
 	hr = WriteBlocksToStream<CrateTypeClass>(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = WriteBlocksToStream<DigitalDisplayTypeClass>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
 	hr = WriteBlocksToStream<HealthBarTypeClass>(pStm);

@@ -7,25 +7,25 @@
 
 #pragma region RawFileClass
 
-//RawFileClass::~RawFileClass()
-//{
-//	if (this->RawFileClass::IsOpen())
-//	{
-//		if (!CloseHandle(this->Handle))
-//		{
-//			this->RaiseLastError();
-//		}
-//
-//		this->Handle = INVALID_HANDLE_VALUE;
-//	}
-//
-//	if (this->Allocated && this->Filename)
-//	{
-//		YRMemory::Deallocate((void*)this->Filename);
-//		this->Filename = nullptr;
-//		this->Allocated = false;
-//	}
-//}
+RawFileClass::~RawFileClass()
+{
+	if (this->RawFileClass::IsOpen())
+	{
+		if (!CloseHandle(this->Handle))
+		{
+			this->RaiseLastError();
+		}
+
+		this->Handle = INVALID_HANDLE_VALUE;
+	}
+
+	if (this->Allocated && this->Filename)
+	{
+		YRMemory::Deallocate((void*)this->Filename);
+		this->Filename = nullptr;
+		this->Allocated = false;
+	}
+}
 
 const char* RawFileClass::SetFileName(const char* pFileName)
 {
@@ -388,9 +388,16 @@ off_t RawFileClass::Seek(off_t offset, FileSeekMode whence)
 
 off_t RawFileClass::Size()
 {
+	if (this->BiasLength != -1)
+		return this->BiasLength;
+
 	int size = 0;
 	auto result = this->BiasLength;
 
+	if (this->Handle != INVALID_HANDLE_VALUE)
+	{
+
+	}
 	if (result == -1)
 	{
 		if (this->IsOpen())

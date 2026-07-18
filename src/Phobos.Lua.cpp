@@ -14,6 +14,7 @@
 #include <Misc/PhobosGlobal.h>
 
 // TODO : encryption support
+//		: some custom file name are disabled after new exception
 // Otamaa : change this variable if you want to load desired name lua file
 std::string LuaData::filename = "\\renameinternal.lua";
 std::string LuaData::LuaDir;
@@ -722,13 +723,13 @@ void Phobos::ExecuteLua()
 		//IsActive = !SafeFiles.empty() && !CoreHandles.empty();
 
 		Lua.getGlobalString("MovieMDINI", PhobosGlobal::Instance()->MovieMDINI, true);
-		Lua.getGlobalString("DebugLogName", Debug::LogFileMainName, true);
+		//Lua.getGlobalString("DebugLogName", Debug::LogFileMainName, true);
 
-		if(Lua.getGlobalString("CrashDumpFileName", Debug::CrashDumpFileName, true)) {
-			if (Debug::CrashDumpFileName.find(L".dmp") == std::string::npos && Debug::CrashDumpFileName.find(L".DMP") == std::string::npos) {
-				Debug::CrashDumpFileName += L".dmp";
-			}
-		}
+		//if(Lua.getGlobalString("CrashDumpFileName", Debug::CrashDumpFileName, true)) {
+		//	if (Debug::CrashDumpFileName.find(L".dmp") == std::string::npos && Debug::CrashDumpFileName.find(L".DMP") == std::string::npos) {
+		//		Debug::CrashDumpFileName += L".dmp";
+		//	}
+		//}
 
 		if (Lua.getGlobalString("StatisticPacketName", LuaData::StatisticPacketName, true)) {
 			if (LuaData::StatisticPacketName.find(".dmp") == std::string::npos && LuaData::StatisticPacketName.find(".DMP") == std::string::npos) {
@@ -736,8 +737,8 @@ void Phobos::ExecuteLua()
 			}
 		}
 
-		Lua.getGlobalString("DesyncLogName", Debug::SyncFileFormat, true);
-		Lua.getGlobalString("DesyncLogName2", Debug::SyncFileFormat2, true);
+		//Lua.getGlobalString("DesyncLogName", Debug::SyncFileFormat, true);
+		//Lua.getGlobalString("DesyncLogName2", Debug::SyncFileFormat2, true);
 		Lua.getGlobalString("AdditionalStringtableFormat", LuaData::AdditionalStringTableFmt, true);
 		Lua.getGlobalBool("CompatibilityMode", Phobos::Otamaa::CompatibilityMode);
 		Lua.getGlobalBool("ReplaceGameMemoryAllocator", Phobos::Otamaa::ReplaceGameMemoryAllocator);

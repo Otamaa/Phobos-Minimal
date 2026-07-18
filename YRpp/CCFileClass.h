@@ -153,15 +153,7 @@ public:
 			return FileErrorToString[static_cast<int>(error)];
 	}
 
-	FileClass(): SkipCDCheck()
-	{ //VTable::Set(this, vtable); 
-	}
-
-protected:
-	explicit __forceinline FileClass(noinit_t)
-	{ }
-
-	//Properties
+	FileClass(): SkipCDCheck() {}
 
 public:
 	bool SkipCDCheck;
@@ -183,7 +175,7 @@ public:
 	DEFINE_REFERENCE(bool, StreamerIsCurrentlyAccessing, 0xB04BEC);
 
 	//Destructor
-		virtual ~RawFileClass() {JMP_THIS(0x65CA00);}
+	virtual ~RawFileClass();
 
 	//FileClass
 	virtual const char* FileName() const override { return this->Filename; }
@@ -214,11 +206,21 @@ public:
 	const char* Get_Safe_File_Name() const { return (Filename != nullptr && Filename[0] != '\0') ? Filename : "<unknown>"; }
 
 	//Constructor
-	RawFileClass(const char* pFileName)
-		: FileClass(noinit_t())	{ JMP_THIS(0x65CA80); }
+	RawFileClass(const char* pName) :
+		FileClass(),
+		Rights(FileAccessMode::Read),
+		BiasStart(0),
+		BiasLength(-1),
+		Handle(INVALID_HANDLE_VALUE),
+		Filename(pName),
+		Date(0),
+		Time(0),
+		Allocated(false)
+	{
+	}
 
 	RawFileClass() :
-		FileClass(noinit_t()),
+		FileClass(),
 		Rights(FileAccessMode::Read),
 		BiasStart(0),
 		BiasLength(-1),
@@ -228,14 +230,9 @@ public:
 		Time(0),
 		Allocated(false)
 	{
-		VTable::Set(this, vtable);
 	}
 
 protected:
-	explicit __forceinline RawFileClass(noinit_t)
-		: FileClass(noinit_t())
-	{ }
-
 	DWORD Raw_Seek(int pos, LONG dir);
 
 public:
@@ -260,7 +257,7 @@ public:
 	static COMPILETIMEEVAL int MinimumBufferSize = 1024;
 
 	//Destructor
-	virtual ~BufferIOFileClass() { JMP_THIS(0x431B80); }
+	virtual ~BufferIOFileClass() = default;
 
 
 	//FileClass
@@ -313,19 +310,47 @@ public:
 	bool Commit();
 
 	//Constructor
-	BufferIOFileClass()
-		: BufferIOFileClass(noinit_t())
-	{ JMP_THIS(0x431B20); }
+	BufferIOFileClass() 
+		: RawFileClass()
+		, IsAllocated()
+		, Is_Open()
+		, IsDiskOpen()
+		, IsCached()
+		, IsChanged()
+		, UseBuffer()
+		, BufferRights()
+		, BufferPtr()
+		, BufferedSize()
+		, BufferPos()
+		, BufferFilePos()
+		, BufferChangeBeg(-1)
+		, BufferChangeEnd(-1)
+		, FileSize()
+		, FilePos()
+		, TrueFileStart()
+	{}
 
 	BufferIOFileClass(const char* pFilename)
-		: BufferIOFileClass(noinit_t())
-	{ JMP_THIS(0x431A30); }
-
-
-protected:
-	explicit __forceinline BufferIOFileClass(noinit_t)
-		: RawFileClass(noinit_t())
-	{ }
+		: RawFileClass()	
+		, IsAllocated()
+		, Is_Open()
+		, IsDiskOpen()
+		, IsCached()
+		, IsChanged()
+		, UseBuffer()
+		, BufferRights()
+		, BufferPtr()
+		, BufferedSize()
+		, BufferPos()
+		, BufferFilePos()
+		, BufferChangeBeg(-1)
+		, BufferChangeEnd(-1)
+		, FileSize()
+		, FilePos()
+		, TrueFileStart ()
+	{
+		this->BufferIOFileClass::SetFileName(pFilename);
+	}
 
 public:
 	bool IsAllocated;
@@ -365,7 +390,7 @@ public:
 	DEFINE_REFERENCE(SearchDriveType*, CDFileFirst, 0x89E410);
 
 	//Destructor
-	virtual ~CDFileClass() { JMP_THIS(0x535A60); }
+	virtual ~CDFileClass() = default;
 
 	//FileClass
 	virtual const char* FileName() const override { return this->BufferIOFileClass::FileName(); }
@@ -394,19 +419,14 @@ public:
 	static void __fastcall SetCDDrive(int nDriveNumber);
 
 	//Constructor
-	CDFileClass()
-		: CDFileClass(noinit_t())
-	{ JMP_THIS(0x47AA30); }
-
+	CDFileClass() : BufferIOFileClass(), IsDisabled(false)
+	{ }
 
 	CDFileClass(const char* pFilename)
-		: CDFileClass(noinit_t())
-	{ JMP_THIS(0x47A9D0); }
-
-protected:
-	explicit __forceinline CDFileClass(noinit_t)
-		: BufferIOFileClass(noinit_t())
-	{ }
+		: BufferIOFileClass() , IsDisabled(false)
+	{
+		this->CDFileClass::SetFileName(pFilename);
+	}
 
 public:
 	bool IsDisabled; //54
@@ -422,7 +442,7 @@ public:
 	//static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E16B0;
 
 	//Destructor
-	virtual ~CCFileClass() { JMP_THIS(0x535A70); }
+	virtual ~CCFileClass() = default;
 
 
 	//FileClass
@@ -457,23 +477,16 @@ public:
 
 	//Constructor
 	CCFileClass(const char* pFileName)
-		: CCFileClass(noinit_t())
-	{ JMP_THIS(0x4739F0); }
-
+		: CDFileClass(pFileName), Buffer() , Position(), Availablility()
+	{}
 
 	CCFileClass()
-		: CCFileClass(noinit_t())
-	{ JMP_THIS(0x473A80); }
-
-
-protected:
-	explicit __forceinline CCFileClass(noinit_t)
-		: CDFileClass(noinit_t())
-	{ }
+		: CDFileClass(), Buffer(), Position(), Availablility()
+	{}
 
 	//Properties
 public:
-	DECLARE_PROPERTY(MemoryBuffer , Buffer);
+	MemoryBuffer Buffer;
 	DWORD Position;	// unknown_64;
 	DWORD Availablility;	// unknown_68;
 
@@ -566,11 +579,6 @@ public:
 			this->Offset = offs;
 		}
 	}
-
-protected:
-	explicit __forceinline RAMFileClass(noinit_t)
-		: FileClass(noinit_t())
-	{ }
 
 private:
 	char* Buffer;

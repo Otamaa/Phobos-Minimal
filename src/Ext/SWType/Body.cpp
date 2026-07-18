@@ -543,7 +543,7 @@ bool SWTypeExtData::IsTargetConstraintsEligible(SuperClass* pThis, bool IsPlayer
 
 	return true;
 }
-
+#pragma optimize("", off)
 bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 {
 	const auto pExt = SWTypeExtContainer::Instance.Find(pThis->Type);
@@ -577,7 +577,9 @@ bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 				 	MapClass::UnselectAll();
 				 }
 
-				return pThis->Owner->Fire_SW(pThis->GetArrayIndex(), Cell);
+				 auto firing = Cell;
+				 const int Idx = pThis->Type->ArrayIndex;
+				 return ((FakeHouseClass*)pThis->Owner)->_FireSW(Idx, firing);
 			}
 		}
 	}
@@ -585,6 +587,7 @@ bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 	return false;
 
 }
+#pragma optimize("", on)
 
 //struct TargetingInfo
 //{

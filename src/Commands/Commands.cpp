@@ -201,7 +201,7 @@ ASMJIT_PATCH(0x777998, Game_WndProc_ScrollMouseWheel, 0x6)
 }
 
 //this is still 0.A code , need check the new one ,..
-void __fastcall ScreenCaptureCommandClass_Process(CommandClass* pThis)
+void __fastcall ScreenCaptureCommandClass_Process(CommandClass* pThis, discard_t, WWKey eInput)
 {
 	RECT Viewport = {};
 	if (Imports::GetWindowRect.invoke()(Game::hWnd, &Viewport))
@@ -331,3 +331,20 @@ DEFINE_HOOK(0x5370A0, BeaconPlacementCommandClass_ExecuteSub_Start, 0x5)
 
 //BeaconPlacement_Place
 DEFINE_JUMP(LJMP, 0x430CD4, 0x430CEA);
+#include <SidebarClass.h>
+
+bool __fastcall SetStructureTabCommandClass_Process_FixCrash(void* pThis , discard_t , WWKey eInput)
+{
+	if (SidebarClass::Column[0].HasCameos()) {
+		SidebarClass::Instance->ChangeTab(0);
+		if (auto pObj = Make_Global<BuildingClass*>(0xB0FE5C)) {
+			if (pObj->IsAlive) {
+				return HouseClass::CurrentPlayer->Manual_Place(pObj->FindFactory(false, false), pObj);
+			}
+		}
+	}
+
+	return false;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB90C, SetStructureTabCommandClass_Process_FixCrash);
