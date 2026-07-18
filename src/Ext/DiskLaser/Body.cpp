@@ -13,6 +13,8 @@
 
 #include <Misc/DamageArea.h>
 
+#include <New/Entity/LaserTrackerClass.h>
+
 #include <Utilities/Helpers.h>
 #include <Utilities/Macro.h>
 
@@ -239,6 +241,11 @@ void FakeDiskLaserClass::__AI()
 		);
 
 		pLaser_1->SetThickness(pWeaponExt->Laser_Thickness);
+		const auto mode = pWeaponExt->LaserPositionUpdate.Get();
+
+		if (mode != PositionFollow::None) {
+			LaserTrackerClass::Instance().Assign(pLaser_1, this->Owner, this->Target, DiskLaserExtContainer::Instance.Find(this)->WeaponIdx, mode, false);
+		}
 
 		if (!pWeaponExt->DiskLaser_SimulatedFire)
 		{

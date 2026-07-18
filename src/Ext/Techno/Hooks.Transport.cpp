@@ -83,8 +83,11 @@ ASMJIT_PATCH(0x710552, TechnoClass_SetOpenTransportCargoTarget_ShareTarget, 0x6)
 // Use a square range because it doesn't seem necessary to calculate the circular range
 static FORCEDINLINE bool IsCloseEnoughToEnter(UnitClass* pTransport, FootClass* pPassenger)
 {
-	return (Math::abs(pPassenger->Location.X - pTransport->Location.X) < 384
-		&& Math::abs(pPassenger->Location.Y - pTransport->Location.Y) < 384
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTransport->Type);
+	const int boardDistance = pTypeExt->NoQueueUpToEnter_BoardDistance.Get(RulesExtData::Instance()->NoQueueUpToEnter_BoardDistance.Get());
+
+	return (Math::abs(pPassenger->Location.X - pTransport->Location.X) < boardDistance
+		&& Math::abs(pPassenger->Location.Y - pTransport->Location.Y) < boardDistance
 		&& Math::abs(pPassenger->Location.Z - pTransport->Location.Z) < Unsorted::CellHeight);
 }
 

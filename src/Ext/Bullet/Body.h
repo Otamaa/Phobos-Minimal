@@ -70,7 +70,7 @@ public:
 	TechnoClass* PrismRelayMaster {};
 	bool PrismRelaySupportBullet {};
 	bool PrismRelayCounted {};
-
+	bool IgnoreShooter {};
 #pragma endregion
 
 public:
@@ -82,7 +82,7 @@ public:
 	BulletExtData() = default;
 
 	virtual ~BulletExtData() = default;
-	// {
+	// {a
 	// 	// mimicking how this thing does , since the detach seems not properly handle these
 	//
 	// 	if (!Phobos::Otamaa::DoingLoadGame)

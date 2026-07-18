@@ -29,6 +29,8 @@
 #include <Utilities/Macro.h>
 #include <Utilities/EnumFunctions.h>
 
+#include <New/Entity/LaserTrackerClass.h>
+
 #include <TerrainClass.h>
 
 #ifndef FireAt_Backport
@@ -1126,6 +1128,12 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 					pTarget,
 					which, pTW, CoordStruct::Empty))
 				{
+					const auto mode = pWeaponExt->LaserPositionUpdate.Get();
+
+					if (mode != PositionFollow::None) {
+						LaserTrackerClass::Instance().Assign(pLaser, pThis, pTarget, which, mode, false);
+					}
+
 					pLaser->Thickness = (thickness == -1) ? 3 : thickness;
 					auto* pBTD = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 					if (pBTD->PrismForwarding.CanAttack() && pBld->SupportingPrisms > 0)
@@ -1143,6 +1151,12 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 				pTarget,
 				which, pWeapon, CoordStruct::Empty))
 			{
+				const auto mode = pWeaponExt->LaserPositionUpdate.Get();
+
+				if (mode != PositionFollow::None) {
+					LaserTrackerClass::Instance().Assign(pLaser, pThis, pTarget, which, mode, false);
+				}
+
 				if (thickness == -1) pLaser->Thickness = 2;
 				else { pLaser->Thickness = thickness; pLaser->IsSupported = (thickness > 3); }
 			}

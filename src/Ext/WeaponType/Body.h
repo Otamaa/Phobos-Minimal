@@ -46,6 +46,8 @@ public:
 	ValueableVector<int> Burst_Delays {};
 	Valueable<AreaFireTarget> AreaFire_Target { AreaFireTarget::Base };
 	Valueable<WeaponTypeClass*> FeedbackWeapon { nullptr };
+	Valueable<PositionFollow> LaserPositionUpdate { PositionFollow::None };
+	Nullable<bool> LaserPositionUpdate_StopOnFirerConvert {};
 	Valueable<bool> Laser_IsSingleColor { false };
 	Nullable<double> Trajectory_Speed {};
 

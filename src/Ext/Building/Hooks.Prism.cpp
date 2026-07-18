@@ -5,6 +5,8 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ext/WeaponType/Body.h>
 
+#include <New/Entity/LaserTrackerClass.h>
+
 #include <CaptureManagerClass.h>
 
 #include <EBolt.h>
@@ -204,6 +206,7 @@ ASMJIT_PATCH(0x4503F0, BuildingClass_Update_Prism, 9)
 							{
 								auto const pTypeData = BuildingTypeExtContainer::Instance.Find(pType);
 
+
 								//apparently this is divided by 256 elsewhere
 								LaserBeam->DamageMultiplier = static_cast<int>((pData->MyPrismForwarding->ModifierReserve + 100) * 256) / 100;
 								LaserBeam->Health += pTypeData->PrismForwarding.DamageAdd + pData->MyPrismForwarding->DamageReserve;
@@ -344,6 +347,16 @@ ASMJIT_PATCH(0x44ABD0, BuildingClass_FireLaser, 5)
 	//Intensity adjustment for LaserBeam
 	if (LaserBeam)
 	{
+		if (supportWeapon){
+			auto pWeaponExt = WeaponTypeExtContainer::Find(supportWeapon);
+			auto const pData = BuildingExtContainer::Instance.Find(pThis);
+			const auto mode = pWeaponExt->LaserPositionUpdate.Get();
+
+			if (mode != PositionFollow::None) {
+				LaserTrackerClass::Instance().Assign(LaserBeam, pThis, pData->MyPrismForwarding->SupportTarget->Owner, idxSupport, mode, false);
+			}
+		}
+
 		if (pThis->SupportingPrisms)
 		{
 			if (pTypeData->PrismForwarding.Intensity < 0)

@@ -169,6 +169,7 @@
     <ClCompile Include="src\New\Entity\BlockTypeClass.cpp" />
     <ClCompile Include="src\New\Entity\CreateUnitTypeClass.cpp" />
     <ClCompile Include="src\New\Entity\EVAVoices.cpp" />
+    <ClCompile Include="src\New\Entity\LaserTrackerClass.cpp" />
     <ClCompile Include="src\New\Entity\PowerPlantEnhancerClass.cpp" />
     <ClCompile Include="src\New\Entity\PrismRelay.cpp" />
     <ClCompile Include="src\New\Entity\ShiftSchedule.cpp" />
@@ -710,6 +711,7 @@
     <ClInclude Include="src\New\Entity\BlockTypeClass.h" />
     <ClInclude Include="src\New\Entity\CreateUnitTypeClass.h" />
     <ClInclude Include="src\New\Entity\EVAVoices.h" />
+    <ClInclude Include="src\New\Entity\LaserTrackerClass.h" />
     <ClInclude Include="src\New\Entity\PowerPlantEnhancerClass.h" />
     <ClInclude Include="src\New\Entity\PrismRelay.h" />
     <ClInclude Include="src\New\Entity\ShiftSchedule.h" />

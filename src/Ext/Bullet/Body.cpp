@@ -17,6 +17,7 @@
 
 #include <New/Entity/FlyingStrings.h>
 #include <New/Entity/PrismRelay.h>
+#include <New/Entity/LaserTrackerClass.h>
 
 #include <InfantryClass.h>
 #include <AircraftClass.h>
@@ -370,6 +371,7 @@ static void FireSingleBullet(
 	}
 
 	const CoordStruct sourceCoords = CalcSourceCoords(pThis, pExt, pTarget);
+	BulletExtContainer::Instance.Find(pBullet)->IgnoreShooter = true;
 	BulletExtData::SimulatedFiringUnlimbo(pBullet, pBulletHouseOwner, pWeapon, sourceCoords, true, radial);
 	BulletExtData::SimulatedFiringEffects(pBullet, pBulletHouseOwner, nullptr, useFiringEffects, true);
 }
@@ -805,6 +807,7 @@ void BulletExtData::ApplyShrapnel(BulletClass* pThis)
 
 			if (pBullet)
 			{
+				BulletExtContainer::Instance.Find(pBullet)->IgnoreShooter = true;
 				pBullet->MoveTo(pThis->Location,
 					BulletExtData::GenerateVelocity(pThis, pCellTarget, pShrapWeapon->Speed, true));
 				BulletExtData::SimulatedFiringEffects(pBullet,
@@ -1262,11 +1265,12 @@ void BulletExtData::SimulatedFiringLaser(BulletClass* pBullet, HouseClass* pHous
 
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 	CoordStruct _Target =  BulletExtData::GetTargetCoords(pBullet);
+	LaserDrawClass* pLaser = 0;
 
 	if (pWeapon->IsHouseColor || pWeaponExt->Laser_IsSingleColor)
 	{
 		const auto black = ColorStruct { 0, 0, 0 };
-		const auto pLaser = GameCreate<LaserDrawClass>(pBullet->SourceCoords, _Target,
+		pLaser = GameCreate<LaserDrawClass>(pBullet->SourceCoords, _Target,
 			((pWeapon->IsHouseColor && pHouse) ? pHouse->LaserColor : pWeapon->LaserInnerColor), black, black, pWeapon->LaserDuration);
 
 		pLaser->IsHouseColor = true;
@@ -1275,12 +1279,29 @@ void BulletExtData::SimulatedFiringLaser(BulletClass* pBullet, HouseClass* pHous
 	}
 	else
 	{
-		const auto pLaser = GameCreate<LaserDrawClass>(pBullet->SourceCoords, _Target,
+		pLaser = GameCreate<LaserDrawClass>(pBullet->SourceCoords, _Target,
 			pWeapon->LaserInnerColor, pWeapon->LaserOuterColor, pWeapon->LaserOuterSpread, pWeapon->LaserDuration);
 
 		pLaser->IsHouseColor = false;
 		pLaser->Thickness = 3;
 		pLaser->IsSupported = false;
+	}
+
+	if (pLaser) {
+		auto mode = pWeaponExt->LaserPositionUpdate;
+		const bool isSplit = BulletExtContainer::Instance.Find(pBullet)->IgnoreShooter;
+
+		if (isSplit) {
+			if (mode == PositionFollow::Firer)
+				mode = PositionFollow::None;
+			else if (mode == PositionFollow::All)
+				mode = PositionFollow::Target;
+		}
+
+		if (mode != PositionFollow::None) {
+			auto const pTarget = flag_cast_to<ObjectClass*>(pBullet->Target);
+			LaserTrackerClass::Instance().Assign(pLaser, pBullet->Owner, pTarget, 0, mode, isSplit);
+		}
 	}
 }
 
@@ -1520,6 +1541,10 @@ void BulletExtData::Serialize(T& Stm)
 	debugProcess(this->DistanceTraveled, "DistanceTraveled");
 	debugProcess(this->FirepowerMult, "FirepowerMult");
 	debugProcess(this->IsInstantDetonation, "IsInstantDetonation");
+	debugProcess(this->PrismRelayMaster, "PrismRelayMaster");
+	debugProcess(this->PrismRelaySupportBullet, "PrismRelaySupportBullet");
+	debugProcess(this->PrismRelayCounted, "PrismRelayCounted");
+	debugProcess(this->IgnoreShooter, "IgnoreShooter");
 	PhobosTrajectory::ProcessFromStream(Stm, this->Trajectory);
 }
 

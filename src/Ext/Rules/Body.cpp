@@ -423,6 +423,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AssignUnitMissionAfterParadropped.Read(exINI, GameStrings::General, "AssignUnitMissionAfterParadropped");
 	this->NoQueueUpToEnter.Read(exINI, GameStrings::General, "NoQueueUpToEnter");
 	this->NoQueueUpToUnload.Read(exINI, GameStrings::General, "NoQueueUpToUnload");
+	this->NoQueueUpToEnter_BoardDistance.Read(exINI, GameStrings::General, "NoQueueUpToEnter.BoardDistance");
 	this->NoQueueUpToEnter_Buildings.Read(exINI, GameStrings::General, "NoQueueUpToEnter.Buildings");
 	this->NoQueueUpToUnload_Buildings.Read(exINI, GameStrings::General, "NoQueueUpToUnload.Buildings");
 	this->NoRearm_UnderEMP.Read(exINI, GameStrings::General, "NoRearm.UnderEMP");
@@ -930,6 +931,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->AISuperWeaponDelay)
 		.Process(this->ChronoSpherePreDelay)
 		.Process(this->ChronoSphereDelay)
+		.Process(this->LaserPositionUpdate_StopOnFirerConvert)
 		.Process(this->LaserZAdjust)
 		.Process(this->EBoltZAdjust)
 		.Process(this->EBoltZAdjust_ClampInitialDepthForBuilding)
@@ -950,6 +952,7 @@ void RulesExtData::Serialize(T& Stm)
 
 		.Process(this->NoQueueUpToEnter)
 		.Process(this->NoQueueUpToUnload)
+		.Process(this->NoQueueUpToEnter_BoardDistance)
 		.Process(this->NoQueueUpToEnter_Buildings)
 		.Process(this->NoQueueUpToUnload_Buildings)
 
@@ -3093,6 +3096,7 @@ void FakeRulesClass::_ReadAudioVisual(CCINIClass* pINI)
 		Debug::Log("[Developer warning] [AudioVisual] DisplayIncome.Delay is set 0 which would cause a crash, set to 1 instead.\n");
 		pData->DisplayIncome_Delay = 1;
 	}
+	pData->LaserPositionUpdate_StopOnFirerConvert.Read(exINI, section, "LaserPositionUpdate.StopOnFirerConvert");
 	pData->LaserZAdjust.Read(exINI, section, "LaserZAdjust");
 	pData->EBoltZAdjust.Read(exINI, section, "EBoltZAdjust");
 	pData->EBoltZAdjust_ClampInitialDepthForBuilding.Read(exINI, section, "EBoltZAdjust.ClampInitialDepthForBuilding");

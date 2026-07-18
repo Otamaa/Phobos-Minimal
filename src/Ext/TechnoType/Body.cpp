@@ -2151,6 +2151,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		this->NoQueueUpToEnter.Read(exINI, pSection, "NoQueueUpToEnter");
 		this->NoQueueUpToUnload.Read(exINI, pSection, "NoQueueUpToUnload");
+		this->NoQueueUpToEnter_BoardDistance.Read(exINI, pSection, "NoQueueUpToEnter.BoardDistance");
 
 		this->NoRearm_UnderEMP.Read(exINI, pSection, "NoRearm.UnderEMP");
 		this->NoRearm_Temporal.Read(exINI, pSection, "NoRearm.Temporal");
@@ -3503,6 +3504,7 @@ void TechnoTypeExtData::Serialize(T& Stm) {
 
 			.Process(this->NoQueueUpToEnter)
 			.Process(this->NoQueueUpToUnload)
+			.Process(this->NoQueueUpToEnter_BoardDistance)
 
 			.Process(this->NoRearm_UnderEMP)
 			.Process(this->NoRearm_Temporal)

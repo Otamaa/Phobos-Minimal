@@ -1086,6 +1086,7 @@ public:
 
 	Nullable<bool> NoQueueUpToEnter {};
 	Nullable<bool> NoQueueUpToUnload {};
+	Nullable<int> NoQueueUpToEnter_BoardDistance {};
 
 	Nullable<bool> NoRearm_UnderEMP {};
 	Nullable<bool> NoRearm_Temporal {};

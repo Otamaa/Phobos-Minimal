@@ -58,6 +58,8 @@ CoordStruct LaserTrackerClass::ResolveLocalFLH(TechnoClass* pShooter, int weapon
 			localFLH = pWeaponStruct->FLH;
 		else
 			localFLH = CoordStruct::Empty;
+
+
 	}
 
 	// SUSPECT: the old hook at 0x6FD210 additionally mirrored Y for odd burst
@@ -178,6 +180,9 @@ void LaserTrackerClass::Assign(LaserDrawClass* pLaser, TechnoClass* pShooter, Ab
 	{
 		data.Shooter = pShooter;
 		data.LocalFLH = LaserTrackerClass::ResolveLocalFLH(pShooter, weaponIdx);
+		if (pShooter->CurrentBurstIndex % 2 != 0)
+			data.LocalFLH.Y = -data.LocalFLH.Y;
+
 		data.FrozenBurstIndex = pShooter->CurrentBurstIndex;
 		data.StopOnFirerConvert = LaserTrackerClass::ResolveStopOnFirerConvert(pShooter, weaponIdx);
 

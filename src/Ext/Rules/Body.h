@@ -384,6 +384,7 @@ public:
 	Valueable<int> WarheadAnimZAdjust { -15 };
 	Valueable<int> ChronoSpherePreDelay { 60 };
 	Valueable<int> ChronoSphereDelay { 0 };
+	Valueable<bool> LaserPositionUpdate_StopOnFirerConvert{ false };
 	Valueable<int> LaserZAdjust { 0 };
 	Valueable<int> DisplayIncome_Delay { 15 };
 	Valueable<int> EBoltZAdjust { 0 };
@@ -538,6 +539,7 @@ public:
 	Valueable<bool> AssignUnitMissionAfterParadropped { false };
 	Valueable<bool> NoQueueUpToEnter {};
 	Valueable<bool> NoQueueUpToUnload {};
+	Valueable<int> NoQueueUpToEnter_BoardDistance  { 384 };
 	Valueable<bool> NoRearm_UnderEMP { false };
 	Valueable<bool> NoRearm_Temporal { false };
 	Valueable<bool> NoReload_UnderEMP { false };

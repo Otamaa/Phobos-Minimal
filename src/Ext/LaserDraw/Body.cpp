@@ -15,22 +15,15 @@
 #include <Ext/Rules/Body.h>
 #include <Ext/House/Body.h>
 
-
-std::unordered_map<LaserDrawClass*, LaserDrawClassExt::TrackingData> LaserDrawClassExt::g_Trackers;
-
-CoordStruct LaserDrawClassExt::GetRelativeFLH(TechnoClass* pShooter, int weaponIndex)
-{
-	return {};
-}
+#include <New/Entity/LaserTrackerClass.h>
 
 void LaserDrawClassExt::RemoveLaserTracking(LaserDrawClass* pLaser)
 {
-	LaserDrawClassExt::g_Trackers.erase(pLaser);
+	LaserTrackerClass::Instance().Remove(pLaser);
 }
 
 void LaserDrawClassExt::Clear()
 {
-	LaserDrawClassExt::g_Trackers.clear();
 }
 
 bool LaserDrawClassExt::LoadAll(const PhobosStreamReader& stm)
@@ -47,19 +40,6 @@ void LaserDrawClassExt::PointerExpired(void* ptr, bool removed)
 {
 	if (!removed)
 		return;
-
-	for (auto& [laser, data] : g_Trackers) {
-
-		if (data.Shooter == ptr) {
-			data.Shooter = nullptr;
-		}
-
-		if (data.Target == ptr) {
-			data.Shooter = nullptr;
-		}
-
-		data.IsActive = data.Active();
-	}
 }
 
 // ============================================================================
@@ -352,6 +332,7 @@ void FakeLaserDrawClass::_UpdateAllLasers()
 		auto* pLaser = static_cast<FakeLaserDrawClass*>((*LaserDrawClass::Array)[i]);
 		if (pLaser)
 		{
+			LaserTrackerClass::Instance().Update(pLaser);
 			pLaser->_UpdateLaser();
 		}
 	}

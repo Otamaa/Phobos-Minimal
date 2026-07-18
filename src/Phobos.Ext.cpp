@@ -96,6 +96,8 @@
 
 #include <New/Entity/FlyingStrings.h>
 
+#include <New/Entity/LaserTrackerClass.h>
+
 #include <Ext/Tactical/Body.h>
 
 
@@ -183,6 +185,8 @@ void PhobosExt::InvalidatePointers(AbstractClass* const pInvalid, bool const rem
 			LightningStorm::CloudsManifesting->erase((AnimClass*)pInvalid);;
 			LightningStorm::BoltsPresent->erase((AnimClass*)pInvalid);
 		}
+
+		LaserTrackerClass::Instance().OnObjectRemoved((TechnoClass*)pInvalid);
 	}
 
 }
@@ -437,6 +441,8 @@ void Phobos::ClearAll()
 
 	//reset the IteratorValue counter for the parser
 	FakeCCINIClass::Reset();
+
+	LaserTrackerClass::Instance().Clear();
 }
 
 #pragma endregion

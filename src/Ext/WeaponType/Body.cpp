@@ -123,6 +123,8 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Burst_Delays.Read(exINI, pSection, "Burst.Delays");
 	this->AreaFire_Target.Read(exINI, pSection, "AreaFire.Target");
 	this->FeedbackWeapon.Read(exINI, pSection, "FeedbackWeapon", true);
+	this->LaserPositionUpdate.Read(exINI, pSection, "LaserPositionUpdate");
+	this->LaserPositionUpdate_StopOnFirerConvert.Read(exINI, pSection, "LaserPositionUpdate.StopOnFirerConvert");
 	this->Laser_IsSingleColor.Read(exINI, pSection, "IsSingleColor");
 	this->Trajectory_Speed.Read(exINI, pSection, "Trajectory.Speed");
 
@@ -526,6 +528,8 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->Burst_Delays)
 		.Process(this->AreaFire_Target)
 		.Process(this->FeedbackWeapon)
+		.Process(this->LaserPositionUpdate)
+		.Process(this->LaserPositionUpdate_StopOnFirerConvert)
 		.Process(this->Laser_IsSingleColor)
 		.Process(this->Trajectory_Speed)
 		.Process(this->Abductor)
