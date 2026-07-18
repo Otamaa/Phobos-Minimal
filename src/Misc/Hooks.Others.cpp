@@ -1131,8 +1131,9 @@ static COMPILETIMEEVAL constant_ptr<const char, 0x840D40> const ra2md_str {};
 
 DEFINE_JUMP(LJMP, 0x6BD7D5, 0x6BD83C);
 
-ASMJIT_PATCH(0x6BD84E, Expand_MIX_Reorg, 5)
+ASMJIT_PATCH(0x6BD7C5, Expand_MIX_Reorg, 5)
 {
+
 	SpawnerMain::GameConfigs::Init();
 
 	auto pKey = MixFileClass::Key();
@@ -1143,10 +1144,13 @@ ASMJIT_PATCH(0x6BD84E, Expand_MIX_Reorg, 5)
 	}
 
 	MixFilesBoostrap();
+	
+	int disk = CD::Disk();
 
-	Language = GameCreate<MixFileClass>(LANGUAGE_MIX(), pKey);
 	LangMD = GameCreate<MixFileClass>(LANGMD_MIX(), pKey);
-	CD::SetReqCD(R->ESI<int>());
+	Language = GameCreate<MixFileClass>(LANGUAGE_MIX(), pKey);
+
+	CD::SetReqCD(disk);
 
 	//atexitCall(Prog_End);
 	// do not all this inside dll thread
