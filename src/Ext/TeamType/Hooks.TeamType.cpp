@@ -353,8 +353,7 @@ bool __fastcall FakeTeamTypeClass::_TunnelMaybe(TeamTypeClass* teamtype, FootCla
 				const int dir = (((dirVal >> 7) + 1) >> 1) & 0xFF;
 				if (allTunnel)
 				{
-					auto* pCell = MapClass::Instance->GetCellAt(place);
-					const CoordStruct cellCoord = pCell->GetCoords();
+					const CoordStruct cellCoord = MapClass::Instance->GetCellAt(place)->GetCoords();
 					const CoordStruct unlimboCoord { cellCoord.X, cellCoord.Y, cellCoord.Z - 400 };
 					placed = unit->Unlimbo(unlimboCoord, (DirType)dir);  // +0xD8
 					if (placed)
@@ -370,8 +369,7 @@ bool __fastcall FakeTeamTypeClass::_TunnelMaybe(TeamTypeClass* teamtype, FootCla
 				}
 				else
 				{
-					auto* pCell = MapClass::Instance->GetCellAt(place);
-					const CoordStruct cellCoord = pCell->GetCoordsWithBridge();
+					const CoordStruct cellCoord = MapClass::Instance->GetCellAt(place)->GetCoordsWithBridge();
 					placed = unit->Unlimbo(cellCoord, (DirType)dir);     // +0xD8
 				}
 			}

@@ -24,28 +24,6 @@
 template<typename Func, typename... Args>
 concept ReturnsBool = std::same_as<std::invoke_result_t<Func, Args...>, bool>;
 
-// Helper function for comparator operations
-static NOINLINE COMPILETIMEEVAL bool EvaluateComparator(int counter, AITriggerConditionComparator comp, bool ret)
-{
-	switch ((int)comp.Type)
-	{
-	case 0:
-		return counter < comp.Operand;
-	case 1:
-		return counter <= comp.Operand;
-	case 2:
-		return counter == comp.Operand;
-	case 3:
-		return counter >= comp.Operand;
-	case 4:
-		return counter > comp.Operand;
-	case 5:
-		return counter != comp.Operand;
-	default:
-		return ret;
-	}
-}
-
 template<typename Func>
 void LoopThruMembers(TeamClass* pTeam, Func&& act)
 {
@@ -156,7 +134,7 @@ bool TeamExtData::HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool 
 		}
 	}
 
-	return EvaluateComparator(counter, pThis->Conditions[0] , false);
+	return pThis->Conditions[0].EvaluateComparator(counter, false);
 }
 
 bool TeamExtData::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, bool onlySelectedEnemy, const Iterator<TechnoTypeClass*>& list)
@@ -184,7 +162,7 @@ bool TeamExtData::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, House
 		}
 	}
 
-	return  EvaluateComparator(counter, pThis->Conditions[0], false);
+	return  pThis->Conditions[0].EvaluateComparator(counter, false);
 }
 
 bool TeamExtData::NeutralOwns(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list)
@@ -213,7 +191,7 @@ bool TeamExtData::NeutralOwns(AITriggerTypeClass* pThis, const Iterator<TechnoTy
 		}
 	}
 
-	return EvaluateComparator(counter, pThis->Conditions[0], false);
+	return pThis->Conditions[0].EvaluateComparator(counter, false);
 }
 
 bool TeamExtData::HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, const Iterator<TechnoTypeClass*>& list)
@@ -243,7 +221,7 @@ bool TeamExtData::HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, co
 			}
 		}
 
-		result = EvaluateComparator(counter, pThis->Conditions[0], true);
+		result = pThis->Conditions[0].EvaluateComparator(counter, true);
 	}
 
 	return result;
@@ -280,7 +258,7 @@ bool TeamExtData::EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, Ho
 				counter++;
 			}
 		}
-		result = EvaluateComparator(counter, pThis->Conditions[0], true);
+		result = pThis->Conditions[0].EvaluateComparator(counter, true);
 	}
 
 	return result;
@@ -324,7 +302,7 @@ bool TeamExtData::NeutralOwnsAll(AITriggerTypeClass* pThis, const Iterator<Techn
 				}
 			}
 
-			foundAll = EvaluateComparator(counter, pThis->Conditions[0], true);
+			foundAll = pThis->Conditions[0].EvaluateComparator(counter, true);
 		}
 
 		if (!foundAll)

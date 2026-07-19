@@ -113,27 +113,6 @@ bool AITriggerTypeExtData::SuperWeaponNearReady(HouseClass* pHouse, int swTypeIn
 	return readyThreshold >= chargeProgress;
 }
 
-bool AITriggerTypeExtData::GetComparatorResult(int operand1, AITriggerConditionComparator& cond)
-{
-	switch (cond.Type)
-	{
-	case AITriggerConditionComparatorType::Less:
-		return operand1 < cond.Operand;
-	case AITriggerConditionComparatorType::LessOrEqual:
-		return operand1 <= cond.Operand;
-	case AITriggerConditionComparatorType::Equal:
-		return operand1 == cond.Operand;
-	case AITriggerConditionComparatorType::GreaterOrEqual:
-		return operand1 >= cond.Operand;
-	case AITriggerConditionComparatorType::Greater:
-		return operand1 > cond.Operand;
-	case AITriggerConditionComparatorType::NotEqual:
-		return operand1 != cond.Operand;
-	default:
-		return false;
-	}
-}
-
 bool AITriggerTypeExtData::OwnStuffs(TechnoTypeClass* pItem, TechnoClass* list)
 {
 	if (auto pItemUnit = type_cast<UnitTypeClass*, false>(pItem))
@@ -200,7 +179,7 @@ bool AITriggerTypeExtData::CountConditionMet(AITriggerTypeClass* pThis, int nObj
 	if (nObjects < 0)
 		return false;
 
-	return AITriggerTypeExtData::GetComparatorResult(nObjects, pThis->Conditions[0]);
+	return pThis->Conditions[0].EvaluateComparator(nObjects, false);
 }
 
 bool AITriggerTypeExtData::HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, std::vector<TechnoTypeClass*>& list)
@@ -223,7 +202,7 @@ bool AITriggerTypeExtData::HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHou
 		}
 	}
 
-	return AITriggerTypeExtData::GetComparatorResult(counter, pThis->Conditions[0]);
+	return pThis->Conditions[0].EvaluateComparator(counter, false);
 }
 
 bool AITriggerTypeExtData::HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, TechnoTypeClass* pItem)
@@ -244,7 +223,7 @@ bool AITriggerTypeExtData::HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHou
 		}
 	}
 
-	return AITriggerTypeExtData::GetComparatorResult(counter, pThis->Conditions[0]);
+	return pThis->Conditions[0].EvaluateComparator(counter, false);
 }
 
 bool AITriggerTypeExtData::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, bool onlySelectedEnemy, TechnoTypeClass* pItem)
@@ -269,7 +248,7 @@ bool AITriggerTypeExtData::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHou
 		}
 	}
 
-	return AITriggerTypeExtData::GetComparatorResult(counter, pThis->Conditions[0]);
+	return pThis->Conditions[0].EvaluateComparator(counter, false);
 }
 
 bool AITriggerTypeExtData::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, bool onlySelectedEnemy, std::vector<TechnoTypeClass*>& list)
@@ -296,7 +275,7 @@ bool AITriggerTypeExtData::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHou
 		}
 	}
 
-	return AITriggerTypeExtData::GetComparatorResult(counter, pThis->Conditions[0]);
+	return pThis->Conditions[0].EvaluateComparator(counter, false);
 }
 
 bool AITriggerTypeExtData::NeutralOwns(AITriggerTypeClass* pThis, std::vector<TechnoTypeClass*>& list)
@@ -316,7 +295,7 @@ bool AITriggerTypeExtData::NeutralOwns(AITriggerTypeClass* pThis, std::vector<Te
 		}
 	}
 
-	return AITriggerTypeExtData::GetComparatorResult(counter, pThis->Conditions[0]);
+	return pThis->Conditions[0].EvaluateComparator(counter, false);
 }
 
 bool AITriggerTypeExtData::NeutralOwns(AITriggerTypeClass* pThis, TechnoTypeClass* pItem)
@@ -332,7 +311,7 @@ bool AITriggerTypeExtData::NeutralOwns(AITriggerTypeClass* pThis, TechnoTypeClas
 			counter++;
 	}
 
-	return AITriggerTypeExtData::GetComparatorResult(counter, pThis->Conditions[0]);
+	return pThis->Conditions[0].EvaluateComparator(counter, false);
 }
 
 bool AITriggerTypeExtData::HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, std::vector<TechnoTypeClass*>& list)
@@ -356,7 +335,7 @@ bool AITriggerTypeExtData::HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* p
 				counter++;
 		}
 
-		result = AITriggerTypeExtData::GetComparatorResult(counter, pThis->Conditions[0]);
+		result = pThis->Conditions[0].EvaluateComparator(counter, false);
 	}
 
 	return result;
@@ -391,7 +370,7 @@ bool AITriggerTypeExtData::EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* p
 			}
 		}
 
-		result = AITriggerTypeExtData::GetComparatorResult(counter, pThis->Conditions[0]);
+		result = pThis->Conditions[0].EvaluateComparator(counter, false);
 	}
 
 	return result;
@@ -416,7 +395,7 @@ bool AITriggerTypeExtData::NeutralOwnsAll(AITriggerTypeClass* pThis, std::vector
 				counter++;
 		}
 
-		result = AITriggerTypeExtData::GetComparatorResult(counter, pThis->Conditions[0]);
+		result = pThis->Conditions[0].EvaluateComparator(counter, false);
 	}
 
 	return result;
@@ -445,7 +424,7 @@ bool AITriggerTypeExtData::NumberOfTechBuildingsExist(AITriggerTypeClass* pThis,
 		}
 	}
 
-	return AITriggerTypeExtData::GetComparatorResult(count, pThis->Conditions[0]);
+	return pThis->Conditions[0].EvaluateComparator(count, false);
 }
 
 bool AITriggerTypeExtData::NumberOfBridgeRepairHutsExist(AITriggerTypeClass* pThis)
@@ -464,7 +443,7 @@ bool AITriggerTypeExtData::NumberOfBridgeRepairHutsExist(AITriggerTypeClass* pTh
 			count++;
 	}
 
-	return AITriggerTypeExtData::GetComparatorResult(count, pThis->Conditions[0]);
+	return pThis->Conditions[0].EvaluateComparator(count, false);
 }
 
 bool AITriggerTypeExtData::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pOwner, HouseClass* pEnemy)
@@ -473,7 +452,7 @@ bool AITriggerTypeExtData::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pOwn
 		return false;
 
 	const int count = CountOwnedType(pThis->ConditionObject, pEnemy);
-	return AITriggerTypeExtData::GetComparatorResult(count, pThis->Conditions[0]);
+	return pThis->Conditions[0].EvaluateComparator(count, false);
 }
 
 bool AITriggerTypeExtData::HouseOwns(AITriggerTypeClass* pThis, HouseClass* pOwner, HouseClass* pEnemy)
@@ -482,7 +461,7 @@ bool AITriggerTypeExtData::HouseOwns(AITriggerTypeClass* pThis, HouseClass* pOwn
 		return false;
 
 	const int count = CountOwnedType(pThis->ConditionObject, pOwner);
-	return AITriggerTypeExtData::GetComparatorResult(count, pThis->Conditions[0]);
+	return pThis->Conditions[0].EvaluateComparator(count, false);
 }
 
 bool AITriggerTypeExtData::NeutralOwns(AITriggerTypeClass* pThis, HouseClass* pOwner, HouseClass* pEnemy)
@@ -492,7 +471,7 @@ bool AITriggerTypeExtData::NeutralOwns(AITriggerTypeClass* pThis, HouseClass* pO
 		return false;
 
 	const int count = CountOwnedType(pThis->ConditionObject, pCivilian);
-	return AITriggerTypeExtData::GetComparatorResult(count, pThis->Conditions[0]);
+	return pThis->Conditions[0].EvaluateComparator(count, false);
 }
 
 bool AITriggerTypeExtData::HouseOwnsCredits(AITriggerTypeClass* pThis, HouseClass* pOwner, HouseClass* pEnemy)
@@ -501,7 +480,7 @@ bool AITriggerTypeExtData::HouseOwnsCredits(AITriggerTypeClass* pThis, HouseClas
 		return false;
 
 	const int credits = pEnemy->Available_Money();
-	return AITriggerTypeExtData::GetComparatorResult(credits, pThis->Conditions[0]);
+	return pThis->Conditions[0].EvaluateComparator(credits, false);
 }
 
 bool AITriggerTypeExtData::IronCurtainNearReady(AITriggerTypeClass* pThis, HouseClass* pOwner, HouseClass* pEnemy)
@@ -862,6 +841,86 @@ HRESULT __stdcall FakeAITriggerTypeClass::__Save(IStream* pStm, BOOL fClearDirty
 }
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2A68, FakeAITriggerTypeClass::__Save)
 
+std::string_view GetConditionString(PhobosAINewConditionTypes condition)
+{
+	switch (condition)
+	{
+		// PR #2119
+	case PhobosAINewConditionTypes::NumberOfTechBuildingsExist:
+		return "NumberOfTechBuildingsExist";
+	case PhobosAINewConditionTypes::NumberOfBridgeRepairHutsExist:
+		return "NumberOfBridgeRepairHutsExist";
+
+	case PhobosAINewConditionTypes::CheckPrereq:
+		return "CheckPrereq";
+	case PhobosAINewConditionTypes::CheckBridgeCondition:
+		return "CheckBridgeCondition";
+
+	case PhobosAINewConditionTypes::EnemyOwnsConditionObject:
+		return "EnemyOwnsConditionObject";
+	case PhobosAINewConditionTypes::HouseOwnsConditionObject:
+		return "HouseOwnsConditionObject";
+	case PhobosAINewConditionTypes::NeutralOwnsConditionObject:
+		return "NeutralOwnsConditionObject";
+	case PhobosAINewConditionTypes::AllEnemyOwnsConditionObject:
+		return "AllEnemyOwnsConditionObject";
+	case PhobosAINewConditionTypes::EnemyOwnsAITargetTypesLists:
+		return "EnemyOwnsAITargetTypesLists";
+	case PhobosAINewConditionTypes::HouseOwnsAITargetTypesLists:
+		return "HouseOwnsAITargetTypesLists";
+	case PhobosAINewConditionTypes::NeutralOwnsAITargetTypesLists:
+		return "NeutralOwnsAITargetTypesLists";
+	case PhobosAINewConditionTypes::AllEnemyOwnsAITargetTypesLists:
+		return "AllEnemyOwnsAITargetTypesLists";
+	case PhobosAINewConditionTypes::AllyOwnsAITargetTypesLists:
+		return "AllyOwnsAITargetTypesLists";
+
+	case PhobosAINewConditionTypes::EnemyOwnsAITargetTypesListsComp:
+		return "EnemyOwnsAITargetTypesListsComp";
+	case PhobosAINewConditionTypes::HouseOwnsAITargetTypesListsComp:
+		return "HouseOwnsAITargetTypesListsComp";
+	case PhobosAINewConditionTypes::NeutralOwnsAITargetTypesListsComp:
+		return "NeutralOwnsAITargetTypesListsComp";
+	case PhobosAINewConditionTypes::AllEnemyOwnsAITargetTypesListsComp:
+		return "AllEnemyOwnsAITargetTypesListsComp";
+
+	case PhobosAINewConditionTypes::DestroyedBridgeCount:
+		return "DestroyedBridgeCount";
+	case PhobosAINewConditionTypes::UndamagedBridgeCount:
+		return "UndamagedBridgeCount";
+
+	default:
+		return "";
+	};
+}
+
+std::string_view GetAITriggerConditionString(AITriggerCondition condition)
+{
+	switch (condition)
+	{
+	case AITriggerCondition::Pool:
+		return "Pool";
+	case AITriggerCondition::AIOwns:
+		return "AIOwns";
+	case AITriggerCondition::EnemyOwns:
+		return "EnemyOwns";
+	case AITriggerCondition::EnemyYellowPower:
+		return "EnemyYellowPower";
+	case AITriggerCondition::EnemyRedPower:
+		return "EnemyRedPower";
+	case AITriggerCondition::EnemyCashExceeds:
+		return "EnemyCashExceeds";
+	case AITriggerCondition::IronCharged:
+		return "IronCharged";
+	case AITriggerCondition::ChronoCharged:
+		return "ChronoCharged";
+	case AITriggerCondition::NeutralOwns:
+		return "NeutralOwns";
+	default:
+		return "";
+	}
+}
+
 bool NOINLINE AITriggerTypeExtData::CheckConditionType(AITriggerTypeClass* pThis,
 	   AITriggerCondition condType,
 	   HouseClass* house1,
@@ -869,6 +928,16 @@ bool NOINLINE AITriggerTypeExtData::CheckConditionType(AITriggerTypeClass* pThis
 	   bool lessThanZeroIsNotAllowed
 ) {
 	bool conditionMet = false;
+
+	std::string_view name = GetAITriggerConditionString(AITriggerCondition(condType));
+
+	if (name.empty())
+		name = GetConditionString((PhobosAINewConditionTypes)condType);
+
+	if (name.empty())
+		name = "Unknown";
+
+	Debug::LogInfo("AITriggerType[{} - {}] triggering [{} - {}]", (void*)pThis, pThis->ID, (int)condType, name);
 
 	// Assembly 0x41E908 jump table (ConditionType -1..7):
 	switch (condType)
@@ -1440,9 +1509,10 @@ bool FakeAITriggerTypeClass::_LoadFromINI(CCINIClass* pINI)
 	}
 
 	// --- field 3: INI tech level is read then DISCARDED -------------------
-	if (!strtok(nullptr, ","))
+	tok = strtok(nullptr, ",");
+	if (!tok)
 		return false;
-	this->TechLevel = 0;
+	this->TechLevel = 0; //atoi(tok)
 
 	// --- field 4: condition type ------------------------------------------
 	tok = strtok(nullptr, ",");

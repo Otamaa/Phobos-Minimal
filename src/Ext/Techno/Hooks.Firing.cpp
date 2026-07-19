@@ -1076,15 +1076,15 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 				pThis->Target ? pThis->Target->GetOwningHouse() : nullptr,
 				pThis, false, false);
 
-			if (pWeaponExt->Anim_Update.Get(RulesExtData::Instance()->FiringAnim_Update))
-			{
+			if (pWeapon->Anim.Count > 0 && pWeaponExt->Anim_Update.Get(RulesExtData::Instance()->FiringAnim_Update)) {
 				auto pAnimExt = AnimExtContainer::Instance.Find(pAn);
 
+				pAnimExt->IsFiringAnim = true;
 				pAnimExt->FiringAnim_Weapon = pWeapon;
 				pAnimExt->FiringAnim_WeaponIndex = which;
 				pAnimExt->FiringAnim_BurstIndex = pThis->CurrentBurstIndex;
 				pAn->SetOwnerObject(pThis);
-			}else{
+			} else {
 
 				if (pThis->WhatAmI() != BuildingClass::AbsID) {
 					pAn->SetOwnerObject(pThis);

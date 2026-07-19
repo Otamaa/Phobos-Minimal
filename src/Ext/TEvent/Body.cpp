@@ -410,243 +410,6 @@ bool TEventExtData::FindTechnoType(TEventClass* pThis, int args, HouseClass* pWh
 	return false;
 }
 
-// the function return is deciding if the case is handled or not
-// the bool result pointer is for the result of the Event itself
-bool TEventExtData::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result)
-{
-	const AresTriggerEvents TEventKind = (AresTriggerEvents)pThis->EventKind;
-	const AresTriggerEvents ExecutedKind = (AresTriggerEvents)Args.EventType;
-	// They must be the same, but for other triggers to take effect normally, this cannot be judged outside case.
-	const auto isSameEvent = [&]() { return TEventKind == ExecutedKind; };
-
-	{
-		switch (TEventKind)
-		{
-		case AresTriggerEvents::UnderEMP:
-		{
-			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
-			result = pTechno && isSameEvent() && pTechno->EMPLockRemaining > 0;
-			return true;
-		}
-		case AresTriggerEvents::UnderEMP_ByHouse:
-		{
-			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
-			result = pTechno
-				&& isSameEvent()
-				&& Args.Source
-				&& ((TechnoClass*)(Args.Source))->Owner->ArrayIndex == pThis->Value
-				&& pTechno->EMPLockRemaining > 0;
-
-			return true;
-		}
-		case AresTriggerEvents::RemoveEMP:
-		{
-			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
-			result = pTechno && isSameEvent() && pTechno->EMPLockRemaining <= 0;
-			return true;
-		}
-		case AresTriggerEvents::RemoveEMP_ByHouse:
-		{
-			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
-			result = pTechno
-				&& isSameEvent()
-				&& Args.Source
-				&& ((TechnoClass*)(Args.Source))->Owner->ArrayIndex == pThis->Value
-				&& pTechno->EMPLockRemaining <= 0;
-		}
-		case AresTriggerEvents::EnemyInSpotlightNow:
-		{
-			result = true;
-			return true;
-		}
-		case AresTriggerEvents::DriverKiller:
-		{
-			result = flag_cast_to<FootClass*>(Args.Object)
-				&& isSameEvent();
-
-			return true;
-		}
-		case AresTriggerEvents::DriverKilled_ByHouse:
-		{
-			result = flag_cast_to<FootClass*>(Args.Object)
-				&& isSameEvent()
-				&& Args.Source
-				&& ((TechnoClass*)Args.Source)->Owner->ArrayIndex == pThis->Value;
-
-			return true;
-		}
-		case AresTriggerEvents::VehicleTaken:
-		{
-			result = flag_cast_to<FootClass*>(Args.Object)
-				&& isSameEvent();
-
-			return true;
-		}
-		case AresTriggerEvents::VehicleTaken_ByHouse:
-		{
-			result = flag_cast_to<FootClass*>(Args.Object)
-				&& isSameEvent()
-				&& Args.Source
-				&& ((TechnoClass*)Args.Source)->Owner->ArrayIndex == pThis->Value;
-
-			return true;
-		}
-		case AresTriggerEvents::Abducted:
-		case AresTriggerEvents::AbductSomething:
-		{
-			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
-			result = pTechno && isSameEvent();
-			return true;
-		}
-		case AresTriggerEvents::Abducted_ByHouse:
-		{
-			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
-			result = pTechno
-				&& isSameEvent()
-				&& (flag_cast_to<TechnoClass*>(Args.Source)
-				&& ((TechnoClass*)(Args.Source))->Owner->ArrayIndex == pThis->Value);
-
-			return true;
-		}
-		case AresTriggerEvents::AbductSomething_OfHouse:
-		{
-			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
-			result = pTechno
-				&& isSameEvent()
-				&& (cast_to<HouseClass*>(Args.Source)
-				&& ((HouseClass*)(Args.Source))->ArrayIndex == pThis->Value);
-
-			return true;
-
-		}
-		case AresTriggerEvents::SuperActivated:
-		case AresTriggerEvents::SuperDeactivated:
-		{
-			result = isSameEvent()
-				&& Args.Source
-				&& Args.Source->WhatAmI() == AbstractType::Super
-				&& ((SuperClass*)Args.Source)->Type->ArrayIndex == pThis->Value;
-
-			return true;
-		}
-		case AresTriggerEvents::SuperNearWaypoint:
-		{
-			struct PackedDatas
-			{
-				SuperClass* Super;
-				CellStruct Cell;
-			};
-
-			if (isSameEvent() && IS_SAME_STR_(((PackedDatas*)Args.Source)->Super->Type->ID, pThis->String))
-			{
-				const auto nCell = ScenarioClass::Instance->GetWaypointCoords(pThis->Value);
-				CellStruct nDesired = { ((PackedDatas*)Args.Source)->Cell.X - nCell.X ,((PackedDatas*)Args.Source)->Cell.Y - nCell.Y };
-				if (nDesired.pow() <= 5.0)
-				{
-					result = true;
-					return true;
-				}
-			}
-
-			result = false;
-			return true;
-		}
-		case AresTriggerEvents::ReverseEngineered:
-		{
-			if (!Args.Owner)
-				result = false;
-			else
-			{
-				if (!HouseExtContainer::Instance.Find(Args.Owner)->Reversed.empty())
-				{
-					auto TEvetType = TEventExtContainer::Instance.Find(pThis)->GetTechnoType();
-
-					for (auto pTechR : HouseExtContainer::Instance.Find(Args.Owner)->Reversed)
-					{
-						if (pTechR == TEvetType)
-						{
-							result = true;
-							break;
-						}
-					}
-
-				}
-			}
-
-			return true;
-		}
-		case AresTriggerEvents::ReverseEngineerAnything:
-		{
-			result = isSameEvent();
-			return true;
-		}
-		case AresTriggerEvents::ReverseEngineerType:
-		{
-			result = GET_TECHNOTYPE(((TechnoClass*)Args.Source)) == TEventExtContainer::Instance.Find(pThis)->GetTechnoType();
-			return true;
-		}
-		case AresTriggerEvents::HouseOwnTechnoType:
-		{
-			result = FindTechnoType(pThis, pThis->Value, Args.Owner);
-			return true;
-		}
-		case AresTriggerEvents::HouseDoesntOwnTechnoType:
-		{
-			result = !FindTechnoType(pThis, pThis->Value + 1, Args.Owner);
-			return true;
-		}
-		case AresTriggerEvents::AttackedOrDestroyedByAnybody:
-		{
-			result = isSameEvent();
-			return true;
-		}
-		case AresTriggerEvents::AttackedOrDestroyedByHouse:
-		{
-			result = isSameEvent()
-				&& Args.Source
-				&& ((TechnoClass*)Args.Source)->Owner->ArrayIndex == pThis->Value;
-
-			return true;
-		}
-		case AresTriggerEvents::DestroyedByHouse:
-		{
-			result = isSameEvent()
-				&& Args.Source
-				&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
-
-			return true;
-		}
-		case AresTriggerEvents::TechnoTypeDoesntExistMoreThan:
-		{
-			result = FindTechnoType(pThis, pThis->Value + 1, nullptr);
-			return true;
-		}
-		case AresTriggerEvents::AllKeepAlivesDestroyed:
-		{
-			HouseClass* pHouse = pThis->Value == 0x2325 ?
-				nullptr : HouseClass::Index_IsMP(pThis->Value) ?
-				HouseClass::FindByIndex(pThis->Value) : HouseClass::FindByCountryIndex(pThis->Value);
-
-			result = pHouse && HouseExtContainer::Instance.Find(pHouse)->KeepAliveCount <= 0;
-			return true;
-		}
-		case AresTriggerEvents::AllKeppAlivesBuildingDestroyed:
-		{
-			HouseClass* pHouse = pThis->Value == 0x2325 ?
-				nullptr : HouseClass::Index_IsMP(pThis->Value) ?
-				HouseClass::FindByIndex(pThis->Value) : HouseClass::FindByCountryIndex(pThis->Value);
-
-			result = pHouse && HouseExtContainer::Instance.Find(pHouse)->KeepAliveBuildingCount <= 0;
-			return true;
-		}
-		default:
-			break;
-		}
-	}
-
-	return false;
-}
-
 // Gets the TechnoType pointed to by the event's TechnoName field.
 /*!
 	Resolves the TechnoName to a TechnoTypeClass and caches it. This function
@@ -703,176 +466,6 @@ bool TEventExtData::AttachedIsUnderAttachedEffectTEvent(TEventClass* pThis, Obje
 		return true;
 
 	return false;
-}
-
-bool TEventExtData::Occured(TEventClass* pThis, EventArgs const& args, bool& result)
-{
-	//int iEvent = args.EventType; // not used here ,.. ares using it compare
-	HouseClass* pHouse = args.Owner;
-	ObjectClass* pObject = args.Object;
-	const PhobosTriggerEvent TEventKind = (PhobosTriggerEvent)pThis->EventKind;
-	const PhobosTriggerEvent ExtcutedEventKind = (PhobosTriggerEvent)args.EventType;
-
-	//CDTimerClass* pTimer = args.ActivationFrame;
-	//bool* isPersitant = args.isRepeating;
-	//AbstractClass* pSource = args.Source;
-
-	// They must be the same, but for other triggers to take effect normally, this cannot be judged outside case.
-	const auto isSameEvent = [&]() { return TEventKind == ExtcutedEventKind; };
-
-	switch (TEventKind)
-	{
-
-#pragma region LovalVariableManipulation
-	case PhobosTriggerEvent::LocalVariableGreaterThan:
-		result = TEventExtData::VariableCheck<false, std::greater<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::LocalVariableLessThan:
-		result = TEventExtData::VariableCheck<false, std::less<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::LocalVariableEqualsTo:
-		result = TEventExtData::VariableCheck<false, std::equal_to<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsTo:
-		result = TEventExtData::VariableCheck<false, std::greater_equal<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::LocalVariableLessThanOrEqualsTo:
-		result = TEventExtData::VariableCheck<false, std::less_equal<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::LocalVariableAndIsTrue:
-		result = TEventExtData::VariableCheck<false, std::and_with<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::GlobalVariableGreaterThan:
-		result = TEventExtData::VariableCheck<true, std::greater<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::GlobalVariableLessThan:
-		result = TEventExtData::VariableCheck<true, std::less<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::GlobalVariableEqualsTo:
-		result = TEventExtData::VariableCheck<true, std::equal_to<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsTo:
-		result = TEventExtData::VariableCheck<true, std::greater_equal<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsTo:
-		result = TEventExtData::VariableCheck<true, std::less_equal<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::GlobalVariableAndIsTrue:
-		result = TEventExtData::VariableCheck<true, std::and_with<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::LocalVariableGreaterThanLocalVariable:
-		result = TEventExtData::VariableCheckBinary<false, false, std::greater<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::LocalVariableLessThanLocalVariable:
-		result = TEventExtData::VariableCheckBinary<false, false, std::less<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::LocalVariableEqualsToLocalVariable:
-		result = TEventExtData::VariableCheckBinary<false, false, std::equal_to<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsToLocalVariable:
-		result = TEventExtData::VariableCheckBinary<false, false, std::greater_equal<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::LocalVariableLessThanOrEqualsToLocalVariable:
-		result = TEventExtData::VariableCheckBinary<false, false, std::less_equal<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::LocalVariableAndIsTrueLocalVariable:
-		result = TEventExtData::VariableCheckBinary<false, false, std::and_with<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::GlobalVariableGreaterThanLocalVariable:
-		result = TEventExtData::VariableCheckBinary<false, true, std::greater<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::GlobalVariableLessThanLocalVariable:
-		result = TEventExtData::VariableCheckBinary<false, true, std::less<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::GlobalVariableEqualsToLocalVariable:
-		result = TEventExtData::VariableCheckBinary<false, true, std::equal_to<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsToLocalVariable:
-		result = TEventExtData::VariableCheckBinary<false, true, std::greater_equal<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsToLocalVariable:
-		result = TEventExtData::VariableCheckBinary<false, true, std::less_equal<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::GlobalVariableAndIsTrueLocalVariable:
-		result = TEventExtData::VariableCheckBinary<false, true, std::and_with<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::LocalVariableGreaterThanGlobalVariable:
-		result = TEventExtData::VariableCheckBinary<true, false, std::greater<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::LocalVariableLessThanGlobalVariable:
-		result = TEventExtData::VariableCheckBinary<true, false, std::less<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::LocalVariableEqualsToGlobalVariable:
-		result = TEventExtData::VariableCheckBinary<true, false, std::equal_to<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsToGlobalVariable:
-		result = TEventExtData::VariableCheckBinary<true, false, std::greater_equal<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::LocalVariableLessThanOrEqualsToGlobalVariable:
-		result = TEventExtData::VariableCheckBinary<true, false, std::less_equal<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::LocalVariableAndIsTrueGlobalVariable:
-		result = TEventExtData::VariableCheckBinary<true, false, std::and_with<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::GlobalVariableGreaterThanGlobalVariable:
-		result = TEventExtData::VariableCheckBinary<true, true, std::greater<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::GlobalVariableLessThanGlobalVariable:
-		result = TEventExtData::VariableCheckBinary<true, true, std::less<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::GlobalVariableEqualsToGlobalVariable:
-		result = TEventExtData::VariableCheckBinary<true, true, std::equal_to<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsToGlobalVariable:
-		result = TEventExtData::VariableCheckBinary<true, true, std::greater_equal<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsToGlobalVariable:
-		result = TEventExtData::VariableCheckBinary<true, true, std::less_equal<int>>(pThis);
-		break;
-	case PhobosTriggerEvent::GlobalVariableAndIsTrueGlobalVariable:
-		result = TEventExtData::VariableCheckBinary<true, true, std::and_with<int>>(pThis);
-		break;
-#pragma endregion
-
-//TODO compare agains like vanilla does ?
-#pragma region PhobosEvent
-	case PhobosTriggerEvent::DestroyedOnly:
-		result = isSameEvent();
-		break;
-	/*
-	*	- PersistableFlag ?
-	*	- LogcNeed ?
-	*   - AttachFlags ?
-	*/
-	case PhobosTriggerEvent::ShieldBroken:
-		result = isSameEvent() && ShieldClass::TEventIsShieldBroken(pObject);
-		break;
-	case PhobosTriggerEvent::HouseOwnsTechnoType:
-		result = TEventExtData::HouseOwnsTechnoTypeTEvent(pThis);
-		break;
-	case PhobosTriggerEvent::HouseDoesntOwnTechnoType:
-		result = TEventExtData::HouseDoesntOwnTechnoTypeTEvent(pThis);
-		break;
-	case PhobosTriggerEvent::HousesDestroyed:
-		result = TEventExtData::HousesAreDestroyedTEvent(pThis);
-		break;
-
-	case PhobosTriggerEvent::CellHasTechnoType:
-		result = TEventExtData::CellHasTechnoTypeTEvent(pThis, pObject, pHouse);
-		break;
-	case PhobosTriggerEvent::CellHasAnyTechnoTypeFromList:
-		result = TEventExtData::CellHasAnyTechnoTypeFromListTEvent(pThis, pObject, pHouse);
-		break;
-	case PhobosTriggerEvent::AttachedIsUnderAttachedEffect:
-		result = TEventExtData::AttachedIsUnderAttachedEffectTEvent(pThis, pObject);
-
-#pragma endregion
-
-	default:
-		return false;
-	};
-
-	return true;
 }
 
 HouseClass* TEventExtData::GetHouse(int TEvetValue, HouseClass* pEventHouse)
@@ -1088,474 +681,972 @@ bool CheckTechTypeExists(TEventClass* evt, bool shouldExist)
 	return shouldExist ? false : (foundCount == 0);
 }
 
-bool HandleEntryEvents(TEventClass* evt, TriggerEvent event, ObjectClass* obj, bool* bool1)
+bool TEventExtData::VanillaTriggerEventOccured(TEventClass* pThis, EventArgs& Args, bool& result)
 {
-	if (event != evt->EventKind) {
-		return false;
+	// --- shared helpers --------------------------------------------------------------
+
+  // ORIG: Debug_Map_DEBUGDEBUG @ 0xA8ED6B
+	auto guarded = [&]() -> bool
+		{
+			return Args.RequestedEventType == pThis->EventKind && !Unsorted::MAP_DEBUG_MODE();
+		};
+
+	auto tgt = [&]() -> HouseClass*
+		{
+			return TEventExtData::ResolveHouseParam(pThis->Value);
+		};
+
+	// ORIG: Frame @ 0xA8ED84 -> Unsorted::CurrentFrame
+	auto timer_expired = [](int started, int delay) -> bool
+		{
+			if (started == -1)
+				return delay == 0;
+			return (Unsorted::CurrentFrame() - started) >= delay;
+		};
+
+	switch (pThis->EventKind)
+	{
+	case TriggerEvent::AnyEvent:                    // 0x08  (unconditional -- not guarded)
+		return true;
+
+		// ---------------------------------------------------------------------------------
+		//  timers
+		// ---------------------------------------------------------------------------------
+	case TriggerEvent::ElapsedTime:                 // 0x0D
+	case TriggerEvent::RandomDelay:                 // 0x33
+	{
+		result = timer_expired(Args.ActivationFrame->StartTime, Args.ActivationFrame->TimeLeft);
+		break;
+	}
+	case TriggerEvent::MissionTimerExpired:         // 0x0E
+	{
+		auto& mt = ScenarioClass::Instance->MissionTimer;
+
+		if (mt.StartTime == -1)
+			result =  false;
+		else 
+			result = (Unsorted::CurrentFrame() - mt.StartTime) >= mt.TimeLeft;
+
+		break;
 	}
 
-	if (!obj) {
-		return false;
+		// ---------------------------------------------------------------------------------
+		//  scenario global / local state
+		// ---------------------------------------------------------------------------------
+	case TriggerEvent::GlobalSet:
+	{                 // 0x1B
+		ScenarioClass::Instance->GetGlobalVarValue_ptr(pThis->Value, Args.isRepeating);
+		result = *Args.isRepeating;
+		break;
+	}
+	case TriggerEvent::GlobalCleared:
+	{             // 0x1C
+		ScenarioClass::Instance->GetGlobalVarValue_ptr(pThis->Value, Args.isRepeating);
+		result = !*Args.isRepeating;
+		break;
+	}
+	case TriggerEvent::LocalSet:
+	{                   // 0x24
+		ScenarioClass::Instance->GetLocalVarValue_ptr(pThis->Value, Args.isRepeating);
+		result = *Args.isRepeating;
+		break;
+	}
+	case TriggerEvent::LocalCleared:
+	{               // 0x25
+		ScenarioClass::Instance->GetLocalVarValue_ptr(pThis->Value, Args.isRepeating);
+		result = !*Args.isRepeating;
+		break;
 	}
 
-	if (evt->Value != -1) {
-		auto country = TEventExtData::ResolveHouseParam(evt->Value);
-
-		if (!country) {
-			return false;
-		}
-
-		if (obj->GetOwningHouseIndex() != country->ArrayIndex) {
-			return false;
-		}
+	// ---------------------------------------------------------------------------------
+	//  ambient light / scenario time  (Scen +0x352C = AmbientCurrent)
+	// ---------------------------------------------------------------------------------
+	case TriggerEvent::AmbientLightBelow:           // 0x2D
+	{
+		result = ScenarioClass::Instance->AmbientCurrent <= pThis->Value;
+		break;
+	}
+	case TriggerEvent::AmbientLightAbove:           // 0x2E
+	{
+		result = ScenarioClass::Instance->AmbientCurrent >= pThis->Value;
+		break;
+	}
+	case TriggerEvent::ElapsedScenarioTime:         // 0x2F  (imul 0x88888889 == signed /15)
+	{
+		result = pThis->Value <= Unsorted::CurrentFrame() / 15;
+		break;
 	}
 
-	*bool1 = 1;
-	evt->House = obj->GetOwningHouse();
-	return true;
-}
+		// ---------------------------------------------------------------------------------
+		//  techtype existence (count TechnoClass::Array by IniName)
+		// ---------------------------------------------------------------------------------
+	case TriggerEvent::TechTypeExists:
+	{            // 0x3C
+		if (!TEventExtContainer::Instance.Find(pThis)->GetTechnoType()
+			&& !TEventExtData::FindTechnoType(pThis, 1, nullptr)
+			)
+			result = false;
 
-// accept 53 and 54
-// 0x71ECE1, TriggerClass_SpyAsInfantryOrHouse, 0x8
-bool HandleSpyAsHouse(TEventClass* evt, TriggerEvent event, ObjectClass* obj, bool* bool1)
-{
-	if ((event != TriggerEvent::SpyAsInfantry && event != TriggerEvent::SpyAsHouse) || !obj) {
-		return false;
+		return true;
 	}
+	case TriggerEvent::TechTypeDoesntExist:
+	{       // 0x3D
 
-	auto country = TEventExtData::ResolveHouseParam(evt->Value);
+		if (TEventExtContainer::Instance.Find(pThis)->GetTechnoType()
+			|| TEventExtData::FindTechnoType(pThis, 1, nullptr)
+			)
+			result = false;
 
-	if (!country) {
-		return false;
-	}
-
-	HouseClass* showAsHouse = obj->GetDisguiseHouse(true);
-	if (!showAsHouse) {
-		return false;
-	}
-
-	if (showAsHouse->ArrayIndex == country->ArrayIndex) {
-		*bool1 = 1;
 		return true;
 	}
 
-	return false;
-}
+	// ---------------------------------------------------------------------------------
+	//  location / spy / waypoint  (all guarded, self-contained)
+	// ---------------------------------------------------------------------------------
+	case TriggerEvent::EnteredBy:                   // 0x01
+	case TriggerEvent::ZoneEntryBy:                 // 0x18
+	case TriggerEvent::CrossesHorizontalLine:       // 0x19
+	case TriggerEvent::CrossesVerticalLine:         // 0x1A
+	case TriggerEvent::EnteredOrOverflownBy:        // 0x3B
+	{
+		result = false;
+		if (guarded() && Args.Object) {
+			if (pThis->Value != -1) {
+				auto country = TEventExtData::ResolveHouseParam(pThis->Value);
 
-// accept 53 and 54
-// 0x71ED5E, TriggerClass_SpyAsInfantryOrHouse, 0x8
-bool HandleSpyAsInfantry(TEventClass* evt, TriggerEvent event, ObjectClass* obj, bool* bool1)
-{
-	if ((event != TriggerEvent::SpyAsInfantry && event != TriggerEvent::SpyAsHouse) || !obj) {
-		return false;
+				if (!country) {
+					result = false;
+					return true;
+				}
+
+				if (Args.Object->GetOwningHouseIndex() != country->ArrayIndex)
+				{
+					result = false;
+					return true;
+				}
+			}
+
+			result = true;
+			*Args.isRepeating = true;
+			pThis->House = Args.Object->GetOwningHouse();
+		}
+
+		break;
 	}
 
-	AbstractClass* showAsType = obj->GetDisguise(true);
-	if (showAsType->WhatAmI() != InfantryTypeClass::AbsID) {
-		return false;
+	case TriggerEvent::SpyAsHouse:
+	{                // 0x35
+		result = false;
+
+		if ((Args.RequestedEventType == pThis->EventKind || Args.RequestedEventType == TriggerEvent::SpyAsInfantry) && !Unsorted::MAP_DEBUG_MODE() && Args.Object) {
+			if (auto country = TEventExtData::ResolveHouseParam(pThis->Value)) {
+				if (HouseClass* showAsHouse = Args.Object->GetDisguiseHouse(true)) {
+					if (showAsHouse->ArrayIndex == country->ArrayIndex) {
+						*Args.isRepeating = 1;
+						result = true;
+					}
+				}
+			}
+		}
+
+		break;
+	}
+	case TriggerEvent::SpyAsInfantry:
+	{             // 0x36
+
+		result = false;
+
+		if ((Args.RequestedEventType == pThis->EventKind || Args.RequestedEventType == TriggerEvent::SpyAsHouse) && !Unsorted::MAP_DEBUG_MODE() && Args.Object) {
+			if (auto* showAs = Args.Object->GetDisguise(true)) {
+				if (showAs->WhatAmI() != InfantryTypeClass::AbsID){
+					if (pThis->Value != -1 && showAs->GetArrayIndex() == pThis->Value) {
+						*Args.isRepeating = 1;
+						result = true;
+					}
+				}
+			}
+		}
+
+		break;
+	}
+	case TriggerEvent::ComesNearWaypoint:
+	{         // 0x22
+		result = false;
+
+		if (guarded()){
+			CoordStruct waypointCoord;
+			ScenarioClass::Instance->GetWaypointCoordinate(&waypointCoord, pThis->Value);
+			result = (int)((Args.Object->GetCoords() - waypointCoord).Length()) <= 1280;
+		}
+
+		break;
 	}
 
-	if (evt->Value != -1 && showAsType->GetArrayIndex() == evt->Value) {
-		*bool1 = 1;
+	// ---------------------------------------------------------------------------------
+	//  house-counter events  (check only when 'house' present, else -> true)
+	// ---------------------------------------------------------------------------------
+	case TriggerEvent::CreditsExceed:               // 0x0C
+	{
+		if(Args.Owner)
+			result = Args.Owner->Available_Money() >= pThis->Value;
+		break;
+	}
+	case TriggerEvent::CreditsBelow:                // 0x34
+	{
+		if (Args.Owner)
+			result = Args.Owner && Args.Owner->Available_Money() <= pThis->Value;
+		break;
+	}
+	case TriggerEvent::DestroyedBuildingsNum:       // 0x0F
+	{
+		if (Args.Owner)
+			result = Args.Owner && Args.Owner->TotalKilledBuildings >= pThis->Value;
+		break;
+	}
+	case TriggerEvent::DestroyedUnitsNum:           // 0x10
+	{
+		if (Args.Owner)
+			result = Args.Owner && Args.Owner->TotalKilledUnits >= pThis->Value;
+		break;
+	}
+	case TriggerEvent::NoFactoriesLeft:             // 0x11
+	{
+		if (Args.Owner && Args.Owner->OwnedBuildings > 0) {
+			for (int i = 0; i < Args.Owner->Buildings.Count; ++i) {
+				BuildingClass* building = Args.Owner->Buildings.Items[i];
+				if (building &&
+					!building->InLimbo &&
+					 building->Type->Factory != AbstractType::None)
+				{
+					result = false;
+					return true;
+				}
+			}
+		}
+
+		break;
+	}
+	case TriggerEvent::CiviliansEvacuated:          // 0x12  (guarded)
+	{
+		if (Args.Owner)
+			result = guarded() && Args.Owner && Args.Owner->CiviliansEvacuated;
+		break;
+	}
+	case TriggerEvent::BuildBuildingType:           // 0x13  (build events skip guard)
+	{
+		if (Args.Owner) {
+			if (Args.Owner->LastBuiltBuildingType != pThis->Value)
+				result = false;
+			else
+				*Args.isRepeating = true;
+		}
+
+		break;
+	}
+	case TriggerEvent::BuildUnitType:               // 0x14
+	{
+		if (Args.Owner) {
+			auto pHouseExt = HouseExtContainer::Instance.Find(Args.Owner);
+
+			if (Args.Owner->LastBuiltVehicleType != pThis->Value
+			&& pHouseExt->LastBuiltNavalVehicleType != pThis->Value)
+				result = false;
+			else
+				*Args.isRepeating = true;
+		}
+
+		break;
+	}
+	case TriggerEvent::BuildInfantryType:           // 0x15
+	{
+		if (Args.Owner) {
+			if (Args.Owner->LastBuiltInfantryType != pThis->Value)
+				result = false;
+			else
+				*Args.isRepeating = true;
+		}
+
+		break;
+	}
+	case TriggerEvent::BuildAircraftType:           // 0x16
+	{
+		if (Args.Owner) {
+			if (Args.Owner->LastBuiltAircraftType != pThis->Value)
+				result = false;
+			else
+				*Args.isRepeating = true;
+		}
+
 		return true;
 	}
-
-	return false;
-}
-
-bool HandleNearWaypoint(TEventClass* evt, TriggerEvent event, ObjectClass* obj)
-{
-	if (event != TriggerEvent::ComesNearWaypoint) {
-		return false;
-	}
-
-	CoordStruct waypointCoord;
-	ScenarioClass::Instance->GetWaypointCoordinate(&waypointCoord, evt->Value);
-	CoordStruct objCoord = obj->GetCoords();
-
-	return (objCoord - waypointCoord).Length() <= 1280;
-}
-
-bool CheckNoFactories(HouseClass* house)
-{
-	if (house->OwnedBuildings <= 0)
+	case TriggerEvent::TeamLeavesMap:               // 0x17  (guarded)
 	{
-		return true;
-	}
+		if (guarded()) {
+			if (Args.Owner) {
 
-	for (int i = 0; i < house->Buildings.Count; ++i)
-	{
-		BuildingClass* building = house->Buildings.Items[i];
-		if (building && 
-			!building->InLimbo &&
-			 building->Type->Factory != AbstractType::None)
-		{
-			return false;
-		}
-	}
+				bool found = false;
 
-	return true;
-}
-
-bool CheckLeavesMap(TEventClass* evt, bool* bool1)
-{
-	for (int i = 0; i < TeamClass::Array->Count; ++i)
-	{
-		TeamClass* team = TeamClass::Array->Items[i];
-		if (team->Type == evt->TeamType && !team->FirstUnit && team->IsLeavingMap)
-		{
-			*bool1 = 1;
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool HandleHouseEvents(TEventClass* evt, HouseClass* house, bool* bool1)
-{
-	switch (evt->EventKind)
-	{
-	case TriggerEvent::CreditsExceed:
-		return house->Available_Money() >= evt->Value;
-
-	case TriggerEvent::DestroyedBuildingsNum:
-		return house->TotalKilledBuildings >= evt->Value;
-
-	case TriggerEvent::DestroyedUnitsNum:
-		return house->TotalKilledUnits >= evt->Value;
-
-	case TriggerEvent::NoFactoriesLeft:
-		return CheckNoFactories(house);
-
-	case TriggerEvent::CiviliansEvacuated:
-		return house->CiviliansEvacuated;
-
-	case TriggerEvent::BuildBuildingType:
-		if (house->LastBuiltBuildingType == evt->Value)
-		{
-			*bool1 = 1;
-			return true;
-		}
-		break;
-
-	case TriggerEvent::BuildUnitType:
-	{
-		auto pHouseExt = HouseExtContainer::Instance.Find(house);
-
-		if (house->LastBuiltVehicleType == evt->Value 
-			|| pHouseExt->LastBuiltNavalVehicleType == evt->Value)
-		{
-			*bool1 = 1;
-			return true;
-		}
-
-		break;
-	}
-	case TriggerEvent::BuildInfantryType:
-		if (house->LastBuiltInfantryType == evt->Value)
-		{
-			*bool1 = 1;
-			return true;
-		}
-		break;
-
-	case TriggerEvent::BuildAircraftType:
-		if (house->LastBuiltAircraftType == evt->Value)
-		{
-			*bool1 = 1;
-			return true;
-		}
-		break;
-
-	case TriggerEvent::TeamLeavesMap:
-		return CheckLeavesMap(evt, bool1);
-
-	case TriggerEvent::BuildingExists:
-		if (house->ActiveBuildingTypes.get_count(evt->Value))
-		{
-			*bool1 = 1;
-			return true;
-		}
-		break;
-
-	case TriggerEvent::CreditsBelow:
-		return house->Available_Money() <= evt->Value;
-
-	case TriggerEvent::BuildingDoesNotExist:
-		if (!house->ActiveBuildingTypes.get_count(evt->Value)) {
-			*bool1 = 1;
-			return true;
-		}
-		break;
-	default:
-		break;
-	}
-
-	return false;
-}
-
-bool HandleValue2HouseEvents(TEventClass* evt)
-{
-	HouseClass* targetHouse = TEventExtData::ResolveHouseParam(evt->Value);
-
-	// continue normally if a house was found or this isn't Player@X logic,
-	// otherwise return false directly so events don't fire for non-existing
-	// players.
-	if(targetHouse){
-		switch (evt->EventKind)
-		{
-		case TriggerEvent::ThievedBy:
-			return targetHouse->HasBeenThieved;
-
-		case TriggerEvent::HouseDiscovered:
-			return targetHouse->DiscoveredByPlayer;
-
-		case TriggerEvent::DestroyedUnitsAll:
-			return targetHouse->ActiveUnitTypes.total() <= 0 &&
-				targetHouse->ActiveInfantryTypes.total() <= 0;
-
-		case TriggerEvent::DestroyedBuildingsAll:
-			return targetHouse->OwnedBuildings <= 0;
-
-		case TriggerEvent::DestroyedAll:
-		{
-			if (SessionClass::IsCampaign()) {
-				if (targetHouse->ActiveInfantryTypes.total() <= 0) {
-					for (auto& bld : targetHouse->Buildings) {
-						if (bld->Type->CanBeOccupied && bld->Occupants.Count > 0)
-							return false;
+				for (int i = 0; i < TeamClass::Array->Count; ++i) {
+					TeamClass* team = TeamClass::Array->Items[i];
+					if (team->Type == pThis->TeamType && !team->FirstUnit && team->IsLeavingMap) { 
+						found = true;
+						break;
 					}
 				}
 
-				if (targetHouse->ActiveAircraftTypes.total() > 0)
-					return false;
+				if (!found){
+					result = false;
+				} else {
+					*Args.isRepeating = true;
+				}			
+			}
+		} else  { result = false; }
 
-				if (targetHouse->ActiveInfantryTypes.total() > 0)
-					return false;
+		break;
+	}
+	case TriggerEvent::BuildingExists:              // 0x20
+	{
+		if (Args.Owner) {
+			if(Args.Owner->ActiveBuildingTypes.get_count(pThis->Value))
+			*Args.isRepeating = 1;
+			else result = false;
+		}
 
-				for (auto pItem : *InfantryClass::Array) {
-					if (pItem->InLimbo && targetHouse == pItem->GetOwningHouse() && targetHouse->IsAlliedWith(pItem->Transporter))
-						return false;
+		break;
+	}
+	case TriggerEvent::BuildingDoesNotExist:        // 0x39
+	{
+		if (Args.Owner) {
+			if(!Args.Owner->ActiveBuildingTypes.get_count(pThis->Value))
+				*Args.isRepeating = 1;
+			else result = false;
+		}
+
+		break;
+	}
+
+		// ---------------------------------------------------------------------------------
+		//  target-house events  (check only when As_Pointer(Value2) != null, else -> true)
+		// ---------------------------------------------------------------------------------
+	case TriggerEvent::ThievedBy:                   // 0x03  (guarded)
+	{
+		result = false;
+
+		if (guarded()) {
+			if (HouseClass* t = tgt()) {
+				result = t->HasBeenThieved;
+			} else {
+				result = !HouseClass::Index_IsMP(pThis->Value);
+			}
+		}
+		break;
+	}
+	case TriggerEvent::HouseDiscovered:             // 0x05
+	{
+		result = false;
+
+		if (HouseClass* t = tgt()) {
+			result = t->DiscoveredByPlayer;
+		} else {
+			result = !HouseClass::Index_IsMP(pThis->Value);
+		}
+		break;
+	}
+	case TriggerEvent::DestroyedUnitsAll:           // 0x09
+	{
+		result = false;
+
+		if (HouseClass* targetHouse = tgt())
+		{
+			result = targetHouse->ActiveUnitTypes.total() <= 0 &&
+				targetHouse->ActiveInfantryTypes.total() <= 0;
+		}
+		else
+		{
+			result = !HouseClass::Index_IsMP(pThis->Value);
+		}
+
+		break;
+	}
+	case TriggerEvent::DestroyedBuildingsAll:       // 0x0A
+	{
+		result = false;
+
+		if (HouseClass* targetHouse = tgt()) {
+			result = targetHouse->OwnedBuildings <= 0;
+		} else {
+			result = !HouseClass::Index_IsMP(pThis->Value);
+		}
+		break;
+	}
+	case TriggerEvent::DestroyedAll:                // 0x0B
+	{
+		result = true;
+
+		if (HouseClass* targetHouse = tgt()) {
+	
+				if (targetHouse->ActiveInfantryTypes.total() <= 0) {
+					for (auto& bld : targetHouse->Buildings) {
+						if (bld->Type->CanBeOccupied && bld->Occupants.Count > 0) {
+							result = false;
+							break;
+						}
+					}
 				}
 
-				return true;
+				if (SessionClass::IsCampaign()) {
+
+					if (result && targetHouse->ActiveAircraftTypes.total() > 0)
+						result = false;
+
+					if (result && targetHouse->ActiveInfantryTypes.total() > 0)
+						result = false;
+
+					if(result){
+						for (auto pItem : *InfantryClass::Array) {
+							if (pItem->InLimbo && targetHouse == pItem->GetOwningHouse() && targetHouse->IsAlliedWith(pItem->Transporter)){
+								result = false;
+								break;
+							}
+						}
+					}
+				}
+
+			} else {
+				result = !HouseClass::Index_IsMP(pThis->Value);
+		}
+
+		break;
+	}
+	case TriggerEvent::LowPower:                     // 0x1E
+	{
+		result = false;
+
+		if (HouseClass* targetHouse = tgt())
+		{
+			result = targetHouse->GetPowerPercentage() < 1.0;
+		}
+		else
+		{
+			result = !HouseClass::Index_IsMP(pThis->Value);
+		}
+		break;
+	}
+	case TriggerEvent::PowerFull:                    // 0x3A
+	{
+		result = false;
+
+		if (HouseClass* targetHouse = tgt())
+		{
+			result = targetHouse->GetPowerPercentage() >= 1.0;
+		}
+		else
+		{
+			result = !HouseClass::Index_IsMP(pThis->Value);
+		}
+		break;
+	}
+	case TriggerEvent::DestroyedUnitsNaval:         // 0x37
+	{
+		result = false;
+
+		if (HouseClass* targetHouse = tgt())
+		{
+			result = targetHouse->OwnedNavy <= 0;
+		}
+		else
+		{
+			result = !HouseClass::Index_IsMP(pThis->Value);
+		}
+		break;
+	}
+	case TriggerEvent::DestroyedUnitsLand:          // 0x38
+	{
+		result = false;
+
+		if (HouseClass* targetHouse = tgt())
+		{
+			result = (targetHouse->OwnedUnits - targetHouse->OwnedNavy) <= 0 &&
+				targetHouse->OwnedInfantry <= 0;
+		}
+		else
+		{
+			result = !HouseClass::Index_IsMP(pThis->Value);
+		}
+		break;
+	}
+
+		// ---------------------------------------------------------------------------------
+		//  attacked-by-specific-house  (guarded + source house match)
+		// ---------------------------------------------------------------------------------
+	case TriggerEvent::AttackedByHouse:             // 0x2C
+	{
+		result = false;
+
+		if (guarded() && Args.Source) {
+			int param = pThis->Value;
+			// convert Player @ X to real index
+			if (HouseClass::Index_IsMP(pThis->Value)) {
+				auto const pPlayer = TEventExtData::ResolveHouseParam(pThis->Value);
+				param = pPlayer ? pPlayer->ArrayIndex : -1;
 			}
 
-			return false;
+			result = param == Args.Source->GetOwningHouse()->ArrayIndex;
 		}
-		case TriggerEvent::LowPower:
-			return targetHouse->GetPowerPercentage() < 1.0;
 
-		case TriggerEvent::DestroyedUnitsNaval:
-			return targetHouse->OwnedNavy <= 0;
-
-		case TriggerEvent::DestroyedUnitsLand:
-			return (targetHouse->OwnedUnits - targetHouse->OwnedNavy) <= 0 &&
-				targetHouse->OwnedInfantry <= 0;
-
-		case TriggerEvent::PowerFull:
-			return targetHouse->GetPowerPercentage() >= 1.0;
-
-		default:
-			break;
-		}
-	}else if (HouseClass::Index_IsMP(evt->Value))
+		break;
+	}
+	
+		// ---------------------------------------------------------------------------------
+		//  guard-only events: fire iff the incoming event matches; no further condition.
+		//  (== return guarded())
+		// ---------------------------------------------------------------------------------
+	case TriggerEvent::SpiedBy:                      // 0x02
+	case TriggerEvent::DiscoveredByPlayer:           // 0x04
+	case TriggerEvent::AttackedByAnybody:            // 0x06
+	case TriggerEvent::DestroyedByAnybody:           // 0x07
+	case TriggerEvent::DestroyedFakesAll:            // 0x1D
+	case TriggerEvent::AllBridgesDestroyed:          // 0x1F
+	case TriggerEvent::SelectedByPlayer:             // 0x21
+	case TriggerEvent::EnemyInSpotlight:             // 0x23
+	case TriggerEvent::FirstDamaged_combatonly:      // 0x26
+	case TriggerEvent::HalfHealth_combatonly:        // 0x27
+	case TriggerEvent::QuarterHealth_combatonly:     // 0x28
+	case TriggerEvent::FirstDamaged_anysource:       // 0x29
+	case TriggerEvent::HalfHealth_anysource:         // 0x2A
+	case TriggerEvent::QuarterHealth_anysource:      // 0x2B
+	case TriggerEvent::DestroyedByAnything:          // 0x30
+	case TriggerEvent::PickupCrate:                  // 0x31
+	case TriggerEvent::PickupCrate_any:              // 0x32
 	{
+		result = guarded();
+		break;
+	}
+	default:
 		return false;
 	}
 
 	return true;
 }
 
-bool HandleDefaultEvents(
-		TEventClass* evt,
-		TriggerEvent event,
-		HouseClass* house,
-		ObjectClass* obj,
-		bool* bool1,
-		AbstractClass* source)
+// the function return is deciding if the case is handled or not
+// the bool result pointer is for the result of the Event itself
+bool TEventExtData::AresTriggerEventOccured(TEventClass* pThis, EventArgs& Args, bool& result)
 {
+	const AresTriggerEvents TEventKind = (AresTriggerEvents)pThis->EventKind;
+	const AresTriggerEvents ExecutedKind = (AresTriggerEvents)Args.RequestedEventType;
+	// They must be the same, but for other triggers to take effect normally, this cannot be judged outside case.
+	const auto isSameEvent = [&]() { return TEventKind == ExecutedKind; };
 
-	// Constexpr lookup table for events that require exact event matching
-	//53 and 54 are modified to accept both between
-	static constexpr bool RequiresEventMatch[static_cast<int>(TriggerEvent::count)] = {
-		false, true,  true,  true,  true,  false, true,  true,  false, false, // 0-9
-		false, false, false, false, false, false, false, false, true,  false, // 10-19
-		false, false, false, true,  true,  true,  true,  false, false, true,  // 20-29
-		false, true,  false, true,  true,  true,  false, false, true,  true,  // 30-39
-		true,  true,  true,  true,  true,  false, false, false, true,  true,  // 40-49
-		true,  false, false, false,  false,  false, false, false, false, true,  // 50-59
-		false, false                                                           // 60-61
-	};
-
-	const int typeIndex = static_cast<int>(evt->EventKind);
-	if (typeIndex >= 0 && typeIndex < static_cast<int>(TriggerEvent::count)) {
-		if (RequiresEventMatch[typeIndex] && event != evt->EventKind && !Unsorted::MAP_DEBUG_MODE()) {
-			return false;
-		}
-	}
-
-	// Handle specific event types
-	switch (evt->EventKind)
 	{
-	case TriggerEvent::EnteredBy:
-	case TriggerEvent::CrossesHorizontalLine:
-	case TriggerEvent::CrossesVerticalLine:
-	case TriggerEvent::ZoneEntryBy:
-	case TriggerEvent::EnteredOrOverflownBy:
-		return HandleEntryEvents(evt, event, obj, bool1);
-
-	case TriggerEvent::SpyAsHouse:
-		return HandleSpyAsHouse(evt, event, obj, bool1);
-
-	case TriggerEvent::SpyAsInfantry:
-		return HandleSpyAsInfantry(evt, event, obj, bool1);
-
-	case TriggerEvent::ComesNearWaypoint:
-		return HandleNearWaypoint(evt, event, obj);
-
-	case TriggerEvent::AttackedByHouse:{
-		if (event != TriggerEvent::AttackedByHouse || !source) {
-			return false;
+		switch (TEventKind)
+		{
+		case AresTriggerEvents::UnderEMP:
+		{
+			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
+			result = pTechno && isSameEvent() && pTechno->EMPLockRemaining > 0;
+			break;
 		}
+		case AresTriggerEvents::UnderEMP_ByHouse:
+		{
+			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
+			result = pTechno
+				&& isSameEvent()
+				&& Args.Source
+				&& ((TechnoClass*)(Args.Source))->Owner->ArrayIndex == pThis->Value
+				&& pTechno->EMPLockRemaining > 0;
 
-		int param = evt->Value;
-		// convert Player @ X to real index
-		if (HouseClass::Index_IsMP( evt->Value)) {
-			auto const pPlayer = TEventExtData::ResolveHouseParam( evt->Value);
-			param = pPlayer ? pPlayer->ArrayIndex : -1;
+			break;
 		}
-
-		if (param != source->GetOwningHouse()->ArrayIndex){
-			return false;
+		case AresTriggerEvents::RemoveEMP:
+		{
+			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
+			result = pTechno && isSameEvent() && pTechno->EMPLockRemaining <= 0;
+			break;
 		}
+		case AresTriggerEvents::RemoveEMP_ByHouse:
+		{
+			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
+			result = pTechno
+				&& isSameEvent()
+				&& Args.Source
+				&& ((TechnoClass*)(Args.Source))->Owner->ArrayIndex == pThis->Value
+				&& pTechno->EMPLockRemaining <= 0;
+			break;
+		}
+		case AresTriggerEvents::EnemyInSpotlightNow:
+		{
+			result = true;
+			break;
+		}
+		case AresTriggerEvents::DriverKiller:
+		{
+			result = flag_cast_to<FootClass*>(Args.Object)
+				&& isSameEvent();
+			break;
+		}
+		case AresTriggerEvents::DriverKilled_ByHouse:
+		{
+			result = flag_cast_to<FootClass*>(Args.Object)
+				&& isSameEvent()
+				&& Args.Source
+				&& ((TechnoClass*)Args.Source)->Owner->ArrayIndex == pThis->Value;
+			break;
+		}
+		case AresTriggerEvents::VehicleTaken:
+		{
+			result = flag_cast_to<FootClass*>(Args.Object)
+				&& isSameEvent();
+			break;
+		}
+		case AresTriggerEvents::VehicleTaken_ByHouse:
+		{
+			result = flag_cast_to<FootClass*>(Args.Object)
+				&& isSameEvent()
+				&& Args.Source
+				&& ((TechnoClass*)Args.Source)->Owner->ArrayIndex == pThis->Value;
+			break;
+		}
+		case AresTriggerEvents::Abducted:
+		case AresTriggerEvents::AbductSomething:
+		{
+			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
+			result = pTechno && isSameEvent();
+			break;
+		}
+		case AresTriggerEvents::Abducted_ByHouse:
+		{
+			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
+			result = pTechno
+				&& isSameEvent()
+				&& (flag_cast_to<TechnoClass*>(Args.Source)
+				&& ((TechnoClass*)(Args.Source))->Owner->ArrayIndex == pThis->Value);
+			break;
+		}
+		case AresTriggerEvents::AbductSomething_OfHouse:
+		{
+			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
+			result = pTechno
+				&& isSameEvent()
+				&& (cast_to<HouseClass*>(Args.Source)
+				&& ((HouseClass*)(Args.Source))->ArrayIndex == pThis->Value);
+			break;
+		}
+		case AresTriggerEvents::SuperActivated:
+		case AresTriggerEvents::SuperDeactivated:
+		{
+			result = isSameEvent()
+				&& Args.Source
+				&& Args.Source->WhatAmI() == AbstractType::Super
+				&& ((SuperClass*)Args.Source)->Type->ArrayIndex == pThis->Value;
+			break;
+		}
+		case AresTriggerEvents::SuperNearWaypoint:
+		{
+			struct PackedDatas
+			{
+				SuperClass* Super;
+				CellStruct Cell;
+			};
 
-		return true;
-	}
-	default:
-		break;
-	}
-
-	// Handle house-specific events
-	if (house)
-	{
-		switch (evt->EventKind) {
-			case TriggerEvent::CreditsExceed:
-			case TriggerEvent::DestroyedBuildingsNum:
-			case TriggerEvent::DestroyedUnitsNum:
-			case TriggerEvent::NoFactoriesLeft:
-			case TriggerEvent::CiviliansEvacuated:
-			case TriggerEvent::BuildBuildingType:
-			case TriggerEvent::BuildUnitType:
-			case TriggerEvent::BuildInfantryType:
-			case TriggerEvent::BuildAircraftType:
-			case TriggerEvent::TeamLeavesMap:
-			case TriggerEvent::BuildingExists:
-			case TriggerEvent::CreditsBelow:
-			case TriggerEvent::BuildingDoesNotExist:
-				if (!HandleHouseEvents(evt, house, bool1))
-					return false;
-				break;
-			default:
-				break;
+			if (isSameEvent() && IS_SAME_STR_(((PackedDatas*)Args.Source)->Super->Type->ID, pThis->String))
+			{
+				const auto nCell = ScenarioClass::Instance->GetWaypointCoords(pThis->Value);
+				CellStruct nDesired = { ((PackedDatas*)Args.Source)->Cell.X - nCell.X ,((PackedDatas*)Args.Source)->Cell.Y - nCell.Y };
+				if (nDesired.pow() <= 5.0)
+				{
+					result = true;
+					break;
+				}
 			}
+
+			result = false;
+			break;
+		}
+		case AresTriggerEvents::ReverseEngineered:
+		{
+			if (!Args.Owner)
+				result = false;
+			else
+			{
+				if (!HouseExtContainer::Instance.Find(Args.Owner)->Reversed.empty())
+				{
+					auto TEvetType = TEventExtContainer::Instance.Find(pThis)->GetTechnoType();
+
+					for (auto pTechR : HouseExtContainer::Instance.Find(Args.Owner)->Reversed)
+					{
+						if (pTechR == TEvetType)
+						{
+							result = true;
+							break;
+						}
+					}
+
+				}
+			}
+			break;
+		}
+		case AresTriggerEvents::ReverseEngineerAnything:
+		{
+			result = isSameEvent();
+			break;
+		}
+		case AresTriggerEvents::ReverseEngineerType:
+		{
+			result = GET_TECHNOTYPE(((TechnoClass*)Args.Source)) == TEventExtContainer::Instance.Find(pThis)->GetTechnoType();
+			break;
+		}
+		case AresTriggerEvents::HouseOwnTechnoType:
+		{
+			result = FindTechnoType(pThis, pThis->Value, Args.Owner);
+			break;
+		}
+		case AresTriggerEvents::HouseDoesntOwnTechnoType:
+		{
+			result = !FindTechnoType(pThis, pThis->Value + 1, Args.Owner);
+			break;
+		}
+		case AresTriggerEvents::AttackedOrDestroyedByAnybody:
+		{
+			result = isSameEvent();
+			break;
+		}
+		case AresTriggerEvents::AttackedOrDestroyedByHouse:
+		{
+			result = isSameEvent()
+				&& Args.Source
+				&& ((TechnoClass*)Args.Source)->Owner->ArrayIndex == pThis->Value;
+			break;
+		}
+		case AresTriggerEvents::DestroyedByHouse:
+		{
+			result = isSameEvent()
+				&& Args.Source
+				&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
+			break;
+		}
+		case AresTriggerEvents::TechnoTypeDoesntExistMoreThan:
+		{
+			result = FindTechnoType(pThis, pThis->Value + 1, nullptr);
+			break;
+		}
+		case AresTriggerEvents::AllKeepAlivesDestroyed:
+		{
+			HouseClass* pHouse = pThis->Value == 0x2325 ?
+				nullptr : HouseClass::Index_IsMP(pThis->Value) ?
+				HouseClass::FindByIndex(pThis->Value) : HouseClass::FindByCountryIndex(pThis->Value);
+
+			result = pHouse && HouseExtContainer::Instance.Find(pHouse)->KeepAliveCount <= 0;
+			return true;
+		}
+		case AresTriggerEvents::AllKeppAlivesBuildingDestroyed:
+		{
+			HouseClass* pHouse = pThis->Value == 0x2325 ?
+				nullptr : HouseClass::Index_IsMP(pThis->Value) ?
+				HouseClass::FindByIndex(pThis->Value) : HouseClass::FindByCountryIndex(pThis->Value);
+
+			result = pHouse && HouseExtContainer::Instance.Find(pHouse)->KeepAliveBuildingCount <= 0;
+			break;
+		}
+		default:
+			return false;
+		}
 	}
 
-	// Handle Value2 house events
-	return HandleValue2HouseEvents(evt);
+	return true;
 }
 
-bool FakeTEventClass::_Occured(TriggerEvent event, HouseClass* house, ObjectClass* obj, CDTimerClass* td, bool* bool1, AbstractClass* source)
+bool TEventExtData::PhobosTriggerEventOccured(TEventClass* pThis, EventArgs const& args, bool& result)
 {
-	if(this->EventKind == TriggerEvent::None)
+	//int iEvent = args.EventType; // not used here ,.. ares using it compare
+	HouseClass* pHouse = args.Owner;
+	ObjectClass* pObject = args.Object;
+	const PhobosTriggerEvent TEventKind = (PhobosTriggerEvent)pThis->EventKind;
+	const PhobosTriggerEvent ExtcutedEventKind = (PhobosTriggerEvent)args.RequestedEventType;
+
+	//CDTimerClass* pTimer = args.ActivationFrame;
+	//bool* isPersitant = args.isRepeating;
+	//AbstractClass* pSource = args.Source;
+
+	// They must be the same, but for other triggers to take effect normally, this cannot be judged outside case.
+	const auto isSameEvent = [&]() { return TEventKind == ExtcutedEventKind; };
+
+	switch (TEventKind)
+	{
+
+#pragma region LovalVariableManipulation
+	case PhobosTriggerEvent::LocalVariableGreaterThan:
+		result = TEventExtData::VariableCheck<false, std::greater<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::LocalVariableLessThan:
+		result = TEventExtData::VariableCheck<false, std::less<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::LocalVariableEqualsTo:
+		result = TEventExtData::VariableCheck<false, std::equal_to<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsTo:
+		result = TEventExtData::VariableCheck<false, std::greater_equal<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::LocalVariableLessThanOrEqualsTo:
+		result = TEventExtData::VariableCheck<false, std::less_equal<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::LocalVariableAndIsTrue:
+		result = TEventExtData::VariableCheck<false, std::and_with<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::GlobalVariableGreaterThan:
+		result = TEventExtData::VariableCheck<true, std::greater<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::GlobalVariableLessThan:
+		result = TEventExtData::VariableCheck<true, std::less<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::GlobalVariableEqualsTo:
+		result = TEventExtData::VariableCheck<true, std::equal_to<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsTo:
+		result = TEventExtData::VariableCheck<true, std::greater_equal<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsTo:
+		result = TEventExtData::VariableCheck<true, std::less_equal<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::GlobalVariableAndIsTrue:
+		result = TEventExtData::VariableCheck<true, std::and_with<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::LocalVariableGreaterThanLocalVariable:
+		result = TEventExtData::VariableCheckBinary<false, false, std::greater<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::LocalVariableLessThanLocalVariable:
+		result = TEventExtData::VariableCheckBinary<false, false, std::less<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::LocalVariableEqualsToLocalVariable:
+		result = TEventExtData::VariableCheckBinary<false, false, std::equal_to<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsToLocalVariable:
+		result = TEventExtData::VariableCheckBinary<false, false, std::greater_equal<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::LocalVariableLessThanOrEqualsToLocalVariable:
+		result = TEventExtData::VariableCheckBinary<false, false, std::less_equal<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::LocalVariableAndIsTrueLocalVariable:
+		result = TEventExtData::VariableCheckBinary<false, false, std::and_with<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::GlobalVariableGreaterThanLocalVariable:
+		result = TEventExtData::VariableCheckBinary<false, true, std::greater<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::GlobalVariableLessThanLocalVariable:
+		result = TEventExtData::VariableCheckBinary<false, true, std::less<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::GlobalVariableEqualsToLocalVariable:
+		result = TEventExtData::VariableCheckBinary<false, true, std::equal_to<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsToLocalVariable:
+		result = TEventExtData::VariableCheckBinary<false, true, std::greater_equal<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsToLocalVariable:
+		result = TEventExtData::VariableCheckBinary<false, true, std::less_equal<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::GlobalVariableAndIsTrueLocalVariable:
+		result = TEventExtData::VariableCheckBinary<false, true, std::and_with<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::LocalVariableGreaterThanGlobalVariable:
+		result = TEventExtData::VariableCheckBinary<true, false, std::greater<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::LocalVariableLessThanGlobalVariable:
+		result = TEventExtData::VariableCheckBinary<true, false, std::less<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::LocalVariableEqualsToGlobalVariable:
+		result = TEventExtData::VariableCheckBinary<true, false, std::equal_to<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsToGlobalVariable:
+		result = TEventExtData::VariableCheckBinary<true, false, std::greater_equal<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::LocalVariableLessThanOrEqualsToGlobalVariable:
+		result = TEventExtData::VariableCheckBinary<true, false, std::less_equal<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::LocalVariableAndIsTrueGlobalVariable:
+		result = TEventExtData::VariableCheckBinary<true, false, std::and_with<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::GlobalVariableGreaterThanGlobalVariable:
+		result = TEventExtData::VariableCheckBinary<true, true, std::greater<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::GlobalVariableLessThanGlobalVariable:
+		result = TEventExtData::VariableCheckBinary<true, true, std::less<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::GlobalVariableEqualsToGlobalVariable:
+		result = TEventExtData::VariableCheckBinary<true, true, std::equal_to<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsToGlobalVariable:
+		result = TEventExtData::VariableCheckBinary<true, true, std::greater_equal<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsToGlobalVariable:
+		result = TEventExtData::VariableCheckBinary<true, true, std::less_equal<int>>(pThis);
+		break;
+	case PhobosTriggerEvent::GlobalVariableAndIsTrueGlobalVariable:
+		result = TEventExtData::VariableCheckBinary<true, true, std::and_with<int>>(pThis);
+		break;
+#pragma endregion
+
+		//TODO compare agains like vanilla does ?
+#pragma region PhobosEvent
+	case PhobosTriggerEvent::DestroyedOnly:
+		result = isSameEvent();
+		break;
+		/*
+		*	- PersistableFlag ?
+		*	- LogcNeed ?
+		*   - AttachFlags ?
+		*/
+	case PhobosTriggerEvent::ShieldBroken:
+		result = isSameEvent() && ShieldClass::TEventIsShieldBroken(pObject);
+		break;
+	case PhobosTriggerEvent::HouseOwnsTechnoType:
+		result = TEventExtData::HouseOwnsTechnoTypeTEvent(pThis);
+		break;
+	case PhobosTriggerEvent::HouseDoesntOwnTechnoType:
+		result = TEventExtData::HouseDoesntOwnTechnoTypeTEvent(pThis);
+		break;
+	case PhobosTriggerEvent::HousesDestroyed:
+		result = TEventExtData::HousesAreDestroyedTEvent(pThis);
+		break;
+	case PhobosTriggerEvent::CellHasTechnoType:
+		result = TEventExtData::CellHasTechnoTypeTEvent(pThis, pObject, pHouse);
+		break;
+	case PhobosTriggerEvent::CellHasAnyTechnoTypeFromList:
+		result = TEventExtData::CellHasAnyTechnoTypeFromListTEvent(pThis, pObject, pHouse);
+		break;
+	case PhobosTriggerEvent::AttachedIsUnderAttachedEffect:
+		result = TEventExtData::AttachedIsUnderAttachedEffectTEvent(pThis, pObject);
+		break;
+#pragma endregion
+
+	default:
 		return false;
-
-	bool result = false;
-
-	EventArgs args {
-		event, house, obj, td, bool1, source
 	};
 
-	if (TEventExtData::Occured(this, args, result)) {
+	return true;
+}
+
+bool FakeTEventClass::_Occured(TriggerEvent requestedEvent, HouseClass* house, ObjectClass* obj, CDTimerClass* td, bool* isPresistent, AbstractClass* source)
+{
+	bool result = true;
+
+	EventArgs args {
+		requestedEvent, house, obj, td, isPresistent, source
+	};
+
+	if (TEventExtData::VanillaTriggerEventOccured(this, args, result)) {
 		return result;
 	}
 
-	if (TEventExtData::HasOccured(this, args, result)) {
+	if (TEventExtData::AresTriggerEventOccured(this, args, result)) {
 		return result;
 	}
 
-	switch (this->EventKind)
-	{
-	case TriggerEvent::ElapsedTime:
-	case TriggerEvent::RandomDelay:
-	{
-		// Pseudocode: if Started==-1 return (DelayTime==0); else return (Frame-Started >= DelayTime)
-		// Expired() returns true for any non-ticking timer regardless of TimeLeft, which is wrong
-		// when the timer hasn't started but still has time remaining.
-		const int started = td->StartTime;
-		const int delayTime = td->TimeLeft;
-
-		if (started == -1)
-			return delayTime == 0;
-
-		const int elapsed = Unsorted::CurrentFrame() - started;
-		if (elapsed < delayTime)
-			return (delayTime - elapsed) == 0;
-
-		return true;
-	}
-	case TriggerEvent::MissionTimerExpired:
-	{
-		// Pseudocode: if Started==-1 return false; else return (Frame-Started >= DelayTime)
-		// Expired() returns true when not ticking, but original returns false when not started.
-		auto& mt = ScenarioClass::Instance->MissionTimer;
-		if (mt.StartTime == -1)
-			return false;
-
-		return (Unsorted::CurrentFrame() - mt.StartTime) >= mt.TimeLeft;
-
+	if (TEventExtData::PhobosTriggerEventOccured(this, args, result)) {
+		return result;
 	}
 
-	case TriggerEvent::GlobalSet:
-		ScenarioClass::Instance->GetGlobalVarValue_ptr(this->Value, bool1);
-		return *bool1;
-
-	case TriggerEvent::GlobalCleared:
-		ScenarioClass::Instance->GetGlobalVarValue_ptr(this->Value, bool1);
-		return !*bool1;
-
-	case TriggerEvent::LocalSet:
-		ScenarioClass::Instance->GetLocalVarValue_ptr(this->Value, bool1);
-		return *bool1;
-
-	case TriggerEvent::LocalCleared:
-		ScenarioClass::Instance->GetLocalVarValue_ptr(this->Value, bool1);
-		return !*bool1;
-
-	case TriggerEvent::AmbientLightBelow:
-		return ScenarioClass::Instance->AmbientCurrent <= this->Value;
-
-	case TriggerEvent::AmbientLightAbove:
-		return ScenarioClass::Instance->AmbientCurrent >= this->Value;
-
-	case TriggerEvent::ElapsedScenarioTime:
-		return this->Value <= Unsorted::CurrentFrame() / 15;
-
-	case TriggerEvent::TechTypeExists:
-	{
-		return TEventExtData::FindTechnoType(this, this->Value, nullptr);
-	}
-	case TriggerEvent::TechTypeDoesntExist:
-	{
-		if (!TEventExtContainer::Instance.Find(this)->GetTechnoType())
-			return false; // type not defined in game -> never "doesn't exist" event
-
-		return !TEventExtData::FindTechnoType(this, 1, nullptr);
-	}
-	default:
-		return HandleDefaultEvents(this, event, house, obj, bool1, source);
-	}
+	Debug::LogInfo("TEvent {} Trying to execute unknown event of {} with {}",(void*)this, (int)requestedEvent , (int)this->EventKind);
+	return false;//empty
 }
 
 bool FakeTEventClass::_IsPresistable()

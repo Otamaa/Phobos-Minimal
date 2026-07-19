@@ -8,7 +8,7 @@ class ObjectClass;
 class HouseClass;
 struct EventArgs
 {
-	TriggerEvent EventType;
+	TriggerEvent RequestedEventType;
 	HouseClass* Owner;
 	ObjectClass* Object;
 	CDTimerClass* ActivationFrame;

@@ -15,8 +15,29 @@ class TeamTypeClass;
 
 struct AITriggerConditionComparator
 {
-	AITriggerConditionComparatorType Type;
 	int Operand;
+	AITriggerConditionComparatorType Type;
+
+	bool EvaluateComparator(int operand1, bool ret)
+	{
+		switch (this->Type)
+		{
+		case AITriggerConditionComparatorType::Less:
+			return operand1 < this->Operand;
+		case AITriggerConditionComparatorType::LessOrEqual:
+			return operand1 <= this->Operand;
+		case AITriggerConditionComparatorType::Equal:
+			return operand1 == this->Operand;
+		case AITriggerConditionComparatorType::GreaterOrEqual:
+			return operand1 >= this->Operand;
+		case AITriggerConditionComparatorType::Greater:
+			return operand1 > this->Operand;
+		case AITriggerConditionComparatorType::NotEqual:
+			return operand1 != this->Operand;
+		default:
+			return ret;
+		}
+	}
 };
 
 class DECLSPEC_UUID("BA093524-4CF4-11D2-BC26-00104B8FB04D")

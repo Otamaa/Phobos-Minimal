@@ -67,8 +67,9 @@ public:
 	bool AllowCreateUnit {};
 	bool WasOnBridge {};
 	bool DelayedFireRemoveOnNoDelay {};
+	bool IsFiringAnim {};
 	// 4 bools = 4 bytes, naturally aligns to next 4-byte boundary
-
+	
 	double FirepowerMult { 1.0 };
 #pragma endregion
 

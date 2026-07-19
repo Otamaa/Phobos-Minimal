@@ -92,7 +92,6 @@ public:
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
 public:
 
-	static bool GetComparatorResult(int operand1, AITriggerConditionComparator& cond);
 	static bool NumberOfTechBuildingsExist(AITriggerTypeClass* pThis, HouseClass* pOwner);
 	static bool NumberOfBridgeRepairHutsExist(AITriggerTypeClass* pThis);
 	static bool EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pOwner, HouseClass* pEnemy);

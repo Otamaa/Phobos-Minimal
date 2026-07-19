@@ -166,8 +166,6 @@ public:
 	static bool CellHasTechnoTypeTEvent(TEventClass* pThis, ObjectClass* pObject, HouseClass* pHouse);
 	static bool AttachedIsUnderAttachedEffectTEvent(TEventClass* pThis, ObjectClass* pObject);
 
-	static bool Occured(TEventClass* pThis, EventArgs const& args, bool& bHandled);
-
 	static HouseClass* GetHouse(int TEvetValue, HouseClass* pEventHouse);
 
 	template<bool IsGlobal, typename _Pr>
@@ -189,7 +187,9 @@ public:
 
 	// the function return is deciding if the case is handled or not
 	// the bool result pointer is for the result of the Event itself
-	static bool HasOccured(TEventClass* pThis, EventArgs& Args, bool& result);
+	static bool AresTriggerEventOccured(TEventClass* pThis, EventArgs& Args, bool& result);
+	static bool PhobosTriggerEventOccured(TEventClass* pThis, EventArgs const& args, bool& bHandled);
+	static bool VanillaTriggerEventOccured(TEventClass* pThis, EventArgs& Args, bool& result);
 
 	static LogicNeedType ClassifyEvent(int event);
 };
@@ -220,7 +220,7 @@ public:
 	HRESULT __stdcall __Load(IStream* pStm);
 	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
-	bool _Occured(TriggerEvent event, HouseClass* house, ObjectClass* obj, CDTimerClass* td, bool* bool1, AbstractClass* source);
+	bool _Occured(TriggerEvent requestedEvent, HouseClass* house, ObjectClass* obj, CDTimerClass* td, bool * isPresistent, AbstractClass* source);
 	bool _IsPresistable();
 	bool _IsTemporal();
 

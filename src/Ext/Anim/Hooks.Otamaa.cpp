@@ -614,7 +614,9 @@ void FakeAnimClass::_AI()
 			this->Invisible = !GameOptionsClass::Instance->ShowHidden;
 		}
 
-		this->UpdateAsFiringAnim();
+		if(this->_GetExtData()->IsFiringAnim)
+			this->UpdateAsFiringAnim();
+
 		this->_ApplyHideIfNoOre();
 		this->_CreateFootApplyOccupyBits();
 

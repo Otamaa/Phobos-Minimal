@@ -2403,17 +2403,21 @@ bool TActionExtData::SetTeamDelay(TActionClass* pThis, HouseClass* pHouse, Objec
 
 	return true;
 }
-
+#pragma optimize("", off )
 static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* pTargetHouse, ObjectClass* pSourceObject, TriggerClass* pTrigger, CellStruct* plocation, bool& ret) {
 
 	switch (pThis->ActionKind)
 	{
 	case TriggerAction::Win:
 	{
-		if (pThis->Value == HouseClass::CurrentPlayer->Type->ParentIdx)
+		auto pCurPlayer = HouseClass::CurrentPlayer();
+
+		if (pThis->Value == pCurPlayer->Type->ParentIdx)
 			HouseClass::CurrentPlayer->Win(false);
-		else
+		else {
+			Debug::LogInfo("TAction Win {} ParentIndex  [Value {} - Player {}] value missmatch preturn Lose", (void*)pThis, pThis->Value, pCurPlayer->Type->ParentIdx);
 			HouseClass::CurrentPlayer->Lose(false);
+		}
 
 		ret = true;
 		return true;
@@ -2421,11 +2425,15 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 	
 	case TriggerAction::Lose:
 	{
-		if (pThis->Value == HouseClass::CurrentPlayer->Type->ParentIdx)
-			HouseClass::CurrentPlayer->Lose(false);
-		else
-			HouseClass::CurrentPlayer->Win(false);
+		
+		auto pCurPlayer = HouseClass::CurrentPlayer();
 
+		if (pThis->Value == pCurPlayer->Type->ParentIdx)
+			HouseClass::CurrentPlayer->Lose(false);
+		else {
+			Debug::LogInfo("TAction Lose {} ParentIndex  [Value {} - Player {}] value missmatch preturn WIN", (void*)pThis, pThis->Value, pCurPlayer->Type->ParentIdx);
+			HouseClass::CurrentPlayer->Win(false);
+		}
 		ret = true;
 		return true;
 	}
@@ -4254,6 +4262,7 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 		return false;
 	}
 }
+#pragma optimize("", on )
 
 NOINLINE std::string AresNewTriggerAction_ToString(AresNewTriggerAction action)
 {
@@ -4345,11 +4354,13 @@ bool FakeTActionClass::_OperatorBracket(HouseClass* pTargetHouse, ObjectClass* p
 	{
 		return ret;
 	}
-	else if (TActionExtData::Occured(this, { pTargetHouse,pSourceObject,pTrigger,plocation }, ret))
+	
+	if (TActionExtData::Occured(this, { pTargetHouse,pSourceObject,pTrigger,plocation }, ret))
 	{
 		return ret;
 	}
-	else if (TActionExtData::Execute(this, pTargetHouse, pSourceObject, pTrigger, plocation, ret))
+	
+	if (TActionExtData::Execute(this, pTargetHouse, pSourceObject, pTrigger, plocation, ret))
 	{
 		return ret;
 	}
