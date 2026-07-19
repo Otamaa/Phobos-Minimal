@@ -1730,11 +1730,11 @@ bool TActionExtData::DoExplosionAt(TActionClass* pAction, HouseClass* pHouse, Ob
 
 bool TActionExtData::EnableTrigger(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
 {
-	if (pTrigger)
+	if (pAction->TriggerType)
 	{
-		TriggerClass::Array->for_each([pTrigger](TriggerClass* pTrig) {
+		TriggerClass::Array->for_each([pAction](TriggerClass* pTrig) {
 
-			if (pTrig == pTrigger)
+			if (pTrig->Type == pAction->TriggerType)
 			{
 				if (ScenarioClass::Instance->Difficulty1 == AIDifficulty::Easy && pTrig->Type->Difficulty[0]
 					|| ScenarioClass::Instance->Difficulty1 == AIDifficulty::Normal && pTrig->Type->Difficulty[1]

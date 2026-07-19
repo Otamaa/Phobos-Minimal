@@ -843,7 +843,7 @@ void __fastcall FakeFootClass::_AI(FootClass* pThis)
  
                 if (doReveal) {
                     pThis->vt_entry_48C(0, 0, 0, 0);
-                    pThis->UpdateSight(0, 0, 0, 0, 9);
+                    pThis->UpdateSight(0, 0, 0, 0, 0);
  
                     CoordStruct origin = pThis->Location;
                     int range = pThis->LastSightRange;
