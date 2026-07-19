@@ -6,7 +6,7 @@
 
 #include <TriggerTypeClass.h>
 
-bool __fastcall FakeTagTypeClass::_LoadEntryINI(CCINIClass* pINI)
+void __fastcall FakeTagTypeClass::_LoadEntryINI(CCINIClass* pINI)
 {
 	auto String_To_ID = [](const char* str)
 		{
@@ -45,13 +45,7 @@ bool __fastcall FakeTagTypeClass::_LoadEntryINI(CCINIClass* pINI)
 
 	const char* const section = "Tags";
 
-	const int count = pINI->GetKeyCount(section);
-
-	if (count <= 0)
-		return false;
-
-	for (int index = 0; index < count; ++index)
-	{
+	for (int index = 0; index < pINI->GetKeyCount(section); ++index) {
 		// Get the entry key (the tag ID string, e.g. "01EA0000")
 		const char* entryKey = pINI->GetKeyName(section, index);
 
@@ -80,11 +74,9 @@ bool __fastcall FakeTagTypeClass::_LoadEntryINI(CCINIClass* pINI)
 		//PhobosSwizzle::Instance.Here_I_Am((void*)ID, pType);
 
 		if (pTag) {
-			pTag->LoadFromINI(pINI);
+			((FakeTagTypeClass*)pTag)->LoadFromINI(pINI);
 		}
 	}
-
-	return true;
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x6E5ED0, FakeTagTypeClass::_LoadEntryINI);
@@ -109,7 +101,8 @@ bool FakeTagTypeClass::_LoadFromINI(CCINIClass* pINI)
 		this->Name[0] = '\0';
 	}
 
-	this->FirstTrigger = TriggerTypeClass::FindOrAllocate(std::strtok(nullptr, ","));
+	if(auto pTrig = std::strtok(nullptr, ","))
+		this->FirstTrigger = TriggerTypeClass::FindOrAllocate(pTrig);
 
 	return true;
 }

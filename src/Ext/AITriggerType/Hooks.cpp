@@ -59,22 +59,22 @@
 //	return 0;
 //}
 
-ASMJIT_PATCH(0x41F783, AITriggerTypeClass_ParseConditionType, 0x5)
-{
-	GET(const char*, pBuffer, ECX);
-	GET(AITriggerTypeClass*, pThis, EBP);
-
-	TechnoTypeClass* result = InfantryTypeClass::Find(pBuffer);
-	if (!result)
-		result = UnitTypeClass::Find(pBuffer);
-	if (!result)
-		result = AircraftTypeClass::Find(pBuffer);
-	if (!result)
-		result = BuildingTypeClass::Find(pBuffer);
-
-	if (Phobos::Otamaa::IsAdmin && !GameStrings::IsNone(pBuffer))
-		Debug::LogInfo("Condition Object[{} - {}] for [{}]", pBuffer, result ? result->GetThisClassName() : GameStrings::NoneStrb(), pThis->ID);
-
-	R->ESI(result);
-	return 0x41F7DE;
-}
+//ASMJIT_PATCH(0x41F783, AITriggerTypeClass_ParseConditionType, 0x5)
+//{
+//	GET(const char*, pBuffer, ECX);
+//	GET(AITriggerTypeClass*, pThis, EBP);
+//
+//	TechnoTypeClass* result = InfantryTypeClass::Find(pBuffer);
+//	if (!result)
+//		result = UnitTypeClass::Find(pBuffer);
+//	if (!result)
+//		result = AircraftTypeClass::Find(pBuffer);
+//	if (!result)
+//		result = BuildingTypeClass::Find(pBuffer);
+//
+//	if (Phobos::Otamaa::IsAdmin && !GameStrings::IsNone(pBuffer))
+//		Debug::LogInfo("Condition Object[{} - {}] for [{}]", pBuffer, result ? result->GetThisClassName() : GameStrings::NoneStrb(), pThis->ID);
+//
+//	R->ESI(result);
+//	return 0x41F7DE;
+//}

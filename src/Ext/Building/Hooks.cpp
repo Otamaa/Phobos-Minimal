@@ -829,14 +829,30 @@ ASMJIT_PATCH(0x441AC4, BuildingClass_Destroy_Fire3Anim, 0x5)
 	return 0x441B1F;
 }
 
-ASMJIT_PATCH(0x441D1F, BuildingClass_Destroy_DestroyAnim, 0x6)
+ASMJIT_PATCH(0x441CEA, BuildingClass_Destroy_DestroyAnim, 0x5)
 {
 	GET(BuildingClass*, pThis, ESI);
-	GET(AnimClass*, pAnim, EAX);
-
-	AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
-	return 0x0;
+	GET(AnimTypeClass*, pAnimType, EDI);
+	auto coord = pThis->GetRenderCoords();
+	auto pAnim = GameCreate<AnimClass>(pAnimType, coord);
+	AnimExtData::SetAnimOwnerHouseKind(pAnim,
+	pThis->GetOwningHouse(), nullptr, false);
+	R->EDI(pAnim);
+	return 0x441D37;
 }
+
+// bugfix #231: DestroyAnims don't remap and cause reconnection errors
+//BuildingClass_Destroy
+//DEFINE_JUMP(LJMP, 0x441D25, 0x441D37);
+
+//ASMJIT_PATCH(0x441D1F, BuildingClass_Destroy_DestroyAnim, 0x6)
+//{
+//	GET(BuildingClass*, pThis, ESI);
+//	GET(AnimClass*, pAnim, EAX);
+//
+//	AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
+//	return 0x0;
+//}
 
 ASMJIT_PATCH(0x450B48, BuildingClass_Anim_AI_UnitAbsorb, 0x6)
 {

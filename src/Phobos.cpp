@@ -1248,14 +1248,15 @@ bool __fastcall Phobos_Parse_Command_Line(int argc, char* argv[]) {
 	return true;
 }
 
+std::wstring ExceptionHandler::CommandLines;
+
 void ParseEarlyArgs(LPWSTR* argv , int argc)
 {
-	std::wstring args {};
 
 	if (argv) {
 		for (int i = 1; i < argc; i++) {
-			args += L" ";
-			args += argv[i];
+			ExceptionHandler::CommandLines += L" ";
+			ExceptionHandler::CommandLines += argv[i];
 
 			if (IS_SAME_WSTR(argv[i], L"-Icon") && i + 1 < argc) {
 				// Convert wide string to narrow string
@@ -1292,7 +1293,7 @@ void ParseEarlyArgs(LPWSTR* argv , int argc)
 	if (Debug::LogEnabled) {
 		Debug::Log("DLL injection successful, logging enabled via command line.\n");
 		Debug::Log("Initialized Phobos " PRODUCT_VERSION ".\n");
-		Debug::Log("args %ls\n", args.c_str());
+		Debug::Log("args %ls\n", ExceptionHandler::CommandLines.c_str());
 		CRTHooks::Print_FPUMode();
 	}
 }

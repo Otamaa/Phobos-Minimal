@@ -2635,12 +2635,12 @@ unsigned int FakeAStarPathFinderClass::Attempt(CellStruct* startPos, CellStruct*
 
 
 // ===========================================================================
-DEFINE_FUNCTION_JUMP(LJMP, 0x429830, FakeAStarPathFinderClass::Calc_Float)
-DEFINE_FUNCTION_JUMP(LJMP, 0x429A90, FakeAStarPathFinderClass::Find_Path_Regular)
-DEFINE_FUNCTION_JUMP(LJMP, 0x42AC00, FakeAStarPathFinderClass::Reset)
-DEFINE_FUNCTION_JUMP(LJMP, 0x42C1C0, FakeAStarPathFinderClass::AllocZoneArrays)
-DEFINE_FUNCTION_JUMP(LJMP, 0x42C900, FakeAStarPathFinderClass::Find_Path)
-DEFINE_FUNCTION_JUMP(LJMP, 0x42D170, FakeAStarPathFinderClass::Attempt)
+//DEFINE_FUNCTION_JUMP(LJMP, 0x429830, FakeAStarPathFinderClass::Calc_Float)
+//DEFINE_FUNCTION_JUMP(LJMP, 0x429A90, FakeAStarPathFinderClass::Find_Path_Regular)
+//DEFINE_FUNCTION_JUMP(LJMP, 0x42AC00, FakeAStarPathFinderClass::Reset)
+//DEFINE_FUNCTION_JUMP(LJMP, 0x42C1C0, FakeAStarPathFinderClass::AllocZoneArrays)
+//DEFINE_FUNCTION_JUMP(LJMP, 0x42C900, FakeAStarPathFinderClass::Find_Path)
+//DEFINE_FUNCTION_JUMP(LJMP, 0x42D170, FakeAStarPathFinderClass::Attempt)
  
 //DEFINE_FUNCTION_JUMP(LJMP, 0x42A460, FakeAStarPathFinderClass::Calc_sqrt)
 //DEFINE_FUNCTION_JUMP(LJMP, 0x42A5B0, FakeAStarPathFinderClass::Init)

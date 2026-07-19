@@ -790,10 +790,6 @@ ASMJIT_PATCH(0x4416A2, BuildingClass_Destroy_SensorArray, 0x6)
 	return 0;
 }
 
-// bugfix #231: DestroyAnims don't remap and cause reconnection errors
-//BuildingClass_Destroy
-DEFINE_JUMP(LJMP, 0x441D25, 0x441D37);
-
 ASMJIT_PATCH(0x451E40, BuildingClass_DestroyNthAnim_Destroy, 0x7)
 {
 	GET(BuildingClass*, pThis, ECX);

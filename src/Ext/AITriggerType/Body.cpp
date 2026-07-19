@@ -8,6 +8,7 @@
 #include <Ext/Team/Body.h>
 #include <Ext/TeamType/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/TaskForce/Body.h>
 
 #include <Utilities/TemplateDef.h>
 #include <Utilities/Patch.h>
@@ -1138,14 +1139,14 @@ bool NOINLINE AITriggerTypeExtData::CheckConditionType(AITriggerTypeClass* pThis
 bool FakeAITriggerTypeClass::_NewTeam(HouseClass* house1, HouseClass* house2, bool skip)
 {
 	// Assembly 0x41E726-0x41E752:
-  // isBaseDefense = true if TeamTypeOne OR TeamTypeTwo has IsBaseDefense set.
+  // isBaseDefense = true if Team1 OR Team2 has IsBaseDefense set.
 	TeamTypeClass* pTeamOne = this->Team1;
 	TeamTypeClass* pTeamTwo = this->Team2;
 
 	const bool isBaseDefense = (pTeamOne && pTeamOne->IsBaseDefense)
 		|| (pTeamTwo && pTeamTwo->IsBaseDefense);
 
-	// Assembly 0x41E756: if TeamTypeOne == null, return false immediately.
+	// Assembly 0x41E756: if Team1 == null, return false immediately.
 	if (!pTeamOne)
 		return false;
 
@@ -1191,7 +1192,7 @@ bool FakeAITriggerTypeClass::_NewTeam(HouseClass* house1, HouseClass* house2, bo
 	// Both paths now converge here (LABEL_17 in assembly).
 	// Assembly 0x41E7B1-0x41E7CB:
 	// If IsGlobal == 1 AND Scen->IgnoreGlobalAITriggers == 1 → return false.
-	if (this->IsGlobal == 1
+	if (this->Type == AITriggerType::Global
 		&& ScenarioClass::Instance->IgnoreGlobalAITriggers == 1)
 		return false;
 
@@ -1231,8 +1232,8 @@ bool FakeAITriggerTypeClass::_NewTeam(HouseClass* house1, HouseClass* house2, bo
 	}
 
 	// Assembly 0x41E855-0x41E88A: owning house type check.
-	// ownHouseType: 0=any, 1=specific house, 2=any (skip check)
-	switch (const AITriggerHouseType ownHouseType = this->OwnerHouseType)
+	// OwnerHouseType: 0=any, 1=specific house, 2=any (skip check)
+	switch (this->OwnerHouseType)
 	{
 	case AITriggerHouseType::None:
 		return false;
@@ -1274,30 +1275,30 @@ bool FakeAITriggerTypeClass::_NewTeam(HouseClass* house1, HouseClass* house2, bo
 	if (!conditionMet)
 		return false;
 
-	// Assembly 0x41E9EA-0x41E9FC: check TeamTypeOne passes mzone/base center check.
+	// Assembly 0x41E9EA-0x41E9FC: check Team1 passes mzone/base center check.
 	if (!AITriggerTypeExtData::CheckBaseCenterMZone(this, pTeamOne, house1, house2))
 		return false;
 
-	// Assembly 0x41EA05-0x41EA21: if TeamTypeTwo exists, check it too.
+	// Assembly 0x41EA05-0x41EA21: if Team2 exists, check it too.
 	if (pTeamTwo && !AITriggerTypeExtData::CheckBaseCenterMZone(this, pTeamTwo, house1, house2))
 		return false;
 
-	// Assembly 0x41EA24-0x41EA3A: house must be able to instantiate TeamTypeOne.
+	// Assembly 0x41EA24-0x41EA3A: house must be able to instantiate Team1.
 	if (!house1->CanInstantiateTeam(pTeamOne))
 		return false;
 
-	// Assembly 0x41EA3D-0x41EA57: if TeamTypeTwo exists, check it too.
+	// Assembly 0x41EA3D-0x41EA57: if Team2 exists, check it too.
 	if (pTeamTwo && !house1->CanInstantiateTeam(pTeamTwo))
 		return false;
 
 	// Assembly 0x41EA5A-0x41EA8A:
-	// TeamTypeOne MaxAllowed check: if MaxAllowed >= 0 and current count >= max → return false.
+	// Team1 MaxAllowed check: if MaxAllowed >= 0 and current count >= max → return false.
 	// MaxAllowed < 0 means unlimited.
 	if (pTeamOne && pTeamOne->Max >= 0
 		&& house1->TeamTypeCount(pTeamOne) >= pTeamOne->Max)
 		return false;
 
-	// Assembly 0x41EA8D-0x41EABD: same check for TeamTypeTwo.
+	// Assembly 0x41EA8D-0x41EABD: same check for Team2.
 	if (pTeamTwo && pTeamTwo->Max >= 0
 		&& house1->TeamTypeCount(pTeamTwo) >= pTeamTwo->Max)
 		return false;
@@ -1308,270 +1309,308 @@ bool FakeAITriggerTypeClass::_NewTeam(HouseClass* house1, HouseClass* house2, bo
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x41E720, FakeAITriggerTypeClass::_NewTeam)
 
-//AbstractTypeClass* ResolveTechType(const char* name)
-//{
-//	int idx = InfantryTypeClass::From_Name(name);
-//	if (idx != -1)
-//		return InfantryTypes.Vector[idx]; // VERIFY: YRpp accessor name
-//
-//	idx = UnitTypeClass::From_Name(name);
-//	if (idx != -1)
-//		return UnitTypes.Vector[idx];     // VERIFY: YRpp accessor name
-//
-//	idx = AircraftTypeClass::From_Name(name);
-//	if (idx != -1)
-//		return AircraftTypes.Vector[idx]; // VERIFY: YRpp accessor name
-//
-//	idx = BuildingTypeClass::From_Name(name);
-//	if (idx != -1)
-//		return BuildingTypes.Vector[idx]; // VERIFY: YRpp accessor name
-//
-//	return nullptr;
-//}
-//
-//void ParseConditions(const char* str, AITriggerTypeClass* self)
-//{
-//	// Vanilla lookup table initializer from stack:
-//	//   var_270 = word_818170 (global 2-byte value)
-//	//   var_270+2 = byte_818172 (global 1-byte value)
-//	//   anonymous_0 (qword) = 0
-//	// Together: a 3-entry sorted array used as the binary search range.
-//	// VERIFY: these globals and their exact layout in YRpp/assembly
-//	unsigned short lookup[2];
-//	lookup[0] = '00'; // VERIFY: global name
-//	reinterpret_cast<uint8_t*>(lookup)[2] = '0'; // VERIFY: global name
-//	const unsigned short* const lookupEnd = reinterpret_cast<const unsigned short*>(
-//		reinterpret_cast<const uint8_t*>(lookup) + sizeof(unsigned short) + 1);
-//
-//	unsigned int count = 0;
-//	const char* p = str;
-//
-//	while (*p && count < 0x20)
-//	{
-//		// skip whitespace
-//		while (*p && std::isspace(static_cast<unsigned char>(*p)))
-//			++p;
-//
-//		// read two characters as a pair
-//		unsigned short pair = 0;
-//		reinterpret_cast<char*>(&pair)[0] = *p;
-//		if (*p) ++p;
-//
-//		const char second = *p;
-//		reinterpret_cast<char*>(&pair)[1] = second ? second : '\0';
-//		if (second) ++p;
-//
-//		// binary search into lookup table
-//		// vanilla: std::lower_bound(&var_270, &anonymous_0, 0x10)
-//		// stores result byte (al) into Conditions[count]
-//		const unsigned short* found = std::lower_bound(lookup, lookupEnd, static_cast<unsigned short>(0x10));
-//		self->Conditions[count] = static_cast<uint8_t>(
-//			reinterpret_cast<const uint8_t*>(found)[0]); // VERIFY: result extraction
-//
-//		++count;
-//
-//		if (!*p)
-//			break;
-//	}
-//}
+TechnoTypeClass* ResolveTechType(AITriggerTypeClass* pThis , const char* name)
+{
+	TechnoTypeClass* pResult = InfantryTypeClass::Find(name);
+
+	if(!pResult){
+		pResult = UnitTypeClass::Find(name);
+	}
+
+	if (!pResult) {
+		pResult = AircraftTypeClass::Find(name);
+	}
+
+	if (!pResult) {
+		pResult = BuildingTypeClass::Find(name);
+	}
+
+	if (Phobos::Otamaa::IsAdmin && !GameStrings::IsNone(name))
+		Debug::LogInfo("Condition Object[{} - {}] for [{}]", name, pResult ? pResult->GetThisClassName() : GameStrings::NoneStrb(), pThis->ID);
+
+	return pResult;
+}
 
 bool FakeAITriggerTypeClass::_SaveToINI(CCINIClass* pINI)
 {
-	/*
-	*
-	char v44[512];
+	// --- resolve the four name fields (all default to "<none>") -----------
+	const char* pTeamOne = GameStrings::NoneStr;   // v12
+	const char* pTeamTwo = GameStrings::NoneStr;   // v13
+	const char* pOwnerHouse = GameStrings::NoneStr;   // v3
+	const char* pConditionObject = GameStrings::NoneStr;   // v14
 
-	INIClass::Clear_Section_Cache(iniHandle);
+	if (this->Team1)
+		pTeamOne = this->Team1->ID;
 
-	if (!INIClass::Get_String(iniHandle, "AITriggerTypes", this->IniName, // VERIFY: field name
-		&Wstring::EmptyString, v44, 512))
-		return 0;
+	if (this->Team2)
+		pTeamTwo = this->Team2->ID;
 
-	// --- token 1: name (48 chars + null) ---
-	// Vanilla: strncpy into destination[48]+sentinel, then rep movsd(x12)+movsb
-	// into this->at.Name. Stack bounce preserved semantically via strncpy limit.
-	const char* tok = strtok(v44, ",");
-	if (!tok)
-		return 0;
-
-	std::strncpy(this->Name, tok, 48u); // VERIFY: field name in YRpp
-	this->Name[48] = '\0';
-
-	// --- token 2: TeamTypeOne ---
-	tok = strtok(nullptr, ",");
-	if (!tok)
-		return 0;
-
+	if (this->OwnerHouseType == AITriggerHouseType::Single)
 	{
-		char buf[24];
-		std::strncpy(buf, tok, 23u);
-		buf[23] = '\0';
-		strtrim(buf); // VERIFY: strtrim signature
-
-		this->TeamTypeOne = nullptr; // VERIFY: field name
-		if (_strcmpi(buf, none_str)) // VERIFY: none_str global
-			this->TeamTypeOne = TeamTypeClass::From_Name(buf);
+		if (this->HouseIndex != -1)
+			pOwnerHouse = HouseTypeClass::Array->Items[this->HouseIndex]->ID;  // ORIG: (*(&HouseTypes+1))[i]->at.IniName
+	}
+	else if (this->OwnerHouseType == AITriggerHouseType::Any)
+	{
+		pOwnerHouse = GameStrings::AllStr;                                   // "<all>"
 	}
 
-	// --- token 3: owning house ---
-	tok = strtok(nullptr, ",");
-	if (!tok)
-		return 0;
+	if (this->ConditionObject)
+		pConditionObject = this->ConditionObject->ID;               // ORIG: v7->ot.at.IniName
 
-	{
-		char buf[24];
-		std::strncpy(buf, tok, 23u);
-		buf[23] = '\0';
-		strtrim(buf);
+	// --- condition list: 32 bytes, each 2 lowercase hex chars -------------
+	std::string conditions;
+	conditions.reserve(64);
+	for (int i = 0; i < 32; ++i)
+		conditions += fmt::format("{:02x}", static_cast<unsigned int>(
+			this->_Conditions[i])); // ORIG: sprintf(p,"%02x",..); p+=2
 
-		this->OwnHouseType = 0;  // VERIFY: field name
-		this->OwningHouse = -1; // VERIFY: field name
+	// --- serialize the full comma record ----------------------------------
+	// ORIG: "%s,%s,%s,%d,%d,%s,%s,%lf,%lf,%lf,%d,%d,%d,%d,%s,%d,%d,%d"
+	const std::string line = fmt::format(
+		"{},{},{},{},{},{},{},{:f},{:f},{:f},{},{},{},{},{},{},{},{}",
+		this->Name,                                   // %s  Name
+		pTeamOne,                                     // %s  TeamOne
+		pOwnerHouse,                                  // %s  owner house
+		this->TechLevel,                              // %d
+		this->ConditionType,                          // %d
+		pConditionObject,                             // %s  condition object
+		conditions,                                   // %s  condition hex list
+		this->Weight_Current,                              // %lf
+		this->Weight_Minimum,                              // %lf
+		this->Weight_Maximum,                              // %lf
+		static_cast<int>(this->IsForSkirmish),        // %d
+		0,                                            // %d  literal 0 (unused field 11)
+		this->SideIndex,                          // %d
+		static_cast<int>(this->IsForBaseDefense),     // %d
+		pTeamTwo,                                      // %s  TeamTwo
+		static_cast<int>(this->Enabled_Easy),        // %d
+		static_cast<int>(this->Enabled_Normal),      // %d
+		static_cast<int>(this->Enabled_Hard));       // %d  ORIG: !(Enabled_Hard == 0)
 
-		if (!_strcmpi(buf, alllstring)) // VERIFY: alllstring global
-		{
-			this->OwnHouseType = 2;
-		}
-		else if (_strcmpi(buf, none_str))
-		{
-			const int houseIdx = HouseTypeClass::From_Name(buf);
-			this->OwningHouse = houseIdx;
-			if (houseIdx != -1)
-				this->OwnHouseType = 1;
-		}
-	}
-
-	// --- token 4: discarded (reserved field) ---
-	// Assembly: strtok called, result checked for null but value unused.
-	if (!strtok(nullptr, ","))
-		return 0;
-
-	// --- token 5: TechLevel (always initialized to 0 before token consumption) ---
-	this->TechLevel = 0; // VERIFY: field name
-	tok = strtok(nullptr, ",");
-	if (!tok)
-		return 0;
-	this->ConditionType = std::atoi(tok); // VERIFY: field name
-
-	// --- token 6: ConditionType ---
-	tok = strtok(nullptr, ",");
-	if (!tok)
-		return 0;
-	this->ConditionType = std::atoi(tok); // VERIFY: field name — assembly: [ebp+98h]
-
-	// --- token 7: ConditionObject (tech type name) ---
-	tok = strtok(nullptr, ",");
-	if (!tok)
-		return 0;
-
-	{
-		char buf[24];
-		std::strncpy(buf, tok, 23u);
-		buf[23] = '\0';
-		strtrim(buf);
-
-		// Vanilla: tries all four type vectors in order, stores raw pointer
-		// Assembly: esi = resolved pointer, stored at [ebp+0D8h]
-		this->ConditionObject = ResolveTechType(buf); // VERIFY: field name
-	}
-
-	// --- token 8: Conditions hex-pair string ---
-	tok = strtok(nullptr, ",");
-	if (!tok)
-		return 0;
-
-	ParseConditions(tok, this);
-
-	// --- token 9: WeightCur (optional from here) ---
-	// Vanilla: atof -> __ftol -> fild -> fstp double
-	// Replaced with std::stod for equivalent precision.
-	tok = strtok(nullptr, ",");
-	if (tok)
-		this->WeightCur = std::stod(tok); // VERIFY: field name, [ebp+0B8h]
-
-	// --- token 10: WeightMin ---
-	tok = strtok(nullptr, ",");
-	if (tok)
-		this->WeightMin = std::stod(tok); // VERIFY: field name, [ebp+0C0h]
-
-	// --- token 11: WeightMax ---
-	tok = strtok(nullptr, ",");
-	if (tok)
-		this->WeightMax = std::stod(tok); // VERIFY: field name, [ebp+0C8h]
-
-	// --- token 12: IsForSkirmish ---
-	tok = strtok(nullptr, ",");
-	if (tok)
-		this->IsForSkirmish = std::atoi(tok) != 0; // VERIFY: field name, [ebp+0D0h]
-
-	// --- token 13: discarded (second reserved slot) ---
-	// Assembly: 0x41F93C — two consecutive strtok calls; first result unused.
-	strtok(nullptr, ",");
-
-	// --- token 14: OwningCountry ---
-	tok = strtok(nullptr, ",");
-	if (tok)
-		this->OwningCountry = std::atoi(tok); // VERIFY: field name, [ebp+0ACh]
-
-	// --- token 15: IsForBaseDefense ---
-	tok = strtok(nullptr, ",");
-	if (tok)
-		this->IsForBaseDefense = std::atoi(tok) != 0; // VERIFY: field name, [ebp+0D1h]
-
-	// --- token 16: TeamTypeTwo ---
-	tok = strtok(nullptr, ",");
-	if (tok)
-	{
-		char buf[24];
-		std::strncpy(buf, tok, 23u);
-		buf[23] = '\0';
-		strtrim(buf);
-
-		this->TeamTypeTwo = nullptr; // VERIFY: field name, [ebp+0E0h]
-		if (_strcmpi(buf, none_str))
-			this->TeamTypeTwo = TeamTypeClass::From_Name(buf);
-	}
-
-	// --- token 17: EnabledInEasy ---
-	tok = strtok(nullptr, ",");
-	if (tok)
-		this->EnabledInEasy = std::atoi(tok) != 0; // VERIFY: field name, [ebp+0D2h]
-
-	// --- token 18: EnabledInMedium ---
-	tok = strtok(nullptr, ",");
-	if (tok)
-		this->EnabledInMedium = std::atoi(tok) != 0; // VERIFY: field name, [ebp+0D3h]
-
-	// --- token 19: EnabledInHard ---
-	tok = strtok(nullptr, ",");
-	if (tok)
-		this->EnabledInHard = std::atoi(tok) != 0; // VERIFY: field name, [ebp+0D4h]
-
-	// --- TechLevel derivation from TaskForce requirements ---
-	// Vanilla: TechLevel = max(TechLevel, TaskForce::Tech_Level_Required(team->TaskForce))
-	// Assembly: 0x41FA5C-0x41FAE3; both teams checked independently.
-	// [TeamTypeClass+0E4h] = TaskForce pointer  VERIFY in YRpp
-
-	if (this->TeamTypeOne)
-	{
-		const int required = TaskForceClass::Tech_Level_Required(
-			this->TeamTypeOne->TaskForce); // VERIFY: field name
-		this->TechLevel = std::max(this->TechLevel, required);
-	}
-
-	if (this->TeamTypeTwo)
-	{
-		const int required = TaskForceClass::Tech_Level_Required(
-			this->TeamTypeTwo->TaskForce); // VERIFY: field name
-		this->TechLevel = std::max(this->TechLevel, required);
-	}
-	*/
-	return 1;
+	return pINI->WriteString("AITriggerTypes", this->ID, line.c_str());
 }
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2AB8, FakeAITriggerTypeClass::_SaveToINI)
+DEFINE_FUNCTION_JUMP(LJMP, 0x41FB10, FakeAITriggerTypeClass::_SaveToINI)
 
 bool FakeAITriggerTypeClass::_LoadFromINI(CCINIClass* pINI)
 {
+	pINI->Reset();
+
+	char line[512];
+	// ORIG default arg: &Wstring::EmptyString
+	if (!pINI->ReadString("AITriggerTypes", this->ID, "", line))
+		return false;
+
+	// --- field 0: friendly name -------------------------------------------
+	char* tok = strtok(line, ",");
+	if (!tok)
+		return false;
+	strncpy(this->Name, tok, 0x30);      // ORIG copied via a redundant local and an
+	this->Name[0x30] = '\0';             //   always-true (destination != Name) guard
+
+	// --- field 1: Team1 ---------------------------------------------
+	tok = strtok(nullptr, ",");
+	if (!tok)
+		return false;
+	char name[24];
+	strncpy(name, tok, 0x18); name[0x17] = '\0';
+	CRT::strtrim(name);
+	this->Team1 = nullptr;
+	if (_strcmpi(name, GameStrings::NoneStr) != 0)                 // != "<none>"
+		this->Team1 = TeamTypeClass::Find(name);
+
+	// --- field 2: owner house ---------------------------------------------
+	tok = strtok(nullptr, ",");
+	if (!tok)
+		return false;
+	strncpy(name, tok, 0x18); name[0x17] = '\0';
+	CRT::strtrim(name);
+	this->OwnerHouseType = AITriggerHouseType::None;
+	this->HouseIndex = -1;
+	if (_strcmpi(name, GameStrings::AllStr) == 0)                 // "<all>"
+	{
+		this->OwnerHouseType = AITriggerHouseType::Any;
+	}
+	else if (_strcmpi(name, GameStrings::NoneStr) != 0)            // not "<none>"
+	{
+		this->HouseIndex = HouseTypeClass::FindIndexById(name);
+		if (this->HouseIndex != -1)
+			this->OwnerHouseType = AITriggerHouseType::Single;
+	}
+
+	// --- field 3: INI tech level is read then DISCARDED -------------------
+	if (!strtok(nullptr, ","))
+		return false;
+	this->TechLevel = 0;
+
+	// --- field 4: condition type ------------------------------------------
+	tok = strtok(nullptr, ",");
+	if (!tok)
+		return false;
+	this->ConditionType = (AITriggerCondition)atoi(tok);
+
+	// --- field 5: condition object = first matching techno type -----------
+	tok = strtok(nullptr, ",");
+	if (!tok)
+		return false;
+	strncpy(name, tok, 0x18); name[0x17] = '\0';
+	CRT::strtrim(name);
+	{
+		this->ConditionObject = ResolveTechType(this, name);
+	}
+
+	// --- field 6: condition list (opt. spaces, 2-char hex each, max 32) ----
+	tok = strtok(nullptr, ",");
+	if (!tok)
+		return false;
+	if (*tok)                                            // ORIG: if (*v14 != 0)
+	{
+		char code[4];
+		strcpy(code, "00");                              // pre-terminated 2-char scratch
+		char* endptr = nullptr;                          // ORIG: v38 (strtol endptr)
+		int n = 0;
+		const char* p = tok;
+
+		do
+		{
+			if (isspace((unsigned char)*p))              // skip a run of spaces
+			{
+				do { ++p; }
+				while (isspace((unsigned char)*p));
+			}
+
+			const char c0 = *p;
+			const char c1 = *++p;
+			code[0] = c0;
+			if (c1)
+			{
+				code[1] = c1;
+				++p;
+			}
+			else
+			{
+				code[1] = '\0';
+			}
+			// code[2] stays '\0' from the initial strcpy -> valid C-string
+
+			if (n >= 0x20)                               // cap at 32 conditions
+				break;
+
+			// VERIFY: strtol reconstructed from IDA std::lower_bound(v37,&v38,0x10)
+			this->_Conditions[n++] = (char)strtol(code, &endptr, 16);
+		}
+		while (*p);
+	}
+
+	// --- fields 7/8/9: weights (doubles) ----------------------------------
+	if ((tok = strtok(nullptr, ",")) != nullptr) this->Weight_Current = atof(tok);
+	if ((tok = strtok(nullptr, ",")) != nullptr) this->Weight_Minimum = atof(tok);
+	if ((tok = strtok(nullptr, ",")) != nullptr) this->Weight_Maximum = atof(tok);
+
+	// --- field 10: for-skirmish -------------------------------------------
+	if ((tok = strtok(nullptr, ",")) != nullptr) this->IsForSkirmish = atoi(tok) != 0;
+
+	// --- field 11: unused, consumed to keep tokenizer aligned -------------
+	strtok(nullptr, ",");
+
+	// --- field 12: owning country (side) ----------------------------------
+	if ((tok = strtok(nullptr, ",")) != nullptr) this->SideIndex = atoi(tok);
+
+	// --- field 13: for base defense ---------------------------------------
+	if ((tok = strtok(nullptr, ",")) != nullptr) this->IsForBaseDefense = atoi(tok) != 0;
+
+	// --- field 14: Team2 (only touched when the field exists) --------
+	if ((tok = strtok(nullptr, ",")) != nullptr)
+	{
+		char two[24];
+		strncpy(two, tok, 0x18); two[0x17] = '\0';
+		CRT::strtrim(two);
+		this->Team2 = nullptr;
+		if (_strcmpi(two, GameStrings::NoneStr) != 0)              // != "<none>"
+			this->Team2 = TeamTypeClass::Find(two);
+	}
+
+	// --- fields 15/16/17: per-difficulty enable ---------------------------
+	if ((tok = strtok(nullptr, ",")) != nullptr) this->Enabled_Easy = atoi(tok) != 0;
+	if ((tok = strtok(nullptr, ",")) != nullptr) this->Enabled_Normal = atoi(tok) != 0;
+	if ((tok = strtok(nullptr, ",")) != nullptr) this->Enabled_Hard = atoi(tok) != 0;
+
+	// --- derive tech level = max(0, req(TeamOne), req(TeamTwo)) ------------
+	// ORIG: two if/else "keep-or-raise" blocks -> plain max() each.
+	if (this->Team1)
+		this->TechLevel = std::max(this->TechLevel, this->Team1->TaskForce->TechLevelRequired());
+
+	if (this->Team2)
+		this->TechLevel = std::max(this->TechLevel, this->Team2->TaskForce->TechLevelRequired());
+
 	return true;
 }
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2AB4, FakeAITriggerTypeClass::_LoadFromINI)
+DEFINE_FUNCTION_JUMP(LJMP, 0x41F580, FakeAITriggerTypeClass::_LoadFromINI)
 
-bool FakeAITriggerTypeClass::_ReadScenarioINI(CCINIClass* pINI) { return true; }
-bool FakeAITriggerTypeClass::_WriteScenarioINI(CCINIClass* pINI) { return true; }
+void __fastcall FakeAITriggerTypeClass::_ReadScenarioINI(CCINIClass* pINI, AITriggerType isGlobal) {
+
+	const int count = pINI->GetKeyCount("AITriggerTypes");
+
+	for (int i = 0; i < count; ++i) {
+		const char* pEntry = pINI->GetKeyName("AITriggerTypes", i);
+
+		AITriggerTypeClass* pTrigger = AITriggerTypeClass::FindOrAllocate(pEntry);
+
+		pTrigger->LoadFromINI(pINI);
+		pTrigger->Type = isGlobal;
+
+		if (isGlobal == AITriggerType::Global)
+			pTrigger->IsEnabled = true;
+	}
+
+	if (isGlobal == AITriggerType::Local)
+		return;
+
+	const int enableCount = pINI->GetKeyCount("AITriggerTypesEnable");
+
+	for (int i = 0; i < enableCount; ++i) {
+		const char* pEntry = pINI->GetKeyName("AITriggerTypesEnable", i);
+
+		if (AITriggerTypeClass* pTrigger = AITriggerTypeClass::Find(pEntry)) {
+			pTrigger->IsEnabled =
+				pINI->ReadBool("AITriggerTypesEnable", pEntry, false) || (SessionClass::Instance->GameMode != GameMode::Campaign);
+		}
+	}
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x41F2E0, FakeAITriggerTypeClass::_ReadScenarioINI)
+
+void __fastcall FakeAITriggerTypeClass::_WriteScenarioINI(CCINIClass* pINI, AITriggerType isGlobal) {
+
+	const int count = pINI->GetKeyCount("AITriggerTypes");
+	for (int i = 0; i < count; ++i) {
+		const char* pEntry = pINI->GetKeyName("AITriggerTypes", i);
+
+		char value[32];
+		pINI->ReadString("AITriggerTypes", pEntry, "", value); // ORIG default: &Wstring::EmptyString
+		pINI->Clear(value , nullptr);   // Clear(section = value)
+	}
+	pINI->Clear("AITriggerTypes" , nullptr);
+
+	// 2) Re-emit every trigger whose IsGlobal matches this pass.
+	for (int i = 0; i < AITriggerTypeClass::Array->Count; ++i) {
+		AITriggerTypeClass* pType = AITriggerTypeClass::Array->Items[i];
+		if (pType->Type == isGlobal)
+			pType->SaveToINI(pINI);      // virtual AbstractTypeClass::Write_INI
+	}
+
+	// Global pass writes no enable flags.  (ORIG: if(!v2))
+	if (isGlobal == AITriggerType::Local)
+		return;
+
+	// 3) Scenario pass also rewrites [AITriggerTypesEnable].
+	pINI->Clear("AITriggerTypesEnable", nullptr);
+	for (int i = 0; i < AITriggerTypeClass::Array->Count; ++i) {
+		AITriggerTypeClass* pType = AITriggerTypeClass::Array->Items[i];
+		pINI->WriteBool("AITriggerTypesEnable", pType->ID, pType->IsEnabled);  // ORIG: IniName
+	}
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x41F490, FakeAITriggerTypeClass::_WriteScenarioINI)

@@ -197,10 +197,40 @@ namespace
 			CloseHandle(reinterpret_cast<HANDLE>(thread));
 	}
 
-	void DeleteFilesOlderThan(int days, const char* pPattern)
+	void RemoveDirectoryRecursive(const char* pPattern)
 	{
 		char search[MAX_PATH];
-		_snprintf_s(search, _TRUNCATE, "%s\\%s", ExceptionHandler::DebugDirectory, pPattern);
+		_snprintf_s(search, _TRUNCATE, "%s\\*", pPattern);
+
+		WIN32_FIND_DATAA data;
+		HANDLE find = FindFirstFileA(search, &data);
+		if (find != INVALID_HANDLE_VALUE)
+		{
+			do
+			{
+				if (strcmp(data.cFileName, ".") == 0 || strcmp(data.cFileName, "..") == 0)
+					continue;
+
+				char child[MAX_PATH];
+				_snprintf_s(child, _TRUNCATE, "%s\\%s", pPattern, data.cFileName);
+
+				if (!(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+					RemoveDirectoryRecursive(child);
+				else
+					DeleteFileA(child);
+			}
+			while (FindNextFileA(find, &data));
+
+			FindClose(find);
+		}
+
+		RemoveDirectoryA(pPattern);
+	}
+
+	void DeleteOldSnapshots(int days)
+	{
+		char search[MAX_PATH];
+		_snprintf_s(search, _TRUNCATE, "%s\\snapshot-*", ExceptionHandler::DebugDirectory);
 
 		FILETIME nowFt;
 		GetSystemTimeAsFileTime(&nowFt);
@@ -216,7 +246,7 @@ namespace
 
 		do
 		{
-			if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+			if (!(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
 				continue;
 
 			ULARGE_INTEGER written;
@@ -227,7 +257,7 @@ namespace
 			{
 				char path[MAX_PATH];
 				_snprintf_s(path, _TRUNCATE, "%s\\%s", ExceptionHandler::DebugDirectory, data.cFileName);
-				DeleteFileA(path);
+				RemoveDirectoryRecursive(path);
 			}
 		}
 		while (FindNextFileA(find, &data));
@@ -297,10 +327,7 @@ void ExceptionHandler::Init()
 	DbgHelpLockReady = true;
 
 	EnsureDebugDirectory();
-	DeleteFilesOlderThan(ArtifactMaxAgeDays, "EXCEPT_*.TXT");
-	DeleteFilesOlderThan(ArtifactMaxAgeDays, "CRASHDUMP_*.DMP");
-	DeleteFilesOlderThan(ArtifactMaxAgeDays, "FULLDUMP_*.DMP");
-	DeleteFilesOlderThan(ArtifactMaxAgeDays, "DEBUGLOG_*.LOG");
+	DeleteOldSnapshots(ArtifactMaxAgeDays);
 
 	// Load dbghelp and the symbol tables now - during a crash, threads are
 	// suspended and one of them might hold the loader lock.
@@ -465,3 +492,4 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x6BE06F, ExceptionHandler::Handle);
 // Top_Level_Exception_Filter, registered via SetUnhandledExceptionFilter
 // for the shutdown phase after Main_Game returns.
 DEFINE_FUNCTION_JUMP(LJMP, 0x6BB996, ExceptionHandler::Handle);
+DEFINE_FUNCTION_JUMP(LJMP, 0x4C8FE0, ExceptionHandler::Handle)

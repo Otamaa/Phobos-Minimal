@@ -3364,7 +3364,7 @@ void FakeRulesClass::_ReadMPlayer(CCINIClass* pINI)
 	detail::read(this->FogOfWar, exINI, section, "FogOfWar");
 	detail::read(this->MCVRedeploys, exINI, section, "MCVRedeploys");
 	// Ext
-	auto pData = RulesExtData::Instance();
+	//auto pData = RulesExtData::Instance();
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x671EA0, FakeRulesClass::_ReadMPlayer);

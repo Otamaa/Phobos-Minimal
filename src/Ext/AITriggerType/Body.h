@@ -150,8 +150,8 @@ public:
 	bool _NewTeam( HouseClass* house1, HouseClass* house2, bool skip);
 	bool _SaveToINI(CCINIClass* pINI);
 	bool _LoadFromINI(CCINIClass* pINI);
-	static bool _ReadScenarioINI(CCINIClass* pINI);
-	static bool _WriteScenarioINI(CCINIClass* pINI);
+	static void __fastcall _ReadScenarioINI(CCINIClass* pINI , AITriggerType isGlobal);
+	static void __fastcall _WriteScenarioINI(CCINIClass* pINI,  AITriggerType isGlobal);
 };
 
 static_assert(sizeof(FakeAITriggerTypeClass) == sizeof(AITriggerTypeClass), "Invalid Size !");

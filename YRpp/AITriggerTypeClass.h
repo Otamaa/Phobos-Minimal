@@ -109,7 +109,7 @@ protected:
 public:
 
 	AITriggerCondition ConditionType;
-	int              IsGlobal;
+	AITriggerType              Type;
 	AITriggerHouseType OwnerHouseType;
 	bool             IsEnabled;
 	int              HouseIndex;
@@ -127,10 +127,13 @@ public:
 	TechnoTypeClass* ConditionObject;
 	TeamTypeClass*   Team1;
 	TeamTypeClass*   Team2;
-	AITriggerConditionComparator Conditions [4]; // don't ask
+	union{
+		AITriggerConditionComparator Conditions [4]; // don't ask
+		char _Conditions[32];
+	};
 	int              TimesExecuted;
 	int              TimesCompleted;
 	int              unknown_10C;
 };
-
+static_assert(sizeof(AITriggerConditionComparator) == (0x8), "Invalid Size");
 static_assert(sizeof(AITriggerTypeClass) == (0x110), "Invalid Size");

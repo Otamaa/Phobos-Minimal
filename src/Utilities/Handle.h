@@ -10,101 +10,116 @@
 struct Handles
 {
 	static std::vector<Handles*> Array;
+
+	// Index into Array, for O(1) swap-and-pop deregister. -1 = not registered.
+	std::size_t RegistryIndex = static_cast<std::size_t>(-1);
+
+	virtual ~Handles() noexcept = default;
+
+	// Drop the owned resource WITHOUT deleting it (shutdown safety).
 	virtual void detachptr() = 0;
+
+	// Tell EVERY live handle to let go of its resource. Call once, at game
+	// termination, BEFORE the game's own teardown frees things underneath us.
+	// VERIFY: hook this at your process-shutdown point (mirrors your
+	// ExceptionHandler "TerminateProcess bypasses cleanup" philosophy).
+	static void DetachAll() noexcept
+	{
+		for (auto* pHandle : Array)
+			pHandle->detachptr();
+	}
+
+protected:
+	void RegistrySelf() noexcept
+	{
+		this->RegistryIndex = Array.size();
+		Array.emplace_back(this);
+	}
+
+	void UnregistrySelf() noexcept
+	{
+		if (this->RegistryIndex == static_cast<std::size_t>(-1))
+			return;
+
+		const std::size_t last = Array.size() - 1;
+		if (this->RegistryIndex != last)
+		{
+			// Move the tail element into our slot and fix its index.
+			Array[this->RegistryIndex] = Array[last];
+			Array[this->RegistryIndex]->RegistryIndex = this->RegistryIndex;
+		}
+
+		Array.pop_back();
+		this->RegistryIndex = static_cast<std::size_t>(-1);
+	}
 };
 
 // owns a resource. not copyable, but movable.
 template <typename T, typename Deleter, T Default = T()>
-struct Handle : public Handles
+struct Handle final : public Handles
 {
-	Handle() noexcept : Handles()
-		, Value()
+	Handle() noexcept
+		: Handles()
+		, Value(Default)
 	{
-		Handles::Array.emplace_back(this);
-	};
+		this->RegistrySelf();
+	}
 
 	explicit Handle(T value) noexcept
 		: Handles()
 		, Value(value)
 	{
-		Handles::Array.emplace_back(this);
+		this->RegistrySelf();
 	}
 
 	Handle(const Handle&) = delete;
 
+	// BUGFIX: original stole the value but never registered `this`.
 	Handle(Handle&& other) noexcept
 		: Handles()
 		, Value(other.release())
-	{ }
-
-	virtual ~Handle() noexcept
 	{
-		if (this->Value != Default)
-		{
-			Deleter {}(this->Value);
-		}
-
-		this->Value = Default;
-		auto find = std::ranges::find_if(Handles::Array, [this](auto ptr)
- {
-	 return this == ptr;
-		});
-
-		if (find != Handles::Array.end())
-			Handles::Array.erase(find, Handles::Array.end());
+		this->RegistrySelf();
+		// `other` stays registered with Value == Default; its dtor is a safe
+		// no-op (no delete) and correctly deregisters itself.
 	}
 
-	Handle& operator = (const Handle&) = delete;
+	~Handle() noexcept override
+	{
+		if (this->Value != Default)
+			Deleter {}(this->Value);
 
-	Handle& operator = (Handle&& other) noexcept
+		this->Value = Default;
+		this->UnregistrySelf(); // BUGFIX + PERF: O(1), single element only.
+	}
+
+	Handle& operator=(const Handle&) = delete;
+
+	Handle& operator=(Handle&& other) noexcept
 	{
 		if (this != &other)
-		{
 			this->reset(other.release());
-		}
+
 		return *this;
 	}
 
-	COMPILETIMEEVAL explicit operator bool() const noexcept
-	{
-		return this->Value != Default;
-	}
+	COMPILETIMEEVAL explicit operator bool() const noexcept { return this->Value != Default; }
+	COMPILETIMEEVAL operator T() const noexcept { return this->Value; }
+	COMPILETIMEEVAL T get() const noexcept { return this->Value; }
+	COMPILETIMEEVAL T operator->() const noexcept { return this->get(); }
 
-	COMPILETIMEEVAL operator T () const noexcept
-	{
-		return this->Value;
-	}
-
-	COMPILETIMEEVAL T get() const noexcept
-	{
-		return this->Value;
-	}
-
-	COMPILETIMEEVAL T operator->() const noexcept
-	{
-		return get();
-	}
-
-	COMPILETIMEEVAL T release() noexcept
-	{
-		return std::exchange(this->Value, Default);
-	}
+	COMPILETIMEEVAL T release() noexcept { return std::exchange(this->Value, Default); }
 
 	void reset(T value = Default) noexcept
 	{
 		if (this->Value != Default)
-		{
 			Deleter {}(this->Value);
-		}
 
 		this->Value = value;
 	}
 
-	//release all references to avoid double delete issues
-	virtual void detachptr() override
-	{
-		this->Value = Default;
-	}
+	// release the reference WITHOUT deleting - avoids double-delete on shutdown.
+	void detachptr() noexcept override { this->Value = Default; }
 
 	void swap(Handle& other) noexcept
 	{
@@ -112,28 +127,220 @@ struct Handle : public Handles
 		swap(this->Value, other.Value);
 	}
 
-	friend void swap(Handle& lhs, Handle& rhs) noexcept
-	{
-		lhs.swap(rhs);
-	}
+	friend void swap(Handle& lhs, Handle& rhs) noexcept { lhs.swap(rhs); }
 
 	bool load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
-		return Stm
-			.Process(this->Value, RegisterForChange)
-			.Success()
-			;
+		return Stm.Process(this->Value, RegisterForChange).Success();
 	}
 
 	bool save(PhobosStreamWriter& Stm) const
 	{
-		return Stm
-			.Process(this->Value)
-			.Success()
-			;
+		return Stm.Process(this->Value).Success();
 	}
 
 private:
+	T Value { Default };
+};
+
+struct WeakRefNodeBase;
+// Lives on the TARGET's extension data - one head per observable object.
+struct WeakRefList
+{
+	WeakRefNodeBase* Head = nullptr;
+
+	// Called from the target's death path. Walks the list ONCE, nulls every
+	// observer, and clears the head. Does NOT per-element unlink (that would
+	// mutate the list mid-walk); it detaches wholesale so no node keeps a
+	// pointer back into this soon-to-be-freed head.
+	void DetachAll() noexcept;
+};
+
+struct WeakRefNodeBase
+{
+	WeakRefNodeBase* Prev = nullptr;
+	WeakRefNodeBase* Next = nullptr;
+	WeakRefList* Owner = nullptr;
+
+	virtual ~WeakRefNodeBase() noexcept = default;
+
+	// Derived nulls its own stored value here.
+	virtual void detachptr() noexcept = 0;
+
+	void Link(WeakRefList* list) noexcept
+	{
+		if (list == nullptr)
+			return; // target has no ref-list (e.g. no ext data) - stay unlinked.
+
+		this->Owner = list;
+		this->Prev = nullptr;
+		this->Next = list->Head;
+
+		if (list->Head != nullptr)
+			list->Head->Prev = this;
+
+		list->Head = this;
+	}
+
+	void Unlink() noexcept
+	{
+		if (this->Owner == nullptr)
+			return; // not linked - nothing to do.
+
+		if (this->Prev != nullptr)
+			this->Prev->Next = this->Next;
+		else
+			this->Owner->Head = this->Next; // we were the head.
+
+		if (this->Next != nullptr)
+			this->Next->Prev = this->Prev;
+
+		this->Prev = nullptr;
+		this->Next = nullptr;
+		this->Owner = nullptr;
+	}
+};
+
+inline void WeakRefList::DetachAll() noexcept
+{
+	WeakRefNodeBase* node = this->Head;
+	while (node != nullptr)
+	{
+		WeakRefNodeBase* next = node->Next;
+
+		node->detachptr();   // null the observer's stored value
+		node->Prev = nullptr;
+		node->Next = nullptr;
+		node->Owner = nullptr; // must not reference this head after we return
+
+		node = next;
+	}
+
+	this->Head = nullptr;
+}
+
+// -----------------------------------------------------------------------------
+// Traits: maps a target value -> its WeakRefList*. Specialize / replace for
+// your extension containers.
+//
+// VERIFY: wire GetList to your real ext-data accessor, e.g. for AbstractClass*
+//   return &AbstractExt::ExtMap.Find(value)->WeakRefs;
+// Return nullptr when the target has no ext data - Link() guards for that.
+// -----------------------------------------------------------------------------
+template <typename T>
+struct WeakHandleTraits
+{
+	static WeakRefList* GetList(T /*value*/) noexcept
+	{
+		// VERIFY: replace with the real per-target list lookup. Returning
+		// nullptr here means the handle simply won't self-invalidate.
+		return nullptr;
+	}
+};
+
+template <typename T, typename Traits = WeakHandleTraits<T>, T Default = T()>
+struct WeakHandle final : public WeakRefNodeBase
+{
+	WeakHandle() noexcept
+		: WeakRefNodeBase()
+		, Value(Default)
+	{}
+
+	explicit WeakHandle(T value) noexcept
+		: WeakRefNodeBase()
+		, Value(value)
+	{
+		this->Attach();
+	}
+
+	WeakHandle(const WeakHandle& other) noexcept
+		: WeakRefNodeBase()
+		, Value(other.Value)
+	{
+		this->Attach(); // link into the SAME target's list.
+	}
+
+	WeakHandle(WeakHandle&& other) noexcept
+		: WeakRefNodeBase()
+		, Value(other.Value)
+	{
+		this->Attach();
+		other.Clear(); // unlink + null the source.
+	}
+
+	~WeakHandle() noexcept override { this->Unlink(); }
+
+	WeakHandle& operator=(const WeakHandle& other) noexcept
+	{
+		if (this != &other)
+			this->reset(other.Value);
+
+		return *this;
+	}
+
+	WeakHandle& operator=(WeakHandle&& other) noexcept
+	{
+		if (this != &other)
+		{
+			this->reset(other.Value);
+			other.Clear();
+		}
+
+		return *this;
+	}
+
+	COMPILETIMEEVAL explicit operator bool() const noexcept { return this->Value != Default; }
+	COMPILETIMEEVAL operator T() const noexcept { return this->Value; }
+	COMPILETIMEEVAL T get() const noexcept { return this->Value; }
+	COMPILETIMEEVAL T operator->() const noexcept { return this->get(); }
+
+	void reset(T value = Default) noexcept
+	{
+		this->Unlink();
+		this->Value = value;
+		this->Attach();
+	}
+
+	// WeakRefList::DetachAll() calls this on target death.
+	void detachptr() noexcept override { this->Value = Default; }
+
+	void swap(WeakHandle& other) noexcept
+	{
+		// Re-link both so each ends up on the other's target list.
+		const T tmp = this->Value;
+		this->reset(other.Value);
+		other.reset(tmp);
+	}
+
+	friend void swap(WeakHandle& lhs, WeakHandle& rhs) noexcept { lhs.swap(rhs); }
+
+	bool load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		const bool ok = Stm.Process(this->Value, RegisterForChange).Success();
+		this->Attach(); // list is runtime-only: re-link after load.
+		return ok;
+	}
+
+	bool save(PhobosStreamWriter& Stm) const
+	{
+		return Stm.Process(this->Value).Success();
+	}
+
+private:
+	void Attach() noexcept
+	{
+		if (this->Value == Default)
+			return; // nothing to observe.
+
+		this->Link(Traits::GetList(this->Value));
+	}
+
+	void Clear() noexcept
+	{
+		this->Unlink();
+		this->Value = Default;
+	}
+
 	T Value { Default };
 };
 

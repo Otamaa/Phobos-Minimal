@@ -89,7 +89,7 @@ class NOVTABLE FakeTeamTypeClass : public TeamTypeClass
 {
 public:
 	static bool __fastcall _DoReinforcement(TeamTypeClass* pType, int waypoint);
-	static bool __fastcall _TunnelMaybe(TeamTypeClass* pType, FootClass* pGroup, CellStruct waypointCell, bool inRadar);
+	static bool __fastcall _TunnelMaybe(TeamTypeClass* pType, FootClass* pGroup, CellStruct* waypointCell, bool inRadar);
 	static FootClass* __fastcall _CreateGroup(TeamTypeClass* pType);
 	TeamClass* _CreateOneOf(HouseClass* pHouse);
 

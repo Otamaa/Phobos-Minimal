@@ -397,7 +397,7 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 		{
 			auto pTrigger = AITriggerTypeClass::Array->Items[trig];
 
-			if (!pTrigger || ScenarioClass::Instance->IgnoreGlobalAITriggers == (bool)pTrigger->IsGlobal || !pTrigger->Team1)
+			if (!pTrigger || ScenarioClass::Instance->IgnoreGlobalAITriggers == (bool)pTrigger->Type || !pTrigger->Team1)
 				continue;
 
 			// Ignore offensive teams if the next trigger must be defensive
@@ -1090,7 +1090,7 @@ std::vector<TeamTypeClass*> NOINLINE Suggested_New_Team(HouseClass* forHouse_, b
 		 {
 			 if (auto pTrigger = AITriggerTypeClass::Array->Items[i])
 			 {
-				 if (!pTrigger || (ignoreGlobalAITriggers && pTrigger->IsGlobal && !pTrigger->IsEnabled) || !pTrigger->Team1)
+				 if (!pTrigger || (ignoreGlobalAITriggers && pTrigger->Type == AITriggerType::Global && !pTrigger->IsEnabled) || !pTrigger->Team1)
 					 continue;
 
 				 const int triggerHouse = pTrigger->HouseIndex;

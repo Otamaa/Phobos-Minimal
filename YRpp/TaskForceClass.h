@@ -68,6 +68,7 @@ public:
 	virtual int Size() const R0;
 
 	int Required() const { JMP_THIS(0x6E8160); }
+	int TechLevelRequired() { JMP_THIS(0x6E8780); }
 
 	//Constructor
 	TaskForceClass(const char* pID) noexcept

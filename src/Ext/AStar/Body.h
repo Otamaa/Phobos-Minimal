@@ -320,6 +320,19 @@ public:
 class FakeAStarPathFinderClass : public AStarPathFinderClass
 {
 public:
+	static COMPILETIMEEVAL reference<FakeAStarPathFinderClass, 0x87E8B8> const Instance {};
+
+	int AttemptPath(
+		CellStruct* pFromMapCrd,
+		CellStruct* pToMapCrd,
+		TechnoClass* pTechno,
+		bool bFromAlt,
+		bool bToAlt,
+		MovementZone nMovementZone = MovementZone::None)
+	{
+		JMP_THIS(0x42D170);
+	}
+
 	double Calc_Float(CellClass** arg0, CellClass** a3, int a4, Move a5, FootClass* a6) const;
 	PathType* Find_Path_Regular(CellStruct* start, CellStruct* dest, FootClass* techno,
 		int* moves, int maxCount, bool useHierarchical);

@@ -24,6 +24,12 @@ enum class TaskForceType : int
 	Global , //the TaskForce is loaded from AIMD.ini
 };
 
+enum class AITriggerType : int
+{
+	Local, // the AITrigger is loaded from MapFile
+	Global, //the AITrigger is loaded from AIMD.ini
+};
+
 enum class TankBunkerState : int
 {
 	Idle = 0,            // Waiting for tank to be positioned inside bunker

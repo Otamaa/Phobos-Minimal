@@ -543,7 +543,7 @@ bool SWTypeExtData::IsTargetConstraintsEligible(SuperClass* pThis, bool IsPlayer
 
 	return true;
 }
-#pragma optimize("", off)
+
 bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 {
 	const auto pExt = SWTypeExtContainer::Instance.Find(pThis->Type);
@@ -587,7 +587,7 @@ bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 	return false;
 
 }
-#pragma optimize("", on)
+
 
 //struct TargetingInfo
 //{

@@ -43,6 +43,8 @@ public:
 	static char FullDumpPath[MAX_PATH];
 	static char ReportPath[MAX_PATH];
 
+	static std::wstring CommandLines;
+
 	// DbgHelp is not thread-safe; every Sym*/StackWalk64/MiniDumpWriteDump
 	// call is serialized through this lock.
 	static CRITICAL_SECTION DbgHelpLock;

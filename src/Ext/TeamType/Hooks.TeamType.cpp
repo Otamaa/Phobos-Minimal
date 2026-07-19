@@ -108,6 +108,7 @@ FootClass* __fastcall FakeTeamTypeClass::_CreateGroup(TeamTypeClass* pType)
 		Debug::FatalErrorAndExit("Creating Team[%s] groub without proper Ownership may cause crash , Please check !", pType->ID);
 
 	auto* pTeam = GameCreate<TeamClass>(pType, pOwner, false);
+
 	if (pTeam) {
 		pTeam->IsForcedActive = true;
 		pTeam->IsUnderStrength = false;
@@ -144,7 +145,7 @@ FootClass* __fastcall FakeTeamTypeClass::_CreateGroup(TeamTypeClass* pType)
 		}
 	}
 
-	const bool hasAircraft = pTeam && pTeam->HasAircraft();
+	const bool hasAircraft = pTeam && ((FakeTeamClass*)pTeam)->_has_aircraft();
 
 	FootClass* pTransport = nullptr;
 	FootClass* pObject = nullptr;
@@ -179,7 +180,7 @@ FootClass* __fastcall FakeTeamTypeClass::_CreateGroup(TeamTypeClass* pType)
 			if (pTeam)
 			{
 				++Unsorted::ScenarioInit();
-				pTeam->AddMember(pUnit, false);
+				((FakeTeamClass*)pTeam)->_Add2(pUnit, false);
 				--Unsorted::ScenarioInit();
 				pUnit->IsTeamLeader = true;
 			}
@@ -255,19 +256,19 @@ FootClass* __fastcall FakeTeamTypeClass::_CreateGroup(TeamTypeClass* pType)
 
 	//call DTOR , dont delete the pointer immedietely , let the game process it
 	// and handle it automatically
-	CallDTOR(pTeam);
+	GameDelete<true, false>(pTeam);
 	return nullptr;
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x65DD30, FakeTeamTypeClass::_CreateGroup)
 
-bool __fastcall FakeTeamTypeClass::_TunnelMaybe(TeamTypeClass* pType, FootClass* pGroup, CellStruct waypointCell, bool inRadar)
+bool __fastcall FakeTeamTypeClass::_TunnelMaybe(TeamTypeClass* teamtype, FootClass* group, CellStruct* pCell, bool onRadar)
 {
-	const bool isDroppod = pType->DropPod;
-	bool allTunnel = true;
+	const bool isDropPod = teamtype->DropPod != 0;      // +0xB0
 
-	for (auto* pCheck = pGroup; pCheck; pCheck = static_cast<FootClass*>(pCheck->NextObject))
-	{
+	// --- is every member a tunnel-locomotor unit? (empty list => true) -----
+	bool allTunnel = true;
+	for (auto* pCheck = group; pCheck; pCheck = static_cast<FootClass*>(pCheck->NextObject)) {
 		auto* pCheckType = GET_TECHNOTYPE(pCheck);
 		if (!pCheckType || pCheckType->Locomotor != TunnelLocomotionClass::ClassGUID.get())
 		{
@@ -276,158 +277,196 @@ bool __fastcall FakeTeamTypeClass::_TunnelMaybe(TeamTypeClass* pType, FootClass*
 		}
 	}
 
-	int edgeDir = 0;
-	CellStruct spawnCell = waypointCell;
 
-	if (isDroppod || allTunnel || inRadar)
-	{
+	// --- resolve working cell + direction base ----------------------------
+	CellStruct cell2 = *pCell;
+	int dirBase = 0;                                      // v57
+
+	if (isDropPod || allTunnel || onRadar) {
 		CellStruct closeTo = CellStruct::Empty;
-		auto* pLeaderType = pGroup ? GET_TECHNOTYPE(pGroup) : nullptr;
-		const SpeedType speedType = pLeaderType ? pLeaderType->SpeedType : SpeedType::None;
-		MapClass::Instance->NearByLocation(spawnCell, waypointCell, speedType, ZoneType::None, MovementZone::Normal,
+		auto* pLeaderType = group ? GET_TECHNOTYPE(group) : nullptr;
+		SpeedType speedType = pLeaderType ? pLeaderType->SpeedType : SpeedType::None;
+		MapClass::Instance->NearByLocation(cell2, *pCell, speedType, ZoneType::None, MovementZone::Normal,
 			false, 1, 1, false, false, false, true, closeTo, false, false);
-	}
-	else
+	} else
 	{
 		Edge edge = Edge::North;
-		if (auto* pOwner = pType->GetHouse())
+		if (auto* pOwner = teamtype->GetHouse())
 		{
 			edge = pOwner->GetCurrentEdge();
 			if (edge < Edge::North || edge > Edge::West)
 				edge = Edge::North;
 		}
 
-		edgeDir = 2 * static_cast<int>(edge);
+		dirBase = 2 * static_cast<int>(edge);
 	}
 
-	bool didPlaceAny = false;
-	FootClass* pCurrent = pGroup;
-	FootClass* pRemaining = pCurrent ? static_cast<FootClass*>(pCurrent->NextObject) : nullptr;
-	if (pCurrent)
-		pCurrent->NextObject = nullptr;
+	// --- pop the head off the list; set up the cursor ---------------------
+	// SUSPECT (#3): group assumed non-null here.
+	FootClass* unit = group;                              // v5
+	FootClass* rest = group ? static_cast<FootClass*>(group->NextObject) : nullptr;                        // v13 / v55
+	if (group)
+		group->NextObject = nullptr;
 
-	while (pCurrent && (spawnCell.X != waypointCell.X || spawnCell.Y != waypointCell.Y))
+	CellStruct place = cell2;                             // v54 (persistent cursor)
+	bool placedAny = false;                               // a4 byte
+	bool retVal = false;                               // v14 / bl
+
+	if (!cell2.IsValid())
 	{
-		const int baseFacing = (edgeDir << 13);
-		const int rawFacing = (pCurrent->WhatAmI() == AbstractType::Aircraft)
-			? ((baseFacing - 0x6001) & 0xE000)
-			: baseFacing;
-		const auto dir = static_cast<DirType>(static_cast<unsigned char>((((rawFacing >> 7) + 1) >> 1) & 0xFF));
-
-		++Unsorted::ScenarioInit();
-
-		bool placed = false;
-		if (isDroppod)
+		// loc_65E601: initial target is the invalid marker -> drop the head.
+		if (unit)
+			GameDelete<true, false>(unit);
+		// retVal stays false
+	}
+	else
+	{
+		while (true)
 		{
-			const CoordStruct targetCoord { spawnCell.X * 256 + 128, spawnCell.Y * 256 + 128, 0 };
-			pCurrent->SetLocation(targetCoord);
-			pCurrent->SetDestination(MapClass::Instance->GetCellAt(spawnCell), true);
-			pCurrent->Locomotor->Move_To(targetCoord);
-			pCurrent->UpdateSight(false, 0, false, nullptr, 0);
-			placed = true;
-		}
-		else if (allTunnel)
-		{
-			auto* pCell = MapClass::Instance->GetCellAt(spawnCell);
-			const CoordStruct cellCoord = pCell->GetCoordsWithBridge();
-			const CoordStruct unlimboCoord { cellCoord.X, cellCoord.Y, cellCoord.Z - 400 };
+			// --- loop top (loc_65E15E) ---
+			if (!place.IsValid() || !unit)
+			{
+				retVal = placedAny;                       // loc_65E611
+				break;
+			}
 
-			placed = pCurrent->Unlimbo(unlimboCoord, dir);
+			// --- direction value (Kind_Of special-cases aircraft) ---
+			std::uint16_t dirVal = (std::uint16_t)((unsigned)dirBase << 13);
+			if (unit->WhatAmI() == AbstractType::Aircraft)         // vtable+0x2C; 2
+				dirVal = (std::uint16_t)((((unsigned)dirBase << 13) - 0x6001u) & 0xE000u);
+			++Unsorted::ScenarioInit();
+
+			// --- attempt placement ---
+			bool placed;
+			if (isDropPod)
+			{
+				CoordStruct center = CellClass::Cell2Coord(place);
+				unit->SetLocation(center);
+				unit->SetDestination(MapClass::Instance->GetCellAt(place), true);
+				unit->Locomotor->Move_To(center);
+				unit->UpdateSight(false, 0, false, nullptr, 0);
+				MapClass::Instance->RevealArea3(&unit->Location, 0, unit->LastSightRange + 3, false);
+				placed = true;                            // droppod always proceeds to LABEL_34
+			}
+			else
+			{
+				const int dir = (((dirVal >> 7) + 1) >> 1) & 0xFF;
+				if (allTunnel)
+				{
+					auto* pCell = MapClass::Instance->GetCellAt(place);
+					const CoordStruct cellCoord = pCell->GetCoords();
+					const CoordStruct unlimboCoord { cellCoord.X, cellCoord.Y, cellCoord.Z - 400 };
+					placed = unit->Unlimbo(unlimboCoord, (DirType)dir);  // +0xD8
+					if (placed)
+					{
+						int z = unit->GetZ();
+						CoordStruct adj { unit->Location.X, unit->Location.Y,
+										unit->Location.Z - 256 - z };
+						unit->SetLocation(adj);
+						unit->SetDestination(MapClass::Instance->GetCellAt(place), true);
+						unit->SetSpeedPercentage(1.0);
+						unit->Locomotor->Move_To(CellClass::Cell2Coord(place));
+					}
+				}
+				else
+				{
+					auto* pCell = MapClass::Instance->GetCellAt(place);
+					const CoordStruct cellCoord = pCell->GetCoordsWithBridge();
+					placed = unit->Unlimbo(cellCoord, (DirType)dir);     // +0xD8
+				}
+			}
+
 			if (placed)
 			{
-				pCurrent->SetDestination(MapClass::Instance->GetCellAt(spawnCell), true);
-				pCurrent->SetSpeedPercentage(1.0);
-				const CoordStruct moveTo { spawnCell.X * 256 + 128, spawnCell.Y * 256 + 128, 0 };
-					pCurrent->Locomotor->Move_To(moveTo);
-			}
-		}
-		else
-		{
-			auto* pCell = MapClass::Instance->GetCellAt(spawnCell);
-			const CoordStruct cellCoord = pCell->GetCoordsWithBridge();
-			placed = pCurrent->Unlimbo(cellCoord, dir);
-		}
+				// --- LABEL_34: success ---
+				placedAny = true;
+				if (unit->WhatAmI() != AbstractType::Aircraft)
+				{
+					unit->QueueMission(Mission::Guard, 0);   // +0x1E8; 5
+					unit->NextMission();                         // +0x1EC
+				}
 
-		if (placed)
-		{
-			didPlaceAny = true;
-			if (pCurrent->WhatAmI() != AbstractType::Aircraft)
-			{
-				pCurrent->QueueMission(Mission::Guard, false);
-				pCurrent->NextMission();
-			}
+				if (isDropPod)
+				{
+					// scatter: move the cursor to the first in-map neighbour
+					CellStruct scatter = CellStruct::Empty;      // default when none found
+					for (int i = 0; i < 8; ++i)
+					{
+						const auto& adj = CellSpread::AdjacentCell[i & 7];
+						CellStruct candidate { static_cast<short>(place.X + adj.X), static_cast<short>(place.Y + adj.Y) };
 
-			if (isDroppod)
+						if (MapClass::Instance->CoordinatesLegal(candidate))
+						{
+							scatter = candidate;
+							break;
+						}
+					}
+					place = scatter;
+				}
+				// -> advance
+			}
+			else
 			{
+				// --- unlimbo failed: hunt an off-map edge cell we can enter ---
 				bool found = false;
 				for (int i = 0; i < 8; ++i)
 				{
 					const auto& adj = CellSpread::AdjacentCell[i & 7];
-					CellStruct candidate { static_cast<short>(spawnCell.X + adj.X), static_cast<short>(spawnCell.Y + adj.Y) };
-					if (MapClass::Instance->CoordinatesLegal(candidate))
+					CellStruct candidate { static_cast<short>(place.X + adj.X), static_cast<short>(place.Y + adj.Y) };
+					if (!MapClass::Instance->CoordinatesLegal(candidate) &&
+						unit->IsCellOccupied(MapClass::Instance->GetCellAt(candidate), i , -1 , nullptr , true) == Move::OK)  // +0x1AC
 					{
-						spawnCell = candidate;
+						place = candidate;
 						found = true;
 						break;
 					}
 				}
 				if (!found)
-					spawnCell = waypointCell;
-			}
-		}
-		else
-		{
-			bool found = false;
-			for (int i = 0; i < 8; ++i)
-			{
-				const auto& adj = CellSpread::AdjacentCell[i & 7];
-				CellStruct candidate { static_cast<short>(spawnCell.X + adj.X), static_cast<short>(spawnCell.Y + adj.Y) };
+					place = CellStruct::Empty;
 
-				if (!MapClass::Instance->CoordinatesLegal(candidate))
-					continue;
-
-				if (pCurrent->Locomotor && pCurrent->Locomotor->Can_Enter_Cell(candidate) == Move::OK)
+				if (found && place.IsValid())
 				{
-					spawnCell = candidate;
-					found = true;
-					break;
+					--Unsorted::ScenarioInit();
+					continue;                             // retry SAME unit at the new cell
 				}
+
+				GameDelete<true, false>(unit);                         // give up on this unit
+				// -> advance
 			}
 
-			if (!found || (spawnCell.X == waypointCell.X && spawnCell.Y == waypointCell.Y))
+			// --- advance to the next unit (LABEL_49 / loc_65E5AE) ---
+			unit = rest;
+			--Unsorted::ScenarioInit();
+			if (rest)
 			{
-				spawnCell = waypointCell;
-				CallDTOR(pCurrent);
-				pCurrent = nullptr;
+				FootClass* next = flag_cast_to<FootClass*>(rest->NextObject);
+				rest->NextObject = nullptr;                     // detach the node now held in `unit`
+				rest = next;
 			}
 		}
-
-		if (pCurrent)
-		{
-			pCurrent = pRemaining;
-			pRemaining = pCurrent ? static_cast<FootClass*>(pCurrent->NextObject) : nullptr;
-			if (pCurrent)
-				pCurrent->NextObject = nullptr;
-		}
-
-		--Unsorted::ScenarioInit();
 	}
 
-	if (pCurrent)
-		CallDTOR(pCurrent);
-
-	while (pRemaining)
+	// --- cleanup: delete every unit left on the list (LABEL_57) -----------
+	while (rest)
 	{
-		auto* pNext = static_cast<FootClass*>(pRemaining->NextObject);
-		pRemaining->NextObject = nullptr;
-		CallDTOR(pRemaining);
-		pRemaining = pNext;
+		FootClass* next = static_cast<FootClass*>(rest->NextObject);
+		rest->NextObject = nullptr;
+		GameDelete<true, false>(rest);                                 // ORIG had a dead `if (rest)` guard
+		rest = next;
 	}
 
-	return didPlaceAny;
+	return retVal;
 }
-
 DEFINE_FUNCTION_JUMP(LJMP, 0x65E010, FakeTeamTypeClass::_TunnelMaybe)
+
+bool __fastcall Do_Reinforcements_TunnelMaybe(
+	TeamTypeClass* teamtype,
+	FootClass* edx0, 
+	CellStruct* arg0l, 
+	bool inRadar
+) {
+	JMP_FAST(0x65E010);
+}
 
 // ============================================================================
 // Full backport of Do_Reinforcements (65D8E0–65DD25)
@@ -464,7 +503,7 @@ bool __fastcall FakeTeamTypeClass::_DoReinforcement(TeamTypeClass* pType, int wa
 		}
 	}
 
-	const bool isDroppod = pType->DropPod;
+	const bool isDroppod = pType->DropPod != 0;
 	auto* pGroup = FakeTeamTypeClass::_CreateGroup(pType);
 
 	if (!pGroup)
@@ -481,10 +520,24 @@ bool __fastcall FakeTeamTypeClass::_DoReinforcement(TeamTypeClass* pType, int wa
 	else
 		pType->GetWaypoint(&spawnCell);
 
-	const bool isInvalidCell = (spawnCell.X == -1 && spawnCell.Y == -1);
+	auto findPopOutBuilding = [](const CellStruct& at) {
+		BuildingClass* found = nullptr;
+		CellClass* base = MapClass::Instance->GetCellAt(at);
+		for (int f = -1; f < 8; ++f)                                   // self + 8 neighbours
+		{
+			CellClass* c = (f == -1) ? base : base->GetAdjacentCell((FacingType)f);
+			BuildingClass* b = c->GetBuilding();
+			if (b && b->Health > 0 && b->HasValidExitCell())
+				found = b;
+		}
+
+		return found; 
+	};
+
+	bool deliver = isDroppod || !spawnCell.IsValid();
 
 	// Infantry-from-building pop path
-	if (!isDroppod && !isInvalidCell)
+	if (!deliver)
 	{
 		bool infantryOnly = true;
 		for (auto* pUnit = pGroup; pUnit; pUnit = static_cast<FootClass*>(pUnit->NextObject))
@@ -496,47 +549,42 @@ bool __fastcall FakeTeamTypeClass::_DoReinforcement(TeamTypeClass* pType, int wa
 			}
 		}
 
-		if (infantryOnly)
-		{
-			CellClass* pCell = MapClass::Instance->GetCellAt(spawnCell);
-			BuildingClass* pCandidate = nullptr;
+		if (!infantryOnly) {
+			deliver = true;                                           // fall through to delivery
+		}else if (BuildingClass* candidate = findPopOutBuilding(spawnCell)) {
+			int exitCount = 0;
+			FootClass* pCurrent = pGroup;
+			while (pCurrent) {
+				FootClass* pNext = static_cast<FootClass*>(pCurrent->NextObject);
+				pCurrent->NextObject = nullptr;
 
-			// Check the cell and its 8 neighbours for a suitable building exit
-			for (int f = -1; f < 8; ++f)
-			{
-				CellClass* pCheck = (f == -1) ? pCell : pCell->GetAdjacentCell(static_cast<FacingType>(f));
-				if (!pCheck)
-					continue;
-				BuildingClass* pBld = pCheck->GetBuilding();
-				if (pBld && pBld->Health > 0) {
-					if (pBld->HasValidExitCell())
-						pCandidate = pBld;
-				}
-			}
-
-			if (pCandidate)
-			{
-				int exitCount = 0;
-				FootClass* pCurrent = pGroup;
-				while (pCurrent)
-				{
-					FootClass* pNext = static_cast<FootClass*>(pCurrent->NextObject);
-					pCurrent->NextObject = nullptr;
-
-					if (pCandidate->KickOutUnit(pCurrent, spawnCell) == KickOutResult::Succeeded)
-					{
-						pCandidate->SendToFirstLink(RadioCommand::NotifyUnlink);
+				const int kind = (int)pCurrent->WhatAmI();               // SUSPECT: constant, re-evaled (vanilla)
+				if (kind >= 1 && kind <= 2) {
+					candidate->Passengers.AddPassenger(pCurrent);
+					pCurrent->Undiscover();                                    // vftable+0x11C
+					pCurrent->SetLocation(candidate->Location);
+					candidate->QueueMission(Mission::Unload, 0);     // vftable+0x1E8; 0x10
+					++exitCount;
+				} else if (kind == 6) {
+					if (candidate->KickOutUnit(pCurrent, spawnCell) == KickOutResult::Succeeded) {
+						candidate->SendToFirstLink(RadioCommand::NotifyUnlink);
 						++exitCount;
+					} else {
+						GameDelete<true, false>(pCurrent);
 					}
-					else
-					{
-						CallDTOR(pCurrent);
-					}
-
-					pCurrent = pNext;
 				}
-				return exitCount > 0;
+				else   // kind <= 0, or 3/4/5/7+  (ORIG had a dead `if (v24)` guard)
+				{
+					GameDelete<true, false>(pCurrent);
+				}
+
+				pCurrent = pNext;
 			}
+			return exitCount > 0;
+		}
+		else
+		{
+			deliver = true;                                           // no candidate -> delivery 
 		}
 	}
 
@@ -544,8 +592,7 @@ bool __fastcall FakeTeamTypeClass::_DoReinforcement(TeamTypeClass* pType, int wa
 	const bool inRadar = hasSpecificWaypoint && MapClass::Instance->IsWithinUsableArea(spawnCell, true);
 	bool doRadarEvent = false;
 
-	if (isDroppod)
-	{
+	if (isDroppod) {
 		// Integrate TeamTypeClass_CreateInstance_Plane (0x65DBB3):
 		// Use per-house paradrop plane (HouseExtData) instead of global PDPLANE
 		auto* pPlaneType = HouseExtData::GetParadropPlane(pGroup->Owner);
@@ -563,22 +610,19 @@ bool __fastcall FakeTeamTypeClass::_DoReinforcement(TeamTypeClass* pType, int wa
 
 		// Determine which map edge to spawn the paradrop plane on
 		CellStruct planeBuf;
-		if (pType->UseTransportOrigin)
-		{
+		if (pType->UseTransportOrigin) {
 			pType->GetTransportWaypoint(&planeBuf);
-		}
-		else
-		{
+		} else {
 			// Integrate Do_Reinforcement_ValidateHouse (0x65DC11) edge logic:
 			Edge spawnEdge;
+
 			if (!pGroup->Owner) {
 				spawnEdge = Edge::North;
 			}
 			else if (pGroup->Owner->StaticData.StartingEdge < Edge::North
 				  || pGroup->Owner->StaticData.StartingEdge > Edge::West) {
 				spawnEdge = pGroup->Owner->GetHouseEdge();
-			}
-			else {
+			} else {
 				spawnEdge = pGroup->Owner->StaticData.StartingEdge;
 			}
 
@@ -593,8 +637,8 @@ bool __fastcall FakeTeamTypeClass::_DoReinforcement(TeamTypeClass* pType, int wa
 		const bool placed = AircraftExtData::PlaceReinforcementAircraft(pPlane, CellClass::Coord2Cell(spawnCoord));
 
 		if (!placed)
-		{
-			CallDTOR(pPlane);
+ {
+			GameDelete<true, false>(pPlane);
 			return true;
 		}
 
@@ -603,13 +647,11 @@ bool __fastcall FakeTeamTypeClass::_DoReinforcement(TeamTypeClass* pType, int wa
 		pPlane->NextMission();
 		doRadarEvent = true;
 	}
-	else
-	{
-		doRadarEvent = FakeTeamTypeClass::_TunnelMaybe(pType, pGroup, spawnCell, inRadar);
+	else {
+		doRadarEvent = Do_Reinforcements_TunnelMaybe(pType, pGroup, &spawnCell, inRadar);
 	}
 
-	if (doRadarEvent)
-	{
+	if (doRadarEvent) {
 		HouseClass* pTeamOwner = pType->GetHouse();
 		if (pTeamOwner && pTeamOwner->IsAlliedWith(HouseClass::CurrentPlayer.get()))
 			RadarEventClass::Create(spawnCell);
