@@ -266,7 +266,31 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 
 			// When in recoiling or is not main turret, need to bypass cache and draw without saving
 			const bool turShouldRedraw = turretInRecoil || turIdx >= 0;
-			const auto turKey = turShouldRedraw ? -1 : flags;
+			auto turretKeyBodyFacingFixed = [&]() -> int
+				{
+					if (turShouldRedraw)
+						return -1;
+
+					int key = flags;
+					if (flags == -1)
+						return -1;
+
+					//only when slope present , otherwise this will break the non slope facing too 
+					if(pThis->GetCell()->SlopeIndex) {
+						const auto* offset = (size_t)turIdx >= pDrawTypeExt->ExtraTurretOffsets.size()
+							? reinterpret_cast<CoordStruct*>(pDrawTypeExt->TurretOffset.operator->())
+							: &pDrawTypeExt->ExtraTurretOffsets[turIdx];
+
+						if (offset->X != 0 || offset->Y != 0 || offset->Z != 0) 
+						{
+							key &= ~0x3E0;                                             // clear stale BodyFacing bits
+							key |= (static_cast<int>(pThis->PrimaryFacing.Current().GetFacing<32>()) << 5) & 0x3E0;
+						}
+					}
+
+					return key;
+				};
+			const auto turKey = turretKeyBodyFacingFixed();
 			const auto turCache = turShouldRedraw ? nullptr : &pDrawType->VoxelCaches.TurretWeapon;
 
 			auto shouldCalculateMatrix = [=]()

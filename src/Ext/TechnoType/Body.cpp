@@ -772,6 +772,7 @@ void  TechnoTypeExtData::ApplyTurretOffset(Matrix3D* mtx, double factor, int tur
 		reinterpret_cast<CoordStruct*>(this->TurretOffset.operator->()) : &this->ExtraTurretOffsets[turIdx];
 
 	mtx->Translate((float)(offset->X * factor), (float)(offset->Y * factor), (float)(offset->Z * factor));
+	//mtx->TranslateX(static_cast<float>(offset->X * factor));
 }
 
 AnimTypeClass* TechnoTypeExtData::GetSinkAnim(TechnoClass* pThis)
@@ -2391,8 +2392,9 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		this->GreyCameoPCX.Read(&CCINIClass::INI_Art(), pArtSection, "GreyCameoPCX");
 		this->AlternateFLH_OnTurret.Read(exArtINI, pArtSection, "AlternateFLH.OnTurret");
-		this->TurretOffset.Read(exArtINI, pArtSection, GameStrings::TurretOffset());
 		this->AlternateFLH_ApplyVehicle.Read(exArtINI, pArtSection, "AlternateFLH.ApplyVehicle");
+
+		this->TurretOffset.Read(exArtINI, pArtSection, GameStrings::TurretOffset());
 
 		if (!this->TurretOffset.isset())
 		{

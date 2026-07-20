@@ -611,8 +611,17 @@ DEFINE_HOOK(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 	if (!(pTurretVoxel && pTurretVoxel->VXL && pTurretVoxel->HVA && !pTurretVoxel->VXL->LoadFailed))
 		return SkipDrawing;
 
-	if (vxlIndexKey.Is_Valid_Key())
+	if (vxlIndexKey.Is_Valid_Key()) {
+		// turret facing always varies the shadow -> always in the key
 		vxlIndexKey.MinorVoxel.TurretFacing = pThis->SecondaryFacing.Current().GetFacing<32>();
+		// Only the main turret (turIdx == -1) uses this cached key. If the MAIN turret
+		// offset is non-zero the shadow matrix becomes body-facing-dependent
+		// (mtx . Translate(offset) . Rz), so BodyFacing must be in the key or different
+		// body facings collide on one shadow cache slot -> the same stale-bitmap jitter.
+		const auto* mainOffset = reinterpret_cast<CoordStruct*>(pDrawTypeExt->TurretOffset.operator->());
+		if (mainOffset->X != 0 || mainOffset->Y != 0 || mainOffset->Z != 0)   // VERIFY: IsValid()==this
+			vxlIndexKey.MinorVoxel.BodyFacing = pThis->PrimaryFacing.Current().GetFacing<32>();
+	}
 
 	const auto pBarrelVoxel = TechnoTypeExtData::GetBarrelsVoxelFixedUp(pDrawType, pThis->CurrentTurretNumber);
 
