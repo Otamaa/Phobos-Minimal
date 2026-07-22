@@ -208,7 +208,7 @@ ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 
 
 	if (pThis->InOpenToppedTransport) {
-		int OpetoppedBonus = pThisTypeExt->OpenTransport_RangeBonus;
+		int OpetoppedBonus = pThisTypeExt->OpenTransport_RangeBonus.Get(FakeRulesClass::Instance->OpenTransport_RangeBonus);
 
 		if(auto pTrans = pThis->Transporter){
 			OpetoppedBonus += GET_TECHNOTYPEEXT(pTrans)

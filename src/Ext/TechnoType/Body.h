@@ -285,11 +285,14 @@ public:
 	Nullable<bool> OpenTopped_FireWhileMoving {};
 	Nullable<bool> OpenTopped_AllowFiringIfAttackedByLocomotor {};
 	Nullable<int> OpenTopped_WarpDistance {};
-	Valueable<bool> OpenTopped_IgnoreRangefinding { false };
-	Valueable<bool> OpenTopped_AllowFiringIfDeactivated { true };
-	Valueable<bool> OpenTopped_ShareTransportTarget { true };
-	Valueable<bool> OpenTopped_UseTransportRangeModifiers { false };
-	Valueable<bool> OpenTopped_CheckTransportDisableWeapons { false };
+	Nullable<bool> OpenTopped_IgnoreRangefinding { };
+	Nullable<bool> OpenTopped_AllowFiringIfDeactivated { };
+	Nullable<bool> OpenTopped_ShareTransportTarget { };
+	Nullable<bool> OpenTopped_UseTransportRangeModifiers { };
+	Nullable<bool> OpenTopped_CheckTransportDisableWeapons { };
+	Nullable<int> OpenTransport_RangeBonus { };
+	Nullable<float> OpenTransport_DamageMultiplier { };
+	Nullable<bool> OpenTransport_FireWhileMoving {};
 
 	Valueable<bool> AutoFire { false };
 	Valueable<bool> AutoFire_TargetSelf { false };
@@ -1249,10 +1252,6 @@ public:
 	ValueableVector<TechnoTypeClass*> TeamMember_ConsideredAs {};
 	std::vector<PhobosFixedString<0x20>> WeaponGroupAs {};
 	Valueable<bool> CanGoAboveTarget { false };
-
-	Valueable<int> OpenTransport_RangeBonus { 0 };
-	Valueable<float> OpenTransport_DamageMultiplier { 1.0f };
-	Nullable<bool> OpenTransport_FireWhileMoving {};
 
 	Nullable<Mission> ParadropMission {};
 	Nullable<Mission> AIParadropMission {};

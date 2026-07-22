@@ -334,6 +334,15 @@ void FakeRulesClass::LoadBeforeTypeData(CCINIClass* pINI)
 		this->MultipleTeamDelays[i].Read(exINI, GameStrings::General, (_teamDelay_tag + std::to_string(i + 1)).c_str());
 	}
 
+	this->StartFacing.Read(exINI, GameStrings::General, "BuildingStartFacing");
+	this->StartFacing_Random.Read(exINI, GameStrings::General, "BuildingStartFacing.Random");
+
+	this->OpenTopped_IgnoreRangefinding.Read(exINI, GameStrings::General, "OpenTopped.IgnoreRangefinding");
+	this->OpenTopped_AllowFiringIfDeactivated.Read(exINI, GameStrings::General, "OpenTopped.AllowFiringIfDeactivated");
+	this->OpenTopped_ShareTransportTarget.Read(exINI, GameStrings::General, "OpenTopped.ShareTransportTarget");
+	this->OpenTopped_UseTransportRangeModifiers.Read(exINI, GameStrings::General, "OpenTopped.UseTransportRangeModifiers");
+	this->OpenTopped_CheckTransportDisableWeapons.Read(exINI, GameStrings::General, "OpenTopped.CheckTransportDisableWeapons");
+
 	this->ParadropDelay.Read(exINI, GameStrings::General, "ParadropDelay");
 	this->ParadropEndDelay.Read(exINI, GameStrings::General, "ParadropEndDelay");
 	this->IsDischargedMemberAutocreateRecruitable.Read(exINI, GameStrings::General, "IsDischargedMemberAutocreateRecruitable");
@@ -1089,6 +1098,19 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->ParadropEndDelay)
 		.Process(this->DiscardOn_ConsiderHarvestingAsStationary)
 		.Process(this->IsDischargedMemberAutocreateRecruitable)
+		.Process(this->LeptonMindControlOffset)
+		.Process(this->MindControlRingOffset)
+
+		.Process(this->OpenTopped_IgnoreRangefinding)
+		.Process(this->OpenTopped_AllowFiringIfDeactivated)
+		.Process(this->OpenTopped_ShareTransportTarget)
+		.Process(this->OpenTopped_UseTransportRangeModifiers)
+		.Process(this->OpenTopped_CheckTransportDisableWeapons)
+		.Process(this->OpenTransport_RangeBonus)
+		.Process(this->OpenTransport_DamageMultiplier)
+
+		.Process(this->StartFacing)
+		.Process(this->StartFacing_Random)
 		;
 }
 
@@ -3196,6 +3218,8 @@ void FakeRulesClass::_ReadAudioVisual(CCINIClass* pINI)
 	this->DrainMoneyDisplay_Houses.Read(exINI, section, "DrainMoneyDisplay.Houses");
 	this->DrainMoneyDisplay_OnTarget.Read(exINI, section, "DrainMoneyDisplay.OnTarget");
 	this->DrainMoneyDisplay_OnTarget_UseDisplayIncome.Read(exINI, section, "DrainMoneyDisplay.OnTarget.UseDisplayIncome");
+	this->LeptonMindControlOffset.Read(exINI, section, "LeptonMindControlOffset");
+	this->MindControlRingOffset.Read(exINI, section, "MindControlRingOffset");
 
 }
 
@@ -3943,6 +3967,10 @@ void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
 	this->FirestormWarhead.Read(exINI, section, "FirestormWarhead");
 	this->Cloak_KickOutParasite.Read(exINI, section, "Cloak.KickOutParasite");
 	this->Veinhole_Warhead.Read(exINI, section, "VeinholeWarhead");
+
+	this->OpenTransport_RangeBonus.Read(exINI, section, "OpenTransport.RangeBonus");
+	this->OpenTransport_DamageMultiplier.Read(exINI, section, "OpenTransport.DamageMultiplier");
+
 }
 
 #pragma region WeaponTypeBuffer
@@ -4335,4 +4363,145 @@ ASMJIT_PATCH(0x6BEAA3, ProgEnd_RulesClass_DTOR, 0x6)
 	}
 
 	return 0x6BEAC3;
+}
+
+namespace RulesLayout
+{
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4841)
+#endif
+
+#define RULES_AT(member, expected) \
+		static_assert(offsetof(FakeRulesClass, member) == (expected), \
+			"RulesClass::" #member " offset mismatch - YRpp layout drift")
+
+	// ========================================================================
+	// [0] Object size and element stride
+	// ========================================================================
+	static_assert(sizeof(RulesClass) == 0x18C0, "RulesClass size != 0x18C0");
+	static_assert(alignof(FakeRulesClass) == 8, "RulesClass alignment != 8");
+
+	using BTypeList = decltype(FakeRulesClass::BuildConst);
+
+	// IDA stride: 0x8C8 - 0x8AC = 0x1C.
+	static_assert(sizeof(BTypeList) == 0x1C, "TypeList size != 0x1C");
+
+	// NOTE-T: TypeList is 0x1C, DynamicVectorClass is 0x18. There are 4 bytes
+	// of trailing state at +0x18 that a DynamicVectorClass& parameter cannot
+	// reach. Probably inert for pointer lists, but VERIFY against the vanilla
+	// list-fill helper before relying on it.
+	static_assert(sizeof(DynamicVectorClass<BuildingTypeClass*>) == 0x18,
+		"DynamicVectorClass size != 0x18");
+	static_assert(sizeof(BTypeList) - sizeof(DynamicVectorClass<BuildingTypeClass*>) == 4,
+		"unexpected TypeList tail size");
+
+	// ========================================================================
+	// [1] The building-list block. THIS IS THE ONE THAT MATTERS.
+	//
+	// AIForcePredictionFudge sits at 0x9A8, wedged between ThirdBaseDefenses
+	// and BuildDefense. Your _ReadAI parses it last. If YRpp also declares it
+	// out of position, everything from BuildDefense down is misaligned.
+	// ========================================================================
+	RULES_AT(Shipyard, 0x880);
+	RULES_AT(GDIPowerPlant, 0x89C);
+	RULES_AT(NodRegularPower, 0x8A0);
+	RULES_AT(NodAdvancedPower, 0x8A4);
+	RULES_AT(ThirdPowerPlant, 0x8A8);
+
+	RULES_AT(BuildConst, 0x8AC);
+	RULES_AT(BuildPower, 0x8C8);
+	RULES_AT(BuildRefinery, 0x8E4);
+	RULES_AT(BuildBarracks, 0x900);
+	RULES_AT(BuildTech, 0x91C);
+	RULES_AT(BuildWeapons, 0x938);
+	RULES_AT(AlliedBaseDefenses, 0x954);
+	RULES_AT(SovietBaseDefenses, 0x970);
+	RULES_AT(ThirdBaseDefenses, 0x98C);
+	RULES_AT(AIForcePredictionFudge, 0x9A8);   // <-- interleaved, not at the end
+	RULES_AT(BuildDefense, 0x9C4);
+	RULES_AT(BuildPDefense, 0x9E0);
+	RULES_AT(BuildAA, 0x9FC);
+	RULES_AT(BuildHelipad, 0xA18);
+	RULES_AT(BuildRadar, 0xA34);
+	RULES_AT(ConcreteWalls, 0xA50);
+	RULES_AT(NSGates, 0xA6C);
+	RULES_AT(EWGates, 0xA88);
+	RULES_AT(BuildNavalYard, 0xAA4);
+	RULES_AT(BuildDummy, 0xAC0);
+	RULES_AT(NeutralTechBuildings, 0xADC);
+
+	// ========================================================================
+	// [2] Remaining fields touched by _ReadAI
+	// ========================================================================
+	RULES_AT(GDIWallDefense, 0xAF8);
+	RULES_AT(GDIWallDefenseCoefficient, 0xB00);
+	RULES_AT(NodBaseDefenseCoefficient, 0xB08);
+	RULES_AT(GDIBaseDefenseCoefficient, 0xB10);
+	RULES_AT(ComputerBaseDefenseResponse, 0xB18);
+	RULES_AT(MaximumBaseDefenseValue, 0xB1C);
+
+	RULES_AT(AttackInterval, 0x10A0);
+	RULES_AT(AttackDelay, 0x10A8);
+
+	// VERIFY-N1: IDA calls this PowerEmergencyFraction. If YRpp says
+	// PowerEmergency, rename below rather than trusting the name match.
+	RULES_AT(PowerEmergency, 0x10B0);
+
+	RULES_AT(AirstripRatio, 0x10B8);
+	RULES_AT(AirstripLimit, 0x10C0);
+	RULES_AT(HelipadRatio, 0x10C8);
+	RULES_AT(HelipadLimit, 0x10D0);
+	RULES_AT(TeslaRatio, 0x10D8);
+	RULES_AT(TeslaLimit, 0x10E0);
+	RULES_AT(AARatio, 0x10E8);
+	RULES_AT(AALimit, 0x10F0);
+	RULES_AT(DefenseRatio, 0x10F8);
+	RULES_AT(DefenseLimit, 0x1100);
+	RULES_AT(WarRatio, 0x1108);
+	RULES_AT(WarLimit, 0x1110);
+	RULES_AT(BarracksRatio, 0x1118);
+	RULES_AT(BarracksLimit, 0x1120);
+
+	// NOTE-R: Limit comes BEFORE Ratio for the refinery pair only. Every other
+	// pair is Ratio then Limit. Easy place for a YRpp transcription slip.
+	RULES_AT(RefineryLimit, 0x1124);
+	RULES_AT(RefineryRatio, 0x1128);
+
+	RULES_AT(BaseSizeAdd, 0x1130);
+	RULES_AT(PowerSurplus, 0x1134);
+	RULES_AT(InfantryReserve, 0x1138);
+	RULES_AT(InfantryBaseMult, 0x113C);
+
+	// VERIFY-N2: IDA calls 0x1150 PatrolTime. Your code reads "PatrolScan" into
+	// this->PatrolScan. Confirm they are the same field.
+	RULES_AT(PatrolScan, 0x1150);
+
+	RULES_AT(AIBaseSpacing, 0x1460);
+	RULES_AT(AutocreateTime, 0x1510);
+	RULES_AT(PathDelay, 0x1760);
+	RULES_AT(BlockagePathDelay, 0x1768);
+
+	// VERIFY-N3: IDA names these IsComputerParanoid / IsCompEasyBonus.
+	RULES_AT(Paranoid, 0x17E0);
+	RULES_AT(CompEasyBonus, 0x17E3);
+
+	// ========================================================================
+	// [3] MISSING FROM THE IDA STRUCT
+	//
+	// this->CreditReserve is read by _ReadAI but appears nowhere in the dump
+	// you supplied. Either IDA left it unnamed inside one of the undefined
+	// byte runs, or YRpp invented it. If YRpp DECLARED it as a real member,
+	// every field below it shifted and block [1] above will fire.
+	//
+	// Find it: the [AI]CreditReserve read in vanilla RulesClass::AI writes to
+	// some [reg+XXX]. Add the assert once you have XXX.
+	// ========================================================================
+	// RULES_AT(CreditReserve, 0x0000);   // VERIFY: fill from IDA
+
+#undef RULES_AT
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 }

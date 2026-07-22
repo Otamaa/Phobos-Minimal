@@ -200,20 +200,6 @@ ASMJIT_PATCH(0x7396D2, UnitClass_TryToDeploy_Transfer, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x449ADA, BuildingClass_MissionConstruction_DeployToFireFix, 0x6) //was 0
-{
-	GET(FakeBuildingClass*, pThis, ESI);
-
-	Mission nMission = Mission::Guard;
-	if (pThis->_GetExtData()->DeployedTechno && pThis->LastTarget) {
-		pThis->SetTarget(pThis->LastTarget);
-		nMission = Mission::Attack;
-	}
-
-	pThis->QueueMission(nMission, false);
-	return 0x449AE8;
-}
-
 ASMJIT_PATCH(0x440B4F, BuildingClass_Unlimbo_SetShouldRebuild, 0x5)
 {
     enum { ContinueCheck = 0x440B58, ShouldNotRebuild = 0x440B81 };
@@ -1072,6 +1058,89 @@ ASMJIT_PATCH(0x44C976, BuildingClass_Mission_Repair_TankBunker, 0x5)
 	if (pType->Bunker && (pThis->CurrentTankBunkerState > TankBunkerState::Idle && pThis->CurrentTankBunkerState < TankBunkerState::Bunkered))
 		R->EAX(BuildingTypeExtContainer::Instance.Find(pType)->BunkerStateUpdateDelay.Get(FakeRulesClass::Instance()->BunkerStateUpdateDelay));
 
+	return 0;
+}
+
+#pragma endregion
+
+
+#pragma region BuildingStartFacing
+
+static int GetBuildingStartFacing(BuildingClass* pThis)
+{
+	auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
+
+	if (pTypeExt->StartFacing_Random.Get(FakeRulesClass::Instance->StartFacing_Random)) {
+
+		auto pExt = BuildingExtContainer::Instance.Find(pThis);
+
+		if (pExt->ConstructionStartFacing < 0)
+			pExt->ConstructionStartFacing = ScenarioClass::Instance->Random.RandomRanged(0, 255);
+		return pExt->ConstructionStartFacing;
+	}
+
+	return pTypeExt->StartFacing.Get(FakeRulesClass::Instance->StartFacing);
+}
+
+ASMJIT_PATCH(0x449ADA, BuildingClass_MissionConstruction_DeployToFireFix, 0x6) //was 0
+{
+	GET(FakeBuildingClass*, pThis, ESI);
+
+	Mission nMission = Mission::Guard;
+	if (pThis->_GetExtData()->DeployedTechno && pThis->LastTarget) {
+		pThis->SetTarget(pThis->LastTarget);
+		nMission = Mission::Attack;
+	}
+
+	pThis->QueueMission(nMission, false);
+	if(!pThis->Type->LaserFence){
+		if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->IsJuggernaut) {
+			pThis->PrimaryFacing.Set_Current(BuildingTypeExtData::DefaultJuggerFacing);
+		}else{
+			DirStruct _resltDir {};
+			_resltDir.Raw = GetBuildingStartFacing(pThis);
+			pThis->PrimaryFacing.Set_Current(_resltDir);
+		}
+	}
+
+	return 0x449B15;
+}
+
+ASMJIT_PATCH(0x449DAA, BuildingClass_Mission_Selling_StartFacing_Compare, 0x6)
+{
+	GET(BuildingClass*, pThis, EBP);
+	int facing = GetBuildingStartFacing(pThis);
+	R->EBX(facing);
+	return 0x449DB0;
+}
+
+ASMJIT_PATCH(0x449DE9, BuildingClass_Mission_Selling_StartFacing_Set, 0x6)
+{
+	GET(BuildingClass*, pThis, EBP);
+	int facing = GetBuildingStartFacing(pThis);
+	R->CH(static_cast<BYTE>(facing));
+	return 0x449DEF;
+}
+
+ASMJIT_PATCH(0x6F6D9E, TechnoClass_Unlimbo_BuildingStartFacing, 0x7)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	if (flag_cast_to<FootClass*, false>(pThis))
+		return 0;
+
+	const auto pBuilding = static_cast<BuildingClass*>(pThis);
+
+	if (BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->IsJuggernaut) {
+		pThis->PrimaryFacing.Set_Current(BuildingTypeExtData::DefaultJuggerFacing);
+		R->Stack(0x30, BuildingTypeExtData::DefaultJuggerFacing);
+		return 0x6F6DAF;
+	}
+
+	if (BuildingExtContainer::Instance.Find(pBuilding)->IsCreatedFromMapFile)
+		return 0;
+
+	R->AH(static_cast<BYTE>(GetBuildingStartFacing(pBuilding)));
 	return 0;
 }
 

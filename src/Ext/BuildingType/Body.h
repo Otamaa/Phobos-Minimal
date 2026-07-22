@@ -365,6 +365,9 @@ public:
 	Valueable<bool> ApplyPerTargetEffectsOnDetonate { true };
 	Valueable<bool> Adjacent_Disallowed_Prohibit { false };
 
+	Nullable<int> StartFacing {};
+	Nullable<bool> StartFacing_Random {};
+
 	// ============================================================
 	// Plain bool (1 byte, at the very end)
 	// ============================================================

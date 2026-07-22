@@ -1743,6 +1743,9 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->Adjacent_Disallowed_ProhibitDistance.Read(exINI, pSection, "Adjacent.Disallowed.ProhibitDistance");
 		this->BarracksExitCell.Read(exINI, pSection, "BarracksExitCell");
 
+		this->StartFacing.Read(exINI, pSection, "StartFacing");
+		this->StartFacing_Random.Read(exINI, pSection, "StartFacing.Random");
+
 		this->Units_RepairRate.Read(exINI, pSection, "Units.RepairRate");
 		this->Units_RepairStep.Read(exINI, pSection, "Units.RepairStep");
 		this->Units_RepairPercent.Read(exINI, pSection, "Units.RepairPercent");
@@ -2254,6 +2257,8 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->RevealToAll_Radius)
 		.Process(this->DisplayIncome_Delay)
 
+		.Process(this->StartFacing)
+		.Process(this->StartFacing_Random)
 		;
 }
 #else

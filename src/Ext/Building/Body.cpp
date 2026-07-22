@@ -3398,6 +3398,7 @@ void BuildingExtData::Serialize(T& Stm)
 		.Process(this->Supers)
 		.Process(this->FreeUnitDone)
 		.Process(this->SeparateRepair)
+		.Process(this->ConstructionStartFacing)
 		;
 }
 

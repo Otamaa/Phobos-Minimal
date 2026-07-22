@@ -39,7 +39,7 @@ ASMJIT_PATCH(0x443C0D, BuildingClass_AssignTarget_Jugger, 0x6) //8
 	return 0x443BB3;
 }
 
-ASMJIT_PATCH(0x44A93D, BuildingClass_Mission_DC_Jugger, 0x6) //8
+ASMJIT_PATCH(0x44A93D, BuildingClass_Mission_Selling_Jugger, 0x6) //8
 {
 	GET(BuildingTypeClass*, pThis, EAX);
 	return (pThis->TickTank || BuildingTypeExtContainer::Instance.Find(pThis)->IsJuggernaut || pThis->Artillary)
@@ -53,36 +53,6 @@ ASMJIT_PATCH(0x739801, UnitClass_TryToDeploy_BarrelFacing_Jugger, 0x6) //8
 	return 0x739807;
 }
 
-ASMJIT_PATCH(0x6F6D94, TechnoClass_Unlimbo_BuildingFacing_Jugger, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-
-	if (const auto pBuilding = cast_to<BuildingClass*, false>(pThis))
-	{
-		if (BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->IsJuggernaut)
-		{
-			pThis->PrimaryFacing.Set_Current(BuildingTypeExtData::DefaultJuggerFacing);
-			R->Stack(0x30, BuildingTypeExtData::DefaultJuggerFacing);
-			return 0x6F6DAF;
-		}
-	}
-
-	return 0x0;
-}
-
-ASMJIT_PATCH(0x449AF8, BuildingClass_Mission_Construct_Facing_Jugger, 0x6)
-{
-	GET(BuildingClass*, pThis, ESI);
-	GET(BuildingTypeClass*, pBldType, EAX);
-
-	if (BuildingTypeExtContainer::Instance.Find(pBldType)->IsJuggernaut)
-	{
-		pThis->PrimaryFacing.Set_Current(BuildingTypeExtData::DefaultJuggerFacing);
-		return 0x449B15;
-	}
-
-	return 0x0;
-}
 
 ASMJIT_PATCH(0x7365E6, UnitClass_AI_Rotation_AI_Replace, 0x7)
 {

@@ -270,4 +270,29 @@ public:
 			tokens.push_back(str.substr(start));
 		return tokens;
 	}
+
+	// ------------------------------------------------------------------------
+// Non-destructive tokenizer. Cannot be desynchronised by re-entrant calls.
+// ------------------------------------------------------------------------
+	template<typename TFunc>
+	void ForEachToken(std::string_view line, std::string_view seps, TFunc&& func)
+	{
+		std::size_t pos = 0;
+
+		while (pos < line.size())
+		{
+			const auto start = line.find_first_not_of(seps, pos);
+
+			if (start == std::string_view::npos)
+				return;
+
+			auto end = line.find_first_of(seps, start);
+
+			if (end == std::string_view::npos)
+				end = line.size();
+
+			func(line.substr(start, end - start));
+			pos = end;
+		}
+	}
 };

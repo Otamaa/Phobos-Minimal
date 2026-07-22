@@ -10004,7 +10004,7 @@ double TechnoExtData::ApplyAdditionalDamageMult(TechnoClass* pThis, double damag
 	{
 		auto pTechnoTypeExt = GET_TECHNOTYPEEXT(pThis);
 
-		finalDamage = (finalDamage * pTechnoTypeExt->OpenTransport_DamageMultiplier);
+		finalDamage = (finalDamage * pTechnoTypeExt->OpenTransport_DamageMultiplier.Get(FakeRulesClass::Instance->OpenTransport_RangeBonus));
 
 		finalDamage = (finalDamage * (pThis->Transporter
 			? GET_TECHNOTYPEEXT(pThis->Transporter)->OpenTopped_DamageMultiplier

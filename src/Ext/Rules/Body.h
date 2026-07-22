@@ -686,6 +686,20 @@ public:
 
 	Valueable<bool> DiscardOn_ConsiderHarvestingAsStationary { true };
 	Valueable<int> IsDischargedMemberAutocreateRecruitable { -1 };
+
+	Valueable<int> LeptonMindControlOffset { 70 };
+	Valueable<int> MindControlRingOffset { 140 };
+
+	Valueable<bool> OpenTopped_IgnoreRangefinding {};
+	Valueable<bool> OpenTopped_AllowFiringIfDeactivated { true };
+	Valueable<bool> OpenTopped_ShareTransportTarget { true };
+	Valueable<bool> OpenTopped_UseTransportRangeModifiers { true };
+	Valueable<bool> OpenTopped_CheckTransportDisableWeapons {};
+	Valueable<int> OpenTransport_RangeBonus {};
+	Valueable<float> OpenTransport_DamageMultiplier { 1.0f };
+
+	Valueable<int> StartFacing { 0 };
+	Valueable<bool> StartFacing_Random { false };
 #pragma endregion
 
 public:

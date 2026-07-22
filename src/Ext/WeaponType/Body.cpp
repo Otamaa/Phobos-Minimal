@@ -364,7 +364,7 @@ int WeaponTypeExtData::GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass
 	if (pTechno->Transporter && pTechno->Transporter->IsAlive && GET_TECHNOTYPE(pTechno)->OpenTopped) {
 		auto const pTypeExt = GET_TECHNOTYPEEXT(pTechno->Transporter);
 
-		if (pTypeExt->OpenTopped_UseTransportRangeModifiers)
+		if (pTypeExt->OpenTopped_UseTransportRangeModifiers.Get(FakeRulesClass::Instance->OpenTopped_UseTransportRangeModifiers))
 			pTechno = pTechno->Transporter;
 	}
 

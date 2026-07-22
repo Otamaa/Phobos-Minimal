@@ -214,6 +214,9 @@ ASMJIT_PATCH(0x71153C, TechnoTypeClass_DefaultToGuardArea_GlobalDefault, 0x6)
 	else
 		pThis->DefaultToGuardArea = false;
 
+	pThis->LeptonMindControlOffset = FakeRulesClass::Instance->LeptonMindControlOffset;
+	pThis->MindControlRingOffset = FakeRulesClass::Instance->MindControlRingOffset;
+
 	return 0x711542;
 }
 
