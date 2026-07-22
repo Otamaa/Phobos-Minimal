@@ -31,6 +31,7 @@ struct LooseAudioFile
 	int Offset { -1 };
 	int Size { -1 };
 	AudioSampleData Data {};
+	CCFileClass* FileHandle { nullptr };
 };
 
 class LooseAudioCache
@@ -48,7 +49,12 @@ public:
 	LooseAudioCache(LooseAudioCache&&) = delete;
 	LooseAudioCache& operator=(LooseAudioCache&&) = delete;
 
-	~LooseAudioCache() = default;
+	~LooseAudioCache()
+	{
+		// Clean up the cached file handle if any
+		if (Data.FileHandle)
+			GameDelete<true, false>(Data.FileHandle);
+	}
 
 	// Opens the WAV file and parses its header into `Data` if not already
 	// cached. Locked: the read-check (`Data.Size < 0`) and the subsequent
@@ -80,16 +86,14 @@ public:
 
 		if (Data.Size < 0)
 		{
-			if (Phobos::Otamaa::IsAdmin)
-				Debug::Log("LooseAudioCache: Failed to parse WAV file: %s\n", WavName.c_str());
-
-			auto file = GetFileStructLocked();
-			if (file.File && file.Allocated)
+			// Attempt to parse the WAV header
+			if (!GetFileStructLocked().Allocated)   // Allocated = file opened successfully 
 			{
-				GameDelete<true, false>(file.File);
+				if (Phobos::Otamaa::IsAdmin)
+					Debug::Log("LooseAudioCache: Failed to parse WAV file: %s\n", WavName.c_str());
+				// FileStructLocked already tried to open; if it failed, Data.Size stays -1
 			}
 		}
-
 		return &Data.Data;
 	}
 
@@ -106,13 +110,11 @@ public:
 
 		if (Data.Size < 0)
 		{
-			if (Phobos::Otamaa::IsAdmin)
-				Debug::Log("LooseAudioCache: Failed to parse WAV file: %s\n", WavName.c_str());
-
 			auto file = GetFileStructLocked();
-			if (file.File && file.Allocated)
+			if (!file.Allocated)
 			{
-				GameDelete<true, false>(file.File);
+				if (Phobos::Otamaa::IsAdmin)
+					Debug::Log("LooseAudioCache: Failed to parse WAV file: %s\n", WavName.c_str());
 			}
 		}
 
@@ -121,7 +123,6 @@ public:
 			std::memcpy(out, &Data.Data, sizeof(AudioSampleData));
 			return true;
 		}
-
 		return false;
 	}
 
@@ -131,40 +132,61 @@ private:
 	// Must be called with EntryMutex held.
 	FileStruct GetFileStructLocked()
 	{
-		CCFileClass* pFile = GameCreate<CCFileClass>(WavName.c_str());
+		// If we already have a cached file handle and the data is valid, reuse it
+		if (Data.Size >= 0 && Data.FileHandle)
+		{
+			return { Data.Size, Data.Offset, Data.FileHandle, false }; // false = not newly allocated
+		}
 
+		// First time: open and parse the WAV
+		auto pFile = GameCreate<CCFileClass>(WavName.c_str());
 		if (!pFile->IsAvaible())
 		{
 			if (Phobos::Otamaa::IsAdmin)
-			{
 				Debug::Log("LooseAudioCache: File does not exist: %s\n", WavName.c_str());
-			}
-
 			GameDelete<true, false>(pFile);
-			pFile = nullptr;
-			return { Data.Size, Data.Offset, pFile, pFile != nullptr };
+			return { -1, -1, nullptr, false };
 		}
 
 		if (!pFile->Open1(FileAccessMode::Read))
 		{
 			GameDelete<true, false>(pFile);
-			pFile = nullptr;
-			return { Data.Size, Data.Offset, pFile, pFile != nullptr };
+			return { -1, -1, nullptr, false };
 		}
-		else
+
+		// Parse WAV header
+		if (!Audio::ReadWAVFile(pFile, &Data.Data, &Data.Size))
 		{
 			if (Phobos::Otamaa::IsAdmin)
-				Debug::Log("LooseAudioCache: successfully open file: %s\n", WavName.c_str());
+				Debug::Log("LooseAudioCache: Failed to parse WAV header: %s\n", WavName.c_str());
+			pFile->Close();
+			GameDelete<true, false>(pFile);
+			return { -1, -1, nullptr, false };
 		}
 
-		if (Data.Size < 0 && Audio::ReadWAVFile(pFile, &Data.Data, &Data.Size))
+		// Record the data start position and keep the file open
+		Data.Offset = pFile->Seek(0, FileSeekMode::Current);
+
+		// Sanity check: offset should be within the file
+		if (Data.Offset <= 0 || Data.Size <= 0)
 		{
-			Data.Offset = pFile->Seek(0, FileSeekMode::Current);
+			Debug::Log("LooseAudioCache: Invalid WAV data offset/size (%d/%d) for %s\n",
+				Data.Offset, Data.Size, WavName.c_str());
+			pFile->Close();
+			GameDelete<true, false>(pFile);
+			Data.Size = -1;
+			return { -1, -1, nullptr, false };
 		}
 
-		return { Data.Size, Data.Offset, pFile, pFile != nullptr };
-	}
+		// Store the open file handle for future streaming
+		Data.FileHandle = pFile;
 
+		if (Phobos::Otamaa::IsAdmin)
+			Debug::Log("LooseAudioCache: successfully opened and cached WAV: %s\n", WavName.c_str());
+
+		return { Data.Size, Data.Offset, Data.FileHandle, false }; // not newly allocated in the caller's sense
+	}
+	
 	std::string Name;
 	std::string WavName;
 	LooseAudioFile Data;
@@ -287,10 +309,10 @@ public:
 							{
 								for (auto& entry : this->Entries)
 								{
-									while (pIndex.Read(&entry, readBytes) == readBytes)
-									{
-										entry.ChunkSize = 0;
-									}
+									if (pIndex.Read(&entry, readBytes) != readBytes)
+										break; // handle error
+
+									entry.ChunkSize = 0;
 								}
 							}
 							else

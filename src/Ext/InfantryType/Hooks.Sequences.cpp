@@ -142,71 +142,78 @@ ASMJIT_PATCH(0x51D9CF, InfantryClass_DoType_ReplaceMasterControl_Rates, 0x9)
 #pragma region ReadSequence
 static void ReadSequence(DoControls* pDoInfo, FakeInfantryTypeClass* pInf, CCINIClass* pINI)
 {
-	INI_EX IniEX(pINI);
-
+	// 1. Get the section name from the infantry's ImageFile
 	char section[0x100] = {};
-	if (pINI->GetString(pInf->ImageFile, "Sequence", section) > 0)
-	{
-		pInf->_GetExtData()->SquenceRates.resize(std::size(Sequences_ident));
+	if (pINI->GetString(pInf->ImageFile, "Sequence", section) <= 0)
+		return; // no Sequence section defined
 
-		for (size_t i = 0; i < std::size(Sequences_ident); ++i)
-		{
-			char sequenceData[0x100] = {};
-			if (pINI->GetString(section, Sequences_ident[i], sequenceData) > 0)
-			{
-				auto& data = pDoInfo->Data[i];
-				const std::string basename = Sequences_ident[i];
+	// 2. Prepare storage for sequence data (one per known sequence identifier)
+	pInf->_GetExtData()->SquenceRates.resize(std::size(Sequences_ident));
 
-				pInf->_GetExtData()->SquenceRates[i] = pINI->ReadInteger(section, (basename + ".Rate").c_str(), Sequences_Master[i].Rate);
+	// 3. Loop over all known sequence identifiers (e.g., "Ready", "Walk", "Idle1", ...)
+	for (size_t i = 0; i < std::size(Sequences_ident); ++i) {
+		char sequenceData[0x100] = {};
+		const char* seqName = Sequences_ident[i];
 
-				char bufferFacing[32] = {};
-				int itemsRead = sscanf(sequenceData, "%d,%d,%d,%31s",
-					&data.StartFrame,
-					&data.CountFrames,
-					&data.FacingMultiplier,
-					bufferFacing
-				);
-				
-				if (itemsRead >= 4)
-				{
-					for (size_t a = 0; a < EnumFunctions::FacingType_to_strings.size(); ++a)
-					{
-						if (IS_SAME_STR_(EnumFunctions::FacingType_to_strings[a], bufferFacing))
-						{
-							data.Facing = DoTypeFacing(a);
-							break;
-						}
+		// 3a. Read the main line for this sequence: "StartFrame,CountFrames,FacingMultiplier[,Facing]"
+		if (pINI->GetString(section, seqName, sequenceData) <= 0)
+			continue; // not defined – skip
+
+		auto& data = pDoInfo->Data[i];              // reference to the output structure
+		const std::string basename = seqName;
+
+		// 3b. Read the optional Rate value from a separate key (e.g., "Ready.Rate")
+		pInf->_GetExtData()->SquenceRates[i] = pINI->ReadInteger(
+			section,
+			(basename + ".Rate").c_str(),
+			Sequences_Master[i].Rate  // default from master array
+		);
+
+		// 3c. Parse the main line using sscanf (still safe and clear for fixed format)
+		char bufferFacing[32] = {};
+		int itemsRead = sscanf(sequenceData, "%d,%d,%d,%31s",
+			&data.StartFrame,
+			&data.CountFrames,
+			&data.FacingMultiplier,
+			bufferFacing
+		);
+
+		// 3d. If a fourth token (facing) was provided, convert it to an enum
+		if (itemsRead >= 4) {
+			for (size_t a = 0; a < EnumFunctions::FacingType_to_strings.size(); ++a) {
+				if (IS_SAME_STR_(EnumFunctions::FacingType_to_strings[a], bufferFacing)) {
+					data.Facing = DoTypeFacing(a);
+					break;
+				}
+			}
+		}
+
+		// 3e. Read optional Sounds line, e.g., "6 TrexRoar" (count and sound name)
+		char bufferSounds[0x100] = {};
+		if (pINI->GetString(section, (basename + "Sounds").c_str(), bufferSounds) > 0) {
+			// Tokenize the sounds line by spaces, tabs, commas (like original)
+			auto tokens = PhobosCRT::SplitString(PhobosCRT::Trim(bufferSounds), " ,\t");
+
+			// The original logic reads pairs: count then name, and sets all SoundData
+			// entries to the last found sound. We replicate that exactly.
+			for (size_t idx = 0; idx + 1 < tokens.size(); idx += 2) {
+				int count = std::stoi(tokens[idx]);
+				const std::string& soundName = tokens[idx + 1];
+
+				// Set SoundCount to the parsed count (overwrites previous)
+				data.SoundCount = count;
+
+				// Find the sound index by name
+				int soundIndex = VocClass::FindIndexById(soundName.c_str());
+
+				if (soundIndex != -1) {
+					// Fill all SoundData entries with this index (original behavior)
+					for (auto& entry : data.SoundData) {
+						entry.Index = soundIndex;
 					}
 				}
-
-				char bufferSounds[0x100] = {};
-				if (pINI->GetString(section, (basename + "Sounds").c_str(), bufferSounds) > 0)
-				{
-					auto v7 = strtok(bufferSounds, " ,\t");
-					while (v7)
-					{
-						auto v8 = atoi(v7);
-						auto v9 = strtok(0, " ,\t");
-						if (!v9)
-						{
-							break;
-						}
-
-						data.SoundCount = v8;
-
-						auto v10 = VocClass::FindIndexById(v9);
-						v7 = strtok(0, " ,\t");
-						if (v10 != -1)
-						{
-							for (auto at = data.SoundData;
-								at != std::end(data.SoundData);
-								++at)
-							{
-								at->Index = v10;
-							}
-						}
-					}
-				}
+				// If the next token exists, it will be processed as the next pair;
+				// if not, the loop ends, leaving the last pair's values.
 			}
 		}
 	}

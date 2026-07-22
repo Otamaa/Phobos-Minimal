@@ -408,60 +408,42 @@ LightConvertClass* __fastcall Generate_Color_Spread_Light_Convert(
 	int                 b,
 	char* indexes)
 {
-	// Extract base HSV components.
-	// IDA shows Val loaded into a pointer-typed register — artifact of register reuse.
-	// All three fields are plain uint8_t.
 	const int   baseHue = hsv->Hue;
 	const double baseSat = static_cast<double>(hsv->Saturation);
 	const double baseVal = static_cast<double>(hsv->Value);
 
-	// Copy pal1 into pal3; pal3 is the working palette that will be modified
-	// with the 16-step color spread before being passed to LightConvertClass.
 	*pal3 = *pal1;
 
-	// --- 16-step HSV color spread ---
-	// Each iteration computes a slightly rotated Sat and Val using sin/cos angle progressions,
-	// converts the resulting HSV to RGB, and writes it into pal3->Entries[(i + 16) % 256].
-	// Hue is held constant; only Sat and Val rotate per step.
-	//
-	// Angle progressions (per-step increments derived from the IDA constants):
-	//   satAngle: starts at 0.8726646... rad (~50°), steps by 0.04654... rad (~2.67°)
-	//   valAngle: starts at 0.3490658... rad (~20°), steps by 0.08144... rad (~4.67°)
-	// First iteration overrides valAngle to 0.1963495... rad (11.25°) — special-cased in vanilla.
-	//
-	// IDA artifact: vanilla reused the cosval stack slot as both a double and an int counter.
-	// Cleaned up into a proper loop with a separate iteration double for the angle math.
-
-	for (int i = 0; i < 16; ++i) {
-
+	int i = 0;
+	do {
 		const double id = static_cast<double>(i);
 
 		double valAngle = id * valStep + valBase;
 		double satAngle = id * satStep + satBase;
 
-		// First iteration uses a fixed valAngle override (11.25°).
-		// Vanilla special-cases i==0 explicitly; preserved verbatim.
 		if (i == 0)
 			valAngle = valAngleFirstIter;
 
-		// Compute new Sat and Val by scaling base values through sin/cos.
-		// Results are cast to uint8_t (truncation, intentional — mirrors vanilla behavior).
-		HSVClass tempHSV(baseHue , Math::sin(satAngle) * baseSat ,Math::cos(valAngle) * baseVal);
-		// Convert HSV → RGB.
-		// IDA: HSVClass::operator RGBClass writes into a stack buffer (reused_sat).
-		// Cleaned up to a proper local RGBClass.
-		ColorStruct rgb = tempHSV.operator ColorStruct();
+		HSVClass tempHSV {
+			baseHue,
+			(Math::sin(satAngle) * baseSat),
+			(Math::cos(valAngle) * baseVal)
+		};
 
-		// Write into pal3 at offset (i + 16), wrapping at 256.
-		// IDA expanded this as pointer arithmetic: pal3->Entries + 2*(idx) + idx
-		// which is just &pal3->Entries[idx] with sizeof(RGBClass)==3 factored out manually.
-		pal3->Entries[(i + 16) % 256] = rgb;
+		(*pal3)[(i + 16) % BytePalette::EntriesCount] = tempHSV;
+		++i;
 	}
+	while (i < 16);
 
-	return GameCreate<LightConvertClass>(pal3, pal2, surface, r, g, b, false, (BYTE*)indexes, (size_t)count);
+	//// Set ShadeCount to 53 to initialize the palette fully shaded - this is required to make it not draw over shroud for some reason.
+	//ASMJIT_PATCH(0x68C4C4, GenerateColorSpread_ShadeCountSet, 0x5)
+	count = Phobos::Config::ApplyShadeCountFix && count == 1 ? 53 : count;
+
+	return GameCreate<LightConvertClass>(pal3, pal2, surface, r, g, b, false, indexes, count);
 }
 
-DEFINE_FUNCTION_JUMP(CALL , 0x68C7E9 , Generate_Color_Spread_Light_Convert)
+DEFINE_FUNCTION_JUMP(CALL, 0x68C7E9 , Generate_Color_Spread_Light_Convert)
+DEFINE_FUNCTION_JUMP(CALL, 0x68C8B2, Generate_Color_Spread_Light_Convert)
 
 void __fastcall Init_Theaters(TheaterType theater)
 {

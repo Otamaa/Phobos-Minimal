@@ -869,28 +869,46 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x722A20, FakeTiberiumClass::__Clear_Spread);
 
 static void _Initialize_Tiberium_Spread_System()
 {
-	for (int i = 0; i < TiberiumClass::Array->Count; i++)
-	{
-		TiberiumClass::Array->Items[i]->Initialize_Spread();
+	if (!TiberiumClass::Array->Items)
+		return;
+
+	for (int i = 0; i < TiberiumClass::Array->Count; i++) {
+		if (TiberiumClass::Array->Items[i])
+			TiberiumClass::Array->Items[i]->Initialize_Spread();
 	}
 }
 
 static void _Deinitialize_Tiberium_Spread_System()
 {
-	for (int i = 0; i < TiberiumClass::Array->Count; i++)
-		TiberiumClass::Array->Items[i]->Clear_Spread();
+	if (!TiberiumClass::Array->Items)
+		return;
+
+	for (int i = 0; i < TiberiumClass::Array->Count; i++) {
+		if(TiberiumClass::Array->Items[i])
+			TiberiumClass::Array->Items[i]->Clear_Spread();
+	}
 }
 
 static void _Initialize_Tiberium_Growth_System()
 {
-	for (int i = 0; i < TiberiumClass::Array->Count; i++)
-		TiberiumClass::Array->Items[i]->Initialize_Growth();
+	if (!TiberiumClass::Array->Items)
+		return;
+
+	for (int i = 0; i < TiberiumClass::Array->Count; i++) {
+		if (TiberiumClass::Array->Items[i])
+			TiberiumClass::Array->Items[i]->Initialize_Growth();
+	}
 }
 
 static void _Deinitialize_Tiberium_Growth_System()
 {
-	for (int i = 0; i < TiberiumClass::Array->Count; i++)
-		TiberiumClass::Array->Items[i]->Clear_Growth();
+	if (!TiberiumClass::Array->Items)
+		return;
+
+	for (int i = 0; i < TiberiumClass::Array->Count; i++) {
+		if (TiberiumClass::Array->Items[i])
+			TiberiumClass::Array->Items[i]->Clear_Growth();
+	}	
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x722240, _Initialize_Tiberium_Spread_System);

@@ -133,8 +133,8 @@ public:
 		int color_G,
 		int color_B,
 		bool skipBlitters,
-		BYTE* pBuffer, // allowed to be null
-		size_t shadeCount) : LightConvertClass(noinit_t())
+		char* pBuffer, // allowed to be null
+		int shadeCount) : LightConvertClass(noinit_t())
 	{ JMP_THIS(0x555DA0); }
 
 protected:

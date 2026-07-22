@@ -1739,11 +1739,9 @@ namespace Savegame
 					return true;
 				}
 
-				T nOld {};
-				if (Savegame::ReadPhobosStream(Stm, nOld, RegisterForChange))
-				{
-					Value = nOld;
-					return ;
+				Value.emplace();
+				if (Savegame::ReadPhobosStream(Stm, *Value, RegisterForChange)) {
+					return true;
 				}
 			}
 

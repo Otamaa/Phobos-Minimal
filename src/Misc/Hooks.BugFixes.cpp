@@ -667,19 +667,19 @@ ASMJIT_PATCH(0x53AD85, IonStormClass_AdjustLighting_ColorSchemes, 0x5)
 
 
 //// Set ShadeCount to 53 to initialize the palette fully shaded - this is required to make it not draw over shroud for some reason.
-ASMJIT_PATCH(0x68C4C4, GenerateColorSpread_ShadeCountSet, 0x5)
-{
-	// some mod dont like the result of this fix
-	// so toggle is added
-	if (Phobos::Config::ApplyShadeCountFix)
-	{
-		//shade count
-		if (R->EDX<int>() == 1)
-			R->EDX(53);
-	}
-
-	return 0;
-}
+// ASMJIT_PATCH(0x68C4C4, GenerateColorSpread_ShadeCountSet, 0x5)
+// {
+// 	// some mod dont like the result of this fix
+// 	// so toggle is added
+// 	if (Phobos::Config::ApplyShadeCountFix)
+// 	{
+// 		//shade count
+// 		if (R->EDX<int>() == 1)
+// 			R->EDX(53);
+// 	}
+//
+// 	return 0;
+// }
 
 ASMJIT_PATCH(0x730D0F, ProcessDeployCommand_LowDeployPriority, 0x6)
 {

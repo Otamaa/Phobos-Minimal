@@ -1195,7 +1195,6 @@ void FakeRulesClass::_ReadPowerups(CCINIClass* pINI)
 {
 	CrateTypeClass::ReadFromPowerups(pINI);
 }
-DEFINE_FUNCTION_JUMP(LJMP, 0x673E80, FakeRulesClass::_ReadPowerups);
 
 void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 {
@@ -1698,7 +1697,7 @@ void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 	detail::read(this->Stray, exINI, section, "Stray");
 	detail::read(this->RelaxedStray, exINI, section, "RelaxedStray");
 	detail::read(this->GuardModeStray, exINI, section, "GuardModeStray");
-	detail::read(this->GuardModeStray, exINI, section, "GuardModeStray");
+	detail::read(this->CloseEnough, exINI, section, "CloseEnough");
 	detail::read(this->TiberiumShortScan, exINI, section, "TiberiumShortScan");
 	detail::read(this->TiberiumLongScan, exINI, section, "TiberiumLongScan");
 	detail::read(this->SlaveMinerShortScan, exINI, section, "SlaveMinerShortScan");
@@ -2630,8 +2629,6 @@ void FakeRulesClass::_ReadSpecialWeapons(CCINIClass* pINI)
 	pData->NukeWarheadName.Read(exINI.GetINI(), GameStrings::SpecialWeapons(), "NukeWarhead");
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x668FB0, FakeRulesClass::_ReadSpecialWeapons)
-
 void FakeRulesClass::_ReadElevationModel(CCINIClass* pINI)
 {
 	const char* section = "ElevationModel";
@@ -2645,8 +2642,6 @@ void FakeRulesClass::_ReadElevationModel(CCINIClass* pINI)
 	detail::read(this->ElevationBonusCap, exINI, section, "ElevationBonusCap", true);
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x66D150, FakeRulesClass::_ReadElevationModel)
-
 void FakeRulesClass::_ReadWallModel(CCINIClass* pINI)
 {
 	const char* section = "WallModel";
@@ -2658,8 +2653,6 @@ void FakeRulesClass::_ReadWallModel(CCINIClass* pINI)
 	detail::read(this->AlliedWallTransparency, exINI, section, "AlliedWallTransparency", true);
 	detail::read(this->WallPenetratorThreshold, exINI, section, "WallPenetratorThreshold", true);
 }
-
-DEFINE_FUNCTION_JUMP(LJMP, 0x66D1F0, FakeRulesClass::_ReadWallModel)
 
 void FakeRulesClass::_ReadLandTypes(CCINIClass* pINI)
 {
@@ -2708,8 +2701,6 @@ void FakeRulesClass::_ReadLandTypes(CCINIClass* pINI)
 	}
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x674000, FakeRulesClass::_ReadLandTypes)
-
 void FakeRulesClass::_ReadIQ(CCINIClass* pINI)
 {
 	static constexpr const char* section = "IQ";
@@ -2736,8 +2727,6 @@ void FakeRulesClass::_ReadIQ(CCINIClass* pINI)
 
 	pData->TogglePowerIQ.Read(exINI, section, "TogglePower");
 }
-
-DEFINE_FUNCTION_JUMP(LJMP, 0x674240, FakeRulesClass::_ReadIQ)
 
 void FakeRulesClass::_ReadDifficulty(CCINIClass* pINI)
 {
@@ -2768,8 +2757,6 @@ void FakeRulesClass::_ReadDifficulty(CCINIClass* pINI)
 	DiffGet(this->DifficultyConfigs[ParsedDifficulty::Normal], pINI, "Normal");
 	DiffGet(this->DifficultyConfigs[ParsedDifficulty::Hard], pINI, "Difficult");
 }
-
-DEFINE_FUNCTION_JUMP(LJMP, 0x674500, FakeRulesClass::_ReadDifficulty)
 
 void FakeRulesClass::_ReadAudioVisual(CCINIClass* pINI)
 {
@@ -3013,6 +3000,12 @@ void FakeRulesClass::_ReadAudioVisual(CCINIClass* pINI)
 	// Field/key mismatches — preserved from vanilla
 	detail::getindex<VocClass>(this->BuildingDieSound, exINI, section, "BuildingDieSound");    // field CrumbleSound, key "BuildingDieSound"
 	detail::getindex<VocClass>(this->BuildingDamageSound, exINI, section, "BuildingDamageSound"); // field BlowupSound, key "BuildingDamageSound"
+	detail::getindex<VocClass>(this->BuildingSlam, exINI, section, "BuildingSlam");
+
+	detail::getindex<VocClass>(this->RadarOn, exINI, section, "RadarOn");
+	detail::getindex<VocClass>(this->RadarOff, exINI, section, "RadarOff");
+	detail::getindex<VocClass>(this->MovieOn, exINI, section, "MovieOn");
+	detail::getindex<VocClass>(this->MovieOff, exINI, section, "MovieOff");
 
 	auto pData = RulesExtData::Instance();
 
@@ -3227,8 +3220,6 @@ void FakeRulesClass::_ReadAudioVisual(CCINIClass* pINI)
 
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x6691E0, FakeRulesClass::_ReadAudioVisual)
-
 void FakeRulesClass::_ReadCrateRules(CCINIClass* pINI)
 {
 	static constexpr const char* section = "CrateRules";
@@ -3280,8 +3271,6 @@ void FakeRulesClass::_ReadCrateRules(CCINIClass* pINI)
 	pData->FreeMCV_CreditsThreshold.Read(exINI, section, "FreeMCV.CreditsThreshold");
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x66B900, FakeRulesClass::_ReadCrateRules)
-
 void FakeRulesClass::_ReadRadiation(CCINIClass* pINI)
 {
 	static constexpr const char* section = "Radiation";
@@ -3321,8 +3310,6 @@ void FakeRulesClass::_ReadRadiation(CCINIClass* pINI)
 	pData->UseGlobalRadApplicationDelay.Read(exINI, section, "UseGlobalRadApplicationDelay");
 
 }
-
-DEFINE_FUNCTION_JUMP(LJMP, 0x66CF70, FakeRulesClass::_ReadRadiation)
 
 void FakeRulesClass::_ReadMPlayer(CCINIClass* pINI)
 {
@@ -3367,8 +3354,6 @@ void FakeRulesClass::_ReadMPlayer(CCINIClass* pINI)
 	//auto pData = RulesExtData::Instance();
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x671EA0, FakeRulesClass::_ReadMPlayer);
-
 void FakeRulesClass::_ReadJumpjetControls(CCINIClass* pINI)
 {
 	const char* section = GameStrings::JumpjetControls;
@@ -3396,8 +3381,6 @@ void FakeRulesClass::_ReadJumpjetControls(CCINIClass* pINI)
 	pData->JumpjetNoWobbles.Read(exINI, GameStrings::JumpjetControls, "NoWobbles");
 
 }
-
-DEFINE_FUNCTION_JUMP(LJMP, 0x6743D0, FakeRulesClass::_ReadJumpjetControls)
 
 template<typename T>
 void ReadArray(CCINIClass* pINI, const char* pSection) {
@@ -3534,7 +3517,7 @@ void FakeRulesClass::_Process(CCINIClass* pINI)
 	}
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x668BF0, FakeRulesClass::_Process)
+
 
 void FakeRulesClass::_ReadColorAdd(CCINIClass* pINI)
 {
@@ -3590,8 +3573,6 @@ void FakeRulesClass::_ReadColorAdd(CCINIClass* pINI)
 	}
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x66D480, FakeRulesClass::_ReadColorAdd)
-
 void FakeRulesClass::_ReadColors(CCINIClass* pINI)
 {
 	const char* section = GameStrings::Colors;
@@ -3604,7 +3585,7 @@ void FakeRulesClass::_ReadColors(CCINIClass* pINI)
 	const int count = pINI->GetKeyCount(section);
 	for (int i = 0; i < count; ++i) {
 		const char* pName = pINI->GetKeyName(section, i);
-		auto _buffer = Valueable<HSVClass>()(exINI, section , pName, false).Get();
+		HSVClass _buffer = Valueable<HSVClass>()(exINI, section , pName, false).Get();
 		Game::AddColor(pName, &_buffer);
 		ColorScheme::FindOrAllocatePTR(pName, &_buffer, FileSystem::UNITPAL.operator->(), FileSystem::TEMPERAT_PAL.operator->(), 1);
 		ColorScheme::FindOrAllocatePTR(pName, &_buffer, FileSystem::UNITPAL.operator->(), FileSystem::TEMPERAT_PAL.operator->(), 53);
@@ -3635,8 +3616,6 @@ void FakeRulesClass::_ReadMovies(CCINIClass* pINI)
 		}
 	}
 }
-
-DEFINE_FUNCTION_JUMP(LJMP, 0x66D3A0, FakeRulesClass::_ReadColors)
 
 void FakeRulesClass::_ReadAI(CCINIClass* pINI)
 {
@@ -3741,7 +3720,6 @@ void FakeRulesClass::_ReadAI(CCINIClass* pINI)
 	detail::read<int>(this->ComputerBaseDefenseResponse, exINI, section, "ComputerBaseDefenseResponse");
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x672AE0, FakeRulesClass::_ReadAI)
 
 void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
 {
@@ -3974,8 +3952,6 @@ void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
 	pData->Cloak_KickOutParasite.Read(exINI, section, "Cloak.KickOutParasite");
 	pData->Veinhole_Warhead.Read(exINI, section, "VeinholeWarhead");
 }
-
-DEFINE_FUNCTION_JUMP(LJMP, 0x66BBB0, FakeRulesClass::_ReadCombatDamage)
 
 #pragma region WeaponTypeBuffer
 
@@ -4315,3 +4291,445 @@ ASMJIT_PATCH(0x66748A, RulesClass_CTOR_TiberiumTransmogrify, 6)
 	pThis->TiberiumTransmogrify = 0;
 	return 0;
 }
+
+#ifndef _takeAll
+ DEFINE_FUNCTION_JUMP(LJMP, 0x674500, FakeRulesClass::_ReadDifficulty)
+ DEFINE_FUNCTION_JUMP(LJMP, 0x674240, FakeRulesClass::_ReadIQ)
+ DEFINE_FUNCTION_JUMP(LJMP, 0x674000, FakeRulesClass::_ReadLandTypes)
+ DEFINE_FUNCTION_JUMP(LJMP, 0x66D1F0, FakeRulesClass::_ReadWallModel)
+ DEFINE_FUNCTION_JUMP(LJMP, 0x66D150, FakeRulesClass::_ReadElevationModel)
+ DEFINE_FUNCTION_JUMP(LJMP, 0x668FB0, FakeRulesClass::_ReadSpecialWeapons)
+ DEFINE_FUNCTION_JUMP(LJMP, 0x673E80, FakeRulesClass::_ReadPowerups);
+ DEFINE_FUNCTION_JUMP(LJMP, 0x66BBB0, FakeRulesClass::_ReadCombatDamage)
+ DEFINE_FUNCTION_JUMP(LJMP, 0x672AE0, FakeRulesClass::_ReadAI)
+ DEFINE_FUNCTION_JUMP(LJMP, 0x66D3A0, FakeRulesClass::_ReadColors)
+ DEFINE_FUNCTION_JUMP(LJMP, 0x66D480, FakeRulesClass::_ReadColorAdd)
+ DEFINE_FUNCTION_JUMP(LJMP, 0x668BF0, FakeRulesClass::_Process)
+ DEFINE_FUNCTION_JUMP(LJMP, 0x6743D0, FakeRulesClass::_ReadJumpjetControls)
+ DEFINE_FUNCTION_JUMP(LJMP, 0x671EA0, FakeRulesClass::_ReadMPlayer);
+ DEFINE_FUNCTION_JUMP(LJMP, 0x66CF70, FakeRulesClass::_ReadRadiation)
+ DEFINE_FUNCTION_JUMP(LJMP, 0x6691E0, FakeRulesClass::_ReadAudioVisual)
+ DEFINE_FUNCTION_JUMP(LJMP, 0x66B900, FakeRulesClass::_ReadCrateRules)
+#else 
+
+void _LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI)
+{
+	CursorTypeClass::AddDefaults();
+	CursorTypeClass::LoadFromINIList_New(pINI);
+	ColorTypeClass::LoadFromINIList_New(pINI);
+	SelectBoxTypeClass::AddDefaults();
+
+	ArmorTypeClass::LoadFromINIList_New(pINI);
+	CrateTypeClass::ReadFromINIList(pINI);
+	TunnelTypeClass::LoadFromINIList(pINI);
+
+	RocketTypeClass::AddDefaults();
+	RocketTypeClass::LoadFromINIOnlyTheList(pINI);
+
+	GenericPrerequisite::AddDefaults();
+	GenericPrerequisite::LoadFromINIOnlyTheList(pINI);
+
+	LaserTrailTypeClass::LoadFromINIOnlyTheList(CCINIClass::INI_Art.operator->());
+
+	ShieldTypeClass::AddDefaults();
+	ShieldTypeClass::LoadFromINIOnlyTheList(pINI);
+}
+
+void _s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
+{
+	InsigniaTypeClass::LoadFromINIList(pINI);
+
+	// we override it , so it loaded before any type read happen , so all the properties will correcly readed
+	pThis->Read_CrateRules(pINI);
+	pThis->Read_CombatDamage(pINI);
+	pThis->Read_Radiation(pINI);
+	pThis->Read_ElevationModel(pINI);
+	pThis->Read_WallModel(pINI);
+	pThis->Read_AudioVisual(pINI);
+	pThis->Read_SpecialWeapons(pINI);
+
+	RadTypeClass::AddDefaults();
+	HoverTypeClass::AddDefaults();
+
+	ImmunityTypeClass::LoadFromINIList(pINI);
+	ArmorTypeClass::EvaluateDefault();
+
+	//TrailType::LoadFromINIList(&CCINIClass::INI_Art.get());
+
+	RadTypeClass::LoadFromINIOnlyTheList(pINI);
+
+	HoverTypeClass::LoadFromINIOnlyTheList(pINI);
+	LaserTrailTypeClass::LoadFromINIList(CCINIClass::INI_Art.operator->());
+	DigitalDisplayTypeClass::LoadFromINIList(pINI);
+	SelectBoxTypeClass::LoadFromINIList(pINI);
+
+	PhobosAttachEffectTypeClass::LoadFromINIOnlyTheList(pINI);
+
+	TechTreeTypeClass::LoadFromINIOnlyTheList(pINI);
+
+	BannerTypeClass::LoadFromINIList(pINI);
+
+	if (RulesExtData::Instance()->HugeBar_Config.empty())
+	{
+		RulesExtData::Instance()->HugeBar_Config.emplace_back(DisplayInfoType::Health);
+		RulesExtData::Instance()->HugeBar_Config.emplace_back(DisplayInfoType::Shield);
+	}
+
+	for (auto& huge_bar : RulesExtData::Instance()->HugeBar_Config)
+	{
+		huge_bar.LoadFromINI(pINI);
+	}
+
+	RulesExtData::Instance()->LoadBeforeTypeData(pThis, pINI);
+}
+
+void _LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
+{
+	INI_EX iniEX(pINI);
+	auto pData = RulesExtData::Instance();
+	CrateTypeClass::ReadListFromINI(pINI);
+	HoverTypeClass::ReadListFromINI(pINI);
+	ShieldTypeClass::ReadListFromINI(pINI);
+	RadTypeClass::ReadListFromINI(pINI);
+	PhobosAttachEffectTypeClass::ReadListFromINI(pINI);
+	TechTreeTypeClass::ReadListFromINI(pINI);
+
+	pData->BattlePoints.Read(iniEX, GameStrings::General, "BattlePoints");
+	pData->BattlePoints_DefaultValue.Read(iniEX, GameStrings::General, "BattlePoints.DefaultValue");
+	pData->BattlePoints_DefaultFriendlyValue.Read(iniEX, GameStrings::General, "BattlePoints.DefaultFriendlyValue");
+
+	pData->SuperWeaponSidebar_AllowByDefault.Read(iniEX, GameStrings::AudioVisual, "SuperWeaponSidebar.AllowByDefault");
+
+	pData->DamagedSpeed.Read(iniEX, GameStrings::General, "DamagedSpeed");
+	pData->ColorAddUse8BitRGB.Read(iniEX, GameStrings::AudioVisual, "ColorAddUse8BitRGB");
+	pData->IronCurtain_ExtraTintIntensity.Read(iniEX, GameStrings::AudioVisual, "IronCurtain.ExtraTintIntensity");
+	pData->ForceShield_ExtraTintIntensity.Read(iniEX, GameStrings::AudioVisual, "ForceShield.ExtraTintIntensity");
+
+	pData->DefaultInfantrySelectBox.Read(iniEX, GameStrings::AudioVisual, "DefaultInfantrySelectBox");
+	pData->DefaultUnitSelectBox.Read(iniEX, GameStrings::AudioVisual, "DefaultUnitSelectBox");
+
+	pData->InfantrySpeedData.Crawls.Read(iniEX, GameStrings::General, "ProneSpeed.Crawls");
+	pData->InfantrySpeedData.NoCrawls.Read(iniEX, GameStrings::General, "ProneSpeed.NoCrawls");
+
+	pData->BuildingGuardRetryDelay.Read(iniEX, GameStrings::General, "BuildingGuardRetryDelay");
+	pData->DiscardOn_ConsiderHoverAsMoving.Read(iniEX, GameStrings::General, "DiscardOn.MoveBasedOnDestination");
+
+	pData->VoxelLightSource.Read(iniEX, GameStrings::AudioVisual, "VoxelLightSource");
+	pData->VoxelShadowLightSource.Read(iniEX, GameStrings::AudioVisual, "VoxelShadowLightSource");
+	pData->UseFixedVoxelLighting.Read(iniEX, GameStrings::AudioVisual, "UseFixedVoxelLighting");
+
+	//got invalidated early , so parse it again
+	detail::ParseVector(iniEX, pData->AITargetTypesLists, "AITargetTypes");
+	detail::ParseVector<ScriptTypeClass*, true>(iniEX, pData->AIScriptsLists, "AIScriptsList");
+	detail::ParseVector<HouseTypeClass*>(iniEX, pData->AIHateHousesLists, "AIHateHousesList");
+	detail::ParseVector<HouseTypeClass*>(iniEX, pData->AIHousesLists, "AIHousesList");
+	detail::ParseVector(iniEX, pData->AIConditionsLists, "AIConditionsList", true, false, "/");
+	detail::ParseVector<AITriggerTypeClass*, true>(iniEX, pData->AITriggersLists, "AITriggersList");
+
+	pData->AIChronoSphereSW.Read(iniEX, GameStrings::General, "AIChronoSphereSW");
+	pData->AIChronoWarpSW.Read(iniEX, GameStrings::General, "AIChronoWarpSW");
+	pData->AutoRemoveEarliestBeacon.Read(iniEX, GameStrings::General, "AutoRemoveEarliestBeacon");
+	pData->AllowChatBoxInSinglePlayer.Read(iniEX, GameStrings::General, "AllowChatBoxInSinglePlayer");
+	pData->DamageOwnerMultiplier.Read(iniEX, GameStrings::CombatDamage, "DamageOwnerMultiplier");
+	pData->DamageAlliesMultiplier.Read(iniEX, GameStrings::CombatDamage, "DamageAlliesMultiplier");
+	pData->DamageEnemiesMultiplier.Read(iniEX, GameStrings::CombatDamage, "DamageEnemiesMultiplier");
+	pData->DamageOwnerMultiplier_Berzerk.Read(iniEX, GameStrings::CombatDamage, "DamageOwnerMultiplier.Berzerk");
+	pData->DamageAlliesMultiplier_Berzerk.Read(iniEX, GameStrings::CombatDamage, "DamageAlliesMultiplier.Berzerk");
+	pData->DamageEnemiesMultiplier_Berzerk.Read(iniEX, GameStrings::CombatDamage, "DamageEnemiesMultiplier.Berzerk");
+	pData->DamageOwnerMultiplier_NotAffectsEnemies.Read(iniEX, GameStrings::CombatDamage, "DamageOwnerMultiplier.NotAffectsEnemies");
+	pData->DamageAlliesMultiplier_NotAffectsEnemies.Read(iniEX, GameStrings::CombatDamage, "DamageAlliesMultiplier.NotAffectsEnemies");
+	pData->DriverKilled_KillPassengers.Read(iniEX, GameStrings::CombatDamage, "DriverKilled.KillPassengers");
+	pData->Psychedelic_StackingMode.Read(iniEX, GameStrings::CombatDamage, "Psychedelic.StackingMode");
+	pData->BerzerkMission.Read(iniEX, GameStrings::CombatDamage, "BerzerkMission");
+
+	pData->FactoryProgressDisplay.Read(iniEX, GameStrings::AudioVisual, "FactoryProgressDisplay");
+	pData->MainSWProgressDisplay.Read(iniEX, GameStrings::AudioVisual, "MainSWProgressDisplay");
+	pData->CombatAlert.Read(iniEX, GameStrings::AudioVisual, "CombatAlert");
+	pData->CombatAlert_MakeAVoice.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.MakeAVoice");
+	pData->CombatAlert_IgnoreBuilding.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.IgnoreBuilding");
+	pData->CombatAlert_EVA.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.EVA");
+	pData->CombatAlert_UseFeedbackVoice.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.UseFeedbackVoice");
+	pData->CombatAlert_UseAttackVoice.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.UseAttackVoice");
+	pData->CombatAlert_SuppressIfInScreen.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.SuppressIfInScreen");
+	pData->CombatAlert_Interval.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.Interval");
+	pData->CombatAlert_SuppressIfAllyDamage.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.SuppressIfAllyDamage");
+	pData->SubterraneanHeight.Read(iniEX, GameStrings::General, "SubterraneanHeight");
+
+	pData->StartDistributionModeSound.Read(iniEX, GameStrings::AudioVisual, "StartDistributionModeSound");
+	pData->EndDistributionModeSound.Read(iniEX, GameStrings::AudioVisual, "EndDistributionModeSound");
+	pData->AddDistributionModeCommandSound.Read(iniEX, GameStrings::AudioVisual, "AddDistributionModeCommandSound");
+
+	pData->ForceShield_KillOrganicsWarhead.Read(iniEX, GameStrings::CombatDamage(), "ForceShield.KillOrganicsWarhead");
+
+	if (!pData->ForceShield_KillOrganicsWarhead)
+		pData->ForceShield_KillOrganicsWarhead = pThis->C4Warhead;
+
+	pData->AllowWeaponSelectAgainstWalls.Read(iniEX, GameStrings::CombatDamage, "AllowWeaponSelectAgainstWalls");
+	pData->IronCurtain_KillOrganicsWarhead.Read(iniEX, GameStrings::CombatDamage(), "IronCurtain.KillOrganicsWarhead");
+
+	if (!pData->IronCurtain_KillOrganicsWarhead)
+		pData->IronCurtain_KillOrganicsWarhead = pThis->C4Warhead;
+
+	pData->DefaultAircraftDamagedSmoke = AnimTypeClass::Find(GameStrings::SGRYSMK1());
+	pData->FirestormActiveAnim.Read(iniEX, GameStrings::AudioVisual(), "FirestormActiveAnim");
+	pData->FirestormIdleAnim.Read(iniEX, GameStrings::AudioVisual(), "FirestormIdleAnim");
+	pData->FirestormGroundAnim.Read(iniEX, GameStrings::AudioVisual(), "FirestormGroundAnim");
+	pData->FirestormAirAnim.Read(iniEX, GameStrings::AudioVisual(), "FirestormAirAnim");
+	pData->FirestormWarhead.Read(iniEX, GameStrings::CombatDamage(), "FirestormWarhead");
+	pData->DamageToFirestormDamageCoefficient.Read(iniEX, GameStrings::General(), "DamageToFirestormDamageCoefficient");
+
+	pData->Bounty_Enablers.Read(iniEX, GameStrings::General(), "BountyEnablers");
+	pData->Bounty_Display.Read(iniEX, GameStrings::AudioVisual(), "BountyDisplay");
+	pData->CloakAnim.Read(iniEX, GameStrings::AudioVisual(), "CloakAnim");
+	pData->DecloakAnim.Read(iniEX, GameStrings::AudioVisual(), "DecloakAnim");
+	pData->Cloak_KickOutParasite.Read(iniEX, GameStrings::CombatDamage, "Cloak.KickOutParasite");
+
+	pData->Veinhole_Warhead.Read(iniEX, GameStrings::CombatDamage(), "VeinholeWarhead");
+
+	pData->WallTowers.Read(iniEX, GameStrings::General(), "WallTowers");
+	if (pThis->WallTower && !pData->WallTowers.Contains(pThis->WallTower))
+		pData->WallTowers.push_back(pThis->WallTower);
+
+	pData->Promote_Vet_Anim.Read(iniEX, GameStrings::AudioVisual(), "Promote.VeteranAnim");
+	pData->Promote_Elite_Anim.Read(iniEX, GameStrings::AudioVisual(), "Promote.EliteAnim");
+
+	pData->Promote_Vet_PlaySpotlight.Read(iniEX, GameStrings::AudioVisual(), "Promote.VeteranPlaySpotLight");
+	pData->Promote_Elite_PlaySpotlight.Read(iniEX, GameStrings::AudioVisual(), "Promote.ElitePlaySpotLight");
+
+	pData->PrimaryFactoryIndicator.Read(iniEX, GameStrings::AudioVisual(), "PrimaryFactoryIndicator");
+	pData->PrimaryFactoryIndicator_Palette.Read(iniEX, GameStrings::AudioVisual(), "PrimaryFactoryIndicator.Palette");
+
+	pData->DefaultExplodeFireAnim.Read(iniEX, GameStrings::AudioVisual(), "DefaultExplodeOverlayFireAnim");
+
+	if (!pData->DefaultExplodeFireAnim)
+		pData->DefaultExplodeFireAnim = AnimTypeClass::Find(GameStrings::Anim_FIRE3);
+
+	for (int i = 0; i < WeaponTypeClass::Array->Count; ++i)
+	{
+		WeaponTypeClass::Array->Items[i]->LoadFromINI(pINI);
+	}
+
+	for (int i = 0; i < BuildingTypeClass::Array->Count; ++i)
+	{
+		BuildingTypeExtContainer::Instance.Find(BuildingTypeClass::Array->Items[i])
+			->CompleteInitialization();
+	}
+
+	pData->ReplaceVoxelLightSources();
+}
+
+class NOVTABLE FakeRulesClassB : public RulesClass
+{
+public:
+	void __ReadGeneral(CCINIClass* pINI);
+	void __ReadColors(CCINIClass* pINI);
+};
+
+void FakeRulesClassB::__ReadColors(CCINIClass* pINI)
+{
+	_LoadEarlyBeforeColor(this, pINI);
+
+	this->Read_JumpjetControls(pINI);
+	this->Read_Colors(pINI);
+}
+
+void FakeRulesClassB::__ReadGeneral(CCINIClass* pINI)
+{
+	GenericPrerequisite::LoadFromINIList_New(pINI);
+	this->Read_General(pINI);
+
+	RocketTypeClass::ReadListFromINI(pINI);
+
+	SideClass::Array->for_each([pINI](SideClass* pSide)
+ {
+	 SideExtContainer::Instance.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
+	});
+
+	HouseTypeClass::Array->for_each([pINI](HouseTypeClass* pHouse)
+ {
+	 HouseTypeExtContainer::Instance.LoadFromINI(pHouse, pINI, !pINI->GetSection(pHouse->ID));
+	});
+
+	// All TypeClass Created but not yet read INI
+	//	RulesClass::Initialized = true;
+
+	_s_LoadBeforeTypeData(this, pINI);
+	this->Read_Types(pINI);
+
+	// Ensure entry not fail because of late instantiation
+	// add more if needed , it will double the error log at some point
+	// but it will take care some of missing stuffs that previously loaded late
+
+	for (auto pWeapon : *WeaponTypeClass::Array)
+	{
+		pWeapon->LoadFromINI(pINI);
+	}
+
+	for (auto pBullet : *BulletTypeClass::Array)
+	{
+		pBullet->LoadFromINI(pINI);
+	}
+
+	for (auto pWarhead : *WarheadTypeClass::Array)
+	{
+		pWarhead->LoadFromINI(pINI);
+	}
+
+	for (auto pAnims : *AnimTypeClass::Array)
+	{
+		pAnims->LoadFromINI(pINI);
+	}
+
+	_LoadAfterTypeData(this, pINI);
+	this->Read_Difficulties(pINI);
+
+	for (auto pTib : *TiberiumClass::Array)
+	{
+		//Debug::LogInfo("Reading Tiberium[{}] Configurations!", pTib->ID);
+		pTib->LoadFromINI(pINI);
+	}
+}
+
+DEFINE_FUNCTION_JUMP(CALL, 0x668BFE, FakeRulesClassB::__ReadColors);
+DEFINE_FUNCTION_JUMP(CALL, 0x668EE8, FakeRulesClassB::__ReadGeneral);
+
+void ProcessColorAdd(CCINIClass* pINI)
+{
+	const int count = pINI->GetKeyCount(GameStrings::ColorAdd);
+
+	if (count > 0)
+	{
+		struct temp_rgb
+		{
+			byte r, g, b;
+
+			operator ColorStruct()
+			{
+				return *reinterpret_cast<ColorStruct*>(this);
+			}
+
+			operator byte* ()
+			{
+				return reinterpret_cast<byte*>(this);
+			}
+		};
+
+		//this was for debugging purposes
+		//the code below can be simplified
+		RulesExtData::Instance()->ColorAdds.resize(count);
+
+		for (int i = 0; i < count; ++i)
+		{
+			pINI->Read3Bytes(RulesExtData::Instance()->ColorAdds[i].asPointer()
+				, GameStrings::ColorAdd
+				, pINI->GetKeyName(GameStrings::ColorAdd, i)
+				, RulesExtData::Instance()->ColorAdds[i].asPointer());
+		}
+
+		if (RulesExtData::Instance()->ColorAdds.size() >= RulesClass::Instance->ColorAdd.size())
+		{
+			Debug::LogInfo("Readed ColorAdd and the size is more than 16 max , parsed size {}", count);
+			Debug::RegisterParserError();
+		}
+
+		for (size_t a = 0; a < RulesClass::Instance->ColorAdd.size(); ++a)
+		{
+			RulesClass::Instance->ColorAdd[a] = RulesExtData::Instance()->ColorAdds[a];
+		}
+
+	}
+	else
+	{
+		Debug::FatalErrorAndExit("Empty ColorAdd\n");
+	}
+}
+
+ASMJIT_PATCH(0x668C24, RulesClass_Process_ColorAdd, 0x6)
+{
+	GET(CCINIClass*, pINI, ESI);
+	ProcessColorAdd(pINI);
+	return 0x668C8B;
+}
+
+ASMJIT_PATCH(0x668B29, RulesClass_Init_ColorAdd, 0x6)
+{
+	GET(CCINIClass*, pINI, EDI);
+	ProcessColorAdd(pINI);
+	return 0x668B8E;
+}
+
+ASMJIT_PATCH(0x668D86, RulesData_Process_PreFillTypeListData, 0x6)
+{
+	GET(CCINIClass*, pINI, ESI);
+
+	for (int nn = 0; nn < pINI->GetKeyCount("Projectiles"); ++nn)
+	{
+		if (pINI->GetString("Projectiles", pINI->GetKeyName("Projectiles", nn), Phobos::readBuffer))
+		{
+			BulletTypeClass::FindOrAllocate(Phobos::readBuffer);
+		}
+	}
+
+	for (int i = 0; i < pINI->GetKeyCount(GameStrings::Tiberiums()); ++i)
+	{
+		if (pINI->ReadString(GameStrings::Tiberiums(), pINI->GetKeyName(GameStrings::Tiberiums(), i), Phobos::readDefval, Phobos::readBuffer) > 0)
+		{
+			TiberiumClass::FindOrAllocate(Phobos::readBuffer);
+		}
+	}
+
+	RulesExtData::Instance()->DefaultBulletType = BulletTypeClass::FindOrAllocate(DEFAULT_STR2);
+	if (!RulesExtData::Instance()->DefaultBulletType)
+		Debug::FatalError("Uneable to Allocate {} BulletType ! ", DEFAULT_STR2);
+
+	for (int nn = 0; nn < pINI->GetKeyCount("WeaponTypes"); ++nn)
+	{
+		if (pINI->GetString("WeaponTypes", pINI->GetKeyName("WeaponTypes", nn), Phobos::readBuffer))
+		{
+			WeaponTypeClass::FindOrAllocate(Phobos::readBuffer);
+		}
+	}
+
+	for (int nn = 0; nn < pINI->GetKeyCount("Warheads"); ++nn)
+	{
+		if (pINI->GetString("Warheads", pINI->GetKeyName("Warheads", nn), Phobos::readBuffer))
+		{
+			WarheadTypeClass::FindOrAllocate(Phobos::readBuffer);
+		}
+	}
+
+	return 0x668DD2;
+}
+
+void _LoadEndOfAudioVisual(RulesClass* pRules, CCINIClass* pINI)
+{
+	INI_EX iniEX(pINI);
+	auto pData = RulesExtData::Instance();
+
+	Nullable<double> Shield_ConditionGreen_d {};
+	Nullable<double> Shield_ConditionYellow_d {};
+	Nullable<double> Shield_ConditionRed_d {};
+	Nullable<double> ConditionYellow_Terrain_d {};
+
+	Shield_ConditionGreen_d.Read(iniEX, GameStrings::AudioVisual(), "Shield.ConditionGreen");// somewhat never used , man
+	Shield_ConditionYellow_d.Read(iniEX, GameStrings::AudioVisual(), "Shield.ConditionYellow");
+	Shield_ConditionRed_d.Read(iniEX, GameStrings::AudioVisual(), "Shield.ConditionRed");
+	ConditionYellow_Terrain_d.Read(iniEX, GameStrings::AudioVisual(), "ConditionYellow.Terrain");
+
+	pData->Shield_ConditionGreen = Shield_ConditionGreen_d.Get(pRules->ConditionGreen);
+	pData->Shield_ConditionYellow = Shield_ConditionYellow_d.Get(pRules->ConditionYellow);
+	pData->Shield_ConditionRed = Shield_ConditionRed_d.Get(pRules->ConditionRed);
+	pData->ConditionYellow_Terrain = ConditionYellow_Terrain_d.Get(pRules->ConditionYellow);
+}
+
+ASMJIT_PATCH(0x66B8E2, RulesClass_ReadAudioVisual_End, 0x5)
+{
+	GET(DWORD, ptr, ESI);
+	GET(CCINIClass*, pINI, EDI);
+
+	RulesClass* pRules = reinterpret_cast<RulesClass*>(ptr - 0x18B8);
+	_LoadEndOfAudioVisual(pRules, pINI);
+	return 0x0;
+}
+
+#endif

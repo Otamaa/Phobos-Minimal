@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <immintrin.h>
 #include <intrin.h>
+#include <vector>
 
 class PhobosCRT final
 {
@@ -197,6 +198,14 @@ public:
 		return sv.substr(begin, end - begin);
 	};
 
+	static COMPILETIMEEVAL std::string Trim(const std::string& s)
+	{
+		auto start = s.find_first_not_of(" \t\n\r");
+		if (start == std::string::npos) return "";
+		auto end = s.find_last_not_of(" \t\n\r");
+		return s.substr(start, end - start + 1);
+	}
+
 	template<size_t max>
 	static COMPILETIMEEVAL std::array<std::string_view, max> OPTIONALINLINE split(std::string_view s)
 	{
@@ -243,5 +252,22 @@ public:
 		}
 
 		return std::pair<std::array<std::string_view, max>, size_t>{ out, count };
+	}
+
+	static COMPILETIMEEVAL std::vector<std::string> SplitString(const std::string& str, const std::string& delimiters)
+	{
+		std::vector<std::string> tokens;
+		std::string::size_type start = 0;
+		std::string::size_type end = 0;
+
+		while ((end = str.find_first_of(delimiters, start)) != std::string::npos)
+		{
+			if (end != start) // skip empty tokens
+				tokens.push_back(str.substr(start, end - start));
+			start = end + 1;
+		}
+		if (start < str.length())
+			tokens.push_back(str.substr(start));
+		return tokens;
 	}
 };

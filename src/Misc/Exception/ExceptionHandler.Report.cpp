@@ -462,12 +462,12 @@ void AppendHeader()
 	ExceptionHandler::Append("Git: " STR_GIT_COMMIT " @ " STR_GIT_BRANCH "\r\n");
 #endif
 
-	ExceptionHandler::Append("Running on %s\r\n", ExceptionHandler::CommandLines.c_str());
+	ExceptionHandler::Append("Running on %s\r\n", Patch::WindowsVersion.c_str());
 
 	ExceptionHandler::Append("Time stamp: %02u-%02u-%04u %02u:%02u:%02u\r\n",
 		ExceptionHandler::CrashTime.wDay, ExceptionHandler::CrashTime.wMonth, ExceptionHandler::CrashTime.wYear,
 		ExceptionHandler::CrashTime.wHour, ExceptionHandler::CrashTime.wMinute, ExceptionHandler::CrashTime.wSecond);
-	ExceptionHandler::Append("Command line: %s\r\n", GetCommandLineA());
+	ExceptionHandler::Append("Command line: %s\r\n", ExceptionHandler::CommandLines.c_str());
 	ExceptionHandler::Append("Crashed thread: 0x%X%s\r\n\r\n", ExceptionHandler::CrashedThreadId,
 		ExceptionHandler::CrashedThreadId == ExceptionHandler::MainThreadId ? " (main thread)" : "");
 }

@@ -27,93 +27,88 @@ void CrateTypeClass::AddDefaults()
 	}
 }
 
+#include <ranges>
+
 void CrateTypeClass::ReadFromPowerups(CCINIClass* pINI)
 {
-	if (!pINI->GetSection("Powerups"))
-		return;
+    if (!pINI->GetSection("Powerups"))
+        return;
 
-	for (size_t i = 0; i < CrateTypeClass::Count(); ++i) {
-		auto& pCrate = CrateTypeClass::Array[i];
-		char readBuffer[Phobos::readLength];
+	INI_EX exINI (pINI);
 
-		if (!pINI->ReadString(
-			"Powerups",
-			pCrate->Name.data(),
-			"0,NONE",
-			readBuffer))
-		{
-			continue;
-		}
+    for (size_t i = 0; i < CrateTypeClass::Count(); ++i) {
+        auto& pCrate = CrateTypeClass::Array[i];
+        char readBuffer[Phobos::readLength];
 
-		// Share count
-		if (char* token = strtok(readBuffer, ",")) {
-			pCrate->Weight = atoi(PhobosCRT::trim(token).c_str());
-		}
+        if (!pINI->ReadString("Powerups", pCrate->Name.data(), "0,NONE", readBuffer))
+            continue;
 
-		// Animation
-		if (char* token = strtok(nullptr, ",")) {
-			pCrate->Anim = AnimTypeClass::Find(PhobosCRT::trim(token).c_str());
-		}
+        auto tokens = std::string_view(readBuffer)
+            | std::views::split(',')
+            | std::views::transform([](auto&& r) { 
+                return std::string(PhobosCRT::trim(std::string_view(r).data())); 
+            });
 
-		// Placeable on water
-		if (char* token = strtok(nullptr, ",")) {
-			auto _Naval = PhobosCRT::trim(token);
-			if (IS_SAME_STR_(_Naval.c_str(), "yes")) {
-				pCrate->Naval = true;
-			} else if (IS_SAME_STR_(_Naval.c_str(), "no")) {
-				pCrate->Naval = false;
-			}
-		}
+        // Convert to array for random access
+        std::vector<std::string> vec(tokens.begin(), tokens.end());
 
-		// Crate value/chance
-		if (char* token = strtok(nullptr, ",")) {
-			auto arg = PhobosCRT::trim(token);
+        // Use array-like access with bounds checking
+        auto get = [&](size_t idx) -> std::optional<std::string> {
+            return idx < vec.size() ? std::optional(vec[idx]) : std::nullopt;
+        };
 
-			if (strchr(arg.c_str(), '%')) {
-				pCrate->Argument = (atof(arg.c_str()) * 0.01);
-			} else {
-				pCrate->Argument = atof(arg.c_str());
-			}
-		}
-	}
+        if (auto v = get(0)) pCrate->Weight = std::stoi(*v);
+        if (auto v = get(1)) pCrate->Anim = AnimTypeClass::Find(v->c_str());
+        if (auto v = get(2)) pCrate->Naval = (*v == "yes");
+        if (auto v = get(3)) {
+            pCrate->Argument = (v->find('%') != std::string::npos) 
+                ? std::stof(*v) * 0.01 
+                : std::stof(*v);
+        }
+    }
 }
 
+void NOINLINE SetDefaultProperties(CrateTypeClass* pAlloc, int i, CCINIClass* pINI)
+{
+	switch (Powerup(i))
+	{
+	case Powerup::Money:
+		pAlloc->Sound = RulesClass::Instance->CrateMoneySound;
+		break;
+	case Powerup::HealBase:
+		pAlloc->Sound = RulesClass::Instance->HealCrateSound;
+		break;
+	case Powerup::Armor:
+		pAlloc->Sound = RulesClass::Instance->CrateArmourSound;
+		pAlloc->Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitArmorUpgraded());
+		break;
+	case Powerup::Speed:
+		pAlloc->Sound = RulesClass::Instance->CrateSpeedSound;
+		pAlloc->Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitSpeedUpgraded());
+		break;
+	case Powerup::Firepower:
+		pAlloc->Sound = RulesClass::Instance->CrateFireSound;
+		pAlloc->Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitFirePowerUpgraded());
+		break;
+	case Powerup::Reveal:
+		pAlloc->Sound = RulesClass::Instance->CrateRevealSound;
+		break;
+	case Powerup::Unit:
+		pAlloc->Sound = RulesClass::Instance->CrateUnitSound;
+		break;
+	case Powerup::Veteran:
+		pAlloc->Sound = RulesClass::Instance->CratePromoteSound;
+		break;
+	default:
+		break;
+	}
+
+	pAlloc->LoadFromINI(pINI);
+}
 void CrateTypeClass::ReadListFromINI(CCINIClass* pINI) {
 
 	for (size_t i = 0; i < CrateTypeClass::Count(); ++i) {
-
-		if(i < Powerups::Effects.size()) {
-			//the array is same position and size dont need to do shit
-			if(auto pAlloc = CrateTypeClass::Array[i].get()){
-
-				switch (Powerup(i))
-				{
-				case Powerup::Money:
-					pAlloc->Sound = RulesClass::Instance->CrateMoneySound; break;
-				case Powerup::HealBase:
-					pAlloc->Sound = RulesClass::Instance->HealCrateSound; break;
-				case Powerup::Armor:
-					pAlloc->Sound = RulesClass::Instance->CrateArmourSound; break;
-					pAlloc->Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitArmorUpgraded());
-				case Powerup::Speed:
-					pAlloc->Sound = RulesClass::Instance->CrateSpeedSound; break;
-					pAlloc->Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitSpeedUpgraded());
-				case Powerup::Firepower:
-					pAlloc->Sound = RulesClass::Instance->CrateFireSound; break;
-					pAlloc->Eva = VoxClass::FindIndexById(GameStrings::EVA_UnitFirePowerUpgraded());
-				case Powerup::Reveal:
-					pAlloc->Sound = RulesClass::Instance->CrateRevealSound; break;
-				case Powerup::Unit:
-					pAlloc->Sound = RulesClass::Instance->CrateUnitSound; break;
-				case Powerup::Veteran:
-					pAlloc->Sound = RulesClass::Instance->CratePromoteSound; break;
-				default:
-					break;
-				}
-			}
-		}
-
-		CrateTypeClass::GetArray()[i]->LoadFromINI(pINI);
+		SetDefaultProperties(CrateTypeClass::Array[i].get(), i, pINI);
 	}
 }
 

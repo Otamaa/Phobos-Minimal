@@ -1462,6 +1462,8 @@ bool FakeAITriggerTypeClass::_SaveToINI(CCINIClass* pINI)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2AB8, FakeAITriggerTypeClass::_SaveToINI)
 DEFINE_FUNCTION_JUMP(LJMP, 0x41FB10, FakeAITriggerTypeClass::_SaveToINI)
 
+#ifdef _old 
+
 bool FakeAITriggerTypeClass::_LoadFromINI(CCINIClass* pINI)
 {
 	pINI->Reset();
@@ -1616,6 +1618,159 @@ bool FakeAITriggerTypeClass::_LoadFromINI(CCINIClass* pINI)
 
 	return true;
 }
+#else 
+#include <string_view>
+#include <vector>
+#include <optional>
+#include <cctype>
+
+bool FakeAITriggerTypeClass::_LoadFromINI(CCINIClass* pINI)
+{
+    pINI->Reset();
+
+    char line[512];
+    if (!pINI->ReadString("AITriggerTypes", this->ID, "", line))
+        return false;
+
+    // Tokenize the line by commas, trimming whitespace
+    auto tokens = std::string_view(line)
+        | std::views::split(',')
+        | std::views::transform([](auto&& range) {
+            return std::string(PhobosCRT::trim(std::string_view(range).data()));
+        });
+
+    // Convert to vector for random access (or use iterator)
+    std::vector<std::string> vec(tokens.begin(), tokens.end());
+
+    // Helper to safely get token by index
+    auto get_token = [&](size_t idx) -> std::optional<std::string> {
+        return idx < vec.size() ? std::optional(vec[idx]) : std::nullopt;
+    };
+
+    // Helper to copy a token into a fixed-size char array with null termination
+    auto copy_to_fixed = [](char* dest, size_t size, const std::string& src) {
+        size_t len = std::min(src.size(), size - 1);
+        strncpy(dest, src.c_str(), len);
+        dest[len] = '\0';
+    };
+
+    // --- field 0: friendly name -------------------------------------------
+    auto token0 = get_token(0);
+    if (!token0) return false;
+    copy_to_fixed(this->Name, 0x31, *token0);  // 0x30 + 1 for null
+
+    // --- field 1: Team1 ---------------------------------------------
+    auto token1 = get_token(1);
+    if (!token1) return false;
+    char name[24];
+    copy_to_fixed(name, 24, *token1);
+    this->Team1 = nullptr;
+    if (_strcmpi(name, GameStrings::NoneStr) != 0)
+        this->Team1 = TeamTypeClass::Find(name);
+
+    // --- field 2: owner house ---------------------------------------------
+    auto token2 = get_token(2);
+    if (!token2) return false;
+    copy_to_fixed(name, 24, *token2);
+    this->OwnerHouseType = AITriggerHouseType::None;
+    this->HouseIndex = -1;
+    if (_strcmpi(name, GameStrings::AllStr) == 0)
+    {
+        this->OwnerHouseType = AITriggerHouseType::Any;
+    }
+    else if (_strcmpi(name, GameStrings::NoneStr) != 0)
+    {
+        this->HouseIndex = HouseTypeClass::FindIndexById(name);
+        if (this->HouseIndex != -1)
+            this->OwnerHouseType = AITriggerHouseType::Single;
+    }
+
+    // --- field 3: INI tech level is read then DISCARDED -------------------
+    auto token3 = get_token(3);
+    if (!token3) return false;
+    this->TechLevel = 0; //atoi(tok) — discarded
+
+    // --- field 4: condition type ------------------------------------------
+    auto token4 = get_token(4);
+    if (!token4) return false;
+    this->ConditionType = static_cast<AITriggerCondition>(std::stoi(*token4));
+
+    // --- field 5: condition object = first matching techno type -----------
+    auto token5 = get_token(5);
+    if (!token5) return false;
+    copy_to_fixed(name, 24, *token5);
+    this->ConditionObject = ResolveTechType(this, name);
+
+    // --- field 6: condition list (opt. spaces, 2-char hex each, max 32) ----
+    auto token6 = get_token(6);
+    if (!token6) return false;
+    if (!token6->empty())
+    {
+        const char* p = token6->c_str();
+        int n = 0;
+        char code[4] = "00";  // code[2] stays '\0'
+        char* endptr = nullptr;
+
+        while (*p && n < 0x20)
+        {
+            // skip spaces
+            while (isspace(static_cast<unsigned char>(*p)))
+                ++p;
+
+            if (!*p) break;
+
+            const char c0 = *p++;
+            const char c1 = *p ? *p++ : '\0';
+            code[0] = c0;
+            code[1] = c1 ? c1 : '\0';
+            // code[2] is already '\0'
+
+            this->_Conditions[n++] = static_cast<char>(std::strtol(code, &endptr, 16));
+        }
+    }
+
+    // --- fields 7,8,9: weights (doubles) ----------------------------------
+    if (auto token7 = get_token(7)) this->Weight_Current = std::stod(*token7);
+    if (auto token8 = get_token(8)) this->Weight_Minimum = std::stod(*token8);
+    if (auto token9 = get_token(9)) this->Weight_Maximum = std::stod(*token9);
+
+    // --- field 10: for-skirmish -------------------------------------------
+    if (auto token10 = get_token(10)) this->IsForSkirmish = std::stoi(*token10) != 0;
+
+    // --- field 11: unused, consumed to keep tokenizer aligned -------------
+    // Just ignore it; we don't need to consume explicitly because we use indices.
+
+    // --- field 12: owning country (side) ----------------------------------
+    if (auto token12 = get_token(12)) this->SideIndex = std::stoi(*token12);
+
+    // --- field 13: for base defense ---------------------------------------
+    if (auto token13 = get_token(13)) this->IsForBaseDefense = std::stoi(*token13) != 0;
+
+    // --- field 14: Team2 (only touched when the field exists) --------
+    if (auto token14 = get_token(14))
+    {
+        char two[24];
+        copy_to_fixed(two, 24, *token14);
+        this->Team2 = nullptr;
+        if (_strcmpi(two, GameStrings::NoneStr) != 0)
+            this->Team2 = TeamTypeClass::Find(two);
+    }
+
+    // --- fields 15,16,17: per-difficulty enable ---------------------------
+    if (auto token15 = get_token(15)) this->Enabled_Easy = std::stoi(*token15) != 0;
+    if (auto token16 = get_token(16)) this->Enabled_Normal = std::stoi(*token16) != 0;
+    if (auto token17 = get_token(17)) this->Enabled_Hard = std::stoi(*token17) != 0;
+
+    // --- derive tech level = max(0, req(TeamOne), req(TeamTwo)) ------------
+    if (this->Team1)
+        this->TechLevel = std::max(this->TechLevel, this->Team1->TaskForce->TechLevelRequired());
+
+    if (this->Team2)
+        this->TechLevel = std::max(this->TechLevel, this->Team2->TaskForce->TechLevelRequired());
+
+    return true;
+}
+#endif
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2AB4, FakeAITriggerTypeClass::_LoadFromINI)
 DEFINE_FUNCTION_JUMP(LJMP, 0x41F580, FakeAITriggerTypeClass::_LoadFromINI)
 

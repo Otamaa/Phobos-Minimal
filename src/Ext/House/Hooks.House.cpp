@@ -840,8 +840,10 @@ ASMJIT_PATCH(0x4FB2FD, HouseClass_UnitFromFactory_BuildingSlam, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
-	VocClass::PlayGlobal(BuildingTypeExtContainer::Instance.Find(pThis->Type)->SlamSound.
-		Get(RulesClass::Instance->BuildingSlam), Panning::Center, 1.0, 0);
+	const int default_slam = RulesClass::Instance->BuildingSlam;
+	const auto& slam =BuildingTypeExtContainer::Instance.Find(pThis->Type)->SlamSound;
+
+	VocClass::PlayGlobal(slam.Get(default_slam), Panning::Center, 1.0, 0);
 
 	return 0x4FB319;
 }
