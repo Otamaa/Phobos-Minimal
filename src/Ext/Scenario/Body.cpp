@@ -374,7 +374,7 @@ ASMJIT_PATCH(0x68AD2F, ScenarioClass_LoadFromINI_AfterPlayerDataInit, 0x5)
 	INI_EX exINI(pINI);
 
 	if (SessionClass::IsCampaign()) {
-		GameModeOptionsClass::Instance->MCVRedeploy = pINI->ReadBool(GameStrings::Basic(), GameStrings::MCVRedeploys(), RulesExtData::Instance()->MCVRedeploysInCampaign);
+		GameModeOptionsClass::Instance->MCVRedeploy = pINI->ReadBool(GameStrings::Basic(), GameStrings::MCVRedeploys(), FakeRulesClass::Instance()->MCVRedeploysInCampaign);
 	}
 
 	HouseClass::Array->for_each([](HouseClass* pHouse){

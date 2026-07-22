@@ -200,7 +200,7 @@ ASMJIT_PATCH(0x6F755A, TechnoClass_IsCloseEnough_CylinderRangefinding, 0x7)
 	GET_BASE(WeaponTypeClass* const, pWeaponType, 0x10);
 	GET(CoordStruct* const, pCoord, ESI);
 	GET(TechnoClass* const, pThis, EDI);
-	const bool cylinder = WeaponTypeExtContainer::Instance.Find(pWeaponType)->CylinderRangefinding.Get(RulesExtData::Instance()->CylinderRangefinding);
+	const bool cylinder = WeaponTypeExtContainer::Instance.Find(pWeaponType)->CylinderRangefinding.Get(FakeRulesClass::Instance()->CylinderRangefinding);
 	R->EAX(pCoord->X);
 	return (cylinder || pThis->WhatAmI() == AbstractType::Aircraft) ? 0x6F75B2 : 0x6F7568;
 }
@@ -209,8 +209,8 @@ ASMJIT_PATCH(0x71153C, TechnoTypeClass_DefaultToGuardArea_GlobalDefault, 0x6)
 {
 	GET(TechnoTypeClass*, pThis, ESI);
 
-	if (RulesExtData::Instance()->DefaultToGuardArea.isset())
-		pThis->DefaultToGuardArea = RulesExtData::Instance()->DefaultToGuardArea.Get();
+	if (FakeRulesClass::Instance()->DefaultToGuardArea.isset())
+		pThis->DefaultToGuardArea = FakeRulesClass::Instance()->DefaultToGuardArea.Get();
 	else
 		pThis->DefaultToGuardArea = false;
 

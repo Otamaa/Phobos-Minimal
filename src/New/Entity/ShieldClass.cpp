@@ -338,7 +338,7 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	{
 		if (*args->Damage > 0)
 		{
-			if (this->Type->UseArmorplier.Get(RulesExtData::Instance()->ShieldUseArmorplier)) {
+			if (this->Type->UseArmorplier.Get(FakeRulesClass::Instance()->ShieldUseArmorplier)) {
 				nDamage = MaxImpl(static_cast<int>(TechnoExtData::GetArmorMult(this->Techno, nDamage, args->WH)), 0);
 			}
 
@@ -1233,7 +1233,7 @@ void ShieldClass::DrawShieldBar_Building(int iLength, Point2D* pLocation, Rectan
 
 	if (iTotal < iLength)
 	{
-		int emptyFrame = this->Type->Pips_Building_Empty.Get(RulesExtData::Instance()->Pips_Shield_Building_Empty.Get(0));
+		int emptyFrame = this->Type->Pips_Building_Empty.Get(FakeRulesClass::Instance()->Pips_Shield_Building_Empty.Get(0));
 
 		int frameIdx, deltaX, deltaY;
 		for (frameIdx = iLength - iTotal, deltaX = 4 * iTotal, deltaY = -2 * iTotal;
@@ -1257,7 +1257,7 @@ void ShieldClass::DrawShieldBar_Other(int iLength, Point2D* pLocation, Rectangle
 		return;
 
 	const auto pipBoard = this->Type->Pips_Background_SHP
-		.Get(RulesExtData::Instance()->Pips_Shield_Background_SHP.Get(FileSystem::PIPBRD_SHP()));
+		.Get(FakeRulesClass::Instance()->Pips_Shield_Background_SHP.Get(FileSystem::PIPBRD_SHP()));
 
 	if (!pipBoard)
 		return;
@@ -1302,7 +1302,7 @@ int ShieldClass::DrawShieldBar_Pip(const bool isBuilding)
 
 	const auto& pips_Shield = isBuilding ? this->Type->Pips_Building : this->Type->Pips;
 	const auto& shieldPip = pips_Shield->X != -1 ? pips_Shield :
-		(isBuilding ? RulesExtData::Instance()->Pips_Shield_Building : RulesExtData::Instance()->Pips_Shield);
+		(isBuilding ? FakeRulesClass::Instance()->Pips_Shield_Building : FakeRulesClass::Instance()->Pips_Shield);
 
 	if (this->HP > condYellow * strength && shieldPip->X != -1)
 		return shieldPip->X;

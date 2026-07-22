@@ -76,7 +76,7 @@ ASMJIT_PATCH(0x5F5A56, ObjectClass_ParachuteAnim, 0x7)
 			}
 		}
 
-		const int idx = pOwn ? pOwn->ColorSchemeIndex : RulesExtData::Instance()->AnimRemapDefaultColorScheme;
+		const int idx = pOwn ? pOwn->ColorSchemeIndex : FakeRulesClass::Instance()->AnimRemapDefaultColorScheme;
 
 		if (AllowRemap && idx >= 0)
 		{
@@ -295,7 +295,7 @@ ASMJIT_PATCH(0x5F5965, ObjectClass_SpawnParachuted_Track, 0x7)
 {
 	GET(ObjectClass*, pThis, ESI);
 
-	if (RulesExtData::Instance()->FallingDownTargetingFix && (pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
+	if (FakeRulesClass::Instance()->FallingDownTargetingFix && (pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
 	{
 		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
 		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = true;
@@ -307,7 +307,7 @@ ASMJIT_PATCH(0x5F4160, ObjectClass_DropAsBomb_Track, 0x6)
 {
 	GET(ObjectClass*, pThis, ECX);
 
-	if (RulesExtData::Instance()->FallingDownTargetingFix && (pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
+	if (FakeRulesClass::Instance()->FallingDownTargetingFix && (pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
 	{
 		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
 		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = true;
@@ -320,7 +320,7 @@ ASMJIT_PATCH(0x5F3F86, ObjectClass_Update_Track, 0x7)
 {
 	GET(ObjectClass*, pThis, ESI);
 
-	if (RulesExtData::Instance()->FallingDownTargetingFix && (pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
+	if (FakeRulesClass::Instance()->FallingDownTargetingFix && (pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
 	{
 		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
 		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = false;

@@ -8,7 +8,7 @@ ASMJIT_PATCH(0x740A11, UnitClass_Mission_Guard_AIAutoDeployMCV, 0x6)
 
 	GET(UnitClass*, pMCV, ESI);
 
-	return (!RulesExtData::Instance()->AIAutoDeployMCV && pMCV->Owner->NumConYards > 0) ? SkipGameCode : 0;
+	return (!FakeRulesClass::Instance()->AIAutoDeployMCV && pMCV->Owner->NumConYards > 0) ? SkipGameCode : 0;
 }
 
 ASMJIT_PATCH(0x739889, UnitClass_TryToDeploy_AISetBaseCenter, 0x6)
@@ -17,7 +17,7 @@ ASMJIT_PATCH(0x739889, UnitClass_TryToDeploy_AISetBaseCenter, 0x6)
 
 	GET(UnitClass*, pMCV, EBP);
 
-	return (!RulesExtData::Instance()->AISetBaseCenter && pMCV->Owner->NumConYards > 1) ? SkipGameCode : 0;
+	return (!FakeRulesClass::Instance()->AISetBaseCenter && pMCV->Owner->NumConYards > 1) ? SkipGameCode : 0;
 }
 
 // AIConstructionYard Hook #5-1 -> sub_588570 - Only expand walls on nodes.
@@ -28,7 +28,7 @@ ASMJIT_PATCH(0x5885D1, MapClass_BuildingToFirestormWall_SkipExtraWalls, 0x6)
 	GET_STACK(const HouseClass* const, pHouse, STACK_OFFSET(0x38, 0x8));
 	GET_STACK(const int, count, STACK_OFFSET(0x38, -0x24));
 
-	if (pHouse->IsControlledByHuman() || !RulesExtData::Instance()->AINodeWallsOnly || count)
+	if (pHouse->IsControlledByHuman() || !FakeRulesClass::Instance()->AINodeWallsOnly || count)
 		return 0;
 
 	GET(const CellStruct, cell, EBX);
@@ -53,7 +53,7 @@ ASMJIT_PATCH(0x5887C1, MapClass_BuildingToWall_SkipExtraWalls, 0x6)
 	GET_STACK(const HouseClass* const, pHouse, STACK_OFFSET(0x3C, 0x8));
 	GET_STACK(const int, count, STACK_OFFSET(0x3C, -0x2C));
 
-	if (pHouse->IsControlledByHuman() || !RulesExtData::Instance()->AINodeWallsOnly || count)
+	if (pHouse->IsControlledByHuman() || !FakeRulesClass::Instance()->AINodeWallsOnly || count)
 		return 0;
 
 	GET(const CellStruct, cell, EDX);

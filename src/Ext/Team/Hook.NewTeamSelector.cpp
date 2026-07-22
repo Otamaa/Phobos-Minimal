@@ -111,7 +111,7 @@ COMPILETIMEEVAL bool IsValidTechno(TechnoClass* pTechno)
 
 NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 {
-	if (!RulesExtData::Instance()->NewTeamsSelector)
+	if (!FakeRulesClass::Instance()->NewTeamsSelector)
 		return false;
 
 	bool houseIsHuman = pHouse->IsHumanPlayer;
@@ -144,16 +144,16 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 	{
 		int mergeUnclassifiedCategoryWith = -1;
 		TeamCategory validCategory = TeamCategory::None;
-		bool splitTriggersByCategory = RulesExtData::Instance()->NewTeamsSelector_SplitTriggersByCategory;
-		bool isFallbackEnabled = RulesExtData::Instance()->NewTeamsSelector_EnableFallback;
+		bool splitTriggersByCategory = FakeRulesClass::Instance()->NewTeamsSelector_SplitTriggersByCategory;
+		bool isFallbackEnabled = FakeRulesClass::Instance()->NewTeamsSelector_EnableFallback;
 
 		if (splitTriggersByCategory)
 		{
-			mergeUnclassifiedCategoryWith = pHouseTypeExt->NewTeamsSelector_MergeUnclassifiedCategoryWith.Get(RulesExtData::Instance()->NewTeamsSelector_MergeUnclassifiedCategoryWith);  // Should mixed teams be merged into another category?
-			double percentageUnclassifiedTriggers = pHouseTypeExt->NewTeamsSelector_UnclassifiedCategoryPercentage.Get(RulesExtData::Instance()->NewTeamsSelector_UnclassifiedCategoryPercentage); // Mixed teams
-			double percentageGroundTriggers = pHouseTypeExt->NewTeamsSelector_GroundCategoryPercentage.Get(RulesExtData::Instance()->NewTeamsSelector_GroundCategoryPercentage); // Only ground
-			double percentageNavalTriggers = pHouseTypeExt->NewTeamsSelector_NavalCategoryPercentage.Get(RulesExtData::Instance()->NewTeamsSelector_NavalCategoryPercentage); // Only Naval=yes
-			double percentageAirTriggers = pHouseTypeExt->NewTeamsSelector_AirCategoryPercentage.Get(RulesExtData::Instance()->NewTeamsSelector_AirCategoryPercentage); // Only Aircrafts & jumpjets
+			mergeUnclassifiedCategoryWith = pHouseTypeExt->NewTeamsSelector_MergeUnclassifiedCategoryWith.Get(FakeRulesClass::Instance()->NewTeamsSelector_MergeUnclassifiedCategoryWith);  // Should mixed teams be merged into another category?
+			double percentageUnclassifiedTriggers = pHouseTypeExt->NewTeamsSelector_UnclassifiedCategoryPercentage.Get(FakeRulesClass::Instance()->NewTeamsSelector_UnclassifiedCategoryPercentage); // Mixed teams
+			double percentageGroundTriggers = pHouseTypeExt->NewTeamsSelector_GroundCategoryPercentage.Get(FakeRulesClass::Instance()->NewTeamsSelector_GroundCategoryPercentage); // Only ground
+			double percentageNavalTriggers = pHouseTypeExt->NewTeamsSelector_NavalCategoryPercentage.Get(FakeRulesClass::Instance()->NewTeamsSelector_NavalCategoryPercentage); // Only Naval=yes
+			double percentageAirTriggers = pHouseTypeExt->NewTeamsSelector_AirCategoryPercentage.Get(FakeRulesClass::Instance()->NewTeamsSelector_AirCategoryPercentage); // Only Aircrafts & jumpjets
 
 			// Merge mixed category with another category, if set
 			if (mergeUnclassifiedCategoryWith >= 0)
@@ -1017,7 +1017,7 @@ std::vector<TeamTypeClass*> NOINLINE Suggested_New_Team(HouseClass* forHouse_, b
 
 	if(delay < 0){
 		int playerCount = ScenarioClass::Instance->NumberStartingPoints;
-		auto rulesExt = RulesExtData::Instance();
+		auto rulesExt = FakeRulesClass::Instance();
 
 		if (playerCount >= 2 && !SessionClass::IsCampaign()) {
 			const auto teamDelayType = rulesExt->TeamDelays_DynamicType;
@@ -1045,7 +1045,7 @@ std::vector<TeamTypeClass*> NOINLINE Suggested_New_Team(HouseClass* forHouse_, b
 		}
 
 		if(playerCount < 1 || playerCount > 8)
-			delay = (rulesExt->TeamDelays[playerCount - 1].Get())[pThis->GetAIDifficultyIndex()];
+			delay = (rulesExt->MultipleTeamDelays[playerCount - 1].Get())[pThis->GetAIDifficultyIndex()];
 		else
 			delay = 0;
 	}

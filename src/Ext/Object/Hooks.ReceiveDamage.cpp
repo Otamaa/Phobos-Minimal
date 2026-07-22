@@ -97,7 +97,7 @@ static bool AllowedToCombatAlert(TechnoClass* pThis, args_ReceiveDamage* args)
 	if (pType->Insignificant || pType->Spawned || !pThis->IsInPlayfield)
 		return false;
 
-	if (!pTypeExt->CombatAlert.Get(RulesExtData::Instance()->CombatAlert))
+	if (!pTypeExt->CombatAlert.Get(FakeRulesClass::Instance()->CombatAlert))
 		return false;
 
 	if (!pThis->IsOwnedByCurrentPlayer || !pHouse->IsControlledByHuman())
@@ -106,14 +106,14 @@ static bool AllowedToCombatAlert(TechnoClass* pThis, args_ReceiveDamage* args)
 	if (*args->Damage <= 1 || pWHExt->CombatAlert_Suppress.Get(!pWHExt->Malicious || pWHExt->Nonprovocative))
 		return false;
 
-	if (pSourceHouse && RulesExtData::Instance()->CombatAlert_SuppressIfAllyDamage && pHouse->IsAlliedWith(pSourceHouse))
+	if (pSourceHouse && FakeRulesClass::Instance()->CombatAlert_SuppressIfAllyDamage && pHouse->IsAlliedWith(pSourceHouse))
 		return false;
 
 	const auto pBuilding = cast_to<BuildingClass*, false>(pThis);
-	if (pBuilding && RulesExtData::Instance()->CombatAlert_IgnoreBuilding && !pTypeExt->CombatAlert_NotBuilding.Get(((BuildingClass*)pThis)->Type->IsVehicle()))
+	if (pBuilding && FakeRulesClass::Instance()->CombatAlert_IgnoreBuilding && !pTypeExt->CombatAlert_NotBuilding.Get(((BuildingClass*)pThis)->Type->IsVehicle()))
 		return false;
 
-	if (RulesExtData::Instance()->CombatAlert_SuppressIfInScreen && pThis->IsOnMyView())
+	if (FakeRulesClass::Instance()->CombatAlert_SuppressIfInScreen && pThis->IsOnMyView())
 		return false;
 
 	return true;
@@ -126,7 +126,7 @@ static void applyCombatAlert(TechnoClass* pThis, args_ReceiveDamage* args)
 		const auto pHouse = pThis->Owner;
 		const auto pType = GET_TECHNOTYPE(pThis);
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-		const auto pRules = RulesExtData::Instance();
+		const auto pRules = FakeRulesClass::Instance();
 		//const auto pWHExt = WarheadTypeExtContainer::Instance.Find(args->WH);
 		const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 		pHouseExt->CombatAlertTimer.Start(pRules->CombatAlert_Interval);
@@ -182,7 +182,7 @@ DamageState FakeTerrainClass::__TakeDamage(int* Damage,
 					pThis->Ignite();
 			}
 
-			double condYellow = RulesExtData::Instance()->ConditionYellow_Terrain;
+			double condYellow = FakeRulesClass::Instance()->ConditionYellow_Terrain;
 
 			if (!pThis->Type->IsAnimated && pTypeExt->HasDamagedFrames && PriorHealthRatio > condYellow && pThis->GetHealthRatio() <= condYellow)
 			{
@@ -685,7 +685,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 	 };
 
 	 	// Apply warhead effects
-	if (damage && !pWHExt->ApplyPerTargetEffectsOnDetonate.Get(RulesExtData::Instance()->ApplyPerTargetEffectsOnDetonate)){
+	if (damage && !pWHExt->ApplyPerTargetEffectsOnDetonate.Get(FakeRulesClass::Instance()->ApplyPerTargetEffectsOnDetonate)){
 			auto pOldInvoker = std::exchange(pWHExt->DamageAreaInvoker, source);
 			pWHExt->DetonateOnOneUnit(pSourceHouse, pThis, pThis->Location, *damage, source);
 			pWHExt->DamageAreaInvoker = pOldInvoker;
@@ -743,7 +743,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 		if (!(pThis->ProtectType == ProtectTypes::ForceShield ? pWHExt->PenetratesForceShield.Get(pWHExt->PenetratesIronCurtain) : pWHExt->PenetratesIronCurtain)) {
 			if (pThis->ProtectType == ProtectTypes::ForceShield)
 				MapClass::FlashbangWarheadAt(2 * (*damage), warhead, pThis->Location, true, SpotlightFlags::NoRed | SpotlightFlags::NoGreen);
-			else if (pWHExt->IC_Flash.Get(RulesExtData::Instance()->IC_Flash.Get()))
+			else if (pWHExt->IC_Flash.Get(FakeRulesClass::Instance()->IC_Flash.Get()))
 				MapClass::FlashbangWarheadAt(2 * (*damage), warhead, pThis->Location, true, SpotlightFlags::NoColor);
 
 			*damage = 0;
@@ -787,7 +787,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 
 	if (warhead->Psychedelic)
 	{
-		if (!RulesExtData::Instance()->AllowBerzerkOnAllies && pThis->Owner->IsAlliedWith(sourceHouse)) {
+		if (!FakeRulesClass::Instance()->AllowBerzerkOnAllies && pThis->Owner->IsAlliedWith(sourceHouse)) {
 			return DamageState::Unchanged;
 		}
 
@@ -1105,7 +1105,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 		pThis->SendToEachLink(RadioCommand::NotifyUnlink);
 		pThis->Stun();
 
-		if (pTypeExt->TiberiumRemains.Get(pType->TiberiumHeal && RulesExtData::Instance()->Tiberium_HealEnabled))
+		if (pTypeExt->TiberiumRemains.Get(pType->TiberiumHeal && FakeRulesClass::Instance()->Tiberium_HealEnabled))
 		{
 			int nIdx = pExt->TiberiumStorage.GetHighestStorageIdx();
 			const CellClass* pCenter = MapClass::Instance->GetCellAt(pThis->Location);
@@ -1483,7 +1483,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 		{
 			if (pThis->ProtectType == ProtectTypes::ForceShield)
 				MapClass::FlashbangWarheadAt(2 * (*args.Damage), args.WH, pThis->Location, true, SpotlightFlags::NoRed | SpotlightFlags::NoGreen);
-			else if (pWHExt->IC_Flash.Get(RulesExtData::Instance()->IC_Flash.Get()))
+			else if (pWHExt->IC_Flash.Get(FakeRulesClass::Instance()->IC_Flash.Get()))
 				MapClass::FlashbangWarheadAt(2 * (*args.Damage), args.WH, pThis->Location, true, SpotlightFlags::NoColor);
 
 			*args.Damage = 0;
@@ -1881,7 +1881,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 		pThis->SendToEachLink(RadioCommand::NotifyUnlink);
 		pThis->Stun();
 
-		if (pTypeExt->TiberiumRemains.Get(pType->TiberiumHeal && RulesExtData::Instance()->Tiberium_HealEnabled))
+		if (pTypeExt->TiberiumRemains.Get(pType->TiberiumHeal && FakeRulesClass::Instance()->Tiberium_HealEnabled))
 		{
 			int nIdx = pExt->TiberiumStorage.GetHighestStorageIdx();
 			const CellClass* pCenter = MapClass::Instance->GetCellAt(pThis->Location);
@@ -2203,7 +2203,7 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 
 	if (BuildingExtData::IsActiveFirestormWall(pThis, nullptr))
 	{
-		auto const pExt = RulesExtData::Instance();
+		auto const pExt = FakeRulesClass::Instance();
 		auto const& coefficient = pExt->DamageToFirestormDamageCoefficient;
 		auto const amount = static_cast<int>(*Damage * coefficient);
 
@@ -2253,7 +2253,7 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 				const bool Onfire = pTypeExt->HealthOnfire.Get(pThis->GetHealthStatus());
 				auto const pFireType = pTypeExt->OnFireTypes.GetElements(RulesClass::Instance->OnFire);
 
-				if (Onfire && pFireType.size() >= 3 && Unsorted::CurrentFrame.get() > pBldExt->LastFlameSpawnFrame + RulesExtData::Instance()->BuildingFlameSpawnBlockFrames)
+				if (Onfire && pFireType.size() >= 3 && Unsorted::CurrentFrame.get() > pBldExt->LastFlameSpawnFrame + FakeRulesClass::Instance()->BuildingFlameSpawnBlockFrames)
 				{
 					pBldExt->LastFlameSpawnFrame = Unsorted::CurrentFrame.get();
 					const auto rand_ = pThis->Type->GetFoundationWidth() + pThis->Type->GetFoundationHeight(false) + 5;

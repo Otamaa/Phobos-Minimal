@@ -148,7 +148,7 @@ int FakeBuildingTypeClass::__Repair_Cost()
 DEFINE_FUNCTION_JUMP(VTABLE , 0x7E4620 , FakeBuildingTypeClass::__Repair_Cost)
 
 bool FakeBuildingTypeClass::_CanUseWaypoint() {
-	return RulesExtData::Instance()->BuildingWaypoint;
+	return FakeRulesClass::Instance()->BuildingWaypoint;
 }
 
 bool BuildingTypeExtData::IsSameBuildingType(BuildingTypeClass* pType1, BuildingTypeClass* pType2)
@@ -477,7 +477,7 @@ bool BuildingTypeExtData::AutoPlaceBuilding(BuildingClass* pBuilding)
 	const auto pType = pBuilding->Type;
 	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
 
-	if (!pTypeExt->AutoBuilding.Get(RulesExtData::Instance()->AutoBuilding) || pType->LaserFence || pType->Gate || pType->ToTile)
+	if (!pTypeExt->AutoBuilding.Get(FakeRulesClass::Instance()->AutoBuilding) || pType->LaserFence || pType->Gate || pType->ToTile)
 		return false;
 
 	const auto pHouse = pBuilding->Owner;
@@ -943,7 +943,7 @@ void BuildingTypeExtData::DisplayPlacementPreview()
 
 	const auto pType = pBuilding->Type;
 	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
-	const bool bShow = pTypeExt->PlacementPreview_Show.Get(RulesExtData::Instance()->Building_PlacementPreview);
+	const bool bShow = pTypeExt->PlacementPreview_Show.Get(FakeRulesClass::Instance()->Building_PlacementPreview);
 
 	if (!bShow)
 		return;
@@ -980,7 +980,7 @@ void BuildingTypeExtData::DisplayPlacementPreview()
 	const auto nFrame = std::clamp(pTypeExt->PlacementPreview_ShapeFrame.Get(nDecidedFrame), 0, static_cast<int>(Selected->Frames));
 	nPoint.X += nOffsetX;
 	nPoint.Y += nOffsetY;
-	const auto nFlag = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | EnumFunctions::GetTranslucentLevel(pTypeExt->PlacementPreview_TranslucentLevel.Get(RulesExtData::Instance()->BuildingPlacementPreview_TranslucentLevel));
+	const auto nFlag = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | EnumFunctions::GetTranslucentLevel(pTypeExt->PlacementPreview_TranslucentLevel.Get(FakeRulesClass::Instance()->BuildingPlacementPreview_TranslucentLevel));
 	auto nREct = DSurface::Temp()->Get_Rect_WithoutBottomBar();
 
 	ConvertClass* pDecidedPal = FileSystem::UNITx_PAL();
@@ -1126,7 +1126,7 @@ int BuildingTypeExtData::GetBuildingAnimTypeIndex(BuildingClass* pThis, const Bu
 
 void __fastcall BuildingTypeExtData::DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset)
 {
-	const auto nFlag = Flags | EnumFunctions::GetTranslucentLevel(RulesExtData::Instance()->PlacementGrid_TranslucentLevel.Get());
+	const auto nFlag = Flags | EnumFunctions::GetTranslucentLevel(FakeRulesClass::Instance()->PlacementGrid_TranslucentLevel.Get());
 
 	CC_Draw_Shape(Surface, Pal, SHP, FrameIndex, Position, Bounds, nFlag, Remap, ZAdjust,
 		ZGradientDescIndex, Brightness, TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
@@ -1930,7 +1930,7 @@ CanBuildResult BuildingTypeExtData::CheckAlwaysExistCameo(TechnoTypeClass* pType
 {
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-	if (pTypeExt->Cameo_AlwaysExist.Get(RulesExtData::Instance()->Cameo_AlwaysExist))
+	if (pTypeExt->Cameo_AlwaysExist.Get(FakeRulesClass::Instance()->Cameo_AlwaysExist))
 	{
 		auto& vec = ScenarioExtData::Instance()->OwnedExistCameoTechnoTypes;
 		const bool Ownedexist = vec.contains(pType);

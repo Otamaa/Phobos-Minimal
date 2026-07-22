@@ -134,17 +134,17 @@ public:
 
 	COMPILETIMEEVAL FORCEDINLINE bool IsGreenSP()
 	{
-		return (RulesExtData::Instance()->Shield_ConditionYellow * Type->Strength.Get()) < HP;
+		return (FakeRulesClass::Instance()->Shield_ConditionYellow * Type->Strength.Get()) < HP;
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE bool IsYellowSP()
 	{
-		return (RulesExtData::Instance()->Shield_ConditionRed * Type->Strength.Get()) < HP && HP <= (RulesExtData::Instance()->Shield_ConditionYellow * Type->Strength.Get());
+		return (FakeRulesClass::Instance()->Shield_ConditionRed * Type->Strength.Get()) < HP && HP <= (FakeRulesClass::Instance()->Shield_ConditionYellow * Type->Strength.Get());
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE bool IsRedSP()
 	{
-		return HP <= (RulesExtData::Instance()->Shield_ConditionRed * Type->Strength.Get());
+		return HP <= (FakeRulesClass::Instance()->Shield_ConditionRed * Type->Strength.Get());
 	}
 
 	void UpdateTint(bool forceUpdate = false);

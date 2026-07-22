@@ -15,7 +15,7 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x6D9FF0, FakeTacticalClass::Tactical_MakeFilteredSel
 
 ASMJIT_PATCH(0x73298D, TypeSelectExecute_UseIFVMode, 0x5) {
 
-	const bool useIFVMode = RulesExtData::Instance()->TypeSelectUseIFVMode && Phobos::Config::TypeSelectUseIFVMode;
+	const bool useIFVMode = FakeRulesClass::Instance()->TypeSelectUseIFVMode && Phobos::Config::TypeSelectUseIFVMode;
 
 	for (const auto pObject : ObjectClass::CurrentObjects()) {
 		if (const auto pTechno = flag_cast_to<TechnoClass*, true>(pObject)){

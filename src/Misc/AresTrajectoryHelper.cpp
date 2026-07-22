@@ -41,7 +41,7 @@ bool AresBulletObstacleHelper::IsBuildingHit(
 		}
 
 		// does the building let allies through?
-		auto const isTransparent = RulesExtData::Instance()->AlliedSolidTransparency
+		auto const isTransparent = FakeRulesClass::Instance()->AlliedSolidTransparency
 			&& pBld->Owner->IsAlliedWith(pOwner);
 
 		if (isTransparent)

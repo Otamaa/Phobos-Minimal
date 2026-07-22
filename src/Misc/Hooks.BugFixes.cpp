@@ -207,7 +207,7 @@ ASMJIT_PATCH(0x480534, CellClass_AttachesToNeighbourOverlay, 5)
 				return 0x480549;
 			else if ((RulesClass::Instance->NSGates.contains(pBType)) && (state == 0 || state == 4))
 				return 0x480549;
-			else if (RulesExtData::Instance()->WallTowers.Contains(pBType))
+			else if (FakeRulesClass::Instance()->WallTowers.Contains(pBType))
 				return 0x480549;
 		}
 	}
@@ -415,7 +415,7 @@ ASMJIT_PATCH(0x56BD8B, MapClass_PlaceRandomCrate_Sampling, 0x5)
 
 	const bool isWater = pCell->LandType == LandType::Water;
 
-	if (isWater && RulesExtData::Instance()->Crate_LandOnly.Get())
+	if (isWater && FakeRulesClass::Instance()->Crate_LandOnly.Get())
 		return SkipSpawn;
 
 	cell = MapClass::Instance->NearByLocation(pCell->MapCoords,
@@ -1314,7 +1314,7 @@ ASMJIT_PATCH(0x753D86, VoxelCalcNormals_NullAdditionalVector, 0x8)
 {
 	REF_STACK(Vector3D<float>, secondaryLightVector, STACK_OFFSET(0xD8, -0xC0))
 
-		if (RulesExtData::Instance()->UseFixedVoxelLighting)
+		if (FakeRulesClass::Instance()->UseFixedVoxelLighting)
 			secondaryLightVector = { 0, 0, 0 };
 		else
 			secondaryLightVector = { 0, 0, 1 };

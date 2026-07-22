@@ -205,7 +205,7 @@ void NOINLINE FakeAnimClass::_ApplySpawns(CoordStruct& nCoord)
 
 void NOINLINE FakeAnimClass::_ApplyVeinsDamage()
 {
-	if (this->Type->IsVeins && RulesExtData::Instance()->Veinhole_Warhead && RulesExtData::Instance()->VeinsAttack_interval)
+	if (this->Type->IsVeins && FakeRulesClass::Instance()->Veinhole_Warhead && FakeRulesClass::Instance()->VeinsAttack_interval)
 	{
 		auto coord = this->GetCoords();
 		auto pCoorCell = MapClass::Instance->GetCellAt(coord);
@@ -222,7 +222,7 @@ void NOINLINE FakeAnimClass::_ApplyVeinsDamage()
 			return;
 		}
 
-		if (Unsorted::CurrentFrame.get() % RulesExtData::Instance()->VeinsAttack_interval == 0)
+		if (Unsorted::CurrentFrame.get() % FakeRulesClass::Instance()->VeinsAttack_interval == 0)
 		{
 			while (pFirst != nullptr)
 			{
@@ -235,14 +235,14 @@ void NOINLINE FakeAnimClass::_ApplyVeinsDamage()
 					{
 						if (pTechno->WhatAmI() != UnitClass::AbsID || ((UnitClass*)pTechno)->DeathFrameCounter <= 0)
 						{
-							if ((!RulesExtData::Instance()->VeinsDamagingWeightTreshold.isset() || pType->Weight >= RulesExtData::Instance()->VeinsDamagingWeightTreshold)
+							if ((!FakeRulesClass::Instance()->VeinsDamagingWeightTreshold.isset() || pType->Weight >= FakeRulesClass::Instance()->VeinsDamagingWeightTreshold)
 								&& !pType->ImmuneToVeins
 								&& !pTechno->HasAbility(AbilityType::VeinProof)
 								&& pTechno->GetHeight() <= 5
 								)
 							{
 								int dmg = RulesClass::Instance->VeinDamage;
-								pFirst->ReceiveDamage(&dmg, 0, RulesExtData::Instance()->Veinhole_Warhead, nullptr, false, false, nullptr);
+								pFirst->ReceiveDamage(&dmg, 0, FakeRulesClass::Instance()->Veinhole_Warhead, nullptr, false, false, nullptr);
 							}
 						}
 					}

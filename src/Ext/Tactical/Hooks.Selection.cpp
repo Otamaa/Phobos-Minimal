@@ -20,7 +20,7 @@ ASMJIT_PATCH(0x732d47, TacticalClass_CollectSelectedIDs, 5)
 			}
 		};
 
-	bool useDeploy = RulesExtData::Instance()->TypeSelectUseDeploy;
+	bool useDeploy = FakeRulesClass::Instance()->TypeSelectUseDeploy;
 
 	for (auto pObject : ObjectClass::CurrentObjects())
 	{

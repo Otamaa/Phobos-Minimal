@@ -157,11 +157,11 @@ public:
 	AnimTypeClass* GetIdleAnimType(bool isDamaged, double healthRatio);
 
 	COMPILETIMEEVAL OPTIONALINLINE double GetConditionYellow() {
-		return this->ConditionYellow.Get(RulesExtData::Instance()->Shield_ConditionYellow);
+		return this->ConditionYellow.Get(FakeRulesClass::Instance()->Shield_ConditionYellow);
 	}
 
 	COMPILETIMEEVAL OPTIONALINLINE double GetConditionRed() {
-		return this->ConditionRed.Get(RulesExtData::Instance()->Shield_ConditionRed);
+		return this->ConditionRed.Get(FakeRulesClass::Instance()->Shield_ConditionRed);
 	}
 
 	COMPILETIMEEVAL OPTIONALINLINE bool HasTint() const {

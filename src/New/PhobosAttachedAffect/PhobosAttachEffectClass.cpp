@@ -705,7 +705,7 @@ bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 
 	if(this->Type->DiscardOn != DiscardCondition::None){
 		if (auto const pFoot = flag_cast_to<FootClass*, false>(this->Techno)) {
-			const bool isMoving = this->Type->DiscardOn_MoveBasedOnDestination.Get(RulesExtData::Instance()->DiscardOn_ConsiderHoverAsMoving)
+			const bool isMoving = this->Type->DiscardOn_MoveBasedOnDestination.Get(FakeRulesClass::Instance()->DiscardOn_ConsiderHoverAsMoving)
 				? pFoot->Locomotor->Is_Moving()
 				: pFoot->Locomotor->Is_Really_Moving_Now();
 
@@ -715,7 +715,7 @@ bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 			{
 				//notMoving
 				//short circuit 
-				if(this->Type->DiscardOn_ConsiderHarvestingAsStationary.Get(RulesExtData::Instance()->DiscardOn_ConsiderHarvestingAsStationary)) {
+				if(this->Type->DiscardOn_ConsiderHarvestingAsStationary.Get(FakeRulesClass::Instance()->DiscardOn_ConsiderHarvestingAsStationary)) {
 					if ((this->Type->DiscardOn & DiscardCondition::Stationary) != DiscardCondition::None)
 						return _retTrue(this->LastDiscardCheckValue);
 				}

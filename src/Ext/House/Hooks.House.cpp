@@ -354,7 +354,7 @@ ASMJIT_PATCH(0x4F8B08, HouseClass_AI_DamageDelay, 6)
 		pThis->DamageDelayTimer.Start(static_cast<int>(pRules->DamageDelay * 900));
 
 		// damage is only applied conditionally
-		auto const pRulesExt = RulesExtData::Instance();
+		auto const pRulesExt = FakeRulesClass::Instance();
 		if (degrades && pRulesExt->DegradeEnabled && pThis->HasLowPower())
 		{
 			auto const defaultPercentage = pRulesExt->DegradePercentage.Get(pRules->ConditionYellow);
@@ -517,7 +517,7 @@ ASMJIT_PATCH(0x50965E, HouseClass_CanInstantiateTeam, 5)
 	{
 		if (Type->FindFactory(true, true, false, Owner))
 		{
-			if (RulesExtData::Instance()->AllowBypassBuildLimit[Owner->GetAIDifficultyIndex()])
+			if (FakeRulesClass::Instance()->AllowBypassBuildLimit[Owner->GetAIDifficultyIndex()])
 			{
 				CanBuild = BuildLimitAllows;
 			} else {
@@ -635,7 +635,7 @@ ASMJIT_PATCH(0x6A640B, SideBarClass_AddCameo_DoNotPlayEVA, 0x5)
 	GET(int, idxType, EBP);
 
 	if (const auto pType = ObjectTypeClass::FetchTechnoType(absType, idxType)) {
-		if (TechnoTypeExtContainer::Instance.Find(pType)->Cameo_AlwaysExist.Get(RulesExtData::Instance()->Cameo_AlwaysExist))
+		if (TechnoTypeExtContainer::Instance.Find(pType)->Cameo_AlwaysExist.Get(FakeRulesClass::Instance()->Cameo_AlwaysExist))
 			return SkipPlaying;
 	}
 
@@ -891,7 +891,7 @@ ASMJIT_PATCH(0x4F8C23, HouseClass_AI_SilosNeededEVA, 5)
 
 	VoxClass::Play("EVA_SilosNeeded");
 
-	if (const CSFText& Message = RulesExtData::Instance()->MessageSilosNeeded) {
+	if (const CSFText& Message = FakeRulesClass::Instance()->MessageSilosNeeded) {
 		Message.PrintAsMessage(pThis->ColorSchemeIndex);
 	}
 

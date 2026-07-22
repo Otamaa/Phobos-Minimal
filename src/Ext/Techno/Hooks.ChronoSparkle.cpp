@@ -65,14 +65,14 @@ void TechnoExtData::DrawUnitPassengers(TechnoClass* pThis, bool Allow)
 ASMJIT_PATCH(0x73622F, UnitClass_AI_ChronoSparkle, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
-	TechnoExtData::PlayChronoSparkleAnim(pThis, &pThis->Location, 120 , RulesExtData::Instance()->ChronoSparkleDisplayDelay);
+	TechnoExtData::PlayChronoSparkleAnim(pThis, &pThis->Location, 120 , FakeRulesClass::Instance()->ChronoSparkleDisplayDelay);
 	return 0x7362A7;
 }
 
 ASMJIT_PATCH(0x51BAF6, InfantryClass_AI_ChronoSparkle, 0x5)
 {
 	GET(TechnoClass*, pThis, ESI);
-	TechnoExtData::PlayChronoSparkleAnim(pThis, &pThis->Location, 120, RulesExtData::Instance()->ChronoSparkleDisplayDelay);
+	TechnoExtData::PlayChronoSparkleAnim(pThis, &pThis->Location, 120, FakeRulesClass::Instance()->ChronoSparkleDisplayDelay);
 	return 0x51BB6E;
 
 }
@@ -85,7 +85,7 @@ ASMJIT_PATCH(0x4403D4, BuildingClass_AI_ChronoSparkle, 0x6)
 
 	if (RulesClass::Instance->ChronoSparkle1)
 	{
-		auto const displayPositions = RulesExtData::Instance()->ChronoSparkleBuildingDisplayPositions;
+		auto const displayPositions = FakeRulesClass::Instance()->ChronoSparkleBuildingDisplayPositions;
 		auto const pType = pThis->Type;
 		const bool displayOnBuilding = (displayPositions & ChronoSparkleDisplayPosition::Building) != ChronoSparkleDisplayPosition::None;
 		const bool displayOnSlots = (displayPositions & ChronoSparkleDisplayPosition::OccupantSlots) != ChronoSparkleDisplayPosition::None;
@@ -97,7 +97,7 @@ ASMJIT_PATCH(0x4403D4, BuildingClass_AI_ChronoSparkle, 0x6)
 		{
 			for (int i = 0; i < occupantCount; i++)
 			{
-				if (!((Unsorted::CurrentFrame.get() + i) % RulesExtData::Instance()->ChronoSparkleDisplayDelay))
+				if (!((Unsorted::CurrentFrame.get() + i) % FakeRulesClass::Instance()->ChronoSparkleDisplayDelay))
 				{
 					const auto offset =  TacticalClass::Instance->ApplyMatrix_Pixel(
 						(pType->MaxNumberOccupants <= 10 ?

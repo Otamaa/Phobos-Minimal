@@ -14,7 +14,7 @@ ASMJIT_PATCH(0x7294E0,TunnelLocomotionClass_7294E0_Handle, 0x6){
 	const auto pType = GET_TECHNOTYPE(pLinkedTo);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	CoordStruct nCoord = pLinkedTo->Location;
-	const auto _height = pTypeExt->SubterraneanHeight.Get(RulesExtData::Instance()->SubterraneanHeight);
+	const auto _height = pTypeExt->SubterraneanHeight.Get(FakeRulesClass::Instance()->SubterraneanHeight);
 
 	if(nCoord.Z <= _height) {
 		pLinkedTo->Mark(MarkType::Remove);
@@ -62,7 +62,7 @@ ASMJIT_PATCH(0x728F89, TunnelLocomotionClass_Process_SubterraneanHeight1, 0x5)
 
 	auto const pTypeExt = GET_TECHNOTYPEEXT(pLinkedTo);
 
-	if (height == pTypeExt->SubterraneanHeight.Get(RulesExtData::Instance()->SubterraneanHeight))
+	if (height == pTypeExt->SubterraneanHeight.Get(FakeRulesClass::Instance()->SubterraneanHeight))
 		return Continue;
 
 	return Skip;
@@ -77,7 +77,7 @@ ASMJIT_PATCH(0x728FC6, TunnelLocomotionClass_Process_SubterraneanHeight2, 0x5)
 
 	auto const pTypeExt = GET_TECHNOTYPEEXT(pLinkedTo);
 
-	if (height <= pTypeExt->SubterraneanHeight.Get(RulesExtData::Instance()->SubterraneanHeight))
+	if (height <= pTypeExt->SubterraneanHeight.Get(FakeRulesClass::Instance()->SubterraneanHeight))
 		return Continue;
 
 	return Skip;
@@ -92,7 +92,7 @@ ASMJIT_PATCH(0x728FF2, TunnelLocomotionClass_Process_SubterraneanHeight3, 0x6)
 	REF_STACK(int, height, 0x14);
 
 	auto const pTypeExt = GET_TECHNOTYPEEXT(pLinkedTo);
-	int subtHeight = pTypeExt->SubterraneanHeight.Get(RulesExtData::Instance()->SubterraneanHeight);
+	int subtHeight = pTypeExt->SubterraneanHeight.Get(FakeRulesClass::Instance()->SubterraneanHeight);
 	height -= heightOffset;
 
 	if (height < subtHeight)
@@ -109,7 +109,7 @@ ASMJIT_PATCH(0x7295E2, TunnelLocomotionClass_ProcessStateDigging_SubterraneanHei
 	REF_STACK(int, height, STACK_OFFSET(0x44, -0x8));
 
 	auto const pTypeExt = GET_TECHNOTYPEEXT(pLinkedTo);
-	height = pTypeExt->SubterraneanHeight.Get(RulesExtData::Instance()->SubterraneanHeight);
+	height = pTypeExt->SubterraneanHeight.Get(FakeRulesClass::Instance()->SubterraneanHeight);
 
 	return SkipGameCode;
 }
@@ -198,7 +198,7 @@ ASMJIT_PATCH(0x72958E, TunnelLocomotionClass_ProcessDigging_SlowdownDistance, 0x
 
 	auto const pTypeExt = GET_TECHNOTYPEEXT(pLoco->LinkedTo);
 	int currentSpeed = pTypeExt->SubterraneanSpeed >= 0 ?
-		pTypeExt->SubterraneanSpeed : RulesExtData::Instance()->SubterraneanSpeed;
+		pTypeExt->SubterraneanSpeed : FakeRulesClass::Instance()->SubterraneanSpeed;
 
 	// Calculate speed multipliers.
 	pLoco->LinkedTo->SpeedPercentage = 1.0; // Subterranean locomotor doesn't normally use this so it would be 0.0 here and cause issues.		int maxSpeed = pTypeExt->This()->Speed;

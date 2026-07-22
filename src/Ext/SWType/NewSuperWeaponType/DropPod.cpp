@@ -78,13 +78,13 @@ void DroppodStateMachine::SendDroppods(SuperClass* pSuper, SWTypeExtData* pData,
 
 	const auto& Types = !pData->DropPod_Types.empty()
 		? pData->DropPod_Types
-		: RulesExtData::Instance()->DropPodTypes;
+		: FakeRulesClass::Instance()->DropPodTypes;
 
 	if (Types.empty())
 		return;
 
-	int cMin = pData->DropPod_Minimum.Get(RulesExtData::Instance()->DropPodMinimum);
-	int cMax = pData->DropPod_Maximum.Get(RulesExtData::Instance()->DropPodMaximum);
+	int cMin = pData->DropPod_Minimum.Get(FakeRulesClass::Instance()->DropPodMinimum);
+	int cMax = pData->DropPod_Maximum.Get(FakeRulesClass::Instance()->DropPodMaximum);
 
 	DroppodStateMachine::PlaceUnits(pSuper, pData->DropPod_Veterancy.Get(), Types, cMin, cMax, loc);
 }

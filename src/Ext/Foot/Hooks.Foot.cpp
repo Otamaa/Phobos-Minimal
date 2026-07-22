@@ -358,7 +358,7 @@ ASMJIT_PATCH(0x4D8D95, FootClass_UpdatePosition_HunterSeeker, 0xA)
 			}
 			else
 			{
-				auto damage = RulesExtData::Instance()->HunterSeeker_Damage.Get();
+				auto damage = FakeRulesClass::Instance()->HunterSeeker_Damage.Get();
 				pTarget->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, pThis, true, true, pThis->Owner);
 			}
 		}
@@ -429,7 +429,7 @@ ASMJIT_PATCH(0x4D9EBD, FootClass_CanBeSold_SellUnit, 6)
 	GET(TechnoClass*, pDocker, ESI);
 
 	const auto nUnitRepair = BuildingTypeExtContainer::Instance.Find(pBld->Type)->UnitSell.Get(pBld->Type->UnitRepair);
-	const auto nSellable = GET_TECHNOTYPEEXT(pDocker)->Unsellable.Get(RulesExtData::Instance()->Units_UnSellable);
+	const auto nSellable = GET_TECHNOTYPEEXT(pDocker)->Unsellable.Get(FakeRulesClass::Instance()->Units_UnSellable);
 
 	if (!nUnitRepair || !nSellable)
 	{
@@ -465,7 +465,7 @@ ASMJIT_PATCH(0x4D85E4, FootClass_UpdatePosition_TiberiumDamage, 9)
 	WarheadTypeClass* pWarhead = nullptr;
 	int transmogrify = RulesClass::Instance->TiberiumTransmogrify;
 
-	if (RulesExtData::Instance()->Tiberium_DamageEnabled && pThis->GetHeight() <= RulesClass::Instance->HoverHeight)
+	if (FakeRulesClass::Instance()->Tiberium_DamageEnabled && pThis->GetHeight() <= RulesClass::Instance->HoverHeight)
 	{
 		TechnoTypeClass* pType = GET_TECHNOTYPE(pThis);
 		TechnoTypeExtData* pExt = TechnoTypeExtContainer::Instance.Find(pType);

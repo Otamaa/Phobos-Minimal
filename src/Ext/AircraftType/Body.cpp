@@ -143,11 +143,11 @@ void AircraftTypeExtData::Serialize(T& Stm)
 }
 
 bool AircraftTypeExtData::ExtendedAircraftMissionsEnabled(AircraftClass* pAircraft) {
-	return AircraftTypeExtContainer::Instance.Find(pAircraft->Type)->ExtendedAircraftMissions.Get(RulesExtData::Instance()->ExpandAircraftMission);
+	return AircraftTypeExtContainer::Instance.Find(pAircraft->Type)->ExtendedAircraftMissions.Get(FakeRulesClass::Instance()->ExpandAircraftMission);
 }
 
 bool FakeAircraftTypeClass::_CanAttackMove() {
-	return AircraftTypeExtContainer::Instance.Find(this)->ExtendedAircraftMissions.Get(RulesExtData::Instance()->ExpandAircraftMission);
+	return AircraftTypeExtContainer::Instance.Find(this)->ExtendedAircraftMissions.Get(FakeRulesClass::Instance()->ExpandAircraftMission);
 }
 
 void AircraftTypeExtContainer::LoadFromINI(AircraftTypeClass* key, CCINIClass* pINI, bool parseFailAddr)

@@ -61,8 +61,8 @@ ASMJIT_PATCH(0x47EFAE, CellClass_Draw_It_MakePlacementGridTranparent, 0x6)
 {
 	LEA_STACK(BlitterFlags*, blitFlags, STACK_OFFS(0x68, 0x58));
 
-	const auto trans = RulesExtData::Instance()->Building_PlacementPreview ?
-		RulesExtData::Instance() ->PlacementGrid_TranslucencyWithPreview .Get(RulesExtData::Instance()->PlacementGrid_TranslucentLevel) : RulesExtData::Instance()->PlacementGrid_TranslucentLevel;
+	const auto trans = FakeRulesClass::Instance()->Building_PlacementPreview ?
+		FakeRulesClass::Instance() ->PlacementGrid_TranslucencyWithPreview .Get(FakeRulesClass::Instance()->PlacementGrid_TranslucentLevel) : FakeRulesClass::Instance()->PlacementGrid_TranslucentLevel;
 
 	*blitFlags |= EnumFunctions::GetTranslucentLevel(trans);
 	return 0;
@@ -233,7 +233,7 @@ ASMJIT_PATCH(0x502A80, HouseClass_RegisterGain, 0x8)
 
  void CalculatePowerSurplus(HouseClass* pThis)
 {
-	auto const pRulesExt = RulesExtData::Instance();
+	auto const pRulesExt = FakeRulesClass::Instance();
 
 	if (!pRulesExt->EnablePowerSurplus)
 		return;

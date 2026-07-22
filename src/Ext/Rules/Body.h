@@ -17,6 +17,48 @@
 
 #include <AITriggerTypeClass.h>
 
+// ============================================================
+	// Nested types (definitions only, no memory impact)
+	// ============================================================
+struct LandTypeExt
+{
+	Valueable<double> Bounce_Elasticity {};
+
+	void LoadFromStream(PhobosStreamReader& Stm)
+	{
+		Stm.Process(Bounce_Elasticity);
+	}
+
+	void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		Stm.Process(Bounce_Elasticity);
+	}
+};
+
+struct ProneSpeedData
+{
+	static COMPILETIMEEVAL double CRAWLING_SPEED_MULTIPLIER = std::bit_cast<double>(0x3FF5555555555555ull);
+	static COMPILETIMEEVAL double PRONE_SPEED_MULTIPLIER = std::bit_cast<double>(0x3FF8000000000000ull);
+
+	Valueable<double> Crawls { CRAWLING_SPEED_MULTIPLIER };
+	Valueable<double> NoCrawls { PRONE_SPEED_MULTIPLIER };
+
+	COMPILETIMEEVAL OPTIONALINLINE double getSpeed(bool crawls) const
+	{
+		return (crawls ? Crawls : NoCrawls).Get();
+	}
+
+	void Load(PhobosStreamReader& Stm)
+	{
+		Stm.Process(Crawls).Process(NoCrawls);
+	}
+
+	void Save(PhobosStreamWriter& Stm)
+	{
+		Stm.Process(Crawls).Process(NoCrawls);
+	}
+};
+
 class AnimTypeClass;
 class MouseCursor;
 class TechnoTypeClass;
@@ -26,63 +68,43 @@ class DigitalDisplayTypeClass;
 class CursorTypeClass;
 class SelectBoxTypeClass;
 class FakeRulesClass;
-class RulesExtData final
+
+class NOVTABLE FakeRulesClass : public RulesClass
 {
-private:
-	static std::unique_ptr<RulesExtData> Data;
-
 public:
-	static COMPILETIMEEVAL DWORD Canary = 0x126E225E;
-	using base_type = RulesClass;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
+	static COMPILETIMEEVAL reference<FakeRulesClass*, 0x8871E0u> Instance {};
+
+	FakeRulesClass() : RulesClass() {};
+	~FakeRulesClass() = default;
+	
+public:
+	static void __fastcall NOInitCTOR(FakeRulesClass* pThis,discard_t, noinit_t);
+	static void __fastcall CallTheDTOR(FakeRulesClass* pThis, discard_t, noinit_t);
+public:
+	void _ReadGeneral(CCINIClass* pINI);
+	void _ReadPowerups(CCINIClass* pINI);
+	void _ReadAI(CCINIClass* pINI);
+	void _ReadCombatDamage(CCINIClass* pINI);
+	void _ReadSpecialWeapons(CCINIClass* pINI);
+	void _ReadAudioVisual(CCINIClass* pINI);
+	void _ReadWallModel(CCINIClass* pINI);
+	void _ReadElevationModel(CCINIClass* pINI);
+	void _ReadRadiation(CCINIClass* pINI);
+	void _ReadCrateRules(CCINIClass* pINI);
+	void _ReadDifficulty(CCINIClass* pINI);
+	void _ReadIQ(CCINIClass* pINI);
+	void _ReadLandTypes(CCINIClass* pINI);
+	void _ReadMPlayer(CCINIClass* pINI);
+	void _ReadJumpjetControls(CCINIClass* pINI);
+	void _ReadColorAdd(CCINIClass* pINI);
+	void _ReadColors(CCINIClass* pINI);
+	void _ReadMovies(CCINIClass* pINI);
+	void _Process(CCINIClass* pINI);
 
 public:
 
 #pragma region ClassMembers
-
-	// ============================================================
-	// Nested types (definitions only, no memory impact)
-	// ============================================================
-	struct LandTypeExt
-	{
-		Valueable<double> Bounce_Elasticity {};
-
-		void LoadFromStream(PhobosStreamReader& Stm)
-		{
-			Stm.Process(Bounce_Elasticity);
-		}
-
-		void SaveToStream(PhobosStreamWriter& Stm)
-		{
-			Stm.Process(Bounce_Elasticity);
-		}
-	};
-
-	struct ProneSpeedData
-	{
-		static COMPILETIMEEVAL double CRAWLING_SPEED_MULTIPLIER = std::bit_cast<double>(0x3FF5555555555555ull);
-		static COMPILETIMEEVAL double PRONE_SPEED_MULTIPLIER = std::bit_cast<double>(0x3FF8000000000000ull);
-
-		Valueable<double> Crawls { CRAWLING_SPEED_MULTIPLIER };
-		Valueable<double> NoCrawls { PRONE_SPEED_MULTIPLIER };
-
-		COMPILETIMEEVAL OPTIONALINLINE double getSpeed(bool crawls) const
-		{
-			return (crawls ? Crawls : NoCrawls).Get();
-		}
-
-		void Load(PhobosStreamReader& Stm)
-		{
-			Stm.Process(Crawls).Process(NoCrawls);
-		}
-
-		void Save(PhobosStreamWriter& Stm)
-		{
-			Stm.Process(Crawls).Process(NoCrawls);
-		}
-	};
 
 	// ============================================================
 	// Large aggregates (fixed-size strings, arrays, custom types)
@@ -239,7 +261,6 @@ public:
 	Valueable<double> NewTeamsSelector_GroundCategoryPercentage { 0.25 };
 	Valueable<double> NewTeamsSelector_NavalCategoryPercentage { 0.25 };
 	Valueable<double> NewTeamsSelector_AirCategoryPercentage { 0.25 };
-	Valueable<double> EngineerDamage { 0.0 };
 	Valueable<double> BerserkROFMultiplier { 0.5 };
 	Valueable<double> AI_CostMult { 1.0 };
 	Valueable<double> DeactivateDim_Powered { 0.5 };
@@ -321,9 +342,9 @@ public:
 	Nullable<bool> AttackMove_StopWhenTargetAcquired {};
 	Nullable<bool> ShowPowerPlantEnhancerRange {};
 	Valueable<bool> OpenTopped_DecloakToFire { false };
-	Valueable<bool> OpenTopped_FireWhileMoving { true  };
-	Valueable<bool> OpenTransport_FireWhileMoving { true  };
-	Valueable<bool> OpenTopped_AllowFiringIfAttackedByLocomotor { true  };
+	Valueable<bool> OpenTopped_FireWhileMoving { true };
+	Valueable<bool> OpenTransport_FireWhileMoving { true };
+	Valueable<bool> OpenTopped_AllowFiringIfAttackedByLocomotor { true };
 
 	Valueable<bool> Temporal_ConsiderVersus { false };
 	Valueable<bool> Temporal_ApplyMultiplier { false };
@@ -384,7 +405,7 @@ public:
 	Valueable<int> WarheadAnimZAdjust { -15 };
 	Valueable<int> ChronoSpherePreDelay { 60 };
 	Valueable<int> ChronoSphereDelay { 0 };
-	Valueable<bool> LaserPositionUpdate_StopOnFirerConvert{ false };
+	Valueable<bool> LaserPositionUpdate_StopOnFirerConvert { false };
 	Valueable<int> LaserZAdjust { 0 };
 	Valueable<int> DisplayIncome_Delay { 15 };
 	Valueable<int> EBoltZAdjust { 0 };
@@ -539,7 +560,7 @@ public:
 	Valueable<bool> AssignUnitMissionAfterParadropped { false };
 	Valueable<bool> NoQueueUpToEnter {};
 	Valueable<bool> NoQueueUpToUnload {};
-	Valueable<int> NoQueueUpToEnter_BoardDistance  { 384 };
+	Valueable<int> NoQueueUpToEnter_BoardDistance { 384 };
 	Valueable<bool> NoRearm_UnderEMP { false };
 	Valueable<bool> NoRearm_Temporal { false };
 	Valueable<bool> NoReload_UnderEMP { false };
@@ -627,7 +648,7 @@ public:
 
 	Valueable<bool> DrainMoneyDisplay { false };
 	Valueable<AffectedHouse> DrainMoneyDisplay_Houses { AffectedHouse::All };
-	Valueable<bool> DrainMoneyDisplay_OnTarget  { false };
+	Valueable<bool> DrainMoneyDisplay_OnTarget { false };
 	Valueable<bool> DrainMoneyDisplay_OnTarget_UseDisplayIncome { true };
 
 	Valueable<bool> CylinderRangefinding { false };
@@ -638,7 +659,7 @@ public:
 	Valueable<double> ExtraThreatCoefficient_InRangeDistance {};
 	Valueable<double> ExtraThreatCoefficient_Facing {};
 	Valueable<double> ExtraThreatCoefficient_DistanceToLastTarget {};
-	
+
 	Valueable<bool> DriverKilled_KillPassengers {};
 
 	Valueable<StackingMode> Psychedelic_StackingMode { StackingMode::Override };
@@ -650,7 +671,7 @@ public:
 	Valueable<bool> RemoveMindControl_Silent { false };
 
 	Valueable<DynamicTeamDelayType> TeamDelays_DynamicType { DynamicTeamDelayType::StartingPoint };
-	Valueable<PartialVector3D<int>> TeamDelays[8] {};
+	Valueable<PartialVector3D<int>> MultipleTeamDelays[8] {};
 
 	Nullable<bool> Parasite_AllowWaterExit {};
 	Nullable<bool> FlyNoWobbles {};
@@ -667,71 +688,36 @@ public:
 	Valueable<int> IsDischargedMemberAutocreateRecruitable { -1 };
 #pragma endregion
 
-	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
+public:
+
+	void LoadBeforeTypeData(CCINIClass* pINI);
 	void ReplaceVoxelLightSources();
 
 	void Initialize(CCINIClass* pINI);
 
-	void LoadFromStream(PhobosStreamReader& Stm) {
+	void LoadFromStream(PhobosStreamReader& Stm)
+	{
 		this->Serialize(Stm);
 		this->ReplaceVoxelLightSources();
 	}
 
-	void SaveToStream(PhobosStreamWriter& Stm) {
+	void SaveToStream(PhobosStreamWriter& Stm)
+	{
 		this->Serialize(Stm);
 	}
+
+	void s_LoadBeforeTypeData(CCINIClass* pINI);
+	void LoadAfterTypeData(CCINIClass* pINI);
+	static void InitializeAfterAllRulesLoaded();
+	static bool DetailsCurrentlyEnabled();
+	static bool DetailsCurrentlyEnabled(int minDetailLevel);
 
 private:
 	template <typename T>
 	void Serialize(T& Stm);
 
 public:
-	static IStream* g_pStm;
-
-	static void Allocate(RulesClass* pThis);
-	static void Remove(RulesClass* pThis);
-
-	static void s_LoadBeforeTypeData(FakeRulesClass* pThis, CCINIClass* pINI);
-	static void LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI);
-	static void InitializeAfterAllRulesLoaded();
-
-	COMPILETIMEEVAL FORCEDINLINE static RulesExtData* Instance()
-	{
-		return Data.get();
-	}
-
-	FORCEDINLINE static void Clear()
-	{
-		Allocate(RulesClass::Instance);
-	}
-
-	static bool DetailsCurrentlyEnabled();
-	static bool DetailsCurrentlyEnabled(int minDetailLevel);
 
 	static std::unordered_map<VoxelStruct*, std::string > Owners;
 };
-
-class NOVTABLE FakeRulesClass : public RulesClass
-{
-public:
-	void _ReadGeneral(CCINIClass* pINI);
-	void _ReadPowerups(CCINIClass* pINI);
-	void _ReadAI(CCINIClass* pINI);
-	void _ReadCombatDamage(CCINIClass* pINI);
-	void _ReadSpecialWeapons(CCINIClass* pINI);
-	void _ReadAudioVisual(CCINIClass* pINI);
-	void _ReadWallModel(CCINIClass* pINI);
-	void _ReadElevationModel(CCINIClass* pINI);
-	void _ReadRadiation(CCINIClass* pINI);
-	void _ReadCrateRules(CCINIClass* pINI);
-	void _ReadDifficulty(CCINIClass* pINI);
-	void _ReadIQ(CCINIClass* pINI);
-	void _ReadLandTypes(CCINIClass* pINI);
-	void _ReadMPlayer(CCINIClass* pINI);
-	void _ReadJumpjetControls(CCINIClass* pINI);
-	void _ReadColorAdd(CCINIClass* pINI);
-	void _ReadColors(CCINIClass* pINI);
-	void _ReadMovies(CCINIClass* pINI);
-	void _Process(CCINIClass* pINI);
-};
-static_assert(sizeof(FakeRulesClass) == sizeof(RulesClass), "Invalid Size !");
+//static_assert(sizeof(FakeRulesClass) == sizeof(RulesClass), "Invalid Size !");

@@ -84,7 +84,7 @@ ASMJIT_PATCH(0x69FE92, ShipLocomotionClass_Process_WakeAnim, 0x5)
 
 ASMJIT_PATCH(0x75AC93, WalkLocomotionClass_Process_Wake, 0x6)
 {
-	if (!RulesExtData::Instance()->WalkLocomotorMakesWake)
+	if (!FakeRulesClass::Instance()->WalkLocomotorMakesWake)
 		return 0;
 
 	GET(ILocomotion* const, pThis, ESI);

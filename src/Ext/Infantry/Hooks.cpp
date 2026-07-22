@@ -113,7 +113,7 @@ ASMJIT_PATCH(0x51E5E1, InfantryClass_GetActionOnObject_MultiEngineerB, 7)
 	// use a dedicated cursor
 	if (ret == Action::Damage)
 	{
-		MouseCursorFuncs::SetMouseCursorAction(RulesExtData::Instance()->EngineerDamageCursor, Action::Damage, false);
+		MouseCursorFuncs::SetMouseCursorAction(FakeRulesClass::Instance()->EngineerDamageCursor, Action::Damage, false);
 	}
 
 	// return our action
@@ -131,7 +131,7 @@ ASMJIT_PATCH(0x519D9C, InfantryClass_UpdatePosition_MultiEngineer, 5)
 
 	if (action == Action::Damage)
 	{
-		int Damage = int(std::ceil(pBld->Type->Strength * RulesExtData::Instance()->EngineerDamage));
+		int Damage = int(std::ceil(pBld->Type->Strength * FakeRulesClass::Instance()->EngineerDamage));
 		pBld->ReceiveDamage(&Damage, 0, RulesClass::Global()->C4Warhead, pEngi, true, false, pEngi->Owner);
 		return 0x51A010;
 	}
@@ -192,7 +192,7 @@ ASMJIT_PATCH(0x51E7BF, InfantryClass_GetActionOnObject_CanCapture, 6)
 
 	const auto pSelectedType = pSelected->Type;
 	if (!pSelectedType->VehicleThief
-		&& !TechnoTypeExtContainer::Instance.Find(pSelectedType)->CanDrive.Get(RulesExtData::Instance()->CanDrive))
+		&& !TechnoTypeExtContainer::Instance.Find(pSelectedType)->CanDrive.Get(FakeRulesClass::Instance()->CanDrive))
 		return DontCapture;
 
 	if (GET_TECHNOTYPE(pTechnoTarget)->IsTrain)
@@ -355,7 +355,7 @@ ASMJIT_PATCH(0x5200C1, InfantryClass_UpdatePanic_Doggie, 0x6)
 	}
 
 	// if panicking badly, lay down on tiberium
-	if (pThis->PanicDurationLeft >= RulesExtData::Instance()->DoggiePanicMax) {
+	if (pThis->PanicDurationLeft >= FakeRulesClass::Instance()->DoggiePanicMax) {
 		if (!pThis->Destination && !pThis->Locomotor.GetInterfacePtr()->Is_Moving())		{
 			if (pThis->GetCell()->LandType == LandType::Tiberium) {
 				// is on tiberium. just lay down

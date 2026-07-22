@@ -475,7 +475,7 @@ void FakeLaserDrawClass::_DrawLaser()
 	const bool hasBlue = (InnerColor.B != 0);
 
 	// Determine rendering quality
-	const bool useHighQuality = RulesExtData::DetailsCurrentlyEnabled();
+	const bool useHighQuality = FakeRulesClass::DetailsCurrentlyEnabled();
 
 	// ====================================================================
 	// Draw the laser based on detail level
@@ -738,7 +738,7 @@ void FakeLaserDrawClass::_DrawInHouseColor()
 	const int zTarget = -2 - Game::AdjustHeight(Target.Z);
 
 	// Determine rendering quality
-	const bool useHighQuality = RulesExtData::DetailsCurrentlyEnabled();
+	const bool useHighQuality = FakeRulesClass::DetailsCurrentlyEnabled();
 
 	// Calculate intensity
 	float intensity = 1.0f;

@@ -916,7 +916,7 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 	// consider explosions on and over bridges
 	if (heightAboveGround > Unsorted::BridgeHeight
 		&& cell_ContainsBridge
-		&& RulesExtData::Instance()->DamageAirConsiderBridges)
+		&& FakeRulesClass::Instance()->DamageAirConsiderBridges)
 	{
 		heightAboveGround -= Unsorted::BridgeHeight;
 	}
@@ -1102,7 +1102,7 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 	}
 
 	bool AnythingHit = false;
-	const bool merge_bldngDamage = pWHExt->MergeBuildingDamage.Get(RulesExtData::Instance()->MergeBuildingDamage);
+	const bool merge_bldngDamage = pWHExt->MergeBuildingDamage.Get(FakeRulesClass::Instance()->MergeBuildingDamage);
 	MergedDamage.clear();
 
 	if (merge_bldngDamage)
@@ -1227,7 +1227,7 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 
 	if (pCell->OverlayTypeIndex > -1
 		&& OverlayTypeClass::Array->Items[pCell->OverlayTypeIndex]->Explodes
-		&& damage >= RulesExtData::Instance()->OverlayExplodeThreshold)
+		&& damage >= FakeRulesClass::Instance()->OverlayExplodeThreshold)
 	{
 		pCell->MarkForRedraw();
 		pCell->OverlayTypeIndex = -1;
@@ -1581,7 +1581,7 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 		Handled.reset();
 	}
 
-	if (pWHExt->MergeBuildingDamage.Get(RulesExtData::Instance()->MergeBuildingDamage)) {
+	if (pWHExt->MergeBuildingDamage.Get(FakeRulesClass::Instance()->MergeBuildingDamage)) {
 		// Because during the process of causing damage, fragments may be generated that need to continue causing damage, resulting in nested calls
 		// to this function. Therefore, a single global variable cannot be used to store this data.
 		static std::unordered_map<BuildingClass*, double> MapBuildings;
@@ -1650,7 +1650,7 @@ ASMJIT_PATCH(0x489A1B, DamageArea_DamageBuilding_SkipVanillaBuildingDamage, 0x6)
 	enum { SkipGameCode = 0x489AC1 };
 
 	GET_BASE(FakeWarheadTypeClass*, pWH, 0x0C);
-	return pWH->_GetExtData()->MergeBuildingDamage.Get(RulesExtData::Instance()->MergeBuildingDamage) ?
+	return pWH->_GetExtData()->MergeBuildingDamage.Get(FakeRulesClass::Instance()->MergeBuildingDamage) ?
 		SkipGameCode : 0;
 }
 
@@ -1931,7 +1931,7 @@ ASMJIT_PATCH(0x48A2D9, DamageArea_ExplodesThreshold, 6)
 	GET(OverlayTypeClass*, pOverlay, EAX);
 	GET_STACK(int, damage, 0x24);
 
-	return pOverlay->Explodes && damage >= RulesExtData::Instance()->OverlayExplodeThreshold
+	return pOverlay->Explodes && damage >= FakeRulesClass::Instance()->OverlayExplodeThreshold
 		? 0x48A2E7 : 0x48A433;
 }
 
@@ -1975,7 +1975,7 @@ ASMJIT_PATCH(0x4893BA, DamageArea_DamageAir, 0x9)
 	// consider explosions on and over bridges
 	if (heightAboveGround > Unsorted::BridgeHeight
 		&& pCell->ContainsBridge()
-		&& RulesExtData::Instance()->DamageAirConsiderBridges)
+		&& FakeRulesClass::Instance()->DamageAirConsiderBridges)
 	{
 		heightAboveGround -= Unsorted::BridgeHeight;
 	}

@@ -241,7 +241,7 @@ void ScriptExtData::ConditionalJump_CheckObjects(TeamClass* pTeam)
 	long countValue = 0;
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	int index = pTeamData->ConditionalJump_Index;
-	const auto& targetTypeList = RulesExtData::Instance()->AITargetTypesLists;
+	const auto& targetTypeList = FakeRulesClass::Instance()->AITargetTypesLists;
 
 	if ((size_t)index < targetTypeList.size())
 	{

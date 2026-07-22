@@ -122,6 +122,6 @@ ASMJIT_PATCH(0x5d7163, MPGameMode_SpawnStartingUnits_Types, 8)
 
 ASMJIT_PATCH(0x5d6d9a, MPGameModeClass_CreateStartingUnits_UnitCost, 6)
 {
-	R->EBP(HouseExtData::GetTotalCost(RulesExtData::Instance()->StartInMultiplayerUnitCost));
+	R->EBP(HouseExtData::GetTotalCost(FakeRulesClass::Instance()->StartInMultiplayerUnitCost));
 	return 0x5D6ED6;
 }

@@ -95,7 +95,7 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 
 					if (GameModeOptionsClass::Instance->Bases
 						&& !pCollectorOwner->OwnedBuildings
-						&& pCollectorOwner->Available_Money() > RulesExtData::Instance()->FreeMCV_CreditsThreshold
+						&& pCollectorOwner->Available_Money() > FakeRulesClass::Instance()->FreeMCV_CreditsThreshold
 						&& !pCollectorOwner->OwnedUnitTypes.get_count(pBase->ArrayIndex)
 						)
 					{
@@ -109,10 +109,10 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 					{
 					case Powerup::Unit:
 					{
-						if (RulesExtData::Instance()->UnitCrateVehicleCap < 0)
+						if (FakeRulesClass::Instance()->UnitCrateVehicleCap < 0)
 							break;
 
-						if (pCollectorOwner->OwnedUnits >= RulesExtData::Instance()->UnitCrateVehicleCap
+						if (pCollectorOwner->OwnedUnits >= FakeRulesClass::Instance()->UnitCrateVehicleCap
 							|| landType == LandType::Water
 							|| landType == LandType::Beach)
 						{
@@ -257,7 +257,7 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 
 						if (!soloCrateMoney)
 						{
-							const auto nAdd = RulesExtData::Instance()->RandomCrateMoney;
+							const auto nAdd = FakeRulesClass::Instance()->RandomCrateMoney;
 							int crateMax = 900;
 
 							if (nAdd > 0)
@@ -947,7 +947,7 @@ Powerup Crate_EvaluateMultiplayerReward(Powerup data, FootClass* pCollector,
 
 	if (GameModeOptionsClass::Instance->Bases
 		&& !pCollectorOwner->OwnedBuildings
-		&& pCollectorOwner->Available_Money() > RulesExtData::Instance()->FreeMCV_CreditsThreshold
+		&& pCollectorOwner->Available_Money() > FakeRulesClass::Instance()->FreeMCV_CreditsThreshold
 		&& !pCollectorOwner->OwnedUnitTypes.get_count(pBase->ArrayIndex))
 	{
 		data = Powerup::Unit;
@@ -958,10 +958,10 @@ Powerup Crate_EvaluateMultiplayerReward(Powerup data, FootClass* pCollector,
 	{
 	case Powerup::Unit:
 	{
-		if (RulesExtData::Instance()->UnitCrateVehicleCap < 0)
+		if (FakeRulesClass::Instance()->UnitCrateVehicleCap < 0)
 			break;
 
-		if (pCollectorOwner->OwnedUnits >= RulesExtData::Instance()->UnitCrateVehicleCap
+		if (pCollectorOwner->OwnedUnits >= FakeRulesClass::Instance()->UnitCrateVehicleCap
 			|| landType == LandType::Water
 			|| landType == LandType::Beach)
 		{
@@ -1067,7 +1067,7 @@ void Crate_GiveMoney(const CrateContext& ctx, int& soloCrateMoney)
 
 	if (!soloCrateMoney)
 	{
-		const auto nAdd = RulesExtData::Instance()->RandomCrateMoney;
+		const auto nAdd = FakeRulesClass::Instance()->RandomCrateMoney;
 		int crateMax = 900;
 
 		if (nAdd > 0)

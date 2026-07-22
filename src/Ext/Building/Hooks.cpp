@@ -228,7 +228,7 @@ ASMJIT_PATCH(0x440B4F, BuildingClass_Unlimbo_SetShouldRebuild, 0x5)
 		if (pThis->_GetExtData()->IsCreatedFromMapFile)
 			return ShouldNotRebuild;
 
-		if (!HouseExtContainer::Instance.Find(pThis->Owner)->RepairBaseNodes[GameOptionsClass::Instance->Difficulty].Get(RulesExtData::Instance()->RepairBaseNodes))
+		if (!HouseExtContainer::Instance.Find(pThis->Owner)->RepairBaseNodes[GameOptionsClass::Instance->Difficulty].Get(FakeRulesClass::Instance()->RepairBaseNodes))
 		return ShouldNotRebuild;
 	}
 
@@ -382,7 +382,7 @@ ASMJIT_PATCH(0x44EFD8, BuildingClass_FindExitCell_BarracksExitCell, 0x6)
 ASMJIT_PATCH(0x4FA520, HouseClass_BeginProduction_SkipBuilding, 0x5)
 {
 	enum { SkipGameCode = 0x4FA553 };
-	return RulesExtData::Instance()->ExpandBuildingQueue ? SkipGameCode : 0;
+	return FakeRulesClass::Instance()->ExpandBuildingQueue ? SkipGameCode : 0;
 }
 
 ASMJIT_PATCH(0x4FAAD8, HouseClass_AbandonProduction_RewriteForBuilding, 0x8)
@@ -568,7 +568,7 @@ ASMJIT_PATCH(0x449306, BuildingClass_SetOwningHouse_Sell, 0x6)
 	enum { NoSell = 0x44936E };
 	GET(FakeBuildingClass*, pThis, ESI);
 	return pThis->_GetTypeExtData()->AISellCapturedBuilding
-			.Get(RulesExtData::Instance()->AISellCapturedBuilding) ? 0 : NoSell;
+			.Get(FakeRulesClass::Instance()->AISellCapturedBuilding) ? 0 : NoSell;
 }
 
 ASMJIT_PATCH(0x4485DB, BuildingClass_SetOwningHouse_SyncLinkedOwner, 0x6)
@@ -576,7 +576,7 @@ ASMJIT_PATCH(0x4485DB, BuildingClass_SetOwningHouse_SyncLinkedOwner, 0x6)
 	enum { SkipGameCode = 0x4486C8 };
 	GET(FakeBuildingClass*, pThis, ESI);
 	return pThis->_GetTypeExtData()->BuildingRadioLink_SyncOwner
-			.Get(RulesExtData::Instance()->BuildingRadioLink_SyncOwner) ? 0 : SkipGameCode;
+			.Get(FakeRulesClass::Instance()->BuildingRadioLink_SyncOwner) ? 0 : SkipGameCode;
 }
 
 #pragma region PrefiringMark
@@ -816,7 +816,7 @@ ASMJIT_PATCH(0x441AC4, BuildingClass_Destroy_Fire3Anim, 0x5)
 	GET(BuildingClass*, pThis, ESI);
 	LEA_STACK(CoordStruct*, pCoord, 0x64 - 0x54);
 
-	if (auto pType = RulesExtData::Instance()->DefaultExplodeFireAnim)
+	if (auto pType = FakeRulesClass::Instance()->DefaultExplodeFireAnim)
 	{
 		const auto nDelay = ScenarioClass::Instance->Random.RandomRanged(1, 3);
 		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pCoord, nDelay + 3, 1, AnimFlag::AnimFlag_600, 0, false),
@@ -926,7 +926,7 @@ static int HandleArmedBuildingGuard(BuildingClass* pThis)
 	{
 		auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
 		auto const& delay = (pTypeExt->GuardRetryDelay.isset() ?
-			pTypeExt->GuardRetryDelay : RulesExtData::Instance()->BuildingGuardRetryDelay);
+			pTypeExt->GuardRetryDelay : FakeRulesClass::Instance()->BuildingGuardRetryDelay);
 
 		if (delay.isset())
 			return GeneralUtils::GetRangedRandomOrSingleValue(delay);
@@ -1070,7 +1070,7 @@ ASMJIT_PATCH(0x44C976, BuildingClass_Mission_Repair_TankBunker, 0x5)
 	auto const pType = pThis->Type;
 
 	if (pType->Bunker && (pThis->CurrentTankBunkerState > TankBunkerState::Idle && pThis->CurrentTankBunkerState < TankBunkerState::Bunkered))
-		R->EAX(BuildingTypeExtContainer::Instance.Find(pType)->BunkerStateUpdateDelay.Get(RulesExtData::Instance()->BunkerStateUpdateDelay));
+		R->EAX(BuildingTypeExtContainer::Instance.Find(pType)->BunkerStateUpdateDelay.Get(FakeRulesClass::Instance()->BunkerStateUpdateDelay));
 
 	return 0;
 }

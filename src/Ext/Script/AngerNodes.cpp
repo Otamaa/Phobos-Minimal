@@ -51,7 +51,7 @@ void ScriptExtData::ModifyHateHouses_List(TeamClass* pTeam, int idxHousesList = 
 	if (idxHousesList < 0)
 		idxHousesList = curArgs;
 
-	const auto& houseLists = RulesExtData::Instance()->AIHousesLists;
+	const auto& houseLists = FakeRulesClass::Instance()->AIHousesLists;
 
 	if ((size_t)idxHousesList < houseLists.size())
 	{
@@ -107,7 +107,7 @@ void ScriptExtData::ModifyHateHouses_List1Random(TeamClass* pTeam, int idxHouses
 	if (idxHousesList < 0)
 		idxHousesList = curArgs;
 
-	const auto& houseLists = RulesExtData::Instance()->AIHousesLists;
+	const auto& houseLists = FakeRulesClass::Instance()->AIHousesLists;
 
 	if ((size_t)idxHousesList < houseLists.size())
 	{

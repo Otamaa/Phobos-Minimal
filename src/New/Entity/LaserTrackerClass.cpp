@@ -84,7 +84,7 @@ bool LaserTrackerClass::ResolveStopOnFirerConvert(TechnoClass* pShooter, int wea
 		return false;
 
 	return WeaponTypeExtContainer::Instance.Find(pWeapon)->LaserPositionUpdate_StopOnFirerConvert
-		.Get(RulesExtData::Instance()->LaserPositionUpdate_StopOnFirerConvert);
+		.Get(FakeRulesClass::Instance()->LaserPositionUpdate_StopOnFirerConvert);
 }
 
 // ===========================================================================

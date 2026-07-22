@@ -77,8 +77,8 @@ ASMJIT_PATCH(0x4FF9C9, HouseClass_ExcludeFromMultipleFactoryBonus, 0x6)
 void TeamExtData::GetAIChronoshiftSupers(HouseClass* pThis, SuperClass*& pSuperCSphere, SuperClass*& pSuperCWarp)
 {
 	//Bypass the avaible checking entirely
-	int idxCS = RulesExtData::Instance()->AIChronoSphereSW;
-	int idxCW = RulesExtData::Instance()->AIChronoWarpSW;
+	int idxCS = FakeRulesClass::Instance()->AIChronoSphereSW;
+	int idxCW = FakeRulesClass::Instance()->AIChronoWarpSW;
 
 	if (idxCS >= 0)
 	{
@@ -207,7 +207,7 @@ ASMJIT_PATCH(0x70173B , TechnoClass_SetOwningHouse_AfterHouseWasSet, 0x5)
 				TechnoExtData::ConvertToType(pMe, pConvertTo,true , false);
 		}
 
-		if (RulesExtData::Instance()->ExtendedBuildingPlacing
+		if (FakeRulesClass::Instance()->ExtendedBuildingPlacing
 			&& pThis->WhatAmI() == AbstractType::Unit
 			&& ((UnitClass*)pThis)->Type->DeploysInto)
 		{
@@ -284,7 +284,7 @@ ASMJIT_PATCH(0x7015EB, TechnoClass_SetOwningHouse_UpdateTracking, 0x7)
 	//if (pTypeExt->Death_IfChangeOwnership && nMethod != KillMethod::None) {
 	//	TechnoExtData::KillSelf(pThis, nMethod, pTypeExt->AutoDeath_VanishAnimation);
 	//}
-	if (RulesExtData::Instance()->ExtendedBuildingPlacing && pThis->WhatAmI() == AbstractType::Unit && pType->DeploysInto)
+	if (FakeRulesClass::Instance()->ExtendedBuildingPlacing && pThis->WhatAmI() == AbstractType::Unit && pType->DeploysInto)
 	{
 		pOldOwnerExt->OwnedDeployingUnits.remove((UnitClass*)pThis);
 	}
@@ -301,7 +301,7 @@ ASMJIT_PATCH(0x739920, UnitClass_TryToDeploy_DisableRegroupAtNewConYard, 0x6)
 {
 	enum { SkipRegroup = 0x73992B, DoNotSkipRegroup = 0 };
 
-	if (!RulesExtData::Instance()->RegroupWhenMCVDeploy)
+	if (!FakeRulesClass::Instance()->RegroupWhenMCVDeploy)
 		return SkipRegroup;
 	else
 		return DoNotSkipRegroup;
@@ -320,7 +320,7 @@ ASMJIT_PATCH(0x536FA0, ToggleRepariModeCommandClass_Execute_PlayerAutoRepair, 0x
 {
 	if (Phobos::Config::TogglePowerInsteadOfRepair)
 		SidebarClass::Instance->SetTogglePowerMode(-1);
-	else if (!RulesExtData::Instance()->ExtendedPlayerRepair)
+	else if (!FakeRulesClass::Instance()->ExtendedPlayerRepair)
 		SidebarClass::Instance->SetRepairMode(-1);
 	else
 		EventExt::TogglePlayerAutoRepair::Raise();
@@ -334,7 +334,7 @@ ASMJIT_PATCH(0x6A78F6, SidebarClass_Update_ToggleRepair, 0x9)
 
 	if (Phobos::Config::TogglePowerInsteadOfRepair)
 		pThis->SetTogglePowerMode(-1);
-	else if(!RulesExtData::Instance()->ExtendedPlayerRepair)
+	else if(!FakeRulesClass::Instance()->ExtendedPlayerRepair)
 		pThis->SetRepairMode(-1);
 	else
 		EventExt::TogglePlayerAutoRepair::Raise();
@@ -352,7 +352,7 @@ ASMJIT_PATCH(0x6A7AE1, SidebarClass_Update_RepairButton, 0x6)
 	if (Phobos::Config::TogglePowerInsteadOfRepair)
 		return !pThis->PowerToggleMode && pButton->IsOn ? TurnOffButton : Continue;
 
-	if(!RulesExtData::Instance()->ExtendedPlayerRepair)
+	if(!FakeRulesClass::Instance()->ExtendedPlayerRepair)
 		return !pThis->RepairMode && pButton->IsOn ? TurnOffButton : Continue;
 
 	return !HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer)->PlayerAutoRepair && pButton->IsOn ? TurnOffButton : Continue;
@@ -365,7 +365,7 @@ ASMJIT_PATCH(0x6A7AE1, SidebarClass_Update_RepairButton, 0x6)
 // 	enum { ContinueChecks = 0x450659, CanNotAutoRepair = 0x450813 };
 // 	GET(BuildingClass*, pThis, ESI);
 
-// 	if(RulesExtData::Instance()->ExtendedPlayerRepair && pThis->Owner->IsControlledByHuman()){
+// 	if(FakeRulesClass::Instance()->ExtendedPlayerRepair && pThis->Owner->IsControlledByHuman()){
 // 		if (HouseExtContainer::Instance.Find(pThis->Owner)->PlayerAutoRepair) {
 // 			return ContinueChecks;
 // 		} else {
@@ -390,7 +390,7 @@ ASMJIT_PATCH(0x6A7AE1, SidebarClass_Update_RepairButton, 0x6)
 // ASMJIT_PATCH(0x4509B4, BuildingClass_UpdateRepair_Funds, 7)
 // {
 // 	GET(BuildingClass*, pThis, ESI);
-// 	return !pThis->Owner->IsControlledByHuman() || RulesExtData::Instance()->RepairStopOnInsufficientFunds
+// 	return !pThis->Owner->IsControlledByHuman() || FakeRulesClass::Instance()->RepairStopOnInsufficientFunds
 // 		? 0x0 : 0x4509BB;
 // }
 
@@ -490,7 +490,7 @@ ASMJIT_PATCH(0x4FB7CA, HouseClass_RegisterJustBuild_CreateSound_PlayerOnly, 0x6)
 		if (!EnumFunctions::IsPlayerTypeEligible((AffectPlayerType::Observer | AffectPlayerType::Player), HouseClass::CurrentPlayer))
 			return ReturnNoVoiceCreate;
 
-		if (!EnumFunctions::CanTargetHouse(pTechnoTypeExt->CreateSound_afect.Get(RulesExtData::Instance()->CreateSound_PlayerOnly), pThis, HouseClass::CurrentPlayer))
+		if (!EnumFunctions::CanTargetHouse(pTechnoTypeExt->CreateSound_afect.Get(FakeRulesClass::Instance()->CreateSound_PlayerOnly), pThis, HouseClass::CurrentPlayer))
 			return ReturnNoVoiceCreate;
 	}
 

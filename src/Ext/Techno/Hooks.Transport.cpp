@@ -84,7 +84,7 @@ ASMJIT_PATCH(0x710552, TechnoClass_SetOpenTransportCargoTarget_ShareTarget, 0x6)
 static FORCEDINLINE bool IsCloseEnoughToEnter(UnitClass* pTransport, FootClass* pPassenger)
 {
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTransport->Type);
-	const int boardDistance = pTypeExt->NoQueueUpToEnter_BoardDistance.Get(RulesExtData::Instance()->NoQueueUpToEnter_BoardDistance.Get());
+	const int boardDistance = pTypeExt->NoQueueUpToEnter_BoardDistance.Get(FakeRulesClass::Instance()->NoQueueUpToEnter_BoardDistance.Get());
 
 	return (Math::abs(pPassenger->Location.X - pTransport->Location.X) < boardDistance
 		&& Math::abs(pPassenger->Location.Y - pTransport->Location.Y) < boardDistance
@@ -113,7 +113,7 @@ static FORCEDINLINE bool CanEnterNow(UnitClass* pTransport, FootClass* pPassenge
 
 	// Added to fit with AmphibiousEnter
 	if (pTransport->GetCell()->LandType == LandType::Water
-		&& !TechnoTypeExtContainer::Instance.Find(pTransportType)->AmphibiousEnter.Get(RulesExtData::Instance()->AmphibiousEnter))
+		&& !TechnoTypeExtContainer::Instance.Find(pTransportType)->AmphibiousEnter.Get(FakeRulesClass::Instance()->AmphibiousEnter))
 		return false;
 
 	const bool bySize = TechnoTypeExtContainer::Instance.Find(pTransportType)->Passengers_BySize;
@@ -188,7 +188,7 @@ void TechnoExtData::Fastenteraction(FootClass* pThis) {
 	{
 		const auto pType = pDest->Type;
 
-		if (pType->Passengers > 0 && TechnoTypeExtContainer::Instance.Find(pType)->NoQueueUpToEnter.Get(RulesExtData::Instance()->NoQueueUpToEnter))
+		if (pType->Passengers > 0 && TechnoTypeExtContainer::Instance.Find(pType)->NoQueueUpToEnter.Get(FakeRulesClass::Instance()->NoQueueUpToEnter))
 		{
 			if (IsCloseEnoughToEnter(pDest, pThis))
 			{
@@ -218,7 +218,7 @@ void TechnoExtData::Fastenteraction(FootClass* pThis) {
 // Rewrite from 0x4835D5/0x74004B, replace check pThis->GetCell()->LandType != LandType::Water
 static FORCEDINLINE bool CanUnloadNow(UnitClass* pTransport, FootClass* pPassenger)
 {
-	if (TechnoTypeExtContainer::Instance.Find(pTransport->Type)->AmphibiousUnload.Get(RulesExtData::Instance()->AmphibiousUnload))
+	if (TechnoTypeExtContainer::Instance.Find(pTransport->Type)->AmphibiousUnload.Get(FakeRulesClass::Instance()->AmphibiousUnload))
 		return GroundType::Array[static_cast<int>(pTransport->GetCell()->LandType)]
 		.Cost[static_cast<int>(GET_TECHNOTYPE(pPassenger)->SpeedType)] != 0.0;
 
@@ -261,7 +261,7 @@ ASMJIT_PATCH(0x73DC9C, UnitClass_Mission_Unload_NoQueueUpToUnloadBreak, 0xA)
 		TransportUnloadTemp::ShouldPlaySound = false;
 		const auto pType = pThis->Type;
 
-		if (TechnoTypeExtContainer::Instance.Find(pType)->NoQueueUpToUnload.Get(RulesExtData::Instance()->NoQueueUpToUnload))
+		if (TechnoTypeExtContainer::Instance.Find(pType)->NoQueueUpToUnload.Get(FakeRulesClass::Instance()->NoQueueUpToUnload))
 			VocClass::PlayIndexAtPos(pType->LeaveTransportSound, pThis->Location, false);
 	}
 
@@ -278,7 +278,7 @@ ASMJIT_PATCH(0x73DC1E, UnitClass_Mission_Unload_NoQueueUpToUnloadLoop, 0xA)
 	const auto pType = pThis->Type;
 	const auto pPassenger = pThis->Passengers.GetFirstPassenger();
 
-	if (TechnoTypeExtContainer::Instance.Find(pType)->NoQueueUpToUnload.Get(RulesExtData::Instance()->NoQueueUpToUnload))
+	if (TechnoTypeExtContainer::Instance.Find(pType)->NoQueueUpToUnload.Get(FakeRulesClass::Instance()->NoQueueUpToUnload))
 	{
 		if (!pPassenger || pThis->Passengers.NumPassengers <= pThis->NonPassengerCount)
 		{
@@ -404,7 +404,7 @@ ASMJIT_PATCH(0x73796B, UnitClass_ReceiveCommand_AmphibiousEnter, 0x7)
 	if (pThis->OnBridge)
 		return MoveToPassenger;
 
-	if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->AmphibiousEnter.Get(RulesExtData::Instance()->AmphibiousEnter))
+	if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->AmphibiousEnter.Get(FakeRulesClass::Instance()->AmphibiousEnter))
 		return ContinueCheck;
 
 	GET(CellClass* const, pCell, EBP);
@@ -424,7 +424,7 @@ ASMJIT_PATCH(0x7400B5, UnitClass_MouseOverObject_AmphibiousUnload, 0x7)
 
 	GET(UnitClass* const, pThis, ESI);
 
-	return TechnoTypeExtContainer::Instance.Find(pThis->Type)->AmphibiousUnload.Get(RulesExtData::Instance()->AmphibiousUnload) ? ContinueCheck : CannotUnload;
+	return TechnoTypeExtContainer::Instance.Find(pThis->Type)->AmphibiousUnload.Get(FakeRulesClass::Instance()->AmphibiousUnload) ? ContinueCheck : CannotUnload;
 }
 
 ASMJIT_PATCH(0x70107A, TechnoClass_CanDeploySlashUnload_AmphibiousUnload, 0x7)
@@ -438,7 +438,7 @@ ASMJIT_PATCH(0x70107A, TechnoClass_CanDeploySlashUnload_AmphibiousUnload, 0x7)
 
 	GET(UnitClass* const, pThis, ESI);
 
-	return TechnoTypeExtContainer::Instance.Find(pThis->Type)->AmphibiousUnload.Get(RulesExtData::Instance()->AmphibiousUnload) ? ContinueCheck : CannotUnload;
+	return TechnoTypeExtContainer::Instance.Find(pThis->Type)->AmphibiousUnload.Get(FakeRulesClass::Instance()->AmphibiousUnload) ? ContinueCheck : CannotUnload;
 }
 
 ASMJIT_PATCH(0x73D769, UnitClass_Mission_Unload_AmphibiousUnload, 0x7)
@@ -456,7 +456,7 @@ ASMJIT_PATCH(0x73D7AB, UnitClass_Mission_Unload_FindUnloadPosition, 0x5)
 {
 	GET(UnitClass* const, pThis, ESI);
 
-	if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->AmphibiousUnload.Get(RulesExtData::Instance()->AmphibiousUnload))
+	if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->AmphibiousUnload.Get(FakeRulesClass::Instance()->AmphibiousUnload))
 	{
 		if (const auto pPassenger = pThis->Passengers.GetFirstPassenger())
 		{
@@ -485,7 +485,7 @@ ASMJIT_PATCH(0x740C9C, UnitClass_GetUnloadDirection_CheckUnloadPosition, 0x7)
 {
 	GET(UnitClass* const, pThis, EDI);
 
-	if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->AmphibiousUnload.Get(RulesExtData::Instance()->AmphibiousUnload))
+	if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->AmphibiousUnload.Get(FakeRulesClass::Instance()->AmphibiousUnload))
 	{
 		if (const auto pPassenger = pThis->Passengers.GetFirstPassenger())
 		{
@@ -501,7 +501,7 @@ ASMJIT_PATCH(0x73DAD8, UnitClass_Mission_Unload_PassengerLeavePosition, 0x5)
 {
 	GET(UnitClass* const, pThis, ESI);
 
-	if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->AmphibiousUnload.Get(RulesExtData::Instance()->AmphibiousUnload))
+	if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->AmphibiousUnload.Get(FakeRulesClass::Instance()->AmphibiousUnload))
 	{
 		GET(FootClass* const, pPassenger, EDI);
 		REF_STACK(MovementZone, movementZone, STACK_OFFSET(0xBC, -0xAC));
@@ -523,7 +523,7 @@ ASMJIT_PATCH(0x51EE36, InfantryClass_MouseOvetObject_NoQueueUpToEnter, 0x5)
 
 	if (auto pBuilding = cast_to<BuildingClass*, false>(pObject))
 	{
-		const auto pRulesExt = RulesExtData::Instance();
+		const auto pRulesExt = FakeRulesClass::Instance();
 		const auto pType = pBuilding->Type;
 
 		if (pType->InfantryAbsorb
@@ -545,7 +545,7 @@ ASMJIT_PATCH(0x740375, UnitClass_MouseOvetObject_NoQueueUpToEnter, 0x5)
 
 	if (pObject->WhatAmI() == AbstractType::Building)
 	{
-		const auto pRulesExt = RulesExtData::Instance();
+		const auto pRulesExt = FakeRulesClass::Instance();
 		const auto pType = static_cast<BuildingClass*>(pObject)->Type;
 
 		if (pType->UnitAbsorb
@@ -565,7 +565,7 @@ ASMJIT_PATCH(0x73F63F, UnitClass_IsCellOccupied_NoQueueUpToEnter, 0x6)
 	GET(BuildingClass*, pThis, ESI);
 	enum { SkipGameCode = 0x73F64F };
 
-	const auto pRulesExt = RulesExtData::Instance();
+	const auto pRulesExt = FakeRulesClass::Instance();
 	const auto pType = pThis->Type;
 
 	if (pType->UnitAbsorb
@@ -584,7 +584,7 @@ ASMJIT_PATCH(0x4DFC83, FootClass_EnterBioReactor_NoQueueUpToUnload, 0x6)
 	GET(BuildingClass*, pBuilding, EDI);
 	enum { SkipGameCode = 0x4DFC91 };
 
-	const auto RulesExt = RulesExtData::Instance();
+	const auto RulesExt = FakeRulesClass::Instance();
 	const Mission mission = TechnoTypeExtContainer::Instance.Find(pBuilding->Type)->NoQueueUpToEnter.Get(
 		RulesExt->NoQueueUpToEnter_Buildings.Get(RulesExt->NoQueueUpToEnter))
 		? Mission::Eaten : Mission::Enter;
@@ -597,7 +597,7 @@ ASMJIT_PATCH(0x44DCB1, BuildingClass_Mission_Unload_NoQueueUpToUnload, 0x7)
 {
 	GET(BuildingClass*, pThis, EBP);
 
-	const auto pRulesExt = RulesExtData::Instance();
+	const auto pRulesExt = FakeRulesClass::Instance();
 
 	if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->NoQueueUpToUnload.Get(
 		pRulesExt->NoQueueUpToUnload_Buildings.Get(pRulesExt->NoQueueUpToUnload)))
@@ -653,12 +653,12 @@ ASMJIT_PATCH(0x4D9510, FootClass_SetDestination_OpenToppedFireWhileMoving, 0x6)
 
 	if (pType->OpenTopped && pUnit->Passengers.NumPassengers > 0)
 	{
-		const bool fireWhileMoving = TechnoTypeExtContainer::Instance.Find(pType)->OpenTopped_FireWhileMoving.Get(RulesExtData::Instance()->OpenTopped_FireWhileMoving);
+		const bool fireWhileMoving = TechnoTypeExtContainer::Instance.Find(pType)->OpenTopped_FireWhileMoving.Get(FakeRulesClass::Instance()->OpenTopped_FireWhileMoving);
 		auto pPassenger = pUnit->Passengers.GetFirstPassenger();
 
 		while (pPassenger)
 		{
-			const bool canFire = fireWhileMoving && GET_TECHNOTYPEEXT(pPassenger)->OpenTransport_FireWhileMoving.Get(RulesExtData::Instance()->OpenTransport_FireWhileMoving);
+			const bool canFire = fireWhileMoving && GET_TECHNOTYPEEXT(pPassenger)->OpenTransport_FireWhileMoving.Get(FakeRulesClass::Instance()->OpenTransport_FireWhileMoving);
 
 			// Technically these 2 can't exist in the same time, but just in case
 			if (auto const pLocoTarget = pPassenger->LocomotorTarget)

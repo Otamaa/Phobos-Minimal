@@ -315,7 +315,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 		}
 
 		if (pThis->CurrentBurstIndex && pWeapon != pExt->LastWeaponType
-		 && pTechnoTypeExt->RecountBurst.Get(RulesExtData::Instance()->RecountBurst))
+		 && pTechnoTypeExt->RecountBurst.Get(FakeRulesClass::Instance()->RecountBurst))
 		{
 			if (pExt->LastWeaponType && pExt->LastWeaponType->Burst)
 			{
@@ -928,7 +928,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 		int ROF = pThis->GetROF(which);
 		if (pThis->Berzerk) {
 			ROF = (int)(ROF * pTechnoTypeExt->BerserkROFMultiplier
-				.Get(RulesExtData::Instance()->BerserkROFMultiplier));
+				.Get(FakeRulesClass::Instance()->BerserkROFMultiplier));
 		}
 		TechnoExtData::SetChargeTurretDelay(pThis, ROF, pWeapon);
 		pThis->RearmTimer.Start(ROF);
@@ -1076,7 +1076,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 				pThis->Target ? pThis->Target->GetOwningHouse() : nullptr,
 				pThis, false, false);
 
-			if (pWeapon->Anim.Count > 0 && pWeaponExt->Anim_Update.Get(RulesExtData::Instance()->FiringAnim_Update)) {
+			if (pWeapon->Anim.Count > 0 && pWeaponExt->Anim_Update.Get(FakeRulesClass::Instance()->FiringAnim_Update)) {
 				auto pAnimExt = AnimExtContainer::Instance.Find(pAn);
 
 				pAnimExt->IsFiringAnim = true;
@@ -1510,7 +1510,7 @@ ASMJIT_PATCH(0x6FDD7D, TechnoClass_FireAt_UpdateWeaponType, 0x5)
 	}
 
 	{
-		if (pThis->CurrentBurstIndex && pWeapon != pExt->LastWeaponType && pTypeExt->RecountBurst.Get(RulesExtData::Instance()->RecountBurst))
+		if (pThis->CurrentBurstIndex && pWeapon != pExt->LastWeaponType && pTypeExt->RecountBurst.Get(FakeRulesClass::Instance()->RecountBurst))
 		{
 			if (pExt->LastWeaponType && pExt->LastWeaponType->Burst)
 			{
@@ -1805,7 +1805,7 @@ ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 	if (pThis->Berzerk)
 	{
 		const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
-		const double multiplier = pTypeExt->BerserkROFMultiplier.Get(RulesExtData::Instance()->BerserkROFMultiplier);
+		const double multiplier = pTypeExt->BerserkROFMultiplier.Get(FakeRulesClass::Instance()->BerserkROFMultiplier);
 		ROF = static_cast<int>(ROF * multiplier);
 	}
 
@@ -1940,7 +1940,7 @@ ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 		AnimExtData::SetAnimOwnerHouseKind(pFiring, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false, false);
 		auto pAnimExt = AnimExtContainer::Instance.Find(pFiring);
 
-		if (pWeapon->_GetExtData()->Anim_Update.Get(RulesExtData::Instance()->FiringAnim_Update))
+		if (pWeapon->_GetExtData()->Anim_Update.Get(FakeRulesClass::Instance()->FiringAnim_Update))
 		{
 			pAnimExt->FiringAnim_Weapon = pWeapon;
 			pAnimExt->FiringAnim_WeaponIndex = weaponIdx;

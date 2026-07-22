@@ -303,7 +303,7 @@ bool bIgnoreDisableWeapon)
 
 		if (pThis->Berzerk
 			&& !EnumFunctions::CanTargetHouse(
-				RulesExtData::Instance()->BerzerkTargeting,
+				FakeRulesClass::Instance()->BerzerkTargeting,
 				pThis->Owner, pResolvedTechno->Owner))
 		{
 			return FireError::ILLEGAL;
@@ -467,11 +467,11 @@ bool bIgnoreDisableWeapon)
 				if(pTransport->Deactivated && !pTransTypeExt->OpenTopped_AllowFiringIfDeactivated)
 					return FireError::ILLEGAL;
 
-				if (pTransportFoot->IsAttackedByLocomotor && !pTransTypeExt->OpenTopped_AllowFiringIfAttackedByLocomotor.Get(RulesExtData::Instance()->OpenTopped_AllowFiringIfAttackedByLocomotor))
+				if (pTransportFoot->IsAttackedByLocomotor && !pTransTypeExt->OpenTopped_AllowFiringIfAttackedByLocomotor.Get(FakeRulesClass::Instance()->OpenTopped_AllowFiringIfAttackedByLocomotor))
 					return FireError::ILLEGAL;
 
-				if (!pTransTypeExt->OpenTopped_FireWhileMoving.Get(RulesExtData::Instance()->OpenTopped_FireWhileMoving)
-					|| !pThisTypeExt->OpenTransport_FireWhileMoving.Get(RulesExtData::Instance()->OpenTransport_FireWhileMoving)
+				if (!pTransTypeExt->OpenTopped_FireWhileMoving.Get(FakeRulesClass::Instance()->OpenTopped_FireWhileMoving)
+					|| !pThisTypeExt->OpenTransport_FireWhileMoving.Get(FakeRulesClass::Instance()->OpenTransport_FireWhileMoving)
 					|| !pWeapon->FireWhileMoving)
 				{
 					if (pTransTypeExt->This()->BalloonHover) {
@@ -763,7 +763,7 @@ bool bIgnoreDisableWeapon)
 				pThis->Transporter->GetTechnoType());
 
 			bTransportHandlesDecloak = pTransTypeExt->OpenTopped_DecloakToFire.Get(
-				RulesExtData::Instance()->OpenTopped_DecloakToFire);
+				FakeRulesClass::Instance()->OpenTopped_DecloakToFire);
 		}
 
 		if (!bTransportHandlesDecloak)
@@ -929,7 +929,7 @@ bool bIgnoreDisableWeapon)
 			pThis->Transporter->GetTechnoType());
 
 		if (pTransTypeExt->OpenTopped_DecloakToFire.Get(
-			RulesExtData::Instance()->OpenTopped_DecloakToFire))
+			FakeRulesClass::Instance()->OpenTopped_DecloakToFire))
 		{
 			pThis->Transporter->Uncloak(true);
 		}

@@ -12,15 +12,41 @@
 
 #include <Notifications.h>
 
-static void SWCharges_SetPoolFull(SuperClass* pThis)
+void NOINLINE SWChargePool::EnsureAccumulating(SuperClass* pThis)
 {
-	pThis->IsCharged = true;
-	pThis->RechargeTimer.Pause();   // freeze visually at 0
+	// Accumulation is desired again — re-enable the flag first
+	SWChargePool::Get(pThis->Owner, pThis->Type)->IsAllowedToAccumulate = true;
+
+	if (pThis->IsOnHold || pThis->RechargeTimer.IsTicking())
+		return;
+
+	if (pThis->RechargeTimer.TimeLeft > 0)
+	{
+		// Paused mid-cycle — Resume() keeps the remaining time.
+		// Start() here would throw away accumulated progress.
+		pThis->RechargeTimer.Resume();
+	}
+	else
+	{
+		// Fully stopped — begin a fresh cycle
+		const int t = pThis->GetRechargeTime();
+		pThis->RechargeTimer.Start((t > 0) ? t : 1);
+	}
 }
 
-static void SWCharges_BeginRecharge(SuperClass* pThis)
+void NOINLINE SWChargePool::SetPoolFull(SuperClass* pThis)
+{
+	pThis->IsCharged = true;
+	if (pThis->RechargeTimer.IsTicking())
+		pThis->RechargeTimer.Pause();   // freeze visually at 0
+
+	SWChargePool::Get(pThis->Owner, pThis->Type)->IsAllowedToAccumulate = false;
+}
+
+void NOINLINE SWChargePool::BeginRecharge(SuperClass* pThis)
 {
 	pThis->IsCharged = false;
+	SWChargePool::Get(pThis->Owner, pThis->Type)->IsAllowedToAccumulate =  true;
 	const int t = pThis->GetRechargeTime();
 	pThis->RechargeTimer.Start((t > 0) ? t : 1);
 }
@@ -37,6 +63,7 @@ static int SWCharges_GetPerCycle(SuperWeaponTypeClass* pType)
 // change the lambda UpdateStatus. Available means this super weapon exists at
 // all. Setting it to false removes the super weapon. PowerSourced controls
 // whether the super weapon charges or can be used.
+#pragma optimize("", off )
 void SuperExtData::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 {
 	// look at every sane building this player owns, if it is not defeated already.
@@ -171,10 +198,7 @@ void SuperExtData::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 
 					if (pPool->Charges >= maxCharges) {
 						// Pool full — freeze timer
-						if (pSuper->RechargeTimer.IsTicking())
-							pSuper->RechargeTimer.Pause();
-
-						pSuper->IsCharged = true;
+						SWChargePool::SetPoolFull(pSuper);
 					} else if (pPool->Charges >= dischargeAmt) {
 						// Ready to fire, still accumulating.
 						// Keep IsCharged=true + StartTime=-1 (Paused).
@@ -184,28 +208,24 @@ void SuperExtData::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 						// _AI completed a cycle and Paused for us.
 						pSuper->IsCharged = true;
 
-						if (!pSuper->RechargeTimer.IsTicking()
-							&& pSuper->RechargeTimer.TimeLeft <= 0
-							&& !pSuper->IsOnHold) {
-							// Begin next accumulation cycle.
-							// Start() sets StartTime >= 0 briefly, but
-							// _AI will immediately Pause() on completion.
-							const int t = pSuper->GetRechargeTime();
-							pSuper->RechargeTimer.Start((t > 0) ? t : 1);
-						}
-					} else if (!pSuper->RechargeTimer.IsTicking()
-							 && !pSuper->IsCharged
-							 && !pSuper->IsOnHold) {
-						// Below threshold — restart timer toward next charge
-						const int t = pSuper->GetRechargeTime();
-						pSuper->RechargeTimer.Start((t > 0) ? t : 1);
+						// restarting. A timer Pause()d mid-cycle has
+						// TimeLeft > 0 and was never revived. Resume/Start
+						// via helper instead.
+						SWChargePool::EnsureAccumulating(pSuper);
+
+					} else if (!pSuper->IsCharged) {
+						// Below threshold — resume/restart toward next charge.
+						// (not ticking, TimeLeft > 0) previously fell through
+						// the `!IsTicking()` branch but old code Start()ed a
+						// full fresh cycle, losing progress. Helper resumes.
+						SWChargePool::EnsureAccumulating(pSuper);
 					}
 				}
 			}
 		});
 	}
 }
-
+#pragma optimize("", on )
 
 // =============================
 // load / save
@@ -475,6 +495,7 @@ bool FakeSuperClass::_AI(bool isPlayer)
 
 	// Vanilla: exit when IsCharged && !UseChargeDrain
 	 // New:     also continue if pool has room (timer must tick)
+	bool isNeedToCharge = false;
 	if (this->IsCharged && !this->Type->UseChargeDrain) {
 		const int maxCharges = SWChargePool::GetMax(this->Type);
 
@@ -484,6 +505,7 @@ bool FakeSuperClass::_AI(bool isPlayer)
 			auto pPool = SWChargePool::Get(this->Owner, this->Type);
 			if (pPool->Charges >= maxCharges)
 				return false;
+			else isNeedToCharge = true;
 			// else: fall through — timer still needs to run
 		} else {
 			return false;   // feature off — vanilla exit
@@ -666,7 +688,7 @@ bool FakeSuperClass::_AI(bool isPlayer)
 				// _Discharged's StartTime guard from passing
 				// unexpectedly. UpdateSuperWeaponStatuses will
 				// restart the timer for continued accumulation.
-				SWCharges_SetPoolFull(this);   // IsCharged=true + Pause()
+				SWChargePool::SetPoolFull(this);   // IsCharged=true + Pause()
 				SuperExtData::UpdateSuperWeaponStatuses(this->Owner);
 
 				// Announce only on first ready transition
@@ -726,9 +748,9 @@ void FakeSuperClass::_SetCharge(int charge)
 		pPool->Increment(maxCharges);
 
 		if (pPool->CanAccumulate(maxCharges))
-			SWCharges_BeginRecharge(this);
+			SWChargePool::BeginRecharge(this);
 		else
-			SWCharges_SetPoolFull(this);
+			SWChargePool::SetPoolFull(this);
 
 		return;
 	}
@@ -757,7 +779,7 @@ void FakeSuperClass::_Forced_Charge(bool isPlayer)
 		// Fill the pool completely
 		auto pPool = SWChargePool::Get(this->Owner, this->Type);
 		pPool->Charges = maxCharges;
-		SWCharges_SetPoolFull(this);
+	 	SWChargePool::SetPoolFull(this);
 	}
 	else
 	{
@@ -830,6 +852,7 @@ bool FakeSuperClass::_Remove()
 			{
 				auto pPool = SWChargePool::Get(this->Owner, this->Type);
 				pPool->Charges = 0;
+				pPool->IsAllowedToAccumulate = true;
 			}
 		}
 
@@ -951,14 +974,24 @@ bool FakeSuperClass::_Discharged(bool isPlayer, CellStruct* pCell)
 			if (!willRemove)
 			{
 				if (pPool->Charges >= dischargeAmt)
-					SWCharges_SetPoolFull(this);   // still enough — stay paused+ready
+				{
+					this->IsCharged = true;
+
+					if (pPool->Charges >= maxCharges)
+						SWChargePool::SetPoolFull(this);
+					else
+						// ("freeze visually at 0"). That snapshotted
+						// TimeLeft > 0 and no restart path could pass its
+						// `TimeLeft <= 0` guard -> timer stuck forever.
+						// Non-full pool must keep ticking.
+						SWChargePool::EnsureAccumulating(this);
+				}
 				else
 				{
 					this->IsCharged = false;
-					if (this->RechargeTimer.GetTimeLeft() <= 0) {
-						const int t = this->GetRechargeTime();
-						this->RechargeTimer.Start((t > 0) ? t : 1);
-					}
+					// paused mid-cycle timers (TimeLeft > 0, not ticking).
+					// Helper resumes them instead of leaving them dead.
+					SWChargePool::EnsureAccumulating(this);
 				}
 			}
 		}
@@ -1046,16 +1079,16 @@ bool FakeSuperClass::_Suspend(bool on)
 				if (pPool->Charges >= maxCharges)
 				{
 					// Pool full — ManualControl or not, stay frozen
-					SWCharges_SetPoolFull(this);
+					SWChargePool::SetPoolFull(this);
 				}
 				else
 				{
-					// Accumulating — Resume so timer can tick.
-					// For ManualControl this overrides the vanilla
-					// always-Pause behaviour intentionally.
-					// Resume() is a no-op if already ticking, so
-					// repeated SetOnHold(false) calls are safe.
-					this->RechargeTimer.Resume();
+					// BUGFIX: bare Resume() on a timer whose TimeLeft
+						// hit 0 while suspended resumes as already-expired
+						// -> _AI treats it as a completed cycle -> free
+						// charge on unhold. Helper Start()s fresh instead
+						// when TimeLeft == 0, Resume()s when > 0.
+					SWChargePool::EnsureAccumulating(this);
 				}
 			}
 			else if (this->Type->ManualControl)

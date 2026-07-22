@@ -810,7 +810,7 @@ void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 
 void ParticleSystemExtData::UpdateInAir()
 {
-	if (ParticleSystemClass::Array->Count && GameOptionsClass::Instance->DetailLevel && RulesExtData::DetailsCurrentlyEnabled())
+	if (ParticleSystemClass::Array->Count && GameOptionsClass::Instance->DetailLevel && FakeRulesClass::DetailsCurrentlyEnabled())
 	{
 		bool StopDrawing = false;
 		if (Unsorted::MAP_DEBUG_MODE() || !Game::hInstance() || ((ScenarioClass::Instance->SpecialFlags.RawFlags + 1) & 16) == 0)

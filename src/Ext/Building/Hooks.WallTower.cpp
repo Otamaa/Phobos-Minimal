@@ -8,7 +8,7 @@ ASMJIT_PATCH(0x4405C1, BuildingClas_Unlimbo_WallTowers_A, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	R->ECX(pThis->Type);
-	const auto& Nvec = RulesExtData::Instance()->WallTowers;
+	const auto& Nvec = FakeRulesClass::Instance()->WallTowers;
 	return Nvec.Contains(pThis->Type) ? 0x4405CF : 0x440606;
 }
 
@@ -16,7 +16,7 @@ ASMJIT_PATCH(0x440F66, BuildingClass_Unlimbo_WallTowers_B, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	R->EDX(pThis->Type);
-	const auto& Nvec = RulesExtData::Instance()->WallTowers;
+	const auto& Nvec = FakeRulesClass::Instance()->WallTowers;
 	return Nvec.Contains(pThis->Type) ? 0x440F78 : 0x44104D;
 }
 
@@ -24,7 +24,7 @@ ASMJIT_PATCH(0x445ADB, BuildingClass_Limbo_WallTowers, 0x9)
 {
 	GET(BuildingClass*, pThis, ESI);
 	R->ECX(pThis->Type);
-	const auto& Nvec = RulesExtData::Instance()->WallTowers;
+	const auto& Nvec = FakeRulesClass::Instance()->WallTowers;
 	return Nvec.Contains(pThis->Type) ? 0x445AED : 0x445B81;
 }
 
@@ -32,7 +32,7 @@ ASMJIT_PATCH(0x4514F9, BuildingClass_AnimLogic_WallTowers, 0x6)
 {
 	GET(BuildingClass*, pThis, EBP);
 	R->ECX(pThis->Type);
-	const auto& Nvec = RulesExtData::Instance()->WallTowers;
+	const auto& Nvec = FakeRulesClass::Instance()->WallTowers;
 	return Nvec.Contains(pThis->Type) ? 0x45150B : 0x4515E9;
 }
 
@@ -47,7 +47,7 @@ ASMJIT_PATCH(0x45EF11, BuildingClass_FlushForPlacement_WallTowers, 0x6)
 		return 0x45EF2C;
 
 	R->EDX(RulesClass::Instance());
-	const auto& Nvec = RulesExtData::Instance()->WallTowers;
+	const auto& Nvec = FakeRulesClass::Instance()->WallTowers;
 	return Nvec.Contains(pThis) ? 0x45EF23 : 0x45F00B;
 }
 
@@ -62,7 +62,7 @@ ASMJIT_PATCH(0x47C89C, CellClass_CanThisExistHere_SomethingOnWall, 0x6)
 	enum { Adequate = 0x47CA70, Inadequate = 0x47C94F } Status = Inadequate;
 
 	HouseClass* OverlayOwner = HouseClass::Array->get_or_default(nHouseIDx);
-	const auto& Nvec = RulesExtData::Instance()->WallTowers;
+	const auto& Nvec = FakeRulesClass::Instance()->WallTowers;
 
 	if (PlacingObject)
 	{
@@ -122,14 +122,14 @@ ASMJIT_PATCH(0x47C89C, CellClass_CanThisExistHere_SomethingOnWall, 0x6)
 ASMJIT_PATCH(0x4FE546, HouseClass_BuildingClass_AI_WallTowers, 0x6)
 {
 	GET(BuildingTypeClass*, pThis, EAX);
-	const auto& Nvec = RulesExtData::Instance()->WallTowers;
+	const auto& Nvec = FakeRulesClass::Instance()->WallTowers;
 	return Nvec.Contains(pThis) ? 0x4FE554 : 0x4FE6E7;
 }
 
 ASMJIT_PATCH(0x4FE648, HouseClss_AI_Building_WallTowers, 0x6)
 {
 	GET(int const, nNodeBuilding, EAX);
-	const auto& Nvec = RulesExtData::Instance()->WallTowers;
+	const auto& Nvec = FakeRulesClass::Instance()->WallTowers;
 
 	if (nNodeBuilding == -1 || Nvec.empty())
 		return 0x4FE696;
@@ -144,14 +144,14 @@ ASMJIT_PATCH(0x4FE648, HouseClss_AI_Building_WallTowers, 0x6)
 ASMJIT_PATCH(0x5072F8, HouseClass_506EF0_WallTowers, 0x6)
 {
 	GET(BuildingTypeClass*, pThis, EAX);
-	const auto& Nvec = RulesExtData::Instance()->WallTowers;
+	const auto& Nvec = FakeRulesClass::Instance()->WallTowers;
 	return Nvec.Contains(pThis) ? 0x50735C : 0x507306;
 }
 
 ASMJIT_PATCH(0x50A96E, HouseClass_AI_TakeOver_WallTowers_A, 0x6)
 {
 	GET(BuildingTypeClass*, pThis, ECX);
-	const auto& Nvec = RulesExtData::Instance()->WallTowers;
+	const auto& Nvec = FakeRulesClass::Instance()->WallTowers;
 	return Nvec.Contains(pThis) ? 0x50A980 : 0x50AB90;
 }
 
@@ -159,7 +159,7 @@ ASMJIT_PATCH(0x50A9D2, HouseClass_AI_TakeOver_WallTowers_B, 0x6)
 {
 	GET(BuildingClass*, pThis, EBX);
 	R->EAX(pThis->Type);
-	const auto& Nvec = RulesExtData::Instance()->WallTowers;
+	const auto& Nvec = FakeRulesClass::Instance()->WallTowers;
 	return Nvec.Contains(pThis->Type) ? 0x50A9EA : 0x50AB3D;
 }
 

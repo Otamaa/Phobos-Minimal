@@ -22,7 +22,7 @@ ASMJIT_PATCH(0x7197DF, TeleportLocomotionClass_Process_ChronospherePreDelay, 0x5
 	GET(FootClass*, pLinked, ECX);
 
 	auto pTypeExtData = GET_TECHNOTYPEEXT(pLinked);
-	R->ECX(pTypeExtData->ChronoSpherePreDelay.Get(RulesExtData::Instance()->ChronoSpherePreDelay));
+	R->ECX(pTypeExtData->ChronoSpherePreDelay.Get(FakeRulesClass::Instance()->ChronoSpherePreDelay));
 	return 0x7197E4;
 }
 
@@ -36,7 +36,7 @@ ASMJIT_PATCH(0x719BD9, TeleportLocomotionClass_Process_ChronosphereDelay2, 0x6)
 		return 0;
 
 	auto pTypeExtData = GET_TECHNOTYPEEXT(pThis->Owner);
-	int delay = pTypeExtData->ChronoSphereDelay.Get(RulesExtData::Instance()->ChronoSphereDelay);
+	int delay = pTypeExtData->ChronoSphereDelay.Get(FakeRulesClass::Instance()->ChronoSphereDelay);
 
 	if (delay > 0)
 	{
@@ -304,7 +304,7 @@ ASMJIT_PATCH(0x718275, TeleportLocomotionClass_MakeRoom, 9)
 		if (pTypeExt && !pTypeExt->Chronoshift_Crushable)
 			bIsImmune = 1;
 
-		if (!RulesExtData::Instance()->ChronoInfantryCrush && bLinkedIsInfantry && !bObjIsInfantry)
+		if (!FakeRulesClass::Instance()->ChronoInfantryCrush && bLinkedIsInfantry && !bObjIsInfantry)
 		{
 			pLoco->LinkedTo->ReceiveDamage(&pLoco->LinkedTo->GetType()->Strength, 0, RulesClass::Instance->C4Warhead, 0, 1, 0, 0);
 			break;

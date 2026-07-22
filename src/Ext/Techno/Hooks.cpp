@@ -261,7 +261,7 @@ ASMJIT_PATCH(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 
 	if (pTypeExt->ROF_Random.Get())
 	{
-		const auto nDefault = Point2D { RulesExtData::Instance()->ROF_RandomDelay->X , RulesExtData::Instance()->ROF_RandomDelay->Y };
+		const auto nDefault = Point2D { FakeRulesClass::Instance()->ROF_RandomDelay->X , FakeRulesClass::Instance()->ROF_RandomDelay->Y };
 		nResult += GeneralUtils::GetRangedRandomOrSingleValue(pTypeExt->Rof_RandomMinMax.Get(nDefault));
 	}
 
@@ -336,7 +336,7 @@ ASMJIT_PATCH(0x4D9992, FootClass_PointerGotInvalid_Parasite, 0x7)
 
 	if (pThis->IsAlive && !bRemoved ) {
 		const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
-		bRemoved = pTypeExt->Cloak_KickOutParasite.Get(RulesExtData::Instance()->Cloak_KickOutParasite);
+		bRemoved = pTypeExt->Cloak_KickOutParasite.Get(FakeRulesClass::Instance()->Cloak_KickOutParasite);
 	}
 
 	if (pParasiteOwner && pParasiteOwner->Health > 0)
@@ -352,8 +352,8 @@ ASMJIT_PATCH(0x5F46AE, ObjectClass_Select, 0x7)
 {
 	GET(ObjectClass*, pThis, ESI);
 
-	if (RulesExtData::Instance()->SelectFlashTimer > 0 && pThis->GetOwningHouse() && pThis->GetOwningHouse()->ControlledByCurrentPlayer())
-		pThis->Flash(RulesExtData::Instance()->SelectFlashTimer);
+	if (FakeRulesClass::Instance()->SelectFlashTimer > 0 && pThis->GetOwningHouse() && pThis->GetOwningHouse()->ControlledByCurrentPlayer())
+		pThis->Flash(FakeRulesClass::Instance()->SelectFlashTimer);
 
 	return 0x0;
 }
@@ -551,7 +551,7 @@ void DrawFactoryProgress(TechnoClass* pThis, Point2D* pLocation, RectangleStruct
 	if (pThis->WhatAmI() != AbstractType::Building)
 		return;
 
-	if (!RulesExtData::Instance()->FactoryProgressDisplay)
+	if (!FakeRulesClass::Instance()->FactoryProgressDisplay)
 		return;
 
 	if (!HouseClass::IsCurrentPlayerObserver())
@@ -639,7 +639,7 @@ void DrawSuperProgress(TechnoClass* pThis, Point2D* pLocation ,  RectangleStruct
 	if (pThis->WhatAmI() != AbstractType::Building)
 		return;
 
-	if (!RulesExtData::Instance()->FactoryProgressDisplay)
+	if (!FakeRulesClass::Instance()->FactoryProgressDisplay)
 		return;
 
 	if (!HouseClass::IsCurrentPlayerObserver())
@@ -795,7 +795,7 @@ ASMJIT_PATCH(0x521D94, InfantryClass_CurrentSpeed_ProneSpeed, 0x6)
 	GET(int, currentSpeed, ECX);
 
 	auto multiplier = pThis->_GetTypeExtData()->ProneSpeed.Get(
-		RulesExtData::Instance()->InfantrySpeedData.getSpeed(pThis->Type->Crawls));
+		FakeRulesClass::Instance()->InfantrySpeedData.getSpeed(pThis->Type->Crawls));
 	currentSpeed = (int)(currentSpeed * multiplier);
 
 	//if (pThis->Type->Crawls) {
@@ -816,7 +816,7 @@ ASMJIT_PATCH(0x4B3DF0, LocomotionClass_Process_DamagedSpeedMultiplier, 0x6)// Dr
 	GET(FootClass*, pLinkedTo, ECX);
 	const auto pTypeExt = GET_TECHNOTYPEEXT(pLinkedTo);
 
-	const double multiplier = pTypeExt->DamagedSpeed.Get(RulesExtData::Instance()->DamagedSpeed);
+	const double multiplier = pTypeExt->DamagedSpeed.Get(FakeRulesClass::Instance()->DamagedSpeed);
 	__asm fmul multiplier;
 
 	return R->Origin() + 0x6;
@@ -1346,7 +1346,7 @@ ASMJIT_PATCH(0x522373, InfantryClass_ApproachTarget_InfantryAutoDeploy, 0x5)
 {
 	enum { Deploy = 0x522378 };
 	GET(FakeInfantryClass*, pThis, ESI);
-	return pThis->_GetTypeExtData()->InfantryAutoDeploy.Get(RulesExtData::Instance()->InfantryAutoDeploy)
+	return pThis->_GetTypeExtData()->InfantryAutoDeploy.Get(FakeRulesClass::Instance()->InfantryAutoDeploy)
 		? Deploy : 0;
 }
 
@@ -1625,13 +1625,13 @@ ASMJIT_PATCH(0x4D6E97, FootClass_Mission_AreaGuard_Pursuit, 0x6)
 
 	if ((pFocus->AbstractFlags & AbstractFlags::Foot) == AbstractFlags::None)
 	{
-		const Leptons stationaryStray = isPlayer ? pTypeExt->PlayerGuardStationaryStray.Get(RulesExtData::Instance()->PlayerGuardStationaryStray) : pTypeExt->AIGuardStationaryStray.Get(RulesExtData::Instance()->AIGuardStationaryStray);
+		const Leptons stationaryStray = isPlayer ? pTypeExt->PlayerGuardStationaryStray.Get(FakeRulesClass::Instance()->PlayerGuardStationaryStray) : pTypeExt->AIGuardStationaryStray.Get(FakeRulesClass::Instance()->AIGuardStationaryStray);
 
 		if (stationaryStray != Leptons(-256))
 			range = stationaryStray;
 	}
 
-	return ((!(isPlayer ? pTypeExt->PlayerGuardModePursuit.Get(RulesExtData::Instance()->PlayerGuardModePursuit) : pTypeExt->AIGuardModePursuit.Get(RulesExtData::Instance()->AIGuardModePursuit))
+	return ((!(isPlayer ? pTypeExt->PlayerGuardModePursuit.Get(FakeRulesClass::Instance()->PlayerGuardModePursuit) : pTypeExt->AIGuardModePursuit.Get(FakeRulesClass::Instance()->AIGuardModePursuit))
 		|| (!pThis->IsFiring && !pThis->Destination))
 		&& pThis->DistanceFrom(pFocus) > range)
 		? RemoveTarget
@@ -1645,8 +1645,8 @@ ASMJIT_PATCH(0x42EBA2, BaseClass_GetBaseNodeIndex_AIAdjacentMax, 0x8)
 
 	bool isValid = pThis->IsBuilt(nodeIdx);
 	const int rangeLimit = SessionClass::Instance->IsCampaign()
-		? RulesExtData::Instance()->AIAdjacentMax_Campaign.Get(RulesExtData::Instance()->AIAdjacentMax)
-		:RulesExtData::Instance()->AIAdjacentMax;
+		? FakeRulesClass::Instance()->AIAdjacentMax_Campaign.Get(FakeRulesClass::Instance()->AIAdjacentMax)
+		:FakeRulesClass::Instance()->AIAdjacentMax;
 
 	if (rangeLimit >= 0 && isValid)
 	{
@@ -1690,7 +1690,7 @@ ASMJIT_PATCH(0x42EBA2, BaseClass_GetBaseNodeIndex_AIAdjacentMax, 0x8)
 
 ASMJIT_PATCH(0x65FC6E, RadarEventClass_CTOR_SkipSetRadarEventCell, 0x6)
 {
-	if (!RulesExtData::Instance()->IgnoreCenterMinorRadarEvent)
+	if (!FakeRulesClass::Instance()->IgnoreCenterMinorRadarEvent)
 		return 0;
 
 	GET(RadarEventClass*, pThis, ESI);
@@ -1823,10 +1823,10 @@ ASMJIT_PATCH(0x4D6E9F, FootClass_Mission_AreaGuard_UseSelfAsCenter, 0x6)
 
 	GET(FootClass*, pThis, ESI);
 
-	if (!RulesExtData::Instance()->AreaGuard_StrayIgnoreDestination && pThis->Destination)
+	if (!FakeRulesClass::Instance()->AreaGuard_StrayIgnoreDestination && pThis->Destination)
 		return ResetTarget;
 
-	R->EAX(pThis->DistanceFrom(RulesExtData::Instance()->AreaGuard_UseSelfAsCenter ? pThis->Target : pThis->ArchiveTarget));
+	R->EAX(pThis->DistanceFrom(FakeRulesClass::Instance()->AreaGuard_UseSelfAsCenter ? pThis->Target : pThis->ArchiveTarget));
 	return CheckDist;
 }
 
@@ -1837,8 +1837,8 @@ ASMJIT_PATCH(0x4D6EEF, FootClass_Mission_AreaGuard_Extend, 0x6)
 	GET(FootClass*, pThis, ESI);
 	LEA_STACK(CoordStruct*, CoordBuffer, 0x34);
 
-	(RulesExtData::Instance()->AreaGuard_UseSelfAsCenter ? pThis : pThis->ArchiveTarget)->GetCoords(CoordBuffer);
-	pThis->TargetAndEstimateDamage(CoordBuffer, RulesExtData::Instance()->AreaGuard_TargetingInRange ? ThreatType::Range : ThreatType::Area);
+	(FakeRulesClass::Instance()->AreaGuard_UseSelfAsCenter ? pThis : pThis->ArchiveTarget)->GetCoords(CoordBuffer);
+	pThis->TargetAndEstimateDamage(CoordBuffer, FakeRulesClass::Instance()->AreaGuard_TargetingInRange ? ThreatType::Range : ThreatType::Area);
 	return 0x4D6F0C;
 }
 
@@ -2704,7 +2704,7 @@ int __fastcall FakeTechnoClass::__GetGuardRange(TechnoClass* pThis, discard_t, i
 
 	//TechnoClass_GetGuardRange_AreaGuardRange
 	const bool isPlayer = pThis->Owner->IsControlledByHuman();
-	const auto pRulesExt = RulesExtData::Instance();
+	const auto pRulesExt = FakeRulesClass::Instance();
 
 	double multiplier, addend, max = {};
 
@@ -2764,7 +2764,7 @@ ASMJIT_PATCH(0x6FD3FD, TechnoClass_LaserZap_ZAdjust, 0x5)
 	GET_STACK(WeaponTypeClass*, pWeapon, STACK_OFFSET(0x6C, 0xC));
 	GET(int, zAdjust, EAX);
 
-	zAdjust += WeaponTypeExtContainer::Instance.Find(pWeapon)->LaserZAdjust.Get(RulesExtData::Instance()->LaserZAdjust);
+	zAdjust += WeaponTypeExtContainer::Instance.Find(pWeapon)->LaserZAdjust.Get(FakeRulesClass::Instance()->LaserZAdjust);
 	R->EAX(zAdjust);
 
 	return 0;

@@ -333,7 +333,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 			if (!canTarget1)
 				continue;
 
-			if (!RulesExtData::Instance()->AIAirTargetingFix)
+			if (!FakeRulesClass::Instance()->AIAirTargetingFix)
 			{
 				if (techno->LastLayer != Layer::Ground)
 				{
@@ -434,7 +434,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 	}
 
 	// Scan aircraft in range
-	if (!RulesExtData::Instance()->AIAirTargetingFix && method & ThreatType::Air)
+	if (!FakeRulesClass::Instance()->AIAirTargetingFix && method & ThreatType::Air)
 	{
 
 		AircraftTrackerClass::Instance->FillCurrentVector(MapClass::Instance->GetCellAt(centerCell), cellRange);
@@ -491,7 +491,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 	// Early exit for air-only range scan
 	const bool isAirOnlySearch = (method == (ThreatType::Air | ThreatType::Range));
 
-	if (RulesExtData::Instance()->FallingDownTargetingFix && isAirOnlySearch)
+	if (FakeRulesClass::Instance()->FallingDownTargetingFix && isAirOnlySearch)
 	{
 		if (!AU)
 		{
@@ -595,7 +595,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 		}
 
 		// Early exit if we found a target at certain radii
-		if (bestTarget && !RulesExtData::Instance()->DisableOveroptimizationInTargeting)
+		if (bestTarget && !FakeRulesClass::Instance()->DisableOveroptimizationInTargeting)
 		{
 			if (radius == cellRange / 4 || radius == cellRange / 2)
 			{
@@ -1157,7 +1157,7 @@ bool FakeTechnoClass::__EvaluateObjectB(
 			{
 				if (pThis->Owner->IsAlliedWith(pTargetTarget))
 				{
-					const auto* pData = RulesExtData::Instance();
+					const auto* pData = FakeRulesClass::Instance();
 					const bool autoRepel = pThis->Owner->IsControlledByHuman()
 						? pData->AutoRepelPlayer
 						: pData->AutoRepelAI;
@@ -1255,7 +1255,7 @@ bool FakeTechnoClass::__EvaluateObjectB(
 			if (pThis->MegaMissionIsAttackMove())
 			{
 				if (pThisTypeExt->AttackMove_Aggressive.Get(
-					RulesExtData::Instance()->AttackMove_UpdateTarget))
+					FakeRulesClass::Instance()->AttackMove_UpdateTarget))
 					aggressiveBypass = true;
 			}
 
@@ -1299,7 +1299,7 @@ bool FakeTechnoClass::__EvaluateObjectB(
 					//   vanilla turret-weapon + Risk() check.
 					// ---------------------------------------------------------
 					bool canAttackNoThreat =
-						RulesExtData::Instance()->AutoTarget_NoThreatBuildings;
+						FakeRulesClass::Instance()->AutoTarget_NoThreatBuildings;
 
 					if (lastWeapon)
 					{

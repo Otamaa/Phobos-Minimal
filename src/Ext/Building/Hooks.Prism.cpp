@@ -43,11 +43,11 @@ void WeaponTypeExtData::FireRadBeam(TechnoClass* pFirer, WeaponTypeClass* pWeapo
 void WeaponTypeExtData::FireEbolt(TechnoClass* pFirer, WeaponTypeClass* pWeapon, CoordStruct& source, CoordStruct& target, int idx)
 {
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-	int zAdjust = pWeaponExt->EBoltZAdjust.Get(RulesExtData::Instance()->EBoltZAdjust);
+	int zAdjust = pWeaponExt->EBoltZAdjust.Get(FakeRulesClass::Instance()->EBoltZAdjust);
 
 	if (pFirer && pFirer->WhatAmI() == AbstractType::Building)
 	{
-		const bool clamp = pWeaponExt->EBoltZAdjust_ClampInitialDepthForBuilding.Get(RulesExtData::Instance()->EBoltZAdjust_ClampInitialDepthForBuilding);
+		const bool clamp = pWeaponExt->EBoltZAdjust_ClampInitialDepthForBuilding.Get(FakeRulesClass::Instance()->EBoltZAdjust_ClampInitialDepthForBuilding);
 		if (clamp && zAdjust > 0)
 			zAdjust = 0;
 	}

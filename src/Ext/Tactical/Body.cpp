@@ -915,7 +915,7 @@ void __fastcall FakeTacticalClass::__DrawTimersA(int value, ColorScheme* color, 
 
 		if (*_arg1)
 		{
-			fore = ColorScheme::Array->Items[RulesExtData::Instance()->TimerBlinkColorScheme];
+			fore = ColorScheme::Array->Items[FakeRulesClass::Instance()->TimerBlinkColorScheme];
 		}
 	}
 
@@ -998,7 +998,7 @@ void __fastcall FakeTacticalClass::__DrawTimersB(int value, ColorScheme* color, 
 
 		if (*_arg1)
 		{
-			fore = ColorScheme::Array->Items[RulesExtData::Instance()->TimerBlinkColorScheme];
+			fore = ColorScheme::Array->Items[FakeRulesClass::Instance()->TimerBlinkColorScheme];
 		}
 	}
 
@@ -1083,7 +1083,7 @@ void __fastcall FakeTacticalClass::__DrawTimersC(int value, ColorScheme* color, 
 
 		if (*_arg1)
 		{
-			fore = ColorScheme::Array->Items[RulesExtData::Instance()->TimerBlinkColorScheme];
+			fore = ColorScheme::Array->Items[FakeRulesClass::Instance()->TimerBlinkColorScheme];
 		}
 	}
 
@@ -1175,7 +1175,7 @@ void __fastcall FakeTacticalClass::__DrawTimers(int value, ColorScheme* color, i
 
 		if (*_arg1)
 		{
-			fore = ColorScheme::Array->Items[RulesExtData::Instance()->TimerBlinkColorScheme];
+			fore = ColorScheme::Array->Items[FakeRulesClass::Instance()->TimerBlinkColorScheme];
 		}
 	}
 
@@ -1282,7 +1282,7 @@ void FakeTacticalClass::__DrawTimersSW(SuperClass* pSuper, int value, int interv
 
 		if (pSuper->BlinkState)
 		{
-			fore = ColorScheme::Array->Items[RulesExtData::Instance()->TimerBlinkColorScheme];
+			fore = ColorScheme::Array->Items[FakeRulesClass::Instance()->TimerBlinkColorScheme];
 		}
 	}
 
@@ -1342,7 +1342,7 @@ bool __fastcall FakeTacticalClass::TypeSelectFilter(TechnoClass* pTechno, Dynami
 		auto gunnerID = &pTypeExt->WeaponGroupAs[pTechno->CurrentWeaponNumber];
 
 		if (gunnerID->empty() || !GeneralUtils::IsValidString(gunnerID->c_str())) {
-			sprintf_s(gunnerID->data(), 0x20, "%d", RulesExtData::Instance()->TypeSelectUseIFVMode && Phobos::Config::TypeSelectUseIFVMode ? pTechno->CurrentWeaponNumber + 1 : 0);
+			sprintf_s(gunnerID->data(), 0x20, "%d", FakeRulesClass::Instance()->TypeSelectUseIFVMode && Phobos::Config::TypeSelectUseIFVMode ? pTechno->CurrentWeaponNumber + 1 : 0);
 		}
 
 		if (std::ranges::none_of(TacticalExtData::IFVGroups, [gunnerID](const char* pID) {
@@ -1351,7 +1351,7 @@ bool __fastcall FakeTacticalClass::TypeSelectFilter(TechnoClass* pTechno, Dynami
 			return false;
 	}
 
-	if (pTechno->CanBeSelectedNow() || ((pTechno->WhatAmI() == BuildingClass::AbsID && (pTechnoType->UndeploysInto || RulesExtData::Instance()->BuildingTypeSelectable))))
+	if (pTechno->CanBeSelectedNow() || ((pTechno->WhatAmI() == BuildingClass::AbsID && (pTechnoType->UndeploysInto || FakeRulesClass::Instance()->BuildingTypeSelectable))))
 		return true;
 
 	return false;

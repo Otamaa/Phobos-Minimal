@@ -287,7 +287,7 @@ ASMJIT_PATCH(0x4C7462, EventClass_Execute_KeepTargetOnMove, 0x5)
 // Buildable-upon TechnoTypes Hook #10 -> sub_4C6CB0 - Stop deploy when get stop command
 ASMJIT_PATCH(0x4C7665, EventClass_E_IDLE_RespondToEvent_StopDeployInIdleEvent, 0x6)
 {
-	if (RulesExtData::Instance()->ExtendedBuildingPlacing) // This IF check is not so necessary
+	if (FakeRulesClass::Instance()->ExtendedBuildingPlacing) // This IF check is not so necessary
 	{
 		GET(UnitClass*, pUnit, ESI);
 

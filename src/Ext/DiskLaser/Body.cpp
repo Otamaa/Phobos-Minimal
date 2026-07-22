@@ -274,7 +274,7 @@ void FakeDiskLaserClass::__AI()
 			{
 				auto const pWarhead = pWeapon->Warhead;
 
-				if (RulesExtData::Instance()->DiskLaserAnimEnabled)
+				if (FakeRulesClass::Instance()->DiskLaserAnimEnabled)
 				{
 					auto const pAnimType = MapClass::SelectDamageAnimation(
 						this->Damage,

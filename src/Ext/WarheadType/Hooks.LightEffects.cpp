@@ -18,7 +18,7 @@ ASMJIT_PATCH(0x48A444, AreaDamage_Particle_LightFlashSet, 0x5)
 
 	auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
-	if (pWHExt->Particle_AlphaImageIsLightFlash.Get(RulesExtData::Instance()->WarheadParticleAlphaImageIsLightFlash))
+	if (pWHExt->Particle_AlphaImageIsLightFlash.Get(FakeRulesClass::Instance()->WarheadParticleAlphaImageIsLightFlash))
 		LightEffectsTemp::AlphaIsLightFlash = true;
 
 	return 0;
@@ -42,7 +42,7 @@ ASMJIT_PATCH(0x5F5053, ObjectClass_Unlimbo_AlphaImage, 0x6)
 		if (Phobos::Config::HideLightFlashEffects)
 			return SkipAlphaImage;
 
-		detailLevel = RulesExtData::Instance()->LightFlashAlphaImageDetailLevel;
+		detailLevel = FakeRulesClass::Instance()->LightFlashAlphaImageDetailLevel;
 	}
 
 	if (detailLevel > GameOptionsClass::Instance->DetailLevel)
@@ -66,8 +66,8 @@ ASMJIT_PATCH(0x5F5053, ObjectClass_Unlimbo_AlphaImage, 0x6)
 //
 //	R->ESI(damage); // Restore overridden instructions.
 //
-//	bool checkColored = RulesExtData::Instance()->CombatLightDetailLevel_CheckColored;
-//	int detailLevel =RulesExtData::Instance()->CombatLightDetailLevel;
+//	bool checkColored = FakeRulesClass::Instance()->CombatLightDetailLevel_CheckColored;
+//	int detailLevel =FakeRulesClass::Instance()->CombatLightDetailLevel;
 //
 //	if(pWH) {
 //		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
@@ -83,7 +83,7 @@ ASMJIT_PATCH(0x5F5053, ObjectClass_Unlimbo_AlphaImage, 0x6)
 //	}
 //
 //	// (bitmask & 0xF) != 0) is true if any color channel is disabled.
-//	if (((detailLevel <= currentDetailLevel && RulesExtData::DetailsCurrentlyEnabled()) || (!checkColored && ((bitmask & 0xF) != 0))) && (forced || (pWH && pWH->Bright)))\
+//	if (((detailLevel <= currentDetailLevel && FakeRulesClass::DetailsCurrentlyEnabled()) || (!checkColored && ((bitmask & 0xF) != 0))) && (forced || (pWH && pWH->Bright)))\
 //		return Continue;
 //
 //	return SkipFlash;

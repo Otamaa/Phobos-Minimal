@@ -101,7 +101,7 @@ bool FakeTeleportLocomotionClass::HandleDestinationCollisions(
 		}
 
 		// Check ChronoInfantryCrush rule - if disabled, infantry can't crush non-infantry
-		if (!RulesExtData::Instance()->ChronoInfantryCrush && bLinkedIsInfantry && !bObjIsInfantry)
+		if (!FakeRulesClass::Instance()->ChronoInfantryCrush && bLinkedIsInfantry && !bObjIsInfantry)
 		{
 			// Infantry teleporting onto non-infantry = self damage
 			int damage = pLinkedTo->GetType()->Strength;

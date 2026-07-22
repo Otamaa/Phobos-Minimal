@@ -77,7 +77,7 @@ ASMJIT_PATCH(0x4F4BB9, GSCreenClass_AI_ShakescreenMode, 0x5)
 
 	GET(GScreenClass*, pThis, ECX);
 
-	if (RulesExtData::Instance()->ShakeScreenUseTSCalculation)
+	if (FakeRulesClass::Instance()->ShakeScreenUseTSCalculation)
 	{
 		ShakeScreen(pThis);
 		return 0x4F4BEF;

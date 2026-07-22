@@ -22,12 +22,12 @@ ASMJIT_PATCH(0x6FD4E4, TechnoClass_FireEBolt_Building_ClampPositive, 0x5)
 	int zAdjust = Y - pV13->Y;
 
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-	const bool clamp = pWeaponExt->EBoltZAdjust_ClampInitialDepthForBuilding.Get(RulesExtData::Instance()->EBoltZAdjust_ClampInitialDepthForBuilding);
+	const bool clamp = pWeaponExt->EBoltZAdjust_ClampInitialDepthForBuilding.Get(FakeRulesClass::Instance()->EBoltZAdjust_ClampInitialDepthForBuilding);
 
 	if (clamp && zAdjust > 0)
 		zAdjust = 0;
 
-	zAdjust += pWeaponExt->EBoltZAdjust.Get(RulesExtData::Instance()->EBoltZAdjust);
+	zAdjust += pWeaponExt->EBoltZAdjust.Get(FakeRulesClass::Instance()->EBoltZAdjust);
 
 	R->ESI(zAdjust);
 	R->ECX(pTarget);
@@ -42,7 +42,7 @@ ASMJIT_PATCH(0x6FD4ED, TechnoClass_FireEBolt_ZAdjust, 0x6)
 	GET(int, zAdjust, ESI);
 
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-	zAdjust += pWeaponExt->EBoltZAdjust.Get(RulesExtData::Instance()->EBoltZAdjust);
+	zAdjust += pWeaponExt->EBoltZAdjust.Get(FakeRulesClass::Instance()->EBoltZAdjust);
 
 	R->ESI(zAdjust);
 	R->ECX(pTarget);

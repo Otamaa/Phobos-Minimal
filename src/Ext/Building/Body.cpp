@@ -367,9 +367,9 @@ void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 	const DWORD OwnerBits = 1u << pOwner->Type->ArrayIndex;
 
 	TechnoTypeClass** vec_data = pData->Secret_Boons.HasValue() ?
-		pData->Secret_Boons.data() : RulesExtData::Instance()->Secrets.data();
+		pData->Secret_Boons.data() : FakeRulesClass::Instance()->Secrets.data();
 	size_t vec_size = pData->Secret_Boons.HasValue() ?
-		pData->Secret_Boons.size() : RulesExtData::Instance()->Secrets.size();
+		pData->Secret_Boons.size() : FakeRulesClass::Instance()->Secrets.size();
 
 	// generate a list of items
 	AddToOptions(OwnerBits, pOwner, Options, vec_data, vec_size);
@@ -481,12 +481,12 @@ void BuildingExtData::DisplayIncomeString()
 {
 	auto const pTypeExt = (BuildingTypeExtData*)this->TypeExtData;
 
-	if (pTypeExt->DisplayIncome.Get(RulesExtData::Instance()->DisplayIncome) && this->AccumulatedIncome) {
-		int const delay = pTypeExt->DisplayIncome_Delay.Get(RulesExtData::Instance()->DisplayIncome_Delay);
+	if (pTypeExt->DisplayIncome.Get(FakeRulesClass::Instance()->DisplayIncome) && this->AccumulatedIncome) {
+		int const delay = pTypeExt->DisplayIncome_Delay.Get(FakeRulesClass::Instance()->DisplayIncome_Delay);
 
 		if(Unsorted::CurrentFrame() % delay == 0) {
 
-			if (!RulesExtData::Instance()->DisplayIncome_AllowAI && !This()->Owner->IsControlledByHuman()) {
+			if (!FakeRulesClass::Instance()->DisplayIncome_AllowAI && !This()->Owner->IsControlledByHuman()) {
 				this->AccumulatedIncome = 0;
 				return;
 			}
@@ -495,7 +495,7 @@ void BuildingExtData::DisplayIncomeString()
 				this->AccumulatedIncome,
 				this->AccumulatedIncome,
 				This(),
-				pTypeExt->DisplayIncome_Houses.Get(RulesExtData::Instance()->DisplayIncome_Houses),
+				pTypeExt->DisplayIncome_Houses.Get(FakeRulesClass::Instance()->DisplayIncome_Houses),
 				This()->GetRenderCoords(),
 				pTypeExt->DisplayIncome_Offset, ColorStruct::Empty);
 
@@ -568,7 +568,7 @@ void BuildingExtData::UpdateAutoSellTimer()
 
 	if (pThis->CanBeSold() && pThis->Type->TechLevel != -1)
 	{
-		auto const pRulesExt = RulesExtData::Instance();
+		auto const pRulesExt = FakeRulesClass::Instance();
 
 		if (pTypeExt->AutoSellTime.isset() && Math::abs(pTypeExt->AutoSellTime.Get()) > 0.00f)
 		{
@@ -2214,10 +2214,10 @@ void FakeBuildingClass::_DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOrigi
 
 			if (this->IsPrimaryFactory)
 			{
-				if (SHPStruct* pImage = RulesExtData::Instance()->PrimaryFactoryIndicator)
+				if (SHPStruct* pImage = FakeRulesClass::Instance()->PrimaryFactoryIndicator)
 				{
 					ConvertClass* pPalette = FileSystem::PALETTE_PAL();
-					if (auto pPall_c = RulesExtData::Instance()->PrimaryFactoryIndicator_Palette.GetConvert())
+					if (auto pPall_c = FakeRulesClass::Instance()->PrimaryFactoryIndicator_Palette.GetConvert())
 						pPalette = pPall_c;
 
 					int const cellsToAdjust = pType->GetFoundationHeight(false) - 1;
@@ -2896,7 +2896,7 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x459ED0, FakeBuildingClass::__GetUIName)
   {
 	  if (pVictim && pVictim->IsAlive && pVictim->Health > 0 && !pVictim->InLimbo)
 	  {
-		  auto const pRulesExt = RulesExtData::Instance();
+		  auto const pRulesExt = FakeRulesClass::Instance();
 
 		  if (destroy)
 		  {
@@ -2968,7 +2968,7 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x459ED0, FakeBuildingClass::__GetUIName)
 			  && connections != 0b0101 && connections != 0b1010
 			  && (ScenarioClass::Instance->Random.Random() & 0xF) == 0)
 		  {
-			  if (AnimTypeClass* pType = RulesExtData::Instance()->FirestormIdleAnim)
+			  if (AnimTypeClass* pType = FakeRulesClass::Instance()->FirestormIdleAnim)
 			  {
 				  auto const crd = pThis->GetCoords() - CoordStruct { 740, 740, 0 };
 				  Anim = GameCreate<AnimClass>(pType, crd, 0, 1, 0x604, -10);
@@ -2994,7 +2994,7 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x459ED0, FakeBuildingClass::__GetUIName)
 		  auto const connections = idxFrame & 0xF;
 		  if (active && connections != 0b0101 && connections != 0b1010 && !Anim)
 		  {
-			  if (auto const& pType = RulesExtData::Instance()->FirestormActiveAnim)
+			  if (auto const& pType = FakeRulesClass::Instance()->FirestormActiveAnim)
 			  {
 				  auto const crd = pThis->GetCoords() - CoordStruct { 128, 128, 0 };
 				  Anim = GameCreate<AnimClass>(pType, crd, 1, 0, 0x600, -10);

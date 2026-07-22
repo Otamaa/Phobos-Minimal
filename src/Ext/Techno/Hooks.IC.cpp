@@ -73,8 +73,8 @@ public:
 			result = 2000;
 
 		const int extraIntensity = static_cast<int>(
-			(pThis->ProtectType == ProtectTypes::ForceShield ? RulesExtData::Instance()->ForceShield_ExtraTintIntensity
-				: RulesExtData::Instance()->IronCurtain_ExtraTintIntensity) * 1000
+			(pThis->ProtectType == ProtectTypes::ForceShield ? FakeRulesClass::Instance()->ForceShield_ExtraTintIntensity
+				: FakeRulesClass::Instance()->IronCurtain_ExtraTintIntensity) * 1000
 		);
 
 		return result + extraIntensity;
@@ -130,7 +130,7 @@ public:
 	{
 		const auto what = pThis->WhatAmI();
 		bool isOrganic = pTypeExt->This()->Organic || what == InfantryClass::AbsID;
-		const IronCurtainFlag defaultaffect = (!isOrganic ? IronCurtainFlag::Invulnerable : (forceshield ? &RulesExtData::Instance()->ForceShield_EffectOnOrganics : &RulesExtData::Instance()->IronCurtain_EffectOnOrganics)->Get());
+		const IronCurtainFlag defaultaffect = (!isOrganic ? IronCurtainFlag::Invulnerable : (forceshield ? &FakeRulesClass::Instance()->ForceShield_EffectOnOrganics : &FakeRulesClass::Instance()->IronCurtain_EffectOnOrganics)->Get());
 		const IronCurtainFlag affect = (forceshield ? &pTypeExt->ForceShield_Effect : &pTypeExt->IronCurtain_Effect)->Get(defaultaffect);
 		return EnumFunctions::GetICFlagResult(affect);
 	}
@@ -138,7 +138,7 @@ public:
 	static DamageState TechnoClass_Kill(TechnoClass* pThis, TechnoTypeExtData* pTypeExt, HouseClass* pSource, bool forceshield, bool isOrganic)
 	{
 		const auto killWH = (forceshield ? &pTypeExt->ForceShield_KillWarhead : &pTypeExt->IronCurtain_KillWarhead);
-		const auto killWH_org = forceshield ? &RulesExtData::Instance()->ForceShield_KillOrganicsWarhead : &RulesExtData::Instance()->IronCurtain_KillOrganicsWarhead;
+		const auto killWH_org = forceshield ? &FakeRulesClass::Instance()->ForceShield_KillOrganicsWarhead : &FakeRulesClass::Instance()->IronCurtain_KillOrganicsWarhead;
 		auto killWH_result = killWH->Get(!isOrganic ? RulesClass::Instance->C4Warhead : killWH_org->Get());
 		return pThis->ReceiveDamage
 		(

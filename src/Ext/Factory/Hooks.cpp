@@ -39,7 +39,7 @@ ASMJIT_PATCH(0x4CA05B, FactoryClass_AbandonProduction_AbandonCurrentBuilding, 0x
 {
 	GET(FactoryClass*, pFactory, ESI);
 
-	if (RulesExtData::Instance()->ExtendedBuildingPlacing)
+	if (FakeRulesClass::Instance()->ExtendedBuildingPlacing)
 	{
 		const auto pHouseExt = HouseExtContainer::Instance.Find(pFactory->Owner);
 		const auto pBuilding = cast_to<BuildingClass*>(pFactory->Object);
@@ -82,7 +82,7 @@ ASMJIT_PATCH(0x4CA682, FactoryClass_Total_Techno_Queued_CompareType, 0x8)
 ASMJIT_PATCH(0x4C9C7B, FactoryClass_QueueProduction_ForceCheckBuilding, 0x7)
 {
 	enum { SkipGameCode = 0x4C9C9E };
-	return RulesExtData::Instance()->ExpandBuildingQueue ? SkipGameCode : 0;
+	return FakeRulesClass::Instance()->ExpandBuildingQueue ? SkipGameCode : 0;
 }
 
 ASMJIT_PATCH(0x4CA0B1, FactoryClass_Abandon_NavalProductionFix, 0x6)

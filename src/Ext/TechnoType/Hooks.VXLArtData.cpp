@@ -352,11 +352,11 @@ ASMJIT_PATCH(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 	Matrix3D shadow_mtx {} ;
 	loco->Shadow_Matrix(&shadow_mtx, &key);
 	if(const auto flyloco = locomotion_cast<FlyLocomotionClass*>(pThis->Locomotor)) {
-		const double baseScale_log = RulesExtData::Instance()->AirShadowBaseScale_log;
+		const double baseScale_log = FakeRulesClass::Instance()->AirShadowBaseScale_log;
 
-		if (RulesExtData::Instance()->HeightShadowScaling)
+		if (FakeRulesClass::Instance()->HeightShadowScaling)
 		{
-			const double minScale = RulesExtData::Instance()->HeightShadowScaling_MinScale;
+			const double minScale = FakeRulesClass::Instance()->HeightShadowScaling_MinScale;
 			const float cHeight = (float)aTypeExt->ShadowSizeCharacteristicHeight.Get(pThis->Type->GetFlightLevel());
 
 			if (cHeight > 0)
@@ -498,15 +498,15 @@ static VoxelStruct* GetmainVxl(TechnoClass* pThis, TechnoTypeClass* pType , Voxe
 
 static double DecideScaleAndIndex(Matrix3D* mtx, TechnoClass* pThis, TechnoTypeClass* pType, VoxelIndexKey& key, ILocomotion* iLoco , int height)
 {
-	const double baseScale_log = RulesExtData::Instance()->AirShadowBaseScale_log; // -ln(baseScale) precomputed
+	const double baseScale_log = FakeRulesClass::Instance()->AirShadowBaseScale_log; // -ln(baseScale) precomputed
 
 	double currentScale = 1.0;
 
-	if (RulesExtData::Instance()->HeightShadowScaling && height > 0)
+	if (FakeRulesClass::Instance()->HeightShadowScaling && height > 0)
 	{
 		auto uTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-		const double minScale = RulesExtData::Instance()->HeightShadowScaling_MinScale;
+		const double minScale = FakeRulesClass::Instance()->HeightShadowScaling_MinScale;
 		if (const auto jjloco = locomotion_cast<JumpjetLocomotionClass*>(iLoco))
 		{
 			const float cHeight = (float)uTypeExt->ShadowSizeCharacteristicHeight.Get(jjloco->Height);
@@ -532,7 +532,7 @@ static double DecideScaleAndIndex(Matrix3D* mtx, TechnoClass* pThis, TechnoTypeC
 			}
 		}
 	}
-	else if (!RulesExtData::Instance()->HeightShadowScaling && pType->ConsideredAircraft)
+	else if (!FakeRulesClass::Instance()->HeightShadowScaling && pType->ConsideredAircraft)
 	{
 		currentScale = (GeneralUtils::Pade2_2(baseScale_log));
 		mtx->Scale((float)currentScale);
@@ -603,7 +603,7 @@ DEFINE_HOOK(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 		}
 	}
 
-	if (main_vxl == &pDrawType->TurretVoxel || (notUseTurretShadow && !pDrawTypeExt->TurretShadow.Get(RulesExtData::Instance()->DrawTurretShadow)))
+	if (main_vxl == &pDrawType->TurretVoxel || (notUseTurretShadow && !pDrawTypeExt->TurretShadow.Get(FakeRulesClass::Instance()->DrawTurretShadow)))
 		return SkipDrawing;
 
 	const auto pTurretVoxel = TechnoTypeExtData::GetTurretsVoxelFixedUp(pDrawType, pThis->CurrentTurretNumber);

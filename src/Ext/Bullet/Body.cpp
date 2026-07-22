@@ -61,7 +61,7 @@ CoordStruct BulletExtData::GetTargetCoords(BulletClass* pBullet)
 		auto pData = WeaponTypeExtContainer::Instance.Find(pBullet->WeaponType);
 
 		if (pData->VisualScatter) {
-			const auto pRulesExt = RulesExtData::Instance();
+			const auto pRulesExt = FakeRulesClass::Instance();
 			auto min = pData->VisualScatter_Min.Get(pRulesExt->VisualScatter_Min);
 			auto max = pData->VisualScatter_Max.Get(pRulesExt->VisualScatter_Max);
 			const auto radius = ScenarioClass::Instance->Random.RandomRanged(min, max);
@@ -620,7 +620,7 @@ bool BulletExtData::ShrapnelTargetEligible(BulletClass* pThis,
 				if (!pTargetType->LegalTarget || !pWhExt->CanDealDamage(static_cast<TechnoClass*>(pTargetObj), false, false))
 					return false;
 
-				if (pBulletExt->Shrapnel_ObeyWarheadTriggerConditions.Get(RulesExtData::Instance()->Shrapnel_ObeyWarheadTriggerConditions)) {
+				if (pBulletExt->Shrapnel_ObeyWarheadTriggerConditions.Get(FakeRulesClass::Instance()->Shrapnel_ObeyWarheadTriggerConditions)) {
 					if(!pWhExt->CanDealDamage(static_cast<TechnoClass*>(pTargetObj), false, false))
 						return false;
 	
@@ -710,7 +710,7 @@ void BulletExtData::ApplyShrapnel(BulletClass* pThis)
 
 	// Check if we should enable "ignore previously hit buildings" feature
 	bool ignorePreviouslyHit = pBulletExt->Shrapnel_IgnoreHitBuildings.Get(
-		RulesExtData::Instance()->Shrapnel_IgnoreHitBuildings);
+		FakeRulesClass::Instance()->Shrapnel_IgnoreHitBuildings);
 
 	// Store initial target building (if impact point has one)
 	if (auto pImpactObject = pBulletCell->FirstObject)
@@ -1317,12 +1317,12 @@ void BulletExtData::SimulatedFiringElectricBolt(BulletClass* pBullet)
 		return;
 
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-	int zAdjust = pWeaponExt->EBoltZAdjust.Get(RulesExtData::Instance()->EBoltZAdjust);
+	int zAdjust = pWeaponExt->EBoltZAdjust.Get(FakeRulesClass::Instance()->EBoltZAdjust);
 
 	const auto pOwner = pBullet->Owner;
 	if (pOwner && pOwner->WhatAmI() == AbstractType::Building)
 	{
-		const bool clamp = pWeaponExt->EBoltZAdjust_ClampInitialDepthForBuilding.Get(RulesExtData::Instance()->EBoltZAdjust_ClampInitialDepthForBuilding);
+		const bool clamp = pWeaponExt->EBoltZAdjust_ClampInitialDepthForBuilding.Get(FakeRulesClass::Instance()->EBoltZAdjust_ClampInitialDepthForBuilding);
 		if (clamp && zAdjust > 0)
 			zAdjust = 0;
 	}

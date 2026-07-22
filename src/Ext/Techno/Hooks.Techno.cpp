@@ -130,10 +130,10 @@ ASMJIT_PATCH(0x70DA95, TechnoClass_RadarTrackingUpdate_AnnounceDetected, 6)
 		switch (detect)
 		{
 		case 1:
-			PlayEva("EVA_CloakedUnitDetected", HouseExtContainer::Instance.CloakEVASpeak, RulesExtData::Instance()->StealthSpeakDelay);
+			PlayEva("EVA_CloakedUnitDetected", HouseExtContainer::Instance.CloakEVASpeak, FakeRulesClass::Instance()->StealthSpeakDelay);
 			break;
 		case 2:
-			PlayEva("EVA_SubterraneanUnitDetected", HouseExtContainer::Instance.SubTerraneanEVASpeak, RulesExtData::Instance()->SubterraneanSpeakDelay);
+			PlayEva("EVA_SubterraneanUnitDetected", HouseExtContainer::Instance.SubTerraneanEVASpeak, FakeRulesClass::Instance()->SubterraneanSpeakDelay);
 			break;
 		}
 
@@ -283,7 +283,7 @@ ASMJIT_PATCH(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 			&& !pBld->WarpingOut
 			// never show to enemies when cloaked, and only if allowed
 			&& (canSeeRepair || (pBld->CloakState == CloakState::Uncloaked
-				&& RulesExtData::Instance()->EnemyWrench));
+				&& FakeRulesClass::Instance()->EnemyWrench));
 
 		// display power off marker only for current player's buildings
 		const bool showPower = FileSystem::POWEROFF_SHP.get()
@@ -511,8 +511,8 @@ ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 		if (pHouseExt && pTypeExt->Harvester_Counted)
 			pHouseExt->OwnedCountedHarvesters.emplace(pThis);
 
-		if (!(pThis->Owner->IsControlledByHuman() && RulesExtData::Instance()->DistributeTargetingFrame_AIOnly)
-		&& pTypeExt->DistributeTargetingFrame.Get(RulesExtData::Instance()->DistributeTargetingFrame)) {
+		if (!(pThis->Owner->IsControlledByHuman() && FakeRulesClass::Instance()->DistributeTargetingFrame_AIOnly)
+		&& pTypeExt->DistributeTargetingFrame.Get(FakeRulesClass::Instance()->DistributeTargetingFrame)) {
 			pThis->TargetingTimer.Start(ScenarioClass::Instance->Random.RandomRanged(45, 60));
 		}
 
@@ -752,7 +752,7 @@ ASMJIT_PATCH(0x4DF3A0, FootClass_UpdateAttackMove_SelectNewTarget, 0x6)
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
-	if (pTypeExt->AttackMove_UpdateTarget.Get(RulesExtData::Instance()->AttackMove_UpdateTarget)
+	if (pTypeExt->AttackMove_UpdateTarget.Get(FakeRulesClass::Instance()->AttackMove_UpdateTarget)
 		&& CheckAttackMoveCanResetTarget(pThis))
 	{
 		pThis->Target = nullptr;
@@ -773,7 +773,7 @@ ASMJIT_PATCH(0x4DF4DB, FootClass_RefreshMegaMission_CheckMissionFix, 0xA)
 	auto const pType = GET_TECHNOTYPE(pThis);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	auto const mission = pThis->GetCurrentMission();
-	bool stopWhenTargetAcquired = pTypeExt->AttackMove_StopWhenTargetAcquired.Get(RulesExtData::Instance()->AttackMove_StopWhenTargetAcquired.Get(!pType->OpportunityFire));
+	bool stopWhenTargetAcquired = pTypeExt->AttackMove_StopWhenTargetAcquired.Get(FakeRulesClass::Instance()->AttackMove_StopWhenTargetAcquired.Get(!pType->OpportunityFire));
 	bool clearMegaMission = mission != Mission::Guard;
 
 	if (stopWhenTargetAcquired && clearMegaMission)
@@ -786,7 +786,7 @@ ASMJIT_PATCH(0x4DF4DB, FootClass_RefreshMegaMission_CheckMissionFix, 0xA)
 ASMJIT_PATCH(0x711E90, TechnoTypeClass_CanAttackMove_IgnoreWeapon, 0x6)
 {
 	enum { SkipGameCode = 0x711E9A };
-	return RulesExtData::Instance()->AttackMove_IgnoreWeaponCheck ? SkipGameCode : 0;
+	return FakeRulesClass::Instance()->AttackMove_IgnoreWeaponCheck ? SkipGameCode : 0;
 }
 
 ASMJIT_PATCH(0x4DF3A6, FootClass_UpdateAttackMove_Follow, 0x6)

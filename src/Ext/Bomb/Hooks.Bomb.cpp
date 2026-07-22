@@ -228,7 +228,7 @@ ASMJIT_PATCH(0x4D9F7B, FootClass_Sell_Detonate, 6)
 	const auto& loc = pThis->Location;
 	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 	const auto pUnit = cast_to<UnitClass* , false>(pThis);
-	const int money = pUnit && RulesExtData::Instance()->UnitsUnsellable ? 0 : pThis->GetRefund();
+	const int money = pUnit && FakeRulesClass::Instance()->UnitsUnsellable ? 0 : pThis->GetRefund();
 
 	//distribute the money
 	pThis->Owner->GiveMoney(money);
@@ -245,7 +245,7 @@ ASMJIT_PATCH(0x4D9F7B, FootClass_Sell_Detonate, 6)
 		VocClass::SafeImmedietelyPlayAt(pTypeExt->SellSound, &loc);
 	}
 
-	FlyingStrings::Instance.AddMoneyString(RulesExtData::Instance()->DisplayIncome  , money, pThis->Owner, RulesExtData::Instance()->DisplayIncome_Houses, loc, Point2D::Empty, ColorStruct::Empty);
+	FlyingStrings::Instance.AddMoneyString(FakeRulesClass::Instance()->DisplayIncome  , money, pThis->Owner, FakeRulesClass::Instance()->DisplayIncome_Houses, loc, Point2D::Empty, ColorStruct::Empty);
 
 	//this thing may already death , just
 	return pThis->IsAlive  ? 0x4D9FCB : 0x4D9FE9;

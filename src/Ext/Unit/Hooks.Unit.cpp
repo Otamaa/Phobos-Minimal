@@ -261,7 +261,7 @@ bool NOINLINE TechnoExtData::CanTargetICUnit(TechnoClass* pThis , FakeWeaponType
 
 	const bool IsHuman = pThis->Owner->IsControlledByHuman();
 
-	return pTypeExt->AllowFire_IroncurtainedTarget.Get(IsHuman ? RulesExtData::Instance()->CanTarget_IronCurtained : RulesExtData::Instance()->CanTargetAI_IronCurtained);
+	return pTypeExt->AllowFire_IroncurtainedTarget.Get(IsHuman ? FakeRulesClass::Instance()->CanTarget_IronCurtained : FakeRulesClass::Instance()->CanTargetAI_IronCurtained);
 }
 
 // stop command would still affect units going berzerk
@@ -491,7 +491,7 @@ ASMJIT_PATCH(0x73E735, UnitClass_Mission_Harvest_LongScan, 7){
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	const auto longScan = pTypeExt->Harvester_LongScan.Get(RulesClass::Instance->TiberiumLongScan);
 
-	if (pFocus && !pThis->Type->Weeder && pTypeExt->HarvesterScanAfterUnload.Get(RulesExtData::Instance()->HarvesterScanAfterUnload))
+	if (pFocus && !pThis->Type->Weeder && pTypeExt->HarvesterScanAfterUnload.Get(FakeRulesClass::Instance()->HarvesterScanAfterUnload))
 	{
 		auto cellBuffer = CellStruct::Empty;
 		auto pCellStru = pThis->ScanForTiberium(&cellBuffer, longScan / 256, 0);
@@ -544,7 +544,7 @@ enum class HarvesterMissionStatus : int
 ASMJIT_PATCH(0x4DCEB3, FootClass_TiberiumScanning_AllowPlayertoScanUderShroud, 0x7) {
 	//GET(FootClass*, pThis, ESI);
 	int diff = GameModeOptionsClass::Instance->AIDifficulty;
-	return RulesExtData::Instance()->CampaignAllowHarvesterScanUnderShroud[diff] ? 0x4DCF26 : 0x0;
+	return FakeRulesClass::Instance()->CampaignAllowHarvesterScanUnderShroud[diff] ? 0x4DCF26 : 0x0;
 }
 
  ASMJIT_PATCH(0x73E851, UnitClass_Mission_Harvest_LongScan, 6)
@@ -562,7 +562,7 @@ ASMJIT_PATCH(0x4DCEB3, FootClass_TiberiumScanning_AllowPlayertoScanUderShroud, 0
 
  	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
  	// Focus is set when the harvester is fully loaded and go home.
- 	if (pFocus && !pThis->Type->Weeder && pTypeExt->HarvesterScanAfterUnload.Get(RulesExtData::Instance()->HarvesterScanAfterUnload))
+ 	if (pFocus && !pThis->Type->Weeder && pTypeExt->HarvesterScanAfterUnload.Get(FakeRulesClass::Instance()->HarvesterScanAfterUnload))
  	{
  		auto cellBuffer = CellStruct::Empty;
  		auto long_scan = pTypeExt->Harvester_LongScan.Get(RulesClass::Instance->TiberiumLongScan);
@@ -1441,7 +1441,7 @@ ASMJIT_PATCH(0x73C141, UnitClass_DrawVXL_Deactivated, 7)
 	GET(UnitClass*, pThis, EBP);
 	REF_STACK(int, Value, 0x1E0);
 
-	const auto pRules = RulesExtData::Instance();
+	const auto pRules = FakeRulesClass::Instance();
 	double factor = 1.0;
 
 	if (pThis->IsUnderEMP())

@@ -941,7 +941,7 @@ static void OnBuildingPlacementSuccess(
 	}
 
 	// Handle wall tower placement
-	if (RulesExtData::Instance()->WallTowers.Contains(pBuilding->Type))
+	if (FakeRulesClass::Instance()->WallTowers.Contains(pBuilding->Type))
 	{
 		int nodeIndex = pFactoryBuilding->Owner->Base.BaseNodes.index_of(pNode);
 
@@ -1208,7 +1208,7 @@ static KickOutResult HandleBuildingExit(
 	// -----------------------------------------------------------------------
 	// AI Construction Yard restriction
 	// -----------------------------------------------------------------------
-	if (RulesExtData::Instance()->AIForbidConYard && pBuildingType->ConstructionYard)
+	if (FakeRulesClass::Instance()->AIForbidConYard && pBuildingType->ConstructionYard)
 	{
 		if (pNode)
 		{
@@ -1227,7 +1227,7 @@ static KickOutResult HandleBuildingExit(
 	// -----------------------------------------------------------------------
 	// AI Wall node cleanup
 	// -----------------------------------------------------------------------
-	if (RulesExtData::Instance()->AICleanWallNode && pBuildingType->Wall)
+	if (FakeRulesClass::Instance()->AICleanWallNode && pBuildingType->Wall)
 	{
 		CellClass* pCell = MapClass::Instance->GetCellAt(placeCell);
 		bool hasProtectedNeighbor = false;
@@ -1270,7 +1270,7 @@ static KickOutResult HandleBuildingExit(
 	// -----------------------------------------------------------------------
 	// Extended Building Placing
 	// -----------------------------------------------------------------------
-	if (RulesExtData::Instance()->ExtendedBuildingPlacing)
+	if (FakeRulesClass::Instance()->ExtendedBuildingPlacing)
 	{
 		BuildingPlacementOutcome outcome = TryExtendedBuildingPlacement(
 			pFactoryBuilding, pBuilding, pBuildingType, pHouseExt, placeCell);

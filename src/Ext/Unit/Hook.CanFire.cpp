@@ -120,7 +120,7 @@ namespace
 		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 		if (!pTypeExt->NoTurret_TrackTarget.Get(
-			RulesExtData::Instance()->NoTurret_TrackTarget))
+			FakeRulesClass::Instance()->NoTurret_TrackTarget))
 		{
 			// Hook's NoNeedToCheck path — jump directly to cached-error tail
 			return BuildableCheckResult::SkipToTail;

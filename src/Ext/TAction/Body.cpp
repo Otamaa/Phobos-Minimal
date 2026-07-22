@@ -447,7 +447,7 @@ bool TActionExtData::UndeployToWaypoint(TActionClass* pThis, HouseClass* pHouse,
 				if (!GameModeOptionsClass::Instance->MCVRedeploy)
 					return false;
 				// or MindControlledBy YURIX (why? for balance?)
-				if (!RulesExtData::Instance()->AllowDeployControlledMCV && pBuilding->MindControlledBy)
+				if (!FakeRulesClass::Instance()->AllowDeployControlledMCV && pBuilding->MindControlledBy)
 					return false;
 			}
 
@@ -2235,12 +2235,12 @@ bool TActionExtData::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClas
 		// Pick a group of countries from [AIHousesList].
 		// Any house of the same type of the listed at [AIHousesList] will be included here
 
-		if (RulesExtData::Instance()->AIHousesLists.empty() || (size_t)pThis->Param4 >= RulesExtData::Instance()->AIHousesLists.size()) {
+		if (FakeRulesClass::Instance()->AIHousesLists.empty() || (size_t)pThis->Param4 >= FakeRulesClass::Instance()->AIHousesLists.size()) {
 			Debug::LogInfo("Map action {}: [AIHousesList] is empty. This action will be skipped.", (int)pThis->ActionKind);
 			return true;
 		}
 
-		std::vector<HouseTypeClass*>* housesList = &RulesExtData::Instance()->AIHousesLists[pThis->Param4];
+		std::vector<HouseTypeClass*>* housesList = &FakeRulesClass::Instance()->AIHousesLists[pThis->Param4];
 
 		if (housesList->empty()) {
 			Debug::LogInfo("Map action {}: List [AIHousesList]({}) is empty. This action will be skipped.", (int)pThis->ActionKind, pThis->Param4);
@@ -2262,13 +2262,13 @@ bool TActionExtData::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClas
 	// Read the ID list of technos
 	int listIdx = Math::abs(pThis->Param5);
 
-	if ((size_t)listIdx >= RulesExtData::Instance()->AITargetTypesLists.size()
-		|| RulesExtData::Instance()->AITargetTypesLists[listIdx].empty()) {
+	if ((size_t)listIdx >= FakeRulesClass::Instance()->AITargetTypesLists.size()
+		|| FakeRulesClass::Instance()->AITargetTypesLists[listIdx].empty()) {
 		Debug::LogInfo("Map action {}: List [AITargetTypes]({}) is empty. This action will be skipped.", (int)pThis->ActionKind, listIdx);
 		return true;
 	}
 
-	std::vector<TechnoTypeClass*>* technosList = &RulesExtData::Instance()->AITargetTypesLists[listIdx];
+	std::vector<TechnoTypeClass*>* technosList = &FakeRulesClass::Instance()->AITargetTypesLists[listIdx];
 	std::vector<int> technosRemaining;
 	int globalRemaining = 0;
 

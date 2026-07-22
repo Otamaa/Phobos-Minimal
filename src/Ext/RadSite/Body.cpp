@@ -367,7 +367,7 @@ static NOINLINE void ApplyRadDamage(RadSiteClass* pRad, FootClass* pObj, CellCla
 		const auto pRadExt = RadSiteExtContainer::Instance.Find(pRad);
 		RadTypeClass* pRadType = pRadExt->Type;
 
-		const int RadApplicationDelay = RulesExtData::Instance()->UseGlobalRadApplicationDelay ? pRadType->GetApplicationDelay() : RulesClass::Instance->RadApplicationDelay;
+		const int RadApplicationDelay = FakeRulesClass::Instance()->UseGlobalRadApplicationDelay ? pRadType->GetApplicationDelay() : RulesClass::Instance->RadApplicationDelay;
 		if ((RadApplicationDelay <= 0)
 			|| (Unsorted::CurrentFrame() % RadApplicationDelay))
 			return;
@@ -472,7 +472,7 @@ static NOINLINE void ApplyRadDamage(RadSiteClass* pRad, BuildingClass* pObj, Cel
 
 		RadTypeClass* pRadType = pRadExt->Type;
 
-		const int delay = RulesExtData::Instance()->UseGlobalRadApplicationDelay ? pRadType->GetBuildingApplicationDelay() : RulesExtData::Instance()->RadApplicationDelay_Building;
+		const int delay = FakeRulesClass::Instance()->UseGlobalRadApplicationDelay ? pRadType->GetBuildingApplicationDelay() : FakeRulesClass::Instance()->RadApplicationDelay_Building;
 
 		if ((delay <= 0) || (Unsorted::CurrentFrame() % delay))
 			return;

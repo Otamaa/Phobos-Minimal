@@ -211,7 +211,7 @@ ASMJIT_PATCH(0x7368C6, UnitClass_Update_WeederMissionMove2, 0x6)
 //	if (pThis->Type->Weeder)
 //	{
 //		pCell->RemoveWeed();
-//		TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.IncreaseAmount(RulesExtData::Instance()->Veins_PerCellAmount, 0);
+//		TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.IncreaseAmount(FakeRulesClass::Instance()->Veins_PerCellAmount, 0);
 //		return 0x73D502;
 //	}
 //

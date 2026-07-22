@@ -1530,7 +1530,7 @@ void ScriptExtData::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 	if (idxScriptsList < 0)
 		idxScriptsList = pTeam->CurrentScript->GetCurrentAction().Argument;
 
-	const auto& scriptList = RulesExtData::Instance()->AIScriptsLists;
+	const auto& scriptList = FakeRulesClass::Instance()->AIScriptsLists;
 	if ((size_t)idxScriptsList < scriptList.size())
 	{
 		const auto& objectsList = scriptList[idxScriptsList];

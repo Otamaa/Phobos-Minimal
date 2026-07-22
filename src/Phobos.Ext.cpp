@@ -270,7 +270,7 @@ unsigned Phobos::GetVersionNumber() {
 	version += sizeof(ParticleSystemTypeExtData);
 
 	version += sizeof(RadSiteExtData);
-	version += sizeof(RulesExtData);
+	version += sizeof(FakeRulesClass);
 	version += sizeof(ScenarioExtData);
 	version += sizeof(SidebarExtData);
 

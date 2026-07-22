@@ -106,8 +106,8 @@ void __fastcall FakeWarheadTypeClass::DoFlash(int damage, WarheadTypeClass* pWH,
 	if (Phobos::Config::HideLightFlashEffects)
 		return;
 
-	bool checkColored = RulesExtData::Instance()->CombatLightDetailLevel_CheckColored;
-	int detailLevel = RulesExtData::Instance()->CombatLightDetailLevel;
+	bool checkColored = FakeRulesClass::Instance()->CombatLightDetailLevel_CheckColored;
+	int detailLevel = FakeRulesClass::Instance()->CombatLightDetailLevel;
 
 	if (pWH) {
 		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
@@ -124,7 +124,7 @@ void __fastcall FakeWarheadTypeClass::DoFlash(int damage, WarheadTypeClass* pWH,
 
 	// (bitmask & 0xF) != 0) is true if any color channel is disabled.
 	if (((detailLevel <= GameOptionsClass::Instance->DetailLevel
-		&& RulesExtData::DetailsCurrentlyEnabled()) || (!checkColored
+		&& FakeRulesClass::DetailsCurrentlyEnabled()) || (!checkColored
 		&& ((((int)CLDisableFlags) & 0xF) != 0))) && (forced || (pWH && pWH->Bright)))
 	{
 		double size_mult = pWH ? pWH->CombatLightSize : 0.0;
@@ -165,7 +165,7 @@ void WarheadTypeExtData::InitializeConstant()
 //since the CTOR is only creating the pointer , rules not yet loaded , cant evaluate there
 void WarheadTypeExtData::Initialize()
 {
-	if (IS_SAME_STR_(RulesExtData::Instance()->NukeWarheadName.data(), this->This()->ID))
+	if (IS_SAME_STR_(FakeRulesClass::Instance()->NukeWarheadName.data(), this->This()->ID))
 	{
 		IsNukeWarhead = true;
 		PreImpactAnim = AnimTypeClass::Find(GameStrings::NUKEBALL());
@@ -955,7 +955,7 @@ void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, TechnoClass* pSou
 
 	//Calculate Damage Multiplier
 	//this abomination is always active
-	const auto pRulesExt = RulesExtData::Instance();
+	const auto pRulesExt = FakeRulesClass::Instance();
 	double multiplier = 1.0;
 
 	if (pSource && pSource->Berzerk)
@@ -1491,7 +1491,7 @@ bool WarheadTypeExtData::GoBerzerkFor(FootClass* pVictim, int* damage) const
 		//only set the cap when needed
 		const int newValue = this->Berzerk_cap.isset() ? Helpers::Alex::getCappedDuration(oldValue, nDur, this->Berzerk_cap) : nDur;
 		//set the applyMode
-		const auto mode = this->Psychedelic_StackingMode.Get(RulesExtData::Instance()->Psychedelic_StackingMode);
+		const auto mode = this->Psychedelic_StackingMode.Get(FakeRulesClass::Instance()->Psychedelic_StackingMode);
 
 		//apply the value based on the stackingmode
 		if(EnumFunctions::CalcValueWithStackingMode(pVictim->BerzerkDurationLeft, newValue, mode)){
@@ -1631,7 +1631,7 @@ bool WarheadTypeExtData::IsInvokerAllowed(TechnoClass* pTarget, TechnoClass* pIn
 	}
 	else
 	{
-		return !this->AffectsInvokerOnly_IgnoreInvokerState.Get(RulesExtData::Instance()->AffectsInvokerOnly_IgnoreInvokerState);
+		return !this->AffectsInvokerOnly_IgnoreInvokerState.Get(FakeRulesClass::Instance()->AffectsInvokerOnly_IgnoreInvokerState);
 	}
 }
 
@@ -1668,7 +1668,7 @@ void WarheadTypeExtData::ApplyPenetratesTransport(TechnoClass* pTarget, TechnoCl
 	const auto pTargetType = GET_TECHNOTYPE(pTarget);
 	const auto pTargetTypeExt = TechnoTypeExtContainer::Instance.Find(pTargetType);
 
-	if (this->PenetratesTransport_Level <= pTargetTypeExt->PenetratesTransport_Level.Get(RulesExtData::Instance()->PenetratesTransport_Level))
+	if (this->PenetratesTransport_Level <= pTargetTypeExt->PenetratesTransport_Level.Get(FakeRulesClass::Instance()->PenetratesTransport_Level))
 		return;
 
 	const double passThrough = this->PenetratesTransport_PassThrough * pTargetTypeExt->PenetratesTransport_PassThroughMultiplier;
@@ -1694,7 +1694,7 @@ void WarheadTypeExtData::ApplyPenetratesTransport(TechnoClass* pTarget, TechnoCl
 				const auto nextPassenger = flag_cast_to<FootClass*>(passenger->NextObject);
 
 				if (this->PenetratesTransport_Level >
-					GET_TECHNOTYPEEXT(passenger)->PenetratesTransport_Level.Get(RulesExtData::Instance()->PenetratesTransport_Level))
+					GET_TECHNOTYPEEXT(passenger)->PenetratesTransport_Level.Get(FakeRulesClass::Instance()->PenetratesTransport_Level))
 				{
 					if (passenger->ReceiveDamage(&passenger->Health, distance, pWH, pInvoker, false, true, pInvokerHouse) == DamageState::NowDead && isFirst && pTargetType->Gunner && pTargetFoot)
 					{
@@ -1716,7 +1716,7 @@ void WarheadTypeExtData::ApplyPenetratesTransport(TechnoClass* pTarget, TechnoCl
 				const auto nextPassenger = flag_cast_to<FootClass*>(passenger->NextObject);
 
 				if (this->PenetratesTransport_Level >
-					GET_TECHNOTYPEEXT(passenger)->PenetratesTransport_Level.Get(RulesExtData::Instance()->PenetratesTransport_Level))
+					GET_TECHNOTYPEEXT(passenger)->PenetratesTransport_Level.Get(FakeRulesClass::Instance()->PenetratesTransport_Level))
 				{
 					int applyDamage = adjustedDamage;
 
@@ -1744,7 +1744,7 @@ void WarheadTypeExtData::ApplyPenetratesTransport(TechnoClass* pTarget, TechnoCl
 		}
 
 		if (this->PenetratesTransport_Level <=
-			GET_TECHNOTYPEEXT(passenger)->PenetratesTransport_Level.Get(RulesExtData::Instance()->PenetratesTransport_Level))
+			GET_TECHNOTYPEEXT(passenger)->PenetratesTransport_Level.Get(FakeRulesClass::Instance()->PenetratesTransport_Level))
 			return;
 
 		if (fatal)
@@ -3301,7 +3301,7 @@ void WarheadTypeExtData::DisableEMPEffect(TechnoClass* const pVictim)
 
 		if (!hasMission && !pFoot->Owner->IsControlledByHuman())
 		{
-			pFoot->QueueMission(RulesExtData::Instance()->EMPAIRecoverMission.Get(Mission::Hunt), false);
+			pFoot->QueueMission(FakeRulesClass::Instance()->EMPAIRecoverMission.Get(Mission::Hunt), false);
 		}
 	}
 }
@@ -3457,7 +3457,7 @@ void WarheadTypeExtData::DisableEMPEffect2(TechnoClass* const pVictim)
 
 			if (!hasMission && !pFoot->Owner->IsControlledByHuman())
 			{
-				pFoot->QueueMission(RulesExtData::Instance()->EMPAIRecoverMission.Get(Mission::Hunt), false);
+				pFoot->QueueMission(FakeRulesClass::Instance()->EMPAIRecoverMission.Get(Mission::Hunt), false);
 			}
 		}
 	}

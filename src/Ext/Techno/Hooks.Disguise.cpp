@@ -46,13 +46,13 @@ ASMJIT_PATCH(0x7466D8, UnitClass_DesguiseAs_AsAnotherUnit, 0xA)
 
 bool __fastcall IsAlly_Wrapper(HouseClass* pThis, void* _, HouseClass* pOther)
 {
-	return pOther->IsObserver() || pOther->IsAlliedWith(pThis) || (RulesExtData::Instance()->DisguiseBlinkingVisibility & AffectedHouse::Enemies) != AffectedHouse::None;
+	return pOther->IsObserver() || pOther->IsAlliedWith(pThis) || (FakeRulesClass::Instance()->DisguiseBlinkingVisibility & AffectedHouse::Enemies) != AffectedHouse::None;
 }
 
 bool __fastcall IsControlledByCurrentPlayer_Wrapper(HouseClass* pThis)
 {
 	HouseClass* pCurrent = HouseClass::CurrentPlayer;
-	AffectedHouse visibilityFlags = RulesExtData::Instance()->DisguiseBlinkingVisibility;
+	AffectedHouse visibilityFlags = FakeRulesClass::Instance()->DisguiseBlinkingVisibility;
 
 	if (SessionClass::IsCampaign() && (pThis->IsHumanPlayer || pThis->IsInPlayerControl))
 	{
@@ -85,7 +85,7 @@ bool CanBlinkDisguise(TechnoClass* pTechno , HouseClass* pCurPlayer)
 {
 	if(pCurPlayer && !pCurPlayer->IsObserver()) {
 		return  EnumFunctions::CanTargetHouse(
-			RulesExtData::Instance()->DisguiseBlinkingVisibility,pTechno->Owner, pCurPlayer);
+			FakeRulesClass::Instance()->DisguiseBlinkingVisibility,pTechno->Owner, pCurPlayer);
 	}
 
 	return true;

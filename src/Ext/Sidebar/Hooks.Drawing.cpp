@@ -56,7 +56,7 @@ public:
 			return true;
 
 		auto IseligibleByName = [](AbstractTypeClass* pTT1 , AbstractTypeClass* pTT2) -> bool{
-			if (RulesExtData::Instance()->SortCameoByName) {
+			if (FakeRulesClass::Instance()->SortCameoByName) {
 				const int result = strcmp(pTT1->Name, pTT2->Name);
 
 				if (result < 0)
@@ -126,7 +126,7 @@ public:
 			if (rc1 < rc2) return true;
 			if (rc1 > rc2) return false;
 
-			//if(!RulesExtData::Instance()->SortSWCameoByMoneyAmount){
+			//if(!FakeRulesClass::Instance()->SortSWCameoByMoneyAmount){
 				// Tie-break by UIName  [6A84E1 → 6A86F3]
 				// VERIFY: offset 0x60 = UIName (wchar_t*) on AbstractTypeClass
 				return IseligibleByName(pSW1, pSW2);
@@ -413,7 +413,7 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 							bool unable_to_comply = false;
 							if (pHouseFactory && (pHouseFactory->Production.Timer.Rate && !pHouseFactory->IsSuspended || pHouseFactory->Object || pHouseFactory->QueuedObjects.Count > 0)) {
 								unable_to_comply = 1;
-								if (pBuild->ItemType == AbstractType::BuildingType && !RulesExtData::Instance()->ExpandBuildingQueue) {
+								if (pBuild->ItemType == AbstractType::BuildingType && !FakeRulesClass::Instance()->ExpandBuildingQueue) {
 									VoxClass::Play("EVA_UnableToComply");
 									EPILOGUE();
 								}
@@ -997,7 +997,7 @@ bool NOINLINE RemoveCameo(BuildType* item)
 		const auto pDisplay = DisplayClass::Instance();
 		const auto pCurType = type_cast<BuildingTypeClass*>(pDisplay->CurrentBuildingType);
 
-		if (!RulesExtData::Instance()->ExtendedBuildingPlacing || !pCurType
+		if (!FakeRulesClass::Instance()->ExtendedBuildingPlacing || !pCurType
 			|| BuildingTypeExtData::IsSameBuildingType(pBldType, pCurType))
 		{
 			pDisplay->SetActiveFoundation(nullptr);
@@ -1368,10 +1368,10 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 							// Handles ExpandBuildingQueue feature
 							// Original: cmp eax, 7 / jnz (check if BuildingType with active production)
 							// Hook: Additional checks for BuildCat and factory state when
-							//       RulesExtData::Instance()->ExpandBuildingQueue is enabled
+							//       FakeRulesClass::Instance()->ExpandBuildingQueue is enabled
 							// ==========================================================================
 
-							if (!RulesExtData::Instance()->ExpandBuildingQueue){
+							if (!FakeRulesClass::Instance()->ExpandBuildingQueue){
 								if (pTechnoType->WhatAmI() == AbstractType::BuildingType && hasActiveProduction) {
 									shouldDisable = true;
 								}
@@ -1574,7 +1574,7 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 						bool drawSHP = true;
 						auto pCameoRef = cameoShape->AsReference();
 						char pFilename[0x20];
-						strcpy_s(pFilename, RulesExtData::Instance()->MissingCameo.data());
+						strcpy_s(pFilename, FakeRulesClass::Instance()->MissingCameo.data());
 						_strlwr_s(pFilename);
 
 						if (!_stricmp(pCameoRef->Filename, GameStrings::XXICON_SHP())
@@ -1635,7 +1635,7 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 					if (pTechnoType)
 					{
 						Point2D position { screenX + 30, screenY + 24 };
-						const auto pRulesExt = RulesExtData::Instance();
+						const auto pRulesExt = FakeRulesClass::Instance();
 						const Vector3D<int>& frames = pRulesExt->Cameo_OverlayFrames.Get();
 
 						if (shouldDarken) // Only draw extras over grey cameos

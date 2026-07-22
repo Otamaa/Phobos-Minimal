@@ -31,14 +31,14 @@ void TechnoExtData::DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, Re
 		case UnitClass::vtable:
 		case AircraftClass::vtable:
 		{
-			const auto& offset = RulesExtData::Instance()->Pips_SelfHeal_Units_Offset.Get();
+			const auto& offset = FakeRulesClass::Instance()->Pips_SelfHeal_Units_Offset.Get();
 			xOffset = offset.X;
 			yOffset = offset.Y + nBracket;
 		}
 		break;
 		case InfantryClass::vtable:
 		{
-			const auto& offset = RulesExtData::Instance()->Pips_SelfHeal_Infantry_Offset.Get();
+			const auto& offset = FakeRulesClass::Instance()->Pips_SelfHeal_Infantry_Offset.Get();
 			xOffset = offset.X;
 			yOffset = offset.Y + nBracket;
 		}
@@ -276,7 +276,7 @@ void FakeParasiteClass::__Grapple_AI()
 
 		auto const pWeaponExt = WarheadTypeExtContainer::Instance.Find(weaponType->Warhead);
 
-		if (auto const pAnimType = pWeaponExt->Parasite_GrappleAnim.Get(RulesExtData::Instance()->DefaultSquidAnim)) {
+		if (auto const pAnimType = pWeaponExt->Parasite_GrappleAnim.Get(FakeRulesClass::Instance()->DefaultSquidAnim)) {
 			if (AnimClass* newAnim = GameCreate<AnimClass>(pAnimType, victimCoord, 0, 1, AnimFlag::AnimFlag_600, 0, 0)) {
 					this->GrappleAnim = newAnim;
 					auto const Invoker = (this->Owner) ? this->Owner->GetOwningHouse() : nullptr;
@@ -863,7 +863,7 @@ bool FakeParasiteClass::__Victims_Cell_Valid()
 	if (pOwnerType->Naval) {
 
 		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pOwnerType);
-		const auto& globalVal = RulesExtData::Instance()->Parasite_AllowWaterExit;
+		const auto& globalVal = FakeRulesClass::Instance()->Parasite_AllowWaterExit;
 
 		if (pTypeExt->Parasite_AllowWaterExit.isset() && !pTypeExt->Parasite_AllowWaterExit.Get())
 			return false;

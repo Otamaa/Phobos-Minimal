@@ -206,7 +206,7 @@ ASMJIT_PATCH(0x51A2AD, InfantryClass_UpdatePosition_Tunnel, 9)
 	GET(InfantryClass*, pThis, ESI);
 	GET(BuildingClass*, pBld, EDI);
 
-	if (!RulesExtData::Instance()->Infantry_IgnoreBuildingSizeLimit) {
+	if (!FakeRulesClass::Instance()->Infantry_IgnoreBuildingSizeLimit) {
 		const bool sizeIsOkay = pBld->Passengers.NumPassengers + 1 <= pBld->Type->Passengers
 			&& static_cast<int>(pThis->Type->Size) <= pBld->Type->SizeLimit;
 

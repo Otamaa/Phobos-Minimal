@@ -1480,7 +1480,7 @@ namespace
 						: pThis->_GetExtData()->Owner;
 
 					if (WarheadTypeExtContainer::Instance
-							.Find(RulesExtData::Instance()->FirestormWarhead)
+							.Find(FakeRulesClass::Instance()->FirestormWarhead)
 							->CanAffectHouse(pBld->Owner, pOwner))
 					{
 						pOwner = nullptr;
@@ -2289,7 +2289,7 @@ ASMJIT_PATCH(0x467B94, BulletClass_AI_Ranged, 7)
 		if (auto const pBld = pCell->GetBuilding())
 		{
 			HouseClass* pOwner = pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pThis)->Owner;
-			if (WarheadTypeExtContainer::Instance.Find(RulesExtData::Instance()->FirestormWarhead)->CanAffectHouse(pBld->Owner, pOwner))
+			if (WarheadTypeExtContainer::Instance.Find(FakeRulesClass::Instance()->FirestormWarhead)->CanAffectHouse(pBld->Owner, pOwner))
 				pOwner =  nullptr; // clear the pointer if can affect the bullet owner
 
 			if (BuildingExtData::IsActiveFirestormWall(pBld, pOwner))

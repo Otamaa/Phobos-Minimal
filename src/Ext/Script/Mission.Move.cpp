@@ -424,7 +424,7 @@ void ScriptExtData::Mission_Move_List(TeamClass* pTeam, DistanceMode calcThreatM
 	if (attackAITargetType < 0)
 		attackAITargetType = curArg;
 
-	const auto& Arr = RulesExtData::Instance()->AITargetTypesLists;
+	const auto& Arr = FakeRulesClass::Instance()->AITargetTypesLists;
 	if ((size_t)attackAITargetType < Arr.size() && !Arr[attackAITargetType].empty())
 	{
 		ScriptExtData::Mission_Move(pTeam, calcThreatMode, pickAllies, attackAITargetType, -1);
@@ -454,16 +454,16 @@ void ScriptExtData::Mission_Move_List1Random(TeamClass* pTeam, DistanceMode calc
 	if (attackAITargetType < 0)
 		attackAITargetType = curArg;
 
-	if ((size_t)attackAITargetType < RulesExtData::Instance()->AITargetTypesLists.size())
+	if ((size_t)attackAITargetType < FakeRulesClass::Instance()->AITargetTypesLists.size())
 	{
 
-		if ((size_t)pTeamData->IdxSelectedObjectFromAIList < RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].size()) {
+		if ((size_t)pTeamData->IdxSelectedObjectFromAIList < FakeRulesClass::Instance()->AITargetTypesLists[attackAITargetType].size()) {
 			ScriptExtData::Mission_Move(pTeam, calcThreatMode, pickAllies, attackAITargetType, pTeamData->IdxSelectedObjectFromAIList);
 			return;
 		}
 
 		// Still no random target selected
-		if (!RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].empty()) {
+		if (!FakeRulesClass::Instance()->AITargetTypesLists[attackAITargetType].empty()) {
 			
 			if (!pTeam->FirstUnit) {
 				pTeam->StepCompleted = true;
@@ -482,9 +482,9 @@ void ScriptExtData::Mission_Move_List1Random(TeamClass* pTeam, DistanceMode calc
 				auto pTechnoType = GET_TECHNOTYPE(pTechno);
 				bool found = false;
 
-				for (auto j = 0u; j < RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].size() && !found; j++)
+				for (auto j = 0u; j < FakeRulesClass::Instance()->AITargetTypesLists[attackAITargetType].size() && !found; j++)
 				{
-					if (pTechnoType == RulesExtData::Instance()->AITargetTypesLists[attackAITargetType][j]
+					if (pTechnoType == FakeRulesClass::Instance()->AITargetTypesLists[attackAITargetType][j]
 						&& ((pickAllies
 							&& pTeam->FirstUnit->Owner->IsAlliedWith(pTechno))
 							|| (!pickAllies
@@ -508,7 +508,7 @@ void ScriptExtData::Mission_Move_List1Random(TeamClass* pTeam, DistanceMode calc
 				//	curArg,
 				//	attackAITargetType,
 				//	idxsel,
-				//	RulesExtData::Instance()->AITargetTypesLists[attackAITargetType][idxsel]->ID);
+				//	FakeRulesClass::Instance()->AITargetTypesLists[attackAITargetType][idxsel]->ID);
 
 				ScriptExtData::Mission_Move(pTeam, calcThreatMode, pickAllies, attackAITargetType, idxsel);
 				return;

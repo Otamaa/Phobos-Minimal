@@ -711,7 +711,7 @@ void __fastcall FakeCellClass::_ChainReaction(CellStruct* cell)
 		return;
 
 	if (ScenarioClass::Instance->Random.RandomFromMax(99) <
-		(RulesExtData::Instance()->ChainReact_Multiplier * pCell->OverlayData))
+		(FakeRulesClass::Instance()->ChainReact_Multiplier * pCell->OverlayData))
 	{
 		const bool wasFullGrown = (pCell->OverlayData >= 11);
 
@@ -747,9 +747,9 @@ void __fastcall FakeCellClass::_ChainReaction(CellStruct* cell)
 
 				if (pNeighbour->_GetTiberiumType() != -1 && pNeighbour->OverlayData > 2u)
 				{
-					if (ScenarioClass::Instance->Random.RandomFromMax(99) < RulesExtData::Instance()->ChainReact_SpreadChance)
+					if (ScenarioClass::Instance->Random.RandomFromMax(99) < FakeRulesClass::Instance()->ChainReact_SpreadChance)
 					{
-						int delay = ScenarioClass::Instance->Random.RandomRanged(RulesExtData::Instance()->ChainReact_MinDelay, RulesExtData::Instance()->ChainReact_MaxDelay);
+						int delay = ScenarioClass::Instance->Random.RandomRanged(FakeRulesClass::Instance()->ChainReact_MinDelay, FakeRulesClass::Instance()->ChainReact_MaxDelay);
 						crd = pNeighbour->GetCoords();
 
 						GameCreate<AnimClass>(pType, crd, delay, 1, 0x600, 0);
@@ -1629,7 +1629,7 @@ ASMJIT_PATCH(0x7C89D4, DDRAW_Create, 6)
 
 ASMJIT_PATCH(0x55E477, Game_ComScenarioDialog_ChatBox, 0x5)
 {
-	if (RulesExtData::Instance()->AllowChatBoxInSinglePlayer)
+	if (FakeRulesClass::Instance()->AllowChatBoxInSinglePlayer)
 		return 0x55E48D;
 
 	return 0;
@@ -1637,7 +1637,7 @@ ASMJIT_PATCH(0x55E477, Game_ComScenarioDialog_ChatBox, 0x5)
 
 ASMJIT_PATCH(0x55E62F, Game_ComScenarioDialog_ChatBox2, 0x6)
 {
-	if (RulesExtData::Instance()->AllowChatBoxInSinglePlayer)
+	if (FakeRulesClass::Instance()->AllowChatBoxInSinglePlayer)
 		return 0x55E637;
 
 	return 0;
@@ -1645,7 +1645,7 @@ ASMJIT_PATCH(0x55E62F, Game_ComScenarioDialog_ChatBox2, 0x6)
 
 ASMJIT_PATCH(0x55E693, Game_ComScenarioDialog_ChatBox3, 0x6)
 {
-	if (RulesExtData::Instance()->AllowChatBoxInSinglePlayer)
+	if (FakeRulesClass::Instance()->AllowChatBoxInSinglePlayer)
 		return 0x55E69B;
 
 	return 0;
@@ -1653,7 +1653,7 @@ ASMJIT_PATCH(0x55E693, Game_ComScenarioDialog_ChatBox3, 0x6)
 
 ASMJIT_PATCH(0x55E746, Game_ComScenarioDialog_ChatBox4, 0x5)
 {
-	if (RulesExtData::Instance()->AllowChatBoxInSinglePlayer)
+	if (FakeRulesClass::Instance()->AllowChatBoxInSinglePlayer)
 		return 0x55E77B;
 
 	return 0;

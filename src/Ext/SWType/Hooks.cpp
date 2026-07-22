@@ -192,7 +192,7 @@ void FakeTacticalClass::__DrawAllTacticalText(wchar_t* text)
 
 	static fmt::basic_memory_buffer<wchar_t> buffer;
 
-	switch (RulesExtData::Instance()->FPSCounter)
+	switch (FakeRulesClass::Instance()->FPSCounter)
 	{
 	case FPSCounterMode::disabled: {
 		break;
@@ -509,8 +509,8 @@ ASMJIT_PATCH(0x4F9004 ,HouseClass_Update_TrySWFire, 7)
 		if(pThis->Type->MultiplayPassive)
 			return Continue;
 
-		if(RulesExtData::Instance()->AISuperWeaponDelay.isset()){
-			const int delay = RulesExtData::Instance()->AISuperWeaponDelay.Get();
+		if(FakeRulesClass::Instance()->AISuperWeaponDelay.isset()){
+			const int delay = FakeRulesClass::Instance()->AISuperWeaponDelay.Get();
 			auto const pExt = pThis->_GetExtData();
 			const bool hasTimeLeft = pExt->AISuperWeaponDelayTimer.HasTimeLeft();
 

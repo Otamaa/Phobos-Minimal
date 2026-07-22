@@ -286,7 +286,7 @@ void LevitateLocomotionClass::DirtoSomething(double dValue)
 	Delta.Y = Delta.X - nInitboost * nSin;;
 	CurrentVelocity = Delta.Y * Delta.Y + Delta.X * Delta.X;
 	auto nCenter = LinkedTo->GetCoords();
-	const auto pSys = GameCreate<ParticleSystemClass>(RulesExtData::Instance()->DefaultGlobalParticleInstance, nCenter);
+	const auto pSys = GameCreate<ParticleSystemClass>(FakeRulesClass::Instance()->DefaultGlobalParticleInstance, nCenter);
 	auto nEmpty = CoordStruct { 0,0,0 };
 	const auto pParticle = pSys->SpawnHeldParticle(&nCenter, &nEmpty);
 	pParticle->GasVelocity.X = (int)(nCos * -16.0);

@@ -137,7 +137,7 @@ Action FakeAircraftClass::_MouseOverCell(CellStruct const& cell, bool checkFog, 
 		return Action::None;
 	}
 
-	Action action = FootClass::MouseOverCell(cell, checkFog, ignoreForce);
+	Action action = this->FootClass::MouseOverCell(cell, checkFog, ignoreForce);
 
 	if (action == Action::Attack && !this->GetWeapon(0)->WeaponType) {
 		return Action::None;
@@ -443,7 +443,7 @@ bool FakeAircraftClass::_Enter_Idle_Mode(bool initial, bool bool2)
 
 			if (AircraftTypeExtContainer::Instance.Find(this->Type)
 					->ExtendedAircraftMissions_UnlandDamage
-					.Get(RulesExtData::Instance()->ExtendedAircraftMissions_UnlandDamage) < 0)
+					.Get(FakeRulesClass::Instance()->ExtendedAircraftMissions_UnlandDamage) < 0)
 				return std::nullopt;
 
 			if (!this->Team
@@ -1414,9 +1414,9 @@ int FakeAircraftClass::_Mission_ParadropOverfly()
 
 		this->DropOffParadropCargo();
 		if (this->Passengers.NumPassengers) {
-			delay = pTypeExt->ParadropDelay.Get(RulesExtData::Instance()->ParadropDelay);
+			delay = pTypeExt->ParadropDelay.Get(FakeRulesClass::Instance()->ParadropDelay);
 		} else {
-			delay = pTypeExt->ParadropEndDelay.Get(RulesExtData::Instance()->ParadropEndDelay);
+			delay = pTypeExt->ParadropEndDelay.Get(FakeRulesClass::Instance()->ParadropEndDelay);
 
 			if (delay < 0)
 				delay = INT32_MAX;

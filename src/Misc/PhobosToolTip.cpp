@@ -197,7 +197,7 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 		fmt::format_to(std::back_inserter(this->TextBuffer), L"\n{}", pDesc);
 	}
 
-	if (pData->Cameo_AlwaysExist.Get(RulesExtData::Instance()->Cameo_AlwaysExist)) {
+	if (pData->Cameo_AlwaysExist.Get(FakeRulesClass::Instance()->Cameo_AlwaysExist)) {
 		auto& vec = ScenarioExtData::Instance()->OwnedExistCameoTechnoTypes;
 
 		if (vec.contains(pType)) {
@@ -241,7 +241,7 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 	if (auto pDesc = this->GetUIDescription(pData))
 		oss << L"\n" << pDesc;
 
-	if (pData->Cameo_AlwaysExist.Get(RulesExtData::Instance()->Cameo_AlwaysExist)) {
+	if (pData->Cameo_AlwaysExist.Get(FakeRulesClass::Instance()->Cameo_AlwaysExist)) {
 		auto& vec = ScenarioExtData::Instance()->OwnedExistCameoTechnoTypes;
 
 		if (vec.contains(pType)) {
@@ -546,7 +546,7 @@ ASMJIT_PATCH(0x478E10, CCToolTip_Draw1, 0x6) //0
 
 ASMJIT_PATCH(0x478E4A, CCToolTip_Draw2_SetSurface, 0x6)
 {
-	if (PhobosToolTip::Instance.SlaveDraw || RulesExtData::Instance()->ToolTip_ExcludeSidebar)
+	if (PhobosToolTip::Instance.SlaveDraw || FakeRulesClass::Instance()->ToolTip_ExcludeSidebar)
 	{
 		R->ESI(DSurface::Composite());
 		return 0x478ED3;
@@ -569,7 +569,7 @@ ASMJIT_PATCH(0x478EF8, CCToolTip_Draw2_SetMaxWidth, 0x5)
 
 ASMJIT_PATCH(0x478F52, CCToolTip_Draw2_SetX, 0x8)
 {
-	if (PhobosToolTip::Instance.SlaveDraw && !RulesExtData::Instance()->ToolTip_ExcludeSidebar)
+	if (PhobosToolTip::Instance.SlaveDraw && !FakeRulesClass::Instance()->ToolTip_ExcludeSidebar)
 		R->EAX(R->EAX() + DSurface::Sidebar->Get_Width());
 
 	return 0;
@@ -747,12 +747,12 @@ ASMJIT_PATCH(0x478FDC, CCToolTip_Draw2_FillRect, 0x5)
 				SidebarClass::Instance->SidebarBackgroundNeedsRedraw = true;
 
 			pThis->Fill_Rect_Trans(pRect
-				, pData->ToolTip_Background_Color.GetEx(RulesExtData::Instance()->ToolTip_Background_Color)
-				, pData->ToolTip_Background_Opacity.Get(RulesExtData::Instance()->ToolTip_Background_Opacity)
+				, pData->ToolTip_Background_Color.GetEx(FakeRulesClass::Instance()->ToolTip_Background_Color)
+				, pData->ToolTip_Background_Opacity.Get(FakeRulesClass::Instance()->ToolTip_Background_Opacity)
 			);
 
 			if (Phobos::Config::ToolTipBlur)
-				pThis->BlurRect(*pRect, pData->ToolTip_Background_BlurSize.Get(RulesExtData::Instance()->ToolTip_Background_BlurSize));
+				pThis->BlurRect(*pRect, pData->ToolTip_Background_BlurSize.Get(FakeRulesClass::Instance()->ToolTip_Background_BlurSize));
 
 			return (int)_CCToolTip_Draw2_FillRect_RET;
 		}

@@ -63,27 +63,27 @@ public:
 
 	COMPILETIMEEVAL OPTIONALINLINE bool GetWarheadDetonate() const
 	{
-		return this->RadWarhead_Detonate.Get(RulesExtData::Instance()->RadWarhead_Detonate);
+		return this->RadWarhead_Detonate.Get(FakeRulesClass::Instance()->RadWarhead_Detonate);
 	}
 
 	COMPILETIMEEVAL OPTIONALINLINE bool GetHasOwner(const Nullable<bool>&nOwner) const
 	{
-		return nOwner.Get(this->RadHasOwner.Get(RulesExtData::Instance()->RadHasOwner));
+		return nOwner.Get(this->RadHasOwner.Get(FakeRulesClass::Instance()->RadHasOwner));
 	}
 
 	COMPILETIMEEVAL OPTIONALINLINE bool GetHasInvoker(const Nullable<bool>& nOwner) const
 	{
-		return nOwner.Get(this->RadHasInvoker.Get(RulesExtData::Instance()->RadHasInvoker));
+		return nOwner.Get(this->RadHasInvoker.Get(FakeRulesClass::Instance()->RadHasInvoker));
 	}
 
 	COMPILETIMEEVAL OPTIONALINLINE bool GetHasOwner() const
 	{
-		return (this->RadHasOwner.Get(RulesExtData::Instance()->RadHasOwner));
+		return (this->RadHasOwner.Get(FakeRulesClass::Instance()->RadHasOwner));
 	}
 
 	COMPILETIMEEVAL OPTIONALINLINE bool GetHasInvoker() const
 	{
-		return (this->RadHasInvoker.Get(RulesExtData::Instance()->RadHasInvoker));
+		return (this->RadHasInvoker.Get(FakeRulesClass::Instance()->RadHasInvoker));
 	}
 
 	COMPILETIMEEVAL OPTIONALINLINE ColorStruct GetColor() const
@@ -103,12 +103,12 @@ public:
 
 	COMPILETIMEEVAL OPTIONALINLINE int GetBuildingApplicationDelay() const
 	{
-		return this->BuildingApplicationDelay.Get(RulesExtData::Instance()->RadApplicationDelay_Building.Get());
+		return this->BuildingApplicationDelay.Get(FakeRulesClass::Instance()->RadApplicationDelay_Building.Get());
 	}
 
 	COMPILETIMEEVAL OPTIONALINLINE int GetBuildingDamageMaxCount() const
 	{
-		return this->BuildingDamageMaxCount.Get(RulesExtData::Instance()->RadBuildingDamageMaxCount);
+		return this->BuildingDamageMaxCount.Get(FakeRulesClass::Instance()->RadBuildingDamageMaxCount);
 	}
 
 	COMPILETIMEEVAL OPTIONALINLINE int GetLevelMax()  const

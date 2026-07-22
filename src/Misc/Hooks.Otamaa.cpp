@@ -113,8 +113,8 @@
 // 	//TODO : re-eval check below  , i if desync/the behaviour is not good , change it to pThis->Owner->IsControlledByCurrentPlayer()
 //
 // 	const bool IsHuman = pThis->Owner->IsControlledByHuman();
-// 	const bool AllowAI = !pWHExt->CanTargetIronCurtained.Get(pTypeExt->AllowFire_IroncurtainedTarget.Get(RulesExtData::Instance()->AutoAttackICedTarget));
-// 	const bool Allow = pTypeExt->AllowFire_IroncurtainedTarget.Get(RulesExtData::Instance()->AutoAttackICedTarget);
+// 	const bool AllowAI = !pWHExt->CanTargetIronCurtained.Get(pTypeExt->AllowFire_IroncurtainedTarget.Get(FakeRulesClass::Instance()->AutoAttackICedTarget));
+// 	const bool Allow = pTypeExt->AllowFire_IroncurtainedTarget.Get(FakeRulesClass::Instance()->AutoAttackICedTarget);
 //
 // 	return IsHuman &&  Allow || !IsHuman && AllowAI
 // 		? BypassCheck : ContinueCheck;

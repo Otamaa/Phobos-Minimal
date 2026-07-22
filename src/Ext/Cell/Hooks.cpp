@@ -15,7 +15,7 @@
 ASMJIT_PATCH(0x480EA8, CellClass_DamageWall_AdjacentWallDamage, 0x5)
 {
 	GET(CellClass*, pThis, EAX);
-	pThis->ReduceWall(RulesExtData::Instance()->AdjacentWallDamage);
+	pThis->ReduceWall(FakeRulesClass::Instance()->AdjacentWallDamage);
 
 	if (pThis->OverlayTypeIndex == -1)
 		TechnoClass::ClearWhoTargetingThis(pThis);
@@ -26,7 +26,7 @@ ASMJIT_PATCH(0x480EA8, CellClass_DamageWall_AdjacentWallDamage, 0x5)
 ASMJIT_PATCH(0x480E27, CellClass_DamageWall_DamageWallRecursivly, 0x5)
 {
 	enum { SkipGameCode = 0x480EBC };
-	return RulesExtData::Instance()->DamageWallRecursivly ? 0 : SkipGameCode;
+	return FakeRulesClass::Instance()->DamageWallRecursivly ? 0 : SkipGameCode;
 }
 
 ASMJIT_PATCH(0x47FDF9, CellClass_GetOverlayShadowRect, 0xA)

@@ -69,7 +69,7 @@ namespace Tiberiumpip
 
 	int GetShapeIndex(int storageIndex, TechnoTypeExtData* pTypeData)
 	{
-		auto frames = pTypeData->Tiberium_PipIdx.GetElements(RulesExtData::Instance()->Pips_Tiberiums_Frames);
+		auto frames = pTypeData->Tiberium_PipIdx.GetElements(FakeRulesClass::Instance()->Pips_Tiberiums_Frames);
 		const auto pTibExt = TiberiumExtContainer::Instance.Find(TiberiumClass::Array->Items[storageIndex]);
 
 		return (size_t)storageIndex >= frames.size() || frames[storageIndex] < 0 ? pTibExt->PipIndex : frames[storageIndex];
@@ -132,7 +132,7 @@ namespace Tiberiumpip
 		}
 
 		static COMPILETIMEEVAL std::array<int, 4u> defOrder { {0, 2, 3, 1} };
-		const auto displayOrders = RulesExtData::Instance()->Pips_Tiberiums_DisplayOrder.GetElements(make_iterator(&defOrder[0], 4u));
+		const auto displayOrders = FakeRulesClass::Instance()->Pips_Tiberiums_DisplayOrder.GetElements(make_iterator(&defOrder[0], 4u));
 
 		for (int i = nMax; i; --i)
 		{
@@ -221,7 +221,7 @@ void __fastcall FakeTechnoClass::__Draw_Pips(TechnoClass* techno, discard_t, Poi
 
 	PipDrawState drawState {
 		.pos = cur_pos ,
-		.spacigns_ = (isBuilding ? RulesExtData::Instance()->Pips_Generic_Buildings_Size : RulesExtData::Instance()->Pips_Generic_Size).Get()
+		.spacigns_ = (isBuilding ? FakeRulesClass::Instance()->Pips_Generic_Buildings_Size : FakeRulesClass::Instance()->Pips_Generic_Size).Get()
 	};
 
 	PipDrawInfo pipInfo {
@@ -433,7 +433,7 @@ static void DrawAmmoPip(TechnoClass* techno, bool isBuilding, SHPStruct* pipShap
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(technoType);
 
 	const Point2D pipSize = pTypeExt->AmmoPipSize.Get((isBuilding ?
-		RulesExtData::Instance()->Pips_Ammo_Buildings_Size : RulesExtData::Instance()->Pips_Ammo_Size));
+		FakeRulesClass::Instance()->Pips_Ammo_Buildings_Size : FakeRulesClass::Instance()->Pips_Ammo_Size));
 
 	int pipWrap = technoType->PipWrap;
 	ConvertClass* pConvert = pTypeExt->AmmoPip_Palette.GetConvert() ?

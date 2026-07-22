@@ -46,7 +46,7 @@ void FakeAircraftClass::_AI()
 	const bool isWarpingIn = this->IsWarpingIn();
 
 	if ((isWarpedOut || isWarpingIn)) {
-		TechnoExtData::PlayChronoSparkleAnim(this, &this->Location, 0, RulesExtData::Instance()->ChronoSparkleDisplayDelay);
+		TechnoExtData::PlayChronoSparkleAnim(this, &this->Location, 0, FakeRulesClass::Instance()->ChronoSparkleDisplayDelay);
 	}
 
 	const bool needsLocoProcess = isWarpingIn
@@ -126,7 +126,7 @@ void FakeAircraftClass::_AI()
 			} else if (this->IsInAir()) {
 				int damage = AircraftTypeExtContainer::Instance.Find(this->Type)
 					->ExtendedAircraftMissions_UnlandDamage
-					.Get(RulesExtData::Instance()->ExtendedAircraftMissions_UnlandDamage);
+					.Get(FakeRulesClass::Instance()->ExtendedAircraftMissions_UnlandDamage);
 
 				if (damage > 0) {
 					if (!extendedMissions
@@ -251,7 +251,7 @@ void FakeAircraftClass::_AI()
 		// Damage smoke anim
 		// --------------------------------------------------------------------
 
-		if (AnimTypeClass* pType = pTypeExt->SmokeAnim.Get(RulesExtData::Instance()->DefaultAircraftDamagedSmoke)) {
+		if (AnimTypeClass* pType = pTypeExt->SmokeAnim.Get(FakeRulesClass::Instance()->DefaultAircraftDamagedSmoke)) {
 			const int chance = (this->Health > 0) ?
 				pTypeExt->SmokeChanceRed.Get(10) : pTypeExt->SmokeChanceDead.Get(80);
 

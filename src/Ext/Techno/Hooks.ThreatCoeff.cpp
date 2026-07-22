@@ -54,7 +54,7 @@ void ApplyExtraThreat(TechnoClass* pThis, TechnoTypeExtData* pTypeExt, TechnoCla
 	if (!pTypeExt->ExtraThreat_Enabled || !pTarget)
 		return;
 
-	auto pRules = RulesExtData::Instance();
+	auto pRules = FakeRulesClass::Instance();
 	double bonus = pTypeExt->ExtraThreat_IsThreat.Get(pRules->ExtraThreat_IsThreat);
 
 	if (bonus > 0.0 && IsAThreatToMe(pThis, pTarget)) {

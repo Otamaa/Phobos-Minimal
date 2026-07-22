@@ -23,10 +23,10 @@ bool FakeInfantryClass::_Paradrop(CoordStruct* pCoords)
 	Mission mission;
 
 	if (!this->Owner->IsControlledByHuman())
-		mission = pTypeExt->AIParadropMission.Get(RulesExtData::Instance()->AIParadropMission);
+		mission = pTypeExt->AIParadropMission.Get(FakeRulesClass::Instance()->AIParadropMission);
 	else
 	{
-		const auto assign = pTypeExt->ParadropMission.Get(RulesExtData::Instance()->ParadropMission);
+		const auto assign = pTypeExt->ParadropMission.Get(FakeRulesClass::Instance()->ParadropMission);
 
 		if(assign != Mission::None ){
 			mission = assign;
@@ -79,7 +79,7 @@ void HandleInfantryDamaged(FakeInfantryClass* pThis, TechnoClass* source, HouseC
 			int PanixMax = 100;
 			if (pThis->Type->Doggie && pThis->IsRedHP())
 			{
-				PanixMax = RulesExtData::Instance()->DoggiePanicMax;
+				PanixMax = FakeRulesClass::Instance()->DoggiePanicMax;
 			}
 
 			pThis->PanicDurationLeft = PanixMax;
@@ -231,7 +231,7 @@ void ProcessStandardDeathType(FakeInfantryClass* pThis, WarheadTypeClass* warhea
 				break;
 			case InfDeath::Electro:
 			{
-				AnimTypeClass* El = RulesExtData::Instance()->ElectricDeath;
+				AnimTypeClass* El = FakeRulesClass::Instance()->ElectricDeath;
 
 				if (!El)
 				{

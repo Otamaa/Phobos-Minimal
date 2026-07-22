@@ -65,7 +65,7 @@ void FakeBombClass::__Detonate() {
 			// Also adjust detonation coordinate.
 			auto pExt = this->_GetExtData();
 
-			CoordStruct coords = pExt->Weapon->Ivan_AttachToCenter.Get(RulesExtData::Instance()->IvanBombAttachToCenter) ?
+			CoordStruct coords = pExt->Weapon->Ivan_AttachToCenter.Get(FakeRulesClass::Instance()->IvanBombAttachToCenter) ?
 				pTarget->GetCenterCoords() : pTarget->Location;
 
 			const auto pBombWH = pExt->Weapon->Ivan_WH.Get(RulesClass::Instance->IvanWarhead);

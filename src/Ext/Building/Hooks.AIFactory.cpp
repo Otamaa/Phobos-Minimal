@@ -10,7 +10,7 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 {
 	BuildingClass** currFactory = nullptr;
 	bool block = false;
-	auto pRules = RulesExtData::Instance();
+	auto pRules = FakeRulesClass::Instance();
 
 	switch (AbsType)
 	{
@@ -87,7 +87,7 @@ ASMJIT_PATCH(0x4401BB, BuildingClass_AI_PickWithFreeDocks, 0x6) //was C
 	if (!pBuilding->Owner || pBuilding->Owner->IsControlledByHuman() || pBuilding->Owner->IsNeutral())
 		return 0x0;
 
-	auto pRules = RulesExtData::Instance();
+	auto pRules = FakeRulesClass::Instance();
 
 	bool ForbidParallelAIQueues_ = pRules->ForbidParallelAIQueues_Aircraft.Get(!pRules->AllowParallelAIQueues);
 
@@ -123,7 +123,7 @@ ASMJIT_PATCH(0x4502F4, BuildingClass_Update_Factory, 0x6)
 	if (!pOwner || !pOwner->Production)
 		return 0x0;
 
-	//	auto pRules = RulesExtData::Instance();
+	//	auto pRules = FakeRulesClass::Instance();
 	HouseExtData* pData = HouseExtContainer::Instance.Find(pOwner);
 	const auto& [curFactory, block, type] = GetFactory(pThis->Type->Factory, pThis->Type->Naval, pData);
 

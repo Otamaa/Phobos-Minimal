@@ -645,7 +645,7 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 
 	//const bool ISPermaMC = this->PermaMC && !pBullet;
 
-	if ((this->IsCellSpreadWH || this->CritCurrentChance > 0.0) && this->ApplyPerTargetEffectsOnDetonate.Get(RulesExtData::Instance()->ApplyPerTargetEffectsOnDetonate))
+	if ((this->IsCellSpreadWH || this->CritCurrentChance > 0.0) && this->ApplyPerTargetEffectsOnDetonate.Get(FakeRulesClass::Instance()->ApplyPerTargetEffectsOnDetonate))
 	{
 		if (this->Crit_ActiveChanceAnims.size() > 0 && this->CritCurrentChance > 0.0)
 		{
@@ -953,7 +953,7 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 
 void WarheadTypeExtData::ApplyReturnWarhead(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* pOwner)
 {
-	const double dice = this->ReturnWarhead_ApplyChancePerTarget || !this->ApplyPerTargetEffectsOnDetonate.Get(RulesExtData::Instance()->ApplyPerTargetEffectsOnDetonate) ? ScenarioClass::Instance->Random.RandomDouble() : this->ReturnWarhead_RandomBuffer;
+	const double dice = this->ReturnWarhead_ApplyChancePerTarget || !this->ApplyPerTargetEffectsOnDetonate.Get(FakeRulesClass::Instance()->ApplyPerTargetEffectsOnDetonate) ? ScenarioClass::Instance->Random.RandomDouble() : this->ReturnWarhead_RandomBuffer;
 
 	if (this->ReturnWarhead_Chance < dice)
 		return;
@@ -1092,7 +1092,7 @@ void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 HouseClass*  WarheadTypeExtData::ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass* pTarget) const
 {
 	if (const auto pController = pTarget->MindControlledBy) {
-		const bool silent = this->RemoveMindControl_Silent.Get(RulesExtData::Instance()->RemoveMindControl_Silent);
+		const bool silent = this->RemoveMindControl_Silent.Get(FakeRulesClass::Instance()->RemoveMindControl_Silent);
 		((FakeCaptureManagerClass*)pController->CaptureManager)->__FreeUnit(pTarget , silent);
 		return pTarget->Owner;
 	}
@@ -1124,7 +1124,7 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 
 	double dice;
 
-	if (this->Crit_ApplyChancePerTarget|| !this->ApplyPerTargetEffectsOnDetonate.Get(RulesExtData::Instance()->ApplyPerTargetEffectsOnDetonate))
+	if (this->Crit_ApplyChancePerTarget|| !this->ApplyPerTargetEffectsOnDetonate.Get(FakeRulesClass::Instance()->ApplyPerTargetEffectsOnDetonate))
 		dice = ScenarioClass::Instance->Random.RandomDouble();
 	else
 		dice = this->CritRandomBuffer;

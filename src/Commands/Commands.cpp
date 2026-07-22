@@ -323,7 +323,7 @@ DEFINE_PATCH_TYPED(BYTE, 0x731B67, 4u);
 
 DEFINE_HOOK(0x5370A0, BeaconPlacementCommandClass_ExecuteSub_Start, 0x5)
 {
-	if (RulesExtData::Instance()->AllowBeaconHotKeyInSinglePlayer)
+	if (FakeRulesClass::Instance()->AllowBeaconHotKeyInSinglePlayer)
 		return 0x5370AE;
 
 	return 0;

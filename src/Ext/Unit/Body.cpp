@@ -538,14 +538,14 @@ bool FakeUnitClass::_Paradrop(CoordStruct* pCoords)
 	}
 
 	auto pExt = TechnoExtContainer::Instance.Find(this);
-	if (pExt->Is_DriverKilled || !RulesExtData::Instance()->AssignUnitMissionAfterParadropped)
+	if (pExt->Is_DriverKilled || !FakeRulesClass::Instance()->AssignUnitMissionAfterParadropped)
 		return true;
 
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
 
-	if (pTypeExt->ParadropMission.Get(RulesExtData::Instance()->ParadropMission) != Mission::None)
+	if (pTypeExt->ParadropMission.Get(FakeRulesClass::Instance()->ParadropMission) != Mission::None)
 	{
-		this->QueueMission(pTypeExt->ParadropMission.Get(RulesExtData::Instance()->ParadropMission), false);
+		this->QueueMission(pTypeExt->ParadropMission.Get(FakeRulesClass::Instance()->ParadropMission), false);
 	}
 	else if (this->Type->ResourceGatherer || this->Type->Harvester)
 	{
@@ -557,7 +557,7 @@ bool FakeUnitClass::_Paradrop(CoordStruct* pCoords)
 	}
 	else if (!this->Owner->IsControlledByHuman())
 	{
-		this->QueueMission(pTypeExt->AIParadropMission.Get(RulesExtData::Instance()->AIParadropMission), false);
+		this->QueueMission(pTypeExt->AIParadropMission.Get(FakeRulesClass::Instance()->AIParadropMission), false);
 	}
 	else
 	{
@@ -687,7 +687,7 @@ bool FakeUnitClass::_Harvesting()
 
 		if (this->Type->Weeder) {
 			pCell->RemoveWeed();
-			storage->IncreaseAmount(RulesExtData::Instance()->Veins_PerCellAmount, 0);
+			storage->IncreaseAmount(FakeRulesClass::Instance()->Veins_PerCellAmount, 0);
 			this->Animation.Start(loadRate* 3);
 			return true;
 		} else {

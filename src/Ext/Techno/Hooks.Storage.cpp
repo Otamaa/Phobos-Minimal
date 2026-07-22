@@ -183,7 +183,7 @@ ASMJIT_PATCH(0x73E3BF, UnitClass_Mission_Unload_replace, 0x6)
 
 	const  auto pType = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	const int idxTiberium = unit_storage->GetFirstSlotUsed();
-	float dumpAmount = pType->HarvesterDumpAmount.Get(RulesExtData::Instance()->HarvesterDumpAmount.Get());
+	float dumpAmount = pType->HarvesterDumpAmount.Get(FakeRulesClass::Instance()->HarvesterDumpAmount.Get());
 	const float amountCanBeRemoved = idxTiberium != -1 ?
 		Math::abs((float)unit_storage->GetAmount(idxTiberium)) : 0.0f;//after decreased
 
@@ -280,12 +280,12 @@ ASMJIT_PATCH(0x738749, UnitClass_Destroy_TiberiumExplosive, 0x6)
 		{
 
 			CoordStruct crd = pThis->GetCoords();
-			if (auto pWH = RulesExtData::Instance()->Tiberium_ExplosiveWarhead)
+			if (auto pWH = FakeRulesClass::Instance()->Tiberium_ExplosiveWarhead)
 			{
 				DamageArea::Apply(&crd, morePower, const_cast<UnitClass*>(pThis), pWH, pWH->Tiberium, pThis->Owner);
 			}
 
-			if (auto pAnim = RulesExtData::Instance()->Tiberium_ExplosiveAnim)
+			if (auto pAnim = FakeRulesClass::Instance()->Tiberium_ExplosiveAnim)
 			{
 				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, crd, 0, 1, AnimFlag(0x2600), -15, false),
 					pThis->Owner,
@@ -394,15 +394,15 @@ ASMJIT_PATCH(0x522D50, InfantryClass_StorageAI_Handle, 0x5)
 			{
 				const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pUnit->Type->DeploysInto);
 
-				if (pTypeExt->DisplayIncome.Get(RulesExtData::Instance()->DisplayIncome))
+				if (pTypeExt->DisplayIncome.Get(FakeRulesClass::Instance()->DisplayIncome))
 				{
-					if (pThis->Owner->IsControlledByHuman() || RulesExtData::Instance()->DisplayIncome_AllowAI)
+					if (pThis->Owner->IsControlledByHuman() || FakeRulesClass::Instance()->DisplayIncome_AllowAI)
 					{
 						FlyingStrings::Instance.AddMoneyString(
 						money,
 						money,
 						pThis,
-						pTypeExt->DisplayIncome_Houses.Get(RulesExtData::Instance()->DisplayIncome_Houses),
+						pTypeExt->DisplayIncome_Houses.Get(FakeRulesClass::Instance()->DisplayIncome_Houses),
 						pThis->GetCoords(),
 						pTypeExt->DisplayIncome_Offset, ColorStruct::Empty);
 					}

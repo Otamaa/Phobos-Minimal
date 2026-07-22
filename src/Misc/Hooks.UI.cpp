@@ -227,12 +227,12 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 ASMJIT_PATCH(0x715A4D, Replace_XXICON_With_New, 0x7)         //TechnoTypeClass::ReadINI
 {
 	char pFilename[0x20];
-	strcpy_s(pFilename, RulesExtData::Instance()->MissingCameo.data());
+	strcpy_s(pFilename, FakeRulesClass::Instance()->MissingCameo.data());
 	_strlwr_s(pFilename);
 
 	if (_stricmp(pFilename, GameStrings::XXICON_SHP())
 		&& strstr(pFilename, GameStrings::dot_SHP())) {
-		if (const auto pFile = FakeFileLoader::_Retrieve(RulesExtData::Instance()->MissingCameo.data(), false)) {
+		if (const auto pFile = FakeFileLoader::_Retrieve(FakeRulesClass::Instance()->MissingCameo.data(), false)) {
 			R->EAX(pFile);
 			return R->Origin() + 0xC;
 		}
@@ -341,7 +341,7 @@ ASMJIT_PATCH(0x604985, GetDialogUIStatusLabels_ShowBriefing, 0x5)
 // 	GET(SuperWeaponTypeClass*, pLeftSW, EAX);
 // 	GET(SuperWeaponTypeClass*, pRightSW, ECX);
 
-// 	if (RulesExtData::Instance()->SortCameoByName)
+// 	if (FakeRulesClass::Instance()->SortCameoByName)
 // 	{
 // 		const int result = strcmp(pLeftSW->Name, pRightSW->Name);
 
@@ -361,7 +361,7 @@ ASMJIT_PATCH(0x604985, GetDialogUIStatusLabels_ShowBriefing, 0x5)
 // 	GET(TechnoTypeClass*, pLeft, EDI);
 // 	GET(TechnoTypeClass*, pRight, EBP);
 
-// 	if (RulesExtData::Instance()->SortCameoByName)
+// 	if (FakeRulesClass::Instance()->SortCameoByName)
 // 	{
 // 		const int result = strcmp(pLeft->Name, pRight->Name);
 

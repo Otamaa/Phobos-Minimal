@@ -20,7 +20,7 @@ ASMJIT_PATCH(0x4148F4, AircraftClass_DrawIt_LevelIntensity, 0x5)
 	else if (NukeFlash::IsFadingIn())
 		level = ScenarioClass::Instance->NukeLighting.Level;
 
-	auto const pRulesExt = RulesExtData::Instance();
+	auto const pRulesExt = FakeRulesClass::Instance();
 	int levelIntensity = 0;
 	int cellIntensity = 1000;
 	TechnoExtData::GetLevelIntensity(pThis, level, levelIntensity, cellIntensity, pRulesExt->AircraftLevelLightMultiplier, pRulesExt->AircraftCellLightLevelMultiplier);
@@ -40,7 +40,7 @@ ASMJIT_PATCH(0x51933B, InfantryClass_DrawIt_LevelIntensity, 0x6)
 
 	if (locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor))
 	{
-		auto const pRulesExt = RulesExtData::Instance();
+		auto const pRulesExt = FakeRulesClass::Instance();
 		int levelIntensity = 0;
 		int cellIntensity = 1000;
 		bool applyBridgeBonus = pRulesExt->JumpjetCellLightApplyBridgeHeight ? TechnoExtData::IsOnBridge(pThis) : false;

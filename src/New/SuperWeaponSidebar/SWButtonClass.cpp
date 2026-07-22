@@ -49,7 +49,7 @@ bool SWButtonClass::Draw(bool forced)
 	{
 		const auto pCameoRef = pCameo->AsReference();
 		char pFilename[0x20];
-		strcpy_s(pFilename, RulesExtData::Instance()->MissingCameo.data());
+		strcpy_s(pFilename, FakeRulesClass::Instance()->MissingCameo.data());
 		_strlwr_s(pFilename);
 
 		if (!_stricmp(pCameoRef->Filename, GameStrings::XXICON_SHP) && strstr(pFilename, ".pcx"))

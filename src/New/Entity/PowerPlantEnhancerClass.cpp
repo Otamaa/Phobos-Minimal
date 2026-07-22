@@ -17,7 +17,7 @@
 
 void PowerPlantEnhancerClass::DrawIndicators(BuildingClass* pCurrentBuilding) {
 
-	if(!RulesExtData::Instance()->ShowPowerPlantEnhancerRange.Get(Phobos::Config::ShowPowerPlantEnhancerRange))
+	if(!FakeRulesClass::Instance()->ShowPowerPlantEnhancerRange.Get(Phobos::Config::ShowPowerPlantEnhancerRange))
 		return;
 	
 	const auto pCurrentExt = HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer());

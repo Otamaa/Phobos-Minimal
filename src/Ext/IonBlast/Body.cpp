@@ -310,7 +310,7 @@ void FakeIonBlastClass::_DrawAll()
 
 void FakeIonBlastClass::_Draw()
 {
-	if (!RulesExtData::DetailsCurrentlyEnabled())
+	if (!FakeRulesClass::DetailsCurrentlyEnabled())
 		return;
 
 	auto [screenPos, IsIn] = TacticalClass::Instance->GetCoordsToClientSituation(this->Location);

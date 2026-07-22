@@ -23,7 +23,7 @@ ASMJIT_PATCH(0x4CF8B1, FlyLocomotionClass_Draw_Point_NoWobbles, 0x6)
 	GET(TechnoTypeClass*, pType, EAX);
 
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	const auto& globalVal = RulesExtData::Instance()->FlyNoWobbles;
+	const auto& globalVal = FakeRulesClass::Instance()->FlyNoWobbles;
 	R->CL(pTypeExt->FlyNoWobbles.Get(globalVal.Get(pType->IsDropship)));
 	return Continue;
 }
@@ -52,11 +52,11 @@ ASMJIT_PATCH(0x4CDE64, FlyLocomotionClass_sub_4CD600_HunterSeeker_Ascent, 6)
 			// is hunter seeker
 			if (pThis->IsTakingOff)
 			{
-				max = pExt->HunterSeekerEmergeSpeed.Get(RulesExtData::Instance()->HunterSeekerEmergeSpeed);
+				max = pExt->HunterSeekerEmergeSpeed.Get(FakeRulesClass::Instance()->HunterSeekerEmergeSpeed);
 			}
 			else
 			{
-				max = pExt->HunterSeekerAscentSpeed.Get(RulesExtData::Instance()->HunterSeekerAscentSpeed);
+				max = pExt->HunterSeekerAscentSpeed.Get(FakeRulesClass::Instance()->HunterSeekerAscentSpeed);
 			}
 		}
 	}
@@ -80,7 +80,7 @@ ASMJIT_PATCH(0x4CDF54, FlyLocomotionClass_sub_4CD600_HunterSeeker_Descent, 5)
 
 	if (pType->HunterSeeker)
 	{
-		auto ret = pExt->HunterSeekerDescentSpeed.Get(RulesExtData::Instance()->HunterSeekerDescentSpeed);
+		auto ret = pExt->HunterSeekerDescentSpeed.Get(FakeRulesClass::Instance()->HunterSeekerDescentSpeed);
 		if (max < ret)
 		{
 			ret = max;
@@ -398,8 +398,8 @@ ASMJIT_PATCH(0x4CF3D0, FlyLocomotionClass_0x4CEFB0_SetFlightLevel, 0x7) // Make 
 			pFootPtr->Target ? pFootPtr->Target : MapClass::Instance->TryGetCellAt(pThis->MovingDestination)
 			)
 		{
-			auto const DetonateProximity = pExt->HunterSeekerDetonateProximity.Get(RulesExtData::Instance()->HunterSeekerDetonateProximity);
-			auto const DescendProximity = pExt->HunterSeekerDescendProximity.Get(RulesExtData::Instance()->HunterSeekerDescendProximity);
+			auto const DetonateProximity = pExt->HunterSeekerDetonateProximity.Get(FakeRulesClass::Instance()->HunterSeekerDetonateProximity);
+			auto const DescendProximity = pExt->HunterSeekerDescendProximity.Get(FakeRulesClass::Instance()->HunterSeekerDescendProximity);
 
 			// get th difference of our position to the target,
 			// disregarding the Z component.
@@ -581,7 +581,7 @@ ASMJIT_PATCH(0x4CE689, FlyLocomotionClass_0x4CE680_TakeOffAnim, 0x5)
 		if (!pCell || pAir->GetHeight() > pCell->GetFloorHeight({ 1,1 }))
 			return 0x0;
 
-		if (auto pDecidedAnim = AircraftTypeExtContainer::Instance.Find(pAir->Type)->TakeOff_Anim.Get(RulesExtData::Instance()->Aircraft_TakeOffAnim.Get()))
+		if (auto pDecidedAnim = AircraftTypeExtContainer::Instance.Find(pAir->Type)->TakeOff_Anim.Get(FakeRulesClass::Instance()->Aircraft_TakeOffAnim.Get()))
 		{
 			auto const nCoord = pAir->GetCoords();
 			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDecidedAnim, nCoord, 0, 1, AnimFlag::AnimFlag_600, 0, 0),
@@ -608,15 +608,15 @@ ASMJIT_PATCH(0x4CEB51, FlyLocomotionClass_0x4CE680_LandingAnim, 0x8)
 
 		auto GetDefaultType = [pLinked, &IsAir, pType]() {
 				if (pType->IsDropship)
-					return RulesExtData::Instance()->DropShip_LandAnim;
+					return FakeRulesClass::Instance()->DropShip_LandAnim;
 
 				if (auto pAir = cast_to<AircraftClass*, false>(pLinked)){
 					IsAir = true;
 					if(pAir->Type->Carryall)
-						return RulesExtData::Instance()->CarryAll_LandAnim;
+						return FakeRulesClass::Instance()->CarryAll_LandAnim;
 				}
 
-			return RulesExtData::Instance()->LandingAnim;
+			return FakeRulesClass::Instance()->LandingAnim;
 		};
 
 		auto GetLandingAnim = [&](){
@@ -628,7 +628,7 @@ ASMJIT_PATCH(0x4CEB51, FlyLocomotionClass_0x4CE680_LandingAnim, 0x8)
 				auto pExt = AircraftExtContainer::Instance.Find((AircraftClass*)pLinked);
 
 				pAnimRet = pCell->LandType == LandType::Water && !pCell->ContainsBridge() && pExt->TypeExtData->Landing_AnimOnWater
-				?  pExt->TypeExtData->Landing_AnimOnWater :  pExt->TypeExtData->Landing_Anim.Get(RulesExtData::Instance()->Aircraft_LandAnim.Get());
+				?  pExt->TypeExtData->Landing_AnimOnWater :  pExt->TypeExtData->Landing_Anim.Get(FakeRulesClass::Instance()->Aircraft_LandAnim.Get());
 			}
 
 			return !pAnimRet ? GetDefaultType() : nullptr;

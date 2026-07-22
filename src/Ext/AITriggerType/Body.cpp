@@ -490,7 +490,7 @@ bool AITriggerTypeExtData::IronCurtainNearReady(AITriggerTypeClass* pThis, House
 
 bool AITriggerTypeExtData::ChronosphereNearReady(AITriggerTypeClass* pThis, HouseClass* pOwner, HouseClass* pEnemy)
 {
-	int idx = RulesExtData::Instance()->AIChronoSphereSW;
+	int idx = FakeRulesClass::Instance()->AIChronoSphereSW;
 
 	return SuperWeaponNearReady(pOwner, idx >= 0 ? idx : 3);
 }
@@ -621,7 +621,7 @@ bool AITriggerTypeExt::ReadCustomizableAICondition(HouseClass* pHouse, int pickM
 
 void AITriggerTypeExt::CustomizableAICondition(AITriggerTypeClass* pAITriggerType, HouseClass* pHouse, int condition)
 {
-	auto& AIConditionsLists = RulesExtData::Instance()->AIConditionsLists;
+	auto& AIConditionsLists = FakeRulesClass::Instance()->AIConditionsLists;
 
 	int essentialRequirementsCount = -1;
 	int leastOptionalRequirementsCount = -1;
@@ -1082,79 +1082,79 @@ bool NOINLINE AITriggerTypeExtData::CheckConditionType(AITriggerTypeClass* pThis
 		//9
 		case PhobosAINewConditionTypes::EnemyOwnsAITargetTypesLists:
 		{
-			if ((size_t)pThis->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
+			if ((size_t)pThis->Conditions[3].Operand < FakeRulesClass::Instance()->AITargetTypesLists.size())
 				conditionMet = EnemyOwns(pThis, house1, house2, false,
-					RulesExtData::Instance()->AITargetTypesLists[pThis->Conditions[3].Operand]);
+					FakeRulesClass::Instance()->AITargetTypesLists[pThis->Conditions[3].Operand]);
 
 			break;
 		}
 		//10
 		case PhobosAINewConditionTypes::HouseOwnsAITargetTypesLists:
 		{
-			if ((size_t)pThis->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
+			if ((size_t)pThis->Conditions[3].Operand < FakeRulesClass::Instance()->AITargetTypesLists.size())
 				conditionMet = HouseOwns(pThis, house1, false,
-					RulesExtData::Instance()->AITargetTypesLists[pThis->Conditions[3].Operand]);
+					FakeRulesClass::Instance()->AITargetTypesLists[pThis->Conditions[3].Operand]);
 
 			break;
 		}
 		//11
 		case PhobosAINewConditionTypes::NeutralOwnsAITargetTypesLists:
 		{
-			if ((size_t)pThis->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
-				conditionMet = NeutralOwns(pThis, RulesExtData::Instance()->AITargetTypesLists[pThis->Conditions[3].Operand]);
+			if ((size_t)pThis->Conditions[3].Operand < FakeRulesClass::Instance()->AITargetTypesLists.size())
+				conditionMet = NeutralOwns(pThis, FakeRulesClass::Instance()->AITargetTypesLists[pThis->Conditions[3].Operand]);
 
 			break;
 		}
 		//12
 		case PhobosAINewConditionTypes::AllEnemyOwnsAITargetTypesLists:
 		{
-			if ((size_t)pThis->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
+			if ((size_t)pThis->Conditions[3].Operand < FakeRulesClass::Instance()->AITargetTypesLists.size())
 				conditionMet = EnemyOwns(pThis, house1, nullptr, false,
-					RulesExtData::Instance()->AITargetTypesLists[pThis->Conditions[3].Operand]);
+					FakeRulesClass::Instance()->AITargetTypesLists[pThis->Conditions[3].Operand]);
 
 			break;
 		}
 		//13
 		case PhobosAINewConditionTypes::AllyOwnsAITargetTypesLists:
 		{
-			if ((size_t)pThis->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
+			if ((size_t)pThis->Conditions[3].Operand < FakeRulesClass::Instance()->AITargetTypesLists.size())
 				conditionMet = HouseOwns(pThis, house1, true,
-					RulesExtData::Instance()->AITargetTypesLists[pThis->Conditions[3].Operand]);
+					FakeRulesClass::Instance()->AITargetTypesLists[pThis->Conditions[3].Operand]);
 
 			break;
 		}
 		//14
 		case PhobosAINewConditionTypes::EnemyOwnsAITargetTypesListsComp:
 		{
-			if ((size_t)pThis->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
+			if ((size_t)pThis->Conditions[3].Operand < FakeRulesClass::Instance()->AITargetTypesLists.size())
 				conditionMet = EnemyOwnsAll(pThis, house1, house2,
-					RulesExtData::Instance()->AITargetTypesLists[pThis->Conditions[3].Operand]);
+					FakeRulesClass::Instance()->AITargetTypesLists[pThis->Conditions[3].Operand]);
 
 			break;
 		}
 		//15
 		case PhobosAINewConditionTypes::HouseOwnsAITargetTypesListsComp:
 		{
-			if ((size_t)pThis->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
+			if ((size_t)pThis->Conditions[3].Operand < FakeRulesClass::Instance()->AITargetTypesLists.size())
 				conditionMet = HouseOwnsAll(pThis, house1,
-					RulesExtData::Instance()->AITargetTypesLists[pThis->Conditions[3].Operand]);
+					FakeRulesClass::Instance()->AITargetTypesLists[pThis->Conditions[3].Operand]);
 
 			break;
 		}
 		//16
 		case PhobosAINewConditionTypes::NeutralOwnsAITargetTypesListsComp:
 		{
-			if ((size_t)pThis->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
-				conditionMet = NeutralOwnsAll(pThis, RulesExtData::Instance()->AITargetTypesLists[pThis->Conditions[3].Operand]);
+			if ((size_t)pThis->Conditions[3].Operand < FakeRulesClass::Instance()->AITargetTypesLists.size())
+				conditionMet = NeutralOwnsAll(pThis, FakeRulesClass::Instance()->AITargetTypesLists[pThis->Conditions[3].Operand]);
 
 			break;
 		}
 		//17
 		case PhobosAINewConditionTypes::AllEnemyOwnsAITargetTypesListsComp:
 		{
-			if ((size_t)pThis->Conditions[3].Operand < RulesExtData::Instance()->AITargetTypesLists.size())
+			if ((size_t)pThis->Conditions[3].Operand < FakeRulesClass::Instance()->AITargetTypesLists.size())
 				conditionMet = EnemyOwnsAll(pThis, house1, nullptr,
-					RulesExtData::Instance()->AITargetTypesLists[pThis->Conditions[3].Operand]);
+					FakeRulesClass::Instance()->AITargetTypesLists[pThis->Conditions[3].Operand]);
 
 			break;
 		}

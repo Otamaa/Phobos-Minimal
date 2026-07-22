@@ -151,7 +151,7 @@ void FakeHouseClass::_GiveTiberium(float amount, int type)
 			}
 		}
 
-		if (RulesExtData::Instance()->GiveMoneyIfStorageFull)
+		if (FakeRulesClass::Instance()->GiveMoneyIfStorageFull)
 		{
 			amount += (float)rest;
 
@@ -501,7 +501,7 @@ CanBuildResult HouseExtData::PrereqValidate(
 			return CanBuildResult::TemporarilyUnbuildable;
 	}
 
-	if (!IsHuman && RulesExtData::Instance()->AllowBypassBuildLimit[pHouse->GetAIDifficultyIndex()]) {
+	if (!IsHuman && FakeRulesClass::Instance()->AllowBypassBuildLimit[pHouse->GetAIDifficultyIndex()]) {
 		return CanBuildResult::Buildable;
 	}
 
@@ -1085,7 +1085,7 @@ AircraftTypeClass* HouseExtData::GetParadropPlane(HouseClass* pHouse)
 		// didn't help. default to the PDPlane like the game does.
 
 		pRest =
-			AircraftTypeClass::Array->get_or_default(iPlane, RulesExtData::Instance()->DefaultParaPlane);
+			AircraftTypeClass::Array->get_or_default(iPlane, FakeRulesClass::Instance()->DefaultParaPlane);
 	}
 
 	if (pRest && pRest->Strength == 0)
@@ -1670,8 +1670,8 @@ HouseClass* HouseExtData::FindFirstCivilianHouse()
 
 		auto idx = SideClass::FindIndexById(GameStrings::Civilian);
 
-		if (RulesExtData::Instance()->CivilianSideIndex == -1 || RulesExtData::Instance()->CivilianSideIndex != idx)
-			RulesExtData::Instance()->CivilianSideIndex = idx;
+		if (FakeRulesClass::Instance()->CivilianSideIndex == -1 || FakeRulesClass::Instance()->CivilianSideIndex != idx)
+			FakeRulesClass::Instance()->CivilianSideIndex = idx;
 
 		if (!HouseExtContainer::Instance.Civilian) {
 			HouseExtContainer::Instance.CivilianSide = SideClass::Array->Items[idx];
@@ -1698,8 +1698,8 @@ HouseClass* HouseExtData::FindSpecial()
 
 		auto idx = HouseTypeClass::FindIndexByIdAndName(GameStrings::Special);
 
-		if (RulesExtData::Instance()->SpecialCountryIndex == -1 || RulesExtData::Instance()->SpecialCountryIndex != idx)
-			RulesExtData::Instance()->SpecialCountryIndex = idx;
+		if (FakeRulesClass::Instance()->SpecialCountryIndex == -1 || FakeRulesClass::Instance()->SpecialCountryIndex != idx)
+			FakeRulesClass::Instance()->SpecialCountryIndex = idx;
 
 		if (!HouseExtContainer::Instance.Special) {
 			for (auto pHouse : *HouseClass::Array) {
@@ -1724,8 +1724,8 @@ HouseClass* HouseExtData::FindNeutral()
 	if(!HouseExtContainer::Instance.Neutral){
 		auto idx = HouseTypeClass::FindIndexByIdAndName(GameStrings::Neutral);
 
-		if (RulesExtData::Instance()->NeutralCountryIndex == -1 || RulesExtData::Instance()->NeutralCountryIndex != idx)
-			RulesExtData::Instance()->NeutralCountryIndex = idx;
+		if (FakeRulesClass::Instance()->NeutralCountryIndex == -1 || FakeRulesClass::Instance()->NeutralCountryIndex != idx)
+			FakeRulesClass::Instance()->NeutralCountryIndex = idx;
 
 		if (!HouseExtContainer::Instance.Neutral) {
 			for (auto pHouse : *HouseClass::Array) {
@@ -2551,7 +2551,7 @@ bool HouseExtData::ShouldDisableCameo(HouseClass* pThis, TechnoTypeClass* pType,
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		// The types exist in the list means that they are not buildable now
-		if (pTypeExt->Cameo_AlwaysExist.Get(RulesExtData::Instance()->Cameo_AlwaysExist))
+		if (pTypeExt->Cameo_AlwaysExist.Get(FakeRulesClass::Instance()->Cameo_AlwaysExist))
 		{
 			auto& vec = ScenarioExtData::Instance()->OwnedExistCameoTechnoTypes;
 
@@ -2975,7 +2975,7 @@ bool HouseExtData::AreBattlePointsEnabled()
 	}
 
 	// Global setting
-	if (RulesExtData::Instance()->BattlePoints)
+	if (FakeRulesClass::Instance()->BattlePoints)
 		return true;
 
 	// House specific setting
@@ -3005,8 +3005,8 @@ int HouseExtData::CalculateBattlePoints(TechnoTypeClass* pTechno, HouseClass* pO
 		return pTechnoTypeExt->BattlePoints.Get();
 	else if(!pTechnoTypeExt->BattlePoints.isset()){
 
-		const int Points = RulesExtData::Instance()->BattlePoints_DefaultFriendlyValue.isset() && pThis->IsAlliedWith(pOwner) ?
-			RulesExtData::Instance()->BattlePoints_DefaultFriendlyValue.Get() :  RulesExtData::Instance()->BattlePoints_DefaultValue;
+		const int Points = FakeRulesClass::Instance()->BattlePoints_DefaultFriendlyValue.isset() && pThis->IsAlliedWith(pOwner) ?
+			FakeRulesClass::Instance()->BattlePoints_DefaultFriendlyValue.Get() :  FakeRulesClass::Instance()->BattlePoints_DefaultValue;
 
 		if(Points != 0)
 			return Points;
@@ -3292,7 +3292,7 @@ int FakeHouseClass::_Expert_AI()
 	 *  base has not been established yet.
 	 */
 	if (this->ExpertAITimer.Expired()) {
-		if (RulesExtData::Instance()->AIBiasSpawnCell && !SessionClass::IsCampaign()) {
+		if (FakeRulesClass::Instance()->AIBiasSpawnCell && !SessionClass::IsCampaign()) {
 			if (const auto count = this->ConYards.Count) {
 				const auto wayPoint = this->GetSpawnPosition();
 
@@ -3335,7 +3335,7 @@ int FakeHouseClass::_Expert_AI()
 				for (int i = 0; i < HouseClass::Array->Count; i++) {
 					HouseClass* house = HouseClass::Array->Items[i];
 					if (house != this && !house->Type->MultiplayPassive && !house->Defeated && !this->IsObserver()) {
-						if(!RulesExtData::Instance()->AIAngerOnAlly && this->IsAlliedWith(house))
+						if(!FakeRulesClass::Instance()->AIAngerOnAlly && this->IsAlliedWith(house))
 							continue;
 
 						/**
@@ -3386,7 +3386,7 @@ int FakeHouseClass::_Expert_AI()
 	 *  Use any ready super weapons.
 	 */
 
-	if (!RulesExtData::Instance()->AISuperWeaponDelay.isset()
+	if (!FakeRulesClass::Instance()->AISuperWeaponDelay.isset()
 		&& (!SessionClass::IsCampaign() || this->IQLevel2 >= RulesClass::Instance->IQData.SuperWeapons)) {
 		this->_AITryFireSW();
 	}
@@ -3535,7 +3535,7 @@ bool FakeHouseClass::_AI_Fire_Sale(UrgencyType urgency)
 	bool ret = false;
 	if (urgency == UrgencyType::Critical)
 	{
-		auto const pRules = RulesExtData::Instance();
+		auto const pRules = FakeRulesClass::Instance();
 		auto const pExt = this->_GetExtData();
 
 		if (pRules->AISellAllOnLastLegs)
@@ -3924,7 +3924,7 @@ void FakeHouseClass::_BlowUpAll() {
 					auto occupants = pBld->GetOccupantCount();
 					auto canReturn = (pInitialOwner != this) || occupants > 0;
 
-					if (canReturn && pExt->Returnable.Get(RulesExtData::Instance()->ReturnStructures)) {
+					if (canReturn && pExt->Returnable.Get(FakeRulesClass::Instance()->ReturnStructures)) {
 						// this may change owner
 						if (occupants) {
 							pBld->KillOccupants(nullptr);
@@ -4026,7 +4026,7 @@ void FakeHouseClass::_BlowUpAllBuildings() {
 					auto occupants = pBld->GetOccupantCount();
 					auto canReturn = (pInitialOwner != this) || occupants > 0;
 
-					if (canReturn && pExt->Returnable.Get(RulesExtData::Instance()->ReturnStructures))
+					if (canReturn && pExt->Returnable.Get(FakeRulesClass::Instance()->ReturnStructures))
 					{
 						// this may change owner
 						if (occupants)
@@ -4494,7 +4494,7 @@ bool HouseExtData::CheckBasePlanSanity(HouseClass* const pThis)
 
 void HouseExtData::UpdateTogglePower(HouseClass* pThis)
 {
-	auto pRulesExt = RulesExtData::Instance();
+	auto pRulesExt = FakeRulesClass::Instance();
 
 	if (!pRulesExt->TogglePowerAllowed
 		|| pRulesExt->TogglePowerDelay <= 0
@@ -5091,7 +5091,7 @@ ASMJIT_PATCH(0x4F6532, HouseClass_CTOR, 0x5)
 {
 	GET(HouseClass*, pItem, EAX);
 
-	if (RulesExtData::Instance()->EnablePowerSurplus)
+	if (FakeRulesClass::Instance()->EnablePowerSurplus)
 		pItem->PowerSurplus = RulesClass::Instance->PowerSurplus;
 
 	if (!Phobos::Otamaa::DoingLoadGame) {

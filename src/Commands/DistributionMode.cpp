@@ -138,7 +138,7 @@ void DistributionModeHoldDownCommandClass::DistributionModeOn(int idx)
 			pButton->TurnOn();
 	}
 
-	VocClass::PlayGlobal(RulesExtData::Instance()->StartDistributionModeSound, Panning::Center, 1.0);
+	VocClass::PlayGlobal(FakeRulesClass::Instance()->StartDistributionModeSound, Panning::Center, 1.0);
 
 	if (!DistributionModeHoldDownCommandClass::OnMessageShowed)
 	{
@@ -163,7 +163,7 @@ void DistributionModeHoldDownCommandClass::DistributionModeOff(int idx)
 	if (SessionClass::Instance->MultiplayerObserver)
 		return;
 
-	VocClass::PlayGlobal(RulesExtData::Instance()->EndDistributionModeSound, Panning::Center, 1.0);
+	VocClass::PlayGlobal(FakeRulesClass::Instance()->EndDistributionModeSound, Panning::Center, 1.0);
 
 	if (!DistributionModeHoldDownCommandClass::OffMessageShowed)
 	{
@@ -250,7 +250,7 @@ ASMJIT_PATCH(0x4AE7B3, DisplayClass_ActiveClickWith_Iterate, 0x0)
 					? Phobos::Config::AllowDistributionCommand_AffectsAllies
 					: Phobos::Config::AllowDistributionCommand_AffectsEnemies))
 			{
-				VocClass::PlayGlobal(RulesExtData::Instance()->AddDistributionModeCommandSound, Panning::Center, 1.0);
+				VocClass::PlayGlobal(FakeRulesClass::Instance()->AddDistributionModeCommandSound, Panning::Center, 1.0);
 				const bool targetIsNeutral = pTechno->Owner->IsNeutral();
 				const auto pType = GET_TECHNOTYPE(pTechno);
 				const int range = (2 << spreadMode);

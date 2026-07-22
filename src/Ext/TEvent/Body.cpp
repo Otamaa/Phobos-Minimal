@@ -494,9 +494,9 @@ bool TEventExtData::CellHasAnyTechnoTypeFromListTEvent(TEventClass* pThis, Objec
 		return false;
 	}
 
-	if (RulesExtData::Instance()->AITargetTypesLists.empty()
-		|| size_t(desiredListIdx) >= RulesExtData::Instance()->AITargetTypesLists.size()
-		|| RulesExtData::Instance()->AITargetTypesLists[desiredListIdx].empty())
+	if (FakeRulesClass::Instance()->AITargetTypesLists.empty()
+		|| size_t(desiredListIdx) >= FakeRulesClass::Instance()->AITargetTypesLists.size()
+		|| FakeRulesClass::Instance()->AITargetTypesLists[desiredListIdx].empty())
 		return false;
 
 	bool found = false;
@@ -504,7 +504,7 @@ bool TEventExtData::CellHasAnyTechnoTypeFromListTEvent(TEventClass* pThis, Objec
 	if (auto const pTechno = flag_cast_to<TechnoClass*, false>(pObject)) {
 		auto const pTechnoType = GET_TECHNOTYPE(pTechno);
 
-		for (const auto& pDesiredItem : RulesExtData::Instance()->AITargetTypesLists[desiredListIdx]) {
+		for (const auto& pDesiredItem : FakeRulesClass::Instance()->AITargetTypesLists[desiredListIdx]) {
 			if (pDesiredItem == pTechnoType) {
 				HouseClass* pHouse = GetHouse(pThis->Value, pEventHouse);
 
@@ -616,7 +616,7 @@ bool TEventExtData::HousesAreDestroyedTEvent(TEventClass* pThis)
 {
 	const int nIdxVariable = pThis->Value; //atoi(pThis->String);
 
-	const auto& nHouseList = RulesExtData::Instance()->AIHousesLists;
+	const auto& nHouseList = FakeRulesClass::Instance()->AIHousesLists;
 
 	if ((size_t)nIdxVariable >= nHouseList.size())
 	{

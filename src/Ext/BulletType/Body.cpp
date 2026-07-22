@@ -9,10 +9,10 @@
 #include <Utilities/Macro.h>
 
 BulletTypeClass* BulletTypeExtData::GetDefaultBulletType() {
-	if(!RulesExtData::Instance()->DefaultBulletType)
-		RulesExtData::Instance()->DefaultBulletType = BulletTypeClass::Find(DEFAULT_STR2);
+	if(!FakeRulesClass::Instance()->DefaultBulletType)
+		FakeRulesClass::Instance()->DefaultBulletType = BulletTypeClass::Find(DEFAULT_STR2);
 
-	return RulesExtData::Instance()->DefaultBulletType;
+	return FakeRulesClass::Instance()->DefaultBulletType;
 }
 
 CoordStruct BulletTypeExtData::CalculateInaccurate(BulletTypeClass* pBulletType) {

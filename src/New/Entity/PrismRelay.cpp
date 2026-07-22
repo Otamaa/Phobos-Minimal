@@ -113,7 +113,7 @@ namespace
 
 	int GetGlobalRelayLockoutFrames()
 	{
-		if (auto const pRulesExt = RulesExtData::Instance())
+		if (auto const pRulesExt = FakeRulesClass::Instance())
 		{
 			if (pRulesExt->PrismRelay_SupportTimeout > 0)
 				return pRulesExt->PrismRelay_SupportTimeout;

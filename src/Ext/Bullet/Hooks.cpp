@@ -49,7 +49,7 @@ ASMJIT_PATCH(0x469276, BulletClass_Logics_ApplyMindControl , 0xA)
 
 	const auto pControlledAnimType = pThis->_GetWarheadTypeExtData()->MindControl_Anim.Get(RulesClass::Instance->ControlledAnimationType);
 	const auto pTechno = flag_cast_to<TechnoClass*>(pThis->Target);
-	auto const threatDelay = pThis->_GetWarheadTypeExtData()->MindControl_ThreatDelay.Get(RulesExtData::Instance()->AttackMindControlledDelay);
+	auto const threatDelay = pThis->_GetWarheadTypeExtData()->MindControl_ThreatDelay.Get(FakeRulesClass::Instance()->AttackMindControlledDelay);
 
 	R->AL(((FakeCaptureManagerClass*)payback->CaptureManager)->__CaptureUnit(
 		pTechno,
@@ -210,7 +210,7 @@ ASMJIT_PATCH(0x468B72, BulletClass_MoveTo_End, 0x5)
 	// Before we know how to deal with it, just exclude it.
 	if ((!pThis->WeaponType || !pThis->WeaponType->Warhead->Parasite)
 		&& !pThis->WH->Parasite
-		&& pTypeExt->UpdateImmediately.Get(pType->Inviso && RulesExtData::Instance()->UpdateInvisoImmediately))
+		&& pTypeExt->UpdateImmediately.Get(pType->Inviso && FakeRulesClass::Instance()->UpdateInvisoImmediately))
 	{
 		pThis->Update();
 	}

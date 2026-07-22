@@ -215,7 +215,7 @@ void HugeBar::ProcessHugeBar()
 	if (Technos.empty())
 		return;
 
-	auto& configs = RulesExtData::Instance()->HugeBar_Config;
+	auto& configs = FakeRulesClass::Instance()->HugeBar_Config;
 
 
 	for (size_t i = 0; i < configs.size(); i++)

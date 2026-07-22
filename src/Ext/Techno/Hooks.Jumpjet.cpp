@@ -136,17 +136,17 @@ ASMJIT_PATCH(0x54AEDC, JumpjetLocomotionClass_Process_CheckCrashing, 0x9)
 ASMJIT_PATCH(0x7115AE, TechnoTypeClass_CTOR_JumpjetControls, 0xA)
 {
 	GET(TechnoTypeClass*, pThis, ESI);
-	const auto pRulesExt = RulesExtData::Instance();
+	const auto pRulesExt = FakeRulesClass::Instance();
 
-	pThis->JumpJetData.TurnRate = pRulesExt->AttachedToObject->TurnRate;
-	pThis->JumpJetData.Speed = pRulesExt->AttachedToObject->Speed;
-	pThis->JumpJetData.Climb = static_cast<float>(pRulesExt->AttachedToObject->Climb);
+	pThis->JumpJetData.TurnRate = pRulesExt->TurnRate;
+	pThis->JumpJetData.Speed = pRulesExt->Speed;
+	pThis->JumpJetData.Climb = static_cast<float>(pRulesExt->Climb);
 	pThis->JumpJetData.Crash = static_cast<float>(pRulesExt->JumpjetCrash.Get());
-	pThis->JumpJetData.Height = pRulesExt->AttachedToObject->CruiseHeight;
-	pThis->JumpJetData.Accel = static_cast<float>(pRulesExt->AttachedToObject->Acceleration);
-	pThis->JumpJetData.Wobbles = static_cast<float>(pRulesExt->AttachedToObject->WobblesPerSecond);
+	pThis->JumpJetData.Height = pRulesExt->CruiseHeight;
+	pThis->JumpJetData.Accel = static_cast<float>(pRulesExt->Acceleration);
+	pThis->JumpJetData.Wobbles = static_cast<float>(pRulesExt->WobblesPerSecond);
 	pThis->JumpJetData.NoWobbles = pRulesExt->JumpjetNoWobbles.Get();
-	pThis->JumpJetData.Deviation = pRulesExt->AttachedToObject->WobbleDeviation;
+	pThis->JumpJetData.Deviation = pRulesExt->WobbleDeviation;
 
 	return 0x711601;
 }
@@ -208,7 +208,7 @@ ASMJIT_PATCH(0x54CB0E, JumpjetLocomotionClass_State5_CrashRotation, 0x7)
 {
 	GET(JumpjetLocomotionClass*, pLoco, EDI);
 
-	bool bRotate = RulesExtData::Instance()->JumpjetCrash_Rotate;
+	bool bRotate = FakeRulesClass::Instance()->JumpjetCrash_Rotate;
 
 	if (const auto pOwner = pLoco->LinkedTo ? pLoco->LinkedTo : pLoco->Owner) {
 		bRotate = GET_TECHNOTYPEEXT(pOwner)->JumpjetCrash_Rotate.Get(bRotate);
@@ -289,7 +289,7 @@ Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matri
 		}
 	}
 
-	else if (pTypeExt->JumpjetTilt.Get(RulesExtData::Instance()->JumpjetTilt)
+	else if (pTypeExt->JumpjetTilt.Get(FakeRulesClass::Instance()->JumpjetTilt)
 		&& !onGround && linked->IsAlive && linked->Health > 0 && !linked->IsAttackedByLocomotor)
 	{
 		COMPILETIMEEVAL auto maxTilt = static_cast<float>(Math::PI_BY_TWO_ACCURATE);
@@ -549,7 +549,7 @@ ASMJIT_PATCH(0x54D827, JumpjetLocomotionClass_sub_54D820_PredictHeight, 0x8)
 {
 	GET(JumpjetLocomotionClass*, pThis, ESI);
 
-	if (!RulesExtData::Instance()->JumpjetClimbPredictHeight)
+	if (!FakeRulesClass::Instance()->JumpjetClimbPredictHeight)
 		return 0;
 
 	R->EAX(JumpjetRushHelpers::JumpjetLocomotionPredictHeight(pThis));
@@ -559,7 +559,7 @@ ASMJIT_PATCH(0x54D827, JumpjetLocomotionClass_sub_54D820_PredictHeight, 0x8)
 
 ASMJIT_PATCH(0x54D4C0, JumpjetLocomotionClass_sub_54D0F0_NoStuck, 0x6)
 {
-	if (RulesExtData::Instance()->JumpjetClimbWithoutCutOut || JumpjetRushHelpers::Skip)
+	if (FakeRulesClass::Instance()->JumpjetClimbWithoutCutOut || JumpjetRushHelpers::Skip)
 	{
 		JumpjetRushHelpers::Skip = false;
 		return 0x54D52F; // Skip the original check
@@ -646,7 +646,7 @@ namespace JumpjetClimbIgnoreBuilding
 ASMJIT_PATCH(0x54D820, JumpjetLocomotionClass_GetFloorZ_SetContext, 0x6)
 {
 	GET(JumpjetLocomotionClass*, pThis, ESI);
-	JumpjetClimbIgnoreBuilding::Ignore = GET_TECHNOTYPEEXT(pThis->LinkedTo)->JumpjetClimbIgnoreBuilding.Get(RulesExtData::Instance()->JumpjetClimbIgnoreBuilding);
+	JumpjetClimbIgnoreBuilding::Ignore = GET_TECHNOTYPEEXT(pThis->LinkedTo)->JumpjetClimbIgnoreBuilding.Get(FakeRulesClass::Instance()->JumpjetClimbIgnoreBuilding);
 
 	if (JumpjetClimbIgnoreBuilding::Ignore)
 		JumpjetClimbIgnoreBuilding::Z = MapClass::Instance->GetCellFloorHeight(pThis->LinkedTo->Location);
@@ -802,7 +802,7 @@ ASMJIT_PATCH(0x4DF410, FootClass_UpdateAttackMove_TargetAcquired, 0x6)
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (pThis->IsCloseEnoughToAttack(pThis->Target)
-		&& pTypeExt->AttackMove_StopWhenTargetAcquired.Get(RulesExtData::Instance()->AttackMove_StopWhenTargetAcquired.Get(!pType->OpportunityFire)))
+		&& pTypeExt->AttackMove_StopWhenTargetAcquired.Get(FakeRulesClass::Instance()->AttackMove_StopWhenTargetAcquired.Get(!pType->OpportunityFire)))
 	{
 		if (auto const pJumpjetLoco = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor))
 		{

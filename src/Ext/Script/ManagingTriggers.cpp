@@ -23,7 +23,7 @@ void ScriptExtData::ManageTriggersFromList(TeamClass* pTeam, int idxAITriggerTyp
 		return;
 	}
 
-	auto const& triggetList = RulesExtData::Instance()->AITriggersLists;
+	auto const& triggetList = FakeRulesClass::Instance()->AITriggersLists;
 
 	if ((size_t)idxAITriggerType >= triggetList.size() ) {
 		pTeam->StepCompleted = true;
@@ -146,7 +146,7 @@ void ScriptExtData::ManageTriggersWithObjects(TeamClass* pTeam, int idxAITargetT
 		return;
 	}
 
-	const auto& targetList = RulesExtData::Instance()->AITargetTypesLists;
+	const auto& targetList = FakeRulesClass::Instance()->AITargetTypesLists;
 
 	if ((size_t)idxAITargetType >= targetList.size()) {
 		pTeam->StepCompleted = true;

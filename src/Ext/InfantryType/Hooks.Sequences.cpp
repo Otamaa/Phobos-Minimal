@@ -79,7 +79,7 @@ ASMJIT_PATCH(0x51D7E0, InfantryClass_DoAction_SecondaryWetAttack, 0x5)
 		if (!((NewDoType*)pThis->Type->Sequence)->GetSequence(DoType(43)).CountFrames)
 		{
 			const auto pTypeExt = InfantryTypeExtContainer::Instance.Find(pThis->Type);
-			return pTypeExt->SecondaryFireSequenceLandOnly.Get(RulesExtData::Instance()->SecondaryFireSequenceLandOnly) ? UseWetAttack : Continue;
+			return pTypeExt->SecondaryFireSequenceLandOnly.Get(FakeRulesClass::Instance()->SecondaryFireSequenceLandOnly) ? UseWetAttack : Continue;
 		}
 
 		R->EDI(DoType(43));

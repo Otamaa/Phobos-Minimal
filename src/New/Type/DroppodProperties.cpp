@@ -29,7 +29,7 @@ void DroppodProperties::Read(INI_EX& exINI, const char* pSection)
 
 void DroppodProperties::Initialize()
 {
-	this->Droppod_PodImage_Infantry = RulesExtData::Instance()->Droppod_ImageInfantry;
+	this->Droppod_PodImage_Infantry = FakeRulesClass::Instance()->Droppod_ImageInfantry;
 	this->Droppod_Puff = RulesClass::Instance->DropPodPuff;
 	this->Droppod_Angle = RulesClass::Instance->DropPodAngle;
 	this->Droppod_Speed = RulesClass::Instance->DropPodSpeed;
@@ -39,9 +39,9 @@ void DroppodProperties::Initialize()
 	for (auto const Pod : RulesClass::Instance->DropPod)
 		this->Droppod_GroundPodAnim.push_back(Pod);
 
-	this->Droppod_Trailer = RulesExtData::Instance()->DropPodTrailer;
+	this->Droppod_Trailer = FakeRulesClass::Instance()->DropPodTrailer;
 	this->Droppod_AtmosphereEntry = RulesClass::Instance->AtmosphereEntry;
-	this->Droppod_Trailer_SpawnDelay = RulesExtData::Instance()->DroppodTrailerSpawnDelay;
+	this->Droppod_Trailer_SpawnDelay = FakeRulesClass::Instance()->DroppodTrailerSpawnDelay;
 }
 
 void NullableDroppodProperties::Read(INI_EX& exINI, const char* pSection)

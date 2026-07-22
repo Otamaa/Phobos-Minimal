@@ -403,7 +403,7 @@ ASMJIT_PATCH(0x47C640, CellClass_CanThisExistHere_IgnoreSomething, 0x6)
 	if (!Game::IsActive.get())
 		return CanExistHere;
 
-	const auto expand = RulesExtData::Instance()->ExtendedBuildingPlacing.Get();
+	const auto expand = FakeRulesClass::Instance()->ExtendedBuildingPlacing.Get();
 	bool landFootOnly = false;
 
 	if (pBuildingType->LaserFence)
@@ -581,7 +581,7 @@ ASMJIT_PATCH(0x47EEBC, CellClass_DrawPlaceGrid_RecordCell, 0x6)
 
 	if (!(pCell->AltFlags & AltCellFlags::ContainsBuilding))
 	{
-		if (!RulesExtData::Instance()->ExtendedBuildingPlacing)
+		if (!FakeRulesClass::Instance()->ExtendedBuildingPlacing)
 		{
 			R->EDX<BlitterFlags>(flags | (zero ? BlitterFlags::Zero : BlitterFlags::Nonzero));
 			return DrawVanillaAlt;
@@ -655,7 +655,7 @@ ASMJIT_PATCH(0x4FB1EA, HouseClass_UnitFromFactory_HangUpPlaceEvent, 0x5)
 		return BuildSucceeded;
 	}
 
-	const bool expand = RulesExtData::Instance()->ExtendedBuildingPlacing && !pBuildingType->PlaceAnywhere && pTypeExt->PowersUp_Buildings.empty();
+	const bool expand = FakeRulesClass::Instance()->ExtendedBuildingPlacing && !pBuildingType->PlaceAnywhere && pTypeExt->PowersUp_Buildings.empty();
 	if (pTypeExt->PlaceBuilding_OnWater || pTypeExt->PlaceBuilding_OnLand)
 	{
 		if (!SessionClass::IsMultiplayer())
@@ -827,7 +827,7 @@ ASMJIT_PATCH(0x4FB395, HouseClass_UnitFromFactory_SkipMouseReturn, 0x6)
 {
 	enum { SkipGameCode = 0x4FB489, CheckMouseCoords = 0x4FB3E3 };
 
-	if (!RulesExtData::Instance()->ExtendedBuildingPlacing)
+	if (!FakeRulesClass::Instance()->ExtendedBuildingPlacing)
 		return 0;
 
 	if (ProximityTemp::Mouse)
@@ -851,7 +851,7 @@ ASMJIT_PATCH(0x4FB339, HouseClass_UnitFromFactory_SkipMouseClear, 0x6)
 
 	GET(TechnoClass* const, pTechno, ESI);
 
-	if (RulesExtData::Instance()->ExtendedBuildingPlacing)
+	if (FakeRulesClass::Instance()->ExtendedBuildingPlacing)
 	{
 		if (const auto pBuilding = cast_to<BuildingClass*>(pTechno))
 		{
@@ -873,7 +873,7 @@ ASMJIT_PATCH(0x4FAB83, HouseClass_AbandonProductionOf_SkipMouseClear, 0x7)
 
 	GET(const int, index, EBX);
 
-	if (RulesExtData::Instance()->ExtendedBuildingPlacing && index >= 0)
+	if (FakeRulesClass::Instance()->ExtendedBuildingPlacing && index >= 0)
 	{
 		if (const auto pCurrentBuildingType = type_cast<BuildingTypeClass*>(DisplayClass::Instance->CurrentBuildingType))
 		{
@@ -947,7 +947,7 @@ ASMJIT_PATCH(0x73946C, UnitClass_TryToDeploy_CleanUpDeploySpace, 0x6)
 	GET(UnitClass* const, pUnit, EBP);
 	GET(CellStruct, topLeftCell, ESI);
 
-	if (!RulesExtData::Instance()->ExtendedBuildingPlacing)
+	if (!FakeRulesClass::Instance()->ExtendedBuildingPlacing)
 		return 0;
 
 	const auto pTechnoExt = UnitExtContainer::Instance.Find(pUnit);
@@ -1013,7 +1013,7 @@ ASMJIT_PATCH(0x73946C, UnitClass_TryToDeploy_CleanUpDeploySpace, 0x6)
 // Buildable-upon TechnoTypes Hook #9-2 -> sub_73FD50 - Push the owner house into deploy check
 ASMJIT_PATCH(0x73FF8F, UnitClass_MouseOverObject_ShowDeployCursor, 0x6)
 {
-	if (RulesExtData::Instance()->ExtendedBuildingPlacing) // This IF check is not so necessary
+	if (FakeRulesClass::Instance()->ExtendedBuildingPlacing) // This IF check is not so necessary
 	{
 		GET(const UnitClass* const, pUnit, ESI);
 		LEA_STACK(HouseClass**, pHousePtr, STACK_OFFSET(0x20, -0x20));
@@ -1052,7 +1052,7 @@ ASMJIT_PATCH(0x4F8DB1, HouseClass_Update_CheckHangUpBuilding, 0x6)
 		}
 	}
 
-	if (!RulesExtData::Instance()->ExtendedBuildingPlacing)
+	if (!FakeRulesClass::Instance()->ExtendedBuildingPlacing)
 		return 0;
 
 	const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
@@ -1189,7 +1189,7 @@ void drawImage(BuildingTypeClass* const pType, HouseClass* const pHouse, const C
 // Buildable-upon TechnoTypes Hook #12 -> sub_6D5030 - Draw the placing building preview
 ASMJIT_PATCH(0x6D504C, TacticalClass_DrawPlacement_DrawPlacingPreview, 0x6)
 {
-	if (!RulesExtData::Instance()->ExtendedBuildingPlacing)
+	if (!FakeRulesClass::Instance()->ExtendedBuildingPlacing)
 		return 0;
 
 	const auto pPlayer = HouseClass::CurrentPlayer();
@@ -1262,7 +1262,7 @@ ASMJIT_PATCH(0x42EB8E, BaseClass_GetBaseNodeIndex_CheckValidBaseNode, 0x6)
 		{
 			const auto pType = BuildingTypeClass::Array->Items[index];
 
-			if (RulesExtData::Instance()->AIForbidConYard || BuildingTypeExtContainer::Instance.Find(pType)->LimboBuild)
+			if (FakeRulesClass::Instance()->AIForbidConYard || BuildingTypeExtContainer::Instance.Find(pType)->LimboBuild)
 				return Invalid;
 		}
 	}

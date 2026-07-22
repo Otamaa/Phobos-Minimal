@@ -20,7 +20,7 @@ struct DroppodProperties_
 	{
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 		const auto pExt = TechnoExtContainer::Instance.Find(pFoot);
-		const auto defaultres =  condition ? SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->DroppodProp.Droppod_Trailer_SpawnDelay : RulesExtData::Instance()->DroppodTrailerSpawnDelay;
+		const auto defaultres =  condition ? SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->DroppodProp.Droppod_Trailer_SpawnDelay : FakeRulesClass::Instance()->DroppodTrailerSpawnDelay;
 
 		return pTypeExt->DropPodProp.Droppod_Trailer_SpawnDelay.Get(defaultres);
 	}
@@ -65,7 +65,7 @@ struct DroppodProperties_
 	{
 		const auto pTypeExt = GET_TECHNOTYPEEXT(pFoot);
 		const auto pExt = TechnoExtContainer::Instance.Find(pFoot);
-		SHPStruct* result = pTypeExt->DropPodProp.Droppod_PodImage_Infantry.Get(RulesExtData::Instance()->Droppod_ImageInfantry);
+		SHPStruct* result = pTypeExt->DropPodProp.Droppod_PodImage_Infantry.Get(FakeRulesClass::Instance()->Droppod_ImageInfantry);
 
 		if (TechnoExtContainer::Instance.Find(pFoot)->LinkedSW && SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->DroppodProp.Droppod_PodImage_Infantry)
 			result = SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->DroppodProp.Droppod_PodImage_Infantry;
@@ -77,7 +77,7 @@ struct DroppodProperties_
 	{
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 		const auto pExt = TechnoExtContainer::Instance.Find(pFoot);
-		const auto defaultres = condition ? SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->DroppodProp.Droppod_Trailer : RulesExtData::Instance()->DropPodTrailer;
+		const auto defaultres = condition ? SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->DroppodProp.Droppod_Trailer : FakeRulesClass::Instance()->DropPodTrailer;
 
 		return pTypeExt->DropPodProp.Droppod_Trailer.Get(defaultres);
 	}

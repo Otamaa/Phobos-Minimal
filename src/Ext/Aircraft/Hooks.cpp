@@ -31,7 +31,7 @@
 // 		return 0;
 
 // 	if (AircraftTypeExtContainer::Instance.Find(pThis->Type)->ExtendedAircraftMissions_UnlandDamage
-// 			.Get(RulesExtData::Instance()->ExtendedAircraftMissions_UnlandDamage) < 0)
+// 			.Get(FakeRulesClass::Instance()->ExtendedAircraftMissions_UnlandDamage) < 0)
 // 		return 0;
 
 // 	if (!pThis->Team && (pThis->CurrentMission != Mission::Area_Guard || !pThis->ArchiveTarget))
@@ -318,7 +318,7 @@ ASMJIT_PATCH(0x4CD54C, FlyLocomotionClass_EdgeOfTheWorldAI_Paradrop, 0x8)
 	GET(AircraftClass*, pLinkedTo, ECX);
 
 	if (pLinkedTo->CurrentMission == Mission::Retreat || (pLinkedTo->CurrentMission == Mission::ParadropOverfly
-		&& AircraftTypeExtContainer::Instance.Find(pLinkedTo->Type)->ParadropEndDelay.Get(RulesExtData::Instance()->ParadropEndDelay) < 0
+		&& AircraftTypeExtContainer::Instance.Find(pLinkedTo->Type)->ParadropEndDelay.Get(FakeRulesClass::Instance()->ParadropEndDelay) < 0
 		&& !pLinkedTo->Passengers.NumPassengers))
 	{
 		return Continue;

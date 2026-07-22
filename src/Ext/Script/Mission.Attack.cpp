@@ -488,7 +488,7 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 	auto pTechnoType = GET_TECHNOTYPE(pTechno);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 	auto const AIDifficulty = static_cast<int>(pTechno->Owner->GetAIDifficultyIndex());
-	auto const DisguiseDetectionValue = pTypeExt->DetectDisguise_Percent.GetEx(RulesExtData::Instance()->AIDetectDisguise_Percent)->at(AIDifficulty);
+	auto const DisguiseDetectionValue = pTypeExt->DetectDisguise_Percent.GetEx(FakeRulesClass::Instance()->AIDetectDisguise_Percent)->at(AIDifficulty);
 	auto const detectionValue = (int)std::round(DisguiseDetectionValue * 100.0);
 
 	// Generic method for targeting
@@ -801,7 +801,7 @@ bool ScriptExtData::EvaluateObjectWithMask(
 	// --------------------------------------------------------
 	//  AITargetTypes override (short-circuits the mask switch)
 	// --------------------------------------------------------
-	const auto& nAITargetTypes = RulesExtData::Instance()->AITargetTypesLists;
+	const auto& nAITargetTypes = FakeRulesClass::Instance()->AITargetTypesLists;
 	if (static_cast<size_t>(attackAITargetType) < nAITargetTypes.size())
 	{
 		const auto nVec = make_iterator(nAITargetTypes[attackAITargetType]);
@@ -1435,7 +1435,7 @@ void ScriptExtData::Mission_Attack_List(TeamClass* pTeam, bool repeatAction, Dis
 	if (attackAITargetType < 0)
 		attackAITargetType = curArg;
 
-	const auto& targetList = RulesExtData::Instance()->AITargetTypesLists;
+	const auto& targetList = FakeRulesClass::Instance()->AITargetTypesLists;
 	if ((size_t)attackAITargetType < targetList.size() && !targetList[attackAITargetType].empty())
 	{
 		ScriptExtData::Mission_Attack(pTeam, repeatAction, calcThreatMode, attackAITargetType, -1);
@@ -1458,14 +1458,14 @@ void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatActi
 	if (attackAITargetType < 0)
 		attackAITargetType = curArgs;
 
-	if((size_t)attackAITargetType < RulesExtData::Instance()->AITargetTypesLists.size()) {
+	if((size_t)attackAITargetType < FakeRulesClass::Instance()->AITargetTypesLists.size()) {
 
-		if ((size_t)pTeamData->IdxSelectedObjectFromAIList < RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].size()) {
+		if ((size_t)pTeamData->IdxSelectedObjectFromAIList < FakeRulesClass::Instance()->AITargetTypesLists[attackAITargetType].size()) {
 			ScriptExtData::Mission_Attack(pTeam, repeatAction, calcThreatMode, attackAITargetType, pTeamData->IdxSelectedObjectFromAIList);
 			return;
 		}
 
-		if (!RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].empty())
+		if (!FakeRulesClass::Instance()->AITargetTypesLists[attackAITargetType].empty())
 		{
 			// Finding the objects from the list that actually exists in the map
 			TechnoClass::Array->for_each([&](TechnoClass* pTechno) {
@@ -1481,11 +1481,11 @@ void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatActi
 				{
 					bool found = false;
 
-					for (size_t j = 0u; j < RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].size() && !found; j++)
+					for (size_t j = 0u; j < FakeRulesClass::Instance()->AITargetTypesLists[attackAITargetType].size() && !found; j++)
 					{
 						auto const pFirstUnit = pTeam->FirstUnit;
 
-						if (pFirstUnit && pTechnoType == RulesExtData::Instance()->AITargetTypesLists[attackAITargetType][j] && (!pFirstUnit->Owner->IsAlliedWith(pTechno)
+						if (pFirstUnit && pTechnoType == FakeRulesClass::Instance()->AITargetTypesLists[attackAITargetType][j] && (!pFirstUnit->Owner->IsAlliedWith(pTechno)
 								|| ScriptExtData::IsUnitMindControlledFriendly(pFirstUnit->Owner, pTechno)))
 						{
 							Mission_Attack_List1Random_validIndexes.push_back(j);
@@ -1508,7 +1508,7 @@ void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatActi
 				//	curArgs,
 				//	attackAITargetType,
 				//	idxSelectedObject,
-				//	RulesExtData::Instance()->AITargetTypesLists[attackAITargetType][idxSelectedObject]->ID);
+				//	FakeRulesClass::Instance()->AITargetTypesLists[attackAITargetType][idxSelectedObject]->ID);
 
 				ScriptExtData::Mission_Attack(pTeam, repeatAction, calcThreatMode, attackAITargetType, idxSelectedObject);
 				return;

@@ -59,7 +59,7 @@ static bool IsMovingFire(TechnoClass* pThis)
 static bool IsPrefiring(TechnoClass* pThis, WeaponTypeClass* pWeapon)
 {
 	auto pTypeExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-	bool includeBurst = pTypeExt->PrefiringExtraRange_IncludeBurst.Get(RulesExtData::Instance()->PrefiringExtraRange_IncludeBurst);
+	bool includeBurst = pTypeExt->PrefiringExtraRange_IncludeBurst.Get(FakeRulesClass::Instance()->PrefiringExtraRange_IncludeBurst);
 
 	if (includeBurst && pThis->CurrentBurstIndex % pWeapon->Burst != 0)
 		return true;
@@ -145,7 +145,7 @@ ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 
 		if (range != -512)
 		{
-			auto pRulesExt = RulesExtData::Instance();
+			auto pRulesExt = FakeRulesClass::Instance();
 			auto pTypeExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 			auto prefiringExtraRange = pTypeExt->PrefiringExtraRange.Get(pRulesExt->PrefiringExtraRange);
 
@@ -163,7 +163,7 @@ ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 				range += chasingExtraRange;
 			}
 
-			const auto firerMovingExtraRange = pTypeExt->ExtraRange_FirerMoving.Get(RulesExtData::Instance ()->ExtraRange_FirerMoving);
+			const auto firerMovingExtraRange = pTypeExt->ExtraRange_FirerMoving.Get(FakeRulesClass::Instance ()->ExtraRange_FirerMoving);
 
 			if (firerMovingExtraRange && IsMovingFire(pThis))
 				range += firerMovingExtraRange;

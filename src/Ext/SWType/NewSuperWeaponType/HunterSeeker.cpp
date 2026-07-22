@@ -142,7 +142,7 @@ bool SW_HunterSeeker::IsLaunchSite_HS(const SWTypeExtData* pData, BuildingClass*
 	// Check the explicit launch buildings list (SW-specific or rules default)
 	const auto HSBuilding = !pData->HunterSeeker_Buildings.empty()
 		? make_iterator(pData->HunterSeeker_Buildings)
-		: make_iterator(RulesExtData::Instance()->HunterSeekerBuildings);
+		: make_iterator(FakeRulesClass::Instance()->HunterSeekerBuildings);
 
 	if (HSBuilding.contains(pBuilding->Type))
 		return true;

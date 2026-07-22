@@ -26,6 +26,7 @@ class TActionClass;
 struct SWChargePool
 {
 	int Charges { 0 };  // current stored charges
+	bool IsAllowedToAccumulate { true };
 
 	// --------------------------------------------------------
 	// Returns true if charges < max (timer should run).
@@ -34,7 +35,7 @@ struct SWChargePool
 	// --------------------------------------------------------
 	bool CanAccumulate(int maxCharges) const
 	{
-		if (maxCharges < 0)
+		if (maxCharges < 0 || !IsAllowedToAccumulate)
 			return false;           // feature disabled
 		return Charges < maxCharges;
 	}
@@ -42,6 +43,10 @@ struct SWChargePool
 	bool CanFire(int dischargeAmount) const {
 		return Charges >= dischargeAmount;
 	}
+
+	static void BeginRecharge(SuperClass* pThis);
+	static void SetPoolFull(SuperClass* pThis);
+	static void EnsureAccumulating(SuperClass* pThis);
 
 	// Clamp on increment so we never exceed max
 	void Increment(int maxCharges)
@@ -53,17 +58,20 @@ struct SWChargePool
 	}
 
 	// Returns false if already at 0 (fire should be blocked)
-	bool Decrement()
-	{
-		if (Charges <= 0)
-			return false;
-		--Charges;
-		return true;
-	}
+	// bool Decrement()
+	// {
+	// 	if (Charges <= 0)
+	// 		return false;
+	// 	--Charges;
+	// 	return true;
+	// }
 
 	int DecrementBy(int amount) {
 		const int toConsume = (amount < Charges) ? amount : Charges;
 		Charges -= toConsume;
+		if(Charges == 0)
+			IsAllowedToAccumulate = true;
+
 		return toConsume;
 	}
 
@@ -86,6 +94,7 @@ private:
 	{
 		return Stm
 			.Process(Charges)
+			.Process(IsAllowedToAccumulate)
 			.Success();
 	}
 };

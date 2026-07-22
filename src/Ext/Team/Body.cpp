@@ -52,7 +52,7 @@ void LoopThruMembers(TeamClass* pTeam, Func&& act)
 
 int TeamExtData::GetSafeFriendlyDistance(TeamTypeClass* pTeam, int arg)
 {
-	int default_Distance = RulesExtData::Instance()->AIFriendlyDistance.Get(RulesClass::Instance->AISafeDistance);
+	int default_Distance = FakeRulesClass::Instance()->AIFriendlyDistance.Get(RulesClass::Instance->AISafeDistance);
 	auto pTeamDistance = TeamTypeExtContainer::Instance.Find(pTeam)->AI_FriendlyDistance.Get(default_Distance);
 	return (pTeamDistance + arg) * Unsorted::LeptonsPerCell;
 }
@@ -171,7 +171,7 @@ bool TeamExtData::NeutralOwns(AITriggerTypeClass* pThis, const Iterator<TechnoTy
 
 	for (auto pHouse : *HouseClass::Array)
 	{
-		if (pHouse->Type->SideIndex == RulesExtData::Instance()->CivilianSideIndex)
+		if (pHouse->Type->SideIndex == FakeRulesClass::Instance()->CivilianSideIndex)
 			continue;
 
 		// Count all objects of the list, like an OR operator
@@ -279,7 +279,7 @@ bool TeamExtData::NeutralOwnsAll(AITriggerTypeClass* pThis, const Iterator<Techn
 
 		bool foundAll = true;
 
-		if (pHouse->Type->SideIndex == RulesExtData::Instance()->CivilianSideIndex)
+		if (pHouse->Type->SideIndex == FakeRulesClass::Instance()->CivilianSideIndex)
 			continue;
 
 		// Count all objects of the list, like an AND operator
@@ -890,7 +890,7 @@ bool NOINLINE RemoveMemberFromChain(TeamClass* team, FootClass* memberToRemove)
 bool FakeTeamClass::_Remove(FootClass* obj, int typeindex, bool enterIdleMode) {
 	TeamClass* Team = obj->Team;
 	const auto pTeamTypeExt = TeamTypeExtContainer::Instance.Find(Team->Type);
-	const int value = pTeamTypeExt->IsDischargedMemberAutocreateRecruitable.Get(RulesExtData::Instance()->IsDischargedMemberAutocreateRecruitable);
+	const int value = pTeamTypeExt->IsDischargedMemberAutocreateRecruitable.Get(FakeRulesClass::Instance()->IsDischargedMemberAutocreateRecruitable);
 
 	if (value > 0)
 		obj->RecruitableB = true;
@@ -1035,7 +1035,7 @@ void FakeTeamClass::_Took_Damage(FootClass* damagedMember, DamageState result, O
 	// Consider changing target to the source
 	// Note: The original pseudocode shows this function may be incomplete
 
-	if (RulesExtData::Instance()->TeamRetaliate)
+	if (FakeRulesClass::Instance()->TeamRetaliate)
 	{
 		auto pFocus = flag_cast_to<TechnoClass*>(this->ArchiveTarget);
 		auto SpawnCell = this->Zone;
@@ -1071,7 +1071,7 @@ void FakeTeamClass::_Took_Damage(FootClass* damagedMember, DamageState result, O
 
 #ifdef CUSTOM
 	// get ot if global option is off
-	if (!RulesExtData::Instance()->TeamRetaliate)
+	if (!FakeRulesClass::Instance()->TeamRetaliate)
 	{
 		return 0x6EB47A;
 	}
