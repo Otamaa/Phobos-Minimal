@@ -145,6 +145,7 @@ Action FakeAircraftClass::_MouseOverCell(CellStruct const& cell, bool checkFog, 
 
 	return action;
 }
+
 DEFINE_FUNCTION_JUMP(LJMP, 0x417F80, FakeAircraftClass::_MouseOverCell);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2314, FakeAircraftClass::_MouseOverCell);
 

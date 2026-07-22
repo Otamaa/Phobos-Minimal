@@ -63,7 +63,6 @@ static int SWCharges_GetPerCycle(SuperWeaponTypeClass* pType)
 // change the lambda UpdateStatus. Available means this super weapon exists at
 // all. Setting it to false removes the super weapon. PowerSourced controls
 // whether the super weapon charges or can be used.
-#pragma optimize("", off )
 void SuperExtData::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 {
 	// look at every sane building this player owns, if it is not defeated already.
@@ -225,7 +224,6 @@ void SuperExtData::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 		});
 	}
 }
-#pragma optimize("", on )
 
 // =============================
 // load / save
