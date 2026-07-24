@@ -5,8 +5,11 @@
 #include <Utilities/Debug.h>
 #include <Utilities/GameConfig.h>
 #include <Utilities/GeneralUtils.h>
+#include <Utilities/Macro.h>
 
 #include <Misc/Patches.h>
+#include <Misc/CSF.h>
+#include <Misc/PhobosGlobal.h>
 
 #include <GameStrings.h>
 #include <GameOptionsClass.h>
@@ -14,52 +17,128 @@
 
 #include <Phobos.INI.h>
 
+#include <Misc/Spawner/Main.h>
+
+#include <Ext/Convert/Body.h>
+
+#include <IPXManagerClass.h>
+
+#include <SessionClass.h>
+
+_GET_FUNCTION_ADDRESS(ConvertClassExt::AllocBlitters, GetConvertClassExtAllocBlittersAddress);
+_GET_FUNCTION_ADDRESS(ConvertClassExt::DeallocBlitters, GetConvertClassExtDeallocBlittersAddress);
+
+// very early load and creation of RA2MD.INI
 ASMJIT_PATCH(0x6BC099 , WInMain_CreateRA2MD_Override, 0x7){
 
 	PhobosINIContainer::Ra2_INI = std::make_unique<PhobosINIClass>();
 	auto _ra2MD = GameCreate<RawFileClass>(GameStrings::RA2MD_INI());
+	;
 
-	PhobosINIContainer::Ra2_INI ->LoadFile(_ra2MD);
-	R->EAX(_ra2MD);
-	return 0x6BC0B7;
+	if (!CCINIClass::INI_RA2MD->ReadCCFile(_ra2MD) && !PhobosINIContainer::Ra2_INI->LoadFile(_ra2MD)) {
+		Debug::FatalError("Failed to load %s !" , GameStrings::RA2MD_INI());
+		return 0x0;
+	}
+
+	{
+		Game::bVideoBackBuffer = PhobosINIContainer::Ra2_INI->Read<bool>("Video", "VideoBackBuffer").value_or(1);
+		Game::bAllowModeToggle = PhobosINIContainer::Ra2_INI->Read<bool>("Video", "AllowModeToggle").value_or(0);
+		GameOptionsClass::Instance->ScreenWidth = PhobosINIContainer::Ra2_INI->Read<int>("Video", "ScreenWidth").value_or(GameOptionsClass::Instance->ScreenWidth);
+		GameOptionsClass::Instance->ScreenHeight = PhobosINIContainer::Ra2_INI->Read<int>("Video", "ScreenHeight").value_or(GameOptionsClass::Instance->ScreenHeight);
+	}
+
+	const char* const pDebugSection = "Debug";
+
+	{
+		const auto simd_level = PhobosINIContainer::Ra2_INI->ReadString(pDebugSection, "MaxSimdLevel", Simd::GetLevelName(Phobos::Config::MaxSimdLevel));
+		Debug::Log("Config MaxSimdLevel raw value: %s\n", simd_level.c_str());
+		Phobos::Config::MaxSimdLevel = Simd::ParseLevel(simd_level.c_str(), Phobos::Config::MaxSimdLevel);
+	}
+
+	PhobosGlobal::Instance()->LoadGlobalsConfig();
+	SpawnerMain::ReadRA2MDConfig(PhobosINIContainer::Ra2_INI.get());
+	SpawnerMain::ApplyStaticOptions();
+
+	Simd::Initialize(Phobos::Config::MaxSimdLevel);
+
+	if (Simd::GetCurrentLevel() > Simd::Level::Vanilla)
+	{
+		Patch::Apply_LJMP(0x48EBF0, GetConvertClassExtAllocBlittersAddress);
+		Patch::Apply_LJMP(0x490490, GetConvertClassExtDeallocBlittersAddress);
+	}
+
+	{
+		int sock = PhobosINIContainer::Ra2_INI->Read<int>("Network", "Socket").value_or(0);
+		if (sock > 0)
+		{
+			sock += 0x4000;
+			if (sock >= 0x4000 && sock < 0x8000)
+			{
+				IPXManagerClass::Instance->Set_Socket(sock);
+			}
+		}
+
+		const auto DestNet = PhobosINIContainer::Ra2_INI->ReadString("Network", "DestNet", nullptr);
+
+		if (!DestNet.empty()) {
+			const auto splitted = PhobosCRT::SplitString(DestNet, ".");
+			unsigned char addr[4] {};
+			size_t i = 0;
+
+			for (i < splitted.size() && i < 4; ++i;) {
+				if (!PhobosCRT::ScanHex(splitted[i], addr[i]))
+					break;
+			}
+
+			if (i >= 4) {
+				IPXAddressClass::IsBridge = true;
+				unsigned char node[6];
+				std::memset(node, 0xFF, sizeof(node));
+				IPXAddressClass::Instance->Assign(addr, node, 0);
+			}
+		}
+	}
+
+	return 0x6BC28E;
 }
 
 void Phobos::Config::Read_RA2MD()
 {
-	auto const& pRA2MD = CCINIClass::INI_RA2MD;
-	
-	if (pRA2MD->GetSection(PHOBOS_STR)){
 
-		Phobos::Config::ToolTipDescriptions = pRA2MD->ReadBool(PHOBOS_STR, "ToolTipDescriptions", Phobos::Config::ToolTipDescriptions);
-		Phobos::Config::ToolTipBlur = pRA2MD->ReadBool(PHOBOS_STR, "ToolTipBlur", Phobos::Config::ToolTipBlur);
-		Phobos::Config::PrioritySelectionFiltering = pRA2MD->ReadBool(PHOBOS_STR, "PrioritySelectionFiltering", Phobos::Config::PrioritySelectionFiltering);
-		Phobos::Config::PriorityDeployFiltering = pRA2MD->ReadBool(PHOBOS_STR, "PriorityDeployFiltering", Phobos::Config::PriorityDeployFiltering);
-		Phobos::Config::TypeSelectUseIFVMode = pRA2MD->ReadBool(PHOBOS_STR, "TypeSelectUseIFVMode", Phobos::Config::TypeSelectUseIFVMode);
-		Phobos::Config::EnableBuildingPlacementPreview = pRA2MD->ReadBool(PHOBOS_STR, "ShowBuildingPlacementPreview", Phobos::Config::EnableBuildingPlacementPreview);
-		Phobos::Config::EnableSelectBox = pRA2MD->ReadBool(PHOBOS_STR, "EnableSelectBox", Phobos::Config::EnableSelectBox);
+	{
 
-		//Phobos::Config::RealTimeTimers = pRA2MD->ReadBool(PHOBOS_STR, "RealTimeTimers", Phobos::Config::RealTimeTimers);
-		//Phobos::Config::RealTimeTimers_Adaptive = pRA2MD->ReadBool(PHOBOS_STR, "RealTimeTimers.Adaptive", Phobos::Config::RealTimeTimers_Adaptive);
-		Phobos::Config::DigitalDisplay_Enable = pRA2MD->ReadBool(PHOBOS_STR, "DigitalDisplay.Enable", Phobos::Config::DigitalDisplay_Enable);
-		Phobos::Config::MessageDisplayInCenter = pRA2MD->ReadBool(PHOBOS_STR, "MessageDisplayInCenter", Phobos::Config::MessageDisplayInCenter);
-		Phobos::Config::MessageApplyHoverState = pRA2MD->ReadBool(PHOBOS_STR, "MessageApplyHoverState", Phobos::Config::MessageApplyHoverState);
-		Phobos::Config::MessageDisplayInCenter_BoardOpacity = pRA2MD->ReadInteger(PHOBOS_STR, "MessageDisplayInCenter.BoardOpacity", Phobos::Config::MessageDisplayInCenter_BoardOpacity);
-		Phobos::Config::MessageDisplayInCenter_LabelsCount = pRA2MD->ReadInteger(PHOBOS_STR, "MessageDisplayInCenter.LabelsCount", Phobos::Config::MessageDisplayInCenter_LabelsCount);
-		Phobos::Config::MessageDisplayInCenter_RecordsCount = pRA2MD->ReadInteger(PHOBOS_STR, "MessageDisplayInCenter.RecordsCount", Phobos::Config::MessageDisplayInCenter_RecordsCount);
+		Phobos::Config::ToolTipDescriptions = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "ToolTipDescriptions").value_or(Phobos::Config::ToolTipDescriptions);
+		Phobos::Config::ToolTipBlur = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "ToolTipBlur").value_or(Phobos::Config::ToolTipBlur);
+		Phobos::Config::PrioritySelectionFiltering = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "PrioritySelectionFiltering").value_or(Phobos::Config::PrioritySelectionFiltering);
+		Phobos::Config::PriorityDeployFiltering = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "PriorityDeployFiltering").value_or(Phobos::Config::PriorityDeployFiltering);
+		Phobos::Config::TypeSelectUseIFVMode = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "TypeSelectUseIFVMode").value_or(Phobos::Config::TypeSelectUseIFVMode);
+		Phobos::Config::EnableBuildingPlacementPreview = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "ShowBuildingPlacementPreview").value_or(Phobos::Config::EnableBuildingPlacementPreview);
+		Phobos::Config::EnableSelectBox = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "EnableSelectBox").value_or(Phobos::Config::EnableSelectBox);
 
-		Phobos::Config::ShowBuildingStatistics = pRA2MD->ReadBool(PHOBOS_STR, "ShowBuildingStatistics", Phobos::Config::ShowBuildingStatistics);
-		Phobos::Config::ShowFlashOnSelecting = pRA2MD->ReadBool(PHOBOS_STR, "ShowFlashOnSelecting", Phobos::Config::ShowFlashOnSelecting);
-		Phobos::Config::SuperWeaponSidebar_RequiredSignificance = pRA2MD->ReadInteger(PHOBOS_STR, "SuperWeaponSidebar.RequiredSignificance", Phobos::Config::SuperWeaponSidebar_RequiredSignificance);
-		Phobos::Config::HideLightFlashEffects = pRA2MD->ReadBool(PHOBOS_STR, "HideLightFlashEffects", Phobos::Config::HideLightFlashEffects);
-		Phobos::Config::HideLaserTrailEffects = pRA2MD->ReadBool(PHOBOS_STR, "HideLaserTrailEffects", Phobos::Config::HideLaserTrailEffects);
-		Phobos::Config::HideShakeEffects = pRA2MD->ReadBool(PHOBOS_STR, "HideShakeEffects", Phobos::Config::HideShakeEffects);
-		Phobos::Config::SaveGameOnScenarioStart = pRA2MD->ReadBool(PHOBOS_STR, "SaveGameOnScenarioStart", Phobos::Config::SaveGameOnScenarioStart);
+		//Phobos::Config::RealTimeTimers = PhobosINIContainer::Ra2_INI->Read<bool>((PHOBOS_STR, "RealTimeTimers", Phobos::Config::RealTimeTimers);
+		//Phobos::Config::RealTimeTimers_Adaptive = PhobosINIContainer::Ra2_INI->Read<bool>((PHOBOS_STR, "RealTimeTimers.Adaptive", Phobos::Config::RealTimeTimers_Adaptive);
+		Phobos::Config::DigitalDisplay_Enable = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "DigitalDisplay.Enable").value_or(Phobos::Config::DigitalDisplay_Enable);
+		Phobos::Config::MessageDisplayInCenter = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "MessageDisplayInCenter").value_or(Phobos::Config::MessageDisplayInCenter);
+		Phobos::Config::MessageApplyHoverState = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "MessageApplyHoverState").value_or(Phobos::Config::MessageApplyHoverState);
+		Phobos::Config::MessageDisplayInCenter_BoardOpacity = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "MessageDisplayInCenter.BoardOpacity").value_or(Phobos::Config::MessageDisplayInCenter_BoardOpacity);
+		Phobos::Config::MessageDisplayInCenter_LabelsCount = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "MessageDisplayInCenter.LabelsCount").value_or(Phobos::Config::MessageDisplayInCenter_LabelsCount);
+		Phobos::Config::MessageDisplayInCenter_RecordsCount = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "MessageDisplayInCenter.RecordsCount").value_or(Phobos::Config::MessageDisplayInCenter_RecordsCount);
 
-		Phobos::Config::ApplyNoMoveCommand = pRA2MD->ReadBool(PHOBOS_STR, "DefaultApplyNoMoveCommand", true);
-		Phobos::Config::DistributionSpreadMode = pRA2MD->ReadInteger(PHOBOS_STR, "DefaultDistributionSpreadMode", 2);
-		Phobos::Config::DistributionFilterMode = pRA2MD->ReadInteger(PHOBOS_STR, "DefaultDistributionFilterMode", 2);	
+		Phobos::Config::ShowBuildingStatistics = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "ShowBuildingStatistics").value_or(Phobos::Config::ShowBuildingStatistics);
+		Phobos::Config::ShowFlashOnSelecting = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "ShowFlashOnSelecting").value_or(Phobos::Config::ShowFlashOnSelecting);
+		Phobos::Config::SuperWeaponSidebar_RequiredSignificance = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "SuperWeaponSidebar.RequiredSignificance").value_or(Phobos::Config::SuperWeaponSidebar_RequiredSignificance);
+		Phobos::Config::HideLightFlashEffects = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "HideLightFlashEffects").value_or(Phobos::Config::HideLightFlashEffects);
+		Phobos::Config::HideLaserTrailEffects = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "HideLaserTrailEffects").value_or(Phobos::Config::HideLaserTrailEffects);
+		Phobos::Config::HideShakeEffects = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "HideShakeEffects").value_or(Phobos::Config::HideShakeEffects);
+		Phobos::Config::SaveGameOnScenarioStart = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "SaveGameOnScenarioStart").value_or(Phobos::Config::SaveGameOnScenarioStart);
 
-		Phobos::Config::ShowPowerPlantEnhancerRange = pRA2MD->ReadBool(PHOBOS_STR, "ShowPowerPlantEnhancerRange", Phobos::Config::ShowPowerPlantEnhancerRange);
+		Phobos::Config::ApplyNoMoveCommand = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "DefaultApplyNoMoveCommand").value_or(true);
+		Phobos::Config::DistributionSpreadMode = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "DefaultDistributionSpreadMode").value_or(2);
+		Phobos::Config::DistributionFilterMode = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "DefaultDistributionFilterMode").value_or(2);	
+
+		Phobos::Config::ShowPowerPlantEnhancerRange = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "ShowPowerPlantEnhancerRange").value_or(Phobos::Config::ShowPowerPlantEnhancerRange);
+		Phobos::Config::ShowGameTime = PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "ShowGameTime").value_or(Phobos::Config::ShowGameTime);
+		Phobos::Config::ShowGameTime_BoardOpacity = PhobosINIContainer::Ra2_INI->Read<int>(PHOBOS_STR, "ShowGameTime.BoardOpacity").value_or(Phobos::Config::ShowGameTime_BoardOpacity);
 	}
 
 	Phobos::Config::DistributionSpreadMode = std::clamp(Phobos::Config::DistributionSpreadMode, 0, 3);
@@ -68,7 +147,7 @@ void Phobos::Config::Read_RA2MD()
 	if (!Phobos::Otamaa::IsAdmin)
 	{
 		// Custom game speeds, 6 - i so that GS6 is index 0, just like in the engine
-		Phobos::Config::CampaignDefaultGameSpeed = 6 - pRA2MD->ReadInteger(PHOBOS_STR, "CampaignDefaultGameSpeed", 4);
+		Phobos::Config::CampaignDefaultGameSpeed = 6 - PhobosINIContainer::Ra2_INI->Read<bool>(PHOBOS_STR, "CampaignDefaultGameSpeed").value_or(4);
 
 		if (Phobos::Config::CampaignDefaultGameSpeed > 6 || Phobos::Config::CampaignDefaultGameSpeed < 0)
 			Phobos::Config::CampaignDefaultGameSpeed = 2;
@@ -97,6 +176,7 @@ void Phobos::Config::Read_UIMD()
 	Phobos::UI::Spysat_Label = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_SPYSAT", L"SpySat");
 	Phobos::UI::BuidingRadarJammedLabel = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_RADARJAMMED", L"Radar Jammed");
 	Phobos::UI::ShowBriefingResumeButtonLabel = GeneralUtils::LoadStringUnlessMissingNoChecks("GUI:Resume", L"");
+	Phobos::UI::GameTimeText = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_GAMETIME", L"Time:");
 
 	if (!file.IsAvaible())
 		return;
@@ -117,15 +197,18 @@ void Phobos::Config::Read_UIMD()
 
 		{
 			auto const section2 = GameStrings::Colors();
-			auto const ParseColorInt = [pINI](const char* section, const char* key, int defColor) -> int {
+			auto const ParseColorInt = [&](const char* section, const char* key, int defColor) -> int {
 				ColorStruct ndefault(defColor & 0xFF, (defColor >> 8) & 0xFF, (defColor >> 16) & 0xFF);
-				auto const color = pINI->ReadColor(section, key, ndefault);
-				return color.R | color.G << 8 | color.B << 16;
+				int _color[3];
+				if(!PhobosINIContainer::Ui_INI->Read3<int>(section, key, _color))
+					return ndefault;
+
+				return ((char)_color[0]) | ((char)_color[1]) << 8 | ((char)_color[2]) << 16;
 			};
 
-			if (pINI->GetSection(section2)) {
+			{
 
-				colorCount = std::clamp(pINI->ReadInteger(section2, "Count", colorCount), 8, 17);
+				colorCount = std::clamp(PhobosINIContainer::Ui_INI->Read<int>(section2, "Count").value_or(colorCount), 8, 17);
 
 				auto const ReadColor = [pINI, section2, ParseColorInt]
 				(
@@ -137,12 +220,14 @@ void Phobos::Config::Read_UIMD()
 				)
 					{
 						// load the tooltip string
+						const auto _sst = PhobosINIContainer::Ui_INI->ReadString(section2, name + ".Tooltip", defTooltip);
+						if (!_sst.empty())
+							value.sttToolTipSublineText = CSFLoader::FetchStringManager(_sst.c_str(), nullptr, nullptr, -1);
 
-						if (pINI->ReadString(section2, (name + ".Tooltip").c_str(), defTooltip, Phobos::readBuffer))
-							value.sttToolTipSublineText = StringTable::FetchString(Phobos::readBuffer);
+						const auto _ssheme = PhobosINIContainer::Ui_INI->ReadString(section2, name + ".ColorScheme", defColorScheme);
 
-						if (pINI->ReadString(section2, (name + ".ColorScheme").c_str(), defColorScheme, Phobos::readBuffer))
-							PhobosCRT::strCopy(value.colorScheme, Phobos::readBuffer);
+						if (!_ssheme.empty())
+							PhobosCRT::strCopy(value.colorScheme, _ssheme.c_str());
 
 						value.colorRGB = ParseColorInt(section2, (name + ".DisplayColor").c_str(), colorRGB);
 						value.colorSchemeIndex = -1;
@@ -183,7 +268,6 @@ void Phobos::Config::Read_UIMD()
 
 			auto const section = "UISettings";
 
-			if (pINI->GetSection(section))
 			{
 				// menu colors. the color of labels, button texts, list items, stuff and others
 				Phobos::UI::uiColorText = ParseColorInt(section, "Color.Text", 0xFFFF);
@@ -217,23 +301,25 @@ void Phobos::Config::Read_UIMD()
 
 			auto sectionVersionInfo = "VersionInfo";
 
-			if (pINI->GetSection(sectionVersionInfo)) {
+		{
 
 				// read the mod's version info
-				if (pINI->ReadString("VersionInfo", GameStrings::Name, Phobos::readDefval, Phobos::readBuffer, std::size(ModName)))
-				{
-					PhobosCRT::strCopy(ModName, Phobos::readBuffer);
+				const auto _ModName = PhobosINIContainer::Ui_INI->ReadString(sectionVersionInfo, GameStrings::Name(), "");
+
+				if (!_ModName.empty()) {
+					PhobosCRT::strCopy(ModName, _ModName.c_str());
 				}
 
-				if (pINI->ReadString("VersionInfo", "Version", Phobos::readDefval, Phobos::readBuffer, std::size(ModVersion)))
-				{
-					PhobosCRT::strCopy(ModVersion, Phobos::readBuffer);
+				const auto _Version = PhobosINIContainer::Ui_INI->ReadString(sectionVersionInfo, "Version", "");
+
+				if (!_Version.empty()) {
+					PhobosCRT::strCopy(ModVersion, _Version.c_str());
 				}
 
 				SafeChecksummer crc {};
 				crc.operator()((const char*)ModName);
 				crc.operator()((const char*)ModVersion);
-				ModIdentifier = pINI->ReadInteger("VersionInfo", "Identifier", static_cast<int>(crc.operator unsigned int()));
+				ModIdentifier = PhobosINIContainer::Ui_INI->Read<int>("VersionInfo", "Identifier").value_or(static_cast<int>(crc.operator unsigned int()));
 
 				Debug::LogInfo("Color count is {}", colorCount);
 				Debug::LogInfo("Mod is {0} ({1}) with 0x{2:x}",
@@ -247,127 +333,130 @@ void Phobos::Config::Read_UIMD()
 		Debug::LogInfo("-------------------Complete ----------------------");
 	}
 
-	if(pINI->GetSection("LoadingScreen")) {
-		Phobos::UI::DisableEmptySpawnPositions =
-			pINI->ReadBool("LoadingScreen", "DisableEmptySpawnPositions", Phobos::UI::DisableEmptySpawnPositions);
+	{
+		Phobos::UI::DisableEmptySpawnPositions = PhobosINIContainer::Ui_INI->Read<bool>("LoadingScreen", "DisableEmptySpawnPositions").value_or(Phobos::UI::DisableEmptySpawnPositions);
 	}
 
-	if(pINI->GetSection(UISETTINGS_SECTION)) {
-		pINI->ReadString(UISETTINGS_SECTION, "ShowBriefingResumeButtonLabel", "GUI:Resume", Phobos::readBuffer);
-		Phobos::UI::ShowBriefingResumeButtonLabel = GeneralUtils::LoadStringOrDefault(Phobos::readBuffer, L"");
+	{
+		const auto _Resume = PhobosINIContainer::Ui_INI->ReadString(UISETTINGS_SECTION, "ShowBriefingResumeButtonLabel", "GUI:Resume");
+		Phobos::UI::ShowBriefingResumeButtonLabel = GeneralUtils::LoadStringOrDefault(_Resume.c_str(), L"");
 
-		pINI->ReadString(UISETTINGS_SECTION, "ShowBriefingResumeButtonStatusLabel", "STT:BriefingButtonReturn", Phobos::readBuffer);
-		strcpy_s(Phobos::UI::ShowBriefingResumeButtonStatusLabel, Phobos::readBuffer);
+		const auto _brief  = PhobosINIContainer::Ui_INI->ReadString(UISETTINGS_SECTION, "ShowBriefingResumeButtonStatusLabel", "STT:BriefingButtonReturn");
+		PhobosCRT::strCopy(Phobos::UI::ShowBriefingResumeButtonStatusLabel, _brief.c_str());
 	}
 
-	if (pINI->GetSection(PHOBOS_STR)) {
-		Phobos::Config::ShowPowerDelta = pINI->ReadBool(PHOBOS_STR, "ShowPowerDelta", Phobos::Config::ShowPowerDelta);
-		Phobos::Config::ShowHarvesterCounter = pINI->ReadBool(PHOBOS_STR, "ShowHarvesterCounter", Phobos::Config::ShowHarvesterCounter);
-		Phobos::Config::ShowWeedsCounter = pINI->ReadBool(PHOBOS_STR, "ShowWeedsCounter", Phobos::Config::ShowWeedsCounter);
+	{
+		Phobos::Config::ShowPowerDelta = PhobosINIContainer::Ui_INI->Read<bool>(PHOBOS_STR, "ShowPowerDelta").value_or(Phobos::Config::ShowPowerDelta);
+		Phobos::Config::ShowHarvesterCounter = PhobosINIContainer::Ui_INI->Read<bool>(PHOBOS_STR, "ShowHarvesterCounter").value_or(Phobos::Config::ShowHarvesterCounter);
+		Phobos::Config::ShowWeedsCounter = PhobosINIContainer::Ui_INI->Read<bool>(PHOBOS_STR, "ShowWeedsCounter").value_or(Phobos::Config::ShowWeedsCounter);
+	}
+	auto ReadNullableCSF = [&](NullableCSF& value ,const char* pSesction,  const char* pKey) {
+		std::string _result = PhobosINIContainer::Ui_INI->ReadString(pSesction, pKey, GameStrings::NoneStr());
+		value.Set(GeneralUtils::LoadStringUnlessMissing(_result.c_str(), value.c_str()));
+	};
+
+	{
+
+		Phobos::UI::ExtendedToolTips = PhobosINIContainer::Ui_INI->Read<bool>(GameStrings::ToolTips(), "ExtendedToolTips").value_or(Phobos::UI::ExtendedToolTips);
+		Phobos::UI::AnchoredToolTips = PhobosINIContainer::Ui_INI->Read<bool>(GameStrings::ToolTips(), "AnchoredToolTips").value_or(Phobos::UI::AnchoredToolTips);
+		Phobos::UI::MaxToolTipWidth = PhobosINIContainer::Ui_INI->Read<int>(GameStrings::ToolTips(), "MaxWidth").value_or(Phobos::UI::MaxToolTipWidth);
+
+		ReadNullableCSF(Phobos::UI::CostLabel,GameStrings::ToolTips(),"CostLabel");
+		ReadNullableCSF(Phobos::UI::PowerLabel,GameStrings::ToolTips(), "PowerLabel");
+		ReadNullableCSF(Phobos::UI::PowerBlackoutLabel,GameStrings::ToolTips(), "PowerBlackoutLabel");
+		ReadNullableCSF(Phobos::UI::TimeLabel,GameStrings::ToolTips(), "TimeLabel");
+		ReadNullableCSF(Phobos::UI::PercentLabel,GameStrings::ToolTips(), "PercentLabel");
+		ReadNullableCSF(Phobos::UI::SWShotsFormat,GameStrings::ToolTips(), "SWShotsFormat");
+		ReadNullableCSF(Phobos::UI::BattlePoints_Label,GameStrings::ToolTips(), "BattlePoints.Label");
 	}
 
-	if (pINI->GetSection(GameStrings::ToolTips())) {
-
-		Phobos::UI::ExtendedToolTips = pINI->ReadBool(GameStrings::ToolTips(), "ExtendedToolTips", Phobos::UI::ExtendedToolTips);
-		Phobos::UI::AnchoredToolTips = pINI->ReadBool(GameStrings::ToolTips(), "AnchoredToolTips", Phobos::UI::AnchoredToolTips);
-		Phobos::UI::MaxToolTipWidth = pINI->ReadInteger(GameStrings::ToolTips(), "MaxWidth", Phobos::UI::MaxToolTipWidth);
-
-		Phobos::UI::CostLabel.Read(pINI, GameStrings::ToolTips(), "CostLabel");
-		Phobos::UI::PowerLabel.Read(pINI, GameStrings::ToolTips(), "PowerLabel");
-		Phobos::UI::PowerBlackoutLabel.Read(pINI, GameStrings::ToolTips(), "PowerBlackoutLabel");
-		Phobos::UI::TimeLabel.Read(pINI, GameStrings::ToolTips(), "TimeLabel");
-		Phobos::UI::PercentLabel.Read(pINI, GameStrings::ToolTips(), "PercentLabel");
-		Phobos::UI::SWShotsFormat.Read(pINI, GameStrings::ToolTips(), "SWShotsFormat");
-		Phobos::UI::BattlePoints_Label.Read(pINI, GameStrings::ToolTips(), "BattlePoints.Label");
-	}
-
-	if (pINI->GetSection(SIDEBAR_SECTION_T)) {
+	{
 		Phobos::UI::ShowHarvesterCounter =
-			pINI->ReadBool(SIDEBAR_SECTION_T, "HarvesterCounter.Show", Phobos::UI::ShowHarvesterCounter);
+			PhobosINIContainer::Ui_INI->Read<bool>(SIDEBAR_SECTION_T, "HarvesterCounter.Show").value_or(Phobos::UI::ShowHarvesterCounter);
 
-		Phobos::UI::HarvesterLabel.Read(pINI, SIDEBAR_SECTION_T, "HarvesterCounter.Label");
+		ReadNullableCSF(Phobos::UI::HarvesterLabel , SIDEBAR_SECTION_T, "HarvesterCounter.Label");
 
 		Phobos::UI::HarvesterCounter_ConditionYellow =
-			pINI->ReadDouble(SIDEBAR_SECTION_T, "HarvesterCounter.ConditionYellow", Phobos::UI::HarvesterCounter_ConditionYellow);
+			PhobosINIContainer::Ui_INI->Read<double>(SIDEBAR_SECTION_T, "HarvesterCounter.ConditionYellow").value_or(Phobos::UI::HarvesterCounter_ConditionYellow);
 
 		Phobos::UI::HarvesterCounter_ConditionRed =
-			pINI->ReadDouble(SIDEBAR_SECTION_T, "HarvesterCounter.ConditionRed", Phobos::UI::HarvesterCounter_ConditionRed);
+			PhobosINIContainer::Ui_INI->Read<double>(SIDEBAR_SECTION_T, "HarvesterCounter.ConditionRed").value_or(Phobos::UI::HarvesterCounter_ConditionRed);
 
 		Phobos::UI::ShowProducingProgress =
-			pINI->ReadBool(SIDEBAR_SECTION_T, "ProducingProgress.Show", Phobos::UI::ShowProducingProgress);
+			PhobosINIContainer::Ui_INI->Read<bool>(SIDEBAR_SECTION_T, "ProducingProgress.Show").value_or(Phobos::UI::ShowProducingProgress);
 
 		Phobos::UI::WeedsCounter_Show =
-			pINI->ReadBool(SIDEBAR_SECTION_T, "WeedsCounter.Show", Phobos::UI::WeedsCounter_Show);
+			PhobosINIContainer::Ui_INI->Read<bool>(SIDEBAR_SECTION_T, "WeedsCounter.Show").value_or(Phobos::UI::WeedsCounter_Show);
 
 		Phobos::UI::ShowPowerDelta =
-			pINI->ReadBool(SIDEBAR_SECTION_T, "PowerDelta.Show", Phobos::UI::ShowPowerDelta);
+			PhobosINIContainer::Ui_INI->Read<bool>(SIDEBAR_SECTION_T, "PowerDelta.Show").value_or(Phobos::UI::ShowPowerDelta);
 
 		Phobos::UI::PowerDelta_ConditionYellow =
-			pINI->ReadDouble(SIDEBAR_SECTION_T, "PowerDelta.ConditionYellow", Phobos::UI::PowerDelta_ConditionYellow);
+			PhobosINIContainer::Ui_INI->Read<double>(SIDEBAR_SECTION_T, "PowerDelta.ConditionYellow").value_or(Phobos::UI::PowerDelta_ConditionYellow);
 
 		Phobos::UI::PowerDelta_ConditionRed =
-			pINI->ReadDouble(SIDEBAR_SECTION_T, "PowerDelta.ConditionRed", Phobos::UI::PowerDelta_ConditionRed);
+			PhobosINIContainer::Ui_INI->Read<double>(SIDEBAR_SECTION_T, "PowerDelta.ConditionRed").value_or(Phobos::UI::PowerDelta_ConditionRed);
 
 		Phobos::Config::TogglePowerInsteadOfRepair =
-			pINI->ReadBool(SIDEBAR_SECTION_T, "TogglePowerInsteadOfRepair", Phobos::Config::TogglePowerInsteadOfRepair);
+			PhobosINIContainer::Ui_INI->Read<bool>(SIDEBAR_SECTION_T, "TogglePowerInsteadOfRepair").value_or(Phobos::Config::TogglePowerInsteadOfRepair);
 
 		Phobos::UI::CenterPauseMenuBackground =
-			pINI->ReadBool(SIDEBAR_SECTION_T, "CenterPauseMenuBackground", Phobos::UI::CenterPauseMenuBackground);
+			PhobosINIContainer::Ui_INI->Read<bool>(SIDEBAR_SECTION_T, "CenterPauseMenuBackground").value_or(Phobos::UI::CenterPauseMenuBackground);
 
-		Phobos::UI::BattlePointsSidebar_Label.Read(pINI, SIDEBAR_SECTION_T, "BattlePointsSidebar.Label");
+		ReadNullableCSF(Phobos::UI::BattlePointsSidebar_Label, SIDEBAR_SECTION_T, "BattlePointsSidebar.Label");
 
 		Phobos::UI::BattlePointsSidebar_Label_InvertPosition =
-			pINI->ReadBool(SIDEBAR_SECTION_T, "BattlePointsSidebar.Label.InvertPosition", Phobos::UI::BattlePointsSidebar_Label_InvertPosition);
+			PhobosINIContainer::Ui_INI->Read<bool>(SIDEBAR_SECTION_T, "BattlePointsSidebar.Label.InvertPosition").value_or(Phobos::UI::BattlePointsSidebar_Label_InvertPosition);
 
 		Phobos::UI::BattlePointsSidebar_AlwaysShow =
-			pINI->ReadBool(SIDEBAR_SECTION_T, "BattlePointsSidebar.AlwaysVisible", Phobos::UI::BattlePointsSidebar_AlwaysShow);
+			PhobosINIContainer::Ui_INI->Read<bool>(SIDEBAR_SECTION_T, "BattlePointsSidebar.AlwaysVisible").value_or(Phobos::UI::BattlePointsSidebar_AlwaysShow);
 
 		Phobos::UI::SuperWeaponSidebar =
-			pINI->ReadBool(SIDEBAR_SECTION_T, "SuperWeaponSidebar", Phobos::UI::SuperWeaponSidebar);
+			PhobosINIContainer::Ui_INI->Read<bool>(SIDEBAR_SECTION_T, "SuperWeaponSidebar").value_or(Phobos::UI::SuperWeaponSidebar);
 
 		Phobos::UI::SuperWeaponSidebar_Interval =
-			pINI->ReadInteger(SIDEBAR_SECTION_T, "SuperWeaponSidebar.Interval", Phobos::UI::SuperWeaponSidebar_Interval);
+			PhobosINIContainer::Ui_INI->Read<int>(SIDEBAR_SECTION_T, "SuperWeaponSidebar.Interval").value_or(Phobos::UI::SuperWeaponSidebar_Interval);
 
 		Phobos::UI::SuperWeaponSidebar_LeftOffset =
-			pINI->ReadInteger(SIDEBAR_SECTION_T, "SuperWeaponSidebar.LeftOffset", Phobos::UI::SuperWeaponSidebar_LeftOffset);
+			PhobosINIContainer::Ui_INI->Read<int>(SIDEBAR_SECTION_T, "SuperWeaponSidebar.LeftOffset").value_or(Phobos::UI::SuperWeaponSidebar_LeftOffset);
 
 		Phobos::UI::SuperWeaponSidebar_CameoHeight =
-			pINI->ReadInteger(SIDEBAR_SECTION_T, "SuperWeaponSidebar.CameoHeight", Phobos::UI::SuperWeaponSidebar_CameoHeight);
+			PhobosINIContainer::Ui_INI->Read<int>(SIDEBAR_SECTION_T, "SuperWeaponSidebar.CameoHeight").value_or(Phobos::UI::SuperWeaponSidebar_CameoHeight);
 
 		Phobos::UI::SuperWeaponSidebar_Max =
-			pINI->ReadInteger(SIDEBAR_SECTION_T, "SuperWeaponSidebar.Max", Phobos::UI::SuperWeaponSidebar_Max);
+			PhobosINIContainer::Ui_INI->Read<int>(SIDEBAR_SECTION_T, "SuperWeaponSidebar.Max").value_or(Phobos::UI::SuperWeaponSidebar_Max);
 
 		Phobos::UI::SuperWeaponSidebar_MaxColumns =
-			pINI->ReadInteger(SIDEBAR_SECTION_T, "SuperWeaponSidebar.MaxColumns", Phobos::UI::SuperWeaponSidebar_MaxColumns);
+			PhobosINIContainer::Ui_INI->Read<int>(SIDEBAR_SECTION_T, "SuperWeaponSidebar.MaxColumns").value_or(Phobos::UI::SuperWeaponSidebar_MaxColumns);
 
 		Phobos::UI::SuperWeaponSidebar_Pyramid =
-			pINI->ReadBool(SIDEBAR_SECTION_T, "SuperWeaponSidebar.Pyramid", Phobos::UI::SuperWeaponSidebar_Pyramid);
+			PhobosINIContainer::Ui_INI->Read<bool>(SIDEBAR_SECTION_T, "SuperWeaponSidebar.Pyramid").value_or(Phobos::UI::SuperWeaponSidebar_Pyramid);
 
 		Phobos::UI::CreditsIndicator_MaxStep =
-			pINI->ReadInteger(SIDEBAR_SECTION_T, "CreditsIndicator.MaxStep", Phobos::UI::CreditsIndicator_MaxStep);
+			PhobosINIContainer::Ui_INI->Read<int>(SIDEBAR_SECTION_T, "CreditsIndicator.MaxStep").value_or(Phobos::UI::CreditsIndicator_MaxStep);
 	}
 
-	if (pINI->GetSection(GameStrings::SideBar())) {
+	{
 		Phobos::UI::SuperWeaponSidebar =
-			pINI->ReadBool(GameStrings::SideBar(), "SuperWeaponSidebar", Phobos::UI::SuperWeaponSidebar);
+			PhobosINIContainer::Ui_INI->Read<bool>(GameStrings::SideBar(), "SuperWeaponSidebar").value_or(Phobos::UI::SuperWeaponSidebar);
 
 		Phobos::UI::SuperWeaponSidebar_Interval =
-			pINI->ReadInteger(GameStrings::SideBar(), "SuperWeaponSidebar.Interval", Phobos::UI::SuperWeaponSidebar_Interval);
+			PhobosINIContainer::Ui_INI->Read<int>(GameStrings::SideBar(), "SuperWeaponSidebar.Interval").value_or(Phobos::UI::SuperWeaponSidebar_Interval);
 
 		Phobos::UI::SuperWeaponSidebar_LeftOffset =
-			pINI->ReadInteger(GameStrings::SideBar(), "SuperWeaponSidebar.LeftOffset", Phobos::UI::SuperWeaponSidebar_LeftOffset);
+			PhobosINIContainer::Ui_INI->Read<int>(GameStrings::SideBar(), "SuperWeaponSidebar.LeftOffset").value_or(Phobos::UI::SuperWeaponSidebar_LeftOffset);
 
 		Phobos::UI::SuperWeaponSidebar_CameoHeight =
-			pINI->ReadInteger(GameStrings::SideBar(), "SuperWeaponSidebar.CameoHeight", Phobos::UI::SuperWeaponSidebar_CameoHeight);
+			PhobosINIContainer::Ui_INI->Read<int>(GameStrings::SideBar(), "SuperWeaponSidebar.CameoHeight").value_or(Phobos::UI::SuperWeaponSidebar_CameoHeight);
 
 		Phobos::UI::SuperWeaponSidebar_Max =
-			pINI->ReadInteger(GameStrings::SideBar(), "SuperWeaponSidebar.Max", Phobos::UI::SuperWeaponSidebar_Max);
+			PhobosINIContainer::Ui_INI->Read<int>(GameStrings::SideBar(), "SuperWeaponSidebar.Max").value_or(Phobos::UI::SuperWeaponSidebar_Max);
 
 		Phobos::UI::SuperWeaponSidebar_MaxColumns =
-			pINI->ReadInteger(GameStrings::SideBar(), "SuperWeaponSidebar.MaxColumns", Phobos::UI::SuperWeaponSidebar_MaxColumns);
+			PhobosINIContainer::Ui_INI->Read<int>(GameStrings::SideBar(), "SuperWeaponSidebar.MaxColumns").value_or(Phobos::UI::SuperWeaponSidebar_MaxColumns);
 
 		Phobos::UI::SuperWeaponSidebar_Pyramid =
-			pINI->ReadBool(GameStrings::SideBar(), "SuperWeaponSidebar.Pyramid", Phobos::UI::SuperWeaponSidebar_Pyramid);
+			PhobosINIContainer::Ui_INI->Read<bool>(GameStrings::SideBar(), "SuperWeaponSidebar.Pyramid").value_or(Phobos::UI::SuperWeaponSidebar_Pyramid);
 	}
 
 	Phobos::UI::SuperWeaponSidebar_LeftOffset = MinImpl(Phobos::UI::SuperWeaponSidebar_Interval, Phobos::UI::SuperWeaponSidebar_LeftOffset);

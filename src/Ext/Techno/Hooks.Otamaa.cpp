@@ -144,13 +144,26 @@ ASMJIT_PATCH(0x4DECBB, FootClass_Destroy_SpinSpeed, 0x5) //A
 
 	auto const pExt = GET_TECHNOTYPEEXT(pThis);
 
-	pThis->RockingSidewaysPerFrame = static_cast<float>((ScenarioClass::Instance->Random.RandomDouble() * 0.15 + 0.1) * pExt->CrashSpinLevelRate.Get());
+	if(pExt->CrashSpin_Multiplier.isset()){
+		const float multiplier = pExt->CrashSpin_Multiplier;
 
-	if (!ScenarioClass::Instance->Random.RandomBool())
-		pThis->RockingSidewaysPerFrame = -pThis->RockingSidewaysPerFrame;
+		if (multiplier > 0.0f) {
+			pThis->RockingSidewaysPerFrame = static_cast<float>((ScenarioClass::Instance->Random.RandomDouble() * 0.15 + 0.1) * multiplier);
 
-	pThis->RockingForwardsPerFrame = static_cast<float>(ScenarioClass::Instance->Random.RandomDouble() * 0.1 * pExt->CrashSpinVerticalRate.Get());
+			if (!ScenarioClass::Instance->Random.RandomBool())
+				pThis->RockingSidewaysPerFrame *= -1.0f;
 
+			pThis->RockingForwardsPerFrame = static_cast<float>(ScenarioClass::Instance->Random.RandomDouble() * 0.1 * multiplier);
+		}
+	} else {
+
+		pThis->RockingSidewaysPerFrame = static_cast<float>((ScenarioClass::Instance->Random.RandomDouble() * 0.15 + 0.1) * pExt->CrashSpinLevelRate.Get());
+
+		if (!ScenarioClass::Instance->Random.RandomBool())
+			pThis->RockingSidewaysPerFrame = -pThis->RockingSidewaysPerFrame;
+
+		pThis->RockingForwardsPerFrame = static_cast<float>(ScenarioClass::Instance->Random.RandomDouble() * 0.1 * pExt->CrashSpinVerticalRate.Get());
+	}
 
 	return 0x4DED4B;
 }

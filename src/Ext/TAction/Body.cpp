@@ -15,6 +15,7 @@
 
 #include <Ext/Building/Body.h>
 #include <Ext/House/Body.h>
+#include <Ext/HouseType/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/Scenario/Body.h>
 #include <Ext/Terrain/Body.h>
@@ -36,6 +37,8 @@
 #include <WaypointPathClass.h>
 
 #include <New/Entity/BannerClass.h>
+#include <New/Entity/DropshipLoadoutClass.h>
+
 #include <New/Type/BannerTypeClass.h>
 
 #include <Misc/DamageArea.h>
@@ -338,19 +341,17 @@ bool TActionExtData::CreateBannerLocal(TActionClass* pThis, HouseClass* pHouse, 
 
 	bool foundAny = false;
 
-	banners.for_each([&](BannerClass& pBanner)
- {
-	 if (pBanner.ID == pThis->Param3)
-	 {
-		 foundAny = true;
-		 pBanner.Type = pBannerType;
-		 pBanner.Position = { static_cast<int>(pThis->Param4 / 100.0 * DSurface::ViewBounds->Width), static_cast<int>(pThis->Param5 / 100.0 * DSurface::ViewBounds->Height) };
-		 pBanner.Variable = pThis->Param6;
-		 pBanner.IsGlobalVariable = false;
-		 return true;
-	 }
+	banners.for_each([&](BannerClass& pBanner) {
+		 if (pBanner.ID == pThis->Param3)  {
+			 foundAny = true;
+			 pBanner.Type = pBannerType;
+			 pBanner.Position = { static_cast<int>(pThis->Param4 / 100.0 * DSurface::ViewBounds->Width), static_cast<int>(pThis->Param5 / 100.0 * DSurface::ViewBounds->Height) };
+			 pBanner.Variable = pThis->Param6;
+			 pBanner.IsGlobalVariable = false;
+			 return true;
+		 }
 
-	 return false;
+		return false;
 	});
 
 	if (!foundAny) {
@@ -364,6 +365,202 @@ bool TActionExtData::DeleteBanner(TActionClass* pThis, HouseClass* pHouse, Objec
 	BannerManagerClass::Instance.Array.remove_all_if([pThis](const BannerClass& pBanner) {
 		 return pBanner.ID == pThis->Value;
 	});
+
+	return true;
+}
+
+bool TActionExtData::OpenDropshipLoadoutWindow(TActionClass* pThis, HouseClass* pTriggerHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	if (!SessionClass::IsCampaign() && !SessionClass::IsSkirmish())
+		return true;
+
+	bool bIgnoreFixedUnits = (pThis->Param3 == 1);
+	bool bPreloadCargo = (pThis->Param4 == 1);
+	bool bAddUnusedMoneyToPlayer = (pThis->Param5 == 1);
+	int allowableUnitsIndex = pThis->Value;
+	int startingMoney = pThis->Param6;
+
+	if (allowableUnitsIndex != 0)
+	{
+		bool listFound = false;
+		auto const pHouseTypeExt = HouseTypeExtContainer::Instance.Find(HouseClass::CurrentPlayer->Type);
+		bool houseHasLists = !pHouseTypeExt->DropshipLoadout_AllowableUnitsLists.empty();
+
+		auto it = pHouseTypeExt->DropshipLoadout_AllowableUnitsLists.find(allowableUnitsIndex);
+		if (it != pHouseTypeExt->DropshipLoadout_AllowableUnitsLists.end())
+			listFound = true;
+
+		if (!listFound && !houseHasLists)
+		{
+			auto it = ScenarioExtData::Instance()->DropshipLoadout_AllowableUnitsLists.find(allowableUnitsIndex);
+			if (it != ScenarioExtData::Instance()->DropshipLoadout_AllowableUnitsLists.end())
+				listFound = true;
+		}
+
+		if (!listFound)
+		{
+			Debug::Log("[DropshipLoadout] Warning: Map action 901 requested non-existent allowable units list index %d. Skipping loadout window.\n", allowableUnitsIndex);
+			return true;
+		}
+	}
+
+	DropshipLoadoutClass::OpenInGameWindow(bIgnoreFixedUnits, bPreloadCargo, allowableUnitsIndex, startingMoney, Nullable<bool>(bAddUnusedMoneyToPlayer), {});
+
+	return true;
+}
+
+bool TActionExtData::CreateDropshipLoadoutTransport(TActionClass* pThis, HouseClass* pTriggerHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	if (!pThis || !pThis->TeamType || !pTriggerHouse || (!SessionClass::IsCampaign() && !SessionClass::IsSkirmish()))
+		return true;
+
+	const int dropshipIdx = pThis->Param3;
+	if (dropshipIdx < 0)
+		return true;
+
+
+	auto& waypoints = ScenarioExtData::Instance()->Waypoints;
+	const int nSpawnWaypoint = pThis->TeamType->Waypoint;
+
+	bool isValidSpawnWP = nSpawnWaypoint >= 0 && waypoints.contains(nSpawnWaypoint) && waypoints[nSpawnWaypoint].X && waypoints[nSpawnWaypoint].Y && waypoints[nSpawnWaypoint] != CellStruct::Empty;
+
+	if (!isValidSpawnWP)
+		return true;
+
+	HouseClass* pHouse = HouseClass::CurrentPlayer;
+	HouseClass* pDropshipHouse = pTriggerHouse;
+	HouseClass* pCargoHouse = pHouse;
+
+	// Overwrite the owner of the Dropship transports
+	if (pThis->Param4 == 1)
+	{
+		pDropshipHouse = HouseClass::Index_IsMP(pThis->Param5)
+			? HouseClass::FindByIndex(pThis->Param5)
+			: HouseClass::FindByCountryIndex(pThis->Param5);
+	}
+
+	auto const pHouseExt = HouseExtContainer::Instance.Find(pHouse);
+
+	if (dropshipIdx >= ScenarioExtData::Instance()->DropshipLoadout_StartingDropships
+		|| dropshipIdx >= pHouseExt->DropshipLoadout_Carriers.size()
+		|| pHouseExt->DropshipLoadout_Cargo.size() == 0
+		|| pHouseExt->DropshipLoadout_Cargo[dropshipIdx].size() == 0)
+	{
+		return true;
+	}
+
+	auto const pTransporterType = pHouseExt->DropshipLoadout_Carriers[dropshipIdx];
+	auto pCargo = pHouseExt->DropshipLoadout_Cargo[dropshipIdx];
+
+	if (pTransporterType->Passengers == 0)
+		return true;
+
+	CellStruct spawnLocation = waypoints[nSpawnWaypoint];
+	CoordStruct startLocation = CellClass::Cell2Coord(spawnLocation);// , zCoord);
+
+	auto pTeam = GameCreate<TeamClass>(pThis->TeamType, pDropshipHouse, 0);
+	if (!pTeam)
+		return true;
+
+	pTeam->NeedsToDisappear = false;
+	pTeam->IsTransient = false;
+	pTeam->IsForcedActive = true;
+
+	auto const pTransporter = static_cast<FootClass*>(pTransporterType->CreateObject(pDropshipHouse));
+	if (!pTransporter)
+	{
+		GameDelete(pTeam);
+		return true;
+	}
+
+	FootClass* pGunner = nullptr;
+
+	for (auto pObjectType : pCargo)
+	{
+		auto const pObject = static_cast<FootClass*>(pObjectType->CreateObject(pCargoHouse));
+
+		if (!pObject)
+			continue;
+
+		auto const pPayload = static_cast<FootClass*>(pObject);
+		pPayload->SetLocation(startLocation);
+		pPayload->Limbo();
+
+		if (pPayload->GetTechnoType()->Trainable)
+		{
+			int targetVetLevel = pThis->TeamType->VeteranLevel;
+			float targetVeterancy = 0.0f;
+
+			if (targetVetLevel == 2)
+				targetVeterancy = 1.0f;
+			else if (targetVetLevel == 3)
+				targetVeterancy = 2.0f;
+
+			if (targetVeterancy > pPayload->Veterancy.Veterancy)
+				pPayload->Veterancy.Add(targetVeterancy - pPayload->Veterancy.Veterancy);
+		}
+
+		if (pTransporterType->OpenTopped)
+			pTransporter->EnteredOpenTopped(pPayload);
+
+		pPayload->Transporter = pTransporter;
+		pGunner = pPayload;
+		pTransporter->AddPassenger(pPayload);
+	}
+
+	// Handle gunner change - this is the 'last' passenger because of reverse order
+	if (pTransporterType->Gunner && pGunner)
+		pTransporter->ReceiveGunner(pGunner);
+
+	// Can this Dropship cargo be repeated or is a 1-time use?
+	if (pThis->Param6 != 1)
+		pHouseExt->DropshipLoadout_Cargo[dropshipIdx].clear();
+
+	// Remove only the spawned units from InitialUnits pool in HouseExt
+	for (auto pObjectType : pCargo)
+	{
+		if (pObjectType)
+		{
+			for (auto& list : pHouseExt->DropshipLoadout_InitialUnits)
+			{
+				auto it = std::find(list.begin(), list.end(), pObjectType);
+
+				if (it != list.end())
+				{
+					list.erase(it);
+					break;
+				}
+			}
+		}
+	}
+
+	++Unsorted::ScenarioInit;
+	bool success = pTransporter->Unlimbo(startLocation, DirType::North);
+	--Unsorted::ScenarioInit;
+
+	if (!success)
+	{
+		GameDelete(pTeam);
+		return true;
+	}
+
+	pTeam->AddMember(pTransporter, true);
+	int zCoord = 0;
+
+	if (pTransporterType->ConsideredAircraft)
+	{
+		zCoord = RulesClass::Instance->FlightLevel;
+	}
+	else if (pTransporterType->IsSubterranean)
+	{
+		auto const pTypeExt = TechnoExtContainer::Instance.Find(pTransporter)->TypeExtData;
+		zCoord += pTypeExt->SubterraneanHeight.Get(FakeRulesClass::Instance->SubterraneanHeight);
+		zCoord -= pTransporter->Location.Z;
+	}
+
+	startLocation.Z = zCoord;
+	pTransporter->SetLocation(startLocation);
+	pTransporter->SetDestination(pTransporter, true);
 
 	return true;
 }
@@ -965,6 +1162,12 @@ bool NOINLINE TActionExtData::Occured(TActionClass* pThis, ActionArgs const& arg
 		break;
 	case PhobosTriggerAction::DeleteBanner:
 		ret = TActionExtData::DeleteBanner(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::CreateDropshipLoadoutTransport:
+		ret = TActionExtData::CreateDropshipLoadoutTransport(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::OpenDropshipLoadoutWindow:
+		ret = TActionExtData::OpenDropshipLoadoutWindow(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
 	case PhobosTriggerAction::AdjustHouseModifier:
 		ret = TActionExtData::AdjustHouseModifier(pThis, pHouse, pObject, pTrigger, args.plocation);

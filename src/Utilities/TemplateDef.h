@@ -164,6 +164,9 @@ namespace detail
 	}
 
 	template <>
+	bool read<PhobosPCXFile>(PhobosPCXFile& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
+
+	template <>
 	bool read<bool>(bool& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>

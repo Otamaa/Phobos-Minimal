@@ -403,6 +403,17 @@ public:
 	// 9 bools = 9 bytes, pads to 12 for 4-byte alignment
 
 	std::array<int, 3> BeaconsPlacedOrder {};
+
+	std::vector<TechnoTypeClass*> DropshipLoadout_Carriers {};
+	std::vector<std::vector<TechnoTypeClass*>> DropshipLoadout_Cargo {};
+	std::vector<std::vector<TechnoTypeClass*>> DropshipLoadout_InitialUnits {};
+	// SW-exclusive state (separated to avoid conflicts with map actions at slot 0)
+	std::vector<TechnoTypeClass*> DropshipLoadout_SWInitialUnits {};
+	std::vector<TechnoTypeClass*> DropshipLoadout_SWCargo {};
+	TechnoTypeClass* DropshipLoadout_SWCarrier {};
+	bool DropshipLoadout_InitialUnitsSet {};
+	bool DropshipLoadout_SWInitialUnitsSet {};
+
 #pragma endregion
 
 public:

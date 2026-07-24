@@ -91,6 +91,8 @@ NullableCSF Phobos::UI::SWShotsFormat { L"%d/%d shots" };
 NullableCSF Phobos::UI::BattlePoints_Label { L"\u2605: " }; // ★: 
 NullableCSF Phobos::UI::BattlePointsSidebar_Label { L"\u2605: " };// ★:
 
+const wchar_t* Phobos::UI::GameTimeText { };
+
 const wchar_t* Phobos::UI::ShowBriefingResumeButtonLabel { L"" };
 char Phobos::UI::ShowBriefingResumeButtonStatusLabel[0x20] { "" };
 
@@ -207,6 +209,9 @@ bool Phobos::Misc::CustomGS { false };
 int Phobos::Misc::CustomGS_ChangeInterval[7] { -1, -1, -1, -1, -1, -1, -1 };
 int Phobos::Misc::CustomGS_ChangeDelay[7] { 0, 1, 2, 3, 4, 5, 6 };
 int Phobos::Misc::CustomGS_DefaultDelay[7] { 0, 1, 2, 3, 4, 5, 6 };
+
+bool Phobos::Config::ShowGameTime = false;
+int Phobos::Config::ShowGameTime_BoardOpacity = 40;
 
 bool Phobos::Otamaa::DisableCustomRadSite { false };
 bool Phobos::Otamaa::IsAdmin { false };

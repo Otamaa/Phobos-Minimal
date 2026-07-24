@@ -98,6 +98,50 @@ public:
 	TechnoClass* PrismRelayClaimMaster { nullptr };
 	int PrismRelayClaimWeaponIndex { -1 };
 
+
+	int DropshipLoadout_Theme { -1 };
+	long DropshipLoadout_Money { -1 };
+	NullableIdx<VoxClass> DropshipLoadout_StartEVA {};
+	int DropshipLoadout_StartingDropships {};
+	std::vector<TechnoTypeClass*> DropshipLoadout_Carriers {};
+	std::vector<int> DropshipLoadout_Carriers_SizeLimit {};
+	bool DropshipLoadout_AddUnusedMoneyToPlayer {};
+	bool DropshipLoadout_RememberPurchasedCargo { true };
+	ConvertClass* DropshipLoadout_Palette {};
+	SHPStruct* DropshipLoadout_Background {};
+	SHPStruct* DropshipLoadout_UpArrow {};
+	SHPStruct* DropshipLoadout_DownArrow {};
+	SHPStruct* DropshipLoadout_Loadout {};
+	SHPStruct* DropshipLoadout_PilotLit {};
+	std::vector<SHPStruct*> DropshipLoadout_DGreenList {};
+	PhobosPCXFile DropshipLoadout_BackgroundPCX {};
+	PhobosPCXFile DropshipLoadout_UpArrowPCX {};
+	PhobosPCXFile DropshipLoadout_DownArrowPCX {};
+	std::vector<PhobosPCXFile> DropshipLoadout_LoadoutPCX {};
+	Point2D DropshipLoadout_LoadoutLocation {};
+	std::vector<PhobosPCXFile> DropshipLoadout_PilotLitPCX {};
+	Point2D DropshipLoadout_PilotLitLocation {};
+	std::vector<std::unique_ptr<std::vector<PhobosPCXFile>>> DropshipLoadout_DGreenListPCX {};
+	int DropshipLoadout_DGreenAnimationsCount {};
+	std::vector<Point2D> DropshipLoadout_DGreenLocations {};
+	Point2D DropshipLoadout_UpArrowLocation {};
+	Point2D DropshipLoadout_DownArrowLocation {};
+	int DropshipLoadout_SidebarCameosCount {};
+	std::vector<Point2D> DropshipLoadout_SidebarCameoLocations {};
+	int DropshipLoadout_DropshipCameosCount {};
+	std::vector<std::vector<Point2D>> DropshipLoadout_DropshipCameoLocations {};
+	std::vector<std::vector<TechnoTypeClass*>> DropshipLoadout_FixedUnits {};
+	std::vector<std::vector<TechnoTypeClass*>> DropshipLoadout_InitialUnits {};
+	std::map<int, std::vector<TechnoTypeClass*>> DropshipLoadout_AllowableUnitsLists {};
+	std::map<int, std::vector<int>> DropshipLoadout_AllowableUnitMaximumsLists {};
+	//VocClass DropshipLoadout_SellClickSound;
+	NullableIdx<VocClass> DropshipLoadout_BuyClickSound {};
+	NullableIdx<VocClass> DropshipLoadout_SellClickSound {};
+	NullableIdx<VocClass> DropshipLoadout_ArrowsClickSound {};
+	NullableIdx<VocClass> DropshipLoadout_StartingDragDropSound {};
+	NullableIdx<VocClass> DropshipLoadout_EndingDragDropSound {};
+	std::vector<int> DropshipLoadout_ActiveTeamSuffixes {};
+
 #pragma endregion
 
 	void SetVariableToByID(const bool IsGlobal, int nIndex, char bState);
@@ -164,6 +208,47 @@ private:
 			.Process(this->PrismRelayClaimFrame)
 			.Process(this->PrismRelayClaimMaster)
 			.Process(this->PrismRelayClaimWeaponIndex)
+
+			.Process(this->DropshipLoadout_Theme)
+			.Process(this->DropshipLoadout_Money)
+			.Process(this->DropshipLoadout_StartEVA)
+			.Process(this->DropshipLoadout_StartingDropships)
+			.Process(this->DropshipLoadout_Carriers)
+			.Process(this->DropshipLoadout_Carriers_SizeLimit)
+			.Process(this->DropshipLoadout_AddUnusedMoneyToPlayer)
+			.Process(this->DropshipLoadout_RememberPurchasedCargo)
+			.Process(this->DropshipLoadout_Palette)
+			.Process(this->DropshipLoadout_Background)
+			.Process(this->DropshipLoadout_UpArrow)
+			.Process(this->DropshipLoadout_DownArrow)
+			.Process(this->DropshipLoadout_Loadout)
+			.Process(this->DropshipLoadout_LoadoutLocation)
+			.Process(this->DropshipLoadout_PilotLit)
+			.Process(this->DropshipLoadout_PilotLitLocation)
+			.Process(this->DropshipLoadout_DGreenList)
+			.Process(this->DropshipLoadout_BackgroundPCX)
+			.Process(this->DropshipLoadout_UpArrowPCX)
+			.Process(this->DropshipLoadout_DownArrowPCX)
+			.Process(this->DropshipLoadout_LoadoutPCX)
+			.Process(this->DropshipLoadout_PilotLitPCX)
+			.Process(this->DropshipLoadout_DGreenListPCX)
+			.Process(this->DropshipLoadout_DGreenAnimationsCount)
+			.Process(this->DropshipLoadout_DGreenLocations)
+			.Process(this->DropshipLoadout_UpArrowLocation)
+			.Process(this->DropshipLoadout_DownArrowLocation)
+			.Process(this->DropshipLoadout_SidebarCameosCount)
+			.Process(this->DropshipLoadout_SidebarCameoLocations)
+			.Process(this->DropshipLoadout_DropshipCameosCount)
+			.Process(this->DropshipLoadout_DropshipCameoLocations)
+			.Process(this->DropshipLoadout_BuyClickSound)
+			.Process(this->DropshipLoadout_SellClickSound)
+			.Process(this->DropshipLoadout_ArrowsClickSound)
+			.Process(this->DropshipLoadout_StartingDragDropSound)
+			.Process(this->DropshipLoadout_EndingDragDropSound)
+			.Process(this->DropshipLoadout_AllowableUnitsLists)
+			.Process(this->DropshipLoadout_AllowableUnitMaximumsLists)
+			.Process(this->DropshipLoadout_ActiveTeamSuffixes)
+
 			;
 
 	}

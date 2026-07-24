@@ -10,6 +10,8 @@
 #include <Ext/Side/Body.h>
 #include <Ext/Super/Body.h>
 #include <Ext/Mouse/Body.h>
+#include <Ext/Scenario/Body.h>
+#include <Ext/TeamType/Body.h>
 
 #include <Misc/PhobosToolTip.h>
 
@@ -26,12 +28,13 @@
 #include "NewSuperWeaponType/SWStateMachine.h"
 
 #include <New/Entity/TargetingData.h>
+#include <New/Entity/DropshipLoadoutClass.h>
+
 #include <New/Type/GenericPrerequisite.h>
 
 #include <DiscreteSelectionClass.h>
 #include <DiscreteDistributionClass.h>
 #include <EventClass.h>
-
 
 #include <Utilities/Macro.h>
 #include <Utilities/EnumFunctions.h>
@@ -117,6 +120,244 @@ constexpr AITargetingModeInfo AITargetingModes[] =
 	{SuperWeaponAITargetingMode::IonCannon, SuperWeaponTarget::AllTechnos, AffectedHouse::Enemies , TargetingConstraints::Enemy, TargetingPreference::Offensive }
 };
 
+
+void SWTypeExtData::ApplyDropshipLoadoutLaunch(HouseClass* pHouse, const CellStruct& cell)
+{
+	auto const pHouseExt = HouseExtContainer::Instance.Find(pHouse);
+
+	TechnoTypeClass* pTransporterType = nullptr;
+	std::vector<TechnoTypeClass*> pCargo;
+
+	if (pHouseExt->DropshipLoadout_SWCargo.empty())
+		return;
+
+	if (this->DropshipLoadout_Carrier.isset())
+		pTransporterType = this->DropshipLoadout_Carrier;
+	else if (pHouseExt->DropshipLoadout_SWCarrier)
+		pTransporterType = pHouseExt->DropshipLoadout_SWCarrier;
+	else if (!pHouseExt->DropshipLoadout_Carriers.empty())
+		pTransporterType = pHouseExt->DropshipLoadout_Carriers[0];
+
+	if (!pTransporterType)
+		return;
+
+	pCargo = pHouseExt->DropshipLoadout_SWCargo;
+
+	Edge spawnEdge = pHouse->StaticData.StartingEdge;
+
+	if (spawnEdge == Edge::None || spawnEdge == Edge::Air)
+		spawnEdge = Edge::North;
+
+	CellStruct spawnCell = MapClass::Instance->PickCellOnEdge(
+		spawnEdge,
+		cell,
+		cell,
+		pTransporterType->SpeedType,
+		false,
+		pTransporterType->MovementZone
+	);
+
+	// Offset the spawn cell outwards into the black margins (outside playable area)
+	if (spawnEdge == Edge::North)
+	{
+		// North edge of visible area is at MapRect.Y. Move Y outside visible area (towards 0).
+		for (int y = spawnCell.Y - 1; y >= 0; --y)
+		{
+			CellStruct nextCell = { spawnCell.X, y };
+			if (MapClass::Instance->CoordinatesLegal(nextCell))
+				spawnCell = nextCell;
+			else
+				break;
+		}
+	}
+	else if (spawnEdge == Edge::South)
+	{
+		// South edge of visible area is at MapRect.Y + MapRect.Height - 1. Move Y outside (towards MaxHeight).
+		int maxHeight = MapClass::Instance->MaxHeight;
+
+		for (int y = spawnCell.Y + 1; y < maxHeight; ++y)
+		{
+			CellStruct nextCell = { spawnCell.X, y };
+
+			if (MapClass::Instance->CoordinatesLegal(nextCell))
+				spawnCell = nextCell;
+			else
+				break;
+		}
+	}
+	else if (spawnEdge == Edge::West)
+	{
+		// West edge of visible area is at MapRect.X. Move X outside visible area (towards 0).
+		for (int x = spawnCell.X - 1; x >= 0; --x)
+		{
+			CellStruct nextCell = { x, spawnCell.Y };
+
+			if (MapClass::Instance->CoordinatesLegal(nextCell))
+				spawnCell = nextCell;
+			else
+				break;
+		}
+	}
+	else if (spawnEdge == Edge::East)
+	{
+		// East edge of visible area is at MapRect.X + MapRect.Width - 1. Move X outside (towards MaxWidth).
+		int maxWidth = MapClass::Instance->MaxWidth;
+
+		for (int x = spawnCell.X + 1; x < maxWidth; ++x)
+		{
+			CellStruct nextCell = { x, spawnCell.Y };
+
+			if (MapClass::Instance->CoordinatesLegal(nextCell))
+				spawnCell = nextCell;
+			else
+				break;
+		}
+	}
+
+	CoordStruct startLocation = CellClass::Cell2Coord(spawnCell);
+
+	auto pGlobal = ScenarioExtData::Instance();
+	auto& activeSuffixes = pGlobal->DropshipLoadout_ActiveTeamSuffixes;
+
+	// Clean up inactive suffixes from the active list
+	activeSuffixes.erase(
+		std::remove_if(activeSuffixes.begin(), activeSuffixes.end(), [](int s)
+			{
+				char ttName[64];
+				sprintf_s(ttName, "PH_SW_TempTeamType_%d", s);
+				auto pTeamType = TeamTypeClass::Find(ttName);
+
+				if (pTeamType)
+					return pTeamType->cntInstances == 0 && pTeamType->FindFirstInstance() == nullptr;
+
+				return true;
+			}),
+		activeSuffixes.end()
+	);
+
+	// Find the first unused suffix
+	int suffix = 0;
+	while (true)
+	{
+		bool isInUse = std::find(activeSuffixes.begin(), activeSuffixes.end(), suffix) != activeSuffixes.end();
+
+		if (!isInUse)
+			break;
+
+		suffix++;
+	}
+
+	activeSuffixes.push_back(suffix);
+
+	ConfigureTemporarySWClass(suffix, pTransporterType, cell, spawnCell);
+
+	char ttName[64];
+	sprintf_s(ttName, "PH_SW_TempTeamType_%d", suffix);
+	auto pTeamType = TeamTypeClass::Find(ttName);
+
+	if (!pTeamType)
+		return;
+
+	auto pTeam = GameCreate<TeamClass>(pTeamType, pHouse, 0);
+	if (!pTeam)
+		return;
+
+	pTeam->NeedsToDisappear = false;
+	pTeam->IsTransient = false;
+	pTeam->IsForcedActive = true;
+
+	auto const pTransporter = static_cast<FootClass*>(pTransporterType->CreateObject(pHouse));
+
+	if (!pTransporter)
+	{
+		GameDelete(pTeam);
+		return;
+	}
+
+	FootClass* pGunner = nullptr;
+
+	for (auto pObjectType : pCargo)
+	{
+		auto const pObject = static_cast<FootClass*>(pObjectType->CreateObject(pHouse));
+		if (!pObject)
+			continue;
+
+		auto const pPayload = static_cast<FootClass*>(pObject);
+		pPayload->SetLocation(startLocation);
+		pPayload->Limbo();
+
+		if (pPayload->GetTechnoType()->Trainable && this->DropshipLoadout_VeteranLevel.isset())
+		{
+			int targetVetLevel = this->DropshipLoadout_VeteranLevel.Get();
+			float targetVeterancy = 0.0f;
+
+			if (targetVetLevel == 2)
+				targetVeterancy = 1.0f;
+			else if (targetVetLevel == 3)
+				targetVeterancy = 2.0f;
+
+			if (targetVeterancy > pPayload->Veterancy.Veterancy)
+				pPayload->Veterancy.Add(targetVeterancy - pPayload->Veterancy.Veterancy);
+		}
+
+		if (pTransporterType->OpenTopped)
+			pTransporter->EnteredOpenTopped(pPayload);
+
+		pPayload->Transporter = pTransporter;
+		pGunner = pPayload;
+		pTransporter->AddPassenger(pPayload);
+	}
+
+	if (pTransporterType->Gunner && pGunner)
+		pTransporter->ReceiveGunner(pGunner);
+
+	if (!this->DropshipLoadout_PersistentCargo)
+		pHouseExt->DropshipLoadout_SWCargo.clear();
+
+	// Remove only the spawned units from SW InitialUnits pool in HouseExt
+	for (auto pObjectType : pCargo)
+	{
+		if (pObjectType)
+		{
+			auto& swInitialUnits = pHouseExt->DropshipLoadout_SWInitialUnits;
+			auto it = std::find(swInitialUnits.begin(), swInitialUnits.end(), pObjectType);
+
+			if (it != swInitialUnits.end())
+				swInitialUnits.erase(it);
+		}
+	}
+
+	int zCoord = 0;
+
+	if (pTransporterType->ConsideredAircraft)
+	{
+		zCoord = RulesClass::Instance->FlightLevel;
+	}
+	else if (pTransporterType->IsSubterranean)
+	{
+		auto const pTypeExt = TechnoExtContainer::Instance.Find(pTransporter)->TypeExtData;
+		zCoord += pTypeExt->SubterraneanHeight.Get(FakeRulesClass::Instance->SubterraneanHeight);
+		zCoord -= pTransporter->Location.Z;
+	}
+
+	startLocation.Z = zCoord;
+	pTransporter->SetLocation(startLocation);
+
+	++Unsorted::ScenarioInit;
+	bool success = pTransporter->Unlimbo(startLocation, DirType::North);
+	--Unsorted::ScenarioInit;
+
+	if (!success)
+	{
+		GameDelete(pTeam);
+		GameDelete(pTransporter);
+		return;
+	}
+
+	pTeam->AddMember(pTransporter, true);
+	pTransporter->SetDestination(pTransporter, true);
+}
+
 SWTypeExtData::SWTypeExtData(SuperWeaponTypeClass* pObj) : AbstractTypeExtData(pObj)
 {
 	this->AbsType = SuperWeaponTypeClass::AbsID;
@@ -137,8 +378,7 @@ SWTypeExtData::~SWTypeExtData()
 };
 
 void SWTypeExtData::Initialize()
-{
-}
+{}
 
 Action SWTypeExtData::GetAction(SuperWeaponTypeClass* pSuper, CellStruct* pTarget)
 {
@@ -165,7 +405,8 @@ Action SWTypeExtData::GetAction(SuperWeaponTypeClass* pSuper, CellStruct* pTarge
 	{
 		auto pNewType = SWTypeHandler::get_Handler(pExt->HandledType);
 
-		if (pNewType && !pNewType->CanFireAt(pExt, HouseClass::CurrentPlayer, *pTarget, true)) {
+		if (pNewType && !pNewType->CanFireAt(pExt, HouseClass::CurrentPlayer, *pTarget, true))
+		{
 			result = PhobosNewActionType::SuperWeaponDisallowed;
 		}
 	}
@@ -184,20 +425,22 @@ Action SWTypeExtData::GetAction(SuperWeaponTypeClass* pSuper, CellStruct* pTarge
 		Cursor = pExt->CursorType;
 	}
 
-	MouseCursorFuncs::SetSuperWeaponCursorAction(Cursor, (Action)result , pExt->SW_FireToShroud);
+	MouseCursorFuncs::SetSuperWeaponCursorAction(Cursor, (Action)result, pExt->SW_FireToShroud);
 	return (Action)result;
 }
 
 SuperWeaponTarget SWTypeExtData::GetAIRequiredTarget() const
 {
-	if (this->SW_AIRequiresTarget.isset()) {
+	if (this->SW_AIRequiresTarget.isset())
+	{
 		return this->SW_AIRequiresTarget;
 	}
 
 	const size_t index = static_cast<size_t>(this->SW_AITargetingMode.Get());
 
 	static_assert(std::size(AITargetingModes) <= ((int)SuperWeaponAITargetingMode::IonCannon + 1), "Invalid Size !");
-	if (index >= std::size(AITargetingModes)) {
+	if (index >= std::size(AITargetingModes))
+	{
 		return SuperWeaponTarget::None;
 	}
 	return AITargetingModes[index].Target;
@@ -205,14 +448,16 @@ SuperWeaponTarget SWTypeExtData::GetAIRequiredTarget() const
 
 AffectedHouse SWTypeExtData::GetAIRequiredHouse() const
 {
-	if (this->SW_AIRequiresHouse.isset()) {
+	if (this->SW_AIRequiresHouse.isset())
+	{
 		return this->SW_AIRequiresHouse;
 	}
 
 	const size_t index = static_cast<size_t>(this->SW_AITargetingMode.Get());
 
 	static_assert(std::size(AITargetingModes) <= ((int)SuperWeaponAITargetingMode::IonCannon + 1), "Invalid Size !");
-	if (index >= std::size(AITargetingModes)) {
+	if (index >= std::size(AITargetingModes))
+	{
 		return AffectedHouse::None;
 	}
 	return AITargetingModes[index].House;
@@ -226,7 +471,8 @@ std::pair<TargetingConstraints, bool> SWTypeExtData::GetAITargetingConstraints()
 	const size_t index = static_cast<size_t>(this->SW_AITargetingMode.Get());
 
 	static_assert(std::size(AITargetingModes) <= ((int)SuperWeaponAITargetingMode::IonCannon + 1), "Invalid Size !");
-	if (index >= std::size(AITargetingModes)) {
+	if (index >= std::size(AITargetingModes))
+	{
 		return { TargetingConstraints::None, false };
 	}
 	return { AITargetingModes[index].Constraints , false };
@@ -240,7 +486,8 @@ TargetingPreference SWTypeExtData::GetAITargetingPreference() const
 	const size_t index = static_cast<size_t>(this->SW_AITargetingMode.Get());
 
 	static_assert(std::size(AITargetingModes) <= ((int)SuperWeaponAITargetingMode::IonCannon + 1), "Invalid Size !");
-	if (index >= std::size(AITargetingModes)) {
+	if (index >= std::size(AITargetingModes))
+	{
 		return TargetingPreference::None;
 	}
 	return AITargetingModes[index].Preference;
@@ -293,7 +540,8 @@ bool SWTypeExtData::IsTechnoEligible(TechnoClass* pTechno, SuperWeaponTarget all
 bool SWTypeExtData::IsTechnoAffected(TechnoClass* pTechno)
 {
 	// check land and water cells
-	if (!this->IsCellEligible(pTechno->GetCell(), this->SW_AffectsTarget)) {
+	if (!this->IsCellEligible(pTechno->GetCell(), this->SW_AffectsTarget))
+	{
 		return false;
 	}
 
@@ -314,7 +562,8 @@ bool SWTypeExtData::CanFireAt(HouseClass* pOwner, const CellStruct& coords, bool
 	// check cell type
 	auto const AllowedTarget = !manual ? this->GetAIRequiredTarget() : this->SW_RequiresTarget;
 
-	if (!IsCellEligible(pCell, AllowedTarget)) {
+	if (!IsCellEligible(pCell, AllowedTarget))
+	{
 		return false;
 	}
 
@@ -507,9 +756,10 @@ bool SWTypeExtData::IsTargetConstraintsEligible(SuperClass* pThis, bool IsPlayer
 {
 	const auto pExt = SWTypeExtContainer::Instance.Find(pThis->Type);
 	auto pOwner = pThis->Owner;
-	auto const& [nFlag , SkipOffensiveClear] = pExt->GetAITargetingConstraints();
+	auto const& [nFlag, SkipOffensiveClear] = pExt->GetAITargetingConstraints();
 
-	if (!SkipOffensiveClear) {
+	if (!SkipOffensiveClear)
+	{
 		if (((nFlag & TargetingConstraints::OffensiveCellClear) != TargetingConstraints::None) && pOwner->PreferredTargetCell.IsValid())
 			return false;
 	}
@@ -549,37 +799,42 @@ bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 	const auto pExt = SWTypeExtContainer::Instance.Find(pThis->Type);
 
 	// don't try to fire if we obviously haven't enough money
-	if (SWTypeExtData::IsResourceAvailable(pThis)) {
+	if (SWTypeExtData::IsResourceAvailable(pThis))
+	{
 
 		if (pExt->SW_AutoFire_CheckAvail && !SWTypeExtData::IsAvailable(pThis->Owner, pThis))
 			return false;
 
-		if (SWTypeExtData::IsTargetConstraintsEligible(pThis, IsPlayer)) {
+		if (SWTypeExtData::IsTargetConstraintsEligible(pThis, IsPlayer))
+		{
 
 			const auto pNewType = pExt->GetNewSWType();
-			if (!pNewType) {
+			if (!pNewType)
+			{
 				Debug::FatalErrorAndExit("Trying to fire SW [%s] with invalid Type[%d]", pThis->Type->ID, (int)pThis->Type->Type);
 			}
 
 			auto pTargeting = pNewType->GetTargetingData(pExt, pThis->Owner);
-			const auto& [Cell, Flag] = SWTypeExtData::PickSuperWeaponTarget(pNewType , pTargeting.get() , pThis);
+			const auto& [Cell, Flag] = SWTypeExtData::PickSuperWeaponTarget(pNewType, pTargeting.get(), pThis);
 
-			if (Flag == SWTargetFlags::AllowEmpty) {
-				 if(pThis->Owner->IsControlledByHuman() && !pExt->SW_AutoFire && pExt->SW_ManualFire) {
-				 	Unsorted::CurrentBuilding = nullptr;
-				 	Unsorted::CurrentBuildingType = nullptr;
-				 	Unsorted::unknown_11AC = static_cast<DWORD>(-1);
-				 	DisplayClass::Instance->SetRepairMode(0);
-				 	DisplayClass::Instance->SetSellMode(0);
-				 	Unsorted::PowerToggleMode = false;
-				 	Unsorted::PlanningMode = false;
-				 	Unsorted::PlaceBeaconMode = false;
-				 	MapClass::UnselectAll();
-				 }
+			if (Flag == SWTargetFlags::AllowEmpty)
+			{
+				if (pThis->Owner->IsControlledByHuman() && !pExt->SW_AutoFire && pExt->SW_ManualFire)
+				{
+					Unsorted::CurrentBuilding = nullptr;
+					Unsorted::CurrentBuildingType = nullptr;
+					Unsorted::unknown_11AC = static_cast<DWORD>(-1);
+					DisplayClass::Instance->SetRepairMode(0);
+					DisplayClass::Instance->SetSellMode(0);
+					Unsorted::PowerToggleMode = false;
+					Unsorted::PlanningMode = false;
+					Unsorted::PlaceBeaconMode = false;
+					MapClass::UnselectAll();
+				}
 
-				 auto firing = Cell;
-				 const int Idx = pThis->Type->ArrayIndex;
-				 return ((FakeHouseClass*)pThis->Owner)->_FireSW(Idx, firing);
+				auto firing = Cell;
+				const int Idx = pThis->Type->ArrayIndex;
+				return ((FakeHouseClass*)pThis->Owner)->_FireSW(Idx, firing);
 			}
 		}
 	}
@@ -627,7 +882,7 @@ bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 //	TargetingInfo&operator=(const TargetingInfo& other) = default;
 //};
 
-TargetResult SWTypeExtData::PickSuperWeaponTarget(SWTypeHandler* pNewType , const TargetingData* pTargeting, const SuperClass* pSuper)
+TargetResult SWTypeExtData::PickSuperWeaponTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting, const SuperClass* pSuper)
 {
 	switch (pTargeting->TypeExt->GetAITargetingPreference())
 	{
@@ -732,7 +987,7 @@ bool SWTypeExtData::IsAnimVisible(HouseClass* pFirer) const
 	// auto relation = SWTypeExtData::GetRelation(pFirer, HouseClass::CurrentPlayer);
 	// const auto nRelationResult = (this->SW_AnimVisibility & relation);
 	// const bool IsVisible = nRelationResult == relation;
-	return EnumFunctions::CanTargetHouse(this->SW_AnimVisibility , pFirer , HouseClass::CurrentPlayer());
+	return EnumFunctions::CanTargetHouse(this->SW_AnimVisibility, pFirer, HouseClass::CurrentPlayer());
 }
 
 // does pFirer's SW affects object belonging to pHouse?
@@ -746,7 +1001,7 @@ bool SWTypeExtData::IsHouseAffected(HouseClass* pFirer, HouseClass* pHouse, Affe
 	// auto relation = SWTypeExtData::GetRelation(pFirer, pHouse);
 	// const auto nRelationResult = (value & relation);
 	// const bool IsVisible = nRelationResult == relation;
-	return EnumFunctions::CanTargetHouse(value , pFirer ,pHouse);
+	return EnumFunctions::CanTargetHouse(value, pFirer, pHouse);
 }
 
 AffectedHouse SWTypeExtData::GetRelation(HouseClass* pFirer, HouseClass* pHouse)
@@ -769,13 +1024,15 @@ AffectedHouse SWTypeExtData::GetRelation(HouseClass* pFirer, HouseClass* pHouse)
 
 void SWTypeExtData::PrintMessage(const CSFText& message, HouseClass* pFirer)
 {
-	if (message.empty()) {
+	if (message.empty())
+	{
 		return;
 	}
 
 	int color = -1;
 
-	if (this->Message_FirerColor && pFirer) {
+	if (this->Message_FirerColor && pFirer)
+	{
 		// firer color
 		color = pFirer->ColorSchemeIndex;
 	}
@@ -794,7 +1051,7 @@ void SWTypeExtData::PrintMessage(const CSFText& message, HouseClass* pFirer)
 	}
 
 	if (color == -1)
-		color =  ColorScheme::FindIndex("Gold");
+		color = ColorScheme::FindIndex("Gold");
 
 	// print the message
 	message.PrintAsMessage<false>(color);
@@ -807,23 +1064,28 @@ Iterator<TechnoClass*> SWTypeExtData::GetPotentialAITargets(HouseClass* pTarget,
 	if (require == SuperWeaponTarget::None
 		|| require == SuperWeaponTarget::AllTechnos
 		|| require == SuperWeaponTarget::All
-		|| require == SuperWeaponTarget::AllContents ) {
+		|| require == SuperWeaponTarget::AllContents)
+	{
 		return make_iterator(*TechnoClass::Array());
 	}
 
-	if((require == (SuperWeaponTarget::Infantry | SuperWeaponTarget::Unit)))
+	if ((require == (SuperWeaponTarget::Infantry | SuperWeaponTarget::Unit)))
 		return make_iterator(*FootClass::Array());
 
-	if (require == SuperWeaponTarget::Building) {
-		if (pTarget) {
+	if (require == SuperWeaponTarget::Building)
+	{
+		if (pTarget)
+		{
 			return make_iterator(pTarget->Buildings);
 		}
-		else {
+		else
+		{
 			return make_iterator(*BuildingClass::Array);
 		}
 	}
 
-	if (require == SuperWeaponTarget::Infantry) {
+	if (require == SuperWeaponTarget::Infantry)
+	{
 		return make_iterator(*InfantryClass::Array());
 	}
 
@@ -833,7 +1095,8 @@ Iterator<TechnoClass*> SWTypeExtData::GetPotentialAITargets(HouseClass* pTarget,
 		|| require == SuperWeaponTarget::Water
 		|| require == SuperWeaponTarget::Empty
 		|| require == SuperWeaponTarget::AllCells
-		) {
+		)
+	{
 		return make_iterator(*FootClass::Array());
 	}
 
@@ -841,18 +1104,23 @@ Iterator<TechnoClass*> SWTypeExtData::GetPotentialAITargets(HouseClass* pTarget,
 	// part below is more expensive targeting
 	s_targets.reserve(TechnoClass::Array->Count);
 
-	if (require & SuperWeaponTarget::Building) {
-		if (pTarget) {
+	if (require & SuperWeaponTarget::Building)
+	{
+		if (pTarget)
+		{
 			std::ranges::copy(pTarget->Buildings, std::back_inserter(s_targets));
-		}else {
+		}
+		else
+		{
 			std::ranges::copy(*BuildingClass::Array(), std::back_inserter(s_targets));
 		}
 	}
 
-	if(require & SuperWeaponTarget::Infantry)
+	if (require & SuperWeaponTarget::Infantry)
 		std::ranges::copy(*InfantryClass::Array, std::back_inserter(s_targets));
 
-	if (require & SuperWeaponTarget::Unit){
+	if (require & SuperWeaponTarget::Unit)
+	{
 		std::ranges::copy(*UnitClass::Array(), std::back_inserter(s_targets));
 		std::ranges::copy(*AircraftClass::Array(), std::back_inserter(s_targets));
 	}
@@ -891,11 +1159,13 @@ bool SWTypeExtData::Launch(SWTypeHandler* pNewType, SuperClass* pSuper, CellStru
 		pOwner->RecheckTechTree = true;
 
 	const auto curSuperIdx = pOwner->Supers.find(pSuper);
-	if (!(flags & SuperWeaponFlags::PostClick) && !pData->SW_AutoFire) {
+	if (!(flags & SuperWeaponFlags::PostClick) && !pData->SW_AutoFire)
+	{
 		pHouseExt->SWLastIndex = curSuperIdx;
 	}
 
-	if ((flags & SuperWeaponFlags::NoEVA) == SuperWeaponFlags::None && !Unsorted::MuteSWLaunches.get()) {
+	if ((flags & SuperWeaponFlags::NoEVA) == SuperWeaponFlags::None && !Unsorted::MuteSWLaunches.get())
+	{
 		pData->Play_EvaActivated(pOwner);
 	}
 
@@ -934,7 +1204,7 @@ bool SWTypeExtData::Launch(SWTypeHandler* pNewType, SuperClass* pSuper, CellStru
 
 		if (bPlaySound)
 		{
-			VocClass::SafeImmedietelyPlayAt(pNewType->GetSound(pData), & nCoord, nullptr);
+			VocClass::SafeImmedietelyPlayAt(pNewType->GetSound(pData), &nCoord, nullptr);
 		}
 	}
 
@@ -998,8 +1268,10 @@ bool SWTypeExtData::Launch(SWTypeHandler* pNewType, SuperClass* pSuper, CellStru
 		{
 			auto iter = pHouseExt->SuspendedEMPulseSWs.get_key_iterator(pSuper);
 
-			if (iter != pHouseExt->SuspendedEMPulseSWs.end()) {
-				for (auto const& ppSuper : iter->second) {
+			if (iter != pHouseExt->SuspendedEMPulseSWs.end())
+			{
+				for (auto const& ppSuper : iter->second)
+				{
 					ppSuper->IsOnHold = false;
 				}
 
@@ -1008,7 +1280,8 @@ bool SWTypeExtData::Launch(SWTypeHandler* pNewType, SuperClass* pSuper, CellStru
 		}
 	}
 
-	for (auto& sw_ : pData->SW_ResetType) {
+	for (auto& sw_ : pData->SW_ResetType)
+	{
 
 		if (size_t(sw_) >= pOwner->Supers.size())
 			continue;
@@ -1042,15 +1315,19 @@ bool SWTypeExtData::Activate(SuperClass* pSuper, CellStruct const cell, bool con
 	//Debug::LogInfo(__FUNCTION__" for [%s] - Owner[%s] AfterSWLauch ", pExt->get_ID(), pOwner->get_ID());
 	std::pair<SuperClass*, CellStruct> nPass { pSuper, cell };
 
-	for (int i = 0; i < pOwner->RelatedTags.Count; ++i) {
-		if (auto pTag = pOwner->RelatedTags.Items[i]) {
+	for (int i = 0; i < pOwner->RelatedTags.Count; ++i)
+	{
+		if (auto pTag = pOwner->RelatedTags.Items[i])
+		{
 			pTag->RaiseEvent(TriggerEvent(AresTriggerEvents::SuperNearWaypoint), nullptr, CellStruct::Empty, false, &nPass);
 		}
 	}
 
 	//Debug::LogInfo(__FUNCTION__" for [%s] - Owner[%s] After SuperNearWaypoint  ", pExt->get_ID(), pOwner->get_ID());
-	for (int a = 0; a < pOwner->RelatedTags.Count; ++a) {
-		if (auto pTag = pOwner->RelatedTags.Items[a]) {
+	for (int a = 0; a < pOwner->RelatedTags.Count; ++a)
+	{
+		if (auto pTag = pOwner->RelatedTags.Items[a])
+		{
 			pTag->RaiseEvent(TriggerEvent(AresTriggerEvents::SuperActivated), nullptr, CellStruct::Empty, false, pSuper);
 		}
 	}
@@ -1073,15 +1350,19 @@ void SWTypeExtData::Deactivate(SuperClass* pSuper, CellStruct const cell, bool c
 
 	const auto flags = pNewSWType->Flags(pData);
 
-	if ((flags & SuperWeaponFlags::NoPower) == SuperWeaponFlags::None) {
-		if (pData->SW_Power.isset() && pData->SW_Power.Get() != 0) {
-				HouseExtContainer::Instance.Find(pSuper->Owner)->AuxPower -= pData->SW_Power.Get();
-				pSuper->Owner->RecheckPower = true;
+	if ((flags & SuperWeaponFlags::NoPower) == SuperWeaponFlags::None)
+	{
+		if (pData->SW_Power.isset() && pData->SW_Power.Get() != 0)
+		{
+			HouseExtContainer::Instance.Find(pSuper->Owner)->AuxPower -= pData->SW_Power.Get();
+			pSuper->Owner->RecheckPower = true;
 		}
 	}
 
-	for (int a = 0; a < pSuper->Owner->RelatedTags.Count; ++a) {
-		if (auto pTag = pSuper->Owner->RelatedTags.Items[a]) {
+	for (int a = 0; a < pSuper->Owner->RelatedTags.Count; ++a)
+	{
+		if (auto pTag = pSuper->Owner->RelatedTags.Items[a])
+		{
 			pTag->RaiseEvent(TriggerEvent(AresTriggerEvents::SuperDeactivated), nullptr, CellStruct::Empty, false, pSuper);
 		}
 	}
@@ -1100,19 +1381,22 @@ bool NOINLINE SWTypeExtData::PreParse(CCINIClass* pINI)
 
 	//this part is needed because this configuration is readed before the SW configuration
 	//itself is readed
-	if (exINI.ReadString(pSection, "Action") && IS_SAME_STR_(exINI.value(), "Custom")) {
+	if (exINI.ReadString(pSection, "Action") && IS_SAME_STR_(exINI.value(), "Custom"))
+	{
 		pThis->Action = (Action)PhobosNewActionType::SuperWeaponAllowed;
 	}
 
 	//we dont care if the thing handled or not
 	//just get the index and the thing
-	if (exINI.ReadString(pSection, "Type")) {
-		const auto&[swTypeDecided , SWTypeHandler] = SWTypeHandler::FindFromTypeID(exINI.value());
+	if (exINI.ReadString(pSection, "Type"))
+	{
+		const auto& [swTypeDecided, SWTypeHandler] = SWTypeHandler::FindFromTypeID(exINI.value());
 		pThis->Type = swTypeDecided;
 		this->HandledType = SWTypeHandler;
 	}
 
-	if(pThis->Type != SuperWeaponType::Invalid){
+	if (pThis->Type != SuperWeaponType::Invalid)
+	{
 
 		if (this->HandledType == NewSuperType::Invalid)
 			Debug::FatalError("Invalid SWTypeHandler Handler detected [%s] !", pSection);
@@ -1275,7 +1559,7 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	this->SW_MaxCount.Read(exINI, pSection, "SW.MaxCount");
 
-	IndexFinder<VoxClass>::getindex(pThis->ImpatientVoice , exINI, pSection, "EVA.Impatient");
+	IndexFinder<VoxClass>::getindex(pThis->ImpatientVoice, exINI, pSection, "EVA.Impatient");
 	this->EVA_InsufficientFunds.Read(exINI, pSection, "EVA.InsufficientFunds");
 	this->EVA_InsufficientBattlePoints.Read(exINI, pSection, "EVA.InsufficientBattlePoints");
 	this->EVA_SelectTarget.Read(exINI, pSection, "EVA.SelectTarget");
@@ -1335,9 +1619,10 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->SuperWeaponSidebar_RequiredHouses = pINI->ReadHouseTypesList(pSection, "SuperWeaponSidebar.RequiredHouses", this->SuperWeaponSidebar_RequiredHouses);
 	this->TabIndex.Read(exINI, pSection, "TabIndex");
 
-	if(this->TabIndex.Get() > 3 || this->TabIndex.Get() < 0) {
+	if (this->TabIndex.Get() > 3 || this->TabIndex.Get() < 0)
+	{
 		this->TabIndex = 3;
-		Debug::Log("[%s - %x]Max tab index is 3 (0 index based )\n", pSection , this->This());
+		Debug::Log("[%s - %x]Max tab index is 3 (0 index based )\n", pSection, this->This());
 	}
 
 	this->BattlePoints_Amount.Read(exINI, pSection, "BattlePoints.Amount");
@@ -1384,18 +1669,21 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		}
 	}
 
-	if(pThis->Type != SuperWeaponType::Invalid)
+	DropshipLoadoutClass::ParseSWType(exINI, pSection, this);
+
+	if (pThis->Type != SuperWeaponType::Invalid)
 	{
 		auto pNewSWType = SWTypeHandler::get_Handler(this->HandledType);
 
-		if(pNewSWType){
+		if (pNewSWType)
+		{
 			// restore the original type
 			pThis->Action = this->LastAction;
 			pNewSWType->LoadFromINI(this, pINI);
 			this->LastAction = pThis->Action;
 
 
-			if(pThis->Action != Action::None)
+			if (pThis->Action != Action::None)
 				pThis->Action = Action(PhobosNewActionType::SuperWeaponAllowed);
 
 			// whatever the user does, we take care of the stupid tags.
@@ -1454,17 +1742,22 @@ void SWTypeExtData::ApplyLimboKill(HouseClass* pHouse)
 	if (!amout)
 		return;
 
-	for(int i = 0; i < (int)amout; i++) {
+	for (int i = 0; i < (int)amout; i++)
+	{
 		int count = this->LimboKill_Counts.empty() || this->LimboKill_Counts.size() <= (size_t)i ? 1 : this->LimboKill_Counts[i];
 
-		if(this->LimboKill_Affected == AffectedHouse::Owner) {
+		if (this->LimboKill_Affected == AffectedHouse::Owner)
+		{
 			BuildingExtData::ApplyLimboKill(this->LimboKill_IDs[i], count, this->LimboKill_Affected, pHouse, pHouse);
-		} else {
-			for (HouseClass* pTargetHouse : *HouseClass::Array()) {
+		}
+		else
+		{
+			for (HouseClass* pTargetHouse : *HouseClass::Array())
+			{
 				if (pTargetHouse->Type->MultiplayPassive)
 					continue;
 
-				BuildingExtData::ApplyLimboKill(this->LimboKill_IDs[i], count , this->LimboKill_Affected, pTargetHouse, pHouse);
+				BuildingExtData::ApplyLimboKill(this->LimboKill_IDs[i], count, this->LimboKill_Affected, pTargetHouse, pHouse);
 			}
 		}
 	}
@@ -1496,13 +1789,13 @@ void SWTypeExtData::ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, const C
 	}
 
 	if (!MapClass::Instance->IsWithinUsableArea(nDest))
-		Debug::LogInfo("SW[{}] Lauch Outside Usable Map Area [{} . {}]! ", This()->ID , nDest.X , nDest.Y);
+		Debug::LogInfo("SW[{}] Lauch Outside Usable Map Area [{} . {}]! ", This()->ID, nDest.X, nDest.Y);
 
 	if (!pFirer)
 		Debug::LogInfo("SW[{}] ApplyDetonate without Firer!", This()->ID);
 
 	if (const auto pWeapon = this->Detonate_Weapon.Get())
-		WeaponTypeExtData::DetonateAt4(pWeapon, nDest, pFirer, this->Detonate_Damage.Get(pWeapon->Damage), true , pSW->Owner);
+		WeaponTypeExtData::DetonateAt4(pWeapon, nDest, pFirer, this->Detonate_Damage.Get(pWeapon->Damage), true, pSW->Owner);
 	else
 	{
 		WarheadTypeExtData::DetonateAt(this->Detonate_Warhead.Get(), pTarget, nDest, pFirer, this->Detonate_Damage.Get(0), pSW->Owner);
@@ -1512,17 +1805,19 @@ void SWTypeExtData::ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, const C
 void SWTypeExtData::ApplySWNext(SuperClass* pSW, const CellStruct& cell, bool IsPlayer)
 {
 	// random mode
-	
-	if (!this->SW_Next_Randoms.Weights.empty()) {
-		for (const int& result : this->SW_Next_Randoms.RollWeighted(this->SW_Next.size(), this->RandomBuffer)) {
-			SWTypeExtData::Launch(pSW, pSW->Owner, this, this->SW_Next[result], cell , IsPlayer);
+
+	if (!this->SW_Next_Randoms.Weights.empty())
+	{
+		for (const int& result : this->SW_Next_Randoms.RollWeighted(this->SW_Next.size(), this->RandomBuffer))
+		{
+			SWTypeExtData::Launch(pSW, pSW->Owner, this, this->SW_Next[result], cell, IsPlayer);
 		}
 	}
 	// no randomness mode
 	else
 	{
 		for (const auto& pSWType : this->SW_Next)
-			SWTypeExtData::Launch(pSW ,pSW->Owner, this, pSWType, cell, IsPlayer);
+			SWTypeExtData::Launch(pSW, pSW->Owner, this, pSWType, cell, IsPlayer);
 	}
 }
 
@@ -1542,10 +1837,10 @@ void SWTypeExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const C
 		this->ApplyLimboKill(pHouse);
 
 	if (this->Detonate_Warhead || this->Detonate_Weapon)
-		this->ApplyDetonation(pSW , pSW->Owner, *pCell);
+		this->ApplyDetonation(pSW, pSW->Owner, *pCell);
 
 	if (!this->SW_Next.empty())
-		this->ApplySWNext(pSW, *pCell , IsCurrentPlayer);
+		this->ApplySWNext(pSW, *pCell, IsCurrentPlayer);
 
 	if (this->SW_Link.size() > 0)
 		this->ApplyLinkedSW(pSW);
@@ -1555,30 +1850,53 @@ void SWTypeExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const C
 
 	if (!this->ConvertsPair.empty())
 	{
-		if(!this->Converts_UseSWRange){
-			for (const auto pTargetFoot : *FootClass::Array) {
+		if (!this->Converts_UseSWRange)
+		{
+			for (const auto pTargetFoot : *FootClass::Array)
+			{
 				if (pTargetFoot->Health <= 0 || !pTargetFoot->IsAlive || pTargetFoot->IsCrashing || pTargetFoot->IsSinking)
 					continue;
 
-				if (pTargetFoot->WhatAmI() == UnitClass::AbsID) {
-					if (static_cast<const UnitClass*>(pTargetFoot)->DeathFrameCounter > 0) {
+				if (pTargetFoot->WhatAmI() == UnitClass::AbsID)
+				{
+					if (static_cast<const UnitClass*>(pTargetFoot)->DeathFrameCounter > 0)
+					{
 						continue;
 					}
 				}
 
-				TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTargetFoot , this->Convert_SucceededAnim);
+				TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTargetFoot, this->Convert_SucceededAnim);
 			}
 		}
 		else
 		{
 			const auto pCellptr = MapClass::Instance->GetCellAt(*pCell);
 			const auto range = this->GetNewSWType()->GetRange(this);
-			Helpers::Alex::ApplyFuncToCellSpreadItems(pCellptr->GetCoordsWithBridge(), range.WidthOrRange ,
-			true , false , true , true , true , true,
-			[=](TechnoClass* pTarget) {
-				TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTarget, this->Convert_SucceededAnim);
+			Helpers::Alex::ApplyFuncToCellSpreadItems(pCellptr->GetCoordsWithBridge(), range.WidthOrRange,
+			true, false, true, true, true, true,
+			[=](TechnoClass* pTarget)
+ {
+	 TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTarget, this->Convert_SucceededAnim);
 			});
 		}
+	}
+
+	
+	if (this->DropshipLoadout_OpenWindow.Get(false) && pHouse->IsCurrentPlayer())
+	{
+		DropshipLoadoutClass::OpenInGameWindow(
+			false, // bIgnoreFixedUnits
+			this->DropshipLoadout_PreloadCargo.Get(false), // bPreloadCargo
+			0,     // allowableUnitsIndex
+			this->DropshipLoadout_Money.Get(-1), // startingMoney
+			this->DropshipLoadout_AddUnusedMoneyToPlayer,
+			Nullable<bool>(this->DropshipLoadout_RememberPurchasedCargo.Get()),
+			this->This()
+		);
+	}
+
+	if (this->DropshipLoadout_Launch.Get()) {
+		this->ApplyDropshipLoadoutLaunch(pHouse, *pCell);
 	}
 }
 
@@ -1640,18 +1958,21 @@ bool SWTypeExtData::IsAvailable(HouseClass* pHouse, SuperClass* pSuper)
 	if (pHouse->IsControlledByHuman() ? (!pThis->SW_AllowPlayer) : (!pThis->SW_AllowAI))
 		return false;
 
-	if (!pThis->SW_Require.empty()) {
+	if (!pThis->SW_Require.empty())
+	{
 		if (!Prereqs::HouseOwnsAll(pHouse, pThis->SW_Require))
 			return false;
 	}
 	// check that any aux building exist and no neg building
-	const auto IsBuildingPresent = [pHouse](BuildingTypeClass* pType) {
-		return BuildingTypeExtData::CountOwnedNowWithDeployOrUpgrade(pType, pHouse) > 0;
+	const auto IsBuildingPresent = [pHouse](BuildingTypeClass* pType)
+		{
+			return BuildingTypeExtData::CountOwnedNowWithDeployOrUpgrade(pType, pHouse) > 0;
 
-	};
+		};
 
 	// check whether the optional aux building exists
-	if (pSuper->Type->AuxBuilding && !IsBuildingPresent(pSuper->Type->AuxBuilding)){
+	if (pSuper->Type->AuxBuilding && !IsBuildingPresent(pSuper->Type->AuxBuilding))
+	{
 		return false;
 	}
 
@@ -1662,13 +1983,15 @@ bool SWTypeExtData::IsAvailable(HouseClass* pHouse, SuperClass* pSuper)
 
 	const auto& Aux = pThis->SW_AuxBuildings;
 	// If building Not Exist
-	if (!Aux.empty() && Aux.None_Of(IsBuildingPresent)) {
+	if (!Aux.empty() && Aux.None_Of(IsBuildingPresent))
+	{
 		return false;
 	}
 
 	const auto& Neg = pThis->SW_NegBuildings;
 	// If building Exist
-	if (!Neg.empty() && Neg.Any_Of(IsBuildingPresent)) {
+	if (!Neg.empty() && Neg.Any_Of(IsBuildingPresent))
+	{
 		return false;
 	}
 
@@ -1688,13 +2011,16 @@ bool SWTypeExtData::IsAvailable(HouseClass* pHouse, SuperClass* pSuper)
 	}
 
 	const auto& NegAuxT = pThis->Neg_Techno;
-	if (!NegAuxT.empty() && NegAuxT.None_Of([pHouse, &count](TechnoTypeClass* pType) {
-			if (pType) {
+	if (!NegAuxT.empty() && NegAuxT.None_Of([pHouse, &count](TechnoTypeClass* pType)
+		{
+			if (pType)
+			{
 				count = pHouse->CountOwnedAndPresent(pType);
 			}
 
 			return count <= 0;
-		})) {
+		}))
+	{
 		return false;
 	}
 
@@ -1713,12 +2039,14 @@ void SWTypeExtData::UneableToTransactBattlePoints(HouseClass* pHouse)
 	this->PrintMessage(this->Message_InsufficientBattlePoints, pHouse);
 }
 
-void SWTypeExtData::UneableToFireAtTheMoment(HouseClass* pHouse) {
+void SWTypeExtData::UneableToFireAtTheMoment(HouseClass* pHouse)
+{
 	VoxClass::PlayIndex(This()->ImpatientVoice);
 	this->PrintMessage(this->Message_Impatient, pHouse);
 }
 
-bool SWTypeExtData::ApplyDrainMoney(int timeLeft, HouseClass* pHouse) {
+bool SWTypeExtData::ApplyDrainMoney(int timeLeft, HouseClass* pHouse)
+{
 	const int money = this->Money_DrainAmount;
 
 	if (money != 0 && this->Money_DrainDelay > 0)
@@ -1744,7 +2072,8 @@ bool SWTypeExtData::ApplyDrainMoney(int timeLeft, HouseClass* pHouse) {
 	return true;
 }
 
-bool SWTypeExtData::ApplyDrainBattlePoint(int timeLeft, HouseClass* pHouse) {
+bool SWTypeExtData::ApplyDrainBattlePoint(int timeLeft, HouseClass* pHouse)
+{
 	const int money = this->BattlePoints_DrainAmount;
 	auto pExt = HouseExtContainer::Instance.Find(pHouse);
 
@@ -1776,7 +2105,8 @@ void SWTypeExtData::PrintMessage_Activate(HouseClass* pFirer)
 {
 	this->PrintMessage(this->Message_Activate, pFirer);
 
-	if(!this->Message_Activated_Owner->empty() || !this->Message_Activated_Allies->empty() || !this->Message_Activated_Enemies->empty()) {
+	if (!this->Message_Activated_Owner->empty() || !this->Message_Activated_Allies->empty() || !this->Message_Activated_Enemies->empty())
+	{
 		const auto& messages = pFirer->ControlledByCurrentPlayer()
 			? this->Message_Activated_Owner
 			: (pFirer->IsAlliedWith(HouseClass::CurrentPlayer())
@@ -1791,7 +2121,8 @@ void SWTypeExtData::Play_EvaActivated(HouseClass* pFirer)
 {
 	VoxClass::PlayIndex(this->EVA_Activated);
 
-	if(this->EVA_Activated_Owner.isset() || this->EVA_Activated_Allies.isset() || this->EVA_Activated_Enemies.isset()){
+	if (this->EVA_Activated_Owner.isset() || this->EVA_Activated_Allies.isset() || this->EVA_Activated_Enemies.isset())
+	{
 		const auto pEva = pFirer->ControlledByCurrentPlayer()
 			? &this->EVA_Activated_Owner
 			: (pFirer->IsAlliedWith(HouseClass::CurrentPlayer())
@@ -1918,7 +2249,8 @@ LightingColor SWTypeExtData::GetLightingColor(SuperWeaponTypeClass* pCustom)
 		ret.HasValue = false; //this is the default value
 	}
 
-	if (auto const pSW = pCustom ? pCustom : pType) {
+	if (auto const pSW = pCustom ? pCustom : pType)
+	{
 		SWTypeExtContainer::Instance.Find(pSW)->UpdateLightingColor(ret);
 	}
 
@@ -1927,10 +2259,11 @@ LightingColor SWTypeExtData::GetLightingColor(SuperWeaponTypeClass* pCustom)
 
 bool SWTypeExtData::UpdateLightingColor(LightingColor& Lighting) const
 {
-	auto UpdateValue = [](const Nullable<int>& from, int& into, int factor) {
-		int value = from.Get(-1);
-		if (value >= 0) { into = factor * value; }
-	};
+	auto UpdateValue = [](const Nullable<int>& from, int& into, int factor)
+		{
+			int value = from.Get(-1);
+			if (value >= 0) { into = factor * value; }
+		};
 
 	UpdateValue(this->Lighting_Ambient, Lighting.Ambient, 1);
 	UpdateValue(this->Lighting_Red, Lighting.Red, 10);
@@ -1980,7 +2313,8 @@ void SWTypeExtData::Launch(SuperClass* pFired, HouseClass* pHouse, SWTypeExtData
 
 	bool can_fire = true;
 
-	if (pLauncherTypeExt->SW_Next_RealLaunch) {
+	if (pLauncherTypeExt->SW_Next_RealLaunch)
+	{
 		if (!pSuper->CanFire() || !SWTypeExtData::IsResourceAvailable(pSuper))
 			can_fire = false;
 	}
@@ -1996,7 +2330,8 @@ void SWTypeExtData::Launch(SuperClass* pFired, HouseClass* pHouse, SWTypeExtData
 			pSuper->Launch(cell, IsPlayer);
 			pSuper->Reset();
 
-			if (!pLauncherTypeExt->SW_Next_RealLaunch) {
+			if (!pLauncherTypeExt->SW_Next_RealLaunch)
+			{
 				pSuper->RechargeTimer.StartTime = oldstart;
 				pSuper->RechargeTimer.TimeLeft = oldleft;
 			}
@@ -2355,6 +2690,51 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->EVA_Activated_Owner)
 		.Process(this->EVA_Activated_Allies)
 		.Process(this->EVA_Activated_Enemies)
+
+		.Process(this->DropshipLoadout_OpenWindow)
+		.Process(this->DropshipLoadout_Launch)
+		.Process(this->DropshipLoadout_PersistentCargo)
+		.Process(this->DropshipLoadout_PreloadCargo)
+		.Process(this->DropshipLoadout_AddUnusedMoneyToPlayer)
+		.Process(this->DropshipLoadout_RememberPurchasedCargo)
+		.Process(this->DropshipLoadout_Palette)
+		.Process(this->DropshipLoadout_Carrier)
+		.Process(this->DropshipLoadout_AllowableUnits)
+		.Process(this->DropshipLoadout_AllowableUnitMaximums)
+		.Process(this->DropshipLoadout_Money)
+		.Process(this->DropshipLoadout_Theme)
+		.Process(this->DropshipLoadout_StartEVA)
+		.Process(this->DropshipLoadout_SizeLimit)
+		.Process(this->DropshipLoadout_BackgroundPCX)
+		.Process(this->DropshipLoadout_UpArrowPCX)
+		.Process(this->DropshipLoadout_DownArrowPCX)
+		.Process(this->DropshipLoadout_UpArrowLocation)
+		.Process(this->DropshipLoadout_DownArrowLocation)
+		.Process(this->DropshipLoadout_SidebarCameosCount)
+		.Process(this->DropshipLoadout_SidebarCameosLocations)
+		.Process(this->DropshipLoadout_PilotLitPCX)
+		.Process(this->DropshipLoadout_PilotLitLocation)
+		.Process(this->DropshipLoadout_LoadoutPCX)
+		.Process(this->DropshipLoadout_LoadoutLocation)
+		.Process(this->DropshipLoadout_DGreenListPCX)
+		.Process(this->DropshipLoadout_Background)
+		.Process(this->DropshipLoadout_UpArrow)
+		.Process(this->DropshipLoadout_DownArrow)
+		.Process(this->DropshipLoadout_Loadout)
+		.Process(this->DropshipLoadout_PilotLit)
+		.Process(this->DropshipLoadout_DGreenList)
+		.Process(this->DropshipLoadout_DGreenAnimationsCount)
+		.Process(this->DropshipLoadout_DGreenLocations)
+		.Process(this->DropshipLoadout_DropshipCameosCount)
+		.Process(this->DropshipLoadout_DropshipCameosLocations)
+		.Process(this->DropshipLoadout_FixedUnits)
+		.Process(this->DropshipLoadout_InitialUnits)
+		.Process(this->DropshipLoadout_BuyClickSound)
+		.Process(this->DropshipLoadout_SellClickSound)
+		.Process(this->DropshipLoadout_ArrowsClickSound)
+		.Process(this->DropshipLoadout_StartingDragDropSound)
+		.Process(this->DropshipLoadout_EndingDragDropSound)
+		.Process(this->DropshipLoadout_VeteranLevel)
 		;
 
 }
@@ -2362,7 +2742,7 @@ void SWTypeExtData::Serialize(T& Stm)
 void SWTypeExtData::ApplyBattlePoints(SuperClass* pSW)
 {
 	HouseExtContainer::Instance.Find(pSW->Owner)->UpdateBattlePoints
-		(SWTypeExtContainer::Instance.Find(pSW->Type)->BattlePoints_Amount);
+	(SWTypeExtContainer::Instance.Find(pSW->Type)->BattlePoints_Amount);
 }
 
 bool SWTypeExtData::IsResourceAvailable(SuperClass* pSuper)
@@ -2370,10 +2750,11 @@ bool SWTypeExtData::IsResourceAvailable(SuperClass* pSuper)
 	const auto pExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
 	const auto pHouseExt = HouseExtContainer::Instance.Find(pSuper->Owner);
 
-	if(!pSuper->Owner->CanTransactMoney(pExt->Money_Amount.Get()))
+	if (!pSuper->Owner->CanTransactMoney(pExt->Money_Amount.Get()))
 		return false;
 
-	if (!pHouseExt->CanTransactBattlePoints(pExt->BattlePoints_Amount)) {
+	if (!pHouseExt->CanTransactBattlePoints(pExt->BattlePoints_Amount))
+	{
 		return false;
 	}
 
@@ -2417,7 +2798,8 @@ void SWTypeExtData::ApplyLinkedSW(SuperClass* pSW)
 					}
 				}
 
-				if (granted && notObserver && pHouse->IsCurrentPlayer()) {
+				if (granted && notObserver && pHouse->IsCurrentPlayer())
+				{
 					SidebarClass::Instance->AddSpecialCameo(swIdxToAdd);
 				}
 
@@ -2435,7 +2817,7 @@ void SWTypeExtData::ApplyLinkedSW(SuperClass* pSW)
 	{
 		const auto results = this->SW_Link_Randoms.RollWeighted(this->SW_Link.size(), this->RandomBuffer);
 
-		for (const int &result : results)
+		for (const int& result : results)
 		{
 			if (linkedSW(this->SW_Link[result]))
 				isActive = true;
@@ -2564,7 +2946,8 @@ HRESULT __stdcall FakeSuperWeaponTypeClass::__Load(IStream* pStm)
 {
 	HRESULT hr = this->SuperWeaponTypeClass::Load(pStm);
 
-	if (SUCCEEDED(hr)) {
+	if (SUCCEEDED(hr))
+	{
 		if (!SWTypeExtContainer::Instance.LoadByKey(this, pStm))
 			return PHOBOS_E_EXTDATA_LOAD_FAILED;
 	}
@@ -2577,7 +2960,8 @@ HRESULT __stdcall FakeSuperWeaponTypeClass::__Save(IStream* pStm, BOOL fClearDir
 {
 	HRESULT hr = this->SuperWeaponTypeClass::Save(pStm, fClearDirty);
 
-	if (SUCCEEDED(hr)) {
+	if (SUCCEEDED(hr))
+	{
 		if (!SWTypeExtContainer::Instance.SaveByKey(this, pStm))
 			return PHOBOS_E_EXTDATA_SAVE_FAILED;
 	}

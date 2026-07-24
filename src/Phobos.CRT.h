@@ -272,8 +272,8 @@ public:
 	}
 
 	// ------------------------------------------------------------------------
-// Non-destructive tokenizer. Cannot be desynchronised by re-entrant calls.
-// ------------------------------------------------------------------------
+	// Non-destructive tokenizer. Cannot be desynchronised by re-entrant calls.
+	// ------------------------------------------------------------------------
 	template<typename TFunc>
 	void ForEachToken(std::string_view line, std::string_view seps, TFunc&& func)
 	{
@@ -294,5 +294,50 @@ public:
 			func(line.substr(start, end - start));
 			pos = end;
 		}
+	}
+
+	static bool ScanHex(std::string_view token, unsigned char& out) noexcept
+	{
+		size_t i = 0;
+
+		while (i < token.size() && std::isspace(static_cast<unsigned char>(token[i])))
+			++i;
+
+		bool negative = false;
+
+		if (i < token.size() && (token[i] == '+' || token[i] == '-'))
+		{
+			negative = (token[i] == '-');
+			++i;
+		}
+
+		if (i + 1 < token.size() && token[i] == '0' && (token[i + 1] == 'x' || token[i + 1] == 'X'))
+			i += 2;
+
+		unsigned int value = 0;
+		size_t digits = 0;
+
+		for (; i < token.size(); ++i, ++digits)
+		{
+			const char c = token[i];
+			unsigned int digit = 0;
+
+			if (c >= '0' && c <= '9')
+				digit = static_cast<unsigned int>(c - '0');
+			else if (c >= 'a' && c <= 'f')
+				digit = static_cast<unsigned int>(c - 'a') + 10u;
+			else if (c >= 'A' && c <= 'F')
+				digit = static_cast<unsigned int>(c - 'A') + 10u;
+			else
+				break;
+
+			value = value * 16u + digit; // wraps, matching the vanilla int overflow
+		}
+
+		if (!digits)
+			return false; // matching return: no conversion performed
+
+		out = unsigned char(negative ? 0u - value : value);
+		return true;
 	}
 };

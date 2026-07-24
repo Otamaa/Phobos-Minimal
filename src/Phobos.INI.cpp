@@ -283,7 +283,11 @@ std::string PhobosINIClass::ReadString(std::string_view section, std::string_vie
 		}
 	}
 	
-	return pDefault;
+	if (pDefault)
+		return pDefault;
+
+
+	return {};
 }
 
 bool PhobosINIClass::WriteString(std::string_view section, std::string_view key, std::string_view value)

@@ -4,6 +4,10 @@
 #include <Utilities/Helpers.h>
 #include <Utilities/Macro.h>
 
+#include <Ext/Scenario/Body.h>
+
+#include <New/Entity/DropshipLoadoutClass.h>
+
 #include <DiscreteDistributionClass.h>
 
 void HouseTypeExtData::InitiliazeConstants()
@@ -403,6 +407,9 @@ void HouseTypeExtData::LoadFromRulesFile(CCINIClass* pINI) {
 	this->LoadScreenSpecialName.Read(exINI, pSection, "LoadScreenText.SpecialName");
 	this->LoadScreenBrief.Read(exINI, pSection, "LoadScreenText.Brief");
 	this->StatusText.Read(exINI, pSection, "MenuText.Status");
+
+	DropshipLoadoutClass::ParseHouse(exINI, pSection, this);
+	
 }
 
 Iterator<BuildingTypeClass*> HouseTypeExtData::GetPowerplants() const
@@ -506,6 +513,43 @@ void  HouseTypeExtData::Serialize(T& Stm)
 
 		.Process(this->BattlePoints)
 		.Process(this->BattlePoints_CanUseStandardPoints)
+
+		.Process(this->DropshipLoadout_StartingDropships)
+		.Process(this->DropshipLoadout_AllowableUnits)
+		.Process(this->DropshipLoadout_AllowableUnitMaximums)
+		.Process(this->DropshipLoadout_Theme)
+		.Process(this->DropshipLoadout_Money)
+		.Process(this->DropshipLoadout_StartEVA)
+		.Process(this->DropshipLoadout_Carriers)
+		.Process(this->DropshipLoadout_Carriers_SizeLimit)
+		.Process(this->DropshipLoadout_AddUnusedMoneyToPlayer)
+		.Process(this->DropshipLoadout_RememberPurchasedCargo)
+		.Process(this->DropshipLoadout_Palette)
+		.Process(this->DropshipLoadout_BackgroundPCX)
+		.Process(this->DropshipLoadout_UpArrowPCX)
+		.Process(this->DropshipLoadout_DownArrowPCX)
+		.Process(this->DropshipLoadout_LoadoutPCX)
+		.Process(this->DropshipLoadout_LoadoutLocation)
+		.Process(this->DropshipLoadout_PilotLitPCX)
+		.Process(this->DropshipLoadout_PilotLitLocation)
+		.Process(this->DropshipLoadout_DGreenListPCX)
+		.Process(this->DropshipLoadout_DGreenAnimationsCount)
+		.Process(this->DropshipLoadout_DGreenLocations)
+		.Process(this->DropshipLoadout_UpArrowLocation)
+		.Process(this->DropshipLoadout_DownArrowLocation)
+		.Process(this->DropshipLoadout_SidebarCameosCount)
+		.Process(this->DropshipLoadout_SidebarCameoLocations)
+		.Process(this->DropshipLoadout_DropshipCameosCount)
+		.Process(this->DropshipLoadout_DropshipCameoLocations)
+		.Process(this->DropshipLoadout_BuyClickSound)
+		.Process(this->DropshipLoadout_SellClickSound)
+		.Process(this->DropshipLoadout_ArrowsClickSound)
+		.Process(this->DropshipLoadout_StartingDragDropSound)
+		.Process(this->DropshipLoadout_EndingDragDropSound)
+		.Process(this->DropshipLoadout_AllowableUnitsLists)
+		.Process(this->DropshipLoadout_AllowableUnitMaximumsLists)
+		.Process(this->DropshipLoadout_FixedUnits)
+		.Process(this->DropshipLoadout_InitialUnits)
 		;
 }
 

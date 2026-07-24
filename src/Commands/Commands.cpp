@@ -42,6 +42,7 @@
 
 #include <New/SuperWeaponSidebar/SWSidebarClass.h>
 #include <New/MessageHandler/MessageColumnClass.h>
+#include <New/Entity/DropshipLoadoutClass.h>
 
 #include <Helpers/Macro.h>
 #include <Utilities/Macro.h>
@@ -183,12 +184,18 @@ ASMJIT_PATCH(0x777998, Game_WndProc_ScrollMouseWheel, 0x6)
 
 	if (WParam & 0x80000000u) {
 
+		if (DropshipLoadoutClass::IsDropshipLoadoutActive())
+			DropshipLoadoutClass::DropshipLoadout_OnMouseWheelDown();
+
 		if (DistributionModeHoldDownCommandClass::Enabled && Phobos::Config::AllowDistributionCommand_SpreadModeScroll)
 			DistributionModeHoldDownCommandClass::DistributionSpreadModeReduce();
 
 		 if(MessageColumnClass::Instance.IsHovering())
 			 MessageColumnClass::Instance.ScrollDown();
 	} else {
+
+		if (DropshipLoadoutClass::IsDropshipLoadoutActive())
+			DropshipLoadoutClass::DropshipLoadout_OnMouseWheelUp();
 
 		if (DistributionModeHoldDownCommandClass::Enabled && Phobos::Config::AllowDistributionCommand_SpreadModeScroll)
 			DistributionModeHoldDownCommandClass::DistributionSpreadModeExpand();

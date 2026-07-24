@@ -29,6 +29,7 @@
 
 class CCINIClass;
 class EventClass;
+class PhobosINIClass;
 struct SpawnerMain
 {
 	struct Configs {
@@ -205,7 +206,7 @@ struct SpawnerMain
 	static void CmdLineParse(char*);
 	static void PrintInitializeLog();
 
-	static void LoadConfigurations(); // Early load settings from ra2md
+	static void ReadRA2MDConfig(PhobosINIClass* pINI); // Early load settings from ra2md
 	static void ApplyStaticOptions(); // Apply all the settings
 	static void Announce_Master();
 

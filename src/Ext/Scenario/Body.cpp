@@ -4,6 +4,8 @@
 #include <Ext/House/Body.h>
 #include <Ext/HouseType/Body.h>
 
+#include <New/Entity/DropshipLoadoutClass.h>
+
 #include <Phobos.INI.h>
 
 std::unique_ptr<ScenarioExtData> ScenarioExtData::Data;
@@ -278,6 +280,8 @@ void ScenarioExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->ShowBriefing.Read(exINI, GameStrings::Basic, "ShowBriefing");
 	this->BriefingTheme = pINI->ReadTheme(GameStrings::Basic, "BriefingTheme", this->BriefingTheme);
 	this->OriginalFilename.Read(exINI, GameStrings::Basic, "OriginalFilename");
+
+	DropshipLoadoutClass::ParseScenario(exINI, GameStrings::Basic, this);
 
 	this->ReadMissionMDINI();
 

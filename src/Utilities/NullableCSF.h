@@ -11,6 +11,7 @@ struct NullableCSF
 	{}
 
 	void Read(CCINIClass* pINI, const char* pSection, const char* pKey);
+	void Set(const wchar_t* _to) { this->Text = _to; };
 
 	COMPILETIMEEVAL const wchar_t* c_str() const noexcept
 	{

@@ -284,6 +284,66 @@ bool Init_Rules()
 #include <Phobos.INI.h>
 #include <MixFileClass.h>
 
+void Phobos_Config_Read_RULESMD(std::unique_ptr<PhobosINIClass>& ini)
+{
+	{
+		if (!Phobos::Otamaa::IsAdmin)
+		{
+			Phobos::Config::DevelopmentCommands = ini->Read<bool>(GLOBALCONTROLS_SECTION, "DebugKeysEnabled").value_or(Phobos::Config::DevelopmentCommands);
+		}
+
+		Phobos::Config::SuperWeaponSidebarCommands = ini->Read<bool>(GLOBALCONTROLS_SECTION, "SuperWeaponSidebarKeysEnabled").value_or(Phobos::Config::SuperWeaponSidebarCommands);
+		Phobos::Config::AllowSwitchNoMoveCommand = ini->Read<bool>(GLOBALCONTROLS_SECTION, "AllowSwitchNoMoveCommand").value_or(Phobos::Config::AllowDistributionCommand);
+		Phobos::Config::AllowDistributionCommand = ini->Read<bool>(GLOBALCONTROLS_SECTION, "AllowDistributionCommand").value_or(Phobos::Config::AllowDistributionCommand);
+		Phobos::Config::AllowDistributionCommand_SpreadMode = ini->Read<bool>(GLOBALCONTROLS_SECTION, "AllowDistributionCommand.SpreadMode").value_or(Phobos::Config::AllowDistributionCommand_SpreadMode);
+		Phobos::Config::AllowDistributionCommand_SpreadModeScroll = ini->Read<bool>(GLOBALCONTROLS_SECTION, "AllowDistributionCommand.SpreadModeScroll").value_or(Phobos::Config::AllowDistributionCommand_SpreadModeScroll);
+		Phobos::Config::AllowDistributionCommand_FilterMode = ini->Read<bool>(GLOBALCONTROLS_SECTION, "AllowDistributionCommand.FilterMode").value_or(Phobos::Config::AllowDistributionCommand_FilterMode);
+		Phobos::Config::AllowDistributionCommand_AffectsAllies = ini->Read<bool>(GLOBALCONTROLS_SECTION, "AllowDistributionCommand.AffectsAllies").value_or(Phobos::Config::AllowDistributionCommand_AffectsAllies);
+		Phobos::Config::AllowDistributionCommand_AffectsEnemies = ini->Read<bool>(GLOBALCONTROLS_SECTION, "AllowDistributionCommand.AffectsEnemies").value_or(Phobos::Config::AllowDistributionCommand_AffectsEnemies);
+	}
+
+	{
+
+		Phobos::Config::ArtImageSwap = ini->Read<bool>(GameStrings::General(), "ArtImageSwap").value_or(Phobos::Config::ArtImageSwap);
+		Phobos::Config::UnitPowerDrain = ini->Read<bool>(GameStrings::General(), "UnitPowerDrain").value_or(Phobos::Config::UnitPowerDrain);
+		Phobos::UI::UnlimitedColor = ini->Read<bool>(GameStrings::General(), "SkirmishUnlimitedColors").value_or(Phobos::UI::UnlimitedColor);
+
+		if (ini->Read<bool>(GameStrings::General(), "CustomGS").value_or(Phobos::Misc::CustomGS))
+		{
+
+			Phobos::Misc::CustomGS = true;
+
+			//char tempBuffer[0x20];
+			for (size_t i = 0; i <= 6; ++i)
+			{
+				std::string _buffer = "CustomGS";
+				_buffer += std::to_string(6 - i);
+
+				int temp = ini->Read<int>(GameStrings::General(), _buffer + ".ChangeDelay").value_or(-1);
+
+				if (temp >= 0 && temp <= 6)
+					Phobos::Misc::CustomGS_ChangeDelay[i] = 6 - temp;
+
+				temp = ini->Read<int>(GameStrings::General(), _buffer + ".DefaultDelay").value_or(-1);
+				if (temp >= 1)
+					Phobos::Misc::CustomGS_DefaultDelay[i] = 6 - temp;
+
+				temp = ini->Read<int>(GameStrings::General(), _buffer + ".ChangeInterval").value_or(-1);
+				if (temp >= 1)
+					Phobos::Misc::CustomGS_ChangeInterval[i] = temp;
+			}
+		}
+
+		Phobos::Config::FixTransparencyBlitters = ini->Read<bool>(GameStrings::General(), "FixTransparencyBlitters").value_or(Phobos::Config::FixTransparencyBlitters);
+		Phobos::Config::MultiThreadSinglePlayer = ini->Read<bool>(GameStrings::General(), "MultiThreadSinglePlayer").value_or(Phobos::Config::MultiThreadSinglePlayer);
+		Phobos::Config::SaveVariablesOnScenarioEnd = ini->Read<bool>(GameStrings::General(), "SaveVariablesOnScenarioEnd").value_or(Phobos::Config::SaveVariablesOnScenarioEnd);
+	}
+
+	{
+		Phobos::Config::ApplyShadeCountFix = ini->Read<bool>(GameStrings::AudioVisual(), "ApplyShadeCountFix").value_or(Phobos::Config::ApplyShadeCountFix);
+	}
+}
+
 bool __fastcall Init_Rules()
 {
 	//Rules
@@ -348,7 +408,7 @@ bool __fastcall Init_Rules()
 		GameModeOptionsClass::Instance->MCVRedeploy = pRules->MCVRedeploys;
 
 		//ASMJIT_PATCH(0x52D21F, Game_InitRules, 0x6)
-		Phobos::Config::Read_RULESMD();
+		Phobos_Config_Read_RULESMD(PhobosINIContainer::Rules_INI);
 	}
 
 	//AI

@@ -677,13 +677,13 @@ public:
 
 	// Returns parsed value or defaultValue on absence / parse failure.
 	template<typename T>
-	T ReadOrDefault(std::string_view section, std::string_view key, T defaultValue) const {
+	T ReadOrDefault(std::string_view section, std::string_view key, T defaultValue) {
 		return Read<T>(section, key).value_or(std::move(defaultValue));
 	}
 
 	// Writes parsed result into *out. Returns true on success.
 	template<typename T>
-	bool ReadInto(std::string_view section, std::string_view key, T* out) const
+	bool ReadInto(std::string_view section, std::string_view key, T* out)
 	{
 		auto result = Read<T>(section, key);
 
@@ -703,7 +703,7 @@ public:
 	// Stops at first failure. Returns count actually parsed.
 	// Use when partial results are acceptable.
 	template<typename T, size_t N>
-	size_t ReadPartial(std::string_view section, std::string_view key, T* out) const
+	size_t ReadPartial(std::string_view section, std::string_view key, T* out)
 	{
 		if (const PhobosINISection* sec = GetSection(section)) {
 			if (const PhobosINIEntry* entry = sec->FindEntry(key)) {
@@ -718,10 +718,10 @@ public:
 	// out[] is completely unchanged on partial failure.
 	// Use when you need exactly N values or nothing.
 	template<typename T, size_t N>
-	bool TryRead(std::string_view section, std::string_view key, T* out) const
+	bool TryRead(std::string_view section, std::string_view key, T* out)
 	{
-		if (const PhobosINISection* sec = GetSection(section)) {
-			if (const PhobosINIEntry* entry = sec->FindEntry(key)) {
+		if (PhobosINISection* sec = GetSection(section)) {
+			if (PhobosINIEntry* entry = sec->FindEntry(key)) {
 				return PhobosParser<T, N>::TryParse(entry->Value, out);
 			}
 		}
@@ -730,12 +730,12 @@ public:
 	}
 
 	// Convenience wrappers for common fixed-count cases.
-	template<typename T> bool Read2(std::string_view s, std::string_view k, T* out) const { return TryRead<T, 2>(s, k, out); }
-	template<typename T> bool Read3(std::string_view s, std::string_view k, T* out) const { return TryRead<T, 3>(s, k, out); }
-	template<typename T> bool Read4(std::string_view s, std::string_view k, T* out) const { return TryRead<T, 4>(s, k, out); }
+	template<typename T> bool Read2(std::string_view s, std::string_view k, T* out) { return TryRead<T, 2>(s, k, out); }
+	template<typename T> bool Read3(std::string_view s, std::string_view k, T* out) { return TryRead<T, 3>(s, k, out); }
+	template<typename T> bool Read4(std::string_view s, std::string_view k, T* out) { return TryRead<T, 4>(s, k, out); }
 
-	template<typename T> size_t Read2Partial(std::string_view s, std::string_view k, T* out) const { return ReadPartial<T, 2>(s, k, out); }
-	template<typename T> size_t Read3Partial(std::string_view s, std::string_view k, T* out) const { return ReadPartial<T, 3>(s, k, out); }
+	template<typename T> size_t Read2Partial(std::string_view s, std::string_view k, T* out) { return ReadPartial<T, 2>(s, k, out); }
+	template<typename T> size_t Read3Partial(std::string_view s, std::string_view k, T* out) { return ReadPartial<T, 3>(s, k, out); }
 
 	// -----------------------------------------------------------------------
 	// Unbounded list read

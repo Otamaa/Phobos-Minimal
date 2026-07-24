@@ -25,6 +25,8 @@
 #include <WWMessageBox.h>
 #include <BeaconManagerClass.h>
 
+#include <Phobos.INI.h>
+
 ASMJIT_PATCH(0x683B97, StartScenarion_WhyCrash, 0x5)
 {
 	const auto opt = GameModeOptionsClass::Instance->ScenarioIndex;
@@ -195,29 +197,31 @@ void SpawnerMain::PrintInitializeLog() {
 	Debug::LogInfo("Initialized " SPAWNER_PRODUCT_NAME "");
 }
 
-void SpawnerMain::LoadConfigurations()
+void SpawnerMain::ReadRA2MDConfig(PhobosINIClass* pINI)
 {
-	if (auto pINI = CCINIClass::INI_RA2MD.ptr()) {
+	{
 
-		if (pINI->GetSection(GameStrings::Options())) {
+		//if (pINI->GetSection(GameStrings::Options())) 
+		{
 			auto pMainConfigs = SpawnerMain::GetMainConfigs();
-			pMainConfigs->MPDebug = pINI->ReadBool(GameStrings::Options(), "MPDEBUG", pMainConfigs->MPDebug);
-			pMainConfigs->SingleProcAffinity = pINI->ReadBool(GameStrings::Options(), "SingleProcAffinity", pMainConfigs->SingleProcAffinity);
-			pMainConfigs->DisableEdgeScrolling = pINI->ReadBool(GameStrings::Options(), "DisableEdgeScrolling", pMainConfigs->DisableEdgeScrolling);
-			pMainConfigs->QuickExit = pINI->ReadBool(GameStrings::Options(), "QuickExit", pMainConfigs->QuickExit);
-			pMainConfigs->SkipScoreScreen = pINI->ReadBool(GameStrings::Options(), "SkipScoreScreen", pMainConfigs->SkipScoreScreen);
-			pMainConfigs->DDrawHandlesClose = pINI->ReadBool(GameStrings::Options(), "DDrawHandlesClose", pMainConfigs->DDrawHandlesClose);
-			pMainConfigs->SpeedControl = pINI->ReadBool(GameStrings::Options(), "SpeedControl", pMainConfigs->SpeedControl);
-			pMainConfigs->AllowTaunts = pINI->ReadBool(GameStrings::Options(), "AllowTaunts", pMainConfigs->AllowTaunts);
-			pMainConfigs->AllowChat = pINI->ReadBool(GameStrings::Options(), "AllowChat", pMainConfigs->AllowChat);
+			pMainConfigs->MPDebug = pINI->Read<bool>(GameStrings::Options(), "MPDEBUG").value_or(pMainConfigs->MPDebug);
+			pMainConfigs->SingleProcAffinity = pINI->Read<bool>(GameStrings::Options(), "SingleProcAffinity").value_or(pMainConfigs->SingleProcAffinity);
+			pMainConfigs->DisableEdgeScrolling = pINI->Read<bool>(GameStrings::Options(), "DisableEdgeScrolling").value_or(pMainConfigs->DisableEdgeScrolling);
+			pMainConfigs->QuickExit = pINI->Read<bool>(GameStrings::Options(), "QuickExit").value_or(pMainConfigs->QuickExit);
+			pMainConfigs->SkipScoreScreen = pINI->Read<bool>(GameStrings::Options(), "SkipScoreScreen").value_or(pMainConfigs->SkipScoreScreen);
+			pMainConfigs->DDrawHandlesClose = pINI->Read<bool>(GameStrings::Options(), "DDrawHandlesClose").value_or(pMainConfigs->DDrawHandlesClose);
+			pMainConfigs->SpeedControl = pINI->Read<bool>(GameStrings::Options(), "SpeedControl").value_or(pMainConfigs->SpeedControl);
+			pMainConfigs->AllowTaunts = pINI->Read<bool>(GameStrings::Options(), "AllowTaunts").value_or(pMainConfigs->AllowTaunts);
+			pMainConfigs->AllowChat = pINI->Read<bool>(GameStrings::Options(), "AllowChat").value_or(pMainConfigs->AllowChat);
 
 		}
 
-		if (pINI->GetSection(GameStrings::Video())) {
+		//if (pINI->GetSection(GameStrings::Video())) 
+		{
 			auto pMainConfigs = SpawnerMain::GetMainConfigs();
-			pMainConfigs->WindowedMode = pINI->ReadBool(GameStrings::Video(), "Video.Windowed", pMainConfigs->WindowedMode);
-			pMainConfigs->NoWindowFrame = pINI->ReadBool(GameStrings::Video(), "NoWindowFrame", pMainConfigs->NoWindowFrame);
-			pMainConfigs->DDrawTargetFPS = pINI->ReadInteger(GameStrings::Video(), "DDrawTargetFPS", pMainConfigs->DDrawTargetFPS);
+			pMainConfigs->WindowedMode = pINI->Read<bool>(GameStrings::Video(), "Video.Windowed").value_or(pMainConfigs->WindowedMode);
+			pMainConfigs->NoWindowFrame = pINI->Read<bool>(GameStrings::Video(), "NoWindowFrame").value_or(pMainConfigs->NoWindowFrame);
+			pMainConfigs->DDrawTargetFPS = pINI->Read<int>(GameStrings::Video(), "DDrawTargetFPS").value_or(pMainConfigs->DDrawTargetFPS);
 		}
 	}
 }
@@ -519,7 +523,8 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 	if (!pINI)
 		return;
 
-	if(pINI->GetSection(GameStrings::Settings())){
+	//if(pINI->GetSection(GameStrings::Settings()))
+	{
 
 		{ // Game Mode Options
 			MPModeIndex = pINI->ReadInteger(GameStrings::Settings(), GameStrings::GameMode, MPModeIndex);
@@ -609,7 +614,8 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 		DisableChat = pINI->ReadBool(GameStrings::Settings(), "DisableChat", DisableChat);
 	}
 
-	if (pINI->GetSection(GameStrings::Tunnel())) {
+	//if (pINI->GetSection(GameStrings::Tunnel())) 
+	{
 		pINI->ReadString(GameStrings::Tunnel(), "Ip", TunnelIp, TunnelIp, sizeof(TunnelIp));
 		TunnelPort = pINI->ReadInteger(GameStrings::Tunnel(), "Port", TunnelPort);
 	}

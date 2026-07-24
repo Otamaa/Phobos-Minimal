@@ -3205,6 +3205,14 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->AITriggers_ValidList)
 		.Process(this->PlayerAutoRepair)
 		//.Process(this->BeaconsPlacedOrder)
+		.Process(this->DropshipLoadout_Carriers)
+		.Process(this->DropshipLoadout_Cargo)
+		.Process(this->DropshipLoadout_InitialUnits)
+		.Process(this->DropshipLoadout_SWInitialUnits)
+		.Process(this->DropshipLoadout_SWCargo)
+		.Process(this->DropshipLoadout_SWCarrier)
+		.Process(this->DropshipLoadout_InitialUnitsSet)
+		.Process(this->DropshipLoadout_SWInitialUnitsSet)
 		;
 }
 #endif

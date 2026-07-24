@@ -28,6 +28,8 @@ public:
 	void Service()
 		{ JMP_THIS(0x541820) }
 
+	void Set_Socket(uint16_t a2) { JMP_THIS(0x542430); }
+
 	// Tears down the connection to the given peer (by connection id / house id).
 	// Used when rebuilding connections after a mid-game save load.
 	bool Delete_Connection(int id)

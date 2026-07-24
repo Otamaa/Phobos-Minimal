@@ -210,12 +210,19 @@ void FakeIonBlastClass::_AI()
 			{
 				CellStruct cell { static_cast<int16_t>(centerX + dx), static_cast<int16_t>(centerY + dy) };
 				auto* mapCell = MapClass::Instance->GetCellAt(cell);
-				FootClass* unit = flag_cast_to<FootClass*>(mapCell->FirstObject);
 
-				while (unit)
+				for (ObjectClass* pObj = mapCell->FirstObject; pObj != nullptr; pObj = pObj->NextObject)
 				{
-					if (unit->WhatAmI() == InfantryClass::AbsID || unit->WhatAmI() == UnitClass::AbsID)
+					if (!pObj->IsAlive)
+						continue;
+
+					if (pObj->WhatAmI() == InfantryClass::AbsID || pObj->WhatAmI() == UnitClass::AbsID)
 					{
+
+						auto unit = (FootClass*)pObj;
+
+						if (unit->IsSinking)
+							continue;
 
 						CoordStruct unitCoord = unit->Location;
 						Point2D unitScreen = TacticalClass::Instance->CoordsToClient(unitCoord);

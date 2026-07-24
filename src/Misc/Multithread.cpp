@@ -19,6 +19,7 @@
 
 #include <New/MessageHandler/MessageColumnClass.h>
 
+#include <BitFont.h>
 
 // Wait this long in LockOrDemandMutex before getting impatient. Bigger values = less frequent lock demands.
 const std::chrono::duration MainPatienceDuration = std::chrono::milliseconds(5);
@@ -128,6 +129,48 @@ class NOVTABLE FakeGScreenClass final : GScreenClass
 {
 public:
 	static COMPILETIMEEVAL constant_ptr<FakeGScreenClass, 0x87F7E8u> const Instance {};
+	
+	static void RenderTimer()
+	{
+		if (!Phobos::Config::ShowGameTime || HouseClass::CurrentPlayer->IsObserver()) // already has a timer
+			return;
+
+		BitFont* pFont = BitFont::BitFontPtr(TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background);
+		const int total_seconds = Unsorted::CurrentFrame() / 15;
+
+		const int hours = total_seconds / 3600;
+		const int minutes = (total_seconds / 60) % 60;
+		const int seconds = total_seconds % 60;
+		const auto text = GeneralUtils::LoadStringUnlessMissing("TXT_GAMETIME", L"Time");
+
+		static fmt::basic_memory_buffer<wchar_t> buffer;
+		buffer.clear();
+
+		if (hours > 0) {
+			fmt::format_to(std::back_inserter(buffer), L"{} {:02}:{:02}:{:02}", text, hours, minutes, seconds);
+		} else {
+			fmt::format_to(std::back_inserter(buffer), L"{} {:02}:{:02}", text, minutes, seconds);
+		}
+
+		buffer.push_back(L'\0');
+
+		RectangleStruct wanted {};
+		Drawing::GetTextBox(&wanted, buffer.data(), 0,0 , 0, 2, 0);
+
+		RectangleStruct rect = {
+			DSurface::Composite->Get_Width() - wanted.Width - 30,
+			0,
+			wanted.Width + 10,
+			wanted.Height + 10
+		};
+
+		Point2D location { rect.X + 5 ,5 };
+		ColorStruct color { 0x0, 0x0 ,0x0 };
+		DSurface::Composite->Fill_Rect_Trans(&rect, &color, Phobos::Config::ShowGameTime_BoardOpacity);
+		//DSurface::Composite->DrawRect(&rect, COLOR_WHITE);
+		DSurface::Composite->DSurfaceDrawText(buffer.data(), &location, COLOR_WHITE);
+	}
+	
 	static //FORCEDINLINE 
 		void _RenderRaw(GScreenClass* pThis)
 	{
@@ -165,6 +208,8 @@ public:
 
 		if (CCToolTip::Instance.get())
 			CCToolTip::Instance->Draw(false);
+
+		//RenderTimer();
 
 		if (Multithreading::EnableMultiplayerDebug.get())
 			Multithreading::MultiplayerDebugPrint();

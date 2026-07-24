@@ -2963,6 +2963,7 @@ void TechnoTypeExtData::Serialize(T& Stm) {
 			.Process(this->Disable_C4WarheadExp)
 
 			.Process(this->CrashSpinLevelRate)
+			.Process(this->CrashSpin_Multiplier)
 			.Process(this->CrashSpinVerticalRate)
 
 			.Process(this->ParasiteExit_Sound)

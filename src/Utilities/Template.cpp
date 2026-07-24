@@ -382,6 +382,17 @@ bool detail::read<PartialVector3D<float>>(PartialVector3D<float>& value, INI_EX&
 }
 
 template <>
+bool detail::read<PhobosPCXFile>(PhobosPCXFile& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+{
+	if (parser.ReadString(pSection, pKey)){
+		value.Insert(parser.value());
+		return true;
+	}
+
+	return false;
+}
+
+template <>
 bool detail::read<bool>(bool& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 {
 	if (!parser.ReadBool(pSection, pKey, &value))

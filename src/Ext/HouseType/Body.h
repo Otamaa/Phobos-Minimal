@@ -110,6 +110,46 @@ public:
 	// ============================================================
 	bool SettingsInherited { false };
 	// 6 bools = 6 bytes, pads to 8 for alignment
+
+
+	Nullable<int> DropshipLoadout_StartingDropships {};
+	ValueableVector<TechnoTypeClass*> DropshipLoadout_AllowableUnits {};
+	ValueableVector<int> DropshipLoadout_AllowableUnitMaximums {};
+	std::map<int, std::vector<TechnoTypeClass*>> DropshipLoadout_AllowableUnitsLists {};
+	std::map<int, std::vector<int>> DropshipLoadout_AllowableUnitMaximumsLists {};
+	Nullable<int> DropshipLoadout_Theme {};
+	Nullable<int> DropshipLoadout_Money {};
+	NullableIdx<VoxClass> DropshipLoadout_StartEVA {};
+	ValueableVector<TechnoTypeClass*> DropshipLoadout_Carriers {};
+	ValueableVector<int> DropshipLoadout_Carriers_SizeLimit {};
+	Nullable<bool> DropshipLoadout_AddUnusedMoneyToPlayer {};
+	Nullable<bool> DropshipLoadout_RememberPurchasedCargo {};
+	ConvertClass* DropshipLoadout_Palette {};
+
+	Nullable<PhobosPCXFile> DropshipLoadout_BackgroundPCX {};
+	std::string DropshipLoadout_BackgroundPCXPattern {}; // raw format string, e.g. "DROP%04d.PCX"
+	Nullable<PhobosPCXFile> DropshipLoadout_UpArrowPCX {};
+	Nullable<PhobosPCXFile> DropshipLoadout_DownArrowPCX {};
+	ValueableVector<PhobosPCXFile> DropshipLoadout_LoadoutPCX {};
+	ValueableVector<PhobosPCXFile> DropshipLoadout_PilotLitPCX {};
+	ValueableVector<std::unique_ptr<std::vector<PhobosPCXFile>>> DropshipLoadout_DGreenListPCX {};
+	Nullable<int> DropshipLoadout_DGreenAnimationsCount {};
+	ValueableVector<Point2D> DropshipLoadout_DGreenLocations {};
+	Nullable<Point2D> DropshipLoadout_UpArrowLocation {};
+	Nullable<Point2D> DropshipLoadout_DownArrowLocation {};
+	Nullable<Point2D> DropshipLoadout_LoadoutLocation {};
+	Nullable<Point2D> DropshipLoadout_PilotLitLocation {};
+	Nullable<int> DropshipLoadout_SidebarCameosCount {};
+	ValueableVector<Point2D> DropshipLoadout_SidebarCameoLocations {};
+	Nullable<int> DropshipLoadout_DropshipCameosCount {};
+	ValueableVector<std::vector<Point2D>> DropshipLoadout_DropshipCameoLocations {};
+	std::vector<std::vector<TechnoTypeClass*>> DropshipLoadout_FixedUnits {};
+	std::vector<std::vector<TechnoTypeClass*>> DropshipLoadout_InitialUnits {};
+	NullableIdx<VocClass> DropshipLoadout_BuyClickSound {};
+	NullableIdx<VocClass> DropshipLoadout_SellClickSound {};
+	NullableIdx<VocClass> DropshipLoadout_ArrowsClickSound {};
+	NullableIdx<VocClass> DropshipLoadout_StartingDragDropSound {};
+	NullableIdx<VocClass> DropshipLoadout_EndingDragDropSound {};
 #pragma endregion
 
 public:

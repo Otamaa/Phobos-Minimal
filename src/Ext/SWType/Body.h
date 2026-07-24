@@ -423,6 +423,52 @@ public:
 	Valueable<int> SW_MaxCharges { -1 };
 	Valueable<int> SW_ChargesPerCycle { 1 };
 	Valueable<int> SW_DischargeAmount { 1 };
+
+	Nullable<bool> DropshipLoadout_OpenWindow {};
+	Valueable<bool> DropshipLoadout_Launch {};
+	Valueable<bool> DropshipLoadout_PersistentCargo {};
+	Nullable<bool> DropshipLoadout_PreloadCargo {};
+	Nullable<bool> DropshipLoadout_AddUnusedMoneyToPlayer {};
+	Valueable<bool> DropshipLoadout_RememberPurchasedCargo {};
+	ConvertClass* DropshipLoadout_Palette {};
+	Nullable<TechnoTypeClass*> DropshipLoadout_Carrier {};
+	ValueableVector<TechnoTypeClass*> DropshipLoadout_AllowableUnits {};
+	ValueableVector<int> DropshipLoadout_AllowableUnitMaximums {};
+	Nullable<int> DropshipLoadout_Money {};
+	Nullable<int> DropshipLoadout_Theme {};
+	NullableIdx<VoxClass> DropshipLoadout_StartEVA {};
+	Nullable<int> DropshipLoadout_SizeLimit {};
+	Nullable<PhobosPCXFile> DropshipLoadout_BackgroundPCX {};
+	std::string DropshipLoadout_BackgroundPCXPattern { "" };
+	Nullable<PhobosPCXFile> DropshipLoadout_UpArrowPCX {};
+	Nullable<PhobosPCXFile> DropshipLoadout_DownArrowPCX {};
+	Nullable<Point2D> DropshipLoadout_UpArrowLocation {};
+	Nullable<Point2D> DropshipLoadout_DownArrowLocation {};
+	Nullable<int> DropshipLoadout_SidebarCameosCount {};
+	ValueableVector<Point2D> DropshipLoadout_SidebarCameosLocations {};
+	Nullable<PhobosPCXFile> DropshipLoadout_PilotLitPCX {};
+	Nullable<Point2D> DropshipLoadout_PilotLitLocation {};
+	Nullable<PhobosPCXFile> DropshipLoadout_LoadoutPCX {};
+	Nullable<Point2D> DropshipLoadout_LoadoutLocation {};
+	ValueableVector<PhobosPCXFile> DropshipLoadout_DGreenListPCX {};
+	Nullable<SHPStruct*> DropshipLoadout_Background {};
+	Nullable<SHPStruct*> DropshipLoadout_UpArrow {};
+	Nullable<SHPStruct*> DropshipLoadout_DownArrow {};
+	Nullable<SHPStruct*> DropshipLoadout_Loadout {};
+	Nullable<SHPStruct*> DropshipLoadout_PilotLit {};
+	std::vector<SHPStruct*> DropshipLoadout_DGreenList {};
+	Nullable<int> DropshipLoadout_DGreenAnimationsCount {};
+	ValueableVector<Point2D> DropshipLoadout_DGreenLocations {};
+	Nullable<int> DropshipLoadout_DropshipCameosCount {};
+	ValueableVector<Point2D> DropshipLoadout_DropshipCameosLocations {};
+	ValueableVector<TechnoTypeClass*> DropshipLoadout_FixedUnits {};
+	ValueableVector<TechnoTypeClass*> DropshipLoadout_InitialUnits {};
+	NullableIdx<VoxClass> DropshipLoadout_BuyClickSound {};
+	NullableIdx<VoxClass> DropshipLoadout_SellClickSound {};
+	NullableIdx<VoxClass> DropshipLoadout_ArrowsClickSound {};
+	NullableIdx<VoxClass> DropshipLoadout_StartingDragDropSound {};
+	NullableIdx<VoxClass> DropshipLoadout_EndingDragDropSound {};
+	Nullable<int> DropshipLoadout_VeteranLevel {};
 #pragma endregion
 
 public:
@@ -525,6 +571,7 @@ public:
 	SWTypeHandler* GetNewSWType() const;
 
 	void ApplyLinkedSW(SuperClass* pSW);
+	void ApplyDropshipLoadoutLaunch(HouseClass* pHouse, const CellStruct& cell);
 public:
 
 	//statics

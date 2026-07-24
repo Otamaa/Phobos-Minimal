@@ -1638,6 +1638,66 @@ namespace Savegame
 		}
 	};
 
+	template <typename T, typename A, typename dx>
+	struct Savegame::PhobosStreamObject<std::unique_ptr<std::vector<T, A>, dx>>
+	{
+		using payload_type = std::vector<T, A>;
+
+		bool ReadFromStream(PhobosStreamReader& Stm, std::unique_ptr<payload_type, dx>& Value, bool RegisterForChange) const
+		{
+			static_assert(std::is_same_v<dx, std::default_delete<payload_type>>,
+				"Savegame::PhobosStreamObject<std::unique_ptr<std::vector<T>, Deleter>>: Custom deleters are not supported for serialization!");
+
+			bool hasValue = false;
+			if (!Savegame::ReadPhobosStream(Stm, hasValue))
+				return false;
+
+			if (hasValue)
+			{
+				long ptrOld = 0l;
+				if (!Savegame::ReadPhobosStream(Stm, ptrOld))
+					return false;
+
+				std::unique_ptr<payload_type, dx> ptrNew = ObjectFactory<payload_type>()(Stm);
+
+				// NOTE: no HasLoad/Hasload gate here - the payload is serialized through
+				// PhobosStreamObject<std::vector<T, A>>, which already exists.
+				if (Savegame::ReadPhobosStream(Stm, *ptrNew, RegisterForChange))
+				{
+					PHOBOS_SWIZZLE_REGISTER_POINTER(ptrOld, ptrNew.get(), PhobosCRT::GetTypeIDName<payload_type>().c_str());
+					Value.reset(ptrNew.release());
+					return true;
+				}
+
+				return false;
+			}
+
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const std::unique_ptr<payload_type, dx>& Value) const
+		{
+			static_assert(std::is_same_v<dx, std::default_delete<payload_type>>,
+				"Savegame::PhobosStreamObject<std::unique_ptr<std::vector<T>, Deleter>>: Custom deleters are not supported for serialization!");
+
+			const bool hasValue = Value.get() != nullptr;
+
+			if (!Savegame::WritePhobosStream(Stm, hasValue))
+				return false;
+
+			if (hasValue)
+			{
+				if (!Savegame::WritePhobosStream(Stm, (long)Value.get()))
+					return false;
+
+				// NOTE: no HasSave/Hassave gate here - see ReadFromStream.
+				return Savegame::WritePhobosStream(Stm, *Value.get());
+			}
+
+			return true;
+		}
+	};
+
 	template <typename T>
 	struct Savegame::PhobosStreamObject<std::shared_ptr<T>>
 	{

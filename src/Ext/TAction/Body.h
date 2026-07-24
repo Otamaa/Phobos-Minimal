@@ -83,6 +83,10 @@ enum class PhobosTriggerAction : unsigned int
 	CreateBannerGlobal = 801, // any banner w/ global variable
 	DeleteBanner = 802,
 
+	//#2270
+	OpenDropshipLoadoutWindow = 900,
+	CreateDropshipLoadoutTransport = 901,
+
 	//#620
 	MessageForSpecifiedHouse = 9931,
 
@@ -239,6 +243,9 @@ public:
 	ACTION_FUNC(PlayAnimAt);
 	ACTION_FUNC(DoExplosionAt);
 	ACTION_FUNC(EnableTrigger);
+
+	ACTION_FUNC(CreateDropshipLoadoutTransport);
+	ACTION_FUNC(OpenDropshipLoadoutWindow);
 
 #undef ACTION_FUNC
 

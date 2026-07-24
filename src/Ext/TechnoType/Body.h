@@ -415,6 +415,8 @@ public:
 	Valueable<bool> DeathWeapon_CheckAmmo { false };
 	Valueable<bool> Disable_C4WarheadExp { false };
 	Valueable<double> CrashSpinLevelRate { 1.0 };
+	Nullable<float> CrashSpin_Multiplier {};
+
 	Valueable<double> CrashSpinVerticalRate { 1.0 };
 	ValueableIdx<VocClass> ParasiteExit_Sound { -1 };
 

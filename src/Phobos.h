@@ -153,6 +153,8 @@ public:
 		static NullableCSF HarvesterLabel;
 		static NullableCSF PercentLabel;
 
+		static const wchar_t* GameTimeText;
+
 		static const wchar_t* BuidingRadarJammedLabel;
 		static const wchar_t* BuidingFakeLabel;
 		static const wchar_t* ShowBriefingResumeButtonLabel;
@@ -290,6 +292,9 @@ public:
 		static bool ShowPowerPlantEnhancerRange;
 		static bool FixTransparencyBlitters;
 		static Simd::Level MaxSimdLevel;
+
+		static bool ShowGameTime;
+		static int ShowGameTime_BoardOpacity;
 	};
 
 	struct Misc

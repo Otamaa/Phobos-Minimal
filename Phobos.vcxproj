@@ -110,6 +110,7 @@
     <ClCompile Include="src\Misc\Renderer\GlobalColorPacker.cpp" />
     <ClCompile Include="src\Misc\Spawner\DesyncHandler.cpp" />
     <ClCompile Include="src\Misc\SyncLogging.cpp" />
+    <ClCompile Include="src\New\Entity\DropshipLoadoutClass.cpp" />
     <ClCompile Include="src\New\Entity\FactoryPlantClass.cpp" />
     <ClCompile Include="src\Commands\AggressiveModeClass.cpp" />
     <ClCompile Include="src\Commands\CeasefireModeClass.cpp" />
@@ -678,6 +679,7 @@
     <ClInclude Include="src\Misc\Renderer\GlobalColorPacker.h" />
     <ClInclude Include="src\Misc\Spawner\UI\DesyncDialog.Resource.h" />
     <ClInclude Include="src\Misc\SyncLogging.h" />
+    <ClInclude Include="src\New\Entity\DropshipLoadoutClass.h" />
     <ClInclude Include="src\New\Entity\FactoryPlantClass.h" />
     <ClInclude Include="src\Commands\AggressiveModeClass.h" />
     <ClInclude Include="src\Commands\CeasefireModeClass.h" />

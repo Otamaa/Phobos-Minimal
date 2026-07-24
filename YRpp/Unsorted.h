@@ -117,6 +117,7 @@ struct Game
 
 	static COMPILETIMEEVAL reference<bool, 0x887418u> const bVPLRead {};
 	static COMPILETIMEEVAL reference<bool, 0x840A6Cu> const bVideoBackBuffer {};
+	static COMPILETIMEEVAL reference<bool, 0xA8ED63u> const bAllowModeToggle {};
 	static COMPILETIMEEVAL reference<bool, 0xA8EB96u> const bAllowVRAMSidebar {};
 
 	static COMPILETIMEEVAL reference<RecordFlag, 0xA8D5F8u> const RecordingFlag {};
