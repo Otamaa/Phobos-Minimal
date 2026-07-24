@@ -35,7 +35,7 @@ ASMJIT_PATCH(0x6BC099 , WInMain_CreateRA2MD_Override, 0x7){
 	auto _ra2MD = GameCreate<RawFileClass>(GameStrings::RA2MD_INI());
 	;
 
-	if (!CCINIClass::INI_RA2MD->ReadCCFile(_ra2MD) && !PhobosINIContainer::Ra2_INI->LoadFile(_ra2MD)) {
+	if (!CCINIClass::INI_RA2MD->ReadCCFile(_ra2MD) || !PhobosINIContainer::Ra2_INI->LoadFile(_ra2MD)) {
 		Debug::FatalError("Failed to load %s !" , GameStrings::RA2MD_INI());
 		return 0x0;
 	}
@@ -99,8 +99,10 @@ ASMJIT_PATCH(0x6BC099 , WInMain_CreateRA2MD_Override, 0x7){
 		}
 	}
 
+	R->Base<FileClass*>(-0x70C, _ra2MD);
 	return 0x6BC28E;
 }
+
 
 void Phobos::Config::Read_RA2MD()
 {
