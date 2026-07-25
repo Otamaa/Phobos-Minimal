@@ -516,16 +516,10 @@ bool ScriptExtData::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 		{
 			auto& nSonarTime = TechnoExtContainer::Instance.Find(pUnit)->CloakSkipTimer;
-			if (nDur > nSonarTime.GetTimeLeft())
-			{
+			if (nDur > nSonarTime.GetTimeLeft()) {
 				nSonarTime.Start(nDur);
-			}
-			else if (nDur <= 0)
-			{
-				if (nDur == 0)
-				{
-					nSonarTime.Stop();
-				}
+			} else if (nDur <= 0) {
+				nSonarTime.Stop();
 			}
 		}
 
@@ -539,13 +533,9 @@ bool ScriptExtData::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 		{
 			auto& nTimer = TechnoExtContainer::Instance.Find(pUnit)->DisableWeaponTimer;
 			if (nDur > nTimer.GetTimeLeft())
-			{
 				nTimer.Start(nDur);
-			}
-			else if (nDur <= 0 && nDur == 0)
-			{
+			else if (nDur <= 0)
 				nTimer.Stop();
-			}
 		}
 
 		pTeam->StepCompleted = true;

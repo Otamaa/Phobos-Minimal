@@ -45,6 +45,7 @@ ASMJIT_PATCH(0x5d7048, MPGameMode_SpawnBaseUnit_BuildConst, 5)
 		pHouse->Base.BaseNodes.Items->MapCoords = base;
 		pHouse->Production = 1;
 		pHouse->AITriggersActive = true;
+		pHouse->AutoBaseBuilding = true;
 	}
 
 	R->EAX(pBld);

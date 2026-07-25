@@ -614,8 +614,8 @@ public:
 	static void UpdateTogglePower(HouseClass* pThis);
 	static bool UpdateAnyFirestormActive(bool const lastChange);
 	static void SetFirestormState(HouseClass* pHouse, bool const active);
-	static void FormulateTypeList(std::vector<TechnoTypeClass*>& types, TechnoTypeClass** items, int count, int houseidx);
-	static std::vector<TechnoTypeClass*> GetTypeList();
+	static void FormulateTypeList(std::set<TechnoTypeClass*>& types, TechnoTypeClass** items, int count, int houseidx);
+	static std::set<TechnoTypeClass*> GetTypeList();
 	static int GetTotalCost(const Nullable<int>& fixed);
 
 	static bool FindSameTunnel(BuildingClass* pTunnel);

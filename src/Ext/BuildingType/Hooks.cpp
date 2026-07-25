@@ -385,36 +385,22 @@ ASMJIT_PATCH(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 			*itData = BuildingTypeExtData::FoundationEndMarker;
 			pBldext->CustomData.erase(itData + 1, pBldext->CustomData.end());
 
+			// the AI places its base relative to the cell the building is anchored
+			// on, so a foundation that does not cover it cannot be built by the AI
+			if(std::find(pBldext->CustomData.cbegin(), pBldext->CustomData.cend(), CellStruct::Empty) == pBldext->CustomData.cend()) {
+				Debug::Log("BuildingType %s has a custom foundation which does not include cell 0,0. "
+					"This breaks AI base building.\n", pSection);
+			}
+
 			auto itOutline = pBldext->OutlineData.begin();
-			for (size_t i = 0; i < (size_t)outlineLength; ++i)
-			{
-				if (exINi->ReadString(pSection, (std::string("FoundationOutline.") + std::to_string(i)).c_str(), "", strbuff))
-				{
+			for(int i = 0; i < outlineLength; ++i) {
+				if(exINi->ReadString(pSection, (std::string("FoundationOutline.") + std::to_string(i)).c_str(), "", strbuff)) {
 					ParsePoint(itOutline, strbuff);
-				}
-				else
-				{
+				} else {
 					//Set end vector
 					// can't break, some stupid functions access fixed offsets without checking if that offset is within the valid range
 					*itOutline++ = BuildingTypeExtData::FoundationEndMarker;
 				}
-			}
-
-			//Set end vector
-			*itOutline = BuildingTypeExtData::FoundationEndMarker;
-			bool hasOrigin = false;
-			for (auto begin = pBldext->CustomData.begin(); begin < pBldext->CustomData.end(); begin++)
-			{
-				if (begin->X == 0 && begin->Y == 0)
-				{
-					hasOrigin = true;
-					break;
-				}
-			}
-
-			if (!hasOrigin)
-			{
-				Debug::LogInfo("BuildingType {} has a custom foundation which does not include cell 0,0. This breaks AI base building.", pSection);
 			}
 		}
 	}

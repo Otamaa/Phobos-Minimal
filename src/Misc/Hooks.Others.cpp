@@ -195,12 +195,16 @@ ASMJIT_PATCH(0x551A30, LayerClass_YSortReorder, 0x5)
 {
 	GET(LayerClass*, pThis, ECX);
 
-	auto const nCount = pThis->Count;
-	auto nBegin = &pThis->Items[nCount / 15 * (Unsorted::CurrentFrame.get() % 15)];
-	auto nEnd = (Unsorted::CurrentFrame.get() % 15 >= 14) ? (&pThis->Items[nCount]) : (&nBegin[nCount / 15 + nCount / 15 / 4]);
-	std::sort(nBegin, nEnd, [](const ObjectClass* A, const ObjectClass* B)
- {
-	 return A->GetYSort() < B->GetYSort();
+	auto const step = pThis->Count / 15;
+	auto const slice = Unsorted::CurrentFrame() % 15;
+
+	auto const begin = pThis->Items + step * slice;
+	auto const end = (slice >= 14)
+		? pThis->Items + pThis->Count
+		: begin + step + step / 4;
+
+	std::sort(begin, end, [](ObjectClass* const pA, ObjectClass* const pB) {
+		return pA->GetYSort() < pB->GetYSort();
 	});
 
 	return 0x551A84;

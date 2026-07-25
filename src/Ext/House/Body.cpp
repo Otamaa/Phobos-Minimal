@@ -349,7 +349,7 @@ std::pair<NewFactoryState, BuildingClass*> HouseExtData::HasFactory(
 	bool bSkipAircraft,
 	bool requirePower,
 	bool bCheckCanBuild,
-	bool b7)
+	bool anyFactory)
 {
 
 	if (bCheckCanBuild && pHouse->CanBuild(pType, true, true) <= CanBuildResult::Unbuildable)
@@ -405,7 +405,7 @@ std::pair<NewFactoryState, BuildingClass*> HouseExtData::HasFactory(
 					return { NewFactoryState::Available_Primary , pNonPrimaryBuilding };
 
 				//do only single loop and use the pOfflineBuildingResult
-				if (b7)
+				if (anyFactory)
 				{
 					pOfflineBuilding = pBld;
 					break;
@@ -677,78 +677,50 @@ bool HouseExtData::CheckFactoryOwners(HouseClass* pHouse, TechnoTypeClass* pItem
 {
 	auto const pExt = TechnoTypeExtContainer::Instance.Find(pItem);
 
-	// No constraints at all → allowed
-	if (pExt->FactoryOwners.empty() && pExt->FactoryOwners_Forbidden.empty())
+	auto const& Owners = pExt->FactoryOwners;
+	auto const& Forbidden = pExt->FactoryOwners_Forbidden;
+
+	if (Owners.empty() && Forbidden.empty())
+	{
 		return true;
+	}
+
+	auto Passes = [&Owners, &Forbidden](HouseTypeClass* const pCountry) -> bool
+		{
+			return (Owners.empty() || Owners.Contains(pCountry))
+				&& (Forbidden.empty() || !Forbidden.Contains(pCountry));
+		};
 
 	auto const pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 
-	bool available = false;
-
-	auto isAllowed = [&](HouseTypeClass* h) {
-		return std::find(pExt->FactoryOwners.begin(),
-			    pExt->FactoryOwners.end(), h) != pExt->FactoryOwners.end();
-	};
-
-	auto isForbidden = [&](HouseTypeClass* h) {
-		return std::find(pExt->FactoryOwners_Forbidden.begin(),
-				pExt->FactoryOwners_Forbidden.end(), h) != pExt->FactoryOwners_Forbidden.end();
-	};
-
-	// --------------------------------------------------------------
-	// 1. Check the gathered plans list
-	// --------------------------------------------------------------
-	for (auto const& gathered : pHouseExt->FactoryOwners_GatheredPlansOf)
-	{
-		if (isAllowed(gathered))
-			available = true;
-
-		if (isForbidden(gathered))
-			return false; // forbidden has priority
-	}
-
-	// --------------------------------------------------------------
-	// 2. If still not available → check buildings
-	// --------------------------------------------------------------
-	if (!available)
-	{
-		const auto itemFactoryID = pItem->WhatAmI();
-
-		for (auto const& pBld : pHouse->Buildings)
-		{
-			auto const pBldExt = TechnoExtContainer::Instance.Find(pBld);
-			auto const originalOwner = pBldExt->OriginalHouseType;
-
-			if (isAllowed(originalOwner))
-				available = true;
-
-			if (isForbidden(originalOwner))
-				return false; // forbidden takes priority over everything
-
-			if (available)
-			{
-				// factory capability check
-				auto const pBldType = pBld->Type;
-				auto const pBldTypeExt = BuildingTypeExtContainer::Instance.Find(pBldType);
-
-				if (pBldType->Factory == itemFactoryID ||
-					pBldTypeExt->FactoryOwners_HasAllPlans)
-				{
-					return true; // real valid factory found
-				}
-			}
+	for (auto const& pCountry : pHouseExt->FactoryOwners_GatheredPlansOf) {
+		if (Passes(pCountry)) {
+			return true;
 		}
 	}
 
-	// --------------------------------------------------------------
-	// 3. Final rule:
-	//    If no required owners → treat it as unrestricted
-	//    Otherwise → only available == true qualifies
-	// --------------------------------------------------------------
-	if (pExt->FactoryOwners.empty())
-		return true;
+	auto const abs = pItem->WhatAmI();
 
-	return available;
+	for (auto& pBld : pHouse->Buildings)
+	{
+		auto const pBldExt = TechnoExtContainer::Instance.Find(pBld);
+
+		if (!Passes(pBldExt->OriginalHouseType)) {
+			continue;
+		}
+
+		// FactoryOwners.HasAllPlans makes a building stand in for every factory
+		// kind of its original owner, so it satisfies any item's requirement.
+		// Unlike FactoryOwners.Permanent this is evaluated live: lose the
+		// building and the plans go with it.
+		auto const pBldTypeExt = TechnoTypeExtContainer::Instance.Find(pBld->Type);
+
+		if (pBld->Type->Factory == abs || pBldTypeExt->FactoryOwners_HasAllPlans) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void HouseExtData::UpdateAcademy(HouseClass* pHouse, BuildingClass* pAcademy, bool added)
@@ -4688,7 +4660,7 @@ void HouseExtData::SetFirestormState(HouseClass* pHouse, bool const active)
 	MapClass::Instance->Update_Pathfinding_2(AffectedCoords);
 }
 
-void HouseExtData::FormulateTypeList(std::vector<TechnoTypeClass*>& types, TechnoTypeClass** items, int count, int houseidx)
+void HouseExtData::FormulateTypeList(std::set<TechnoTypeClass*>& types, TechnoTypeClass** items, int count, int houseidx)
 {
 	if (!count)
 		return;
@@ -4700,26 +4672,29 @@ void HouseExtData::FormulateTypeList(std::vector<TechnoTypeClass*>& types, Techn
 		{
 			if ((*find)->InOwners(houseidx) && ((*find))->TechLevel <= Game::TechLevel())
 			{
-				types.push_back(*find);
+				types.insert(*find);
 			}
 		}
 	}
 }
 
-std::vector<TechnoTypeClass*> HouseExtData::GetTypeList()
+std::set<TechnoTypeClass*> HouseExtData::GetTypeList()
 {
 	DWORD avaibleHouses = 0u;
-	HelperedVector<TechnoTypeClass*> types;
-	types.reserve(InfantryTypeClass::Array->Count + UnitTypeClass::Array->Count);
+	std::set<TechnoTypeClass*> types;
 
-	for (auto pHouse : *HouseClass::Array)
-	{
-		if (!pHouse->Type->MultiplayPassive)
-		{
+	for (auto pHouse : *HouseClass::Array) {
+		if (!pHouse->Type->MultiplayPassive) {
 			const auto& data = HouseTypeExtContainer::Instance.Find(pHouse->Type)->StartInMultiplayer_Types;
-			if (data.HasValue())
-			{
-				types.insert(types.end(), data.begin(), data.end());
+
+			if (data.HasValue()) {
+				for(auto& _start : data){
+					auto abs = _start->WhatAmI();
+
+					if(abs == AbstractType::InfantryType
+						|| abs == AbstractType::UnitType)
+						types.insert(_start);
+				}
 			}
 			else
 			{
@@ -4730,27 +4705,9 @@ std::vector<TechnoTypeClass*> HouseExtData::GetTypeList()
 
 	FormulateTypeList(types, (TechnoTypeClass**)UnitTypeClass::Array->Items, UnitTypeClass::Array->Count, avaibleHouses);
 	FormulateTypeList(types, (TechnoTypeClass**)InfantryTypeClass::Array->Items, InfantryTypeClass::Array->Count, avaibleHouses);
-
-	//remove any `BaseUnit` included
-	//base unit given for free then ?
-	types.remove_all_if([](TechnoTypeClass* pItem)
- {
-	 for (int i = 0; i < RulesClass::Instance->BaseUnit.Count; ++i)
-	 {
-		 if (pItem == (RulesClass::Instance->BaseUnit.Items[i]))
-		 {
-			 return true;
-		 }
-	 }
-
-	 return false;
-	});
-
-	//idk these part
-	//but lets put it here
-	//need someone to test this to make sure if the calculation were correct :s
-	//-Otamaa
-	types.remove_all_duplicates_noshort();
+	for(auto const pBaseUnit : RulesClass::Instance->BaseUnit) {
+		types.erase(pBaseUnit);
+	}
 	return types;
 }
 
@@ -4760,13 +4717,10 @@ int HouseExtData::GetTotalCost(const Nullable<int>& fixed)
 		return 0;
 
 	int totalCost = 0;
-	if (fixed.isset())
-	{
+	if (fixed.isset()) {
 		totalCost = fixed;
 	}
-	else
-	{
-
+	else {
 		auto types = GetTypeList();
 		int total_ = 0;
 

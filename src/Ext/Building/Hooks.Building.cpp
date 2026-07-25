@@ -1832,8 +1832,20 @@ ASMJIT_PATCH(0x52297F, InfantryClass_GarrisonBuilding_OccupierEntered, 5)
 	// change the building's owner and mark it as raided
 	// but only if that's even necessary - no need to raid urban combat buildings.
 	// 27.11.2010 changed to include fix for #1305
-	const bool differentOwners = (pBld->Owner != pInf->Owner) && (SessionClass::Instance->GameMode != GameMode::Campaign) || !pBld->Owner->IsHumanPlayer || !pInf->Owner->IsHumanPlayer;
+	bool differentOwners = (pBld->Owner != pInf->Owner);
 	const bool ucBuilding = ((pBld->Type->TechLevel == -1) && pBld->Owner->IsNeutral());
+
+		// in a campaign, two houses the player is driving do not raid each other:
+	// co-op sides share the map and would otherwise steal each other's
+	// garrisonable buildings on the first occupant.
+	auto const isPlayerDriven = [](HouseClass const* const pHouse) {
+		return pHouse->IsHumanPlayer || pHouse->IsInPlayerControl;
+	};
+	bool const bothPlayerDriven =
+		SessionClass::Instance->GameMode == GameMode::Campaign
+		&& isPlayerDriven(pBld->Owner) && isPlayerDriven(pInf->Owner);
+
+	if(differentOwners && !bothPlayerDriven && !ucBuilding && !buildingExtData->OwnerBeforeRaid) 
 
 	if (differentOwners && !buildingExtData->OwnerBeforeRaid && !ucBuilding)
 	{
