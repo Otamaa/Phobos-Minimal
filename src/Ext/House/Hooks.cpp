@@ -238,31 +238,33 @@ ASMJIT_PATCH(0x7015EB, TechnoClass_SetOwningHouse_UpdateTracking, 0x7)
 	auto const pType = GET_TECHNOTYPE(pThis);
 	auto pOldOwnerExt = HouseExtContainer::Instance.Find(pThis->Owner);
 	auto pNewOwnerExt = HouseExtContainer::Instance.Find(pNewOwner);
-	//auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (pTypeExt->Death_Method != KillMethod::None) {
+		const auto pFoot = flag_cast_to<FootClass*>(pThis);
+		const bool IgnoreRevertOnExit = pFoot ? FootExtContainer::Instance.Find(pFoot)->IsOwnerChangeFromRevertOnExit : false;
 		const bool humanToComputer = pTypeExt->AutoDeath_OnOwnerChange_HumanToComputer.Get(pTypeExt->AutoDeath_OnOwnerChange);
 		const bool computerToHuman = pTypeExt->AutoDeath_OnOwnerChange_ComputerToHuman.Get(pTypeExt->AutoDeath_OnOwnerChange);
 
-		if (humanToComputer && computerToHuman)
-		{
-			TechnoExtData::KillSelf(pThis
-				, pTypeExt->Death_Method
-				, pTypeExt->AutoDeath_VanishAnimation );
-			return 0x70188C;
+		if (pTypeExt->AutoDeath_OnOwnerChange_IgnoreRevertOnExit.Get(FakeRulesClass::Instance->AutoDeath_OnOwnerChange_IgnoreRevertOnExit) && IgnoreRevertOnExit) {
+			pExt->ShouldBeDead = true;//kill this next update frame;
+		}else if (humanToComputer && computerToHuman) {
+				pExt->ShouldBeDead = true;//kill this next update frame;
 		} else if (humanToComputer || computerToHuman) {
 			const bool I_am_human = pThis->Owner->IsControlledByHuman();
 
 			if (I_am_human != pNewOwner->IsControlledByHuman()) {
 				if ((I_am_human && humanToComputer) || (!I_am_human && computerToHuman)) {
-					TechnoExtData::KillSelf(pThis
-						, pTypeExt->Death_Method
-						, pTypeExt->AutoDeath_VanishAnimation);
-					return 0x70188C;
+					pExt->ShouldBeDead = true;//kill this next update frame;
 				}
 			}
 		}
+
+			if (pExt->ShouldBeDead && pThis->Transporter
+			&& !IgnoreRevertOnExit
+			&& !pTypeExt->AutoDeath_AllowLimboed.Get(FakeRulesClass::Instance->AutoDeath_AllowLimboed))
+				pExt->ShouldBeDead = false; //oooor nevermind i guess
 	}
 
 	if (!pNewOwner->Type->MultiplayPassive &&  pThis->WhatAmI() != BuildingClass::AbsID && TechnoTypeExtContainer::Instance.Find(pType)->IsGenericPrerequisite())

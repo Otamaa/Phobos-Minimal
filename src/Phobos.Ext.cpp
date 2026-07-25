@@ -404,7 +404,6 @@ void Phobos::ClearAll()
 	CLEAR_CLASS(EboltExtData);
 	CLEAR_CLASS(HugeBar);
 
-	PhobosPCXFile::LoadedMap.clear();
 	Handles::Array.clear();
 	PrismForwarding::Array.clear();
 	ShieldClass::Array.clear();

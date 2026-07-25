@@ -45,6 +45,8 @@ ASMJIT_PATCH(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
 	return 0;
 }
 
+#include <Ext/Foot/Body.h>
+
 ASMJIT_PATCH(0x4DE722, FootClass_LeaveTransport, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -53,13 +55,15 @@ ASMJIT_PATCH(0x4DE722, FootClass_LeaveTransport, 0x6)
 	if (pPassenger)
 	{
 		auto const pTransTypeExt = GET_TECHNOTYPEEXT(pThis);
-		auto pPassExt = TechnoExtContainer::Instance.Find(pPassenger);
+		auto pPassExt = FootExtContainer::Instance.Find(pPassenger);
 		//auto const pPassTypeExt = TechnoTypeExtContainer::Instance.Find(pPassenger->GetTechnoType());
 
 		if (pTransTypeExt->Passengers_SyncOwner && pTransTypeExt->Passengers_SyncOwner_RevertOnExit &&
 			pPassExt->OriginalPassengerOwner)
 		{
+			pPassExt->IsOwnerChangeFromRevertOnExit = true;
 			pPassenger->SetOwningHouse(pPassExt->OriginalPassengerOwner, false);
+			pPassExt->IsOwnerChangeFromRevertOnExit = false;
 		}
 	}
 

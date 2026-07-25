@@ -266,20 +266,86 @@ template<> inline std::optional<unsigned char> PhobosParser<unsigned char, 1>::F
 template<> inline std::optional<float> PhobosParser<float, 1>::From(std::string_view token)
 {
 	// VERIFY: from_chars<float> requires MSVC 19.14+ / GCC 11+.
+	const char* first = token.data();
+	const char* last  = token.data() + token.size();
+ 
+	// from_chars does NOT skip leading whitespace and does NOT accept a leading '+',
+	// unlike vanilla sscanf("%f"). Normalise both so behaviour matches.
+	while (first != last && (*first == ' ' || *first == '\t'))
+		++first;
+	if (first != last && *first == '+')
+		++first;
+ 
 	float value = 0.f;
-	const auto [ptr, ec] = std::from_chars(token.data(), token.data() + token.size(), value);
-	if (ec != std::errc {} || ptr != token.data() + token.size())
+	const auto [ptr, ec] = std::from_chars(first, last, value);
+	if (ec != std::errc {})
 		return std::nullopt;
+ 
+	// Skip whitespace between the number and any trailing token.
+	const char* rest = ptr;
+	while (rest != last && (*rest == ' ' || *rest == '\t'))
+		++rest;
+ 
+	// EXTENSION: a trailing '%' means "percent" -> scale by 1/100.
+	// VERIFY: Ares' Parser<float> only divides when '%' *immediately* follows the
+	// number; vanilla INIClass divides if '%' appears *anywhere* via strchr. This
+	// accepts a single '%' either immediately after or whitespace-separated.
+	// Tighten to `*ptr == '%'` if strict Ares parity is required.
+	if (rest != last && *rest == '%')
+	{
+		value *= 0.01f;
+		++rest;
+		while (rest != last && (*rest == ' ' || *rest == '\t'))
+			++rest;
+	}
+ 
+	// Reject leftover garbage (e.g. "50abc", "5%%").
+	if (rest != last)
+		return std::nullopt;
+ 
 	return value;
 }
 
 template<> inline std::optional<double> PhobosParser<double, 1>::From(std::string_view token)
 {
 	// VERIFY: from_chars<double> requires MSVC 19.14+ / GCC 11+.
+	const char* first = token.data();
+	const char* last  = token.data() + token.size();
+ 
+	// from_chars does NOT skip leading whitespace and does NOT accept a leading '+',
+	// unlike vanilla sscanf("%lf"). Normalise both so behaviour matches.
+	while (first != last && (*first == ' ' || *first == '\t'))
+		++first;
+	if (first != last && *first == '+')
+		++first;
+ 
 	double value = 0.0;
-	const auto [ptr, ec] = std::from_chars(token.data(), token.data() + token.size(), value);
-	if (ec != std::errc {} || ptr != token.data() + token.size())
+	const auto [ptr, ec] = std::from_chars(first, last, value);
+	if (ec != std::errc {})
 		return std::nullopt;
+ 
+	// Skip whitespace between the number and any trailing token.
+	const char* rest = ptr;
+	while (rest != last && (*rest == ' ' || *rest == '\t'))
+		++rest;
+ 
+	// EXTENSION: a trailing '%' means "percent" -> scale by 1/100.
+	// VERIFY: Ares' Parser<double> only divides when '%' *immediately* follows the
+	// number; vanilla INIClass divides if '%' appears *anywhere* via strchr. This
+	// accepts a single '%' either immediately after or whitespace-separated.
+	// Tighten to `*ptr == '%'` if strict Ares parity is required.
+	if (rest != last && *rest == '%')
+	{
+		value *= 0.01;
+		++rest;
+		while (rest != last && (*rest == ' ' || *rest == '\t'))
+			++rest;
+	}
+ 
+	// Reject leftover garbage (e.g. "50abc", "5%%").
+	if (rest != last)
+		return std::nullopt;
+ 
 	return value;
 }
 

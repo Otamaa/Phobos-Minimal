@@ -828,7 +828,7 @@ void ParticleSystemExtData::UpdateInAir()
 }
 
 
-Vector3D<float> GetRandomPerturbation(float coefficient)
+static Vector3D<float> GetRandomPerturbation(float coefficient)
 {
 	const float rand1 = (float)ScenarioClass::Instance->Random.RandomDoubleCentered();
 	const float rand2 = (float)ScenarioClass::Instance->Random.RandomDoubleCentered();
@@ -841,7 +841,7 @@ Vector3D<float> GetRandomPerturbation(float coefficient)
 	};
 }
 
-Matrix3D CreateRotationMatrix(const Vector3D<float>& trajectory, float distance)
+static Matrix3D CreateRotationMatrix(const Vector3D<float>& trajectory, float distance)
 {
 	// Calculate angles for rotation
 	const float horizontalDist = Math::sqrt(trajectory.X * trajectory.X +
@@ -1004,7 +1004,7 @@ void FakeParticleSystemClass::__Web_AI()
 	this->ProcessParticleLifecycle<&FakeParticleSystemClass::TransitionToNextParticle>();
 }
 
-int GetRandomOffset(int range)
+static int GetRandomOffset(int range)
 {
 	const int random = (ScenarioClass::Instance->Random.Random()) % range;
 	return (random > 0) ? (range + random) : (random - range);

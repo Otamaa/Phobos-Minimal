@@ -305,7 +305,7 @@ public:
 	}
 
 	template <typename Val, typename = std::enable_if_t<std::is_assignable<T&, Val&&>::value>>
-	COMPILETIMEEVAL void Set(Val ndefault)
+	COMPILETIMEEVAL void Set(Val&& ndefault)
 	{
 		this->Value = std::move(ndefault); // set the value to args
 		this->HasValue = true;

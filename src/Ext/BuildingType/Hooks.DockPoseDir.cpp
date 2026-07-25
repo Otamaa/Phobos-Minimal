@@ -10,56 +10,72 @@
 #include <Ext/Building/Body.h>
 #include <Ext/AircraftType/Body.h>
 
-FacingType NOINLINE BuildingExtData::GetPoseDir(AircraftClass* pAir , BuildingClass* pBld)
+DirType NOINLINE BuildingExtData::GetPoseDir(AircraftClass* pAir, BuildingClass* pBld, bool isProduction)
 {
-	FacingType ret = (FacingType)TechnoTypeExtContainer::Instance.Find(pAir->Type)->LandingDir.Get(RulesClass::Instance->PoseDir);
+	const bool hasDockOrLink = (pBld || pAir->HasAnyLink());
 
-	if (pBld || pAir->HasAnyLink())
-	{
-		if (!pBld){
+	if (auto const pOwner = pAir->SpawnOwner)
+		return pOwner->PrimaryFacing.Current().GetDir();
 
+	auto pRules = FakeRulesClass::Instance();
+
+	if (hasDockOrLink) {
+		if (!pBld) {
 			for (auto i = 0; i < pAir->RadioLinks.Capacity; ++i) {
 				if (auto possiblebld = cast_to<BuildingClass*>(pAir->RadioLinks[i])) {
 					pBld = possiblebld;
 				}
 			}
-
-			if(!pBld && pAir->RadioLinks[0] && ret < FacingType::Min) { //spawner
-				return FacingType(pAir->PrimaryFacing.Current().GetFacing<8>());
-			}
 		}
 
-		if(pBld) {
+		if (pBld) {
 			const auto pBldTypeExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 			const int nIdx = pBld->FindLinkIndex(pAir);
 			const auto dir = &pBldTypeExt->DockPoseDir;
 
 			// Use DockPoseDir if valid index exists, otherwise fall back to building's LandingDir
-			if (nIdx >= 0 && (size_t)nIdx < dir->size())
-			{
+			if ((size_t)nIdx < dir->size()) {
 				return (*dir)[nIdx];
 			}
-			else
-			{
-				return pBldTypeExt->LandingDir.Get(FacingType(pBld->PrimaryFacing.Current().GetFacing<8>()));
+
+			if (pBldTypeExt->LandingDir.isset())
+				return pBldTypeExt->LandingDir.Get();
+
+			if (!pBldTypeExt->AircraftDockingDir_DefaultToPoseDir.Get(pRules->AircraftDockingDir_DefaultToPoseDir)) {
+				if (!isProduction) {
+					return pBld->PrimaryFacing.Current().GetDir();
+				}
 			}
 		}
 	}
 
-	if (!pAir->Type->AirportBound && ret < FacingType::Min) {
-		return FacingType(pAir->PrimaryFacing.Current().GetFacing<8>());
+	auto const pTypeExt = AircraftTypeExtContainer::Instance.Find(pAir->Type);
+
+	if (pTypeExt->LandingDir.isset()) {
+		int landingDir = pTypeExt->LandingDir.Get();
+		if (pAir->Type->AirportBound)
+			return static_cast<DirType>(landingDir & 0xFF);
+		else if (landingDir < 0)
+			return pAir->PrimaryFacing.Current().GetDir();
+		else
+			return static_cast<DirType>(landingDir & 0xFF);
 	}
 
-	return FacingType((((((int)ret) >> 4) + 1) >> 1) & 7);
+	if (isProduction)
+		return static_cast<DirType>(pRules->PoseDir_Production.Get(RulesClass::Instance->PoseDir) & 0xFF);
+
+	if (hasDockOrLink)
+		return pRules->_PoseDir;
+
+	int fieldDir = pRules->PoseDir_Field.Get(RulesClass::Instance->PoseDir * 32);
+	return static_cast<DirType>(fieldDir & 0xFF);
 }
 
 // replace the entire function
 ASMJIT_PATCH(0x41B760, IFlyControl_LandDirection, 0x6)
 {
 	GET_STACK(IFlyControl*, pThis, 0x4);
-
-	const FacingType result =  BuildingExtData::GetPoseDir(static_cast<AircraftClass*>(pThis), nullptr);
-	R->EAX(result);
+	R->EAX(BuildingExtData::GetPoseDir(static_cast<AircraftClass*>(pThis), nullptr, false));
 	return 0x41B7C1;
 }
 
@@ -69,7 +85,7 @@ ASMJIT_PATCH(0x446FA2, BuildingClass_GrandOpening_PoseDir, 0x6)
 	GET(BuildingClass*, pThis, EBP);
 	GET(AircraftClass*, pAir, ESI);
 	pThis->SendCommand(RadioCommand::RequestTether, pAir);
-	const DirStruct dir {  BuildingExtData::GetPoseDir(pAir, pThis) };
+	const DirStruct dir {  BuildingExtData::GetPoseDir(pAir, pThis, true) };
 
 	if (AircraftTypeExtData::ExtendedAircraftMissionsEnabled(pAir))
 		pAir->PrimaryFacing.Set_Current(dir);
@@ -93,7 +109,7 @@ ASMJIT_PATCH(0x687AF4, CCINIClass_InitializeStuffOnMap_AdjustAircrafts, 0x5)
 						pBuilding->SendCommand(RadioCommand::RequestTether, pThis);
 						pThis->SetLocation(pBuilding->GetDockCoords(pThis));
 						pThis->DockedTo = pBuilding;
-						const DirStruct dir { ((int) BuildingExtData::GetPoseDir(pThis, pBuilding) << 13) };
+						const DirStruct dir { ((int) BuildingExtData::GetPoseDir(pThis, pBuilding, false) << 13) };
 						pThis->SecondaryFacing.Set_Current(dir);
 
 						if (pThis->GetHeight() > 0)
@@ -124,7 +140,7 @@ ASMJIT_PATCH(0x4CF31C, FlyLocomotionClass_FlightUpdate_LandingDir, 0x9)
 			return SkipGameCode;
 
 		if (const auto pAircraft = cast_to<AircraftClass*, true>(pFoot))
-			dir = DirStruct(BuildingExtData::GetPoseDir(pAircraft, nullptr)).Raw;
+			dir = DirStruct(BuildingExtData::GetPoseDir(pAircraft, nullptr, false)).Raw;
 		else
 			dir = (iFly->Landing_Direction() << 13);
 	}

@@ -1471,142 +1471,371 @@ bool FakeAITriggerTypeClass::_LoadFromINI(CCINIClass* pINI)
 	if (!pINI->ReadString("AITriggerTypes", this->ID, "", line))
 		return false;
 
-	// --- field 0: friendly name -------------------------------------------
-	char* tok = strtok(line, ",");
-	if (!tok)
-		return false;
-	strncpy(this->Name, tok, 0x30);      // ORIG copied via a redundant local and an
-	this->Name[0x30] = '\0';             //   always-true (destination != Name) guard
+	static COMPILETIMEEVAL size_t AITriggerFieldCount = 18;   // indices 0..17
 
-	// --- field 1: Team1 ---------------------------------------------
-	tok = strtok(nullptr, ",");
-	if (!tok)
-		return false;
-	char name[24];
-	strncpy(name, tok, 0x18); name[0x17] = '\0';
-	CRT::strtrim(name);
-	this->Team1 = nullptr;
-	if (_strcmpi(name, GameStrings::NoneStr) != 0)                 // != "<none>"
-		this->Team1 = TeamTypeClass::Find(name);
-
-	// --- field 2: owner house ---------------------------------------------
-	tok = strtok(nullptr, ",");
-	if (!tok)
-		return false;
-	strncpy(name, tok, 0x18); name[0x17] = '\0';
-	CRT::strtrim(name);
-	this->OwnerHouseType = AITriggerHouseType::None;
-	this->HouseIndex = -1;
-	if (_strcmpi(name, GameStrings::AllStr) == 0)                 // "<all>"
+	// index -> human name, used verbatim in the log lines
+	static COMPILETIMEEVAL const char* AITriggerFieldNames[AITriggerFieldCount] =
 	{
-		this->OwnerHouseType = AITriggerHouseType::Any;
-	}
-	else if (_strcmpi(name, GameStrings::NoneStr) != 0)            // not "<none>"
-	{
-		this->HouseIndex = HouseTypeClass::FindIndexById(name);
-		if (this->HouseIndex != -1)
-			this->OwnerHouseType = AITriggerHouseType::Single;
-	}
+		"Name",            // 0
+		"Team1",           // 1
+		"OwnerHouse",      // 2
+		"TechLevel",       // 3  (read then discarded by vanilla)
+		"ConditionType",   // 4
+		"ConditionObject", // 5
+		"ConditionList",   // 6
+		"Weight_Current",  // 7
+		"Weight_Minimum",  // 8
+		"Weight_Maximum",  // 9
+		"IsForSkirmish",   // 10
+		"Unused",          // 11
+		"SideIndex",       // 12
+		"IsForBaseDefense",// 13
+		"Team2",           // 14
+		"Enabled_Easy",    // 15
+		"Enabled_Normal",  // 16
+		"Enabled_Hard"     // 17
+	};
 
-	// --- field 3: INI tech level is read then DISCARDED -------------------
-	tok = strtok(nullptr, ",");
-	if (!tok)
-		return false;
-	this->TechLevel = 0; //atoi(tok)
-
-	// --- field 4: condition type ------------------------------------------
-	tok = strtok(nullptr, ",");
-	if (!tok)
-		return false;
-	this->ConditionType = (AITriggerCondition)atoi(tok);
-
-	// --- field 5: condition object = first matching techno type -----------
-	tok = strtok(nullptr, ",");
-	if (!tok)
-		return false;
-	strncpy(name, tok, 0x18); name[0x17] = '\0';
-	CRT::strtrim(name);
-	{
-		this->ConditionObject = ResolveTechType(this, name);
-	}
-
-	// --- field 6: condition list (opt. spaces, 2-char hex each, max 32) ----
-	tok = strtok(nullptr, ",");
-	if (!tok)
-		return false;
-	if (*tok)                                            // ORIG: if (*v14 != 0)
-	{
-		char code[4];
-		strcpy(code, "00");                              // pre-terminated 2-char scratch
-		char* endptr = nullptr;                          // ORIG: v38 (strtol endptr)
-		int n = 0;
-		const char* p = tok;
-
-		do
+	// ---- identity token for the log --------------------------------------------------
+	// Prefers the section ID; falls back to the pointer when the ID is not usable yet.
+	auto AITriggerTag = [](const AITriggerTypeClass* pThis)
 		{
-			if (isspace((unsigned char)*p))              // skip a run of spaces
-			{
-				do { ++p; }
-				while (isspace((unsigned char)*p));
-			}
+			if (pThis && pThis->ID[0] != '\0')
+				return std::string(pThis->ID);
 
-			const char c0 = *p;
-			const char c1 = *++p;
-			code[0] = c0;
-			if (c1)
-			{
-				code[1] = c1;
-				++p;
-			}
+			return fmt::format("{:#010x}", reinterpret_cast<uintptr_t>(pThis));
+		};
+
+	auto LogFieldFail = [AITriggerTag](const AITriggerTypeClass* pThis, size_t idx)
+		{
+			// [AITrigger] 04010001-G - failed to parse 'SideIndex' field
+			Debug::LogInfo("[AITrigger] {} - failed to parse '{}' field",
+				AITriggerTag(pThis), AITriggerFieldNames[idx]);
+		};
+
+	auto LogFieldFailB = [AITriggerTag](const AITriggerTypeClass* pThis, size_t idx, std::string_view value)
+		{
+			// [AITrigger] 04010001-G - failed to parse 'Team1' field ["03010001-G"]
+			Debug::LogInfo("[AITrigger] {} - failed to parse '{}' field [\"{}\"]",
+				AITriggerTag(pThis), AITriggerFieldNames[idx], value);
+		};
+
+	// ---- trimming ---------------------------------------------------------------------
+	auto TrimView = [](std::string_view src)
+		{
+			const auto isWS = [](char c) { return std::isspace(static_cast<unsigned char>(c)) != 0; };
+
+			while (!src.empty() && isWS(src.front()))
+				src.remove_prefix(1);
+
+			while (!src.empty() && isWS(src.back()))
+				src.remove_suffix(1);
+
+			return src;
+		};
+
+	// ORIG: strncpy(buf, tok, cap); buf[cap - 1] = '\0'; CRT::strtrim(buf);
+	// Truncation is PRESERVED - vanilla clips over-long ids and Find() sees the clipped form.
+	auto TrimmedField = [TrimView](std::string_view src, size_t cap)
+		{
+			return std::string(TrimView(src.substr(0, cap)));
+		};
+
+	auto CopyName = [](char* pDest, std::string_view src, size_t cap)
+		{
+			src = src.substr(0, cap);
+			std::memcpy(pDest, src.data(), src.size());
+			pDest[src.size()] = '\0';
+		};
+
+	// ---- atoi / atof with a failure signal ---------------------------------------------
+	// Semantics deliberately match the CRT calls they replace:
+	//   * leading whitespace skipped, leading '+' accepted (from_chars rejects both)
+	//   * a partial parse ("40.000000" -> 40) is SUCCESS, exactly like atoi()
+	//   * only "nothing consumable at all" counts as a failure
+	// On failure the vanilla result (0) is still written, so behaviour is unchanged -
+	// the only addition is the log line.
+	auto TryParseInt = [TrimView](std::string_view src, int& out)
+		{
+			out = 0;
+			std::string_view s = TrimView(src);
+
+			if (!s.empty() && s.front() == '+')
+				s.remove_prefix(1);
+
+			if (s.empty())
+				return false;
+
+			const auto res = std::from_chars(s.data(), s.data() + s.size(), out);
+			return res.ptr != s.data();      // at least one char consumed
+		};
+
+	auto TryParseDouble = [TrimView](std::string_view src, double& out)
+		{
+			out = 0.0;
+			std::string_view s = TrimView(src);
+
+			if (!s.empty() && s.front() == '+')
+				s.remove_prefix(1);
+
+			if (s.empty())
+				return false;
+
+			// VERIFY: floating-point std::from_chars needs MSVC 19.24+ / VS2019 16.4.
+			//         If the toolset is older, swap for strtod on a null-terminated copy.
+			const auto res = std::from_chars(s.data(), s.data() + s.size(), out);
+			return res.ptr != s.data();
+		};
+
+
+	const auto fields = PhobosCRT::SplitStringFixed<AITriggerFieldCount>(
+	line, ",", true);
+
+	if (fields.Overflow > 0)
+	{
+		Debug::LogInfo("[AITrigger] {} - {} extra field(s) past index {} ignored",
+			AITriggerTag(this), fields.Overflow, AITriggerFieldCount - 1);
+	}
+
+	// --- field 0: friendly name -------------------------------------------
+	if (!fields.IsPresent(0))
+	{
+		LogFieldFail(this, 0);
+		return false;
+	}
+
+	CopyName(this->Name, fields[0], 0x30);
+
+	// --- field 1: Team1 ----------------------------------------------------
+	if (!fields.IsPresent(1))
+	{
+		LogFieldFail(this, 1);
+		return false;
+	}
+
+	{
+		const std::string name = TrimmedField(fields[1], 0x17);
+		this->Team1 = nullptr;
+
+		if (_strcmpi(name.c_str(), GameStrings::NoneStr) != 0)          // != "<none>"
+		{
+			this->Team1 = TeamTypeClass::Find(name.c_str());
+
+			// EXTENSION: vanilla silently leaves a null Team1 on a bad id.
+			if (!this->Team1)
+				LogFieldFailB(this, 1, name);
+		}
+	}
+
+	// --- field 2: owner house ----------------------------------------------
+	if (!fields.IsPresent(2))
+	{
+		LogFieldFail(this, 2);
+		return false;
+	}
+
+	{
+		const std::string name = TrimmedField(fields[2], 0x17);
+		this->OwnerHouseType = AITriggerHouseType::None;
+		this->HouseIndex = -1;
+
+		if (_strcmpi(name.c_str(), GameStrings::AllStr) == 0)           // "<all>"
+		{
+			this->OwnerHouseType = AITriggerHouseType::Any;
+		}
+		else if (_strcmpi(name.c_str(), GameStrings::NoneStr) != 0)     // not "<none>"
+		{
+			this->HouseIndex = HouseTypeClass::FindIndexById(name.c_str());
+
+			if (this->HouseIndex != -1)
+				this->OwnerHouseType = AITriggerHouseType::Single;
 			else
-			{
-				code[1] = '\0';
-			}
-			// code[2] stays '\0' from the initial strcpy -> valid C-string
+				LogFieldFailB(this, 2, name);                            // EXTENSION
+		}
+	}
 
-			if (n >= 0x20)                               // cap at 32 conditions
+	// --- field 3: INI tech level is read then DISCARDED --------------------
+	if (!fields.IsPresent(3))
+	{
+		LogFieldFail(this, 3);
+		return false;
+	}
+
+	this->TechLevel = 0; // ORIG: atoi(tok) computed, never stored
+
+	// --- field 4: condition type -------------------------------------------
+	if (!fields.IsPresent(4))
+	{
+		LogFieldFail(this, 4);
+		return false;
+	}
+
+	{
+		int value = 0;
+
+		if (!TryParseInt(fields[4], value))
+			LogFieldFailB(this, 4, fields[4]);
+
+		this->ConditionType = static_cast<AITriggerCondition>(value);
+	}
+
+	// --- field 5: condition object = first matching techno type ------------
+	if (!fields.IsPresent(5))
+	{
+		LogFieldFail(this, 5);
+		return false;
+	}
+
+	{
+		const std::string name = TrimmedField(fields[5], 0x17);
+		this->ConditionObject = ResolveTechType(this, name.c_str());
+
+		// EXTENSION: "<none>" is a legitimate value in the shipped INI, don't warn on it.
+		if (!this->ConditionObject && _strcmpi(name.c_str(), GameStrings::NoneStr) != 0)
+			LogFieldFailB(this, 5, name);
+	}
+
+	// --- field 6: condition list (opt. spaces, 2-char hex each, max 32) -----
+	if (!fields.IsPresent(6))
+	{
+		LogFieldFail(this, 6);
+		return false;
+	}
+
+	{
+		const std::string_view list = fields[6];
+
+		size_t i = 0;
+		int n = 0;
+
+		while (i < list.size())
+		{
+			// skip a run of spaces
+			while (i < list.size() && std::isspace(static_cast<unsigned char>(list[i])))
+				++i;
+
+			// BUG: vanilla has no bounds test here. A field of pure whitespace made it
+			//      read *p == '\0', then `*++p` stepped one byte PAST the terminator and
+			//      the do/while re-tested that out-of-bounds byte. It also wrote one
+			//      bogus 0 into _Conditions before that. BUGFIX: bail out instead.
+			if (i >= list.size())
 				break;
 
-			// VERIFY: strtol reconstructed from IDA std::lower_bound(v37,&v38,0x10)
-			this->_Conditions[n++] = (char)strtol(code, &endptr, 16);
+			// two-char scratch, always NUL-terminated (ORIG: strcpy(code, "00"))
+			char code[3] = { list[i], '\0', '\0' };
+			++i;
+
+			if (i < list.size())
+			{
+				code[1] = list[i];
+				++i;
+			}
+
+			if (n >= 0x20)                                  // cap at 32 conditions
+			{
+				// EXTENSION: vanilla drops the surplus silently.
+				Debug::LogInfo("[AITrigger] {} - '{}' field has more than 32 entries, "
+					"surplus ignored", AITriggerTag(this), AITriggerFieldNames[6]);
+				break;
+			}
+
+			// VERIFY: strtol reconstructed from IDA std::lower_bound(v37, &v38, 0x10).
+			// A trailing space landing in code[1] still parses as a 1-digit value, same
+			// as vanilla. Lowercase hex ("50c30000...") is handled by base 16.
+			char* endptr = nullptr;
+			const long value = std::strtol(code, &endptr, 16);
+
+			if (endptr == code)                             // EXTENSION: non-hex garbage
+				LogFieldFailB(this, 6, std::string_view(code));
+
+			this->_Conditions[n++] = static_cast<char>(value);
 		}
-		while (*p);
 	}
 
-	// --- fields 7/8/9: weights (doubles) ----------------------------------
-	if ((tok = strtok(nullptr, ",")) != nullptr) this->Weight_Current = atof(tok);
-	if ((tok = strtok(nullptr, ",")) != nullptr) this->Weight_Minimum = atof(tok);
-	if ((tok = strtok(nullptr, ",")) != nullptr) this->Weight_Maximum = atof(tok);
-
-	// --- field 10: for-skirmish -------------------------------------------
-	if ((tok = strtok(nullptr, ",")) != nullptr) this->IsForSkirmish = atoi(tok) != 0;
-
-	// --- field 11: unused, consumed to keep tokenizer aligned -------------
-	strtok(nullptr, ",");
-
-	// --- field 12: owning country (side) ----------------------------------
-	if ((tok = strtok(nullptr, ",")) != nullptr) this->SideIndex = atoi(tok);
-
-	// --- field 13: for base defense ---------------------------------------
-	if ((tok = strtok(nullptr, ",")) != nullptr) this->IsForBaseDefense = atoi(tok) != 0;
-
-	// --- field 14: Team2 (only touched when the field exists) --------
-	if ((tok = strtok(nullptr, ",")) != nullptr)
+	// --- fields 7/8/9: weights (doubles) -----------------------------------
+	// ORIG assigns only when the token exists, so IsPresent() gates each one.
 	{
-		char two[24];
-		strncpy(two, tok, 0x18); two[0x17] = '\0';
-		CRT::strtrim(two);
-		this->Team2 = nullptr;
-		if (_strcmpi(two, GameStrings::NoneStr) != 0)              // != "<none>"
-			this->Team2 = TeamTypeClass::Find(two);
+		const auto ReadWeight = [this, &fields, TryParseDouble, LogFieldFailB](size_t idx, double& target)
+			{
+				if (!fields.IsPresent(idx))
+					return;
+
+				double value = 0.0;
+
+				if (!TryParseDouble(fields[idx], value))
+					LogFieldFailB(this, idx, fields[idx]);
+
+				target = value;
+			};
+
+		ReadWeight(7, this->Weight_Current);
+		ReadWeight(8, this->Weight_Minimum);
+		ReadWeight(9, this->Weight_Maximum);
 	}
 
-	// --- fields 15/16/17: per-difficulty enable ---------------------------
-	if ((tok = strtok(nullptr, ",")) != nullptr) this->Enabled_Easy = atoi(tok) != 0;
-	if ((tok = strtok(nullptr, ",")) != nullptr) this->Enabled_Normal = atoi(tok) != 0;
-	if ((tok = strtok(nullptr, ",")) != nullptr) this->Enabled_Hard = atoi(tok) != 0;
+	// --- fields 10..17: flags and indices ----------------------------------
+	{
+		const auto ReadInt = [this, &fields, TryParseInt, LogFieldFailB](size_t idx, int& target)
+			{
+				if (!fields.IsPresent(idx))
+					return;
 
-	// --- derive tech level = max(0, req(TeamOne), req(TeamTwo)) ------------
+				int value = 0;
+
+				if (!TryParseInt(fields[idx], value))
+					LogFieldFailB(this, idx, fields[idx]);
+
+				target = value;
+			};
+
+		const auto ReadBool = [this, &fields, TryParseInt, LogFieldFailB](size_t idx, bool& target)
+			{
+				if (!fields.IsPresent(idx))
+					return;
+
+				int value = 0;
+
+				if (!TryParseInt(fields[idx], value))
+					LogFieldFailB(this, idx, fields[idx]);
+
+				target = value != 0;
+			};
+
+		// field 10: for-skirmish
+		ReadBool(10, this->IsForSkirmish);
+
+		// field 11: unused. ORIG burned one strtok() call to stay aligned; with an
+		//           index-based split no placeholder call is needed.
+
+		// field 12: owning country (side). Confirmed by the shipped INI - Allied rows
+		//           carry 1 here, Soviet rows carry 2.
+		ReadInt(12, this->SideIndex);
+
+		// field 13: for base defense
+		ReadBool(13, this->IsForBaseDefense);
+
+		// field 14: Team2 (only touched when the field exists)
+		if (fields.IsPresent(14))
+		{
+			const std::string two = TrimmedField(fields[14], 0x17);
+			this->Team2 = nullptr;
+
+			if (_strcmpi(two.c_str(), GameStrings::NoneStr) != 0)       // != "<none>"
+			{
+				this->Team2 = TeamTypeClass::Find(two.c_str());
+
+				if (!this->Team2)
+					LogFieldFailB(this, 14, two);                        // EXTENSION
+			}
+		}
+
+		// fields 15/16/17: per-difficulty enable
+		ReadBool(15, this->Enabled_Easy);
+		ReadBool(16, this->Enabled_Normal);
+		ReadBool(17, this->Enabled_Hard);
+	}
+
+	// --- derive tech level = max(0, req(Team1), req(Team2)) ----------------
 	// ORIG: two if/else "keep-or-raise" blocks -> plain max() each.
 	if (this->Team1)
 		this->TechLevel = std::max(this->TechLevel, this->Team1->TaskForce->TechLevelRequired());

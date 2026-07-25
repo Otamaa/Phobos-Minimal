@@ -2808,3 +2808,24 @@ ASMJIT_PATCH(0x701664, TechnoClass_SetOwningHouse_TunnelFix, 0x6)
 	R->AL(pThis->InLimbo || (flag_cast_to<FootClass*, false>(pThis) && static_cast<FootClass*>(pThis)->TubeIndex != -1));
 	return R->Origin() + 0x6;
 }ASMJIT_PATCH_AGAIN(0x701681, TechnoClass_SetOwningHouse_TunnelFix, 0x6)
+
+#pragma region Locomotor=Fly shadow fix
+
+ASMJIT_PATCH(0x4146EA, AircraftClass_DrawIt_SkipShadowPoint, 0x7)
+{
+	enum { SkipGameCode = 0x4146F1 };
+
+	GET(Point2D*, pBuffer, ECX);
+
+	*pBuffer = Point2D::Empty;
+	R->EAX(pBuffer);
+	return SkipGameCode;
+}
+
+DEFINE_JUMP(LJMP, 0x41476F, 0x4147F9)
+DEFINE_JUMP(LJMP, 0x4148A5, 0x4148B1)
+
+// Redirect FlyLocomotionClass::Shadow_Point to LocomotionClass::Shadow_Point
+DEFINE_JUMP(VTABLE, 0x7E8A24, 0x55A8C0)
+
+#pragma endregion

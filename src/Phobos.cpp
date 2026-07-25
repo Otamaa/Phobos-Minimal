@@ -580,6 +580,9 @@ void Phobos::ThrowUsageWarning(CCINIClass* pINI)
 
 void Phobos::DrawVersionWarning()
 {
+	const int marginX = Phobos::Config::MessageDisplayInCenter ? 28 : 10;
+	int coordY = 0;
+
 	if (!Phobos::Config::HideWarning)
 	{
 		const auto pSurface = DSurface::Composite();
@@ -589,7 +592,7 @@ void Phobos::DrawVersionWarning()
 		const auto wanted = Drawing::GetTextDimensions(Phobos::VersionDescription, Point2D::Empty, TextPrintType::LASTPOINT, 2, 0);
 
 		RectangleStruct rect {
-			pSurface->Get_Width() - wanted.Width - 10,
+			pSurface->Get_Width() - wanted.Width - marginX,
 			0,
 			wanted.Width + 10,
 			wanted.Height + 10
@@ -599,7 +602,46 @@ void Phobos::DrawVersionWarning()
 
 		pSurface->Fill_Rect(rect, COLOR_BLACK);
 		pSurface->DSurfaceDrawText(Phobos::VersionDescription, &location, COLOR_RED);
+		coordY = rect.Height;
 	}
+
+	if (!Phobos::Config::ShowGameTime || HouseClass::CurrentPlayer->IsObserver()) // already has a timer
+		return;
+
+	const auto& timer = ScenarioClass::Instance->ElapsedTimer;
+	int currentTime = timer.TimeLeft;
+
+	if (timer.StartTime != -1)
+		currentTime += SystemTimer::GetTime() - timer.StartTime;
+
+	currentTime /= 60;
+	const int hours = currentTime / 3600;
+	const int minutes = (currentTime / 60) % 60;
+	const int seconds = currentTime % 60;
+	const auto text = Phobos::UI::GameTimeText;
+	static fmt::basic_memory_buffer<wchar_t> buffer;
+	buffer.clear();
+
+	if (hours > 0) {
+		fmt::format_to(std::back_inserter(buffer), L"{} {}:{}:{}", text, hours, minutes, seconds);
+	} else {
+		fmt::format_to(std::back_inserter(buffer), L"{} {}:{}", text, minutes, seconds);
+	}
+	buffer.push_back(L'\0');
+
+	auto wantedB = Drawing::GetTextDimensions(buffer.data(), Point2D::Empty, TextPrintType::LASTPOINT, 2, 0);
+
+	RectangleStruct rectB = {
+		DSurface::Composite->Get_Width() - wantedB.Width - marginX,
+		coordY,
+		wantedB.Width + 10,
+		wantedB.Height + 10
+	};
+
+	Point2D locationB { rectB.X + 5, rectB.Y + 5 };
+	ColorStruct color { 0x0, 0x0 ,0x0 };
+	DSurface::Composite->Fill_Rect_Trans(&rectB, &color, Phobos::Config::ShowGameTime_BoardOpacity);
+	DSurface::Composite->DSurfaceDrawText(buffer.data(), &locationB, COLOR_WHITE);
 }
 
 void Phobos::InitAdminDebugMode()

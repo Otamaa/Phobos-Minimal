@@ -1139,6 +1139,8 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->Death_WithMaster.Read(exINI, pSection, "Death.WithSlaveOwner");
 		this->Death_WithMaster.Read(exINI, pSection, "AutoDeath.WithSlaveOwner");
 
+		this->AutoDeath_AllowLimboed.Read(exINI, pSection, "AutoDeath.AllowLimboed");
+		this->AutoDeath_OnOwnerChange_IgnoreRevertOnExit.Read(exINI, pSection, "AutoDeath.OnOwnerChange.IgnoreRevertOnExit");
 		this->AutoDeath_MoneyExceed.Read(exINI, pSection, "AutoDeath.MoneyExceed");
 		this->AutoDeath_MoneyBelow.Read(exINI, pSection, "AutoDeath.MoneyBelow");
 		this->AutoDeath_LowPower.Read(exINI, pSection, "AutoDeath.LowPower");
@@ -2374,6 +2376,8 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->FlyNoWobbles.Read(exINI, pSection, "FlyNoWobbles");
 		this->EliteSight.Read(exINI, pSection, "EliteSight");
 		this->VeteranSight.Read(exINI, pSection, "VeteranSight");
+
+		this->CrashSpin_Multiplier.Read(exINI, pSection, "CrashSpin.Multiplier");
 	}
 
 	this->TintColorAirstrike = GeneralUtils::GetColorFromColorAdd(this->LaserTargetColor.Get(RulesClass::Instance->LaserTargetColor));
@@ -2798,6 +2802,8 @@ void TechnoTypeExtData::Serialize(T& Stm) {
 			.Process(this->AutoDeath_VanishAnimation)
 			.Process(this->Convert_AutoDeath)
 			.Process(this->Death_WithMaster)
+			.Process(this->AutoDeath_AllowLimboed)
+			.Process(this->AutoDeath_OnOwnerChange_IgnoreRevertOnExit)
 			.Process(this->AutoDeath_MoneyExceed)
 			.Process(this->AutoDeath_MoneyBelow)
 			.Process(this->AutoDeath_LowPower)

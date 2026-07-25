@@ -68,7 +68,8 @@ public:
 	std::vector<AnimTypeClass*> GarrisonAnim_ActiveTwo {};
 	std::vector<AnimTypeClass*> GarrisonAnim_ActiveThree {};
 	std::vector<AnimTypeClass*> GarrisonAnim_ActiveFour {};
-	ValueableVector<FacingType> DockPoseDir {};
+	ValueableVector<DirType> DockPoseDir {};
+	Nullable<bool> AircraftDockingDir_DefaultToPoseDir {};
 	ValueableVector<InfantryTypeClass*> AllowedOccupiers {};
 	ValueableVector<InfantryTypeClass*> DisallowedOccupiers {};
 	std::vector<CellStruct> CustomData {};
@@ -181,7 +182,7 @@ public:
 	Nullable<AffectedHouse> RadialIndicator_Visibility {};
 	Nullable<DirType32> DockUnload_Facing {};
 	Nullable<AffectedHouse> DisplayIncome_Houses {};
-	Nullable<FacingType> LandingDir {};
+	Nullable<DirType> LandingDir {};
 
 	// ============================================================
 	// NullableIdx (int + bool ≈ 8 bytes)

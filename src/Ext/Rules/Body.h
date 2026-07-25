@@ -700,6 +700,13 @@ public:
 
 	Valueable<int> StartFacing { 0 };
 	Valueable<bool> StartFacing_Random { false };
+
+	Valueable<bool> AutoDeath_AllowLimboed { true };
+	Valueable<bool> AutoDeath_OnOwnerChange_IgnoreRevertOnExit { false };
+
+	Valueable<bool> AircraftDockingDir_DefaultToPoseDir { true };
+	Nullable<int> PoseDir_Production {};
+	Nullable<int> PoseDir_Field {};
 #pragma endregion
 
 public:

@@ -384,8 +384,16 @@ bool detail::read<PartialVector3D<float>>(PartialVector3D<float>& value, INI_EX&
 template <>
 bool detail::read<PhobosPCXFile>(PhobosPCXFile& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 {
-	if (parser.ReadString(pSection, pKey)){
-		value.Insert(parser.value());
+	if (parser.ReadString(pSection, pKey)) {
+		value.Clear();
+
+		if (!GameStrings::IsNone(parser.value())) {
+			value.Insert(parser.value());
+			if (!value.Exists()) {
+				Debug::INIParseFailed(pSection, pKey, value.GetCachedFilename(), "PCX file not found.");
+			}
+		}
+
 		return true;
 	}
 
@@ -1768,7 +1776,7 @@ template <>
 bool detail::read<HSVClass>(HSVClass& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 {
 	if (!parser.Read3Bytes(pSection, pKey, (BYTE*)(&value))) {
-		if (!parser.empty()) { 
+		if (!parser.empty()) {
 			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid H,S,V values");
 		}
 
@@ -2293,7 +2301,7 @@ bool detail::read<StackingMode>(StackingMode& value, INI_EX& parser, const char*
 {
 	if (parser.ReadString(pSection, pKey)) {
 		for (const auto& [val, str] : EnumFunctions::StackingMode_ToStrings) {
-			if (PhobosCRT::iequals(parser.value(), str)) {
+			if (PhobosCRT::iequals(parser.value(), str)){
 				value = val;
 				return true;
 			}
@@ -2320,7 +2328,7 @@ bool detail::read<PositionFollow>(PositionFollow& value, INI_EX& parser, const c
 
 			PositionFollow result = PositionFollow::None;
 			bool found = false;
-			for (const auto& [val, str]: EnumFunctions::PositionFollow_ToStrings) {
+			for (const auto& [val, str] : EnumFunctions::PositionFollow_ToStrings) {
 
 				if (PhobosCRT::iequals(cur, str)) {
 					found = true;
@@ -2334,14 +2342,14 @@ bool detail::read<PositionFollow>(PositionFollow& value, INI_EX& parser, const c
 				Debug::INIParseFailed(pSection, pKey, cur, "Expected a PositionFollow");
 				return false;
 			} else {
-				
+
 				switch (result)
 				{
-				//add to result
+					//add to result
 				case PositionFollow::None: resultData |= PositionFollow::None; break;
 				case PositionFollow::Firer: resultData |= PositionFollow::Firer; break;
 				case PositionFollow::Target: resultData |= PositionFollow::Target; break;
-				//it is affecting all just bail and return true
+					//it is affecting all just bail and return true
 				case PositionFollow::All: value = PositionFollow::All; return true;
 					break;//switch break
 					break;//loop break
@@ -2461,11 +2469,11 @@ bool detail::read<CLSID>(CLSID& value, INI_EX& parser, const char* pSection, con
 		//PARSE(Attachment)
 		//PARSE(Levitate)
 		PARSE(AdvancedDrive)
-		//PARSE(CustomRocket)
-		//PARSE(TSJumpJet)
-		PARSE(Shift)
-		//AddMore loco here
-		return false;
+			//PARSE(CustomRocket)
+			//PARSE(TSJumpJet)
+			PARSE(Shift)
+			//AddMore loco here
+			return false;
 	}
 
 	auto _buffer = PhobosCRT::StringToWideString(parser.value());

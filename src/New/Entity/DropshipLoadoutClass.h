@@ -30,10 +30,10 @@ public:
 	DropshipLoadoutClass() = default;
 	~DropshipLoadoutClass();
 
-	bool Initialize(bool bIgnoreFixedUnits = false, bool bPreloadCargo = false, int allowableUnitsIndex = 0, int startingMoney = 0, Nullable<bool> bAddUnusedMoneyToPlayer = {}, Nullable<bool> bRememberPurchasedCargo = {}, SuperWeaponTypeClass* pSWType = nullptr);
+	bool Initialize(bool IgnoreFixedUnits = false, bool PreloadCargo = false, int AllowableUnitsIndex = 0, int StartingMoney = 0, Nullable<bool> AddUnusedMoneyToPlayer = {}, Nullable<bool> RememberPurchasedCargo = {}, SuperWeaponTypeClass* SWType = nullptr);
 	void Run();
 
-	static void OpenInGameWindow(bool bIgnoreFixedUnits = false, bool bPreloadCargo = false, int allowableUnitsIndex = 0, int startingMoney = 0, Nullable<bool> bAddUnusedMoneyToPlayer = {}, Nullable<bool> bRememberPurchasedCargo = {}, SuperWeaponTypeClass* pSWType = nullptr);
+	static void OpenInGameWindow(bool IgnoreFixedUnits = false, bool PreloadCargo = false, int AllowableUnitsIndex = 0, int StartingMoney = 0, Nullable<bool> AddUnusedMoneyToPlayer = {}, Nullable<bool> RememberPurchasedCargo = {}, SuperWeaponTypeClass* SWType = nullptr);
 	static bool IsDropshipLoadoutActive();
 	static void DropshipLoadout_OnMouseWheelUp();
 	static void DropshipLoadout_OnMouseWheelDown();
@@ -57,7 +57,7 @@ private:
 	// Extensions
 	HouseTypeExtData* pHouseTypeExt { nullptr };
 	SuperWeaponTypeClass* pSWType { nullptr };
-	class SWTypeExtData* pSWTypeExt { nullptr };
+	SWTypeExtData* pSWTypeExt { nullptr };
 
 	// Config & state
 	int nStartingDropships { 0 };
@@ -106,7 +106,7 @@ private:
 	int hoveredSlotIdx { -1 };
 
 	// Layout/Locations
-	RectangleStruct windowRectangle;
+	RectangleStruct windowRectangle {};
 	int upArrowX { 0 }, upArrowY { 0 };
 	int downArrowX { 0 }, downArrowY { 0 };
 	RectangleStruct upArrowLocation {};

@@ -287,6 +287,7 @@ private:
 		debugProcess(this->PrismRelayBurstChainBuilt, "PrismRelayBurstChainBuilt");
 		debugProcess(this->PrismRelayCachedNetworkId, "PrismRelayCachedNetworkId");
 		debugProcess(this->PrismRelayCachedProviders, "PrismRelayCachedProviders");
+		debugProcess(this->ShouldBeDead, "ShouldBeDead ");
 	}
 
 public:
@@ -494,7 +495,7 @@ public:
 	bool PrismRelayBurstChainBuilt {};
 	int PrismRelayCachedNetworkId {};
 	std::vector<TechnoClass*> PrismRelayCachedProviders {};
-
+	bool ShouldBeDead {};
 #pragma endregion
 
 public:

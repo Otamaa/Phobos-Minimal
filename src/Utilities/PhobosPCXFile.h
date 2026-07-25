@@ -15,13 +15,6 @@ class PhobosPCXFile
 	static COMPILETIMEEVAL const size_t Capacity = 0x20;
 
 public:
-	struct GlobalMarker
-	{
-		BSurface* surface;
-		bool logged;
-	};
-
-	static std::map<std::string, GlobalMarker> LoadedMap;
 
 	explicit PhobosPCXFile() : Surface(nullptr), filename() { }
 
@@ -47,9 +40,22 @@ public:
 		return this->Surface;
 	}
 
+	COMPILETIMEEVAL void SetSurface(BSurface* pSurface)
+	{
+		this->Surface = pSurface;
+	}
+
 	COMPILETIMEEVAL bool Exists() const
 	{
 		return this->Surface;
+	}
+
+	COMPILETIMEEVAL auto GetCachedFilename() const {
+		return this->filename.c_str();
+	}
+
+	COMPILETIMEEVAL auto IsCachedFilenameValid() const {
+		return !this->filename.empty();
 	}
 
 	bool Read(INIClass* pINI, const char* pSection, const char* pKey, const char* pDefault = "");
@@ -57,15 +63,19 @@ public:
 	bool Save(PhobosStreamWriter& Stm) const;
 
 	void Erase();
-
-private:
+	
 
 	void Clear() {
 		this->Surface = nullptr;
 		this->filename = nullptr;
 	}
 
+	PhobosPCXFile& AssignNoCheck(const char* pFilename);
+
+private:
+
 	PhobosPCXFile& Assign(const char* pFilename);
+
 	BSurface* Surface { nullptr };
 	FixedString<Capacity> filename;
 };

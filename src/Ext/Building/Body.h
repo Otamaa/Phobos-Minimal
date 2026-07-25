@@ -175,7 +175,7 @@ public:
 
 	static const std::vector<CellStruct> GetFoundationCells(BuildingClass* pThis, CellStruct baseCoords, bool includeOccupyHeight = false);
 	static bool BuildingHasPower(BuildingClass* pThis);
-	static FacingType GetPoseDir(AircraftClass* pAir, BuildingClass* pBld);
+	static DirType GetPoseDir(AircraftClass* pAir, BuildingClass* pBld, bool isProduction);
 
 	static void ClearPlacingBuildingData(PlacingBuildingStruct* const pPlace)
 	{

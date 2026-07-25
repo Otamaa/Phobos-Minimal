@@ -1719,7 +1719,7 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 				auto nLandingDir = Nullable<DirType>()(exINI, pSection, "AircraftDockingDir", false);
 
 				if (nLandingDir.isset())
-					this->DockPoseDir[0] = (FacingType)nLandingDir.Get();
+					this->DockPoseDir[0] = nLandingDir.Get();
 
 				for (int i = 0; i < pThis->NumberOfDocks; ++i)
 				{
@@ -1727,10 +1727,11 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 					nLandingDir.Read(exINI, pSection, tag.c_str());
 
 					if (nLandingDir.isset())
-						this->DockPoseDir[i] = (FacingType)nLandingDir.Get();
+						this->DockPoseDir[i] = nLandingDir.Get();
 				}
 			}
 		}
+
 
 		this->PrismForwarding.LoadFromINIFile(pThis, pINI);
 
@@ -1792,7 +1793,7 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	if (pArtINI->GetSection(pArtSection))
 	{
 		INI_EX exArtINI(pArtINI);
-
+		this->AircraftDockingDir_DefaultToPoseDir.Read(exArtINI, pArtSection, "AircraftDockingDir.DefaultToPoseDir");
 		this->IsHideDuringSpecialAnim.Read(exArtINI, pArtSection, "HideDuringSpecialAnim");
 		this->Refinery_UseNormalActiveAnim.Read(exArtINI, pArtSection, "Refinery.UseNormalActiveAnim");
 
@@ -2100,6 +2101,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->AIInnerBase)
 		.Process(this->RubblePalette)
 		.Process(this->DockPoseDir)
+		.Process(this->AircraftDockingDir_DefaultToPoseDir)
 		.Process(this->EngineerRepairable)
 		.Process(this->IsTrench)
 		.Process(this->TunnelType)

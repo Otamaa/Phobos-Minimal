@@ -8711,6 +8711,8 @@ void TechnoExtData::CreateInitialPayload(bool forced)
 					HouseExtContainer::Instance.Find(pThis->Owner)->ApplyAcademyWithoutMutexCheck(pObject, absPayload);
 				}
 
+			HouseExtData::RegisterAutoDeath(pObject);
+
 			if (pBld)
 			{
 				// buildings only allow infantry payload, so this in infantry
@@ -11809,6 +11811,15 @@ bool TechnoExtData::CheckDeathConditions()
 
 	if (nMethod == KillMethod::None)
 		return result;
+
+
+	if (pThis->InLimbo && !pTypeExt->AutoDeath_AllowLimboed.Get(FakeRulesClass::Instance->AutoDeath_AllowLimboed))
+		return false; //nope
+
+	if (this->ShouldBeDead) { //someone cursed this
+		TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
+		return true;
+	}
 
 	const bool Any = pTypeExt->AutoDeath_ContentIfAnyMatch;
 

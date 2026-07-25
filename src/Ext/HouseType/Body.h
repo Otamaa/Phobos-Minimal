@@ -132,7 +132,7 @@ public:
 	Nullable<PhobosPCXFile> DropshipLoadout_DownArrowPCX {};
 	ValueableVector<PhobosPCXFile> DropshipLoadout_LoadoutPCX {};
 	ValueableVector<PhobosPCXFile> DropshipLoadout_PilotLitPCX {};
-	ValueableVector<std::unique_ptr<std::vector<PhobosPCXFile>>> DropshipLoadout_DGreenListPCX {};
+	ValueableVector<std::vector<PhobosPCXFile>> DropshipLoadout_DGreenListPCX {};
 	Nullable<int> DropshipLoadout_DGreenAnimationsCount {};
 	ValueableVector<Point2D> DropshipLoadout_DGreenLocations {};
 	Nullable<Point2D> DropshipLoadout_UpArrowLocation {};

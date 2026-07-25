@@ -390,10 +390,8 @@ bool TActionExtData::OpenDropshipLoadoutWindow(TActionClass* pThis, HouseClass* 
 		if (it != pHouseTypeExt->DropshipLoadout_AllowableUnitsLists.end())
 			listFound = true;
 
-		if (!listFound && !houseHasLists)
-		{
-			auto it = ScenarioExtData::Instance()->DropshipLoadout_AllowableUnitsLists.find(allowableUnitsIndex);
-			if (it != ScenarioExtData::Instance()->DropshipLoadout_AllowableUnitsLists.end())
+		if (!listFound && !houseHasLists) {
+			if (ScenarioExtData::Instance()->DropshipLoadout_AllowableUnitsLists.find(allowableUnitsIndex) != ScenarioExtData::Instance()->DropshipLoadout_AllowableUnitsLists.end())
 				listFound = true;
 		}
 
@@ -442,7 +440,7 @@ bool TActionExtData::CreateDropshipLoadoutTransport(TActionClass* pThis, HouseCl
 	auto const pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 
 	if (dropshipIdx >= ScenarioExtData::Instance()->DropshipLoadout_StartingDropships
-		|| dropshipIdx >= pHouseExt->DropshipLoadout_Carriers.size()
+		|| (size_t)dropshipIdx >= pHouseExt->DropshipLoadout_Carriers.size()
 		|| pHouseExt->DropshipLoadout_Cargo.size() == 0
 		|| pHouseExt->DropshipLoadout_Cargo[dropshipIdx].size() == 0)
 	{
@@ -450,7 +448,7 @@ bool TActionExtData::CreateDropshipLoadoutTransport(TActionClass* pThis, HouseCl
 	}
 
 	auto const pTransporterType = pHouseExt->DropshipLoadout_Carriers[dropshipIdx];
-	auto pCargo = pHouseExt->DropshipLoadout_Cargo[dropshipIdx];
+	auto& pCargo = pHouseExt->DropshipLoadout_Cargo[dropshipIdx];
 
 	if (pTransporterType->Passengers == 0)
 		return true;
@@ -477,12 +475,13 @@ bool TActionExtData::CreateDropshipLoadoutTransport(TActionClass* pThis, HouseCl
 
 	for (auto pObjectType : pCargo)
 	{
-		auto const pObject = static_cast<FootClass*>(pObjectType->CreateObject(pCargoHouse));
+		auto const pCreatedObject = static_cast<FootClass*>(pObjectType->CreateObject(pCargoHouse));
 
-		if (!pObject)
+		if (!pCreatedObject)
 			continue;
 
-		auto const pPayload = static_cast<FootClass*>(pObject);
+		HouseExtData::RegisterAutoDeath(pCreatedObject);
+		auto const pPayload = static_cast<FootClass*>(pCreatedObject);
 		pPayload->SetLocation(startLocation);
 		pPayload->Limbo();
 
@@ -2606,7 +2605,7 @@ bool TActionExtData::SetTeamDelay(TActionClass* pThis, HouseClass* pHouse, Objec
 
 	return true;
 }
-#pragma optimize("", off )
+
 static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* pTargetHouse, ObjectClass* pSourceObject, TriggerClass* pTrigger, CellStruct* plocation, bool& ret) {
 
 	switch (pThis->ActionKind)
@@ -4465,9 +4464,8 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 		return false;
 	}
 }
-#pragma optimize("", on )
 
-NOINLINE std::string AresNewTriggerAction_ToString(AresNewTriggerAction action)
+static NOINLINE std::string AresNewTriggerAction_ToString(AresNewTriggerAction action)
 {
 	switch (action)
 	{
@@ -4479,7 +4477,7 @@ NOINLINE std::string AresNewTriggerAction_ToString(AresNewTriggerAction action)
 	}
 }
 
-NOINLINE std::string PhobosTriggerAction_ToString(PhobosTriggerAction action)
+static NOINLINE std::string PhobosTriggerAction_ToString(PhobosTriggerAction action)
 {
 	switch (action)
 	{

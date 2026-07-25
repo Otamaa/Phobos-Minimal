@@ -25,19 +25,19 @@
 
 #include "Main.h"
 
-ASMJIT_PATCH(0x6BC14D, WinMain_ReadScreenResolutionFromIni, 0x5)
-{
-	if (!SpawnerMain::Configs::Enabled)
-		return 0;
+ //ASMJIT_PATCH(0x6BC14D, WinMain_ReadScreenResolutionFromIni, 0x5)
+ //{
+ //	if (!SpawnerMain::Configs::Enabled)
+ //		return 0;
 
-	if (GameOptionsClass::Instance->ShellWidth < 800 || GameOptionsClass::Instance->ShellHeight < 600)
-		return 0;
+ //	if (GameOptionsClass::Instance->ShellWidth < 800 || GameOptionsClass::Instance->ShellHeight < 600)
+ //		return 0;
 
-	GameOptionsClass::Instance->ShellHeight = GameOptionsClass::Instance->ScreenHeight;
-	GameOptionsClass::Instance->ShellWidth = GameOptionsClass::Instance->ScreenWidth;
+ //	GameOptionsClass::Instance->ShellHeight = GameOptionsClass::Instance->ScreenHeight;
+ //	GameOptionsClass::Instance->ShellWidth = GameOptionsClass::Instance->ScreenWidth;
 
-	return 0;
-}
+ //	return 0;
+ //}
 
 ASMJIT_PATCH(0x640CE2, PreviewClass_DrawMap, 0x5)
 {

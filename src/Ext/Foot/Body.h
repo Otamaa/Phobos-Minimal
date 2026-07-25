@@ -9,6 +9,8 @@ class FootExtData : public TechnoExtData
 {
 public:
 
+	bool IsOwnerChangeFromRevertOnExit { false };
+
 	FootExtData(FootClass* abs) : TechnoExtData(abs)
 	{ };
 
@@ -22,10 +24,16 @@ public:
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override {
 		this->TechnoExtData::LoadFromStream(Stm);
+		Stm
+			.Process(this->IsOwnerChangeFromRevertOnExit)
+			;
 	}
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm) override {
 		this->TechnoExtData::SaveToStream(Stm);
+		Stm
+			.Process(this->IsOwnerChangeFromRevertOnExit)
+			;
 	}
 
 	virtual int GetSize() const { return sizeof(*this); };

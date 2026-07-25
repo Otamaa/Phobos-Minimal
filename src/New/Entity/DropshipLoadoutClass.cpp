@@ -884,12 +884,7 @@ namespace DropshipLoadoutParse
 		if (pINI->ReadString(pSection, pKey, "", Phobos::readBuffer) <= 0)
 			return false;
 
-		auto pFrames = GeneralUtils::GetAnimationPCX(Phobos::readBuffer);
-
-		if (!pFrames)
-			return false;
-
-		out = std::move(*pFrames);
+		out = std::move(GeneralUtils::GetAnimationPCX(Phobos::readBuffer));
 		return true;
 	}
 }
@@ -1235,11 +1230,8 @@ void DropshipLoadoutClass::ParseSWType(INI_EX& exINI, const char* pSection, SWTy
 			pToken = strtok_s(nullptr, Phobos::readDelims, &context))
 		{
 			// Every named animation is flattened into one frame list.
-			if (auto pFrames = GeneralUtils::GetAnimationPCX(pToken))
-			{
-				for (auto& frame : *pFrames)
-					pData->DropshipLoadout_DGreenListPCX.emplace_back(std::move(frame));
-			}
+			for (auto& frame : GeneralUtils::GetAnimationPCX(pToken))
+				pData->DropshipLoadout_DGreenListPCX.emplace_back(std::move(frame));
 		}
 	}
 
@@ -1591,27 +1583,27 @@ ShapeButtonClass* DropshipLoadoutClass::AddButton(int id, const RectangleStruct&
 // Initialize
 // ============================================================================
 
-bool DropshipLoadoutClass::Initialize(bool bIgnoreFixedUnits, bool bPreloadCargo, int allowableUnitsIndex,
-	int startingMoney, Nullable<bool> bAddUnusedMoneyToPlayer, Nullable<bool> bRememberPurchasedCargo,
-	SuperWeaponTypeClass* pSWType)
+bool DropshipLoadoutClass::Initialize(bool IgnoreFixedUnits, bool PreloadCargo, int AllowableUnitsIndex,
+	int StartingMoney, Nullable<bool> AddUnusedMoneyToPlayer, Nullable<bool> RememberPurchasedCargo,
+	SuperWeaponTypeClass* SWType)
 {
 	if (!HouseClass::CurrentPlayer())
 		return false;
 
-	this->bIgnoreFixedUnits = bIgnoreFixedUnits;
-	this->bPreloadCargo = bPreloadCargo;
-	this->bAddUnusedMoneyToPlayer = bAddUnusedMoneyToPlayer;
-	this->bRememberPurchasedCargo = bRememberPurchasedCargo;
-	this->allowableUnitsIndex = allowableUnitsIndex;
-	this->startingMoney = startingMoney;
-	this->pSWType = pSWType;
-	this->pSWTypeExt = pSWType ? SWTypeExtContainer::Instance.Find(pSWType) : nullptr;
+	this->bIgnoreFixedUnits = IgnoreFixedUnits;
+	this->bPreloadCargo = PreloadCargo;
+	this->bAddUnusedMoneyToPlayer = AddUnusedMoneyToPlayer;
+	this->bRememberPurchasedCargo = RememberPurchasedCargo;
+	this->allowableUnitsIndex = AllowableUnitsIndex;
+	this->startingMoney = StartingMoney;
+	this->pSWType = SWType;
+	this->pSWTypeExt = SWType ? SWTypeExtContainer::Instance.Find(SWType) : nullptr;
 	this->pHouseTypeExt = HouseTypeExtContainer::Instance.Find(HouseClass::CurrentPlayer->Type);
 
 	if (!ScenarioClass::Instance())
 		return false;
 
-	if (pSWType)
+	if (SWType)
 	{
 		nStartingDropships = 1;
 	}
@@ -2040,16 +2032,13 @@ void DropshipLoadoutClass::LoadAssets()
 		: FileSystem::LoadSHPFile("DROPDOWN.SHP");
 
 	// --- DGreen row animations ----------------------------------------------
-	auto const AppendAnimationGroups = [this](auto const& groups)
+	auto const AppendAnimationGroups = [this](std::vector<std::vector<PhobosPCXFile>>& groups)
 		{
 			for (auto const& pGroup : groups)
 			{
 				auto& rowAnimFrames = dropshipLoadout_DGreenListPCX.emplace_back();
 
-				if (!pGroup)
-					continue;
-
-				for (auto const& frame : *pGroup)
+				for (auto const& frame : pGroup)
 					rowAnimFrames.push_back(frame.GetSurface());
 			}
 		};
@@ -3403,22 +3392,22 @@ void DropshipLoadoutClass::HandleInput(int command, int buttonID)
 	// --- Begin a drag --------------------------------------------------------
 	if (pressedLeftClick)
 	{
-		if (auto const pType = SidebarUnit())
+		if (auto const pSidebarType = SidebarUnit())
 		{
-			if (GetInstanceCount(pType) < GetMaxInstances(pType))
+			if (GetInstanceCount(pSidebarType) < GetMaxInstances(pSidebarType))
 			{
 				bDragPending = true;
-				pDraggedUnitType = pType;
+				pDraggedUnitType = pSidebarType;
 				nSourceDropshipIdx = -1;
 				nSourceSlotIdx = -1;
 				dragStartMousePos = DropshipLoadoutHelpers::CursorPosition();
 				return;
 			}
 		}
-		else if (auto const pType = BayUnit())
+		else if (auto const pBayType = BayUnit())
 		{
 			bDragPending = true;
-			pDraggedUnitType = pType;
+			pDraggedUnitType = pBayType;
 			nSourceDropshipIdx = bayCarrier;
 			nSourceSlotIdx = baySlot;
 			dragStartMousePos = DropshipLoadoutHelpers::CursorPosition();
@@ -4488,7 +4477,7 @@ ASMJIT_PATCH(0x683D89, Dropship_Loadout_Remake, 0x6)
 	return EndFunction;
 }
 
-void DropshipLoadoutClass::OpenInGameWindow(bool bIgnoreFixedUnits, bool bPreloadCargo, int allowableUnitsIndex, int startingMoney, Nullable<bool> bAddUnusedMoneyToPlayer, Nullable<bool> bRememberPurchasedCargo, SuperWeaponTypeClass* pSWType)
+void DropshipLoadoutClass::OpenInGameWindow(bool IgnoreFixedUnits, bool PreloadCargo, int AllowableUnitsIndex, int StartingMoney, Nullable<bool> AddUnusedMoneyToPlayer, Nullable<bool> RememberPurchasedCargo, SuperWeaponTypeClass* SWType)
 {
 	if (!ScenarioClass::Instance())
 		return;
@@ -4503,7 +4492,7 @@ void DropshipLoadoutClass::OpenInGameWindow(bool bIgnoreFixedUnits, bool bPreloa
 
 	DropshipLoadoutClass loadout;
 
-	if (loadout.Initialize(bIgnoreFixedUnits, bPreloadCargo, allowableUnitsIndex, startingMoney, bAddUnusedMoneyToPlayer, bRememberPurchasedCargo, pSWType))
+	if (loadout.Initialize(IgnoreFixedUnits, PreloadCargo, AllowableUnitsIndex, StartingMoney, AddUnusedMoneyToPlayer, RememberPurchasedCargo, SWType))
 		loadout.Run();
 
 	ScenarioClass::Instance->IsGamePaused = oldPaused;

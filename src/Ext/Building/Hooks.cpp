@@ -1005,7 +1005,7 @@ ASMJIT_PATCH(0x459101, BuildingClass_UpdateTankBunker_RotateToTrack, 0x6)
 	return 0;
 }
 
-inline void EjectBunkeredUnit(BuildingClass* pThis, UnitClass* pUnit)
+inline static void EjectBunkeredUnit(BuildingClass* pThis, UnitClass* pUnit)
 {
 	auto const pType = pUnit->Type;
 	auto const cell = pThis->GetMapCoords() + CellStruct(-1, 1);
@@ -1098,7 +1098,7 @@ ASMJIT_PATCH(0x449ADA, BuildingClass_MissionConstruction_DeployToFireFix, 0x6) /
 			pThis->PrimaryFacing.Set_Current(BuildingTypeExtData::DefaultJuggerFacing);
 		}else{
 			DirStruct _resltDir {};
-			_resltDir.Raw = GetBuildingStartFacing(pThis);
+			_resltDir.Raw = (short)GetBuildingStartFacing(pThis);
 			pThis->PrimaryFacing.Set_Current(_resltDir);
 		}
 	}

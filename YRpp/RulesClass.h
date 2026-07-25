@@ -238,8 +238,16 @@ public:
 	int				 SelfHealUnitAmount;
 	bool				 FreeMCV;
 	bool				 BerzerkAllowed;
-	int				 PoseDir;
-	int				 DeployDir;
+	union {
+		int				 PoseDir;
+		DirType			 _PoseDir; //not sure because it is only 1 byte it may break the align so i keep the int value
+	};
+	union
+	{
+		int				 DeployDir;
+		DirType				 _DeployDir;
+	};
+
 	AnimTypeClass*			 DropPodPuff;
 	int				 WaypointAnimationSpeed;
 	AnimTypeClass*			 BarrelExplode;

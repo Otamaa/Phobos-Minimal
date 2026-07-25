@@ -6,50 +6,7 @@
 #include <Fixed.h>
 #include <YRMath.h>
 #include <CoordStruct.h>
-
-enum class FacingType : char
-{
-	North = 0,
-	NorthEast = 1,
-	East = 2,
-	SouthEast = 3,
-	South = 4,
-	SouthWest = 5,
-	West = 6,
-	NorthWest = 7,
-
-	limit = 7,
-	Count = 8,
-	Min = 0,
-	Max = 8,
-	None = -1,
-};
-
-
-enum class DirType32 : unsigned char
-{
-	Min = 0,
-	Max = 32,
-};
-
-enum class DirType : unsigned char
-{
-	North = 0,
-	NorthEast = 32,
-	East = 64,
-	SouthEast = 96,
-	South = 128,
-	SouthWest = 160,
-	West = 192,
-	NorthWest = 224,
-
-	Min = 0,
-	Max = 255,
-
-	HarvesterUnloadingA = 152,      // Direction of harvester while unloading.
-	HarvesterUnloadingB = 144,      // Direction of harvester while unloading.
-};
-MAKE_ENUM_FLAGS(DirType);
+#include <GeneralDefinitions.h>
 
 // ═══════════════════════════════════════════════════════════════════════════
 // COORDINATE SYSTEM PRIMER (read this first!)

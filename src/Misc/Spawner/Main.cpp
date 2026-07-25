@@ -162,7 +162,7 @@ SpawnerMain::GameConfigs::GameConfigs()
 
 #pragma endregion
 
-FORCEDINLINE void ReadListFromSection(CCINIClass* pINI, const char* pSection, std::list<std::string>& strings)
+static FORCEDINLINE void ReadListFromSection(CCINIClass* pINI, const char* pSection, std::list<std::string>& strings)
 {
 	if (!pINI->GetSection(pSection))
 		return;
@@ -197,32 +197,30 @@ void SpawnerMain::PrintInitializeLog() {
 	Debug::LogInfo("Initialized " SPAWNER_PRODUCT_NAME "");
 }
 
-void SpawnerMain::ReadRA2MDConfig(PhobosINIClass* pINI)
+void SpawnerMain::ReadRA2MDConfig()
 {
+	auto pINI = CCINIClass::INI_RA2MD.ptr();
+
 	{
+		auto pMainConfigs = SpawnerMain::GetMainConfigs();
+		pMainConfigs->MPDebug = pINI->ReadBool(GameStrings::Options(), "MPDEBUG", pMainConfigs->MPDebug);
+		pMainConfigs->SingleProcAffinity = pINI->ReadBool(GameStrings::Options(), "SingleProcAffinity", pMainConfigs->SingleProcAffinity);
+		pMainConfigs->DisableEdgeScrolling = pINI->ReadBool(GameStrings::Options(), "DisableEdgeScrolling", pMainConfigs->DisableEdgeScrolling);
+		pMainConfigs->QuickExit = pINI->ReadBool(GameStrings::Options(), "QuickExit", pMainConfigs->QuickExit);
+		pMainConfigs->SkipScoreScreen = pINI->ReadBool(GameStrings::Options(), "SkipScoreScreen", pMainConfigs->SkipScoreScreen);
+		pMainConfigs->DDrawHandlesClose = pINI->ReadBool(GameStrings::Options(), "DDrawHandlesClose", pMainConfigs->DDrawHandlesClose);
+		pMainConfigs->SpeedControl = pINI->ReadBool(GameStrings::Options(), "SpeedControl", pMainConfigs->SpeedControl);
+		pMainConfigs->AllowTaunts = pINI->ReadBool(GameStrings::Options(), "AllowTaunts", pMainConfigs->AllowTaunts);
+		pMainConfigs->AllowChat = pINI->ReadBool(GameStrings::Options(), "AllowChat", pMainConfigs->AllowChat);
 
-		//if (pINI->GetSection(GameStrings::Options())) 
-		{
-			auto pMainConfigs = SpawnerMain::GetMainConfigs();
-			pMainConfigs->MPDebug = pINI->Read<bool>(GameStrings::Options(), "MPDEBUG").value_or(pMainConfigs->MPDebug);
-			pMainConfigs->SingleProcAffinity = pINI->Read<bool>(GameStrings::Options(), "SingleProcAffinity").value_or(pMainConfigs->SingleProcAffinity);
-			pMainConfigs->DisableEdgeScrolling = pINI->Read<bool>(GameStrings::Options(), "DisableEdgeScrolling").value_or(pMainConfigs->DisableEdgeScrolling);
-			pMainConfigs->QuickExit = pINI->Read<bool>(GameStrings::Options(), "QuickExit").value_or(pMainConfigs->QuickExit);
-			pMainConfigs->SkipScoreScreen = pINI->Read<bool>(GameStrings::Options(), "SkipScoreScreen").value_or(pMainConfigs->SkipScoreScreen);
-			pMainConfigs->DDrawHandlesClose = pINI->Read<bool>(GameStrings::Options(), "DDrawHandlesClose").value_or(pMainConfigs->DDrawHandlesClose);
-			pMainConfigs->SpeedControl = pINI->Read<bool>(GameStrings::Options(), "SpeedControl").value_or(pMainConfigs->SpeedControl);
-			pMainConfigs->AllowTaunts = pINI->Read<bool>(GameStrings::Options(), "AllowTaunts").value_or(pMainConfigs->AllowTaunts);
-			pMainConfigs->AllowChat = pINI->Read<bool>(GameStrings::Options(), "AllowChat").value_or(pMainConfigs->AllowChat);
+	}
 
-		}
 
-		//if (pINI->GetSection(GameStrings::Video())) 
-		{
-			auto pMainConfigs = SpawnerMain::GetMainConfigs();
-			pMainConfigs->WindowedMode = pINI->Read<bool>(GameStrings::Video(), "Video.Windowed").value_or(pMainConfigs->WindowedMode);
-			pMainConfigs->NoWindowFrame = pINI->Read<bool>(GameStrings::Video(), "NoWindowFrame").value_or(pMainConfigs->NoWindowFrame);
-			pMainConfigs->DDrawTargetFPS = pINI->Read<int>(GameStrings::Video(), "DDrawTargetFPS").value_or(pMainConfigs->DDrawTargetFPS);
-		}
+	{
+		auto pMainConfigs = SpawnerMain::GetMainConfigs();
+		pMainConfigs->WindowedMode = pINI->ReadBool(GameStrings::Video(), "Video.Windowed", pMainConfigs->WindowedMode);
+		pMainConfigs->NoWindowFrame = pINI->ReadBool(GameStrings::Video(), "NoWindowFrame", pMainConfigs->NoWindowFrame);
+		pMainConfigs->DDrawTargetFPS = pINI->ReadInteger(GameStrings::Video(), "DDrawTargetFPS", pMainConfigs->DDrawTargetFPS);
 	}
 }
 
@@ -943,7 +941,7 @@ void SpawnerMain::GameConfigs::RespondToSaveGame(EventClass* event) {
 	SpawnerMain::Configs::DoSave = true;
 }
 
-void Print_Saving_Game_Message2() {
+static void Print_Saving_Game_Message2() {
 	const int message_delay = (int)(RulesClass::Instance->MessageDelay * 900);
 	auto str = StringTable::TryFetchStringOrReturnDefaultIfMissing("TXT_AUTOSAVE_MESSAGE", L"Saving game...");
 	MessageListClass::Instance->AddMessage(nullptr, 0, str, 4, TextPrintType::Point6Grad | TextPrintType::UseGradPal | TextPrintType::FullShadow, message_delay, false);

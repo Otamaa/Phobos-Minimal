@@ -2049,6 +2049,17 @@ bool HouseExtData::IsDisabledFromShell(
 	return false;
 }
 
+void HouseExtData::RegisterAutoDeath(TechnoClass* pTechno){
+	if(HouseExtContainer::Instance.AutoDeathObjects.contains(pTechno))
+		return;
+
+	auto nMethod = TechnoTypeExtContainer::Instance.Find(GET_TECHNOTYPE(pTechno))->Death_Method;
+
+	if (nMethod != KillMethod::None) {
+		HouseExtContainer::Instance.AutoDeathObjects.emplace_unchecked(pTechno, nMethod);
+	}
+}
+
 void HouseExtData::UpdateAutoDeathObjects()
 {
 	HouseExtContainer::Instance.AutoDeathObjects.erase_all_if([](auto& item) {

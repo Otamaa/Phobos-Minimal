@@ -61,6 +61,10 @@ void PhobosGlobal::LoadGlobalsConfig()
 	GameConfig ares_ini { "Ares.ini" };
 	ares_ini.OpenINIAction([](CCINIClass* pINI, CCFileClass* pFile) {
 
+		if(!pINI->GetSection("Graphics.Advanced")) {
+			return;
+		}
+
 		if (pINI->ReadString("Graphics.Advanced", "DirectX.Force", Phobos::readDefval, Phobos::readBuffer))
 		{
 			if (IS_SAME_STR_(Phobos::readBuffer, "hardware"))

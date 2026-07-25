@@ -384,9 +384,8 @@ public:
 	bool ConcentricRadialIndicator;
 	int PsychicDetectionRadius;
 	int BarrelStartPitch;
-	char VoxelBarrelFile[16];
-	DWORD field_1724;
-	double double_1728;
+	char VoxelBarrelFile [0x14];
+	double VoxelBarrelScale;
 	CoordStruct VoxelBarrelOffsetToPitchPivotPoint;
 	CoordStruct VoxelBarrelOffsetToRotatePivotPoint;
 	CoordStruct VoxelBarrelOffsetToBuildingPivotPoint;

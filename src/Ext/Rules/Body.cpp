@@ -1111,6 +1111,13 @@ void FakeRulesClass::Serialize(T& Stm)
 
 		.Process(this->StartFacing)
 		.Process(this->StartFacing_Random)
+
+		.Process(this->AutoDeath_AllowLimboed)
+		.Process(this->AutoDeath_OnOwnerChange_IgnoreRevertOnExit)
+
+		.Process(this->AircraftDockingDir_DefaultToPoseDir)
+		.Process(this->PoseDir_Production)
+		.Process(this->PoseDir_Field)
 		;
 }
 
@@ -1530,13 +1537,13 @@ void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 	// VERIFY: confirm intended key for EngineerDamage vs EngineerCaptureLevel
 	detail::read(this->EngineerDamage, exINI, section, "EngineerDamage");
 	auto ReadAsFloat = [](int& val, INI_EX& exINI , const char* pSection, const char* pKey){
-		float buffer = val;
+		float buffer = (float)val;
 		if(detail::read<float>(buffer, exINI, pSection, pKey))
 			val = buffer;
 	};
 
 	auto ReadAsDouble= [] (float& val, INI_EX& exINI, const char* pSection, const char* pKey , float* default_val = nullptr){
-		double buffer = val;
+		double buffer = (float)val;
 		if(detail::read<double>(buffer, exINI , pSection, pKey))
 			val = buffer;
 		else if(default_val)
@@ -3221,6 +3228,9 @@ void FakeRulesClass::_ReadAudioVisual(CCINIClass* pINI)
 	this->LeptonMindControlOffset.Read(exINI, section, "LeptonMindControlOffset");
 	this->MindControlRingOffset.Read(exINI, section, "MindControlRingOffset");
 
+	this->AircraftDockingDir_DefaultToPoseDir.Read(exINI, section, "AircraftDockingDir.DefaultToPoseDir");
+	this->PoseDir_Production.Read(exINI, section, "PoseDir.Production");
+	this->PoseDir_Field.Read(exINI, section, "PoseDir.Field");
 }
 
 void FakeRulesClass::_ReadCrateRules(CCINIClass* pINI)
@@ -3970,7 +3980,8 @@ void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
 
 	this->OpenTransport_RangeBonus.Read(exINI, section, "OpenTransport.RangeBonus");
 	this->OpenTransport_DamageMultiplier.Read(exINI, section, "OpenTransport.DamageMultiplier");
-
+	this->AutoDeath_AllowLimboed.Read(exINI, section, "AutoDeath.AllowLimboed");
+	this->AutoDeath_OnOwnerChange_IgnoreRevertOnExit.Read(exINI, section, "AutoDeath.OnOwnerChange.IgnoreRevertOnExit");
 }
 
 #pragma region WeaponTypeBuffer

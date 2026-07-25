@@ -1160,6 +1160,8 @@ bool WeaponTypeExtData::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* 
 	Target->NextObject = 0; // ??
 	//Target->Mark(MarkType::Remove);
 
+	HouseExtData::RegisterAutoDeath(Target);
+		
 	// handling for Locomotor weapons: since we took this unit from the Magnetron
 	// in an unfriendly way, set these fields here to unblock the unit
 	if (Target->IsAttackedByLocomotor || Target->IsLetGoByLocomotor)

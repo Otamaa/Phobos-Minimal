@@ -522,6 +522,7 @@ public:
 
 	static void UpdateAutoDeathObjects();
 	static void UpdateTransportReloaders();
+	static void RegisterAutoDeath(TechnoClass* pTechno);
 
 	static int GetHouseIndex(int param, TeamClass* pTeam, TActionClass* pTAction);
 

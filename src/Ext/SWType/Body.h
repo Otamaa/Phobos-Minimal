@@ -424,7 +424,7 @@ public:
 	Valueable<int> SW_ChargesPerCycle { 1 };
 	Valueable<int> SW_DischargeAmount { 1 };
 
-	Nullable<bool> DropshipLoadout_OpenWindow {};
+	Valueable<bool> DropshipLoadout_OpenWindow {};
 	Valueable<bool> DropshipLoadout_Launch {};
 	Valueable<bool> DropshipLoadout_PersistentCargo {};
 	Nullable<bool> DropshipLoadout_PreloadCargo {};

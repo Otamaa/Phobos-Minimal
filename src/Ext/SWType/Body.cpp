@@ -286,6 +286,8 @@ void SWTypeExtData::ApplyDropshipLoadoutLaunch(HouseClass* pHouse, const CellStr
 		pPayload->SetLocation(startLocation);
 		pPayload->Limbo();
 
+		HouseExtData::RegisterAutoDeath(pPayload);
+
 		if (pPayload->GetTechnoType()->Trainable && this->DropshipLoadout_VeteranLevel.isset())
 		{
 			int targetVetLevel = this->DropshipLoadout_VeteranLevel.Get();
@@ -1882,7 +1884,7 @@ void SWTypeExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const C
 	}
 
 	
-	if (this->DropshipLoadout_OpenWindow.Get(false) && pHouse->IsCurrentPlayer())
+	if (this->DropshipLoadout_OpenWindow && pHouse->IsCurrentPlayer())
 	{
 		DropshipLoadoutClass::OpenInGameWindow(
 			false, // bIgnoreFixedUnits

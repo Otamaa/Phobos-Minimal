@@ -3,6 +3,8 @@
 #include <Straws.h>
 #include <Pipes.h>
 
+//TODO : test writing back ini 
+//   - handle double to percent when writing back
 #pragma region INISection
 
 int PhobosINISection::ComputeCRC(std::string_view s)

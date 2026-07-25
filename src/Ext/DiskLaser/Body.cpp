@@ -183,8 +183,8 @@ void FakeDiskLaserClass::__AI()
 	// ============================================================
 
 	// Determine colors
-	ColorStruct innerColor;
-	ColorStruct outerColor;
+	ColorStruct innerColor {};
+	ColorStruct outerColor {};
 	ColorStruct* pOuterSpread = &pWeapon->LaserOuterSpread;
 
 	if (pWeapon->IsHouseColor)
@@ -309,7 +309,7 @@ void FakeDiskLaserClass::__AI()
 		}
 		else
 		{
-			const int weaponSpeedspeed = pWeapon->GetWeaponSpeed(laserStart.DistanceFromXY(laserEnd));
+			const int weaponSpeedspeed = pWeapon->GetWeaponSpeed((int)laserStart.DistanceFromXY(laserEnd));
 
 			if (const auto pBullet = pWeapon->Projectile->CreateBullet(this->Target, this->Owner, this->Damage, pWeapon->Warhead, weaponSpeedspeed, pWeapon->Bright))
 			{

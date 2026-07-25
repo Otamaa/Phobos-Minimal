@@ -223,6 +223,7 @@ FootClass* __fastcall FakeTeamTypeClass::_CreateGroup(TeamTypeClass* pType)
 			if (pNext != pTransport && pNext->Team == pTeam)
 			{
 				pGunner = pNext;
+				HouseExtData::RegisterAutoDeath(pNext);
 				pNext->IsInPlayfield = true;
 				pNext->Transporter = pTransport;
 				if (isOpenTopped)

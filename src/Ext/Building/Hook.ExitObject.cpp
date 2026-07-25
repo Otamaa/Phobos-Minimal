@@ -90,8 +90,7 @@ static KickOutResult HandleAircraftIonStormExit(
 		return KickOutResult::Failed;
 
 	pAircraft->DockedTo = pBuilding;
-	FacingType poseDir = BuildingExtData::GetPoseDir(pAircraft, pBuilding);
-	DirStruct dir { static_cast<int>(poseDir) << 13 };
+	DirStruct dir { BuildingExtData::GetPoseDir(pAircraft, pBuilding, true) };
 
 	if (AircraftTypeExtData::ExtendedAircraftMissionsEnabled(pAircraft))
 		pAircraft->PrimaryFacing.Set_Current(dir);
@@ -121,8 +120,7 @@ static KickOutResult HandleAircraftDockedExit(
 	pAircraft->SetLocation(pBuilding->GetDockCoords(pAircraft));
 	pAircraft->DockedTo = pBuilding;
 
-	FacingType poseDir = BuildingExtData::GetPoseDir(pAircraft, pBuilding);
-	DirStruct dir { poseDir };
+	DirStruct dir { BuildingExtData::GetPoseDir(pAircraft, pBuilding, true) };
 
 	if (AircraftTypeExtData::ExtendedAircraftMissionsEnabled(pAircraft))
 		pAircraft->PrimaryFacing.Set_Current(dir);

@@ -121,7 +121,7 @@ public:
 	Point2D DropshipLoadout_LoadoutLocation {};
 	std::vector<PhobosPCXFile> DropshipLoadout_PilotLitPCX {};
 	Point2D DropshipLoadout_PilotLitLocation {};
-	std::vector<std::unique_ptr<std::vector<PhobosPCXFile>>> DropshipLoadout_DGreenListPCX {};
+	std::vector<std::vector<PhobosPCXFile>> DropshipLoadout_DGreenListPCX {};
 	int DropshipLoadout_DGreenAnimationsCount {};
 	std::vector<Point2D> DropshipLoadout_DGreenLocations {};
 	Point2D DropshipLoadout_UpArrowLocation {};

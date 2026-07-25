@@ -340,7 +340,7 @@ ASMJIT_PATCH(0x4CF190, FlyLocomotionClass_0x4CEFB0_SetPrimaryFacing, 0x6) // Mak
 			{
 
 				const auto footCoords = pAircraft->GetCoords();
-				const auto landingDir = DirStruct(BuildingExtData::GetPoseDir(pAircraft, nullptr));
+				const auto landingDir = DirStruct(BuildingExtData::GetPoseDir(pAircraft, nullptr , false));
 
 				// Try to land from the rear
 				if (pAircraft->Destination && (pAircraft->DockedTo == pAircraft->Destination || pAircraft->SpawnOwner == pAircraft->Destination))

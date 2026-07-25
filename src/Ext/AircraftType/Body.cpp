@@ -29,7 +29,6 @@ bool AircraftTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	this->LandingDir.Read(exINI, pSection, "LandingDir");
 	this->CrashSpinLevelRate.Read(exINI, pSection, "CrashSpin.LevelRate");
-	this->CrashSpin_Multiplier.Read(exINI, pSection, "CrashSpin.Multiplier");
 	this->CrashSpinVerticalRate.Read(exINI, pSection, "CrashSpin.VerticalRate");
 
 	this->SpyplaneCameraSound.Read(exINI, pSection, "SpyPlaneCameraSound");

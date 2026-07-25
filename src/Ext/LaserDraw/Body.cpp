@@ -870,7 +870,7 @@ void FakeLaserDrawClass::_DrawInHouseColor()
 	// Final rendering: D3D triangle path or software center line
 	if (Game::bDirect3DIsUseable.get() && DSurface::CD3DTriangleInstance() && ZBuffer::Instance.get())
 	{
-		const short zMax = ZBuffer::Instance->MaxValue;
+		const short zMax = (short)ZBuffer::Instance->MaxValue;
 		const short viewportY = static_cast<short>(DSurface::ViewBounds->Y);
 
 		const int zValSource = zSource + zMax + ZBuffer::Instance->Area.Y
@@ -881,9 +881,9 @@ void FakeLaserDrawClass::_DrawInHouseColor()
 		const float szSource = static_cast<float>(zValSource & 0xFFFF) * 0.000015259022f;
 		const float szTarget = static_cast<float>(zValTarget & 0xFFFF) * 0.000015259022f;
 
-		const int red = (ratio * innerColor.R) >> 8;
-		const int green = (ratio * innerColor.G) >> 8;
-		const int blue = (ratio * innerColor.B) >> 8;
+		const uint8 red = (uint8)((ratio * innerColor.R) >> 8);
+		const uint8 green = (uint8)((ratio * innerColor.G) >> 8);
+		const uint8 blue = (uint8)((ratio * innerColor.B) >> 8);
 
 		CD3DTriangle tri1, tri2;
 		tri1.Set_Color(red, green, blue);

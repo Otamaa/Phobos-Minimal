@@ -230,6 +230,8 @@ public:
 	Valueable<int> Death_Countdown { 0 };
 	Valueable<KillMethod> Death_Method { KillMethod::None };
 	Valueable<bool> Death_WithMaster { false };
+	Nullable<bool> AutoDeath_AllowLimboed {};
+	Nullable<bool> AutoDeath_OnOwnerChange_IgnoreRevertOnExit {};
 	Valueable<int> AutoDeath_MoneyExceed { -1 };
 	Valueable<int> AutoDeath_MoneyBelow { -1 };
 	Valueable<bool> AutoDeath_LowPower { false };

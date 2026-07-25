@@ -340,4 +340,83 @@ public:
 		out = unsigned char(negative ? 0u - value : value);
 		return true;
 	}
+
+	// Truncation to (cap - 1) chars is PRESERVED on purpose - vanilla silently clips
+	// over-long house/team ids and the clipped form is what Find()/FindIndexById() sees.
+	static std::string TrimmedField(std::string_view src, size_t cap)
+	{
+		src = src.substr(0, cap);
+
+		const auto isWS = [](unsigned char c) { return std::isspace(c) != 0; };
+
+		while (!src.empty() && isWS(static_cast<unsigned char>(src.front())))
+			src.remove_prefix(1);
+
+		while (!src.empty() && isWS(static_cast<unsigned char>(src.back())))
+			src.remove_suffix(1);
+
+		return std::string(src);
+	}
+
+
+	// Result of a fixed-arity split.
+	//   Fields[]  - always exactly N entries; missing trailing fields are empty views.
+	//   Count     - how many tokens the input ACTUALLY had (clamped to N). Use this when
+	//               you must distinguish "field absent" from "field present but empty",
+	//               because vanilla only assigns members for fields that exist.
+	//   Overflow  - tokens past N that were dropped.
+	template<size_t N>
+	struct PhobosSplitFixed
+	{
+		std::array<std::string_view, N> Fields {};
+		size_t Count { 0 };
+		size_t Overflow { 0 };
+
+		bool IsPresent(size_t idx) const { return idx < this->Count; }
+		std::string_view operator[](size_t idx) const { return this->Fields[idx]; }
+	};
+
+	// Fixed-arity split into exactly N slots.
+	//   keepEmpty = true  -> POSITIONAL. Empty tokens are preserved, so field K is always at
+	//                        index K. Fixes the vanilla shift bug.
+	//   keepEmpty = false -> parity with strtok()/PhobosCRT::SplitString: runs of delimiters
+	//                        collapse and everything after an empty field shifts left.
+	//
+	// Views point INTO `str` - keep the source buffer alive for the lifetime of the result.
+	template<size_t N>
+	static COMPILETIMEEVAL PhobosSplitFixed<N> SplitStringFixed(
+		std::string_view str, std::string_view delimiters, bool keepEmpty)
+	{
+		PhobosSplitFixed<N> result {};
+
+		if (str.empty())
+			return result;
+
+		const auto Push = [&result](std::string_view token)
+			{
+				if (result.Count < N)
+					result.Fields[result.Count++] = token;
+				else
+					++result.Overflow;
+			};
+
+		std::string_view::size_type start = 0;
+		std::string_view::size_type end = 0;
+
+		while ((end = str.find_first_of(delimiters, start)) != std::string_view::npos)
+		{
+			if (keepEmpty || end != start)
+				Push(str.substr(start, end - start));
+
+			start = end + 1;
+		}
+
+		// trailing field. Collapsing mode drops it when empty, matching strtok().
+		if (keepEmpty)
+			Push(str.substr(start));
+		else if (start < str.size())
+			Push(str.substr(start));
+
+		return result;
+	}
 };

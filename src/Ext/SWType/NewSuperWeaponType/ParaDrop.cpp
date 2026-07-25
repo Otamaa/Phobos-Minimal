@@ -353,6 +353,7 @@ void SW_ParaDrop::SendPDPlane(HouseClass* pOwner
 			for (int k = 0; k < Nums[i]; ++k)
 			{
 				auto const pNew = static_cast<FootClass*>(pType->CreateObject(pOwner));
+				HouseExtData::RegisterAutoDeath(pNew);
 				pNew->SetLocation(pPlane->Location);
 				pNew->Limbo();
 

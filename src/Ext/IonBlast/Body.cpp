@@ -216,8 +216,7 @@ void FakeIonBlastClass::_AI()
 					if (!pObj->IsAlive)
 						continue;
 
-					if (pObj->WhatAmI() == InfantryClass::AbsID || pObj->WhatAmI() == UnitClass::AbsID)
-					{
+					if (pObj->WhatAmI() == InfantryClass::AbsID || pObj->WhatAmI() == UnitClass::AbsID) {
 
 						auto unit = (FootClass*)pObj;
 
@@ -280,8 +279,8 @@ void FakeIonBlastClass::_AI()
 									const float blastFactor = Math::cos(double(len - static_cast<float>(this->Lifetime) * 7.1125f + 38.0f) * 0.11f);
 									const float curve = (blastFactor * 0.11f * 51.0f * 3.5f * blastDist - blastOffset) / (blastDist * blastDist);
 
-									unit->AngleRotatedSideways = proj * curve * Math::GAME_TWOPI;
-									unit->AngleRotatedForwards = -ux * curve * Math::GAME_TWOPI;
+									unit->AngleRotatedSideways = float(proj * curve * Math::GAME_TWOPI);
+									unit->AngleRotatedForwards = float(-ux * curve * Math::GAME_TWOPI);
 								}
 							}
 						}
@@ -302,7 +301,7 @@ void FakeIonBlastClass::_DrawAll()
 		IonBlastPitch = DSurface::Temp->Get_Pitch();
 		ionblast_A9FAE8[0] = 0;
 
-		for (int i = 1; i < ionblast_A9FAE8.size(); ++i)
+		for (int i = 1; i < (int)ionblast_A9FAE8.size(); ++i)
 		{
 			Point2D data = IonBlastData_53D8E0(i);
 			ionblast_A9FAE8[i] = data.X + IonBlastPitch() * data.Y;

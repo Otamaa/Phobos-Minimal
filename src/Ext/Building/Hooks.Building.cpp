@@ -1117,7 +1117,7 @@ ASMJIT_PATCH(0x45E416, BuildingTypeClass_CTOR_Initialize, 0x6)
 	pThis->BuildingAnimFrame[3].dwUnknown = 0;
 	pThis->BuildingAnimFrame[3].FrameCount = 1;
 	pThis->BuildingAnimFrame[3].FrameDuration = 0;
-	pThis->double_1728 = 1.0;
+	pThis->VoxelBarrelScale = 1.0;
 	pThis->VoxelBarrelOffsetToPitchPivotPoint = CoordStruct::Empty;
 	pThis->VoxelBarrelOffsetToRotatePivotPoint = CoordStruct::Empty;
 	pThis->VoxelBarrelOffsetToBuildingPivotPoint = CoordStruct::Empty;
