@@ -3007,9 +3007,10 @@ bool HouseExtData::ReverseEngineer(TechnoClass* Victim) {
 
 	auto VictimAs = pVictimData->ReversedAs.Get(VictimType);
 
-	if (!VictimAs)
+	if (!VictimAs || this->Reversed.contains(VictimAs))
 		return false;
 
+		
 	if (HouseExtData::PrereqValidate(This(), VictimType, false, true) != CanBuildResult::Buildable) {
 		this->Reversed.emplace(VictimAs);
 		if (HouseExtData::RequirementsMet(This(), VictimType) != RequirementStatus::Forbidden) {

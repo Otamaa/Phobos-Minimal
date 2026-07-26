@@ -247,11 +247,11 @@ public:
 	ValueableVector<TechnoTypeClass*> AutoDeath_Nonexist {};
 	Valueable<AffectedHouse> AutoDeath_Nonexist_House { AffectedHouse::Owner };
 	Valueable<bool> AutoDeath_Nonexist_Any { false };
-	Valueable<bool> AutoDeath_Nonexist_AllowLimboed { true };
+	Valueable<bool> AutoDeath_Nonexist_AllowLimboed { false };
 	ValueableVector<TechnoTypeClass*> AutoDeath_Exist {};
 	Valueable<AffectedHouse> AutoDeath_Exist_House { AffectedHouse::Owner };
 	Valueable<bool> AutoDeath_Exist_Any { false };
-	Valueable<bool> AutoDeath_Exist_AllowLimboed { true };
+	Valueable<bool> AutoDeath_Exist_AllowLimboed { false };
 	Valueable<AnimTypeClass*> AutoDeath_VanishAnimation { nullptr };
 	Valueable<TechnoTypeClass*> Convert_AutoDeath {};
 	Valueable<SlaveReturnTo> Slaved_ReturnTo { SlaveReturnTo::Killer };
