@@ -6059,8 +6059,9 @@ void FakeTechnoClass::__Deactivate(TechnoClass* pThis)
 
 	pThis->Guard();
 	pThis->Deselect();
+	auto const pFoot = flag_cast_to<FootClass*, false>(pThis);
 
-	if (auto const pFoot = flag_cast_to<FootClass*, false>(pThis)) {
+	if (pFoot) {
 		pFoot->Locomotor.GetInterfacePtr()->Power_Off();
 	}
 
@@ -6077,6 +6078,9 @@ void FakeTechnoClass::__Deactivate(TechnoClass* pThis)
 		if (pTypeExt->HasSpotlight) {
 			TechnoExtData::SetSpotlight(pThis, nullptr);
 		}
+
+		if (pFoot &&  cast_to<BuildingClass*>(pThis->GetNthLink()))
+			pThis->SendToEachLink(RadioCommand::NotifyUnlink);
 
 		// change: update factories
 		if (auto const pBld = cast_to<BuildingClass*, false>(pThis)) {
