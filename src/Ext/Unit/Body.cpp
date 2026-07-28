@@ -459,7 +459,7 @@ DamageState FakeUnitClass::_Take_Damage(int* damage,
 		this->Mark(MarkType::Remove);
 
 		if (this->Passengers.NumPassengers > 0 && this->Passengers.GetFirstPassenger()) {
-			if (pTypeExt->Passengers_SyncOwner && pTypeExt->Passengers_SyncOwner_RevertOnExit) {
+			if (pTypeExt->Passengers_SyncOwner.Get(FakeRulesClass::Instance->Passengers_SyncOwner) && pTypeExt->Passengers_SyncOwner_RevertOnExit.Get(FakeRulesClass::Instance->Passengers_SyncOwner_RevertOnExit)) {
 				auto pPassenger = this->Passengers.GetFirstPassenger();
 				auto pPassengerExt = TechnoExtContainer::Instance.Find(pPassenger);
 
@@ -577,7 +577,7 @@ CoordStruct* FakeUnitClass::_GetFLH(CoordStruct* outBuffer, int weaponIdx, int b
 		const auto pTransporter = pThis->Transporter;
 
 		if (pThis->InOpenToppedTransport && pTransporter
-			&& GET_TECHNOTYPEEXT(pTransporter)->AlternateFLH_ApplyVehicle)
+			&& GET_TECHNOTYPEEXT(pTransporter)->AlternateFLH_ApplyVehicle.Get(FakeRulesClass::Instance->AlternateFLH_ApplyVehicle))
 		{
 			if (const int idx = pTransporter->Passengers.IndexOf(pThis))
 			{

@@ -180,7 +180,7 @@ ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 			if (pThisTypeExt->This()->Naval) {
 				const auto pFootCell = pFoot->GetCell();
 				if (pFootCell->LandType == LandType::Water && !pFootCell->ContainsBridge())
-					range += pThisTypeExt->NavalRangeBonus.Get();
+					range += pThisTypeExt->NavalRangeBonus.Fetch();
 			}
 		}
 	}

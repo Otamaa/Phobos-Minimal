@@ -38,7 +38,7 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 	Respawn_Rate__InMinutes.Read(exINI, pSection, "Respawn.Rate");
 
 	if (Respawn_Rate__InMinutes.isset())
-		this->Respawn_Rate = (int)(Respawn_Rate__InMinutes.Get() * 900);
+		this->Respawn_Rate = (int)(Respawn_Rate__InMinutes.Fetch() * 900);
 
 	this->Respawn_RestartInCombat.Read(exINI, pSection, "Respawn.RestartInCombat");
 	this->Respawn_RestartInCombatDelay.Read(exINI, pSection, "Respawn.RestartInCombatDelay");
@@ -48,7 +48,7 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 	SelfHealing_Rate__InMinutes.Read(exINI, pSection, "SelfHealing.Rate");
 
 	if (SelfHealing_Rate__InMinutes.isset())
-		this->SelfHealing_Rate = (int)(SelfHealing_Rate__InMinutes.Get() * 900);
+		this->SelfHealing_Rate = (int)(SelfHealing_Rate__InMinutes.Fetch() * 900);
 
 	this->SelfHealing_RestartInCombat.Read(exINI, pSection, "SelfHealing.RestartInCombat");
 	this->SelfHealing_RestartInCombatDelay.Read(exINI, pSection, "SelfHealing.RestartInCombatDelay");

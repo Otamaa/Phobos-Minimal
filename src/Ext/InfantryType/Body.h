@@ -207,7 +207,7 @@ public:
 	Valueable<bool> Is_Cow {};
 	Valueable<bool> HideWhenDeployAnimPresent {};
 	Valueable<bool> DeathBodies_UseDieSequenceAsIndex {};
-	Valueable<bool> OnlyUseLandSequences {};
+	Nullable<bool> OnlyUseLandSequences {};
 	Valueable<bool> WhenInfiltrate_Warhead_Full { true };
 	Valueable<bool> AllSequnceEqualRates {};  // typo: should be "AllSequenceEqualRates"
 	Valueable<bool> AllowReceiveSpeedBoost {};

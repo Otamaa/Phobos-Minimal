@@ -501,7 +501,7 @@ void WarheadTypeExtData::InterceptBullets(TechnoClass* pOwner, BulletClass* pBul
 	{
 		if (auto const pTargetBullet = cast_to<BulletClass*>(pBullet->Target))
 		{
-			if (BulletTypeExtContainer::Instance.Find(pTargetBullet->Type)->Interceptable) {
+			if (BulletTypeExtContainer::Instance.Find(pTargetBullet->Type)->Interceptable.Get(FakeRulesClass::Instance->Interceptable)) {
 				// 1/8th of a cell as a margin of error.
 				if (!pBullet->SpawnNextAnim && (pTargetBullet->Type->Inviso || pTargetBullet->Location.DistanceFrom(coords) <= Unsorted::LeptonsPerCell / 8.0)) {
 					BulletExtData::InterceptBullet(pTargetBullet, pOwner, pBullet);
@@ -519,7 +519,7 @@ void WarheadTypeExtData::InterceptBullets(TechnoClass* pOwner, BulletClass* pBul
 				 {
 					 auto const pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pTargetBullet->Type);
 					 // Cells don't know about bullets that may or may not be located on them so it has to be this way.
-					 if (pBulletTypeExt->Interceptable && !pBullet->SpawnNextAnim &&
+					 if (pBulletTypeExt->Interceptable.Get(FakeRulesClass::Instance->Interceptable) && !pBullet->SpawnNextAnim &&
 						 pTargetBullet->Location.DistanceFrom(coords) <= (cellSpread * Unsorted::LeptonsPerCell))
 						 BulletExtData::InterceptBullet(pTargetBullet, pOwner, pBullet);
 				 }
@@ -637,10 +637,10 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 
 	 this->GetCritChance(pOwner, this->CritCurrentChance);
 
-	 if (!this->Crit_ApplyChancePerTarget)
+	 if (!this->Crit_ApplyChancePerTarget.Get(FakeRulesClass::Instance->Crit_ApplyChancePerTarget))
 		this->CritRandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
 
-	if (!this->ReturnWarhead_ApplyChancePerTarget)
+	if (!this->ReturnWarhead_ApplyChancePerTarget.Get(FakeRulesClass::Instance->ReturnWarhead_ApplyChancePerTarget))
 			this->ReturnWarhead_RandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
 
 	//const bool ISPermaMC = this->PermaMC && !pBullet;
@@ -778,6 +778,10 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 			return;
 	}
 
+
+	if (this->ChangeOwner)
+		this->ApplyOwnerChange(pHouse, pTarget);
+
 	TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTarget, this->Convert_SucceededAnim);
 
 	if (this->BuildingSell || this->BuildingUndeploy) {
@@ -892,7 +896,7 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 			return;
 	}
 
-	if (this->CritCurrentChance > 0.0 && (!this->Crit_SuppressWhenIntercepted || !bulletWasIntercepted)) {
+	if (this->CritCurrentChance > 0.0 && (!this->Crit_SuppressWhenIntercepted.Get(FakeRulesClass::Instance->Crit_SuppressWhenIntercepted)  || !bulletWasIntercepted)) {
 		this->ApplyCrit(pHouse, pTarget, pOwner);
 
 		if (!pTarget->IsAlive)
@@ -953,7 +957,8 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 
 void WarheadTypeExtData::ApplyReturnWarhead(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* pOwner)
 {
-	const double dice = this->ReturnWarhead_ApplyChancePerTarget || !this->ApplyPerTargetEffectsOnDetonate.Get(FakeRulesClass::Instance()->ApplyPerTargetEffectsOnDetonate) ? ScenarioClass::Instance->Random.RandomDouble() : this->ReturnWarhead_RandomBuffer;
+	const double dice = this->ReturnWarhead_ApplyChancePerTarget.Get(FakeRulesClass::Instance->ReturnWarhead_ApplyChancePerTarget)
+	 || !this->ApplyPerTargetEffectsOnDetonate.Get(FakeRulesClass::Instance()->ApplyPerTargetEffectsOnDetonate) ? ScenarioClass::Instance->Random.RandomDouble() : this->ReturnWarhead_RandomBuffer;
 
 	if (this->ReturnWarhead_Chance < dice)
 		return;
@@ -1124,7 +1129,7 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 
 	double dice;
 
-	if (this->Crit_ApplyChancePerTarget|| !this->ApplyPerTargetEffectsOnDetonate.Get(FakeRulesClass::Instance()->ApplyPerTargetEffectsOnDetonate))
+	if (this->Crit_ApplyChancePerTarget.Get(FakeRulesClass::Instance->Crit_ApplyChancePerTarget)|| !this->ApplyPerTargetEffectsOnDetonate.Get(FakeRulesClass::Instance()->ApplyPerTargetEffectsOnDetonate))
 		dice = ScenarioClass::Instance->Random.RandomDouble();
 	else
 		dice = this->CritRandomBuffer;
@@ -1153,7 +1158,7 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 
 	this->CritActive = true;
 
-	if (this->Crit_AnimOnAffectedTargets && this->Crit_AnimList.size())
+	if (this->Crit_AnimOnAffectedTargets.Get(FakeRulesClass::Instance->Crit_AnimOnAffectedTargets) && this->Crit_AnimList.size())
 	{
 		if (!this->Crit_AnimList_CreateAll.Get(false))
 		{
@@ -1179,7 +1184,7 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 		}
 	}
 
-	auto damage = static_cast<int>(TechnoExtData::ApplyDamageMult(pOwner, this->Crit_ExtraDamage, !this->Crit_ExtraDamage_ApplyFirepowerMult));
+	auto damage = static_cast<int>(TechnoExtData::ApplyDamageMult(pOwner, this->Crit_ExtraDamage, !this->Crit_ExtraDamage_ApplyFirepowerMult.Get(FakeRulesClass::Instance->Crit_ExtraDamage_ApplyFirepowerMult)));
 
 	if (this->Crit_Warhead)
 	{
@@ -1305,6 +1310,42 @@ void WarheadTypeExtData::ApplyRevengeWeapon(TechnoClass* pTarget) const
 		if (maxCount < 0 || count < maxCount)
 		{
 			pExt->RevengeWeapons.emplace_back(this->RevengeWeapon.Get(), this->RevengeWeapon_GrantDuration, this->RevengeWeapon_AffectsHouses, this->This());
+		}
+	}
+}
+
+void WarheadTypeExtData::ApplyOwnerChange(HouseClass* pHouse, TechnoClass* pTarget)
+{
+	const bool isMindControl = this->ChangeOwner_SetAsMindControl;
+	const bool isImmune = (isMindControl && pTarget->GetTechnoType()->ImmuneToPsionics) || pTarget->IsMindControlled();
+
+	if (!isImmune)
+	{
+		pTarget->SetOwningHouse(pHouse, true);
+
+		if (isMindControl)
+		{
+			pTarget->MindControlledByAUnit = true;
+
+			if (const auto pAnimType = this->ChangeOwner_MindControlAnim.Get())
+			{
+				CoordStruct location = pTarget->Location;
+				const bool isBld = pTarget->What_Am_I() == AbstractType::Building;
+
+				if (isBld)
+					location.Z += static_cast<BuildingClass*>(pTarget)->Type->Height * Unsorted::LevelHeight;
+				else
+					location.Z += pTarget->GetTechnoType()->MindControlRingOffset;
+
+				if (const auto pOwnerAnim = GameCreate<AnimClass>(pAnimType, location))
+				{
+					pTarget->MindControlRingAnim = pOwnerAnim;
+					pOwnerAnim->SetOwnerObject(pTarget);
+
+					if (isBld)
+						pOwnerAnim->ZAdjust = -1024;
+				}
+			}
 		}
 	}
 }

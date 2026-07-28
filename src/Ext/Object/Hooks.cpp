@@ -6,6 +6,7 @@
 #include <Ext/House/Body.h>
 #include <Ext/Scenario/Body.h>
 #include <Ext/Infantry/Body.h>
+#include <Ext/Rules/Body.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/Patch.h>
@@ -154,7 +155,7 @@ bool IsTechnoFalling(ObjectClass* pThis)
 
 			if (hoverShutdown)
 			{
-				if (pTypeExt->HoverDrownable)
+				if (pTypeExt->HoverDrownable.Get(FakeRulesClass::Instance->HoverDrownable))
 				{
 					int damage = pThis->Health;
 					pTechno->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
@@ -182,7 +183,7 @@ bool IsTechnoFalling(ObjectClass* pThis)
 
 			if (!onParachuted)
 			{
-				if (!pTypeExt->FallingDownDamage_AllowEMP && pTechno->EMPLockRemaining > 0)
+				if (!pTypeExt->FallingDownDamage_AllowEMP.Get(FakeRulesClass::Instance->FallingDownDamage_AllowEMP) && pTechno->EMPLockRemaining > 0)
 				{
 					damage = pThis->Health;
 					pTechno->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
@@ -191,8 +192,8 @@ bool IsTechnoFalling(ObjectClass* pThis)
 				}
 
 				double ratio = pCell->LandType == LandType::Water && !pTechno->OnBridge ?
-					pTypeExt->FallingDownDamage_Water.Get(pTypeExt->FallingDownDamage.Get())
-					: pTypeExt->FallingDownDamage.Get();
+					pTypeExt->FallingDownDamage_Water.Get(pTypeExt->FallingDownDamage.Get(FakeRulesClass::Instance->FallingDownDamage))
+					: pTypeExt->FallingDownDamage.Get(FakeRulesClass::Instance->FallingDownDamage);
 
 				damage = Get_FallDamage(ratio, pTechno, pType);
 			}
@@ -260,7 +261,7 @@ ASMJIT_PATCH(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 		auto& nCustomMaxFallRate = (!bAnimAttached ? pExt->FallRate_NoParachuteMax : pExt->FallRate_ParachuteMax);
 
 		if (nCustomMaxFallRate.isset())
-			nMaxFallRate = nCustomMaxFallRate;
+			nMaxFallRate = nCustomMaxFallRate.Fetch();
 	}
 
 	if (pThis->FallRate - nFallRate >= nMaxFallRate)

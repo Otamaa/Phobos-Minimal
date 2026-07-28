@@ -16,7 +16,7 @@ void SW_GenericWarhead::Initialize(SWTypeExtData* pData)
 WarheadTypeClass* SW_GenericWarhead::GetWarhead(const SWTypeExtData* pData) const
 {
 	if (pData->SW_Warhead.isset())
-		return pData->SW_Warhead;
+		return pData->SW_Warhead.Fetch();
 
 	if (pData->This()->WeaponType)
 		return pData->This()->WeaponType->Warhead;
@@ -27,7 +27,7 @@ WarheadTypeClass* SW_GenericWarhead::GetWarhead(const SWTypeExtData* pData) cons
 int SW_GenericWarhead::GetDamage(const SWTypeExtData* pData) const
 {
 	if (pData->SW_Damage.isset())
-		return pData->SW_Damage;
+		return pData->SW_Damage.Fetch();
 
 	if (pData->This()->WeaponType)
 		return pData->This()->WeaponType->Damage;

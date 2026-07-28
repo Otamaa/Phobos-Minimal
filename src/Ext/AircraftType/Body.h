@@ -29,8 +29,7 @@ public:
 	NullableIdx<VoxClass> SpyplaneCameraSound {};
 	Nullable<int> ParadropRadius {};
 	Nullable<int> ParadropOverflRadius {};
-	Valueable<bool> Paradrop_DropPassangers { true };
-	Valueable<int> Paradrop_MaxAttempt { 5 };
+	Nullable<bool> Paradrop_DropPassangers { };
 
 	Valueable<bool> IsCustomMissile { false };
 	Valueable<RocketStruct> CustomMissileData { RocketStruct() };
@@ -50,11 +49,13 @@ public:
 	Nullable<bool> IsCruiseMissile { };
 	Nullable<Point2D> CustomMissileOffset {};
 
-	Valueable<EdgeType> SpawnFromEdge { EdgeType::Owner };
-	Valueable<EdgeType> RetreatToEdge { EdgeType::Owner };
+	Nullable<EdgeType> SpawnFromEdge { };
+	Nullable<EdgeType> RetreatToEdge { };
 
 	Nullable<int> ParadropDelay {};
 	Nullable<int> ParadropEndDelay {};
+
+	Nullable<bool> IsAloaner {};
 
 	AircraftTypeExtData(AircraftTypeClass* pObj) : FootTypeExtData(pObj)
 	{

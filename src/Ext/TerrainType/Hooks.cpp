@@ -38,16 +38,16 @@ ASMJIT_PATCH(0x47C065, CellClass_CellColor_TerrainRadarColor, 0x6)
 			{
 				const auto& color = pTerrainExt->MinimapColor;
 
-				arg0->R = color->R;
-				arg0->G = color->G;
-				arg0->B = color->B;
+				arg0->R = color.Fetch().R;
+				arg0->G = color.Fetch().G;
+				arg0->B = color.Fetch().B;
 
-				arg4->R = color->R;
-				arg4->G = color->G;
-				arg4->B = color->B;
+				arg4->R = color.Fetch().R;
+				arg4->G = color.Fetch().G;
+				arg4->B = color.Fetch().B;
 
 				R->ECX(arg4);
-				R->AL(color->B);
+				R->AL(color.Fetch().B);
 
 				return ReturnFromFunction;
 			}

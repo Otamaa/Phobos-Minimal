@@ -59,38 +59,42 @@ void TechnoExtData::DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, Re
 
 // =============================
 // load / save
-//template <typename T>
-//void ParasiteExt::ExtData::Serialize(T& Stm) {
-//	//Debug::LogInfo("Processing Element From ParasiteExt ! ");
-//	Stm
-//		.Process(this->Initialized)
-//		.Process(this->LastVictimLocation)
-//		;
-//}
+
+template <typename T>
+void ParasiteExtData::Serialize(T& Stm)
+{
+	Stm
+		.Process(this->CreateParticleSystems)
+
+		;
+}
 
 // =============================
 // container
-//ParasiteExt::ExtContainer ParasiteExt::ExtMap;
+ParasiteExtContainer ParasiteExtContainer::Instance;
 
 // =============================
 // container hooks
 
-//ASMJIT_PATCH_AGAIN(0x62924C , ParasiteClass_CTOR,0x5 )
-//ASMJIT_PATCH(0x62932E, ParasiteClass_CTOR, 0x6)
-//{
-//	GET(ParasiteClass*, pItem, ESI);
-//	ParasiteExt::ExtMap.Allocate(pItem);
-//	return 0;
-//}
-//
-//ASMJIT_PATCH_AGAIN(0x62AFFE , ParasiteClass_DTOR, 0x6)
-//ASMJIT_PATCH(0x62946E, ParasiteClass_DTOR, 0x6)
-//{
-//	GET(ParasiteClass*, pItem, ESI);
-//	ParasiteExt::ExtMap.Remove(pItem);
-//	return 0;
-//}
-//
+
+ASMJIT_PATCH(0x62932E, ParasiteClass_CTOR, 0x6)
+{
+	GET(ParasiteClass*, pItem, ESI);
+	if (!Phobos::Otamaa::DoingLoadGame)
+		ParasiteExtContainer::Instance.Allocate(pItem);
+
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x62924C, ParasiteClass_CTOR, 0x5)
+
+
+ASMJIT_PATCH(0x62946E, ParasiteClass_DTOR, 0x6)
+{
+	GET(ParasiteClass*, pItem, ESI);
+	ParasiteExtContainer::Instance.Remove(pItem);
+
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x62AFFE, ParasiteClass_DTOR, 0x6)
+
 //ASMJIT_PATCH_AGAIN(0x6296B0, ParasiteClass_SaveLoad_Prefix, 0x8)
 //ASMJIT_PATCH(0x6295B0, ParasiteClass_SaveLoad_Prefix, 0x5)
 //{
@@ -266,6 +270,8 @@ void FakeParasiteClass::__Grapple_AI()
 
 	// Update victim's paralysis timer
 	this->Victim->ParalysisTimer.Start(weaponType->Warhead->Paralyzes);
+	auto pWHExt = WarheadTypeExtContainer::Instance.Find(weaponType->Warhead);
+	auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(weaponType);
 
 	// State machine for grapple animation
 	switch (this->GrappleState)
@@ -274,9 +280,8 @@ void FakeParasiteClass::__Grapple_AI()
 	{ // Initialize grapple
 		this->Victim->AngleRotatedSideways = 0.0f;
 
-		auto const pWeaponExt = WarheadTypeExtContainer::Instance.Find(weaponType->Warhead);
 
-		if (auto const pAnimType = pWeaponExt->Parasite_GrappleAnim.Get(FakeRulesClass::Instance()->DefaultSquidAnim)) {
+		if (auto const pAnimType = pWHExt->Parasite_GrappleAnim.Get(FakeRulesClass::Instance()->DefaultSquidAnim)) {
 			if (AnimClass* newAnim = GameCreate<AnimClass>(pAnimType, victimCoord, 0, 1, AnimFlag::AnimFlag_600, 0, 0)) {
 					this->GrappleAnim = newAnim;
 					auto const Invoker = (this->Owner) ? this->Owner->GetOwningHouse() : nullptr;
@@ -346,7 +351,7 @@ void FakeParasiteClass::__Grapple_AI()
 
 		// Create splash effects
 
-		auto const AnimType = WarheadTypeExtContainer::Instance.Find(weapon->WeaponType->Warhead)->SquidSplash.GetElements(RulesClass::Instance->SplashList);
+		auto const AnimType = pWHExt->SquidSplash.GetElements(RulesClass::Instance->SplashList);
 
 		if(AnimType) {
 
@@ -386,10 +391,8 @@ void FakeParasiteClass::__Grapple_AI()
 		}
 
 		// Check if victim should be submerged
-		const bool culling = WarheadTypeExtContainer::Instance.Find(weaponType->Warhead)
-			->applyCulling(this->Owner, this->Victim);
 
-		if (culling) {
+		if (EnumFunctions::IsTechnoEligible(this->Victim, pWHExt->Parasite_CullingTarget) && pWHExt->applyCulling(this->Owner, this->Victim)) {
 			auto pOwnerType = GET_TECHNOTYPE(this->Owner);
 			auto pVictimType =  GET_TECHNOTYPE(this->Victim);
 
@@ -404,7 +407,7 @@ void FakeParasiteClass::__Grapple_AI()
 			FootClass* victimToSink = this->Victim;
 			this->__Uninfect();
 
-			if (pVictimTypeExt->Sinkable_SquidGrab){
+			if (pVictimTypeExt->Sinkable_SquidGrab.Get(FakeRulesClass::Instance->Sinkable_SquidGrab)){
 				victimToSink->IsSinking = true;
 				victimToSink->Destroyed(this->Owner);
 				victimToSink->Stun();
@@ -465,7 +468,7 @@ void NOINLINE TakeDamage(FootClass* pVictiom , FootClass* pOwner , WeaponTypeCla
 
 	if (pWarheadTypeExt->Parasite_Damaging_Chance.isset()
 		&& ScenarioClass::Instance->Random.RandomDouble() >=
-		Math::abs(pWarheadTypeExt->Parasite_Damaging_Chance.Get())
+		Math::abs(pWarheadTypeExt->Parasite_Damaging_Chance.Fetch())
 	)
 	{
 		return;
@@ -526,13 +529,15 @@ void FakeParasiteClass::__AI()
 
 	// Non-infantry: create spark effects and apply damage
 
-	// Create particle system
-	if (auto pParticle = WarheadTypeExtContainer::Instance.Find(weaponType->Warhead)->Parasite_ParticleSys.Get(RulesClass::Instance->DefaultSparkSystem)) {
-		CoordStruct nLocHere = victimCoord;
-		if (pParticle->BehavesLike == ParticleSystemTypeBehavesLike::Smoke)
-			nLocHere.Z += 100;
+	if(!WarheadTypeExtContainer::Instance.Find(weaponType->Warhead)->Parasite_DisableParticleSystem.Get(FakeRulesClass::Instance->Parasite_DisableParticleSystem)) {
+		// Create particle system
+		if (auto pParticle = WarheadTypeExtContainer::Instance.Find(weaponType->Warhead)->Parasite_ParticleSys.Get(RulesClass::Instance->DefaultSparkSystem)) {
+			CoordStruct nLocHere = victimCoord;
+			if (pParticle->BehavesLike == ParticleSystemTypeBehavesLike::Smoke)
+				nLocHere.Z += 100;
 
-		GameCreate<ParticleSystemClass>(pParticle, nLocHere, this->Victim, this->Owner, CoordStruct::Empty, this->Owner->Owner);
+			GameCreate<ParticleSystemClass>(pParticle, nLocHere, this->Victim, this->Owner, CoordStruct::Empty, this->Owner->Owner);
+		}
 	}
 
 	// Get victim facing direction
@@ -865,9 +870,9 @@ bool FakeParasiteClass::__Victims_Cell_Valid()
 		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pOwnerType);
 		const auto& globalVal = FakeRulesClass::Instance()->Parasite_AllowWaterExit;
 
-		if (pTypeExt->Parasite_AllowWaterExit.isset() && !pTypeExt->Parasite_AllowWaterExit.Get())
+		if (pTypeExt->Parasite_AllowWaterExit.isset() && !pTypeExt->Parasite_AllowWaterExit.Fetch())
 			return false;
-		else if (globalVal.isset() && !globalVal.Get())
+		else if (globalVal.isset() && !globalVal.Fetch())
 			return  false;
 
 		// Naval parasites work on water - check for buildings
@@ -882,7 +887,7 @@ bool FakeParasiteClass::__Victims_Cell_Valid()
 			for (ObjectClass* pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject) {
 					const auto pTerrain = cast_to<TerrainClass*, false>(pObject);
 
-				if (pTerrain && !TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->IsPassable)
+				if (pTerrain && !TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->IsThisPassable())
 					return pTerrain;
 			}
 

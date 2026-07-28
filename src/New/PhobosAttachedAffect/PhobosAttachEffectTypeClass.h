@@ -11,6 +11,8 @@
 
 #include <New/Entity/AnimationDrawOffsetClass.h>
 
+#include <ColorStruct.h>
+
 class PhobosAttachEffectTypeClass;
 struct GroupData
 {
@@ -58,7 +60,7 @@ public:
 	Valueable<bool> PenetratesIronCurtain;
 	Nullable<bool> PenetratesForceShield;
 	Valueable<AnimTypeClass*> Animation;
-	NullableVector<AnimTypeClass*> CumulativeAnimations;
+	ValueableVector<AnimTypeClass*> CumulativeAnimations;
 	Valueable<bool> CumulativeAnimations_RestartOnChange;
 	Valueable<bool> Animation_ResetOnReapply;
 	Valueable<AttachedAnimFlag> Animation_OfflineAction;
@@ -69,7 +71,7 @@ public:
 	Valueable<ExpireWeaponCondition> ExpireWeapon_TriggerOn;
 	Valueable<bool> ExpireWeapon_CumulativeOnlyOnce;
 	Valueable<bool> ExpireWeapon_UseInvokerAsOwner;
-	Nullable<ColorStruct> Tint_Color;
+	Valueable<ColorStruct> Tint_Color;
 	Valueable<double> Tint_Intensity;
 	Valueable<AffectedHouse> Tint_VisibleToHouses;
 	Valueable<double> FirepowerMultiplier;
@@ -294,7 +296,7 @@ public:
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE bool HasTint() {
-		return this->Tint_Color.isset() || this->Tint_Intensity != 0.0;
+		return this->Tint_Color.Get() != ColorStruct::Empty  || this->Tint_Intensity != 0.0;
 	}
 
 	COMPILETIMEEVAL bool HasGroup(const char* pGroupID) {
@@ -327,7 +329,7 @@ public:
 
 	COMPILETIMEEVAL FORCEDINLINE AnimTypeClass* GetCumulativeAnimation(int cumulativeCount)
 	{
-		if (cumulativeCount < 0 || !this->CumulativeAnimations.HasValue() || this->CumulativeAnimations.empty())
+		if (cumulativeCount < 0)
 			return nullptr;
 
 		const int index = static_cast<size_t>(cumulativeCount) >= this->CumulativeAnimations.size() ? this->CumulativeAnimations.size() - 1 : cumulativeCount - 1;

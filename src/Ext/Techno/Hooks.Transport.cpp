@@ -16,7 +16,7 @@
 #define SET_THREATEVALS(addr , techreg , name ,size , ret)\
 ASMJIT_PATCH(addr, name, size) {\
 GET(TechnoClass* , pThis , techreg);\
-	return GET_TECHNOTYPEEXT(pThis->Transporter)->Passengers_SyncOwner.Get() ?  ret : 0; }
+	return GET_TECHNOTYPEEXT(pThis->Transporter)->Passengers_SyncOwner.Get(FakeRulesClass::Instance->Passengers_SyncOwner) ?  ret : 0; }
 
 SET_THREATEVALS(0x6F89F4, ESI, TechnoClass_EvaluateCell_ThreatEvals_OpenToppedOwner, 0x6, 0x6F8A0F)
 
@@ -31,7 +31,7 @@ ASMJIT_PATCH(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
 		auto pPassExt = TechnoExtContainer::Instance.Find(pPassenger);
 		//auto const pPassTypeExt = TechnoTypeExtContainer::Instance.Find(pPassenger->GetTechnoType());
 
-		if (pTransTypeExt->Passengers_SyncOwner && pTransTypeExt->Passengers_SyncOwner_RevertOnExit)
+		if (pTransTypeExt->Passengers_SyncOwner.Get(FakeRulesClass::Instance->Passengers_SyncOwner) && pTransTypeExt->Passengers_SyncOwner_RevertOnExit.Get(FakeRulesClass::Instance->Passengers_SyncOwner_RevertOnExit))
 			pPassExt->OriginalPassengerOwner = pPassenger->Owner;
 
 		for (auto& pLaserTrail : pPassExt->LaserTrails)
@@ -58,7 +58,7 @@ ASMJIT_PATCH(0x4DE722, FootClass_LeaveTransport, 0x6)
 		auto pPassExt = FootExtContainer::Instance.Find(pPassenger);
 		//auto const pPassTypeExt = TechnoTypeExtContainer::Instance.Find(pPassenger->GetTechnoType());
 
-		if (pTransTypeExt->Passengers_SyncOwner && pTransTypeExt->Passengers_SyncOwner_RevertOnExit &&
+		if (pTransTypeExt->Passengers_SyncOwner.Get(FakeRulesClass::Instance->Passengers_SyncOwner) && pTransTypeExt->Passengers_SyncOwner_RevertOnExit.Get(FakeRulesClass::Instance->Passengers_SyncOwner_RevertOnExit) &&
 			pPassExt->OriginalPassengerOwner)
 		{
 			pPassExt->IsOwnerChangeFromRevertOnExit = true;

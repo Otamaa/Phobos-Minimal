@@ -263,6 +263,9 @@ unsigned Phobos::GetVersionNumber() {
 	version += sizeof(InfantryExtData);
 	version += sizeof(InfantryTypeExtData);
 
+	version += sizeof(ParasiteExtData);
+	version += sizeof(CaptureExtData);
+
 	version += sizeof(ParticleExtData);
 	version += sizeof(ParticleTypeExtData);
 

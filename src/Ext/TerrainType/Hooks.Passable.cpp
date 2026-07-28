@@ -36,7 +36,7 @@ bool MouseClassExt::__IsAreaFree(RectangleStruct* pRect, int houseID, bool IsEva
 			bool altPassability = false;
 
 			if (pTerrain) {
-				if (!IsEvaluatingBuildLocation || !TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->CanBeBuiltOn) {
+				if (!IsEvaluatingBuildLocation || !TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->IsThisCanBeBuiltOn()) {
 					return false;
 				}
 
@@ -172,7 +172,7 @@ ASMJIT_PATCH(0x71C110, TerrainClass_SetOccupyBit_PassableTerrain, 0x5)
 
 	GET(TerrainClass*, pThis, ECX);
 
-	return (TerrainTypeExtContainer::Instance.Find(pThis->Type)->IsPassable) ? Skip : 0;
+	return (TerrainTypeExtContainer::Instance.Find(pThis->Type)->IsThisPassable()) ? Skip : 0;
 }
 
 // Passable TerrainTypes Hook #2 - Do not display attack cursor unless force-firing.
@@ -207,7 +207,7 @@ ASMJIT_PATCH(0x483DDF, CellClass_CheckPassability_PassableTerrain, 0x6)
 	GET(CellClass*, pThis, EDI);
 	GET(TerrainClass*, pTerrain, ESI);
 
-	if (TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->IsPassable)
+	if (TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->IsThisPassable())
 	{
 		pThis->Passability = PassabilityType::Passable;
 		return ReturnFromFunction;
@@ -245,7 +245,7 @@ ASMJIT_PATCH(0x47C745, CellClass_IsClearTo_Build_BuildableTerrain, 0x5)
 
 	if (auto const pTerrain = pThis->GetTerrain(false))
 	{
-		if (TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->CanBeBuiltOn)
+		if (TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->IsThisCanBeBuiltOn())
 		{
 			if (IS_CELL_OCCUPIED(pThis))
 				return Skip;
@@ -279,7 +279,7 @@ ASMJIT_PATCH(0x47C657, CellClass_IsClearTo_Build_BuildableTerrain_LF, 0x6)
 			{
 				if (auto const pTerrain = static_cast<TerrainClass*>(pObj))
 				{
-					isEligible = TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->CanBeBuiltOn;
+					isEligible = TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->IsThisCanBeBuiltOn();
 				}
 			}
 
@@ -307,7 +307,7 @@ ASMJIT_PATCH(0x6D57C1, TacticalClass_DrawLaserFencePlacement_BuildableTerrain, 0
 
 	if (auto const pTerrain = pCell->GetTerrain(false))
 	{
-		return (TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->CanBeBuiltOn) ? ContinueChecks : DontDraw;
+		return (TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->IsThisCanBeBuiltOn()) ? ContinueChecks : DontDraw;
 	}
 
 	return ContinueChecks;
@@ -338,7 +338,7 @@ ASMJIT_PATCH(0x5684B1, MapClass_PlaceDown_BuildableTerrain, 0x6)
 			} else if (absType == AbstractType::Terrain) {
 				auto pTerrain = static_cast<TerrainClass*>(pObject);
 
-				if (pTerrain->Type && TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->CanBeBuiltOn)
+				if (pTerrain->Type && TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->IsThisCanBeBuiltOn())
 				{
 					pCell->RemoveContent(pTerrain, false);
 					TerrainTypeExtData::Remove(pTerrain);
@@ -366,7 +366,7 @@ ASMJIT_PATCH(0x5FD2B6, OverlayClass_Unlimbo_SkipTerrainCheck, 0x9)
 	{
 		if (const auto pTerrain = cast_to<TerrainClass*, false>(pCellObject))
 		{
-			if (!TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->CanBeBuiltOn)
+			if (!TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->IsThisCanBeBuiltOn())
 				return NoUnlimbo;
 
 			pCell->RemoveContent(pTerrain, false);
@@ -428,7 +428,7 @@ ASMJIT_PATCH(0x47C640, CellClass_CanThisExistHere_IgnoreSomething, 0x6)
 
 				const auto pTypeExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
 
-				if (!pTypeExt->CanBeBuiltOn)
+				if (!pTypeExt->IsThisCanBeBuiltOn())
 					return CanNotExistHere;
 			}
 		}
@@ -480,7 +480,7 @@ ASMJIT_PATCH(0x47C640, CellClass_CanThisExistHere_IgnoreSomething, 0x6)
 			{
 				const auto pTypeExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
 
-				if (pTypeExt && pTypeExt->CanBeBuiltOn)
+				if (pTypeExt && pTypeExt->IsThisCanBeBuiltOn())
 					builtOnCanBeBuiltOn = true;
 				else
 					return CanNotExistHere;
@@ -546,7 +546,7 @@ ASMJIT_PATCH(0x47C640, CellClass_CanThisExistHere_IgnoreSomething, 0x6)
 			{
 				const auto pTypeExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
 
-				if (pTypeExt && pTypeExt->CanBeBuiltOn)
+				if (pTypeExt && pTypeExt->IsThisCanBeBuiltOn())
 					builtOnCanBeBuiltOn = true;
 				else
 					return CanNotExistHere;
@@ -1348,7 +1348,7 @@ ASMJIT_PATCH(0x45EF3A, BuildingTypeClass_FlushForPlacement_BuildableTerrain, 0x7
 	GET(ObjectClass* const, pObject, ESI);
 
 	if (auto const pTerrain = cast_to<TerrainClass*>(pObject)) {
-		if (!TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->CanBeBuiltOn)
+		if (!TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->IsThisCanBeBuiltOn())
 			return Disallow;
 	}
 

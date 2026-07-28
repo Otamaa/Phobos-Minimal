@@ -268,7 +268,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 	{
 		auto pTransportType = GET_TECHNOTYPE(transport);
 
-		if (pTransportType->OpenTopped && !TechnoTypeExtContainer::Instance.Find(pTransportType)->Passengers_SyncOwner)
+		if (pTransportType->OpenTopped && !TechnoTypeExtContainer::Instance.Find(pTransportType)->Passengers_SyncOwner.Get(FakeRulesClass::Instance->Passengers_SyncOwner))
 		{
 			hasRealOwner = (transport->OriginallyOwnedByHouse != nullptr);
 		}
@@ -857,7 +857,7 @@ bool FakeTechnoClass::__EvaluateObjectB(
 			auto pTransporTypeExt = GET_TECHNOTYPEEXT(transport);
 			auto pTransportType = GET_TECHNOTYPE(transport);
 
-			const bool syncOwnerActive = pTransporTypeExt->Passengers_SyncOwner.Get();
+			const bool syncOwnerActive = pTransporTypeExt->Passengers_SyncOwner.Get(FakeRulesClass::Instance->Passengers_SyncOwner);
 
 			if (!syncOwnerActive && pTransportType->OpenTopped)
 			{
@@ -1078,7 +1078,7 @@ bool FakeTechnoClass::__EvaluateObjectB(
 
 			if (pTargetTypeExt->AI_LegalTarget.isset() && !pThis->Owner->IsControlledByHuman())
 			{
-				if (!pTargetTypeExt->AI_LegalTarget.Get())
+				if (!pTargetTypeExt->AI_LegalTarget.Fetch())
 					return false;
 			}
 			else if (!target->GetType()->LegalTarget)

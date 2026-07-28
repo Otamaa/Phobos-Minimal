@@ -210,7 +210,7 @@ ASMJIT_PATCH(0x71153C, TechnoTypeClass_DefaultToGuardArea_GlobalDefault, 0x6)
 	GET(TechnoTypeClass*, pThis, ESI);
 
 	if (FakeRulesClass::Instance()->DefaultToGuardArea.isset())
-		pThis->DefaultToGuardArea = FakeRulesClass::Instance()->DefaultToGuardArea.Get();
+		pThis->DefaultToGuardArea = FakeRulesClass::Instance()->DefaultToGuardArea.Fetch();
 	else
 		pThis->DefaultToGuardArea = false;
 

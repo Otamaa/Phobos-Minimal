@@ -14,7 +14,7 @@ bool RadarJammerClass::IsEligible(BuildingClass* TargetBuilding)
 		- either a radar or a spysat
 	*/
 	auto const pExt = GET_TECHNOTYPEEXT(this->AttachedToObject);
-	if (EnumFunctions::CanTargetHouse(pExt->RadarJamHouses, this->AttachedToObject->Owner, TargetBuilding->Owner)) {
+	if (EnumFunctions::CanTargetHouse(pExt->RadarJamHouses.Get(FakeRulesClass::Instance->RadarJamHouses), this->AttachedToObject->Owner, TargetBuilding->Owner)) {
 		if(pExt->RadarJamIgnore.Contains(TargetBuilding->Type)
 				|| (!pExt->RadarJamAffect.empty() && !pExt->RadarJamAffect.Contains(TargetBuilding->Type)))
 				return false;
@@ -42,7 +42,7 @@ void RadarJammerClass::Update()
 	auto const pExt = GET_TECHNOTYPEEXT(this->AttachedToObject);
 
 	// we don't want to scan & crunch numbers every frame - this limits it to ScanInterval frames
-	if ((Unsorted::CurrentFrame.get() - this->LastScan) < pExt->RadarJamDelay) {
+	if ((Unsorted::CurrentFrame.get() - this->LastScan) < pExt->RadarJamDelay.Get(FakeRulesClass::Instance->RadarJamDelay)) {
 		return;
 	}
 

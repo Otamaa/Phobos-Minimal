@@ -82,8 +82,8 @@ void DigitalDisplayTypeClass::Draw(Point2D position, int length, int value, int 
 	{
 		if (this->Offset_ShieldDelta.isset())
 		{
-			position.X += this->Offset_ShieldDelta->X;
-			position.Y += this->Offset_ShieldDelta->Y;
+			position.X += this->Offset_ShieldDelta.Fetch().X;
+			position.Y += this->Offset_ShieldDelta.Fetch().Y;
 		}
 		else if (this->InfoType == DisplayInfoType::Shield)
 		{
@@ -152,7 +152,7 @@ void DigitalDisplayTypeClass::DisplayText(Point2D& position, int length, int val
 COMPILETIMEEVAL Point2D GetSpacing(const Nullable<Point2D>& shapeSpace, bool isBuilding)
 {
 	if (shapeSpace.isset())
-		return shapeSpace.Get();
+		return shapeSpace.Fetch();
 
 	return isBuilding ? Point2D{ 4, -2 } : Point2D{ 4 , 0 };
 }

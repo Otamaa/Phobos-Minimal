@@ -97,7 +97,7 @@ void IonCannonStateMachine::Update()
 		}
 
 		if (pData->SW_ActivationSound.isset()) {
-			VocClass::SafeImmedietelyPlayAt(pData->SW_ActivationSound, & coords, nullptr);
+			VocClass::SafeImmedietelyPlayAt(pData->SW_ActivationSound.Fetch(), & coords, nullptr);
 		}
 
 		pData->PrintMessage(pData->Message_Activate, this->Owner);

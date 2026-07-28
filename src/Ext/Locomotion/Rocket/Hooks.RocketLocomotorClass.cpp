@@ -217,13 +217,13 @@ struct _RocketLocomotionClass
 		if (pType->WhatAmI() == AbstractType::AircraftType) {
 			auto pExt = AircraftTypeExtContainer::Instance.Find((AircraftTypeClass*)pType);
 			if (pExt->IsCruiseMissile.isset())
-				return pExt->IsCruiseMissile.Get();
+				return pExt->IsCruiseMissile.Fetch();
 
 			const auto& _opt = pExt->CustomMissileRaise;
 			const auto& _isSet = IsElite ? _opt.Elite : _opt.Rookie;
 
 			if (_isSet.isset())
-				return _isSet.Get();
+				return _isSet.Fetch();
 		}
 
 		return  pType == RulesClass::Instance->CMisl.Type;

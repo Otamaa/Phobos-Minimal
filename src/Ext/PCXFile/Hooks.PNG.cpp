@@ -368,8 +368,6 @@ bool Write_PNG_File(FileClass* name, Surface& pic, const BytePalette* palette, b
  */
 BSurface* Read_PNG_File(FileClass* name, unsigned char* palette, void* buff, long size)
 {
-	assert(name != nullptr);
-
 	LodePNGState state;
 	BSurface* pic = nullptr;
 
@@ -473,7 +471,6 @@ BSurface* Read_PNG_File(FileClass* name, unsigned char* palette, void* buff, lon
 	{
 		pic = new BSurface(png_width, png_height, 2, nullptr);
 	}
-	assert(pic != nullptr);
 
 	//size_t buffersize = lodepng_get_raw_size(png_width, png_height, &state.info_raw);
 	//assert(buffersize == (png_width * png_height));

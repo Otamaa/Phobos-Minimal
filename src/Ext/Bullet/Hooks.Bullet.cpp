@@ -144,7 +144,7 @@ ASMJIT_PATCH(0x469C46, BulletClass_Logics_ApplyMoreLogics, 0x8)
 					types = pWarheadExt->SplashList.GetElements(RulesClass::Instance->SplashList);
 				else if (!pWarheadExt->Splashed){
 					bool createAll = pWarheadExt->AnimList_CreateAll;
-					if (pWarheadExt->CritActive && !pWarheadExt->Crit_AnimList.empty() && !pWarheadExt->Crit_AnimOnAffectedTargets) {
+					if (pWarheadExt->CritActive && !pWarheadExt->Crit_AnimList.empty() && !pWarheadExt->Crit_AnimOnAffectedTargets.Get(FakeRulesClass::Instance->Crit_AnimOnAffectedTargets)) {
 						createAll = pWarheadExt->Crit_AnimList_CreateAll.Get(createAll);
 						if (createAll)
 							types = pWarheadExt->Crit_AnimList;
@@ -213,13 +213,13 @@ ASMJIT_PATCH(0x469C46, BulletClass_Logics_ApplyMoreLogics, 0x8)
 		auto const pCell = pThis->GetCell();
 		const bool isLand = !pCell ? true : pCell->LandType != LandType::Water || pCell->ContainsBridge();
 
-		if (isLand || !pWHExt->Debris_Conventional)
+		if (isLand || !pWHExt->Debris_Conventional.Get(FakeRulesClass::Instance->Debris_Conventional))
 		{
 
 			std::optional<bool> limited {};
 			if (pWHExt->DebrisTypes_Limit.isset())
 			{
-				limited = pWHExt->DebrisTypes_Limit.Get();
+				limited = pWHExt->DebrisTypes_Limit.Fetch();
 			}
 
 			auto pExt = pThis->_GetExtData();

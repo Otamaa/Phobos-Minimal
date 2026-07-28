@@ -39,7 +39,7 @@ DirType NOINLINE BuildingExtData::GetPoseDir(AircraftClass* pAir, BuildingClass*
 			}
 
 			if (pBldTypeExt->LandingDir.isset())
-				return pBldTypeExt->LandingDir.Get();
+				return pBldTypeExt->LandingDir.Fetch();
 
 			if (!pBldTypeExt->AircraftDockingDir_DefaultToPoseDir.Get(pRules->AircraftDockingDir_DefaultToPoseDir)) {
 				if (!isProduction) {
@@ -52,7 +52,7 @@ DirType NOINLINE BuildingExtData::GetPoseDir(AircraftClass* pAir, BuildingClass*
 	auto const pTypeExt = AircraftTypeExtContainer::Instance.Find(pAir->Type);
 
 	if (pTypeExt->LandingDir.isset()) {
-		int landingDir = pTypeExt->LandingDir.Get();
+		int landingDir = pTypeExt->LandingDir.Fetch();
 		if (pAir->Type->AirportBound)
 			return static_cast<DirType>(landingDir & 0xFF);
 		else if (landingDir < 0)

@@ -87,8 +87,8 @@ ASMJIT_PATCH(0x6B7498, SpawnManagerClass_AI_Statte0_Handlestuffs, 0x8)
 
 	if (pExt->IsCustomMissile){
 		if(pExt->CustomMissileOffset.isset()){
-			animCoord.X -= pExt->CustomMissileOffset->X;
-			animCoord.Y -= pExt->CustomMissileOffset->Y;
+			animCoord.X -= pExt->CustomMissileOffset.Fetch().X;
+			animCoord.Y -= pExt->CustomMissileOffset.Fetch().Y;
 		}
 
 		_pAnim = pExt->CustomMissilePreLauchAnim;

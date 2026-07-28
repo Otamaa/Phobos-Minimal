@@ -178,7 +178,7 @@ DamageState FakeTerrainClass::__TakeDamage(int* Damage,
 			{
 				const auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(WH);
 
-				if (!pWarheadExt->Flammability.isset() || ScenarioClass::Instance->Random.PercentChance(Math::abs(pWarheadExt->Flammability.Get())))
+				if (!pWarheadExt->Flammability.isset() || ScenarioClass::Instance->Random.PercentChance(Math::abs(pWarheadExt->Flammability.Fetch())))
 					pThis->Ignite();
 			}
 
@@ -602,7 +602,7 @@ static bool IsTechnoImmuneToAffects(TechnoClass* pTechno, Rank rank, WarheadType
 {
 	auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
-	if (pWHExt->ImmunityType.isset() && TechnoExtData::HasImmunity(rank, pTechno, pWHExt->ImmunityType))
+	if (pWHExt->ImmunityType.isset() && TechnoExtData::HasImmunity(rank, pTechno, pWHExt->ImmunityType.Fetch()))
 	{
 		return true;
 	}
@@ -852,7 +852,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 		}
 		else if (pTypeExt->DropCrate.isset())
 		{
-			nSelectedPowerup = pTypeExt->DropCrate.Get();
+			nSelectedPowerup = pTypeExt->DropCrate.Fetch();
 		}
 
 		if (nSelectedPowerup >= 0) {
@@ -1046,7 +1046,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 
 			if (nSound.isset())
 			{
-				VocClass::SafeImmedietelyPlayAt(nSound, &pThis->Location);
+				VocClass::SafeImmedietelyPlayAt(nSound.Fetch(), &pThis->Location);
 			}
 			else
 			{
@@ -1060,7 +1060,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 
 			if (nSound.isset())
 			{
-				VocClass::SafeImmedietelyPlayAt(nSound, &pThis->Location);
+				VocClass::SafeImmedietelyPlayAt(nSound.Fetch(), &pThis->Location);
 			}
 			else
 			{
@@ -1126,7 +1126,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 		{
 			std::optional<bool> limited {};
 			if (pTypeExt->DebrisTypes_Limit.isset()) {
-				limited = pTypeExt->DebrisTypes_Limit.Get();
+				limited = pTypeExt->DebrisTypes_Limit.Fetch();
 			}
 
 			auto spawn_coords = pThis->GetCoords();
@@ -1138,10 +1138,10 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 			if (pType->Explodes || pThis->HasAbility(AbilityType::Explodes) || (pWeapon && pWeapon->Suicide))
 			{
 				const bool refuseToExplode = pThis->WhatAmI() == AbstractType::Building
-					&& !BuildingTypeExtContainer::Instance.Find(((BuildingClass*)pThis)->Type)->Explodes_DuringBuildup
+					&& !BuildingTypeExtContainer::Instance.Find(((BuildingClass*)pThis)->Type)->Explodes_DuringBuildup.Get(FakeRulesClass::Instance->Explodes_DuringBuildup)
 					&& (pThis->CurrentMission == Mission::Construction || pThis->CurrentMission == Mission::Selling);
 
-				if (GET_TECHNOTYPEEXT(pThis)->Explodes_KillPassengers)
+				if (GET_TECHNOTYPEEXT(pThis)->Explodes_KillPassengers.Get(FakeRulesClass::Instance->Explodes_KillPassengers))
 				{
 
 					while (pThis->Passengers.FirstPassenger)
@@ -1241,7 +1241,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 
 	//const auto pHouse = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
 
-	if (IsAffected && pWHExt->DecloakDamagedTargets.Get())
+	if (IsAffected && pWHExt->DecloakDamagedTargets.Get(FakeRulesClass::Instance->DecloakDamagedTargets))
 		pThis->Reveal();
 
 	const auto bCond1 = (!bAffected || !pWHExt->EffectsRequireDamage);
@@ -1917,7 +1917,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 					&& !BuildingTypeExtContainer::Instance.Find(((BuildingClass*)pThis)->Type)->Explodes_DuringBuildup
 					&& (pThis->CurrentMission == Mission::Construction || pThis->CurrentMission == Mission::Selling);
 
-				if (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->Explodes_KillPassengers)
+				if (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->Explodes_KillPassengers.Get(FakeRulesClass::Instance->Explodes_KillPassengers))
 				{
 
 					while (pThis->Passengers.FirstPassenger)
@@ -2021,7 +2021,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 	//const auto pHouse = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
 
-	if (IsAffected && pWHExt->DecloakDamagedTargets.Get())
+	if (IsAffected && pWHExt->DecloakDamagedTargets..Get(FakeRulesClass::Instance->DecloakDamagedTargets))
 		pThis->Reveal();
 
 	const auto bCond1 = (!bAffected || !pWHExt->EffectsRequireDamage);
@@ -2166,7 +2166,7 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 	auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 	auto pBldExt = BuildingExtContainer::Instance.Find(pThis);
 
-	if (pThis == Attacker && (!pWHExt->AllowDamageOnSelf && !pThis->Type->DamageSelf))
+	if (pThis == Attacker && (!pWHExt->AllowDamageOnSelf.Get(FakeRulesClass::Instance->AllowDamageOnSelf) && !pThis->Type->DamageSelf))
 	{
 		return DamageState::Unaffected;
 	}
@@ -2613,7 +2613,7 @@ DamageState FakeAircraftClass::__Take_Damage(int* damage, int distance, WarheadT
 			args.PreventsPassengerEscape);
 
 		const auto& crashable = TechnoTypeExtContainer::Instance.Find(this->Type)->Crashable;
-		if ((crashable.isset() && !crashable.Get()) || !this->Crash(args.Attacker))
+		if ((crashable.isset() && !crashable.Fetch()) || !this->Crash(args.Attacker))
 			this->UnInit();
 
 	}

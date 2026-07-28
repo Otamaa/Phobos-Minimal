@@ -262,7 +262,7 @@ Iterator<BuildingTypeClass*> SideExtData::GetDefaultBaseDefenses() const
 InfantryTypeClass* SideExtData::GetDisguise() const
 {
 	if (this->Disguise.isset()) {
-		return this->Disguise;
+		return this->Disguise.Fetch();
 	}
 
 	return this->GetDefaultDisguise();

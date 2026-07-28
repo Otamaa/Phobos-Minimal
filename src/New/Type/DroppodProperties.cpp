@@ -51,12 +51,14 @@ void NullableDroppodProperties::Read(INI_EX& exINI, const char* pSection)
 	this->Droppod_Puff.Read(exINI, pSection, "DropPod.Puff");
 	this->Droppod_Angle.Read(exINI, pSection, "DropPod.Angle");
 
-	if (this->Droppod_Angle.isset() && this->Droppod_Angle >= Math::PI_SQRT_TWO_BY_FOUR) {
-		this->Droppod_Angle = Math::PI_SQRT_TWO_BY_FOUR;
-	}
+	if(this->Droppod_Angle.isset()){
+		if(this->Droppod_Angle.Fetch() >= Math::PI_SQRT_TWO_BY_FOUR) {
+			this->Droppod_Angle = Math::PI_SQRT_TWO_BY_FOUR;
+		}
 
-	if (this->Droppod_Angle.isset() && this->Droppod_Angle <= Math::PI_BY_EIGHT) {
-		this->Droppod_Angle = Math::PI_BY_EIGHT;
+		if (this->Droppod_Angle.Fetch() <= Math::PI_BY_EIGHT) {
+			this->Droppod_Angle = Math::PI_BY_EIGHT;
+		}
 	}
 
 	this->Droppod_Speed.Read(exINI, pSection, "DropPod.Speed");

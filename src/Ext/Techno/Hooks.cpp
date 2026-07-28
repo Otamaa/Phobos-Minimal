@@ -187,7 +187,7 @@ ASMJIT_PATCH(0x70EFE0, TechnoClass_GetMaxSpeed, 0x8) //6
 	auto pType = GET_TECHNOTYPE(pThis);
 
 	{
-		if (TechnoTypeExtContainer::Instance.Find(pType)->UseDisguiseMovementSpeed)
+		if (TechnoTypeExtContainer::Instance.Find(pType)->UseDisguiseMovementSpeed.Get(FakeRulesClass::Instance->UseDisguiseMovementSpeed))
 			pType = TechnoExtData::GetSimpleDisguiseType(pThis, false, false);
 
 		maxSpeed = pType->Speed;
@@ -269,7 +269,7 @@ ASMJIT_PATCH(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 
 	if (pWeaponExt->ROF_RandomDelay.isset())
 	{
-		nResult += GeneralUtils::GetRangedRandomOrSingleValue(pWeaponExt->ROF_RandomDelay);
+		nResult += GeneralUtils::GetRangedRandomOrSingleValue(pWeaponExt->ROF_RandomDelay.Fetch());
 	}
 
 	int _ROF = int(
@@ -352,8 +352,40 @@ ASMJIT_PATCH(0x5F46AE, ObjectClass_Select, 0x7)
 {
 	GET(ObjectClass*, pThis, ESI);
 
-	if (FakeRulesClass::Instance()->SelectFlashTimer > 0 && pThis->GetOwningHouse() && pThis->GetOwningHouse()->ControlledByCurrentPlayer())
-		pThis->Flash(FakeRulesClass::Instance()->SelectFlashTimer);
+	auto pOwner = pThis->GetOwningHouse();
+	const bool isControlledbyCurrentPlayer = pOwner->ControlledByCurrentPlayer();
+	const bool IsCurrentPlayer = pOwner->IsCurrentPlayer();
+	pThis->IsSelected = true;
+
+	if(Phobos::Config::ShowFlashOnSelecting) {
+		if (FakeRulesClass::Instance()->SelectFlashTimer > 0 && isControlledbyCurrentPlayer)
+			pThis->Flash(FakeRulesClass::Instance()->SelectFlashTimer);
+	}
+
+	if (FakeRulesClass::Instance->SetTabBySelectingFactory && pThis->WhatAmI() == AbstractType::Building && IsCurrentPlayer) {
+		auto pBld = static_cast<BuildingClass*>(pThis);
+		auto const pBldTypeExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
+		const int tabIndex = pBldTypeExt->SetTabBySelecting;
+
+		if (tabIndex >= 0 && tabIndex < 4)
+			TabClass::Instance->ChangeTab(tabIndex);
+		else if (tabIndex < 0)
+			switch (pBld->Type->Factory)
+			{
+			case AbstractType::InfantryType:
+				TabClass::Instance->ChangeTab(2);
+				break;
+			case AbstractType::UnitType:
+			case AbstractType::AircraftType:
+				TabClass::Instance->ChangeTab(3);
+				break;
+			case AbstractType::BuildingType:
+				TabClass::Instance->ChangeTab(SidebarClass::Instance->ActiveTabIndex == 0 ? 1 : 0); // A controversial design, but no one has yet proposed a better one.
+				break;
+			default:
+				break;
+			}
+	}
 
 	return 0x0;
 }
@@ -506,7 +538,7 @@ ASMJIT_PATCH(0x6B7600, SpawnManagerClass_AI_InitDestination, 0x6)
 
 	auto const pTypeExt = GET_TECHNOTYPEEXT(pThis->Owner);
 
-	if (pTypeExt->Spawner_AttackImmediately)
+	if (pTypeExt->Spawner_AttackImmediately.Get(FakeRulesClass::Instance->Spawner_AttackImmediately))
 	{
 		pSpawnee->SetTarget(pThis->Target);
 		pSpawnee->QueueMission(Mission::Attack, true);
@@ -717,11 +749,12 @@ ASMJIT_PATCH(0x6B7793, SpawnManagerClass_Update_RecycleSpawned, 0x7)
 	auto shouldRecycleSpawned = [&]()
 	{
 		auto const recycleCrd = pCarrierTypeExt->Spawner_RecycleFLH->IsValid()
-			? TechnoExtData::GetFLHAbsoluteCoords(pCarrier, pCarrierTypeExt->Spawner_RecycleFLH, pCarrierTypeExt->Spawner_RecycleOnTurret)
+			? TechnoExtData::GetFLHAbsoluteCoords(pCarrier, pCarrierTypeExt->Spawner_RecycleFLH, 
+				pCarrierTypeExt->Spawner_RecycleOnTurret.Get(FakeRulesClass::Instance->Spawner_RecycleOnTurret))
 			: pCarrier->GetCoords();
 
 		auto const deltaCrd = spawnerCrd - recycleCrd;
-		const int recycleRange = pCarrierTypeExt->Spawner_RecycleRange.Get();
+		const int recycleRange = pCarrierTypeExt->Spawner_RecycleRange.Get(FakeRulesClass::Instance->Spawner_RecycleRange);
 
 		if (recycleRange < 0)
 		{
@@ -762,7 +795,8 @@ ASMJIT_PATCH(0x4D962B, FootClass_SetDestination_RecycleFLH, 0x5)
 		auto pCarrierTypeExt = GET_TECHNOTYPEEXT(pCarrier);
 
 		if (pCarrierTypeExt->Spawner_RecycleFLH->IsValid())
-			*pDestCrd += TechnoExtData::GetFLHAbsoluteCoords(pCarrier, pCarrierTypeExt->Spawner_RecycleFLH, pCarrierTypeExt->Spawner_RecycleOnTurret) - pCarrier->GetCoords();
+			*pDestCrd += TechnoExtData::GetFLHAbsoluteCoords(pCarrier, pCarrierTypeExt->Spawner_RecycleFLH, 
+				pCarrierTypeExt->Spawner_RecycleOnTurret.Get(FakeRulesClass::Instance->Spawner_RecycleOnTurret)) - pCarrier->GetCoords();
 
 	}else if (!pType->MissileSpawn && pThis->Destination && pThis->Destination->WhatAmI() == AbstractType::Building
 	&& pThis->SendCommand(RadioCommand::QueryCanEnter, static_cast<BuildingClass*>(pThis->Destination)) != RadioCommand::AnswerPositive)
@@ -840,7 +874,7 @@ ASMJIT_PATCH(0x655DDD, RadarClass_ProcessPoint_RadarInvisible, 0x6)
 		{
 			auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-			if (!pTypeExt->RadarInvisibleToHouse.isset() || EnumFunctions::CanTargetHouse(pTypeExt->RadarInvisibleToHouse, pTechno->Owner, HouseClass::CurrentPlayer))
+			if (!pTypeExt->RadarInvisibleToHouse.isset() || EnumFunctions::CanTargetHouse(pTypeExt->RadarInvisibleToHouse.Fetch(), pTechno->Owner, HouseClass::CurrentPlayer))
 				return Invisible;
 		}
 	}
@@ -855,7 +889,7 @@ ASMJIT_PATCH(0x6B74F0, SpawnManagerClass_AI_UseTurretFacing, 0x5)
 
 	auto const pTechno = pThis->Owner;
 
-	if (pTechno->HasTurret() && GET_TECHNOTYPEEXT(pTechno)->Spawner_UseTurretFacing)
+	if (pTechno->HasTurret() && GET_TECHNOTYPEEXT(pTechno)->Spawner_UseTurretFacing.Get(FakeRulesClass::Instance->Spawner_UseTurretFacing))
 		R->EAX(pTechno->SecondaryFacing.Current().Raw);
 
 	return 0;
@@ -1920,13 +1954,13 @@ bool NOINLINE __fastcall ___CanPassiveAquire(TechnoClass* pThis)
 			&& !pOwner->IsControlledByHuman()
 			)
 		{
-			if(!pExt->TypeExtData->PassiveAcquire_AI.Get())
+			if(!pExt->TypeExtData->PassiveAcquire_AI.Fetch())
 				return false;
 		}
 	}
 
 	if(pType->Naval && pExt->TypeExtData->CanPassiveAquire_Naval.isset()){
-		if(!pExt->TypeExtData->CanPassiveAquire_Naval)
+		if(!pExt->TypeExtData->CanPassiveAquire_Naval.Fetch())
 			return false;
 	}
 
@@ -2385,7 +2419,7 @@ ASMJIT_PATCH(0x6B7282, SpawnManagerClass_AI_PromoteSpawns, 0x5)
 
 	if (auto pOwner = pThis->Owner)
 	{
-		if (GET_TECHNOTYPEEXT(pOwner)->Promote_IncludeSpawns)
+		if (GET_TECHNOTYPEEXT(pOwner)->Promote_IncludeSpawns.Get(FakeRulesClass::Instance->Promote_IncludeSpawns))
 		{
 			for (const auto& i : pThis->SpawnedNodes)
 			{
@@ -2664,7 +2698,7 @@ int __fastcall FakeTechnoClass::__GetGuardRange(TechnoClass* pThis, discard_t, i
 	int range = pType->GuardRange;
 
 	if (pThis->CurrentMission == Mission::Area_Guard && pTypeExt->AreaGuardRange.isset())
-		range = pTypeExt->AreaGuardRange.Get();
+		range = pTypeExt->AreaGuardRange.Fetch();
 
 	if (!control) // Control = 0, used for ThreatType=Range target acquisition.
 	{

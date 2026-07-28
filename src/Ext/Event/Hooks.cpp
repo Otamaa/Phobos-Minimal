@@ -440,3 +440,37 @@ ASMJIT_PATCH(0x4C7643, EventClass_RespondToEvent_StopTemporal, 0x6)
 
 //EventClass_Execute_IDLE
 DEFINE_JUMP(LJMP, 0x4C752A, 0x4C757D); // Skip cell under bridge check
+
+
+bool CanReceiveEvent(TechnoClass* pThis)
+{
+	if (pThis->Berzerk)
+		return false;
+
+	if (pThis->GetTechnoType()->Spawned)
+		return false;
+
+	if (pThis->SlaveOwner)
+		return false;
+
+	//auto const pOwner = pThis->GetOwningHouse();
+
+	//if (pOwner != pHouse && !(pHouse->IsCurrentPlayer() && pOwner->ControlledByCurrentPlayer()))
+	//	return false;
+
+	return true;
+}
+
+//DEFINE_HOOK_AGAIN(0x4C6D4D, EventClass_RespondToEvent_CheckControllability, 0x8)  // PowerOff
+//DEFINE_HOOK_AGAIN(0x4C71CA, EventClass_RespondToEvent_CheckControllability, 0x8)  // MegaMission
+//DEFINE_HOOK_AGAIN(0x4C74CB, EventClass_RespondToEvent_CheckControllability, 0x8)  // Idle
+//DEFINE_HOOK_AGAIN(0x4C7859, EventClass_RespondToEvent_CheckControllability, 0x8)  // Scatter
+//DEFINE_HOOK_AGAIN(0x4C76BC, EventClass_RespondToEvent_CheckControllability, 0x8)  // Deploy
+//DEFINE_HOOK_AGAIN(0x4C6F12, EventClass_RespondToEvent_CheckControllability, 0x8)  // Sell
+//DEFINE_HOOK(0x4C6CF0, EventClass_RespondToEvent_CheckControllability, 0x8)  // PowerOn
+//{
+//	GET(EventClass* const, pThis, ESI);
+//
+//	auto const pTechno = pThis->Data.MegaMission.Whom.As_Techno();
+//	return pTechno->IsAlive && CanReceiveEvent(pTechno) ? 0 : 0x4C6D42;
+//}

@@ -394,7 +394,7 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 		if(pWHExt->Malicious && !pWHExt->Nonprovocative)
 			this->ResponseAttack(args->WH);
 
-		if (pWHExt->DecloakDamagedTargets)
+		if (pWHExt->DecloakDamagedTargets.Get(FakeRulesClass::Instance->DecloakDamagedTargets))
 			this->Techno->Uncloak(false);
 
 		const auto nHPCopy = this->HP;
@@ -412,7 +412,7 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 			if (bool(Phobos::Debug_DisplayDamageNumbers > DrawDamageMode::disabled) && Phobos::Debug_DisplayDamageNumbers < DrawDamageMode::count && (nHPCopy) != 0)
 				FlyingStrings::Instance.DisplayDamageNumberString(nHPCopy, DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset ,Phobos::Debug_DisplayDamageNumbers);
 
-			this->BreakShield(pWHExt->Shield_BreakAnim, pWHExt->Shield_BreakWeapon.Get(nullptr));
+			this->BreakShield(pWHExt->Shield_BreakAnim, pWHExt->Shield_BreakWeapon);
 
 			//rest of the damage will be passed to the techno
 			nDamageResult = this->Type->AbsorbOverDamage ? PassableDamageAnount : residueDamage + PassableDamageAnount;
@@ -785,7 +785,7 @@ void ShieldClass::TemporalCheck()
 
 void ShieldClass::UpdateTint(bool forceUpdate)
 {
-	if (this->Type->Tint_Color.isset() || this->Type->Tint_Intensity != 0.0 || forceUpdate){
+	if (this->Type->Tint_Color.Get() != ColorStruct::Empty  || this->Type->Tint_Intensity != 0.0 || forceUpdate){
 		TechnoExtContainer::Instance.Find(this->Techno)->Tints.Update();
 		this->Techno->MarkForRedraw();
 	}

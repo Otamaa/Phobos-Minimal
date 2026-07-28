@@ -188,7 +188,7 @@ ASMJIT_PATCH(0x70C862, TechnoClass_Railgun_AmbientDamageIgnoreTarget1, 0x5)
 
 	GET_BASE(WeaponTypeClass*, pWeapon, 0x14);
 
-	return WeaponTypeExtContainer::Instance.Find(pWeapon)->AmbientDamage_IgnoreTarget ?
+	return WeaponTypeExtContainer::Instance.Find(pWeapon)->AmbientDamage_IgnoreTarget.Get(FakeRulesClass::Instance->AmbientDamage_IgnoreTarget) ?
 		IgnoreTarget : Continue;
 }
 
@@ -199,7 +199,7 @@ ASMJIT_PATCH(0x70CA8B, TechnoClass_Railgun_AmbientDamageIgnoreTarget2, 0x6)
 	GET_BASE(WeaponTypeClass*, pWeapon, 0x14);
 	REF_STACK(DynamicVectorClass<ObjectClass*>, objects, 0xC0 - 0xAC);
 
-	if (WeaponTypeExtContainer::Instance.Find(pWeapon)->AmbientDamage_IgnoreTarget)
+	if (WeaponTypeExtContainer::Instance.Find(pWeapon)->AmbientDamage_IgnoreTarget.Get(FakeRulesClass::Instance->AmbientDamage_IgnoreTarget))
 	{
 		R->EAX(objects.Count);
 		return IgnoreTarget;

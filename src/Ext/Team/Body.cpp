@@ -73,11 +73,11 @@ bool TeamExtData::IsEligible(TechnoTypeClass* pGoing, TechnoTypeClass* reinfocem
 		return true;
 
 	if (TechnoTypeExtContainer::Instance.Find(pGoing)->RecuitedAs.isset()
-					&& TechnoTypeExtContainer::Instance.Find(pGoing)->RecuitedAs == reinfocement)
+					&& TechnoTypeExtContainer::Instance.Find(pGoing)->RecuitedAs.Fetch() == reinfocement)
 		return true;
 
 	if (TechnoTypeExtContainer::Instance.Find(reinfocement)->RecuitedAs.isset()
-		&& TechnoTypeExtContainer::Instance.Find(reinfocement)->RecuitedAs == pGoing)
+		&& TechnoTypeExtContainer::Instance.Find(reinfocement)->RecuitedAs.Fetch() == pGoing)
 		return true;
 
 	if (!TechnoTypeExtContainer::Instance.Find(pGoing)->TeamMember_ConsideredAs.empty() && TechnoTypeExtContainer::Instance.Find(pGoing)->TeamMember_ConsideredAs.Contains(reinfocement))

@@ -25,14 +25,14 @@ void TiberiumEaterTypeClass::LoadFromINI(CCINIClass* pINI, const char* pSection)
 			if (!cell.isset())
 				break;
 
-			this->Cells.emplace_back(cell.Get().X * Unsorted::LeptonsPerCell, cell.Get().Y * Unsorted::LeptonsPerCell);
+			this->Cells.emplace_back(cell.Fetch().X * Unsorted::LeptonsPerCell, cell.Fetch().Y * Unsorted::LeptonsPerCell);
 		}
 		else
 		{
 			if (!cell.isset())
 				continue;
 
-			this->Cells[idx] = Point2D { cell.Get().X * Unsorted::LeptonsPerCell, cell.Get().Y * Unsorted::LeptonsPerCell };
+			this->Cells[idx] = Point2D { cell.Fetch().X * Unsorted::LeptonsPerCell, cell.Fetch().Y * Unsorted::LeptonsPerCell };
 		}
 	}
 

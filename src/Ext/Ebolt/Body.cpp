@@ -14,9 +14,9 @@ void EboltExtData::GetColors(int(&color)[3] , EBolt* pBolt, Nullable<ColorStruct
 	color[0] = color[1] = FileSystem::PALETTE_PAL()->inline_02(pBolt->AlternateColor != 0 ? 5 : 10);
 	color[2] = FileSystem::PALETTE_PAL()->inline_02(15);
 
-	if (clr1.isset()) { color[0] = clr1->ToInit(); }
-	if (clr2.isset()) { color[1] = clr2->ToInit(); }
-	if (clr3.isset()) { color[2] = clr3->ToInit(); }
+	if (clr1.isset()) { color[0] = clr1.Fetch().ToInit(); }
+	if (clr2.isset()) { color[1] = clr2.Fetch().ToInit(); }
+	if (clr3.isset()) { color[2] = clr3.Fetch().ToInit(); }
 }
 
 EBolt* EboltExtData::_CreateOneOf(WeaponTypeClass * pWeapon, TechnoClass * pFirer) {
@@ -32,7 +32,7 @@ EBolt* EboltExtData::_CreateOneOf(WeaponTypeClass * pWeapon, TechnoClass * pFire
 	if(pFirer)
 		map->BurstIndex = pFirer->CurrentBurstIndex;
 
-	map->ParticleSysEnabled = !pWpExt->Bolt_ParticleSys.isset() || pWpExt->Bolt_ParticleSys ;
+	map->ParticleSysEnabled = !pWpExt->Bolt_ParticleSys.isset() || !pWpExt->Bolt_ParticleSys.Fetch();
 	map->pSys = pWpExt->Bolt_ParticleSys.Get(RulesClass::Instance->DefaultSparkSystem);
 
 	map->Disable[0] = pWpExt->Bolt_Disables[0];

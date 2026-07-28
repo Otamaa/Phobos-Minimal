@@ -97,7 +97,7 @@ ASMJIT_PATCH(0x424CB0, AnimClass_InWhichLayer_AttachedObjectLayer, 0x6)
 	{
 		Layer layer = pThis->Type->Layer;
 
-		if (pExt->Layer_UseObjectLayer.Get())
+		if (pExt->Layer_UseObjectLayer.Fetch())
 			layer = pThis->OwnerObject->InWhichLayer();
 
 		R->EAX(layer);

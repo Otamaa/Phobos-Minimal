@@ -33,7 +33,7 @@ ASMJIT_PATCH(0x73844A, UnitClass_Destroyed_PlaceCrate, 0x8)
 	GET(CellStruct, cell, EAX);
 
 	const auto CrateType = &TechnoTypeExtContainer::Instance.Find(pThis->Type)->Destroyed_CrateType;
-	PowerupEffects crate = CrateType->isset() ? (PowerupEffects)CrateType->Get() : (PowerupEffects)CrateTypeClass::Array.size();
+	PowerupEffects crate = CrateType->isset() ? (PowerupEffects)CrateType->Fetch() : (PowerupEffects)CrateTypeClass::Array.size();
 	MapClass::Instance->Place_Crate(cell, crate);
 	return 0x738457;
 }
@@ -331,7 +331,7 @@ ASMJIT_PATCH(0x7394FF, UnitClass_TryToDeploy_CantDeployVoice, 0x8)
 
 	if (pThisTechno->VoiceCantDeploy.isset()) {
 		//pThis->QueueVoice(pThisTechno->VoiceCantDeploy);
-		VocClass::SafeImmedietelyPlayAt(pThisTechno->VoiceCantDeploy, &pThis->Location);
+		VocClass::SafeImmedietelyPlayAt(pThisTechno->VoiceCantDeploy.Fetch(), &pThis->Location);
 	}
 
 	return 0x73950F;

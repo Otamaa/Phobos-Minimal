@@ -8,6 +8,8 @@
 
 #include <Point3D.h>
 
+#include <ColorStruct.h>
+
 class ShieldTypeClass final : public Enumerable<ShieldTypeClass>
 {
 public:
@@ -74,7 +76,7 @@ public:
 	Valueable<bool> HitFlash_Blue;
 	Valueable<bool> HitFlash_Black;
 
-	Nullable<ColorStruct> Tint_Color;
+	Valueable<ColorStruct> Tint_Color;
 	Valueable<double> Tint_Intensity;
 	Valueable<AffectedHouse> Tint_VisibleToHouses;
 
@@ -165,7 +167,7 @@ public:
 	}
 
 	COMPILETIMEEVAL OPTIONALINLINE bool HasTint() const {
-		return this->Tint_Color.isset() || this->Tint_Intensity != 0.0;
+		return this->Tint_Color.Get() != ColorStruct::Empty || this->Tint_Intensity != 0.0;
 	}
 
 private:

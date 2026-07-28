@@ -179,7 +179,7 @@ void FakeDiskLaserClass::__AI()
 			}
 		}
 	}
-	int zAdj = pWeaponExt->LaserZAdjust;
+	int zAdj = pWeaponExt->LaserZAdjust.Get(FakeRulesClass::Instance->LaserZAdjust);
 	// ============================================================
 
 	// Determine colors

@@ -120,10 +120,10 @@ public:
 	// ============================================================
 	// Valueable<bool> (1 byte each, packed together at the end)
 	// ============================================================
-	Valueable<bool> Interceptable { false };
+	Nullable<bool> Interceptable { };
 	Valueable<bool> Gravity_HeightFix { false };
-	Valueable<bool> Shrapnel_AffectsGround { false };
-	Valueable<bool> Shrapnel_AffectsBuildings { false };
+	Nullable<bool> Shrapnel_AffectsGround {  };
+	Nullable<bool> Shrapnel_AffectsBuildings {  };
 	Valueable<bool> Shrapnel_UseWeaponTargeting { false };
 	Valueable<bool> Interceptable_DeleteOnIntercept { false };
 	Valueable<bool> SubjectToLand_Detonate { true };
@@ -132,17 +132,17 @@ public:
 	Valueable<bool> SubjectToSolid { false };
 	Valueable<bool> Splits { false };
 	Valueable<bool> RetargetOwner { true };
-	Valueable<bool> Airburst_UseCluster { false };
+	Nullable<bool> Airburst_UseCluster { };
 	Valueable<bool> Airburst_RandomClusters { false };
-	Valueable<bool> Splits_UseWeaponTargeting { false };
-	Valueable<bool> AirburstWeapon_ApplyFirepowerMult { false };
+	Nullable<bool> Splits_UseWeaponTargeting {  };
+	Nullable<bool> AirburstWeapon_ApplyFirepowerMult {  };
 	Valueable<bool> Splits_RandomCellUseHarcodedRange { true };
 	Valueable<bool> Splits_TargetingUseVerses { true };
 	Valueable<bool> Splits_FillRemainingClusterWithRandomcells { true };
-	Valueable<bool> Splits_TargetingDistance_Cylindrical { false };
-	Valueable<bool> Splits_AllowRepeatTargets { false };
-	Valueable<bool> AirburstWeapon_UseFiringEffects { false };
-	Valueable<bool> AirburstWeapon_HeadToTarget {};
+	Nullable<bool> Splits_TargetingDistance_Cylindrical { };
+	Nullable<bool> Splits_AllowRepeatTargets { };
+	Nullable<bool> AirburstWeapon_UseFiringEffects { };
+	Nullable<bool> AirburstWeapon_HeadToTarget {};
 	Valueable<int> AirburstWeapon_RadialFireSegments {};
 	Valueable<bool> BounceOnTerrain { true };
 	Valueable<bool> BounceOnBuilding { false };
@@ -151,13 +151,13 @@ public:
 	Valueable<bool> SubjectToTrenches { true };
 	Valueable<bool> IsScalable { false };
 	Valueable<bool> Parachuted { false };
-	Valueable<bool> Arcing_AllowElevationInaccuracy { true };
-	Valueable<bool> ReturnWeapon_ApplyFirepowerMult { false };
+	Nullable<bool> Arcing_AllowElevationInaccuracy { };
+	Nullable<bool> ReturnWeapon_ApplyFirepowerMult { };
 	Valueable<bool> SubjectToGround { false };
 	Valueable<bool> Airburst_TargetAsSource { false };
-	Valueable<bool> Airburst_TargetAsSource_SkipHeight { false };
+	Nullable<bool> Airburst_TargetAsSource_SkipHeight { };
 	Valueable<bool> Parachuted_Remap { true };
-	Valueable<bool> Vertical_AircraftFix { true };
+	Nullable<bool> Vertical_AircraftFix { };
 	Valueable<bool> AU { false };
 	Nullable<bool> Shrapnel_ObeyWarheadTriggerConditions {};
 	// 35 Valueable<bool> = 35 bytes, pads to 36 for 4-byte alignment
@@ -215,7 +215,7 @@ public:
 	COMPILETIMEEVAL double FORCEDINLINE GetMissileROTVar(const RulesClass* const pRules) const
 	{
 		if (MissileROTVar.isset())
-			return MissileROTVar.Get();
+			return MissileROTVar.Fetch();
 
 		return pRules->MissileROTVar;
 	}
@@ -223,7 +223,7 @@ public:
 	COMPILETIMEEVAL int FORCEDINLINE GetMissileSaveAltitude(const RulesClass* const pRules) const
 	{
 		if (MissileSafetyAltitude.isset())
-			return MissileSafetyAltitude.Get();
+			return MissileSafetyAltitude.Fetch();
 
 		return pRules->MissileSafetyAltitude;
 	}

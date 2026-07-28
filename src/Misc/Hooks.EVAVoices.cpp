@@ -259,7 +259,7 @@ ASMJIT_PATCH(0x68AD0C, ScenarioClass_ReadMap_SetEVAIndex, 0x7)
 {
 	if (const auto pHouse = HouseClass::CurrentPlayer()) {
 		if (ScenarioExtData::Instance()->IsHouseTypeVoiceNeedCheck)
-			VoxClass::EVAIndex = HouseTypeExtContainer::Instance.Find(pHouse->Type)->EVAIndex.Get();
+			VoxClass::EVAIndex = HouseTypeExtContainer::Instance.Find(pHouse->Type)->EVAIndex.Fetch();
 	}
 
 	return 0;

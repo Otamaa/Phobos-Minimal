@@ -1480,7 +1480,8 @@ namespace
 						: pThis->_GetExtData()->Owner;
 
 					if (WarheadTypeExtContainer::Instance
-							.Find(FakeRulesClass::Instance()->FirestormWarhead)
+							.Find(FakeRulesClass::Instance()->FirestormWarhead.Get(
+				  RulesClass::Instance->C4Warhead))
 							->CanAffectHouse(pBld->Owner, pOwner))
 					{
 						pOwner = nullptr;
@@ -1696,7 +1697,7 @@ namespace
 			}
 
 			if (pSWTypeExt->Lighting_Enabled.isset())
-				allowFlash = pSWTypeExt->Lighting_Enabled.Get();
+				allowFlash = pSWTypeExt->Lighting_Enabled.Fetch();
 		}
 
 		// Optional screen flash (replaces NukeFlash::FadeIn call)

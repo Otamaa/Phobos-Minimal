@@ -38,9 +38,9 @@ namespace Tiberiumpip
 	{
 
 		if (isWeeder && pTypeData->Weeder_PipEmptyIndex.isset())
-			return pTypeData->Weeder_PipEmptyIndex;
+			return pTypeData->Weeder_PipEmptyIndex.Fetch();
 		else if (pTypeData->Tiberium_EmptyPipIdx.isset())
-			return pTypeData->Tiberium_EmptyPipIdx;
+			return pTypeData->Tiberium_EmptyPipIdx.Fetch();
 
 		return 0;
 	}

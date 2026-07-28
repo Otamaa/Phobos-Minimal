@@ -379,17 +379,17 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 						pExt->DelayedFireWeaponIndex = which;
 
 						timer.Start(MaxImpl(GeneralUtils::GetRangedRandomOrSingleValue(
-							pWeaponExt->DelayedFire_Duration), 0));
+							pWeaponExt->DelayedFire_Duration.Fetch()), 0));
 						
 						auto pAnimType = pWeaponExt->DelayedFire_Animation;
 
 						if (pThis->Transporter && pWeaponExt->DelayedFire_OpenToppedAnimation.isset())
-							pAnimType = pWeaponExt->DelayedFire_OpenToppedAnimation.Get();
+							pAnimType = pWeaponExt->DelayedFire_OpenToppedAnimation.Fetch();
 
 						auto firingCoords = fireOrigin;
 
 						if (pWeaponExt->DelayedFire_AnimOffset.isset())
-							firingCoords = pWeaponExt->DelayedFire_AnimOffset;
+							firingCoords = pWeaponExt->DelayedFire_AnimOffset.Fetch();
 
 						pExt->CreateDelayedFireAnim(pAnimType, which, pWeaponExt->DelayedFire_AnimIsAttached, pWeaponExt->DelayedFire_CenterAnimOnFirer,
 						pWeaponExt->DelayedFire_RemoveAnimOnNoDelay, pWeaponExt->DelayedFire_AnimOnTurret, firingCoords);
@@ -1211,7 +1211,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 				auto* pFireExt = BulletExtContainer::Instance.Find(pBullet);
 				pFireExt->InterceptorTechnoType = pTechnoType;
 				pFireExt->InterceptedStatus |= InterceptedStatus::Targeted;
-				if (!pTechnoTypeExt->Interceptor_ApplyFirepowerMult)
+				if (!pTechnoTypeExt->Interceptor_ApplyFirepowerMult.Get(FakeRulesClass::Instance->Interceptor_ApplyFirepowerMult))
 					pBullet->Health = pWeapon->Damage;
 			}
 		}
@@ -2236,7 +2236,7 @@ ASMJIT_PATCH(0x6FF008, TechnoClass_FireAt_FSW, 8)
 		GET_STACK(CoordStruct, fireCoords, STACK_OFFSET(0xB0, -0x6C));
 
 		const auto crdTgt = crdOffset + fireCoords;
-		if (Bullet->Type->Arcing && !Bullet->_GetTypeExtData()->Arcing_AllowElevationInaccuracy)
+		if (Bullet->Type->Arcing && !Bullet->_GetTypeExtData()->Arcing_AllowElevationInaccuracy.Get(RulesExt::Global()->Arcing_AllowElevationInaccuracy))
 		{
 			REF_STACK(VelocityClass, velocity, STACK_OFFSET(0xB0, -0x60));
 			REF_STACK(CoordStruct, crdSrc, STACK_OFFSET(0xB0, -0x6C));
@@ -2344,12 +2344,12 @@ ASMJIT_PATCH(0x7413DD, UnitClass_FireAt_RecoilForce, 0x6)
 
 	const auto& force = WeaponTypeExtContainer::Instance.Find(pTraj->WeaponType)->RecoilForce;
 
-	if (!force.isset() || Math::abs(force.Get()) < 0.005)
+	if (!force.isset() || Math::abs(force.Fetch()) < 0.005)
 		return 0x0;
 
-	double force_result = force / MaxImpl(pThis->Type->Weight, 1.);
+	double force_result = force.Fetch() / MaxImpl(pThis->Type->Weight, 1.);
 
-	if (Math::abs(force.Get()) < 0.002)
+	if (Math::abs(force.Fetch()) < 0.002)
 		return 0;
 
 	const double theta = pThis->GetRealFacing().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>();

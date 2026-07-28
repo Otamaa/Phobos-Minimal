@@ -181,10 +181,10 @@ ASMJIT_PATCH(0x4DC0E4, FootClass_DrawActionLines_Attack, 0x8)
 		GET(int, nFLH_Y, EBX);
 		GET_STACK(int, nFLH_Z, STACK_OFFS(0x34, 0x10));
 
-		if (pTypeExt->CommandLine_Attack_Color.Get() != ColorStruct::Empty)
+		if (pTypeExt->CommandLine_Attack_Color.Fetch() != ColorStruct::Empty)
 		{
 			Drawing::Draw_action_lines_7049C0(nFLH_X, nFLH_Y, nFLH_Z, pMovingDestCoord->X, pMovingDestCoord->Y, pMovingDestCoord->Z,
-				pTypeExt->CommandLine_Attack_Color->ToInit(), false, false);
+				pTypeExt->CommandLine_Attack_Color.Fetch().ToInit(), false, false);
 		}
 
 		return Skip;
@@ -210,10 +210,10 @@ ASMJIT_PATCH(0x4DC280, FootClass_DrawActionLines_Move, 0x5)
 		GET_STACK(int, nLoc_Z, STACK_OFFS(0x34, 0x10));
 		GET_STACK(bool, barg3, STACK_OFFSET(0x34, 0x8));
 
-		if (pTypeExt->CommandLine_Move_Color.Get() != ColorStruct::Empty)
+		if (pTypeExt->CommandLine_Move_Color.Fetch() != ColorStruct::Empty)
 		{
 			Drawing::Draw_action_lines_7049C0(nLoc_X, nLoc_Y, nLoc_Z, nCooordDest.X, nCooordDest.Y, nCoordDest_Adjusted_Z,
-				pTypeExt->CommandLine_Move_Color->ToInit(), barg3, false);
+				pTypeExt->CommandLine_Move_Color.Fetch().ToInit(), barg3, false);
 		}
 
 		return Skip;

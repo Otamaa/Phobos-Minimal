@@ -169,8 +169,8 @@ public:
 	PhobosFixedString<0x20> GroupAs {};
 
 	Valueable<int> RadarJamRadius { 0 };
-	Valueable<AffectedHouse> RadarJamHouses { AffectedHouse::Enemies };
-	Valueable<int> RadarJamDelay { 30 };
+	Nullable<AffectedHouse> RadarJamHouses { };
+	Nullable<int> RadarJamDelay { };
 	ValueableVector<BuildingTypeClass*> RadarJamAffect {};
 	ValueableVector<BuildingTypeClass*> RadarJamIgnore {};
 
@@ -184,7 +184,7 @@ public:
 	Nullable<int> AttractorRange {};
 
 	Valueable<Leptons> MindControlRangeLimit {};
-	Valueable<bool> MindControl_IgnoreSize { true };
+	Nullable<bool> MindControl_IgnoreSize { };
 	Valueable<int> MindControlSize { 1 };
 
 	MultiBoolFixedArray<(int)PhobosAbilityType::count> Phobos_EliteAbilities {};
@@ -197,7 +197,7 @@ public:
 	Valueable<bool> Interceptor { false };
 	Valueable<AffectedHouse> Interceptor_CanTargetHouses { AffectedHouse::Enemies };
 	Promotable<Leptons> Interceptor_GuardRange {};
-	Valueable<bool> Interceptor_GuardRange_IsCylindrical { false };
+	Nullable<bool> Interceptor_GuardRange_IsCylindrical { };
 	Promotable<Leptons> Interceptor_MinimumGuardRange {};
 	Promotable<int> Interceptor_TargetingDelay { 1 };
 
@@ -209,17 +209,17 @@ public:
 	Valueable<bool> Interceptor_KeepIntact { false };
 	Valueable<bool> Interceptor_ConsiderWeaponRange { false };
 	Valueable<bool> Interceptor_OnlyTargetBullet { false };
-	Valueable<bool> Interceptor_ApplyFirepowerMult { true };
+	Nullable<bool> Interceptor_ApplyFirepowerMult { };
 
 	Nullable<PartialVector3D<int>> TurretOffset {};
 	Valueable<bool> Powered_KillSpawns { false };
 	Valueable<bool> Spawn_LimitedRange { false };
 	Valueable<int> Spawn_LimitedExtraRange { 0 };
 	Nullable<int> Spawner_DelayFrames {};
-	Nullable<bool> Harvester_Counted {};
-	Valueable<bool> Promote_IncludeSpawns { false };
+	bool Harvester_Counted {};
+	Nullable<bool> Promote_IncludeSpawns { };
 	Valueable<bool> ImmuneToCrit { false };
-	Valueable<bool> MultiMindControl_ReleaseVictim { false };
+	Nullable<bool> MultiMindControl_ReleaseVictim { };
 	Valueable<int> CameoPriority { 0 };
 	Valueable<bool> NoManualMove { false };
 	Nullable<int> InitialStrength {};
@@ -247,11 +247,11 @@ public:
 	ValueableVector<TechnoTypeClass*> AutoDeath_Nonexist {};
 	Valueable<AffectedHouse> AutoDeath_Nonexist_House { AffectedHouse::Owner };
 	Valueable<bool> AutoDeath_Nonexist_Any { false };
-	Valueable<bool> AutoDeath_Nonexist_AllowLimboed { false };
+	Nullable<bool> AutoDeath_Nonexist_AllowLimboed { };
 	ValueableVector<TechnoTypeClass*> AutoDeath_Exist {};
 	Valueable<AffectedHouse> AutoDeath_Exist_House { AffectedHouse::Owner };
 	Valueable<bool> AutoDeath_Exist_Any { false };
-	Valueable<bool> AutoDeath_Exist_AllowLimboed { false };
+	Nullable<bool> AutoDeath_Exist_AllowLimboed { };
 	Valueable<AnimTypeClass*> AutoDeath_VanishAnimation { nullptr };
 	Valueable<TechnoTypeClass*> Convert_AutoDeath {};
 	Valueable<SlaveReturnTo> Slaved_ReturnTo { SlaveReturnTo::Killer };
@@ -275,9 +275,9 @@ public:
 	ValueableVector<int> OreGathering_Tiberiums {};
 	ValueableVector<int> OreGathering_FramesPerDir {};
 
-	Valueable<bool> DestroyAnim_Random { true };
+	Nullable<bool> DestroyAnim_Random { };
 	PhobosMap<WarheadTypeClass*, std::vector<AnimTypeClass*>> DestroyAnimSpecific {};
-	Valueable<bool> NotHuman_RandomDeathSequence { false };
+	Nullable<bool> NotHuman_RandomDeathSequence { };
 
 	Valueable<InfantryTypeClass*> DefaultDisguise { nullptr };
 
@@ -324,14 +324,14 @@ public:
 	Nullable<bool> ImmuneToEMP {};
 	Valueable<bool> Ammo_Shared { false };
 	Valueable<int> Ammo_Shared_Group { -1 };
-	Valueable<bool> Passengers_SyncOwner { false };
-	Valueable<bool> Passengers_SyncOwner_RevertOnExit { true };
+	Nullable<bool> Passengers_SyncOwner { };
+	Nullable<bool> Passengers_SyncOwner_RevertOnExit { };
 
 	Valueable<bool> Aircraft_DecreaseAmmo { true };
 
 	ValueableVector<LaserTrailDataEntry> LaserTrailData {};
 	Valueable<CSFText> EnemyUIName {};
-	Valueable<bool> UseDisguiseMovementSpeed { false };
+	Nullable<bool> UseDisguiseMovementSpeed { };
 
 	Promotable<SHPStruct*> Insignia {};
 	Valueable<Vector3D<int>> InsigniaFrames { { -1, -1, -1 } };
@@ -371,7 +371,7 @@ public:
 	ValueableIdx<VoxClass> EVA_Sold { -1 };
 	ValueableIdx<VocClass> SellSound { -1 };
 
-	Valueable<bool> Explodes_KillPassengers { true };
+	Nullable<bool> Explodes_KillPassengers {};
 
 	Nullable<int> DeployFireWeapon {};
 	Valueable<WeaponTypeClass*> RevengeWeapon { nullptr };
@@ -399,7 +399,7 @@ public:
 
 	Nullable<float> TalkBubbleTime {};
 
-	Valueable<AffectedHouse> Draw_MindControlLink { AffectedHouse::All };
+	Nullable<AffectedHouse> Draw_MindControlLink { };
 
 	NullableVector<int> Overload_Count {};
 	NullableVector<int> Overload_Damage {};
@@ -581,11 +581,11 @@ public:
 	ValueableVector<int> Convert_Script_Prereq {};
 	Valueable<TechnoTypeClass*> Convert_Water { nullptr };
 	Valueable<TechnoTypeClass*> Convert_Land { nullptr };
-	Valueable<bool> Convert_ResetMindControl { false };
+	Nullable<bool> Convert_ResetMindControl { };
 
 	Valueable<int> Ammo_AutoConvertMinimumAmount { -1 };
 	Valueable<int> Ammo_AutoConvertMaximumAmount { -1 };
-	Nullable<TechnoTypeClass*> Ammo_AutoConvertType { nullptr };
+	Valueable<TechnoTypeClass*> Ammo_AutoConvertType { };
 
 	Nullable<Leptons> Harvester_LongScan {};
 	Nullable<Leptons> Harvester_ShortScan {};
@@ -905,7 +905,7 @@ public:
 
 	std::bitset<MaxHouseCount> RequiredStolenTech {};
 
-	Valueable<bool> ReloadInTransport { false };
+	Nullable<bool> ReloadInTransport { };
 	Valueable<bool> Weeder_TriggerPreProductionBuildingAnim { false };
 
 	Nullable<int> Weeder_PipIndex {};
@@ -978,8 +978,8 @@ public:
 	ValueableVector<TechnoTypeClass*> BuildLimitGroup_Types {};
 	ValueableVector<int> BuildLimitGroup_Nums {};
 	Valueable<int> BuildLimitGroup_Factor { 1 };
-	Valueable<bool> BuildLimitGroup_ContentIfAnyMatch { false };
-	Valueable<bool> BuildLimitGroup_NotBuildableIfQueueMatch { false };
+	Nullable<bool> BuildLimitGroup_ContentIfAnyMatch { };
+	Nullable<bool> BuildLimitGroup_NotBuildableIfQueueMatch { };
 	ValueableVector<TechnoTypeClass*> BuildLimitGroup_ExtraLimit_Types {};
 	ValueableVector<int> BuildLimitGroup_ExtraLimit_Nums {};
 	ValueableVector<int> BuildLimitGroup_ExtraLimit_MaxCount {};
@@ -991,7 +991,7 @@ public:
 	Valueable<SHPStruct*> Tiberium_PipShapes { nullptr };
 	CustomPalette Tiberium_PipShapes_Palette {};
 
-	Nullable<ColorStruct> Tint_Color {};
+	Valueable<ColorStruct> Tint_Color {};
 	Valueable<double> Tint_Intensity { 0.0 };
 	Valueable<AffectedHouse> Tint_VisibleToHouses { AffectedHouse::All };
 
@@ -999,18 +999,18 @@ public:
 
 	Valueable<bool> KeepTargetOnMove { false };
 	Valueable<int> KeepTargetOnMove_Weapon { -1 };
-	Nullable<Leptons> KeepTargetOnMove_ExtraDistance {};
+	Valueable<Leptons> KeepTargetOnMove_ExtraDistance {};
 	Valueable<bool> KeepTargetOnMove_NoMorePursuit { true };
 
 	Nullable<bool> AllowAirstrike {};
 
-	Nullable<bool> ForbidParallelAIQueues {};
+	Valueable<bool> ForbidParallelAIQueues { };
 
 	Valueable<bool> IgnoreForBaseCenter { false };
 
 	Nullable<AnimTypeClass*> Wake {};
-	Valueable<bool> Spawner_AttackImmediately { false };
-	Valueable<bool> Spawner_UseTurretFacing { false };
+	Nullable<bool> Spawner_AttackImmediately {};
+	Nullable<bool> Spawner_UseTurretFacing {};
 
 	ValueableIdx<VoxClass> EVA_Combat { -1 };
 	Nullable<bool> CombatAlert {};
@@ -1020,9 +1020,9 @@ public:
 	Nullable<bool> CombatAlert_NotBuilding {};
 	Nullable<int> SubterraneanHeight {};
 
-	Valueable<Leptons> Spawner_RecycleRange { Leptons(-1) };
+	Nullable<Leptons> Spawner_RecycleRange {};
 	Valueable<CoordStruct> Spawner_RecycleFLH { { 0, 0, 0 } };
-	Valueable<bool> Spawner_RecycleOnTurret { false };
+	Nullable<bool> Spawner_RecycleOnTurret { };
 	Valueable<AnimTypeClass*> Spawner_RecycleAnim { nullptr };
 
 	Valueable<bool> HugeBar { false };
@@ -1056,23 +1056,23 @@ public:
 
 	ValueableVector<int> ForceWeapon_InRange {};
 	ValueableVector<double> ForceWeapon_InRange_Overrides {};
-	Valueable<bool> ForceWeapon_InRange_ApplyRangeModifiers { false };
+	Nullable<bool> ForceWeapon_InRange_ApplyRangeModifiers {};
 	ValueableVector<int> ForceAAWeapon_InRange {};
 	ValueableVector<double> ForceAAWeapon_InRange_Overrides {};
-	Valueable<bool> ForceAAWeapon_InRange_ApplyRangeModifiers { false };
-	Valueable<bool> ForceWeapon_InRange_TechnoOnly { false };
+	Nullable<bool> ForceAAWeapon_InRange_ApplyRangeModifiers {};
+	Nullable<bool> ForceWeapon_InRange_TechnoOnly {};
 
 	Nullable<bool> UnitIdleRotateTurret {};
 	Nullable<bool> UnitIdlePointToMouse {};
 
-	Valueable<double> FallingDownDamage { 1.0 };
+	Nullable<double> FallingDownDamage { };
 	Nullable<double> FallingDownDamage_Water {};
-	Valueable<bool> FallingDownDamage_AllowEMP { true };
+	Nullable<bool> FallingDownDamage_AllowEMP {};
 
-	Valueable<bool> HoverDrownable { true };
+	Nullable<bool> HoverDrownable { };
 
 	bool ExtraThreat_Enabled;
-	Nullable<double> ExtraThreat_IsThreat { false };
+	Nullable<double> ExtraThreat_IsThreat { };
 	Valueable<bool> AlwaysConsideredThreat {};
 	Nullable<double> ExtraThreat_InRange {};
 	Nullable<double> ExtraThreatCoefficient_InRangeDistance {};
@@ -1121,10 +1121,10 @@ public:
 	Valueable<bool> BunkerableAnyway { false };
 
 	Nullable<bool> JumpjetTilt {};
-	Valueable<double> JumpjetTilt_ForwardAccelFactor { 1.0 };
-	Valueable<double> JumpjetTilt_ForwardSpeedFactor { 1.0 };
-	Valueable<double> JumpjetTilt_SidewaysRotationFactor { 1.0 };
-	Valueable<double> JumpjetTilt_SidewaysSpeedFactor { 1.0 };
+	Nullable<double> JumpjetTilt_ForwardAccelFactor {};
+	Nullable<double> JumpjetTilt_ForwardSpeedFactor {};
+	Nullable<double> JumpjetTilt_SidewaysRotationFactor {};
+	Nullable<double> JumpjetTilt_SidewaysSpeedFactor {};
 
 	Nullable<bool> NoTurret_TrackTarget {};
 
@@ -1137,7 +1137,7 @@ public:
 
 	Nullable<bool> Sinkable {};
 	Valueable<int> SinkSpeed { 5 };
-	Valueable<bool> Sinkable_SquidGrab { true };
+	Nullable<bool> Sinkable_SquidGrab { };
 
 	int SpawnerRange { 0 };
 	int EliteSpawnerRange { 0 };
@@ -1145,8 +1145,8 @@ public:
 	Nullable<bool> AmphibiousEnter {};
 	Nullable<bool> AmphibiousUnload {};
 
-	Valueable<bool> AlternateFLH_OnTurret { true };
-	Valueable<bool> AlternateFLH_ApplyVehicle { false };
+	Nullable<bool> AlternateFLH_OnTurret { };
+	Nullable<bool> AlternateFLH_ApplyVehicle { };
 	Nullable<double> DamagedSpeed {};
 
 	Nullable<AffectedHouse> RadarInvisibleToHouse {};
@@ -1177,7 +1177,7 @@ public:
 	Valueable<int> FireUp { -1 };
 	Valueable<bool> FireUp_ResetInRetarget { true };
 
-	Valueable<bool> DigitalDisplay_Health_FakeAtDisguise { true };
+	Nullable<bool> DigitalDisplay_Health_FakeAtDisguise { };
 
 	Valueable<int> EngineerRepairAmount { 0 };
 
@@ -1187,7 +1187,7 @@ public:
 	Valueable<bool> AttackMove_Follow_IncludeAir { false };
 	Nullable<bool> AttackMove_StopWhenTargetAcquired {};
 	Valueable<bool> AttackMove_PursuitTarget { false };
-	Valueable<bool> SkipCrushSlowdown { false };
+	Nullable<bool> SkipCrushSlowdown { };
 
 	Nullable<TechnoTypeClass*> RecuitedAs {};
 
@@ -1272,7 +1272,7 @@ public:
 	std::vector<CoordStruct> ExtraTurretOffsets {};
 	Valueable<int> BurstPerTurret { 0 };
 
-	Valueable<bool> DriverKilled_KeptPassengers {};
+	Nullable<bool> DriverKilled_KeptPassengers {};
 	Nullable<bool> DriverKilled_KillPassengers {};
 
 	Nullable<bool> Parasite_AllowWaterExit {};

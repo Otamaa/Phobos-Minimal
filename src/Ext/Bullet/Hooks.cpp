@@ -53,7 +53,7 @@ ASMJIT_PATCH(0x469276, BulletClass_Logics_ApplyMindControl , 0xA)
 
 	R->AL(((FakeCaptureManagerClass*)payback->CaptureManager)->__CaptureUnit(
 		pTechno,
-		GET_TECHNOTYPEEXT(payback)->MultiMindControl_ReleaseVictim,
+		GET_TECHNOTYPEEXT(payback)->MultiMindControl_ReleaseVictim.Get(FakeRulesClass::Instance->MultiMindControl_ReleaseVictim),
 		false,
 		pControlledAnimType,
 		threatDelay));

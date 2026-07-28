@@ -11,7 +11,7 @@
 bool TerrainExtData::CanMoveHere(TechnoClass* pThis, TerrainClass* pTerrain) {
 	const auto pExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
 
-	if (pExt->IsPassable)
+	if (pExt->IsThisPassable())
 		return true;
 
 	if (auto pUnit = cast_to<UnitClass*, false>(pThis)) {
@@ -35,7 +35,7 @@ void TerrainExtData::InitializeLightSource()
 		if (!TypeData->LightEnabled || !TypeData->LightIntensity.isset())
 			return;
 
-		auto const nVisibility = TypeData->LightVisibility.Get();
+		auto const nVisibility = TypeData->LightVisibility.Fetch();
 
 		if (!nVisibility)
 			return;

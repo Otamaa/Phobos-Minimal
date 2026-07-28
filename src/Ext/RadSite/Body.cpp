@@ -39,15 +39,15 @@ void RadSiteExtData::CreateInstance(CellClass* pCell , int spread, int amount, W
 	const auto pRadExt = RadSiteExtContainer::Instance.Find(GameCreate<RadSiteClass>());
 
 	//Adding Owner to RadSite, from bullet
-	if (pWeaponExt)
-	{
+	pRadExt->Type  = RadTypeClass::FindOrAllocate(GameStrings::Radiation());
+	
+	if (pWeaponExt) {
 		pRadExt->Weapon = pWeaponExt->This();
-		pRadExt->Type = pWeaponExt->RadType.Get(RadTypeClass::FindOrAllocate(GameStrings::Radiation()));
+
+		if(pWeaponExt->RadType)
+			pRadExt->Type = pWeaponExt->RadType;
+			
 		pRadExt->NoOwner = pWeaponExt->Rad_NoOwner.Get();
-	}
-	else
-	{
-		pRadExt->Type = RadTypeClass::FindOrAllocate(GameStrings::Radiation());
 	}
 
 	pRadExt->Name = pRadExt->Type->Name;

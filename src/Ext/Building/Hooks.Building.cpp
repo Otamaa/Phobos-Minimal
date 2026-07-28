@@ -252,7 +252,7 @@ ASMJIT_PATCH(0x519FAF, InfantryClass_UpdatePosition_EngineerRepairsFriendly, 6)
 	}
 	else if (TargetTypeExtData->EngineerRepairable.isset())
 	{
-		return TargetTypeExtData->EngineerRepairable ? 0x0 : 0x519FB9;
+		return TargetTypeExtData->EngineerRepairable.Fetch() ? 0x0 : 0x519FB9;
 	}
 
 	if(!Target->Type->Repairable)

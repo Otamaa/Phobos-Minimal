@@ -50,7 +50,7 @@ public:
 	Valueable<bool> VisibleToHouses_Observer;
 	Valueable<AffectedHouse> VisibleToHouses;
 
-	HugeBar() = default;
+	HugeBar();
 	HugeBar(DisplayInfoType infoType);
 	MOVEABLE_ONLY(HugeBar);
 	~HugeBar() = default;

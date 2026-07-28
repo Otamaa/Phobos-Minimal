@@ -64,7 +64,7 @@ ASMJIT_PATCH(0x51DF82, InfantryClass_FireAt_StartReloading, 0x6)
 
 	if (pThis->Transporter)
 	{
-		if (TechnoTypeExtContainer::Instance.Find(pType)->ReloadInTransport
+		if (TechnoTypeExtContainer::Instance.Find(pType)->ReloadInTransport.Get(FakeRulesClass::Instance->ReloadInTransport)
 			&& pType->Ammo > 0
 			&& pThis->Ammo < pType->Ammo
 		)
@@ -192,7 +192,7 @@ ASMJIT_PATCH(0x51E7BF, InfantryClass_GetActionOnObject_CanCapture, 6)
 
 	const auto pSelectedType = pSelected->Type;
 	if (!pSelectedType->VehicleThief
-		&& !TechnoTypeExtContainer::Instance.Find(pSelectedType)->CanDrive.Get(FakeRulesClass::Instance()->CanDrive))
+		&& !TechnoTypeExtContainer::Instance.Find(pSelectedType)->CanDrive.Get(FakeRulesClass::Instance->CanDrive))
 		return DontCapture;
 
 	if (GET_TECHNOTYPE(pTechnoTarget)->IsTrain)
@@ -290,7 +290,7 @@ ASMJIT_PATCH(0x5202F9, InfantryClass_UpdateVehicleThief_Check, 6)
 	if (!pThis->Type->VehicleThief)
 	{
 		// also allow for drivers, because vehicles may still drive around. usually they are not.
-		if (!TechnoTypeExtContainer::Instance.Find(pThis->Type)->CanDrive)
+		if (!TechnoTypeExtContainer::Instance.Find(pThis->Type)->CanDrive.Get(FakeRulesClass::Instance->CanDrive))
 		{
 			return 0x5206A1;
 		}

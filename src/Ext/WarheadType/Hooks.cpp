@@ -202,7 +202,7 @@ void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * 
 		if (pTypeExt->ReturnWeapon && pThis->Owner && pThis->Owner->IsAlive)
 		{
 			auto const RpWeapon = pTypeExt->ReturnWeapon.Get();
-			int damage = (int)TechnoExtData::ApplyDamageMult(pThis->Owner  , RpWeapon->Damage, !pTypeExt->ReturnWeapon_ApplyFirepowerMult);
+			int damage = (int)TechnoExtData::ApplyDamageMult(pThis->Owner  , RpWeapon->Damage, !pTypeExt->ReturnWeapon_ApplyFirepowerMult.Get(FakeRulesClass::Instance->ReturnWeapon_ApplyFirepowerMult));
 
 			if (BulletClass* pBullet = RpWeapon->Projectile->CreateBullet(pThis->Owner, pThis->Owner,
 				damage, RpWeapon->Warhead, RpWeapon->Speed, RpWeapon->Bright))

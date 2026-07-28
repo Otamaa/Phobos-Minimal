@@ -91,6 +91,7 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/Bomb/Body.h>
+#include <Ext/CaptureManager/Body.h>
 #include <Ext/Cell/Body.h>
 #include <Ext/DiskLaser/Body.h>
 #include <Ext/Side/Body.h>
@@ -624,12 +625,12 @@ HRESULT Phobos::LoadAllLateData(IStream* pStm)
 	if (!SUCCEEDED(hr)) return hr;
 	hr = ReadBlocksFromStreamStreamB(WaveExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	//hr = ReadBlocksFromStreamStreamB(CaptureManagerExtContainer::Instance, pStm);
-	//	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamB(CaptureExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
 	hr = ReadBlocksFromStreamStreamB(DiskLaserExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	//hr = ReadBlocksFromStreamStreamB(ParasiteExtContainer::Instance, pStm);
-	//	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamB(ParasiteExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
 	hr = ReadBlocksFromStreamStreamB(TemporalExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
 	//hr = ReadBlocksFromStreamStreamB(AirstrikeExtContainer::Instance, pStm);

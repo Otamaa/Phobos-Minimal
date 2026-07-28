@@ -326,3 +326,21 @@ ASMJIT_PATCH(0x4CD54C, FlyLocomotionClass_EdgeOfTheWorldAI_Paradrop, 0x8)
 
 	return ReturnFromFunction;
 }
+
+ASMJIT_PATCH(0x4143A8, AircraftClass_UnLimbo_CargoPlane, 0x6)
+{
+	enum { SkipGameCode = 0x4143F2 };
+
+	GET(AircraftClass*, pThis, ESI);
+
+	auto const pTypeExt = AircraftTypeExtContainer::Instance.Find(pThis->Type);
+
+	if (pTypeExt->IsAloaner.isset()) {
+		pThis->Spawned = pTypeExt->IsAloaner.Fetch();
+		return SkipGameCode;
+	}else if(pThis->Type->Spawned) {
+		pThis->Spawned = 1;
+		return SkipGameCode;
+	}
+	return 0;
+}

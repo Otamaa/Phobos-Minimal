@@ -495,20 +495,18 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 								{
 									auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(entry.Type);
 
-									if (pTechnoTypeExt->ConsideredNaval
-										|| (entry.Type->Naval
+									if (pTechnoTypeExt->ConsideredNaval.Get( (entry.Type->Naval
 											&& (entry.Type->MovementZone != MovementZone::Amphibious
 												&& entry.Type->MovementZone != MovementZone::AmphibiousDestroyer
-												&& entry.Type->MovementZone != MovementZone::AmphibiousCrusher)))
+												&& entry.Type->MovementZone != MovementZone::AmphibiousCrusher))))
 									{
 										// This unit is from naval category
 										entryIsCategory = TeamCategory::Naval;
 										//Debug::LogInfo("\t[{}]({}) is in NAVAL category.", entry.Type->ID, entry.Amount);
 									}
 
-									if (pTechnoTypeExt->ConsideredVehicle
-										|| (entryIsCategory != TeamCategory::Naval
-											&& entryIsCategory != TeamCategory::Air))
+									if (pTechnoTypeExt->ConsideredVehicle.Get((entryIsCategory != TeamCategory::Naval
+											&& entryIsCategory != TeamCategory::Air)))
 									{
 										// This unit is from ground category
 										entryIsCategory = TeamCategory::Ground;

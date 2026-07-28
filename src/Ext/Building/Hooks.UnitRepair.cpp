@@ -224,7 +224,7 @@ int FakeBuildingClass::_Mission_Repair()
 		// ------------------------------------------------------------------
 		if (pTypeExt->Units_RepairRate.isset())
 		{
-			double const repairRate = pTypeExt->Units_RepairRate.Get();
+			double const repairRate = pTypeExt->Units_RepairRate.Fetch();
 			if (repairRate >= 0.0)
 			{
 				int const rate = static_cast<int>(

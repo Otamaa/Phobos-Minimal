@@ -56,7 +56,7 @@ bool AnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	UseCenterCoordsIfAttached.Read(exINI, pID, "UseCenterCoordsIfAttached");
 
 	auto att = this->AttachedAnimPosition.Get();
-	if (UseCenterCoordsIfAttached.isset() && UseCenterCoordsIfAttached.Get()){
+	if (UseCenterCoordsIfAttached.isset() && UseCenterCoordsIfAttached.Fetch()){
 		att |= AttachedAnimPosition::Center;
 		this->AttachedAnimPosition = att;
 	}
@@ -516,7 +516,7 @@ void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, HouseClass* pKiller,
 	const DirType facing = (DirType)pThis->PrimaryFacing.Current().GetFacing<256>();
 
 	int idxAnim = 0;
-	GeneralUtils::GetRandomAnimVal(idxAnim, pDestroyAnim.size(), (short)facing, pTypeExt->DestroyAnim_Random.Get());
+	GeneralUtils::GetRandomAnimVal(idxAnim, pDestroyAnim.size(), (short)facing, pTypeExt->DestroyAnim_Random.Get(FakeRulesClass::Instance->DestroyAnim_Random));
 	AnimTypeClass* pAnimType = pDestroyAnim[idxAnim];
 
 	if (!pAnimType)

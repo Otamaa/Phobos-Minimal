@@ -455,11 +455,11 @@ static void TranslateAngleRotated(Matrix3D* mtx , FootClass* pThis  , TechnoType
 		mtx->TranslateY(float(Math::signum(-ars) * pType->VoxelScaleY * (1 - c_ars)));
 		mtx->RotateY(arf);
 		mtx->RotateX(ars);
-	} else if (jjloco && uTypeExt->JumpjetTilt && jjloco->NextState != JumpjetLocomotionClass::State::Grounded
+	} else if (jjloco && uTypeExt->JumpjetTilt.Get(FakeRulesClass::Instance->JumpjetTilt) && jjloco->NextState != JumpjetLocomotionClass::State::Grounded
 		&& jjloco->__currentSpeed > 0.0 && pThis->IsAlive && pThis->Health > 0 && !pThis->IsAttackedByLocomotor)
 	{
-		const auto forwardSpeedFactor = jjloco->__currentSpeed * uTypeExt->JumpjetTilt_ForwardSpeedFactor;
-		const auto forwardAccelFactor = jjloco->Acceleration * uTypeExt->JumpjetTilt_ForwardAccelFactor;
+		const auto forwardSpeedFactor = jjloco->__currentSpeed * uTypeExt->JumpjetTilt_ForwardSpeedFactor.Get(FakeRulesClass::Instance->JumpjetTilt_ForwardSpeedFactor);
+		const auto forwardAccelFactor = jjloco->Acceleration * uTypeExt->JumpjetTilt_ForwardAccelFactor.Get(FakeRulesClass::Instance->JumpjetTilt_ForwardAccelFactor);
 
 		arf += MinImpl(JumpjetTiltReference::MaxTilt, static_cast<float>((forwardAccelFactor + forwardSpeedFactor)
 			* JumpjetTiltReference::ForwardBaseTilt));
@@ -468,9 +468,9 @@ static void TranslateAngleRotated(Matrix3D* mtx , FootClass* pThis  , TechnoType
 
 		if (locoFace.Is_Rotating())
 		{
-			const auto sidewaysSpeedFactor = jjloco->__currentSpeed * uTypeExt->JumpjetTilt_SidewaysSpeedFactor;
+			const auto sidewaysSpeedFactor = jjloco->__currentSpeed * uTypeExt->JumpjetTilt_SidewaysSpeedFactor.Get(FakeRulesClass::Instance->JumpjetTilt_SidewaysSpeedFactor);
 			const auto sidewaysRotationFactor = static_cast<short>(locoFace.Difference().Raw)
-				* uTypeExt->JumpjetTilt_SidewaysRotationFactor;
+				* uTypeExt->JumpjetTilt_SidewaysRotationFactor.Get(FakeRulesClass::Instance->JumpjetTilt_SidewaysRotationFactor);
 
 			ars += std::clamp(static_cast<float>(sidewaysSpeedFactor * sidewaysRotationFactor
 				* JumpjetTiltReference::SidewaysBaseTilt), -JumpjetTiltReference::MaxTilt, JumpjetTiltReference::MaxTilt);
@@ -618,7 +618,7 @@ DEFINE_HOOK(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 		// offset is non-zero the shadow matrix becomes body-facing-dependent
 		// (mtx . Translate(offset) . Rz), so BodyFacing must be in the key or different
 		// body facings collide on one shadow cache slot -> the same stale-bitmap jitter.
-		const auto* mainOffset = reinterpret_cast<CoordStruct*>(pDrawTypeExt->TurretOffset.operator->());
+		const auto* mainOffset = reinterpret_cast<const CoordStruct*>(&pDrawTypeExt->TurretOffset.Fetch());
 		if (mainOffset->X != 0 || mainOffset->Y != 0 || mainOffset->Z != 0)   // VERIFY: IsValid()==this
 			vxlIndexKey.MinorVoxel.BodyFacing = pThis->PrimaryFacing.Current().GetFacing<32>();
 	}

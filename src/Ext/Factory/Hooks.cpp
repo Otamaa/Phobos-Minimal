@@ -108,6 +108,13 @@ ASMJIT_PATCH(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 {
 	GET(FactoryClass*, pFactory, ESI);
 
+	const auto pRules = FakeRulesClass::Instance();
+	bool forbid = !pRules->AllowParallelAIQueues;
+
+	auto const pTechno = pFactory->Object;
+	auto const pType = pTechno->GetTechnoType();
+		forbid |= TechnoTypeExtContainer::Instance.Find(pType)->ForbidParallelAIQueues;
+
 	if (HouseClass* pOwner = pFactory->Owner)
 	{
 		HouseExtData* pData = HouseExtContainer::Instance.Find(pOwner);
@@ -115,19 +122,27 @@ ASMJIT_PATCH(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 		switch (pFactory->Object->WhatAmI())
 		{
 		case AbstractType::Building:
-			pData->Factory_BuildingType = nullptr;
+			if (pRules->ForbidParallelAIQueues_Building.Get(forbid))
+				pData->Factory_BuildingType = nullptr;
 			break;
 		case AbstractType::Unit:
-			if (!((UnitClass*)pFactory->Object)->Type->Naval)
-				pData->Factory_VehicleType = nullptr;
-			else
-				pData->Factory_NavyType = nullptr;
+			if (!((UnitClass*)pFactory->Object)->Type->Naval){
+				if (pRules->ForbidParallelAIQueues_Vehicle.Get(forbid))
+					pData->Factory_VehicleType = nullptr;
+			}
+			else{
+				if (pRules->ForbidParallelAIQueues_Navy.Get(forbid))
+					pData->Factory_NavyType = nullptr;
+			}
+
 			break;
 		case AbstractType::Infantry:
-			pData->Factory_InfantryType = nullptr;
+			if (pRules->ForbidParallelAIQueues_Infantry .Get(forbid))
+				pData->Factory_InfantryType = nullptr;
 			break;
 		case AbstractType::Aircraft:
-			pData->Factory_AircraftType = nullptr;
+			if (pRules->ForbidParallelAIQueues_Aircraft .Get(forbid))
+				pData->Factory_AircraftType = nullptr;
 			break;
 		default:
 			break;

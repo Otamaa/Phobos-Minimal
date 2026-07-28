@@ -30,8 +30,8 @@
 _GET_FUNCTION_ADDRESS(ConvertClassExt::AllocBlitters, GetConvertClassExtAllocBlittersAddress);
 _GET_FUNCTION_ADDRESS(ConvertClassExt::DeallocBlitters, GetConvertClassExtDeallocBlittersAddress);
 
-void SetResultion()
-{
+#ifdef _New
+void SetResultion() {
 	if (GameOptionsClass::Instance->ShellWidth < 800 || GameOptionsClass::Instance->ShellHeight < 600)
 		return;
 
@@ -39,90 +39,120 @@ void SetResultion()
 	GameOptionsClass::Instance->ShellWidth = GameOptionsClass::Instance->ScreenWidth;
 }
 
-// very early load and creation of RA2MD.INI
-//ASMJIT_PATCH(0x6BC099, WInMain_CreateRA2MD_Override, 0x7)
-//{
-//
-//	PhobosINIContainer::Ra2_INI = std::make_unique<PhobosINIClass>();
-//	auto _ra2MD = GameCreate<RawFileClass>(GameStrings::RA2MD_INI());
-//	
-//	if (!CCINIClass::INI_RA2MD->ReadCCFile(_ra2MD) || !PhobosINIContainer::Ra2_INI->LoadFile(_ra2MD))
-//	{
-//		Debug::FatalError("Failed to load %s !", GameStrings::RA2MD_INI());
-//		R->Base<FileClass*>(-0x70C, _ra2MD);
-//		return 0x6BC28E;
-//	}
-//
-//	{
-//		Game::bVideoBackBuffer = PhobosINIContainer::Ra2_INI->Read<bool>("Video", "VideoBackBuffer").value_or(1);
-//		Game::bAllowModeToggle = PhobosINIContainer::Ra2_INI->Read<bool>("Video", "AllowModeToggle").value_or(0);
-//		GameOptionsClass::Instance->ScreenWidth = PhobosINIContainer::Ra2_INI->Read<int>("Video", "ScreenWidth").value_or(GameOptionsClass::Instance->ScreenWidth);
-//		GameOptionsClass::Instance->ScreenHeight = PhobosINIContainer::Ra2_INI->Read<int>("Video", "ScreenHeight").value_or(GameOptionsClass::Instance->ScreenHeight);
-//	}
-//
-//	const char* const pDebugSection = "Debug";
-//
-//	{
-//		const auto simd_level = PhobosINIContainer::Ra2_INI->ReadString(pDebugSection, "MaxSimdLevel", Simd::GetLevelName(Phobos::Config::MaxSimdLevel));
-//		Debug::Log("Config MaxSimdLevel raw value: %s\n", simd_level.c_str());
-//		Phobos::Config::MaxSimdLevel = Simd::ParseLevel(simd_level.c_str(), Phobos::Config::MaxSimdLevel);
-//	}
-//	
-//	SetResultion();
-//
-//	PhobosGlobal::Instance()->LoadGlobalsConfig();
-//	SpawnerMain::ReadRA2MDConfig();
-//	SpawnerMain::ApplyStaticOptions();
-//
-//	Simd::Initialize(Phobos::Config::MaxSimdLevel);
-//
-//	if (Simd::GetCurrentLevel() > Simd::Level::Vanilla)
-//	{
-//		Patch::Apply_LJMP(0x48EBF0, GetConvertClassExtAllocBlittersAddress);
-//		Patch::Apply_LJMP(0x490490, GetConvertClassExtDeallocBlittersAddress);
-//	}
-//
-//	{
-//		int sock = PhobosINIContainer::Ra2_INI->Read<int>("Network", "Socket").value_or(0);
-//		if (sock > 0)
-//		{
-//			sock += 0x4000;
-//			if (sock >= 0x4000 && sock < 0x8000)
-//			{
-//				IPXManagerClass::Instance->Set_Socket(sock);
-//			}
-//		}
-//
-//		const auto DestNet = PhobosINIContainer::Ra2_INI->ReadString("Network", "DestNet", nullptr);
-//
-//		if (!DestNet.empty()) {
-//			const auto splitted = PhobosCRT::SplitString(DestNet, ".");
-//			unsigned char addr[4] {};
-//			size_t i = 0;
-//
-//			for (i < splitted.size() && i < 4; ++i;) {
-//				if (!PhobosCRT::ScanHex(splitted[i], addr[i]))
-//					break;
-//			}
-//
-//			if (i >= 4) {
-//				IPXAddressClass::IsBridge = true;
-//				unsigned char node[6];
-//				std::memset(node, 0xFF, sizeof(node));
-//				IPXAddressClass::Instance->Assign(addr, node, 0);
-//			}
-//		}
-//	}
-//
-//	R->Base<FileClass*>(-0x70C, _ra2MD);
-//	return 0x6BC28E;
-//}
+
+// these for some reason breaking the stuffs , dont understand , maybe skipping some hooks
+ASMJIT_PATCH(0x6BC099, WInMain_CreateRA2MD_Override, 0x7)
+{
+	PhobosINIContainer::Ra2_INI = std::make_unique<PhobosINIClass>();
+	auto _ra2MD = GameCreate<RawFileClass>(GameStrings::RA2MD_INI());
+	
+	if (!CCINIClass::INI_RA2MD->ReadCCFile(_ra2MD) || !PhobosINIContainer::Ra2_INI->LoadFile(_ra2MD))
+	{
+		Debug::FatalError("Failed to load %s !", GameStrings::RA2MD_INI());
+		R->Base<FileClass*>(-0x70C, _ra2MD);
+		return 0x6BC28E;
+	}
+
+	PhobosGlobal::Instance()->LoadGlobalsConfig();
+	SpawnerMain::ReadRA2MDConfig();
+	SpawnerMain::ApplyStaticOptions();
+
+	const char* const pDebugSection = "Debug";
+
+	{
+		const auto simd_level = PhobosINIContainer::Ra2_INI->ReadString(pDebugSection, "MaxSimdLevel", Simd::GetLevelName(Phobos::Config::MaxSimdLevel));
+		Debug::Log("Config MaxSimdLevel raw value: %s\n", simd_level.c_str());
+		Phobos::Config::MaxSimdLevel = Simd::ParseLevel(simd_level.c_str(), Phobos::Config::MaxSimdLevel);
+	}
+
+	Simd::Initialize(Phobos::Config::MaxSimdLevel);
+
+	if (Simd::GetCurrentLevel() > Simd::Level::Vanilla)
+	{
+		Patch::Apply_LJMP(0x48EBF0, GetConvertClassExtAllocBlittersAddress);
+		Patch::Apply_LJMP(0x490490, GetConvertClassExtDeallocBlittersAddress);
+	}
+
+	{
+		Game::bVideoBackBuffer = PhobosINIContainer::Ra2_INI->Read<bool>("Video", "VideoBackBuffer").value_or(1);
+		Game::bAllowModeToggle = PhobosINIContainer::Ra2_INI->Read<bool>("Video", "AllowModeToggle").value_or(0);
+		GameOptionsClass::Instance->ScreenWidth = PhobosINIContainer::Ra2_INI->Read<int>("Video", "ScreenWidth").value_or(GameOptionsClass::Instance->ScreenWidth);
+		GameOptionsClass::Instance->ScreenHeight = PhobosINIContainer::Ra2_INI->Read<int>("Video", "ScreenHeight").value_or(GameOptionsClass::Instance->ScreenHeight);
+	}
+
+	SetResultion();
+
+	{
+		int sock = PhobosINIContainer::Ra2_INI->Read<int>("Network", "Socket").value_or(0);
+		if (sock > 0)
+		{
+			sock += 0x4000;
+			if (sock >= 0x4000 && sock < 0x8000)
+			{
+				IPXManagerClass::Instance->Set_Socket(sock);
+			}
+		}
+
+		const auto DestNet = PhobosINIContainer::Ra2_INI->ReadString("Network", "DestNet", nullptr);
+
+		if (!DestNet.empty()) {
+			const auto splitted = PhobosCRT::SplitString(DestNet, ".");
+			unsigned char addr[4] {};
+			size_t i = 0;
+
+			for (i < splitted.size() && i < 4; ++i;) {
+				if (!PhobosCRT::ScanHex(splitted[i], addr[i]))
+					break;
+			}
+
+			if (i >= 4) {
+				IPXAddressClass::IsBridge = true;
+				unsigned char node[6];
+				std::memset(node, 0xFF, sizeof(node));
+				IPXAddressClass::Instance->Assign(addr, node, 0);
+			}
+		}
+	}
+
+	R->Base<FileClass*>(-0x70C, _ra2MD);
+	return 0x6BC28E;
+}
+#else
+ASMJIT_PATCH(0x6BC0CD, WinMain_LoadRA2MD, 5)
+{
+	auto pRA2MD = CCINIClass::INI_RA2MD.operator->();
+
+	const char* const pDebugSection = "Debug";
+
+	if (pRA2MD->GetSection(pDebugSection)) {
+		char simdLevel[32] {};
+		pRA2MD->ReadString(pDebugSection, "MaxSimdLevel", Simd::GetLevelName(Phobos::Config::MaxSimdLevel), simdLevel);
+		Debug::Log("Config MaxSimdLevel raw value: %s\n", simdLevel);
+		Phobos::Config::MaxSimdLevel = Simd::ParseLevel(simdLevel, Phobos::Config::MaxSimdLevel);
+	}
+
+	PhobosGlobal::Instance()->LoadGlobalsConfig();
+	SpawnerMain::ReadRA2MDConfig();
+	SpawnerMain::ApplyStaticOptions();
+
+	Simd::Initialize(Phobos::Config::MaxSimdLevel);
+
+	if (Simd::GetCurrentLevel() > Simd::Level::Vanilla) {
+		Patch::Apply_LJMP(0x48EBF0, GetConvertClassExtAllocBlittersAddress());
+		Patch::Apply_LJMP(0x490490, GetConvertClassExtDeallocBlittersAddress());
+	}
+
+	return 0;
+}
+
+#endif
 
 void Phobos::Config::Read_RA2MD()
 {
 	auto const& pRA2MD = CCINIClass::INI_RA2MD;
 	
-	if (pRA2MD->GetSection(PHOBOS_STR)){
+	//if (pRA2MD->GetSection(PHOBOS_STR))
+	{
 
 		Phobos::Config::ToolTipDescriptions = pRA2MD->ReadBool(PHOBOS_STR, "ToolTipDescriptions", Phobos::Config::ToolTipDescriptions);
 		Phobos::Config::ToolTipBlur = pRA2MD->ReadBool(PHOBOS_STR, "ToolTipBlur", Phobos::Config::ToolTipBlur);
@@ -221,7 +251,7 @@ void Phobos::Config::Read_UIMD()
 				return color.R | color.G << 8 | color.B << 16;
 			};
 
-			if (pINI->GetSection(section2)) 
+			//if (pINI->GetSection(section2)) 
 			{
 
 				colorCount = std::clamp(pINI->ReadInteger(section2, "Count", colorCount), 8, 17);
@@ -282,7 +312,7 @@ void Phobos::Config::Read_UIMD()
 
 			auto const section = "UISettings";
 
-			if (pINI->GetSection(section))
+			//if (pINI->GetSection(section))
 			{
 				// menu colors. the color of labels, button texts, list items, stuff and others
 				Phobos::UI::uiColorText = ParseColorInt(section, "Color.Text", 0xFFFF);
@@ -316,23 +346,21 @@ void Phobos::Config::Read_UIMD()
 
 			auto sectionVersionInfo = "VersionInfo";
 
-			if (pINI->GetSection(sectionVersionInfo))
+			//if (pINI->GetSection(sectionVersionInfo))
 			{
 
 				// read the mod's version info
-				if (pINI->ReadString("VersionInfo", GameStrings::Name, Phobos::readDefval, Phobos::readBuffer, std::size(ModName)))
-				{
-					PhobosCRT::strCopy(ModName, Phobos::readBuffer);
+				if (pINI->ReadString("VersionInfo", GameStrings::Name, Phobos::readDefval, Phobos::readBuffer, std::size(ModName))) {
+					ModName = Phobos::readBuffer;
 				}
 
-				if (pINI->ReadString("VersionInfo", "Version", Phobos::readDefval, Phobos::readBuffer, std::size(ModVersion)))
-				{
-					PhobosCRT::strCopy(ModVersion, Phobos::readBuffer);
+				if (pINI->ReadString("VersionInfo", "Version", Phobos::readDefval, Phobos::readBuffer, std::size(ModVersion))){
+					ModVersion = Phobos::readBuffer;
 				}
 
 				SafeChecksummer crc {};
-				crc.operator()((const char*)ModName);
-				crc.operator()((const char*)ModVersion);
+				crc.operator()(ModName.c_str());
+				crc.operator()(ModVersion.c_str());
 				ModIdentifier = pINI->ReadInteger("VersionInfo", "Identifier", static_cast<int>(crc.operator unsigned int()));
 
 				Debug::LogInfo("Color count is {}", colorCount);
@@ -347,7 +375,7 @@ void Phobos::Config::Read_UIMD()
 		Debug::LogInfo("-------------------Complete ----------------------");
 	}
 
-	if(pINI->GetSection("LoadingScreen")) 
+	//if(pINI->GetSection("LoadingScreen")) 
 	{
 		Phobos::UI::DisableEmptySpawnPositions =
 			pINI->ReadBool("LoadingScreen", "DisableEmptySpawnPositions", Phobos::UI::DisableEmptySpawnPositions);
@@ -355,11 +383,11 @@ void Phobos::Config::Read_UIMD()
 
 	//if(pINI->GetSection(UISETTINGS_SECTION))
 	{
-		pINI->ReadString(UISETTINGS_SECTION, "ShowBriefingResumeButtonLabel", "GUI:Resume", Phobos::readBuffer);
-		Phobos::UI::ShowBriefingResumeButtonLabel = GeneralUtils::LoadStringOrDefault(Phobos::readBuffer, L"");
+		if(pINI->ReadString(UISETTINGS_SECTION, "ShowBriefingResumeButtonLabel", "GUI:Resume", Phobos::readBuffer))
+			Phobos::UI::ShowBriefingResumeButtonLabel = GeneralUtils::LoadStringOrDefault(Phobos::readBuffer, L"");
 
-		pINI->ReadString(UISETTINGS_SECTION, "ShowBriefingResumeButtonStatusLabel", "STT:BriefingButtonReturn", Phobos::readBuffer);
-		strcpy_s(Phobos::UI::ShowBriefingResumeButtonStatusLabel, Phobos::readBuffer);
+		if(pINI->ReadString(UISETTINGS_SECTION, "ShowBriefingResumeButtonStatusLabel", "STT:BriefingButtonReturn", Phobos::readBuffer))
+			strcpy_s(Phobos::UI::ShowBriefingResumeButtonStatusLabel, Phobos::readBuffer);
 	}
 
 	//if (pINI->GetSection(PHOBOS_STR))
@@ -369,7 +397,7 @@ void Phobos::Config::Read_UIMD()
 		Phobos::Config::ShowWeedsCounter = pINI->ReadBool(PHOBOS_STR, "ShowWeedsCounter", Phobos::Config::ShowWeedsCounter);
 	}
 
-	if (pINI->GetSection(GameStrings::ToolTips()))
+	//if (pINI->GetSection(GameStrings::ToolTips()))
 	{
 
 		Phobos::UI::ExtendedToolTips = pINI->ReadBool(GameStrings::ToolTips(), "ExtendedToolTips", Phobos::UI::ExtendedToolTips);
@@ -385,7 +413,7 @@ void Phobos::Config::Read_UIMD()
 		Phobos::UI::BattlePoints_Label.Read(pINI, GameStrings::ToolTips(), "BattlePoints.Label");
 	}
 
-	if (pINI->GetSection(SIDEBAR_SECTION_T)) 
+	//if (pINI->GetSection(SIDEBAR_SECTION_T)) 
 	{
 		Phobos::UI::ShowHarvesterCounter =
 			pINI->ReadBool(SIDEBAR_SECTION_T, "HarvesterCounter.Show", Phobos::UI::ShowHarvesterCounter);

@@ -73,23 +73,29 @@ UnitClass* TechnoExtData::Deployer { nullptr };
 #include <Drawing.h>
 #include <TextDrawing.h>
 
-void TintColors::Calculate(const int color, const int intensity, const AffectedHouse affectedHouse)
+void TintColors::Calculate(ColorStruct color, const int intensity, const AffectedHouse affectedHouse)
 {
 	if ((affectedHouse & AffectedHouse::Owner) != AffectedHouse::None)
 	{
-		this->ColorOwner |= color;
+		if(color != ColorStruct::Empty)
+			this->ColorOwner |= color.ToInit();
+
 		this->IntensityOwner += intensity;
 	}
 
 	if ((affectedHouse & AffectedHouse::Allies) != AffectedHouse::None)
 	{
-		this->ColorAllies |= color;
+		if(color != ColorStruct::Empty)
+			this->ColorAllies |= color.ToInit();
+
 		this->IntensityAllies += intensity;
 	}
 
 	if ((affectedHouse & AffectedHouse::Enemies) != AffectedHouse::None)
 	{
-		this->ColorEnemies |= color;
+		if(color != ColorStruct::Empty)
+			this->ColorEnemies |= color.ToInit();
+
 		this->IntensityEnemies += intensity;
 	}
 }
@@ -161,7 +167,7 @@ void TintColors::GetTints(TechnoClass* pOwner, int* tintColor, int* intensity)
 	//}
 
 	auto const pTypeExt = GET_TECHNOTYPEEXT(pOwner);
-	const bool hasTechnoTint = pTypeExt->Tint_Color.isset() || pTypeExt->Tint_Intensity;
+	const bool hasTechnoTint = pTypeExt->Tint_Color.Get() != ColorStruct::Empty || pTypeExt->Tint_Intensity;
 	bool hasShieldTint = false;
 	auto pShield = pOwnerExt->GetShield();
 
@@ -176,7 +182,7 @@ void TintColors::GetTints(TechnoClass* pOwner, int* tintColor, int* intensity)
 		return;
 
 	if (hasTechnoTint)
-		thetint.Calculate(pTypeExt->Tint_Color->ToInit(), static_cast<int>(pTypeExt->Tint_Intensity * 1000), pTypeExt->Tint_VisibleToHouses);
+		thetint.Calculate(pTypeExt->Tint_Color, static_cast<int>(pTypeExt->Tint_Intensity * 1000), pTypeExt->Tint_VisibleToHouses);
 
 	if (pOwnerExt->AE.flags.HasTint)
 	{
@@ -190,14 +196,14 @@ void TintColors::GetTints(TechnoClass* pOwner, int* tintColor, int* intensity)
 			if (!attachEffect->IsActive() || !type->HasTint())
 				continue;
 
-			thetint.Calculate(type->Tint_Color->ToInit(), static_cast<int>(type->Tint_Intensity * 1000), type->Tint_VisibleToHouses);
+			thetint.Calculate(type->Tint_Color, static_cast<int>(type->Tint_Intensity * 1000), type->Tint_VisibleToHouses);
 		}
 	}
 
 	if (hasShieldTint)
 	{
 		auto const pShieldType = pShield->GetType();
-		thetint.Calculate(pShieldType->Tint_Color->ToInit(), static_cast<int>(pShieldType->Tint_Intensity * 1000), pShieldType->Tint_VisibleToHouses);
+		thetint.Calculate(pShieldType->Tint_Color, static_cast<int>(pShieldType->Tint_Intensity * 1000), pShieldType->Tint_VisibleToHouses);
 	}
 
 	if (pOwner->Owner == HouseClass::CurrentPlayer.get())
@@ -355,7 +361,7 @@ void TechnoExtData::AmmoAutoConvertActions()
 {
 	const auto pTypeExt = this->TypeExtData;
 
-	if (!pTypeExt->Ammo_AutoConvertType.isset())
+	if (!pTypeExt->Ammo_AutoConvertType)
 		return;
 
 	const int min = pTypeExt->Ammo_AutoConvertMinimumAmount;
@@ -770,7 +776,7 @@ bool TechnoExtData::IsSabotagable(BuildingClass const* const pThis)
 	const auto civ_occupiable = pType->CanBeOccupied && pType->TechLevel == -1;
 	const auto default_sabotabable = pType->CanC4 && !civ_occupiable;
 
-	return pExt->ImmuneToSaboteurs.isset() ? !pExt->ImmuneToSaboteurs : default_sabotabable;
+	return pExt->ImmuneToSaboteurs.isset() ? !pExt->ImmuneToSaboteurs.Fetch() : default_sabotabable;
 }
 
 bool TechnoExtData::ApplyC4ToBuilding(InfantryClass* const pThis, BuildingClass* const pBuilding, const bool IsSaboteur)
@@ -1164,6 +1170,15 @@ void TechnoExtData::UpdateFactoryQueues(BuildingClass const* const pBuilding)
 {
 	if (pBuilding->Type->Factory != AbstractType::None)
 	{
+		if (const auto pFactory = pBuilding->Factory) {
+			if (pFactory->Object) {
+				if (pBuilding->Deactivated || !pBuilding->HasPower)
+					pFactory->Suspend(false);
+				else if (pFactory->IsSuspended && !pFactory->IsManual)
+					pFactory->Unsuspend(false);
+			}
+		}
+
 		pBuilding->Owner->Update_FactoriesQueues(
 			pBuilding->Type->Factory,
 			pBuilding->Type->Naval,
@@ -1180,7 +1195,7 @@ bool TechnoExtData::IsBaseNormal(BuildingClass* pBuilding)
 	const auto pExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 
 	if (pExt->AIBaseNormal.isset())
-		return pExt->AIBaseNormal;
+		return pExt->AIBaseNormal.Fetch();
 
 	if (pBuilding->Type->UndeploysInto && pBuilding->Type->ResourceGatherer || pBuilding->IsStrange())
 		return true;
@@ -1649,7 +1664,7 @@ void TechnoExtData::KickOutClone(BuildingClass* pBuilding, TechnoTypeClass* Prod
 	const auto& nStr = TechnoTypeExtContainer::Instance.Find(pBuilding->Type)->InitialStrength_Cloning;
 	if (nStr.isset())
 	{
-		const auto rStr = GeneralUtils::GetRangedRandomOrSingleValue(nStr);
+		const auto rStr = GeneralUtils::GetRangedRandomOrSingleValue(nStr.Fetch());
 		const int strength = std::clamp(static_cast<int>(ProductionType->Strength * rStr), 1, ProductionType->Strength);
 		Clone->Health = strength;
 		Clone->EstimatedHealth = strength;
@@ -2308,7 +2323,7 @@ bool TechnoExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 			auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 			if (pType->Invisible
-			|| (pExt->AI_LegalTarget.isset() && !isHumanControlled && !pExt->AI_LegalTarget.Get())
+			|| (pExt->AI_LegalTarget.isset() && !isHumanControlled && !pExt->AI_LegalTarget.Fetch())
 			|| !pType->LegalTarget
 			|| pExt->HunterSeekerIgnore
 			)
@@ -2961,7 +2976,7 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 
 				if (!this->Owner->IsControlledByHuman() && nAIMult.isset())
 				{
-					mult = nAIMult.Get();
+					mult = nAIMult.Fetch();
 				}
 				int bounty = int(mult * mult);
 
@@ -3153,7 +3168,7 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 
 		if (pTypeExt->SpyEffect_VictimSuperWeapon.isset() && !this->Owner->IsNeutral())
 		{
-			launchTheSWHere(pTypeExt->SpyEffect_VictimSuperWeapon.Get(), this->Owner, pTypeExt->SpyEffect_VictimSW_RealLaunch.Get());
+			launchTheSWHere(pTypeExt->SpyEffect_VictimSuperWeapon.Fetch(), this->Owner, pTypeExt->SpyEffect_VictimSW_RealLaunch.Get());
 
 			if (evaForOwner || evaForEnterer)
 			{
@@ -3165,7 +3180,7 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 
 		if (pTypeExt->SpyEffect_InfiltratorSuperWeapon.isset())
 		{
-			const int swidx = pTypeExt->SpyEffect_InfiltratorSuperWeapon.Get();
+			const int swidx = pTypeExt->SpyEffect_InfiltratorSuperWeapon.Fetch();
 
 			if (pTypeExt->SpyEffect_InfiltratorSW_JustGrant.Get())
 				justGrantTheSW(swidx, Enterer);
@@ -3370,8 +3385,8 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 
 			if (!pBldExt->AutoSellTimer.HasStarted())
 			{
-				pBldExt->AutoSellTimer.Start(pTypeExt->SpyEffect_SellDelay > 0 ?
-					pTypeExt->SpyEffect_SellDelay : static_cast<int>(RulesClass::Instance->C4Delay));
+				pBldExt->AutoSellTimer.Start(pTypeExt->SpyEffect_SellDelay.Fetch() > 0 ?
+					pTypeExt->SpyEffect_SellDelay.Fetch() : static_cast<int>(RulesClass::Instance->C4Delay));
 			}
 
 			if (evaForOwner || evaForEnterer)
@@ -3448,7 +3463,7 @@ DirStruct TechnoExtData::UnloadFacing(UnitClass* pThis)
 		{
 			auto const pBldExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 			if (pBldExt->DockUnload_Facing.isset())
-				nResult.Raw = ((size_t)pBldExt->DockUnload_Facing.Get()) << 11;
+				nResult.Raw = ((size_t)pBldExt->DockUnload_Facing.Fetch()) << 11;
 		}
 	}
 
@@ -3792,7 +3807,7 @@ void TechnoExtData::ApplyKillDriver(TechnoClass* pTarget, TechnoClass* pKiller, 
 			}
 		}
 
-		if (passive && pTypeExt->DriverKilled_KeptPassengers)
+		if (passive && pTypeExt->DriverKilled_KeptPassengers.Get(FakeRulesClass::Instance->DriverKilled_KeptPassengers))
 			break;
 
 		const bool kill = pTypeExt->DriverKilled_KillPassengers.Get(FakeRulesClass::Instance()->DriverKilled_KillPassengers);
@@ -4228,7 +4243,7 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 			// Rebuild a CaptureManager
 			pCaptureManager = GameCreate<CaptureManagerClass>(pThis, maxCapture, infiniteCapture);
 		}
-		else if (pOldTypeExt->Convert_ResetMindControl)
+		else if (pOldTypeExt->Convert_ResetMindControl.Get(FakeRulesClass::Instance->Convert_ResetMindControl))
 		{
 			if (!infiniteCapture && ((FakeCaptureManagerClass*)pCaptureManager)->__GetControlledCount() > maxCapture)
 			{
@@ -4243,7 +4258,7 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 			pCaptureManager->InfiniteMindControl = infiniteCapture;
 		}
 	}
-	else if (pCaptureManager && pOldTypeExt->Convert_ResetMindControl)
+	else if (pCaptureManager && pOldTypeExt->Convert_ResetMindControl.Get(FakeRulesClass::Instance->Convert_ResetMindControl))
 	{
 		// Remove CaptureManager completely
 		pCaptureManager->FreeAll();
@@ -6270,7 +6285,7 @@ CoordStruct* __fastcall FakeTechnoClass::__Get_FLH(TechnoClass* pThis, discard_t
 		if ((size_t)index < pTypeExt->AlternateFLHs.size())
 			flh = pTypeExt->AlternateFLHs[index];
 
-		if (!pTypeExt->AlternateFLH_OnTurret)
+		if (!pTypeExt->AlternateFLH_OnTurret.Get(FakeRulesClass::Instance->AlternateFLH_OnTurret))
 			allowOnTurret = false;
 	}
 
@@ -6719,15 +6734,15 @@ int TechnoExtData::CalculateBlockDamage(TechnoClass* pThis, TechnoClass* pSource
 		if (pWHExt->Block_AllowOverride)
 		{
 			blockAffectBelowPercents = !pOtherBlock->Block_AffectBelowPercents.empty() ? pOtherBlock->Block_AffectBelowPercents : blockAffectBelowPercents;
-			blockAffectsHouses = pOtherBlock->Block_AffectsHouses.isset() ? pOtherBlock->Block_AffectsHouses.Get() : blockAffectsHouses;
-			blockCanActiveZeroDamage = pOtherBlock->Block_CanActive_ZeroDamage.isset() ? pOtherBlock->Block_CanActive_ZeroDamage : blockCanActiveZeroDamage;
-			blockCanActiveNegativeDamage = pOtherBlock->Block_CanActive_NegativeDamage.isset() ? pOtherBlock->Block_CanActive_NegativeDamage : blockCanActiveNegativeDamage;
-			blockCanActivePowered = pOtherBlock->Block_CanActive_Powered.isset() ? pOtherBlock->Block_CanActive_Powered : blockCanActivePowered;
-			blockCanActiveNoFirer = pOtherBlock->Block_CanActive_NoFirer.isset() ? pOtherBlock->Block_CanActive_NoFirer : blockCanActiveNoFirer;
-			blockCanActiveShieldActive = pOtherBlock->Block_CanActive_ShieldActive.isset() ? pOtherBlock->Block_CanActive_ShieldActive : blockCanActiveShieldActive;
-			blockCanActiveShieldInactive = pOtherBlock->Block_CanActive_ShieldInactive.isset() ? pOtherBlock->Block_CanActive_ShieldInactive : blockCanActiveShieldInactive;
-			blockCanActiveMove = pOtherBlock->Block_CanActive_Move.isset() ? pOtherBlock->Block_CanActive_Move : blockCanActiveMove;
-			blockCanActiveStationary = pOtherBlock->Block_CanActive_Stationary.isset() ? pOtherBlock->Block_CanActive_Stationary : blockCanActiveStationary;
+			blockAffectsHouses = pOtherBlock->Block_AffectsHouses.isset() ? pOtherBlock->Block_AffectsHouses.Fetch() : blockAffectsHouses;
+			blockCanActiveZeroDamage = pOtherBlock->Block_CanActive_ZeroDamage.isset() ? pOtherBlock->Block_CanActive_ZeroDamage.Fetch() : blockCanActiveZeroDamage;
+			blockCanActiveNegativeDamage = pOtherBlock->Block_CanActive_NegativeDamage.isset() ? pOtherBlock->Block_CanActive_NegativeDamage.Fetch() : blockCanActiveNegativeDamage;
+			blockCanActivePowered = pOtherBlock->Block_CanActive_Powered.isset() ? pOtherBlock->Block_CanActive_Powered.Fetch() : blockCanActivePowered;
+			blockCanActiveNoFirer = pOtherBlock->Block_CanActive_NoFirer.isset() ? pOtherBlock->Block_CanActive_NoFirer.Fetch() : blockCanActiveNoFirer;
+			blockCanActiveShieldActive = pOtherBlock->Block_CanActive_ShieldActive.isset() ? pOtherBlock->Block_CanActive_ShieldActive.Fetch() : blockCanActiveShieldActive;
+			blockCanActiveShieldInactive = pOtherBlock->Block_CanActive_ShieldInactive.isset() ? pOtherBlock->Block_CanActive_ShieldInactive.Fetch() : blockCanActiveShieldInactive;
+			blockCanActiveMove = pOtherBlock->Block_CanActive_Move.isset() ? pOtherBlock->Block_CanActive_Move.Fetch() : blockCanActiveMove;
+			blockCanActiveStationary = pOtherBlock->Block_CanActive_Stationary.isset() ? pOtherBlock->Block_CanActive_Stationary.Fetch() : blockCanActiveStationary;
 		}
 
 		if (blockAffectBelowPercents.size() > 0 && pThis->GetHealthRatio() > blockAffectBelowPercents[0])
@@ -6812,7 +6827,7 @@ int TechnoExtData::CalculateBlockDamage(TechnoClass* pThis, TechnoClass* pSource
 
 		// a block is triggered
 		Iterator <AnimTypeClass*> blockAnims = pBlockType->Block_Anims;
-		auto blockWeapon = pBlockType->Block_Weapon.Get();
+		auto blockWeapon = pBlockType->Block_Weapon.Get(nullptr);
 		bool blockFlash = pBlockType->Block_Flash.Get(false);
 		bool blockReflectDamage = pBlockType->Block_ReflectDamage.Get(false);
 		double blockReflectDamageChance = pBlockType->Block_ReflectDamage_Chance.Get(1.0);
@@ -6823,16 +6838,16 @@ int TechnoExtData::CalculateBlockDamage(TechnoClass* pThis, TechnoClass* pSource
 				blockAnims = pOtherBlock->Block_Anims;
 
 			if (pOtherBlock->Block_Weapon.isset())
-				blockWeapon = pOtherBlock->Block_Weapon;
+				blockWeapon = pOtherBlock->Block_Weapon.Fetch();
 
 			if (pOtherBlock->Block_Flash.isset())
-				blockFlash = pOtherBlock->Block_Flash;
+				blockFlash = pOtherBlock->Block_Flash.Fetch();
 
 			if (pOtherBlock->Block_ReflectDamage.isset())
-				blockReflectDamage = pOtherBlock->Block_ReflectDamage;
+				blockReflectDamage = pOtherBlock->Block_ReflectDamage.Fetch();
 
-			if (pOtherBlock->Block_ReflectDamage_Chance)
-				blockReflectDamageChance = pOtherBlock->Block_ReflectDamage_Chance;
+			if (pOtherBlock->Block_ReflectDamage_Chance.isset())
+				blockReflectDamageChance = pOtherBlock->Block_ReflectDamage_Chance.Fetch();
 
 		}
 
@@ -6855,11 +6870,11 @@ int TechnoExtData::CalculateBlockDamage(TechnoClass* pThis, TechnoClass* pSource
 
 			if (pWHExt->Block_AllowOverride)
 			{
-				size = pOtherBlock->Block_Flash_FixedSize.isset() ? pOtherBlock->Block_Flash_FixedSize.Get() : size;
-				blockFlashRed = pOtherBlock->Block_Flash_Red.isset() ? pOtherBlock->Block_Flash_Red.Get() : blockFlashRed;
-				blockFlashGreen = pOtherBlock->Block_Flash_Green.isset() ? pOtherBlock->Block_Flash_Green.Get() : blockFlashGreen;
-				blockFlashBlue = pOtherBlock->Block_Flash_Blue.isset() ? pOtherBlock->Block_Flash_Blue.Get() : blockFlashBlue;
-				blockFlashBlack = pOtherBlock->Block_Flash_Black.isset() ? pOtherBlock->Block_Flash_Black.Get() : blockFlashBlack;
+				size = pOtherBlock->Block_Flash_FixedSize.isset() ? pOtherBlock->Block_Flash_FixedSize.Fetch() : size;
+				blockFlashRed = pOtherBlock->Block_Flash_Red.isset() ? pOtherBlock->Block_Flash_Red.Fetch() : blockFlashRed;
+				blockFlashGreen = pOtherBlock->Block_Flash_Green.isset() ? pOtherBlock->Block_Flash_Green.Fetch() : blockFlashGreen;
+				blockFlashBlue = pOtherBlock->Block_Flash_Blue.isset() ? pOtherBlock->Block_Flash_Blue.Fetch() : blockFlashBlue;
+				blockFlashBlack = pOtherBlock->Block_Flash_Black.isset() ? pOtherBlock->Block_Flash_Black.Fetch() : blockFlashBlack;
 			}
 
 			if (blockFlashBlack)
@@ -6890,17 +6905,17 @@ int TechnoExtData::CalculateBlockDamage(TechnoClass* pThis, TechnoClass* pSource
 
 			if (pWHExt->Block_AllowOverride)
 			{
-				pWHRef = pOtherBlock->Block_ReflectDamage_Warhead.isset() ? pOtherBlock->Block_ReflectDamage_Warhead.Get() : pWHRef;
+				pWHRef = pOtherBlock->Block_ReflectDamage_Warhead.isset() ? pOtherBlock->Block_ReflectDamage_Warhead.Fetch() : pWHRef;
 				overrider_2  = &pOtherBlock->Block_ReflectDamage_Override;
-				blockReflectDamageAffectsHouses = pOtherBlock->Block_ReflectDamage_AffectsHouses.isset() ? pOtherBlock->Block_ReflectDamage_AffectsHouses.Get() : blockReflectDamageAffectsHouses;
-				blockReflectDamageMultiplier = pOtherBlock->Block_ReflectDamage_Multiplier.isset() ? pOtherBlock->Block_ReflectDamage_Multiplier.Get() : blockReflectDamageMultiplier;
-				blockReflectDamageWHDetonate = pOtherBlock->Block_ReflectDamage_Warhead_Detonate.isset() ? pOtherBlock->Block_ReflectDamage_Warhead_Detonate.Get() : blockReflectDamageWHDetonate;
+				blockReflectDamageAffectsHouses = pOtherBlock->Block_ReflectDamage_AffectsHouses.isset() ? pOtherBlock->Block_ReflectDamage_AffectsHouses.Fetch() : blockReflectDamageAffectsHouses;
+				blockReflectDamageMultiplier = pOtherBlock->Block_ReflectDamage_Multiplier.isset() ? pOtherBlock->Block_ReflectDamage_Multiplier.Fetch() : blockReflectDamageMultiplier;
+				blockReflectDamageWHDetonate = pOtherBlock->Block_ReflectDamage_Warhead_Detonate.isset() ? pOtherBlock->Block_ReflectDamage_Warhead_Detonate.Fetch() : blockReflectDamageWHDetonate;
 			}
 
 			int damageRef = pBlockType->Block_ReflectDamage_Override.Get(static_cast<int>(damage * blockReflectDamageMultiplier));
 
 			if(overrider_2 && overrider_2->isset())
-				damageRef = overrider_2->Get();
+				damageRef = overrider_2->Fetch();
 
 			if (EnumFunctions::CanTargetHouse(blockReflectDamageAffectsHouses, pThis->Owner, pSource->Owner))
 			{
@@ -7472,16 +7487,16 @@ bool TechnoExtData::HandleDelayedFireWithPauseSequence(TechnoClass* pThis, Weapo
 			if (!timer.HasStarted())
 			{
 				pExt->DelayedFireWeaponIndex = weaponIndex;
-				timer.Start(MaxImpl(GeneralUtils::GetRangedRandomOrSingleValue(pWeaponExt->DelayedFire_Duration), 0));
+				timer.Start(MaxImpl(GeneralUtils::GetRangedRandomOrSingleValue(pWeaponExt->DelayedFire_Duration.Fetch()), 0));
 				auto pAnimType = pWeaponExt->DelayedFire_Animation;
 
 				if (pThis->Transporter && pWeaponExt->DelayedFire_OpenToppedAnimation.isset())
-					pAnimType = pWeaponExt->DelayedFire_OpenToppedAnimation.Get();
+					pAnimType = pWeaponExt->DelayedFire_OpenToppedAnimation.Fetch();
 
 				auto firingCoords = pThis->GetWeapon(weaponIndex)->FLH;
 
 				if (pWeaponExt->DelayedFire_AnimOffset.isset())
-					firingCoords = pWeaponExt->DelayedFire_AnimOffset;
+					firingCoords = pWeaponExt->DelayedFire_AnimOffset.Fetch();
 
 				pExt->CreateDelayedFireAnim(pAnimType, weaponIndex, pWeaponExt->DelayedFire_AnimIsAttached, pWeaponExt->DelayedFire_CenterAnimOnFirer,
 					pWeaponExt->DelayedFire_RemoveAnimOnNoDelay, pWeaponExt->DelayedFire_AnimOnTurret, firingCoords);
@@ -7912,7 +7927,7 @@ void TechnoExtData::ProcessDigitalDisplays(TechnoClass* pThis)
 }
 
 void GetDigitalDisplayFakeHealth(TechnoClass* pThis, int& value, int& maxValue) {
-	if (GET_TECHNOTYPEEXT(pThis)->DigitalDisplay_Health_FakeAtDisguise) {
+	if (GET_TECHNOTYPEEXT(pThis)->DigitalDisplay_Health_FakeAtDisguise.Get(FakeRulesClass::Instance->DigitalDisplay_Health_FakeAtDisguise)) {
 		if(auto pType = type_cast<TechnoTypeClass*>(pThis->Disguise)){
 			const int newMaxValue = pType->Strength;
 			const double ratio = static_cast<double>(value) / maxValue;
@@ -8351,13 +8366,13 @@ Armor TechnoExtData::GetArmor(ObjectClass* pThis) {
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find((TechnoTypeClass*)pType);
 
 		if (pTypeExt->VeteranArmor.isset() && ((TechnoClass*)pThis)->Veterancy.IsVeteran())
-			res = pTypeExt->VeteranArmor;
+			res = pTypeExt->VeteranArmor.Fetch();
 		else if (pTypeExt->EliteArmor.isset() && ((TechnoClass*)pThis)->Veterancy.IsElite())
-			res = pTypeExt->EliteArmor;
+			res = pTypeExt->EliteArmor.Fetch();
 
 		if(pTypeExt->DeployedArmor.isset() && pThis->WhatAmI() == AbstractType::Infantry) {
 			if (((InfantryClass*)pThis)->IsDeployed()) {
-				res = pTypeExt->DeployedArmor;
+				res = pTypeExt->DeployedArmor.Fetch();
 			}
 		}
 
@@ -9053,7 +9068,7 @@ bool TechnoExtData::IsCrushable(ObjectClass* pVictim, TechnoClass* pAttacker)
 				return false;
 
 			const auto pTerrainExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
-			if (pTerrainExt->IsPassable)
+			if (pTerrainExt->IsThisPassable())
 				return false;
 
 			return pAttackerTechnoTypeExt->CrushLevel.Get(pAttacker) > pTerrainExt->CrushableLevel;
@@ -9178,7 +9193,7 @@ int __fastcall TechnoExtData::GetThreadPosed(FootClass* pThis)
 		if (pShieldData->IsActive()) {
 			auto const pShiedType = pShieldData->GetType();
 			if (pShiedType->ThreadPosed.isset())
-				return pShiedType->ThreadPosed.Get();
+				return pShiedType->ThreadPosed.Fetch();
 		}
 	}
 
@@ -9207,7 +9222,7 @@ int __fastcall TechnoExtData::GetBuildingThreadPosed(BuildingClass* pThis)
 		if (pShieldData->IsActive()) {
 			auto const pShiedType = pShieldData->GetType();
 			if (pShiedType->ThreadPosed.isset())
-				return pShiedType->ThreadPosed.Get();
+				return pShiedType->ThreadPosed.Fetch();
 		}
 	}
 
@@ -9339,9 +9354,9 @@ bool TechnoExtData::ObjectHealthAllowFiring(ObjectClass* pTargetObj, WeaponTypeC
 		if(pWeaponExt->Targeting_Health_Percent.isset()){
 			auto const pHP = pTargetObj->GetHealthRatio();
 
-			if (!pWeaponExt->Targeting_Health_Percent_Below.Get() && pHP <= pWeaponExt->Targeting_Health_Percent.Get())
+			if (!pWeaponExt->Targeting_Health_Percent_Below.Get() && pHP <= pWeaponExt->Targeting_Health_Percent.Fetch())
 				return false;
-			else if (pWeaponExt->Targeting_Health_Percent_Below.Get() && pHP >= pWeaponExt->Targeting_Health_Percent.Get())
+			else if (pWeaponExt->Targeting_Health_Percent_Below.Get() && pHP >= pWeaponExt->Targeting_Health_Percent.Fetch())
 				return false;
 		}
 
@@ -9685,7 +9700,7 @@ void TechnoExtData::UpdateMCOverloadDamage(TechnoClass* pOwner)
 
 			if (auto const pParticle = pOwnerTypeExt->Overload_ParticleSys.Get(RulesClass::Instance->DefaultSparkSystem))
 			{
-				for (int i = pOwnerTypeExt->Overload_ParticleSysCount.Get(5); i > 0; --i)
+				for (int i = pOwnerTypeExt->Overload_ParticleSysCount.Get(FakeRulesClass::Instance->Overload_ParticleSysCount); i > 0; --i)
 				{
 					auto const nRandomY = ScenarioClass::Instance->Random.RandomRanged(-200, 200);
 					auto const nRamdomX = ScenarioClass::Instance->Random.RandomRanged(-200, 200);
@@ -10006,7 +10021,7 @@ double TechnoExtData::ApplyAdditionalDamageMult(TechnoClass* pThis, double damag
 	{
 		auto pTechnoTypeExt = GET_TECHNOTYPEEXT(pThis);
 
-		finalDamage = (finalDamage * pTechnoTypeExt->OpenTransport_DamageMultiplier.Get(FakeRulesClass::Instance->OpenTransport_RangeBonus));
+		finalDamage = (finalDamage * pTechnoTypeExt->OpenTransport_DamageMultiplier.Get(FakeRulesClass::Instance->OpenTransport_DamageMultiplier));
 
 		finalDamage = (finalDamage * (pThis->Transporter
 			? GET_TECHNOTYPEEXT(pThis->Transporter)->OpenTopped_DamageMultiplier
@@ -10133,9 +10148,9 @@ std::pair<bool, CoordStruct> TechnoExtData::GetInfantryFLH(InfantryClass* pThis,
 
 	const auto pickedFLH = TechnoExtData::GetInfrantyCrawlFLH(pThis, weaponIndex);
 
-	if (pickedFLH && pickedFLH->isset() && pickedFLH->Get().IsValid())
+	if (pickedFLH && pickedFLH->isset() && pickedFLH->Fetch().IsValid())
 	{
-		return { true , pickedFLH->Get() };
+		return { true , pickedFLH->Fetch() };
 	}
 
 	return{ false , CoordStruct::Empty };
@@ -10257,7 +10272,7 @@ void TechnoExtData::DrawSelectBox(TechnoClass* pThis,Point2D* pLocation,Rectangl
 	SelectBoxTypeClass* pSelectBox = nullptr;
 
 	if (pTypeExt->SelectBox.isset())
-		pSelectBox = pTypeExt->SelectBox.Get();
+		pSelectBox = pTypeExt->SelectBox.Fetch();
 	else if (whatAmI == InfantryClass::AbsID)
 		pSelectBox = FakeRulesClass::Instance()->DefaultInfantrySelectBox.Get();
 	else if (whatAmI != BuildingClass::AbsID)
@@ -10489,7 +10504,7 @@ static FORCEDINLINE void GetAdjustedInsigniaOffset(TechnoClass* pThis , Point2D&
 	case AbstractType::Building:
 		if (FakeRulesClass::Instance()->DrawInsignia_AdjustPos_BuildingsAnchor.isset())
 				offset = (TechnoExtData::GetBuildingSelectBracketPosition(pThis,
-						FakeRulesClass::Instance()->DrawInsignia_AdjustPos_BuildingsAnchor) +
+						FakeRulesClass::Instance()->DrawInsignia_AdjustPos_BuildingsAnchor.Fetch()) +
 						FakeRulesClass::Instance()->DrawInsignia_AdjustPos_Buildings) + a__;
 			else
 				offset += (FakeRulesClass::Instance()->DrawInsignia_AdjustPos_Buildings->operator+(a__));
@@ -10880,7 +10895,7 @@ void TechnoExtData::UpdateInterceptor()
 	// DO NOT iterate BulletExt::ExtMap here, the order of items is not deterministic
 	// so it can differ across players throwing target management out of sync.
 	int i = 0;
-	const bool isCylinc = pTypeExt->Interceptor_GuardRange_IsCylindrical;
+	const bool isCylinc = pTypeExt->Interceptor_GuardRange_IsCylindrical.Get(FakeRulesClass::Instance->Interceptor_GuardRange_IsCylindrical);
 	const bool considerWeaponRange = pTypeExt->Interceptor_ConsiderWeaponRange.Get();
 	const auto canTargetHouse = pTypeExt->Interceptor_CanTargetHouses;
 
@@ -10889,7 +10904,7 @@ void TechnoExtData::UpdateInterceptor()
 		const auto pBulletExt = BulletExtContainer::Instance.Find(pBullet);
 		const auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pBullet->Type);
 
-		if (!pBulletTypeExt->Interceptable || pBullet->SpawnNextAnim)
+		if (!pBulletTypeExt->Interceptable.Get(FakeRulesClass::Instance->Interceptable) || pBullet->SpawnNextAnim)
 			continue;
 
 		const bool isTargetedOrLocked = bool(pBulletExt->InterceptedStatus &
@@ -10916,7 +10931,7 @@ void TechnoExtData::UpdateInterceptor()
 		if (pBulletTypeExt->Armor.isset())
 		{
 			auto const pWhExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
-			if (Math::abs(pWhExt->GetVerses(pBulletTypeExt->Armor).Verses)
+			if (Math::abs(pWhExt->GetVerses(pBulletTypeExt->Armor.Fetch()).Verses)
 				//GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead , pBulletTypeExt->Armor))
 				< 0.001)
 				continue;
@@ -11394,7 +11409,7 @@ void TechnoExtData::UpdateEatPassengers()
 
 					auto const& nReportSound = pDelType->ReportSound;
 					if(nReportSound.isset())
-						VocClass::SafeImmedietelyPlayAt(nReportSound, &pThis->Location);
+						VocClass::SafeImmedietelyPlayAt(nReportSound.Fetch(), &pThis->Location);
 
 					auto const pThisOwner = pThis->GetOwningHouse();
 
@@ -11965,7 +11980,7 @@ bool TechnoExtData::CheckDeathConditions()
 	{
 		if (!existTechnoTypes(pTypeExt->AutoDeath_Nonexist,
 			pTypeExt->AutoDeath_Nonexist_House,
-			!pTypeExt->AutoDeath_Nonexist_Any, pTypeExt->AutoDeath_Nonexist_AllowLimboed))
+			!pTypeExt->AutoDeath_Nonexist_Any, pTypeExt->AutoDeath_Nonexist_AllowLimboed.Get(FakeRulesClass::Instance->AutoDeath_Nonexist_AllowLimboed)))
 		{
 			TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
 		}
@@ -11980,7 +11995,7 @@ bool TechnoExtData::CheckDeathConditions()
 		if (existTechnoTypes(pTypeExt->AutoDeath_Exist,
 			pTypeExt->AutoDeath_Exist_House,
 			pTypeExt->AutoDeath_Exist_Any,
-			pTypeExt->AutoDeath_Exist_AllowLimboed))
+			pTypeExt->AutoDeath_Exist_AllowLimboed.Get(FakeRulesClass::Instance->AutoDeath_Exist_AllowLimboed)))
 		{
 			TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
 		}
@@ -12038,8 +12053,8 @@ constexpr void CountSelfHeal(HouseClass* pOwner, int& count, Nullable<int>& cap,
 			break;
 		}
 
-		if (cap.isset() && count >= cap) {
-			count = cap;
+		if (cap.isset() && count >= cap.Fetch()) {
+			count = cap.Fetch();
 		}
 /*
 	for (auto pHouse : *HouseClass::Array)
@@ -12093,7 +12108,7 @@ constexpr int countSelfHealing(TechnoClass* pThis, const bool infantryHeal)
 	int count = infantryHeal ? pOwner->InfantrySelfHeal : pOwner->UnitsSelfHeal;
 
 	const bool hasCap = infantryHeal ? FakeRulesClass::Instance()->InfantryGainSelfHealCap.isset() : FakeRulesClass::Instance()->UnitsGainSelfHealCap.isset();
-	const int cap = infantryHeal ? FakeRulesClass::Instance()->InfantryGainSelfHealCap.Get() : FakeRulesClass::Instance()->UnitsGainSelfHealCap.Get();
+	const int cap = infantryHeal ? FakeRulesClass::Instance()->InfantryGainSelfHealCap.Fetch() : FakeRulesClass::Instance()->UnitsGainSelfHealCap.Fetch();
 
 	if (hasCap && count >= cap)
 	{
@@ -12176,7 +12191,7 @@ constexpr SelfHealGainType GetSelfHealGainType(AbstractType what, bool organic ,
 		return isBuilding ? SelfHealGainType::None : isOrganic ? SelfHealGainType::Infantry : SelfHealGainType::Units;
 	}
 
-	return type.Get();
+	return type.Fetch();
 }
 
 
@@ -13047,7 +13062,7 @@ void TechnoExtData::UpdateGattlingOverloadDamage()
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 
-	if (!pType->IsGattling || !pTypeExt->Gattling_Overload.Get())
+	if (!pType->IsGattling || !pTypeExt->Gattling_Overload.Get() || !pTypeExt->Gattling_Overload_Damage.isset())
 		return;
 
 	auto const nDelay = Math::abs(pTypeExt->Gattling_Overload_Frames.Get(0));
@@ -13069,7 +13084,7 @@ void TechnoExtData::UpdateGattlingOverloadDamage()
 		}
 
 		GattlingDmageDelay = nDelay;
-		auto nDamage = pTypeExt->Gattling_Overload_Damage.Get();
+		auto nDamage = pTypeExt->Gattling_Overload_Damage.Fetch();
 
 		if (nDamage <= 0)
 		{
@@ -13083,7 +13098,7 @@ void TechnoExtData::UpdateGattlingOverloadDamage()
 			if (!GattlingDmageSound)
 			{
 				if (pTypeExt->Gattling_Overload_DeathSound.isset())
-					VocClass::SafeImmedietelyPlayAt(pTypeExt->Gattling_Overload_DeathSound, &pThis->Location, 0);
+					VocClass::SafeImmedietelyPlayAt(pTypeExt->Gattling_Overload_DeathSound.Fetch(), &pThis->Location, 0);
 
 				GattlingDmageSound = true;
 			}

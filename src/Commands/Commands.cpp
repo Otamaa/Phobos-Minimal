@@ -105,6 +105,7 @@ void __fastcall Game_Init_Commands_Wrapper() {
 	Make<ForceWinCommandClass>();
 #pragma endregion Adminexclusive
 
+	if (Phobos::Config::SelectCapturedCommand)
 	Make<SelectCapturedCommandClass>();
 
 	Make<AggressiveModeClass>();

@@ -29,7 +29,7 @@ void __fastcall FakeObjectClass::_DrawRadialIndicator(ObjectClass* pThis, discar
 				int nRadius = 0;
 
 				if (pTypeExt->RadialIndicatorRadius.isset())
-					nRadius = pTypeExt->RadialIndicatorRadius.Get();
+					nRadius = pTypeExt->RadialIndicatorRadius.Fetch();
 				else if (pType->GapGenerator)
 					nRadius = pTypeExt->GapRadiusInCells.Get();
 				else

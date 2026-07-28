@@ -129,9 +129,6 @@ void SW_EMPulse::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 	pData->EMPulse_SuspendOthers.Read(exINI, section, "EMPulse.SuspendOthers");
 
 	pData->This()->Action = pData->EMPulse_TargetSelf ? Action::None : (Action)PhobosNewActionType::SuperWeaponAllowed;
-
-	if(!pData->EMPulse_PulseBall.isset())
-		pData->EMPulse_PulseBall = AnimTypeClass::Find(GameStrings::PULSBALL);
 }
 
 bool SW_EMPulse::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const

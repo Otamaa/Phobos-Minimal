@@ -120,7 +120,7 @@ int ApplyForceWeaponInRange(TechnoClass* pThis, AbstractClass* pTarget)
 	const bool useAASetting = !pTypeExt->ForceAAWeapon_InRange.empty() && pTarget->IsInAir();
 	auto const& weaponIndices = useAASetting ? pTypeExt->ForceAAWeapon_InRange : pTypeExt->ForceWeapon_InRange;
 	auto const& rangeOverrides = useAASetting ? pTypeExt->ForceAAWeapon_InRange_Overrides : pTypeExt->ForceWeapon_InRange_Overrides;
-	const bool applyRangeModifiers = useAASetting ? pTypeExt->ForceAAWeapon_InRange_ApplyRangeModifiers : pTypeExt->ForceWeapon_InRange_ApplyRangeModifiers;
+	const bool applyRangeModifiers = useAASetting ? pTypeExt->ForceAAWeapon_InRange_ApplyRangeModifiers.Get(FakeRulesClass::Instance->ForceAAWeapon_InRange_ApplyRangeModifiers) : pTypeExt->ForceWeapon_InRange_ApplyRangeModifiers.Get(FakeRulesClass::Instance->ForceWeapon_InRange_ApplyRangeModifiers);
 
 	const int defaultWeaponIndex = pThis->SelectWeapon(pTarget);
 	const int currentDistance = pThis->DistanceFrom(pTarget);
@@ -231,7 +231,7 @@ int TechnoTypeExtData::SelectForceWeapon(TechnoClass* pThis, AbstractClass* pTar
 	}
 
 	if (forceWeaponIndex == -1
-		&& (pTargetTechno || !this->ForceWeapon_InRange_TechnoOnly)
+		&& (pTargetTechno || !this->ForceWeapon_InRange_TechnoOnly.Get(FakeRulesClass::Instance->ForceWeapon_InRange_TechnoOnly))
 		&& (!this->ForceWeapon_InRange.empty() || !this->ForceAAWeapon_InRange.empty()))
 	{
 		TechnoTypeExtData::SelectWeaponMutex = true;
@@ -486,9 +486,9 @@ bool TechnoTypeExtData::CarryallCanLift(AircraftTypeClass* pCarryAll, UnitClass*
 
 	const auto& nSize = CarryAllData->CarryallSizeLimit;
 
-	if (nSize.isset() && nSize.Get() > 0)
+	if (nSize.isset() && nSize.Fetch() > 0)
 	{
-		return nSize.Get() >= ((TechnoTypeClass*)Target->Type)->Size;
+		return nSize.Fetch() >= ((TechnoTypeClass*)Target->Type)->Size;
 	}
 
 	return true;
@@ -767,9 +767,9 @@ void TechnoTypeExtData::ReadWeaponStructDatas(TechnoTypeClass* pType, CCINIClass
 
 void  TechnoTypeExtData::ApplyTurretOffset(Matrix3D* mtx, double factor, int turIdx)
 {
-	const auto offset = (size_t)turIdx >= this->ExtraTurretOffsets .size() ?
+	const auto offset = (size_t)turIdx >= this->ExtraTurretOffsets.size() ?
 		// pick the first 12 bytes of the data and ignore the rest, since the offset is only 3 integers, and the struct may contain more data
-		reinterpret_cast<CoordStruct*>(this->TurretOffset.operator->()) : &this->ExtraTurretOffsets[turIdx];
+		reinterpret_cast<const CoordStruct*>(&this->TurretOffset.Fetch()) : &this->ExtraTurretOffsets[turIdx];
 
 	mtx->Translate((float)(offset->X * factor), (float)(offset->Y * factor), (float)(offset->Z * factor));
 	//mtx->TranslateX(static_cast<float>(offset->X * factor));
@@ -1094,7 +1094,8 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->Spawner_DelayFrames.Read(exINI, pSection, "Spawner.DelayFrames");
 		this->Spawner_AttackImmediately.Read(exINI, pSection, "Spawner.AttackImmediately");
 		this->Spawner_UseTurretFacing.Read(exINI, pSection, "Spawner.UseTurretFacing");
-		this->Harvester_Counted.Read(exINI, pSection, "Harvester.Counted");
+
+		detail::read<bool>(this->Harvester_Counted, exINI, pSection, "Harvester.Counted");
 
 		this->Promote_IncludeSpawns.Read(exINI, pSection, "Promote.IncludeSpawns");
 		this->ImmuneToCrit.Read(exINI, pSection, "ImmuneToCrit");
@@ -1121,6 +1122,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->AutoDeath_Nonexist_Any.Read(exINI, pSection, "AutoDeath.TechnosDontExist.Any");
 		this->AutoDeath_Nonexist_House.Read(exINI, pSection, "AutoDeath.Nonexist.House");
 		this->AutoDeath_Nonexist_House.Read(exINI, pSection, "AutoDeath.TechnosDontExist.House");
+
 		this->AutoDeath_Nonexist_AllowLimboed.Read(exINI, pSection, "AutoDeath.Nonexist.AllowLimboed");
 		this->AutoDeath_Nonexist_AllowLimboed.Read(exINI, pSection, "AutoDeath.TechnosDontExist.AllowLimboed");
 
@@ -1130,9 +1132,10 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->AutoDeath_Exist_Any.Read(exINI, pSection, "AutoDeath.TechnosExist.Any");
 		this->AutoDeath_Exist_House.Read(exINI, pSection, "AutoDeath.Exist.House");
 		this->AutoDeath_Exist_House.Read(exINI, pSection, "AutoDeath.TechnosExist.House");
+		this->AutoDeath_VanishAnimation.Read(exINI, pSection, "AutoDeath.VanishAnimation");
+
 		this->AutoDeath_Exist_AllowLimboed.Read(exINI, pSection, "AutoDeath.Exist.AllowLimboed");
 		this->AutoDeath_Exist_AllowLimboed.Read(exINI, pSection, "AutoDeath.TechnosExist.AllowLimboed");
-		this->AutoDeath_VanishAnimation.Read(exINI, pSection, "AutoDeath.VanishAnimation");
 
 		this->Convert_AutoDeath.Read(exINI, pSection, "Convert.AutoDeath");
 
@@ -1227,6 +1230,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->JumpjetAllowLayerDeviation.Read(exINI, pSection, "JumpjetAllowLayerDeviation");
 		this->JumpjetTurnToTarget.Read(exINI, pSection, "JumpjetTurnToTarget");
 		this->JumpjetCrash_Rotate.Read(exINI, pSection, "JumpjetCrashRotate");
+		this->JumpjetCrash_Rotate.Read(exINI, pSection, "JumpjetRotateOnCrash");
 
 		this->DeployingAnims.Read(exINI, pSection, "DeployingAnims");
 		this->DeployingAnim_KeepUnitVisible.Read(exINI, pSection, "DeployingAnim.KeepUnitVisible");
@@ -1280,10 +1284,10 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		// insignia type
 		auto InsigniaType = Nullable<InsigniaTypeClass*>()(exINI, pSection, "InsigniaType", false);
 
-		if (InsigniaType.isset() && InsigniaType)
+		if (InsigniaType.isset() && InsigniaType.Fetch())
 		{
-			this->Insignia = InsigniaType.Get()->Insignia;
-			this->InsigniaFrame = InsigniaType.Get()->InsigniaFrame;
+			this->Insignia = InsigniaType.Fetch()->Insignia;
+			this->InsigniaFrame = InsigniaType.Fetch()->InsigniaFrame;
 			this->InsigniaFrames = Vector3D<int>(-1, -1, -1); // override it so only InsigniaFrame will be used
 		}
 		else
@@ -2136,7 +2140,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Convert.To%s", pSide->ID);
 			auto technoType= Nullable<TechnoTypeClass*>()(exINI, pSection, tempBuffer, false);
 			if (technoType.isset()) {
-				this->Convert_ToHouseOrCountry.insert(pSide, technoType.Get());
+				this->Convert_ToHouseOrCountry.insert(pSide, technoType.Fetch());
 			}
 		}
 
@@ -2145,7 +2149,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 			IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Convert.To%s", pTHouse->ID);
 			auto technoType = Nullable<TechnoTypeClass*>()(exINI, pSection, tempBuffer, false);
 			if (technoType.isset()) {
-				this->Convert_ToHouseOrCountry.insert(pTHouse, technoType.Get());
+				this->Convert_ToHouseOrCountry.insert(pTHouse, technoType.Fetch());
 			}
 		}
 
@@ -2221,12 +2225,12 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		auto transDelay = Nullable<int>()(exINI, pSection, "TiberiumEater.TransDelay", false);
 
-		if (transDelay.isset() && transDelay >= 0 && !this->TiberiumEaterType)
+		if (transDelay.isset() && transDelay.Fetch() >= 0 && !this->TiberiumEaterType)
 			this->TiberiumEaterType = std::make_unique<TiberiumEaterTypeClass>();
 
 		if (this->TiberiumEaterType) {
 
-			if (transDelay.isset() && transDelay.Get() < 0)
+			if (transDelay.isset() && transDelay.Fetch() < 0)
 				this->TiberiumEaterType.reset();
 			else
 				this->TiberiumEaterType->LoadFromINI(pINI, pSection);
@@ -2252,8 +2256,8 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 				if (InsigniaType_Passengers.isset())
 				{
-					this->Insignia_Passengers[i] = InsigniaType_Passengers.Get()->Insignia;
-					this->InsigniaFrame_Passengers[i] = InsigniaType_Passengers.Get()->InsigniaFrame;
+					this->Insignia_Passengers[i] = InsigniaType_Passengers.Fetch()->Insignia;
+					this->InsigniaFrame_Passengers[i] = InsigniaType_Passengers.Fetch()->InsigniaFrame;
 					this->InsigniaFrames_Passengers[i] = Vector3D<int>(-1, -1, -1); // override it so only InsigniaFrame will be used
 				}
 				else
@@ -2400,9 +2404,8 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		this->TurretOffset.Read(exArtINI, pArtSection, GameStrings::TurretOffset());
 
-		if (!this->TurretOffset.isset())
-		{
-			//put ddedfault single value inside
+		if (!this->TurretOffset.isset()) {
+			//put default single value inside
 			this->TurretOffset = PartialVector3D<int>{ pThis->TurretOffset , 0 ,0 , 1 };
 		}
 
@@ -2494,7 +2497,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 					break;
 			}
 
-			this->AlternateFLHs.push_back(alternateFLH.Get());
+			this->AlternateFLHs.push_back(alternateFLH.Fetch());
 		}
 
 		this->HitCoordOffset.clear();
@@ -2505,7 +2508,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 			if (!nHitBuff.isset())
 				break;
 
-			this->HitCoordOffset.push_back(nHitBuff);
+			this->HitCoordOffset.push_back(nHitBuff.Fetch());
 		}
 
 		this->HitCoordOffset_Random.Read(exArtINI, pArtSection, "HitCoordOffset.Random");

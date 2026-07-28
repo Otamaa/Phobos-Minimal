@@ -188,7 +188,7 @@ void StraightTrajectoryVarianC::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pV
 	auto const pType = this->GetTrajectoryType();
 	auto pBullet = this->AttachedTo;
 
-	this->DetonationDistance = pType->DetonationDistance;
+	this->DetonationDistance = pType->DetonationDistance.Fetch();
 	this->PassDetonateDamage = pType->PassDetonateDamage;
 	this->OffsetCoord = pType->OffsetCoord.Get();
 	this->UseDisperseBurst = pType->UseDisperseBurst;
@@ -392,7 +392,7 @@ void StraightTrajectoryVarianC::PrepareForOpenFire()
 		const auto pTypeExt = BulletTypeExtContainer::Instance.Find(pBullet->Type);
 		const auto offsetMult = 0.0004 * theSourceCoords.DistanceFrom(theTargetCoords);
 		const auto offsetMin = static_cast<int>(offsetMult * pTypeExt->BallisticScatterMin.Get(Leptons(0)));
-		const auto offsetMax = pTypeExt->BallisticScatterMax.isset() ? (int)(pTypeExt->BallisticScatterMax.Get()) : RulesClass::Instance()->BallisticScatter;
+		const auto offsetMax = pTypeExt->BallisticScatterMax.Get(RulesClass::Instance()->BallisticScatter).operator int();
 		const auto offsetDistance = ScenarioClass::Instance->Random.RandomRanged(offsetMin, offsetMax);
 		theTargetCoords = MapClass::GetRandomCoordsNear(theTargetCoords, offsetDistance, false);
 	}

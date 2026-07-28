@@ -436,7 +436,7 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x6CC390, FakeSuperClass::_Place)
 
 bool FakeSuperClass::_IsToFlashTab()
 {
-	if (!this->_GetTypeExtData()->SuperWeaponSidebar_Allow)
+	if (!this->_GetTypeExtData()->SuperWeaponSidebar_Allow.Get(FakeRulesClass::Instance->SuperWeaponSidebar_AllowByDefault))
 		return false;
 
 	if (this->IsOnHold) {

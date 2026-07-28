@@ -137,13 +137,13 @@ void ProcessStandardDeathType(FakeInfantryClass* pThis, WarheadTypeClass* warhea
 			int resultSequence = Die(1);
 
 			if (!whSequence.isset()
-				&& GET_TECHNOTYPEEXT(pThis)->NotHuman_RandomDeathSequence.Get())
+				&& GET_TECHNOTYPEEXT(pThis)->NotHuman_RandomDeathSequence.Get(FakeRulesClass::Instance->NotHuman_RandomDeathSequence))
 			{
 				resultSequence = ScenarioClass::Instance->Random.RandomRanged(Die(1), Die(5));
 			}
 			else if (whSequence.isset())
 			{
-				resultSequence = std::clamp(Die(Math::abs(whSequence.Get())), Die(1), Die(5));
+				resultSequence = std::clamp(Die(Math::abs(whSequence.Fetch())), Die(1), Die(5));
 			}
 
 			pThis->_GetExtData()->IsUsingDeathSequence = true;

@@ -20,7 +20,7 @@ void FakeWaveClass::_DamageCell(CoordStruct* pLoc){
 		const auto pWH = pWpnExt->AmbientDamage_Warhead.Get(pWpn->Warhead);
 
 		for (auto Occupier =  pCell->Cell_Occupier(isAlt); Occupier; Occupier = Occupier->NextObject ) {
-			if (Occupier == this->Target && pWpnExt->AmbientDamage_IgnoreTarget)
+			if (Occupier == this->Target && pWpnExt->AmbientDamage_IgnoreTarget.Get(FakeRulesClass::Instance->AmbientDamage_IgnoreTarget))
 				continue;
 
             if ( Occupier != pOwner
@@ -153,7 +153,7 @@ Point3D WaveExtData::GetIntent(WeaponTypeClass* pWeapon)
 	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
 	if (pWeaponExt->Wave_Intent.isset())
-		return pWeaponExt->Wave_Intent.Get();
+		return pWeaponExt->Wave_Intent.Fetch();
 
 	if (pWeapon->IsMagBeam)
 	{
@@ -175,7 +175,7 @@ ColorStruct WaveExtData::GetColor(WeaponTypeClass* pWeapon, WaveClass* pWave)
 		return pWave->Owner->Owner->Color;
 
 	if (pWeaponExt->Wave_Color.isset())
-		return pWeaponExt->Wave_Color.Get();
+		return pWeaponExt->Wave_Color.Fetch();
 
 	if (pWeapon->IsMagBeam)
 	{

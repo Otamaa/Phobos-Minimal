@@ -124,8 +124,8 @@ bool SW_NuclearMissile::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* 
 
 WarheadTypeClass* SW_NuclearMissile::GetWarhead(const SWTypeExtData* pData) const
 {
-	if (pData->SW_Warhead.Get(nullptr))
-		return pData->SW_Warhead;
+	if (pData->SW_Warhead.isset() && pData->SW_Warhead.Fetch())
+		return pData->SW_Warhead.Fetch();
 
 	if (auto pPayload = pData->Nuke_Payload) {
 		return pPayload->Warhead;

@@ -132,7 +132,7 @@ void SWTypeExtData::ApplyDropshipLoadoutLaunch(HouseClass* pHouse, const CellStr
 		return;
 
 	if (this->DropshipLoadout_Carrier.isset())
-		pTransporterType = this->DropshipLoadout_Carrier;
+		pTransporterType = this->DropshipLoadout_Carrier.Fetch();
 	else if (pHouseExt->DropshipLoadout_SWCarrier)
 		pTransporterType = pHouseExt->DropshipLoadout_SWCarrier;
 	else if (!pHouseExt->DropshipLoadout_Carriers.empty())
@@ -290,7 +290,7 @@ void SWTypeExtData::ApplyDropshipLoadoutLaunch(HouseClass* pHouse, const CellStr
 
 		if (pPayload->GetTechnoType()->Trainable && this->DropshipLoadout_VeteranLevel.isset())
 		{
-			int targetVetLevel = this->DropshipLoadout_VeteranLevel.Get();
+			int targetVetLevel = this->DropshipLoadout_VeteranLevel.Fetch();
 			float targetVeterancy = 0.0f;
 
 			if (targetVetLevel == 2)
@@ -435,7 +435,7 @@ SuperWeaponTarget SWTypeExtData::GetAIRequiredTarget() const
 {
 	if (this->SW_AIRequiresTarget.isset())
 	{
-		return this->SW_AIRequiresTarget;
+		return this->SW_AIRequiresTarget.Fetch();
 	}
 
 	const size_t index = static_cast<size_t>(this->SW_AITargetingMode.Get());
@@ -452,7 +452,7 @@ AffectedHouse SWTypeExtData::GetAIRequiredHouse() const
 {
 	if (this->SW_AIRequiresHouse.isset())
 	{
-		return this->SW_AIRequiresHouse;
+		return this->SW_AIRequiresHouse.Fetch();
 	}
 
 	const size_t index = static_cast<size_t>(this->SW_AITargetingMode.Get());
@@ -468,7 +468,7 @@ AffectedHouse SWTypeExtData::GetAIRequiredHouse() const
 std::pair<TargetingConstraints, bool> SWTypeExtData::GetAITargetingConstraints() const
 {
 	if (this->SW_AITargetingConstrain.isset())
-		return { this->SW_AITargetingConstrain.Get(), false };
+		return { this->SW_AITargetingConstrain.Fetch(), false };
 
 	const size_t index = static_cast<size_t>(this->SW_AITargetingMode.Get());
 
@@ -483,7 +483,7 @@ std::pair<TargetingConstraints, bool> SWTypeExtData::GetAITargetingConstraints()
 TargetingPreference SWTypeExtData::GetAITargetingPreference() const
 {
 	if (this->SW_AITargetingPreference.isset())
-		return this->SW_AITargetingPreference.Get();
+		return this->SW_AITargetingPreference.Fetch();
 
 	const size_t index = static_cast<size_t>(this->SW_AITargetingMode.Get());
 
@@ -1178,9 +1178,9 @@ bool SWTypeExtData::Launch(SWTypeHandler* pNewType, SuperClass* pSuper, CellStru
 
 	if ((flags & SuperWeaponFlags::NoPower) == SuperWeaponFlags::None)
 	{
-		if (pData->SW_Power.isset() && pData->SW_Power.Get() != 0)
+		if (pData->SW_Power.isset() && pData->SW_Power.Fetch() != 0)
 		{
-			pHouseExt->AuxPower += pData->SW_Power.Get();
+			pHouseExt->AuxPower += pData->SW_Power.Fetch();
 			pOwner->RecheckPower = true;
 		}
 	}
@@ -1354,9 +1354,9 @@ void SWTypeExtData::Deactivate(SuperClass* pSuper, CellStruct const cell, bool c
 
 	if ((flags & SuperWeaponFlags::NoPower) == SuperWeaponFlags::None)
 	{
-		if (pData->SW_Power.isset() && pData->SW_Power.Get() != 0)
+		if (pData->SW_Power.isset() && pData->SW_Power.Fetch() != 0)
 		{
-			HouseExtContainer::Instance.Find(pSuper->Owner)->AuxPower -= pData->SW_Power.Get();
+			HouseExtContainer::Instance.Find(pSuper->Owner)->AuxPower -= pData->SW_Power.Fetch();
 			pSuper->Owner->RecheckPower = true;
 		}
 	}
@@ -1417,6 +1417,8 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = This();
 	const char* pSection = pThis->ID;
+
+	this->EMPulse_PulseBall = AnimTypeClass::Find(GameStrings::PULSBALL);
 
 	if (parseFailAddr)
 		return false;
@@ -1886,13 +1888,15 @@ void SWTypeExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const C
 	
 	if (this->DropshipLoadout_OpenWindow && pHouse->IsCurrentPlayer())
 	{
+		Nullable<bool> _Temp {};
+			_Temp = this->DropshipLoadout_RememberPurchasedCargo;
 		DropshipLoadoutClass::OpenInGameWindow(
 			false, // bIgnoreFixedUnits
 			this->DropshipLoadout_PreloadCargo.Get(false), // bPreloadCargo
 			0,     // allowableUnitsIndex
 			this->DropshipLoadout_Money.Get(-1), // startingMoney
 			this->DropshipLoadout_AddUnusedMoneyToPlayer,
-			Nullable<bool>(this->DropshipLoadout_RememberPurchasedCargo.Get()),
+			_Temp,
 			this->This()
 		);
 	}
@@ -2132,7 +2136,7 @@ void SWTypeExtData::Play_EvaActivated(HouseClass* pFirer)
 				: &this->EVA_Activated_Enemies);
 
 		if (pEva->isset())
-			VoxClass::PlayIndex(pEva->Get());
+			VoxClass::PlayIndex(pEva->Fetch());
 	}
 }
 //
@@ -2273,7 +2277,7 @@ bool SWTypeExtData::UpdateLightingColor(LightingColor& Lighting) const
 	UpdateValue(this->Lighting_Blue, Lighting.Blue, 10);
 
 	if (this->Lighting_Enabled.isset())
-		Lighting.HasValue = this->Lighting_Enabled.Get();
+		Lighting.HasValue = this->Lighting_Enabled.Fetch();
 
 	return true;
 }
@@ -2839,7 +2843,7 @@ void SWTypeExtData::ApplyLinkedSW(SuperClass* pSW)
 	if (isActive && notObserver && pHouse->IsCurrentPlayer())
 	{
 		if (this->EVA_LinkedSWAcquired.isset())
-			VoxClass::PlayIndex(this->EVA_LinkedSWAcquired.Get(), VoxType::none, VoxPriority::none);
+			VoxClass::PlayIndex(this->EVA_LinkedSWAcquired.Fetch(), VoxType::none, VoxPriority::none);
 
 		this->PrintMessage(this->Message_LinkedSWAcquired, HouseClass::CurrentPlayer());
 	}

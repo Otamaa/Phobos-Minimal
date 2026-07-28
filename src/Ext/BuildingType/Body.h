@@ -345,7 +345,7 @@ public:
 	Valueable<bool> Radar_RequirePower { true };
 	Valueable<bool> SpawnCrewOnlyOnce { true };
 	Valueable<bool> IsDestroyableObstacle { false };
-	Valueable<bool> Explodes_DuringBuildup { true };
+	Nullable<bool> Explodes_DuringBuildup { };
 	Valueable<bool> SpyEffect_SWTargetCenter { false };
 	Valueable<bool> ShowPower { true };
 	Valueable<bool> EMPulseCannon_UseWeaponSelection { false };
@@ -369,6 +369,7 @@ public:
 	Nullable<int> StartFacing {};
 	Nullable<bool> StartFacing_Random {};
 
+	Valueable<int> SetTabBySelecting { -1 };
 	// ============================================================
 	// Plain bool (1 byte, at the very end)
 	// ============================================================

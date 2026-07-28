@@ -8,42 +8,72 @@
 #include <RulesClass.h>
 #include <FootClass.h>
 
-class CaptureExtData
+class CaptureExtData final : public AbstractExtended
 {
 public:
-	/*
-	class ExtData final : public Extension<CaptureManagerClass>
+	using base_type = CaptureManagerClass;
+	static COMPILETIMEEVAL const char* ClassName = "CaptureExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "CaptureManagerClass";
+	static COMPILETIMEEVAL DWORD Canary = 0xC8997DAE;
+public:
+	
+public:
+
+	CaptureExtData(CaptureManagerClass* pObj) : AbstractExtended(pObj)
 	{
-	public:
+		this->AbsType = base_type::AbsID;
+	}
 
-		static COMPILETIMEEVAL size_t Canary = 0x87654121;
-		using base_type = CaptureManagerClass;
+	CaptureExtData() = default;
 
-	public:
+	virtual ~CaptureExtData() = default;
 
-		ExtData(CaptureManagerClass* OwnerObject) : Extension<base_type>(OwnerObject) { }
-		virtual ~ExtData() override = default;
-
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public Container<CaptureExt::ExtData>
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType type) override
 	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(CaptureExt::ExtData, "CaptureManagerClass");
-	};
 
-	static ExtContainer ExtMap;
-	*/
+	}
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->Internal_LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		const_cast<CaptureExtData*>(this)->Internal_SaveToStream(Stm);
+		const_cast<CaptureExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const {}
+
+	CaptureManagerClass* This() const { return reinterpret_cast<CaptureManagerClass*>(this->AttachedToObject); }
+	const CaptureManagerClass* This_Const() const { return reinterpret_cast<const CaptureManagerClass*>(this->AttachedToObject); }
+
+private:
+	template <typename T>
+	void Serialize(T& Stm);
+
+public:
 
 	static AnimTypeClass* GetMindcontrollAnimType(TechnoClass* pController, TechnoClass* pTarget, AnimTypeClass* pFallback);
 };
 
+class CaptureExtContainer final : public Container<CaptureExtData>
+	, public ContainerSaveLoad<CaptureExtContainer, CaptureExtData>
+{
+public:
+	static COMPILETIMEEVAL const char* ClassName = "CaptureExtContainer";
+
+public:
+	static CaptureExtContainer Instance;
+	virtual bool SaveGlobal(PhobosStreamWriter& stm) { return true; }
+	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
+
+};
 
 class NOVTABLE FakeCaptureManagerClass : public CaptureManagerClass
 {

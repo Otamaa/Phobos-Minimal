@@ -93,6 +93,7 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/Bomb/Body.h>
+#include <Ext/CaptureManager/Body.h>
 #include <Ext/Cell/Body.h>
 #include <Ext/DiskLaser/Body.h>
 #include <Ext/Side/Body.h>
@@ -554,12 +555,12 @@ HRESULT Phobos::SaveAllLateData(IStream* pStm)
 	if (!SUCCEEDED(hr)) return hr;
 	hr = WriteBlocksToStreamB(WaveExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	//hr = WriteBlocksToStreamB(CaptureManagerExtContainer::Instance, pStm);
-	//	if (!SUCCEEDED(hr)) return hr;
+	hr = WriteBlocksToStreamB(CaptureExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
 	hr = WriteBlocksToStreamB(DiskLaserExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	//hr = WriteBlocksToStreamB(ParasiteExtContainer::Instance, pStm);
-	//	if (!SUCCEEDED(hr)) return hr;
+	hr = WriteBlocksToStreamB(ParasiteExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
 	hr = WriteBlocksToStreamB(TemporalExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
 	//hr = WriteBlocksToStreamB(AirstrikeExtContainer::Instance, pStm);
@@ -888,7 +889,7 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 		saveversion.ScenarioNumber = ScenarioClass::Instance->TechLevel;
 		sprintf_s(saveversion.ExecutableName.raw(),
 			"GAMEMD.EXE + Phobos Minimal + Mod %s ver %s",
-			Phobos::Config::ModName, Phobos::Config::ModVersion);
+			Phobos::Config::ModName.c_str(), Phobos::Config::ModVersion.c_str());
 		saveversion.GameType = SessionClass::Instance->GameMode;
 
 		FILETIME filetime;

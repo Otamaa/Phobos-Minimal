@@ -126,9 +126,9 @@ public:
 	Valueable<bool> YDrawOffset_ApplyBracketHeight {};
 	Valueable<bool> YDrawOffset_InvertBracketShift {};
 	Valueable<bool> Warhead_Detonate {};
-	Valueable<bool> Damage_DealtByInvoker {};
+	Nullable<bool> Damage_DealtByInvoker {};
 	Valueable<bool> Damage_ApplyOnce {};
-	Valueable<bool> Damage_ConsiderOwnerVeterancy { true };
+	Nullable<bool> Damage_ConsiderOwnerVeterancy { };
 	Valueable<bool> SplashIndexRandom {};
 	Valueable<bool> ExplodeOnWater {};
 	Valueable<bool> SpawnsMultiple_Random {};
@@ -224,7 +224,7 @@ public:
 	Mission GetCreateUnitMission(bool IsAi) {
 		auto result = this->CreateUnitType->UnitMission;
 		if (IsAi && this->CreateUnitType->AIUnitMission.isset())
-			result = this->CreateUnitType->AIUnitMission.Get();
+			result = this->CreateUnitType->AIUnitMission.Fetch();
 
 		return result;
 	}
@@ -233,7 +233,7 @@ public:
 		auto result = this->MakeInfantry_Mission.Get(Mission::Hunt);
 
 		if (IsAi && this->MakeInfantry_AI_Mission.isset())
-			result = this->MakeInfantry_AI_Mission;
+			result = this->MakeInfantry_AI_Mission.Fetch();
 
 		return result;
 	}

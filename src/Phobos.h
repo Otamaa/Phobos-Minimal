@@ -281,8 +281,8 @@ public:
 		static bool SuperWeaponSidebarCommands;
 
 		static DWORD InternalVersion;
-		static char ModName[0x40];
-		static char ModVersion[0x40];
+		static std::string ModName;
+		static std::string ModVersion;
 		static int ModIdentifier;
 		static CSFText ModNote;
 		static byte GFX_DX_Force;
@@ -295,6 +295,7 @@ public:
 
 		static bool ShowGameTime;
 		static int ShowGameTime_BoardOpacity;
+		static bool SelectCapturedCommand;
 	};
 
 	struct Misc

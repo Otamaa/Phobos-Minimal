@@ -1046,13 +1046,21 @@ public:
 	bool             WasSinkingAlready; // if(IsSinking && !WasSinkingAlready) { play SinkingSound; WasSinkingAlready = 1; }
 	BYTE             __ProtectMe_3CF;
 	BYTE             IsUseless; //3D0
-	BYTE			 IsTickedOff; //HasBeenAttacked //3D1
+	union //3D1
+	{
+		BYTE			 IsTickedOff;
+		BYTE			 HasBeenAttacked;
+	};
 	BYTE			 Cloakable; //3D2
 	BYTE			 IsPrimaryFactory; //3D3
-	//BYTE			 IsALoaner; // 3D4
-	//BYTE			 IsLocked; // 3D5
-	BYTE			 Spawned; // 3D6 //IsALoaner
-	BYTE             IsInPlayfield; // 3D7 // Is_Locked
+	union {
+		BYTE			 Spawned; // 3D6
+		BYTE             IsALoaner;
+	};
+	union {
+		BYTE             IsInPlayfield; // 3D7
+		BYTE             IsLocked;
+	};
 	DECLARE_PROPERTY(RecoilData, TurretRecoil);
 	DECLARE_PROPERTY(RecoilData, BarrelRecoil);
 	BYTE             IsTethered; //418

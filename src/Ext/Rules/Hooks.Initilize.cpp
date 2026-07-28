@@ -300,6 +300,7 @@ void Phobos_Config_Read_RULESMD(std::unique_ptr<PhobosINIClass>& ini)
 		Phobos::Config::AllowDistributionCommand_FilterMode = ini->Read<bool>(GLOBALCONTROLS_SECTION, "AllowDistributionCommand.FilterMode").value_or(Phobos::Config::AllowDistributionCommand_FilterMode);
 		Phobos::Config::AllowDistributionCommand_AffectsAllies = ini->Read<bool>(GLOBALCONTROLS_SECTION, "AllowDistributionCommand.AffectsAllies").value_or(Phobos::Config::AllowDistributionCommand_AffectsAllies);
 		Phobos::Config::AllowDistributionCommand_AffectsEnemies = ini->Read<bool>(GLOBALCONTROLS_SECTION, "AllowDistributionCommand.AffectsEnemies").value_or(Phobos::Config::AllowDistributionCommand_AffectsEnemies);
+		Phobos::Config::SelectCapturedCommand = ini->Read<bool>(GLOBALCONTROLS_SECTION, "SelectCapturedKeyEnabled").value_or(Phobos::Config::SelectCapturedCommand);
 	}
 
 	{

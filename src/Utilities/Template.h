@@ -39,6 +39,9 @@
 #include <FootClass.h>
 
 #include "Savegame.h"
+#include "NullableDefaultRegistry.h"
+
+#include <Phobos.CRT.h>
 
 class INI_EX;
 
@@ -57,12 +60,7 @@ public:
 	//using value_type = T;
 	//using base_type = std::remove_pointer_t<T>;
 
-	COMPILETIMEEVAL Valueable() {
-		if COMPILETIMEEVAL (std::is_pointer_v<T>) {
-			Value = nullptr;
-		}
-	}
-
+	COMPILETIMEEVAL Valueable() = default;
 	COMPILETIMEEVAL explicit Valueable(T value) noexcept(noexcept(T { std::move(value) })) : Value(std::move(value)) { }
 	COMPILETIMEEVAL Valueable(Valueable const& other) = default;
 	COMPILETIMEEVAL Valueable(Valueable&& other) = default;
@@ -198,10 +196,14 @@ class Nullable : public Valueable<T>
 {
 protected:
 	bool HasValue { false };
+
 public:
 
-	COMPILETIMEEVAL Nullable() = default;
-	COMPILETIMEEVAL explicit Nullable(T value) noexcept(noexcept(Valueable<T>{std::move(value)})) : Valueable<T>(std::move(value)), HasValue(true) { }
+	COMPILETIMEEVAL Nullable()  = default;
+	//prohibit nullable explicit instation
+	//because if you do this you can just use other classes like Valueabe
+	//it defeat the purpose
+	COMPILETIMEEVAL explicit Nullable(T value) = delete;//noexcept(noexcept(Valueable<T>{std::move(value)})) : Valueable<T>(std::move(value)), HasValue(true) { }
 	COMPILETIMEEVAL Nullable(Nullable const& other) = default;
 	COMPILETIMEEVAL Nullable(Nullable&& other) = default;
 	COMPILETIMEEVAL ~Nullable() = default;
@@ -239,16 +241,18 @@ public:
 		return this->HasValue;
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE const T& Get() const noexcept
+	// always make sure to check isset() before using this 
+	// otherwise it will read on garbage memory possibly causing an UBs
+	COMPILETIMEEVAL FORCEDINLINE const T& Fetch() const noexcept
 	{
 		return this->Value;
 	}
 
-	// return a copy of the value instead
-	// this can be used to fill an vector after reading
-	COMPILETIMEEVAL FORCEDINLINE T GetCopy() const noexcept{
-		return this->Value;
-	}
+	//dont do this willy nilly
+	COMPILETIMEEVAL FORCEDINLINE T GetCopy() const noexcept = delete;
+	COMPILETIMEEVAL FORCEDINLINE operator const T& () const noexcept = delete;
+	COMPILETIMEEVAL FORCEDINLINE auto operator->() noexcept = delete;
+	COMPILETIMEEVAL FORCEDINLINE auto operator->() const noexcept = delete;
 
 	COMPILETIMEEVAL FORCEDINLINE T Get(const T& ndefault) const
 	{
@@ -305,7 +309,7 @@ public:
 	}
 
 	template <typename Val, typename = std::enable_if_t<std::is_assignable<T&, Val&&>::value>>
-	COMPILETIMEEVAL void Set(Val&& ndefault)
+	COMPILETIMEEVAL void Set(Val& ndefault)
 	{
 		this->Value = std::move(ndefault); // set the value to args
 		this->HasValue = true;
@@ -318,6 +322,11 @@ public:
 	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const;
 
 private:
+
+	COMPILETIMEEVAL FORCEDINLINE const T& Get() const noexcept
+	{
+		return this->Value;
+	}
 
 	COMPILETIMEEVAL FORCEDINLINE T* GetEx() noexcept {
 		if COMPILETIMEEVAL (std::is_pointer<T>::type())
@@ -334,12 +343,132 @@ private:
 	}
 };
 
+// Inherit this and self-registration is automatic -- nothing per tag.
+// All special-member correctness (so auto-registered pointers never go stale)
+// lives here, once.
+template<typename Derived>
+class NullableDefaultDebugBase
+{
+protected:
+	NullableDefaultDebugBase() { Reg(); }
+
+	// a moved/copied instance is a NEW live object at a new address -> register
+	// it. The source stays valid until its own dtor deregisters it.
+	NullableDefaultDebugBase(NullableDefaultDebugBase&&) noexcept { Reg(); }
+	NullableDefaultDebugBase(const NullableDefaultDebugBase&) { Reg(); }
+
+	// assignment relocates nothing -> addresses unchanged -> no-op
+	NullableDefaultDebugBase& operator=(NullableDefaultDebugBase&&) noexcept { return *this; }
+	NullableDefaultDebugBase& operator=(const NullableDefaultDebugBase&) { return *this; }
+
+	~NullableDefaultDebugBase()
+	{
+		NullableDefaultRegistry::Instance().Deregister(this);
+	}
+
+	// call from ReadDefault after binding: this->SetIdentity(pSection, pKey)
+	void SetIdentity(const char* sec, const char* key)
+	{
+		NullableDefaultRegistry::Instance().SetIdentity(this, sec, key);
+	}
+
+private:
+	void Reg()
+	{
+		NullableDefaultRegistry::Instance().Register(this, &Thunk);
+	}
+
+	// CRTP: read the derived's bound flag with no vtable (keeps layout stable)
+	static bool Thunk(const void* p)
+	{
+		auto self = static_cast<const NullableDefaultDebugBase*>(p);
+		return static_cast<const Derived*>(self)->IsDefaultBound();
+	}
+};
+
+template<typename T>
+class NullableDefault :
+	public NullableDefaultDebugBase<NullableDefault<T>>
+{
+	Nullable<T> Current {};
+	T Default {};
+	bool HasDefault { false };
+
+public:
+	COMPILETIMEEVAL NullableDefault() = default;
+	COMPILETIMEEVAL NullableDefault(NullableDefault const&) = default;
+	COMPILETIMEEVAL NullableDefault(NullableDefault&&) = default;
+	COMPILETIMEEVAL NullableDefault& operator=(NullableDefault const&) = default;
+	COMPILETIMEEVAL NullableDefault& operator=(NullableDefault&&) = default;
+
+	COMPILETIMEEVAL FORCEDINLINE bool IsDefaultBound() const noexcept
+	{
+		return this->HasDefault;
+	}
+
+	// bind the default once; independent of HasValue so it can be called
+	// unconditionally right after Read
+	COMPILETIMEEVAL FORCEDINLINE void SetDefault(const T& def)
+	{
+		this->Default = def;
+		this->HasDefault = true;
+	}
+
+	// explicit INI value wins -> else stored default -> else empty T()
+	COMPILETIMEEVAL FORCEDINLINE const T& Get() const noexcept
+	{
+		//C4172 ?
+		return this->Current.Get(this->Default);
+	}
+
+	OPTIONALINLINE void Read(INI_EX& parser, const char* pSection, const char* pKey, bool Allocate = false)
+	{
+		this->Read(parser, pSection, pKey, Allocate);
+		this->SetIdentity(pSection, pKey, PhobosCRT::GetTypeIDName<T>()); // names this tag if it ever trips
+	}
+
+	// ergonomics: `int x = ext->Foo;` — safe here because a bound default
+	// guarantees a sane value (base deletes this on purpose for raw Nullable)
+	COMPILETIMEEVAL FORCEDINLINE operator const T& () const noexcept
+	{
+		return this->Get();
+	}
+
+	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		return Stm
+			.Process(this->Current, RegisterForChange)
+			.Process(this->Default, RegisterForChange)
+			.Process(this->HasDefault, RegisterForChange)
+				;
+	}
+
+	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const
+	{
+		return Stm
+			.Process(this->Current)
+			.Process(this->Default)
+			.Process(this->HasDefault)
+			;
+	}
+};
+
+static_assert(std::is_default_constructible_v<Nullable<int>>);
+
 template<typename Lookuper, EnumCheckMode mode = EnumCheckMode::ignore>
 class NullableIdx : public Nullable<int>
 {
+	COMPILETIMEEVAL void Initialize() {
+		this->Value = -1; // because valueable default are 0
+		this->HasValue = 0;
+	}
+
 public:
-	COMPILETIMEEVAL NullableIdx() noexcept : Nullable<int>(-1) { this->HasValue = false; }
-	COMPILETIMEEVAL explicit NullableIdx(int value) noexcept : Nullable<int>(value) { }
+	COMPILETIMEEVAL NullableIdx() : Nullable<int>()
+	{ this->Initialize(); };
+
+	//
+	COMPILETIMEEVAL explicit NullableIdx(int value) = delete; // noexcept : Nullable<int>(value) {}
 	COMPILETIMEEVAL NullableIdx(NullableIdx const& other) = default;
 	COMPILETIMEEVAL NullableIdx(NullableIdx&& other) = default;
 	COMPILETIMEEVAL ~NullableIdx() = default;
@@ -800,28 +929,22 @@ class Damageable
 {
 public:
 	Valueable<T> BaseValue {};
-	Nullable<T> ConditionYellow {};
-	Nullable<T> ConditionRed {};
+	std::optional<T> ConditionYellow {};
+	std::optional<T> ConditionRed {};
 
 	COMPILETIMEEVAL Damageable() noexcept = default;
 
 	COMPILETIMEEVAL explicit Damageable(T const& all)
-		noexcept(noexcept(T { all }))
-		: BaseValue { all }
-	{
-	}
+		: BaseValue { all }, ConditionYellow { all }, ConditionRed { all }
+	{ }
 
-	COMPILETIMEEVAL explicit Damageable(T const& undamaged, T const& damaged)
-		noexcept(noexcept(T { undamaged }) && noexcept(T { damaged }))
-		: BaseValue { undamaged }, ConditionYellow { damaged }
-	{
-	}
+	COMPILETIMEEVAL explicit Damageable(T const& undamaged, T const& damaged) 
+		: BaseValue { undamaged }, ConditionYellow { damaged }, ConditionRed { }
+	{ }
 
 	COMPILETIMEEVAL explicit Damageable(T const& green, T const& yellow, T const& red)
-		noexcept(noexcept(T { green }) && noexcept(T { yellow }) && noexcept(T { red }))
-		: BaseValue { green }, ConditionYellow { yellow }, ConditionRed { red }
-	{
-	}
+		: BaseValue { green }, ConditionYellow { ConditionYellow }, ConditionRed { red }
+	{ }
 
 	COMPILETIMEEVAL ~Damageable() = default;
 
@@ -831,19 +954,19 @@ public:
 
 	OPTIONALINLINE void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr , bool Alloc = false);
 
+	OPTIONALINLINE bool isDamagedValueSet() const noexcept
+	{
+		return this->ConditionYellow.has_value() || this->ConditionRed.has_value();
+	}
+
+	OPTIONALINLINE bool isset() const noexcept
+	{
+		return this->BaseValue || this->ConditionYellow.has_value() || this->ConditionRed.has_value();
+	}
+
 	COMPILETIMEEVAL const T& Get(TechnoClass* pTechno) const noexcept
 	{
 		return Get(pTechno->GetHealthRatio(), RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed);
-	}
-
-	COMPILETIMEEVAL bool isset() const noexcept
-	{
-		return this->BaseValue || this->ConditionYellow.isset() || this->ConditionRed.isset();
-	}
-
-	COMPILETIMEEVAL bool isDamagedValueSet() const noexcept
-	{
-		return this->ConditionYellow.isset() || this->ConditionRed.isset();
 	}
 
 	COMPILETIMEEVAL const T& Get(double ratio) const noexcept
@@ -853,20 +976,20 @@ public:
 
 	COMPILETIMEEVAL const T& Get(double ratio, double conditionYellow , double conditionRed) const noexcept
 	{
-		if (this->ConditionRed.isset() && ratio <= conditionRed)
-			return this->ConditionRed;
-		else if (this->ConditionYellow.isset() && ratio <= conditionYellow)
-			return this->ConditionYellow;
+		if (this->ConditionRed.has_value() && ratio <= conditionRed)
+			return this->ConditionRed.value();
+		else if (this->ConditionYellow.has_value() && ratio <= conditionYellow)
+			return this->ConditionYellow.value();
 
 		return this->BaseValue;
 	}
 
 	COMPILETIMEEVAL const T& Get(HealthState const& nState) const noexcept
 	{
-		if (this->ConditionRed.isset() && (nState == HealthState::Red))
-			return this->ConditionRed;
-		else if (this->ConditionYellow.isset() && (nState == HealthState::Yellow))
-			return this->ConditionYellow;
+		if (this->ConditionRed.has_value() && nState == HealthState::Red)
+			return this->ConditionRed.value();
+		else if (this->ConditionYellow.has_value() && nState == HealthState::Yellow)
+			return this->ConditionYellow.value();
 
 		return this->BaseValue;
 	}
@@ -1119,11 +1242,18 @@ public:
 	Nullable<T> Elite {};
 
 	COMPILETIMEEVAL NullablePromotable() = default;
-	COMPILETIMEEVAL explicit NullablePromotable(T const& all) noexcept(noexcept(T { all })) : Rookie(all), Veteran(all), Elite(all) { }
+	COMPILETIMEEVAL explicit NullablePromotable(T const& all) 
+		: Rookie(), Veteran(), Elite() {
+		Rookie.Set(all); 
+		Veteran.Set(all); 
+		Elite.Set(all);
+	}
 	COMPILETIMEEVAL explicit NullablePromotable(T const& r, T const& v, T const& e)
-		noexcept(noexcept(T { r }) && noexcept(T { v }) && noexcept(T { e })) :
-		Rookie(r), Veteran(v), Elite(e)
+		: Rookie(), Veteran(), Elite()
 	{
+		Rookie.Set(r);
+		Veteran.Set(v);
+		Elite.Set(e);
 	}
 
 	COMPILETIMEEVAL NullablePromotable(const NullablePromotable&) = default;

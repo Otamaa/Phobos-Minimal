@@ -62,7 +62,7 @@ void HandleBuildingDestruction(TemporalClass* pTemporal, BuildingClass* building
 
 					if (pAir->IsInAir() || !AircraftTypeExtContainer::Instance.Find(pAir->Type)->ExtendedAircraftMissions_FastScramble
 									.Get(AircraftTypeExtData::ExtendedAircraftMissionsEnabled(pAir))) {
-						if ((pExt->Crashable.isset() && !pExt->Crashable) || !pAir->Crash(pTemporal->Owner)) {
+						if ((pExt->Crashable.isset() && !pExt->Crashable.Fetch()) || !pAir->Crash(pTemporal->Owner)) {
 							TechnoExtData::HandleRemove(pAir, pTemporal->Owner, false, false);
 						}
 					} else {
@@ -185,7 +185,7 @@ void FakeTemporalClass::_Update()
 			if (pTransport->IsAlive) {
 				const auto& _cDiscance = GET_TECHNOTYPEEXT(pTransport)->OpenTopped_WarpDistance;
 				if (_cDiscance.isset()) {
-					disatanceMax = _cDiscance.Get();
+					disatanceMax = _cDiscance.Fetch();
 				}
 			}
 		}

@@ -36,7 +36,7 @@ AnimTypeClass* AnimExtData::PickSplashAnim(NullableVector<AnimTypeClass*> const&
 		}
 	}
 
-	return !IsMeteor && nWake.isset() ? nWake.Get() : RulesClass::Instance->Wake;
+	return !IsMeteor && nWake.isset() ? nWake.Fetch() : RulesClass::Instance->Wake;
 }
 
 std::pair<bool, int> AnimExtData::DetonateWarhead(int nDamage, WarheadTypeClass* pWarhead, bool bWarheadDetonate, CoordStruct Where, TechnoClass* pInvoker, HouseClass* pOwner, bool DamageConsiderVet)
@@ -68,7 +68,7 @@ std::pair<bool, int> AnimExtData::Detonate(Nullable<WeaponTypeClass*> const& pWe
 	}
 
 	auto nResultDamage = static_cast<int>(TechnoExtData::ApplyDamageMult(pInvoker, nDamage, !DamageConsiderVet));
-	WeaponTypeExtData::DetonateAt4(pWeapon, Where, pInvoker, nResultDamage, false, pInvoker ? pInvoker->Owner : nullptr);
+	WeaponTypeExtData::DetonateAt4(pWeapon.Fetch(), Where, pInvoker, nResultDamage, false, pInvoker ? pInvoker->Owner : nullptr);
 	return { false , 0 };
 }
 
@@ -220,7 +220,7 @@ bool AnimExtData::OnMiddle_SpawnSmudge(AnimClass* pThis, CellClass* pCell, Point
 		else
 		{
 			const bool bSpawn = (pTypeExt->ScorchChance.isset()) ? (
-				ScenarioClass::Instance->Random.RandomDouble() >= pTypeExt->ScorchChance.Get()) : true;
+				ScenarioClass::Instance->Random.RandomDouble() >= pTypeExt->ScorchChance.Fetch()) : true;
 
 			if (bSpawn)
 				SmudgeTypeClass::CreateRandomSmudge(nCoord, nOffs.X, nOffs.Y, false);
@@ -243,7 +243,7 @@ bool AnimExtData::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHei
 
 		if (!LandIsWater || EligibleHeight)
 		{
-			AnimExtData::DetonateWarhead(int(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->Bounce.GetCoords(), pTechOwner, pOwner, pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
+			AnimExtData::DetonateWarhead(int(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->Bounce.GetCoords(), pTechOwner, pOwner, pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Fetch());
 
 			if (auto const pExpireAnim = pThis->Type->ExpireAnim)
 			{
@@ -278,7 +278,7 @@ bool AnimExtData::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHei
 			}
 			else
 			{
-				auto const& [bPlayWHAnim, nDamage] = AnimExtData::DetonateWarhead(int(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->Location, pTechOwner, pOwner, pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Get());
+				auto const& [bPlayWHAnim, nDamage] = AnimExtData::DetonateWarhead(int(pThis->Type->Damage), pThis->Type->Warhead, pAnimTypeExt->Warhead_Detonate, pThis->Location, pTechOwner, pOwner, pAnimTypeExt->Damage_ConsiderOwnerVeterancy.Fetch());
 				if (bPlayWHAnim)
 				{
 					if (auto pSplashAnim = MapClass::SelectDamageAnimation(nDamage, pThis->Type->Warhead, pThis->GetCell()->LandType, pThis->Location))
@@ -308,7 +308,7 @@ void ApplyDamage(AnimClass* pThis , AnimExtData* pExt , AnimTypeExtData* pTypeEx
 	if (auto const pWeapon = pTypeExt->Weapon)
 	{
 		AbstractClass* pTarget = AnimExtData::GetTarget(pThis);
-		WeaponTypeExtData::DetonateAt5(pWeapon, nCoord, pTarget, pInvoker, appliedDamage, pTypeExt->Damage_ConsiderOwnerVeterancy.Get(), pOwner);
+		WeaponTypeExtData::DetonateAt5(pWeapon, nCoord, pTarget, pInvoker, appliedDamage, pTypeExt->Damage_ConsiderOwnerVeterancy.Fetch(), pOwner);
 	}
 	else
 	{
@@ -316,7 +316,7 @@ void ApplyDamage(AnimClass* pThis , AnimExtData* pExt , AnimTypeExtData* pTypeEx
 			!pTypeExt->IsInviso ? RulesClass::Instance->FlameDamage2 : RulesClass::Instance->C4Warhead;
 
 		
-		const auto nDamageResult = static_cast<int>(TechnoExtData::ApplyDamageMult(pInvoker, appliedDamage, !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
+		const auto nDamageResult = static_cast<int>(TechnoExtData::ApplyDamageMult(pInvoker, appliedDamage, !pTypeExt->Damage_ConsiderOwnerVeterancy.Fetch()));
 
 		if (pTypeExt->Warhead_Detonate.Get())
 		{
@@ -441,7 +441,7 @@ bool AnimExtData::OnMiddle(AnimClass* pThis)
 					{
 						CoordStruct nDestCoord = CoordStruct::Empty;
 						if (!pAnimTypeExt->ParticleChance.isset() ||
-							(ScenarioClass::Instance->Random.RandomFromMax(99) < Math::abs(pAnimTypeExt->ParticleChance.Get())))
+							(ScenarioClass::Instance->Random.RandomFromMax(99) < Math::abs(pAnimTypeExt->ParticleChance.Fetch())))
 						{
 							nDestCoord = AnimExtData::GetRandomCoordsInsideLoops(pAnimTypeExt->ParticleRangeMin.Get(), pAnimTypeExt->ParticleRangeMax.Get(), InitialCoord, i);
 							ParticleSystemClass::Instance->SpawnParticle(pParticleType, &nDestCoord);
@@ -500,7 +500,7 @@ bool AnimExtData::OnMiddle(AnimClass* pThis)
 			TechnoClass* const pInvoker = AnimExtData::GetTechnoInvoker(pThis);
 			//const auto nDamageResult = static_cast<int>(TechnoExtData::ApplyDamageMult(pInvoker, pWeapon->Damage , !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
 			const auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->Owner : nullptr;
-			WeaponTypeExtData::DetonateAt1(pWeapon, pTarget, pInvoker, pTypeExt->Damage_ConsiderOwnerVeterancy, pOwner);
+			WeaponTypeExtData::DetonateAt1(pWeapon, pTarget, pInvoker, pTypeExt->Damage_ConsiderOwnerVeterancy.Fetch(), pOwner);
 		}
 	}
 
@@ -528,7 +528,7 @@ AbstractClass* AnimExtData::GetTarget(AnimClass* pThis)
 		return MapClass::Instance->GetCellAt(pThis->GetCoords());
 	}
 
-	switch (pTypeExt->Damage_TargetFlag.Get())
+	switch (pTypeExt->Damage_TargetFlag.Fetch())
 	{
 	case DamageDelayTargetFlag::Cell:
 		return MapClass::Instance->GetCellAt(pThis->GetCoords());
@@ -668,7 +668,7 @@ const std::pair<bool, OwnerHouseKind> AnimExtData::SetAnimOwnerHouseKind(AnimCla
 
 TechnoClass* AnimExtData::GetTechnoInvoker(AnimClass* pThis)
 {
-	if (!AnimTypeExtContainer::Instance.Find(pThis->Type)->Damage_DealtByInvoker)
+	if (!AnimTypeExtContainer::Instance.Find(pThis->Type)->Damage_DealtByInvoker.Get(FakeRulesClass::Instance->AnimDamage_DealtByInvoker))
 		return nullptr;
 
 	if (pThis->OwnerObject)
@@ -707,7 +707,7 @@ Layer __fastcall AnimExtData::GetLayer_patch(AnimClass* pThis, discard_t)
 	if (!pExt || !pExt->Layer_UseObjectLayer.isset())
 		return Layer::Ground;
 
-	if (pExt->Layer_UseObjectLayer.Get())
+	if (pExt->Layer_UseObjectLayer.Fetch())
 	{
 		if (auto const pFoot = flag_cast_to<FootClass* , false>(pThis->OwnerObject))
 		{

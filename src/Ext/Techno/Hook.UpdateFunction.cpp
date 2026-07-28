@@ -254,7 +254,7 @@ void FakeTechnoClass::__ClearInvalidAllyTarget(TechnoClass* pThis)
 		TechnoTypeClass* transportType = GET_TECHNOTYPE(transport);
 
 		if(transportType->OpenTopped && TechnoTypeExtContainer::Instance.Find(transportType)
-			->Passengers_SyncOwner.Get()){
+			->Passengers_SyncOwner.Get(FakeRulesClass::Instance->Passengers_SyncOwner)){
 			if (auto* originalOwner = transport->GetOriginalOwner()) {
 				controllingHouse = originalOwner;
 				isInOpenToppedTransport = true;

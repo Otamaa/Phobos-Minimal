@@ -17,7 +17,11 @@ class LaserTrailClass;
 class PhobosAttachEffectClass
 {
 public:
+	static HelperedVector<PhobosAttachEffectClass*> Array;
 
+public:
+
+	PhobosAttachEffectClass();
 	~PhobosAttachEffectClass();
 
 	void Initialize(PhobosAttachEffectTypeClass* pType, TechnoClass* pTechno, HouseClass* pInvokerHouse,
@@ -29,8 +33,7 @@ public:
 
 	void CreateAnim();
 	void UpdateCumulativeAnim(int count);
-	void TransferCumulativeAnim(PhobosAttachEffectClass* pSource);
-	bool CanShowAnim(bool skipAnimCheck = false) const;
+	bool CanShowAnim() const;
 
 	void FirePeriodicWeapon();
 	void LaunchPeriodicBullet(TechnoClass* pFirer, HouseClass* pFirerHouse,

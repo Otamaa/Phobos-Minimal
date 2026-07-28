@@ -350,7 +350,7 @@ bool TiberiumExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	int MaxCount = !slopes ? 12 : 20;
 
 	if (Variety.isset()) {
-		MaxCount = MaxImpl(MaxCount, Variety.Get());
+		MaxCount = MaxImpl(MaxCount, Variety.Fetch());
 	}
 
 	if (!this->LinkedOverlayType->empty()) {

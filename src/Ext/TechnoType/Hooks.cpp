@@ -121,7 +121,7 @@ ASMJIT_PATCH(0x73B780, UnitClass_DrawVXL_TurretMultiOffset, 0x6) //0
 	const auto pDrawTypeExt = TechnoTypeExtContainer::Instance.Find(technoType);
 	const auto& nOffs = TechnoTypeExtContainer::Instance.Find(technoType)->TurretOffset;
 
-	return (nOffs->IsEmpty()
+	return (nOffs.Fetch().IsEmpty()
 		&& pDrawTypeExt->ExtraTurretCount <= 0
 		&& pDrawTypeExt->ExtraBarrelCount <= 0)
 		? CleanFlag : SkipFlag;
@@ -278,7 +278,7 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 					//only when slope present , otherwise this will break the non slope facing too 
 					if(pThis->GetCell()->SlopeIndex) {
 						const auto* offset = (size_t)turIdx >= pDrawTypeExt->ExtraTurretOffsets.size()
-							? reinterpret_cast<CoordStruct*>(pDrawTypeExt->TurretOffset.operator->())
+							? reinterpret_cast<const CoordStruct*>(&pDrawTypeExt->TurretOffset.Fetch())
 							: &pDrawTypeExt->ExtraTurretOffsets[turIdx];
 
 						if (offset->X != 0 || offset->Y != 0 || offset->Z != 0) 
@@ -408,8 +408,8 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 				const auto turretsSize = turrets.size();
 				std::sort(&turrets[0], &turrets[turretsSize], [pThis, pDrawTypeExt](const auto& idxA, const auto& idxB)
 					{
-							const auto pOffsetA = idxA < 0 ? static_cast<CoordStruct*>((CoordStruct*)pDrawTypeExt->TurretOffset.operator->()) : &pDrawTypeExt->ExtraTurretOffsets[idxA];
-							const auto pOffsetB = idxB < 0 ? static_cast<CoordStruct*>((CoordStruct*)pDrawTypeExt->TurretOffset.operator->()) : &pDrawTypeExt->ExtraTurretOffsets[idxB];
+							const auto pOffsetA = idxA < 0 ? reinterpret_cast<const CoordStruct*>(&pDrawTypeExt->TurretOffset.Fetch()) : &pDrawTypeExt->ExtraTurretOffsets[idxA];
+							const auto pOffsetB = idxB < 0 ? reinterpret_cast<const CoordStruct*>(&pDrawTypeExt->TurretOffset.Fetch()) : &pDrawTypeExt->ExtraTurretOffsets[idxB];
 
 							if (pOffsetA->Z < pOffsetB->Z)
 								return true;

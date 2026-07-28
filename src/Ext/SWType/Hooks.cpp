@@ -510,7 +510,7 @@ ASMJIT_PATCH(0x4F9004 ,HouseClass_Update_TrySWFire, 7)
 			return Continue;
 
 		if(FakeRulesClass::Instance()->AISuperWeaponDelay.isset()){
-			const int delay = FakeRulesClass::Instance()->AISuperWeaponDelay.Get();
+			const int delay = FakeRulesClass::Instance()->AISuperWeaponDelay.Fetch();
 			auto const pExt = pThis->_GetExtData();
 			const bool hasTimeLeft = pExt->AISuperWeaponDelayTimer.HasTimeLeft();
 

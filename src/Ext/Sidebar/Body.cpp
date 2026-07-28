@@ -38,8 +38,8 @@ void SidebarExtData::DrawProducingProgress()
 		if (!pSideExt)
 			return;
 
-		const int XOffset = pSideExt->Sidebar_GDIPositions ? 29 : 32;
-		const int XBase = (pSideExt->Sidebar_GDIPositions ? 26 : 20) + pSideExt->Sidebar_ProducingProgress_Offset.Get().X;
+		const int XOffset = pSideExt->Sidebar_GDIPositions.Get(pPlayer->SideIndex == 0) ? 29 : 32;
+		const int XBase = (pSideExt->Sidebar_GDIPositions.Get(pPlayer->SideIndex == 0) ? 26 : 20) + pSideExt->Sidebar_ProducingProgress_Offset.Get().X;
 		const int YBase = 197 + pSideExt->Sidebar_ProducingProgress_Offset.Get().Y;
 
 		for (int i = 0; i < (int)SidebarExtData::TabProducingProgress.size(); i++) {

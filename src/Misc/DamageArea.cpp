@@ -863,7 +863,7 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 	const auto pWHExt = ((FakeWarheadTypeClass*)pWarhead)->_GetExtData();
 	CellStruct cell = CellClass::Coord2Cell(*pCoord);
 
-	if (!pWHExt->ShakeIsLocal || TacticalClass::Instance->IsCoordsToClientVisible(*pCoord))
+	if (!pWHExt->ShakeIsLocal.Get(FakeRulesClass::Instace->ShakeIsLocal) || TacticalClass::Instance->IsCoordsToClientVisible(*pCoord))
 	{
 
 		if (pWarhead->ShakeXhi || pWarhead->ShakeXlo)
@@ -992,7 +992,7 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 					{
 						auto pCur = *next;
 
-						if (!pCur->IsAlive || pCur == pSource && !pWHExt->AllowDamageOnSelf && !isCrushWarhead)
+						if (!pCur->IsAlive || pCur == pSource && !pWHExt->AllowDamageOnSelf.Get(FakeRulesClass::Instance->AllowDamageOnSelf) && !isCrushWarhead)
 							continue;
 
 						const auto what = pCur->WhatAmI();
@@ -1417,7 +1417,7 @@ ASMJIT_PATCH(0x489286, DamageArea, 0x6)
 		GET_BASE(HouseClass*, pHouse, 0x14);
 
 		if (!Phobos::Config::HideShakeEffects) {
-			if (!pWHExt->ShakeIsLocal || TacticalClass::Instance->IsCoordsToClientVisible(*pCoords))
+			if (!pWHExt->ShakeIsLocal.Get(FakeRulesClass::Instance->ShakeIsLocal) || TacticalClass::Instance->IsCoordsToClientVisible(*pCoords))
 			{
 				if (pWH->ShakeXhi || pWH->ShakeXlo)
 					GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeXhi, pWH->ShakeXlo), pWHExt->Shake_UseAlternativeCalculation);
@@ -1457,7 +1457,7 @@ ASMJIT_PATCH(0x48947F, MapClass_DamageArea_AirDamageSelfFix, 0x6)
 	GET_BASE(TechnoClass*, pSourceTechno, 0x8);
 	GET_BASE(FakeWarheadTypeClass*, pWarhead, 0xC);
 
-	return (pAirTechno != pSourceTechno) || (pWarhead->_GetExtData()->AllowDamageOnSelf
+	return (pAirTechno != pSourceTechno) || (pWarhead->_GetExtData()->AllowDamageOnSelf.Get(FakeRulesClass::Instance->AllowDamageOnSelf)
 			|| GET_TECHNOTYPE(pAirTechno)->DamageSelf) ? DamageSelf : Continue;
 }
 
@@ -1466,7 +1466,7 @@ ASMJIT_PATCH(0x4896EC, DamageAread_DamageSelf, 0x6)
 	enum { DamageSelf = 0x489702, Continue = 0x0 };
 
 	GET_BASE(FakeWarheadTypeClass*, pWarhead, 0xC);
-	return pWarhead->_GetExtData()->AllowDamageOnSelf ? DamageSelf : Continue;
+	return pWarhead->_GetExtData()->AllowDamageOnSelf.Get(FakeRulesClass::Instance->AllowDamageOnSelf) ? DamageSelf : Continue;
 }
 
 #include <Ext/Scenario/Body.h>

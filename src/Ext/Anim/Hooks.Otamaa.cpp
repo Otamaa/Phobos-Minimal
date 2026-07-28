@@ -89,12 +89,12 @@ void NOINLINE FakeAnimClass::_Start()
 
 	if (pTypeExt->DetachedReport.isset())
 	{
-		VocClass::SafeImmedietelyPlayAt(pTypeExt->DetachedReport.Get(), &_gCoords);
+		VocClass::SafeImmedietelyPlayAt(pTypeExt->DetachedReport.Fetch(), &_gCoords);
 	}
 
 	if (pTypeExt->AltReport.isset())
 	{
-		VocClass::SafeImmedietelyPlayAt(pTypeExt->AltReport, &_gCoords, nullptr);
+		VocClass::SafeImmedietelyPlayAt(pTypeExt->AltReport.Fetch(), &_gCoords, nullptr);
 	}
 
 	if (this->IsPlaying || this->Type->Report == -1)
@@ -235,7 +235,7 @@ void NOINLINE FakeAnimClass::_ApplyVeinsDamage()
 					{
 						if (pTechno->WhatAmI() != UnitClass::AbsID || ((UnitClass*)pTechno)->DeathFrameCounter <= 0)
 						{
-							if ((!FakeRulesClass::Instance()->VeinsDamagingWeightTreshold.isset() || pType->Weight >= FakeRulesClass::Instance()->VeinsDamagingWeightTreshold)
+							if ((!FakeRulesClass::Instance()->VeinsDamagingWeightTreshold.isset() || pType->Weight >= FakeRulesClass::Instance->VeinsDamagingWeightTreshold.Fetch())
 								&& !pType->ImmuneToVeins
 								&& !pTechno->HasAbility(AbilityType::VeinProof)
 								&& pTechno->GetHeight() <= 5

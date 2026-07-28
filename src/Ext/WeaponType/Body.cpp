@@ -395,15 +395,15 @@ int WeaponTypeExtData::GetTechnoKeepRange(WeaponTypeClass* pThis, TechnoClass* p
 
 	if (pHouse && pHouse->IsControlledByHuman())
 	{
-		if (!pExt->KeepRange_AllowPlayer)
+		if (!pExt->KeepRange_AllowPlayer.Get(FakeRulesClass::Instance->KeepRange_AllowPlayer))
 			return 0;
 	}
-	else if (!pExt->KeepRange_AllowAI)
+	else if (!pExt->KeepRange_AllowAI.Get(FakeRulesClass::Instance->KeepRange_AllowAI))
 	{
 		return 0;
 	}
 
-	if (pFirer->RearmTimer.GetTimeLeft() < pExt->KeepRange_EarlyStopFrame)
+	if (pFirer->RearmTimer.GetTimeLeft() < pExt->KeepRange_EarlyStopFrame.Get(FakeRulesClass::Instance->KeepRange_EarlyStopFrame))
 		return 0;
 
 	{

@@ -191,7 +191,7 @@ static std::vector<AbstractClass*> BuildCellTargetList(
 	CellRangeIterator<CellClass>{}(cellDest, pExt->AirburstSpread.Get(),
 		[&targets](CellClass* pCell) { targets.push_back(pCell); return true; });
 
-	if (!pExt->Airburst_UseCluster)
+	if (!pExt->Airburst_UseCluster.Get(FakeRulesClass::Instance->Airburst_UseCluster))
 	{
 		cluster = static_cast<int>(targets.size());
 		return targets;
@@ -236,14 +236,14 @@ static std::vector<AbstractClass*> BuildSplitsTargetList(
 	auto targets = Helpers::Alex::getCellTechnoRangeItems(
 		crdDest,
 		pExt->Splits_Range,
-		pExt->Splits_TargetingDistance_Cylindrical,
+		pExt->Splits_TargetingDistance_Cylindrical.Get(FakeRulesClass::Instance->Splits_TargetingDistance_Cylindrical),
 		true,
 		[pThis, pWeapon, pExt, pBulletOwner, pBulletHouseOwner](AbstractClass* pAbs)
 		{
 			auto* pTechno = static_cast<TechnoClass*>(pAbs);
 			return pTechno && SplitsCanTarget(
 				pThis->Type, pBulletOwner, pBulletHouseOwner,
-				pWeapon, pTechno, pExt->Splits_UseWeaponTargeting);
+				pWeapon, pTechno, pExt->Splits_UseWeaponTargeting.Get(FakeRulesClass::Instance->Splits_UseWeaponTargeting));
 		});
 
 	if (!pExt->Splits_FillRemainingClusterWithRandomcells)
@@ -321,7 +321,7 @@ static CoordStruct CalcSourceCoords(
 	if (pThis->Type->Airburst && pExt->Airburst_TargetAsSource)
 	{
 		coords = pTarget->GetCoords();
-		if (pExt->Airburst_TargetAsSource_SkipHeight)
+		if (pExt->Airburst_TargetAsSource_SkipHeight.Get(FakeRulesClass::Instance->Airburst_TargetAsSource_SkipHeight))
 			coords.Z = pThis->Location.Z;
 	}
 
@@ -353,7 +353,7 @@ static void FireSingleBullet(
 	auto* pBullet = BulletTypeExtContainer::Instance
 		.Find(pWeapon->Projectile)
 		->CreateBullet(pTarget, pThis->Owner, pBulletHouseOwner,
-					   pWeapon, pExt->AirburstWeapon_ApplyFirepowerMult, true);
+					   pWeapon, pExt->AirburstWeapon_ApplyFirepowerMult.Get(FakeRulesClass::Instance->AirburstWeapon_ApplyFirepowerMult), true);
 
 	if (!pBullet)
 		return;
@@ -408,12 +408,12 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 	// shared loop state
 	AbstractClass* const targetForDir = MapClass::Instance->TryGetCellAt(crdDest);
 	auto targetDir = pThis->GetDirectionOverObject(targetForDir ? targetForDir: pThis);
-	const bool   allowRepeat = pExt->Splits_AllowRepeatTargets;
+	const bool   allowRepeat = pExt->Splits_AllowRepeatTargets.Get(FakeRulesClass::Instance->Splits_AllowRepeatTargets);
 	const double retargetSelfProb = pExt->RetargetSelf_Probability;
-	const bool   useFiringEffects = pExt->AirburstWeapon_UseFiringEffects;
+	const bool   useFiringEffects = pExt->AirburstWeapon_UseFiringEffects.Get(FakeRulesClass::Instance->AirburstWeapon_UseFiringEffects);
 	auto& rng = ScenarioClass::Instance->Random;
 	int cycledIdx = allowRepeat ? rng.RandomRanged(0, static_cast<int>(targets.size()) - 1) : 0;
-	bool const headToTarget = pExt->AirburstWeapon_HeadToTarget;
+	bool const headToTarget = pExt->AirburstWeapon_HeadToTarget.Get(FakeRulesClass::Instance->AirburstWeapon_HeadToTarget);
 	int const radialFireSegments = pExt->AirburstWeapon_RadialFireSegments;
 	int radialFireCounter = 0;
 
@@ -553,7 +553,7 @@ bool BulletExtData::AllowShrapnel(BulletClass* pThis, CellClass* pCell)
 	// Shrapnel_Chance is the probability of shrapnel being allowed (0.0 = never, 1.0 = always)
 	// If chance is set and random roll fails (random > chance), deny shrapnel
 	if (pData->Shrapnel_Chance.isset()
-		&& ScenarioClass::Instance->Random.RandomDouble() >= Math::abs(pData->Shrapnel_Chance.Get()))
+		&& ScenarioClass::Instance->Random.RandomDouble() >= Math::abs(pData->Shrapnel_Chance.Fetch()))
 	{
 		return false;
 	}
@@ -561,12 +561,12 @@ bool BulletExtData::AllowShrapnel(BulletClass* pThis, CellClass* pCell)
 	if (const auto pObject = pCell->FirstObject)
 	{
 		if ((((DWORD*)pObject)[0]) == BuildingClass::vtable) {
-			return pData->Shrapnel_AffectsBuildings;
+			return pData->Shrapnel_AffectsBuildings.Get(FakeRulesClass::Instance->Shrapnel_AffectsBuildings);
 		}
 
 		return true;
 	}
-	else if (pData->Shrapnel_AffectsGround)
+	else if (pData->Shrapnel_AffectsGround.Get(FakeRulesClass::Instance->Shrapnel_AffectsGround))
 		return true;
 
 	return false;
@@ -883,9 +883,9 @@ bool BulletExtData::ApplyMCAlternative(BulletClass* pThis)
 		&& pWarheadExt->MindControl_AlternateWarhead.isset())
 	{
 		// Alternate damage
-		const int altDamage = pWarheadExt->MindControl_AlternateDamage.Get();
+		const int altDamage = pWarheadExt->MindControl_AlternateDamage.Fetch();
 		// Alternate warhead
-		WarheadTypeClass* pAltWarhead = pWarheadExt->MindControl_AlternateWarhead.Get();
+		WarheadTypeClass* pAltWarhead = pWarheadExt->MindControl_AlternateWarhead.Fetch();
 		// Get the damage the alternate warhead can produce against the target
 		auto const armor_ = TechnoExtData::GetTechnoArmor(pTarget, pAltWarhead);
 		int realDamage = FakeWarheadTypeClass::ModifyDamage(altDamage, pAltWarhead, armor_, 0);
@@ -974,7 +974,7 @@ void BulletExtData::ApplyRadiationToCell(CellClass* pCell, int Spread, int RadLe
 	const auto pThis = This();
 	const auto pWeapon = pThis->GetWeaponType();
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-	const auto pRadType = pWeaponExt->RadType.Get(default_rad);
+	const auto pRadType = pWeaponExt->RadType ? pWeaponExt->RadType  : default_rad;
 	auto const pCellExt = CellExtContainer::Instance.Find(pCell);
 
 	auto const it = pCellExt->RadSites.find_if([=](RadSiteClass* const pSite)
@@ -1058,12 +1058,12 @@ void BulletExtData::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Bu
 		else
 		{
 			auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pInterceptor->WH);
-			const bool canAffect = Math::abs(pWHExt->GetVerses(pTypeExt->Armor.Get()).Verses) >= 0.001;
+			const bool canAffect = Math::abs(pWHExt->GetVerses(pTypeExt->Armor.Fetch()).Verses) >= 0.001;
 
 			if (canAffect)
 			{
 
-				const int damage = static_cast<int>(pInterceptor->Health * pWHExt->GetVerses(pTypeExt->Armor.Get()).Verses);
+				const int damage = static_cast<int>(pInterceptor->Health * pWHExt->GetVerses(pTypeExt->Armor.Fetch()).Verses);
 				pExt->CurrentStrength -= damage;
 
 				FlyingStrings::Instance.DisplayDamageNumberString(damage, DamageDisplayType::Intercept, pThis->GetRenderCoords(), pExt->DamageNumberOffset, Phobos::Debug_DisplayDamageNumbers);
@@ -1104,8 +1104,8 @@ void BulletExtData::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Bu
 
 				// Lose target if the current bullet is no longer interceptable.
 
-				if (pSource && (!pTypeExt->Interceptable || (pTypeExt->Armor.isset() &&
-					Math::abs(WarheadTypeExtContainer::Instance.Find(pInterceptor->WH)->GetVerses(pTypeExt->Armor.Get()).Verses) < 0.001)))
+				if (pSource && (!pTypeExt->Interceptable.Get(FakeRulesClass::Instance->Interceptable) || (pTypeExt->Armor.isset() &&
+					Math::abs(WarheadTypeExtContainer::Instance.Find(pInterceptor->WH)->GetVerses(pTypeExt->Armor.Fetch()).Verses) < 0.001)))
 					pSource->SetTarget(nullptr);
 			}
 		}
@@ -1148,7 +1148,7 @@ Fuse BulletExtData::FuseCheckup(BulletClass* pBullet, CoordStruct* newlocation)
 	int nProx = 32;
 	const auto pExt = BulletTypeExtContainer::Instance.Find(pBullet->Type);
 	if (pExt->Proximity_Range.isset())
-		nProx = pExt->Proximity_Range.Get() * 256;
+		nProx = pExt->Proximity_Range.Fetch() * 256;
 
 	if (proximity < nProx)
 	{

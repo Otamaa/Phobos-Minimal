@@ -256,7 +256,7 @@ bool NOINLINE TechnoExtData::CanTargetICUnit(TechnoClass* pThis , FakeWeaponType
 	auto pWPExt = pWP->_GetExtData();
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
-	if(pWPExt->CanTarget_IronCurtained.isset() && !pWPExt->CanTarget_IronCurtained)
+	if(pWPExt->CanTarget_IronCurtained.isset() && !pWPExt->CanTarget_IronCurtained.Fetch())
 		return false;
 
 	const bool IsHuman = pThis->Owner->IsControlledByHuman();

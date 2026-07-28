@@ -65,7 +65,7 @@ ASMJIT_PATCH(0x736E6E, UnitClass_FiringAI_OmniFireTurnToTarget, 0x9) {
 	if (pWpn->OmniFire)
 	{
 		const auto pTypeExt = WeaponTypeExtContainer::Instance.Find(pWpn);
-		if (pTypeExt->OmniFire_TurnToTarget.Get() && !pThis->Locomotor->Is_Moving_Now())
+		if (pTypeExt->OmniFire_TurnToTarget.Get(FakeRulesClass::Instance->OmniFire_TurnToTarget) && !pThis->Locomotor->Is_Moving_Now())
 		{
 			CoordStruct& source = pThis->Location;
 			CoordStruct target = pThis->Target->GetCoords();

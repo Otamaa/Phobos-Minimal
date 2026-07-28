@@ -900,7 +900,7 @@ ASMJIT_PATCH(0x41D940, AirstrikeClass_Fire_AirstrikeAttackVoice, 5)
 	// get from aircraft
 	const auto pAircraftExt = GET_TECHNOTYPEEXT(pAirstrike->FirstObject);
 	if (pAircraftExt->VoiceAirstrikeAttack.isset())
-		index = pAircraftExt->VoiceAirstrikeAttack.Get();
+		index = pAircraftExt->VoiceAirstrikeAttack.Fetch();
 
 	// get from designator
 	if (const auto pOwner = pAirstrike->Owner)
@@ -908,7 +908,7 @@ ASMJIT_PATCH(0x41D940, AirstrikeClass_Fire_AirstrikeAttackVoice, 5)
 		auto pOwnerExt = GET_TECHNOTYPEEXT(pOwner);
 
 		if (pOwnerExt->VoiceAirstrikeAttack.isset())
-			index = pOwnerExt->VoiceAirstrikeAttack.Get();
+			index = pOwnerExt->VoiceAirstrikeAttack.Fetch();
 	}
 
 	VocClass::SafeImmedietelyPlayAt(index, &pAirstrike->FirstObject->Location, nullptr);
@@ -941,14 +941,14 @@ ASMJIT_PATCH(0x41D5AE, AirstrikeClass_PointerGotInvalid_AirstrikeAbortSound, 9)
 	// get from aircraft
 	const auto pAircraftExt = GET_TECHNOTYPEEXT(pAirstrike->FirstObject);
 	if (pAircraftExt->VoiceAirstrikeAbort.isset())
-		index = pAircraftExt->VoiceAirstrikeAbort.Get();
+		index = pAircraftExt->VoiceAirstrikeAbort.Fetch();
 
 	// get from designator
 	if (const auto pOwner = pAirstrike->Owner)
 	{
 		auto pOwnerExt = GET_TECHNOTYPEEXT(pOwner);
 		if (pOwnerExt->VoiceAirstrikeAbort.isset())
-			index = pOwnerExt->VoiceAirstrikeAbort.Get();
+			index = pOwnerExt->VoiceAirstrikeAbort.Fetch();
 	}
 
 	VocClass::SafeImmedietelyPlayAt(index, &pAirstrike->FirstObject->Location, nullptr);
@@ -1597,32 +1597,6 @@ ASMJIT_PATCH(0x5FACDF, Options_LoadFromINI, 5)
 //_GET_FUNCTION_ADDRESS(ConvertClassExt::AllocBlitters, GetConvertClassExtAllocBlittersAddress)
 //_GET_FUNCTION_ADDRESS(ConvertClassExt::DeallocBlitters, GetConvertClassExtDeallocBlittersAddress)
 //
-//ASMJIT_PATCH(0x6BC0CD, WinMain_LoadRA2MD, 5)
-//{
-//	auto pRA2MD = CCINIClass::INI_RA2MD.operator->();
-//
-//	const char* const pDebugSection = "Debug";
-//
-//	if (pRA2MD->GetSection(pDebugSection)) {
-//		char simdLevel[32] {};
-//		pRA2MD->ReadString(pDebugSection, "MaxSimdLevel", Simd::GetLevelName(Phobos::Config::MaxSimdLevel), simdLevel);
-//		Debug::Log("Config MaxSimdLevel raw value: %s\n", simdLevel);
-//		Phobos::Config::MaxSimdLevel = Simd::ParseLevel(simdLevel, Phobos::Config::MaxSimdLevel);
-//	}
-//
-//	PhobosGlobal::Instance()->LoadGlobalsConfig();
-//	SpawnerMain::ReadRA2MDConfig();
-//	SpawnerMain::ApplyStaticOptions();
-//
-//	Simd::Initialize(Phobos::Config::MaxSimdLevel);
-//
-//	if (Simd::GetCurrentLevel() > Simd::Level::Vanilla) {
-//		Patch::Apply_LJMP(0x48EBF0, GetConvertClassExtAllocBlittersAddress());
-//		Patch::Apply_LJMP(0x490490, GetConvertClassExtDeallocBlittersAddress());
-//	}
-//
-//	return 0;
-//}
 
 ASMJIT_PATCH(0x7C89D4, DDRAW_Create, 6)
 {

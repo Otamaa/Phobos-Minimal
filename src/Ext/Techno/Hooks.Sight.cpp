@@ -11,11 +11,11 @@ int FakeTechnoClass::_GetSight(TechnoClass* pThis) {
 	auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	if (pThis->Veterancy.IsElite() && pTypeExt->EliteSight.isset()) {
-		return pTypeExt->EliteSight;
+		return pTypeExt->EliteSight.Fetch();
 	}
 
 	if (pThis->Veterancy.IsVeteran() && pTypeExt->VeteranSight.isset()) {
-		return pTypeExt->VeteranSight;
+		return pTypeExt->VeteranSight.Fetch();
 	}
 
 	return  pTypeExt->This()->Sight;

@@ -57,7 +57,7 @@ bool AircraftExtData::FireWeapon(AircraftClass* pAir, AbstractClass* pTarget)
 			{
 				for (int i = 0; i < weaponType->Burst; i++)
 				{
-					if (isStrafe && weaponType->Burst < 2 && pWeaponExt->Strafing_SimulateBurst)
+					if (isStrafe && weaponType->Burst < 2 && pWeaponExt->Strafing_SimulateBurst.Get(FakeRulesClass::Instance->Strafing_SimulateBurst))
 						pAir->CurrentBurstIndex = pExt->Strafe_BombsDroppedThisRound % 2 == 0;
 
 					pAir->Fire(pDecideTarget, weaponIndex);
@@ -67,7 +67,7 @@ bool AircraftExtData::FireWeapon(AircraftClass* pAir, AbstractClass* pTarget)
 				{
 					pExt->Strafe_BombsDroppedThisRound++;
 
-					if (pWeaponExt->Strafing_UseAmmoPerShot)
+					if (pWeaponExt->Strafing_UseAmmoPerShot.Get(FakeRulesClass::Instance->Strafing_UseAmmoPerShot) )
 					{
 						pAir->Ammo--;
 						pAir->loseammo_6c8 = false;
@@ -105,7 +105,7 @@ int AircraftExtData::GetDelay(AircraftClass* pThis, bool isLastShot)
 	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 	int delay = pWeapon->ROF;
 
-	if (isLastShot || pExt->Strafe_BombsDroppedThisRound == pWeaponExt->Strafing_Shots.Get(5) || (pWeaponExt->Strafing_UseAmmoPerShot && !pThis->Ammo))
+	if (isLastShot || pExt->Strafe_BombsDroppedThisRound == pWeaponExt->Strafing_Shots.Get(5) || (pWeaponExt->Strafing_UseAmmoPerShot.Get(FakeRulesClass::Instance->Strafing_UseAmmoPerShot) && !pThis->Ammo))
 	{
 		pExt->Strafe_TargetCell = nullptr;
 		pThis->MissionStatus = (int)AirAttackStatus::FlyToPosition;
@@ -1138,7 +1138,7 @@ int FakeAircraftClass::_Mission_Attack()
 				// 0x4184CC - Delay1A
 				auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(
 					this->GetWeapon(pExt->CurrentAircraftWeaponIndex)->WeaponType);
-				if (pWeaponExt->Strafing_TargetCell && this->Target)
+				if (pWeaponExt->Strafing_TargetCell.Get(FakeRulesClass::Instance->Strafing_TargetCell) && this->Target)
 					pExt->Strafe_TargetCell = MapClass::Instance->GetCellAt(this->Target->GetCoords());
 
 				// Set destination toward target so aircraft flies through it during end-delay,
@@ -1467,7 +1467,7 @@ static FORCEDINLINE bool CheckSpyPlaneCameraCount(AircraftClass* pThis, WeaponTy
 	if (!pWeaponExt->Strafing_Shots.isset())
 		return true;
 
-	if (pExt->Strafe_BombsDroppedThisRound >= pWeaponExt->Strafing_Shots)
+	if (pExt->Strafe_BombsDroppedThisRound >= pWeaponExt->Strafing_Shots.Fetch())
 		return false;
 
 	pExt->Strafe_BombsDroppedThisRound++;
@@ -1961,7 +1961,7 @@ COMPILETIMEEVAL FORCEDINLINE bool IsFlyLoco(const ILocomotion* pLoco) {
 NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , AbstractClass* pTarget) {
 	auto const pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pBullet->Type);
 
-	if (pBullet->HasParachute ||(pBullet->Type->Vertical && pBulletTypeExt->Vertical_AircraftFix)) {
+	if (pBullet->HasParachute ||(pBullet->Type->Vertical && pBulletTypeExt->Vertical_AircraftFix.Get(FakeRulesClass::Instance->Vertical_AircraftFix))) {
 		return;
 	}
 
@@ -2090,7 +2090,7 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 BulletClass* FakeAircraftClass::_FireAt(AbstractClass* pTarget, int nWeaponIdx) {
 
 	auto const pTypeExt = AircraftTypeExtContainer::Instance.Find(this->Type);
-	bool DropPassengers = pTypeExt->Paradrop_DropPassangers;
+	bool DropPassengers = pTypeExt->Paradrop_DropPassangers.Get(FakeRulesClass::Instance->AircraftWeapon_KickOutPassengers);
 
 	if (this->Passengers.FirstPassenger)
 	{
@@ -2100,7 +2100,7 @@ BulletClass* FakeAircraftClass::_FireAt(AbstractClass* pTarget, int nWeaponIdx) 
 			{
 				const auto pExt = WeaponTypeExtContainer::Instance.Find(pWewapons->WeaponType);
 				if (pExt->KickOutPassenger.isset())
-					DropPassengers = pExt->KickOutPassenger; //#1151
+					DropPassengers = pExt->KickOutPassenger.Fetch(); //#1151
 			}
 		}
 
@@ -2119,7 +2119,7 @@ BulletClass* FakeAircraftClass::_FireAt(AbstractClass* pTarget, int nWeaponIdx) 
 		{
 			AircraftExtContainer::Instance.Find(this)->Strafe_BombsDroppedThisRound++;
 
-			if (WeaponTypeExtContainer::Instance.Find(pBullet->WeaponType)->Strafing_UseAmmoPerShot)
+			if (WeaponTypeExtContainer::Instance.Find(pBullet->WeaponType)->Strafing_UseAmmoPerShot.Get(FakeRulesClass::Instance->Strafing_UseAmmoPerShot) )
 			{
 				this->loseammo_6c8 = false;
 				this->Ammo--;
@@ -2206,7 +2206,7 @@ bool AircraftExtData::PlaceReinforcementAircraft(AircraftClass* pThis, CellStruc
 		auto const pTargetCoords = pTarget->GetCoords();
 
 		if (pTypeExt->SpawnDistanceFromTarget.isset())
-			coords = GeneralUtils::CalculateCoordsFromDistance(CellClass::Cell2Coord(edgeCell), pTargetCoords, pTypeExt->SpawnDistanceFromTarget.Get());
+			coords = GeneralUtils::CalculateCoordsFromDistance(CellClass::Cell2Coord(edgeCell), pTargetCoords, pTypeExt->SpawnDistanceFromTarget.Fetch());
 		
 		dir = GeneralUtils::GetDirectionBetweenCoords(coords, pTargetCoords).GetDir();
 	}
@@ -2226,7 +2226,8 @@ bool AircraftExtData::PlaceReinforcementAircraft(AircraftClass* pThis, CellStruc
 CellStruct AircraftExtData::PickEdgeCellForPlane(AircraftTypeClass* pPlaneType, CellStruct destCell, Edge edge, bool isOnRetreat)
 {
 	auto const pTypeExt = AircraftTypeExtContainer::Instance.Find(pPlaneType);
-	auto const edgeMode = !isOnRetreat ? pTypeExt->SpawnFromEdge : pTypeExt->RetreatToEdge;
+	auto const edgeMode = !isOnRetreat ? pTypeExt->SpawnFromEdge.Get(FakeRulesClass::Instance->AircraftSpawnFromEdge) :
+										 pTypeExt->RetreatToEdge.Get(FakeRulesClass::Instance->AircraftRetreatToEdge);
 	auto spawnEdge = edge;
 	auto refCell = CellStruct::Empty;
 
@@ -2309,7 +2310,7 @@ void AircraftExtData::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, Ai
 
 	for (int i = 0; i < pWeapon->Burst; i++)
 	{
-		if (pWeapon->Burst < 2 && WeaponTypeExtContainer::Instance.Find(pWeapon)->Strafing_SimulateBurst)
+		if (pWeapon->Burst < 2 && WeaponTypeExtContainer::Instance.Find(pWeapon)->Strafing_SimulateBurst.Get(FakeRulesClass::Instance->Strafing_SimulateBurst))
 			pThis->CurrentBurstIndex = (int)shotNumber;
 
 		pThis->Fire(pTarget, WeaponIdx);

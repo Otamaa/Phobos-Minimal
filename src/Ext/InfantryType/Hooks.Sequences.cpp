@@ -60,8 +60,7 @@ ASMJIT_PATCH(0x51D7E0, InfantryClass_DoAction_SecondaryWetAttack, 0x5)
 		ApplySequence = 0x51D842
 	};
 
-	if (pThis->_GetTypeExtData()->OnlyUseLandSequences)
-	{
+	if (pThis->_GetTypeExtData()->OnlyUseLandSequences.Get(FakeRulesClass::Instance->OnlyUseLandSequences)) {
 		R->EBP(0);
 		return SkipWaterSequences;
 	}

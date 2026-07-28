@@ -209,10 +209,10 @@ void CountPowerOf(HouseClass*pHouse ,CounterClass& counter){
 
 				if(pExt->Power.isset()) {
 
-				 if (pExt->Power > 0)
-					 pHouse->PowerOutput += pExt->Power * counter.Items[a];
+				 if (pExt->Power.Fetch() > 0)
+					 pHouse->PowerOutput += pExt->Power.Fetch() * counter.Items[a];
 				 else
-					 pHouse->PowerDrain -= pExt->Power * counter.Items[a];
+					 pHouse->PowerDrain -= pExt->Power.Fetch() * counter.Items[a];
 
 				}
 			 }

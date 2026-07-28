@@ -218,14 +218,14 @@ void BuildingExtData::UpdateMainEvaVoice()
 		if (pBuildingTypeExt->NewEvaVoice && pBuildingTypeExt->NewEvaVoice_Priority > newPriority)
 		{
 			newPriority = pBuildingTypeExt->NewEvaVoice_Priority;
-			newEvaIndex = pBuildingTypeExt->NewEvaVoice_Index;
+			newEvaIndex = pBuildingTypeExt->NewEvaVoice_Index.Fetch();
 		}
 	}
 
 	if (pThis->CurrentMission != Mission::Selling && pTypeExt->NewEvaVoice_Priority > newPriority)
 	{
 		newPriority = pTypeExt->NewEvaVoice_Priority;
-		newEvaIndex = pTypeExt->NewEvaVoice_Index;
+		newEvaIndex = pTypeExt->NewEvaVoice_Index.Fetch();
 	}
 
 	if (newPriority > 0 && VoxClass::EVAIndex.get() != newEvaIndex)
@@ -570,10 +570,10 @@ void BuildingExtData::UpdateAutoSellTimer()
 	{
 		auto const pRulesExt = FakeRulesClass::Instance();
 
-		if (pTypeExt->AutoSellTime.isset() && Math::abs(pTypeExt->AutoSellTime.Get()) > 0.00f)
+		if (pTypeExt->AutoSellTime.isset() && Math::abs(pTypeExt->AutoSellTime.Fetch()) > 0.00f)
 		{
 			if (!AutoSellTimer.HasStarted())
-				AutoSellTimer.Start(static_cast<int>(pTypeExt->AutoSellTime.Get() * 900.0));
+				AutoSellTimer.Start(static_cast<int>(pTypeExt->AutoSellTime.Fetch() * 900.0));
 		}
 
 		if (pRulesExt->AI_AutoSellHealthRatio.isset())
@@ -584,7 +584,7 @@ void BuildingExtData::UpdateAutoSellTimer()
 			if (pThis->Owner->IsControlledByHuman())
 				return;
 
-			const double nValue = pRulesExt->AI_AutoSellHealthRatio->at(pThis->Owner->GetCorrectAIDifficultyIndex());
+			const double nValue = pRulesExt->AI_AutoSellHealthRatio.Fetch().at(pThis->Owner->GetCorrectAIDifficultyIndex());
 			const double percent = pThis->GetHealthPercentage();
 
 			if (nValue > 0.0 && percent <= nValue)
@@ -996,7 +996,7 @@ bool BuildingExtData::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pT
 		if (pTypeExt->Grinding_Sound.isset())
 		{
 			auto coord = pTechno->GetCoords();
-			VocClass::SafeImmedietelyPlayAt(pTypeExt->Grinding_Sound.Get(), &coord);
+			VocClass::SafeImmedietelyPlayAt(pTypeExt->Grinding_Sound.Fetch(), &coord);
 			return true;
 		}
 	}
@@ -1638,7 +1638,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 	}
 	case EMPulseFiringState::PlayPulseBall:
 	{
-		if (auto pPulseBall = pLinkedTypeExt->EMPulse_PulseBall)
+		if (auto pPulseBall = pLinkedTypeExt->EMPulse_PulseBall.Fetch())
 		{
 			CoordStruct flh = pThis->GetFLH(pExt->idxSlot_EMPulse, 0, 0, 0);
 			auto pAnim = GameCreate<AnimClass>(pPulseBall, flh);
@@ -1768,7 +1768,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(bullet->Type);
 		auto pBulletExt = BulletExtContainer::Instance.Find(bullet);
 
-		if (bullet->Type->Arcing && !pBulletTypeExt->Arcing_AllowElevationInaccuracy)
+		if (bullet->Type->Arcing && !pBulletTypeExt->Arcing_AllowElevationInaccuracy.Get(FakeRulesClass::Instance->Arcing_AllowElevationInaccuracy))
 		{
 			pBulletExt->ApplyArcingFix(flhCoord, targetCoord, vel);
 		}
@@ -2598,7 +2598,7 @@ int FakeBuildingClass::_BuildingClass_GetRangeOfRadial()
 	auto const pTypeExt = (BuildingTypeExtData*)pExt->TypeExtData;
 
 	if (pTypeExt->RadialIndicatorRadius.isset())
-		return pTypeExt->RadialIndicatorRadius.Get();
+		return pTypeExt->RadialIndicatorRadius.Fetch();
 
 	if (pExt->PowerPlantEnhancer.IsValidEnhancer()) {
 		return pExt->PowerPlantEnhancer.GetRangeInCells();
@@ -2643,7 +2643,7 @@ bool CanDrawRadialIndicator(FakeBuildingClass* pThis) {
 		return false;
 
 	if (pBldTypeExt->RadialIndicator_Visibility.isset()) {
-		if (EnumFunctions::CanTargetHouse(pBldTypeExt->RadialIndicator_Visibility.Get(), pThis->Owner, HouseClass::CurrentPlayer()))
+		if (EnumFunctions::CanTargetHouse(pBldTypeExt->RadialIndicator_Visibility.Fetch(), pThis->Owner, HouseClass::CurrentPlayer()))
 			return true;
 	} else {
 		if (pThis->Owner == HouseClass::CurrentPlayer())
@@ -3324,31 +3324,31 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x459ED0, FakeBuildingClass::__GetUIName)
 	  auto pType = this->Type;
 	  auto pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
 
-	  if (pTypeExt->RefinerySmokeParticleSystemOne && pType->RefinerySmokeOffsetOne.IsValid() && pType->RefinerySmokeOffsetOne != RelativeCenterCoord)
+	  if (pTypeExt->RefinerySmokeParticleSystemOne.Fetch() && pType->RefinerySmokeOffsetOne.IsValid() && pType->RefinerySmokeOffsetOne != RelativeCenterCoord)
 	  {
 		  auto coord1 = pType->RefinerySmokeOffsetOne + this->Location;
-		  auto particle1 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemOne, coord1, nullptr, this);
+		  auto particle1 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemOne.Fetch(), coord1, nullptr, this);
 		  particle1->Lifetime = pType->RefinerySmokeFrames;
 	  }
 
-	  if (pTypeExt->RefinerySmokeParticleSystemTwo && pType->RefinerySmokeOffsetTwo.IsValid() && pType->RefinerySmokeOffsetTwo != RelativeCenterCoord)
+	  if (pTypeExt->RefinerySmokeParticleSystemTwo.Fetch() && pType->RefinerySmokeOffsetTwo.IsValid() && pType->RefinerySmokeOffsetTwo != RelativeCenterCoord)
 	  {
 		  auto coord2 = pType->RefinerySmokeOffsetTwo + this->Location;
-		  auto particle2 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemTwo, coord2, nullptr, this);
+		  auto particle2 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemTwo.Fetch(), coord2, nullptr, this);
 		  particle2->Lifetime = pType->RefinerySmokeFrames;
 	  }
 
-	  if (pTypeExt->RefinerySmokeParticleSystemThree && pType->RefinerySmokeOffsetThree.IsValid() && pType->RefinerySmokeOffsetThree != RelativeCenterCoord)
+	  if (pTypeExt->RefinerySmokeParticleSystemThree.Fetch() && pType->RefinerySmokeOffsetThree.IsValid() && pType->RefinerySmokeOffsetThree != RelativeCenterCoord)
 	  {
 		  auto coord3 = pType->RefinerySmokeOffsetThree + this->Location;
-		  auto particle3 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemThree, coord3, nullptr, this);
+		  auto particle3 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemThree.Fetch(), coord3, nullptr, this);
 		  particle3->Lifetime = pType->RefinerySmokeFrames;
 	  }
 
-	  if (pTypeExt->RefinerySmokeParticleSystemFour && pType->RefinerySmokeOffsetFour.IsValid() && pType->RefinerySmokeOffsetFour != RelativeCenterCoord)
+	  if (pTypeExt->RefinerySmokeParticleSystemFour.Fetch() && pType->RefinerySmokeOffsetFour.IsValid() && pType->RefinerySmokeOffsetFour != RelativeCenterCoord)
 	  {
 		  auto coord4 = pType->RefinerySmokeOffsetFour + this->Location;
-		  auto particle4 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemFour, coord4, nullptr, this);
+		  auto particle4 = GameCreate<ParticleSystemClass>(pTypeExt->RefinerySmokeParticleSystemFour.Fetch(), coord4, nullptr, this);
 		  particle4->Lifetime = pType->RefinerySmokeFrames;
 	  }
   }

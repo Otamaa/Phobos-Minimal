@@ -67,9 +67,9 @@ void SW_GeneticMutator::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 WarheadTypeClass* SW_GeneticMutator::GetWarhead(const SWTypeExtData* pData) const
 {
 	// is set to non-null?
-	if (pData->SW_Warhead.Get(nullptr))
+	if (pData->SW_Warhead.isset() && pData->SW_Warhead.Fetch())
 	{
-		return pData->SW_Warhead;
+		return pData->SW_Warhead.Fetch();
 	}
 	else if (pData->Mutate_Explosion.Get(RulesClass::Instance->MutateExplosion))
 	{

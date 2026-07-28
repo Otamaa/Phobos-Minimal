@@ -31,15 +31,15 @@ public:
 	Valueable<bool> DiskLaser_SimulatedFire { };
 	NullableIdx<VocClass> DiskLaser_ChargeUp {};
 
-	Nullable<RadTypeClass*> RadType {};
+	Valueable<RadTypeClass*> RadType {};
 	Valueable<bool> Rad_NoOwner { true };
 
 	Nullable<int> Strafing_Shots {};
-	Valueable<bool> Strafing_SimulateBurst { false };
+	Nullable<bool> Strafing_SimulateBurst { };
 	Nullable<bool> Strafing {};
-	Valueable<bool> Strafing_UseAmmoPerShot { false };
+	Nullable<bool> Strafing_UseAmmoPerShot { };
 	Nullable<int> Strafing_EndDelay {};
-	Valueable<bool> Strafing_TargetCell { false };
+	Nullable<bool> Strafing_TargetCell { };
 
 	Valueable<AffectedTarget> CanTarget { AffectedTarget::All };
 	Valueable<AffectedHouse> CanTargetHouses { AffectedHouse::All };
@@ -63,7 +63,7 @@ public:
 	Valueable<bool> Burst_NoDelay { false };
 	Nullable<PartialVector2D<int>> ROF_RandomDelay {};
 	ValueableVector<int> ChargeTurret_Delays {};
-	Valueable<bool> OmniFire_TurnToTarget { false };
+	Nullable<bool> OmniFire_TurnToTarget {};
 
 	Valueable<int> Xhi { 0 };
 	Valueable<int> Xlo { 0 };
@@ -158,7 +158,7 @@ public:
 	Valueable<bool> Beam_IsHouseColor { false };
 
 	Nullable<WarheadTypeClass*> AmbientDamage_Warhead {};
-	Valueable<bool> AmbientDamage_IgnoreTarget { false };
+	Nullable<bool> AmbientDamage_IgnoreTarget { };
 
 	//Nullable<bool> BlockageTargetingBypassDamageOverride;
 	Nullable<double> RecoilForce {};
@@ -183,9 +183,9 @@ public:
 	bool SkipWeaponPicking { true };
 
 	Valueable<Leptons> KeepRange {};
-	Valueable<bool> KeepRange_AllowAI { false };
-	Valueable<bool> KeepRange_AllowPlayer { false };
-	Valueable<int> KeepRange_EarlyStopFrame { 0 };
+	Nullable<bool> KeepRange_AllowAI { };
+	Nullable<bool> KeepRange_AllowPlayer {};
+	Nullable<int> KeepRange_EarlyStopFrame {};
 
 	Valueable<bool> VisualScatter { false };
 	Nullable<Leptons> VisualScatter_Min {};

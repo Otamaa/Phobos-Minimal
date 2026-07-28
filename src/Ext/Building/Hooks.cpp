@@ -340,7 +340,7 @@ ASMJIT_PATCH(0x44EFD8, BuildingClass_FindExitCell_BarracksExitCell, 0x6)
 	if (pTypeExt->BarracksExitCell.isset()) {
 
 		const auto exitCell = pThis->GetMapCoords() + CellStruct {
-			(short)pTypeExt->BarracksExitCell->X, (short)pTypeExt->BarracksExitCell->Y
+			(short)pTypeExt->BarracksExitCell.Fetch().X, (short)pTypeExt->BarracksExitCell.Fetch().Y
 		};
 
 		if (MapClass::Instance->CoordinatesLegal(exitCell))
@@ -855,7 +855,7 @@ ASMJIT_PATCH(0x4421F2, BuildingClass_Destroyed_PlaceCrate, 0x6)
 
 	const PowerupEffects defaultcrate = pThisType->CrateBeneathIsMoney ? PowerupEffects::Money : (PowerupEffects)CrateTypeClass::Array.size();
 	const auto CrateType = &TechnoTypeExtContainer::Instance.Find(pThisType)->Destroyed_CrateType;
-	PowerupEffects crate = CrateType->isset() ? (PowerupEffects)CrateType->Get() : defaultcrate;
+	PowerupEffects crate = CrateType->isset() ? (PowerupEffects)CrateType->Fetch() : defaultcrate;
 	R->EAX(MapClass::Instance->Place_Crate(cell, crate));
 	return 0x442226;
 }
@@ -915,7 +915,7 @@ static int HandleArmedBuildingGuard(BuildingClass* pThis)
 			pTypeExt->GuardRetryDelay : FakeRulesClass::Instance()->BuildingGuardRetryDelay);
 
 		if (delay.isset())
-			return GeneralUtils::GetRangedRandomOrSingleValue(delay);
+			return GeneralUtils::GetRangedRandomOrSingleValue(delay.Fetch());
 
 		return static_cast<int>(pThis->GetCurrentMissionControl()->AARate * 900 + ScenarioClass::Instance->Random.RandomRanged(0, 2));
 	}

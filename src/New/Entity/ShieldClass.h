@@ -104,7 +104,7 @@ public:
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE bool HasTint() const {
-		return this->Type->Tint_Color.isset() || this->Type->Tint_Intensity != 0.0;
+		return this->Type->Tint_Color.Get() != ColorStruct::Empty || this->Type->Tint_Intensity != 0.0;
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE ShieldTypeClass* GetType() const

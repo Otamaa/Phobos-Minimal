@@ -1209,10 +1209,16 @@ void OPTIONALINLINE Damageable<T>::Read(INI_EX& parser, const char* const pSecti
 	this->BaseValue.Read(parser, pSection, flagName, Alloc);
 
 	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::HealthCondition_ToStrings[1].second.data());
-	this->ConditionYellow.Read(parser, pSection, flagName, Alloc);
+	auto _yellow = Nullable<T>()(parser, pSection, flagName, Alloc);
+
+	if (_yellow.isset())
+		this->ConditionYellow = _yellow.Fetch();
 
 	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::HealthCondition_ToStrings[2].second.data());
-	this->ConditionRed.Read(parser, pSection, flagName, Alloc);
+	auto _red = Nullable<T>()(parser, pSection, flagName, Alloc);
+
+	if (_red.isset())
+	this->ConditionRed = _red.Fetch();
 };
 
 template <typename T>
@@ -1437,9 +1443,9 @@ bool OPTIONALINLINE Animatable<TValue>::KeyframeDataEntry::Read(INI_EX& parser, 
 		return false;
 
 	if (absoluteTemp.isset())
-		this->Percentage = (double)absoluteTemp / absoluteLength;
+		this->Percentage = (double)absoluteTemp.Fetch() / absoluteLength;
 	else
-		this->Percentage = percentageTemp;
+		this->Percentage = percentageTemp.Fetch();
 
 	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, "Value");
 	this->Value.Read(parser, pSection, flagName);

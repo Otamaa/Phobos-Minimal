@@ -69,15 +69,15 @@ public:
 	Valueable<Leptons> AnimList_ScatterMin { Leptons(-1) };
 	Valueable<Leptons> AnimList_ScatterMax { Leptons(-1) };
 
-	Valueable<bool> AnimList_ShowOnZeroDamage { false };
-	Valueable<bool> DecloakDamagedTargets { true };
-	Valueable<bool> ShakeIsLocal { false };
+	Nullable<bool> AnimList_ShowOnZeroDamage { };
+	Nullable<bool> DecloakDamagedTargets { };
+	Nullable<bool> ShakeIsLocal { };
 	Valueable<bool> Shake_UseAlternativeCalculation { false };
 
 	Valueable<double> Crit_Chance { 0.0 };
-	Valueable<bool> Crit_ApplyChancePerTarget { false };
+	Nullable<bool> Crit_ApplyChancePerTarget { };
 	Valueable<int> Crit_ExtraDamage { 0 };
-	Valueable<bool> Crit_ExtraDamage_ApplyFirepowerMult { false };
+	Nullable<bool> Crit_ExtraDamage_ApplyFirepowerMult { };
 	Valueable<WarheadTypeClass*> Crit_Warhead { nullptr };
 	Valueable<bool> Crit_Warhead_FullDetonation { true };
 	Valueable<AffectedTarget> Crit_Affects { AffectedTarget::All };
@@ -86,10 +86,10 @@ public:
 	Nullable<bool> Crit_AnimList_PickRandom {};
 	Nullable<bool> Crit_AnimList_CreateAll {};
 	ValueableVector<AnimTypeClass*> Crit_ActiveChanceAnims {};
-	Valueable<bool> Crit_AnimOnAffectedTargets { false };
+	Nullable<bool> Crit_AnimOnAffectedTargets { };
 	Valueable<double> Crit_AffectBelowPercent { 1.0 };
 	Valueable<double> Crit_AffectAbovePercent { 0.0 };
-	Valueable<bool> Crit_SuppressWhenIntercepted { false };
+	Nullable<bool> Crit_SuppressWhenIntercepted { };
 
 	bool CritActive { false };
 	double CritRandomBuffer { 0.0 };
@@ -110,7 +110,7 @@ public:
 	Valueable<bool> Shield_Break { false };
 	Valueable<AnimTypeClass*> Shield_BreakAnim { nullptr };
 	Valueable<AnimTypeClass*> Shield_HitAnim { nullptr };
-	Nullable<WeaponTypeClass*> Shield_BreakWeapon {};
+	Valueable<WeaponTypeClass*> Shield_BreakWeapon {};
 
 	Nullable<double> Shield_AbsorbPercent {};
 	Nullable<double> Shield_PassPercent {};
@@ -169,8 +169,8 @@ public:
 	Valueable<bool> Transact_Experience_IgnoreNotTrainable { true };
 
 	Nullable<int> NotHuman_DeathSequence {};
-	Valueable<bool> AllowDamageOnSelf { false };
-	Valueable<bool> Debris_Conventional { false };
+	Nullable<bool> AllowDamageOnSelf { };
+	Nullable<bool> Debris_Conventional { };
 	Nullable<bool> DebrisTypes_Limit {};
 	ValueableVector<int> DebrisMinimums {};
 
@@ -228,7 +228,10 @@ public:
 	Nullable<ParticleSystemTypeClass*> Parasite_ParticleSys {};
 	Nullable<bool> Parasite_TreatInfantryAsVehicle {};
 	Nullable<WeaponTypeClass*> Parasite_InvestationWP {};
+	Valueable<AffectedTarget> Parasite_CullingTarget {};
 	Nullable<double> Parasite_Damaging_Chance {};
+	Nullable<bool> Parasite_DisableParticleSystem {};
+
 
 	Nullable<int> Flammability {};
 
@@ -371,7 +374,7 @@ public:
 	Valueable<bool> KillDriver_ResetVeterancy { false };
 	Valueable<double> KillDriver_Chance { 100.0 };
 
-	Valueable<bool> ApplyModifiersOnNegativeDamage { false };
+	Nullable<bool> ApplyModifiersOnNegativeDamage { };
 
 	Nullable<int> CombatLightDetailLevel {};
 	Nullable<bool> CombatLightDetailLevel_CheckColored {};
@@ -490,7 +493,7 @@ public:
 	Valueable<WarheadTypeClass*> ReturnWarhead {};
 	Valueable<int> ReturnWarhead_Damage { 0 };
 	Valueable<double> ReturnWarhead_Chance { 1.0 };
-	Valueable<bool> ReturnWarhead_ApplyChancePerTarget { false };
+	Nullable<bool> ReturnWarhead_ApplyChancePerTarget {};
 	Valueable<bool> ReturnWarhead_FullDetonation { true };
 	Valueable<AffectedTarget> ReturnWarhead_AffectsTarget { AffectedTarget::All };
 	Valueable<AffectedHouse> ReturnWarhead_AffectsHouse { AffectedHouse::All };
@@ -530,6 +533,10 @@ public:
 	Valueable<bool> AffectsInvokerOnly {};
 	Valueable<bool> AffectsInvokerOnly_Reverse {};
 	Nullable<bool> AffectsInvokerOnly_IgnoreInvokerState {};
+
+	Valueable<bool> ChangeOwner {};
+	Valueable<bool> ChangeOwner_SetAsMindControl {};
+	Valueable<AnimTypeClass*> ChangeOwner_MindControlAnim {};
 #pragma endregion
 
 public:
@@ -648,6 +655,7 @@ public:
 
 	void ApplyKnockUp(TechnoClass* pTarget);
 	void ApplyTraction(TechnoClass* pTarget, const CoordStruct& coords);
+	void ApplyOwnerChange(HouseClass* pHouse, TechnoClass* pTarget);
 
 	COMPILETIMEEVAL FORCEDINLINE VersesData& GetVerses(Armor armor) {
 		return this->Verses[static_cast<int>(armor)];

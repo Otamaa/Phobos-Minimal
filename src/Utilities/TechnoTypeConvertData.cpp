@@ -97,10 +97,8 @@ void TechnoTypeConvertData::ApplyConvert(const std::vector<TechnoTypeConvertData
 
 void TechnoTypeConvertData::Parse(bool useDevelopversion, std::vector<TechnoTypeConvertData>& list, INI_EX& exINI, const char* pSection, const char* pKey)
 {
-	if (!useDevelopversion)
-	{
-		if (exINI.ReadString(pSection, pKey))
-		{
+	if (!useDevelopversion) {
+		if (exINI.ReadString(pSection, pKey)) {
 			list.clear();
 
 			char* context = nullptr;
@@ -168,48 +166,44 @@ void TechnoTypeConvertData::Parse(bool useDevelopversion, std::vector<TechnoType
 	}
 	else
 	{
-		list.clear();
-
-		for (size_t i = 0; ; ++i)
 		{
-			std::string base_("Convert");
-			base_ += std::to_string(i);
-			ValueableVector<TechnoTypeClass*> convertFrom {};
-			Nullable<TechnoTypeClass*> convertTo {};
-			Nullable<AffectedHouse> convertAffectedHouses {};
-			convertTo.Read(exINI, pSection, (base_ + ".To").c_str());
+			list.clear();
 
-			if (!convertTo.isset() || !convertTo.Get())
-				break;
+			for (size_t i = 0; ; ++i) {
+				std::string base_("Convert");
+				base_ += std::to_string(i);
 
-			convertFrom.Read(exINI, pSection, (base_ + ".From").c_str());
-			convertAffectedHouses.Read(exINI, pSection, (base_ + ".AffectedHouses").c_str());
+				auto convertTo = Nullable<TechnoTypeClass*>()(exINI, pSection, (base_ + ".To").c_str(), false);
 
-			auto& back = list.emplace_back();
+				if (!convertTo.isset() || !convertTo.Fetch())
+					break;
 
-			back.From = convertFrom;
-			back.To = convertTo;
+				auto convertFrom = ValueableVector<TechnoTypeClass*>()(exINI, pSection, (base_ + ".From").c_str(), false);
+				auto convertAffectedHouses = Nullable<AffectedHouse>()(exINI, pSection, (base_ + ".AffectedHouses").c_str(), false);
 
-			back.Eligible = convertAffectedHouses.Get(AffectedHouse::All);
+				auto& back = list.emplace_back();
+
+				back.From = convertFrom;
+				back.To = convertTo.Fetch();
+
+				back.Eligible = convertAffectedHouses.Get(AffectedHouse::All);
+			}
 		}
 
-		ValueableVector<TechnoTypeClass*> convertFrom {};
-		Nullable<TechnoTypeClass*> convertTo {};
-		Nullable<AffectedHouse> convertAffectedHouses {};
+		auto convertTo = Nullable<TechnoTypeClass*>()(exINI, pSection, "Convert.To", false);
 
-		convertFrom.Read(exINI, pSection, "Convert.From");
-		convertTo.Read(exINI, pSection, "Convert.To");
-		convertAffectedHouses.Read(exINI, pSection, "Convert.AffectedHouses");
+		if (convertTo.isset() && convertTo.Fetch()) {
 
-		if (convertTo.isset() && convertTo.Get())
-		{
+			auto convertFrom = ValueableVector<TechnoTypeClass*>()(exINI, pSection, "Convert.From", false);
+			auto convertAffectedHouses = Nullable<AffectedHouse>()(exINI, pSection, "Convert.AffectedHouses", false);
+
 			if (!convertAffectedHouses.isset())
 				convertAffectedHouses = AffectedHouse::All;
 
 			if (list.size())
-				list[0] = { convertFrom, convertTo, convertAffectedHouses };
+				list[0] = { convertFrom, convertTo.Fetch(), convertAffectedHouses.Fetch() };
 			else
-				list.emplace_back(convertFrom, convertTo, convertAffectedHouses);
+				list.emplace_back(convertFrom, convertTo.Fetch(), convertAffectedHouses.Fetch());
 		}
 	}
 }

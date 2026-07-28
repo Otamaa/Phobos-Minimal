@@ -49,9 +49,9 @@ ASMJIT_PATCH(0x0741941, UnitClass_OverrunSquare_TiltWhenCrushes, 0x6)
 	if (pTypeExt->CrushForwardTiltPerFrame.isset())
 	{
 		if (AdvancedDriveLocomotionClass::IsReversing(pThis))
-			pThis->RockingForwardsPerFrame -= static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Get());
+			pThis->RockingForwardsPerFrame -= static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Fetch());
 		else
-			pThis->RockingForwardsPerFrame += static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Get());
+			pThis->RockingForwardsPerFrame += static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Fetch());
 	}
 	else
 	{
@@ -123,7 +123,7 @@ ASMJIT_PATCH(0x6A108D, ShipLocomotionClass_WhileMoving_CrushTilt, 0xD)
 	auto const pTypeExt = GET_TECHNOTYPEEXT(pLinkedTo);
 
 	if (pTypeExt->CrushForwardTiltPerFrame.isset()) {
-		pLinkedTo->RockingForwardsPerFrame = static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Get());
+		pLinkedTo->RockingForwardsPerFrame = static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Fetch());
 		return SkipGameCode;
 	}
 
@@ -134,6 +134,6 @@ ASMJIT_PATCH(0x4B1146, SomeLocomotionClass_WhileMoving_SkipCrushSlowDown, 0x6) /
 {
 	GET(FootClass*, pLinkedTo, ECX);
 	auto const pTypeExt = GET_TECHNOTYPEEXT(pLinkedTo);
-	return pTypeExt->SkipCrushSlowdown ? R->Origin() + 0x3C : 0;
+	return pTypeExt->SkipCrushSlowdown.Get(FakeRulesClass::Instance->SkipCrushSlowdown) ? R->Origin() + 0x3C : 0;
 }
 ASMJIT_PATCH_AGAIN(0x6A0809, SomeLocomotionClass_WhileMoving_SkipCrushSlowDown, 0x6) // Ship

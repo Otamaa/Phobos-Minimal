@@ -36,9 +36,6 @@ bool AircraftTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->ParadropOverflRadius.Read(exINI, pSection, "Paradrop.OverflyRadius");
 	this->Paradrop_DropPassangers.Read(exINI, pSection, "Paradrop.DropPassangers");
 
-	// Disabled , rare but can crash after S/L
-	this->Paradrop_MaxAttempt.Read(exINI, pSection, "Paradrop.MaxApproachAttempt");
-	//
 	this->ExtendedAircraftMissions.Read(exINI, pSection, "ExtendedAircraftMissions");
 	this->ExtendedAircraftMissions_SmoothMoving.Read(exINI, pSection, "ExtendedAircraftMissions.SmoothMoving");
 	this->ExtendedAircraftMissions_EarlyDescend.Read(exINI, pSection, "ExtendedAircraftMissions.EarlyDescend");
@@ -96,6 +93,8 @@ bool AircraftTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->ParadropDelay.Read(exINI, pSection, "ParadropDelay");
 	this->ParadropEndDelay.Read(exINI, pSection, "ParadropEndDelay");
 
+	this->IsAloaner.Read(exINI, pSection, "IsAloaner");
+
 	return true;
 }
 
@@ -116,7 +115,6 @@ void AircraftTypeExtData::Serialize(T& Stm)
 		.Process(this->ParadropRadius)
 		.Process(this->ParadropOverflRadius)
 		.Process(this->Paradrop_DropPassangers)
-		.Process(this->Paradrop_MaxAttempt)
 
 		.Process(this->IsCustomMissile)
 		.Process(this->CustomMissileData)
@@ -139,6 +137,7 @@ void AircraftTypeExtData::Serialize(T& Stm)
 		.Process(this->RetreatToEdge)
 		.Process(this->ParadropDelay)
 		.Process(this->ParadropEndDelay)
+		.Process(this->IsAloaner)
 		;
 }
 

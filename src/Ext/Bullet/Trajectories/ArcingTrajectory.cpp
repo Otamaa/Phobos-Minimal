@@ -1,6 +1,7 @@
 #include "ArcingTrajectory.h"
 
 #include <Ext/BulletType/Body.h>
+#include <Ext/WeaponType/Body.h>
 
 #include <BulletClass.h>
 
@@ -94,8 +95,16 @@ void ArcingTrajectory::CalculateVelocity(BulletClass* pBullet, double elevation,
 	}
 	else // 不指定发射仰角，则读取Speed设定作为出膛速率，每次攻击时自动计算发射仰角
 	{
+		double bSpeed = 0.0;
 		const auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pBullet->Type);
-		double S = pBulletTypeExt->Trajectory_Speed;
+
+		if(pBullet->WeaponType){
+			bSpeed = WeaponTypeExtContainer::Instance.Find(pBullet->WeaponType)->Trajectory_Speed.Get(pBulletTypeExt->Trajectory_Speed.Get(pBullet->Speed));
+		}else {
+			bSpeed = pBulletTypeExt->Trajectory_Speed.Get(pBullet->Speed);
+		}
+
+		double S = bSpeed;
 		double A = g * g / 4;
 		double B = g * Z - S * S;
 		double C = Z * Z + FullDistance * FullDistance;

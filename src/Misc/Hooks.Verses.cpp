@@ -79,7 +79,7 @@ ASMJIT_PATCH(0x489180, MapClass_GetTotalDamage, 0x6)
 
 	const auto pExt = pWH->_GetExtData();
 
-	if (damage > 0 || pExt->ApplyModifiersOnNegativeDamage)
+	if (damage > 0 || pExt->ApplyModifiersOnNegativeDamage.Get(FakeRulesClass::Instance->ApplyModifiersOnNegativeDamage))
 	{
 		if (pExt->ApplyMindamage)
 			damage = MaxImpl(pExt->MinDamage >= 0 ? pExt->MinDamage : RulesClass::Instance->MinDamage, damage);
@@ -98,7 +98,7 @@ ASMJIT_PATCH(0x489180, MapClass_GetTotalDamage, 0x6)
 			res = damage;
 		}
 
-		if(!pExt->ApplyModifiersOnNegativeDamage)
+		if(!pExt->ApplyModifiersOnNegativeDamage.Get(FakeRulesClass::Instance->ApplyModifiersOnNegativeDamage))
 			res = int(double(res <= 0 ? 0 : res) * vsData->Verses);
 		else
 			res = int(res * vsData->Verses);

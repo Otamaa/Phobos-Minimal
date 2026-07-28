@@ -70,6 +70,7 @@ bool FakeCaptureManagerClass::__FreeUnit(TechnoClass* pTarget, bool bSilent)
 
 	return false;
 }
+
 bool FakeCaptureManagerClass::__FreeUnit_Wrap(TechnoClass* pTarget)
 {
 	return __FreeUnit(pTarget, false);
@@ -92,7 +93,7 @@ bool FakeCaptureManagerClass::__CaptureUnit(TechnoClass* pTarget,
 			else if (this->ControlNodes.Count == this->MaxControlNodes && bRemoveFirst){
 				auto pOwnerTypeExt = GET_TECHNOTYPEEXT(this->Owner);
 
-				if (pOwnerTypeExt->MindControl_IgnoreSize) {
+				if (pOwnerTypeExt->MindControl_IgnoreSize.Get(FakeRulesClass::Instance->MindControl_IgnoreSize)) {
 					if (this->ControlNodes.Count == this->MaxControlNodes)
 						this->__FreeUnit(this->ControlNodes[0]->Unit, false);
 				} else {
@@ -162,7 +163,7 @@ bool FakeCaptureManagerClass::__CaptureUnit(TechnoClass* pTechno, bool bSilent, 
 {
 	if (pTechno) {
 		return this->__CaptureUnit(pTechno,
-		GET_TECHNOTYPEEXT(this->Owner)->MultiMindControl_ReleaseVictim,
+		GET_TECHNOTYPEEXT(this->Owner)->MultiMindControl_ReleaseVictim.Get(FakeRulesClass::Instance->MultiMindControl_ReleaseVictim),
 		bSilent, RulesClass::Instance->ControlledAnimationType , threatDelay);
 	}
 
@@ -381,7 +382,7 @@ bool FakeCaptureManagerClass::__Should_Draw_Link()
 	const auto pExt = GET_TECHNOTYPEEXT(this->Owner);
 
 	if (HouseClass::Observer.get() != HouseClass::CurrentPlayer.get()
-		&& !EnumFunctions::CanTargetHouse(pExt->Draw_MindControlLink, this->Owner->Owner, HouseClass::CurrentPlayer))
+		&& !EnumFunctions::CanTargetHouse(pExt->Draw_MindControlLink.Get(FakeRulesClass::Instance->MindControlLink_VisibleToHouse), this->Owner->Owner, HouseClass::CurrentPlayer()))
 		return false;
 
 	// ------------------------------------------------------------
@@ -408,7 +409,7 @@ int FakeCaptureManagerClass::__GetControlledCount()
 {
 	const auto pOwnerTypeExt = GET_TECHNOTYPEEXT(this->Owner);
 
-	if (!pOwnerTypeExt->MindControl_IgnoreSize) {
+	if (!pOwnerTypeExt->MindControl_IgnoreSize.Get(FakeRulesClass::Instance->MindControl_IgnoreSize)) {
 		return this->__GetControlledTotalSize();
 	}
 
@@ -476,13 +477,13 @@ bool FakeCaptureManagerClass::__CanCapture(TechnoClass* pTarget)
 
 	// free slot? (move on if infinite or single slot which will be freed if used)
 	if (!this->InfiniteMindControl && this->MaxControlNodes != 1) {
-		if (pTypeExt->MindControl_IgnoreSize) {
-			if (this->ControlNodes.Count >= this->MaxControlNodes && !pTypeExt->MultiMindControl_ReleaseVictim) {
+		if (pTypeExt->MindControl_IgnoreSize.Get(FakeRulesClass::Instance->MindControl_IgnoreSize)) {
+			if (this->ControlNodes.Count >= this->MaxControlNodes && !pTypeExt->MultiMindControl_ReleaseVictim.Get(FakeRulesClass::Instance->MultiMindControl_ReleaseVictim)) {
 				return false;
 			}
 		} else {
 			const int totalSize = this->__GetControlledTotalSize();
-			const int available = pTypeExt->MultiMindControl_ReleaseVictim ? this->MaxControlNodes : this->MaxControlNodes - totalSize;
+			const int available = pTypeExt->MultiMindControl_ReleaseVictim.Get(FakeRulesClass::Instance->MultiMindControl_ReleaseVictim) ? this->MaxControlNodes : this->MaxControlNodes - totalSize;
 
 			if (GET_TECHNOTYPEEXT(pTarget)->MindControlSize > available)
 				return false;
@@ -568,41 +569,37 @@ bool FakeCaptureManagerClass::__SetOwnerToCivilian(TechnoClass* pTarget){
 // =============================
 // load / save
 
-//template <typename T>
-//void CaptureExt::ExtData::Serialize(T& Stm) {
-//
-//	Stm
-//		.Process(this->Initialized)
-//
-//		;
-//
-//}
+template <typename T>
+void CaptureExtData::Serialize(T& Stm) {
+
+}
 
 // =============================
 // container
-//CaptureExt::ExtContainer CaptureExt::ExtMap;
+CaptureExtContainer CaptureExtContainer::Instance;
 
 // =============================
 // container hooks
 
-//ASMJIT_PATCH_AGAIN(0x471998, CaptureManagerClass_CTOR, 0x6) // factory
-//ASMJIT_PATCH(0x471887, CaptureManagerClass_CTOR, 0x6)
-//{
-//	GET(CaptureManagerClass* const, pItem, ESI);
-//
-//	CaptureExt::ExtMap.Allocate(pItem);
-//
-//	return 0;
-//}
-//
-//ASMJIT_PATCH_AGAIN(0x4718ED , CaptureManagerClass_DTOR , 0x6) // Factory
-//ASMJIT_PATCH(0x4729EF, CaptureManagerClass_DTOR, 0x7)
-//{
-//	GET(CaptureManagerClass* const, pItem, ESI);
-//	CaptureExt::ExtMap.Remove(pItem);
-//	return 0;
-//}
-//
+ASMJIT_PATCH(0x471887, CaptureManagerClass_CTOR, 0x6)
+{
+	GET(CaptureManagerClass* const, pItem, ESI);
+
+	if (!Phobos::Otamaa::DoingLoadGame)
+		CaptureExtContainer::Instance.Allocate(pItem);
+
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x471998, CaptureManagerClass_CTOR, 0x6)  // Factory
+
+
+ASMJIT_PATCH(0x4729EF, CaptureManagerClass_DTOR, 0x7)
+{
+	GET(CaptureManagerClass* const, pItem, ESI);
+	CaptureExtContainer::Instance.Remove(pItem);
+
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x4718ED, CaptureManagerClass_DTOR, 0x6) // Factory
+
 //ASMJIT_PATCH_AGAIN(0x4728E0, CaptureManagerClass_SaveLoad_Prefix, 0x5)
 //ASMJIT_PATCH(0x472720, CaptureManagerClass_SaveLoad_Prefix, 0x8)
 //{

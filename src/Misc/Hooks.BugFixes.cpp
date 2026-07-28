@@ -912,257 +912,466 @@ ASMJIT_PATCH(0x73FEC1, UnitClass_WhatAction_DeploysIntoDesyncFix, 0x6)
 #include <Pipes.h>
 #include <Straws.h>
 
+namespace OverlayPackFormat
+{
+	// MAPSIZE: raise this (and bump NewINIFormat) to widen the pack.
+	COMPILETIMEEVAL int Dimension = 0x200;
+ 
+	COMPILETIMEEVAL int CellCount = Dimension * Dimension;
+ 
+	// NewINIFormat >= 5 stores overlay indices as WORD (lifts the 255-overlay cap).
+	// Below that, BYTE.
+	// VERIFY: 5 is the Phobos-side threshold, not a vanilla one. Cross-check against
+	//         whatever writes ScenarioClass::NewINIFormat.
+	COMPILETIMEEVAL int WordFormatVersion = 5;
+ 
+	// NewINIFormat > 1 gates the pack format at all (vanilla check, preserved).
+	COMPILETIMEEVAL int MinimumPackVersion = 1;
+ 
+	static bool UsesWordEntries()
+	{
+		return ScenarioClass::NewINIFormat.get() >= WordFormatVersion;
+	}
+ 
+	// LCW worst case expands rather than compresses on incompressible input:
+	// roughly n + n/128 + 1. Slack is generous because the cost of being wrong here
+	// is a heap overflow, not a wasted page.
+	static COMPILETIMEEVAL size_t WorstCaseCompressed(size_t rawBytes)
+	{
+		return rawBytes + (rawBytes / 64) + 1024;
+	}
+ 
+	static size_t OverlayPackRawSize()
+	{
+		return static_cast<size_t>(CellCount) * (UsesWordEntries() ? 2u : 1u);
+	}
+ 
+	static COMPILETIMEEVAL size_t OverlayDataPackRawSize()
+	{
+		// OverlayData is always one byte per cell regardless of format version.
+		return static_cast<size_t>(CellCount);
+	}
+}
+
+
 struct OverlayByteReader
 {
-	OverlayByteReader(CCINIClass* pINI, const char* pSection)
-		:
-		uuLength { 0u },
-		pBuffer { YRMemory::AllocateChecked(512000) },
-		ls { TRUE, 0x2000 },
-		bs { nullptr, 0 }
+	// BUGFIX: member declaration order. Original declared `ls` before `bs`, so `bs`
+	//         was destroyed first while `ls` still held a chain pointer to it.
+	//         `bs` must outlive `ls`.
+	OverlayByteReader(CCINIClass* pINI, const char* pSection, size_t nBufferLength)
+		: uuLength { 0u }
+		, BufferLength { nBufferLength }
+		, pBuffer { YRMemory::AllocateChecked(nBufferLength) }
+		, bs { nullptr, 0 }
+		, ls { TRUE, 0x2000 }
+		, Exhausted { false }
 	{
-		uuLength = pINI->ReadUUBlock(pSection, pBuffer, 512000);
+		this->uuLength = pINI->ReadUUBlock(pSection, this->pBuffer, static_cast<int>(nBufferLength));
+ 
 		if (this->IsAvailable())
 		{
-			bs.Buffer.Buffer = pBuffer;
-			bs.Buffer.Size = uuLength;
-			bs.Buffer.Allocated = false;
-			ls.Get_From(bs);
-		}
-	}
-
-	~OverlayByteReader()
-	{
-		if (pBuffer)
-			YRMemory::Deallocate(pBuffer);
-	}
-
-	bool IsAvailable() const { return uuLength > 0; }
-
-	unsigned char GetByte()
-	{
-		if (IsAvailable())
-		{
-			unsigned char ret;
-			ls.Get(&ret, sizeof(ret));
-			return ret;
-		}
-		return 0;
-	}
-
-	unsigned short GetWord()
-	{
-		if (IsAvailable())
-		{
-			unsigned short ret;
-			ls.Get(&ret, sizeof(ret));
-			return ret;
-		}
-
-		return 0;
-	}
-
-public:
-	size_t uuLength;
-	void* pBuffer;
-	LCWStraw ls;
-	BufferStraw bs;
-};
-
-struct OverlayReader
-{
-	int Get()
-	{
-		if (ScenarioClass::NewINIFormat.get() >= 5)
-		{
-			unsigned short shrt = ByteReader.GetWord();
-			if (shrt != static_cast<unsigned short>(-1))
-				return shrt;
+			this->bs.Buffer.Buffer = this->pBuffer;
+			this->bs.Buffer.Size = static_cast<int>(this->uuLength);
+			this->bs.Buffer.Allocated = false;
+			this->ls.Get_From(this->bs);
 		}
 		else
 		{
-			unsigned char byte = ByteReader.GetByte();
-			if (byte != static_cast<unsigned char>(-1))
-				return byte;
+			// EXTENSION: previously silent. A missing pack is either an old-format map
+			// or a truncated one, and both used to end up spraying overlay index 0.
+			Debug::LogInfo("[OverlayPack] Section [{}] absent or empty - treating all cells as empty.", pSection);
 		}
-
-		return -1;
 	}
-
-	OverlayReader(CCINIClass* pINI)
-		: ByteReader{ pINI, GameStrings::OverlayPack() }	{
+ 
+	~OverlayByteReader()
+	{
+		if (this->pBuffer)
+			YRMemory::Deallocate(this->pBuffer);
 	}
-
-	~OverlayReader() = default;
-
+ 
+	OverlayByteReader(const OverlayByteReader&) = delete;
+	OverlayByteReader& operator=(const OverlayByteReader&) = delete;
+ 
+	bool IsAvailable() const { return this->uuLength > 0; }
+ 
+	// BUGFIX: original returned 0 when the block was unavailable. 0 is a VALID overlay
+	//         index, and the caller's sentinel test (`!= 0xFF`) therefore passed,
+	//         placing OverlayTypeClass::Array[0] on all 262144 cells. Return the
+	//         sentinel instead so the caller skips the cell.
+	//
+	// BUGFIX: original declared `unsigned char ret;` and discarded the return value of
+	//         ls.Get(). When the straw ran dry (short/truncated pack) every subsequent
+	//         cell consumed uninitialised stack. Now zero-initialised and length-checked.
+	unsigned char GetByte()
+	{
+		COMPILETIMEEVAL unsigned char Sentinel = static_cast<unsigned char>(-1);
+ 
+		if (!this->IsAvailable() || this->Exhausted)
+			return Sentinel;
+ 
+		unsigned char ret = 0;
+ 
+		if (this->ls.Get(&ret, sizeof(ret)) != static_cast<int>(sizeof(ret)))
+		{
+			this->MarkExhausted();
+			return Sentinel;
+		}
+ 
+		return ret;
+	}
+ 
+	unsigned short GetWord()
+	{
+		COMPILETIMEEVAL unsigned short Sentinel = static_cast<unsigned short>(-1);
+ 
+		if (!this->IsAvailable() || this->Exhausted)
+			return Sentinel;
+ 
+		unsigned short ret = 0;
+ 
+		if (this->ls.Get(&ret, sizeof(ret)) != static_cast<int>(sizeof(ret)))
+		{
+			this->MarkExhausted();
+			return Sentinel;
+		}
+ 
+		return ret;
+	}
+ 
+	bool IsExhausted() const { return this->Exhausted; }
+ 
+private:
+	void MarkExhausted()
+	{
+		if (this->Exhausted)
+			return;
+ 
+		this->Exhausted = true;
+		Debug::LogInfo("[OverlayPack] Stream ran dry before all {} cells were consumed - remainder treated as empty.",
+			OverlayPackFormat::CellCount);
+	}
+ 
+public:
+	size_t uuLength;
+	size_t BufferLength;
+	void* pBuffer;
+	BufferStraw bs;   // must be declared before ls
+	LCWStraw ls;
+	bool Exhausted;
+};
+ 
+struct OverlayReader
+{
+	explicit OverlayReader(CCINIClass* pINI)
+		: ByteReader {
+			pINI,
+			GameStrings::OverlayPack(),
+			OverlayPackFormat::WorstCaseCompressed(OverlayPackFormat::OverlayPackRawSize())
+		}
+	{
+	}
+ 
+	// Returns -1 for "no overlay here".
+	int Get()
+	{
+		if (OverlayPackFormat::UsesWordEntries())
+		{
+			const unsigned short value = this->ByteReader.GetWord();
+			return (value != static_cast<unsigned short>(-1)) ? static_cast<int>(value) : -1;
+		}
+ 
+		const unsigned char value = this->ByteReader.GetByte();
+		return (value != static_cast<unsigned char>(-1)) ? static_cast<int>(value) : -1;
+	}
+ 
 private:
 	OverlayByteReader ByteReader;
 };
-
+ 
+// Bridge overlay indices whose OverlayData must survive OverlayClass construction.
+// SUSPECT: preserved verbatim from vanilla. These are hardcoded indices, not looked up
+//          from OverlayTypeClass, so a mod that reorders overlays silently breaks
+//          bridge repair state. Left as-is to keep behaviour identical.
+static bool IsBridgeOverlayIndex(int index)
+{
+	return index == 24 || index == 25 || index == 237 || index == 238;
+}
+ 
 ASMJIT_PATCH(0x5FD2E0, OverlayClass_ReadINI, 0x7)
 {
+	enum { SkipGameCode = 0x5FD69A };
+ 
 	GET(CCINIClass*, pINI, ECX);
-
+ 
 	pINI->CurrentSectionName = nullptr;
 	pINI->CurrentSection = nullptr;
-
-	if (ScenarioClass::NewINIFormat.get() > 1)
+ 
+	if (ScenarioClass::NewINIFormat.get() > OverlayPackFormat::MinimumPackVersion)
 	{
-
-		OverlayReader reader(pINI);
-
-		for (short i = 0; i < 0x200; ++i)
+		// ---- [OverlayPack] -------------------------------------------------------
 		{
-			for (short j = 0; j < 0x200; ++j)
+			OverlayReader reader(pINI);
+ 
+			for (int y = 0; y < OverlayPackFormat::Dimension; ++y)
 			{
-				CellStruct mapCoord { j,i };
-				int nOvl = reader.Get();
-
-				if (nOvl != 0xFFFFFFFF)
+				for (int x = 0; x < OverlayPackFormat::Dimension; ++x)
 				{
-					auto const pType = OverlayTypeClass::Array->operator[](nOvl);
-
-					if (pType->GetImage() || pType->CellAnim)
+					// BUGFIX: original compared `int != 0xFFFFFFFF`, which only worked
+					//         via integral promotion of -1 to unsigned. Explicit now.
+					const int nOvl = reader.Get();
+ 
+					if (nOvl < 0)
+						continue;
+ 
+					if (nOvl >= OverlayTypeClass::Array->Count)
 					{
-						if (SessionClass::Instance->GameMode != GameMode::Campaign && pType->Crate)
-							continue;
+						// EXTENSION: vanilla indexed the array unchecked. A corrupt or
+						// cross-mod pack could walk off the end.
+						continue;
+					}
+ 
+					const auto pType = OverlayTypeClass::Array->Items[nOvl];
+ 
+					if (!pType->GetImage() && !pType->CellAnim)
+						continue;
+ 
+					if (SessionClass::Instance->GameMode != GameMode::Campaign && pType->Crate)
+						continue;
+ 
+					const CellStruct mapCoord { static_cast<short>(x), static_cast<short>(y) };
+ 
+					if (!MapClass::Instance->CoordinatesLegal(mapCoord))
+						continue;
+ 
+					const auto pCell = MapClass::Instance->GetCellAt(mapCoord);
+					const auto nOriginOvlData = pCell->OverlayData;
+ 
+					GameCreate<OverlayClass>(pType, mapCoord, -1);
+ 
+					// BUG (vanilla, preserved): OverlayClass ctor clobbers OverlayData.
+					// Bridges need theirs restored or broken spans become unrepairable.
+					if (IsBridgeOverlayIndex(nOvl))
+						pCell->OverlayData = nOriginOvlData;
+				}
+			}
+		}
+ 
+		// ---- [OverlayDataPack] ---------------------------------------------------
+		{
+			const size_t dataBufferLength =
+				OverlayPackFormat::WorstCaseCompressed(OverlayPackFormat::OverlayDataPackRawSize());
+ 
+			void* pBuffer = YRMemory::AllocateChecked(dataBufferLength);
+ 
+			const size_t uuLength = pINI->ReadUUBlock(
+				GameStrings::OverlayDataPack(), pBuffer, static_cast<int>(dataBufferLength));
+ 
+			if (uuLength > 0)
+			{
+				// BUGFIX: bs must outlive ls; declared in that order here.
+				BufferStraw bs(pBuffer, static_cast<int>(uuLength));
+				LCWStraw ls(TRUE, 0x2000);
+				ls.Get_From(bs);
+ 
+				bool exhausted = false;
+ 
+				for (int y = 0; y < OverlayPackFormat::Dimension && !exhausted; ++y)
+				{
+					for (int x = 0; x < OverlayPackFormat::Dimension; ++x)
+					{
+						// BUGFIX: was `unsigned char buffer;` with the Get() result
+						//         discarded -- uninitialised stack once the straw ran dry.
+						unsigned char value = 0;
+ 
+						if (ls.Get(&value, sizeof(value)) != static_cast<int>(sizeof(value)))
+						{
+							exhausted = true;
+							break;
+						}
+ 
+						const CellStruct mapCoord { static_cast<short>(x), static_cast<short>(y) };
+ 
 						if (!MapClass::Instance->CoordinatesLegal(mapCoord))
 							continue;
-
-						auto pCell = MapClass::Instance->GetCellAt(mapCoord);
-						auto const nOriginOvlData = pCell->OverlayData;
-						GameCreate<OverlayClass>(pType, mapCoord, -1);
-						if (nOvl == 24 || nOvl == 25 || nOvl == 237 || nOvl == 238) // bridges
-							pCell->OverlayData = nOriginOvlData;
+ 
+						MapClass::Instance->GetCellAt(mapCoord)->OverlayData = value;
 					}
 				}
+ 
+				if (exhausted)
+					Debug::LogInfo("[OverlayDataPack] Stream ran dry - remaining cells left at 0.");
 			}
-		}
-
-		auto pBuffer = YRMemory::AllocateChecked(256000);
-		size_t uuLength = pINI->ReadUUBlock(GameStrings::OverlayDataPack(), pBuffer, 256000);
-
-		if (uuLength > 0)
-		{
-			BufferStraw bs(pBuffer, uuLength);
-			LCWStraw ls(TRUE, 0x2000);
-			ls.Get_From(bs);
-
-			for (short i = 0; i < 0x200; ++i)
-			{
-				for (short j = 0; j < 0x200; ++j)
-				{
-					CellStruct mapCoord { j,i };
-					unsigned char buffer;
-					ls.Get(&buffer, sizeof(buffer));
-					if (MapClass::Instance->CoordinatesLegal(mapCoord))
-					{
-						auto pCell = MapClass::Instance->GetCellAt(mapCoord);
-						pCell->OverlayData = buffer;
-					}
-				}
-			}
-		}
-
-		if (pBuffer)
+ 
 			YRMemory::Deallocate(pBuffer);
+		}
 	}
-
+ 
 	AbstractClass::RemoveAllInactive();
-
-	return 0x5FD69A;
+ 
+	return SkipGameCode;
 }
-
+ 
+// =====================================================================================
+// Writer
+// =====================================================================================
+ 
 struct OverlayByteWriter
 {
 	OverlayByteWriter(const char* pSection, size_t nBufferLength)
-		: lpSectionName { pSection }, uuLength { 0 }, bp { nullptr,0 }, lp { FALSE,0x2000 }
+		: lpSectionName { pSection }
+		, uuLength { 0 }
+		, BufferLength { nBufferLength }
+		, Buffer { YRMemory::AllocateChecked(nBufferLength) }
+		, bp { nullptr, 0 }
+		, lp { FALSE, 0x2000 }
+		, Flushed { false }
 	{
-		this->Buffer = YRMemory::AllocateChecked(nBufferLength);
-		bp.Buffer.Buffer = this->Buffer;
-		bp.Buffer.Size = nBufferLength;
-		bp.Buffer.Allocated = false;
-		lp.Put_To(bp);
+		this->bp.Buffer.Buffer = this->Buffer;
+		this->bp.Buffer.Size = static_cast<int>(nBufferLength);
+		this->bp.Buffer.Allocated = false;
+		this->lp.Put_To(this->bp);
 	}
-
+ 
 	~OverlayByteWriter()
 	{
 		YRMemory::Deallocate(this->Buffer);
 	}
-
+ 
+	OverlayByteWriter(const OverlayByteWriter&) = delete;
+	OverlayByteWriter& operator=(const OverlayByteWriter&) = delete;
+ 
 	void PutByte(unsigned char data)
 	{
-		uuLength += lp.Put(&data, sizeof(data));
+		this->uuLength += this->lp.Put(&data, sizeof(data));
 	}
-
+ 
 	void PutWord(unsigned short data)
 	{
-		uuLength += lp.Put(&data, sizeof(data));
+		this->uuLength += this->lp.Put(&data, sizeof(data));
 	}
-
+ 
+	// BUGFIX: original called WriteUUBlock without flushing the LCW pipe. LCWPipe
+	//         accumulates into 0x2000 blocks and only emits on block completion, so
+	//         the trailing partial block was silently discarded -- the tail of the
+	//         map's overlay data was lost on every save.
+	//
+	// VERIFY: Pipe::End() is the flush entry point in the WW pipe/straw design
+	//         (it forwards a zero-length Put down the chain). Confirm YRpp's LCWPipe
+	//         exposes End() with that behaviour before shipping; if it is named
+	//         differently, swap the call but keep the uuLength accumulation.
+	void Flush()
+	{
+		if (this->Flushed)
+			return;
+ 
+		this->uuLength += this->lp.End();
+		this->Flushed = true;
+	}
+ 
 	void PutBlock(CCINIClass* pINI)
 	{
+		this->Flush();
+ 
+		if (this->uuLength > this->BufferLength)
+		{
+			// EXTENSION: vanilla had no guard here at all. See the DSurface note below.
+			Debug::FatalError("[%s] overlay pack overflowed its buffer (%u > %u bytes).",
+				this->lpSectionName,
+				static_cast<unsigned int>(this->uuLength),
+				static_cast<unsigned int>(this->BufferLength));
+			return;
+		}
+ 
 		pINI->Clear(this->lpSectionName, nullptr);
-		pINI->WriteUUBlock(this->lpSectionName, this->Buffer, uuLength);
+		pINI->WriteUUBlock(this->lpSectionName, this->Buffer, static_cast<int>(this->uuLength));
 	}
-
+ 
 	const char* lpSectionName;
 	size_t uuLength;
+	size_t BufferLength;
 	void* Buffer;
 	BufferPipe bp;
 	LCWPipe lp;
+	bool Flushed;
 };
-
+ 
 struct OverlayWriter
 {
-	OverlayWriter(size_t nLen)
-		: ByteWriter { GameStrings::OverlayPack() , nLen }
-	{ }
-
+	explicit OverlayWriter(size_t nLen)
+		: ByteWriter { GameStrings::OverlayPack(), nLen }
+	{
+	}
+ 
+	// BUGFIX: THIS WAS INVERTED AGAINST THE READER.
+	//         Original wrote a BYTE when NewINIFormat >= 5 and a WORD otherwise,
+	//         while OverlayReader::Get() reads a WORD when >= 5 and a BYTE otherwise.
+	//         Any map saved by the game could not be read back by the game: the
+	//         raster desynchronised after the first cell and every subsequent overlay
+	//         landed on the wrong coordinate.
 	void Put(int nOverlay)
 	{
-		if (ScenarioClass::NewINIFormat.get() >= 5)
-			ByteWriter.PutByte(static_cast<unsigned char>(nOverlay));
+		if (OverlayPackFormat::UsesWordEntries())
+			this->ByteWriter.PutWord(static_cast<unsigned short>(nOverlay));
 		else
-			ByteWriter.PutWord(static_cast<unsigned short>(nOverlay));
+			this->ByteWriter.PutByte(static_cast<unsigned char>(nOverlay));
 	}
-
+ 
 	void PutBlock(CCINIClass* pINI)
 	{
-		ByteWriter.PutBlock(pINI);
+		this->ByteWriter.PutBlock(pINI);
 	}
-
+ 
 private:
 	OverlayByteWriter ByteWriter;
 };
-
+ 
 ASMJIT_PATCH(0x5FD6A0, OverlayClass_WriteINI, 0x6)
 {
+	enum { SkipGameCode = 0x5FD8EB };
+ 
 	GET(CCINIClass*, pINI, ECX);
-
+ 
 	pINI->Clear("OVERLAY", nullptr);
-
-	size_t len = DSurface::Alternate->Width * DSurface::Alternate->Height;
-	OverlayWriter writer(len);
-	OverlayByteWriter datawriter(GameStrings::OverlayDataPack(), len);
-
-	for (short i = 0; i < 0x200; ++i)
+ 
+	// BUGFIX: vanilla sized both write buffers from the back buffer surface:
+	//             size_t len = DSurface::Alternate->Width * DSurface::Alternate->Height;
+	//         That is unrelated to the map and simply happened to exceed 262144 at
+	//         800x600. At 640x480 it yields 307200; word-entry format needs 524288 raw,
+	//         so a poorly-compressing map overflowed the heap block. Size from the
+	//         format instead.
+	const size_t overlayBufferLength =
+		OverlayPackFormat::WorstCaseCompressed(OverlayPackFormat::OverlayPackRawSize());
+	const size_t dataBufferLength =
+		OverlayPackFormat::WorstCaseCompressed(OverlayPackFormat::OverlayDataPackRawSize());
+ 
+	OverlayWriter writer(overlayBufferLength);
+	OverlayByteWriter datawriter(GameStrings::OverlayDataPack(), dataBufferLength);
+ 
+	for (int y = 0; y < OverlayPackFormat::Dimension; ++y)
 	{
-		for (short j = 0; j < 0x200; ++j)
+		for (int x = 0; x < OverlayPackFormat::Dimension; ++x)
 		{
-			CellStruct mapCoord { j,i };
-			auto const pCell = MapClass::Instance->GetCellAt(mapCoord);
+			const CellStruct mapCoord { static_cast<short>(x), static_cast<short>(y) };
+ 
+			// SUSPECT: vanilla called GetCellAt() unconditionally, including for
+			//          coordinates outside the usable area. GetCellAt clamps to the
+			//          dummy cell there, so out-of-bounds positions all serialise
+			//          whatever the dummy cell currently holds. Preserved verbatim:
+			//          changing it alters the byte stream of every saved map and would
+			//          break round-tripping against FA2.
+			const auto pCell = MapClass::Instance->GetCellAt(mapCoord);
+ 
 			writer.Put(pCell->OverlayTypeIndex);
 			datawriter.PutByte(pCell->OverlayData);
 		}
 	}
-
+ 
 	writer.PutBlock(pINI);
 	datawriter.PutBlock(pINI);
-
-	return 0x5FD8EB;
+ 
+	return SkipGameCode;
 }
-
 
 // Ares InitialPayload fix: Man, what can I say
 // Otamaa : this can cause deadlock , or crashes , better write proper fix

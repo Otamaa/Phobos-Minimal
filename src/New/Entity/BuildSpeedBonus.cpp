@@ -5,37 +5,37 @@ void BuildSpeedBonus::Read(INI_EX& parser, const char* pSection)
 	Nullable<double> nBuff {};
 	nBuff.Read(parser, pSection, "BuildSpeedBonus.Aircraft");
 
-	if (nBuff.isset() && nBuff.Get() != 0.000)
+	if (nBuff.isset() && nBuff.Fetch() != 0.000)
 	{
 		Enabled = true;
-		SpeedBonus_Aircraft = nBuff.Get();
+		SpeedBonus_Aircraft = nBuff.Fetch();
 	}
 
 	nBuff.Reset();
 	nBuff.Read(parser, pSection, "BuildSpeedBonus.Building");
 
-	if (nBuff.isset() && nBuff.Get() != 0.000)
+	if (nBuff.isset() && nBuff.Fetch() != 0.000)
 	{
 		Enabled = true;
-		SpeedBonus_Building = nBuff.Get();
+		SpeedBonus_Building = nBuff.Fetch();
 	}
 
 	nBuff.Reset();
 	nBuff.Read(parser, pSection, "BuildSpeedBonus.Infantry");
 
-	if (nBuff.isset() && nBuff.Get() != 0.000)
+	if (nBuff.isset() && nBuff.Fetch() != 0.000)
 	{
 		Enabled = true;
-		SpeedBonus_Infantry = nBuff.Get();
+		SpeedBonus_Infantry = nBuff.Fetch();
 	}
 
 	nBuff.Reset();
 	nBuff.Read(parser, pSection, "BuildSpeedBonus.Unit");
 
-	if (nBuff.isset() && nBuff.Get() != 0.000)
+	if (nBuff.isset() && nBuff.Fetch() != 0.000)
 	{
 		Enabled = true;
-		SpeedBonus_Unit = nBuff.Get();
+		SpeedBonus_Unit = nBuff.Fetch();
 	}
 
 	if (Enabled)

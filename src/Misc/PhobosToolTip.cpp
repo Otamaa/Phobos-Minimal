@@ -109,7 +109,8 @@ OPTIONALINLINE int PhobosToolTip::GetPower(TechnoTypeClass* pType) const
 	case AbstractType::InfantryType:
 	case AbstractType::UnitType:
 	{
-		return TechnoTypeExtContainer::Instance.Find(pType)->Power;
+		if(TechnoTypeExtContainer::Instance.Find(pType)->Power.isset())
+		return TechnoTypeExtContainer::Instance.Find(pType)->Power.Fetch();
 	}
 	case AbstractType::BuildingType:
 	{
@@ -355,7 +356,7 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 	}
 
 	if (pData->SW_Power.isset()) {
-		const auto nPower = pData->SW_Power.Get();
+		const auto nPower = pData->SW_Power.Fetch();
 
 		if (nPower != 0) {
 			fmt::format_to(std::back_inserter(this->TextBuffer),

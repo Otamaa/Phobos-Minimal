@@ -518,6 +518,7 @@
     <ClCompile Include="src\Utilities\INIParser.cpp" />
     <ClCompile Include="src\Utilities\MultiBoolFixedArray.cpp" />
     <ClCompile Include="src\Utilities\NullableCSF.cpp" />
+    <ClCompile Include="src\Utilities\NullableDefaultRegistry.cpp" />
     <ClCompile Include="src\Utilities\OptionalStruct.cpp" />
     <ClCompile Include="src\Utilities\Parser.cpp" />
     <ClCompile Include="src\Utilities\PhobosFixedString.cpp" />
@@ -958,6 +959,7 @@
     <ClInclude Include="src\Utilities\MapPathCellElement.h" />
     <ClInclude Include="src\Utilities\MultiBoolFixedArray.h" />
     <ClInclude Include="src\Utilities\NullableCSF.h" />
+    <ClInclude Include="src\Utilities\NullableDefaultRegistry.h" />
     <ClInclude Include="src\Utilities\OptionalStruct.h" />
     <ClInclude Include="src\Utilities\PhobosFixedString.h" />
     <ClInclude Include="src\Utilities\PhobosMap.h" />

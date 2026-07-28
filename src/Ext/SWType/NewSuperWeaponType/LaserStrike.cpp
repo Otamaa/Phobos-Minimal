@@ -15,7 +15,7 @@ bool SW_LaserStrike::Activate(SuperClass* pThis, const CellStruct& Coords, bool 
 		const auto pData = SWTypeExtContainer::Instance.Find(pThis->Type);
 		this->newStateMachine(Coords, pThis, this->GetFirer(pThis , Coords, false),
 			ScenarioClass::Instance->Random.RandomRanged(pData->LaserStrikeMin, pData->LaserStrikeMax) ,
-			pData->SW_Deferment ,
+			pData->SW_Deferment.Get(0),
 			pData->LaserStrikeDuration
 		);
 	}

@@ -330,11 +330,11 @@ RequirementStatus HouseExtData::RequirementsMet(
 	}
 
 	if (pData->Prerequisite_Power.isset()) {
-		if (pData->Prerequisite_Power <= 0) {
-			if (-pData->Prerequisite_Power > pHouse->PowerOutput) {
+		if (pData->Prerequisite_Power.Fetch() <= 0) {
+			if (-pData->Prerequisite_Power.Fetch() > pHouse->PowerOutput) {
 				return RequirementStatus::Incomplete;
 			}
-			} else if (pData->Prerequisite_Power > pHouse->PowerOutput - pHouse->PowerDrain) {
+			} else if (pData->Prerequisite_Power.Fetch() > pHouse->PowerOutput - pHouse->PowerDrain) {
 				return RequirementStatus::Incomplete;
 		}
 	}
@@ -2183,8 +2183,8 @@ CanBuildResult HouseExtData::BuildLimitGroupUpgradeCheck(HouseClass* pThis, Tech
 	}
 
 	const int factor = pItemExt->BuildLimitGroup_Factor;
-	const bool notBuildable = pItemExt->BuildLimitGroup_NotBuildableIfQueueMatch;
-	const bool contentIfAny = pItemExt->BuildLimitGroup_ContentIfAnyMatch;
+	const bool notBuildable = pItemExt->BuildLimitGroup_NotBuildableIfQueueMatch.Get(FakeRulesClass::Instance->BuildLimitGroup_NotBuildableIfQueueMatch);
+	const bool contentIfAny = pItemExt->BuildLimitGroup_ContentIfAnyMatch.Get(FakeRulesClass::Instance->BuildLimitGroup_ContentIfAnyMatch);
 
 	if (limits.size() == 1)
 	{
@@ -2377,7 +2377,7 @@ bool HouseExtData::ReachedBuildLimit(HouseClass* pHouse, TechnoTypeClass* pType,
 	}
 
 	const int factor = pTypeExt->BuildLimitGroup_Factor;
-	const bool notBuildable = pTypeExt->BuildLimitGroup_NotBuildableIfQueueMatch;
+	const bool notBuildable = pTypeExt->BuildLimitGroup_NotBuildableIfQueueMatch.Get(FakeRulesClass::Instance->BuildLimitGroup_NotBuildableIfQueueMatch);
 
 	if (limits.size() == 1)
 	{
@@ -2421,7 +2421,7 @@ bool HouseExtData::ReachedBuildLimit(HouseClass* pHouse, TechnoTypeClass* pType,
 	else
 	{ 
 		const size_t size = MinImpl(limits.size(), pTypeExt->BuildLimitGroup_Types.size());
-		const bool contentIfAny = pTypeExt->BuildLimitGroup_ContentIfAnyMatch;
+		const bool contentIfAny = pTypeExt->BuildLimitGroup_ContentIfAnyMatch.Get(FakeRulesClass::Instance->BuildLimitGroup_ContentIfAnyMatch);
 		bool reached = true;
 		bool realReached = true;
 
@@ -2641,7 +2641,7 @@ CanBuildResult HouseExtData::BuildLimitGroupCheck(HouseClass* pThis,TechnoTypeCl
 
 	const std::vector<int> limits = HouseExtData::GetBuildLimitGroupLimits(pThis , pItem);
 
-	if (pItemExt->BuildLimitGroup_ContentIfAnyMatch.Get()) {
+	if (pItemExt->BuildLimitGroup_ContentIfAnyMatch.Get(FakeRulesClass::Instance->BuildLimitGroup_ContentIfAnyMatch)) {
 		bool reachedLimit = false;
 
 		for (size_t i = 0; i < MinImpl(pItemExt->BuildLimitGroup_Types.size(), pItemExt->BuildLimitGroup_Nums.size()); i++) {
@@ -2854,7 +2854,7 @@ void HouseExtData::UpdateTransportReloaders()
 			return true;
 
 		if (pTech->Transporter && pTech->Transporter->IsAlive && pTech->Transporter->IsInLogic) {
-			if (GET_TECHNOTYPEEXT(pTech)->ReloadInTransport) {
+			if (GET_TECHNOTYPEEXT(pTech)->ReloadInTransport.Get(FakeRulesClass::Instance->ReloadInTransport)) {
 				pTech->Reload();
 			}
 		}
@@ -2984,12 +2984,12 @@ int HouseExtData::CalculateBattlePoints(TechnoTypeClass* pTechno, HouseClass* pO
 	const auto pThisTypeExt = HouseTypeExtContainer::Instance.Find(pThis->Type);
 	const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno);
 
-	if (pTechnoTypeExt->BattlePoints.isset() && pTechnoTypeExt->BattlePoints.Get() != 0)
-		return pTechnoTypeExt->BattlePoints.Get();
+	if (pTechnoTypeExt->BattlePoints.isset() && pTechnoTypeExt->BattlePoints.Fetch() != 0)
+		return pTechnoTypeExt->BattlePoints.Fetch();
 	else if(!pTechnoTypeExt->BattlePoints.isset()){
 
 		const int Points = FakeRulesClass::Instance()->BattlePoints_DefaultFriendlyValue.isset() && pThis->IsAlliedWith(pOwner) ?
-			FakeRulesClass::Instance()->BattlePoints_DefaultFriendlyValue.Get() :  FakeRulesClass::Instance()->BattlePoints_DefaultValue;
+			FakeRulesClass::Instance()->BattlePoints_DefaultFriendlyValue.Fetch() :  FakeRulesClass::Instance()->BattlePoints_DefaultValue;
 
 		if(Points != 0)
 			return Points;
@@ -3010,7 +3010,6 @@ bool HouseExtData::ReverseEngineer(TechnoClass* Victim) {
 	if (!VictimAs || this->Reversed.contains(VictimAs))
 		return false;
 
-		
 	if (HouseExtData::PrereqValidate(This(), VictimType, false, true) != CanBuildResult::Buildable) {
 		this->Reversed.emplace(VictimAs);
 		if (HouseExtData::RequirementsMet(This(), VictimType) != RequirementStatus::Forbidden) {
@@ -4719,7 +4718,7 @@ int HouseExtData::GetTotalCost(const Nullable<int>& fixed)
 
 	int totalCost = 0;
 	if (fixed.isset()) {
-		totalCost = fixed;
+		totalCost = fixed.Fetch();
 	}
 	else {
 		auto types = GetTypeList();

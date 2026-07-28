@@ -194,8 +194,8 @@ int Phobos::Config::DistributionFilterMode = 2;
 int Phobos::Config::SuperWeaponSidebar_RequiredSignificance { 0 };
 bool Phobos::Config::SuperWeaponSidebarCommands { false };
 DWORD  Phobos::Config::InternalVersion { 0x1414D121 };
-char  Phobos::Config::ModName[0x40] { "Yuri's Revenge" };
-char  Phobos::Config::ModVersion[0x40] { "1.001" };
+std::string  Phobos::Config::ModName { "Yuri's Revenge" };
+std::string  Phobos::Config::ModVersion { "1.001" };
 int  Phobos::Config::ModIdentifier;
 CSFText  Phobos::Config::ModNote;
 byte  Phobos::Config::GFX_DX_Force;
@@ -212,6 +212,8 @@ int Phobos::Misc::CustomGS_DefaultDelay[7] { 0, 1, 2, 3, 4, 5, 6 };
 
 bool Phobos::Config::ShowGameTime = false;
 int Phobos::Config::ShowGameTime_BoardOpacity = 40;
+
+bool Phobos::Config::SelectCapturedCommand = false;
 
 bool Phobos::Otamaa::DisableCustomRadSite { false };
 bool Phobos::Otamaa::IsAdmin { false };

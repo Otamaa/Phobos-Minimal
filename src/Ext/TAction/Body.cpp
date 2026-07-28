@@ -402,7 +402,10 @@ bool TActionExtData::OpenDropshipLoadoutWindow(TActionClass* pThis, HouseClass* 
 		}
 	}
 
-	DropshipLoadoutClass::OpenInGameWindow(bIgnoreFixedUnits, bPreloadCargo, allowableUnitsIndex, startingMoney, Nullable<bool>(bAddUnusedMoneyToPlayer), {});
+	Nullable<bool> _bAddUnusedMoneyToPlayer;
+	_bAddUnusedMoneyToPlayer = bAddUnusedMoneyToPlayer;
+
+	DropshipLoadoutClass::OpenInGameWindow(bIgnoreFixedUnits, bPreloadCargo, allowableUnitsIndex, startingMoney, _bAddUnusedMoneyToPlayer, {});
 
 	return true;
 }

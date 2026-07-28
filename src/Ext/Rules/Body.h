@@ -199,7 +199,7 @@ public:
 	Nullable<SHPStruct*> Pips_Shield_Background_SHP {};
 	Nullable<ParticleTypeClass*> VeinholeParticle {};
 	Nullable<WarheadTypeClass*> FirestormWarhead {};
-	Nullable<SHPStruct*> PrimaryFactoryIndicator {};
+	Valueable<SHPStruct*> PrimaryFactoryIndicator {};
 
 	// ============================================================
 	// Nullable<Vector3D<float>> (~16 bytes)
@@ -578,7 +578,13 @@ public:
 	Valueable<bool> AIForbidConYard { false };
 	Valueable<bool> AINodeWallsOnly { false };
 	Valueable<bool> AICleanWallNode { false };
+
 	Valueable<bool> JumpjetTilt {};
+	Valueable<double> JumpjetTilt_ForwardAccelFactor { 1.0 };
+	Valueable<double> JumpjetTilt_ForwardSpeedFactor { 1.0 };
+	Valueable<double> JumpjetTilt_SidewaysRotationFactor { 1.0 };
+	Valueable<double> JumpjetTilt_SidewaysSpeedFactor { 1.0 };
+
 	Valueable<bool> NoTurret_TrackTarget { true };
 	Valueable<bool> RecountBurst { false };
 	Valueable<bool> AmphibiousEnter {};
@@ -660,8 +666,6 @@ public:
 	Valueable<double> ExtraThreatCoefficient_Facing {};
 	Valueable<double> ExtraThreatCoefficient_DistanceToLastTarget {};
 
-	Valueable<bool> DriverKilled_KillPassengers {};
-
 	Valueable<StackingMode> Psychedelic_StackingMode { StackingMode::Override };
 
 	Nullable<PartialVector2D<int>> BuildingGuardRetryDelay {};
@@ -707,6 +711,124 @@ public:
 	Valueable<bool> AircraftDockingDir_DefaultToPoseDir { true };
 	Nullable<int> PoseDir_Production {};
 	Nullable<int> PoseDir_Field {};
+
+	Valueable<bool> Terrain_IsPassable {};
+	Valueable<bool> Tibtree_IsPassable {};
+	Valueable<bool> Terrain_CanBeBuiltOn {};
+	Valueable<bool> Tibtree_CanBeBuiltOn {};
+
+	Valueable<bool> SetTabBySelectingFactory {};
+
+	Valueable<bool> DecloakDamagedTargets { true };
+	Valueable<bool> Strafing_SimulateBurst {};
+	Valueable<bool> Strafing_UseAmmoPerShot {};
+	Valueable<bool> Strafing_TargetCell {};
+
+	Valueable<bool> Vertical_AircraftFix { true };
+	Valueable<bool> AircraftWeapon_KickOutPassengers { true };
+
+	Valueable<EdgeType> AircraftSpawnFromEdge { EdgeType::Owner };
+	Valueable<EdgeType> AircraftRetreatToEdge { EdgeType::Owner };
+
+	Valueable<bool> Arcing_AllowElevationInaccuracy { true };
+	
+	Valueable<bool> Airburst_UseCluster {};
+	Valueable<bool> Airburst_TargetAsSource_SkipHeight {};
+	Valueable<bool> AirburstWeapon_ApplyFirepowerMult {};
+	Valueable<bool> AirburstWeapon_UseFiringEffects {};
+	Valueable<bool> AirburstWeapon_HeadToTarget {};
+
+	Valueable<bool> Splits_TargetingDistance_Cylindrical {};
+	Valueable<bool> Splits_AllowRepeatTargets {};
+	Valueable<bool> Splits_UseWeaponTargeting {};
+
+	Valueable<bool> Shrapnel_AffectsGround {};
+	Valueable<bool> Shrapnel_AffectsBuildings {};
+	Valueable<bool> Shrapnel_UseWeaponTargeting {};
+
+	Valueable<bool> Interceptable { true };
+	Valueable<bool> Interceptor_ApplyFirepowerMult { true };
+	Valueable<bool> Interceptor_GuardRange_IsCylindrical {};
+
+	Valueable<bool> Crit_ApplyChancePerTarget {};
+	Valueable<bool> Crit_ExtraDamage_ApplyFirepowerMult {};
+	Valueable<bool> Crit_AnimOnAffectedTargets {};
+	Valueable<bool> Crit_SuppressWhenIntercepted {};
+
+	Valueable<bool> Debris_Conventional { false };
+	Valueable<bool> NotHuman_RandomDeathSequence {};
+	Valueable<bool> OnlyUseLandSequences {};
+	Valueable<bool> ReloadInTransport {};
+	Valueable<bool> HoverDrownable { true };
+	Valueable<double> FallingDownDamage { 1.0 };
+	Valueable<bool> FallingDownDamage_AllowEMP { true };
+	Valueable<bool> AllowDamageOnSelf {};
+	Valueable<bool> Convert_ResetMindControl {};
+	Valueable<bool> AlternateFLH_OnTurret { true };
+	Valueable<bool> AlternateFLH_ApplyVehicle { false };
+	Valueable<bool> Explodes_KillPassengers { true };
+	Valueable<bool> Explodes_DuringBuildup { true };
+
+	Valueable<bool> MindControl_IgnoreSize { true };
+	Valueable<bool> MultiMindControl_ReleaseVictim {};
+	Valueable<AffectedHouse> MindControlLink_VisibleToHouse { AffectedHouse::All };
+
+	Valueable<bool> Passengers_SyncOwner {};
+	Valueable<bool> Passengers_SyncOwner_RevertOnExit { true };
+
+	Valueable<bool> OmniFire_TurnToTarget {};
+	Valueable<bool> AmbientDamage_IgnoreTarget {};
+	Valueable<bool> Promote_IncludeSpawns {};
+
+	Valueable<bool> Spawner_AttackImmediately {};
+	Valueable<bool> Spawner_UseTurretFacing {};
+	Valueable<Leptons> Spawner_RecycleRange { Leptons(-1) };
+	Valueable<bool> Spawner_RecycleOnTurret {};
+
+	Valueable<bool> UseDisguiseMovementSpeed {};
+
+	Valueable<bool> DriverKilled_KeptPassengers {};
+	Valueable<bool> DriverKilled_KillPassengers {};
+
+	Valueable<bool> DigitalDisplay_Health_FakeAtDisguise { true };
+	Valueable<bool> AutoDeath_Nonexist_AllowLimboed {};
+	Valueable<bool> AutoDeath_Exist_AllowLimboed {};
+
+	Valueable<int> Overload_ParticleSysCount { 5 };
+
+	Valueable<double> CrushSlowdownMultiplier { 0.2 };
+	Valueable<bool> SkipCrushSlowdown {};
+
+	Valueable<bool> ShakeIsLocal {};
+
+	Valueable<AffectedHouse> RadarJamHouses { AffectedHouse::Enemies };
+	Valueable<int> RadarJamDelay { 30 };
+
+	Valueable<bool> ApplyModifiersOnNegativeDamage {};
+	Valueable<bool> ReturnWarhead_ApplyChancePerTarget {};
+	Valueable<bool> ReturnWeapon_ApplyFirepowerMult {};
+	Valueable<bool> CreateAnimsOnZeroDamage {};
+
+	Valueable<bool> AnimDamage_DealtByInvoker {};
+
+	Valueable<bool> BuildLimitGroup_ContentIfAnyMatch {};
+	Valueable<bool> BuildLimitGroup_NotBuildableIfQueueMatch {};
+
+	Nullable<bool> Sinkable {};
+	Valueable<bool> Sinkable_SquidGrab { true };
+	Valueable<int> SinkSpeed { 5 };
+
+	Valueable<bool> Parasite_DisableParticleSystem {};
+
+	Valueable<bool> ForceWeapon_InRange_TechnoOnly { true };
+	Valueable<bool> ForceWeapon_InRange_ApplyRangeModifiers {};
+	Valueable<bool> ForceAAWeapon_InRange_ApplyRangeModifiers {};
+
+	Valueable<bool> KeepRange_AllowAI {};
+	Valueable<bool> KeepRange_AllowPlayer {};
+	Valueable<int> KeepRange_EarlyStopFrame {};
+
+	Valueable<bool> DestroyAnim_Random { true };
 #pragma endregion
 
 public:

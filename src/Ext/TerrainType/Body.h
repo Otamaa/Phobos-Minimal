@@ -37,8 +37,8 @@ public:
 	Valueable<int> Bounty { 0 };
 
 	// ---- Terrain interaction ----
-	Valueable<bool> IsPassable {};
-	Valueable<bool> CanBeBuiltOn {};
+	Nullable<bool> IsPassable {};
+	Nullable<bool> CanBeBuiltOn {};
 	Valueable<int> CrushableLevel { 0 };
 
 	// ---- Lighting ----
@@ -100,6 +100,9 @@ public:
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
 
 	void Initialize();
+
+	bool IsThisPassable();
+	bool IsThisCanBeBuiltOn();
 
 public:
 

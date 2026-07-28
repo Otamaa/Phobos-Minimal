@@ -75,7 +75,7 @@ public:
 
 private:
 
-	void Calculate(const int color, const int intensity, const AffectedHouse affectedHouse);
+	void Calculate(ColorStruct color, const int intensity, const AffectedHouse affectedHouse);
 
 	template <typename T>
 	bool FORCEDINLINE Serialize(T& Stm)

@@ -217,7 +217,8 @@ ASMJIT_PATCH(0x70173B , TechnoClass_SetOwningHouse_AfterHouseWasSet, 0x5)
 		OldOwner = nullptr;
 	}
 
-	if (GET_TECHNOTYPEEXT(pThis)->Passengers_SyncOwner && pThis->Passengers.NumPassengers > 0) {
+	if (GET_TECHNOTYPEEXT(pThis)->Passengers_SyncOwner.Get(FakeRulesClass::Instance->Passengers_SyncOwner) && pThis->Passengers.NumPassengers > 0)
+	{
 		for (NextObject j(pThis->Passengers.GetFirstPassenger());
 			j && ((*j)->AbstractFlags & AbstractFlags::Foot);
 			++j)

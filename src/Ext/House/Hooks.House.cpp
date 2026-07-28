@@ -578,11 +578,11 @@ ASMJIT_PATCH(0x505C95, HouseClass_GenerateAIBuildList_CountExtra, 7)
 			if (pExt->AIBuildCounts.isset())
 			{
 				// fixed number of buildings, one minimum (exists already)
-				auto count = MaxImpl(pExt->AIBuildCounts->at(idxDifficulty), 1);
+				auto count = MaxImpl(pExt->AIBuildCounts.Fetch().at(idxDifficulty), 1);
 
 				// random optional building counts
 				if (pExt->AIExtraCounts.isset()) {
-					auto const& max = pExt->AIExtraCounts->at(idxDifficulty);
+					auto const& max = pExt->AIExtraCounts.Fetch().at(idxDifficulty);
 					count += Random.RandomFromMax(MaxImpl(max, 0));
 				}
 

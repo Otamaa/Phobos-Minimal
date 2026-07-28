@@ -350,10 +350,10 @@ namespace DropshipLoadoutHelpers
 	TValue PickNullable(const TNullable* pPrimary, const TNullable* pSecondary, TValue fallback)
 	{
 		if (pPrimary && pPrimary->isset())
-			return static_cast<TValue>(pPrimary->Get());
+			return static_cast<TValue>(pPrimary->Fetch());
 
 		if (pSecondary && pSecondary->isset())
-			return static_cast<TValue>(pSecondary->Get());
+			return static_cast<TValue>(pSecondary->Fetch());
 
 		return fallback;
 	}
@@ -362,7 +362,7 @@ namespace DropshipLoadoutHelpers
 	TValue PickNullable(const TNullable* pPrimary, const TValue* pSecondary, TValue fallback)
 	{
 		if (pPrimary && pPrimary->isset())
-			return static_cast<TValue>(pPrimary->Get());
+			return static_cast<TValue>(pPrimary->Fetch());
 
 		if (pSecondary)
 			return *pSecondary;
@@ -373,14 +373,14 @@ namespace DropshipLoadoutHelpers
 	template<typename TNullable, typename TValue>
 	TValue PickNullable(const TNullable* pPrimary, TValue fallback)
 	{
-		return (pPrimary && pPrimary->isset()) ? static_cast<TValue>(pPrimary->Get()) : fallback;
+		return (pPrimary && pPrimary->isset()) ? static_cast<TValue>(pPrimary->Fetch()) : fallback;
 	}
 
 	template<typename TNullable>
 	Point2D PickPoint(const TNullable* pPrimary, const Point2D* pSecondary, Point2D fallback)
 	{
 		if (pPrimary && pPrimary->isset())
-			return pPrimary->Get();
+			return pPrimary->Fetch();
 
 		if (pSecondary && *pSecondary != Point2D::Empty)
 			return *pSecondary;
@@ -946,7 +946,7 @@ void DropshipLoadoutClass::ParseHouse(INI_EX& exINI, const char* pSection, House
 	// ScenarioClass::Instance->StartingDropships. Two different "no value"
 	// answers for the same concept.
 	int const nStartingDropships = pData->DropshipLoadout_StartingDropships.isset()
-		? pData->DropshipLoadout_StartingDropships.Get()
+		? pData->DropshipLoadout_StartingDropships.Fetch()
 		: (ScenarioExtData::Instance() ? ScenarioExtData::Instance()->DropshipLoadout_StartingDropships : 1);
 
 	// --- Images --------------------------------------------------------------
@@ -1039,7 +1039,7 @@ void DropshipLoadoutClass::ParseScenario(INI_EX& exINI, const char* pSection, Sc
 
 	pData->DropshipLoadout_Theme = pINI->ReadTheme(pBasic, "DropshipLoadout.Theme", pData->DropshipLoadout_Theme);
 	pData->DropshipLoadout_Money = pINI->ReadInteger(pBasic, "DropshipLoadout.Money", pData->DropshipLoadout_Money);
-	pData->DropshipLoadout_StartEVA = pINI->ReadVoxName(pBasic, "DropshipLoadout.StartEVA", pData->DropshipLoadout_StartEVA);
+	pData->DropshipLoadout_StartEVA = pINI->ReadVoxName(pBasic, "DropshipLoadout.StartEVA", -1);
 	pData->DropshipLoadout_AddUnusedMoneyToPlayer = pINI->ReadBool(pBasic, "DropshipLoadout.AddUnusedMoneyToPlayer", pData->DropshipLoadout_AddUnusedMoneyToPlayer);
 	pData->DropshipLoadout_RememberPurchasedCargo = pINI->ReadBool(pBasic, "DropshipLoadout.RememberPurchasedCargo", pData->DropshipLoadout_RememberPurchasedCargo);
 	pData->DropshipLoadout_StartingDropships = pINI->ReadInteger(pBasic, "DropshipLoadout.StartingDropships", ScenarioClass::Instance->StartingDropships);
@@ -1614,7 +1614,7 @@ bool DropshipLoadoutClass::Initialize(bool IgnoreFixedUnits, bool PreloadCargo, 
 		// BUGFIX: the original dereferenced ScenarioExtData::Instance() without
 		// a null check here even though every other use in this file guards it.
 		nStartingDropships = pHouseTypeExt->DropshipLoadout_StartingDropships.isset()
-			? pHouseTypeExt->DropshipLoadout_StartingDropships.Get()
+			? pHouseTypeExt->DropshipLoadout_StartingDropships.Fetch()
 			: (pGlobal ? pGlobal->DropshipLoadout_StartingDropships : 0);
 
 		// Clamp to the number of configured carriers so the player cannot buy
@@ -1777,9 +1777,9 @@ void DropshipLoadoutClass::LoadAssets()
 			: FileSystem::LoadPALFile("DROPSHIP.PAL", DSurface::Hidden);
 
 		// --- Background -----------------------------------------------------
-		if (pSWTypeExt->DropshipLoadout_BackgroundPCX.isset() && pSWTypeExt->DropshipLoadout_BackgroundPCX.Get().Exists())
+		if (pSWTypeExt->DropshipLoadout_BackgroundPCX.isset() && pSWTypeExt->DropshipLoadout_BackgroundPCX.Fetch().Exists())
 		{
-			dropshipLoadout_BackgroundPCX = pSWTypeExt->DropshipLoadout_BackgroundPCX.Get().GetSurface();
+			dropshipLoadout_BackgroundPCX = pSWTypeExt->DropshipLoadout_BackgroundPCX.Fetch().GetSurface();
 		}
 		else if (!pSWTypeExt->DropshipLoadout_BackgroundPCXPattern.empty())
 		{
@@ -1791,37 +1791,37 @@ void DropshipLoadoutClass::LoadAssets()
 		}
 
 		dropshipLoadout_Background = pSWTypeExt->DropshipLoadout_Background.isset()
-			? pSWTypeExt->DropshipLoadout_Background.Get()
+			? pSWTypeExt->DropshipLoadout_Background.Fetch()
 			: FileSystem::LoadSHPFile("DROP0001.SHP");
 
 		// --- Loadout / PilotLit ---------------------------------------------
-		if (pSWTypeExt->DropshipLoadout_LoadoutPCX.isset() && pSWTypeExt->DropshipLoadout_LoadoutPCX.Get().Exists())
-			dropshipLoadout_LoadoutPCX.push_back(pSWTypeExt->DropshipLoadout_LoadoutPCX.Get().GetSurface());
+		if (pSWTypeExt->DropshipLoadout_LoadoutPCX.isset() && pSWTypeExt->DropshipLoadout_LoadoutPCX.Fetch().Exists())
+			dropshipLoadout_LoadoutPCX.push_back(pSWTypeExt->DropshipLoadout_LoadoutPCX.Fetch().GetSurface());
 
 		dropshipLoadout_Loadout = pSWTypeExt->DropshipLoadout_Loadout.isset()
-			? pSWTypeExt->DropshipLoadout_Loadout.Get()
+			? pSWTypeExt->DropshipLoadout_Loadout.Fetch()
 			: FileSystem::LoadSHPFile("LOADOUT.SHP");
 
-		if (pSWTypeExt->DropshipLoadout_PilotLitPCX.isset() && pSWTypeExt->DropshipLoadout_PilotLitPCX.Get().Exists())
-			dropshipLoadout_PilotLitPCX.push_back(pSWTypeExt->DropshipLoadout_PilotLitPCX.Get().GetSurface());
+		if (pSWTypeExt->DropshipLoadout_PilotLitPCX.isset() && pSWTypeExt->DropshipLoadout_PilotLitPCX.Fetch().Exists())
+			dropshipLoadout_PilotLitPCX.push_back(pSWTypeExt->DropshipLoadout_PilotLitPCX.Fetch().GetSurface());
 
 		dropshipLoadout_PilotLit = pSWTypeExt->DropshipLoadout_PilotLit.isset()
-			? pSWTypeExt->DropshipLoadout_PilotLit.Get()
+			? pSWTypeExt->DropshipLoadout_PilotLit.Fetch()
 			: FileSystem::LoadSHPFile("PILOTLIT.SHP");
 
 		// --- Arrows ---------------------------------------------------------
-		if (pSWTypeExt->DropshipLoadout_UpArrowPCX.isset() && pSWTypeExt->DropshipLoadout_UpArrowPCX.Get().Exists())
-			dropshipLoadout_UpArrowPCX = pSWTypeExt->DropshipLoadout_UpArrowPCX.Get().GetSurface();
+		if (pSWTypeExt->DropshipLoadout_UpArrowPCX.isset() && pSWTypeExt->DropshipLoadout_UpArrowPCX.Fetch().Exists())
+			dropshipLoadout_UpArrowPCX = pSWTypeExt->DropshipLoadout_UpArrowPCX.Fetch().GetSurface();
 
 		dropshipLoadout_UpArrow = pSWTypeExt->DropshipLoadout_UpArrow.isset()
-			? pSWTypeExt->DropshipLoadout_UpArrow.Get()
+			? pSWTypeExt->DropshipLoadout_UpArrow.Fetch()
 			: FileSystem::LoadSHPFile("DROPUP.SHP");
 
-		if (pSWTypeExt->DropshipLoadout_DownArrowPCX.isset() && pSWTypeExt->DropshipLoadout_DownArrowPCX.Get().Exists())
-			dropshipLoadout_DownArrowPCX = pSWTypeExt->DropshipLoadout_DownArrowPCX.Get().GetSurface();
+		if (pSWTypeExt->DropshipLoadout_DownArrowPCX.isset() && pSWTypeExt->DropshipLoadout_DownArrowPCX.Fetch().Exists())
+			dropshipLoadout_DownArrowPCX = pSWTypeExt->DropshipLoadout_DownArrowPCX.Fetch().GetSurface();
 
 		dropshipLoadout_DownArrow = pSWTypeExt->DropshipLoadout_DownArrow.isset()
-			? pSWTypeExt->DropshipLoadout_DownArrow.Get()
+			? pSWTypeExt->DropshipLoadout_DownArrow.Fetch()
 			: FileSystem::LoadSHPFile("DROPDOWN.SHP");
 
 		// --- DGreen row animations ------------------------------------------
@@ -1860,7 +1860,7 @@ void DropshipLoadoutClass::LoadAssets()
 		// --- Money ----------------------------------------------------------
 		bool usesPlayerWallet = false;
 		long const configuredMoney = pSWTypeExt->DropshipLoadout_Money.isset()
-			? static_cast<long>(pSWTypeExt->DropshipLoadout_Money.Get())
+			? static_cast<long>(pSWTypeExt->DropshipLoadout_Money.Fetch())
 			: -1;
 
 		this->initialMoney = ResolveInitialMoney(configuredMoney, usesPlayerWallet);
@@ -1954,9 +1954,9 @@ void DropshipLoadoutClass::LoadAssets()
 		dropshipLoadout_Palette = FileSystem::LoadPALFile("DROPSHIP.PAL", DSurface::Hidden);
 
 	// --- Background ---------------------------------------------------------
-	if (pHouseTypeExt->DropshipLoadout_BackgroundPCX.isset() && pHouseTypeExt->DropshipLoadout_BackgroundPCX.Get().Exists())
+	if (pHouseTypeExt->DropshipLoadout_BackgroundPCX.isset() && pHouseTypeExt->DropshipLoadout_BackgroundPCX.Fetch().Exists())
 	{
-		dropshipLoadout_BackgroundPCX = pHouseTypeExt->DropshipLoadout_BackgroundPCX.Get().GetSurface();
+		dropshipLoadout_BackgroundPCX = pHouseTypeExt->DropshipLoadout_BackgroundPCX.Fetch().GetSurface();
 	}
 	else if (!pHouseTypeExt->DropshipLoadout_BackgroundPCXPattern.empty())
 	{
@@ -2016,7 +2016,7 @@ void DropshipLoadoutClass::LoadAssets()
 
 	// --- Arrows -------------------------------------------------------------
 	dropshipLoadout_UpArrowPCX = DropshipLoadoutHelpers::PickPCXSurface(
-		pHouseTypeExt->DropshipLoadout_UpArrowPCX.isset() ? &pHouseTypeExt->DropshipLoadout_UpArrowPCX.Get() : nullptr,
+		pHouseTypeExt->DropshipLoadout_UpArrowPCX.isset() ? &pHouseTypeExt->DropshipLoadout_UpArrowPCX.Fetch() : nullptr,
 		pGlobal ? &pGlobal->DropshipLoadout_UpArrowPCX : nullptr);
 
 	dropshipLoadout_UpArrow = (pGlobal && pGlobal->DropshipLoadout_UpArrow)
@@ -2024,7 +2024,7 @@ void DropshipLoadoutClass::LoadAssets()
 		: FileSystem::LoadSHPFile("DROPUP.SHP");
 
 	dropshipLoadout_DownArrowPCX = DropshipLoadoutHelpers::PickPCXSurface(
-		pHouseTypeExt->DropshipLoadout_DownArrowPCX.isset() ? &pHouseTypeExt->DropshipLoadout_DownArrowPCX.Get() : nullptr,
+		pHouseTypeExt->DropshipLoadout_DownArrowPCX.isset() ? &pHouseTypeExt->DropshipLoadout_DownArrowPCX.Fetch() : nullptr,
 		pGlobal ? &pGlobal->DropshipLoadout_DownArrowPCX : nullptr);
 
 	dropshipLoadout_DownArrow = (pGlobal && pGlobal->DropshipLoadout_DownArrow)
@@ -2097,7 +2097,7 @@ void DropshipLoadoutClass::LoadAssets()
 	long configuredMoney = -1;
 
 	if (pHouseTypeExt->DropshipLoadout_Money.isset())
-		configuredMoney = static_cast<long>(pHouseTypeExt->DropshipLoadout_Money.Get());
+		configuredMoney = static_cast<long>(pHouseTypeExt->DropshipLoadout_Money.Fetch());
 	else if (pGlobal)
 		configuredMoney = static_cast<long>(pGlobal->DropshipLoadout_Money);
 
@@ -2107,9 +2107,9 @@ void DropshipLoadoutClass::LoadAssets()
 	bool rememberPurchasedCargo = true;
 
 	if (this->bRememberPurchasedCargo.isset())
-		rememberPurchasedCargo = this->bRememberPurchasedCargo;
+		rememberPurchasedCargo = this->bRememberPurchasedCargo.Fetch();
 	else if (pHouseTypeExt->DropshipLoadout_RememberPurchasedCargo.isset())
-		rememberPurchasedCargo = pHouseTypeExt->DropshipLoadout_RememberPurchasedCargo;
+		rememberPurchasedCargo = pHouseTypeExt->DropshipLoadout_RememberPurchasedCargo.Fetch();
 	else if (pGlobal)
 		rememberPurchasedCargo = pGlobal->DropshipLoadout_RememberPurchasedCargo;
 
@@ -2294,15 +2294,15 @@ DropshipLoadoutClass::LayoutConfig DropshipLoadoutClass::ResolveLayoutConfig() c
 		cfg.Loadout = DropshipLoadoutHelpers::PickNullable(&pSWTypeExt->DropshipLoadout_LoadoutLocation, Point2D { 45, 2 });
 		cfg.PilotLit = DropshipLoadoutHelpers::PickNullable(&pSWTypeExt->DropshipLoadout_PilotLitLocation, Point2D { 284, 151 });
 
-		if (pSWTypeExt->DropshipLoadout_SidebarCameosCount.isset() && pSWTypeExt->DropshipLoadout_SidebarCameosCount > 0)
+		if (pSWTypeExt->DropshipLoadout_SidebarCameosCount.isset() && pSWTypeExt->DropshipLoadout_SidebarCameosCount.Fetch() > 0)
 		{
-			cfg.SidebarCameosCount = pSWTypeExt->DropshipLoadout_SidebarCameosCount;
+			cfg.SidebarCameosCount = pSWTypeExt->DropshipLoadout_SidebarCameosCount.Fetch();
 			cfg.pSidebarCameoLocations = &pSWTypeExt->DropshipLoadout_SidebarCameosLocations;
 		}
 
 		if (pSWTypeExt->DropshipLoadout_DGreenAnimationsCount.isset())
 		{
-			cfg.DGreenAnimationsCount = pSWTypeExt->DropshipLoadout_DGreenAnimationsCount;
+			cfg.DGreenAnimationsCount = pSWTypeExt->DropshipLoadout_DGreenAnimationsCount.Fetch();
 			cfg.pDGreenLocations = &pSWTypeExt->DropshipLoadout_DGreenLocations;
 		}
 
@@ -2337,9 +2337,9 @@ DropshipLoadoutClass::LayoutConfig DropshipLoadoutClass::ResolveLayoutConfig() c
 	// SUSPECT: the house-type member is DropshipLoadout_SidebarCameoLocations
 	// (singular "Cameo") while the SW one is ...SidebarCameosLocations (plural).
 	// Almost certainly a typo that shipped; renaming needs an INI-tag audit.
-	if (pHouseTypeExt->DropshipLoadout_SidebarCameosCount.isset() && pHouseTypeExt->DropshipLoadout_SidebarCameosCount > 0)
+	if (pHouseTypeExt->DropshipLoadout_SidebarCameosCount.isset() && pHouseTypeExt->DropshipLoadout_SidebarCameosCount.Fetch() > 0)
 	{
-		cfg.SidebarCameosCount = pHouseTypeExt->DropshipLoadout_SidebarCameosCount;
+		cfg.SidebarCameosCount = pHouseTypeExt->DropshipLoadout_SidebarCameosCount.Fetch();
 		cfg.pSidebarCameoLocations = &pHouseTypeExt->DropshipLoadout_SidebarCameoLocations;
 	}
 	else if (pGlobal && pGlobal->DropshipLoadout_SidebarCameosCount > 0)
@@ -2350,7 +2350,7 @@ DropshipLoadoutClass::LayoutConfig DropshipLoadoutClass::ResolveLayoutConfig() c
 
 	if (pHouseTypeExt->DropshipLoadout_DGreenAnimationsCount.isset())
 	{
-		cfg.DGreenAnimationsCount = pHouseTypeExt->DropshipLoadout_DGreenAnimationsCount;
+		cfg.DGreenAnimationsCount = pHouseTypeExt->DropshipLoadout_DGreenAnimationsCount.Fetch();
 		cfg.pDGreenLocations = &pHouseTypeExt->DropshipLoadout_DGreenLocations;
 	}
 	else if (pGlobal && pGlobal->DropshipLoadout_DGreenAnimationsCount)
@@ -4240,10 +4240,10 @@ int DropshipLoadoutClass::GetCarrierSizeLimit(int carrierIdx)
 	if (pSWTypeExt)
 	{
 		if (pSWTypeExt->DropshipLoadout_SizeLimit.isset())
-			return pSWTypeExt->DropshipLoadout_SizeLimit;
+			return pSWTypeExt->DropshipLoadout_SizeLimit.Fetch();
 
 		if (pSWTypeExt->DropshipLoadout_Carrier.isset())
-			return static_cast<int>(pSWTypeExt->DropshipLoadout_Carrier.Get()->SizeLimit);
+			return static_cast<int>(pSWTypeExt->DropshipLoadout_Carrier.Fetch()->SizeLimit);
 
 		if (auto const pHouseExt = HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer))
 		{
@@ -4381,7 +4381,7 @@ void DropshipLoadoutClass::SaveCargo()
 
 		if (pSWTypeExt->DropshipLoadout_Carrier.isset())
 		{
-			pCarrier = pSWTypeExt->DropshipLoadout_Carrier;
+			pCarrier = pSWTypeExt->DropshipLoadout_Carrier.Fetch();
 		}
 		else
 		{
@@ -4435,16 +4435,16 @@ void DropshipLoadoutClass::SaveCargo()
 	bool addUnusedMoneyToPlayer = false;
 
 	if (this->bAddUnusedMoneyToPlayer.isset())
-		addUnusedMoneyToPlayer = this->bAddUnusedMoneyToPlayer;
+		addUnusedMoneyToPlayer = this->bAddUnusedMoneyToPlayer.Fetch();
 	else if (pHouseTypeExt->DropshipLoadout_AddUnusedMoneyToPlayer.isset())
-		addUnusedMoneyToPlayer = pHouseTypeExt->DropshipLoadout_AddUnusedMoneyToPlayer;
+		addUnusedMoneyToPlayer = pHouseTypeExt->DropshipLoadout_AddUnusedMoneyToPlayer.Fetch();
 	else if (pGlobal)
 		addUnusedMoneyToPlayer = pGlobal->DropshipLoadout_AddUnusedMoneyToPlayer;
 
 	long configuredMoney = -1;
 
 	if (pHouseTypeExt->DropshipLoadout_Money.isset())
-		configuredMoney = static_cast<long>(pHouseTypeExt->DropshipLoadout_Money.Get());
+		configuredMoney = static_cast<long>(pHouseTypeExt->DropshipLoadout_Money.Fetch());
 	else if (pGlobal)
 		configuredMoney = static_cast<long>(pGlobal->DropshipLoadout_Money);
 
@@ -4463,7 +4463,7 @@ ASMJIT_PATCH(0x683D89, Dropship_Loadout_Remake, 0x6)
 	if (!pHouseTypeExt)
 		return EndFunction;
 
-	int nStartingDropships = pHouseTypeExt->DropshipLoadout_StartingDropships.isset() ? pHouseTypeExt->DropshipLoadout_StartingDropships.Get() : 
+	int nStartingDropships = pHouseTypeExt->DropshipLoadout_StartingDropships.isset() ? pHouseTypeExt->DropshipLoadout_StartingDropships.Fetch() :
 		ScenarioExtData::Instance()->DropshipLoadout_StartingDropships;
 
 	if (nStartingDropships <= 0)

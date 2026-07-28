@@ -16,7 +16,7 @@
 
 void __fastcall FakeIonBlastClass::DestroySurfaces()
 {
-	for (int i = 0; i < IonBlastClass_Surfaces.size(); ++i) {
+	for (size_t i = 0; i < IonBlastClass_Surfaces.size(); ++i) {
 		CallDTOR(std::exchange(IonBlastClass_Surfaces[i], nullptr));
 	}
 }
@@ -152,7 +152,7 @@ void __fastcall FakeIonBlastClass::InitOneTime()
 void FakeIonBlastClass::_AI()
 {
 	const auto pData = WarheadTypeExtData::IonBlastExt.get_or_default(this);
-	const int Ripple_Radius = pData ? MinImpl((int)ionblast_A9FAE8.Size, pData->Ripple_Radius + 1) : ionblast_A9FAE8.Size;
+	const int Ripple_Radius = pData && pData->Ripple_Radius.isset() ? MinImpl((int)ionblast_A9FAE8.Size, pData->Ripple_Radius.Fetch() + 1) : ionblast_A9FAE8.Size;
 
 	if (this->Lifetime >= Ripple_Radius)
 	{

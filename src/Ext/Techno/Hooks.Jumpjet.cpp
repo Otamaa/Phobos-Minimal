@@ -300,8 +300,8 @@ Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matri
 		{
 
 			constexpr auto forwardBaseTilt = baseTilt / baseSpeed;
-			const auto forwardSpeedFactor = pThis->Speed * pTypeExt->JumpjetTilt_ForwardSpeedFactor;
-			const auto forwardAccelFactor = pThis->Acceleration * pTypeExt->JumpjetTilt_ForwardAccelFactor;
+			const auto forwardSpeedFactor = pThis->Speed * pTypeExt->JumpjetTilt_ForwardSpeedFactor.Get(FakeRulesClass::Instance->JumpjetTilt_ForwardSpeedFactor);
+			const auto forwardAccelFactor = pThis->Acceleration * pTypeExt->JumpjetTilt_ForwardAccelFactor.Get(FakeRulesClass::Instance->JumpjetTilt_ForwardAccelFactor);
 			arf = std::clamp(static_cast<float>((forwardAccelFactor + forwardSpeedFactor)
 			* forwardBaseTilt), -maxTilt, maxTilt);
 
@@ -309,9 +309,9 @@ Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matri
 			const auto& locoFace = pThis->Facing;
 
 			if (locoFace.Is_Rotating()) {
-				const float sidewaysSpeedFactor = static_cast<float>(pThis->Speed * pTypeExt->JumpjetTilt_SidewaysSpeedFactor);
+				const float sidewaysSpeedFactor = static_cast<float>(pThis->Speed * pTypeExt->JumpjetTilt_SidewaysSpeedFactor.Get(FakeRulesClass::Instance->JumpjetTilt_SidewaysSpeedFactor));
 				const float sidewaysRotationFactor = static_cast<float>(static_cast<short>(locoFace.Difference().Raw)
-					* pTypeExt->JumpjetTilt_SidewaysRotationFactor);
+					* pTypeExt->JumpjetTilt_SidewaysRotationFactor.Get(FakeRulesClass::Instance->JumpjetTilt_SidewaysRotationFactor));
 
 				ars = std::clamp(static_cast<float>(sidewaysSpeedFactor * sidewaysRotationFactor
 					* JumpjetTiltReference::SidewaysBaseTilt), -JumpjetTiltReference::MaxTilt, JumpjetTiltReference::MaxTilt);

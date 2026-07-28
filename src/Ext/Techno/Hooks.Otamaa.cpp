@@ -110,11 +110,9 @@ ASMJIT_PATCH(0x4DABBC, ObjectClass_WasFallingDown, 0x6)
 		auto const pExt = GET_TECHNOTYPEEXT(pTechno);
 
 		{
-			auto const GetLandingAnim = [pExt, pTechno]()
-			{
-				auto pDecidedAnim = pExt->Landing_Anim.Get();
-				if (auto const pCell = pTechno->GetCell())
-				{
+			auto const GetLandingAnim = [pExt, pTechno]() {
+				auto pDecidedAnim = pExt->Landing_Anim.Get(nullptr);
+				if (auto const pCell = pTechno->GetCell()) {
 					if (!pCell->ContainsBridge() && pCell->LandType == LandType::Water)
 						pDecidedAnim = pExt->Landing_AnimOnWater.Get();
 				}
@@ -145,7 +143,7 @@ ASMJIT_PATCH(0x4DECBB, FootClass_Destroy_SpinSpeed, 0x5) //A
 	auto const pExt = GET_TECHNOTYPEEXT(pThis);
 
 	if(pExt->CrashSpin_Multiplier.isset()){
-		const float multiplier = pExt->CrashSpin_Multiplier;
+		const float multiplier = pExt->CrashSpin_Multiplier.Fetch();
 
 		if (multiplier > 0.0f) {
 			pThis->RockingSidewaysPerFrame = static_cast<float>((ScenarioClass::Instance->Random.RandomDouble() * 0.15 + 0.1) * multiplier);

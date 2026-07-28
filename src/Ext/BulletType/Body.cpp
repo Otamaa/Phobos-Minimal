@@ -19,8 +19,8 @@ CoordStruct BulletTypeExtData::CalculateInaccurate(BulletTypeClass* pBulletType)
 	if (pBulletType->Inaccurate)
 	{
 		const auto pTypeExt = BulletTypeExtContainer::Instance.Find(pBulletType);
-		const int scatterMax = pTypeExt->BallisticScatterMax.isset() ? (int)(pTypeExt->BallisticScatterMax.Get()) : RulesClass::Instance()->BallisticScatter;
-		const int scatterMin = pTypeExt->BallisticScatterMin.isset() ? (int)(pTypeExt->BallisticScatterMin.Get()) : (scatterMax / 2);
+		const int scatterMax = (int)(pTypeExt->BallisticScatterMax.Get(RulesClass::Instance()->BallisticScatter));
+		const int scatterMin = pTypeExt->BallisticScatterMin.isset() ? (int)(pTypeExt->BallisticScatterMin.Fetch()) : (scatterMax / 2);
 
 		const double random = ScenarioClass::Instance()->Random.RandomRanged(scatterMin, scatterMax);
 		const double theta = ScenarioClass::Instance()->Random.RandomDouble() * Math::GAME_TWOPI;

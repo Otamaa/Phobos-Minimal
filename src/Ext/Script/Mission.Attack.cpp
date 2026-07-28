@@ -515,7 +515,7 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 				skipImmune = true;
 		}
 
-		if (!objectType->LegalTarget || (pObjectTypeExt->AI_LegalTarget.isset() && !pTechno->Owner->IsControlledByHuman() && !pObjectTypeExt->AI_LegalTarget.Get() )|| (!skipImmune && objectType->Immune))
+		if (!objectType->LegalTarget || (pObjectTypeExt->AI_LegalTarget.isset() && !pTechno->Owner->IsControlledByHuman() && !pObjectTypeExt->AI_LegalTarget.Fetch() )|| (!skipImmune && objectType->Immune))
 			continue;
 
 		if (object->GetCurrentMissionControl()->NoThreat)

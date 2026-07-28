@@ -131,7 +131,7 @@ int FakeBuildingTypeClass::__Repair_Cost()
 	auto pTypeExt = this->_GetExtData();
 
 	if (pTypeExt->RepairStep.isset())
-		nStep = pTypeExt->RepairStep;
+		nStep = pTypeExt->RepairStep.Fetch();
 
 	if (nStep <= 0)
 		nStep = 1;
@@ -1719,7 +1719,7 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 				auto nLandingDir = Nullable<DirType>()(exINI, pSection, "AircraftDockingDir", false);
 
 				if (nLandingDir.isset())
-					this->DockPoseDir[0] = nLandingDir.Get();
+					this->DockPoseDir[0] = nLandingDir.Fetch();
 
 				for (int i = 0; i < pThis->NumberOfDocks; ++i)
 				{
@@ -1727,7 +1727,7 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 					nLandingDir.Read(exINI, pSection, tag.c_str());
 
 					if (nLandingDir.isset())
-						this->DockPoseDir[i] = nLandingDir.Get();
+						this->DockPoseDir[i] = nLandingDir.Fetch();
 				}
 			}
 		}
@@ -1784,7 +1784,10 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->ApplyPerTargetEffectsOnDetonate.Read(exINI, pSection, "ApplyPerTargetEffectsOnDetonate");
 		this->RevealToAll_Radius.Read(exINI, pSection, "RevealToAll.Radius");
 		this->DisplayIncome_Delay.Read(exINI, pSection, "DisplayIncome.Delay");
-		if (this->DisplayIncome_Delay.isset() && this->DisplayIncome_Delay == 0) {
+
+		this->SetTabBySelecting.Read(exINI, pSection, "SetTabBySelecting");
+
+		if (this->DisplayIncome_Delay.isset() && this->DisplayIncome_Delay.Fetch() == 0) {
 			Debug::Log("[Developer warning] [%s] DisplayIncome.Delay is set to 0, forcing to 1.\n", pSection);
 			this->DisplayIncome_Delay = 1;
 		}
@@ -2261,6 +2264,8 @@ void BuildingTypeExtData::Serialize(T& Stm)
 
 		.Process(this->StartFacing)
 		.Process(this->StartFacing_Random)
+
+		.Process(this->SetTabBySelecting)
 		;
 }
 #else

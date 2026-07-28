@@ -33,14 +33,16 @@ int TargetingFuncs::GetIonCannonValue(TechnoClass* pTechno, TechnoTypeExtData* p
 		const auto diffIndex = pTargeting->Owner->GetAIDifficultyIndex();
 
 		// PartialVector3D: X=Hard(2), Y=Normal(1), Z=Easy(0)
-		if (diffIndex < pTypeExt->AIIonCannonValue->ValueCount)
+		auto& aiion = pTypeExt->AIIonCannonValue.Fetch();
+
+		if (diffIndex < aiion.ValueCount)
 		{
 			if (diffIndex == 0) // Easy
-				return pTypeExt->AIIonCannonValue->Z;
+				return aiion.Z;
 			else if (diffIndex == 1) // Normal
-				return pTypeExt->AIIonCannonValue->Y;
+				return aiion.Y;
 			else // diffIndex == 2 (Hard)
-				return pTypeExt->AIIonCannonValue->X;
+				return aiion.X;
 		}
 	}
 
@@ -138,7 +140,7 @@ bool TargetingFuncs::IsEligibleDominatorTarget(const TargetingData* pTargeting, 
 		auto const pTargetHouse = pTarget->Owner;
 
 		// If SW.AIRequiresHouse is explicitly set use that instead of restricting to enemies only.
-		if (pTypeExt->SW_AIRequiresHouse.isset() && !EnumFunctions::CanTargetHouse(pTypeExt->SW_AIRequiresHouse, pOwner, pTargetHouse))
+		if (pTypeExt->SW_AIRequiresHouse.isset() && !EnumFunctions::CanTargetHouse(pTypeExt->SW_AIRequiresHouse.Fetch(), pOwner, pTargetHouse))
 		{
 			return false;
 		}
@@ -148,7 +150,7 @@ bool TargetingFuncs::IsEligibleDominatorTarget(const TargetingData* pTargeting, 
 		}
 
 		// If SW.AIRequiresTarget is explicitly set check that here as well.
-		if (pTypeExt->SW_AIRequiresTarget.isset() && !pTypeExt->IsTechnoEligible(pTarget, pTypeExt->SW_AIRequiresTarget))
+		if (pTypeExt->SW_AIRequiresTarget.isset() && !pTypeExt->IsTechnoEligible(pTarget, pTypeExt->SW_AIRequiresTarget.Fetch()))
 			return false;
 
 		if (pTypeExt->SW_AITargeting_PsyDom_AllowTypes.size() > 0 && !pTypeExt->SW_AITargeting_PsyDom_AllowTypes.Contains(pTechnoType))

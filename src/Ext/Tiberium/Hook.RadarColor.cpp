@@ -19,7 +19,7 @@ ASMJIT_PATCH(0x47C20B, CellClass_CellColor_TiberiumRadarColor, 5)
 
 	if (pTiberiumExt->MinimapColor.isset()) {
 
-		auto& color = pTiberiumExt->MinimapColor.Get();
+		auto& color = pTiberiumExt->MinimapColor.Fetch();
 
 		arg0->operator=(color);
 		arg4->operator=(color);

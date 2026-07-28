@@ -79,8 +79,8 @@ ASMJIT_PATCH(0x46874E, BulletClass_Unlimbo_FlakScatter, 0x5)
 
 	const auto nDistance = pDest->DistanceFrom(pThis->TargetCoords);
 	const auto pTypeExt = pThis->_GetTypeExtData();
-	const int min = pTypeExt->BallisticScatterMin.isset() ? pTypeExt->BallisticScatterMin : static_cast<Leptons>(0);
-	const int max = pTypeExt->BallisticScatterMax.Get(Leptons(RulesClass::Instance->BallisticScatter));
+	const int min = pTypeExt->BallisticScatterMin.isset() ? pTypeExt->BallisticScatterMin.Fetch() : static_cast<Leptons>(0);
+	const int max = pTypeExt->BallisticScatterMax.Get(RulesClass::Instance->BallisticScatter);
 	const auto range = pThis->WeaponType ? pThis->WeaponType->Range : pThis->Range;
 
 	R->EAX(int((nDistance * ScenarioClass::Instance->Random.RandomRanged(2 * min, 2 * max)))

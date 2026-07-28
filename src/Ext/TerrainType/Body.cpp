@@ -92,6 +92,18 @@ void TerrainTypeExtData::PlayDestroyEffects(CoordStruct coords)
 		GameCreate<AnimClass>(pAnimType.Get(), coords);
 }
 
+#include <Ext/Rules/Body.h>
+
+bool TerrainTypeExtData::IsThisPassable()
+{
+	return this->IsPassable.Get(this->This()->SpawnsTiberium ? FakeRulesClass::Instance->Tibtree_IsPassable : FakeRulesClass::Instance->Terrain_IsPassable);
+}
+
+bool TerrainTypeExtData::IsThisCanBeBuiltOn()
+{
+	return this->CanBeBuiltOn.Get(this->This()->SpawnsTiberium ? FakeRulesClass::Instance->Tibtree_CanBeBuiltOn : FakeRulesClass::Instance->Terrain_CanBeBuiltOn);
+}
+
 // =============================
 // load / save
 

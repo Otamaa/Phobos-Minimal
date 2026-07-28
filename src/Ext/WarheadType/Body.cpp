@@ -52,7 +52,7 @@ int __fastcall FakeWarheadTypeClass::ModifyDamageA(int damage, FakeWarheadTypeCl
 
 	const auto pExt = pWH->_GetExtData();
 
-	if (damage > 0 || pExt->ApplyModifiersOnNegativeDamage)
+	if (damage > 0 || pExt->ApplyModifiersOnNegativeDamage.Get(FakeRulesClass::Instance->ApplyModifiersOnNegativeDamage))
 	{
 		if (pExt->ApplyMindamage)
 			damage = MaxImpl(pExt->MinDamage >= 0 ? pExt->MinDamage : RulesClass::Instance->MinDamage, damage);
@@ -74,7 +74,7 @@ int __fastcall FakeWarheadTypeClass::ModifyDamageA(int damage, FakeWarheadTypeCl
 			res = damage;
 		}
 
-		if (!pExt->ApplyModifiersOnNegativeDamage)
+		if (!pExt->ApplyModifiersOnNegativeDamage.Get(FakeRulesClass::Instance->ApplyModifiersOnNegativeDamage))
 			res = int(double(res <= 0 ? 0 : res) * vsData->Verses);
 		else
 			res = int(res * vsData->Verses);
@@ -112,7 +112,7 @@ void __fastcall FakeWarheadTypeClass::DoFlash(int damage, WarheadTypeClass* pWH,
 	if (pWH) {
 		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
-		if (pWHExt->CombatLightChance.isset() && pWHExt->CombatLightChance < Random2Class::Global->RandomDouble())
+		if (pWHExt->CombatLightChance.isset() && pWHExt->CombatLightChance.Fetch() < Random2Class::Global->RandomDouble())
 			return;
 
 		detailLevel = pWHExt->CombatLightDetailLevel.Get(detailLevel);
@@ -416,6 +416,8 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Parasite_DisableRocking.Read(exINI, pSection, "Parasite.DisableRocking");
 	this->Parasite_GrappleAnim.Read(exINI, pSection, "Parasite.GrappleAnim");
 	this->Parasite_ParticleSys.Read(exINI, pSection, "Parasite.ParticleSystem");
+	this->Parasite_DisableParticleSystem.Read(exINI, pSection, "Parasite.DisableParticleSystem");
+	this->Parasite_CullingTarget.Read(exINI, pSection, "Parasite.CullingTarget");
 	this->Parasite_TreatInfantryAsVehicle.Read(exINI, pSection, "Parasite.TreatInfantryAsVehicle");
 	this->Parasite_InvestationWP.Read(exINI, pSection, "Parasite.DamagingWeapon", true);
 	this->Parasite_Damaging_Chance.Read(exINI, pSection, "Parasite.DamagingChance");
@@ -601,11 +603,8 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 #pragma region Ion
 	this->Ion.Read(exINI, pSection, "IonCannon");
 
-	int Ion_ripple;
-	if (detail::read(Ion_ripple, exINI, pSection, "Ripple.Radius"))
-		this->Ripple_Radius = Ion_ripple;
-	else
-		this->Ripple_Radius.Read(exINI, pSection, "IonCannon.Ripple");
+	this->Ripple_Radius.Read(exINI, pSection, "Ripple.Radius");
+	this->Ripple_Radius.Read(exINI, pSection, "IonCannon.Ripple");
 
 	this->Ion_Beam.Read(exINI, pSection, "IonCannon.Beam");
 	this->Ion_Blast.Read(exINI, pSection, "IonCannon.Blast");
@@ -707,7 +706,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		if (i == 0 && !Idx.isset())
 			Idx.Read(exINI, pSection, (base + ".Type").c_str());
 
-		if (!Idx.isset() || Idx == -1)
+		if (!Idx.isset() || Idx.Fetch() == -1)
 			break;
 
 		auto weight = Nullable<int>()(exINI, pSection, (base_Num + ".Weight").c_str(), false);
@@ -718,8 +717,8 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		if (!weight.isset())
 			weight = 1;
 
-		this->SpawnsCrate_Types.emplace_back(Idx);
-		this->SpawnsCrate_Weights.emplace_back(weight);
+		this->SpawnsCrate_Types.emplace_back(Idx.Fetch());
+		this->SpawnsCrate_Weights.emplace_back(weight.Fetch());
 	}
 
 	this->PenetratesIronCurtain.Read(exINI, pSection, "PenetratesIronCurtain");
@@ -853,6 +852,10 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->PowerOutage_Max.Read(exINI, pSection, "PowerOutage.Max");
 	this->PowerOutage_AffectsHouse.Read(exINI, pSection, "PowerOutage.AffectsHouse");
 
+	this->ChangeOwner.Read(exINI, pSection, "ChangeOwner");
+	this->ChangeOwner_SetAsMindControl.Read(exINI, pSection, "ChangeOwner.SetAsMindControl");
+	this->ChangeOwner_MindControlAnim.Read(exINI, pSection, "ChangeOwner.MindControlAnim");
+
 	this->IsCellSpreadWH =
 		this->RadarOutage_Duration != 0||
 		this->PowerOutage_Duration != 0||
@@ -889,6 +892,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		|| this->ReturnWarhead
 		|| this->KnockUp
 		|| this->Traction
+		|| this->ChangeOwner
 		;
 
 	this->IsFakeEngineer =
@@ -939,16 +943,16 @@ void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, TechnoClass* pSou
 			{
 				if (pVictimHouse->IsAlliedWith(pHouse) && pWH->AffectsAllies && nAllyMod.isset())
 				{
-					*pDamage = static_cast<int>(nDamage * nAllyMod.Get());
+					*pDamage = static_cast<int>(nDamage * nAllyMod.Fetch());
 				}
 				else if (AffectsEnemies.Get() && nEnemyMod.isset())
 				{
-					*pDamage = static_cast<int>(nDamage * nEnemyMod.Get());
+					*pDamage = static_cast<int>(nDamage * nEnemyMod.Fetch());
 				}
 			}
-			else if (AffectsOwner.Get() && nOwnerMod.isset())
+			else if (AffectsOwner.Fetch() && nOwnerMod.isset())
 			{
-				*pDamage = static_cast<int>(nDamage * nOwnerMod.Get());
+				*pDamage = static_cast<int>(nDamage * nOwnerMod.Fetch());
 			}
 		}
 	}
@@ -1314,7 +1318,7 @@ AnimTypeClass* __fastcall WarheadTypeExtData::SelectCombatAnim(int damage, Warhe
 		//allowing zero damage to pass ,..
 		//hopefully it wont do any harm to these thing , ...
 
-		if ((damage == 0 && pWHExt->AnimList_ShowOnZeroDamage) || damage) {
+		if ((damage == 0 && pWHExt->AnimList_ShowOnZeroDamage.Get(FakeRulesClass::Instance->CreateAnimsOnZeroDamage)) || damage) {
 
 			if (damage < 0)
 				damage = -damage;
@@ -1349,7 +1353,7 @@ AnimTypeClass* __fastcall WarheadTypeExtData::SelectCombatAnim(int damage, Warhe
 				}
 			}
 
-			if (pWHExt->CritActive && !pWHExt->Crit_AnimList.empty() && !pWHExt->Crit_AnimOnAffectedTargets) {
+			if (pWHExt->CritActive && !pWHExt->Crit_AnimList.empty() && !pWHExt->Crit_AnimOnAffectedTargets.Get(FakeRulesClass::Instance->Crit_AnimOnAffectedTargets)) {
 				const size_t idx = pWHExt->Crit_AnimList_PickRandom.Get(pWHExt->AnimList_PickRandom.Get(pWarhead->EMEffect)) ?
 					ScenarioClass::Instance->Random.RandomFromMax(pWHExt->Crit_AnimList.size() - 1) :
 					(MinImpl(pWHExt->Crit_AnimList.size() * 25 - 1, (size_t)damage) / 25);
@@ -1382,7 +1386,7 @@ bool WarheadTypeExtData::applyCulling(TechnoClass* pSource, ObjectClass* pTarget
 		if (TechnoExtData::IsCullingImmune(pTargetTechno))
 			return false;
 
-		if (this->Culling_Target.isset() && !EnumFunctions::IsTechnoEligible(pTargetTechno, this->Culling_Target.Get(), false))
+		if (this->Culling_Target.isset() && !EnumFunctions::IsTechnoEligible(pTargetTechno, this->Culling_Target.Fetch(), false))
 			return false;
 	}
 
@@ -1489,7 +1493,7 @@ bool WarheadTypeExtData::GoBerzerkFor(FootClass* pVictim, int* damage) const
 		//capture oldValue
 		const int oldValue = (!pVictim->Berzerk ? 0 : pVictim->BerzerkDurationLeft);
 		//only set the cap when needed
-		const int newValue = this->Berzerk_cap.isset() ? Helpers::Alex::getCappedDuration(oldValue, nDur, this->Berzerk_cap) : nDur;
+		const int newValue = this->Berzerk_cap.isset() ? Helpers::Alex::getCappedDuration(oldValue, nDur, this->Berzerk_cap.Fetch()) : nDur;
 		//set the applyMode
 		const auto mode = this->Psychedelic_StackingMode.Get(FakeRulesClass::Instance()->Psychedelic_StackingMode);
 
@@ -1639,7 +1643,7 @@ void WarheadTypeExtData::CreateIonBlast(WarheadTypeClass* pThis, const CoordStru
 {
 	const auto pExt = WarheadTypeExtContainer::Instance.Find(pThis);
 
-	if (pExt->Ion || pExt->Ripple_Radius.isset() && pExt->Ripple_Radius > 0)
+	if (pExt->Ion || pExt->Ripple_Radius.isset() && pExt->Ripple_Radius.Fetch() > 0)
 	{
 		auto pIon = GameCreate<IonBlastClass>(coords);
 		pIon->DisableIonBeam = !pExt->Ion;
@@ -1952,6 +1956,8 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->Temporal_ApplyMultiplier)
 		.Process(this->Parasite_DisableRocking)
 		.Process(this->Parasite_GrappleAnim)
+		.Process(this->Parasite_DisableParticleSystem)
+				.Process(this->Parasite_CullingTarget)
 		.Process(this->Parasite_ParticleSys)
 		.Process(this->Parasite_TreatInfantryAsVehicle)
 		.Process(this->Parasite_InvestationWP)
@@ -2232,6 +2238,10 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->PowerOutage_Duration)
 		.Process(this->PowerOutage_Max)
 		.Process(this->PowerOutage_AffectsHouse)
+
+		.Process(this->ChangeOwner)
+		.Process(this->ChangeOwner_SetAsMindControl)
+		.Process(this->ChangeOwner_MindControlAnim)
 		;
 }
 
@@ -2579,7 +2589,7 @@ bool WarheadTypeExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim) const
 				return false;
 
 			if (this->SuppressDeathWeapon_Chance.isset())
-				return ScenarioClass::Instance->Random.RandomDouble() >= Math::abs(this->SuppressDeathWeapon_Chance.Get());
+				return ScenarioClass::Instance->Random.RandomDouble() >= Math::abs(this->SuppressDeathWeapon_Chance.Fetch());
 
 			return true;
 		}
@@ -2831,7 +2841,7 @@ bool WarheadTypeExtData::IsTypeEMPProne(TechnoClass* pTechno)
 		pTypeExt->ImmuneToEMP = !TypeImmune;
 	}
 
-	return pTypeExt->ImmuneToEMP.Get();
+	return pTypeExt->ImmuneToEMP.Fetch();
 }
 
 bool WarheadTypeExtData::isCurrentlyEMPImmune(WarheadTypeClass* pWarhead, TechnoClass* Target, HouseClass* SourceHouse)

@@ -224,10 +224,24 @@ inline std::optional<std::string> PhobosParser<std::string, 1>::From(std::string
 
 template<> inline std::optional<bool> PhobosParser<bool, 1>::From(std::string_view token)
 {
-	if (token == "true" || token == "yes" || token == "1") return true;
-	if (token == "false" || token == "no" || token == "0") return false;
+	switch (toupper(static_cast<unsigned char>(token[0])))
+	{
+	case '1':
+	case 'T':
+	case 'Y':
+	{
+		return true;
+	}
+	case '0':
+	case 'F':
+	case 'N':
+	{
+		return true;
+	}
+	}
+
 	return std::nullopt;
-}
+};
 
 template<> inline std::optional<int> PhobosParser<int, 1>::From(std::string_view token)
 {
