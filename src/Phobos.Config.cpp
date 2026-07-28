@@ -145,6 +145,20 @@ ASMJIT_PATCH(0x6BC0CD, WinMain_LoadRA2MD, 5)
 	return 0;
 }
 
+ASMJIT_PATCH(0x6BC14D, WinMain_ReadScreenResolutionFromIni, 0x5)
+{
+	if (!SpawnerMain::Configs::Enabled)
+		return 0;
+
+	if (GameOptionsClass::Instance->ShellWidth < 800 || GameOptionsClass::Instance->ShellHeight < 600)
+		return 0;
+
+	GameOptionsClass::Instance->ShellHeight = GameOptionsClass::Instance->ScreenHeight;
+	GameOptionsClass::Instance->ShellWidth = GameOptionsClass::Instance->ScreenWidth;
+
+	return 0;
+}
+
 #endif
 
 void Phobos::Config::Read_RA2MD()
