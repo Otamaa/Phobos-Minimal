@@ -22,7 +22,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Commands\BuildLastOfTab.cpp" />
     <ClCompile Include="src\Commands\Deselect.cpp" />
+    <ClCompile Include="src\Commands\RebuildTab3Subtypes.cpp" />
     <ClCompile Include="src\Commands\ToggleSuperTimers.cpp" />
     <ClCompile Include="src\Ext\AbstractType\Body.cpp" />
     <ClCompile Include="src\Ext\Abstract\Hooks.cpp" />
@@ -551,8 +553,19 @@
     <ClCompile Include="YRpp\MixFileClass.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="B:\Projects\magic_enum\include\magic_enum\magic_enum.hpp" />
+    <ClInclude Include="B:\Projects\magic_enum\include\magic_enum\magic_enum_all.hpp" />
+    <ClInclude Include="B:\Projects\magic_enum\include\magic_enum\magic_enum_containers.hpp" />
+    <ClInclude Include="B:\Projects\magic_enum\include\magic_enum\magic_enum_flags.hpp" />
+    <ClInclude Include="B:\Projects\magic_enum\include\magic_enum\magic_enum_format.hpp" />
+    <ClInclude Include="B:\Projects\magic_enum\include\magic_enum\magic_enum_fuse.hpp" />
+    <ClInclude Include="B:\Projects\magic_enum\include\magic_enum\magic_enum_iostream.hpp" />
+    <ClInclude Include="B:\Projects\magic_enum\include\magic_enum\magic_enum_switch.hpp" />
+    <ClInclude Include="B:\Projects\magic_enum\include\magic_enum\magic_enum_utility.hpp" />
     <ClInclude Include="B:\Projects\Unused\LambdaFunctionArgCount.h" />
+    <ClInclude Include="src\Commands\BuildLastOfTab.h" />
     <ClInclude Include="src\Commands\Deselect.h" />
+    <ClInclude Include="src\Commands\RebuildTab3Subtypes.h" />
     <ClInclude Include="src\Commands\ToggleSuperTimers.h" />
     <ClInclude Include="src\Ext\AStar\Body.h" />
     <ClInclude Include="src\Ext\BitFont\Body.h" />

@@ -3196,6 +3196,13 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->DropshipLoadout_SWCarrier)
 		.Process(this->DropshipLoadout_InitialUnitsSet)
 		.Process(this->DropshipLoadout_SWInitialUnitsSet)
+		.Process(this->LastBuilt)
+		.Process(this->LastBuiltVehicleTypeIndex)
+		.Process(this->LastBuiltAircraftTypeIndex)
+		.Process(this->LastBuiltNavalTypeIndex)
+		.Process(this->LastBuiltVehicleRTTI)
+		.Process(this->LastBuiltAircraftRTTI)
+		.Process(this->LastBuiltNavalRTTI)
 		;
 }
 #endif

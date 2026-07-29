@@ -414,6 +414,23 @@ public:
 	bool DropshipLoadout_InitialUnitsSet {};
 	bool DropshipLoadout_SWInitialUnitsSet {};
 
+	// Per-tab last-built tracking for the Build Last commands.
+// Indexed by sidebar tab: 0=Power/Infra, 1=Combat, 2=Infantry, 3=Vehicles/Aircraft.
+	struct LasBuiltData {
+		int PerTab { -1 };
+		AbstractType RTTIPerTab { AbstractType::None };
+		bool IsNavalPerTab {};
+	} LastBuilt[4];
+
+
+	// Per-subtype tracking within tab 3 for dedicated rebuild commands.
+	int LastBuiltVehicleTypeIndex;   // Last non-naval UnitType
+	int LastBuiltAircraftTypeIndex;  // Last AircraftType
+	int LastBuiltNavalTypeIndex;     // Last naval UnitType
+	AbstractType LastBuiltVehicleRTTI;
+	AbstractType LastBuiltAircraftRTTI;
+	AbstractType LastBuiltNavalRTTI;
+
 #pragma endregion
 
 public:

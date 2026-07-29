@@ -37,13 +37,13 @@
 #define MAGIC_ENUM_VERSION_PATCH 8
 
 #ifndef MAGIC_ENUM_USE_STD_MODULE
-#include <array>
-#include <cstddef>
-#include <cstdint>
-#include <functional>
-#include <limits>
-#include <type_traits>
-#include <utility>
+#  include <array>
+#  include <cstddef>
+#  include <cstdint>
+#  include <functional>
+#  include <limits>
+#  include <type_traits>
+#  include <utility>
 #endif
 
 #if defined(MAGIC_ENUM_CONFIG_FILE)
@@ -51,15 +51,15 @@
 #endif
 
 #ifndef MAGIC_ENUM_USE_STD_MODULE
-#if !defined(MAGIC_ENUM_USING_ALIAS_OPTIONAL)
-#  include <optional>
-#endif
-#if !defined(MAGIC_ENUM_USING_ALIAS_STRING)
-#  include <string>
-#endif
-#if !defined(MAGIC_ENUM_USING_ALIAS_STRING_VIEW)
-#  include <string_view>
-#endif
+#  if !defined(MAGIC_ENUM_USING_ALIAS_OPTIONAL)
+#    include <optional>
+#  endif
+#  if !defined(MAGIC_ENUM_USING_ALIAS_STRING)
+#    include <string>
+#  endif
+#  if !defined(MAGIC_ENUM_USING_ALIAS_STRING_VIEW)
+#    include <string_view>
+#  endif
 #endif
 
 #if defined(MAGIC_ENUM_NO_ASSERT)
@@ -73,16 +73,9 @@
 #  pragma clang diagnostic push
 #  pragma clang diagnostic ignored "-Wunknown-warning-option"
 #  pragma clang diagnostic ignored "-Wenum-constexpr-conversion"
-#  pragma clang diagnostic ignored "-Wuseless-cast" // suppresses 'static_cast<char_type>('\0')' for char_type = char (common on Linux).
-#elif defined(__GNUC__)
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wmaybe-uninitialized" // May be used uninitialized 'return {};'.
-#  pragma GCC diagnostic ignored "-Wuseless-cast" // suppresses 'static_cast<char_type>('\0')' for char_type = char (common on Linux).
 #elif defined(_MSC_VER)
 #  pragma warning(push)
-#  pragma warning(disable : 26495) // Variable 'static_str<N>::chars_' is uninitialized.
-#  pragma warning(disable : 28020) // Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value.
-#  pragma warning(disable : 26451) // The expression '0<=_Param_(1)&&_Param_(1)<=1-1' is not true at this call.
+#  pragma warning(disable : 28020) // MSVC analyzer loses constexpr array bounds in template instantiations.
 #  pragma warning(disable : 4514) // Unreferenced inline function has been removed.
 #endif
 
@@ -303,8 +296,7 @@ class static_str {
     MAGIC_ENUM_ASSERT(str.size_ == N);
   }
 
-  constexpr explicit static_str(const char* const str) noexcept : static_str{ str, std::make_integer_sequence<std::uint16_t, N>{} } {
-  }
+  constexpr explicit static_str(const char* const str) noexcept : static_str{str, std::make_integer_sequence<std::uint16_t, N>{}} {}
 
   constexpr explicit static_str(string_view str) noexcept : static_str{str.data(), std::make_integer_sequence<std::uint16_t, N>{}} {
     MAGIC_ENUM_ASSERT(str.size() == N);
@@ -319,11 +311,19 @@ class static_str {
   char_type chars_[static_cast<std::size_t>(N) + 1];
 
  private:
-  template <std::uint16_t... I>
-  constexpr static_str(const char* str, std::integer_sequence<std::uint16_t, I...>) noexcept : chars_{static_cast<char_type>(str[I])..., static_cast<char_type>('\0')} {}
+  [[nodiscard]] static constexpr char_type to_char_type(char value) noexcept {
+    if constexpr (std::is_same_v<char_type, char>) {
+      return value;
+    } else {
+      return static_cast<char_type>(value);
+    }
+  }
 
   template <std::uint16_t... I>
-  constexpr static_str(string_view str, std::integer_sequence<std::uint16_t, I...>) noexcept : chars_{str[I]..., static_cast<char_type>('\0')} {}
+  constexpr static_str(const char* str, std::integer_sequence<std::uint16_t, I...>) noexcept : chars_{to_char_type(str[I])..., char_type{}} {}
+
+  template <std::uint16_t... I>
+  constexpr static_str(string_view str, std::integer_sequence<std::uint16_t, I...>) noexcept : chars_{str[I]..., char_type{}} {}
 };
 
 template <>
@@ -347,7 +347,7 @@ class static_str<0> {
 template <typename Op = std::equal_to<>>
 class case_insensitive {
   static constexpr char_type to_lower(char_type c) noexcept {
-    return (c >= static_cast<char_type>('A') && c <= static_cast<char_type>('Z')) ? static_cast<char_type>(c + (static_cast<char_type>('a') - static_cast<char_type>('A'))) : c;
+    return (c >= char_type{'A'} && c <= char_type{'Z'}) ? static_cast<char_type>(c + (char_type{'a'} - char_type{'A'})) : c;
   }
 
  public:
@@ -766,40 +766,44 @@ constexpr int reflected_max() noexcept {
   T(192)T(193)T(194)T(195)T(196)T(197)T(198)T(199)T(200)T(201)T(202)T(203)T(204)T(205)T(206)T(207)T(208)T(209)T(210)T(211)T(212)T(213)T(214)T(215)T(216)T(217)T(218)T(219)T(220)T(221)T(222)T(223) \
   T(224)T(225)T(226)T(227)T(228)T(229)T(230)T(231)T(232)T(233)T(234)T(235)T(236)T(237)T(238)T(239)T(240)T(241)T(242)T(243)T(244)T(245)T(246)T(247)T(248)T(249)T(250)T(251)T(252)T(253)T(254)T(255)
 
+template <std::size_t N>
+struct valid_count_t {
+  std::uint16_t count = 0;
+  std::uint16_t offsets[N] = {};
+
+  constexpr void set(std::size_t i) noexcept {
+    offsets[count++] = static_cast<std::uint16_t>(i);
+  }
+};
+
 template <typename E, enum_subtype S, std::size_t Size, int Min, std::size_t I>
-constexpr void valid_count(bool* valid, std::size_t& count) noexcept {
+constexpr void valid_count(valid_count_t<Size>& vc) noexcept {
 #define MAGIC_ENUM_V(O)                                     \
   if constexpr ((I + O) < Size) {                           \
     if constexpr (is_valid<E, ualue<E, Min, S>(I + O)>()) { \
-      valid[I + O] = true;                                  \
-      ++count;                                              \
+      vc.set(I + O);                                        \
     }                                                       \
   }
 
   MAGIC_ENUM_FOR_EACH_256(MAGIC_ENUM_V)
 
   if constexpr ((I + 256) < Size) {
-    valid_count<E, S, Size, Min, I + 256>(valid, count);
+    valid_count<E, S, Size, Min, I + 256>(vc);
   }
 #undef MAGIC_ENUM_V
 }
 
-template <std::size_t N>
-struct valid_count_t {
-  std::size_t count = 0;
-  bool valid[N] = {};
-};
-
 template <typename E, enum_subtype S, std::size_t Size, int Min>
 constexpr auto valid_count() noexcept {
   valid_count_t<Size> vc;
-  valid_count<E, S, Size, Min, 0>(vc.valid, vc.count);
+  valid_count<E, S, Size, Min, 0>(vc);
   return vc;
 }
 
 template <typename E, enum_subtype S, std::size_t Size, int Min>
 constexpr auto values() noexcept {
   constexpr auto vc = valid_count<E, S, Size, Min>();
+  static_assert(vc.count <= Size);
 
   if constexpr (vc.count > 0) {
 #if defined(MAGIC_ENUM_ARRAY_CONSTEXPR)
@@ -807,9 +811,13 @@ constexpr auto values() noexcept {
 #else
     E values[vc.count] = {};
 #endif
-    for (std::size_t i = 0, v = 0; v < vc.count; ++i) {
-      if (vc.valid[i]) {
-        values[v++] = value<E, Min, S>(i);
+    if constexpr (vc.count == Size) {
+      for (std::size_t i = 0; i < vc.count; ++i) {
+        values[i] = value<E, Min, S>(i);
+      }
+    } else {
+      for (std::size_t i = 0; i < vc.count; ++i) {
+        values[i] = value<E, Min, S>(vc.offsets[i]);
       }
     }
 #if defined(MAGIC_ENUM_ARRAY_CONSTEXPR)
@@ -828,6 +836,7 @@ constexpr auto values() noexcept {
   constexpr auto max = reflected_max<E, S>();
   constexpr auto range_size = max - min + 1;
   static_assert(range_size > 0, "magic_enum::enum_range requires valid size.");
+  static_assert(range_size <= (std::numeric_limits<std::uint16_t>::max)(), "magic_enum::enum_range requires valid size.");
 
   return values<E, S, range_size, min>();
 }
@@ -1023,9 +1032,9 @@ struct constexpr_hash_t<Value, std::enable_if_t<std::is_same_v<Value, string_vie
 
   struct secondary_hash {
     constexpr std::uint32_t operator()(string_view value) const noexcept {
-      auto acc = static_cast<std::uint64_t>(2166136261ULL);
+      std::uint64_t acc = 2166136261ULL;
       for (const auto c : value) {
-        acc = ((acc ^ static_cast<std::uint64_t>(c)) * static_cast<std::uint64_t>(16777619ULL)) & (std::numeric_limits<std::uint32_t>::max)();
+        acc = ((acc ^ static_cast<std::uint64_t>(c)) * 16777619ULL) & (std::numeric_limits<std::uint32_t>::max)();
       }
       return static_cast<std::uint32_t>(acc);
     }
@@ -1423,14 +1432,17 @@ template <typename E, detail::enum_subtype S = detail::subtype_v<E>, typename Bi
         value,
         detail::default_result_type_lambda<optional<D>>,
         [&p](string_view lhs, string_view rhs) { return detail::cmp_equal(lhs, rhs, p); });
+  } else {
+#endif
+    for (std::size_t i = 0; i < detail::count_v<D, S>; ++i) {
+      if (detail::cmp_equal(value, detail::names_v<D, S>[i], p)) {
+        return enum_value<D, S>(i);
+      }
+    }
+    return {}; // Invalid value or out of range.
+#if defined(MAGIC_ENUM_ENABLE_HASH)
   }
 #endif
-  for (std::size_t i = 0; i < detail::count_v<D, S>; ++i) {
-    if (detail::cmp_equal(value, detail::names_v<D, S>[i], p)) {
-      return enum_value<D, S>(i);
-    }
-  }
-  return {}; // Invalid value or out of range.
 }
 
 // Returns true if enum contains value with such value.
@@ -1471,13 +1483,32 @@ template <typename E, detail::enum_subtype S = detail::subtype_v<E>, typename Bi
 template <typename E, detail::enum_subtype S = detail::subtype_v<E>>
 [[nodiscard]] constexpr auto enum_reflected(underlying_type_t<E> value) noexcept -> detail::enable_if_t<E, bool> {
   using D = std::decay_t<E>;
+  using I = underlying_type_t<D>;
 
-  if constexpr (detail::is_reflected_v<D, S>) {
-    constexpr auto min = detail::reflected_min<E, S>();
-    constexpr auto max = detail::reflected_max<E, S>();
-    return value >= min && value <= max;
-  } else {
+  if constexpr (!detail::is_reflected_v<D, S>) {
     return false;
+  } else {
+    constexpr auto min = detail::reflected_min<D, S>();
+    constexpr auto max = detail::reflected_max<D, S>();
+
+    if constexpr (S == detail::enum_subtype::common) {
+      return !detail::cmp_less(value, min) && !detail::cmp_less(max, value);
+    } else if constexpr (std::is_same_v<I, bool>) {
+      return false;
+    } else {
+      if (value <= I{0}) {
+        return false;
+      }
+
+      using U = std::make_unsigned_t<I>;
+      const auto v = static_cast<U>(value);
+      if ((v & (v - U{1})) != U{0}) {
+        return false;
+      }
+
+      const auto bit = detail::log2(v);
+      return !detail::cmp_less(bit, min) && !detail::cmp_less(max, bit);
+    }
   }
 }
 
@@ -1546,8 +1577,6 @@ constexpr E& operator^=(E& lhs, E rhs) noexcept {
 
 #if defined(__clang__)
 #  pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#  pragma GCC diagnostic pop
 #elif defined(_MSC_VER)
 #  pragma warning(pop)
 #endif

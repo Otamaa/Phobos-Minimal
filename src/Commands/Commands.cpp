@@ -32,13 +32,16 @@
 #include "Deselect.h"
 #include "ToggleSuperTimers.h"
 
-#include <Commands/AIBasePlan.h>
-#include <Commands/AIControl.h>
-#include <Commands/DumpMemory.h>
-#include <Commands/DumpTypes.h>
-#include <Commands/FPSCounter.h>
-#include <Commands/MapSnapshot.h>
-#include <Commands/TogglePower.h>
+#include "AIBasePlan.h"
+#include "AIControl.h"
+#include "DumpMemory.h"
+#include "DumpTypes.h"
+#include "FPSCounter.h"
+#include "MapSnapshot.h"
+#include "TogglePower.h"
+
+#include "BuildLastOfTab.h"
+#include "RebuildTab3Subtypes.h"
 
 #include <New/SuperWeaponSidebar/SWSidebarClass.h>
 #include <New/MessageHandler/MessageColumnClass.h>
@@ -144,6 +147,14 @@ void __fastcall Game_Init_Commands_Wrapper() {
 
 	Make<DeselectObjectCommandClass>();
 	Make<DeselectObject5CommandClass>();
+
+	// PR #2129
+	Make<BuildLastOfTabCommandClass<0>>();
+	Make<BuildLastOfTabCommandClass<1>>();
+	Make<BuildLastOfTabCommandClass<2>>();
+	Make<RebuildVehicleCommandClass>();
+	Make<RebuildAircraftCommandClass>();
+	Make<RebuildNavalCommandClass>();
 
 	CommandClass::InitCommand();
 }
