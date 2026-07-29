@@ -70,7 +70,7 @@
 // functions not yet analysed - quite possibly the Asm_Voxel_Normals_Function_Old_*
 // family. Dumping Voxel_Draw_Function_Tbl would settle it.
 //
-// Replacer::BufferSize MUST stay 256 until the remaining items are done.
+// BufferSize is free - everything in the pipeline is ported.
 // ===========================================================================
 
 #include "VoxelRaster.h"
@@ -98,9 +98,9 @@ static void __cdecl VoxelDraw_SpecBufferNoNormals_EndPtr(
 
 	// DIFF: X and Y widened to real int32 8.8 values. Z left alone - only its low
 	// 16 bits are ever read and the depth buffer is one byte per pixel.
-	int rowX = pDraw->Start.X;
-	int rowY = pDraw->Start.Y;
-	int rowZ = pDraw->Start.Z;
+	int rowX = pDraw->StartX;
+	int rowY = pDraw->StartY;
+	int rowZ = pDraw->StartZ;
 
 	for (int y = 0; y < sizeY; ++y)
 	{

@@ -85,15 +85,8 @@
 // plus the usual 16-bit loads into register halves (0x756FD2, 0x756FD6,
 // 0x757066, 0x75706C, 0x757094, 0x75709E, 0x7570BA, 0x7570EE).
 //
-// SCOPE - STILL MISSING
-// ---------------------
-//   MISSING: 0x75728B, 0x75748C, 0x7576EE, 0x7578B1, 0x757B1B, 0x757D4F,
-//            0x757F81, 0x758118, 0x758358, 0x75855A
-//   MISSING: Asm_Voxel_Normals_Function_Old_* family, 0x7DF8A7 .. 0x7DFFDD
-//   MISSING: VoxelBufferedPixelBuffer (second 256x256 array) not replaced
-//
-// Replacer::BufferSize MUST stay 256 until all of the above are done.
-// ===========================================================================
+// SCOPE: all 21 rasterizers, all four clear helpers and both surface
+// initialisers are ported. BufferSize is free.
 
 #include "VoxelRaster.h"
 
@@ -119,8 +112,8 @@ static void __cdecl VoxelDraw_Plain_EndPtr(VoxelRaster::DrawStruct* pDraw) noexc
 
 	// DIFF: vanilla keeps these in the low 16 bits of ESI/EDI with stale garbage
 	// above (mov si,[ecx+18h] @ 0x756FD2). Widened to a real int32 8.8 value.
-	int rowX = pDraw->Start.X;
-	int rowY = pDraw->Start.Y;
+	int rowX = pDraw->StartX;
+	int rowY = pDraw->StartY;
 
 	// All three sizes are unsigned bytes; the `cmp al, dl` / `jbe` guards at
 	// 0x756FDA and 0x756FF9 only ever mean "== 0", which the for-loops cover.

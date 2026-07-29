@@ -45,17 +45,8 @@
 // - idx = y * Replacer::BufferSize + x, an explicit multiply
 // - explicit bounds check replaces the implicit 8-bit wrap
 //
-// SCOPE WARNING - THIS IS ONE FUNCTION OF THE FAMILY
-// --------------------------------------------------
-// Draw_Shadow shares VoxelPixelBuffer with the colour rasterizers. Those are
-// NOT ported here and still use the (Yint << 8) | Xint packing:
-//
-//   MISSING: 0x756EDF, 0x757063, 0x75728B, 0x75748C, 0x7576EE, 0x7578B1,
-//            0x757B1B, 0x757D4F, 0x757F81, 0x758118, 0x758358, 0x75855A
-//   MISSING: Asm_Voxel_Normals_Function_Old_* family, 0x7DF8A7 .. 0x7DFFDD
-//   MISSING: VoxelBufferedPixelBuffer (second 256x256 array) is not replaced
-//
-// Until all of the above are ported, Replacer::BufferSize MUST stay 256.
+// SCOPE: all 21 rasterizers, all four clear helpers and both surface
+// initialisers are ported. BufferSize is free.
 // ===========================================================================
 
 #include "VoxelBufferReplace.h"
@@ -63,6 +54,7 @@
 #include <YRPP.h>
 #include <Utilities/Macro.h>
 
+#include <cstddef>   // offsetof
 #include <cstdint>
 
 // ---------------------------------------------------------------------------
@@ -180,7 +172,7 @@ namespace
 	inline int SampleSurface(Surface* pSurface, int x, int y) noexcept
 	{
 		Point2D point { x, y };
-		return pSurface->Get_Pixel(point);
+		return pSurface->GetPixel(&point);
 	}
 }
 
@@ -194,7 +186,7 @@ static void __fastcall VoxelLibrary_Draw_Shadow(
 	VoxelShadow::Library* pThis,
 	void* /* unused, occupies the EDX slot */,
 	VoxelShadow::DrawStruct* pDraw,
-	Vector3D<float>* pPos)
+	Vector3* pPos)
 {
 	const VoxelShadow::LayerHeader* pHeaders = pThis->LayerHeaders;
 	VoxelShadow::LayerInfo* pInfos = pThis->LayerInfos;
@@ -210,8 +202,12 @@ static void __fastcall VoxelLibrary_Draw_Shadow(
 
 	// flt_7F695C == 128.0, flt_7E2224 == 256.0.
 	// DIFF: vanilla truncated these to int16 (mov [esp+..], ax). Kept full width.
-	int rowX = F2I((static_cast<double>(pDraw->V2X) + 128.0 - pPos->X) * 256.0);
-	int rowY = F2I((static_cast<double>(pDraw->V2Y) + 128.0 - pPos->Y) * 256.0);
+	// The +128.0 is the centre of a 256-wide buffer, same as VoxelLibraryClass::
+	// Draw. Scales with BufferSize. The *256.0 is the 8.8 scale and does not.
+	// Draw_Shadow has no Z term, so the depth caveat does not apply here.
+	constexpr double centre = Replacer::BufferCenter;
+	int rowX = F2I((static_cast<double>(pDraw->V2X) + centre - pPos->X) * 256.0);
+	int rowY = F2I((static_cast<double>(pDraw->V2Y) + centre - pPos->Y) * 256.0);
 
 	// Vanilla writes these back into the struct before using them (0x7568FF,
 	// 0x756910). Side effect preserved.

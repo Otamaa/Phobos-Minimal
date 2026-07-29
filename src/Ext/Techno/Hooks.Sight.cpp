@@ -195,8 +195,21 @@ ASMJIT_PATCH(0x446816, BuildingClass_Place_RevealToAll_UpdateSight, 0x5)
 	enum { SkipGameCode = 0x44682F };
 
 	GET(FakeBuildingClass*, pThis, EBP);
-	const int radius = pThis->_GetTypeExtData()->RevealToAll_Radius.Get(FakeTechnoClass::_GetSight(pThis));
+	const int radius = pThis->_GetTypeExtData()->RevealToAll_Radius.Get(pThis->LastSightRange + 3);
 	pThis->UpdateSight(false, false, true, HouseClass::CurrentPlayer, radius);
+	return SkipGameCode;
+}
+
+ASMJIT_PATCH(0x4ADE55, Sub_4ADCD0_RevealToAll_UpdateSight, 0x6)
+{
+	enum { SkipGameCode = 0x4ADE6E };
+
+	GET(BuildingClass*, pThis, ESI);
+	const auto pType = pThis->Type;
+	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
+
+	const int radius = pTypeExt->RevealToAll_Radius.Get(pThis->LastSightRange + 3);
+	pThis->UpdateSight(false, false, true, HouseClass::CurrentPlayer(), radius);
 	return SkipGameCode;
 }
 

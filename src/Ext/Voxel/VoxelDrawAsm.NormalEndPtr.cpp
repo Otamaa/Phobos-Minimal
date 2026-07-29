@@ -50,16 +50,8 @@
 //   * `mov esi, 4` @ 0x7DFB05 is dead
 //   * index derivation identical: shr eax,10h then mov al,bh
 //
-// SCOPE - STILL MISSING
-// ---------------------
-//   MISSING: 0x7DFC00 (slots 8/12, plain), 0x7DFD00 (slots 9/13, plain)
-//   MISSING: two asm functions around 0x7DFE00 and 0x7DFF00 that are NOT in the
-//            dispatch table - sites 0x7DFEE5 / 0x7DFEEB and 0x7DFFD7 / 0x7DFFDD
-//   MISSING: VoxelBufferedPixelBuffer (0xB1D5E0) relocation - recipe known, see
-//            VoxelBufferReplace.h
-//
-// Replacer::BufferSize MUST stay 256 until all of the above are done.
-// ===========================================================================
+// SCOPE: all 21 rasterizers, all four clear helpers and both surface
+// initialisers are ported. BufferSize is free.
 
 #include "VoxelRaster.h"
 
@@ -85,8 +77,8 @@ static void __cdecl VoxelDrawAsm_Normal_EndPtr(
 
 	// DIFF: vanilla holds these as one packed dword, so the X half carries into
 	// the Y half. Split into independent int32 8.8 values.
-	int rowX = pDraw->Start.X;
-	int rowY = pDraw->Start.Y;
+	int rowX = pDraw->StartX;
+	int rowY = pDraw->StartY;
 
 	for (int y = 0; y < sizeY; ++y)
 	{
@@ -94,15 +86,15 @@ static void __cdecl VoxelDrawAsm_Normal_EndPtr(
 		const int savedRowY = rowY;
 		const int savedDataPos = pDraw->DataPos;
 
-		int accX = rowX;
-		int accY = rowY;
+		int columnX = rowX;
+		int columnY = rowY;
 
 		for (int x = 0; x < sizeX; ++x)
 		{
-			// Side effect preserved: the inner block reads the position back out
-			// of the struct, so the outer loop has to store it there.
-			pDraw->Start.X = static_cast<std::int16_t>(accX);
-			pDraw->Start.Y = static_cast<std::int16_t>(accY);
+			// Vanilla wrote the running position back into Start here because
+			// its inner block read it out again. This port keeps it in locals,
+			// and Start is the narrow 16-bit field we are moving away from, so
+			// the writeback is dropped.
 
 			// endptr variant -> the END table.
 			const int spanOffset = pDraw->ColumnOffsetsEnd[pDraw->DataPos];
@@ -110,6 +102,16 @@ static void __cdecl VoxelDrawAsm_Normal_EndPtr(
 			// Sign test, not `== -1` (jns @ 0x7DFB4C).
 			if (spanOffset >= 0 && sizeZ != 0)
 			{
+				// SEPARATE ACCUMULATOR. Vanilla keeps the column position in
+				// [ebp-0Ch] and loads a FRESH packed accumulator into EBX from
+				// Start at the top of the draw block (mov bx,[esi+1Ah] / shl /
+				// mov bx,[esi+18h]). The draw block never touches [ebp-0Ch], and
+				// EBX is discarded on the way out. Conflating the two makes every
+				// column after the first start from the previous column's final
+				// span position.
+				int accX = columnX;
+				int accY = columnY;
+
 				// Points at the block's duplicate runCount terminator.
 				const std::uint8_t* pSpan = pDraw->SpanData + spanOffset;
 
@@ -150,16 +152,16 @@ static void __cdecl VoxelDrawAsm_Normal_EndPtr(
 			}
 
 			// Column advance - vanilla loc_7DFB4E.
-			accX += pDraw->AxisX.X;
-			accY += pDraw->AxisX.Y;
+			columnX += pDraw->AxisX.X;
+			columnY += pDraw->AxisX.Y;
 			pDraw->DataPos += pDraw->XSteps;
 		}
 
 		// Row advance - vanilla 0x7DFB5E.
 		rowX = savedRowX + pDraw->AxisY.X;
 		rowY = savedRowY + pDraw->AxisY.Y;
-		accX = rowX;
-		accY = rowY;
+		columnX = rowX;
+		columnY = rowY;
 
 		pDraw->DataPos = savedDataPos + pDraw->YSteps;
 	}

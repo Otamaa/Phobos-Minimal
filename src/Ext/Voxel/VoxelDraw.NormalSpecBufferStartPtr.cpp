@@ -63,13 +63,8 @@
 //   .text:00757AAE  and  eax, 0FF00h     ; Yint << 8
 //   .text:00757AB6  or   eax, ebx
 //
-// SCOPE - STILL MISSING
-// ---------------------
-//   MISSING: 0x757D4F, 0x757F81, 0x758118, 0x758358, 0x75855A
-//   MISSING: Asm_Voxel_Normals_Function_Old_* family, 0x7DF8A7 .. 0x7DFFDD
-//
-// Replacer::BufferSize MUST stay 256 until all of the above are done.
-// ===========================================================================
+// SCOPE: all 21 rasterizers, all four clear helpers and both surface
+// initialisers are ported. BufferSize is free.
 
 #include "VoxelRaster.h"
 
@@ -95,9 +90,9 @@ static void __cdecl VoxelDraw_NormalSpecBuffer_StartPtr(VoxelRaster::DrawStruct*
 
 	// DIFF: X and Y widened to real int32 8.8 values. Z left alone - only its low
 	// 16 bits are ever read and the depth buffer is one byte per pixel.
-	int rowX = pDraw->Start.X;
-	int rowY = pDraw->Start.Y;
-	int rowZ = pDraw->Start.Z;
+	int rowX = pDraw->StartX;
+	int rowY = pDraw->StartY;
+	int rowZ = pDraw->StartZ;
 
 	for (int y = 0; y < sizeY; ++y)
 	{

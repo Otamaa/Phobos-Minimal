@@ -2266,6 +2266,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->StartFacing_Random)
 
 		.Process(this->SetTabBySelecting)
+
 		;
 }
 #else

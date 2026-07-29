@@ -21,7 +21,13 @@
 #include <YRPP.h>
 
 #include <array>
+#include <cstddef>   // offsetof
 #include <cstdint>
+
+// DIAGNOSTIC: set to 1 to make every depth test pass. If the missing segments
+// come back as wrong-occlusion instead of absent geometry, depth resolution was
+// the cause. Leave at 0.
+#define PHOBOS_VOXEL_DISABLE_DEPTH_TEST 0
 
 namespace VoxelRaster
 {
@@ -37,6 +43,31 @@ namespace VoxelRaster
 	inline constexpr int ToWhole(int fixedValue) noexcept
 	{
 		return fixedValue >> FixedShift;
+	}
+
+	// -----------------------------------------------------------------------
+	// START POSITIONS ARE UNSIGNED 16-BIT.
+	//
+	// Every rasterizer loads Start into a register half and then masks, never
+	// sign-extends:
+	//
+	//   Cpp:  mov si, [ecx+18h]   ...  and edx, 0FFFFh ; shr edx, 8
+	//   asm:  mov bx, [esi+18h]   ...  shr eax, 10h    ; mov al, bh
+	//
+	// So the 16-bit pattern is UNSIGNED. This matters because the coordinates are
+	// 8.8 fixed point over a 256-wide buffer: screen X = 128 is 128 * 256 =
+	// 32768, which as int16 is -32768. Reading Start as signed makes every voxel
+	// at X >= 128 or Y >= 128 come out negative, and the new explicit clipping
+	// then drops it. Vanilla masked, so it never noticed.
+	//
+	// The AXIS STEPS are the opposite - `movsx ebp, word ptr [esi+2Ah]` in the
+	// asm variants, and 16-bit adds in the Cpp ones. Those stay SIGNED.
+	// -----------------------------------------------------------------------
+	// Kept only for the vanilla 16-bit Start field, which nothing reads any more.
+	// The rasterizers use DrawStruct::StartX / StartY / StartZ.
+	inline constexpr int FromStart(std::int16_t value) noexcept
+	{
+		return static_cast<std::uint16_t>(value);
 	}
 
 	// EXTENSION: explicit clip. Vanilla had none; the 8-bit masks made every
@@ -74,8 +105,8 @@ namespace VoxelRaster
 		// The "startptr" draw variants read +0x00, the "endptr" variants read
 		// +0x04. Confirmed: fn 16 @ 0x756E62 does `mov eax,[ecx]`, fn 17 @
 		// 0x75700C does `mov eax,[ecx+4]`.
-		const int*    ColumnOffsetsStart;  // +0x00  offset to the FIRST byte of a span
-		const int*    ColumnOffsetsEnd;    // +0x04  offset to the LAST  byte of a span
+		const int* ColumnOffsetsStart;  // +0x00  offset to the FIRST byte of a span
+		const int* ColumnOffsetsEnd;    // +0x04  offset to the LAST  byte of a span
 		std::uint8_t* SpanData;        // +0x08  mov eax,[ecx+8] ; add eax, edx
 		int           DataPos;         // +0x0C  read AND written back in place
 		int           XSteps;          // +0x10  column advance for DataPos
@@ -87,16 +118,39 @@ namespace VoxelRaster
 		std::uint8_t  SizeX;           // +0x30
 		std::uint8_t  SizeY;           // +0x31
 		std::uint8_t  SizeZ;           // +0x32
+
+		// ===================================================================
+		// EXTENSION - appended past the vanilla 0x33 bytes.
+		//
+		// Start above is Vector3i16: THREE 16-BIT FIELDS. The projection stores
+		// 8.8 fixed point into them, so the integer part is 8 bits and the
+		// reachable coordinate range is 0..255 - no matter how big the buffer is.
+		//
+		//   .text:007566A7  66 89 44 24 38   mov [esp+..+Start.X_I], ax
+		//   .text:007566CB  66 89 44 24 3A   mov [esp+..+Start.Y_J], ax
+		//   .text:007566EB  66 89 44 24 3C   mov [esp+..+Start.Z_K], ax
+		//
+		// At centre 128 a centred voxel gives 128 * 256 == 0x8000, which fits.
+		// At centre 256 it gives 256 * 256 == 0x10000, which truncates to 0 -
+		// every voxel snaps to the corner and neighbouring values wrap. That is
+		// the "glitches all over the place" at 512.
+		//
+		// These are the widened replacements. VoxelLibraryClass::Draw is ported
+		// to fill them; every rasterizer reads them instead of Start.
+		// ===================================================================
+		int StartX;                    // +0x34
+		int StartY;                    // +0x38
+		int StartZ;                    // +0x3C
 	};
 	static_assert(offsetof(DrawStruct, ColumnOffsetsEnd) == 0x04, "EndPtr @ +0x04");
 	static_assert(offsetof(DrawStruct, SpanData) == 0x08, "SpanData @ +0x08");
-	static_assert(offsetof(DrawStruct, DataPos)  == 0x0C, "DataPos @ +0x0C");
-	static_assert(offsetof(DrawStruct, Start)    == 0x18, "Start @ +0x18");
-	static_assert(offsetof(DrawStruct, AxisX)    == 0x1E, "AxisX @ +0x1E");
-	static_assert(offsetof(DrawStruct, AxisY)    == 0x24, "AxisY @ +0x24");
-	static_assert(offsetof(DrawStruct, AxisZ)    == 0x2A, "AxisZ @ +0x2A");
-	static_assert(offsetof(DrawStruct, SizeX)    == 0x30, "SizeX @ +0x30");
-	static_assert(offsetof(DrawStruct, SizeZ)    == 0x32, "SizeZ @ +0x32");
+	static_assert(offsetof(DrawStruct, DataPos) == 0x0C, "DataPos @ +0x0C");
+	static_assert(offsetof(DrawStruct, Start) == 0x18, "Start @ +0x18");
+	static_assert(offsetof(DrawStruct, AxisX) == 0x1E, "AxisX @ +0x1E");
+	static_assert(offsetof(DrawStruct, AxisY) == 0x24, "AxisY @ +0x24");
+	static_assert(offsetof(DrawStruct, AxisZ) == 0x2A, "AxisZ @ +0x2A");
+	static_assert(offsetof(DrawStruct, SizeX) == 0x30, "SizeX @ +0x30");
+	static_assert(offsetof(DrawStruct, SizeZ) == 0x32, "SizeZ @ +0x32");
 
 	// -----------------------------------------------------------------------
 	// DEPTH BUFFER  (vanilla symbol: VoxelBufferedPixelBuffer)
@@ -130,12 +184,11 @@ namespace VoxelRaster
 	// past 255 while the depth buffer is still 256 wide - writes straight into
 	// VoxelClippingMax, VoxelClippingMin, both surfaces and the voxel queue.
 	// -----------------------------------------------------------------------
-	static_assert(Replacer::BufferSize == 256,
-		"VoxelBufferedPixelBuffer (0xB1D5E0) is still the vanilla 256x256 array. "
-		"Replace it before raising BufferSize, or the depth test reads garbage.");
-
-	inline std::uint8_t (&DepthBuffer)[256][256] =
-		*reinterpret_cast<std::uint8_t (*)[256][256]>(0xB1D5E0);
+	// Now owned rather than aliased. Every consumer of 0xB1D5E0 is ported:
+	// 18 rasterizer sites, plus Voxel_Init_Surface_Stuff, both conditional
+	// clears and the full clear. The last one, Init_spec_VoxelSurfaceBuffer2,
+	// is replaced by Replacer::_ApplyDepth.
+	inline auto& DepthBuffer = Replacer::VoxelDepthBuffer;
 
 	// Depth-tested paired write, as used by the "spec buffer" variants.
 	//
@@ -148,7 +201,7 @@ namespace VoxelRaster
 	// at Xint == 255 - where (buffer+1)[idx] landed in column 0 of the NEXT row -
 	// no longer happens.
 	inline void PutPixelDepthPair(int x, int y, std::uint8_t colour,
-		std::uint8_t depth) noexcept
+		std::uint16_t depth) noexcept
 	{
 		if (static_cast<unsigned>(x) >= static_cast<unsigned>(Replacer::BufferSize)
 			|| static_cast<unsigned>(y) >= static_cast<unsigned>(Replacer::BufferSize))
@@ -156,11 +209,13 @@ namespace VoxelRaster
 			return;
 		}
 
+#if !PHOBOS_VOXEL_DISABLE_DEPTH_TEST
 		// jbe at 0x75727C: strictly greater wins, ties lose.
 		if (depth <= DepthBuffer[y][x])
 		{
 			return;
 		}
+#endif
 
 		DepthBuffer[y][x] = depth;
 		Replacer::VoxelPixelBuffer[y][x] = colour;
@@ -174,7 +229,7 @@ namespace VoxelRaster
 
 	// Depth test alone, for the variants that only fetch the colour/normal bytes
 	// after the test passes (fn 22 and friends). Returns false when off-buffer.
-	inline bool DepthTest(int x, int y, std::uint8_t depth) noexcept
+	inline bool DepthTest(int x, int y, std::uint16_t depth) noexcept
 	{
 		if (static_cast<unsigned>(x) >= static_cast<unsigned>(Replacer::BufferSize)
 			|| static_cast<unsigned>(y) >= static_cast<unsigned>(Replacer::BufferSize))
@@ -182,12 +237,16 @@ namespace VoxelRaster
 			return false;
 		}
 
+#if PHOBOS_VOXEL_DISABLE_DEPTH_TEST
+		return true;
+#else
 		// jbe: strictly greater wins, ties lose.
 		return depth > DepthBuffer[y][x];
+#endif
 	}
 
 	// Paired depth write. Same independent bounds checks as PutPixelPair.
-	inline void PutDepthPair(int x, int y, std::uint8_t depth) noexcept
+	inline void PutDepthPair(int x, int y, std::uint16_t depth) noexcept
 	{
 		if (static_cast<unsigned>(x) < static_cast<unsigned>(Replacer::BufferSize)
 			&& static_cast<unsigned>(y) < static_cast<unsigned>(Replacer::BufferSize))
@@ -240,10 +299,16 @@ namespace VoxelRaster
 	// SUSPECT: depth stays 8-bit because the buffer is one byte per pixel and the
 	// unported rasterizers share it. Only X and Y are widened by this port; deep
 	// voxels can still z-fight. Revisit once the whole family is ported.
-	inline constexpr std::uint8_t ToDepth(int fixedZ) noexcept
+	// Vanilla: `mov dx, word[..] ; shr dx, 8` - a LOGICAL shift on the low 16
+	// bits, giving 8 bits of depth. Widened to 16 bits against the wider buffer.
+	// Still logical, so a negative Z wraps high rather than clamping, exactly as
+	// before - but with DepthCenter at 32768 it takes a genuinely enormous model
+	// to reach that.
+	inline constexpr std::uint16_t ToDepth(int fixedZ) noexcept
 	{
-		return static_cast<std::uint8_t>((static_cast<unsigned>(fixedZ) >> 8) & 0xFF);
+		return static_cast<std::uint16_t>((static_cast<unsigned>(fixedZ) >> 8) & 0xFFFF);
 	}
+
 
 	// -----------------------------------------------------------------------
 	// VOXEL LIGHTING TABLES  (used by the "normal" draw variants)

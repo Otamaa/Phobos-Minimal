@@ -57,15 +57,8 @@
 // despite blocks arriving in reverse Z order, so the caller must supply a
 // pre-negated AxisZ and a far-end Start. Preserved verbatim.
 //
-// SCOPE - STILL MISSING (see README.md, the family is NOT finished)
-// -----------------------------------------------------------------
-//   MISSING: the two remaining table functions around 0x758300 and 0x758500
-//            (patch sites 0x758358 / 0x75835E and 0x75855A / 0x758560)
-//   MISSING: Asm_Voxel_Normals_Function_Old_* family, 0x7DF8A7 .. 0x7DFFDD
-//   MISSING: VoxelBufferedPixelBuffer (0xB1D5E0) replacement
-//
-// Replacer::BufferSize MUST stay 256 until all of the above are done.
-// ===========================================================================
+// SCOPE: all 21 rasterizers, all four clear helpers and both surface
+// initialisers are ported. BufferSize is free.
 
 #include "VoxelRaster.h"
 
@@ -89,8 +82,8 @@ static void __cdecl VoxelDraw_PlainLsb_EndPtr(VoxelRaster::DrawStruct* pDraw) no
 	const int stepZY = pDraw->AxisZ.Y;
 
 	// DIFF: widened to real int32 8.8 values. No Z accumulator in this variant.
-	int rowX = pDraw->Start.X;
-	int rowY = pDraw->Start.Y;
+	int rowX = pDraw->StartX;
+	int rowY = pDraw->StartY;
 
 	for (int y = 0; y < sizeY; ++y)
 	{

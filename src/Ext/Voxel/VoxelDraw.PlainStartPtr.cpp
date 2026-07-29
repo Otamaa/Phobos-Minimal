@@ -70,16 +70,8 @@
 //    A third 16-bit limit hides in VoxelDistanceLut itself: its entries are
 //    int16 accumulations of AxisZ, so they wrap on a tall voxel.
 //
-// SCOPE - STILL MISSING
-// ---------------------
-//   MISSING: 0x757063, 0x75728B, 0x75748C, 0x7576EE, 0x7578B1, 0x757B1B,
-//            0x757D4F, 0x757F81, 0x758118, 0x758358, 0x75855A
-//   MISSING: Asm_Voxel_Normals_Function_Old_* family, 0x7DF8A7 .. 0x7DFFDD
-//   MISSING: VoxelBufferedPixelBuffer (second 256x256 array) not replaced
-//
-// Replacer::BufferSize MUST stay 256 until all of the above are done - the
-// unported rasterizers share this same buffer.
-// ===========================================================================
+// SCOPE: all 21 rasterizers, all four clear helpers and both surface
+// initialisers are ported. BufferSize is free.
 
 #include "VoxelRaster.h"
 
@@ -145,8 +137,8 @@ static void __cdecl VoxelDraw_Plain_StartPtr(VoxelRaster::DrawStruct* pDraw) noe
 
 	// DIFF: vanilla keeps these in the low 16 bits of ESI/EDI with stale garbage
 	// above. Widened to a real int32 8.8 value.
-	int rowX = pDraw->Start.X;
-	int rowY = pDraw->Start.Y;
+	int rowX = pDraw->StartX;
+	int rowY = pDraw->StartY;
 
 	// All three sizes are unsigned bytes, hence the `jbe` guards at 0x756E35 and
 	// 0x756E59 - they only ever mean "== 0". The for-loops cover that.

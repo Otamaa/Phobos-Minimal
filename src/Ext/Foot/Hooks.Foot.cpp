@@ -237,10 +237,7 @@ ASMJIT_PATCH(0x4D718C, FootClass_Put_InitialPayload, 6)
 {
 	GET(FootClass* const, pThis, ESI);
 
-	if (pThis->WhatAmI() != AbstractType::Infantry)
-	{
-		TechnoExtContainer::Instance.Find(pThis)->CreateInitialPayload();
-	}
+	TechnoExtContainer::Instance.Find(pThis)->CreateInitialPayload();
 
 	return 0;
 }
