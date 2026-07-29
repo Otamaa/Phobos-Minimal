@@ -40,14 +40,63 @@
 
 #include <cstring>
 
+// ===========================================================================
+// DIAGNOSTIC: set to a palette index (e.g. 15 = white) to FILL the whole colour
+// buffer instead of clearing it. Whatever the blit copies then shows up on
+// screen as a solid block, and its size tells you exactly how large a region is
+// actually being transferred out of the surface.
+//
+//   block is BufferSize x BufferSize   -> the blit is fine, the problem is
+//                                         upstream in the rasterizers
+//   block is ~256 x 256                -> something in the blit path is still
+//                                         clamped to 256 and that is the bug
+//   block matches the clip rect        -> the rect is correct and the limit is
+//                                         somewhere else again
+//
+// Set back to 0 afterwards.
+// ===========================================================================
+#define PHOBOS_VOXEL_FILL_BUFFER_DIAGNOSTIC 0
+
+// ===========================================================================
+// ALWAYS FULL-CLEAR.  This is the fix for the stale-pixel glitch.
+//
+// The vanilla order per unit is:
+//
+//   1. Voxel_Init_Surface_Stuff()          clears using VoxelClippingRect
+//   2. Voxel_Set_Queue_Values() x N        accumulates ClippingMax/Min
+//   3. Voxel_Sort_Calc_And_Draw_Clipped()  DRAWS, then WRITES VoxelClippingRect
+//   4. blit using the rect from step 3
+//
+// So the clear at step 1 uses the PREVIOUS unit's rect, while the blit at step 4
+// copies THIS unit's rect. Wherever this unit's rect reaches past the previous
+// one, the buffer still holds whatever an earlier unit left there - and the blit
+// copies it out as if it were part of the model. That is the "missing segment"
+// look: not geometry that failed to draw, but stale geometry drawn over it.
+//
+// It is a vanilla design flaw, not something this port introduced. Vanilla mostly
+// got away with it because its rect could not exceed 256 and consecutive units
+// overlapped heavily; the bigger the buffer, the further apart successive rects
+// can sit and the more stale area is exposed.
+//
+// COST: a BufferSize^2 memset per unit per frame - 1 MB at 1024, versus 64 KB in
+// vanilla. Measure before worrying: it is a linear memset, and correctness first.
+//
+// THE CHEAPER FIX, once this is confirmed: the rect derives purely from
+// ClippingMax/Min, which are fully accumulated by the end of step 2. Porting
+// Voxel_Sort_Calc_And_Draw_Clipped_0/_1 to compute the rect at the TOP of the
+// function and clear exactly that before drawing removes the ordering problem
+// entirely, and clears only what is about to be used.
+// ===========================================================================
+#define PHOBOS_VOXEL_ALWAYS_FULL_CLEAR 0
+
 namespace
 {
 	// VERIFY: addresses from the .data dump and your existing 0x753E1E hook.
 	// DWORD, not a byte: `mov eax, ds:8467E0h` / `mov ds:8467E0h, ebx`.
 	inline int& ClearVoxelSurfaces = *reinterpret_cast<int*>(0x8467E0);
-	inline int&  VoxelQueueCount    = *reinterpret_cast<int*>(0xB2D820);
-	inline int&  VoxelsQueued       = *reinterpret_cast<int*>(0xB2FB70);
-	inline int&  VoxelUseBuffer     = *reinterpret_cast<int*>(0xB43180);
+	inline int& VoxelQueueCount = *reinterpret_cast<int*>(0xB2D820);
+	inline int& VoxelsQueued = *reinterpret_cast<int*>(0xB2FB70);
+	inline int& VoxelUseBuffer = *reinterpret_cast<int*>(0xB43180);
 
 	inline RectangleStruct& VoxelClippingRect =
 		*reinterpret_cast<RectangleStruct*>(0xB2FB60);
@@ -80,6 +129,18 @@ static void __cdecl VoxelInit_SurfaceStuff() noexcept
 	VoxelQueueCount = 0;
 	VoxelsQueued = 0;
 
+#if PHOBOS_VOXEL_FILL_BUFFER_DIAGNOSTIC
+	std::memset(Replacer::VoxelPixelBuffer, PHOBOS_VOXEL_FILL_BUFFER_DIAGNOSTIC,
+		sizeof(Replacer::VoxelPixelBuffer));
+	std::memset(VoxelRaster::DepthBuffer, 0, sizeof(VoxelRaster::DepthBuffer));
+	VoxelClippingMax[0] = 10000.0f; VoxelClippingMax[1] = 10000.0f;
+	VoxelClippingMax[2] = 10000.0f; VoxelClippingMin[0] = -10000.0f;
+	VoxelClippingMin[1] = -10000.0f; VoxelClippingMin[2] = -10000.0f;
+	VoxelQueueCount = 0;
+	VoxelsQueued = 0;
+	return;
+#endif
+
 	if (ClearVoxelSurfaces != 0)
 	{
 		ClearVoxelSurfaces = 0;
@@ -88,6 +149,19 @@ static void __cdecl VoxelInit_SurfaceStuff() noexcept
 		std::memset(VoxelRaster::DepthBuffer, 0,
 			sizeof(VoxelRaster::DepthBuffer));
 	}
+#if PHOBOS_VOXEL_ALWAYS_FULL_CLEAR
+	else
+	{
+		std::memset(Replacer::VoxelPixelBuffer, 0,
+			sizeof(Replacer::VoxelPixelBuffer));
+
+		if (VoxelUseBuffer != 0)
+		{
+			std::memset(VoxelRaster::DepthBuffer, 0,
+				sizeof(VoxelRaster::DepthBuffer));
+		}
+	}
+#else
 	else
 	{
 		const int rectX = VoxelClippingRect.X;
@@ -116,6 +190,7 @@ static void __cdecl VoxelInit_SurfaceStuff() noexcept
 			ClearRect(VoxelRaster::DepthBuffer, rectX, rectY, rectW, rectH);
 		}
 	}
+#endif
 
 	// loc_753F11
 	VoxelClippingMax[0] = 10000.0f;

@@ -128,7 +128,7 @@ namespace
 		int          InfoIndex;        // +0x08
 		int          Entry;            // +0x0C
 		std::uint8_t Padding10[0x18];  // +0x10 .. +0x27   VERIFY
-		Vector3      Vectors[1];       // +0x28, 12 bytes each
+		Vector3D<float>      Vectors[1];       // +0x28, 12 bytes each
 	};
 	static_assert(offsetof(VoxelDrawData, Entry) == 0x0C, "Entry @ +0x0C");
 	static_assert(offsetof(VoxelDrawData, Vectors) == 0x28, "Vectors @ +0x28");
@@ -142,7 +142,7 @@ static void __fastcall VoxelLibrary_Draw(
 	Library* pThis,
 	void* /* unused, occupies the EDX slot */,
 	VoxelDrawData* pDrawData,
-	Vector3* pPos) noexcept
+	Vector3D<float>* pPos) noexcept
 {
 	const int infoIndex =
 		pDrawData->InfoIndex + pThis->LayerHeaders[pDrawData->HeaderIndex].Index;
@@ -163,10 +163,10 @@ static void __fastcall VoxelLibrary_Draw(
 	data.ColumnOffsetsEnd = info.DataEndPtr;
 	data.SpanData = info.CurrentDataPtr;
 
-	const Vector3& v0 = pDrawData->Vectors[vals.VectorEntry0];
-	const Vector3& v1 = pDrawData->Vectors[vals.VectorEntry1];
-	const Vector3& v2 = pDrawData->Vectors[vals.VectorEntry2];
-	const Vector3& v3 = pDrawData->Vectors[vals.VectorEntry3];
+	const Vector3D<float>& v0 = pDrawData->Vectors[vals.VectorEntry0];
+	const Vector3D<float>& v1 = pDrawData->Vectors[vals.VectorEntry1];
+	const Vector3D<float>& v2 = pDrawData->Vectors[vals.VectorEntry2];
+	const Vector3D<float>& v3 = pDrawData->Vectors[vals.VectorEntry3];
 
 	data.XSteps = vals.XSteps;
 	data.YSteps = sizeX * vals.YSteps;

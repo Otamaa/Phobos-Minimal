@@ -172,7 +172,7 @@ namespace
 	inline int SampleSurface(Surface* pSurface, int x, int y) noexcept
 	{
 		Point2D point { x, y };
-		return pSurface->GetPixel(&point);
+		return pSurface->Get_Pixel(point);
 	}
 }
 
@@ -186,7 +186,7 @@ static void __fastcall VoxelLibrary_Draw_Shadow(
 	VoxelShadow::Library* pThis,
 	void* /* unused, occupies the EDX slot */,
 	VoxelShadow::DrawStruct* pDraw,
-	Vector3* pPos)
+	Vector3D<float>* pPos)
 {
 	const VoxelShadow::LayerHeader* pHeaders = pThis->LayerHeaders;
 	VoxelShadow::LayerInfo* pInfos = pThis->LayerInfos;
@@ -214,8 +214,35 @@ static void __fastcall VoxelLibrary_Draw_Shadow(
 	pDraw->ShadowPointX = F2I(static_cast<double>(pDraw->ShadowPointX) + pPos->X);
 	pDraw->ShadowPointY = F2I(static_cast<double>(pDraw->ShadowPointY) + pPos->Y);
 
-	const int shadowBaseX = pDraw->ShadowPointX;
-	const int shadowBaseY = pDraw->ShadowPointY;
+	// =======================================================================
+	// SHADOW/BODY OVERLAP - THE SAMPLE BASE HAS TO MOVE WITH THE CENTRE
+	//
+	// This loop does two different things with two different coordinate spaces:
+	//
+	//   WRITE  VoxelPixelBuffer[pixelY][pixelX]           <- BUFFER space
+	//   READ   GetPixel(pSurface, shadowBase + pixelX)    <- SURFACE space
+	//
+	// and it writes `1` only where the sampled surface pixel is EMPTY - that is
+	// how the shadow avoids being drawn underneath the body.
+	//
+	// ShadowPointX/Y come from Voxel_Shadow_Set_Queue_Values, which the caller
+	// fills in surface coordinates and which knows nothing about BufferSize. When
+	// the buffer centre moved from 128 to BufferSize/2, every pixelX moved with
+	// it, so `shadowBase + pixelX` started sampling a point shifted by the same
+	// amount. The occlusion test then reads the wrong place and the shadow gets
+	// painted over the body - which is exactly the overlap.
+	//
+	// Cancel the shift: the mapping from buffer space to surface space moved by
+	// +(centre - 128), so the base moves by -(centre - 128).
+	//
+	// Note the shadow's own position is NOT wrong - v0..v3 come from
+	// Voxel_Shadow_Set_Queue_Values in world space, get `+ centre - pos` applied
+	// exactly like the body, and land correctly. Only the sampling was stale.
+	// =======================================================================
+	constexpr int centreDelta = Replacer::BufferCenterInt - 128;
+
+	const int shadowBaseX = pDraw->ShadowPointX - centreDelta;
+	const int shadowBaseY = pDraw->ShadowPointY - centreDelta;
 
 	const double fSizeX = static_cast<double>(sizeX);
 	const double fSizeY = static_cast<double>(sizeY);
