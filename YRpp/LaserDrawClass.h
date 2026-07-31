@@ -52,6 +52,25 @@ public:
 	~LaserDrawClass()
 		{ JMP_THIS(0x54FFB0); }
 
+	void* GetPptrFromPad() {
+		return reinterpret_cast<void*>((static_cast<uint32_t>(align_22) << 16) | align_4A);
+	}
+
+	void CleanPad() {
+		align_22 = 0u;
+		align_4A = 0u;
+	}
+
+	void SetPadToPtr(void* ptr) {
+		// Cleanup first
+		CleanPad();
+
+		uint32_t full_address = reinterpret_cast<uint32_t>(ptr);
+		// Extract the top 16 bits
+		align_22 = static_cast<uint16_t>(full_address >> 16);
+		// Extract the bottom 16 bits
+		align_4A = static_cast<uint16_t>(full_address & 0xFFFF);
+	}
 	//===========================================================================
 	//===== Properties ==========================================================
 	//===========================================================================
@@ -60,7 +79,10 @@ public:
 	int Thickness; // only respected if IsHouseColor
 	bool IsHouseColor;
 	bool IsSupported; // this changes the values for InnerColor (false: halve, true: double), HouseColor only
-	PROTECTED_PROPERTY(BYTE, align_22[2]);
+	union {
+		uint16_t align_22;
+		BYTE __align_22[2];
+	};
 	CoordStruct Source;
 	CoordStruct Target;
 	int ZAdjust;
@@ -68,7 +90,10 @@ public:
 	ColorStruct InnerColor;
 	ColorStruct OuterColor;
 	ColorStruct OuterSpread;
-	PROTECTED_PROPERTY(BYTE, align_4A[2]);
+	union {
+		uint16_t align_4A;
+		BYTE __align_4A[2];
+	};
 	int Duration;
 	bool Blinks;
 	bool BlinkState;

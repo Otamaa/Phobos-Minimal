@@ -673,7 +673,7 @@ public:
 	static double ApplyAdditionalDamageMult(TechnoClass* pSouce, double damageIn);
 	static double GetDamageMult(TechnoClass* pSource);
 
-	static double GetArmorMult(TechnoClass* pSouce, double damageIn, WarheadTypeClass* pWarhead);
+	static double GetArmorMult(TechnoClass* pSouce, double damageIn, WarheadTypeClass* pWarhead, bool playAnim  = true);
 
 	static void InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType);
 	static void InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted);

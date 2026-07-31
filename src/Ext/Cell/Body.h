@@ -30,6 +30,7 @@ private:
 	}
 };
 
+class FoggedObject;
 class CellExtData final : public AbstractExtended
 {
 public:
@@ -52,7 +53,7 @@ public:
 	// ============================================================
 	HelperedVector<RadSiteClass*> RadSites {};
 	HelperedVector<RadLevel> RadLevels {};
-
+	HelperedVector<FoggedObject*> FoggedObjects {};
 	// ============================================================
 	// 4-byte aligned: int
 	// ============================================================

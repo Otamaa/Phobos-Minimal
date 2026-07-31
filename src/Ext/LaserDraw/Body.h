@@ -4,26 +4,128 @@
 #include <CoordStruct.h>
 #include <ColorStruct.h>
 #include <GeneralStructures.h>
-#include <Utilities/Enum.h>
-#include <unordered_map>
 
+#include <Utilities/Enum.h>
+#include <Utilities/VectorHelper.h>
+
+class AbstractClass;
 class TechnoClass;
 class ObjectClass;
+class TechnoTypeClass;
 class PhobosStreamReader;
 class PhobosStreamWriter;
-class LaserDrawClassExt
+class LaserDrawClassExtData
 {
 public:
 	using base_type = LaserDrawClass;
 	static COMPILETIMEEVAL const char* ClassName = "LaserDrawClassExt";
 	static COMPILETIMEEVAL const char* BaseClassName = "LaserDrawClass";
 
+	static HelperedVector<LaserDrawClassExtData*> Array;
+
 public:
 
-	static void RemoveLaserTracking(LaserDrawClass* pLaser);
+	LaserDrawClassExtData() { Array.push_back(this); }
+	~LaserDrawClassExtData() { Array.remove(this); }
+
+public:
+
+	LaserDrawClass* AttachedToObject { nullptr };
+	
+	// --- position tracking -------------------------------------------------
+	TechnoClass* Shooter { nullptr };
+	ObjectClass* TrackedTarget { nullptr };
+	TechnoTypeClass* OriginalType { nullptr };
+
+	CoordStruct SavedOffset { CoordStruct::Empty };
+	CoordStruct LocalFLH { CoordStruct::Empty };
+
+	int WeaponIndex { 0 };
+	int FrozenBurstIndex { 0 };
+
+	PositionFollow FollowMode { PositionFollow::None };
+	bool StopOnFirerConvert { false };
+
+	// A record with neither end attached can never move the beam again.
+	bool IsInert() const { return !this->Shooter && !this->TrackedTarget; }
+
+	bool TracksShooter() const { return this->Shooter && (this->FollowMode & PositionFollow::Firer); }
+	bool TracksTarget() const { return this->TrackedTarget && (this->FollowMode & PositionFollow::Target); }
+
+	// ORIG: LaserTrackerClass::Assign / SetLaserTrackingData
+	void AssignTracking(TechnoClass* pShooter, AbstractClass* pTarget,
+		int weaponIdx, PositionFollow mode, bool ignoreShooter);
+
+	// ORIG: LaserTrackerClass::Update
+	void UpdateTracking();
+
+	// ORIG: LaserTrackerClass::Remove
+	void ResetTracking();
+
+	// -----------------------------------------------------------------------
+	// Transient context, valid only between TechnoClass::CreateLaser entry
+	// (0x6FD210) and the LaserDrawClass allocation site (0x6FD446).
+	//
+	// ORIG: LaserRT::Shooter / Target / WeaponIndex / IgnoreShooter
+	//       (+ SavedLocalFLH / SavedBurstIndex - see .cpp, both were dead)
+	// -----------------------------------------------------------------------
+	struct PendingContext
+	{
+		TechnoClass* Shooter { nullptr };
+		AbstractClass* Target { nullptr };
+		int WeaponIndex { 0 };
+
+		// Sticky across a whole CreateLaser call; set by the shrapnel wrapper.
+		bool IgnoreShooter { false };
+
+		void Reset()
+		{
+			this->Shooter = nullptr;
+			this->Target = nullptr;
+			this->WeaponIndex = 0;
+			// IgnoreShooter is intentionally NOT reset here: it is owned by the
+			// caller that raised it (RAII guard below).
+		}
+	};
+
+	static PendingContext Pending;
+
+	// RAII replacement for the manual `IgnoreShooter = true; ...; = false;` pair.
+	class IgnoreShooterScope final
+	{
+	public:
+		IgnoreShooterScope() : Previous(Pending.IgnoreShooter)
+		{
+			Pending.IgnoreShooter = true;
+		}
+
+		~IgnoreShooterScope()
+		{
+			Pending.IgnoreShooter = this->Previous;
+		}
+
+		IgnoreShooterScope(const IgnoreShooterScope&) = delete;
+		IgnoreShooterScope& operator = (const IgnoreShooterScope&) = delete;
+
+	private:
+		bool Previous;
+	};
+
+	// Frozen-burst FLH evaluation (restores CurrentBurstIndex on the way out).
+	CoordStruct GetFrozenWorldFLH(TechnoClass* pShooter) const;
+
+	// Drops only the shooter half.
+	void DetachShooter();
+
+	void InvalidatePointer(void* ptr, bool bRemoved);
+
+	static CoordStruct ResolveLocalFLH(TechnoClass* pShooter, int weaponIdx);
+	static bool ResolveStopOnFirerConvert(TechnoClass* pShooter, int weaponIdx);
+
+	static LaserDrawClassExtData* GetExtData(LaserDrawClass* pLaser) { return (LaserDrawClassExtData*)pLaser->GetPptrFromPad(); }
+public:
+
 	static void Clear();
-	static bool LoadAll(const PhobosStreamReader& stm);
-	static bool SaveAll(PhobosStreamWriter& stm);
 	static void PointerExpired(void* ptr, bool removed);
 
 };

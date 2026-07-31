@@ -79,6 +79,8 @@ public:
 	Valueable<double> ArmorMultiplier;
 	ValueableVector<WarheadTypeClass*> ArmorMultiplier_AllowWarheads;
 	ValueableVector<WarheadTypeClass*> ArmorMultiplier_DisallowWarheads;
+	Valueable<double> ArmorMultiplier_Chance;
+	ValueableVector<AnimTypeClass*> ArmorMultiplier_HitAnim;
 
 	Valueable<double> SpeedMultiplier;
 	Valueable<double> ROFMultiplier;
@@ -201,7 +203,9 @@ public:
 		, ArmorMultiplier { 1.0 }
 		, ArmorMultiplier_AllowWarheads {}
 		, ArmorMultiplier_DisallowWarheads {}
-		, SpeedMultiplier { 1.0 }
+		, ArmorMultiplier_Chance { 1.0 }
+	    , ArmorMultiplier_HitAnim {}
+	 	, SpeedMultiplier { 1.0 }
 		, ROFMultiplier { 1.0 }
 		, ROFMultiplier_ApplyOnCurrentTimer { true }
 		, Cloakable { false }

@@ -4,8 +4,7 @@
 #include <Ext/Bullet/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <Ext/WeaponType/Body.h>
-
-#include <New/Entity/LaserTrackerClass.h>
+#include <Ext/LaserDraw/Body.h>
 
 #include <CaptureManagerClass.h>
 
@@ -353,7 +352,7 @@ ASMJIT_PATCH(0x44ABD0, BuildingClass_FireLaser, 5)
 			const auto mode = pWeaponExt->LaserPositionUpdate.Get();
 
 			if (mode != PositionFollow::None) {
-				LaserTrackerClass::Instance().Assign(LaserBeam, pThis, pData->MyPrismForwarding->SupportTarget->Owner, idxSupport, mode, false);
+				LaserDrawClassExtData::GetExtData(LaserBeam)->AssignTracking(pThis, pData->MyPrismForwarding->SupportTarget->Owner, idxSupport, mode, false);
 			}
 		}
 

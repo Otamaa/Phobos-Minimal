@@ -74,6 +74,9 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->ArmorMultiplier.Read(exINI, pSection, "ArmorMultiplier");
 	this->ArmorMultiplier_AllowWarheads.Read(exINI, pSection, "ArmorMultiplier.AllowWarheads");
 	this->ArmorMultiplier_DisallowWarheads.Read(exINI, pSection, "ArmorMultiplier.DisallowWarheads");
+	this->ArmorMultiplier_Chance.Read(exINI, pSection, "ArmorMultiplier.Chance");
+	this->ArmorMultiplier_HitAnim.Read(exINI, pSection, "ArmorMultiplier.HitAnim");
+
 	this->SpeedMultiplier.Read(exINI, pSection, "SpeedMultiplier");
 	this->ROFMultiplier.Read(exINI, pSection, "ROFMultiplier");
 	this->ROFMultiplier_ApplyOnCurrentTimer.Read(exINI, pSection, "ROFMultiplier.ApplyOnCurrentTimer");
@@ -224,6 +227,8 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->ArmorMultiplier)
 		.Process(this->ArmorMultiplier_AllowWarheads)
 		.Process(this->ArmorMultiplier_DisallowWarheads)
+		.Process(this->ArmorMultiplier_Chance)
+	  	.Process(this-> ArmorMultiplier_HitAnim)
 		.Process(this->SpeedMultiplier)
 		.Process(this->ROFMultiplier)
 		.Process(this->ROFMultiplier_ApplyOnCurrentTimer)

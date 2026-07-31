@@ -10,10 +10,9 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/Bullet/Body.h>
-
+#include <Ext/LaserDraw/Body.h>
 #include <Misc/DamageArea.h>
 
-#include <New/Entity/LaserTrackerClass.h>
 
 #include <Utilities/Helpers.h>
 #include <Utilities/Macro.h>
@@ -244,7 +243,7 @@ void FakeDiskLaserClass::__AI()
 		const auto mode = pWeaponExt->LaserPositionUpdate.Get();
 
 		if (mode != PositionFollow::None) {
-			LaserTrackerClass::Instance().Assign(pLaser_1, this->Owner, this->Target, DiskLaserExtContainer::Instance.Find(this)->WeaponIdx, mode, false);
+			LaserDrawClassExtData::GetExtData(pLaser_1)->AssignTracking(this->Owner, this->Target, DiskLaserExtContainer::Instance.Find(this)->WeaponIdx, mode, false);
 		}
 
 		if (!pWeaponExt->DiskLaser_SimulatedFire)

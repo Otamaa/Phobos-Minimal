@@ -2,6 +2,8 @@
 
 #include <Ext/HouseType/Body.h>
 
+#include <Utilities/Macro.h>
+
 #include <CCToolTip.h>
 
 ASMJIT_PATCH(0x534FB1, Sides_MixFileIndex, 5)
@@ -41,17 +43,27 @@ ASMJIT_PATCH(0x72F370, Sides_MixFileYuriFiles2, 7)
 ASMJIT_PATCH(0x72FBC0, Sides_MixFileYuriFiles3, 5)
 { return MixFileYuriFiles(R, 0x72FBCE, 0x72FBF5); }
 
-ASMJIT_PATCH(0x72F440, Game_InitializeToolTipColor, 0xA)
-{
-	GET(int, idxSide, ECX);
+void __fastcall set_sidebar_tooltip_color(int side){
 
-	if (SideClass* pSide = SideClass::Array->get_or_default(idxSide)) {
+	if (SideClass* pSide = SideClass::Array->get_or_default(side)) {
 		CCToolTip::ToolTipTextColor = SideExtContainer::Instance.Find(pSide)->ToolTipTextColor;
-		return 0x72F495;
+	} else {
+		switch (side)
+		{
+		case 1:
+			CCToolTip::ToolTipTextColor = *reinterpret_cast<ColorStruct*>(0xB0FB04);
+			break;
+		case 0:
+			CCToolTip::ToolTipTextColor = *reinterpret_cast<ColorStruct*>(0xB0F9D8);
+			break;
+		default:
+			CCToolTip::ToolTipTextColor = *reinterpret_cast<ColorStruct*>(0xB0FAA0);
+			break;
+		}
 	}
-
-	return 0;
 }
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x72F440, set_sidebar_tooltip_color)
 
 ASMJIT_PATCH(0x72D730, Game_LoadMultiplayerScoreAssets, 5)
 {

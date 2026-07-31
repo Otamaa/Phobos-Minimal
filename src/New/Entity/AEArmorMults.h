@@ -10,6 +10,8 @@ struct AEArmorMults
 	struct MultData
 	{
 		double Mult { 1.0 };
+		double Chance { 1.0 };
+		ValueableVector<AnimTypeClass*>* HitAnims { nullptr };
 		ValueableVector<WarheadTypeClass*>* allow { nullptr };
 		ValueableVector<WarheadTypeClass*>* disallow { nullptr };
 
@@ -35,6 +37,8 @@ struct AEArmorMults
 		{
 			return Stm
 				.Process(this->Mult)
+				.Process(this->Chance)
+				.Process(this->HitAnims)
 				.Process(this->allow)
 				.Process(this->disallow)
 				.Success() && Stm.RegisterChange(this)
@@ -54,18 +58,7 @@ struct AEArmorMults
 		return !mults.empty();
 	}
 
-	COMPILETIMEEVAL double Get(double initial, WarheadTypeClass* who) const
-	{
-		for (const auto& entry : mults)
-		{
-			if (!entry.Eligible(who))
-				continue;
-
-			initial *= entry.Mult;
-		}
-
-		return initial;
-	}
+	double Get(double initial, WarheadTypeClass* who, TechnoClass* pOwner, bool playHitAnim) const;
 
 	COMPILETIMEEVAL void FillEligible(WarheadTypeClass* who, std::vector<double>& eligible) const
 	{

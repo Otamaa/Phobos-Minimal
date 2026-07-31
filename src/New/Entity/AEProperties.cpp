@@ -307,6 +307,8 @@ void AEProperties::Recalculate(TechnoClass* pTechno)
 		{
 			auto& entry = armormultData->mults.emplace_back();
 			entry.Mult = type->ArmorMultiplier;
+			entry.Chance = type->ArmorMultiplier_Chance;
+			entry.HitAnims = &type->ArmorMultiplier_HitAnim;
 			entry.allow = &type->ArmorMultiplier_AllowWarheads;
 			entry.disallow = &type->ArmorMultiplier_DisallowWarheads;
 		}

@@ -9,6 +9,7 @@
 #include <Ext/House/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/Cell/Body.h>
+#include <Ext/LaserDraw/Body.h>
 
 #include "Trajectories/PhobosTrajectory.h"
 
@@ -17,7 +18,6 @@
 
 #include <New/Entity/FlyingStrings.h>
 #include <New/Entity/PrismRelay.h>
-#include <New/Entity/LaserTrackerClass.h>
 
 #include <InfantryClass.h>
 #include <AircraftClass.h>
@@ -1300,7 +1300,7 @@ void BulletExtData::SimulatedFiringLaser(BulletClass* pBullet, HouseClass* pHous
 
 		if (mode != PositionFollow::None) {
 			auto const pTarget = flag_cast_to<ObjectClass*>(pBullet->Target);
-			LaserTrackerClass::Instance().Assign(pLaser, pBullet->Owner, pTarget, 0, mode, isSplit);
+			LaserDrawClassExtData::GetExtData(pLaser)->AssignTracking(pBullet->Owner, pTarget, 0, mode, isSplit);
 		}
 	}
 }

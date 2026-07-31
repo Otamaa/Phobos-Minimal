@@ -9,6 +9,8 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
 
+#include <New/Entity/FoggedObject.h>
+
 #include <TacticalClass.h>
 #include <IsometricTileTypeClass.h>
 #include <BuildingClass.h>
@@ -349,6 +351,7 @@ void CellExtData::Serialize(T& Stm) {
 		.Process(this->IncomingUnitAlt)
 		.Process(this->RadSites)
 		.Process(this->RadLevels)
+		.Process(this->FoggedObjects)
 		;
 }
 

@@ -21,6 +21,7 @@
 #include <Ext/AircraftType/Body.h>
 #include <Ext/UnitType/Body.h>
 #include <Ext/InfantryType/Body.h>
+#include <Ext/LaserDraw/Body.h>
 
 #include <Locomotor/Cast.h>
 #include <TerrainTypeClass.h>
@@ -28,8 +29,6 @@
 
 #include <Utilities/Macro.h>
 #include <Utilities/EnumFunctions.h>
-
-#include <New/Entity/LaserTrackerClass.h>
 
 #include <TerrainClass.h>
 
@@ -1131,7 +1130,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 					const auto mode = pWeaponExt->LaserPositionUpdate.Get();
 
 					if (mode != PositionFollow::None) {
-						LaserTrackerClass::Instance().Assign(pLaser, pThis, pTarget, which, mode, false);
+						LaserDrawClassExtData::GetExtData(pLaser)->AssignTracking(pThis, pTarget, which, mode, false);
 					}
 
 					pLaser->Thickness = (thickness == -1) ? 3 : thickness;
@@ -1154,7 +1153,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 				const auto mode = pWeaponExt->LaserPositionUpdate.Get();
 
 				if (mode != PositionFollow::None) {
-					LaserTrackerClass::Instance().Assign(pLaser, pThis, pTarget, which, mode, false);
+					LaserDrawClassExtData::GetExtData(pLaser)->AssignTracking(pThis, pTarget, which, mode, false);
 				}
 
 				if (thickness == -1) pLaser->Thickness = 2;

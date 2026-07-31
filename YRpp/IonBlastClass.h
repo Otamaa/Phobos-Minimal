@@ -42,5 +42,5 @@ public:
 	CoordStruct Location;
 	int Lifetime;
 	BOOL DisableIonBeam;	//0 = no, 1 = yes
-
 };
+static_assert(sizeof(IonBlastClass) == 0x14);

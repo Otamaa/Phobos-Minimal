@@ -130,6 +130,44 @@ void MapRevealer::UpdateShroud(short start, size_t radius, bool fog) const
 
 		for (CellSpreadEnumerator it((short)radius, start); it; ++it)
 		{
+#ifndef _FOW
+			auto const& offset = *it;
+			auto const cell = base + offset;
+			auto const pCell = MapClass::Instance->GetCellAt(cell);
+
+			bool bFlag = false;
+			if (pCell->Visibility != 0xFF)
+			{
+				auto shroudOcculusion = TacticalClass::Instance->GetOcclusion(cell, false);
+				if (pCell->Visibility != shroudOcculusion)
+				{
+					pCell->Visibility = shroudOcculusion;
+					pCell->VisibilityChanged = true;
+					bFlag = true;
+				}
+			}
+
+			if (!ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar && !bFlag)
+			{
+				continue;
+			}
+
+			if (pCell->Foggedness != 0xFF)
+			{
+				auto foggedOcclusion = TacticalClass::Instance->GetOcclusion(cell, true);
+				if (pCell->Foggedness != foggedOcclusion)
+				{
+					pCell->Foggedness = foggedOcclusion;
+					bFlag = true;
+				}
+			}
+
+			if (bFlag)
+			{
+				TacticalClass::Instance->RegisterCellAsVisible(pCell);
+			}
+
+#else
 			auto const cell = base + *it;
 			auto  pCell = MapClass::Instance->GetCellAt(cell);
 
@@ -140,6 +178,8 @@ void MapRevealer::UpdateShroud(short start, size_t radius, bool fog) const
 				pCell->VisibilityChanged = true;
 				TacticalClass::Instance->RegisterCellAsVisible(pCell);
 			}
+#endif
+
 		}
 	}
 }

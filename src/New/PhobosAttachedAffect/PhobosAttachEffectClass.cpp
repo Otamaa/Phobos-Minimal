@@ -68,7 +68,7 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 
 	if (pType->Duration_ApplyArmorMultOnTarget && this->Duration > 0) // count its own ArmorMultiplier as well
 	{
-		this->Duration = MaxImpl(static_cast<int>(TechnoExtData::GetArmorMult(pTechno, this->Duration, nullptr)), 0);
+		this->Duration = MaxImpl(static_cast<int>(TechnoExtData::GetArmorMult(pTechno, this->Duration, nullptr)), 0, false);
 	}
 
 	this->InvokerHouse = pInvokerHouse;
@@ -644,7 +644,7 @@ void PhobosAttachEffectClass::RefreshDuration(int durationOverride)
 
 	if (this->Type->Duration_ApplyArmorMultOnTarget && this->Duration > 0) // count its own ArmorMultiplier as well
 	{
-		this->Duration = MaxImpl(static_cast<int>(TechnoExtData::GetArmorMult(this->Techno, this->Duration, nullptr)), 0);
+		this->Duration = MaxImpl(static_cast<int>(TechnoExtData::GetArmorMult(this->Techno, this->Duration, nullptr)), 0, false);
 	}
 
 	if (this->Type->Animation_ResetOnReapply)

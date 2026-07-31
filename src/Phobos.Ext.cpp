@@ -89,15 +89,13 @@
 #include <Ext/Terrain/Body.h>
 #include <Ext/SmudgeType/Body.h>
 #include <Ext/OverlayType/Body.h>
+#include <Ext/LaserDraw/Body.h>
 
 #include <New/Entity/BannerClass.h>
 
 #include <New/Entity/HugeBar.h>
-
+#include <New/Entity/FoggedObject.h>
 #include <New/Entity/FlyingStrings.h>
-
-#include <New/Entity/LaserTrackerClass.h>
-
 #include <Ext/Tactical/Body.h>
 
 
@@ -186,7 +184,7 @@ void PhobosExt::InvalidatePointers(AbstractClass* const pInvalid, bool const rem
 			LightningStorm::BoltsPresent->erase((AnimClass*)pInvalid);
 		}
 
-		LaserTrackerClass::Instance().OnObjectRemoved((TechnoClass*)pInvalid);
+		LaserDrawClassExtData::PointerExpired(pInvalid, removed);
 	}
 
 }
@@ -444,7 +442,8 @@ void Phobos::ClearAll()
 	//reset the IteratorValue counter for the parser
 	FakeCCINIClass::Reset();
 
-	LaserTrackerClass::Instance().Clear();
+	LaserDrawClassExtData::Clear();
+	FoggedObject::Clear();
 }
 
 #pragma endregion

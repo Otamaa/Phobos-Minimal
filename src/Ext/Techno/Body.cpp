@@ -2474,8 +2474,7 @@ void TechnoExtData::UpdateAlphaShape(ObjectClass* pSource)
 	{
 		if (PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pSource)
 			&& what == BuildingClass::AbsID
-			&& (pImage->Frames <= 1 || !((BuildingClass*)pSource)->HasTurret()
-				))
+			&& (pImage->Frames <= 1))
 			return;
 
 		RectangleStruct ScreenArea = TacticalClass::Instance->VisibleArea();
@@ -9941,7 +9940,7 @@ void TechnoExtData::PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker)
 	}
 }
 
-double TechnoExtData::GetArmorMult(TechnoClass* pSource, double damageIn, WarheadTypeClass* pWarhead)
+double TechnoExtData::GetArmorMult(TechnoClass* pSource, double damageIn, WarheadTypeClass* pWarhead, bool playAnim)
 {
 	const auto pType = GET_TECHNOTYPE(pSource);
 	double _result = damageIn;
@@ -9951,7 +9950,7 @@ double TechnoExtData::GetArmorMult(TechnoClass* pSource, double damageIn, Warhea
 	//Ares AE using techno ArmorMultiplier
 	//PHobos AE using ArmorMultData 
 	if (pExt->AE.ArmorMultData.Enabled()) {
-		_result /= pExt->AE.ArmorMultData.Get(pSource->ArmorMultiplier, pWarhead);
+		_result /= pExt->AE.ArmorMultData.Get(pSource->ArmorMultiplier, pWarhead, pSource , playAnim);
 	} else {
 		_result /= pSource->ArmorMultiplier;
 	}

@@ -15,31 +15,22 @@
 #include <Ext/Rules/Body.h>
 #include <Ext/House/Body.h>
 
-#include <New/Entity/LaserTrackerClass.h>
+#include <Ext/WarheadType/Body.h>
+#include <Ext/Techno/Body.h>
+#include <Ext/WeaponType/Body.h>
 
-void LaserDrawClassExt::RemoveLaserTracking(LaserDrawClass* pLaser)
+void LaserDrawClassExtData::Clear()
 {
-	LaserTrackerClass::Instance().Remove(pLaser);
+	Array.clear();
 }
 
-void LaserDrawClassExt::Clear()
+void LaserDrawClassExtData::PointerExpired(void* ptr, bool removed)
 {
-}
-
-bool LaserDrawClassExt::LoadAll(const PhobosStreamReader& stm)
-{
-	return true;
-}
-
-bool LaserDrawClassExt::SaveAll(PhobosStreamWriter& stm)
-{
-	return true;
-}
-
-void LaserDrawClassExt::PointerExpired(void* ptr, bool removed)
-{
-	if (!removed)
-		return;
+	for (auto& _item : Array) {
+		if (_item) {
+			_item->InvalidatePointer((AbstractClass*)ptr, removed);
+		}
+	}
 }
 
 // ============================================================================
@@ -327,12 +318,9 @@ void FakeLaserDrawClass::_UpdateAllLasers()
 	Debug::Log("[LaserDraw] UpdateAllLasers: %d lasers\n", LaserDrawClass::Array->Count);
 #endif
 
-	for (int i = LaserDrawClass::Array->Count - 1; i >= 0; --i)
-	{
-		auto* pLaser = static_cast<FakeLaserDrawClass*>((*LaserDrawClass::Array)[i]);
-		if (pLaser)
-		{
-			LaserTrackerClass::Instance().Update(pLaser);
+	for (int i = LaserDrawClass::Array->Count - 1; i >= 0; --i) {
+		if (auto* pLaser = static_cast<FakeLaserDrawClass*>((*LaserDrawClass::Array)[i])) {
+			LaserDrawClassExtData::GetExtData(pLaser)->UpdateTracking();
 			pLaser->_UpdateLaser();
 		}
 	}
@@ -1004,10 +992,190 @@ struct LaserDrawDebugInit
 static LaserDrawDebugInit s_laserDrawDebugInit;
 #endif
 
-ASMJIT_PATCH(0x54FFB0, LaserDrawClass_DTOR_Update, 7)
+LaserDrawClassExtData::PendingContext LaserDrawClassExtData::Pending {};
+HelperedVector<LaserDrawClassExtData*> LaserDrawClassExtData::Array;
+
+CoordStruct LaserDrawClassExtData::GetFrozenWorldFLH(TechnoClass* pShooter) const
+{
+	const int savedBurstIndex = pShooter->CurrentBurstIndex;
+	pShooter->CurrentBurstIndex = this->FrozenBurstIndex;
+	const CoordStruct worldFLH = pShooter->GetFLH(this->WeaponIndex, this->LocalFLH.X, this->LocalFLH.Y, this->LocalFLH.Z);
+	pShooter->CurrentBurstIndex = savedBurstIndex;
+	return worldFLH;
+}
+
+CoordStruct LaserDrawClassExtData::ResolveLocalFLH(TechnoClass* pShooter, int weaponIdx)
+{
+	auto [flhFound, localFLH] = TechnoExtData::GetBurstFLH(pShooter, weaponIdx);
+
+	if (!flhFound)
+	{
+		// BUGFIX: original did `pShooter->GetWeapon(weaponIdx)->FLH` with no null guard.
+		if (const auto pWeaponStruct = pShooter->GetWeapon(weaponIdx))
+			localFLH = pWeaponStruct->FLH;
+		else
+			localFLH = CoordStruct::Empty;
+	}
+
+	// SUSPECT: the old hook at 0x6FD210 additionally mirrored Y for odd burst
+	// indices (`if (SavedBurstIndex % 2 != 0) FLH.Y = -FLH.Y;`), but that value
+	// was written into LaserRT::SavedLocalFLH and then thrown away at 0x6FD446
+	// via std::exchange without ever being read. SetLaserTrackingData always
+	// recomputed the FLH itself, unmirrored. Behaviour preserved as-is
+	// (unmirrored) because that is what actually ran. TechnoClass::GetFLH is
+	// believed to apply burst mirroring internally, so mirroring here would
+	// double-flip - VERIFY against 0x6F3300 before "fixing" this.
+	return localFLH;
+}
+
+bool LaserDrawClassExtData::ResolveStopOnFirerConvert(TechnoClass* pShooter, int weaponIdx)
+{
+	const auto pWeaponStruct = pShooter->GetWeapon(weaponIdx);
+	const auto pWeapon = pWeaponStruct ? pWeaponStruct->WeaponType : nullptr;
+
+	// SUSPECT: vanilla path returned false (not the Rules default) when the
+	// weapon slot was empty. Preserved verbatim.
+	if (!pWeapon)
+		return false;
+
+	return WeaponTypeExtContainer::Instance.Find(pWeapon)->LaserPositionUpdate_StopOnFirerConvert
+		.Get(FakeRulesClass::Instance()->LaserPositionUpdate_StopOnFirerConvert);
+}
+
+// ===========================================================================
+// Record lifetime
+// ===========================================================================
+
+void LaserDrawClassExtData::DetachShooter()
+{
+	this->Shooter = nullptr;
+	this->OriginalType = nullptr;
+}
+
+void LaserDrawClassExtData::ResetTracking()
+{
+	this->Shooter = nullptr;
+	this->TrackedTarget = nullptr;
+	this->OriginalType = nullptr;
+	this->SavedOffset = CoordStruct::Empty;
+	this->LocalFLH = CoordStruct::Empty;
+	this->WeaponIndex = 0;
+	this->FrozenBurstIndex = 0;
+	this->FollowMode = PositionFollow::None;
+	this->StopOnFirerConvert = false;
+}
+
+void LaserDrawClassExtData::AssignTracking(TechnoClass* pShooter, AbstractClass* pTarget,
+	int weaponIdx, PositionFollow mode, bool ignoreShooter)
+{
+	const auto pLaser = this->AttachedToObject;
+
+	if (!pLaser)
+		return;
+
+	if (ignoreShooter)
+		pShooter = nullptr;
+
+	// Garrisonable buildings move their firing origin per occupant slot, so a
+	// frozen FLH would desync from the muzzle - firer follow is dropped.
+	if (const auto pBuilding = cast_to<BuildingClass*>(pShooter))
+	{
+		if (pBuilding->Type->MaxNumberOccupants > 0)
+			mode &= ~PositionFollow::Firer;
+	}
+
+	// Always wipe any prior record first - the ext outlives individual
+	// assignments and the engine may re-issue on the same laser.
+	this->ResetTracking();
+
+	this->WeaponIndex = weaponIdx;
+	this->FollowMode = mode;
+
+	// DIFF (perf only): the old SetLaserTrackingData resolved FLH / burst index /
+	// StopOnFirerConvert unconditionally and then discarded them unless Firer was
+	// set. Same result, fewer ExtMap lookups.
+	if (pShooter && (mode & PositionFollow::Firer))
+	{
+		this->Shooter = pShooter;
+		this->LocalFLH = LaserDrawClassExtData::ResolveLocalFLH(pShooter, weaponIdx);
+
+		if (pShooter->CurrentBurstIndex % 2 != 0)
+			this->LocalFLH.Y = -this->LocalFLH.Y;
+
+		this->FrozenBurstIndex = pShooter->CurrentBurstIndex;
+		this->StopOnFirerConvert = LaserDrawClassExtData::ResolveStopOnFirerConvert(pShooter, weaponIdx);
+
+		if (this->StopOnFirerConvert)
+			this->OriginalType = pShooter->GetTechnoType();
+
+		this->SavedOffset = pLaser->Source - this->GetFrozenWorldFLH(pShooter);
+	}
+
+	if (mode & PositionFollow::Target)
+		this->TrackedTarget = flag_cast_to<ObjectClass*>(pTarget);
+
+	// DIFF: no "don't store inert records" special case any more. The ext exists
+	// either way, so an inert record costs one IsInert() test per frame instead
+	// of a map insert/erase pair.
+}
+
+// ===========================================================================
+// Per-frame update
+// ===========================================================================
+void LaserDrawClassExtData::UpdateTracking()
+{
+	if (this->IsInert())
+		return;
+
+	const auto pLaser = this->AttachedToObject;
+
+	if (!pLaser)
+		return;
+
+	if (this->Shooter && this->StopOnFirerConvert && this->OriginalType)
+	{
+		if (this->Shooter->GetTechnoType() != this->OriginalType)
+			this->DetachShooter();
+	}
+
+	if (const auto pShooter = this->Shooter)
+		pLaser->Source = this->GetFrozenWorldFLH(pShooter) + this->SavedOffset;
+
+	if (const auto pTarget = this->TrackedTarget)
+		pLaser->Target = pTarget->GetTargetCoords();
+}
+
+void LaserDrawClassExtData::InvalidatePointer(void* ptr, bool bRemoved)
+{
+	if (this->Shooter == ptr) {
+		this->Shooter = nullptr;
+		this->OriginalType = nullptr;
+	}
+
+	if (this->TrackedTarget == ptr)
+		this->TrackedTarget = nullptr;
+}
+
+ASMJIT_PATCH(0x54FFA4, LaserDrawClass_CTOR, 0x7)
+{
+	GET(LaserDrawClass*, pLaser, ESI);
+
+	auto pLaserExt = new LaserDrawClassExtData();
+		 pLaserExt->AttachedToObject = pLaser;
+		 pLaser->SetPadToPtr(pLaserExt);
+
+	return 0x0;
+}
+
+ASMJIT_PATCH(0x54FFB0, LaserDrawClass_DTOR, 7)
 {
 	GET(LaserDrawClass*, pLaser, ECX);
-	LaserDrawClassExt::RemoveLaserTracking(pLaser);
+
+	if (auto pLaserExt = (LaserDrawClassExtData*)pLaser->GetPptrFromPad())
+		delete pLaserExt;
+
+	pLaser->CleanPad();
+
 	return 0;
 }
 
