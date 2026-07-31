@@ -7,7 +7,7 @@ class ConvertExtData
 public:
 
 	SHPReference* AttachedToObject;
-	Blitter* Blitters[20];
+	Blitter* Blitters[18];
 	RLEBlitter* RLEBlitters[18];
 };
 
