@@ -103,8 +103,8 @@ ASMJIT_PATCH(0x437CCC, BSurface_DrawSHPFrame1_Buffer, 0x8)
 	//0x89C568
 	REF_STACK(unsigned char const*, pBuffer, STACK_OFFS(0x7C, 0x6C));
 
-	auto const width = static_cast<size_t>(std::clamp<short>(
-		static_cast<short>(bounds.Width), 0, std::numeric_limits<short>::max()));
+	auto const width = static_cast<size_t>(std::clamp<int>(
+		static_cast<int>(bounds.Width), 0, std::numeric_limits<int>::max()));
 
 	// buffer overrun is now not as forgiving as it was before
 	auto& Buffer = PhobosGlobal::Instance()->ShpCompression1Buffer;

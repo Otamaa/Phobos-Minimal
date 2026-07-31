@@ -364,18 +364,18 @@ void Phobos::Config::Read_UIMD()
 			{
 
 				// read the mod's version info
-				if (pINI->ReadString("VersionInfo", GameStrings::Name, Phobos::readDefval, Phobos::readBuffer, std::size(ModName))) {
+				if (pINI->ReadString(sectionVersionInfo, GameStrings::Name, Phobos::readDefval, Phobos::readBuffer, std::size(ModName))) {
 					ModName = Phobos::readBuffer;
 				}
 
-				if (pINI->ReadString("VersionInfo", "Version", Phobos::readDefval, Phobos::readBuffer, std::size(ModVersion))){
+				if (pINI->ReadString(sectionVersionInfo, "Version", Phobos::readDefval, Phobos::readBuffer, std::size(ModVersion))){
 					ModVersion = Phobos::readBuffer;
 				}
 
 				SafeChecksummer crc {};
 				crc.operator()(ModName.c_str());
 				crc.operator()(ModVersion.c_str());
-				ModIdentifier = pINI->ReadInteger("VersionInfo", "Identifier", static_cast<int>(crc.operator unsigned int()));
+				ModIdentifier = pINI->ReadInteger(sectionVersionInfo, "Identifier", static_cast<int>(crc.operator unsigned int()));
 
 				Debug::LogInfo("Color count is {}", colorCount);
 				Debug::LogInfo("Mod is {0} ({1}) with 0x{2:x}",
