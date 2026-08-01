@@ -829,6 +829,8 @@ public:
 	Valueable<int> KeepRange_EarlyStopFrame {};
 
 	Valueable<bool> DestroyAnim_Random { true };
+
+	Valueable<int> RadarGracePeriod { 30 };
 #pragma endregion
 
 public:

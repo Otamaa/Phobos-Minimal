@@ -2581,11 +2581,13 @@ bool TActionExtData::SetFreeRadar(TActionClass* pThis, HouseClass* pHouse, Objec
 			pHouseExt->ForceRadar = true;
 			break;
 		default:
-			pHouseExt->FreeRadar = false;
+			pHouseExt->FreeRadar = ScenarioClass::Instance->FreeRadar;
 			pHouseExt->ForceRadar = false;
 			break;
 		}
 
+		// Cancel any in-flight grace window so the action takes effect at once.
+		pHouseExt->RadarGraceTimer.Stop();
 		pHouse->RecheckRadar = true;
 	}
 

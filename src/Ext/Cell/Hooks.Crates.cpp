@@ -819,7 +819,7 @@ Powerup Crate_EvaluateMultiplayerReward(Powerup data, FootClass* pCollector,
 Powerup Crate_ResolveCampaignReward(FakeCellClass* pCell, int& soloCrateMoney);
 
 // Grants money to the collector (handles solo random range + flying string).
-void Crate_GiveMoney(const CrateContext& ctx, int& soloCrateMoney);
+void Crate_GiveMoney(const CrateContext& ctx, int& soloCrateMoney, bool isForwarded = true);
 
 // One handler per Powerup effect. Each returns the CollectResult that the
 // caller (_CollecCrate) should propagate. CollectResult::can means
@@ -1061,9 +1061,14 @@ Powerup Crate_ResolveCampaignReward(FakeCellClass* pCell, int& soloCrateMoney)
 // Money
 // ---------------------------------------------------------------------
 
-void Crate_GiveMoney(const CrateContext& ctx, int& soloCrateMoney)
+void Crate_GiveMoney(const CrateContext& ctx, int& soloCrateMoney, bool isForwarded)
 {
-	Debug::LogInfo("Crate at {},{} contains money", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y);
+	// GiveMoney is not called from original result 
+	// so some the affect is pulled direcly thru the proper one 
+	// also not logging it because the original crate affect already does that 
+	// as per vanilla does only the log are different 
+	if (!isForwarded)
+	   Debug::LogInfo("Crate at {},{} contains money", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y);
 
 	if (!soloCrateMoney)
 	{
@@ -1089,7 +1094,10 @@ void Crate_GiveMoney(const CrateContext& ctx, int& soloCrateMoney)
 			AffectedHouse::Owner, ctx.locSound, Point2D::Empty, ColorStruct::Empty);
 	}
 
-	ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+	if (!isForwarded)
+		ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
+	else
+		CrateTypeClass::Array[(int)PowerupEffects::Money]->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
 }
 
 // ---------------------------------------------------------------------
@@ -1477,9 +1485,11 @@ CollectResult Crate_Handle_Tiberium(const CrateContext& ctx)
 
 CollectResult Crate_Handle_Default(const CrateContext& ctx)
 {
-	Debug::LogInfo("Crate at {},{} contains {}", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y,
+	Debug::LogInfo("Crate at {},{} contains {} It has no real affect!", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y,
 		ctx.pType->Name.data());
 	
+	//Only affect are playing here , maybe shouse make proper function affects
+	//dunno yet
 	ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
 	return CollectResult::can;
 }
@@ -1655,7 +1665,7 @@ CollectResult Crate_Dispatch(CrateContext& ctx, int& soloCrateMoney)
 {
 	switch (ctx.data)
 	{
-	case Powerup::Money:        Crate_GiveMoney(ctx, soloCrateMoney); return CollectResult::can;
+	case Powerup::Money:        Crate_GiveMoney(ctx, soloCrateMoney, false); return CollectResult::can;
 	case Powerup::Unit:          return Crate_Handle_Unit(ctx, soloCrateMoney);
 	case Powerup::HealBase:       return Crate_Handle_HealBase(ctx);
 	case Powerup::Explosion:      return Crate_Handle_Explosion(ctx);

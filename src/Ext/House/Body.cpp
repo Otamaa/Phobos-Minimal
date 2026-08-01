@@ -3171,6 +3171,7 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->Common)
 		.Process(this->Combat)
 		.Process(this->AISuperWeaponDelayTimer)
+		.Process(this->RadarGraceTimer)
 		.Process(this->NumAirpads_NonMFB)
 		.Process(this->NumBarracks_NonMFB)
 		.Process(this->NumWarFactories_NonMFB)
@@ -4071,98 +4072,174 @@ void FakeHouseClass::_BlowUpAllBuildings() {
 DEFINE_FUNCTION_JUMP(CALL, 0x6E3228, FakeHouseClass::_BlowUpAllBuildings)
 DEFINE_FUNCTION_JUMP(LJMP, 0x4FC790, FakeHouseClass::_BlowUpAllBuildings)
 
-void FakeHouseClass::_UpdateRadar() {
-	auto pExt = this->_GetExtData();
-
-	bool radarAvailable = this == HouseClass::Observer() ?
-		true : pExt->ForceRadar ? pExt->FreeRadar: !pExt->Batteries.empty();
-
-    this->RecheckRadar = 0;
-
-	if (this != HouseClass::CurrentPlayer()) {
-    	return;
-    }
-
-    // If blackout still has time remaining,
-	// just update tactical map availability and exit
-    if (this->RadarBlackoutTimer.GetTimeLeft() > 0) {
-        if (RadarClass::Instance->IsAvailableNow != radarAvailable) {
-            RadarClass::Instance->UpdateRadarStatus(radarAvailable);
-        }
-        return;
-    }
-
-	if(!radarAvailable){
-		int power = this->PowerOutput;
-        int drain = this->PowerDrain;
-
-        if (power >= drain || !drain || (power > 0 && (double)power / (double)drain >= 1.0)) {
-
-			const bool campaignAI = this->IsControlledByHuman();
-
-            for (int i = 0; i < this->Buildings.Count; ++i) {
-
-                FakeBuildingClass *building = (FakeBuildingClass*)this->Buildings.Items[i];
-
-				if (!building) {
-                    continue;
-                }
-
-				if (!building->IsAlive) continue;
-				if (building->InLimbo) continue;
-				if (!building->IsOnMap) continue;
-				if (TechnoExtContainer::Instance.Find(building)->AE.flags.DisableRadar) continue;
-
-				const auto pBldExt = building->_GetExtData();
-
-				if (!pBldExt->RegisteredJammers.empty()) continue;
-				if (building->EMPLockRemaining > 0) continue;
-				if (building->IsBeingWarpedOut()) continue;
-				if (building->Deactivated) continue;
-				if (building->CurrentMission == Mission::Selling) continue;
-				if (building->QueuedMission == Mission::Selling) continue;
-
-				BuildingTypeClass* pRadar = nullptr;
-
-				const auto pTypes = building->GetTypes(); // building types include upgrades
-
-				for (auto begin = pTypes.begin(); begin != pTypes.end() && *begin; ++begin) {
-
-					if (!(*begin)->Radar)
-						continue;
-
-					const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(*begin);
-					if(!pTypeExt->Radar_RequirePower || building->IsPowerOnline()){
-						pRadar = (*begin);
-						break;
-					}
-				}
-
-				if (pRadar) {
-
-					if	(pBldExt->LimboID >= 0) {
-						radarAvailable = true;
-						break;
-					}
-
-					// Extra campaign/player checks
-					const bool discoveredOrNonCampaign = building->DiscoveredByCurrentPlayer
-								|| SessionClass::Instance->GameMode != GameMode::Campaign;
-
-					if (!(campaignAI || discoveredOrNonCampaign)) continue;
-
-					radarAvailable = true;
-					break; // Found a valid radar
-				}
-            }
-        }
+void FakeHouseClass::_ApplyRadarStatus(bool available)
+{
+	if (RadarClass::Instance->IsAvailableNow != available)
+		RadarClass::Instance->UpdateRadarStatus(available);
+}
+ 
+bool FakeHouseClass::_ComputeRawRadarAvailability()
+{
+	const auto pExt = this->_GetExtData();
+ 
+	// FreeRadar is now a real OR-term instead of being readable only when
+	// ForceRadar happens to be set. This is what makes [Basic] FreeRadar work.
+	if (pExt->FreeRadar)
+		return true;
+ 
+	//         site is checked this is still charge-sensitive and will flicker.
+	if (!pExt->Batteries.empty())
+		return true;
+ 
+	// DIFF: the outer `power >= drain || !drain || ...` gate around the whole
+	//       building scan is removed. It was redundant with each building's own
+	//       IsPowerOnline() + Radar_RequirePower check, and it flipped the
+	//       entire scan on and off frame-to-frame whenever a house sat at
+	//       PowerOutput == PowerDrain. That was a second flicker source
+	//       independent of the batteries one.
+	for (int i = 0; i < this->Buildings.Count; ++i) {
+		FakeBuildingClass* const building = static_cast<FakeBuildingClass*>(this->Buildings.Items[i]);
+ 
+		if (!building)
+			continue;
+ 
+		if (!building->IsAlive)
+			continue;
+ 
+		if (building->InLimbo)
+			continue;
+ 
+		if (!building->IsOnMap)
+			continue;
+ 
+		if (TechnoExtContainer::Instance.Find(building)->AE.flags.DisableRadar)
+			continue;
+ 
+		const auto pBldExt = building->_GetExtData();
+ 
+		if (!pBldExt->RegisteredJammers.empty())
+			continue;
+ 
+		if (building->EMPLockRemaining > 0)
+			continue;
+ 
+		if (building->IsBeingWarpedOut())
+			continue;
+ 
+		if (building->Deactivated)
+			continue;
+ 
+		if (building->CurrentMission == Mission::Selling)
+			continue;
+ 
+		if (building->QueuedMission == Mission::Selling)
+			continue;
+ 
+		BuildingTypeClass* pRadar = nullptr;
+ 
+		const auto pTypes = building->GetTypes(); // includes upgrades
+ 
+		for (auto begin = pTypes.begin(); begin != pTypes.end() && *begin; ++begin) {
+			if (!(*begin)->Radar)
+				continue;
+ 
+			const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(*begin);
+ 
+			if (!pTypeExt->Radar_RequirePower || building->IsPowerOnline()) {
+				pRadar = (*begin);
+				break;
+			}
+		}
+ 
+		if (!pRadar)
+			continue;
+ 
+		// Limbo-delivered radars are never "discovered", so they bypass the
+		// campaign visibility check entirely.
+		if (pBldExt->LimboID >= 0)
+			return true;
+ 
+		// DIFF: the original computed `campaignAI = this->IsControlledByHuman()`
+		//       and then tested `campaignAI || discoveredOrNonCampaign`. Because
+		//       _UpdateRadar already returns early unless this == CurrentPlayer,
+		//       campaignAI was always true in campaign and the visibility test
+		//       was dead code. Restored to what the check was evidently for:
+		//       in campaign, an undiscovered radar building does not count for
+		//       a human player.
+		const bool isCampaign = SessionClass::Instance->GameMode == GameMode::Campaign;
+ 
+		if (isCampaign && this->IsControlledByHuman() && !building->DiscoveredByCurrentPlayer)
+			continue;
+ 
+		return true;
 	}
-
-	if (RadarClass::Instance->IsAvailableNow != radarAvailable) {
-		RadarClass::Instance->UpdateRadarStatus(radarAvailable);
-	}
+ 
+	return false;
 }
 
+void FakeHouseClass::_UpdateRadar() {
+	const auto pExt = this->_GetExtData();
+ 
+	this->RecheckRadar = 0;
+ 
+	// --- Ladder step 1 ---------------------------------------------------
+	if (this == HouseClass::Observer()) {
+		this->_ApplyRadarStatus(true);
+		return;
+	}
+ 
+	// DIFF: availability is now computed after this early-out rather than
+	//       before it. The original computed it first and discarded it for
+	//       every non-current-player house; the result was never used above
+	//       this point, so this is behaviour-preserving and cheaper.
+	if (this != HouseClass::CurrentPlayer())
+		return;
+
+	// --- Ladder step 2 ---------------------------------------------------
+	// Hard override in both directions. Skips blackout, power, buildings and
+	// the grace timer.
+	if (pExt->ForceRadar) {
+		pExt->RadarGraceTimer.Stop();
+		this->_ApplyRadarStatus(pExt->FreeRadar);
+		return;
+	}
+ 
+	// --- Ladder step 3 ---------------------------------------------------
+	// DIFF: the original passed the pre-scan availability value through during
+	//       a blackout, so a house with batteries kept its radar while jammed.
+	//       A blackout is deliberate, not noise, so it now forces unavailable
+	//       and cancels any grace.
+	//       To restore the old behaviour, replace the false below with
+	//       this->_ComputeRawRadarAvailability() minus the building scan.
+	if (this->RadarBlackoutTimer.GetTimeLeft() > 0) {
+		pExt->RadarGraceTimer.Stop();
+		this->_ApplyRadarStatus(false);
+		return;
+	}
+ 
+	// --- Ladder step 4 + hysteresis --------------------------------------
+	bool radarAvailable = this->_ComputeRawRadarAvailability();
+ 
+	if (radarAvailable) {
+		// Any provider returning cancels a pending loss immediately.
+		pExt->RadarGraceTimer.Stop();
+	} else if (RadarClass::Instance->IsAvailableNow) {
+		// Transition available -> unavailable: open the grace window.
+		const int grace = FakeRulesClass::Instance->RadarGracePeriod;
+ 
+		if (grace > 0) {
+			if (!pExt->RadarGraceTimer.HasTimeLeft())
+				pExt->RadarGraceTimer.Start(grace);
+ 
+			radarAvailable = true; // hold the old state while the window runs
+		}
+	} else if (pExt->RadarGraceTimer.HasTimeLeft()) {
+		// Window still running from a previous frame - keep holding.
+		radarAvailable = true;
+	}
+ 
+	this->_ApplyRadarStatus(radarAvailable);
+}
 DEFINE_FUNCTION_JUMP(CALL, 0x4F8505, FakeHouseClass::_UpdateRadar)
 DEFINE_FUNCTION_JUMP(LJMP, 0x508DF0, FakeHouseClass::_UpdateRadar)
 
@@ -4320,47 +4397,50 @@ void FakeHouseClass::_UpdateSpySat()
 
 #include <Ext/WarheadType/Body.h>
 
-void FakeHouseClass::_Attacked(BuildingClass* source, WarheadTypeClass* warhead) {
-
-	//Early exit for undeployable vehicles
-	if (source && source->IsStrange()) {
+void FakeHouseClass::_Attacked(BuildingClass* source, WarheadTypeClass* warhead)
+{
+	if (source && source->IsStrange())
 		return;
-	}
+ 
+	HouseClass* const pPlayer = HouseClass::CurrentPlayer();
+ 
+	const bool isPlayerHouse = this->ControlledByCurrentPlayer();
 
-	if (!warhead || (warhead && WarheadTypeExtContainer::Instance.Find(warhead)->Malicious)) {
-
-		// Determine if this is the player's house
-		const bool isPlayerHouse = this->ControlledByCurrentPlayer();
-
-		// Determine if this is an allied house under attack
-		const bool isAllyHouse = this->IsAlliedWith(HouseClass::CurrentPlayer());
-
-		CellStruct cell = CellClass::Coord2Cell(source->GetCoords());
-
-		// Handle player's house under attack
+	const bool attackerIsPassive =
+		!SessionClass::IsCampaign()
+		&& (!source || !source->Owner || !source->Owner->Type
+			|| source->Owner->Type->MultiplayPassive);
+ 
+	const bool isAllyHouse =
+		pPlayer
+		&& pPlayer != this
+		&& this->IsAlliedWith(pPlayer)
+		&& !attackerIsPassive;
+ 
+	// -------------------------------------------------------------------------
+	// EXTENSION: vanilla has no warhead parameter and always announces.
+	//            Phobos gates the announcement on Warhead.Malicious.
+	// -------------------------------------------------------------------------
+	const bool announce = !warhead
+		|| WarheadTypeExtContainer::Instance.Find(warhead)->Malicious;
+ 
+	if (announce && source) {
+		const CellStruct cell = CellClass::Coord2Cell(source->GetCoords());
+ 
 		if (isPlayerHouse) {
-			bool isHarvesterAttack = false;
-
-			// Check if this is a harvester/resource gatherer attack
-			if (source) {
-				if (source->Type->UndeploysInto && source->Type->ResourceGatherer) {
-					isHarvesterAttack = true;
-
-					if (RadarEventClass::Create(RadarEventType::HarvesterAttacked, cell)) {
-						VoxClass::Play(GameStrings::EVA_OreMinerUnderAttack());
-					}
-				}
+			const bool isHarvesterAttack = source->Type            // vanilla checks v6 != null
+				&& source->Type->UndeploysInto
+				&& source->Type->ResourceGatherer;
+ 
+			if (isHarvesterAttack) {
+				if (RadarEventClass::Create(RadarEventType::HarvesterAttacked, cell))
+					VoxClass::Play(GameStrings::EVA_OreMinerUnderAttack());
 			}
-
-			// Handle regular base attack
-			if (!isHarvesterAttack) {
-				if (RadarEventClass::Create(RadarEventType::BaseAttacked, cell)) {
-					VoxClass::Play(GameStrings::EVA_OurBaseIsUnderAttack());
-					VocClass::PlayGlobal(RulesClass::Instance->BaseUnderAttackSound, Panning::Center, 1.0, 0);
-				}
+			else if (RadarEventClass::Create(RadarEventType::BaseAttacked, cell)) {
+				VoxClass::Play(GameStrings::EVA_OurBaseIsUnderAttack());
+				VocClass::PlayGlobal(RulesClass::Instance->BaseUnderAttackSound, Panning::Center, 1.0, 0);
 			}
 		}
-		// Handle allied house under attack
 		else if (isAllyHouse) {
 			if (RadarEventClass::Create(RadarEventType::AllyBaseAttacked, cell)) {
 				VoxClass::Play(GameStrings::EVA_OurAllyIsUnderAttack());
@@ -4369,11 +4449,9 @@ void FakeHouseClass::_Attacked(BuildingClass* source, WarheadTypeClass* warhead)
 		}
 	}
 
-	// Process trigger events for being attacked
 	for (int i = 0; i < this->RelatedTags.Count; ++i) {
-		if(this->RelatedTags[i]) {
-			this->RelatedTags[i]->SpringEvent(TriggerEvent::AttackedByAnybody, nullptr, CellStruct::Empty);
-		}
+		if (TagClass* const pTag = this->RelatedTags[i])
+			pTag->SpringEvent(TriggerEvent::AttackedByAnybody, nullptr, CellStruct::Empty);
 	}
 }
 

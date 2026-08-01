@@ -250,6 +250,7 @@ void FakeRulesClass::LoadAfterTypeData(CCINIClass* pINI)
 	this->KeepRange_AllowPlayer.Read(exINI, GameStrings::General, "KeepRange.AllowPlayer");
 	this->KeepRange_EarlyStopFrame.Read(exINI, GameStrings::General, "KeepRange.EarlyStopFrame");
 	this->DestroyAnim_Random.Read(exINI, GameStrings::General, "DestroyAnim.Random");
+	this->RadarGracePeriod.Read(exINI, GameStrings::General, "RadarGracePeriod");
 }
 
 static bool NOINLINE IsVanillaDummy(const char* ID)
@@ -1300,6 +1301,7 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->KeepRange_AllowPlayer)
 		.Process(this->KeepRange_EarlyStopFrame)
 		.Process(this->DestroyAnim_Random)
+		.Process(this->RadarGracePeriod)
 	;
 }
 

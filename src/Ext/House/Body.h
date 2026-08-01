@@ -361,6 +361,7 @@ public:
 	CDTimerClass CombatAlertTimer {};
 	CDTimerClass AISellAllDelayTimer {};
 	CDTimerClass AISuperWeaponDelayTimer {};
+	CDTimerClass RadarGraceTimer {};
 
 	// ============================================================
 	// Nullable<bool> (bool + bool ≈ 2-4 bytes)
@@ -706,7 +707,11 @@ public:
 	void _AITryFireSW();
 	void _BlowUpAll();
 	void _BlowUpAllBuildings();
+	
 	void _UpdateRadar();
+	void _ApplyRadarStatus(bool available);
+	bool _ComputeRawRadarAvailability();
+
 	void _UpdateSpySat();
 	void _Attacked(BuildingClass* source, WarheadTypeClass* warhead);
 	static void __fastcall __SuperWeaponHandler(HouseClass* pHouse);
