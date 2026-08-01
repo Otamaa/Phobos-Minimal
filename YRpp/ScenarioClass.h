@@ -146,8 +146,8 @@ public:
 	static int __fastcall DoLose() JMP_FAST(0x685DC0);
 	static int __fastcall DoRestart() JMP_FAST(0x6863E0);
 	static int __fastcall DoAbort() JMP_FAST(0x686570);
-	static bool __fastcall ReadScenarioINI(CCINIClass* pFilename) JMP_FAST(0x686730);
-	static bool __fastcall ReadScenarioINI(CCINIClass* INI, char a2) JMP_FAST(0x686B20);
+	static bool __fastcall ReadScenarioINI(char* pFilename, bool something) JMP_FAST(0x686730);
+	static bool __fastcall ReadNextScenarioINI(CCINIClass* INI) JMP_FAST(0x686B20);
 	static int __fastcall  WriteScenarioINI(const char* pFilename, bool bUnk) JMP_FAST(0x687CE0);
 
 	static void __fastcall ScenStruct_CTOR(DWORD dwUnk) JMP_FAST(0x688380);

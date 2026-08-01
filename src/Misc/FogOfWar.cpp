@@ -6,6 +6,9 @@
 
 #include <Misc/MapRevealer.h>
 
+#include <Utilities/Macro.h>
+#include <Utilities/Patch.h>
+
 #include <AnimClass.h>
 #include <TerrainClass.h>
 #include <ScenarioClass.h>
@@ -27,7 +30,7 @@ ASMJIT_PATCH(0x6B8E7A, ScenarioClass_LoadSpecialFlags, 0x5)
 	return 0x6B8E8B;
 }
 
-ASMJIT_PATCH(0x686C03, SetScenarioFlags_FogOfWar, 0x5)
+ASMJIT_PATCH(0x686C03, SetScenarioFlags_FogOfWar, 0x6)
 {
 	GET(ScenarioFlags, SFlags, EAX);
 
@@ -105,19 +108,17 @@ ASMJIT_PATCH(0x4804A4, CellClass_DrawTile_DrawSmudgeIfVisible, 0x6)
 	return pThis->IsFogged() ? 0x4804FB : 0;
 }
 
-ASMJIT_PATCH(0x5865E2, MapClass_IsLocationFogged, 0x3)
+bool __fastcall __MapClass_IsFogged(MapClass* pThis , discard_t, CoordStruct* pCoord)
 {
-	GET_STACK(CoordStruct*, pCoord, 0x4);
-
 	MapRevealer revealer(*pCoord);
-	auto pCell = MapClass::Instance->GetCellAt(revealer.Base());
+	auto pCell = pThis->GetCellAt(revealer.Base());
 
-	R->EAX(pCell->Flags & CellFlags::EdgeRevealed ?
+	return pCell->Flags & CellFlags::EdgeRevealed ?
 		false :
-		!(pCell->GetNeighbourCell(FacingType::SouthEast)->Flags & CellFlags::EdgeRevealed));
-
-	return 0;
+		!(pCell->GetNeighbourCell(FacingType::SouthEast)->Flags & CellFlags::EdgeRevealed);
 }
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x5865E0 , __MapClass_IsFogged)
 
 ASMJIT_PATCH(0x6D7A4F, TacticalClass_DrawPixelEffects_FullFogged, 0x6)
 {
@@ -145,13 +146,8 @@ ASMJIT_PATCH(0x4ACE3C, MapClass_TryReshroudCell_SetCopyFlag, 0x6)
 	return 0x4ACE57;
 }
 
-ASMJIT_PATCH(0x4A9CA0, MapClass_RevealFogShroud, 0x8)
+bool __fastcall __MapClass_RevealFogShroud(MapClass* pThis , discard_t, CellStruct* pMapCoords, HouseClass* pHouse  , bool bIncreaseShroudCounter)
 {
-	GET(MapClass*, pThis, ECX);
-	GET_STACK(CellStruct*, pMapCoords, 0x4);
-	GET_STACK(HouseClass*, pHouse, 0x8);
-	GET_STACK(bool, bIncreaseShroudCounter, 0xC);
-
 	auto const pCell = pThis->GetCellAt(*pMapCoords);
 	bool bRevealed = false;
 	bool const bShouldCleanFog = !(pCell->Flags & CellFlags::EdgeRevealed);
@@ -196,22 +192,19 @@ ASMJIT_PATCH(0x4A9CA0, MapClass_RevealFogShroud, 0x8)
 	if (bShouldCleanFog)
 		pCell->CleanFog();
 
-	R->EAX(bRevealed);
-
-	return 0x4A9DC6;
+	return bRevealed;
 }
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x4A9CA0, __MapClass_RevealFogShroud)
 
 #ifndef _ReplaceFoggedObject
 
 // CellClass_CleanFog
-ASMJIT_PATCH(0x486C50, CellClass_ClearFoggedObjects, 0x6)
-{
-	GET(CellClass*, pThis, ECX);
+void __fastcall __Celllass_ClearFoggedObject(CellClass* pThis) {
 
 	auto pExt = CellExtContainer::Instance.Find(pThis);
 
-	for (auto const pObject : pExt->FoggedObjects)
-	{
+	for (auto const pObject : pExt->FoggedObjects) {
 		if (pObject->CoveredType == FoggedObject::CoveredType::Building)
 		{
 			auto pRealCell = MapClass::Instance->GetCellAt(pObject->Location);
@@ -234,31 +227,24 @@ ASMJIT_PATCH(0x486C50, CellClass_ClearFoggedObjects, 0x6)
 		}
 		GameDelete(pObject);
 	}
-	pExt->FoggedObjects.clear();
 
-	return 0x486D8A;
+	pExt->FoggedObjects.clear();
 }
 
-ASMJIT_PATCH(0x486A70, CellClass_FogCell, 0x5)
-{
-	GET(CellClass*, pThis, ECX);
+DEFINE_FUNCTION_JUMP(LJMP, 0x486C50, __Celllass_ClearFoggedObject)
 
-	if (ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar)
-	{
+void __fastcall __Celllass_FogCell(CellClass* pThis){
+if (ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar) {
 		auto location = pThis->MapCoords;
-		for (int i = 1; i < 15; i += 2)
-		{
+		for (int i = 1; i < 15; i += 2) {
 			auto pCell = MapClass::Instance->GetCellAt(location);
 			auto nLevel = pCell->Level;
 
-			if (nLevel >= i - 2 && nLevel <= i)
-			{
-				if (!(pCell->Flags & CellFlags::Fogged))
-				{
+			if (nLevel >= i - 2 && nLevel <= i) {
+				if (!(pCell->Flags & CellFlags::Fogged)) {
 					pCell->Flags |= CellFlags::Fogged;
 
-					for (auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject)
-					{
+					for (auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject) {
 						switch (pObject->WhatAmI())
 						{
 						case AbstractType::Unit:
@@ -305,9 +291,9 @@ ASMJIT_PATCH(0x486A70, CellClass_FogCell, 0x5)
 			++location.Y;
 		}
 	}
-
-	return 0x486BE6;
 }
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x486A70, __Celllass_FogCell)
 
 ASMJIT_PATCH(0x457AA0, BuildingClass_FreezeInFog, 0x5)
 {
@@ -540,7 +526,7 @@ ASMJIT_PATCH(0x4FC1FF, HouseClass_PlayerDefeated_MapReveal, 0x6)
 {
 	GET(HouseClass*, pHouse, ESI);
 
-	*(int*)0xA8B538 = 1;
+	Unsorted::MuteSWLaunches = 1;
 	MapClass::Instance->Reveal(pHouse);
 
 	return 0x4FC214;

@@ -12,41 +12,52 @@
 HelperedVector<FoggedObject*> FoggedObject::FoggedObjects;
 char FoggedObject::BuildingVXLDrawer[sizeof(BuildingClass)];
 
-void FoggedObject::SaveGlobal(IStream* pStm)
+HRESULT FoggedObject::SaveGlobal(IStream* pStm)
 {
+	HRESULT hr;
 	const int _szWrite = FoggedObjects.size();
 
-	pStm->Write(&_szWrite, sizeof(_szWrite), nullptr);
+	hr = pStm->Write(&_szWrite, sizeof(_szWrite), nullptr);
+	if (FAILED(hr)) return hr;
 
 	for (auto const pObject : FoggedObjects) {
-		pStm->Write(&pObject, sizeof(pObject), nullptr);
+		hr = pStm->Write(&pObject, sizeof(pObject), nullptr);
+		if (FAILED(hr)) return hr;
 		pObject->Save(pStm);
 	}
 
-	pStm->Write(BuildingVXLDrawer, sizeof(BuildingVXLDrawer), nullptr);
+	hr = pStm->Write(BuildingVXLDrawer, sizeof(BuildingVXLDrawer), nullptr);
+	return hr;
 }
 
-void FoggedObject::LoadGlobal(IStream* pStm)
+HRESULT FoggedObject::LoadGlobal(IStream* pStm)
 {
-	int nCount;
-	pStm->Read(&nCount, sizeof(nCount), nullptr);
+	HRESULT hr;
+	int count;
+	hr = pStm->Read(&count, sizeof(count), nullptr);
+	if (FAILED(hr)) return hr;
 
-	while (nCount--) {
-		auto pObject = GameCreate<FoggedObject>();
-		long pOldObject;
-		pStm->Read(&pOldObject, sizeof(pOldObject), nullptr);
-		SwizzleManagerClass::Instance->Here_I_Am(pOldObject, pObject);
-		pObject->Load(pStm);
-	}
+		for (int i = 0; i < count; ++i) {
+			auto pObject = GameCreate<FoggedObject>();
+			long pOldObject;
+			hr = pStm->Read(&pOldObject, sizeof(pOldObject), nullptr);
+			if (FAILED(hr)) return hr;
 
-	pStm->Read(BuildingVXLDrawer, sizeof(BuildingVXLDrawer), nullptr);
+			SwizzleManagerClass::Instance->Here_I_Am(pOldObject, pObject);
+			hr =  pObject->Load(pStm);
+			if (FAILED(hr)) return hr;
+		}
+
+
+	hr = pStm->Read(BuildingVXLDrawer, sizeof(BuildingVXLDrawer), nullptr);
+	return hr;
 }
 
 void FoggedObject::Clear()
 {
-	for (auto pObj : FoggedObjects) {
-		GameDelete(pObj);
-	}
+	//for (auto pObj : FoggedObjects) {
+	//	GameDelete(pObj);
+	//}
 
 	FoggedObjects.clear();
 }
@@ -170,30 +181,31 @@ FoggedObject::FoggedObject(CellClass* pCell, bool IsOverlay) noexcept
 	FoggedObjects.push_back(this);
 }
 
-void FoggedObject::Load(IStream* pStm)
+HRESULT FoggedObject::Load(IStream* pStm)
 {
-	pStm->Read(this, sizeof(FoggedObject), nullptr);\
+	HRESULT hr;
+	hr = pStm->Read(this, sizeof(FoggedObject), nullptr);
+	if (FAILED(hr)) return hr;
 
 	if (CoveredType == CoveredType::Building)
 	{
 		SWIZZLE(BuildingData.Owner);
 		SWIZZLE(BuildingData.Type);
-		for (auto& Anim : BuildingData.Anims)
-		{
+		for (auto& Anim : BuildingData.Anims) {
 			if (!Anim.AnimType)
 				break;
 			SWIZZLE(Anim.AnimType);
 		}
-	}
-	else if (CoveredType == CoveredType::Terrain)
-	{
+	} else if (CoveredType == CoveredType::Terrain) {
 		SWIZZLE(TerrainData.Type);
 	}
+
+	return hr;
 }
 
-void FoggedObject::Save(IStream* pStm)
+HRESULT FoggedObject::Save(IStream* pStm)
 {
-	pStm->Write(this, sizeof(FoggedObject), nullptr);
+	return pStm->Write(this, sizeof(FoggedObject), nullptr);
 }
 
 FoggedObject::~FoggedObject()
@@ -527,29 +539,4 @@ void FoggedObject::RenderAsTerrain(const RectangleStruct& viewRect) const
 				&viewRect, blitterFlag | BlitterFlags::Darken, 0, nZAdjust - 3,
 				ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 	}
-}
-
-DEFINE_HOOK(0x67D32C, Put_All_FoggedObjects, 0x5)
-{
-	GET(IStream*, pStm, ESI);
-
-	FoggedObject::SaveGlobal(pStm);
-
-	return 0;
-}
-
-DEFINE_HOOK(0x67E826, Decode_All_FoggedObjects, 0x6)
-{
-	GET(IStream*, pStm, ESI);
-
-	FoggedObject::LoadGlobal(pStm);
-
-	return 0;
-}
-
-DEFINE_HOOK(0x685659, Clear_Scenario_FoggedObjects, 0xA)
-{
-	FoggedObject::FoggedObjects.clear();
-
-	return 0;
 }

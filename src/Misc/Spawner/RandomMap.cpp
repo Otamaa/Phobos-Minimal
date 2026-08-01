@@ -29,8 +29,8 @@
 ASMJIT_PATCH(0x6849C9, ReadScenario_RandomMap, 0x5)
 {
 	// Vanilla Instructions
-	GET(CCINIClass*, pINI, ECX);
-	R->EAX(ScenarioClass::ReadScenarioINI(pINI));
+	GET(char*, pName, ECX);
+	R->EAX(ScenarioClass::ReadScenarioINI(pName, 1));
 
 	if (SpawnerMain::Configs::Enabled && ScenarioClass::Instance->IsRandom)
 		return 0x68496B;
@@ -38,7 +38,7 @@ ASMJIT_PATCH(0x6849C9, ReadScenario_RandomMap, 0x5)
 	return 0x6849C9 + 0x5;
 }
 
-ASMJIT_PATCH(0x686C48, ReadScenarioINI_RandomMap, 0x8)
+ASMJIT_PATCH(0x686C48, ReadNextScenarioINI_RandomMap, 0x8)
 {
 	if (SpawnerMain::Configs::Enabled && !ScenarioClass::Instance->IsRandom)
 	{

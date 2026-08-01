@@ -14,8 +14,8 @@ class FoggedObject
 public:
 	static HelperedVector<FoggedObject*> FoggedObjects;
 
-	static void SaveGlobal(IStream* pStm);
-	static void LoadGlobal(IStream* pStm);
+	static HRESULT SaveGlobal(IStream* pStm);
+	static HRESULT LoadGlobal(IStream* pStm);
 
 	static void Clear();
 
@@ -26,8 +26,8 @@ public:
 	// Handles Smudge and Overlay Construct
 	explicit FoggedObject(CellClass* pCell, bool IsOverlay) noexcept;
 
-	void Load(IStream* pStm);
-	void Save(IStream* pStm);
+	HRESULT Load(IStream* pStm);
+	HRESULT Save(IStream* pStm);
 
 	//Destructor
 	virtual ~FoggedObject();
@@ -53,9 +53,9 @@ public:
 		Overlay
 	};
 
-	CoordStruct Location;
-	CoveredType CoveredType;
-	RectangleStruct Bound;
+	CoordStruct Location {};
+	CoveredType CoveredType {};
+	RectangleStruct Bound {};
 	bool Visible { true };
 
 	union
@@ -65,12 +65,14 @@ public:
 			int Overlay;
 			unsigned char OverlayData;
 		} OverlayData;
+
 		struct
 		{
 			TerrainTypeClass* Type;
 			int Frame;
 			bool Flat;
 		} TerrainData;
+
 		struct
 		{
 			HouseClass* Owner;
@@ -89,11 +91,14 @@ public:
 				int ZAdjust;
 			} Anims[21];
 		} BuildingData;
+
 		struct
 		{
 			int Smudge;
 			int SmudgeData;
 			int Height;
 		} SmudgeData;
+
+		BYTE _All[sizeof(BuildingData)];
 	};
 };

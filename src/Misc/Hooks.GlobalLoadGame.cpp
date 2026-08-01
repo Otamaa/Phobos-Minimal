@@ -78,6 +78,7 @@
 #include <New/Entity/FlyingStrings.h>
 #include <New/Entity/SWFirerClass.h>
 #include <New/Entity/BannerClass.h>
+#include <New/Entity/FoggedObject.h>
 
 #include <Misc/PhobosGlobal.h>
 
@@ -683,6 +684,11 @@ HRESULT Decode_All_Pointers(LPSTREAM stream)
 	hr = RulesClass::Instance->Load(stream);
 	if (!SUCCEEDED(hr)) { Debug::Log("[Decode] FAILED RulesClass (hr=0x%08X)\n", hr); return hr; }
 	Debug::Log("[Decode] OK RulesClass\n");
+
+	Debug::Log("[Decode] Loading FoggedObject ...\n");
+	hr = FoggedObject::LoadGlobal(stream);
+	if (!SUCCEEDED(hr)) { Debug::Log("[Decode] FAILED FoggedObject (hr=0x%08X)\n", hr); return hr; }
+	Debug::Log("[Decode] OK FoggedObject\n");
 
 	Debug::Log("[Decode] Loading MouseClass ...\n");
 	hr = MouseClass::Instance->Load(stream);

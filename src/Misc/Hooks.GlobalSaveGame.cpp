@@ -80,6 +80,7 @@
 #include <New/Entity/FlyingStrings.h>
 #include <New/Entity/SWFirerClass.h>
 #include <New/Entity/BannerClass.h>
+#include <New/Entity/FoggedObject.h>
 
 #include <Misc/PhobosGlobal.h>
 
@@ -600,6 +601,9 @@ HRESULT Put_All_Pointers(LPSTREAM pStm)
 
 	hr = RulesClass::Instance->Save(pStm);
 	if (!SUCCEEDED(hr)) return hr;
+
+	hr = FoggedObject::SaveGlobal(pStm);
+	if (!SUCCEEDED(hr)) { return hr; }
 
 	hr = MouseClass::Instance->Save(pStm);
 	if (!SUCCEEDED(hr)) return hr;

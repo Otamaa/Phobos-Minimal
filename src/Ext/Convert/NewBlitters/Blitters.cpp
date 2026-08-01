@@ -265,7 +265,7 @@ public:
 	}
 };
 
-#ifdef _Integrate
+#ifdef ___Integrate
 
 // ============================================================================
 //  AlphaBlitState_TLS.cpp

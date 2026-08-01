@@ -1725,9 +1725,9 @@ void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 	};
 
 	auto ReadAsDouble= [] (float& val, INI_EX& exINI, const char* pSection, const char* pKey , float* default_val = nullptr){
-		double buffer = (float)val;
+		double buffer = (double)val;
 		if(detail::read<double>(buffer, exINI , pSection, pKey))
-			val = (int)buffer;
+			val = (float)buffer;
 		else if(default_val)
 			val = *default_val;
 	};

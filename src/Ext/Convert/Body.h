@@ -6,7 +6,7 @@ class ConvertExtData
 {
 public:
 
-	SHPReference* AttachedToObject;
+	ConvertClass* AttachedToObject;
 	Blitter* Blitters[18];
 	RLEBlitter* RLEBlitters[18];
 };
