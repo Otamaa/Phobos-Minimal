@@ -1302,6 +1302,7 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->KeepRange_EarlyStopFrame)
 		.Process(this->DestroyAnim_Random)
 		.Process(this->RadarGracePeriod)
+		.Process(this->NoAlphaImageOnBuildup)
 	;
 }
 
@@ -3428,7 +3429,7 @@ void FakeRulesClass::_ReadAudioVisual(CCINIClass* pINI)
 	this->PoseDir_Field.Read(exINI, section, "PoseDir.Field");
 
 	this->DigitalDisplay_Health_FakeAtDisguise.Read(exINI, GameStrings::AudioVisual, "DigitalDisplay.Health.FakeAtDisguise");
-
+	this->NoAlphaImageOnBuildup.Read(exINI, GameStrings::AudioVisual, "NoAlphaImageOnBuildup");
 }
 
 void FakeRulesClass::_ReadCrateRules(CCINIClass* pINI)

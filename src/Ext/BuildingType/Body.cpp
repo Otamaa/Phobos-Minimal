@@ -1709,6 +1709,8 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->FactoryPlant_AllowTypes.Read(exINI, pSection, "FactoryPlant.AllowTypes");
 		this->FactoryPlant_DisallowTypes.Read(exINI, pSection, "FactoryPlant.DisallowTypes");
 
+		this->NoAlphaImageOnBuildup.Read(exINI, pSection, "NoAlphaImageOnBuildup");
+
 		if (Phobos::Otamaa::CompatibilityMode) {
 			if (pThis->NumberOfDocks > 0)
 			{
@@ -2266,7 +2268,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->StartFacing_Random)
 
 		.Process(this->SetTabBySelecting)
-
+		.Process(this->NoAlphaImageOnBuildup)
 		;
 }
 #else

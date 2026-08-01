@@ -1,14 +1,20 @@
 #pragma once
-
-#include <AbstractClass.h>
-#include <BuildingClass.h>
+#include <Utilities/VectorHelper.h>
 
 #include <FacingClass.h>
+#include <RectangleStruct.h>
+#include <CoordStruct.h>
+#include <CellStruct.h>
+#include <RecoilData.h>
 
-#include <Ext/Cell/Body.h>
-
+class AnimTypeClass;
+class BuildingClass;
+class BuildingTypeClass;
+class CellClass;
 class TerrainClass;
 class TerrainTypeClass;
+struct IStream;
+class HouseClass;
 class FoggedObject
 {
 public:
@@ -22,28 +28,29 @@ public:
 	explicit FoggedObject() noexcept;
 	explicit FoggedObject(BuildingClass* pBld, bool IsVisible) noexcept;
 	explicit FoggedObject(TerrainClass* pTerrain) noexcept;
-
-	// Handles Smudge and Overlay Construct
 	explicit FoggedObject(CellClass* pCell, bool IsOverlay) noexcept;
 
 	HRESULT Load(IStream* pStm);
 	HRESULT Save(IStream* pStm);
 
-	//Destructor
 	virtual ~FoggedObject();
 
 	void Render(const RectangleStruct& viewRect) const;
 
-	static RectangleStruct Union(const RectangleStruct& rect1, const RectangleStruct& rect2);
-protected:
-	inline int GetIndexID() const;
+	static void RenderAll(const RectangleStruct& viewRect);
+	static void SortForRender();
 
+	static RectangleStruct Union(const RectangleStruct& rect1, const RectangleStruct& rect2);
+
+	inline int GetIndexID() const;
+protected:
 	void RenderAsBuilding(const RectangleStruct& viewRect) const;
 	void RenderAsSmudge(const RectangleStruct& viewRect) const;
 	void RenderAsOverlay(const RectangleStruct& viewRect) const;
 	void RenderAsTerrain(const RectangleStruct& viewRect) const;
 
-	static char BuildingVXLDrawer[sizeof(BuildingClass)];
+	static char BuildingVXLDrawer[1824];
+	static bool BuildingVXLDrawerReady;
 public:
 	enum class CoveredType : char
 	{
@@ -77,8 +84,13 @@ public:
 		{
 			HouseClass* Owner;
 			BuildingTypeClass* Type;
+
+			CellStruct BaseCoords;
+
 			int ShapeFrame;
 			FacingClass PrimaryFacing;
+			FacingClass SecondaryFacing;
+
 			FacingClass BarrelFacing;
 			RecoilData TurretRecoil;
 			RecoilData BarrelRecoil;

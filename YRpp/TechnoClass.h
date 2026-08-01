@@ -12,6 +12,7 @@
 #include <DoorClass.h>
 #include <FacingClass.h>
 #include <ParticleSystemClass.h>
+#include <RecoilData.h>
 
 enum class ProtectTypes : int
 {
@@ -201,28 +202,6 @@ struct FlashData
 		{ JMP_THIS(0x4CC770); }
 };
 static_assert(sizeof(FlashData) == 0x8);
-
-struct RecoilData
-{
-	enum class RecoilState : unsigned int {
-		Inactive = 0,
-		Compressing = 1,
-		Holding = 2,
-		Recovering = 3,
-	};
-
-	TurretControl Turret;
-	float TravelPerFrame;
-	float TravelSoFar;
-	RecoilState State;
-	int TravelFramesLeft;
-
-	void Update()
-		{ JMP_THIS(0x70ED10); }
-
-	void Fire()
-		{ JMP_THIS(0x70ECE0); }
-};
 
 class NOVTABLE TechnoClass : public RadioClass
 {

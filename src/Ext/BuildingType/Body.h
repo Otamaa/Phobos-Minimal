@@ -379,6 +379,8 @@ public:
 
 	bool FoundationPowerTextShowLong {};
 	bool FoundationPrimaryFactoryTextShowLong {};
+
+	Nullable<bool> NoAlphaImageOnBuildup {};
 #pragma endregion
 
 public:

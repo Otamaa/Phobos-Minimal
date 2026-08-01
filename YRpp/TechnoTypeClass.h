@@ -7,6 +7,7 @@
 #include <ObjectTypeClass.h>
 #include <RulesClass.h>
 #include <WeaponTypeClass.h>
+#include <TurretControl.h>
 
 //forward declarations
 class AircraftTypeClass;
@@ -82,14 +83,6 @@ struct JumpjetProperties
 			NoWobbles != that.NoWobbles ||
 			Deviation != that.Deviation;
 	}
-};
-
-struct TurretControl
-{
-	int Travel;
-	int CompressFrames;
-	int RecoverFrames;
-	int HoldFrames;
 };
 
 struct WeaponStruct

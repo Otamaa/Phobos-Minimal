@@ -108,7 +108,7 @@ ASMJIT_PATCH(0x4804A4, CellClass_DrawTile_DrawSmudgeIfVisible, 0x6)
 	return pThis->IsFogged() ? 0x4804FB : 0;
 }
 
-bool __fastcall __MapClass_IsFogged(MapClass* pThis , discard_t, CoordStruct* pCoord)
+bool __fastcall __MapClass_IsFogged(MapClass* pThis, discard_t, CoordStruct* pCoord)
 {
 	MapRevealer revealer(*pCoord);
 	auto pCell = pThis->GetCellAt(revealer.Base());
@@ -118,7 +118,7 @@ bool __fastcall __MapClass_IsFogged(MapClass* pThis , discard_t, CoordStruct* pC
 		!(pCell->GetNeighbourCell(FacingType::SouthEast)->Flags & CellFlags::EdgeRevealed);
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x5865E0 , __MapClass_IsFogged)
+DEFINE_FUNCTION_JUMP(LJMP, 0x5865E0, __MapClass_IsFogged)
 
 ASMJIT_PATCH(0x6D7A4F, TacticalClass_DrawPixelEffects_FullFogged, 0x6)
 {
@@ -146,7 +146,7 @@ ASMJIT_PATCH(0x4ACE3C, MapClass_TryReshroudCell_SetCopyFlag, 0x6)
 	return 0x4ACE57;
 }
 
-bool __fastcall __MapClass_RevealFogShroud(MapClass* pThis , discard_t, CellStruct* pMapCoords, HouseClass* pHouse  , bool bIncreaseShroudCounter)
+bool __fastcall __MapClass_RevealFogShroud(MapClass* pThis, discard_t, CellStruct* pMapCoords, HouseClass* pHouse, bool bIncreaseShroudCounter)
 {
 	auto const pCell = pThis->GetCellAt(*pMapCoords);
 	bool bRevealed = false;
@@ -158,7 +158,7 @@ bool __fastcall __MapClass_RevealFogShroud(MapClass* pThis , discard_t, CellStru
 	bool const bWasRevealed = bRevealed;
 
 	pCell->Flags = pCell->Flags & ~CellFlags::IsPlot | CellFlags::EdgeRevealed;
-	pCell->AltFlags = pCell->AltFlags & ~AltCellFlags::NoFog | AltCellFlags::Mapped;
+	pCell->AltFlags = pCell->AltFlags & ~AltCellFlags::Unknown_20 | AltCellFlags::Mapped;
 
 	if (bIncreaseShroudCounter)
 		pCell->IncreaseShroudCounter();
@@ -189,7 +189,7 @@ bool __fastcall __MapClass_RevealFogShroud(MapClass* pThis , discard_t, CellStru
 		pThis->RevealCheck(pCell, pHouse, bWasRevealed);
 	}
 
-	if (bShouldCleanFog)
+	if ((bShouldCleanFog || (pCell->Flags & CellFlags::Fogged)) && ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar)
 		pCell->CleanFog();
 
 	return bRevealed;
@@ -199,102 +199,116 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x4A9CA0, __MapClass_RevealFogShroud)
 
 #ifndef _ReplaceFoggedObject
 
-// CellClass_CleanFog
-void __fastcall __Celllass_ClearFoggedObject(CellClass* pThis) {
+// CellClass::ClearFoggedObjects @ 0x486C50
+//
+// Vanilla walks the cell's DynamicVectorClass<FoggedObjectClass*> backwards, and for
+// each entry derives the foundation origin with Coord2Cell(pObj->Location) before
+// removing the pointer from every *other* covered cell, then deletes it. It does NOT
+// clear CellFlags::Fogged - that is done by the caller, CellClass::CleanFog (0x486BF0).
+void __fastcall __Celllass_ClearFoggedObject(CellClass* pThis)
+{
 
 	auto pExt = CellExtContainer::Instance.Find(pThis);
 
-	for (auto const pObject : pExt->FoggedObjects) {
-		if (pObject->CoveredType == FoggedObject::CoveredType::Building)
-		{
-			auto pRealCell = MapClass::Instance->GetCellAt(pObject->Location);
+	auto const snapshot = pExt->FoggedObjects;
+	pExt->FoggedObjects.clear();
+
+	for (auto const pObject : snapshot) {
+		if (pObject->CoveredType == FoggedObject::CoveredType::Building) {
+			auto const baseCoords = pObject->BuildingData.BaseCoords;
 
 			for (auto pFoundation = pObject->BuildingData.Type->GetFoundationData(false);
 				pFoundation->X != 0x7FFF || pFoundation->Y != 0x7FFF;
 				++pFoundation)
 			{
-				CellStruct mapCoord =
+				CellStruct const mapCoord
 				{
-					pRealCell->MapCoords.X + pFoundation->X,
-					pRealCell->MapCoords.Y + pFoundation->Y
+					static_cast<short>(baseCoords.X + pFoundation->X),
+					static_cast<short>(baseCoords.Y + pFoundation->Y)
 				};
 
-				auto pCell = MapClass::Instance->GetCellAt(mapCoord);
-				if (pCell != pThis)
+				auto pCell = MapClass::Instance->TryGetCellAt(mapCoord);
+				if (pCell && pCell != pThis)
 					CellExtContainer::Instance.Find(pCell)->FoggedObjects.remove(pObject);
 			}
-
 		}
-		GameDelete(pObject);
-	}
 
-	pExt->FoggedObjects.clear();
+		GameDelete<true, false>(pObject);
+	}
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x486C50, __Celllass_ClearFoggedObject)
 
-void __fastcall __Celllass_FogCell(CellClass* pThis){
-if (ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar) {
-		auto location = pThis->MapCoords;
-		for (int i = 1; i < 15; i += 2) {
-			auto pCell = MapClass::Instance->GetCellAt(location);
-			auto nLevel = pCell->Level;
+// CellClass::FogCell @ 0x486A70
+void __fastcall __Celllass_FogCell(CellClass* pThis)
+{
+	if (!ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar)
+		return;
 
-			if (nLevel >= i - 2 && nLevel <= i) {
-				if (!(pCell->Flags & CellFlags::Fogged)) {
-					pCell->Flags |= CellFlags::Fogged;
+	auto location = pThis->MapCoords;
 
-					for (auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject) {
-						switch (pObject->WhatAmI())
-						{
-						case AbstractType::Unit:
-						case AbstractType::Infantry:
-						case AbstractType::Aircraft:
-							pObject->Deselect();
-							break;
+	for (int i = 1; i < 15; i += 2) {
+		auto pCell = MapClass::Instance->TryGetCellAt(location);
+		if (!pCell)
+			break;
 
-						case AbstractType::Building:
-							if (auto pBld = cast_to<BuildingClass*>(pObject))
-							{
-								if (pBld->IsAllFogged())
-									pBld->FreezeInFog(nullptr, pCell, !pBld->IsStrange() && pBld->Translucency != 15);
-							}
-							break;
+		auto const nLevel = pCell->Level;
 
-						case AbstractType::Terrain:
-							if (auto pTerrain = cast_to<TerrainClass*>(pObject))
-							{
-								// pTerrain
-								auto pFoggedTer = GameCreate<FoggedObject>(pTerrain);
-								CellExtContainer::Instance.Find(pCell)->FoggedObjects.push_back(pFoggedTer);
-							}
-							break;
+		if (nLevel >= i - 2 && nLevel <= i && !(pCell->Flags & CellFlags::Fogged)) {
+			pCell->Flags |= CellFlags::Fogged;
 
-						default:
-							continue;
-						}
-					}
-					if (pCell->OverlayTypeIndex != -1)
+			for (auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject) {
+				switch (pObject->WhatAmI())
+				{
+				case AbstractType::Unit:
+				case AbstractType::Infantry:
+				case AbstractType::Aircraft:
+					pObject->Deselect();
+					break;
+
+				case AbstractType::Building:
+					if (auto pBld = cast_to<BuildingClass*>(pObject))
 					{
-						auto pFoggedOvl = GameCreate<FoggedObject>(pCell, true);
-						CellExtContainer::Instance.Find(pCell)->FoggedObjects.push_back(pFoggedOvl);
+						if (pBld->IsAllFogged())
+							pBld->FreezeInFog(nullptr, pCell, !pBld->IsStrange() && pBld->Translucency != 15);					
 					}
-					if (pCell->SmudgeTypeIndex != -1)
+					break;
+
+				case AbstractType::Terrain:
+					if (auto pTerrain = cast_to<TerrainClass*>(pObject))
 					{
-						auto pFoggedSmu = GameCreate<FoggedObject>(pCell, false);
-						CellExtContainer::Instance.Find(pCell)->FoggedObjects.push_back(pFoggedSmu);
+						auto pFoggedTer = GameCreate<FoggedObject>(pTerrain);
+						CellExtContainer::Instance.Find(pCell)->FoggedObjects.push_back(pFoggedTer);
 					}
+					break;
+
+				default:
+					break;
 				}
 			}
-
-			++location.X;
-			++location.Y;
+			if (pCell->OverlayTypeIndex != -1)
+			{
+				auto pFoggedOvl = GameCreate<FoggedObject>(pCell, true);
+				CellExtContainer::Instance.Find(pCell)->FoggedObjects.push_back(pFoggedOvl);
+			}
+			if (pCell->SmudgeTypeIndex != -1)
+			{
+				auto pFoggedSmu = GameCreate<FoggedObject>(pCell, false);
+				CellExtContainer::Instance.Find(pCell)->FoggedObjects.push_back(pFoggedSmu);
+			}
 		}
+
+		++location.X;
+		++location.Y;
 	}
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x486A70, __Celllass_FogCell)
 
+// BuildingClass::FreezeInFog @ 0x457AA0
+//   void __thiscall (DynamicVectorClass<FoggedObjectClass*>* pArray, CellClass* pCell, bool Visible)
+//   `retn 0Ch` -> three stack arguments, so 0x4 / 0x8 / 0xC at the entry hook.
+//   (Earlier suspicion that these offsets were shifted was wrong - they are correct.)
 ASMJIT_PATCH(0x457AA0, BuildingClass_FreezeInFog, 0x5)
 {
 	GET(BuildingClass*, pThis, ECX);
@@ -308,15 +322,23 @@ ASMJIT_PATCH(0x457AA0, BuildingClass_FreezeInFog, 0x5)
 	auto pFoggedBld = GameCreate<FoggedObject>(pThis, IsVisible);
 	CellExtContainer::Instance.Find(pCell)->FoggedObjects.push_back(pFoggedBld);
 
-	auto MapCoords = pThis->GetMapCoords();
+	// Vanilla derives the foundation origin from vtable+0x1B8 (GetMapCoords). The
+	// FoggedObject captured exactly that in its constructor; reuse it so this loop and
+	// __Celllass_ClearFoggedObject provably walk the identical cell set.
+	auto const MapCoords = pFoggedBld->BuildingData.BaseCoords;
 
 	for (auto pFoundation = pThis->Type->GetFoundationData(false);
 		pFoundation->X != 0x7FFF || pFoundation->Y != 0x7FFF;
 		++pFoundation)
 	{
-		CellStruct currentMapCoord { MapCoords.X + pFoundation->X,MapCoords.Y + pFoundation->Y };
-		auto pCurrentCell = MapClass::Instance->GetCellAt(currentMapCoord);
-		if (pCurrentCell != pCell)
+		CellStruct const currentMapCoord
+		{
+			static_cast<short>(MapCoords.X + pFoundation->X),
+			static_cast<short>(MapCoords.Y + pFoundation->Y)
+		};
+
+		auto pCurrentCell = MapClass::Instance->TryGetCellAt(currentMapCoord);
+		if (pCurrentCell && pCurrentCell != pCell)
 			CellExtContainer::Instance.Find(pCurrentCell)->FoggedObjects.push_back(pFoggedBld);
 	}
 
@@ -400,8 +422,8 @@ ASMJIT_PATCH(0x6D3470, TacticalClass_DrawFoggedObject, 0x8)
 		finalRect.Width = std::min(finalRect.Width, DSurface::ViewBounds->Width - finalRect.X);
 		finalRect.Height = std::min(finalRect.Height, DSurface::ViewBounds->Height - finalRect.Y);
 
-		for (const auto pObject : FoggedObject::FoggedObjects)
-			pObject->Render(finalRect);
+		if (finalRect.Width > 0 && finalRect.Height > 0)
+			FoggedObject::RenderAll(finalRect); // EXTENSION: deterministic painter order
 	}
 
 	return 0x6D3650;
@@ -422,7 +444,7 @@ ASMJIT_PATCH(0x51F95F, InfantryClass_GetCursorOverCell_OverFog, 0x6)
 		if (!ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar || !bFog)
 			break;
 
-#ifndef _ReplaceFoggedObj
+#ifndef _ReplaceFoggedObject
 		for (const auto pObject : CellExtContainer::Instance.Find(pCell)->FoggedObjects)
 		{
 			if (pObject->Visible && pObject->CoveredType == FoggedObject::CoveredType::Building)
@@ -444,7 +466,7 @@ ASMJIT_PATCH(0x51F95F, InfantryClass_GetCursorOverCell_OverFog, 0x6)
 		}
 #else
 		for (auto pObj : *FoggedObjectClass::Array) {
-			if (pObj && pObj->Translucent &&pObj->CoveredAbstractType == AbstractType::Building) {
+			if (pObj && pObj->Translucent && pObj->CoveredAbstractType == AbstractType::Building) {
 
 				pType = pObj->DrawRecords[0].BuildingType;
 
@@ -532,7 +554,29 @@ ASMJIT_PATCH(0x4FC1FF, HouseClass_PlayerDefeated_MapReveal, 0x6)
 	return 0x4FC214;
 }
 
+ASMJIT_PATCH(0x48049E, CellClass_DrawTileAndSmudge_CheckFog, 6)
+{
+	GET(CellClass*, pThis, ESI);
+
+	if (pThis->SmudgeTypeIndex != -1) {
+		if (pThis->IsFogged())
+			return 0x4804FB;
+	}
+
+	return 0x4804FB;
+}
+
+//remove inline
+ASMJIT_PATCH(0x440B8D, BuildingClass_Put_CheckFog, 6)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	if (pThis->IsAllFogged() && !pThis->IsFogged) {
+		pThis->FreezeInFog(nullptr, pThis->GetCell(), false);
+	}
+
+	return 0x440C08;
+}
+
 //486BF0 = CellClass_CleanFog, 9
-//48049E = CellClass_DrawTileAndSmudge_CheckFog, 6
 //51F97C = InfantryClass_MouseOverCell_OverFog, 5
-//440B8D = BuildingClass_Put_CheckFog, 6

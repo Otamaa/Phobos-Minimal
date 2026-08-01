@@ -831,6 +831,7 @@ public:
 	Valueable<bool> DestroyAnim_Random { true };
 
 	Valueable<int> RadarGracePeriod { 30 };
+	Valueable<bool> NoAlphaImageOnBuildup { true };
 #pragma endregion
 
 public:

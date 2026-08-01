@@ -2397,99 +2397,190 @@ bool TechnoExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 
 	return false;
 }
-
+	
 void TechnoExtData::UpdateAlphaShape(ObjectClass* pSource)
 {
+	// -------------------------------------------------------------------------
+	//  Anims defer to the object they are attached to for movement tracking.
+	// -------------------------------------------------------------------------
+	auto GetAlphaOwner = [](ObjectClass * pSource) {
+		if (pSource->WhatAmI() != AnimClass::AbsID)
+			return pSource;
+
+		const auto pAnim = static_cast<AnimClass*>(pSource);
+
+		return pAnim->OwnerObject ? pAnim->OwnerObject : pSource;
+	};
+
+	// -------------------------------------------------------------------------
+	//  Should the alpha be torn down this frame?
+	//
+	//  >>> ADD NEW SUPPRESSION CONDITIONS HERE <<<
+	//  Each check is an independent early-out. Mind which block you add to:
+	//    - above the Techno gate  -> applies to every object type
+	//    - below the Techno gate  -> Technos only
+	//    - inside the Building    -> Buildings only
+	// -------------------------------------------------------------------------
+	auto IsAlphaSuppressed = [](ObjectClass* pSource, AbstractType what) {
+		// --- any object type -------------------------------------------------
+		if (pSource->InLimbo)
+			return true;
+
+		// --- Technos only ----------------------------------------------------
+		if ((pSource->AbstractFlags & AbstractFlags::Techno) == AbstractFlags::None)
+			return false;
+
+		const auto pTechno = static_cast<TechnoClass*>(pSource);
+
+		if (pTechno->Deactivated)
+			return true;
+
+		if (pTechno->CloakState == CloakState::Cloaked)
+			return true;
+
+		// underground / submerged
+		if (pSource->GetHeight() < -10)
+			return true;
+
+		// A terrain disguise means the object is pretending to be scenery -
+		// drawing an alpha over it would give it away.
+		if (pSource->IsDisguised())
+		{
+			if (ObjectTypeClass* const pDisguise = pSource->GetDisguise(true))
+			{
+				if (pDisguise->WhatAmI() == AbstractType::TerrainType)
+					return true;
+			}
+		}
+
+		// --- Buildings only --------------------------------------------------
+		if (what == BuildingClass::AbsID)
+		{
+			const auto pBuilding = static_cast<BuildingClass*>(pSource);
+
+			// Under construction is exempt from the power requirement.
+			if (pBuilding->GetCurrentMission() == Mission::Construction &&
+				BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->NoAlphaImageOnBuildup.Get(FakeRulesClass::Instance->NoAlphaImageOnBuildup))
+				return true;
+
+			if (!pBuilding->IsPowerOnline())
+				return false;
+
+			if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID >= 0)
+				return true;
+		}
+
+		return false;
+	};
+
+	// -------------------------------------------------------------------------
+	//  A moving Foot leaves the previous cell's lighting stale - repaint it.
+	// -------------------------------------------------------------------------
+	auto MarkVacatedCellDirty =[] (ObjectClass* pOwner, const SHPStruct* pImage, Point2D off) {
+		if (!pOwner || (pOwner->AbstractFlags & AbstractFlags::Foot) == AbstractFlags::None)
+			return;
+
+		const auto pFoot = static_cast<FootClass*>(pOwner);
+
+		if (pFoot->CurrentMapCoords == pFoot->LastMapCoords)
+			return;
+
+		const CoordStruct XYZ = CellClass::Cell2Coord(pFoot->LastMapCoords);
+		const Point2D xyTL = TacticalClass::Instance->CoordsToClient(XYZ);
+
+		// SUSPECT: the height term uses pImage->Width, not Height. Preserved
+		//          verbatim - looks like a copy-paste slip, but changing it
+		//          alters the repainted region, so it needs a visual test
+		//          before being "fixed".
+		TacticalClass::Instance->RegisterDirtyArea({
+			off.X - 30 + xyTL.X,
+			xyTL.Y - 60 + off.Y,
+			pImage->Width + 60,
+			pImage->Width + 120
+		}, true);
+	};
+
+	auto RemoveAlpha = [](ObjectClass* pSource) {
+		auto pAlpha = PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pSource);
+
+		if (!pAlpha)
+			return;
+
+		// VERIFY: the original wrote GameDelete(std::exchange(pAlpha, nullptr)),
+		//         but pAlpha is a local copy - the exchange clears nothing the
+		//         caller can observe and the map entry is NOT erased here.
+		//         This is only safe if ~AlphaShapeClass unregisters itself from
+		//         ObjectLinkedAlphas. If it does not, this leaves a dangling
+		//         pointer in the map and needs an explicit erase.
+		GameDelete<true, false>(pAlpha);
+	};
+
+	// -------------------------------------------------------------------------
+	//  A static building alpha does not need rebuilding every other frame.
+	// -------------------------------------------------------------------------
+	auto CanKeepExistingAlpha = [](ObjectClass* pSource, AbstractType what, const SHPStruct* pImage) {
+		if (what != BuildingClass::AbsID)
+			return false;
+
+		if (pImage->Frames > 1)
+			return false;
+
+		return PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pSource) != nullptr;
+	};
+
+	auto CreateAlpha = [](ObjectClass* pSource, const SHPStruct* pImage, Point2D xyTL, Point2D off) {
+		const RectangleStruct ScreenArea = TacticalClass::Instance->VisibleArea();
+
+		// ScenarioInit suppresses the ctor's side effects during placement.
+		++Unsorted::ScenarioInit.get();
+		GameCreate<AlphaShapeClass>(pSource,
+			(xyTL.X + off.X + ScreenArea.X),
+			(xyTL.Y + off.Y + ScreenArea.Y));
+		--Unsorted::ScenarioInit.get();
+
+		TacticalClass::Instance->RegisterDirtyArea({
+			xyTL.X + off.X,
+			xyTL.Y + off.Y,
+			pImage->Width,
+			pImage->Height
+		}, true);
+	};
+
 	if (!pSource || !pSource->IsAlive)
 		return;
 
-	ObjectTypeClass* pSourceType = pSource->GetType();
+	ObjectTypeClass* const pSourceType = pSource->GetType();
 
 	if (!pSourceType)
-	{
 		return;
-	}
 
-	const SHPStruct* pImage = pSourceType->AlphaImage;
+	const SHPStruct* const pImage = pSourceType->AlphaImage;
+
 	if (!pImage)
-	{
 		return;
-	}
 
 	const auto what = pSource->WhatAmI();
-	ObjectClass* pOwner = pSource;
 
-	if (what == AnimClass::AbsID)
-	{
-		const auto pAnim = (AnimClass*)pSource;
-		if (pAnim->OwnerObject)
-		{
-			pOwner = pAnim->OwnerObject;
-		}
-	}
+	const Point2D off { (pImage->Width + 1) / -2, (pImage->Height + 1) / -2 };
 
-	Point2D off { (pImage->Width + 1) / -2, (pImage->Height + 1) / -2 };
+	MarkVacatedCellDirty(GetAlphaOwner(pSource), pImage, off);
 
-	if (pOwner && (pOwner->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None)
-	{
-		const auto pFoot = (FootClass*)pOwner;
-
-		if (pFoot->CurrentMapCoords != pFoot->LastMapCoords)
-		{
-
-			CoordStruct XYZ = CellClass::Cell2Coord(pFoot->LastMapCoords);
-			Point2D xyTL = TacticalClass::Instance->CoordsToClient(XYZ);
-
-			TacticalClass::Instance->RegisterDirtyArea({
-				off.X - 30 + xyTL.X ,
-				xyTL.Y - 60 + off.Y ,
-				pImage->Width + 60 ,
-				pImage->Width + 120
-			}, true);
-		}
-	}
-
-	CoordStruct XYZ = pSource->GetCoords();
-	Point2D xyTL = TacticalClass::Instance->CoordsToClient(XYZ);
-
-	ObjectTypeClass* pDisguise = nullptr;
-
-	if (pSource->InLimbo || ((pSource->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
-		&& (((TechnoClass*)pSource)->Deactivated
-			|| ((TechnoClass*)pSource)->CloakState == CloakState::Cloaked
-			|| pSource->GetHeight() < -10
-			|| pSource->IsDisguised() && (pDisguise = pSource->GetDisguise(true)) && pDisguise->WhatAmI() == AbstractType::TerrainType
-			|| what == BuildingClass::AbsID && (pSource->GetCurrentMission() != Mission::Construction && !((BuildingClass*)pSource)->IsPowerOnline()
-				|| BuildingExtContainer::Instance.Find(((BuildingClass*)pSource))->LimboID >= 0)
-			)
-	)
-	{
-		if (auto pAlpha = PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pSource))
-			GameDelete<true, false>(std::exchange(pAlpha, nullptr));
-
+	if (IsAlphaSuppressed(pSource, what)) {
+		RemoveAlpha(pSource);
 		return;
 	}
 
-	if (Unsorted::CurrentFrame.get() % 2)
-	{
-		if (PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pSource)
-			&& what == BuildingClass::AbsID
-			&& (pImage->Frames <= 1))
-			return;
+	// Alphas are rebuilt on odd frames only - halves the cost.
+	if (Unsorted::CurrentFrame.get() % 2 == 0)
+		return;
 
-		RectangleStruct ScreenArea = TacticalClass::Instance->VisibleArea();
-		++Unsorted::ScenarioInit.get();
-		GameCreate<AlphaShapeClass>(pSource,
-		(xyTL.X + off.X + ScreenArea.X),
-		(xyTL.Y + off.Y + ScreenArea.Y));
-		--Unsorted::ScenarioInit.get();
-		TacticalClass::Instance->RegisterDirtyArea({
-		xyTL.X + off.X,
-		xyTL.Y + off.Y,
-		pImage->Width,
-		pImage->Height },
-		true);
-	}
+	if (CanKeepExistingAlpha(pSource, what, pImage))
+		return;
+
+	const CoordStruct XYZ = pSource->GetCoords();
+	const Point2D xyTL = TacticalClass::Instance->CoordsToClient(XYZ);
+
+	CreateAlpha(pSource, pImage, xyTL, off);
 }
 
 int TechnoExtData::GetAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapon)

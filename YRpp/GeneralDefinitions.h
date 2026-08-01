@@ -1219,6 +1219,7 @@ MAKE_ENUM_FLAGS(CellFlags)
 
 enum class AltCellFlags : uint32_t
 {
+	Empty = 0x0,
 	Unknown_1 = 0x1, // 487720 check_obstacle?
 	ContainsBuilding = 0x2,
 	Unknown_4 = 0x4, // 47EED4 PlaceShape related
