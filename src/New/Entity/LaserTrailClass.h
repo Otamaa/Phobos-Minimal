@@ -73,6 +73,10 @@ private:
 
 	COMPILETIMEEVAL bool AllowDraw(CoordStruct const& location)
 	{
+		auto pCell = MapClass::Instance->TryGetCellAt(location);
+		if (pCell == nullptr || pCell->IsFogged())
+			return false;
+
 		return Type && this->Visible && !this->Cloaked && (this->Type->IgnoreVertical ?
 		  (Math::abs(location.X - this->LastLocation.get().X) > 16 || Math::abs(location.Y - this->LastLocation.get().Y) > 16) : true) && IsInitialDelayFinish();
 	}

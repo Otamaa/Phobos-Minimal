@@ -648,7 +648,11 @@ void ParticleSystemExtData::UpdateSmoke()
 		pOwnerObj->TimeToDie = true;
 }
 
-void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
+// NOTE: `allowDraw` was a misnomer - the caller passes `StopDrawing`, and a true value
+// BYPASSES the visibility test rather than permitting a draw. Renamed to
+// `ignoreVisibility` so the next person adding a check does not put it on the wrong
+// side of the condition.
+void ParticleSystemExtData::UpdateInAir_Main(bool ignoreVisibility)
 {
 	const auto pHeldType = this->HeldType;
 	if (!pHeldType)
@@ -660,6 +664,31 @@ void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 	const int colorCount = pHeldType->ColorList.Count;
 
 	auto rect = DSurface::ViewBounds.ptr();
+
+	// EXTENSION: fog is a separate occlusion channel from shroud - Visibility and
+	// Foggedness are distinct fields, and IsLocationShrouded only consults the former.
+	// A cell that is explored but currently fogged therefore passed the original test,
+	// so particles rendered straight through fog.
+	//
+	// Unlike FoggedObject there is nothing to invalidate here: this whole function runs
+	// per frame off live data, so the moment fog lifts the next frame draws normally.
+	// No snapshot, no stale state.
+	//
+	// PERF NOTE: MapClass::IsLocationFogged is the replaced 0x5865E0, which builds a
+	// full MapRevealer per call just to read Base() - RequiresExtraChecks() alone costs
+	// a SessionClass lookup plus a vtable call. That is fine for a handful of technos
+	// per frame but this runs per particle. If it shows up in a profile, expose
+	// MapRevealer::TranslateBaseCell as a public static and call it plus the two flag
+	// tests directly, rather than duplicating the predicate here.
+	auto const IsHidden = [ignoreVisibility](const CoordStruct& coord) noexcept
+		{
+			if (ignoreVisibility)
+				return false;
+
+			return MapClass::Instance->IsLocationShrouded(coord)
+				|| MapClass::Instance->IsLocationFogged(coord);
+		};
+
 	for (auto& movement : this->OtherParticleData)
 	{
 		CoordStruct Coord {
@@ -668,98 +697,139 @@ void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 			static_cast<int>(movement.vel.Z)
 		};
 
-		if (allowDraw || !MapClass::Instance->IsLocationShrouded(Coord))
+		if (IsHidden(Coord))
 		{
-			Point2D outClient = TacticalClass::Instance->CoordsToClient(Coord);
-
-			const auto y_copy = rect->Y + outClient.Y;
-			outClient.Y += rect->Y;
-
-			// Viewport culling - check if particle is on screen
-			if (outClient.X < rect->X || outClient.X >= rect->X + rect->Width ||
-				y_copy < rect->Y || y_copy >= rect->Y + rect->Height)  // FIXED: rect->Y
-			{
-				continue;  // Off-screen, skip rendering
-			}
-
-			/* Original
-			if (outClient.X >= rect->X
-				&& outClient.X < rect->X + rect->Width
-				&& y_copy >= rect->Y
-				&& y_copy < rect->X + rect->Height
-				)
-				*/
-			{
-				uint16_t buff = *reinterpret_cast<uint16_t*>(ABuffer::Instance->GetBuffer(outClient.X, y_copy - ABuffer::Instance->Area.Y));
-
-				if (buff == 0)
-				{
-					continue;
-				}
-
-
-				{
-					uint16_t ZBuff = *reinterpret_cast<uint16_t*>((ZBuffer::Instance->GetBuffer(outClient.X, outClient.Y - ZBuffer::Instance->Area.Y)));
-					int Zadjust = Game::AdjustHeight(Coord.Z);
-
-					uint16_t zTest = static_cast<uint16_t>(
-						LOWORD(ZBuffer::Instance->Area.Y) +
-						LOWORD(ZBuffer::Instance->MaxValue) -
-						LOWORD(outClient.Y)
-					) - Zadjust - 50;
-
-					if (zTest < ZBuff)
-					{
-						int idx = 0;
-						ColorStruct* selected = &movement.Colors;
-
-						// SAFETY: Bounds check before array access
-						if (movement.C > 0 && movement.C < colorCount)
-						{
-							idx = movement.C;
-							selected = &color[movement.C];
-						}
-
-						// SAFETY: Ensure idx+1 is in bounds
-						if (idx + 1 >= colorCount)
-						{
-							idx = colorCount - 2;  // Clamp to last valid pair
-						}
-
-						// Interpolate between two colors based on ColorFactor
-						ColorStruct finalColor = ColorStruct::Interpolate(
-							selected,             // from = current color
-							&color[idx + 1],      // towards = next color
-							static_cast<double>(movement.ColorFactor)
-						);
-
-						uint32_t data_r;
-						uint32_t data_g;
-						uint32_t data_b;
-
-						if (buff >= 127u) {
-							// Full brightness - use color directly
-							data_r = finalColor.R;
-							data_g = finalColor.G;
-							data_b = finalColor.B;
-						} else {
-							// Dim the color based on alpha buffer value
-							// buff is 0-127, so this darkens the color proportionally
-							data_r = (buff * finalColor.R) >> 7;
-							data_g = (buff * finalColor.G) >> 7;
-							data_b = (buff * finalColor.B) >> 7;
-						}
-
-						DSurface::Temp->Put_Pixel(outClient, DSurface::Build_Hicolor_Pixel_RBG(data_r, data_g, data_b));
-
-					}
-				}
-			}
+			continue;
 		}
+
+		Point2D outClient = TacticalClass::Instance->CoordsToClient(Coord);
+
+		// SUSPECT: outClient.Y gets rect->Y added but outClient.X never gets rect->X.
+		// This is invisible while DSurface::ViewBounds->X is 0 and wrong the moment it
+		// is not - the same asymmetry that turned up in FoggedObject::RenderAsOverlay.
+		// Left verbatim: changing it blind could shift every particle horizontally, and
+		// the Ares original has not been checked. VERIFY against Ares before touching.
+		const auto y_copy = rect->Y + outClient.Y;
+		outClient.Y += rect->Y;
+
+		// Viewport culling - check if particle is on screen
+		if (outClient.X < rect->X || outClient.X >= rect->X + rect->Width ||
+			y_copy < rect->Y || y_copy >= rect->Y + rect->Height)  // FIXED: rect->Y
+		{
+			continue;  // Off-screen, skip rendering
+		}
+
+		/* Original
+		if (outClient.X >= rect->X
+			&& outClient.X < rect->X + rect->Width
+			&& y_copy >= rect->Y
+			&& y_copy < rect->X + rect->Height
+			)
+			*/
+
+		uint16_t buff = *reinterpret_cast<uint16_t*>(ABuffer::Instance->GetBuffer(outClient.X, y_copy - ABuffer::Instance->Area.Y));
+
+		if (buff == 0)
+		{
+			continue;
+		}
+
+		uint16_t ZBuff = *reinterpret_cast<uint16_t*>((ZBuffer::Instance->GetBuffer(outClient.X, outClient.Y - ZBuffer::Instance->Area.Y)));
+		int Zadjust = Game::AdjustHeight(Coord.Z);
+
+		uint16_t zTest = static_cast<uint16_t>(
+			LOWORD(ZBuffer::Instance->Area.Y) +
+			LOWORD(ZBuffer::Instance->MaxValue) -
+			LOWORD(outClient.Y)
+		) - Zadjust - 50;
+
+		if (zTest >= ZBuff)
+		{
+			continue;
+		}
+
+		// BUGFIX: the original could index out of bounds. With colorCount == 0 the
+		// clamp `idx = colorCount - 2` yields -2, and `color[idx + 1]` reads color[-1]
+		// on a null Items pointer. With colorCount == 1 it yields -1 and reads color[0]
+		// off a one-element list via a negative `selected` path. Guard the degenerate
+		// list sizes explicitly; the >= 2 branch is the original logic unchanged.
+		ColorStruct finalColor {};
+
+		if (colorCount >= 2)
+		{
+			int idx = 0;
+			ColorStruct* selected = &movement.Colors;
+
+			// SUSPECT: `> 0` means index 0 is treated as "no entry" and falls back to
+			// movement.Colors, even though 0 is a valid ColorList index. Preserved
+			// verbatim - it may well be deliberate.
+			if (movement.C > 0 && movement.C < colorCount)
+			{
+				idx = movement.C;
+				selected = &color[movement.C];
+			}
+
+			// Ensure idx+1 is in bounds. NOTE: this moves idx without moving `selected`,
+			// so the interpolation pair becomes (color[C], color[colorCount - 1]) rather
+			// than two adjacent entries. Preserved verbatim; only the OOB case above was
+			// actually broken.
+			if (idx + 1 >= colorCount)
+			{
+				idx = colorCount - 2;
+			}
+
+			// Interpolate between two colors based on ColorFactor
+			finalColor = ColorStruct::Interpolate(
+				selected,             // from = current color
+				&color[idx + 1],      // towards = next color
+				static_cast<double>(movement.ColorFactor)
+			);
+		}
+		else if (colorCount == 1 && color)
+		{
+			finalColor = color[0];
+		}
+		else
+		{
+			finalColor = movement.Colors;
+		}
+
+		uint32_t data_r;
+		uint32_t data_g;
+		uint32_t data_b;
+
+		if (buff >= 127u)
+		{
+			// Full brightness - use color directly
+			data_r = finalColor.R;
+			data_g = finalColor.G;
+			data_b = finalColor.B;
+		}
+		else
+		{
+			// Dim the color based on alpha buffer value
+			// buff is 0-127, so this darkens the color proportionally
+			data_r = (buff * finalColor.R) >> 7;
+			data_g = (buff * finalColor.G) >> 7;
+			data_b = (buff * finalColor.B) >> 7;
+		}
+
+		DSurface::Temp->Put_Pixel(outClient, DSurface::Build_Hicolor_Pixel_RBG(data_r, data_g, data_b));
 	}
 
 	for (auto& draw : this->SmokeData)
 	{
+		// EXTENSION: this loop had no visibility test at all - smoke SHPs drew through
+		// both shroud and fog. This is the more likely source of any "weird visual
+		// issues" report than the pixel loop above, since a whole sprite is far more
+		// noticeable than a stippled pixel.
+		// Behaviour change vs Ares: if smoke is meant to be visible through shroud for
+		// some gameplay reason, delete this block - nothing else depends on it.
+		if (IsHidden(draw.vel))
+		{
+			continue;
+		}
+
 		if (const auto image = draw.LinkedParticleType->GetImage())
 		{
 			const auto offs = -15 - Game::AdjustHeight(draw.vel.Z);
@@ -812,11 +882,15 @@ void ParticleSystemExtData::UpdateInAir()
 {
 	if (ParticleSystemClass::Array->Count && GameOptionsClass::Instance->DetailLevel && FakeRulesClass::DetailsCurrentlyEnabled())
 	{
+		// NOTE: this local is what gets passed as `ignoreVisibility` below - map editor
+		// mode, no hInstance, or the special-flag path all mean "draw regardless of what
+		// the local player can see".
 		bool StopDrawing = false;
 		if (Unsorted::MAP_DEBUG_MODE() || !Game::hInstance() || ((ScenarioClass::Instance->SpecialFlags.RawFlags + 1) & 16) == 0)
 			StopDrawing = true;
 
-		for (auto pSys : *ParticleSystemClass::Array) {
+		for (auto pSys : *ParticleSystemClass::Array)
+		{
 			auto pExt = ParticleSystemExtContainer::Instance.TryFind(pSys);
 
 			if (!pExt)
@@ -826,7 +900,6 @@ void ParticleSystemExtData::UpdateInAir()
 		}
 	}
 }
-
 
 static Vector3D<float> GetRandomPerturbation(float coefficient)
 {
