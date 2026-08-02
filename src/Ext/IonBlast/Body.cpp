@@ -152,7 +152,7 @@ void __fastcall FakeIonBlastClass::InitOneTime()
 void FakeIonBlastClass::_AI()
 {
 	const auto pData = WarheadTypeExtData::IonBlastExt.get_or_default(this);
-	const int Ripple_Radius = pData && pData->Ripple_Radius.isset() ? MinImpl((int)ionblast_A9FAE8.Size, pData->Ripple_Radius.Fetch() + 1) : ionblast_A9FAE8.Size;
+	const int Ripple_Radius = pData && pData->Ripple_Radius.isset() ? MinImpl((int)IonBlastClass_Surfaces.Size, pData->Ripple_Radius.Fetch() + 1) : IonBlastClass_Surfaces.Size;
 
 	if (this->Lifetime >= Ripple_Radius)
 	{
@@ -444,13 +444,6 @@ void FakeIonBlastClass::_Draw()
 ASMJIT_PATCH(0x53CB91, IonBlastClass_DTOR, 6)
 {
 	GET(IonBlastClass*, IB, ECX);
-	WarheadTypeExtData::IonBlastExt.erase(IB);
-	return 0;
-}
-
-ASMJIT_PATCH(0x53CC0D, IonBlastClass_Update_DTOR, 5)
-{
-	GET(IonBlastClass*, IB, EBX);
 	WarheadTypeExtData::IonBlastExt.erase(IB);
 	return 0;
 }
