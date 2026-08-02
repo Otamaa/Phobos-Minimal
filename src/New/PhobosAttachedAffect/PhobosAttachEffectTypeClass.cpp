@@ -51,6 +51,12 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->DiscardOn_RangeOverride.Read(exINI, pSection, "DiscardOn.RangeOverride");
 	this->DiscardOn_MoveBasedOnDestination.Read(exINI, pSection, "DiscardOn.MoveBasedOnDestination");
 	this->DiscardOn_ConsiderHarvestingAsStationary.Read(exINI, pSection, "DiscardOn.ConsiderHarvestingAsStationary");
+	this->DiscardOn_Ammo_Min.Read(exINI, pSection, "DiscardOn.Ammo.Min");
+	this->DiscardOn_Ammo_Max.Read(exINI, pSection, "DiscardOn.Ammo.Max");
+	this->DiscardOn_Health_Min.Read(exINI, pSection, "DiscardOn.Health.Min");
+	this->DiscardOn_Health_Max.Read(exINI, pSection, "DiscardOn.Health.Max");
+	this->DiscardOn_LandTypes.Read(exINI, pSection, "DiscardOn.LandTypes");
+
 	this->PenetratesIronCurtain.Read(exINI, pSection, "PenetratesIronCurtain");
 	this->PenetratesForceShield.Read(exINI, pSection, "PenetratesForceShield");
 	this->Animation.Read(exINI, pSection, "Animation");
@@ -206,6 +212,11 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->DiscardOn_RangeOverride)
 		.Process(this->DiscardOn_MoveBasedOnDestination)
 		.Process(this->DiscardOn_ConsiderHarvestingAsStationary)
+		.Process(this->DiscardOn_Ammo_Min)
+		.Process(this->DiscardOn_Ammo_Max)
+		.Process(this->DiscardOn_Health_Min)
+		.Process(this->DiscardOn_Health_Max)
+		.Process(this->DiscardOn_LandTypes)
 		.Process(this->PenetratesIronCurtain)
 		.Process(this->PenetratesForceShield)
 		.Process(this->Animation)

@@ -3,6 +3,9 @@
 #include <Utilities/Simd.h>
 #include "./BlitterPack/BlitterPack.levels.h"
 
+#include <Utilities/Patch.h>
+#include <Utilities/Macro.h>
+
 void ConvertClassExt::DeallocBlitters()
 {
 	if (this->BytesPerPixel == 1)
@@ -140,3 +143,11 @@ void ConvertClassExt::DeallocBlitters16()
 		return;
 	}
 }
+
+
+//void* __fastcall _Select_Blitter_ConvertClass__QAEPAVBlitter__H_Z(ConvertClass* pThis,discard_t , BlitterFlags flags)
+//{
+//	return pThis->Select_Blitter(flags);
+//}
+//
+//DEFINE_FUNCTION_JUMP(CALL, 0x707210 , _Select_Blitter_ConvertClass__QAEPAVBlitter__H_Z)

@@ -430,7 +430,7 @@ namespace VoxelRaster
 	// SUSPECT: only 255 entries are ever written, but the skip byte pulled from
 	// the span data is a full uint8 (0..255), so index 255 is reachable and reads
 	// one past the written range. Sized 256 here to keep that read in bounds.
-	inline constexpr int LutSize = 256;
+	inline constexpr int LutSize = Replacer::BufferSize;
 
 	extern std::array<LutEntry, LutSize> DistanceLut;
 

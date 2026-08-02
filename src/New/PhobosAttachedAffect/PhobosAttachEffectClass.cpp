@@ -676,23 +676,24 @@ bool PhobosAttachEffectClass::ResetIfRecreatable()
 	return true;
 }
 
-static bool _retTrue(bool& check) {
-	check = true;
-	return true;
-}
-
-static bool _retFalse(bool& check)
-{
-	check = false;
-	return false;
-}
-
 bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 {
 	if (this->LastDiscardCheckFrame == Unsorted::CurrentFrame())
 		return this->LastDiscardCheckValue;
 
+	auto pType = this->Type;
 	this->LastDiscardCheckFrame = Unsorted::CurrentFrame();
+	auto discardOn = pType->DiscardOn;
+
+	auto _retTrue = [](bool& check) {
+		check = true;
+		return true;
+	};
+
+	auto _retFalse = [](bool& check) {
+		check = false;
+		return false;
+	};
 
 	if (this->ShouldBeDiscarded)
 		return _retTrue(this->LastDiscardCheckValue);
@@ -704,20 +705,20 @@ bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 	if (this->Type->DiscardOn_BelowPercent.isset() && this->Techno->GetHealthRatio() <= this->Type->DiscardOn_BelowPercent.Fetch())
 		return _retTrue(this->LastDiscardCheckValue);
 
-	if(this->Type->DiscardOn != DiscardCondition::None){
+	if(discardOn != DiscardCondition::None){
 		if (auto const pFoot = flag_cast_to<FootClass*, false>(this->Techno)) {
 			const bool isMoving = this->Type->DiscardOn_MoveBasedOnDestination.Get(FakeRulesClass::Instance()->DiscardOn_ConsiderHoverAsMoving)
 				? pFoot->Locomotor->Is_Moving()
 				: pFoot->Locomotor->Is_Really_Moving_Now();
 
-			if (isMoving && (this->Type->DiscardOn & DiscardCondition::Move) != DiscardCondition::None)
+			if (isMoving && (discardOn & DiscardCondition::Move) != DiscardCondition::None)
 				return _retTrue(this->LastDiscardCheckValue);
 			else
 			{
 				//notMoving
 				//short circuit 
 				if(this->Type->DiscardOn_ConsiderHarvestingAsStationary.Get(FakeRulesClass::Instance()->DiscardOn_ConsiderHarvestingAsStationary)) {
-					if ((this->Type->DiscardOn & DiscardCondition::Stationary) != DiscardCondition::None)
+					if ((discardOn & DiscardCondition::Stationary) != DiscardCondition::None)
 						return _retTrue(this->LastDiscardCheckValue);
 				}
 				else // other path
@@ -730,25 +731,67 @@ bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 					else if (auto const pInf = cast_to<InfantryClass*>(pFoot))
 						isHarvestingNow = (pInf->SequenceAnim == DoType::Shovel);
 
-					if (isHarvestingNow && (this->Type->DiscardOn & DiscardCondition::Harvesting) != DiscardCondition::None) {
+					if (isHarvestingNow && (discardOn & DiscardCondition::Harvesting) != DiscardCondition::None) {
 						return _retTrue(this->LastDiscardCheckValue);
 					}
 					else if (pFoot->CurrentMission == Mission::Harvest && pFoot->GetCell()->LandType == LandType::Tiberium) {
 						// Handle the intermediate state that is about to start harvesting but does not satisfy the above judgment.
 						return _retFalse(this->LastDiscardCheckValue);
-					} else if ((this->Type->DiscardOn & DiscardCondition::Stationary) != DiscardCondition::None) {
+					} else if ((discardOn & DiscardCondition::Stationary) != DiscardCondition::None) {
 						return _retTrue(this->LastDiscardCheckValue);
 					}
 				}
 			}
 		}
 
-		if (this->Techno->DrainingMe && (this->Type->DiscardOn & DiscardCondition::Drain) != DiscardCondition::None)
+		if (this->Techno->DrainingMe && (discardOn & DiscardCondition::Drain) != DiscardCondition::None)
 			return _retTrue(this->LastDiscardCheckValue);
 
+		if ((discardOn & DiscardCondition::Ammo) != DiscardCondition::None) {
+			bool trigger = false;
+			if (pType->DiscardOn_Ammo_Min.isset() || pType->DiscardOn_Ammo_Max.isset()) {
+				const int min = pType->DiscardOn_Ammo_Min.Get(-1);
+				const int max = pType->DiscardOn_Ammo_Max.Get(-1);
+				const int ammo = this->Techno->Ammo;
+
+				trigger = (min < 0 || ammo >= min) && (max < 0 || ammo <= max);
+			}
+
+			if (trigger) {
+				return _retTrue(this->LastDiscardCheckValue);
+			}
+		}
+
+		if ((discardOn & DiscardCondition::Health) != DiscardCondition::None) {
+			if (auto const pTypeData = this->Techno->GetTechnoType()) {
+				const double hp = this->Techno->GetHealthPercentage();
+
+				if (pType->DiscardOn_Health_Min.isset() || pType->DiscardOn_Health_Max.isset()) {
+					const double min = pType->DiscardOn_Health_Min.Get(0.0);
+					const double max = pType->DiscardOn_Health_Max.Get(1.0);
+
+					if ((hp > 0.0 ? hp > min : hp >= min) && hp <= max) {
+						return _retTrue(this->LastDiscardCheckValue);
+					}
+				}
+			}
+		}
+
+		if ((discardOn & DiscardCondition::LandType) != DiscardCondition::None) {
+			if (pType->DiscardOn_LandTypes != LandTypeFlags::None) {
+				if (auto const pCell = this->Techno->GetCell()) {
+					LandTypeFlags landFlags = pType->DiscardOn_LandTypes;
+
+					if (IsLandTypeInFlags(landFlags, pCell->LandType)) {
+						return _retTrue(this->LastDiscardCheckValue);
+					}
+				}
+			}
+		}
+
 		if (this->Techno->Target) {
-			bool inRange = (this->Type->DiscardOn & DiscardCondition::InRange) != DiscardCondition::None;
-			bool outOfRange = (this->Type->DiscardOn & DiscardCondition::OutOfRange) != DiscardCondition::None;
+			bool inRange = (discardOn & DiscardCondition::InRange) != DiscardCondition::None;
+			bool outOfRange = (discardOn & DiscardCondition::OutOfRange) != DiscardCondition::None;
 
 			if (inRange || outOfRange) {
 				int distance = -1;
@@ -776,9 +819,9 @@ bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 		if (auto const pBuilding = cast_to<BuildingClass*, true>(this->Techno)) {
 			if (pBuilding->CurrentMission == Mission::Selling) {
 				if (pBuilding->ArchiveTarget) {
-					if ((this->Type->DiscardOn & DiscardCondition::Undeploying) != DiscardCondition::None)
+					if ((discardOn & DiscardCondition::Undeploying) != DiscardCondition::None)
 						return _retTrue(this->LastDiscardCheckValue);
-				} else if ((this->Type->DiscardOn & DiscardCondition::Selling) != DiscardCondition::None) 
+				} else if ((discardOn & DiscardCondition::Selling) != DiscardCondition::None)
 					return _retTrue(this->LastDiscardCheckValue);
 			}
 		}

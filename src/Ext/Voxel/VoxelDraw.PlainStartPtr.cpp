@@ -85,8 +85,8 @@ namespace VoxelRaster
 namespace
 {
 	// VERIFY: 0xB45590, 255 written entries of { int16 X, int16 Y }.
-	VoxelRaster::VanillaLutEntry* const VanillaDistanceLut =
-		reinterpret_cast<VoxelRaster::VanillaLutEntry*>(0xB45590);
+	//VoxelRaster::VanillaLutEntry* const VanillaDistanceLut =
+	//	reinterpret_cast<VoxelRaster::VanillaLutEntry*>(0xB45590);
 }
 
 void VoxelRaster::BuildDistanceLut(const FixedVector& axisZ, int count) noexcept
@@ -96,8 +96,8 @@ void VoxelRaster::BuildDistanceLut(const FixedVector& axisZ, int count) noexcept
 	// deliberately left holding the previous voxel's values.
 	DistanceLut[0].X = 0;
 	DistanceLut[0].Y = 0;
-	VanillaDistanceLut[0].X = 0;
-	VanillaDistanceLut[0].Y = 0;
+	//VanillaDistanceLut[0].X = 0;
+	//VanillaDistanceLut[0].Y = 0;
 
 	const int stepX = axisZ.X;
 	const int stepY = axisZ.Y;
@@ -111,10 +111,10 @@ void VoxelRaster::BuildDistanceLut(const FixedVector& axisZ, int count) noexcept
 
 		// Kept in sync so any UNPORTED rasterizer running afterwards still finds
 		// the values it expects. Remove once the whole family is ported.
-		VanillaDistanceLut[i].X =
-			static_cast<std::int16_t>(VanillaDistanceLut[i - 1].X + stepX);
-		VanillaDistanceLut[i].Y =
-			static_cast<std::int16_t>(VanillaDistanceLut[i - 1].Y + stepY);
+		//VanillaDistanceLut[i].X =
+		//	static_cast<std::int16_t>(VanillaDistanceLut[i - 1].X + stepX);
+		//VanillaDistanceLut[i].Y =
+		//	static_cast<std::int16_t>(VanillaDistanceLut[i - 1].Y + stepY);
 	}
 }
 

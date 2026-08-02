@@ -276,6 +276,10 @@ enum class DiscardCondition : uint16_t
 	Selling         = 1 << 8,  // 0x0100
 	Undeploying     = 1 << 9,  // 0x0200
 	Harvesting      = 1 << 10, // 0x0400
+	InvokerDie      = 1 << 11, // 0x0800
+	Ammo            = 1 << 12, // 0x1000
+	Health          = 1 << 13, // 0x2000
+	LandType        = 1 << 14, // 0x4000
 
 	count
 };

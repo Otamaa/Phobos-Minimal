@@ -485,7 +485,7 @@ bool FakeIonBlastClass::SaveGlobals(PhobosStreamWriter& Stm)
 void FakeIonBlastClass::Clear()
 {
 	for (auto& Ion : *IonBlastClass::Array) {
-		GameDelete(Ion);
+		GameDelete<true,false>(Ion);
 	}
 }
 

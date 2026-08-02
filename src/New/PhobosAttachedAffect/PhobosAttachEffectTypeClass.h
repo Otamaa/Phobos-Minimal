@@ -53,10 +53,17 @@ public:
 	Valueable<bool> Cumulative { false };
 	Valueable<int> Cumulative_MaxCount { -1 };
 	Valueable<bool> Powered { false };
+
 	Valueable<DiscardCondition> DiscardOn { DiscardCondition::None };
 	Nullable<Leptons> DiscardOn_RangeOverride {};
 	Nullable<bool> DiscardOn_MoveBasedOnDestination {};
 	Nullable<bool> DiscardOn_ConsiderHarvestingAsStationary {};
+	Nullable<int> DiscardOn_Ammo_Min {};
+	Nullable<int> DiscardOn_Ammo_Max {};
+	Nullable<double> DiscardOn_Health_Min {};
+	Nullable<double> DiscardOn_Health_Max {};
+	Valueable<LandTypeFlags> DiscardOn_LandTypes { LandTypeFlags::None };
+
 	Valueable<bool> PenetratesIronCurtain { false };
 	Nullable<bool> PenetratesForceShield {};
 	Valueable<AnimTypeClass*> Animation {};
