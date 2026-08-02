@@ -179,6 +179,7 @@
     <ClCompile Include="src\New\Entity\PowerPlantEnhancerClass.cpp" />
     <ClCompile Include="src\New\Entity\PrismRelay.cpp" />
     <ClCompile Include="src\New\Entity\ShiftSchedule.cpp" />
+    <ClCompile Include="src\New\Entity\TheaterImageClass.cpp" />
     <ClCompile Include="src\New\Entity\TiberiumEaterTypeClass.cpp" />
     <ClCompile Include="src\New\Entity\AEArmorMults.cpp" />
     <ClCompile Include="src\New\Entity\AEExtraCrit.cpp" />
@@ -755,6 +756,7 @@
     <ClInclude Include="src\New\Entity\PowerPlantEnhancerClass.h" />
     <ClInclude Include="src\New\Entity\PrismRelay.h" />
     <ClInclude Include="src\New\Entity\ShiftSchedule.h" />
+    <ClInclude Include="src\New\Entity\TheaterImageClass.h" />
     <ClInclude Include="src\New\Entity\TiberiumEaterTypeClass.h" />
     <ClInclude Include="src\New\Entity\AEArmorMults.h" />
     <ClInclude Include="src\New\Entity\AEEligible.h" />
