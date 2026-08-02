@@ -681,153 +681,207 @@ bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 	if (this->LastDiscardCheckFrame == Unsorted::CurrentFrame())
 		return this->LastDiscardCheckValue;
 
-	auto pType = this->Type;
 	this->LastDiscardCheckFrame = Unsorted::CurrentFrame();
-	auto discardOn = pType->DiscardOn;
 
-	auto _retTrue = [](bool& check) {
-		check = true;
-		return true;
-	};
+	const auto pType = this->Type;
+	const auto pTechno = this->Techno;
+	const auto discardOn = pType->DiscardOn;
 
-	auto _retFalse = [](bool& check) {
-		check = false;
-		return false;
-	};
+	// caches the answer for this frame and returns it — single exit shape
+	const auto finish = [this](bool value)
+		{
+			this->LastDiscardCheckValue = value;
+			return value;
+		};
+
+	const auto has = [discardOn](DiscardCondition cond)
+		{
+			return (discardOn & cond) != DiscardCondition::None;
+		};
 
 	if (this->ShouldBeDiscarded)
-		return _retTrue(this->LastDiscardCheckValue);
+		return finish(true);
 
-	//Debug::LogInfo(__FUNCTION__" Executed [%s - %s]", this->Techno->GetThisClassName(), this->Techno->get_ID());
-	if (this->Type->DiscardOn_AbovePercent.isset() && this->Techno->GetHealthRatio() >= this->Type->DiscardOn_AbovePercent.Fetch())
-		return _retTrue(this->LastDiscardCheckValue);
+	// ------------------------------------------------------------------
+	// health ratio gates — independent of the DiscardOn flag set
+	// ------------------------------------------------------------------
+	if (pType->DiscardOn_AbovePercent.isset()
+		&& pTechno->GetHealthRatio() >= pType->DiscardOn_AbovePercent.Fetch()) {
+		return finish(true);
+	}
 
-	if (this->Type->DiscardOn_BelowPercent.isset() && this->Techno->GetHealthRatio() <= this->Type->DiscardOn_BelowPercent.Fetch())
-		return _retTrue(this->LastDiscardCheckValue);
+	if (pType->DiscardOn_BelowPercent.isset()
+		&& pTechno->GetHealthRatio() <= pType->DiscardOn_BelowPercent.Fetch()) {
+		return finish(true);
+	}
 
-	if(discardOn != DiscardCondition::None){
-		if (auto const pFoot = flag_cast_to<FootClass*, false>(this->Techno)) {
-			const bool isMoving = this->Type->DiscardOn_MoveBasedOnDestination.Get(FakeRulesClass::Instance()->DiscardOn_ConsiderHoverAsMoving)
-				? pFoot->Locomotor->Is_Moving()
-				: pFoot->Locomotor->Is_Really_Moving_Now();
+	// everything below is flag driven — bail out early instead of indenting
+	if (discardOn == DiscardCondition::None)
+		return finish(false);
 
-			if (isMoving && (discardOn & DiscardCondition::Move) != DiscardCondition::None)
-				return _retTrue(this->LastDiscardCheckValue);
-			else
-			{
-				//notMoving
-				//short circuit 
-				if(this->Type->DiscardOn_ConsiderHarvestingAsStationary.Get(FakeRulesClass::Instance()->DiscardOn_ConsiderHarvestingAsStationary)) {
-					if ((discardOn & DiscardCondition::Stationary) != DiscardCondition::None)
-						return _retTrue(this->LastDiscardCheckValue);
-				}
-				else // other path
-				{
-					//const auto mission = pFoot->CurrentMission;
-					bool isHarvestingNow = false;
+	// ------------------------------------------------------------------
+	// movement / harvesting / stationary
+	// ------------------------------------------------------------------
+	if (const auto pFoot = flag_cast_to<FootClass*, false>(pTechno)) {
+		const bool isMoving = pType->DiscardOn_MoveBasedOnDestination.Get(
+				FakeRulesClass::Instance()->DiscardOn_ConsiderHoverAsMoving)
+			? pFoot->Locomotor->Is_Moving()
+			: pFoot->Locomotor->Is_Really_Moving_Now();
 
-					if (auto const pUnit = cast_to<UnitClass*>(pFoot))
-						isHarvestingNow = pUnit->IsHarvesting;
-					else if (auto const pInf = cast_to<InfantryClass*>(pFoot))
-						isHarvestingNow = (pInf->SequenceAnim == DoType::Shovel);
+		// BUG: when the unit *is* moving but DiscardOn lacks `Move`, the original
+		// fell into the else-branch and still evaluated the stationary/harvesting
+		// chain below. Preserved verbatim (flattening keeps this identical).
+		if (isMoving && has(DiscardCondition::Move))
+			return finish(true);
 
-					if (isHarvestingNow && (discardOn & DiscardCondition::Harvesting) != DiscardCondition::None) {
-						return _retTrue(this->LastDiscardCheckValue);
-					}
-					else if (pFoot->CurrentMission == Mission::Harvest && pFoot->GetCell()->LandType == LandType::Tiberium) {
-						// Handle the intermediate state that is about to start harvesting but does not satisfy the above judgment.
-						return _retFalse(this->LastDiscardCheckValue);
-					} else if ((discardOn & DiscardCondition::Stationary) != DiscardCondition::None) {
-						return _retTrue(this->LastDiscardCheckValue);
-					}
-				}
+		if (pType->DiscardOn_ConsiderHarvestingAsStationary.Get(
+			FakeRulesClass::Instance()->DiscardOn_ConsiderHarvestingAsStationary)) {
+			// harvesting counts as standing still — no separate probe needed
+			if (has(DiscardCondition::Stationary))
+				return finish(true);
+		} else {
+			bool isHarvestingNow = false;
+
+			if (const auto pUnit = cast_to<UnitClass*>(pFoot))
+				isHarvestingNow = pUnit->IsHarvesting;
+			else if (const auto pInf = cast_to<InfantryClass*>(pFoot))
+				isHarvestingNow = (pInf->SequenceAnim == DoType::Shovel);
+
+			if (isHarvestingNow && has(DiscardCondition::Harvesting))
+				return finish(true);
+
+			// intermediate state: about to start harvesting, but the checks above
+			// do not report it yet — treat as "not discardable" rather than
+			// letting the Stationary test fire.
+			// BUGFIX: original dereferenced GetCell() unconditionally.
+			const auto pFootCell = pFoot->GetCell();
+
+			if (pFoot->CurrentMission == Mission::Harvest
+				&& pFootCell && pFootCell->LandType == LandType::Tiberium) {
+				return finish(false);
 			}
+
+			if (has(DiscardCondition::Stationary))
+				return finish(true);
 		}
+	}
 
-		if (this->Techno->DrainingMe && (discardOn & DiscardCondition::Drain) != DiscardCondition::None)
-			return _retTrue(this->LastDiscardCheckValue);
+	// ------------------------------------------------------------------
+	// drain
+	// ------------------------------------------------------------------
+	if (has(DiscardCondition::Drain) && pTechno->DrainingMe)
+		return finish(true);
 
-		if ((discardOn & DiscardCondition::Ammo) != DiscardCondition::None) {
-			bool trigger = false;
-			if (pType->DiscardOn_Ammo_Min.isset() || pType->DiscardOn_Ammo_Max.isset()) {
-				const int min = pType->DiscardOn_Ammo_Min.Get(-1);
-				const int max = pType->DiscardOn_Ammo_Max.Get(-1);
-				const int ammo = this->Techno->Ammo;
+	// ------------------------------------------------------------------
+	// ammo window — both bounds optional, -1 means "unbounded on that side"
+	// ------------------------------------------------------------------
+	if (has(DiscardCondition::Ammo)) {
+		const auto& nMin = pType->DiscardOn_Ammo_Min;
+		const auto& nMax = pType->DiscardOn_Ammo_Max;
 
-				trigger = (min < 0 || ammo >= min) && (max < 0 || ammo <= max);
-			}
+		// each bound probed exactly once — no Get() fallback, so isset() is not
+		// evaluated twice for the same field
+		const bool hasMin = nMin.isset();
+		const bool hasMax = nMax.isset();
 
-			if (trigger) {
-				return _retTrue(this->LastDiscardCheckValue);
-			}
+		if (hasMin || hasMax) {
+			const int ammo = pTechno->Ammo;
+			const bool minOk = !hasMin || ammo >= nMin.Fetch();
+			const bool maxOk = !hasMax || ammo <= nMax.Fetch();
+
+			if (minOk && maxOk)
+				return finish(true);
 		}
+	}
 
-		if ((discardOn & DiscardCondition::Health) != DiscardCondition::None) {
-			if (auto const pTypeData = this->Techno->GetTechnoType()) {
-				const double hp = this->Techno->GetHealthPercentage();
+	// ------------------------------------------------------------------
+	// health window
+	// ------------------------------------------------------------------
+	// DIFF: dropped the `GetTechnoType()` guard — the result was never used and
+	// the pointer is non-null for any live techno.
+	if (has(DiscardCondition::Health)) {
+		const auto& nMin = pType->DiscardOn_Health_Min;
+		const auto& nMax = pType->DiscardOn_Health_Max;
 
-				if (pType->DiscardOn_Health_Min.isset() || pType->DiscardOn_Health_Max.isset()) {
-					const double min = pType->DiscardOn_Health_Min.Get(0.0);
-					const double max = pType->DiscardOn_Health_Max.Get(1.0);
+		const bool hasMin = nMin.isset();
+		const bool hasMax = nMax.isset();
 
-					if ((hp > 0.0 ? hp > min : hp >= min) && hp <= max) {
-						return _retTrue(this->LastDiscardCheckValue);
-					}
+		if (hasMin || hasMax) {
+			const double hp = pTechno->GetHealthPercentage();
+
+			// SUSPECT: exclusive lower bound above zero, inclusive at zero.
+			// Preserved verbatim.
+			// DIFF: an unset bound is now "no bound" instead of the literal
+			// 0.0 / 1.0 clamp. Identical for hp in [0,1]; only differs if
+			// GetHealthPercentage() ever returns > 1.0 (over-heal), where the
+			// old 1.0 default would have silently failed the max test.
+			const bool minOk = !hasMin || (hp > 0.0 ? hp > nMin.Fetch() : hp >= nMin.Fetch());
+			const bool maxOk = !hasMax || hp <= nMax.Fetch();
+
+			if (minOk && maxOk)
+				return finish(true);
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// land type
+	// ------------------------------------------------------------------
+	if (has(DiscardCondition::LandType) && pType->DiscardOn_LandTypes != LandTypeFlags::None) {
+		if (const auto pCell = pTechno->GetCell()) {
+			if (IsLandTypeInFlags(pType->DiscardOn_LandTypes, pCell->LandType))
+				return finish(true);
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// range to current target
+	// ------------------------------------------------------------------
+	if (pTechno->Target) {
+		const bool inRange = has(DiscardCondition::InRange);
+		const bool outOfRange = has(DiscardCondition::OutOfRange);
+
+		if (inRange || outOfRange) {
+			// SUSPECT: if neither the override nor a weapon resolves, distance stays
+			// -1, which makes the OutOfRange test (dist >= -1) always fire.
+			// Preserved verbatim.
+			int distance = -1;
+
+			if (pType->DiscardOn_RangeOverride.isset()) {
+				distance = pType->DiscardOn_RangeOverride.Fetch();
+			} else {
+				const int weaponIndex = pTechno->SelectWeapon(pTechno->Target);
+
+				// BUGFIX: original dereferenced GetWeapon() without a null check.
+				if (const auto pWeaponStruct = pTechno->GetWeapon(weaponIndex)) {
+					if (const auto pWeapon = pWeaponStruct->WeaponType)
+						distance = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pTechno);
 				}
 			}
-		}
 
-		if ((discardOn & DiscardCondition::LandType) != DiscardCondition::None) {
-			if (pType->DiscardOn_LandTypes != LandTypeFlags::None) {
-				if (auto const pCell = this->Techno->GetCell()) {
-					LandTypeFlags landFlags = pType->DiscardOn_LandTypes;
+			const int distanceFromTgt = pTechno->DistanceFrom(pTechno->Target);
 
-					if (IsLandTypeInFlags(landFlags, pCell->LandType)) {
-						return _retTrue(this->LastDiscardCheckValue);
-					}
-				}
-			}
-		}
-
-		if (this->Techno->Target) {
-			bool inRange = (discardOn & DiscardCondition::InRange) != DiscardCondition::None;
-			bool outOfRange = (discardOn & DiscardCondition::OutOfRange) != DiscardCondition::None;
-
-			if (inRange || outOfRange) {
-				int distance = -1;
-
-				if (this->Type->DiscardOn_RangeOverride.isset())
-				{
-					distance = this->Type->DiscardOn_RangeOverride.Fetch();
-				}
-				else
-				{
-					int weaponIndex = this->Techno->SelectWeapon(this->Techno->Target);
-					auto const pWeapon = this->Techno->GetWeapon(weaponIndex)->WeaponType;
-
-					if (pWeapon)
-						distance = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, this->Techno);
-				}
-
-				const int distanceFromTgt = this->Techno->DistanceFrom(this->Techno->Target);
-
-				if ((inRange && distanceFromTgt <= distance) || (outOfRange && distanceFromTgt >= distance))
-					return _retTrue(this->LastDiscardCheckValue);
-			}
-		}
-
-		if (auto const pBuilding = cast_to<BuildingClass*, true>(this->Techno)) {
-			if (pBuilding->CurrentMission == Mission::Selling) {
-				if (pBuilding->ArchiveTarget) {
-					if ((discardOn & DiscardCondition::Undeploying) != DiscardCondition::None)
-						return _retTrue(this->LastDiscardCheckValue);
-				} else if ((discardOn & DiscardCondition::Selling) != DiscardCondition::None)
-					return _retTrue(this->LastDiscardCheckValue);
+			if ((inRange && distanceFromTgt <= distance)
+				|| (outOfRange && distanceFromTgt >= distance)) {
+				return finish(true);
 			}
 		}
 	}
 
-	return _retFalse(this->LastDiscardCheckValue);
+	// ------------------------------------------------------------------
+	// selling / undeploying
+	// ------------------------------------------------------------------
+	if (const auto pBuilding = cast_to<BuildingClass*, true>(pTechno)) {
+		if (pBuilding->CurrentMission == Mission::Selling) {
+			const auto condition = pBuilding->ArchiveTarget
+				? DiscardCondition::Undeploying
+				: DiscardCondition::Selling;
+
+			if (has(condition))
+				return finish(true);
+		}
+	}
+
+	return finish(false);
 }
 
 #pragma region StaticFunctions_AttachDetachTransfer
