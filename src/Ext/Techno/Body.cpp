@@ -2121,7 +2121,12 @@ UnitTypeClass* TechnoExtData::GetUnitTypeImage(UnitClass* const pThis)
 		}
 	}
 
-	const auto pData = TechnoTypeExtContainer::Instance.Find(pType);
+	auto pData = UnitTypeExtContainer::Instance.Find(pType);
+	// this theater
+	if(auto pTheaterImage = pData->TheaterImage.Get()) {
+			pType = (UnitTypeClass*)pTheaterImage;
+			pData = UnitTypeExtContainer::Instance.Find((UnitTypeClass*)pTheaterImage);
+	}
 
 	if ((pData->WaterImage || pData->WaterImage_Yellow || pData->WaterImage_Red) && !pThis->OnBridge && pThis->GetCell()->LandType == LandType::Water && !pThis->IsAttackedByLocomotor)
 	{

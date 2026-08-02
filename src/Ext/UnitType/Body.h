@@ -1,5 +1,6 @@
 #pragma once
 #include <Ext/FootType/Body.h>
+#include <New/Entity/TheaterImageClass.h>
 
 class TerrainTypeClass;
 class UnitTypeExtData : public FootTypeExtData
@@ -16,6 +17,7 @@ public:
 	NullableVector<TerrainTypeClass*> DefaultMirageDisguises {};
 	Nullable<int> HarvesterLoadRate {};
 	Nullable<double> HarvesterDumpRate {};
+	TheaterIamgeClass TheaterImage {};
 
 	UnitTypeExtData(UnitTypeClass* pObj) : FootTypeExtData(pObj)
 	{
@@ -67,7 +69,7 @@ private:
 			.Process(this->DefaultMirageDisguises)
 			.Process(this->HarvesterLoadRate)
 			.Process(this->HarvesterDumpRate)
-
+			.Process(this->TheaterImage)
 			;
 	}
 

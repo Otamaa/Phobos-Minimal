@@ -19,6 +19,8 @@ bool UnitTypeExtData::LoadFromINI(CCINIClass * pINI, bool parseFailAddr)
 	this->HarvesterLoadRate.Read(exINI, pSection, "HarvesterLoadRate");
 	this->HarvesterDumpRate.Read(exINI, pSection, "HarvesterDumpRate");
 
+	this->TheaterImage.Read(exINI, pSection, "Image.", AbstractType::UnitType);
+
 	return true;
 }
 
