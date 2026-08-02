@@ -1588,8 +1588,7 @@ bool FakeAITriggerTypeClass::_LoadFromINI(CCINIClass* pINI)
 		};
 
 
-	const auto fields = PhobosCRT::SplitStringFixed<AITriggerFieldCount>(
-	line, ",", true);
+	const auto fields = PhobosCRT::SplitStringFixed<AITriggerFieldCount>(line, ",", true);
 
 	if (fields.Overflow > 0)
 	{

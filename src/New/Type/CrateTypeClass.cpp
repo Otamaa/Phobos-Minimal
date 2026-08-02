@@ -27,8 +27,6 @@ void CrateTypeClass::AddDefaults()
 	}
 }
 
-#include <ranges>
-
 void CrateTypeClass::ReadFromPowerups(CCINIClass* pINI)
 {
     if (!pINI->GetSection("Powerups"))
@@ -43,28 +41,12 @@ void CrateTypeClass::ReadFromPowerups(CCINIClass* pINI)
         if (!pINI->ReadString("Powerups", pCrate->Name.data(), "0,NONE", readBuffer))
             continue;
 
-        auto tokens = std::string_view(readBuffer)
-            | std::views::split(',')
-            | std::views::transform([](auto&& r) { 
-                return std::string(PhobosCRT::trim(std::string_view(r).data())); 
-            });
+		const auto fields = PhobosCRT::SplitStringFixed<4u>(readBuffer, ",", true);
 
-        // Convert to array for random access
-        std::vector<std::string> vec(tokens.begin(), tokens.end());
-
-        // Use array-like access with bounds checking
-        auto get = [&](size_t idx) -> std::optional<std::string> {
-            return idx < vec.size() ? std::optional(vec[idx]) : std::nullopt;
-        };
-
-        if (auto v = get(0)) pCrate->Weight = std::stoi(*v);
-        if (auto v = get(1)) pCrate->Anim = AnimTypeClass::Find(v->c_str());
-        if (auto v = get(2)) pCrate->Naval = (*v == "yes");
-        if (auto v = get(3)) {
-            pCrate->Argument = (v->find('%') != std::string::npos) 
-                ? std::stof(*v) * 0.01 
-                : std::stof(*v);
-        }
+        if (fields.IsPresent(0)) pCrate->Weight = std::stoi(PhobosCRT::TrimToString(fields[0]).c_str());
+        if (fields.IsPresent(1)) pCrate->Anim = AnimTypeClass::FindOrAllocate(PhobosCRT::TrimToString(fields[1]).c_str());
+		if (fields.IsPresent(2)) Parser<bool>::TryParse(PhobosCRT::TrimToString(fields[2]).c_str(), pCrate->Naval.operator->());
+		if (fields.IsPresent(3)) Parser<double>::TryParse(PhobosCRT::TrimToString(fields[3]).c_str(), pCrate->Argument.operator->());
     }
 }
 

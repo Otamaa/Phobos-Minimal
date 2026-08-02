@@ -1623,7 +1623,7 @@ CollectResult Crate_Handle_Unit(CrateContext& ctx, int& soloCrateMoney)
 
 	if (Given) {
 		if (auto pCreatedUnit = Given->CreateObject(ctx.pCollectorOwner)) {
-			if (!pCreatedUnit->Unlimbo(ctx.locSound, DirType::Min)) {
+			if (pCreatedUnit->Unlimbo(ctx.locSound, DirType::Min)) {
 				ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);
 				return CollectResult::cannot;
 			}

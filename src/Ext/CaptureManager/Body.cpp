@@ -363,6 +363,9 @@ void FakeCaptureManagerClass::__DecideUnitFate(TechnoClass* pTechno , bool Captu
 
 bool FakeCaptureManagerClass::__Should_Draw_Link()
 {
+	if(MapClass::Instance->IsLocationFogged(this->Owner->GetCoords()))
+		return false;
+
 	// ------------------------------------------------------------
 	// Check if owner is selected
 	// ------------------------------------------------------------

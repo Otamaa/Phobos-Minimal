@@ -665,25 +665,10 @@ void ParticleSystemExtData::UpdateInAir_Main(bool ignoreVisibility)
 
 	auto rect = DSurface::ViewBounds.ptr();
 
-	// EXTENSION: fog is a separate occlusion channel from shroud - Visibility and
-	// Foggedness are distinct fields, and IsLocationShrouded only consults the former.
-	// A cell that is explored but currently fogged therefore passed the original test,
-	// so particles rendered straight through fog.
-	//
-	// Unlike FoggedObject there is nothing to invalidate here: this whole function runs
-	// per frame off live data, so the moment fog lifts the next frame draws normally.
-	// No snapshot, no stale state.
-	//
-	// PERF NOTE: MapClass::IsLocationFogged is the replaced 0x5865E0, which builds a
-	// full MapRevealer per call just to read Base() - RequiresExtraChecks() alone costs
-	// a SessionClass lookup plus a vtable call. That is fine for a handful of technos
-	// per frame but this runs per particle. If it shows up in a profile, expose
-	// MapRevealer::TranslateBaseCell as a public static and call it plus the two flag
-	// tests directly, rather than duplicating the predicate here.
 	auto const IsHidden = [ignoreVisibility](const CoordStruct& coord) noexcept
 		{
-			if (ignoreVisibility)
-				return false;
+			if (!ignoreVisibility)
+				return true;
 
 			return MapClass::Instance->IsLocationShrouded(coord)
 				|| MapClass::Instance->IsLocationFogged(coord);
@@ -697,8 +682,7 @@ void ParticleSystemExtData::UpdateInAir_Main(bool ignoreVisibility)
 			static_cast<int>(movement.vel.Z)
 		};
 
-		if (IsHidden(Coord))
-		{
+		if (IsHidden(Coord)) {
 			continue;
 		}
 
@@ -816,19 +800,14 @@ void ParticleSystemExtData::UpdateInAir_Main(bool ignoreVisibility)
 
 		DSurface::Temp->Put_Pixel(outClient, DSurface::Build_Hicolor_Pixel_RBG(data_r, data_g, data_b));
 	}
+	
+
+	//do not draw the smoke if hidden
+	if (IsHidden(this->This()->Location))
+		return;
 
 	for (auto& draw : this->SmokeData)
 	{
-		// EXTENSION: this loop had no visibility test at all - smoke SHPs drew through
-		// both shroud and fog. This is the more likely source of any "weird visual
-		// issues" report than the pixel loop above, since a whole sprite is far more
-		// noticeable than a stippled pixel.
-		// Behaviour change vs Ares: if smoke is meant to be visible through shroud for
-		// some gameplay reason, delete this block - nothing else depends on it.
-		if (IsHidden(draw.vel))
-		{
-			continue;
-		}
 
 		if (const auto image = draw.LinkedParticleType->GetImage())
 		{
@@ -880,13 +859,16 @@ void ParticleSystemExtData::UpdateInAir_Main(bool ignoreVisibility)
 
 void ParticleSystemExtData::UpdateInAir()
 {
-	if (ParticleSystemClass::Array->Count && GameOptionsClass::Instance->DetailLevel && FakeRulesClass::DetailsCurrentlyEnabled())
+	if (ParticleSystemClass::Array->Count
+		&& GameOptionsClass::Instance->DetailLevel && FakeRulesClass::DetailsCurrentlyEnabled())
 	{
 		// NOTE: this local is what gets passed as `ignoreVisibility` below - map editor
 		// mode, no hInstance, or the special-flag path all mean "draw regardless of what
 		// the local player can see".
 		bool StopDrawing = false;
-		if (Unsorted::MAP_DEBUG_MODE() || !Game::hInstance() || ((ScenarioClass::Instance->SpecialFlags.RawFlags + 1) & 16) == 0)
+		if (Unsorted::MAP_DEBUG_MODE() 
+			|| !Game::hInstance() 
+				|| ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar)
 			StopDrawing = true;
 
 		for (auto pSys : *ParticleSystemClass::Array)

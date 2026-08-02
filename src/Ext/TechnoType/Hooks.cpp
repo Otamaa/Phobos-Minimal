@@ -276,7 +276,7 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 						return -1;
 
 					//only when slope present , otherwise this will break the non slope facing too 
-					if(pThis->GetCell()->SlopeIndex) {
+					if(pThis->GetCell()->SlopeIndex != -1) {
 						const auto* offset = (size_t)turIdx >= pDrawTypeExt->ExtraTurretOffsets.size()
 							? reinterpret_cast<const CoordStruct*>(&pDrawTypeExt->TurretOffset.Fetch())
 							: &pDrawTypeExt->ExtraTurretOffsets[turIdx];

@@ -198,6 +198,19 @@ public:
 		return sv.substr(begin, end - begin);
 	};
 
+	static COMPILETIMEEVAL std::string TrimToString(std::string_view sv) noexcept
+	{
+		const auto isWS = [](char c) { return c == ' ' || c == '\t' || c == '\r' || c == '\n'; };
+
+		while (!sv.empty() && isWS(sv.front()))
+			sv.remove_prefix(1);
+
+		while (!sv.empty() && isWS(sv.back()))
+			sv.remove_suffix(1);
+
+		return std::string{ sv };
+	}
+
 	static COMPILETIMEEVAL std::string Trim(const std::string& s)
 	{
 		auto start = s.find_first_not_of(" \t\n\r");
