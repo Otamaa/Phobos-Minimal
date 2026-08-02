@@ -17,20 +17,13 @@ struct ShiftSchedule
 public:
 	struct Sample
 	{
-		CoordStruct Position;
-		DirStruct Facing;
-		float Pitch; // forward/back tilt in degrees
-		float Roll;  // sideways tilt in degrees
-		bool Finished;
+		CoordStruct Position {};
+		DirStruct Facing {};
+		float Pitch {}; // forward/back tilt in degrees
+		float Roll {};  // sideways tilt in degrees
+		bool Finished {};
 
-		Sample()
-			: Position { }
-			, Facing { }
-			, Pitch { 0.0f }
-			, Roll { 0.0f }
-			, Finished { false }
-		{}
-
+		Sample() = default;
 		Sample(CoordStruct position, DirStruct facing, float pitch = 0.0f, float roll = 0.0f, bool finished = false)
 		{
 			Position = position;
@@ -39,6 +32,7 @@ public:
 			Roll = roll;
 			Finished = finished;
 		}
+		~Sample() = default;
 	};
 
 	typedef std::function<void(TechnoClass* pThis, TechnoClass* pApplier, HouseClass* pApplierHouse)> ShiftProcessCallback;
@@ -69,10 +63,10 @@ public:
 	void DuringShiftProcess(TechnoClass* pThis);
 	void FinishShiftProcess(TechnoClass* pThis);
 
-	std::vector<ShiftProcessCallback> BeginCallbacks;
-	std::vector<ShiftProcessCallback> DuringCallbacks;
-	std::vector<ShiftProcessCallback> FinishCallbacks;
-	ShiftCanFireCallback CanFireCallback;
+	std::vector<ShiftProcessCallback> BeginCallbacks {};
+	std::vector<ShiftProcessCallback> DuringCallbacks {};
+	std::vector<ShiftProcessCallback> FinishCallbacks {};
+	ShiftCanFireCallback CanFireCallback {};
 
 	Sample Start {};
 	Sample End {};
@@ -121,14 +115,16 @@ struct ParabolaParams
 {
 public:
 
-	double InitialAngle;     // degrees
-	int InitialHorizSpeed;   // leptons / frame (horizontal component, constant during flight)
+	double InitialAngle {};     // degrees
+	int InitialHorizSpeed {};   // leptons / frame (horizontal component, constant during flight)
 
 	ParabolaParams(double initialAngleDeg, int initialHorizSpeed)
 	{
 		InitialAngle = initialAngleDeg;
 		InitialHorizSpeed = initialHorizSpeed;
 	}
+
+	~ParabolaParams() = default;
 };
 
 class ParabolaShiftSchedule : public ShiftSchedule
@@ -157,13 +153,14 @@ private:
 struct PathParams
 {
 public:
-	std::vector<int> PathDirections; // The path to follow
-	int Speed; // leptons / frame
-	int Height;
+	std::vector<int> PathDirections {}; // The path to follow
+	int Speed {}; // leptons / frame
+	int Height {};
 
-	PathParams() : Speed(0), Height(0) {}
+	PathParams() = default;
 	PathParams(const std::vector<int>& pathDirections, int speed, int height)
 		: PathDirections(pathDirections), Speed(speed), Height(height) {}
+	~PathParams() = default;
 };
 
 class PathShiftSchedule : public ShiftSchedule

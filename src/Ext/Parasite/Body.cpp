@@ -132,7 +132,7 @@ ASMJIT_PATCH(0x62946E, ParasiteClass_DTOR, 0x6)
 #include <ParticleSystemClass.h>
 #include <ParticleSystemTypeClass.h>
 
-void ResetOwnerMission(FootClass* owner)
+static void ResetOwnerMission(FootClass* owner)
 {
 	if (!owner)
 		return;
@@ -271,7 +271,7 @@ void FakeParasiteClass::__Grapple_AI()
 	// Update victim's paralysis timer
 	this->Victim->ParalysisTimer.Start(weaponType->Warhead->Paralyzes);
 	auto pWHExt = WarheadTypeExtContainer::Instance.Find(weaponType->Warhead);
-	auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(weaponType);
+	//auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(weaponType);
 
 	// State machine for grapple animation
 	switch (this->GrappleState)
@@ -462,7 +462,7 @@ void FakeParasiteClass::__Grapple_AI()
 	}
 }
 
-void NOINLINE TakeDamage(FootClass* pVictiom , FootClass* pOwner , WeaponTypeClass* pWeapon, bool killImmedietely) {
+static void NOINLINE TakeDamage(FootClass* pVictiom , FootClass* pOwner , WeaponTypeClass* pWeapon, bool killImmedietely) {
 
 	auto const pWarheadTypeExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
 

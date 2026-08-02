@@ -15,6 +15,8 @@ public:
 	BarTypeClass(const char* pTitle = GameStrings::NoneStr()) : Enumerable<BarTypeClass>(pTitle)
 	{ }
 
+	virtual ~BarTypeClass() = default;
+
 	void LoadFromINI(CCINIClass * pINI);
 	void LoadFromStream(PhobosStreamReader & Stm) {
 		this->Serialize(Stm);

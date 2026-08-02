@@ -150,7 +150,7 @@ const double RadSiteExtData::GetRadLevelAt(CellStruct const& cell)
 	return this->GetRadLevelAt(this->This()->BaseCell.DistanceFrom(cell));
 }
 
-bool NOINLINE IsFiniteNumber(double x) {
+static bool NOINLINE IsFiniteNumber(double x) {
 	return (x <= DBL_MAX && x >= -DBL_MAX);
 }
 
@@ -499,7 +499,7 @@ template<typename Func>
 void FakeRadSiteClass::ForEachCellInRadiationArea(Func&& callback)
 {
 	// Calculate the bounding box for the radiation area
-	short spread = this->Spread;
+	short spread = (short)this->Spread;
 	short minX = this->BaseCell.X - spread;
 	short maxX = minX + (2 * spread) + 1;
 	short minY = this->BaseCell.Y - spread;
@@ -594,7 +594,7 @@ double FakeRadSiteClass::__Radiation_At(CellStruct* cell) const
 	CoordStruct queryCoord = queryCell->GetCoords();
 
 	// Calculate 3D distance between radiation center and query cell
-	const int distance = (centerCoord - queryCoord).Length();
+	const int distance = int((centerCoord - queryCoord).Length());
 
 	// Check if cell is within radiation range
 	if (distance > this->SpreadInLeptons)

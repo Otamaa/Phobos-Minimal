@@ -8,12 +8,14 @@ class SuperClass;
 class SWFirerClass
 {
 public:
-	SuperClass* SW;
-	CDTimerClass deferment;
-	CellStruct cell;
-	bool playerControl;
-	int oldstart;
-	int oldleft;
+	SuperClass* SW {};
+	CDTimerClass deferment {};
+	CellStruct cell {};
+	bool playerControl {};
+	int oldstart {};
+	int oldleft {};
+
+public:
 
 	bool Load(PhobosStreamReader& stm, bool registerForChange)
 	{

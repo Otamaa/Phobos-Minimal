@@ -10,18 +10,12 @@ public:
 
 public:
 
-	ValueableIdx<CursorTypeClass> Cursor;
-	ValueableIdx<CursorTypeClass> ShroudedCursor;
-	Valueable<bool> AllowShrouded;
+	ValueableIdx<CursorTypeClass> Cursor { 21 };
+	ValueableIdx<CursorTypeClass> ShroudedCursor { 22 };
+	Valueable<bool> AllowShrouded { false };
 
-	ActionTypeClass(const char* pTitle) : Enumerable<ActionTypeClass>(pTitle)
-		, Cursor { 21 }
-		, ShroudedCursor { 22 }
-		, AllowShrouded { false }
-	{
-		if (AllowShrouded)
-			ShroudedCursor = 21;
-	}
+	ActionTypeClass(const char* pTitle) : Enumerable<ActionTypeClass>(pTitle) {	}
+	virtual ~ActionTypeClass() = default;
 
 	static void AddDefaults();
 

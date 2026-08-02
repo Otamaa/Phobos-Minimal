@@ -13,6 +13,7 @@ public:
 
 	ImmunityTypeClass(const char* const pTitle) : Enumerable<ImmunityTypeClass>(pTitle)
 	{ }
+	virtual ~ImmunityTypeClass() = default;
 
 	static void LoadFromINIList(CCINIClass* pINI, bool bDebug = false);
 

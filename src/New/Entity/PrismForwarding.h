@@ -11,12 +11,12 @@ public:
 
 	static HelperedVector<PrismForwarding*> Array;
 
-	BuildingClass* Owner;
-	HelperedVector<PrismForwarding*> Senders;		//the prism towers that are forwarding to this one
-	PrismForwarding* SupportTarget;			//what tower am I sending to?
-	int PrismChargeDelay;					//current delay charge
-	double ModifierReserve;					//current modifier reservoir
-	int DamageReserve;					//current flat reservoir
+	BuildingClass* Owner {};
+	HelperedVector<PrismForwarding*> Senders {};		//the prism towers that are forwarding to this one
+	PrismForwarding* SupportTarget {};			//what tower am I sending to?
+	int PrismChargeDelay {};					//current delay charge
+	double ModifierReserve {};					//current modifier reservoir
+	int DamageReserve {};					//current flat reservoir
 
 	// constructor
 	PrismForwarding() : Owner(nullptr),

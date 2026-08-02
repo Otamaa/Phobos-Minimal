@@ -16,18 +16,19 @@ public:
 
 public:
 
-	int DefaultTo;
-	std::string DefaultString;
-	VersesData DefaultVersesValue;
-	bool IsVanillaArmor;
+	int DefaultTo { -1 };
+	std::string DefaultString {};
+	VersesData DefaultVersesValue {};
+	bool IsVanillaArmor {};
 
-	std::string BaseTag;
-	std::string FF_Tag;
-	std::string RT_Tag;
-	std::string PA_Tag;
-	std::string HitAnim_Tag;
+	std::string BaseTag {};
+	std::string FF_Tag {};
+	std::string RT_Tag {};
+	std::string PA_Tag {};
+	std::string HitAnim_Tag {};
 
 	ArmorTypeClass(const char* const pTitle);
+	virtual ~ArmorTypeClass() = default;
 
 	static void AddDefaults();
 

@@ -21,26 +21,28 @@ public:
 
 	~PassengerDeletionTypeClass() noexcept = default;
 
-	TechnoTypeClass* OwnerType;
+public:
 
-	bool Enabled;
-	Valueable<int> Rate;
-	Valueable<bool> Rate_SizeMultiply;
+	TechnoTypeClass* OwnerType { nullptr };
+
+	bool Enabled { false };
+	Valueable<int> Rate { 0 };
+	Valueable<bool> Rate_SizeMultiply { true };
 	Valueable<bool> Rate_AffectedByVeterancy;
-	Valueable<bool> UseCostAsRate;
-	Valueable<double> CostMultiplier;
-	Nullable<int> CostRateCap;
-	Valueable<AffectedHouse> AllowedHouses;
-	Valueable<bool> DontScore;
-	Valueable<bool> Soylent;
-	Valueable<double> SoylentMultiplier;
-	Valueable<AffectedHouse> SoylentAllowedHouses;
-	Valueable<bool> DisplaySoylent;
-	Valueable<AffectedHouse> DisplaySoylentToHouses;
-	Valueable<Point2D> DisplaySoylentOffset;
-	NullableIdx<VocClass> ReportSound;
-	Nullable<AnimTypeClass*> Anim;
-	Valueable<bool> UnderEMP;
+	Valueable<bool> UseCostAsRate {};
+	Valueable<double> CostMultiplier { 1.0 };
+	Nullable<int> CostRateCap {};
+	Valueable<AffectedHouse> AllowedHouses { AffectedHouse::All };
+	Valueable<bool> DontScore {};
+	Valueable<bool> Soylent {};
+	Valueable<double> SoylentMultiplier { 1.0 };
+	Valueable<AffectedHouse> SoylentAllowedHouses { AffectedHouse::Enemies };
+	Valueable<bool> DisplaySoylent {};
+	Valueable<AffectedHouse> DisplaySoylentToHouses { AffectedHouse::All };
+	Valueable<Point2D> DisplaySoylentOffset {};
+	NullableIdx<VocClass> ReportSound {};
+	Nullable<AnimTypeClass*> Anim {};
+	Valueable<bool> UnderEMP {};
 
 	void LoadFromINI(CCINIClass* pINI, const char* pSection);
 	bool Load(PhobosStreamReader& stm, bool registerForChange);

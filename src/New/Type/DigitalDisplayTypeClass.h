@@ -13,52 +13,34 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "DigitalDisplayTypeClass";
 
 public:
-	Damageable<ColorStruct> Text_Color;
-	Valueable<bool> Text_Background;
-	Valueable<Point2D> Offset;
-	Nullable<Point2D> Offset_ShieldDelta;
-	Valueable<TextAlign> Align;
-	Anchor AnchorType;
-	Valueable<BuildingSelectBracketPosition> AnchorType_Building;
-	Valueable<SHPStruct*> Shape;
-	CustomPalette Palette;
-	Nullable<Point2D> Shape_Spacing;
-	Valueable<bool> Shape_PercentageFrame;
-	Valueable<bool> Percentage;
-	Nullable<bool> HideMaxValue;
-	Valueable<bool> VisibleToHouses_Observer;
-	Valueable<AffectedHouse> VisibleToHouses;
-	Valueable<bool> VisibleInSpecialState;
-	Valueable<DisplayInfoType> InfoType;
-	Valueable<int> InfoIndex;
-	Nullable<int> ValueScaleDivisor;
-	Valueable<bool> ValueAsTimer;
-	Valueable<DisplayShowType> ShowType;
+	Damageable<ColorStruct> Text_Color {
+		{0, 255, 0},
+		{255, 255, 0},
+		{255, 0, 0}
+	};
+	Valueable<bool> Text_Background { false };
+	Valueable<Point2D> Offset { Point2D::Empty };
+	Nullable<Point2D> Offset_ShieldDelta {};
+	Valueable<TextAlign> Align { TextAlign::Right };
+	Anchor AnchorType { HorizontalPosition::Right, VerticalPosition::Top };
+	Valueable<BuildingSelectBracketPosition> AnchorType_Building { BuildingSelectBracketPosition::Top };
+	Valueable<SHPStruct*> Shape { nullptr };
+	CustomPalette Palette { CustomPalette::PaletteMode::Temperate };
+	Nullable<Point2D> Shape_Spacing {};
+	Valueable<bool> Shape_PercentageFrame {};
+	Valueable<bool> Percentage { false };
+	Nullable<bool> HideMaxValue {};
+	Valueable<bool> VisibleToHouses_Observer { true };
+	Valueable<AffectedHouse> VisibleToHouses { AffectedHouse::All };
+	Valueable<bool> VisibleInSpecialState { true };
+	Valueable<DisplayInfoType> InfoType { DisplayInfoType::Health };
+	Valueable<int> InfoIndex {};
+	Nullable<int> ValueScaleDivisor {};
+	Valueable<bool> ValueAsTimer {};
+	Valueable<DisplayShowType> ShowType { DisplayShowType::Select };
 
-	DigitalDisplayTypeClass(const char* pTitle) : Enumerable<DigitalDisplayTypeClass>(pTitle)
-		, Text_Color({ 0, 255, 0 }, { 255,255,0 }, { 255,0,0 })
-		, Text_Background(false)
-		, Offset({ Point2D::Empty })
-		, Offset_ShieldDelta()
-		, Align(TextAlign::Right)
-		, AnchorType(HorizontalPosition::Right, VerticalPosition::Top)
-		, AnchorType_Building(BuildingSelectBracketPosition::Top)
-		, Shape(nullptr)
-		, Palette(CustomPalette::PaletteMode::Temperate)
-		, Shape_Spacing()
-		, Shape_PercentageFrame()
-		, Percentage(false)
-		, HideMaxValue()
-		, VisibleToHouses_Observer(true)
-		, VisibleToHouses(AffectedHouse::All)
-		, VisibleInSpecialState(true)
-		, InfoType(DisplayInfoType::Health)
-		, InfoIndex()
-		, ValueScaleDivisor()
-		, ValueAsTimer()
-		, ShowType { DisplayShowType::Select }
-	{ }
-
+	DigitalDisplayTypeClass(const char* pTitle) : Enumerable<DigitalDisplayTypeClass>(pTitle) {}
+	virtual ~DigitalDisplayTypeClass() = default;
 
 	void LoadFromINI(CCINIClass* pINI);
 	void LoadFromStream(PhobosStreamReader& Stm);

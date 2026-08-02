@@ -25,6 +25,8 @@ struct LauchSWData final
 
 	Valueable<OwnerHouseKind> LauchhSW_Owner { OwnerHouseKind::Invoker };
 
+public:
+
 	bool Read(INI_EX& exINI, const char* pID, int Prefix , SuperWeaponTypeClass* pReaded);
 	bool ReadSingle(INI_EX& exINI, const char* pID, int Prefix);
 	static bool ReadVector(std::vector<LauchSWData>& res , INI_EX& exINI, const char* pSection , bool CompatibilityMode);

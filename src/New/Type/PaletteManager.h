@@ -68,11 +68,10 @@ public:
 	};
 
 	// --- Public mirror fields (kept for source compatibility) -------
-	PaletteMode Mode;
-	std::string Name;
+	PaletteMode Mode { PaletteMode::Default };
+	std::string Name {};
 
-	CustomPalette() noexcept
-		: Mode(PaletteMode::Default), Name() {}
+	CustomPalette() noexcept = default;
 	explicit CustomPalette(PaletteMode mode) noexcept
 		: Mode(mode), Name() {}
 	~CustomPalette() = default;

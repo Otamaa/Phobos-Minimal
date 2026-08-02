@@ -11,27 +11,19 @@ public:
 
 private:
 
-	Nullable<AnimTypeClass*> AboveWaterAnim;
-	NullableIdx<VocClass> ScoldSound;
-	Nullable<int> HoverHeight;
-	Nullable<double> HoverBob;
-	Nullable<double> HoverDampen;
-	Nullable<double> HoverAcceleration;
-	Nullable<double> HoverBrake;
-	Nullable<double> HoverBoost;
+	Nullable<AnimTypeClass*> AboveWaterAnim {};
+	NullableIdx<VocClass> ScoldSound {};
+	Nullable<int> HoverHeight {};
+	Nullable<double> HoverBob {};
+	Nullable<double> HoverDampen {};
+	Nullable<double> HoverAcceleration {};
+	Nullable<double> HoverBrake {};
+	Nullable<double> HoverBoost {};
 
 public:
 
-	HoverTypeClass(const char* const pTitle) : Enumerable<HoverTypeClass> { pTitle }
-		, AboveWaterAnim {}
-		, ScoldSound {}
-		, HoverHeight {}
-		, HoverBob {}
-		, HoverDampen {}
-		, HoverAcceleration {}
-		, HoverBrake {}
-		, HoverBoost()
-	{ }
+	HoverTypeClass(const char* const pTitle) : Enumerable<HoverTypeClass> { pTitle } { }
+	virtual ~HoverTypeClass() = default;
 
 	COMPILETIMEEVAL OPTIONALINLINE AnimTypeClass* GetAboveWaterAnim() const {
 		return this->AboveWaterAnim.Get(RulesClass::Instance->Wake);

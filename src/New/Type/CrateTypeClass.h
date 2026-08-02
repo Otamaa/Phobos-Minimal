@@ -16,23 +16,16 @@ public:
 
 public:
 
-	Valueable<int> Weight;
-	Valueable<AnimTypeClass*> Anim;
-	Valueable<double> Argument;
-	Valueable<bool> Naval;
-	ValueableIdx<VocClass> Sound;
-	ValueableIdx<VoxClass> Eva;
-	SpeedType Speed;
+	Valueable<int> Weight {};
+	Valueable<AnimTypeClass*> Anim {};
+	Valueable<double> Argument {};
+	Valueable<bool> Naval {};
+	ValueableIdx<VocClass> Sound {};
+	ValueableIdx<VoxClass> Eva {};
+	SpeedType Speed { SpeedType::Track };
 
-    CrateTypeClass(const char* const pTitle): Enumerable<CrateTypeClass>(pTitle)
-		, Weight { }
-		, Anim { nullptr }
-		, Argument { 0.0 }
-		, Naval { false }
-		, Sound { -1 }
-		, Eva { }
-		, Speed { SpeedType::Track }
-	{ }
+    CrateTypeClass(const char* const pTitle): Enumerable<CrateTypeClass>(pTitle) { }
+	virtual ~CrateTypeClass() = default;
 
 	static void ReadListFromINI(CCINIClass* pINI);
 	static void AddDefaults();

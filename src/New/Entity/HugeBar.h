@@ -16,41 +16,45 @@ public:
 	static void InitializeHugeBar(TechnoClass* pTechno);
 	static void ProcessHugeBar();
 
-	Valueable<double> HugeBar_RectWidthPercentage;
-	Valueable<Point2D> HugeBar_RectWH;
-	Damageable<ColorStruct> HugeBar_Pips_Color1;
-	Damageable<ColorStruct> HugeBar_Pips_Color2;
+public:
 
-	Valueable<SHPStruct*> HugeBar_Shape;
-	Valueable<SHPStruct*> HugeBar_Pips_Shape;
-	CustomPalette HugeBar_Palette;
-	CustomPalette HugeBar_Pips_Palette;
-	Damageable<int> HugeBar_Frame;
-	Damageable<int> HugeBar_Pips_Frame;
-	Valueable<int> HugeBar_Pips_Spacing;
+	Valueable<double> HugeBar_RectWidthPercentage { 0.82 };
+	Valueable<Point2D> HugeBar_RectWH { { -1, 30 } };
+	Damageable<ColorStruct> HugeBar_Pips_Color1 {};
+	Damageable<ColorStruct> HugeBar_Pips_Color2 {};
 
-	Valueable<Point2D> HugeBar_Offset;
-	Nullable<Point2D> HugeBar_Pips_Offset;
-	Valueable<int> HugeBar_Pips_Num;
+	Valueable<SHPStruct*> HugeBar_Shape {};
+	Valueable<SHPStruct*> HugeBar_Pips_Shape {};
+	CustomPalette HugeBar_Palette {};
+	CustomPalette HugeBar_Pips_Palette {};
+	Damageable<int> HugeBar_Frame { -1 };
+	Damageable<int> HugeBar_Pips_Frame { -1 };
+	Valueable<int> HugeBar_Pips_Spacing {};
 
-	Damageable<ColorStruct> Value_Text_Color;
+	Valueable<Point2D> HugeBar_Offset {};
+	Nullable<Point2D> HugeBar_Pips_Offset {};
+	Valueable<int> HugeBar_Pips_Num {};
 
-	Valueable<SHPStruct*> Value_Shape;
-	CustomPalette Value_Palette;
-	Valueable<int> Value_Num_BaseFrame;
-	Valueable<int> Value_Sign_BaseFrame;
-	Valueable<int> Value_Shape_Spacing;
+	Damageable<ColorStruct> Value_Text_Color {};
 
-	Valueable<bool> DisplayValue;
-	Valueable<bool> Value_Percentage;
-	Valueable<Point2D> Value_Offset;
-	Anchor Anchor;
-	DisplayInfoType InfoType;
+	Valueable<SHPStruct*> Value_Shape {};
+	CustomPalette Value_Palette {};
+	Valueable<int> Value_Num_BaseFrame {};
+	Valueable<int> Value_Sign_BaseFrame { 30 };
+	Valueable<int> Value_Shape_Spacing { 8 };
 
-	Valueable<bool> VisibleToHouses_Observer;
-	Valueable<AffectedHouse> VisibleToHouses;
+	Valueable<bool> DisplayValue { true };
+	Valueable<bool> Value_Percentage {};
+	Valueable<Point2D> Value_Offset {};
+	Anchor Anchor { HorizontalPosition::Center, VerticalPosition::Top };
+	DisplayInfoType InfoType {};
 
-	HugeBar();
+	Valueable<bool> VisibleToHouses_Observer { true };
+	Valueable<AffectedHouse> VisibleToHouses { AffectedHouse::All };
+
+public:
+
+	HugeBar() = default;
 	HugeBar(DisplayInfoType infoType);
 	MOVEABLE_ONLY(HugeBar);
 	~HugeBar() = default;

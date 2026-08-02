@@ -12,45 +12,27 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "SelectBoxTypeClass";
 
 public:
-	Valueable<SHPStruct*> Shape;
-	CustomPalette Palette;
-	Nullable<Point3D> Frames;
-	Valueable<bool> Grounded;
-	Valueable<Point2D> Offset;
-	TranslucencyLevel Translucency;
-	Valueable<AffectedHouse> VisibleToHouses;
-	Valueable<bool> VisibleToHouses_Observer;
-	Valueable<bool> DrawAboveTechno;
+	Valueable<SHPStruct*> Shape {};
+	CustomPalette Palette {};
+	Nullable<Point3D> Frames {};
+	Valueable<bool> Grounded { false };
+	Valueable<Point2D> Offset { Point2D::Empty };
+	TranslucencyLevel Translucency { 0 };           // or TranslucencyLevel::SomeValue if it's an enum
+	Valueable<AffectedHouse> VisibleToHouses { AffectedHouse::All };
+	Valueable<bool> VisibleToHouses_Observer { true };
+	Valueable<bool> DrawAboveTechno { true };
 
-	Valueable<SHPStruct*> GroundShape;
-	CustomPalette GroundPalette;
-	Nullable<Point3D> GroundFrames;
-	Valueable<Point2D> GroundOffset;
-	Valueable<bool> Ground_AlwaysDraw;
-	Valueable<bool> GroundLine;
-	Damageable<ColorStruct> GroundLineColor;
-	Valueable<bool> GroundLine_Dashed;
+	Valueable<SHPStruct*> GroundShape { nullptr };
+	CustomPalette GroundPalette {};
+	Nullable<Point3D> GroundFrames {};
+	Valueable<Point2D> GroundOffset { Point2D::Empty };
+	Valueable<bool> Ground_AlwaysDraw { true };
+	Valueable<bool> GroundLine { false };
+	Damageable<ColorStruct> GroundLineColor { {0, 255, 0} };   // nested braces for Damageable<ColorStruct>
+	Valueable<bool> GroundLine_Dashed { false };
 
-	SelectBoxTypeClass(const char* pTitle ) : Enumerable<SelectBoxTypeClass>(pTitle)
-		, Shape {}
-		, Palette {}
-		, Frames {}
-		, Grounded { false }
-		, Offset { Point2D::Empty }
-		, Translucency { 0 }
-		, VisibleToHouses { AffectedHouse::All }
-		, VisibleToHouses_Observer { true }
-		, DrawAboveTechno { true }
-
-		, GroundShape { nullptr }
-		, GroundPalette {}
-		, GroundFrames {}
-		, GroundOffset { Point2D::Empty }
-		, Ground_AlwaysDraw { true }
-		, GroundLine { false }
-		, GroundLineColor { { 0,255,0 } }
-		, GroundLine_Dashed { false }
-	{ }
+	SelectBoxTypeClass(const char* pTitle) : Enumerable<SelectBoxTypeClass>(pTitle) {}
+	virtual ~SelectBoxTypeClass() = default;
 
 	void LoadFromINI(CCINIClass* pINI);
 	void LoadFromStream(PhobosStreamReader& Stm);

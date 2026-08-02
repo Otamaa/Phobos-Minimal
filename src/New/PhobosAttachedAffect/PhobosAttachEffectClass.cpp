@@ -12,6 +12,9 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/TEvent/Body.h>
 #include <Ext/Bullet/Body.h>
+#include <Ext/Infantry/Body.h>
+
+#include <ExtraHeaders/StackVector.h>
 
 HelperedVector<PhobosAttachEffectClass*> PhobosAttachEffectClass::Array;
 
@@ -63,12 +66,14 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 	}
 
 	if (pInvoker && pInvoker->IsAlive) {
-		this->Duration = (int)TechnoExtData::ApplyDamageMult(pInvoker, this->Duration, !pType->Duration_ApplyFirepowerMult);
+		const int dur = static_cast<int>(TechnoExtData::ApplyDamageMult(pTechno, this->Duration, !pType->Duration_ApplyFirepowerMult));
+		this->Duration = dur;
 	}
 
 	if (pType->Duration_ApplyArmorMultOnTarget && this->Duration > 0) // count its own ArmorMultiplier as well
 	{
-		this->Duration = MaxImpl(static_cast<int>(TechnoExtData::GetArmorMult(pTechno, this->Duration, nullptr)), 0, false);
+		const int dur = static_cast<int>(TechnoExtData::GetArmorMult(pTechno, this->Duration, nullptr, false));
+		this->Duration = MaxImpl(dur, 0);
 	}
 
 	this->InvokerHouse = pInvokerHouse;
@@ -639,12 +644,14 @@ void PhobosAttachEffectClass::RefreshDuration(int durationOverride)
 	}
 
 	if (this->Invoker && this->Invoker->IsAlive) {
-		this->Duration = (int)TechnoExtData::ApplyDamageMult(this->Invoker, this->Duration, !this->Type->Duration_ApplyFirepowerMult);
+		const int dur = static_cast<int>(TechnoExtData::ApplyDamageMult(this->Invoker, this->Duration, !this->Type->Duration_ApplyFirepowerMult));
+		this->Duration = dur;
 	}
 
-	if (this->Type->Duration_ApplyArmorMultOnTarget && this->Duration > 0) // count its own ArmorMultiplier as well
-	{
-		this->Duration = MaxImpl(static_cast<int>(TechnoExtData::GetArmorMult(this->Techno, this->Duration, nullptr)), 0, false);
+	// count its own ArmorMultiplier as well
+	if (this->Type->Duration_ApplyArmorMultOnTarget && this->Duration > 0) {
+		const int dur = static_cast<int>(TechnoExtData::GetArmorMult(this->Techno, this->Duration, nullptr, false));
+		this->Duration = MaxImpl(dur, 0);
 	}
 
 	if (this->Type->Animation_ResetOnReapply)
@@ -669,19 +676,16 @@ bool PhobosAttachEffectClass::ResetIfRecreatable()
 	return true;
 }
 
-bool _retTrue(bool& check) {
+static bool _retTrue(bool& check) {
 	check = true;
 	return true;
 }
 
-bool _retFalse(bool& check)
+static bool _retFalse(bool& check)
 {
 	check = false;
 	return false;
 }
-
-
-#include <InfantryClass.h>
 
 bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 {
@@ -854,8 +858,6 @@ int PhobosAttachEffectClass::Detach(TechnoClass* pTarget, AEAttachInfoTypeClass*
 
 	return DetachTypes(pTarget, attachEffectInfo, attachEffectInfo->RemoveTypes);
 }
-
-#include <ExtraHeaders/StackVector.h>
 
 int PhobosAttachEffectClass::DetachByGroups(TechnoClass* pTarget, AEAttachInfoTypeClass* attachEffectInfo)
 {

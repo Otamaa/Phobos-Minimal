@@ -6,8 +6,8 @@ class PhobosAttachEffectTypeClass;
 class AnimationDrawOffsetClass
 {
 public:
-	Valueable<Point2D> Offset;
-	ValueableVector<PhobosAttachEffectTypeClass*> RequiredTypes;
+	Valueable<Point2D> Offset {};
+	ValueableVector<PhobosAttachEffectTypeClass*> RequiredTypes {};
 
 public:
 

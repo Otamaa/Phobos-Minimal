@@ -17,136 +17,80 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "ShieldTypeClass";
 
 public:
-	Valueable<int> Strength;
-	Nullable<int> InitialStrength;
+	Valueable<int> Strength { 0 };
+	Nullable<int> InitialStrength {};
 
-	Nullable<double> ConditionYellow;
-	Nullable<double> ConditionRed;
+	Nullable<double> ConditionYellow {};
+	Nullable<double> ConditionRed {};
 
-	Valueable<Armor> Armor;
-	Valueable<bool> Powered;
-	Valueable<double> Respawn;
-	Valueable<int> Respawn_Rate;
-	Valueable<bool> Respawn_RestartInCombat;
-	Valueable<int> Respawn_RestartInCombatDelay;
-	ValueableVector<AnimTypeClass*> Respawn_Anim;
-	Valueable<WeaponTypeClass*> Respawn_Weapon;
-	Valueable<double> SelfHealing;
-	Valueable<int> SelfHealing_Rate;
-	Valueable<bool> SelfHealing_RestartInCombat;
-	Valueable<int> SelfHealing_RestartInCombatDelay;
-	ValueableVector<BuildingTypeClass*> SelfHealing_EnabledBy;
+	Valueable<Armor> Armor { Armor::None };
+	Valueable<bool> Powered { false };
+	Valueable<double> Respawn { 0.0 };
+	Valueable<int> Respawn_Rate { 0 };
+	Valueable<bool> Respawn_RestartInCombat { true };
+	Valueable<int> Respawn_RestartInCombatDelay { 0 };
+	ValueableVector<AnimTypeClass*> Respawn_Anim {};
+	Valueable<WeaponTypeClass*> Respawn_Weapon {};
+	Valueable<double> SelfHealing { 0.0 };
+	Valueable<int> SelfHealing_Rate { 0 };
+	Valueable<bool> SelfHealing_RestartInCombat { true };
+	Valueable<int> SelfHealing_RestartInCombatDelay { 0 };
+	ValueableVector<BuildingTypeClass*> SelfHealing_EnabledBy {};
 
-	Valueable<bool> AbsorbOverDamage;
-	Valueable<int> BracketDelta;
-	Valueable<AttachedAnimFlag> IdleAnim_OfflineAction;
-	Valueable<AttachedAnimFlag> IdleAnim_TemporalAction;
-	Damageable<AnimTypeClass*> IdleAnim;
-	Damageable<AnimTypeClass*> IdleAnimDamaged;
-	Valueable<AnimTypeClass*> BreakAnim;
-	Valueable<AnimTypeClass*> HitAnim;
-	Valueable<WeaponTypeClass*> BreakWeapon;
-	Valueable<double> AbsorbPercent;
-	Valueable<double> PassPercent;
-	Valueable<int> ReceivedDamage_Minimum;
-	Valueable<int> ReceivedDamage_Maximum;
+	Valueable<bool> AbsorbOverDamage { false };
+	Valueable<int> BracketDelta { 0 };
+	Valueable<AttachedAnimFlag> IdleAnim_OfflineAction { AttachedAnimFlag::Hides };
+	Valueable<AttachedAnimFlag> IdleAnim_TemporalAction { AttachedAnimFlag::Hides };
+	Damageable<AnimTypeClass*> IdleAnim {};
+	Damageable<AnimTypeClass*> IdleAnimDamaged {};
+	Valueable<AnimTypeClass*> BreakAnim {};
+	Valueable<AnimTypeClass*> HitAnim {};
+	Valueable<WeaponTypeClass*> BreakWeapon {};
+	Valueable<double> AbsorbPercent { 1.0 };
+	Valueable<double> PassPercent { 0.0 };
+	Valueable<int> ReceivedDamage_Minimum { INT32_MIN };
+	Valueable<int> ReceivedDamage_Maximum { INT32_MAX };
 
-	Nullable<bool> AllowTransfer;
+	Nullable<bool> AllowTransfer {};
 
-	Valueable<Point3D> Pips;
-	Nullable<SHPStruct*> Pips_Background_SHP;
-	Valueable<Point3D> Pips_Building;
-	Nullable<int> Pips_Building_Empty;
-	Valueable<bool> Pips_HideIfNoStrength;
+	Valueable<Point3D> Pips { {-1, -1, -1} };
+	Nullable<SHPStruct*> Pips_Background_SHP {};
+	Valueable<Point3D> Pips_Building { {-1, -1, -1} };
+	Nullable<int> Pips_Building_Empty {};
+	Valueable<bool> Pips_HideIfNoStrength { false };
 
-	Valueable<bool> ImmuneToPsychedelic;
-	Nullable<int> ThreadPosed;
-	Valueable<bool> ImmuneToCrit;
+	Valueable<bool> ImmuneToPsychedelic { false };
+	Nullable<int> ThreadPosed {};
+	Valueable<bool> ImmuneToCrit { false };
 
-	Valueable<bool> BreakWeapon_TargetSelf;
+	Valueable<bool> BreakWeapon_TargetSelf { true };
 
-	Valueable<bool> PassthruNegativeDamage;
-	Valueable<bool> CanBeHealed;
-	NullableIdx<CursorTypeClass> HealCursorType;
+	Valueable<bool> PassthruNegativeDamage { false };
+	Valueable<bool> CanBeHealed { false };
+	NullableIdx<CursorTypeClass> HealCursorType {};
 
-	Valueable<bool> HitFlash;
-	Nullable<int> HitFlash_FixedSize;
-	Valueable<bool> HitFlash_Red;
-	Valueable<bool> HitFlash_Green;
-	Valueable<bool> HitFlash_Blue;
-	Valueable<bool> HitFlash_Black;
+	Valueable<bool> HitFlash { false };
+	Nullable<int> HitFlash_FixedSize {};
+	Valueable<bool> HitFlash_Red { true };
+	Valueable<bool> HitFlash_Green { true };
+	Valueable<bool> HitFlash_Blue { true };
+	Valueable<bool> HitFlash_Black { false };
 
-	Valueable<ColorStruct> Tint_Color;
-	Valueable<double> Tint_Intensity;
-	Valueable<AffectedHouse> Tint_VisibleToHouses;
+	Valueable<ColorStruct> Tint_Color {};
+	Valueable<double> Tint_Intensity { 0.0 };
+	Valueable<AffectedHouse> Tint_VisibleToHouses { AffectedHouse::All };
 
-	ValueableVector<TechnoTypeClass*> InheritArmor_Allowed;
-	ValueableVector<TechnoTypeClass*> InheritArmor_Disallowed;
-	Valueable<bool> InheritArmorFromTechno;
-	Valueable<bool> CanBlock;
+	ValueableVector<TechnoTypeClass*> InheritArmor_Allowed {};
+	ValueableVector<TechnoTypeClass*> InheritArmor_Disallowed {};
+	Valueable<bool> InheritArmorFromTechno {};
+	Valueable<bool> CanBlock { false };
 
-	Nullable<bool> UseArmorplier;
+	Nullable<bool> UseArmorplier {};
+
 public:
 
-	ShieldTypeClass(const char* const pTitle) : Enumerable<ShieldTypeClass> { pTitle }
-		, Strength { 0 }
-		, InitialStrength {}
-		, ConditionYellow {}
-		, ConditionRed {}
-		, Armor { Armor::None }
-		, Powered { false }
-		, Respawn { 0.0 }
-		, Respawn_Rate { 0 }
-		, Respawn_RestartInCombat { true }
-		, Respawn_RestartInCombatDelay { 0 }
-		, Respawn_Anim { }
-		, Respawn_Weapon { }
-		, SelfHealing { 0.0 }
-		, SelfHealing_Rate { 0 }
-		, SelfHealing_RestartInCombat { true }
-		, SelfHealing_RestartInCombatDelay { 0 }
-		, SelfHealing_EnabledBy {}
-		, AbsorbOverDamage { false }
-		, BracketDelta { 0 }
-		, IdleAnim_OfflineAction { AttachedAnimFlag::Hides }
-		, IdleAnim_TemporalAction { AttachedAnimFlag::Hides }
-		, IdleAnim {}
-		, IdleAnimDamaged {}
-		, BreakAnim {}
-		, HitAnim {}
-		, BreakWeapon {}
-		, AbsorbPercent { 1.0 }
-		, PassPercent { 0.0 }
-		, ReceivedDamage_Minimum { INT32_MIN }
-		, ReceivedDamage_Maximum { INT32_MAX }
-		, AllowTransfer {}
-		, Pips { { -1,-1,-1 } }
-		, Pips_Background_SHP {}
-		, Pips_Building { { -1,-1,-1 } }
-		, Pips_Building_Empty {}
-		, Pips_HideIfNoStrength { false }
-		, ImmuneToPsychedelic { false }
-		, ThreadPosed { }
-		, ImmuneToCrit { false }
-		, BreakWeapon_TargetSelf { true }
-		, PassthruNegativeDamage { false }
-		, CanBeHealed { false }
-		, HealCursorType { }
-		, HitFlash { false }
-		, HitFlash_FixedSize {}
-		, HitFlash_Red { true }
-		, HitFlash_Green { true }
-		, HitFlash_Blue { true }
-		, HitFlash_Black { false }
-		, Tint_Color {}
-		, Tint_Intensity { 0.0 }
-		, Tint_VisibleToHouses { AffectedHouse::All }
-		, InheritArmor_Allowed {}
-		, InheritArmor_Disallowed {}
-		, InheritArmorFromTechno {}
-		, CanBlock { false }
-		, UseArmorplier {}
-	{};
+	ShieldTypeClass(const char* const pTitle) : Enumerable<ShieldTypeClass>(pTitle) {}
+	virtual ~ShieldTypeClass() = default;
 
 	void LoadFromINI(CCINIClass* pINI);
 	void LoadFromStream(PhobosStreamReader& Stm);

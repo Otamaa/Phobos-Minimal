@@ -16,39 +16,7 @@ public:
 
 public:
 	TheaterTypeClass(const char* const pTitle) :
-		Enumerable<TheaterTypeClass>(pTitle),
-		UIName(),
-		ControlFileName("X"),
-		ArtFileName("X"),
-		PaletteFileName("X"),
-		Extension("X"),
-		MMExtension("X"),
-		Letter("X"),
-		IsArctic(false),
-		IsAllowedInMapGenerator(false),
-		IsLunar(false),
-		LowRadarBrightness1(0.0f),
-		HighRadarBrightness(1.0f),
-		unknown_float_60(0.0f),
-		unknown_float_64(0.0f),
-		unknown_int_68(0),
-		unknown_int_6C(0),
-		PaletteUnit(),
-		PaletteISO(),
-		TerrainControl(),
-		PaletteOverlay(),
-		RootMix(),
-		RootMixMD(),
-		ExpansionMDMix(),
-		SuffixMix(),
-		DataMix(),
-		TerrainTypeExtension(),
-		SmudgeTypeExtension(),
-		AnimTypeExtension(),
-		OverlayTypeExtension(),
-		IsometricTileTypeExtension(),
-		BuildingTypeExtension(),
-		FallbackTheaterExtension()
+		Enumerable<TheaterTypeClass>(pTitle)
 	{}
 
 	TheaterTypeClass(const char* const pTitle, const Theater* theater ,bool IsArtic , bool AllowMapGen , bool islunar) : Enumerable<TheaterTypeClass>(pTitle),
@@ -87,6 +55,8 @@ public:
 	{
 		UIName = theater->UIName;
 	}
+
+	virtual ~TheaterTypeClass() = default;
 
 	void LoadFromINI(CCINIClass* pINI);
 
@@ -163,47 +133,47 @@ private:
 	static CCINIClass* GetConfigINI();
 public:
 	//2, UIname
-	Valueable<CSFText> UIName;
+	Valueable<CSFText> UIName {};
 	//3, root
-	PhobosFixedString<10>ControlFileName;
+	PhobosFixedString<10> ControlFileName { "X" };
 	//4, datamix
-	PhobosFixedString<10>ArtFileName;
+	PhobosFixedString<10> ArtFileName { "X" };
 	//5, expansionmix
-	PhobosFixedString<10>PaletteFileName;
+	PhobosFixedString<10> PaletteFileName { "X" };
 	//6, suffix
-	PhobosFixedString<4>Extension;
+	PhobosFixedString<4> Extension { "X" };
 	//7, mmxsuffix
-	PhobosFixedString<4>MMExtension;
+	PhobosFixedString<4> MMExtension { "X" };
 	//8, Letter
-	PhobosFixedString<2>Letter;
-	Valueable<bool> IsArctic;
-	Valueable<bool> IsAllowedInMapGenerator;
-	Valueable<bool> IsLunar;
-	Valueable<float> LowRadarBrightness1;
-	Valueable<float> HighRadarBrightness;
-	Valueable<float> unknown_float_60;
-	Valueable<float> unknown_float_64;
-	Valueable<int> unknown_int_68;
-	Valueable<int> unknown_int_6C;
+	PhobosFixedString<2> Letter { "X" };
+	Valueable<bool> IsArctic { false };
+	Valueable<bool> IsAllowedInMapGenerator { false };
+	Valueable<bool> IsLunar { false };
+	Valueable<float> LowRadarBrightness1 { 0.0f };
+	Valueable<float> HighRadarBrightness { 1.0f };
+	Valueable<float> unknown_float_60 { 0.0f };
+	Valueable<float> unknown_float_64 { 0.0f };
+	Valueable<int> unknown_int_68 { 0 };
+	Valueable<int> unknown_int_6C { 0 };
 
-	PhobosFixedString<0x80> PaletteUnit;
-	PhobosFixedString<0x80> PaletteISO;
-	PhobosFixedString<0x80> TerrainControl;
-	PhobosFixedString<0x80> PaletteOverlay;
+	PhobosFixedString<0x80> PaletteUnit {};
+	PhobosFixedString<0x80> PaletteISO {};
+	PhobosFixedString<0x80> TerrainControl {};
+	PhobosFixedString<0x80> PaletteOverlay {};
 
-	PhobosFixedString<16> RootMix;
-	PhobosFixedString<16> RootMixMD;
-	PhobosFixedString<16> ExpansionMDMix;
-	PhobosFixedString<16> SuffixMix;
-	PhobosFixedString<16> DataMix;
+	PhobosFixedString<16> RootMix {};
+	PhobosFixedString<16> RootMixMD {};
+	PhobosFixedString<16> ExpansionMDMix {};
+	PhobosFixedString<16> SuffixMix {};
+	PhobosFixedString<16> DataMix {};
 
-	PhobosFixedString<4> TerrainTypeExtension;
-	PhobosFixedString<4> SmudgeTypeExtension;
-	PhobosFixedString<4> AnimTypeExtension;
-	PhobosFixedString<4> OverlayTypeExtension;
-	PhobosFixedString<4> IsometricTileTypeExtension;
-	PhobosFixedString<4> BuildingTypeExtension;
+	PhobosFixedString<4> TerrainTypeExtension {};
+	PhobosFixedString<4> SmudgeTypeExtension {};
+	PhobosFixedString<4> AnimTypeExtension {};
+	PhobosFixedString<4> OverlayTypeExtension {};
+	PhobosFixedString<4> IsometricTileTypeExtension {};
+	PhobosFixedString<4> BuildingTypeExtension {};
 
-	PhobosFixedString<4> FallbackTheaterExtension;
+	PhobosFixedString<4> FallbackTheaterExtension {};
 
 };

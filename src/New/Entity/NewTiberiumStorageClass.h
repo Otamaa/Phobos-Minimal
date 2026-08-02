@@ -5,7 +5,7 @@
 
 struct NewTiberiumStorageClass
 {
-	std::vector<float> m_values;
+	std::vector<float> m_values {};
 
 	double GetStoragePercentage(int total) const
 	{

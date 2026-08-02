@@ -111,6 +111,6 @@ public:
 			int Height;
 		} SmudgeData;
 
-		BYTE _All[sizeof(BuildingData)];
+		BYTE _All[sizeof(BuildingData)] {};
 	};
 };

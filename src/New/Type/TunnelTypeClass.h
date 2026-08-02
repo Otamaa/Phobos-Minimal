@@ -11,12 +11,11 @@ public:
 
 public:
 
-	Valueable<int> Passengers;
-	Valueable<double> MaxSize;
-	TunnelTypeClass(const char* const pTitle) : Enumerable<TunnelTypeClass>(pTitle)
-	   , Passengers { 0 }
-	   , MaxSize { 0.0 }
-	{ }
+	Valueable<int> Passengers {};
+	Valueable<double> MaxSize {};
+
+	TunnelTypeClass(const char* const pTitle) : Enumerable<TunnelTypeClass>(pTitle) {};
+	virtual ~TunnelTypeClass() = default;
 
 	void LoadFromINI(CCINIClass* pINI);
 	void LoadFromStream(PhobosStreamReader& Stm);

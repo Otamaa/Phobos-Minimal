@@ -47,6 +47,8 @@ public:
 		return *this;
 	}
 
+	~PoweredUnitClass() = default;
+
 	DefaultSaveLoadFunc(PoweredUnitClass)
 private:
 	PoweredUnitClass(const PoweredUnitClass& other) = delete;

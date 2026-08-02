@@ -211,9 +211,9 @@ private:
 public:
 
 	/// Properties ///
-	TechnoClass* Techno;
-	TechnoTypeClass* CurTechnoType;
-	int HP;
+	TechnoClass* Techno {};
+	TechnoTypeClass* CurTechnoType {};
+	int HP {};
 
 	struct Timers {
 
@@ -247,32 +247,32 @@ public:
 		CDTimerClass Respawn;
 		CDTimerClass Respawn_Warhead;
 
-	} Timers;
+	} Timers {};
 
-	Handle<AnimClass* , UninitAnim> IdleAnim;
-	bool Cloak;
-	bool Online;
-	bool Temporal;
-	bool Available;
-	bool Attached;
-	bool AreAnimsHidden;
+	Handle<AnimClass* , UninitAnim> IdleAnim {};
+	bool Cloak {};
+	bool Online {};
+	bool Temporal {};
+	bool Available {};
+	bool Attached {};
+	bool AreAnimsHidden {};
 
-	double SelfHealing_Warhead;
-	int SelfHealing_Rate_Warhead;
-	bool SelfHealing_RestartInCombat_Warhead;
-	int SelfHealing_RestartInCombatDelay_Warhead;
-	double Respawn_Warhead;
-	int Respawn_Rate_Warhead;
+	double SelfHealing_Warhead {};
+	int SelfHealing_Rate_Warhead {};
+	bool SelfHealing_RestartInCombat_Warhead {};
+	int SelfHealing_RestartInCombatDelay_Warhead {};
+	double Respawn_Warhead {};
+	int Respawn_Rate_Warhead {};
 
-	bool Respawn_RestartInCombat_Warhead;
-	int Respawn_RestartInCombatDelay_Warhead;
-	HelperedVector<AnimTypeClass*> Respawn_Anim_Warhead;
-	WeaponTypeClass* Respawn_Weapon_Warhead;
+	bool Respawn_RestartInCombat_Warhead {};
+	int Respawn_RestartInCombatDelay_Warhead {};
+	HelperedVector<AnimTypeClass*> Respawn_Anim_Warhead {};
+	WeaponTypeClass* Respawn_Weapon_Warhead {};
 
-	int LastBreakFrame;
-	double LastTechnoHealthRatio;
+	int LastBreakFrame {};
+	double LastTechnoHealthRatio {};
 
-	ShieldTypeClass* Type;
+	ShieldTypeClass* Type {};
 
 public:
 	ShieldClass& operator=(ShieldClass&& other) noexcept;

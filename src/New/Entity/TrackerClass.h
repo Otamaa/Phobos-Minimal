@@ -100,7 +100,7 @@ private:
 	}
 
 protected:
-	std::vector<int> Items;
-	bool IsNetworkFormat;
+	std::vector<int> Items {};
+	bool IsNetworkFormat {};
 
 };

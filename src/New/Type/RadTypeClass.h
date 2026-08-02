@@ -14,42 +14,27 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "RadTypeClass";
 
 private:
-	Nullable<int> DurationMultiple;
-	Nullable<int> ApplicationDelay;
-	Nullable<int> BuildingApplicationDelay;
-	Nullable<int> BuildingDamageMaxCount;
+	Nullable<int> DurationMultiple {};
+	Nullable<int> ApplicationDelay {};
+	Nullable<int> BuildingApplicationDelay {};
+	Nullable<int> BuildingDamageMaxCount {};
 
-	Nullable<double> LevelFactor;
-	Nullable<int> LevelMax;
-	Nullable<int> LevelDelay;
-	Nullable<int> LightDelay;
-	Nullable<WarheadTypeClass*> RadWarhead;
-	Nullable<bool> RadWarhead_Detonate;
-	Nullable<ColorStruct> RadSiteColor;
-	Nullable<double> LightFactor;
-	Nullable<double> TintFactor;
-	Nullable<bool> RadHasOwner;
-	Nullable<bool> RadHasInvoker;
+	Nullable<double> LevelFactor {};
+	Nullable<int> LevelMax {};
+	Nullable<int> LevelDelay {};
+	Nullable<int> LightDelay {};
+	Nullable<WarheadTypeClass*> RadWarhead {};
+	Nullable<bool> RadWarhead_Detonate {};
+	Nullable<ColorStruct> RadSiteColor {};
+	Nullable<double> LightFactor {};
+	Nullable<double> TintFactor {};
+	Nullable<bool> RadHasOwner {};
+	Nullable<bool> RadHasInvoker {};
 
 public:
 
-	RadTypeClass(const char* const pTitle) : Enumerable<RadTypeClass> { pTitle }
-		, DurationMultiple {}
-		, ApplicationDelay {}
-		, BuildingApplicationDelay {}
-		, BuildingDamageMaxCount {}
-		, LevelFactor {}
-		, LevelMax {}
-		, LevelDelay {}
-		, LightDelay {}
-		, RadWarhead {}
-		, RadWarhead_Detonate {}
-		, RadSiteColor {}
-		, LightFactor {}
-		, TintFactor {}
-		, RadHasOwner {}
-		, RadHasInvoker {}
-	{ }
+	RadTypeClass(const char* const pTitle) : Enumerable<RadTypeClass> { pTitle } { }
+	virtual ~RadTypeClass() = default;
 
 	static void COMPILETIMEEVAL OPTIONALINLINE AddDefaults()
 	{

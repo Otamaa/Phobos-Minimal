@@ -11,7 +11,8 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "GenericPrerequisite";
 
 public:
-	GenericPrerequisite(const char* pTitle);
+	GenericPrerequisite(const char* pTitle) : Enumerable<GenericPrerequisite>(pTitle) {}
+	virtual ~GenericPrerequisite() = default;
 
 	void LoadFromINI(CCINIClass* pINI);
 	void LoadFromStream(PhobosStreamReader& Stm);
@@ -33,8 +34,8 @@ public:
 	static void LoadFromINIList_New(CCINIClass* pINI, bool bDebug = false);
 	static void LoadFromINIOnlyTheList(CCINIClass* pINI, bool bDebug = false);
 
-	ValueableVector<int> Prereqs;
-	ValueableVector<TechnoTypeClass*> Alternates;
+	ValueableVector<int> Prereqs {};
+	ValueableVector<TechnoTypeClass*> Alternates {};
 };
 
 class Prereqs

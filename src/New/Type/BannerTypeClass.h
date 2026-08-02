@@ -15,38 +15,27 @@ public:
 public:
 
 	//PCX
-	PhobosPCXFile PCX;
+	PhobosPCXFile PCX {};
 
 	//SHP
-	Valueable<SHPStruct*> Shape;
-	CustomPalette Palette;
+	Valueable<SHPStruct*> Shape {};
+	CustomPalette Palette {};
 
 	//CSF
-	Valueable<CSFText> CSF;
-	Nullable<ColorStruct> CSF_Color;
-	Valueable<bool> CSF_Background;
-	Valueable<BannerNumberType> CSF_VariableFormat;
+	Valueable<CSFText> CSF {};
+	Nullable<ColorStruct> CSF_Color {};
+	Valueable<bool> CSF_Background {};
+	Valueable<BannerNumberType> CSF_VariableFormat { BannerNumberType::None };
 
 	//Duration
-	Valueable<int> Duration;
-	Valueable<int> Delay;
-	Valueable<bool> Shape_RefreshAfterDelay;
+	Valueable<int> Duration { -1 };
+	Valueable<int> Delay { -1 };
+	Valueable<bool> Shape_RefreshAfterDelay {};
 
-	Valueable<bool> ClampToScreen;
+	Valueable<bool> ClampToScreen {};
 
-	BannerTypeClass(const char* const pTitle) : Enumerable<BannerTypeClass>(pTitle)
-		, PCX { }
-		, Shape { }
-		, Palette { }
-		, CSF { }
-		, CSF_Color { }
-		, CSF_Background { false }
-		, CSF_VariableFormat { BannerNumberType::None }
-		, Duration { -1 }
-		, Delay { -1 }
-		, Shape_RefreshAfterDelay { false }
-		, ClampToScreen { false }
-	{ }
+	BannerTypeClass(const char* const pTitle) : Enumerable<BannerTypeClass>(pTitle)	{ }
+	virtual ~BannerTypeClass() = default;
 
 	virtual void LoadFromINI(CCINIClass* pINI);
 	virtual void LoadFromStream(PhobosStreamReader& stm);

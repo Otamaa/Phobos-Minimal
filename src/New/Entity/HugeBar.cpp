@@ -12,36 +12,6 @@
 
 std::vector<TechnoClass*> HugeBar::Technos;
 
-HugeBar::HugeBar()
-	: HugeBar_RectWidthPercentage(0.82)
-	, HugeBar_RectWH({ -1, 30 })
-	, HugeBar_Pips_Color1 {}
-	, HugeBar_Pips_Color2 {}
-	, HugeBar_Shape {}
-	, HugeBar_Pips_Shape {}
-	, HugeBar_Palette {}
-	, HugeBar_Pips_Palette {}
-	, HugeBar_Frame(-1)
-	, HugeBar_Pips_Frame(-1)
-	, HugeBar_Pips_Spacing {}
-	, HugeBar_Offset {}
-	, HugeBar_Pips_Offset {}
-	, HugeBar_Pips_Num(100)
-	, Value_Text_Color {}
-	, Value_Shape {}
-	, Value_Palette {}
-	, Value_Num_BaseFrame(0)
-	, Value_Sign_BaseFrame(30)
-	, Value_Shape_Spacing(8)
-	, DisplayValue(true)
-	, Value_Percentage {}
-	, Value_Offset {}
-	, Anchor(HorizontalPosition::Center, VerticalPosition::Top)
-	, InfoType()
-	, VisibleToHouses_Observer(true)
-	, VisibleToHouses(AffectedHouse::All)
-{}
-
 HugeBar::HugeBar(DisplayInfoType infoType)
 	: HugeBar_RectWidthPercentage(0.82)
 	, HugeBar_RectWH({ -1, 30 })

@@ -32,37 +32,24 @@ public:
 		count
 	};
 
-	Valueable<int> SideIndex;
-	Valueable<BuildingTypeClass*> ConstructionYard;
-	ValueableVector<BuildingTypeClass*> BuildPower;
-	ValueableVector<BuildingTypeClass*> BuildRefinery;
-	ValueableVector<BuildingTypeClass*> BuildBarracks;
-	ValueableVector<BuildingTypeClass*> BuildWeapons;
-	ValueableVector<BuildingTypeClass*> BuildRadar;
-	ValueableVector<BuildingTypeClass*> BuildHelipad;
-	ValueableVector<BuildingTypeClass*> BuildNavalYard;
-	ValueableVector<BuildingTypeClass*> BuildTech;
-	ValueableVector<BuildingTypeClass*> BuildAdvancedPower;
-	ValueableVector<BuildingTypeClass*> BuildDefense;
-	ValueableVector<BuildingTypeClass*> BuildOther;
-	ValueableVector<int> BuildOtherCounts;
-	PhobosMap<BuildingTypeClass*, size_t> BuildOtherCountMap;
+	Valueable<int> SideIndex {};
+	Valueable<BuildingTypeClass*> ConstructionYard {};
+	ValueableVector<BuildingTypeClass*> BuildPower {};
+	ValueableVector<BuildingTypeClass*> BuildRefinery {};
+	ValueableVector<BuildingTypeClass*> BuildBarracks {};
+	ValueableVector<BuildingTypeClass*> BuildWeapons {};
+	ValueableVector<BuildingTypeClass*> BuildRadar {};
+	ValueableVector<BuildingTypeClass*> BuildHelipad {};
+	ValueableVector<BuildingTypeClass*> BuildNavalYard {};
+	ValueableVector<BuildingTypeClass*> BuildTech {};
+	ValueableVector<BuildingTypeClass*> BuildAdvancedPower {};
+	ValueableVector<BuildingTypeClass*> BuildDefense {};
+	ValueableVector<BuildingTypeClass*> BuildOther {};
+	ValueableVector<int> BuildOtherCounts {};
+	PhobosMap<BuildingTypeClass*, size_t> BuildOtherCountMap {};
 
-	TechTreeTypeClass(const char* pTitle) : Enumerable<TechTreeTypeClass>(pTitle)
-		, SideIndex {}
-		, ConstructionYard {}
-		, BuildPower {}
-		, BuildBarracks {}
-		, BuildWeapons {}
-		, BuildRadar {}
-		, BuildHelipad {}
-		, BuildNavalYard {}
-		, BuildTech {}
-		, BuildAdvancedPower {}
-		, BuildDefense {}
-		, BuildOtherCounts {}
-		, BuildOtherCountMap {}
-	{ }
+	TechTreeTypeClass(const char* pTitle) : Enumerable<TechTreeTypeClass>(pTitle) { }
+	virtual ~TechTreeTypeClass() = default;
 
 	void LoadFromINI(CCINIClass* pINI);
 	void LoadFromStream(PhobosStreamReader& Stm);

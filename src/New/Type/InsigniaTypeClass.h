@@ -10,13 +10,11 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "InsigniaTypeClass";
 
 public:
-	Promotable<SHPStruct*> Insignia;
-	Promotable<int> InsigniaFrame;
+	Promotable<SHPStruct*> Insignia { };
+	Promotable<int> InsigniaFrame { -1 };
 
-	InsigniaTypeClass(const char* const pTitle) : Enumerable<InsigniaTypeClass>(pTitle)
-		, Insignia { }
-		, InsigniaFrame { -1 }
-	{ }
+	InsigniaTypeClass(const char* const pTitle) : Enumerable<InsigniaTypeClass>(pTitle)	{ }
+	virtual ~InsigniaTypeClass() = default;
 
 	void LoadFromINI(CCINIClass* pINI);
 

@@ -12,8 +12,11 @@ public:
 
 	TargetingData();
 	TargetingData(SWTypeExtData* pTypeExt, HouseClass* pOwner) noexcept;
+	~TargetingData() = default;
 
 	void reset();
+
+public:
 
 	struct LaunchSite
 	{
@@ -29,22 +32,22 @@ public:
 		CellStruct Center;
 	};
 
-	SWTypeExtData* TypeExt;
-	HouseClass* Owner;
-	bool NeedsLaunchSite;
+	SWTypeExtData* TypeExt {};
+	HouseClass* Owner {};
+	bool NeedsLaunchSite {};
 
-	bool NeedsDesignator;
-	bool NeedsAttractors;
-	bool NeedsSupressors;
-	bool NeedsInhibitors;
+	bool NeedsDesignator {};
+	bool NeedsAttractors {};
+	bool NeedsSupressors {};
+	bool NeedsInhibitors {};
 
-	HelperedVector<LaunchSite> LaunchSites;
-	HelperedVector<RangedItem> Designators;
-	HelperedVector<RangedItem> Inhibitors;
+	HelperedVector<LaunchSite> LaunchSites {};
+	HelperedVector<RangedItem> Designators {};
+	HelperedVector<RangedItem> Inhibitors {};
 
 	//Enemy Inhibitors
-	HelperedVector<RangedItem> Attractors;
+	HelperedVector<RangedItem> Attractors {};
 	//Enemy Designator
-	HelperedVector<RangedItem> Suppressors;
+	HelperedVector<RangedItem> Suppressors {};
 
 };

@@ -14,17 +14,19 @@
 class LaserTrailClass final
 {
 public:
-	LaserTrailTypeClass* Type;
-	bool Visible;
-	CoordStruct FLH;
-	bool IsOnTurret;
-	ColorStruct CurrentColor;
-	OptionalStruct<CoordStruct,true> LastLocation;
-	bool CanDraw;
-	bool Cloaked;
-	int InitialDelay;
-	CDTimerClass InitialDelayTimer;
+	LaserTrailTypeClass* Type {};
+	bool Visible {};
+	CoordStruct FLH {};
+	bool IsOnTurret {};
+	ColorStruct CurrentColor {};
+	OptionalStruct<CoordStruct,true> LastLocation {};
+	bool CanDraw {};
+	bool Cloaked {};
+	int InitialDelay {};
+	CDTimerClass InitialDelayTimer {};
 	bool Permanent { false };
+
+public:
 
 	COMPILETIMEEVAL LaserTrailClass(LaserTrailTypeClass* pTrailType, ColorStruct nHouseColor,
 		CoordStruct flh = { 0, 0, 0 }, bool isOnTurret = false) :
@@ -55,7 +57,9 @@ public:
 		, Permanent {}
 	{ }
 
-	virtual ~LaserTrailClass() = default;
+	~LaserTrailClass() = default;
+
+public:
 
 	COMPILETIMEEVAL LaserTrailClass(const LaserTrailClass& other) = default;
 	COMPILETIMEEVAL LaserTrailClass& operator=(const LaserTrailClass& other) = default;

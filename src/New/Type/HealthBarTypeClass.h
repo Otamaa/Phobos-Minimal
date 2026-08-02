@@ -11,39 +11,24 @@ public:
 
 public:
 
-	Nullable<Point3D> Pips;
-	Nullable<Point3D> Pips_Building;
-	Nullable<int> PipsEmpty;
-	Valueable<Point2D> PipsInterval;
-	Valueable<Point2D> PipsInterval_Building;
-	Nullable<int> PipsLength;
-	Valueable<SHPStruct*> PipsShape;
-	CustomPalette PipsPalette;
+	Nullable<Point3D> Pips {};
+	Nullable<Point3D> Pips_Building {};
+	Nullable<int> PipsEmpty {};
+	Valueable<Point2D> PipsInterval { {2, 0} };
+	Valueable<Point2D> PipsInterval_Building { {-4, 2} };
+	Nullable<int> PipsLength {};
+	Valueable<SHPStruct*> PipsShape { FileSystem::PIPS_SHP };
+	CustomPalette PipsPalette {};
 
-	Nullable<int> PipBrd;
-	Nullable<SHPStruct*> PipBrdShape;
-	CustomPalette PipBrdPalette;
-	Valueable<int> PipBrdXOffset;
+	Nullable<int> PipBrd {};
+	Nullable<SHPStruct*> PipBrdShape {};
+	CustomPalette PipBrdPalette {};
+	Valueable<int> PipBrdXOffset { 0 };
 
-	Valueable<int> XOffset;
+	Valueable<int> XOffset { 0 };
 
-	HealthBarTypeClass(const char* pTitle) : Enumerable<HealthBarTypeClass>(pTitle)
-	, Pips {}
-	, Pips_Building {}
-	, PipsEmpty {}
-	, PipsInterval { { 2,0 } }
-	, PipsInterval_Building { { -4,2 } }
-	, PipsLength {}
-	, PipsShape { FileSystem::PIPS_SHP }
-	, PipsPalette {}
-
-	, PipBrd {}
-	, PipBrdShape {}
-	, PipBrdPalette {}
-	, PipBrdXOffset { 0 }
-	, XOffset { 0 }
-
-	{ }
+	HealthBarTypeClass(const char* pTitle) : Enumerable<HealthBarTypeClass>(pTitle) { }
+	virtual ~HealthBarTypeClass() = default;
 
 	void LoadFromINI(CCINIClass* pINI);
 	void LoadFromStream(PhobosStreamReader& Stm);

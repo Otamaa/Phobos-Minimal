@@ -33,6 +33,8 @@ public:
 		bool isGlobalVariable
 	);
 
+	~BannerClass() = default;
+
 	void Render();
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);

@@ -4,9 +4,11 @@
 
 struct LaserTrailDataEntry
 {
-	int idxType;
-	CoordStruct FLH;
-	bool IsOnTurret;
+	int idxType {};
+	CoordStruct FLH {};
+	bool IsOnTurret {};
+
+public:
 
 	bool Load(PhobosStreamReader& stm, bool registerForChange)
 	{

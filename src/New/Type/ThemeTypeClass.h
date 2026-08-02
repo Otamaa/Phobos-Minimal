@@ -12,22 +12,16 @@ public:
 
 public:
 
-	PhobosFixedString<64U> NextText;
-	PhobosFixedString<100U> HousesText;
+	PhobosFixedString<64U> NextText {};
+	PhobosFixedString<100U> HousesText {};
 
-	Valueable<CSFText> UIName;
-	Valueable<bool> Normal;
-	Valueable<bool> Repeat;
-	Valueable<int> Side;
+	Valueable<CSFText> UIName {};
+	Valueable<bool> Normal { true };
+	Valueable<bool> Repeat {};
+	Valueable<int> Side { -1 };
 
-	ThemeTypeClass(const char* const pTitle) : Enumerable<ThemeTypeClass> { pTitle }
-		, NextText {}
-		, HousesText {}
-		, UIName {}
-		, Normal { true }
-		, Repeat { false }
-		, Side { -1 }
-	{ }
+	ThemeTypeClass(const char* const pTitle) : Enumerable<ThemeTypeClass> { pTitle } { }
+	virtual ~ThemeTypeClass() = default;
 
 	void LoadFromINI(CCINIClass* pINI);
 	void LoadFromStream(PhobosStreamReader& Stm);

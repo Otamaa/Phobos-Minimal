@@ -8,6 +8,8 @@ struct InsigniaData
 	Promotable<int> Frame { -1 };
 	Valueable<Vector3D<int>> Frames { { -1, -1, -1 } };
 
+public:
+
 	OPTIONALINLINE bool Load(PhobosStreamReader& stm, bool registerForChange)
 	{
 		return this->Serialize(stm);

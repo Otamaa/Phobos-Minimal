@@ -45,252 +45,134 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "PhobosAttachEffectTypeClass";
 
 public:
-	Valueable<int> Duration;
-	Valueable<bool> Duration_ApplyFirepowerMult;
-	Valueable<bool> Duration_ApplyArmorMultOnTarget;
-	Valueable<WarheadTypeClass*> Duration_ApplyVersus_Warhead;
+	Valueable<int> Duration { 0 };
+	Valueable<bool> Duration_ApplyFirepowerMult { false };
+	Valueable<bool> Duration_ApplyArmorMultOnTarget { false };
+	Valueable<WarheadTypeClass*> Duration_ApplyVersus_Warhead {};
 
-	Valueable<bool> Cumulative;
-	Valueable<int> Cumulative_MaxCount;
-	Valueable<bool> Powered;
-	Valueable<DiscardCondition> DiscardOn;
-	Nullable<Leptons> DiscardOn_RangeOverride;
-	Nullable<bool> DiscardOn_MoveBasedOnDestination;
-	Nullable<bool> DiscardOn_ConsiderHarvestingAsStationary;
-	Valueable<bool> PenetratesIronCurtain;
-	Nullable<bool> PenetratesForceShield;
-	Valueable<AnimTypeClass*> Animation;
-	ValueableVector<AnimTypeClass*> CumulativeAnimations;
-	Valueable<bool> CumulativeAnimations_RestartOnChange;
-	Valueable<bool> Animation_ResetOnReapply;
-	Valueable<AttachedAnimFlag> Animation_OfflineAction;
-	Valueable<AttachedAnimFlag> Animation_TemporalAction;
-	Valueable<bool> Animation_UseInvokerAsOwner;
-	ValueableVector<PhobosAttachEffectTypeClass*> Animation_HideIfAttachedWith;
-	Valueable<WeaponTypeClass*> ExpireWeapon;
-	Valueable<ExpireWeaponCondition> ExpireWeapon_TriggerOn;
-	Valueable<bool> ExpireWeapon_CumulativeOnlyOnce;
-	Valueable<bool> ExpireWeapon_UseInvokerAsOwner;
-	Valueable<ColorStruct> Tint_Color;
-	Valueable<double> Tint_Intensity;
-	Valueable<AffectedHouse> Tint_VisibleToHouses;
-	Valueable<double> FirepowerMultiplier;
+	Valueable<bool> Cumulative { false };
+	Valueable<int> Cumulative_MaxCount { -1 };
+	Valueable<bool> Powered { false };
+	Valueable<DiscardCondition> DiscardOn { DiscardCondition::None };
+	Nullable<Leptons> DiscardOn_RangeOverride {};
+	Nullable<bool> DiscardOn_MoveBasedOnDestination {};
+	Nullable<bool> DiscardOn_ConsiderHarvestingAsStationary {};
+	Valueable<bool> PenetratesIronCurtain { false };
+	Nullable<bool> PenetratesForceShield {};
+	Valueable<AnimTypeClass*> Animation {};
+	ValueableVector<AnimTypeClass*> CumulativeAnimations {};
+	Valueable<bool> CumulativeAnimations_RestartOnChange { true };
+	Valueable<bool> Animation_ResetOnReapply { false };
+	Valueable<AttachedAnimFlag> Animation_OfflineAction { AttachedAnimFlag::Hides };
+	Valueable<AttachedAnimFlag> Animation_TemporalAction { AttachedAnimFlag::None };
+	Valueable<bool> Animation_UseInvokerAsOwner { false };
+	ValueableVector<PhobosAttachEffectTypeClass*> Animation_HideIfAttachedWith {};
+	Valueable<WeaponTypeClass*> ExpireWeapon { nullptr };
+	Valueable<ExpireWeaponCondition> ExpireWeapon_TriggerOn { ExpireWeaponCondition::Expire };
+	Valueable<bool> ExpireWeapon_CumulativeOnlyOnce { false };
+	Valueable<bool> ExpireWeapon_UseInvokerAsOwner { false };
+	Valueable<ColorStruct> Tint_Color {};
+	Valueable<double> Tint_Intensity { 0.0 };
+	Valueable<AffectedHouse> Tint_VisibleToHouses { AffectedHouse::All };
+	Valueable<double> FirepowerMultiplier { 1.0 };
 
-	Valueable<double> ArmorMultiplier;
-	ValueableVector<WarheadTypeClass*> ArmorMultiplier_AllowWarheads;
-	ValueableVector<WarheadTypeClass*> ArmorMultiplier_DisallowWarheads;
-	Valueable<double> ArmorMultiplier_Chance;
-	ValueableVector<AnimTypeClass*> ArmorMultiplier_HitAnim;
+	Valueable<double> ArmorMultiplier { 1.0 };
+	ValueableVector<WarheadTypeClass*> ArmorMultiplier_AllowWarheads {};
+	ValueableVector<WarheadTypeClass*> ArmorMultiplier_DisallowWarheads {};
+	Valueable<double> ArmorMultiplier_Chance { 1.0 };
+	ValueableVector<AnimTypeClass*> ArmorMultiplier_HitAnim {};
 
-	Valueable<double> SpeedMultiplier;
-	Valueable<double> ROFMultiplier;
-	Valueable<bool> ROFMultiplier_ApplyOnCurrentTimer;
-	Valueable<bool> Cloakable;
-	Valueable<bool> ForceDecloak;
-	Valueable<double> WeaponRange_Multiplier;
-	Valueable<double> WeaponRange_ExtraRange;
-	ValueableVector<WeaponTypeClass*> WeaponRange_AllowWeapons;
-	ValueableVector<WeaponTypeClass*> WeaponRange_DisallowWeapons;
-	Valueable<double> Crit_Multiplier;
-	Valueable<double> Crit_ExtraChance;
-	ValueableVector<WarheadTypeClass*> Crit_AllowWarheads;
-	ValueableVector<WarheadTypeClass*> Crit_DisallowWarheads;
-	Valueable<WeaponTypeClass*> RevengeWeapon;
-	Valueable<AffectedHouse> RevengeWeapon_AffectsHouses;
-	Valueable<bool> RevengeWeapon_UseInvokerAsOwner;
-	Valueable<bool> DisableWeapons;
+	Valueable<double> SpeedMultiplier { 1.0 };
+	Valueable<double> ROFMultiplier { 1.0 };
+	Valueable<bool> ROFMultiplier_ApplyOnCurrentTimer { true };
+	Valueable<bool> Cloakable { false };
+	Valueable<bool> ForceDecloak { false };
+	Valueable<double> WeaponRange_Multiplier { 1.0 };
+	Valueable<double> WeaponRange_ExtraRange { 0.0 };
+	ValueableVector<WeaponTypeClass*> WeaponRange_AllowWeapons {};
+	ValueableVector<WeaponTypeClass*> WeaponRange_DisallowWeapons {};
+	Valueable<double> Crit_Multiplier { 1.0 };
+	Valueable<double> Crit_ExtraChance { 0.0 };
+	ValueableVector<WarheadTypeClass*> Crit_AllowWarheads {};
+	ValueableVector<WarheadTypeClass*> Crit_DisallowWarheads {};
+	Valueable<WeaponTypeClass*> RevengeWeapon { nullptr };
+	Valueable<AffectedHouse> RevengeWeapon_AffectsHouses { AffectedHouse::All };
+	Valueable<bool> RevengeWeapon_UseInvokerAsOwner { false };
+	Valueable<bool> DisableWeapons { false };
 
-	ValueableVector<std::string> Groups;
+	ValueableVector<std::string> Groups {};
 
-	Valueable<bool> DisableSelfHeal;
-	Valueable<bool> Untrackable;
-	Valueable<double> ReceiveRelativeDamageMult;
-	Valueable<bool> AnimRandomPick;
+	Valueable<bool> DisableSelfHeal { false };
+	Valueable<bool> Untrackable { false };
+	Valueable<double> ReceiveRelativeDamageMult { 1.0 };
+	Valueable<bool> AnimRandomPick { false };
 
-	Valueable<bool> ReflectDamage;
-	Nullable<WarheadTypeClass*> ReflectDamage_Warhead;
-	Valueable<bool> ReflectDamage_Warhead_Detonate;
-	Valueable<double> ReflectDamage_Multiplier;
-	Valueable<AffectedHouse> ReflectDamage_AffectsHouses;
+	Valueable<bool> ReflectDamage { false };
+	Nullable<WarheadTypeClass*> ReflectDamage_Warhead {};
+	Valueable<bool> ReflectDamage_Warhead_Detonate { false };
+	Valueable<double> ReflectDamage_Multiplier { 1.0 };
+	Valueable<AffectedHouse> ReflectDamage_AffectsHouses { AffectedHouse::All };
 
-	Nullable<double> ReflectDamage_Chance;
-	Nullable<int> ReflectDamage_Override;
-	Valueable<bool> ReflectDamage_UseInvokerAsOwner;
-	Nullable<double> DiscardOn_AbovePercent;
-	Nullable<double> DiscardOn_BelowPercent;
-	Nullable<double> AffectAbovePercent;
-	Nullable<double> AffectBelowPercent;
+	Nullable<double> ReflectDamage_Chance {};
+	Nullable<int> ReflectDamage_Override {};
+	Valueable<bool> ReflectDamage_UseInvokerAsOwner { false };
 
-	Valueable<bool> DisableRadar;
-	Valueable<bool> DisableSpySat;
+	Nullable<double> DiscardOn_AbovePercent {};
+	Nullable<double> DiscardOn_BelowPercent {};
+	Nullable<double> AffectAbovePercent {};
+	Nullable<double> AffectBelowPercent {};
 
-	Valueable<bool> Unkillable;
+	Valueable<bool> DisableRadar {};
+	Valueable<bool> DisableSpySat {};
 
-	ValueableVector<WarheadTypeClass*> ExtraWarheads;
-	ValueableVector<int> ExtraWarheads_DamageOverrides;
-	ValueableVector<double> ExtraWarheads_DetonationChances;
-	ValueableVector<bool> ExtraWarheads_FullDetonation;
+	Valueable<bool> Unkillable {};
 
-	Valueable<WeaponTypeClass*> FeedbackWeapon;
+	ValueableVector<WarheadTypeClass*> ExtraWarheads {};
+	ValueableVector<int> ExtraWarheads_DamageOverrides {};
+	ValueableVector<double> ExtraWarheads_DetonationChances {};
+	ValueableVector<bool> ExtraWarheads_FullDetonation {};
 
-	ValueableIdx<LaserTrailTypeClass> LaserTrail_Type;
+	Valueable<WeaponTypeClass*> FeedbackWeapon {};
 
-	Valueable<double> Block_ChanceMultiplier;
-	Valueable<double> Block_ExtraChance;
+	ValueableIdx<LaserTrailTypeClass> LaserTrail_Type { -1 };
 
-	ValueableVector<TechnoTypeClass*> AffectTypes;
-	ValueableVector<TechnoTypeClass*> IgnoreTypes;
-	Valueable<AffectedTarget> AffectTargets;
+	Valueable<double> Block_ChanceMultiplier { 1.0 };
+	Valueable<double> Block_ExtraChance { 0.0 };
 
-	std::vector<AnimationDrawOffsetClass> Animation_DrawOffsets;
+	ValueableVector<TechnoTypeClass*> AffectTypes {};
+	ValueableVector<TechnoTypeClass*> IgnoreTypes {};
+	Valueable<AffectedTarget> AffectTargets { AffectedTarget::All };
 
-	Valueable<WeaponTypeClass*> PeriodicWeapon;
-	Valueable<AffectedHouse> PeriodicWeapon_AffectsHouse;
-	Valueable<bool> PeriodicWeapon_UseInvokerAsOwner;
-	Valueable<Leptons> PeriodicWeapon_Range;
-	Valueable<int> PeriodicWeapon_FiringDelay;
-	Valueable<bool> PeriodicWeapon_FireAll;
-	ValueableVector<TechnoTypeClass*> PeriodicWeapon_AffectTypes;
-	ValueableVector<TechnoTypeClass*> PeriodicWeapon_IgnoreTypes;
+	std::vector<AnimationDrawOffsetClass> Animation_DrawOffsets {};
 
-	Valueable<bool> PrismRelay;
-	Valueable<int> PrismRelay_NetworkID;
-	Valueable<bool> PrismRelay_Provider;
-	Valueable<bool> PrismRelay_Receiver;
-	Valueable<WeaponTypeClass*> PrismRelay_SupportWeapon;
-	Valueable<int> PrismRelay_MaxReceiveLinks;
-	Valueable<int> PrismRelay_MaxNodeLinks;
-	Valueable<int> PrismRelay_SupportFireDelay;
-	Valueable<double> PrismRelay_SupportMultiplier;
-	Valueable<int> PrismRelay_DamageAdd;
-	Valueable<bool> PrismRelay_ToAllies;
-	ValueableVector<WeaponTypeClass*> PrismRelay_AllowWeapons;
-	ValueableVector<WeaponTypeClass*> PrismRelay_DisallowWeapons;
-	Valueable<int> PrismRelay_MasterWeaponIndex;
-	Valueable<bool> PrismRelay_MasterWeaponUseMultiWeaponSelection;
-	Valueable<int> PrismRelay_SupportTimeout;
+	Valueable<WeaponTypeClass*> PeriodicWeapon {};
+	Valueable<AffectedHouse> PeriodicWeapon_AffectsHouse { AffectedHouse::All };
+	Valueable<bool> PeriodicWeapon_UseInvokerAsOwner { false };
+	Valueable<Leptons> PeriodicWeapon_Range { Leptons(0) };
+	Valueable<int> PeriodicWeapon_FiringDelay { 0 };
+	Valueable<bool> PeriodicWeapon_FireAll { false };
+	ValueableVector<TechnoTypeClass*> PeriodicWeapon_AffectTypes {};
+	ValueableVector<TechnoTypeClass*> PeriodicWeapon_IgnoreTypes {};
 
-	PhobosAttachEffectTypeClass(const char* pTitle) : Enumerable<PhobosAttachEffectTypeClass>(pTitle)
-		, Duration { 0 }
-		, Duration_ApplyFirepowerMult { false }
-		, Duration_ApplyArmorMultOnTarget { false }
-		, Duration_ApplyVersus_Warhead { }
-		, Cumulative { false }
-		, Cumulative_MaxCount { -1 }
-		, Powered { false }
-		, DiscardOn { DiscardCondition::None }
-		, DiscardOn_RangeOverride {}
-		, DiscardOn_MoveBasedOnDestination {}
-		, DiscardOn_ConsiderHarvestingAsStationary {}
-		, PenetratesIronCurtain { false }
-		, PenetratesForceShield {}
-		, Animation {}
-		, CumulativeAnimations {}
-		, CumulativeAnimations_RestartOnChange { true }
-		, Animation_ResetOnReapply { false }
-		, Animation_OfflineAction { AttachedAnimFlag::Hides }
-		, Animation_TemporalAction { AttachedAnimFlag::None }
-		, Animation_UseInvokerAsOwner { false }
-		, Animation_HideIfAttachedWith {}
-		, ExpireWeapon { nullptr }
-		, ExpireWeapon_TriggerOn { ExpireWeaponCondition::Expire }
-		, ExpireWeapon_CumulativeOnlyOnce { false }
-		, ExpireWeapon_UseInvokerAsOwner { false }
-		, Tint_Color {}
-		, Tint_Intensity { 0.0 }
-		, Tint_VisibleToHouses { AffectedHouse::All }
-		, FirepowerMultiplier { 1.0 }
-		, ArmorMultiplier { 1.0 }
-		, ArmorMultiplier_AllowWarheads {}
-		, ArmorMultiplier_DisallowWarheads {}
-		, ArmorMultiplier_Chance { 1.0 }
-	    , ArmorMultiplier_HitAnim {}
-	 	, SpeedMultiplier { 1.0 }
-		, ROFMultiplier { 1.0 }
-		, ROFMultiplier_ApplyOnCurrentTimer { true }
-		, Cloakable { false }
-		, ForceDecloak { false }
-		, WeaponRange_Multiplier { 1.0 }
-		, WeaponRange_ExtraRange { 0.0 }
-		, WeaponRange_AllowWeapons {}
-		, WeaponRange_DisallowWeapons {}
-		, Crit_Multiplier { 1.0 }
-		, Crit_ExtraChance { 0.0 }
-		, Crit_AllowWarheads {}
-		, Crit_DisallowWarheads {}
-		, RevengeWeapon { nullptr }
-		, RevengeWeapon_AffectsHouses { AffectedHouse::All }
-		, RevengeWeapon_UseInvokerAsOwner { false }
-		, DisableWeapons { false }
-		, Groups {}
-		, DisableSelfHeal { false }
-		, Untrackable { false }
-		, ReceiveRelativeDamageMult { 1.0 }
-		, AnimRandomPick { false }
+	Valueable<bool> PrismRelay { false };
+	Valueable<int> PrismRelay_NetworkID { 0 };
+	Valueable<bool> PrismRelay_Provider { true };
+	Valueable<bool> PrismRelay_Receiver { true };
+	Valueable<WeaponTypeClass*> PrismRelay_SupportWeapon {};
+	Valueable<int> PrismRelay_MaxReceiveLinks { -1 };
+	Valueable<int> PrismRelay_MaxNodeLinks { -1 };
+	Valueable<int> PrismRelay_SupportFireDelay { 0 };
+	Valueable<double> PrismRelay_SupportMultiplier { 1.0 };
+	Valueable<int> PrismRelay_DamageAdd { 0 };
+	Valueable<bool> PrismRelay_ToAllies { false };
+	ValueableVector<WeaponTypeClass*> PrismRelay_AllowWeapons {};
+	ValueableVector<WeaponTypeClass*> PrismRelay_DisallowWeapons {};
+	Valueable<int> PrismRelay_MasterWeaponIndex { -1 };
+	Valueable<bool> PrismRelay_MasterWeaponUseMultiWeaponSelection { false };
+	Valueable<int> PrismRelay_SupportTimeout { 45 };
 
-		, ReflectDamage { false }
-		, ReflectDamage_Warhead {}
-		, ReflectDamage_Warhead_Detonate { false }
-		, ReflectDamage_Multiplier { 1.0 }
-		, ReflectDamage_AffectsHouses { AffectedHouse::All }
-
-		, ReflectDamage_Chance {}
-		, ReflectDamage_Override {}
-		, ReflectDamage_UseInvokerAsOwner { false }
-
-		, DiscardOn_AbovePercent {}
-		, DiscardOn_BelowPercent {}
-		, AffectAbovePercent {}
-		, AffectBelowPercent {}
-
-		, DisableRadar {}
-		, DisableSpySat {}
-
-		, Unkillable {}
-
-		, ExtraWarheads {}
-		, ExtraWarheads_DamageOverrides {}
-		, ExtraWarheads_DetonationChances {}
-		, ExtraWarheads_FullDetonation {}
-
-		, FeedbackWeapon {}
-
-		, LaserTrail_Type { -1 }
-		, Block_ChanceMultiplier { 1.0 }
-		, Block_ExtraChance { 0.0 }
-
-		, AffectTypes {}
-		, IgnoreTypes {}
-		, AffectTargets { AffectedTarget::All }
-
-		, Animation_DrawOffsets {}
-
-		, PeriodicWeapon {}
-		, PeriodicWeapon_AffectsHouse { AffectedHouse::All }
-		, PeriodicWeapon_UseInvokerAsOwner { false }
-		, PeriodicWeapon_Range { Leptons(0) }
-		, PeriodicWeapon_FiringDelay { 0 }
-		, PeriodicWeapon_FireAll { false }
-		, PeriodicWeapon_AffectTypes {}
-		, PeriodicWeapon_IgnoreTypes {}
-
-		, PrismRelay { false }
-		, PrismRelay_NetworkID { 0 }
-		, PrismRelay_Provider { true }
-		, PrismRelay_Receiver { true }
-		, PrismRelay_SupportWeapon {}
-		, PrismRelay_MaxReceiveLinks { -1 }
-		, PrismRelay_MaxNodeLinks { -1 }
-		, PrismRelay_SupportFireDelay { 0 }
-		, PrismRelay_SupportMultiplier { 1.0 }
-		, PrismRelay_DamageAdd { 0 }
-		, PrismRelay_ToAllies { false }
-		, PrismRelay_AllowWeapons {}
-		, PrismRelay_DisallowWeapons {}
-		, PrismRelay_MasterWeaponIndex { -1 }
-		, PrismRelay_MasterWeaponUseMultiWeaponSelection { false }
-		, PrismRelay_SupportTimeout { 45 }
-	{};
+	PhobosAttachEffectTypeClass(const char* pTitle) : Enumerable<PhobosAttachEffectTypeClass>(pTitle)	{};
+	virtual ~PhobosAttachEffectTypeClass() = default;
 
 	COMPILETIMEEVAL FORCEDINLINE bool HasAnim() {
 		if (this->Cumulative)

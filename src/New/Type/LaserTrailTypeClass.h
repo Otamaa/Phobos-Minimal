@@ -10,56 +10,33 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "LaserTrailTypeClass";
 
 public:
-	Valueable<bool> IsHouseColor;
-	Valueable<ColorStruct> Color;
-	Nullable<int> FadeDuration;
-	Valueable<int> Thickness;
-	Valueable<int> SegmentLength;
-	Valueable<bool> IgnoreVertical;
-	Valueable<bool> IsIntense;
-	Valueable<int> InitialDelay;
-	Valueable<bool> CloakVisible;
-	Valueable<bool> CloakVisible_Houses;
-	Valueable<bool> DroppodOnly;
-	Valueable<bool> Permanent;
+	Valueable<bool> IsHouseColor { false };
+	Valueable<ColorStruct> Color { Drawing::DefaultColors[(int)DefaultColorList::Red] };
+	Nullable<int> FadeDuration {};                         // value‑initialised
+	Valueable<int> Thickness { 4 };
+	Valueable<int> SegmentLength { 128 };
+	Valueable<bool> IgnoreVertical { false };
+	Valueable<bool> IsIntense { false };
+	Valueable<int> InitialDelay { 0 };
+	Valueable<bool> CloakVisible { false };
+	Valueable<bool> CloakVisible_Houses { false };
+	Valueable<bool> DroppodOnly { false };
+	Valueable<bool> Permanent { false };
 
-	Valueable<LaserTrailDrawType> DrawType;
-	Valueable<bool> IsAlternateColor;
-	Nullable<ColorStruct> Bolt_Color[3];
-	Valueable<bool> Bolt_Disable[3];
-	Valueable<int> Bolt_Arcs;
-	Nullable<ColorStruct> Beam_Color;
-	Valueable<double> Beam_Amplitude;
-	Valueable<bool> CanBeHidden;
+	Valueable<LaserTrailDrawType> DrawType { LaserTrailDrawType::Laser };
+	Valueable<bool> IsAlternateColor { false };
+	Nullable<ColorStruct> Bolt_Color[3] {};               // zero‑initialises each element
+	Valueable<bool> Bolt_Disable[3] {};                   // value‑initialises each element
+	Valueable<int> Bolt_Arcs { 8 };
+	Nullable<ColorStruct> Beam_Color {};
+	Valueable<double> Beam_Amplitude { 40.0 };
+	Valueable<bool> CanBeHidden { true };
 
-	Valueable<int> Bolt_ZAdjust;
-	Valueable<int> Laser_ZAdjust;
-	LaserTrailTypeClass(const char* pTitle) : Enumerable<LaserTrailTypeClass> { pTitle }
-		, IsHouseColor { false }
-		, Color { Drawing::DefaultColors[(int)DefaultColorList::Red] }
-		, FadeDuration { }
-		, Thickness { 4 }
-		, SegmentLength { 128 }
-		, IgnoreVertical { false }
-		, IsIntense { false }
-		, InitialDelay {0}
-		, CloakVisible { false }
-		, CloakVisible_Houses { false }
-		, DroppodOnly { false }
-		, Permanent { false }
+	Valueable<int> Bolt_ZAdjust { 0 };
+	Valueable<int> Laser_ZAdjust { 0 };
 
-		, DrawType { LaserTrailDrawType::Laser }
-		, IsAlternateColor { false }
-		, Bolt_Color {}
-		, Bolt_Disable { }
-		, Bolt_Arcs { 8 }
-		, Beam_Color {}
-		, Beam_Amplitude { 40.0 }
-		, CanBeHidden { true }
-
-		, Bolt_ZAdjust { 0 }
-		, Laser_ZAdjust { 0 }
-	{ }
+	LaserTrailTypeClass(const char* pTitle) : Enumerable<LaserTrailTypeClass> { pTitle } { }
+	virtual ~LaserTrailTypeClass() = default;
 
 	void LoadFromINI(CCINIClass* pINI);
 	void LoadFromStream(PhobosStreamReader& Stm);

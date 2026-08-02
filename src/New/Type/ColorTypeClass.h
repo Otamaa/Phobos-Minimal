@@ -14,8 +14,8 @@ public:
 
 	Valueable<Point3D> Colors { };
 
-	ColorTypeClass(const char* pTitle) : Enumerable<ColorTypeClass>(pTitle)
-	{ }
+	ColorTypeClass(const char* pTitle) : Enumerable<ColorTypeClass>(pTitle) { }
+	virtual ~ColorTypeClass() = default;
 
 	void LoadFromINI(CCINIClass* pINI);
 	void LoadFromStream(PhobosStreamReader& Stm);

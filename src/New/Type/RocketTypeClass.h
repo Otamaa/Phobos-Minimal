@@ -12,31 +12,20 @@ public:
 
 public:
 
-	RocketStruct RocketData;
-	Valueable<WarheadTypeClass*> Warhead;
-	Valueable<WarheadTypeClass*> EliteWarhead;
-	Valueable<AnimTypeClass*> TakeoffAnim;
-	Valueable<AnimTypeClass*> PreLauchAnim;
-	Valueable<AnimTypeClass*> TrailerAnim;
-	Valueable<int> TrailerSeparation;
-	Valueable<WeaponTypeClass*> Weapon;
-	Valueable<WeaponTypeClass*> EliteWeapon;
-	Promotable<bool> Raise;
-	Valueable<Point2D> Offset;
+	RocketStruct RocketData {};
+	Valueable<WarheadTypeClass*> Warhead { nullptr };
+	Valueable<WarheadTypeClass*> EliteWarhead { nullptr };
+	Valueable<AnimTypeClass*> TakeoffAnim { nullptr };
+	Valueable<AnimTypeClass*> PreLauchAnim { nullptr };
+	Valueable<AnimTypeClass*> TrailerAnim { nullptr };
+	Valueable<int> TrailerSeparation { 3 };
+	Valueable<WeaponTypeClass*> Weapon { nullptr };
+	Valueable<WeaponTypeClass*> EliteWeapon { nullptr };
+	Promotable<bool> Raise { true };
+	Valueable<Point2D> Offset {};
 
-	RocketTypeClass(const char* const pTitle) : Enumerable<RocketTypeClass>(pTitle)
-		, RocketData {}
-		, Warhead { nullptr }
-		, EliteWarhead { nullptr }
-		, TakeoffAnim { nullptr }
-		, PreLauchAnim { nullptr }
-		, TrailerAnim { nullptr }
-		, TrailerSeparation { 3 }
-		, Weapon { nullptr }
-		, EliteWeapon { nullptr }
-		, Raise { true }
-		, Offset { }
-	{ }
+	RocketTypeClass(const char* const pTitle) : Enumerable<RocketTypeClass>(pTitle) {}
+	virtual ~RocketTypeClass() = default;
 
 	static void COMPILETIMEEVAL OPTIONALINLINE AddDefaults() {
 		Array.reserve(DefaultRockets.size());

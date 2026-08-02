@@ -19,11 +19,10 @@ public:
 
 public:
 
-	Valueable<MouseCursor> CursorData;
+	Valueable<MouseCursor> CursorData {};
 
-	CursorTypeClass(const char* pTitle) : Enumerable<CursorTypeClass>(pTitle)
-		, CursorData { }
-	{ }
+	CursorTypeClass(const char* pTitle) : Enumerable<CursorTypeClass>(pTitle) { }
+	virtual ~CursorTypeClass() = default;
 
 	static void AddDefaults();
 
