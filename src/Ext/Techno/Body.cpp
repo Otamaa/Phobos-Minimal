@@ -11463,7 +11463,7 @@ void TechnoExtData::UpdateEatPassengers()
 			{
 				if (EnumFunctions::CanTargetHouse(pDelType->AllowedHouses, pThis->Owner, pCurrentPassenger->Owner))
 				{
-					pPreviousPassenger = flag_cast_to <FootClass* , false>(pLastPassenger);
+					pPreviousPassenger = flag_cast_to <FootClass*>(pLastPassenger);
 					pPassenger = pCurrentPassenger;
 				}
 

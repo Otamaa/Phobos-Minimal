@@ -153,134 +153,137 @@ void FakeIonBlastClass::_AI()
 {
 	const auto pData = WarheadTypeExtData::IonBlastExt.get_or_default(this);
 	const int Ripple_Radius = pData && pData->Ripple_Radius.isset() ? MinImpl((int)IonBlastClass_Surfaces.Size, pData->Ripple_Radius.Fetch() + 1) : IonBlastClass_Surfaces.Size;
-
-	if (this->Lifetime >= Ripple_Radius)
-	{
+	
+	//79 or IonBlastClass_Surfaces.Size -1 i suppose
+	//do not raise the lifetime above the ripple radius, otherwise it will crash when trying to access the surface array
+	if (this->Lifetime >= (Ripple_Radius - 1)) {
 		GameDelete<true, false>(this);
 		return;
 	}
 
-	const auto screenPos = TacticalClass::Instance->CoordsToClient(this->Location);
-
-	if (!this->DisableIonBeam && this->Lifetime == 0)
 	{
-		CoordStruct spawnCoord = this->Location;
-		spawnCoord.Z += 5;
-		const auto Rules = RulesClass::Instance();
+		const auto screenPos = TacticalClass::Instance->CoordsToClient(this->Location);
 
-		auto* mapCell = MapClass::Instance->GetCellAt(this->Location);
-		const bool isWater = mapCell->LandType == LandType::Water;
-
-		if (const auto animId = isWater ? Rules->SplashList[Rules->SplashList.Count - 1] :
-			pData ? pData->Ion_Blast.Get(Rules->IonBlast) : Rules->IonBlast)
+		if (!this->DisableIonBeam && this->Lifetime == 0)
 		{
-			GameCreate<AnimClass>(animId, spawnCoord);
-		}
+			CoordStruct spawnCoord = this->Location;
+			spawnCoord.Z += 5;
+			const auto Rules = RulesClass::Instance();
 
-		if (const auto pBeam = pData ? pData->Ion_Beam.Get(Rules->IonBeam) : Rules->IonBeam)
-		{
-			GameCreate<AnimClass>(pBeam, spawnCoord);
-		}
+			auto* mapCell = MapClass::Instance->GetCellAt(this->Location);
+			const bool isWater = mapCell->LandType == LandType::Water;
 
-		if (const auto pWH = pData ? pData->Ion_WH.Get(Rules->IonCannonWarhead) : Rules->IonCannonWarhead)
-		{
-
-			const int nDamage = pData ? pData->Ion_Damage.Get(Rules->IonCannonDamage) : Rules->IonCannonDamage;
-
-			if (mapCell->ContainsBridge())
+			if (const auto animId = isWater ? Rules->SplashList[Rules->SplashList.Count - 1] :
+				pData ? pData->Ion_Blast.Get(Rules->IonBlast) : Rules->IonBlast)
 			{
-				CoordStruct target = this->Location;
-				target.Z += CellClass::BridgeHeight;
-				DamageArea::Apply(&target, nDamage, nullptr, pWH, true, nullptr);
+				GameCreate<AnimClass>(animId, spawnCoord);
 			}
 
-			DamageArea::Apply(&this->Location, nDamage, nullptr, pWH, true, nullptr);
-			MapClass::FlashbangWarheadAt(nDamage, pWH, this->Location, false, SpotlightFlags::None);
-		}
-	}
-
-	if (!pData || pData->Ion_Rocking)
-	{
-		int16_t centerX = static_cast<int16_t>(this->Location.X / 256);
-		int16_t centerY = static_cast<int16_t>(this->Location.Y / 256);
-
-		for (int16_t dy = -3; dy <= 3; ++dy)
-		{
-			for (int16_t dx = -3; dx <= 3; ++dx)
+			if (const auto pBeam = pData ? pData->Ion_Beam.Get(Rules->IonBeam) : Rules->IonBeam)
 			{
-				CellStruct cell { static_cast<int16_t>(centerX + dx), static_cast<int16_t>(centerY + dy) };
-				auto* mapCell = MapClass::Instance->GetCellAt(cell);
+				GameCreate<AnimClass>(pBeam, spawnCoord);
+			}
 
-				for (ObjectClass* pObj = mapCell->FirstObject; pObj != nullptr; pObj = pObj->NextObject)
+			if (const auto pWH = pData ? pData->Ion_WH.Get(Rules->IonCannonWarhead) : Rules->IonCannonWarhead)
+			{
+
+				const int nDamage = pData ? pData->Ion_Damage.Get(Rules->IonCannonDamage) : Rules->IonCannonDamage;
+
+				if (mapCell->ContainsBridge())
 				{
-					if (!pObj->IsAlive)
-						continue;
+					CoordStruct target = this->Location;
+					target.Z += CellClass::BridgeHeight;
+					DamageArea::Apply(&target, nDamage, nullptr, pWH, true, nullptr);
+				}
 
-					if (pObj->WhatAmI() == InfantryClass::AbsID || pObj->WhatAmI() == UnitClass::AbsID) {
+				DamageArea::Apply(&this->Location, nDamage, nullptr, pWH, true, nullptr);
+				MapClass::FlashbangWarheadAt(nDamage, pWH, this->Location, false, SpotlightFlags::None);
+			}
+		}
 
-						auto unit = (FootClass*)pObj;
+		if (!pData || pData->Ion_Rocking)
+		{
+			int16_t centerX = static_cast<int16_t>(this->Location.X / 256);
+			int16_t centerY = static_cast<int16_t>(this->Location.Y / 256);
 
-						if (unit->IsSinking)
+			for (int16_t dy = -3; dy <= 3; ++dy)
+			{
+				for (int16_t dx = -3; dx <= 3; ++dx)
+				{
+					CellStruct cell { static_cast<int16_t>(centerX + dx), static_cast<int16_t>(centerY + dy) };
+					auto* mapCell = MapClass::Instance->GetCellAt(cell);
+
+					for (ObjectClass* pObj = mapCell->FirstObject; pObj != nullptr; pObj = pObj->NextObject)
+					{
+						if (!pObj->IsAlive)
 							continue;
 
-						CoordStruct unitCoord = unit->Location;
-						Point2D unitScreen = TacticalClass::Instance->CoordsToClient(unitCoord);
+						if (pObj->WhatAmI() == InfantryClass::AbsID || pObj->WhatAmI() == UnitClass::AbsID) {
 
-						int dxPix = unitScreen.X - screenPos.X;
-						int dyPix = unitScreen.Y - screenPos.Y;
-						int dist = static_cast<int>(Math::sqrt(dxPix * dxPix + dyPix * dyPix)) + 8;
+							auto unit = (FootClass*)pObj;
 
-						if (dist < 256)
-						{
-							Surface* surf = IonBlastClass_Surfaces[this->Lifetime];
-							char* locked = static_cast<char*>(surf->Lock(dist + 0x100, 128));
-							if (*locked > 0)
+							if (unit->IsSinking)
+								continue;
+
+							CoordStruct unitCoord = unit->Location;
+							Point2D unitScreen = TacticalClass::Instance->CoordsToClient(unitCoord);
+
+							int dxPix = unitScreen.X - screenPos.X;
+							int dyPix = unitScreen.Y - screenPos.Y;
+							int dist = static_cast<int>(Math::sqrt(dxPix * dxPix + dyPix * dyPix)) + 8;
+
+							if (dist < 256)
 							{
-								unit->SetSpeedPercentage(0.0f);
-								unit->height_subtract_6B4 = 2 * IonBlastData_53D8E0(*locked).Y;
-							}
-
-							auto vox = unit->GetTechnoType()->MainVoxel.VXL;
-
-							if (vox && !vox->LoadFailed && *locked >= 0)
-							{
-								float deltax = static_cast<float>(this->Location.X - unit->Location.X);
-								float deltay = static_cast<float>(this->Location.Y - unit->Location.Y);
-								float deltaz = static_cast<float>(this->Location.Z - unit->Location.Z);
-								const float len = Math::sqrt(deltax * deltax + deltay * deltay + deltaz * deltaz);
-
-								if (Math::abs(len) > 0.00002f)
+								Surface* surf = IonBlastClass_Surfaces[this->Lifetime];
+								char* locked = static_cast<char*>(surf->Lock(dist + 0x100, 128));
+								if (*locked > 0)
 								{
-									deltax /= len;
-									deltay /= len;
-									deltaz /= len;
+									unit->SetSpeedPercentage(0.0f);
+									unit->height_subtract_6B4 = 2 * IonBlastData_53D8E0(*locked).Y;
+								}
 
-									const auto& facing_ = unit->PrimaryFacing;
-									const auto facing_Current = facing_.Current();
+								auto vox = unit->GetTechnoType()->MainVoxel.VXL;
 
-									const float facingAngle = (facing_Current.Raw - Math::BINARY_ANGLE_MASK) * -0.0000958767f;
-									const float sinA = Math::sin((double)facingAngle);
-									const float cosA = Math::cos((double)facingAngle);
+								if (vox && !vox->LoadFailed && *locked >= 0)
+								{
+									float deltax = static_cast<float>(this->Location.X - unit->Location.X);
+									float deltay = static_cast<float>(this->Location.Y - unit->Location.Y);
+									float deltaz = static_cast<float>(this->Location.Z - unit->Location.Z);
+									const float len = Math::sqrt(deltax * deltax + deltay * deltay + deltaz * deltaz);
 
-									const float ux = deltax * cosA + deltay * sinA;
-									const float uz = deltax * sinA - deltay * cosA;
-									const float uy = deltaz;
-
-									float proj = Math::sqrt(ux * ux + uz * uz + uy * uy);
-									const float align = cosA * ux - sinA * proj;
-
-									if (Math::abs(align - deltax) > 0.0002f || Math::abs(cosA * proj + sinA * ux - deltay) > 0.0002f)
+									if (Math::abs(len) > 0.00002f)
 									{
-										proj = -proj;
+										deltax /= len;
+										deltay /= len;
+										deltaz /= len;
+
+										const auto& facing_ = unit->PrimaryFacing;
+										const auto facing_Current = facing_.Current();
+
+										const float facingAngle = (facing_Current.Raw - Math::BINARY_ANGLE_MASK) * -0.0000958767f;
+										const float sinA = Math::sin((double)facingAngle);
+										const float cosA = Math::cos((double)facingAngle);
+
+										const float ux = deltax * cosA + deltay * sinA;
+										const float uz = deltax * sinA - deltay * cosA;
+										const float uy = deltaz;
+
+										float proj = Math::sqrt(ux * ux + uz * uz + uy * uy);
+										const float align = cosA * ux - sinA * proj;
+
+										if (Math::abs(align - deltax) > 0.0002f || Math::abs(cosA * proj + sinA * ux - deltay) > 0.0002f)
+										{
+											proj = -proj;
+										}
+
+										const float blastDist = len + 51.0f;
+										const float blastOffset = (Math::sin(double(len - static_cast<float>(this->Lifetime) * 7.1125f + 38.0f) * 0.11f) * 3.5f + 3.0f) * 51.0f;
+										const float blastFactor = Math::cos(double(len - static_cast<float>(this->Lifetime) * 7.1125f + 38.0f) * 0.11f);
+										const float curve = (blastFactor * 0.11f * 51.0f * 3.5f * blastDist - blastOffset) / (blastDist * blastDist);
+
+										unit->AngleRotatedSideways = float(proj * curve * Math::GAME_TWOPI);
+										unit->AngleRotatedForwards = float(-ux * curve * Math::GAME_TWOPI);
 									}
-
-									const float blastDist = len + 51.0f;
-									const float blastOffset = (Math::sin(double(len - static_cast<float>(this->Lifetime) * 7.1125f + 38.0f) * 0.11f) * 3.5f + 3.0f) * 51.0f;
-									const float blastFactor = Math::cos(double(len - static_cast<float>(this->Lifetime) * 7.1125f + 38.0f) * 0.11f);
-									const float curve = (blastFactor * 0.11f * 51.0f * 3.5f * blastDist - blastOffset) / (blastDist * blastDist);
-
-									unit->AngleRotatedSideways = float(proj * curve * Math::GAME_TWOPI);
-									unit->AngleRotatedForwards = float(-ux * curve * Math::GAME_TWOPI);
 								}
 							}
 						}
@@ -288,12 +291,12 @@ void FakeIonBlastClass::_AI()
 				}
 			}
 		}
-	}
 
-	++this->Lifetime;
+		++this->Lifetime;
+	} 
 }
 
-void FakeIonBlastClass::_DrawAll()
+void __fastcall FakeIonBlastClass::_DrawAll()
 {
 	if (DSurface::Temp->Get_Pitch() != IonBlastPitch())
 	{
@@ -451,6 +454,7 @@ ASMJIT_PATCH(0x53CB91, IonBlastClass_DTOR, 6)
 DEFINE_FUNCTION_JUMP(CALL, 0x531758, FakeIonBlastClass::InitOneTime)
 DEFINE_FUNCTION_JUMP(CALL, 0x6BE3CE, FakeIonBlastClass::DestroySurfaces)
 DEFINE_FUNCTION_JUMP(CALL, 0x53D326, FakeIonBlastClass::_AI)
+DEFINE_FUNCTION_JUMP(CALL, 0x6D4656, FakeIonBlastClass::_DrawAll)
 
 bool FakeIonBlastClass::SaveGlobals(PhobosStreamWriter& Stm)
 {

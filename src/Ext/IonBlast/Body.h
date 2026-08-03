@@ -96,7 +96,7 @@ public:
 
 	static void __fastcall DestroySurfaces();
 	static void __fastcall InitOneTime();
-	static void _DrawAll();
+	static void __fastcall _DrawAll();
 
 	void _AI();
 	void _Draw();
