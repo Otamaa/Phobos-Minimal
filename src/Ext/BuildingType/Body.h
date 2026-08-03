@@ -217,6 +217,7 @@ public:
 	Nullable<bool> BuildingRadioLink_SyncOwner {};
 	Nullable<bool> Units_UseRepairCost {};
 	Nullable<int> BunkerStateUpdateDelay {};
+	Nullable<int> DeployFireDelay {};
 
 	// ============================================================
 	// Valueable<int> (4 bytes each)

@@ -21,6 +21,18 @@
 
 #include <Misc/PhobosGlobal.h>
 
+bool BuildingExtData::BuildingOnline(BuildingClass* pThis)
+{
+	const Mission currentMission = pThis->CurrentMission;
+
+	if (currentMission == Mission::Construction || currentMission == Mission::Selling
+		|| pThis->EMPLockRemaining > 0 || !pThis->WasOnline || pThis->BunkerLinkedItem)
+	{
+		return false;
+	}
+
+	return true;
+}
 
 template <>
  void BuildingExtData::PlayConstructionYardAnim<true>(BuildingClass* const pFactory)

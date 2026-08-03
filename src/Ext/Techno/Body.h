@@ -615,6 +615,7 @@ public:
 	void RecordRecoilData();
 	void UpdateLastTargetCrd();
 	void AmmoAutoConvertActions();
+	void HealthAutoConvertActions();
 	void DeployConvertAction();
 	void UpdateWarpInDelay();
 	void ImmolateVictim();

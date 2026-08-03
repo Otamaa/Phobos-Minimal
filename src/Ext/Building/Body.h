@@ -217,6 +217,7 @@ public:
 	static void BuildLines(BuildingClass* theBuilding, CellStruct selectedCell, HouseClass* buildingOwner);
 	static int GetImageFrameIndex(BuildingClass* pThis);
 	static int GetTurretFrame(BuildingClass* pThis);
+	static bool BuildingOnline(BuildingClass* pThis);
 
 private:
 	template <typename T>

@@ -222,8 +222,7 @@ ASMJIT_PATCH(0x4C7518, EventClass_Execute_StopUnitDeployFire, 0x9)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
-	if (auto const pUnit = cast_to<UnitClass*, false>(pThis))
-	{
+	if (auto const pUnit = cast_to<UnitClass*>(pThis)) {
 
 		if (pUnit->CurrentMission == Mission::Unload
 		&& pUnit->Type->DeployFire
@@ -237,6 +236,15 @@ ASMJIT_PATCH(0x4C7518, EventClass_Execute_StopUnitDeployFire, 0x9)
 		auto const pExt = TechnoExtContainer::Instance.Find(pUnit);
 		pExt->CurrentSubterraneanHarvStatus = SubterraneanHarvStatus::None;
 		pExt->SubterraneanHarvRallyPoint = nullptr;
+	}else if(auto const pBuilding = cast_to<BuildingClass*>(pThis)) {
+
+		auto const pType = pBuilding->Type;
+
+		if (pBuilding->CurrentMission == Mission::Unload
+			&& pType->DeployFire && pType->Factory == AbstractType::None) {
+			pBuilding->SetTarget(nullptr);
+			pBuilding->ForceMission(Mission::Guard);
+		}
 	}
 
 	// Restore overridden instructions

@@ -587,6 +587,10 @@ public:
 	Valueable<int> Ammo_AutoConvertMaximumAmount { -1 };
 	Valueable<TechnoTypeClass*> Ammo_AutoConvertType { };
 
+	Valueable<double> Convert_Health_AbovePercent { };
+	Valueable<double> Convert_Health_BelowPercent { };
+	Valueable<TechnoTypeClass*> Convert_Health { };
+
 	Nullable<Leptons> Harvester_LongScan {};
 	Nullable<Leptons> Harvester_ShortScan {};
 	Nullable<Leptons> Harvester_ScanCorrection {};

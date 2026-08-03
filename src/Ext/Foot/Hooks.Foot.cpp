@@ -775,6 +775,9 @@ void __fastcall FakeFootClass::_AI(FootClass* pThis)
         pExt->AmmoAutoConvertActions();
         if (!pThis->IsAlive) return;
  
+		pExt->HealthAutoConvertActions();
+		if (!pThis->IsAlive) return;
+ 
         pExt->ImmolateVictim();
         if (!pThis->IsAlive) return;
  
