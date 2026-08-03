@@ -15,7 +15,7 @@ bool TheaterIamgeClass::Read(INI_EX& parser, const char* pSection, std::string_v
 {
 	for (size_t i = 0; i < this->Types.size(); ++i) {
 		std::string _base(base_key);
-					_base += TheaterTypeClass::Array[i]->Name.data();
+					_base += TheaterTypeClass::Array[i]->NameStr;
 
 		if (parser.ReadString(pSection, _base.c_str())) {
 			std::string _value = parser.value();

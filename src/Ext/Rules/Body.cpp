@@ -3610,6 +3610,10 @@ DEFINE_POINTER(RectangleStruct, _SomeRect , 0xB0FC68)
 
 void FakeRulesClass::_Process(CCINIClass* pINI)
 {
+	for (auto& pTheater : TheaterTypeClass::Array) {
+		pTheater->NameStr = std::move(PhobosCRT::WideStringToString(pTheater->UIName->Text));
+	}
+
 	FakeRulesClass::Instance()->Initialize(pINI);
 
 	this->_ReadColors(pINI);

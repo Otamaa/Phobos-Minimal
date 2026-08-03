@@ -51,7 +51,8 @@ public:
 		OverlayTypeExtension(),
 		IsometricTileTypeExtension(),
 		BuildingTypeExtension(),
-		FallbackTheaterExtension(Theater::Array[0].Extension)
+		FallbackTheaterExtension(Theater::Array[0].Extension),
+		NameStr()
 	{
 		UIName = theater->UIName;
 	}
@@ -126,6 +127,7 @@ private:
 			.Process(IsometricTileTypeExtension)
 			.Process(BuildingTypeExtension)
 			.Process(FallbackTheaterExtension)
+			.Process(NameStr)
 			;
 	}
 
@@ -176,4 +178,5 @@ public:
 
 	PhobosFixedString<4> FallbackTheaterExtension {};
 
+	std::string NameStr {};
 };
