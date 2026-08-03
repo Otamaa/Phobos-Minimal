@@ -393,6 +393,13 @@ void FakeLaserDrawClass::_DrawLaser()
 	if (Duration <= 0)
 		return;
 
+	if (ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar) {
+		auto const pMap = MapClass::Instance();
+
+		if (pMap->IsLocationFogged(Source) && pMap->IsLocationFogged(Target))
+			return;
+	}
+
 #ifdef LASERDRAWDEBUG
 	Debug::Log("[LaserDraw] DrawLaser @ %p (HouseColor=%d, Thickness=%d, Duration=%d, Stage=%d)\n",
 		this, IsHouseColor, Thickness, Duration, Progress.Stage);
