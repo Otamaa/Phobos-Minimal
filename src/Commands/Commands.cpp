@@ -77,6 +77,21 @@ FORCEDINLINE T* Make()
 	return command;
 };
 
+static bool  EnableLargeAddressSpace(DWORD dwProcessId)
+{
+	if (HANDLE hProcess = OpenProcess(0x100u, 0, dwProcessId)) {
+		if (SetProcessWorkingSetSizeEx(hProcess, 0, 4294967295u, 2u)) {
+			CloseHandle(hProcess);
+			return 1;
+		} else {
+			CloseHandle(hProcess);
+		}
+	}
+
+
+	return 0;
+}
+
 void __fastcall Game_Init_Commands_Wrapper() {
 	Make<ManualReloadAmmoCommandClass>();
 
@@ -157,6 +172,8 @@ void __fastcall Game_Init_Commands_Wrapper() {
 	Make<RebuildNavalCommandClass>();
 
 	CommandClass::InitCommand();
+
+	EnableLargeAddressSpace(GetCurrentProcessId());
 }
 
 DEFINE_FUNCTION_JUMP(CALL , 0x52CAE4, Game_Init_Commands_Wrapper)

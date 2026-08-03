@@ -1759,6 +1759,7 @@ enum class DefaultColorList : BYTE
 };
 
 enum class DoType : int {
+	None = -1,
 	Ready = 0,
 	Guard = 1,
 	Prone = 2,

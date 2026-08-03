@@ -250,6 +250,23 @@ bool detail::getresult<FacingType>(FacingType& value, const std::string& parser,
 }
 
 template <>
+bool detail::getresult<DoType>(DoType& value, const std::string& parser, const char* pSection, const char* pKey, bool bAllocate)
+{
+	if (!parser.empty()) {
+		for (const auto& [val, str] : EnumFunctions::DoType_ToStrings) {
+			if (PhobosCRT::iequals(parser, str)) {
+				value = val;
+				return true;
+			}
+		}
+
+		Debug::INIParseFailed(pSection, pKey, parser.c_str(), "Expected a valid DoType");
+	}
+
+	return false;
+}
+
+template <>
 bool detail::read<TechnoTypeClass*>(TechnoTypeClass*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 {
 	if (parser.ReadString(pSection, pKey))
@@ -2479,13 +2496,29 @@ bool detail::read<CLSID>(CLSID& value, INI_EX& parser, const char* pSection, con
 	auto _buffer = PhobosCRT::StringToWideString(parser.value());
 	const unsigned hr = CLSIDFromString(_buffer.c_str(), &value);
 
-	if (!SUCCEEDED(hr))
-	{
+	if (!SUCCEEDED(hr)) {
 		Debug::LogError("Cannot find Locomotor [{} - {}] err : 0x{:08X}", pSection, parser.value(), hr);
 		return false;
 	}
 
 	return true;
+}
+
+template <>
+bool detail::read<DoType>(DoType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+{
+	if (parser.ReadString(pSection, pKey)) {
+		for (const auto& [val, str] : EnumFunctions::DoType_ToStrings) {
+			if (PhobosCRT::iequals(parser.value(), str)) {
+				value = val;
+				return true;
+			}
+		}
+
+		Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid DoType");
+	}
+
+	return false;
 }
 
 template <>
@@ -2592,6 +2625,22 @@ void detail::parse_values<Rank>(std::vector<Rank>& vector, INI_EX& parser, const
 	{
 		Rank buffer;
 		if (getresult<Rank>(buffer, cur, pSection, pKey, allocate))
+			vector.push_back(buffer);
+	}
+}
+
+template <>
+void detail::parse_values<DoType>(std::vector<DoType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+{
+	vector.clear();
+	char* context = nullptr;
+	for (auto cur = strtok_s(parser.value(),
+		Phobos::readDelims, &context);
+		cur;
+		cur = strtok_s(nullptr, Phobos::readDelims, &context))
+	{
+		DoType buffer;
+		if (getresult<DoType>(buffer, cur, pSection, pKey, allocate))
 			vector.push_back(buffer);
 	}
 }

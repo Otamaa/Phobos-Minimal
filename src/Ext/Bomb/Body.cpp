@@ -120,10 +120,10 @@ void FakeBombClass::__Detonate() {
 						}
 					}
 
-					(MapClass::Instance->*(foundBridge ? 
-						&MapClass::DestroyWoodBridgeAt :
-						&MapClass::DestroyConcreteBridgeAt))
-					(buildingMapCoords);
+					if (foundBridge)
+						MapClass::Instance->MapClass::DestroyWoodBridgeAt(buildingMapCoords);
+					else
+						MapClass::Instance->DestroyConcreteBridgeAt(buildingMapCoords);
 				}
 			}
 		}

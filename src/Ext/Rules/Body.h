@@ -688,6 +688,7 @@ public:
 	Valueable<int> ParadropDelay { 5 };
 	Valueable<int> ParadropEndDelay { 5 };
 
+	Valueable<bool> DiscardOn_Sequences_Immediate{ true };
 	Valueable<bool> DiscardOn_ConsiderHarvestingAsStationary { true };
 	Valueable<int> IsDischargedMemberAutocreateRecruitable { -1 };
 

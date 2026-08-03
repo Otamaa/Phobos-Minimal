@@ -262,24 +262,26 @@ FORCEDINLINE bool IsLandTypeInFlags(LandTypeFlags flags, LandType type)
 	return (bool)((LandTypeFlags)(1 << (char)type) & flags);
 }
 
-enum class DiscardCondition : uint16_t
+enum class DiscardCondition : int
 {
 	None            = 0,
-	Entry           = 1 << 0,  // 0x0001
-	Move            = 1 << 1,  // 0x0002
-	Stationary      = 1 << 2,  // 0x0004
-	Drain           = 1 << 3,  // 0x0008
-	InRange         = 1 << 4,  // 0x0010
-	OutOfRange      = 1 << 5,  // 0x0020
-	InvokerDeleted  = 1 << 6,  // 0x0040
-	Firing          = 1 << 7,  // 0x0080
-	Selling         = 1 << 8,  // 0x0100
-	Undeploying     = 1 << 9,  // 0x0200
-	Harvesting      = 1 << 10, // 0x0400
-	InvokerDie      = 1 << 11, // 0x0800
-	Ammo            = 1 << 12, // 0x1000
-	Health          = 1 << 13, // 0x2000
-	LandType        = 1 << 14, // 0x4000
+	Entry           = 1 << 0,
+	Move            = 1 << 1,
+	Stationary      = 1 << 2,
+	Drain           = 1 << 3,
+	InRange         = 1 << 4,
+	OutOfRange      = 1 << 5,
+	InvokerDeleted  = 1 << 6,
+	Firing          = 1 << 7,
+	Selling         = 1 << 8,
+	Undeploying     = 1 << 9,
+	Harvesting      = 1 << 10,
+	InvokerDie      = 1 << 11,
+	Ammo            = 1 << 12,
+	Health          = 1 << 13,
+	LandType        = 1 << 14,
+	Mission			= 1 << 15,
+	Sequence		= 1 << 16,
 
 	count
 };

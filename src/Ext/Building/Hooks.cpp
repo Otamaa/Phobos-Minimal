@@ -1232,7 +1232,7 @@ ASMJIT_PATCH(0x44E371, BuildingClass_Mission_Unload_DeployFire, 0x6)
 
 ASMJIT_PATCH(0x730B09, DeployCommandClass_Execute_BuildingDeploy, 0x5)
 {
-	for (const auto pObject : *ObjectClass::CurrentObjects){
+	for (auto pObject : ObjectClass::CurrentObjects()){
 		const AbstractFlags flags = pObject->AbstractFlags;
 
 		if (!(flags & AbstractFlags::Techno) || (flags & AbstractFlags::Foot))
@@ -1242,7 +1242,7 @@ ASMJIT_PATCH(0x730B09, DeployCommandClass_Execute_BuildingDeploy, 0x5)
 		auto const pType = pBuilding->Type;
 		const auto pHouse = pBuilding->Owner;
 
-		if (!pHouse->IsControlledByCurrentPlayer()
+		if (!pHouse->ControlledByCurrentPlayer()
 			|| !pType->DeployFire || pType->Factory != AbstractType::None || pType->GapGenerator) {
 			continue;
 		}

@@ -688,4 +688,8 @@ public:
 
 	static bool DrawImage(DSurface* pSurface, RectangleStruct destinationRect, BSurface* pPCXSurface, SHPStruct* fileSHP, ConvertClass* pPalette, int frameIndex = 0, int zAdjust = 0, BlitterFlags blitterFlags = BlitterFlags::None);
 	static std::vector<PhobosPCXFile> GetAnimationPCX(const std::string& baseFilename);
+
+	static const std::vector<CellStruct> GetFoundationCells(const BuildingClass* const pThis, CellStruct const baseCoords, bool includeOccupyHeight);
+	static bool IsTechnoNearCell(const TechnoClass* pTechno, const CellStruct& targetCell, int distanceCells);
+	static bool IsCellInBuildingFoundation(const BuildingClass* const pBuilding, const CellStruct& cell);
 };

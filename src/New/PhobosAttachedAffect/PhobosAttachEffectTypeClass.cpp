@@ -51,11 +51,25 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->DiscardOn_RangeOverride.Read(exINI, pSection, "DiscardOn.RangeOverride");
 	this->DiscardOn_MoveBasedOnDestination.Read(exINI, pSection, "DiscardOn.MoveBasedOnDestination");
 	this->DiscardOn_ConsiderHarvestingAsStationary.Read(exINI, pSection, "DiscardOn.ConsiderHarvestingAsStationary");
-	this->DiscardOn_Ammo_Min.Read(exINI, pSection, "DiscardOn.Ammo.Min");
-	this->DiscardOn_Ammo_Max.Read(exINI, pSection, "DiscardOn.Ammo.Max");
-	this->DiscardOn_Health_Min.Read(exINI, pSection, "DiscardOn.Health.Min");
-	this->DiscardOn_Health_Max.Read(exINI, pSection, "DiscardOn.Health.Max");
+	this->DiscardOn_Ammo_Min.Read(exINI, pSection, "DiscardOn.Ammo.MinimumAmount");
+	this->DiscardOn_Ammo_Max.Read(exINI, pSection, "DiscardOn.Ammo.MaximumAmount");
+
+	if (this->DiscardOn_Ammo_Min > this->DiscardOn_Ammo_Max)
+		Debug::Log("[Developer warning][%s] DiscardOn.Ammo.MinimumAmount is greater than DiscardOn.Ammo.MaximumAmount, the ammo discard condition cannot be established.\n", pSection);
+
+	this->DiscardOn_Health_Min.Read(exINI, pSection, "DiscardOn.Health.BelowPercent");
+	this->DiscardOn_Health_Max.Read(exINI, pSection, "DiscardOn.Health.AbovePercent");
+
+	if (this->DiscardOn_Health_Max.isset() && this->DiscardOn_Health_Min.isset() && this->DiscardOn_Health_Max.Fetch() > this->DiscardOn_Health_Min.Fetch())
+		Debug::Log("[Developer warning][%s] DiscardOn.Health.AbovePercent is greater than DiscardOn.Health.BelowPercent, the health discard condition cannot be established.\n", pSection);
+
+	this->DiscardOn_Missions.Read(exINI, pSection, "DiscardOn.Missions");
+	this->DiscardOn_AIMissions.Read(exINI, pSection, "DiscardOn.AIMissions");
+
 	this->DiscardOn_LandTypes.Read(exINI, pSection, "DiscardOn.LandTypes");
+
+	this->DiscardOn_Sequences.Read(exINI, pSection, "DiscardOn.Sequences");
+	this->DiscardOn_Sequences_Immediate.Read(exINI, pSection, "DiscardOn.Sequences.Immediate");
 
 	this->PenetratesIronCurtain.Read(exINI, pSection, "PenetratesIronCurtain");
 	this->PenetratesForceShield.Read(exINI, pSection, "PenetratesForceShield");
@@ -216,7 +230,11 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->DiscardOn_Ammo_Max)
 		.Process(this->DiscardOn_Health_Min)
 		.Process(this->DiscardOn_Health_Max)
+		.Process(this->DiscardOn_Missions)
+		.Process(this->DiscardOn_AIMissions)
 		.Process(this->DiscardOn_LandTypes)
+		.Process(this->DiscardOn_Sequences)
+		.Process(this->DiscardOn_Sequences_Immediate)
 		.Process(this->PenetratesIronCurtain)
 		.Process(this->PenetratesForceShield)
 		.Process(this->Animation)

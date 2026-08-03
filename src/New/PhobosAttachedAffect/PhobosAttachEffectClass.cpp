@@ -705,19 +705,23 @@ bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 	// ------------------------------------------------------------------
 	// health ratio gates — independent of the DiscardOn flag set
 	// ------------------------------------------------------------------
-	if (pType->DiscardOn_AbovePercent.isset()
-		&& pTechno->GetHealthRatio() >= pType->DiscardOn_AbovePercent.Fetch()) {
-		return finish(true);
-	}
+	{
+		if (pType->DiscardOn_AbovePercent.isset()
+			&& pTechno->GetHealthRatio() >= pType->DiscardOn_AbovePercent.Fetch())
+		{
+			return finish(true);
+		}
 
-	if (pType->DiscardOn_BelowPercent.isset()
-		&& pTechno->GetHealthRatio() <= pType->DiscardOn_BelowPercent.Fetch()) {
-		return finish(true);
-	}
+		if (pType->DiscardOn_BelowPercent.isset()
+			&& pTechno->GetHealthRatio() <= pType->DiscardOn_BelowPercent.Fetch())
+		{
+			return finish(true);
+		}
 
-	// everything below is flag driven — bail out early instead of indenting
-	if (discardOn == DiscardCondition::None)
-		return finish(false);
+		// everything below is flag driven — bail out early instead of indenting
+		if (discardOn == DiscardCondition::None)
+			return finish(false);
+	}
 
 	// ------------------------------------------------------------------
 	// movement / harvesting / stationary
@@ -778,19 +782,11 @@ bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 	if (has(DiscardCondition::Ammo)) {
 		const auto& nMin = pType->DiscardOn_Ammo_Min;
 		const auto& nMax = pType->DiscardOn_Ammo_Max;
+		const int ammo = pTechno->Ammo;
 
-		// each bound probed exactly once — no Get() fallback, so isset() is not
-		// evaluated twice for the same field
-		const bool hasMin = nMin.isset();
-		const bool hasMax = nMax.isset();
-
-		if (hasMin || hasMax) {
-			const int ammo = pTechno->Ammo;
-			const bool minOk = !hasMin || ammo >= nMin.Fetch();
-			const bool maxOk = !hasMax || ammo <= nMax.Fetch();
-
-			if (minOk && maxOk)
-				return finish(true);
+		if ((nMin < 0 || ammo >= nMin) && (nMax < 0 || ammo <= nMax)) {
+			this->LastDiscardCheckValue = true;
+			return true;
 		}
 	}
 
@@ -830,6 +826,47 @@ bool PhobosAttachEffectClass::ShouldBeDiscardedNow()
 		if (const auto pCell = pTechno->GetCell()) {
 			if (IsLandTypeInFlags(pType->DiscardOn_LandTypes, pCell->LandType))
 				return finish(true);
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// Mission
+	// ------------------------------------------------------------------
+	if (has(DiscardCondition::Mission)) {
+		auto const& missions = pTechno->Owner->IsControlledByHuman()
+
+			? pType->DiscardOn_Missions
+			: (pType->DiscardOn_AIMissions.HasValue()
+				? static_cast<ValueableVector<Mission>&>(pType->DiscardOn_AIMissions)
+				: pType->DiscardOn_Missions);
+
+		if (missions.size() > 0 && missions.Contains(pTechno->CurrentMission)) {
+			return finish(true);
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// Sequence
+	// ------------------------------------------------------------------
+	if (has(DiscardCondition::Sequence)) {
+		if (auto const pInf = cast_to<InfantryClass*, false>(pTechno)) {
+			if (pType->DiscardOn_Sequences.size() > 0) {
+				if (pType->DiscardOn_Sequences_Immediate.Get(FakeRulesClass::Instance->DiscardOn_Sequences_Immediate)) {
+					if (pType->DiscardOn_Sequences.Contains(pInf->SequenceAnim)) {
+						return finish(true);
+					}
+				} else {
+					if (this->LastSequenceCheck != pInf->SequenceAnim &&
+						pType->DiscardOn_Sequences.Contains(this->LastSequenceCheck)) {
+						return finish(true);
+					}
+
+					this->LastSequenceCheck = pInf->SequenceAnim;
+				}
+			}
+		}
+		else {
+			this->LastSequenceCheck = DoType::None;
 		}
 	}
 
@@ -1345,6 +1382,8 @@ bool PhobosAttachEffectClass::Serialize(T& Stm)
 	.Process(NeedsRecalculateStat)
 	.Process(ShouldBeDiscarded)
 	.Process(HasCumulativeAnim)
+
+	.Process(LastSequenceCheck)
 
 	.Success() && Stm.RegisterChange(this)
 		;

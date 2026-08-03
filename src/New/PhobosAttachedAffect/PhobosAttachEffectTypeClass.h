@@ -58,10 +58,14 @@ public:
 	Nullable<Leptons> DiscardOn_RangeOverride {};
 	Nullable<bool> DiscardOn_MoveBasedOnDestination {};
 	Nullable<bool> DiscardOn_ConsiderHarvestingAsStationary {};
-	Nullable<int> DiscardOn_Ammo_Min {};
-	Nullable<int> DiscardOn_Ammo_Max {};
+	Valueable<int> DiscardOn_Ammo_Min { -1 };
+	Valueable<int> DiscardOn_Ammo_Max { -1 };
 	Nullable<double> DiscardOn_Health_Min {};
 	Nullable<double> DiscardOn_Health_Max {};
+	ValueableVector<Mission> DiscardOn_Missions {};
+	NullableVector<Mission> DiscardOn_AIMissions {};
+	ValueableVector<DoType> DiscardOn_Sequences {};
+	Nullable<bool>DiscardOn_Sequences_Immediate {};
 	Valueable<LandTypeFlags> DiscardOn_LandTypes { LandTypeFlags::None };
 
 	Valueable<bool> PenetratesIronCurtain { false };

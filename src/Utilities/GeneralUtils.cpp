@@ -519,3 +519,98 @@ std::vector<PhobosPCXFile> GeneralUtils::GetAnimationPCX(const std::string& base
  
 	return animationFrames;
 }
+
+const std::vector<CellStruct>  GeneralUtils::GetFoundationCells(const BuildingClass* const pThis, CellStruct const baseCoords, bool includeOccupyHeight)
+{
+	const CellStruct foundationEnd = { 0x7FFF, 0x7FFF };
+	CellStruct const* pFoundation = pThis->GetFoundationData(false);
+
+	int occupyHeight = includeOccupyHeight ? pThis->Type->OccupyHeight : 1;
+
+	if (occupyHeight <= 0)
+		occupyHeight = 1;
+
+	const CellStruct* pCellIterator = pFoundation;
+
+	while (*pCellIterator != foundationEnd)
+		++pCellIterator;
+
+	std::vector<CellStruct> foundationCells;
+	foundationCells.reserve(static_cast<int>(std::distance(pFoundation, pCellIterator + 1)) * occupyHeight);
+	pCellIterator = pFoundation;
+
+	while (*pCellIterator != foundationEnd)
+	{
+		auto actualCell = baseCoords + *pCellIterator;
+
+		for (auto i = occupyHeight; i > 0; --i)
+		{
+			foundationCells.emplace_back(actualCell);
+			--actualCell.X;
+			--actualCell.Y;
+		}
+		++pCellIterator;
+	}
+
+	std::sort(foundationCells.begin(), foundationCells.end(),
+		[](const CellStruct& lhs, const CellStruct& rhs) -> bool
+	{
+		return lhs.X > rhs.X || lhs.X == rhs.X && lhs.Y > rhs.Y;
+	});
+
+	auto const it = std::unique(foundationCells.begin(), foundationCells.end());
+	foundationCells.erase(it, foundationCells.end());
+
+	return foundationCells;
+}
+
+bool  GeneralUtils::IsTechnoNearCell(const TechnoClass* pTechno, const CellStruct& targetCell, int distanceCells)
+{
+	if (!pTechno || !pTechno->IsAlive || pTechno->Health <= 0)
+		return false;
+
+	if (const BuildingClass* pBuilding = cast_to<const BuildingClass*>(pTechno))
+	{
+		const std::vector<CellStruct> foundationCells = GetFoundationCells(
+		pBuilding,
+		pBuilding->GetCell()->MapCoords,
+		false
+		);
+
+		for (const CellStruct& cell : foundationCells)
+		{
+			int dx = cell.X - targetCell.X;
+			int dy = cell.Y - targetCell.Y;
+			int distSquared = dx * dx + dy * dy;
+			if (distSquared <= distanceCells * distanceCells)
+				return true;
+		}
+		return false;
+	}
+
+	else // not building
+	{
+		CellStruct technoCell = CellClass::Coord2Cell(pTechno->GetCoords());
+		int dx = technoCell.X - targetCell.X;
+		int dy = technoCell.Y - targetCell.Y;
+		int distSquared = dx * dx + dy * dy;
+
+		return distSquared <= distanceCells * distanceCells;
+	}
+}
+
+bool  GeneralUtils::IsCellInBuildingFoundation(const BuildingClass* const pBuilding, const CellStruct& cell)
+{
+	if (!pBuilding || !pBuilding->Type) return false;
+	if (pBuilding->WhatAmI() != AbstractType::Building) return false;
+
+	const std::vector<CellStruct> foundationCells = GetFoundationCells(
+		pBuilding,
+		pBuilding->GetCell()->MapCoords,
+		false
+	);
+
+	auto it = std::find(foundationCells.begin(), foundationCells.end(), cell);
+	return it != foundationCells.end();
+}
+

@@ -408,6 +408,7 @@ void FakeRulesClass::LoadBeforeTypeData(CCINIClass* pINI)
 	this->ParadropDelay.Read(exINI, GameStrings::General, "ParadropDelay");
 	this->ParadropEndDelay.Read(exINI, GameStrings::General, "ParadropEndDelay");
 	this->IsDischargedMemberAutocreateRecruitable.Read(exINI, GameStrings::General, "IsDischargedMemberAutocreateRecruitable");
+	this->DiscardOn_Sequences_Immediate.Read(exINI, GameStrings::General, "DiscardOn.Sequences.Immediate");
 	this->DiscardOn_ConsiderHarvestingAsStationary.Read(exINI, GameStrings::General, "DiscardOn.ConsiderHarvestingAsStationary");
 	this->PrismRelay_SupportTimeout.Read(exINI, GameStrings::General, "PrismRelay.SupportTimeout");
 	exINI.Read3Bool(GameStrings::General, "CampaignAllowHarvesterScanUnderShroud", this->CampaignAllowHarvesterScanUnderShroud);
@@ -1162,6 +1163,7 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->SecondaryFireSequenceLandOnly)
 		.Process(this->ParadropDelay)
 		.Process(this->ParadropEndDelay)
+		.Process(this->DiscardOn_Sequences_Immediate)
 		.Process(this->DiscardOn_ConsiderHarvestingAsStationary)
 		.Process(this->IsDischargedMemberAutocreateRecruitable)
 		.Process(this->LeptonMindControlOffset)

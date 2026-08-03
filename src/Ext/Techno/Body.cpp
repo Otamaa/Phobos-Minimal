@@ -395,10 +395,10 @@ void TechnoExtData::HealthAutoConvertActions()
 	if (min < 0 && max < 0)
 		return;
 
-	const auto pThis = this->OwnerObject();
+	const auto pThis = this->This();
 
-	if (TechnoExt::IsHealthInThreshold(pThis, min, max))
-		TechnoExt::ConvertToType(pThis, pTypeExt->Convert_Health);
+	if (TechnoExtData::IsHealthInThreshold(pThis, min, max))
+		TechnoExtData::ConvertToType(pThis, pTypeExt->Convert_Health);
 }
 
 void TechnoExtData::UpdateLastTargetCrd()

@@ -30,6 +30,8 @@ bool TheaterIamgeClass::Read(INI_EX& parser, const char* pSection, std::string_v
 			}
 		}
 	}
+
+	return true;
 }
 
 bool TheaterIamgeClass::Load(PhobosStreamReader& Stm, bool RegisterForChange) {

@@ -17,6 +17,7 @@ class EnumFunctions final
 public:
 
 	//simple enums
+	static COMPILETIMEEVAL OPTIONALINLINE auto DoType_ToStrings = magic_enum::enum_entries<DoType>();
 	static COMPILETIMEEVAL OPTIONALINLINE auto EdgeType_ToStrings = magic_enum::enum_entries<EdgeType>();
 	static COMPILETIMEEVAL OPTIONALINLINE auto Action_ToStrings = magic_enum::enum_entries<Action>();
 	static COMPILETIMEEVAL OPTIONALINLINE auto DynamicTeamDelayType_ToStrings = magic_enum::enum_entries<DynamicTeamDelayType>();

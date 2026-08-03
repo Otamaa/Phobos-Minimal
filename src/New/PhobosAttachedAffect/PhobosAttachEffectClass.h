@@ -136,6 +136,7 @@ public:
 	bool NeedsRecalculateStat { false };
 	bool ShouldBeDiscarded { false };
 	bool HasCumulativeAnim { false };
+	DoType LastSequenceCheck {};
 };
 
 template <>

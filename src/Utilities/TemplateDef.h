@@ -140,6 +140,8 @@ namespace detail
 	template <>
 	bool getresult<FacingType>(FacingType& value, const std::string& parser, const char* pSection, const char* pKey, bool bAllocate);
 
+	template <>
+	bool getresult<DoType>(DoType& value, const std::string& parser, const char* pSection, const char* pKey, bool bAllocate);
 
 	template <typename T>
 	OPTIONALINLINE bool read(T& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
@@ -472,6 +474,9 @@ namespace detail
 	template <>
 	bool read<CLSID>(CLSID& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
+	template <>
+	bool read<DoType>(DoType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
+
 	template <typename T, bool clearvec = true>
 	OPTIONALINLINE void parse_values(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
 	{
@@ -557,6 +562,9 @@ namespace detail
 
 	template <>
 	void parse_values<Rank>(std::vector<Rank>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
+
+	template <>
+	void parse_values<DoType>(std::vector<DoType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <typename Lookuper, typename T>
 	OPTIONALINLINE void parse_indexes(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey)
