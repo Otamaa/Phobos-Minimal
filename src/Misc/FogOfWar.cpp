@@ -18,8 +18,35 @@
 #include <InfantryTypeClass.h>
 #include <FoggedObjectClass.h>
 #include <TacticalClass.h>
+#include <LightSourceClass.h>
+#include <RadSiteClass.h>
+#include <GameOptionsClass.h>
 
 #include <New/Entity/FoggedObject.h>
+
+ASMJIT_PATCH(0x554B0D, LightSourceClass_Draw_Fog, 0x5)
+{
+	GET(LightSourceClass*, pLight, EDI);
+
+	//overriden instruction
+	if(GameOptionsClass::Instance->DetailLevel < pLight->DetailLevel)
+		return 0x554D16;
+
+	//partially disable rad site light sources if fog of war is enabled
+	//dunno if the re-draw flag is still need to be trigger here
+	//just follow the game models
+	if (ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar) {
+		for (auto pRad : *RadSiteClass::Array) {
+			if (pRad->LightSource == pLight) {
+				if (MapClass::Instance->IsLocationFogged(pLight->Location))
+					return 0x554D16;
+			}
+		}
+		
+	}
+
+	return 0x554B1D;
+}
 
 ASMJIT_PATCH(0x6B8E7A, ScenarioClass_LoadSpecialFlags, 0x5)
 {
