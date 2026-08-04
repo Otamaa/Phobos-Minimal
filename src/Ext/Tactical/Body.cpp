@@ -34,6 +34,12 @@
 
 #include <New/Entity/FlyingStrings.h>
 
+#include <New/ChoiceBox/Entities/Base/MapChoiceBoxClass.h>
+#include <New/ChoiceBox/Types/ChoiceBoxTypeClass.h>
+
+#include <New/TextBox/Entities/Base/MapTextBoxClass.h>
+#include <New/TextBox/Types/TextBoxTypeClass.h>
+
 #include <Phobos.h>
 
 enum class CollisionBoxShape : BYTE{
@@ -1700,6 +1706,8 @@ void FakeTacticalClass::_Render(DSurface* pSurface, bool flag, TacticalRenderMod
 	this->Draw_super_lines_circles();
 
 	FlyingStrings::Instance.UpdateAll();
+	MapChoiceBoxClass::DrawWaypoint();
+	MapTextBoxClass::DrawAll();
 
 	BeaconManagerClass::Instance->Draw(
 		DSurface::Temp(),
@@ -1959,6 +1967,7 @@ void FakeTacticalClass::_Render(DSurface* pSurface, bool flag, TacticalRenderMod
 		}
 	}
 
+	MapChoiceBoxClass::DrawScreen();
 	this->__DrawAllTacticalText(this->ScreenText);
 	this->field_D7C = 0;
 	this->Redrawing = 0;

@@ -54,6 +54,26 @@ enum class PhobosTriggerEvent : int
 	GlobalVariableLessThanOrEqualsToGlobalVariable = 534,
 	GlobalVariableAndIsTrueGlobalVariable = 535,
 
+	TechnoTypeOfHouseNearWaypoint = 550,
+	TechnoTypeOfHouseAllLeavesWaypoint = 551,
+	TechnoTypeOfHouseExistsAtWaypoint = 552,
+	TechnoTypeOfHouseNotExistsAtWaypoint = 553,
+
+	ElapsedTimeFrames = 554,
+	MissionTimerGreater = 555,
+	MissionTimerLess = 556,
+
+	ChoiceBoxButtonClicked = 557,
+	ChoiceBoxAnyButtonClicked = 558,
+	ChoiceBoxTimedOut = 559,
+
+	HousePowerOutputMuch = 560,
+	HousePowerOutputLess = 561,
+	HousePowerDrainMuch = 562,
+	HousePowerDrainLess = 563,
+	HousePowerSurplusMuch = 564,
+	HousePowerSurplusLess = 565,
+
 	ShieldBroken = 600,
 	HouseOwnsTechnoType = 601,
 	HouseDoesntOwnTechnoType = 602,
@@ -165,6 +185,16 @@ public:
 	static bool CellHasAnyTechnoTypeFromListTEvent(TEventClass* pThis, ObjectClass* pObject, HouseClass* pHouse);
 	static bool CellHasTechnoTypeTEvent(TEventClass* pThis, ObjectClass* pObject, HouseClass* pHouse);
 	static bool AttachedIsUnderAttachedEffectTEvent(TEventClass* pThis, ObjectClass* pObject);
+
+	static bool TechnoTypeOfHouseNearWaypoint(TEventClass* pThis, HouseClass* pHouse);
+	static bool TechnoTypeOfHouseExistsAtWaypoint(TEventClass* pThis, HouseClass* pHouse);
+	static bool ElapsedTimeFramesFunc(TEventClass* pThis);
+	static bool MissionTimerGreaterFunc(TEventClass* pThis);
+	static bool MissionTimerLessFunc(TEventClass* pThis);
+	static bool ChoiceBoxButtonClickedFunc(TEventClass* pThis, HouseClass* pHouse);
+	static bool ChoiceBoxAnyButtonClickedFunc(TEventClass* pThis, HouseClass* pHouse);
+	static bool ChoiceBoxTimedOutFunc(TEventClass* pThis, HouseClass* pHouse);
+	static bool PowerHander(TEventClass* pThis, HouseClass* pHouse, PowerEventMode mode, bool isMuch);
 
 	static HouseClass* GetHouse(int TEvetValue, HouseClass* pEventHouse);
 

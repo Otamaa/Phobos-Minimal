@@ -34,6 +34,13 @@
 #include <Helpers\EnumFlags.h>
 #include <GeneralDefinitions.h>
 
+enum PowerEventMode
+{
+	Output = 0,
+	Drain = 1,
+	Surplus = 2
+};
+
 enum class EdgeType : BYTE
 {
 	Owner = 0,

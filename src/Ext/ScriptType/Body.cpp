@@ -2,17 +2,55 @@
 #include <Utilities/Macro.h>
 #include <Utilities/Patch.h>
 
+
+void ScriptTypeExtData::CaptureOriginal()
+{
+	auto const pType = this->This();
+
+	// Only capture if not already captured (lazy: OriginalActionsCount == 0)
+	if (this->OriginalActionsCount > 0 || pType->ActionsCount <= 0)
+	{
+		return;
+	}
+
+	this->OriginalActionsCount = pType->ActionsCount;
+
+	for (int i = 0; i < this->OriginalActionsCount && i < 50; ++i)
+	{
+		this->OriginalActions[i] = pType->ScriptActions[i];
+	}
+}
+
+void ScriptTypeExtData::RestoreOriginal()
+{
+	auto const pType = this->This();
+	if (!this->IsModified)
+	{
+		return;
+	}
+
+	pType->ActionsCount = this->OriginalActionsCount;
+
+	for (int i = 0; i < 50; ++i)
+	{
+		pType->ScriptActions[i] = this->OriginalActions[i];
+	}
+
+	this->IsModified = false;
+}
+
 // =============================
 // load / save
 
-//template <typename T>
-//void ScriptTypeExt::ExtData::Serialize(T& Stm)
-//{
-//	Stm
-//		.Process(this->Initialized)
-//		.Process(this->PhobosNode)
-//		;
-//}
+template <typename T>
+void ScriptTypeExtData::Serialize(T& Stm)
+{
+	Stm
+		.Process(this->OriginalActions)
+		.Process(this->OriginalActionsCount)
+		.Process(this->IsModified)
+		;
+}
 
 // =============================
 // container

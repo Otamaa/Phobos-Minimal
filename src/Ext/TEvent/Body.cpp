@@ -19,6 +19,14 @@
 #include <New/PhobosAttachedAffect/PhobosAttachEffectClass.h>
 #include <New/PhobosAttachedAffect/Functions.h>
 
+#include <New/TextBox/Types/TextBoxTypeClass.h>
+#include <New/TextBox/Entities/Derived/TechnoTextBoxClass.h>
+#include <New/TextBox/Entities/Derived/WaypointTextBoxClass.h>
+
+#include <New/ChoiceBox/Types/ChoiceBoxTypeClass.h>
+#include <New/ChoiceBox/Entities/Derived/ScreenChoiceBoxClass.h>
+#include <New/ChoiceBox/Entities/Derived/WaypointChoiceBoxClass.h>
+
 #include <TeamTypeClass.h>
 
 // =============================
@@ -163,6 +171,30 @@ std::pair<LogicNeedType, bool> TEventExtData::GetLogicNeed(PhobosTriggerEvent nA
 	case PhobosTriggerEvent::GlobalVariableAndIsTrueGlobalVariable:
 		return { LogicNeedType::NumberNTech , true };
 
+	case PhobosTriggerEvent::TechnoTypeOfHouseNearWaypoint:
+	case PhobosTriggerEvent::TechnoTypeOfHouseAllLeavesWaypoint:
+	case PhobosTriggerEvent::TechnoTypeOfHouseExistsAtWaypoint:
+	case PhobosTriggerEvent::TechnoTypeOfHouseNotExistsAtWaypoint:
+		return { LogicNeedType::NumberNTech , true };
+
+	case PhobosTriggerEvent::ElapsedTimeFrames:
+	case PhobosTriggerEvent::MissionTimerGreater:
+	case PhobosTriggerEvent::MissionTimerLess:
+		return { LogicNeedType::NumberNTech , true };
+
+	case PhobosTriggerEvent::ChoiceBoxButtonClicked:
+	case PhobosTriggerEvent::ChoiceBoxAnyButtonClicked:
+	case PhobosTriggerEvent::ChoiceBoxTimedOut:
+		return { LogicNeedType::NumberNTech , true };
+
+	case PhobosTriggerEvent::HousePowerOutputMuch:
+	case PhobosTriggerEvent::HousePowerOutputLess:
+	case PhobosTriggerEvent::HousePowerDrainMuch:
+	case PhobosTriggerEvent::HousePowerDrainLess:
+	case PhobosTriggerEvent::HousePowerSurplusMuch:
+	case PhobosTriggerEvent::HousePowerSurplusLess:
+		return { LogicNeedType::NumberNTech , true };
+
 	case PhobosTriggerEvent::HouseOwnsTechnoType:
 	case PhobosTriggerEvent::HouseDoesntOwnTechnoType:
 	case PhobosTriggerEvent::HousesDestroyed:
@@ -263,6 +295,31 @@ std::pair<TriggerAttachType, bool> TEventExtData::GetTriggetAttach(PhobosTrigger
 	case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsToGlobalVariable:
 	case PhobosTriggerEvent::GlobalVariableAndIsTrueGlobalVariable:
 		return { TriggerAttachType::Logic , true };
+
+	case PhobosTriggerEvent::TechnoTypeOfHouseNearWaypoint:
+	case PhobosTriggerEvent::TechnoTypeOfHouseAllLeavesWaypoint:
+	case PhobosTriggerEvent::TechnoTypeOfHouseExistsAtWaypoint:
+	case PhobosTriggerEvent::TechnoTypeOfHouseNotExistsAtWaypoint:
+		return { TriggerAttachType::Logic , true };
+
+	case PhobosTriggerEvent::ElapsedTimeFrames:
+	case PhobosTriggerEvent::MissionTimerGreater:
+	case PhobosTriggerEvent::MissionTimerLess:
+		return { TriggerAttachType::Logic , true };
+
+	case PhobosTriggerEvent::ChoiceBoxButtonClicked:
+	case PhobosTriggerEvent::ChoiceBoxAnyButtonClicked:
+	case PhobosTriggerEvent::ChoiceBoxTimedOut:
+		return { TriggerAttachType::Logic , true };
+
+	case PhobosTriggerEvent::HousePowerOutputMuch:
+	case PhobosTriggerEvent::HousePowerOutputLess:
+	case PhobosTriggerEvent::HousePowerDrainMuch:
+	case PhobosTriggerEvent::HousePowerDrainLess:
+	case PhobosTriggerEvent::HousePowerSurplusMuch:
+	case PhobosTriggerEvent::HousePowerSurplusLess:
+		return { TriggerAttachType::Logic , true };
+
 	case PhobosTriggerEvent::HouseOwnsTechnoType:
 	case PhobosTriggerEvent::HouseDoesntOwnTechnoType:
 	case PhobosTriggerEvent::HousesDestroyed:
@@ -679,6 +736,160 @@ bool CheckTechTypeExists(TEventClass* evt, bool shouldExist)
 	}
 
 	return shouldExist ? false : (foundCount == 0);
+}
+
+bool TEventExtData::TechnoTypeOfHouseNearWaypoint(TEventClass* pThis, HouseClass* pHouse)
+{
+	int range = pThis->Value;
+	int wayPointIndex = std::stoi(pThis->String);
+
+	CellStruct cell = ScenarioClass::Instance->GetWaypointCoords(wayPointIndex);
+
+	for (auto pTechno : *TechnoClass::Array) {
+		if (pTechno && pTechno->Owner == pHouse) {
+			if (GeneralUtils::IsTechnoNearCell(pTechno, cell, range)) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+bool TEventExtData::TechnoTypeOfHouseExistsAtWaypoint(TEventClass* pThis, HouseClass* pHouse)
+{
+	int wayPointIndex = pThis->Value;
+	const char* technoID = pThis->String;
+
+	CellStruct cell = ScenarioClass::Instance->GetWaypointCoords(wayPointIndex);
+
+	for (TechnoClass* pTechno : *TechnoClass::Array) {
+
+		if (pTechno
+			&& pTechno->Owner == pHouse
+			&& strcmp(pTechno->get_ID(), technoID) == 0)
+		{
+			if (pTechno->WhatAmI() == AbstractType::Building) {
+
+				if (BuildingClass* pBuilding = cast_to<BuildingClass*>(pTechno)) {
+					if (GeneralUtils::IsCellInBuildingFoundation(pBuilding, cell)) {
+						return true;
+					}
+				}
+			}
+			else {
+				if (CellClass::Coord2Cell(pTechno->GetCoords()) == cell) {
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+bool TEventExtData::ElapsedTimeFramesFunc(TEventClass* pThis)
+{
+	static std::map<const TEventClass*, int> StartFrames;
+
+	int waitFrames = pThis->Value;
+
+	auto it = StartFrames.find(pThis);
+	if (it == StartFrames.end()) {
+		StartFrames[pThis] = Unsorted::CurrentFrame();
+	}
+
+	int startFrame = StartFrames[pThis];
+	int elapsed = Unsorted::CurrentFrame() - startFrame;
+	bool result = elapsed >= waitFrames;
+
+	return result;
+}
+
+bool TEventExtData::MissionTimerGreaterFunc(TEventClass* pThis)
+{
+	auto const pTimer = &ScenarioClass::Instance->MissionTimer;
+	int thresholdFrames = pThis->Value * 15;
+
+	return pTimer->GetTimeLeft() > thresholdFrames;
+}
+
+bool TEventExtData::MissionTimerLessFunc(TEventClass* pThis)
+{
+	auto const pTimer = &ScenarioClass::Instance->MissionTimer;
+	int thresholdFrames = pThis->Value * 15;
+
+	return pTimer->GetTimeLeft() < thresholdFrames;
+}
+
+bool TEventExtData::ChoiceBoxButtonClickedFunc(TEventClass* pThis, HouseClass* pHouse)
+{
+	int targetID = std::atoi(pThis->String);
+	int targetButtonIndex = pThis->Value - 1;
+
+	auto* pBox = MapChoiceBoxClass::FindByID(targetID);
+	if (!pBox || pBox->ClickedConsumed)
+		return false;
+
+	if (pBox->ClickedIndex == targetButtonIndex)
+	{
+		pBox->ClickedConsumed = true;
+		return true;
+	}
+	return false;
+}
+
+bool TEventExtData::ChoiceBoxAnyButtonClickedFunc(TEventClass* pThis, HouseClass* pHouse)
+{
+	int targetID = pThis->Value;;
+
+	auto* pBox = MapChoiceBoxClass::FindByID(targetID);
+	if (!pBox || pBox->ClickedConsumed)
+		return false;
+
+	if (pBox->ClickedIndex >= 0)
+	{
+		pBox->ClickedConsumed = true;
+		return true;
+	}
+	return false;
+}
+
+bool TEventExtData::ChoiceBoxTimedOutFunc(TEventClass* pThis, HouseClass* pHouse)
+{
+	int targetID = pThis->Value;
+
+	auto* pBox = MapChoiceBoxClass::FindByID(targetID);
+	if (!pBox)
+		return false;
+
+	return pBox->IsExpired;
+}
+
+bool TEventExtData::PowerHander(TEventClass* pThis, HouseClass* pHouse, PowerEventMode mode, bool isMuch)
+{
+	if (!pHouse) return false;
+	if (Unsorted::CurrentFrame() == 0) return false;
+
+	int val = pThis->Value;
+	int target = 0;
+
+	switch (mode)
+	{
+	case PowerEventMode::Output:
+		target = pHouse->PowerOutput;
+		break;
+	case PowerEventMode::Drain:
+		target = pHouse->PowerDrain;
+		break;
+	case PowerEventMode::Surplus:
+		target = pHouse->PowerOutput - pHouse->PowerDrain;
+		break;
+	default:
+		break;
+	}
+
+	return isMuch ? (val < target) : (val > target);
 }
 
 bool TEventExtData::VanillaTriggerEventOccured(TEventClass* pThis, EventArgs& Args, bool& result)
@@ -1616,8 +1827,46 @@ bool TEventExtData::PhobosTriggerEventOccured(TEventClass* pThis, EventArgs cons
 	case PhobosTriggerEvent::AttachedIsUnderAttachedEffect:
 		result = TEventExtData::AttachedIsUnderAttachedEffectTEvent(pThis, pObject);
 		break;
-#pragma endregion
+		{//https://github.com/Chang-zhi/PhobosExt_Changzhi
 
+	case PhobosTriggerEvent::TechnoTypeOfHouseNearWaypoint:
+		result = TEventExtData::TechnoTypeOfHouseNearWaypoint(pThis, pHouse); break;
+	case PhobosTriggerEvent::TechnoTypeOfHouseAllLeavesWaypoint:
+		result = !TEventExtData::TechnoTypeOfHouseNearWaypoint(pThis, pHouse); break;
+	case PhobosTriggerEvent::TechnoTypeOfHouseExistsAtWaypoint:
+		result = TEventExtData::TechnoTypeOfHouseExistsAtWaypoint(pThis, pHouse); break;
+	case PhobosTriggerEvent::TechnoTypeOfHouseNotExistsAtWaypoint:
+		result = !TEventExtData::TechnoTypeOfHouseExistsAtWaypoint(pThis, pHouse); break;
+	case PhobosTriggerEvent::ElapsedTimeFrames:
+		result = TEventExtData::ElapsedTimeFramesFunc(pThis); break;
+
+	case PhobosTriggerEvent::MissionTimerGreater:
+		result = TEventExtData::MissionTimerGreaterFunc(pThis); break;
+	case PhobosTriggerEvent::MissionTimerLess:
+		result = TEventExtData::MissionTimerLessFunc(pThis); break;
+
+	case PhobosTriggerEvent::ChoiceBoxButtonClicked:
+		result = TEventExtData::ChoiceBoxButtonClickedFunc(pThis, pHouse); break;
+	case PhobosTriggerEvent::ChoiceBoxAnyButtonClicked:
+		result = TEventExtData::ChoiceBoxAnyButtonClickedFunc(pThis, pHouse); break;
+	case PhobosTriggerEvent::ChoiceBoxTimedOut:
+		result = TEventExtData::ChoiceBoxTimedOutFunc(pThis, pHouse); break;
+
+	case PhobosTriggerEvent::HousePowerOutputMuch:
+		result = TEventExtData::PowerHander(pThis, pHouse, PowerEventMode::Output, true); break;
+	case PhobosTriggerEvent::HousePowerOutputLess:
+		result = TEventExtData::PowerHander(pThis, pHouse, PowerEventMode::Output, false); break;
+	case PhobosTriggerEvent::HousePowerDrainMuch:
+		result = TEventExtData::PowerHander(pThis, pHouse, PowerEventMode::Drain, true); break;
+	case PhobosTriggerEvent::HousePowerDrainLess:
+		result = TEventExtData::PowerHander(pThis, pHouse, PowerEventMode::Drain, false); break;
+	case PhobosTriggerEvent::HousePowerSurplusMuch:
+		result = TEventExtData::PowerHander(pThis, pHouse, PowerEventMode::Surplus, true); break;
+	case PhobosTriggerEvent::HousePowerSurplusLess:
+		result = TEventExtData::PowerHander(pThis, pHouse, PowerEventMode::Surplus, false); break;
+
+	}
+#pragma endregion
 	default:
 		return false;
 	};

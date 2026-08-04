@@ -10,6 +10,11 @@
 #include <Misc/Spawner/ProtocolZero.h>
 #include <IPXManagerClass.h>
 
+#include <New/ChoiceBox/Entities/Base/MapChoiceBoxClass.h>
+#include <New/TextBox/Entities/Base/MapTextBoxClass.h>
+
+#include <New/TextBox/Types/TextBoxTypeClass.h>
+#include <New/ChoiceBox/Types/ChoiceBoxTypeClass.h>
 
 EventExt::ApproachObject::ApproachObject(FootClass* pThis, ObjectClass* pObject) :
 	Whom { pThis }, Target { pObject } { }
@@ -320,6 +325,162 @@ void EventExt::TogglePlayerAutoRepair::Respond(EventClass* Event)
 				pButton->TurnOff();
 		}
 	}
+}
+
+EventExt::ChoiceBoxClick::ChoiceBoxClick(int boxID, int buttonIndex)
+	: BoxID { boxID }, ButtonIndex { buttonIndex }
+{}
+
+
+// ============================================================================
+// Raise - clicking machine only
+// ============================================================================
+
+void EventExt::ChoiceBoxClick::Raise(int boxID, int buttonIndex)
+{
+	// Observers and spectators have no valid house and cannot answer. Matches
+	// the ArrayIndex >= 0 guard used by ApproachObject and ManualReload.
+	const auto pPlayer = HouseClass::CurrentPlayer.get();
+
+	if (!pPlayer || pPlayer->ArrayIndex < 0)
+		return;
+
+	// Boxes created without an explicit ID carry -1 and are unaddressable by
+	// FindByID, so an answer could never be routed back to them.
+	if (boxID < 0)
+		return;
+
+	EventClass Event {};
+	Event.Type = AsEventType();
+	Event.HouseIndex = byte(pPlayer->ArrayIndex);
+
+	// timestamp = true: AddEventWithTimeStamp stamps Frame with the frame the
+	// click was MADE, not the frame it executes on. Respond() needs exactly
+	// that to judge the answer against the deadline fairly - command delay must
+	// not be able to invalidate an otherwise legal click.
+	//
+	// Contrast ProtocolZero, which passes timestamp = false and sets Frame to
+	// the intended EXECUTION frame. Opposite need, opposite flag.
+	EventExt::AddToEvent<true, true, ChoiceBoxClick>(Event, boxID, buttonIndex);
+}
+
+// ============================================================================
+// Respond - every machine, same frame
+// ============================================================================
+
+void EventExt::ChoiceBoxClick::Respond(EventClass* Event)
+{
+	const auto pData = Event->Data.nothing.As<ChoiceBoxClick>();
+
+	if (!pData)
+		return;
+
+	// ---- box still exists? -------------------------------------------------
+	// Guaranteed by the delayed timeout flip in TickDuration(): the box is not
+	// flipped to expired until past DeadlineFrame + NetworkGrace().
+	const auto pBox = MapChoiceBoxClass::FindByID(pData->BoxID);
+
+	if (!pBox)
+		return;
+
+	// ---- sending house valid? ----------------------------------------------
+	// HouseIndex is a signed char and EventClass documents -1 as "not a valid
+	// house". Never trust it unchecked. Same shape as FirewallToggle.
+	if (!HouseClass::Array->get_or_default(Event->HouseIndex))
+		return;
+
+	// NOTE: no per-house filter. TEvent 557/558/559 all take HouseClass* pHouse
+	// and none of them use it, so gating who may ANSWER while any house's
+	// trigger can still CONSUME the answer would read as enforced when it is
+	// not. Add both halves together or neither - and note that adding them
+	// changes behaviour for existing missions.
+
+	// ---- first answer wins -------------------------------------------------
+	// DoList order is identical on every machine, so "first" is deterministic
+	// with no tiebreak needed. Later answers in the same round are dropped.
+	//
+	// Tested via AnsweredBy rather than ClickedIndex, which cannot distinguish
+	// "unanswered" from "answered with button 0" (-2 already means timed out).
+	if (pBox->AnsweredBy >= 0)
+		return;
+
+	// ---- already timed out? ------------------------------------------------
+	// Should be unreachable while the grace window holds, since the flip is
+	// delayed past it. Kept as a hard guard: if this ever logs, the grace
+	// window is too short for the current latency configuration.
+	if (pBox->IsExpired)
+	{
+		Debug::LogInfo("[ChoiceBoxClick] Answer for box {} from house {} arrived after the"
+			" timeout flip - NetworkGraceFrames ({}) is too short.",
+			pData->BoxID, static_cast<int>(Event->HouseIndex), NetworkGrace());
+		return;
+	}
+
+	// ---- was the click made in time? ---------------------------------------
+	// Judged against the frame the click was MADE (Event->Frame), not the frame
+	// this executes on. Both come from the packet or lockstep state, so every
+	// machine reaches the same verdict.
+	//
+	// DeadlineFrame < 0 means no timeout - the box accepts indefinitely.
+	if (pBox->DeadlineFrame >= 0 && static_cast<int>(Event->Frame) > pBox->DeadlineFrame)
+		return;
+
+	// ---- button index in range? --------------------------------------------
+	// Never trust an index off the wire as a subscript.
+	// ValueableVector<T> derives from std::vector<T>, so size() is direct.
+	const auto pType = pBox->Type;
+
+	if (!pType)
+		return;
+
+	if (pData->ButtonIndex < 0
+		|| pData->ButtonIndex >= static_cast<int>(pType->Buttons.size()))
+	{
+		Debug::LogInfo("[ChoiceBoxClick] House {} sent out-of-range button {} for box {}"
+			" ({} buttons)",
+			static_cast<int>(Event->HouseIndex), pData->ButtonIndex, pData->BoxID,
+			static_cast<int>(pType->Buttons.size()));
+		return;
+	}
+
+	// ========================================================================
+	// commit
+	//
+	// This is the only place ClickedIndex is written to a button value. The
+	// only other writer is TickDuration(), which writes the -2 timeout
+	// sentinel. If you find a third, that writer is a desync.
+	// ========================================================================
+	pBox->ClickedIndex = pData->ButtonIndex;
+	pBox->AnsweredBy = static_cast<int>(Event->HouseIndex);
+
+	// Carried over from what phase one used to do immediately after
+	// CheckMouseClick() returned true. It now happens here, on the frame the
+	// answer resolves, on every machine.
+	pBox->ClickedConsumed = false;
+
+	// 回弹模式：点击即启动隐藏期倒计时（不依赖 Duration 耗尽）
+	if (pType->Button_Mode == static_cast<int>(ChoiceBoxButtonMode::Bounce))
+	{
+		pBox->ClickExpireCounter = MapChoiceBoxClass::CLICK_EXPIRE_FRAMES;
+	}
+	else
+	{
+		// Non-bounce: stop the visual countdown and open the hidden period so
+		// TEvent 557/558 have a stable window to observe ClickedIndex in.
+		pBox->RemainingFrames = 0;
+
+		if (pBox->ClickExpireCounter < 0)
+			pBox->ClickExpireCounter = MapChoiceBoxClass::CLICK_EXPIRE_FRAMES;
+	}
+
+	// Deliberately NOT touched:
+	//
+	//   IsExpired - means "timed out UNANSWERED". TEvent 559 polls it with no
+	//               consumption latch, so setting it here would fire the
+	//               timeout trigger for a box that was answered correctly.
+	//
+	//   ClickedConsumed is set false above, not true: it is the trigger
+	//   system's one-fire-per-click latch and only a TEvent may claim it.
 }
 
 void FakeEventClass::_Execute()

@@ -282,33 +282,31 @@ void FlyingStrings::DisplayDamageNumberString(int damage, DamageDisplayType type
 
 void FlyingStrings::UpdateAll()
 {
-	Data.remove_all_if([](FlyingStrings::Item& item)
- {
-	 if (!item.Text.empty())
-	 {
-		 Point2D pos {};
+	Data.remove_all_if([](FlyingStrings::Item& item) {
+		 if (!item.Text.empty()) {
+			 Point2D pos {};
 
-		 if (FlyingStrings::DrawAllowed(item.Location, pos))
-		 {
-			 pos += item.PixelOffset;
-			 auto bound = DSurface::Temp->Get_Rect_WithoutBottomBar();
-
-			 if (!(pos.X < 0 || pos.Y < 0 || pos.X > bound.Width || pos.Y > bound.Height))
+			 if (FlyingStrings::DrawAllowed(item.Location, pos))
 			 {
-				 if (Unsorted::CurrentFrame.get() > item.CreationFrame + Duration - 70)
-				 {
-					 pos.Y -= (Unsorted::CurrentFrame.get() - item.CreationFrame);
-				 }
+				 pos += item.PixelOffset;
+				 auto bound = DSurface::Temp->Get_Rect_WithoutBottomBar();
 
-				 TextDrawing::Simple_Text_Print_Wide(item.Text, DSurface::Temp(), &bound, &pos, item.Color, item.Back_Color, (TextPrintType)item.TPrintType);
+				 if (!(pos.X < 0 || pos.Y < 0 || pos.X > bound.Width || pos.Y > bound.Height))
+				 {
+					 if (Unsorted::CurrentFrame.get() > item.CreationFrame + Duration - 70)
+					 {
+						 pos.Y -= (Unsorted::CurrentFrame.get() - item.CreationFrame);
+					 }
+
+					 TextDrawing::Simple_Text_Print_Wide(item.Text, DSurface::Temp(), &bound, &pos, item.Color, item.Back_Color, (TextPrintType)item.TPrintType);
+				 }
+			 }
+
+			 if (!(Unsorted::CurrentFrame.get() > item.CreationFrame + Duration || Unsorted::CurrentFrame.get() < item.CreationFrame))
+			 {
+				 return false;
 			 }
 		 }
-
-		 if (!(Unsorted::CurrentFrame.get() > item.CreationFrame + Duration || Unsorted::CurrentFrame.get() < item.CreationFrame))
-		 {
-			 return false;
-		 }
-	 }
 
 	 //always will be removed regardless
 	 return true;

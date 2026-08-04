@@ -455,6 +455,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x531758, FakeIonBlastClass::InitOneTime)
 DEFINE_FUNCTION_JUMP(CALL, 0x6BE3CE, FakeIonBlastClass::DestroySurfaces)
 DEFINE_FUNCTION_JUMP(CALL, 0x53D326, FakeIonBlastClass::_AI)
 DEFINE_FUNCTION_JUMP(CALL, 0x6D4656, FakeIonBlastClass::_DrawAll)
+DEFINE_FUNCTION_JUMP(LJMP, 0x53D850, FakeIonBlastClass::_DrawAll)
 
 bool FakeIonBlastClass::SaveGlobals(PhobosStreamWriter& Stm)
 {

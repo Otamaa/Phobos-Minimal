@@ -82,6 +82,12 @@
 #include <New/Entity/BannerClass.h>
 #include <New/Entity/FoggedObject.h>
 
+#include <New/ChoiceBox/Entities/Base/MapChoiceBoxClass.h>
+#include <New/ChoiceBox/Types/ChoiceBoxTypeClass.h>
+
+#include <New/TextBox/Entities/Base/MapTextBoxClass.h>
+#include <New/TextBox/Types/TextBoxTypeClass.h>
+
 #include <Misc/PhobosGlobal.h>
 
 #include <Ext/Anim/Body.h>
@@ -116,10 +122,12 @@
 #include <Ext/SWType/Body.h>
 #include <Ext/SWType/NewSuperWeaponType/SWStateMachine.h>
 #include <Ext/Super/Body.h>
+#include <Ext/ScriptType/Body.h>
 #include <Ext/TAction/Body.h>
 #include <Ext/Tactical/Body.h>
 #include <Ext/TerrainType/Body.h>
 #include <Ext/Terrain/Body.h>
+#include <Ext/TaskForce/Body.h>
 #include <Ext/TeamType/Body.h>
 #include <Ext/Team/Body.h>
 #include <Ext/Temporal/Body.h>
@@ -392,6 +400,12 @@ HRESULT Phobos::SaveAllEarlyData(IStream* pStm)
 	hr = WriteBlocksToStreamB(FlyingStrings::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
+	hr = WriteBlocksToStream<ChoiceBoxTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = WriteBlocksToStream<MapChoiceBoxClass, false>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
 	hr = WriteBlocksToStreamD<CellExtContainer,false>(CellExtContainer::Instance, pStm, CellExtData::Canary);
 	if (!SUCCEEDED(hr)) return hr;
 
@@ -412,6 +426,7 @@ HRESULT Phobos::SaveAllEarlyData(IStream* pStm)
 
 	hr = WriteBlocksToStreamD(AnimExtContainer::Instance, pStm, AnimExtData::Canary);
 	if (!SUCCEEDED(hr)) return hr;
+
 	//more
 	return hr;
 }
@@ -506,12 +521,14 @@ HRESULT Phobos::SaveAllLateData(IStream* pStm)
 	if (!SUCCEEDED(hr)) return hr;
 	hr = WriteBlocksToStreamB(AnimExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
+	hr = WriteBlocksToStreamB(TaskForceExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
 	hr = WriteBlocksToStreamB(TeamTypeExtContainer::Instance, pStm);
-		if (!SUCCEEDED(hr)) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 	hr = WriteBlocksToStreamB(TeamExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	//hr = WriteBlocksToStreamB(ScriptTypeExtContainer::Instance, pStm);
-	//	if (!SUCCEEDED(hr)) return hr;
+	hr = WriteBlocksToStreamB(ScriptTypeExtContainer::Instance, pStm);
+		if (!SUCCEEDED(hr)) return hr;
 	//hr = WriteBlocksToStreamB(ScriptExtContainer::Instance, pStm);
 	//if (!SUCCEEDED(hr)) return hr;
 	hr = WriteBlocksToStreamB(TriggerExtContainer::Instance, pStm);
@@ -575,6 +592,12 @@ HRESULT Phobos::SaveAllLateData(IStream* pStm)
 	
 
 	hr = WriteBlocksToStream<FakeIonBlastClass, false>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = WriteBlocksToStream<TextBoxTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = WriteBlocksToStream<MapTextBoxClass, false>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
 	return hr;

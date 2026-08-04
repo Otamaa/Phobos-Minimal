@@ -29,6 +29,8 @@ void TeamTypeExtData::Serialize(T& Stm)
 		.Process(this->AI_FriendlyDistance)
 		.Process(this->IsDischargedMemberAutocreateRecruitable)
 		.Process(this->AttackWaypoint_AllowCell)
+		.Process(this->OriginalScriptTypeIndex)
+		.Process(this->OriginalTaskForceIndex)
 		;
 
 }

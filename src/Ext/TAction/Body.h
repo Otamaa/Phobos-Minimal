@@ -37,6 +37,7 @@ enum class PhobosTriggerAction : unsigned int
 	RunSuperWeaponAtLocation = 505,
 	RunSuperWeaponAtWaypoint = 506,
 
+
 	//#1144
 	DumpVariables = 507,
 
@@ -46,17 +47,99 @@ enum class PhobosTriggerAction : unsigned int
 	//
 	AdjustHouseModifier = 509,
 
-	//#844
 	ToggleMCVRedeploy = 510,
-
-	//#1164
 	UndeployToWaypoint = 511,
 
-	//#2234
 	SetFollowsIndexForVehicle = 512,
 	AttachSoundToObjects = 513,
 	RemoveSoundFromObjects = 514,
-	SetDropCrate = 600, // Only change this number if the PR is merged into develop!
+
+	SetWaypointTextBoxByType = 549,
+	SetWaypointTextBoxByData = 550,
+
+	ClearWaypointTextBox = 551,
+	ClearAllWaypointTextBoxs = 552,
+
+	BindAllTeamMemberToTag = 553,
+	BindOwnerTeamMemberToTag = 554,
+	BindAllTechnoTypeToTag = 555,
+	BindOwnerTechnoTypeToTag = 556,
+
+	GiveHouseMoney = 557,
+	TakeHouseMoney = 558,
+	SetHouseMoney = 559,
+
+	AddBaseNodeForHouseAtWaypoint = 560,
+	RemoveAllBaseNodeForHouseAtWaypoint = 561,
+	RemoveBaseNodesOfBuildingTypeForHouse = 562,
+	DestroyAllTagByTagTypeSafely = 563,
+	BindTagToTechnoTypeAtWaypoint = 564,
+	BindTagToTechnoTypeOfHouseAtWaypoint = 565,
+	BindTagToSpecificTechnoTypeWithinWaypointRange = 566,
+	BindTagToSpecificTechnoTypeOfSpecificOwnerWithinWaypointRange = 567,
+	BindTagToAllTechnoTypesWithinWaypointRange = 568,
+	BindTagToAllTechnoTypesOfSpecificOwnerWithinWaypointRange = 569,
+	UnifyAllInstancesOfSameTagType = 570,
+	SetRecruitableForFoot = 571,
+	BindTagsToAllTechTypesInWaypointRangeExceptSpecified = 572,
+	BindTagsToAllTechTypesOfTriggerOwnerInWaypointRangeExceptSpecified = 573,
+	UpdateAllBuildingAnims = 574,
+	UpdateAssociatedBuildingsAnims = 575,
+	UpdateOwnerBuildingsAnimations = 576,
+	CreateTeamConsideringLimits = 577,
+	RecruitNearbyFootToTeam = 578,
+	SetUnitTextBoxByTriggerType = 579,
+	SetUnitTextBoxByTriggerData = 580,
+	SetUnitTextBoxByTeamType = 581,
+	SetUnitTextBoxByTeamData = 582,
+	ClearUnitTextBoxByType = 583,
+	ClearUnitTextBoxByTag = 584,
+	ClearUnitTextBoxByTechType = 585,
+	ClearUnitTextBoxByHouseAndType = 586,
+	ClearUnitTextBoxByTeam = 587,
+	ClearAllUnitTextBoxs = 588,
+	ClearAllTextBoxs = 589,
+
+	SetWaypointChoiceBox = 590,
+	SetScreenChoiceBox = 591,
+	ClearChoiceBoxByLabel = 592,
+	ClearAllChoiceBoxs = 593,
+
+	SetDropCrate = 600,
+
+	ClearScript = 650,
+	CopyScript = 651,
+
+	ModifyScriptByParam = 652,
+	ModifyScriptByLocalVar = 653,
+	ModifyScriptByGlobalVar = 654,
+
+	RebindTeamTypeScript = 655,
+	ResetTeamTypeScript = 656,
+	ResetAllTeamTypeScripts = 657,
+	RestoreScriptContent = 658,
+	RestoreAllScriptContents = 659,
+	SeekTeamTypeScript = 660,
+	SetTeamTypeMaxValue = 661,
+
+	SetOverParTitle = 665,
+	SetOverParMessage = 666,
+	SetUnderParTitle = 667,
+	SetUnderParMessage = 668,
+
+	ClearTaskForce = 670,
+	CopyTaskForce = 671,
+	ModifyTaskForceEntry = 672,
+	RebindTeamTypeTaskForce = 673,
+	RestoreTaskForce = 674,
+	RestoreAllTaskForces = 675,
+	ResetTeamTypeTaskForce = 676,
+	ResetAllTeamTypeTaskForces = 677,
+	RecruitGroupToTeam = 678,
+	UndeployHouseUnits = 679,
+	SetParTimeEasy = 669,
+	SetParTimeMedium = 680,
+	SetParTimeDifficult = 681,
 
 	//#1549
 	ResetHateValue = 605,
@@ -246,6 +329,85 @@ public:
 
 	ACTION_FUNC(CreateDropshipLoadoutTransport);
 	ACTION_FUNC(OpenDropshipLoadoutWindow);
+
+	ACTION_FUNC(SetWaypointTextBoxByType);
+	ACTION_FUNC(SetWaypointTextBoxByData);
+	ACTION_FUNC(ClearWaypointTextBox);
+	ACTION_FUNC(ClearAllWaypointTextBoxs);
+	ACTION_FUNC(BindAllTeamMemberToTag);
+	ACTION_FUNC(BindOwnerTeamMemberToTag);
+	ACTION_FUNC(BindAllTechnoTypeToTag);
+	ACTION_FUNC(BindOwnerTechnoTypeToTag);
+	ACTION_FUNC(GiveHouseMoney);
+	ACTION_FUNC(TakeHouseMoney);
+	ACTION_FUNC(SetHouseMoney);
+	ACTION_FUNC(AddBaseNodeForHouseAtWaypoint);
+	ACTION_FUNC(RemoveAllBaseNodeForHouseAtWaypoint);
+	ACTION_FUNC(RemoveBaseNodesOfBuildingTypeForHouse);
+	ACTION_FUNC(DestroyAllTagByTagTypeSafely);
+	ACTION_FUNC(BindTagToTechnoTypeAtWaypoint);
+	ACTION_FUNC(BindTagToTechnoTypeOfHouseAtWaypoint);
+	ACTION_FUNC(BindTagToSpecificTechnoTypeWithinWaypointRange);
+	ACTION_FUNC(BindTagToSpecificTechnoTypeOfSpecificOwnerWithinWaypointRange);
+	ACTION_FUNC(BindTagToAllTechnoTypesWithinWaypointRange);
+	ACTION_FUNC(BindTagToAllTechnoTypesOfSpecificOwnerWithinWaypointRange);
+	ACTION_FUNC(UnifyAllInstancesOfSameTagType);
+	ACTION_FUNC(SetRecruitableForFoot);
+	ACTION_FUNC(BindTagsToAllTechTypesInWaypointRangeExceptSpecified);
+	ACTION_FUNC(BindTagsToAllTechTypesOfTriggerOwnerInWaypointRangeExceptSpecified);
+	ACTION_FUNC(UpdateAllBuildingAnims);
+	ACTION_FUNC(UpdateAssociatedBuildingsAnims);
+	ACTION_FUNC(UpdateOwnerBuildingsAnimations);
+	ACTION_FUNC(CreateTeamConsideringLimits);
+	ACTION_FUNC(RecruitNearbyFootToTeam);
+	ACTION_FUNC(SetUnitTextBoxByTriggerType);
+	ACTION_FUNC(SetUnitTextBoxByTriggerData);
+	ACTION_FUNC(SetUnitTextBoxByTeamType);
+	ACTION_FUNC(SetUnitTextBoxByTeamData);
+	ACTION_FUNC(ClearUnitTextBoxByType);
+	ACTION_FUNC(ClearUnitTextBoxByTag);
+	ACTION_FUNC(ClearUnitTextBoxByTechType);
+	ACTION_FUNC(ClearUnitTextBoxByHouseAndType);
+	ACTION_FUNC(ClearUnitTextBoxByTeam);
+	ACTION_FUNC(ClearAllUnitTextBoxs);
+	ACTION_FUNC(ClearAllTextBoxs);
+
+	ACTION_FUNC(SetWaypointChoiceBox);
+	ACTION_FUNC(SetScreenChoiceBox);
+	ACTION_FUNC(ClearChoiceBoxByLabel);
+	ACTION_FUNC(ClearAllChoiceBoxs);
+
+	ACTION_FUNC(ClearScript);
+	ACTION_FUNC(CopyScript);
+	ACTION_FUNC(ModifyScriptByParam);
+	ACTION_FUNC(ModifyScriptByLocalVar);
+	ACTION_FUNC(ModifyScriptByGlobalVar);
+	ACTION_FUNC(RebindTeamTypeScript);
+	ACTION_FUNC(ResetTeamTypeScript);
+	ACTION_FUNC(ResetAllTeamTypeScripts);
+	ACTION_FUNC(RestoreScriptContent);
+	ACTION_FUNC(RestoreAllScriptContents);
+	ACTION_FUNC(SeekTeamTypeScript);
+	ACTION_FUNC(SetTeamTypeMaxValue);
+
+	ACTION_FUNC(ClearTaskForce);
+	ACTION_FUNC(CopyTaskForce);
+	ACTION_FUNC(ModifyTaskForceEntry);
+	ACTION_FUNC(RebindTeamTypeTaskForce);
+	ACTION_FUNC(RestoreTaskForce);
+	ACTION_FUNC(RestoreAllTaskForces);
+	ACTION_FUNC(ResetTeamTypeTaskForce);
+	ACTION_FUNC(ResetAllTeamTypeTaskForces);
+	ACTION_FUNC(RecruitGroupToTeam);
+	ACTION_FUNC(UndeployHouseUnits);
+
+	ACTION_FUNC(SetOverParTitle);
+	ACTION_FUNC(SetOverParMessage);
+	ACTION_FUNC(SetUnderParTitle);
+	ACTION_FUNC(SetUnderParMessage);
+	ACTION_FUNC(SetParTimeEasy);
+	ACTION_FUNC(SetParTimeMedium);
+	ACTION_FUNC(SetParTimeDifficult);
 
 #undef ACTION_FUNC
 

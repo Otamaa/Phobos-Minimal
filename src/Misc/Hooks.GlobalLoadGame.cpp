@@ -80,6 +80,12 @@
 #include <New/Entity/BannerClass.h>
 #include <New/Entity/FoggedObject.h>
 
+#include <New/ChoiceBox/Entities/Base/MapChoiceBoxClass.h>
+#include <New/ChoiceBox/Types/ChoiceBoxTypeClass.h>
+
+#include <New/TextBox/Entities/Base/MapTextBoxClass.h>
+#include <New/TextBox/Types/TextBoxTypeClass.h>
+
 #include <Misc/PhobosGlobal.h>
 
 #include <Ext/Anim/Body.h>
@@ -114,10 +120,12 @@
 #include <Ext/SWType/Body.h>
 #include <Ext/SWType/NewSuperWeaponType/SWStateMachine.h>
 #include <Ext/Super/Body.h>
+#include <Ext/ScriptType/Body.h>
 #include <Ext/TAction/Body.h>
 #include <Ext/Tactical/Body.h>
 #include <Ext/TerrainType/Body.h>
 #include <Ext/Terrain/Body.h>
+#include <Ext/TaskForce/Body.h>
 #include <Ext/TeamType/Body.h>
 #include <Ext/Team/Body.h>
 #include <Ext/Temporal/Body.h>
@@ -459,6 +467,12 @@ HRESULT Phobos::LoadAllEarlyData(IStream* pStm)
 	hr = ReadBlocksFromStreamStreamB(FlyingStrings::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
+	hr = ReadBlocksFromStream<ChoiceBoxTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<MapChoiceBoxClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
 	hr = ReadBlocksFromStreamStreamD(CellExtContainer::Instance, pStm, CellExtData::Canary);
 	if (!SUCCEEDED(hr)) return hr;
 
@@ -561,7 +575,6 @@ HRESULT Phobos::LoadAllLateData(IStream* pStm)
 	if (!SUCCEEDED(hr)) return hr;
 	hr = ReadBlocksFromStreamStreamB(AnimTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-
 	hr = ReadBlocksFromStreamStreamB(HouseTypeExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
 	hr = ReadBlocksFromStreamStreamB(HouseExtContainer::Instance, pStm);
@@ -576,12 +589,14 @@ HRESULT Phobos::LoadAllLateData(IStream* pStm)
 	if (!SUCCEEDED(hr)) return hr;
 	hr = ReadBlocksFromStreamStreamB(AnimExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamB(TaskForceExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
 	hr = ReadBlocksFromStreamStreamB(TeamTypeExtContainer::Instance, pStm);
-		if (!SUCCEEDED(hr)) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 	hr = ReadBlocksFromStreamStreamB(TeamExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	//hr = ReadBlocksFromStreamStreamB(ScriptTypeExtContainer::Instance, pStm);
-	//	if (!SUCCEEDED(hr)) return hr;
+	hr = ReadBlocksFromStreamStreamB(ScriptTypeExtContainer::Instance, pStm);
+	if (!SUCCEEDED(hr)) return hr;
 	//hr = ReadBlocksFromStreamStreamB(ScriptExtContainer::Instance, pStm);
 	//if (!SUCCEEDED(hr)) return hr;
 	hr = ReadBlocksFromStreamStreamB(TriggerExtContainer::Instance, pStm);
@@ -645,6 +660,12 @@ HRESULT Phobos::LoadAllLateData(IStream* pStm)
 	
 
 	hr = ReadBlocksFromStream<FakeIonBlastClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<TextBoxTypeClass>(pStm);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = ReadBlocksFromStream<MapTextBoxClass>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
 	return hr;

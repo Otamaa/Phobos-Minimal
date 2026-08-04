@@ -27,6 +27,8 @@
 #include <HouseClass.h>
 
 class AnimTypeClass;
+class TagClass;
+class TaskForceClass;
 class GeneralUtils final
 {
 	NO_CONSTRUCT_CLASS(GeneralUtils)
@@ -692,4 +694,8 @@ public:
 	static const std::vector<CellStruct> GetFoundationCells(const BuildingClass* const pThis, CellStruct const baseCoords, bool includeOccupyHeight);
 	static bool IsTechnoNearCell(const TechnoClass* pTechno, const CellStruct& targetCell, int distanceCells);
 	static bool IsCellInBuildingFoundation(const BuildingClass* const pBuilding, const CellStruct& cell);
+	static bool HasZoneConnection(HouseClass* pOwner, HouseClass* pEnemy, MovementZone mz);
+	static bool CheckTaskForceZoneConnection(HouseClass* pOwner, HouseClass* pEnemy, TaskForceClass* pTaskForce, bool requireAll);
+	static TagClass* GetTagClassByIndex(int Index, bool forceNew);
+
 };

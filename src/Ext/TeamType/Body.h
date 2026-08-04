@@ -18,6 +18,10 @@ public:
 	Nullable<int> AI_FriendlyDistance {};
 	Valueable<bool> AttackWaypoint_AllowCell { true };
 
+
+	int OriginalScriptTypeIndex { -1 };
+	int OriginalTaskForceIndex { -1 };
+
 	TeamTypeExtData(base_type* pObj) : AbstractTypeExtData(pObj)
 	{
 		this->AbsType = base_type::AbsID;

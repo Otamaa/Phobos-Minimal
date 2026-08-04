@@ -22,6 +22,9 @@
 
 #include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
 
+#include <New/TextBox/Types/TextBoxTypeClass.h>
+#include <New/ChoiceBox/Types/ChoiceBoxTypeClass.h>
+
 #include <Ext/WarheadType/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/BuildingType/Body.h>
@@ -32,6 +35,8 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/Side/Body.h>
 #include <Ext/House/Body.h>
+#include <Ext/TaskForce/Body.h>
+#include <Ext/ScriptType/Body.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/Helpers.h>
@@ -77,6 +82,9 @@ void FakeRulesClass::Initialize(CCINIClass* pINI)
 	ShieldTypeClass::LoadFromINIOnlyTheList(pINI);
 
 	DigitalDisplayTypeClass::LoadFromINIOnlyTheList(pINI);
+
+	TextBoxTypeClass::LoadFromINIOnlyTheList(pINI);
+	ChoiceBoxTypeClass::LoadFromINIOnlyTheList(pINI);
 }
 
 void FakeRulesClass::ReplaceVoxelLightSources()
@@ -107,6 +115,9 @@ void FakeRulesClass::s_LoadBeforeTypeData(CCINIClass* pINI)
 {
 	RadTypeClass::AddDefaults();
 	HoverTypeClass::AddDefaults();
+
+	TextBoxTypeClass::LoadFromINIList(pINI);
+	ChoiceBoxTypeClass::LoadFromINIList(pINI);
 
 	ImmunityTypeClass::LoadFromINIList(pINI);
 	ArmorTypeClass::EvaluateDefault();
@@ -154,6 +165,9 @@ void FakeRulesClass::LoadAfterTypeData(CCINIClass* pINI)
 	RadTypeClass::ReadListFromINI(pINI);
 	PhobosAttachEffectTypeClass::ReadListFromINI(pINI);
 	TechTreeTypeClass::ReadListFromINI(pINI);
+
+	ScriptManipulator::CaptureFromINI(pINI);
+	TaskForceManipulator::CaptureFromINI(pINI);
 
 	this->BattlePoints.Read(exINI, GameStrings::General, "BattlePoints");
 	this->BattlePoints_DefaultValue.Read(exINI, GameStrings::General, "BattlePoints.DefaultValue");
@@ -251,6 +265,9 @@ void FakeRulesClass::LoadAfterTypeData(CCINIClass* pINI)
 	this->KeepRange_EarlyStopFrame.Read(exINI, GameStrings::General, "KeepRange.EarlyStopFrame");
 	this->DestroyAnim_Random.Read(exINI, GameStrings::General, "DestroyAnim.Random");
 	this->RadarGracePeriod.Read(exINI, GameStrings::General, "RadarGracePeriod");
+
+	this->ShowTextBoxInShroud_Waypoint.Read(exINI, GameStrings::General, "ShowTextBoxInShroud.Waypoint");
+	this->ShowTextBoxInShroud_Techno.Read(exINI, GameStrings::General, "ShowTextBoxInShroud.Techno");
 }
 
 static bool NOINLINE IsVanillaDummy(const char* ID)
@@ -1305,6 +1322,9 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->DestroyAnim_Random)
 		.Process(this->RadarGracePeriod)
 		.Process(this->NoAlphaImageOnBuildup)
+
+		.Process(this->ShowTextBoxInShroud_Waypoint)
+		.Process(this->ShowTextBoxInShroud_Techno)
 	;
 }
 

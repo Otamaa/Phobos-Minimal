@@ -13,6 +13,9 @@ public:
 	static COMPILETIMEEVAL DWORD Canary = 0xC5B5D16D;
 
 public:
+	ScriptActionNode OriginalActions[50] {};
+	int OriginalActionsCount {};
+	bool IsModified {};
 
 	ScriptTypeExtData(base_type* pObj) : AbstractTypeExtData(pObj)
 	{
@@ -31,11 +34,13 @@ public:
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
 		this->AbstractTypeExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
 	}
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<ScriptTypeExtData*>(this)->AbstractTypeExtData::SaveToStream(Stm);
+		const_cast<ScriptTypeExtData*>(this)->Serialize(Stm);
 	}
 
 	virtual AbstractType WhatIam() const { return base_type::AbsID; }
@@ -50,6 +55,12 @@ public:
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr) override { return true;  }
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
 
+	void CaptureOriginal();
+	void RestoreOriginal();
+
+private:
+	template <typename T>
+	void Serialize(T& Stm);
 };
 
 class ScriptTypeExtContainer final : public Container<ScriptTypeExtData>
@@ -67,6 +78,33 @@ public:
 	virtual bool LoadGlobal(PhobosStreamReader& stm) { return true; }
 	virtual void LoadFromINI(ScriptTypeClass* key, CCINIClass* pINI, bool parseFailAddr) {};
 	virtual void WriteToINI(ScriptTypeClass* key, CCINIClass* pINI) {};
+};
+
+class TActionClass;
+class TeamTypeExtData;
+class TeamTypeClass;
+class ScriptManipulator
+{
+public:
+	static void ClearScript(TActionClass* pThis);
+	static void CopyScript(TActionClass* pThis);
+	static void ModifyScriptByParam(TActionClass* pThis);
+	static void ModifyScriptByLocalVar(TActionClass* pThis);
+	static void ModifyScriptByGlobalVar(TActionClass* pThis);
+
+	static void RebindTeamTypeScript(TActionClass* pThis);
+	static void ResetTeamTypeScript(TActionClass* pThis);
+	static void ResetAllTeamTypeScripts();
+
+	static void RestoreScriptContent(TActionClass* pThis);
+	static void RestoreAllScriptContents();
+	static void SeekTeamTypeScript(TActionClass* pThis);
+
+	static void CaptureFromINI(CCINIClass* pINI);
+
+private:
+	static void ResetTeamsUsingScript(ScriptTypeClass* pScript);
+	static void CaptureOriginalScriptIndex(TeamTypeExtData* pExt, TeamTypeClass* pTeamType);
 };
 
 class NOVTABLE FakeScriptTypeClass : public ScriptTypeClass

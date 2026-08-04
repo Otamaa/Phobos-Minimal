@@ -70,6 +70,17 @@
 #include <New/Type/InsigniaTypeClass.h>
 #include <New/Type/SelectBoxTypeClass.h>
 //#include <New/Type/AttachmentTypeClass.h>
+
+#include <New/ChoiceBox/Entities/Derived/ScreenChoiceBoxClass.h>
+#include <New/ChoiceBox/Entities/Derived/WaypointChoiceBoxClass.h>
+
+#include <New/ChoiceBox/Types/ChoiceBoxTypeClass.h>
+
+#include <New/TextBox/Entities/Derived/TechnoTextBoxClass.h>
+#include <New/TextBox/Entities/Derived/WaypointTextBoxClass.h>
+
+#include <New/TextBox/Types/TextBoxTypeClass.h>
+
 #include <Ext/Bomb/Body.h>
 #include <Ext/CaptureManager/Body.h>
 #include <Ext/Infantry/Body.h>
@@ -82,6 +93,7 @@
 #include <Ext/Super/Body.h>
 #include <Ext/ScriptType/Body.h>
 #include <Ext/SpawnManager/Body.h>
+#include <Ext/TaskForce/Body.h>
 #include <Ext/TeamType/Body.h>
 #include <Ext/TEvent/Body.h>
 #include <Ext/Wave/Body.h>
@@ -185,12 +197,10 @@ void PhobosExt::InvalidatePointers(AbstractClass* const pInvalid, bool const rem
 		}
 
 		LaserDrawClassExtData::PointerExpired(pInvalid, removed);
+		TechnoTextBoxClass::PointerGotInvalid(pInvalid, removed);
 	}
 
 }
-
-//on;y do it once
-int randomizedExecCount;
 
 void WhoHaveTheAINW() {
 	for (auto mix = MixFileClass::MIXes->First(); mix; mix = mix->Next()) {
@@ -220,13 +230,6 @@ void PhobosExt::EnsureSeeded(unsigned long seed)
 	auto _seed = (DWORD)Game::Seed();
 	Debug::Log("Init Phobos Randomizer seed %x.\n", _seed);
 	Phobos::Random::SetRandomSeed(Game::Seed());
-
-	//if(++randomizedExecCount == 2) {
-	//	MixFileClass::DumpAllEntries();
-	//	WhoHaveTheAINW();
-	//	randomizedExecCount = 0;
-	//}
-
 }
 
 #include <New/Interfaces/AdvancedDriveLocomotionClass.h>
@@ -237,6 +240,8 @@ void PhobosExt::EnsureSeeded(unsigned long seed)
 
 unsigned Phobos::GetVersionNumber() {
 	unsigned version = Phobos::Config::InternalVersion + PHOBOSSAVEGAME_ID;
+
+	version += sizeof(TaskForceExtData);
 
 	version += sizeof(AnimExtData);
 	version += sizeof(AnimTypeExtData);
@@ -277,6 +282,8 @@ unsigned Phobos::GetVersionNumber() {
 
 	version += sizeof(TeamTypeExtData);
 	version += sizeof(TeamExtData);
+	version += sizeof(ScriptTypeExtData);
+
 	version += sizeof(SmudgeTypeExtData);
 
 	version += sizeof(SuperExtData);
@@ -319,6 +326,11 @@ unsigned Phobos::GetVersionNumber() {
 
 	version += sizeof(IonBlastClass);
 
+	version += sizeof(ScreenChoiceBoxClass);
+	version += sizeof(WaypointChoiceBoxClass);
+	version += sizeof(TechnoTextBoxClass);
+	version += sizeof(WaypointTextBoxClass);
+
 #define AddTypeOf(cccc) version += sizeof(cccc##TypeClass);
 		AddTypeOf(Armor)
 		AddTypeOf(Banner)
@@ -340,6 +352,9 @@ unsigned Phobos::GetVersionNumber() {
 		AddTypeOf(Theater)
 		AddTypeOf(Theme)
 		AddTypeOf(Tunnel)
+		AddTypeOf(ChoiceBox)
+		AddTypeOf(TextBox)
+
 #undef AddTypeOf
 
 	return version;
@@ -390,6 +405,7 @@ void Phobos::ClearAll()
 	CLEAR_CONTAIER_CLASS(OverlayTypeExtContainer);
 	CLEAR_CONTAIER_CLASS(RadSiteExtContainer);
 	CLEAR_CONTAIER_CLASS(ScriptExtContainer);
+	CLEAR_CONTAIER_CLASS(ScriptTypeExtContainer);
 	CLEAR_CONTAIER_CLASS(SideExtContainer);
 	CLEAR_CONTAIER_CLASS(SmudgeTypeExtContainer);
 	CLEAR_CONTAIER_CLASS(TemporalExtContainer);
@@ -401,6 +417,7 @@ void Phobos::ClearAll()
 	CLEAR_CONTAIER_CLASS(WaveExtContainer);
 	CLEAR_CONTAIER_CLASS(TActionExtContainer);
 	CLEAR_CONTAIER_CLASS(TeamTypeExtContainer);
+	CLEAR_CONTAIER_CLASS(TaskForceExtContainer);
 
 	CLEAR_CLASS(EboltExtData);
 	CLEAR_CLASS(HugeBar);
@@ -444,6 +461,12 @@ void Phobos::ClearAll()
 
 	LaserDrawClassExtData::Clear();
 	FoggedObject::Clear();
+
+	MapChoiceBoxClass::Clear();
+	MapTextBoxClass::Clear();
+
+	CLEAR_TYPE_CLASS(TextBox);
+	CLEAR_TYPE_CLASS(ChoiceBox);
 }
 
 #pragma endregion

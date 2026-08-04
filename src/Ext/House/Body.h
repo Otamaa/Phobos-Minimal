@@ -21,6 +21,20 @@
 
 #include <SuperWeaponTypeClass.h>
 
+struct DeferredNodeInfo
+{
+	int BuildingTypeIndex;
+	CellStruct MapCoords;
+	HouseClass* Owner;
+};
+
+struct AuthorizedNodeKey
+{
+	int BuildingTypeIndex;
+	short X;
+	short Y;
+};
+
 class TActionClass;
 
 struct SWChargePool
@@ -432,6 +446,13 @@ public:
 	AbstractType LastBuiltAircraftRTTI;
 	AbstractType LastBuiltNavalRTTI;
 
+	Valueable<bool> BaseNodeCrossOwners { false };
+	bool AuthorizedNodesCaptured { false };
+	std::vector<AuthorizedNodeKey> AuthorizedNodeKeys {};
+	int LastFrameTargetType { -1 };
+	short LastFrameTargetX { -1 };
+	short LastFrameTargetY { -1 };
+	std::vector<DeferredNodeInfo> DeferredNodeList {};
 #pragma endregion
 
 public:
@@ -646,6 +667,9 @@ public:
 	static bool UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel, bool silent = false);
 	static void HandleUnload(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel);
 
+	static void AuthorizeBaseNode(HouseClass* pHouse, int buildingTypeIndex, short x, short y, bool insertAtFront = false);
+	static void RemoveAuthorizedNodeByCoord(HouseClass* pHouse, short x, short y);
+	static void RemoveAuthorizedNodeByType(HouseClass* pHouse, int buildingTypeIndex);
 private:
 	bool UpdateHarvesterProduction();
 

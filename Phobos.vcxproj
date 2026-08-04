@@ -50,6 +50,7 @@
     <ClCompile Include="src\Ext\Convert\NewBlitters\Blitters.cpp" />
     <ClCompile Include="src\Ext\Factory\Hooks.cpp" />
     <ClCompile Include="src\Ext\File\Hooks.cpp" />
+    <ClCompile Include="src\Ext\House\Hooks.AIBaseNode.cpp" />
     <ClCompile Include="src\Ext\Infantry\Hooks.Assaulter.cpp" />
     <ClCompile Include="src\Ext\INI\Body.cpp" />
     <ClCompile Include="src\Ext\INI\Hook.Load.cpp" />
@@ -115,6 +116,10 @@
     <ClCompile Include="src\Misc\Renderer\GlobalColorPacker.cpp" />
     <ClCompile Include="src\Misc\Spawner\DesyncHandler.cpp" />
     <ClCompile Include="src\Misc\SyncLogging.cpp" />
+    <ClCompile Include="src\New\ChoiceBox\Entities\Base\MapChoiceBoxClass.cpp" />
+    <ClCompile Include="src\New\ChoiceBox\Entities\Derived\ScreenChoiceBoxClass.cpp" />
+    <ClCompile Include="src\New\ChoiceBox\Entities\Derived\WaypointChoiceBoxClass.cpp" />
+    <ClCompile Include="src\New\ChoiceBox\Types\ChoiceBoxTypeClass.cpp" />
     <ClCompile Include="src\New\Entity\DropshipLoadoutClass.cpp" />
     <ClCompile Include="src\New\Entity\FactoryPlantClass.cpp" />
     <ClCompile Include="src\Commands\AggressiveModeClass.cpp" />
@@ -199,6 +204,10 @@
     <ClCompile Include="src\New\Interfaces\TSJumpJetLocomotionClass.cpp" />
     <ClCompile Include="src\New\MessageHandler\MessageScrollClass.cpp" />
     <ClCompile Include="src\New\MessageHandler\MessageToggleClass.cpp" />
+    <ClCompile Include="src\New\TextBox\Entities\Base\MapTextBoxClass.cpp" />
+    <ClCompile Include="src\New\TextBox\Entities\Derived\TechnoTextBoxClass.cpp" />
+    <ClCompile Include="src\New\TextBox\Entities\Derived\WaypointTextBoxClass.cpp" />
+    <ClCompile Include="src\New\TextBox\Types\TextBoxTypeClass.cpp" />
     <ClCompile Include="src\New\Type\ActionTypeClass.cpp" />
     <ClCompile Include="src\New\Type\HealthBarTypeClass.cpp" />
     <ClCompile Include="src\New\Type\SelectBoxTypeClass.cpp" />
@@ -718,6 +727,10 @@
     <ClInclude Include="src\Misc\Renderer\GlobalColorPacker.h" />
     <ClInclude Include="src\Misc\Spawner\UI\DesyncDialog.Resource.h" />
     <ClInclude Include="src\Misc\SyncLogging.h" />
+    <ClInclude Include="src\New\ChoiceBox\Entities\Base\MapChoiceBoxClass.h" />
+    <ClInclude Include="src\New\ChoiceBox\Entities\Derived\ScreenChoiceBoxClass.h" />
+    <ClInclude Include="src\New\ChoiceBox\Entities\Derived\WaypointChoiceBoxClass.h" />
+    <ClInclude Include="src\New\ChoiceBox\Types\ChoiceBoxTypeClass.h" />
     <ClInclude Include="src\New\Entity\DropshipLoadoutClass.h" />
     <ClInclude Include="src\New\Entity\FactoryPlantClass.h" />
     <ClInclude Include="src\Commands\AggressiveModeClass.h" />
@@ -775,6 +788,10 @@
     <ClInclude Include="src\New\Interfaces\CustomRocketLocomotionClass.h" />
     <ClInclude Include="src\New\Interfaces\AdvancedDriveLocomotionClass.h" />
     <ClInclude Include="src\New\Interfaces\TSJumpJetLocomotionClass.h" />
+    <ClInclude Include="src\New\TextBox\Entities\Base\MapTextBoxClass.h" />
+    <ClInclude Include="src\New\TextBox\Entities\Derived\TechnoTextBoxClass.h" />
+    <ClInclude Include="src\New\TextBox\Entities\Derived\WaypointTextBoxClass.h" />
+    <ClInclude Include="src\New\TextBox\Types\TextBoxTypeClass.h" />
     <ClInclude Include="src\New\Type\ActionTypeClass.h" />
     <ClInclude Include="src\New\Type\HealthBarTypeClass.h" />
     <ClInclude Include="src\New\Type\SelectBoxTypeClass.h" />
@@ -1002,6 +1019,7 @@
     <ClInclude Include="src\Utilities\OptionalStruct.h" />
     <ClInclude Include="src\Utilities\PhobosFixedString.h" />
     <ClInclude Include="src\Utilities\PhobosMap.h" />
+    <ClInclude Include="src\Utilities\PhobosOwnedArray.h" />
     <ClInclude Include="src\Utilities\PhobosPCXFile.h" />
     <ClInclude Include="src\Utilities\PlacingBuildingStruct.h" />
     <ClInclude Include="src\Utilities\RadialFireStruct.h" />

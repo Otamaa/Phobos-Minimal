@@ -2235,7 +2235,7 @@ ASMJIT_PATCH(0x6FF008, TechnoClass_FireAt_FSW, 8)
 		GET_STACK(CoordStruct, fireCoords, STACK_OFFSET(0xB0, -0x6C));
 
 		const auto crdTgt = crdOffset + fireCoords;
-		if (Bullet->Type->Arcing && !Bullet->_GetTypeExtData()->Arcing_AllowElevationInaccuracy.Get(RulesExt::Global()->Arcing_AllowElevationInaccuracy))
+		if (Bullet->Type->Arcing && !Bullet->_GetTypeExtData()->Arcing_AllowElevationInaccuracy.Get(FakeRulesClass::Instance->Arcing_AllowElevationInaccuracy))
 		{
 			REF_STACK(VelocityClass, velocity, STACK_OFFSET(0xB0, -0x60));
 			REF_STACK(CoordStruct, crdSrc, STACK_OFFSET(0xB0, -0x6C));

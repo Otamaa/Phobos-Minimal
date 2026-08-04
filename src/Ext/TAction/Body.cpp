@@ -32,6 +32,8 @@
 #include <Ext/Mouse/Body.h>
 #include <Ext/Team/Body.h>
 #include <Ext/TeamType/Body.h>
+#include <Ext/TaskForce/Body.h>
+#include <Ext/ScriptType/Body.h>
 
 #include <TagTypeClass.h>
 #include <WaypointPathClass.h>
@@ -61,6 +63,14 @@
 #include <CommandClass.h>
 #include <VoxelAnimClass.h>
 #include <TriggerClass.h>
+
+#include <New/TextBox/Types/TextBoxTypeClass.h>
+#include <New/TextBox/Entities/Derived/TechnoTextBoxClass.h>
+#include <New/TextBox/Entities/Derived/WaypointTextBoxClass.h>
+
+#include <New/ChoiceBox/Types/ChoiceBoxTypeClass.h>
+#include <New/ChoiceBox/Entities/Derived/ScreenChoiceBoxClass.h>
+#include <New/ChoiceBox/Entities/Derived/WaypointChoiceBoxClass.h>
 
 PhobosMap<int, std::vector<TriggerClass*>> TActionExtData::RandomTriggerPool;
 
@@ -1174,6 +1184,237 @@ bool NOINLINE TActionExtData::Occured(TActionClass* pThis, ActionArgs const& arg
 	case PhobosTriggerAction::AdjustHouseModifier:
 		ret = TActionExtData::AdjustHouseModifier(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
+
+		{//https://github.com/Chang-zhi/PhobosExt_Changzhi
+
+	case PhobosTriggerAction::SetWaypointTextBoxByType:
+		ret = TActionExtData::SetWaypointTextBoxByType(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::SetWaypointTextBoxByData:
+		ret = TActionExtData::SetWaypointTextBoxByData(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::ClearWaypointTextBox:
+		ret = TActionExtData::ClearWaypointTextBox(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::ClearAllWaypointTextBoxs:
+		ret = TActionExtData::ClearAllWaypointTextBoxs(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::BindAllTeamMemberToTag:
+		ret = TActionExtData::BindAllTeamMemberToTag(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::BindOwnerTeamMemberToTag:
+		ret = TActionExtData::BindOwnerTeamMemberToTag(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::BindAllTechnoTypeToTag:
+		ret = TActionExtData::BindAllTechnoTypeToTag(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::BindOwnerTechnoTypeToTag:
+		ret = TActionExtData::BindOwnerTechnoTypeToTag(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::GiveHouseMoney:
+		ret = TActionExtData::GiveHouseMoney(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::TakeHouseMoney:
+		ret = TActionExtData::TakeHouseMoney(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::SetHouseMoney:
+		ret = TActionExtData::SetHouseMoney(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::AddBaseNodeForHouseAtWaypoint:
+		ret = TActionExtData::AddBaseNodeForHouseAtWaypoint(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::RemoveAllBaseNodeForHouseAtWaypoint:
+		ret = TActionExtData::RemoveAllBaseNodeForHouseAtWaypoint(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::RemoveBaseNodesOfBuildingTypeForHouse:
+		ret = TActionExtData::RemoveBaseNodesOfBuildingTypeForHouse(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::DestroyAllTagByTagTypeSafely:
+		ret = TActionExtData::DestroyAllTagByTagTypeSafely(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::BindTagToTechnoTypeAtWaypoint:
+		ret = TActionExtData::BindTagToTechnoTypeAtWaypoint(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::BindTagToTechnoTypeOfHouseAtWaypoint:
+		ret = TActionExtData::BindTagToTechnoTypeOfHouseAtWaypoint(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::BindTagToSpecificTechnoTypeWithinWaypointRange:
+		ret = TActionExtData::BindTagToSpecificTechnoTypeWithinWaypointRange(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::BindTagToSpecificTechnoTypeOfSpecificOwnerWithinWaypointRange:
+		ret = TActionExtData::BindTagToSpecificTechnoTypeOfSpecificOwnerWithinWaypointRange(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::BindTagToAllTechnoTypesWithinWaypointRange:
+		ret = TActionExtData::BindTagToAllTechnoTypesWithinWaypointRange(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::BindTagToAllTechnoTypesOfSpecificOwnerWithinWaypointRange:
+		ret = TActionExtData::BindTagToAllTechnoTypesOfSpecificOwnerWithinWaypointRange(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::UnifyAllInstancesOfSameTagType:
+		ret = TActionExtData::UnifyAllInstancesOfSameTagType(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::SetRecruitableForFoot:
+		ret = TActionExtData::SetRecruitableForFoot(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::BindTagsToAllTechTypesInWaypointRangeExceptSpecified:
+		ret = TActionExtData::BindTagsToAllTechTypesInWaypointRangeExceptSpecified(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::BindTagsToAllTechTypesOfTriggerOwnerInWaypointRangeExceptSpecified:
+		ret = TActionExtData::BindTagsToAllTechTypesOfTriggerOwnerInWaypointRangeExceptSpecified(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::UpdateAllBuildingAnims:
+		ret = TActionExtData::UpdateAllBuildingAnims(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::UpdateAssociatedBuildingsAnims:
+		ret = TActionExtData::UpdateAssociatedBuildingsAnims(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::UpdateOwnerBuildingsAnimations:
+		ret = TActionExtData::UpdateOwnerBuildingsAnimations(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::CreateTeamConsideringLimits:
+		ret = TActionExtData::CreateTeamConsideringLimits(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::RecruitNearbyFootToTeam:
+		ret = TActionExtData::RecruitNearbyFootToTeam(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::SetUnitTextBoxByTriggerType:
+		ret = TActionExtData::SetUnitTextBoxByTriggerType(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::SetUnitTextBoxByTriggerData:
+		ret = TActionExtData::SetUnitTextBoxByTriggerData(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::SetUnitTextBoxByTeamType:
+		ret = TActionExtData::SetUnitTextBoxByTeamType(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::SetUnitTextBoxByTeamData:
+		ret = TActionExtData::SetUnitTextBoxByTeamData(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::ClearUnitTextBoxByType:
+		ret = TActionExtData::ClearUnitTextBoxByType(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::ClearUnitTextBoxByTag:
+		ret = TActionExtData::ClearUnitTextBoxByTag(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::ClearUnitTextBoxByTechType:
+		ret = TActionExtData::ClearUnitTextBoxByTechType(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::ClearUnitTextBoxByHouseAndType:
+		ret = TActionExtData::ClearUnitTextBoxByHouseAndType(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::ClearUnitTextBoxByTeam:
+		ret = TActionExtData::ClearUnitTextBoxByTeam(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::ClearAllUnitTextBoxs:
+		ret = TActionExtData::ClearAllUnitTextBoxs(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::ClearAllTextBoxs:
+		ret = TActionExtData::ClearAllTextBoxs(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+
+	case PhobosTriggerAction::SetWaypointChoiceBox:
+		ret = TActionExtData::SetWaypointChoiceBox(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::SetScreenChoiceBox:
+		ret = TActionExtData::SetScreenChoiceBox(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::ClearChoiceBoxByLabel:
+		ret = TActionExtData::ClearChoiceBoxByLabel(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::ClearAllChoiceBoxs:
+		ret = TActionExtData::ClearAllChoiceBoxs(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+
+	case PhobosTriggerAction::ClearScript:
+		ret = TActionExtData::ClearScript(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::CopyScript:
+		ret = TActionExtData::CopyScript(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::ModifyScriptByParam:
+		ret = TActionExtData::ModifyScriptByParam(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::ModifyScriptByLocalVar:
+		ret = TActionExtData::ModifyScriptByLocalVar(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::ModifyScriptByGlobalVar:
+		ret = TActionExtData::ModifyScriptByGlobalVar(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::RebindTeamTypeScript:
+		ret = TActionExtData::RebindTeamTypeScript(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::ResetTeamTypeScript:
+		ret = TActionExtData::ResetTeamTypeScript(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::ResetAllTeamTypeScripts:
+		ret = TActionExtData::ResetAllTeamTypeScripts(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::RestoreScriptContent:
+		ret = TActionExtData::RestoreScriptContent(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::RestoreAllScriptContents:
+		ret = TActionExtData::RestoreAllScriptContents(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::SeekTeamTypeScript:
+		ret = TActionExtData::SeekTeamTypeScript(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::SetTeamTypeMaxValue:
+		ret = TActionExtData::SetTeamTypeMaxValue(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+
+	case PhobosTriggerAction::SetOverParTitle:
+		ret = TActionExtData::SetOverParTitle(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::SetOverParMessage:
+		ret = TActionExtData::SetOverParMessage(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::SetUnderParTitle:
+		ret = TActionExtData::SetUnderParTitle(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::SetUnderParMessage:
+		ret = TActionExtData::SetUnderParMessage(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::SetParTimeEasy:
+		ret = TActionExtData::SetParTimeEasy(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::SetParTimeMedium:
+		ret = TActionExtData::SetParTimeMedium(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::SetParTimeDifficult:
+		ret = TActionExtData::SetParTimeDifficult(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+
+	case PhobosTriggerAction::ClearTaskForce:
+		ret = TActionExtData::ClearTaskForce(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::CopyTaskForce:
+		ret = TActionExtData::CopyTaskForce(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::ModifyTaskForceEntry:
+		ret = TActionExtData::ModifyTaskForceEntry(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::RebindTeamTypeTaskForce:
+		ret = TActionExtData::RebindTeamTypeTaskForce(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::RestoreTaskForce:
+		ret = TActionExtData::RestoreTaskForce(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::RestoreAllTaskForces:
+		ret = TActionExtData::RestoreAllTaskForces(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::ResetTeamTypeTaskForce:
+		ret = TActionExtData::ResetTeamTypeTaskForce(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::ResetAllTeamTypeTaskForces:
+		ret = TActionExtData::ResetAllTeamTypeTaskForces(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+
+	case PhobosTriggerAction::RecruitGroupToTeam:
+		ret = TActionExtData::RecruitGroupToTeam(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::UndeployHouseUnits:
+		ret = TActionExtData::UndeployHouseUnits(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	}
 	default:
 	{
 		return false;
@@ -2132,50 +2373,6 @@ void TActionExtData::RecreateLightSources()
 
 }
 
-//bool TActionExtData::AdjustLighting(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
-//{
-//	if (pThis->Param3 != -1)
-//		ScenarioClass::Instance->NormalLighting.Tint.Red = pThis->Param3;
-//	if (pThis->Param4 != -1)
-//		ScenarioClass::Instance->NormalLighting.Tint.Green = pThis->Param4;
-//	if (pThis->Param5 != -1)
-//		ScenarioClass::Instance->NormalLighting.Tint.Blue = pThis->Param5;
-//
-//	const int r = ScenarioClass::Instance->NormalLighting.Tint.Red * 10;
-//	const int g = ScenarioClass::Instance->NormalLighting.Tint.Green * 10;
-//	const int b = ScenarioClass::Instance->NormalLighting.Tint.Blue * 10;
-//
-//	if (pThis->Value & 0b001) // Update Tiles
-//	{
-//		for (auto& pLightConvert : *LightConvertClass::Array)
-//			pLightConvert->UpdateColors(r, g, b, false);
-//
-//		ScenarioExtData::Instance()->CurrentTint_Tiles = ScenarioClass::Instance->NormalLighting.Tint;
-//	}
-//
-//	if (pThis->Value & 0b010) // Update Units & Buildings
-//	{
-//		for (auto& pScheme : *ColorScheme::Array)
-//			pScheme->LightConvert->UpdateColors(r, g, b, false);
-//		ScenarioExtData::Instance()->CurrentTint_Schemes = ScenarioClass::Instance->NormalLighting.Tint;
-//	}
-//
-//	if (pThis->Value & 0b100) // Update CustomPalettes (vanilla YR LightConvertClass one, not the Ares ConvertClass only one)
-//	{
-//		ScenarioClass::UpdateHashPalLighting(r, g, b, false);
-//		ScenarioExtData::Instance()->CurrentTint_Hashes = ScenarioClass::Instance->NormalLighting.Tint;
-//	}
-//
-//	ScenarioClass::UpdateCellLighting();
-//	MapClass::Instance->RedrawSidebar(1); // GScreenClass::Flag_To_Redraw
-//
-//	// #issue 429
-//	if (ScenarioExtData::Instance()->AdjustLightingFix)
-//		TActionExtData::RecreateLightSources();
-//
-//	return true;
-//}
-
 bool TActionExtData::RandomTriggerPut(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	TriggerTypeClass* pTargetType = pThis->TriggerType;
@@ -2608,6 +2805,1514 @@ bool TActionExtData::SetTeamDelay(TActionClass* pThis, HouseClass* pHouse, Objec
 		Timer.Start(time);
 	}
 
+	return true;
+}
+
+bool TActionExtData::SetWaypointTextBoxByType(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const char* csfLabel = pThis->Text;
+	int wpIndex = pThis->Param3;
+	int typeIndex = pThis->Param4;
+
+	if (wpIndex >= 0 && csfLabel && csfLabel[0]
+		&& typeIndex >= 0
+		&& static_cast<size_t>(typeIndex) < TextBoxTypeClass::Array.size()) {
+		const char* typeName = TextBoxTypeClass::Array[typeIndex]->Name;
+		WaypointTextBoxClass::FindOrCreate(wpIndex, csfLabel, typeName);
+	}
+
+	return true;
+}
+
+bool TActionExtData::SetWaypointTextBoxByData(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const char* csfLabel = pThis->Text;
+	int wpIndex = pThis->Param3;
+	int maxWidth = pThis->Param4;
+	maxWidth = std::clamp(maxWidth, 0, 1000);
+	if (maxWidth == 0) maxWidth = 250;
+
+	int opacityPercent = pThis->Param5;
+	opacityPercent = std::clamp(opacityPercent, 0, 100);
+
+	int r = 255, g = 215, b = 0;
+	if (pThis->Param6 >= 0 && pThis->Param6 < 9)
+		WaypointTextBoxClass::ConvertColorEnum(pThis->Param6, r, g, b);
+
+	if (wpIndex >= 0 && csfLabel && csfLabel[0])
+	{
+		char typeName[64];
+		sprintf_s(typeName, "__AutoWPLabel_%d", wpIndex);
+
+		TextBoxTypeClass* pType = TextBoxTypeClass::FindOrAllocate(typeName);
+		pType->MaxWidth = maxWidth;
+		pType->BackgroundOpacity = opacityPercent;
+		pType->ColorR = r;
+		pType->ColorG = g;
+		pType->ColorB = b;
+
+		WaypointTextBoxClass::FindOrCreate(wpIndex, csfLabel, typeName);
+	}
+	return true;
+}
+
+bool TActionExtData::ClearWaypointTextBox(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	int wpIndex = pThis->Param3;
+	if (wpIndex >= 0)
+		WaypointTextBoxClass::Remove(wpIndex);
+	return true;
+}
+
+bool TActionExtData::ClearAllWaypointTextBoxs(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	WaypointTextBoxClass::ClearAll();
+	return true;
+}
+
+bool TActionExtData::BindAllTeamMemberToTag(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	int teamIndex = pThis->Param3;
+	int tagIndex = pThis->Param4;
+	int forceNew = pThis->Param5;
+
+	TagClass* pTagClass = GeneralUtils::GetTagClassByIndex(tagIndex, forceNew);
+	if (!pTagClass) return false;
+
+	for (auto const pTechno : *TechnoClass::Array)
+	{
+		if (pTechno->WhatAmI() != AbstractType::BuildingType)
+		{
+			if (FootClass* pFoot = flag_cast_to<FootClass*>(pTechno))
+			{
+				if (pFoot->BelongsToATeam()
+					&& pFoot->Team
+					&& pFoot->Team->Type
+					&& pFoot->Team->Type->get_ID() == ("0" + std::to_string(teamIndex)))
+				{
+					for (auto pUnit = pFoot->Team->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
+					{
+						if (pUnit->AttachedTag) pUnit->ReplaceTag(pTagClass);
+						else pUnit->AttachTrigger(pTagClass);
+					}
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
+bool TActionExtData::BindOwnerTeamMemberToTag(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	int teamIndex = pThis->Param3;
+	int tagIndex = pThis->Param4;
+	int houseIndex = pThis->Param5;
+	int forceNew = pThis->Param6;
+
+	TagClass* pTagClass = GeneralUtils::GetTagClassByIndex(tagIndex, forceNew);
+	if (!pTagClass) return false;
+
+
+	HouseClass* pOwner = HouseClass::FindByCountryIndex(houseIndex);
+	if (!pOwner) return false;
+
+
+	for (auto const pTechno : *TechnoClass::Array)
+	{
+		if (pTechno->Owner == pOwner)
+		{
+			if (pTechno->WhatAmI() != AbstractType::BuildingType)
+			{
+				if (FootClass* pFoot = flag_cast_to<FootClass*>(pTechno))
+				{
+					if (pFoot->BelongsToATeam()
+						&& pFoot->Team
+						&& pFoot->Team->Type
+						&& pFoot->Team->Type->get_ID() == ("0" + std::to_string(teamIndex)))
+					{
+						for (auto pUnit = pFoot->Team->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
+						{
+							if (pUnit->AttachedTag) pUnit->ReplaceTag(pTagClass);
+							else pUnit->AttachTrigger(pTagClass);
+						}
+					}
+				}
+			}
+		}
+	}
+	return true;
+}
+
+bool TActionExtData::BindAllTechnoTypeToTag(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const char* techno = pThis->Text;
+	int tagIndex = pThis->Param3;
+	int forceNew = pThis->Param4;
+
+	TagClass* pTagClass = GeneralUtils::GetTagClassByIndex(tagIndex, forceNew);
+	if (!pTagClass) return false;
+
+	for (auto const pTechno : *TechnoClass::Array)
+	{
+		if (pTechno->get_ID() == std::string(techno))
+		{
+			if (pTechno->AttachedTag) pTechno->ReplaceTag(pTagClass);
+			else pTechno->AttachTrigger(pTagClass);
+		}
+	}
+
+	return true;
+}
+
+bool TActionExtData::BindOwnerTechnoTypeToTag(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const char* techno = pThis->Text;
+	int tagIndex = pThis->Param3;
+	int houseIndex = pThis->Param4;
+	int forceNew = pThis->Param5;
+
+	TagClass* pTagClass = GeneralUtils::GetTagClassByIndex(tagIndex, forceNew);
+	if (!pTagClass) return false;
+
+	HouseClass* pOwner = HouseClass::FindByCountryIndex(houseIndex);
+	if (!pOwner) return false;
+
+	for (auto const pTechno : *TechnoClass::Array)
+	{
+		if (pTechno->Owner == pOwner)
+		{
+			if (pTechno->get_ID() == std::string(techno))
+			{
+				if (pTechno->AttachedTag) pTechno->ReplaceTag(pTagClass);
+				else pTechno->AttachTrigger(pTagClass);
+			}
+		}
+	}
+
+	return true;
+}
+
+bool TActionExtData::GiveHouseMoney(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	int houseIndex = pThis->Param3;
+	int moneyAmount = pThis->Param4;
+
+	HouseClass* pOwner = HouseClass::FindByCountryIndex(houseIndex);
+	if (!pOwner) return false;
+	if (moneyAmount < 0) return false;
+
+	pOwner->GiveMoney(moneyAmount);
+
+	return true;
+}
+
+bool TActionExtData::TakeHouseMoney(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	int houseIndex = pThis->Param3;
+	int moneyAmount = pThis->Param4;
+
+	HouseClass* pOwner = HouseClass::FindByCountryIndex(houseIndex);
+	if (!pOwner) return false;
+	if (moneyAmount < 0) return false;
+
+	long availableMoney = pOwner->Available_Money();
+
+	if (availableMoney >= moneyAmount)
+	{
+		pOwner->TakeMoney(moneyAmount);
+	}
+	else // not enough money, take all remaining money
+	{
+		pOwner->TakeMoney(availableMoney);
+	}
+
+	return true;
+}
+
+bool TActionExtData::SetHouseMoney(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	int houseIndex = pThis->Param3;
+	int moneyAmount = pThis->Param4;
+
+	HouseClass* pOwner = HouseClass::FindByCountryIndex(houseIndex);
+	if (!pOwner) return false;
+	if (moneyAmount < 0) return false;
+
+	pOwner->TakeMoney(pOwner->Available_Money());
+	pOwner->GiveMoney(moneyAmount);
+
+	return true;
+}
+
+bool TActionExtData::AddBaseNodeForHouseAtWaypoint(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const int houseIndex = pThis->Param3;
+	const int waypointIndex = pThis->Param4;
+	const int buildTypeIndex = pThis->Param5;
+	const int forceAtFront = pThis->Param6;
+
+	HouseClass* pOwner = HouseClass::FindByCountryIndex(houseIndex);
+	if (!pOwner) return false;
+
+	CellStruct cell = ScenarioClass::Instance->GetWaypointCoords(waypointIndex);
+	if (cell.X < 0 || cell.Y < 0) return false;
+
+	//const char* buildTypeID = BuildingTypeClass::Array->Items[buildTypeIndex]->get_ID();
+
+	BaseNodeClass newNode = { buildTypeIndex, cell, false, 0 };
+
+	if (forceAtFront)
+	{
+		for (BuildingClass* pBuilding : *BuildingClass::Array)
+		{
+			if (!pBuilding || pBuilding->Owner != pOwner) continue;
+			if (!pBuilding->Factory
+				|| !pBuilding->Factory->Object
+				|| pBuilding->Factory->Object->WhatAmI() != AbstractType::Building) continue;
+
+			//TechnoTypeClass* pFactObjType = pBuilding->Factory->Object->GetTechnoType();
+
+			pBuilding->Factory->AbandonProduction();
+			pBuilding->Factory->QueuedObjects.clear();
+		}
+
+		DynamicVectorClass<BaseNodeClass>& nodes = pOwner->Base.BaseNodes;
+
+		if (nodes.Count >= nodes.Capacity)
+		{
+			if (nodes.CapacityIncrement <= 0) return false;
+			if (!nodes.set_capacity(nodes.Capacity + nodes.CapacityIncrement, nullptr))
+				return false;
+		}
+
+		for (int i = nodes.Count; i > 0; --i)
+		{
+			nodes.Items[i] = nodes.Items[i - 1];
+		}
+
+		nodes.Items[0] = newNode;
+		++nodes.Count;
+	}
+	else
+		pOwner->Base.BaseNodes.push_back(newNode);
+
+	HouseExtData::AuthorizeBaseNode(pOwner, buildTypeIndex, cell.X, cell.Y, forceAtFront);
+
+	return true;
+}
+
+bool TActionExtData::RemoveAllBaseNodeForHouseAtWaypoint(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const int houseIndex = pThis->Param3;
+	const int waypointIndex = pThis->Param4;
+
+	HouseClass* pOwner = HouseClass::FindByCountryIndex(houseIndex);
+	if (!pOwner) return false;
+
+	CellStruct cell = ScenarioClass::Instance->GetWaypointCoords(waypointIndex);
+	if (cell.X < 0 || cell.Y < 0) return false;
+
+	std::vector<int> indicesToRemove;
+	std::set<int> uniqueBuildingTypes;
+	for (int i = 0; i < pOwner->Base.BaseNodes.Count; ++i)
+	{
+		const auto& node = pOwner->Base.BaseNodes[i];
+		if (node.MapCoords == cell)
+		{
+			indicesToRemove.push_back(i);
+			uniqueBuildingTypes.insert(node.BuildingTypeIndex);
+		}
+	}
+
+	if (indicesToRemove.empty())
+		return true;
+
+	for (int buildTypeIndex : uniqueBuildingTypes)
+	{
+		if (buildTypeIndex < 0 || buildTypeIndex >= BuildingTypeClass::Array->Count)
+		{
+			continue;
+		}
+		const char* buildTypeID = BuildingTypeClass::Array->Items[buildTypeIndex]->get_ID();
+
+		for (BuildingClass* pBuilding : *BuildingClass::Array)
+		{
+			if (!pBuilding || pBuilding->Owner != pOwner) continue;
+			if (!pBuilding->Factory
+				|| !pBuilding->Factory->Object
+				|| pBuilding->Factory->Object->WhatAmI() != AbstractType::Building) continue;
+
+			TechnoTypeClass* pFactObjType = pBuilding->Factory->Object->GetTechnoType();
+			if (pFactObjType && strcmp(pFactObjType->get_ID(), buildTypeID) == 0)
+			{
+				pBuilding->Factory->AbandonProduction();
+				break;
+			}
+			pBuilding->Factory->QueuedObjects.clear();
+		}
+	}
+
+	for (auto it = indicesToRemove.rbegin(); it != indicesToRemove.rend(); ++it)
+	{
+		pOwner->Base.BaseNodes.erase_at(*it);
+	}
+
+	HouseExtData::RemoveAuthorizedNodeByCoord(pOwner, cell.X, cell.Y);
+
+	return true;
+}
+
+bool TActionExtData::RemoveBaseNodesOfBuildingTypeForHouse(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const int houseIndex = pThis->Param3;
+	const int buildTypeIndex = pThis->Param4;
+
+	HouseClass* pOwner = HouseClass::FindByCountryIndex(houseIndex);
+	if (!pOwner) return false;
+
+	if (buildTypeIndex < 0 || buildTypeIndex >= BuildingTypeClass::Array->Count)
+	{
+		return false;
+	}
+
+	const char* buildTypeID = BuildingTypeClass::Array->Items[buildTypeIndex]->get_ID();
+
+	std::vector<int> indicesToRemove;
+	for (int i = 0; i < pOwner->Base.BaseNodes.Count; ++i)
+	{
+		if (pOwner->Base.BaseNodes[i].BuildingTypeIndex == buildTypeIndex)
+			indicesToRemove.push_back(i);
+	}
+
+	if (indicesToRemove.empty())
+	{
+		return true;
+	}
+
+	for (BuildingClass* pBuilding : *BuildingClass::Array)
+	{
+		if (!pBuilding || pBuilding->Owner != pOwner) continue;
+		if (!pBuilding->Factory
+			|| !pBuilding->Factory->Object
+			|| pBuilding->Factory->Object->WhatAmI() != AbstractType::Building) continue;
+
+		TechnoTypeClass* pFactObjType = pBuilding->Factory->Object->GetTechnoType();
+		if (pFactObjType && strcmp(pFactObjType->get_ID(), buildTypeID) == 0)
+		{
+			pBuilding->Factory->AbandonProduction();
+			break;
+		}
+		pBuilding->Factory->QueuedObjects.clear();
+	}
+
+	for (auto it = indicesToRemove.rbegin(); it != indicesToRemove.rend(); ++it)
+	{
+		pOwner->Base.BaseNodes.erase_at(*it);
+	}
+
+	HouseExtData::RemoveAuthorizedNodeByType(pOwner, buildTypeIndex);
+
+	return true;
+}
+
+bool TActionExtData::DestroyAllTagByTagTypeSafely(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	int tagIndex = pThis->Param3;
+
+	std::string tagIndex_str = ("0" + std::to_string(tagIndex));
+	TagTypeClass* pTagType = TagTypeClass::FindByNameOrID(tagIndex_str.c_str());
+
+	std::vector<TagClass*> tagsToDestroy;
+
+	for (TagClass* pTag : *TagClass::Array)
+	{
+		if (pTag && !pTag->Destroyed && pTag->Type == pTagType)
+		{
+			tagsToDestroy.push_back(pTag);
+		}
+	}
+
+	for (auto pTag : tagsToDestroy)
+	{
+		if (pTag && !pTag->Destroyed) pTag->Destroy();
+	}
+
+	return true;
+}
+
+bool TActionExtData::BindTagToTechnoTypeAtWaypoint(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const char* techno = pThis->Text;
+	int tagIndex = pThis->Param3;
+	int waypointIndex = pThis->Param4;
+	int forceNew = pThis->Param5;
+
+	TagClass* pTagClass = GeneralUtils::GetTagClassByIndex(tagIndex, forceNew);
+	if (!pTagClass) return false;
+
+	CellStruct cell = ScenarioClass::Instance->GetWaypointCoords(waypointIndex);
+	if (cell.X < 0 || cell.Y < 0) return false;
+
+	for (TechnoClass* const pTechno : *TechnoClass::Array)
+	{
+		if (pTechno && pTechno->get_ID() == std::string(techno))
+		{
+			BuildingClass* pBuilding = cast_to<BuildingClass*>(pTechno);
+			if (pBuilding && pTechno->WhatAmI() == AbstractType::Building)
+			{
+				if (GeneralUtils::IsCellInBuildingFoundation(pBuilding, cell))
+				{
+					if (pBuilding->AttachedTag) pBuilding->ReplaceTag(pTagClass);
+					else pBuilding->AttachTrigger(pTagClass);
+				}
+			}
+			else
+			{
+				if (CellClass::Coord2Cell(pTechno->GetCoords()) == cell)
+				{
+					if (pTechno->AttachedTag) pTechno->ReplaceTag(pTagClass);
+					else pTechno->AttachTrigger(pTagClass);
+				}
+			}
+		}
+	}
+	return true;
+}
+
+bool TActionExtData::BindTagToTechnoTypeOfHouseAtWaypoint(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const char* techno = pThis->Text;
+	int tagIndex = pThis->Param3;
+	int waypointIndex = pThis->Param4;
+	int houseIndex = pThis->Param5;
+	int forceNew = pThis->Param6;
+
+	TagClass* pTagClass = GeneralUtils::GetTagClassByIndex(tagIndex, forceNew);
+	if (!pTagClass) return false;
+
+	CellStruct cell = ScenarioClass::Instance->GetWaypointCoords(waypointIndex);
+	if (cell.X < 0 || cell.Y < 0) return false;
+
+	HouseClass* pOwner = HouseClass::FindByCountryIndex(houseIndex);
+	if (!pOwner) return false;
+
+	// 遍历 TechnoClass, 尝试将 TagClass 绑定到 TechnoClass 上
+	for (auto const pTechno : *TechnoClass::Array)
+	{
+		if (pTechno
+			&& pTechno->Owner == pOwner
+			&& pTechno->get_ID() == std::string(techno))
+		{
+			BuildingClass* pBuilding = cast_to<BuildingClass*>(pTechno);
+			if (pBuilding && pTechno->WhatAmI() == AbstractType::Building)
+			{
+				if (GeneralUtils::IsCellInBuildingFoundation(pBuilding, cell))
+				{
+					if (pBuilding->AttachedTag) pBuilding->ReplaceTag(pTagClass);
+					else pBuilding->AttachTrigger(pTagClass);
+				}
+			}
+			else
+			{
+				if (CellClass::Coord2Cell(pTechno->GetCoords()) == cell) // 不是建筑类型, 直接判断坐标即可
+				{
+					if (pTechno->AttachedTag) pTechno->ReplaceTag(pTagClass);
+					else pTechno->AttachTrigger(pTagClass);
+				}
+			}
+		}
+	}
+	return true;
+}
+
+bool TActionExtData::BindTagToSpecificTechnoTypeWithinWaypointRange(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const char* techno = pThis->Text;
+	int tagIndex = pThis->Param3;
+	int waypointIndex = pThis->Param4;
+	int range = pThis->Param5;
+	int forceNew = pThis->Param6;
+
+	TagClass* pTagClass = GeneralUtils::GetTagClassByIndex(tagIndex, forceNew);
+	if (!pTagClass) return false;
+
+	CellStruct cell = ScenarioClass::Instance->GetWaypointCoords(waypointIndex);
+	if (cell.X < 0 || cell.Y < 0) return false;
+
+	for (TechnoClass* pTechno : *TechnoClass::Array)
+	{
+		if (pTechno && pTechno->get_ID() == std::string(techno))
+		{
+			if (GeneralUtils::IsTechnoNearCell(pTechno, cell, range))
+			{
+				if (pTechno->AttachedTag) pTechno->ReplaceTag(pTagClass);
+				else pTechno->AttachTrigger(pTagClass);
+			}
+		}
+	}
+	return true;
+}
+
+bool TActionExtData::BindTagToSpecificTechnoTypeOfSpecificOwnerWithinWaypointRange(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const char* techno = pThis->Text;
+	int tagIndex = pThis->Param3;
+	int waypointIndex = pThis->Param4;
+	int range = pThis->Param5;
+	int forceNew = pThis->Param6;
+
+	TagClass* pTagClass = GeneralUtils::GetTagClassByIndex(tagIndex, forceNew);
+	if (!pTagClass) return false;
+
+	CellStruct cell = ScenarioClass::Instance->GetWaypointCoords(waypointIndex);
+	if (cell.X < 0 || cell.Y < 0) return false;
+
+	for (TechnoClass* pTechno : *TechnoClass::Array)
+	{
+		if (pTechno
+			&& pHouse == pTechno->Owner
+			&& pTechno->get_ID() == std::string(techno))
+		{
+			if (GeneralUtils::IsTechnoNearCell(pTechno, cell, range))
+			{
+				if (pTechno->AttachedTag) pTechno->ReplaceTag(pTagClass);
+				else pTechno->AttachTrigger(pTagClass);
+			}
+		}
+	}
+	return true;
+}
+
+bool TActionExtData::BindTagToAllTechnoTypesWithinWaypointRange(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	int tagIndex = pThis->Param3;
+	int waypointIndex = pThis->Param4;
+	int range = pThis->Param5;
+	int forceNew = pThis->Param6;
+
+	TagClass* pTagClass = GeneralUtils::GetTagClassByIndex(tagIndex, forceNew);
+	if (!pTagClass) return false;
+
+	CellStruct cell = ScenarioClass::Instance->GetWaypointCoords(waypointIndex);
+	if (cell.X < 0 || cell.Y < 0) return false;
+
+	for (TechnoClass* pTechno : *TechnoClass::Array)
+	{
+		if (GeneralUtils::IsTechnoNearCell(pTechno, cell, range))
+		{
+			if (pTechno->AttachedTag) pTechno->ReplaceTag(pTagClass);
+			else pTechno->AttachTrigger(pTagClass);
+		}
+	}
+	return true;
+}
+
+bool TActionExtData::BindTagToAllTechnoTypesOfSpecificOwnerWithinWaypointRange(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+
+	int houseIndex = pThis->Value;
+	int tagIndex = pThis->Param3;
+	int waypointIndex = pThis->Param4;
+	int range = pThis->Param5;
+	int forceNew = pThis->Param6;
+
+	HouseClass* pOwner = HouseClass::FindByCountryIndex(houseIndex);
+	if (!pOwner) return false;
+
+	TagClass* pTagClass = GeneralUtils::GetTagClassByIndex(tagIndex, forceNew);
+	if (!pTagClass) return false;
+
+	CellStruct cell = ScenarioClass::Instance->GetWaypointCoords(waypointIndex);
+	if (cell.X < 0 || cell.Y < 0) return false;
+
+	for (TechnoClass* pTechno : *TechnoClass::Array)
+	{
+		if (pOwner == pTechno->Owner)
+		{
+			if (GeneralUtils::IsTechnoNearCell(pTechno, cell, range))
+			{
+				if (pTechno->AttachedTag) pTechno->ReplaceTag(pTagClass);
+				else pTechno->AttachTrigger(pTagClass);
+			}
+		}
+	}
+
+	return true;
+}
+
+bool TActionExtData::UnifyAllInstancesOfSameTagType(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	int tagIndex = pThis->Param3;
+
+	TagClass* pUnifiedTag = GeneralUtils::GetTagClassByIndex(tagIndex, true);
+	if (!pUnifiedTag) return false;
+
+	std::set<TagClass*> tagsToUnify;
+
+	for (TechnoClass* pTechno : *TechnoClass::Array)
+	{
+		if (pTechno->AttachedTag && pTechno->AttachedTag->Type == pUnifiedTag->Type)
+		{
+			tagsToUnify.insert(pTechno->AttachedTag);
+			pTechno->ReplaceTag(pUnifiedTag);
+		}
+	}
+
+	for (TagClass* it : tagsToUnify)
+	{
+		it->Destroy();
+	}
+
+	return true;
+}
+
+bool TActionExtData::SetRecruitableForFoot(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	bool recruitableA = pThis->Param3;
+	bool recruitableB = pThis->Param4;
+
+	for (FootClass* pFoot : *FootClass::Array)
+	{
+		if (pFoot && pFoot->AttachedTag && pFoot->AttachedTag->ContainsTrigger(pTrigger))
+		{
+			pFoot->RecruitableA = recruitableA;
+			pFoot->RecruitableB = recruitableB;
+		}
+	}
+
+	return true;
+}
+
+bool TActionExtData::BindTagsToAllTechTypesInWaypointRangeExceptSpecified(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const char* techno = pThis->Text;
+	int tagIndex = pThis->Param3;
+	int waypointIndex = pThis->Param4;
+	int range = pThis->Param5;
+	int forceNew = pThis->Param6;
+
+	TagClass* pTagClass = GeneralUtils::GetTagClassByIndex(tagIndex, forceNew);
+	if (!pTagClass) return false;
+
+	CellStruct cell = ScenarioClass::Instance->GetWaypointCoords(waypointIndex);
+	if (cell.X < 0 || cell.Y < 0) return false;
+
+	for (TechnoClass* pTechno : *TechnoClass::Array)
+	{
+		if (!pTechno)
+			continue;
+
+		if (pTechno->get_ID() == std::string(techno))
+			continue;
+
+		if (GeneralUtils::IsTechnoNearCell(pTechno, cell, range))
+		{
+			if (pTechno->AttachedTag) pTechno->ReplaceTag(pTagClass);
+			else pTechno->AttachTrigger(pTagClass);
+		}
+
+	}
+	return true;
+}
+
+bool TActionExtData::BindTagsToAllTechTypesOfTriggerOwnerInWaypointRangeExceptSpecified(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const char* techno = pThis->Text;
+	int tagIndex = pThis->Param3;
+	int waypointIndex = pThis->Param4;
+	int range = pThis->Param5;
+	int forceNew = pThis->Param6;
+
+	TagClass* pTagClass = GeneralUtils::GetTagClassByIndex(tagIndex, forceNew);
+	if (!pTagClass) return false;
+
+	CellStruct cell = ScenarioClass::Instance->GetWaypointCoords(waypointIndex);
+	if (cell.X < 0 || cell.Y < 0) return false;
+
+	for (TechnoClass* pTechno : *TechnoClass::Array)
+	{
+		if (pTechno && pHouse == pTechno->Owner)
+		{
+			if (!pTechno)
+				continue;
+			if (pTechno->get_ID() == std::string(techno))
+			{
+				continue;
+			}
+
+			if (GeneralUtils::IsTechnoNearCell(pTechno, cell, range))
+			{
+				if (pTechno->AttachedTag) pTechno->ReplaceTag(pTagClass);
+				else pTechno->AttachTrigger(pTagClass);
+			}
+		}
+	}
+	return true;
+}
+
+bool TActionExtData::UpdateAllBuildingAnims(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	for (BuildingClass* pBuilding : *BuildingClass::Array)
+	{
+		if (!pBuilding) continue;
+		pBuilding->DisableStuff();
+		pBuilding->EnableStuff();
+	}
+
+	return true;
+}
+
+bool TActionExtData::UpdateAssociatedBuildingsAnims(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	for (BuildingClass* pBuilding : *BuildingClass::Array)
+	{
+		if (!pBuilding) continue;
+		if (!pBuilding->AttachedTag) continue;
+
+		if (pBuilding->AttachedTag->ContainsTrigger(pTrigger))
+		{
+			pBuilding->DisableStuff();
+			pBuilding->EnableStuff();
+		}
+	}
+
+	return true;
+}
+
+bool TActionExtData::UpdateOwnerBuildingsAnimations(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	int houseIndex = pThis->Param3;
+
+	HouseClass* pOwner = HouseClass::FindByCountryIndex(houseIndex);
+	if (!pOwner) return false;
+
+	for (BuildingClass* pBuilding : *BuildingClass::Array)
+	{
+		if (!pBuilding) continue;
+
+		if (pBuilding->Owner == pOwner)
+		{
+			pBuilding->DisableStuff();
+			pBuilding->EnableStuff();
+		}
+	}
+
+	return true;
+}
+
+bool TActionExtData::CreateTeamConsideringLimits(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	int teamIndex = pThis->Param3;
+	bool useMaxLimit = (pThis->Param4 != 0);
+	bool useZoneCheck = (pThis->Param5 != 0);
+	bool requireAllZone = (pThis->Param6 != 0);
+
+	TeamTypeClass* pTeamType = nullptr;
+	for (TeamTypeClass* pCurrentTeamType : *TeamTypeClass::Array)
+	{
+		if (pCurrentTeamType && pCurrentTeamType->get_ID() == ("0" + std::to_string(teamIndex)))
+		{
+			pTeamType = pCurrentTeamType;
+			break;
+		}
+	}
+	if (!pTeamType) return false;
+
+
+	//auto const id = pTeamType->get_ID();
+	auto const cnt = pTeamType->cntInstances;
+	auto const max = pTeamType->Max;
+
+
+	if (useMaxLimit && cnt >= max && max >= 0)
+	{
+		return true;
+	}
+
+	if (useZoneCheck)
+	{
+		HouseClass* pOwner = pTeamType->Owner;
+		HouseClass* pEnemy = nullptr;
+
+		if (pOwner) {
+			if (pOwner->EnemyHouseIndex >= 0)
+				pEnemy = HouseClass::FindByIndex(pOwner->EnemyHouseIndex);
+
+			if (!pEnemy || pEnemy == pOwner) {
+				for (HouseClass* const pHouseArr : *HouseClass::Array) {
+					if (pHouseArr && pHouseArr != pOwner && !pOwner->IsAlliedWith(pHouseArr)) {
+						pEnemy = pHouseArr;
+						break;
+					}
+				}
+			}
+
+			if (pEnemy && pEnemy != pOwner) {
+				if (!GeneralUtils::CheckTaskForceZoneConnection(pOwner, pEnemy, pTeamType->TaskForce, requireAllZone)) {
+					return true;
+				}
+			}
+		}
+	}
+
+	pTeamType->CreateTeam(pTeamType->Owner);
+	return true;
+}
+
+bool TActionExtData::RecruitNearbyFootToTeam(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	int teamIndex = pThis->Param3;
+	int waypointIndex = pThis->Param4;
+	int range = pThis->Param5;
+	bool isOnlyRecruitable = pThis->Param6 != 0;
+
+	TeamTypeClass* pTeamType = nullptr;
+	for (TeamTypeClass* pCurrentTeamType : *TeamTypeClass::Array)
+	{
+		if (pCurrentTeamType && pCurrentTeamType->get_ID() == ("0" + std::to_string(teamIndex)))
+		{
+			pTeamType = pCurrentTeamType;
+			break;
+		}
+	}
+	if (!pTeamType) return false;
+
+	TeamClass* pTeam = pTeamType->FindFirstInstance();
+	if (!pTeam) return true;
+
+	CellStruct cell = ScenarioClass::Instance->GetWaypointCoords(waypointIndex);
+	if (cell.X < 0 || cell.Y < 0) return false;
+
+
+	for (FootClass* pFoot : *FootClass::Array)
+	{
+		if (!pFoot) continue;
+		if (pFoot->Owner != pTeam->OwnerHouse) continue;
+		if (pFoot->Team) continue;
+		if (isOnlyRecruitable)
+		{
+			if (!pFoot->CanBeRecruited(pFoot->Owner))
+				continue;
+		}
+		if (!GeneralUtils::IsTechnoNearCell(pFoot, cell, range)) continue;
+
+		pTeam->AddMember(pFoot, true);
+	}
+
+	return true;
+}
+
+bool TActionExtData::SetUnitTextBoxByTriggerType(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const char* csfLabel = pThis->Text;
+	int typeIndex = pThis->Param3;
+
+	Debug::Log("[TAction] SetUnitTextBoxByTriggerType: text=%s, typeIdx=%d, pTrigger=%p\n",
+		csfLabel ? csfLabel : "(null)", typeIndex, pTrigger);
+
+	if (!csfLabel || !csfLabel[0] || !pTrigger)
+		return false;
+
+	if (typeIndex < 0 || static_cast<size_t>(typeIndex) >= TextBoxTypeClass::Array.size())
+		return false;
+
+	const char* typeName = TextBoxTypeClass::Array[typeIndex]->Name;
+
+	for (auto pTechno : *TechnoClass::Array)
+	{
+		if (!pTechno)
+			continue;
+		if (pTechno->AttachedTag && pTechno->AttachedTag->ContainsTrigger(pTrigger))
+			TechnoTextBoxClass::FindOrCreate(pTechno, csfLabel, typeName);
+	}
+	return true;
+}
+
+bool TActionExtData::SetUnitTextBoxByTriggerData(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const char* csfLabel = pThis->Text;
+	int maxWidth = pThis->Param3;
+	int opacityPercent = pThis->Param4;
+	int colorEnum = pThis->Param5;
+
+	if (!csfLabel || !csfLabel[0] || !pTrigger)
+		return false;
+
+
+	maxWidth = std::clamp(maxWidth, 0, 1000);
+	if (maxWidth == 0) maxWidth = 250;
+	opacityPercent = std::clamp(opacityPercent, 0, 100);
+
+	int r = 255, g = 215, b = 0;
+	if (colorEnum >= 0 && colorEnum < 9)
+		WaypointTextBoxClass::ConvertColorEnum(colorEnum, r, g, b);
+
+	for (auto pTechno : *TechnoClass::Array)
+	{
+		if (!pTechno)
+			continue;
+		if (!pTechno->AttachedTag || !pTechno->AttachedTag->ContainsTrigger(pTrigger))
+			continue;
+
+		char typeName[64];
+		sprintf_s(typeName, "__AutoUnitLabel_%p", pTechno);
+
+		TextBoxTypeClass* pType = TextBoxTypeClass::FindOrAllocate(typeName);
+		pType->MaxWidth = maxWidth;
+		pType->BackgroundOpacity = opacityPercent;
+		pType->ColorR = r;
+		pType->ColorG = g;
+		pType->ColorB = b;
+
+		TechnoTextBoxClass::FindOrCreate(pTechno, csfLabel, typeName);
+	}
+	return true;
+}
+
+bool TActionExtData::SetUnitTextBoxByTeamType(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const char* csfLabel = pThis->Text;
+	int teamIndex = pThis->Param3;
+	int typeIndex = pThis->Param4;
+
+	Debug::Log("[TAction] SetUnitTextBoxByTeamType: text=%s, teamIdx=%d, typeIdx=%d\n",
+		csfLabel ? csfLabel : "(null)", teamIndex, typeIndex);
+
+	if (!csfLabel || !csfLabel[0])
+		return false;
+
+	std::string teamTypeID = "0" + std::to_string(teamIndex);
+
+	if (typeIndex < 0 || static_cast<size_t>(typeIndex) >= TextBoxTypeClass::Array.size())
+		return false;
+
+	const char* typeName = TextBoxTypeClass::Array[typeIndex]->Name;
+
+	int teamCount = 0, unitCount = 0;
+	for (TeamClass* pTeam : *TeamClass::Array) {
+		if (!pTeam) continue;
+		if (pTeam->Type && pTeam->Type->get_ID() == teamTypeID) {
+			++teamCount;
+			for (FootClass* pCurFoot = pTeam->FirstUnit; pCurFoot; pCurFoot = pCurFoot->NextTeamMember)
+			{
+				++unitCount;
+				TechnoTextBoxClass::FindOrCreate(pCurFoot, csfLabel, typeName);
+			}
+		}
+	}
+	Debug::Log("[TAction] SetUnitTextBoxByTeamType: matched %d team(s), labeled %d unit(s)\n",
+		teamCount, unitCount);
+	return true;
+}
+
+bool TActionExtData::SetUnitTextBoxByTeamData(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const char* csfLabel = pThis->Text;
+	int teamIndex = pThis->Param3;
+	int maxWidth = pThis->Param4;
+	int opacityPercent = pThis->Param5;
+	int colorEnum = pThis->Param6;
+
+	Debug::Log("[TAction] SetUnitTextBoxByTeamData: text=%s, teamIdx=%d, maxW=%d, opacity=%d, color=%d\n",
+		csfLabel ? csfLabel : "(null)", teamIndex, maxWidth, opacityPercent, colorEnum);
+
+	if (!csfLabel || !csfLabel[0])
+		return false;
+
+	maxWidth = std::clamp(maxWidth, 0, 1000);
+	if (maxWidth == 0) maxWidth = 250;
+	opacityPercent = std::clamp(opacityPercent, 0, 100);
+
+	int r = 255, g = 215, b = 0;
+	if (colorEnum >= 0 && colorEnum < 9)
+		WaypointTextBoxClass::ConvertColorEnum(colorEnum, r, g, b);
+
+	std::string teamTypeID = "0" + std::to_string(teamIndex);
+
+	int teamCount = 0, unitCount = 0;
+	for (TeamClass* pTeam : *TeamClass::Array)
+	{
+		if (!pTeam) continue;
+		if (pTeam->Type && pTeam->Type->get_ID() == teamTypeID)
+		{
+			++teamCount;
+			for (FootClass* pCurFoot = pTeam->FirstUnit; pCurFoot; pCurFoot = pCurFoot->NextTeamMember)
+			{
+				++unitCount;
+				char typeName[64];
+				sprintf_s(typeName, "__AutoUnitLabel_%p", pCurFoot);
+
+				TextBoxTypeClass* pType = TextBoxTypeClass::FindOrAllocate(typeName);
+				pType->MaxWidth = maxWidth;
+				pType->BackgroundOpacity = opacityPercent;
+				pType->ColorR = r;
+				pType->ColorG = g;
+				pType->ColorB = b;
+
+				TechnoTextBoxClass::FindOrCreate(pCurFoot, csfLabel, typeName);
+			}
+		}
+	}
+	Debug::Log("[TAction] SetUnitTextBoxByTeamData: matched %d team(s), labeled %d unit(s)\n",
+		teamCount, unitCount);
+	return true;
+}
+
+bool TActionExtData::ClearUnitTextBoxByType(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	int typeIndex = pThis->Param3;
+	TechnoTextBoxClass::RemoveByType(typeIndex);
+	return true;
+}
+
+bool TActionExtData::ClearUnitTextBoxByTag(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	TechnoTextBoxClass::RemoveByTrigger(pTrigger);
+	return true;
+}
+
+bool TActionExtData::ClearUnitTextBoxByTechType(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const char* technoID = pThis->Text;
+	if (!technoID || !technoID[0])
+		return true;
+
+	std::vector<TechnoClass*> toRemove;
+	for (auto& pLabel : MapTextBoxClass::Array) {
+		if (pLabel && pLabel->GetKind() == MapTextBoxClass::KindType::Techno) {
+			TechnoTextBoxClass* pTechnoLabel = static_cast<TechnoTextBoxClass*>(pLabel.get());
+			if (pTechnoLabel->Target && pTechnoLabel->Target->get_ID() == std::string(technoID)) {
+				toRemove.push_back(pTechnoLabel->Target);
+			}
+		}
+	}
+
+	for (auto* pTarget : toRemove)
+		TechnoTextBoxClass::Remove(pTarget);
+
+	return true;
+}
+
+bool TActionExtData::ClearUnitTextBoxByHouseAndType(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const char* technoID = pThis->Text;
+	int houseIndex = pThis->Param3;
+
+	if (!technoID || !technoID[0])
+		return true;
+
+	HouseClass* pOwner = HouseClass::FindByCountryIndex(houseIndex);
+	if (!pOwner) return true;
+
+	std::vector<TechnoClass*> toRemove;
+	for (auto& pLabel : MapTextBoxClass::Array) {
+		if (pLabel && pLabel->GetKind() == MapTextBoxClass::KindType::Techno) {
+			TechnoTextBoxClass* pTechnoLabel = static_cast<TechnoTextBoxClass*>(pLabel.get());
+			if (pTechnoLabel->Target &&
+				pTechnoLabel->Target->Owner == pOwner &&
+				pTechnoLabel->Target->get_ID() == std::string(technoID)) {
+				toRemove.push_back(pTechnoLabel->Target);
+			}
+		}
+	}
+
+	for (auto* pTarget : toRemove)
+		TechnoTextBoxClass::Remove(pTarget);
+
+	return true;
+}
+
+bool TActionExtData::ClearUnitTextBoxByTeam(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	int teamIndex = pThis->Param3;
+	TechnoTextBoxClass::RemoveByTeam(teamIndex);
+	return true;
+}
+
+bool TActionExtData::ClearAllUnitTextBoxs(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	TechnoTextBoxClass::ClearAll();
+	return true;
+}
+
+bool TActionExtData::ClearAllTextBoxs(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	TechnoTextBoxClass::ClearAll();
+	WaypointTextBoxClass::ClearAll();
+	return true;
+}
+
+bool TActionExtData::ClearScript(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	ScriptManipulator::ClearScript(pThis);
+	return true;
+}
+
+bool TActionExtData::CopyScript(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	ScriptManipulator::CopyScript(pThis);
+	return true;
+}
+
+bool TActionExtData::ModifyScriptByParam(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	ScriptManipulator::ModifyScriptByParam(pThis);
+	return true;
+}
+
+bool TActionExtData::ModifyScriptByLocalVar(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	ScriptManipulator::ModifyScriptByLocalVar(pThis);
+	return true;
+}
+
+bool TActionExtData::ModifyScriptByGlobalVar(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	ScriptManipulator::ModifyScriptByGlobalVar(pThis);
+	return true;
+}
+
+bool TActionExtData::RebindTeamTypeScript(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	ScriptManipulator::RebindTeamTypeScript(pThis);
+	return true;
+}
+
+bool TActionExtData::ResetTeamTypeScript(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	ScriptManipulator::ResetTeamTypeScript(pThis);
+	return true;
+}
+
+bool TActionExtData::ResetAllTeamTypeScripts(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	ScriptManipulator::ResetAllTeamTypeScripts();
+	return true;
+}
+
+bool TActionExtData::RestoreScriptContent(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	ScriptManipulator::RestoreScriptContent(pThis);
+	return true;
+}
+
+bool TActionExtData::RestoreAllScriptContents(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	ScriptManipulator::RestoreAllScriptContents();
+	return true;
+}
+
+bool TActionExtData::SeekTeamTypeScript(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	ScriptManipulator::SeekTeamTypeScript(pThis);
+	return true;
+}
+
+bool TActionExtData::SetTeamTypeMaxValue(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	int teamIndex = pThis->Param3;
+	int newMax = pThis->Param4;
+
+	TeamTypeClass* pTeamType = nullptr;
+	for (TeamTypeClass* pCurrent : *TeamTypeClass::Array) {
+		if (pCurrent && pCurrent->get_ID() == ("0" + std::to_string(teamIndex))) {
+			pTeamType = pCurrent;
+			break;
+		}
+	}
+
+	if (!pTeamType)
+		return false;
+
+	pTeamType->Max = newMax;
+
+	return true;
+}
+
+static void CopyActionText(char* dest, size_t destSize, const char* text)
+{
+	if (!dest || destSize == 0)
+		return;
+
+	if (!text)
+	{
+		dest[0] = '\0';
+		return;
+	}
+
+	size_t i = 0;
+	while (text[i] && i + 1 < destSize)
+	{
+		dest[i] = text[i];
+		++i;
+	}
+	dest[i] = '\0';
+}
+
+static void CopyActionTextW(wchar_t* dest, size_t destSize, const wchar_t* text)
+{
+	if (!dest || destSize == 0)
+		return;
+
+	if (!text)
+	{
+		dest[0] = L'\0';
+		return;
+	}
+
+	size_t i = 0;
+	while (text[i] && i + 1 < destSize)
+	{
+		dest[i] = text[i];
+		++i;
+	}
+	dest[i] = L'\0';
+}
+
+bool TActionExtData::SetOverParTitle(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	ScenarioClass* pScenario = ScenarioClass::Instance;
+	if (!pScenario)
+		return false;
+
+	CopyActionText(pScenario->OverParTitle, sizeof(pScenario->OverParTitle), pThis->Text);
+	return true;
+}
+
+bool TActionExtData::SetOverParMessage(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	ScenarioClass* pScenario = ScenarioClass::Instance;
+	if (!pScenario)
+		return false;
+
+	CopyActionText(pScenario->OverParMessage, sizeof(pScenario->OverParMessage), pThis->Text);
+	return true;
+}
+
+bool TActionExtData::SetUnderParTitle(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	ScenarioClass* pScenario = ScenarioClass::Instance;
+	if (!pScenario)
+		return false;
+
+	CopyActionText(pScenario->UnderParTitle, sizeof(pScenario->UnderParTitle), pThis->Text);
+	return true;
+}
+
+bool TActionExtData::SetUnderParMessage(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	ScenarioClass* pScenario = ScenarioClass::Instance;
+	if (!pScenario)
+		return false;
+
+	CopyActionText(pScenario->UnderParMessage, sizeof(pScenario->UnderParMessage), pThis->Text);
+	return true;
+}
+
+bool TActionExtData::ClearTaskForce(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	TaskForceManipulator::ClearTaskForce(pThis);
+	return true;
+}
+
+bool TActionExtData::CopyTaskForce(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	TaskForceManipulator::CopyTaskForce(pThis);
+	return true;
+}
+
+bool TActionExtData::ModifyTaskForceEntry(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	TaskForceManipulator::ModifyTaskForceEntry(pThis);
+	return true;
+}
+
+bool TActionExtData::RebindTeamTypeTaskForce(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	TaskForceManipulator::RebindTeamTypeTaskForce(pThis);
+	return true;
+}
+
+bool TActionExtData::RestoreTaskForce(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	TaskForceManipulator::RestoreTaskForce(pThis);
+	return true;
+}
+
+bool TActionExtData::RestoreAllTaskForces(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	TaskForceManipulator::RestoreAllTaskForces();
+	return true;
+}
+
+bool TActionExtData::ResetTeamTypeTaskForce(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	TaskForceManipulator::ResetTeamTypeTaskForce(pThis);
+	return true;
+}
+
+bool TActionExtData::ResetAllTeamTypeTaskForces(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	TaskForceManipulator::ResetAllTeamTypeTaskForces();
+	return true;
+}
+
+bool TActionExtData::RecruitGroupToTeam(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	int group = pThis->Param3;
+	int houseIdx = pThis->Param4;
+	int teamIdx = pThis->Param5;
+
+	HouseClass* pOwner = HouseClass::FindByCountryIndex(houseIdx);
+	if (!pOwner)
+		return false;
+
+	TeamTypeClass* pTeamType = nullptr;
+	for (auto const pTT : *TeamTypeClass::Array)
+	{
+		if (pTT && pTT->get_ID() == ("0" + std::to_string(teamIdx)))
+		{
+			pTeamType = pTT;
+			break;
+		}
+	}
+	if (!pTeamType)
+		return false;
+
+	TeamClass* pTeam = pTeamType->FindFirstInstance();
+	if (!pTeam)
+		return true;
+
+	for (auto pFoot : *FootClass::Array)
+	{
+		if (!pFoot)
+			continue;
+		if (pFoot->Owner != pOwner)
+			continue;
+		if (pFoot->Team)
+			continue;
+		if (group >= 0 && pFoot->Group != group)
+			continue;
+
+		pTeam->AddMember(pFoot, true);
+	}
+
+	return true;
+}
+
+bool TActionExtData::UndeployHouseUnits(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	int houseIdx = pThis->Param3;
+	HouseClass* pOwner = HouseClass::FindByCountryIndex(houseIdx);
+	if (!pOwner)
+		return false;
+
+	for (auto pFoot : *FootClass::Array)
+	{
+		if (!pFoot || pFoot->Owner != pOwner)
+			continue;
+
+		if (auto pUnit = cast_to<UnitClass*>(pFoot))
+		{
+			if (pUnit->Deployed)
+				pFoot->ForceMission(Mission::Unload);
+		}
+		else if (auto pInf = cast_to<InfantryClass*>(pFoot))
+		{
+			if (pInf->IsDeployed())
+				pFoot->ForceMission(Mission::Unload);
+		}
+	}
+
+	return true;
+}
+
+bool TActionExtData::SetParTimeEasy(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	ScenarioClass* pScenario = ScenarioClass::Instance;
+	if (!pScenario)
+		return false;
+
+	const int value = pThis->Param3;
+	if (value < 0)
+		return true;
+
+	pScenario->ParTimeEasy = value * 60;
+	return true;
+}
+
+bool TActionExtData::SetParTimeMedium(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	ScenarioClass* pScenario = ScenarioClass::Instance;
+	if (!pScenario)
+		return false;
+
+	const int value = pThis->Param3;
+	if (value < 0)
+		return true;
+
+	pScenario->ParTimeMedium = value * 60;
+	return true;
+}
+
+bool TActionExtData::SetParTimeDifficult(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	ScenarioClass* pScenario = ScenarioClass::Instance;
+	if (!pScenario)
+		return false;
+
+	const int value = pThis->Param3;
+	if (value < 0)
+		return true;
+
+	pScenario->ParTimeDifficult = value * 60;
+	return true;
+}
+
+bool TActionExtData::SetWaypointChoiceBox(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	int choiceID = pThis->Param3;
+	int wpIndex = pThis->Param4;
+	int typeIndex = pThis->Param5;
+
+	if (wpIndex >= 0 && typeIndex >= 0
+		&& static_cast<size_t>(typeIndex) < ChoiceBoxTypeClass::Array.size())
+	{
+		const ChoiceBoxTypeClass* pType = ChoiceBoxTypeClass::Array[typeIndex].get();
+		WaypointChoiceBoxClass::FindOrCreate(choiceID, wpIndex, nullptr, pType);
+	}
+	return true;
+}
+
+bool TActionExtData::SetScreenChoiceBox(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	int choiceID = pThis->Param3;
+	int screenX = pThis->Param4;
+	int screenY = pThis->Param5;
+	int typeIndex = pThis->Param6;
+
+	if (typeIndex >= 0
+		&& static_cast<size_t>(typeIndex) < ChoiceBoxTypeClass::Array.size())
+	{
+		const ChoiceBoxTypeClass* pType = ChoiceBoxTypeClass::Array[typeIndex].get();
+		ScreenChoiceBoxClass::FindOrCreate(choiceID, screenX, screenY, nullptr, pType);
+	}
+	return true;
+}
+
+bool TActionExtData::ClearChoiceBoxByLabel(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	int choiceID = pThis->Param3;
+
+	MapChoiceBoxClass::RemoveByID(choiceID);
+	return true;
+}
+
+bool TActionExtData::ClearAllChoiceBoxs(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	WaypointChoiceBoxClass::ClearAll();
+	ScreenChoiceBoxClass::ClearAll();
 	return true;
 }
 
@@ -4486,14 +6191,16 @@ static NOINLINE std::string PhobosTriggerAction_ToString(PhobosTriggerAction act
 {
 	switch (action)
 	{
-	case PhobosTriggerAction::AllAssignMission:   return "AllAssignMission";
-	case PhobosTriggerAction::DeleteObject:       return "DeleteObject";
-	case PhobosTriggerAction::DisableAllyReveal:  return "DisableAllyReveal";
-	case PhobosTriggerAction::EnableAllyReveal:   return "EnableAllyReveal";
-	case PhobosTriggerAction::MakeElite:          return "MakeElite";
-	case PhobosTriggerAction::DisableShortGame:   return "DisableShortGame";
-	case PhobosTriggerAction::EnableShortGame:    return "EnableShortGame";
-	case PhobosTriggerAction::GiveCredits:        return "GiveCredits";
+	case PhobosTriggerAction::MakeAllyOneWay: return "MakeAllyOneWay";
+	case PhobosTriggerAction::MakeEnemyOneWay: return "MakeEnemyOneWay";
+	case PhobosTriggerAction::AllAssignMission: return "AllAssignMission";
+	case PhobosTriggerAction::DeleteObject: return "DeleteObject";
+	case PhobosTriggerAction::DisableAllyReveal: return "DisableAllyReveal";
+	case PhobosTriggerAction::EnableAllyReveal: return "EnableAllyReveal";
+	case PhobosTriggerAction::MakeElite: return "MakeElite";
+	case PhobosTriggerAction::DisableShortGame: return "DisableShortGame";
+	case PhobosTriggerAction::EnableShortGame: return "EnableShortGame";
+	case PhobosTriggerAction::GiveCredits: return "GiveCredits";
 	case PhobosTriggerAction::SaveGame: return "SaveGame";
 	case PhobosTriggerAction::EditVariable: return "EditVariable";
 	case PhobosTriggerAction::GenerateRandomNumber: return "GenerateRandomNumber";
@@ -4503,9 +6210,93 @@ static NOINLINE std::string PhobosTriggerAction_ToString(PhobosTriggerAction act
 	case PhobosTriggerAction::RunSuperWeaponAtWaypoint: return "RunSuperWeaponAtWaypoint";
 	case PhobosTriggerAction::DumpVariables: return "DumpVariables";
 	case PhobosTriggerAction::PrintMessageRemainingTechnos: return "PrintMessageRemainingTechnos";
+	case PhobosTriggerAction::AdjustHouseModifier: return "AdjustHouseModifier";
 	case PhobosTriggerAction::ToggleMCVRedeploy: return "ToggleMCVRedeploy";
 	case PhobosTriggerAction::UndeployToWaypoint: return "UndeployToWaypoint";
+	case PhobosTriggerAction::SetFollowsIndexForVehicle: return "SetFollowsIndexForVehicle";
+	case PhobosTriggerAction::AttachSoundToObjects: return "AttachSoundToObjects";
+	case PhobosTriggerAction::RemoveSoundFromObjects: return "RemoveSoundFromObjects";
+	case PhobosTriggerAction::SetWaypointTextBoxByType: return "SetWaypointTextBoxByType";
+	case PhobosTriggerAction::SetWaypointTextBoxByData: return "SetWaypointTextBoxByData";
+	case PhobosTriggerAction::ClearWaypointTextBox: return "ClearWaypointTextBox";
+	case PhobosTriggerAction::ClearAllWaypointTextBoxs: return "ClearAllWaypointTextBoxs";
+	case PhobosTriggerAction::BindAllTeamMemberToTag: return "BindAllTeamMemberToTag";
+	case PhobosTriggerAction::BindOwnerTeamMemberToTag: return "BindOwnerTeamMemberToTag";
+	case PhobosTriggerAction::BindAllTechnoTypeToTag: return "BindAllTechnoTypeToTag";
+	case PhobosTriggerAction::BindOwnerTechnoTypeToTag: return "BindOwnerTechnoTypeToTag";
+	case PhobosTriggerAction::GiveHouseMoney: return "GiveHouseMoney";
+	case PhobosTriggerAction::TakeHouseMoney: return "TakeHouseMoney";
+	case PhobosTriggerAction::SetHouseMoney: return "SetHouseMoney";
+	case PhobosTriggerAction::AddBaseNodeForHouseAtWaypoint: return "AddBaseNodeForHouseAtWaypoint";
+	case PhobosTriggerAction::RemoveAllBaseNodeForHouseAtWaypoint: return "RemoveAllBaseNodeForHouseAtWaypoint";
+	case PhobosTriggerAction::RemoveBaseNodesOfBuildingTypeForHouse: return "RemoveBaseNodesOfBuildingTypeForHouse";
+	case PhobosTriggerAction::DestroyAllTagByTagTypeSafely: return "DestroyAllTagByTagTypeSafely";
+	case PhobosTriggerAction::BindTagToTechnoTypeAtWaypoint: return "BindTagToTechnoTypeAtWaypoint";
+	case PhobosTriggerAction::BindTagToTechnoTypeOfHouseAtWaypoint: return "BindTagToTechnoTypeOfHouseAtWaypoint";
+	case PhobosTriggerAction::BindTagToSpecificTechnoTypeWithinWaypointRange: return "BindTagToSpecificTechnoTypeWithinWaypointRange";
+	case PhobosTriggerAction::BindTagToSpecificTechnoTypeOfSpecificOwnerWithinWaypointRange: return "BindTagToSpecificTechnoTypeOfSpecificOwnerWithinWaypointRange";
+	case PhobosTriggerAction::BindTagToAllTechnoTypesWithinWaypointRange: return "BindTagToAllTechnoTypesWithinWaypointRange";
+	case PhobosTriggerAction::BindTagToAllTechnoTypesOfSpecificOwnerWithinWaypointRange: return "BindTagToAllTechnoTypesOfSpecificOwnerWithinWaypointRange";
+	case PhobosTriggerAction::UnifyAllInstancesOfSameTagType: return "UnifyAllInstancesOfSameTagType";
+	case PhobosTriggerAction::SetRecruitableForFoot: return "SetRecruitableForFoot";
+	case PhobosTriggerAction::BindTagsToAllTechTypesInWaypointRangeExceptSpecified: return "BindTagsToAllTechTypesInWaypointRangeExceptSpecified";
+	case PhobosTriggerAction::BindTagsToAllTechTypesOfTriggerOwnerInWaypointRangeExceptSpecified: return "BindTagsToAllTechTypesOfTriggerOwnerInWaypointRangeExceptSpecified";
+	case PhobosTriggerAction::UpdateAllBuildingAnims: return "UpdateAllBuildingAnims";
+	case PhobosTriggerAction::UpdateAssociatedBuildingsAnims: return "UpdateAssociatedBuildingsAnims";
+	case PhobosTriggerAction::UpdateOwnerBuildingsAnimations: return "UpdateOwnerBuildingsAnimations";
+	case PhobosTriggerAction::CreateTeamConsideringLimits: return "CreateTeamConsideringLimits";
+	case PhobosTriggerAction::RecruitNearbyFootToTeam: return "RecruitNearbyFootToTeam";
+	case PhobosTriggerAction::SetUnitTextBoxByTriggerType: return "SetUnitTextBoxByTriggerType";
+	case PhobosTriggerAction::SetUnitTextBoxByTriggerData: return "SetUnitTextBoxByTriggerData";
+	case PhobosTriggerAction::SetUnitTextBoxByTeamType: return "SetUnitTextBoxByTeamType";
+	case PhobosTriggerAction::SetUnitTextBoxByTeamData: return "SetUnitTextBoxByTeamData";
+	case PhobosTriggerAction::ClearUnitTextBoxByType: return "ClearUnitTextBoxByType";
+	case PhobosTriggerAction::ClearUnitTextBoxByTag: return "ClearUnitTextBoxByTag";
+	case PhobosTriggerAction::ClearUnitTextBoxByTechType: return "ClearUnitTextBoxByTechType";
+	case PhobosTriggerAction::ClearUnitTextBoxByHouseAndType: return "ClearUnitTextBoxByHouseAndType";
+	case PhobosTriggerAction::ClearUnitTextBoxByTeam: return "ClearUnitTextBoxByTeam";
+	case PhobosTriggerAction::ClearAllUnitTextBoxs: return "ClearAllUnitTextBoxs";
+	case PhobosTriggerAction::ClearAllTextBoxs: return "ClearAllTextBoxs";
+	case PhobosTriggerAction::SetWaypointChoiceBox: return "SetWaypointChoiceBox";
+	case PhobosTriggerAction::SetScreenChoiceBox: return "SetScreenChoiceBox";
+	case PhobosTriggerAction::ClearChoiceBoxByLabel: return "ClearChoiceBoxByLabel";
+	case PhobosTriggerAction::ClearAllChoiceBoxs: return "ClearAllChoiceBoxs";
 	case PhobosTriggerAction::SetDropCrate: return "SetDropCrate";
+	case PhobosTriggerAction::ClearScript: return "ClearScript";
+	case PhobosTriggerAction::CopyScript: return "CopyScript";
+	case PhobosTriggerAction::ModifyScriptByParam: return "ModifyScriptByParam";
+	case PhobosTriggerAction::ModifyScriptByLocalVar: return "ModifyScriptByLocalVar";
+	case PhobosTriggerAction::ModifyScriptByGlobalVar: return "ModifyScriptByGlobalVar";
+	case PhobosTriggerAction::RebindTeamTypeScript: return "RebindTeamTypeScript";
+	case PhobosTriggerAction::ResetTeamTypeScript: return "ResetTeamTypeScript";
+	case PhobosTriggerAction::ResetAllTeamTypeScripts: return "ResetAllTeamTypeScripts";
+	case PhobosTriggerAction::RestoreScriptContent: return "RestoreScriptContent";
+	case PhobosTriggerAction::RestoreAllScriptContents: return "RestoreAllScriptContents";
+	case PhobosTriggerAction::SeekTeamTypeScript: return "SeekTeamTypeScript";
+	case PhobosTriggerAction::SetTeamTypeMaxValue: return "SetTeamTypeMaxValue";
+	case PhobosTriggerAction::SetOverParTitle: return "SetOverParTitle";
+	case PhobosTriggerAction::SetOverParMessage: return "SetOverParMessage";
+	case PhobosTriggerAction::SetUnderParTitle: return "SetUnderParTitle";
+	case PhobosTriggerAction::SetUnderParMessage: return "SetUnderParMessage";
+	case PhobosTriggerAction::ClearTaskForce: return "ClearTaskForce";
+	case PhobosTriggerAction::CopyTaskForce: return "CopyTaskForce";
+	case PhobosTriggerAction::ModifyTaskForceEntry: return "ModifyTaskForceEntry";
+	case PhobosTriggerAction::RebindTeamTypeTaskForce: return "RebindTeamTypeTaskForce";
+	case PhobosTriggerAction::RestoreTaskForce: return "RestoreTaskForce";
+	case PhobosTriggerAction::RestoreAllTaskForces: return "RestoreAllTaskForces";
+	case PhobosTriggerAction::ResetTeamTypeTaskForce: return "ResetTeamTypeTaskForce";
+	case PhobosTriggerAction::ResetAllTeamTypeTaskForces: return "ResetAllTeamTypeTaskForces";
+	case PhobosTriggerAction::RecruitGroupToTeam: return "RecruitGroupToTeam";
+	case PhobosTriggerAction::UndeployHouseUnits: return "UndeployHouseUnits";
+	case PhobosTriggerAction::SetParTimeEasy: return "SetParTimeEasy";
+	case PhobosTriggerAction::SetParTimeMedium: return "SetParTimeMedium";
+	case PhobosTriggerAction::SetParTimeDifficult: return "SetParTimeDifficult";
+	case PhobosTriggerAction::ResetHateValue: return "ResetHateValue";
+	case PhobosTriggerAction::EditAngerNode: return "EditAngerNode";
+	case PhobosTriggerAction::ClearAngerNode: return "ClearAngerNode";
+	case PhobosTriggerAction::SetForceEnemy: return "SetForceEnemy";
+	case PhobosTriggerAction::SetFreeRadar: return "SetFreeRadar";
+	case PhobosTriggerAction::SetTeamDelay: return "SetTeamDelay";
 	case PhobosTriggerAction::SetTriggerTechnoVeterancy: return "SetTriggerTechnoVeterancy";
 	case PhobosTriggerAction::TransactMoneyFor: return "TransactMoneyFor";
 	case PhobosTriggerAction::SetAIMode: return "SetAIMode";
@@ -4515,15 +6306,11 @@ static NOINLINE std::string PhobosTriggerAction_ToString(PhobosTriggerAction act
 	case PhobosTriggerAction::UnInitTechno: return "UnInitTechno";
 	case PhobosTriggerAction::GameDeleteTechno: return "GameDeleteTechno";
 	case PhobosTriggerAction::LightningStormStrikeAtObject: return "LightningStormStrikeAtObject";
-	case PhobosTriggerAction::ResetHateValue: return "ResetHateValue";
-	case PhobosTriggerAction::EditAngerNode: return "EditAngerNode";
-	case PhobosTriggerAction::ClearAngerNode: return "ClearAngerNode";
-	case PhobosTriggerAction::SetForceEnemy: return "SetForceEnemy";
-	case PhobosTriggerAction::SetTeamDelay: return "SetTeamDelay";
-	case PhobosTriggerAction::SetFreeRadar: return "SetFreeRadar";
-	case PhobosTriggerAction::CreateBannerGlobal: return "CreateBannerGlobal";
 	case PhobosTriggerAction::CreateBannerLocal: return "CreateBannerLocal";
+	case PhobosTriggerAction::CreateBannerGlobal: return "CreateBannerGlobal";
 	case PhobosTriggerAction::DeleteBanner: return "DeleteBanner";
+	case PhobosTriggerAction::OpenDropshipLoadoutWindow: return "OpenDropshipLoadoutWindow";
+	case PhobosTriggerAction::CreateDropshipLoadoutTransport: return "CreateDropshipLoadoutTransport";
 	case PhobosTriggerAction::MessageForSpecifiedHouse: return "MessageForSpecifiedHouse";
 	case PhobosTriggerAction::RandomTriggerPut: return "RandomTriggerPut";
 	case PhobosTriggerAction::RandomTriggerRemove: return "RandomTriggerRemove";
@@ -4531,6 +6318,35 @@ static NOINLINE std::string PhobosTriggerAction_ToString(PhobosTriggerAction act
 	case PhobosTriggerAction::ScoreCampaignText: return "ScoreCampaignText";
 	case PhobosTriggerAction::ScoreCampaignTheme: return "ScoreCampaignTheme";
 	case PhobosTriggerAction::SetNextMission: return "SetNextMission";
+	case PhobosTriggerAction::WinByID: return "WinByID";
+	case PhobosTriggerAction::LoseByID: return "LoseByID";
+	case PhobosTriggerAction::ProductionBeginsByID: return "ProductionBeginsByID";
+	case PhobosTriggerAction::AllToHuntByID: return "AllToHuntByID";
+	case PhobosTriggerAction::PlayMovieByID: return "PlayMovieByID";
+	case PhobosTriggerAction::FireSaleByID: return "FireSaleByID";
+	case PhobosTriggerAction::AutocreateBeginsByID: return "AutocreateBeginsByID";
+	case PhobosTriggerAction::ChangeHouseByID: return "ChangeHouseByID";
+	case PhobosTriggerAction::PlayMusicThemeByID: return "PlayMusicThemeByID";
+	case PhobosTriggerAction::AddOneTimeSuperWeaponByID: return "AddOneTimeSuperWeaponByID";
+	case PhobosTriggerAction::AddRepeatingSuperWeaponByID: return "AddRepeatingSuperWeaponByID";
+	case PhobosTriggerAction::AllChangeHouseByID: return "AllChangeHouseByID";
+	case PhobosTriggerAction::MakeAllyByID: return "MakeAllyByID";
+	case PhobosTriggerAction::MakeEnemyByID: return "MakeEnemyByID";
+	case PhobosTriggerAction::PlayAnimAtByID: return "PlayAnimAtByID";
+	case PhobosTriggerAction::DoExplosionAtByID: return "DoExplosionAtByID";
+	case PhobosTriggerAction::CreateVoxelAnimByID: return "CreateVoxelAnimByID";
+	case PhobosTriggerAction::AITriggersBeginByID: return "AITriggersBeginByID";
+	case PhobosTriggerAction::AITriggersStopByID: return "AITriggersStopByID";
+	case PhobosTriggerAction::ParticleAnimByID: return "ParticleAnimByID";
+	case PhobosTriggerAction::MakeHouseCheerByID: return "MakeHouseCheerByID";
+	case PhobosTriggerAction::DestroyAllByID: return "DestroyAllByID";
+	case PhobosTriggerAction::DestroyAllBuildingsByID: return "DestroyAllBuildingsByID";
+	case PhobosTriggerAction::DestroyAllLandUnitsByID: return "DestroyAllLandUnitsByID";
+	case PhobosTriggerAction::DestroyAllNavalUnitsByID: return "DestroyAllNavalUnitsByID";
+	case PhobosTriggerAction::MindControlBaseByID: return "MindControlBaseByID";
+	case PhobosTriggerAction::RestoreMindControlledBaseByID: return "RestoreMindControlledBaseByID";
+	case PhobosTriggerAction::RestoreStartingUnitsByID: return "RestoreStartingUnitsByID";
+	case PhobosTriggerAction::RestoreStartingBuildingsByID: return "RestoreStartingBuildingsByID";
 	default: return {};
 	}
 }

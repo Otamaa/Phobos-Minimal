@@ -926,6 +926,7 @@ bool HouseExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	}
 
 	this->Degrades.Read(exINI, pSection, "Degrades");
+	this->BaseNodeCrossOwners.Read(exINI, pSection, "BaseNodeCrossOwners");
 	return true;
 }
 
@@ -3204,6 +3205,14 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->LastBuiltVehicleRTTI)
 		.Process(this->LastBuiltAircraftRTTI)
 		.Process(this->LastBuiltNavalRTTI)
+
+		.Process(this->BaseNodeCrossOwners)
+		.Process(this->AuthorizedNodesCaptured)
+		.Process(this->AuthorizedNodeKeys)
+		.Process(this->LastFrameTargetType)
+		.Process(this->LastFrameTargetX)
+		.Process(this->LastFrameTargetY)
+		.Process(this->DeferredNodeList)
 		;
 }
 #endif

@@ -10,6 +10,8 @@
 
 #include <Ext/Techno/Body.h>
 #include <Ext/WarheadType/Body.h>
+#include <Ext/TaskForce/Body.h>
+#include <Ext/TagType/Body.h>
 
 #include <TranslateFixedPoints.h>
 
@@ -614,3 +616,64 @@ bool  GeneralUtils::IsCellInBuildingFoundation(const BuildingClass* const pBuild
 	return it != foundationCells.end();
 }
 
+TagClass* GeneralUtils::GetTagClassByIndex(int Index, bool forceNew)
+{
+	std::string tagIndex = "0" + std::to_string(Index);
+	TagTypeClass* pTagType = TagTypeClass::FindByNameOrID(tagIndex.c_str());
+	if (!pTagType) return nullptr;
+
+	if (forceNew)
+	{
+		TagClass* pNewTag = GameCreate<TagClass>(pTagType);
+		return pNewTag;
+	}
+	else
+	{
+		return TagClass::GetInstance(pTagType);
+	}
+}
+
+bool GeneralUtils::HasZoneConnection(HouseClass* pOwner, HouseClass* pEnemy, MovementZone mz)
+{
+	if (mz == MovementZone::Fly)
+		return true;
+
+	auto const ownerCell = pOwner->GetBaseCenter();
+	auto const enemyCell = pEnemy->GetBaseCenter();
+
+	ZoneType ownerZone = MapClass::Instance->GetMovementZoneType(ownerCell, mz, false);
+	ZoneType enemyZone = MapClass::Instance->GetMovementZoneType(enemyCell, mz, false);
+
+	if (ownerZone < ZoneType::Core || enemyZone < ZoneType::Core)
+		return false;
+
+	return ownerZone == enemyZone;
+}
+
+bool GeneralUtils::CheckTaskForceZoneConnection(HouseClass* pOwner, HouseClass* pEnemy, TaskForceClass* pTaskForce, bool requireAll)
+{
+	if (!pTaskForce || pTaskForce->CountEntries <= 0)
+		return true;
+
+	int checkedCount = 0;
+	int connectedCount = 0;
+
+	for (int i = 0; i < pTaskForce->CountEntries && i < 6; ++i)
+	{
+		auto const pType = pTaskForce->Entries[i].Type;
+		if (!pType || pTaskForce->Entries[i].Amount <= 0)
+			continue;
+
+		++checkedCount;
+		auto const mz = pType->MovementZone;
+		auto const connected = HasZoneConnection(pOwner, pEnemy, mz);
+
+		if (connected)
+			++connectedCount;
+	}
+
+	if (checkedCount == 0)
+		return true;
+
+	return requireAll ? (connectedCount == checkedCount) : (connectedCount > 0);
+}
