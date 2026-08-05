@@ -150,6 +150,7 @@ SpawnerMain::GameConfigs::GameConfigs()
 	, SpawnerHackMPNodes { false }
 	, SkipScoreScreen { Configs::m_Ptr.SkipScoreScreen }
 	, WriteStatistics { false }
+	, GenerateStatistics { true }
 	, AINamesByDifficulty { false }
 	, ContinueWithoutHumans { false }
 	, DefeatedBecomesObserver { false }
@@ -607,6 +608,7 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 		QuickMatch = pINI->ReadBool(GameStrings::Settings(), "QuickMatch", QuickMatch);
 		SkipScoreScreen = pINI->ReadBool(GameStrings::Settings(), "SkipScoreScreen", SkipScoreScreen);
 		WriteStatistics = pINI->ReadBool(GameStrings::Settings(), "WriteStatistics", WriteStatistics);
+		GenerateStatistics = pINI->ReadBool(GameStrings::Settings(), "GenerateStatistics", GenerateStatistics);
 		AINamesByDifficulty = pINI->ReadBool(GameStrings::Settings(), "AINamesByDifficulty", AINamesByDifficulty);
 		ContinueWithoutHumans = pINI->ReadBool(GameStrings::Settings(), "ContinueWithoutHumans", ContinueWithoutHumans);
 		DefeatedBecomesObserver = pINI->ReadBool(GameStrings::Settings(), "DefeatedBecomesObserver", DefeatedBecomesObserver);

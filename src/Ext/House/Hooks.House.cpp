@@ -773,9 +773,9 @@ ASMJIT_PATCH(0x4F62FF, HouseClass_CTOR_FixNameOverflow, 6)
 	GET(HouseClass*, H, EBP);
 	GET_STACK(HouseTypeClass*, Country, 0x48);
 
-	Debug::Log("Copying country UIName [%ls] to house [%s]\n", Country->UIName, H->Type->ID);
+	//Debug::Log("Copying country UIName [%ls] to house [%s]\n", Country->UIName, H->Type->ID);
 	PhobosCRT::wstrCopy(H->UIName, Country->UIName);
-	Debug::Log("Copying country UIName [%ls] to house [%s] result UIName [%ls]\n", Country->UIName, H->Type->ID, H->UIName);
+	//Debug::Log("Copying country UIName [%ls] to house [%s] result UIName [%ls]\n", Country->UIName, H->Type->ID, H->UIName);
 
 	return 0x4F6312;
 }
@@ -784,12 +784,33 @@ ASMJIT_PATCH(0x4F62FF, HouseClass_CTOR_FixNameOverflow, 6)
 static reference<int, 0x00A8D580u>                  Session_NumScores {};
 static reference<int, 0x00A8D584u>                  MPlayerWinner {};
 
+#include <Misc/Spawner/Main.h>
+#include <FPSCounter.h>
+
+void WriteDTALog(std::string& result)
+{
+	if (SpawnerMain::GetGameConfigs()->WriteStatistics && !result.empty()) {
+		if (!std::filesystem::exists(Debug::LogFilePathName.c_str())) {
+			Debug::FatalError("Uneable to find %ls path !", Debug::LogFilePathName.c_str());
+			return;
+		}
+
+		if (FILE* _statisticFile = _wfsopen((Debug::LogFilePathName + L"\\Statistic.log").c_str(), L"w", _SH_DENYWR)) {
+			std::fputs(result.c_str(), _statisticFile);
+			std::fprintf(_statisticFile, "Game loop finished. Average FPS = %d\n", static_cast<int>(FPSCounter::GetAverageFrameRate()));
+			fclose(_statisticFile);
+		}
+	}
+}
+
 int MultiplayerScore()
 {
 	Session_NumScores = 0;
 
 	const int houseCount = HouseClass::Array->Count;
 	int index = 0;
+
+	std::string _buffer {};
 
 	for (; index < houseCount; ++index)
 	{
@@ -864,21 +885,24 @@ int MultiplayerScore()
 		}
 
 		const char* const outcome = (score.NonGameOvers > 0) ? "Winner" : "Loser";
-
-		Debug::Log(
-			"%ls: %s\n Scheme: %d\n Lost = %d\n Kills = %d\n Built = %d\n Score = %d\n",
-			score.Name,
+		fmt::format_to(std::back_inserter(_buffer),"{}: {}\n Scheme: {}\n Lost = {}\n Kills = {}\n Built = {}\n Score = {}\n",
+			PhobosCRT::WideStringToString(score.Name),
 			outcome,
 			score.Scheme,
 			score.Lost[CurrentGame],
 			score.Kill[CurrentGame],
 			score.Builts[CurrentGame],
 			score.Score[CurrentGame]);
+
+		Debug::LogInfo("{}",_buffer);
 	}
 
 	// The vanilla function returns EAX, which at this point is just the loop counter
 	// (== houseCount, or 0 when the vector is empty). No caller consumes it — kept only
 	// so the signature still matches the original.
+
+	// in-game (including the if(>0) filter and the winner bonus).
+	WriteDTALog(_buffer);
 	return index;
 }
 

@@ -182,6 +182,7 @@ struct SpawnerMain
 		bool SpawnerHackMPNodes;
 		bool SkipScoreScreen;
 		bool WriteStatistics;
+		bool GenerateStatistics;
 		bool AINamesByDifficulty;
 		bool ContinueWithoutHumans;
 		bool DefeatedBecomesObserver;
