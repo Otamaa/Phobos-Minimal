@@ -1188,7 +1188,7 @@ namespace Savegame
 
 		bool WriteToStream(PhobosStreamWriter& stm, const ScriptActionNode& value) const
 		{
-			if (Savegame::WritePhobosStream(stm, value.Action))
+			if (!Savegame::WritePhobosStream(stm, value.Action))
 				return false;
 
 			if (!Savegame::WritePhobosStream(stm, value.Argument))
