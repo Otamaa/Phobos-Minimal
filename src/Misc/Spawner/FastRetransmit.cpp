@@ -207,7 +207,7 @@ int FastRetransmit::CleanSamples()
 
 // ConnectionClass::Service_Send_Queue, at the point an ACK'd PACKET_DATA_ACK
 // entry's round-trip is about to be folded into the queue's response time.
-DEFINE_HOOK(0x48C436, ServiceSendQueue_RTTSample_FastRetransmit, 0x8)
+ASMJIT_PATCH(0x48C436, ServiceSendQueue_RTTSample_FastRetransmit, 0x8)
 {
 	if (FastRetransmit::Enabled)
 	{
@@ -220,7 +220,7 @@ DEFINE_HOOK(0x48C436, ServiceSendQueue_RTTSample_FastRetransmit, 0x8)
 
 // IPXManagerClass::Set_Timing entry. We overwrite retrydelta in place from the
 // maximum clean per-peer RTO. Only shortens, never lengthens.
-DEFINE_HOOK(0x540C60, IPXSetTiming_FastRetransmit, 0x8)
+ASMJIT_PATCH(0x540C60, IPXSetTiming_FastRetransmit, 0x8)
 {
 	if (!FastRetransmit::Enabled)
 		return 0;

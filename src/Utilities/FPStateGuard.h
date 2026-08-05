@@ -66,6 +66,11 @@ struct FPStateGuard
 		__asm { fldcw cw }
 	}
 
+	static inline bool IsSSEInDanger(unsigned int mxcsr)
+	{
+		return (mxcsr & MxcsrResultMask) != 0;
+	}
+
 	static inline bool IsSseClean(unsigned int mxcsr)
 	{
 		return (mxcsr & ~MxcsrStatusMask) == MxcsrExpected;

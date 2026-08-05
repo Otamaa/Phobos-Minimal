@@ -40,7 +40,7 @@
 // Recomputes the real culprit - the first peer whose received command count
 // is behind its sent count, instead of trusting v79 (often -1) or a clobbered register.
 // Skips the write entirely if no peer is actually behind.
-DEFINE_HOOK(0x6497DC, WaitForPlayers_CommandStallStat_Fix, 0x7)
+ASMJIT_PATCH(0x6497DC, WaitForPlayers_CommandStallStat_Fix, 0x7)
 {
 	int nconn = static_cast<int>(IPXManagerClass::Instance->NumConnections);
 	if (nconn > FrameGate::MaxPeers)

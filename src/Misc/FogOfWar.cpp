@@ -48,6 +48,32 @@
 //
 //	return 0x554B1D;
 //}
+#include <EBolt.h>
+#include <LineTrail.h>
+
+ASMJIT_PATCH(0x556C5C, LineTrail_Draw_Fogged, 0x5)
+{
+	GET(LineTrailNode*, pNode, ESI);
+
+	if (ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar) {
+		if (MapClass::Instance->IsLocationFogged(pNode->Position))
+			return 0x556D11;
+	}
+
+	return 0x0;
+}
+
+ASMJIT_PATCH(0x4C279E, EboltClass_Draw_Fogged, 0x6)
+{
+	GET(EBolt*, pThis, ESI);
+
+	if (ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar) {
+		if (MapClass::Instance->IsLocationFogged(pThis->Point1) || MapClass::Instance->IsLocationFogged(pThis->Point2))
+			return 0x4C281A;
+	}
+
+	return 0;
+}
 
 ASMJIT_PATCH(0x6B8E7A, ScenarioClass_LoadSpecialFlags, 0x5)
 {

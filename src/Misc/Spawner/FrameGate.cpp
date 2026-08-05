@@ -166,7 +166,7 @@ void FrameGate::OnReceive(unsigned int theirEntry, const unsigned char* evBytes)
 
 // Replaces vanilla's command-count loop in Wait_For_Players (the raw
 // recv>=sent test) with FrameGate::AllCommandsSatisfied.
-DEFINE_HOOK(0x6495D5, WaitForPlayers_FrameAwareGate, 0x7)
+ASMJIT_PATCH(0x6495D5, WaitForPlayers_FrameAwareGate, 0x7)
 {
 	const GameMode gm = SessionClass::Instance->GameMode;
 	if (gm != GameMode::LAN && gm != GameMode::Internet)
@@ -185,7 +185,7 @@ DEFINE_HOOK(0x6495D5, WaitForPlayers_FrameAwareGate, 0x7)
 
 // Feeds every received data/framesync packet to FrameGate::OnReceive so
 // SafeThrough stays current.
-DEFINE_HOOK(0x64A3F9, ProcessReceivePacket_FrameGateRecord, 0x9)
+ASMJIT_PATCH(0x64A3F9, ProcessReceivePacket_FrameGateRecord, 0x9)
 {
 	FrameGate::OnReceive(R->EBP(), reinterpret_cast<const unsigned char*>(R->EDI()));
 	return 0;

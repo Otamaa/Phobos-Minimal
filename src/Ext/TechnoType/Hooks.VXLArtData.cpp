@@ -545,7 +545,7 @@ static double DecideScaleAndIndex(Matrix3D* mtx, TechnoClass* pThis, TechnoTypeC
 //removing the cloak , noShadow , vxl::LoadFailded check
 DEFINE_JUMP(LJMP, 0x706BDD, 0x706C01); // I checked it a priori
 
-DEFINE_HOOK(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
+ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 {
 	enum { SkipDrawing = 0x73C5C9 };
 	GET(UnitClass* const, pThis, EBP);

@@ -158,7 +158,7 @@ static int s_SavedOriginalNodeCount = 0;   // Hook B 保存的原 BaseNodes.Coun
 // 将 AI 自己的建筑列表替换为全局建筑列表，
 // 使该函数能识别跨所属方建筑
 // ============================================================
-DEFINE_HOOK(0x506EF0, HouseClass_BaseNode_SatisfactionCheck_Entry, 0x6)
+ASMJIT_PATCH(0x506EF0, HouseClass_BaseNode_SatisfactionCheck_Entry, 0x6)
 {
 	GET(HouseClass*, pThis, ECX);
 
@@ -181,7 +181,7 @@ DEFINE_HOOK(0x506EF0, HouseClass_BaseNode_SatisfactionCheck_Entry, 0x6)
 // Hook A.end: sub_506EF0 出口
 // 恢复被 Hook A 替换的建筑列表
 // ============================================================
-DEFINE_HOOK(0x50766E, HouseClass_BaseNode_SatisfactionCheck_Exit, 0xD)
+ASMJIT_PATCH(0x50766E, HouseClass_BaseNode_SatisfactionCheck_Exit, 0xD)
 {
 	// 注意: 到出口时 EBP 已被覆盖为 off_7E38D0，
 	// 所以不能用 GET(..., EBP) 获取 HouseClass*
@@ -208,7 +208,7 @@ DEFINE_HOOK(0x50766E, HouseClass_BaseNode_SatisfactionCheck_Exit, 0xD)
 //
 // 我们每帧只保留一个授权节点，其余清空，让 AI 按顺序逐个建造。
 // ============================================================
-DEFINE_HOOK(0x4FE3E0, HouseClass_AI_BaseConstructionUpdate_Entry, 0x5)
+ASMJIT_PATCH(0x4FE3E0, HouseClass_AI_BaseConstructionUpdate_Entry, 0x5)
 {
 	GET(HouseClass*, pThis, ECX);
 
@@ -332,7 +332,7 @@ DEFINE_HOOK(0x4FE3E0, HouseClass_AI_BaseConstructionUpdate_Entry, 0x5)
 // Hook C: 拦截 FactoryClass::DemandProduction
 // 阻止未授权的建筑类型进入工厂生产队列
 // ============================================================
-DEFINE_HOOK(0x4C9C70, FactoryClass_DemandProduction_Intercept, 0x9)
+ASMJIT_PATCH(0x4C9C70, FactoryClass_DemandProduction_Intercept, 0x9)
 {
 	GET_STACK(TechnoTypeClass const*, pType, 0x4);
 	GET_STACK(HouseClass*, pOwner, 0x8);

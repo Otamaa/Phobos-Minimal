@@ -48,11 +48,12 @@ bool FPStateGuard::Repair(const char* pSite)
 
 	const bool sseBad = !IsSseClean(mxcsr);
 	const bool x87Bad = !IsX87Clean(cw);
+	const bool sseBadB = IsSSEInDanger(mxcsr);
 
-	if (!sseBad && !x87Bad)
+	if (!sseBad && !x87Bad && !sseBadB)
 		return false;
 
-	if (sseBad)
+	if (sseBad || sseBadB)
 		_mm_setcsr(MxcsrExpected | (mxcsr & MxcsrStatusMask));
 
 	if (x87Bad)
@@ -64,6 +65,14 @@ bool FPStateGuard::Repair(const char* pSite)
 
 		if (sseBad) {
 			Debug::Log("[FPStateGuard] %s: MXCSR %04X -> %04X (RC/FTZ/DAZ delta %04X)\n",
+				pSite,
+				mxcsr & 0xFFFFu,
+				MxcsrExpected,
+				(mxcsr ^ MxcsrExpected) & MxcsrResultMask);
+		}
+
+		if (sseBadB) {
+			Debug::Log("[FPStateGuard] Repaired corrupted SSE FP state at %s: MXCSR %04X -> %04X (RC/FTZ/DAZ delta %04X) (GPU driver bug, see cnc-ddraw#453)\n",
 				pSite,
 				mxcsr & 0xFFFFu,
 				MxcsrExpected,

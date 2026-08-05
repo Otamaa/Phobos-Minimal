@@ -357,7 +357,7 @@ ASMJIT_PATCH(0x730E39, GuardCommandClass_IncludeWeeder, 0x6)
 DEFINE_PATCH_TYPED(BYTE, 0x731B67, 4u);
 
 
-DEFINE_HOOK(0x5370A0, BeaconPlacementCommandClass_ExecuteSub_Start, 0x5)
+ASMJIT_PATCH(0x5370A0, BeaconPlacementCommandClass_ExecuteSub_Start, 0x5)
 {
 	if (FakeRulesClass::Instance()->AllowBeaconHotKeyInSinglePlayer)
 		return 0x5370AE;

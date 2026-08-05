@@ -571,7 +571,7 @@ ASMJIT_PATCH(0x4AC9B2, MouseClass_ToggleBeaconMode_AllUsed, 0x6)
 // At this point: EDI = HouseClass*, EBP = TechnoClass* (the object being delivered).
 // We track the delivered type per sidebar tab so the "Build Last" commands can re-queue it.
 
-DEFINE_HOOK(0x4FB6C2, HouseClass_RegisterObjectGain_TrackLastBuiltTab, 0x7)
+ASMJIT_PATCH(0x4FB6C2, HouseClass_RegisterObjectGain_TrackLastBuiltTab, 0x7)
 {
 	GET(FakeHouseClass* const, pThis, EDI);
 	GET(TechnoClass* const, pTechno, EBP);

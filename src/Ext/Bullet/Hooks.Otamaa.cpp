@@ -31,7 +31,7 @@ ASMJIT_PATCH(0x46B1D6, BulletClass_DrawVXL_Palette, 0x6)
 	return 0x46B1F2;
 }
 
-DEFINE_HOOK(0x4683F2, BulletClass_Draw_ZAdjust, 0x5)
+ASMJIT_PATCH(0x4683F2, BulletClass_Draw_ZAdjust, 0x5)
 {
 	GET(BulletClass*, pThis, ESI);
 	GET(int, height, ECX);
