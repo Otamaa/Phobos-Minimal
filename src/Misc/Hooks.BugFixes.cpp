@@ -2814,33 +2814,13 @@ ASMJIT_PATCH(0x54B3E7, JumpjetLocomotionClass_Move_To_LocomotorWarheadFix, 0x5)
 // This check determines whether miners on a Guard mission near the refinery should return to the Harvest mission.
 DEFINE_JUMP(LJMP, 0x740943, 0x740957); //UnitClass_Mission_Guard
 
-
-//These map cells are what SpySat skips revealing in MP normally.
-static COMPILETIMEEVAL bool FORCEDINLINE ShroudFix_IsCellInvalid(CellStruct* pMapCell)
-{
-	const int x = pMapCell->X;
-	const int y = pMapCell->Y;
-	auto const& rect = MapClass::Instance->MapRect;
-
-	if (x == 7 && y == rect.Width + 5)
-		return true;
-
-	if (x == 13 && y == rect.Width + 11)
-		return true;
-
-	if (x == rect.Height + 13 && y == rect.Width + rect.Height - 15)
-		return true;
-
-	return false;
-}
-
 ASMJIT_PATCH(0x6FB5E5, TechnoClass_DeleteGap_CellCheck, 0x5)
 {
 	enum { SkipCell = 0x6FB6F3 };
 
 	GET(CellStruct*, pMapCell, EDX);
 
-	if (ShroudFix_IsCellInvalid(pMapCell))
+	if (GeneralUtils::IsCellInvalidForReveal(pMapCell))
 		return SkipCell;
 
 	return 0;
@@ -2852,7 +2832,7 @@ ASMJIT_PATCH(0x6FB2FB, TechnoClass_CreateGap_CellCheck, 0x5)
 
 	GET(CellStruct*, pMapCell, EDX);
 
-	if (ShroudFix_IsCellInvalid(pMapCell))
+	if (GeneralUtils::IsCellInvalidForReveal(pMapCell))
 		return SkipCell;
 
 	return 0;
@@ -2864,11 +2844,12 @@ ASMJIT_PATCH(0x577AFF, MapClass_ResetShroud_CellCheck, 0x6)
 	enum { SkipGameCode = 0x577B75 };
 
 	auto& map = MapClass::Instance;
+	map->Gap_gens_shroud(false, 0);
 	map->CellIteratorReset();
 
 	for (auto pCell = map->CellIteratorNext(); pCell; pCell = map->CellIteratorNext())
 	{
-		if (ShroudFix_IsCellInvalid(&pCell->MapCoords))
+		if (GeneralUtils::IsCellInvalidForReveal(&pCell->MapCoords))
 			continue;
 
 		pCell->Flags &= ~(CellFlags::CenterRevealed | CellFlags::EdgeRevealed);
@@ -2890,7 +2871,7 @@ ASMJIT_PATCH(0x577BF1, MapClass_ResetShroudForTMission_CellCheck, 0x6)
 
 	for (auto pCell = map->CellIteratorNext(); pCell; pCell = map->CellIteratorNext())
 	{
-		if (ShroudFix_IsCellInvalid(&pCell->MapCoords))
+		if (GeneralUtils::IsCellInvalidForReveal(&pCell->MapCoords))
 			continue;
 
 		pCell->Flags &= ~(CellFlags::CenterRevealed | CellFlags::EdgeRevealed);

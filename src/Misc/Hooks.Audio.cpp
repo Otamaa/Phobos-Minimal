@@ -38,7 +38,7 @@ class LooseAudioCache
 {
 public:
 	LooseAudioCache(const char* Title)
-		: Name(Title), WavName(Title), Data {}
+		: Name(Title), WavName(Title), Data {}, IsFileNotAvaible { false }
 	{
 		WavName.reserve(Name.length() + 6);  // Pre-allocate
 		WavName = Name + ".wav";
@@ -133,17 +133,24 @@ private:
 	FileStruct GetFileStructLocked()
 	{
 		// If we already have a cached file handle and the data is valid, reuse it
-		if (Data.Size >= 0 && Data.FileHandle)
-		{
+		if (Data.Size >= 0 && Data.FileHandle) {
 			return { Data.Size, Data.Offset, Data.FileHandle, false }; // false = not newly allocated
+		}
+
+		if(IsFileNotAvaible) { //the file one parsed and not found  , just bail
+			return { -1, -1, nullptr, false };
 		}
 
 		// First time: open and parse the WAV
 		auto pFile = GameCreate<CCFileClass>(WavName.c_str());
-		if (!pFile->IsAvaible())
-		{
-			if (Phobos::Otamaa::IsAdmin)
+
+		if (!pFile->IsAvaible()) {
+			if (Phobos::Otamaa::IsAdmin){
 				Debug::Log("LooseAudioCache: File does not exist: %s\n", WavName.c_str());
+			}
+
+			IsFileNotAvaible = true;
+
 			GameDelete<true, false>(pFile);
 			return { -1, -1, nullptr, false };
 		}
@@ -191,6 +198,7 @@ private:
 	std::string WavName;
 	LooseAudioFile Data;
 	std::mutex EntryMutex;
+	bool IsFileNotAvaible;
 };
 
 class LooseAudioCacheManager

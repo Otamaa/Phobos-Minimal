@@ -4603,7 +4603,19 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 	}
 	case TeamMissionType::Reveal_map:
 	{
-		MapClass::Instance->Reveal(nullptr);
+		{
+			auto& map = MapClass::Instance;
+			map->CellIteratorReset();
+
+			for (auto pCell = map->CellIteratorNext(); pCell; pCell = map->CellIteratorNext())
+			{
+				if (GeneralUtils::IsCellInvalidForReveal(&pCell->MapCoords))
+					continue;
+
+				pCell->Flags &= ~(CellFlags::CenterRevealed | CellFlags::EdgeRevealed);
+				pCell->AltFlags &= ~(AltCellFlags::Mapped | AltCellFlags::NoFog);
+			}
+		}
 		this->StepCompleted = true;
 		return;
 	}

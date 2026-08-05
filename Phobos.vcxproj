@@ -115,6 +115,10 @@
     <ClCompile Include="src\Misc\FogOfWar.cpp" />
     <ClCompile Include="src\Misc\Renderer\GlobalColorPacker.cpp" />
     <ClCompile Include="src\Misc\Spawner\DesyncHandler.cpp" />
+    <ClCompile Include="src\Misc\Spawner\FastRetransmit.cpp" />
+    <ClCompile Include="src\Misc\Spawner\FrameGate.cpp" />
+    <ClCompile Include="src\Misc\Spawner\MPStatsFix.cpp" />
+    <ClCompile Include="src\Misc\Spawner\PacketRedundancy.cpp" />
     <ClCompile Include="src\Misc\SyncLogging.cpp" />
     <ClCompile Include="src\New\ChoiceBox\Entities\Base\MapChoiceBoxClass.cpp" />
     <ClCompile Include="src\New\ChoiceBox\Entities\Derived\ScreenChoiceBoxClass.cpp" />
@@ -527,6 +531,7 @@
     <ClCompile Include="src\Utilities\Debug.cpp" />
     <ClCompile Include="src\Ext\BuildingType\Body.cpp" />
     <ClCompile Include="src\Ext\WarheadType\Body.cpp" />
+    <ClCompile Include="src\Utilities\FPStateGuard.cpp" />
     <ClCompile Include="src\Utilities\GameConfig.cpp" />
     <ClCompile Include="src\Utilities\Handle.cpp" />
     <ClCompile Include="src\Utilities\Helpers.cpp" />
@@ -725,6 +730,10 @@
     <ClInclude Include="src\Misc\Exception\ExceptionHandler.h" />
     <ClInclude Include="src\Misc\Exception\ExceptionHandler.Resource.h" />
     <ClInclude Include="src\Misc\Renderer\GlobalColorPacker.h" />
+    <ClInclude Include="src\Misc\Spawner\FastRetransmit.h" />
+    <ClInclude Include="src\Misc\Spawner\FrameGate.h" />
+    <ClInclude Include="src\Misc\Spawner\MPStatsFix.h" />
+    <ClInclude Include="src\Misc\Spawner\PacketRedundancy.h" />
     <ClInclude Include="src\Misc\Spawner\UI\DesyncDialog.Resource.h" />
     <ClInclude Include="src\Misc\SyncLogging.h" />
     <ClInclude Include="src\New\ChoiceBox\Entities\Base\MapChoiceBoxClass.h" />
@@ -1007,6 +1016,7 @@
     <ClInclude Include="src\Ext\Tiberium\Body.h" />
     <ClInclude Include="src\Ext\VoxelAnim\Body.h" />
     <ClInclude Include="src\Ext\WeaponType\Body.h" />
+    <ClInclude Include="src\Utilities\FPStateGuard.h" />
     <ClInclude Include="src\Utilities\GameConfig.h" />
     <ClInclude Include="src\Utilities\GameUniquePointers.h" />
     <ClInclude Include="src\Utilities\Handle.h" />

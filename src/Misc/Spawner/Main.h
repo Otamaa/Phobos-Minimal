@@ -160,6 +160,7 @@ struct SpawnerMain
 		int MaxAhead;
 		int PreCalcMaxAhead;
 		byte MaxLatencyLevel;
+		bool FrameAwareGate;
 		bool ForceMultiplayer;
 		bool Host; // True on the machine hosting the game; announces itself as the game master at start.
 

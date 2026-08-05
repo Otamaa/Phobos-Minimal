@@ -633,6 +633,25 @@ TagClass* GeneralUtils::GetTagClassByIndex(int Index, bool forceNew)
 	}
 }
 
+//These map cells are what SpySat skips revealing in MP normally.
+bool GeneralUtils::IsCellInvalidForReveal(CellStruct* pMapCell)
+{
+	const int x = pMapCell->X;
+	const int y = pMapCell->Y;
+	auto const& rect = MapClass::Instance->MapRect;
+
+	if (x == 7 && y == rect.Width + 5)
+		return true;
+
+	if (x == 13 && y == rect.Width + 11)
+		return true;
+
+	if (x == rect.Height + 13 && y == rect.Width + rect.Height - 15)
+		return true;
+
+	return false;
+}
+
 bool GeneralUtils::HasZoneConnection(HouseClass* pOwner, HouseClass* pEnemy, MovementZone mz)
 {
 	if (mz == MovementZone::Fly)

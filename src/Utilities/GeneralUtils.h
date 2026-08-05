@@ -698,4 +698,5 @@ public:
 	static bool CheckTaskForceZoneConnection(HouseClass* pOwner, HouseClass* pEnemy, TaskForceClass* pTaskForce, bool requireAll);
 	static TagClass* GetTagClassByIndex(int Index, bool forceNew);
 
+	static bool IsCellInvalidForReveal(CellStruct* pMapCell);
 };

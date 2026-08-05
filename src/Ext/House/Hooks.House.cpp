@@ -1,3 +1,5 @@
+#include "Body.h"
+
 #include <AbstractClass.h>
 #include <TechnoClass.h>
 #include <FootClass.h>
@@ -764,15 +766,124 @@ ASMJIT_PATCH(0x4FAF2A, HouseClass_SWDefendAgainst_Aborted, 0x8)
 	return (pSW && !pSW->IsCharged) ? 0x4FAF32 : 0x4FB0CF;
 }
 
+static constexpr int CurrentGame = 0;
+
 ASMJIT_PATCH(0x4F62FF, HouseClass_CTOR_FixNameOverflow, 6)
 {
 	GET(HouseClass*, H, EBP);
 	GET_STACK(HouseTypeClass*, Country, 0x48);
 
+	Debug::Log("Copying country UIName [%ls] to house [%s]\n", Country->UIName, H->Type->ID);
 	PhobosCRT::wstrCopy(H->UIName, Country->UIName);
+	Debug::Log("Copying country UIName [%ls] to house [%s] result UIName [%ls]\n", Country->UIName, H->Type->ID, H->UIName);
 
 	return 0x4F6312;
 }
+
+//static reference<MPlayerScoreType, 0x00A8D1FCu, 8u> const MPlayerScores {};
+static reference<int, 0x00A8D580u>                  Session_NumScores {};
+static reference<int, 0x00A8D584u>                  MPlayerWinner {};
+
+int MultiplayerScore()
+{
+	Session_NumScores = 0;
+
+	const int houseCount = HouseClass::Array->Count;
+	int index = 0;
+
+	for (; index < houseCount; ++index)
+	{
+		HouseClass* const pHouse = HouseClass::Array->Items[index];
+
+		if (!pHouse)                                       // 0x5C98CD
+			continue;
+
+		if (pHouse->Type->MultiplayPassive == 1)           // 0x5C98D8  (HouseTypeClass +0x1A6)
+			continue;
+
+		if (pHouse == HouseClass::Observer())                       // 0x5C98E5
+			continue;
+
+		const int scoreIndex = Session_NumScores()++;
+		MPlayerScoreType& score = MPlayerScoreType::MPScores[scoreIndex];
+
+		score.NonGameOvers = 0;
+
+		PhobosCRT::wstrCopy(score.Name, pHouse->UIName);
+	
+		score.Lost[CurrentGame] = 0;
+		score.Kill[CurrentGame] = 0;
+		score.Builts[CurrentGame] = 0;
+		score.Score[CurrentGame] = 0;
+		score.Scheme = pHouse->ColorSchemeIndex;   // HouseClass +0x16054
+
+		if (!pHouse->Defeated)                             // HouseClass +0x1F5
+		{
+			// DIFF: vanilla does a load/inc/store on a field it just zeroed, so this can
+			//       never exceed 1. Kept verbatim — see the session note above.
+			++score.NonGameOvers;
+
+			// BUG: unconditional overwrite, left as-is for behavioural parity. With more
+			//      than one surviving house (team win, or a timeout) the *last* survivor
+			//      in Houses order is recorded as the winner. The attached log shows four
+			//      "Winner" rows feeding a single MPlayerWinner slot.
+			MPlayerWinner = scoreIndex;
+		}
+
+		int kills = 0;
+
+		for (int i = 0; i < 20; ++i)                       // 0x5C9978, HouseClass +0x53E4
+			kills += pHouse->KilledUnitsOfHouses[i];
+
+		for (int i = 0; i < 20; ++i)                       // 0x5C998D, HouseClass +0x5438
+			kills += pHouse->KilledBuildingsOfHouses[i];
+
+		score.Kill[CurrentGame] = kills;
+		score.Lost[CurrentGame] = pHouse->TotalKilledUnits + pHouse->TotalKilledBuildings;  // +0x5434, +0x5488
+
+		score.Builts[CurrentGame] =
+			pHouse->FactoryProducedBuildingTypes.total()   // +0x55A0
+			+ pHouse->FactoryProducedUnitTypes.total()       // +0x55B4
+			+ pHouse->FactoryProducedInfantryTypes.total()    // +0x55C8
+			+ pHouse->FactoryProducedAircraftTypes.total();   // +0x55DC
+
+		// DIFF: vanilla uses `+=` here even though the slot was just zeroed. Equivalent
+		//       to a plain assignment; kept as-is.
+		if (pHouse->SiloMoney > 0)                        // HouseClass +0x54E8
+			score.Score[CurrentGame] += pHouse->SiloMoney;
+
+		if (!pHouse->Defeated)
+		{
+			// Survivor bonus: base + 50% + random[50%, 100%].
+			// NOTE: `cdq / sub eax,edx / sar eax,1` is signed div-by-2 truncating toward
+			//       zero, i.e. plain C `/ 2`. Not an arithmetic shift on the raw value.
+			const int base = score.Score[CurrentGame];
+			const int half = base / 2;
+
+			score.Score[CurrentGame] = base + half + ScenarioClass::Instance->Random(half, base);
+		}
+
+		const char* const outcome = (score.NonGameOvers > 0) ? "Winner" : "Loser";
+
+		Debug::Log(
+			"%ls: %s\n Scheme: %d\n Lost = %d\n Kills = %d\n Built = %d\n Score = %d\n",
+			score.Name,
+			outcome,
+			score.Scheme,
+			score.Lost[CurrentGame],
+			score.Kill[CurrentGame],
+			score.Builts[CurrentGame],
+			score.Score[CurrentGame]);
+	}
+
+	// The vanilla function returns EAX, which at this point is just the loop counter
+	// (== houseCount, or 0 when the vector is empty). No caller consumes it — kept only
+	// so the signature still matches the original.
+	return index;
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x5C98A0, MultiplayerScore)
+DEFINE_FUNCTION_JUMP(CALL, 0x5C9D42, MultiplayerScore)
 
 ASMJIT_PATCH(0x4F645F, HouseClass_CTOR_FixSideIndices, 5)
 {

@@ -817,6 +817,10 @@ public:
 		return nBuffer;
 	}
 
+	void __thiscall Gap_gens_shroud(bool a3, int a4) {
+		JMP_THIS(0x4ADEE0);
+	}
+
 	int MapClass_zone_56D3F0(CellStruct* cell) const
 	{
 		JMP_THIS(0x56D3F0);

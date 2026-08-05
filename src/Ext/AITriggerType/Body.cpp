@@ -921,15 +921,9 @@ std::string_view GetAITriggerConditionString(AITriggerCondition condition)
 	}
 }
 
-bool NOINLINE AITriggerTypeExtData::CheckConditionType(AITriggerTypeClass* pThis,
-	   AITriggerCondition condType,
-	   HouseClass* house1,
-	   HouseClass* house2,
-	   bool lessThanZeroIsNotAllowed
-) {
-	bool conditionMet = false;
-
-	std::string_view name = GetAITriggerConditionString(AITriggerCondition(condType));
+void LogTriggerCondition(AITriggerTypeClass* pThis, AITriggerCondition condType, HouseClass* house1, HouseClass* house2)
+{
+	std::string_view name = GetAITriggerConditionString(condType);
 
 	if (name.empty())
 		name = GetConditionString((PhobosAINewConditionTypes)condType);
@@ -938,6 +932,15 @@ bool NOINLINE AITriggerTypeExtData::CheckConditionType(AITriggerTypeClass* pThis
 		name = "Unknown";
 
 	Debug::LogInfo("AITriggerType[{} - {}] triggering [{} - {}]", (void*)pThis, pThis->ID, (int)condType, name);
+}
+
+bool NOINLINE AITriggerTypeExtData::CheckConditionType(AITriggerTypeClass* pThis,
+	   AITriggerCondition condType,
+	   HouseClass* house1,
+	   HouseClass* house2,
+	   bool lessThanZeroIsNotAllowed
+) {
+	bool conditionMet = false;
 
 	// Assembly 0x41E908 jump table (ConditionType -1..7):
 	switch (condType)

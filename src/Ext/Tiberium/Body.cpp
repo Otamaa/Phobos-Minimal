@@ -346,8 +346,10 @@ bool TiberiumExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	detail::read<bool>(slopes, exINI, pSection, "UseSlopes");
 	auto Variety = Nullable<int>()(exINI, pSection, "Variety", false);
+	static constexpr int ImagesCount = 12;
+	static constexpr int ImageSlopes = 8;
 
-	int MaxCount = !slopes ? 12 : 20;
+	int MaxCount = !slopes ? ImagesCount : ImagesCount + ImageSlopes;
 
 	if (Variety.isset()) {
 		MaxCount = MaxImpl(MaxCount, Variety.Fetch());
@@ -389,7 +391,7 @@ bool TiberiumExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		}
 
 		detail::read<int>(pThis->NumFrames, exINI, pSection, "NumFrames");
-		pThis->SlopeFrames = !slopes ? 0 : 8;
+		pThis->SlopeFrames = !slopes ? 0 : ImageSlopes;
 		pThis->NumImages = MaxCount;
 	}
 

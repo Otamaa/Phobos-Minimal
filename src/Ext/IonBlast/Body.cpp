@@ -316,7 +316,7 @@ void __fastcall FakeIonBlastClass::_DrawAll()
 		static_cast<FakeIonBlastClass*>(IonBlastClass::Array->Items[i])->_Draw();
 	}
 }
-
+#pragma optimize("", off )
 void FakeIonBlastClass::_Draw()
 {
 	if (!FakeRulesClass::DetailsCurrentlyEnabled())
@@ -443,7 +443,7 @@ void FakeIonBlastClass::_Draw()
 	targetSurface->Unlock();
 	sourceSurface->Unlock();
 }
-
+#pragma optimize("", on )
 ASMJIT_PATCH(0x53CB91, IonBlastClass_DTOR, 6)
 {
 	GET(IonBlastClass*, IB, ECX);

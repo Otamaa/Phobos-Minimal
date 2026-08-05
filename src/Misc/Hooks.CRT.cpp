@@ -35,6 +35,8 @@ unsigned int __cdecl Game_controlfp(unsigned int NewValue, unsigned int Mask) {
 	JMP_STD(0x7CBF49);
 }
 
+#include <Utilities/FPStateGuard.h>
+
 void __cdecl CRTHooks::_set_fp_mode()
 {
 	// Call to "store_fpu_codeword"
@@ -58,14 +60,11 @@ void __cdecl CRTHooks::_set_fp_mode()
 	fesetround(FE_TOWARDZERO);
 
 	// 2) Update MXCSR to match: mask SSE exceptions and set rounding to toward-zero
-	const unsigned int MXCSR_MASK_EXCEPTIONS = ((1u << 7) | (1u << 8) | (1u << 9) |
-												 (1u << 10) | (1u << 11) | (1u << 12)); // bits 7..12 mask exceptions
-	const unsigned int MXCSR_ROUND_TOWARD_ZERO = (3u << 13); // bits 13..14 = 11 for round-toward-zero
+	//const unsigned int MXCSR_MASK_EXCEPTIONS = ((1u << 7) | (1u << 8) | (1u << 9) |
+	//											 (1u << 10) | (1u << 11) | (1u << 12)); // bits 7..12 mask exceptions
+	//const unsigned int MXCSR_ROUND_TOWARD_ZERO = (3u << 13); // bits 13..14 = 11 for round-toward-zero
 
-	unsigned int mxcsr = _mm_getcsr();
-	mxcsr |= MXCSR_MASK_EXCEPTIONS;
-	mxcsr = (mxcsr & ~(3u << 13)) | MXCSR_ROUND_TOWARD_ZERO; // set rounding
-	_mm_setcsr(mxcsr);
+	FPStateGuard::Apply();
 
 	// 3) Now *store* the FPU control word value the game uses.
 	// Call the existing function that does fnstcw -> store into your pFPU_Codeword_ variable.

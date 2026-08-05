@@ -4502,10 +4502,10 @@ ASMJIT_PATCH(0x5FF93F, SpotlightClass_Draw_OutOfboundSurfaceArrayFix, 0x7)
 	//GET(SpotlightClass*, pThis, EBP);
 	GET(int, idx, ECX);
 
-	if (idx > 64)
+	if ((unsigned)idx >= 64u)
 	{
 		//Debug::LogInfo("[0x{}]SpotlightClass with OutOfBoundSurfaceArrayIndex[{}] Fixing!", (void*)pThis, idx);
-		idx = 64;
+		R->ECX(63);
 	}
 
 	return 0x0;

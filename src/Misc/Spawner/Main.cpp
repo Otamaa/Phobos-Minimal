@@ -20,6 +20,7 @@
 #include "DumpTypeDataArrayToFile.h"
 #include "NetHack.h"
 #include "ProtocolZero.h"
+#include "FrameGate.h"
 
 #include <GameOptionsClass.h>
 #include <WWMessageBox.h>
@@ -107,6 +108,7 @@ SpawnerMain::GameConfigs::GameConfigs()
 	, MaxAhead { -1 }
 	, PreCalcMaxAhead { 0 }
 	, MaxLatencyLevel { 0xFF }
+	, FrameAwareGate { true }
 	, ForceMultiplayer { false }
 	, Host { false }
 
@@ -587,6 +589,7 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 			MaxAhead = pINI->ReadInteger(GameStrings::Settings(), "MaxAhead", MaxAhead);
 			PreCalcMaxAhead = pINI->ReadInteger(GameStrings::Settings(), "PreCalcMaxAhead", PreCalcMaxAhead);
 			MaxLatencyLevel = (byte)pINI->ReadInteger(GameStrings::Settings(), "MaxLatencyLevel", (int)MaxLatencyLevel);
+			FrameAwareGate = pINI->ReadBool(GameStrings::Settings(), "FrameAwareGate", FrameAwareGate);
 			ForceMultiplayer = pINI->ReadBool(GameStrings::Settings(), "ForceMultiplayer", ForceMultiplayer);
 			Host             = pINI->ReadBool(GameStrings::Settings(), "Host", Host);
 
@@ -735,11 +738,27 @@ void SpawnerMain::GameConfigs::Init() {
 	//Patch::Apply_LJMP(0x699AE0, 0x69A1B2); // SessionClass::Read_Scenario_Descriptions
 }
 
+#include <Utilities/FPStateGuard.h>
+
+ASMJIT_PATCH(0x4A4420, SetVideoMode_RepairFPState, 0x9)
+{
+	FPStateGuard::ScopedRepair guard("SetDisplayMode");
+	return 0;
+}
+
+ASMJIT_PATCH(0x55B4E1, LogicClass_Update_RepairFPState, 0x5)
+{
+	FPStateGuard::ScopedRepair guard("LogicFrameBegin");
+	return 0;
+}
+
 bool __fastcall SpawnerMain::GameConfigs::StartGame() {
 
 	if (SpawnerMain::Configs::Active)
 		return 0;
 
+	FPStateGuard::ScopedRepair guard("Spawner::StartGame");
+	
 	SpawnerMain::Configs::Active = true;
 	Game::IsActive() = true;
 
@@ -1296,6 +1315,10 @@ void SpawnerMain::GameConfigs::InitNetwork() {
 
 	EventExt::ProtocolZero::Init();
 	EventExt::ProtocolZero::Enable = (SpawnerMain::GameConfigs::m_Ptr.Protocol == 0);
+	FrameGate::Enabled = SpawnerMain::GameConfigs::m_Ptr.FrameAwareGate;
+	
+	FrameGate::Reset();
+
 	if (EventExt::ProtocolZero::Enable)
 	{
 		Game::Network::FrameSendRate = 2;

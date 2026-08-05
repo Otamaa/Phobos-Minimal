@@ -472,7 +472,7 @@ struct MPlayerScoreType
 {
 	static COMPILETIMEEVAL reference<MPlayerScoreType, 0xA8D1FCu, 8u> MPScores { };
 
-	char Name[40];
+	wchar_t Name[20];
 	int Scheme;
 	int NonGameOvers;
 	int Lost[4];

@@ -2666,13 +2666,13 @@ TechnoTypeClass* DropshipLoadoutClass::ResolveBaySlot(
 
 void DropshipLoadoutClass::CreateControls()
 {
-	const int cameoWidth = 60;
-	const int cameoHeight = 48;
+	static constexpr int cameoWidth = 60;
+	static constexpr int cameoHeight = 48;
 
-	const int btn_ScrollUp_ID = 100;
-	const int btn_ScrollDown_ID = 101;
-	const int btn_BasicDropshipCameo_ID = 200;
-	const int btn_BasicSidebarCameo_ID = 300;
+	static constexpr int btn_ScrollUp_ID = 100;
+	static constexpr int btn_ScrollDown_ID = 101;
+	static constexpr int btn_BasicDropshipCameo_ID = 200;
+	static constexpr int btn_BasicSidebarCameo_ID = 300;
 
 	buttonsList.clear();
 
