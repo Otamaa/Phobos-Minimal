@@ -14,8 +14,7 @@
 
 #include <Misc/DamageArea.h>
 
-void __fastcall FakeIonBlastClass::DestroySurfaces()
-{
+void __fastcall FakeIonBlastClass::DestroySurfaces() {
 	for (size_t i = 0; i < IonBlastClass_Surfaces.size(); ++i) {
 		CallDTOR(std::exchange(IonBlastClass_Surfaces[i], nullptr));
 	}
@@ -36,7 +35,7 @@ void __fastcall FakeIonBlastClass::InitOneTime()
 	for (auto& pSurfaces : IonBlastClass_Surfaces)
 	{
 		// ── Allocate BSurface (0x53D384–0x53D3CB) ────────────────────────────
-		pSurfaces = GameCreate<BSurface>(512, 256, 1);
+		pSurfaces = GameCreate<BSurface>(512, 256, 1, 0);
 
 		// ── Fill surface to 0xFF  — vtable call [edx+18h] (0x53D3D7) ─────────
 		pSurfaces->Fill(-1); // SUSPECT: confirm vtable slot
@@ -49,7 +48,7 @@ void __fastcall FakeIonBlastClass::InitOneTime()
 		//   IDA shows +0x8080 because it casts to __int16*; raw byte offset is 0x10100.
 		// VERIFY: vtable offset 0x5C = Lock on XSurface/BSurface in YRpp
 		uint8_t* pLocked = (uint8_t*)pSurfaces->Lock(0, 0);
-		uint8_t* pCentre = &pLocked[0x10100]; // centre of surface (row 128, col 128)
+		uint8_t* pCentre = pLocked + 0x8080; // centre of surface (row 128, col 128)
 
 		// ── Outer loop: row = 127 down to 0  (EBX) ───────────────────────────
 		for (int row = 127; row >= 0; --row)
@@ -316,19 +315,40 @@ void __fastcall FakeIonBlastClass::_DrawAll()
 		static_cast<FakeIonBlastClass*>(IonBlastClass::Array->Items[i])->_Draw();
 	}
 }
+
 #pragma optimize("", off )
 void FakeIonBlastClass::_Draw()
 {
-	if (!FakeRulesClass::DetailsCurrentlyEnabled())
+	static COMPILETIMEEVAL int IonBlastSurfaceWidth = 512;
+	static COMPILETIMEEVAL int IonBlastSurfaceHeight = 256;
+	static COMPILETIMEEVAL int IonBlastSurfaceCount = 80;
+
+	if (!FakeRulesClass::DetailsCurrentlyEnabled()) // 0x53D580 : Options.DetailLevel == 2
 		return;
 
-	auto [screenPos, IsIn] = TacticalClass::Instance->GetCoordsToClientSituation(this->Location);
+	// EXTENSION: Fog of War culling. Not present in vanilla.
+	if (ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar)
+	{
+		if (MapClass::Instance->IsLocationFogged(this->Location))
+			return;
+	}
 
-	if (!IsIn)
+	auto [screenPos, isInViewport] = TacticalClass::Instance->GetCoordsToClientSituation(this->Location);
+
+	if (!isInViewport) // 0x53D5A8
+		return;
+
+	// EXTENSION: vanilla indexes IonBlastClass_Surfaces[state] unguarded at 0x53D5DE.
+	// An out-of-range Lifetime hands a garbage Surface* to the lock helper and faults
+	// there rather than here. Cheap guard, no behavioural change for valid states.
+	if (this->Lifetime < 0 || this->Lifetime >= IonBlastSurfaceCount)
 		return;
 
 	DSurface* targetSurface = DSurface::Temp();
 	DSurface* sourceSurface = static_cast<DSurface*>(IonBlastClass_Surfaces[this->Lifetime]);
+
+	if (!targetSurface || !sourceSurface)
+		return;
 
 	RectangleStruct viewportRect {
 		.X = DSurface::ViewBounds->X,
@@ -340,28 +360,28 @@ void FakeIonBlastClass::_Draw()
 	RectangleStruct destRect {
 		.X = screenPos.X - 256,
 		.Y = screenPos.Y - 128,
-		.Width = 512,
-		.Height = 256
+		.Width = IonBlastSurfaceWidth,
+		.Height = IonBlastSurfaceHeight
 	};
 
 	RectangleStruct srcRect {
-		.X = 0,
-		.Y = 0,
-		.Width = 512,
-		.Height = 256
+		.X = 0, .Y = 0,
+		.Width = IonBlastSurfaceWidth, .Height = IonBlastSurfaceHeight
 	};
 
+	// srcSubRect is the OUT parameter: lockregion narrows it to the clipped span.
 	RectangleStruct srcSubRect {
-		.X = 0,
-		.Y = 0,
-		.Width = 512,
-		.Height = 256
+		.X = 0, .Y = 0,
+		.Width = IonBlastSurfaceWidth, .Height = IonBlastSurfaceHeight
 	};
 
-	bool regionClipped = false;
+	bool    regionClipped = false;
 	int32_t destBufferOffset = 0;
 	int32_t srcBufferOffset = 0;
 
+	// VERIFY: vanilla passes these two as (__int16*) but the callee stores full pointers.
+	// The int16_t* cast is preserved only to match the vanilla prototype; the storage is
+	// int32_t so nothing is truncated. Consider retyping the helper to void**.
 	if (!Blit_helper_lockregion(
 		targetSurface,
 		&viewportRect,
@@ -370,72 +390,81 @@ void FakeIonBlastClass::_Draw()
 		&srcRect,
 		&srcSubRect,
 		&regionClipped,
-		(int16_t*)(&destBufferOffset),
-		(int16_t*)(&srcBufferOffset)))
+		reinterpret_cast<int16_t*>(&destBufferOffset),
+		reinterpret_cast<int16_t*>(&srcBufferOffset)))
 	{
 		return;
 	}
 
-	uint16_t* destBuffer = reinterpret_cast<uint16_t*>(destBufferOffset);
-	int32_t* srcBuffer = reinterpret_cast<int32_t*>(srcBufferOffset);
-	int8_t* srcBuffer_8 = reinterpret_cast<int8_t*>(srcBufferOffset);
+	// destRect has been clipped in place by the helper - everything below must use the
+	// post-clip X/Y (matches vanilla, which re-reads a3 after the call at 0x53D6B1).
+	uint16_t* destRow = reinterpret_cast<uint16_t*>(destBufferOffset);
+	const int8_t* srcRow = reinterpret_cast<const int8_t*>(srcBufferOffset);
 
-	const int pitch = targetSurface->Get_Pitch();
-	const int surfaceWidth = targetSurface->Get_Width();
+	const int pitch = targetSurface->Get_Pitch();  // 0x53D5F5, vftable +0x74
+	const int surfaceWidth = targetSurface->Get_Width();  // 0x53D6D2, vftable +0x7C
 	const int zBufferWidth = ZBuffer::Instance->Width;
 
-	const int zCoord = this->Location.Z;
-	const int16_t zRef = static_cast<int16_t>(ZBuffer::Instance->MaxValue - Game::AdjustHeight(zCoord));
-	int16_t zThreshold = zRef - static_cast<int16_t>(destRect.Y) - 3;
+	// BUGFIX 4: all of this is 16-bit unsigned in vanilla (si). Doing it in uint16_t
+	// reproduces both the truncation and the wrap-on-decrement at 0x53D765.
+	const uint16_t zRef = static_cast<uint16_t>(
+		static_cast<uint16_t>(ZBuffer::Instance->MaxValue)
+		- static_cast<uint16_t>(Game::AdjustHeight(this->Location.Z)));
 
-	int16_t* zBufferRow = (int16_t*)ZBuffer::Instance->GetBuffer(0, destRect.Y);
+	uint16_t zThreshold = static_cast<uint16_t>(zRef - static_cast<uint16_t>(destRect.Y) - 3);
 
-	// Safety bounds check before doing optimized access
-	uintptr_t zBufferCheck = reinterpret_cast<uintptr_t>(&zBufferRow[surfaceWidth + (srcSubRect.Height + 1) * zBufferWidth]);
-	if (zBufferCheck >= reinterpret_cast<uintptr_t>(ZBuffer::Instance->BufferTail))
-	{
-		// Fallback path for conservative access
-		for (int row = 0; row < srcSubRect.Height; ++row)
-		{
-			for (int col = 0; col < srcSubRect.Width; ++col)
-			{
-				uint8_t pixel = *srcBuffer_8++;
-				if (pixel > 0)
+	int16_t* zBufferRow = reinterpret_cast<int16_t*>(ZBuffer::Instance->GetBuffer(0, destRect.Y));
+
+	// 0x53D6E5 : if the worst-case linear walk would run past the Z buffer, fall back to
+	// the per-pixel GetBuffer() path. Note the comparison is >=, i.e. "unsafe" -> slow path.
+	const uintptr_t zBufferEndProbe = reinterpret_cast<uintptr_t>(
+		&zBufferRow[surfaceWidth + (srcSubRect.Height + 1) * zBufferWidth]);
+
+	if (zBufferEndProbe >= reinterpret_cast<uintptr_t>(ZBuffer::Instance->BufferTail)) {
+		// ---- Conservative path (0x53D794): resolve every Z sample individually ----
+		for (int row = 0; row < srcSubRect.Height; ++row) {
+			const int8_t* srcPixels = srcRow;
+
+			for (int col = 0; col < srcSubRect.Width; ++col) {
+				// BUGFIX 3: signed load. Values >= 0x80 are negative and must be skipped.
+				const int pixel = *srcPixels++;
+
+				if (pixel <= 0)
+					continue;
+
+				const uint16_t zValue = *reinterpret_cast<uint16_t*>(
+					ZBuffer::Instance->GetBuffer(destRect.X + col, destRect.Y + row));
+
+				if (zValue > zThreshold)
 				{
-					uint16_t* zPtr = (uint16_t*)ZBuffer::Instance->GetBuffer(destRect.X + col, row + destRect.Y);
-					if (*zPtr > zThreshold && pixel < ionblast_A9FAE8.size())
-					{
-						destBuffer[col] = destBuffer[ionblast_A9FAE8[pixel]];
-					}
+					// BUGFIX 2: offset is relative to the CURRENT column, not the row base.
+					// pixel is guaranteed 1..127 by the signed test above, so the 289-entry
+					// table is never over-indexed (vanilla has no bounds check either).
+					destRow[col] = destRow[col + ionblast_A9FAE8[pixel]];
 				}
 			}
 
-			destBuffer = reinterpret_cast<uint16_t*>(reinterpret_cast<uint8_t*>(destBuffer) + pitch);
-			srcBuffer += 512 - srcSubRect.Width;
-			srcBuffer_8 = reinterpret_cast<int8_t*>(srcBuffer);
+			destRow = reinterpret_cast<uint16_t*>(reinterpret_cast<uint8_t*>(destRow) + pitch);
+			srcRow += IonBlastSurfaceWidth; // BUGFIX 1: flat 512-BYTE row stride (0x53D80C)
 			--zThreshold;
 		}
-	}
-	else
-	{
-		// Fast path: linear access
-		uint16_t* zPtr = reinterpret_cast<uint16_t*>(&zBufferRow[destRect.X]);
+	} else {
+		// ---- Fast path (0x53D6F8): the Z row pointer walks linearly ----
+		const uint16_t* zRow = reinterpret_cast<const uint16_t*>(&zBufferRow[destRect.X]);
 
-		for (int row = 0; row < srcSubRect.Height; ++row)
-		{
-			for (int col = 0; col < srcSubRect.Width; ++col)
-			{
-				uint8_t pixel = *srcBuffer_8++;
-				if (pixel > 0 && zPtr[col] > zThreshold && pixel < ionblast_A9FAE8.size())
-				{
-					destBuffer[col] = destBuffer[ionblast_A9FAE8[pixel]];
-				}
+		for (int row = 0; row < srcSubRect.Height; ++row) {
+			const int8_t* srcPixels = srcRow;
+
+			for (int col = 0; col < srcSubRect.Width; ++col) {
+				const int pixel = *srcPixels++; // BUGFIX 3
+
+				if (pixel > 0 && zRow[col] > zThreshold)
+					destRow[col] = destRow[col + ionblast_A9FAE8[pixel]]; // BUGFIX 2
 			}
 
-			destBuffer = reinterpret_cast<uint16_t*>(reinterpret_cast<uint8_t*>(destBuffer) + pitch);
-			zPtr += zBufferWidth;
-			srcBuffer += 512 - srcSubRect.Width;
-			srcBuffer_8 = reinterpret_cast<int8_t*>(srcBuffer);
+			destRow = reinterpret_cast<uint16_t*>(reinterpret_cast<uint8_t*>(destRow) + pitch);
+			zRow += zBufferWidth;         // 0x53D780 : net advance is one full Z row
+			srcRow += IonBlastSurfaceWidth; // BUGFIX 1 (0x53D75F)
 			--zThreshold;
 		}
 	}
@@ -444,6 +473,7 @@ void FakeIonBlastClass::_Draw()
 	sourceSurface->Unlock();
 }
 #pragma optimize("", on )
+
 ASMJIT_PATCH(0x53CB91, IonBlastClass_DTOR, 6)
 {
 	GET(IonBlastClass*, IB, ECX);

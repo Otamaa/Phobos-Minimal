@@ -2042,19 +2042,19 @@ bool TActionExtData::LightstormStrike(TActionClass* pAction, HouseClass* pHouse,
 	{
 		// select the anim
 		auto const& itClouds = RulesClass::Instance->WeatherConClouds;
-		auto const pAnimType = itClouds.Items[ScenarioClass::Instance->Random.RandomFromMax(itClouds.Count - 1)];
 
-		if (pAnimType)
-		{
-			coords.Z += GeneralUtils::GetLSAnimHeightFactor(pAnimType, pCell, true);
+		if(!itClouds.Empty()){
+			if (auto const pAnimType = itClouds.Items[ScenarioClass::Instance->Random.RandomFromMax(itClouds.Count - 1)]) {
+				coords.Z += GeneralUtils::GetLSAnimHeightFactor(pAnimType, pCell, true);
 
-			if (coords.IsValid())
-			{
-				// create the cloud and do some book keeping.auto const
-				auto pAnim = GameCreate<AnimClass>(pAnimType, coords);
-				pAnim->SetHouse(pHouse);
-				LightningStorm::CloudsManifesting->push_back(pAnim);
-				LightningStorm::CloudsPresent->push_back(pAnim);
+				if (coords.IsValid())
+				{
+					// create the cloud and do some book keeping.auto const
+					auto pAnim = GameCreate<AnimClass>(pAnimType, coords);
+					pAnim->SetHouse(pHouse);
+					LightningStorm::CloudsManifesting->push_back(pAnim);
+					LightningStorm::CloudsPresent->push_back(pAnim);
+				}
 			}
 		}
 	}

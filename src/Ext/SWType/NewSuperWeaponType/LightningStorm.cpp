@@ -592,32 +592,24 @@ bool CloneableLighningStormStateMachine::Strike(CellStruct const& nCell)
 	auto const pCell = MapClass::Instance->GetCellAt(nCell);
 	auto coords = pCell->GetCoordsWithBridge();
 
-	auto const itClouds = pExt->Weather_Clouds.GetElements(RulesClass::Instance->WeatherConClouds);
+	if (auto const itClouds = pExt->Weather_Clouds.GetElements(RulesClass::Instance->WeatherConClouds)) { 
 
-	// Infer cloud height from bolt animation if not explicitly set
-	if (pExt->Weather_CloudHeight < 0)
-	{
-		if (auto const itBolts = pExt->Weather_Bolts.GetElements(
-			RulesClass::Instance->WeatherConBolts))
-		{
-			if (!itBolts.empty() && itBolts[0])
-			{
-				pExt->Weather_CloudHeight = GeneralUtils::GetLSAnimHeightFactor(itBolts[0], pCell, false);
+		// Infer cloud height from bolt animation if not explicitly set
+		if (pExt->Weather_CloudHeight < 0) {
+			if (auto const itBolts = pExt->Weather_Bolts.GetElements(
+				RulesClass::Instance->WeatherConBolts)) {
+				if (!itBolts.empty() && itBolts[0])
+				{
+					pExt->Weather_CloudHeight = GeneralUtils::GetLSAnimHeightFactor(itBolts[0], pCell, false);
+				}
 			}
 		}
-	}
 
-	coords.Z += pExt->Weather_CloudHeight;
+		coords.Z += pExt->Weather_CloudHeight;
 
-	if (!itClouds.empty())
-	{
-		auto const randIndex = ScenarioClass::Instance->Random.RandomFromMax(itClouds.size() - 1);
-		if (randIndex < itClouds.size())
-		{
-			if (auto const pAnimType = itClouds[randIndex])
-			{
-				if (pAnimType->GetImage())
-				{
+		if (auto const randIndex = ScenarioClass::Instance->Random.RandomFromMax(itClouds.size() - 1)) {
+			if (auto const pAnimType = itClouds[randIndex]) {
+				if (pAnimType->GetImage()) {
 					auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
 					AnimExtData::SetAnimOwnerHouseKind(pAnim, Super->Owner, nullptr, Invoker, false, false);
 					CloudsManifest.push_back(pAnim);

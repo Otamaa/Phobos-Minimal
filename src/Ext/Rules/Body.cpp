@@ -1431,19 +1431,19 @@ void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 	// -------------------------------------------------------------------------
 	// TypeList<AnimTypeClass*>
 	// -------------------------------------------------------------------------
-	detail::ParseVector(this->DamageFireTypes, exINI, section, "DamageFireTypes");
-	detail::ParseVector(this->DropPod, exINI, section, "DropPod");
-	detail::ParseVector(this->DeadBodies, exINI, section, "DeadBodies");
-	detail::ParseVector(this->MetallicDebris, exINI, section, "MetallicDebris");
-	detail::ParseVector(this->BridgeExplosions, exINI, section, "BridgeExplosions");
-	detail::ParseVector(this->WeatherConClouds, exINI, section, "WeatherConClouds");
-	detail::ParseVector(this->WeatherConBolts, exINI, section, "WeatherConBolts");
+	detail::ParseVector<AnimTypeClass*,true>(this->DamageFireTypes, exINI, section, "DamageFireTypes");
+	detail::ParseVector<AnimTypeClass*,true>(this->DropPod, exINI, section, "DropPod");
+	detail::ParseVector<AnimTypeClass*,true>(this->DeadBodies, exINI, section, "DeadBodies");
+	detail::ParseVector<AnimTypeClass*,true>(this->MetallicDebris, exINI, section, "MetallicDebris");
+	detail::ParseVector<AnimTypeClass*,true>(this->BridgeExplosions, exINI, section, "BridgeExplosions");
+	detail::ParseVector<AnimTypeClass*,true>(this->WeatherConClouds, exINI, section, "WeatherConClouds");
+	detail::ParseVector<AnimTypeClass*,true>(this->WeatherConBolts, exINI, section, "WeatherConBolts");
 
 	// -------------------------------------------------------------------------
 	// TypeList<VoxelAnimTypeClass*>
 	// -------------------------------------------------------------------------
-	detail::ParseVector(this->BarrelDebris, exINI, section, "BarrelDebris");
-	detail::ParseVector(this->ExplosiveVoxelDebris, exINI, section, "ExplosiveVoxelDebris");
+	detail::ParseVector<VoxelAnimTypeClass*, true>(this->BarrelDebris, exINI, section, "BarrelDebris");
+	detail::ParseVector<VoxelAnimTypeClass*, true>(this->ExplosiveVoxelDebris, exINI, section, "ExplosiveVoxelDebris");
 
 	// -------------------------------------------------------------------------
 	// TypeList<BuildingTypeClass*>
