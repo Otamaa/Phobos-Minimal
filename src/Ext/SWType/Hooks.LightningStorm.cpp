@@ -420,29 +420,30 @@ ASMJIT_PATCH(0x53A140, LightningStorm_Strike, 7)
 		if (coords.IsValid())
 		{
 			// select the anim
-			auto const itClouds = pExt->Weather_Clouds.GetElements(
-				RulesClass::Instance->WeatherConClouds);
+			if(auto const itClouds = pExt->Weather_Clouds.GetElements(
+				RulesClass::Instance->WeatherConClouds)) {
 
-			// infer the height this thing will be drawn at.
-			if (pExt->Weather_CloudHeight < 0)
-			{
-				if (auto const itBolts = pExt->Weather_Bolts.GetElements(
-					RulesClass::Instance->WeatherConBolts))
+				// infer the height this thing will be drawn at.
+				if (pExt->Weather_CloudHeight < 0)
 				{
-					pExt->Weather_CloudHeight = GeneralUtils::GetLSAnimHeightFactor(itBolts[0], pCell, true);
+					if (auto const itBolts = pExt->Weather_Bolts.GetElements(
+						RulesClass::Instance->WeatherConBolts))
+					{
+						pExt->Weather_CloudHeight = GeneralUtils::GetLSAnimHeightFactor(itBolts[0], pCell, true);
+					}
 				}
-			}
-			coords.Z += pExt->Weather_CloudHeight;
+				coords.Z += pExt->Weather_CloudHeight;
 
-			if (auto const pAnimType = itClouds.at(ScenarioClass::Instance->Random.RandomFromMax(itClouds.size() - 1)))
-			{
-				if (pAnimType->GetImage())
+				if (auto const pAnimType = itClouds.at(ScenarioClass::Instance->Random.RandomFromMax(itClouds.size() - 1)))
 				{
-					// create the cloud and do some book keeping.
-					auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
-					pAnim->SetHouse(pSuper->Owner);
-					LightningStorm::CloudsManifesting->push_back(pAnim);
-					LightningStorm::CloudsPresent->push_back(pAnim);
+					if (pAnimType->GetImage())
+					{
+						// create the cloud and do some book keeping.
+						auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
+						pAnim->SetHouse(pSuper->Owner);
+						LightningStorm::CloudsManifesting->push_back(pAnim);
+						LightningStorm::CloudsPresent->push_back(pAnim);
+					}
 				}
 			}
 		}
