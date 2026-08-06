@@ -316,7 +316,6 @@ void __fastcall FakeIonBlastClass::_DrawAll()
 	}
 }
 
-#pragma optimize("", off )
 void FakeIonBlastClass::_Draw()
 {
 	static COMPILETIMEEVAL int IonBlastSurfaceWidth = 512;
@@ -472,7 +471,6 @@ void FakeIonBlastClass::_Draw()
 	targetSurface->Unlock();
 	sourceSurface->Unlock();
 }
-#pragma optimize("", on )
 
 ASMJIT_PATCH(0x53CB91, IonBlastClass_DTOR, 6)
 {

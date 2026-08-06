@@ -11,61 +11,50 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 	auto pRules = FakeRulesClass::Instance();
 	auto pThis = pData->This();
 	BuildingClass** currFactory = nullptr;
-	bool block = !pRules->AllowParallelAIQueues;
+
 	// Only raises `block`; never clears it (matches original !block short-circuit).
 	// Templated so each *TypeClass::Array element type resolves at the call site.
-	auto applyItemBlock = [&](auto* pArray, int idx) {
-			if (idx >= 0 && TechnoTypeExtContainer::Instance.Find(pArray->Items[idx])->ForbidParallelAIQueues) {
-				block = true;
-			}
-		};
+	auto applyItemBlock = [pRules](auto* pArray, int idx) {
+		if (idx >= 0 && TechnoTypeExtContainer::Instance.Find(pArray->Items[idx])->ForbidParallelAIQueues) {
+			return true;
+		}
+
+		return !pRules->AllowParallelAIQueues.Get();
+	};
 
 	switch (AbsType)
 	{
-	case AbstractType::BuildingType:
-	{
-		currFactory = &pData->Factory_BuildingType;
-		applyItemBlock(BuildingTypeClass::Array(), pThis->ProducingBuildingTypeIndex);
-		block = pRules->ForbidParallelAIQueues_Building.Get(block);
-		break;
+	case AbstractType::BuildingType: {
+		currFactory = &pData->Factory_BuildingType;	;
+		const bool block = pRules->ForbidParallelAIQueues_Building.Get(applyItemBlock(BuildingTypeClass::Array(), pThis->ProducingBuildingTypeIndex));
+		return { currFactory, block, AbsType };
 	}
-	case AbstractType::UnitType:
-	{
-		if (naval)
-		{
+	case AbstractType::UnitType: {
+		if (naval) {
 			currFactory = &pData->Factory_NavyType;
-			// VERIFY: naval reads the index off the EXT (pData), not off This() — preserved verbatim.
-			applyItemBlock(UnitTypeClass::Array(), pData->ProducingNavalUnitTypeIndex);
-			block = pRules->ForbidParallelAIQueues_Navy.Get(block);
-		}
-		else
-		{
+			const bool block = pRules->ForbidParallelAIQueues_Navy.Get(applyItemBlock(UnitTypeClass::Array(), pData->ProducingNavalUnitTypeIndex));
+			return { currFactory, block, AbsType };
+		} else {
 			currFactory = &pData->Factory_VehicleType;
-			applyItemBlock(UnitTypeClass::Array(), pThis->ProducingUnitTypeIndex);
-			block = pRules->ForbidParallelAIQueues_Vehicle.Get(block);
+			const bool  block = pRules->ForbidParallelAIQueues_Vehicle.Get(applyItemBlock(UnitTypeClass::Array(), pThis->ProducingUnitTypeIndex));
+			return { currFactory, block, AbsType };
 		}
 
-		break;
 	}
-	case AbstractType::InfantryType:
-	{
+	case AbstractType::InfantryType: {
 		currFactory = &pData->Factory_InfantryType;
-		applyItemBlock(InfantryTypeClass::Array(), pThis->ProducingInfantryTypeIndex);
-		block = pRules->ForbidParallelAIQueues_Infantry.Get(block);
-		break;
+		const bool block = pRules->ForbidParallelAIQueues_Infantry.Get(applyItemBlock(InfantryTypeClass::Array(), pThis->ProducingInfantryTypeIndex));
+		return { currFactory, block, AbsType };
 	}
-	case AbstractType::AircraftType:
-	{
+	case AbstractType::AircraftType: {
 		currFactory = &pData->Factory_AircraftType;
-		applyItemBlock(AircraftTypeClass::Array(), pThis->ProducingAircraftTypeIndex);
-		block = pRules->ForbidParallelAIQueues_Aircraft.Get(block);
-		break;
+		const bool block = pRules->ForbidParallelAIQueues_Aircraft.Get(applyItemBlock(AircraftTypeClass::Array(), pThis->ProducingAircraftTypeIndex));
+		return { currFactory, block, AbsType };
 	}
 	default:
-		break;
+		return { currFactory, false, AbsType };
 	}
 
-	return { currFactory, block, AbsType };
 }
 
 ASMJIT_PATCH(0x4401BB, BuildingClass_AI_PickWithFreeDocks, 0x6)
@@ -138,7 +127,8 @@ ASMJIT_PATCH(0x4502F4, BuildingClass_Update_Factory, 0x6)
 		// into `block` using the SAME indices (aircraft/infantry/building + naval-aware unit),
 		// so the original per-type switch here was 100% redundant with `block`.
 		// Both original exit conditions (item-forbids `Skip`, and `block ? Skip`) collapse to this.
-		return block ? Skip : 0x0;
+		if(block)
+		return Skip;
 	}
 
 	return 0x0;

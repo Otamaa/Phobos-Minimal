@@ -130,8 +130,7 @@ ASMJIT_PATCH(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 			if (!((UnitClass*)pFactory->Object)->Type->Naval){
 				if (pRules->ForbidParallelAIQueues_Vehicle.Get(forbid))
 					pData->Factory_VehicleType = nullptr;
-			}
-			else{
+			} else{
 				if (pRules->ForbidParallelAIQueues_Navy.Get(forbid))
 					pData->Factory_NavyType = nullptr;
 			}
