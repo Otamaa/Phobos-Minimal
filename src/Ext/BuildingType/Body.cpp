@@ -23,7 +23,7 @@ const CellStruct BuildingTypeExtData::FoundationEndMarker = { 0x7FFF, 0x7FFF };
 
 #include <Misc/PhobosGlobal.h>
 
-bool BuildingTypeExtData::IsPassable(BuildingClass* pBuilding, FootClass* pFoot) {
+bool BuildingTypeExtData::IsThisBuildingPassable(BuildingClass* pBuilding, FootClass* pFoot) {
 
 	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 
@@ -32,7 +32,7 @@ bool BuildingTypeExtData::IsPassable(BuildingClass* pBuilding, FootClass* pFoot)
 		return false;
 
 	//first alternate condition
-	if(!pTypeExt->IsPassable_AllowHouses.isset()){
+	if(pTypeExt->IsPassable_AllowHouses.isset()){
 		if (!EnumFunctions::CanTargetHouse(pTypeExt->IsPassable_AllowHouses.Fetch(), pBuilding->Owner, pFoot->GetOwningHouse())) {
 			return false;
 		}
