@@ -113,7 +113,8 @@ ASMJIT_PATCH(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 
 	auto const pTechno = pFactory->Object;
 	auto const pType = pTechno->GetTechnoType();
-		forbid |= TechnoTypeExtContainer::Instance.Find(pType)->ForbidParallelAIQueues;
+	if(TechnoTypeExtContainer::Instance.Find(pType)->ForbidParallelAIQueues)
+		forbid = true;
 
 	if (HouseClass* pOwner = pFactory->Owner)
 	{

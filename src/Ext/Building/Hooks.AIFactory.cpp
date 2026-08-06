@@ -15,8 +15,8 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 	// Only raises `block`; never clears it (matches original !block short-circuit).
 	// Templated so each *TypeClass::Array element type resolves at the call site.
 	auto applyItemBlock = [&](auto* pArray, int idx) {
-			if (idx >= 0) {
-				block |= TechnoTypeExtContainer::Instance.Find(pArray->Items[idx])->ForbidParallelAIQueues;
+			if (idx >= 0 && TechnoTypeExtContainer::Instance.Find(pArray->Items[idx])->ForbidParallelAIQueues) {
+				block = true;
 			}
 		};
 
@@ -81,8 +81,8 @@ ASMJIT_PATCH(0x4401BB, BuildingClass_AI_PickWithFreeDocks, 0x6)
 	const auto pRules = FakeRulesClass::Instance();
 	bool forbid = !pRules->AllowParallelAIQueues;
 
-	if(pType){
-		forbid |= TechnoTypeExtContainer::Instance.Find(pType)->ForbidParallelAIQueues;
+	if(pType && TechnoTypeExtContainer::Instance.Find(pType)->ForbidParallelAIQueues){
+		forbid = true;
 	}
 
 	if(!pRules->ForbidParallelAIQueues_Aircraft.Get(forbid))

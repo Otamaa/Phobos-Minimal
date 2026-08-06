@@ -794,6 +794,7 @@ ASMJIT_PATCH(0x51AB5C, InfantryClass_SetDestination_JJInfFix, 0x6)
 	return 0;
 }
 
+#ifdef _develop_revert
 ASMJIT_PATCH(0x4DF410, FootClass_UpdateAttackMove_TargetAcquired, 0x6)
 {
 	GET(FootClass* const, pThis, ESI);
@@ -826,6 +827,7 @@ ASMJIT_PATCH(0x4DF410, FootClass_UpdateAttackMove_TargetAcquired, 0x6)
 
 	return 0;
 }
+#endif
 
 
 ASMJIT_PATCH(0x4DEC7F, FootClass_Crash_FallingDownFix, 0x7)
