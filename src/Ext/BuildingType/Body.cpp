@@ -23,6 +23,29 @@ const CellStruct BuildingTypeExtData::FoundationEndMarker = { 0x7FFF, 0x7FFF };
 
 #include <Misc/PhobosGlobal.h>
 
+bool BuildingTypeExtData::IsPassable(BuildingClass* pBuilding, FootClass* pFoot) {
+
+	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+
+	//master switch
+	if(!pTypeExt->IsPassable)
+		return false;
+
+	//first alternate condition
+	if(!pTypeExt->IsPassable_AllowHouses.isset()){
+		if (!EnumFunctions::CanTargetHouse(pTypeExt->IsPassable_AllowHouses.Fetch(), pBuilding->Owner, pFoot->GetOwningHouse())) {
+			return false;
+		}
+	}
+	
+	//second alternate condition
+	auto pType = pFoot->GetTechnoType();
+	if (!pTypeExt->IsPassable_AllowTypes.Contains(pType) || pTypeExt->IsPassable_DisallowTypes.Contains(pType))
+		return false;
+
+	return true;
+}
+
 DWORD BuildingTypeExtData::FoundationLength(CellStruct const* const pFoundation)
 {
 	auto pFCell = pFoundation;
@@ -1684,6 +1707,10 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->DegradeAmount.Read(exINI, pSection, "Degrade.Amount");
 		this->DegradePercentage.Read(exINI, pSection, "Degrade.Percentage");
 		this->IsPassable.Read(exINI, pSection, "IsPassable");
+		this->IsPassable_AllowHouses.Read(exINI, pSection, "IsPassable.AllowHouses");
+  		this->IsPassable_AllowTypes.Read(exINI, pSection, "IsPassable.AllowTypes");
+ 	 	this->IsPassable_DisallowTypes.Read(exINI, pSection, "IsPassable.DisallowTypes");
+
 		this->ProduceCashDisplay.Read(exINI, pSection, "ProduceCashProclaim");
 		this->ProduceCashDisplay.Read(exINI, pSection, "ProduceCashDisplay");
 
@@ -2168,6 +2195,9 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->DegradeAmount)
 		.Process(this->DegradePercentage)
 		.Process(this->IsPassable)
+		.Process(this->IsPassable_AllowHouses)
+  		.Process(this->IsPassable_AllowTypes)
+ 	 	.Process(this->IsPassable_DisallowTypes)
 		.Process(this->ProduceCashDisplay)
 		.Process(this->Storage_ActiveAnimations)
 		.Process(this->PurifierBonus)

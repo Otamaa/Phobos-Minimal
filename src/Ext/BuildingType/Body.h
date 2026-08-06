@@ -337,7 +337,12 @@ public:
 	Valueable<bool> CloningFacility { false };
 	Valueable<bool> Factory_ExplicitOnly { false };
 	Valueable<bool> Secret_RecalcOnCapture { false };
+
 	Valueable<bool> IsPassable { false };
+	Nullable<AffectedHouse> IsPassable_AllowHouses { };
+	ValueableVector<TechnoTypeClass*> IsPassable_AllowTypes {};
+	ValueableVector<TechnoTypeClass*> IsPassable_DisallowTypes {};
+
 	Valueable<bool> ProduceCashDisplay { false };
 	Valueable<bool> PurifierBonus_RequirePower { false };
 	Valueable<bool> FactoryPlant_RequirePower { false };
@@ -449,6 +454,8 @@ public:
 	void UpdateFoundationRadarShape();
 
 public:
+
+	static bool IsThisBuildingPassable(BuildingClass* pBuilding, FootClass* pFoot);
 
 	static bool IsFoundationEqual(BuildingTypeClass* pType1, BuildingTypeClass* pType2);
 	// Short check: Is the building of a linkable kind at all?

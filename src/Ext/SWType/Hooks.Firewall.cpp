@@ -169,7 +169,7 @@ ASMJIT_PATCH(0x440378, BuildingClass_Update_FirestormWall, 6)
 
 ASMJIT_PATCH(0x51BD4C, InfantryClass_Update_BuildingBelow, 6)
 {
-	//GET(InfantryClass*, pThis, EDI);
+	GET(InfantryClass*, pThis, ESI);
 	GET(BuildingClass*, pBld, EDI);
 	enum {
 		canPass = 0x51BD7D,
@@ -179,7 +179,7 @@ ASMJIT_PATCH(0x51BD4C, InfantryClass_Update_BuildingBelow, 6)
 
 	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 
-	if (pTypeExt->IsPassable)
+	if (BuildingTypeExtData::IsThisBuildingPassable(pBld, pThis))
 		return canPass;
 
 	if (pTypeExt->Firestorm_Wall)
@@ -190,7 +190,7 @@ ASMJIT_PATCH(0x51BD4C, InfantryClass_Update_BuildingBelow, 6)
 
 ASMJIT_PATCH(0x51C4C8, InfantryClass_IsCellOccupied, 6)
 {
-	//GET(InfantryClass* const, pThis , EBP);
+	GET(InfantryClass* const, pThis , EBP);
 	GET(BuildingClass* const, pBld, ESI);
 
 	enum {
@@ -203,7 +203,7 @@ ASMJIT_PATCH(0x51C4C8, InfantryClass_IsCellOccupied, 6)
 
 	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 
-	if (pTypeExt->IsPassable)
+	if (BuildingTypeExtData::IsThisBuildingPassable(pBld, pThis))
 		return Ignore;
 
 	if (pTypeExt->Firestorm_Wall)
@@ -214,7 +214,7 @@ ASMJIT_PATCH(0x51C4C8, InfantryClass_IsCellOccupied, 6)
 
 ASMJIT_PATCH(0x73F7B0, UnitClass_IsCellOccupied, 6)
 {
-	//GET(UnitClass* const , pThis , EBX);
+	GET(UnitClass* const , pThis , EBX);
 	GET(BuildingClass* const, pBld, ESI);
 
 	enum
@@ -227,7 +227,7 @@ ASMJIT_PATCH(0x73F7B0, UnitClass_IsCellOccupied, 6)
 
 	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 
-	if (pTypeExt->IsPassable)
+	if (BuildingTypeExtData::IsThisBuildingPassable(pBld, pThis))
 		return Ignore;
 
 	if (pTypeExt->Firestorm_Wall)

@@ -13424,7 +13424,7 @@ bool TechnoExtData::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Sel
 	{
 		const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 
-		if (!pTypeExt->IsPassable)
+		if (!BuildingTypeExtData::IsThisBuildingPassable(pBld ,Survivor))
 			return false;
 
 		if (pTypeExt->Firestorm_Wall &&
