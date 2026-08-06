@@ -45,6 +45,7 @@ wchar_t Phobos::wideBuffer[readLength] {};
 const char Phobos::readDelims[4] { "," };
 const char Phobos::readDefval[4] { "" };
 std::string Phobos::AppIconPath {};
+std::string Phobos::AppCursor {};
 DrawDamageMode Phobos::Debug_DisplayDamageNumbers { DrawDamageMode::disabled };
 const wchar_t* Phobos::VersionDescription { L"Phobos Otamaa Unofficial development build #" _STR(BUILD_NUMBER) L". Please test before shipping." };
 bool Phobos::ShouldQuickSave { false };

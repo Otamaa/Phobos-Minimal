@@ -873,8 +873,7 @@ int MultiplayerScore()
 		if (pHouse->SiloMoney > 0)                        // HouseClass +0x54E8
 			score.Score[CurrentGame] += pHouse->SiloMoney;
 
-		if (!pHouse->Defeated)
-		{
+		if (!pHouse->Defeated) {
 			// Survivor bonus: base + 50% + random[50%, 100%].
 			// NOTE: `cdq / sub eax,edx / sar eax,1` is signed div-by-2 truncating toward
 			//       zero, i.e. plain C `/ 2`. Not an arithmetic shift on the raw value.
@@ -895,7 +894,7 @@ int MultiplayerScore()
 			score.Score[CurrentGame]);
 	}
 
-	Debug::LogInfo("{}", _buffer);
+	Debug::Log("%s", _buffer.c_str());
 
 	// The vanilla function returns EAX, which at this point is just the loop counter
 	// (== houseCount, or 0 when the vector is empty). No caller consumes it — kept only

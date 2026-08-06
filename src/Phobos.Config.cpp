@@ -142,6 +142,10 @@ ASMJIT_PATCH(0x6BC0CD, WinMain_LoadRA2MD, 5)
 		Patch::Apply_LJMP(0x490490, GetConvertClassExtDeallocBlittersAddress());
 	}
 
+	char _CustomCursor[32] {};
+	pRA2MD->ReadString("UISettings", "CustomCursor", "",_CustomCursor);
+	Phobos::AppCursor = _CustomCursor;
+
 	return 0;
 }
 

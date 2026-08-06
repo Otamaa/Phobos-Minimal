@@ -25,14 +25,27 @@ ASMJIT_PATCH(0x777C41, UI_ApplyAppIcon, 0x9)
 {
 	GET(HINSTANCE , instance , ESI);
 
+
 	if (!Phobos::AppIconPath.empty()) {
 		Debug::LogInfo("Applying AppIcon from \"{}\"", Phobos::AppIconPath.c_str());
-		R->EAX(LoadImageA(instance, Phobos::AppIconPath.c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE));
+		Game::IconPointer = (HICON)LoadImageA(instance, Phobos::AppIconPath.c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	}else{
-		R->EAX(LoadIconA(instance, (LPCSTR)93));
+		Game::IconPointer = LoadIconA(instance, (LPCSTR)93);
 	}
 
-	return 0x777C4A;
+	if (!Phobos::AppCursor.empty()) {
+		Game::CursorPointer = LoadCursorFromFileA(Phobos::AppCursor.c_str());
+	} else {
+		Game::CursorPointer = LoadCursorA(instance, (LPCSTR)104);
+	}
+
+	return 0x777C71;
+}
+
+ASMJIT_PATCH(0x777DE1, UI_ApplyCursorB, 0x6)
+{
+	R->EAX(Game::CursorPointer());
+	return 0x777DEC;
 }
 
 ASMJIT_PATCH(0x640B8D, LoadingScreen_DisableEmptySpawnPositions, 0x6)

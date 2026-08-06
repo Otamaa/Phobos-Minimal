@@ -110,6 +110,7 @@ public:
 	static const char readDelims[4];
 	static const char readDefval[4];
 	static std::string AppIconPath;
+	static std::string AppCursor;
 	static DrawDamageMode Debug_DisplayDamageNumbers;
 	static const wchar_t* VersionDescription;
 	static bool ShouldQuickSave;
