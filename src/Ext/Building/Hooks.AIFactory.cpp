@@ -36,13 +36,13 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 			currFactory = &pData->Factory_NavyType;
 			// VERIFY: naval reads the index off the EXT (pData), not off This() — preserved verbatim.
 			applyItemBlock(UnitTypeClass::Array(), pData->ProducingNavalUnitTypeIndex);
-			block = pRules->ForbidParallelAIQueues_Vehicle.Get(block);
+			block = pRules->ForbidParallelAIQueues_Navy.Get(block);
 		}
 		else
 		{
 			currFactory = &pData->Factory_VehicleType;
 			applyItemBlock(UnitTypeClass::Array(), pThis->ProducingUnitTypeIndex);
-			block = pRules->ForbidParallelAIQueues_Navy.Get(block);
+			block = pRules->ForbidParallelAIQueues_Vehicle.Get(block);
 		}
 
 		break;
