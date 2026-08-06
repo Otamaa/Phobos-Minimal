@@ -18,10 +18,18 @@ HelperedVector<std::unique_ptr<SWStateMachine>> SWStateMachine::Array;
 void SWStateMachine::UpdateAll()
 {
 	SWStateMachine::Array.remove_all_if([](std::unique_ptr<SWStateMachine>& pMachine) {
-		 if (!pMachine)
-			 return true;
+		if (!pMachine) {
+			Debug::Log("SWStateMachine pointer became nullptr!\n");
+			return true;
+		 }
 
 		 pMachine->Update();
+		 if (!pMachine) {
+			 // This should never happen in the current design.
+			 Debug::FatalError("State machine destroyed itself during Update().");
+			 return true;
+		 }
+
 		 return pMachine->Finished();
 	});
 }

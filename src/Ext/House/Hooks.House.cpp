@@ -893,9 +893,9 @@ int MultiplayerScore()
 			score.Kill[CurrentGame],
 			score.Builts[CurrentGame],
 			score.Score[CurrentGame]);
-
-		Debug::LogInfo("{}",_buffer);
 	}
+
+	Debug::LogInfo("{}", _buffer);
 
 	// The vanilla function returns EAX, which at this point is just the loop counter
 	// (== houseCount, or 0 when the vector is empty). No caller consumes it — kept only
