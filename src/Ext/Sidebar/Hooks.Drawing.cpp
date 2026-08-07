@@ -443,9 +443,11 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 									bool(Techno_Type->Naval)
 								};
 
-								for (int i = ((4 * ((DWORD)shiftPressed)) | 1); i > 0; --i) {
-									EventClass::AddEvent(&Event);
-								}
+								if(shiftPressed){
+									for(int i = FakeRulesClass::Instance->ShiftQueueCount; i > 0; --i){
+										EventClass::AddEvent(&Event);
+									}
+								} else { EventClass::AddEvent(&Event); }
 
 								if (v70) {
 									if (!unable_to_comply && !ShouldDisableCameo) {

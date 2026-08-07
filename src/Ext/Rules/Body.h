@@ -836,6 +836,8 @@ public:
 
 	Valueable<bool> ShowTextBoxInShroud_Waypoint { true };
 	Valueable<bool> ShowTextBoxInShroud_Techno { true };
+
+	Valueable<int> ShiftQueueCount { 5 };
 #pragma endregion
 
 public:
