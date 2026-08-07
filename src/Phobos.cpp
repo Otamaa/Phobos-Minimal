@@ -1348,6 +1348,25 @@ void ParseEarlyArgs(LPWSTR* argv , int argc)
 	}
 }
 
+HICON __stdcall LoadIconA_Wrapper(HINSTANCE hInstance, LPCSTR lpIconName)
+{
+	if (!Phobos::AppIconPath.empty()) {
+		Debug::LogInfo("Applying AppIcon from \"{}\"", Phobos::AppIconPath.c_str());
+		return (HICON)LoadImageA(hInstance, Phobos::AppIconPath.c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	} else {
+		return LoadIconA(hInstance, lpIconName);
+	}
+}
+
+HCURSOR __stdcall LoadCursorA_Wrapper(HINSTANCE hInstance, LPCSTR lpCursorName)
+{
+	if (!Phobos::AppCursor.empty()) {
+		return LoadCursorFromFileA(Phobos::AppCursor.c_str());
+	} else {
+		return LoadCursorA(hInstance, lpCursorName);
+	}
+}
+
 BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
 	switch (ul_reason_for_call)
@@ -1383,7 +1402,8 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			Patch::Apply_CALL6(0x7CD835, GetVersion_Wrapper);
 			Patch::Apply_TYPED<DWORD>(0x7B853C, { 1 });
 			Patch::Apply_TYPED<char>(0x82612C + 13, { '\n' });
-
+			Imports::LoadIconA  = LoadIconA_Wrapper;
+			Imports::LoadCursorA = LoadCursorA_Wrapper;
 			ParseEarlyArgs(argv, argc);
 
 			ApplyEarlyFuncs();

@@ -21,32 +21,10 @@
 
 #include <OwnerDraw.h>
 
-ASMJIT_PATCH(0x777C41, UI_ApplyAppIcon, 0x9)
-{
-	GET(HINSTANCE , instance , ESI);
-
-
-	if (!Phobos::AppIconPath.empty()) {
-		Debug::LogInfo("Applying AppIcon from \"{}\"", Phobos::AppIconPath.c_str());
-		Game::IconPointer = (HICON)LoadImageA(instance, Phobos::AppIconPath.c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
-	}else{
-		Game::IconPointer = LoadIconA(instance, (LPCSTR)93);
-	}
-
-	if (!Phobos::AppCursor.empty()) {
-		Game::CursorPointer = LoadCursorFromFileA(Phobos::AppCursor.c_str());
-	} else {
-		Game::CursorPointer = LoadCursorA(instance, (LPCSTR)104);
-	}
-
-	return 0x777C71;
-}
-
-ASMJIT_PATCH(0x777DE1, UI_ApplyCursorB, 0x6)
-{
-	R->EAX(Game::CursorPointer());
-	return 0x777DEC;
-}
+//DEFINE_FUNCTION_JUMP(CALL6, 0x777C44, LoadIconA_Wrapper)
+//DEFINE_FUNCTION_JUMP(CALL6, 0x777C5D, LoadCursorA_Wrapper)
+//DEFINE_FUNCTION_JUMP(CALL6, 0x777DEA, LoadCursorA_Wrapper)
+//
 
 ASMJIT_PATCH(0x640B8D, LoadingScreen_DisableEmptySpawnPositions, 0x6)
 {
