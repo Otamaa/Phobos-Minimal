@@ -2811,36 +2811,6 @@ int FakeBuildingClass::__GetPower()
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x44E7B0, FakeBuildingClass::__GetPower);
 
-int FakeBuildingClass::__GetCrewCount()
-{
-	int count = 0;
-
-	if (!this->NoCrew && this->Type->Crewed)
-	{
-		auto pHouse = this->Owner;
-
-		// get the divisor
-		int divisor = HouseExtData::GetSurvivorDivisor(pHouse);
-
-		if (divisor > 0)
-		{
-			// if captured, less survivors
-			if (this->HasBeenCaptured)
-			{
-				divisor *= 2;
-			}
-
-			// value divided by "cost per survivor"
-			// clamp between 1 and 5
-			count = std::clamp(this->Type->GetRefund(pHouse, 0) / divisor, 1, 5);
-		}
-	}
-
-	return count;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E418C, FakeBuildingClass::__GetCrewCount)
-DEFINE_FUNCTION_JUMP(LJMP, 0x451330, FakeBuildingClass::__GetCrewCount)
 
 const wchar_t* FakeBuildingClass::__GetUIName()
 {

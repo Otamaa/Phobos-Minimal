@@ -494,6 +494,21 @@ void CopyGameLog()
 	}
 }
 
+// The dump call gets its own guard so a fault inside dbghelp cannot
+// unwind past the DbgHelpLock release in WriteMinidump - the lock would
+// stay owned forever and every later dump attempt would deadlock on it.
+BOOL GuardedMiniDumpWrite(HANDLE file, MINIDUMP_TYPE flags, MINIDUMP_EXCEPTION_INFORMATION* pInfo)
+{
+	__try
+	{
+		return MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), file, flags, pInfo, nullptr, nullptr);
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER)
+	{
+			return FALSE;
+	}
+}
+
 void ExceptionHandler::Append(const char* pFormat, ...)
 {
 	char scratch[2048];
@@ -522,41 +537,45 @@ bool ExceptionHandler::InitSymbols()
 	if (DbgHelpLockReady)
 		EnterCriticalSection(&DbgHelpLock);
 
-	if (!SymbolsInitialized)
-	{
-		// SYMOPT_FAIL_CRITICAL_ERRORS keeps dbghelp from raising hard-error
-		// dialogs of its own mid-crash.
-		SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES | SYMOPT_UNDNAME
-			| SYMOPT_OMAP_FIND_NEAREST | SYMOPT_LOAD_ANYTHING | SYMOPT_FAIL_CRITICAL_ERRORS);
+	// The dbghelp calls run under a guard so a fault in them cannot unwind
+	// past the lock release below and leave DbgHelpLock owned forever.
+	__try {
+		if (!SymbolsInitialized) {
+			// SYMOPT_FAIL_CRITICAL_ERRORS keeps dbghelp from raising hard-error
+			// dialogs of its own mid-crash.
+			SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES | SYMOPT_UNDNAME
+				| SYMOPT_OMAP_FIND_NEAREST | SYMOPT_LOAD_ANYTHING | SYMOPT_FAIL_CRITICAL_ERRORS);
 
-		// The default search path already covers each module's own directory,
-		// which is where Phobos.pdb lives; gamemd addresses simply resolve to
-		// module+offset.
-		SymbolsInitialized = SymInitialize(GetCurrentProcess(), nullptr, TRUE) != FALSE;
+			// The default search path already covers each module's own directory,
+			// which is where Phobos.pdb lives; gamemd addresses simply resolve to
+			// module+offset.
+			SymbolsInitialized = SymInitialize(GetCurrentProcess(), nullptr, TRUE) != FALSE;
 
-		// gamemd.exe carries no CodeView debug record, so dbghelp will never
-		// find a pdb for it on its own. If the user dropped one into the game
-		// directory, force-load it over the module - SYMOPT_LOAD_ANYTHING
-		// skips the signature checks.
-		if (SymbolsInitialized && GetFileAttributesA("gamemd.pdb") != INVALID_FILE_ATTRIBUTES)
-		{
-			const HMODULE hGame = GetModuleHandleA(nullptr);
-			const uintptr_t base = reinterpret_cast<uintptr_t>(hGame);
-			const auto pDosHeader = reinterpret_cast<const IMAGE_DOS_HEADER*>(hGame);
-			const auto pNtHeaders = reinterpret_cast<const IMAGE_NT_HEADERS*>(base + pDosHeader->e_lfanew);
-
-			SymUnloadModule64(GetCurrentProcess(), base);
-
-			if (SymLoadModuleEx(GetCurrentProcess(), nullptr, "gamemd.pdb", nullptr,
-				base, pNtHeaders->OptionalHeader.SizeOfImage, nullptr, 0))
+			// gamemd.exe carries no CodeView debug record, so dbghelp will never
+			// find a pdb for it on its own. If the user dropped one into the game
+			// directory, force-load it over the module - SYMOPT_LOAD_ANYTHING
+			// skips the signature checks.
+			if (SymbolsInitialized && GetFileAttributesA("gamemd.pdb") != INVALID_FILE_ATTRIBUTES)
 			{
-				Debug::Log("ExceptionHandler: loaded gamemd.pdb for symbol resolution.\n");
-			}
-			else
-			{
-				Debug::Log("ExceptionHandler: failed to load gamemd.pdb (error %u).\n", GetLastError());
+				const HMODULE hGame = GetModuleHandleA(nullptr);
+				const uintptr_t base = reinterpret_cast<uintptr_t>(hGame);
+				const auto pDosHeader = reinterpret_cast<const IMAGE_DOS_HEADER*>(hGame);
+				const auto pNtHeaders = reinterpret_cast<const IMAGE_NT_HEADERS*>(base + pDosHeader->e_lfanew);
+
+				SymUnloadModule64(GetCurrentProcess(), base);
+
+				if (SymLoadModuleEx(GetCurrentProcess(), nullptr, "gamemd.pdb", nullptr,
+					base, pNtHeaders->OptionalHeader.SizeOfImage, nullptr, 0))
+				{
+					Debug::Log("ExceptionHandler: loaded gamemd.pdb for symbol resolution.\n");
+				}
+				else
+				{
+					Debug::Log("ExceptionHandler: failed to load gamemd.pdb (error %u).\n", GetLastError());
+				}
 			}
 		}
+	}__except (EXCEPTION_EXECUTE_HANDLER) {
 	}
 
 	const bool result = SymbolsInitialized;
@@ -646,7 +665,7 @@ bool ExceptionHandler::WriteMinidump(EXCEPTION_POINTERS* pExs, DWORD crashedTid,
 		CrashTime.wHour, CrashTime.wMinute, CrashTime.wSecond);
 
 	HANDLE file = CreateFileA(pPathOut, GENERIC_WRITE, FILE_SHARE_READ, nullptr,
-		CREATE_ALWAYS, FILE_FLAG_WRITE_THROUGH, nullptr);
+		CREATE_ALWAYS, FILE_FLAG_RANDOM_ACCESS, nullptr);
 
 	if (file == INVALID_HANDLE_VALUE)
 	{
@@ -656,11 +675,8 @@ bool ExceptionHandler::WriteMinidump(EXCEPTION_POINTERS* pExs, DWORD crashedTid,
 	}
 
 	MINIDUMP_TYPE flags = static_cast<MINIDUMP_TYPE>(MiniDumpNormal
-		| MiniDumpWithDataSegs
-		| MiniDumpWithIndirectlyReferencedMemory);
-
-	if (fullMemory)
-		flags = static_cast<MINIDUMP_TYPE>(flags | MiniDumpWithFullMemory);
+		? MiniDumpNormal | MiniDumpWithDataSegs | MiniDumpWithFullMemory
+		: MiniDumpNormal | MiniDumpWithDataSegs | MiniDumpWithIndirectlyReferencedMemory);
 
 	MINIDUMP_EXCEPTION_INFORMATION info = { };
 	// ThreadId must be the CRASHING thread - when the dump runs on the dumper
@@ -672,8 +688,7 @@ bool ExceptionHandler::WriteMinidump(EXCEPTION_POINTERS* pExs, DWORD crashedTid,
 	if (DbgHelpLockReady)
 		EnterCriticalSection(&DbgHelpLock);
 
-	const BOOL result = MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), file, flags,
-		pExs != nullptr ? &info : nullptr, nullptr, nullptr);
+	const BOOL result = GuardedMiniDumpWrite(file, flags, pExs != nullptr ? &info : nullptr);
 
 	if (DbgHelpLockReady)
 		LeaveCriticalSection(&DbgHelpLock);

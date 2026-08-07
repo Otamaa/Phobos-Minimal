@@ -288,6 +288,7 @@ private:
 		debugProcess(this->PrismRelayCachedNetworkId, "PrismRelayCachedNetworkId");
 		debugProcess(this->PrismRelayCachedProviders, "PrismRelayCachedProviders");
 		debugProcess(this->ShouldBeDead, "ShouldBeDead ");
+		debugProcess(this->PreventCrew, "PreventCrew");
 	}
 
 public:
@@ -496,6 +497,7 @@ public:
 	int PrismRelayCachedNetworkId {};
 	std::vector<TechnoClass*> PrismRelayCachedProviders {};
 	bool ShouldBeDead {};
+	bool PreventCrew {};
 #pragma endregion
 
 public:
@@ -930,7 +932,8 @@ public:
 		TechnoClass* const pKiller,
 		const bool Select,
 		const bool IgnoreDefenses,
-		const bool PreventPassengersEscape
+		const bool PreventPassengersEscape,
+		const bool PreventCrewEscape
 	);
 
 	static int GetWarpPerStep(TemporalClass* pThis, int nStep);

@@ -150,6 +150,7 @@ enum class PhobosTriggerAction : unsigned int
 	SetForceEnemy = 608,
 	SetFreeRadar = 609,
 	SetTeamDelay = 610,
+	SetNextScanario = 611,
 
 	//ES
 	SetTriggerTechnoVeterancy = 700,
@@ -286,6 +287,7 @@ public:
 	ACTION_FUNC(SetForceEnemy);
 	ACTION_FUNC(SetFreeRadar);
 	ACTION_FUNC(SetTeamDelay);
+	ACTION_FUNC(SetNextScanario);
 
 	ACTION_FUNC(CreateBannerGlobal);
 	ACTION_FUNC(CreateBannerLocal);

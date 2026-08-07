@@ -537,6 +537,8 @@ public:
 	Valueable<bool> ChangeOwner {};
 	Valueable<bool> ChangeOwner_SetAsMindControl {};
 	Valueable<AnimTypeClass*> ChangeOwner_MindControlAnim {};
+
+	Valueable<bool> PreventCrew { false };
 #pragma endregion
 
 public:

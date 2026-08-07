@@ -1166,6 +1166,9 @@ bool NOINLINE TActionExtData::Occured(TActionClass* pThis, ActionArgs const& arg
 	case PhobosTriggerAction::SetTeamDelay:
 		ret = TActionExtData::SetTeamDelay(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
+	case PhobosTriggerAction::SetNextScanario:
+		ret = TActionExtData::SetNextScanario(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::CreateBannerGlobal:
 		ret = TActionExtData::CreateBannerGlobal(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
@@ -2786,6 +2789,22 @@ bool TActionExtData::SetFreeRadar(TActionClass* pThis, HouseClass* pHouse, Objec
 		// Cancel any in-flight grace window so the action takes effect at once.
 		pHouseExt->RadarGraceTimer.Stop();
 		pHouse->RecheckRadar = true;
+	}
+
+	return true;
+}
+
+bool TActionExtData::SetNextScanario(TActionClass* const pThis, HouseClass* const pHouse, ObjectClass* const pObject, TriggerClass* const pTrigger, CellStruct* plocation)
+{
+	if (SessionClass::Instance->IsCampaign()) {
+		const char* pText = pThis->Text;
+
+		if (strcmp(pText, "") && strcmp(pText, "0")) {
+			// When you can customize it as you like, there’s no longer a need for additional branches.
+			ScenarioClass* const pScenario = ScenarioClass::Instance();
+			_snprintf_s(pScenario->AltNextScenario, sizeof(pScenario->AltNextScenario), pText);
+			_snprintf_s(pScenario->NextScenario, sizeof(pScenario->NextScenario), pText);
+		}
 	}
 
 	return true;

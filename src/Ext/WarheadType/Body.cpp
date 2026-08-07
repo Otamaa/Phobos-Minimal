@@ -856,6 +856,8 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->ChangeOwner_SetAsMindControl.Read(exINI, pSection, "ChangeOwner.SetAsMindControl");
 	this->ChangeOwner_MindControlAnim.Read(exINI, pSection, "ChangeOwner.MindControlAnim");
 
+	this->PreventCrew.Read(exINI, pSection, "PreventCrew");
+	
 	this->IsCellSpreadWH =
 		this->RadarOutage_Duration != 0||
 		this->PowerOutage_Duration != 0||
@@ -2242,6 +2244,8 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->ChangeOwner)
 		.Process(this->ChangeOwner_SetAsMindControl)
 		.Process(this->ChangeOwner_MindControlAnim)
+
+		.Process(this->PreventCrew)
 		;
 }
 

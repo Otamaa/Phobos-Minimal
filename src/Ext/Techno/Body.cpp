@@ -1849,7 +1849,7 @@ InfantryClass* TechnoExtData::RecoverHijacker(FootClass* const pThis)
 	return nullptr;
 }
 
-void TechnoExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller, const bool Select, const bool IgnoreDefenses, const bool PreventPassengersEscape)
+void TechnoExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller, const bool Select, const bool IgnoreDefenses, const bool PreventPassengersEscape, const bool PreventCrewEscape)
 {
 	auto const pType = GET_TECHNOTYPE(pThis);
 	auto const pOwner = pThis->Owner;
@@ -1864,6 +1864,9 @@ void TechnoExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* const pK
 	{
 		return;
 	}
+
+	if(PreventCrewEscape)
+		TechnoExtContainer::Instance.Find(pThis)->PreventCrew = true;
 
 	// always eject passengers, but passengers only if not supressed.
 	if (!TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled && !IgnoreDefenses)

@@ -33,6 +33,7 @@
     <ClCompile Include="src\Ext\Aircraft\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\AITriggerType\Hooks.cpp" />
     <ClCompile Include="src\Ext\AStar\Body.cpp" />
+    <ClCompile Include="src\Ext\AStar\Hooks.ImproveAStar.cpp" />
     <ClCompile Include="src\Ext\BitFont\Body.cpp" />
     <ClCompile Include="src\Ext\BitText\Body.cpp" />
     <ClCompile Include="src\Ext\Building\Hook.DrawIt.cpp" />
@@ -1085,6 +1086,7 @@
   <ItemGroup>
     <None Include="cpp.hint" />
     <None Include="Debug DPFeatures\phobos.dll" />
+    <None Include="src\Ext\Techno\Hooks.CrewCount.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="sampleconfig\README_WHERETOPUTLUA.txt" />

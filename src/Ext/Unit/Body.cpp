@@ -481,7 +481,7 @@ DamageState FakeUnitClass::_Take_Damage(int* damage,
 			this->MarkPassengersAsExited();
 
 		if(!this->Transporter){
-			TechnoExtData::SpawnSurvivors(this, source, selected, ignoreDefenses, PreventsPassengerEscape);
+			TechnoExtData::SpawnSurvivors(this, source, selected, ignoreDefenses, PreventsPassengerEscape, 	WarheadTypeExtContainer::Instance.Find(warhead)->PreventCrew);
 
 			if (GameModeOptionsClass::Instance->Crates)
 			{

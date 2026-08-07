@@ -2364,7 +2364,7 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 				pSource->Deactivate();
 			}
 
-			pThis->Destroy(0u, Attacker, IgnoreDefenses, foundation);
+			pThis->Destroy(0u, Attacker, IgnoreDefenses || WarheadTypeExtContainer::Instance.Find(WH)->PreventCrew , foundation);
 
 			auto Started = pThis->GoingToBlowTimer.StartTime;
 			auto DelayTime = pThis->GoingToBlowTimer.TimeLeft;
@@ -2610,7 +2610,9 @@ DamageState FakeAircraftClass::__Take_Damage(int* damage, int distance, WarheadT
 			args.Attacker,
 			bSelected,
 			args.IgnoreDefenses,
-			args.PreventsPassengerEscape);
+			args.PreventsPassengerEscape,
+			WarheadTypeExtContainer::Instance.Find(warhead)->PreventCrew
+		);
 
 		const auto& crashable = TechnoTypeExtContainer::Instance.Find(this->Type)->Crashable;
 		if ((crashable.isset() && !crashable.Fetch()) || !this->Crash(args.Attacker))

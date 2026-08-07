@@ -96,6 +96,7 @@ public:
 	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	void __Look(bool incremental, int arg_4);
+	int  __GetCrewCount();
 
 	Action _MouseOverCell(CellStruct const& cell, bool checkFog = false, bool ignoreForce = false);
 	Action _MouseOverObject(ObjectClass* pObject, bool ignoreForce = false) const;

@@ -1,4 +1,5 @@
-#include <Helpers/Macro.h>
+#include <Utilities/Macro.h>
+#include <Utilities/Patch.h>
 
 #include "Body.h"
 
@@ -52,50 +53,129 @@ ASMJIT_PATCH(0x4C6185, EvadeClass_CarryOverShit_Globals, 0x8)
 
 // Inside the original code it forces the use of ScenarioClass::Instance->GlobalVariables[1] as a startup switch.
 // This is a big problem for Phobos that rewrote Variables.
-ASMJIT_PATCH(0x685A38, ScenarioClass_sub_685670_SetNextScenario, 0x6)
+// ASMJIT_PATCH(0x685A38, ScenarioClass_sub_685670_SetNextScenario, 0x6)
+// {
+// 	enum { AltNextScenario = 0x685A4C, NextScenario = 0x685A59, Continue = 0x685A63 };
+//
+// 	if (ScenarioClass::Instance->SkipMapSelect)
+// 	{
+// 		if (IS_SAME_STR_N(ScenarioClass::Instance->AltNextScenario, ""))
+// 		{
+// 			auto const LocalVariables = ScenarioExtData::GetVariables(false);
+// 			auto const GlobalVariables = ScenarioExtData::GetVariables(true);
+//
+// 			if (!LocalVariables->empty())
+// 			{
+// 				for (auto const& itr : *LocalVariables)
+// 				{
+// 					// AltNextScenario can be started as long as any variable has the name <Alternate Next Scenario>.
+// 					if (IS_SAME_STR_N(itr.second.Name, "<Alternate Next Scenario>") || itr.second.Value <= 0)
+// 						continue;
+//
+// 					return AltNextScenario;
+// 				}
+// 			}
+//
+// 			if (!GlobalVariables->empty())
+// 			{
+// 				for (auto const& itr : *GlobalVariables)
+// 				{
+// 					// Same result as above.
+// 					if (IS_SAME_STR_N(itr.second.Name, "<Alternate Next Scenario>") || itr.second.Value <= 0)
+// 						continue;
+//
+// 					return AltNextScenario;
+// 				}
+// 			}
+// 		}
+//
+// 		if (IS_SAME_STR_N(ScenarioClass::Instance->NextScenario, ""))
+// 		{
+// 			return NextScenario;
+// 		}
+// 	}
+//
+// 	return Continue;
+// }
+
+#include <ScenarioClass.h>
+
+struct __declspec(align(4)) MapSelectClass
 {
-	enum { AltNextScenario = 0x685A4C, NextScenario = 0x685A59, Continue = 0x685A63 };
+  DynamicVectorClass<void*> MapStages;
+  RectangleStruct TextRect;
+  const char* wwstringclass28;
+  DynamicVectorClass<void*> AnimEntries;
+  DynamicVectorClass<void*> SfxEntries;
 
-	if (ScenarioClass::Instance->SkipMapSelect)
-	{
-		if (IS_SAME_STR_N(ScenarioClass::Instance->AltNextScenario, ""))
+public:
+	bool SetNextScenario(ScenarioClass* pItem)
+		{ JMP_THIS(0x5AE100); }
+};
+
+static bool __fastcall MapSelectClass_SetNextScenario_CustomMission(MapSelectClass* pThis, discard_t, ScenarioClass* pItem)
+{
+	// It can be directly filled in the map file name without being restricted by mapselmd.ini.
+	if (pItem->SkipMapSelect) {
+		
+		auto HasAltNextScenarioFlag =[](const PhobosMap<int, ExtendedVariable>& variables)
 		{
-			auto const LocalVariables = ScenarioExtData::GetVariables(false);
-			auto const GlobalVariables = ScenarioExtData::GetVariables(true);
-
-			if (!LocalVariables->empty())
-			{
-				for (auto const& itr : *LocalVariables)
-				{
-					// AltNextScenario can be started as long as any variable has the name <Alternate Next Scenario>.
-					if (IS_SAME_STR_N(itr.second.Name, "<Alternate Next Scenario>") || itr.second.Value <= 0)
-						continue;
-
-					return AltNextScenario;
-				}
+			for (const auto& [index, variable] : variables) {
+				if (!std::strcmp(variable.Name, "<Alternate Next Scenario>") && variable.Value > 0)
+					return true;
 			}
 
-			if (!GlobalVariables->empty())
+			return false;
+		};
+
+		auto ShouldUseAltNextScenario = [HasAltNextScenarioFlag]()
 			{
-				for (auto const& itr : *GlobalVariables)
-				{
-					// Same result as above.
-					if (IS_SAME_STR_N(itr.second.Name, "<Alternate Next Scenario>") || itr.second.Value <= 0)
-						continue;
+				// NOTE: the gate reads the GLOBAL scenario's AltNextScenario, but the value
+				//       taken below comes from pItem. Preserved verbatim from the original.
+				if (!ScenarioClass::Instance->AltNextScenario[0])
+					return false;
 
-					return AltNextScenario;
-				}
-			}
-		}
+				auto const pGlobal = ScenarioExtData::Instance();
 
-		if (IS_SAME_STR_N(ScenarioClass::Instance->NextScenario, ""))
-		{
-			return NextScenario;
-		}
+				if (HasAltNextScenarioFlag(pGlobal->Local_Variables))  // local
+					return true;
+
+				const auto& globalVariables = pGlobal->Global_Variables;
+
+				if (HasAltNextScenarioFlag(globalVariables))
+					return true;
+
+				// legacy fallback: global variable index 1 doubles as the alt-scenario flag
+				return globalVariables.contains(1)
+					&& globalVariables.get_key_iterator(1)->second.Value > 0;
+			};
+
+		const char* const pScenario = ShouldUseAltNextScenario()
+			? pItem->AltNextScenario
+			: pItem->NextScenario;
+
+		if (!pScenario || !pScenario[0])
+			return false;
+
+		// Does this Stage have any function? If anyone knows, please let me know.
+		pItem->Stage = 0;
+
+		// NOTE: strncpy also zero-fills the tail of the buffer - kept deliberately,
+		//vanilla-adjacent code relies on a clean FileName. The explicit
+		//terminator is required because strncpy does not add one when the
+		//source fills the buffer exactly.
+		std::strncpy(pItem->FileName, pScenario, sizeof(pItem->FileName));
+		pItem->FileName[sizeof(pItem->FileName) - 1] = '\0';
+
+		return true;
 	}
 
-	return Continue;
+	// Return to the original function.
+	return pThis->SetNextScenario(pItem);
 }
+
+DEFINE_JUMP(LJMP, 0x685A38, 0x685A63)	// Skip the original code
+DEFINE_FUNCTION_JUMP(CALL, 0x5ADD63, MapSelectClass_SetNextScenario_CustomMission)
 
 ASMJIT_PATCH(0x689910, ScenarioClass_SetLocalToByID, 0x5)
 {

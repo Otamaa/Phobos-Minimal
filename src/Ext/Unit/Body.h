@@ -97,6 +97,8 @@ public:
 	HRESULT __stdcall __Load(IStream* pStm);
 	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
+	int  __GetCrewCount();
+
 	bool _Paradrop(CoordStruct* pCoords);
 	bool _Harvesting();
 

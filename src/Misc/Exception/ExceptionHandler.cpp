@@ -417,17 +417,14 @@ LONG __fastcall ExceptionHandler::Handle(int code, EXCEPTION_POINTERS* pExs)
 
 		bool delegated = false;
 
-		if (dumperAvailable)
-		{
+		if (dumperAvailable) {
 			SetEvent(DumperRequestEvent);
-			delegated = (WaitForSingleObject(DumperDoneEvent, DumperTimeoutMs) == WAIT_OBJECT_0);
-
-			if (!delegated)
-				Debug::Log("Dumper thread timed out; continuing with whatever artifacts exist.\n");
-		}
-
-		if (!delegated)
-		{
+			// On timeout, never fall back to the inline path: a wedged dumper
+			// sits inside dbghelp holding DbgHelpLock, so redoing the work here
+			// would block on that lock with no timeout and then write everything
+			// a second time. Whatever artifacts the dumper managed are enough.
+			Debug::Log("Dumper thread timed out; continuing with whatever artifacts exist.\n");
+		} else {
 			// Inline fallback: dumper not up yet, crash on the dumper itself,
 			// or a recursive entry. The DumpingThreadId latch is what stops a
 			// nested fault from recursing.
