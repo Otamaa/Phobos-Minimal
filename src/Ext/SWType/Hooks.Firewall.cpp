@@ -9,11 +9,11 @@
 #include <Ext/House/Body.h>
 #include <Ext/Aircraft/Body.h>
 #include <Ext/AircraftType/Body.h>
+#include <Ext/Infantry/Body.h>
 
 #include <Ext/Bullet/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/RadSite/Body.h>
-#include <Ext/BulletType/Body.h>
 
 #include <Misc/AresTrajectoryHelper.h>
 
@@ -190,7 +190,7 @@ ASMJIT_PATCH(0x51BD4C, InfantryClass_Update_BuildingBelow, 6)
 
 ASMJIT_PATCH(0x51C4C8, InfantryClass_IsCellOccupied, 6)
 {
-	GET(InfantryClass* const, pThis , EBP);
+	GET(InfantryClass*, pThis , EBP);
 	GET(BuildingClass* const, pBld, ESI);
 
 	enum {

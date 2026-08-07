@@ -443,7 +443,7 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 									bool(Techno_Type->Naval)
 								};
 
-								if(shiftPressed){
+								if(shiftPressed != KeyModifier::None){
 									for(int i = FakeRulesClass::Instance->ShiftQueueCount; i > 0; --i){
 										EventClass::AddEvent(&Event);
 									}
