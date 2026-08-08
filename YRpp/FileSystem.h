@@ -71,27 +71,27 @@ class FileSystem
 public:
 
 	//These is same with belows , just for confinient
-	static COMPILETIMEEVAL reference<SHPStruct*, 0xAC1478u , 4u> ShapesAllocated{};
+	static COMPILETIMEEVAL reference<SHPCaches*, 0xAC1478u , 4u> ShapesAllocated{};
 
-	static COMPILETIMEEVAL reference<SHPStruct*, 0xAC1478u> PIPBRD_SHP{};
-	static COMPILETIMEEVAL reference<SHPStruct*, 0xAC147Cu> PIPS_SHP{};
-	static COMPILETIMEEVAL reference<SHPStruct*, 0xAC1480u> PIPS2_SHP{};
-	static COMPILETIMEEVAL reference<SHPStruct*, 0xAC1484u> TALKBUBL_SHP{};
+	static COMPILETIMEEVAL reference<SHPCaches*, 0xAC1478u> PIPBRD_SHP{};
+	static COMPILETIMEEVAL reference<SHPCaches*, 0xAC147Cu> PIPS_SHP{};
+	static COMPILETIMEEVAL reference<SHPCaches*, 0xAC1480u> PIPS2_SHP{};
+	static COMPILETIMEEVAL reference<SHPCaches*, 0xAC1484u> TALKBUBL_SHP{};
 	static COMPILETIMEEVAL reference<int, 0xB0EB3C> TALKBUBL_Frame{};
 
-	static COMPILETIMEEVAL reference<SHPStruct*, 0x89DDC8u> WRENCH_SHP{};
-	static COMPILETIMEEVAL reference<SHPStruct*, 0x89DDC4u> POWEROFF_SHP{};
-	static COMPILETIMEEVAL reference<SHPStruct*, 0xA8F794u> GRFXTXT_SHP{};
-	static COMPILETIMEEVAL reference<SHPStruct*, 0xB1CF98u> OREGATH_SHP{};
+	static COMPILETIMEEVAL reference<SHPCaches*, 0x89DDC8u> WRENCH_SHP{};
+	static COMPILETIMEEVAL reference<SHPCaches*, 0x89DDC4u> POWEROFF_SHP{};
+	static COMPILETIMEEVAL reference<SHPCaches*, 0xA8F794u> GRFXTXT_SHP{};
+	static COMPILETIMEEVAL reference<SHPCaches*, 0xB1CF98u> OREGATH_SHP{};
 
-	static COMPILETIMEEVAL reference<SHPStruct*, 0x89DDBCu> BUILDINGZ_SHA {};
-	static COMPILETIMEEVAL reference<SHPStruct*, 0x8A03FCu> PLACE_SHP {};
+	static COMPILETIMEEVAL reference<SHPCaches*, 0x89DDBCu> BUILDINGZ_SHA {};
+	static COMPILETIMEEVAL reference<SHPCaches*, 0x8A03FCu> PLACE_SHP {};
 
-	static COMPILETIMEEVAL reference<SHPStruct*, 0xB0B484u> GCLOCK2_SHP {};
-	static COMPILETIMEEVAL reference<SHPStruct*, 0xB07BC0u> DARKEN_SHP {};
+	static COMPILETIMEEVAL reference<SHPCaches*, 0xB0B484u> GCLOCK2_SHP {};
+	static COMPILETIMEEVAL reference<SHPCaches*, 0xB07BC0u> DARKEN_SHP {};
 
-	static COMPILETIMEEVAL reference<SHPStruct*, 0xB0B4A0u> ObserverSideShape_SHP {};
-	static COMPILETIMEEVAL reference<SHPStruct*, 0xB0B49Cu> RandomSideShape_SHP {};
+	static COMPILETIMEEVAL reference<SHPCaches*, 0xB0B4A0u> ObserverSideShape_SHP {};
+	static COMPILETIMEEVAL reference<SHPCaches*, 0xB0B49Cu> RandomSideShape_SHP {};
 
 	static COMPILETIMEEVAL reference<BytePalette, 0x885780u> TEMPERAT_PAL{};
 	static COMPILETIMEEVAL reference<BytePalette, 0xABBED0u> ISOx_PAL {};
@@ -118,11 +118,8 @@ public:
 	static void* LoadFile(const char* pFileName)
 		{ return FakeFileLoader::_Retrieve(pFileName, false); }
 
-	static SHPStruct* LoadSHPFile(const char* pFileName)
-		{ return static_cast<SHPStruct*>(FakeFileLoader::_Retrieve(pFileName, true)); }
-
-	static SHPReference* LoadSHPRef(const char* pFileName)
-	{ return reinterpret_cast<SHPReference*>(FakeFileLoader::_Retrieve(pFileName, true)); }
+	static SHPCaches* LoadSHPFile(const char* pFileName)
+		{ return static_cast<SHPCaches*>(FakeFileLoader::_Retrieve(pFileName, true)); }
 
 	//I'm just making this up for easy palette loading
 	static ConvertClass* LoadPALFile(const char* pFileName, DSurface* pSurface)

@@ -1,3 +1,9 @@
+#include "../Body.h"
+#include <Ext/SHP/Body.h>
+
+#include <Ext/Anim/Body.h>
+#include <Ext/AnimType/Body.h>
+
 #include "BlitTransLucentUniversalAlphaZRead.h"
 #include "BlitTransLucentBufferedAlphaZRead.h"
 #include "BlitTransLucentAddZRead.h"
@@ -18,312 +24,123 @@
 #include <Syringe.h>
 #include <Utilities/Patch.h>
 #include <Utilities/Macro.h>
+#include <Utilities/Debug.h>
 
 #include <FileFormats/SHP.h>
 
 #include <ConvertClass.h>
+#pragma optimize("", off )
 
-// ============================================================================
-//
-//  ConvertExt::ExtData - the 36-entry blitter table - plus the flag decoding
-//  that picks an entry out of it.
-//
-//  Named by the string at .rdata 0x1024D228:
-//      "Exception occured at ConvertExt::ExtData::BuildNewBlitters , Type = %s"
-//
-//  The first three dwords are the standard Ares ExtData prefix, exactly as on
-//  SHPExtData. That also settles what Stack(0x60) is in the DrawSHP handlers:
-//  a ConvertClass, with this ExtData hanging off it at +0x178 - the same
-//  pointer-on-the-object pattern SHPReference uses at +0x24.
-// ============================================================================
-
-// ---------------------------------------------------------------------------
-//  Position within a family. Both families use the same ordering, which is
-//  what lets one resolver serve both selectors.
-//
-//  IDA cross-reference, for reading the pseudocode:
-//      this[N]  ==  Blitters[N - 3]      for N in 3..20
-//      this[N]  ==  RLEBlitters[N - 21]  for N in 21..38
-// ---------------------------------------------------------------------------
-struct BlitterIndex
+void ConvertExtData::Alloc()
 {
-	enum : int
-	{
-		// Twelve translucency levels. N is the DESTINATION weight out of 32:
-		//     result = (N*dst + (32-N)*src) / 32
-		// 8, 16 and 24 are absent because those are 25% / 50% / 75%, which
-		// vanilla already ships as BlitTransLucent25 / 50 / 75.
-		Alpha2 = 0, Alpha4, Alpha6, Alpha10, Alpha12, Alpha14,
-		Alpha18, Alpha20, Alpha22, Alpha26, Alpha28, Alpha30,
+	WORD* palData = (WORD*)this->AttachedToObject->ShadeTables;
+	int shade = this->AttachedToObject->ShadeCount;
 
-		BufferedAlpha = 12,
-		Add = 13,
-		Multiply = 14,
-		DoubleMultiply = 15,
-		Luna = 16,
-		Custom = 17,
+	Blitters[0] = new BlitTransLucentUniversalAlphaZRead<WORD, 2u>(palData, shade);
+	Blitters[1] = new BlitTransLucentUniversalAlphaZRead<WORD, 4u>(palData, shade);
+	Blitters[2] = new BlitTransLucentUniversalAlphaZRead<WORD, 6u>(palData, shade);
+	Blitters[3] = new BlitTransLucentUniversalAlphaZRead<WORD, 10u>(palData, shade);
+	Blitters[4] = new BlitTransLucentUniversalAlphaZRead<WORD, 12u>(palData, shade);
+	Blitters[5] = new BlitTransLucentUniversalAlphaZRead<WORD, 14u>(palData, shade);
+	Blitters[6] = new BlitTransLucentUniversalAlphaZRead<WORD, 18u>(palData, shade);
+	Blitters[7] = new BlitTransLucentUniversalAlphaZRead<WORD, 20u>(palData, shade);
+	Blitters[8] = new BlitTransLucentUniversalAlphaZRead<WORD, 22u>(palData, shade);
+	Blitters[9] = new BlitTransLucentUniversalAlphaZRead<WORD, 26u>(palData, shade);
+	Blitters[10] = new BlitTransLucentUniversalAlphaZRead<WORD, 28u>(palData, shade);
+	Blitters[11] = new BlitTransLucentUniversalAlphaZRead<WORD, 30u>(palData, shade);
+	Blitters[12] = new BlitTransLucentBufferedAlphaZRead<WORD>(palData, shade);
+	Blitters[13] = new BlitTransLucentAddZRead<WORD>(palData, shade);
+	Blitters[14] = new BlitTransLucentMultiplyZRead<WORD>(palData, shade);
+	Blitters[15] = new BlitTransLucentDoubleMultiplyZRead<WORD>(palData, shade);
+	Blitters[16] = new BlitTransLucentLunaZRead<WORD>(palData, shade);
+	Blitters[17] = new BlitterCustom(palData, shade);
 
-		Count = 18,
-	};
-};
+	RLEBlitters[0] = new RLEBlitTransLucentUniversalAlphaZRead<WORD, 2u>(palData, shade);
+	RLEBlitters[1] = new RLEBlitTransLucentUniversalAlphaZRead<WORD, 4u>(palData, shade);
+	RLEBlitters[2] = new RLEBlitTransLucentUniversalAlphaZRead<WORD, 6u>(palData, shade);
+	RLEBlitters[3] = new RLEBlitTransLucentUniversalAlphaZRead<WORD, 10u>(palData, shade);
+	RLEBlitters[4] = new RLEBlitTransLucentUniversalAlphaZRead<WORD, 12u>(palData, shade);
+	RLEBlitters[5] = new RLEBlitTransLucentUniversalAlphaZRead<WORD, 14u>(palData, shade);
+	RLEBlitters[6] = new RLEBlitTransLucentUniversalAlphaZRead<WORD, 18u>(palData, shade);
+	RLEBlitters[7] = new RLEBlitTransLucentUniversalAlphaZRead<WORD, 20u>(palData, shade);
+	RLEBlitters[8] = new RLEBlitTransLucentUniversalAlphaZRead<WORD, 22u>(palData, shade);
+	RLEBlitters[9] = new RLEBlitTransLucentUniversalAlphaZRead<WORD, 26u>(palData, shade);
+	RLEBlitters[10] = new RLEBlitTransLucentUniversalAlphaZRead<WORD, 28u>(palData, shade);
+	RLEBlitters[11] = new RLEBlitTransLucentUniversalAlphaZRead<WORD, 30u>(palData, shade);
+	RLEBlitters[12] = new RLEBlitTransLucentBufferedAlphaZRead<WORD>(palData, shade);
+	RLEBlitters[13] = new RLEBlitTransLucentAddZRead<WORD>(palData, shade);
+	RLEBlitters[14] = new RLEBlitTransLucentMultiplyZRead<WORD>(palData, shade);
+	RLEBlitters[15] = new RLEBlitTransLucentDoubleMultiplyZRead<WORD>(palData, shade);
+	RLEBlitters[16] = new RLEBlitTransLucentLunaZRead<WORD>(palData, shade);
+	RLEBlitters[17] = new BlitterCustomRLE(palData, shade);
+}
 
-// ---------------------------------------------------------------------------
-//  Flag decoding, recovered from sub_1004C270.
-//
-//  Two disjoint encodings share one dword:
-//
-//   (a) flags <= 0x80000000 : single-bit selector, LOWEST set bit wins.
-//       0x00040000 .. 0x20000000 pick the twelve translucency levels and
-//       0x40000000 picks the buffered-alpha blitter. Below 0x00040000
-//       selects nothing.
-//
-//   (b) flags >  0x80000000 : (flags & 0xFFF00000) is a family id.
-//
-//  Consequence worth keeping in mind: the 0x40000000 alpha path and the
-//  0x888/0x889 custom paths can NEVER both be taken for one draw, because the
-//  single-bit path only runs for flags <= 0x80000000. That disjointness is the
-//  only thing keeping GetAlphaCursor() away from a BlitterCustom, whose
-//  callback slots sit at the same +0x10 the alpha cursor uses.
-// ---------------------------------------------------------------------------
-struct BlitFlags
+void ConvertExtData::Dealloc()
 {
-	static constexpr DWORD SingleBitMax = 0x80000000u;
-	static constexpr DWORD SingleBitMin = 0x00040000u;
-	static constexpr DWORD FamilyMask = 0xFFF00000u;
+	for (auto& _blitter : Blitters) {
+		if(_blitter){
+			delete _blitter;
+			_blitter = nullptr;
+		}
+	}
 
-	static constexpr DWORD BufferedAlpha = 0x40000000u;
+	for (auto& _RLEblitter : RLEBlitters) {
+		if (_RLEblitter) {
+			delete _RLEblitter;
+			_RLEblitter = nullptr;
+		}
+	}
+}
 
-	static constexpr DWORD FamilyAdd = 0x88400000u;
-	static constexpr DWORD FamilyMultiply = 0x88500000u;
-	static constexpr DWORD FamilyDoubleMultiply = 0x88600000u;
-	static constexpr DWORD FamilyLuna = 0x88700000u;
-
-	// UPDATED: these were FamilyCustomA / FamilyCustomB back when the two
-	// slots on BlitterCustom were mistaken for source buffers. They select
-	// which CALLBACK the caller is installing out of TLS slot B.
-	static constexpr DWORD FamilyCustomPixel = 0x88800000u; // -> PixelBlender
-	static constexpr DWORD FamilyCustomSpan = 0x88900000u; // -> SpanBlitter
-
-	// Ordered exactly as the original's if-chain tests them. The chain returns
-	// on the LOWEST set bit; a bit-scan would give the same answer, but only
-	// because the order happens to be ascending, so the explicit list
-	// documents the priority rather than implying it.
-	static constexpr DWORD SingleBits[BlitterIndex::Count - 5] =
-	{
-		0x00040000u, // Alpha2      N=2, dst weight 2/32
-		0x00080000u, // Alpha4
-		0x00100000u, // Alpha6
-		0x00200000u, // Alpha10
-		0x00400000u, // Alpha12
-		0x00800000u, // Alpha14
-		0x01000000u, // Alpha18
-		0x02000000u, // Alpha20
-		0x04000000u, // Alpha22
-		0x08000000u, // Alpha26
-		0x10000000u, // Alpha28
-		0x20000000u, // Alpha30
-		0x40000000u, // BufferedAlpha
-	};
-
-	static constexpr int SingleBitCount = BlitterIndex::Count - 5; // 13
-};
-
-struct NewPalData
+int ConvertExtData::ResolveIndex(DWORD flags)
 {
-	static constexpr int FamilySize = 18;
-	static constexpr int UniversalCount =
-		static_cast<int>(std::size(BlitterDetail::UniversalAlphaLevels));
-
-	std::unique_ptr<Blitter> Blitters[FamilySize];
-	std::unique_ptr <RLEBlitter> RLEBlitters[FamilySize];
-
-public:
-
-	// ---------------------------------------------------------------------------
-	//  Bit -> position within a family.
-	//
-	//  The original duplicates this logic across sub_1004C130 and sub_1004C270
-	//  with different base indices; both families order their entries the same
-	//  way, so one resolver serves both.
-	// ---------------------------------------------------------------------------
-	static int ResolveIndex(DWORD flags)
-	{
-		if (flags <= BlitFlags::SingleBitMax)
-		{
-			// Anything below the lowest selector bit picks nothing at all - not
-			// index 0. `return 0` here would silently hand back Alpha2.
-			if (flags < BlitFlags::SingleBitMin)
-				return BlitterIndex::Count;
-
-			for (int i = 0; i < BlitFlags::SingleBitCount; ++i)
-			{
-				if (flags & BlitFlags::SingleBits[i])
-					return i;
-			}
-
-			// Reachable: e.g. flags == 0x80000000 exactly, which is <= the max but
-			// matches no selector bit.
+	if (flags <= BlitFlags::SingleBitPathMax) {
+		// Anything below the lowest selector bit picks nothing at all - not
+		// index 0. `return 0` here would silently hand back Alpha2.
+		if (flags < BlitFlags::SingleBitMin)
 			return BlitterIndex::Count;
+
+		for (int i = 0; i < BlitFlags::SingleBitCount; ++i) {
+			if (flags & BlitFlags::SingleBits[i])
+				return i;
 		}
 
-		switch (flags & BlitFlags::FamilyMask)
-		{
-		case BlitFlags::FamilyAdd:            return BlitterIndex::Add;
-		case BlitFlags::FamilyMultiply:       return BlitterIndex::Multiply;
-		case BlitFlags::FamilyDoubleMultiply: return BlitterIndex::DoubleMultiply;
-		case BlitFlags::FamilyLuna:           return BlitterIndex::Luna;
-
-			// UPDATED: both custom families resolve to the same blitter. Which of its
-			// two callback slots gets filled is decided by the DrawSHP handler, not
-			// here - see BlitterCustom.h.
-		case BlitFlags::FamilyCustomPixel:
-		case BlitFlags::FamilyCustomSpan:     return BlitterIndex::Custom;
-
-			// The original splits this as `if (family > 0x88700000)` accepting only
-			// 0x888/0x889, plus a switch over 0x884..0x887. Everything else falls
-			// through to zero, which the default covers.
-		default:                              return BlitterIndex::Count;
-		}
+		// Reachable: e.g. flags == 0x80000000 exactly, which is <= the max but
+		// matches no selector bit.
+		return BlitterIndex::Count;
 	}
 
-	static void AllocateNewBlitters(NewPalData* pData, ConvertClass* pConver) {
-		pData->Alloc((WORD*)pConver->BufferA, pConver->BytesPerPixel);
-	}
-
-	bool IsPlainReady() const { return this->Blitters[0] != nullptr; }
-	bool IsRLEReady() const { return this->RLEBlitters[0] != nullptr; }
-	bool IsReady(bool rle) const { return rle ? this->IsRLEReady() : this->IsPlainReady(); }
-
-	Blitter* Select(DWORD flags) const
+	switch (flags & BlitFlags::FamilyMask)
 	{
-		// VERIFY: only sub_1004C270 (the RLE one) was ever disassembled.
-		// sub_1004C130 is assumed to be the same code over the plain array - the
-		// two DrawSHP handlers are otherwise byte-identical and the families
-		// occupy their arrays in the same order. Confirm before shipping.
-		const int index = ResolveIndex(flags);
-		return index < BlitterIndex::Count ? this->Blitters[index].get() : nullptr;
+	case BlitFlags::FamilyAdd:            return BlitterIndex::Add;
+	case BlitFlags::FamilyMultiply:       return BlitterIndex::Multiply;
+	case BlitFlags::FamilyDoubleMultiply: return BlitterIndex::DoubleMultiply;
+	case BlitFlags::FamilyLuna:           return BlitterIndex::Luna;
+
+		// UPDATED: both custom families resolve to the same blitter. Which of its
+		// two callback slots gets filled is decided by the DrawSHP handler, not
+		// here - see BlitterCustom.h.
+	case BlitFlags::FamilyCustomPixel:
+	case BlitFlags::FamilyCustomSpan:     return BlitterIndex::Custom;
+
+		// The original splits this as `if (family > 0x88700000)` accepting only
+		// 0x888/0x889, plus a switch over 0x884..0x887. Everything else falls
+		// through to zero, which the default covers.
+	default:                              return BlitterIndex::Count;
 	}
+}
 
-	RLEBlitter* SelectRLE(DWORD flags) const
-	{
-		const int index = ResolveIndex(flags);
-		return index < BlitterIndex::Count ? this->RLEBlitters[index].get() : nullptr;
-	}
+DWORD TlsSlot_Blitter { TLS_OUT_OF_INDEXES };
+DWORD TlsSlot_Custom { TLS_OUT_OF_INDEXES };
 
-	void Alloc(WORD* palData, int shade)
-	{
-		Blitters[0] = std::make_unique<BlitTransLucentUniversalAlphaZRead<WORD, 2u>>(palData, shade);
-		Blitters[1] = std::make_unique<BlitTransLucentUniversalAlphaZRead<WORD, 4u>>(palData, shade);
-		Blitters[2] = std::make_unique<BlitTransLucentUniversalAlphaZRead<WORD, 6u>>(palData, shade);
-		Blitters[3] = std::make_unique<BlitTransLucentUniversalAlphaZRead<WORD, 10u>>(palData, shade);
-		Blitters[4] = std::make_unique<BlitTransLucentUniversalAlphaZRead<WORD, 12u>>(palData, shade);
-		Blitters[5] = std::make_unique<BlitTransLucentUniversalAlphaZRead<WORD, 14u>>(palData, shade);
-		Blitters[6] = std::make_unique<BlitTransLucentUniversalAlphaZRead<WORD, 18u>>(palData, shade);
-		Blitters[7] = std::make_unique<BlitTransLucentUniversalAlphaZRead<WORD, 20u>>(palData, shade);
-		Blitters[8] = std::make_unique<BlitTransLucentUniversalAlphaZRead<WORD, 22u>>(palData, shade);
-		Blitters[9] = std::make_unique<BlitTransLucentUniversalAlphaZRead<WORD, 26u>>(palData, shade);
-		Blitters[10] = std::make_unique<BlitTransLucentUniversalAlphaZRead<WORD, 28u>>(palData, shade);
-		Blitters[11] = std::make_unique<BlitTransLucentUniversalAlphaZRead<WORD, 30u>>(palData, shade);
-		Blitters[12] = std::make_unique<BlitTransLucentBufferedAlphaZRead<WORD>>(palData, shade);
-		Blitters[13] = std::make_unique<BlitTransLucentAddZRead<WORD>>(palData, shade);
-		Blitters[14] = std::make_unique<BlitTransLucentMultiplyZRead<WORD>>(palData, shade);
-		Blitters[15] = std::make_unique<BlitTransLucentDoubleMultiplyZRead<WORD>>(palData, shade);
-		Blitters[16] = std::make_unique<BlitTransLucentLunaZRead<WORD>>(palData, shade);
-		Blitters[17] = std::make_unique<BlitterCustom>(palData, shade);
+void ConvertExtData::AllocTLS()
+{
+	TlsSlot_Blitter = TlsAlloc();
+	TlsSlot_Custom = TlsAlloc();
 
-		RLEBlitters[0] = std::make_unique<RLEBlitTransLucentUniversalAlphaZRead<WORD, 2u>>(palData, shade);
-		RLEBlitters[1] = std::make_unique<RLEBlitTransLucentUniversalAlphaZRead<WORD, 4u>>(palData, shade);
-		RLEBlitters[2] = std::make_unique<RLEBlitTransLucentUniversalAlphaZRead<WORD, 6u>>(palData, shade);
-		RLEBlitters[3] = std::make_unique<RLEBlitTransLucentUniversalAlphaZRead<WORD, 10u>>(palData, shade);
-		RLEBlitters[4] = std::make_unique<RLEBlitTransLucentUniversalAlphaZRead<WORD, 12u>>(palData, shade);
-		RLEBlitters[5] = std::make_unique<RLEBlitTransLucentUniversalAlphaZRead<WORD, 14u>>(palData, shade);
-		RLEBlitters[6] = std::make_unique<RLEBlitTransLucentUniversalAlphaZRead<WORD, 18u>>(palData, shade);
-		RLEBlitters[7] = std::make_unique<RLEBlitTransLucentUniversalAlphaZRead<WORD, 20u>>(palData, shade);
-		RLEBlitters[8] = std::make_unique<RLEBlitTransLucentUniversalAlphaZRead<WORD, 22u>>(palData, shade);
-		RLEBlitters[9] = std::make_unique<RLEBlitTransLucentUniversalAlphaZRead<WORD, 26u>>(palData, shade);
-		RLEBlitters[10] = std::make_unique<RLEBlitTransLucentUniversalAlphaZRead<WORD, 28u>>(palData, shade);
-		RLEBlitters[11] = std::make_unique<RLEBlitTransLucentUniversalAlphaZRead<WORD, 30u>>(palData, shade);
-		RLEBlitters[12] = std::make_unique<RLEBlitTransLucentBufferedAlphaZRead<WORD>>(palData, shade);
-		RLEBlitters[13] = std::make_unique<RLEBlitTransLucentAddZRead<WORD>>(palData, shade);
-		RLEBlitters[14] = std::make_unique<RLEBlitTransLucentMultiplyZRead<WORD>>(palData, shade);
-		RLEBlitters[15] = std::make_unique<RLEBlitTransLucentDoubleMultiplyZRead<WORD>>(palData, shade);
-		RLEBlitters[16] = std::make_unique<RLEBlitTransLucentLunaZRead<WORD>>(palData, shade);
-		RLEBlitters[17] = std::make_unique<BlitterCustomRLE>(palData, shade);
-	}
-
-	void Dealloc()
-	{
-		for (auto& _blitter : Blitters)
-		{
-			_blitter.reset();
-		}
-
-		for (auto& _RLEblitter : RLEBlitters)
-		{
-			_RLEblitter.reset();
-		}
-	}
-};
-
-#ifdef ___Integrate
-
-// ============================================================================
-//  AlphaBlitState_TLS.cpp
-//
-//  FAITHFUL variant of the eight-hook cluster: keeps the two Win32 TLS slots
-//  exactly as the original DLL used them, instead of the thread_local
-//  AlphaBlitContext in AlphaBlitState.cpp.
-//
-//  Build ONE of the two, never both - they define the same ASMJIT_PATCH names
-//  and would fight over the same injection addresses.
-//
-//    AlphaBlitState.cpp      thread_local; no TlsAlloc, no failure path.
-//                            Preferred for new work.
-//    AlphaBlitState_TLS.cpp  this file. Byte-for-byte behavioural match,
-//                            including the game-init allocation and the
-//                            "Out of index oc." abort. Use it when diffing
-//                            against the original DLL.
-//
-//  Also carries the decluttered vtable map recovered from .rdata (see bottom).
-// ============================================================================
-
-#define ADDR_DrawSHP_GetBlitter        0x0 // VERIFY  <- handler 0x10052510
-#define SIZE_DrawSHP_GetBlitter        0x6 // VERIFY
-#define ADDR_DrawSHP_GetRLEBlitter     0x0 // VERIFY  <- handler 0x10052670
-#define SIZE_DrawSHP_GetRLEBlitter     0x6 // VERIFY
-#define ADDR_Lock_AdjustHeight         0x0 // VERIFY  <- handler 0x10052A20
-#define SIZE_Lock_AdjustHeight         0x6 // VERIFY
-#define ADDR_BlitRLE_AdjustHeight      0x0 // VERIFY  <- handler 0x100529D0
-#define SIZE_BlitRLE_AdjustHeight      0x6 // VERIFY
-#define ADDR_BlitPlain_AdjustHeight2   0x0 // VERIFY  <- handler 0x10052A60
-#define SIZE_BlitPlain_AdjustHeight2   0x6 // VERIFY
-#define ADDR_BlitRLE_Add               0x0 // VERIFY  <- handler 0x10052AA0
-#define SIZE_BlitRLE_Add               0x6 // VERIFY
-#define ADDR_BlitPlain_Add             0x0 // VERIFY  <- handler 0x10052AE0
-#define SIZE_BlitPlain_Add             0x6 // VERIFY
-#define ADDR_BlitRLE_Off               0x0 // VERIFY  <- handler 0x10052B10
-#define SIZE_BlitRLE_Off               0x6 // VERIFY
-#define ADDR_GameInit_Pre              0x0 // VERIFY  <- YR_GameInit_Pre
-#define SIZE_GameInit_Pre              0x6 // VERIFY
-
-#ifndef ALPHABLIT_ADDRESSES_FILLED
-#error "AlphaBlitState_TLS.cpp: injection addresses/sizes are placeholders. \
-Recover them from the hook descriptor table (off_10279948) first."
-#endif
-
-// ---------------------------------------------------------------------------
-//  The two TLS index globals, allocated in YR_GameInit_Pre.
-//
-//    slot A - dword_1028DB60 - the armed buffered blitter (plain or RLE)
-//    slot B - dwTlsIndex     - the BlitterCustom source pointer
-//
-//  VERIFY: only slot A's address appears in the dumps. dwTlsIndex is a named
-//          IDA symbol whose address was never shown, so it is declared here
-//          rather than bound to a fixed address. If you want a true binary
-//          match, point TlsSlot_Custom at the real global instead.
-// ---------------------------------------------------------------------------
-static DWORD& TlsSlot_Blitter = *reinterpret_cast<DWORD*>(0x1028DB60);
-static DWORD TlsSlot_Custom = TLS_OUT_OF_INDEXES; // VERIFY: address unknown
+	if (TlsSlot_Blitter == TLS_OUT_OF_INDEXES || TlsSlot_Custom == TLS_OUT_OF_INDEXES)
+		Debug::FatalErrorAndExit("Out of index oc.\n");
+}
 
 static AlphaCursor* GetArmedCursor()
 {
@@ -331,52 +148,17 @@ static AlphaCursor* GetArmedCursor()
 	return pBlitter ? GetAlphaCursor(pBlitter) : nullptr;
 }
 
-// ===========================================================================
-//  Allocation - the part AlphaBlitState.cpp deliberately drops.
-//
-//  Original, inside YR_GameInit_Pre:
-//      dword_1028DB60 = TlsAlloc();
-//      if (dword_1028DB60 == -1 || (dwTlsIndex = TlsAlloc(), dwTlsIndex == -1))
-//          Fatal("Out of index oc.\n", 208);
-//
-//  NOTE the short-circuit: when the first TlsAlloc fails the second never runs,
-//  so dwTlsIndex is left uninitialised on that path. Harmless only because the
-//  Fatal call does not return. Preserved.
-//
-//  This hook covers ONLY the TLS lines. The rest of YR_GameInit_Pre - the
-//  MEMORY[0x82D5xx] = 4 writes and the sub_100131B0 calls - is unrelated to
-//  this cluster and is NOT reproduced here.
-// ===========================================================================
-ASMJIT_PATCH(ADDR_GameInit_Pre, YR_GameInit_Pre_AllocTls, SIZE_GameInit_Pre)
-{
-	TlsSlot_Blitter = ::TlsAlloc();
-
-	if (TlsSlot_Blitter == TLS_OUT_OF_INDEXES
-		|| (TlsSlot_Custom = ::TlsAlloc(), TlsSlot_Custom == TLS_OUT_OF_INDEXES))
-	{
-		// sub_100BED00("Out of index oc.\n", 208) - VERIFY: 208 is presumably an
-		// exit or error code. Does not return.
-		reinterpret_cast<void(__cdecl*)(const char*, int)>(0x100BED00)("Out of index oc.\n", 208);
-	}
-
-	return 0;
-}
-
-// ===========================================================================
-//  SHARED SETUP - handlers 0x10052510 (plain) and 0x10052670 (RLE)
-//  Identical to the thread_local version except for the two TLS calls.
-// ===========================================================================
 static void SelectBlitterCommon(REGISTERS* R, bool rle)
 {
 	const int frameIdx = R->Stack<int>(0xAC);           // v1[43]
 	const DWORD flags = R->Stack<DWORD>(0xB8);          // v1[46]
-	const auto pShape = R->Stack<SHPReference*>(0xA8);  // v1[42]
-	const auto pConvert = R->Stack<char*>(0x60);        // v1[24] - ConvertClass*
+	const auto pShape = R->Stack<SHPCaches*>(0xA8);  // v1[42]
+	const auto pConvert = R->Stack<ConvertClass*>(0x60);        // v1[24] - ConvertClass*
 
-	auto pTable = *reinterpret_cast<NewPalData**>(pConvert + 0x178);
+	auto pTable = (ConvertExtData*)pConvert->GetPptrFromPad();
 
 	if (!pTable->IsReady(rle))
-		pTable->AllocateNewBlitters();
+		pTable->Alloc();
 
 	void* pBlitter = rle
 		? static_cast<void*>(pTable->SelectRLE(flags))
@@ -387,8 +169,7 @@ static void SelectBlitterCommon(REGISTERS* R, bool rle)
 
 	// -- install the custom blit callback -----------------------------------
 	const DWORD family = flags & BlitFlags::FamilyMask;
-	if (family == BlitFlags::FamilyCustomPixel || family == BlitFlags::FamilyCustomSpan)
-	{
+	if (family == BlitFlags::FamilyCustomPixel || family == BlitFlags::FamilyCustomSpan) {
 		// SUSPECT: dereferenced with no null check, two lines after being tested
 		// for null. Preserved verbatim.
 		// Layout of BlitterCustom and BlitterCustomRLE is identical here.
@@ -417,27 +198,36 @@ static void SelectBlitterCommon(REGISTERS* R, bool rle)
 	// The 0x40000000 bit is exactly what makes the selector return the
 	// buffered blitter of the right family, so the cursor is valid.
 	auto pAlpha = GetAlphaCursor(pBlitter);
-	auto pExt = pShape->Ext;
+	const auto it = SHPExtData::Array.find_if([pShape](SHPExtData* pExtShape) {
+		return pExtShape->AttachedToObject == pShape;
+	});
+
+	if (it == SHPExtData::Array.end()) {
+		Debug::Log("SHPExt not valid. Reason : Ext not found\n");
+		return;
+	}
+
+	auto pExt = *it;
 
 	// BUG (verbatim): pExt->AlphaSHP is read before pExt is tested, so a null
 	// ext faults at 0x0C and the "Ext not found" string is unreachable.
-	if (!pExt->AlphaSHP)
-	{
+	if (!pExt || !pExt->AlphaSHP) {
 		Debug::Log("SHPExt not valid. Reason : %s\n",
 			pExt ? "Invalid Alpha file" : "Ext not found");
+
 		return;
 	}
 
 	RectangleStruct bounds {};
-	ShapeCache::Get_Frame_Bounds(pShape, &bounds, frameIdx);
+	pShape->GetFrameBounds(bounds, frameIdx);
 
 	if (bounds.Width == 0)
 		return;
 
 	// Signed short read; see AlphaBlitState.cpp for the note.
-	const int stride = pShape->Width;
+	const int stride = pShape->GetWidth();
 
-	auto pPixels = ShapeCache::Get_Frame(pExt->AlphaSHP, frameIdx);
+	auto pPixels = pExt->AlphaSHP->GetPixels(frameIdx);
 
 	pAlpha->Stride = stride;
 	pAlpha->Base = pPixels + bounds.X + stride * bounds.Y;
@@ -445,39 +235,21 @@ static void SelectBlitterCommon(REGISTERS* R, bool rle)
 	::TlsSetValue(TlsSlot_Blitter, pBlitter); // the blitter, not the cursor
 }
 
-ASMJIT_PATCH(ADDR_DrawSHP_GetBlitter, DSurface_DrawSHP_GetSelectedBlitter, SIZE_DrawSHP_GetBlitter)
+ASMJIT_PATCH(0x4AF1E2 , DSurface_DrawSHP_GetSelectedBlitter, 8)
 {
-	GET(REGISTERS*, R, R);
 	SelectBlitterCommon(R, false);
 	return 0;
 }
 
-ASMJIT_PATCH(ADDR_DrawSHP_GetRLEBlitter, DSurface_DrawSHP_GetSelectedRLEBlitter, SIZE_DrawSHP_GetRLEBlitter)
+ASMJIT_PATCH(0x4AF14C , DSurface_DrawSHP_GetSelectedRLEBlitter, 8)
 {
-	GET(REGISTERS*, R, R);
 	SelectBlitterCommon(R, true);
 	return 0;
 }
 
-// 0x10052A20 - Cursor = Base + Stride * Stack(4) + Stack(0)
-ASMJIT_PATCH(ADDR_Lock_AdjustHeight, DSurface_DoubleIntersectLock_AdjustHeight, SIZE_Lock_AdjustHeight)
-{
-	GET(REGISTERS*, R, R);
-
-	const int x = R->Stack<int>(0x0); // VERIFY: clipped X
-	const int y = R->Stack<int>(0x4); // VERIFY: clipped Y
-
-	if (auto pCursor = GetArmedCursor())
-		pCursor->SeedFrom(x, y);
-
-	return 0;
-}
-
 // 0x100529D0 - TLS is only an arm flag; the blitter comes from Stack(0x90)
-ASMJIT_PATCH(ADDR_BlitRLE_AdjustHeight, DSurface_BlitWIthRLE_AdjustHeight, SIZE_BlitRLE_AdjustHeight)
+ASMJIT_PATCH(0x437D51 ,DSurface_BlitWIthRLE_AdjustHeight, 6)
 {
-	GET(REGISTERS*, R, R);
-
 	const int rows = R->Stack<int>(0x28);
 	const auto pBlitter = R->Stack<void*>(0x90);
 
@@ -489,10 +261,8 @@ ASMJIT_PATCH(ADDR_BlitRLE_AdjustHeight, DSurface_BlitWIthRLE_AdjustHeight, SIZE_
 }
 
 // 0x10052A60 - Cursor += Stride * ECX
-ASMJIT_PATCH(ADDR_BlitPlain_AdjustHeight2, DSurface_BlitWithPlain_AdjustHeight2, SIZE_BlitPlain_AdjustHeight2)
+ASMJIT_PATCH(0x4376BB , DSurface_BlitWithPlain_AdjustHeight2, 6)
 {
-	GET(REGISTERS*, R, R);
-
 	const int rows = static_cast<int>(R->ECX());
 
 	if (auto pCursor = GetArmedCursor())
@@ -501,11 +271,19 @@ ASMJIT_PATCH(ADDR_BlitPlain_AdjustHeight2, DSurface_BlitWithPlain_AdjustHeight2,
 	return 0;
 }
 
-// 0x10052AA0 - arm flag again; the blitter comes from EBP
-ASMJIT_PATCH(ADDR_BlitRLE_Add, DSurface_BlitWithRLE_Add, SIZE_BlitRLE_Add)
+ASMJIT_PATCH(0x7BC1BC, DSurface_DoubleIntersectLock_AdjustHeight, 5)
 {
-	GET(REGISTERS*, R, R);
+	const int x = R->Stack<int>(0x0); // VERIFY: clipped X
+	const int y = R->Stack<int>(0x4); // VERIFY: clipped Y
 
+	if (auto pCursor = GetArmedCursor())
+		pCursor->SeedFrom(x, y);
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x437E45 , DSurface_BlitWithRLE_Add, 5)
+{
 	// VERIFY: cached `this` vs. a real frame pointer. See AlphaBlitState.cpp.
 	const auto pBlitter = reinterpret_cast<void*>(R->EBP());
 
@@ -514,23 +292,403 @@ ASMJIT_PATCH(ADDR_BlitRLE_Add, DSurface_BlitWithRLE_Add, SIZE_BlitRLE_Add)
 
 	GetAlphaCursor(pBlitter)->NextRow();
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x4377E5, DSurface_BlitWithRLE_Add, 8)
+ASMJIT_PATCH_AGAIN(0x4378FC, DSurface_BlitWithRLE_Add, 6)
 
-// 0x10052AE0 - Cursor += Stride; touches no registers at all
-ASMJIT_PATCH(ADDR_BlitPlain_Add, DSurface_BlitWithPlain_Add, SIZE_BlitPlain_Add)
-{
-	if (auto pCursor = GetArmedCursor())
-		pCursor->NextRow();
-
-	return 0;
-}
-
-// 0x10052B10 - teardown; clears BOTH slots
-ASMJIT_PATCH(ADDR_BlitRLE_Off, DSurface_BlitWithRLE_Off, SIZE_BlitRLE_Off)
+ASMJIT_PATCH(0x43746A, DSurface_BlitWithRLE_Off, 7)
 {
 	::TlsSetValue(TlsSlot_Blitter, nullptr);
 	::TlsSetValue(TlsSlot_Custom, nullptr);
 	return 0;
+}ASMJIT_PATCH_AGAIN(0x437990, DSurface_BlitWithRLE_Off, 7)
+ASMJIT_PATCH_AGAIN(0x437B33, DSurface_BlitWithRLE_Off, 7)
+ASMJIT_PATCH_AGAIN(0x437D47, DSurface_BlitWithRLE_Off, 7)
+
+// ---------------------------------------------------------------------------
+// The per-frame alpha mask buffer.
+// ---------------------------------------------------------------------------
+struct AlphaMask
+{
+	// dword_10298580 -- the *active* mask buffer. Non-null only between
+	// BeginPass and EndPass, so it doubles as the "are we inside a tactical
+	// draw pass" guard every writer tests first.
+	static uint8_t* ActiveBuffer;
+
+	// Block -- the backing allocation. VERIFY: allocated elsewhere, and never
+	// null-checked by any of these functions.
+	static uint8_t* Buffer;
+
+	// dword_102A2E78 -- surface the mask is sized against.
+	static DSurface* TargetSurface;
+
+	// unk_102A1580. The original calls _Mtx_lock, throws via _Throw_C_error on
+	// a non-zero result, and calls _Mtx_unlock ignoring its result -- which is
+	// exactly what MSVC emits for std::mutex::lock() and unlock(). This is that
+	// mutex, restored to its source form.
+	//
+	// It cannot be wrapped in lock_guard/unique_lock: BeginPass acquires and
+	// EndPass releases, so the critical section spans two separate hooks.
+	static std::mutex BufferMutex;
+
+	// CreateAlpha (.text:10028780). __fastcall: pShape in ecx, frame in edx,
+	// the rest on the stack (bounds is a 16-byte by-value Rect).
+	//
+	// `flags` is the same dword BlitFlags/DrawFlags decode. Only
+	// DrawFlags::Center is read here; the selector half is ignored.
+	static bool __fastcall Blit(SHPCaches* pShape, int frame, DWORD flags,
+		RectangleStruct bounds, int x, int y)
+	{
+		if (!ActiveBuffer || !pShape || !TargetSurface)
+			return false;
+
+		// The mask is one byte per pixel, so the surface width is also the stride.
+		const int destStride = TargetSurface->Width;
+
+		// 100287CD -- cmovz. Only shapes whose first word is 0xFFFF are accepted.
+		// VERIFY: 0xFFFF presumably marks the extended header this DLL installs;
+		// a vanilla SHP has 0 there.
+		SHPHeader* const pSource = pShape->IsReference() ? (SHPHeader*)pShape : nullptr;
+
+		if (!pSource)
+			return false;
+
+		RectangleStruct frameBounds {};
+		pShape->GetFrameBounds(frameBounds, frame);
+
+		// 100287ED / 1002880C -- `and ebx, 200h`. IDA types the parameter __int16,
+		// which is wrong; the instruction reads the full dword. The `cdq / sub /
+		// sar 1` sequence is signed division truncating toward zero.
+		//
+		// NOTE: the shadow hooks below force DrawFlags::Center in, so a shadow draw
+		// always takes this branch regardless of what the caller passed.
+		const bool centered = DrawFlags::IsCentered(flags);
+		const int centerX = centered ? pSource->Width / 2 : 0;
+		const int centerY = centered ? pSource->Height / 2 : 0;
+
+		frameBounds.X += x - centerX;
+		frameBounds.Y += y - centerY;
+
+		RectangleStruct clipped = RectangleStruct::Intersect(frameBounds, bounds ,nullptr , nullptr);
+
+		// 10028867 / 10028875 -- plain zero tests, NOT <= 0. A negative width or
+		// height sails through here and is only caught by the `rows <= 0` guards in
+		// the two blitters. Preserved.
+		//
+		// This is also what lets BlitRaw hand `width` straight to memmove_s: the
+		// original's inlined copy has no count==0 branch because of this check.
+		if (clipped.Width == 0 || clipped.Height == 0)
+			return false;
+
+		const int srcSkipRows = clipped.Y - frameBounds.Y;
+		const int srcSkipCols = clipped.X - frameBounds.X;
+		const int destX = clipped.X - bounds.X;
+		const int destY = clipped.Y - bounds.Y;
+
+		// 1002889E -- order preserved: Is_RLE_Compressed is called BEFORE the frame
+		// pointer is null-checked.
+		const uint8_t* const pFrame = pShape->GetPixels(frame);
+		const bool isRLE = pShape->HasCompression(frame);
+
+		if (!pFrame)
+			return false;
+
+		uint8_t* const pDest = ActiveBuffer + destStride * destY + destX;
+
+		return isRLE
+			? BlitRLE(pDest, destStride, pFrame, srcSkipCols, srcSkipRows,
+				clipped.Width, clipped.Height)
+			: BlitRaw(pDest, destStride, pFrame, frameBounds.Width, srcSkipCols,
+				srcSkipRows, clipped.Width, clipped.Height);
+	}
+
+
+	// TacticalClass_UpdateDrawFunc   (.text:10028520)
+	static void BeginPass()
+	{
+		if (!TargetSurface)
+			return;
+
+		// HAZARD: read before the lock is taken (1002852A / 1002852E precede the
+		// _Mtx_lock call). A surface resize racing this pass sizes the clear off
+		// stale dimensions. Preserved.
+		const int width = TargetSurface->Width;
+		const int height = TargetSurface->Height;
+
+		BufferMutex.lock();
+
+		ActiveBuffer = Buffer;
+
+		// BUG: Buffer is never null-checked, and nothing verifies it is still
+		// width * height bytes. Preserved.
+		std::memset(Buffer, 0, static_cast<size_t>(width) * height);
+	}
+
+	// TacticalClass_UpdateDrawReturn (.text:10028570)
+	static void EndPass()
+	{
+		// BUG: the unlock is gated on the same global the lock was gated on. If
+		// TargetSurface is cleared mid-pass the mutex is never released and the
+		// next pass deadlocks; if it is set mid-pass this unlocks a mutex this
+		// thread does not own, which is undefined behaviour rather than a no-op.
+		// Preserved -- the fix is latching a bool in BeginPass and testing that
+		// here instead of re-reading TargetSurface.
+		if (TargetSurface)
+		{
+			BufferMutex.unlock();
+			ActiveBuffer = nullptr;
+		}
+	}
+
+private:
+	static bool BlitRaw(uint8_t* pDest, int destStride, const uint8_t* pFrame,
+		int srcStride, int srcSkipCols, int srcSkipRows, int width, int rows)
+	{
+		const uint8_t* pSrc = pFrame + srcStride * srcSkipRows + srcSkipCols;
+
+		if (rows <= 0)
+			return true;
+
+		const auto span = static_cast<rsize_t>(width);
+
+		do
+		{
+			// Return value discarded, matching the original: the error is reported
+			// through errno and the invalid-parameter handler, not to this caller.
+			static_cast<void>(memmove_s(pDest, span, pSrc, span));
+
+			pSrc += srcStride;
+			pDest += destStride;
+		}
+		while (--rows);
+
+		return true;
+	}
+
+	static bool BlitRLE(uint8_t* pDest, int destStride, const uint8_t* pRow,
+		int srcSkipCols, int srcSkipRows, int width, int rows)
+	{
+		// 100288D1 -- walk past fully clipped rows using the length headers.
+		for (int skipped = srcSkipRows; skipped > 0; --skipped)
+			pRow += *reinterpret_cast<const int16_t*>(pRow);
+
+		if (rows <= 0)
+			return true;
+
+		// 100288E5 -- truncated to 16 bits and reloaded from the stack slot on
+		// every iteration, so the width of the type matters.
+		const int16_t skipCols = static_cast<int16_t>(srcSkipCols);
+
+		do
+		{
+			const uint8_t* pIn = pRow + sizeof(int16_t);
+			uint8_t* pOut = pDest;
+			int16_t remaining = static_cast<int16_t>(width);
+
+			if (skipCols > 0)
+			{
+				// 10028905 -- consume runs until the clip edge is reached or
+				// passed. `overshoot` ends up >= 0.
+				int overshoot = -skipCols;
+
+				do
+				{
+					const uint8_t code = *pIn++;
+					overshoot += code ? 1 : *pIn++;
+				}
+				while (overshoot < 0);
+
+				// A run straddling the clip edge is dropped whole: the output
+				// pointer advances by the overshoot and the row shrinks to match,
+				// so those pixels keep whatever the buffer already held.
+				pOut = pDest + overshoot;
+				remaining = static_cast<int16_t>(width - overshoot);
+			}
+
+			// 10028930 -- BUG: nothing bounds-checks pOut against the row width.
+			// A frame whose RLE disagrees with its header runs off the end of the
+			// mask buffer. Preserved verbatim.
+			for (int left = remaining; left > 0; )
+			{
+				const uint8_t code = *pIn++;
+				int step;
+
+				if (code)
+				{
+					*pOut = code;
+					--left;
+					step = 1;
+				}
+				else
+				{
+					step = *pIn++;
+					left -= step;
+				}
+
+				pOut += step;
+			}
+
+			pDest += destStride;
+			pRow += *reinterpret_cast<const int16_t*>(pRow);
+		}
+		while (--rows);
+
+		return true;
+	}
+};
+
+uint8_t* AlphaMask::ActiveBuffer = nullptr;   // dword_10298580
+uint8_t* AlphaMask::Buffer = nullptr;   // Block -- VERIFY: allocated elsewhere
+DSurface* AlphaMask::TargetSurface = nullptr;   // dword_102A2E78
+std::mutex AlphaMask::BufferMutex;               // unk_102A1580
+
+static inline bool FXLightEnabled(AnimClass* pAnim)
+{
+	return AnimTypeExtContainer::Instance.Find(pAnim->Type)->FXLightEnable;
 }
 
-#endif
+ASMJIT_PATCH(0x6D8F0F , TacticalClass_UpdateDrawFunc, 6)
+{
+	AlphaMask::BeginPass();
+	return 0;
+}
+
+ASMJIT_PATCH(0x6D97BF , TacticalClass_UpdateDrawReturn, 6)
+{
+	AlphaMask::EndPass();
+	return 0;
+}
+
+// ---------------------------------------------------------------------------
+// Variant 0. .text:100285A0
+//
+// Reads four consecutive dwords off ESP: the tail of a CC_Draw_Shape argument
+// push, one slot in -- the shape itself comes from EAX rather than the stack.
+// Passes the caller's flags through untouched.
+// ---------------------------------------------------------------------------
+
+ASMJIT_PATCH(0x4236F0 , AnimClass_Draw_SetMaskBuffer, 6)
+{
+	GET(AnimClass*, pAnim, ESI);
+	GET(SHPCaches*, pShape, EAX);
+	GET(DWORD*, pStack, ESP);
+
+	const int frame = static_cast<int>(pStack[0]);
+	auto const pPoint = reinterpret_cast<Point2D*>(pStack[1]);
+	auto const pBounds = reinterpret_cast<RectangleStruct*>(pStack[2]);
+	const DWORD flags = pStack[3];
+
+	if (FXLightEnabled(pAnim))
+		AlphaMask::Blit(pShape, frame, flags, *pBounds, pPoint->X, pPoint->Y);
+
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x4233E4, AnimClass_Draw_SetMaskBuffer, 5)
+
+// ---------------------------------------------------------------------------
+// Variant 1. .text:10028610
+//
+// Five dwords off ESP -- the full CC_Draw_Shape argument block at the call:
+// [0] shape, [1] shapenum, [2] xy, [3] rect1, [4] flags.
+// ---------------------------------------------------------------------------
+ASMJIT_PATCH(0x423821 , AnimClass_Draw_SetMaskBuffer_1, 6)
+{
+	GET(AnimClass*, pAnim, ESI);
+	GET(DWORD*, pStack, ESP);
+
+	if (FXLightEnabled(pAnim)) {
+		auto const pShape = reinterpret_cast<SHPCaches*>(pStack[0]);
+		const int frame = static_cast<int>(pStack[1]);
+		auto const pPoint = reinterpret_cast<Point2D*>(pStack[2]);
+		auto const pBounds = reinterpret_cast<RectangleStruct*>(pStack[3]);
+		const DWORD flags = pStack[4];
+		AlphaMask::Blit(pShape, frame, flags, *pBounds, pPoint->X, pPoint->Y);
+	}
+
+	return 0;
+}
+
+// ---------------------------------------------------------------------------
+// Variant 2. .text:10028680 -- the shadow pass.
+//
+// ESP is Draw_It's frame base here: +0x28 is `shape`, +0x2C is `sz`, +0x118 is
+// the `rect1` argument. This is what pins the REGISTERS layout.
+// ---------------------------------------------------------------------------
+ASMJIT_PATCH(0x42383C , AnimClass_Draw_SetMaskBuffer_2, 6)
+{
+	GET(AnimClass*, pAnim, ESI);
+	GET(Point2D*, pPoint, EDI);
+	GET(DWORD, drawFlags, EBX);
+	GET(uintptr_t, stackBase, ESP);
+
+	if (FXLightEnabled(pAnim)) {
+		auto const pShape = *reinterpret_cast<SHPCaches**>(stackBase + 0x28);
+		const int frame = *reinterpret_cast<int*>(stackBase + 0x2C);
+		auto const pBounds = *reinterpret_cast<RectangleStruct**>(stackBase + 0x118);
+
+		AlphaMask::Blit(pShape, frame, DrawFlags::ToShadow(drawFlags),
+			*pBounds, pPoint->X, pPoint->Y);
+	}
+
+	return 0;
+}
+
+// ---------------------------------------------------------------------------
+// Variant 3. .text:10028700 -- the extras/shadow pass, 0x20 bytes deeper into
+// the same frame, so `shape` sits at ESP+0x48 instead of ESP+0x28.
+// ---------------------------------------------------------------------------
+ASMJIT_PATCH(0x4237A3 , AnimClass_Draw_SetMaskBuffer_3, 6)
+{
+	GET(AnimClass*, pAnim, ESI);
+	GET(Point2D*, pPoint, ECX);
+	GET(DWORD, drawFlags, EBX);
+	GET(int, frame, EDX);
+	GET(RectangleStruct*, pBounds, EAX);
+	GET(uintptr_t, stackBase, ESP);
+
+	if (FXLightEnabled(pAnim)) {
+		AlphaMask::Blit(*reinterpret_cast<SHPCaches**>(stackBase + 0x48), frame, DrawFlags::ToShadow(drawFlags),
+			*pBounds, pPoint->X, pPoint->Y);
+	}
+
+	return 0;
+}
+
+DWORD ApplyAnimDrawFlags(AnimClass* pAnim, DWORD flags)
+{
+	auto pTypeExt = AnimTypeExtContainer::Instance.Find(pAnim->Type);
+
+	// 100527E8 -- FullReplaceBlendFunction is tested first and wins outright.
+	if (auto const pEntry = pTypeExt->FullReplaceBlendFunction.get())
+	{
+		// FARPROC does not implicitly convert to void*; the original just pushes
+		// the raw dword, so the cast is the faithful spelling.
+		TlsSetValue(TlsSlot_Custom, reinterpret_cast<void*>(pEntry->Proc));
+
+		return flags | BlitFlags::FamilyCustomSpan;
+	}
+
+	// 1005280F
+	if (auto const pEntry = pTypeExt->BlendFunction.get())
+	{
+		// FARPROC does not implicitly convert to void*; the original just pushes
+		// the raw dword, so the cast is the faithful spelling.
+		TlsSetValue(TlsSlot_Custom, reinterpret_cast<void*>(pEntry->Proc));
+
+		return flags | BlitFlags::FamilyCustomPixel;
+	}
+
+	// 10052836 -- the Translucency switch. Resolve returns 0 for an
+	// unrecognised value, which reproduces the original's default case: it
+	// still writes the flags back, just unmodified.
+	return flags | TranslucencyKeys::Resolve(pTypeExt->This()->Translucency);
+}
+
+ASMJIT_PATCH(0x423051, AnimClass_Draw_SetFlags, 0xA)
+{
+	GET(AnimClass*, pAnim, ESI);
+	GET(DWORD, flags, EBX);
+
+	R->EBX(ApplyAnimDrawFlags(pAnim, flags));
+
+	return 0;
+}
+#pragma optimize("", on )

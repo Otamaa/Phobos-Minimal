@@ -78,7 +78,7 @@ public:
 
 	//TechnoTypeClass
 	//BuildingTypeClass
-	virtual SHPStruct* LoadBuildup() const JMP_THIS(0x465960);
+	virtual SHPCaches* LoadBuildup() const JMP_THIS(0x465960);
 
 	//non-virtual
 	unsigned int GetDeployFacing_() const
@@ -136,7 +136,7 @@ public:
 		{ JMP_THIS(0x45FA90); }
 	//
 
-	bool CanLeaveRubble(SHPStruct** pImage , int* pFrames) const
+	bool CanLeaveRubble(SHPCaches** pImage , int* pFrames) const
 		{ JMP_THIS(0x45F160); }
 
 	bool CanLeaveRubble_(RectangleStruct* pRect) const
@@ -199,7 +199,7 @@ public:
 
 	int ArrayIndex;
 	CellStruct* FoundationData;
-	SHPStruct* Buildup;
+	SHPCaches* Buildup;
 	bool BuildupLoaded;
 	BuildCat BuildCat;
 	CoordStruct HalfDamageSmokeLocation1;
@@ -251,20 +251,20 @@ public:
 	EnumArray<BuildingAnimStruct, BuildingAnimSlot, 21> BuildingAnim;
 
 	int Upgrades;
-	SHPStruct* DeployingAnim;
+	SHPCaches* DeployingAnim;
 	bool DeployingAnimLoaded;
-	SHPStruct* UnderDoorAnim;
+	SHPCaches* UnderDoorAnim;
 	bool UnderDoorAnimLoaded;
-	SHPStruct* Rubble;
+	SHPCaches* Rubble;
 	bool RubbleLoaded;
-	SHPStruct* RoofDeployingAnim;
+	SHPCaches* RoofDeployingAnim;
 	bool RoofDeployingAnimLoaded;
-	SHPStruct* UnderRoofDoorAnim;
+	SHPCaches* UnderRoofDoorAnim;
 	bool UnderRoofDoorAnimLoaded;
-	SHPStruct* DoorAnim;
-	SHPStruct* SpecialZOverlay;
+	SHPCaches* DoorAnim;
+	SHPCaches* SpecialZOverlay;
 	int SpecialZOverlayZAdjust;
-	SHPStruct* BibShape;
+	SHPCaches* BibShape;
 	bool BibShapeLoaded;
 	int NormalZAdjust;
 	int AntiAirValue;

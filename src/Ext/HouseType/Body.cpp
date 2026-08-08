@@ -324,7 +324,7 @@ void HouseTypeExtData::LoadFromRulesFile(CCINIClass* pINI) {
 
 	INI_EX exINI(pINI);
 
-	auto ReadShpOrPcxImage = [pINI, pSection](const char* key, PhobosPCXFile& Pcx, SHPStruct** ppShp)
+	auto ReadShpOrPcxImage = [pINI, pSection](const char* key, PhobosPCXFile& Pcx, SHPCaches** ppShp)
 	{
 			// read the key and convert it to lower case
 		if (pINI->ReadString(pSection, key, Pcx.GetFilename(), Phobos::readBuffer))

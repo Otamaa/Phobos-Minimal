@@ -207,7 +207,7 @@ void DigitalDisplayTypeClass::DisplayShape(Point2D& position, int length, int va
 	const int pipsHeight = hasShield ? 4 : 0;
 
 	if (AnchorType.Vertical == VerticalPosition::Top)
-		position.Y -= Shape->Height + pipsHeight; // upper of healthbar and shieldbar
+		position.Y -= Shape->CurrentHeader.Height + pipsHeight; // upper of healthbar and shieldbar
 
 	switch (Align)
 	{
@@ -218,7 +218,7 @@ void DigitalDisplayTypeClass::DisplayShape(Point2D& position, int length, int va
 		position.Y += (int)valueString.length() * spacing.Y / 2;
 #else
 		if (Shape_PercentageFrame) {
-			position.X -= static_cast<int>(Shape->Width) / 2;
+			position.X -= static_cast<int>(Shape->CurrentHeader.Width) / 2;
 		} else {
 			position.X -= static_cast<int>(valueString.length()) * spacing.X / 2;
 			position.Y += static_cast<int>(valueString.length()) * spacing.Y / 2;
@@ -235,7 +235,7 @@ void DigitalDisplayTypeClass::DisplayShape(Point2D& position, int length, int va
 		spacing.X = -spacing.X;
 #else
 		if (Shape_PercentageFrame)
-			position.X -= static_cast<int>(Shape->Width);
+			position.X -= static_cast<int>(Shape->CurrentHeader.Width);
 		else
 			position.X -= spacing.X;
 #endif
@@ -264,7 +264,7 @@ void DigitalDisplayTypeClass::DisplayShape(Point2D& position, int length, int va
 		(
 			pPal,
 			Shape.Get(),
-			static_cast<int>(std::clamp(ratio, 0.0, 1.0) * (Shape->Frames - 1) + 0.5),
+			static_cast<int>(std::clamp(ratio, 0.0, 1.0) * (Shape->CurrentHeader.Frames - 1) + 0.5),
 			&position, &rect, BlitterFlags::None, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0
 		);
 	}

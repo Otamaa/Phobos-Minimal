@@ -376,7 +376,7 @@ int GeneralUtils::GetLSAnimHeightFactor(AnimTypeClass* pType, CellClass* pCell, 
 {
 	int ImageHeignt = 0;
 	if (auto pImage = pType->GetImage())
-		ImageHeignt = pImage->Height;
+		ImageHeignt = pImage->CurrentHeader.Height;
 
 	const auto Height = int(((double)ImageHeignt) / 2);
 	const auto LSFactor = (Height - 0.5) * Math::CloudHeightFactor;
@@ -398,7 +398,7 @@ bool GeneralUtils::DrawImage(
 	DSurface* pSurface,
 	RectangleStruct destinationRect,
 	BSurface* pPCXSurface,
-	SHPStruct* fileSHP,
+	SHPCaches* fileSHP,
 	ConvertClass* pPalette,
 	int frameIndex,
 	int zAdjust,

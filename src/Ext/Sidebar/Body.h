@@ -35,7 +35,7 @@ private:
 
 public:
 	static IStream* g_pStm;
-	static std::array<SHPReference*, 4u> TabProducingProgress;
+	static std::array<SHPCaches*, 4u> TabProducingProgress;
 	static std::array<bool, 4u> TabProducingProgressIsLoaded;
 
 	static void Allocate(SidebarClass* pThis);

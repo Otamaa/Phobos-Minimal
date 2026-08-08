@@ -21,7 +21,7 @@ ASMJIT_PATCH(0x47F974, CellClass_DrawOverlay_Walls, 0x5)
 	enum { SkipGameCode = 0x47FB86 };
 
 	GET(CellClass*, pThis, ESI);
-	GET(SHPStruct*, pShape, EAX);
+	GET(SHPCaches*, pShape, EAX);
 	GET(RectangleStruct*, pBounds, EBP);
 	GET(int, zAdjust, EDI);
 	GET_STACK(OverlayTypeClass*, pOverlayType, STACK_OFFSET(0x24, -0x14));

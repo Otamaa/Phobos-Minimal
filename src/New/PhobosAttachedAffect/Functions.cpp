@@ -80,7 +80,7 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 {
 	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 
-	if (pExt->PhobosAE.empty())
+	if (pExt->PhobosAE.empty() || pTechno->IsImmobilized)
 		return;
 
 	auto const pThis = pTechno;
@@ -114,10 +114,10 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 			attachEffect->ShouldBeDiscarded = false;
 			auto const pType = attachEffect->GetType();
 
-			if (pType->HasTint())
+			if (pType->HasTint() && !pTechno->InLimbo)
 				markForRedraw = true;
 
-			if (pType->Cumulative && pType->CumulativeAnimations.size() > 0)
+			if (pType->Cumulative && pType->CumulativeAnimations.size() > 0 && !pTechno->InLimbo)
 				HavecumulativeAnimTypes.insert(pType);
 
 			if (pType->ExpireWeapon && ((hasExpired && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Expire) != ExpireWeaponCondition::None)

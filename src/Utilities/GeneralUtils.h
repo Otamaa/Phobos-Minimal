@@ -688,7 +688,7 @@ public:
 		return (thisEnum & thatEnum) != T::None;
 	}
 
-	static bool DrawImage(DSurface* pSurface, RectangleStruct destinationRect, BSurface* pPCXSurface, SHPStruct* fileSHP, ConvertClass* pPalette, int frameIndex = 0, int zAdjust = 0, BlitterFlags blitterFlags = BlitterFlags::None);
+	static bool DrawImage(DSurface* pSurface, RectangleStruct destinationRect, BSurface* pPCXSurface, SHPCaches* fileSHP, ConvertClass* pPalette, int frameIndex = 0, int zAdjust = 0, BlitterFlags blitterFlags = BlitterFlags::None);
 	static std::vector<PhobosPCXFile> GetAnimationPCX(const std::string& baseFilename);
 
 	static const std::vector<CellStruct> GetFoundationCells(const BuildingClass* const pThis, CellStruct const baseCoords, bool includeOccupyHeight);

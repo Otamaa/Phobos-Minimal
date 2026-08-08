@@ -61,11 +61,11 @@ struct DroppodProperties_
 		return pTypeExt->DropPodProp.Droppod_Angle.Get(defaultres);
 	}
 
-	static SHPStruct* GetPodImage(FootClass* pFoot)
+	static SHPCaches* GetPodImage(FootClass* pFoot)
 	{
 		const auto pTypeExt = GET_TECHNOTYPEEXT(pFoot);
 		const auto pExt = TechnoExtContainer::Instance.Find(pFoot);
-		SHPStruct* result = pTypeExt->DropPodProp.Droppod_PodImage_Infantry.Get(FakeRulesClass::Instance()->Droppod_ImageInfantry);
+		SHPCaches* result = pTypeExt->DropPodProp.Droppod_PodImage_Infantry.Get(FakeRulesClass::Instance()->Droppod_ImageInfantry);
 
 		if (TechnoExtContainer::Instance.Find(pFoot)->LinkedSW && SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->DroppodProp.Droppod_PodImage_Infantry)
 			result = SWTypeExtContainer::Instance.Find(pExt->LinkedSW->Type)->DroppodProp.Droppod_PodImage_Infantry;

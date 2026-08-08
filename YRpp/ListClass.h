@@ -40,10 +40,10 @@ public:
 	//Statics
 
 	//Constructors
-	ListClass(unsigned int nID, int nX, int nY, int nWidth, int nHeight, TextPrintType eFlag, SHPStruct* UpSHP, SHPStruct* DownSHP) noexcept
+	ListClass(unsigned int nID, int nX, int nY, int nWidth, int nHeight, TextPrintType eFlag, SHPCaches* UpSHP, SHPCaches* DownSHP) noexcept
 		: ListClass(noinit_t()) { JMP_THIS(0x557230); }
 
-	ListClass(unsigned int nID, RectangleStruct inRect, TextPrintType eFlag, SHPStruct* UpSHP, SHPStruct* DownSHP) noexcept
+	ListClass(unsigned int nID, RectangleStruct inRect, TextPrintType eFlag, SHPCaches* UpSHP, SHPCaches* DownSHP) noexcept
 		: ListClass(nID, inRect.X , inRect.Y , inRect.Width , inRect.Height, UpSHP , DownSHP) { }
 
 	explicit __forceinline ListClass(noinit_t)  noexcept

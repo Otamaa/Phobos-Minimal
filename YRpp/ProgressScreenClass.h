@@ -4,7 +4,7 @@
 #include <Helpers/CompileTime.h>
 
 class LoadProgressManager;
-struct SHPStruct;
+struct SHPCaches;
 class ALIGN(4) NOVTABLE ProgressScreenClass {
 public:
 
@@ -29,7 +29,7 @@ public:
 	double MainProgress;
 	int field_4C;
 	void *PlayerStartSpot; // bah, I have multiple definitions of this in my IDB, can't be bothered to fix it now
-	SHPStruct *someSHP;
+	SHPCaches *someSHP;
 	char field_58;
 	char field_59;
 	char field_5A;

@@ -816,14 +816,14 @@ DEFINE_PATCH(0x535E79, 0x01);
 
 ASMJIT_PATCH(0x4B93BD, ScenarioClass_GenerateDropshipLoadout_FreeAnims, 7)
 {
-	GET_STACK(SHPStruct*, pBackground, 0xAC);
+	GET_STACK(SHPCaches*, pBackground, 0xAC);
 
 	if (pBackground)
 	{
 		GameDelete<true, false>(std::exchange(pBackground, nullptr));
 	}
 
-	LEA_STACK(SHPStruct**, pSwipeAnims, 0x290);
+	LEA_STACK(SHPCaches**, pSwipeAnims, 0x290);
 
 	for (auto i = 0; i < 4; ++i)
 	{
@@ -957,7 +957,7 @@ ASMJIT_PATCH(0x41D5AE, AirstrikeClass_PointerGotInvalid_AirstrikeAbortSound, 9)
 
 ASMJIT_PATCH(0x6BED08, Game_Terminate_Mouse, 7)
 {
-	GameDelete<true, false>(R->ECX<SHPStruct*>());
+	GameDelete<true, false>(R->ECX<SHPCaches*>());
 	return 0x6BED34;
 }
 

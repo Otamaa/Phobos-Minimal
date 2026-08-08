@@ -8,13 +8,13 @@
 
 #include <vector>
 
-struct SHPStruct;
+struct SHPCaches;
 class Surface;
 
 class Mouse {
 public:
 	virtual ~Mouse() {}
-	virtual void Set_Cursor(Point2D const& hotspot, SHPStruct const* cursor, int shape) = 0;
+	virtual void Set_Cursor(Point2D const& hotspot, SHPCaches const* cursor, int shape) = 0;
 	virtual bool Is_Hidden() const = 0;
 	virtual void Hide_Mouse() = 0;
 	virtual void Show_Mouse() = 0;
@@ -40,7 +40,7 @@ public:
 	DXMouse(Surface* surface, HWND hwnd);
 
 	virtual ~DXMouse() override;
-	virtual void Set_Cursor(Point2D const& hotspot, SHPStruct const* cursor, int shape) override;
+	virtual void Set_Cursor(Point2D const& hotspot, SHPCaches const* cursor, int shape) override;
 	virtual bool Is_Hidden() const override;
 	virtual void Hide_Mouse() override;
 	virtual void Show_Mouse() override;
@@ -64,7 +64,7 @@ public:
 
 	void Rebuild_Cursor_Image();
 private:
-	SHPStruct const* MouseShape { nullptr };
+	SHPCaches const* MouseShape { nullptr };
 	int ShapeNumber { 0 };
 
 	DWORD MousePalette[256] { 0 };
@@ -96,8 +96,8 @@ private:
 	int MouseY { 0 };
 
 	void Delete_Cursor_Image();
-	void Convert_Custor_Image(SHPStruct const* cursor);
-	void Shape_To_Cursor(SHPStruct const* cursor, int frame, CursorData& result);
+	void Convert_Custor_Image(SHPCaches const* cursor);
+	void Shape_To_Cursor(SHPCaches const* cursor, int frame, CursorData& result);
 	void Scale_Bitmap_Image(const uint32_t* src_ptr, int src_w, int src_h, uint32_t* dst, int dst_w, int dst_h);
 	void Replace_Cursor(HCURSOR cursor);
 	void Set_System_Cursor();

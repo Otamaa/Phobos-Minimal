@@ -49,11 +49,12 @@ namespace
 		// RestoreDisplayMode alone, and a second SetCooperativeLevel makes
 		// ts-ddraw re-save its own WndProc as the game's, recursing to a
 		// stack overflow on the next window message.
-		if (DirectDrawWrap::lpDD() != nullptr)
-		{
-			DirectDrawWrap::lpDD->RestoreDisplayMode();
-		}
+		//if (DirectDrawWrap::lpDD() != nullptr)
+		//{
+		//	DirectDrawWrap::lpDD->RestoreDisplayMode();
+		//}
 
+		ChangeDisplaySettingsA(nullptr, 0);
 		ShowCursor(TRUE);
 	}
 

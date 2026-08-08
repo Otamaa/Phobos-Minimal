@@ -32,7 +32,7 @@ ASMJIT_PATCH(0x6A593E, SidebarClass_InitForHouse_AdditionalFiles, 0x5)
 			buffer.clear();
 			fmt::format_to(std::back_inserter(buffer), "tab{:02}pp.SHP", i);
 			buffer.push_back('\0');
-			SidebarExtData::TabProducingProgress[i] = GameCreate<SHPReference>(
+			SidebarExtData::TabProducingProgress[i] = GameCreate<SHPCaches>(
 				buffer.data());
 			SidebarExtData::TabProducingProgressIsLoaded[i] = true;
 		}
@@ -49,7 +49,7 @@ ASMJIT_PATCH(0x6A5EA1, SidebarClass_UnloadShapes_AdditionalFiles, 0x5)
 	{
 		//the shape is already invalid if the name not event there ,..
 		if(SidebarExtData::TabProducingProgressIsLoaded[i]){
-			SidebarExtData::TabProducingProgress[i] = nullptr;
+			GameDelete<true, true>(std::exchange(SidebarExtData::TabProducingProgress[i], nullptr));
 			SidebarExtData::TabProducingProgressIsLoaded[i] = false;
 		}
 	}

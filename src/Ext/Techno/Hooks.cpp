@@ -2443,7 +2443,7 @@ ASMJIT_PATCH(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
 	const auto pType = GET_TECHNOTYPE(pThis);
 
 	ConvertClass* pDrawer = FileSystem::ANIM_PAL;
-	SHPStruct* pSHP = FileSystem::OREGATH_SHP;
+	SHPCaches* pSHP = FileSystem::OREGATH_SHP;
 	int idxFrame = -1;
 	auto idxTiberium = ((FakeCellClass*)pThis->GetCell())->_GetTiberiumType();
 

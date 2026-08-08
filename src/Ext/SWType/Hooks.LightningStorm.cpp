@@ -177,7 +177,7 @@ ASMJIT_PATCH(0x53A6CF, LightningStorm_Update, 7)
 	{
 		if (auto const pAnim = LightningStorm::BoltsPresent->Items[i])
 		{
-			if (pAnim->Animation.Stage >= pAnim->Type->GetImage()->Frames / 2)
+			if (pAnim->Animation.Stage >= pAnim->Type->GetImage()->CurrentHeader.Frames / 2)
 			{
 				LightningStorm::BoltsPresent->erase_at(i);
 			}
@@ -191,7 +191,7 @@ ASMJIT_PATCH(0x53A6CF, LightningStorm_Update, 7)
 	{
 		if (auto const pAnim = LightningStorm::CloudsManifesting->Items[i])
 		{
-			if (pAnim->Animation.Stage >= pAnim->Type->GetImage()->Frames / 2)
+			if (pAnim->Animation.Stage >= pAnim->Type->GetImage()->CurrentHeader.Frames / 2)
 			{
 				auto const crdStrike = pAnim->GetCoords();
 				LightningStorm::Strike2(crdStrike);
@@ -225,7 +225,7 @@ ASMJIT_PATCH(0x53A6CF, LightningStorm_Update, 7)
 			if (auto const pAnim = LightningStorm::CloudsPresent->Items[i])
 			{
 				auto pAnimImage = pAnim->Type->GetImage();
-				if (pAnim->Animation.Stage >= pAnimImage->Frames - 1)
+				if (pAnim->Animation.Stage >= pAnimImage->CurrentHeader.Frames - 1)
 				{
 					LightningStorm::CloudsPresent->erase_at(i);
 				}

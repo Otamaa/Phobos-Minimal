@@ -8,7 +8,7 @@
 #include <GeneralStructures.h>
 
 // Forward declarations
-struct SHPStruct;
+struct SHPCaches;
 class BSurface;
 class ConvertClass;
 class TechnoTypeClass;
@@ -80,12 +80,12 @@ private:
 
 	// Assets (Palette, surfaces, SHPs)
 	ConvertClass* dropshipLoadout_Palette { nullptr };
-	SHPStruct* dropshipLoadout_Background { nullptr };
-	SHPStruct* dropshipLoadout_UpArrow { nullptr };
-	SHPStruct* dropshipLoadout_DownArrow { nullptr };
-	SHPStruct* dropshipLoadout_Loadout { nullptr };
-	SHPStruct* dropshipLoadout_PilotLit { nullptr };
-	std::vector<SHPStruct*> dropshipLoadout_DGreenList {};
+	SHPCaches* dropshipLoadout_Background { nullptr };
+	SHPCaches* dropshipLoadout_UpArrow { nullptr };
+	SHPCaches* dropshipLoadout_DownArrow { nullptr };
+	SHPCaches* dropshipLoadout_Loadout { nullptr };
+	SHPCaches* dropshipLoadout_PilotLit { nullptr };
+	std::vector<SHPCaches*> dropshipLoadout_DGreenList {};
 
 	BSurface* dropshipLoadout_BackgroundPCX { nullptr };
 	BSurface* dropshipLoadout_UpArrowPCX { nullptr };

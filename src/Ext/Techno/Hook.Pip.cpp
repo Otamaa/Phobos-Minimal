@@ -75,7 +75,7 @@ namespace Tiberiumpip
 		return (size_t)storageIndex >= frames.size() || frames[storageIndex] < 0 ? pTibExt->PipIndex : frames[storageIndex];
 	}
 
-	void DrawTiberiumPip(TechnoClass* pTechno, TechnoTypeClass* pType, int nMax, SHPStruct* pShape, ConvertClass* pConvert, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
+	void DrawTiberiumPip(TechnoClass* pTechno, TechnoTypeClass* pType, int nMax, SHPCaches* pShape, ConvertClass* pConvert, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
 	{
 		if (!nMax)
 			return;
@@ -182,7 +182,7 @@ struct PipDrawState
 // Helper structure for pip drawing
 struct PipDrawInfo
 {
-	SHPStruct* shape;
+	SHPCaches* shape;
 	ConvertClass* convert;
 	int count;
 	int* pipTypes;
@@ -195,10 +195,10 @@ constexpr BlitterFlags PIP_BLITTER_FLAGS_DARKEN = PIP_BLITTER_FLAGS | BlitterFla
 
 // Forward declarations for helper functions
 static int CalculateAmmoBarFrame(int levels, int i, int pipWrap, int curammo, int defaultEmpty);
-static void DrawSinglePip(Point2D* position, ConvertClass* pConvert, SHPStruct* shape, int frameIndex, RectangleStruct* clipRect, BlitterFlags flags = PIP_BLITTER_FLAGS);
+static void DrawSinglePip(Point2D* position, ConvertClass* pConvert, SHPCaches* shape, int frameIndex, RectangleStruct* clipRect, BlitterFlags flags = PIP_BLITTER_FLAGS);
 static void DrawSpawnPips(TechnoClass* techno, bool isBuilding, TechnoTypeClass* technoType, PipDrawState* drawState, PipDrawInfo* pipInfo, RectangleStruct* clipRect);
 static void DrawBuildingOccupants(BuildingClass* building, PipDrawState* drawState, PipDrawInfo* pipInfo, RectangleStruct* clipRect);
-static void DrawAmmoPip(TechnoClass* techno, bool isBuilding, SHPStruct* pipShape, PipDrawState* drawState, PipDrawInfo* pipInfo, RectangleStruct* clipRect);
+static void DrawAmmoPip(TechnoClass* techno, bool isBuilding, SHPCaches* pipShape, PipDrawState* drawState, PipDrawInfo* pipInfo, RectangleStruct* clipRect);
 static void DrawMindControlPip(TechnoClass* techno, PipDrawState* drawState, PipDrawInfo* pipInfo, RectangleStruct* clipRect);
 static void DrawPassengerPips(TechnoClass* techno, TechnoTypeClass* technoType, PipDrawState* drawState, PipDrawInfo* pipInfo, RectangleStruct* clipRect);
 static void DrawGroupNumber(TechnoClass* techno, AbstractType unitType, Point2D* position, RectangleStruct* clipRect);
@@ -211,8 +211,8 @@ void __fastcall FakeTechnoClass::__Draw_Pips(TechnoClass* techno, discard_t, Poi
 	const bool isInfantry = (technoType == AbstractType::Infantry);
 	TechnoTypeClass* technoTypeClass = GET_TECHNOTYPE(techno);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(technoTypeClass);
-	SHPStruct* pips_SHP = pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP());
-	SHPStruct* pips2_SHP = pTypeExt->PipShapes02.Get(FileSystem::PIPS2_SHP());
+	SHPCaches* pips_SHP = pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP());
+	SHPCaches* pips2_SHP = pTypeExt->PipShapes02.Get(FileSystem::PIPS2_SHP());
 
 	Point2D cur_pos {
 		.X = isBuilding ? position->X + 6 : position->X - 5,
@@ -358,7 +358,7 @@ static void DrawBuildingOccupants(BuildingClass* building, PipDrawState* drawSta
 
 	int currentOccupants = building->GetOccupantCount();
 
-	SHPStruct* pPipFile = pipInfo->shape;
+	SHPCaches* pPipFile = pipInfo->shape;
 	ConvertClass* pPalette = pipInfo->convert;
 
 	for (int i = 0; i < maxOccupants; i++)
@@ -375,7 +375,7 @@ static void DrawBuildingOccupants(BuildingClass* building, PipDrawState* drawSta
 				if (const auto pGarrisonPip = pIfnExt->PipGarrison.Get(nullptr))
 				{
 					pPipFile = pGarrisonPip;
-					frameIndex = (PipIndex)std::clamp((int)pIfnExt->PipGarrison_FrameIndex, 0, (int)pGarrisonPip->Frames);
+					frameIndex = (PipIndex)std::clamp((int)pIfnExt->PipGarrison_FrameIndex, 0, (int)pGarrisonPip->CurrentHeader.Frames);
 					if (auto pConvert_c = pIfnExt->PipGarrison_Palette.GetConvert())
 						pPalette = pConvert_c;
 				}
@@ -427,7 +427,7 @@ static void DrawMindControlPip(TechnoClass* techno, PipDrawState* drawState, Pip
 
 // PipScale 1: Ammo display
 //using PIPS2_SHP exclusively
-static void DrawAmmoPip(TechnoClass* techno, bool isBuilding, SHPStruct* pipShape, PipDrawState* drawState, PipDrawInfo* pipInfo, RectangleStruct* clipRect)
+static void DrawAmmoPip(TechnoClass* techno, bool isBuilding, SHPCaches* pipShape, PipDrawState* drawState, PipDrawInfo* pipInfo, RectangleStruct* clipRect)
 {
 	TechnoTypeClass* technoType = GET_TECHNOTYPE(techno);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(technoType);
@@ -637,7 +637,7 @@ static void DrawGroupNumber(TechnoClass* techno, AbstractType unitType, Point2D*
 }
 
 // Helper to draw a single pip
-static void DrawSinglePip(Point2D* position, ConvertClass* pConvert, SHPStruct* shape, int frameIndex, RectangleStruct* clipRect, BlitterFlags flags)
+static void DrawSinglePip(Point2D* position, ConvertClass* pConvert, SHPCaches* shape, int frameIndex, RectangleStruct* clipRect, BlitterFlags flags)
 {
 	DSurface::Temp->DrawSHP(
 		pConvert,

@@ -826,7 +826,7 @@ void AnimExtData::ChangeAnimType(AnimClass* pAnim, AnimTypeClass* pNewType, bool
 
 	if (pNewType->End == -1)
 	{
-		pNewType->End = pNewType->GetImage()->Frames;
+		pNewType->End = pNewType->GetImage()->CurrentHeader.Frames;
 		if (pNewType->Shadow)
 			pNewType->End /= 2;
 	}

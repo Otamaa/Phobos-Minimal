@@ -68,7 +68,7 @@ struct CD3DTriangleBuffer
 
 class Blitter;
 class ConvertClass;
-struct SHPStruct;
+struct SHPCaches;
 class ColorScheme;
 class BitFont;
 class BitText;
@@ -398,24 +398,24 @@ static RectangleStruct* __fastcall GetTextBox(RectangleStruct* pRet, char* text,
 }
 
 // Comments from thomassneddon
-static void __fastcall CC_Draw_Shape(Surface* Surface, ConvertClass* Palette, SHPStruct* SHP, int FrameIndex,
+static void __fastcall CC_Draw_Shape(Surface* Surface, ConvertClass* Palette, SHPCaches* SHP, int FrameIndex,
 	const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags,
 	int Remap,
 	int ZAdjust, // + 1 = sqrt(3.0) pixels away from screen
 	ZGradient ZGradientDescIndex,
 	int Brightness, // 0~2000. Final color = saturate(OriginalColor * Brightness / 1000.0f)
-	int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset)
+	int TintColor, SHPCaches* ZShape, int ZShapeFrame, int XOffset, int YOffset)
 {
 	JMP_FAST(0x4AED70);
 }
 
-static void __fastcall CC_Draw_Shape(Surface* Surface, ConvertClass* Palette, SHPStruct* SHP, int FrameIndex,
+static void __fastcall CC_Draw_Shape(Surface* Surface, ConvertClass* Palette, SHPCaches* SHP, int FrameIndex,
 	const Point2D* const Position, const RectangleStruct* const Bounds, DWORD Flags,
 	int Remap,
 	int ZAdjust, // + 1 = sqrt(3.0) pixels away from screen
 	DWORD ZGradientDescIndex, //
 	int Brightness, // 0~2000. Final color = saturate(OriginalColor * Brightness / 1000.0f)
-	int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset)
+	int TintColor, SHPCaches* ZShape, int ZShapeFrame, int XOffset, int YOffset)
 {
 	JMP_FAST(0x4AED70);
 }
@@ -456,9 +456,9 @@ public:
 	static COMPILETIMEEVAL reference<DSurface*, 0x887314u> const Hidden_2 {};
 	static COMPILETIMEEVAL reference<DSurface*, 0x88731Cu> const Composite {};
 	static COMPILETIMEEVAL reference<RGBMode, 0x8205D0u> const RGBMode {};
-	static COMPILETIMEEVAL reference<int, 0x8A0DE8u> const HalfbrightMask {};
-	static COMPILETIMEEVAL reference<int, 0x8A0DEAu> const QuarterbrightMask {};
-	static COMPILETIMEEVAL reference<int, 0x8A0DEAu> const EighthbrightMask {};
+	static COMPILETIMEEVAL reference<uint16_t, 0x8A0DE8u> const HalfbrightMask {};
+	static COMPILETIMEEVAL reference<uint16_t, 0x8A0DEAu> const QuarterbrightMask {};
+	static COMPILETIMEEVAL reference<uint16_t, 0x8A0DEAu> const EighthbrightMask {};
 	static COMPILETIMEEVAL reference<RectangleStruct, 0x886F90u> const SidebarBounds {};
 	//ViewportBounds_TacPixel
 	static COMPILETIMEEVAL reference<RectangleStruct, 0x886FA0u> const ViewBounds {};
@@ -482,29 +482,29 @@ public:
 	static int __fastcall ColorMode() { JMP_STD(0x4BBC90); }
 
 	// Comments from thomassneddon
-	void DrawSHP(ConvertClass* Palette, SHPStruct* SHP, int FrameIndex,
+	void DrawSHP(ConvertClass* Palette, SHPCaches* SHP, int FrameIndex,
 		const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap,
 		int ZAdjust, // + 1 = sqrt(3.0) pixels away from screen
 		ZGradient ZGradientDescIndex,
 		int Brightness, // 0~2000. Final color = saturate(OriginalColor * Brightness / 1000.0f)
-		int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset)
+		int TintColor, SHPCaches* ZShape, int ZShapeFrame, int XOffset, int YOffset)
 	{
 		CC_Draw_Shape(this, Palette, SHP, FrameIndex, Position, Bounds, Flags, Remap, ZAdjust,
 			ZGradientDescIndex, Brightness, TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
 	}
 
-	void DrawSHP(ConvertClass* Palette, SHPStruct* SHP, int FrameIndex,
+	void DrawSHP(ConvertClass* Palette, SHPCaches* SHP, int FrameIndex,
 		const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap,
 		int ZAdjust, // + 1 = sqrt(3.0) pixels away from screen
 		DWORD ZGradientDescIndex,
 		int Brightness, // 0~2000. Final color = saturate(OriginalColor * Brightness / 1000.0f)
-		int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset)
+		int TintColor, SHPCaches* ZShape, int ZShapeFrame, int XOffset, int YOffset)
 	{
 		CC_Draw_Shape(this, Palette, SHP, FrameIndex, Position, Bounds, Flags, Remap, ZAdjust,
 			ZGradient(ZGradientDescIndex), Brightness, TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
 	}
 
-	void DrawSHP(ConvertClass* Palette, SHPStruct* SHP, int FrameIndex,
+	void DrawSHP(ConvertClass* Palette, SHPCaches* SHP, int FrameIndex,
 	const Point2D* const Position, const RectangleStruct* const Bounds,
 	BlitterFlags Flags = (BlitterFlags)0x600,
 	int Brightness = 1000,
@@ -518,7 +518,7 @@ public:
 		);
 	}
 
-	void DrawSHP(ConvertClass* Palette, SHPStruct* SHP, int FrameIndex,
+	void DrawSHP(ConvertClass* Palette, SHPCaches* SHP, int FrameIndex,
 		const Point2D* const Position, BlitterFlags Flags = (BlitterFlags)0x600)
 	{
 		RectangleStruct bound = this->Get_Rect();
@@ -582,6 +582,10 @@ public:
 
 	void DrawLineBlit(RectangleStruct* pRect, Point2D* pStart, Point2D* pEnd, ColorStruct* pStartColor, int mult, int start_z, int end_z)
 	{ JMP_THIS(0x4BEAC0); }
+
+	static void __fastcall Convert_Palette_16bit(void* pDest, int shadeCount, BytePalette* pPalette) {
+		JMP_FAST(0x4BBB00);
+	}
 
 	bool Restore_Check() JMP_THIS(0x4BB000);
 	bool IsSurface_Lost() JMP_THIS(0x4BAFE0);

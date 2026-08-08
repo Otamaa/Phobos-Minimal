@@ -87,7 +87,7 @@
 // function and clear exactly that before drawing removes the ordering problem
 // entirely, and clears only what is about to be used.
 // ===========================================================================
-#define PHOBOS_VOXEL_ALWAYS_FULL_CLEAR 0
+#define PHOBOS_VOXEL_ALWAYS_FULL_CLEAR 1
 
 namespace
 {

@@ -36,40 +36,21 @@ public:
 		return !wsmall ? FrameCount : SmallFrameCount;
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE Point2D GetMouseHotSpot(const ShapeFileStruct* pShape) const
+	FORCEDINLINE COMPILETIMEEVAL Point2D GetMouseHotSpot(const SHPCaches* pShape) const
 	{
 		Point2D nResult { 0 , 0 };
 
 		if (X == MouseHotSpotX::Center)
-			nResult.X = pShape->GetWidth() / 2;
+			nResult.X = pShape->CurrentHeader.Width / 2;
 
 		if (X == MouseHotSpotX::Right)
-			nResult.X = pShape->GetWidth();
+			nResult.X = pShape->CurrentHeader.Width;
 
 		if (Y == MouseHotSpotY::Middle)
-			nResult.Y = pShape->GetHeight() / 2;
+			nResult.Y = pShape->CurrentHeader.Height / 2;
 
 		if (Y == MouseHotSpotY::Bottom)
-			nResult.Y = pShape->GetHeight();
-
-		return nResult;
-	}
-
-	FORCEDINLINE COMPILETIMEEVAL Point2D GetMouseHotSpot(const SHPStruct* pShape) const
-	{
-		Point2D nResult { 0 , 0 };
-
-		if (X == MouseHotSpotX::Center)
-			nResult.X = pShape->Width / 2;
-
-		if (X == MouseHotSpotX::Right)
-			nResult.X = pShape->Width;
-
-		if (Y == MouseHotSpotY::Middle)
-			nResult.Y = pShape->Height / 2;
-
-		if (Y == MouseHotSpotY::Bottom)
-			nResult.Y = pShape->Height;
+			nResult.Y = pShape->CurrentHeader.Height;
 
 		return nResult;
 	}
@@ -236,7 +217,7 @@ public:
 	//Static
 	static COMPILETIMEEVAL constant_ptr<MouseClass, 0x87F7E8u> const Instance{};
 	static COMPILETIMEEVAL constant_ptr<MouseClass, 0x87F7E8u> const Global{};
-	static COMPILETIMEEVAL reference<SHPStruct*, 0xABF294u> const ShapeData{};
+	static COMPILETIMEEVAL reference<SHPCaches*, 0xABF294u> const ShapeData{};
 	static COMPILETIMEEVAL reference<bool, 0xABF2DDu> const ShapeOverride{};
 	static COMPILETIMEEVAL reference<SystemTimerClass, 0xABF2A0u> const Timer {};
 

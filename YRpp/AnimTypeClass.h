@@ -56,7 +56,7 @@ public:
 	virtual ObjectClass* CreateObject(HouseClass* owner) override;
 
 	//AnimTypeClass
-	virtual SHPStruct* LoadAnimImage() JMP_THIS(0x428C30);
+	virtual SHPCaches* LoadAnimImage() JMP_THIS(0x428C30);
 	virtual void Load2DArt() JMP_THIS(0x427B50);
 
 	//Destructor

@@ -229,12 +229,12 @@ ASMJIT_PATCH(0x5F9070, ObjectTypeClass_Load2DArt, 6)
 			pImage = FakeFileLoader::_Retrieve(_ext.c_str(), forceShp);
 		}
 
-		pType->Image = static_cast<SHPStruct*>(pImage);
+		pType->Image = static_cast<SHPCaches*>(pImage);
 	}
 
 	if (const auto pShp = pType->Image)
 	{
-		auto const size = std::max(pShp->Width, pShp->Height);
+		auto const size = std::max(pShp->CurrentHeader.Width, pShp->CurrentHeader.Height);
 		pType->MaxDimension = std::max(size, static_cast<short>(8));
 	}
 

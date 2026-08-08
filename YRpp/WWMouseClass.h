@@ -29,7 +29,7 @@ public:
 static_assert(sizeof(MouseThreadParameter) == 0x1C);
 typedef MouseThreadParameter MouseThreadClass;
 
-struct SHPStruct;
+struct SHPCaches;
 struct CoordStruct;
 struct ShapeFileStruct;
 class WWMouseClass
@@ -42,7 +42,7 @@ public:
 	virtual ~WWMouseClass()
 		{ JMP_THIS(0x7B88D0); }
 
-	virtual void Draw(Point2D const& coords, SHPStruct const* pImage, int idxFrame)
+	virtual void Draw(Point2D const& coords, SHPCaches const* pImage, int idxFrame)
 		{ JMP_THIS(0x7B8A00); }
 
 	void DrawSHPFrame(Point2D const& coords, ShapeFileStruct const* pImage, int idxFrame)
@@ -137,7 +137,7 @@ public:
 
 public:
 
-	SHPStruct * Image;
+	SHPCaches * Image;
 	int         ImageFrameIndex;
 	DWORD       RefCount;
 	byte        Captured_10;

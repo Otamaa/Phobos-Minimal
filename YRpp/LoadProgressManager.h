@@ -3,7 +3,7 @@
 #include <Helpers/CompileTime.h>
 #include <Point2D.h>
 
-struct SHPStruct;
+struct SHPCaches;
 class Surface;
 class DSurface;
 class ConvertClass;
@@ -70,9 +70,9 @@ public:
 	RectangleStruct LoadScreenSHPRect;
 	wchar_t* LoadMessage;
 	wchar_t* LoadBriefing;
-	SHPStruct* TitleBarSHP;
-	SHPStruct* LoadScreenSHP;
-	SHPStruct* LoadBarSHP;
+	SHPCaches* TitleBarSHP;
+	SHPCaches* LoadScreenSHP;
+	SHPCaches* LoadBarSHP;
 	bool TitleBarSHP_loaded;
 	bool LoadScreenSHP_loaded;
 	bool LoadBarSHP_loaded;

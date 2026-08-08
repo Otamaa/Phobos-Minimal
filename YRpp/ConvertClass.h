@@ -16,10 +16,10 @@ class RLEBlitter;
 struct ColorStruct;
 class DSurface;
 
-class ConvertClass
+class NOVTABLE ConvertClass
 {
 public:
-	enum BytesPerPixel : int {
+	enum BPP : int {
 		One = 1, Two
 	};
 
@@ -45,21 +45,21 @@ public:
 
 	OPTIONALINLINE unsigned inline_01(unsigned index)
 	{
-		if (BytesPerPixel == BytesPerPixel::One)
-			return reinterpret_cast<uint8_t*>(BufferA)[index];
+		if (this->BytesPerPixel == BPP::One)
+			return reinterpret_cast<uint8_t*>(ShadeTables)[index];
 
-		return reinterpret_cast<uint16_t*>(BufferA)[index];
+		return reinterpret_cast<uint16_t*>(ShadeTables)[index];
 	}
 
 	OPTIONALINLINE unsigned inline_02(unsigned index)
 	{
-		if  (BytesPerPixel == BytesPerPixel::One)
-			return reinterpret_cast<uint8_t*>(BufferMid)[index];
+		if  (this->BytesPerPixel == BPP::One)
+			return reinterpret_cast<uint8_t*>(NormalShadeTable)[index];
 
-		return reinterpret_cast<uint16_t*>(BufferMid)[index];
+		return reinterpret_cast<uint16_t*>(NormalShadeTable)[index];
 	}
 
-	void* SelectProperBlitter(SHPStruct* SHP, int FrameIndex, BlitterFlags flags) {
+	void* SelectProperBlitter(SHPCaches* SHP, int FrameIndex, BlitterFlags flags) {
 		return (SHP->HasCompression(FrameIndex))
 			? static_cast<void*>(this->Select_Blitter(flags))
 			: static_cast<void*>(this->Select_RLE_Blitter(flags))
@@ -85,34 +85,61 @@ public:
 		JMP_THIS(0x48E740);
 	}
 
+	void* GetPptrFromPad()
+	{
+		return reinterpret_cast<void*>((static_cast<uint32_t>(_HalfColorMask) << 16) | _QuarterColorMask);
+	}
+
+	void CleanPad()
+	{
+		_HalfColorMask = 0u;
+		_QuarterColorMask = 0u;
+	}
+
+	void SetPadToPtr(void* ptr)
+	{
+		// Cleanup first
+		CleanPad();
+
+		uint32_t full_address = reinterpret_cast<uint32_t>(ptr);
+		// Extract the top 16 bits
+		_HalfColorMask = static_cast<uint16_t>(full_address >> 16);
+		// Extract the bottom 16 bits
+		_QuarterColorMask = static_cast<uint16_t>(full_address & 0xFFFF);
+	}
+
 protected:
 	explicit __forceinline ConvertClass(noinit_t) {
-	//VTable::Set(this,0x7E5358);
+		//VTable::Set(this,0x7E5358);
 	}
 
 	//===========================================================================
 	//===== Properties ==========================================================
 	//===========================================================================
 public:
-	BytesPerPixel BytesPerPixel;
+	union{
+		BPP BytesPerPixel;
+		int _BytesPerPixel;
+	};
 	Blitter* Blitters[50];
 	RLEBlitter* RLEBlitters[39];
 	int ShadeCount; //16C
-	void* BufferA; //170, new(ShadeCount * 8 * BytesPerPixel) - gets filled with palette values on CTOR
-	void* BufferMid; //174, points to the middle of BufferA above, ??
-	char* BufferB; //178, if(BytesPerPixel == 1) { BufferB = new byte[0x100]; }
+	void* ShadeTables; //170, new(ShadeCount * 8 * BytesPerPixel) - gets filled with palette values on CTOR
+	void* NormalShadeTable; //174, points to the middle of BufferA above, ??
+	char* DarkenTable; //178, if(BytesPerPixel == 1) { BufferB = new byte[0x100]; }
 	DWORD CurrentZRemap; //17C, set right before drawing
-	DWORD HalfColorMask; //180, for masking colors right-shifted by 1
-	DWORD QuarterColorMask; //184, for masking colors right-shifted by 2
+	uint16_t HalfColorMask; //180, for masking colors right-shifted by 1
+	uint16_t _HalfColorMask;
+	uint16_t QuarterColorMask; //184, for masking colors right-shifted by 2
+	uint16_t _QuarterColorMask;
 };
 
 static_assert(sizeof(ConvertClass) == 0x188);
 
-class LightConvertClass : public ConvertClass
+class NOVTABLE LightConvertClass : public ConvertClass
 {
 public:
-	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7ED0A4;
-	//global array
+
 	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<LightConvertClass*>, 0x87F698u> const Array{};
 
 	//Destructor
@@ -134,13 +161,8 @@ public:
 		int color_B,
 		bool skipBlitters,
 		char* pBuffer, // allowed to be null
-		int shadeCount) : LightConvertClass(noinit_t())
+		int shadeCount) : ConvertClass(noinit_t())
 	{ JMP_THIS(0x555DA0); }
-
-protected:
-	explicit __forceinline LightConvertClass(noinit_t)
-		: ConvertClass(noinit_t())
-	{ }
 
 public:
 

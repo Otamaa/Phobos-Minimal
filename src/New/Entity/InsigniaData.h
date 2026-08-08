@@ -4,7 +4,7 @@
 
 struct InsigniaData
 {
-	Promotable<SHPStruct*> Shapes { nullptr };
+	Promotable<SHPCaches*> Shapes { nullptr };
 	Promotable<int> Frame { -1 };
 	Valueable<Vector3D<int>> Frames { { -1, -1, -1 } };
 

@@ -288,7 +288,7 @@ bool detail::read<TechnoTypeClass*>(TechnoTypeClass*& value, INI_EX& parser, con
 }
 
 template <>
-bool detail::read<SHPStruct*>(SHPStruct*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+bool detail::read<SHPCaches*>(SHPCaches*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 {
 	if (parser.ReadString(pSection, pKey))
 	{

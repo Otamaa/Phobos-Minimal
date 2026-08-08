@@ -30,7 +30,7 @@ public:
 
 	//Array
 	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<LightConvertClass*>, 0x87F698u> const TileDrawers{};
-	static COMPILETIMEEVAL reference<SHPStruct*, 0xAA1060u, 0x4u> const SlopeZshape {};
+	static COMPILETIMEEVAL reference<SHPCaches*, 0xAA1060u, 0x4u> const SlopeZshape {};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
@@ -52,7 +52,7 @@ public:
 	virtual ObjectClass* CreateObject(HouseClass* pOwner) override  R0;
 	virtual CellStruct* GetFoundationData(bool IncludeBib) const override  R0;
 
-	virtual SHPStruct* GetImage() const override  R0;
+	virtual SHPCaches* GetImage() const override  R0;
 
 	//Destructor
 	virtual ~IsometricTileTypeClass() override JMP_THIS(0x54A170);

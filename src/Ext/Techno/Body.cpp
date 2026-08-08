@@ -2503,7 +2503,7 @@ void TechnoExtData::UpdateAlphaShape(ObjectClass* pSource)
 	// -------------------------------------------------------------------------
 	//  A moving Foot leaves the previous cell's lighting stale - repaint it.
 	// -------------------------------------------------------------------------
-	auto MarkVacatedCellDirty =[] (ObjectClass* pOwner, const SHPStruct* pImage, Point2D off) {
+	auto MarkVacatedCellDirty =[] (ObjectClass* pOwner, const SHPCaches* pImage, Point2D off) {
 		if (!pOwner || (pOwner->AbstractFlags & AbstractFlags::Foot) == AbstractFlags::None)
 			return;
 
@@ -2522,8 +2522,8 @@ void TechnoExtData::UpdateAlphaShape(ObjectClass* pSource)
 		TacticalClass::Instance->RegisterDirtyArea({
 			off.X - 30 + xyTL.X,
 			xyTL.Y - 60 + off.Y,
-			pImage->Width + 60,
-			pImage->Width + 120
+			pImage->CurrentHeader.Width + 60,
+			pImage->CurrentHeader.Width + 120
 		}, true);
 	};
 
@@ -2545,17 +2545,17 @@ void TechnoExtData::UpdateAlphaShape(ObjectClass* pSource)
 	// -------------------------------------------------------------------------
 	//  A static building alpha does not need rebuilding every other frame.
 	// -------------------------------------------------------------------------
-	auto CanKeepExistingAlpha = [](ObjectClass* pSource, AbstractType what, const SHPStruct* pImage) {
+	auto CanKeepExistingAlpha = [](ObjectClass* pSource, AbstractType what, const SHPCaches* pImage) {
 		if (what != BuildingClass::AbsID)
 			return false;
 
-		if (pImage->Frames > 1)
+		if (pImage->CurrentHeader.Frames > 1)
 			return false;
 
 		return PhobosGlobal::Instance()->ObjectLinkedAlphas.get_or_default(pSource) != nullptr;
 	};
 
-	auto CreateAlpha = [](ObjectClass* pSource, const SHPStruct* pImage, Point2D xyTL, Point2D off) {
+	auto CreateAlpha = [](ObjectClass* pSource, const SHPCaches* pImage, Point2D xyTL, Point2D off) {
 		const RectangleStruct ScreenArea = TacticalClass::Instance->VisibleArea();
 
 		// ScenarioInit suppresses the ctor's side effects during placement.
@@ -2568,8 +2568,8 @@ void TechnoExtData::UpdateAlphaShape(ObjectClass* pSource)
 		TacticalClass::Instance->RegisterDirtyArea({
 			xyTL.X + off.X,
 			xyTL.Y + off.Y,
-			pImage->Width,
-			pImage->Height
+			pImage->CurrentHeader.Width,
+			pImage->CurrentHeader.Height
 		}, true);
 	};
 
@@ -2581,14 +2581,14 @@ void TechnoExtData::UpdateAlphaShape(ObjectClass* pSource)
 	if (!pSourceType)
 		return;
 
-	const SHPStruct* const pImage = pSourceType->AlphaImage;
+	const SHPCaches* const pImage = pSourceType->AlphaImage;
 
 	if (!pImage)
 		return;
 
 	const auto what = pSource->WhatAmI();
 
-	const Point2D off { (pImage->Width + 1) / -2, (pImage->Height + 1) / -2 };
+	const Point2D off { (pImage->CurrentHeader.Width + 1) / -2, (pImage->CurrentHeader.Height + 1) / -2 };
 
 	MarkVacatedCellDirty(GetAlphaOwner(pSource), pImage, off);
 
@@ -10325,7 +10325,7 @@ void TechnoExtData::DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pTy
 	if (!pTypeExt->UseCustomSelectBrd.Get(FakeRulesClass::Instance()->UseSelectBrd.Get(Phobos::Config::EnableSelectBrd)))
 		return;
 
-	SHPStruct* SelectBrdSHP = pTypeExt->SHP_SelectBrdSHP
+	SHPCaches* SelectBrdSHP = pTypeExt->SHP_SelectBrdSHP
 		.Get(isInfantry ? FakeRulesClass::Instance()->SHP_SelectBrdSHP_INF : FakeRulesClass::Instance()->SHP_SelectBrdSHP_UNIT);
 
 	if (!SelectBrdSHP)
@@ -10522,14 +10522,14 @@ TechnoTypeClass* TechnoExtData::GetSimpleDisguiseType(TechnoClass* pTarget, bool
 	return pTypeOut;
 }
 
-static FORCEDINLINE std::pair<SHPStruct*, int> GetInsigniaDatas(TechnoClass* pThis, TechnoTypeExtData* pTypeExt)
+static FORCEDINLINE std::pair<SHPCaches*, int> GetInsigniaDatas(TechnoClass* pThis, TechnoTypeExtData* pTypeExt)
 {
 	bool isCustomInsignia = false;
-	SHPStruct* pShapeFile = FileSystem::PIPS_SHP;
+	SHPCaches* pShapeFile = FileSystem::PIPS_SHP;
 	int defaultFrameIndex = -1;
 	const auto nCurRank = pThis->CurrentRanking;
 
-	if (SHPStruct* pCustomShapeFile = pTypeExt->Insignia.GetFromSpecificRank(nCurRank))
+	if (SHPCaches* pCustomShapeFile = pTypeExt->Insignia.GetFromSpecificRank(nCurRank))
 	{
 		pShapeFile = pCustomShapeFile;
 		defaultFrameIndex = 0;
@@ -11099,11 +11099,14 @@ void TechnoExtData::UpdateTiberiumEater()
 
 	if (!pEaterType)
 		return;
+	
+		const int transDelay = pEaterType->TransDelay;
+	if (pThis->InLimbo || (!pEaterType->UnderEMP && (pThis->Deactivated || pThis->IsUnderEMP()))) {
+		if (transDelay && this->TiberiumEaterTimer.InProgress())
+			this->TiberiumEaterTimer.StartTime++;
 
-	const int transDelay = pEaterType->TransDelay;
-
-	if (transDelay && this->TiberiumEaterTimer.InProgress())
 		return;
+	}
 
 	const auto pOwner = pThis->Owner;
 	bool active = false;
@@ -11948,9 +11951,12 @@ bool TechnoExtData::CheckDeathConditions()
 	if (nMethod == KillMethod::None)
 		return result;
 
+	bool isInLimbo = false;
 
-	if (pThis->InLimbo && !pTypeExt->AutoDeath_AllowLimboed.Get(FakeRulesClass::Instance->AutoDeath_AllowLimboed))
-		return false; //nope
+	if (pThis->InLimbo) {
+		if (!pTypeExt->AutoDeath_AllowLimboed.Get(FakeRulesClass::Instance->AutoDeath_AllowLimboed))
+			return false;
+	}
 
 	if (this->ShouldBeDead) { //someone cursed this
 		TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
@@ -12534,7 +12540,7 @@ bool hasSelfHeal(TechnoClass* pThis , const bool infantryHeal)
 	return false;
 }
 
-void TechnoExtData::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds, SHPStruct* shape, ConvertClass* convert)
+void TechnoExtData::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds, SHPCaches* shape, ConvertClass* convert)
 {
 	auto const pType = GET_TECHNOTYPE(pThis);
 	auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
@@ -12798,9 +12804,9 @@ void TechnoExtData::UpdateOnTunnelEnter()
 			GameDelete<true,false>(pAlpha);
 
 			const auto tacticalPos = TacticalClass::Instance->TacticalPos;
-			Point2D off = { tacticalPos.X - (pImage->Width / 2), tacticalPos.Y - (pImage->Height / 2) };
+			Point2D off = { tacticalPos.X - (pImage->CurrentHeader.Width / 2), tacticalPos.Y - (pImage->CurrentHeader.Height / 2) };
 			const auto point = TacticalClass::Instance->CoordsToClient(This()->GetCoords()) + off;
-			RectangleStruct dirty = { point.X - tacticalPos.X, point.Y - tacticalPos.Y, pImage->Width, pImage->Height };
+			RectangleStruct dirty = { point.X - tacticalPos.X, point.Y - tacticalPos.Y, pImage->CurrentHeader.Width, pImage->CurrentHeader.Height };
 			TacticalClass::Instance->RegisterDirtyArea(dirty, true);
 		}
 	}

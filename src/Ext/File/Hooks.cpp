@@ -38,7 +38,7 @@ void* __fastcall FakeFileLoader::_Retrieve(const char* name, bool forceShapeCach
 		{
 			if (forceShapeCache || strstr(upperName, ".SHP"))
 			{
-				return (void*)GameCreate<SHPReference>(name);
+				return (void*)GameCreate<SHPCaches>(name);
 			}
 
 			return CCFileClass::Load_Alloc_Data(file);

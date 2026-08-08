@@ -22,7 +22,7 @@ DXMouse::~DXMouse() {
 	}
 }
 
-void DXMouse::Set_Cursor(Point2D const& hotspot, SHPStruct const* cursor, int shape) {
+void DXMouse::Set_Cursor(Point2D const& hotspot, SHPCaches const* cursor, int shape) {
 	if (cursor == nullptr || shape < 0 || shape >= cursor->Frames) {
 		Delete_Cursor_Image();
 		Set_System_Cursor();
@@ -175,7 +175,7 @@ void DXMouse::Set_Cached_Cursor() {
 }
 
 void DXMouse::Rebuild_Cursor_Image() {
-	SHPStruct const* shape = MouseShape;
+	SHPCaches const* shape = MouseShape;
 	int number = ShapeNumber;
 
 	Delete_Cursor_Image();
@@ -239,7 +239,7 @@ struct Color16Struct
 };
 #pragma pack(pop)
 
-void DXMouse::Convert_Custor_Image(SHPStruct const* cursor) {
+void DXMouse::Convert_Custor_Image(SHPCaches const* cursor) {
 	if (!cursor || cursor->Frames <= 0)
 		return;
 
@@ -255,7 +255,7 @@ void DXMouse::Convert_Custor_Image(SHPStruct const* cursor) {
 		Shape_To_Cursor(cursor, i, CursorInfo[i]);
 }
 
-void DXMouse::Shape_To_Cursor(SHPStruct const* cursor, int frame, CursorData& result) {
+void DXMouse::Shape_To_Cursor(SHPCaches const* cursor, int frame, CursorData& result) {
 	int width = cursor->Width;
 	int height = cursor->Height;
 

@@ -186,10 +186,10 @@ static int GetAnimHalfwayFrame(AnimClass* pAnim)
 		return -1;
 
 	auto const pImage = pAnim->Type->GetImage();
-	if (!pImage || pImage->Frames <= 0)
+	if (!pImage || pImage->CurrentHeader.Frames <= 0)
 		return -1;
 
-	return pImage->Frames / 2;
+	return pImage->CurrentHeader.Frames / 2;
 }
 
 // ---------------------------------------------------------------------------
@@ -201,10 +201,10 @@ static int GetAnimLastFrame(AnimClass* pAnim)
 		return -1;
 
 	auto const pImage = pAnim->Type->GetImage();
-	if (!pImage || pImage->Frames <= 0)
+	if (!pImage || pImage->CurrentHeader.Frames <= 0)
 		return -1;
 
-	return pImage->Frames - 1;
+	return pImage->CurrentHeader.Frames - 1;
 }
 
 // ---------------------------------------------------------------------------

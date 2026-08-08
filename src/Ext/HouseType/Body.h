@@ -16,7 +16,7 @@ class AircraftTypeClass;
 class UnitTypeClass;
 class AnimTypeClass;
 class BuildingTypeClass;
-struct SHPStruct;
+struct SHPCaches;
 class HouseTypeExtData final : public AbstractTypeExtData
 {
 public:
@@ -55,8 +55,8 @@ public:
 	// ============================================================
 	// 8-byte aligned: Pointers
 	// ============================================================
-	SHPStruct* ObserverFlagSHP { nullptr };
-	SHPStruct* ObserverBackgroundSHP { nullptr };
+	SHPCaches* ObserverFlagSHP { nullptr };
+	SHPCaches* ObserverBackgroundSHP { nullptr };
 
 	// ============================================================
 	// Valueable<pointer> (8 bytes each)

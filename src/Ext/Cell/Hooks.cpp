@@ -77,7 +77,7 @@ ASMJIT_PATCH(0x47F852, CellClass_DrawOverlay_Tiberium_, 0x6) // B
 		pDecided = pCustom;
 	}
 
-	SHPStruct* pZShape = nullptr;
+	SHPCaches* pZShape = nullptr;
 	if (auto nSlope = (int)pThis->SlopeIndex)
 		pZShape = IsometricTileTypeClass::SlopeZshape[pThis->SlopeIndex];	//this is just pointers to files in ram, no vector #tomsons26
 
@@ -99,7 +99,7 @@ ASMJIT_PATCH(0x47F852, CellClass_DrawOverlay_Tiberium_, 0x6) // B
 	//	}
 	//
 	//	// Get the correct overlay type and image data for this tiberium frame
-	//	SHPStruct* imageData = OverlayTypeClass::Array->Items[numImages + frameIndex]->GetImage();
+	//	SHPCaches* imageData = OverlayTypeClass::Array->Items[numImages + frameIndex]->GetImage();
 	//
 	//	if (!imageData) {
 	//		return 0x47FB86;
@@ -156,7 +156,7 @@ ASMJIT_PATCH(0x47F852, CellClass_DrawOverlay_Tiberium_, 0x6) // B
 	DSurface::Temp->DrawSHP(pDecided, pShape, pThis->OverlayData, &nPos, pBound, BlitterFlags(0x4E00), 0, nZAdjust, ZGradient::Ground, nOreTint, 0, pZShape, 0, 0, 0);
 
 	if(pTibExt->EnableLighningFix){
-		auto nShadowFrame = (nIndex + pShape->Frames / 2);
+		auto nShadowFrame = (nIndex + pShape->CurrentHeader.Frames / 2);
 		DSurface::Temp->DrawSHP(pDecided, pShape, nShadowFrame, &nPos, pBound, BlitterFlags(0x4E01), 0, nZAdjust, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
 	}
 
@@ -166,7 +166,7 @@ ASMJIT_PATCH(0x47F852, CellClass_DrawOverlay_Tiberium_, 0x6) // B
 ASMJIT_PATCH(0x47F661, CellClass_DrawOverlay_Rubble_Shadow, 0x8)
 {
 	GET(CellClass*, pCell, ESI);
-	GET_STACK(SHPStruct*, pImage, STACK_OFFSET(0x28, 0x8));
+	GET_STACK(SHPCaches*, pImage, STACK_OFFSET(0x28, 0x8));
 	GET_STACK(int, nFrame, STACK_OFFSET(0x28, 0x4));
 	LEA_STACK(Point2D*, pPoint, STACK_OFFS(0x28, 0x10));
 	GET_STACK(int, nOffset, STACK_OFFS(0x28, 0x18));
@@ -192,7 +192,7 @@ ASMJIT_PATCH(0x47FADB, CellClass_DrawOverlay_Rubble, 0x5)
 {
 	GET(OverlayTypeClass*, pOvl, ECX);
 	GET(CellClass*, pCell, ESI);
-	LEA_STACK(SHPStruct**, pImage, STACK_OFFS(0x24, 0x14));
+	LEA_STACK(SHPCaches**, pImage, STACK_OFFS(0x24, 0x14));
 	LEA_STACK(int*, pFrame, STACK_OFFSET(0x24, 0x8));
 	LEA_STACK(Point2D*, pPoint, STACK_OFFS(0x24, 0x10));
 	GET_STACK(int, nOffset, STACK_OFFSET(0x24, 0x4));

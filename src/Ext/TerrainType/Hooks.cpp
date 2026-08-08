@@ -99,10 +99,10 @@ ASMJIT_PATCH(0x71C812, TerrainClass_AI_Crumbling, 0x6)
 		return SkipCheck;
 	}
 
-	int animationLength = pTypeExt->AnimationLength.Get(pThis->Type->GetImage()->Frames / (2 * (pTypeExt->HasDamagedFrames + 1)));
+	int animationLength = pTypeExt->AnimationLength.Get(pThis->Type->GetImage()->CurrentHeader.Frames / (2 * (pTypeExt->HasDamagedFrames + 1)));
 	int currentStage = pThis->Animation.Stage + (pThis->Type->IsAnimated ? animationLength * (pTypeExt->HasDamagedFrames + 1) : 0 + pTypeExt->HasDamagedFrames);
 
-	if (currentStage + 1 == pThis->Type->GetImage()->Frames / 2)
+	if (currentStage + 1 == pThis->Type->GetImage()->CurrentHeader.Frames / 2)
 	{
 		pTypeExt->PlayDestroyEffects(pThis->GetCoords());
 		TerrainTypeExtData::Remove(pThis);
@@ -124,7 +124,7 @@ ASMJIT_PATCH(0x71C1FE, TerrainClass_Draw_PickFrame, 0x6)
 
 	if (pThis->Type->IsAnimated)
 	{
-		int animLength = pTypeExt->AnimationLength.Get(pThis->Type->GetImage()->Frames / (2 * (pTypeExt->HasDamagedFrames + 1)));
+		int animLength = pTypeExt->AnimationLength.Get(pThis->Type->GetImage()->CurrentHeader.Frames / (2 * (pTypeExt->HasDamagedFrames + 1)));
 
 		if (pTypeExt->HasCrumblingFrames && pThis->TimeToDie)
 			frame = (animLength * (pTypeExt->HasDamagedFrames + 1)) + 1 + pThis->Animation.Stage;

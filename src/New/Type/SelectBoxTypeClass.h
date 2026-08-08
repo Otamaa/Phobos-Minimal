@@ -12,7 +12,7 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "SelectBoxTypeClass";
 
 public:
-	Valueable<SHPStruct*> Shape {};
+	Valueable<SHPCaches*> Shape {};
 	CustomPalette Palette {};
 	Nullable<Point3D> Frames {};
 	Valueable<bool> Grounded { false };
@@ -22,7 +22,7 @@ public:
 	Valueable<bool> VisibleToHouses_Observer { true };
 	Valueable<bool> DrawAboveTechno { true };
 
-	Valueable<SHPStruct*> GroundShape { nullptr };
+	Valueable<SHPCaches*> GroundShape { nullptr };
 	CustomPalette GroundPalette {};
 	Nullable<Point3D> GroundFrames {};
 	Valueable<Point2D> GroundOffset { Point2D::Empty };

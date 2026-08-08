@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-struct SHPStruct;
+struct SHPCaches;
 class DSurface;
 class ConvertClass;
 // only numbers and sign
@@ -14,7 +14,7 @@ class ShapeTextPrintData
 {
 public:
 	// Shape
-	SHPStruct* Shape { nullptr };
+	SHPCaches* Shape { nullptr };
 	ConvertClass* Palette { nullptr };
 	int BaseNumberFrame { 0 };	// frame index of 0
 	int BaseExtraFrame { 0 };		// as sequence ShapeTextPrinter::SignSequence
@@ -22,7 +22,7 @@ public:
 
 public:
 
-	ShapeTextPrintData(SHPStruct* shape, ConvertClass* palette, int iBaseNumberFrame, int baseExtraFrame, const Point2D& spacing);
+	ShapeTextPrintData(SHPCaches* shape, ConvertClass* palette, int iBaseNumberFrame, int baseExtraFrame, const Point2D& spacing);
 	~ShapeTextPrintData() = default;
 	ShapeTextPrintData() = default;
 	ShapeTextPrintData(const ShapeTextPrintData&) = default;

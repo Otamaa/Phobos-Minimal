@@ -227,34 +227,34 @@ namespace DropshipLoadoutHelpers
 		bounds.Height = bottom - bounds.Y;
 	}
 
-	int ImageWidth(BSurface* pPCX, SHPStruct* pSHP, int fallback)
+	int ImageWidth(BSurface* pPCX, SHPCaches* pSHP, int fallback)
 	{
 		if (pPCX)
 			return pPCX->Width;
 
 		if (pSHP)
-			return pSHP->Width;
+			return pSHP->CurrentHeader.Width;
 
 		return fallback;
 	}
 
-	int ImageHeight(BSurface* pPCX, SHPStruct* pSHP, int fallback)
+	int ImageHeight(BSurface* pPCX, SHPCaches* pSHP, int fallback)
 	{
 		if (pPCX)
 			return pPCX->Height;
 
 		if (pSHP)
-			return pSHP->Height;
+			return pSHP->CurrentHeader.Height;
 
 		return fallback;
 	}
 
-	int ImageWidth(const std::vector<BSurface*>& frames, SHPStruct* pSHP, int fallback)
+	int ImageWidth(const std::vector<BSurface*>& frames, SHPCaches* pSHP, int fallback)
 	{
 		return ImageWidth(frames.empty() ? nullptr : frames.front(), pSHP, fallback);
 	}
 
-	int ImageHeight(const std::vector<BSurface*>& frames, SHPStruct* pSHP, int fallback)
+	int ImageHeight(const std::vector<BSurface*>& frames, SHPCaches* pSHP, int fallback)
 	{
 		return ImageHeight(frames.empty() ? nullptr : frames.front(), pSHP, fallback);
 	}
@@ -281,7 +281,7 @@ namespace DropshipLoadoutHelpers
 			VocClass::PlayGlobal(soundIdx, Panning::Center, 1.0);
 	}
 
-	SHPStruct* LoadDefaultDGreen(int index)
+	SHPCaches* LoadDefaultDGreen(int index)
 	{
 		static const char* const DefaultFiles[] =
 		{
@@ -607,7 +607,7 @@ namespace DropshipLoadoutParse
 		return true;
 	}
 
-	bool ReadShapeList(CCINIClass* pINI, const char* pSection, const char* pKey, std::vector<SHPStruct*>& out)
+	bool ReadShapeList(CCINIClass* pINI, const char* pSection, const char* pKey, std::vector<SHPCaches*>& out)
 	{
 		if (pINI->ReadString(pSection, pKey, "", Phobos::readBuffer) <= 0)
 			return false;
@@ -851,7 +851,7 @@ namespace DropshipLoadoutParse
 		return PhobosPCXFile(filename.c_str());
 	}
 
-	SHPStruct* LoadPatternedSHP(const char* pPattern, int value)
+	SHPCaches* LoadPatternedSHP(const char* pPattern, int value)
 	{
 		std::string filename(260, '\0');
 		int const written = _snprintf_s(filename.data(), filename.size(), _TRUNCATE, pPattern, value);
@@ -860,7 +860,7 @@ namespace DropshipLoadoutParse
 		return FileSystem::LoadSHPFile(filename.c_str());
 	}
 
-	bool ReadShapeIfPresent(CCINIClass* pINI, const char* pSection, const char* pKey, SHPStruct*& out)
+	bool ReadShapeIfPresent(CCINIClass* pINI, const char* pSection, const char* pKey, SHPCaches*& out)
 	{
 		if (pINI->ReadString(pSection, pKey, "", Phobos::readBuffer) <= 0)
 			return false;
@@ -2545,8 +2545,8 @@ void DropshipLoadoutClass::CalculateLayout(DSurface* pSurface)
 			if (!dropshipLoadout_DGreenList[i])
 				continue;
 
-			dGreenLocation[i].Width = dropshipLoadout_DGreenList[i]->Width;
-			dGreenLocation[i].Height = dropshipLoadout_DGreenList[i]->Height;
+			dGreenLocation[i].Width = dropshipLoadout_DGreenList[i]->CurrentHeader.Width;
+			dGreenLocation[i].Height = dropshipLoadout_DGreenList[i]->CurrentHeader.Height;
 		}
 	}
 
@@ -3152,11 +3152,11 @@ void DropshipLoadoutClass::Run()
 
 	loadoutTotalFrames = !dropshipLoadout_LoadoutPCX.empty()
 		? static_cast<int>(dropshipLoadout_LoadoutPCX.size()) - 1
-		: (dropshipLoadout_Loadout ? dropshipLoadout_Loadout->Frames : 0);
+		: (dropshipLoadout_Loadout ? dropshipLoadout_Loadout->CurrentHeader.Frames : 0);
 
 	pilotLitTotalFrames = !dropshipLoadout_PilotLitPCX.empty()
 		? static_cast<int>(dropshipLoadout_PilotLitPCX.size()) - 1
-		: (dropshipLoadout_PilotLit ? dropshipLoadout_PilotLit->Frames : 0);
+		: (dropshipLoadout_PilotLit ? dropshipLoadout_PilotLit->CurrentHeader.Frames : 0);
 
 	// SUSPECT: Random(0, 0) always returns 0, so the loadout animation has no
 	// randomised start delay at all and animTimer_DelayedStartValue_Loadout is
@@ -3181,7 +3181,7 @@ void DropshipLoadoutClass::Run()
 		else if (sidebarRowAnimationIndex < static_cast<int>(dropshipLoadout_DGreenList.size())
 			&& dropshipLoadout_DGreenList[sidebarRowAnimationIndex])
 		{
-			sidebarRowAnimationTotalFrames = dropshipLoadout_DGreenList[sidebarRowAnimationIndex]->Frames;
+			sidebarRowAnimationTotalFrames = dropshipLoadout_DGreenList[sidebarRowAnimationIndex]->CurrentHeader.Frames;
 		}
 	}
 
@@ -3545,7 +3545,7 @@ void DropshipLoadoutClass::HandleInput(int command, int buttonID)
 					else
 					{
 						auto const pShape = dropshipLoadout_DGreenList[sidebarRowAnimationIndex];
-						sidebarRowAnimationTotalFrames = pShape ? pShape->Frames : 0;
+						sidebarRowAnimationTotalFrames = pShape ? pShape->CurrentHeader.Frames : 0;
 					}
 				}
 				else
@@ -3942,7 +3942,7 @@ void DropshipLoadoutClass::Render(DSurface* pSurface)
 
 	// --- Decorative animations ----------------------------------------------
 	auto const DrawAnimFrame = [&](const RectangleStruct& location, const std::vector<BSurface*>& pcxFrames,
-		SHPStruct* pShape, int frame)
+		SHPCaches* pShape, int frame)
 		{
 			BSurface* pFramePCX = nullptr;
 
@@ -3968,7 +3968,7 @@ void DropshipLoadoutClass::Render(DSurface* pSurface)
 			? dropshipLoadout_DGreenListPCX[sidebarRowAnimationIndex]
 			: NoFrames;
 
-		SHPStruct* pShape = nullptr;
+		SHPCaches* pShape = nullptr;
 
 		if (sidebarRowAnimationIndex < static_cast<int>(dropshipLoadout_DGreenList.size()))
 			pShape = dropshipLoadout_DGreenList[sidebarRowAnimationIndex];

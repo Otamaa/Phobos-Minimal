@@ -196,7 +196,7 @@ namespace detail
 	bool read<TechnoTypeClass*>(TechnoTypeClass*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
-	bool read<SHPStruct*>(SHPStruct*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
+	bool read<SHPCaches*>(SHPCaches*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
 	template <>
 	bool read<std::string>(std::string& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);

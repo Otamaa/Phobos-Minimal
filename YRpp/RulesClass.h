@@ -25,7 +25,7 @@ class VoxelAnimTypeClass;
 class WarheadTypeClass;
 class WeaponTypeClass;
 
-struct SHPStruct;
+struct SHPCaches;
 
 struct IQStruct
 {
@@ -675,8 +675,8 @@ public:
 	bool				 CanDetonateDeathBomb;
 	int				 IvanIconFlickerRate;
 	WeaponTypeClass*			 DeathWeapon;
-	SHPStruct*				 BOMBCURS_SHP;
-	SHPStruct*				 CHRONOSK_SHP;
+	SHPCaches*				 BOMBCURS_SHP;
+	SHPCaches*				 CHRONOSK_SHP;
 	int				 IronCurtainDuration;
 	int				 PsychicRevealRadius;
 	WarheadTypeClass*			 IonCannonWarhead;

@@ -10,7 +10,7 @@ public:
 	static COMPILETIMEEVAL const char* ClassName = "InsigniaTypeClass";
 
 public:
-	Promotable<SHPStruct*> Insignia { };
+	Promotable<SHPCaches*> Insignia { };
 	Promotable<int> InsigniaFrame { -1 };
 
 	InsigniaTypeClass(const char* const pTitle) : Enumerable<InsigniaTypeClass>(pTitle)	{ }

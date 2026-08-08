@@ -84,7 +84,7 @@ static bool DrawHPBar(TechnoClass* pThis)
 }
 
 // Helper to draw a single pip
-static void DrawSingleHPPip(Point2D* position, ConvertClass* pConvert, SHPStruct* shape, int frameIndex, RectangleStruct* clipRect, BlitterFlags flags)
+static void DrawSingleHPPip(Point2D* position, ConvertClass* pConvert, SHPCaches* shape, int frameIndex, RectangleStruct* clipRect, BlitterFlags flags)
 {
 	DSurface::Temp->DrawSHP(
 		pConvert,
@@ -112,8 +112,8 @@ struct HealthBarDrawState
 // Helper structure for health bar rendering assets
 struct HealthBarAssets
 {
-	SHPStruct* pipShape;
-	SHPStruct* bracketShape;
+	SHPCaches* pipShape;
+	SHPCaches* bracketShape;
 	ConvertClass* convert;
 };
 
@@ -134,9 +134,9 @@ void __fastcall FakeTechnoClass::__DrawHealthBar_Selection(TechnoClass* techno, 
 	AbstractType technoType = techno->WhatAmI();
 	TechnoTypeClass* technoTypeClass = GET_TECHNOTYPE(techno);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(technoTypeClass);
-	SHPStruct* pips_SHP = pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP());
+	SHPCaches* pips_SHP = pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP());
 	pips_SHP = pTypeExt->HealthBarSHP.Get(pips_SHP);
-	SHPStruct* pPipsShapeSelected = pTypeExt->HealthBarSHP_Selected.Get(FileSystem::PIPBRD_SHP());
+	SHPCaches* pPipsShapeSelected = pTypeExt->HealthBarSHP_Selected.Get(FileSystem::PIPBRD_SHP());
 	ConvertClass* pPalette = FileSystem::PALETTE_PAL();
 
 	if (pTypeExt->HealthbarRemap.Get())

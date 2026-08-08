@@ -277,12 +277,12 @@ void HugeBar::DrawHugeBar(int iCurrent, int iMax)
 		&& this->HugeBar_Frame.Get(ratio, RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed) >= 0
 		&& this->HugeBar_Pips_Frame.Get(ratio, RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed) >= 0)
 	{
-		SHPStruct* pShp_Bar = this->HugeBar_Shape;
+		SHPCaches* pShp_Bar = this->HugeBar_Shape;
 		ConvertClass* pPal_Bar = FileSystem::PALETTE_PAL;
 		if (auto pCust = this->HugeBar_Palette.GetConvert())
 			pPal_Bar = pCust;
 
-		SHPStruct* pShp_Pips = this->HugeBar_Pips_Shape;
+		SHPCaches* pShp_Pips = this->HugeBar_Pips_Shape;
 		ConvertClass* pPal_Pips = FileSystem::PALETTE_PAL;
 		if(auto pCust_1 = this->HugeBar_Pips_Palette.GetConvert())
 			pPal_Pips = pCust_1;
@@ -292,17 +292,17 @@ void HugeBar::DrawHugeBar(int iCurrent, int iMax)
 		switch (this->Anchor.Horizontal)
 		{
 		case HorizontalPosition::Left:
-			posDrawValue.X += pShp_Bar->Width / 2;
+			posDrawValue.X += pShp_Bar->CurrentHeader.Width / 2;
 			break;
 
 		case HorizontalPosition::Center:
 			posDrawValue.X = posDraw.X;
-			posDraw.X -= pShp_Bar->Width / 2;
+			posDraw.X -= pShp_Bar->CurrentHeader.Width / 2;
 			break;
 
 		case HorizontalPosition::Right:
-			posDraw.X -= pShp_Bar->Width;
-			posDrawValue.X -= pShp_Bar->Width / 2;
+			posDraw.X -= pShp_Bar->CurrentHeader.Width;
+			posDrawValue.X -= pShp_Bar->CurrentHeader.Width / 2;
 			break;
 
 		default:
@@ -312,17 +312,17 @@ void HugeBar::DrawHugeBar(int iCurrent, int iMax)
 		switch (this->Anchor.Vertical)
 		{
 		case VerticalPosition::Top:
-			posDrawValue.Y += pShp_Bar->Height;
+			posDrawValue.Y += pShp_Bar->CurrentHeader.Height;
 			break;
 
 		case VerticalPosition::Center:
-			posDraw.Y -= pShp_Bar->Height / 2;
-			posDrawValue.Y += pShp_Bar->Height;
+			posDraw.Y -= pShp_Bar->CurrentHeader.Height / 2;
+			posDrawValue.Y += pShp_Bar->CurrentHeader.Height;
 			break;
 
 		case VerticalPosition::Bottom:
-			posDraw.Y -= pShp_Bar->Height;
-			posDrawValue.Y -= pShp_Bar->Height;
+			posDraw.Y -= pShp_Bar->CurrentHeader.Height;
+			posDrawValue.Y -= pShp_Bar->CurrentHeader.Height;
 			break;
 
 		default:
@@ -482,15 +482,15 @@ void HugeBar::HugeBar_DrawValue(Point2D& posDraw, int iCurrent, int iMax)
 
 	if (this->Value_Shape != nullptr)
 	{
-		SHPStruct* pShp = this->Value_Shape;
+		SHPCaches* pShp = this->Value_Shape;
 		ConvertClass* pPal = FileSystem::PALETTE_PAL;
 		if(auto pCust_1 = this->Value_Palette.GetConvert())
 			pPal = pCust_1;
 
 		if (this->Anchor.Vertical == VerticalPosition::Bottom)
-			posDraw.Y -= pShp->Height * (static_cast<int>(this->InfoType) + 1);
+			posDraw.Y -= pShp->CurrentHeader.Height * (static_cast<int>(this->InfoType) + 1);
 		else
-			posDraw.Y += pShp->Height * static_cast<int>(this->InfoType);
+			posDraw.Y += pShp->CurrentHeader.Height * static_cast<int>(this->InfoType);
 
 		std::string text;
 

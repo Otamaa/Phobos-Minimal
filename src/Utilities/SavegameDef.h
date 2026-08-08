@@ -1301,20 +1301,20 @@ namespace Savegame
 	};
 
 	template <>
-	struct Savegame::PhobosStreamObject<SHPStruct*>
+	struct Savegame::PhobosStreamObject<SHPCaches*>
 	{
-		bool ReadFromStream(PhobosStreamReader& Stm, SHPStruct*& Value, bool RegisterForChange) const
+		bool ReadFromStream(PhobosStreamReader& Stm, SHPCaches*& Value, bool RegisterForChange) const
 		{
 			bool HasAny = false;
-			//GameDebugLog::Log("[SHPStruct] Loading HasAny...\n");
+			//GameDebugLog::Log("[SHPCaches] Loading HasAny...\n");
 
 			if (!Savegame::ReadPhobosStream(Stm, HasAny))
 			{
-				//GameDebugLog::Log("[SHPStruct] Failed to load HasAny!\n");
+				//GameDebugLog::Log("[SHPCaches] Failed to load HasAny!\n");
 				return false;
 			}
 
-			//GameDebugLog::Log("[SHPStruct] HasAny = %s\n", HasAny ? "true" : "false");
+			//GameDebugLog::Log("[SHPCaches] HasAny = %s\n", HasAny ? "true" : "false");
 
 			if (!HasAny)
 			{
@@ -1324,32 +1324,32 @@ namespace Savegame
 
 			Value = nullptr;
 			std::string name {};
-			//GameDebugLog::Log("[SHPStruct] Loading filename...\n");
+			//GameDebugLog::Log("[SHPCaches] Loading filename...\n");
 
 			if (!Savegame::ReadPhobosStream(Stm, name, RegisterForChange))
 			{
-				//GameDebugLog::Log("[SHPStruct] Failed to load filename!\n");
+				//GameDebugLog::Log("[SHPCaches] Failed to load filename!\n");
 				return false;
 			}
 
-			//GameDebugLog::Log("[SHPStruct] Loaded filename: '%s' (length: %zu)\n",
+			//GameDebugLog::Log("[SHPCaches] Loaded filename: '%s' (length: %zu)\n",
 			//	name.c_str(), name.length());
 
 			if (auto pSHP = FileSystem::LoadSHPFile(name.c_str()))
 			{
 				Value = pSHP;
-				//GameDebugLog::Log("[SHPStruct] Successfully loaded SHP\n");
+				//GameDebugLog::Log("[SHPCaches] Successfully loaded SHP\n");
 				return true;
 			}
 			else
 			{
-				//GameDebugLog::Log("[SHPStruct] Warning: Could not load SHP '%s', setting to nullptr\n", name.c_str());
+				//GameDebugLog::Log("[SHPCaches] Warning: Could not load SHP '%s', setting to nullptr\n", name.c_str());
 				Value = nullptr;
 				return true;  // This is likely where it's failing
 			}
 		}
 
-		bool WriteToStream(PhobosStreamWriter& Stm, SHPStruct* const& Value) const
+		bool WriteToStream(PhobosStreamWriter& Stm, SHPCaches* const& Value) const
 		{
 			const bool HasAny = Value != nullptr;
 			if (!Savegame::WritePhobosStream(Stm, HasAny))
@@ -1358,15 +1358,9 @@ namespace Savegame
 			if (!HasAny)
 				return true;
 
-			//GameDebugLog::Log("[SHPStruct] Value = %p\n", Value);
+			//GameDebugLog::Log("[SHPCaches] Value = %p\n", Value);
 
-			const char* filename = nullptr;
-			if (auto pRef = Value->AsReference())
-			{
-				filename = pRef->Filename;
-				//GameDebugLog::Log("[SHPStruct] AsReference() = %p\n", pRef);
-				//GameDebugLog::Log("[SHPStruct] Filename = %s\n", pRef->Filename ? pRef->Filename : "NULL");
-			}
+			const char* filename = Value->Filename;
 
 			if (!filename)
 				Debug::FatalErrorAndExit("Invalid SHP !");

@@ -6,15 +6,15 @@
 #include <CoordStruct.h>
 #include <Point2D.h>
 
-struct SHPStruct;
+struct SHPCaches;
 class Surface;
 class BeaconClass;
 class ALIGN(4) NOVTABLE BeaconManagerClass {
 public:
 
 	static COMPILETIMEEVAL reference<BeaconManagerClass, 0x89C3B0> const Instance {};
-	static COMPILETIMEEVAL reference<SHPStruct*, 0x89C474> const BeaconArt {};
-	static COMPILETIMEEVAL reference<SHPStruct*, 0x89C478> const RadarBeaconArt {};
+	static COMPILETIMEEVAL reference<SHPCaches*, 0x89C474> const BeaconArt {};
+	static COMPILETIMEEVAL reference<SHPCaches*, 0x89C478> const RadarBeaconArt {};
 
 	BeaconManagerClass() JMP_THIS(0x430910);
 	~BeaconManagerClass() JMP_THIS(0x430930); // just an inlined Reset

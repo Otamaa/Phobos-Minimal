@@ -108,8 +108,8 @@ private:
 
 using NextObject = ListEnumerator<ObjectClass, &ObjectClass::NextObject>;
 using NextTeamMember = ListEnumerator<FootClass, &FootClass::NextTeamMember>;
-using NextSHP = ListEnumerator<SHPReference, &SHPReference::Next>;
-using PrevSHP = PrevListEnumerator<SHPReference, & SHPReference::Prev >;
+using NextSHP = ListEnumerator<SHPCaches, &SHPCaches::Next>;
+using PrevSHP = PrevListEnumerator<SHPCaches, &SHPCaches::Prev >;
 // Enumerates the cells in a rectangle.
 /*
 	Enumeration starts at the top left and iterates left to right first, then

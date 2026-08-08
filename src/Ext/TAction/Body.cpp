@@ -838,8 +838,8 @@ bool TActionExtData::DrawAnimWithin(TActionClass* pThis, HouseClass* pHouse, Obj
 	87F8E0 = Height
 	*/
 
-	int nShpWidth = pImage->Width;
-	int nHeight = pImage->Height;
+	int nShpWidth = pImage->CurrentHeader.Width;
+	int nHeight = pImage->CurrentHeader.Height;
 	auto nShpWidth_ = nShpWidth;
 	auto nRectByt = 30 * MapRect->Width;
 	auto v29 = nHeight / 2 - 30 * MapRect->Width;

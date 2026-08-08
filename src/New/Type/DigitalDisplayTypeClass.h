@@ -24,7 +24,7 @@ public:
 	Valueable<TextAlign> Align { TextAlign::Right };
 	Anchor AnchorType { HorizontalPosition::Right, VerticalPosition::Top };
 	Valueable<BuildingSelectBracketPosition> AnchorType_Building { BuildingSelectBracketPosition::Top };
-	Valueable<SHPStruct*> Shape { nullptr };
+	Valueable<SHPCaches*> Shape { nullptr };
 	CustomPalette Palette { CustomPalette::PaletteMode::Temperate };
 	Nullable<Point2D> Shape_Spacing {};
 	Valueable<bool> Shape_PercentageFrame {};

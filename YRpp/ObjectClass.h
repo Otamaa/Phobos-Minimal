@@ -14,7 +14,7 @@ class TechnoTypeClass;
 class WarheadTypeClass;
 class BuildingTypeClass;
 class InfantryTypeClass;
-struct SHPStruct;
+struct SHPCaches;
 class LightConvertClass;
 class AnimClass;
 class BuildingClass;
@@ -72,7 +72,7 @@ public:
 	virtual void AnimPointerExpired(AnimClass* pAnim) JMP_THIS(0x5F6DA0);
 	virtual bool IsSelectable() const R0;
 	virtual VisualType VisualCharacter(VARIANT_BOOL SpecificOwner, HouseClass * WhoIsAsking) const RT(VisualType);
-	virtual SHPStruct* GetImage() const R0;
+	virtual SHPCaches* GetImage() const R0;
 	virtual Action MouseOverCell(CellStruct const& cell, bool checkFog = false, bool ignoreForce = false) const RT(Action);
 	virtual Action MouseOverObject(ObjectClass const* pObject, bool ignoreForce = false) const RT(Action);
 	virtual Layer InWhichLayer() const JMP_THIS(0x5F4260);

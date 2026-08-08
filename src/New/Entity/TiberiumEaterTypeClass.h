@@ -17,7 +17,7 @@ public:
 	ValueableVector<AnimTypeClass*> Anims {};
 	std::vector<NullableVector<AnimTypeClass*>> Anims_Tiberiums {};
 	Valueable<bool> AnimMove { true };
-
+	Valueable<bool> UnderEMP { false };
 public:
 
 	void LoadFromINI(CCINIClass* pINI, const char* pSection);

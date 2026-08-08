@@ -1800,7 +1800,7 @@ const char* ScriptClass::get_ID() const
 	return Type ? Type->get_ID() : GameStrings::NoneStr;
 }
 
-DEFINE_IMPLEMENTATION(void TechnoClass::Draw_Object(SHPStruct*,
+DEFINE_IMPLEMENTATION(void TechnoClass::Draw_Object(SHPCaches*,
 	int,
 	Point2D*,
 	RectangleStruct*,
@@ -1811,7 +1811,7 @@ DEFINE_IMPLEMENTATION(void TechnoClass::Draw_Object(SHPStruct*,
 	bool,
 	int,
 	int,
-	SHPStruct*,
+	SHPCaches*,
 	int,
 	int,
 	int,

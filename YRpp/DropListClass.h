@@ -31,11 +31,11 @@ public:
 
 	//Constructors
 	DropListClass(unsigned int nID, wchar_t* pText, int nMaxLength, TextPrintType eTextFlag, int nX, int nY,
-		int nWidth, int nHeight, EditFlag eEditFlag,int nSomeHeight, SHPStruct* UpSHP, SHPStruct* DownSHP) noexcept
+		int nWidth, int nHeight, EditFlag eEditFlag,int nSomeHeight, SHPCaches* UpSHP, SHPCaches* DownSHP) noexcept
 		: DropListClass(noinit_t()) { JMP_THIS(0x4B4E10); }
 
 	DropListClass(unsigned int nID, wchar_t* pText, int nMaxLength, TextPrintType eTextFlag, RectangleStruct inRect
-		, EditFlag eEditFlag, int nSomeHeight, SHPStruct* UpSHP, SHPStruct* DownSHP) noexcept
+		, EditFlag eEditFlag, int nSomeHeight, SHPCaches* UpSHP, SHPCaches* DownSHP) noexcept
 		: DropListClass(nID, pText , nMaxLength , eTextFlag , inRect.X , inRect.Y , inRect.Width , inRect.Height , eEditFlag , nSomeHeight , UpSHP , DownSHP)
 	{	}
 

@@ -5,7 +5,7 @@
 COMPILETIMEEVAL OPTIONALINLINE char SignSequence[] { "/%$,.!?|" };
 COMPILETIMEEVAL OPTIONALINLINE size_t SignSequenceLength { std::char_traits<char>::length(SignSequence) };
 
-ShapeTextPrintData::ShapeTextPrintData(SHPStruct* shape, ConvertClass* palette, int iBaseNumberFrame, int baseExtraFrame, const Point2D& spacing)
+ShapeTextPrintData::ShapeTextPrintData(SHPCaches* shape, ConvertClass* palette, int iBaseNumberFrame, int baseExtraFrame, const Point2D& spacing)
 	: Shape { shape }
 	, Palette { palette }
 	, BaseNumberFrame { iBaseNumberFrame }

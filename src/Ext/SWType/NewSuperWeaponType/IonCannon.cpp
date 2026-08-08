@@ -112,7 +112,7 @@ void IonCannonStateMachine::Update()
 		if (AnimClass* pAnim = this->Anim)
 		{
 			int currentFrame = pAnim->Animation.Stage;
-			short frameCount = pAnim->Type->GetImage()->Frames;
+			short frameCount = pAnim->Type->GetImage()->CurrentHeader.Frames;
 			int percentage = pData->IonCannon_FireAtPercentage.Get();
 			if (frameCount * percentage / 100 > currentFrame)
 			{
@@ -131,7 +131,7 @@ void IonCannonStateMachine::Update()
 		if (AnimClass* pAnim = this->Anim)
 		{
 			int currentFrame = pAnim->Animation.Stage;
-			short frameCount = pAnim->Type->GetImage()->Frames;
+			short frameCount = pAnim->Type->GetImage()->CurrentHeader.Frames;
 
 			if (frameCount - currentFrame > 10)
 			{
@@ -149,7 +149,7 @@ void IonCannonStateMachine::Update()
 		{
 			if(pAnim->Type) {
 				int currentFrame = pAnim->Animation.Stage;
-				short frameCount = pAnim->Type->GetImage()->Frames;
+				short frameCount = pAnim->Type->GetImage()->CurrentHeader.Frames;
 
 				if (frameCount - currentFrame > 1)
 				{

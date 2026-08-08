@@ -261,7 +261,7 @@ public:
 	void _OnFinishRepair();
 	void UnloadOccupants(bool assignMission, bool killIfStuck);
 	void _Draw_It(Point2D* xdrawpoint, RectangleStruct* xcliprect);
-	void _TechnoClass_Draw_Object(SHPStruct* shapefile,
+	void _TechnoClass_Draw_Object(SHPCaches* shapefile,
 		int shapenum,
 		Point2D* xy,
 		RectangleStruct* rect,
@@ -272,7 +272,7 @@ public:
 		bool useZBuffer,
 		int lightLevel,
 		int tintLevel,
-		SHPStruct* z_shape,
+		SHPCaches* z_shape,
 		int z_shape_framenum,
 		int z_shape_offs_x,
 		int z_shape_offs_y,

@@ -56,7 +56,7 @@ public:
 
 	ObjectClass* AttachedTo;	//To which object is this AlphaShape attached?
 	RectangleStruct Rect;
-	SHPStruct* AlphaImage;
+	SHPCaches* AlphaImage;
 	bool IsObjectGone;	//Set if AttachedTo is NULL.
 };
 

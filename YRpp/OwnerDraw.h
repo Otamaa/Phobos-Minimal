@@ -272,7 +272,7 @@ public:
 private:
 	WWUIStaticDrawMode StaticDrawMode;
 	ConvertClass* StaticShapeDrawer;
-	SHPStruct* StaticShape;
+	SHPCaches* StaticShape;
 	int StaticShapeFlags;
 	int StaticTextRevealCount;
 	int StaticTextRevealDelay;
@@ -542,7 +542,7 @@ private:
 		BitFont*& Font() { return this->Data.FieldAt<BitFont*>(0x64); }
 		WWUIStaticDrawMode& DrawMode() { return this->Data.FieldAt<WWUIStaticDrawMode>(0x70); }
 		ConvertClass*& ShapeDrawer() { return this->Data.FieldAt<ConvertClass*>(0x74); }
-		SHPStruct*& Shape() { return this->Data.FieldAt<SHPStruct*>(0x78); }
+		SHPCaches*& Shape() { return this->Data.FieldAt<SHPCaches*>(0x78); }
 		bool& OwnsShape() { return this->Data.FieldAt<bool>(0x7C); }
 		int& TextRevealCount() { return this->Data.FieldAt<int>(0x80); }
 		int& TextRevealDelay() { return this->Data.FieldAt<int>(0x84); }
@@ -877,15 +877,15 @@ public:
 	DEFINE_REFERENCE(HWND, ComboDropActiveDropHwnd, 0xAC48C0);
 	DEFINE_REFERENCE(HWND, ComboDropActiveParentHwnd, 0xAC48C4);
 	DEFINE_REFERENCE(char, ButtonSliceVariant, 0x833684);
-	DEFINE_REFERENCE(SHPStruct*, SideButtonShape, 0xB0F9EC);
+	DEFINE_REFERENCE(SHPCaches*, SideButtonShape, 0xB0F9EC);
 	DEFINE_REFERENCE(BYTE, ButtonDisabledSide0Red, 0xB0F9FC);
 	DEFINE_REFERENCE(WORD, ButtonDisabledSide0GreenBlue, 0xB0F9FD);
 	DEFINE_REFERENCE(BYTE, ButtonDisabledSide1Red, 0xB0FB14);
 	DEFINE_REFERENCE(WORD, ButtonDisabledSide1GreenBlue, 0xB0FB15);
 	DEFINE_REFERENCE(BYTE, ButtonDisabledSideOtherRed, 0xB0FB19);
 	DEFINE_REFERENCE(WORD, ButtonDisabledSideOtherGreenBlue, 0xB0FB1A);
-	DEFINE_REFERENCE(SHPStruct*, SmallButtonAnimShape, 0xB0FAC4);
-	DEFINE_REFERENCE(SHPStruct*, CloseButtonShape, 0xB0FACC);
+	DEFINE_REFERENCE(SHPCaches*, SmallButtonAnimShape, 0xB0FAC4);
+	DEFINE_REFERENCE(SHPCaches*, CloseButtonShape, 0xB0FACC);
 
 	// WWControlType::Button
 	DEFINE_REFERENCE(WNDPROC, CheckBoxButtonHandler, 0x6163A0);

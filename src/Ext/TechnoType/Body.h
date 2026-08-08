@@ -333,12 +333,12 @@ public:
 	Valueable<CSFText> EnemyUIName {};
 	Nullable<bool> UseDisguiseMovementSpeed { };
 
-	Promotable<SHPStruct*> Insignia {};
+	Promotable<SHPCaches*> Insignia {};
 	Valueable<Vector3D<int>> InsigniaFrames { { -1, -1, -1 } };
 	Promotable<int> InsigniaFrame { -1 };
 	Nullable<bool> Insignia_ShowEnemy {};
 	std::vector<InsigniaData> Insignia_Weapon {};
-	std::vector<Promotable<SHPStruct*>> Insignia_Passengers {};
+	std::vector<Promotable<SHPCaches*>> Insignia_Passengers {};
 	std::vector<Promotable<int>> InsigniaFrame_Passengers {};
 	std::vector<Valueable<Vector3D<int>>> InsigniaFrames_Passengers {};
 
@@ -422,19 +422,19 @@ public:
 	Valueable<double> CrashSpinVerticalRate { 1.0 };
 	ValueableIdx<VocClass> ParasiteExit_Sound { -1 };
 
-	Nullable<SHPStruct*> PipShapes01 {};
-	Nullable<SHPStruct*> PipShapes02 {};
-	Nullable<SHPStruct*> PipGarrison {};
+	Nullable<SHPCaches*> PipShapes01 {};
+	Nullable<SHPCaches*> PipShapes02 {};
+	Nullable<SHPCaches*> PipGarrison {};
 	Valueable<int> PipGarrison_FrameIndex { 0 };
 	CustomPalette PipGarrison_Palette { CustomPalette::PaletteMode::Default };
 
 	Valueable<bool> HealthNumber_Show { false };
 	Valueable<bool> HealthNumber_Percent { false };
 	Nullable<Point2D> Healnumber_Offset {};
-	Nullable<SHPStruct*> HealthNumber_SHP {};
+	Nullable<SHPCaches*> HealthNumber_SHP {};
 	Nullable<Point2D> Healnumber_Decrement {};
-	Nullable<SHPStruct*> HealthBarSHP {};
-	Nullable<SHPStruct*> HealthBarSHP_Selected {};
+	Nullable<SHPCaches*> HealthBarSHP {};
+	Nullable<SHPCaches*> HealthBarSHP_Selected {};
 	Valueable<int> HealthBarSHPBracketOffset { 0 };
 	Valueable<Point3D> HealthBarSHP_HealthFrame { { 18, 16, 17 } };
 	CustomPalette HealthBarSHP_Palette { CustomPalette::PaletteMode::Temperate };
@@ -442,7 +442,7 @@ public:
 	Valueable<Point2D> HealthBarSHP_PointOffset { { 0, 0 } };
 	Valueable<bool> HealthbarRemap { false };
 
-	Valueable<SHPStruct*> GClock_Shape {};
+	Valueable<SHPCaches*> GClock_Shape {};
 	Valueable<TranslucencyLevel> GClock_Transculency {};
 	CustomPalette GClock_Palette { CustomPalette::PaletteMode::Default };
 
@@ -704,7 +704,7 @@ public:
 
 	Nullable<WORD> PipScaleIndex {};
 
-	Nullable<SHPStruct*> AmmoPip_shape {};
+	Nullable<SHPCaches*> AmmoPip_shape {};
 	Valueable<Point2D> AmmoPip_Offset {};
 	CustomPalette AmmoPip_Palette { CustomPalette::PaletteMode::Default };
 	Valueable<Point2D> AmmoPipOffset { { 0, 0 } };
@@ -873,7 +873,7 @@ public:
 	Valueable<int> Drain_Amount { 0 };
 
 	Nullable<int> HealthBar_Sections {};
-	Nullable<SHPStruct*> HealthBar_Border {};
+	Nullable<SHPCaches*> HealthBar_Border {};
 	Nullable<int> HealthBar_BorderFrame {};
 	Nullable<int> HealthBar_BorderAdjust {};
 
@@ -992,7 +992,7 @@ public:
 
 	NullableVector<int> Tiberium_PipIdx {};
 	Nullable<int> Tiberium_EmptyPipIdx {};
-	Valueable<SHPStruct*> Tiberium_PipShapes { nullptr };
+	Valueable<SHPCaches*> Tiberium_PipShapes { nullptr };
 	CustomPalette Tiberium_PipShapes_Palette {};
 
 	Valueable<ColorStruct> Tint_Color {};
@@ -2275,7 +2275,7 @@ public:
 	static WeaponStruct* __fastcall __GetWeapon(TechnoTypeClass* pThis , discard_t , int which);
 	static WeaponStruct* __fastcall __GetEliteWeapon(TechnoTypeClass* pThis , discard_t ,int which);
 	static int  __fastcall __GetWeaponTurretIndex(TechnoTypeClass* pThis , discard_t ,int which);
-	static SHPStruct* __fastcall __GetCameo(TechnoTypeClass* pThis);
+	static SHPCaches* __fastcall __GetCameo(TechnoTypeClass* pThis);
 
 };
 

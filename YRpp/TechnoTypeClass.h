@@ -417,11 +417,11 @@ public:
 	bool            AllowedToStartInMultiplayer;
 	char            CameoFile[0x19];
 	PROTECTED_PROPERTY(BYTE, align_6EF);
-	SHPStruct* Cameo;
+	SHPCaches* Cameo;
 	bool            CameoAllocated;
 	char            AltCameoFile[0x19];
 	PROTECTED_PROPERTY(BYTE, align_70E[2]);
-	SHPStruct* AltCameo;
+	SHPCaches* AltCameo;
 	bool            AltCameoAllocated;
 	int             RotCount;
 	int             ROT;

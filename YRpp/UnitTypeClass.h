@@ -98,7 +98,7 @@ public:
 	int Facings;
 	int FiringSyncFrames[2];
 	int BurstDelays[4];
-	SHPStruct* AltImage;
+	SHPCaches* AltImage;
 	char WalkFrames;
 	char FiringFrames;
 	char AltImageFile [0x19];

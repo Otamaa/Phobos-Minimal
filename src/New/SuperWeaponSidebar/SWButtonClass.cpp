@@ -47,7 +47,7 @@ bool SWButtonClass::Draw(bool forced)
 	}
 	else if (const auto pCameo = pSuper->Type->SidebarImage) // old shp cameos, fixed palette
 	{
-		const auto pCameoRef = pCameo->AsReference();
+		const auto pCameoRef = pCameo;
 		char pFilename[0x20];
 		strcpy_s(pFilename, FakeRulesClass::Instance()->MissingCameo.data());
 		_strlwr_s(pFilename);
@@ -128,7 +128,7 @@ bool SWButtonClass::Draw(bool forced)
 	if (pSuper->ShouldDrawProgress())
 	{
 		Point2D loc = { location.X, location.Y };
-		SHPStruct* _GCLOCK_Shape = FileSystem::GCLOCK2_SHP();
+		SHPCaches* _GCLOCK_Shape = FileSystem::GCLOCK2_SHP();
 		ConvertClass* _GCLOCK_Convert = FileSystem::SIDEBAR_PAL();
 		BlitterFlags _GCLOCK_Trans = BlitterFlags::TransLucent50;
 

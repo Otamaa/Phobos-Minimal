@@ -901,7 +901,7 @@ ASMJIT_PATCH(0x73C5FC, UnitClass_DrawSHP_WaterType, 6)
 {
 	GET(UnitClass*, U, EBP);
 
-	SHPStruct* Image = U->GetImage();
+	SHPCaches* Image = U->GetImage();
 
 	if (UnitTypeClass* pCustomType = TechnoExtData::GetUnitTypeImage(U))
 	{
@@ -910,7 +910,7 @@ ASMJIT_PATCH(0x73C5FC, UnitClass_DrawSHP_WaterType, 6)
 
 	if (Image)
 	{
-		R->EAX<SHPStruct*>(Image);
+		R->EAX<SHPCaches*>(Image);
 		return 0x73C602;
 	}
 
@@ -951,7 +951,7 @@ ASMJIT_PATCH(0x73C725, UnitClass_DrawSHP_DrawShadowEarlier, 6)
 		return retAddr;
 	}
 
-	GET(SHPStruct*, Image, EDI);
+	GET(SHPCaches*, Image, EDI);
 
 	if (Image)
 	{ // bug #960
@@ -969,7 +969,7 @@ ASMJIT_PATCH(0x73C725, UnitClass_DrawSHP_DrawShadowEarlier, 6)
 
 		int ZAdjust = U->GetZAdjustment() - 2;
 
-		FrameToDraw += Image->Frames / 2;
+		FrameToDraw += Image->CurrentHeader.Frames / 2;
 
 		DSurface::Hidden_2->DrawSHP(FileSystem::THEATER_PAL, Image, FrameToDraw, &coords, BoundingRect, BlitterFlags(0x2E01),
 				0, ZAdjust, 0, 1000, 0, 0, 0, 0, 0);

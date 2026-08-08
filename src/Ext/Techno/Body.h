@@ -704,7 +704,7 @@ public:
 
 	static void UpdateSharedAmmo(TechnoClass* pThis);
 
-	static void DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds, SHPStruct* shape, ConvertClass* convert);
+	static void DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds, SHPCaches* shape, ConvertClass* convert);
 	static void DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
 	static void ApplyGainedSelfHeal(TechnoClass* pThis, bool wasDamaged);
 	static void ApplyDrainMoney(TechnoClass* pThis);

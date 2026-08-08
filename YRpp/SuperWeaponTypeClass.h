@@ -86,7 +86,7 @@ public:
 
 	int     RechargeTime; //in frames
 	SuperWeaponType Type;
-	SHPStruct* SidebarImage;
+	SHPCaches* SidebarImage;
 	Action Action;
 	int     SpecialSound;
 	int     StartSound;

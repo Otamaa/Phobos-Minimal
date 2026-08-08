@@ -142,9 +142,9 @@ int FakeBombClass::__GetBombFrame()
 
 	const auto pData = ext->Weapon;
 
-	const SHPStruct* shp = pData->Ivan_Image.Get(RulesClass::Instance->BOMBCURS_SHP);
+	const SHPCaches* shp = pData->Ivan_Image.Get(RulesClass::Instance->BOMBCURS_SHP);
 
-	const int frames = shp->Frames;
+	const int frames = shp->CurrentHeader.Frames;
 
 	int result = 0;
 

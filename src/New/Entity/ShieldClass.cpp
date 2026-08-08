@@ -618,10 +618,10 @@ void ShieldClass::OnTemporalUpdate(TemporalClass* pTemporal)
 
 void ShieldClass::OnUpdate()
 {
-	if (!this->Techno || this->Techno->InLimbo || this->Techno->IsImmobilized || this->Techno->Transporter)
-	{
-		return;
-	}
+	// if (!this->Techno || this->Techno->InLimbo || this->Techno->IsImmobilized || this->Techno->Transporter)
+	// {
+	// 	return;
+	// }
 
 	if (this->Techno->Location == CoordStruct::Empty)
 		return;
@@ -1265,7 +1265,7 @@ void ShieldClass::DrawShieldBar_Other(int iLength, Point2D* pLocation, Rectangle
 	auto position = TechnoExtData::GetFootSelectBracketPosition(Techno, Anchor(HorizontalPosition::Left, VerticalPosition::Top));
 	position.X -= 1;
 	position.Y += GET_TECHNOTYPE(this->Techno)->PixelSelectionBracketDelta + this->Type->BracketDelta - 3;
-	int frame = pipBoard->Frames > 2 ? 2 : 0;
+	int frame = pipBoard->CurrentHeader.Frames > 2 ? 2 : 0;
 
 	if (this->Techno->IsSelected)
 	{

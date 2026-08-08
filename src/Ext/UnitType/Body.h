@@ -13,7 +13,7 @@ public:
 
 public:
 
-	SHPStruct* TurretShape { nullptr };
+	SHPCaches* TurretShape { nullptr };
 	NullableVector<TerrainTypeClass*> DefaultMirageDisguises {};
 	Nullable<int> HarvesterLoadRate {};
 	Nullable<double> HarvesterDumpRate {};

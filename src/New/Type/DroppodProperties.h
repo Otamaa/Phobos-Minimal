@@ -5,7 +5,7 @@
 
 struct DroppodProperties
 {
-	Valueable<SHPStruct*> Droppod_PodImage_Infantry {};
+	Valueable<SHPCaches*> Droppod_PodImage_Infantry {};
 	Valueable<AnimTypeClass*> Droppod_Puff {};
 	Valueable<double> Droppod_Angle {};
 	Valueable<int> Droppod_Speed {};
@@ -60,7 +60,7 @@ struct DroppodProperties
 
 struct NullableDroppodProperties
 {
-	Nullable<SHPStruct*> Droppod_PodImage_Infantry {};
+	Nullable<SHPCaches*> Droppod_PodImage_Infantry {};
 	Nullable<AnimTypeClass*> Droppod_Puff {};
 	Nullable<double> Droppod_Angle {};
 	Nullable<int> Droppod_Speed {};

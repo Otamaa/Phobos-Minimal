@@ -15,7 +15,7 @@ enum class BuildState : uint32_t {
 
 class ColorScheme;
 class FactoryClass;
-struct SHPStruct;
+struct SHPCaches;
 // SidebarClass::StripClass::BuildType
 struct BuildType
 {
@@ -82,7 +82,7 @@ struct StripClass
 {
 	static void __stdcall LoadDarkenShapeOnce(int nArgs) { JMP_STD(0x6A8160); }
 
-	SHPStruct* GetSuperWeaponTypeCameo(int nIndex) const { JMP_THIS(0x6A8180); }
+	SHPCaches* GetSuperWeaponTypeCameo(int nIndex) const { JMP_THIS(0x6A8180); }
 	void Clear() const { JMP_THIS(0x6A81B0); }
 	void InitIndex(int nIndex) const { JMP_THIS(0x6A8220); }
 	bool Activate() const { JMP_THIS(0x6A8330); }

@@ -23,8 +23,8 @@ public:
 	Damageable<ColorStruct> HugeBar_Pips_Color1 {};
 	Damageable<ColorStruct> HugeBar_Pips_Color2 {};
 
-	Valueable<SHPStruct*> HugeBar_Shape {};
-	Valueable<SHPStruct*> HugeBar_Pips_Shape {};
+	Valueable<SHPCaches*> HugeBar_Shape {};
+	Valueable<SHPCaches*> HugeBar_Pips_Shape {};
 	CustomPalette HugeBar_Palette {};
 	CustomPalette HugeBar_Pips_Palette {};
 	Damageable<int> HugeBar_Frame { -1 };
@@ -37,7 +37,7 @@ public:
 
 	Damageable<ColorStruct> Value_Text_Color {};
 
-	Valueable<SHPStruct*> Value_Shape {};
+	Valueable<SHPCaches*> Value_Shape {};
 	CustomPalette Value_Palette {};
 	Valueable<int> Value_Num_BaseFrame {};
 	Valueable<int> Value_Sign_BaseFrame { 30 };

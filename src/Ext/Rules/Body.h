@@ -166,7 +166,7 @@ public:
 	Valueable<WarheadTypeClass*> Tiberium_ExplosiveWarhead { nullptr };
 	Valueable<AnimTypeClass*> Tiberium_ExplosiveAnim { nullptr };
 	Valueable<AnimTypeClass*> DropPodTrailer { nullptr };
-	Valueable<SHPStruct*> Droppod_ImageInfantry {};
+	Valueable<SHPCaches*> Droppod_ImageInfantry {};
 	Valueable<AnimTypeClass*> ElectricDeath { nullptr };
 	Valueable<ParticleTypeClass*> DefaultVeinParticle { nullptr };
 	Valueable<AnimTypeClass*> DefaultSquidAnim { nullptr };
@@ -187,19 +187,19 @@ public:
 	Valueable<AnimTypeClass*> DefaultExplodeFireAnim {};
 	Valueable<AnimTypeClass*> Promote_Vet_Anim { nullptr };
 	Valueable<AnimTypeClass*> Promote_Elite_Anim { nullptr };
-	Valueable<SHPStruct*> SHP_SelectBrdSHP_INF { nullptr };
-	Valueable<SHPStruct*> SHP_SelectBrdSHP_UNIT { nullptr };
-	Valueable<SHPStruct*> Cameo_OverlayShapes { FileSystem::PIPS_SHP };
+	Valueable<SHPCaches*> SHP_SelectBrdSHP_INF { nullptr };
+	Valueable<SHPCaches*> SHP_SelectBrdSHP_UNIT { nullptr };
+	Valueable<SHPCaches*> Cameo_OverlayShapes { FileSystem::PIPS_SHP };
 	Valueable<SelectBoxTypeClass*> DefaultInfantrySelectBox {};
 	Valueable<SelectBoxTypeClass*> DefaultUnitSelectBox {};
 
 	// ============================================================
 	// Nullable<pointer> (pointer + bool + padding ≈ 16 bytes)
 	// ============================================================
-	Nullable<SHPStruct*> Pips_Shield_Background_SHP {};
+	Nullable<SHPCaches*> Pips_Shield_Background_SHP {};
 	Nullable<ParticleTypeClass*> VeinholeParticle {};
 	Nullable<WarheadTypeClass*> FirestormWarhead {};
-	Valueable<SHPStruct*> PrimaryFactoryIndicator {};
+	Valueable<SHPCaches*> PrimaryFactoryIndicator {};
 
 	// ============================================================
 	// Nullable<Vector3D<float>> (~16 bytes)

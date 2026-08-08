@@ -18,7 +18,7 @@ public:
 	PhobosPCXFile PCX {};
 
 	//SHP
-	Valueable<SHPStruct*> Shape {};
+	Valueable<SHPCaches*> Shape {};
 	CustomPalette Palette {};
 
 	//CSF

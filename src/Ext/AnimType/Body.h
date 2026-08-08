@@ -13,6 +13,48 @@
 
 #include <Ext/ObjectType/Body.h>
 
+struct ExternalFunction
+{
+	HMODULE Module {};   // +0x00
+	FARPROC Proc {};     // +0x04
+};
+
+struct BlendFunctionLoader
+{
+	using EntryPtr = std::shared_ptr<ExternalFunction>;
+
+	// ".\bin\color_blend.dll", built as a 0x15-byte literal at both call sites.
+	// NOT configurable -- only the symbol name comes from INI.
+	static constexpr std::string_view LibraryPath = ".\\bin\\color_blend.dll";
+
+	static_assert(LibraryPath.size() == 0x15,
+		"The literal is constructed with an explicit length of 0x15.");
+
+	// FNV-1a, 32-bit. 100C1870 / 100C1887.
+	static constexpr uint32_t FnvOffsetBasis = 0x811C9DC5u;
+	static constexpr uint32_t FnvPrime = 0x01000193u;
+
+	static constexpr uint32_t Hash(std::string_view symbol)
+	{
+		uint32_t hash = FnvOffsetBasis;
+
+		for (const char c : symbol)
+			hash = (hash ^ static_cast<uint8_t>(c)) * FnvPrime;
+
+		return hash;
+	}
+
+	// VERIFY: the original's container is a static whose end sentinel is
+	// dword_102A29AC. Point this at it once the address is known.
+	static std::unordered_map<std::string, EntryPtr>& Cache();
+
+	// sub_100C16D0 -- LoadLibraryA + GetProcAddress, and the insert on success.
+	static EntryPtr LoadUncached(std::string_view library, const std::string& symbol);
+
+	// Load_Something_ (.text:100C1850) -- cache probe, then LoadUncached.
+	static EntryPtr Get(std::string_view library, const std::string& symbol);
+};
+
 class AnimTypeExtData final : public ObjectTypeExtData
 {
 public:
@@ -152,6 +194,23 @@ public:
 	bool IsInviso { };
 	// 23 Valueable<bool> + 3 plain bool = 26 bytes
 	// Pads to 28 or 32 for alignment
+
+	// CORRECTION: read as a dedicated "wants alpha mask" flag in the first pass
+	// over the mask hooks. It is FXLightEnable -- it sits in a run with the
+	// three bools above, all set by adjacent details::ReadBool calls. The four
+	// AnimClass_Draw_SetMaskBuffer hooks gate on the FX light flag because the
+	// mask feeds that pass.
+	Valueable<bool>           FXLightEnable { false };                   // 0x077
+
+	// NOTE: fixed char buffers, exactly what this tree is trying to eliminate.
+	// A symbol name over 63 characters is truncated by details::ReadString and
+	// then quietly fails to resolve.
+	PhobosFixedString<0x40>           BlendFunctionName {};              // 0x078
+	PhobosFixedString<0x40>           FullReplaceBlendFunctionName {};   // 0x0B8
+
+	BlendFunctionLoader::EntryPtr BlendFunction {};              // 0x0F8
+	BlendFunctionLoader::EntryPtr FullReplaceBlendFunction {};   // 0x100
+
 #pragma endregion
 
 public:

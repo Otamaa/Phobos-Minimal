@@ -4,10 +4,10 @@
 #include <Utilities/Helpers.h>
 #include <Utilities/Macro.h>
 
-SHPStruct* SideExtData::s_GraphicalTextImage = nullptr;
+SHPCaches* SideExtData::s_GraphicalTextImage = nullptr;
 CustomPalette SideExtData::s_GraphicalTextConvert;
 
-SHPStruct* SideExtData::s_DialogBackgroundImage = nullptr;
+SHPCaches* SideExtData::s_DialogBackgroundImage = nullptr;
 CustomPalette SideExtData::s_DialogBackgroundConvert;
 
 int SideExtData::CurrentLoadTextColor = -1;
@@ -409,7 +409,7 @@ void SideExtData::UpdateGlobalFiles()
 
 	// load graphical text shp
 	if (pExt->GraphicalTextImage) {
-		SideExtData::s_GraphicalTextImage = (FileSystem::AllocateFile<SHPStruct>(pExt->GraphicalTextImage));
+		SideExtData::s_GraphicalTextImage = (FileSystem::AllocateFile<SHPCaches>(pExt->GraphicalTextImage));
 	}
 
 	// load graphical text palette and create convert
@@ -419,7 +419,7 @@ void SideExtData::UpdateGlobalFiles()
 
 	// load dialog background shp
 	if (pExt->DialogBackgroundImage) {
-		SideExtData::s_DialogBackgroundImage = (FileSystem::AllocateFile<SHPStruct>(pExt->DialogBackgroundImage));
+		SideExtData::s_DialogBackgroundImage = (FileSystem::AllocateFile<SHPCaches>(pExt->DialogBackgroundImage));
 	}
 
 	// load dialog background palette and create convert

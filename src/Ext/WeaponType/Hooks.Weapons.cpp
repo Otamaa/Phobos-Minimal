@@ -141,7 +141,7 @@ int __fastcall FakeTechnoTypeClass::__GetWeaponTurretIndex(TechnoTypeClass* pThi
 }
 
 // bugfix #277 revisited: VeteranInfantry and friends don't show promoted cameos
-SHPStruct* __fastcall FakeTechnoTypeClass::__GetCameo(TechnoTypeClass* pThis) {
+SHPCaches* __fastcall FakeTechnoTypeClass::__GetCameo(TechnoTypeClass* pThis) {
 	return TechnoTypeExtData::CameoIsElite(pThis, HouseClass::CurrentPlayer) ?
 		pThis->AltCameo : pThis->Cameo;
 }

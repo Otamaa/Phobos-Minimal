@@ -113,7 +113,7 @@ public:
 	NullableIdx<VocClass> Ivan_AttachSound {};
 	Nullable<WarheadTypeClass*> Ivan_WH {};
 	Nullable<bool> Ivan_AttachToCenter {};
-	Nullable<SHPStruct*> Ivan_Image {};
+	Nullable<SHPCaches*> Ivan_Image {};
 	Nullable<int> Ivan_FlickerRate {};
 	Nullable<bool> Ivan_CanDetonateTimeBomb {};
 	Nullable<bool> Ivan_CanDetonateDeathBomb {};

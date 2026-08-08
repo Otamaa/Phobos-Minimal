@@ -108,12 +108,12 @@ public:
 	bool DropshipLoadout_AddUnusedMoneyToPlayer {};
 	bool DropshipLoadout_RememberPurchasedCargo { true };
 	ConvertClass* DropshipLoadout_Palette {};
-	SHPStruct* DropshipLoadout_Background {};
-	SHPStruct* DropshipLoadout_UpArrow {};
-	SHPStruct* DropshipLoadout_DownArrow {};
-	SHPStruct* DropshipLoadout_Loadout {};
-	SHPStruct* DropshipLoadout_PilotLit {};
-	std::vector<SHPStruct*> DropshipLoadout_DGreenList {};
+	SHPCaches* DropshipLoadout_Background {};
+	SHPCaches* DropshipLoadout_UpArrow {};
+	SHPCaches* DropshipLoadout_DownArrow {};
+	SHPCaches* DropshipLoadout_Loadout {};
+	SHPCaches* DropshipLoadout_PilotLit {};
+	std::vector<SHPCaches*> DropshipLoadout_DGreenList {};
 	PhobosPCXFile DropshipLoadout_BackgroundPCX {};
 	PhobosPCXFile DropshipLoadout_UpArrowPCX {};
 	PhobosPCXFile DropshipLoadout_DownArrowPCX {};

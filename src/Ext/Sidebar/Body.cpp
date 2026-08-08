@@ -11,7 +11,7 @@
 
 std::unique_ptr<SidebarExtData> SidebarExtData::Data;
 IStream* SidebarExtData::g_pStm;
-std::array<SHPReference*, 4u> SidebarExtData::TabProducingProgress {};
+std::array<SHPCaches*, 4u> SidebarExtData::TabProducingProgress {};
 std::array<bool, 4u> SidebarExtData::TabProducingProgressIsLoaded {};
 
 void SidebarExtData::Allocate(SidebarClass* pThis)
@@ -60,8 +60,8 @@ void SidebarExtData::DrawProducingProgress()
 
 				if(pFactory) {
 
-					int idxFrame = (int)(((double)pFactory->GetProgress() / 54) * (pSHP->Frames - 1)) ;
-					idxFrame = idxFrame > pSHP->Frames  ? pSHP->Frames: idxFrame;
+					int idxFrame = (int)(((double)pFactory->GetProgress() / 54) * (pSHP->CurrentHeader.Frames - 1)) ;
+					idxFrame = idxFrame > pSHP->CurrentHeader.Frames  ? pSHP->CurrentHeader.Frames: idxFrame;
 
 					Point2D vPos = { XBase + i * XOffset, YBase };
 					RectangleStruct sidebarRect = DSurface::Sidebar()->Get_Rect();

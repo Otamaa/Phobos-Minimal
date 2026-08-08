@@ -3,7 +3,7 @@
 #include <ToggleClass.h>
 
 class ConvertClass;
-struct SHPStruct;
+struct SHPCaches;
 
 enum class ShapeButtonFlag : int
 {
@@ -26,7 +26,7 @@ public:
 	//ToggleClass
 
 	//ShapeButtonClass
-	virtual void SetShape(SHPStruct* pSHP, int Width, int Height) RX;
+	virtual void SetShape(SHPCaches* pSHP, int Width, int Height) RX;
 
 	//Non virtual
 	ShapeButtonClass& operator=(const ShapeButtonClass& another) { JMP_THIS(0x4B5630); }
@@ -44,10 +44,10 @@ public:
 	ShapeButtonClass() noexcept
 		:ShapeButtonClass(noinit_t()) { JMP_THIS(0x69DCF0); }
 
-	ShapeButtonClass(unsigned int nID, SHPStruct* pShape , int nX, int nY, int nWidth, int nHeight, bool bIsAlpha) noexcept
+	ShapeButtonClass(unsigned int nID, SHPCaches* pShape , int nX, int nY, int nWidth, int nHeight, bool bIsAlpha) noexcept
 		: ShapeButtonClass(noinit_t()) { JMP_THIS(0x69DD30); }
 
-	ShapeButtonClass(unsigned int nID, SHPStruct* pShape, RectangleStruct atRect, bool bIsAlpha) noexcept
+	ShapeButtonClass(unsigned int nID, SHPCaches* pShape, RectangleStruct atRect, bool bIsAlpha) noexcept
 		: ShapeButtonClass(nID, pShape, atRect.X , atRect.Y , atRect.Width, atRect.Height, bIsAlpha) {}
 
 protected:
@@ -67,7 +67,7 @@ public:
 	ConvertClass* Drawer;
 	bool IsDrawn;
 	bool IsAlpha;
-	SHPStruct* ShapeData;
+	SHPCaches* ShapeData;
 	bool IsShapeLoaded;
 };
 

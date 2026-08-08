@@ -74,11 +74,11 @@ ASMJIT_PATCH(0x72D730, Game_LoadMultiplayerScoreAssets, 5)
 	static COMPILETIMEEVAL reference<bool , 0xB0FBB8u> const MultiplayerScoreAssetsAlreadyLoaded{};
 	if (!MultiplayerScoreAssetsAlreadyLoaded())
 	{
-		static COMPILETIMEEVAL reference<SHPStruct* , 0xB0FB1Cu> const MPxSCRNy_SHP {};
+		static COMPILETIMEEVAL reference<SHPCaches* , 0xB0FB1Cu> const MPxSCRNy_SHP {};
 		static COMPILETIMEEVAL reference<bool , 0xB0FC7Du> const MPxSCRNy_Loaded {};
 
 		// load the images
-		MPxSCRNy_SHP = FileSystem::LoadWholeFileEx<SHPStruct>(pExt->ScoreMultiplayBackground, MPxSCRNy_Loaded());
+		MPxSCRNy_SHP = FileSystem::LoadWholeFileEx<SHPCaches>(pExt->ScoreMultiplayBackground, MPxSCRNy_Loaded());
 
 		static COMPILETIMEEVAL reference<BytePalette* , 0xB0FBB0u> const MPxSCRN_Palette {};
 		static COMPILETIMEEVAL reference<ConvertClass* , 0xB0FBB4u> const MPxSCRN_Convert {};
@@ -102,18 +102,18 @@ ASMJIT_PATCH(0x72D300, Game_LoadCampaignScoreAssets, 5)
 
 	if (!CampaignScoreAssetsAlreadyLoaded())
 	{
-		static COMPILETIMEEVAL reference<SHPStruct* , 0xB0FB34u> const SxCRBKyy_SHP {};
-		static COMPILETIMEEVAL reference<SHPStruct* , 0xB0FB00u> const SxCRTyy_SHP {};
-		static COMPILETIMEEVAL reference<SHPStruct* , 0xB0FB30u> const SxCRAyy_SHP {};
+		static COMPILETIMEEVAL reference<SHPCaches* , 0xB0FB34u> const SxCRBKyy_SHP {};
+		static COMPILETIMEEVAL reference<SHPCaches* , 0xB0FB00u> const SxCRTyy_SHP {};
+		static COMPILETIMEEVAL reference<SHPCaches* , 0xB0FB30u> const SxCRAyy_SHP {};
 
 		static COMPILETIMEEVAL reference<bool , 0xB0FC70u> const SxCRBKyy_Loaded {};
 		static COMPILETIMEEVAL reference<bool ,0xB0FC71u> const SxCRTyy_Loaded {};
 		static COMPILETIMEEVAL reference<bool , 0xB0FC72u> const SxCRAyy_Loaded {};
 
 		// load the images
-		SxCRBKyy_SHP = FileSystem::LoadWholeFileEx<SHPStruct>(pExt->ScoreCampaignBackground, SxCRBKyy_Loaded());
-		SxCRTyy_SHP = FileSystem::LoadWholeFileEx<SHPStruct>(pExt->ScoreCampaignTransition, SxCRTyy_Loaded());
-		SxCRAyy_SHP = FileSystem::LoadWholeFileEx<SHPStruct>(pExt->ScoreCampaignAnimation, SxCRAyy_Loaded());
+		SxCRBKyy_SHP = FileSystem::LoadWholeFileEx<SHPCaches>(pExt->ScoreCampaignBackground, SxCRBKyy_Loaded());
+		SxCRTyy_SHP = FileSystem::LoadWholeFileEx<SHPCaches>(pExt->ScoreCampaignTransition, SxCRTyy_Loaded());
+		SxCRAyy_SHP = FileSystem::LoadWholeFileEx<SHPCaches>(pExt->ScoreCampaignAnimation, SxCRAyy_Loaded());
 
 		// load the palette
 		static COMPILETIMEEVAL reference<BytePalette* , 0xB0FBA4u> const xSCORE_Palette {};

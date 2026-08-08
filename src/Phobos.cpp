@@ -38,6 +38,8 @@
 #include <Misc/Renderer/GlobalColorPacker.h>
 #include <Misc/Exception/ExceptionHandler.h>
 
+#include <Ext/Convert/Body.h>
+
 #pragma region defines
 HANDLE Phobos::hInstance;
 char Phobos::readBuffer[readLength] {};
@@ -1397,6 +1399,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			PhobosHookers::InitMinHook();
 			CRTHooks::Apply();
 			Debug::PrepareLogFile();
+			ConvertExtData::AllocTLS();
 
 			Patch::Apply_CALL(0x6BC08C, Phobos_Parse_Command_Line);
 			Patch::Apply_CALL6(0x7CD835, GetVersion_Wrapper);

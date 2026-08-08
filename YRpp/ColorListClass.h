@@ -24,10 +24,10 @@ public:
 	//Statics
 
 	//Constructors
-	ColorListClass(unsigned int nID, int nX, int nY, int nWidth, int nHeight, TextPrintType eFlag, SHPStruct* UpSHP, SHPStruct* DownSHP) noexcept
+	ColorListClass(unsigned int nID, int nX, int nY, int nWidth, int nHeight, TextPrintType eFlag, SHPCaches* UpSHP, SHPCaches* DownSHP) noexcept
 		: ColorListClass(noinit_t()) { JMP_THIS(0x488760); }
 
-	ColorListClass(unsigned int nID, RectangleStruct InRect, TextPrintType eFlag, SHPStruct* UpSHP, SHPStruct* DownSHP) noexcept
+	ColorListClass(unsigned int nID, RectangleStruct InRect, TextPrintType eFlag, SHPCaches* UpSHP, SHPCaches* DownSHP) noexcept
 		: ColorListClass(nID, InRect.X , InRect.Y , InRect.Width , InRect.Height , eFalg , UpSHP , DownSHP) { }
 
 protected:

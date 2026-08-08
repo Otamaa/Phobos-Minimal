@@ -20,6 +20,109 @@
 #include <Utilities/TemplateDef.h>
 #include <Utilities/Macro.h>
 
+
+std::unordered_map<std::string, BlendFunctionLoader::EntryPtr>&
+BlendFunctionLoader::Cache()
+{
+	// VERIFY: the original's container is a static at a fixed address, with
+	// dword_102A29AC as its end sentinel. A function-local static keeps the
+	// cleaned code self-contained and preserves lazy-init-on-first-use.
+	static std::unordered_map<std::string, EntryPtr> instance;
+
+	return instance;
+}
+
+// ---------------------------------------------------------------------------
+// sub_100C16D0
+// ---------------------------------------------------------------------------
+BlendFunctionLoader::EntryPtr BlendFunctionLoader::LoadUncached(
+	std::string_view library, const std::string& symbol)
+{
+	// 100C16DB / 100C16E9 -- both strings must be non-empty, tested BEFORE the
+	// allocation. An anim type that leaves BlendFunction unset therefore costs
+	// nothing here beyond the caller's cache probe: no allocation, and in
+	// particular no LoadLibrary attempt.
+	if (library.empty() || symbol.empty())
+		return {};
+
+	// string_view::data() is not guaranteed null-terminated, and LoadLibraryA
+	// needs it to be. Constructing a std::string is the fix; passing .data()
+	// straight through would reintroduce the bug.
+	const std::string libraryPath(library);
+
+	// 100C16F3..100C171F -- operator new(0x14) plus a
+	// _Ref_count_obj2<ExternalFunction> vftable is make_shared, with both
+	// members zero-initialised.
+	auto entry = std::make_shared<ExternalFunction>();
+
+	// DIFF: the original repeats both emptiness tests at 100C1726 / 100C1730.
+	// Unreachable -- the function already returned above. Written once.
+	if (const HMODULE module = LoadLibraryA(libraryPath.c_str()))
+	{
+		if (const FARPROC proc = GetProcAddress(module, symbol.c_str()))
+		{
+			// 100C1777 -- Proc is stored first, then Module.
+			entry->Proc = proc;
+			entry->Module = module;
+		}
+		else
+		{
+			// 100C176C -- the handle is released only on this path. On success
+			// it stays live in ExternalFunction::Module.
+			//
+			// VERIFY: ~ExternalFunction is expected to FreeLibrary, but the
+			// destructor is reached through the control block's vtable and is
+			// not in this listing. If it does not, every distinct symbol leaks
+			// one module reference for the life of the process.
+			FreeLibrary(module);
+		}
+	}
+
+	// 100C178E -- `test ebp, ebp` on ebx+0x0C. IDA renders it as the nonsensical
+	// `v5 == (struct_v5_4 *)-12`; it is the shared_ptr null check the source
+	// wrote, which make_shared can never fail. Dropped as dead.
+	if (!entry->Module || !entry->Proc)
+		return {};   // 100C17F3 -- released, and NOT inserted into the cache
+
+	// 100C17A4..100C17B7 -- the entry is copied into the cache (lock inc on
+	// _Uses) and the previous mapped value, if any, is released. operator[]
+	// reproduces both halves.
+	//
+	// SUSPECT: keyed on the symbol alone. The library never enters the key on
+	// this side either, matching the lookup in Get. Two libraries exporting the
+	// same symbol name would collide and silently return whichever loaded
+	// first. Harmless while LibraryPath is a hardcoded literal.
+	Cache()[symbol] = entry;
+
+	// 100C17E1 -- returned with _Uses == 2: one reference in the map, one here.
+	return entry;
+}
+
+// ---------------------------------------------------------------------------
+// Load_Something_ (sub_100C1850)
+// ---------------------------------------------------------------------------
+BlendFunctionLoader::EntryPtr BlendFunctionLoader::Get(
+	std::string_view library, const std::string& symbol)
+{
+	// 100C186E..100C1898 -- the hash is computed here and handed to the lookup
+	// rather than recomputed inside it.
+	const uint32_t hash = Hash(symbol);
+	static_cast<void>(hash);   // DIFF: std::unordered_map::find rehashes.
+
+	auto& cache = Cache();
+
+	// 100C18A3 -- the found node is compared against the end sentinel; a null
+	// node pointer counts as "not found" too.
+	if (const auto it = cache.find(symbol); it != cache.end())
+		return it->second;   // 100C18C7 -- _Incref, then copy _Ptr and _Rep
+
+	// BUG: a failed resolve is never cached. LoadUncached inserts only on the
+	// success path, so every anim type whose symbol does not resolve repeats the
+	// LoadLibrary/GetProcAddress round trip on each reload. An unset key is
+	// cheaper -- it short-circuits before the allocation -- but still uncached.
+	return LoadUncached(library, symbol);
+}
+
 bool AnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
 	const char* pID = this->Name.data();
@@ -213,6 +316,19 @@ bool AnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Damaging_UseSeparateState.Read(exINI, pID, "Damaging.UseSeparateState");
 	this->Damaging_Rate.Read(exINI, pID, "Damaging.Rate");
 	this->Tiled_Interval.Read(exINI, pID, "Tiled.Interval");
+
+	// require reshade cores
+	this->FXLightEnable.Read(exINI, pID, "FXLightEnable");
+
+	// require separate dll for processing the custom blitters
+	this->BlendFunctionName.Read(exINI.GetINI(), pID, "BlendFunction");
+	this->FullReplaceBlendFunctionName.Read(exINI.GetINI(), pID, "FullReplaceBlendFunction");
+
+	this->BlendFunction = BlendFunctionLoader::Get(
+		BlendFunctionLoader::LibraryPath, std::string(this->BlendFunctionName.c_str()));
+
+	this->FullReplaceBlendFunction = BlendFunctionLoader::Get(
+		BlendFunctionLoader::LibraryPath, std::string(this->FullReplaceBlendFunctionName.c_str()));
 
 	return true;
 }
@@ -647,7 +763,18 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->Damaging_UseSeparateState)
 		.Process(this->Damaging_Rate)
 		.Process(this->Tiled_Interval)
+		.Process(this->FXLightEnable)
+		.Process(this->BlendFunctionName)
+		.Process(this->FullReplaceBlendFunctionName)
 		;
+
+	if constexpr (std::is_same_v<T,PhobosStreamReader>) {
+		this->BlendFunction = BlendFunctionLoader::Get(
+			BlendFunctionLoader::LibraryPath, std::string(this->BlendFunctionName.c_str()));
+
+		this->FullReplaceBlendFunction = BlendFunctionLoader::Get(
+			BlendFunctionLoader::LibraryPath, std::string(this->FullReplaceBlendFunctionName.c_str()));
+	}
 }
 
 AnimTypeExtContainer AnimTypeExtContainer::Instance;

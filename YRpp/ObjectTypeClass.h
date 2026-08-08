@@ -59,8 +59,8 @@ public:
 	virtual ObjectClass* CreateObject(HouseClass* pOwner) R0;
 	virtual CellStruct * GetFoundationData(bool IncludeBib) const R0;
 	virtual BuildingClass* FindFactory(bool allowOccupied, bool requirePower, bool requireCanBuild, HouseClass const* pHouse) const R0;
-	virtual SHPStruct* GetCameo() const R0;
-	virtual SHPStruct* GetImage() const R0;
+	virtual SHPCaches* GetCameo() const R0;
+	virtual SHPCaches* GetImage() const R0;
 
 	static BuildCat __fastcall IsBuildCat5(AbstractType abstractID, int idx)
 		{ JMP_FAST(0x5004E0); }
@@ -109,10 +109,10 @@ public:
 	BYTE          unused_9B;
 	Armor         Armor;
 	int           Strength;
-	SHPStruct*    Image;
+	SHPCaches*    Image;
 	bool          ImageAllocated;
 	PROTECTED_PROPERTY(BYTE, align_A9[3]);
-	SHPStruct*    AlphaImage;
+	SHPCaches*    AlphaImage;
 	VoxelStruct MainVoxel;
 	VoxelStruct TurretVoxel; //also used for WO voxels
 	VoxelStruct BarrelVoxel;

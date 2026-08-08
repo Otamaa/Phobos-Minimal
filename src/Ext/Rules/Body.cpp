@@ -4021,8 +4021,8 @@ void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
 	detail::read<int>(this->IvanDamage, exINI, section, "IvanDamage");
 	detail::read<int>(this->IvanTimedDelay, exINI, section, "IvanTimedDelay");
 
-	this->BOMBCURS_SHP = (SHPStruct*)FakeFileLoader::Retrieve("BOMBCURS.SHP", 0);
-	this->CHRONOSK_SHP = (SHPStruct*)FakeFileLoader::Retrieve("CHRONOSK.SHP", 0);
+	this->BOMBCURS_SHP = (SHPCaches*)FakeFileLoader::Retrieve("BOMBCURS.SHP", 0);
+	this->CHRONOSK_SHP = (SHPCaches*)FakeFileLoader::Retrieve("CHRONOSK.SHP", 0);
 
 	detail::read<int>(this->IvanIconFlickerRate, exINI, section, "IvanIconFlickerRate");
 	detail::read<int>(this->IronCurtainDuration, exINI, section, "IronCurtainDuration");
@@ -4441,8 +4441,8 @@ ASMJIT_PATCH(0x74C8FB, VeinholeMonsterClass_CTOR_SetArmor, 0x6)
 }
 
 static	void __fastcall DrawShape_VeinHole
-(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds,
- BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape,
+(Surface* Surface, ConvertClass* Pal, SHPCaches* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds,
+ BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPCaches* ZShape,
  int ZShapeFrame, int XOffset, int YOffset
 )
 {

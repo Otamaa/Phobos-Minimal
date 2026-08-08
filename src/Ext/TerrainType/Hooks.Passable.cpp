@@ -1162,7 +1162,7 @@ void drawImage(BuildingTypeClass* const pType, HouseClass* const pHouse, const C
 	int imageFrame = 0;
 
 	if (pImage)
-		imageFrame = ((pImage->Frames / 2) - 1);
+		imageFrame = ((pImage->CurrentHeader.Frames / 2) - 1);
 	else
 		pImage = pType->GetImage();
 

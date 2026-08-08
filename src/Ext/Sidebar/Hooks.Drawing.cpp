@@ -226,8 +226,8 @@ public:
 		return  IseligibleByCost(cost1 , cost2 , IseligibleByName(pTT1, pTT2));
 	}
 
-	SHPStruct* __GetSpecialCameo(int specialIdx) {
-		SHPStruct* _result = 0;
+	SHPCaches* __GetSpecialCameo(int specialIdx) {
+		SHPCaches* _result = 0;
 		if (auto pSW = SuperWeaponTypeClass::Array->get_or_default(specialIdx)) {
 			_result = pSW->SidebarImage;
 		}
@@ -1218,7 +1218,7 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 				int originalScreenY = screenY;
 
 				// Item data pointers
-				SHPStruct* cameoShape = NULL;
+				SHPCaches* cameoShape = NULL;
 				TechnoTypeClass* pFactoryType = NULL;
 				TechnoTypeClass* pTechnoType = NULL;
 				const wchar_t* statusText = NULL;
@@ -1230,7 +1230,7 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 
 				auto pSideExt = SideExtContainer::Instance.Find(SideClass::Array->Items[pPlayer->SideIndex]);
 
-				SHPStruct* _GCLOCK_Shape = FileSystem::GCLOCK2_SHP();
+				SHPCaches* _GCLOCK_Shape = FileSystem::GCLOCK2_SHP();
 				ConvertClass* _GCLOCK_Convert = FileSystem::SIDEBAR_PAL();
 				BlitterFlags _GCLOCK_Trans = BlitterFlags::TransLucent50;
 
@@ -1574,7 +1574,7 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 						// Hook: Uses TechnoTypeExtContainer palette or SWConvert if available
 						// ==========================================================================
 						bool drawSHP = true;
-						auto pCameoRef = cameoShape->AsReference();
+						auto pCameoRef = cameoShape;
 						char pFilename[0x20];
 						strcpy_s(pFilename, FakeRulesClass::Instance()->MissingCameo.data());
 						_strlwr_s(pFilename);
@@ -1941,7 +1941,7 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 				if (pData->ObserverBackgroundSHP)
 				{
 
-					RectangleStruct factionBounds = { 0, 0, panelX + pData->ObserverBackgroundSHP->Width, panelY + pData->ObserverBackgroundSHP->Height };
+					RectangleStruct factionBounds = { 0, 0, panelX + pData->ObserverBackgroundSHP->CurrentHeader.Width, panelY + pData->ObserverBackgroundSHP->CurrentHeader.Height };
 					Point2D factionPos = { panelX, panelY };
 					CC_Draw_Shape(SidebarSurface, FileSystem::ObserverDrawer(), pData->ObserverBackgroundSHP, 0, &factionPos,
 								  &factionBounds, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
@@ -1960,7 +1960,7 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 			if (pHouseType)
 			{
 				const auto idx = pHouseType->ParentIdx;
-				SHPStruct* pCountryShape = NULL;
+				SHPCaches* pCountryShape = NULL;
 				int countryIndex = 0;
 
 				//special cases
@@ -1997,7 +1997,7 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 					int countryShapeX = panelX + 70;
 					int countryShapeY = panelY + 70;
 
-					RectangleStruct countryBounds = { 0, 0, pCountryShape->Width + countryShapeX, pCountryShape->Height + countryShapeY };
+					RectangleStruct countryBounds = { 0, 0, pCountryShape->CurrentHeader.Width + countryShapeX, pCountryShape->CurrentHeader.Height + countryShapeY };
 					Point2D countryPos = { countryShapeX, countryShapeY };
 
 					// Yuri uses different drawer

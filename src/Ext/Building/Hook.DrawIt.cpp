@@ -32,7 +32,7 @@ void  FakeBuildingClass::_Draw_It(
 	}
 
 	CellStruct cellIdx = this->GetMapCoords();
-	SHPStruct* shape = this->GetImage();
+	SHPCaches* shape = this->GetImage();
 
 	if (!shape)
 		return;
@@ -47,7 +47,7 @@ void  FakeBuildingClass::_Draw_It(
 	}
 
 	int   zAdjust = type->NormalZAdjust;
-	SHPStruct* depthShape = FileSystem::BUILDINGZ_SHA();
+	SHPCaches* depthShape = FileSystem::BUILDINGZ_SHA();
 	bool  openRoof = false;
 
 	if (this->GetCurrentMission() == Mission::Unload){
@@ -191,7 +191,7 @@ void  FakeBuildingClass::_Draw_It(
 		{
 			// Frame selection: min(Shape_Number(), frameCount/2)
 			// Shape frame count is stored as a signed word at shape+6.
-			const int frameCount = shape->Frames;
+			const int frameCount = shape->CurrentHeader.Frames;
 
 			const int displayFrame = (shapeNum >= frameCount / 2)
 				? (frameCount / 2)

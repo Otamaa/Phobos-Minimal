@@ -52,7 +52,7 @@ ASMJIT_PATCH(0x6F523C, TechnoClass_DrawExtras_IvanBombImage_Shape, 5)
 {
 	GET(TechnoClass*, pThis, EBP);
 
-	if (SHPStruct* pImage = BombExtContainer::Instance.Find(pThis->AttachedBomb)
+	if (SHPCaches* pImage = BombExtContainer::Instance.Find(pThis->AttachedBomb)
 		->Weapon->Ivan_Image.Get(RulesClass::Instance->BOMBCURS_SHP))
 	{
 		R->ECX(pImage);

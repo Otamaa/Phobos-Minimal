@@ -54,7 +54,7 @@ public:
 	Nullable<bool> AllowTransfer {};
 
 	Valueable<Point3D> Pips { {-1, -1, -1} };
-	Nullable<SHPStruct*> Pips_Background_SHP {};
+	Nullable<SHPCaches*> Pips_Background_SHP {};
 	Valueable<Point3D> Pips_Building { {-1, -1, -1} };
 	Nullable<int> Pips_Building_Empty {};
 	Valueable<bool> Pips_HideIfNoStrength { false };

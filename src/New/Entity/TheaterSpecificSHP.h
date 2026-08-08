@@ -11,17 +11,17 @@ class TheaterSpecificSHP
 public:
 	COMPILETIMEEVAL TheaterSpecificSHP() noexcept = default;
 
-	COMPILETIMEEVAL TheaterSpecificSHP(SHPStruct* pSHP)
+	COMPILETIMEEVAL TheaterSpecificSHP(SHPCaches* pSHP)
 		: value { pSHP }
 	{
 	}
 
-	COMPILETIMEEVAL operator SHPStruct* ()
+	COMPILETIMEEVAL operator SHPCaches* ()
 	{
 		return this->value;
 	}
 
-	COMPILETIMEEVAL SHPStruct* GetSHP()
+	COMPILETIMEEVAL SHPCaches* GetSHP()
 	{
 		return *this;
 	}
@@ -32,7 +32,7 @@ public:
 
 	~TheaterSpecificSHP();
 private:
-	SHPStruct* value { nullptr };
+	SHPCaches* value { nullptr };
 
 protected:
 	TheaterSpecificSHP(const TheaterSpecificSHP& other) = delete;

@@ -140,7 +140,7 @@ public:
 	// ============================================================
 	Valueable<WarheadTypeClass*> Detonate_Warhead { nullptr };
 	Valueable<WeaponTypeClass*> Detonate_Weapon { nullptr };
-	Valueable<SHPStruct*> GClock_Shape {};
+	Valueable<SHPCaches*> GClock_Shape {};
 	Valueable<WeaponTypeClass*> Nuke_Payload { nullptr };
 	Valueable<AnimTypeClass*> Nuke_PsiWarning { nullptr };
 	Valueable<AnimTypeClass*> Convert_SucceededAnim { nullptr };
@@ -451,12 +451,12 @@ public:
 	Nullable<PhobosPCXFile> DropshipLoadout_LoadoutPCX {};
 	Nullable<Point2D> DropshipLoadout_LoadoutLocation {};
 	ValueableVector<PhobosPCXFile> DropshipLoadout_DGreenListPCX {};
-	Nullable<SHPStruct*> DropshipLoadout_Background {};
-	Nullable<SHPStruct*> DropshipLoadout_UpArrow {};
-	Nullable<SHPStruct*> DropshipLoadout_DownArrow {};
-	Nullable<SHPStruct*> DropshipLoadout_Loadout {};
-	Nullable<SHPStruct*> DropshipLoadout_PilotLit {};
-	std::vector<SHPStruct*> DropshipLoadout_DGreenList {};
+	Nullable<SHPCaches*> DropshipLoadout_Background {};
+	Nullable<SHPCaches*> DropshipLoadout_UpArrow {};
+	Nullable<SHPCaches*> DropshipLoadout_DownArrow {};
+	Nullable<SHPCaches*> DropshipLoadout_Loadout {};
+	Nullable<SHPCaches*> DropshipLoadout_PilotLit {};
+	std::vector<SHPCaches*> DropshipLoadout_DGreenList {};
 	Nullable<int> DropshipLoadout_DGreenAnimationsCount {};
 	ValueableVector<Point2D> DropshipLoadout_DGreenLocations {};
 	Nullable<int> DropshipLoadout_DropshipCameosCount {};

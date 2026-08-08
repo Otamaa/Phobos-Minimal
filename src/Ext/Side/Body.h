@@ -68,10 +68,10 @@ public:
 	// ============================================================
 	// 8-byte aligned: Valueable<pointer>
 	// ============================================================
-	Valueable<SHPStruct*> GClock_Shape {};
+	Valueable<SHPCaches*> GClock_Shape {};
 	Valueable<AircraftTypeClass*> SpyPlane { nullptr };
 	Valueable<UnitTypeClass*> HunterSeeker { nullptr };
-	Valueable<SHPStruct*> MouseShape { nullptr };
+	Valueable<SHPCaches*> MouseShape { nullptr };
 
 	// ============================================================
 	// Nullable<pointer> (pointer + bool + padding ≈ 16 bytes)
@@ -225,16 +225,16 @@ public:
 
 	static int CurrentLoadTextColor;
 
-	static SHPStruct* s_GraphicalTextImage;
+	static SHPCaches* s_GraphicalTextImage;
 	static CustomPalette s_GraphicalTextConvert;
 
-	static SHPStruct* s_DialogBackgroundImage;
+	static SHPCaches* s_DialogBackgroundImage;
 	static CustomPalette s_DialogBackgroundConvert;
 
 	static bool LoadGlobals(PhobosStreamReader& stm) {}
 	static bool SaveGlobals(PhobosStreamWriter& stm) {}
 
-	static COMPILETIMEEVAL SHPStruct* GetGraphicalTextImage() {
+	static COMPILETIMEEVAL SHPCaches* GetGraphicalTextImage() {
 		return SideExtData::s_GraphicalTextImage ?
 		 SideExtData::s_GraphicalTextImage : FileSystem::GRFXTXT_SHP();
 	}

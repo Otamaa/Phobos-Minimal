@@ -15,7 +15,7 @@ void TechnoImageReplacer::Replace(InfantryTypeClass* pType)
 	{
 		char filename[0x105];
 		_makepath_s(filename, 0, 0, nameBuffer, GameStrings::dot_SHP());
-		pType->Image = GameCreate<SHPReference>(filename);
+		pType->Image = GameCreate<SHPCaches>(filename);
 	}
 }
 
@@ -36,7 +36,7 @@ void TechnoImageReplacer::Replace(UnitTypeClass* pType)
 		{
 			char filename[0x105];
 			_makepath_s(filename, 0, 0, nameBuffer, GameStrings::dot_SHP());
-			pType->Image = GameCreate<SHPReference>(filename);
+			pType->Image = GameCreate<SHPCaches>(filename);
 		}
 	}
 }

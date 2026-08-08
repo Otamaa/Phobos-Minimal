@@ -157,7 +157,7 @@ ASMJIT_PATCH(0x73C7AC, UnitClass_DrawAsSHP_DrawTurret_TintFix, 0x6)
 		return 0;
 
 	GET(UnitTypeClass*, pType, ECX);
-	GET(SHPStruct*, pShape, EDI);
+	GET(SHPCaches*, pShape, EDI);
 	GET(const int, bodyFrameIdx, EBX);
 	REF_STACK(Point2D, location, STACK_OFFSET(0x128, 0x4));
 	REF_STACK(RectangleStruct, bounds, STACK_OFFSET(0x128, 0xC));

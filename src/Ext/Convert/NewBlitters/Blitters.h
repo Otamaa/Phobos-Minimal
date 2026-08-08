@@ -81,3 +81,4 @@ inline RLEBlitterCore* GetBlitterFields(RLEBlitter* pBlitter)
 // goes unnoticed until it corrupts the heap at runtime.
 static_assert(sizeof(BlitterCore) == 0x10, "must match operator new(0x10)");
 static_assert(sizeof(RLEBlitterCore) == 0x10, "must match operator new(0x10)");
+

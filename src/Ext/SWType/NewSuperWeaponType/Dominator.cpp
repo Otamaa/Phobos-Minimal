@@ -157,7 +157,7 @@ void PsychicDominatorStateMachine::Update()
 
 				const int percentage = pData->Dominator_FireAtPercentage.Get(RulesClass::Instance->DominatorFireAtPercentage);
 
-				if (pImage->Frames * percentage / 100 > PsyDom::Anim->Animation.Stage)
+				if (pImage->CurrentHeader.Frames * percentage / 100 > PsyDom::Anim->Animation.Stage)
 				{
 					return;
 				}
@@ -176,7 +176,7 @@ void PsychicDominatorStateMachine::Update()
 
 		if (PsyDom::Anim()) {
 			if(auto pImage = PsyDom::Anim->Type->GetImage()) {
-				if (pImage->Frames - PsyDom::Anim->Animation.Stage > 10) {
+				if (pImage->CurrentHeader.Frames - PsyDom::Anim->Animation.Stage > 10) {
 					return;
 				}
 			}
@@ -191,7 +191,7 @@ void PsychicDominatorStateMachine::Update()
 
 		if (PsyDom::Anim() && PsyDom::Anim->Type) {
 			if(auto pImage = PsyDom::Anim->Type->GetImage()) {
-				if (pImage->Frames - PsyDom::Anim->Animation.Stage > 1) {
+				if (pImage->CurrentHeader.Frames - PsyDom::Anim->Animation.Stage > 1) {
 					return;
 				}
 			}

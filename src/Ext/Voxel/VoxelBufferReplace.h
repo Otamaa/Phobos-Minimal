@@ -32,7 +32,7 @@ struct Replacer
 	// FREE NOW. RasterStride / RasterMaxCoord and the `BufferSize == 256` assert
 	// are gone: every rasterizer, clear helper and initialiser is ported, so the
 	// vanilla (Yint << 8) | Xint packing no longer exists in the pipeline.
-	static constexpr int BufferSize = 1024;
+	static constexpr int BufferSize = 2048;
 
 	static constexpr std::size_t BufferBytes =
 		static_cast<std::size_t>(BufferSize) * static_cast<std::size_t>(BufferSize);

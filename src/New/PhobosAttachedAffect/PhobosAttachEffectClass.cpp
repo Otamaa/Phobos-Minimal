@@ -141,8 +141,9 @@ void PhobosAttachEffectClass::HandleEvent(TechnoClass* pTarget)
 
 void PhobosAttachEffectClass::AI()
 {
-	if (!this->Techno || this->Techno->InLimbo || this->Techno->IsImmobilized || this->Techno->Transporter)
-		return;
+	// recent develop allow AE update on all circumtances ?
+	//if (!this->Techno || this->Techno->InLimbo || this->Techno->IsImmobilized || this->Techno->Transporter)
+	//	return;
 
 	//Debug::LogInfo(__FUNCTION__" Executed [%s - %s]", this->Techno->GetThisClassName(), this->Techno->get_ID());
 

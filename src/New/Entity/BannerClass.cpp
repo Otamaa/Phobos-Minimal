@@ -87,16 +87,16 @@ void BannerClass::RenderPCX(Point2D position)
 
 void BannerClass::RenderSHP(Point2D position)
 {
-	SHPStruct* shape = this->Type->Shape;
+	SHPCaches* shape = this->Type->Shape;
 	if (!shape)
 		return;
 
 	ConvertClass* palette = this->Type->Palette.GetOrDefaultConvert(FileSystem::PALETTE_PAL);
-	position.X -= shape->Width / 2;
-	position.Y -= shape->Height / 2;
+	position.X -= shape->CurrentHeader.Width / 2;
+	position.Y -= shape->CurrentHeader.Height / 2;
 
 	if(this->Type->ClampToScreen) {
-		BannerClass::Clamp(position, shape->Width, shape->Height);
+		BannerClass::Clamp(position, shape->CurrentHeader.Width, shape->CurrentHeader.Height);
 	}
 
 	DSurface::Composite->DrawSHP
@@ -120,7 +120,7 @@ void BannerClass::RenderSHP(Point2D position)
 
 	this->ShapeFrameIndex++;
 
-	if (this->ShapeFrameIndex >= shape->Frames)
+	if (this->ShapeFrameIndex >= shape->CurrentHeader.Frames)
 		this->ShapeFrameIndex = 0;
 }
 

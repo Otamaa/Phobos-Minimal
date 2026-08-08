@@ -696,7 +696,7 @@ void FakeAnimClass::_AI()
 			{
 
 				if(auto pImage = this->Type->GetImage())
-					this->Type->End = pImage->Frames;
+					this->Type->End = pImage->CurrentHeader.Frames;
 
 				if (this->Type->Shadow)
 					this->Type->End /= 2;
@@ -774,7 +774,7 @@ void FakeAnimClass::_AI()
 					if (this->Type->End == -1)
 					{
 						if (auto pImage = this->Type->GetImage())
-							this->Type->End = pImage->Frames;
+							this->Type->End = pImage->CurrentHeader.Frames;
 
 						if (this->Type->Shadow)
 							this->Type->End /= 2;

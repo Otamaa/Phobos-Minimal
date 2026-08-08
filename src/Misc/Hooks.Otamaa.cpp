@@ -1702,7 +1702,7 @@ ASMJIT_PATCH(0x42CCC8, AStarClass_FindPath_Exit, 0x6)
 //ASMJIT_PATCH(0x4AED70, Game_DrawSHP_WhoCallMe, 0x6)
 //{
 //	GET(ConvertClass*, pConvert, EDX);
-//	GET_STACK(SHPStruct*, pSHP, 0xA4);
+//	GET_STACK(SHPCaches*, pSHP, 0xA4);
 //	GET_STACK(DWORD, caller, 0x0);
 //
 //	if (!pConvert)
@@ -1903,14 +1903,14 @@ ASMJIT_PATCH(0x42CC48, AstarClass_Find_Path_FailLog_FindPath, 0x5)
 //std::string _tempName = GameStrings::NoneStr();
 //ASMJIT_PATCH(0x69E149, SHPStruct_deleteptr_check_getName, 0x5)
 //{
-//	GET(SHPStruct*, ptr, ESI);
+//	GET(SHPCaches*, ptr, ESI);
 //	_tempName = ptr->AsReference()->Filename;
 //	return 0x0;
 //}
 //int count_ = 0;
 //ASMJIT_PATCH(0x69E1EC, SHPStruct_deleteptr_check, 0x6)
 //{
-//	GET(SHPStruct*, ptr, ESI);
+//	GET(SHPCaches*, ptr, ESI);
 //	Debug::Log("Caller SHPStruct_deleteptr_check deleting [%d][0x%x][%s]\n", count_++,ptr , _tempName.c_str());
 //
 //	if (count_ == 251)

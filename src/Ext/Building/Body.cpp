@@ -2036,7 +2036,7 @@ void FakeBuildingClass::_DrawVisible(Point2D* pLocation, RectangleStruct* pBound
 					// old shp cameos, fixed palette
 					if (auto pCameo = pProdType->GetCameo())
 					{
-						cameoRect = { DrawCameoLoc.X, DrawCameoLoc.Y, pCameo->Width, pCameo->Height };
+						cameoRect = { DrawCameoLoc.X, DrawCameoLoc.Y, pCameo->CurrentHeader.Width, pCameo->CurrentHeader.Height };
 
 						ConvertClass* pPal = FileSystem::CAMEO_PAL();
 						if (auto pManager = pProdTypeExt->CameoPal.GetConvert())
@@ -2096,7 +2096,7 @@ void FakeBuildingClass::_DrawVisible(Point2D* pLocation, RectangleStruct* pBound
 						// old shp cameos, fixed palette
 						if (auto pCameo = pSuper->Type->SidebarImage)
 						{
-							cameoRect = { DrawCameoLoc.X, DrawCameoLoc.Y, pCameo->Width, pCameo->Height };
+							cameoRect = { DrawCameoLoc.X, DrawCameoLoc.Y, pCameo->CurrentHeader.Width, pCameo->CurrentHeader.Height };
 
 							ConvertClass* pPal = FileSystem::CAMEO_PAL();
 							if (auto pManager = SWTypeExtContainer::Instance.Find(pSuper->Type)->SidebarPalette.GetConvert())
@@ -2226,7 +2226,7 @@ void FakeBuildingClass::_DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOrigi
 
 			if (this->IsPrimaryFactory)
 			{
-				if (SHPStruct* pImage = FakeRulesClass::Instance()->PrimaryFactoryIndicator)
+				if (SHPCaches* pImage = FakeRulesClass::Instance()->PrimaryFactoryIndicator)
 				{
 					ConvertClass* pPalette = FileSystem::PALETTE_PAL();
 					if (auto pPall_c = FakeRulesClass::Instance()->PrimaryFactoryIndicator_Palette.GetConvert())
@@ -2345,7 +2345,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x43BB29, FakeBuildingClass::_Init)
 
 //void FakeBuildingClass::_Draw_It(Point2D* screenPos, RectangleStruct* clipRect)
 //{
-//	if (SHPStruct* mainShape = this->GetImage()) {
+//	if (SHPCaches* mainShape = this->GetImage()) {
 //
 //		BuildingTypeClass* buildingType = this->Type;
 //
@@ -2500,7 +2500,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x43BB29, FakeBuildingClass::_Init)
 //
 //		// Draw main building if clipping rect has height
 //		if (clipRect->Height > 0) {
-//			SHPStruct* zShape = foundationWidth < 8 ? FileSystem::BUILDINGZ_SHA() : nullptr;
+//			SHPCaches* zShape = foundationWidth < 8 ? FileSystem::BUILDINGZ_SHA() : nullptr;
 //			const int lightLevel = (int16)this->Type->ExtraLight + pCell->Color1.Red;
 //			const int depthAdjust = Game::AdjustHeight(this->GetZ());
 //

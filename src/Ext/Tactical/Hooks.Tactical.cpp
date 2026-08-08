@@ -190,13 +190,13 @@ ASMJIT_PATCH(0x420F75, AlphaLightClass_UpdateScreen_ShouldDraw, 5)
 ASMJIT_PATCH(0x4210AC, AlphaLightClass_UpdateScreen_Header, 5)
 {
 	GET(AlphaShapeClass*, pAlpha, EDX);
-	GET(SHPStruct *, pImage, ECX);
+	GET(SHPCaches *, pImage, ECX);
 
 	if (const auto pTechno = flag_cast_to <TechnoClass*>(pAlpha->AttachedTo))
 	{
 		unsigned int idx = 0;
-		if (pImage->Frames > 0) {
-			const int countFrames = Conversions::Int2Highest(pImage->Frames);
+		if (pImage->CurrentHeader.Frames > 0) {
+			const int countFrames = Conversions::Int2Highest(pImage->CurrentHeader.Frames);
 			const DirStruct PrimaryFacing = pTechno->PrimaryFacing.Current();
 			idx = (PrimaryFacing.Raw >> (16 - countFrames));
 		}
@@ -210,14 +210,14 @@ ASMJIT_PATCH(0x4210AC, AlphaLightClass_UpdateScreen_Header, 5)
 ASMJIT_PATCH(0x4211AC, AlphaLightClass_UpdateScreen_Body, 8)
 {
 	GET_STACK(int, AlphaLightIndex, STACK_OFFS(0xDC, 0xB4));
-	GET_STACK(SHPStruct*, pImage, STACK_OFFS(0xDC, 0x6C));
+	GET_STACK(SHPCaches*, pImage, STACK_OFFS(0xDC, 0x6C));
 
 	const auto pAlpha = AlphaShapeClass::Array->Items[AlphaLightIndex];
 
 	if(const auto pTechno = flag_cast_to<TechnoClass*>(pAlpha->AttachedTo)) {
 		unsigned int idx = 0;
-		if (pImage->Frames > 0) {
-			const int countFrames = Conversions::Int2Highest(pImage->Frames);
+		if (pImage->CurrentHeader.Frames > 0) {
+			const int countFrames = Conversions::Int2Highest(pImage->CurrentHeader.Frames);
 			const DirStruct PrimaryFacing = pTechno->PrimaryFacing.Current();
 			idx = (PrimaryFacing.Raw >> (16 - countFrames));
 		}
@@ -232,14 +232,14 @@ ASMJIT_PATCH(0x42146E, TacticalClass_UpdateAlphasInRectangle_Header, 5)
 {
 	GET(int, AlphaLightIndex, EBX);
 	GET(RectangleStruct*, buffer, EDX);
-	GET(SHPStruct*, pImage, EDI);
+	GET(SHPCaches*, pImage, EDI);
 
 	const auto pAlpha = AlphaShapeClass::Array->Items[AlphaLightIndex];
 	unsigned int idx = 0;
 
 	if (const auto pTechno = flag_cast_to<TechnoClass*>(pAlpha->AttachedTo))  {
-		if (pImage->Frames > 0) {
-			const int countFrames = Conversions::Int2Highest(pImage->Frames);
+		if (pImage->CurrentHeader.Frames > 0) {
+			const int countFrames = Conversions::Int2Highest(pImage->CurrentHeader.Frames);
 			const DirStruct PrimaryFacing = pTechno->PrimaryFacing.Current();
 			idx = (PrimaryFacing.Raw >> (16 - countFrames));
 		}
@@ -252,12 +252,12 @@ ASMJIT_PATCH(0x42146E, TacticalClass_UpdateAlphasInRectangle_Header, 5)
 ASMJIT_PATCH(0x42152C, TacticalClass_UpdateAlphasInRectangle_Body, 8)
 {
 	GET_STACK(int, AlphaLightIndex, STACK_OFFS(0xA4, 0x78));
-	GET(SHPStruct*, pImage, EDI);
+	GET(SHPCaches*, pImage, EDI);
 
 	const auto pAlpha = AlphaShapeClass::Array->Items[AlphaLightIndex];
 	if (const auto pTechno = flag_cast_to<TechnoClass*>(pAlpha->AttachedTo)) {
-		if (pImage->Frames > 0) {
-			const int countFrames = Conversions::Int2Highest(pImage->Frames);
+		if (pImage->CurrentHeader.Frames > 0) {
+			const int countFrames = Conversions::Int2Highest(pImage->CurrentHeader.Frames);
 			const DirStruct PrimaryFacing = pTechno->PrimaryFacing.Current();
 			R->ESP((PrimaryFacing.Raw >> (16 - countFrames)));
 		}

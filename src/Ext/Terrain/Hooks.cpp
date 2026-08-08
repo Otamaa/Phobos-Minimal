@@ -159,7 +159,7 @@ ASMJIT_PATCH(0x71C84D, TerrainClass_AI_Animated, 0x6)
 			if (auto pImage = pThis->Type->GetImage())
 			{
 				if (pThis->Animation.Stage == (pTypeExt->AnimationLength
-					.Get(pImage->Frames / (2 * (pTypeExt->HasDamagedFrames + 1)))))
+					.Get(pImage->CurrentHeader.Frames / (2 * (pTypeExt->HasDamagedFrames + 1)))))
 				{
 					pThis->Animation.Stage = 0;
 					pThis->Animation.Start(0);

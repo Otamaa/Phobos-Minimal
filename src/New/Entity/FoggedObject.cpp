@@ -401,7 +401,7 @@ void FoggedObject::RenderAsBuilding(const RectangleStruct& viewRect) const
 
 	if (pSHP) {
 		RectangleStruct rect = viewRect;
-		int height = point.Y + pSHP->Height / 2;
+		int height = point.Y + pSHP->CurrentHeader.Height / 2;
 		if (rect.Height > height)
 			rect.Height = height;
 		int ZAdjust = -2 - Game::AdjustHeight(Location.Z);
@@ -415,7 +415,7 @@ void FoggedObject::RenderAsBuilding(const RectangleStruct& viewRect) const
 				CC_Draw_Shape(DSurface::Temp, pConvert, pSHP, BuildingData.ShapeFrame, &point, &rect,
 					BlitterFlags::ZReadWrite | BlitterFlags::Alpha | BlitterFlags::bf_400 | BlitterFlags::Centered,
 					0, ZAdjust, ZGradient::Deg90, Intensity, 0, nullptr, 0, 0, 0);
-				CC_Draw_Shape(DSurface::Temp, pConvert, pSHP, BuildingData.ShapeFrame + pSHP->Frames / 2, &point, &rect,
+				CC_Draw_Shape(DSurface::Temp, pConvert, pSHP, BuildingData.ShapeFrame + pSHP->CurrentHeader.Frames / 2, &point, &rect,
 					BlitterFlags::ZReadWrite | BlitterFlags::Alpha | BlitterFlags::bf_400 | BlitterFlags::Centered | BlitterFlags::Darken,
 					0, ZAdjust, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
 				if (pType->BibShape)
@@ -538,7 +538,7 @@ void FoggedObject::RenderAsBuilding(const RectangleStruct& viewRect) const
 				pAnimType->UseNormalLight ? 1000 : pCell->Color1.Red, 0, nullptr, 0, 0, 0);
 			if (pAnimType->Shadow)
 			{
-				CC_Draw_Shape(DSurface::Temp, pAnimConvert, pAnimSHP, AnimData.AnimFrame + pAnimSHP->Frames / 2, &point, &viewRect,
+				CC_Draw_Shape(DSurface::Temp, pAnimConvert, pAnimSHP, AnimData.AnimFrame + pAnimSHP->CurrentHeader.Frames / 2, &point, &viewRect,
 					BlitterFlags::ZReadWrite | BlitterFlags::Alpha | BlitterFlags::bf_400 | BlitterFlags::Centered | BlitterFlags::Darken,
 					0, AnimData.ZAdjust, ZGradient::Deg90, 1000, 0, nullptr, 0, 0, 0);
 			}
@@ -638,7 +638,7 @@ void FoggedObject::RenderAsTerrain(const RectangleStruct& viewRect) const
 			&viewRect, blitterFlag, 0, nZAdjust - 12, ZGradient::Deg90, nIntensity,
 			0, 0, 0, 0, 0);
 		if (Game::bDrawShadow())
-			CC_Draw_Shape(DSurface::Temp, pConvert, pSHP, TerrainData.Frame + pSHP->Frames / 2, &point,
+			CC_Draw_Shape(DSurface::Temp, pConvert, pSHP, TerrainData.Frame + pSHP->CurrentHeader.Frames / 2, &point,
 				&viewRect, blitterFlag | BlitterFlags::Darken, 0, nZAdjust - 3,
 				ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 	}

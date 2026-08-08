@@ -883,7 +883,7 @@ void BuildingTypeExtData::UpdateBuildupFrames(BuildingTypeClass* pThis)
 	if (const auto pShp = pThis->Buildup)
 	{
 		const auto frames = pThis->Gate ?
-			pThis->GateStages + 1 : pShp->Frames / 2;
+			pThis->GateStages + 1 : pShp->CurrentHeader.Frames / 2;
 
 		const auto duration_build = pExt->BuildupTime.Get(RulesClass::Instance->BuildupTime);
 		const auto duration_sell = pExt->SellTime.Get(duration_build);
@@ -978,12 +978,12 @@ void BuildingTypeExtData::DisplayPlacementPreview()
 	if (!MapClass::Instance->IsWithinUsableArea(pCell->GetCoords()))
 		return;
 
-	SHPStruct* Selected = pTypeExt->PlacementPreview_Shape.GetSHP();
+	SHPCaches* Selected = pTypeExt->PlacementPreview_Shape.GetSHP();
 	int nDecidedFrame = 0;
 
 	if (!Selected) {
 		if (const auto pBuildup = pType->LoadBuildup()) {
-			nDecidedFrame = ((pBuildup->Frames / 2) - 1);
+			nDecidedFrame = ((pBuildup->CurrentHeader.Frames / 2) - 1);
 			Selected = pBuildup; } else {
 			Selected = pType->GetImage();
 		}
@@ -1000,7 +1000,7 @@ void BuildingTypeExtData::DisplayPlacementPreview()
 	if (!_result)
 		return;
 
-	const auto nFrame = std::clamp(pTypeExt->PlacementPreview_ShapeFrame.Get(nDecidedFrame), 0, static_cast<int>(Selected->Frames));
+	const auto nFrame = std::clamp(pTypeExt->PlacementPreview_ShapeFrame.Get(nDecidedFrame), 0, static_cast<int>(Selected->CurrentHeader.Frames));
 	nPoint.X += nOffsetX;
 	nPoint.Y += nOffsetY;
 	const auto nFlag = BlitterFlags::Centered | BlitterFlags::Nonzero | BlitterFlags::MultiPass | EnumFunctions::GetTranslucentLevel(pTypeExt->PlacementPreview_TranslucentLevel.Get(FakeRulesClass::Instance()->BuildingPlacementPreview_TranslucentLevel));
@@ -1147,7 +1147,7 @@ int BuildingTypeExtData::GetBuildingAnimTypeIndex(BuildingClass* pThis, const Bu
 
 }
 
-void __fastcall BuildingTypeExtData::DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPStruct* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset)
+void __fastcall BuildingTypeExtData::DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPCaches* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPCaches* ZShape, int ZShapeFrame, int XOffset, int YOffset)
 {
 	const auto nFlag = Flags | EnumFunctions::GetTranslucentLevel(FakeRulesClass::Instance()->PlacementGrid_TranslucentLevel.Get());
 

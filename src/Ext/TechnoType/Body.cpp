@@ -2071,7 +2071,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->ShadowSizeCharacteristicHeight.Read(exINI, pSection, "ShadowSizeCharacteristicHeight");
 
 		if(auto pTalkBuble = FileSystem::TALKBUBL_SHP()){
-			for (int i = 0; i < pTalkBuble->Frames; ++i) {
+			for (int i = 0; i < pTalkBuble->CurrentHeader.Frames; ++i) {
 				std::string base = "TalkbubbleFrame";
 				base += std::to_string(i);
 				this->TalkbubbleVoices.emplace_back().Read(exINI, pSection, (base + ".Voices").c_str());
