@@ -304,6 +304,33 @@ ASMJIT_PATCH(0x43746A, DSurface_BlitWithRLE_Off, 7)
 ASMJIT_PATCH_AGAIN(0x437B33, DSurface_BlitWithRLE_Off, 7)
 ASMJIT_PATCH_AGAIN(0x437D47, DSurface_BlitWithRLE_Off, 7)
 
+// the newer dll probably does more fancy stuffs
+// here is only some part of early sample
+class ReShadeRuntime
+{
+public:
+	uint8_t Unknown_00[0x08];   // 0x00  vftable + one dword
+	uint8_t IsInitialized;      // 0x08  runtime::_is_initialized
+	uint8_t Padding_09[0x03];
+	int     Width;              // 0x0C  runtime::_width   (backbuffer)
+	int     Height;             // 0x10  runtime::_height  (backbuffer)
+
+	// Further members recovered from the inlined runtime::on_init, kept as
+	// comments rather than declared -- nothing here needs them:
+	//   +0x14 _window_width      +0x18 _window_height
+	//   +0x28 _color_bit_depth   +0x30 _framecount (u64)
+	//   +0x88 _input (shared_ptr, _Rep at +0x8C)
+	//   +0x180 _last_reload_time
+	//   +0x6A8 _app_state        +0x6F4 _device      +0x6F8 _swapchain
+	//   +0x714 _backbuffer .. +0x730 _effect_vertex_layout
+	//   +0x750 mask texture (D3DFMT_L8, D3DPOOL_MANAGED)  <- AUTHOR INSERTION
+	//   +0x754 mask texture surface                       <- AUTHOR INSERTION
+	// Object is 0x760 bytes (0x770 allocation minus the 0x10 control header).
+};
+
+static_assert(offsetof(ReShadeRuntime, Width) == 0x0C, "read at 1002852A");
+static_assert(offsetof(ReShadeRuntime, Height) == 0x10, "read at 1002852E");
+
 // ---------------------------------------------------------------------------
 // The per-frame alpha mask buffer.
 // ---------------------------------------------------------------------------
@@ -319,7 +346,7 @@ struct AlphaMask
 	static uint8_t* Buffer;
 
 	// dword_102A2E78 -- surface the mask is sized against.
-	static DSurface* TargetSurface;
+	static ReShadeRuntime* TargetSurface;
 
 	// unk_102A1580. The original calls _Mtx_lock, throws via _Throw_C_error on
 	// a non-zero result, and calls _Mtx_unlock ignoring its result -- which is
@@ -538,7 +565,7 @@ private:
 
 uint8_t* AlphaMask::ActiveBuffer = nullptr;   // dword_10298580
 uint8_t* AlphaMask::Buffer = nullptr;   // Block -- VERIFY: allocated elsewhere
-DSurface* AlphaMask::TargetSurface = nullptr;   // dword_102A2E78
+ReShadeRuntime* AlphaMask::TargetSurface = nullptr;   // dword_102A2E78
 std::mutex AlphaMask::BufferMutex;               // unk_102A1580
 
 static inline bool FXLightEnabled(AnimClass* pAnim)
