@@ -430,7 +430,10 @@ void FakeRulesClass::LoadBeforeTypeData(CCINIClass* pINI)
 	this->PrismRelay_SupportTimeout.Read(exINI, GameStrings::General, "PrismRelay.SupportTimeout");
 	exINI.Read3Bool(GameStrings::General, "CampaignAllowHarvesterScanUnderShroud", this->CampaignAllowHarvesterScanUnderShroud);
 	this->AttackMove_IgnoreWeaponCheck.Read(exINI, GameStrings::General, "AttackMove.IgnoreWeaponCheck");
-	this->AttackMove_StopWhenTargetAcquired.Read(exINI, GameStrings::General, "AttackMove.StopWhenTargetAcquired");
+	//this->AttackMove_StopWhenTargetAcquired.Read(exINI, GameStrings::General, "AttackMove.StopWhenTargetAcquired");
+
+	this->ApproachTarget_StopWhenInRange.Read(exINI, GameStrings::General, "AttackMove.StopWhenTargetAcquired");
+	this->ApproachTarget_StopWhenInRange.Read(exINI, GameStrings::General, "ApproachTarget.StopWhenInRange");
 
 	this->OpenTopped_DecloakToFire.Read(exINI, GameStrings::General, "OpenTopped.DecloakToFire");
 	this->OpenTopped_FireWhileMoving.Read(exINI, GameStrings::General, "OpenTopped.FireWhileMoving");
@@ -1092,7 +1095,7 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->ParadropMission)
 		.Process(this->AIParadropMission)
 		.Process(this->AttackMove_IgnoreWeaponCheck)
-		.Process(this->AttackMove_StopWhenTargetAcquired)
+		//.Process(this->AttackMove_StopWhenTargetAcquired)
 		.Process(this->ShowPowerPlantEnhancerRange)
 		.Process(this->OpenTopped_DecloakToFire)
 		.Process(this->OpenTopped_FireWhileMoving)

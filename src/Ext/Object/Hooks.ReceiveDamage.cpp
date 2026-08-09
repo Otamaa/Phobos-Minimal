@@ -2354,8 +2354,7 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 
 			CachedRadio->clear();
 
-			if (pThis->Type->CanBeOccupied)
-			{
+			if (pThis->Type->CanBeOccupied && !WarheadTypeExtContainer::Instance.Find(WH)->PreventOccupantEscape) {
 				((FakeBuildingClass*)pThis)->UnloadOccupants(false, false);
 			}
 

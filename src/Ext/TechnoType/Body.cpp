@@ -2331,6 +2331,10 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->AttackMove_StopWhenTargetAcquired.Read(exINI, pSection, "AttackMove.StopWhenTargetAcquired");
 		this->AttackMove_PursuitTarget.Read(exINI, pSection, "AttackMove.PursuitTarget");
 		this->SkipCrushSlowdown.Read(exINI, pSection, "SkipCrushSlowdown");
+
+		this->ApproachTarget_PursuitTarget.Read(exINI, pSection, "AttackMove.PursuitTarget");
+		this->ApproachTarget_PursuitTarget.Read(exINI, pSection, "ApproachTarget.PursuitTarget");
+
 		this->RecuitedAs.Read(exINI, pSection, "Recruited.As");
 
 		this->AttackMove_Follow_IfMindControlIsFull.Read(exINI, pSection, "AttackMove.Follow.IfMindControlIsFull");
@@ -3748,6 +3752,9 @@ void TechnoTypeExtData::Serialize(T& Stm) {
 		.Process(this->AttackMove_StopWhenTargetAcquired)
 		.Process(this->AttackMove_PursuitTarget)
 		.Process(this->SkipCrushSlowdown)
+
+		.Process(this->ApproachTarget_StopWhenInRange)
+		.Process(this->ApproachTarget_PursuitTarget)
 
 		.Process(this->RecuitedAs)
 

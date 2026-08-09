@@ -765,22 +765,22 @@ ASMJIT_PATCH(0x4DF3A0, FootClass_UpdateAttackMove_SelectNewTarget, 0x6)
 
 #include <Locomotor/Cast.h>
 
-ASMJIT_PATCH(0x4DF4DB, FootClass_RefreshMegaMission_CheckMissionFix, 0xA)
-{
-	enum { ClearMegaMission = 0x4DF4F9, ContinueMegaMission = 0x4DF4CF };
-	GET(FootClass*, pThis, ESI);
-
-	auto const pType = GET_TECHNOTYPE(pThis);
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	auto const mission = pThis->GetCurrentMission();
-	bool stopWhenTargetAcquired = pTypeExt->AttackMove_StopWhenTargetAcquired.Get(FakeRulesClass::Instance()->AttackMove_StopWhenTargetAcquired.Get(!pType->OpportunityFire));
-	bool clearMegaMission = mission != Mission::Guard;
-
-	if (stopWhenTargetAcquired && clearMegaMission)
-		clearMegaMission = !(mission == Mission::Move && pThis->MegaDestination && pThis->DistanceFrom(pThis->MegaDestination) > 256);
-
-	return clearMegaMission ? ClearMegaMission : ContinueMegaMission;
-}
+//ASMJIT_PATCH(0x4DF4DB, FootClass_RefreshMegaMission_CheckMissionFix, 0xA)
+//{
+//	enum { ClearMegaMission = 0x4DF4F9, ContinueMegaMission = 0x4DF4CF };
+//	GET(FootClass*, pThis, ESI);
+//
+//	auto const pType = GET_TECHNOTYPE(pThis);
+//	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+//	auto const mission = pThis->GetCurrentMission();
+//	bool stopWhenTargetAcquired = pTypeExt->AttackMove_StopWhenTargetAcquired.Get(FakeRulesClass::Instance()->AttackMove_StopWhenTargetAcquired.Get(!pType->OpportunityFire));
+//	bool clearMegaMission = mission != Mission::Guard;
+//
+//	if (stopWhenTargetAcquired && clearMegaMission)
+//		clearMegaMission = !(mission == Mission::Move && pThis->MegaDestination && pThis->DistanceFrom(pThis->MegaDestination) > 256);
+//
+//	return clearMegaMission ? ClearMegaMission : ContinueMegaMission;
+//}
 
 
 ASMJIT_PATCH(0x711E90, TechnoTypeClass_CanAttackMove_IgnoreWeapon, 0x6)

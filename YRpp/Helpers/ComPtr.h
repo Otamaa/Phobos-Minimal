@@ -2,8 +2,9 @@
 
 #include <YRCom.h>
 #include <Unsorted.h>
-
+#include <cassert>
 #include <type_traits>
+#include <comdef.h>
 
 // a managed COM pointer like the game uses it
 

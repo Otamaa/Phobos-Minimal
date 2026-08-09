@@ -2533,12 +2533,14 @@ void TechnoExtData::UpdateAlphaShape(ObjectClass* pSource)
 		if (!pAlpha)
 			return;
 
-		// VERIFY: the original wrote GameDelete(std::exchange(pAlpha, nullptr)),
-		//         but pAlpha is a local copy - the exchange clears nothing the
-		//         caller can observe and the map entry is NOT erased here.
-		//         This is only safe if ~AlphaShapeClass unregisters itself from
-		//         ObjectLinkedAlphas. If it does not, this leaves a dangling
-		//         pointer in the map and needs an explicit erase.
+		const auto tacticalPos = &TacticalClass::Instance->TacticalPos;
+		RectangleStruct dirty {
+			pAlpha->Rect.X - tacticalPos->X,
+			pAlpha->Rect.Y - tacticalPos->Y,
+			pAlpha->Rect.Width, 
+			pAlpha->Rect.Height 
+		};
+		TacticalClass::Instance->RegisterDirtyArea(dirty, true);
 		GameDelete<true, false>(pAlpha);
 	};
 

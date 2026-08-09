@@ -1193,6 +1193,9 @@ public:
 	Valueable<bool> AttackMove_PursuitTarget { false };
 	Nullable<bool> SkipCrushSlowdown { };
 
+	Nullable<bool> ApproachTarget_StopWhenInRange {};
+	Valueable<bool> ApproachTarget_PursuitTarget {};
+
 	Nullable<TechnoTypeClass*> RecuitedAs {};
 
 	Valueable<bool> MultiWeapon { false };

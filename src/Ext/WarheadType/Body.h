@@ -539,6 +539,8 @@ public:
 	Valueable<AnimTypeClass*> ChangeOwner_MindControlAnim {};
 
 	Valueable<bool> PreventCrew { false };
+	Nullable<bool>  PreventPassengerEscape { };
+	Valueable<bool> PreventOccupantEscape { false };
 #pragma endregion
 
 public:

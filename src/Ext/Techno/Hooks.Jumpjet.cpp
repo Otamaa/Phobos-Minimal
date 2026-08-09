@@ -706,7 +706,7 @@ ASMJIT_PATCH(0x7442D6, FootClass_ReadyToNextMission_MovingCheck, 0x6) // Unit
 {
 	GET(FootClass*, pThis, ESI);
 	auto pLoco = pThis->Locomotor.GetInterfacePtr();
-	R->AL(!locomotion_cast<JumpjetLocomotionClass*>(pLoco) && pLoco->Is_Moving_Now());
+	R->AL(!locomotion_cast<JumpjetLocomotionClass*>(pLoco) && !locomotion_cast<HoverLocomotionClass*>(pLoco) && pLoco->Is_Moving_Now());
 	return R->Origin() + 0xF;
 }ASMJIT_PATCH_AGAIN(0x521BA7, FootClass_ReadyToNextMission_MovingCheck, 0x6); // Infantry
 
@@ -824,6 +824,52 @@ ASMJIT_PATCH(0x4DF410, FootClass_UpdateAttackMove_TargetAcquired, 0x6)
 
 	if (pTypeExt->AttackMove_PursuitTarget)
 		pThis->SetDestination(pThis->Target, true);
+
+	return 0;
+}
+#else
+
+DEFINE_HOOK(0x4D5A34, FootClass_ApproachTarget_StopWhenInRange, 0x6)
+{
+	GET_STACK(const bool, closeEnough, STACK_OFFSET(0x158, -0x146));
+
+	if (closeEnough)
+	{
+		GET(FootClass*, pThis, EBX);
+		auto const pType = GET_TECHNOTYPE(pThis);
+		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+		// Per-type setting takes priority, falls back to the global one.
+		if (pTypeExt->ApproachTarget_StopWhenInRange.Get(FakeRulesClass::Instance->ApproachTarget_StopWhenInRange))
+		{
+			pThis->StopMoving();
+			pThis->AbortMotion();
+		}
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x4D57EA, FootClass_ApproachTarget_PursuitTarget, 0x9)
+{
+	enum { Return = 0x4D5A34 };
+
+	GET(FootClass*, pThis, EBX);
+	GET_STACK(const bool, closeEnough, STACK_OFFSET(0x158, -0x146));
+
+	auto const pType = GET_TECHNOTYPE(pThis);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	if (closeEnough && pTypeExt->ApproachTarget_StopWhenInRange.Get(FakeRulesClass::Instance->ApproachTarget_StopWhenInRange))
+		return 0;
+
+	if (pTypeExt->ApproachTarget_PursuitTarget)
+	{
+		pThis->SetDestination(pThis->Target, true);
+		R->EDI(0);
+		R->Stack(STACK_OFFSET(0x158, -0x130), 0);
+		return Return;
+	}
 
 	return 0;
 }
