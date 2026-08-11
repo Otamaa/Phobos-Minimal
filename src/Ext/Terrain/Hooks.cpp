@@ -7,8 +7,10 @@
 #include <Ext/TerrainType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/Cell/Body.h>
+#include <Ext/BuildingType/Body.h>
 
 #include <Utilities/Macro.h>
+#include <Utilities/Cast.h>
 
 //#pragma optimize("", off )
 ASMJIT_PATCH(0x71C5D2, TerrainClass_CatchFire_AttachFireAnim, 0x6)
@@ -122,7 +124,20 @@ ASMJIT_PATCH(0x5F4FEF, ObjectClass_Put_RegisterLogic_Terrain, 0x6)
 
 	return FurtherCheck;
 }
-//#endif
+
+ASMJIT_PATCH(0x5F5045, ObjectClass_Place_NoAlphaImageOnBuildup, 0x6)
+{
+	GET(ObjectTypeClass* const, pType, EBX);
+
+	if (const auto pBuildingType = type_cast<BuildingTypeClass*, true>(pType)) {
+		if (BuildingTypeExtContainer::Instance.Find(pBuildingType)->NoAlphaImageOnBuildup.Get(FakeRulesClass::Instance->NoAlphaImageOnBuildup))
+			return 0x5F514B; // jump past the AlphaShape creation block (the `jz` skip target)
+	}
+
+	R->EAX(pType ? pType->AlphaImage : nullptr);
+
+	return 0;
+}
 
 
 ASMJIT_PATCH(0x71C6EE, TerrainClass_FireOut_Crumbling, 0x6)

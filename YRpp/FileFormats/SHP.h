@@ -107,7 +107,7 @@ public:
 
 	bool IsReference() const
 	{
-		return CurrentHeader.Type == 0xFFFF;
+		return CurrentHeader.Type == -1;
 	}
 
 	COMPILETIMEEVAL OPTIONALINLINE int GetWidth() const { return CurrentHeader.Width; }

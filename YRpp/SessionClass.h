@@ -8,7 +8,7 @@
 #include <Helpers/CompileTime.h>
 #include <MessageListClass.h>
 #include <CCFileClass.h>
-#include <WinSock.h>
+#include <IPX.h>
 
 #pragma warning(push)
 #pragma warning(disable : 4324)
@@ -177,39 +177,6 @@ struct NatStruct
 };
 static_assert(sizeof(NatStruct) == 9u, "NatStruct has wrong size!");
 
-class ALIGN(4) IPXAddressClass
-{
-public:
-
-	unsigned char NetworkNumber[4];
-	unsigned char NodeAddress[6];
-
-	static COMPILETIMEEVAL reference<IPXAddressClass, 0xA8D600u> const Instance {};
-	static COMPILETIMEEVAL reference<bool, 0xA8D5FCu> const IsBridge {};
-	static COMPILETIMEEVAL reference<int, 0x828140> const State{};
-
-	void Assign(unsigned char* pNetworkNumber, unsigned char* pNodeAddress, short shortNetworkNumber) noexcept
-	{
-		// 0x53ECE7 .. 0x53ECF8 - unconditional 6-byte node copy
-		std::memcpy(this->NodeAddress, pNodeAddress, sizeof(this->NodeAddress));
-
-		// 0x53ECF8 - mov ecx, IPAddress_some_IP_State ; cmp ecx, 1
-		if (State() == 1)
-		{
-			// 0x53ED03 - full 4-byte network number
-			std::memcpy(this->NetworkNumber, pNetworkNumber, sizeof(this->NetworkNumber));
-			return;
-		}
-
-		// 0x53ED0E - zero the whole dword, then overwrite only the low 16 bits
-		std::memset(this->NetworkNumber, 0, sizeof(this->NetworkNumber));
-		std::memcpy(this->NetworkNumber, &shortNetworkNumber, sizeof(shortNetworkNumber));
-	}
-
-};
-typedef IPXAddressClass IPAddressClass;
-static_assert(sizeof(IPXAddressClass)  == 0x0C,   "IPXAddressClass wrong size");
-static_assert(sizeof(IPXAddressClass)  == sizeof(IPAddressClass),   "IPAddressClass wrong size");
 
 struct  ALIGN(4) MPStatsStruct
 {

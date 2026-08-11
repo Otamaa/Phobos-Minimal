@@ -829,7 +829,7 @@ ASMJIT_PATCH(0x4DF410, FootClass_UpdateAttackMove_TargetAcquired, 0x6)
 }
 #else
 
-DEFINE_HOOK(0x4D5A34, FootClass_ApproachTarget_StopWhenInRange, 0x6)
+ASMJIT_PATCH(0x4D5A34, FootClass_ApproachTarget_StopWhenInRange, 0x6)
 {
 	GET_STACK(const bool, closeEnough, STACK_OFFSET(0x158, -0x146));
 

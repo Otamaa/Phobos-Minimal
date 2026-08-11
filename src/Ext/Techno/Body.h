@@ -289,6 +289,7 @@ private:
 		debugProcess(this->PrismRelayCachedProviders, "PrismRelayCachedProviders");
 		debugProcess(this->ShouldBeDead, "ShouldBeDead ");
 		debugProcess(this->PreventCrew, "PreventCrew");
+		debugProcess(this->PendingReloadVeterancyAdjustment, "PendingReloadVeterancyAdjustment");
 	}
 
 public:
@@ -498,6 +499,8 @@ public:
 	std::vector<TechnoClass*> PrismRelayCachedProviders {};
 	bool ShouldBeDead {};
 	bool PreventCrew {};
+
+	PendingReloadVeterancy PendingReloadVeterancyAdjustment { PendingReloadVeterancy::None };
 #pragma endregion
 
 public:
@@ -630,6 +633,7 @@ public:
 	//remove all supers from respective array
 	void RemoveSupers();
 
+	void ApplyPendingReloadVeterancy();
 
 public:
 

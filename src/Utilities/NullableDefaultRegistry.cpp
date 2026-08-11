@@ -51,7 +51,7 @@ void NullableDefaultRegistry::ValidateAndFatal()
 
 		++unbound;
 		Debug::Log("NullableDefault [T %s] never bound: [%s] %s\n", // VERIFY: logger
-			e.ID,
+			e.ID.c_str(),
 			e.Section ? e.Section : "?",
 			e.Key ? e.Key : "?");
 	}

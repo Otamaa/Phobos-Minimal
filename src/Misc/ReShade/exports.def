@@ -1,0 +1,53 @@
+EXPORTS
+
+	; d3d9.dll (Uses ordinals in d3d9.lib for 'Direct3DCreate9On12' and 'Direct3DCreate9On12Ex')
+	Direct3DCreate9 PRIVATE
+	Direct3DCreate9Ex PRIVATE
+
+	D3DPERF_BeginEvent PRIVATE
+	D3DPERF_EndEvent PRIVATE
+	D3DPERF_GetStatus PRIVATE
+	D3DPERF_QueryRepeatFrame PRIVATE
+	D3DPERF_SetMarker PRIVATE
+	D3DPERF_SetOptions PRIVATE
+	D3DPERF_SetRegion PRIVATE
+
+	Direct3D9ForceHybridEnumeration @16 NONAME PRIVATE
+	Direct3D9SetMaximizedWindowedModeShim @17 NONAME PRIVATE
+	Direct3D9SetSwapEffectUpgradeShim @18 NONAME PRIVATE
+	Direct3D9Force9on12 @19 NONAME PRIVATE
+	Direct3D9SetMaximizedWindowHwndOverride @22 NONAME PRIVATE
+	Direct3D9SetVendorIDLieFor9on12 @23 NONAME PRIVATE
+	Direct3D9EnableMaximizedWindowedModeShim PRIVATE
+
+	; user32.dll
+	RegisterClassA = HookRegisterClassA PRIVATE
+	RegisterClassW = HookRegisterClassW PRIVATE
+	RegisterClassExA = HookRegisterClassExA PRIVATE
+	RegisterClassExW = HookRegisterClassExW PRIVATE
+	RegisterRawInputDevices = HookRegisterRawInputDevices PRIVATE
+	GetMessageA = HookGetMessageA PRIVATE
+	GetMessageW = HookGetMessageW PRIVATE
+	PeekMessageA = HookPeekMessageA PRIVATE
+	PeekMessageW = HookPeekMessageW PRIVATE
+	PostMessageA = HookPostMessageA PRIVATE
+	PostMessageW = HookPostMessageW PRIVATE
+	ClipCursor = HookClipCursor PRIVATE
+	GetCursorPos = HookGetCursorPosition PRIVATE
+	SetCursorPos = HookSetCursorPosition PRIVATE
+	GetAsyncKeyState = HookGetAsyncKeyState PRIVATE
+	GetKeyState = HookGetKeyState PRIVATE
+	GetKeyboardState = HookGetKeyboardState PRIVATE
+	GetRawInputBuffer = HookGetRawInputBuffer PRIVATE
+	SetWindowsHookExA = HookSetWindowsHookExA PRIVATE
+	SetWindowsHookExW = HookSetWindowsHookExW PRIVATE
+	UnhookWindowsHookEx = HookUnhookWindowsHookEx PRIVATE
+
+	; dinput.dll
+	DirectInputCreateA PRIVATE
+	DirectInputCreateW PRIVATE
+	DirectInputCreateEx PRIVATE
+
+	; dinput8.dll
+	DirectInput8Create PRIVATE
+	GetdfDIJoystick PRIVATE

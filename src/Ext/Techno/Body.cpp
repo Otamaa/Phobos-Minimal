@@ -232,6 +232,43 @@ void TintColors::GetTints(TechnoClass* pOwner, int* tintColor, int* intensity)
 	}
 }
 
+void TechnoExtData::ApplyPendingReloadVeterancy()
+{
+	const auto pending = this->PendingReloadVeterancyAdjustment;
+
+	if (pending == PendingReloadVeterancy::None)
+		return;
+
+	// Clear first so that any early return cannot re-apply the scaling next frame.
+	this->PendingReloadVeterancyAdjustment = PendingReloadVeterancy::None;
+
+	const auto pThis = this->This();
+	auto& timer = pThis->ReloadTimer;
+
+	if (!timer.HasStarted() || timer.TimeLeft <= 0)
+		return;
+
+	const bool isEmptyReload = pending == PendingReloadVeterancy::EmptyReload;
+
+	if (!HasAbility(pThis,(isEmptyReload
+		? PhobosAbilityType::EmptyReload
+		: PhobosAbilityType::Reload)))
+		return;
+
+	const auto pTypeExt = this->TypeExtData;
+	const auto pRulesExt = FakeRulesClass::Instance();
+
+	const double multiplier = isEmptyReload
+		? pTypeExt->VeteranEmptyReload.Get(pRulesExt->VeteranEmptyReload)
+		: pTypeExt->VeteranReload.Get(pRulesExt->VeteranReload);
+
+	// A non-positive or non-finite multiplier must not create an invalid timer.
+	if (!std::isfinite(multiplier) || multiplier <= 0.0)
+		return;
+
+	timer.TimeLeft = MaxImpl(1, GeneralUtils::SafeMultiply(timer.TimeLeft, multiplier));
+}
+
 //#pragma optimize("", off)
 bool NOINLINE TechnoExtData::IsHealer(TechnoClass* pThis)
 {
@@ -2485,15 +2522,15 @@ void TechnoExtData::UpdateAlphaShape(ObjectClass* pSource)
 		{
 			const auto pBuilding = static_cast<BuildingClass*>(pSource);
 
-			// Under construction is exempt from the power requirement.
-			if (pBuilding->GetCurrentMission() == Mission::Construction &&
-				BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->NoAlphaImageOnBuildup.Get(FakeRulesClass::Instance->NoAlphaImageOnBuildup))
-				return true;
-
 			if (!pBuilding->IsPowerOnline())
 				return false;
 
 			if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID >= 0)
+				return true;
+
+			// Under construction is exempt from the power requirement.
+			if (pBuilding->GetCurrentMission() == Mission::Construction &&
+				BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->NoAlphaImageOnBuildup.Get(FakeRulesClass::Instance->NoAlphaImageOnBuildup))
 				return true;
 		}
 
@@ -11958,6 +11995,8 @@ bool TechnoExtData::CheckDeathConditions()
 	if (pThis->InLimbo) {
 		if (!pTypeExt->AutoDeath_AllowLimboed.Get(FakeRulesClass::Instance->AutoDeath_AllowLimboed))
 			return false;
+
+		isInLimbo = true;
 	}
 
 	if (this->ShouldBeDead) { //someone cursed this

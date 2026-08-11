@@ -511,6 +511,21 @@ void FakeRulesClass::LoadBeforeTypeData(CCINIClass* pINI)
 	exINI.ReadSpeed(GameStrings::General, "SubterraneanSpeed", &this->SubterraneanSpeed);
 	this->CheckUnitBaseNormal.Read(exINI, GameStrings::General, "CheckUnitBaseNormal");
 
+	this->VeteranReload.Read(exINI, GameStrings::General, "VeteranReload");
+	this->VeteranEmptyReload.Read(exINI, GameStrings::General, "VeteranEmptyReload");
+
+	const auto validateReloadMultiplier = [](const char* pKey, Valueable<double>& value)
+		{
+			if (!std::isfinite(value.Get()) || value.Get() <= 0.0)
+			{
+				Debug::INIParseFailed(GameStrings::General, pKey, "<invalid>", "Expected a finite value greater than 0.0");
+				value = 1.0;
+			}
+		};
+
+	validateReloadMultiplier("VeteranReload", this->VeteranReload);
+	validateReloadMultiplier("VeteranEmptyReload", this->VeteranEmptyReload);
+
 	//TODO : fuck this break AI
 	this->ExtendedBuildingPlacing.Read(exINI, GameStrings::General, "ExtendedBuildingPlacing");
 
@@ -1335,6 +1350,10 @@ void FakeRulesClass::Serialize(T& Stm)
 
 		.Process(this->ShowTextBoxInShroud_Waypoint)
 		.Process(this->ShowTextBoxInShroud_Techno)
+
+		.Process(this->VeteranReload)
+		.Process(this->VeteranEmptyReload)
+		.Process(this->MissileSpawnAttackCell)
 	;
 }
 
@@ -4252,6 +4271,8 @@ void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
 	this->ReturnWeapon_ApplyFirepowerMult.Read(exINI, GameStrings::CombatDamage, "ReturnWeapon.ApplyFirepowerMult");
 	this->AnimDamage_DealtByInvoker.Read(exINI, GameStrings::CombatDamage, "AnimDamage.DealtByInvoker");
 	this->Parasite_DisableParticleSystem.Read(exINI, GameStrings::CombatDamage, "Parasite.DisableParticleSystem");
+
+	this->MissileSpawnAttackCell.Read(exINI, GameStrings::CombatDamage, "MissileSpawnAttackCell");
 }
 
 #pragma region WeaponTypeBuffer

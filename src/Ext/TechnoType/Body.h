@@ -1287,6 +1287,9 @@ public:
 	Nullable<int> EliteSight {};
 	Nullable<int> VeteranSight {};
 
+	Nullable<double> VeteranReload {};
+	Nullable<double> VeteranEmptyReload {};
+
 	int TintColorAirstrike {};
 
 #pragma endregion

@@ -70,7 +70,9 @@ std::array<const char*, (size_t)PhobosAbilityType::count> EnumFunctions::PhobosA
 	{ "PARASITEIMMUNE" } ,
 	{ "BOUNTYHUNTER" } ,
 	{ "WEBIMMUNE" } ,
-	{ "UNTRACKABLE" }
+	{ "UNTRACKABLE" },
+	{ "RELOAD" },
+	{ "EMPTY_RELOAD" }
  }
 };
 

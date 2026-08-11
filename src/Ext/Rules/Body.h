@@ -840,6 +840,11 @@ public:
 	Valueable<bool> ShowTextBoxInShroud_Techno { true };
 
 	Valueable<int> ShiftQueueCount { 5 };
+
+	Valueable<double> VeteranReload { 1.0 };
+	Valueable<double> VeteranEmptyReload { 1.0 };
+
+	Valueable<bool> MissileSpawnAttackCell { true };
 #pragma endregion
 
 public:

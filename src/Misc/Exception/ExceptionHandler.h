@@ -1,7 +1,6 @@
 #pragma once
 
-#include <Windows.h>
-
+#include <Base/Always.h>
 #include <string>
 #include <vector>
 

@@ -1,5 +1,5 @@
 #include "ExceptionHandler.h"
-#include "ExceptionHandler.Resource.h"
+#include <../res/ExceptionHandler.Resource.h>
 
 #include <Phobos.h>
 

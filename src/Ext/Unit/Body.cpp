@@ -481,7 +481,6 @@ DamageState FakeUnitClass::_Take_Damage(int* damage,
 			this->MarkPassengersAsExited();
 
 		if(!this->Transporter){
-			auto pWHExt = WarheadTypeExtContainer::Instance.Find(warhead);
 
 			TechnoExtData::SpawnSurvivors(this, source, selected, ignoreDefenses, pWHExt->PreventPassengerEscape.Get(PreventsPassengerEscape), 	WarheadTypeExtContainer::Instance.Find(warhead)->PreventCrew);
 

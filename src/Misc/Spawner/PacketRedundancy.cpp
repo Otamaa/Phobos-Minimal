@@ -23,6 +23,7 @@
 #include <IPXManagerClass.h>
 #include <ConnectionClass.h>
 #include <Utilities/Debug.h>
+#include <IPXConnClass.h>
 
 bool PacketRedundancy::Enabled = true;
 int  PacketRedundancy::Copies = 2;
@@ -74,7 +75,7 @@ namespace
 			g_gauge[peer] = GaugeCap;
 	}
 
-	int PeerIndexForConnection(const ConnectionClass* connection)
+	int PeerIndexForConnection(const IPXConnClass* connection)
 	{
 		if (!connection)
 			return -1;
@@ -84,8 +85,18 @@ namespace
 		if (nconn > arraySize) nconn = arraySize;
 
 		for (int i = 0; i < nconn; ++i)
-			if (reinterpret_cast<const ConnectionClass*>(IPXManagerClass::Instance->Connection[i]) == connection)
-				return i;
+		{
+			const IPXConnClass* conn = IPXManagerClass::Instance->Connection[i];
+
+			if (conn != connection)
+				continue;
+
+			DWORD slot = 0;
+			memcpy(&slot, conn->Address.NodeAddress, sizeof(slot));
+
+			const int peer = static_cast<int>(slot) - 1;
+			return ValidPeer(peer) ? peer : -1;
+		}
 
 		return -1;
 	}
@@ -107,7 +118,7 @@ int PacketRedundancy::ClampCopies(int copies)
 
 // Bumps the loss gauge for whichever peer this resend belongs to (or every
 // peer if the connection can't be resolved, so the signal is never dropped).
-void PacketRedundancy::NoteResend(const ConnectionClass * connection)
+void PacketRedundancy::NoteResend(IPXConnClass * connection)
 {
 	int peer = PeerIndexForConnection(connection);
 	if (ValidPeer(peer))

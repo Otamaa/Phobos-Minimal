@@ -2900,8 +2900,7 @@ do_literals:
 		return true;
 	}
 
-#pragma pack(push)
-#pragma pack(1)
+#pragma pack(push, 1)
 	struct png_chunk_prefix
 	{
 		uint32_t m_length;

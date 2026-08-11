@@ -109,13 +109,58 @@
     <ClCompile Include="src\Ext\Unit\Hooks.SimpleDeployer.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.SubterraneanHarvester.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.Unit.cpp" />
-    <ClCompile Include="src\Lib\lodepng\lodepng.cpp" />
-    <ClCompile Include="src\Lib\miniz\miniz.c" />
     <ClCompile Include="src\Misc\Exception\ExceptionHandler.cpp" />
     <ClCompile Include="src\Misc\Exception\ExceptionHandler.Dialog.cpp" />
     <ClCompile Include="src\Misc\Exception\ExceptionHandler.Report.cpp" />
     <ClCompile Include="src\Misc\FogOfWar.cpp" />
-    <ClCompile Include="src\Misc\Renderer\GlobalColorPacker.cpp" />
+    <ClCompile Include="src\Misc\ReShade\FX\effect_codegen_hlsl.cpp" />
+    <ClCompile Include="src\Misc\ReShade\FX\effect_expression.cpp" />
+    <ClCompile Include="src\Misc\ReShade\FX\effect_lexer.cpp" />
+    <ClCompile Include="src\Misc\ReShade\FX\effect_parser_exp.cpp" />
+    <ClCompile Include="src\Misc\ReShade\FX\effect_parser_stmt.cpp" />
+    <ClCompile Include="src\Misc\ReShade\FX\effect_preprocessor.cpp" />
+    <ClCompile Include="src\Misc\ReShade\FX\effect_symbol_table.cpp" />
+    <ClCompile Include="src\Misc\ReShade\PhobosAlphaMask.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_device.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_impl_command_list.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_impl_command_queue.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_impl_device.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_impl_state_block.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_impl_swapchain.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_impl_type_convert.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_internal.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_pix.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_resource.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_swapchain.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\dll_log.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\dll_main.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\dll_resources.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\hook.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\hook_manager.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\imgui_code_editor.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\imgui_function_table.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\imgui_function_table_18600.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\imgui_function_table_18971.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\imgui_function_table_19000.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\imgui_function_table_19040.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\imgui_function_table_19180.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\imgui_function_table_19191.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\imgui_function_table_19222.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\imgui_function_table_19250.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\imgui_widgets.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\ini_file.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\input.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\input_windows.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\platform_utils_windows.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\runtime.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\runtime_api.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\runtime_gui.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\runtime_manager.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\state_block.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\windows\dinput.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\windows\dinput8.cpp" />
+    <ClCompile Include="src\Misc\ReShade\Runtime\windows\user32.cpp" />
     <ClCompile Include="src\Misc\Spawner\DesyncHandler.cpp" />
     <ClCompile Include="src\Misc\Spawner\FastRetransmit.cpp" />
     <ClCompile Include="src\Misc\Spawner\FrameGate.cpp" />
@@ -727,16 +772,65 @@
     <ClInclude Include="src\Ext\SHP\Body.h" />
     <ClInclude Include="src\Ext\TagType\Body.h" />
     <ClInclude Include="src\Ext\TaskForce\Body.h" />
-    <ClInclude Include="src\Lib\lodepng\lodepng.h" />
-    <ClInclude Include="src\Lib\miniz\miniz.h" />
     <ClInclude Include="src\Misc\Exception\ExceptionHandler.h" />
-    <ClInclude Include="src\Misc\Exception\ExceptionHandler.Resource.h" />
-    <ClInclude Include="src\Misc\Renderer\GlobalColorPacker.h" />
+    <ClInclude Include="src\Misc\ReShade\fonts\forkawesome.h" />
+    <ClInclude Include="src\Misc\ReShade\FX\effect_codegen.hpp" />
+    <ClInclude Include="src\Misc\ReShade\FX\effect_expression.hpp" />
+    <ClInclude Include="src\Misc\ReShade\FX\effect_lexer.hpp" />
+    <ClInclude Include="src\Misc\ReShade\FX\effect_module.hpp" />
+    <ClInclude Include="src\Misc\ReShade\FX\effect_parser.hpp" />
+    <ClInclude Include="src\Misc\ReShade\FX\effect_preprocessor.hpp" />
+    <ClInclude Include="src\Misc\ReShade\FX\effect_symbol_table.hpp" />
+    <ClInclude Include="src\Misc\ReShade\FX\effect_token.hpp" />
+    <ClInclude Include="src\Misc\ReShade\PhobosAlphaMask.h" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\com_utils.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\d3d9\d3d9_device.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\d3d9\d3d9_impl_device.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\d3d9\d3d9_impl_state_block.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\d3d9\d3d9_impl_swapchain.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\d3d9\d3d9_impl_type_convert.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\d3d9\d3d9_resource.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\d3d9\d3d9_swapchain.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\dll_log.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\dll_main.h" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\dll_resources.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\hook.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\hook_manager.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\imgui_code_editor.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\imgui_function_table_18600.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\imgui_function_table_18971.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\imgui_function_table_19000.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\imgui_function_table_19040.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\imgui_function_table_19180.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\imgui_function_table_19191.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\imgui_function_table_19222.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\imgui_function_table_19250.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\imgui_widgets.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\ini_file.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\input.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\lockfree_linear_map.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\moving_average.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\platform_utils.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\reshade.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\Reshadeversion.h" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\reshade_api.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\reshade_api_device.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\reshade_api_format.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\reshade_api_object_impl.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\reshade_api_pipeline.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\reshade_api_resource.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\reshade_events.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\reshade_overlay.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\runtime.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\runtime_internal.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\runtime_manager.hpp" />
+    <ClInclude Include="src\Misc\ReShade\Runtime\state_block.hpp" />
+    <ClInclude Include="src\Misc\ReShade\utils.h" />
     <ClInclude Include="src\Misc\Spawner\FastRetransmit.h" />
     <ClInclude Include="src\Misc\Spawner\FrameGate.h" />
     <ClInclude Include="src\Misc\Spawner\MPStatsFix.h" />
     <ClInclude Include="src\Misc\Spawner\PacketRedundancy.h" />
-    <ClInclude Include="src\Misc\Spawner\UI\DesyncDialog.Resource.h" />
+    <ClInclude Include="src\res\DesyncDialog.Resource.h" />
     <ClInclude Include="src\Misc\SyncLogging.h" />
     <ClInclude Include="src\New\ChoiceBox\Entities\Base\MapChoiceBoxClass.h" />
     <ClInclude Include="src\New\ChoiceBox\Entities\Derived\ScreenChoiceBoxClass.h" />
@@ -992,7 +1086,10 @@
     <ClInclude Include="src\Phobos.Math.h" />
     <ClInclude Include="src\Phobos.UI.h" />
     <ClInclude Include="src\PhobosSaveVersionInfo.h" />
-    <ClInclude Include="src\resource.h" />
+    <ClInclude Include="src\res\BaseResource.h" />
+    <ClInclude Include="src\res\ExceptionHandler.Resource.h" />
+    <ClInclude Include="src\res\Phobos.Resource.h" />
+    <ClInclude Include="src\res\Reshade.Resource.h" />
     <ClInclude Include="src\Utilities\Anchor.h" />
     <ClInclude Include="src\Utilities\BuildingBrackedPositionData.h" />
     <ClInclude Include="src\Utilities\Cast.h" />
@@ -1037,7 +1134,10 @@
     <ClInclude Include="src\Utilities\RadialFireStruct.h" />
     <ClInclude Include="src\Utilities\RandomWeights.h" />
     <ClInclude Include="src\Utilities\Savegame.h" />
+    <ClInclude Include="src\Utilities\SavegameDef.core.h" />
     <ClInclude Include="src\Utilities\SavegameDef.h" />
+    <ClInclude Include="src\Utilities\SavegameDef.std.h" />
+    <ClInclude Include="src\Utilities\SavegameDef.YR.h" />
     <ClInclude Include="src\Utilities\ShapeTextPrinter.h" />
     <ClInclude Include="src\Utilities\Simd.h" />
     <ClInclude Include="src\Utilities\Stream.h" />
@@ -1079,15 +1179,21 @@
     <ClInclude Include="YRpp\TurretControl.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="src\Misc\Exception\ExceptionHandler.rc" />
+    <ResourceCompile Include="src\res\ExceptionHandler.rc" />
     <ResourceCompile Include="src\Misc\MultiplayerGameOptionsDialog.rc" />
-    <ResourceCompile Include="src\Misc\Spawner\UI\DesyncDialog.rc" />
-    <ResourceCompile Include="src\version.rc" />
+    <ResourceCompile Include="src\res\DesyncDialog.rc" />
+    <ResourceCompile Include="src\res\Phobos.rc" />
+    <ResourceCompile Include="src\res\Reshade.rc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
     <None Include="Debug DPFeatures\phobos.dll" />
     <None Include="src\Ext\Techno\Hooks.CrewCount.cpp" />
+    <None Include="src\Misc\ReShade\exports.def" />
+    <None Include="src\Misc\ReShade\fonts\forkawesome.inl" />
+    <None Include="src\Misc\ReShade\FX\effect_symbol_table_intrinsics.inl" />
+    <None Include="src\Misc\ReShade\resource.aps" />
+    <None Include="src\Misc\ReShade\Runtime\d3d9\d3d9_resource_call_vtable.inl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="sampleconfig\README_WHERETOPUTLUA.txt" />
@@ -1182,7 +1288,7 @@
       <ConformanceMode>true</ConformanceMode>
       <DiagnosticsFormat>Column</DiagnosticsFormat>
       <OmitFramePointers>true</OmitFramePointers>
-      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;ASMJIT_NO_TEXT;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;MAKE_LIB;SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;_ATL_NO_SECURITY;_ATL_NO_AUTOMATIC_NAMESPACE;_ATL_NO_MODULE;_ATL_NO_COM_MODULE;_ATL_NO_WIN_SUPPORT;YR_SIMD_COMPILE_AVX2;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SYR_VER=2;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;WINVER=0x0A00;_WIN32_WINNT=0x0A00;NTDDI_VERSION=0x0A00000C;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;FMT_EXCEPTIONS=0;MAKE_LIB;SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;_ATL_NO_SECURITY;_ATL_NO_AUTOMATIC_NAMESPACE;_ATL_NO_MODULE;_ATL_NO_COM_MODULE;_ATL_NO_WIN_SUPPORT;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;ASMJIT_NO_TEXT;IMGUI_DISABLE_DEMO_WINDOWS;IMGUI_DISABLE_DEBUG_TOOLS;IMGUI_DEBUG_PRINTF=((void)0);IMGUI_DEFINE_MATH_OPERATORS;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;IMGUI_DISABLE_FILE_FUNCTIONS;IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS;YR_SIMD_COMPILE_AVX2;main=simple_lossless;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;RESHADE_GUI;RESHADE_ADDON=0;RESHADE_LOCALIZATION=0;RESHADE_VERBOSE_LOG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>SyncCThrow</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1202,7 +1308,7 @@
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ext\DirectX-Headers\include\directx;%(AdditionalIncludeDirectories);$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -1214,14 +1320,15 @@
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <EnableVectorLength>NotSet</EnableVectorLength>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile>$(ProjectDir)src\Phobos.PCH.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>PhobosLib_Zycore.lib;PhobosLib_Zydis.lib;PhobosLib_asmjit.lib;PhobosLib_Lua.lib;PhobosLib_minhook.lib;PhobosLib_YRpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>PhobosLib_fmt.lib;PhobosLib_imgui.lib;PhobosLib_Zycore.lib;PhobosLib_Zydis.lib;PhobosLib_asmjit.lib;PhobosLib_Lua.lib;PhobosLib_minhook.lib;PhobosLib_YRpp.lib;PhobosLib_fpng.lib;PhobosLib_lodepng.lib;PhobosLib_miniz.lib;PhobosLib_stb.lib;PhobosLib_jxl_simple_lossless.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <ProgramDatabaseFile>$(TargetName).pdb</ProgramDatabaseFile>
       <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
@@ -1234,6 +1341,8 @@
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/VERBOSE %(AdditionalOptions)</AdditionalOptions>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DelayLoadDLLs>D3DCOMPILER_47.dll</DelayLoadDLLs>
+      <ModuleDefinitionFile>$(SolutionDir)src\Misc\ReShade\exports.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -1260,7 +1369,7 @@
       <ConformanceMode>true</ConformanceMode>
       <DiagnosticsFormat>Column</DiagnosticsFormat>
       <OmitFramePointers>false</OmitFramePointers>
-      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;ASMJIT_NO_TEXT;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;MAKE_LIB;SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;_ATL_NO_SECURITY;_ATL_NO_AUTOMATIC_NAMESPACE;_ATL_NO_MODULE;_ATL_NO_COM_MODULE;_ATL_NO_WIN_SUPPORT;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SYR_VER=2;_HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;WINVER=0x0A00;_WIN32_WINNT=0x0A00;NTDDI_VERSION=0x0A000000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;ASMJIT_NO_TEXT;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;MAKE_LIB;SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;_ATL_NO_SECURITY;_ATL_NO_AUTOMATIC_NAMESPACE;_ATL_NO_MODULE;_ATL_NO_COM_MODULE;_ATL_NO_WIN_SUPPORT;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>SyncCThrow</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -1298,7 +1407,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>PhobosLib_Zycore.lib;PhobosLib_Zydis.lib;PhobosLib_asmjit.lib;PhobosLib_Lua.lib;PhobosLib_minhook.lib;PhobosLib_YRpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>PhobosLib_fmt.lib;PhobosLib_imgui.lib;PhobosLib_Zycore.lib;PhobosLib_Zydis.lib;PhobosLib_asmjit.lib;PhobosLib_Lua.lib;PhobosLib_minhook.lib;PhobosLib_YRpp.lib;PhobosLib_fpng.lib;PhobosLib_lodepng.lib;PhobosLib_miniz.lib;PhobosLib_stb.lib;PhobosLib_jxl_simple_lossless.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <ProgramDatabaseFile>$(TargetName).pdb</ProgramDatabaseFile>
       <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
@@ -1372,11 +1481,44 @@
       <Project>{B1000001-0001-0001-0001-000000000006}</Project>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
     </ProjectReference>
+    <ProjectReference Include="PhobosLib_fpng.vcxproj">
+      <Project>{B1000001-0001-0001-0001-000000000007}</Project>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="PhobosLib_lodepng.vcxproj">
+      <Project>{B1000001-0001-0001-0001-000000000008}</Project>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="PhobosLib_miniz.vcxproj">
+      <Project>{B1000001-0001-0001-0001-000000000009}</Project>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="PhobosLib_stb.vcxproj">
+      <Project>{B1000001-0001-0001-0001-00000000000A}</Project>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="PhobosLib_jxl_simple_lossless.vcxproj">
+      <Project>{B1000001-0001-0001-0001-00000000000B}</Project>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+    <!-- header-only: Utility project, emits no .lib -->
+    <ProjectReference Include="PhobosLib_magic_enum.vcxproj">
+      <Project>{B1000001-0001-0001-0001-00000000000C}</Project>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="PhobosLib_fmt.vcxproj">
+      <Project>{B1000001-0001-0001-0001-00000000000D}</Project>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="PhobosLib_imgui.vcxproj">
+      <Project>{B1000001-0001-0001-0001-00000000000E}</Project>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="YRpp\yrpp_defs.asm" />
   </ItemGroup>
   <ItemGroup>
-    <Manifest Include="src\Misc\Exception\ExceptionHandler.manifest" />
+    <Manifest Include="src\res\ExceptionHandler.manifest" />
   </ItemGroup>
 </Project>

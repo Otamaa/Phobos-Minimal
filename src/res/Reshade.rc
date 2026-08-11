@@ -1,0 +1,15 @@
+// Microsoft Visual C++ generated resource script.
+//
+#pragma code_page(65001)
+
+#include "Reshade.Resource.h"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// RCDATA
+//
+
+IDR_IMGUI_PS_3_0        RCDATA                  "src\\Misc\\ReShade\\shaders\\imgui_ps_3_0.cso"
+IDR_IMGUI_VS_3_0        RCDATA                  "src\\Misc\\ReShade\\shaders\\imgui_vs_3_0.cso"
+IDR_FULLSCREEN_VS       RCDATA                  "src\\Misc\\ReShade\\shaders\\fullscreen_vs.cso"
+IDR_COPY_PS             RCDATA                  "src\\Misc\\ReShade\\shaders\\copy_ps.cso"

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <CRT.h>
+#include <YRPPCore.h>
 
 class CreditClass
 {

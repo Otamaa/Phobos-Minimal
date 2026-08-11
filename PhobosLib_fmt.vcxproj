@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Build|Win32">
+      <Configuration>Build</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="OptimizationOff|Win32">
+      <Configuration>OptimizationOff</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{B1000001-0001-0001-0001-00000000000D}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>PhobosLib_fmt</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <!-- DIFF: unlike the older PhobosLib_* projects there is no Debug/Release stub
+       and no "redirect to Build" PropertyGroup here - only the two shipped
+       profiles (Build / OptimizationOff) are declared at all. -->
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='OptimizationOff|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\Libs\</OutDir>
+    <IntDir>$(Configuration)\Libs\fmt\</IntDir>
+    <TargetName>PhobosLib_fmt</TargetName>
+    <IncludePath>$(SolutionDir)src\Lib;$(SolutionDir)src;$(SolutionDir)src\ExtraHeaders;$(SolutionDir)YRpp;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='OptimizationOff|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\Libs\</OutDir>
+    <IntDir>$(Configuration)\Libs\fmt\</IntDir>
+    <TargetName>PhobosLib_fmt</TargetName>
+    <IncludePath>$(SolutionDir)src\Lib;$(SolutionDir)src;$(SolutionDir)src\ExtraHeaders;$(SolutionDir)YRpp;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <ConformanceMode>true</ConformanceMode>
+      <OmitFramePointers>true</OmitFramePointers>
+      <PreprocessorDefinitions>_HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;WINVER=0x0A00;_WIN32_WINNT=0x0A00;NTDDI_VERSION=0x0A00000C;MAKE_LIB;FMT_USE_EXCEPTIONS=0;FMT_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>SyncCThrow</ExceptionHandling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
+      <CallingConvention>StdCall</CallingConvention>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <DisableSpecificWarnings>4100;4530;4731;4740;4505;4201;26495</DisableSpecificWarnings>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='OptimizationOff|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <ConformanceMode>true</ConformanceMode>
+      <OmitFramePointers>false</OmitFramePointers>
+      <PreprocessorDefinitions>_HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;WINVER=0x0A00;_WIN32_WINNT=0x0A00;NTDDI_VERSION=0x0A000000;MAKE_LIB;FMT_USE_EXCEPTIONS=0;FMT_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>SyncCThrow</ExceptionHandling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
+      <CallingConvention>StdCall</CallingConvention>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FloatingPointModel>Strict</FloatingPointModel>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <DisableSpecificWarnings>4100;4530;4731;4740;4505;4201;26495</DisableSpecificWarnings>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <!-- VERIFY: fmt is currently consumed header-only (Phobos defined FMT_HEADER_ONLY).
+       These two TUs are fmt's canonical compiled sources. Paths assume the flattened
+       vendored layout src\Lib\fmt\*.h that the existing IncludePath implies
+       (upstream ships them under fmt/src/ - re-point if the tree is unflattened). -->
+  <ItemGroup>
+    <ClCompile Include="src\Lib\fmt\format.cc" />
+    <ClCompile Include="src\Lib\fmt\os.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Lib\fmt\args.h" />
+    <ClInclude Include="src\Lib\fmt\base.h" />
+    <ClInclude Include="src\Lib\fmt\chrono.h" />
+    <ClInclude Include="src\Lib\fmt\color.h" />
+    <ClInclude Include="src\Lib\fmt\compile.h" />
+    <ClInclude Include="src\Lib\fmt\core.h" />
+    <ClInclude Include="src\Lib\fmt\format.h" />
+    <ClInclude Include="src\Lib\fmt\format-inl.h" />
+    <ClInclude Include="src\Lib\fmt\os.h" />
+    <ClInclude Include="src\Lib\fmt\ostream.h" />
+    <ClInclude Include="src\Lib\fmt\printf.h" />
+    <ClInclude Include="src\Lib\fmt\ranges.h" />
+    <ClInclude Include="src\Lib\fmt\std.h" />
+    <ClInclude Include="src\Lib\fmt\xchar.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

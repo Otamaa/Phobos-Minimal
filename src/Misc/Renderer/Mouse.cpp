@@ -23,7 +23,7 @@ DXMouse::~DXMouse() {
 }
 
 void DXMouse::Set_Cursor(Point2D const& hotspot, SHPCaches const* cursor, int shape) {
-	if (cursor == nullptr || shape < 0 || shape >= cursor->Frames) {
+	if (cursor == nullptr || shape < 0 || shape >= cursor->CurrentHeader.Frames) {
 		Delete_Cursor_Image();
 		Set_System_Cursor();
 		return;

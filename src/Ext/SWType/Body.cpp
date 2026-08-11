@@ -597,7 +597,7 @@ bool SWTypeExtData::LauchSuper(SuperClass* pSuper)
 	// if this SW is only auto-firable, discard any clicks.
 	// if AutoFire is off, the sw would not be firable at all,
 	// thus we ignore the setting in that case.
-	const bool autofire = !pSWExt->SW_ManualFire && pSWExt->SW_AutoFire;
+	const bool autofire = !pSWExt->SW_ManualFire;
 	const bool unstoppable = pSuper->Type->UseChargeDrain && pSuper->ChargeDrainState == ChargeDrainState::Draining
 		&& pSWExt->SW_Unstoppable;
 

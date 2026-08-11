@@ -833,10 +833,10 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 			pShieldData->SetAnimationVisibility(true);
 	}
 
+	pExt->ApplyPendingReloadVeterancy();
 	pExt->UpdateBuildingLightning();
 	pExt->UpdateShield();
-	if (!pThis->IsAlive)
-	{
+	if (!pThis->IsAlive) {
 		OnUpdateEnd(pThis);
 		return;
 	}

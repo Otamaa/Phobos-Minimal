@@ -9,7 +9,7 @@
 #include <Utilities/Patch.h>
 #include <Utilities/Debug.h>
 
-#include "UI/DesyncDialog.Resource.h"
+#include <res/DesyncDialog.Resource.h>
 
 #include <StringTable.h>
 #include <EventClass.h>

@@ -30,7 +30,7 @@
 #pragma once
 #include <stddef.h>
 
-class ConnectionClass;
+class IPXConnClass;
 
 class PacketRedundancy
 {
@@ -51,7 +51,7 @@ public:
 	static int CopiesFor(const char* buf, size_t len, int peer);
 
 	// Loss signal for adaptive mode.
-	static void NoteResend(const ConnectionClass* connection);
+	static void NoteResend(IPXConnClass* connection);
 	static int LossGauge(int peer);
 
 	// Logs a failed extra sendto() call for a duplicate copy.

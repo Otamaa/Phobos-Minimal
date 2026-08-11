@@ -546,8 +546,17 @@ enum class PhobosAbilityType : int
 	BountyHunter = 15,
 	WebbyImmune = 16,
 	Untrackable = 17,
+	Reload = 18,
+	EmptyReload = 19,
 
 	count
+};
+
+enum class PendingReloadVeterancy : unsigned char
+{
+	None,
+	Reload,
+	EmptyReload
 };
 
 enum class ChronoSparkleDisplayPosition : BYTE

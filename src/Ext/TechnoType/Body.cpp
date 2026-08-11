@@ -2392,6 +2392,19 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->EliteSight.Read(exINI, pSection, "EliteSight");
 		this->VeteranSight.Read(exINI, pSection, "VeteranSight");
 
+		auto ValidateReloadMultiplier = [](const char* pSection, const char* pKey, Nullable<double>& value) {
+			if (value.isset() && (!std::isfinite(value.Fetch()) || value.Fetch() <= 0.0)) {
+				Debug::INIParseFailed(pSection, pKey, "<invalid>", "Expected a finite value greater than 0.0");
+				value.Reset();
+			}
+		};
+
+		this->VeteranReload.Read(exINI, pSection, "VeteranReload");
+		this->VeteranEmptyReload.Read(exINI, pSection, "VeteranEmptyReload");
+
+		ValidateReloadMultiplier(pSection, "VeteranReload", this->VeteranReload);
+		ValidateReloadMultiplier(pSection, "VeteranEmptyReload", this->VeteranEmptyReload);
+
 		this->CrashSpin_Multiplier.Read(exINI, pSection, "CrashSpin.Multiplier");
 	}
 

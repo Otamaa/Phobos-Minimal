@@ -3748,7 +3748,7 @@ int FakeHouseClass::_AI_Supers()
 
 						if (IsCurrentPlayer) {
 							// hide the cameo (only if this is an auto-firing SW)
-							if (!pExt->Type->SW_ShowCameo || pExt->Type->SW_AutoFire)
+							if (!pExt->Type->SW_ShowCameo)
 								continue;
 
 							SidebarClass::Instance->AddSpecialCameo(i);

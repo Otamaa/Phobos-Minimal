@@ -96,7 +96,7 @@ struct BitWriter {
     }
   }
 
-  std::unique_ptr<uint8_t[], void (*)(void *)> data = {nullptr, free};
+  std::unique_ptr<uint8_t[], void(__cdecl*)(void *)> data = {nullptr, free};
   size_t bytes_written = 0;
   size_t bits_in_buffer = 0;
   uint64_t buffer = 0;

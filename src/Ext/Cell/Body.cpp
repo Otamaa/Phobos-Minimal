@@ -856,7 +856,7 @@ static constexpr int BridgeLevelAdd = 4;    // assembly: shl edx,2 → always 4,
 // ---------------------------------------------------------------------------
 static CellClass* ResolveCellOrWorking(int x, int y)
 {
-	return MapClass::Instance->GetCellAt(CellStruct(x, y));
+	return MapClass::Instance->GetCellAt(CellStruct((short)x, (short)y));
 }
 
 // ---------------------------------------------------------------------------

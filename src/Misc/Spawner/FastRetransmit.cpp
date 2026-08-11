@@ -26,6 +26,7 @@
 #include <IPXManagerClass.h>
 #include <ConnectionClass.h>
 #include <Utilities/Debug.h>
+#include <IPXConnClass.h>
 
 bool FastRetransmit::Enabled = true;
 bool FastRetransmit::Backoff = true;
@@ -80,7 +81,7 @@ namespace
 		if (nconn > arraySize) nconn = arraySize;
 
 		for (int i = 0; i < nconn; ++i)
-			if (reinterpret_cast<const ConnectionClass*>(IPXManagerClass::Instance->Connection[i]) == connection)
+			if (IPXManagerClass::Instance->Connection[i] == connection)
 				return true;
 		return false;
 	}
@@ -207,20 +208,22 @@ int FastRetransmit::CleanSamples()
 
 // ConnectionClass::Service_Send_Queue, at the point an ACK'd PACKET_DATA_ACK
 // entry's round-trip is about to be folded into the queue's response time.
-ASMJIT_PATCH(0x48C436, ServiceSendQueue_RTTSample_FastRetransmit, 0x8)
+ASMJIT_PATCH(0x48C436, ConnectionClass_ServiceSendQueue_RTTSample, 0x8)
 {
 	if (FastRetransmit::Enabled)
 	{
-		const auto* entry = reinterpret_cast<const SendQueueType*>(R->EBX());
-		int delay = static_cast<int>(R->EBP()) - entry->FirstTime;
-		FastRetransmit::SampleRTT(reinterpret_cast<const ConnectionClass*>(R->EDI()), delay, entry->SendCount);
+		GET(const ConnectionClass*, conn, EDI);
+		GET(const SendQueueType*, entry, EBX);
+		GET(int, now, EBP);
+
+		FastRetransmit::SampleRTT(conn, now - entry->FirstTime, entry->SendCount);
 	}
 	return 0;
 }
 
 // IPXManagerClass::Set_Timing entry. We overwrite retrydelta in place from the
 // maximum clean per-peer RTO. Only shortens, never lengthens.
-ASMJIT_PATCH(0x540C60, IPXSetTiming_FastRetransmit, 0x8)
+ASMJIT_PATCH(0x540C60, IPXManagerClass_SetTiming_FastRetransmit, 0x8)
 {
 	if (!FastRetransmit::Enabled)
 		return 0;
@@ -229,7 +232,8 @@ ASMJIT_PATCH(0x540C60, IPXSetTiming_FastRetransmit, 0x8)
 	if (retryDelta <= 0)
 		return 0;
 
-	int original = R->Stack<int>(0x4);
+	GET_STACK(int, original, 0x4);
+
 	if (retryDelta < original)
 	{
 		R->Stack<int>(0x4, retryDelta);
@@ -250,18 +254,21 @@ ASMJIT_PATCH(0x540C60, IPXSetTiming_FastRetransmit, 0x8)
 // ConnectionClass::Service_Send_Queue, at the per-entry retransmit decision -
 // also the one place a real retransmit is detected, so it feeds
 // PacketRedundancy's loss signal even when FastRetransmit/Backoff are off.
-ASMJIT_PATCH(0x48C4AE, ServiceSendQueue_Backoff_FastRetransmit, 0x5)
+ASMJIT_PATCH(0x48C4AE, ConnectionClass_ServiceSendQueue_Backoff, 0x5)
 {
-	const auto* conn = reinterpret_cast<const ConnectionClass*>(R->EDI());
-	const auto* entry = reinterpret_cast<const SendQueueType*>(R->ESI());
+	GET(IPXConnClass*, conn, EDI);
+	GET(SendQueueType*, entry, ESI);
+	GET(int, lastTime, ECX);
+	GET(int, curTime, EBP);
+
 	const int retryDelta = static_cast<int>(conn->RetryDelta);
 	const int sendCount = entry->SendCount;
-	const int elapsed = static_cast<int>(R->EBP()) - R->ECX<int>();
+	const int elapsed = curTime - lastTime;
 
 	if (!FastRetransmit::Enabled || !FastRetransmit::Backoff)
 	{
 		if (elapsed > retryDelta)
-			PacketRedundancy::NoteResend(reinterpret_cast<const ConnectionClass*>(R->EDI()));
+			PacketRedundancy::NoteResend(conn);
 		return 0;
 	}
 
@@ -280,7 +287,7 @@ ASMJIT_PATCH(0x48C4AE, ServiceSendQueue_Backoff_FastRetransmit, 0x5)
 	int eff = static_cast<int>(backedOff);
 
 	if (elapsed > eff)
-		PacketRedundancy::NoteResend(reinterpret_cast<const ConnectionClass*>(R->EDI()));
+		PacketRedundancy::NoteResend(conn);
 
 	R->EAX(eff);
 	R->EDX(R->EBP());

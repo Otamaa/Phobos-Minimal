@@ -1369,6 +1369,8 @@ HCURSOR __stdcall LoadCursorA_Wrapper(HINSTANCE hInstance, LPCSTR lpCursorName)
 	}
 }
 
+#include <Misc/ReShade/Runtime/dll_main.h>
+
 BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
 	switch (ul_reason_for_call)
@@ -1397,6 +1399,9 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			DisableThreadLibraryCalls((HMODULE)hInstance);
 			IsInitialized = true;
 			PhobosHookers::InitMinHook();
+			if (ReshadeContainer::Attach((HMODULE)hInstance) == FALSE)
+				return FALSE;
+
 			CRTHooks::Apply();
 			Debug::PrepareLogFile();
 			ConvertExtData::AllocTLS();
@@ -1427,6 +1432,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		{
 			Multithreading::ShutdownMultitheadMode();
 			Debug::DeactivateLogger();
+			ReshadeContainer::Detach();
 			PhobosHookers::CleanupTrampolines();
 		}
 	}

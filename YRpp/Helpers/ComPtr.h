@@ -5,6 +5,7 @@
 #include <cassert>
 #include <type_traits>
 #include <comdef.h>
+#include <utility>
 
 // a managed COM pointer like the game uses it
 
@@ -125,8 +126,6 @@ private:
  * SPDX-License-Identifier: BSD-3-Clause OR MIT
  */
 
-#include <cassert>
-#include <utility>
 
 template <typename T>
 class com_ptr
@@ -178,11 +177,11 @@ public:
 	/// <param name="object">The new object to manage and take ownership and add a reference to.</param>
 	void reset(T* object = nullptr)
 	{
+		if (object != nullptr)
+			object->AddRef();
 		if (_object != nullptr)
 			_object->Release();
 		_object = object;
-		if (_object != nullptr)
-			_object->AddRef();
 	}
 
 	// Overloaded pointer operators which operate on the managed object.
@@ -226,30 +225,17 @@ public:
 		return *this;
 	}
 
-	bool operator==(const T* rhs) const { return _object == rhs; }
-	bool operator==(const com_ptr<T>& rhs) const { return _object == rhs._object; }
-	friend bool operator==(const T* lhs, const com_ptr<T>& rhs) { return rhs.operator==(lhs); }
-	bool operator!=(const T* rhs) const { return _object != rhs; }
-	bool operator!=(const com_ptr<T>& rhs) const { return _object != rhs._object; }
-	friend bool operator!=(const T* lhs, const com_ptr<T>& rhs) { return rhs.operator!=(lhs); }
+	constexpr explicit operator bool() const { return _object != nullptr; }
+	constexpr bool operator==(const T* rhs) const { return _object == rhs; }
+	constexpr bool operator==(const com_ptr<T>& rhs) const { return _object == rhs._object; }
+	constexpr friend bool operator==(const T* lhs, const com_ptr<T>& rhs) { return rhs.operator==(lhs); }
+	constexpr bool operator!=(const T* rhs) const { return _object != rhs; }
+	constexpr bool operator!=(const com_ptr<T>& rhs) const { return _object != rhs._object; }
+	constexpr friend bool operator!=(const T* lhs, const com_ptr<T>& rhs) { return rhs.operator!=(lhs); }
 
 	// Default operator used for sorting
-	friend bool operator< (const com_ptr<T>& lhs, const com_ptr<T>& rhs) { return lhs._object < rhs._object; }
+	constexpr friend bool operator< (const com_ptr<T>& lhs, const com_ptr<T>& rhs) { return lhs._object < rhs._object; }
 
 private:
 	T* _object;
 };
-
-#include <functional> // std::hash
-
-namespace std
-{
-	template <typename T>
-	struct hash<com_ptr<T>>
-	{
-		size_t operator()(const com_ptr<T>& ptr) const
-		{
-			return std::hash<T*>()(ptr.get());
-		}
-	};
-}
