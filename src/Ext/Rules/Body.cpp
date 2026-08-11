@@ -268,6 +268,7 @@ void FakeRulesClass::LoadAfterTypeData(CCINIClass* pINI)
 
 	this->ShowTextBoxInShroud_Waypoint.Read(exINI, GameStrings::General, "ShowTextBoxInShroud.Waypoint");
 	this->ShowTextBoxInShroud_Techno.Read(exINI, GameStrings::General, "ShowTextBoxInShroud.Techno");
+	this->ReadyToNextMission_MovingCheck.Read(exINI, GameStrings::General, "ReadyToNextMission.MovingCheck");
 }
 
 static bool NOINLINE IsVanillaDummy(const char* ID)
@@ -1354,6 +1355,7 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->VeteranReload)
 		.Process(this->VeteranEmptyReload)
 		.Process(this->MissileSpawnAttackCell)
+		.Process(this->ReadyToNextMission_MovingCheck)
 	;
 }
 

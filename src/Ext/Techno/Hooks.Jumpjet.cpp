@@ -705,8 +705,14 @@ ASMJIT_PATCH(0x54CC16, JumpjetLocomotionClass_CrashDescent_OffMap, 0x8)
 ASMJIT_PATCH(0x7442D6, FootClass_ReadyToNextMission_MovingCheck, 0x6) // Unit
 {
 	GET(FootClass*, pThis, ESI);
-	auto pLoco = pThis->Locomotor.GetInterfacePtr();
-	R->AL(!locomotion_cast<JumpjetLocomotionClass*>(pLoco) && !locomotion_cast<HoverLocomotionClass*>(pLoco) && pLoco->Is_Moving_Now());
+	bool result = false;
+
+	if (FakeRulesClass::Instance->ReadyToNextMission_MovingCheck) {
+		GET(FootClass*, pThis, ESI);
+		result = pThis->Locomotor.GetInterfacePtr()->Is_Moving_Now();
+	}
+
+	R->AL(result);
 	return R->Origin() + 0xF;
 }ASMJIT_PATCH_AGAIN(0x521BA7, FootClass_ReadyToNextMission_MovingCheck, 0x6); // Infantry
 
@@ -832,18 +838,29 @@ ASMJIT_PATCH(0x4DF410, FootClass_UpdateAttackMove_TargetAcquired, 0x6)
 ASMJIT_PATCH(0x4D5A34, FootClass_ApproachTarget_StopWhenInRange, 0x6)
 {
 	GET_STACK(const bool, closeEnough, STACK_OFFSET(0x158, -0x146));
+	GET(FootClass*, pThis, EBX);
 
-	if (closeEnough)
+	if (closeEnough && !pThis->InLimbo)
 	{
-		GET(FootClass*, pThis, EBX);
 		auto const pType = GET_TECHNOTYPE(pThis);
 		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		// Per-type setting takes priority, falls back to the global one.
-		if (pTypeExt->ApproachTarget_StopWhenInRange.Get(FakeRulesClass::Instance->ApproachTarget_StopWhenInRange))
-		{
-			pThis->StopMoving();
-			pThis->AbortMotion();
+		if (pTypeExt->ApproachTarget_StopWhenInRange.Get(FakeRulesClass::Instance->ApproachTarget_StopWhenInRange)) {
+			if (auto const pJumpjetLoco = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor)) {
+				auto const crd = pThis->GetCoords();
+				pJumpjetLoco->HeadToCoord.X = crd.X;
+				pJumpjetLoco->HeadToCoord.Y = crd.Y;
+				pJumpjetLoco->__currentSpeed = 0;
+				pJumpjetLoco->__maxSpeed = 0;
+				pJumpjetLoco->NextState = JumpjetLocomotionClass::State::Hovering;
+				pThis->AbortMotion();
+			}
+			else
+			{
+				pThis->StopMoving();
+				pThis->AbortMotion();
+			}
 		}
 	}
 
@@ -856,6 +873,9 @@ ASMJIT_PATCH(0x4D57EA, FootClass_ApproachTarget_PursuitTarget, 0x9)
 
 	GET(FootClass*, pThis, EBX);
 	GET_STACK(const bool, closeEnough, STACK_OFFSET(0x158, -0x146));
+
+	if (pThis->InLimbo)
+		return 0;
 
 	auto const pType = GET_TECHNOTYPE(pThis);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);

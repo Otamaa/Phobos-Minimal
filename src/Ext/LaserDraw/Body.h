@@ -156,10 +156,51 @@ protected:
 	FakeLaserDrawClass() = delete;
 	 ~FakeLaserDrawClass() = delete;
 public:
+	// colours alive and the previous backport collapsed them into one.
+	//
+	//   Full    = v60 @ 0x550C90 / 0x550CB4
+	//             IsSupported ? clamp(2 * InnerColor) : InnerColor
+	//             Feeds the D3D triangle colour and the software centre line.
+	//
+	//   Working = v56 @ 0x550CA1 / 0x550CCA
+	//             IsSupported ? Full : (InnerColor >> 1)
+	//             Starting colour for the thickness loop.
+// ------------------------------------------------------------------
+	struct PreparedColors
+	{
+		ColorStruct Full {};
+		ColorStruct Working {};
+	};
 
-	// ========================================================================
-	// Backported drawing functions
-	// ========================================================================
+	// ------------------------------------------------------------------
+	// Direction offset tables.
+	//
+	// BUGFIX (issue #1): vanilla maintains TWO tables, not one. Routing both
+	// draw paths through the house-colour table shifted the outer glow off
+	// axis on every diagonal direction (0, 2, 4, 5, 6).
+	// ------------------------------------------------------------------
+
+	// Draw_In_House_Color_coords @ 0xABC7F8 — used by _DrawInHouseColor.
+	// Renamed from DrawCoords to make the pairing explicit at every call site.
+	static inline Point2D HouseCoords[8][2] {};
+
+	// Draw_Coords @ 0xABC738 — used by _DrawLaser. New; did not exist in the
+	// previous backport.
+	static inline Point2D OuterCoords[8][2] {};
+
+	static bool s_CoordsInitialized;
+
+	// Initialize the direction offset lookup table
+	static void _InitializeDirectionCoords();
+
+	// Smooth exponential falloff for thickness layers
+	// Replaces the harsh >>1 (50% per layer) with gradual falloff
+	static double _CalculateSmoothFalloff(int thickness, int currentLayer);
+
+	// Signature CHANGED: was `ColorStruct _PrepareDrawColor()`. Now returns
+	// both colours. Every existing call site needs updating — a single-colour
+	// return cannot express the IsSupported case correctly.
+	PreparedColors _PrepareDrawColors() const;
 
 	// Replacement for LaserDrawClass::Draw_In_House_Color (0x5509F0-0x5512B5)
 	// Draws house-color (single-color) lasers with smooth thickness falloff
@@ -168,6 +209,13 @@ public:
 	// Replacement for LaserDrawClass::Draw (0x550260-0x5509D2)
 	// Now supports thickness for multicolored lasers too
 	void _DrawLaser();
+
+
+	// ========================================================================
+	// Backported drawing functions
+	// ========================================================================
+
+
 
 	// Replacement for LaserDrawClass::Draw_All (0x550240-0x550260, static __fastcall)
 	// Iterates all lasers and draws them
@@ -180,6 +228,8 @@ public:
 	// Per-laser AI update (0x550080-0x550145, __thiscall)
 	// Advances progress timer, handles blinking, destroys expired lasers
 	void _UpdateLaser();
+
+	int _GetCoreThickness() const;
 
 	// Static AI that updates all lasers (0x550150-0x550236)
 	static void _UpdateAllLasers();
@@ -200,10 +250,7 @@ public:
 private:
 	// Direction coordinate table (8 directions x 2 offsets)
 	static Point2D DrawCoords[8][2];
-	static bool s_CoordsInitialized;
 
-	// Initialize the direction offset lookup table
-	static void _InitializeDirectionCoords();
 
 	// Calculate direction index from source/target world coordinates
 	static unsigned int _CalculateDirectionIndex(const CoordStruct& source, const CoordStruct& target);
@@ -214,7 +261,5 @@ private:
 	// Prepare the draw color (doubled if IsSupported, halved otherwise)
 	ColorStruct _PrepareDrawColor() const;
 
-	// Smooth exponential falloff for thickness layers
-	// Replaces the harsh >>1 (50% per layer) with gradual falloff
-	static double _CalculateSmoothFalloff(int thickness, int currentLayer);
+
 };

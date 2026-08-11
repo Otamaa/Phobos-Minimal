@@ -43,7 +43,7 @@ public:
 	// ============================================================
 	bool NoOwner {true};
 	// 1 byte + 3 bytes padding for alignment
-
+	bool LightDirty { false };
 #pragma endregion
 
 public:

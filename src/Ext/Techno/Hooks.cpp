@@ -19,6 +19,7 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/Cell/Body.h>
 #include <Ext/CaptureManager/Body.h>
+#include <Ext/Team/Body.h>
 
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/GeneralUtils.h>
@@ -1755,36 +1756,44 @@ namespace ApproachTargetTemp
 ASMJIT_PATCH(0x4D5FBD, FootClass_ApproachTarget_BeforeSearching, 0xA)
 {
 	enum { WantAggressiveCrush = 0x4D6892, StartSearching = 0x4D5FE0 };
-
+	
+	GET(FootClass*, pThis, EBX);
 	GET(TechnoTypeClass*, pType, EAX);
 	R->ESI(pType->MovementZone);
-
+	GET_STACK(const int, weaponIdx, STACK_OFFSET(0x158, -0xAC));
+	const auto pWeapon = pThis->GetWeapon(weaponIdx)->WeaponType;
 	GET_STACK(int, searchRange, STACK_OFFSET(0x158, -0x120));
 	ApproachTargetTemp::FromMaximumRange = true;
 	ApproachTargetTemp::SearchRange = searchRange;
+
+	// Range=-2 makes the vanilla search range negative, so it takes the "too small ->
+	// charge target" path and never does the normal search; widen it so these weapons
+	// back out of MinimumRange like regular weapons.
+	if (pWeapon && pWeapon->Range == -512) {
+		const int minSearch = pWeapon->MinimumRange + Unsorted::LeptonsPerCell;
+		if (searchRange < minSearch)
+			searchRange = minSearch;
+	}
 
 	if (searchRange <= 204)
 		return WantAggressiveCrush;
 
 	GET_STACK(bool, inRange, STACK_OFFSET(0x158, -0x146));
 
-	if (!inRange)
-	{
-		GET(FootClass*, pThis, EBX);
-		GET_STACK(int, weaponIdx, STACK_OFFSET(0x158, -0xAC));
-		const auto pWeapon = pThis->GetWeapon(weaponIdx)->WeaponType;
+	if (!inRange && pWeapon) {
+		const int distance = (pThis->IsInAir() || pWeapon->Projectile->Arcing || pThis->WhatAmI() == AircraftClass::AbsID)
+			? pThis->DistanceFrom(pThis->Target)
+			: pThis->DistanceFromSquared(pThis->Target);
+		ApproachTargetTemp::FromMaximumRange = distance >= pWeapon->MinimumRange;
 
-		if (pWeapon && pWeapon->Range != -512)
-		{
-			const auto coords = pThis->GetCoords();
-			const int distance = pThis->IsInAir() || pWeapon->Projectile->Arcing || pThis->WhatAmI() == AircraftClass::AbsID
-				? pThis->DistanceFrom(pThis->Target)
-				: pThis->DistanceFromSquared(pThis->Target);
-			const int minimum = pWeapon->MinimumRange;
-			ApproachTargetTemp::FromMaximumRange = distance >= minimum;
+		if (!ApproachTargetTemp::FromMaximumRange) {
+			searchRange = 204;
 
-			if (!ApproachTargetTemp::FromMaximumRange)
-				searchRange = 204;
+			// Range=-2 weapons have no max range, so the vanilla SearchRange (a
+			// negative/zero value) would stop the outward search before it reaches past
+			// the MinimumRange - widen it like a normal weapon's max range would.
+			if (pWeapon->Range == -512)
+				ApproachTargetTemp::SearchRange = pWeapon->MinimumRange + Unsorted::LeptonsPerCell;
 		}
 	}
 

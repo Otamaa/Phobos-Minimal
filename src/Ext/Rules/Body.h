@@ -845,6 +845,7 @@ public:
 	Valueable<double> VeteranEmptyReload { 1.0 };
 
 	Valueable<bool> MissileSpawnAttackCell { true };
+	Valueable<bool> ReadyToNextMission_MovingCheck { false };
 #pragma endregion
 
 public:

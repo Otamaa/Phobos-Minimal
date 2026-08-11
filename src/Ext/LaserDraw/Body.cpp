@@ -19,6 +19,949 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
 
+// ============================================================================
+// Behaviour toggles
+//
+// All divergences from vanilla are gated here so a single flip restores
+// byte-faithful vanilla rendering for A/B comparison against the real binary.
+// These are constexpr, so the disabled branches are eliminated by LTCG and
+// cost nothing at runtime.
+// ============================================================================
+namespace LaserDrawConfig
+{
+	// --- Issue #4 -----------------------------------------------------------
+	// After the IsSupported layer-1 reset (workingColor = InnerColor), re-base
+	// the smooth-falloff reference colour to the reset value.
+	//
+	// false (vanilla shape): falloff keeps decaying from clamp(2*Inner), so
+	//   layer 2 renders BRIGHTER than layer 1 and the beam never converges.
+	//   This is the root cause of "supported lasers become really thick".
+	// true: falloff decays from InnerColor after the reset, matching the
+	//   monotonic brightness curve vanilla's >>1 halving produces.
+	inline constexpr bool RebaseFalloffAfterSupportedReset = true;
+
+	// --- Issue #5 -----------------------------------------------------------
+	// _CalculateSmoothFalloff(T, L) evaluates to exactly 0.0 when L == T,
+	// because of the (1 - L/T) term.
+	//
+	// In _DrawInHouseColor the falloff is computed AFTER drawing, so the zero
+	// lands on an already-finished loop and is harmless.
+	//
+	// In _DrawLaser the falloff is computed BEFORE drawing, so the final layer
+	// is always black and always trips the dim-out break. Net effect:
+	// Thickness == 2 renders identically to Thickness == 1.
+	//
+	// true: offset the exponent by one in _DrawLaser so its first extra layer
+	//   uses falloff(T, 1) — the same value _DrawInHouseColor's first falloff
+	//   step uses. Keeps the two functions on one shared curve.
+	inline constexpr bool FixFalloffFinalLayer = true;
+
+	// --- Issue #6 -----------------------------------------------------------
+	// Vanilla Draw hardcodes 1.0f as the intensity for the two OUTER
+	// subtractive lines (push 3F800000h @ 0x55066F and @ 0x5506FF) and passes
+	// the real fade intensity only to the INNER centre line (@ 0x55062A).
+	//
+	// true  (vanilla): outer glow holds full strength as the laser fades.
+	// false (extension): outer glow fades with the beam. Softer, but the
+	//   halo visibly detaches from the core on long Duration values.
+	inline constexpr bool VanillaOuterLineIntensity = true;
+
+	// --- Issue #7 -----------------------------------------------------------
+	// EXTENSION: skip drawing entirely when both endpoints are fogged.
+	// Vanilla Draw has no fog test — LaserDrawClass::Draw_All is the only
+	// visibility gate. Purely an optimisation / fog-correctness addition.
+	inline constexpr bool EnableFogOfWarCulling = true;
+
+	// --- EXTENSION ----------------------------------------------------------
+	// Vanilla Draw never reads __Thickness (verified: no [ebx+1Ch] access
+	// anywhere in 0x550260-0x5509D1). Thickness is a house-colour-only feature.
+	// Enabling this applies it to multicolour lasers as well.
+	inline constexpr bool EnableNonHouseThickness = true;
+
+	// EXTENSION: widen the INNER core too, not just the outer glow.
+	//
+	// Without this, increasing Thickness on a non-house laser fattens the halo
+	// while the core stays exactly 1px — because vanilla's inner and outer are
+	// separate draws and only the outer participates in the offset loop.
+	// This is the "middle stays small" symptom.
+	inline constexpr bool EnableNonHouseCoreThickness = true;
+
+	// EXTENSION: apply non-house thickness under D3D as well.
+	//
+	// Vanilla's non-house path has no D3D triangle branch at all — it always
+	// goes through software line draws. The thickness loop is therefore safe
+	// to run under D3D, unlike the house-colour path where the loop's only
+	// purpose under D3D is to widen the triangle quad.
+	inline constexpr bool NonHouseThicknessUnderD3D = true;
+
+	// 1 == current behaviour.
+	inline constexpr int DefaultCoreThickness = 1;
+
+	// Clamp ceiling. Guards against an INI typo producing a loop that draws
+	// several hundred lines per laser per frame.
+	inline constexpr int MaxCoreThickness = 32;
+}
+
+int FakeLaserDrawClass::_GetCoreThickness() const
+{
+	const int value = LaserDrawConfig::DefaultCoreThickness;
+
+	return std::clamp(value, 1, LaserDrawConfig::MaxCoreThickness);
+}
+
+// ============================================================================
+// Direction coordinate tables
+//
+// BUGFIX (issue #1): vanilla maintains TWO SEPARATE tables. The previous
+// backport routed both _DrawLaser and _DrawInHouseColor through the
+// house-colour table, which is wrong for four of the eight directions.
+//
+//   dir | Draw_Coords (non-house)   | House_Color_coords
+//   ----+---------------------------+---------------------------
+//    0  | ( 0,-1) ( 1, 0)           | (-1,-1) ( 1, 1)   <-- differs
+//    1  | ( 0,-1) ( 0, 1)           | ( 0,-1) ( 0, 1)
+//    2  | ( 1, 0) ( 0, 1)           | (-1, 1) ( 1,-1)   <-- differs
+//    3  | (-1, 0) ( 1, 0)           | (-1, 0) ( 1, 0)
+//    4  | (-1, 0) ( 0, 1)           | (-1,-1) ( 1, 1)   <-- differs
+//    5  | ( 0,-1) ( 1, 0)           | ( 0,-1) ( 0, 1)   <-- differs
+//    6  | ( 0,-1) (-1, 0)           | (-1, 1) ( 1,-1)   <-- differs
+//    7  | (-1, 0) ( 1, 0)           | (-1, 0) ( 1, 0)
+//
+// The non-house table uses the two AXIS-ADJACENT pixels on diagonals, not a
+// diagonal pair. Using the house table shifted every diagonal laser's glow
+// by one pixel off-axis.
+// ============================================================================
+bool FakeLaserDrawClass::s_CoordsInitialized = false;
+
+void FakeLaserDrawClass::_InitializeDirectionCoords()
+{
+	if (s_CoordsInitialized)
+		return;
+
+	// ------------------------------------------------------------------
+	// House-colour table — Draw_In_House_Color_coords @ 0xABC7F8
+	// Init block @ 0x550A0D .. 0x550B19
+	// ------------------------------------------------------------------
+	HouseCoords[0][0] = { -1, -1 };   // 0x550A15 / 0x550A1F
+	HouseCoords[0][1] = { 1,  1 };   // 0x550A27 / 0x550A2C
+	HouseCoords[1][0] = { 0, -1 };   // 0x550A37 / 0x550A41
+	HouseCoords[1][1] = { 0,  1 };   // 0x550A3C / 0x550A5E
+	HouseCoords[2][0] = { -1,  1 };   // 0x550A4F / 0x550A64
+	HouseCoords[2][1] = { 1, -1 };   // 0x550A56 / 0x550A77
+	HouseCoords[3][0] = { -1,  0 };   // 0x550A6D / 0x550A87
+	HouseCoords[3][1] = { 1,  0 };   // 0x550A7F / 0x550A8D
+	HouseCoords[4][0] = { -1, -1 };   // 0x550A96 / 0x550AA0
+	HouseCoords[4][1] = { 1,  1 };   // 0x550AA8 / 0x550AAD
+	HouseCoords[5][0] = { 0, -1 };   // 0x550AB8 / 0x550AC2
+	HouseCoords[5][1] = { 0,  1 };   // 0x550ABD / 0x550AD7
+
+	// BUGFIX (issue #2): previously { 1,-1 } / { -1, 1 } and commented as
+	// "mirrored 2". Raw assembly shows direction 6 is IDENTICAL to direction 2.
+	//   0x550AD0  mov [coords.X+60h], -1     -> [6][0].X = -1
+	//   0x550ADD  mov [coords.Y+60h],  1     -> [6][0].Y =  1
+	//   0x550AE3  mov [coords.X+68h],  1     -> [6][1].X =  1
+	//   0x550AEE  mov [coords.Y+68h], -1     -> [6][1].Y = -1
+	// The sign flip broke the even-direction alternating branch of the
+	// thickness loop, expanding into the opposite quadrant.
+	HouseCoords[6][0] = { -1,  1 };
+	HouseCoords[6][1] = { 1, -1 };
+
+	HouseCoords[7][0] = { -1,  0 };   // 0x550AF4 / 0x550B0E
+	HouseCoords[7][1] = { 1,  0 };   // 0x550B14 / 0x550B19
+
+	// ------------------------------------------------------------------
+	// Non-house table — Draw_Coords @ 0xABC738
+	// Init block @ 0x550295 .. 0x5503A0
+	// Vanilla indexes this flat as Draw_Coords[2*dir] and [2*dir+1];
+	// reshaped to [dir][slot] here.
+	// ------------------------------------------------------------------
+	OuterCoords[0][0] = { 0, -1 };   // flat[0]  0x5502A4 / 0x55029C
+	OuterCoords[0][1] = { 1,  0 };   // flat[1]  0x5502B7 / 0x5502AE
+	OuterCoords[1][0] = { 0, -1 };   // flat[2]  0x5502C9 / 0x5502BE
+	OuterCoords[1][1] = { 0,  1 };   // flat[3]  0x5502CE / 0x5502E4
+	OuterCoords[2][0] = { 1,  0 };   // flat[4]  0x5502D5 / 0x5502F6
+	OuterCoords[2][1] = { 0,  1 };   // flat[5]  0x5502DC / 0x550309
+	OuterCoords[3][0] = { -1,  0 };   // flat[6]  0x5502EA / 0x550318
+	OuterCoords[3][1] = { 1,  0 };   // flat[7]  0x5502FC / 0x55031E
+	OuterCoords[4][0] = { -1,  0 };   // flat[8]  0x55030F / 0x550324
+	OuterCoords[4][1] = { 0,  1 };   // flat[9]  0x55032A / 0x55033E
+	OuterCoords[5][0] = { 0, -1 };   // flat[10] 0x55032F / 0x55034E
+	OuterCoords[5][1] = { 1,  0 };   // flat[11] 0x550344 / 0x55035E
+	OuterCoords[6][0] = { 0, -1 };   // flat[12] 0x550354 / 0x55036F
+	OuterCoords[6][1] = { -1,  0 };   // flat[13] 0x550364 / 0x55038F
+	OuterCoords[7][0] = { -1,  0 };   // flat[14] 0x550375 / 0x550395
+	OuterCoords[7][1] = { 1,  0 };   // flat[15] 0x55039B / 0x5503A0
+
+	s_CoordsInitialized = true;
+}
+
+// ============================================================================
+// Smooth falloff
+//
+// DIFF: replaces vanilla's per-layer >>1 halving with a smoothed curve.
+// Vanilla: c[L] = c[0] >> L      (exponential, halves every layer)
+// Here:    c[L] = c[0] * (1 - L/T) * (1 - 1/T)^L
+//
+// The linear (1 - L/T) term guarantees the outermost layer reaches zero, so
+// the beam always terminates cleanly instead of stopping wherever the 8/64
+// dim-out threshold happens to land.
+//
+// NOTE: returns exactly 0.0 at currentLayer == thickness. Callers that
+// evaluate the falloff BEFORE drawing must offset by one — see
+// LaserDrawConfig::FixFalloffFinalLayer.
+// ============================================================================
+double FakeLaserDrawClass::_CalculateSmoothFalloff(int thickness, int currentLayer)
+{
+	if (thickness <= 1)
+		return 1.0;
+
+	const double falloffStep = 1.0 / static_cast<double>(thickness);
+	const double falloffMult = GeneralUtils::SecsomeFastPow(
+		1.0 - falloffStep, static_cast<size_t>(currentLayer));
+
+	return (1.0 - falloffStep * static_cast<double>(currentLayer)) * falloffMult;
+}
+
+// ============================================================================
+// Colour preparation
+//
+// BUGFIX (issue #3): vanilla keeps TWO distinct colours alive through
+// Draw_In_House_Color, and the previous backport collapsed them into one.
+//
+//   v60 (Full)    @ 0x550C90 / 0x550CB4 — the prepared colour
+//                 IsSupported ? clamp(2 * InnerColor) : InnerColor
+//                 Consumed by the D3D triangle Set_Color (@ 0x55102A) and by
+//                 the software centre line (@ 0x5511E5).
+//
+//   v56 (Working) @ 0x550CA1 / 0x550CCA — the thickness-loop start colour
+//                 IsSupported ? Full : (InnerColor >> 1)
+//
+// The previous backport fed raw InnerColor to both the D3D colour and the
+// centre line, so IsSupported beams rendered at 1x instead of the intended
+// clamped 2x. Prism support beams looked dim under every renderer.
+// ============================================================================
+FakeLaserDrawClass::PreparedColors FakeLaserDrawClass::_PrepareDrawColors() const
+{
+	PreparedColors out {};
+
+	if (IsSupported)
+	{
+		// 0x550C55 .. 0x550C90: shl 1, clamp each channel to 0xFF.
+		out.Full.R = static_cast<unsigned char>(std::min(2 * static_cast<int>(InnerColor.R), 255));
+		out.Full.G = static_cast<unsigned char>(std::min(2 * static_cast<int>(InnerColor.G), 255));
+		out.Full.B = static_cast<unsigned char>(std::min(2 * static_cast<int>(InnerColor.B), 255));
+
+		// 0x550CA1 / 0x550CA6: working colour starts AT the doubled value.
+		out.Working = out.Full;
+	}
+	else
+	{
+		// 0x550CAA .. 0x550CD2: full = raw inner, working = inner >> 1.
+		out.Full = InnerColor;
+
+		out.Working.R = static_cast<unsigned char>(InnerColor.R >> 1);
+		out.Working.G = static_cast<unsigned char>(InnerColor.G >> 1);
+		out.Working.B = static_cast<unsigned char>(InnerColor.B >> 1);
+	}
+
+	return out;
+}
+
+
+// ============================================================================
+// DrawInHouseColor - Draw house-color laser with thickness (backported)
+//
+// Backported from LaserDrawClass::Draw_In_House_Color with smooth falloff.
+// This is the function that handles IsHouseColor=true and IsSingleColor lasers.
+//
+// Changes from original:
+// - Smooth exponential falloff replaces harsh >>1 halving
+// - Uses CalculateSmoothFalloff for gradual color reduction per layer
+// - Captures maxColor before the thickness loop for falloff base
+// ============================================================================
+void FakeLaserDrawClass::_DrawInHouseColor()
+{
+#ifdef LASERDRAWDEBUG
+	Debug::Log("[LaserDraw] DrawInHouseColor @ %p (Thickness=%d, Supported=%d, Inner: R=%d G=%d B=%d)\n",
+		this, Thickness, static_cast<int>(IsSupported),
+		InnerColor.R, InnerColor.G, InnerColor.B);
+#endif
+
+	_InitializeDirectionCoords();
+
+	const unsigned int direction = _CalculateDirectionIndex(Source, Target);
+
+	Point2D ptSource = TacticalClass::Instance->CoordsToClient(Source);
+	Point2D ptTarget = TacticalClass::Instance->CoordsToClient(Target);
+
+	// 0x550BA7 .. 0x550BC6
+	const int zSource = ZAdjust - Game::AdjustHeight(Source.Z) - 2;
+	const int zTarget = -2 - Game::AdjustHeight(Target.Z);
+
+	// DIFF: vanilla gates on (CurrentFPS >= GetMinFrameRate() &&
+	// Options.DetailLevel != 0) @ 0x550BCA. Unified into the shared helper at
+	// the user's request; the FPS component is expected to live there.
+	const bool useHighQuality = FakeRulesClass::DetailsCurrentlyEnabled();
+
+	// 0x550BEA .. 0x550C2C
+	float intensity = 1.0f;
+
+	if (Fades)
+	{
+		const int elapsed = Duration - Progress.Stage;
+		const float delta = StartIntensity - EndIntensity;
+		intensity = (delta * static_cast<float>(elapsed) / static_cast<float>(Duration)) + EndIntensity;
+	}
+
+	const int ratio = static_cast<int>(intensity * 255.0f);
+
+	// BUGFIX (issue #3): keep both colours, see _PrepareDrawColors.
+	const PreparedColors colors = _PrepareDrawColors();
+	ColorStruct workingColor = colors.Working;
+
+	// Reference colour the smooth falloff decays from.
+	// BUGFIX (issue #4): this is re-based after the IsSupported layer-1 reset
+	// so layers 2+ cannot come out brighter than layer 1.
+	ColorStruct falloffBase = colors.Working;
+
+	// 0x550CD4 .. 0x550D06: all four endpoints seeded from the two screen
+	// points before any offset is applied.
+	Point2D line1Start = ptSource;
+	Point2D line1End = ptSource;
+	Point2D line2Start = ptTarget;
+	Point2D line2End = ptTarget;
+
+	// NOTE: (direction & 1) selects directions 1/3/5/7, which are the
+	// AXIS-ALIGNED pairs, not the diagonals. Vanilla's branch test is
+	// `sz[0] != 0.0` where sz[0] = direction & 1 (@ 0x550D25), and the
+	// non-zero branch adds BOTH components. Naming corrected from the previous
+	// backport's inverted `isDiagonal`; control flow is unchanged.
+	const bool addsBothAxes = (direction & 1) != 0;
+
+	const bool d3dActive = Game::bDirect3DIsUseable.get();
+
+	// EXTENSION: clamped to Thickness here — on this path the core is a subset
+	// of the same loop, so a core wider than the beam is meaningless. On the
+	// non-house path the two are genuinely independent and no clamp applies.
+	const int coreThickness = std::clamp(_GetCoreThickness(), 1, std::max(1, Thickness));
+
+	if (Thickness >= 1)
+	{
+		for (int layer = 1; layer <= Thickness; ++layer)
+		{
+			const auto& offsets = HouseCoords[direction];
+
+			// 0x550D35 .. 0x550E21
+			if (addsBothAxes)
+			{
+				line1Start.X += offsets[0].X;
+				line1Start.Y += offsets[0].Y;
+				line1End.X += offsets[1].X;
+				line1End.Y += offsets[1].Y;
+				line2Start.X += offsets[0].X;
+				line2Start.Y += offsets[0].Y;
+				line2End.X += offsets[1].X;
+				line2End.Y += offsets[1].Y;
+			}
+			else if (layer & 1)
+			{
+				line1Start.X += offsets[0].X;
+				line1End.Y += offsets[1].Y;
+				line2Start.X += offsets[0].X;
+				line2End.Y += offsets[1].Y;
+			}
+			else
+			{
+				line1Start.Y += offsets[0].Y;
+				line1End.X += offsets[1].X;
+				line2Start.Y += offsets[0].Y;
+				line2End.X += offsets[1].X;
+			}
+
+			// 0x550E25: under D3D the loop runs for its GEOMETRY side effects
+			// only. No drawing, no dim-out break — the four endpoints simply
+			// accumulate, and Thickness becomes the width of the triangle quad
+			// emitted below. Removing this would render house lasers 1px wide
+			// under D3D.
+			if (d3dActive)
+				continue;
+
+			if (useHighQuality)
+			{
+				// 0x550E3A / 0x550E64
+				DSurface::Temp->DrawRGBMultiplyingLine_AZ(
+					DSurface::ViewBounds.operator->(),
+					&line1Start, &line2Start,
+					&workingColor, intensity,
+					zSource, zTarget);
+
+				DSurface::Temp->DrawRGBMultiplyingLine_AZ(
+					DSurface::ViewBounds.operator->(),
+					&line1End, &line2End,
+					&workingColor, intensity,
+					zSource, zTarget);
+			}
+			else
+			{
+				// 0x550E8F .. 0x550F44
+				ColorStruct adjusted = workingColor;
+				static constexpr ColorStruct white { 255, 255, 255 };
+				adjusted.Adjust(ratio, white);
+				const unsigned int packed = adjusted.ToInit();
+
+				DSurface::Temp->DrawLineColor_AZ(
+					DSurface::ViewBounds(),
+					line1Start, line2Start,
+					packed, zSource, zTarget, false);
+
+				DSurface::Temp->DrawLineColor_AZ(
+					DSurface::ViewBounds(),
+					line1End, line2End,
+					packed, zSource, zTarget, false);
+			}
+
+			// 0x550F47: IsSupported drops back to the undoubled inner colour
+			// after the first (bright) layer.
+			if (IsSupported && layer == 1)
+			{
+				workingColor = InnerColor;
+
+				// BUGFIX (issue #4): without this the falloff keeps decaying
+				// from clamp(2*Inner), so layer 2 renders brighter than the
+				// layer 1 we just drew and the dim-out break is postponed for
+				// several extra layers. This is what makes supported lasers
+				// balloon in thickness.
+				if constexpr (LaserDrawConfig::RebaseFalloffAfterSupportedReset)
+					falloffBase = workingColor;
+
+				continue;
+			}
+
+			// EXTENSION: CoreThickness flat top.
+			//
+			// Hold the working colour undecayed for the first coreThickness
+			// layers, so the beam has a solid centre of a controllable width
+			// instead of decaying from layer 1. Generalises the IsSupported
+			// mechanic above from a hardcoded single layer to N.
+			//
+			// coreThickness == 1 skips this entirely and the curve is
+			// unchanged from the previous revision.
+			if (layer < coreThickness)
+				continue;
+
+			// 0x550F6A .. 0x550FB9
+			// DIFF: vanilla halves (>>1); smooth curve substituted.
+			//
+			// The falloff exponent is rebased so decay begins at the first
+			// post-core layer rather than at absolute layer 1 — otherwise a
+			// wide core would start its decay already part-way down the curve
+			// and the beam would terminate early.
+			const int decayLayer = layer - (coreThickness - 1);
+			const double mult = _CalculateSmoothFalloff(Thickness - (coreThickness - 1), decayLayer);
+
+			workingColor.R = static_cast<unsigned char>(mult * falloffBase.R);
+			workingColor.G = static_cast<unsigned char>(mult * falloffBase.G);
+			workingColor.B = static_cast<unsigned char>(mult * falloffBase.B);
+
+			// 0x550F91 .. 0x550FA7: threshold is 8 under high quality, 64
+			// otherwise (neg/sbb/and 0FFFFFFC8h/add 40h).
+			const unsigned int threshold = useHighQuality ? 8u : 64u;
+
+			if (workingColor.R < threshold && workingColor.G < threshold && workingColor.B < threshold)
+				break;
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// 0x550FD5: D3D triangle pair, or the software centre line.
+	// ------------------------------------------------------------------
+	if (d3dActive && DSurface::CD3DTriangleInstance() && ZBuffer::Instance.get())
+	{
+		// 0x550FFF .. 0x55108F
+		// ZBuffer layout confirmed: Area @ +0x00 (so Area.Y @ +0x04),
+		// MaxValue @ +0x24. Vanilla performs the add in 16-bit registers, but
+		// the whole expression is masked to 0xFFFF afterwards and subtraction's
+		// low 16 bits depend only on the operands' low 16 bits, so the wider
+		// arithmetic here is equivalent.
+		const int zMax = ZBuffer::Instance->MaxValue;
+		const int areaY = ZBuffer::Instance->Area.Y;
+		const int viewportY = DSurface::ViewBounds->Y;
+
+		const int zValSource = zSource + zMax + areaY - ptSource.Y - viewportY;
+		const int zValTarget = zTarget + zMax + areaY - ptTarget.Y - viewportY;
+
+		// fild is a qword load with the high dword explicitly zeroed
+		// (@ 0x551003 / 0x551012), so the masked value is unsigned.
+		const float szSource = static_cast<float>(zValSource & 0xFFFF) * 0.000015259022f;
+		const float szTarget = static_cast<float>(zValTarget & 0xFFFF) * 0.000015259022f;
+
+		// BUGFIX (issue #3): reads the PREPARED colour (v60), not raw
+		// InnerColor. Under IsSupported this is clamp(2 * InnerColor).
+		const unsigned char red = static_cast<unsigned char>((ratio * colors.Full.R) >> 8);
+		const unsigned char green = static_cast<unsigned char>((ratio * colors.Full.G) >> 8);
+		const unsigned char blue = static_cast<unsigned char>((ratio * colors.Full.B) >> 8);
+
+		CD3DTriangle tri1, tri2;
+		tri1.Set_Color(red, green, blue);
+		tri2.Set_Color(red, green, blue);
+
+		// 0x5510B1 .. 0x551198 — vertex order and UVs verified call-by-call.
+		tri1.Set_Coords(0, static_cast<float>(line1Start.X), static_cast<float>(line1Start.Y), szSource, 0.0f, 0.0f);
+		tri1.Set_Coords(1, static_cast<float>(line1End.X), static_cast<float>(line1End.Y), szSource, 0.0f, 1.0f);
+		tri1.Set_Coords(2, static_cast<float>(line2Start.X), static_cast<float>(line2Start.Y), szTarget, 1.0f, 0.0f);
+
+		tri2.Set_Coords(0, static_cast<float>(line1End.X), static_cast<float>(line1End.Y), szSource, 0.0f, 1.0f);
+		tri2.Set_Coords(1, static_cast<float>(line2End.X), static_cast<float>(line2End.Y), szTarget, 1.0f, 1.0f);
+		tri2.Set_Coords(2, static_cast<float>(line2Start.X), static_cast<float>(line2Start.Y), szTarget, 1.0f, 0.0f);
+
+		DSurface::CD3DTriangleInstance->Add(&tri1);
+		DSurface::CD3DTriangleInstance->Add(&tri2);
+
+		return;
+	}
+
+	// BUGFIX (issue #3): centre line also uses the prepared colour.
+	ColorStruct centerColor = colors.Full;
+
+	if (useHighQuality)
+	{
+		// 0x5511D6
+		DSurface::Temp->DrawRGBMultiplyingLine_AZ(
+			DSurface::ViewBounds.operator->(),
+			&ptSource, &ptTarget,
+			&centerColor, intensity,
+			zSource, zTarget);
+	}
+	else
+	{
+		// 0x55120D
+		static constexpr ColorStruct white { 255, 255, 255 };
+		centerColor.Adjust(ratio, white);
+
+		DSurface::Temp->DrawLineColor_AZ(
+			DSurface::ViewBounds(),
+			ptSource, ptTarget,
+			centerColor.ToInit(), zSource, zTarget, false);
+	}
+}
+
+// ============================================================================
+// DrawLaser - Main draw function (backported from LaserDrawClass::Draw)
+//
+// MAJOR CHANGE: Now supports Thickness for non-house-color (multicolored)
+// lasers too! Previously Thickness was only respected for IsHouseColor.
+//
+// For multicolored lasers with Thickness > 1, we draw the outer color
+// layers with thickness, similar to house-color behavior.
+//
+// Flow:
+// 1. If Duration <= 0, skip
+// 2. If IsHouseColor, delegate to DrawInHouseColor
+// 3. Otherwise, draw the multicolored laser:
+//    a. Calculate direction, screen coords, z-depths
+//    b. Compute random spread for outer color
+//    c. Draw based on detail level (high/low quality)
+//    d. NEW: Apply thickness layers for outer color lines
+// ============================================================================
+void FakeLaserDrawClass::_DrawLaser()
+{
+	// 0x550268
+	if (Duration <= 0)
+		return;
+
+	// EXTENSION (issue #7): vanilla Draw performs no fog test.
+	if constexpr (LaserDrawConfig::EnableFogOfWarCulling)
+	{
+		if (ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar)
+		{
+			auto const pMap = MapClass::Instance();
+
+			if (pMap->IsLocationFogged(Source) && pMap->IsLocationFogged(Target))
+				return;
+		}
+	}
+
+#ifdef LASERDRAWDEBUG
+	Debug::Log("[LaserDraw] DrawLaser @ %p (HouseColor=%d, Thickness=%d, Duration=%d, Stage=%d)\n",
+		this, IsHouseColor, Thickness, Duration, Progress.Stage);
+#endif
+
+	// 0x550274
+	if (IsHouseColor)
+	{
+		_DrawInHouseColor();
+		return;
+	}
+
+	// 0x5503AE: DontDraw — blink "off" phase.
+	if (BlinkState)
+		return;
+
+	_InitializeDirectionCoords();
+
+	const unsigned int direction = _CalculateDirectionIndex(Source, Target);
+
+	Point2D ptSource = TacticalClass::Instance->CoordsToClient(Source);
+	Point2D ptTarget = TacticalClass::Instance->CoordsToClient(Target);
+
+	// 0x550435 .. 0x550457
+	const int zSource = ZAdjust - Game::AdjustHeight(Source.Z) - 2;
+	const int zTarget = -2 - Game::AdjustHeight(Target.Z);
+
+	// 0x550459 .. 0x550483
+	const bool hasOuterColor = (OuterColor.R != 0 || OuterColor.G != 0 || OuterColor.B != 0);
+
+	// 0x55048F .. 0x5505AE
+	ColorStruct outerDrawColor {};
+	unsigned int outerPacked = 0;
+
+	if (hasOuterColor)
+	{
+		const int spreadR = Random2Class::NonCriticalRandomNumber->RandomRanged(
+			-static_cast<int>(OuterSpread.R), static_cast<int>(OuterSpread.R));
+		const int spreadG = Random2Class::NonCriticalRandomNumber->RandomRanged(
+			-static_cast<int>(OuterSpread.G), static_cast<int>(OuterSpread.G));
+		const int spreadB = Random2Class::NonCriticalRandomNumber->RandomRanged(
+			-static_cast<int>(OuterSpread.B), static_cast<int>(OuterSpread.B));
+
+		// sets/dec/and clamps negatives to 0, then cmp 0FFh clamps the top.
+		const int r = std::clamp(static_cast<int>(OuterColor.R) + spreadR, 0, 255);
+		const int g = std::clamp(static_cast<int>(OuterColor.G) + spreadG, 0, 255);
+		const int b = std::clamp(static_cast<int>(OuterColor.B) + spreadB, 0, 255);
+
+		outerDrawColor = {
+			static_cast<unsigned char>(r),
+			static_cast<unsigned char>(g),
+			static_cast<unsigned char>(b)
+		};
+
+		outerPacked = outerDrawColor.ToInit();
+	}
+
+	// 0x5505E8 .. 0x55060D
+	float intensity = 1.0f;
+
+	if (Fades)
+	{
+		const int elapsed = Duration - Progress.Stage;
+		const float delta = StartIntensity - EndIntensity;
+		intensity = (delta * static_cast<float>(elapsed) / static_cast<float>(Duration)) + EndIntensity;
+	}
+
+	const int ratio = static_cast<int>(intensity * 255.0f);
+
+	// 0x5505C4 .. 0x5505E4: per-channel non-zero flags feed the subtractive
+	// line's three bool arguments.
+	const bool hasRed = (InnerColor.R != 0);
+	const bool hasGreen = (InnerColor.G != 0);
+	const bool hasBlue = (InnerColor.B != 0);
+
+	// 0x550611: vanilla gates on Options.DetailLevel alone here — the
+	// GetMinFrameRate() test exists ONLY in Draw_In_House_Color.
+	// DIFF: unified helper used in both, per user request.
+	const bool useHighQuality = FakeRulesClass::DetailsCurrentlyEnabled();
+
+	// BUGFIX (issue #1): non-house path uses Draw_Coords, not the house table.
+	const auto& baseOffsets = OuterCoords[direction];
+
+	// Issue #6: vanilla pushes a literal 1.0f for the outer subtractive lines.
+	const float outerIntensity = LaserDrawConfig::VanillaOuterLineIntensity ? 1.0f : intensity;
+
+	// ------------------------------------------------------------------
+	// Base draw — three lines, exactly as vanilla.
+	// ------------------------------------------------------------------
+	if (useHighQuality)
+	{
+		if (Blinks)
+		{
+			// 0x55062A: inner centre line gets the REAL intensity.
+			ColorStruct innerCopy = InnerColor;
+			DSurface::Temp->DrawSubtractiveLine_AZB(
+				DSurface::ViewBounds(),
+				ptSource, ptTarget,
+				innerCopy,
+				zSource, zTarget,
+				false, true, true, true,
+				intensity);
+
+			if (hasOuterColor)
+			{
+				// 0x550664 / 0x5506D5 — both push 3F800000h.
+				Point2D outerSrc0 { ptSource.X + baseOffsets[0].X, ptSource.Y + baseOffsets[0].Y };
+				Point2D outerTgt0 { ptTarget.X + baseOffsets[0].X, ptTarget.Y + baseOffsets[0].Y };
+
+				ColorStruct outerCopy0 = outerDrawColor;
+				DSurface::Temp->DrawSubtractiveLine_AZB(
+					DSurface::ViewBounds(),
+					outerSrc0, outerTgt0,
+					outerCopy0,
+					zSource, zTarget,
+					false, true, true, true,
+					outerIntensity);
+
+				Point2D outerSrc1 { ptSource.X + baseOffsets[1].X, ptSource.Y + baseOffsets[1].Y };
+				Point2D outerTgt1 { ptTarget.X + baseOffsets[1].X, ptTarget.Y + baseOffsets[1].Y };
+
+				ColorStruct outerCopy1 = outerDrawColor;
+				DSurface::Temp->DrawSubtractiveLine_AZB(
+					DSurface::ViewBounds(),
+					outerSrc1, outerTgt1,
+					outerCopy1,
+					zSource, zTarget,
+					false, true, true, true,
+					outerIntensity);
+			}
+		}
+		else if (hasOuterColor)
+		{
+			// 0x55074B .. 0x550841 — RGB-multiplying, all three at `intensity`.
+			Point2D outerSrc0 { ptSource.X + baseOffsets[0].X, ptSource.Y + baseOffsets[0].Y };
+			Point2D outerTgt0 { ptTarget.X + baseOffsets[0].X, ptTarget.Y + baseOffsets[0].Y };
+
+			DSurface::Temp->DrawRGBMultiplyingLine_AZ(
+				DSurface::ViewBounds.operator->(), &outerSrc0, &outerTgt0,
+				&outerDrawColor, intensity, zSource, zTarget);
+
+			Point2D outerSrc1 { ptSource.X + baseOffsets[1].X, ptSource.Y + baseOffsets[1].Y };
+			Point2D outerTgt1 { ptTarget.X + baseOffsets[1].X, ptTarget.Y + baseOffsets[1].Y };
+
+			DSurface::Temp->DrawRGBMultiplyingLine_AZ(
+				DSurface::ViewBounds.operator->(), &outerSrc1, &outerTgt1,
+				&outerDrawColor, intensity, zSource, zTarget);
+
+			ColorStruct innerCopy = InnerColor;
+			DSurface::Temp->DrawRGBMultiplyingLine_AZ(
+				DSurface::ViewBounds.operator->(), &ptSource, &ptTarget,
+				&innerCopy, intensity, zSource, zTarget);
+		}
+		else
+		{
+			// 0x55084C — per-channel flags instead of hardcoded true.
+			ColorStruct innerFade = InnerColor;
+			DSurface::Temp->DrawSubtractiveLine_AZB(
+				DSurface::ViewBounds(),
+				ptSource, ptTarget,
+				innerFade,
+				zSource, zTarget,
+				false, hasRed, hasGreen, hasBlue,
+				intensity);
+		}
+	}
+	else
+	{
+		// 0x55088B: raw shift-pack, NO Adjust(ratio, white) on this path.
+		const unsigned int innerPacked =
+			ColorStruct(InnerColor.R, InnerColor.G, InnerColor.B).ToInit();
+
+		DSurface::Temp->DrawLineColor_AZ(
+			DSurface::ViewBounds(),
+			ptSource, ptTarget,
+			innerPacked, zSource, zTarget, false);
+
+		if (hasOuterColor)
+		{
+			Point2D outerSrc0 { ptSource.X + baseOffsets[0].X, ptSource.Y + baseOffsets[0].Y };
+			Point2D outerTgt0 { ptTarget.X + baseOffsets[0].X, ptTarget.Y + baseOffsets[0].Y };
+
+			DSurface::Temp->DrawLineColor_AZ(
+				DSurface::ViewBounds(),
+				outerSrc0, outerTgt0,
+				outerPacked, zSource, zTarget, false);
+
+			Point2D outerSrc1 { ptSource.X + baseOffsets[1].X, ptSource.Y + baseOffsets[1].Y };
+			Point2D outerTgt1 { ptTarget.X + baseOffsets[1].X, ptTarget.Y + baseOffsets[1].Y };
+
+			DSurface::Temp->DrawLineColor_AZ(
+				DSurface::ViewBounds(),
+				outerSrc1, outerTgt1,
+				outerPacked, zSource, zTarget, false);
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// EXTENSION: thickness for non-house lasers.
+	//
+	// Vanilla Draw never reads __Thickness — there is no [ebx+1Ch] access
+	// anywhere in 0x550260-0x5509D1. Everything below has no vanilla
+	// counterpart.
+	// ------------------------------------------------------------------
+	if constexpr (!LaserDrawConfig::EnableNonHouseThickness)
+		return;
+
+	// EXTENSION: NOT clamped to Thickness.
+	//
+	// On this path Thickness only ever affected the outer glow, so a fat core
+	// with no glow (CoreThickness = 6, Thickness = 1) is a legitimate and
+	// useful configuration. The loop below runs to whichever is larger.
+	const int coreThickness = LaserDrawConfig::EnableNonHouseCoreThickness
+		? _GetCoreThickness()
+		: 1;
+
+	const int layerCount = std::max(Thickness, coreThickness);
+
+	if (layerCount <= 1)
+		return;
+
+	// EXTENSION: vanilla's non-house path has no D3D triangle branch at all —
+	// it always goes through software line draws — so running the loop under
+	// D3D is safe here. The previous backport gated on !D3DIsUseable, which
+	// made thickness a no-op for the majority of players and produced the
+	// "thickness only affects HouseColor lasers" symptom.
+	if (!LaserDrawConfig::NonHouseThicknessUnderD3D && Game::bDirect3DIsUseable.get())
+		return;
+
+	const bool widenCore = LaserDrawConfig::EnableNonHouseCoreThickness && coreThickness > 1;
+
+	if (!hasOuterColor && !widenCore)
+		return;
+
+	const bool addsBothAxes = (direction & 1) != 0;
+
+	// Outer glow endpoints start at the base offset positions already drawn.
+	Point2D outer1Start { ptSource.X + baseOffsets[0].X, ptSource.Y + baseOffsets[0].Y };
+	Point2D outer1End { ptSource.X + baseOffsets[1].X, ptSource.Y + baseOffsets[1].Y };
+	Point2D outer2Start { ptTarget.X + baseOffsets[0].X, ptTarget.Y + baseOffsets[0].Y };
+	Point2D outer2End { ptTarget.X + baseOffsets[1].X, ptTarget.Y + baseOffsets[1].Y };
+
+	// EXTENSION: separate endpoint set for the core, seeded at the UNOFFSET
+	// screen points. Without this the core stays exactly 1px no matter how
+	// high Thickness goes, because inner and outer are separate draws in the
+	// non-house path and only the outer participates in the offset loop.
+	Point2D core1Start = ptSource;
+	Point2D core1End = ptSource;
+	Point2D core2Start = ptTarget;
+	Point2D core2End = ptTarget;
+
+	ColorStruct layerColor = outerDrawColor;
+	const unsigned int threshold = useHighQuality ? 8u : 64u;
+
+	for (int layer = 2; layer <= layerCount; ++layer)
+	{
+		const auto& offsets = baseOffsets;
+
+		if (addsBothAxes)
+		{
+			outer1Start.X += offsets[0].X;
+			outer1Start.Y += offsets[0].Y;
+			outer1End.X += offsets[1].X;
+			outer1End.Y += offsets[1].Y;
+			outer2Start.X += offsets[0].X;
+			outer2Start.Y += offsets[0].Y;
+			outer2End.X += offsets[1].X;
+			outer2End.Y += offsets[1].Y;
+
+			core1Start.X += offsets[0].X;
+			core1Start.Y += offsets[0].Y;
+			core1End.X += offsets[1].X;
+			core1End.Y += offsets[1].Y;
+			core2Start.X += offsets[0].X;
+			core2Start.Y += offsets[0].Y;
+			core2End.X += offsets[1].X;
+			core2End.Y += offsets[1].Y;
+		}
+		else if (layer & 1)
+		{
+			outer1Start.X += offsets[0].X;
+			outer1End.Y += offsets[1].Y;
+			outer2Start.X += offsets[0].X;
+			outer2End.Y += offsets[1].Y;
+
+			core1Start.X += offsets[0].X;
+			core1End.Y += offsets[1].Y;
+			core2Start.X += offsets[0].X;
+			core2End.Y += offsets[1].Y;
+		}
+		else
+		{
+			outer1Start.Y += offsets[0].Y;
+			outer1End.X += offsets[1].X;
+			outer2Start.Y += offsets[0].Y;
+			outer2End.X += offsets[1].X;
+
+			core1Start.Y += offsets[0].Y;
+			core1End.X += offsets[1].X;
+			core2Start.Y += offsets[0].Y;
+			core2End.X += offsets[1].X;
+		}
+
+		// EXTENSION: widen the core for the first coreThickness layers at full
+		// inner colour, so the beam reads as a solid rod rather than a shell.
+		// No falloff is applied here — the core is deliberately flat; the glow
+		// below is what fades.
+		if (widenCore && layer <= coreThickness)
+		{
+			ColorStruct coreColor = InnerColor;
+
+			if (useHighQuality)
+			{
+				DSurface::Temp->DrawRGBMultiplyingLine_AZ(
+					DSurface::ViewBounds.operator->(), &core1Start, &core2Start,
+					&coreColor, intensity, zSource, zTarget);
+				DSurface::Temp->DrawRGBMultiplyingLine_AZ(
+					DSurface::ViewBounds.operator->(), &core1End, &core2End,
+					&coreColor, intensity, zSource, zTarget);
+			}
+			else
+			{
+				const unsigned int corePacked = coreColor.ToInit();
+
+				DSurface::Temp->DrawLineColor_AZ(
+					DSurface::ViewBounds(), core1Start, core2Start,
+					corePacked, zSource, zTarget, false);
+				DSurface::Temp->DrawLineColor_AZ(
+					DSurface::ViewBounds(), core1End, core2End,
+					corePacked, zSource, zTarget, false);
+			}
+		}
+
+		// The glow stops at Thickness even when the core runs longer, so a
+		// CoreThickness > Thickness configuration produces a fat solid beam
+		// with a thin halo rather than extending the halo to match.
+		if (!hasOuterColor || layer > Thickness)
+			continue;
+
+		// BUGFIX (issue #5): the falloff is evaluated BEFORE drawing on this
+		// path, so passing `layer` directly makes the final layer exactly
+		// black and trips the dim-out break without ever drawing it — which
+		// made Thickness == 2 identical to Thickness == 1. Offsetting by one
+		// puts this loop on the same curve _DrawInHouseColor uses, where the
+		// first applied falloff step is _CalculateSmoothFalloff(T, 1).
+		const int falloffLayer = LaserDrawConfig::FixFalloffFinalLayer ? (layer - 1) : layer;
+		const double mult = _CalculateSmoothFalloff(Thickness, falloffLayer);
+
+		layerColor.R = static_cast<unsigned char>(mult * outerDrawColor.R);
+		layerColor.G = static_cast<unsigned char>(mult * outerDrawColor.G);
+		layerColor.B = static_cast<unsigned char>(mult * outerDrawColor.B);
+
+		if (layerColor.R < threshold && layerColor.G < threshold && layerColor.B < threshold)
+			break;
+
+		if (useHighQuality)
+		{
+			DSurface::Temp->DrawRGBMultiplyingLine_AZ(
+				DSurface::ViewBounds.operator->(), &outer1Start, &outer2Start,
+				&layerColor, intensity, zSource, zTarget);
+			DSurface::Temp->DrawRGBMultiplyingLine_AZ(
+				DSurface::ViewBounds.operator->(), &outer1End, &outer2End,
+				&layerColor, intensity, zSource, zTarget);
+		}
+		else
+		{
+			ColorStruct adjusted = layerColor;
+			static constexpr ColorStruct white { 255, 255, 255 };
+			adjusted.Adjust(ratio, white);
+			const unsigned int packed = adjusted.ToInit();
+
+			DSurface::Temp->DrawLineColor_AZ(
+				DSurface::ViewBounds(), outer1Start, outer2Start,
+				packed, zSource, zTarget, false);
+			DSurface::Temp->DrawLineColor_AZ(
+				DSurface::ViewBounds(), outer1End, outer2End,
+				packed, zSource, zTarget, false);
+		}
+	}
+}
+
 void LaserDrawClassExtData::Clear()
 {
 	Array.clear();
@@ -37,7 +980,6 @@ void LaserDrawClassExtData::PointerExpired(void* ptr, bool removed)
 // Static member initialization
 // ============================================================================
 Point2D FakeLaserDrawClass::DrawCoords[8][2];
-bool FakeLaserDrawClass::s_CoordsInitialized = false;
 
 // ============================================================================
 // FakeHouseClass::_InitLaserColor
@@ -63,46 +1005,6 @@ void FakeHouseClass::_InitLaserColor()
 	Debug::Log("[LaserDraw] _InitLaserColor result: R=%d G=%d B=%d\n",
 		this->LaserColor.R, this->LaserColor.G, this->LaserColor.B);
 #endif
-}
-
-// ============================================================================
-// InitializeDirectionCoords - One-time init of direction offset lookup table
-//
-// The table defines pixel offsets for 8 compass directions.
-// Each direction has two offset vectors used for thickness expansion.
-// Directions 0,4 and 2,6 are diagonal pairs; 1,5 and 3,7 are axis-aligned.
-// ============================================================================
-void FakeLaserDrawClass::_InitializeDirectionCoords()
-{
-	if (s_CoordsInitialized)
-		return;
-
-	// Direction 0: SW-NE diagonal
-	DrawCoords[0][0] = { -1, -1 };
-	DrawCoords[0][1] = {  1,  1 };
-	// Direction 1: Vertical
-	DrawCoords[1][0] = {  0, -1 };
-	DrawCoords[1][1] = {  0,  1 };
-	// Direction 2: NW-SE diagonal
-	DrawCoords[2][0] = { -1,  1 };
-	DrawCoords[2][1] = {  1, -1 };
-	// Direction 3: Horizontal
-	DrawCoords[3][0] = { -1,  0 };
-	DrawCoords[3][1] = {  1,  0 };
-	// Direction 4: SW-NE diagonal (same as 0)
-	DrawCoords[4][0] = { -1, -1 };
-	DrawCoords[4][1] = {  1,  1 };
-	// Direction 5: Vertical (same as 1)
-	DrawCoords[5][0] = {  0, -1 };
-	DrawCoords[5][1] = {  0,  1 };
-	// Direction 6: SE-NW diagonal (mirrored 2)
-	DrawCoords[6][0] = {  1, -1 };
-	DrawCoords[6][1] = { -1,  1 };
-	// Direction 7: Horizontal (same as 3)
-	DrawCoords[7][0] = { -1,  0 };
-	DrawCoords[7][1] = {  1,  0 };
-
-	s_CoordsInitialized = true;
 }
 
 // ============================================================================
@@ -171,24 +1073,6 @@ ColorStruct FakeLaserDrawClass::_PrepareDrawColor() const
 			static_cast<unsigned char>(InnerColor.B >> 1)
 		};
 	}
-}
-
-// ============================================================================
-// CalculateSmoothFalloff - Exponential falloff for thickness layers
-//
-// ORIGINAL: each layer halves (>>1) the color - harsh 50% steps
-// NEW: smooth exponential falloff: (1 - step*layer) * (1-step)^layer
-//
-// This produces a much smoother transition from bright center to dim edges.
-// ============================================================================
-double FakeLaserDrawClass::_CalculateSmoothFalloff(int thickness, int currentLayer)
-{
-	if (thickness <= 1)
-		return 1.0;
-
-	const double falloffStep = 1.0 / static_cast<double>(thickness);
-	const double falloffMult = GeneralUtils::SecsomeFastPow(1.0 - falloffStep, static_cast<size_t>(currentLayer));
-	return (1.0 - falloffStep * static_cast<double>(currentLayer)) * falloffMult;
 }
 
 // ============================================================================
@@ -370,559 +1254,6 @@ void __fastcall FakeLaserDrawClass::_DrawAllLasers()
 	}
 }
 
-// ============================================================================
-// DrawLaser - Main draw function (backported from LaserDrawClass::Draw)
-//
-// MAJOR CHANGE: Now supports Thickness for non-house-color (multicolored)
-// lasers too! Previously Thickness was only respected for IsHouseColor.
-//
-// For multicolored lasers with Thickness > 1, we draw the outer color
-// layers with thickness, similar to house-color behavior.
-//
-// Flow:
-// 1. If Duration <= 0, skip
-// 2. If IsHouseColor, delegate to DrawInHouseColor
-// 3. Otherwise, draw the multicolored laser:
-//    a. Calculate direction, screen coords, z-depths
-//    b. Compute random spread for outer color
-//    c. Draw based on detail level (high/low quality)
-//    d. NEW: Apply thickness layers for outer color lines
-// ============================================================================
-void FakeLaserDrawClass::_DrawLaser()
-{
-	if (Duration <= 0)
-		return;
-
-	if (ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar) {
-		auto const pMap = MapClass::Instance();
-
-		if (pMap->IsLocationFogged(Source) && pMap->IsLocationFogged(Target))
-			return;
-	}
-
-#ifdef LASERDRAWDEBUG
-	Debug::Log("[LaserDraw] DrawLaser @ %p (HouseColor=%d, Thickness=%d, Duration=%d, Stage=%d)\n",
-		this, IsHouseColor, Thickness, Duration, Progress.Stage);
-#endif
-
-	if (IsHouseColor)
-	{
-		_DrawInHouseColor();
-		return;
-	}
-
-	// Skip if blinking and currently in "off" state
-	if (BlinkState)
-		return;
-
-	_InitializeDirectionCoords();
-
-	// Calculate direction index from world coordinates
-	const unsigned int direction = _CalculateDirectionIndex(Source, Target);
-
-	// Convert world to screen coordinates
-	Point2D ptSource = TacticalClass::Instance->CoordsToClient(Source);
-	Point2D ptTarget = TacticalClass::Instance->CoordsToClient(Target);
-
-	// Calculate Z-depths for depth sorting
-	const int zSource = ZAdjust - Game::AdjustHeight(Source.Z) - 2;
-	const int zTarget = -2 - Game::AdjustHeight(Target.Z);
-
-	// Determine if outer color exists
-	const bool hasOuterColor = (OuterColor.R != 0 || OuterColor.G != 0 || OuterColor.B != 0);
-
-	// Calculate random spread for outer color
-	ColorStruct outerDrawColor {};
-	unsigned int outerPacked = 0;
-
-	if (hasOuterColor)
-	{
-		const int spreadR = Random2Class::NonCriticalRandomNumber->RandomRanged(
-			-static_cast<int>(OuterSpread.R), static_cast<int>(OuterSpread.R));
-		const int spreadG = Random2Class::NonCriticalRandomNumber->RandomRanged(
-			-static_cast<int>(OuterSpread.G), static_cast<int>(OuterSpread.G));
-		const int spreadB = Random2Class::NonCriticalRandomNumber->RandomRanged(
-			-static_cast<int>(OuterSpread.B), static_cast<int>(OuterSpread.B));
-
-		int r = std::clamp(static_cast<int>(OuterColor.R) + spreadR, 0, 255);
-		int g = std::clamp(static_cast<int>(OuterColor.G) + spreadG, 0, 255);
-		int b = std::clamp(static_cast<int>(OuterColor.B) + spreadB, 0, 255);
-
-		outerDrawColor = { static_cast<unsigned char>(r),
-			static_cast<unsigned char>(g), static_cast<unsigned char>(b) };
-		outerPacked = outerDrawColor.ToInit();
-	}
-
-	// Calculate intensity
-	float intensity = 1.0f;
-	if (Fades)
-	{
-		const int elapsed = Duration - Progress.Stage;
-		const float delta = StartIntensity - EndIntensity;
-		intensity = (delta * static_cast<float>(elapsed) / static_cast<float>(Duration))
-			+ EndIntensity;
-	}
-	const int ratio = static_cast<int>(intensity * 255.0f);
-
-	// Check if inner color has non-zero channels (for subtractive line)
-	const bool hasRed = (InnerColor.R != 0);
-	const bool hasGreen = (InnerColor.G != 0);
-	const bool hasBlue = (InnerColor.B != 0);
-
-	// Determine rendering quality
-	const bool useHighQuality = FakeRulesClass::DetailsCurrentlyEnabled();
-
-	// ====================================================================
-	// Draw the laser based on detail level
-	// ====================================================================
-	if (useHighQuality)
-	{
-		if (Blinks)
-		{
-			// Subtractive drawing for blinking lasers
-			ColorStruct innerCopy = InnerColor;
-			DSurface::Temp->DrawSubtractiveLine_AZB(
-				DSurface::ViewBounds(),
-				ptSource, ptTarget,
-				innerCopy,
-				zSource, zTarget,
-				false, true, true, true,
-				intensity
-			);
-
-			// Draw outer color lines if present
-			if (hasOuterColor)
-			{
-				const auto& off0 = DrawCoords[direction][0];
-				const auto& off1 = DrawCoords[direction][1];
-
-				Point2D outerSrc0 = { ptSource.X + off0.X, ptSource.Y + off0.Y };
-				Point2D outerTgt0 = { ptTarget.X + off0.X, ptTarget.Y + off0.Y };
-
-				ColorStruct outerCopy0 = outerDrawColor;
-				DSurface::Temp->DrawSubtractiveLine_AZB(
-					DSurface::ViewBounds(),
-					outerSrc0, outerTgt0,
-					outerCopy0,
-					zSource, zTarget,
-					false, true, true, true,
-					intensity
-				);
-
-				Point2D outerSrc1 = { ptSource.X + off1.X, ptSource.Y + off1.Y };
-				Point2D outerTgt1 = { ptTarget.X + off1.X, ptTarget.Y + off1.Y };
-
-				ColorStruct outerCopy1 = outerDrawColor;
-				DSurface::Temp->DrawSubtractiveLine_AZB(
-					DSurface::ViewBounds(),
-					outerSrc1, outerTgt1,
-					outerCopy1,
-					zSource, zTarget,
-					false, true, true, true,
-					intensity
-				);
-			}
-		}
-		else if (hasOuterColor)
-		{
-			// RGB multiplying draw with outer color
-			const auto& off0 = DrawCoords[direction][0];
-			const auto& off1 = DrawCoords[direction][1];
-
-			Point2D outerSrc0 = { ptSource.X + off0.X, ptSource.Y + off0.Y };
-			Point2D outerTgt0 = { ptTarget.X + off0.X, ptTarget.Y + off0.Y };
-
-			DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-				DSurface::ViewBounds.operator->(), &outerSrc0, &outerTgt0,
-				&outerDrawColor, intensity, zSource, zTarget
-			);
-
-			Point2D outerSrc1 = { ptSource.X + off1.X, ptSource.Y + off1.Y };
-			Point2D outerTgt1 = { ptTarget.X + off1.X, ptTarget.Y + off1.Y };
-
-			DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-				DSurface::ViewBounds.operator->(), &outerSrc1, &outerTgt1,
-				&outerDrawColor, intensity, zSource, zTarget
-			);
-
-			// Draw inner color center line
-			ColorStruct innerCopy = InnerColor;
-			DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-				DSurface::ViewBounds.operator->(), &ptSource, &ptTarget,
-				&innerCopy, intensity, zSource, zTarget
-			);
-		}
-		else
-		{
-			// Subtractive drawing for non-outer-color (fading) lasers
-			ColorStruct innerFade = InnerColor;
-			DSurface::Temp->DrawSubtractiveLine_AZB(
-				DSurface::ViewBounds(),
-				ptSource, ptTarget,
-				innerFade,
-				zSource, zTarget,
-				false, hasRed, hasGreen, hasBlue,
-				intensity
-			);
-		}
-	}
-	else
-	{
-		// Low quality: simple colored line
-		const unsigned int innerPacked = ColorStruct(InnerColor.R, InnerColor.G, InnerColor.B).ToInit();
-
-		DSurface::Temp->DrawLineColor_AZ(
-			DSurface::ViewBounds(),
-			ptSource, ptTarget,
-			innerPacked, zSource, zTarget, false
-		);
-
-		if (hasOuterColor)
-		{
-			const auto& off0 = DrawCoords[direction][0];
-			const auto& off1 = DrawCoords[direction][1];
-
-			Point2D outerSrc0 = { ptSource.X + off0.X, ptSource.Y + off0.Y };
-			Point2D outerTgt0 = { ptTarget.X + off0.X, ptTarget.Y + off0.Y };
-
-			DSurface::Temp->DrawLineColor_AZ(
-				DSurface::ViewBounds(),
-				outerSrc0, outerTgt0,
-				outerPacked, zSource, zTarget, false
-			);
-
-			Point2D outerSrc1 = { ptSource.X + off1.X, ptSource.Y + off1.Y };
-			Point2D outerTgt1 = { ptTarget.X + off1.X, ptTarget.Y + off1.Y };
-
-			DSurface::Temp->DrawLineColor_AZ(
-				DSurface::ViewBounds(),
-				outerSrc1, outerTgt1,
-				outerPacked, zSource, zTarget, false
-			);
-		}
-	}
-
-	// ====================================================================
-	// NEW: Draw additional thickness layers for multicolored lasers
-	// Previously Thickness was only used for IsHouseColor
-	// Now we apply thickness to the outer color with smooth falloff
-	// ====================================================================
-	if (Thickness > 1 && hasOuterColor && !Game::bDirect3DIsUseable.get())
-	{
-		const bool isDiagonal = (direction & 1) != 0;
-
-		// Start from the base outer offset positions
-		Point2D line1Start = ptSource;
-		Point2D line1End = ptSource;
-		Point2D line2Start = ptTarget;
-		Point2D line2End = ptTarget;
-
-		// Apply the base offset (layer 0 is the already-drawn outer lines)
-		const auto& baseOff0 = DrawCoords[direction][0];
-		const auto& baseOff1 = DrawCoords[direction][1];
-		line1Start = { ptSource.X + baseOff0.X, ptSource.Y + baseOff0.Y };
-		line1End = { ptSource.X + baseOff1.X, ptSource.Y + baseOff1.Y };
-		line2Start = { ptTarget.X + baseOff0.X, ptTarget.Y + baseOff0.Y };
-		line2End = { ptTarget.X + baseOff1.X, ptTarget.Y + baseOff1.Y };
-
-		ColorStruct layerColor = outerDrawColor;
-
-		for (int layer = 2; layer <= Thickness; ++layer)
-		{
-			// Expand the lines outward
-			const auto& offsets = DrawCoords[direction];
-			if (isDiagonal)
-			{
-				line1Start.X += offsets[0].X;
-				line1Start.Y += offsets[0].Y;
-				line1End.X += offsets[1].X;
-				line1End.Y += offsets[1].Y;
-				line2Start.X += offsets[0].X;
-				line2Start.Y += offsets[0].Y;
-				line2End.X += offsets[1].X;
-				line2End.Y += offsets[1].Y;
-			}
-			else if (layer & 1)
-			{
-				line1Start.X += offsets[0].X;
-				line1End.Y += offsets[1].Y;
-				line2Start.X += offsets[0].X;
-				line2End.Y += offsets[1].Y;
-			}
-			else
-			{
-				line1Start.Y += offsets[0].Y;
-				line1End.X += offsets[1].X;
-				line2Start.Y += offsets[0].Y;
-				line2End.X += offsets[1].X;
-			}
-
-			// Calculate smooth falloff for this layer
-			const double mult = _CalculateSmoothFalloff(Thickness, layer);
-			layerColor.R = static_cast<unsigned char>(mult * outerDrawColor.R);
-			layerColor.G = static_cast<unsigned char>(mult * outerDrawColor.G);
-			layerColor.B = static_cast<unsigned char>(mult * outerDrawColor.B);
-
-			// Check if color is too dim to continue
-			const unsigned int threshold = useHighQuality ? 8u : 64u;
-			if (layerColor.R < threshold && layerColor.G < threshold && layerColor.B < threshold)
-				break;
-
-			if (useHighQuality)
-			{
-				DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-					DSurface::ViewBounds.operator->(), &line1Start, &line2Start,
-					&layerColor, intensity, zSource, zTarget
-				);
-				DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-					DSurface::ViewBounds.operator->(), &line1End, &line2End,
-					&layerColor, intensity, zSource, zTarget
-				);
-			}
-			else
-			{
-				ColorStruct adjustedColor = layerColor;
-				static constexpr ColorStruct white { 255, 255, 255 };
-				adjustedColor.Adjust(ratio, white);
-				const unsigned int packed = adjustedColor.ToInit();
-
-				DSurface::Temp->DrawLineColor_AZ(
-					DSurface::ViewBounds(),
-					line1Start, line2Start,
-					packed, zSource, zTarget, false
-				);
-				DSurface::Temp->DrawLineColor_AZ(
-					DSurface::ViewBounds(),
-					line1End, line2End,
-					packed, zSource, zTarget, false
-				);
-			}
-		}
-	}
-}
-
-// ============================================================================
-// DrawInHouseColor - Draw house-color laser with thickness (backported)
-//
-// Backported from LaserDrawClass::Draw_In_House_Color with smooth falloff.
-// This is the function that handles IsHouseColor=true and IsSingleColor lasers.
-//
-// Changes from original:
-// - Smooth exponential falloff replaces harsh >>1 halving
-// - Uses CalculateSmoothFalloff for gradual color reduction per layer
-// - Captures maxColor before the thickness loop for falloff base
-// ============================================================================
-void FakeLaserDrawClass::_DrawInHouseColor()
-{
-#ifdef LASERDRAWDEBUG
-	Debug::Log("[LaserDraw] DrawInHouseColor @ %p (Thickness=%d, Inner: R=%d G=%d B=%d)\n",
-		this, Thickness, InnerColor.R, InnerColor.G, InnerColor.B);
-#endif
-
-	_InitializeDirectionCoords();
-
-	// Calculate direction index
-	const unsigned int direction = _CalculateDirectionIndex(Source, Target);
-
-	// Convert world to screen coordinates
-	Point2D ptSource = TacticalClass::Instance->CoordsToClient(Source);
-	Point2D ptTarget = TacticalClass::Instance->CoordsToClient(Target);
-
-	// Calculate Z-depths
-	const int zSource = ZAdjust - Game::AdjustHeight(Source.Z) - 2;
-	const int zTarget = -2 - Game::AdjustHeight(Target.Z);
-
-	// Determine rendering quality
-	const bool useHighQuality = FakeRulesClass::DetailsCurrentlyEnabled();
-
-	// Calculate intensity
-	float intensity = 1.0f;
-	if (Fades)
-	{
-		const int elapsed = Duration - Progress.Stage;
-		const float delta = StartIntensity - EndIntensity;
-		intensity = (delta * static_cast<float>(elapsed) / static_cast<float>(Duration))
-			+ EndIntensity;
-	}
-	const int ratio = static_cast<int>(intensity * 255.0f);
-
-	// Prepare colors
-	ColorStruct workingColor = _PrepareDrawColor();
-
-	// Capture max color for smooth falloff calculations
-	const ColorStruct maxColor = workingColor;
-
-	// Store original inner color (used when IsSupported and layer == 1)
-	const ColorStruct innerColor = InnerColor;
-
-	// Initialize line endpoint pairs
-	Point2D line1Start = ptSource;
-	Point2D line1End = ptSource;
-	Point2D line2Start = ptTarget;
-	Point2D line2End = ptTarget;
-
-	// Draw thickness layers
-	const bool isDiagonal = (direction & 1) != 0;
-
-	if (Thickness >= 1)
-	{
-		for (int layer = 1; layer <= Thickness; ++layer)
-		{
-			// Apply direction offset to expand lines outward
-			const auto& offsets = DrawCoords[direction];
-
-			if (isDiagonal)
-			{
-				line1Start.X += offsets[0].X;
-				line1Start.Y += offsets[0].Y;
-				line1End.X += offsets[1].X;
-				line1End.Y += offsets[1].Y;
-				line2Start.X += offsets[0].X;
-				line2Start.Y += offsets[0].Y;
-				line2End.X += offsets[1].X;
-				line2End.Y += offsets[1].Y;
-			}
-			else if (layer & 1)
-			{
-				line1Start.X += offsets[0].X;
-				line1End.Y += offsets[1].Y;
-				line2Start.X += offsets[0].X;
-				line2End.Y += offsets[1].Y;
-			}
-			else
-			{
-				line1Start.Y += offsets[0].Y;
-				line1End.X += offsets[1].X;
-				line2Start.Y += offsets[0].Y;
-				line2End.X += offsets[1].X;
-			}
-
-			if (!Game::bDirect3DIsUseable.get())
-			{
-				// Draw the lines for this layer
-				if (useHighQuality)
-				{
-					DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-						DSurface::ViewBounds.operator->(),
-						&line1Start, &line2Start,
-						&workingColor, intensity,
-						zSource, zTarget
-					);
-					DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-						DSurface::ViewBounds.operator->(),
-						&line1End, &line2End,
-						&workingColor, intensity,
-						zSource, zTarget
-					);
-				}
-				else
-				{
-					ColorStruct rgbWork = workingColor;
-					static constexpr ColorStruct white { 255, 255, 255 };
-					rgbWork.Adjust(ratio, white);
-					const unsigned int packed = rgbWork.ToInit();
-
-					DSurface::Temp->DrawLineColor_AZ(
-						DSurface::ViewBounds(),
-						line1Start, line2Start,
-						packed, zSource, zTarget, false
-					);
-					DSurface::Temp->DrawLineColor_AZ(
-						DSurface::ViewBounds(),
-						line1End, line2End,
-						packed, zSource, zTarget, false
-					);
-				}
-
-				// Color falloff for next layer
-				if (IsSupported && layer == 1)
-				{
-					// First layer with AdjustColor: reset to inner color
-					workingColor = innerColor;
-				}
-				else
-				{
-					// Smooth exponential falloff using maxColor as base
-					const unsigned int threshold = useHighQuality ? 8u : 64u;
-					const double mult = _CalculateSmoothFalloff(Thickness, layer);
-
-					workingColor.R = static_cast<unsigned char>(mult * maxColor.R);
-					workingColor.G = static_cast<unsigned char>(mult * maxColor.G);
-					workingColor.B = static_cast<unsigned char>(mult * maxColor.B);
-
-					// Check if too dim to continue
-					if (workingColor.R < threshold &&
-						workingColor.G < threshold &&
-						workingColor.B < threshold)
-					{
-						break;
-					}
-				}
-			}
-		}
-	}
-
-	// Final rendering: D3D triangle path or software center line
-	if (Game::bDirect3DIsUseable.get() && DSurface::CD3DTriangleInstance() && ZBuffer::Instance.get())
-	{
-		const short zMax = (short)ZBuffer::Instance->MaxValue;
-		const short viewportY = static_cast<short>(DSurface::ViewBounds->Y);
-
-		const int zValSource = zSource + zMax + ZBuffer::Instance->Area.Y
-			- static_cast<short>(ptSource.Y) - viewportY;
-		const int zValTarget = zTarget + zMax + ZBuffer::Instance->Area.Y
-			- static_cast<short>(ptTarget.Y) - viewportY;
-
-		const float szSource = static_cast<float>(zValSource & 0xFFFF) * 0.000015259022f;
-		const float szTarget = static_cast<float>(zValTarget & 0xFFFF) * 0.000015259022f;
-
-		const uint8 red = (uint8)((ratio * innerColor.R) >> 8);
-		const uint8 green = (uint8)((ratio * innerColor.G) >> 8);
-		const uint8 blue = (uint8)((ratio * innerColor.B) >> 8);
-
-		CD3DTriangle tri1, tri2;
-		tri1.Set_Color(red, green, blue);
-		tri2.Set_Color(red, green, blue);
-
-		tri1.Set_Coords(0, static_cast<float>(line1Start.X), static_cast<float>(line1Start.Y), szSource, 0.0f, 0.0f);
-		tri1.Set_Coords(1, static_cast<float>(line1End.X), static_cast<float>(line1End.Y), szSource, 0.0f, 1.0f);
-		tri1.Set_Coords(2, static_cast<float>(line2Start.X), static_cast<float>(line2Start.Y), szTarget, 1.0f, 0.0f);
-
-		tri2.Set_Coords(0, static_cast<float>(line1End.X), static_cast<float>(line1End.Y), szSource, 0.0f, 1.0f);
-		tri2.Set_Coords(1, static_cast<float>(line2End.X), static_cast<float>(line2End.Y), szTarget, 1.0f, 1.0f);
-		tri2.Set_Coords(2, static_cast<float>(line2Start.X), static_cast<float>(line2Start.Y), szTarget, 1.0f, 0.0f);
-
-		DSurface::CD3DTriangleInstance->Add(&tri1);
-		DSurface::CD3DTriangleInstance->Add(&tri2);
-	}
-	else
-	{
-		// Software center line
-		ColorStruct centerColor = innerColor;
-		if (useHighQuality)
-		{
-			DSurface::Temp->DrawRGBMultiplyingLine_AZ(
-				DSurface::ViewBounds.operator->(),
-				&ptSource, &ptTarget,
-				&centerColor, intensity,
-				zSource, zTarget
-			);
-		}
-		else
-		{
-			static constexpr ColorStruct white { 255, 255, 255 };
-			centerColor.Adjust(ratio, white);
-			const unsigned int packed = centerColor.ToInit();
-
-			DSurface::Temp->DrawLineColor_AZ(
-				DSurface::ViewBounds(),
-				ptSource, ptTarget,
-				packed, zSource, zTarget, false
-			);
-		}
-	}
-}
-
 //// ============================================================================
 //// Hook: HouseClass::init_laser_color (0x50BA00)
 //// Replaces the original RGB normalization function
@@ -930,7 +1261,6 @@ void FakeLaserDrawClass::_DrawInHouseColor()
 DEFINE_FUNCTION_JUMP(LJMP, 0x50BA00, FakeHouseClass::_InitLaserColor);
 DEFINE_FUNCTION_JUMP(CALL, 0x6880E6, FakeHouseClass::_InitLaserColor);
 DEFINE_FUNCTION_JUMP(CALL, 0x6881E7, FakeHouseClass::_InitLaserColor);
-
 
 // ============================================================================
 // Hook: Destroy_LaserDrawClassDVC (0x550000)
@@ -958,7 +1288,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x55B5C3, FakeLaserDrawClass::_UpdateAllLasers);
 // ============================================================================
 DEFINE_FUNCTION_JUMP(LJMP, 0x550240, FakeLaserDrawClass::_DrawAllLasers);
 DEFINE_FUNCTION_JUMP(CALL, 0x6D4669, FakeLaserDrawClass::_DrawAllLasers);
-//
+
 //// ============================================================================
 //// Hook: LaserDrawClass::Draw (0x550260)
 //// Replaces the per-instance draw function (__thiscall)

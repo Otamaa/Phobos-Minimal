@@ -1089,8 +1089,10 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 					pAn->SetOwnerObject(pThis);
 				}else{
 					const auto rend = pThis->GetRenderCoords();
-					pAn->ZAdjust = pThis->GetOccupantCount() > 0
-					? -200 : ((fireOrigin.Y - rend.Y) / -4 >= 0 ? 0 : (fireOrigin.Y - rend.Y) / -4);
+					pAn->ZAdjust = ((fireOrigin.Y - rend.Y) / -4 >= 0 ? 0 : (fireOrigin.Y - rend.Y) / -4);
+					if (pThis->GetOccupantCount() > 0) {
+						pAn->ZAdjust = -200;
+					}
 				}
 			}
 		}
@@ -2195,12 +2197,9 @@ ASMJIT_PATCH(0x6FF48D, TechnoClass_FireAt_IsLaser, 0xA)
 		{
 			if (auto const pLaser = pThis->CreateLaser(pTarget, idxWeapon, pFiringWeaponType, CoordStruct::Empty))
 			{
-				if (Thickness == -1)
-				{
+				if (Thickness <  0) {
 					pLaser->Thickness = 2;
-				}
-				else
-				{
+				} else {
 					pLaser->Thickness = Thickness;
 
 					// required for larger Thickness to work right

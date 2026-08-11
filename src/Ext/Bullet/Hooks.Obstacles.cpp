@@ -140,11 +140,10 @@ ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 	int range = 0;
 	if (const auto keepRange = WeaponTypeExtData::GetTechnoKeepRange(pWeapon, pThis, false))
 		range = keepRange;
-	else {	
+	else {
 		range = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis);
 
-		if (range != -512)
-		{
+		if (range != -512) {
 			auto pRulesExt = FakeRulesClass::Instance();
 			auto pTypeExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 			auto prefiringExtraRange = pTypeExt->PrefiringExtraRange.Get(pRulesExt->PrefiringExtraRange);
@@ -163,10 +162,15 @@ ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 				range += chasingExtraRange;
 			}
 
-			const auto firerMovingExtraRange = pTypeExt->ExtraRange_FirerMoving.Get(FakeRulesClass::Instance ()->ExtraRange_FirerMoving);
+			const auto firerMovingExtraRange = pTypeExt->ExtraRange_FirerMoving.Get(FakeRulesClass::Instance()->ExtraRange_FirerMoving);
 
 			if (firerMovingExtraRange && IsMovingFire(pThis))
 				range += firerMovingExtraRange;
+		} else {
+
+			if (!pWeapon->MinimumRange && !WeaponTypeExtData::GetTechnoKeepRange(pWeapon, pThis, true)) {
+				return RetTrue;
+			}
 		}
 	}
 
@@ -224,6 +228,30 @@ ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 	return ContinueCheck;
 }
 
+DEFINE_HOOK(0x4D59F0, FootClass_ApproachTarget_ClearCond, 0x6)
+{
+	enum { SkipClear = 0x4D5A07, Clear = 0x4D59FB };
+
+	GET(int, distDestTarget, EAX);  // |Destination - Target|
+	GET(int, resetThreshold, EDX);  // ResetMultiplier * weapon range
+	GET_BASE(bool, keepDestination, 0x8);  // skips clearing when set
+
+	// Infinite-range weapons (Range=-2) read a negative weapon range into the
+	// clear-Destination threshold, so the vanilla distance check always fires
+	// and the unit paces instead of backing out of MinimumRange; keep the
+	// Destination here so these weapons back out like regular ones.
+	if (resetThreshold < 0)
+		return SkipClear;
+
+	if (distDestTarget <= resetThreshold)
+		return SkipClear;
+
+	if (keepDestination)
+		return SkipClear;
+
+	R->EDI(0);
+	return Clear;
+}
 // ASMJIT_PATCH(0x70CF6F, TechnoClass_ThreatCoefficients_WeaponRange, 0x6)
 // {
 // 	enum { SkipGameCode = 0x70CF75 };
