@@ -266,23 +266,25 @@ ASMJIT_PATCH(0x519FAF, InfantryClass_UpdatePosition_EngineerRepairsFriendly, 6)
 
 ASMJIT_PATCH(0x44e2b0, BuildingClass_Mission_Unload_LargeGap, 6)
 {
-	GET(BuildingClass*, pBld, EBP);
+	GET(BuildingClass*, pThis, EBP);
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pBld->Type);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
-	if (!pTypeExt->SuperGapRadiusInCells)
-		return 0x44E371;
+	if (pTypeExt->SuperGapRadiusInCells) {
+		auto const charged = !pThis->GapSuperCharged && pThis->IsPowerOnline();
 
-	const bool notCharged = !pBld->GapSuperCharged && pBld->IsPowerOnline();
+		if (pThis->GapSuperCharged != charged)
+		{
+			pThis->DestroyGap();
 
-	if (pBld->GapSuperCharged != notCharged)
-	{
-		pBld->DestroyGap();
-		pBld->HasExtraPowerDrain = notCharged;
-		pBld->GapSuperCharged = notCharged;
-		pBld->GapRadius = (notCharged ? pTypeExt->GapRadiusInCells : pTypeExt->SuperGapRadiusInCells).Get();
-		pBld->Owner->RecheckPower = true;
-		pBld->CreateGap();
+			pThis->HasExtraPowerDrain = charged;
+			pThis->GapSuperCharged = charged;
+			pThis->GapRadius = charged
+				? pTypeExt->SuperGapRadiusInCells : pTypeExt->GapRadiusInCells;
+			pThis->Owner->RecheckPower = true;
+
+			pThis->CreateGap();
+		}
 	}
 
 	return 0x44E371;

@@ -856,7 +856,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->ChangeOwner_SetAsMindControl.Read(exINI, pSection, "ChangeOwner.SetAsMindControl");
 	this->ChangeOwner_MindControlAnim.Read(exINI, pSection, "ChangeOwner.MindControlAnim");
 
-	this->PreventCrew.Read(exINI, pSection, "PreventCrew");
+	this->PreventCrew.Read(exINI, pSection, "PreventCrewEscape");
 	this->PreventPassengerEscape.Read(exINI, pSection, "PreventPassengerEscape");
 	this->PreventOccupantEscape.Read(exINI, pSection, "PreventOccupantEscape");
 	
