@@ -36,6 +36,38 @@ static COMPILETIMEEVAL int ObserverFlagPCXX = 70;
 static COMPILETIMEEVAL int ObserverFlagPCXY = 70;
 static COMPILETIMEEVAL int ObserverFlagPCXWidth = 45;
 static COMPILETIMEEVAL int ObserverFlagPCXHeight = 21;
+// [6A853A] / [6A8598] — unit classification, shared by both operands.
+enum class CameoRank : int
+{
+	Super = 0,
+	Ground = 1,
+	Air = 2,
+	Naval = 3,
+};
+
+CameoRank GetCameoRank(TechnoTypeClass* pTT, AbstractType rtti, bool isSuperWeapon)
+{
+	if (isSuperWeapon)
+		return CameoRank::Super;
+
+	const bool isUnitRtti = (rtti == AbstractType::UnitType || rtti == AbstractType::AircraftType);
+
+	if (!isUnitRtti || !pTT)
+		return CameoRank::Ground;
+
+	// DIFF: vanilla tests v22/typea (ConsideredAircraft) before v23/v33 (IsNaval),
+	// so a type flagged both Naval=yes and ConsideredAircraft=yes ranks as Air.
+	// VERIFY: offset 0xCCE = ConsideredAircraft
+	if (pTT->ConsideredAircraft)
+		return CameoRank::Air;
+
+	// BUGFIX: no longer gated on ConsideredAircraft.
+	// VERIFY: offset 0xD96 = Naval
+	if (pTT->Naval)
+		return CameoRank::Naval;
+
+	return CameoRank::Ground;
+}
 
 class NOVTABLE FakeStripClass : public StripClass
 {
@@ -48,35 +80,41 @@ public:
 	bool IsHigherPriority(AbstractType type1, int id1, AbstractType rtti2, int type2)
 	{
 		// ── Phase 1 [6A8433]: Fetch both techno types ─────────────────────────
-		TechnoTypeClass* pTT1 = ObjectTypeClass::FetchTechnoType(type1, id1);  // var_8 / edi
+		TechnoTypeClass* pTT1 = ObjectTypeClass::FetchTechnoType(type1, id1);   // var_8 / edi
 		TechnoTypeClass* pTT2 = ObjectTypeClass::FetchTechnoType(rtti2, type2); // var_4 / edx
 
-		// If rtti2 == 0 (RTTI_NONE), item1 always wins  [6A8455]
+		// If rtti2 == RTTI_NONE, item1 always wins  [6A8455]
 		if (rtti2 == AbstractType::None)
 			return true;
 
-		auto IseligibleByName = [](AbstractTypeClass* pTT1 , AbstractTypeClass* pTT2) -> bool{
-			if (FakeRulesClass::Instance()->SortCameoByName) {
-				const int result = strcmp(pTT1->Name, pTT2->Name);
+		auto IsEligibleByName = [](AbstractTypeClass* pLeft, AbstractTypeClass* pRight) -> bool
+			{
+				// EXTENSION: optional ID-based sort before the vanilla UIName tie-break.
+				if (FakeRulesClass::Instance()->SortCameoByName)
+				{
+					const int result = strcmp(pLeft->Name, pRight->Name);
 
-				if (result < 0)
-					return true;
-				else if (result > 0)
-					return true;
-			}
+					if (result < 0)
+						return true;
 
-			return wcscmp(pTT1->UIName, pTT2->UIName) <= 0;
-		};
+					// BUGFIX: was `return true;` — inverted the second half of the compare.
+					if (result > 0)
+						return false;
+				}
 
-		auto IseligibleByCost = [](int cost1 , int cost2 , bool def)-> bool {
-			if (cost1 < cost2) return true;
-			if (cost1 > cost2) return false;
+				// VERIFY: offset 0x60 = UIName (wchar_t*) on AbstractTypeClass
+				return wcscmp(pLeft->UIName, pRight->UIName) <= 0;
+			};
 
-			return def;
-		};
+		auto IsEligibleByCost = [](int cost1, int cost2, bool def) -> bool
+			{
+				if (cost1 < cost2) return true;
+				if (cost1 > cost2) return false;
 
-		// ── Phase 2 [6A8463]: CameoPriority extension sort (inlined from hook) ──
-		// EXTENSION: replaces ASMJIT_PATCH @ 0x6A8463
+				return def;
+			};
+
+		// ── Phase 2 [6A8463]: SW classification (vanilla) ─────────────────────
 		auto IsSuperWeaponRtti = [](AbstractType rtti) -> bool
 			{
 				return rtti == AbstractType::Special
@@ -84,9 +122,11 @@ public:
 					|| rtti == AbstractType::SuperWeaponType;
 			};
 
-		bool item1IsSW = IsSuperWeaponRtti(type1);
-		bool item2IsSW = IsSuperWeaponRtti(rtti2);
+		const bool item1IsSW = IsSuperWeaponRtti(type1);
+		const bool item2IsSW = IsSuperWeaponRtti(rtti2);
 
+		// ── Phase 2b: CameoPriority extension sort ────────────────────────────
+		// EXTENSION: replaces ASMJIT_PATCH @ 0x6A8463
 		{
 			const auto pLeftSWExt = item1IsSW
 				? SWTypeExtContainer::Instance.Find(SuperWeaponTypeClass::Array->Items[id1])
@@ -109,121 +149,73 @@ public:
 			}
 		}
 
-		// ── Phase 2b [6A8463]: Vanilla SW classification ──────────────────────
-
-
 		// ── Phase 3 [6A84A5]: SuperWeapon vs SuperWeapon comparison ───────────
 		if (item1IsSW && item2IsSW)
 		{
-			// VERIFY: SuperWeaponTypeClass::Array->get_or_default vs SuperWeaponTypes.Vector_Item — confirm correct accessor
 			SuperWeaponTypeClass* pSW1 = SuperWeaponTypeClass::Array->Items[id1];
 			SuperWeaponTypeClass* pSW2 = SuperWeaponTypeClass::Array->Items[type2];
 
 			// Sort by RechargeTime ascending  [6A84B1]
 			// VERIFY: offset 0xB0 = RechargeTime on SuperWeaponTypeClass
-			int rc1 = pSW1->RechargeTime;
-			int rc2 = pSW2->RechargeTime;
+			const int rc1 = pSW1->RechargeTime;
+			const int rc2 = pSW2->RechargeTime;
+
 			if (rc1 < rc2) return true;
 			if (rc1 > rc2) return false;
 
-			//if(!FakeRulesClass::Instance()->SortSWCameoByMoneyAmount){
-				// Tie-break by UIName  [6A84E1 → 6A86F3]
-				// VERIFY: offset 0x60 = UIName (wchar_t*) on AbstractTypeClass
-				return IseligibleByName(pSW1, pSW2);
-			//}
+			// Tie-break by UIName  [6A84E1 → 6A86F3]
+			return IsEligibleByName(pSW1, pSW2);
 
-			// const auto pLeftSWExt = SWTypeExtContainer::Instance.Find(pSW1);
+			// EXTENSION (disabled, kept from previous revision):
+			// const auto pLeftSWExt  = SWTypeExtContainer::Instance.Find(pSW1);
 			// const auto pRightSWExt = SWTypeExtContainer::Instance.Find(pSW2);
-
-			// return IseligibleByCost(pLeftSWExt->Money_Amount, pRightSWExt->Money_Amount , IseligibleByName(pSW1, pSW2));
+			// return IsEligibleByCost(pLeftSWExt->Money_Amount, pRightSWExt->Money_Amount, IsEligibleByName(pSW1, pSW2));
 		}
 
 		// ── Phase 4 [6A84E6]: Non-SW vs Non-SW side affinity check ───────────
-		// Only when NEITHER item is a SW; if exactly one is SW we skip to Phase 5.
+		// Only when NEITHER item is a SW; if exactly one is a SW, vanilla jumps
+		// straight to LABEL_26 (Phase 5).
 		if (!item1IsSW && !item2IsSW)
 		{
-			// VERIFY: HouseClass::CurrentPlayer->Type->Side; offset 0x34 = Class, 0xBC = Side
-			//int playerSide = HouseClass::CurrentPlayer->Type->SideIndex;
-
+			// ORIG: mov ebx,[edx+6D0h]; mov ecx,[edi+6D0h]; setz cl; setz al
 			// VERIFY: offset 0x6D0 = AIBasePlanningSide on TechnoTypeClass
-			//bool tt1MatchesSide = (playerSide == pTT1->AIBasePlanningSide) /* field[0x6D0] VERIFY */);
-			//bool tt2MatchesSide = (playerSide == pTT2->AIBasePlanningSide /* field[0x6D0] VERIFY */);
+			const int playerSide = HouseClass::CurrentPlayer->Type->SideIndex;
 
-			// SUSPECT: the asm reads [edx+6D0h] and [edi+6D0h] then setz into cl/al
-			// Preserved verbatim pending field-name confirmation from YRpp
-			// Real intent: favour item matching player's side
-			// ORIG: mov ebx,[edx+6D0h]; mov ecx,[edi+6D0h]; setz cl; setz al; ...
-			bool side1Match = (HouseClass::CurrentPlayer->Type->SideIndex == pTT1->AIBasePlanningSide);
-			bool side2Match = (HouseClass::CurrentPlayer->Type->SideIndex == pTT2->AIBasePlanningSide);
+			const bool side1Match = (playerSide == pTT1->AIBasePlanningSide);
+			const bool side2Match = (playerSide == pTT2->AIBasePlanningSide);
 
 			if (side1Match && !side2Match) return true;
 			if (!side1Match && side2Match) return false;
-			// else: both match or neither — fall through to Phase 5
+			// else: both match or neither — fall through
 		}
 
-		// ── Phase 5 [6A853A]: Aircraft/Naval classification ───────────────────
-		// RTTI 0x28=40=AircraftType, 0x03=InfantryType  VERIFY: confirm RTTI values
-		// VERIFY: offset 0xCCE = ConsideredAircraft (bool), 0xD96 = IsNaval (bool)
-		auto ClassifyUnit = [](TechnoTypeClass* pTT, AbstractType rtti) -> std::pair<bool /*isAir*/, bool /*isNaval*/>
-			{
-				bool isAirRtti = (rtti == AbstractType::UnitType || rtti == AbstractType::AircraftType);
-				bool isAir = false;
-				bool isNaval = false;
+		// ── Phase 5+6 [6A853A .. 6A8682]: class ordering ──────────────────────
+		// BUGFIX: replaces the old air/naval branch chain. Vanilla order is
+		//         Super -> Ground -> Air -> Naval.
+		const CameoRank rank1 = GetCameoRank(pTT1, type1, item1IsSW);
+		const CameoRank rank2 = GetCameoRank(pTT2, rtti2, item2IsSW);
 
-				if (isAirRtti)
-				{
-					isAir = pTT->ConsideredAircraft; // VERIFY offset 0xCCE
-					isNaval = isAir && pTT->Naval;   // VERIFY offset 0xD96
-				}
-				return { isAir, isNaval };
-			};
+		if (rank1 != rank2)
+			return rank1 < rank2;
 
-		auto [air1, naval1] = ClassifyUnit(pTT1, type1);
-		auto [air2, naval2] = ClassifyUnit(pTT2, rtti2);
+		// Equal rank → vanilla LABEL_74. Note: rank1 == rank2 == Super is already
+		// consumed by Phase 3, so pTT1/pTT2 are non-null from here on.
 
-		// Consolidated "neither is aerial-naval" flag  [6A85CC]
-		bool bothGround = !air2 && !naval2;
-
-		// ── Phase 6 [6A85D2]: Sort by unit class (SW / aircraft / naval / ground)
-		if (item1IsSW)
-		{
-			// item1 is SW, item2 is not → item1 always before IF item2 is air/naval/ground
-			if (air2 || naval2 || bothGround)
-				return true;
-			// else fall through to Level/Cost/Name
-		}
-		else if (air1)
-		{
-			// item1 is aircraft
-			if (item2IsSW)    return false;
-			if (air2)         return true;  // both air, fall through
-			if (!air2)        return false; // SUSPECT: original logic; item1 air > item2 non-air
-		}
-		else if (naval1)
-		{
-			// item1 is naval
-			if (item2IsSW)                return false;
-			if (!air2 && !naval2) { /* fall through */ }
-			else if (air2 || naval2)     return false;
-			else                         return false; // SUSPECT: collapsed branch
-		}
-		// else: item1 is ground — fall through in all cases
-
-		// ── Phase 7 [6A8682]: Sort by TechType.Level ──────────────────────────
+		// ── Phase 7 [6A8682]: Sort by TechLevel ───────────────────────────────
 		// VERIFY: offset 0x634 = Level on TechnoTypeClass
-		int lvl1 = pTT1->TechLevel;
-		int lvl2 = pTT2->TechLevel;  // SUSPECT: pTT2 maps to ebp=v26 at this point; confirm no rebind
+		const int lvl1 = pTT1->TechLevel;
+		const int lvl2 = pTT2->TechLevel;
+
 		if (lvl1 < lvl2) return true;
 		if (lvl1 > lvl2) return false;
 
-		// ── Phase 8 [6A86AC]: Sort by Cost_Of(HouseClass::CurrentPlayer()) ─────────────────────
+		// ── Phase 8 [6A86AC]: Sort by Cost_Of(PlayerPtr) ──────────────────────
 		// VERIFY: vtable offset 0x84 = Cost_Of virtual call
-		int cost1 = pTT1->GetActualCost(HouseClass::CurrentPlayer());
-		int cost2 = pTT2->GetActualCost(HouseClass::CurrentPlayer());  // SUSPECT: confirm pTT2 not rebound before this
+		const int cost1 = pTT1->GetActualCost(HouseClass::CurrentPlayer());
+		const int cost2 = pTT2->GetActualCost(HouseClass::CurrentPlayer());
 
 		// ── Phase 9 [6A86F3]: Final tie-break by UIName ───────────────────────
-		// VERIFY: offset 0x60 = UIName (wchar_t*) on AbstractTypeClass
-		return  IseligibleByCost(cost1 , cost2 , IseligibleByName(pTT1, pTT2));
+		return IsEligibleByCost(cost1, cost2, IsEligibleByName(pTT1, pTT2));
 	}
 
 	SHPCaches* __GetSpecialCameo(int specialIdx) {

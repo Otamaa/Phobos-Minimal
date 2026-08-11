@@ -133,7 +133,7 @@ void DrawTheMarker(
 		}
 		nPos.X -= 128;
 		nPos.Y -= 128;
-		Point2D n = TacticalClass::Instance->CoordsToScreen(nPos);
+		Point2D n = TacticalClass::Instance->CoordsToClient(nPos);
 		// 东
 		CoordStruct ePos = CellClass::Cell2Coord(eCell);
 		if (CellClass* pECell = MapClass::Instance->TryGetCellAt(eCell))
@@ -142,7 +142,7 @@ void DrawTheMarker(
 		}
 		ePos.X += 128;
 		ePos.Y -= 128;
-		Point2D e = TacticalClass::Instance->CoordsToScreen(ePos);
+		Point2D e = TacticalClass::Instance->CoordsToClient(ePos);
 		// 南
 		CoordStruct sPos = CellClass::Cell2Coord(sCell);
 		if (CellClass* pSCell = MapClass::Instance->TryGetCellAt(sCell))
@@ -151,7 +151,7 @@ void DrawTheMarker(
 		}
 		sPos.X += 128;
 		sPos.Y += 128;
-		Point2D s = TacticalClass::Instance->CoordsToScreen(sPos);
+		Point2D s = TacticalClass::Instance->CoordsToClient(sPos);
 		// 西
 		CoordStruct wPos = CellClass::Cell2Coord(wCell);
 		if (CellClass* pWCell = MapClass::Instance->TryGetCellAt(wCell))
@@ -160,7 +160,7 @@ void DrawTheMarker(
 		}
 		wPos.X -= 128;
 		wPos.Y += 128;
-		Point2D w = TacticalClass::Instance->CoordsToScreen(wPos);
+		Point2D w = TacticalClass::Instance->CoordsToClient(wPos);
 		if (dashed)
 		{
 			// 处理四角越界并绘制
@@ -224,7 +224,7 @@ void DrawTheMarker(
 			{
 				CellStruct cellPos { static_cast<short>(x), static_cast<short>(y) };
 				CoordStruct location = CellClass::Cell2Coord(cellPos);
-				Point2D point = TacticalClass::Instance->CoordsToScreen(location);
+				Point2D point = TacticalClass::Instance->CoordsToClient(location);
 				// 在可视范围内
 				if (point.X >= minVX && point.X <= maxVX && point.Y >= minVY && point.Y <= maxVY)
 				{
@@ -242,13 +242,13 @@ void DrawTheMarker(
 			{
 				CoordStruct cellPos = pCell->GetCoordsWithBridge();
 				CoordStruct pE = cellPos + CoordStruct { 128, -128, 0 };
-				Point2D e = TacticalClass::Instance->CoordsToScreen(pE);
+				Point2D e = TacticalClass::Instance->CoordsToClient(pE);
 				CoordStruct pW = cellPos + CoordStruct { -128, 128, 0 };
-				Point2D w = TacticalClass::Instance->CoordsToScreen(pW);
+				Point2D w = TacticalClass::Instance->CoordsToClient(pW);
 				CoordStruct pN = cellPos + CoordStruct { -128, -128, 0 };
-				Point2D n = TacticalClass::Instance->CoordsToScreen(pN);
+				Point2D n = TacticalClass::Instance->CoordsToClient(pN);
 				CoordStruct pS = cellPos + CoordStruct { 128, 128, 0 };
-				Point2D s = TacticalClass::Instance->CoordsToScreen(pS);
+				Point2D s = TacticalClass::Instance->CoordsToClient(pS);
 				if (dashed)
 				{
 					// 处理四角越界并绘制
@@ -316,7 +316,7 @@ void DrawTheMarker(
 			{
 				CellStruct cellPos { static_cast<short>(x), static_cast<short>(y) };
 				CoordStruct location = CellClass::Cell2Coord(cellPos);
-				Point2D point = TacticalClass::Instance->CoordsToScreen(location);
+				Point2D point = TacticalClass::Instance->CoordsToClient(location);
 				// 在可视范围内
 				if (point.X >= minVX && point.X <= maxVX && point.Y >= minVY && point.Y <= maxVY)
 				{
@@ -333,7 +333,7 @@ void DrawTheMarker(
 			// WWSB
 			CellStruct cell = pCell->MapCoords;
 			CoordStruct newPos { ((((cell.X << 8) + 128) / 256) << 8), ((((cell.Y << 8) + 128) / 256) << 8), 0 };
-			Point2D position = TacticalClass::Instance->CoordsToScreen(newPos);
+			Point2D position = TacticalClass::Instance->CoordsToClient(newPos);
 			position -= TacticalClass::Instance->TacticalPos;
 			int zAdjust = 15 * pCell->Level;
 			position.Y += -1 - zAdjust;
