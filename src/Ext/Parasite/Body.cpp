@@ -590,7 +590,9 @@ void FakeParasiteClass::__Detach(AbstractClass* detachingObject, bool permanent)
 
 	// Handle victim detachment
 	if (permanent && detachingObject == this->Victim) {
-		if (!Game::UserInputLocked.get()) {
+		static constexpr reference<bool, 0xA8ED5C> _SpecialFlag {};
+
+		if (!_SpecialFlag()) {
 			this->Victim = nullptr;
 			return;
 		}
