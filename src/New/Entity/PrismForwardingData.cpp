@@ -1,9 +1,9 @@
 #include "PrismForwardingData.h"
 
-
 void PrismForwardingData::LoadFromINIFile(BuildingTypeClass* pThis, CCINIClass* pINI)
 {
 	const char* pID = pThis->ID;
+
 	if (pINI->ReadString(pID, "PrismForwarding", "", Phobos::readBuffer) > 0)
 	{
 		if ((IS_SAME_STR_(Phobos::readBuffer, "yes"))
@@ -53,7 +53,17 @@ void PrismForwardingData::LoadFromINIFile(BuildingTypeClass* pThis, CCINIClass* 
 			{
 				if (exINI.ReadString(pID, pKey) > 0)
 				{
-					if (auto const pWeapon = WeaponTypeClass::FindOrAllocate(exINI.value()))
+					//changed on 11/08/2026 - Otamaa
+					//donot allocate new weapon
+					//the array initialization already fix the issues with the parsing 
+					//this in order to avoid wrong value input onto the tag
+					//then when new weapon allocated from say tag it maybe broken 
+					//example user may think it is weapon index and input an number 
+					//in result the weapon created is an number value as name 
+					//than proper weapon that already avaible on the weapon list
+					//altho this may break some mission
+					//dont allow that to happen here
+					if (auto const pWeapon = WeaponTypeClass::Find(exINI.value()))
 					{
 						auto const idxWeapon = pSetting != -1
 							? pSetting : this->GetUnusedWeaponSlot(pThis, elite);
@@ -85,6 +95,11 @@ void PrismForwardingData::LoadFromINIFile(BuildingTypeClass* pThis, CCINIClass* 
 						}
 						Weapon->FLH = *supportFLH;
 					}
+				} else {
+					Debug::INIParseFailed(
+						"BuildingType [%s] is a Prism Tower however "
+						"cannot find say %s weapon [%s] from the WeaponTypeClass array list "
+						, pThis->ID, elite ? "elite " : "", exINI.value());
 				}
 			};
 

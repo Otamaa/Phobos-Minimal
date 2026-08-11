@@ -198,7 +198,7 @@ public:
 	int SecondActiveSWIdx() const
 		{ JMP_THIS(0x457690); }
 
-	void FireLaser(CoordStruct Coords)
+	void FireSupportLaser(CoordStruct Coords)
 		{ JMP_THIS(0x44ABD0); }
 
 	bool IsBeingDrained() const

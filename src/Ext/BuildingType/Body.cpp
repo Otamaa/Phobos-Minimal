@@ -2698,12 +2698,13 @@ bool FakeBuildingTypeClass::_ReadFromINI(CCINIClass* pINI)
 	auto pExt = BuildingTypeExtContainer::Instance.Find(this);
 
 	bool status = this->BuildingTypeClass::LoadFromINI(pINI);
+	pExt->PrismForwarding.Initialize(this); // need to be early , because this decide the parsing result below
+
 	BuildingTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
 
 	//state change stuffs , need to re-initialize in-case non rules settings change
 	pExt->FoundationPowerTextShowLong = this->GetFoundationWidth() > 2 && this->GetFoundationHeight(false) > 2;
 	pExt->FoundationPrimaryFactoryTextShowLong = this->GetFoundationWidth() != 1;
-	pExt->PrismForwarding.Initialize(this);
 	return status;
 }
 

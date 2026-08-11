@@ -192,7 +192,7 @@ ASMJIT_PATCH(0x4503F0, BuildingClass_Update_Prism, 9)
 							(pTypeData->PrismForwarding.GetSupportModifier() + pData->MyPrismForwarding->ModifierReserve);
 						pTargetData->MyPrismForwarding->DamageReserve +=
 							(pTypeData->PrismForwarding.DamageAdd + pData->MyPrismForwarding->DamageReserve);
-						pThis->FireLaser(pThis->PrismTargetCoords);
+						pThis->FireSupportLaser(pThis->PrismTargetCoords);
 					}
 				}
 				if (PrismStage == PrismChargeState::Master)
