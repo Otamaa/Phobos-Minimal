@@ -41,8 +41,9 @@ ASMJIT_PATCH(0x4393F2, BombClass_SDDTOR, 0x5)
 	GET(BombClass *, pItem, ECX);
 	BombExtContainer::Instance.Remove(pItem);
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x438672, BombClass_CTOR, 0x5)
 
+#pragma optimize("", off)
 void FakeBombClass::__Detonate() { 
 	static COMPILETIMEEVAL reference<int, 0xABAD1C> WoodBridgeSet {};
 
@@ -61,6 +62,15 @@ void FakeBombClass::__Detonate() {
 		} else {
 			pTarget->BombVisible = false;
 			this->State = BombState::Removed;
+
+		/*	if (!pTarget || pTarget->AttachedBomb != this) {
+				this->Owner = nullptr;
+				this->Target = nullptr;
+				this->OwnerHouse = nullptr;
+				this->TickAudioController.AudioEventHandleEnd();
+				this->ShouldPlayTickingSound = 0;
+				return;
+			}*/
 
 			// Also adjust detonation coordinate.
 			auto pExt = this->_GetExtData();
@@ -135,6 +145,7 @@ void FakeBombClass::__Detonate() {
 		this->ShouldPlayTickingSound = 0;
 	}
 }
+#pragma optimize("", on)
 
 int FakeBombClass::__GetBombFrame()
 {

@@ -1937,33 +1937,39 @@ void FakeTacticalClass::_Render(DSurface* pSurface, bool flag, TacticalRenderMod
 		}
 	}
 
+	static bool _RadarblackoutTimerLoaded = false;
+	static const wchar_t* _Radartext_ = nullptr;
+	if(!_RadarblackoutTimerLoaded){
+		_Radartext_ = GeneralUtils::LoadStringUnlessMissing("MSG:RadarBlackoutTimer",L"RadarOff-Line");
+		_RadarblackoutTimerLoaded = true;
+	}
+
+	static bool _blackoutTimerLoaded = false;
+	static const wchar_t* _text_ = nullptr;
+	if(!_blackoutTimerLoaded){
+		_text_ = GeneralUtils::LoadStringUnlessMissing("MSG:BlackoutTimer",L"PowerOff-Line");
+		_blackoutTimerLoaded = true;
+	}
+
 	// --- Force-shield blackout timers (one per house) ---
 	for(auto pH : *HouseClass::Array) {
 		int rem = pH->RadarBlackoutTimer.GetTimeLeft();
 		if (rem > 0) {
-
-			const wchar_t* text = StringTable::TryFetchStringOrReturnDefault(
-				"MSG:RadarBlackoutTimer",L"RadarOff-Line");
-
 			this->__DrawTimersA(
 				timerSlot++,
 				ColorScheme::Array->Items[pH->ColorSchemeIndex],
 				rem / 15,
-				text, 0, 0);
+				_Radartext_, 0, 0);
 		}
 
 		int pWrrem = pH->PowerBlackoutTimer.GetTimeLeft();
 
 		if (pWrrem > 0) {
-
-			const wchar_t* textPwr = StringTable::TryFetchStringOrReturnDefault(
-				"MSG:BlackoutTimer",L"PowerOff-Line");
-
 			this->__DrawTimersA(
 				timerSlot++,
 				ColorScheme::Array->Items[pH->ColorSchemeIndex],
 				pWrrem / 15,
-				textPwr, 0, 0);
+				_text_, 0, 0);
 		}
 	}
 
