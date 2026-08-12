@@ -322,7 +322,6 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB624, FakeInfantryTypeClass::__Load)
 
 bool FakeInfantryTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-	InfantryTypeExtContainer::Instance.Find(this)->Initialize();
 	bool status = this->InfantryTypeClass::LoadFromINI(pINI);
 	InfantryTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
 	return status;
