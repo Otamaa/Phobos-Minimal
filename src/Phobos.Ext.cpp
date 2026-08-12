@@ -44,6 +44,7 @@
 #include <Ext/Mouse/Body.h>
 #include <Ext/IonBlast/Body.h>
 #include <Ext/INI/Body.h>
+#include <Ext/Observer/ObserverUI.h>
 
 //#include <Misc/TriggerMPOwner.h>
 
@@ -198,8 +199,8 @@ void PhobosExt::InvalidatePointers(AbstractClass* const pInvalid, bool const rem
 
 		LaserDrawClassExtData::PointerExpired(pInvalid, removed);
 		TechnoTextBoxClass::PointerGotInvalid(pInvalid, removed);
+		ObserverUIClass::Instance.CleanInvalidPointer(pInvalid);
 	}
-
 }
 
 void WhoHaveTheAINW() {

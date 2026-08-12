@@ -49,11 +49,66 @@
 #include <cwctype>
 #include <map>
 #include <sstream>
+#include <iterator>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 #include <windows.h>
 
 ObserverUIClass ObserverUIClass::Instance;
+
+// ---- ObserverUIPalette ----------------------------------------------------------------
+
+void ObserverUIPalette::Rebuild()
+{
+	this->White = Drawing::RGB2DWORD(255, 255, 255);
+	this->TextBright = Drawing::RGB2DWORD(220, 220, 220);
+	this->TextLabel = Drawing::RGB2DWORD(200, 200, 200);
+	this->TextMuted = Drawing::RGB2DWORD(180, 180, 180);
+	this->TextDim = Drawing::RGB2DWORD(160, 160, 160);
+	this->BorderLight = Drawing::RGB2DWORD(140, 140, 140);
+	this->TextFaint = Drawing::RGB2DWORD(120, 120, 120);
+	this->BorderNeutral = Drawing::RGB2DWORD(100, 100, 100);
+	this->Disabled = Drawing::RGB2DWORD(90, 90, 90);
+	this->BorderIdle = Drawing::RGB2DWORD(80, 80, 80);
+	this->BorderPanel = Drawing::RGB2DWORD(60, 60, 60);
+	this->Black = Drawing::RGB2DWORD(0, 0, 0);
+	this->Good = Drawing::RGB2DWORD(0, 255, 0);
+	this->Bad = Drawing::RGB2DWORD(255, 50, 50);
+	this->SoftBad = Drawing::RGB2DWORD(255, 90, 90);
+	this->Target = Drawing::RGB2DWORD(255, 120, 120);
+	this->Danger = Drawing::RGB2DWORD(255, 0, 0);
+	this->CloseHover = Drawing::RGB2DWORD(220, 40, 40);
+	this->Warning = Drawing::RGB2DWORD(255, 255, 0);
+	this->Veteran = Drawing::RGB2DWORD(255, 215, 0);
+	this->Highlight = Drawing::RGB2DWORD(0, 255, 255);
+	this->Accent = Drawing::RGB2DWORD(100, 220, 255);
+	this->Shield = Drawing::RGB2DWORD(100, 200, 255);
+	this->Destination = Drawing::RGB2DWORD(180, 220, 255);
+}
+
+const ObserverUIPalette& ObserverUIPalette::Get()
+{
+	static ObserverUIPalette palette;
+	static const DSurface* pCachedSurface = nullptr;
+
+	// Drawing::RGB2DWORD depends on the back buffer pixel format, so the table has to be
+	// rebuilt whenever the composite surface is recreated (resolution / video mode change).
+	const DSurface* const pComposite = DSurface::Composite();
+
+	if (pComposite != pCachedSurface)
+	{
+		pCachedSurface = pComposite;
+		palette.Rebuild();
+	}
+
+	return palette;
+}
+
+const ObserverUIPalette& UIColors()
+{
+	return ObserverUIPalette::Get();
+}
 
 // =====================================================================================
 // Helper bodies - the declarations live in ObserverUI.h
@@ -315,20 +370,18 @@ CoordStruct ObserverUIHelpers::GetPlayerStartCoords(HouseClass* pHouse)
 	return CoordStruct::Empty;
 }
 
+// OPTIMIZATION: this used to call TechnoClass::Array->find(), a linear scan over every techno
+// in the game, purely to detect a dangling pointer - and it ran for every open card every
+// frame. ObserverUIClass::CleanInvalidPointer now purges stale pointers on detach, so a plain
+// liveness test is enough.
 bool ObserverUIHelpers::IsTechnoValidAndAlive(TechnoClass* pTechno)
 {
-	if (!pTechno || TechnoClass::Array->find(pTechno) < 0)
-		return false;
-
-	return pTechno->IsAlive && !pTechno->InLimbo;
+	return pTechno && pTechno->IsAlive && !pTechno->InLimbo;
 }
 
 bool ObserverUIHelpers::IsBuildingValidAndAlive(BuildingClass* pBuilding)
 {
-	if (!pBuilding || BuildingClass::Array->find(pBuilding) < 0)
-		return false;
-
-	return pBuilding->IsAlive && !pBuilding->InLimbo;
+	return pBuilding && pBuilding->IsAlive && !pBuilding->InLimbo;
 }
 
 int ObserverUIHelpers::GetFactoryProgressPercent(FactoryClass* pFactory)
@@ -737,7 +790,13 @@ int ObserverUIHelpers::GetPlayerNumber(const std::vector<ObserverPlayerRow>& row
 ColorStruct ObserverUIHelpers::GetRowColor(const std::vector<ObserverPlayerRow>& rows, HouseClass* pHouse)
 {
 	auto const it = FindRow(rows, pHouse);
-	return (it != rows.end()) ? it->PlayerColor : ColorStruct { 180, 180, 180 };
+	return (it != rows.end()) ? it->PlayerColor : ObserverRGB::Muted;
+}
+
+DWORD ObserverUIHelpers::GetRowColorValue(const std::vector<ObserverPlayerRow>& rows, HouseClass* pHouse)
+{
+	auto const it = FindRow(rows, pHouse);
+	return (it != rows.end()) ? it->PlayerColorValue : UIColors().TextMuted;
 }
 
 Point2D ObserverUIHelpers::CascadePosition(size_t openWindowCount, int cardWidth)
@@ -907,15 +966,15 @@ void ObserverUIHelpers::DrawCloseButton(DSurface* pSurface, RectangleStruct rect
 	if (!pSurface || !BitFont::Instance())
 		return;
 
-	pSurface->Fill_Rect(rect, isHovered ? Drawing::RGB2DWORD(220, 40, 40) : Drawing::RGB2DWORD(60, 60, 60));
-	pSurface->Draw_Rect(rect, Drawing::RGB2DWORD(140, 140, 140));
+	pSurface->Fill_Rect(rect, isHovered ? UIColors().CloseHover : UIColors().BorderPanel);
+	pSurface->Draw_Rect(rect, UIColors().BorderLight);
 
 	int textWidth = 0;
 	int textHeight = 0;
 	BitFont::Instance->GetTextDimension(L"X", &textWidth, &textHeight, rect.Width);
 
 	Point2D position { rect.X + (rect.Width - textWidth) / 2, rect.Y + (rect.Height - textHeight) / 2 };
-	pSurface->DSurfaceDrawText(L"X", DSurface::ViewBounds.operator->(), &position, Drawing::RGB2DWORD(255, 255, 255), 0, TextPrintType::Point8);
+	pSurface->DSurfaceDrawText(L"X", DSurface::ViewBounds.operator->(), &position, UIColors().White, 0, TextPrintType::Point8);
 }
 
 void ObserverUIHelpers::DrawCameoOverlayText(DSurface* pSurface, const RectangleStruct& displayRect, const RectangleStruct& clipRect, const std::wstring& text, COLORREF color)
@@ -970,10 +1029,10 @@ void ObserverUIHelpers::DrawSimpleTooltip(DSurface* pSurface, const wchar_t* tex
 	int const tipY = std::max(10, mousePos.Y - textHeight - 12);
 
 	DrawPanel(pSurface, RectangleStruct { tipX - 4, tipY - 4, textWidth + 8, textHeight + 8 },
-		ColorStruct { 0, 0, 0 }, 200, Drawing::RGB2DWORD(140, 140, 140));
+		ObserverRGB::Black, 200, UIColors().BorderLight);
 
 	Point2D tipPoint { tipX, tipY };
-	pSurface->DSurfaceDrawText(text, DSurface::ViewBounds.operator->(), &tipPoint, Drawing::RGB2DWORD(255, 255, 255), 0, TextPrintType::Point8);
+	pSurface->DSurfaceDrawText(text, DSurface::ViewBounds.operator->(), &tipPoint, UIColors().White, 0, TextPrintType::Point8);
 }
 
 bool ObserverUIHelpers::DrawCameoImage(
@@ -1024,13 +1083,11 @@ void ObserverTextBlock::AddSegments(std::vector<ObserverTextSegment> segments)
 	int lineWidth = 0;
 	int lineHeight = 0;
 
-	for (auto const& segment : segments)
+	for (auto& segment : segments)
 	{
-		int width = 0;
-		int height = 0;
-		BitFont::Instance->GetTextDimension(segment.Text.c_str(), &width, &height, this->MaxWidth);
-		lineWidth += width;
-		lineHeight = std::max(lineHeight, height);
+		BitFont::Instance->GetTextDimension(segment.Text.c_str(), &segment.Width, &segment.Height, this->MaxWidth);
+		lineWidth += segment.Width;
+		lineHeight = std::max(lineHeight, segment.Height);
 	}
 
 	this->Width = std::max(this->Width, lineWidth);
@@ -1070,10 +1127,7 @@ void ObserverTextBlock::Render(DSurface* pSurface, const RectangleStruct& clipRe
 
 		for (auto const& segment : line.Segments)
 		{
-			int width = 0;
-			int height = 0;
-			BitFont::Instance->GetTextDimension(segment.Text.c_str(), &width, &height, this->MaxWidth);
-
+			// OPTIMIZATION: width/height were measured in AddSegments, no re-measure here.
 			BitFont::Instance->Color = static_cast<WORD>(segment.Color);
 			BitText::Instance->DrawText(
 				BitFont::Instance,
@@ -1081,12 +1135,12 @@ void ObserverTextBlock::Render(DSurface* pSurface, const RectangleStruct& clipRe
 				segment.Text.c_str(),
 				currentX,
 				currentY,
-				width,
+				segment.Width,
 				line.Height,
 				0, 0, 0
 			);
 
-			currentX += width;
+			currentX += segment.Width;
 		}
 
 		currentY += line.Height + LineGap;
@@ -1122,7 +1176,7 @@ void ObserverTooltipBox::Render(DSurface* pSurface, const ObserverTextBlock& blo
 
 	RectangleStruct const boxRect = Compute(block, mousePos, padding);
 
-	ObserverUIHelpers::DrawPanel(pSurface, boxRect, ColorStruct { 0, 0, 0 }, 75,
+	ObserverUIHelpers::DrawPanel(pSurface, boxRect, ObserverRGB::Black, 75,
 		Drawing::RGB2DWORD(borderColor.R, borderColor.G, borderColor.B));
 
 	block.Render(pSurface, boxRect, boxRect.X + padding, boxRect.Y + padding);
@@ -1131,25 +1185,25 @@ void ObserverTooltipBox::Render(DSurface* pSurface, const ObserverTextBlock& blo
 // ---- ObserverHouseSummary ----------------------------------------------------------------
 
 DWORD ObserverHouseSummary::White()
-{ return Drawing::RGB2DWORD(255, 255, 255); }
+{ return UIColors().White; }
 
 DWORD ObserverHouseSummary::Label()
-{ return Drawing::RGB2DWORD(200, 200, 200); }
+{ return UIColors().TextLabel; }
 
 DWORD ObserverHouseSummary::Muted()
-{ return Drawing::RGB2DWORD(180, 180, 180); }
+{ return UIColors().TextMuted; }
 
 DWORD ObserverHouseSummary::Good()
-{ return Drawing::RGB2DWORD(0, 255, 0); }
+{ return UIColors().Good; }
 
 DWORD ObserverHouseSummary::Bad()
-{ return Drawing::RGB2DWORD(255, 50, 50); }
+{ return UIColors().Bad; }
 
 DWORD ObserverHouseSummary::SoftBad()
-{ return Drawing::RGB2DWORD(255, 90, 90); }
+{ return UIColors().SoftBad; }
 
 DWORD ObserverHouseSummary::Accent()
-{ return Drawing::RGB2DWORD(100, 220, 255); }
+{ return UIColors().Accent; }
 
 bool ObserverHouseSummary::UsePlayerNumber(int playerNumber, bool isMultiplayer, const ObserverHouseSummaryOptions& options)
 {
@@ -1581,7 +1635,7 @@ void ObserverUnitCard::AddProductionLines(ObserverTextBlock& block, const Observ
 		return;
 
 	if (state.Factory || (state.Building && state.Building->Type && state.Building->Type->Factory != AbstractType::None))
-		block.Add(L"Production: None", Drawing::RGB2DWORD(160, 160, 160));
+		block.Add(L"Production: None", UIColors().TextDim);
 }
 
 void ObserverUnitCard::AddHealthLine(ObserverTextBlock& block, const ObserverUnitCardState& state)
@@ -1611,7 +1665,7 @@ void ObserverUnitCard::AddHealthLine(ObserverTextBlock& block, const ObserverUni
 
 	DWORD hpColor = Colors::Good();
 	if (currentHP < maxHP / 2)
-		hpColor = Drawing::RGB2DWORD(255, 255, 0);
+		hpColor = UIColors().Warning;
 	if (currentHP < maxHP / 4)
 		hpColor = Colors::Bad();
 
@@ -1647,7 +1701,7 @@ void ObserverUnitCard::AddShieldLine(ObserverTextBlock& block, const ObserverUni
 	oss << currentShield << L" / " << maxShield;
 
 	block.Add(Text("TXT_OBSERVER_CARD_SHIELD", L"Shield: "), Colors::Label(), oss.str(),
-		(currentShield <= 0) ? Drawing::RGB2DWORD(160, 160, 160) : Drawing::RGB2DWORD(100, 200, 255));
+		(currentShield <= 0) ? UIColors().TextDim : UIColors().Shield);
 }
 
 void ObserverUnitCard::AddTargetLines(ObserverTextBlock& block, const ObserverUnitCardState& state, const CellStruct& currentCell)
@@ -1677,13 +1731,13 @@ void ObserverUnitCard::AddTargetLines(ObserverTextBlock& block, const ObserverUn
 			oss << L"[" << ObserverUIHelpers::PlayerPrefix() << targetPlayerNumber << L"] ";
 
 		oss << targetName;
-		block.Add(oss.str(), Drawing::RGB2DWORD(255, 120, 120));
+		block.Add(oss.str(), UIColors().Target);
 
 		CellStruct const destinationCell = CellClass::Coord2Cell(pTargetTechno->GetCenterCoords());
 		if (destinationCell != CellStruct::Empty && (destinationCell.X != currentCell.X || destinationCell.Y != currentCell.Y))
 		{
 			AddDistanceLine(block, Text("TXT_OBSERVER_CARD_DESTINATION", L"Destination: "),
-				currentCell, destinationCell, Drawing::RGB2DWORD(255, 120, 120));
+				currentCell, destinationCell, UIColors().Target);
 		}
 
 		return;
@@ -1694,7 +1748,7 @@ void ObserverUnitCard::AddTargetLines(ObserverTextBlock& block, const ObserverUn
 		if (auto const pCellTarget = cast_to<CellClass*>(pRawTarget))
 		{
 			AddDistanceLine(block, Text("TXT_OBSERVER_CARD_TARGET", L"Target: "),
-				currentCell, pCellTarget->MapCoords, Drawing::RGB2DWORD(255, 120, 120));
+				currentCell, pCellTarget->MapCoords, UIColors().Target);
 		}
 
 		return;
@@ -1706,7 +1760,7 @@ void ObserverUnitCard::AddTargetLines(ObserverTextBlock& block, const ObserverUn
 		if (destinationCell.X != currentCell.X || destinationCell.Y != currentCell.Y)
 		{
 			AddDistanceLine(block, Text("TXT_OBSERVER_CARD_DESTINATION", L"Destination: "),
-				currentCell, destinationCell, Drawing::RGB2DWORD(180, 220, 255));
+				currentCell, destinationCell, UIColors().Destination);
 		}
 	}
 }
@@ -1778,7 +1832,7 @@ void ObserverUnitCard::AddAmmoLine(ObserverTextBlock& block, const ObserverUnitC
 	if (currentAmmo == 0)
 		ammoColor = Colors::Bad();
 	else if (currentAmmo < maxAmmo)
-		ammoColor = Drawing::RGB2DWORD(255, 255, 0);
+		ammoColor = UIColors().Warning;
 
 	std::wostringstream oss;
 	oss << currentAmmo << L" / " << maxAmmo;
@@ -1802,7 +1856,7 @@ void ObserverUnitCard::AddVeterancyLine(ObserverTextBlock& block, const Observer
 
 	DWORD veterancyColor = Colors::Label();
 	if (veterancy >= 2.0f)
-		veterancyColor = Drawing::RGB2DWORD(255, 215, 0);
+		veterancyColor = UIColors().Veteran;
 	else if (veterancy >= 1.0f)
 		veterancyColor = Colors::Accent();
 
@@ -2192,6 +2246,127 @@ bool ObserverUIClass::IsActive()
 		|| (HouseClass::Observer() && HouseClass::CurrentPlayer->IsObserver());
 }
 
+// Called from the engine-wide detach event (PointerGotInvalid / DetachAll). Every pointer the
+// UI keeps across frames is dropped here, which is what lets IsTechnoValidAndAlive and
+// IsBuildingValidAndAlive be plain liveness tests instead of linear array scans.
+//
+// NOTE: floating unit cards are deliberately NOT erased when their target dies - they keep the
+// last known snapshot and switch to the "Destroyed" display. Only the raw pointers are nulled.
+void ObserverUIClass::CleanInvalidPointer(AbstractClass* pInvalid)
+{
+	if (!pInvalid)
+		return;
+
+	const void* const pTarget = pInvalid;
+
+	// Unit / production / superweapon cards
+	for (size_t i = this->FloatingUnitWindows.size(); i > 0; --i)
+	{
+		auto& win = this->FloatingUnitWindows[i - 1];
+
+		if (static_cast<const void*>(win.pTargetTechno) == pTarget)
+			win.pTargetTechno = nullptr;
+
+		if (static_cast<const void*>(win.pTargetBuilding) == pTarget)
+			win.pTargetBuilding = nullptr;
+
+		if (static_cast<const void*>(win.pType) == pTarget)
+			win.pType = nullptr;
+
+		if (static_cast<const void*>(win.pSuperType) == pTarget)
+			win.pSuperType = nullptr;
+
+		// The house owns its SuperClass instances, so both go away together and the card has
+		// nothing left to describe.
+		if (static_cast<const void*>(win.pOwner) == pTarget)
+			this->FloatingUnitWindows.erase(this->FloatingUnitWindows.begin() + (i - 1));
+	}
+
+	// Player cards
+	for (size_t i = this->FloatingWindows.size(); i > 0; --i)
+	{
+		if (static_cast<const void*>(this->FloatingWindows[i - 1].pHouse) == pTarget)
+			this->FloatingWindows.erase(this->FloatingWindows.begin() + (i - 1));
+	}
+
+	// Hover state
+	if (static_cast<const void*>(this->pHoveredPlayer) == pTarget)
+	{
+		this->pHoveredPlayer = nullptr;
+		this->HasHoveredPlayer = false;
+	}
+
+	if (this->HasHoveredItem
+		&& (static_cast<const void*>(this->HoveredItem.pOwner) == pTarget
+			|| static_cast<const void*>(this->HoveredItem.pType) == pTarget
+			|| static_cast<const void*>(this->HoveredItem.pSuperType) == pTarget
+			|| static_cast<const void*>(this->HoveredItem.pSuper) == pTarget))
+	{
+		this->HoveredItem = {};
+		this->HasHoveredItem = false;
+	}
+
+	// Rows are rebuilt every frame, but a detach can land between the rebuild and the draw.
+	for (size_t i = this->PlayerRows.size(); i > 0; --i)
+	{
+		auto& row = this->PlayerRows[i - 1];
+
+		if (static_cast<const void*>(row.TargetEnemy) == pTarget)
+			row.TargetEnemy = nullptr;
+
+		if (static_cast<const void*>(row.pHouse) == pTarget)
+		{
+			this->PlayerRows.erase(this->PlayerRows.begin() + (i - 1));
+			continue;
+		}
+
+		auto const purgeItems = [pTarget](std::vector<ObserverCameoItem>& items)
+			{
+				for (auto& item : items)
+				{
+					if (static_cast<const void*>(item.pSuper) == pTarget)
+						item.pSuper = nullptr;
+
+					item.Buildings.erase(
+						std::remove_if(item.Buildings.begin(), item.Buildings.end(), [pTarget](BuildingClass* pBuilding)
+							{
+								return static_cast<const void*>(pBuilding) == pTarget;
+							}),
+						item.Buildings.end());
+
+					item.Technos.erase(
+						std::remove_if(item.Technos.begin(), item.Technos.end(), [pTarget](TechnoClass* pTechno)
+							{
+								return static_cast<const void*>(pTechno) == pTarget;
+							}),
+						item.Technos.end());
+
+					item.Count = static_cast<int>(item.Technos.size());
+				}
+			};
+
+		purgeItems(row.ProductionItems);
+		purgeItems(row.StructureItems);
+	}
+
+	// Per-house caches
+	for (auto it = this->EconomyHistory.begin(); it != this->EconomyHistory.end();)
+	{
+		it = (static_cast<const void*>(it->first) == pTarget) ? this->EconomyHistory.erase(it) : std::next(it);
+	}
+
+	for (auto it = this->CycleIndices.begin(); it != this->CycleIndices.end();)
+	{
+		bool const isStale = static_cast<const void*>(it->first.first) == pTarget
+			|| it->first.second == reinterpret_cast<uintptr_t>(pTarget);
+
+		it = isStale ? this->CycleIndices.erase(it) : std::next(it);
+	}
+
+	// The rows just changed under the throttle, so force the next rebuild.
+	this->LastCollectFrame = -1;
+}
+
 void ObserverUIClass::ClearData()
 {
 	this->DisplayMode = ObserverUIDisplayMode::Hidden;
@@ -2207,6 +2382,8 @@ void ObserverUIClass::ClearData()
 	this->CycleIndices.clear();
 	this->TabButtons.clear();
 	this->SearchFilterText.clear();
+	this->SearchTerms.clear();
+	this->LastCollectFrame = -1;
 	this->IsSearchInputFocused = false;
 	this->HoveredItem = {};
 	this->HasHoveredItem = false;
@@ -2287,11 +2464,9 @@ bool ObserverUIClass::MatchesSearchFilter(AbstractTypeClass* pType) const
 		break;
 	}
 
-	if (this->SearchFilterText.empty())
-		return true;
-
-	std::vector<std::wstring> const terms = this->ParseSearchTerms(this->SearchFilterText);
-	if (terms.empty())
+	// OPTIMIZATION: SearchTerms is parsed once per CollectPlayerData rebuild instead of once
+	// per candidate object (this runs thousands of times per frame).
+	if (this->SearchTerms.empty())
 		return true;
 
 	std::wstring name;
@@ -2302,7 +2477,7 @@ bool ObserverUIClass::MatchesSearchFilter(AbstractTypeClass* pType) const
 
 	std::transform(name.begin(), name.end(), name.begin(), ::towlower);
 
-	for (auto const& term : terms)
+	for (auto const& term : this->SearchTerms)
 	{
 		if (name.find(term) == std::wstring::npos)
 			return false;
@@ -2311,10 +2486,30 @@ bool ObserverUIClass::MatchesSearchFilter(AbstractTypeClass* pType) const
 	return true;
 }
 
-void ObserverUIClass::CollectPlayerData()
+// OPTIMIZATION: this used to be O(houses x every object in the game) every single frame -
+// each house re-scanned BuildingClass / InfantryClass / UnitClass / AircraftClass /
+// FactoryClass::Array in full, once for HouseHasContent and once more for the item grouping.
+// The scans are inverted now: every global array is walked exactly once and each object is
+// dispatched to its owner's row through a hash lookup.
+void ObserverUIClass::CollectPlayerData(bool force)
 {
+	// OPTIMIZATION: Update() can run more than once per frame (and Render() calls Update()),
+	// but the grouped item lists only change with the simulation. Rebuild once per frame
+	// unless a filter tab / search text change explicitly forces it.
+	int const currentFrame = Unsorted::CurrentFrame();
+	if (!force && currentFrame == this->LastCollectFrame)
+		return;
+
+	this->LastCollectFrame = currentFrame;
+
+	// OPTIMIZATION: the search query used to be re-parsed - allocating a fresh vector of
+	// wstrings - inside MatchesSearchFilter for every object of every array of every house.
+	// It is parsed once per rebuild now and cached in SearchTerms.
+	this->SearchTerms = this->ParseSearchTerms(this->SearchFilterText);
+
 	// Preserve existing scroll offsets when refreshing player rows
-	std::map<HouseClass*, int> previousScrollOffsets;
+	std::unordered_map<HouseClass*, int> previousScrollOffsets;
+	previousScrollOffsets.reserve(this->PlayerRows.size());
 	for (auto const& existingRow : this->PlayerRows)
 	{
 		previousScrollOffsets[existingRow.pHouse] = existingRow.ScrollOffset;
@@ -2328,25 +2523,33 @@ void ObserverUIClass::CollectPlayerData()
 	bool const isMultiplayer = ObserverUIHelpers::IsMultiplayerSession();
 	bool const isDevMode = Phobos::Config::DevelopmentCommands;
 
+	// In standard multiplayer every listed house is shown unconditionally; everywhere else a
+	// house only earns a row once it actually owns something (see HasContent below).
+	bool const requiresContent = !(isMultiplayer && !isDevMode);
+
+	// -------------------------------------------------------------------------------------
+	// Phase 1: candidate rows, in HouseClass::Array order
+	// -------------------------------------------------------------------------------------
+	std::vector<ObserverPlayerRow> candidateRows;
+	std::vector<bool> hasContent;
+	std::vector<std::map<TechnoTypeClass*, std::vector<TechnoClass*>>> filterGroups;
+	std::vector<std::map<TechnoTypeClass*, std::vector<BuildingClass*>>> productionGroups;
+	std::vector<std::map<TechnoTypeClass*, int>> productionProgress;
+	std::unordered_map<HouseClass*, size_t> rowLookup;
+
+	candidateRows.reserve(static_cast<size_t>(HouseClass::Array->Count));
+	rowLookup.reserve(static_cast<size_t>(HouseClass::Array->Count));
+
 	for (int i = 0; i < HouseClass::Array->Count; ++i)
 	{
 		auto const pHouse = HouseClass::Array->get_or_default(i);
 		if (!pHouse || pHouse->IsObserver() || pHouse->Defeated || !pHouse->Type)
 			continue;
 
-		if (isMultiplayer && !isDevMode)
-		{
-			// In standard multiplayer show only real skirmish/MP players
-			// (exclude MultiplayPassive, Neutral, Special, Civilian).
-			if (ObserverUIHelpers::IsHouseHiddenInMultiplayer(pHouse))
-				continue;
-		}
-		else if (!ObserverUIHelpers::HouseHasContent(pHouse))
-		{
-			// In singleplayer / campaign OR when DevelopmentCommands=true include ANY house
-			// that owns objects, superweapons or production, so it can be inspected.
+		// In standard multiplayer show only real skirmish/MP players
+		// (exclude MultiplayPassive, Neutral, Special, Civilian).
+		if (!requiresContent && ObserverUIHelpers::IsHouseHiddenInMultiplayer(pHouse))
 			continue;
-		}
 
 		ObserverPlayerRow row;
 		row.pHouse = pHouse;
@@ -2385,144 +2588,175 @@ void ObserverUIClass::CollectPlayerData()
 
 		// Assign actual player house ColorScheme BaseColor
 		row.PlayerColor = ObserverUIHelpers::GetHouseColor(pHouse, row.PlayerNumber - 1);
+		row.PlayerColorValue = Drawing::RGB2DWORD(row.PlayerColor.R, row.PlayerColor.G, row.PlayerColor.B);
 
-		// Collect active factory production for this player, grouped by produced TechnoType
-		std::map<TechnoTypeClass*, std::vector<BuildingClass*>> productionGroups;
-		std::map<TechnoTypeClass*, int> productionProgress;
+		rowLookup.emplace(pHouse, candidateRows.size());
+		candidateRows.emplace_back(std::move(row));
+	}
 
-		for (auto const pFactory : *FactoryClass::Array)
+	if (candidateRows.empty())
+		return;
+
+	hasContent.assign(candidateRows.size(), !requiresContent);
+	filterGroups.resize(candidateRows.size());
+	productionGroups.resize(candidateRows.size());
+	productionProgress.resize(candidateRows.size());
+
+	auto const tab = this->ActiveFilterTab;
+
+	// The array scans below always run (HasContent has to see every category), but the item
+	// grouping is still limited to the categories the active tab can actually display.
+	bool const wantsBuildings = tab == ObserverFilterCategory::Defenses
+		|| tab == ObserverFilterCategory::Structures
+		|| tab == ObserverFilterCategory::AllStructures
+		|| tab == ObserverFilterCategory::Vehicles
+		|| tab == ObserverFilterCategory::Naval
+		|| tab == ObserverFilterCategory::AllUnits
+		|| tab == ObserverFilterCategory::Everything;
+
+	bool const wantsInfantry = tab == ObserverFilterCategory::Infantry
+		|| tab == ObserverFilterCategory::Naval
+		|| tab == ObserverFilterCategory::AllUnits
+		|| tab == ObserverFilterCategory::Everything;
+
+	bool const wantsUnits = tab == ObserverFilterCategory::Vehicles
+		|| tab == ObserverFilterCategory::Naval
+		|| tab == ObserverFilterCategory::Aircraft
+		|| tab == ObserverFilterCategory::AllUnits
+		|| tab == ObserverFilterCategory::Everything;
+
+	bool const wantsAircraft = tab == ObserverFilterCategory::Aircraft
+		|| tab == ObserverFilterCategory::AllUnits
+		|| tab == ObserverFilterCategory::Everything;
+
+	// -------------------------------------------------------------------------------------
+	// Phase 2: one pass over every object array, dispatched by owner
+	// -------------------------------------------------------------------------------------
+	auto const scanArray = [this, &rowLookup, &hasContent, &filterGroups, tab](auto& array, bool wantsCategory)
 		{
-			if (!pFactory || pFactory->Owner != pHouse || !pFactory->Object)
+			for (auto const pObject : array)
+			{
+				if (!pObject || !pObject->IsAlive || pObject->InLimbo)
+					continue;
+
+				auto const itRow = rowLookup.find(pObject->Owner);
+				if (itRow == rowLookup.end())
+					continue;
+
+				size_t const rowIndex = itRow->second;
+				hasContent[rowIndex] = true;
+
+				if (!wantsCategory)
+					continue;
+
+				auto const pType = pObject->GetTechnoType();
+				if (!pType || !this->MatchesSearchFilter(pType))
+					continue;
+
+				if (ObserverUIHelpers::MatchesFilterCategory(pObject, pType, tab))
+					filterGroups[rowIndex][pType].push_back(pObject);
+			}
+		};
+
+	scanArray(*BuildingClass::Array, wantsBuildings);
+	scanArray(*InfantryClass::Array, wantsInfantry);
+	scanArray(*UnitClass::Array, wantsUnits);
+	scanArray(*AircraftClass::Array, wantsAircraft);
+
+	// -------------------------------------------------------------------------------------
+	// Phase 3: one pass over the factories, grouped by produced TechnoType
+	// -------------------------------------------------------------------------------------
+	for (auto const pFactory : *FactoryClass::Array)
+	{
+		if (!pFactory || !pFactory->Object)
+			continue;
+
+		auto const itRow = rowLookup.find(pFactory->Owner);
+		if (itRow == rowLookup.end())
+			continue;
+
+		size_t const rowIndex = itRow->second;
+		hasContent[rowIndex] = true;
+
+		auto const pProducingType = pFactory->Object->GetTechnoType();
+		if (!pProducingType || !this->MatchesSearchFilter(pProducingType))
+			continue;
+
+		// BUGFIX: FindFactoryBuilding returns nullptr for factories with no owning building
+		// (base placement, dead factory). Pushing that null made the cameo cycle stop on an
+		// empty slot and anchored unit cards to nothing.
+		auto& factoryBuildings = productionGroups[rowIndex][pProducingType]; // creates the group either way
+		if (auto const pFactoryBuilding = ObserverUIHelpers::FindFactoryBuilding(pFactory->Owner, pFactory))
+			factoryBuildings.push_back(pFactoryBuilding);
+
+		auto& progress = productionProgress[rowIndex][pProducingType];
+		progress = std::max(progress, ObserverUIHelpers::GetFactoryProgressPercent(pFactory));
+	}
+
+	// -------------------------------------------------------------------------------------
+	// Phase 4: superweapons and final row assembly
+	// -------------------------------------------------------------------------------------
+	for (size_t rowIndex = 0; rowIndex < candidateRows.size(); ++rowIndex)
+	{
+		auto& row = candidateRows[rowIndex];
+		auto const pHouse = row.pHouse;
+
+		for (int s = 0; s < pHouse->Supers.Count; ++s)
+		{
+			auto const pSuper = pHouse->Supers.get_or_default(s);
+			if (!pSuper || !pSuper->Type || !pSuper->Granted)
 				continue;
 
-			auto const pProducingType = pFactory->Object->GetTechnoType();
-			if (!pProducingType || !this->MatchesSearchFilter(pProducingType))
+			hasContent[rowIndex] = true;
+
+			if (tab != ObserverFilterCategory::Superweapons || !this->MatchesSearchFilter(pSuper->Type))
 				continue;
 
-			// BUGFIX: FindFactoryBuilding returns nullptr for factories with no owning
-			// building (base placement, dead factory). Pushing that null made the cameo
-			// cycle stop on an empty slot and anchored unit cards to nothing.
-			auto& factoryBuildings = productionGroups[pProducingType]; // creates the group either way
-			if (auto const pFactoryBuilding = ObserverUIHelpers::FindFactoryBuilding(pHouse, pFactory))
-				factoryBuildings.push_back(pFactoryBuilding);
+			// Check Phobos SWTypeExt visibility settings
+			auto const pSWExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
+			if (pSWExt && !pSWExt->SW_ShowCameo && pSWExt->SW_AutoFire)
+				continue;
 
-			productionProgress[pProducingType] = std::max(
-				productionProgress[pProducingType],
-				ObserverUIHelpers::GetFactoryProgressPercent(pFactory));
+			ObserverCameoItem item;
+			item.pSuperType = pSuper->Type;
+			item.pSuper = pSuper;
+			item.IsSuperweapon = true;
+			item.pOwner = pHouse;
+			item.Count = 1;
+			item.Buildings = ObserverUIHelpers::CollectSuperWeaponBuildings(pHouse, pSuper->Type);
+
+			int const totalFrames = pSuper->GetRechargeTime();
+			int const framesLeft = pSuper->RechargeTimer.GetTimeLeft();
+			item.ProgressPercent = (totalFrames > 0 && framesLeft > 0)
+				? std::clamp(((totalFrames - framesLeft) * 100) / totalFrames, 0, 100)
+				: 100;
+
+			row.StructureItems.emplace_back(std::move(item));
 		}
 
-		for (auto const& [pType, factories] : productionGroups)
+		if (!hasContent[rowIndex])
+			continue;
+
+		for (auto& [pType, factories] : productionGroups[rowIndex])
 		{
 			ObserverCameoItem productionItem;
 			productionItem.pType = pType;
-			productionItem.ProgressPercent = productionProgress[pType];
+			productionItem.ProgressPercent = productionProgress[rowIndex][pType];
 			productionItem.IsProduction = true;
 			productionItem.pOwner = pHouse;
-			productionItem.Buildings = factories;
+			productionItem.Buildings = std::move(factories);
 
-			row.ProductionItems.emplace_back(productionItem);
+			row.ProductionItems.emplace_back(std::move(productionItem));
 		}
 
-		// Group and filter owned technos based on the active filter tab
-		std::map<TechnoTypeClass*, std::vector<TechnoClass*>> filterGroups;
-
-		auto const addTechno = [this, &filterGroups](TechnoClass* pTechno)
-			{
-				if (!pTechno || !pTechno->IsAlive || pTechno->InLimbo)
-					return;
-
-				auto const pType = pTechno->GetTechnoType();
-				if (!pType || !this->MatchesSearchFilter(pType))
-					return;
-
-				if (ObserverUIHelpers::MatchesFilterCategory(pTechno, pType, this->ActiveFilterTab))
-					filterGroups[pType].push_back(pTechno);
-			};
-
-		auto const addFromArray = [pHouse, &addTechno](auto& array)
-			{
-				for (auto const pObject : array)
-				{
-					if (pObject && pObject->Owner == pHouse)
-						addTechno(pObject);
-				}
-			};
-
-		auto const tab = this->ActiveFilterTab;
-		bool const wantsBuildings = tab == ObserverFilterCategory::Defenses
-			|| tab == ObserverFilterCategory::Structures
-			|| tab == ObserverFilterCategory::AllStructures
-			|| tab == ObserverFilterCategory::Vehicles
-			|| tab == ObserverFilterCategory::Naval
-			|| tab == ObserverFilterCategory::AllUnits
-			|| tab == ObserverFilterCategory::Everything;
-
-		bool const wantsInfantry = tab == ObserverFilterCategory::Infantry
-			|| tab == ObserverFilterCategory::Naval
-			|| tab == ObserverFilterCategory::AllUnits
-			|| tab == ObserverFilterCategory::Everything;
-
-		bool const wantsUnits = tab == ObserverFilterCategory::Vehicles
-			|| tab == ObserverFilterCategory::Naval
-			|| tab == ObserverFilterCategory::Aircraft
-			|| tab == ObserverFilterCategory::AllUnits
-			|| tab == ObserverFilterCategory::Everything;
-
-		bool const wantsAircraft = tab == ObserverFilterCategory::Aircraft
-			|| tab == ObserverFilterCategory::AllUnits
-			|| tab == ObserverFilterCategory::Everything;
-
-		if (wantsBuildings)
-			addFromArray(*BuildingClass::Array);
-
-		if (wantsInfantry)
-			addFromArray(*InfantryClass::Array);
-
-		if (wantsUnits)
-			addFromArray(*UnitClass::Array);
-
-		if (wantsAircraft)
-			addFromArray(*AircraftClass::Array);
-
-		// Collect Superweapons if the Superweapons tab is selected
-		if (tab == ObserverFilterCategory::Superweapons)
-		{
-			for (int s = 0; s < pHouse->Supers.Count; ++s)
-			{
-				auto const pSuper = pHouse->Supers.get_or_default(s);
-				if (!pSuper || !pSuper->Type || !pSuper->Granted || !this->MatchesSearchFilter(pSuper->Type))
-					continue;
-
-				// Check Phobos SWTypeExt visibility settings
-				auto const pSWExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
-				if (pSWExt && !pSWExt->SW_ShowCameo && pSWExt->SW_AutoFire)
-					continue;
-
-				ObserverCameoItem item;
-				item.pSuperType = pSuper->Type;
-				item.pSuper = pSuper;
-				item.IsSuperweapon = true;
-				item.pOwner = pHouse;
-				item.Count = 1;
-				item.Buildings = ObserverUIHelpers::CollectSuperWeaponBuildings(pHouse, pSuper->Type);
-
-				int const totalFrames = pSuper->GetRechargeTime();
-				int const framesLeft = pSuper->RechargeTimer.GetTimeLeft();
-				item.ProgressPercent = (totalFrames > 0 && framesLeft > 0)
-					? std::clamp(((totalFrames - framesLeft) * 100) / totalFrames, 0, 100)
-					: 100;
-
-				row.StructureItems.emplace_back(item);
-			}
-		}
-
-		for (auto const& [pType, technos] : filterGroups)
+		for (auto& [pType, technos] : filterGroups[rowIndex])
 		{
 			ObserverCameoItem item;
 			item.pType = pType;
 			item.Count = static_cast<int>(technos.size());
 			item.IsProduction = false;
 			item.pOwner = pHouse;
+			item.Technos.reserve(technos.size());
 
 			for (auto const pTechno : technos)
 			{
@@ -2534,10 +2768,10 @@ void ObserverUIClass::CollectPlayerData()
 				item.Technos.push_back(pTechno);
 			}
 
-			row.StructureItems.emplace_back(item);
+			row.StructureItems.emplace_back(std::move(item));
 		}
 
-		this->PlayerRows.emplace_back(row);
+		this->PlayerRows.emplace_back(std::move(row));
 	}
 
 	// Detect mutual alliance teams ONLY for 2 or more mutually allied players
@@ -2580,6 +2814,7 @@ void ObserverUIClass::CollectPlayerData()
 		if (row.TeamID != -1)
 		{
 			row.TeamColor = teamColors[row.TeamID];
+			row.TeamColorValue = Drawing::RGB2DWORD(row.TeamColor.R, row.TeamColor.G, row.TeamColor.B);
 			row.TeamMemberCount = teamCounts[row.TeamID];
 		}
 		else
@@ -2700,7 +2935,7 @@ void ObserverUIClass::Update()
 		}
 
 		if (textChanged)
-			this->CollectPlayerData();
+			this->CollectPlayerData(true);
 	}
 
 	int const currentFrame = Unsorted::CurrentFrame();
@@ -2768,12 +3003,12 @@ void ObserverUIClass::Render(DSurface* pSurface)
 		this->IsHoveringInspectBtn = ObserverUIHelpers::HitTest(this->InspectBtnRect, mousePos);
 
 		ObserverUIHelpers::DrawPanel(pSurface, this->InspectBtnRect,
-			this->IsHoveringInspectBtn ? ColorStruct { 100, 220, 255 } : ColorStruct { 0, 0, 0 },
+			this->IsHoveringInspectBtn ? ObserverRGB::Accent : ObserverRGB::Black,
 			this->IsHoveringInspectBtn ? 180 : 120,
-			this->IsHoveringInspectBtn ? Drawing::RGB2DWORD(255, 255, 255) : Drawing::RGB2DWORD(140, 140, 140));
+			this->IsHoveringInspectBtn ? UIColors().White : UIColors().BorderLight);
 
 		ObserverUIHelpers::DrawCenteredText(pSurface, this->InspectBtnRect, L"-> [] <-",
-			this->IsHoveringInspectBtn ? Drawing::RGB2DWORD(255, 255, 255) : Drawing::RGB2DWORD(200, 200, 200));
+			this->IsHoveringInspectBtn ? UIColors().White : UIColors().TextLabel);
 
 		// 3. Render tooltip for the Inspect Button (floating windows own their own hover state)
 		this->DrawHoverTooltip(pSurface, mousePos, mousePos);
@@ -2935,22 +3170,22 @@ void ObserverUIClass::Render(DSurface* pSurface)
 
 		// Render Scroll Up / Down Buttons (centered above the first player/house)
 		ObserverUIHelpers::DrawPanel(pSurface, this->VertScrollUpBtnRect,
-			this->IsHoveringVertScrollUp ? ColorStruct { 0, 140, 180 } : ColorStruct { 30, 30, 30 }, 95,
-			this->IsHoveringVertScrollUp ? Drawing::RGB2DWORD(0, 255, 255) : Drawing::RGB2DWORD(100, 100, 100));
+			this->IsHoveringVertScrollUp ? ObserverRGB::Teal : ObserverRGB::Panel, 95,
+			this->IsHoveringVertScrollUp ? UIColors().Highlight : UIColors().BorderNeutral);
 
 		ObserverUIHelpers::DrawPanel(pSurface, this->VertScrollDownBtnRect,
-			this->IsHoveringVertScrollDown ? ColorStruct { 0, 140, 180 } : ColorStruct { 30, 30, 30 }, 95,
-			this->IsHoveringVertScrollDown ? Drawing::RGB2DWORD(0, 255, 255) : Drawing::RGB2DWORD(100, 100, 100));
+			this->IsHoveringVertScrollDown ? ObserverRGB::Teal : ObserverRGB::Panel, 95,
+			this->IsHoveringVertScrollDown ? UIColors().Highlight : UIColors().BorderNeutral);
 
 		if (BitFont::Instance() && BitText::Instance())
 		{
 			ObserverUIHelpers::DrawShadowText(pSurface, this->VertScrollUpBtnRect, L"^",
 				Point2D { this->VertScrollUpBtnRect.X + 16, this->VertScrollUpBtnRect.Y + 2 },
-				(this->VerticalScrollOffset > 0) ? Drawing::RGB2DWORD(255, 255, 255) : Drawing::RGB2DWORD(90, 90, 90));
+				(this->VerticalScrollOffset > 0) ? UIColors().White : UIColors().Disabled);
 
 			ObserverUIHelpers::DrawShadowText(pSurface, this->VertScrollDownBtnRect, L"v",
 				Point2D { this->VertScrollDownBtnRect.X + 16, this->VertScrollDownBtnRect.Y + 2 },
-				(this->VerticalScrollOffset < this->MaxVerticalScrollOffset) ? Drawing::RGB2DWORD(255, 255, 255) : Drawing::RGB2DWORD(90, 90, 90));
+				(this->VerticalScrollOffset < this->MaxVerticalScrollOffset) ? UIColors().White : UIColors().Disabled);
 		}
 	}
 	else
@@ -3017,7 +3252,7 @@ void ObserverUIClass::Render(DSurface* pSurface)
 			if (isLeftClick && button.IsHovered)
 			{
 				this->ActiveFilterTab = button.Category;
-				this->CollectPlayerData();
+				this->CollectPlayerData(true);
 			}
 
 			currentX += tabWidths[index] + tabGap;
@@ -3030,28 +3265,28 @@ void ObserverUIClass::Render(DSurface* pSurface)
 		bool const isTabActive = button.Category == this->ActiveFilterTab;
 
 		// Border: Neon Cyan when active, Soft White when hovered, Dark Gray otherwise
-		COLORREF borderColor = Drawing::RGB2DWORD(60, 60, 60);
-		COLORREF textColor = Drawing::RGB2DWORD(160, 160, 160);
+		COLORREF borderColor = UIColors().BorderPanel;
+		COLORREF textColor = UIColors().TextDim;
 
 		if (isTabActive)
 		{
-			borderColor = Drawing::RGB2DWORD(0, 255, 255);
-			textColor = Drawing::RGB2DWORD(255, 255, 255);
+			borderColor = UIColors().Highlight;
+			textColor = UIColors().White;
 		}
 		else if (button.IsHovered)
 		{
-			borderColor = Drawing::RGB2DWORD(180, 180, 180);
-			textColor = Drawing::RGB2DWORD(220, 220, 220);
+			borderColor = UIColors().TextMuted;
+			textColor = UIColors().TextBright;
 		}
 
-		ObserverUIHelpers::DrawPanel(pSurface, button.Rect, ColorStruct { 0, 0, 0 }, isTabActive ? 95 : 60, borderColor);
+		ObserverUIHelpers::DrawPanel(pSurface, button.Rect, ObserverRGB::Black, isTabActive ? 95 : 60, borderColor);
 		ObserverUIHelpers::DrawCenteredText(pSurface, button.Rect, button.Label.c_str(), textColor);
 	}
 
 	// Render Inspect Selected Button [-> [] <-]
 	ObserverUIHelpers::DrawPanel(pSurface, this->InspectBtnRect,
-		this->IsHoveringInspectBtn ? ColorStruct { 0, 140, 180 } : ColorStruct { 30, 30, 30 }, 80,
-		this->IsHoveringInspectBtn ? Drawing::RGB2DWORD(0, 255, 255) : Drawing::RGB2DWORD(80, 80, 80));
+		this->IsHoveringInspectBtn ? ObserverRGB::Teal : ObserverRGB::Panel, 80,
+		this->IsHoveringInspectBtn ? UIColors().Highlight : UIColors().BorderIdle);
 
 	if (BitFont::Instance())
 	{
@@ -3061,13 +3296,13 @@ void ObserverUIClass::Render(DSurface* pSurface)
 
 		ObserverUIHelpers::DrawShadowText(pSurface, this->InspectBtnRect, L"-> [] <-",
 			Point2D { this->InspectBtnRect.X + (inspectBtnW - textWidth) / 2, this->InspectBtnRect.Y + 3 },
-			this->IsHoveringInspectBtn ? Drawing::RGB2DWORD(0, 255, 255) : Drawing::RGB2DWORD(220, 220, 220));
+			this->IsHoveringInspectBtn ? UIColors().Highlight : UIColors().TextBright);
 	}
 
 	// Render Search Input Box
-	ObserverUIHelpers::DrawPanel(pSurface, this->SearchBoxRect, ColorStruct { 15, 15, 15 },
+	ObserverUIHelpers::DrawPanel(pSurface, this->SearchBoxRect, ObserverRGB::PanelDark,
 		this->IsSearchInputFocused ? 90 : 60,
-		this->IsSearchInputFocused ? Drawing::RGB2DWORD(0, 255, 255) : Drawing::RGB2DWORD(60, 60, 60));
+		this->IsSearchInputFocused ? UIColors().Highlight : UIColors().BorderPanel);
 
 	if (BitFont::Instance())
 	{
@@ -3084,7 +3319,7 @@ void ObserverUIClass::Render(DSurface* pSurface)
 		{
 			ObserverUIHelpers::DrawShadowText(pSurface, searchTextRect,
 				GeneralUtils::LoadStringUnlessMissing("TXT_OBSERVER_FILTER_PLACEHOLDER", L"Filter..."),
-				textPoint, Drawing::RGB2DWORD(120, 120, 120));
+				textPoint, UIColors().TextFaint);
 		}
 		else
 		{
@@ -3097,17 +3332,17 @@ void ObserverUIClass::Render(DSurface* pSurface)
 			if (displayText.length() > maxVisibleChars)
 				displayText = displayText.substr(displayText.length() - maxVisibleChars);
 
-			ObserverUIHelpers::DrawShadowText(pSurface, searchTextRect, displayText.c_str(), textPoint, Drawing::RGB2DWORD(255, 255, 255));
+			ObserverUIHelpers::DrawShadowText(pSurface, searchTextRect, displayText.c_str(), textPoint, UIColors().White);
 		}
 	}
 
 	// Render Clear Button [X]
 	ObserverUIHelpers::DrawPanel(pSurface, this->ClearBtnRect,
-		this->IsHoveringClearBtn ? ColorStruct { 180, 40, 40 } : ColorStruct { 30, 30, 30 }, 80,
-		Drawing::RGB2DWORD(80, 80, 80));
+		this->IsHoveringClearBtn ? ObserverRGB::Danger : ObserverRGB::Panel, 80,
+		UIColors().BorderIdle);
 
 	ObserverUIHelpers::DrawShadowText(pSurface, this->ClearBtnRect, L"X",
-		Point2D { this->ClearBtnRect.X + 8, this->ClearBtnRect.Y + 3 }, Drawing::RGB2DWORD(255, 255, 255));
+		Point2D { this->ClearBtnRect.X + 8, this->ClearBtnRect.Y + 3 }, UIColors().White);
 
 	// Render team alliance vertical bars attached to the left edge of Section 1
 	// (ONLY for alliances of 2+ players)
@@ -3121,22 +3356,21 @@ void ObserverUIClass::Render(DSurface* pSurface)
 		if (itFirstRow == this->PlayerRows.end())
 			continue;
 
-		ColorStruct const color = itFirstRow->TeamColor;
 		RectangleStruct teamLineRect { startX - teamColorBarWidth, extent.first, teamColorBarWidth, extent.second - extent.first };
-		pSurface->Fill_Rect(teamLineRect, Drawing::RGB2DWORD(color.R, color.G, color.B));
+		pSurface->Fill_Rect(teamLineRect, itFirstRow->TeamColorValue);
 	}
 
-	ColorStruct const bgPanelColor { 0, 0, 0 };
+	ColorStruct const bgPanelColor = ObserverRGB::Black;
 
 	for (int rowIndex = visibleStart; rowIndex < visibleEnd; ++rowIndex)
 	{
 		auto& row = this->PlayerRows[rowIndex];
 		int const currentY = startY + (rowIndex - visibleStart) * rowHeight;
-		COLORREF const rowColor = Drawing::RGB2DWORD(row.PlayerColor.R, row.PlayerColor.G, row.PlayerColor.B);
+		COLORREF const rowColor = row.PlayerColorValue;
 
 		// Section 1: Player Info Box + Player Color Bar (translucent 30% background)
 		row.InfoRect = RectangleStruct { startX, currentY, infoBoxWidth, rowHeight };
-		ObserverUIHelpers::DrawPanel(pSurface, row.InfoRect, bgPanelColor, 75, Drawing::RGB2DWORD(60, 60, 60));
+		ObserverUIHelpers::DrawPanel(pSurface, row.InfoRect, bgPanelColor, 75, UIColors().BorderPanel);
 
 		RectangleStruct playerColorBarRect { startX + infoBoxWidth, currentY, playerColorBarWidth, rowHeight };
 		pSurface->Fill_Rect(playerColorBarRect, rowColor);
@@ -3160,10 +3394,10 @@ void ObserverUIClass::Render(DSurface* pSurface)
 		if (BitFont::Instance() && BitText::Instance())
 		{
 			ObserverUIHelpers::DrawShadowText(pSurface, row.InfoRect, row.PlayerName.c_str(),
-				Point2D { row.InfoRect.X + 6, row.InfoRect.Y + 6 }, Drawing::RGB2DWORD(255, 255, 255));
+				Point2D { row.InfoRect.X + 6, row.InfoRect.Y + 6 }, UIColors().White);
 
 			ObserverUIHelpers::DrawShadowText(pSurface, row.InfoRect, row.CountryName.c_str(),
-				Point2D { row.InfoRect.X + 6, row.InfoRect.Y + 24 }, Drawing::RGB2DWORD(180, 180, 180));
+				Point2D { row.InfoRect.X + 6, row.InfoRect.Y + 24 }, UIColors().TextMuted);
 		}
 
 		// Section 3: Production Items (anchored to the far right) + left Player Color Bar
@@ -3173,7 +3407,7 @@ void ObserverUIClass::Render(DSurface* pSurface)
 			pSurface->Fill_Rect(prodColorBarRect, rowColor);
 
 			row.ProdPanelRect = RectangleStruct { prodStartX, currentY, prodSectionWidth, rowHeight };
-			ObserverUIHelpers::DrawPanel(pSurface, row.ProdPanelRect, bgPanelColor, 75, Drawing::RGB2DWORD(60, 60, 60));
+			ObserverUIHelpers::DrawPanel(pSurface, row.ProdPanelRect, bgPanelColor, 75, UIColors().BorderPanel);
 
 			int currentProdX = prodEndX - padding - cameoWidth;
 			for (auto& item : row.ProductionItems)
@@ -3196,7 +3430,7 @@ void ObserverUIClass::Render(DSurface* pSurface)
 					this->HoveredMousePos = mousePos;
 				}
 
-				this->DrawCameoItem(pSurface, item, isHovered, row.ProdPanelRect, row.PlayerColor);
+				this->DrawCameoItem(pSurface, item, isHovered, row.ProdPanelRect, rowColor);
 			}
 		}
 
@@ -3213,7 +3447,7 @@ void ObserverUIClass::Render(DSurface* pSurface)
 
 		if (structPanelWidth > 0)
 		{
-			ObserverUIHelpers::DrawPanel(pSurface, row.StructPanelRect, bgPanelColor, 75, Drawing::RGB2DWORD(60, 60, 60));
+			ObserverUIHelpers::DrawPanel(pSurface, row.StructPanelRect, bgPanelColor, 75, UIColors().BorderPanel);
 
 			int currentStructX = structStartX + padding - row.ScrollOffset;
 			for (auto& item : row.StructureItems)
@@ -3237,7 +3471,7 @@ void ObserverUIClass::Render(DSurface* pSurface)
 					this->HoveredMousePos = mousePos;
 				}
 
-				this->DrawCameoItem(pSurface, item, isHovered, row.StructPanelRect, row.PlayerColor);
+				this->DrawCameoItem(pSurface, item, isHovered, row.StructPanelRect, rowColor);
 			}
 		}
 
@@ -3252,17 +3486,17 @@ void ObserverUIClass::Render(DSurface* pSurface)
 			row.IsHoveringRightScroll = ObserverUIHelpers::HitTest(row.ScrollRightBtnRect, mousePos);
 
 			ObserverUIHelpers::DrawPanel(pSurface, row.ScrollLeftBtnRect,
-				row.IsHoveringLeftScroll ? row.PlayerColor : ColorStruct { 180, 180, 180 }, 200, Drawing::RGB2DWORD(255, 255, 255));
+				row.IsHoveringLeftScroll ? row.PlayerColor : ObserverRGB::Muted, 200, UIColors().White);
 
 			ObserverUIHelpers::DrawPanel(pSurface, row.ScrollRightBtnRect,
-				row.IsHoveringRightScroll ? row.PlayerColor : ColorStruct { 180, 180, 180 }, 200, Drawing::RGB2DWORD(255, 255, 255));
+				row.IsHoveringRightScroll ? row.PlayerColor : ObserverRGB::Muted, 200, UIColors().White);
 
 			if (BitFont::Instance())
 			{
 				Point2D leftPoint { row.ScrollLeftBtnRect.X + 5, row.ScrollLeftBtnRect.Y + 2 };
 				Point2D rightPoint { row.ScrollRightBtnRect.X + 5, row.ScrollRightBtnRect.Y + 2 };
-				pSurface->DSurfaceDrawText(L"<", DSurface::ViewBounds.operator->(), &leftPoint, Drawing::RGB2DWORD(0, 0, 0), 0, TextPrintType::Point8);
-				pSurface->DSurfaceDrawText(L">", DSurface::ViewBounds.operator->(), &rightPoint, Drawing::RGB2DWORD(0, 0, 0), 0, TextPrintType::Point8);
+				pSurface->DSurfaceDrawText(L"<", DSurface::ViewBounds.operator->(), &leftPoint, UIColors().Black, 0, TextPrintType::Point8);
+				pSurface->DSurfaceDrawText(L">", DSurface::ViewBounds.operator->(), &rightPoint, UIColors().Black, 0, TextPrintType::Point8);
 			}
 		}
 	}
@@ -3324,7 +3558,7 @@ void ObserverUIClass::RenderFloatingUnitWindows(DSurface* pSurface)
 		if (!win.pOwner || (!win.pType && !win.IsSuperweapon && !win.pSuperType))
 			continue;
 
-		ColorStruct const playerColor = ObserverUIHelpers::GetRowColor(this->PlayerRows, win.pOwner);
+		COLORREF const playerColor = ObserverUIHelpers::GetRowColorValue(this->PlayerRows, win.pOwner);
 
 		ObserverTextBlock block(maxCardWidth);
 		ObserverUnitCardContext const context = ObserverUnitCard::Build(block, win, this->PlayerRows);
@@ -3338,8 +3572,8 @@ void ObserverUIClass::RenderFloatingUnitWindows(DSurface* pSurface)
 		win.CameoClickRect = RectangleStruct { win.Position.X + boxPadding, win.Position.Y + boxPadding, cameoBoxW, cameoBoxH };
 
 		// Translucent panel background with an outer border in the player's color
-		ObserverUIHelpers::DrawPanel(pSurface, win.WindowRect, ColorStruct { 0, 0, 0 }, 75,
-			Drawing::RGB2DWORD(playerColor.R, playerColor.G, playerColor.B));
+		ObserverUIHelpers::DrawPanel(pSurface, win.WindowRect, ObserverRGB::Black, 75,
+			playerColor);
 
 		// Top-left cameo
 		ObserverCameoItem cameoItem;
@@ -3400,7 +3634,7 @@ void ObserverUIClass::RenderFloatingWindows(DSurface* pSurface)
 		if (!win.pHouse || !win.pHouse->Type)
 			continue;
 
-		ColorStruct const playerColor = ObserverUIHelpers::GetRowColor(this->PlayerRows, win.pHouse);
+		COLORREF const playerColor = ObserverUIHelpers::GetRowColorValue(this->PlayerRows, win.pHouse);
 
 		ObserverTextBlock block(maxCardWidth);
 		ObserverHouseSummary::Build(block, win.pHouse, this->PlayerRows, options);
@@ -3412,8 +3646,8 @@ void ObserverUIClass::RenderFloatingWindows(DSurface* pSurface)
 		win.WindowRect = RectangleStruct { win.Position.X, win.Position.Y, boxWidth, boxHeight };
 		win.CloseBtnRect = RectangleStruct { win.Position.X + boxWidth - 20, win.Position.Y + 4, 16, 16 };
 
-		ObserverUIHelpers::DrawPanel(pSurface, win.WindowRect, ColorStruct { 0, 0, 0 }, 75,
-			Drawing::RGB2DWORD(playerColor.R, playerColor.G, playerColor.B));
+		ObserverUIHelpers::DrawPanel(pSurface, win.WindowRect, ObserverRGB::Black, 75,
+			playerColor);
 
 		ObserverUIHelpers::DrawCloseButton(pSurface, win.CloseBtnRect, ObserverUIHelpers::HitTest(win.CloseBtnRect, mousePos));
 
@@ -3421,7 +3655,7 @@ void ObserverUIClass::RenderFloatingWindows(DSurface* pSurface)
 	}
 }
 
-void ObserverUIClass::DrawCameoItem(DSurface* pSurface, const ObserverCameoItem& item, bool isHovered, const RectangleStruct& clipRect, ColorStruct playerColor)
+void ObserverUIClass::DrawCameoItem(DSurface* pSurface, const ObserverCameoItem& item, bool isHovered, const RectangleStruct& clipRect, COLORREF playerColor)
 {
 	if (!pSurface)
 		return;
@@ -3500,19 +3734,19 @@ void ObserverUIClass::DrawCameoItem(DSurface* pSurface, const ObserverCameoItem&
 	if (!painted)
 	{
 		// Draw a missing-cameo outline and placeholder text
-		ObserverUIHelpers::DrawPanel(pSurface, drawRect, ColorStruct { 0, 0, 0 }, 75, Drawing::RGB2DWORD(100, 100, 100));
+		ObserverUIHelpers::DrawPanel(pSurface, drawRect, ObserverRGB::Black, 75, UIColors().BorderNeutral);
 
 		if (BitFont::Instance())
 		{
 			RectangleStruct textClipRect = clipRect;
 			Point2D textPoint { drawRect.X + 4, drawRect.Y + drawRect.Height / 2 - 4 };
-			pSurface->DSurfaceDrawText(L"NO CAMEO", &textClipRect, &textPoint, Drawing::RGB2DWORD(255, 0, 0), 0, TextPrintType::Point6);
+			pSurface->DSurfaceDrawText(L"NO CAMEO", &textClipRect, &textPoint, UIColors().Danger, 0, TextPrintType::Point6);
 		}
 	}
 
 	// Draw hover outline matching the player's color
 	if (isHovered)
-		pSurface->Draw_Rect(drawRect, Drawing::RGB2DWORD(playerColor.R, playerColor.G, playerColor.B));
+		pSurface->Draw_Rect(drawRect, playerColor);
 
 	// Superweapon readiness percentage overlay (0% -> 100%)
 	if (item.IsSuperweapon && item.pSuper)
@@ -3525,14 +3759,14 @@ void ObserverUIClass::DrawCameoItem(DSurface* pSurface, const ObserverCameoItem&
 
 		ObserverUIHelpers::DrawCameoOverlayText(pSurface, item.DisplayRect, clipRect,
 			std::to_wstring(percentReady) + L"%",
-			(percentReady == 100) ? Drawing::RGB2DWORD(0, 255, 0) : Drawing::RGB2DWORD(255, 255, 255));
+			(percentReady == 100) ? UIColors().Good : UIColors().White);
 	}
 	// Production percentage overlay
 	else if (item.IsProduction && item.ProgressPercent >= 0)
 	{
 		ObserverUIHelpers::DrawCameoOverlayText(pSurface, item.DisplayRect, clipRect,
 			std::to_wstring(item.ProgressPercent) + L"%",
-			Drawing::RGB2DWORD(0, 255, 0)); // Neon Green
+			UIColors().Good); // Neon Green
 	}
 
 	// Instance count overlay
@@ -3540,7 +3774,7 @@ void ObserverUIClass::DrawCameoItem(DSurface* pSurface, const ObserverCameoItem&
 	{
 		ObserverUIHelpers::DrawCameoOverlayText(pSurface, item.DisplayRect, clipRect,
 			std::to_wstring(item.Count),
-			Drawing::RGB2DWORD(255, 255, 255));
+			UIColors().White);
 	}
 }
 
@@ -3818,7 +4052,7 @@ bool ObserverUIClass::HandleMouseClick(Point2D mousePos, bool isRightClick)
 	{
 		this->SearchFilterText.clear();
 		this->IsSearchInputFocused = false;
-		this->CollectPlayerData();
+		this->CollectPlayerData(true);
 		return true;
 	}
 
@@ -3842,7 +4076,7 @@ bool ObserverUIClass::HandleMouseClick(Point2D mousePos, bool isRightClick)
 				continue;
 
 			this->ActiveFilterTab = button.Category;
-			this->CollectPlayerData();
+			this->CollectPlayerData(true);
 			return true;
 		}
 	}
@@ -4011,7 +4245,7 @@ bool ObserverUIClass::HandleKeyPress(int keyVal)
 	}
 
 	if (textChanged)
-		this->CollectPlayerData();
+		this->CollectPlayerData(true);
 
 	return true; // Swallow all other keys while the search box is focused
 }

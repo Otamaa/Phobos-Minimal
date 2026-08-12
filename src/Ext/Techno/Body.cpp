@@ -11593,13 +11593,13 @@ void TechnoExtData::UpdateEatPassengers()
 							nMoneyToGive += GetTotalSoylentOfPassengers(pThis, pDelType, pPassenger);
 						}
 
-						if (const auto pParasite = pCurrentPassenger->ParasiteEatingMe) {
-							nMoneyToGive += (int)(GET_TECHNOTYPE(pCurrentPassenger)->GetRefund(pParasite->Owner, true) * pDelType->SoylentMultiplier);
+						if (const auto pParasite = pPassenger->ParasiteEatingMe) {
+							nMoneyToGive += (int)(GET_TECHNOTYPE(pPassenger)->GetRefund(pParasite->Owner, true) * pDelType->SoylentMultiplier);
 							pParasite->ParasiteImUsing->SuppressionTimer.Start(50);
 							pParasite->ParasiteImUsing->ExitUnit();
 						}
 
-						const int hijack = pCurrentPassenger->HijackerInfantryType;
+						const int hijack = pPassenger->HijackerInfantryType;
 
 						if (hijack != -1) {
 							const auto pHijackerType = InfantryTypeClass::Array->Items[hijack];

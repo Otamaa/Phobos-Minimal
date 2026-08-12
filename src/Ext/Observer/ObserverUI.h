@@ -30,6 +30,7 @@
 #include <utility>
 #include <vector>
 
+class AbstractClass;
 class AbstractTypeClass;
 class BSurface;
 class BuildingClass;
@@ -110,6 +111,10 @@ struct ObserverPlayerRow
 	HouseClass* pHouse { nullptr };
 	int PlayerNumber { 0 }; // 1 for P1, 2 for P2, 3 for P3...
 	ColorStruct PlayerColor { 0, 0, 0 };
+	// OPTIMIZATION: PlayerColor / TeamColor converted once per rebuild instead of once per
+	// row (and once per cameo) per frame.
+	DWORD PlayerColorValue { 0 };
+	DWORD TeamColorValue { 0 };
 	std::wstring PlayerName {};
 	std::wstring CountryName {};
 	HouseClass* TargetEnemy { nullptr };
@@ -170,6 +175,65 @@ struct ObserverFloatingUnitWindow
 	CellStruct LastCoords { CellStruct::Empty };
 	std::wstring LastMission { L"Destroyed" };
 	float LastVeterancy { 0.0f };
+};
+
+// =====================================================================================
+// Colour palette
+//
+// Drawing::RGB2DWORD() converts an RGB triplet into the back buffer's native pixel format
+// on every call. The UI used to run that conversion on ~60 hardcoded literals every single
+// frame, so the converted values are cached here instead and rebuilt only when the
+// composite surface changes (resolution / video mode change).
+// =====================================================================================
+
+struct ObserverUIPalette
+{
+	DWORD White = 0;
+	DWORD TextBright = 0;
+	DWORD TextLabel = 0;
+	DWORD TextMuted = 0;
+	DWORD TextDim = 0;
+	DWORD BorderLight = 0;
+	DWORD TextFaint = 0;
+	DWORD BorderNeutral = 0;
+	DWORD Disabled = 0;
+	DWORD BorderIdle = 0;
+	DWORD BorderPanel = 0;
+	DWORD Black = 0;
+	DWORD Good = 0;
+	DWORD Bad = 0;
+	DWORD SoftBad = 0;
+	DWORD Target = 0;
+	DWORD Danger = 0;
+	DWORD CloseHover = 0;
+	DWORD Warning = 0;
+	DWORD Veteran = 0;
+	DWORD Highlight = 0;
+	DWORD Accent = 0;
+	DWORD Shield = 0;
+	DWORD Destination = 0;
+
+	// Converts every entry above through Drawing::RGB2DWORD.
+	void Rebuild();
+
+	// Cached table; rebuilt automatically when the composite surface is recreated.
+	static const ObserverUIPalette& Get();
+};
+
+// Shorthand for the cached palette.
+const ObserverUIPalette& UIColors();
+
+// Raw RGB constants. These are handed straight to Fill_Rect_Trans / ColorStruct consumers,
+// so they need no conversion and stay compile-time constants - they live here purely so no
+struct ObserverRGB
+{
+	static constexpr ColorStruct Black { 0, 0, 0 };
+	static constexpr ColorStruct PanelDark { 15, 15, 15 };
+	static constexpr ColorStruct Panel { 30, 30, 30 };
+	static constexpr ColorStruct Muted { 180, 180, 180 };
+	static constexpr ColorStruct Teal { 0, 140, 180 };
+	static constexpr ColorStruct Danger { 180, 40, 40 };
+	static constexpr ColorStruct Accent { 100, 220, 255 };
 };
 
 // =====================================================================================
@@ -357,6 +421,9 @@ struct ObserverUIHelpers
 
 	static ColorStruct GetRowColor(const std::vector<ObserverPlayerRow>& rows, HouseClass* pHouse);
 
+	// Same lookup, but returns the pre-converted value cached on the row.
+	static DWORD GetRowColorValue(const std::vector<ObserverPlayerRow>& rows, HouseClass* pHouse);
+
 	// ---------------------------------------------------------------------------------
 	// Floating window management
 	// ---------------------------------------------------------------------------------
@@ -479,6 +546,10 @@ struct ObserverTextSegment
 {
 	std::wstring Text;
 	DWORD Color;
+	// OPTIMIZATION: BitFont::GetTextDimension used to run twice per segment per frame - once
+	// while measuring the line, once while drawing it. The measurement is kept here instead.
+	int Width = 0;
+	int Height = 0;
 };
 
 struct ObserverTextLine
@@ -705,11 +776,15 @@ public:
 
 	static bool IsActive();
 
+	// Called from the engine-wide detach event. Drops every cached pointer to pInvalid so the
+	// validity checks below never have to scan TechnoClass::Array to spot a dangling pointer.
+	void CleanInvalidPointer(AbstractClass* pInvalid);
+
 private:
 	ObserverUIDisplayMode DisplayMode { ObserverUIDisplayMode::Hidden };
 	bool WasEnterPressed { false };
-	void CollectPlayerData();
-	void DrawCameoItem(DSurface* pSurface, const ObserverCameoItem& item, bool isHovered, const RectangleStruct& clipRect, ColorStruct playerColor);
+	void CollectPlayerData(bool force = false);
+	void DrawCameoItem(DSurface* pSurface, const ObserverCameoItem& item, bool isHovered, const RectangleStruct& clipRect, COLORREF playerColor);
 	void DrawTooltip(DSurface* pSurface, const ObserverCameoItem& item, Point2D mousePos);
 	void DrawPlayerTooltip(DSurface* pSurface, HouseClass* pHouse, Point2D mousePos);
 	// EXTENSION: single dispatch for the inspect-button / player / cameo tooltips, shared
@@ -739,6 +814,11 @@ private:
 
 	std::vector<std::wstring> ParseSearchTerms(const std::wstring& query) const;
 	bool MatchesSearchFilter(AbstractTypeClass* pType) const;
+
+	// Parsed once per CollectPlayerData rebuild, not once per candidate object.
+	std::vector<std::wstring> SearchTerms {};
+	// Frame of the last rebuild, so repeated Update() calls in one frame do no work.
+	int LastCollectFrame { -1 };
 
 	std::vector<ObserverPlayerRow> PlayerRows {};
 	std::vector<ObserverFloatingWindow> FloatingWindows {};
