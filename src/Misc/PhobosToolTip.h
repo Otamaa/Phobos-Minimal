@@ -7,7 +7,7 @@ struct StripClass;
 class TechnoTypeClass;
 class SuperClass;
 struct BuildType;
-
+class HouseClass;
 class TechnoTypeExtData;
 class SWTypeExtData;
 class PhobosToolTip
@@ -15,10 +15,13 @@ class PhobosToolTip
 public:
 	static PhobosToolTip Instance;
 
-private:
-	OPTIONALINLINE int GetBuildTime(TechnoTypeClass* pType) const;
-	OPTIONALINLINE int GetPower(TechnoTypeClass* pType) const;
+public:
+	static int GetBuildTime(TechnoTypeClass* pType);
+	static int GetBuildTime(TechnoTypeClass* pType, HouseClass* pOwner);
+	static int GetPower(TechnoTypeClass* pType);
 	static int TickTimeToSeconds(int tickTime);
+
+private:
 
 	OPTIONALINLINE const wchar_t* GetUIDescription(TechnoTypeExtData* pData) const;
 	OPTIONALINLINE const wchar_t* GetUnbuildableUIDescription(TechnoTypeExtData* pData) const;

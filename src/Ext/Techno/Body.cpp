@@ -6463,9 +6463,8 @@ CoordStruct* __fastcall FakeTechnoClass::__Get_FLH(TechnoClass* pThis, discard_t
 	return pBuffer;
 }
 DEFINE_FUNCTION_JUMP(LJMP, 0x6F3AD0, FakeTechnoClass::__Get_FLH);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2354, FakeTechnoClass::__Get_FLH);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E8D44, FakeTechnoClass::__Get_FLH);
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4A10, FakeTechnoClass::__Get_FLH);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2354, FakeTechnoClass::__Get_FLH); //AircraftDEFINE_FUNCTION_JUMP(VTABLE, 0x7E8D44, FakeTechnoClass::__Get_FLH);//foot
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4A10, FakeTechnoClass::__Get_FLH); //techn
 
 int __fastcall FakeTechnoClass::__AdjustDamage(TechnoClass* pThis, discard_t,TechnoClass* pTarget, WeaponTypeClass* pWeapon)
 {

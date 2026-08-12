@@ -1140,6 +1140,11 @@ public:
 	COMPILETIMEEVAL bool OPTIONALINLINE IsInitiallyObserver() const 
 		{	return this->IsHumanPlayer && (this->GetSpawnPosition() == -1);}
 
+	inline bool IsMutualAlly(HouseClass const* pHouse) const {
+		return pHouse == this
+			|| (this->Allies.Contains(pHouse->ArrayIndex) && pHouse->Allies.Contains(this->ArrayIndex));
+	}
+
 	bool HasSpaceFor(BuildingTypeClass* pBld , CellStruct* where) const 
 		{ JMP_THIS(0x50B760); }
 

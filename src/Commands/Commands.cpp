@@ -54,6 +54,10 @@
 
 #include <Ext/Rules/Body.h>
 
+#include "ClearObserverUICards.h"
+#include "ShowObjectCard.h"
+#include "ToggleObserverUI.h"
+
 bool PhobosCommandClass::CheckDebugDeactivated() const
 {
 	auto const bAllow = Phobos::Config::DevelopmentCommands || Phobos::Otamaa::IsAdmin;
@@ -170,6 +174,10 @@ void __fastcall Game_Init_Commands_Wrapper() {
 	Make<RebuildVehicleCommandClass>();
 	Make<RebuildAircraftCommandClass>();
 	Make<RebuildNavalCommandClass>();
+
+	Make<ClearObserverUICardsCommandClass>();
+	Make<ShowObjectCardCommandClass>();
+	Make<ToggleObserverUICommandClass>();
 
 	CommandClass::InitCommand();
 

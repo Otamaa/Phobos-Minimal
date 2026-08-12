@@ -20,6 +20,125 @@
 #include <SpawnManagerClass.h>
 
 #include <Misc/PhobosGlobal.h>
+ASMJIT_PATCH(0x45387A, BuildingClass_FireOffset_Replace_MuzzleFix, 0x6) // A
+{
+	GET(FakeBuildingClass*, pThis, ESI);
+
+	if (pThis->Type->MaxNumberOccupants > 10)
+	{
+		R->EDX(pThis->_GetTypeExtData()->OccupierMuzzleFlashes.data() + pThis->FiringOccupantIndex);
+	}
+
+	return 0;
+}
+
+CoordStruct* FakeBuildingClass::__Get_FLH(CoordStruct* pBuffer, int weaponIndex, CoordStruct offset)
+{
+	//FakeTechnoClass::__Get_FLH
+
+	BuildingTypeClass* const pType = this->Type;
+
+	// asm stack slot `arg0` @ ebp-0Ch : scratch CoordStruct handed to callees
+	CoordStruct scratch {};
+
+	//------------------------------------------------------------------------
+	// 0x453849 - 0x4538C2 : garrisoned building — fire from the occupant's
+	// muzzle-flash pixel slot, anchored on the building's own coordinate.
+	//------------------------------------------------------------------------
+	if (pType->CanBeOccupied) {
+		const int occupantCount = this->GetOccupantCount();
+
+		if(occupantCount > 0) {
+			auto _offs = pType->MaxNumberOccupants < 10 ? pType->MuzzleFlash
+				: this->_GetTypeExtData()->OccupierMuzzleFlashes.data();
+
+			Point2D pixel = TacticalClass::Instance->ApplyOffsetPixel(*(_offs + this->FiringOccupantIndex));
+			CoordStruct _render = this->GetRenderCoords();
+
+			pBuffer->X = _render.X + pixel.X;
+			pBuffer->Y = _render.Y + pixel.Y;
+			pBuffer->Z = _render.Z; // Z is taken straight from the anchor, unshifted
+			return pBuffer;
+		}
+	}
+
+	//------------------------------------------------------------------------
+	// 0x4538C5 : branch on whether an explicit PrimaryFirePixelOffset exists.
+	//------------------------------------------------------------------------
+	Point2D const& firePixel = pType->PrimaryFirePixelOffset;
+
+	if (!firePixel.IsValid()) {
+		//--------------------------------------------------------------------
+		// 0x4539A1 : no pixel offset — fall back to voxel barrel/turret geometry.
+		//--------------------------------------------------------------------
+		if (pType->BarrelAnimIsVoxel) {
+			// 0x4539AB - 0x4539DD : barrel voxel wins outright, no further adjust.
+			CoordStruct _emp = CoordStruct::Empty;
+			this->GetBarrelCoords(pBuffer, &_emp, true);
+			return pBuffer;
+		}
+
+		//--------------------------------------------------------------------
+		// 0x4539E0 : generic TechnoClass FLH, optionally nudged by the voxel
+		// turret's artwork pixel offset.
+		//--------------------------------------------------------------------
+		CoordStruct const* const pBase = FakeTechnoClass::__Get_FLH(this, discard_t(), &scratch, weaponIndex, CoordStruct::Empty);
+
+
+		int x = pBase->X;
+		int y = pBase->Y;
+		int const z = pBase->Z;
+
+		// asm re-reads [esi+520h] at 0x453A06; identical value, folded into pType.
+		if (pType->TurretAnimIsVoxel)
+		{
+			// 0x453A1C - 0x453A4C
+			// VERIFY: TurretAnimX/TurretAnimY (+0x11E0 / +0x11E4).
+			Point2D const turretOffset { pType->BuildingAnim[9].Position.X, pType->BuildingAnim[9].Position.Y };
+
+			// DIFF (unobservable): vanilla reuses the `arg0` CoordStruct slot as the
+			// return buffer here; we use the dedicated Point2D local instead. The
+			// FLH result has already been copied into x/y/z at this point, so the
+			// aliasing was incidental.
+			Point2D pixel = TacticalClass::Instance->ApplyOffsetPixel(turretOffset);
+			x += pixel.X;
+			y += pixel.Y;
+		}
+
+		pBuffer->X = x;
+		pBuffer->Y = y;
+		pBuffer->Z = z;
+		return pBuffer;
+	}
+
+	//------------------------------------------------------------------------
+	// 0x4538EC : explicit pixel offset. DualOffset picks the anchor:
+	//   true  -> the weapon's own FLH (TechnoClass base)
+	//   false -> the building's coordinate
+	//------------------------------------------------------------------------
+	Point2D pixel = TacticalClass::Instance->ApplyOffsetPixel(firePixel);
+
+	if (pType->PrimaryFireDualOffset) {
+		// 0x4538F7 - 0x453954
+		CoordStruct const* const pBase = FakeTechnoClass::__Get_FLH(this, discard_t(), &scratch, weaponIndex, CoordStruct::Empty);
+
+		pBuffer->X = pBase->X + pixel.X;
+		pBuffer->Y = pBase->Y + pixel.Y;
+		pBuffer->Z = pBase->Z;
+	} else {
+		// 0x453957 - 0x45399E
+		CoordStruct const const _rendoordsb = this->GetRenderCoords();
+
+		pBuffer->X = _rendoordsb.X + pixel.X;
+		pBuffer->Y = _rendoordsb.Y + pixel.Y;
+		pBuffer->Z = _rendoordsb.Z;
+	}
+
+	return pBuffer;
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x453840, FakeBuildingClass::__Get_FLH)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3F6C, FakeBuildingClass::__Get_FLH)
 
 bool BuildingExtData::BuildingOnline(BuildingClass* pThis)
 {

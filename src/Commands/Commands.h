@@ -30,3 +30,4 @@ protected:
 #define CATEGORY_DEBUG GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DEBUG", L"Debug")
 #define CATEGORY_GUIDEBUG StringTable::FetchString(GameStrings::GUI_Debug)
 #define CATEGORY_DEVELOPMENT GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DEVELOPMENT", L"Development")
+#define CATEGORY_INFORMATION GeneralUtils::LoadStringUnlessMissing("TXT_CATEGORY_INFORMATION", L"Information")

@@ -98,9 +98,9 @@ void RadSiteExtData::CreateLight()
 
 	if (pThis->LightSource)
 	{
-		//pThis->LightSource->ChangeLevels(static_cast<int>(nLightFactor), nTintBuffer, false);
+		pThis->LightSource->ChangeLevels(static_cast<int>(nLightFactor), nTintBuffer, false);
 		pThis->Radiate();
-		this->LightDirty = true;
+		this->LightDirty = true; //breaking rad at snow - Otamaa
 	}
 	else
 	{
@@ -629,12 +629,13 @@ void FakeRadSiteClass::__AI()
 
 		// Reset radiation level timer
 		this->RadLevelTimer.Start(pExt->Type->GetLevelDelay());
-		if (pExt->LightDirty) {
-			if (const auto pLight = this->LightSource)
-				pLight->ChangeLevels(this->Intensity, this->Tint, false);
-
-			pExt->LightDirty = false;
-		}
+		//breaking rad on snow -otamaa
+		//if (pExt->LightDirty) {
+		//	if (const auto pLight = this->LightSource)
+		//		pLight->ChangeLevels(this->Intensity, this->Tint, false);
+		//
+		//	pExt->LightDirty = false;
+		//}
 	}
 
 	// Check radiation light update timer

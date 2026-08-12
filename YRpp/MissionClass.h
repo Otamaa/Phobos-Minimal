@@ -115,6 +115,13 @@ public:
 	static COMPILETIMEEVAL reference<MissionControlClass, 0xA8E3A8u, 32> const Controls {};
 	static COMPILETIMEEVAL reference<const char*, 0x816CACu, 31> const Names {};
 
+	static const char* GetMissionName(Mission nIN) {
+		if (nIN <= Mission::None)
+			return GameStrings::NoneStrb();
+
+		return Names[(int)nIN];
+	}
+
 	//with safety check
 	static MissionControlClass* GetMissionControl(Mission nIN) {
 		if (nIN >= Mission::count) {

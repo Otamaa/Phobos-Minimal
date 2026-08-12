@@ -364,6 +364,9 @@ public:
 	bool CanUpgradeBuilding(const BuildingTypeClass* pType, const HouseClass* pHouse) const
 		{ JMP_THIS(0x452670); }
 
+	CoordStruct* GetBarrelCoords(CoordStruct* retval, CoordStruct* overrider, char a4)
+		{ JMP_THIS(0x453BF0); }
+
 	bool HasValidExitCell() const 
 		{ JMP_THIS(0x459CA0); }
 	//Constructor

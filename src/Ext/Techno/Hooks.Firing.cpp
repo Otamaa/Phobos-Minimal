@@ -437,10 +437,6 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 	}
 	// ╚═══════════════════════════════════════════════════════════════════════╝
 
-#if 0 // ⚠ §SUICIDE  DEAD CODE – W1
-	if (pWeapon->Suicide) { /* vanilla: TakeDamage on self */ }
-#endif
-
 	// Particle / wave guard
 	if ((pWeapon->UseFireParticles && pThis->Sys.Fire)
 	 || (pWeapon->IsRailgun && pThis->Sys.Railgun)
@@ -486,13 +482,6 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 		pThis->SetTarget(nullptr);
 		RunEndHook(pThis, pWeapon); return nullptr;
 	}
-
-	// ╔═══ HOOK: TechnoClass_FireAt_SprayOffsets @ 0x6FDFA8 ════════════════════╗
-	// W2: §SPRAY is dead code. Coord calc uses ext SprayOffsets table.
-	// ╚═══════════════════════════════════════════════════════════════════════╝
-#if 0 // ⚠ §SPRAY  DEAD CODE – W2
-	// vanilla SprayOffsets init table (static array at 0xB0EAA8)
-#endif
 
 	// ── Target coordinate ─────────────────────────────────────────────────────
 	CoordStruct    coord1 {};
@@ -544,15 +533,15 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 			: pTarget->GetCoords();
 	}
 
-	const bool bulletHasROTorVertical =
-		pBulletType->ROT > 0 || pBulletType->Vertical;
+	const bool bulletHasROTorDropping =
+		pBulletType->ROT > 0 || pBulletType->Dropping;
 
-	if (bulletHasROTorVertical)
+	if (bulletHasROTorDropping)
 	{
 		//unused
 		//DirStruct fd = pThis->GetRealFacing();
 
-		if (pBulletType->Vertical) { 
+		if (pBulletType->Dropping) {
 			fireOrigin = pThis->GetCoords();
 		}
 	}
@@ -653,25 +642,12 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 	CoordStruct delta { pTgtCoord.X - fireOrigin.X, pTgtCoord.Y - fireOrigin.Y, pTgtCoord.Z - fireOrigin.Z };
 	CoordStruct scatterDelta = delta;
 
-	if (pBulletType->FlakScatter && pBulletType->Inviso)
+	//if (pBulletType->FlakScatter && pBulletType->Inviso)
 	{
 		// ╔═══ HOOK: TechnoClass_FireAt_BallisticScatter1/2 @ 0x6FE709 / 0x6FE7FE ╗
-		if (*(bool*)((char*)pBulletType + 0x2A3) && !*(bool*)((char*)pBulletType + 0x29E))
+		if (!pBulletType->FlakScatter || pBulletType->Inviso)
 		{
-			// Mode A: 2D polar (hook 0x6FE709)
-			const int min_s = pBulletTypeExt->BallisticScatterMin.Get(Leptons(0));
-			const int max_s = pBulletTypeExt->BallisticScatterMax.Get(
-				Leptons(RulesClass::Instance->BallisticScatter));
-			const int sd = ScenarioClass::Instance->Random.RandomRanged(min_s, max_s);
-			const double rd = ScenarioClass::Instance->Random.RandomDouble() * Math::GAME_TWOPI - Math::DEG90_AS_RAD;
-			const double ra = (double)((int16_t)(int)(rd * Math::BINARY_ANGLE_MAGIC) - 0x3FFF)
-				* Math::DIRECTION_FIXED_MAGIC;
-			scatterDelta.Y = (int)((double)delta.Y - Math::sin(ra) * sd);
-			scatterDelta.X = (int)(Math::cos(ra) * sd + (double)delta.X);
-		}
-		else
-		{
-			// Mode B: proportional 3D (hook 0x6FE7FE)
+			// Mode 1: proportional 3D (hook 0x6FE7FE)
 			const int min_s = pBulletTypeExt->BallisticScatterMin.Get(
 				Leptons(RulesClass::Instance->BallisticScatter / 2));
 			const int max_s = pBulletTypeExt->BallisticScatterMax.Get(
@@ -689,6 +665,19 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 			scatterDelta.Y = (int)((double)delta.Y - Math::sin(ra) * pr);
 			scatterDelta.X = (int)(Math::cos(ra) * pr + (double)delta.X);
 		}
+		else
+		{
+			// Mode 2: 2D polar (hook 0x6FE709)
+			const int min_s = pBulletTypeExt->BallisticScatterMin.Get(Leptons(0));
+			const int max_s = pBulletTypeExt->BallisticScatterMax.Get(
+				Leptons(RulesClass::Instance->BallisticScatter));
+			const int sd = ScenarioClass::Instance->Random.RandomRanged(min_s, max_s);
+			const double rd = ScenarioClass::Instance->Random.RandomDouble() * Math::GAME_TWOPI - Math::DEG90_AS_RAD;
+			const double ra = (double)((int16_t)(int)(rd * Math::BINARY_ANGLE_MAGIC) - 0x3FFF)
+				* Math::DIRECTION_FIXED_MAGIC;
+			scatterDelta.Y = (int)((double)delta.Y - Math::sin(ra) * sd);
+			scatterDelta.X = (int)(Math::cos(ra) * sd + (double)delta.X);
+		}
 		// ╚═══════════════════════════════════════════════════════════════════╝
 		delta.X = scatterDelta.X;
 		delta.Y = scatterDelta.Y;
@@ -696,7 +685,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 
 	// Horizontal direction (use DirStruct helpers instead of raw math)
 	DirStruct horzDirDS;
-	if (bulletHasROTorVertical)
+	if (bulletHasROTorDropping)
 	{
 		DirStruct fd;
 		pThis->GetRealFacing(&fd);
@@ -1240,7 +1229,7 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x6FDD50, FakeTechnoClass::__Fire_At)
 DEFINE_FUNCTION_JUMP(CALL, 0x415F12, FakeTechnoClass::__Fire_At)
 DEFINE_FUNCTION_JUMP(CALL, 0x51DF77, FakeTechnoClass::__Fire_At)
 DEFINE_FUNCTION_JUMP(CALL, 0x7413CE, FakeTechnoClass::__Fire_At)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4288, FakeTechnoClass::__Fire_At)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4288, FakeTechnoClass::__Fire_At)//bld
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E9060, FakeTechnoClass::__Fire_At)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4D2C, FakeTechnoClass::__Fire_At)
 

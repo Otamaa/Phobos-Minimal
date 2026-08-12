@@ -23,8 +23,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Commands\BuildLastOfTab.cpp" />
+    <ClCompile Include="src\Commands\ClearObserverUICards.cpp" />
     <ClCompile Include="src\Commands\Deselect.cpp" />
     <ClCompile Include="src\Commands\RebuildTab3Subtypes.cpp" />
+    <ClCompile Include="src\Commands\ShowObjectCard.cpp" />
+    <ClCompile Include="src\Commands\ToggleObserverUI.cpp" />
     <ClCompile Include="src\Commands\ToggleSuperTimers.cpp" />
     <ClCompile Include="src\Ext\AbstractType\Body.cpp" />
     <ClCompile Include="src\Ext\Abstract\Hooks.cpp" />
@@ -61,6 +64,7 @@
     <ClCompile Include="src\Ext\ObjectType\Body.cpp" />
     <ClCompile Include="src\Ext\Object\Body.cpp" />
     <ClCompile Include="src\Ext\Object\Hooks.cpp" />
+    <ClCompile Include="src\Ext\Observer\ObserverUI.cpp" />
     <ClCompile Include="src\Ext\PCXFile\Hooks.PNG.cpp" />
     <ClCompile Include="src\Ext\Rules\Hooks.Initilize.cpp" />
     <ClCompile Include="src\Ext\Session\Body.cpp" />
@@ -629,8 +633,11 @@
     <ClInclude Include="B:\Projects\magic_enum\include\magic_enum\magic_enum_utility.hpp" />
     <ClInclude Include="B:\Projects\Unused\LambdaFunctionArgCount.h" />
     <ClInclude Include="src\Commands\BuildLastOfTab.h" />
+    <ClInclude Include="src\Commands\ClearObserverUICards.h" />
     <ClInclude Include="src\Commands\Deselect.h" />
     <ClInclude Include="src\Commands\RebuildTab3Subtypes.h" />
+    <ClInclude Include="src\Commands\ShowObjectCard.h" />
+    <ClInclude Include="src\Commands\ToggleObserverUI.h" />
     <ClInclude Include="src\Commands\ToggleSuperTimers.h" />
     <ClInclude Include="src\Ext\AStar\Body.h" />
     <ClInclude Include="src\Ext\BitFont\Body.h" />
@@ -768,6 +775,7 @@
     <ClInclude Include="src\Ext\Factory\Body.h" />
     <ClInclude Include="src\Ext\INI\Body.h" />
     <ClInclude Include="src\Ext\IonBlast\Body.h" />
+    <ClInclude Include="src\Ext\Observer\ObserverUI.h" />
     <ClInclude Include="src\Ext\Session\Body.h" />
     <ClInclude Include="src\Ext\SHP\Body.h" />
     <ClInclude Include="src\Ext\TagType\Body.h" />

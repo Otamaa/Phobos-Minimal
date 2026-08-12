@@ -16,6 +16,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/Tactical/Body.h>
 #include <Ext/Scenario/Body.h>
+#include <Ext/Observer/ObserverUI.h>
 
 #include <New/MessageHandler/MessageColumnClass.h>
 
@@ -77,10 +78,64 @@ static inline bool MouseOverMessageLists()
 	return false;
 }
 
+#include <Ext/Observer/ObserverUI.h>
+
 ASMJIT_PATCH(0x4F43BE, GScreenClass_GetInputAndUpdate_CheckHoverState, 0x7)
 {
+	bool isActive = ObserverUIClass::IsActive();
+	bool isDevUIOpen = Phobos::Config::DevelopmentCommands && ObserverUIClass::Instance.GetDisplayMode() != ObserverUIDisplayMode::Hidden;
+	bool isDevCardsOpen = Phobos::Config::DevelopmentCommands && ObserverUIClass::Instance.HasFloatingWindows();
+
 	if (Phobos::Config::MessageApplyHoverState)
 		MessageTemp::OnOldMessages = MouseOverMessageLists();
+
+	if ((isActive || isDevUIOpen || isDevCardsOpen) && WWMouseClass::Instance())
+	{
+		auto const pKey = R->ESI<int*>();
+		if (pKey)
+		{
+			int keyVal = *pKey;
+			Point2D mousePos { WWMouseClass::Instance->GetX(), WWMouseClass::Instance->GetY() };
+
+			if (ObserverUIClass::Instance.IsSearchFocused())
+			{
+				MouseClass::Instance->UpdateCursor(MouseCursorType::Default, false);
+
+				if (keyVal == 1)
+				{
+					ObserverUIClass::Instance.HandleMouseClick(mousePos, false);
+					*pKey = 0;
+				}
+				else if (keyVal == 2 || keyVal == 4)
+				{
+					ObserverUIClass::Instance.HandleMouseClick(mousePos, true);
+					*pKey = 0;
+				}
+				else if (keyVal != 0)
+				{
+					if (ObserverUIClass::Instance.HandleKeyPress(keyVal))
+					{
+						*pKey = 0;
+					}
+				}
+			}
+			else if (ObserverUIClass::Instance.IsMouseHoveringUI())
+			{
+				MouseClass::Instance->UpdateCursor(MouseCursorType::Default, false);
+
+				if (keyVal == 1)
+				{
+					ObserverUIClass::Instance.HandleMouseClick(mousePos, false);
+					*pKey = 0;
+				}
+				else if (keyVal == 2 || keyVal == 4)
+				{
+					ObserverUIClass::Instance.HandleMouseClick(mousePos, true);
+					*pKey = 0;
+				}
+			}
+		}
+	}
 
 	return 0;
 }
@@ -216,6 +271,15 @@ public:
 
 		Phobos::DrawVersionWarning();
 		HugeBar::ProcessHugeBar();
+		bool isActive = ObserverUIClass::IsActive();
+		bool isDevUIOpen = Phobos::Config::DevelopmentCommands && ObserverUIClass::Instance.GetDisplayMode() != ObserverUIDisplayMode::Hidden;
+
+		if (isActive || isDevUIOpen)
+		{
+			ObserverUIClass::Instance.Update();
+			ObserverUIClass::Instance.Render(DSurface::Composite);
+		}
+
 		MessageColumnClass::Instance.DrawAll();
 		WWMouseClass::Instance->func_3C(DSurface::Composite, false);
 		pThis->vt_entry_44();

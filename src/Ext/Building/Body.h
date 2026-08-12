@@ -245,6 +245,7 @@ public:
 
 	HRESULT __stdcall __Load(IStream* pStm);
 	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
+	CoordStruct* __Get_FLH(CoordStruct* pBuffer, int weaponIndex, CoordStruct offset);
 
 	void _Sell_Back(int control);
 	void _Repair_AI();

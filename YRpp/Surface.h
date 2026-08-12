@@ -111,8 +111,8 @@ public:
 	virtual bool DrawDashedLine_(Point2D& start, Point2D& end, unsigned color, bool* pattern, int offset, bool a6) PURE;
 	virtual bool DrawLine_(Point2D& start, Point2D& end, unsigned color, bool a4 = false) PURE;
 
-	virtual bool Draw_Rect(RectangleStruct& RectangleStruct, unsigned color) PURE;
-	virtual bool Draw_Rect(RectangleStruct& area, RectangleStruct& RectangleStruct, unsigned color) PURE;
+	virtual bool Draw_Rect(RectangleStruct& rect, DWORD color) PURE;
+	virtual bool Draw_Rect(RectangleStruct& area, RectangleStruct& rect, DWORD color) PURE;
 
 	virtual void* Lock(int x = 0, int y = 0) PURE;
 	virtual bool Unlock() PURE;
@@ -259,8 +259,8 @@ public:
 	virtual bool DrawDashedLine_(Point2D& start, Point2D& end, unsigned color, bool* pattern, int offset, bool a6) override R0;
 	virtual bool DrawLine_(Point2D& start, Point2D& end, unsigned color, bool a4 = false) override  R0;
 
-	virtual bool Draw_Rect(RectangleStruct& rect, unsigned color) override JMP_THIS(0x7BAD90);
-	virtual bool Draw_Rect(RectangleStruct& area, RectangleStruct& rect, unsigned color) override JMP_THIS(0x7BADC0);
+	virtual bool Draw_Rect(RectangleStruct& rect, DWORD color) override JMP_THIS(0x7BAD90);
+	virtual bool Draw_Rect(RectangleStruct& area, RectangleStruct& rect, DWORD color) override JMP_THIS(0x7BADC0);
 
 	virtual void* Lock(int x = 0, int y = 0) override JMP_THIS(0x411560);
 	virtual bool Unlock() override JMP_THIS(0x411570);

@@ -64,8 +64,7 @@ OPTIONALINLINE const wchar_t* PhobosToolTip::GetUIDescription(SWTypeExtData* pDa
 		: nullptr;
 }
 
-OPTIONALINLINE int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType) const
-{
+int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType, HouseClass* pOwner) {
 	// TechnoTypeClass only has 4 final classes :
 	// BuildingTypeClass, AircraftTypeClass, InfantryTypeClass and UnitTypeClass
 	// It has to be these four classes, otherwise pType will just be
@@ -94,14 +93,18 @@ OPTIONALINLINE int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType) const
 	}
 
 	const auto pTrick = reinterpret_cast<TechnoClass*>(BuildTimeDatas);
-	pTrick->Owner = HouseClass::CurrentPlayer();
+	pTrick->Owner = pOwner;
 
 	const int nTimeToBuild = pTrick->TimeToBuild();
 	// 54 frames at least
 	return MaxImpl(54, nTimeToBuild);
 }
 
-OPTIONALINLINE int PhobosToolTip::GetPower(TechnoTypeClass* pType) const
+int PhobosToolTip::GetBuildTime(TechnoTypeClass* pType)  {
+	return GetBuildTime(pType, HouseClass::CurrentPlayer());
+}
+
+int PhobosToolTip::GetPower(TechnoTypeClass* pType)
 {
 	switch (pType->WhatAmI())
 	{
@@ -147,7 +150,7 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 
 	const auto pData = TechnoTypeExtContainer::Instance.Find(pType);
 
-	const int nBuildTime = TickTimeToSeconds(this->GetBuildTime(pType));
+	const int nBuildTime = TickTimeToSeconds(PhobosToolTip::GetBuildTime(pType));
 
 	const int nSec = nBuildTime % 60;
 	const int nMin = nBuildTime / 60 /* % 60*/;

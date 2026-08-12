@@ -28,17 +28,6 @@ ASMJIT_PATCH(0x460285, BuildingTypeClass_LoadFromINI_Muzzle, 0x6)
 		? Skip : Read;
 }
 
-ASMJIT_PATCH(0x45387A, BuildingClass_FireOffset_Replace_MuzzleFix, 0x6) // A
-{
-	GET(FakeBuildingClass*, pThis, ESI);
-
-	if (pThis->Type->MaxNumberOccupants > 10) {
-		R->EDX(pThis->_GetTypeExtData()->OccupierMuzzleFlashes.data() + pThis->FiringOccupantIndex);
-	}
-
-	return 0;
-}
-
 ASMJIT_PATCH(0x458623, BuildingClass_KillOccupiers_Replace_MuzzleFix, 0x7)
 {
 	GET(FakeBuildingClass*, pThis, ESI);
