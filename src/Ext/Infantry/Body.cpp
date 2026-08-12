@@ -456,11 +456,9 @@ void HandleInfantryDeath(FakeInfantryClass* pThis, WarheadTypeClass* warhead,
 	TechnoClass* source, HouseClass* sourceHouse, bool forced) {
 
 	// Handle slave manager cleanup
-	if (auto pEnslave = pThis->SlaveOwner)
-	{
-		if (auto pManager = pEnslave->SlaveManager)
-		{
-			pManager->Killed(pThis);
+	if (auto pEnslave = pThis->SlaveOwner) {
+		if (auto pManager = pEnslave->SlaveManager) {
+			pManager->LostSlave(pThis);
 		}
 	}
 

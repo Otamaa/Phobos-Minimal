@@ -11,6 +11,7 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/House/Body.h>
+#include <Ext/Infantry/Body.h>
 
 #include <TechnoClass.h>
 #include <BuildingClass.h>
@@ -126,8 +127,28 @@ void HandleDestruction(TemporalClass* pTemporal , TechnoClass* target , WeaponTy
 					erase = !WeaponTypeExtData::conductAbduction(pWeapon, pTemporal->Owner, target, CoordStruct::Empty);
 
 				if (erase) {
+					bool targetIsFoot = true;
 					if (pBuilding) {
 						HandleBuildingDestruction(pTemporal, pBuilding);
+						targetIsFoot = false;
+					}
+		
+					if (auto pInf = cast_to<InfantryClass*>(target)) {
+						// Handle slave manager cleanup
+						if (auto pEnslave = pInf->SlaveOwner) {
+							if (auto pManager = pEnslave->SlaveManager) {
+								pManager->LostSlave(pInf);
+							}
+						}
+					}
+
+					if(targetIsFoot){
+						auto MyTransport = target->Transporter;
+						if (MyTransport
+							&& MyTransport->WhatAmI() == UnitClass::AbsID
+							&& target->GetTechnoType()->Gunner) {
+							static_cast<UnitClass*>(MyTransport)->RemovePassenger((FootClass*)target);
+						}
 					}
 
 					// Handle bunker connections for target
