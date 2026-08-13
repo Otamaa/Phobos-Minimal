@@ -18,7 +18,6 @@
 
 #include "lauxlib.h"
 #include "lualib.h"
-#include "llimits.h"
 
 
 /*
@@ -191,10 +190,8 @@ static int db_getinfo (lua_State *L) {
     settabsi(L, "ftransfer", ar.ftransfer);
     settabsi(L, "ntransfer", ar.ntransfer);
   }
-  if (strchr(options, 't')) {
+  if (strchr(options, 't'))
     settabsb(L, "istailcall", ar.istailcall);
-    settabsi(L, "extraargs", ar.extraargs);
-  }
   if (strchr(options, 'L'))
     treatstackoption(L, L1, "activelines");
   if (strchr(options, 'f'))
@@ -449,6 +446,14 @@ static int db_traceback (lua_State *L) {
 }
 
 
+static int db_setcstacklimit (lua_State *L) {
+  int limit = (int)luaL_checkinteger(L, 1);
+  int res = lua_setcstacklimit(L, limit);
+  lua_pushinteger(L, res);
+  return 1;
+}
+
+
 static const luaL_Reg dblib[] = {
   {"debug", db_debug},
   {"getuservalue", db_getuservalue},
@@ -466,6 +471,7 @@ static const luaL_Reg dblib[] = {
   {"setmetatable", db_setmetatable},
   {"setupvalue", db_setupvalue},
   {"traceback", db_traceback},
+  {"setcstacklimit", db_setcstacklimit},
   {NULL, NULL}
 };
 

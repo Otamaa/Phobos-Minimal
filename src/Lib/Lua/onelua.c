@@ -5,13 +5,9 @@
 **
 ** $ gcc -O2 -std=c99 -o lua onelua.c -lm
 **
-** or (for C89)
+** or
 **
 ** $ gcc -O2 -std=c89 -DLUA_USE_C89 -o lua onelua.c -lm
-**
-** or (for Linux)
-**
-** gcc -O2 -o lua -DLUA_USE_LINUX -Wl,-E onelua.c -lm -ldl
 **
 */
 
@@ -34,15 +30,7 @@
 #define LUA_USE_LINUX
 #define LUA_USE_MACOSX
 #define LUA_USE_POSIX
-#endif
-
-
-/*
-** Other specific features
-*/
-#if 0
-#define LUA_32BITS
-#define LUA_USE_C89
+#define LUA_ANSI
 #endif
 
 
@@ -66,10 +54,12 @@
 #include <string.h>
 #include <time.h>
 
+
 /* setup for luaconf.h */
 #define LUA_CORE
 #define LUA_LIB
-
+#define ltable_c
+#define lvm_c
 #include "luaconf.h"
 
 /* do not export internal symbols */
@@ -118,11 +108,6 @@
 #include "ltablib.c"
 #include "lutf8lib.c"
 #include "linit.c"
-#endif
-
-/* test library -- used only for internal development */
-#if defined(LUA_DEBUG)
-#include "ltests.c"
 #endif
 
 /* lua */

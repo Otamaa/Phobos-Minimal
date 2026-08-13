@@ -43,7 +43,6 @@ ASMJIT_PATCH(0x4393F2, BombClass_SDDTOR, 0x5)
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x438672, BombClass_CTOR, 0x5)
 
-#pragma optimize("", off)
 void FakeBombClass::__Detonate() { 
 	static COMPILETIMEEVAL reference<int, 0xABAD1C> WoodBridgeSet {};
 
@@ -145,7 +144,6 @@ void FakeBombClass::__Detonate() {
 		this->ShouldPlayTickingSound = 0;
 	}
 }
-#pragma optimize("", on)
 
 int FakeBombClass::__GetBombFrame()
 {
