@@ -4,6 +4,50 @@
 
 #include <unordered_map>
 #include <string>
+#include <string_view>
+#include <cctype>
+#include <cstring>
+
+// =============================================================================
+// Small filename helpers shared by the CSF and LLF loaders.
+// =============================================================================
+namespace PhobosCSFDetail
+{
+	// Case-insensitive extension test. `ext` must include the dot, e.g. ".llf".
+	inline bool HasExtension(std::string_view fileName, std::string_view ext)
+	{
+		if (fileName.size() < ext.size())
+			return false;
+
+		const size_t off = fileName.size() - ext.size();
+
+		for (size_t i = 0; i < ext.size(); ++i)
+		{
+			const int a = std::tolower(static_cast<unsigned char>(fileName[off + i]));
+			const int b = std::tolower(static_cast<unsigned char>(ext[i]));
+
+			if (a != b)
+				return false;
+		}
+
+		return true;
+	}
+
+	// Strips the last extension (if any) and appends `newExt` (which includes the dot).
+	inline std::string ReplaceExtension(std::string_view fileName, std::string_view newExt)
+	{
+		std::string result(fileName);
+
+		const size_t lastDot = result.find_last_of('.');
+		const size_t lastSep = result.find_last_of("\\/");
+
+		if (lastDot != std::string::npos && (lastSep == std::string::npos || lastDot > lastSep))
+			result.erase(lastDot);
+
+		result.append(newExt);
+		return result;
+	}
+}
 
 // =============================================================================
 // CSFLoader — full takeover of TextManager::Init + TextManager::ParseCSF.
@@ -95,7 +139,7 @@ public:
 		std::string Source;
 	};
 	static std::unordered_map<std::string,
-		RecordedCSFEntry, 
+		RecordedCSFEntry,
 		CaseInsensitiveHash,
 		CaseInsensitiveCompare
 	> LabelMap;
@@ -115,7 +159,7 @@ public:
 	};
 
 	static std::unordered_map<std::string,
-		CSFStringStorage, 
+		CSFStringStorage,
 		CaseInsensitiveHash,
 		CaseInsensitiveCompare
 	> DynamicStrings;
@@ -134,6 +178,41 @@ public:
 	static void           ReleaseStorage();
 	static void           LoadAdditionalCSF(std::string_view fileName, bool ignoreLanguage = false);
 	static const wchar_t* GetDynamicString(const char* name, const char* def, bool isNostr);
+
+	// -------------------------------------------------------------------------
+	// LLF (Localization List Format) — plain UTF-8 text sibling of the CSF
+	// container. See CSF.LLF.cpp for the full grammar description.
+	//
+	// Resolution goes through CCFileClass, so LLF files inside MIX archives are
+	// picked up exactly like loose files.
+	// -------------------------------------------------------------------------
+	static bool           ParseLLFFile(std::string_view pFileName);
+
+	// Scans stringtable00..stringtable99. For every index the .csf is parsed
+	// first and the .llf second, so LLF always wins on a duplicate label.
+	static void           LoadAdditionalStringTables(bool ignoreLanguage = false);
+
+	// UTF-8 -> UTF-16 (wchar_t is 16 bit on Win32; astral planes become surrogate
+	// pairs). Invalid / overlong / truncated sequences decode to U+FFFD.
+	static std::wstring   Utf8ToWide(std::string_view text);
+
+	// -------------------------------------------------------------------------
+	// LLF parser tunables — runtime so they can be driven from INI later.
+	// -------------------------------------------------------------------------
+
+	// false (default): continuation lines of a plain `Label: value` entry are
+	//                  joined with L'\n', matching the block (`>-`) behaviour.
+	// true           : they are folded with a single space, YAML `>` style.
+	static bool LLFFoldPlainContinuations;
+
+	// true (default): the entire leading whitespace run of a continuation line is
+	//                 removed, so generator indent width does not leak into the
+	//                 string. false: only the mandatory two spaces are removed.
+	static bool LLFTrimContinuationIndent;
+
+	// EXTENSION (true by default): `\#` emits a literal '#' instead of starting a
+	// comment. Not part of the base LLF spec — set to false for strict parsing.
+	static bool LLFAllowHashEscape;
 	static const wchar_t* __fastcall FetchStringManager(const char* label, char* speech,
 														 const char* file, int line);
 

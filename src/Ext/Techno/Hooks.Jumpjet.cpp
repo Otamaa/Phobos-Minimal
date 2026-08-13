@@ -708,7 +708,6 @@ ASMJIT_PATCH(0x7442D6, FootClass_ReadyToNextMission_MovingCheck, 0x6) // Unit
 	bool result = false;
 
 	if (FakeRulesClass::Instance->ReadyToNextMission_MovingCheck) {
-		GET(FootClass*, pThis, ESI);
 		result = pThis->Locomotor.GetInterfacePtr()->Is_Moving_Now();
 	}
 

@@ -13,6 +13,580 @@
 #include <SessionClass.h>
 #include <MapSeedClass.h>
 
+// =============================================================================
+// LLF — "Localization List Format"
+//
+// A plain UTF-8 text sibling of the binary CSF container. Grammar:
+//
+//   Label: content                  entry; the FIRST ": " (colon + space) splits
+//                                   label from content
+//   Label: >-                       block marker; must sit after the ": ".
+//     continuation                  two leading spaces = continuation of the
+//     continuation                  previous entry
+//   # comment                       '#' at column 0 => whole line is a comment
+//   Label: text # comment           '#' preceded by whitespace => truncated here
+//   Label: a#b                      '#' NOT preceded by whitespace => literal
+//   <blank line>                    terminates the current entry
+//
+// Everything is UTF-8; wchar_t is 16 bit on Win32 so astral code points are
+// emitted as UTF-16 surrogate pairs. A leading UTF-8 BOM is skipped.
+//
+// Files are opened through CCFileClass, therefore LLF files packed inside MIX
+// archives resolve exactly like loose files — no separate code path needed.
+//
+// NOT IMPLEMENTED (absent from the format spec, deliberately omitted rather than
+// guessed at):
+//   - WRTS speech / ExtraValue field. An LLF entry that overrides a label
+//     previously loaded from a CSF leaves that label's ExtraValue untouched.
+//   - Backslash escape sequences other than the optional `\#` below. `\n` is not
+//     interpreted; use a continuation line instead.
+//   - Per-file language gating. LLF has no header, so ignoreLanguage is moot and
+//     every LLF found is applied.
+//
+// The vanilla StripSpaces() normalisation (space-run collapsing, applied to CSF
+// values at 0x734B4B) is intentionally NOT applied to LLF values: LLF is
+// hand-authored, so the author's spacing is taken literally.
+// =============================================================================
+
+#pragma region statics
+bool CSFLoader::LLFFoldPlainContinuations { false };
+bool CSFLoader::LLFTrimContinuationIndent { true };
+bool CSFLoader::LLFAllowHashEscape { true };
+#pragma endregion
+
+namespace
+{
+	constexpr char32_t UnicodeReplacement = 0xFFFD;
+
+	// Reads the whole file through CCFileClass in fixed chunks. Deliberately does
+	// not call any size query: a short Read is the terminator, which behaves the
+	// same for loose files and for MIX-embedded sub-files.
+	bool ReadWholeFile(const std::string& fileName, std::string& out)
+	{
+		CCFileClass file { fileName.c_str() };
+
+		if (!file.IsAvaible() || !file.Open1(FileAccessMode::Read))
+			return false;
+
+		constexpr int ChunkSize = 64 * 1024;
+
+		out.clear();
+
+		for (;;)
+		{
+			const size_t oldSize = out.size();
+			out.resize(oldSize + static_cast<size_t>(ChunkSize));
+
+			// VERIFY: FileClass::Read returns the byte count actually transferred.
+			const int got = file.Read(out.data() + oldSize, ChunkSize);
+
+			if (got < ChunkSize)
+			{
+				out.resize(oldSize + static_cast<size_t>(got > 0 ? got : 0));
+				break;
+			}
+		}
+
+		return true;
+	}
+
+	bool IsSpace(char c)
+	{
+		return c == ' ' || c == '\t';
+	}
+
+	std::string_view TrimLeft(std::string_view sv)
+	{
+		size_t i = 0;
+
+		while (i < sv.size() && IsSpace(sv[i]))
+			++i;
+
+		return sv.substr(i);
+	}
+
+	std::string_view TrimRight(std::string_view sv)
+	{
+		size_t n = sv.size();
+
+		while (n > 0 && IsSpace(sv[n - 1]))
+			--n;
+
+		return sv.substr(0, n);
+	}
+
+	std::string_view Trim(std::string_view sv)
+	{
+		return TrimRight(TrimLeft(sv));
+	}
+
+	// -------------------------------------------------------------------------
+	// Comment handling.
+	//
+	//   '#' at index 0                        -> whole line is a comment
+	//   '#' whose predecessor is space/tab    -> truncate from that '#'
+	//   '#' anywhere else                     -> literal character
+	//
+	// commentOnly is set when everything preceding the terminating '#' was
+	// whitespace. Such a line is dropped entirely instead of being treated as an
+	// empty line, so an indented comment inside a block does not inject a blank
+	// subtitle row and a top-level comment does not close a pending entry.
+	// -------------------------------------------------------------------------
+	std::string StripComment(std::string_view line, bool& commentOnly)
+	{
+		std::string out;
+		out.reserve(line.size());
+
+		commentOnly = false;
+
+		for (size_t i = 0; i < line.size(); ++i)
+		{
+			const char c = line[i];
+
+			// EXTENSION: `\#` yields a literal '#'. Disable via LLFAllowHashEscape
+			// for strict spec conformance. A backslash before anything else is
+			// passed through untouched.
+			if (CSFLoader::LLFAllowHashEscape && c == '\\' && (i + 1) < line.size() && line[i + 1] == '#')
+			{
+				out.push_back('#');
+				++i;
+				continue;
+			}
+
+			if (c == '#' && (i == 0 || IsSpace(line[i - 1])))
+			{
+				commentOnly = Trim(line.substr(0, i)).empty();
+				break;
+			}
+
+			out.push_back(c);
+		}
+
+		return out;
+	}
+
+	void AppendCodePoint(std::wstring& out, char32_t cp)
+	{
+		// Lone surrogates and out-of-range values are not encodable.
+		if (cp > 0x10FFFF || (cp >= 0xD800 && cp <= 0xDFFF))
+			cp = UnicodeReplacement;
+
+		if (cp <= 0xFFFF)
+		{
+			out.push_back(static_cast<wchar_t>(cp));
+			return;
+		}
+
+		// wchar_t is 16 bit on Win32 — emit a UTF-16 surrogate pair.
+		cp -= 0x10000;
+		out.push_back(static_cast<wchar_t>(0xD800 + ((cp >> 10) & 0x3FF)));
+		out.push_back(static_cast<wchar_t>(0xDC00 + (cp & 0x3FF)));
+	}
+
+	// -------------------------------------------------------------------------
+	// Pending entry accumulator.
+	// -------------------------------------------------------------------------
+	struct LLFPendingEntry
+	{
+		std::string  Label;
+		std::wstring Value;
+		size_t       SegmentCount { 0 };
+		bool         IsBlock { false };
+		bool         Active { false };
+
+		void Reset()
+		{
+			Label.clear();
+			Value.clear();
+			SegmentCount = 0;
+			IsBlock = false;
+			Active = false;
+		}
+
+		wchar_t JoinChar() const
+		{
+			// Block scalars always break lines. Plain entries follow the tunable:
+			// newline by default, folded with a space when requested.
+			if (IsBlock || !CSFLoader::LLFFoldPlainContinuations)
+				return L'\n';
+
+			return L' ';
+		}
+
+		void AppendSegment(std::string_view utf8)
+		{
+			if (SegmentCount > 0)
+				Value.push_back(JoinChar());
+
+			Value.append(CSFLoader::Utf8ToWide(utf8));
+			++SegmentCount;
+		}
+	};
+
+	void CommitEntry(LLFPendingEntry& pending, const std::string& source)
+	{
+		if (!pending.Active)
+			return;
+
+		auto it = CSFLoader::LabelMap.find(pending.Label);
+
+		if (it == CSFLoader::LabelMap.end())
+		{
+			it = CSFLoader::LabelMap.emplace(pending.Label, CSFLoader::RecordedCSFEntry {}).first;
+		}
+		else
+		{
+			Debug::LogInfo("[ParseLLF] Replacing {} Signature from [{} to {}].",
+				pending.Label, it->second.Source, source);
+		}
+
+		// Trailing line breaks are stripped, matching the '-' chomping indicator of
+		// the `>-` marker. A whitespace-only continuation line at the end of a
+		// block is authoring noise rather than an intentional blank subtitle row.
+		while (!pending.Value.empty() && pending.Value.back() == L'\n')
+			pending.Value.pop_back();
+
+		it->second.Entry.Value = std::move(pending.Value);
+
+		// NOTE: ExtraValue (WRTS speech filename) is left alone on purpose — LLF
+		// carries no speech field, so a CSF-provided binding survives the override.
+
+		it->second.Source = source;
+
+		pending.Reset();
+	}
+
+	// Splits a buffer into lines, tolerating LF, CRLF and lone CR.
+	std::vector<std::string_view> SplitLines(std::string_view data)
+	{
+		std::vector<std::string_view> lines;
+		lines.reserve(data.size() / 24 + 8);
+
+		size_t start = 0;
+
+		for (size_t i = 0; i < data.size(); ++i)
+		{
+			const char c = data[i];
+
+			if (c != '\n' && c != '\r')
+				continue;
+
+			lines.push_back(data.substr(start, i - start));
+
+			// Consume the LF of a CRLF pair as part of the same terminator.
+			if (c == '\r' && (i + 1) < data.size() && data[i + 1] == '\n')
+				++i;
+
+			start = i + 1;
+		}
+
+		if (start < data.size())
+			lines.push_back(data.substr(start));
+
+		return lines;
+	}
+
+	// Recognised block-scalar markers. Only `>-` is required by the spec; the
+	// remaining YAML forms are accepted as an EXTENSION because generators that
+	// emit valid YAML may pick any of them.
+	constexpr std::string_view BlockMarkers[] = { ">-", ">+", ">", "|-", "|+", "|" };
+
+	bool ConsumeBlockMarker(std::string_view& content)
+	{
+		const std::string_view trimmed = TrimLeft(content);
+
+		for (const std::string_view marker : BlockMarkers)
+		{
+			if (!trimmed.starts_with(marker))
+				continue;
+
+			const std::string_view rest = trimmed.substr(marker.size());
+
+			// A marker only counts when it stands alone or is followed by
+			// whitespace — otherwise ">foo" would be mistaken for one.
+			if (!rest.empty() && !IsSpace(rest[0]))
+				continue;
+
+			content = TrimLeft(rest);
+			return true;
+		}
+
+		return false;
+	}
+}
+
+// =============================================================================
+// CSFLoader::Utf8ToWide
+// =============================================================================
+std::wstring CSFLoader::Utf8ToWide(std::string_view text)
+{
+	std::wstring out;
+	out.reserve(text.size());
+
+	const auto* const p = reinterpret_cast<const unsigned char*>(text.data());
+	const size_t      n = text.size();
+
+	// Minimum code point legally encodable with (index) continuation bytes —
+	// used to reject overlong forms.
+	constexpr char32_t Minima[4] = { 0, 0x80, 0x800, 0x10000 };
+
+	size_t i = 0;
+
+	while (i < n)
+	{
+		const unsigned char lead = p[i];
+
+		if (lead < 0x80)
+		{
+			out.push_back(static_cast<wchar_t>(lead));
+			++i;
+			continue;
+		}
+
+		size_t   extra = 0;
+		char32_t cp = 0;
+
+		if ((lead & 0xE0) == 0xC0)
+		{
+			extra = 1;
+			cp = lead & 0x1Fu;
+		}
+		else if ((lead & 0xF0) == 0xE0)
+		{
+			extra = 2;
+			cp = lead & 0x0Fu;
+		}
+		else if ((lead & 0xF8) == 0xF0)
+		{
+			extra = 3;
+			cp = lead & 0x07u;
+		}
+		else
+		{
+			// Stray continuation byte or 5/6-byte form — both invalid.
+			AppendCodePoint(out, UnicodeReplacement);
+			++i;
+			continue;
+		}
+
+		if ((i + extra) >= n)
+		{
+			// Truncated sequence at end of buffer.
+			AppendCodePoint(out, UnicodeReplacement);
+			break;
+		}
+
+		bool valid = true;
+
+		for (size_t k = 1; k <= extra; ++k)
+		{
+			const unsigned char cont = p[i + k];
+
+			if ((cont & 0xC0) != 0x80)
+			{
+				valid = false;
+				break;
+			}
+
+			cp = (cp << 6) | (cont & 0x3Fu);
+		}
+
+		if (!valid)
+		{
+			// Resync on the offending byte rather than skipping the whole run.
+			AppendCodePoint(out, UnicodeReplacement);
+			++i;
+			continue;
+		}
+
+		if (cp < Minima[extra])
+			cp = UnicodeReplacement;
+
+		AppendCodePoint(out, cp);
+		i += extra + 1;
+	}
+
+	return out;
+}
+
+// =============================================================================
+// CSFLoader::ParseLLFFile
+//
+// Returns true when the file existed and was parsed. Duplicate labels use the
+// same last-loaded-wins semantics as ParseCSFFile.
+// =============================================================================
+bool CSFLoader::ParseLLFFile(std::string_view pFileName)
+{
+	if (pFileName.empty())
+		return false;
+
+	// std::string_view::data() is not null-terminated — materialise first.
+	const std::string fileName(pFileName);
+
+	std::string data;
+
+	if (!ReadWholeFile(fileName, data))
+		return false;
+
+	if (data.empty())
+	{
+		Debug::LogInfo("[ParseLLF] [{}] is empty.", fileName);
+		return false;
+	}
+
+	std::string_view body { data };
+
+	// Skip the UTF-8 BOM if the authoring tool wrote one.
+	if (body.starts_with("\xEF\xBB\xBF"))
+		body.remove_prefix(3);
+
+	const std::vector<std::string_view> lines = SplitLines(body);
+
+	LLFPendingEntry pending {};
+	size_t          entryCount = 0;
+
+	for (size_t lineIndex = 0; lineIndex < lines.size(); ++lineIndex)
+	{
+		const std::string_view raw = lines[lineIndex];
+
+		// Continuation is decided on the RAW line, before comment stripping,
+		// so an indented comment cannot be mistaken for a new entry.
+		const bool isContinuation = raw.size() >= 2 && raw[0] == ' ' && raw[1] == ' ';
+
+		bool              commentOnly = false;
+		const std::string stripped = StripComment(raw, commentOnly);
+
+		if (commentOnly)
+			continue;
+
+		const std::string_view content = TrimRight(stripped);
+
+		if (isContinuation)
+		{
+			if (!pending.Active)
+			{
+				Debug::LogInfo("[ParseLLF] [{}] line {}: continuation without a preceding label, ignored.",
+					fileName, lineIndex + 1);
+				continue;
+			}
+
+			// content is right-trimmed, so a whitespace-only continuation line can
+			// be shorter than the two-space marker. Guard the substr.
+			std::string_view segment = content.size() >= 2
+				? content.substr(2)
+				: std::string_view {};
+
+			if (CSFLoader::LLFTrimContinuationIndent)
+				segment = TrimLeft(segment);
+
+			pending.AppendSegment(segment);
+			continue;
+		}
+
+		// A blank line closes the current entry.
+		if (Trim(content).empty())
+		{
+			CommitEntry(pending, fileName);
+			continue;
+		}
+
+		// ---------------------------------------------------------------------
+		// New entry: the FIRST ": " is the delimiter.
+		// ---------------------------------------------------------------------
+		const size_t delim = content.find(": ");
+
+		std::string_view label;
+		std::string_view value;
+
+		if (delim != std::string_view::npos)
+		{
+			label = Trim(content.substr(0, delim));
+			value = content.substr(delim + 2);
+		}
+		else if (content.back() == ':')
+		{
+			// EXTENSION: `Label:` with nothing after it. The strict grammar needs
+			// the trailing space, but trailing whitespace is invisible in editors
+			// and is stripped above, so treat it as an empty / block-only value.
+			label = Trim(content.substr(0, content.size() - 1));
+			value = {};
+		}
+		else
+		{
+			// A malformed line closes the pending entry so that following
+			// continuation lines cannot leak into an unrelated label.
+			CommitEntry(pending, fileName);
+
+			Debug::LogInfo("[ParseLLF] [{}] line {}: no \": \" delimiter, ignored.",
+				fileName, lineIndex + 1);
+			continue;
+		}
+
+		if (label.empty())
+		{
+			CommitEntry(pending, fileName);
+
+			Debug::LogInfo("[ParseLLF] [{}] line {}: empty label, ignored.",
+				fileName, lineIndex + 1);
+			continue;
+		}
+
+		// The previous entry ends here even without a blank separator line.
+		CommitEntry(pending, fileName);
+
+		pending.Label = std::string(label);
+		pending.Active = true;
+		pending.IsBlock = ConsumeBlockMarker(value);
+
+		// An empty first segment is not recorded, so the first continuation line
+		// is not prefixed with a spurious newline. This is the normal shape of a
+		// generated block entry: `Label: >-` followed by indented text.
+		if (!value.empty())
+			pending.AppendSegment(value);
+
+		++entryCount;
+	}
+
+	CommitEntry(pending, fileName);
+
+	Debug::LogInfo("[ParseLLF] [{}] parsed {} label(s).", fileName, entryCount);
+
+	return true;
+}
+
+// =============================================================================
+// CSFLoader::LoadAdditionalStringTables
+//
+// stringtable00 .. stringtable99. Each index parses the .csf first and the .llf
+// second, so an LLF label always overrides the CSF label of the same name.
+// Both loose files and MIX-embedded ones are picked up via CCFileClass.
+// =============================================================================
+void CSFLoader::LoadAdditionalStringTables(bool ignoreLanguage)
+{
+	if (!StringTable::IsLoaded.get())
+		return;
+
+	for (int i = 0; i < 100; ++i)
+	{
+		const std::string csfName = fmt::format("stringtable{:02}.csf", i);
+
+		if (ParseCSFFile(csfName, ignoreLanguage))
+		{
+			++CSFCount;
+			Debug::LogInfo("Successfully load {} !", csfName);
+		}
+
+		// Parsed after the CSF on purpose — later write wins in LabelMap.
+		const std::string llfName = fmt::format("stringtable{:02}.llf", i);
+
+		if (ParseLLFFile(llfName))
+		{
+			++CSFCount;
+			Debug::LogInfo("Successfully load {} !", llfName);
+		}
+	}
+}
+
 // ---------------------------------------------------------------------------
 // Statics — defined once, in CSFLoader.cpp
 // ---------------------------------------------------------------------------
@@ -99,7 +673,11 @@ static std::string GetCsfFileName(std::string_view pFileName)
 // =============================================================================
 bool CSFLoader::ParseCSFFile(std::string_view pFileName, bool ignoreLanguage)
 {
-	CCFileClass file { pFileName.data() };
+	// BUGFIX: std::string_view::data() is NOT null-terminated. Passing it straight
+	// to a const char* API reads past the token. Materialise a real string first.
+	const std::string fileNameZ(pFileName);
+
+	CCFileClass file { fileNameZ.c_str() };
 
 	if (!file.IsAvaible() || !file.Open1(FileAccessMode::Read))
 		return false;
@@ -151,7 +729,7 @@ bool CSFLoader::ParseCSFFile(std::string_view pFileName, bool ignoreLanguage)
 		bool     firstValueStored = false;
 		auto it = LabelMap.find(labelName);
 		const bool found = (it != LabelMap.end());
-		
+
 		if (!found) {
 			it = LabelMap.emplace(labelName, RecordedCSFEntry {}).first;
 		} else {
@@ -165,11 +743,11 @@ bool CSFLoader::ParseCSFFile(std::string_view pFileName, bool ignoreLanguage)
 			DWORD valueSig {};
 			if (!file.ReadByes(valueSig))
 			{
-				
-				Debug::LogInfo("[ParseCSF] Cannot Read {} Signature at [{}] from [{}].", labelName , v, pFileName);
+
+				Debug::LogInfo("[ParseCSF] Cannot Read {} Signature at [{}] from [{}].", labelName, v, pFileName);
 
 				// Short read inside value loop — mirrors LABEL_42: return success
-				if(!found)
+				if (!found)
 					it->second.Entry = std::move(entry); //empty entry
 				return true;
 			}
@@ -178,7 +756,7 @@ bool CSFLoader::ParseCSFFile(std::string_view pFileName, bool ignoreLanguage)
 			if (valueSig != CSF_VALUE_SIGNATURE &&
 				valueSig != CSF_EXVALUE_SIGNATURE)
 			{
-				Debug::LogInfo("[ParseCSF] {} Unknown Signature at [{}] from [{}].", labelName , v, pFileName);
+				Debug::LogInfo("[ParseCSF] {} Unknown Signature at [{}] from [{}].", labelName, v, pFileName);
 				// Store what we have so far, then abort
 				if (!found)
 					it->second.Entry = std::move(entry); //empty entry
@@ -210,13 +788,14 @@ bool CSFLoader::ParseCSFFile(std::string_view pFileName, bool ignoreLanguage)
 				StripSpaces(decoded);
 
 				// Only first value stored — vanilla always uses FirstValueIndex
-				if (!firstValueStored) {
+				if (!firstValueStored)
+				{
 					entry.Value = std::move(decoded);
 					firstValueStored = true;
 				}
 
 			} else {
-				Debug::LogInfo("[ParseCSF] Reading {} result an 0 valueLength at [{}] from [{}].", labelName , v, pFileName);
+				Debug::LogInfo("[ParseCSF] Reading {} result an 0 valueLength at [{}] from [{}].", labelName, v, pFileName);
 			}
 			// valueLength == 0: vanilla sets tbuffer[0]=0, StripSpaces produces
 			// empty string, wcscpy stores empty — entry.Value stays L"" which
@@ -302,6 +881,15 @@ bool CSFLoader::PhobosInit(const char* pFileName)
 		return false;
 	}
 
+	// EXTENSION: an .llf sibling of the primary string table overrides it.
+	// Harmless when absent — ParseLLFFile just reports false.
+	{
+		const std::string llfFile = PhobosCSFDetail::ReplaceExtension(csfFile, ".llf");
+
+		if (CSFLoader::ParseLLFFile(llfFile))
+			Debug::LogInfo("Successfully load {} !", llfFile);
+	}
+
 	if (const auto* lang = StringTable::GetLanguage(StringTable::Language()))
 		Debug::LogInfo("Language: {}", lang->Name);
 	else
@@ -339,10 +927,40 @@ void CSFLoader::LoadAdditionalCSF(std::string_view pFileName, bool ignoreLanguag
 	if (!StringTable::IsLoaded.get() || pFileName.empty())
 		return;
 
-	if (ParseCSFFile(pFileName, ignoreLanguage))
+	// BUGFIX: pFileName.data() was passed to a const char* logger/API without a
+	// terminator. Materialise once and reuse.
+	const std::string fileName(pFileName);
+
+	// EXTENSION: callers may hand us an .llf directly — dispatch on the extension
+	// instead of forcing them to know which loader to reach for.
+	if (PhobosCSFDetail::HasExtension(fileName, ".llf"))
+	{
+		if (CSFLoader::ParseLLFFile(fileName))
+		{
+			++CSFCount;
+			Debug::LogInfo("Successfully load {} !", fileName);
+		}
+
+		return;
+	}
+
+	if (ParseCSFFile(fileName, ignoreLanguage))
 	{
 		++CSFCount;
-		Debug::LogInfo("Successfully load {} !", pFileName.data());
+		Debug::LogInfo("Successfully load {} !", fileName);
+	}
+
+	// EXTENSION: the .llf sibling is always parsed *after* the .csf, so its labels
+	// override the container's. This gives every existing LoadAdditionalCSF call
+	// site LLF priority without touching the call site itself.
+	{
+		const std::string llfFile = PhobosCSFDetail::ReplaceExtension(fileName, ".llf");
+
+		if (CSFLoader::ParseLLFFile(llfFile))
+		{
+			++CSFCount;
+			Debug::LogInfo("Successfully load {} !", llfFile);
+		}
 	}
 }
 
@@ -392,52 +1010,52 @@ const wchar_t* CSFLoader::GetDynamicString(const char* pLabelName,
 //   but DynamicStrings entries are independent and stable.
 // =============================================================================
 const wchar_t* __fastcall CSFLoader::FetchStringManager(const char* label,
-                                                          char* speech,
-                                                          const char* /*file*/,
-                                                          int         /*line*/)
+														  char* speech,
+														  const char* /*file*/,
+														  int         /*line*/)
 {
-    if (speech)
-        *speech = 0;
+	if (speech)
+		*speech = 0;
 
-    if (!label)
-        return L"***FATAL*** String Manager failed to initialize properly";
+	if (!label)
+		return L"***FATAL*** String Manager failed to initialize properly";
 
-    constexpr size_t len_nostr = sizeof("NOSTR:") - 1;
+	constexpr size_t len_nostr = sizeof("NOSTR:") - 1;
 
-    if (strncmp(label, "NOSTR:", len_nostr) == 0)
-        return CSFLoader::GetDynamicString(label, &label[len_nostr], true);
+	if (strncmp(label, "NOSTR:", len_nostr) == 0)
+		return CSFLoader::GetDynamicString(label, &label[len_nostr], true);
 
-    auto it = LabelMap.find(label);
-    const bool found = (it != LabelMap.end());
+	auto it = LabelMap.find(label);
+	const bool found = (it != LabelMap.end());
 
-    if(StringTable::IsLoaded()){
-        if (found) {
-            // Confirmed from IDA: vanilla strcpy into caller-owned speech buffer.
-            // VERIFY: caller buffer size — check FetchString call sites in IDA.
-            //if (speech && !it->second.ExtraValue.empty())
-            //    CRT::strcpy(speech, it->second.ExtraValue.c_str());
-            //this string table are marked missing but it has Label entry
-            //fix that up
+	if (StringTable::IsLoaded()) {
+		if (found) {
+			// Confirmed from IDA: vanilla strcpy into caller-owned speech buffer.
+			// VERIFY: caller buffer size — check FetchString call sites in IDA.
+			//if (speech && !it->second.ExtraValue.empty())
+			//    CRT::strcpy(speech, it->second.ExtraValue.c_str());
+			//this string table are marked missing but it has Label entry
+			//fix that up
 
-            return it->second.Entry.Value.c_str();
-        }
-    }
-    else //if the string table is not yet loaded then put it inside the label map as empty
-    {
-        if (!found) {
-            //create new entry that will be fixed when parsing file later
-            auto insertion_result = LabelMap.emplace(label, CSFEntry {});
-            it = insertion_result.first;
+			return it->second.Entry.Value.c_str();
+		}
+	}
+	else //if the string table is not yet loaded then put it inside the label map as empty
+	{
+		if (!found) {
+			//create new entry that will be fixed when parsing file later
+			auto insertion_result = LabelMap.emplace(label, CSFEntry {});
+			it = insertion_result.first;
 			std::wstring wide_label = PhobosCRT::StringToWideStringSimple(label);
-            it->second.Entry.Value = std::move(fmt::format(L"MISSING:'{}'", wide_label));
-        }
+			it->second.Entry.Value = std::move(fmt::format(L"MISSING:'{}'", wide_label));
+		}
 
-        //return the result that already composed
-        return it->second.Entry.Value.c_str();
-    }
+		//return the result that already composed
+		return it->second.Entry.Value.c_str();
+	}
 
-    //the string table are loaded , but there is not entry , declare it missing
-    return CSFLoader::GetDynamicString(label, label, false);
+	//the string table are loaded , but there is not entry , declare it missing
+	return CSFLoader::GetDynamicString(label, label, false);
 }
 
 // =============================================================================
