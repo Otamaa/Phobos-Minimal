@@ -71,7 +71,7 @@ ASMJIT_PATCH(0x5D4E3B, Windows_Message_Handler_Dispatch, 0x5)
 {
 	enum { Continue = 0x5D4E4D };
 
-	GET_STACK(MSG* const, pMsg, 0x10);
+	LEA_STACK(MSG* const, pMsg, 0x10);
 
 	if (IsQuitRequest(*pMsg) && SpawnerMain::GetMainConfigs()->QuickExit) {
 		// DIFF: hard-terminates the process. Skips static destructors, DLL_PROCESS_DETACH,
