@@ -2288,28 +2288,7 @@ void reshade::runtime::draw_gui_statistics()
 		ImGui::SameLine(ImGui::GetWindowWidth() * 0.33333333f);
 		ImGui::BeginGroup();
 
-		const char* api_name = "Unknown";
-		switch (_device->get_api())
-		{
-		case api::device_api::d3d9:
-			api_name = "D3D9";
-			break;
-		case api::device_api::d3d10:
-			api_name = "D3D10";
-			break;
-		case api::device_api::d3d11:
-			api_name = "D3D11";
-			break;
-		case api::device_api::d3d12:
-			api_name = "D3D12";
-			break;
-		case api::device_api::opengl:
-			api_name = "OpenGL";
-			break;
-		case api::device_api::vulkan:
-			api_name = "Vulkan";
-			break;
-		}
+		const char* api_name = "D3D9";
 
 		ImGui::TextUnformatted(api_name);
 		if (_vendor_id != 0)
@@ -2648,7 +2627,7 @@ void reshade::runtime::draw_gui_statistics()
 					bool referenced = false;
 					for (const reshadefx::texture_binding& binding : tech.permutations[0].passes[pass_index].texture_bindings)
 					{
-						if (_effects[tech.effect_index].permutations[0].module.samplers[binding.index].texture_name == tex.unique_name)
+						if (_effects[tech.effect_index].permutations[0].Rmodule.samplers[binding.index].texture_name == tex.unique_name)
 						{
 							referenced = true;
 							reference.second.emplace_back(pass_name + " (sampler)");
@@ -2658,7 +2637,7 @@ void reshade::runtime::draw_gui_statistics()
 
 					for (const reshadefx::storage_binding& binding : tech.permutations[0].passes[pass_index].storage_bindings)
 					{
-						if (_effects[tech.effect_index].permutations[0].module.storages[binding.index].texture_name == tex.unique_name)
+						if (_effects[tech.effect_index].permutations[0].Rmodule.storages[binding.index].texture_name == tex.unique_name)
 						{
 							referenced = true;
 							reference.second.emplace_back(pass_name + " (storage)");
@@ -3992,7 +3971,7 @@ void reshade::runtime::draw_technique_editor()
 						ImGui::Separator();
 
 						std::string entry_point_name;
-						for (const std::pair<std::string, reshadefx::shader_type>& entry_point : effect.permutations[permutation_index].module.entry_points)
+						for (const std::pair<std::string, reshadefx::shader_type>& entry_point : effect.permutations[permutation_index].Rmodule.entry_points)
 							if (const auto assembly_it = effect.permutations[permutation_index].assembly.find(entry_point.first);
 								assembly_it != effect.permutations[permutation_index].assembly.end() && ImGui::MenuItem(entry_point.first.c_str()))
 								entry_point_name = entry_point.first;

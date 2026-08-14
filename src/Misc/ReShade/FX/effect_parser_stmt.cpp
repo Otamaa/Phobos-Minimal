@@ -2056,7 +2056,7 @@ bool reshadefx::parser::parse_variable(type type, std::string name, bool global)
 		uniform_info.initializer_value = std::move(initializer.constant);
 		uniform_info.has_initializer_value = initializer.is_constant;
 
-		const codegen::id id = _codegen->define_uniform(variable_location, uniform_info);
+		const codegen::id id = this->_codegen->define_uniform(variable_location, uniform_info);
 		symbol = { symbol_type::variable, id, type };
 	}
 	// All other variables are separate entities

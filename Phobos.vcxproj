@@ -118,6 +118,7 @@
     <ClCompile Include="src\Misc\Exception\ExceptionHandler.Dialog.cpp" />
     <ClCompile Include="src\Misc\Exception\ExceptionHandler.Report.cpp" />
     <ClCompile Include="src\Misc\FogOfWar.cpp" />
+    <ClCompile Include="src\Misc\ReShade\FX\effect_codegen_dxbc.cpp" />
     <ClCompile Include="src\Misc\ReShade\FX\effect_codegen_hlsl.cpp" />
     <ClCompile Include="src\Misc\ReShade\FX\effect_expression.cpp" />
     <ClCompile Include="src\Misc\ReShade\FX\effect_lexer.cpp" />
@@ -125,7 +126,6 @@
     <ClCompile Include="src\Misc\ReShade\FX\effect_parser_stmt.cpp" />
     <ClCompile Include="src\Misc\ReShade\FX\effect_preprocessor.cpp" />
     <ClCompile Include="src\Misc\ReShade\FX\effect_symbol_table.cpp" />
-    <ClCompile Include="src\Misc\ReShade\PhobosAlphaMask.cpp" />
     <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9.cpp" />
     <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_device.cpp" />
     <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_impl_command_list.cpp" />
@@ -791,7 +791,6 @@
     <ClInclude Include="src\Misc\ReShade\FX\effect_preprocessor.hpp" />
     <ClInclude Include="src\Misc\ReShade\FX\effect_symbol_table.hpp" />
     <ClInclude Include="src\Misc\ReShade\FX\effect_token.hpp" />
-    <ClInclude Include="src\Misc\ReShade\PhobosAlphaMask.h" />
     <ClInclude Include="src\Misc\ReShade\Runtime\com_utils.hpp" />
     <ClInclude Include="src\Misc\ReShade\Runtime\d3d9\d3d9_device.hpp" />
     <ClInclude Include="src\Misc\ReShade\Runtime\d3d9\d3d9_impl_device.hpp" />

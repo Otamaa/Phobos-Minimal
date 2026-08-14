@@ -384,7 +384,6 @@ bool reshade::runtime::on_init()
 	// Create resolve texture and copy pipeline (do this before creating effect resources, to ensure correct back buffer format is set up)
 	if (back_buffer_desc.texture.samples > 1 ||
 		// Always use resolve texture in OpenGL to flip vertically and support sRGB + binding effect stencil
-		(_device->get_api() == api::device_api::opengl && !_is_vr) ||
 		// Some effects rely on there being an alpha channel available, so create resolve texture if that is not the case
 		(_back_buffer_format == api::format::r8g8b8x8_unorm || _back_buffer_format == api::format::b8g8r8x8_unorm))
 	{
@@ -398,16 +397,8 @@ bool reshade::runtime::on_init()
 			break;
 		}
 
-		const bool need_copy_pipeline =
-			_device->get_api() == api::device_api::d3d10 ||
-			_device->get_api() == api::device_api::d3d11 ||
-			_device->get_api() == api::device_api::d3d12;
-
 		api::resource_usage usage = api::resource_usage::render_target | api::resource_usage::copy_dest | api::resource_usage::resolve_dest;
-		if (need_copy_pipeline)
-			usage |= api::resource_usage::shader_resource;
-		else
-			usage |= api::resource_usage::copy_source;
+		usage |= api::resource_usage::copy_source;
 
 		if (!_device->create_resource(
 				api::resource_desc(_width, _height, 1, 1, api::format_to_typeless(_back_buffer_format), 1, api::memory_heap::default_, usage),
@@ -425,47 +416,6 @@ bool reshade::runtime::on_init()
 		{
 			log::message(log::level::error, "Failed to create resolve texture resource!");
 			goto exit_failure;
-		}
-
-		if (need_copy_pipeline)
-		{
-			if (!_device->create_resource_view(
-					_back_buffer_resolved,
-					api::resource_usage::shader_resource,
-					api::resource_view_desc(_back_buffer_format),
-					&_back_buffer_resolved_srv))
-			{
-				log::message(log::level::error, "Failed to create resolve shader resource view!");
-				goto exit_failure;
-			}
-
-			api::sampler_desc sampler_desc = {};
-			sampler_desc.filter = api::filter_mode::min_mag_mip_point;
-			sampler_desc.address_u = api::texture_address_mode::clamp;
-			sampler_desc.address_v = api::texture_address_mode::clamp;
-			sampler_desc.address_w = api::texture_address_mode::clamp;
-
-			api::pipeline_layout_param layout_params[2];
-			layout_params[0] = api::descriptor_range { 0, 0, 0, 1, api::shader_stage::all, 1, api::descriptor_type::sampler };
-			layout_params[1] = api::descriptor_range { 0, 0, 0, 1, api::shader_stage::all, 1, api::descriptor_type::shader_resource_view };
-
-			const resources::data_resource vs = resources::load_data_resource(IDR_FULLSCREEN_VS);
-			const resources::data_resource ps = resources::load_data_resource(IDR_COPY_PS);
-
-			api::shader_desc vs_desc = { vs.data, vs.data_size };
-			api::shader_desc ps_desc = { ps.data, ps.data_size };
-
-			std::vector<api::pipeline_subobject> subobjects;
-			subobjects.push_back({ api::pipeline_subobject_type::vertex_shader, 1, &vs_desc });
-			subobjects.push_back({ api::pipeline_subobject_type::pixel_shader, 1, &ps_desc });
-
-			if (!_device->create_pipeline_layout(2, layout_params, &_copy_pipeline_layout) ||
-				!_device->create_pipeline(_copy_pipeline_layout, static_cast<uint32_t>(subobjects.size()), subobjects.data(), &_copy_pipeline) ||
-				!_device->create_sampler(sampler_desc, &_copy_sampler_state))
-			{
-				log::message(log::level::error, "Failed to create copy pipeline!");
-				goto exit_failure;
-			}
 		}
 	}
 
@@ -864,32 +814,6 @@ void reshade::runtime::on_present()
 		const api::resource_usage state_old[2] = { api::resource_usage::copy_source | api::resource_usage::resolve_source, api::resource_usage::render_target };
 		const api::resource_usage state_final[2] = { api::resource_usage::present, api::resource_usage::resolve_dest };
 
-		if (_device->get_api() == api::device_api::d3d10 ||
-			_device->get_api() == api::device_api::d3d11 ||
-			_device->get_api() == api::device_api::d3d12)
-		{
-			const api::resource_usage state_new[2] = { api::resource_usage::render_target, api::resource_usage::shader_resource };
-
-			cmd_list->barrier(2, resources, state_old, state_new);
-
-			cmd_list->bind_pipeline(api::pipeline_stage::all_graphics, _copy_pipeline);
-
-			cmd_list->push_descriptors(api::shader_stage::pixel, _copy_pipeline_layout, 0, api::descriptor_table_update { {}, 0, 0, 1, api::descriptor_type::sampler, &_copy_sampler_state });
-			cmd_list->push_descriptors(api::shader_stage::pixel, _copy_pipeline_layout, 1, api::descriptor_table_update { {}, 0, 0, 1, api::descriptor_type::shader_resource_view, &_back_buffer_resolved_srv });
-
-			const api::viewport viewport = { 0.0f, 0.0f, static_cast<float>(_width), static_cast<float>(_height), 0.0f, 1.0f };
-			cmd_list->bind_viewports(0, 1, &viewport);
-			const api::rect scissor_rect = { 0, 0, static_cast<int32_t>(_width), static_cast<int32_t>(_height) };
-			cmd_list->bind_scissor_rects(0, 1, &scissor_rect);
-
-			const bool srgb_write_enable = (_back_buffer_format == api::format::r8g8b8a8_unorm_srgb || _back_buffer_format == api::format::b8g8r8a8_unorm_srgb);
-			cmd_list->bind_render_targets_and_depth_stencil(1, &_back_buffer_targets[back_buffer_index + srgb_write_enable]);
-
-			cmd_list->draw(3, 1, 0, 0);
-
-			cmd_list->barrier(2, resources, state_new, state_final);
-		}
-		else
 		{
 			const api::resource_usage state_new[2] = { api::resource_usage::copy_dest, api::resource_usage::copy_source };
 
@@ -1663,19 +1587,11 @@ bool reshade::runtime::load_effect(const std::filesystem::path &source_file, con
 	size_t spec_constants_hash = 0;
 	if (!compiled && !source.empty())
 	{
-		unsigned shader_model;
-		if (_renderer_id == 0x9000)
-			shader_model = 30; // D3D9
-		else if (_renderer_id < 0xa100)
-			shader_model = 40; // D3D10 (including feature level 9)
-		else if (_renderer_id < 0xb000 || _device->get_api() == api::device_api::d3d10)
-			shader_model = 41; // D3D10.1
-		else if (_renderer_id < 0xc000 || _device->get_api() == api::device_api::d3d11)
-			shader_model = 50; // D3D11
-		else
-			shader_model = 51; // D3D12
-
+		unsigned shader_model = 30;
+		
 		reshadefx::parser parser;
+
+		codegen.reset(reshadefx::create_codegen_dxbc(shader_model, !_no_debug_info, _performance_mode, _performance_mode ? 3 : 1));
 
 		// Compile the pre-processed source code (try the compile even if the preprocessor step failed to get additional error information)
 		compiled = parser.parse(std::move(source), codegen.get());
@@ -1684,7 +1600,7 @@ bool reshade::runtime::load_effect(const std::filesystem::path &source_file, con
 		errors  += parser.errors();
 
 		// Write result to effect module
-		permutation.module = codegen->module();
+		permutation.Rmodule = codegen->Rmodule();
 
 		if (compiled)
 		{
@@ -1693,9 +1609,9 @@ bool reshade::runtime::load_effect(const std::filesystem::path &source_file, con
 				effect.uniforms.clear();
 
 				// Create space for all variables (aligned to 16 bytes)
-				effect.uniform_data_storage.resize((permutation.module.total_uniform_size + 15) & ~15);
+				effect.uniform_data_storage.resize((permutation.Rmodule.total_uniform_size + 15) & ~15);
 
-				for (uniform variable : permutation.module.uniforms)
+				for (uniform variable : permutation.Rmodule.uniforms)
 				{
 					variable.effect_index = effect_index;
 
@@ -1743,10 +1659,10 @@ bool reshade::runtime::load_effect(const std::filesystem::path &source_file, con
 			}
 			else
 			{
-				if (permutation.module.total_uniform_size != effect.permutations[0].module.total_uniform_size ||
+				if (permutation.Rmodule.total_uniform_size != effect.permutations[0].Rmodule.total_uniform_size ||
 					!std::equal(
-						permutation.module.uniforms.begin(), permutation.module.uniforms.end(),
-						effect.permutations[0].module.uniforms.begin(), effect.permutations[0].module.uniforms.end(),
+						permutation.Rmodule.uniforms.begin(), permutation.Rmodule.uniforms.end(),
+						effect.permutations[0].Rmodule.uniforms.begin(), effect.permutations[0].Rmodule.uniforms.end(),
 						[](const reshadefx::uniform &lhs_variable, const reshadefx::uniform &rhs_variable) {
 							return lhs_variable.offset == rhs_variable.offset && lhs_variable.size == rhs_variable.size && lhs_variable.type == rhs_variable.type && lhs_variable.name == rhs_variable.name;
 						}))
@@ -1754,17 +1670,17 @@ bool reshade::runtime::load_effect(const std::filesystem::path &source_file, con
 					errors += "error: effect permutation defines different uniform variables";
 
 					std::vector<std::string> lhs_uniform_names;
-					lhs_uniform_names.reserve(permutation.module.uniforms.size());
+					lhs_uniform_names.reserve(permutation.Rmodule.uniforms.size());
 					std::transform(
-						permutation.module.uniforms.begin(), permutation.module.uniforms.end(),
+						permutation.Rmodule.uniforms.begin(), permutation.Rmodule.uniforms.end(),
 						std::back_inserter(lhs_uniform_names),
 						[](const reshadefx::uniform &variable) { return variable.name; });
 					std::sort(lhs_uniform_names.begin(), lhs_uniform_names.end());
 
 					std::vector<std::string> rhs_uniform_names;
-					rhs_uniform_names.reserve(effect.permutations[0].module.uniforms.size());
+					rhs_uniform_names.reserve(effect.permutations[0].Rmodule.uniforms.size());
 					std::transform(
-						effect.permutations[0].module.uniforms.begin(), effect.permutations[0].module.uniforms.end(),
+						effect.permutations[0].Rmodule.uniforms.begin(), effect.permutations[0].Rmodule.uniforms.end(),
 						std::back_inserter(rhs_uniform_names),
 						[](const reshadefx::uniform &variable) { return variable.name; });
 					std::sort(rhs_uniform_names.begin(), rhs_uniform_names.end());
@@ -1790,8 +1706,8 @@ bool reshade::runtime::load_effect(const std::filesystem::path &source_file, con
 				}
 
 				if (!std::equal(
-						permutation.module.techniques.begin(), permutation.module.techniques.end(),
-						effect.permutations[0].module.techniques.begin(), effect.permutations[0].module.techniques.end(),
+						permutation.Rmodule.techniques.begin(), permutation.Rmodule.techniques.end(),
+						effect.permutations[0].Rmodule.techniques.begin(), effect.permutations[0].Rmodule.techniques.end(),
 						[](const reshadefx::technique &lhs_tech, const reshadefx::technique &rhs_tech) {
 							return lhs_tech.name == rhs_tech.name;
 						}))
@@ -1799,17 +1715,17 @@ bool reshade::runtime::load_effect(const std::filesystem::path &source_file, con
 					errors += "error: effect permutation defines different techniques";
 
 					std::vector<std::string> lhs_technique_names;
-					lhs_technique_names.reserve(permutation.module.techniques.size());
+					lhs_technique_names.reserve(permutation.Rmodule.techniques.size());
 					std::transform(
-						permutation.module.techniques.begin(), permutation.module.techniques.end(),
+						permutation.Rmodule.techniques.begin(), permutation.Rmodule.techniques.end(),
 						std::back_inserter(lhs_technique_names),
 						[](const reshadefx::technique &tech) { return tech.name; });
 					std::sort(lhs_technique_names.begin(), lhs_technique_names.end());
 
 					std::vector<std::string> rhs_technique_names;
-					rhs_technique_names.reserve(effect.permutations[0].module.techniques.size());
+					rhs_technique_names.reserve(effect.permutations[0].Rmodule.techniques.size());
 					std::transform(
-						effect.permutations[0].module.techniques.begin(), effect.permutations[0].module.techniques.end(),
+						effect.permutations[0].Rmodule.techniques.begin(), effect.permutations[0].Rmodule.techniques.end(),
 						std::back_inserter(rhs_technique_names),
 						[](const reshadefx::technique &tech) { return tech.name; });
 					std::sort(rhs_technique_names.begin(), rhs_technique_names.end());
@@ -1840,7 +1756,7 @@ bool reshade::runtime::load_effect(const std::filesystem::path &source_file, con
 			{
 				std::string spec_constant_attributes;
 
-				for (reshadefx::uniform &spec_constant : permutation.module.spec_constants)
+				for (reshadefx::uniform &spec_constant : permutation.Rmodule.spec_constants)
 				{
 					switch (spec_constant.type.base)
 					{
@@ -1864,7 +1780,7 @@ bool reshade::runtime::load_effect(const std::filesystem::path &source_file, con
 				spec_constants_hash = std::hash<std::string>()(spec_constant_attributes);
 
 				// Update specialization constant values for when code is generated below in 'finalize_code' and 'assemble_code_for_entry_point'
-				codegen->module().spec_constants = permutation.module.spec_constants;
+				codegen->Rmodule().spec_constants = permutation.Rmodule.spec_constants;
 			}
 		}
 		else if (!preprocessed)
@@ -1882,7 +1798,7 @@ bool reshade::runtime::load_effect(const std::filesystem::path &source_file, con
 		if (permutation.cso.empty())
 		{
 			// Compile shader modules
-			for (const std::pair<std::string, reshadefx::shader_type> &entry_point : permutation.module.entry_points)
+			for (const std::pair<std::string, reshadefx::shader_type> &entry_point : permutation.Rmodule.entry_points)
 			{
 				if (entry_point.second == reshadefx::shader_type::compute && !_device->check_capability(api::device_caps::compute_shader))
 				{
@@ -1920,7 +1836,7 @@ bool reshade::runtime::load_effect(const std::filesystem::path &source_file, con
 
 		const std::unique_lock<std::shared_mutex> lock(_reload_mutex);
 
-		for (texture new_texture : permutation.module.textures)
+		for (texture new_texture : permutation.Rmodule.textures)
 		{
 			if (!new_texture.semantic.empty() && (new_texture.render_target || new_texture.storage_access))
 			{
@@ -1963,7 +1879,7 @@ bool reshade::runtime::load_effect(const std::filesystem::path &source_file, con
 
 				if (existing_texture->semantic == "COLOR" && api::format_bit_depth(_effect_permutations[permutation_index].color_format) != 8)
 				{
-					for (const reshadefx::sampler &sampler_info : permutation.module.samplers)
+					for (const reshadefx::sampler &sampler_info : permutation.Rmodule.samplers)
 					{
 						if (sampler_info.srgb && sampler_info.texture_name == new_texture.unique_name)
 						{
@@ -1991,21 +1907,21 @@ bool reshade::runtime::load_effect(const std::filesystem::path &source_file, con
 					existing_texture != _textures.end())
 				{
 					// Overwrite referenced texture in samplers with the pooled one
-					for (reshadefx::sampler &sampler_info : permutation.module.samplers)
+					for (reshadefx::sampler &sampler_info : permutation.Rmodule.samplers)
 					{
 						if (new_texture.unique_name == sampler_info.texture_name)
 							sampler_info.texture_name = existing_texture->unique_name;
 					}
 
 					// Overwrite referenced texture in storages with the pooled one
-					for (reshadefx::storage &storage_info : permutation.module.storages)
+					for (reshadefx::storage &storage_info : permutation.Rmodule.storages)
 					{
 						if (new_texture.unique_name == storage_info.texture_name)
 							storage_info.texture_name = existing_texture->unique_name;
 					}
 
 					// Overwrite referenced texture in render targets with the pooled one
-					for (reshadefx::technique &tech : permutation.module.techniques)
+					for (reshadefx::technique &tech : permutation.Rmodule.techniques)
 					{
 						for (reshadefx::pass &pass : tech.passes)
 						{
@@ -2028,7 +1944,7 @@ bool reshade::runtime::load_effect(const std::filesystem::path &source_file, con
 			_textures.push_back(std::move(new_texture));
 		}
 
-		for (technique new_technique : permutation.module.techniques)
+		for (technique new_technique : permutation.Rmodule.techniques)
 		{
 			new_technique.effect_index = effect_index;
 
@@ -2143,7 +2059,7 @@ bool reshade::runtime::create_effect(size_t effect_index, size_t permutation_ind
 	// Build specialization constants
 	std::vector<uint32_t> spec_data;
 	std::vector<uint32_t> spec_constants;
-	for (const reshadefx::uniform &spec_constant : permutation.module.spec_constants)
+	for (const reshadefx::uniform &spec_constant : permutation.Rmodule.spec_constants)
 	{
 		uint32_t id = static_cast<uint32_t>(spec_constants.size());
 		spec_data.push_back(spec_constant.initializer_value.as_uint[0]);
@@ -2190,7 +2106,7 @@ bool reshade::runtime::create_effect(size_t effect_index, size_t permutation_ind
 	uav_range.visibility = api::shader_stage::vertex | api::shader_stage::pixel | api::shader_stage::compute;
 
 	size_t total_pass_count = 0;
-	for (const reshadefx::technique &tech : permutation.module.techniques)
+	for (const reshadefx::technique &tech : permutation.Rmodule.techniques)
 	{
 		total_pass_count += tech.passes.size();
 
@@ -2207,7 +2123,7 @@ bool reshade::runtime::create_effect(size_t effect_index, size_t permutation_ind
 
 	// Create optional query heap for time measurements
 	if (permutation_index == 0 &&
-		!_device->create_query_heap(api::query_type::timestamp, static_cast<uint32_t>((permutation.module.techniques.size() + total_pass_count) * 2 * 4), &effect.query_heap))
+		!_device->create_query_heap(api::query_type::timestamp, static_cast<uint32_t>((permutation.Rmodule.techniques.size() + total_pass_count) * 2 * 4), &effect.query_heap))
 	{
 		log::message(log::level::error, "Failed to create query heap for effect file '%s'!", effect.source_file.string().c_str());
 	}
@@ -2262,40 +2178,6 @@ bool reshade::runtime::create_effect(size_t effect_index, size_t permutation_ind
 
 	// Create global constant buffer (except in D3D9, which does not have constant buffers)
 	api::buffer_range cb_buffer_range = {};
-	if (_device->get_api() != api::device_api::d3d9 && !effect.uniform_data_storage.empty())
-	{
-		if (permutation_index == 0)
-		{
-			if (!_device->create_resource(
-					api::resource_desc(effect.uniform_data_storage.size(), api::memory_heap::upload, api::resource_usage::constant_buffer),
-					nullptr, api::resource_usage::cpu_access, &effect.cb))
-			{
-				log::message(log::level::error, "Failed to create constant buffer for effect file '%s'!", effect.source_file.string().c_str());
-				goto exit_failure;
-			}
-
-			_device->set_resource_name(effect.cb, "ReShade constant buffer");
-		}
-		else
-		{
-			assert(effect.cb != 0);
-		}
-
-		if (!_device->allocate_descriptor_table(permutation.layout, 0, &permutation.cb_table))
-		{
-			log::message(log::level::error, "Failed to create constant buffer descriptor table for effect file '%s'!", effect.source_file.string().c_str());
-			goto exit_failure;
-		}
-
-		cb_buffer_range.buffer = effect.cb;
-
-		api::descriptor_table_update &write = descriptor_writes.emplace_back();
-		write.table = permutation.cb_table;
-		write.binding = 0;
-		write.type = api::descriptor_type::constant_buffer;
-		write.count = 1;
-		write.descriptors = &cb_buffer_range;
-	}
 
 	if (sampler_range.count != 0)
 	{
@@ -2356,7 +2238,7 @@ bool reshade::runtime::create_effect(size_t effect_index, size_t permutation_ind
 				if (_renderer_id & 0x20000)
 				{
 					cs_desc.entry_point = pass.cs_entry_point.c_str();
-					cs_desc.spec_constants = static_cast<uint32_t>(permutation.module.spec_constants.size());
+					cs_desc.spec_constants = static_cast<uint32_t>(permutation.Rmodule.spec_constants.size());
 					cs_desc.spec_constant_ids = spec_constants.data();
 					cs_desc.spec_constant_values = spec_data.data();
 				}
@@ -2382,7 +2264,7 @@ bool reshade::runtime::create_effect(size_t effect_index, size_t permutation_ind
 					if (_renderer_id & 0x20000)
 					{
 						vs_desc.entry_point = pass.vs_entry_point.c_str();
-						vs_desc.spec_constants = static_cast<uint32_t>(permutation.module.spec_constants.size());
+						vs_desc.spec_constants = static_cast<uint32_t>(permutation.Rmodule.spec_constants.size());
 						vs_desc.spec_constant_ids = spec_constants.data();
 						vs_desc.spec_constant_values = spec_data.data();
 					}
@@ -2399,7 +2281,7 @@ bool reshade::runtime::create_effect(size_t effect_index, size_t permutation_ind
 					if (_renderer_id & 0x20000)
 					{
 						ps_desc.entry_point = pass.ps_entry_point.c_str();
-						ps_desc.spec_constants = static_cast<uint32_t>(permutation.module.spec_constants.size());
+						ps_desc.spec_constants = static_cast<uint32_t>(permutation.Rmodule.spec_constants.size());
 						ps_desc.spec_constant_ids = spec_constants.data();
 						ps_desc.spec_constant_values = spec_data.data();
 					}
@@ -2582,7 +2464,7 @@ bool reshade::runtime::create_effect(size_t effect_index, size_t permutation_ind
 
 				api::sampler &sampler = sampler_descriptors[pass_index_in_effect * sampler_range.count + binding.entry_point_binding].sampler;
 
-				const reshadefx::sampler &sampler_info = permutation.module.samplers[binding.index];
+				const reshadefx::sampler &sampler_info = permutation.Rmodule.samplers[binding.index];
 
 				api::sampler_desc desc;
 				desc.filter = static_cast<api::filter_mode>(sampler_info.filter);
@@ -2630,7 +2512,7 @@ bool reshade::runtime::create_effect(size_t effect_index, size_t permutation_ind
 			for (const reshadefx::texture_binding &binding : pass.texture_bindings)
 			{
 				const auto sampler_texture = std::find_if(_textures.cbegin(), _textures.cend(),
-					[&unique_name = permutation.module.samplers[binding.index].texture_name](const texture &item) {
+					[&unique_name = permutation.Rmodule.samplers[binding.index].texture_name](const texture &item) {
 						return item.unique_name == unique_name && (item.resource != 0 || !item.semantic.empty());
 					});
 				assert(sampler_texture != _textures.cend());
@@ -2683,12 +2565,12 @@ bool reshade::runtime::create_effect(size_t effect_index, size_t permutation_ind
 			for (const reshadefx::storage_binding &binding : pass.storage_bindings)
 			{
 				const auto storage_texture = std::find_if(_textures.cbegin(), _textures.cend(),
-					[&unique_name = permutation.module.storages[binding.index].texture_name](const texture &item) {
+					[&unique_name = permutation.Rmodule.storages[binding.index].texture_name](const texture &item) {
 						return item.unique_name == unique_name && (item.resource != 0 || !item.semantic.empty());
 					});
 				assert(storage_texture != _textures.cend());
 
-				const api::resource_view &uav = storage_texture->uav[permutation.module.storages[binding.index].level];
+				const api::resource_view &uav = storage_texture->uav[permutation.Rmodule.storages[binding.index].level];
 				assert(uav != 0 && storage_texture->semantic.empty());
 
 				{
@@ -4067,7 +3949,7 @@ void reshade::runtime::render_technique(technique &tech, api::command_list *cmd_
 				cmd_list->push_constants(api::shader_stage::vertex, permutation.layout, 0, 255 * 4, 4, texel_size);
 
 				// Set SEMANTIC_PIXEL_SIZE constants (see effect_codegen_hlsl.cpp)
-				for (const reshadefx::texture &tex : permutation.module.textures)
+				for (const reshadefx::texture &tex : permutation.Rmodule.textures)
 				{
 					if (tex.semantic.empty())
 						continue;

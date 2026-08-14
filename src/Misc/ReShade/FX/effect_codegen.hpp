@@ -27,7 +27,7 @@ namespace reshadefx
 		/// <summary>
 		/// Gets the module describing the generated code.
 		/// </summary>
-		effect_module &module() { return _module; }
+		effect_module &Rmodule() { return _module; }
 
 		/// <summary>
 		/// Finalizes and returns the generated code for the entire module (all entry points).
@@ -399,4 +399,6 @@ namespace reshadefx
 	/// <param name="debug_info">Whether to append debug information like line directives to the generated code.</param>
 	/// <param name="uniforms_to_spec_constants">Whether to convert uniform variables to specialization constants.</param>
 	codegen *create_codegen_hlsl(unsigned int shader_model, bool debug_info, bool uniforms_to_spec_constants);
+	codegen* create_codegen_dxbc(unsigned int shader_model, bool debug_info, bool uniforms_to_spec_constants, int optimization_level);
+	//codegen* create_codegen_dxil(unsigned int shader_model, bool debug_info, bool uniforms_to_spec_constants, int optimization_level);
 }

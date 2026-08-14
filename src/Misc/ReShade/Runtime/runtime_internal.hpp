@@ -238,7 +238,7 @@ namespace reshade
 
 		struct permutation
 		{
-			reshadefx::effect_module module;
+			reshadefx::effect_module Rmodule;
 			std::string generated_code;
 			std::unordered_map<std::string, std::string> cso;
 			std::unordered_map<std::string, std::string> assembly;
