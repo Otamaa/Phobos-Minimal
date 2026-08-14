@@ -1,15 +1,16 @@
 #include "PhobosAlphaMask.h"
 #include <Ext/Convert/Body.h>
 
+
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
 
 #include "Runtime/runtime.hpp"
 #include "Runtime/reshade_api_device.hpp"
 
-#include <Ext/AnimType/Body.h>
 #include <Utilities/Macro.h>
 
+#include <algorithm>
 #include <cstring>
 
 // ===========================================================================
@@ -34,36 +35,33 @@ bool PhobosAlphaMask::OnInit(IDirect3DDevice9* pDevice, reshade::api::device* pR
 	_width = width;
 	_height = height;
 
-	// DIFF: original used D3DPOOL_MANAGED (runtime +0x750). MANAGED is invalid
-	// on D3D9Ex and wrong for a texture rewritten every frame; DEFAULT+DYNAMIC
-	// is the documented per-frame-update path and is lockable directly, which
-	// is why there is no staging surface member here.
+	// DIFF: L8 -> L16. See the header - the reference fork's buffer is two bytes
+	// per pixel and every queued record carries a 16-bit parameter.
+	//
+	// VERIFY: L16 is far less universally supported than L8. If CreateTexture
+	// fails here on a real driver, the fallbacks in order of preference are
+	// R5G6B5 (lossy on the low byte) or A8L8 (exact, samples as .a/.r). Whichever
+	// you pick, the .fx unpack expression changes with it.
 	HRESULT hr = _device->CreateTexture(
 		static_cast<UINT>(_width), static_cast<UINT>(_height),
-		1,                          // no mips
+		1,
 		D3DUSAGE_DYNAMIC,
-		D3DFMT_L8,
+		D3DFMT_L16,
 		D3DPOOL_DEFAULT,
 		&_texture,
 		nullptr);
 
 	if (FAILED(hr))
 	{
-		// VERIFY: L8 is effectively universal, but a driver may still refuse it.
-		// A8 is the usual fallback and samples in .a instead of .r - if you add
-		// that path, the effect side has to know which it got.
-		Debug::Log("[PhobosAlphaMask] CreateTexture(L8 %dx%d) failed: 0x%08X\n", _width, _height, hr);
+		Debug::Log("[PhobosAlphaMask] CreateTexture(L16 %dx%d) failed: 0x%08X\n", _width, _height, hr);
 		OnReset();
 		return false;
 	}
 
-	// Ask the ReShade device for the view rather than hand-encoding a handle.
-	// d3d9's resource_view handle encoding is an implementation detail (it
-	// packs an sRGB bit) and is not stable across revisions.
 	if (!_reshade_device->create_resource_view(
 		reshade::api::resource { reinterpret_cast<uintptr_t>(_texture.get()) },
 		reshade::api::resource_usage::shader_resource,
-		reshade::api::resource_view_desc(reshade::api::format::r8_unorm),
+		reshade::api::resource_view_desc(reshade::api::format::r16_unorm),
 		&_srv))
 	{
 		Debug::Log("[PhobosAlphaMask] create_resource_view failed\n");
@@ -71,25 +69,22 @@ bool PhobosAlphaMask::OnInit(IDirect3DDevice9* pDevice, reshade::api::device* pR
 		return false;
 	}
 
-	// BUGFIX: the original never checked its buffer pointer and never verified
-	// it was still width*height bytes before memset'ing it. Owning the storage
-	// makes both impossible.
-	const size_t bytes = static_cast<size_t>(_width) * static_cast<size_t>(_height);
-	_draw.assign(bytes, 0);
-	_upload.assign(bytes, 0);
+	const size_t pixels = static_cast<size_t>(_width) * static_cast<size_t>(_height);
+	_draw.assign(pixels, 0);
+	_upload.assign(pixels, 0);
+
+	_queue.clear();
+	_queue.reserve(QueueReserve);
 
 	return true;
 }
 
 void PhobosAlphaMask::OnReset()
 {
-	// If a pass is somehow still open, close it before tearing anything down.
-	if (_pass_active)
-	{
-		_pass_active = false;
-		_active = nullptr;
-		_mutex.unlock();
-	}
+	// DIFF: no lock to unwind here any more. The immediate-blit version had to
+	// unlock a mutex it might have been holding since BeginPass; the deferred
+	// version never holds the lock outside EndPass.
+	_pass_active = false;
 
 	if (_srv != 0 && _reshade_device != nullptr)
 		_reshade_device->destroy_resource_view(_srv);
@@ -101,8 +96,11 @@ void PhobosAlphaMask::OnReset()
 
 	_draw.clear();
 	_upload.clear();
+	_queue.clear();
+
 	_draw.shrink_to_fit();
 	_upload.shrink_to_fit();
+	_queue.shrink_to_fit();
 
 	_width = 0;
 	_height = 0;
@@ -110,175 +108,197 @@ void PhobosAlphaMask::OnReset()
 }
 
 // ===========================================================================
-// Draw pass
+// Draw pass - record
 // ===========================================================================
 
 void PhobosAlphaMask::BeginPass()
 {
-	if (_texture == nullptr)
-		return;
-
-	_mutex.lock();
-
-	// DIFF/BUGFIX: the original read the surface width and height BEFORE taking
-	// the lock (1002852A / 1002852E precede the _Mtx_lock call), so a resize
-	// racing the pass sized the clear from stale dimensions. Both the clear and
-	// the stride now come from members read under the lock.
-	std::memset(_draw.data(), 0, _draw.size());
-
-	_active = _draw.data();
-	_pass_active = true;
+	// clear() keeps capacity, so steady-state frames never touch the allocator.
+	_queue.clear();
+	_pass_active = _texture != nullptr;
 }
+
+bool PhobosAlphaMask::Queue(SHPCaches* pShape, int frame, DWORD flags,
+	const RectangleStruct& bounds, int x, int y, uint16_t param)
+{
+	if (!_pass_active || pShape == nullptr)
+		return false;
+
+	// A zero parameter contributes nothing under any of the Combine variants,
+	// so reject it at record time rather than paying for a full replay blit.
+	if (param == 0)
+		return false;
+
+	_queue.push_back(FXEntry { pShape, frame, bounds, x, y, flags, param });
+	return true;
+}
+
+// ===========================================================================
+// Draw pass - replay
+// ===========================================================================
 
 void PhobosAlphaMask::EndPass()
 {
-	// DIFF/BUGFIX: unconditional pairing, latched at BeginPass. See header.
-	if (!_pass_active)
+	// BUGFIX (vs reference fork): the drain runs on EVERY exit path.
+	//
+	// The fork nested its drain inside `if (EnhancedLight)` while gating its
+	// producers on a per-type extension flag instead. Turning the feature off
+	// therefore left producers appending to a queue nothing ever emptied. The
+	// same hazard exists here for a missing texture or an unpaired EndPass, so
+	// the reset is factored out and reached unconditionally.
+	const auto drain = [this]() noexcept
+		{
+			_queue.clear();
+			_pass_active = false;
+		};
+
+	if (!_pass_active || _texture == nullptr || _draw.empty())
+	{
+		drain();
 		return;
+	}
 
-	// Hand the finished frame to the uploader without copying: the buffer the
-	// game just filled becomes _upload, and last frame's _upload becomes the
-	// next draw target. Nothing is held across the D3D call this way.
-	_draw.swap(_upload);
+	{
+		std::scoped_lock<std::mutex> lock(_mutex);
 
-	_active = nullptr;
-	_pass_active = false;
-	_upload_pending = true;
+		std::memset(_draw.data(), 0, _draw.size() * sizeof(uint16_t));
 
-	_mutex.unlock();
+		for (const FXEntry& entry : _queue)
+			BlitEntry(entry);
+
+		// The buffer the game just filled becomes the upload source; last
+		// frame's upload buffer becomes the next draw target. No copy, and the
+		// lock is never held across a D3D call.
+		_draw.swap(_upload);
+		_upload_pending = true;
+	}
+
+	drain();
 }
 
-bool PhobosAlphaMask::Blit(SHPCaches* pShape, int frame, DWORD flags,
-	const RectangleStruct& bounds, int x, int y)
+void PhobosAlphaMask::BlitEntry(const FXEntry& entry)
 {
-	if (_active == nullptr || pShape == nullptr)
-		return false;
+	SHPCaches* const pShape = entry.Shape;
 
-	// The mask is one byte per pixel, so the width is also the stride.
-	const int destStride = _width;
+	// WARNING: SHPCaches::IsReference() is the function WPO erased once before,
+	// when its backing field was declared `short` rather than `unsigned short`
+	// and the comparison folded to a compile-time false. If the mask silently
+	// goes black, disassemble IsReference and look for a 31 C0 C3 stub before
+	// investigating anything else.
+	if (!pShape->IsReference())
+		return;
 
-	// 100287CD -- cmovz. Only shapes whose first word is 0xFFFF are accepted.
-	// VERIFY: 0xFFFF marks the extended header this DLL installs; a vanilla SHP
-	// has 0 there.
-	//
-	// WARNING: SHPCaches::IsReference() is the exact function that got erased by
-	// WPO once before, when its backing field was declared `short` instead of
-	// `unsigned short` and the comparison folded to a compile-time false. If
-	// this blit ever silently stops producing output, disassemble IsReference
-	// and check for a 31 C0 C3 stub before looking anywhere else.
-	SHPHeader* const pSource = pShape->IsReference() ? reinterpret_cast<SHPHeader*>(pShape) : nullptr;
-
-	if (pSource == nullptr)
-		return false;
+	auto* const pSource = reinterpret_cast<SHPHeader*>(pShape);
 
 	RectangleStruct frameBounds {};
-	pShape->GetFrameBounds(frameBounds, frame);
+	pShape->GetFrameBounds(frameBounds, entry.Frame);
 
-	// 100287ED / 1002880C -- `and ebx, 200h`. IDA types the parameter __int16,
-	// which is wrong; the instruction reads the full dword. The cdq/sub/sar 1
-	// sequence is signed division truncating toward zero.
-	//
-	// NOTE: the shadow hooks force DrawFlags::Center in, so a shadow draw always
-	// takes this branch regardless of what the caller passed.
-	const bool centered = DrawFlags::IsCentered(flags);
+	const bool centered = DrawFlags::IsCentered(entry.Flags);
 	const int centerX = centered ? pSource->Width / 2 : 0;
 	const int centerY = centered ? pSource->Height / 2 : 0;
 
-	frameBounds.X += x - centerX;
-	frameBounds.Y += y - centerY;
+	frameBounds.X += entry.X - centerX;
+	frameBounds.Y += entry.Y - centerY;
 
-	const RectangleStruct clipped = RectangleStruct::Intersect(frameBounds, bounds, nullptr, nullptr);
+	const RectangleStruct clipped = RectangleStruct::Intersect(frameBounds, entry.Bounds, nullptr, nullptr);
 
-	// 10028867 / 10028875 -- plain zero tests, NOT <= 0. A negative width or
-	// height sails through here and is only caught by the `rows <= 0` guards in
-	// the two blitters. Preserved verbatim.
+	// Zero tests rather than <= 0, preserved from the original blitter: a
+	// negative extent passes here and is caught by the `rows <= 0` guards below.
 	if (clipped.Width == 0 || clipped.Height == 0)
-		return false;
+		return;
 
 	const int srcSkipRows = clipped.Y - frameBounds.Y;
 	const int srcSkipCols = clipped.X - frameBounds.X;
-	const int destX = clipped.X - bounds.X;
-	const int destY = clipped.Y - bounds.Y;
+	const int destX = clipped.X - entry.Bounds.X;
+	const int destY = clipped.Y - entry.Bounds.Y;
 
-	// DIFF/BUGFIX: the original computed pDest from the caller's bounds without
-	// ever checking it against the mask buffer. `bounds` comes from the engine
-	// and is normally the tactical rect, but a caller passing anything larger
-	// wrote outside the allocation. Clamp here; the blitters clamp per row.
 	if (destX < 0 || destY < 0 || destX >= _width || destY >= _height)
-		return false;
+		return;
 
-	const int maxWidth = _width - destX;
-	const int maxHeight = _height - destY;
-	const int blitWidth = clipped.Width > maxWidth ? maxWidth : clipped.Width;
-	const int blitHeight = clipped.Height > maxHeight ? maxHeight : clipped.Height;
+	const int blitWidth = std::min(clipped.Width, _width - destX);
+	const int blitHeight = std::min(clipped.Height, _height - destY);
 
-	// 1002889E -- order preserved: compression is queried BEFORE the frame
-	// pointer is null-checked.
-	const uint8_t* const pFrame = pShape->GetPixels(frame);
-	const bool isRLE = pShape->HasCompression(frame);
+	// Order preserved: compression is queried before the frame pointer is
+	// null-checked.
+	const uint8_t* const pFrame = pShape->GetPixels(entry.Frame);
+	const bool isRLE = pShape->HasCompression(entry.Frame);
 
 	if (pFrame == nullptr)
-		return false;
+		return;
 
-	uint8_t* const pDest = _active + static_cast<size_t>(destStride) * destY + destX;
-	const uint8_t* const pBufferEnd = _active + _draw.size();
+	uint16_t* const pDest = _draw.data() + static_cast<size_t>(_width) * destY + destX;
+	const uint16_t* const pBufferEnd = _draw.data() + _draw.size();
 
-	return isRLE
-		? BlitRLE(pDest, destStride, pFrame, srcSkipCols, srcSkipRows,
-			blitWidth, blitHeight, pBufferEnd)
-		: BlitRaw(pDest, destStride, pFrame, frameBounds.Width, srcSkipCols,
-			srcSkipRows, blitWidth, blitHeight);
+	if (isRLE)
+	{
+		BlitRLE(pDest, _width, pFrame, srcSkipCols, srcSkipRows,
+			blitWidth, blitHeight, entry.Param, pBufferEnd);
+	}
+	else
+	{
+		BlitRaw(pDest, _width, pFrame, frameBounds.Width, srcSkipCols,
+			srcSkipRows, blitWidth, blitHeight, entry.Param);
+	}
 }
 
-bool PhobosAlphaMask::BlitRaw(uint8_t* pDest, int destStride, const uint8_t* pFrame,
-	int srcStride, int srcSkipCols, int srcSkipRows, int width, int rows)
+void PhobosAlphaMask::BlitRaw(uint16_t* pDest, int destStride, const uint8_t* pFrame,
+	int srcStride, int srcSkipCols, int srcSkipRows, int width, int rows,
+	uint16_t param)
 {
+	if (rows <= 0 || width <= 0)
+		return;
+
 	const uint8_t* pSrc = pFrame + static_cast<size_t>(srcStride) * srcSkipRows + srcSkipCols;
 
-	if (rows <= 0 || width <= 0)
-		return true;
-
-	const auto span = static_cast<rsize_t>(width);
-
+	// DIFF: the L8 version used memmove_s here, which is no longer possible -
+	// source is 8-bit palette indices, destination is 16-bit values, so every
+	// pixel has to be expanded individually.
+	//
+	// BUGFIX: index 0 is SHP transparency and is now skipped. The L8 version
+	// copied it wholesale, which was harmless when each frame had one writer but
+	// is not once records batch and overlap: a later record's transparent pixels
+	// would erase an earlier record's light. This is the one place the deferred
+	// design forces a behavioural change rather than inheriting one.
 	do
 	{
-		// Return value discarded, matching the original: the error is reported
-		// through errno and the invalid-parameter handler, not to this caller.
-		static_cast<void>(memmove_s(pDest, span, pSrc, span));
+		for (int col = 0; col < width; ++col)
+		{
+			const uint8_t code = pSrc[col];
+
+			if (code != 0)
+				pDest[col] = Combine(pDest[col], Sample(code, param));
+		}
 
 		pSrc += srcStride;
 		pDest += destStride;
 	}
 	while (--rows);
-
-	return true;
 }
 
-bool PhobosAlphaMask::BlitRLE(uint8_t* pDest, int destStride, const uint8_t* pRow,
+void PhobosAlphaMask::BlitRLE(uint16_t* pDest, int destStride, const uint8_t* pRow,
 	int srcSkipCols, int srcSkipRows, int width, int rows,
-	const uint8_t* pBufferEnd)
+	uint16_t param, const uint16_t* pBufferEnd)
 {
-	// 100288D1 -- walk past fully clipped rows using the length headers.
+	// Walk past fully clipped rows using the per-row length headers.
 	for (int skipped = srcSkipRows; skipped > 0; --skipped)
 		pRow += *reinterpret_cast<const int16_t*>(pRow);
 
 	if (rows <= 0 || width <= 0)
-		return true;
+		return;
 
-	// 100288E5 -- truncated to 16 bits and reloaded from the stack slot on every
-	// iteration, so the width of the type matters.
+	// Truncated to 16 bits and reloaded per iteration in the original, so the
+	// width of the type is load-bearing.
 	const int16_t skipCols = static_cast<int16_t>(srcSkipCols);
 
 	do
 	{
 		const uint8_t* pIn = pRow + sizeof(int16_t);
-		uint8_t* pOut = pDest;
+		uint16_t* pOut = pDest;
 		int remaining = width;
 
 		if (skipCols > 0)
 		{
-			// 10028905 -- consume runs until the clip edge is reached or passed.
-			// `overshoot` ends up >= 0.
+			// Consume runs until the clip edge is reached or passed.
 			int overshoot = -skipCols;
 
 			do
@@ -289,19 +309,15 @@ bool PhobosAlphaMask::BlitRLE(uint8_t* pDest, int destStride, const uint8_t* pRo
 			while (overshoot < 0);
 
 			// A run straddling the clip edge is dropped whole: the output pointer
-			// advances by the overshoot and the row shrinks to match, so those
-			// pixels keep whatever the buffer already held.
+			// advances by the overshoot and the row shrinks to match.
 			pOut = pDest + overshoot;
 			remaining = width - overshoot;
 		}
 
-		// 10028930 -- BUGFIX: the original bounds-checked nothing here. A frame
-		// whose RLE payload disagrees with its header ran straight off the end of
-		// the mask allocation - a heap corruption reachable from any malformed
-		// SHP in any mod. The row-end and buffer-end clamps below are the only
-		// behavioural deviation from the original blitter, and they only ever
-		// trigger on input that would have corrupted memory.
-		const uint8_t* const pRowEnd = pDest + width;
+		// The row-end and buffer-end clamps are the only deviation from the
+		// original blitter, and only trigger on RLE payloads that disagree with
+		// their headers - input that would otherwise run off the allocation.
+		const uint16_t* const pRowEnd = pDest + width;
 
 		for (int left = remaining; left > 0 && pOut < pRowEnd && pOut < pBufferEnd; )
 		{
@@ -310,12 +326,14 @@ bool PhobosAlphaMask::BlitRLE(uint8_t* pDest, int destStride, const uint8_t* pRo
 
 			if (code)
 			{
-				*pOut = code;
+				*pOut = Combine(*pOut, Sample(code, param));
 				--left;
 				step = 1;
 			}
 			else
 			{
+				// Zero code introduces a transparent run: skip it, leaving
+				// whatever earlier records already wrote.
 				step = *pIn++;
 				left -= step;
 			}
@@ -327,8 +345,6 @@ bool PhobosAlphaMask::BlitRLE(uint8_t* pDest, int destStride, const uint8_t* pRo
 		pRow += *reinterpret_cast<const int16_t*>(pRow);
 	}
 	while (--rows);
-
-	return true;
 }
 
 // ===========================================================================
@@ -344,24 +360,24 @@ void PhobosAlphaMask::UploadAndBind(reshade::runtime* pRuntime)
 	{
 		D3DLOCKED_RECT locked = {};
 
-		// D3DLOCK_DISCARD on a DYNAMIC texture hands back a fresh buffer instead
-		// of stalling on the previous frame's sample.
 		if (SUCCEEDED(_texture->LockRect(0, &locked, nullptr, D3DLOCK_DISCARD)))
 		{
-			const uint8_t* pSrc = _upload.data();
+			const auto* pSrc = reinterpret_cast<const uint8_t*>(_upload.data());
 			auto* pDst = static_cast<uint8_t*>(locked.pBits);
 
-			// Never assume Pitch == width. Drivers pad L8 rows aggressively.
-			if (locked.Pitch == _width)
+			// DIFF: row length is now width * 2. Never assume Pitch matches it.
+			const int rowBytes = _width * static_cast<int>(sizeof(uint16_t));
+
+			if (locked.Pitch == rowBytes)
 			{
-				std::memcpy(pDst, pSrc, _upload.size());
+				std::memcpy(pDst, pSrc, _upload.size() * sizeof(uint16_t));
 			}
 			else
 			{
 				for (int row = 0; row < _height; ++row)
 				{
-					std::memcpy(pDst, pSrc, static_cast<size_t>(_width));
-					pSrc += _width;
+					std::memcpy(pDst, pSrc, static_cast<size_t>(rowBytes));
+					pSrc += rowBytes;
 					pDst += locked.Pitch;
 				}
 			}
@@ -372,14 +388,11 @@ void PhobosAlphaMask::UploadAndBind(reshade::runtime* pRuntime)
 		_upload_pending = false;
 	}
 
-	// Rebind every frame. update_texture_bindings is cheap when nothing changed,
-	// and effects reloaded since the last call need the binding re-established.
-	// This is the mechanism that replaces the original's runtime+0x750 hack.
 	pRuntime->update_texture_bindings(Semantic, _srv, _srv);
 }
 
 // ===========================================================================
-// Hooks - unchanged call sites, retargeted at the new owner
+// Hooks
 // ===========================================================================
 
 ASMJIT_PATCH(0x6D8F0F, TacticalClass_UpdateDrawFunc, 6)
@@ -396,23 +409,68 @@ ASMJIT_PATCH(0x6D97BF, TacticalClass_UpdateDrawReturn, 6)
 
 namespace
 {
-	// The FXLightEnable lookup is the expensive part of each hook, so skip it
-	// entirely when no pass is open.
-	inline bool ShouldMask(AnimClass* pAnim)
+	// -----------------------------------------------------------------------
+	// EXTENSION: per-frame FX filter, backported from sub_10017ED0.
+	//
+	// The reference fork does not emit for every frame of an enabled anim. It
+	// gates on, in order:
+	//
+	//   ext+57  bool          enable flag
+	//   ext+88  int           if non-zero, emit only while frame <= this
+	//   ext+76  vector<int>   otherwise, emit only for frames in this list;
+	//   ext+80                an EMPTY list means every frame
+	//
+	// VERIFY: the four field names below are placeholders. Substitute your
+	// actual AnimTypeExtData members - I do not have the layout, only the
+	// offsets the pseudocode dereferences.
+	// -----------------------------------------------------------------------
+	bool ShouldEmit(AnimTypeExtData* pExt, int frame)
 	{
-		if (!PhobosAlphaMask::Instance().IsPassActive() || pAnim == nullptr)
+		if (!pExt->FXLightEnable)                       // ext+57
 			return false;
 
-		return AnimTypeExtContainer::Instance.Find(pAnim->Type)->FXLightEnable;
+		if (pExt->FXLightMaxFrame != 0)                 // ext+88
+			return frame <= pExt->FXLightMaxFrame;
+
+		const auto& frames = pExt->FXLightFrames;       // ext+76 / ext+80
+
+		if (frames.empty())
+			return true;
+
+		return std::find(frames.begin(), frames.end(), frame) != frames.end();
+	}
+
+	// -----------------------------------------------------------------------
+	// The 16-bit parameter, assembled exactly as the fork does it:
+	//
+	//     v168[15] + (v168[16] << 8)      // ext+60 | ext+64 << 8
+	//
+	// VERIFY: both halves are read as full dwords in the pseudocode but must be
+	// 0..255 for the packing to be lossless. Clamp defensively - an INI-supplied
+	// value above 255 would otherwise bleed into the high byte.
+	// -----------------------------------------------------------------------
+	uint16_t FXParam(AnimTypeExtData* pExt)
+	{
+		const auto low = static_cast<uint16_t>(std::clamp(pExt->FXLightIntensity.Get(), 0, 255));   // ext+60
+		const auto high = static_cast<uint16_t>(std::clamp(pExt->FXLightSecondary.Get(), 0, 255));  // ext+64
+
+		return static_cast<uint16_t>(low | (high << 8));
+	}
+
+	// Returns 0 when this anim should not contribute this frame.
+	uint16_t MaskParamFor(AnimClass* pAnim, int frame)
+	{
+		if (!PhobosAlphaMask::Instance().IsPassActive() || pAnim == nullptr)
+			return 0;
+
+		AnimTypeExtData* const pExt = AnimTypeExtContainer::Instance.Find(pAnim->Type);
+
+		return ShouldEmit(pExt, frame) ? FXParam(pExt) : 0;
 	}
 }
 
 // ---------------------------------------------------------------------------
-// Variant 0. .text:100285A0
-//
-// Reads four consecutive dwords off ESP: the tail of a CC_Draw_Shape argument
-// push, one slot in -- the shape itself comes from EAX rather than the stack.
-// Passes the caller's flags through untouched.
+// Variant 0. Shape in EAX, four dwords off ESP.
 // ---------------------------------------------------------------------------
 ASMJIT_PATCH(0x4236F0, AnimClass_Draw_SetMaskBuffer, 6)
 {
@@ -423,18 +481,15 @@ ASMJIT_PATCH(0x4236F0, AnimClass_Draw_SetMaskBuffer, 6)
 	GET_STACK(RectangleStruct*, pBounds, 0x8);
 	GET_STACK(DWORD, flags, 0xC);
 
-	if (ShouldMask(pAnim))
-		PhobosAlphaMask::Instance().Blit(pShape, frame, flags, *pBounds, pPoint->X, pPoint->Y);
+	if (const uint16_t param = MaskParamFor(pAnim, frame))
+		PhobosAlphaMask::Instance().Queue(pShape, frame, flags, *pBounds, pPoint->X, pPoint->Y, param);
 
 	return 0;
 }
 ASMJIT_PATCH_AGAIN(0x4233E4, AnimClass_Draw_SetMaskBuffer, 5)
 
 // ---------------------------------------------------------------------------
-// Variant 1. .text:10028610
-//
-// Five dwords off ESP -- the full CC_Draw_Shape argument block at the call:
-// [0] shape, [1] shapenum, [2] xy, [3] rect1, [4] flags.
+// Variant 1. Full CC_Draw_Shape argument block off ESP.
 // ---------------------------------------------------------------------------
 ASMJIT_PATCH(0x423821, AnimClass_Draw_SetMaskBuffer_1, 6)
 {
@@ -445,17 +500,14 @@ ASMJIT_PATCH(0x423821, AnimClass_Draw_SetMaskBuffer_1, 6)
 	GET_STACK(RectangleStruct*, pBounds, 0xC);
 	GET_STACK(DWORD, flags, 0x10);
 
-	if (ShouldMask(pAnim))
-		PhobosAlphaMask::Instance().Blit(pShape, frame, flags, *pBounds, pPoint->X, pPoint->Y);
+	if (const uint16_t param = MaskParamFor(pAnim, frame))
+		PhobosAlphaMask::Instance().Queue(pShape, frame, flags, *pBounds, pPoint->X, pPoint->Y, param);
 
 	return 0;
 }
 
 // ---------------------------------------------------------------------------
-// Variant 2. .text:10028680 -- the shadow pass.
-//
-// ESP is Draw_It's frame base here: +0x28 is `shape`, +0x2C is `sz`, +0x118 is
-// the `rect1` argument. This is what pins the REGISTERS layout.
+// Variant 2. Shadow pass. ESP is Draw_It's frame base.
 // ---------------------------------------------------------------------------
 ASMJIT_PATCH(0x42383C, AnimClass_Draw_SetMaskBuffer_2, 6)
 {
@@ -466,18 +518,17 @@ ASMJIT_PATCH(0x42383C, AnimClass_Draw_SetMaskBuffer_2, 6)
 	GET_STACK(int, frame, 0x2C);
 	GET_STACK(RectangleStruct*, pBounds, 0x118);
 
-	if (ShouldMask(pAnim))
+	if (const uint16_t param = MaskParamFor(pAnim, frame))
 	{
-		PhobosAlphaMask::Instance().Blit(pShape, frame, DrawFlags::ToShadow(drawFlags),
-			*pBounds, pPoint->X, pPoint->Y);
+		PhobosAlphaMask::Instance().Queue(pShape, frame, DrawFlags::ToShadow(drawFlags),
+			*pBounds, pPoint->X, pPoint->Y, param);
 	}
 
 	return 0;
 }
 
 // ---------------------------------------------------------------------------
-// Variant 3. .text:10028700 -- the extras/shadow pass, 0x20 bytes deeper into
-// the same frame, so `shape` sits at ESP+0x48 instead of ESP+0x28.
+// Variant 3. Extras/shadow pass, 0x20 deeper into the same frame.
 // ---------------------------------------------------------------------------
 ASMJIT_PATCH(0x4237A3, AnimClass_Draw_SetMaskBuffer_3, 6)
 {
@@ -488,10 +539,10 @@ ASMJIT_PATCH(0x4237A3, AnimClass_Draw_SetMaskBuffer_3, 6)
 	GET(RectangleStruct*, pBounds, EAX);
 	GET_STACK(SHPCaches*, pShape, 0x48);
 
-	if (ShouldMask(pAnim))
+	if (const uint16_t param = MaskParamFor(pAnim, frame))
 	{
-		PhobosAlphaMask::Instance().Blit(pShape, frame, DrawFlags::ToShadow(drawFlags),
-			*pBounds, pPoint->X, pPoint->Y);
+		PhobosAlphaMask::Instance().Queue(pShape, frame, DrawFlags::ToShadow(drawFlags),
+			*pBounds, pPoint->X, pPoint->Y, param);
 	}
 
 	return 0;

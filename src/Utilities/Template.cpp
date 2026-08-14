@@ -2522,6 +2522,23 @@ bool detail::read<DoType>(DoType& value, INI_EX& parser, const char* pSection, c
 }
 
 template <>
+bool detail::read<PowerStatus>(PowerStatus& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+{
+	if (parser.ReadString(pSection, pKey)) {
+		for (const auto& [val, str] : EnumFunctions::PowerStatus_ToStrings) {
+			if (PhobosCRT::iequals(parser.value(), str)) {
+				value = val;
+				return true;
+			}
+		}
+
+		Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid PowerStatus");
+	}
+
+	return false;
+}
+
+template <>
 void detail::parse_values<LandType>(std::vector<LandType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 {
 	vector.clear();

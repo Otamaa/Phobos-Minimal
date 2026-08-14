@@ -1356,6 +1356,7 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->VeteranEmptyReload)
 		.Process(this->MissileSpawnAttackCell)
 		.Process(this->ReadyToNextMission_MovingCheck)
+		.Process(this->Warhead_PreventScatter)
 	;
 }
 
@@ -4275,6 +4276,7 @@ void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
 	this->Parasite_DisableParticleSystem.Read(exINI, GameStrings::CombatDamage, "Parasite.DisableParticleSystem");
 
 	this->MissileSpawnAttackCell.Read(exINI, GameStrings::CombatDamage, "MissileSpawnAttackCell");
+	this->Warhead_PreventScatter.Read(exINI, GameStrings::CombatDamage, "Warhead.PreventScatter");
 }
 
 #pragma region WeaponTypeBuffer

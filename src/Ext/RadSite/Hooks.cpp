@@ -35,16 +35,20 @@
 
 // Vanilla check logic is wrong, so we re-implement it
 // breaking rad in snow - otamaa
-//ASMJIT_PATCH(0x554AAD, LightSourceClass_ChangeLevels_CheckBefore, 0x6)
-//{
-//	enum { ContinueIn = 0x554AC0, ReturnFromFunction = 0x554AE1 };
-//
-//	GET(LightSourceClass*, pThis, ECX);
-//	GET(const int, intensity, ESI);
-//	REF_STACK(const TintStruct, tint, STACK_OFFSET(0x8, 0x8));
-//
-//	return pThis->LightIntensity == intensity && pThis->LightTint == tint ? ReturnFromFunction : ContinueIn;
-//}
+ASMJIT_PATCH(0x554AAD, LightSourceClass_ChangeLevels_CheckBefore, 0x6)
+{
+	enum { ContinueIn = 0x554AC0, ReturnFromFunction = 0x554AE1 };
+
+	GET(LightSourceClass*, pThis, ECX);
+	GET(const int, intensity, ESI);
+	REF_STACK(const TintStruct, tint, STACK_OFFSET(0x8, 0x8));
+
+	if (pThis->LightIntensity == intensity && pThis->LightTint == tint)
+		return ReturnFromFunction;
+
+	R->EDI(tint.Blue);
+	return ContinueIn;
+}
 
 ASMJIT_PATCH(0x469150, BulletClass_Logics_ApplyRadiation, 0x5)
 {

@@ -319,6 +319,10 @@ bool AnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	// require reshade cores
 	this->FXLightEnable.Read(exINI, pID, "FXLightEnable");
+	this->FXLightMaxFrame.Read(exINI, pID, "FXLightMaxFrame");
+	this->FXLightIntensity.Read(exINI, pID, "FXLightIntensity");
+	this->FXLightSecondary.Read(exINI, pID, "FXLightSecondary");
+	this->FXLightFrames.Read(exINI, pID, "FXLightFrames");
 
 	// require separate dll for processing the custom blitters
 	this->BlendFunctionName.Read(exINI.GetINI(), pID, "BlendFunction");
@@ -764,6 +768,11 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->Damaging_Rate)
 		.Process(this->Tiled_Interval)
 		.Process(this->FXLightEnable)
+		.Process(this->FXLightMaxFrame)
+		.Process(this->FXLightIntensity)
+		.Process(this->FXLightSecondary)
+		.Process(this->FXLightFrames)
+
 		.Process(this->BlendFunctionName)
 		.Process(this->FullReplaceBlendFunctionName)
 		;

@@ -846,6 +846,8 @@ public:
 
 	Valueable<bool> MissileSpawnAttackCell { true };
 	Valueable<bool> ReadyToNextMission_MovingCheck { false };
+
+	Valueable<bool> Warhead_PreventScatter { false };
 #pragma endregion
 
 public:

@@ -1134,6 +1134,15 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->AutoDeath_Exist_House.Read(exINI, pSection, "AutoDeath.TechnosExist.House");
 		this->AutoDeath_VanishAnimation.Read(exINI, pSection, "AutoDeath.VanishAnimation");
 
+		this->AutoDeath_PlayerPowerStatus.Read(exINI, pSection, "AutoDeath.PlayerPowerStatus");
+		this->AutoDeath_PlayerMoney_Max.Read(exINI, pSection, "AutoDeath.PlayerMoney.Max");
+		this->AutoDeath_PlayerMoney_Min.Read(exINI, pSection, "AutoDeath.PlayerMoney.Min");
+
+		if ((this->AutoDeath_PlayerMoney_Max != -1)
+	&& (this->AutoDeath_PlayerMoney_Min != -1)
+	&& (this->AutoDeath_PlayerMoney_Max < this->AutoDeath_PlayerMoney_Min))
+			Debug::Log("[Developer warning][%s] AutoDeath.PlayerMoney.Min is bigger than AutoDeath.PlayerMoney.Max, AutoDeath will never activate!\n", pSection);
+
 		this->AutoDeath_Exist_AllowLimboed.Read(exINI, pSection, "AutoDeath.Exist.AllowLimboed");
 		this->AutoDeath_Exist_AllowLimboed.Read(exINI, pSection, "AutoDeath.TechnosExist.AllowLimboed");
 
@@ -2834,6 +2843,11 @@ void TechnoTypeExtData::Serialize(T& Stm) {
 		.Process(this->AutoDeath_Exist_Any)
 		.Process(this->AutoDeath_Exist_AllowLimboed)
 		.Process(this->AutoDeath_VanishAnimation)
+
+		.Process(this->AutoDeath_PlayerPowerStatus)
+		.Process(this->AutoDeath_PlayerMoney_Max)
+		.Process(this->AutoDeath_PlayerMoney_Min)
+
 		.Process(this->Convert_AutoDeath)
 		.Process(this->Slaved_ReturnTo)
 

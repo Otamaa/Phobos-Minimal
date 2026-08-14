@@ -253,6 +253,11 @@ public:
 	Valueable<bool> AutoDeath_Exist_Any { false };
 	Nullable<bool> AutoDeath_Exist_AllowLimboed { };
 	Valueable<AnimTypeClass*> AutoDeath_VanishAnimation { nullptr };
+
+	Valueable<PowerStatus> AutoDeath_PlayerPowerStatus { PowerStatus::None };
+	Valueable<int> AutoDeath_PlayerMoney_Max { -1 };
+	Valueable<int> AutoDeath_PlayerMoney_Min { -1 };
+
 	Valueable<TechnoTypeClass*> Convert_AutoDeath {};
 	Valueable<SlaveReturnTo> Slaved_ReturnTo { SlaveReturnTo::Killer };
 	Valueable<ShieldTypeClass*> ShieldType { nullptr };

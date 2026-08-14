@@ -1337,7 +1337,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 		retaliate = true;
 	}
 
-	if (!pWHExt->PreventScatter) {
+	if (!pWHExt->PreventScatter.Get(FakeRulesClass::Instance->Warhead_PreventScatter)) {
 		if (pFoot) {
 			if (!pFoot->Target && !pFoot->Destination) {
 				if (retaliate && (RulesClass::Instance->PlayerScatter || pFoot->HasAbility(AbilityType::Scatter))) {
@@ -2121,7 +2121,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 		retaliate = true;
 	}
 
-	if (!pWHExt->PreventScatter)
+	if (!pWHExt->PreventScatter.Get(FakeRulesClass::Instance->Warhead_PreventScatter))
 	{
 		if (pFoot)
 		{

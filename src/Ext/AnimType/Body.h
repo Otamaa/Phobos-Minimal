@@ -201,6 +201,10 @@ public:
 	// AnimClass_Draw_SetMaskBuffer hooks gate on the FX light flag because the
 	// mask feeds that pass.
 	Valueable<bool>           FXLightEnable { false };                   // 0x077
+	Valueable<int>			  FXLightMaxFrame { 0 };
+	Valueable<int>			  FXLightIntensity { 0 };
+	Valueable<int>	          FXLightSecondary { 0 };
+	ValueableVector<int>      FXLightFrames {};
 
 	// NOTE: fixed char buffers, exactly what this tree is trying to eliminate.
 	// A symbol name over 63 characters is truncated by details::ReadString and

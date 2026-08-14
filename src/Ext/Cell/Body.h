@@ -29,7 +29,7 @@ private:
 			.Success();
 	}
 };
-
+class LightSourceClass;
 class FoggedObject;
 class CellExtData final : public AbstractExtended
 {
@@ -54,6 +54,7 @@ public:
 	HelperedVector<RadSiteClass*> RadSites {};
 	HelperedVector<RadLevel> RadLevels {};
 	HelperedVector<FoggedObject*> FoggedObjects {};
+	HelperedVector<LightSourceClass*> CoveringLights {};
 	// ============================================================
 	// 4-byte aligned: int
 	// ============================================================

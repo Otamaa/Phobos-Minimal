@@ -82,7 +82,7 @@ CoordStruct* FakeBuildingClass::__Get_FLH(CoordStruct* pBuffer, int weaponIndex,
 		// 0x4539E0 : generic TechnoClass FLH, optionally nudged by the voxel
 		// turret's artwork pixel offset.
 		//--------------------------------------------------------------------
-		CoordStruct const* const pBase = FakeTechnoClass::__Get_FLH(this, discard_t(), &scratch, weaponIndex, CoordStruct::Empty);
+		CoordStruct* pBase = FakeTechnoClass::__Get_FLH(this, discard_t(), &scratch, weaponIndex, CoordStruct::Empty);
 
 
 		int x = pBase->X;
@@ -94,7 +94,7 @@ CoordStruct* FakeBuildingClass::__Get_FLH(CoordStruct* pBuffer, int weaponIndex,
 		{
 			// 0x453A1C - 0x453A4C
 			// VERIFY: TurretAnimX/TurretAnimY (+0x11E0 / +0x11E4).
-			Point2D const turretOffset { pType->BuildingAnim[9].Position.X, pType->BuildingAnim[9].Position.Y };
+			Point2D turretOffset { pType->BuildingAnim[9].Position.X, pType->BuildingAnim[9].Position.Y };
 
 			// DIFF (unobservable): vanilla reuses the `arg0` CoordStruct slot as the
 			// return buffer here; we use the dedicated Point2D local instead. The
@@ -120,14 +120,14 @@ CoordStruct* FakeBuildingClass::__Get_FLH(CoordStruct* pBuffer, int weaponIndex,
 
 	if (pType->PrimaryFireDualOffset) {
 		// 0x4538F7 - 0x453954
-		CoordStruct const* const pBase = FakeTechnoClass::__Get_FLH(this, discard_t(), &scratch, weaponIndex, CoordStruct::Empty);
+		CoordStruct* pBase = FakeTechnoClass::__Get_FLH(this, discard_t(), &scratch, weaponIndex, CoordStruct::Empty);
 
 		pBuffer->X = pBase->X + pixel.X;
 		pBuffer->Y = pBase->Y + pixel.Y;
 		pBuffer->Z = pBase->Z;
 	} else {
 		// 0x453957 - 0x45399E
-		CoordStruct const const _rendoordsb = this->GetRenderCoords();
+		CoordStruct _rendoordsb = this->GetRenderCoords();
 
 		pBuffer->X = _rendoordsb.X + pixel.X;
 		pBuffer->Y = _rendoordsb.Y + pixel.Y;

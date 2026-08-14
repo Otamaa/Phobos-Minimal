@@ -2098,6 +2098,50 @@ ASMJIT_PATCH(0x42CC48, AstarClass_Find_Path_FailLog_FindPath, 0x5)
 //}
 //#pragma optimize("", on )
 
+	// -----------------------------------------------------------------------
+	// Quit-request classification.
+	//
+	// DIFF: vanilla has no such path - it simply dispatches and lets the window
+	//       procedure drive shutdown. The fork short-circuits to ExitProcess().
+	// -----------------------------------------------------------------------
+bool IsQuitRequest(const MSG& msg) noexcept
+{
+	switch (msg.message)
+	{
+	case WM_CLOSE:
+	case WM_DESTROY:
+		return true;
+
+	case WM_SYSCOMMAND:
+		// BUGFIX: the low 4 bits of a WM_SYSCOMMAND wParam are reserved by the system
+		//         and may be non-zero when the command originates from an accelerator
+		//         or a mouse action. The original compared wParam == 0xF060 exactly,
+		//         which silently misses those cases.
+		return (msg.wParam & 0xFFF0u) == SC_CLOSE;
+
+	default:
+		return false;
+	}
+}
+
+// -----------------------------------------------------------------------
+// Alt+Enter (fullscreen toggle) detection.
+//
+// lParam bit 29 is the context code - set when ALT is held. Only WM_SYSKEYDOWN
+// carries it, so the original's WM_KEYDOWN branch was unreachable in practice.
+//
+// DIFF: WM_KEYDOWN (0x100) dropped from the test - dead branch, see above.
+//       Behaviour is unchanged; remove this comment once confirmed in-game.
+// -----------------------------------------------------------------------
+constexpr LPARAM KeyContextCodeFlag = 1L << 29;
+
+bool IsFullscreenToggle(const MSG& msg) noexcept
+{
+	return msg.message == WM_SYSKEYDOWN
+		&& msg.wParam == VK_RETURN
+		&& (msg.lParam & KeyContextCodeFlag) != 0;
+}
+
 //ASMJIT_PATCH(0x5D4E3B, DispatchingMessage_ReloadResources, 0x5)
 //{
 //	LEA_STACK(LPMSG, pMsg, 0x10);
@@ -2334,230 +2378,230 @@ ASMJIT_PATCH(0x50B6F0, HouseClass_ControlledByCurrentPlayer_LogCaller, 0x5)
 
 #endif
 
-	
 
-		ASMJIT_PATCH(0x7BB350, XSurface_Func_check, 0x6)
+
+ASMJIT_PATCH(0x7BB350, XSurface_Func_check, 0x6)
+{
+	GET(XSurface*, pThis, ECX);
+	GET_STACK(uintptr_t, caller, 0x0);
+
+	if (!pThis || VTable::Get(pThis) != XSurface::vtable)
 	{
-		GET(XSurface*, pThis, ECX);
-		GET_STACK(uintptr_t, caller, 0x0);
-
-		if (!pThis || VTable::Get(pThis) != XSurface::vtable)
-		{
-			Debug::LogInfo("XSurface Invalid caller [0x{0:x}]!!", caller);
-		}
-
-		return 0x0;
-	} ASMJIT_PATCH_AGAIN(0x7BBAF0, XSurface_Func_check, 0x5)
-
-		ASMJIT_PATCH(0x6D471A, TechnoClass_Render_dead, 0x6)
-	{
-		GET(TechnoClass*, pTech, ESI);
-
-		if (!pTech->IsAlive)
-			return 0x6D48FA;
-		auto vtable = VTable::Get(pTech);
-
-		if (vtable != AircraftClass::vtable
-			&& vtable != BuildingClass::vtable
-			&& vtable != InfantryClass::vtable
-			&& vtable != UnitClass::vtable)
-			return 0x6D48FA;
-
-		return 0x0;
+		Debug::LogInfo("XSurface Invalid caller [0x{0:x}]!!", caller);
 	}
 
-	ASMJIT_PATCH(0x438D72, BombListClass_DetectorMissingHouse, 0x7)
+	return 0x0;
+} ASMJIT_PATCH_AGAIN(0x7BBAF0, XSurface_Func_check, 0x5)
+
+ASMJIT_PATCH(0x6D471A, TechnoClass_Render_dead, 0x6)
+{
+	GET(TechnoClass*, pTech, ESI);
+
+	if (!pTech->IsAlive)
+		return 0x6D48FA;
+	auto vtable = VTable::Get(pTech);
+
+	if (vtable != AircraftClass::vtable
+		&& vtable != BuildingClass::vtable
+		&& vtable != InfantryClass::vtable
+		&& vtable != UnitClass::vtable)
+		return 0x6D48FA;
+
+	return 0x0;
+}
+
+ASMJIT_PATCH(0x438D72, BombListClass_DetectorMissingHouse, 0x7)
+{
+	GET(HouseClass*, pDetectorOwner, EAX);
+	GET(TechnoClass*, pDetector, ESI);
+
+	if (!pDetectorOwner)
 	{
-		GET(HouseClass*, pDetectorOwner, EAX);
-		GET(TechnoClass*, pDetector, ESI);
-
-		if (!pDetectorOwner)
-		{
-			Debug::FatalErrorAndExit("BombListClass Detector[%s - %s] Missing Ownership !\n", pDetector->GetThisClassName(), pDetector->get_ID());
-			//return 0x438E11;
-		}
-
-		R->AL(pDetectorOwner->ControlledByCurrentPlayer());
-		return 0x438D79;
+		Debug::FatalErrorAndExit("BombListClass Detector[%s - %s] Missing Ownership !\n", pDetector->GetThisClassName(), pDetector->get_ID());
+		//return 0x438E11;
 	}
 
+	R->AL(pDetectorOwner->ControlledByCurrentPlayer());
+	return 0x438D79;
+}
 
 
 
 
-	//ASMJIT_PATCH(0x7399EE, UnitClass_TryToDeploy_BrokenEBP, 0x5)
-	//{
-	   // GET(UnitClass*, pThis, EBP);
 
-	   // if (pThis->AttachedTag)
-	   // {
-	   //	 R->EAX(pThis->AttachedTag);
-	   //	 return 0x7399F5;
-	   // }
+//ASMJIT_PATCH(0x7399EE, UnitClass_TryToDeploy_BrokenEBP, 0x5)
+//{
+   // GET(UnitClass*, pThis, EBP);
 
-	   // return 0x739A0E;
-	//}
+   // if (pThis->AttachedTag)
+   // {
+   //	 R->EAX(pThis->AttachedTag);
+   //	 return 0x7399F5;
+   // }
 
-	//ASMJIT_PATCH(0x521960, InfantryClass_Load_test, 0x5)
-	// {
-	   // GET(InfantryClass*, pThis, ESI);
-	   // return 0x0;
-	//}
+   // return 0x739A0E;
+//}
 
-	//ASMJIT_PATCH(0x521A11, InfantryClass_NoInit_test, 0x6)
-	//{
-	   // GET(AbstractClass*, pThis, EAX);
-	   // return 0x0;
-	//}
+//ASMJIT_PATCH(0x521960, InfantryClass_Load_test, 0x5)
+// {
+   // GET(InfantryClass*, pThis, ESI);
+   // return 0x0;
+//}
 
-	//ASMJIT_PATCH(0x5219E8, InfantryClass_Load_test, 0x5)
-	//{
-	   // GET(InfantryClass*, pThis, ESI);
-	   // return 0x0;
-	//}
+//ASMJIT_PATCH(0x521A11, InfantryClass_NoInit_test, 0x6)
+//{
+   // GET(AbstractClass*, pThis, EAX);
+   // return 0x0;
+//}
 
-	//ASMJIT_PATCH(0x5F3B5D, ObjectClass_Load_checkExt, 0x5)
-	//{
-	   // GET(ObjectClass*, pThis, ESI);
-	   // return 0x0;
-	//}
+//ASMJIT_PATCH(0x5219E8, InfantryClass_Load_test, 0x5)
+//{
+   // GET(InfantryClass*, pThis, ESI);
+   // return 0x0;
+//}
 
-	//ASMJIT_PATCH(0x65A7F7, RadioClass_Load_checkExt, 0x5)
-	//{
-	   // GET(RadioClass*, pThis, ESI);
-	   // return 0x0;
-	//}
+//ASMJIT_PATCH(0x5F3B5D, ObjectClass_Load_checkExt, 0x5)
+//{
+   // GET(ObjectClass*, pThis, ESI);
+   // return 0x0;
+//}
 
-	//ASMJIT_PATCH(0x6F44E9, TechnoClass_Load_checkExt, 0x5)
-	//{
-	   // GET(TechnoClass*, pThis, ESI);
-	   // return 0x0;
-	//}
+//ASMJIT_PATCH(0x65A7F7, RadioClass_Load_checkExt, 0x5)
+//{
+   // GET(RadioClass*, pThis, ESI);
+   // return 0x0;
+//}
 
-	//ASMJIT_PATCH(0x4D3568, FootClass_Load_checkExt, 0x6)
-	//{
-	   // GET(FootClass*, pThis, ESI);
-	   // return 0x0;
-	//}
+//ASMJIT_PATCH(0x6F44E9, TechnoClass_Load_checkExt, 0x5)
+//{
+   // GET(TechnoClass*, pThis, ESI);
+   // return 0x0;
+//}
 
-	//ASMJIT_PATCH(0x744527, UnitClass_Load_checkExt, 0x6)
-	//{
-	   // GET(UnitClass*, pThis, ESI);
-	   // return 0x0;
-	//}
-	//ASMJIT_PATCH(0x410361, AbstractClass_Save_LogValue, 0x5)
-	//{
-	   // GET(AbstractClass*, pThis, ESI);
-	   // Debug::Log("Saving Ext of %x", pThis->unknown_18);
-	   // return 0x0;
-	//}
+//ASMJIT_PATCH(0x4D3568, FootClass_Load_checkExt, 0x6)
+//{
+   // GET(FootClass*, pThis, ESI);
+   // return 0x0;
+//}
 
-	//ASMJIT_PATCH(0x6D4912, TechnoClass_Render_deadRemoval, 0x6)
-	//{
-	   // TechnoClass::Array->remove_if([](TechnoClass* ptr) {
-	   //	 auto vtable = VTable::Get(ptr);
-	   //	 if (vtable != AircraftClass::vtable
-	   //		 && vtable != BuildingClass::vtable
-	   //		 && vtable != InfantryClass::vtable
-	   //		 && vtable != UnitClass::vtable)
-	   //		 return true;
+//ASMJIT_PATCH(0x744527, UnitClass_Load_checkExt, 0x6)
+//{
+   // GET(UnitClass*, pThis, ESI);
+   // return 0x0;
+//}
+//ASMJIT_PATCH(0x410361, AbstractClass_Save_LogValue, 0x5)
+//{
+   // GET(AbstractClass*, pThis, ESI);
+   // Debug::Log("Saving Ext of %x", pThis->unknown_18);
+   // return 0x0;
+//}
 
-	   //	 return false;
-	   //});
+//ASMJIT_PATCH(0x6D4912, TechnoClass_Render_deadRemoval, 0x6)
+//{
+   // TechnoClass::Array->remove_if([](TechnoClass* ptr) {
+   //	 auto vtable = VTable::Get(ptr);
+   //	 if (vtable != AircraftClass::vtable
+   //		 && vtable != BuildingClass::vtable
+   //		 && vtable != InfantryClass::vtable
+   //		 && vtable != UnitClass::vtable)
+   //		 return true;
 
-	   // return 0x0;
-	//}
+   //	 return false;
+   //});
 
-	//ASMJIT_PATCH(0x5F4870, ObjectClass_func_BrokenObj, 0x5)
-	//{
-	   // GET(ObjectClass*, pObj, ECX);
-	   // GET_STACK(DWORD, caller, 0x0);
+   // return 0x0;
+//}
 
-	   // if (!pObj->IsAlive)
-	   //	 Debug::Log("Dead obj %x caller %x\n", pObj , caller);
-	   // //auto vtable = VTable::Get(pObj);
-	   // //BulletClass
-	   //	// IsometricTileClass
-	   //	// OverlayClass
-	   //	// ParticleClass
-	   //	// ParticleSystemClass
-	   //	// SmudgeClass
-	   //	// TerrainClass
-	   //	// VeinholeMonsterClass
-	   //	// VoxelAnimClass
-	   //	// WaveClass
-	   // //if (&& vtable != BuildingLightClass::vtable  && vtable != AnimClass::vtable
-	   //	// && vtable != AircraftClass::vtable
-	   //	// && vtable != BuildingClass::vtable
-	   //	// && vtable != InfantryClass::vtable
-	   //	// && vtable != UnitClass::vtable)
+//ASMJIT_PATCH(0x5F4870, ObjectClass_func_BrokenObj, 0x5)
+//{
+   // GET(ObjectClass*, pObj, ECX);
+   // GET_STACK(DWORD, caller, 0x0);
 
-	   // return 0x0;
-	//}
+   // if (!pObj->IsAlive)
+   //	 Debug::Log("Dead obj %x caller %x\n", pObj , caller);
+   // //auto vtable = VTable::Get(pObj);
+   // //BulletClass
+   //	// IsometricTileClass
+   //	// OverlayClass
+   //	// ParticleClass
+   //	// ParticleSystemClass
+   //	// SmudgeClass
+   //	// TerrainClass
+   //	// VeinholeMonsterClass
+   //	// VoxelAnimClass
+   //	// WaveClass
+   // //if (&& vtable != BuildingLightClass::vtable  && vtable != AnimClass::vtable
+   //	// && vtable != AircraftClass::vtable
+   //	// && vtable != BuildingClass::vtable
+   //	// && vtable != InfantryClass::vtable
+   //	// && vtable != UnitClass::vtable)
 
-	
+   // return 0x0;
+//}
+
+
 #ifdef CHECK_PTR_VALID
 
 
-	ASMJIT_PATCH(0x4F9A90, HouseClass_IsAlly_ObjectClass, 0x7)
+ASMJIT_PATCH(0x4F9A90, HouseClass_IsAlly_ObjectClass, 0x7)
+{
+	GET_STACK(ObjectClass*, pTarget, 0x4);
+	GET(HouseClass*, pThis, ECX);
+	GET_STACK(DWORD, caller, 0x0);
+
+	bool result = false;
+
+	if (pTarget)
 	{
-		GET_STACK(ObjectClass*, pTarget, 0x4);
-		GET(HouseClass*, pThis, ECX);
-		GET_STACK(DWORD, caller, 0x0);
 
-		bool result = false;
-
-		if (pTarget)
+		if (flag_cast_to<TechnoClass*>(pTarget))
 		{
-
-			if (flag_cast_to<TechnoClass*>(pTarget))
+			if ((VTable::Get(pTarget) != AircraftClass::vtable &&
+				VTable::Get(pTarget) != BuildingClass::vtable &&
+				VTable::Get(pTarget) != UnitClass::vtable &&
+				VTable::Get(pTarget) != InfantryClass::vtable))
 			{
-				if ((VTable::Get(pTarget) != AircraftClass::vtable &&
-					VTable::Get(pTarget) != BuildingClass::vtable &&
-					VTable::Get(pTarget) != UnitClass::vtable &&
-					VTable::Get(pTarget) != InfantryClass::vtable))
-				{
-					Debug::FatalError("Missing valid vtable %x , caller %x", pTarget, caller);
-				}
+				Debug::FatalError("Missing valid vtable %x , caller %x", pTarget, caller);
 			}
-
-			auto pTargetOwner = pTarget->GetOwningHouse();
-			result = pThis->IsAlliedWith(pTargetOwner);
 		}
 
-		R->AL(result);
-		return 0x4F9ADE;
+		auto pTargetOwner = pTarget->GetOwningHouse();
+		result = pThis->IsAlliedWith(pTargetOwner);
 	}
 
-	ASMJIT_PATCH(0x6F8A0F, TechnoClass_EvalCell_deadTechno, 0x8)
-	{
-		GET(ObjectClass*, pCellObj, EDI);
-		return !pCellObj || !pCellObj->IsAlive ? 0x6F8B4D : 0x6F8A17;
-	}
-	//ASMJIT_PATCH(0x4F9A90, HouseClass_IsAlliedWith, 0x7)
-	//{
-	//	GET(HouseClass*, pThis, ECX);
-	//	GET_STACK(DWORD, called, 0x0);
-	//	GET_STACK(AbstractClass*, pAbs, 0x4);
-	//
-	//	if (!pThis || VTable::Get(pThis) != HouseClass::vtable) {
-	//		Debug::FatalError("HouseClass - IsAlliedWith[%x] , Called from[%x] with `nullptr` pointer !", R->Origin(), called);
-	//	}
-	//	else if (auto pTechno = flag_cast_to<TechnoClass*>(pAbs)){
-	//			if(VTable::Get(pTechno) != AircraftClass::vtable &&
-	//				VTable::Get(pTechno) != BuildingClass::vtable &&
-	//				VTable::Get(pTechno) != UnitClass::vtable &&
-	//				VTable::Get(pTechno) != InfantryClass::vtable
-	//			) {
-	//			Debug::FatalError("HouseClass - IsAlliedWith[%x] , Called from[%x] with `nullptr` abstract pointer !", R->Origin(), called);
-	//		}
-	//	}
-	//
-	//	return 0;
-	//}
-	//ASMJIT_PATCH_AGAIN(0x4F9AF0, HouseClass_IsAlliedWith, 0x7)
-	//ASMJIT_PATCH_AGAIN(0x4F9A10, HouseClass_IsAlliedWith, 0x6)
-	//ASMJIT_PATCH_AGAIN(0x4F9A50, HouseClass_IsAlliedWith, 0x6)
+	R->AL(result);
+	return 0x4F9ADE;
+}
+
+ASMJIT_PATCH(0x6F8A0F, TechnoClass_EvalCell_deadTechno, 0x8)
+{
+	GET(ObjectClass*, pCellObj, EDI);
+	return !pCellObj || !pCellObj->IsAlive ? 0x6F8B4D : 0x6F8A17;
+}
+//ASMJIT_PATCH(0x4F9A90, HouseClass_IsAlliedWith, 0x7)
+//{
+//	GET(HouseClass*, pThis, ECX);
+//	GET_STACK(DWORD, called, 0x0);
+//	GET_STACK(AbstractClass*, pAbs, 0x4);
+//
+//	if (!pThis || VTable::Get(pThis) != HouseClass::vtable) {
+//		Debug::FatalError("HouseClass - IsAlliedWith[%x] , Called from[%x] with `nullptr` pointer !", R->Origin(), called);
+//	}
+//	else if (auto pTechno = flag_cast_to<TechnoClass*>(pAbs)){
+//			if(VTable::Get(pTechno) != AircraftClass::vtable &&
+//				VTable::Get(pTechno) != BuildingClass::vtable &&
+//				VTable::Get(pTechno) != UnitClass::vtable &&
+//				VTable::Get(pTechno) != InfantryClass::vtable
+//			) {
+//			Debug::FatalError("HouseClass - IsAlliedWith[%x] , Called from[%x] with `nullptr` abstract pointer !", R->Origin(), called);
+//		}
+//	}
+//
+//	return 0;
+//}
+//ASMJIT_PATCH_AGAIN(0x4F9AF0, HouseClass_IsAlliedWith, 0x7)
+//ASMJIT_PATCH_AGAIN(0x4F9A10, HouseClass_IsAlliedWith, 0x6)
+//ASMJIT_PATCH_AGAIN(0x4F9A50, HouseClass_IsAlliedWith, 0x6)
 
 #endif
 
@@ -2604,4 +2648,3 @@ ASMJIT_PATCH(0x50B6F0, HouseClass_ControlledByCurrentPlayer_LogCaller, 0x5)
 //}
 
 
-	

@@ -477,6 +477,9 @@ namespace detail
 	template <>
 	bool read<DoType>(DoType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
 
+	template <>
+	bool read<PowerStatus>(PowerStatus& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate);
+
 	template <typename T, bool clearvec = true>
 	OPTIONALINLINE void parse_values(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
 	{

@@ -34,6 +34,13 @@
 #include <Helpers\EnumFlags.h>
 #include <GeneralDefinitions.h>
 
+enum class PowerStatus
+{
+	None = 0,
+	Full = 1,   // not low power
+	Low = 2, // low power
+};
+
 enum PowerEventMode
 {
 	Output = 0,

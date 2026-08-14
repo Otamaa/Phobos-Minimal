@@ -16,6 +16,7 @@
 #include <BuildingClass.h>
 #include <TerrainClass.h>
 #include <ScenarioClass.h>
+#include <LightSourceClass.h>
 
 #include <cmath>
 #include <algorithm>
@@ -352,6 +353,7 @@ void CellExtData::Serialize(T& Stm) {
 		.Process(this->RadSites)
 		.Process(this->RadLevels)
 		.Process(this->FoggedObjects)
+		.Process(this->CoveringLights)
 		;
 }
 

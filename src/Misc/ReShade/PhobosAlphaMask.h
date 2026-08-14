@@ -1,42 +1,44 @@
 #pragma once
 
 // ---------------------------------------------------------------------------
-// PhobosAlphaMask
+// PhobosAlphaMask - deferred (record-and-replay) variant
 //
-// A per-frame, one-byte-per-pixel mask that the GAME writes into, and that
-// ReShade effects sample. Anims whose type has FXLightEnable blit their SHP
-// into this buffer during the tactical draw pass; the finished buffer is
-// uploaded to a D3DFMT_L8 texture and bound to the effect runtime under a
-// texture semantic, so any .fx can read "where did the game draw light-emitting
-// art this frame".
+// DIFF vs the immediate-blit version this replaces:
 //
-// ---------------------------------------------------------------------------
-// DIFF vs the reverse-engineered original
-// ---------------------------------------------------------------------------
-// The original DLL hacked two pointers into reshade::runtime itself, at fixed
-// offsets +0x750 (texture) and +0x754 (surface), past the end of the upstream
-// object. That works exactly once, against exactly one build: any ReShade
-// revision that adds or reorders a member silently relocates those slots, and
-// nothing warns you. It is also why that DLL had to hard-pin a 0x760-byte
-// runtime.
+//   1. TWO BYTES PER PIXEL, not one. The reference fork clears its buffer with
+//      `memset(buffer, 0, 2 * width * height)` and advances rows by `2 * width`.
+//      Every queued record carries a 16-bit parameter, so the mask is an
+//      intensity/tint value, not a boolean coverage flag. D3DFMT_L8 -> L16.
 //
-// Newer ReShade has a first-class mechanism for precisely this - the same one
-// the depth-buffer add-on uses:
+//   2. Draw-pass hooks RECORD instead of blitting. The pass appends 40-byte
+//      records to a queue; the whole queue is replayed once at EndPass. The
+//      game thread is single-threaded through the tactical draw, so recording
+//      needs no lock at all - the mutex is now taken once per frame, around
+//      the replay, instead of being held across the entire draw pass.
 //
-//     runtime::update_texture_bindings(semantic, srv)
+//      This is what removes the BeginPass/EndPass pairing hazard outright:
+//      there is no lock to leak if EndPass is missed, and `_active` is gone.
 //
-// An effect declares `texture Mask : PHOBOS_ALPHAMASK;` and the runtime wires
-// our resource view into every effect that asks for it, across reloads. No
-// offsets, no struct surgery, survives rebases.
+//   3. The queue is drained UNCONDITIONALLY on every exit path. The reference
+//      fork put its drain inside `if (EnhancedLight)` while its producers were
+//      gated on a per-type flag instead, so the queue grew without bound
+//      whenever the feature was switched off. See EndPass.
 //
-// Other deliberate changes from the original, each marked at its site:
-//   - D3DPOOL_MANAGED -> D3DPOOL_DEFAULT + D3DUSAGE_DYNAMIC. MANAGED is
-//     REJECTED outright by D3D9Ex, and this is a per-frame-updated texture,
-//     which is the exact case DYNAMIC exists for. This also removes the need
-//     for the separate `_mask_surface` staging member entirely.
-//   - Double-buffered so the upload never reads the buffer the game is
-//     writing, and the mutex is never held across a D3D call.
-//   - The four EndPass / BeginPass bugs are fixed (see .cpp).
+// Unchanged from the previous version: texture-semantic binding (no runtime
+// struct offsets), DYNAMIC+DEFAULT pool, double buffering, bounds-clamped
+// blitters.
+//
+// The semantic an .fx must declare:
+//
+//     texture PhobosAlphaMaskTex : PHOBOS_ALPHAMASK;
+//     sampler sPhobosAlphaMask { Texture = PhobosAlphaMaskTex; };
+//
+// Sampling changes with the format: r16_unorm reads in .r as a normalised
+// 0..1 float. To recover the two packed bytes:
+//
+//     float  raw  = tex2D(sPhobosAlphaMask, uv).r * 65535.0;
+//     float  low  = fmod(raw, 256.0);      // AnimTypeExt +60
+//     float  high = floor(raw / 256.0);    // AnimTypeExt +64
 // ---------------------------------------------------------------------------
 
 #include <d3d9.h>
@@ -63,82 +65,113 @@ namespace reshade
 	}
 }
 
+// ---------------------------------------------------------------------------
+// One deferred draw record.
+//
+// Layout mirrors the reference fork's queue element exactly. Confirmed against
+// both call sites:
+//
+//   BulletClass_DrawSHP_Final:
+//     queue_FX(shape, frame, *(_OWORD*)rect, xy[0], xy[1], 0x2E00, 127)
+//
+//   sub_10017ED0 (anim update):
+//     queue_FX(pType->Image, frame, rect, x, y, flags, low + (high << 8))
+//
+// 4 + 4 + 16 + 4 + 4 + 4 + 4 = 40, matching the /40 stride in the fork's
+// vector destructor. No padding, no slack.
+// ---------------------------------------------------------------------------
+struct FXEntry
+{
+	SHPCaches* Shape;    // +0x00
+	int             Frame;    // +0x04
+	RectangleStruct Bounds;   // +0x08  passed by value (the __int128)
+	int             X;        // +0x18
+	int             Y;        // +0x1C
+	DWORD           Flags;    // +0x20
+	uint16_t        Param;    // +0x24  low byte | high byte << 8
+};
+
+static_assert(sizeof(RectangleStruct) == 16, "FXEntry layout assumes a 16-byte RectangleStruct");
+
 class PhobosAlphaMask
 {
 public:
-	// The semantic an .fx must declare to receive this texture:
-	//
-	//     texture PhobosAlphaMaskTex : PHOBOS_ALPHAMASK;
-	//     sampler sPhobosAlphaMask { Texture = PhobosAlphaMaskTex; };
-	//
-	// Effects that do not declare it are completely unaffected.
 	static constexpr const char* Semantic = "PHOBOS_ALPHAMASK";
+
+	// Records reserved up front so a steady-state frame never allocates. The
+	// reference fork's vector reached the >= 0x1000-byte branch in its
+	// destructor (102 records), so this is comfortably above observed peak.
+	static constexpr size_t QueueReserve = 512;
 
 	static PhobosAlphaMask& Instance();
 
-	// Called once from PhobosReShade::Initialize, and again on every
-	// resolution change. Safe to call with a null device to tear down.
 	bool OnInit(IDirect3DDevice9* pDevice, reshade::api::device* pReShadeDevice, int width, int height);
 	void OnReset();
 
-	// Called from PhobosReShade's round-trip, AFTER the tactical draw pass has
-	// ended and BEFORE the effects pass runs. Uploads the completed buffer and
-	// (re)binds it to the runtime.
+	// Called from the ReShade round-trip, after EndPass and before effects run.
 	void UploadAndBind(reshade::runtime* pRuntime);
 
 	// --- Draw-pass interface, called from the ASMJIT hooks -----------------
 
-	// TacticalClass draw pass entry (0x6D8F0F).
+	// TacticalClass draw pass entry (0x6D8F0F). Clears the queue. No lock.
 	void BeginPass();
 
-	// TacticalClass draw pass exit (0x6D97BF).
+	// TacticalClass draw pass exit (0x6D97BF). Replays the queue into the mask
+	// under the lock, publishes it, and drains. Safe to call unpaired.
 	void EndPass();
 
-	// Blit one SHP frame into the active mask buffer. Returns false when the
-	// call was rejected (no active pass, clipped away, bad shape).
-	bool Blit(SHPCaches* pShape, int frame, DWORD flags,
-		const RectangleStruct& bounds, int x, int y);
+	// Append one record. Cheap, allocation-free in steady state, no locking.
+	// Returns false when no pass is open.
+	bool Queue(SHPCaches* pShape, int frame, DWORD flags,
+		const RectangleStruct& bounds, int x, int y, uint16_t param);
 
-	// True only between BeginPass and EndPass. The hooks test this so the
-	// per-anim FXLightEnable lookup is skipped entirely outside a pass.
 	bool IsPassActive() const { return _pass_active; }
 
 private:
 	PhobosAlphaMask() = default;
 
-	static bool BlitRaw(uint8_t* pDest, int destStride, const uint8_t* pFrame,
-		int srcStride, int srcSkipCols, int srcSkipRows, int width, int rows);
+	// Replay of a single record: clip, then dispatch to the right blitter.
+	void BlitEntry(const FXEntry& entry);
 
-	static bool BlitRLE(uint8_t* pDest, int destStride, const uint8_t* pRow,
+	// VERIFY: overlap resolution. `max` is order-independent, which matters now
+	// that records replay in queue order rather than draw order - two lights on
+	// one pixel must not flicker as the draw order shuffles between frames.
+	// If FXBlit turns out to overwrite instead, this becomes `return value;`.
+	static uint16_t Combine(uint16_t existing, uint16_t value)
+	{
+		return existing > value ? existing : value;
+	}
+
+	// VERIFY: the SHP index is treated as coverage only - non-zero means "this
+	// pixel is covered", and `param` is what lands in the buffer. This follows
+	// from the parameter already occupying both bytes (low | high << 8), which
+	// leaves nowhere to pack the palette index. If FXBlit actually modulates by
+	// the index, both blitters change here and only here.
+	static uint16_t Sample(uint8_t /*code*/, uint16_t param) { return param; }
+
+	static void BlitRaw(uint16_t* pDest, int destStride, const uint8_t* pFrame,
+		int srcStride, int srcSkipCols, int srcSkipRows, int width, int rows,
+		uint16_t param);
+
+	static void BlitRLE(uint16_t* pDest, int destStride, const uint8_t* pRow,
 		int srcSkipCols, int srcSkipRows, int width, int rows,
-		const uint8_t* pRowEnd);
+		uint16_t param, const uint16_t* pBufferEnd);
 
-	// GPU side. No staging surface: DYNAMIC textures are lockable directly.
-	com_ptr<IDirect3DTexture9> _texture;
+	// GPU side.
+	com_ptr<IDirect3DTexture9> _texture {};
 	reshade::api::resource_view _srv {};
 	reshade::api::device* _reshade_device { nullptr };
 	IDirect3DDevice9* _device { nullptr };
 
-	// CPU side. _draw is what Blit writes into; _upload is what UploadAndBind
-	// reads. Swapped under the lock in EndPass, so the two never alias and the
-	// mutex is never held across a LockRect.
-	std::vector<uint8_t> _draw;
-	std::vector<uint8_t> _upload;
+	// CPU side. 16 bits per pixel.
+	std::vector<uint16_t> _draw {};
+	std::vector<uint16_t> _upload {};
+	std::vector<FXEntry>  _queue {};
 
-	// Non-null only inside a pass. Doubles as the "are we in a tactical draw
-	// pass" guard, same role as the original's dword_10298580.
-	uint8_t* _active { nullptr };
+	std::mutex _mutex {};
 
-	std::mutex _mutex;
-
-	int _width { 0 };
-	int _height { 0 };
-
-	// DIFF/BUGFIX: the original gated EndPass's unlock on re-reading the same
-	// global BeginPass tested. If that global changed mid-pass you either
-	// deadlocked the next pass or unlocked a mutex this thread did not own.
-	// Latching the state at BeginPass makes the pairing unconditional.
+	int  _width { 0 };
+	int  _height { 0 };
 	bool _pass_active { false };
-
 	bool _upload_pending { false };
 };

@@ -297,7 +297,7 @@ public:
 	Valueable<bool> Berzerk_dealDamage { false };
 
 	Nullable<bool> IC_Flash {};
-	Valueable<bool> PreventScatter { false };
+	Nullable<bool> PreventScatter { };
 	NullableIdx<VocClass> DieSound_Override {};
 	NullableIdx<VocClass> VoiceSound_Override {};
 

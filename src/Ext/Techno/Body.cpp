@@ -11959,13 +11959,15 @@ enum class DeathConditions : char {
 	ChangeOwner
 };
 
+//allow multiple pass on single call of the function
+//otherwise only one condition per check per function pass
 bool NOINLINE ImmeditelyReturn(TechnoClass* pTech, bool any, bool& result)
 {
 	//only immedieltely return if the techno dies
 	if (!any && !pTech->IsAlive) {
 		result = true;
 		return true;
-	} else if(any) { // immedietely retyrn and check the result
+	} else if(any) { // immedietely return and check the result
 		result = !pTech->IsAlive;
 		return true;
 	}
@@ -11981,6 +11983,7 @@ bool TechnoExtData::CheckDeathConditions()
 	auto const pThis = This();
 	const auto pTypeThis = GET_TECHNOTYPE(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTypeThis);
+	auto pOwner = pThis->Owner;
 
 	const KillMethod nMethod = pTypeExt->Death_Method.Get();
 	const auto pVanishAnim = pTypeExt->AutoDeath_VanishAnimation.Get();
@@ -12006,8 +12009,7 @@ bool TechnoExtData::CheckDeathConditions()
 	const bool Any = pTypeExt->AutoDeath_ContentIfAnyMatch;
 
 	// Death by owning house
-	if (pTypeExt->AutoDeath_OwnedByPlayer)
-	{
+	if (pTypeExt->AutoDeath_OwnedByPlayer) {
 		if (pThis->Owner && pThis->Owner->IsControlledByHuman()) {
 			TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
 		}
@@ -12015,8 +12017,7 @@ bool TechnoExtData::CheckDeathConditions()
 			return result;
 	}
 
-	if (pTypeExt->AutoDeath_OwnedByAI)
-	{
+	if (pTypeExt->AutoDeath_OwnedByAI) {
 		if (pThis->Owner && !pThis->Owner->IsControlledByHuman()) {
 			TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
 		}
@@ -12074,8 +12075,7 @@ bool TechnoExtData::CheckDeathConditions()
 	}
 
 	// Death by passengers
-	if (pTypeExt->AutoDeath_PassengerExceed >= 0)
-	{
+	if (pTypeExt->AutoDeath_PassengerExceed >= 0) {
 		if (pTypeThis->Passengers > 0 && pThis->Passengers.NumPassengers >= pTypeExt->AutoDeath_PassengerExceed) {
 			TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
 		}
@@ -12093,12 +12093,9 @@ bool TechnoExtData::CheckDeathConditions()
 			return result;
 	}
 
-	const auto existTechnoTypes = [pThis](const ValueableVector<TechnoTypeClass*>& vTypes, AffectedHouse affectedHouse, bool any, bool allowLimbo)
-	{
-		const auto existSingleType = [pThis, affectedHouse, allowLimbo](TechnoTypeClass* pType)
-		{
-			if(affectedHouse == AffectedHouse::Owner)
-			{
+	const auto existTechnoTypes = [pThis](const ValueableVector<TechnoTypeClass*>& vTypes, AffectedHouse affectedHouse, bool any, bool allowLimbo) {
+		const auto existSingleType = [pThis, affectedHouse, allowLimbo](TechnoTypeClass* pType) {
+			if(affectedHouse == AffectedHouse::Owner) {
 				if(allowLimbo) {
 					for (const auto& limbo : HouseExtContainer::Instance.LimboTechno) {
 						if (!limbo->IsAlive || limbo->Owner != pThis->Owner)
@@ -12114,8 +12111,7 @@ bool TechnoExtData::CheckDeathConditions()
 
 			} else if(affectedHouse != AffectedHouse::None){
 
-				for (HouseClass* pHouse : *HouseClass::Array)
-				{
+				for (HouseClass* pHouse : *HouseClass::Array) {
 					if (EnumFunctions::CanTargetHouse(affectedHouse, pThis->Owner, pHouse))
 					{
 						if(allowLimbo) {
@@ -12143,8 +12139,7 @@ bool TechnoExtData::CheckDeathConditions()
 	};
 
 	// Death if nonexist
-	if (!pTypeExt->AutoDeath_Nonexist.empty())
-	{
+	if (!pTypeExt->AutoDeath_Nonexist.empty()) {
 		if (!existTechnoTypes(pTypeExt->AutoDeath_Nonexist,
 			pTypeExt->AutoDeath_Nonexist_House,
 			!pTypeExt->AutoDeath_Nonexist_Any, pTypeExt->AutoDeath_Nonexist_AllowLimboed.Get(FakeRulesClass::Instance->AutoDeath_Nonexist_AllowLimboed)))
@@ -12157,8 +12152,7 @@ bool TechnoExtData::CheckDeathConditions()
 	}
 
 	// Death if exist
-	if (!pTypeExt->AutoDeath_Exist.empty())
-	{
+	if (!pTypeExt->AutoDeath_Exist.empty()) {
 		if (existTechnoTypes(pTypeExt->AutoDeath_Exist,
 			pTypeExt->AutoDeath_Exist_House,
 			pTypeExt->AutoDeath_Exist_Any,
@@ -12172,15 +12166,37 @@ bool TechnoExtData::CheckDeathConditions()
 	}
 
 	// Death if countdown ends
-	if (pTypeExt->Death_Countdown > 0)
-	{
-		if (!Death_Countdown.HasStarted())
-		{
+	if (pTypeExt->Death_Countdown > 0) {
+		if (!Death_Countdown.HasStarted()) {
 			Death_Countdown.Start(pTypeExt->Death_Countdown);
 			HouseExtContainer::Instance.AutoDeathObjects.insert(pThis, nMethod);
+		} else if (Death_Countdown.Completed()) {
+			TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
 		}
-		else if (Death_Countdown.Completed())
-		{
+
+		if (ImmeditelyReturn(pThis, Any, result))
+			return result;
+	}
+
+	if (pTypeExt->AutoDeath_PlayerPowerStatus != PowerStatus::None) {
+		const bool isLowPower = pOwner->HasLowPower();
+		const auto status = pTypeExt->AutoDeath_PlayerPowerStatus;
+		const auto isFirstFrame = (Unsorted::CurrentFrame() == 0);
+
+		if ((status == PowerStatus::Full && !isLowPower) || (status == PowerStatus::Low && isLowPower) && !isFirstFrame) {
+			TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
+		}
+
+		if (ImmeditelyReturn(pThis, Any, result))
+			return result;
+	}
+
+	if (pTypeExt->AutoDeath_PlayerMoney_Max != -1 || pTypeExt->AutoDeath_PlayerMoney_Min != -1) {
+		const int maxMoney = pTypeExt->AutoDeath_PlayerMoney_Max;
+		const int minMoney = pTypeExt->AutoDeath_PlayerMoney_Min;
+		const int currentMoney = pOwner->Available_Money();
+
+		if ((maxMoney == -1 || currentMoney <= maxMoney) && (minMoney == -1 || currentMoney >= minMoney)) {
 			TechnoExtData::KillSelf(pThis, nMethod, pVanishAnim);
 		}
 
