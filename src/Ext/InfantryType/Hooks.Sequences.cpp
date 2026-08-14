@@ -259,6 +259,14 @@ ASMJIT_PATCH(0x520E75, InfantryClass_SequenceAI_Sounds, 0x6)
 	GET(InfantryClass*, pThis, ESI);
 
 	const int doType = (int)pThis->SequenceAnim;
+	const auto curSeq = pThis->SequenceAnim;
+
+	if (curSeq != DoType::Deploy && curSeq != DoType::Undeploy)
+	{
+		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+		pExt->HasDeployConverted = false;
+		pExt->HasUndeployConverted = false;
+	}
 
 	// out of bound read fix
 	if (doType <= -1 || doType >= std::size(Sequences_ident))

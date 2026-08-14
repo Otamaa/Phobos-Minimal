@@ -741,6 +741,7 @@ void SpawnerMain::GameConfigs::Init() {
 }
 
 #include <Utilities/FPStateGuard.h>
+#include <VeinholeMonsterClass.h>
 
 ASMJIT_PATCH(0x4A4420, SetVideoMode_RepairFPState, 0x9)
 {
@@ -750,6 +751,7 @@ ASMJIT_PATCH(0x4A4420, SetVideoMode_RepairFPState, 0x9)
 
 ASMJIT_PATCH(0x55B4E1, LogicClass_Update_RepairFPState, 0x5)
 {
+	UpdateAllVeinholes();
 	FPStateGuard::ScopedRepair guard("LogicFrameBegin");
 	return 0;
 }

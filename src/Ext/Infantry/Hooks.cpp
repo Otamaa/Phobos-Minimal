@@ -625,18 +625,3 @@ ASMJIT_PATCH(0x520B99, InfantryClass_DoingAI_DeployConvert_Undeploy, 0x6)
 
 	return 0;
 }
-
-// Reset mark when Deploy/Undeploy
-ASMJIT_PATCH(0x520E75, InfantryClass_DoingAI_DeployConvert_ResetFlags, 0x6)
-{
-	GET(InfantryClass*, pThis, ESI);
-	const auto curSeq = pThis->SequenceAnim;
-
-	if (curSeq != DoType::Deploy && curSeq != DoType::Undeploy) {
-		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-		pExt->HasDeployConverted = false;
-		pExt->HasUndeployConverted = false;
-	}
-
-	return 0;
-}
