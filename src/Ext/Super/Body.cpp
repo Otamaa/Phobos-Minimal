@@ -11,7 +11,6 @@
 #include <Ext/SWType/NewSuperWeaponType/Dominator.h>
 
 #include <Notifications.h>
-
 void NOINLINE SWChargePool::EnsureAccumulating(SuperClass* pThis)
 {
 	// Accumulation is desired again — re-enable the flag first
@@ -600,7 +599,8 @@ bool FakeSuperClass::_AI(bool isPlayer)
 		// Drain money/battle points while active; stop drain if insufficient
 		if (!pTypeExt->ApplyDrainMoney(remainingDelay, this->Owner))
 			remainingDelay = 0; // force timer complete (stop drain)
-		else if (!pTypeExt->ApplyDrainBattlePoint(remainingDelay, this->Owner))
+
+		if (!pTypeExt->ApplyDrainBattlePoint(remainingDelay, this->Owner))
 			remainingDelay = 0;
 
 		// Timer still running — check cameo stage update
@@ -624,7 +624,7 @@ bool FakeSuperClass::_AI(bool isPlayer)
 		if (this->ChargeDrainState == ChargeDrainState::Draining)
 		{
 			// === Hook: SuperClass_AI_Progress_Charged (0x6CBD86) ===
-			// Deactivate replaces the original ChargeDrainState = None
+			this->ChargeDrainState = ChargeDrainState::None;
 			SWTypeExtData::Deactivate(this, CellStruct::Empty, true);
 			this->RechargeTimer.Start(this->GetRechargeTime());
 			return true;
@@ -690,13 +690,7 @@ bool FakeSuperClass::_AI(bool isPlayer)
 				SuperExtData::UpdateSuperWeaponStatuses(this->Owner);
 
 				// Announce only on first ready transition
-				if (isPlayer)
-				{
-					pTypeExt->PrintMessage(pTypeExt->Message_Ready,
-						HouseClass::CurrentPlayer);
-					if (pTypeExt->EVA_Ready != -1)
-						VoxClass::PlayIndex(pTypeExt->EVA_Ready);
-				}
+				pTypeExt->OnSuperReady(isPlayer);
 			}
 			else
 			{
@@ -708,6 +702,7 @@ bool FakeSuperClass::_AI(bool isPlayer)
 		{
 			// Feature disabled — vanilla
 			this->IsCharged = true;
+			pTypeExt->OnSuperReady(isPlayer);
 		}
 
 		this->ReadinessFrame = Unsorted::CurrentFrame();
@@ -788,13 +783,7 @@ void FakeSuperClass::_Forced_Charge(bool isPlayer)
 
 	const auto pData = this->_GetTypeExtData();
 
-	if (isPlayer) {
-		pData->PrintMessage(pData->Message_Ready, HouseClass::CurrentPlayer);
-
-		if (pData->EVA_Ready != -1) {
-			VoxClass::PlayIndex(pData->EVA_Ready);
-		}
-	}
+	pData->OnSuperReady(isPlayer);
 
 	this->ReadinessFrame = Unsorted::CurrentFrame();
 	if (this->Type->UseChargeDrain)

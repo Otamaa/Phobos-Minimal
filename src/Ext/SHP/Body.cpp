@@ -88,47 +88,47 @@ bool SHPExtData::LoadAlphaImage()
 	return true;
 }
 
-ASMJIT_PATCH(0x69E4F0, SHPReference_CTOR, 5)
-{
-	GET(SHPCaches*, pThis, ESI);
-
-	auto pExt = new SHPExtData();
-
-	pExt->AttachedToObject = pThis;
-
-	SHPExtData::Array.push_back(pExt);
-
-	if (!pExt->AlphaSHP) {
-		pExt->LoadAlphaImage();
-
-		if (!pExt->AlphaSHP)
-			return 0;   // every failure path falls straight to the epilogue
-	}
-
-	SHPExtData::FinalizeAlpha(pExt, pExt->AlphaSHP, pThis);
-	return 0;
-}
-
-ASMJIT_PATCH(0x69E509, SHPReference_DTOR, 5)
-{
-	GET(SHPCaches*, pThis, ESI);
-
-	auto it = SHPExtData::Array.find_if([pThis](SHPExtData* pSHP) {
-		return pSHP->AttachedToObject == pThis;
-	});
-
-	if (it != SHPExtData::Array.end()) {
-		(*it)->Cache1C.ResetSize();
-		(*it)->Cache10.ResetSize();
-
-		if (auto pAlph = (*it)->AlphaSHP) {
-			GameDelete<true,false>(pAlph);
-			(*it)->AlphaSHP = nullptr;
-		}
-
-		delete *it;
-		SHPExtData::Array.erase(it);
-	}
-
-	return 0;
-}
+//ASMJIT_PATCH(0x69E4F0, SHPReference_CTOR, 5)
+//{
+//	GET(SHPCaches*, pThis, ESI);
+//
+//	auto pExt = new SHPExtData();
+//
+//	pExt->AttachedToObject = pThis;
+//
+//	SHPExtData::Array.push_back(pExt);
+//
+//	if (!pExt->AlphaSHP) {
+//		pExt->LoadAlphaImage();
+//
+//		if (!pExt->AlphaSHP)
+//			return 0;   // every failure path falls straight to the epilogue
+//	}
+//
+//	SHPExtData::FinalizeAlpha(pExt, pExt->AlphaSHP, pThis);
+//	return 0;
+//}
+//
+//ASMJIT_PATCH(0x69E509, SHPReference_DTOR, 5)
+//{
+//	GET(SHPCaches*, pThis, ESI);
+//
+//	auto it = SHPExtData::Array.find_if([pThis](SHPExtData* pSHP) {
+//		return pSHP->AttachedToObject == pThis;
+//	});
+//
+//	if (it != SHPExtData::Array.end()) {
+//		(*it)->Cache1C.ResetSize();
+//		(*it)->Cache10.ResetSize();
+//
+//		if (auto pAlph = (*it)->AlphaSHP) {
+//			GameDelete<true,false>(pAlph);
+//			(*it)->AlphaSHP = nullptr;
+//		}
+//
+//		delete *it;
+//		SHPExtData::Array.erase(it);
+//	}
+//
+//	return 0;
+//}

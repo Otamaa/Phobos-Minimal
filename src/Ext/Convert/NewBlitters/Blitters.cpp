@@ -237,112 +237,112 @@ static void SelectBlitterCommon(REGISTERS* R, bool rle)
 	::TlsSetValue(TlsSlot_Blitter, pBlitter); // the blitter, not the cursor
 }
 
-ASMJIT_PATCH(0x4AF1E2 , DSurface_DrawSHP_GetSelectedBlitter, 8)
-{
-	SelectBlitterCommon(R, false);
-	return 0;
-}
-
-ASMJIT_PATCH(0x4AF14C , DSurface_DrawSHP_GetSelectedRLEBlitter, 8)
-{
-	SelectBlitterCommon(R, true);
-	return 0;
-}
-
-// 0x100529D0 - TLS is only an arm flag; the blitter comes from Stack(0x90)
-ASMJIT_PATCH(0x437D51 ,DSurface_BlitWIthRLE_AdjustHeight, 6)
-{
-	const int rows = R->Stack<int>(0x28);
-	const auto pBlitter = R->Stack<void*>(0x90);
-
-	if (!::TlsGetValue(TlsSlot_Blitter) || !pBlitter)
-		return 0;
-
-	GetAlphaCursor(pBlitter)->SeedRows(rows);
-	return 0;
-}
-
-// 0x10052A60 - Cursor += Stride * ECX
-ASMJIT_PATCH(0x4376BB , DSurface_BlitWithPlain_AdjustHeight2, 6)
-{
-	const int rows = static_cast<int>(R->ECX());
-
-	if (auto pCursor = GetArmedCursor())
-		pCursor->SkipRows(rows);
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x7BC1BC, DSurface_DoubleIntersectLock_AdjustHeight, 5)
-{
-	const int x = R->Stack<int>(0x0); // VERIFY: clipped X
-	const int y = R->Stack<int>(0x4); // VERIFY: clipped Y
-
-	if (auto pCursor = GetArmedCursor())
-		pCursor->SeedFrom(x, y);
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x437E45 , DSurface_BlitWithRLE_Add, 5)
-{
-	// VERIFY: cached `this` vs. a real frame pointer. See AlphaBlitState.cpp.
-	const auto pBlitter = reinterpret_cast<void*>(R->EBP());
-
-	if (!::TlsGetValue(TlsSlot_Blitter) || !pBlitter)
-		return 0;
-
-	GetAlphaCursor(pBlitter)->NextRow();
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x4377E5, DSurface_BlitWithRLE_Add, 8)
-ASMJIT_PATCH_AGAIN(0x4378FC, DSurface_BlitWithRLE_Add, 6)
-
-ASMJIT_PATCH(0x43746A, DSurface_BlitWithRLE_Off, 7)
-{
-	::TlsSetValue(TlsSlot_Blitter, nullptr);
-	::TlsSetValue(TlsSlot_Custom, nullptr);
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x437990, DSurface_BlitWithRLE_Off, 7)
-ASMJIT_PATCH_AGAIN(0x437B33, DSurface_BlitWithRLE_Off, 7)
-ASMJIT_PATCH_AGAIN(0x437D47, DSurface_BlitWithRLE_Off, 7)
-
-
-DWORD ApplyAnimDrawFlags(AnimClass* pAnim, DWORD flags)
-{
-	auto pTypeExt = AnimTypeExtContainer::Instance.Find(pAnim->Type);
-
-	// 100527E8 -- FullReplaceBlendFunction is tested first and wins outright.
-	if (auto const pEntry = pTypeExt->FullReplaceBlendFunction.get())
-	{
-		// FARPROC does not implicitly convert to void*; the original just pushes
-		// the raw dword, so the cast is the faithful spelling.
-		TlsSetValue(TlsSlot_Custom, reinterpret_cast<void*>(pEntry->Proc));
-
-		return flags | BlitFlags::FamilyCustomSpan;
-	}
-
-	// 1005280F
-	if (auto const pEntry = pTypeExt->BlendFunction.get())
-	{
-		// FARPROC does not implicitly convert to void*; the original just pushes
-		// the raw dword, so the cast is the faithful spelling.
-		TlsSetValue(TlsSlot_Custom, reinterpret_cast<void*>(pEntry->Proc));
-
-		return flags | BlitFlags::FamilyCustomPixel;
-	}
-
-	// 10052836 -- the Translucency switch. Resolve returns 0 for an
-	// unrecognised value, which reproduces the original's default case: it
-	// still writes the flags back, just unmodified.
-	return flags | TranslucencyKeys::Resolve(pTypeExt->This()->Translucency);
-}
-
-ASMJIT_PATCH(0x423051, AnimClass_Draw_SetFlags, 0xA)
-{
-	GET(AnimClass*, pAnim, ESI);
-	GET(DWORD, flags, EBX);
-
-	R->EBX(ApplyAnimDrawFlags(pAnim, flags));
-
-	return 0;
-}
+//ASMJIT_PATCH(0x4AF1E2 , DSurface_DrawSHP_GetSelectedBlitter, 8)
+//{
+//	SelectBlitterCommon(R, false);
+//	return 0;
+//}
+//
+//ASMJIT_PATCH(0x4AF14C , DSurface_DrawSHP_GetSelectedRLEBlitter, 8)
+//{
+//	SelectBlitterCommon(R, true);
+//	return 0;
+//}
+//
+//// 0x100529D0 - TLS is only an arm flag; the blitter comes from Stack(0x90)
+//ASMJIT_PATCH(0x437D51 ,DSurface_BlitWIthRLE_AdjustHeight, 6)
+//{
+//	const int rows = R->Stack<int>(0x28);
+//	const auto pBlitter = R->Stack<void*>(0x90);
+//
+//	if (!::TlsGetValue(TlsSlot_Blitter) || !pBlitter)
+//		return 0;
+//
+//	GetAlphaCursor(pBlitter)->SeedRows(rows);
+//	return 0;
+//}
+//
+//// 0x10052A60 - Cursor += Stride * ECX
+//ASMJIT_PATCH(0x4376BB , DSurface_BlitWithPlain_AdjustHeight2, 6)
+//{
+//	const int rows = static_cast<int>(R->ECX());
+//
+//	if (auto pCursor = GetArmedCursor())
+//		pCursor->SkipRows(rows);
+//
+//	return 0;
+//}
+//
+//ASMJIT_PATCH(0x7BC1BC, DSurface_DoubleIntersectLock_AdjustHeight, 5)
+//{
+//	const int x = R->Stack<int>(0x0); // VERIFY: clipped X
+//	const int y = R->Stack<int>(0x4); // VERIFY: clipped Y
+//
+//	if (auto pCursor = GetArmedCursor())
+//		pCursor->SeedFrom(x, y);
+//
+//	return 0;
+//}
+//
+//ASMJIT_PATCH(0x437E45 , DSurface_BlitWithRLE_Add, 5)
+//{
+//	// VERIFY: cached `this` vs. a real frame pointer. See AlphaBlitState.cpp.
+//	const auto pBlitter = reinterpret_cast<void*>(R->EBP());
+//
+//	if (!::TlsGetValue(TlsSlot_Blitter) || !pBlitter)
+//		return 0;
+//
+//	GetAlphaCursor(pBlitter)->NextRow();
+//	return 0;
+//}ASMJIT_PATCH_AGAIN(0x4377E5, DSurface_BlitWithRLE_Add, 8)
+//ASMJIT_PATCH_AGAIN(0x4378FC, DSurface_BlitWithRLE_Add, 6)
+//
+//ASMJIT_PATCH(0x43746A, DSurface_BlitWithRLE_Off, 7)
+//{
+//	::TlsSetValue(TlsSlot_Blitter, nullptr);
+//	::TlsSetValue(TlsSlot_Custom, nullptr);
+//	return 0;
+//}ASMJIT_PATCH_AGAIN(0x437990, DSurface_BlitWithRLE_Off, 7)
+//ASMJIT_PATCH_AGAIN(0x437B33, DSurface_BlitWithRLE_Off, 7)
+//ASMJIT_PATCH_AGAIN(0x437D47, DSurface_BlitWithRLE_Off, 7)
+//
+//
+//DWORD ApplyAnimDrawFlags(AnimClass* pAnim, DWORD flags)
+//{
+//	auto pTypeExt = AnimTypeExtContainer::Instance.Find(pAnim->Type);
+//
+//	// 100527E8 -- FullReplaceBlendFunction is tested first and wins outright.
+//	if (auto const pEntry = pTypeExt->FullReplaceBlendFunction.get())
+//	{
+//		// FARPROC does not implicitly convert to void*; the original just pushes
+//		// the raw dword, so the cast is the faithful spelling.
+//		TlsSetValue(TlsSlot_Custom, reinterpret_cast<void*>(pEntry->Proc));
+//
+//		return flags | BlitFlags::FamilyCustomSpan;
+//	}
+//
+//	// 1005280F
+//	if (auto const pEntry = pTypeExt->BlendFunction.get())
+//	{
+//		// FARPROC does not implicitly convert to void*; the original just pushes
+//		// the raw dword, so the cast is the faithful spelling.
+//		TlsSetValue(TlsSlot_Custom, reinterpret_cast<void*>(pEntry->Proc));
+//
+//		return flags | BlitFlags::FamilyCustomPixel;
+//	}
+//
+//	// 10052836 -- the Translucency switch. Resolve returns 0 for an
+//	// unrecognised value, which reproduces the original's default case: it
+//	// still writes the flags back, just unmodified.
+//	return flags | TranslucencyKeys::Resolve(pTypeExt->This()->Translucency);
+//}
+//
+//ASMJIT_PATCH(0x423051, AnimClass_Draw_SetFlags, 0xA)
+//{
+//	GET(AnimClass*, pAnim, ESI);
+//	GET(DWORD, flags, EBX);
+//
+//	R->EBX(ApplyAnimDrawFlags(pAnim, flags));
+//
+//	return 0;
+//}

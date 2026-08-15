@@ -43,7 +43,6 @@
     <ClCompile Include="src\Ext\Building\Hooks.WallTower.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.AI.cpp" />
     <ClCompile Include="src\Ext\Cell\Hooks.Crates.cpp" />
-    <ClCompile Include="src\Ext\Cell\Hooks.LightSource.cpp" />
     <ClCompile Include="src\Ext\Convert\BlitterPack\BlitterPack.byte.avx2.cpp" />
     <ClCompile Include="src\Ext\Convert\BlitterPack\BlitterPack.byte.scalar.cpp" />
     <ClCompile Include="src\Ext\Convert\BlitterPack\BlitterPack.byte.sse2.cpp" />

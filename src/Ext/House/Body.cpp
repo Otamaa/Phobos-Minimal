@@ -3747,7 +3747,6 @@ int FakeHouseClass::_AI_Supers()
 						pSuper->Grant(false, IsCurrentPlayer, !status.PowerSourced);
 
 						if (IsCurrentPlayer) {
-							// hide the cameo (only if this is an auto-firing SW)
 							if (!pExt->Type->SW_ShowCameo)
 								continue;
 

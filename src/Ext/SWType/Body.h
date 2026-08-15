@@ -557,6 +557,8 @@ public:
 	void PrintMessage_Activate(HouseClass* pFirer);
 	void Play_EvaActivated(HouseClass* pFirer);
 
+	void OnSuperReady(bool isPlayer);
+
 	//no arg(s)
 	COMPILETIMEEVAL OPTIONALINLINE double GetChargeToDrainRatio() const {
 		return this->SW_ChargeToDrainRatio.Get(RulesClass::Instance->ChargeToDrainRatio);

@@ -597,7 +597,7 @@ bool SWTypeExtData::LauchSuper(SuperClass* pSuper)
 	// if this SW is only auto-firable, discard any clicks.
 	// if AutoFire is off, the sw would not be firable at all,
 	// thus we ignore the setting in that case.
-	const bool autofire = !pSWExt->SW_ManualFire;
+	const bool autofire = !pSWExt->SW_ManualFire || pSWExt->SW_AutoFire;
 	const bool unstoppable = pSuper->Type->UseChargeDrain && pSuper->ChargeDrainState == ChargeDrainState::Draining
 		&& pSWExt->SW_Unstoppable;
 
@@ -1970,9 +1970,18 @@ bool SWTypeExtData::IsAvailable(HouseClass* pHouse, SuperClass* pSuper)
 			return false;
 	}
 	// check that any aux building exist and no neg building
-	const auto IsBuildingPresent = [pHouse](BuildingTypeClass* pType)
+	const auto IsBuildingPresent = [pHouse](BuildingTypeClass* pBuilding)
 		{
-			return BuildingTypeExtData::CountOwnedNowWithDeployOrUpgrade(pType, pHouse) > 0;
+			const auto upgrades = BuildingTypeExtData::GetUpgradesAmount(pBuilding, pHouse);
+
+			if (upgrades != -1)
+				return upgrades > 0;
+
+			if (!pBuilding->UndeploysInto) {
+				return pHouse->CountOwnedAndPresent(pBuilding) > 0;
+			}
+
+			return pHouse->CountOwnedAndPresent(pBuilding->UndeploysInto) > 0;
 
 		};
 
@@ -2140,6 +2149,17 @@ void SWTypeExtData::Play_EvaActivated(HouseClass* pFirer)
 	}
 }
 //
+
+void  SWTypeExtData::OnSuperReady(bool isPlayer)
+{
+	if (!isPlayer)
+		return;
+
+	this->PrintMessage(this->Message_Ready,
+	HouseClass::CurrentPlayer());
+	if (this->EVA_Ready != -1)
+		VoxClass::PlayIndex(this->EVA_Ready);
+}
 
 void SWTypeExtData::ClearChronoAnim(SuperClass* pThis)
 {
