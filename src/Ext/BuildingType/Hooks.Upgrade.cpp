@@ -137,25 +137,27 @@ ASMJIT_PATCH(0x451630, BuildingClass_CreateUpgradeAnims_AnimIndex, 0x7)
 }
 
 // Don't allow upgrade anims to be created if building is not upgraded or they require power to be shown and the building isn't powered.
-COMPILETIMEEVAL FORCEDINLINE bool AllowUpgradeAnim(BuildingClass* pBuilding, BuildingAnimSlot anim)
+COMPILETIMEEVAL FORCEDINLINE bool AllowUpgradeAnim(FakeBuildingClass* pBuilding, BuildingAnimSlot anim)
 {
 	auto const pType = pBuilding->Type;
+	auto pExt = pBuilding->_GetExtData();
 
-	if (pType->Upgrades != 0 && anim >= BuildingAnimSlot::Upgrade1 && anim <= BuildingAnimSlot::Upgrade3 && !pBuilding->Anims[int(anim)])
-	{
-		int animIndex = BuildingExtContainer::Instance.Find(pBuilding)->PoweredUpToLevel - 1;
+	if (pType->Upgrades != 0 && anim >= BuildingAnimSlot::Upgrade1 && anim <= BuildingAnimSlot::Upgrade3 && !pBuilding->GetAnim(anim)) {
+		const int animIndex = pExt->PoweredUpToLevel - 1;
 
 		if (animIndex < 0 || (int)anim != animIndex)
 			return false;
 
-		auto const animData = pType->BuildingAnim[int(anim)];
+		auto const animData = pType->GetBuildingAnim(anim);
 
-		if (((pType->Powered && pType->PowerDrain > 0 && (animData.PoweredLight || animData.PoweredEffect)) ||
-			(pType->PoweredSpecial && animData.PoweredSpecial)) &&
-			!(pBuilding->CurrentMission != Mission::Construction && pBuilding->CurrentMission != Mission::Selling && pBuilding->IsPowerOnline()))
-		{
+		if (BuildingTypeExtData::IsPoweredAnimBlocked(pBuilding, animData.Powered, animData.PoweredLight, animData.PoweredEffect, animData.PoweredSpecial))
 			return false;
-		}
+	}
+	else if (anim == BuildingAnimSlot::Production || anim == BuildingAnimSlot::PreProduction) {
+		auto const animData = pType->GetBuildingAnim(anim);
+
+		if (BuildingTypeExtData::IsPoweredAnimBlocked(pBuilding, animData.Powered, animData.PoweredLight, animData.PoweredEffect, animData.PoweredSpecial))
+			return false;
 	}
 
 	return true;

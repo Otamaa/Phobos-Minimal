@@ -1885,6 +1885,19 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->DockUnload_Facing.Read(exArtINI, pArtSection, "DockUnloadFacing");
 		this->IsAnimDelayedBurst.Read(exArtINI, pSection, "IsAnimDelayedBurst");
 
+		auto& preProdAnim = pThis->GetBuildingAnim(BuildingAnimSlot::PreProduction);
+
+		preProdAnim.Powered = pArtINI->ReadBool(pArtSection, "PreProductionAnimPowered", preProdAnim.Powered);
+		preProdAnim.PoweredLight = pArtINI->ReadBool(pArtSection, "PreProductionAnimPoweredLight", preProdAnim.PoweredLight);
+		preProdAnim.PoweredEffect = pArtINI->ReadBool(pArtSection, "PreProductionAnimPoweredEffect", preProdAnim.PoweredEffect);
+		preProdAnim.PoweredSpecial = pArtINI->ReadBool(pArtSection, "PreProductionAnimPoweredSpecial", preProdAnim.PoweredSpecial);
+
+		auto& prodAnim = pThis->GetBuildingAnim(BuildingAnimSlot::Production);
+
+		prodAnim.Powered = pArtINI->ReadBool(pArtSection, "ProductionAnimPowered", prodAnim.Powered);
+		prodAnim.PoweredLight = pArtINI->ReadBool(pArtSection, "ProductionAnimPoweredLight", prodAnim.PoweredLight);
+		prodAnim.PoweredEffect = pArtINI->ReadBool(pArtSection, "ProductionAnimPoweredEffect", prodAnim.PoweredEffect);
+		prodAnim.PoweredSpecial = pArtINI->ReadBool(pArtSection, "ProductionAnimPoweredSpecial", prodAnim.PoweredSpecial);
 	}
 
 	if (pThis->UnitRepair && pThis->Factory == AbstractType::AircraftType)
@@ -1895,6 +1908,19 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	}
 
 	return true;
+}
+
+bool BuildingTypeExtData::IsPoweredAnimBlocked(BuildingClass* pBuilding, bool powered, bool poweredLight, bool poweredEffect, bool poweredSpecial)
+{
+	auto const pType = pBuilding->Type;
+
+	if (!((pType->Powered && pType->PowerDrain > 0 && (powered || poweredLight || poweredEffect))
+		|| (pType->PoweredSpecial && poweredSpecial)))
+		return false;
+
+	return pBuilding->CurrentMission != Mission::Construction
+		&& pBuilding->CurrentMission != Mission::Selling
+		&& !pBuilding->IsPowerOnline();
 }
 
 bool BuildingTypeExtData::ShouldExistGreyCameo(TechnoTypeClass* pType)
