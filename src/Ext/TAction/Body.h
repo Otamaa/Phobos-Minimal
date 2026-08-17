@@ -102,7 +102,7 @@ enum class PhobosTriggerAction : unsigned int
 
 	SetWaypointChoiceBox = 590,
 	SetScreenChoiceBox = 591,
-	ClearChoiceBoxByLabel = 592,
+	ClearChoiceBoxByID = 592,
 	ClearAllChoiceBoxs = 593,
 
 	SetDropCrate = 600,
@@ -376,7 +376,7 @@ public:
 
 	ACTION_FUNC(SetWaypointChoiceBox);
 	ACTION_FUNC(SetScreenChoiceBox);
-	ACTION_FUNC(ClearChoiceBoxByLabel);
+	ACTION_FUNC(ClearChoiceBoxByID);
 	ACTION_FUNC(ClearAllChoiceBoxs);
 
 	ACTION_FUNC(ClearScript);

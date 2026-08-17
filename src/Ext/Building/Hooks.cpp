@@ -1255,3 +1255,19 @@ ASMJIT_PATCH(0x730B09, DeployCommandClass_Execute_BuildingDeploy, 0x5)
 
 	return 0;
 }
+
+ASMJIT_PATCH(0x4501AF, AI_ConYard_CompleteProduction_ProductionAnim, 0x5)
+{
+	GET(BuildingClass*, pBuilding, ESI);
+	GET(TechnoClass*, pObject, EDI);
+
+	if (pBuilding->Owner->IsControlledByHuman())
+		return 0;
+
+	if (!pObject || pObject->WhatAmI() != AbstractType::Building)
+		return 0;
+
+	pBuilding->SendCommand(RadioCommand::RequestEndProduction, pBuilding);
+
+	return 0;
+}

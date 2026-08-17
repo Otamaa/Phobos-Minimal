@@ -104,7 +104,9 @@ public:
 	//
 	// VERIFY: before setting a real value, establish the worst-case gap between
 	// the expiry frame and trigger evaluation in your mission set.
-	static constexpr int POST_EXPIRY_LIFETIME = -1;
+	static constexpr int POST_EXPIRY_LIFETIME = -2;
+
+	bool IsTimedOut() const { return this->IsExpired && this->ClickedIndex == POST_EXPIRY_LIFETIME; }
 
 	// 禁止拷贝 / 移动
 	MapChoiceBoxClass(const MapChoiceBoxClass&) = delete;

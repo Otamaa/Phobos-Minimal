@@ -191,24 +191,36 @@ ASMJIT_PATCH(0x730DB0, GuardCommandClass_Execute, 0xA)
 }
 
 #ifndef _old
-ASMJIT_PATCH(0x551A30, LayerClass_YSortReorder, 0x5)
+class FakeLayerClass : public LayerClass
 {
-	GET(LayerClass*, pThis, ECX);
+public:
 
-	auto const step = pThis->Count / 15;
-	auto const slice = Unsorted::CurrentFrame() % 15;
+	void __short()
+	{
+		auto const step = this->Count / 15;
+		auto const slice = Unsorted::CurrentFrame() % 15;
 
-	auto const begin = pThis->Items + step * slice;
-	auto const end = (slice >= 14)
-		? pThis->Items + pThis->Count
-		: begin + step + step / 4;
+		auto const begin = this->Items + step * slice;
+		auto const end = (slice >= 14)
+			? this->Items + this->Count
+			: begin + step + step / 4;
 
-	std::sort(begin, end, [](ObjectClass* const pA, ObjectClass* const pB) {
-		return pA->GetYSort() < pB->GetYSort();
-	});
+		std::sort(begin, end, [](ObjectClass* const pA, ObjectClass* const pB) {
+			 return pA->GetYSort() < pB->GetYSort();
+		});
 
-	return 0x551A84;
+	}
+};
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x551A30, FakeLayerClass::__short);
+
+void __fastcall _Layer_Ground_Short(FakeLayerClass* pCur)
+{
+	((FakeLayerClass*)DisplayClass::GetLayer(Layer::Air))->__short();
+	pCur->__short();
 }
+DEFINE_FUNCTION_JUMP(CALL, 0x55DBC8, _Layer_Ground_Short);
+
 #else
 
 FORCEDINLINE void fast_ysort(ObjectClass** begin, ObjectClass** end)
@@ -558,7 +570,13 @@ public:
 //DEFINE_FUNCTION_JUMP(LJMP, 0x5519B0, FakeLayerClass::__submit);
 //DEFINE_FUNCTION_JUMP(CALL, 0x55BABB, FakeLayerClass::__submit);
 //DEFINE_FUNCTION_JUMP(CALL, 0x4A9759, FakeLayerClass::__submit);
-DEFINE_FUNCTION_JUMP(CALL, 0x55DBC8, FakeLayerClass::__short);
+ASMJIT_PATCH(0x55DBC3, MainLoop_ShortAdd, 0x5)
+{
+	((FakeLayerClass*)DisplayClass::GetLayer(Layer::Air))->__short();
+	((FakeLayerClass*)DisplayClass::GetLayer(Layer::Ground))->__short();
+	return 0x55DBCD;
+}
+
 DEFINE_FUNCTION_JUMP(LJMP, 0x551A30, FakeLayerClass::__short);
 
 //ASMJIT_PATCH(0x551A30, LayerClass_YSortReorder, 0x5)

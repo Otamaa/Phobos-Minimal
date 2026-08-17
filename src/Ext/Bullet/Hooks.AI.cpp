@@ -1448,7 +1448,7 @@ namespace
 					
 					//the range modifiers only apply to Phobos behavior, with ares behavior the range is already applied to the projectile range directly
 					//updating it require them to calculate the projectile range before the bullet lauched, but it allow the range modifier to affect the projectile range directly instead of just being a check at the end of the projectile movement
-					if (!useAresBehavior && maxRange > 0 && pThis->Owner && pWeaponExt->ProjectileRange_ApplyModifiers) {
+					if (!useAresBehavior && maxRange > 0 && pThis->Owner && pWeaponExt->ProjectileRange_ApplyModifiers.Get(FakeRulesClass::Instance->ProjectileRange_ApplyModifiers)) {
 						maxRange = WeaponTypeExtData::GetRangeWithModifiers(pThis->WeaponType, pThis->Owner, maxRange);
 					}		
 				}

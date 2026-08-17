@@ -828,7 +828,7 @@ bool TEventExtData::ChoiceBoxButtonClickedFunc(TEventClass* pThis, HouseClass* p
 	int targetButtonIndex = pThis->Value - 1;
 
 	auto* pBox = MapChoiceBoxClass::FindByID(targetID);
-	if (!pBox || pBox->ClickedConsumed)
+	if (!pBox || pBox->IsExpired || pBox->ClickedConsumed)
 		return false;
 
 	if (pBox->ClickedIndex == targetButtonIndex)
@@ -844,7 +844,7 @@ bool TEventExtData::ChoiceBoxAnyButtonClickedFunc(TEventClass* pThis, HouseClass
 	int targetID = pThis->Value;;
 
 	auto* pBox = MapChoiceBoxClass::FindByID(targetID);
-	if (!pBox || pBox->ClickedConsumed)
+	if (!pBox || pBox->IsExpired || pBox->ClickedConsumed)
 		return false;
 
 	if (pBox->ClickedIndex >= 0)
@@ -863,7 +863,7 @@ bool TEventExtData::ChoiceBoxTimedOutFunc(TEventClass* pThis, HouseClass* pHouse
 	if (!pBox)
 		return false;
 
-	return pBox->IsExpired;
+	return pBox->IsTimedOut();
 }
 
 bool TEventExtData::PowerHander(TEventClass* pThis, HouseClass* pHouse, PowerEventMode mode, bool isMuch)

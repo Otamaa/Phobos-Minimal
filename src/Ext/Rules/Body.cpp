@@ -269,6 +269,11 @@ void FakeRulesClass::LoadAfterTypeData(CCINIClass* pINI)
 	this->ShowTextBoxInShroud_Waypoint.Read(exINI, GameStrings::General, "ShowTextBoxInShroud.Waypoint");
 	this->ShowTextBoxInShroud_Techno.Read(exINI, GameStrings::General, "ShowTextBoxInShroud.Techno");
 	this->ReadyToNextMission_MovingCheck.Read(exINI, GameStrings::General, "ReadyToNextMission.MovingCheck");
+
+	this->KeepAlive_SupportInfantrys.Read(exINI, GameStrings::General, "KeepAlive.SupportInfantrys");
+	this->KeepAlive_SupportVehicles.Read(exINI, GameStrings::General, "KeepAlive.SupportVehicles");
+	this->KeepAlive_SupportAircrafts.Read(exINI, GameStrings::General, "KeepAlive.SupportAircrafts");
+	this->KeepAlive_SupportBuildings.Read(exINI, GameStrings::General, "KeepAlive.SupportBuildings");
 }
 
 static bool NOINLINE IsVanillaDummy(const char* ID)
@@ -1145,6 +1150,7 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->IgnoreCenterMinorRadarEvent)
 		.Process(this->WarheadAnimZAdjust)
 		.Process(this->IvanBombAttachToCenter)
+		.Process(this->IvanBomb_Visibility)
 		.Process(this->FallingDownTargetingFix)
 		.Process(this->AIAirTargetingFix)
 		.Process(this->SortCameoByName)
@@ -1357,6 +1363,12 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->MissileSpawnAttackCell)
 		.Process(this->ReadyToNextMission_MovingCheck)
 		.Process(this->Warhead_PreventScatter)
+		.Process(this->KeepAlive_SupportInfantrys)
+		.Process(this->KeepAlive_SupportVehicles)
+		.Process(this->KeepAlive_SupportAircrafts)
+		.Process(this->KeepAlive_SupportBuildings)
+
+		.Process(this->ProjectileRange_ApplyModifiers)
 	;
 }
 
@@ -3484,6 +3496,7 @@ void FakeRulesClass::_ReadAudioVisual(CCINIClass* pINI)
 
 	this->DigitalDisplay_Health_FakeAtDisguise.Read(exINI, GameStrings::AudioVisual, "DigitalDisplay.Health.FakeAtDisguise");
 	this->NoAlphaImageOnBuildup.Read(exINI, GameStrings::AudioVisual, "NoAlphaImageOnBuildup");
+	this->IvanBomb_Visibility.Read(exINI, GameStrings::AudioVisual, "IvanIconVisibility");
 }
 
 void FakeRulesClass::_ReadCrateRules(CCINIClass* pINI)
@@ -4203,6 +4216,7 @@ void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
 	this->DamageWallRecursivly.Read(exINI, section, "DamageWallRecursivly");
 	this->AdjacentWallDamage.Read(exINI, section, "AdjacentWallDamage");
 	this->IvanBombAttachToCenter.Read(exINI, section, "IvanBombAttachToCenter");
+
 	this->AllowBerzerkOnAllies.Read(exINI, section, "AllowBerzerkOnAllies");
 	this->ApplyPerTargetEffectsOnDetonate.Read(exINI, section, "ApplyPerTargetEffectsOnDetonate");
 	this->BerzerkTargeting.Read(exINI, section, "BerzerkTargeting");
@@ -4277,6 +4291,8 @@ void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
 
 	this->MissileSpawnAttackCell.Read(exINI, GameStrings::CombatDamage, "MissileSpawnAttackCell");
 	this->Warhead_PreventScatter.Read(exINI, GameStrings::CombatDamage, "Warhead.PreventScatter");
+
+	this->ProjectileRange_ApplyModifiers.Read(exINI, GameStrings::CombatDamage, "ProjectileRange.ApplyModifiers");
 }
 
 #pragma region WeaponTypeBuffer

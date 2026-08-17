@@ -3,7 +3,8 @@
 #include "Parser.h"
 
 #include <CCINIClass.h>
-
+#include <string_view>
+#include <ranges>
 
 #ifdef CHECK_
 #include <Utilities/Debug.h>
@@ -253,38 +254,21 @@ bool INI_EX::ReadArmor(const char* pSection, const char* pKey, int* nBuffer)
 	return (*nBuffer != -1);
 }
 
-// WARNING : const char* memory address may temporary and can invalidated
-bool INI_EX::ParseList(std::vector<const char*>& values, const char* pSection, const char* pKey)
-{
-	if (this->ReadString(pSection, pKey))
-	{
-		values.clear();
-		char* context = nullptr;
-
-		for (auto pCur = strtok_s(this->value(), Phobos::readDelims, &context); pCur; pCur = strtok_s(nullptr, Phobos::readDelims, &context))
-			values.push_back(pCur);
-
-		return true;
-	}
-
-	return false;
-}
-
 bool INI_EX::ParseList(std::vector<std::string>& values, const char* pSection, const char* pKey)
 {
-	if (this->ReadString(pSection, pKey))
-	{
+	if (this->ReadString(pSection, pKey)) {
 		values.clear();
-		char* context = nullptr;
 
-		for (auto pCur = strtok_s(this->value(), Phobos::readDelims, &context); pCur; pCur = strtok_s(nullptr, Phobos::readDelims, &context))
-		{
-			if (strlen(pCur))
-			{
-				values.push_back(pCur);
-			}
+		for (auto&& part : std::string_view { this->value() } | std::views::split(',')) {
+			std::string_view sv { part.begin(), part.end() };
+			auto s = sv.find_first_not_of(" \t\r");
+
+			if (s == std::string_view::npos)
+				continue;
+
+			auto e = sv.find_last_not_of(" \t\r");
+			values.emplace_back(sv.substr(s, e - s + 1));
 		}
-
 		return true;
 	}
 

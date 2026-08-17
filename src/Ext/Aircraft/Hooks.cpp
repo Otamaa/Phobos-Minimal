@@ -169,7 +169,7 @@ void hoverOverArchive(AircraftClass* pThis , const CoordStruct& coords, Abstract
 		};
 
 		pThis->Locomotor->Move_To(destination);
-		pThis->IsLocked = distance < turningRadius;
+		pThis->DoingOverfly = distance < turningRadius;
 	}
 
 ASMJIT_PATCH(0x41A96C, AircraftClass_Mission_AreaGuard, 0x6)

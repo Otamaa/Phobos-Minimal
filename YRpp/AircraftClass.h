@@ -130,7 +130,7 @@ public:
 	TechnoClass* DockedTo;
 	bool unknown_bool_6D0;
 	bool unknown_bool_6D1;
-	bool IsLocked; // Whether or not aircraft is locked to a firing run (strafing)
+	bool DoingOverfly; // Whether or not aircraft is locked to a firing run (strafing)
 	char NumParadropsLeft;
 	bool IsCarryallNotLanding;
 	bool IsReturningFromAttackRun; // Aircraft finished attack run and/or went idle and is now returning from it

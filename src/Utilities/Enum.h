@@ -814,7 +814,8 @@ enum class DisplayInfoType : BYTE
 	SuperWeapon = 21,
 	TemporalLife = 22,
 	FactoryProcess= 23,
-	SelfHealCombatDelay = 24
+	SelfHealCombatDelay = 24,
+	EmptyReload = 25
 };
 
 enum class SlaveReturnTo : BYTE {

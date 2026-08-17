@@ -1,5 +1,6 @@
 #pragma once
 #include <BombClass.h>
+#include <BombListClass.h>
 
 #include <Utilities/Container.h>
 
@@ -88,3 +89,12 @@ public:
 
 };
 static_assert(sizeof(FakeBombClass) == sizeof(BombClass), "Invalid Size !");
+
+class NOVTABLE FakeBombListClass : public BombListClass
+{
+public:
+	void __AI();
+protected: 
+	virtual ~FakeBombListClass() = delete;
+	FakeBombListClass() = delete;
+};

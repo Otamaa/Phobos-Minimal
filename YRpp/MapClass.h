@@ -230,7 +230,14 @@ public:
 	// this actually points to 5 vectors, one for each layer
 	static COMPILETIMEEVAL reference<LayerClass, 0x8A0360u, 5u> const ObjectsInLayers {};
 
+	// direct access , casted 
 	static LayerClass* GetLayer(Layer lyr)
+	{
+		return &ObjectsInLayers[static_cast<int>(lyr)];
+	}
+
+	// checked
+	static LayerClass* TryGetLayer(Layer lyr)
 	{
 		return (lyr >= Layer::Underground && lyr <= Layer::Top)
 			? &ObjectsInLayers[static_cast<int>(lyr)]

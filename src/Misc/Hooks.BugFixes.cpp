@@ -1662,19 +1662,14 @@ static void __fastcall ComputeGameCRC()
 		AddCRC(EventClass::CurrentFrameCRC.operator->(), pHouse->MapIsClear);
 	}
 
-	for (int i = 0; i < 5; i++)
-	{
-		auto const layer = DisplayClass::GetLayer((Layer)i);
-
-		for (auto const pObj : *layer)
-		{
+	for (auto layer : MapClass::ObjectsInLayers) {
+		for (auto const pObj : layer) {
 			if (IsHashable(pObj))
 				AddCRC(EventClass::CurrentFrameCRC.operator->(), GetCoordHash(pObj->Location) + (int)pObj->WhatAmI());
 		}
 	}
 
-	for (auto const pObj : MapClass::Logics.get())
-	{
+	for (auto const pObj : MapClass::Logics.get()) {
 		if (IsHashable(pObj))
 			AddCRC(EventClass::CurrentFrameCRC.operator->(), GetCoordHash(pObj->Location) + (int)pObj->WhatAmI());
 	}

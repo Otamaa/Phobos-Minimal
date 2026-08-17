@@ -609,6 +609,7 @@ public:
 	Valueable<bool> AIGuardModePursuit { true };
 	Valueable<bool> IgnoreCenterMinorRadarEvent { false };
 	Valueable<bool> IvanBombAttachToCenter { false };
+	Valueable<AffectedHouse> IvanBomb_Visibility { AffectedHouse::Owner };
 	Valueable<bool> FallingDownTargetingFix { false };
 	Valueable<bool> AIAirTargetingFix { false };
 	Valueable<bool> SortCameoByName { false };
@@ -848,6 +849,13 @@ public:
 	Valueable<bool> ReadyToNextMission_MovingCheck { false };
 
 	Valueable<bool> Warhead_PreventScatter { false };
+
+	Valueable<bool> KeepAlive_SupportInfantrys { false };
+	Valueable<bool> KeepAlive_SupportVehicles { false };
+	Valueable<bool> KeepAlive_SupportAircrafts { false };
+	Valueable<bool> KeepAlive_SupportBuildings { true };
+
+	Valueable<bool> ProjectileRange_ApplyModifiers { true };
 #pragma endregion
 
 public:

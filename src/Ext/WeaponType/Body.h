@@ -77,7 +77,7 @@ public:
 
 	// brought back from TS
 	Valueable<Leptons> ProjectileRange { Leptons(100000) };
-	Valueable<bool> ProjectileRange_ApplyModifiers { true };
+	Nullable<bool> ProjectileRange_ApplyModifiers { };
 	Valueable<bool> ProjectileRange_UseAresBehaviour { false };
 
 	Nullable<bool> Decloak_InstantFire {};
@@ -113,6 +113,7 @@ public:
 	NullableIdx<VocClass> Ivan_AttachSound {};
 	Nullable<WarheadTypeClass*> Ivan_WH {};
 	Nullable<bool> Ivan_AttachToCenter {};
+	Nullable<AffectedHouse> IvanBomb_Visibility {};
 	Nullable<SHPCaches*> Ivan_Image {};
 	Nullable<int> Ivan_FlickerRate {};
 	Nullable<bool> Ivan_CanDetonateTimeBomb {};

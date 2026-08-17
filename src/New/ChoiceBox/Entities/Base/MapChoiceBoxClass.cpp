@@ -1019,7 +1019,7 @@ static void TickHiddenPeriod()
 		if (box.IsExpired || box.ClickExpireCounter < 0)
 			return;
 
-		if (--box.ClickExpireCounter > 0)
+		if (--box.ClickExpireCounter >= 0)
 			return;
 
 		// 检查被点击的按钮是否为回弹模式

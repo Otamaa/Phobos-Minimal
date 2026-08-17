@@ -504,7 +504,7 @@ bool FakeAircraftClass::_Enter_Idle_Mode(bool initial, bool bool2)
 		if (this->CurrentMission == Mission::Patrol) // 25
 		{
 			this->MissionStatus = 0;
-			this->IsLocked = 0;
+			this->DoingOverfly = 0;
 		}
 		return false;
 	}
@@ -667,7 +667,7 @@ bool FakeAircraftClass::_Enter_Idle_Mode(bool initial, bool bool2)
 								return false;
 							if (this->Type->Dock.Count <= 0)
 								return false;
-							if (!this->IsLocked && this->Team)
+							if (!this->DoingOverfly && this->Team)
 								return false;
 
 							TechnoClass* bay = this->FindDockingBayInVector(
@@ -694,7 +694,7 @@ bool FakeAircraftClass::_Enter_Idle_Mode(bool initial, bool bool2)
 						&& (!this->NavCom || this->CurrentMission != Mission::Enter))
 					{
 						if (this->Type->Dock.Count > 0
-							&& (this->IsLocked || !this->Team)) {
+							&& (this->DoingOverfly || !this->Team)) {
 							TechnoClass* bay = this->FindDockingBayInVector(
 								reinterpret_cast<DynamicVectorClass<TechnoTypeClass*>*>(&this->Type->Dock),
 								false, false);
@@ -863,7 +863,7 @@ int FakeAircraftClass::_Mission_Attack()
 			if (!this->Ammo)
 			{
 				this->MissionStatus = static_cast<int>(AirAttackStatus::ReturnToBase);
-				this->IsLocked = 0;
+				this->DoingOverfly = 0;
 			}
 			return 1;
 		};
@@ -921,7 +921,7 @@ int FakeAircraftClass::_Mission_Attack()
 
 	auto SetupReturnFlight = [&]() -> int
 		{
-			this->IsLocked = 0;
+			this->DoingOverfly = 0;
 			CellStruct edgeCell = MapClass::Instance->PickCellOnEdge(
 				this->Owner->GetCurrentEdge(),
 				CellStruct::Empty, CellStruct::Empty,
@@ -942,7 +942,7 @@ int FakeAircraftClass::_Mission_Attack()
 	{
 	case AirAttackStatus::ValidateAZ:
 	{
-		this->IsLocked = 0;
+		this->DoingOverfly = 0;
 		this->MissionStatus = this->Target
 			? static_cast<int>(AirAttackStatus::PickAttackLocation)
 			: static_cast<int>(AirAttackStatus::ReturnToBase);
@@ -951,7 +951,7 @@ int FakeAircraftClass::_Mission_Attack()
 
 	case AirAttackStatus::PickAttackLocation:
 	{
-		this->IsLocked = 0;
+		this->DoingOverfly = 0;
 		if (this->loseammo_6c8)
 		{
 			this->loseammo_6c8 = false;
@@ -1035,7 +1035,7 @@ int FakeAircraftClass::_Mission_Attack()
 			this->loseammo_6c8 = false;
 			this->Ammo--;
 		}
-		this->IsLocked = 0;
+		this->DoingOverfly = 0;
 
 		if (!this->Target || !this->Ammo)
 			return ReturnToBaseNow();
@@ -1147,7 +1147,7 @@ int FakeAircraftClass::_Mission_Attack()
 				if (fired)
 					this->SetDestination(this->Target, true);
 
-				this->IsLocked = true;
+				this->DoingOverfly = true;
 				this->MissionStatus = static_cast<int>(AirAttackStatus::FireAtTarget2_Strafe);
 				return AircraftExtData::GetDelay(this, false);
 			}
@@ -1160,7 +1160,7 @@ int FakeAircraftClass::_Mission_Attack()
 			//}
 			
 			// 0x418506 - Delay1B
-			this->IsLocked = true;
+			this->DoingOverfly = true;
 			this->MissionStatus = this->Ammo > 0
 				? static_cast<int>(AirAttackStatus::PickAttackLocation)
 				: static_cast<int>(AirAttackStatus::ReturnToBase);
@@ -1306,7 +1306,7 @@ int FakeAircraftClass::_Mission_Attack()
 
 	case AirAttackStatus::ReturnToBase:
 	{
-		this->IsLocked = 0;
+		this->DoingOverfly = 0;
 		if (this->loseammo_6c8)
 		{
 			this->loseammo_6c8 = false;
@@ -1378,11 +1378,11 @@ int FakeAircraftClass::_Mission_Sleep()
 int FakeAircraftClass::_Mission_ParadropOverfly()
 {
 	auto pTarCom = this->Target;
-	this->IsLocked = 1;
+	this->DoingOverfly = 1;
 
 	if (!pTarCom || !this->Passengers.NumPassengers)
 	{
-		this->IsLocked = 0;
+		this->DoingOverfly = 0;
 		this->SetTarget(0);
 		this->SetDestination(0, 1);
 		this->QueueMission(Mission::Retreat, 0);
@@ -1395,7 +1395,7 @@ int FakeAircraftClass::_Mission_ParadropOverfly()
 
 	if (distance > nRadius) {
 		auto paradrop_attempts = this->NumParadropsLeft;
-		this->IsLocked = 0;
+		this->DoingOverfly = 0;
 
 		if (paradrop_attempts > 0)
 		{
@@ -1533,7 +1533,7 @@ int FakeAircraftClass::_Mission_SpyPlaneApproach()
 	}
 
 	if (range <= 768) {
-		this->IsLocked = true;
+		this->DoingOverfly = true;
 		auto edge = this->Owner->ResolveEdge();
 		auto loc = MapClass::Instance->PickCellOnEdge(edge
 			, CellStruct::Empty

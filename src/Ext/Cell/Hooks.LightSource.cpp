@@ -78,7 +78,12 @@ ASMJIT_PATCH(0x554BF6, LightSourceClass_554AF0_Distance_Optimize, 0x5)
 	GET(LightSourceClass*, pThis, EDI);
 
 	REF_STACK(CellStruct, cell, STACK_OFFSET(0x30, -0x24));
+
 	const auto cellCoords = CellClass::Cell2Coord(cell);
+
+	if (MapClass::Instance->IsLocationFogged(cellCoords))
+		return OutOfRange;
+
 	const int diffX = pThis->Location.X - cellCoords.X;
 	const int diffY = pThis->Location.Y - cellCoords.Y;
 	const double distanceSqr = static_cast<double>(diffX) * diffX + static_cast<double>(diffY) * diffY;
@@ -86,8 +91,6 @@ ASMJIT_PATCH(0x554BF6, LightSourceClass_554AF0_Distance_Optimize, 0x5)
 	if (static_cast<double>(distanceSqr) > static_cast<double>(pThis->LightVisibility) * pThis->LightVisibility)
 		return OutOfRange;
 
-	if (MapClass::Instance->IsLocationFogged(cellCoords))
-		return OutOfRange;
 
 	if (const auto pCell = MapClass::Instance->TryGetCellAt(cell))
 	{

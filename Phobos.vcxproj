@@ -43,6 +43,7 @@
     <ClCompile Include="src\Ext\Building\Hooks.WallTower.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.AI.cpp" />
     <ClCompile Include="src\Ext\Cell\Hooks.Crates.cpp" />
+    <ClCompile Include="src\Ext\Cell\Hooks.LightSource.cpp" />
     <ClCompile Include="src\Ext\Convert\BlitterPack\BlitterPack.byte.avx2.cpp" />
     <ClCompile Include="src\Ext\Convert\BlitterPack\BlitterPack.byte.scalar.cpp" />
     <ClCompile Include="src\Ext\Convert\BlitterPack\BlitterPack.byte.sse2.cpp" />
@@ -1308,7 +1309,7 @@
       <AssemblerListingLocation>$(IntDir)\%(RelativeDir)</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\%(RelativeDir)</ObjectFileName>
       <CallingConvention>StdCall</CallingConvention>
-      <AdditionalOptions>/w14287 /w15038 /w44265 /w44002  /utf-8 /Zc:__cplusplus /we4239 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/w14287 /w15038 /w44265 /w44002 /we4458 /we4456 /we4457 /utf-8 /Zc:__cplusplus /we4239 %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4100;4530;4731;4740;4505;4201;26495</DisableSpecificWarnings>
       <EnableModules>false</EnableModules>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>

@@ -8482,6 +8482,18 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 			}
 		break;
 	}
+	case DisplayInfoType::EmptyReload:
+	{
+		if (pType->Ammo <= 0)
+			return;
+
+		const auto& timer = pThis->ReloadTimer;
+		value = (pThis->Ammo == 0) ? timer.GetTimeLeft() : 0;
+		maxValue = timer.TimeLeft
+			? timer.TimeLeft
+			: (pType->EmptyReload > 0 ? pType->EmptyReload : pType->Reload);
+		break;
+	}
 	default:
 	{
 		value = pThis->Health;

@@ -159,30 +159,49 @@ ASMJIT_PATCH(0x69B670, MultiplayerGameMode_5D6430_PickRandom_AI, 5)
 	return 0x69B684;
 }
 
-bool KeepThisAlive(HouseClass* pHouse, TechnoClass* pTech, AbstractType what, uint8_t keep)
+bool KeepThisAlive(HouseClass* pHouse, TechnoClass* pTech, AbstractType rtti, bool keep)
 {
 	const auto pType = pTech->GetTechnoType();
 
 	const Nullable<bool>* result = &TechnoTypeExtContainer::Instance.Find(pType)->KeepAlive;
 
-	bool ret = true;
-	bool defaultKeppAlive = false;
+	bool keepAlive = false;
+	bool res = false;
+	bool isBld = false;
 
 	if (pType->Insignificant || pType->DontScore) {
-		ret = false;
-	} else {
-		ret = true;
-		defaultKeppAlive = what == BuildingClass::AbsID;
+		switch (rtti)
+		{
+		case AbstractType::Infantry:
+			keepAlive = FakeRulesClass::Instance->KeepAlive_SupportInfantrys;
+			break;
+		case AbstractType::Unit:
+			keepAlive = FakeRulesClass::Instance->KeepAlive_SupportVehicles;
+			break;
+		case AbstractType::Aircraft:
+			keepAlive = FakeRulesClass::Instance->KeepAlive_SupportAircrafts;
+			break;
+		case AbstractType::Building:
+			keepAlive = FakeRulesClass::Instance->KeepAlive_SupportBuildings;
+			isBld = true;
+			break;
+		default:
+			break;
+		}
+
+		res = true;
 	}
 
-	if (result->Get(defaultKeppAlive)) {
-		const int add = 2 * keep - 1;
-		HouseExtContainer::Instance.Find(pHouse)->KeepAliveCount += add;
-		if (what == BuildingClass::AbsID)
-			HouseExtContainer::Instance.Find(pHouse)->KeepAliveBuildingCount += add;
+	if (result->Get(keepAlive)) {
+		const int number = keep ? 1 : -1;
+		auto pExt = HouseExtContainer::Instance.Find(pHouse);
+
+		pExt->KeepAliveCount += number;
+		if (rtti == BuildingClass::AbsID)
+			pExt->KeepAliveBuildingCount += number;
 	}
 
-	return ret;
+	return res;
 }
 
 // break short game ?

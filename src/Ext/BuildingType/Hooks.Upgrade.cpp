@@ -167,7 +167,7 @@ ASMJIT_PATCH(0x45189D, BuildingClass_AnimUpdate_Upgrades, 0x6)
 {
 	enum { SkipAnim = 0x451B2C };
 
-	GET(BuildingClass*, pThis, ESI);
+	GET(FakeBuildingClass*, pThis, ESI);
 	GET_STACK(BuildingAnimSlot, anim, STACK_OFFSET(0x34, 0x8));
 
 	if (!AllowUpgradeAnim(pThis, anim))

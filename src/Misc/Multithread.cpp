@@ -400,9 +400,6 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x4F4480 , FakeGScreenClass::_Render);
 
 ASMJIT_PATCH(0x55D878, MainLoop_StartLock, 6)
 {
-	if(R->Origin() == 0x55DBC3)
-		DisplayClass::GetLayer(Layer::Air)->Sort();
-
 	if (!Multithreading::IsInMultithreadMode)
 		return 0;
 

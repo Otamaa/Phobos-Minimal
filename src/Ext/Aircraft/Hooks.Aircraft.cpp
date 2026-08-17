@@ -30,7 +30,7 @@ void FakeAircraftClass::_AI()
 	case Mission::SpyplaneOverfly:
 		break;
 	default:
-		this->IsLocked = 0;
+		this->DoingOverfly = 0;
 		break;
 	}
 
@@ -108,7 +108,7 @@ void FakeAircraftClass::_AI()
 
 			if (extendedMissions) {
 				if (const auto pArchive = this->ArchiveTarget) {
-					if (this->Target && !this->IsFiring && !this->IsLocked
+					if (this->Target && !this->IsFiring && !this->DoingOverfly
 						&& this->DistanceFromSquared(pArchive) > static_cast<int>(this->GetGuardRange(1) * 1.1)) {
 						this->SetTarget(nullptr);
 						this->SetDestination(pArchive, true);

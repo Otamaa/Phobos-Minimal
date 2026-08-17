@@ -839,8 +839,10 @@ ASMJIT_PATCH(0x4D5A34, FootClass_ApproachTarget_StopWhenInRange, 0x6)
 	GET_STACK(const bool, closeEnough, STACK_OFFSET(0x158, -0x146));
 	GET(FootClass*, pThis, EBX);
 
-	if (closeEnough && !pThis->InLimbo)
-	{
+	if (closeEnough && !pThis->InLimbo) {
+		if (!pThis->Locomotor->Is_Really_Moving_Now())
+			return 0x0;
+
 		auto const pType = GET_TECHNOTYPE(pThis);
 		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
@@ -854,9 +856,7 @@ ASMJIT_PATCH(0x4D5A34, FootClass_ApproachTarget_StopWhenInRange, 0x6)
 				pJumpjetLoco->__maxSpeed = 0;
 				pJumpjetLoco->NextState = JumpjetLocomotionClass::State::Hovering;
 				pThis->AbortMotion();
-			}
-			else
-			{
+			} else {
 				pThis->StopMoving();
 				pThis->AbortMotion();
 			}

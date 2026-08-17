@@ -68,7 +68,7 @@ bool reshade::imgui::path_list(const char *label, std::vector<std::filesystem::p
 			if (ImGui::InputText("##path", buf, sizeof(buf), ImGuiInputTextFlags_CallbackCompletion, &resolve_macros))
 			{
 				res = true;
-				paths[i] = std::filesystem::u8path(buf);
+				paths[i] = std::filesystem::path(buf);
 			}
 
 			ImGui::SameLine(0, button_spacing);
@@ -144,7 +144,7 @@ bool reshade::imgui::file_dialog(const char *name, std::filesystem::path &path, 
 		ImGui::SetNextItemWidth(width);
 		if (ImGui::InputText("##path", buf, sizeof(buf), ImGuiInputTextFlags_CallbackCompletion, &resolve_macros))
 		{
-			path = std::filesystem::u8path(buf);
+			path = std::filesystem::path(buf);
 			if ((path.has_stem() && std::filesystem::is_directory(path, ec)) || (path.has_root_name() && path == path.root_name()))
 				path += std::filesystem::path::preferred_separator;
 			parent_path = path.parent_path();
@@ -396,7 +396,7 @@ bool reshade::imgui::file_input_box(const char *name, const char *hint, std::fil
 	ImGui::SetNextItemWidth(ImGui::CalcItemWidth() - (button_spacing + button_size));
 	if (ImGui::InputTextWithHint("##path", hint, buf, sizeof(buf), ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion, &resolve_macros))
 	{
-		dialog_path = std::filesystem::u8path(buf);
+		dialog_path = std::filesystem::path(buf);
 		// Convert path extension to lowercase before parsing
 		std::wstring dialog_path_ext = dialog_path.extension().wstring();
 		std::transform(dialog_path_ext.begin(), dialog_path_ext.end(), dialog_path_ext.begin(), std::towlower);
@@ -445,7 +445,7 @@ bool reshade::imgui::directory_input_box(const char *name, std::filesystem::path
 	ImGui::SetNextItemWidth(ImGui::CalcItemWidth() - (button_spacing + button_size));
 	if (ImGui::InputText("##path", buf, sizeof(buf), ImGuiInputTextFlags_CallbackCompletion, &resolve_macros))
 	{
-		path = std::filesystem::u8path(buf), res = true;
+		path = std::filesystem::path(buf), res = true;
 	}
 
 	ImGui::SameLine(0, button_spacing);

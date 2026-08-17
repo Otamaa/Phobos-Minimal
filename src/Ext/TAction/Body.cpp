@@ -1320,8 +1320,8 @@ bool NOINLINE TActionExtData::Occured(TActionClass* pThis, ActionArgs const& arg
 	case PhobosTriggerAction::SetScreenChoiceBox:
 		ret = TActionExtData::SetScreenChoiceBox(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
-	case PhobosTriggerAction::ClearChoiceBoxByLabel:
-		ret = TActionExtData::ClearChoiceBoxByLabel(pThis, pHouse, pObject, pTrigger, args.plocation);
+	case PhobosTriggerAction::ClearChoiceBoxByID:
+		ret = TActionExtData::ClearChoiceBoxByID(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
 	case PhobosTriggerAction::ClearAllChoiceBoxs:
 		ret = TActionExtData::ClearAllChoiceBoxs(pThis, pHouse, pObject, pTrigger, args.plocation);
@@ -4320,7 +4320,7 @@ bool TActionExtData::SetScreenChoiceBox(TActionClass* pThis, HouseClass* pHouse,
 	return true;
 }
 
-bool TActionExtData::ClearChoiceBoxByLabel(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+bool TActionExtData::ClearChoiceBoxByID(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	int choiceID = pThis->Param3;
 
@@ -6278,7 +6278,7 @@ static NOINLINE std::string PhobosTriggerAction_ToString(PhobosTriggerAction act
 	case PhobosTriggerAction::ClearAllTextBoxs: return "ClearAllTextBoxs";
 	case PhobosTriggerAction::SetWaypointChoiceBox: return "SetWaypointChoiceBox";
 	case PhobosTriggerAction::SetScreenChoiceBox: return "SetScreenChoiceBox";
-	case PhobosTriggerAction::ClearChoiceBoxByLabel: return "ClearChoiceBoxByLabel";
+	case PhobosTriggerAction::ClearChoiceBoxByID: return "ClearChoiceBoxByID";
 	case PhobosTriggerAction::ClearAllChoiceBoxs: return "ClearAllChoiceBoxs";
 	case PhobosTriggerAction::SetDropCrate: return "SetDropCrate";
 	case PhobosTriggerAction::ClearScript: return "ClearScript";

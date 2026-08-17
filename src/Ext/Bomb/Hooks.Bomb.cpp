@@ -267,3 +267,122 @@ ASMJIT_PATCH(0x438E86, BombListClass_Plant_AllTechnos, 5)
 		return 0x439022;
 	}
 }
+
+
+#ifdef _Hook
+
+ASMJIT_PATCH(0x438D44, BombListClass_AI_Visibility, 0x5)
+{
+	enum { SkipGameCode = 0x438E2B };
+
+	GET(BombListClass*, pBombList, EDI);
+	GET(FakeBombClass*, pBomb, EBX);
+	AffectedHouse visibility = AffectedHouse::Owner;
+
+	if (const auto pWeaponExt = pBomb->_GetExtData()->Weapon)
+		visibility = pWeaponExt->IvanBomb_Visibility.Get(FakeRulesClass::Instance->IvanBomb_Visibility);
+	else
+		visibility = FakeRulesClass::Instance->IvanBomb_Visibility;
+
+	const auto pCurrent = HouseClass::CurrentPlayer();
+	bool visible = false;
+
+	if (EnumFunctions::CanTargetHouse(visibility, pBomb->OwnerHouse, pCurrent)
+		|| std::ranges::find_if(pBombList->Detectors, [=](TechnoClass* pDetector)
+			{
+				if (!EnumFunctions::CanTargetHouse(visibility, pDetector->Owner, pCurrent))
+					return false;
+
+				const int sight = pDetector->GetTechnoType()->BombSight * Unsorted::LeptonsPerCell;
+				return pDetector->GetCoords().DistanceFromSquared(pBomb->Target->GetCoords()) <= static_cast<double>(sight) * sight;
+			}) != pBombList->Detectors.end()
+	) {
+		visible = true;
+	}
+
+	R->AL(visible);
+	return SkipGameCode;
+}
+#else 
+
+void FakeBombListClass::__AI() {
+	// --- Pass 1: prune bombs that lost their target, or dangling null slots ---
+	for (int i = this->Bombs.Count - 1; i >= 0; --i) {
+		BombClass* bomb = (BombClass*)this->Bombs.Items[i];
+
+		if (bomb) {
+			if (!bomb->Target) {
+				GameDelete<true, false>(bomb);
+			} else {
+				if (bomb->TickSound != -1) {
+					ObjectClass* target = bomb->Target;
+
+					if (target->InLimbo) {
+						bomb->TickAudioController.AudioEventHandleStop();
+						bomb->ShouldPlayTickingSound = 0;
+					} else {
+						CoordStruct* coord = &target->Location;
+
+						if (bomb->ShouldPlayTickingSound) {
+							VocClass::PlayIfInRange(target->Location, &bomb->TickAudioController);
+						} else {
+							VocClass::SafeImmedietelyPlayAt(bomb->TickSound, target->Location, &bomb->TickAudioController);
+							bomb->ShouldPlayTickingSound = 1;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// --- Throttle: only re-evaluate bomb visibility every 45 logic frames ---
+	if (this->UpdateDelay > 0) {
+		--this->UpdateDelay;
+		return;
+	}
+
+	this->UpdateDelay = 45;
+
+	const auto pCurrent = HouseClass::CurrentPlayer();
+	const bool isObserverLooking = pCurrent == HouseClass::Observer();
+
+	// --- Pass 2: recompute BombVisible for every tracked bomb ---
+	for (int k = this->Bombs.Count - 1; k >= 0; --k) {
+
+		FakeBombClass* bomb = (FakeBombClass*)this->Bombs.Items[k];
+		ObjectClass* target = bomb->Target;
+		bool wasVisible = target->BombVisible;
+		bool nowVisible;
+
+		if (!isObserverLooking) {
+			nowVisible = false;
+			// --- Visibility rule (replaces vanilla's hardcoded
+			//     "owner == current player" check w/ IvanBomb_Visibility) ---
+			AffectedHouse visibility = FakeRulesClass::Instance->IvanBomb_Visibility;
+			if (const auto pWeaponExt = bomb->_GetExtData()->Weapon)
+				visibility = pWeaponExt->IvanBomb_Visibility.Get(visibility);
+
+			if (EnumFunctions::CanTargetHouse(visibility, bomb->OwnerHouse, pCurrent)
+				|| std::ranges::find_if(this->Detectors, [=](TechnoClass* pDetector)
+					{
+						if (!EnumFunctions::CanTargetHouse(visibility, pDetector->Owner, pCurrent))
+							return false;
+
+						const int sight = pDetector->GetTechnoType()->BombSight * Unsorted::LeptonsPerCell;
+						return pDetector->GetCoords().DistanceFromSquared(target->GetCoords()) <= static_cast<double>(sight) * sight;
+					}) != this->Detectors.end()
+						) {
+				nowVisible = true;
+			}
+		} else { nowVisible = true; }
+
+		target->BombVisible = nowVisible;
+		if (nowVisible != wasVisible) {
+			target->NeedsRedraw = 1;
+		}
+	}
+}
+
+DEFINE_FUNCTION_JUMP(CALL, 0x55B4E6, FakeBombListClass::__AI)
+DEFINE_FUNCTION_JUMP(LJMP, 0x438BF0, FakeBombListClass::__AI)
+#endif
