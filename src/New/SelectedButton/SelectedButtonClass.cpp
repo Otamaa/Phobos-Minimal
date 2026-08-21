@@ -87,67 +87,67 @@ bool SelectedButtonClass::Action(GadgetFlag flags, WWKey* pKey, KeyModifier modi
 
 void SelectedButtonClass::DrawInfo() const
 {
-	const auto pExt = SelectedInfoClass::Instance.CurrentSelectTechno[0];
-	const auto pTechno = pExt->This();
-	const auto pTypeExt = pExt->TypeExtData;
-	const auto pSideExt = SideExtContainer::Instance.Find(SideClass::Array->Items[ScenarioClass::Instance->PlayerSideIndex]);
-	const auto pSHP = pTypeExt->SelectedInfo_Button.Get(pSideExt->SelectedInfo_Button.Get((SHPCaches*)SelectedInfoClass::SelectedInfo_Button));
+	//const auto pExt = SelectedInfoClass::Instance.CurrentSelectTechno[0];
+	//const auto pTechno = pExt->This();
+	//const auto pTypeExt = pExt->TypeExtData;
+	//const auto pSideExt = SideExtContainer::Instance.Find(SideClass::Array->Items[ScenarioClass::Instance->PlayerSideIndex]);
+	//const auto pSHP = pTypeExt->SelectedInfo_Button.Get(pSideExt->SelectedInfo_Button.Get((SHPCaches*)SelectedInfoClass::SelectedInfo_Button));
 
-	if (!pSHP || pSHP->GetFrameCount() < 7)
-		return;
+	//if (!pSHP || pSHP->GetFrameCount() < 7)
+	//	return;
 
-	const auto position = Point2D { this->Rect.X, this->Rect.Y };
-	const auto rect = RectangleStruct { 0, 0, this->Rect.X + this->Rect.Width, this->Rect.Y + this->Rect.Height };
+	//const auto position = Point2D { this->Rect.X, this->Rect.Y };
+	//const auto rect = RectangleStruct { 0, 0, this->Rect.X + this->Rect.Width, this->Rect.Y + this->Rect.Height };
 
-	DSurface::Composite->DrawSHP(pSideExt->SelectedInfo_Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL),
-		pSHP, 0, &position, &rect, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+	//DSurface::Composite->DrawSHP(pSideExt->SelectedInfo_Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL),
+	//	pSHP, 0, &position, &rect, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 
-	if (this->ID == 0) // PushButton
-	{
-		int frame = 3;
+	//if (this->ID == 0) // PushButton
+	//{
+	//	int frame = 3;
 
-		//if (pExt->CanToggleAggressiveStance() && pTechno->IsAlive && !pTechno->Berzerk)
-		//	frame = !pExt->GetAggressiveStance() ? 3 : 2;
+	//	//if (pExt->CanToggleAggressiveStance() && pTechno->IsAlive && !pTechno->Berzerk)
+	//	//	frame = !pExt->GetAggressiveStance() ? 3 : 2;
 
-		DSurface::Composite->DrawSHP(pSideExt->SelectedInfo_Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL),
-			pSHP, frame, &position, &rect, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+	//	DSurface::Composite->DrawSHP(pSideExt->SelectedInfo_Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL),
+	//		pSHP, frame, &position, &rect, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 
-		if (this->Hovering)
-		{
-			auto location = Point2D { this->Rect.X + this->Rect.Width + 10, this->Rect.Y + 4 };
-			const auto text = GeneralUtils::LoadStringUnlessMissing("TIP:AggressiveStance", L"AggressiveStance");
-			RectangleStruct drawRect = Drawing::GetTextBox(text, location, { 3 ,2 });
-			location += Point2D { 4, 1 };
-			drawRect.Width += 8;
-			ColorStruct color { 0, 0, 0 };
-			DSurface::Composite->Fill_Rect_Trans(&drawRect, &color, 40);
-			DSurface::Composite->Draw_Rect(drawRect, COLOR_WHITE);
-			DSurface::Composite->DSurfaceDrawText(text, &location, COLOR_WHITE);
-		}
-	}
-	else // AmmoButton
-	{
-		int frame = 4;
+	//	if (this->Hovering)
+	//	{
+	//		auto location = Point2D { this->Rect.X + this->Rect.Width + 10, this->Rect.Y + 4 };
+	//		const auto text = GeneralUtils::LoadStringUnlessMissing("TIP:AggressiveStance", L"AggressiveStance");
+	//		RectangleStruct drawRect = Drawing::GetTextBox(text, location, { 3 ,2 });
+	//		location += Point2D { 4, 1 };
+	//		drawRect.Width += 8;
+	//		ColorStruct color { 0, 0, 0 };
+	//		DSurface::Composite->Fill_Rect_Trans(&drawRect, &color, 40);
+	//		DSurface::Composite->Draw_Rect(drawRect, COLOR_WHITE);
+	//		DSurface::Composite->DSurfaceDrawText(text, &location, COLOR_WHITE);
+	//	}
+	//}
+	//else // AmmoButton
+	//{
+	//	int frame = 4;
 
-		if (pTypeExt->CanManualReload && pTechno->IsAlive && !pTechno->Berzerk && pTechno->Ammo != pTechno->GetTechnoType()->Ammo)
-			frame = pTechno->Ammo ? 6 : 5;
+	//	if (pTypeExt->CanManualReload && pTechno->IsAlive && !pTechno->Berzerk && pTechno->Ammo != pTechno->GetTechnoType()->Ammo)
+	//		frame = pTechno->Ammo ? 6 : 5;
 
-		DSurface::Composite->DrawSHP(pSideExt->SelectedInfo_Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL),
-			pSHP, frame, &position, &rect, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+	//	DSurface::Composite->DrawSHP(pSideExt->SelectedInfo_Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL),
+	//		pSHP, frame, &position, &rect, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 
-		if (this->Hovering)
-		{
-			auto location = Point2D { this->Rect.X + this->Rect.Width + 10, this->Rect.Y + 4 };
-			const auto text = GeneralUtils::LoadStringUnlessMissing("TIP:ManualReloadAmmo", L"ManualReloadAmmo");
-			RectangleStruct drawRect = Drawing::GetTextBox(text, location, { 3, 2 });
-			location += Point2D { 4, 1 };
-			drawRect.Width += 8;
-			ColorStruct color { 0, 0, 0 };
-			DSurface::Composite->Fill_Rect_Trans(&drawRect, &color, 40);
-			DSurface::Composite->Draw_Rect(drawRect, COLOR_WHITE);
-			DSurface::Composite->DSurfaceDrawText(text, &location, COLOR_WHITE);
-		}
-	}
+	//	if (this->Hovering)
+	//	{
+	//		auto location = Point2D { this->Rect.X + this->Rect.Width + 10, this->Rect.Y + 4 };
+	//		const auto text = GeneralUtils::LoadStringUnlessMissing("TIP:ManualReloadAmmo", L"ManualReloadAmmo");
+	//		RectangleStruct drawRect = Drawing::GetTextBox(text, location, { 3, 2 });
+	//		location += Point2D { 4, 1 };
+	//		drawRect.Width += 8;
+	//		ColorStruct color { 0, 0, 0 };
+	//		DSurface::Composite->Fill_Rect_Trans(&drawRect, &color, 40);
+	//		DSurface::Composite->Draw_Rect(drawRect, COLOR_WHITE);
+	//		DSurface::Composite->DSurfaceDrawText(text, &location, COLOR_WHITE);
+	//	}
+	//}
 }
 
 // ----------------------------------------
@@ -303,13 +303,13 @@ void SelectedToggleClass::OnMouseLeave()
 
 bool SelectedToggleClass::Action(GadgetFlag flags, WWKey* pKey, KeyModifier modifier)
 {
-	if (flags & GadgetFlag::LeftPress)
-	{
-		if (this->ID == 0) // Toggle on/off
-			SelectedInfoClass::Instance.SwitchVisible();
-		else // Toggle expand/storage
-			SelectedInfoClass::Instance.SwitchExpand();
-	}
+	//if (flags & GadgetFlag::LeftPress)
+	//{
+	//	if (this->ID == 0) // Toggle on/off
+	//		SelectedInfoClass::Instance.SwitchVisible();
+	//	else // Toggle expand/storage
+	//		SelectedInfoClass::Instance.SwitchExpand();
+	//}
 
 	this->GadgetClass::Action(flags, pKey, KeyModifier::None);
 	return true;
@@ -317,17 +317,17 @@ bool SelectedToggleClass::Action(GadgetFlag flags, WWKey* pKey, KeyModifier modi
 
 void SelectedToggleClass::DrawInfo() const
 {
-	const auto pSideExt = SideExtContainer::Instance.Find(SideClass::Array->Items[ScenarioClass::Instance->PlayerSideIndex]);
-	auto rect = RectangleStruct { 0, 0, this->Rect.X + this->Rect.Width, this->Rect.Y + this->Rect.Height };
-	const auto pSHP = pSideExt->SelectedInfo_Toggle.Get((SHPCaches*)SelectedInfoClass::SelectedInfo_Toggle);
+	//const auto pSideExt = SideExtContainer::Instance.Find(SideClass::Array->Items[ScenarioClass::Instance->PlayerSideIndex]);
+	//auto rect = RectangleStruct { 0, 0, this->Rect.X + this->Rect.Width, this->Rect.Y + this->Rect.Height };
+	//const auto pSHP = pSideExt->SelectedInfo_Toggle.Get((SHPCaches*)SelectedInfoClass::SelectedInfo_Toggle);
 
-	if (!pSHP || pSHP->GetFrameCount() < 4)
-		return;
+	//if (!pSHP || pSHP->GetFrameCount() < 4)
+	//	return;
 
-	const auto position = Point2D { this->Rect.X, this->Rect.Y };
-	const auto frame = this->ID == 0 ? (Phobos::Config::SelectedDisplay_Enable ? 1 : 0) : (Phobos::Config::SelectedDisplay_Expand ? 3 : 2);
-	DSurface::Composite->DrawSHP(pSideExt->SelectedInfo_Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL),
-		pSHP, frame, &position, &rect, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+	//const auto position = Point2D { this->Rect.X, this->Rect.Y };
+	//const auto frame = this->ID == 0 ? (Phobos::Config::SelectedDisplay_Enable ? 1 : 0) : (Phobos::Config::SelectedDisplay_Expand ? 3 : 2);
+	//DSurface::Composite->DrawSHP(pSideExt->SelectedInfo_Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL),
+	//	pSHP, frame, &position, &rect, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 }
 
 // ----------------------------------------

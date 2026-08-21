@@ -1135,7 +1135,7 @@ ASMJIT_PATCH(0x730B09, DeployCommandClass_Execute_BuildingDeploy, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x4501AF, AI_ConYard_CompleteProduction_ProductionAnim, 0x5)
+ASMJIT_PATCH(0x4501A9, AI_ConYard_CompleteProduction_ProductionAnim, 0x6)
 {
 	GET(BuildingClass*, pBuilding, ESI);
 	GET(TechnoClass*, pObject, EDI);
