@@ -265,6 +265,24 @@ struct _RocketLocomotionClass
 		return  -1;
 	}
 
+	static NOINLINE bool GetMissileIsTracing(TechnoTypeClass* pType)
+	{
+		if (pType->WhatAmI() == AbstractType::AircraftType) {
+			return AircraftTypeExtContainer::Instance.Find((AircraftTypeClass*)pType)->Missile_Tracing;
+		}
+
+		return false;
+	}
+
+	static NOINLINE bool GetMissileUseDeathWeapon(TechnoTypeClass* pType)
+	{
+		if (pType->WhatAmI() == AbstractType::AircraftType) {
+			return AircraftTypeExtContainer::Instance.Find((AircraftTypeClass*)pType)->Missile_UseDeathWeaponWhenIntercepted;
+		}
+
+		return false;
+	}
+
 	static COMPILETIMEEVAL short NOINLINE GetFacing(RocketLocomotionClass* pThis) {
 		return (short)pThis->Owner->PrimaryFacing.Current().GetFacing<32>();
 	}
@@ -450,10 +468,16 @@ struct _RocketLocomotionClass
 			pRocket->CurrentSpeed += rocket->Acceleration;
 			pRocket->CurrentSpeed = std::min(pRocket->CurrentSpeed, static_cast<double>(pAirType->Speed));
 			auto heightThis = pAir->GetHeight();
+			if (GetMissileIsTracing(pAirType)) {
+				if (const auto pTarget = flag_cast_to<FootClass*>(pAir->Target))
+					pTarget->GetMovingTargetCoords(&pRocket->MovingDestination);
+			}
+
 			auto heightTarget = pAir->Location.Z - pRocket->MovingDestination.Z;
 
 			if (MapClass::Instance->GetCellAt(pRocket->MovingDestination)->ContainsBridge())
 				heightTarget -= CellClass::BridgeHeight;
+		
 
 			if (MinImpl(heightThis, heightTarget) >= rocket->Altitude)
 			{
@@ -473,6 +497,10 @@ struct _RocketLocomotionClass
 			} else {
 				pRocket->CurrentSpeed += rocket->Acceleration;
 				pRocket->CurrentSpeed = std::min(pRocket->CurrentSpeed, static_cast<double>(pAirType->Speed));
+				if (GetMissileIsTracing(pAirType)) {
+					if (const auto pTarget = flag_cast_to<FootClass*>(pAir->Target))
+						pTarget->GetMovingTargetCoords(&pRocket->MovingDestination);
+				}
 
 				if (rocket->LazyCurve && pRocket->ApogeeDistance)
 				{
@@ -512,6 +540,11 @@ struct _RocketLocomotionClass
 				return false;
 
 			const double pitch = Get_Next_Pitch(pRocket) - pRocket->CurrentPitch;
+
+			if (GetMissileIsTracing(pAirType)) {
+				if (const auto pTarget = flag_cast_to<FootClass*>(pAir->Target))
+					pTarget->GetMovingTargetCoords(&pRocket->MovingDestination);
+			}
 
 			if (Math::abs(pitch) > rocket->TurnRate)
 				pRocket->CurrentPitch = float(pitch < 0 ? pRocket->CurrentPitch - rocket->TurnRate : pRocket->CurrentPitch + rocket->TurnRate);
@@ -614,12 +647,19 @@ public:
 
 		if (!RocketHasWeapon(pLinked, pRocketType, pThis->SpawnerIsElite, next))
 		{
-
 			CellStruct cell = CellClass::Coord2Cell(next);
 			const auto pCell = MapClass::Instance->GetCellAt(next);
 
 			const int damage = pThis->SpawnerIsElite ? rocket->EliteDamage : rocket->Damage;
 			const auto pWH = GetRocketWarhead(pRocketType, pThis->SpawnerIsElite);
+
+			if (GetMissileUseDeathWeapon(pRocketType))
+			{
+				pLinked->FireDeathWeapon(0);
+				AircraftTrackerClass::Instance->Remove(pLinked);
+				pLinked->UnInit();
+				return;
+			}
 
 			if (auto pAnimType = MapClass::SelectDamageAnimation(damage, pWH, pCell->LandType, next))
 			{

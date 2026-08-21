@@ -17,7 +17,7 @@ public:
 	Nullable<int> AI_SafeDIstance {};
 	Nullable<int> AI_FriendlyDistance {};
 	Valueable<bool> AttackWaypoint_AllowCell { true };
-
+	Nullable<AircraftTypeClass*> ParaDropAircraft {};
 
 	int OriginalScriptTypeIndex { -1 };
 	int OriginalTaskForceIndex { -1 };

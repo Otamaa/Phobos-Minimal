@@ -18,6 +18,7 @@
 #include <Ext/House/Body.h>
 #include <Ext/Unit/Body.h>
 #include <Ext/UnitType/Body.h>
+#include <Ext/WarheadType/Body.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/Patch.h>
@@ -206,6 +207,60 @@ double UnitExtData::GetPrimaryRadian(UnitClass* pThis)
 	}
 
 	return pThis->PrimaryFacing.Current().GetRadian<32>();
+}
+
+void TechnoExtData::SpawnWreckage(WarheadTypeClass* pWH, HouseClass* pAttackerHosue)
+{
+	auto pThis = this->This();
+	if (!WarheadTypeExtContainer::Instance.Find(pWH)->SuppressWreckage && FakeRulesClass::Instance->EnableWreckageSpawn)
+	{
+		const auto pType = this->TypeExtData->This();
+		const auto pTypeExt = this->TypeExtData;
+		const auto& vec = pTypeExt->WreckageType;
+
+		if (!vec.empty())
+		{
+			const auto pWreckageType = vec[ScenarioClass::Instance->Random.RandomRanged(0, (vec.size() - 1))];
+
+			if ((this->This()->GetCell()->LandType != LandType::Water || pTypeExt->WreckageLeaveOnWater)
+				&& (!this->This()->IsInAir() || pTypeExt->WreckageLeaveInAir)
+				&& (pWreckageType != pType || !this->Is_Wreckage))
+			{
+				if (const auto pOwner = HouseExtData::GetHouseKind(pTypeExt->WreckageOwner, false, this->This()->Owner, pAttackerHosue, this->This()->Owner))
+				{
+					const auto pWreckage = static_cast<TechnoClass*>(pWreckageType->CreateObject(pOwner));
+					pWreckage->Health = static_cast<int>(pWreckageType->Strength * pTypeExt->WreckageInitialHealthPercent.Get(FakeRulesClass::Instance->WreckageInitialHealthPercent));
+
+					if (pTypeExt->WreckageSwapLocomotor
+						&& pWreckage->AbstractFlags & AbstractFlags::Foot
+						&& pThis->AbstractFlags & AbstractFlags::Foot)
+					{
+						const auto pFoot = static_cast<FootClass*>(pThis);
+						const auto pWreckageFoot = static_cast<FootClass*>(pWreckage);
+						std::swap(pFoot->Locomotor, pWreckageFoot->Locomotor);
+						pWreckageFoot->Locomotor->Link_To_Object(pWreckageFoot);
+						pFoot->Locomotor->Link_To_Object(pFoot);
+						pWreckageFoot->Locomotor->Stop_Moving();
+					}
+
+					++Unsorted::ScenarioInit;
+					pWreckage->Unlimbo((pWreckage->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None ? pThis->GetCoords() : pThis->Location, DirType::North);
+					--Unsorted::ScenarioInit;
+					pWreckage->PrimaryFacing.Set_Current(pThis->PrimaryFacing.Current());
+					pWreckage->SecondaryFacing.Set_Current(pThis->SecondaryFacing.Current());
+
+					if (pTypeExt->WreckageDeactive)
+					{
+						TechnoExtContainer::Instance.Find(pWreckage)->Is_Wreckage = true;
+						pWreckage->Deactivate();
+					}
+
+					if (pTypeExt->WreckageMarkUp)
+						pWreckage->Mark(MarkType::Up);
+				}
+			}
+		}
+	}
 }
 
 ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)

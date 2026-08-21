@@ -204,7 +204,7 @@ ASMJIT_PATCH(0x7264C0, TriggerClass_RegisterEvent_ForceSequentialEvents, 0x7)
 				if (value < 0)
 				{
 					// Generate random value for event 51 "Delayed timer"
-					value = ScenarioClass::Instance->Random.RandomRanged(static_cast<int>(std::abs(value) * 0.5), static_cast<int>(std::abs(value) * 1.5));
+					value = ScenarioClass::Instance->Random.RandomRanged(static_cast<int>(Math::abs(value) * 0.5), static_cast<int>(Math::abs(value) * 1.5));
 				}
 
 				pExt->ParallelTimers[i].Start(15 * value);
@@ -217,7 +217,7 @@ ASMJIT_PATCH(0x7264C0, TriggerClass_RegisterEvent_ForceSequentialEvents, 0x7)
 				if (value < 0)
 				{
 					// Generate random value for event 51 "Delayed timer"
-					value = ScenarioClass::Instance->Random.RandomRanged(static_cast<int>(std::abs(value) * 0.5), static_cast<int>(std::abs(value) * 1.5));
+					value = ScenarioClass::Instance->Random.RandomRanged(static_cast<int>(Math::abs(value) * 0.5), static_cast<int>(Math::abs(value) * 1.5));
 				}
 
 				pExt->SequentialTimers[i].Start(15 * value);

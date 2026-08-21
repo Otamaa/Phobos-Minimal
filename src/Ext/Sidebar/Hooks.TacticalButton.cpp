@@ -6,6 +6,8 @@
 
 #include <New/SuperWeaponSidebar/SWSidebarClass.h>
 #include <New/SuperWeaponSidebar/ToggleSWButtonClass.h>
+#include <New/UniqueButton/UniqueTechnoColumnClass.h>
+#include <New/SelectedButton/SelectedInfoClass.h>
 
 #include <New/MessageHandler/MessageColumnClass.h>
 
@@ -17,6 +19,8 @@ ASMJIT_PATCH(0x692419, DisplayClass_ProcessClickCoords_SkipOnNewButtons, 0x7)
 
 	return (SWSidebarClass::IsEnabled() && SWSidebarClass::Global()->CurrentColumn
 		|| SWSidebarClass::Global()->ToggleButton && SWSidebarClass::Global()->ToggleButton->IsHovering
+		|| UniqueTechnoColumnClass::Instance.Hovering >= 0
+		|| SelectedInfoClass::Instance.IsHovering
 		|| MessageColumnClass::Instance.IsBlocked())
 		? DoNothing : 0;
 }
@@ -24,6 +28,8 @@ ASMJIT_PATCH(0x692419, DisplayClass_ProcessClickCoords_SkipOnNewButtons, 0x7)
 ASMJIT_PATCH(0x6A5082, SidebarClass_InitClear_InitializeNewButtons, 0x5)
 {
 	SWSidebarClass::Global()->InitClear();
+	UniqueTechnoColumnClass::Instance.InitClear();
+	SelectedInfoClass::Instance.InitClear();
 	MessageColumnClass::Instance.InitClear();
 	return 0;
 }
@@ -31,6 +37,8 @@ ASMJIT_PATCH(0x6A5082, SidebarClass_InitClear_InitializeNewButtons, 0x5)
 ASMJIT_PATCH(0x6A5839, SidebarClass_InitIO_InitializeNewButtons, 0x5)
 {
 	SWSidebarClass::Global()->InitIO();
+	UniqueTechnoColumnClass::Instance.InitIO();
+	SelectedInfoClass::Instance.InitIO();
 	MessageColumnClass::Instance.InitIO();
 	return 0;
 }

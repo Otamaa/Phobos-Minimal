@@ -46,6 +46,7 @@
 #include <New/SuperWeaponSidebar/SWSidebarClass.h>
 #include <New/MessageHandler/MessageColumnClass.h>
 #include <New/Entity/DropshipLoadoutClass.h>
+#include <New/SelectedButton/SelectedInfoClass.h>
 
 #include <Helpers/Macro.h>
 #include <Utilities/Macro.h>
@@ -57,6 +58,10 @@
 #include "ClearObserverUICards.h"
 #include "ShowObjectCard.h"
 #include "ToggleObserverUI.h"
+
+#include "AssignRallyPoint.h"
+#include "HerosInfo.h"
+#include "SelectedInfo.h"
 
 bool PhobosCommandClass::CheckDebugDeactivated() const
 {
@@ -179,6 +184,12 @@ void __fastcall Game_Init_Commands_Wrapper() {
 	Make<ShowObjectCardCommandClass>();
 	Make<ToggleObserverUICommandClass>();
 
+	Make<AssignRallyPointCommandClass>();
+	Make<HerosInfoCommandClass>();
+
+	Make<SelectedInfoCommandClass>();
+	Make<SelectedExpandCommandClass>();
+
 	CommandClass::InitCommand();
 
 	EnableLargeAddressSpace(GetCurrentProcessId());
@@ -224,11 +235,18 @@ ASMJIT_PATCH(0x777998, Game_WndProc_ScrollMouseWheel, 0x6)
 		if (DropshipLoadoutClass::IsDropshipLoadoutActive())
 			DropshipLoadoutClass::DropshipLoadout_OnMouseWheelDown();
 
+		if (DropshipLoadoutClass::IsDropshipLoadoutActive())
+			DropshipLoadoutClass::DropshipLoadout_OnMouseWheelDown();
+
 		if (DistributionModeHoldDownCommandClass::Enabled && Phobos::Config::AllowDistributionCommand_SpreadModeScroll)
 			DistributionModeHoldDownCommandClass::DistributionSpreadModeReduce();
 
+		if (SelectedInfoClass::Instance.IsHovering)
+			SelectedInfoClass::Instance.ScrollRight();
+
 		 if(MessageColumnClass::Instance.IsHovering())
 			 MessageColumnClass::Instance.ScrollDown();
+
 	} else {
 
 		if (DropshipLoadoutClass::IsDropshipLoadoutActive())
@@ -236,6 +254,9 @@ ASMJIT_PATCH(0x777998, Game_WndProc_ScrollMouseWheel, 0x6)
 
 		if (DistributionModeHoldDownCommandClass::Enabled && Phobos::Config::AllowDistributionCommand_SpreadModeScroll)
 			DistributionModeHoldDownCommandClass::DistributionSpreadModeExpand();
+
+		if (SelectedInfoClass::Instance.IsHovering)
+			SelectedInfoClass::Instance.ScrollLeft();
 
 		if (MessageColumnClass::Instance.IsHovering())
 			MessageColumnClass::Instance.ScrollUp();

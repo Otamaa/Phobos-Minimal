@@ -105,6 +105,7 @@ public:
 	static int GetSafeDistance(TeamTypeClass* pTeam, int arg);
 
 	static void GetAIChronoshiftSupers(HouseClass* pThis, SuperClass*& pSuperCSphere, SuperClass*& pSuperCWarp);
+	static bool IsCloseToCenter(FootClass* pMember, AbstractClass* pCenterCell, int stray);
 private:
 	template <typename T>
 	void Serialize(T& Stm);

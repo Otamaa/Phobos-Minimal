@@ -307,27 +307,28 @@ ASMJIT_PATCH(0x438D44, BombListClass_AI_Visibility, 0x5)
 
 void FakeBombListClass::__AI() {
 	// --- Pass 1: prune bombs that lost their target, or dangling null slots ---
-	for (int i = this->Bombs.Count - 1; i >= 0; --i) {
-		BombClass* bomb = (BombClass*)this->Bombs.Items[i];
+	if(this->Bombs.IsAllocated) { //static tracker , vector item pointer are no allocated yet
+								  //awaiting for new item to be add
+		for (int i = this->Bombs.Count - 1; i >= 0; --i) {
+			BombClass* bomb = (BombClass*)this->Bombs.Items[i];
 
-		if (bomb) {
-			if (!bomb->Target) {
-				GameDelete<true, false>(bomb);
-			} else {
-				if (bomb->TickSound != -1) {
-					ObjectClass* target = bomb->Target;
+			if (bomb) {
+				if (!bomb->Target) {
+					GameDelete<true, false>(bomb);
+				} else {
+					if (bomb->TickSound != -1) {
+						ObjectClass* target = bomb->Target;
 
-					if (target->InLimbo) {
-						bomb->TickAudioController.AudioEventHandleStop();
-						bomb->ShouldPlayTickingSound = 0;
-					} else {
-						CoordStruct* coord = &target->Location;
-
-						if (bomb->ShouldPlayTickingSound) {
-							VocClass::PlayIfInRange(target->Location, &bomb->TickAudioController);
+						if (target->InLimbo) {
+							bomb->TickAudioController.AudioEventHandleStop();
+							bomb->ShouldPlayTickingSound = 0;
 						} else {
-							VocClass::SafeImmedietelyPlayAt(bomb->TickSound, target->Location, &bomb->TickAudioController);
-							bomb->ShouldPlayTickingSound = 1;
+							if (bomb->ShouldPlayTickingSound) {
+								VocClass::PlayIfInRange(target->Location, &bomb->TickAudioController);
+							} else {
+								VocClass::SafeImmedietelyPlayAt(bomb->TickSound, target->Location, &bomb->TickAudioController);
+								bomb->ShouldPlayTickingSound = 1;
+							}
 						}
 					}
 				}
@@ -341,7 +342,13 @@ void FakeBombListClass::__AI() {
 		return;
 	}
 
+
 	this->UpdateDelay = 45;
+
+	//static tracker , vector item pointer are no allocated yet
+	//awaiting for new item to be add
+	if (!this->Bombs.IsAllocated)
+		return;
 
 	const auto pCurrent = HouseClass::CurrentPlayer();
 	const bool isObserverLooking = pCurrent == HouseClass::Observer();

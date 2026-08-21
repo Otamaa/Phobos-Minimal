@@ -349,6 +349,19 @@ ASMJIT_PATCH(0x4D9992, FootClass_PointerGotInvalid_Parasite, 0x7)
 	return SkipGameCode;
 }
 
+#include <New/SelectedButton/SelectedInfoClass.h>
+
+ASMJIT_PATCH(0x5F44FC, ObjectClass_Deselect, 0x7)
+{
+	GET(ObjectClass*, pThis, ESI);
+
+	pThis->IsSelected = false;
+
+	SelectedInfoClass::Instance.ShouldUpdate = true;
+
+	return 0;
+}
+
 ASMJIT_PATCH(0x5F46AE, ObjectClass_Select, 0x7)
 {
 	GET(ObjectClass*, pThis, ESI);
@@ -358,10 +371,7 @@ ASMJIT_PATCH(0x5F46AE, ObjectClass_Select, 0x7)
 	const bool IsCurrentPlayer = pOwner->IsCurrentPlayer();
 	pThis->IsSelected = true;
 
-	if(Phobos::Config::ShowFlashOnSelecting) {
-		if (FakeRulesClass::Instance()->SelectFlashTimer > 0 && isControlledbyCurrentPlayer)
-			pThis->Flash(FakeRulesClass::Instance()->SelectFlashTimer);
-	}
+	SelectedInfoClass::Instance.ShouldUpdate = true;
 
 	if (FakeRulesClass::Instance->SetTabBySelectingFactory && pThis->WhatAmI() == AbstractType::Building && IsCurrentPlayer) {
 		auto pBld = static_cast<BuildingClass*>(pThis);
@@ -388,8 +398,14 @@ ASMJIT_PATCH(0x5F46AE, ObjectClass_Select, 0x7)
 			}
 	}
 
+	if (Phobos::Config::ShowFlashOnSelecting) {
+		if (FakeRulesClass::Instance()->SelectFlashTimer > 0 && isControlledbyCurrentPlayer)
+			pThis->Flash(FakeRulesClass::Instance()->SelectFlashTimer);
+	}
+
 	return 0x0;
 }
+
 ASMJIT_PATCH_AGAIN(0x5F4718, ObjectClass_Select, 0x7)
 
 #include <EventClass.h>
@@ -705,14 +721,259 @@ void DrawSuperProgress(TechnoClass* pThis, Point2D* pLocation ,  RectangleStruct
 		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP, 0, &position, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 }
 
+struct DrawFrameStruct
+{
+	int TopLength;
+	int TopFrame;
+	SHPCaches* TopPipSHP;
+	int MidLength;
+	int MidFrame;
+	SHPCaches* MidPipSHP;
+	int MaxLength;
+	int BrdFrame;
+	Point2D* Location;
+	RectangleStruct* Bounds;
+};
+
+void DrawVanillaStyleFootBar(DrawFrameStruct* pDraw)
+{
+	const auto pLocation = pDraw->Location;
+	const auto pBounds = pDraw->Bounds;
+
+	if (pDraw->BrdFrame >= 0)
+	{
+		pLocation->X += 17;
+		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPBRD_SHP, pDraw->BrdFrame, pLocation, pBounds, BlitterFlags(0xE00), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+		pLocation->X -= 15;
+	}
+	else
+	{
+		pLocation->X += 2;
+	}
+
+	pLocation->Y += 1;
+
+	const auto topLength = pDraw->TopLength;
+	const auto midLength = pDraw->MidLength;
+	const auto maxLength = pDraw->MaxLength;
+
+	auto length = topLength > maxLength ? maxLength : topLength;
+
+	if (pDraw->TopFrame >= 0 && pDraw->TopPipSHP)
+	{
+		for (auto drawIdx = length; drawIdx > 0; --drawIdx, pLocation->X += 2)
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, pDraw->TopPipSHP, pDraw->TopFrame, pLocation, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+	}
+
+	length = midLength > maxLength ? maxLength - length : midLength - length;
+
+	if (pDraw->MidFrame >= 0 && pDraw->MidPipSHP)
+	{
+		for (auto drawIdx = length; drawIdx > 0; --drawIdx, pLocation->X += 2)
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, pDraw->MidPipSHP, pDraw->MidFrame, pLocation, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+	}
+}
+
+void DrawVanillaStyleBuildingBar(DrawFrameStruct* pDraw)
+{
+	const auto pLocation = pDraw->Location;
+	++pLocation->X;
+	const auto pBounds = pDraw->Bounds;
+
+	const auto topLength = pDraw->TopLength;
+	const auto midLength = pDraw->MidLength;
+	const auto maxLength = pDraw->MaxLength;
+
+	auto length = topLength > maxLength ? maxLength : topLength;
+
+	if (pDraw->TopFrame >= 0 && pDraw->TopPipSHP)
+	{
+		for (auto drawIdx = length; drawIdx > 0; --drawIdx, pLocation->X -= 4, pLocation->Y += 2)
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, pDraw->TopPipSHP, pDraw->TopFrame, pLocation, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+	}
+
+	length = midLength > maxLength ? maxLength - length : midLength - length;
+
+	if (pDraw->MidFrame >= 0 && pDraw->MidPipSHP)
+	{
+		for (auto drawIdx = length; drawIdx > 0; --drawIdx, pLocation->X -= 4, pLocation->Y += 2)
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, pDraw->MidPipSHP, pDraw->MidFrame, pLocation, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+	}
+
+	length = length >= 0 ? maxLength - midLength : maxLength - topLength;
+
+	if (pDraw->BrdFrame >= 0)
+	{
+		for (auto drawIdx = length; drawIdx > 0; --drawIdx, pLocation->X -= 4, pLocation->Y += 2)
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP, pDraw->BrdFrame, pLocation, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+	}
+}
+
+void DrawIronCurtainProgress(TechnoClass* pThis, RectangleStruct* pBounds, Point2D basePosition, bool isBuilding, bool isInfantry)
+{
+	if (!pThis->IsIronCurtained())
+		return;
+
+	auto pRulesExt = FakeRulesClass::Instance();
+	const auto timer = &pThis->IronCurtainTimer;
+
+	if (isBuilding)
+	{
+		const auto pBuilding = static_cast<BuildingClass*>(pThis);
+		const auto pType = pBuilding->Type;
+		const auto maxLength = pType->GetFoundationHeight(false) * 15 >> 1;
+		const auto offset = pRulesExt->InvulnerableDisplay_Buildings_Offset.Get();
+		auto position = basePosition + Point2D { offset.X, pType->PixelSelectionBracketDelta + offset.Y };
+
+		DrawFrameStruct pDraw
+		{
+			static_cast<int>((static_cast<double>(timer->GetTimeLeft()) / timer->TimeLeft) * maxLength + 0.99),
+			(pThis->ProtectType == ProtectTypes::ForceShield ? pRulesExt->InvulnerableDisplay_Buildings_Pips.Get().X : pRulesExt->InvulnerableDisplay_Buildings_Pips.Get().Y),
+			pRulesExt->ProgressDisplay_Buildings_PipsShape.Get(),
+			0,
+			-1,
+			nullptr,
+			maxLength,
+			-1,
+			&position,
+			pBounds
+		};
+
+		if (offset == Point2D::Empty && (pThis->IsSelected || pThis->IsMouseHovering)) // Layer fix
+		{
+			RulesClass* const pRules = RulesClass::Instance;
+			const auto ratio = pBuilding->GetHealthPercentage();
+			pDraw.MidLength = static_cast<int>(ratio * maxLength);
+			pDraw.MidFrame = (ratio > pRules->ConditionYellow) ? 1 : (ratio > pRules->ConditionRed ? 2 : 4);
+			pDraw.MidPipSHP = FileSystem::PIPS_SHP;
+			pDraw.BrdFrame = 0;
+		}
+
+		DrawVanillaStyleBuildingBar(&pDraw);
+	}
+	else
+	{
+		const int maxLength = isInfantry ? 8 : 17;
+		auto position = basePosition + Point2D { 0, pThis->GetTechnoType()->PixelSelectionBracketDelta + 2 } + pRulesExt->InvulnerableDisplay_Others_Offset.Get();
+
+		DrawFrameStruct pDraw
+		{
+			static_cast<int>((static_cast<double>(timer->GetTimeLeft()) / timer->TimeLeft) * maxLength + 0.99),
+			(pThis->ProtectType == ProtectTypes::ForceShield ? pRulesExt->InvulnerableDisplay_Others_Pips.Get().X : pRulesExt->InvulnerableDisplay_Others_Pips.Get().Y),
+			pRulesExt->ProgressDisplay_Others_PipsShape.Get(),
+			0,
+			-1,
+			nullptr,
+			maxLength,
+			-1,
+			&position,
+			pBounds
+		};
+
+		DrawVanillaStyleFootBar(&pDraw);
+	}
+}
+
+void DrawTemporalProgress(TechnoClass* pThis, RectangleStruct* pBounds, Point2D basePosition, bool isBuilding, bool isInfantry)
+{
+	const auto pTemporal = pThis->TemporalTargetingMe;
+
+	if (!pTemporal)
+		return;
+	auto pRulesExt = FakeRulesClass::Instance();
+
+	if (isBuilding)
+	{
+		const auto pBuilding = static_cast<BuildingClass*>(pThis);
+		const auto pType = pBuilding->Type;
+		const auto maxLength = pType->GetFoundationHeight(false) * 15 >> 1;
+		const auto offset = pRulesExt->TemporalLifeDisplay_Buildings_Offset.Get();
+		auto position = basePosition + Point2D { offset.X, pType->PixelSelectionBracketDelta + offset.Y };
+
+		DrawFrameStruct pDraw
+		{
+			static_cast<int>((static_cast<double>(pTemporal->WarpRemaining) / (pType->Strength * 10)) * maxLength + 0.99),
+			pRulesExt->TemporalLifeDisplay_Buildings_Pips,
+			pRulesExt->ProgressDisplay_Buildings_PipsShape.Get(),
+			0,
+			-1,
+			nullptr,
+			maxLength,
+			-1,
+			&position,
+			pBounds
+		};
+
+		if (offset == Point2D::Empty && (pThis->IsSelected || pThis->IsMouseHovering)) // Layer fix
+		{
+			RulesClass* const pRules = RulesClass::Instance;
+			const auto ratio = pBuilding->GetHealthPercentage();
+			pDraw.MidLength = static_cast<int>(ratio * maxLength);
+			pDraw.MidFrame = (ratio > pRules->ConditionYellow) ? 1 : (ratio > pRules->ConditionRed ? 2 : 4);
+			pDraw.MidPipSHP = FileSystem::PIPS_SHP;
+			pDraw.BrdFrame = 0;
+		}
+
+		DrawVanillaStyleBuildingBar(&pDraw);
+	}
+	else
+	{
+		const int maxLength = isInfantry ? 8 : 17;
+		const auto pType = pThis->GetTechnoType();
+		auto position = basePosition + Point2D { 0, (pType->PixelSelectionBracketDelta + 2) } + pRulesExt->TemporalLifeDisplay_Others_Offset.Get();
+
+		DrawFrameStruct pDraw
+		{
+			static_cast<int>((static_cast<double>(pTemporal->WarpRemaining) / (pType->Strength * 10)) * maxLength + 0.99),
+			pRulesExt->TemporalLifeDisplay_Others_Pips,
+			pRulesExt->ProgressDisplay_Others_PipsShape.Get(),
+			0,
+			-1,
+			nullptr,
+			maxLength,
+			-1,
+			&position,
+			pBounds
+		};
+
+		DrawVanillaStyleFootBar(&pDraw);
+	}
+}
+
 ASMJIT_PATCH(0x6F5EE3, TechnoClass_DrawExtras_DrawAboveHealth, 0x9)
 {
 	GET(TechnoClass*, pThis, EBP);
 	GET(Point2D*, pLoc, EDI);
 	GET_STACK(RectangleStruct*, pBounds, STACK_OFFSET(0x98, 0x8));
 
-	DrawFactoryProgress(pThis, pLoc , pBounds);
-	DrawSuperProgress(pThis, pLoc, pBounds);
+
+	const auto pCell = MapClass::Instance->TryGetCellAt(pThis->GetCenterCoords());
+
+	if ((pCell && !pCell->IsFogged() && !pCell->IsShrouded()) || pThis->IsSelected || pThis->IsMouseHovering) {
+		const auto absType = pThis->WhatAmI();
+
+		if (absType == AbstractType::Building) {
+			const auto pBuilding = static_cast<BuildingClass*>(pThis);
+			const auto basePosition = TechnoExtData::GetBuildingSelectBracketPosition(pBuilding, BuildingSelectBracketPosition::Top);
+
+			DrawTemporalProgress(pThis, pBounds, basePosition, true, false);
+			DrawIronCurtainProgress(pThis, pBounds, basePosition, true, false);
+
+			if (!pThis->Owner->IsNeutral()) {
+				DrawFactoryProgress(pThis, pLoc, pBounds);
+				DrawSuperProgress(pThis, pLoc, pBounds);
+			}
+		}
+		else
+		{
+			const bool isInfantry = absType == AbstractType::Infantry;
+			const auto basePosition = TechnoExtData::GetFootSelectBracketPosition(pThis, Anchor(HorizontalPosition::Left, VerticalPosition::Top));
+
+			DrawTemporalProgress(pThis, pBounds, basePosition, false, isInfantry);
+			DrawIronCurtainProgress(pThis, pBounds, basePosition, false, isInfantry);
+		}
+	}
+
 
 	return 0;
 }
@@ -770,11 +1031,11 @@ ASMJIT_PATCH(0x6B7793, SpawnManagerClass_Update_RecycleSpawned, 0x7)
 
 	if (shouldRecycleSpawned())
 	{
-		if (pCarrierTypeExt->Spawner_RecycleAnim)
-		{
+		if (pCarrierTypeExt->Spawner_RecycleAnim) {
 			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pCarrierTypeExt->Spawner_RecycleAnim, spawnerCrd), pSpawned->Owner, nullptr, pSpawned, false, true);
 		}
 
+		pSpawned->Limbo();
 		pSpawned->SetLocation(pCarrier->GetCoords());
 		return Recycle;
 	}
@@ -2500,8 +2761,19 @@ ASMJIT_PATCH(0x700C58, TechnoClass_CanPlayerMove_NoManualMove, 0x6)
 
 ASMJIT_PATCH(0x4437B3, BuildingClass_CellClickedAction_NoManualMove, 0x6)
 {
+	GET(BuildingClass*, pThis, ESI);
 	GET(BuildingTypeClass*, pType, EDX);
-	return TechnoTypeExtContainer::Instance.Find(pType)->NoManualMove ? 0x44384E : 0;
+
+	if (TechnoTypeExtContainer::Instance.Find(pType)->NoManualMove)
+		return 0x44384E;
+
+	const bool _bl = R->BL();
+	if (pType->UndeploysInto && !_bl) {
+		TargetClass _Target(pThis);
+		EventClass::CreateEvent(pThis->GetOwningHouseIndex(), EventType::SELL, _Target.m_ID, (AbstractType)_Target.m_RTTI);
+	}
+
+	return 0x44384E;
 }
 
 ASMJIT_PATCH(0x44F62B, BuildingClass_CanPlayerMove_NoManualMove, 0x6)
@@ -2525,20 +2797,6 @@ ASMJIT_PATCH(0x744745, UnitClass_RegisterDestruction_Trigger, 0x5)
 	}
 
 	return 0x0;
-}
-
-ASMJIT_PATCH(0x738801, UnitClass_Destroy_DestroyAnim, 0x6) //was C
-{
-	GET(UnitClass* const, pThis, ESI);
-
-	auto const Extension = TechnoExtContainer::Instance.Find(pThis);
-
-	if (!Extension->ReceiveDamage)
-	{
-		AnimTypeExtData::ProcessDestroyAnims(pThis);
-	}
-
-	return 0x73887E;
 }
 
 int GetVoiceAttack(TechnoTypeClass* pType, int WeaponIndex, bool isElite, WeaponTypeClass* pWeaponType)
@@ -2880,4 +3138,107 @@ ASMJIT_PATCH(0x54C8F6, JumpjetLocomotionClass_State4_PCP_checkAlive, 0x5) {
 		return 0x54CA7C;//dead
 
 	return 0x0;
+}
+
+#pragma region CheckRepairDone
+
+static inline bool ShouldResetSpawnManagerTarget(SpawnManagerClass* pThis)
+{
+	if (!pThis->Target)
+		return true;
+
+	if (TechnoTypeExtContainer::Instance.Find(pThis->Owner->GetTechnoType())->Spawner_ReturnOnRepairDone)
+	{
+		auto pTarget = flag_cast_to<TechnoClass*>(pThis->Target);
+
+		if (pTarget && pTarget->GetHealthPercentage() >= RulesClass::Instance->ConditionGreen)
+			return true;
+	}
+
+	return false;
+}
+
+ASMJIT_PATCH(0x6B7702, SpawnManagerClass_AI_CheckRepairDone1, 0x5)
+{
+	enum { KeepTarget = 0x6B770D, ResetTarget = 0x6B7663 };
+
+	GET(SpawnManagerClass*, pThis, ESI);
+
+	R->EAX(pThis->Target);
+	return ShouldResetSpawnManagerTarget(pThis) ? ResetTarget : KeepTarget;
+}
+
+ASMJIT_PATCH(0x6B7752, SpawnManagerClass_AI_CheckRepairDone2, 0x5)
+{
+	enum { KeepTarget = 0x6B7759, ResetTarget = 0x6B7793 };
+
+	GET(SpawnManagerClass*, pThis, ESI);
+
+	R->EAX(pThis->Target);
+	return ShouldResetSpawnManagerTarget(pThis) ? ResetTarget : KeepTarget;
+}
+
+ASMJIT_PATCH(0x6B79BF, SpawnManagerClass_AI_CheckRepairDone3, 0x5)
+{
+	enum { ResetTarget = 0x6B79C4, KeepTarget = 0x6B79D3 };
+	GET(SpawnManagerClass*, pThis, ESI);
+	return ShouldResetSpawnManagerTarget(pThis) ? ResetTarget : KeepTarget;
+}
+
+#pragma endregion
+
+
+void __fastcall _Uncloak(UnitClass* pWho , discard_t,bool silent)
+{
+	if (UnitTypeExtContainer::Instance.Find(pWho->Type)->Crush_SelfUncloak
+		.Get(FakeRulesClass::Instance->Crush_SelfUncloak)) {
+		pWho->Uncloak(silent);
+	}
+}
+
+DEFINE_FUNCTION_JUMP(CALL6, 0x741933 , _Uncloak)
+
+ASMJIT_PATCH(0x6FBC5B, TechnoClass_Cloaking_AI_UncloakWhenLowHealth, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	if (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->UncloakWhenLowHealth
+		.Get(FakeRulesClass::Instance->UncloakWhenLowHealth)) {
+		//dont play sound
+		pThis->Uncloak(true);
+	}
+
+	return 0x6FBC80;
+}
+
+DEFINE_HOOK(0x70821F, TechnoClass_BaseIsAttacked_Ignore1, 0x6)
+{
+	enum { CheckDefend = 0x70822B, SkipDefend = 0x7083BC };
+	GET(TeamClass*, pTeam, EAX);
+	GET(bool, isBaseDefense, ECX);
+	GET(FootClass*, pThis, ESI);
+
+	if (isBaseDefense)
+		return CheckDefend;
+
+	if (FootTypeExtContainer::Instance.Find(pThis->GetTechnoType())->AIDefendBase_Ignore)
+		return SkipDefend;
+
+	return pTeam ? SkipDefend : CheckDefend;
+}
+
+DEFINE_HOOK(0x708455, TechnoClass_BaseIsAttacked_Ignore2, 0x6)
+{
+	enum { CheckDefend = 0x708461, SkipDefend = 0x708622 };
+	GET(TeamClass*, pTeam, EAX);
+	GET(bool, isBaseDefense, ECX);
+	GET(FootClass*, pThis, ESI);
+
+	if (isBaseDefense)
+		return CheckDefend;
+
+	if (FootTypeExtContainer::Instance.Find(pThis->GetTechnoType())->AIDefendBase_Ignore)
+		return SkipDefend;
+
+	return pTeam ? SkipDefend : CheckDefend;
 }

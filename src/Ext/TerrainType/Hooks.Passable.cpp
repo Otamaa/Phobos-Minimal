@@ -387,6 +387,7 @@ namespace ProximityTemp
 	CellClass* CurrentCell = nullptr;
 }
 
+//TODO : breaking slave miner
 // Buildable-upon TerrainTypes Hook #1 -> sub_47C620 - Allow placing buildings on top of them
 // Buildable-upon TechnoTypes Hook #1 -> sub_47C620 - Rewrite and check whether allow placing buildings on top of them
 // Customized Laser Fence Hook #1 -> sub_47C620 - Forbid placing laser fence post on inappropriate laser fence

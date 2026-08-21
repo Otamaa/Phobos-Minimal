@@ -18,6 +18,7 @@ public:
 	Nullable<int> HarvesterLoadRate {};
 	Nullable<double> HarvesterDumpRate {};
 	TheaterIamgeClass TheaterImage {};
+	Nullable<bool> Crush_SelfUncloak {};
 
 	UnitTypeExtData(UnitTypeClass* pObj) : FootTypeExtData(pObj)
 	{
@@ -62,16 +63,7 @@ public:
 
 private:
 	template<typename T>
-	void Serialize(T& Stm)
-	{
-		Stm
-			.Process(this->TurretShape)
-			.Process(this->DefaultMirageDisguises)
-			.Process(this->HarvesterLoadRate)
-			.Process(this->HarvesterDumpRate)
-			.Process(this->TheaterImage)
-			;
-	}
+	void Serialize(T& Stm);
 
 };
 

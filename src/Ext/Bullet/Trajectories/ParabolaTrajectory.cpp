@@ -810,7 +810,7 @@ double ParabolaTrajectory::SolveFixedAngleVelocity(double horizontalDistance, in
 	const double cosTheta = std::cos(radian);
 
 	// Reject near-vertical launch angle.
-	if (std::abs(cosTheta) < epsilon)
+	if (Math::abs(cosTheta) < epsilon)
 		return -1.0;
 
 	// Solve ballistic trajectory analytically:

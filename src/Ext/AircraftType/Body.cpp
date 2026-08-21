@@ -60,6 +60,8 @@ bool AircraftTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->CustomMissileInaccuracy.Read(exINI, pSection, "Missile.Inaccuracy");
 	this->CustomMissileCloseEnoughFactor.Read(exINI, pSection, "Missile.CloseEnoughFactor");
 	this->CustomMissileTrailAppearDelay.Read(exINI, pSection, "Missile.TrailerAppearDelay");
+	this->Missile_Tracing.Read(exINI, pSection, "Missile.Tracing");
+	this->Missile_UseDeathWeaponWhenIntercepted.Read(exINI, pSection, "Missile.UseDeathWeaponWhenIntercepted");
 
 	this->AttackingAircraftSightRange.Read(exINI, pSection, "AttackingAircraftSightRange");
 	this->CrashWeapon_s.Read(exINI, pSection, "Crash.Weapon", true);
@@ -129,6 +131,8 @@ void AircraftTypeExtData::Serialize(T& Stm)
 		.Process(this->CustomMissileEliteWeapon)
 		.Process(this->CustomMissileInaccuracy)
 		.Process(this->CustomMissileTrailAppearDelay)
+		.Process(this->Missile_Tracing)
+		.Process(this->Missile_UseDeathWeaponWhenIntercepted)
 		.Process(this->CustomMissileCloseEnoughFactor)
 		.Process(this->CustomMissileRaise)
 		.Process(this->IsCruiseMissile)

@@ -9,6 +9,7 @@
 #include <Ext/Scenario/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/Super/Body.h>
+#include <Ext/Techno/Body.h>
 
 #include <Utilities/Cast.h>
 
@@ -37,6 +38,8 @@
 #include <New/SuperWeaponSidebar/SWColumnClass.h>
 #include <New/SuperWeaponSidebar/ToggleSWButtonClass.h>
 #include <New/Entity/PowerPlantEnhancerClass.h>
+#include <New/UniqueButton/UniqueTechnoColumnClass.h>
+#include <New/SelectedButton/SelectedInfoClass.h>
 
 #include <YRMath.h>
 #include <Phobos.h>
@@ -201,13 +204,9 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 		fmt::format_to(std::back_inserter(this->TextBuffer), L"\n{}", pDesc);
 	}
 
-	if (pData->Cameo_AlwaysExist.Get(FakeRulesClass::Instance()->Cameo_AlwaysExist)) {
-		auto& vec = ScenarioExtData::Instance()->OwnedExistCameoTechnoTypes;
-
-		if (vec.contains(pType)) {
-			if (auto pExDesc = this->GetUnbuildableUIDescription(pData))
-				fmt::format_to(std::back_inserter(this->TextBuffer), L"\n{}", pExDesc);
-		}
+	if (pData->Cameo_AlwaysExistForCurrentPlayerActive) {
+		if (auto pExDesc = this->GetUnbuildableUIDescription(pData))
+			fmt::format_to(std::back_inserter(this->TextBuffer), L"\n{}", pExDesc);
 	}
 
 #else
@@ -245,13 +244,9 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 	if (auto pDesc = this->GetUIDescription(pData))
 		oss << L"\n" << pDesc;
 
-	if (pData->Cameo_AlwaysExist.Get(FakeRulesClass::Instance()->Cameo_AlwaysExist)) {
-		auto& vec = ScenarioExtData::Instance()->OwnedExistCameoTechnoTypes;
-
-		if (vec.contains(pType)) {
-			if (auto pExDesc = this->GetUnbuildableUIDescription(pData))
-				oss << L"\n" << pExDesc;
-		}
+	if (pData->IsGreyCameoForCurrentPlayer) {
+		if (auto pExDesc = this->GetUnbuildableUIDescription(pData))
+			oss << L"\n" << pExDesc;
 	}
 
 	this->TextBuffer = oss.str();
@@ -486,6 +481,23 @@ ASMJIT_PATCH(0x4AE51E, DisplayClass_GetToolTip_TacticalButton, 0x6)
 			return 0x4AE69D;
 		}
 	}
+
+	const auto uniqueIndex = UniqueTechnoColumnClass::Instance.Hovering;
+
+	if (uniqueIndex >= 0) {
+		auto& vec = ScenarioExtData::Instance()->OwnedUniqueTechnos;
+
+		if (uniqueIndex < static_cast<int>(vec.size())) {
+			R->EAX(vec[uniqueIndex]->TypeExtData->This()->UIName);
+			return 0x4AE69D;
+		}
+	}
+
+	if (SelectedInfoClass::Instance.IsHovering) {
+		R->EAX(0);
+		return 0x4AE69D;
+	}
+
 
 	return 0;
 }

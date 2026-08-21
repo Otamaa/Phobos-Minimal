@@ -148,6 +148,15 @@ public:
 	// ============================================================
 	Valueable<bool> SidebarYuriFileNames { false };
 	// 1 byte + 3 bytes padding for alignment
+
+
+	Nullable<SHPCaches*> SelectedInfo_Main { };
+	Nullable<SHPCaches*> SelectedInfo_Buff { };
+	Nullable<SHPCaches*> SelectedInfo_Button { };
+	Nullable<SHPCaches*> SelectedInfo_Bottom { };
+	Nullable<SHPCaches*> SelectedInfo_Toggle { };
+	CustomPalette SelectedInfo_Palette { };
+
 #pragma endregion
 
 public:
@@ -167,13 +176,13 @@ public:
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
-		this->AbstractTypeExtData::Internal_LoadFromStream(Stm);
+		this->AbstractTypeExtData::LoadFromStream(Stm);
 		this->Serialize(Stm);
 	}
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
-		const_cast<SideExtData*>(this)->AbstractTypeExtData::Internal_SaveToStream(Stm);
+		const_cast<SideExtData*>(this)->AbstractTypeExtData::SaveToStream(Stm);
 		const_cast<SideExtData*>(this)->Serialize(Stm);
 	}
 

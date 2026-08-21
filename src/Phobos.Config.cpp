@@ -15,9 +15,6 @@
 #include <GameOptionsClass.h>
 #include <StringTable.h>
 
-#include <Phobos.INI.h>
-
-
 #include <Ext/Convert/Body.h>
 
 #include <IPXManagerClass.h>
@@ -43,10 +40,9 @@ void SetResultion() {
 // these for some reason breaking the stuffs , dont understand , maybe skipping some hooks
 ASMJIT_PATCH(0x6BC099, WInMain_CreateRA2MD_Override, 0x7)
 {
-	PhobosINIContainer::Ra2_INI = std::make_unique<PhobosINIClass>();
 	auto _ra2MD = GameCreate<RawFileClass>(GameStrings::RA2MD_INI());
 	
-	if (!CCINIClass::INI_RA2MD->ReadCCFile(_ra2MD) || !PhobosINIContainer::Ra2_INI->LoadFile(_ra2MD))
+	if (!CCINIClass::INI_RA2MD->ReadCCFile(_ra2MD))
 	{
 		Debug::FatalError("Failed to load %s !", GameStrings::RA2MD_INI());
 		R->Base<FileClass*>(-0x70C, _ra2MD);
@@ -247,10 +243,7 @@ void Phobos::Config::Read_UIMD()
 	if (!file.IsAvaible())
 		return;
 
-	PhobosINIContainer::Ui_INI = std::make_unique<PhobosINIClass>();
-
 	CCINIClass::INI_UIMD->ReadCCFile(&file, false, false);
-	PhobosINIContainer::Ui_INI ->LoadFile(&file);
 
 	//theoritically this is fine , it is global instance
 	//it never became null just empty state
@@ -413,6 +406,10 @@ void Phobos::Config::Read_UIMD()
 		Phobos::Config::ShowPowerDelta = pINI->ReadBool(PHOBOS_STR, "ShowPowerDelta", Phobos::Config::ShowPowerDelta);
 		Phobos::Config::ShowHarvesterCounter = pINI->ReadBool(PHOBOS_STR, "ShowHarvesterCounter", Phobos::Config::ShowHarvesterCounter);
 		Phobos::Config::ShowWeedsCounter = pINI->ReadBool(PHOBOS_STR, "ShowWeedsCounter", Phobos::Config::ShowWeedsCounter);
+
+		Phobos::Config::SelectedDisplay_Enable = pINI->ReadBool(PHOBOS_STR, "SelectedDisplay.Enable", Phobos::Config::SelectedDisplay_Enable);
+		Phobos::Config::SelectedDisplay_Expand = pINI->ReadBool(PHOBOS_STR, "SelectedDisplay.Expand", Phobos::Config::SelectedDisplay_Expand);
+		Phobos::Config::SelectedDisplay_MaxCameo = pINI->ReadInteger(PHOBOS_STR, "SelectedDisplay.MaxCameo", Phobos::Config::SelectedDisplay_MaxCameo);
 	}
 
 	//if (pINI->GetSection(GameStrings::ToolTips()))

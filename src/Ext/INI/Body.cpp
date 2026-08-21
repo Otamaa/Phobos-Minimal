@@ -10,8 +10,6 @@
 
 #include <Pipes.h>
 
-#include <Phobos.INI.h>
-
 /**
  *  Reads a line from the INI file.
  *

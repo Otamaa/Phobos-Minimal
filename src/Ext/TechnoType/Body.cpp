@@ -1168,7 +1168,6 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->Death_IfChangeOwnership.Read(exINI, pSection, "Death.IfChangeOwnership");
 
 		this->ShieldType.Read(exINI, pSection, "ShieldType");
-		this->CameoPriority.Read(exINI, pSection, "CameoPriority");
 
 		this->WarpOut.Read(exINI, pSection, "%s.WarpOut");
 		this->WarpIn.Read(exINI, pSection, "%s.WarpIn");
@@ -1326,6 +1325,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->Cameo_AlwaysExist.Read(exINI, pSection, "Cameo.AlwaysExist");
 		this->Cameo_AuxTechnos.Read(exINI, pSection, "Cameo.AuxTechnos");
 		this->Cameo_NegTechnos.Read(exINI, pSection, "Cameo.NegTechnos");
+		this->Cameo_RequiredHouses = pINI->ReadHouseTypesList(pSection, "Cameo.RequiredHouses", this->Cameo_RequiredHouses);
 		this->UIDescription_Unbuildable.Read(exINI, pSection, "UIDescription.Unbuildable");
 
 #pragma region Otamaa
@@ -2043,6 +2043,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->Spawner_RecycleFLH.Read(exINI, pSection, "Spawner.RecycleCoord");
 		this->Spawner_RecycleOnTurret.Read(exINI, pSection, "Spawner.RecycleOnTurret");
 		this->Spawner_RecycleAnim.Read(exINI, pSection, "Spawner.RecycleAnim");
+		this->Spawner_ReturnOnRepairDone.Read(exINI, pSection, "Spawner.ReturnOnRepairDone");
 
 		this->AINormalTargetingDelay.Read(exINI, pSection, "AINormalTargetingDelay");
 		this->PlayerNormalTargetingDelay.Read(exINI, pSection, "PlayerNormalTargetingDelay");
@@ -2415,6 +2416,51 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		ValidateReloadMultiplier(pSection, "VeteranEmptyReload", this->VeteranEmptyReload);
 
 		this->CrashSpin_Multiplier.Read(exINI, pSection, "CrashSpin.Multiplier");
+
+		this->UncloakWhenLowHealth.Read(exINI, pSection, "Cloak.UncloakWhenLowHealth");
+		this->NoAutoFire_AI.Read(exINI, pSection, "NoAutoFire.AI");
+
+		this->WreckageType.Read(exINI, pSection, "WreckageType");
+		this->WreckageInitialHealthPercent.Read(exINI, pSection, "WreckageInitialHealthPercent");
+		this->WreckageDeactive.Read(exINI, pSection, "WreckageDeactive");
+		this->WreckageMarkUp.Read(exINI, pSection, "WreckageMarkUp");
+		this->WreckageOwner.Read(exINI, pSection, "WreckageOwner");
+		this->WreckageLeaveOnWater.Read(exINI, pSection, "WreckageLeaveOnWater");
+		this->WreckageLeaveInAir.Read(exINI, pSection, "WreckageLeaveInAir");
+		this->WreckageSwapLocomotor.Read(exINI, pSection, "WreckageSwapLocomotor");
+
+		this->TargetExtraThreat.Read(exINI, pSection, "TargetExtraThreat");
+		{
+			ValueableVector<double> ReadAngles {};
+			ReadAngles.Read(exINI, pSection, "TargetExtraThreat.Angles");
+
+			if (const size_t count = ReadAngles.size())
+			{
+				this->TargetExtraThreat_Angles.clear();
+				this->TargetExtraThreat_Angles.resize(count);
+
+				for (size_t i = 0; i < count; ++i)
+				{
+					const int raw = static_cast<int>(ReadAngles[i] * (65536.0 / 360.0) + 0.5);
+					this->TargetExtraThreat_Angles[i] = DirStruct(std::clamp(raw, 0, 65535));
+				}
+			}
+		}
+		this->TargetExtraThreat_Multipliers.Read(exINI, pSection, "TargetExtraThreat.Multipliers");
+		this->TargetExtraThreat_Turret.Read(exINI, pSection, "TargetExtraThreat.Turret");
+
+		this->SelectedInfo_UpperType.Read(exINI, pSection, "SelectedInfo.UpperType");
+		this->SelectedInfo_UpperIndex.Read(exINI, pSection, "SelectedInfo.UpperIndex");
+		this->SelectedInfo_UpperColor.Read(exINI, pSection, "SelectedInfo.UpperColor");
+		this->SelectedInfo_UpperDivisor.Read(exINI, pSection, "SelectedInfo.UpperDivisor");
+		this->SelectedInfo_BelowType.Read(exINI, pSection, "SelectedInfo.BelowType");
+		this->SelectedInfo_BelowIndex.Read(exINI, pSection, "SelectedInfo.BelowIndex");
+		this->SelectedInfo_BelowColor.Read(exINI, pSection, "SelectedInfo.BelowColor");
+		this->SelectedInfo_BelowDivisor.Read(exINI, pSection, "SelectedInfo.BelowDivisor");
+		this->SelectedInfo_CameoType.Read(exINI, pSection, "SelectedInfo.CameoType");
+		this->SelectedInfo_CameoIndex.Read(exINI, pSection, "SelectedInfo.CameoIndex");
+		this->SelectedInfo_Button.Read(exINI, pSection, "SelectedInfo.Button");
+		this->UIDescription_HoveredInfo.Read(exINI, pSection, "UIDescription.HoveredInfo");
 	}
 
 	this->TintColorAirstrike = GeneralUtils::GetColorFromColorAdd(this->LaserTargetColor.Get(RulesClass::Instance->LaserTargetColor));
@@ -2810,7 +2856,6 @@ void TechnoTypeExtData::Serialize(T& Stm) {
 		.Process(this->Promote_IncludeSpawns)
 		.Process(this->ImmuneToCrit)
 		.Process(this->MultiMindControl_ReleaseVictim)
-		.Process(this->CameoPriority)
 		.Process(this->NoManualMove)
 		.Process(this->InitialStrength)
 
@@ -3614,6 +3659,7 @@ void TechnoTypeExtData::Serialize(T& Stm) {
 		.Process(this->Spawner_RecycleFLH)
 		.Process(this->Spawner_RecycleOnTurret)
 		.Process(this->Spawner_RecycleAnim)
+		.Process(this->Spawner_ReturnOnRepairDone)
 
 		.Process(this->HugeBar)
 		.Process(this->HugeBar_Priority)
@@ -3693,7 +3739,10 @@ void TechnoTypeExtData::Serialize(T& Stm) {
 		.Process(this->Cameo_AlwaysExist)
 		.Process(this->Cameo_AuxTechnos)
 		.Process(this->Cameo_NegTechnos)
-		.Process(this->CameoCheckMutex)
+		.Process(this->Cameo_RequiredHouses)
+		.Process(this->Cameo_AlwaysExistRequirementMet)
+		.Process(this->Cameo_AlwaysExistForCurrentPlayerActive)
+		.Process(this->Cameo_AlwaysExistIsGreyCameoAbandonedProduct)
 		.Process(this->UIDescription_Unbuildable)
 		.Process(this->GreyCameoPCX)
 
@@ -3738,7 +3787,8 @@ void TechnoTypeExtData::Serialize(T& Stm) {
 		.Process(this->AlternateFLH_OnTurret)
 		.Process(this->AlternateFLH_ApplyVehicle)
 		.Process(this->DamagedSpeed)
-
+		.Process(this->UncloakWhenLowHealth)
+		.Process(this->NoAutoFire_AI)
 		.Process(this->RadarInvisibleToHouse)
 
 		.Process(this->AdvancedDrive_Reverse)
@@ -3875,6 +3925,33 @@ void TechnoTypeExtData::Serialize(T& Stm) {
 		.Process(this->VeteranSight)
 
 		.Process(this->TintColorAirstrike)
+
+		.Process(this->WreckageType)
+		.Process(this->WreckageInitialHealthPercent)
+		.Process(this->WreckageDeactive)
+		.Process(this->WreckageMarkUp)
+		.Process(this->WreckageOwner)
+		.Process(this->WreckageLeaveOnWater)
+		.Process(this->WreckageLeaveInAir)
+		.Process(this->WreckageSwapLocomotor)
+
+		.Process(this->TargetExtraThreat)
+		.Process(this->TargetExtraThreat_Angles)
+		.Process(this->TargetExtraThreat_Multipliers)
+		.Process(this->TargetExtraThreat_Turret)
+
+		.Process(this->SelectedInfo_UpperType)
+		.Process(this->SelectedInfo_UpperIndex)
+		.Process(this->SelectedInfo_UpperColor)
+		.Process(this->SelectedInfo_UpperDivisor)
+		.Process(this->SelectedInfo_BelowType)
+		.Process(this->SelectedInfo_BelowIndex)
+		.Process(this->SelectedInfo_BelowColor)
+		.Process(this->SelectedInfo_BelowDivisor)
+		.Process(this->SelectedInfo_CameoType)
+		.Process(this->SelectedInfo_CameoIndex)
+		.Process(this->SelectedInfo_Button)
+		.Process(this->UIDescription_HoveredInfo)
 		;
 }
 

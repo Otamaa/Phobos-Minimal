@@ -161,6 +161,15 @@ public:
 	Valueable<bool> AU { false };
 	Nullable<bool> Shrapnel_ObeyWarheadTriggerConditions {};
 	// 35 Valueable<bool> = 35 bytes, pads to 36 for 4-byte alignment
+
+	Valueable<bool> BallisticScatter_IncreaseByRange {};
+	Nullable<Leptons> BallisticScatter_MinRange {};
+	Nullable<Leptons> BallisticScatter_MaxRange {};
+	Nullable<Leptons> BallisticScatter_Min_InMinRange {};
+	Nullable<Leptons> BallisticScatter_Min_InMaxRange {};
+	Nullable<Leptons> BallisticScatter_Max_InMinRange {};
+	Nullable<Leptons> BallisticScatter_Max_InMaxRange {};
+	Nullable<double> BallisticScatter_Chance {};
 #pragma endregion
 
 public:

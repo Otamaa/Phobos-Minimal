@@ -758,6 +758,9 @@ bool ScriptExtData::EvaluateObjectWithMask(
 		OccupyableCivilian = 39,  // REVIEW: 38 is absent/skipped in original
 		GrinderBuilding = 40,
 		SpyableBuilding = 41,
+		FactoryOnLand = 42,
+		BuildingOnLand = 43,
+		AllTechnoOnLand = 44
 	};
 
 	// --------------------------------------------------------
@@ -1418,7 +1421,80 @@ bool ScriptExtData::EvaluateObjectWithMask(
 
 		return pBuildingTechno->Type->Spyable;
 	}
+	case TargetMask::FactoryOnLand:
+	{
+		// Factorys on land
 
+		if (!pTechno->Owner->IsNeutral()
+			&& pTechno->GetCell()->LandType != LandType::Water)
+		{
+			switch (pTechno->WhatAmI())
+			{
+			case AbstractType::Building:
+
+				if (static_cast<BuildingTypeClass*>(pTechnoType)->Factory != AbstractType::None)
+					return true;
+
+				break;
+
+			case AbstractType::Unit:
+
+				if (const auto pDeployInto = pTechnoType->DeploysInto)
+				{
+					if (pDeployInto->Factory != AbstractType::None)
+						return true;
+				}
+
+				break;
+
+			default:
+				break;
+			}
+		}
+
+		break;
+	}
+
+	case TargetMask::BuildingOnLand:
+	{
+		// Buildings on land
+
+		if (!pTechno->Owner->IsNeutral()
+			&& pTechno->GetCell()->LandType != LandType::Water)
+		{
+			switch (pTechno->WhatAmI())
+			{
+			case AbstractType::Building:
+
+				return true;
+
+				break;
+
+			case AbstractType::Unit:
+
+				if (pTechnoType->DeploysInto)
+					return true;
+
+				break;
+
+			default:
+				break;
+			}
+		}
+	}
+
+	case TargetMask::AllTechnoOnLand:
+	{
+		// All technos on land
+
+		if (!pTechno->Owner->IsNeutral()
+			&& pTechno->GetCell()->LandType != LandType::Water)
+		{
+			return true;
+		}
+
+		break;
+	}
 	default:
 		break;
 	}

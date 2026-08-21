@@ -10,6 +10,7 @@
 #include <Utilities/PhobosFixedString.h>
 #include <Utilities/VectorSet.h>
 
+class TechnoExtData;
 struct ExtendedVariable
 {
 	char Name[0x100];
@@ -73,12 +74,13 @@ public:
 	// Vectors / VectorSets (24+ bytes each)
 	// ============================================================
 	std::vector<CellStruct> DefinedAudioWaypoints {};
-	HelperedVector<TechnoTypeClass*> OwnedExistCameoTechnoTypes {};
 	VectorSet<int> SWSidebar_Indices {};
 	std::vector<std::wstring> RecordMessages {};
-	VectorSet<TechnoClass*> LimboLaunchers {};
-	VectorSet<TechnoClass*> UndergroundTracker {};
-	VectorSet<TechnoClass*> FallingDownTracker {};
+
+	VectorSet<TechnoExtData*> LimboLaunchers {};
+	VectorSet<TechnoExtData*> UndergroundTracker {};
+	VectorSet<TechnoExtData*> FallingDownTracker {};
+	HelperedVector<TechnoExtData*> OwnedUniqueTechnos {};
 
 	// ============================================================
 	// 4-byte aligned: int
@@ -142,6 +144,14 @@ public:
 	NullableIdx<VocClass> DropshipLoadout_EndingDragDropSound {};
 	std::vector<int> DropshipLoadout_ActiveTeamSuffixes {};
 
+	std::set<int> Smudges {};
+
+	DWORD OwnerBitfield_BuildingType { 0 };
+	DWORD OwnerBitfield_InfantryType { 0 };
+	DWORD OwnerBitfield_VehicleType { 0 };
+	DWORD OwnerBitfield_NavyType { 0 };
+	DWORD OwnerBitfield_AircraftType { 0 };
+
 #pragma endregion
 
 	void SetVariableToByID(const bool IsGlobal, int nIndex, char bState);
@@ -162,96 +172,7 @@ public:
 
 private:
 	template <typename T>
-	void Serialize(T& Stm)
-	{
-		//Debug::LogInfo("Processing ScenarioExtData ! ");
-		Stm
-
-			.Process(this->Initialized)
-			.Process(this->OriginalFilename)
-			.Process(this->Waypoints)
-			.Process(this->Local_Variables)
-			.Process(this->Global_Variables)
-			.Process(this->TriggerTypePlayerAtXOwners)
-			.Process(this->DefinedAudioWaypoints)
-			.Process(this->ParTitle)
-			.Process(this->ParMessage)
-			.Process(this->ScoreCampaignTheme)
-			.Process(this->NextMission)
-
-			//.Process(this->DefaultNormalLighting)
-			//.Process(this->DefaultAmbientOriginal)
-			//.Process(this->DefaultAmbientCurrent)
-			//.Process(this->DefaultAmbientTarget)
-			//.Process(this->CurrentTint_Tiles)
-			//.Process(this->CurrentTint_Schemes)
-			//.Process(this->CurrentTint_Hashes)
-			.Process(this->AdjustLightingFix)
-
-			.Process(this->ShowBriefing)
-			.Process(this->BriefingTheme)
-			.Process(this->OwnedExistCameoTechnoTypes)
-			.Process(this->SWSidebar_Enable)
-			.Process(this->IsHouseTypeVoiceNeedCheck)
-			.Process(this->SWSidebar_Indices)
-
-			.Process(this->RecordMessages)
-
-			.Process(this->DefaultLS640BkgdName)
-			.Process(this->DefaultLS800BkgdName)
-			.Process(this->DefaultLS800BkgdPal)
-
-			.Process(this->LimboLaunchers)
-			.Process(this->UndergroundTracker)
-			.Process(this->FallingDownTracker)
-
-			.Process(this->PrismRelayClaimFrame)
-			.Process(this->PrismRelayClaimMaster)
-			.Process(this->PrismRelayClaimWeaponIndex)
-
-			.Process(this->DropshipLoadout_Theme)
-			.Process(this->DropshipLoadout_Money)
-			.Process(this->DropshipLoadout_StartEVA)
-			.Process(this->DropshipLoadout_StartingDropships)
-			.Process(this->DropshipLoadout_Carriers)
-			.Process(this->DropshipLoadout_Carriers_SizeLimit)
-			.Process(this->DropshipLoadout_AddUnusedMoneyToPlayer)
-			.Process(this->DropshipLoadout_RememberPurchasedCargo)
-			.Process(this->DropshipLoadout_Palette)
-			.Process(this->DropshipLoadout_Background)
-			.Process(this->DropshipLoadout_UpArrow)
-			.Process(this->DropshipLoadout_DownArrow)
-			.Process(this->DropshipLoadout_Loadout)
-			.Process(this->DropshipLoadout_LoadoutLocation)
-			.Process(this->DropshipLoadout_PilotLit)
-			.Process(this->DropshipLoadout_PilotLitLocation)
-			.Process(this->DropshipLoadout_DGreenList)
-			.Process(this->DropshipLoadout_BackgroundPCX)
-			.Process(this->DropshipLoadout_UpArrowPCX)
-			.Process(this->DropshipLoadout_DownArrowPCX)
-			.Process(this->DropshipLoadout_LoadoutPCX)
-			.Process(this->DropshipLoadout_PilotLitPCX)
-			.Process(this->DropshipLoadout_DGreenListPCX)
-			.Process(this->DropshipLoadout_DGreenAnimationsCount)
-			.Process(this->DropshipLoadout_DGreenLocations)
-			.Process(this->DropshipLoadout_UpArrowLocation)
-			.Process(this->DropshipLoadout_DownArrowLocation)
-			.Process(this->DropshipLoadout_SidebarCameosCount)
-			.Process(this->DropshipLoadout_SidebarCameoLocations)
-			.Process(this->DropshipLoadout_DropshipCameosCount)
-			.Process(this->DropshipLoadout_DropshipCameoLocations)
-			.Process(this->DropshipLoadout_BuyClickSound)
-			.Process(this->DropshipLoadout_SellClickSound)
-			.Process(this->DropshipLoadout_ArrowsClickSound)
-			.Process(this->DropshipLoadout_StartingDragDropSound)
-			.Process(this->DropshipLoadout_EndingDragDropSound)
-			.Process(this->DropshipLoadout_AllowableUnitsLists)
-			.Process(this->DropshipLoadout_AllowableUnitMaximumsLists)
-			.Process(this->DropshipLoadout_ActiveTeamSuffixes)
-
-			;
-
-	}
+	void Serialize(T& Stm);
 
 public:
 	static IStream* g_pStm;

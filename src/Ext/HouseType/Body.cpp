@@ -272,7 +272,7 @@ bool HouseTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->InheritSettings(pThis);
 	}
 
-	if (parseFailAddr)
+	if (!this->AbstractTypeExtData::LoadFromINI(pINI, parseFailAddr))
 		return false;
 
 	INI_EX exINI(pINI);

@@ -594,7 +594,8 @@ bool __fastcall FakeTeamTypeClass::_DoReinforcement(TeamTypeClass* pType, int wa
 	if (isDroppod) {
 		// Integrate TeamTypeClass_CreateInstance_Plane (0x65DBB3):
 		// Use per-house paradrop plane (HouseExtData) instead of global PDPLANE
-		auto* pPlaneType = HouseExtData::GetParadropPlane(pGroup->Owner);
+		auto* pPlaneType = TeamTypeExtContainer::Instance.Find(pType)->ParaDropAircraft.Get(HouseExtData::GetParadropPlane(pGroup->Owner));
+
 		if (!pPlaneType)
 			return true;
 

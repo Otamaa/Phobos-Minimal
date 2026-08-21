@@ -6,6 +6,15 @@ class FootTypeExtData : public TechnoTypeExtData
 {
 public:
 
+	Valueable<int> FlightClimb { -1 };
+	Valueable<int> FlightCrash { -1 };
+	Valueable<int> DigStartROT { -1 };
+	Valueable<int> DigInSpeed { -1 };
+	Valueable<int> DigOutSpeed { -1 };
+	Valueable<int> DigEndROT { -1 };
+
+	Valueable<bool> AIDefendBase_Ignore { };
+
 	FootTypeExtData(TechnoTypeClass* abs) : TechnoTypeExtData(abs)
 	{ };
 
@@ -40,8 +49,17 @@ private:
 	template <typename T>
 	void Serialize(T& Stm)
 	{
-
+		Stm
+			.Process(this->FlightClimb)
+			.Process(this->FlightCrash)
+			.Process(this->DigStartROT)
+			.Process(this->DigInSpeed)
+			.Process(this->DigOutSpeed)
+			.Process(this->DigEndROT)
+			.Process(this->AIDefendBase_Ignore)
+			;
 	}
+
 
 };
 

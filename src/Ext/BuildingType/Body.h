@@ -387,6 +387,17 @@ public:
 	bool FoundationPrimaryFactoryTextShowLong {};
 
 	Nullable<bool> NoAlphaImageOnBuildup {};
+
+	Valueable<BibDir> Bib_Dir { BibDir::East };
+	Valueable<BibDir> NumberImpassableRows_Dir { BibDir::East };
+	Valueable<BibDir> WeaponsFactory_Dir { BibDir::East };
+
+	Valueable<int> SpyEffect_RadarJamDuration { 0 };
+
+	Nullable<bool> HaveRallyPoint { };
+	Nullable<SpeedType> RallyPointSpeedType { };
+	Nullable<MovementZone> RallyPointMovementZone { };
+
 #pragma endregion
 
 public:
@@ -494,8 +505,7 @@ public:
 
 	static void __fastcall DrawPlacementGrid(Surface* Surface, ConvertClass* Pal, SHPCaches* SHP, int FrameIndex, const Point2D* const Position, const RectangleStruct* const Bounds, BlitterFlags Flags, int Remap, int ZAdjust, ZGradient ZGradientDescIndex, int Brightness, int TintColor, SHPCaches* ZShape, int ZShapeFrame, int XOffset, int YOffset);
 
-	static bool ShouldExistGreyCameo(TechnoTypeClass* pType);
-	static CanBuildResult CheckAlwaysExistCameo(TechnoTypeClass* pType, CanBuildResult canBuild);
+	static CanBuildResult CheckAlwaysExistCameo(HouseClass* pHouse, TechnoTypeClass* pType, CanBuildResult canBuild);
 
 	static bool CheckOccupierCanLeave(HouseClass* pBuildingHouse, HouseClass* pOccupierHouse);
 	static bool CleanUpBuildingSpace(BuildingTypeClass* pBuildingType, CellStruct topLeftCell, HouseClass* pHouse, TechnoClass* pExceptTechno = nullptr);

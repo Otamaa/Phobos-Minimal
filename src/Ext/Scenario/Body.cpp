@@ -6,12 +6,108 @@
 
 #include <New/Entity/DropshipLoadoutClass.h>
 
-#include <Phobos.INI.h>
-
 std::unique_ptr<ScenarioExtData> ScenarioExtData::Data;
 IStream* ScenarioExtData::g_pStm;
 bool ScenarioExtData::CellParsed;
 bool ScenarioExtData::UpdateLightSources;
+
+template <typename T>
+void ScenarioExtData::Serialize(T& Stm)
+{
+	//Debug::LogInfo("Processing ScenarioExtData ! ");
+	Stm
+
+		.Process(this->Initialized)
+		.Process(this->OriginalFilename)
+		.Process(this->Waypoints)
+		.Process(this->Local_Variables)
+		.Process(this->Global_Variables)
+		.Process(this->TriggerTypePlayerAtXOwners)
+		.Process(this->DefinedAudioWaypoints)
+		.Process(this->ParTitle)
+		.Process(this->ParMessage)
+		.Process(this->ScoreCampaignTheme)
+		.Process(this->NextMission)
+
+		//.Process(this->DefaultNormalLighting)
+		//.Process(this->DefaultAmbientOriginal)
+		//.Process(this->DefaultAmbientCurrent)
+		//.Process(this->DefaultAmbientTarget)
+		//.Process(this->CurrentTint_Tiles)
+		//.Process(this->CurrentTint_Schemes)
+		//.Process(this->CurrentTint_Hashes)
+		.Process(this->AdjustLightingFix)
+
+		.Process(this->ShowBriefing)
+		.Process(this->BriefingTheme)
+		.Process(this->SWSidebar_Enable)
+		.Process(this->IsHouseTypeVoiceNeedCheck)
+		.Process(this->SWSidebar_Indices)
+
+		.Process(this->RecordMessages)
+
+		.Process(this->DefaultLS640BkgdName)
+		.Process(this->DefaultLS800BkgdName)
+		.Process(this->DefaultLS800BkgdPal)
+
+		.Process(this->LimboLaunchers)
+		.Process(this->UndergroundTracker)
+		.Process(this->FallingDownTracker)
+		.Process(this->OwnedUniqueTechnos)
+
+		.Process(this->PrismRelayClaimFrame)
+		.Process(this->PrismRelayClaimMaster)
+		.Process(this->PrismRelayClaimWeaponIndex)
+
+		.Process(this->DropshipLoadout_Theme)
+		.Process(this->DropshipLoadout_Money)
+		.Process(this->DropshipLoadout_StartEVA)
+		.Process(this->DropshipLoadout_StartingDropships)
+		.Process(this->DropshipLoadout_Carriers)
+		.Process(this->DropshipLoadout_Carriers_SizeLimit)
+		.Process(this->DropshipLoadout_AddUnusedMoneyToPlayer)
+		.Process(this->DropshipLoadout_RememberPurchasedCargo)
+		.Process(this->DropshipLoadout_Palette)
+		.Process(this->DropshipLoadout_Background)
+		.Process(this->DropshipLoadout_UpArrow)
+		.Process(this->DropshipLoadout_DownArrow)
+		.Process(this->DropshipLoadout_Loadout)
+		.Process(this->DropshipLoadout_LoadoutLocation)
+		.Process(this->DropshipLoadout_PilotLit)
+		.Process(this->DropshipLoadout_PilotLitLocation)
+		.Process(this->DropshipLoadout_DGreenList)
+		.Process(this->DropshipLoadout_BackgroundPCX)
+		.Process(this->DropshipLoadout_UpArrowPCX)
+		.Process(this->DropshipLoadout_DownArrowPCX)
+		.Process(this->DropshipLoadout_LoadoutPCX)
+		.Process(this->DropshipLoadout_PilotLitPCX)
+		.Process(this->DropshipLoadout_DGreenListPCX)
+		.Process(this->DropshipLoadout_DGreenAnimationsCount)
+		.Process(this->DropshipLoadout_DGreenLocations)
+		.Process(this->DropshipLoadout_UpArrowLocation)
+		.Process(this->DropshipLoadout_DownArrowLocation)
+		.Process(this->DropshipLoadout_SidebarCameosCount)
+		.Process(this->DropshipLoadout_SidebarCameoLocations)
+		.Process(this->DropshipLoadout_DropshipCameosCount)
+		.Process(this->DropshipLoadout_DropshipCameoLocations)
+		.Process(this->DropshipLoadout_BuyClickSound)
+		.Process(this->DropshipLoadout_SellClickSound)
+		.Process(this->DropshipLoadout_ArrowsClickSound)
+		.Process(this->DropshipLoadout_StartingDragDropSound)
+		.Process(this->DropshipLoadout_EndingDragDropSound)
+		.Process(this->DropshipLoadout_AllowableUnitsLists)
+		.Process(this->DropshipLoadout_AllowableUnitMaximumsLists)
+		.Process(this->DropshipLoadout_ActiveTeamSuffixes)
+		.Process(this->Smudges)
+
+		.Process(this->OwnerBitfield_BuildingType)
+		.Process(this->OwnerBitfield_InfantryType)
+		.Process(this->OwnerBitfield_VehicleType)
+		.Process(this->OwnerBitfield_NavyType)
+		.Process(this->OwnerBitfield_AircraftType)
+		;
+
+}
 
 void ScenarioExtData::SaveVariablesToFile(bool isGlobal)
 {
@@ -241,11 +337,8 @@ void ScenarioExtData::ReadMissionMDINI()
 		return;
 	}
 
-	PhobosINIContainer::Mission_INI = std::make_unique<PhobosINIClass>();
-
 	CCINIClass ini {};
 	ini.ReadCCFile(&file);
-	PhobosINIContainer::Mission_INI->LoadFile(&file);
 
 	auto pThis = this->AttachedToObject;
 	auto const scenarioName = pThis->FileName;

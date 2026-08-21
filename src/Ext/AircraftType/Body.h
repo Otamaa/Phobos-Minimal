@@ -33,6 +33,9 @@ public:
 
 	Valueable<bool> IsCustomMissile { false };
 	Valueable<RocketStruct> CustomMissileData { RocketStruct() };
+	Valueable<bool> Missile_Tracing {};
+	Valueable<bool> Missile_UseDeathWeaponWhenIntercepted {};
+
 	Valueable<WarheadTypeClass*> CustomMissileWarhead { nullptr };
 	Valueable<WarheadTypeClass*> CustomMissileEliteWarhead { nullptr };
 	Valueable<AnimTypeClass*> CustomMissileTakeoffAnim { nullptr };

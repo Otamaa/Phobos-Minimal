@@ -22,10 +22,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Commands\AssignRallyPoint.cpp" />
     <ClCompile Include="src\Commands\BuildLastOfTab.cpp" />
     <ClCompile Include="src\Commands\ClearObserverUICards.cpp" />
     <ClCompile Include="src\Commands\Deselect.cpp" />
+    <ClCompile Include="src\Commands\HerosInfo.cpp" />
     <ClCompile Include="src\Commands\RebuildTab3Subtypes.cpp" />
+    <ClCompile Include="src\Commands\SelectedInfo.cpp" />
     <ClCompile Include="src\Commands\ShowObjectCard.cpp" />
     <ClCompile Include="src\Commands\ToggleObserverUI.cpp" />
     <ClCompile Include="src\Commands\ToggleSuperTimers.cpp" />
@@ -40,6 +43,7 @@
     <ClCompile Include="src\Ext\BitFont\Body.cpp" />
     <ClCompile Include="src\Ext\BitText\Body.cpp" />
     <ClCompile Include="src\Ext\Building\Hook.DrawIt.cpp" />
+    <ClCompile Include="src\Ext\Building\Hooks.RallyPoint.cpp" />
     <ClCompile Include="src\Ext\Building\Hooks.WallTower.cpp" />
     <ClCompile Include="src\Ext\Bullet\Hooks.AI.cpp" />
     <ClCompile Include="src\Ext\Cell\Hooks.Crates.cpp" />
@@ -66,12 +70,13 @@
     <ClCompile Include="src\Ext\Object\Body.cpp" />
     <ClCompile Include="src\Ext\Object\Hooks.cpp" />
     <ClCompile Include="src\Ext\Observer\ObserverUI.cpp" />
-    <ClCompile Include="src\Ext\PCXFile\Hooks.PNG.cpp" />
     <ClCompile Include="src\Ext\Rules\Hooks.Initilize.cpp" />
     <ClCompile Include="src\Ext\Session\Body.cpp" />
     <ClCompile Include="src\Ext\Session\Hooks.ScenarioDecriptions.cpp" />
     <ClCompile Include="src\Ext\SHP\Body.cpp" />
     <ClCompile Include="src\Ext\SlaveManager\Hooks.cpp" />
+    <ClCompile Include="src\Ext\SmudgeType\Hooks.DynamicSmudge.cpp" />
+    <ClCompile Include="src\Ext\Smudge\Body.cpp" />
     <ClCompile Include="src\Ext\Surface\Hooks.cpp" />
     <ClCompile Include="src\Ext\TagType\Body.cpp" />
     <ClCompile Include="src\Ext\TaskForce\Body.cpp" />
@@ -83,7 +88,9 @@
     <ClCompile Include="src\Ext\Techno\Hooks.CanFire.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.ChronoSparkle.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Deactivated.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.Destroyed.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Disguise.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.Drawings.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.EffectTargetCoordsFix.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Facing.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.cpp" />
@@ -106,6 +113,7 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Transport.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.VehicleToBuildingMCFix.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Veterancy.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.WeaponFactory.cpp" />
     <ClCompile Include="src\Ext\TriggerType\Hooks.cpp" />
     <ClCompile Include="src\Ext\Unit\Hook.CanFire.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.cpp" />
@@ -118,54 +126,6 @@
     <ClCompile Include="src\Misc\Exception\ExceptionHandler.Dialog.cpp" />
     <ClCompile Include="src\Misc\Exception\ExceptionHandler.Report.cpp" />
     <ClCompile Include="src\Misc\FogOfWar.cpp" />
-    <ClCompile Include="src\Misc\ReShade\FX\effect_codegen_dxbc.cpp" />
-    <ClCompile Include="src\Misc\ReShade\FX\effect_codegen_hlsl.cpp" />
-    <ClCompile Include="src\Misc\ReShade\FX\effect_expression.cpp" />
-    <ClCompile Include="src\Misc\ReShade\FX\effect_lexer.cpp" />
-    <ClCompile Include="src\Misc\ReShade\FX\effect_parser_exp.cpp" />
-    <ClCompile Include="src\Misc\ReShade\FX\effect_parser_stmt.cpp" />
-    <ClCompile Include="src\Misc\ReShade\FX\effect_preprocessor.cpp" />
-    <ClCompile Include="src\Misc\ReShade\FX\effect_symbol_table.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_device.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_impl_command_list.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_impl_command_queue.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_impl_device.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_impl_state_block.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_impl_swapchain.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_impl_type_convert.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_internal.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_pix.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_resource.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\d3d9\d3d9_swapchain.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\dll_log.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\dll_main.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\dll_resources.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\hook.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\hook_manager.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\imgui_code_editor.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\imgui_function_table.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\imgui_function_table_18600.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\imgui_function_table_18971.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\imgui_function_table_19000.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\imgui_function_table_19040.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\imgui_function_table_19180.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\imgui_function_table_19191.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\imgui_function_table_19222.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\imgui_function_table_19250.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\imgui_widgets.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\ini_file.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\input.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\input_windows.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\platform_utils_windows.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\runtime.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\runtime_api.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\runtime_gui.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\runtime_manager.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\state_block.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\windows\dinput.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\windows\dinput8.cpp" />
-    <ClCompile Include="src\Misc\ReShade\Runtime\windows\user32.cpp" />
     <ClCompile Include="src\Misc\Spawner\DesyncHandler.cpp" />
     <ClCompile Include="src\Misc\Spawner\FastRetransmit.cpp" />
     <ClCompile Include="src\Misc\Spawner\FrameGate.cpp" />
@@ -260,6 +220,10 @@
     <ClCompile Include="src\New\Interfaces\TSJumpJetLocomotionClass.cpp" />
     <ClCompile Include="src\New\MessageHandler\MessageScrollClass.cpp" />
     <ClCompile Include="src\New\MessageHandler\MessageToggleClass.cpp" />
+    <ClCompile Include="src\New\SelectedButton\SelectedButtonClass.cpp" />
+    <ClCompile Include="src\New\SelectedButton\SelectedCameoClass.cpp" />
+    <ClCompile Include="src\New\SelectedButton\SelectedColumnClass.cpp" />
+    <ClCompile Include="src\New\SelectedButton\SelectedInfoClass.cpp" />
     <ClCompile Include="src\New\TextBox\Entities\Base\MapTextBoxClass.cpp" />
     <ClCompile Include="src\New\TextBox\Entities\Derived\TechnoTextBoxClass.cpp" />
     <ClCompile Include="src\New\TextBox\Entities\Derived\WaypointTextBoxClass.cpp" />
@@ -566,11 +530,12 @@
     <ClCompile Include="src\Ext\VoxelAnim\Body.cpp" />
     <ClCompile Include="src\Ext\WeaponType\Body.cpp" />
     <ClCompile Include="src\Commands\ObjectInfo.cpp" />
+    <ClCompile Include="src\New\UniqueButton\UniqueTechnoButtonClass.cpp" />
+    <ClCompile Include="src\New\UniqueButton\UniqueTechnoColumnClass.cpp" />
     <ClCompile Include="src\Phobos.Config.cpp" />
     <ClCompile Include="src\Phobos.Ext.cpp" />
     <ClCompile Include="src\Phobos.Hookers.cpp" />
     <ClCompile Include="src\Phobos.Hooks.cpp" />
-    <ClCompile Include="src\Phobos.INI.cpp" />
     <ClCompile Include="src\Phobos.Lua.cpp" />
     <ClCompile Include="src\Phobos.Math.cpp" />
     <ClCompile Include="src\Phobos.UI.cpp" />
@@ -633,10 +598,13 @@
     <ClInclude Include="B:\Projects\magic_enum\include\magic_enum\magic_enum_switch.hpp" />
     <ClInclude Include="B:\Projects\magic_enum\include\magic_enum\magic_enum_utility.hpp" />
     <ClInclude Include="B:\Projects\Unused\LambdaFunctionArgCount.h" />
+    <ClInclude Include="src\Commands\AssignRallyPoint.h" />
     <ClInclude Include="src\Commands\BuildLastOfTab.h" />
     <ClInclude Include="src\Commands\ClearObserverUICards.h" />
     <ClInclude Include="src\Commands\Deselect.h" />
+    <ClInclude Include="src\Commands\HerosInfo.h" />
     <ClInclude Include="src\Commands\RebuildTab3Subtypes.h" />
+    <ClInclude Include="src\Commands\SelectedInfo.h" />
     <ClInclude Include="src\Commands\ShowObjectCard.h" />
     <ClInclude Include="src\Commands\ToggleObserverUI.h" />
     <ClInclude Include="src\Commands\ToggleSuperTimers.h" />
@@ -779,65 +747,22 @@
     <ClInclude Include="src\Ext\Observer\ObserverUI.h" />
     <ClInclude Include="src\Ext\Session\Body.h" />
     <ClInclude Include="src\Ext\SHP\Body.h" />
+    <ClInclude Include="src\Ext\Smudge\Body.h" />
     <ClInclude Include="src\Ext\TagType\Body.h" />
     <ClInclude Include="src\Ext\TaskForce\Body.h" />
     <ClInclude Include="src\Misc\Exception\ExceptionHandler.h" />
     <ClInclude Include="src\Misc\ReShade\fonts\forkawesome.h" />
-    <ClInclude Include="src\Misc\ReShade\FX\effect_codegen.hpp" />
-    <ClInclude Include="src\Misc\ReShade\FX\effect_expression.hpp" />
-    <ClInclude Include="src\Misc\ReShade\FX\effect_lexer.hpp" />
-    <ClInclude Include="src\Misc\ReShade\FX\effect_module.hpp" />
-    <ClInclude Include="src\Misc\ReShade\FX\effect_parser.hpp" />
-    <ClInclude Include="src\Misc\ReShade\FX\effect_preprocessor.hpp" />
-    <ClInclude Include="src\Misc\ReShade\FX\effect_symbol_table.hpp" />
-    <ClInclude Include="src\Misc\ReShade\FX\effect_token.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\com_utils.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\d3d9\d3d9_device.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\d3d9\d3d9_impl_device.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\d3d9\d3d9_impl_state_block.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\d3d9\d3d9_impl_swapchain.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\d3d9\d3d9_impl_type_convert.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\d3d9\d3d9_resource.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\d3d9\d3d9_swapchain.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\dll_log.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\dll_main.h" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\dll_resources.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\hook.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\hook_manager.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\imgui_code_editor.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\imgui_function_table_18600.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\imgui_function_table_18971.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\imgui_function_table_19000.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\imgui_function_table_19040.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\imgui_function_table_19180.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\imgui_function_table_19191.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\imgui_function_table_19222.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\imgui_function_table_19250.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\imgui_widgets.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\ini_file.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\input.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\lockfree_linear_map.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\moving_average.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\platform_utils.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\reshade.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\Reshadeversion.h" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\reshade_api.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\reshade_api_device.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\reshade_api_format.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\reshade_api_object_impl.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\reshade_api_pipeline.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\reshade_api_resource.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\reshade_events.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\reshade_overlay.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\runtime.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\runtime_internal.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\runtime_manager.hpp" />
-    <ClInclude Include="src\Misc\ReShade\Runtime\state_block.hpp" />
     <ClInclude Include="src\Misc\ReShade\utils.h" />
     <ClInclude Include="src\Misc\Spawner\FastRetransmit.h" />
     <ClInclude Include="src\Misc\Spawner\FrameGate.h" />
     <ClInclude Include="src\Misc\Spawner\MPStatsFix.h" />
     <ClInclude Include="src\Misc\Spawner\PacketRedundancy.h" />
+    <ClInclude Include="src\New\SelectedButton\SelectedButtonClass.h" />
+    <ClInclude Include="src\New\SelectedButton\SelectedCameoClass.h" />
+    <ClInclude Include="src\New\SelectedButton\SelectedColumnClass.h" />
+    <ClInclude Include="src\New\SelectedButton\SelectedInfoClass.h" />
+    <ClInclude Include="src\New\UniqueButton\UniqueTechnoButtonClass.h" />
+    <ClInclude Include="src\New\UniqueButton\UniqueTechnoColumnClass.h" />
     <ClInclude Include="src\res\DesyncDialog.Resource.h" />
     <ClInclude Include="src\Misc\SyncLogging.h" />
     <ClInclude Include="src\New\ChoiceBox\Entities\Base\MapChoiceBoxClass.h" />
@@ -952,7 +877,6 @@
     <ClInclude Include="src\Phobos.COM.h" />
     <ClInclude Include="src\Phobos.Defines.h" />
     <ClInclude Include="src\Phobos.Hookers.h" />
-    <ClInclude Include="src\Phobos.INI.h" />
     <ClInclude Include="src\Phobos.lib.h" />
     <ClInclude Include="src\Phobos.Lua.h" />
     <ClInclude Include="src\Commands\PlaceVeinholeMonster.h" />
@@ -1199,9 +1123,7 @@
     <None Include="src\Ext\Techno\Hooks.CrewCount.cpp" />
     <None Include="src\Misc\ReShade\exports.def" />
     <None Include="src\Misc\ReShade\fonts\forkawesome.inl" />
-    <None Include="src\Misc\ReShade\FX\effect_symbol_table_intrinsics.inl" />
     <None Include="src\Misc\ReShade\resource.aps" />
-    <None Include="src\Misc\ReShade\Runtime\d3d9\d3d9_resource_call_vtable.inl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="sampleconfig\README_WHERETOPUTLUA.txt" />
@@ -1350,7 +1272,8 @@
       <AdditionalOptions>/VERBOSE %(AdditionalOptions)</AdditionalOptions>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DelayLoadDLLs>D3DCOMPILER_47.dll</DelayLoadDLLs>
-      <ModuleDefinitionFile>$(SolutionDir)src\Misc\ReShade\exports.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>
+      </ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
       <Command>

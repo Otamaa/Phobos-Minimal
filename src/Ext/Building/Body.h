@@ -70,6 +70,7 @@ public:
 	// CDTimerClass
 	// ============================================================
 	CDTimerClass AutoSellTimer {};
+	CDTimerClass RadarJammedTimer {};
 
 	// ============================================================
 	// 4-byte aligned: int
@@ -282,6 +283,8 @@ public:
 	void _DrawRadialIndicator(int val);
 	int _BuildingClass_GetRangeOfRadial();
 	int __GetPower();
+
+	bool __CanDrawRallyPoint();
 
 	int _SWAvailable();
 	int _SW2Available();

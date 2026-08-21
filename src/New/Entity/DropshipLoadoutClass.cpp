@@ -2847,7 +2847,7 @@ void DropshipLoadoutClass::UpdateDragState(int buttonID)
 	// --- pending -> active transition ---------------------------------------
 	if (bDragPending)
 	{
-		int const dist = std::abs(mousePos.X - dragStartMousePos.X) + std::abs(mousePos.Y - dragStartMousePos.Y);
+		int const dist = Math::abs(mousePos.X - dragStartMousePos.X) + Math::abs(mousePos.Y - dragStartMousePos.Y);
 
 		// SUSPECT: Manhattan distance, not Euclidean. Diagonal drags therefore
 		// trigger after ~10px per axis while axis-aligned drags need 15px.
@@ -4122,7 +4122,7 @@ void DropshipLoadoutClass::DrawTooltip(DSurface* pSurface)
 
 		auto& line = AddLine(2);
 		AddSegment(line, GeneralUtils::LoadStringUnlessMissing("TXT_DROPSHIP_COST", L"Cost: "), Drawing::RGB2DWORD(255, 255, 255));
-		AddSegment(line, fmt::format(L"{}{}", Phobos::UI::CostLabel.c_str(), std::abs(cost)), costColor);
+		AddSegment(line, fmt::format(L"{}{}", Phobos::UI::CostLabel.c_str(), Math::abs(cost)), costColor);
 	}
 
 	// --- Description --------------------------------------------------------

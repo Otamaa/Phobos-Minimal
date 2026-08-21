@@ -98,7 +98,7 @@ ASMJIT_PATCH(0x5F4B3E, ObjectClass_DrawIfVisible, 0x6)
 {
 	GET(ObjectClass*, pThis, ESI);
 
-	if (pThis->InLimbo)
+		if (pThis->InLimbo)
 		return 0x5F4B7F;
 
 	if (!ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar)
@@ -138,6 +138,41 @@ ASMJIT_PATCH(0x6D6EDA, TacticalClass_Overlay_CheckFog1, 0xA)
 	GET(CellClass*, pCell, EAX);
 
 	return pCell->OverlayTypeIndex == -1 || pCell->IsFogged() ? 0x6D7006 : 0x6D6EE4;
+}
+
+ASMJIT_PATCH(0x6D9313, TacticalClass_DrawObjectsInLayers_SkipTerrainInFog, 0x6)
+{
+	enum { SkipDraw = 0x6D940C };
+
+	GET(const CoordStruct*, pCoord, EAX);
+
+	return (ScenarioClass::Instance->SpecialFlags.StructEd.FogOfWar && MapClass::Instance->IsLocationFogged(*pCoord)) ? SkipDraw : 0;
+}
+
+ASMJIT_PATCH(0x4ACBC4, MapClass_FogSpread_SkipWithSpySat, 0x5)
+{
+	enum { SkipGameCode = 0x4ACC4B, SpreadFogOfWar = 0x4ACBF8 };
+
+	GET(MapClass*, pThis, ECX);
+
+	const auto pPlayer = HouseClass::CurrentPlayer();
+	if (pPlayer->Defeated)
+		return SkipGameCode;
+
+	pThis->CellIteratorReset();
+	if (RulesClass::Instance->ShadowGrow) {
+		for (auto pCell = pThis->CellIteratorNext(); pCell; pCell = pThis->CellIteratorNext())
+			pCell->Flags |= CellFlags::IsPlot;
+	} else {
+		for (auto pCell = pThis->CellIteratorNext(); pCell; pCell = pThis->CellIteratorNext())
+		{
+			const auto flags = pCell->Flags;
+			if (!(flags & CellFlags::CenterRevealed) && (flags & CellFlags::EdgeRevealed))
+				pCell->Flags = flags | CellFlags::IsPlot;
+		}
+	}
+
+	return SpreadFogOfWar;
 }
 
 ASMJIT_PATCH(0x6D70BC, TacticalClass_Overlay_CheckFog2, 0xA)

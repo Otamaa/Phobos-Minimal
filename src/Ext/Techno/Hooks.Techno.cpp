@@ -14,7 +14,6 @@
 #include <Utilities/Helpers.h>
 
 #include <Ext/Anim/Body.h>
-#include <Ext/Techno/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WarheadType/Body.h>
@@ -23,6 +22,9 @@
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/Bullet/Body.h>
+#include <Ext/Infantry/Body.h>
+#include <Ext/InfantryType/Body.h>
+#include <Ext/Scenario/Body.h>
 
 #include <Conversions.h>
 #include <GameOptionsClass.h>
@@ -556,6 +558,9 @@ ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 			const auto pHouseType = pOwner->Type;
 			const auto pParentHouseType = pHouseType->FindParentCountry();
 			TechnoExtContainer::Instance.Find(pThis)->OriginalHouseType = pParentHouseType ? pParentHouseType : pHouseType;
+
+			if (pExt->AbsType == AbstractType::Infantry && ((InfantryTypeExtData*)pTypeExt)->IsHero && pOwner->ControlledByCurrentPlayer())
+				ScenarioExtData::Instance()->OwnedUniqueTechnos.push_back(pExt);
 		} else {
 			Debug::LogInfo("Techno[{}] Init Without any ownership!", pType->ID);
 		}
@@ -661,7 +666,7 @@ DEFINE_JUMP(LJMP, 0x6FFF9E, 0x700006);
 ASMJIT_PATCH(0x48DC90, MapClass_UnselectAll_ClearLimboLaunchers, 0x5)
 {
 	for (const auto pExt : ScenarioExtData::Instance()->LimboLaunchers) {
-		TechnoExtContainer::Instance.Find(pExt)->IsSelected = false;
+		pExt->IsSelected = false;
 	}
 
 	ScenarioExtData::Instance()->LimboLaunchers.clear();

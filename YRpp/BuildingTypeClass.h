@@ -51,8 +51,8 @@ public:
 	}
 
 	static COMPILETIMEEVAL reference<int, 0x89DDB8u> const HeightInLeptons{};
-	static COMPILETIMEEVAL reference<FoundationStruct, 0x89D368u, 22u> const FoundationOutlinesData {};
-	static COMPILETIMEEVAL reference<FoundationStruct, 0x89C900u, 22u> const FoundationlinesData {};
+	//static COMPILETIMEEVAL reference<FoundationStruct, 0x89D368u, 22u> const FoundationOutlinesData {};
+	//static COMPILETIMEEVAL reference<FoundationStruct, 0x89C900u, 22u> const FoundationlinesData {};
 
 
 	//IPersist

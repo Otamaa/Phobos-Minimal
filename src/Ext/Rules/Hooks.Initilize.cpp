@@ -281,69 +281,7 @@ bool Init_Rules()
 *	- Added log for AIMD loading error
 *   - Remove most part that community never use or not use
 */
-#include <Phobos.INI.h>
 #include <MixFileClass.h>
-
-void Phobos_Config_Read_RULESMD(std::unique_ptr<PhobosINIClass>& ini)
-{
-	{
-		if (!Phobos::Otamaa::IsAdmin)
-		{
-			Phobos::Config::DevelopmentCommands = ini->Read<bool>(GLOBALCONTROLS_SECTION, "DebugKeysEnabled").value_or(Phobos::Config::DevelopmentCommands);
-		}
-
-		Phobos::Config::SuperWeaponSidebarCommands = ini->Read<bool>(GLOBALCONTROLS_SECTION, "SuperWeaponSidebarKeysEnabled").value_or(Phobos::Config::SuperWeaponSidebarCommands);
-		Phobos::Config::AllowSwitchNoMoveCommand = ini->Read<bool>(GLOBALCONTROLS_SECTION, "AllowSwitchNoMoveCommand").value_or(Phobos::Config::AllowDistributionCommand);
-		Phobos::Config::AllowDistributionCommand = ini->Read<bool>(GLOBALCONTROLS_SECTION, "AllowDistributionCommand").value_or(Phobos::Config::AllowDistributionCommand);
-		Phobos::Config::AllowDistributionCommand_SpreadMode = ini->Read<bool>(GLOBALCONTROLS_SECTION, "AllowDistributionCommand.SpreadMode").value_or(Phobos::Config::AllowDistributionCommand_SpreadMode);
-		Phobos::Config::AllowDistributionCommand_SpreadModeScroll = ini->Read<bool>(GLOBALCONTROLS_SECTION, "AllowDistributionCommand.SpreadModeScroll").value_or(Phobos::Config::AllowDistributionCommand_SpreadModeScroll);
-		Phobos::Config::AllowDistributionCommand_FilterMode = ini->Read<bool>(GLOBALCONTROLS_SECTION, "AllowDistributionCommand.FilterMode").value_or(Phobos::Config::AllowDistributionCommand_FilterMode);
-		Phobos::Config::AllowDistributionCommand_AffectsAllies = ini->Read<bool>(GLOBALCONTROLS_SECTION, "AllowDistributionCommand.AffectsAllies").value_or(Phobos::Config::AllowDistributionCommand_AffectsAllies);
-		Phobos::Config::AllowDistributionCommand_AffectsEnemies = ini->Read<bool>(GLOBALCONTROLS_SECTION, "AllowDistributionCommand.AffectsEnemies").value_or(Phobos::Config::AllowDistributionCommand_AffectsEnemies);
-		Phobos::Config::SelectCapturedCommand = ini->Read<bool>(GLOBALCONTROLS_SECTION, "SelectCapturedKeyEnabled").value_or(Phobos::Config::SelectCapturedCommand);
-	}
-
-	{
-
-		Phobos::Config::ArtImageSwap = ini->Read<bool>(GameStrings::General(), "ArtImageSwap").value_or(Phobos::Config::ArtImageSwap);
-		Phobos::Config::UnitPowerDrain = ini->Read<bool>(GameStrings::General(), "UnitPowerDrain").value_or(Phobos::Config::UnitPowerDrain);
-		Phobos::UI::UnlimitedColor = ini->Read<bool>(GameStrings::General(), "SkirmishUnlimitedColors").value_or(Phobos::UI::UnlimitedColor);
-
-		if (ini->Read<bool>(GameStrings::General(), "CustomGS").value_or(Phobos::Misc::CustomGS))
-		{
-
-			Phobos::Misc::CustomGS = true;
-
-			//char tempBuffer[0x20];
-			for (size_t i = 0; i <= 6; ++i)
-			{
-				std::string _buffer = "CustomGS";
-				_buffer += std::to_string(6 - i);
-
-				int temp = ini->Read<int>(GameStrings::General(), _buffer + ".ChangeDelay").value_or(-1);
-
-				if (temp >= 0 && temp <= 6)
-					Phobos::Misc::CustomGS_ChangeDelay[i] = 6 - temp;
-
-				temp = ini->Read<int>(GameStrings::General(), _buffer + ".DefaultDelay").value_or(-1);
-				if (temp >= 1)
-					Phobos::Misc::CustomGS_DefaultDelay[i] = 6 - temp;
-
-				temp = ini->Read<int>(GameStrings::General(), _buffer + ".ChangeInterval").value_or(-1);
-				if (temp >= 1)
-					Phobos::Misc::CustomGS_ChangeInterval[i] = temp;
-			}
-		}
-
-		Phobos::Config::FixTransparencyBlitters = ini->Read<bool>(GameStrings::General(), "FixTransparencyBlitters").value_or(Phobos::Config::FixTransparencyBlitters);
-		Phobos::Config::MultiThreadSinglePlayer = ini->Read<bool>(GameStrings::General(), "MultiThreadSinglePlayer").value_or(Phobos::Config::MultiThreadSinglePlayer);
-		Phobos::Config::SaveVariablesOnScenarioEnd = ini->Read<bool>(GameStrings::General(), "SaveVariablesOnScenarioEnd").value_or(Phobos::Config::SaveVariablesOnScenarioEnd);
-	}
-
-	{
-		Phobos::Config::ApplyShadeCountFix = ini->Read<bool>(GameStrings::AudioVisual(), "ApplyShadeCountFix").value_or(Phobos::Config::ApplyShadeCountFix);
-	}
-}
 
 bool __fastcall Init_Rules()
 {
@@ -354,9 +292,7 @@ bool __fastcall Init_Rules()
 		CCFileClass rulesFile(GameStrings::RULESMD_INI());
 		CCINIClass::INI_Rules = GameCreate<CCINIClass>();
 
-		PhobosINIContainer::Rules_INI =  std::make_unique<PhobosINIClass>();
-
-		if (!CCINIClass::INI_Rules->ReadCCFile(&rulesFile) || !PhobosINIContainer::Rules_INI->LoadFile(&rulesFile)) {
+		if (!CCINIClass::INI_Rules->ReadCCFile(&rulesFile)) {
 			Debug::Log("Failed to load CRC %x [%s - %s]!\n", crc, _realName , rulesFile.Filename);
 			return false;
 		} else {
@@ -369,9 +305,8 @@ bool __fastcall Init_Rules()
 		const char* _realName = GameStrings::ARTMD_INI();
 		const auto crc = SafeChecksummer()(_realName, strlen(_realName));
 		CCFileClass artFile(GameStrings::ARTMD_INI());
-		PhobosINIContainer::Art_INI = std::make_unique<PhobosINIClass>();
 
-		if (!CCINIClass::INI_Art->ReadCCFile(&artFile, true) || !PhobosINIContainer::Art_INI->LoadFile(&artFile)) {
+		if (!CCINIClass::INI_Art->ReadCCFile(&artFile, true)) {
 			Debug::Log("Failed to load CRC %x [%s - %s]!\n", crc, _realName, artFile.Filename);
 			return false;
 		} else {
@@ -409,7 +344,8 @@ bool __fastcall Init_Rules()
 		GameModeOptionsClass::Instance->MCVRedeploy = pRules->MCVRedeploys;
 
 		//ASMJIT_PATCH(0x52D21F, Game_InitRules, 0x6)
-		Phobos_Config_Read_RULESMD(PhobosINIContainer::Rules_INI);
+		Phobos::Config::Read_RULESMD();
+		//Phobos_Config_Read_RULESMD(PhobosINIContainer::Rules_INI);
 	}
 
 	//AI
@@ -418,9 +354,8 @@ bool __fastcall Init_Rules()
 		const char* _realName = GameStrings::AIMD_INI();
 		const auto crc = SafeChecksummer()(_realName, strlen(_realName));
 		CCFileClass aiFile(GameStrings::AIMD_INI());
-		PhobosINIContainer::Ai_INI = std::make_unique<PhobosINIClass>();
 
-		if(!CCINIClass::INI_AI->ReadCCFile(&aiFile, false) || !PhobosINIContainer::Ai_INI->LoadFile(&aiFile)) {
+		if(!CCINIClass::INI_AI->ReadCCFile(&aiFile, false)) {
 			Debug::Log("Failed to load CRC %x [%s - %s]!\n", crc, _realName , aiFile.Filename);
 		} else {
 			Debug::Log("Succes to load CRC %x [%s - %s]!\n", crc, _realName ,aiFile.Filename);

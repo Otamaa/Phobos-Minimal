@@ -166,7 +166,7 @@ bool KeepThisAlive(HouseClass* pHouse, TechnoClass* pTech, AbstractType rtti, bo
 	const Nullable<bool>* result = &TechnoTypeExtContainer::Instance.Find(pType)->KeepAlive;
 
 	bool keepAlive = false;
-	bool res = false;
+	bool res = true;
 	bool isBld = false;
 
 	if (pType->Insignificant || pType->DontScore) {
@@ -189,7 +189,7 @@ bool KeepThisAlive(HouseClass* pHouse, TechnoClass* pTech, AbstractType rtti, bo
 			break;
 		}
 
-		res = true;
+		res = false;
 	}
 
 	if (result->Get(keepAlive)) {

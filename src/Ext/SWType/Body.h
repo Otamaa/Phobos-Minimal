@@ -258,7 +258,6 @@ public:
 	// ============================================================
 	// Valueable<int> (4 bytes each)
 	// ============================================================
-	Valueable<int> CameoPriority { 0 };
 	Valueable<int> SW_Priority { 0 };
 	Valueable<int> SW_Group { 0 };
 	Valueable<int> SW_Shots { -1 };

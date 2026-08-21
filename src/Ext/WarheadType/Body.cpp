@@ -196,7 +196,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		);
 	}
 
-	if (parseFailAddr)
+	if (!this->AbstractTypeExtData::LoadFromINI(pINI, parseFailAddr))
 	{
 		return false;
 	}
@@ -247,6 +247,9 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->RemoveDisguise.Read(exINI, pSection, "RemoveDisguise");
 	this->RemoveMindControl.Read(exINI, pSection, "RemoveMindControl");
 	this->RemoveMindControl_Silent.Read(exINI, pSection, "RemoveMindControl.Silent");
+	this->RemoveMindControl_OnVictim.Read(exINI, pSection, "RemoveMindControl.OnVictim");
+	this->RemoveMindControl_OnController.Read(exINI, pSection, "RemoveMindControl.OnController");
+
 	this->AnimList_PickRandom.Read(exINI, pSection, "AnimList.PickRandom");
 	this->AnimList_CreateAll.Read(exINI, pSection, "AnimList.CreateAll");
 	this->AnimList_CreationInterval.Read(exINI, pSection, "AnimList.CreationInterval");
@@ -860,6 +863,23 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->PreventPassengerEscape.Read(exINI, pSection, "PreventPassengerEscape");
 	this->PreventOccupantEscape.Read(exINI, pSection, "PreventOccupantEscape");
 	
+	this->LightChanging.Read(exINI, pSection, "LightChanging");
+	this->SetAmbientLight.Read(exINI, pSection, "SetAmbientLight");
+	this->SetAmbientRed.Read(exINI, pSection, "SetAmbientRed");
+	this->SetAmbientGreen.Read(exINI, pSection, "SetAmbientGreen");
+	this->SetAmbientBlue.Read(exINI, pSection, "SetAmbientBlue");
+	
+	this->ReduceTiberium.Read(exINI, pSection, "ReduceTiberium");
+
+	this->ForceTrack.Read(exINI, pSection, "ForceTrack");
+	this->ForceTrack_Index.Read(exINI, pSection, "ForceTrack.Index");
+	this->ForceTrack_Coord.Read(exINI, pSection, "ForceTrack.Coord");
+
+	this->SuppressWreckage.Read(exINI, pSection, "SuppressWreckage");
+	this->ActivateWreckage.Read(exINI, pSection, "ActivateWreckage");
+
+	this->Ammo.Read(exINI, pSection, "Ammo");
+
 	this->IsCellSpreadWH =
 		this->RadarOutage_Duration != 0||
 		this->PowerOutage_Duration != 0||
@@ -897,6 +917,8 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		|| this->KnockUp
 		|| this->Traction
 		|| this->ChangeOwner
+		|| this->ForceTrack
+		|| this->Ammo
 		;
 
 	this->IsFakeEngineer =
@@ -1819,6 +1841,8 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->RemoveDisguise)
 		.Process(this->RemoveMindControl)
 		.Process(this->RemoveMindControl_Silent)
+		.Process(this->RemoveMindControl_OnVictim)
+		.Process(this->RemoveMindControl_OnController)
 		.Process(this->AnimList_PickRandom)
 		.Process(this->AnimList_CreateAll)
 		.Process(this->AnimList_CreationInterval)
@@ -2250,6 +2274,23 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->PreventCrew)
 		.Process(this->PreventPassengerEscape)
 		.Process(this->PreventOccupantEscape)
+
+		.Process(this->LightChanging)
+		.Process(this->SetAmbientLight)
+		.Process(this->SetAmbientRed)
+		.Process(this->SetAmbientGreen)
+		.Process(this->SetAmbientBlue)
+
+		.Process(this->ReduceTiberium)
+
+		.Process(this->ForceTrack)
+		.Process(this->ForceTrack_Index)
+		.Process(this->ForceTrack_Coord)
+
+		.Process(this->SuppressWreckage)
+		.Process(this->ActivateWreckage)
+
+		.Process(this->Ammo)
 		;
 }
 

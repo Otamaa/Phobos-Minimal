@@ -282,7 +282,7 @@ void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * 
 
 			if (pTechnoExt->IsSelected)
 			{
-				ScenarioExtData::Instance()->LimboLaunchers.erase(pThis->Owner);
+				ScenarioExtData::Instance()->LimboLaunchers.erase(pTechnoExt);
 				pThis->Owner->Select();
 				pTechnoExt->IsSelected = false;
 			}
@@ -291,7 +291,7 @@ void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * 
 		{
 			if (pTechnoExt->IsSelected)
 			{
-				ScenarioExtData::Instance()->LimboLaunchers.erase(pThis->Owner);
+				ScenarioExtData::Instance()->LimboLaunchers.erase(pTechnoExt);
 				pTechnoExt->IsSelected = false;
 			}
 

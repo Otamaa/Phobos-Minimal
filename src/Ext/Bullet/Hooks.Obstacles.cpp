@@ -228,7 +228,7 @@ ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 	return ContinueCheck;
 }
 
-DEFINE_HOOK(0x4D59F0, FootClass_ApproachTarget_ClearCond, 0x6)
+ASMJIT_PATCH(0x4D59F0, FootClass_ApproachTarget_ClearCond, 0x6)
 {
 	enum { SkipClear = 0x4D5A07, Clear = 0x4D59FB };
 

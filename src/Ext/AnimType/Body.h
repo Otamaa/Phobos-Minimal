@@ -236,13 +236,13 @@ public:
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
-		this->ObjectTypeExtData::Internal_LoadFromStream(Stm);
+		this->ObjectTypeExtData::LoadFromStream(Stm);
 		this->Serialize(Stm);
 	}
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
-		this->ObjectTypeExtData::Internal_SaveToStream(Stm);
+		this->ObjectTypeExtData::SaveToStream(Stm);
 		const_cast<AnimTypeExtData*>(this)->Serialize(Stm);
 	}
 
@@ -304,7 +304,7 @@ public:
 	void ValidateData();
 
 public:
-	static void ProcessDestroyAnims(FootClass* pThis, HouseClass* pKiller = nullptr, WarheadTypeClass* pWH = nullptr);
+	static void ProcessDestroyAnims(TechnoClass* pThis, HouseClass* pKiller = nullptr, WarheadTypeClass* pWH = nullptr);
 	static void CreateUnit_MarkCell(AnimClass* pThis);
 	static void CreateUnit_Spawn(AnimClass* pThis);
 

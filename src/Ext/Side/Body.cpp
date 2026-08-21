@@ -286,7 +286,7 @@ InfantryTypeClass* SideExtData::GetDefaultDisguise() const
 
 bool SideExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	if (parseFailAddr)
+	if (!this->AbstractTypeExtData::LoadFromINI(pINI, parseFailAddr))
 		return false;
 
 	auto pThis = This();
@@ -386,6 +386,13 @@ bool SideExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Sidebar_BattlePoints_Offset.Read(exINI, pSection, "Sidebar.BattlePoints.Offset");
 	this->Sidebar_BattlePoints_Color.Read(exINI, pSection, "Sidebar.BattlePoints.Color");
 	this->Sidebar_BattlePoints_Align.Read(exINI, pSection, "Sidebar.BattlePoints.Align");
+
+	this->SelectedInfo_Main.Read(exINI, pSection, "SelectedInfo.Main");
+	this->SelectedInfo_Buff.Read(exINI, pSection, "SelectedInfo.Buff");
+	this->SelectedInfo_Button.Read(exINI, pSection, "SelectedInfo.Button");
+	this->SelectedInfo_Bottom.Read(exINI, pSection, "SelectedInfo.Bottom");
+	this->SelectedInfo_Toggle.Read(exINI, pSection, "SelectedInfo.Toggle");
+	this->SelectedInfo_Palette.Read(exINI, pSection, "SelectedInfo.Palette");
 
 	return true;
 }
@@ -521,6 +528,13 @@ void SideExtData::Serialize(T& Stm)
 		.Process(this->Sidebar_BattlePoints_Offset)
 		.Process(this->Sidebar_BattlePoints_Color)
 		.Process(this->Sidebar_BattlePoints_Align)
+
+		.Process(this->SelectedInfo_Main)
+		.Process(this->SelectedInfo_Buff)
+		.Process(this->SelectedInfo_Button)
+		.Process(this->SelectedInfo_Bottom)
+		.Process(this->SelectedInfo_Toggle)
+		.Process(this->SelectedInfo_Palette)
 		;
 }
 

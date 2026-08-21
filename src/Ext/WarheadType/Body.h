@@ -63,6 +63,9 @@ public:
 	Valueable<bool> RemoveDisguise { false };
 	Valueable<bool> RemoveMindControl { false };
 	Nullable<bool> RemoveMindControl_Silent {};
+	Valueable<bool> RemoveMindControl_OnVictim { true };
+	Valueable<bool> RemoveMindControl_OnController { false };
+
 	Nullable<bool> AnimList_PickRandom {};
 	Valueable<bool> AnimList_CreateAll { false };
 	Valueable<int> AnimList_CreationInterval { 0 };
@@ -289,7 +292,7 @@ public:
 	Valueable<int> RelativeDamage_Infantry { 0 };
 	Valueable<int> RelativeDamage_Building { 0 };
 	Valueable<int> RelativeDamage_Terrain { 0 };
-	
+
 	std::vector<VersesData> Verses {};
 
 	Nullable<int> Berzerk_dur {};
@@ -541,6 +544,23 @@ public:
 	Valueable<bool> PreventCrew { false };
 	Nullable<bool>  PreventPassengerEscape { };
 	Valueable<bool> PreventOccupantEscape { false };
+
+	Valueable<bool> LightChanging { false };
+	Valueable<int> SetAmbientLight { -1 };
+	Valueable<int> SetAmbientRed { -1 };
+	Valueable<int> SetAmbientGreen { -1 };
+	Valueable<int> SetAmbientBlue { -1 };
+
+	Nullable<bool> ReduceTiberium { };
+
+	Valueable<bool> ForceTrack {};
+	Valueable<int> ForceTrack_Index {};
+	Valueable<CoordStruct> ForceTrack_Coord {};
+
+	Valueable<bool> SuppressWreckage {};
+	Valueable<bool> ActivateWreckage {};
+
+	Valueable<int> Ammo { 0 };
 #pragma endregion
 
 public:
@@ -574,13 +594,13 @@ public:
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
-		this->AbstractTypeExtData::Internal_LoadFromStream(Stm);
+		this->AbstractTypeExtData::LoadFromStream(Stm);
 		this->Serialize(Stm);
 	}
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
-		const_cast<WarheadTypeExtData*>(this)->AbstractTypeExtData::Internal_SaveToStream(Stm);
+		const_cast<WarheadTypeExtData*>(this)->AbstractTypeExtData::SaveToStream(Stm);
 		const_cast<WarheadTypeExtData*>(this)->Serialize(Stm);
 	}
 
@@ -660,6 +680,9 @@ public:
 	void ApplyKnockUp(TechnoClass* pTarget);
 	void ApplyTraction(TechnoClass* pTarget, const CoordStruct& coords);
 	void ApplyOwnerChange(HouseClass* pHouse, TechnoClass* pTarget);
+	void ApplyChangeLightning();
+	void ApplyForceTrack(TechnoClass* pTarget);
+	void ApplyAmmoModifier(TechnoClass* pTarget);
 
 	COMPILETIMEEVAL FORCEDINLINE VersesData& GetVerses(Armor armor) {
 		return this->Verses[static_cast<int>(armor)];

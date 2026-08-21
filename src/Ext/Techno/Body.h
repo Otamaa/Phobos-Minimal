@@ -122,175 +122,7 @@ class TechnoExtData : public RadioExtData
 {
 private:
 	template <typename T>
-	void Serialize(T& Stm)
-	{
-		auto debugProcess = [&Stm](auto& field, const char* fieldName)-> auto&
-			{
-				if constexpr (std::is_same_v<T, PhobosStreamWriter>)
-				{
-					//	size_t beforeSize = Stm.Getstream()->Size();
-					auto& result = Stm.Process(field);
-					//	size_t afterSize = Stm.Getstream()->Size();
-					//	GameDebugLog::Log("[TechnoExtData] SAVE %s: size %zu -> %zu (+%zu)\n",
-					//		fieldName, beforeSize, afterSize, afterSize - beforeSize);
-					return result;
-				}
-				else
-				{
-					//	size_t beforeOffset = Stm.Getstream()->Offset();
-					//	bool beforeSuccess = Stm.Success();
-					auto& result = Stm.Process(field);
-					//	size_t afterOffset = Stm.Getstream()->Offset();
-					//	bool afterSuccess = Stm.Success();
-
-					//	GameDebugLog::Log("[TechnoExtData] LOAD %s: offset %zu -> %zu (+%zu), success: %s -> %s\n",
-					//		fieldName, beforeOffset, afterOffset, afterOffset - beforeOffset,
-					//		beforeSuccess ? "true" : "false", afterSuccess ? "true" : "false");
-
-					//	if (!afterSuccess && beforeSuccess)
-					//	{
-					//		GameDebugLog::Log("[TechnoExtData] ERROR: %s caused stream failure!\n", fieldName);
-						//}
-					return result;
-				}
-			};
-
-		debugProcess(this->CurrentType, "CurrentType");
-		debugProcess(this->ShiftApplier, "ShiftApplier");
-		debugProcess(this->ShiftApplierHouse, "ShiftApplierHouse");
-		debugProcess(this->TypeExtData, "OriginalType");
-		debugProcess(this->AE, "AE");
-		debugProcess(this->idxSlot_EMPulse, "idxSlot_EMPulse");
-		debugProcess(this->idxSlot_Warp, "idxSlot_Warp");
-		debugProcess(this->idxSlot_Parasite, "idxSlot_Parasite");
-		debugProcess(this->EMPSparkleAnim, "EMPSparkleAnim");
-		debugProcess(this->EMPLastMission, "EMPLastMission");
-		debugProcess(this->BuildingLight, "BuildingLight");
-		debugProcess(this->OriginalHouseType, "OriginalHouseType");
-		debugProcess(this->CloakSkipTimer, "CloakSkipTimer");
-		debugProcess(this->HijackerHealth, "HijackerHealth");
-		debugProcess(this->ShieldEntity, "ShieldEntity");
-		debugProcess(this->PoweredUnitEntity, "PoweredUnitEntity");
-		debugProcess(this->RadarJammerEntity, "RadarJammerEntity");
-		debugProcess(this->HijackerOwner, "HijackerOwner");
-		debugProcess(this->HijackerVeterancy, "HijackerVeterancy");
-		debugProcess(this->Is_SurvivorsDone, "Is_SurvivorsDone");
-		debugProcess(this->Is_DriverKilled, "Is_DriverKilled");
-		debugProcess(this->Is_Operated, "Is_Operated");
-		debugProcess(this->Is_UnitLostMuted, "Is_UnitLostMuted");
-		debugProcess(this->TakeVehicleMode, "TakeVehicleMode");
-		debugProcess(this->TechnoValueAmount, "TechnoValueAmount");
-		debugProcess(this->Pos, "Pos");
-		debugProcess(this->LaserTrails, "LaserTrails");
-		debugProcess(this->ReceiveDamage, "ReceiveDamage");
-		debugProcess(this->LastKillWasTeamTarget, "LastKillWasTeamTarget");
-		debugProcess(this->PassengerDeletionTimer, "PassengerDeletionTimer");
-		debugProcess(this->CurrentShieldType, "CurrentShieldType");
-		debugProcess(this->LastWarpDistance, "LastWarpDistance");
-		debugProcess(this->Death_Countdown, "Death_Countdown");
-		debugProcess(this->MindControlRingAnimType, "MindControlRingAnimType");
-		debugProcess(this->DamageNumberOffset, "DamageNumberOffset");
-		debugProcess(this->CurrentLaserWeaponIndex, "CurrentLaserWeaponIndex");
-		debugProcess(this->OriginalPassengerOwner, "OriginalPassengerOwner");
-		debugProcess(this->IsInTunnel, "IsInTunnel");
-		debugProcess(this->IsBurrowed, "IsBurrowed");
-		debugProcess(this->DeployFireTimer, "DeployFireTimer");
-		debugProcess(this->DisableWeaponTimer, "DisableWeaponTimer");
-		debugProcess(this->RevengeWeapons, "RevengeWeapons");
-		debugProcess(this->GattlingDmageDelay, "GattlingDmageDelay");
-		debugProcess(this->GattlingDmageSound, "GattlingDmageSound");
-		debugProcess(this->AircraftOpentoppedInitEd, "AircraftOpentoppedInitEd");
-		debugProcess(this->EngineerCaptureDelay, "EngineerCaptureDelay");
-		debugProcess(this->FlhChanged, "FlhChanged");
-		debugProcess(this->SkipLowDamageCheck, "SkipLowDamageCheck");
-		debugProcess(this->aircraftPutOffsetFlag, "aircraftPutOffsetFlag");
-		debugProcess(this->aircraftPutOffset, "aircraftPutOffset");
-		debugProcess(this->SkipVoice, "SkipVoice");
-		debugProcess(this->ExtraWeaponTimers, "ExtraWeaponTimers");
-		debugProcess(this->WarpedOutDelay, "WarpedOutDelay");
-		debugProcess(this->MyOriginalTemporal, "MyOriginalTemporal");
-		debugProcess(this->SupressEVALost, "SupressEVALost");
-		debugProcess(this->SelfHealing_CombatDelay, "SelfHealing_CombatDelay");
-		debugProcess(this->PayloadCreated, "PayloadCreated");
-		debugProcess(this->PayloadTriggered, "PayloadTriggered");
-		debugProcess(this->LinkedSW, "LinkedSW");
-		debugProcess(this->SuperTarget, "SuperTarget");
-		debugProcess(this->HijackerLastDisguiseType, "HijackerLastDisguiseType");
-		debugProcess(this->HijackerLastDisguiseHouse, "HijackerLastDisguiseHouse");
-		debugProcess(this->WHAnimRemainingCreationInterval, "WHAnimRemainingCreationInterval");
-		debugProcess(this->IsWebbed, "IsWebbed");
-		debugProcess(this->WebbedAnim, "WebbedAnim");
-		debugProcess(this->WebbyLastTarget, "WebbyLastTarget");
-		debugProcess(this->WebbyLastMission, "WebbyLastMission");
-		debugProcess(this->AeData, "AeData");
-		debugProcess(this->MergePreventionTimer, "MergePreventionTimer");
-		debugProcess(this->TiberiumStorage, "TiberiumStorage");
-		debugProcess(this->PhobosAE, "PhobosAE");
-		debugProcess(this->FiringObstacleCell, "FiringObstacleCell");
-		debugProcess(this->AdditionalRange, "AdditionalRange");
-		debugProcess(this->IsDetachingForCloak, "IsDetachingForCloak");
-		debugProcess(this->HasRemainingWarpInDelay, "HasRemainingWarpInDelay");
-		debugProcess(this->LastWarpInDelay, "LastWarpInDelay");
-		debugProcess(this->SubterraneanHarvRallyPoint, "SubterraneanHarvRallyPoint");
-		debugProcess(this->IsBeingChronoSphered, "IsBeingChronoSphered");
-		debugProcess(this->TiberiumEaterTimer, "TiberiumEaterTimer");
-		debugProcess(this->LastDamageWH, "LastDamageWH");
-		debugProcess(this->MyTargetingFrame, "MyTargetingFrame");
-		debugProcess(this->ChargeTurretTimer, "ChargeTurretTimer");
-		debugProcess(this->LastRearmWasFullDelay, "LastRearmWasFullDelay");
-		debugProcess(this->DropCrate, "DropCrate");
-		debugProcess(this->DropCrateType, "DropCrateType");
-		debugProcess(this->LastBeLockedFrame, "LastBeLockedFrame");
-		debugProcess(this->BeControlledThreatFrame, "BeControlledThreatFrame");
-		debugProcess(this->LastTargetID, "LastTargetID");
-		debugProcess(this->LastHurtFrame, "LastHurtFrame");
-		debugProcess(this->AccumulatedGattlingValue, "AccumulatedGattlingValue");
-		debugProcess(this->ShouldUpdateGattlingValue, "ShouldUpdateGattlingValue");
-		debugProcess(this->KeepTargetOnMove, "KeepTargetOnMove");
-		debugProcess(this->LastSensorsMapCoords, "LastSensorsMapCoords");
-		debugProcess(this->DelayedFireSequencePaused, "DelayedFireSequencePaused");
-		debugProcess(this->DelayedFireTimer, "DelayedFireTimer");
-		debugProcess(this->DelayedFireWeaponIndex, "DelayedFireWeaponIndex");
-		debugProcess(this->CurrentDelayedFireAnim, "CurrentDelayedFireAnim");
-		debugProcess(this->LastWeaponType, "LastWeaponType");
-		debugProcess(this->AirstrikeTargetingMe, "AirstrikeTargetingMe");
-		debugProcess(this->RandomEMPTarget, "RandomEMPTarget");
-		debugProcess(this->ForceFullRearmDelay, "ForceFullRearmDelay");
-		debugProcess(this->AttackMoveFollowerTempCount, "AttackMoveFollowerTempCount");
-		debugProcess(this->JumpjetSpeed, "JumpjetSpeed");
-		debugProcess(this->OnlyAttackData, "OnlyAttackData");
-		debugProcess(this->IsSelected, "IsSelected");
-		debugProcess(this->UndergroundTracked, "UndergroundTracked");
-		debugProcess(this->PassiveAquireMode, "PassiveAquireMode");
-		debugProcess(this->CurrentSubterraneanHarvStatus, "CurrentSubterraneanHarvStatus");
-		debugProcess(this->UnitIdleAction, "UnitIdleAction");
-		debugProcess(this->UnitIdleActionSelected, "UnitIdleActionSelected");
-		debugProcess(this->UnitIdleIsSelected, "UnitIdleIsSelected");
-		debugProcess(this->UnitIdleActionTimer, "UnitIdleActionTimer");
-		debugProcess(this->UnitIdleActionGapTimer, "UnitIdleActionGapTimer");
-		debugProcess(this->LastTargetCrdClearTimer, "LastTargetCrdClearTimer");
-		debugProcess(this->LastTargetCrd, "LastTargetCrd");
-		debugProcess(this->Tints, "Tints");
-		debugProcess(this->FallingDownTracked, "FallingDownTracked");
-		debugProcess(this->ResetLocomotor, "ResetLocomotor");
-		debugProcess(this->JumpjetStraightAscend, "JumpjetStraightAscend");
-		debugProcess(this->CanFireWeaponType, "CanFireWeaponType");
-		debugProcess(this->ExtraTurretRecoil, "ExtraTurretRecoil");
-		debugProcess(this->ExtraBarrelRecoil, "ExtraBarrelRecoil");
-		debugProcess(this->OnParachuted, "OnParachuted");
-		debugProcess(this->HoverShutdown, "HoverShutdown");
-		debugProcess(this->HasDeployConvertedInCurrentSequence, "HasDeployConvertedInCurrentSequence");
-		debugProcess(this->HasDeployConverted , "HasDeployConverted");
-		debugProcess(this->HasUndeployConverted , "HasUndeployConverted");
-		debugProcess(this->PrismRelay, "PrismRelay");
-		debugProcess(this->PrismRelayCooldown, "PrismRelayCooldown");
-		debugProcess(this->PrismRelayBurstChainBuilt, "PrismRelayBurstChainBuilt");
-		debugProcess(this->PrismRelayCachedNetworkId, "PrismRelayCachedNetworkId");
-		debugProcess(this->PrismRelayCachedProviders, "PrismRelayCachedProviders");
-		debugProcess(this->ShouldBeDead, "ShouldBeDead ");
-		debugProcess(this->PreventCrew, "PreventCrew");
-		debugProcess(this->PendingReloadVeterancyAdjustment, "PendingReloadVeterancyAdjustment");
-	}
+	void Serialize(T& Stm);
 
 public:
 	using base_type = TechnoClass;
@@ -445,6 +277,7 @@ public:
 
 	BYTE Is_SurvivorsDone {};
 	BYTE Is_DriverKilled {};
+	BYTE Is_Wreckage {};
 	BYTE Is_Operated {};
 	BYTE Is_UnitLostMuted {};
 	BYTE TakeVehicleMode {};
@@ -635,6 +468,8 @@ public:
 
 	void ApplyPendingReloadVeterancy();
 
+	void SpawnWreckage(WarheadTypeClass* pWHs, HouseClass* pAttackerHosue);
+
 public:
 
 	static void InitializeUnitIdleAction(TechnoClass* pThis, TechnoTypeClass* pType);
@@ -681,7 +516,7 @@ public:
 	static double GetDamageMult(TechnoClass* pSource);
 
 	static double GetArmorMult(TechnoClass* pSouce, double damageIn, WarheadTypeClass* pWarhead, bool playAnim  = true);
-
+	static double GetCurrentArmorMultiplier(TechnoClass* pThis, TechnoTypeClass* pType, HouseClass* pSourceHouse, WarheadTypeClass* pWarhead, bool playAnim);
 	static void InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType);
 	static void InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted);
 	static void UpdateLaserTrails(TechnoClass* pThis);
@@ -836,6 +671,7 @@ public:
 	static Point2D GetFootSelectBracketPosition(TechnoClass* pThis, Anchor anchor);
 	static Point2D GetBuildingSelectBracketPosition(TechnoClass* pThis, BuildingSelectBracketPosition bracketPosition, Point2D offset = Point2D::Empty);
 	static void ProcessDigitalDisplays(TechnoClass* pThis);
+	static void GetValuesForDisplay(TechnoClass* pThis, TechnoTypeClass* pDestinatedType, DisplayInfoType infoType, int& value, int& maxValue, int infoIndex, ShieldClass* pShield);
 	static void GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType, int& value, int& maxValue, int infoIndex, ShieldClass* pShield);
 	static std::vector<DigitalDisplayTypeClass*>* GetDisplayType(TechnoClass* pThis, TechnoTypeClass* pType, int& length);
 
@@ -1158,6 +994,8 @@ public:
 	static RadBeam* __FireBeam(TechnoClass* pThis, int WeaponIDx, BulletClass* pBullet , CellClass* pObstacle, AbstractClass* pTarget, RadBeamType type);
 	static RadBeam* __FireBeam(TechnoClass* pThis, WeaponTypeClass* pWeapon, CoordStruct flh , CoordStruct target, RadBeamType type);
 	static void __FireRadEruption(TechnoClass* pThis, WeaponTypeClass* pWeapon, float spread);
+
+	static void __Destroy(TechnoClass* pThis);
 
 };
 

@@ -8,6 +8,8 @@ class AbstractTypeExtData : public AbstractExtended
 {
 public:
 	PhobosFixedString<0x18> Name {};
+	DWORD CameoPriority_Houses { 0u };
+	Valueable<int> CameoPriority { 0 };
 public:
 
 	AbstractTypeExtData(AbstractTypeClass* pObj) : AbstractExtended(pObj) {
@@ -22,13 +24,20 @@ public:
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
 		this->AbstractExtended::Internal_LoadFromStream(Stm);
-		Stm.Process(Name);
+		Stm
+			.Process(Name)
+			.Process(CameoPriority_Houses)
+			.Process(CameoPriority)
+			;
 	}
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		this->AbstractExtended::Internal_SaveToStream(Stm);
-		Stm.Process(Name);
+		Stm.Process(Name)
+			.Process(CameoPriority_Houses)
+			.Process(CameoPriority)
+			;
 	}
 
 	virtual int GetSize() const { return sizeof(*this); };
@@ -37,7 +46,7 @@ public:
 
 	OPTIONALINLINE const char* Full_Name() const { return This()->Name; }
 
-	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr) = 0;
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const = 0;
 
 	AbstractTypeClass* This() const { return reinterpret_cast<AbstractTypeClass*>(this->AttachedToObject); }

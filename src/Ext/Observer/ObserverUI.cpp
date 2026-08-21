@@ -1258,7 +1258,7 @@ void ObserverHouseSummary::AddEconomyLines(ObserverTextBlock& block, HouseClass*
 	}
 	else if (itRow->IncomeRatePerMin < 0)
 	{
-		rateOss << L"-$" << std::abs(itRow->IncomeRatePerMin);
+		rateOss << L"-$" << Math::abs(itRow->IncomeRatePerMin);
 		rateColor = SoftBad();
 	}
 	else

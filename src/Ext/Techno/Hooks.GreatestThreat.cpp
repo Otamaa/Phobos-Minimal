@@ -154,6 +154,9 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 	const ThreatType backup_original = method;
 
 	// Early exit for NoAutoFire units under player control
+	const bool _NoAutoFire = !pThis->Owner->IsControlledByHuman() ? 
+		GET_TECHNOTYPEEXT(pThis)->NoAutoFire_AI.Get(pType->NoAutoFire) : pType->NoAutoFire;
+
 	if ((pType->NoAutoFire 
 		|| (TechnoExtContainer::Instance.Find(pThis)->GetPassiveAcquireMode()) == PassiveAcquireModes::Ceasefire) 
 		&& isTechnoPlayerControlled) {
@@ -504,8 +507,10 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 		int threatBuffer = 0;
 		auto tempCrd = CoordStruct::Empty;
 
-		for (auto pCurrent : ScenarioExtData::Instance()->FallingDownTracker)
+		for (auto pTracked : ScenarioExtData::Instance()->FallingDownTracker)
 		{
+			auto pCurrent = pTracked->This();
+
 			if ((!pOwner->IsAlliedWith(pCurrent) || targetFriendly)
 				&& (!onlyEnemy || pCurrent->Owner->ArrayIndex == pThis->Owner->EnemyHouseIndex)
 				&& FakeTechnoClass::__EvaluateObjectB(pThis, method, threatBitfield, threatRange, pCurrent, &threatBuffer, ZoneType::None, &tempCrd, AU))
@@ -536,8 +541,9 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 		int threatBuffer = 0;
 		auto tempCrd = CoordStruct::Empty;
 
-		for (const auto pCurrent : ScenarioExtData::Instance()->UndergroundTracker)
+		for (auto pTracked : ScenarioExtData::Instance()->UndergroundTracker)
 		{
+			const auto pCurrent = pTracked->This();
 
 			if ((!pOwner->IsAlliedWith(pCurrent) || targetFriendly)
 				&& (!onlyEnemy || pCurrent->Owner->ArrayIndex == pOwner->EnemyHouseIndex)
@@ -1413,6 +1419,42 @@ bool FakeTechnoClass::__EvaluateObjectB(
 		if (!TechnoExtData::CanAttackMindControlled(pTechnoTarget, pThis))
 			return false;
 	}
+
+	auto CalculateExtraThreat = [pThis, pThisTypeExt, value](ObjectClass* pTarget)
+		{
+			if (pThisTypeExt->TargetExtraThreat){
+
+				const auto& vec = pThisTypeExt->TargetExtraThreat_Multipliers;
+				const size_t multsCount = vec.size();
+
+				if (multsCount > 0){
+
+					const size_t angleCount = pThisTypeExt->TargetExtraThreat_Angles.size();
+
+					if (angleCount <= 0) {
+						(*value) *= static_cast<int>(vec[0]);
+						return;
+					}
+
+					const auto absType = pThis->WhatAmI();
+					const auto tgtDir = pThis->GetDirectionOverObject(pTarget);
+					const bool useSec = pThisTypeExt->TargetExtraThreat_Turret && absType == AbstractType::Unit && pThisTypeExt->This()->Turret;
+					const auto curDir = (useSec || absType == AbstractType::Aircraft ? pThis->SecondaryFacing : pThis->PrimaryFacing).Current();
+					const int difference = Math::abs(static_cast<short>(static_cast<short>(tgtDir.Raw) - static_cast<short>(curDir.Raw)));
+
+					for (size_t i = 0; i < angleCount; ++i) {
+						if (difference <= static_cast<int>(pThisTypeExt->TargetExtraThreat_Angles[i].Raw)) {
+							(*value) *= static_cast<int>(vec[MinImpl(i, (multsCount - 1))]);
+							return;
+						}
+					}
+
+					(*value) *= static_cast<int>(vec[MinImpl(angleCount, (multsCount - 1))]);
+				}
+			}
+		};
+
+	CalculateExtraThreat(target);
 
 	// =========================================================================
 	// 31. Power-plant bonus

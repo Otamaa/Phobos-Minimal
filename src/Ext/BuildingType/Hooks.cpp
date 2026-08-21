@@ -413,11 +413,11 @@ ASMJIT_PATCH(0x46152C, BuildingTypeClass_SetOccupy, 0x6)
 	}
 	else
 	{
-		pThis->FoundationData = BuildingTypeClass::FoundationlinesData[(int)pThis->Foundation].Datas;
-		pThis->FoundationOutside = BuildingTypeClass::FoundationOutlinesData[(int)pThis->Foundation].Datas;
+		//pThis->FoundationData = BuildingTypeClass::FoundationlinesData[(int)pThis->Foundation].Datas;
+		//pThis->FoundationOutside = BuildingTypeClass::FoundationOutlinesData[(int)pThis->Foundation].Datas;
 
-		//pThis->FoundationData = FoundationDataStruct::Cells[(int)pThis->Foundation].Datas;
-		//pThis->FoundationOutside = FoundationDataStruct::Outlines[(int)pThis->Foundation].Datas;
+		pThis->FoundationData = FoundationDataStruct::Cells[(int)pThis->Foundation].Datas;
+		pThis->FoundationOutside = FoundationDataStruct::Outlines[(int)pThis->Foundation].Datas;
 
 	}
 

@@ -1420,7 +1420,7 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	this->EMPulse_PulseBall = AnimTypeClass::Find(GameStrings::PULSBALL);
 
-	if (parseFailAddr)
+	if (!this->AbstractTypeExtData::LoadFromINI(pINI, parseFailAddr))
 		return false;
 
 	INI_EX exINI(pINI);
@@ -1446,7 +1446,6 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	this->Money_Amount.Read(exINI, pSection, "Money.Amount");
 	this->UIDescription.Read(exINI, pSection, "UIDescription");
-	this->CameoPriority.Read(exINI, pSection, "CameoPriority");
 	this->LimboDelivery_Types.Read(exINI, pSection, "LimboDelivery.Types");
 	this->LimboDelivery_IDs.Read(exINI, pSection, "LimboDelivery.IDs");
 
@@ -2378,7 +2377,6 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->SW_RadarEvent)
 		.Process(this->Money_Amount)
 		.Process(this->UIDescription)
-		.Process(this->CameoPriority)
 		.Process(this->LimboDelivery_Types)
 		.Process(this->LimboDelivery_IDs)
 		.Process(this->LimboDelivery_Randoms)

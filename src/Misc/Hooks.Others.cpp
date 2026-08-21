@@ -103,8 +103,8 @@ ASMJIT_PATCH(0x437CCC, BSurface_DrawSHPFrame1_Buffer, 0x8)
 	//0x89C568
 	REF_STACK(unsigned char const*, pBuffer, STACK_OFFS(0x7C, 0x6C));
 
-	auto const width = static_cast<size_t>(std::clamp<int>(
-		static_cast<int>(bounds.Width), 0, std::numeric_limits<int>::max()));
+	auto const width = static_cast<size_t>(std::clamp<short>(
+		static_cast<int>(bounds.Width), 0, std::numeric_limits<short>::max()));
 
 	// buffer overrun is now not as forgiving as it was before
 	auto& Buffer = PhobosGlobal::Instance()->ShpCompression1Buffer;
@@ -117,22 +117,6 @@ ASMJIT_PATCH(0x437CCC, BSurface_DrawSHPFrame1_Buffer, 0x8)
 	pBuffer = Buffer.data();
 
 	return 0x437CD4;
-}
-
-ASMJIT_PATCH(0x7387D1, UnitClass_Destroyed_Shake, 0x6)
-{
-	GET(UnitClass* const, pUnit, ESI); //forEXT
-
-	if (!pUnit || !pUnit->Type || !RulesClass::Instance->ShakeScreen || Phobos::Config::HideShakeEffects)
-		return 0x738801;
-
-	if (!pUnit->Type->Strength)
-		return 0x738801;
-
-	if (!TechnoTypeExtContainer::Instance.Find(pUnit->Type)->DontShake.Get())
-		TechnoExtData::ShakeScreen(pUnit, pUnit->Type->Strength, RulesClass::Instance->ShakeScreen);
-
-	return 0x738801;
 }
 
 // replaced entire function. error was using delete[] instead of delete.

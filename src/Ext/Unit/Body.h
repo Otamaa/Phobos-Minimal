@@ -68,6 +68,7 @@ public:
 	FORCEDINLINE UnitTypeExtData* GetTypeExtData() const { return ((UnitTypeExtData*)TypeExtData); }
 
 	static double GetPrimaryRadian(UnitClass* pThis);
+
 public:
 
 };

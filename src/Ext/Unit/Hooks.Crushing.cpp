@@ -9,7 +9,7 @@
 #include <Utilities/TemplateDef.h>
 #include <New/Interfaces/AdvancedDriveLocomotionClass.h>
 
-ASMJIT_PATCH(0x073B05B, UnitClass_PerCellProcess_TiltWhenCrushes, 0x6)
+ASMJIT_PATCH(0x73B05B, UnitClass_PerCellProcess_TiltWhenCrushes, 0x6)
 {
 	enum { SkipGameCode = 0x73B074 };
 

@@ -196,6 +196,11 @@ int Phobos::Config::DistributionFilterMode = 2;
 
 int Phobos::Config::SuperWeaponSidebar_RequiredSignificance { 0 };
 bool Phobos::Config::SuperWeaponSidebarCommands { false };
+
+bool Phobos::Config::SelectedDisplay_Enable { true };
+bool Phobos::Config::SelectedDisplay_Expand { false };
+int Phobos::Config::SelectedDisplay_MaxCameo { 10 };
+
 DWORD  Phobos::Config::InternalVersion { 0x1414D121 };
 std::string  Phobos::Config::ModName { "Yuri's Revenge" };
 std::string  Phobos::Config::ModVersion { "1.001" };
@@ -1369,7 +1374,7 @@ HCURSOR __stdcall LoadCursorA_Wrapper(HINSTANCE hInstance, LPCSTR lpCursorName)
 	}
 }
 
-#include <Misc/ReShade/Runtime/dll_main.h>
+//#include <Misc/ReShade/Runtime/dll_main.h>
 
 BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
@@ -1399,8 +1404,8 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			DisableThreadLibraryCalls((HMODULE)hInstance);
 			IsInitialized = true;
 			PhobosHookers::InitMinHook();
-			if (ReshadeContainer::Attach((HMODULE)hInstance) == FALSE)
-				return FALSE;
+			//if (ReshadeContainer::Attach((HMODULE)hInstance) == FALSE)
+			//	return FALSE;
 
 			CRTHooks::Apply();
 			Debug::PrepareLogFile();
@@ -1432,7 +1437,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		{
 			Multithreading::ShutdownMultitheadMode();
 			Debug::DeactivateLogger();
-			ReshadeContainer::Detach();
+			//ReshadeContainer::Detach();
 			PhobosHookers::CleanupTrampolines();
 		}
 	}

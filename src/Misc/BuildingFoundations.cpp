@@ -4,7 +4,7 @@
 // FoundationCells - Interior cell coordinates (which tiles are occupied)
 // Array starts at address: 0089C900
 
-#define SENTINEL { -1 , -1}
+#define SENTINEL { 0x7FFF , 0x7FFF}
 
 /*
  * Index 0: Empty/None

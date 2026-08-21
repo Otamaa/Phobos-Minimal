@@ -1239,9 +1239,6 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x6D4B50, FakeTacticalClass::__DrawTimers);
 
 void FakeTacticalClass::__DrawTimersSW(SuperClass* pSuper, int value, int interval)
 {
-	for (auto& pBanner : BannerManagerClass::Instance.Array) {
-		pBanner.Render();
-	}
 
 	BitFont* pFont = BitFont::BitFontPtr(TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background);
 

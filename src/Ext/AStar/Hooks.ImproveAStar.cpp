@@ -242,8 +242,8 @@ namespace AStarInternal
 	//--------------------------------------------------------------------------
 	static inline float Heuristic(const CellStruct& from, const CellStruct& to)
 	{
-		const int dx = std::abs(static_cast<int>(from.X) - static_cast<int>(to.X));
-		const int dy = std::abs(static_cast<int>(from.Y) - static_cast<int>(to.Y));
+		const int dx = Math::abs(static_cast<int>(from.X) - static_cast<int>(to.X));
+		const int dy = Math::abs(static_cast<int>(from.Y) - static_cast<int>(to.Y));
 
 		if (!DiagonalPathImprovement)
 		{
@@ -256,7 +256,7 @@ namespace AStarInternal
 		// constant is bit-exact with the blob: 0xBF15F61A
 		constexpr float DiagonalBias = -0.58578646f;
 		const int sum = dx + dy;
-		const int mn = std::min(dx, dy);
+		const int mn = MinImpl(dx, dy);
 
 		return static_cast<float>(mn) * DiagonalBias + static_cast<float>(sum);
 	}

@@ -2377,7 +2377,7 @@ void FakeBuildingClass::_DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOrigi
 					DrawTheStuff(Phobos::UI::Spysat_Label);
 				}
 
-				if (!this->_GetExtData()->RegisteredJammers.empty())
+				if (this->_GetExtData()->RadarJammedTimer.GetTimeLeft() > 0 || !this->_GetExtData()->RegisteredJammers.empty())
 					DrawTheStuff(Phobos::UI::BuidingRadarJammedLabel);
 
 			}
@@ -3473,6 +3473,7 @@ void BuildingExtData::Serialize(T& Stm)
 		.Process(this->IsCreatedFromMapFile)
 		.Process(this->DamageFireAnims)
 		.Process(this->AutoSellTimer)
+		.Process(this->RadarJammedTimer)
 		.Process(this->LighningNeedUpdate)
 		.Process(this->TogglePower_HasPower)
 		.Process(this->C4Owner)

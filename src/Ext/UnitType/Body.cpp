@@ -18,10 +18,23 @@ bool UnitTypeExtData::LoadFromINI(CCINIClass * pINI, bool parseFailAddr)
 	this->DefaultMirageDisguises.Read(exINI, pSection, "DefaultMirageDisguises");
 	this->HarvesterLoadRate.Read(exINI, pSection, "HarvesterLoadRate");
 	this->HarvesterDumpRate.Read(exINI, pSection, "HarvesterDumpRate");
-
 	this->TheaterImage.Read(exINI, pSection, "Image.", AbstractType::UnitType);
+	this->Crush_SelfUncloak.Read(exINI, pSection, "Crush.SelfUncloak");
 
 	return true;
+}
+
+template<typename T>
+void UnitTypeExtData::Serialize(T& Stm)
+{
+	Stm
+		.Process(this->TurretShape)
+		.Process(this->DefaultMirageDisguises)
+		.Process(this->HarvesterLoadRate)
+		.Process(this->HarvesterDumpRate)
+		.Process(this->TheaterImage)
+		.Process(this->Crush_SelfUncloak)
+		;
 }
 
 void UnitTypeExtContainer::LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr)

@@ -91,8 +91,14 @@ ASMJIT_PATCH(0x728FF2, TunnelLocomotionClass_Process_SubterraneanHeight3, 0x6)
 	GET(int, heightOffset, EAX);
 	REF_STACK(int, height, 0x14);
 
-	auto const pTypeExt = GET_TECHNOTYPEEXT(pLinkedTo);
+	auto const pTypeExt = FootTypeExtContainer::Instance.Find(pLinkedTo->GetTechnoType());
 	int subtHeight = pTypeExt->SubterraneanHeight.Get(FakeRulesClass::Instance()->SubterraneanHeight);
+	
+	const int digInSpeed = pTypeExt->DigInSpeed;
+
+	if (digInSpeed > 0)
+		heightOffset = (int)(digInSpeed * TechnoExtData::GetCurrentSpeedMultiplier((FootClass*)pLinkedTo));
+
 	height -= heightOffset;
 
 	if (height < subtHeight)
@@ -115,6 +121,52 @@ ASMJIT_PATCH(0x7295E2, TunnelLocomotionClass_ProcessStateDigging_SubterraneanHei
 }
 
 #pragma endregion
+
+ASMJIT_PATCH(0x7292BF, TunnelLocomotionClass_ProcessPreDigIn_DigStartROT, 0x6)
+{
+	GET(TunnelLocomotionClass* const, pThis, ESI);
+	GET(int, time, EAX);
+
+	auto const pTypeExt = FootTypeExtContainer::Instance.Find(pThis->LinkedTo->GetTechnoType());
+	const int rot = pTypeExt->DigStartROT;
+
+	if (rot > 0)
+		time = (int)(64 / (double)rot);
+
+	R->EAX(time);
+	return 0;
+}
+
+ASMJIT_PATCH(0x729A65, TunnelLocomotionClass_ProcessPreDigOut_DigEndROT, 0x6)
+{
+	GET(TunnelLocomotionClass* const, pThis, ESI);
+	GET(int, time, EAX);
+
+	auto const pTypeExt = FootTypeExtContainer::Instance.Find(pThis->LinkedTo->GetTechnoType());
+	const int rot = pTypeExt->DigEndROT;
+
+	if (rot > 0)
+		time = (int)(64 / (double)rot);
+
+	R->EAX(time);
+	return 0;
+}
+
+ASMJIT_PATCH(0x729969, TunnelLocomotionClass_ProcessPreDigOut_DigOutSpeed, 0x6)
+{
+	GET(TunnelLocomotionClass* const, pThis, ESI);
+	GET(int, speed, EAX);
+
+	auto const pTechno = pThis->LinkedTo;
+	auto const pTypeExt = FootTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
+	const int digOutSpeed = pTypeExt->DigOutSpeed;
+
+	if (digOutSpeed > 0)
+		speed = (int)(digOutSpeed * TechnoExtData::GetCurrentSpeedMultiplier(pTechno));
+
+	R->EAX(speed);
+	return 0;
+}
 
 Matrix3D* __stdcall TunnelLocomotionClass_ShadowMatrix(ILocomotion* iloco, Matrix3D* ret, VoxelIndexKey* key)
 {
@@ -166,7 +218,7 @@ ASMJIT_PATCH(0x728F9A, TunnelLocomotionClass_Process_Track, 0x7)
 
 	const auto pLoco = static_cast<TunnelLocomotionClass*>(pThis);
 	auto pTechno = pLoco->LinkedTo;
-	ScenarioExtData::Instance()->UndergroundTracker.emplace(pTechno);
+	ScenarioExtData::Instance()->UndergroundTracker.emplace(TechnoExtContainer::Instance.Find(pTechno));
 	TechnoExtContainer::Instance.Find(pTechno)->UndergroundTracked = true;
 
 	return 0;
@@ -176,7 +228,7 @@ ASMJIT_PATCH(0x7297F6, TunnelLocomotionClass_ProcessDigging_Track, 0x7)
 {
 	GET(FootClass*, pTechno, ECX);
 
-	ScenarioExtData::Instance()->UndergroundTracker.erase(pTechno);
+	ScenarioExtData::Instance()->UndergroundTracker.erase(TechnoExtContainer::Instance.Find(pTechno));
 	TechnoExtContainer::Instance.Find(pTechno)->UndergroundTracked = false;
 
 	return 0;

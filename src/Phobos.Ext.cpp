@@ -109,6 +109,8 @@
 #include <New/Entity/HugeBar.h>
 #include <New/Entity/FoggedObject.h>
 #include <New/Entity/FlyingStrings.h>
+#include <New/SelectedButton/SelectedInfoClass.h>
+
 #include <Ext/Tactical/Body.h>
 
 
@@ -174,8 +176,8 @@ void PhobosExt::InvalidatePointers(AbstractClass* const pInvalid, bool const rem
 
 	if (removed) {
 		if(pInvalid->AbstractFlags & AbstractFlags::Techno) {
-			ScenarioExtData::Instance()->UndergroundTracker.erase((TechnoClass*)pInvalid);
-			ScenarioExtData::Instance()->FallingDownTracker.erase((TechnoClass*)pInvalid);
+			ScenarioExtData::Instance()->UndergroundTracker.erase(TechnoExtContainer::Instance.Find((TechnoClass*)pInvalid));
+			ScenarioExtData::Instance()->FallingDownTracker.erase(TechnoExtContainer::Instance.Find((TechnoClass*)pInvalid));
 
 			HouseExtContainer::Instance.AutoDeathObjects.erase_all_if([pInvalid](std::pair<TechnoClass*, KillMethod>& item) {
 				return item.first == pInvalid;
@@ -379,9 +381,7 @@ unsigned Phobos::GetVersionNumber() {
 
 void Phobos::ClearAll()
 {
-
-	for (auto& hand : Handles::Array)
-	{
+	for (auto& hand : Handles::Array) {
 		hand->detachptr();
 	}
 

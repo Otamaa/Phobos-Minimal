@@ -11,8 +11,6 @@
 #include <StringTable.h>
 #include <OwnerDraw.h>
 
-#include <Phobos.INI.h>
-
 class MoviesList
 {
 	struct Item : public MovieUnlockableInfo
@@ -88,10 +86,8 @@ void MoviesList::LoadListFromINI()
 
 	if (file.IsAvaible())
 	{
-		PhobosINIContainer::Movie_INI = std::make_unique<PhobosINIClass>();
 		CCINIClass ini {};
 		ini.ReadCCFile(&file);
-		PhobosINIContainer::Movie_INI->LoadFile(&file);
 
 		// create a list of all movies first
 		auto const count = ini.GetKeyCount(GameStrings::Movies());

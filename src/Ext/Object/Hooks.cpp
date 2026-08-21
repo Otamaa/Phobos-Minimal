@@ -298,7 +298,7 @@ ASMJIT_PATCH(0x5F5965, ObjectClass_SpawnParachuted_Track, 0x7)
 
 	if (FakeRulesClass::Instance()->FallingDownTargetingFix && (pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
 	{
-		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
+		ScenarioExtData::Instance()->FallingDownTracker.emplace(TechnoExtContainer::Instance.Find((TechnoClass*)pThis));
 		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = true;
 	}
 	return 0;
@@ -310,7 +310,7 @@ ASMJIT_PATCH(0x5F4160, ObjectClass_DropAsBomb_Track, 0x6)
 
 	if (FakeRulesClass::Instance()->FallingDownTargetingFix && (pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
 	{
-		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
+		ScenarioExtData::Instance()->FallingDownTracker.emplace(TechnoExtContainer::Instance.Find((TechnoClass*)pThis));
 		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = true;
 	}
 
@@ -323,7 +323,7 @@ ASMJIT_PATCH(0x5F3F86, ObjectClass_Update_Track, 0x7)
 
 	if (FakeRulesClass::Instance()->FallingDownTargetingFix && (pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
 	{
-		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
+		ScenarioExtData::Instance()->FallingDownTracker.emplace(TechnoExtContainer::Instance.Find((TechnoClass*)pThis));
 		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = false;
 	}
 

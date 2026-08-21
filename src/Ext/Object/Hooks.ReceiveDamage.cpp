@@ -34,6 +34,9 @@
 #include <Ext/Aircraft/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/Team/Body.h>
+#include <Ext/Unit/Body.h>
+#include <Ext/Infantry/Body.h>
+#include <Ext/Aircraft/Body.h>
 
 #include <Ext/SWType/NewSuperWeaponType/Firewall.h>
 
@@ -1191,11 +1194,11 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 					PhobosAEFunctions::ApplyRevengeWeapon(pThis, source, warhead);
 			}
 
-			if (auto pBomb = pThis->AttachedBomb)
-			{
+			if (auto pBomb = pThis->AttachedBomb) {
 				pBomb->Detonate();
 			}
 
+			pExt->SpawnWreckage(warhead, source ? source->Owner : sourceHouse);
 			return _res;
 		} else {
 

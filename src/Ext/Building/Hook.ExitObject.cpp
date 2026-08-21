@@ -392,8 +392,9 @@ static KickOutResult HandleRefineryExit(FakeBuildingClass* pBuilding, TechnoClas
 	++Unsorted::ScenarioInit;
 
 	CoordStruct unlimboCoord = CellClass::Cell2Coord(exitCell4 + CellSpread::AdjacentCell[4]);
+	DirType dir = DirType((int)BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->WeaponsFactory_Dir.Get() << 5);
 
-	if (pObject->Unlimbo(unlimboCoord, DirType::SouthWest))
+	if (pObject->Unlimbo(unlimboCoord, dir))
 	{
 		DirStruct facing;
 		facing.Raw = 0x8000;

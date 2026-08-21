@@ -17,6 +17,9 @@ class EnumFunctions final
 public:
 
 	//simple enums
+	static COMPILETIMEEVAL OPTIONALINLINE auto MovementZone_ToStrings = magic_enum::enum_entries<MovementZone>();
+	static COMPILETIMEEVAL OPTIONALINLINE auto SpeedType_ToStrings = magic_enum::enum_entries<SpeedType>();
+	static COMPILETIMEEVAL OPTIONALINLINE auto BibDir_ToStrings = magic_enum::enum_entries<BibDir>();
 	static COMPILETIMEEVAL OPTIONALINLINE auto PowerStatus_ToStrings = magic_enum::enum_entries<PowerStatus>();
 	static COMPILETIMEEVAL OPTIONALINLINE auto DoType_ToStrings = magic_enum::enum_entries<DoType>();
 	static COMPILETIMEEVAL OPTIONALINLINE auto EdgeType_ToStrings = magic_enum::enum_entries<EdgeType>();

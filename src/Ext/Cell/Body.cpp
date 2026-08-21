@@ -354,6 +354,8 @@ void CellExtData::Serialize(T& Stm) {
 		.Process(this->RadLevels)
 		.Process(this->FoggedObjects)
 		.Process(this->CoveringLights)
+		.Process(this->SmudgeGenerate)
+		.Process(this->SmudgeState)
 		;
 }
 
@@ -891,7 +893,7 @@ static int AbsLevelDelta(int baseLevel, const CellClass* pCell)
 {
 	const int bridgeBonus = ((pCell->UINTFlags >> 8) & 1) * BridgeLevelAdd;
 	const int delta = baseLevel - static_cast<int>(pCell->Level) - bridgeBonus;
-	return std::abs(delta);
+	return Math::abs(delta);
 }
 
 // ---------------------------------------------------------------------------

@@ -194,7 +194,7 @@ static void HandlePostBulletLogic(
 					{
 						TechnoExtContainer::Instance.Find(pThis)->IsSelected
 							= UnlimboDetonateFireTemp::InSelected;
-						ScenarioExtData::Instance()->LimboLaunchers.emplace(pThis);
+						ScenarioExtData::Instance()->LimboLaunchers.emplace(TechnoExtContainer::Instance.Find(pThis));
 					}
 					pBullet->Owner = pThis;
 				}
@@ -630,23 +630,39 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 	CoordStruct delta { pTgtCoord.X - fireOrigin.X, pTgtCoord.Y - fireOrigin.Y, pTgtCoord.Z - fireOrigin.Z };
 	CoordStruct scatterDelta = delta;
 
-	//if (pBulletType->FlakScatter && pBulletType->Inviso)
+	if(!pBulletTypeExt->BallisticScatter_Chance.isset() || ScenarioClass::Instance->Random.RandomRanged(0, 100) > pBulletTypeExt->BallisticScatter_Chance.Fetch() * 100)
 	{
+		const bool isBlilistic = !pBulletType->FlakScatter || pBulletType->Inviso;
+		int min_s = pBulletTypeExt->BallisticScatterMin.Get(isBlilistic ? Leptons(RulesClass::Instance->BallisticScatter / 2) : Leptons(0));
+		int max_s = pBulletTypeExt->BallisticScatterMax.Get(Leptons(RulesClass::Instance->BallisticScatter));
+
+
+		if (pBulletTypeExt->BallisticScatter_IncreaseByRange) {
+			const int minInMinRange = pBulletTypeExt->BallisticScatter_Min_InMinRange.Get(Leptons(min_s));
+			const int minInMaxRange = pBulletTypeExt->BallisticScatter_Min_InMaxRange.Get(Leptons(min_s));
+			const int maxInMinRange = pBulletTypeExt->BallisticScatter_Max_InMinRange.Get(Leptons(max_s));
+			const int maxInMaxRange = pBulletTypeExt->BallisticScatter_Max_InMaxRange.Get(Leptons(max_s));
+			const int minRange = pBulletTypeExt->BallisticScatter_MinRange.Get(Leptons(pWeapon->MinimumRange));
+			const int maxRange = pBulletTypeExt->BallisticScatter_MaxRange.Get(Leptons(pWeapon->Range));
+			const int deltaRange = maxRange - minRange;
+			const int deltaRangeReal = static_cast<int>((pTarget->GetCoords() - pThis->GetCoords()).Length()) - minRange;
+			const double rangePercent = std::clamp(int(deltaRange == 0 ? 0.5 : deltaRangeReal / static_cast<double>(deltaRange)), 0, 1);
+			min_s = minInMinRange + static_cast<int>(rangePercent * (minInMaxRange - minInMinRange));
+			max_s = maxInMinRange + static_cast<int>(rangePercent * (maxInMaxRange - maxInMinRange));
+		}
+
+		const int sd = ScenarioClass::Instance->Random.RandomRanged(min_s, max_s);
+
 		// ╔═══ HOOK: TechnoClass_FireAt_BallisticScatter1/2 @ 0x6FE709 / 0x6FE7FE ╗
-		if (!pBulletType->FlakScatter || pBulletType->Inviso)
+		if (isBlilistic)
 		{
 			// Mode 1: proportional 3D (hook 0x6FE7FE)
-			const int min_s = pBulletTypeExt->BallisticScatterMin.Get(
-				Leptons(RulesClass::Instance->BallisticScatter / 2));
-			const int max_s = pBulletTypeExt->BallisticScatterMax.Get(
-				Leptons(RulesClass::Instance->BallisticScatter));
-
 			const double d3 = Math::sqrt((double)delta.X * delta.X
 										   + (double)delta.Y * delta.Y
 										   + (double)delta.Z * delta.Z);
 
 			const int   rng = pThis->GetWeaponRange(which);
-			const double pr = rng > 0 ? d3 * ScenarioClass::Instance->Random.RandomRanged(min_s, max_s) / (double)rng : 0.0;
+			const double pr = rng > 0 ? d3 * sd / (double)rng : 0.0;
 			const double rd = ScenarioClass::Instance->Random.RandomDouble() * Math::GAME_TWOPI - Math::DEG90_AS_RAD;
 			const double ra = (double)((int16_t)(int)(rd * Math::BINARY_ANGLE_MAGIC) - 0x3FFF)
 				* Math::DIRECTION_FIXED_MAGIC;
@@ -656,10 +672,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 		else
 		{
 			// Mode 2: 2D polar (hook 0x6FE709)
-			const int min_s = pBulletTypeExt->BallisticScatterMin.Get(Leptons(0));
-			const int max_s = pBulletTypeExt->BallisticScatterMax.Get(
-				Leptons(RulesClass::Instance->BallisticScatter));
-			const int sd = ScenarioClass::Instance->Random.RandomRanged(min_s, max_s);
+
 			const double rd = ScenarioClass::Instance->Random.RandomDouble() * Math::GAME_TWOPI - Math::DEG90_AS_RAD;
 			const double ra = (double)((int16_t)(int)(rd * Math::BINARY_ANGLE_MAGIC) - 0x3FFF)
 				* Math::DIRECTION_FIXED_MAGIC;
@@ -667,6 +680,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 			scatterDelta.X = (int)(Math::cos(ra) * sd + (double)delta.X);
 		}
 		// ╚═══════════════════════════════════════════════════════════════════╝
+
 		delta.X = scatterDelta.X;
 		delta.Y = scatterDelta.Y;
 	}
@@ -1572,7 +1586,7 @@ ASMJIT_PATCH(0x6FF7FF, TechnoClass_FireAt_UnlimboDetonate, 0x6)
 		if (pWHExt->UnlimboDetonate_KeepSelected)
 		{
 			TechnoExtContainer::Instance.Find(pThis)->IsSelected = UnlimboDetonateFireTemp::InSelected;
-			ScenarioExtData::Instance()->LimboLaunchers.emplace(pThis);
+			ScenarioExtData::Instance()->LimboLaunchers.emplace(TechnoExtContainer::Instance.Find(pThis));
 		}
 
 		pBullet->Owner = pThis;

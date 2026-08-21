@@ -1487,7 +1487,9 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 		const bool cylinder = pWHExt->CellSpread_Cylinder;
 		const float spread = pWarhead->CellSpread * (float)Unsorted::LeptonsPerCell;
 
-		for (auto const& pTechno : ScenarioExtData::Instance()->UndergroundTracker) {
+		for (auto pTracked : ScenarioExtData::Instance()->UndergroundTracker) {
+			auto const pTechno = pTracked->This();
+
 			if (pTechno->InWhichLayer() == Layer::Underground // Layer.
 				&& pTechno->IsAlive && !pTechno->IsIronCurtained()
 				&& !pTechno->IsOnMap // Underground is not on map.
@@ -2140,6 +2142,16 @@ ASMJIT_PATCH(0x489710, MapClass_DamageArea_CheckHeight_2, 0x7)
 	return SkipThisObject;
 }
 
+ASMJIT_PATCH(0x48962A, MapClass_DamageArea_ReduceTiberium, 0x6)
+{
+
+	GET(FakeWarheadTypeClass* const, pWH, ESI);
+
+	if(pWH->_GetExtData()->ReduceTiberium.isset() && pWH->_GetExtData()->ReduceTiberium.Fetch())
+		return 0x48964F;
+
+	return 0;
+}
 #endif
 
 //DamageState __fastcall TT_ReceiveDamage(TechnoClass* pThis, discard_t,

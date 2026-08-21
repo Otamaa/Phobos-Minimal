@@ -256,48 +256,6 @@ ASMJIT_PATCH(0x7414A0, UnitClass_GetStoragePercentage_GetTotalAmounts, 0x9)
 	__asm fld result;
 	return 0x7414DD;
 }
-
-ASMJIT_PATCH(0x738749, UnitClass_Destroy_TiberiumExplosive, 0x6)
-{
-	GET(UnitClass*, pThis, ESI);
-
-	auto storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
-
-	if (RulesClass::Instance->TiberiumExplosive
-		&& !pThis->Type->Weeder
-		&& !ScenarioClass::Instance->SpecialFlags.StructEd.HarvesterImmune
-		&& storage->GetAmounts() > 0.0f)
-	{
-		// multiply the amounts with their powers and sum them up
-		int morePower = 0;
-
-		for (int i = 0; i < TiberiumClass::Array->Count; ++i)
-		{
-			morePower += int(storage->m_values[i] * TiberiumClass::Array->Items[i]->Power);
-		}
-
-		if (morePower > 0)
-		{
-
-			CoordStruct crd = pThis->GetCoords();
-			if (auto pWH = FakeRulesClass::Instance()->Tiberium_ExplosiveWarhead)
-			{
-				DamageArea::Apply(&crd, morePower, const_cast<UnitClass*>(pThis), pWH, pWH->Tiberium, pThis->Owner);
-			}
-
-			if (auto pAnim = FakeRulesClass::Instance()->Tiberium_ExplosiveAnim)
-			{
-				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, crd, 0, 1, AnimFlag(0x2600), -15, false),
-					pThis->Owner,
-					nullptr,
-					false
-				);
-			}
-		}
-	}
-
-	return 0x7387C4;
-}
 #endif
 
 //IfantryClass

@@ -281,6 +281,10 @@ public:
 
 		static bool SuperWeaponSidebarCommands;
 
+		static bool SelectedDisplay_Enable;
+		static bool SelectedDisplay_Expand;
+		static int SelectedDisplay_MaxCameo;
+
 		static DWORD InternalVersion;
 		static std::string ModName;
 		static std::string ModVersion;

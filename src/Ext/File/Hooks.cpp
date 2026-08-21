@@ -21,7 +21,7 @@ std::unordered_map<std::string, void*> g_GlobalFileLinks {};
 
 void* __fastcall FakeFileLoader::_Retrieve(const char* name, bool forceShapeCache)
 {
-#ifndef ReplaceImpl
+#ifdef ReplaceImpl
 
 	if (!name)
 		return nullptr;
@@ -117,7 +117,9 @@ void* __fastcall FakeFileLoader::_Retrieve(const char* name, bool forceShapeCach
 
 }
 
+#ifdef ReplaceImpl
 DEFINE_FUNCTION_JUMP(LJMP, 0x5B40B0, FakeFileLoader::_Retrieve)
+#endif
 DEFINE_FUNCTION_JUMP(CALL, 0x41CAF7, FakeFileLoader::_Retrieve)
 DEFINE_FUNCTION_JUMP(CALL, 0x41CB08, FakeFileLoader::_Retrieve);
 DEFINE_FUNCTION_JUMP(CALL, 0x4279DA, FakeFileLoader::_Retrieve);
@@ -234,6 +236,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x7474A1, FakeFileLoader::_Retrieve);
 DEFINE_FUNCTION_JUMP(CALL, 0x747BB4, FakeFileLoader::_Retrieve);
 DEFINE_FUNCTION_JUMP(CALL, 0x748093, FakeFileLoader::_Retrieve);
 
+#ifdef ReplaceImpl
 void __fastcall _Cache_File(char* filename)
 {
 	// ????
@@ -255,3 +258,4 @@ void __fastcall _Destroy_Cache_()
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x5B4310, _Cache_File)
+#endif

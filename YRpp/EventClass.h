@@ -209,6 +209,12 @@ public:
 		return OutList->Add(pEvent);
 	}
 
+	template<typename... Args>
+	static bool CreateEvent(Args&&... args) {
+		EventClass ev(std::forward<Args>(args)...);
+		return OutList->Add(&ev);
+	}
+
 	EventClass()
 	{
 		__stosb(reinterpret_cast<unsigned char*>(this), 0, sizeof(*this));
@@ -228,7 +234,7 @@ public:
 	}
 
 	// Target
-	explicit EventClass(int houseIndex, EventType eventType, int id, int rtti)
+	explicit EventClass(int houseIndex, EventType eventType, int id, AbstractType rtti)
 	{
 		JMP_THIS(0x4C65E0);
 	}

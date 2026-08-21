@@ -344,3 +344,31 @@ ASMJIT_PATCH(0x4143A8, AircraftClass_UnLimbo_CargoPlane, 0x6)
 	}
 	return 0;
 }
+
+ASMJIT_PATCH(0x4CDF84, FlyLocomotionClass_UpdateLoaction_FlightCrash, 0x5)
+{
+	GET(FootClass* const, pLinkedTo, EAX);
+
+	const int crashSpeed = FootTypeExtContainer::Instance.Find(pLinkedTo->GetTechnoType())->FlightCrash;
+
+	if (crashSpeed >= 0)
+		R->ECX(crashSpeed);
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x4CDE96, FlyLocomotionClass_UpdateLoaction_FlightClimb, 0x6)
+{
+	GET(int, vZ, EAX);
+	GET(const int, height, EDI);
+	GET(FlyLocomotionClass* const, pThis, ESI);
+	GET(FootClass* const, pLinkedTo, ECX);
+
+	const int climbSpeed = FootTypeExtContainer::Instance.Find(pLinkedTo->GetTechnoType())->FlightClimb;
+
+	if (climbSpeed >= 0)
+		vZ = climbSpeed;
+
+	R->EAX(MinImpl(vZ, (pThis->FlightLevel - height)));
+	return 0;
+}

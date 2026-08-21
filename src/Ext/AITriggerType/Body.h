@@ -67,13 +67,13 @@ public:
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
-		this->AbstractTypeExtData::Internal_LoadFromStream(Stm);
+		this->AbstractTypeExtData::LoadFromStream(Stm);
 		this->Serialize(Stm);
 	}
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
-		this->AbstractTypeExtData::Internal_SaveToStream(Stm);
+		this->AbstractTypeExtData::SaveToStream(Stm);
 		const_cast<AITriggerTypeExtData*>(this)->Serialize(Stm);
 	}
 

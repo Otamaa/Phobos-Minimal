@@ -640,7 +640,7 @@ public:
 	bool bCheckCanBuild,
 	bool b7);
 
-	static RequirementStatus RequirementsMet(HouseClass* pHouse, TechnoTypeClass* pItem);
+	static RequirementStatus RequirementsMet(HouseClass* pHouse, TechnoTypeClass* pItem, bool CameoCheck = false);
 	static void UpdateAcademy(HouseClass* pHouse, BuildingClass* pAcademy, bool added);
 	static void ApplyAcademy(HouseClass* pHouse, TechnoClass* pTechno, AbstractType considerAs);
 
@@ -670,6 +670,8 @@ public:
 	static void AuthorizeBaseNode(HouseClass* pHouse, int buildingTypeIndex, short x, short y, bool insertAtFront = false);
 	static void RemoveAuthorizedNodeByCoord(HouseClass* pHouse, short x, short y);
 	static void RemoveAuthorizedNodeByType(HouseClass* pHouse, int buildingTypeIndex);
+	static bool CheckOwnerBitfieldForCurrentPlayer(TechnoTypeClass* pType);
+	static void RecheckOwnerBitfieldForCurrentPlayer();
 private:
 	bool UpdateHarvesterProduction();
 

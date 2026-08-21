@@ -26,8 +26,6 @@
 #include <WWMessageBox.h>
 #include <BeaconManagerClass.h>
 
-#include <Phobos.INI.h>
-
 ASMJIT_PATCH(0x683B97, StartScenarion_WhyCrash, 0x5)
 {
 	const auto opt = GameModeOptionsClass::Instance->ScenarioIndex;

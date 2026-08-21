@@ -1,6 +1,7 @@
 #include "Body.h"
 
 #include <Ext/Building/Body.h>
+#include <Ext/BuildingType/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/Rules/Body.h>
 #include <Ext/SWType/Body.h>
@@ -10,6 +11,7 @@
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/Macro.h>
+#include <Utilities/Cast.h>
 
 #include <InfantryClass.h>
 #include <Unsorted.h>
@@ -1593,6 +1595,9 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->SpyEffect_Anim_DisplayHouses.Read(exINI, pSection, "SpyEffect.Anim.DisplayHouses");
 
 		this->SpyEffect_SWTargetCenter.Read(exINI, pSection, "SpyEffect.SWTargetCenter");
+		
+		this->SpyEffect_RadarJamDuration.Read(exINI, pSection, "SpyEffect.RadarJamDuration");
+
 		this->ShowPower.Read(exINI, pSection, "ShowPower");
 		this->EMPulseCannon_UseWeaponSelection.Read(exINI, pSection, "EMPulseCannon.UseWeaponSelection");
 
@@ -1816,6 +1821,14 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		this->SetTabBySelecting.Read(exINI, pSection, "SetTabBySelecting");
 
+		this->Bib_Dir.Read(exINI, pSection, "Bib.Dir");
+		this->NumberImpassableRows_Dir.Read(exINI, pSection, "NumberImpassableRows.Dir");
+		this->WeaponsFactory_Dir.Read(exINI, pSection, "WeaponsFactory.Dir");
+
+		this->HaveRallyPoint.Read(exINI, pSection, "HaveRallyPoint");
+		this->RallyPointSpeedType.Read(exINI, pSection, "RallySpeedType");
+		this->RallyPointMovementZone.Read(exINI, pSection, "RallyMovementZone");
+
 		if (this->DisplayIncome_Delay.isset() && this->DisplayIncome_Delay.Fetch() == 0) {
 			Debug::Log("[Developer warning] [%s] DisplayIncome.Delay is set to 0, forcing to 1.\n", pSection);
 			this->DisplayIncome_Delay = 1;
@@ -1898,6 +1911,8 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		prodAnim.PoweredLight = pArtINI->ReadBool(pArtSection, "ProductionAnimPoweredLight", prodAnim.PoweredLight);
 		prodAnim.PoweredEffect = pArtINI->ReadBool(pArtSection, "ProductionAnimPoweredEffect", prodAnim.PoweredEffect);
 		prodAnim.PoweredSpecial = pArtINI->ReadBool(pArtSection, "ProductionAnimPoweredSpecial", prodAnim.PoweredSpecial);
+
+		this->Refinery_UseNormalActiveAnim.Read(exArtINI, pArtSection, "Refinery.UseNormalActiveAnim");
 	}
 
 	if (pThis->UnitRepair && pThis->Factory == AbstractType::AircraftType)
@@ -1923,112 +1938,72 @@ bool BuildingTypeExtData::IsPoweredAnimBlocked(BuildingClass* pBuilding, bool po
 		&& !pBuilding->IsPowerOnline();
 }
 
-bool BuildingTypeExtData::ShouldExistGreyCameo(TechnoTypeClass* pType)
-{
-	const auto techLevel = pType->TechLevel;
-
-	if (techLevel <= 0 || techLevel > Game::TechLevel())
-		return false;
-
-	const auto pHouse = HouseClass::CurrentPlayer();
-
-	if (!pHouse->InOwners(pType))
-		return false;
-
-	if (!pHouse->InRequiredHouses(pType))
-		return false;
-
-	if (pHouse->InForbiddenHouses(pType))
-		return false;
-
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	const auto& pNegTypes = pTypeExt->Cameo_NegTechnos;
-
-
-	for (const auto& pNegType : pNegTypes) {
-		if (pNegType->WhatAmI() == AbstractType::BuildingType && BuildingTypeExtData::GetUpgradesAmount(static_cast<BuildingTypeClass*>(pNegType), pHouse) > 0)
-			return false;
-
-		if (pNegType && pHouse->CountOwnedAndPresent(pNegType))
-			return false;
-
-	}
-
-	const auto& pAuxTypes = pTypeExt->Cameo_AuxTechnos;
-
-	if (pAuxTypes.begin() == pAuxTypes.end())
-	{
-		const auto sideIndex = pType->AIBasePlanningSide;
-
-		return (sideIndex == -1 || sideIndex == pHouse->Type->SideIndex);
-	}
-
-	for (const auto& pAuxType : pAuxTypes)
-	{
-		const auto pAuxTypeExt = TechnoTypeExtContainer::Instance.Find(pAuxType);
-
-		if (!pAuxTypeExt->CameoCheckMutex)
-		{
-			if (pHouse->CountOwnedAndPresent(pAuxType))
-				return true;
-			else if (pAuxType->WhatAmI() == AbstractType::BuildingType && BuildingTypeExtData::GetUpgradesAmount(static_cast<BuildingTypeClass*>(pAuxType), pHouse) > 0)
-				return true;
-
-			pAuxTypeExt->CameoCheckMutex = true;
-			const auto exist = BuildingTypeExtData::ShouldExistGreyCameo(pAuxType);
-			pAuxTypeExt->CameoCheckMutex = false;
-
-			if (exist)
-				return true;
-		}
-	}
-
-	return false;
-}
-
 // Check the cameo change
-CanBuildResult BuildingTypeExtData::CheckAlwaysExistCameo(TechnoTypeClass* pType, CanBuildResult canBuild)
+CanBuildResult BuildingTypeExtData::CheckAlwaysExistCameo(HouseClass* pHouse, TechnoTypeClass* pType, CanBuildResult canBuild)
 {
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-	if (pTypeExt->Cameo_AlwaysExist.Get(FakeRulesClass::Instance()->Cameo_AlwaysExist))
+	if (canBuild == CanBuildResult::Unbuildable)
 	{
-		auto& vec = ScenarioExtData::Instance()->OwnedExistCameoTechnoTypes;
-		const bool Ownedexist = vec.contains(pType);
-
-		if (canBuild == CanBuildResult::Unbuildable) // Unbuildable + Satisfy basic limitations = Change it to TemporarilyUnbuildable
-		{
-			pTypeExt->CameoCheckMutex = true;
-			const auto exist = BuildingTypeExtData::ShouldExistGreyCameo(pType);
-			pTypeExt->CameoCheckMutex = false;
-
-			if (exist)
+		auto CheckOverrideTechnos = [pHouse, pType, pTypeExt]()
 			{
-				if (!Ownedexist) // … + Not in the list = Need to add it into list
+				for (auto& pNeg : pTypeExt->Cameo_NegTechnos)
 				{
-					vec.push_back(pType);
-					SidebarClass::Instance->SidebarNeedsRepaint();
-					EventClass event
-					(
-						HouseClass::CurrentPlayer->ArrayIndex,
+					if (pHouse->CountOwnedAndPresent(pNeg))
+						return false;
+				}
+
+				for (auto& pAux : pTypeExt->Cameo_AuxTechnos)
+				{
+					if (pHouse->CountOwnedAndPresent(pAux))
+						return true;
+				}
+
+				return false;
+			};
+
+
+		if (pTypeExt->Cameo_AlwaysExistRequirementMet && (CheckOverrideTechnos() || HouseExtData::CheckOwnerBitfieldForCurrentPlayer(pType)))
+		{
+			if (!pTypeExt->Cameo_AlwaysExistForCurrentPlayerActive)
+			{
+				pTypeExt->Cameo_AlwaysExistForCurrentPlayerActive = true;
+				auto buildCat = BuildCat::DontCare;
+
+				if (const auto pBldType = type_cast<BuildingTypeClass*>(pType))
+				{
+					buildCat = pBldType->BuildCat;
+					auto display = DisplayClass::Instance.operator->();
+					const auto pCurType = type_cast<BuildingTypeClass*>(display->CurrentBuildingType);
+
+					if (!pCurType || BuildingTypeExtData::IsSameBuildingType(pBldType, pCurType))
+					{
+						display->SetActiveFoundation(nullptr);
+						display->CurrentBuilding = nullptr;
+						display->CurrentBuildingType = nullptr;
+						display->CurrentBuildingOwnerArrayIndex = -1;
+					}
+				}
+
+				if (pHouse->GetPrimaryFactory(pType->WhatAmI(), pType->Naval, buildCat))
+				{
+					EventClass::CreateEvent(pHouse->ArrayIndex,
 						EventType::ABANDON_ALL,
 						pType->WhatAmI(),
 						pType->GetArrayIndex(),
-						pType->Naval
-					);
-					EventClass::AddEvent(&event);
+						pType->Naval);
 				}
-
-				canBuild = CanBuildResult::TemporarilyUnbuildable;
 			}
+
+			canBuild = CanBuildResult::TemporarilyUnbuildable;
 		}
-		else if (Ownedexist) // Not Unbuildable + In the list = remove it from the list and play EVA
-		{
-			vec.remove(pType);
-			SidebarClass::Instance->SidebarNeedsRepaint();
-			VoxClass::Play(GameStrings::EVA_NewConstructionOptions);
-		}
+	}
+	else if (pTypeExt->Cameo_AlwaysExistForCurrentPlayerActive)
+	{
+		pTypeExt->Cameo_AlwaysExistForCurrentPlayerActive = false;
+		pTypeExt->Cameo_AlwaysExistIsGreyCameoAbandonedProduct = false;
+		VoxClass::Play(GameStrings::EVA_NewConstructionOptions);
+		SidebarClass::Instance->SidebarNeedsRepaint();
 	}
 
 	return canBuild;
@@ -2326,6 +2301,14 @@ void BuildingTypeExtData::Serialize(T& Stm)
 
 		.Process(this->SetTabBySelecting)
 		.Process(this->NoAlphaImageOnBuildup)
+
+		.Process(this->Bib_Dir)
+		.Process(this->NumberImpassableRows_Dir)
+		.Process(this->WeaponsFactory_Dir)
+		.Process(this->SpyEffect_RadarJamDuration)
+		.Process(this->HaveRallyPoint)
+		.Process(this->RallyPointSpeedType)
+		.Process(this->RallyPointMovementZone)
 		;
 }
 #else

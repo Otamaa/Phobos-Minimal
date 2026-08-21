@@ -422,18 +422,19 @@ static bool inline CanBeSold(TechnoClass* pTechno, AbstractType rtti)
 }
 
 // Verify if object can be sold at event level.
-ASMJIT_PATCH(0x4C6F55, EventClass_Execute_Sell, 0x5)
-{
-	enum { SkipGameCode = 0x4C6FA8 };
-
-	GET(TechnoClass*, pTechno, EDI);
-	GET(AbstractType, rtti, EAX);
-
-	if (CanBeSold(pTechno, rtti))
-		pTechno->Sell(-1);
-
-	return SkipGameCode;
-}
+// this will break slave miner , lul
+//ASMJIT_PATCH(0x4C6F55, EventClass_Execute_Sell, 0x5)
+//{
+//	enum { SkipGameCode = 0x4C6FA8 };
+//
+//	GET(TechnoClass*, pTechno, EDI);
+//	GET(AbstractType, rtti, EAX);
+//
+//	if (CanBeSold(pTechno, rtti))
+//		pTechno->Sell(-1);
+//
+//	return SkipGameCode;
+//}
 
 ASMJIT_PATCH(0x4C7643, EventClass_RespondToEvent_StopTemporal, 0x6)
 {

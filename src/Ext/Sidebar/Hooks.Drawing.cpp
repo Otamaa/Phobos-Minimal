@@ -140,6 +140,15 @@ public:
 
 			if ((pLeftTechnoExt || pLeftSWExt) && (pRightTechnoExt || pRightSWExt))
 			{
+				const auto ownerBits = 1u << HouseClass::CurrentPlayer->Type->ParentIdx;
+				const auto leftBits = pLeftTechnoExt ? pLeftTechnoExt->CameoPriority_Houses : pLeftSWExt->CameoPriority_Houses;
+				const auto rightBits = pRightTechnoExt ? pRightTechnoExt->CameoPriority_Houses : pRightSWExt->CameoPriority_Houses;
+
+				if ((leftBits & ownerBits) && (!(rightBits & ownerBits)))
+					return true;
+				else if ((!(leftBits & ownerBits)) && (rightBits & ownerBits))
+					return false;
+
 				const int leftPriority = pLeftTechnoExt ? pLeftTechnoExt->CameoPriority : pLeftSWExt->CameoPriority;
 				const int rightPriority = pRightTechnoExt ? pRightTechnoExt->CameoPriority : pRightSWExt->CameoPriority;
 
@@ -1637,20 +1646,13 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 							auto frame = frames.Y;
 							const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 
-							if (pTypeExt->Cameo_AlwaysExist.Get(pRulesExt->Cameo_AlwaysExist))
-							{
-								auto& vec = ScenarioExtData::Instance()->OwnedExistCameoTechnoTypes;
-
-								if (vec.contains(pTechnoType))
-								{
-									if (const auto CameoPCX = pTypeExt->GreyCameoPCX.GetSurface())
-									{
-										auto drawRect = RectangleStruct { screenX, screenY, 60, 48 };
-										PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Sidebar, CameoPCX);
-									}
-
-									frame = frames.Z;
+							if (pTypeExt->Cameo_AlwaysExistForCurrentPlayerActive) {
+								if (const auto CameoPCX = pTypeExt->GreyCameoPCX.GetSurface()) {
+									auto drawRect = RectangleStruct { screenX, screenY, 60, 48 };
+									PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Sidebar, CameoPCX);
 								}
+
+								frame = frames.Z;
 							}
 
 							if (frame >= 0)

@@ -75,7 +75,7 @@ void ApplyExtraThreat(TechnoClass* pThis, TechnoTypeExtData* pTypeExt, TechnoCla
 
 		if (bonushere2 > 0.0) {
 			DirStruct dir = DirStruct();
-			int deltaFacing = 32768 - std::abs(std::abs(pThis->GetDirectionOverObject(&dir, pTarget)->Raw - pFacing->Current().Raw) - 32768);
+			int deltaFacing = 32768 - Math::abs(Math::abs(pThis->GetDirectionOverObject(&dir, pTarget)->Raw - pFacing->Current().Raw) - 32768);
 			totalThreat += deltaFacing * bonushere2;
 		}
 	}

@@ -181,6 +181,9 @@ void FakeRulesClass::LoadAfterTypeData(CCINIClass* pINI)
 	this->BuildingGuardRetryDelay.Read(exINI, GameStrings::General, "BuildingGuardRetryDelay");
 	this->DiscardOn_ConsiderHoverAsMoving.Read(exINI, GameStrings::General, "DiscardOn.MoveBasedOnDestination");
 
+	this->EnableWreckageSpawn.Read(exINI, GameStrings::General, "EnableWreckageSpawn");
+	this->WreckageInitialHealthPercent.Read(exINI, GameStrings::General, "WreckageInitialHealthPercent");
+
 	//got invalidated early , so parse it again
 	detail::ParseVector(exINI, this->AITargetTypesLists, "AITargetTypes");
 	detail::ParseVector<ScriptTypeClass*, true>(exINI, this->AIScriptsLists, "AIScriptsList");
@@ -1369,6 +1372,30 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->KeepAlive_SupportBuildings)
 
 		.Process(this->ProjectileRange_ApplyModifiers)
+		.Process(this->SmudgeUpdateTime)
+
+		.Process(this->InvulnerableDisplay_Others_Offset)
+		.Process(this->InvulnerableDisplay_Buildings_Offset)
+		.Process(this->TemporalLifeDisplay_Others_Offset)
+		.Process(this->TemporalLifeDisplay_Buildings_Offset)
+		.Process(this->InvulnerableDisplay_Others_Pips)
+		.Process(this->InvulnerableDisplay_Buildings_Pips)
+		.Process(this->TemporalLifeDisplay_Others_Pips)
+		.Process(this->TemporalLifeDisplay_Buildings_Pips)
+		.Process(this->ProgressDisplay_Others_PipsShape)
+		.Process(this->ProgressDisplay_Buildings_PipsShape)
+
+		.Process(this->Crush_SelfUncloak)
+		.Process(this->UncloakWhenLowHealth)
+
+		.Process(this->SelectedInfantryMissingPCX)
+		.Process(this->SelectedVehicleMissingPCX)
+		.Process(this->SelectedAircraftMissingPCX)
+		.Process(this->SelectedBuildingMissingPCX)
+		.Process(this->SelectedIngameTimer)
+
+		.Process(this->EnableWreckageSpawn)
+		.Process(this->WreckageInitialHealthPercent)
 	;
 }
 
@@ -3497,6 +3524,24 @@ void FakeRulesClass::_ReadAudioVisual(CCINIClass* pINI)
 	this->DigitalDisplay_Health_FakeAtDisguise.Read(exINI, GameStrings::AudioVisual, "DigitalDisplay.Health.FakeAtDisguise");
 	this->NoAlphaImageOnBuildup.Read(exINI, GameStrings::AudioVisual, "NoAlphaImageOnBuildup");
 	this->IvanBomb_Visibility.Read(exINI, GameStrings::AudioVisual, "IvanIconVisibility");
+
+	this->SmudgeUpdateTime.Read(exINI, GameStrings::AudioVisual, "SmudgeUpdateTime");
+
+	this->InvulnerableDisplay_Others_Offset.Read(exINI, GameStrings::AudioVisual, "InvulnerableDisplay.Others.Offset");
+	this->InvulnerableDisplay_Buildings_Offset.Read(exINI, GameStrings::AudioVisual, "InvulnerableDisplay.Buildings.Offset");
+	this->TemporalLifeDisplay_Others_Offset.Read(exINI, GameStrings::AudioVisual, "TemporalLifeDisplay.Others.Offset");
+	this->TemporalLifeDisplay_Buildings_Offset.Read(exINI, GameStrings::AudioVisual, "TemporalLifeDisplay.Buildings.Offset");
+	this->InvulnerableDisplay_Others_Pips.Read(exINI, GameStrings::AudioVisual, "InvulnerableDisplay.Others.Pips");
+	this->InvulnerableDisplay_Buildings_Pips.Read(exINI, GameStrings::AudioVisual, "InvulnerableDisplay.Buildings.Pips");
+	this->TemporalLifeDisplay_Others_Pips.Read(exINI, GameStrings::AudioVisual, "TemporalLifeDisplay.Others.Pips");
+	this->TemporalLifeDisplay_Buildings_Pips.Read(exINI, GameStrings::AudioVisual, "TemporalLifeDisplay.Buildings.Pips");
+	this->ProgressDisplay_Others_PipsShape.Read(exINI, GameStrings::AudioVisual, "ProgressDisplay.Others.PipsShape");
+	this->ProgressDisplay_Buildings_PipsShape.Read(exINI, GameStrings::AudioVisual, "ProgressDisplay.Buildings.PipsShape");
+	this->SelectedInfantryMissingPCX.Read(pINI, GameStrings::AudioVisual, "SelectedInfantryMissingPCX");
+	this->SelectedVehicleMissingPCX.Read(pINI, GameStrings::AudioVisual, "SelectedVehicleMissingPCX");
+	this->SelectedAircraftMissingPCX.Read(pINI, GameStrings::AudioVisual, "SelectedAircraftMissingPCX");
+	this->SelectedBuildingMissingPCX.Read(pINI, GameStrings::AudioVisual, "SelectedBuildingMissingPCX");
+	this->SelectedIngameTimer.Read(exINI, GameStrings::AudioVisual, "SelectedIngameTimer");
 }
 
 void FakeRulesClass::_ReadCrateRules(CCINIClass* pINI)
@@ -4293,6 +4338,9 @@ void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
 	this->Warhead_PreventScatter.Read(exINI, GameStrings::CombatDamage, "Warhead.PreventScatter");
 
 	this->ProjectileRange_ApplyModifiers.Read(exINI, GameStrings::CombatDamage, "ProjectileRange.ApplyModifiers");
+
+	this->Crush_SelfUncloak.Read(exINI, GameStrings::CombatDamage, "UnitCrush.SelfUncloak");
+	this->UncloakWhenLowHealth.Read(exINI, GameStrings::CombatDamage, "Cloak.UncloakWhenLowHealth");
 }
 
 #pragma region WeaponTypeBuffer

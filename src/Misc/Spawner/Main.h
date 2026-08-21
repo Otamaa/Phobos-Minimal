@@ -29,7 +29,6 @@
 
 class CCINIClass;
 class EventClass;
-class PhobosINIClass;
 struct SpawnerMain
 {
 	struct Configs {

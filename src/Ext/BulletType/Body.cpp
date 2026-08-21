@@ -228,6 +228,15 @@ bool BulletTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 			trailReaded = true;
 			this->LaserTrail_Types.Read(exINI, pSection, "LaserTrail.Types");
 		}
+
+		this->BallisticScatter_IncreaseByRange.Read(exINI, pSection, "BallisticScatter.IncreaseByRange");
+		this->BallisticScatter_MinRange.Read(exINI, pSection, "BallisticScatter.MinRange");
+		this->BallisticScatter_MaxRange.Read(exINI, pSection, "BallisticScatter.MaxRange");
+		this->BallisticScatter_Min_InMinRange.Read(exINI, pSection, "BallisticScatter.Min.InMinRange");
+		this->BallisticScatter_Min_InMaxRange.Read(exINI, pSection, "BallisticScatter.Min.InMaxRange");
+		this->BallisticScatter_Max_InMinRange.Read(exINI, pSection, "BallisticScatter.Max.InMinRange");
+		this->BallisticScatter_Max_InMaxRange.Read(exINI, pSection, "BallisticScatter.Max.InMaxRange");
+		this->BallisticScatter_Chance.Read(exINI, pSection, "BallisticScatter.Chance");
 	}
 
 	if (pArtInI && pArtInI->GetSection(pArtSection)){
@@ -335,7 +344,14 @@ void BulletTypeExtData::Serialize(T& Stm)
 		.Process(this->UpdateImmediately)
 		.Process(this->Shrapnel_IgnoreHitBuildings)
 
-
+		.Process(this->BallisticScatter_IncreaseByRange)
+		.Process(this->BallisticScatter_MinRange)
+		.Process(this->BallisticScatter_MaxRange)
+		.Process(this->BallisticScatter_Min_InMinRange)
+		.Process(this->BallisticScatter_Min_InMaxRange)
+		.Process(this->BallisticScatter_Max_InMinRange)
+		.Process(this->BallisticScatter_Max_InMaxRange)
+		.Process(this->BallisticScatter_Chance)
 		;
 
 	PhobosTrajectoryType::ProcessFromStream(Stm, this->TrajectoryType);

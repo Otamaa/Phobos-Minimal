@@ -15,6 +15,7 @@ bool TeamTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->AI_SafeDIstance.Read(exINI, pSection, "AISafeDistance");
 	this->AI_FriendlyDistance.Read(exINI, pSection, "AIFriendlyDistance");
 	this->AttackWaypoint_AllowCell.Read(exINI, pSection, "AttackWaypoint.AllowCell");
+	this->ParaDropAircraft.Read(exINI, pSection, "ParaDrop.Aircraft");
 	return true;
 }
 
@@ -29,6 +30,7 @@ void TeamTypeExtData::Serialize(T& Stm)
 		.Process(this->AI_FriendlyDistance)
 		.Process(this->IsDischargedMemberAutocreateRecruitable)
 		.Process(this->AttackWaypoint_AllowCell)
+		.Process(this->ParaDropAircraft)
 		.Process(this->OriginalScriptTypeIndex)
 		.Process(this->OriginalTaskForceIndex)
 		;

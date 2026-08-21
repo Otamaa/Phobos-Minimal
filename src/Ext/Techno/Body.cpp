@@ -232,6 +232,178 @@ void TintColors::GetTints(TechnoClass* pOwner, int* tintColor, int* intensity)
 	}
 }
 
+template <typename T>
+void TechnoExtData::Serialize(T& Stm)
+{
+	auto debugProcess = [&Stm](auto& field, const char* fieldName)-> auto&
+		{
+			if constexpr (std::is_same_v<T, PhobosStreamWriter>)
+			{
+				//	size_t beforeSize = Stm.Getstream()->Size();
+				auto& result = Stm.Process(field);
+				//	size_t afterSize = Stm.Getstream()->Size();
+				//	GameDebugLog::Log("[TechnoExtData] SAVE %s: size %zu -> %zu (+%zu)\n",
+				//		fieldName, beforeSize, afterSize, afterSize - beforeSize);
+				return result;
+			}
+			else
+			{
+				//	size_t beforeOffset = Stm.Getstream()->Offset();
+				//	bool beforeSuccess = Stm.Success();
+				auto& result = Stm.Process(field);
+				//	size_t afterOffset = Stm.Getstream()->Offset();
+				//	bool afterSuccess = Stm.Success();
+
+				//	GameDebugLog::Log("[TechnoExtData] LOAD %s: offset %zu -> %zu (+%zu), success: %s -> %s\n",
+				//		fieldName, beforeOffset, afterOffset, afterOffset - beforeOffset,
+				//		beforeSuccess ? "true" : "false", afterSuccess ? "true" : "false");
+
+				//	if (!afterSuccess && beforeSuccess)
+				//	{
+				//		GameDebugLog::Log("[TechnoExtData] ERROR: %s caused stream failure!\n", fieldName);
+					//}
+				return result;
+			}
+		};
+
+	debugProcess(this->CurrentType, "CurrentType");
+	debugProcess(this->ShiftApplier, "ShiftApplier");
+	debugProcess(this->ShiftApplierHouse, "ShiftApplierHouse");
+	debugProcess(this->TypeExtData, "OriginalType");
+	debugProcess(this->AE, "AE");
+	debugProcess(this->idxSlot_EMPulse, "idxSlot_EMPulse");
+	debugProcess(this->idxSlot_Warp, "idxSlot_Warp");
+	debugProcess(this->idxSlot_Parasite, "idxSlot_Parasite");
+	debugProcess(this->EMPSparkleAnim, "EMPSparkleAnim");
+	debugProcess(this->EMPLastMission, "EMPLastMission");
+	debugProcess(this->BuildingLight, "BuildingLight");
+	debugProcess(this->OriginalHouseType, "OriginalHouseType");
+	debugProcess(this->CloakSkipTimer, "CloakSkipTimer");
+	debugProcess(this->HijackerHealth, "HijackerHealth");
+	debugProcess(this->ShieldEntity, "ShieldEntity");
+	debugProcess(this->PoweredUnitEntity, "PoweredUnitEntity");
+	debugProcess(this->RadarJammerEntity, "RadarJammerEntity");
+	debugProcess(this->HijackerOwner, "HijackerOwner");
+	debugProcess(this->HijackerVeterancy, "HijackerVeterancy");
+	debugProcess(this->Is_SurvivorsDone, "Is_SurvivorsDone");
+	debugProcess(this->Is_DriverKilled, "Is_DriverKilled");
+	debugProcess(this->Is_Wreckage, "Is_Wreckage");
+	debugProcess(this->Is_Operated, "Is_Operated");
+	debugProcess(this->Is_UnitLostMuted, "Is_UnitLostMuted");
+	debugProcess(this->TakeVehicleMode, "TakeVehicleMode");
+	debugProcess(this->TechnoValueAmount, "TechnoValueAmount");
+	debugProcess(this->Pos, "Pos");
+	debugProcess(this->LaserTrails, "LaserTrails");
+	debugProcess(this->ReceiveDamage, "ReceiveDamage");
+	debugProcess(this->LastKillWasTeamTarget, "LastKillWasTeamTarget");
+	debugProcess(this->PassengerDeletionTimer, "PassengerDeletionTimer");
+	debugProcess(this->CurrentShieldType, "CurrentShieldType");
+	debugProcess(this->LastWarpDistance, "LastWarpDistance");
+	debugProcess(this->Death_Countdown, "Death_Countdown");
+	debugProcess(this->MindControlRingAnimType, "MindControlRingAnimType");
+	debugProcess(this->DamageNumberOffset, "DamageNumberOffset");
+	debugProcess(this->CurrentLaserWeaponIndex, "CurrentLaserWeaponIndex");
+	debugProcess(this->OriginalPassengerOwner, "OriginalPassengerOwner");
+	debugProcess(this->IsInTunnel, "IsInTunnel");
+	debugProcess(this->IsBurrowed, "IsBurrowed");
+	debugProcess(this->DeployFireTimer, "DeployFireTimer");
+	debugProcess(this->DisableWeaponTimer, "DisableWeaponTimer");
+	debugProcess(this->RevengeWeapons, "RevengeWeapons");
+	debugProcess(this->GattlingDmageDelay, "GattlingDmageDelay");
+	debugProcess(this->GattlingDmageSound, "GattlingDmageSound");
+	debugProcess(this->AircraftOpentoppedInitEd, "AircraftOpentoppedInitEd");
+	debugProcess(this->EngineerCaptureDelay, "EngineerCaptureDelay");
+	debugProcess(this->FlhChanged, "FlhChanged");
+	debugProcess(this->SkipLowDamageCheck, "SkipLowDamageCheck");
+	debugProcess(this->aircraftPutOffsetFlag, "aircraftPutOffsetFlag");
+	debugProcess(this->aircraftPutOffset, "aircraftPutOffset");
+	debugProcess(this->SkipVoice, "SkipVoice");
+	debugProcess(this->ExtraWeaponTimers, "ExtraWeaponTimers");
+	debugProcess(this->WarpedOutDelay, "WarpedOutDelay");
+	debugProcess(this->MyOriginalTemporal, "MyOriginalTemporal");
+	debugProcess(this->SupressEVALost, "SupressEVALost");
+	debugProcess(this->SelfHealing_CombatDelay, "SelfHealing_CombatDelay");
+	debugProcess(this->PayloadCreated, "PayloadCreated");
+	debugProcess(this->PayloadTriggered, "PayloadTriggered");
+	debugProcess(this->LinkedSW, "LinkedSW");
+	debugProcess(this->SuperTarget, "SuperTarget");
+	debugProcess(this->HijackerLastDisguiseType, "HijackerLastDisguiseType");
+	debugProcess(this->HijackerLastDisguiseHouse, "HijackerLastDisguiseHouse");
+	debugProcess(this->WHAnimRemainingCreationInterval, "WHAnimRemainingCreationInterval");
+	debugProcess(this->IsWebbed, "IsWebbed");
+	debugProcess(this->WebbedAnim, "WebbedAnim");
+	debugProcess(this->WebbyLastTarget, "WebbyLastTarget");
+	debugProcess(this->WebbyLastMission, "WebbyLastMission");
+	debugProcess(this->AeData, "AeData");
+	debugProcess(this->MergePreventionTimer, "MergePreventionTimer");
+	debugProcess(this->TiberiumStorage, "TiberiumStorage");
+	debugProcess(this->PhobosAE, "PhobosAE");
+	debugProcess(this->FiringObstacleCell, "FiringObstacleCell");
+	debugProcess(this->AdditionalRange, "AdditionalRange");
+	debugProcess(this->IsDetachingForCloak, "IsDetachingForCloak");
+	debugProcess(this->HasRemainingWarpInDelay, "HasRemainingWarpInDelay");
+	debugProcess(this->LastWarpInDelay, "LastWarpInDelay");
+	debugProcess(this->SubterraneanHarvRallyPoint, "SubterraneanHarvRallyPoint");
+	debugProcess(this->IsBeingChronoSphered, "IsBeingChronoSphered");
+	debugProcess(this->TiberiumEaterTimer, "TiberiumEaterTimer");
+	debugProcess(this->LastDamageWH, "LastDamageWH");
+	debugProcess(this->MyTargetingFrame, "MyTargetingFrame");
+	debugProcess(this->ChargeTurretTimer, "ChargeTurretTimer");
+	debugProcess(this->LastRearmWasFullDelay, "LastRearmWasFullDelay");
+	debugProcess(this->DropCrate, "DropCrate");
+	debugProcess(this->DropCrateType, "DropCrateType");
+	debugProcess(this->LastBeLockedFrame, "LastBeLockedFrame");
+	debugProcess(this->BeControlledThreatFrame, "BeControlledThreatFrame");
+	debugProcess(this->LastTargetID, "LastTargetID");
+	debugProcess(this->LastHurtFrame, "LastHurtFrame");
+	debugProcess(this->AccumulatedGattlingValue, "AccumulatedGattlingValue");
+	debugProcess(this->ShouldUpdateGattlingValue, "ShouldUpdateGattlingValue");
+	debugProcess(this->KeepTargetOnMove, "KeepTargetOnMove");
+	debugProcess(this->LastSensorsMapCoords, "LastSensorsMapCoords");
+	debugProcess(this->DelayedFireSequencePaused, "DelayedFireSequencePaused");
+	debugProcess(this->DelayedFireTimer, "DelayedFireTimer");
+	debugProcess(this->DelayedFireWeaponIndex, "DelayedFireWeaponIndex");
+	debugProcess(this->CurrentDelayedFireAnim, "CurrentDelayedFireAnim");
+	debugProcess(this->LastWeaponType, "LastWeaponType");
+	debugProcess(this->AirstrikeTargetingMe, "AirstrikeTargetingMe");
+	debugProcess(this->RandomEMPTarget, "RandomEMPTarget");
+	debugProcess(this->ForceFullRearmDelay, "ForceFullRearmDelay");
+	debugProcess(this->AttackMoveFollowerTempCount, "AttackMoveFollowerTempCount");
+	debugProcess(this->JumpjetSpeed, "JumpjetSpeed");
+	debugProcess(this->OnlyAttackData, "OnlyAttackData");
+	debugProcess(this->IsSelected, "IsSelected");
+	debugProcess(this->UndergroundTracked, "UndergroundTracked");
+	debugProcess(this->PassiveAquireMode, "PassiveAquireMode");
+	debugProcess(this->CurrentSubterraneanHarvStatus, "CurrentSubterraneanHarvStatus");
+	debugProcess(this->UnitIdleAction, "UnitIdleAction");
+	debugProcess(this->UnitIdleActionSelected, "UnitIdleActionSelected");
+	debugProcess(this->UnitIdleIsSelected, "UnitIdleIsSelected");
+	debugProcess(this->UnitIdleActionTimer, "UnitIdleActionTimer");
+	debugProcess(this->UnitIdleActionGapTimer, "UnitIdleActionGapTimer");
+	debugProcess(this->LastTargetCrdClearTimer, "LastTargetCrdClearTimer");
+	debugProcess(this->LastTargetCrd, "LastTargetCrd");
+	debugProcess(this->Tints, "Tints");
+	debugProcess(this->FallingDownTracked, "FallingDownTracked");
+	debugProcess(this->ResetLocomotor, "ResetLocomotor");
+	debugProcess(this->JumpjetStraightAscend, "JumpjetStraightAscend");
+	debugProcess(this->CanFireWeaponType, "CanFireWeaponType");
+	debugProcess(this->ExtraTurretRecoil, "ExtraTurretRecoil");
+	debugProcess(this->ExtraBarrelRecoil, "ExtraBarrelRecoil");
+	debugProcess(this->OnParachuted, "OnParachuted");
+	debugProcess(this->HoverShutdown, "HoverShutdown");
+	debugProcess(this->HasDeployConvertedInCurrentSequence, "HasDeployConvertedInCurrentSequence");
+	debugProcess(this->HasDeployConverted, "HasDeployConverted");
+	debugProcess(this->HasUndeployConverted, "HasUndeployConverted");
+	debugProcess(this->PrismRelay, "PrismRelay");
+	debugProcess(this->PrismRelayCooldown, "PrismRelayCooldown");
+	debugProcess(this->PrismRelayBurstChainBuilt, "PrismRelayBurstChainBuilt");
+	debugProcess(this->PrismRelayCachedNetworkId, "PrismRelayCachedNetworkId");
+	debugProcess(this->PrismRelayCachedProviders, "PrismRelayCachedProviders");
+	debugProcess(this->ShouldBeDead, "ShouldBeDead ");
+	debugProcess(this->PreventCrew, "PreventCrew");
+	debugProcess(this->PendingReloadVeterancyAdjustment, "PendingReloadVeterancyAdjustment");
+}
+
 void TechnoExtData::ApplyPendingReloadVeterancy()
 {
 	const auto pending = this->PendingReloadVeterancyAdjustment;
@@ -3052,12 +3224,13 @@ void FakeBuildingClass::_Sell_Back(int control)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E405C, FakeBuildingClass::_Sell_Back)
 DEFINE_FUNCTION_JUMP(LJMP, 0x447110, FakeBuildingClass::_Sell_Back)
 
+
 void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 {
 	auto EnteredType = this->Type;
 	auto pTypeExt = BuildingTypeExtContainer::Instance.Find(this->Type);
 	auto pBldExt = BuildingExtContainer::Instance.Find(this);
-	static COMPILETIMEEVAL reference<bool, 0x884B8E> tootip_something {};
+	static COMPILETIMEEVAL reference<bool, 0x884B8E> sTechTooltipDirty {}; // DIFF: renamed from tootip_something for clarity
 
 	bool raiseEva = false;
 	const bool IsOwnerControlledByCurrentPlayer = Owner->ControlledByCurrentPlayer();
@@ -3079,6 +3252,22 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 	bool promotionStolen = false;
 	int moneyBefore = this->Owner->Available_Money();
 
+	// BUGFIX: Extended spy effects are stackable (multiple flags can fire in the same
+	// infiltration), but each block independently called VoxClass::Play(...) with no
+	// awareness of the others, so e.g. EVA_BuildingInfiltrated could be queued up to
+	// 7-8 times back to back. playEvaOnce() dedupes per-call so each distinct EVA line
+	// is only ever queued once per _InfiltratedBy() invocation, while still allowing
+	// genuinely different EVAs (cash stolen, tech stolen, radar sabotaged, ...) to all
+	// play alongside each other since those are separate IDs.
+	std::unordered_set<int> playedEvaIds;
+	auto playEvaOnce = [&playedEvaIds](auto evaId)
+		{
+			int idx = VoxClass::FindIndexById(evaId);
+
+			if (playedEvaIds.insert(idx).second)
+				VoxClass::Play(evaId);
+		};
+
 	if (!pTypeExt->SpyEffect_Custom)
 	{
 		if (this->Type->Radar)
@@ -3086,11 +3275,11 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 			this->Owner->ReshroudMap();
 			if (!this->Owner->SpySatActive && evaForOwner)
 			{
-				VoxClass::Play(GameStrings::EVA_RadarSabotaged);
+				playEvaOnce(GameStrings::EVA_RadarSabotaged());
 			}
 			if (!this->Owner->SpySatActive && evaForEnterer)
 			{
-				VoxClass::Play(GameStrings::EVA_BuildingInfRadarSabotaged);
+				playEvaOnce(GameStrings::EVA_BuildingInfRadarSabotaged());
 			}
 			effectApplied = true;
 		}
@@ -3099,12 +3288,12 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 			this->Owner->CreatePowerOutage(RulesClass::Instance->SpyPowerBlackout);
 			if (evaForOwner)
 			{
-				VoxClass::Play(GameStrings::EVA_PowerSabotaged);
+				playEvaOnce(GameStrings::EVA_PowerSabotaged());
 			}
 			if (evaForEnterer)
 			{
-				VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
-				VoxClass::Play(GameStrings::EVA_EnemyBasePoweredDown);
+				playEvaOnce(GameStrings::EVA_BuildingInfiltrated());
+				playEvaOnce(GameStrings::EVA_EnemyBasePoweredDown());
 			}
 			effectApplied = true;
 		}
@@ -3118,7 +3307,7 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 					pSuper->Reset();
 					if (evaForOwner || evaForEnterer)
 					{
-						VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
+						playEvaOnce(GameStrings::EVA_BuildingInfiltrated());
 					}
 					effectApplied = true;
 				}
@@ -3143,12 +3332,12 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 					Enterer->GiveMoney(bounty);
 					if (evaForOwner)
 					{
-						VoxClass::Play(GameStrings::EVA_CashStolen);
+						playEvaOnce(GameStrings::EVA_CashStolen());
 					}
 
 					if (evaForEnterer)
 					{
-						VoxClass::Play(GameStrings::EVA_BuildingInfCashStolen);
+						playEvaOnce(GameStrings::EVA_BuildingInfCashStolen());
 					}
 					effectApplied = true;
 				}
@@ -3192,18 +3381,18 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 		}
 
 	}
-	else
+	else // Extended effects // DIFF: fixed typo "affects" -> "effects"
 	{
 		if (pTypeExt->SpyEffect_ResetRadar)
 		{
 			this->Owner->ReshroudMap();
 			if (!this->Owner->SpySatActive && evaForOwner)
 			{
-				VoxClass::Play(GameStrings::EVA_RadarSabotaged);
+				playEvaOnce(GameStrings::EVA_RadarSabotaged());
 			}
 			if (!this->Owner->SpySatActive && evaForEnterer)
 			{
-				VoxClass::Play(GameStrings::EVA_BuildingInfRadarSabotaged);
+				playEvaOnce(GameStrings::EVA_BuildingInfRadarSabotaged());
 			}
 			effectApplied = true;
 		}
@@ -3213,12 +3402,12 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 			this->Owner->CreatePowerOutage(pTypeExt->SpyEffect_PowerOutageDuration);
 			if (evaForOwner)
 			{
-				VoxClass::Play(GameStrings::EVA_PowerSabotaged);
+				playEvaOnce(GameStrings::EVA_PowerSabotaged());
 			}
 			if (evaForEnterer)
 			{
-				VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
-				VoxClass::Play(GameStrings::EVA_EnemyBasePoweredDown);
+				playEvaOnce(GameStrings::EVA_BuildingInfiltrated());
+				playEvaOnce(GameStrings::EVA_EnemyBasePoweredDown());
 			}
 			effectApplied = true;
 		}
@@ -3229,13 +3418,13 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 			Enterer->RecheckTechTree = true;
 			if (evaForOwner)
 			{
-				VoxClass::Play(GameStrings::EVA_TechnologyStolen);
+				playEvaOnce(GameStrings::EVA_TechnologyStolen());
 			}
 
 			if (evaForEnterer)
 			{
-				VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
-				VoxClass::Play(GameStrings::EVA_NewTechAcquired);
+				playEvaOnce(GameStrings::EVA_BuildingInfiltrated());
+				playEvaOnce(GameStrings::EVA_NewTechAcquired());
 			}
 
 			effectApplied = true;
@@ -3249,7 +3438,7 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 
 			if (evaForOwner || evaForEnterer)
 			{
-				VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
+				playEvaOnce(GameStrings::EVA_BuildingInfiltrated());
 			}
 
 			effectApplied = true;
@@ -3277,7 +3466,7 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 			{
 				if (evaForOwner || evaForEnterer)
 				{
-					VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
+					playEvaOnce(GameStrings::EVA_BuildingInfiltrated());
 				}
 				effectApplied = true;
 			}
@@ -3314,7 +3503,8 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 					else
 					{
 						pSuper->Grant(true, false, false);
-						if (pHouse->IsCurrentPlayer()) {
+						if (pHouse->IsCurrentPlayer())
+						{
 							SidebarClass::Instance->AddSpecialCameo(idx);
 						}
 					}
@@ -3328,7 +3518,7 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 
 			if (evaForOwner || evaForEnterer)
 			{
-				VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
+				playEvaOnce(GameStrings::EVA_BuildingInfiltrated());
 			}
 
 			effectApplied = true;
@@ -3345,7 +3535,7 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 
 			if (evaForOwner || evaForEnterer)
 			{
-				VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
+				playEvaOnce(GameStrings::EVA_BuildingInfiltrated());
 			}
 
 			effectApplied = true;
@@ -3375,7 +3565,7 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 
 				if (evaForOwner || evaForEnterer)
 				{
-					VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
+					playEvaOnce(GameStrings::EVA_BuildingInfiltrated());
 				}
 
 				effectApplied = true;
@@ -3394,7 +3584,7 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 
 				if (evaForOwner || evaForEnterer)
 				{
-					VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
+					playEvaOnce(GameStrings::EVA_BuildingInfiltrated());
 				}
 
 				effectApplied = true;
@@ -3420,11 +3610,11 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 				Enterer->GiveMoney(bounty);
 				if (evaForOwner)
 				{
-					VoxClass::Play(GameStrings::EVA_CashStolen);
+					playEvaOnce(GameStrings::EVA_CashStolen());
 				}
 				if (evaForEnterer)
 				{
-					VoxClass::Play(GameStrings::EVA_BuildingInfCashStolen);
+					playEvaOnce(GameStrings::EVA_BuildingInfCashStolen());
 				}
 
 				effectApplied = true;
@@ -3507,7 +3697,7 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 			this->DisplayProductionTo.Add(Enterer);
 			if (evaForOwner || evaForEnterer)
 			{
-				VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
+				playEvaOnce(GameStrings::EVA_BuildingInfiltrated());
 			}
 			effectApplied = true;
 		}
@@ -3528,7 +3718,7 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 
 			if (evaForOwner || evaForEnterer)
 			{
-				VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
+				playEvaOnce(GameStrings::EVA_BuildingInfiltrated());
 			}
 
 			MapClass::Instance->Map_AI();
@@ -3547,11 +3737,26 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 
 			if (evaForOwner || evaForEnterer)
 			{
-				VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
+				playEvaOnce(GameStrings::EVA_BuildingInfiltrated());
 			}
 			effectApplied = true;
 		}
 	}
+
+	if (pTypeExt->SpyEffect_RadarJamDuration > 0)
+	{
+		if (!pBldExt->RadarJammedTimer.HasStarted()) {
+			pBldExt->RadarJammedTimer.Start(pTypeExt->SpyEffect_RadarJamDuration);
+			this->Owner->RecheckRadar = true;
+		}
+
+		if (evaForOwner || evaForEnterer)
+		{
+			playEvaOnce(GameStrings::EVA_BuildingInfiltrated());
+		}
+		effectApplied = true;
+	}
+
 	if (pTypeExt->SpyEffect_Anim && pTypeExt->SpyEffect_Anim_Duration > 0)
 	{
 
@@ -3570,18 +3775,18 @@ void FakeBuildingClass::_InfiltratedBy(HouseClass* Enterer)
 		if (IsEntererControlledByCurrentPlayer)
 		{
 			MouseClass::Instance->SidebarNeedsRepaint();
-			tootip_something = true;
+			sTechTooltipDirty = true;
 		}
 
 		if (evaForOwner)
 		{
-			VoxClass::Play(GameStrings::EVA_TechnologyStolen);
+			playEvaOnce(GameStrings::EVA_TechnologyStolen());
 		}
 
 		if (evaForEnterer)
 		{
-			VoxClass::Play(GameStrings::EVA_BuildingInfiltrated);
-			VoxClass::Play(GameStrings::EVA_NewTechAcquired);
+			playEvaOnce(GameStrings::EVA_BuildingInfiltrated());
+			playEvaOnce(GameStrings::EVA_NewTechAcquired());
 		}
 		effectApplied = true;
 	}
@@ -4754,6 +4959,14 @@ bool NOINLINE TechnoExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* 
 	{
 		pThis->Health = pToType->Strength;
 		pThis->EstimatedHealth = pToType->Strength;
+	}
+
+	if (pOldType->GapGenerator)
+		pThis->DestroyGap();
+
+	if (pToType->GapGenerator)
+	{
+		pThis->CreateGap();
 	}
 
 	//special cases , in this case dont need to do anything to the counter
@@ -6194,6 +6407,9 @@ void __fastcall FakeTechnoClass:: __Activate(TechnoClass* pThis)
 			}
 		}
 	}
+
+	if (!pThis->Deactivated && TechnoExtContainer::Instance.Find(pThis)->Is_Wreckage)
+		pThis->Deactivate();
 }
 
 void FakeTechnoClass::__Deactivate(TechnoClass* pThis)
@@ -8098,9 +8314,8 @@ void GetDigitalDisplayFakeHealth(TechnoClass* pThis, int& value, int& maxValue) 
 
 // https://github.com/Phobos-developers/Phobos/pull/1287
 // TODO : update
-void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType, int& value, int& maxValue, int infoIndex, ShieldClass* pShield)
+void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, TechnoTypeClass* pType, DisplayInfoType infoType, int& value, int& maxValue, int infoIndex, ShieldClass* pShield)
 {
-	const auto pType = GET_TECHNOTYPE(pThis);
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	switch (infoType)
@@ -8252,7 +8467,7 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 		maxValue = nTimer.TimeLeft;
 		break;
 	}
-	case DisplayInfoType::CloakDisable :
+	case DisplayInfoType::CloakDisable:
 	{
 		auto& nTimer = pExt->CloakSkipTimer;
 		if (nTimer.TimeLeft == 0 && nTimer.StartTime == -1)
@@ -8474,12 +8689,12 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 				return superWeapons.size() > 0 ? &pHouse->Supers.operator[](superWeapons[0])->RechargeTimer : nullptr;
 			};
 
-			//TODO : fix this
-			if (const auto pTimer = getSuperTimer())
-			{
-				value = pTimer->GetTimeLeft();
-				maxValue = pTimer->TimeLeft;
-			}
+		//TODO : fix this
+		if (const auto pTimer = getSuperTimer())
+		{
+			value = pTimer->GetTimeLeft();
+			maxValue = pTimer->TimeLeft;
+		}
 		break;
 	}
 	case DisplayInfoType::EmptyReload:
@@ -8505,6 +8720,12 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 		break;
 	}
 	}
+}
+
+void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType, int& value, int& maxValue, int infoIndex, ShieldClass* pShield)
+{
+	const auto pType = GET_TECHNOTYPE(pThis);
+	TechnoExtData::GetValuesForDisplay(pThis, pType, infoType, value, maxValue, infoIndex, pShield);
 }
 
 void TechnoExtData::RestoreLastTargetAndMissionAfterWebbed(InfantryClass* pThis)
@@ -10132,6 +10353,31 @@ double TechnoExtData::GetArmorMult(TechnoClass* pSource, double damageIn, Warhea
 
 	return _result;
 }
+
+double TechnoExtData::GetCurrentArmorMultiplier(TechnoClass* pThis, TechnoTypeClass* pType, HouseClass* pSourceHouse, WarheadTypeClass* pWarhead, bool playAnim)
+{
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+	double _armor;
+
+	//Ares AE using techno ArmorMultiplier
+	//PHobos AE using ArmorMultData 
+	if (pExt->AE.ArmorMultData.Enabled()) {
+		_armor = pExt->AE.ArmorMultData.Get(pThis->ArmorMultiplier, pWarhead, pThis, playAnim);
+	} else {
+		_armor = pThis->ArmorMultiplier;
+	}
+
+	if (auto pOwner = pThis->Owner)
+		_armor *= pOwner->GetTypeArmorMult(pType);
+
+	if (pThis->HasAbility(AbilityType::Stronger)) {
+		_armor *= RulesClass::Instance->VeteranArmor;
+	}
+
+	return _armor;
+}
+
+
 //#pragma optimize("", off )
 double TechnoExtData::GetDamageMult(TechnoClass* pSource){
 	double mult = pSource->FirepowerMultiplier;
@@ -13927,17 +14173,18 @@ TechnoExtContainer TechnoExtContainer::Instance;
 
 TechnoExtData::~TechnoExtData()
 {
+	auto pTypeExt = this->TypeExtData;
 	auto pThis = This();
 	FakeHouseClass* pOwner = (FakeHouseClass*)pThis->Owner;
 	auto pOwnerExt = pOwner->_GetExtData();
 
-	ScenarioExtData::Instance()->LimboLaunchers.erase(pThis);
+	ScenarioExtData::Instance()->LimboLaunchers.erase(this);
 
 	if (this->UndergroundTracked)
-		ScenarioExtData::Instance()->UndergroundTracker.erase(pThis);
+		ScenarioExtData::Instance()->UndergroundTracker.erase(this);
 
 	if(this->FallingDownTracked)
-		ScenarioExtData::Instance()->FallingDownTracker.erase(pThis);
+		ScenarioExtData::Instance()->FallingDownTracker.erase(this);
 
 	//mimicking the original game stuffs
 	if (!Phobos::Otamaa::ExeTerminated && Game::IsActive())
@@ -13952,6 +14199,11 @@ TechnoExtData::~TechnoExtData()
 
 			if(pThis->WhatAmI() != BuildingClass::AbsID && !this->TypeExtData->Linked_SW.empty())
 				((FakeHouseClass*)pThis->Owner)->_AI_Supers();
+
+			if (this->AbsType == InfantryClass::AbsID && ((InfantryTypeExtData*)pTypeExt)->IsHero) {
+				ScenarioExtData::Instance()->OwnedUniqueTechnos.remove(this);
+				pThis->Owner->RecheckTechTree = true;
+			}
 
 			if (this->TypeExtData->IsGenericPrerequisite()) {
 				pThis->Owner->RecheckTechTree = true;

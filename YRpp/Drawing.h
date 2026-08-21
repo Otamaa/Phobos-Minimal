@@ -113,6 +113,13 @@ struct Drawing
 		return buffer;
 	}
 
+	static RectangleStruct GetTextBox(const wchar_t* pText, Point2D pos, Point2D margin)
+	{
+		RectangleStruct buffer;
+		GetTextBox(&buffer, pText, pos.X, pos.Y, 0, margin.X, margin.Y);
+		return buffer;
+	}
+
 	static RectangleStruct GetTextBox(const wchar_t* pText, int nX, int nY)
 		{ return GetTextBox(pText, nX, nY, 2); }
 

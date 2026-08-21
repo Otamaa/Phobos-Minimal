@@ -63,6 +63,9 @@ public:
 
 	//
 	bool IsvalidCell { false };
+
+	int SmudgeGenerate { 0 };
+	BlitterFlags SmudgeState { BlitterFlags::None };
 #pragma endregion
 
 public:

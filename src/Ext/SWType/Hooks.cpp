@@ -161,87 +161,102 @@ ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 	return 0x0;
 }//
 
+#include <Ext/Smudge/Body.h>
+
+ASMJIT_PATCH(0x55B6B3, LogicClass_Update_After, 0x5)
+{
+	SmudgeExtData::UpdateSmudgeState();
+	return 0x0;
+}
+
+#include <New/Entity/BannerClass.h>
+
 void FakeTacticalClass::__DrawAllTacticalText(wchar_t* text)
 {
-	const int AdvCommBarHeight = 32;
+	for (auto& pBanner : BannerManagerClass::Instance.Array){
+		pBanner.Render();
+	}
 
-	int offset = AdvCommBarHeight;
+	if (!Phobos::Config::SelectedDisplay_Enable) {
 
-	auto DrawText_Helper = [](const wchar_t* string, int& offset, int color)
+		const int AdvCommBarHeight = 32;
+
+		int offset = AdvCommBarHeight;
+
+		auto DrawText_Helper = [](const wchar_t* string, int& offset, int color) {
+				auto wanted = Drawing::GetTextDimensions(string);
+
+				auto h = DSurface::Composite->Get_Height();
+				RectangleStruct rect = { 0, h - wanted.Height - offset, wanted.Width, wanted.Height };
+
+				DSurface::Composite->Fill_Rect(rect, COLOR_BLACK);
+				DSurface::Composite->DrawText_Old(string, 0, rect.Y, color);
+
+				offset += wanted.Height;
+			};
+
+		if (!Phobos::Config::ModNote.Label) {
+			Phobos::Config::ModNote = "TXT_RELEASE_NOTE";
+		}
+
+		if (!Phobos::Config::ModNote.empty()) {
+			DrawText_Helper(Phobos::Config::ModNote, offset, COLOR_RED);
+		}
+
+
+		static fmt::basic_memory_buffer<wchar_t> buffer;
+
+		switch (FakeRulesClass::Instance()->FPSCounter)
 		{
-			auto wanted = Drawing::GetTextDimensions(string);
-
-			auto h = DSurface::Composite->Get_Height();
-			RectangleStruct rect = { 0, h - wanted.Height - offset, wanted.Width, wanted.Height };
-
-			DSurface::Composite->Fill_Rect(rect, COLOR_BLACK);
-			DSurface::Composite->DrawText_Old(string, 0, rect.Y, color);
-
-			offset += wanted.Height;
-		};
-
-	if (!Phobos::Config::ModNote.Label)
-	{
-		Phobos::Config::ModNote = "TXT_RELEASE_NOTE";
-	}
-
-	if (!Phobos::Config::ModNote.empty())
-	{
-		DrawText_Helper(Phobos::Config::ModNote, offset, COLOR_RED);
-	}
-
-	static fmt::basic_memory_buffer<wchar_t> buffer;
-
-	switch (FakeRulesClass::Instance()->FPSCounter)
-	{
-	case FPSCounterMode::disabled: {
-		break;
-	}
-	case FPSCounterMode::Full: {
-		auto currentFrameTime = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<float, std::milli> frameDuration = currentFrameTime - lastFrameTime;
-		lastFrameTime = currentFrameTime;
-		buffer.clear();
-		fmt::format_to(std::back_inserter(buffer), L"FPS: {} | {:.3f} ms | Avg: {}", FPSCounter::CurrentFrameRate(), frameDuration.count(), (unsigned int)FPSCounter::GetAverageFrameRate());
-		buffer.push_back(L'\0');
-		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
-		break;
-	}
-	case FPSCounterMode::FPSOnly: {
-		buffer.clear();
-		fmt::format_to(std::back_inserter(buffer), L"FPS: {}", FPSCounter::CurrentFrameRate());
-		buffer.push_back(L'\0');
-		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
-		break;
-	}
-	case FPSCounterMode::FPSandAVG: {
-		buffer.clear();
-		fmt::format_to(std::back_inserter(buffer), L"FPS: {} | Avg: {}", FPSCounter::CurrentFrameRate(), (unsigned int)FPSCounter::GetAverageFrameRate());
-		buffer.push_back(L'\0');
-		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
-		break;
-	}
-	case FPSCounterMode::FPSandLat: {
-		auto currentFrameTime = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<float, std::milli> frameDuration = currentFrameTime - lastFrameTime;
-		lastFrameTime = currentFrameTime;
-		buffer.clear();
-		fmt::format_to(std::back_inserter(buffer), L"FPS: {} | {:.3f} ms", FPSCounter::CurrentFrameRate(), frameDuration.count());
-		buffer.push_back(L'\0');
-		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
-		break;
-	}
-	case FPSCounterMode::Lat: {
-		auto currentFrameTime = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<float, std::milli> frameDuration = currentFrameTime - lastFrameTime;
-		lastFrameTime = currentFrameTime;
-		buffer.clear();
-		fmt::format_to(std::back_inserter(buffer), L"{:.3f} ms", frameDuration.count());
-		buffer.push_back(L'\0');
-		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
-		break;
-	}
-	default: break;
+		case FPSCounterMode::disabled: {
+			break;
+		}
+		case FPSCounterMode::Full: {
+			auto currentFrameTime = std::chrono::high_resolution_clock::now();
+			std::chrono::duration<float, std::milli> frameDuration = currentFrameTime - lastFrameTime;
+			lastFrameTime = currentFrameTime;
+			buffer.clear();
+			fmt::format_to(std::back_inserter(buffer), L"FPS: {} | {:.3f} ms | Avg: {}", FPSCounter::CurrentFrameRate(), frameDuration.count(), (unsigned int)FPSCounter::GetAverageFrameRate());
+			buffer.push_back(L'\0');
+			DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
+			break;
+		}
+		case FPSCounterMode::FPSOnly: {
+			buffer.clear();
+			fmt::format_to(std::back_inserter(buffer), L"FPS: {}", FPSCounter::CurrentFrameRate());
+			buffer.push_back(L'\0');
+			DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
+			break;
+		}
+		case FPSCounterMode::FPSandAVG: {
+			buffer.clear();
+			fmt::format_to(std::back_inserter(buffer), L"FPS: {} | Avg: {}", FPSCounter::CurrentFrameRate(), (unsigned int)FPSCounter::GetAverageFrameRate());
+			buffer.push_back(L'\0');
+			DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
+			break;
+		}
+		case FPSCounterMode::FPSandLat: {
+			auto currentFrameTime = std::chrono::high_resolution_clock::now();
+			std::chrono::duration<float, std::milli> frameDuration = currentFrameTime - lastFrameTime;
+			lastFrameTime = currentFrameTime;
+			buffer.clear();
+			fmt::format_to(std::back_inserter(buffer), L"FPS: {} | {:.3f} ms", FPSCounter::CurrentFrameRate(), frameDuration.count());
+			buffer.push_back(L'\0');
+			DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
+			break;
+		}
+		case FPSCounterMode::Lat: {
+			auto currentFrameTime = std::chrono::high_resolution_clock::now();
+			std::chrono::duration<float, std::milli> frameDuration = currentFrameTime - lastFrameTime;
+			lastFrameTime = currentFrameTime;
+			buffer.clear();
+			fmt::format_to(std::back_inserter(buffer), L"{:.3f} ms", frameDuration.count());
+			buffer.push_back(L'\0');
+			DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
+			break;
+		}
+		default: break;
+		}
 	}
 
 	this->DrawAllTacticalText(text);

@@ -18,12 +18,12 @@ public:
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
-		this->AbstractTypeExtData::Internal_LoadFromStream(Stm);
+		this->AbstractTypeExtData::LoadFromStream(Stm);
 	}
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
-		this->AbstractTypeExtData::Internal_SaveToStream(Stm);
+		this->AbstractTypeExtData::SaveToStream(Stm);
 	}
 
 	virtual int GetSize() const { return sizeof(*this); };
@@ -35,7 +35,7 @@ public:
 	ObjectTypeClass* This() const { return reinterpret_cast<ObjectTypeClass*>(this->AttachedToObject); }
 	const ObjectTypeClass* This_Const() const { return reinterpret_cast<const ObjectTypeClass*>(this->AttachedToObject); }
 
-	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr) { return parseFailAddr ? false : true; }
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
 };
 

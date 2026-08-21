@@ -56,7 +56,7 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	auto pThis = This();
 	const char* pSection = pThis->ID;
 
-	if (parseFailAddr)
+	if (!this->AbstractTypeExtData::LoadFromINI(pINI, parseFailAddr))
 		return false;
 
 	INI_EX exINI(pINI);

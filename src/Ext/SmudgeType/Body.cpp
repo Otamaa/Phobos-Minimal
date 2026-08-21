@@ -6,7 +6,7 @@
 
 bool SmudgeTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr) || parseFailAddr)
+	if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr))
 		return false;
 
 	auto pThis = This();

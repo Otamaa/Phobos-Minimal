@@ -127,7 +127,7 @@ bool AnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
 	const char* pID = this->Name.data();
 
-	if (parseFailAddr)
+	if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr))
 		return false;
 
 	INI_EX exINI(pINI);
@@ -606,7 +606,7 @@ void AnimTypeExtData::ValidateData()
 
 #include <Ext/WarheadType/Body.h>
 
-void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, HouseClass* pKiller, WarheadTypeClass* pWH)
+void AnimTypeExtData::ProcessDestroyAnims(TechnoClass* pThis, HouseClass* pKiller, WarheadTypeClass* pWH)
 {
 	const auto location = pThis->GetCoords();
 

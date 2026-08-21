@@ -9,6 +9,8 @@
 #include <Ext/SWType/Body.h>
 #include <Ext/Event/Body.h>
 #include <Ext/Team/Body.h>
+#include <Ext/InfantryType/Body.h>
+#include <Ext/Scenario/Body.h>
 
 #include <Utilities/Cast.h>
 #include <Utilities/Macro.h>
@@ -290,6 +292,24 @@ ASMJIT_PATCH(0x7015EB, TechnoClass_SetOwningHouse_UpdateTracking, 0x7)
 	if (FakeRulesClass::Instance()->ExtendedBuildingPlacing && pThis->WhatAmI() == AbstractType::Unit && pType->DeploysInto)
 	{
 		pOldOwnerExt->OwnedDeployingUnits.remove((UnitClass*)pThis);
+	}
+
+
+	if (((InfantryTypeExtData*)pTypeExt)->IsHero)
+	{
+		const auto pOldOwner = pThis->Owner;
+
+		if (pOldOwner->ControlledByCurrentPlayer())
+		{
+			if (!pNewOwner->ControlledByCurrentPlayer())
+			{
+				ScenarioExtData::Instance()->OwnedUniqueTechnos.remove(pExt);
+			}
+		}
+		else if (pNewOwner->ControlledByCurrentPlayer())
+		{
+			ScenarioExtData::Instance()->OwnedUniqueTechnos.push_back_unique(pExt);
+		}
 	}
 
 	SidebarClass::Instance->OnTechnoDestroyed(pThis);
@@ -621,4 +641,19 @@ ASMJIT_PATCH(0x4FB6C2, HouseClass_RegisterObjectGain_TrackLastBuiltTab, 0x7)
 	}
 
 	return 0;
+}
+
+ASMJIT_PATCH(0x4F9286, HouseClass_Update_RecheckOwnerBitfield, 0x6)
+{
+	enum { SkipLoop = 0x4F92DD, StartLoop = 0x4F928C };
+
+	GET(const int, buildingCount, EBP);
+
+	R->EBX(0);
+
+	if (!buildingCount)
+		return SkipLoop;
+
+	HouseExtData::RecheckOwnerBitfieldForCurrentPlayer();
+	return StartLoop;
 }

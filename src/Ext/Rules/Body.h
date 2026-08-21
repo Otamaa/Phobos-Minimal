@@ -856,6 +856,34 @@ public:
 	Valueable<bool> KeepAlive_SupportBuildings { true };
 
 	Valueable<bool> ProjectileRange_ApplyModifiers { true };
+
+
+	Valueable<int> SmudgeUpdateTime {};
+
+	Valueable<Point2D>  FactoryProgressDisplay_Offset { { 0, 0 } };
+	Valueable<Point2D>  MainSWProgressDisplay_Offset { { 0, 0 } };
+	Valueable<Point2D>  InvulnerableDisplay_Others_Offset { { 0, 0 } };
+	Valueable<Point2D>  InvulnerableDisplay_Buildings_Offset { { 0, 0 } };
+	Valueable<Point2D>  TemporalLifeDisplay_Others_Offset { { 0, 0 } };
+	Valueable<Point2D>  TemporalLifeDisplay_Buildings_Offset { { 0, 0 } };
+	Valueable<Point2D> InvulnerableDisplay_Others_Pips { { 17, 18 } };
+	Valueable<Point2D> InvulnerableDisplay_Buildings_Pips { { 5, 4 } };
+	Valueable<int>  TemporalLifeDisplay_Others_Pips { 17 };
+	Valueable<int>  TemporalLifeDisplay_Buildings_Pips { 5 };
+	Valueable<SHPCaches*> ProgressDisplay_Others_PipsShape { FileSystem::PIPS_SHP };
+	Valueable<SHPCaches*> ProgressDisplay_Buildings_PipsShape { FileSystem::PIPS_SHP };
+
+	Valueable<bool> Crush_SelfUncloak { true };
+	Valueable<bool> UncloakWhenLowHealth { true };
+
+	PhobosPCXFile SelectedInfantryMissingPCX {};
+	PhobosPCXFile SelectedVehicleMissingPCX {};
+	PhobosPCXFile SelectedAircraftMissingPCX {};
+	PhobosPCXFile SelectedBuildingMissingPCX {};
+	Valueable<bool> SelectedIngameTimer { false };
+	
+	Valueable<bool> EnableWreckageSpawn { false };
+	Valueable<double> WreckageInitialHealthPercent { 0.1 };
 #pragma endregion
 
 public:

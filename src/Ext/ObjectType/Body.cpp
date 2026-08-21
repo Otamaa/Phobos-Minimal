@@ -7,6 +7,15 @@
 #include <Utilities/Macro.h>
 #include <Utilities/Patch.h>
 
+
+bool ObjectTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
+{
+	if (!this->AbstractTypeExtData::LoadFromINI(pINI, parseFailAddr))
+		return false;
+
+	return true;
+}
+
 BuildingClass* __fastcall FakeObjectTypeClass::WhoCanBuildMe(ObjectTypeClass* pThis, discard_t, bool intheory, bool bool2, bool legal, HouseClass* house)
 {
 	if(auto pTechno = type_cast<TechnoTypeClass*>(pThis)) {

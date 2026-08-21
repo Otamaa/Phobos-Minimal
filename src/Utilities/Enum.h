@@ -34,6 +34,53 @@
 #include <Helpers\EnumFlags.h>
 #include <GeneralDefinitions.h>
 
+enum class TechnoStatus : int
+{
+	Sleep = 0,
+	Attack = 1,
+	Move = 2,
+	QMove = 3,
+	Retreat = 4,
+	Guard = 5,
+	Sticky = 6,
+	Enter = 7,
+	Capture = 8,
+	Eaten = 9,
+	Harvest = 10,
+	AreaGuard = 11,
+	Return = 12,
+	Stop = 13,
+	Ambush = 14,
+	Hunt = 15,
+	Unload = 16,
+	Sabotage = 17,
+	Construction = 18,
+	Selling = 19,
+	Repair = 20,
+	Rescue = 21,
+	Missile = 22,
+	Harmless = 23,
+	Open = 24,
+	Patrol = 25,
+	Paradrop = 26,
+	AttackMove = 27,
+	Wait = 28,
+	Produce = 29,
+	Deactive = 30,
+	Locomotor = 31,
+	FollowGuard = 32,
+	Unknown = 33,
+	None = 34,
+};
+
+enum class BibDir : char
+{
+	North = 0,
+	East = 2,
+	South = 4,
+	West = 6,
+};
+
 enum class PowerStatus
 {
 	None = 0,

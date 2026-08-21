@@ -28,6 +28,116 @@
 #include <CaptureManagerClass.h>
 #include <RadarEventClass.h>
 
+bool HouseExtData::CheckOwnerBitfieldForCurrentPlayer(TechnoTypeClass* pType)
+{
+	const auto pScenarioExt = ScenarioExtData::Instance();
+	DWORD baseBits = TechnoTypeExtContainer::Instance.Find(pType)->Cameo_RequiredHouses & pType->GetOwners();
+	baseBits &= (1u << HouseClass::CurrentPlayer->Type->SideIndex);
+
+	if (!baseBits)
+		return false;
+
+	bool result = false;
+
+	switch (pType->WhatAmI())
+	{
+	case AbstractType::Building:
+	case AbstractType::BuildingType:
+	{
+		result = pScenarioExt->OwnerBitfield_BuildingType & baseBits;
+		break;
+	}
+	case AbstractType::Infantry:
+	case AbstractType::InfantryType:
+	{
+		result = pScenarioExt->OwnerBitfield_InfantryType & baseBits;
+		break;
+	}
+	case AbstractType::Unit:
+	case AbstractType::UnitType:
+	{
+		if (!pType->Naval)
+			result = pScenarioExt->OwnerBitfield_VehicleType & baseBits;
+		else
+			result = pScenarioExt->OwnerBitfield_NavyType & baseBits;
+
+		break;
+	}
+	case AbstractType::Aircraft:
+	case AbstractType::AircraftType:
+	{
+		result = pScenarioExt->OwnerBitfield_AircraftType & baseBits;
+		break;
+	}
+	default:
+	{
+		break;
+	}
+	}
+
+	return result;
+}
+
+void HouseExtData::RecheckOwnerBitfieldForCurrentPlayer()
+{
+	const auto pScenarioExt = ScenarioExtData::Instance();
+	pScenarioExt->OwnerBitfield_BuildingType = 0;
+	pScenarioExt->OwnerBitfield_InfantryType = 0;
+	pScenarioExt->OwnerBitfield_VehicleType = 0;
+	pScenarioExt->OwnerBitfield_NavyType = 0;
+	pScenarioExt->OwnerBitfield_AircraftType = 0;
+
+	for (const auto& pBuilding : HouseClass::CurrentPlayer->Buildings)
+	{
+		const auto pBuildingType = pBuilding->Type;
+
+		switch (pBuildingType->Factory)
+		{
+		case AbstractType::Building:
+		case AbstractType::BuildingType:
+		{
+			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pBuildingType);
+			DWORD baseBits = pTypeExt->Cameo_RequiredHouses & pBuildingType->GetOwners();
+			pScenarioExt->OwnerBitfield_BuildingType |= baseBits;
+			break;
+		}
+		case AbstractType::Infantry:
+		case AbstractType::InfantryType:
+		{
+			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pBuildingType);
+			DWORD baseBits = pTypeExt->Cameo_RequiredHouses & pBuildingType->GetOwners();
+			pScenarioExt->OwnerBitfield_InfantryType |= baseBits;
+			break;
+		}
+		case AbstractType::Unit:
+		case AbstractType::UnitType:
+		{
+			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pBuildingType);
+			DWORD baseBits = pTypeExt->Cameo_RequiredHouses & pBuildingType->GetOwners();
+
+			if (!pBuildingType->Naval)
+				pScenarioExt->OwnerBitfield_VehicleType |= baseBits;
+			else
+				pScenarioExt->OwnerBitfield_NavyType |= baseBits;
+
+			break;
+		}
+		case AbstractType::Aircraft:
+		case AbstractType::AircraftType:
+		{
+			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pBuildingType);
+			DWORD baseBits = pTypeExt->Cameo_RequiredHouses & pBuildingType->GetOwners();
+			pScenarioExt->OwnerBitfield_AircraftType |= baseBits;
+			break;
+		}
+		default:
+		{
+			break;
+		}
+		}
+	}
+}
+
 bool FakeHouseClass::_FireSW(int id, CellStruct& cell)
 {
 	FakeSuperClass* super = (FakeSuperClass*)this->Supers[id];
@@ -277,70 +387,80 @@ float HouseExtData::GetRestrictedFactoryPlantMult(TechnoTypeClass* pTechnoType) 
 }
 
 RequirementStatus HouseExtData::RequirementsMet(
-	HouseClass* pHouse, TechnoTypeClass* pItem)
+	HouseClass* pHouse, TechnoTypeClass* pItem, bool CameoCheck)
 {
 	const auto pData = TechnoTypeExtContainer::Instance.Find(pItem);
 	const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 	const bool IsHuman = pHouse->IsControlledByHuman();
 	// bool IsUnbuildable = pItem->Unbuildable || (IsHuman && pData->HumanUnbuildable);
+	auto InitialResult = [&]() {
+			if (pItem->Unbuildable || (IsHuman && pData->HumanUnbuildable))
+				return RequirementStatus::Forbidden;
 
-	if (pItem->Unbuildable || (IsHuman && pData->HumanUnbuildable))
-		return RequirementStatus::Forbidden;
+			if (!(pData->Prerequisite_RequiredTheaters & (1 << static_cast<int>(ScenarioClass::Instance->Theater))))
+				return RequirementStatus::Forbidden;
 
-	if(!(pData->Prerequisite_RequiredTheaters & (1 << static_cast<int>(ScenarioClass::Instance->Theater))))
-		return RequirementStatus::Forbidden;
+			if (Prereqs::HouseOwnsAny(pHouse, pData->Prerequisite_Negative))
+				return RequirementStatus::Forbidden;
 
-	if(Prereqs::HouseOwnsAny(pHouse, pData->Prerequisite_Negative))
-		return RequirementStatus::Forbidden;
-
-	for(auto pRever : pHouseExt->Reversed){
-		if(pRever == pItem) {
-			return RequirementStatus::Overridden;
-		}
-	}
-
-	if (pData->RequiredStolenTech.any()) {
-		if ((pHouseExt->StolenTech & pData->RequiredStolenTech) != pData->RequiredStolenTech) {
-			return RequirementStatus::Incomplete;
-		}
-	}
-
-	if (Prereqs::HouseOwnsAny(pHouse, pItem->PrerequisiteOverride))
-		return RequirementStatus::Overridden;
-
-	if (pHouse->HasFromSecretLab(pItem))
-		return RequirementStatus::Overridden;
-
-	if (IsHuman && pItem->TechLevel == -1)
-		return RequirementStatus::Incomplete;
-
-	if (!pHouse->HasAllStolenTech(pItem))
-		return RequirementStatus::Incomplete;
-
-	if (!pHouse->InRequiredHouses(pItem) || pHouse->InForbiddenHouses(pItem))
-		return RequirementStatus::Forbidden;
-
-	if (!HouseExtData::CheckFactoryOwners(pHouse, pItem))
-		return RequirementStatus::Incomplete;
-
-	if (auto const pBldType = type_cast<BuildingTypeClass const*>(pItem)) {
-		if (HouseExtData::IsDisabledFromShell(pHouse, pBldType)) {
-			return RequirementStatus::Forbidden;
-		}
-	}
-
-	if (pData->Prerequisite_Power.isset()) {
-		if (pData->Prerequisite_Power.Fetch() <= 0) {
-			if (-pData->Prerequisite_Power.Fetch() > pHouse->PowerOutput) {
-				return RequirementStatus::Incomplete;
+			for (auto pRever : pHouseExt->Reversed) {
+				if (pRever == pItem) {
+					return RequirementStatus::Overridden;
+				}
 			}
-			} else if (pData->Prerequisite_Power.Fetch() > pHouse->PowerOutput - pHouse->PowerDrain) {
+
+			if (pData->RequiredStolenTech.any()) {
+				if ((pHouseExt->StolenTech & pData->RequiredStolenTech) != pData->RequiredStolenTech) {
+					return RequirementStatus::Incomplete;
+				}
+			}
+
+			if (Prereqs::HouseOwnsAny(pHouse, pItem->PrerequisiteOverride))
+				return RequirementStatus::Overridden;
+
+			if (pHouse->HasFromSecretLab(pItem))
+				return RequirementStatus::Overridden;
+
+			if (IsHuman && pItem->TechLevel == -1)
 				return RequirementStatus::Incomplete;
-		}
+
+			if (!pHouse->HasAllStolenTech(pItem))
+				return RequirementStatus::Incomplete;
+
+			if (!pHouse->InRequiredHouses(pItem) || pHouse->InForbiddenHouses(pItem))
+				return RequirementStatus::Forbidden;
+
+			if (!HouseExtData::CheckFactoryOwners(pHouse, pItem))
+				return RequirementStatus::Incomplete;
+
+			if (auto const pBldType = type_cast<BuildingTypeClass const*>(pItem)) {
+				if (HouseExtData::IsDisabledFromShell(pHouse, pBldType)) {
+					return RequirementStatus::Forbidden;
+				}
+			}
+
+			if (pData->Prerequisite_Power.isset()) {
+				if (pData->Prerequisite_Power.Fetch() <= 0) {
+					if (-pData->Prerequisite_Power.Fetch() > pHouse->PowerOutput) {
+						return RequirementStatus::Incomplete;
+					}
+				} else if (pData->Prerequisite_Power.Fetch() > pHouse->PowerOutput - pHouse->PowerDrain) {
+					return RequirementStatus::Incomplete;
+				}
+			}
+
+			return (pHouse->StaticData.TechLevel >= pItem->TechLevel) ?
+				RequirementStatus::Complete : RequirementStatus::Incomplete;
+		};
+
+	const auto initialResult = InitialResult();
+
+	if (CameoCheck && pHouse == HouseClass::CurrentPlayer()) {
+		if (pData->Cameo_AlwaysExist.Get(FakeRulesClass::Instance->Cameo_AlwaysExist))
+			pData->Cameo_AlwaysExistRequirementMet = (initialResult > RequirementStatus::Incomplete);
 	}
 
-	return (pHouse->StaticData.TechLevel >= pItem->TechLevel) ?
-		RequirementStatus::Complete : RequirementStatus::Incomplete;
+	return initialResult;
 }
 
 std::pair<NewFactoryState, BuildingClass*> HouseExtData::HasFactory(
@@ -464,7 +584,7 @@ CanBuildResult HouseExtData::PrereqValidate(
 
 	if (!buildLimitOnly)
 	{
-		const RequirementStatus ReqsMet = HouseExtData::RequirementsMet(pHouse, pItem);
+		const RequirementStatus ReqsMet = HouseExtData::RequirementsMet(pHouse, pItem, true);
 		//const auto pItemExt = TechnoTypeExtContainer::Instance.Find(pItem);
 
 		if (ReqsMet <= RequirementStatus::Incomplete)
@@ -2530,19 +2650,10 @@ bool HouseExtData::ShouldDisableCameo(HouseClass* pThis, TechnoTypeClass* pType,
 	if (CheckShouldDisableDefensesCameo(pThis, pType) || HouseExtData::ReachedBuildLimit(pThis, pType, false))
 		return true;
 
-	if (AdditionalCheks && pThis == HouseClass::CurrentPlayer.get()) {
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-		// The types exist in the list means that they are not buildable now
-		if (pTypeExt->Cameo_AlwaysExist.Get(FakeRulesClass::Instance()->Cameo_AlwaysExist))
-		{
-			auto& vec = ScenarioExtData::Instance()->OwnedExistCameoTechnoTypes;
-
-			if (vec.contains(pType)) {
-				return true;
-			}
-		}
+	if (AdditionalCheks && pThis == HouseClass::CurrentPlayer.get() && pTypeExt->Cameo_AlwaysExistForCurrentPlayerActive) {
+		return true;
 	}
 
 	return false;
@@ -3594,7 +3705,7 @@ CanBuildResult FakeHouseClass::_Can_Build(TechnoTypeClass* type, char buildLimit
 	}
 
 	if (!buildLimitOnly && includeInProduction && this == HouseClass::CurrentPlayer()) // Eliminate any non-producible calls to change the list safely
-		validationResult = BuildingTypeExtData::CheckAlwaysExistCameo(type, validationResult);
+		validationResult = BuildingTypeExtData::CheckAlwaysExistCameo((HouseClass*)this , type, validationResult);
 
 	return validationResult;
 }
@@ -4125,7 +4236,7 @@ bool FakeHouseClass::_ComputeRawRadarAvailability()
  
 		const auto pBldExt = building->_GetExtData();
  
-		if (!pBldExt->RegisteredJammers.empty())
+		if (pBldExt->RadarJammedTimer.GetTimeLeft() > 0  || !pBldExt->RegisteredJammers.empty())
 			continue;
  
 		if (building->EMPLockRemaining > 0)
@@ -4314,7 +4425,7 @@ void FakeHouseClass::_UpdateSpySat()
 
 			const bool Online = pBld->IsPowerOnline(); // check power
 			const auto pTypes = pBld->GetTypes(); // building types include upgrades
-			const bool Jammered = !pExt->RegisteredJammers.empty();  // is this building jammed
+			const bool Jammered = pExt->RadarJammedTimer.GetTimeLeft() > 0 || !pExt->RegisteredJammers.empty();  // is this building jammed
 
 			for (auto begin = pTypes.begin(); begin != pTypes.end() && *begin; ++begin)
 			{

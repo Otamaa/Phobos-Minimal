@@ -707,7 +707,7 @@ ASMJIT_PATCH(0x7442D6, FootClass_ReadyToNextMission_MovingCheck, 0x6) // Unit
 	GET(FootClass*, pThis, ESI);
 	bool result = false;
 
-	if (FakeRulesClass::Instance->ReadyToNextMission_MovingCheck) {
+	if (FakeRulesClass::Instance->ReadyToNextMission_MovingCheck || pThis->QueuedMission == Mission::Unload) {
 		result = pThis->Locomotor.GetInterfacePtr()->Is_Moving_Now();
 	}
 
@@ -848,18 +848,20 @@ ASMJIT_PATCH(0x4D5A34, FootClass_ApproachTarget_StopWhenInRange, 0x6)
 
 		// Per-type setting takes priority, falls back to the global one.
 		if (pTypeExt->ApproachTarget_StopWhenInRange.Get(FakeRulesClass::Instance->ApproachTarget_StopWhenInRange)) {
-			if (auto const pJumpjetLoco = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor)) {
+			// these codes are for preventing jumpjets from moving around when executing ApproachTarget.StopWhenInRange
+		    // however, it'll make them can't scatter and find empty cells after attacking, so disable it for now
+			// TODO: a better solution to handle both cases properly
+			/*if (auto const pJumpjetLoco = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor)) {
 				auto const crd = pThis->GetCoords();
-				pJumpjetLoco->HeadToCoord.X = crd.X;
-				pJumpjetLoco->HeadToCoord.Y = crd.Y;
-				pJumpjetLoco->__currentSpeed = 0;
-				pJumpjetLoco->__maxSpeed = 0;
-				pJumpjetLoco->NextState = JumpjetLocomotionClass::State::Hovering;
-				pThis->AbortMotion();
-			} else {
-				pThis->StopMoving();
-				pThis->AbortMotion();
-			}
+				pJumpjetLoco->DestinationCoords.X = crd.X;
+				pJumpjetLoco->DestinationCoords.Y = crd.Y;
+				pJumpjetLoco->CurrentSpeed = 0;
+				pJumpjetLoco->MaxSpeed = 0;
+				pJumpjetLoco->State = JumpjetLocomotionClass::State::Hovering;
+			}*/
+
+			pThis->StopMoving();
+			pThis->AbortMotion();
 		}
 	}
 
@@ -915,10 +917,20 @@ ASMJIT_PATCH(0x6B72FE, SpawnerManagerClass_AI_MissileCheck, 0x9)
 
 	GET(SpawnManagerClass*, pThis, ESI);
 
-	auto& pLoco = ((FootClass*)pThis->Owner)->Locomotor; // Ares has already handled the building case.
+	
+	const auto pFoot = flag_cast_to<FootClass*, true>(pThis->Owner);
+
+	if (!pFoot)
+		return SpawnMissile;
+
+	auto& pLoco = pFoot->Locomotor; // Ares has already handled the building case.
 	auto pLocoInterface = pLoco.GetInterfacePtr();
 
-	return (pLocoInterface->Is_Moving_Now()
-		|| (!locomotion_cast<JumpjetLocomotionClass*>(pLoco) && pLocoInterface->Is_Moving())) // Jumpjet should only check Is_Moving_Now.
-		? NoSpawn : SpawnMissile;
+	if (pLocoInterface->Is_Moving_Now())
+		return NoSpawn;
+
+	if (locomotion_cast<JumpjetLocomotionClass*>(pLoco) && pLocoInterface->Is_Moving())
+		return NoSpawn;
+
+	return SpawnMissile;
 }

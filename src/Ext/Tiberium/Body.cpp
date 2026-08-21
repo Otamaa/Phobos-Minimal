@@ -265,7 +265,7 @@ void TiberiumExtData::Clear_Tiberium_Spread_State(CellStruct const& cell)
 
 bool TiberiumExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	if (parseFailAddr)
+	if (!this->AbstractTypeExtData::LoadFromINI(pINI, parseFailAddr))
 		return false;
 
 	auto pThis = this->This();

@@ -18,8 +18,64 @@
 
 #include <Ext/Tactical/Body.h>
 #include <Ext/TeamType/Body.h>
+#include <Ext/BuildingType/Body.h>
+#include <Ext/TerrainType/Body.h>
+
+#include <Utilities/Helpers.h>
 
 #include <TeamTypeClass.h>
+
+bool TeamExtData::IsCloseToCenter(FootClass* pMember, AbstractClass* pCenterCell, int stray)
+{
+	// Vanilla check
+	if (pMember->DistanceFromSquared(pCenterCell) <= stray)
+		return true;
+
+	auto GetOccupiedCount = [pMember](TechnoClass* pTechno) -> int
+		{
+			switch (pTechno->WhatAmI())
+			{
+			case AbstractType::Building:
+			{
+				auto pBuildingType = ((BuildingClass*)pTechno)->Type;
+				if (BuildingTypeExtData::IsThisBuildingPassable(((BuildingClass*)pTechno), pMember))
+					return 0;
+
+				int cellCount = 0;
+				for (auto pFoundation = pBuildingType->GetFoundationData(false); *pFoundation != CellStruct { 0x7FFF, 0x7FFF }; ++pFoundation)
+					cellCount += 3;
+				return cellCount;
+			}
+			case AbstractType::Unit:
+			case AbstractType::Aircraft:
+				return 3;
+			case AbstractType::Infantry:
+				return 1;
+			default:
+				return 3;
+			}
+		};
+
+	auto isAreaFull = [&](int stray) -> bool
+		{
+			double distInCell = (double)stray / 256;
+
+			int inRangeCellCount = (int)(distInCell * distInCell * 2);
+
+			int inRangeTechnoCount = 0;
+			auto crd = pCenterCell->GetCoords();
+			for (auto const pTarget : Helpers::Alex::getCellSpreadItems(crd, distInCell,false,false ,false ,true ,false))
+				inRangeTechnoCount += GetOccupiedCount(pTarget);
+
+			return inRangeTechnoCount >= inRangeCellCount * 3;
+		};
+
+	if (!isAreaFull(stray))
+		return false;
+
+	return isAreaFull(pMember->DistanceFrom(pCenterCell));
+}
+
 
 template<typename Func, typename... Args>
 concept ReturnsBool = std::same_as<std::invoke_result_t<Func, Args...>, bool>;
@@ -1208,7 +1264,7 @@ void FakeTeamClass::_Coordinate_Attack() {
 			int allowedStrayDistance = this->_Get_Stray();
 
 			// Check if unit is within allowed distance of formation zone
-			if (unitToProcess->DistanceFrom(this->Zone) <= allowedStrayDistance)
+			if (TeamExtData::IsCloseToCenter(unitToProcess,this->Zone,allowedStrayDistance))
 			{
 				unitToProcess->IsTeamLeader = 1;
 			}
@@ -1319,7 +1375,7 @@ void FakeTeamClass::_CoordinateMove() {
 		{
 			const int strayDistance = this->_Get_Stray();
 
-			if (pUnit->DistanceFrom(this->Zone) <= strayDistance)
+			if (TeamExtData::IsCloseToCenter(pUnit, this->Zone, strayDistance))
 			{
 				pUnit->IsTeamLeader = true;
 			}
@@ -1573,7 +1629,7 @@ bool FakeTeamClass::_Coordinate_Conscript(FootClass* a2) {
 	}
 
 	int strayDistance = this->_Get_Stray();
-	if (a2->DistanceFrom(this->Zone) <= strayDistance)
+	if (TeamExtData::IsCloseToCenter(a2 , this->Zone, strayDistance))
 	{
 		// /*
 		// **   This unit has gotten close enough to the team center so that it is
@@ -1602,7 +1658,7 @@ void FakeTeamClass::_Coordinate_Do(ScriptActionNode* pNode, CellStruct unused) {
 
 			if (i->Health && (Unsorted::ScenarioInit() || !i->InLimbo) && !i->IsTeamLeader)
 			{
-				if (i->DistanceFrom(this->Zone) <= stray)
+				if (TeamExtData::IsCloseToCenter(i, this->Zone ,stray))
 				{
 					i->IsTeamLeader = 1;
 				}
@@ -2849,7 +2905,7 @@ bool ProcessMemberInitiation(FakeTeamClass* team, FootClass* member)
 	int strayDistance = team->_Get_Stray();
 
 	// Check if close enough to zone to be initiated
-	if (member->DistanceFrom(team->Zone) <= strayDistance)
+	if (TeamExtData::IsCloseToCenter(member,team->Zone, strayDistance))
 	{
 		member->IsTeamLeader = true;
 	}
@@ -4187,7 +4243,7 @@ bool FakeTeamClass::_CoordinateRegroup()
 			// Check if member is valid and ready for regrouping
 			if (Member->Health && (Unsorted::ScenarioInit() || !Member->InLimbo) && !Member->IsTeamLeader) {
 				// Check if member is close enough to initiate
-				if (FakeObjectClass::_GetDistanceOfObj(Member , discard_t() , this->Zone) <= stray) {
+				if (TeamExtData::IsCloseToCenter(Member , this->Zone,stray)) {
 					Member->IsTeamLeader = true;
 				}
 				else if (!Member->Destination)
@@ -4206,7 +4262,7 @@ bool FakeTeamClass::_CoordinateRegroup()
 				&& (Member->IsTeamLeader || Member->WhatAmI() == AbstractType::Aircraft))
 			{
 				// Check if member is in position or guarding with target
-				if (FakeObjectClass::_GetDistanceOfObj(Member, discard_t(), this->Zone) <= stray
+				if (TeamExtData::IsCloseToCenter(Member, this->Zone, stray)
 					|| (Member->GetCurrentMission()  == Mission::Area_Guard && Member->Target))
 				{
 					// Set to guard mission if not already guarding

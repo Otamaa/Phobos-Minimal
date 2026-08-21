@@ -24,10 +24,10 @@ ASMJIT_PATCH(0x465201, BuildingTypeClass_LoadFromStream_Foundation, 0x6)
 	}
 	else
 	{
-		//pThis->FoundationData = FoundationDataStruct::Cells[(int)pThis->Foundation].Datas;
-		//pThis->FoundationOutside = FoundationDataStruct::Outlines[(int)pThis->Foundation].Datas;
-		pThis->FoundationData = BuildingTypeClass::FoundationlinesData[(int)pThis->Foundation].Datas;
-		pThis->FoundationOutside = BuildingTypeClass::FoundationOutlinesData[(int)pThis->Foundation].Datas;
+		pThis->FoundationData = FoundationDataStruct::Cells[(int)pThis->Foundation].Datas;
+		pThis->FoundationOutside = FoundationDataStruct::Outlines[(int)pThis->Foundation].Datas;
+		//pThis->FoundationData = BuildingTypeClass::FoundationlinesData[(int)pThis->Foundation].Datas;
+		// pThis->FoundationOutside = BuildingTypeClass::FoundationOutlinesData[(int)pThis->Foundation].Datas;
 
 	}
 
@@ -223,8 +223,8 @@ ASMJIT_PATCH(0x465550, BuildingTypeClass_GetFoundationOutline, 6)
         sz = 6;
     }
 
-	R->EAX(BuildingTypeClass::FoundationOutlinesData[sz].Datas);
-	//R->EAX(FoundationDataStruct::Outlines[sz].Datas);
+	//R->EAX(BuildingTypeClass::FoundationOutlinesData[sz].Datas);
+	R->EAX(FoundationDataStruct::Outlines[sz].Datas);
 	return 0x46556D;
 }
 
@@ -238,7 +238,7 @@ ASMJIT_PATCH(0x464AF0, BuildingTypeClass_GetSizeInLeptons, 6)
 
 		Coords->X = pData->CustomWidth * 256;
 		Coords->Y = pData->CustomHeight * 256;
-		Coords->Z = BuildingTypeClass::HeightInLeptons * pThis->Height;
+		Coords->Z = BuildingTypeClass::HeightInLeptons() * pThis->Height;
 		R->EAX(Coords);
 		return 0x464B2C;
 	}

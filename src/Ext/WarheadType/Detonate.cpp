@@ -762,6 +762,8 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 			}
 		}
 	}
+
+	this->ApplyChangeLightning();
 }
 
 void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, const CoordStruct& coords, int damage, TechnoClass* pOwner, BulletClass* pBullet, bool bulletWasIntercepted)
@@ -790,6 +792,17 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 		if (!pTarget->IsAlive)
 			return;
 	}
+
+	if (this->ForceTrack)
+	{
+		this->ApplyForceTrack(pTarget);
+		if (!pTarget->IsAlive)
+			return;
+
+	}
+
+	if (this->Ammo != 0)
+		this->ApplyAmmoModifier(pTarget);
 
 	if (this->RemoveDisguise)
 		this->ApplyRemoveDisguise(pHouse, pTarget);
@@ -1096,13 +1109,20 @@ void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 
 HouseClass*  WarheadTypeExtData::ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass* pTarget) const
 {
-	if (const auto pController = pTarget->MindControlledBy) {
-		const bool silent = this->RemoveMindControl_Silent.Get(FakeRulesClass::Instance()->RemoveMindControl_Silent);
-		((FakeCaptureManagerClass*)pController->CaptureManager)->__FreeUnit(pTarget , silent);
-		return pTarget->Owner;
+	if (this->RemoveMindControl_OnVictim) {
+		if (const auto pController = pTarget->MindControlledBy) {
+			const bool silent = this->RemoveMindControl_Silent.Get(FakeRulesClass::Instance()->RemoveMindControl_Silent);
+			((FakeCaptureManagerClass*)pController->CaptureManager)->__FreeUnit(pTarget , silent);
+			pHouse =  pTarget->Owner;
+		}
 	}
 
-	return nullptr;
+	if (this->RemoveMindControl_OnController) {
+		if (const auto pManager = pTarget->CaptureManager)
+			pManager->FreeAll();
+	}
+
+	return pHouse;
 }
 
 void WarheadTypeExtData::ApplyRemoveDisguise(HouseClass* pHouse, TechnoClass* pTarget) const
@@ -1348,4 +1368,55 @@ void WarheadTypeExtData::ApplyOwnerChange(HouseClass* pHouse, TechnoClass* pTarg
 			}
 		}
 	}
+}
+
+void WarheadTypeExtData::ApplyChangeLightning()
+{
+	if (this->LightChanging) {
+
+		if (this->SetAmbientLight >= 0) {
+			ScenarioClass::Instance->AmbientOriginal = this->SetAmbientLight;
+
+			if (!LightningStorm::IsActive()) {
+				ScenarioClass::Instance->AmbientCurrent = this->SetAmbientLight;
+				ScenarioClass::Instance->AmbientTarget = ScenarioClass::Instance->AmbientOriginal;
+			}
+		}
+
+		if (this->SetAmbientRed >= 0) {
+			ScenarioClass::RecalcLighting(10 * this->SetAmbientRed, 10 * ScenarioClass::Instance->NormalLighting.Tint.Green, 10 * ScenarioClass::Instance->NormalLighting.Tint.Blue, 0);
+			ScenarioClass::Instance->NormalLighting.Tint.Red = this->SetAmbientRed;
+		}
+
+		if (this->SetAmbientGreen >= 0) {
+			ScenarioClass::RecalcLighting(10 * ScenarioClass::Instance->NormalLighting.Tint.Red, 10 * this->SetAmbientGreen, 10 * ScenarioClass::Instance->NormalLighting.Tint.Blue, 0);
+			ScenarioClass::Instance->NormalLighting.Tint.Green = this->SetAmbientGreen;
+		}
+
+		if (this->SetAmbientBlue >= 0) {
+			ScenarioClass::RecalcLighting(10 * ScenarioClass::Instance->NormalLighting.Tint.Red, 10 * ScenarioClass::Instance->NormalLighting.Tint.Green, 10 * this->SetAmbientBlue, 0);
+			ScenarioClass::Instance->NormalLighting.Tint.Blue = this->SetAmbientBlue;
+		}
+
+		ScenarioClass::Instance->UpdateLighting();
+	}
+}
+
+void WarheadTypeExtData::ApplyForceTrack(TechnoClass* pTarget)
+{
+	if (const auto pFoot = flag_cast_to<FootClass*, true>(pTarget)) {
+		const auto pLoco = pFoot->Locomotor;
+
+		if (!pLoco->Is_Moving())
+			pLoco->Force_Track(this->ForceTrack_Index, pFoot->Location + this->ForceTrack_Coord);
+	}
+}
+
+void WarheadTypeExtData::ApplyAmmoModifier(TechnoClass* pTarget)
+{
+	const int maxAmmo = pTarget->GetTechnoType()->Ammo;
+	int newCurrentAmmo = this->Ammo + pTarget->Ammo;
+
+	newCurrentAmmo = newCurrentAmmo < 0 ? 0 : newCurrentAmmo;
+	pTarget->Ammo = newCurrentAmmo > maxAmmo ? maxAmmo : newCurrentAmmo;
 }
