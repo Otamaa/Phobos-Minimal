@@ -338,7 +338,7 @@ void PhobosAEFunctions::ApplyReflectDamage(TechnoClass* pThis , int* pDamage , T
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
-	if (pExt->AE.flags.ReflectDamage && *pDamage > 0 && pAttacker && pAttacker->IsAlive) {
+	if ((pExt->AE.flags.ReflectDamage && *pDamage > 0 && pAttacker && pAttacker->IsAlive) || pExt->AE.flags.HasOnDamageDiscardables) {
 		for (auto& attachEffect : pExt->PhobosAE) {
 
 			if (!attachEffect || !attachEffect->IsActive())
@@ -346,51 +346,58 @@ void PhobosAEFunctions::ApplyReflectDamage(TechnoClass* pThis , int* pDamage , T
 
 			auto const pType = attachEffect->GetType();
 
-			if (!pType->ReflectDamage)
-				continue;
+			if((pExt->AE.flags.ReflectDamage && *pDamage > 0 && pAttacker && pAttacker->IsAlive)){
+				if (pType->ReflectDamage &&
+					!(pType->ReflectDamage_Chance.isset() && 
+						Math::abs(pType->ReflectDamage_Chance.Fetch()) < ScenarioClass::Instance->Random.RandomDouble())
+					&& !(pWHExt->SuppressReflectDamage && (pWHExt->SuppressReflectDamage_Types.Contains(pType) || pType->HasGroups(pWHExt->SuppressReflectDamage_Groups, false)))
+					) {
 
-			if (pType->ReflectDamage_Chance.isset() && Math::abs(pType->ReflectDamage_Chance.Fetch()) < ScenarioClass::Instance->Random.RandomDouble())
-				continue;
+						int damage = pType->ReflectDamage_Override.Get(static_cast<int>(*pDamage * pType->ReflectDamage_Multiplier));
+							auto const pReflectWH = pType->ReflectDamage_Warhead.Get(RulesClass::Instance->C4Warhead);
+						auto const pWHExtRef = WarheadTypeExtContainer::Instance.Find(pReflectWH);
 
-			if (pWHExt->SuppressReflectDamage && (pWHExt->SuppressReflectDamage_Types.Contains(pType) || pType->HasGroups(pWHExt->SuppressReflectDamage_Groups, false)))
-				continue;
+							if (pType->ReflectDamage_UseInvokerAsOwner) {
 
-			int damage = pType->ReflectDamage_Override.Get(static_cast<int>(*pDamage * pType->ReflectDamage_Multiplier));
-				auto const pReflectWH = pType->ReflectDamage_Warhead.Get(RulesClass::Instance->C4Warhead);
-			auto const pWHExtRef = WarheadTypeExtContainer::Instance.Find(pReflectWH);
+								auto const pInvoker = attachEffect->GetInvoker();
 
-			if (pType->ReflectDamage_UseInvokerAsOwner) {
+								if (pInvoker && EnumFunctions::CanTargetHouse(pType->ReflectDamage_AffectsHouses, pInvoker->Owner, pAttacker_House))
 
-				auto const pInvoker = attachEffect->GetInvoker();
+								{
+									pWHExtRef->Reflected = true;
 
-				if (pInvoker && EnumFunctions::CanTargetHouse(pType->ReflectDamage_AffectsHouses, pInvoker->Owner, pAttacker_House))
+									if (pType->ReflectDamage_Warhead_Detonate)
+										WarheadTypeExtData::DetonateAt(pReflectWH, pAttacker, pInvoker, damage, pInvoker->Owner);
+									else
+										pAttacker->ReceiveDamage(&damage, 0, pWH, pInvoker, false, false, pInvoker->Owner);
 
-				{
-					pWHExtRef->Reflected = true;
+									pWHExtRef->Reflected = false;
+								}
+							}
+							else  if (EnumFunctions::CanTargetHouse(pType->ReflectDamage_AffectsHouses, pThis->Owner, pAttacker_House))
+							{
 
-					if (pType->ReflectDamage_Warhead_Detonate)
-						WarheadTypeExtData::DetonateAt(pReflectWH, pAttacker, pInvoker, damage, pInvoker->Owner);
-					else
-						pAttacker->ReceiveDamage(&damage, 0, pWH, pInvoker, false, false, pInvoker->Owner);
+								pWHExtRef->Reflected = true;
 
-					pWHExtRef->Reflected = false;
+								if (pType->ReflectDamage_Warhead_Detonate)
+									WarheadTypeExtData::DetonateAt(pReflectWH, pAttacker, pThis, damage, pThis->Owner);
+								else if (pAttacker && pAttacker->IsAlive)
+									pAttacker->ReceiveDamage(&damage, 0, pReflectWH, pThis, false, false, pThis->Owner);
+
+								pWHExtRef->Reflected = false;
+							}
 				}
 			}
-			else  if (EnumFunctions::CanTargetHouse(pType->ReflectDamage_AffectsHouses, pThis->Owner, pAttacker_House))
+	
+			if (pExt->AE.flags.HasOnDamageDiscardables 
+				&& (pType->DiscardOn & DiscardCondition::ReceivedDamage) != DiscardCondition::None
+				&& EnumFunctions::CanTargetHouse(pType->DiscardOn_ReceivedDamage_AffectsHouse, pThis->Owner, pAttacker_House))
 			{
+				attachEffect->ReceivedDamageCount++;
 
-				pWHExtRef->Reflected = true;
-
-				if (pType->ReflectDamage_Warhead_Detonate)
-					WarheadTypeExtData::DetonateAt(pReflectWH, pAttacker, pThis, damage, pThis->Owner);
-				else if (pAttacker && pAttacker->IsAlive)
-					pAttacker->ReceiveDamage(&damage, 0, pReflectWH, pThis, false, false, pThis->Owner);
-
-				pWHExtRef->Reflected = false;
+				if (attachEffect->ReceivedDamageCount >= pType->DiscardOn_ReceivedDamage_Count)
+					attachEffect->ShouldBeDiscarded = true;
 			}
-
-			if (!pAttacker->IsAlive)
-				break;
 		}
 	}
 }

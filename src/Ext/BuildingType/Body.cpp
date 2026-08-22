@@ -1935,7 +1935,9 @@ bool BuildingTypeExtData::IsPoweredAnimBlocked(BuildingClass* pBuilding, bool po
 
 	return pBuilding->CurrentMission != Mission::Construction
 		&& pBuilding->CurrentMission != Mission::Selling
-		&& !pBuilding->IsPowerOnline();
+		&& !pBuilding->IsPowerOnline()
+		&& !BuildingExtContainer::Instance.Find(pBuilding)->HasPowerFromMapFile
+		;
 }
 
 // Check the cameo change

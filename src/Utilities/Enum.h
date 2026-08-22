@@ -343,7 +343,7 @@ enum class DiscardCondition : int
 	LandType        = 1 << 14,
 	Mission			= 1 << 15,
 	Sequence		= 1 << 16,
-
+	ReceivedDamage  = 1 << 17,
 	count
 };
 MAKE_ENUM_FLAGS(DiscardCondition);

@@ -388,9 +388,13 @@ ASMJIT_PATCH(0x440EBB, BuildingClass_Unlimbo_NaturalParticleSystem_CampaignSkip,
 // Ares didn't have something like 0x7397E4 in its UnitDelivery code
 ASMJIT_PATCH(0x44FBBF, CreateBuildingFromINIFile_AfterCTOR_BeforeUnlimbo, 0x8)
 {
-	GET(BuildingClass* const, pBld, ESI);
+	GET(FakeBuildingClass* const, pBld, ESI);
+	GET_STACK(bool, hasPower, STACK_OFFSET(0xEC, -0xDC));
 
-	BuildingExtContainer::Instance.Find(pBld)->IsCreatedFromMapFile = true;
+	pBld->_GetExtData()->IsCreatedFromMapFile = true;
+
+	if (hasPower)
+		pBld->_GetExtData()->HasPowerFromMapFile = true;
 
 	return 0;
 }

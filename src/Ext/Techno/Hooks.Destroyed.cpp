@@ -9,7 +9,7 @@
 
 #include <Misc/DamageArea.h>
 
-void FakeTechnoClass::__Destroy(TechnoClass* pThis)
+void __fastcall FakeTechnoClass::__Destroy(TechnoClass* pThis)
 {
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 	const bool isCalledFromRcvDamage = pExt->ReceiveDamage;

@@ -19,6 +19,7 @@ struct AEFlags
 			unsigned HasRangeModifier : 1;
 			unsigned HasTint : 1;
 			unsigned HasOnFireDiscardables : 1;
+			unsigned HasOnDamageDiscardables : 1;
 			unsigned HasExtraWarheads : 1;
 			unsigned HasFeedbackWeapon : 1;
 

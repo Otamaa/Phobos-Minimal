@@ -1016,7 +1016,7 @@ ASMJIT_PATCH(0x6F6D9E, TechnoClass_Unlimbo_BuildingStartFacing, 0x7)
 		return 0x6F6DAF;
 	}
 
-	if (BuildingExtContainer::Instance.Find(pBuilding)->IsCreatedFromMapFile)
+	if (pBuilding->Type->LaserFence || BuildingExtContainer::Instance.Find(pBuilding)->IsCreatedFromMapFile)
 		return 0;
 
 	R->AH(static_cast<BYTE>(GetBuildingStartFacing(pBuilding)));
@@ -1149,4 +1149,13 @@ ASMJIT_PATCH(0x4501A9, AI_ConYard_CompleteProduction_ProductionAnim, 0x6)
 	pBuilding->SendCommand(RadioCommand::RequestEndProduction, pBuilding);
 
 	return 0;
+}
+
+ASMJIT_PATCH(0x44FDC5, CreateBuildingFromINIFile_AfterCTOR_AfterUnlimbo, 0xA)
+{
+	GET(FakeBuildingClass* const, pBld, ESI);
+
+	pBld->_GetExtData()->HasPowerFromMapFile = false;
+
+	return 0x44FDD3;
 }

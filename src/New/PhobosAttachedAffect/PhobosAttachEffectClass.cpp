@@ -470,10 +470,17 @@ void PhobosAttachEffectClass::AnimCheck()
 
 void PhobosAttachEffectClass::DiscardOnFire()
 { 
+	auto pType = this->GetType();
+
 	if (GeneralUtils::Contains<DiscardCondition>(
-		this->GetType()->DiscardOn,
+		pType->DiscardOn,
 		DiscardCondition::Firing))
-		this->ShouldBeDiscarded = true;
+	{
+		this->FiringCount++;
+
+		if (this->FiringCount >= pType->DiscardOn_Firing_Count)
+			this->ShouldBeDiscarded = true;
+	}
 }
 
 void PhobosAttachEffectClass::UpdateCumulativeAnim(int count)

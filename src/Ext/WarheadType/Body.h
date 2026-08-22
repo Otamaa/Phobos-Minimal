@@ -204,6 +204,7 @@ public:
 
 	bool WasDetonatedOnAllMapObjects { false };
 	bool Splashed { false };
+	bool InApplyCrit { false };
 	int RemainingAnimCreationInterval { 0 };
 
 	Nullable<AnimTypeClass*> NotHuman_DeathAnim {};

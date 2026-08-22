@@ -137,6 +137,8 @@ public:
 	bool ShouldBeDiscarded { false };
 	bool HasCumulativeAnim { false };
 	DoType LastSequenceCheck {};
+	int FiringCount;
+	int ReceivedDamageCount;
 };
 
 template <>

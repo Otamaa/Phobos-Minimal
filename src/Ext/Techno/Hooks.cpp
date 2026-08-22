@@ -3203,7 +3203,7 @@ ASMJIT_PATCH(0x6FBC5B, TechnoClass_Cloaking_AI_UncloakWhenLowHealth, 0x6)
 	GET(TechnoClass*, pThis, ESI);
 
 	if (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->UncloakWhenLowHealth
-		.Get(FakeRulesClass::Instance->UncloakWhenLowHealth)) {
+		.Get(FakeRulesClass::Instance->UncloakWhenLowHealth) && ScenarioClass::Instance->Random.RandomFromMax(99) < 10) {
 		//dont play sound
 		pThis->Uncloak(true);
 	}

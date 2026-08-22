@@ -25,7 +25,14 @@ std::array<std::pair<const char* ,DiscardCondition>, (size_t)DiscardCondition::c
 	{ "firing", DiscardCondition::Firing },
 	{ "selling", DiscardCondition::Selling },
 	{ "undeploying", DiscardCondition::Undeploying },
-	{ "harvesting", DiscardCondition::Harvesting }
+	{ "harvesting", DiscardCondition::Harvesting },
+	{ "invokerdie", DiscardCondition::InvokerDie },
+	{ "ammo", DiscardCondition::Ammo },
+	{ "health", DiscardCondition::Health },
+	{ "landtype", DiscardCondition::LandType },
+	{ "mission", DiscardCondition::Mission },
+	{ "sequence", DiscardCondition::Sequence },
+	{ "receiveddamage", DiscardCondition::ReceivedDamage },
  }
 };
 

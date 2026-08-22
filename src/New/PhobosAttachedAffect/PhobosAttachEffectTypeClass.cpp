@@ -63,6 +63,9 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	if (this->DiscardOn_Health_Max.isset() && this->DiscardOn_Health_Min.isset() && this->DiscardOn_Health_Max.Fetch() > this->DiscardOn_Health_Min.Fetch())
 		Debug::Log("[Developer warning][%s] DiscardOn.Health.AbovePercent is greater than DiscardOn.Health.BelowPercent, the health discard condition cannot be established.\n", pSection);
 
+	this->DiscardOn_Firing_Count.Read(exINI, pSection, "DiscardOn.Firing.Count");
+	this->DiscardOn_ReceivedDamage_Count.Read(exINI, pSection, "DiscardOn.ReceivedDamage.Count");
+	this->DiscardOn_ReceivedDamage_AffectsHouse.Read(exINI, pSection, "DiscardOn.ReceivedDamage.AffectsHouse");
 	this->DiscardOn_Missions.Read(exINI, pSection, "DiscardOn.Missions");
 	this->DiscardOn_AIMissions.Read(exINI, pSection, "DiscardOn.AIMissions");
 
@@ -230,6 +233,9 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->DiscardOn_Ammo_Max)
 		.Process(this->DiscardOn_Health_Min)
 		.Process(this->DiscardOn_Health_Max)
+		.Process(this->DiscardOn_Firing_Count)
+		.Process(this->DiscardOn_ReceivedDamage_Count)
+		.Process(this->DiscardOn_ReceivedDamage_AffectsHouse)
 		.Process(this->DiscardOn_Missions)
 		.Process(this->DiscardOn_AIMissions)
 		.Process(this->DiscardOn_LandTypes)

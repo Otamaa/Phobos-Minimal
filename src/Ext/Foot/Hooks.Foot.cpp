@@ -813,6 +813,9 @@ void __fastcall FakeFootClass::_AI(FootClass* pThis)
 				pCell->AttachedTag->SpringEvent(TriggerEvent::EnteredOrOverflownBy,pThis ,pThis->GetMapCoords(), false);
             }
         }
+
+		if (!pThis->IsAlive)
+			return;
     }
  
     // ── 6. Locomotion Process + WalkedFramesSoFar ────────────────────────────

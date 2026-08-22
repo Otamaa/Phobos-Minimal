@@ -92,6 +92,7 @@ public:
 	// ============================================================
 	bool DeployedTechno {};
 	bool IsCreatedFromMapFile {};
+	bool HasPowerFromMapFile {};
 	bool LighningNeedUpdate {};  // typo: should be "LightningNeedUpdate"
 	bool TogglePower_HasPower { true };
 	bool Silent {};

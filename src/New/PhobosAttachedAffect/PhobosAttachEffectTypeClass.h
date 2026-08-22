@@ -62,6 +62,9 @@ public:
 	Valueable<int> DiscardOn_Ammo_Max { -1 };
 	Nullable<double> DiscardOn_Health_Min {};
 	Nullable<double> DiscardOn_Health_Max {};
+	Valueable<int> DiscardOn_Firing_Count { 1 };
+	Valueable<int> DiscardOn_ReceivedDamage_Count { 1 };
+	Valueable<AffectedHouse> DiscardOn_ReceivedDamage_AffectsHouse { AffectedHouse::All };
 	ValueableVector<Mission> DiscardOn_Missions {};
 	NullableVector<Mission> DiscardOn_AIMissions {};
 	ValueableVector<DoType> DiscardOn_Sequences {};

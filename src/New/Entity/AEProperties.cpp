@@ -39,7 +39,7 @@ void AEProperties::RecalculateSingle(TechnoClass* pTechno, PhobosAttachEffectCla
 	bool hasTint = false;
 	bool reflectsDamage = _AEProp->flags.ReflectDamage;
 	bool hasOnFireDiscardables = _AEProp->flags.HasOnFireDiscardables;
-
+	bool hasOnDamageDiscardables = _AEProp->flags.HasOnDamageDiscardables;
 	auto extraRangeData = &_AEProp->ExtraRange;
 	auto extraCritData = &_AEProp->ExtraCrit;
 	auto armormultData = &_AEProp->ArmorMultData;
@@ -57,6 +57,7 @@ void AEProperties::RecalculateSingle(TechnoClass* pTechno, PhobosAttachEffectCla
 	hasTint |= type->HasTint();
 	reflectsDamage |= type->ReflectDamage;
 	hasOnFireDiscardables |= (type->DiscardOn & DiscardCondition::Firing) != DiscardCondition::None;
+	hasOnDamageDiscardables |= (type->DiscardOn & DiscardCondition::ReceivedDamage) != DiscardCondition::None;
 
 	std::optional<double> cur_timerAE {};
 
@@ -125,6 +126,7 @@ void AEProperties::RecalculateSingle(TechnoClass* pTechno, PhobosAttachEffectCla
 	_AEProp->flags.HasTint = hasTint;
 	_AEProp->flags.ReflectDamage = reflectsDamage;
 	_AEProp->flags.HasOnFireDiscardables = hasOnFireDiscardables;
+	_AEProp->flags.HasOnDamageDiscardables = hasOnDamageDiscardables;
 	_AEProp->flags.Unkillable = unkillable;
 	_AEProp->flags.HasExtraWarheads = hasExtraWH;
 	_AEProp->flags.HasFeedbackWeapon = hasFeedbackWeapon;
@@ -189,7 +191,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno)
 	bool hasTint = false;
 	bool reflectsDamage = false;
 	bool hasOnFireDiscardables = false;
-
+	bool hasOnDamageDiscardables = false;
 	// #endregion
 
 	// #region Transient data — clear and rebuild
@@ -276,7 +278,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno)
 		hasTint |= type->HasTint();
 		reflectsDamage |= type->ReflectDamage;
 		hasOnFireDiscardables |= (type->DiscardOn & DiscardCondition::Firing) != DiscardCondition::None;
-
+		hasOnDamageDiscardables |= (type->DiscardOn & DiscardCondition::ReceivedDamage) != DiscardCondition::None;
 		if (type->ROFMultiplier_ApplyOnCurrentTimer)
 		{
 			if (!cur_timerAE.has_value())
@@ -347,6 +349,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno)
 	_AEProp->flags.HasTint = hasTint;
 	_AEProp->flags.ReflectDamage = reflectsDamage;
 	_AEProp->flags.HasOnFireDiscardables = hasOnFireDiscardables;
+	_AEProp->flags.HasOnDamageDiscardables = hasOnDamageDiscardables;
 	_AEProp->flags.Unkillable = unkillable;
 	_AEProp->flags.HasExtraWarheads = hasExtraWH;
 	_AEProp->flags.HasFeedbackWeapon = hasFeedbackWeapon;

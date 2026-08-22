@@ -995,7 +995,7 @@ public:
 	static RadBeam* __FireBeam(TechnoClass* pThis, WeaponTypeClass* pWeapon, CoordStruct flh , CoordStruct target, RadBeamType type);
 	static void __FireRadEruption(TechnoClass* pThis, WeaponTypeClass* pWeapon, float spread);
 
-	static void __Destroy(TechnoClass* pThis);
+	static void __fastcall __Destroy(TechnoClass* pThis);
 
 };
 

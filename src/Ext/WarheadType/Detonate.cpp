@@ -1147,6 +1147,16 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 	if (TechnoExtData::IsCritImmune(pTarget))
 		return;
 
+	if (this->InApplyCrit)
+		return;
+
+	struct InApplyCritGuard
+	{
+		WarheadTypeExtData* P;
+		InApplyCritGuard(WarheadTypeExtData* p) : P(p) { P->InApplyCrit = true; }
+		~InApplyCritGuard() { P->InApplyCrit = false; }
+	} guard(this);
+
 	double dice;
 
 	if (this->Crit_ApplyChancePerTarget.Get(FakeRulesClass::Instance->Crit_ApplyChancePerTarget)|| !this->ApplyPerTargetEffectsOnDetonate.Get(FakeRulesClass::Instance()->ApplyPerTargetEffectsOnDetonate))

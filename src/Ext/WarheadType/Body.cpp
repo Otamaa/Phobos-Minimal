@@ -1966,6 +1966,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 
 		.Process(this->WasDetonatedOnAllMapObjects)
 		.Process(this->Splashed)
+		.Process(this->InApplyCrit)
 		.Process(this->RemainingAnimCreationInterval)
 
 		.Process(this->NotHuman_DeathAnim)
