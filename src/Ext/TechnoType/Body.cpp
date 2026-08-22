@@ -2112,7 +2112,8 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		if (this->AbsType != AbstractType::BuildingType)
 		{
 			this->Untrackable.Read(exINI, pSection, "Untrackable");
-			this->Untrackable.Read(exINI, pSection, "PsychicDetectable");
+			//this shit confusing , yes
+			this->Untrackable = !Valueable<bool>(!this->Untrackable)(exINI, pSection, "PsychicDetectable", false).Get();
 
 			this->LargeVisceroid.Read(exINI, pSection, "Visceroid.Large");
 			this->HarvesterDumpAmount.Read(exINI, pSection, "HarvesterDumpAmount");
