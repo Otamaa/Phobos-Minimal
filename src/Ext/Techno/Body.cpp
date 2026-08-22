@@ -4726,7 +4726,7 @@ void UpdateTypeData_Foot(FootClass* pThis, TechnoTypeClass* pOldType, TechnoType
 {
 	auto const abs = pThis->WhatAmI();
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-	//auto const pOldTypeExt = TechnoTypeExt::ExtMap.Find(pOldType);
+	auto const pOldTypeExt = TechnoTypeExtContainer::Instance.Find(pOldType);
 
 	// Update movement sound if still moving while type changed.
 	if (pThis->IsMoveSoundPlaying && pThis->Locomotor->Is_Moving_Now())
@@ -4921,6 +4921,7 @@ bool NOINLINE TechnoExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* 
 		return false;
 
 	const auto pOldType = prevType;
+	const auto pOldTypeExt = TechnoTypeExtContainer::Instance.Find(pOldType);
 	//Debug::LogInfo("Attempt to convert TechnoType[{}] to [{}]", pOldType->ID, pToType->ID);
 
 	if (pToType->WhatAmI() != rtti || pOldType->Spawned != pToType->Spawned || pOldType->MissileSpawn != pToType->MissileSpawn)
@@ -4993,10 +4994,11 @@ bool NOINLINE TechnoExtData::ConvertToType(TechnoClass* pThis, TechnoTypeClass* 
 	TechnoExtData::UpdateLaserTrails(pThis);
 
 	// Reset AutoDeath Timer
-	if (pExt->Death_Countdown.HasStarted() && pToTypeExt->Death_Countdown <= 0)
-	{
-		pExt->Death_Countdown.Stop();
+	if (pExt->Death_Countdown.HasStarted() && pToTypeExt->Death_Countdown <= 0) {
+		pExt->Death_Countdown.Stop();		
+	}
 
+	if (pOldTypeExt->Death_Method != pToTypeExt->Death_Method) {
 		HouseExtContainer::Instance.AutoDeathObjects.erase(pThis);
 	}
 
@@ -11983,8 +11985,9 @@ void TechnoExtData::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool 
 		if(auto& pTeam = pThis->OldTeam){
 			pTeam->RemoveMember((FootClass*)pThis);
 			pTeam->Reacalculate();
-			pTeam = nullptr;
 		}
+
+		pThis->OldTeam = nullptr;
 	}
 
 	//if (!Delete && !SkipTrackingRemove)

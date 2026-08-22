@@ -99,118 +99,134 @@ void SelectedColumnClass::DrawInfo() const
 		wcsncpy_s(text, name, length);
 		text[length] = L'\0';
 
+		// two ways of handling names too long for the available gap.
+		// Flip this and rebuild to compare; delete the losing branch once decided.
+		enum class LongNameMode { Truncate, Scroll };
+		constexpr LongNameMode ActiveLongNameMode = LongNameMode::Truncate;
+
 		// VERIFY: gap between cameo right edge (~66) and info-icon column (~179),
 		// centered on the existing anchor at Rect.X + 126. Tune if it still clips
 		// against the cameo/icons in-game.
 		constexpr int maxWidth = 104;
-		constexpr int tickDivisor = 3; // advance 1 character every N *logic* ticks
-		constexpr int pauseTicks = 20; // hold at each end (logic ticks, not render frames)
+		constexpr int msPerChar = 140; // wall-clock ms per character step (Scroll mode)
+		constexpr int pauseMs = 900;   // hold at each end, in real ms (Scroll mode)
 
 		const auto textBox = Drawing::GetTextBox(text, position, { 3, 2 });
 
 		if (textBox.Width <= maxWidth)
 		{
-			// Fits fine - draw centered as before, clear any stale marquee state.
+			// Fits fine - draw centered as before, drop any stale cache.
 			this->NameScroll_Cache.clear();
-			this->NameScroll_VisibleText.clear();
-			this->NameScroll_CharOffset = 0;
+			this->NameScroll_CumulativeWidths.clear();
 			this->NameScroll_MaxOffset = 0;
-			this->NameScroll_PauseFrames = 0;
-			this->NameScroll_LastGameFrame = -1;
-			this->NameScroll_Reverse = false;
 
 			DSurface::Composite->DSurfaceDrawText(text, &surfaceRect, &position, color, 0, printType);
 		}
 		else
 		{
-			if (this->NameScroll_Cache != text)
+			const bool textChanged = this->NameScroll_Cache != text;
+
+			if (textChanged)
 			{
-				// Selection/name changed - restart the marquee and figure out how
-				// far it can scroll (the offset where the tail end still fits).
+				// Selection/name changed - rebuild the per-character width cache
+				// once, so per-frame work below never touches GetTextBox.
 				this->NameScroll_Cache = text;
-				this->NameScroll_CharOffset = 0;
-				this->NameScroll_PauseFrames = pauseTicks;
-				this->NameScroll_LastGameFrame = -1;
-				this->NameScroll_Reverse = false;
+				this->NameScroll_CumulativeWidths.assign(length + 1, 0);
+
+				for (size_t i = 1; i <= length; ++i)
+				{
+					wchar_t prefix[0x20] = { 0 };
+					wcsncpy_s(prefix, text, i);
+					prefix[i] = L'\0';
+					this->NameScroll_CumulativeWidths[i] = Drawing::GetTextBox(prefix, position, { 3, 2 }).Width;
+				}
+
 				this->NameScroll_MaxOffset = 0;
 
 				for (int start = static_cast<int>(length) - 1; start >= 0; --start)
 				{
-					const std::wstring suffix(text + start, text + length);
-					const auto suffixBox = Drawing::GetTextBox(suffix.c_str(), position, { 3, 2 });
+					const int suffixWidth = this->NameScroll_CumulativeWidths[length] - this->NameScroll_CumulativeWidths[start];
 
-					if (suffixBox.Width > maxWidth)
+					if (suffixWidth > maxWidth)
 					{
 						this->NameScroll_MaxOffset = start + 1;
 						break;
 					}
 				}
+
+				this->NameScroll_StartTime = SystemTimer::GetTime();
 			}
 
-			// EXTENSION: advance strictly on logic-tick changes, never on render
-			// calls directly - keeps scroll speed independent of render FPS.
-			const int currentGameFrame = Unsorted::CurrentFrame();
-
-			if (currentGameFrame != this->NameScroll_LastGameFrame)
+			if constexpr (ActiveLongNameMode == LongNameMode::Truncate)
 			{
-				this->NameScroll_LastGameFrame = currentGameFrame;
+				// SUSPECT: "..." (ASCII) rather than a Unicode ellipsis glyph -
+				// legacy bitmap fonts in this engine aren't guaranteed to have
+				// U+2026 mapped, ASCII dots are the safe bet.
+				const auto ellipsisWidth = Drawing::GetTextBox(L"...", position, { 3, 2 }).Width;
 
-				if (this->NameScroll_PauseFrames > 0)
+				int keep = 0;
+
+				while (keep < static_cast<int>(length)
+					&& (this->NameScroll_CumulativeWidths[keep + 1] + ellipsisWidth) <= maxWidth)
 				{
-					--this->NameScroll_PauseFrames;
-				}
-				else if (this->NameScroll_MaxOffset > 0 && (currentGameFrame % tickDivisor) == 0)
-				{
-					if (!this->NameScroll_Reverse)
-					{
-						++this->NameScroll_CharOffset;
-
-						if (this->NameScroll_CharOffset >= this->NameScroll_MaxOffset)
-						{
-							this->NameScroll_CharOffset = this->NameScroll_MaxOffset;
-							this->NameScroll_Reverse = true;
-							this->NameScroll_PauseFrames = pauseTicks;
-						}
-					}
-					else
-					{
-						--this->NameScroll_CharOffset;
-
-						if (this->NameScroll_CharOffset <= 0)
-						{
-							this->NameScroll_CharOffset = 0;
-							this->NameScroll_Reverse = false;
-							this->NameScroll_PauseFrames = pauseTicks;
-						}
-					}
+					++keep;
 				}
 
-				// Rebuild the visible slice only when a logic tick actually passed -
-				// this is the only place doing repeated GetTextBox calls, and it
-				// only runs a few times a second, never per render frame.
-				std::wstring visible;
+				const std::wstring truncated = std::wstring(text, text + keep) + L"...";
 
-				for (size_t i = static_cast<size_t>(this->NameScroll_CharOffset); i < length; ++i)
-				{
-					std::wstring candidate = visible + text[i];
-					const auto candidateBox = Drawing::GetTextBox(candidate.c_str(), position, { 3, 2 });
+				auto leftPrintType = printType;
+				leftPrintType &= ~TextPrintType::Center;
 
-					if (candidateBox.Width > maxWidth)
-						break;
-
-					visible = std::move(candidate);
-				}
-
-				this->NameScroll_VisibleText = std::move(visible);
+				Point2D leftPosition { position.X - (maxWidth / 2), position.Y };
+				DSurface::Composite->DSurfaceDrawText(truncated.c_str(), &surfaceRect, &leftPosition, color, 0, leftPrintType);
 			}
+			else
+			{
+				int charOffset = 0;
 
-			// Left-align within the box; the string is already pre-trimmed to fit,
-			// so containment doesn't depend on engine-side clip-rect behavior.
-			auto scrollPrintType = printType;
-			scrollPrintType &= ~TextPrintType::Center;
+				if (this->NameScroll_MaxOffset > 0)
+				{
+					// wall-clock driven, NOT Unsorted::CurrentFrame() -
+					// this engine's logic tick rate isn't independent of render
+					// throughput (uncapped FPS runs the sim faster too, see the
+					// SelectedIngameTimer/FPS block further down this file), so a
+					// frame-count-based animation inherits that coupling. Real
+					// elapsed ms is the only source immune to it.
+					const int travelMs = this->NameScroll_MaxOffset * msPerChar;
+					const int cycleLengthMs = (travelMs + pauseMs) * 2;
+					const int elapsed = SystemTimer::GetTime() - this->NameScroll_StartTime;
+					const int t = ((elapsed % cycleLengthMs) + cycleLengthMs) % cycleLengthMs;
 
-			Point2D scrollPosition { position.X - (maxWidth / 2), position.Y };
-			DSurface::Composite->DSurfaceDrawText(this->NameScroll_VisibleText.c_str(), &surfaceRect, &scrollPosition, color, 0, scrollPrintType);
+					if (t < pauseMs)
+						charOffset = 0;
+					else if (t < pauseMs + travelMs)
+						charOffset = (t - pauseMs) / msPerChar;
+					else if (t < pauseMs + travelMs + pauseMs)
+						charOffset = this->NameScroll_MaxOffset;
+					else
+						charOffset = this->NameScroll_MaxOffset - ((t - pauseMs - travelMs - pauseMs) / msPerChar);
+				}
+
+				// Grow the visible window from charOffset using the cached widths -
+				// pure array lookups, no GetTextBox calls at render time.
+				int endIdx = charOffset;
+
+				while (endIdx < static_cast<int>(length)
+					&& (this->NameScroll_CumulativeWidths[endIdx + 1] - this->NameScroll_CumulativeWidths[charOffset]) <= maxWidth)
+				{
+					++endIdx;
+				}
+
+				const std::wstring visible(text + charOffset, text + endIdx);
+
+				// Left-align within the box; the string is already pre-trimmed to
+				// fit, so containment doesn't depend on engine-side clip-rect behavior.
+				auto scrollPrintType = printType;
+				scrollPrintType &= ~TextPrintType::Center;
+
+				Point2D scrollPosition { position.X - (maxWidth / 2), position.Y };
+				DSurface::Composite->DSurfaceDrawText(visible.c_str(), &surfaceRect, &scrollPosition, color, 0, scrollPrintType);
+			}
 		}
 	}
 

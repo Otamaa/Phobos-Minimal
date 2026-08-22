@@ -1,6 +1,7 @@
 #pragma once
 #include <GadgetClass.h>
 #include <string>
+#include <vector>
 
 class SelectedColumnClass : public GadgetClass
 {
@@ -17,14 +18,10 @@ public:
 	void DrawInfo() const;
 
 private:
-
 	mutable std::wstring NameScroll_Cache {};
-	mutable std::wstring NameScroll_VisibleText {};
-	mutable int NameScroll_CharOffset { 0 };
+	mutable std::vector<int> NameScroll_CumulativeWidths {};
 	mutable int NameScroll_MaxOffset { 0 };
-	mutable int NameScroll_PauseFrames { 0 };
-	mutable int NameScroll_LastGameFrame { -1 };
-	mutable bool NameScroll_Reverse { false };
+	mutable int NameScroll_StartTime { 0 }; // SystemTimer::GetTime() at selection - real wall-clock anchor, not a logic-tick count (CurrentFrame() ticks faster than real-time when uncapped FPS speeds up the sim, see FPS/timer code further down this file)
 };
 
 class SelectedBottomClass : public GadgetClass

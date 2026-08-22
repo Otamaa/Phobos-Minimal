@@ -553,6 +553,8 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 					// W4: Replaces FP*FP*dmg + vet bonus. §VET_BONUS is dead code.
 					return (int)TechnoExtData::ApplyDamageMult(pThis, (double)pWeapon->Damage);
 					// ╚══════════════════════════════════════════════════════════════════╝
+				} else {
+					return pWeapon->Damage;
 				}
 			}
 
