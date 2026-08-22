@@ -67,7 +67,8 @@ CoordStruct* FakeBuildingClass::__Get_FLH(CoordStruct* pBuffer, int weaponIndex,
 	//------------------------------------------------------------------------
 	Point2D const& firePixel = pType->PrimaryFirePixelOffset;
 
-	if (!firePixel.IsValid()) {
+	if (firePixel == Point2D {65535 , 65535})
+	{
 		//--------------------------------------------------------------------
 		// 0x4539A1 : no pixel offset — fall back to voxel barrel/turret geometry.
 		//--------------------------------------------------------------------
