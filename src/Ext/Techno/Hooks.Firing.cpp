@@ -562,6 +562,8 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 		};
 
 		finalDamage = DecideDamage();
+		if(finalDamage != 0) // change from vanilla , if the damage is 0 dont bother to do these
+							// to save up some CPU cycles
 		finalDamage = int(TechnoExtData::ApplyAdditionalDamageMult(pThis, finalDamage));
 
 		if (pExt->PrismRelayBurstChainBuilt && !pExt->PrismRelayCachedProviders.empty())
@@ -586,6 +588,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 
 			RunEndHook(pThis, pWeapon); return nullptr; // 0x6FE4E7
 		}
+
 	}
 
 	// ╚═══════════════════════════════════════════════════════════════════════╝

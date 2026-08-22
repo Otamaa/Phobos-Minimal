@@ -16,6 +16,7 @@
 
 #include <New/Type/GenericPrerequisite.h>
 #include <New/Type/CrateTypeClass.h>
+#include <New/Type/TunnelTypeClass.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/Cast.h>

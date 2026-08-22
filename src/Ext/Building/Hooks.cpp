@@ -1122,7 +1122,11 @@ ASMJIT_PATCH(0x730B09, DeployCommandClass_Execute_BuildingDeploy, 0x5)
 		const auto pHouse = pBuilding->Owner;
 
 		if (!pHouse->ControlledByCurrentPlayer()
-			|| !pType->DeployFire || pType->Factory != AbstractType::None || pType->GapGenerator) {
+			|| (!pType->DeployFire
+				&& pBuilding->Passengers.NumPassengers <= 0
+					&& !BuildingTypeExtContainer::Instance.Find(pType)->TunnelType)
+
+			|| pType->Factory != AbstractType::None || pType->GapGenerator) {
 			continue;
 		}
 

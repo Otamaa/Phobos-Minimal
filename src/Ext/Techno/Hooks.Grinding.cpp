@@ -5,6 +5,7 @@
 #include <Ext/House/Body.h>
 
 #include <New/Entity/FlyingStrings.h>
+#include <New/Type/TunnelTypeClass.h>
 
 #include <InfantryClass.h>
 #include <WWKeyboardClass.h>

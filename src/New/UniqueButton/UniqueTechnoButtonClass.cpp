@@ -32,6 +32,10 @@ bool UniqueTechnoButtonClass::Draw(bool forced)
 
 	const auto pExt = vec[index];
 	const auto pTechno = pExt->This();
+	
+	if (!pTechno->IsAlive)
+		return false;
+
 	const auto pTypeExt = pExt->TypeExtData;
 	const auto pType = pTypeExt->This();
 
@@ -73,14 +77,28 @@ bool UniqueTechnoButtonClass::Draw(bool forced)
 		}
 	}
 
-	TechnoClass* pSelect = nullptr;
+	auto GetSelectedTechno = [pTechno, pExt]() -> TechnoClass*{
+		if (!pTechno)
+			return nullptr;
 
-	if (!pTechno->InLimbo)
-		pSelect = pTechno;
-	else if (auto pTrans = pTechno->Transporter)
-		for (; pTrans; pSelect = pTrans, pTrans = pTrans->Transporter);
-	else if(pExt->AbsType == AbstractType::Infantry)
-		pSelect = ((InfantryExtData*)pExt)->GarrisonedIn;
+		TechnoClass* pSelect = nullptr;
+
+		if (!pTechno->InLimbo)
+			pSelect = pTechno;
+		else if (auto pTrans = pTechno->Transporter){
+			for (; pTrans; pSelect = pTrans, pTrans = pTrans->Transporter);
+
+			pSelect = pSelect;
+		}else if (pExt->AbsType == AbstractType::Infantry && ((InfantryExtData*)pExt)->GarrisonedIn)
+			pSelect = ((InfantryExtData*)pExt)->GarrisonedIn;
+
+		if (pSelect && pSelect->IsAlive)
+			return pSelect;
+
+		return nullptr;
+	};
+
+	TechnoClass* pSelect = GetSelectedTechno();
 
 	if (pSelect)
 	{

@@ -67,7 +67,7 @@ ASMJIT_PATCH(0x51E488, InfantryClass_GetCursorOverObject2, 5)
 {
 	GET(TechnoClass* const, Target, ESI);
 	return !BombExtContainer::Instance.Find(Target->AttachedBomb)
-			->Weapon->Ivan_Detachable
+		->Weapon->Ivan_Detachable
 		? 0x51E49E : 0x0;
 }
 
@@ -88,23 +88,29 @@ ASMJIT_PATCH(0x46934D, IvanBombs_Spread, 6)
 	if (const auto pWeapon = pBullet->WeaponType)
 	{
 		// single target or spread switch
-		if (pBullet->WH->CellSpread < 0.5f) {
-			if(!pBullet->Target || !(pBullet->Target->AbstractFlags & AbstractFlags::Object))
+		if (pBullet->WH->CellSpread < 0.5f)
+		{
+			if (!pBullet->Target || !(pBullet->Target->AbstractFlags & AbstractFlags::Object))
 				return 0x469AA4;
 
 			// single target
 			TechnoExtData::PlantBomb(pBullet->Owner, (ObjectClass*)pBullet->Target, pWeapon);
-		} else {
+		}
+		else
+		{
 			// cell spread
 			CoordStruct tgtCoords = pBullet->GetTargetCoords();
 			auto pWHExt = WarheadTypeExtContainer::Instance.Find(pBullet->WH);
 
 			Helpers::Alex::ApplyFuncToCellSpreadItems(tgtCoords, pBullet->WH->CellSpread,
-				true, pWHExt->CellSpread_Cylinder , false , pWHExt->AffectsInAir, pWHExt->AffectsGround , false, [=](TechnoClass* pTarget) {
-				TechnoExtData::PlantBomb(pBullet->Owner, pTarget, pWeapon);
+				true, pWHExt->CellSpread_Cylinder, false, pWHExt->AffectsInAir, pWHExt->AffectsGround, false, [=](TechnoClass* pTarget)
+ {
+	 TechnoExtData::PlantBomb(pBullet->Owner, pTarget, pWeapon);
 			});
 		}
-	} else {
+	}
+	else
+	{
 		Debug::LogInfo("IvanBomb bullet without attached WeaponType.");
 	}
 
@@ -130,7 +136,8 @@ ASMJIT_PATCH(0x447218, BuildingClass_GetActionOnObject_Deactivated, 6)
 	GET(BuildingClass* const, pThis, ESI);
 	GET_STACK(ObjectClass*, pThat, 0x1C);
 
-	if (pThis->Deactivated) {
+	if (pThis->Deactivated)
+	{
 		R->EAX(TechnoExtData::GetAction(pThis, pThat));
 		return 0x447273;
 	}
@@ -143,7 +150,8 @@ ASMJIT_PATCH(0x73FD5A, UnitClass_GetActionOnObject_Deactivated, 5)
 	GET(UnitClass* const, pThis, ECX);
 	GET_STACK(ObjectClass*, pThat, 0x20);
 
-	if (pThis->Deactivated) {
+	if (pThis->Deactivated)
+	{
 		R->EAX(TechnoExtData::GetAction(pThis, pThat));
 		return 0x73FD72;
 	}
@@ -156,7 +164,8 @@ ASMJIT_PATCH(0x51E440, InfantryClass_GetActionOnObject_Deactivated, 8)
 	GET(InfantryClass* const, pThis, EDI);
 	GET_STACK(ObjectClass*, pThat, 0x3C);
 
-	if (pThis->Deactivated) {
+	if (pThis->Deactivated)
+	{
 		R->EAX(TechnoExtData::GetAction(pThis, pThat));
 		return 0x51E458;
 	}
@@ -166,16 +175,18 @@ ASMJIT_PATCH(0x51E440, InfantryClass_GetActionOnObject_Deactivated, 8)
 
 ASMJIT_PATCH(0x6FFEC0, TechnoClass_GetActionOnObject_Additionals, 5)
 {
-	GET(TechnoClass* , pThis, ECX);
+	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(ObjectClass*, pObject, 0x4);
 	//GET_STACK(DWORD , caller , 0x0);
 
-	if (TechnoExtData::CanDetonate(pThis, pObject)) {
+	if (TechnoExtData::CanDetonate(pThis, pObject))
+	{
 		R->EAX(Action::Detonate);
 		return 0x7005EF;
 	}
 
-	if (!pThis->IsAlive) {
+	if (!pThis->IsAlive)
+	{
 		R->EAX(Action::None);
 		return 0x7005EF;
 	}
@@ -190,7 +201,8 @@ ASMJIT_PATCH(0x6FFEC0, TechnoClass_GetActionOnObject_Additionals, 5)
 	// Cursor NoMove
 	MouseCursorFuncs::SetMouseCursorAction(pTypeExt->Cursor_NoMove.Get(), Action::NoMove, false);
 
-	if(auto pTech = flag_cast_to<TechnoClass*>(pObject)) {
+	if (auto pTech = flag_cast_to<TechnoClass*>(pObject))
+	{
 		const auto pTargetType = GET_TECHNOTYPE(pTech);
 
 		{
@@ -212,10 +224,11 @@ ASMJIT_PATCH(0x44A1FF, BuildingClass_Mission_Selling_DetonatePostBuildup, 6)
 {
 	GET(BuildingClass* const, pStructure, EBP);
 
-	if (const auto pBomb = pStructure->AttachedBomb) {
+	if (const auto pBomb = pStructure->AttachedBomb)
+	{
 		if (BombExtContainer::Instance.Find(pBomb)->Weapon->Ivan_DetonateOnSell.Get())
 			pBomb->Detonate();// Otamaa : detonate may kill the techno before this function
-			// so this can possibly causing some weird crashes if that happening
+		// so this can possibly causing some weird crashes if that happening
 	}
 
 	return 0;
@@ -227,28 +240,30 @@ ASMJIT_PATCH(0x4D9F7B, FootClass_Sell_Detonate, 6)
 
 	const auto& loc = pThis->Location;
 	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
-	const auto pUnit = cast_to<UnitClass* , false>(pThis);
+	const auto pUnit = cast_to<UnitClass*, false>(pThis);
 	const int money = pUnit && FakeRulesClass::Instance()->UnitsUnsellable ? 0 : pThis->GetRefund();
 
 	//distribute the money
 	pThis->Owner->GiveMoney(money);
 
-	if (const auto pBomb = pThis->AttachedBomb) {
+	if (const auto pBomb = pThis->AttachedBomb)
+	{
 		if (BombExtContainer::Instance.Find(pBomb)->Weapon->Ivan_DetonateOnSell.Get())
 			pBomb->Detonate(); // Otamaa : detonate may kill the techno before this function
-			// so this can possibly causing some weird crashes if that happening
+		// so this can possibly causing some weird crashes if that happening
 	}
 
-	if (pThis->Owner->ControlledByCurrentPlayer()) {
+	if (pThis->Owner->ControlledByCurrentPlayer())
+	{
 		VoxClass::PlayIndex(pTypeExt->EVA_Sold);
 		//WW used VocClass::PlayGlobal to play the SellSound, why did they do that?
 		VocClass::SafeImmedietelyPlayAt(pTypeExt->SellSound, &loc);
 	}
 
-	FlyingStrings::Instance.AddMoneyString(FakeRulesClass::Instance()->DisplayIncome  , money, pThis->Owner, FakeRulesClass::Instance()->DisplayIncome_Houses, loc, Point2D::Empty, ColorStruct::Empty);
+	FlyingStrings::Instance.AddMoneyString(FakeRulesClass::Instance()->DisplayIncome, money, pThis->Owner, FakeRulesClass::Instance()->DisplayIncome_Houses, loc, Point2D::Empty, ColorStruct::Empty);
 
 	//this thing may already death , just
-	return pThis->IsAlive  ? 0x4D9FCB : 0x4D9FE9;
+	return pThis->IsAlive ? 0x4D9FCB : 0x4D9FE9;
 }
 
 // custom ivan bomb attachment
@@ -296,7 +311,8 @@ ASMJIT_PATCH(0x438D44, BombListClass_AI_Visibility, 0x5)
 				const int sight = pDetector->GetTechnoType()->BombSight * Unsorted::LeptonsPerCell;
 				return pDetector->GetCoords().DistanceFromSquared(pBomb->Target->GetCoords()) <= static_cast<double>(sight) * sight;
 			}) != pBombList->Detectors.end()
-	) {
+				)
+	{
 		visible = true;
 	}
 
@@ -305,30 +321,37 @@ ASMJIT_PATCH(0x438D44, BombListClass_AI_Visibility, 0x5)
 }
 #else 
 
-void FakeBombListClass::__AI() {
+void FakeBombListClass::__AI()
+{
 	// --- Pass 1: prune bombs that lost their target, or dangling null slots ---
-	if(this->Bombs.IsAllocated) { //static tracker , vector item pointer are no allocated yet
-								  //awaiting for new item to be add
-		for (int i = this->Bombs.Count - 1; i >= 0; --i) {
+	if (this->Bombs.IsAllocated)
+	{ //static tracker , vector item pointer are no allocated yet
+	 //awaiting for new item to be add
+		for (int i = this->Bombs.Count - 1; i >= 0; --i)
+		{
 			BombClass* bomb = (BombClass*)this->Bombs.Items[i];
 
-			if (bomb) {
-				if (!bomb->Target) {
-					GameDelete<true, false>(bomb);
-				} else {
-					if (bomb->TickSound != -1) {
-						ObjectClass* target = bomb->Target;
+			if (bomb)
+			{
+				if (bomb->TickSound != -1)
+				{
+					ObjectClass* target = bomb->Target;
 
-						if (target->InLimbo) {
-							bomb->TickAudioController.AudioEventHandleStop();
-							bomb->ShouldPlayTickingSound = 0;
-						} else {
-							if (bomb->ShouldPlayTickingSound) {
-								VocClass::PlayIfInRange(target->Location, &bomb->TickAudioController);
-							} else {
-								VocClass::SafeImmedietelyPlayAt(bomb->TickSound, target->Location, &bomb->TickAudioController);
-								bomb->ShouldPlayTickingSound = 1;
-							}
+					if (target->InLimbo)
+					{
+						bomb->TickAudioController.AudioEventHandleStop();
+						bomb->ShouldPlayTickingSound = 0;
+					}
+					else
+					{
+						if (bomb->ShouldPlayTickingSound)
+						{
+							VocClass::PlayIfInRange(target->Location, &bomb->TickAudioController);
+						}
+						else
+						{
+							VocClass::SafeImmedietelyPlayAt(bomb->TickSound, target->Location, &bomb->TickAudioController);
+							bomb->ShouldPlayTickingSound = 1;
 						}
 					}
 				}
@@ -337,7 +360,8 @@ void FakeBombListClass::__AI() {
 	}
 
 	// --- Throttle: only re-evaluate bomb visibility every 45 logic frames ---
-	if (this->UpdateDelay > 0) {
+	if (this->UpdateDelay > 0)
+	{
 		--this->UpdateDelay;
 		return;
 	}
@@ -354,14 +378,15 @@ void FakeBombListClass::__AI() {
 	const bool isObserverLooking = pCurrent == HouseClass::Observer();
 
 	// --- Pass 2: recompute BombVisible for every tracked bomb ---
-	for (int k = this->Bombs.Count - 1; k >= 0; --k) {
-
+	for (int k = this->Bombs.Count - 1; k >= 0; --k)
+	{
 		FakeBombClass* bomb = (FakeBombClass*)this->Bombs.Items[k];
 		ObjectClass* target = bomb->Target;
 		bool wasVisible = target->BombVisible;
 		bool nowVisible;
 
-		if (!isObserverLooking) {
+		if (!isObserverLooking)
+		{
 			nowVisible = false;
 			// --- Visibility rule (replaces vanilla's hardcoded
 			//     "owner == current player" check w/ IvanBomb_Visibility) ---
@@ -376,15 +401,18 @@ void FakeBombListClass::__AI() {
 							return false;
 
 						const int sight = pDetector->GetTechnoType()->BombSight * Unsorted::LeptonsPerCell;
-						return pDetector->GetCoords().DistanceFromSquared(target->GetCoords()) <= static_cast<double>(sight) * sight;
+						return pDetector->GetCoords().DistanceFrom(target->GetCoords()) <= static_cast<double>(sight) * sight;
 					}) != this->Detectors.end()
-						) {
+						)
+			{
 				nowVisible = true;
 			}
-		} else { nowVisible = true; }
+		}
+		else { nowVisible = true; }
 
 		target->BombVisible = nowVisible;
-		if (nowVisible != wasVisible) {
+		if (nowVisible != wasVisible)
+		{
 			target->NeedsRedraw = 1;
 		}
 	}

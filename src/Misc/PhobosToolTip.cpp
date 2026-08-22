@@ -117,6 +117,8 @@ int PhobosToolTip::GetPower(TechnoTypeClass* pType)
 	{
 		if(TechnoTypeExtContainer::Instance.Find(pType)->Power.isset())
 		return TechnoTypeExtContainer::Instance.Find(pType)->Power.Fetch();
+
+		break;
 	}
 	case AbstractType::BuildingType:
 	{

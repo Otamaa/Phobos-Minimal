@@ -16,6 +16,8 @@
 #include <New/Type/ArmorTypeClass.h>
 #include <New/Type/SelectBoxTypeClass.h>
 #include <New/Type/InsigniaTypeClass.h>
+#include <New/Type/TunnelTypeClass.h>
+#include <New/Type/CursorTypeClass.h>
 
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Cast.h>
@@ -2110,6 +2112,8 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		if (this->AbsType != AbstractType::BuildingType)
 		{
 			this->Untrackable.Read(exINI, pSection, "Untrackable");
+			this->Untrackable.Read(exINI, pSection, "PsychicDetectable");
+
 			this->LargeVisceroid.Read(exINI, pSection, "Visceroid.Large");
 			this->HarvesterDumpAmount.Read(exINI, pSection, "HarvesterDumpAmount");
 			this->AttackMove_Aggressive.Read(exINI, pSection, "AttackMove.Aggressive");
