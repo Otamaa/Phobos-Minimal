@@ -77,10 +77,7 @@ bool UniqueTechnoButtonClass::Draw(bool forced)
 		}
 	}
 
-	auto GetSelectedTechno = [pTechno, pExt]() -> TechnoClass*{
-		if (!pTechno)
-			return nullptr;
-
+	auto GetSelectedTechno = [pTechno, pExt]() -> TechnoClass* {
 		TechnoClass* pSelect = nullptr;
 
 		if (!pTechno->InLimbo)

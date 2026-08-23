@@ -25,6 +25,9 @@ const CellStruct BuildingTypeExtData::FoundationEndMarker = { 0x7FFF, 0x7FFF };
 
 #include <Misc/PhobosGlobal.h>
 
+#include <New/Type/TunnelTypeClass.h>
+#include <New/Type/CursorTypeClass.h>
+
 bool BuildingTypeExtData::IsThisBuildingPassable(BuildingClass* pBuilding, FootClass* pFoot) {
 
 	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
@@ -1940,6 +1943,74 @@ bool BuildingTypeExtData::IsPoweredAnimBlocked(BuildingClass* pBuilding, bool po
 		;
 }
 
+static bool ShouldExistGreyCameo(TechnoTypeClass* pType)
+{
+	const auto techLevel = pType->TechLevel;
+
+	if (techLevel <= 0 || techLevel > Game::TechLevel())
+		return false;
+
+	const auto pHouse = HouseClass::CurrentPlayer();
+
+	if (!pHouse->InOwners(pType))
+		return false;
+
+	if (!pHouse->InRequiredHouses(pType))
+		return false;
+
+	if (pHouse->InForbiddenHouses(pType))
+		return false;
+	
+	if (!HouseExtData::CheckOwnerBitfieldForCurrentPlayer(pType))
+		return false;
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	const auto& pNegTypes = pTypeExt->Cameo_NegTechnos;
+
+
+	for (const auto& pNegType : pNegTypes)
+	{
+		if (pNegType->WhatAmI() == AbstractType::BuildingType && BuildingTypeExtData::GetUpgradesAmount(static_cast<BuildingTypeClass*>(pNegType), pHouse) > 0)
+			return false;
+
+		if (pNegType && pHouse->CountOwnedAndPresent(pNegType))
+			return false;
+
+	}
+
+	const auto& pAuxTypes = pTypeExt->Cameo_AuxTechnos;
+
+	if (pAuxTypes.begin() == pAuxTypes.end())
+	{
+		const auto sideIndex = pType->AIBasePlanningSide;
+
+		return (sideIndex == -1 || sideIndex == pHouse->Type->SideIndex);
+	}
+
+	for (const auto& pAuxType : pAuxTypes)
+	{
+		const auto pAuxTypeExt = TechnoTypeExtContainer::Instance.Find(pAuxType);
+
+		if (!pAuxTypeExt->Cameo_AlwaysExistCheckMutex)
+		{
+			if (pHouse->CountOwnedAndPresent(pAuxType))
+				return true;
+			else if (pAuxType->WhatAmI() == AbstractType::BuildingType && BuildingTypeExtData::GetUpgradesAmount(static_cast<BuildingTypeClass*>(pAuxType), pHouse) > 0)
+				return true;
+
+			pAuxTypeExt->Cameo_AlwaysExistCheckMutex = true;
+			const auto exist = ShouldExistGreyCameo(pAuxType);
+			pAuxTypeExt->Cameo_AlwaysExistCheckMutex = false;
+
+			if (exist)
+				return true;
+		}
+	}
+
+	return false;
+}
+
 // Check the cameo change
 CanBuildResult BuildingTypeExtData::CheckAlwaysExistCameo(HouseClass* pHouse, TechnoTypeClass* pType, CanBuildResult canBuild)
 {
@@ -1949,27 +2020,21 @@ CanBuildResult BuildingTypeExtData::CheckAlwaysExistCameo(HouseClass* pHouse, Te
 	{
 		auto CheckOverrideTechnos = [pHouse, pType, pTypeExt]()
 			{
-				for (auto& pNeg : pTypeExt->Cameo_NegTechnos)
-				{
-					if (pHouse->CountOwnedAndPresent(pNeg))
-						return false;
-				}
+				pTypeExt->Cameo_AlwaysExistCheckMutex = true;
+				const auto exist = ShouldExistGreyCameo(pType);
+				pTypeExt->Cameo_AlwaysExistCheckMutex = false;
 
-				for (auto& pAux : pTypeExt->Cameo_AuxTechnos)
-				{
-					if (pHouse->CountOwnedAndPresent(pAux))
-						return true;
-				}
-
-				return false;
+				return exist;
 			};
 
 
-		if (pTypeExt->Cameo_AlwaysExistRequirementMet && (CheckOverrideTechnos() || HouseExtData::CheckOwnerBitfieldForCurrentPlayer(pType)))
+		if (pTypeExt->Cameo_AlwaysExistRequirementMet && CheckOverrideTechnos())
 		{
 			if (!pTypeExt->Cameo_AlwaysExistForCurrentPlayerActive)
 			{
 				pTypeExt->Cameo_AlwaysExistForCurrentPlayerActive = true;
+				SidebarClass::Instance->SidebarNeedsRepaint();
+
 				auto buildCat = BuildCat::DontCare;
 
 				if (const auto pBldType = type_cast<BuildingTypeClass*>(pType))

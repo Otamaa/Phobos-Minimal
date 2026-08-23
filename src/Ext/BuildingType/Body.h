@@ -14,13 +14,11 @@
 #include <New/Entity/TheaterSpecificSHP.h>
 #include <New/Entity/PrismForwardingData.h>
 
-#include <New/Type/TunnelTypeClass.h>
-#include <New/Type/CursorTypeClass.h>
-
 #include <Misc/Defines.h>
 
 #include <DirStruct.h>
-
+class TunnelTypeClass;
+class CursorTypeClass;
 class SuperClass;
 class BuildingTypeExtData final : public TechnoTypeExtData
 {
@@ -52,7 +50,7 @@ public:
 	// 24-byte aligned: Vectors (grouped together)
 	// ============================================================
 	ValueableVector<BuildingTypeClass*> PowersUp_Buildings {};
-	ValueableIdxVector<SuperWeaponTypeClass> SuperWeapons {};
+	ValueableIdxVector<SuperWeaponTypeClass*> SuperWeapons {};
 	ValueableVector<BuildingTypeClass*> PowerPlantEnhancer_Buildings {};
 
 	std::vector<Point2D> OccupierMuzzleFlashes {};
@@ -62,7 +60,7 @@ public:
 	NullableVector<AnimTypeClass*> OnFireTypes {};
 	NullableVector<int> OnFireIndex {};
 	ValueableVector<Point2D> DamageFire_Offs {};
-	ValueableIdxVector<BuildingTypeClass> AIBuildInsteadPerDiff {};
+	ValueableIdxVector<BuildingTypeClass*> AIBuildInsteadPerDiff {};
 	std::vector<AnimTypeClass*> GarrisonAnim_idle {};
 	std::vector<AnimTypeClass*> GarrisonAnim_ActiveOne {};
 	std::vector<AnimTypeClass*> GarrisonAnim_ActiveTwo {};
@@ -263,9 +261,9 @@ public:
 	// ============================================================
 	// ValueableIdx (4 bytes each)
 	// ============================================================
-	ValueableIdx<TunnelTypeClass> TunnelType { -1 };
-	ValueableIdx<CursorTypeClass> Cursor_Spy { (int)MouseCursorType::Enter };
-	ValueableIdx<CursorTypeClass> Cursor_Sabotage { 93 };
+	ValueableIdx<TunnelTypeClass*> TunnelType { -1 };
+	ValueableIdx<CursorTypeClass*> Cursor_Spy { (int)MouseCursorType::Enter };
+	ValueableIdx<CursorTypeClass*> Cursor_Sabotage { 93 };
 	ValueableIdx<VoxClass> LostEvaEvent { -1 };
 	ValueableIdx<VoxClass> EVA_Online { -1 };
 	ValueableIdx<VoxClass> EVA_Offline { -1 };

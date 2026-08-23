@@ -1,0 +1,39 @@
+//the biggest ,most complex
+- GScreenClass
+	- MapClass
+		- DisplayClass
+			- RadarClass
+				- PowerClass
+					- SidebarClass
+						- TabClass
+							-ScrollClass
+								-MouseClass
+			
+// managable , target for now
+- GadgetClass
+	- ControlClass
+		- Dial8Class
+		- EditClass	
+			- DropListClass
+		- GaugeClass
+			- SliderClass
+		- TriColorGaugeClass
+		- ListClass
+			- CheckListClass
+			- ColorListClass
+			- DropListClass
+		- SidebarSelectClass
+		- ToggleClass
+			- ShapeButtonClass
+			- TextButtonClass
+	- SidebarGadgetClass
+	- StaticButtonClass
+	- TextLabelClass
+
+//
+- CreditClass
+
+
+//
+- CCToolTip
+	- TooltipManager

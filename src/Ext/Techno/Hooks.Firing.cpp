@@ -457,7 +457,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 
 		//if (!pWeapon) { RunEndHook(pThis, pWeapon); return nullptr; }
 
-		auto* pOwner = pTargetFoot->GetOwningHouse();
+		auto* pOwner = pTarget->GetOwningHouse();
 
 		//RevealOnFire radius is hardcoded to 3 here
 		if (pOwner->ControlledByCurrentPlayer() && pWeapon->RevealOnFire) {

@@ -1113,6 +1113,7 @@ public:
 	ValueableVector<TechnoTypeClass*> Cameo_AuxTechnos {};
 	ValueableVector<TechnoTypeClass*> Cameo_NegTechnos {};
 	DWORD Cameo_RequiredHouses { 0xFFFFFFFF };
+	bool Cameo_AlwaysExistCheckMutex { false };
 	bool Cameo_AlwaysExistRequirementMet { false };
 	bool Cameo_AlwaysExistForCurrentPlayerActive { false };
 	bool Cameo_AlwaysExistIsGreyCameoAbandonedProduct { true };

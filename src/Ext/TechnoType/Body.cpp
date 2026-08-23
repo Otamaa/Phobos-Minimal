@@ -3745,6 +3745,7 @@ void TechnoTypeExtData::Serialize(T& Stm) {
 		.Process(this->Cameo_AuxTechnos)
 		.Process(this->Cameo_NegTechnos)
 		.Process(this->Cameo_RequiredHouses)
+		.Process(this->Cameo_AlwaysExistCheckMutex)
 		.Process(this->Cameo_AlwaysExistRequirementMet)
 		.Process(this->Cameo_AlwaysExistForCurrentPlayerActive)
 		.Process(this->Cameo_AlwaysExistIsGreyCameoAbandonedProduct)

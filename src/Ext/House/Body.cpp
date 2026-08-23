@@ -33,7 +33,7 @@ bool HouseExtData::CheckOwnerBitfieldForCurrentPlayer(TechnoTypeClass* pType)
 {
 	const auto pScenarioExt = ScenarioExtData::Instance();
 	DWORD baseBits = TechnoTypeExtContainer::Instance.Find(pType)->Cameo_RequiredHouses & pType->GetOwners();
-	baseBits &= (1u << HouseClass::CurrentPlayer->Type->SideIndex);
+	baseBits &= (1u << HouseClass::CurrentPlayer->Type->ParentIdx);
 
 	if (!baseBits)
 		return false;

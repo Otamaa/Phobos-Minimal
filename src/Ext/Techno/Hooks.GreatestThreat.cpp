@@ -157,7 +157,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 	const bool _NoAutoFire = !pThis->Owner->IsControlledByHuman() ? 
 		GET_TECHNOTYPEEXT(pThis)->NoAutoFire_AI.Get(pType->NoAutoFire) : pType->NoAutoFire;
 
-	if ((pType->NoAutoFire 
+	if ((_NoAutoFire
 		|| (TechnoExtContainer::Instance.Find(pThis)->GetPassiveAcquireMode()) == PassiveAcquireModes::Ceasefire) 
 		&& isTechnoPlayerControlled) {
 		return nullptr;
