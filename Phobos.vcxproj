@@ -182,7 +182,6 @@
     <ClCompile Include="src\Misc\Hooks.DebugLog.cpp" />
     <ClCompile Include="src\Ext\Foot\Hooks.Foot.cpp" />
     <ClCompile Include="src\Ext\Infantry\Hooks.cpp" />
-    <ClCompile Include="src\Ext\WarheadType\Hooks.IonBlast.cpp" />
     <ClCompile Include="src\Ext\Locomotion\Hooks.Locomotor.cpp" />
     <ClCompile Include="src\Misc\Hooks.Others.cpp" />
     <ClCompile Include="src\Ext\Object\Hooks.ReceiveDamage.cpp" />
@@ -197,6 +196,8 @@
     <ClCompile Include="src\New\Entity\CreateUnitTypeClass.cpp" />
     <ClCompile Include="src\New\Entity\EVAVoices.cpp" />
     <ClCompile Include="src\New\Entity\FoggedObject.cpp" />
+    <ClCompile Include="src\New\Entity\InsigniaData.cpp" />
+    <ClCompile Include="src\New\Entity\LaserTrailDataEntry.cpp" />
     <ClCompile Include="src\New\Entity\PowerPlantEnhancerClass.cpp" />
     <ClCompile Include="src\New\Entity\PrismRelay.cpp" />
     <ClCompile Include="src\New\Entity\ShiftSchedule.cpp" />
@@ -220,6 +221,7 @@
     <ClCompile Include="src\New\Interfaces\TSJumpJetLocomotionClass.cpp" />
     <ClCompile Include="src\New\MessageHandler\MessageScrollClass.cpp" />
     <ClCompile Include="src\New\MessageHandler\MessageToggleClass.cpp" />
+    <ClCompile Include="src\New\PhobosAttachedAffect\AEAttachParams.cpp" />
     <ClCompile Include="src\New\SelectedButton\SelectedButtonClass.cpp" />
     <ClCompile Include="src\New\SelectedButton\SelectedCameoClass.cpp" />
     <ClCompile Include="src\New\SelectedButton\SelectedColumnClass.cpp" />
@@ -588,16 +590,6 @@
     <ClCompile Include="YRpp\MixFileClass.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="B:\Projects\magic_enum\include\magic_enum\magic_enum.hpp" />
-    <ClInclude Include="B:\Projects\magic_enum\include\magic_enum\magic_enum_all.hpp" />
-    <ClInclude Include="B:\Projects\magic_enum\include\magic_enum\magic_enum_containers.hpp" />
-    <ClInclude Include="B:\Projects\magic_enum\include\magic_enum\magic_enum_flags.hpp" />
-    <ClInclude Include="B:\Projects\magic_enum\include\magic_enum\magic_enum_format.hpp" />
-    <ClInclude Include="B:\Projects\magic_enum\include\magic_enum\magic_enum_fuse.hpp" />
-    <ClInclude Include="B:\Projects\magic_enum\include\magic_enum\magic_enum_iostream.hpp" />
-    <ClInclude Include="B:\Projects\magic_enum\include\magic_enum\magic_enum_switch.hpp" />
-    <ClInclude Include="B:\Projects\magic_enum\include\magic_enum\magic_enum_utility.hpp" />
-    <ClInclude Include="B:\Projects\Unused\LambdaFunctionArgCount.h" />
     <ClInclude Include="src\Commands\AssignRallyPoint.h" />
     <ClInclude Include="src\Commands\BuildLastOfTab.h" />
     <ClInclude Include="src\Commands\ClearObserverUICards.h" />
@@ -1211,13 +1203,13 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <Optimization>Full</Optimization>
+      <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <SDLCheck>
       </SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <DiagnosticsFormat>Column</DiagnosticsFormat>
-      <OmitFramePointers>true</OmitFramePointers>
+      <OmitFramePointers>false</OmitFramePointers>
       <PreprocessorDefinitions>SYR_VER=2;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;WINVER=0x0A00;_WIN32_WINNT=0x0A00;NTDDI_VERSION=0x0A00000C;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;FMT_EXCEPTIONS=0;MAKE_LIB;SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;_ATL_NO_SECURITY;_ATL_NO_AUTOMATIC_NAMESPACE;_ATL_NO_MODULE;_ATL_NO_COM_MODULE;_ATL_NO_WIN_SUPPORT;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;ASMJIT_NO_TEXT;IMGUI_DISABLE_DEMO_WINDOWS;IMGUI_DISABLE_DEBUG_TOOLS;IMGUI_DEBUG_PRINTF=((void)0);IMGUI_DEFINE_MATH_OPERATORS;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;IMGUI_DISABLE_FILE_FUNCTIONS;IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS;YR_SIMD_COMPILE_AVX2;main=simple_lossless;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;RESHADE_GUI;RESHADE_ADDON=0;RESHADE_LOCALIZATION=0;RESHADE_VERBOSE_LOG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>SyncCThrow</ExceptionHandling>
@@ -1239,13 +1231,13 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>$(SolutionDir)ext\DirectX-Headers\include\directx;%(AdditionalIncludeDirectories);$(WindowsSDK_IncludePath)</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>
       <BuildStlModules>false</BuildStlModules>
       <MinimalRebuild>false</MinimalRebuild>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <EnableVectorLength>NotSet</EnableVectorLength>
@@ -1254,6 +1246,7 @@
       </PrecompiledHeaderFile>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

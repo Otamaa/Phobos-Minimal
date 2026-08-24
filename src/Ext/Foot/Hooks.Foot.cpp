@@ -19,6 +19,8 @@
 
 #include <InfantryClass.h>
 #include <RadarEventClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 #include <Locomotor/LocomotionClass.h>
 #include <Interface/IPiggyback.h>

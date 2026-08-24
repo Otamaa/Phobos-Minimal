@@ -7,13 +7,18 @@
 #include <Utilities/PhobosPCXFile.h>
 #include <Utilities/PhobosFixedString.h>
 #include <Utilities/TemplateDefB.h>
-
-#include <FileFormats/SHP.h>
+#include <Utilities/CSFText.h>
 
 #include <Ext/AbstractType/Body.h>
 
 #include <New/Entity/EVAVoices.h>
+#include <New/Type/PaletteManager.h>
 
+struct SHPCaches;
+class TechnoTypeClass;
+class InfantryTypeClass;
+class UnitTypeClass;
+class AircraftTypeClass;
 class SideExtData final : public AbstractTypeExtData
 {
 public:
@@ -132,9 +137,9 @@ public:
 	Valueable<int> IngameScore_LoseTheme { -2 };
 	Valueable<int> BriefingTheme { -1 };
 	Valueable<int> SidebarMixFileIndex { -1 };
-	ValueableIdx<AircraftTypeClass> ParaDropPlane { -1 };
-	ValueableIdx<ColorScheme> MessageTextColorIndex { -1 };
-	ValueableIdx<EVAVoices> EVAIndex { -1 };
+	ValueableIdx<AircraftTypeClass*> ParaDropPlane { -1 };
+	ValueableIdx<ColorScheme*> MessageTextColorIndex { -1 };
+	ValueableIdx<EVAVoices*> EVAIndex { -1 };
 
 	// ============================================================
 	// Valueable<enum> (4 bytes each)
@@ -243,16 +248,8 @@ public:
 	static bool LoadGlobals(PhobosStreamReader& stm) {}
 	static bool SaveGlobals(PhobosStreamWriter& stm) {}
 
-	static COMPILETIMEEVAL SHPCaches* GetGraphicalTextImage() {
-		return SideExtData::s_GraphicalTextImage ?
-		 SideExtData::s_GraphicalTextImage : FileSystem::GRFXTXT_SHP();
-	}
-
-	static COMPILETIMEEVAL ConvertClass* GetGraphicalTextConvert() {
-		return SideExtData::s_GraphicalTextConvert.GetConvert() ?
-		 SideExtData::s_GraphicalTextConvert.GetConvert() : FileSystem::GRFXTXT_Convert();
-	}
-
+	static SHPCaches* GetGraphicalTextImage();
+	static ConvertClass* GetGraphicalTextConvert();
 private:
 	template <typename T>
 	void Serialize(T& Stm);

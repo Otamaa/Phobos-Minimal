@@ -6,6 +6,7 @@
 #include <Utilities/Container.h>
 #include <Utilities/PhobosFixedString.h>
 #include <Utilities/TemplateDefB.h>
+#include <Utilities/CSFText.h>
 
 #include <Utilities/Debug.h>
 #include <Utilities/VectorHelper.h>
@@ -325,7 +326,7 @@ public:
 	// ============================================================
 	// NullableIdx (~8 bytes each)
 	// ============================================================
-	NullableIdx<VocClass> DecloakSound {};
+	NullableIdx<VocClass*> DecloakSound {};
 
 	// ============================================================
 	// Nullable<bool> (bool + bool ≈ 2-4 bytes, group for alignment)
@@ -413,14 +414,14 @@ public:
 	Valueable<int> EBoltZAdjust { 0 };
 	Valueable<bool> EBoltZAdjust_ClampInitialDepthForBuilding { true };
 
-	ValueableIdx<ColorScheme> AnimRemapDefaultColorScheme { 0 };
+	ValueableIdx<ColorScheme*> AnimRemapDefaultColorScheme { 0 };
 	ValueableIdx<CursorTypeClass*> EngineerDamageCursor { 87 };
-	ValueableIdx<ColorScheme> TimerBlinkColorScheme { 5 };
-	ValueableIdx<SuperWeaponTypeClass> AIChronoSphereSW {};
-	ValueableIdx<SuperWeaponTypeClass> AIChronoWarpSW {};
-	ValueableIdx<VocClass> StartDistributionModeSound { -1 };
-	ValueableIdx<VocClass> EndDistributionModeSound { -1 };
-	ValueableIdx<VocClass> AddDistributionModeCommandSound { -1 };
+	ValueableIdx<ColorScheme*> TimerBlinkColorScheme { 5 };
+	ValueableIdx<SuperWeaponTypeClass*> AIChronoSphereSW {};
+	ValueableIdx<SuperWeaponTypeClass*> AIChronoWarpSW {};
+	ValueableIdx<VocClass*> StartDistributionModeSound { -1 };
+	ValueableIdx<VocClass*> EndDistributionModeSound { -1 };
+	ValueableIdx<VocClass*> AddDistributionModeCommandSound { -1 };
 
 	// ============================================================
 	// Valueable<float> (4 bytes each)
@@ -884,6 +885,10 @@ public:
 	
 	Valueable<bool> EnableWreckageSpawn { false };
 	Valueable<double> WreckageInitialHealthPercent { 0.1 };
+	Valueable<bool> AutoTarget_InsignificantWhenMindControlled { true };
+
+	Valueable<bool> VeteranRange { 1.0 };
+	Valueable<bool> VeteranCritChance { 1.0 };
 #pragma endregion
 
 public:

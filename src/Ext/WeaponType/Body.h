@@ -29,7 +29,7 @@ public:
 	Valueable<double> DiskLaser_Radius { 38.2 };
 	Valueable<int> DiskLaser_Circumference { 240 };
 	Valueable<bool> DiskLaser_SimulatedFire { };
-	NullableIdx<VocClass> DiskLaser_ChargeUp {};
+	NullableIdx<VocClass*> DiskLaser_ChargeUp {};
 
 	Valueable<RadTypeClass*> RadType {};
 	Valueable<bool> Rad_NoOwner { true };
@@ -109,11 +109,12 @@ public:
 	Valueable<bool> Ivan_Detachable { true };
 	Nullable<int> Ivan_Damage {};
 	Nullable<int> Ivan_Delay {};
-	NullableIdx<VocClass> Ivan_TickingSound {};
-	NullableIdx<VocClass> Ivan_AttachSound {};
+	NullableIdx<VocClass*> Ivan_TickingSound {};
+	NullableIdx<VocClass*> Ivan_AttachSound {};
 	Nullable<WarheadTypeClass*> Ivan_WH {};
 	Nullable<bool> Ivan_AttachToCenter {};
 	Nullable<AffectedHouse> IvanBomb_Visibility {};
+	Valueable<bool> IvanBomb_Detonate {};
 	Nullable<SHPCaches*> Ivan_Image {};
 	Nullable<int> Ivan_FlickerRate {};
 	Nullable<bool> Ivan_CanDetonateTimeBomb {};
@@ -126,8 +127,8 @@ public:
 	//
 	Nullable<bool> ApplyDamage {};
 
-	ValueableIdx<CursorTypeClass> Cursor_Attack { (int)MouseCursorType::Attack };
-	ValueableIdx<CursorTypeClass> Cursor_AttackOutOfRange { (int)MouseCursorType::AttackOutOfRange };
+	ValueableIdx<CursorTypeClass*> Cursor_Attack { (int)MouseCursorType::Attack };
+	ValueableIdx<CursorTypeClass*> Cursor_AttackOutOfRange { (int)MouseCursorType::AttackOutOfRange };
 
 	//Nullable<BoltData> WeaponBolt_Data;
 

@@ -6,6 +6,8 @@
 #include <ThemeClass.h>
 #include <TeamTypeClass.h>
 #include <Unsorted.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 ASMJIT_PATCH(0x723CA1, TeamMissionClass_FillIn_StringsSupport_and_id_masks, 0xB)
 {

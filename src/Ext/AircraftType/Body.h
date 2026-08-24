@@ -26,7 +26,7 @@ public:
 	Nullable<bool> FiringForceScatter {};
 
 	Nullable<int> AttackingAircraftSightRange {};
-	NullableIdx<VoxClass> SpyplaneCameraSound {};
+	NullableIdx<VoxClass*> SpyplaneCameraSound {};
 	Nullable<int> ParadropRadius {};
 	Nullable<int> ParadropOverflRadius {};
 	Nullable<bool> Paradrop_DropPassangers { };

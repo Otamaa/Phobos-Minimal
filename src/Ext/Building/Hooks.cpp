@@ -16,6 +16,8 @@
 #include <GameOptionsClass.h>
 #include <BitFont.h>
 #include <UnitClass.h>
+#include <VocClass.h>
+#include <SuperClass.h>
 
 ASMJIT_PATCH(0x441553, BuildingClass_Unlimbo_PowerPlantEnhancer, 0x6)
 {

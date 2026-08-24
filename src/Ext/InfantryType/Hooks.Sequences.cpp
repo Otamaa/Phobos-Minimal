@@ -1,6 +1,8 @@
 #include "Body.h"
 
 #include <Ext/Infantry/Body.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 // replacing reference of 7EAF7C
 // Replacing DoControls* with own

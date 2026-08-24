@@ -50,7 +50,8 @@
 #include <BombListClass.h>
 #include <AirstrikeClass.h>
 #include <GScreenClass.h>
-
+#include <VocClass.h>
+#include <VoxClass.h>
 #include <Utilities/Debug.h>
 #include <Utilities/Macro.h>
 #include <Utilities/Swizzle.h>
@@ -76,6 +77,7 @@
 #include <New/Type/HealthBarTypeClass.h>
 #include <New/Type/RocketTypeClass.h>
 #include <New/Type/ThemeTypeClass.h>
+#include <New/Type/HoverTypeClass.h>
 
 #include <New/Entity/FlyingStrings.h>
 #include <New/Entity/SWFirerClass.h>

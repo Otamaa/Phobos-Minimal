@@ -7,6 +7,8 @@
 #include <GScreenClass.h>
 #include <Memory.h>
 #include <BitFont.h>
+#include <VoxClass.h>
+#include <VocClass.h>
 
 #include <Phobos.h>
 

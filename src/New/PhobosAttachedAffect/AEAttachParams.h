@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Utilities/SavegameDef.h>
-
+class PhobosStreamReader;
+class PhobosStreamWriter;
 // Container for AttachEffect attachment for an individual effect passed to AE attach function.
 struct AEAttachParams
 {
@@ -16,26 +16,10 @@ struct AEAttachParams
 
 public :
 
-	bool Load(PhobosStreamReader& stm, bool registerForChange) { return this->Serialize(stm); }
-	bool Save(PhobosStreamWriter& stm) const
-	{
-		return const_cast<AEAttachParams*>(this)->Serialize(stm);
-	}
+	bool Load(PhobosStreamReader& stm, bool registerForChange);
+	bool Save(PhobosStreamWriter& stm) const;
 
 private:
 	template <typename T>
-	bool Serialize(T& stm)
-	{
-		return stm
-			.Process(this->DurationOverride)
-			.Process(this->Delay)
-			.Process(this->InitialDelay)
-			.Process(this->RecreationDelay)
-			.Process(this->CumulativeSourceMaxCount)
-			.Process(this->CumulativeRefreshAll)
-			.Process(this->CumulativeRefreshAll_OnAttach)
-			.Process(this->CumulativeRefreshSameSourceOnly)
-
-			.Success();
-	}
+	bool Serialize(T& stm);
 };

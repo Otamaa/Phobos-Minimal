@@ -53,6 +53,12 @@
 #include <VeinholeMonsterClass.h>
 #include <TEventClass.h>
 #include <TActionClass.h>
+#include <VoxelAnimTypeClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
+
+#include <New/Type/TheaterTypeClass.h>
+#include <New/Type/ColorTypeClass.h>
 
 //most of here is either do  :
 // 1. Do add default value if any
@@ -277,6 +283,10 @@ void FakeRulesClass::LoadAfterTypeData(CCINIClass* pINI)
 	this->KeepAlive_SupportVehicles.Read(exINI, GameStrings::General, "KeepAlive.SupportVehicles");
 	this->KeepAlive_SupportAircrafts.Read(exINI, GameStrings::General, "KeepAlive.SupportAircrafts");
 	this->KeepAlive_SupportBuildings.Read(exINI, GameStrings::General, "KeepAlive.SupportBuildings");
+
+	this->VeteranRange.Read(exINI, GameStrings::General, "VeteranRange");
+	this->VeteranCritChance.Read(exINI, GameStrings::General, "VeteranCritChance");
+
 }
 
 static bool NOINLINE IsVanillaDummy(const char* ID)
@@ -1396,6 +1406,9 @@ void FakeRulesClass::Serialize(T& Stm)
 
 		.Process(this->EnableWreckageSpawn)
 		.Process(this->WreckageInitialHealthPercent)
+		.Process(this->AutoTarget_InsignificantWhenMindControlled)
+		.Process(this->VeteranRange)
+		.Process(this->VeteranCritChance)
 	;
 }
 
@@ -1507,6 +1520,9 @@ void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 	detail::ParseVector<AnimTypeClass*,true>(this->DeadBodies, exINI, section, "DeadBodies");
 	detail::ParseVector<AnimTypeClass*,true>(this->MetallicDebris, exINI, section, "MetallicDebris");
 	detail::ParseVector<AnimTypeClass*,true>(this->BridgeExplosions, exINI, section, "BridgeExplosions");
+	if (this->BridgeExplosions.Empty())
+		Debug::FatalError("BridgeExplosions Empty !");
+
 	detail::ParseVector<AnimTypeClass*,true>(this->WeatherConClouds, exINI, section, "WeatherConClouds");
 	detail::ParseVector<AnimTypeClass*,true>(this->WeatherConBolts, exINI, section, "WeatherConBolts");
 
@@ -4341,6 +4357,7 @@ void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
 
 	this->Crush_SelfUncloak.Read(exINI, GameStrings::CombatDamage, "UnitCrush.SelfUncloak");
 	this->UncloakWhenLowHealth.Read(exINI, GameStrings::CombatDamage, "Cloak.UncloakWhenLowHealth");
+	this->AutoTarget_InsignificantWhenMindControlled.Read(exINI, GameStrings::CombatDamage, "AutoTarget.InsignificantWhenMindControlled");
 }
 
 #pragma region WeaponTypeBuffer

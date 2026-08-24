@@ -5,6 +5,8 @@
 #include <FootClass.h>
 #include <UnitClass.h>
 #include <HouseClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 #include <Utilities/Debug.h>
 #include <Utilities/Helpers.h>
@@ -322,101 +324,115 @@ ASMJIT_PATCH(0x438D44, BombListClass_AI_Visibility, 0x5)
 #else 
 
 void FakeBombListClass::__AI()
-{
-	// --- Pass 1: prune bombs that lost their target, or dangling null slots ---
-	if (this->Bombs.IsAllocated)
-	{ //static tracker , vector item pointer are no allocated yet
-	 //awaiting for new item to be add
-		for (int i = this->Bombs.Count - 1; i >= 0; --i)
-		{
-			BombClass* bomb = (BombClass*)this->Bombs.Items[i];
-
-			if (bomb)
+{// the vectors are not allocated yet for static objects , so this weird code checking is used
+	if(this->Bombs.IsAllocated) {
+		this->Bombs.erase_if([](BombClass* pBomb){ 
+			if (!pBomb || !pBomb->Target)
 			{
-				if (bomb->TickSound != -1)
-				{
-					ObjectClass* target = bomb->Target;
+				if(pBomb && !pBomb->Target)
+				{ GameDelete<true, false>(pBomb); }
+				return true;
+			}
 
-					if (target->InLimbo)
-					{
-						bomb->TickAudioController.AudioEventHandleStop();
-						bomb->ShouldPlayTickingSound = 0;
-					}
-					else
-					{
-						if (bomb->ShouldPlayTickingSound)
-						{
-							VocClass::PlayIfInRange(target->Location, &bomb->TickAudioController);
-						}
-						else
-						{
-							VocClass::SafeImmedietelyPlayAt(bomb->TickSound, target->Location, &bomb->TickAudioController);
-							bomb->ShouldPlayTickingSound = 1;
-						}
+			else  if (pBomb->TickSound != -1) {
+				ObjectClass* target = pBomb->Target;
+
+				if (target->InLimbo) {
+					pBomb->TickAudioController.AudioEventHandleStop();
+					pBomb->ShouldPlayTickingSound = 0;
+				} else {
+					if (pBomb->ShouldPlayTickingSound) {
+						VocClass::PlayIfInRange(target->Location, &pBomb->TickAudioController);
+					} else {
+						VocClass::SafeImmedietelyPlayAt(pBomb->TickSound, target->Location, &pBomb->TickAudioController);
+						pBomb->ShouldPlayTickingSound = 1;
 					}
 				}
 			}
-		}
+			return false;
+		});
 	}
 
-	// --- Throttle: only re-evaluate bomb visibility every 45 logic frames ---
-	if (this->UpdateDelay > 0)
-	{
+	if (this->UpdateDelay > 0) {
 		--this->UpdateDelay;
 		return;
 	}
 
-
 	this->UpdateDelay = 45;
 
-	//static tracker , vector item pointer are no allocated yet
-	//awaiting for new item to be add
-	if (!this->Bombs.IsAllocated)
-		return;
+	if (this->Bombs.IsAllocated) {
+		const auto pCurrent = HouseClass::CurrentPlayer();
+		const bool isObserverLooking = pCurrent == HouseClass::Observer();
 
-	const auto pCurrent = HouseClass::CurrentPlayer();
-	const bool isObserverLooking = pCurrent == HouseClass::Observer();
+		this->Bombs.for_each([this, isObserverLooking, pCurrent](BombClass* pBomb) {
+			 bool wasVisible = pBomb->Target->BombVisible;
+			 bool nowVisible = false;
 
-	// --- Pass 2: recompute BombVisible for every tracked bomb ---
-	for (int k = this->Bombs.Count - 1; k >= 0; --k)
-	{
-		FakeBombClass* bomb = (FakeBombClass*)this->Bombs.Items[k];
-		ObjectClass* target = bomb->Target;
-		bool wasVisible = target->BombVisible;
-		bool nowVisible;
+			 if (!isObserverLooking) {
+				 AffectedHouse visibility = FakeRulesClass::Instance->IvanBomb_Visibility;
+				 if (const auto pWeaponExt = ((FakeBombClass*)pBomb)->_GetExtData()->Weapon)
+					 visibility = pWeaponExt->IvanBomb_Visibility.Get(visibility);
 
-		if (!isObserverLooking)
-		{
-			nowVisible = false;
-			// --- Visibility rule (replaces vanilla's hardcoded
-			//     "owner == current player" check w/ IvanBomb_Visibility) ---
-			AffectedHouse visibility = FakeRulesClass::Instance->IvanBomb_Visibility;
-			if (const auto pWeaponExt = bomb->_GetExtData()->Weapon)
-				visibility = pWeaponExt->IvanBomb_Visibility.Get(visibility);
+				 nowVisible = pBomb->Target->IsOnMyView() && (EnumFunctions::CanTargetHouse(visibility, pBomb->OwnerHouse, pCurrent)
+					 || (this->Detectors.IsAllocated && this->Detectors.find_if([pBomb, visibility, pCurrent](TechnoClass* pDetector)
+						 {
+							 const auto pDetectorOwner = pDetector->GetOwningHouse();
 
-			if (EnumFunctions::CanTargetHouse(visibility, bomb->OwnerHouse, pCurrent)
-				|| std::ranges::find_if(this->Detectors, [=](TechnoClass* pDetector)
-					{
-						if (!EnumFunctions::CanTargetHouse(visibility, pDetector->Owner, pCurrent))
-							return false;
+							 if (!pDetectorOwner->ControlledByCurrentPlayer())
+								 return false;
 
-						const int sight = pDetector->GetTechnoType()->BombSight * Unsorted::LeptonsPerCell;
-						return pDetector->GetCoords().DistanceFrom(target->GetCoords()) <= static_cast<double>(sight) * sight;
-					}) != this->Detectors.end()
-						)
-			{
-				nowVisible = true;
-			}
-		}
-		else { nowVisible = true; }
+							 if (!EnumFunctions::CanTargetHouse(visibility, pDetectorOwner, pCurrent))
+								 return false;
 
-		target->BombVisible = nowVisible;
-		if (nowVisible != wasVisible)
-		{
-			target->NeedsRedraw = 1;
-		}
+							 const int sight = pDetector->GetTechnoType()->BombSight * Unsorted::LeptonsPerCell;
+							 return pDetector->GetCoords().DistanceFrom(pBomb->Target->GetCoords()) <= static_cast<double>(sight) * sight;
+						 }) != this->Detectors.end()));
+			 }
+			 else nowVisible = pBomb->Target->IsOnMyView();
+
+			 pBomb->Target->BombVisible = nowVisible;
+			 if (wasVisible != nowVisible) {
+				 pBomb->Target->NeedsRedraw = 1;
+			 }
+		});
 	}
 }
+
+void  FakeBombListClass::__PlantB(TechnoClass* pOwner, ObjectClass* pTarget, WeaponTypeClass* pWeapon)
+{
+	if (!pOwner || !pTarget || pTarget->AttachedBomb)
+		return;
+
+	const auto pPlantOwner = pOwner->GetOwningHouse();
+	auto pBomb = (FakeBombClass*)GameCreate<BombClass>();
+	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+	pBomb->_GetExtData()->Weapon = pWeaponExt;
+	pBomb->OwnerHouse = pPlantOwner;
+	pBomb->Owner = pOwner;
+	pBomb->Target = pTarget;
+	pTarget->AttachedBomb = pBomb;
+	pBomb->PlantingFrame = Unsorted::CurrentFrame();
+	pBomb->Type = BombType::NormalBomb;
+	pBomb->DetonationFrame = Unsorted::CurrentFrame.get() + pWeaponExt->Ivan_Delay.Get(RulesClass::Instance->IvanTimedDelay);
+	this->Bombs.push_back(pBomb);
+	this->UpdateDelay = 1;
+
+	pBomb->TickSound = pWeaponExt->Ivan_TickingSound.Get(RulesClass::Instance->BombTickingSound);
+	const auto IsAlly = pPlantOwner->IsAlliedWith(pTarget);
+	pBomb->Type = BombType((!IsAlly && pWeaponExt->Ivan_DeathBomb) || (IsAlly && pWeaponExt->Ivan_DeathBombOnAllies));
+
+	if (pPlantOwner->ControlledByCurrentPlayer()) {
+		VocClass::SafeImmedietelyPlayAt(pWeaponExt->Ivan_AttachSound.Get(RulesClass::Instance->BombAttachSound)
+		, &pBomb->Target->Location);
+	}
+}
+
+void FakeBombListClass::__Plant(TechnoClass* pOwner, ObjectClass* pTarget)
+{
+	Debug::FatalErrorAndExit("Use Proper Function");
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x438E70, FakeBombListClass::__Plant)
 
 DEFINE_FUNCTION_JUMP(CALL, 0x55B4E6, FakeBombListClass::__AI)
 DEFINE_FUNCTION_JUMP(LJMP, 0x438BF0, FakeBombListClass::__AI)

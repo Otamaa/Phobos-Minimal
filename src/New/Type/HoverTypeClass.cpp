@@ -1,5 +1,8 @@
 #include "HoverTypeClass.h"
 
+#include <VocClass.h>
+#include <AnimTypeClass.h>
+
 Enumerable<HoverTypeClass>::container_t Enumerable<HoverTypeClass>::Array;
 
 void HoverTypeClass::LoadFromINI(CCINIClass * pINI)

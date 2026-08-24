@@ -79,7 +79,9 @@ std::array<const char*, (size_t)PhobosAbilityType::count> EnumFunctions::PhobosA
 	{ "WEBIMMUNE" } ,
 	{ "UNTRACKABLE" },
 	{ "RELOAD" },
-	{ "EMPTY_RELOAD" }
+	{ "EMPTY_RELOAD" },
+	{ "RANGE" },
+	{ "CRITCHANCE" }
  }
 };
 

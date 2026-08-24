@@ -11,6 +11,7 @@
 #include <BuildingClass.h>
 #include <UnitClass.h>
 #include <InfantryClass.h>
+#include <VocClass.h>
 
 VoxelAnimExtData::VoxelAnimExtData(VoxelAnimClass* pObj) : ObjectExtData(pObj)
 {
@@ -106,12 +107,22 @@ ASMJIT_PATCH(0x749B02, VoxelAnimClass_DTOR, 0xA)
 	return 0;
 }
 
+void FakeVoxelAnimClass::_RemoveThis()
+{
+	if (this->Type)
+		VocClass::SafeImmedietelyPlayAt(this->Type->StopSound, &this->Location);
+
+	this->ObjectClass::UnInit();
+}
+
 void FakeVoxelAnimClass::_Detach(AbstractClass* pTarget, bool bRemoved)
 {
 	this->ObjectClass::PointerExpired(pTarget, bRemoved);
 	if(auto pExt = this->_GetExtData())
 		pExt->InvalidatePointer(pTarget, bRemoved, pTarget->WhatAmI());
 }
+
+
 
 DEFINE_FUNCTION_JUMP(VTABLE ,0x7F6340 , FakeVoxelAnimClass::_Detach)
 

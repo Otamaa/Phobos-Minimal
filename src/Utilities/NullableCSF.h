@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <Base/Always.h>
+#include <Base/Macros.h>
 
 class CCINIClass;
 struct NullableCSF

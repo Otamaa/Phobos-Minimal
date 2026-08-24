@@ -1,8 +1,13 @@
 #pragma once
 
-#include <Utilities/Enum.h>
 #include <Utilities/Template.h>
 
+class AnimTypeClass;
+class WeaponTypeClass;
+class WarheadTypeClass;
+class CCINIClass;
+class PhobosStreamReader;
+class PhobosStreamWriter;
 class BlockTypeClass
 {
 public:

@@ -8,6 +8,7 @@
 #include <Ext/Scenario/Body.h>
 
 #include <Memory.h>
+#include <PCX.h>
 
 SWColumnClass::SWColumnClass(int maxButtons, int x, int y, int width, int height)
 	: GadgetClass(x, y, width, height, static_cast<GadgetFlag>(0), true)

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <YRMath.h>
-#include <Base/Always.h>
+#include <Base/Macros.h>
 #include <Utilities/Enum.h>
 
 class INI_EX;

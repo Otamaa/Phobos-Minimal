@@ -15,9 +15,12 @@
 #include <Ext/SWType/Body.h>
 #include <Ext/Scenario/Body.h>
 #include <Ext/Building/Body.h>
+#include <Ext/VoxelAnimType/Body.h>
 
 #include <Utilities/Macro.h>
 #include <TriggerTypeClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 ASMJIT_PATCH(0x6DD791, TActionClass_ReadINI_MaskedTActions, 0xB)
 {

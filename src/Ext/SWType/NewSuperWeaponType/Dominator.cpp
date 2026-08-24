@@ -1,4 +1,6 @@
 #include "Dominator.h"
+#include <VocClass.h>
+#include <VoxClass.h>
 
 SuperClass* SW_PsychicDominator::CurrentPsyDom = nullptr;
 

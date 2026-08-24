@@ -9,6 +9,8 @@
 
 #include <New/Type/CursorTypeClass.h>
 #include <SuperClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 SuperWeaponTypeClass* SW_NuclearMissile::CurrentNukeType = nullptr;
 

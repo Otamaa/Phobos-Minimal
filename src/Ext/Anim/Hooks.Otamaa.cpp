@@ -21,6 +21,7 @@
 #include <SmudgeTypeClass.h>
 
 #include <Memory.h>
+#include <VocClass.h>
 
 ASMJIT_PATCH(0x685078, Generate_OreTwinkle_Anims, 0x7)
 {

@@ -3,6 +3,8 @@
 #include <LaserDrawClass.h>
 #include <IonBlastClass.h>
 #include <SuperClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 SuperWeaponFlags SW_LaserStrike::Flags(const SWTypeExtData* pData) const
 {

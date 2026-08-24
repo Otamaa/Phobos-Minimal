@@ -8,6 +8,9 @@
 
 #include <Utilities/Helpers.h>
 
+#include <VocClass.h>
+#include <VoxClass.h>
+
 // ---------------------------------------------------------------------------
 // Activate — launches hunter seeker units from eligible buildings
 //

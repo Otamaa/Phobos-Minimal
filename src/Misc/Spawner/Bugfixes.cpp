@@ -508,3 +508,15 @@ ASMJIT_PATCH(0x576721, MapBridge_576200_RecalcCell, 0xA)
 	BridgeCellDestroyed(pCell);
 	return 0x57672B;
 }
+
+// Do_Blit's 50ms wait guards the cursor restore after the primary-surface blit, but that restore
+// (0x7B92D0) and the draw before it (0x7B90C0) are both no-ops unless IsCaptured(). Loading screens
+// pass mouse_captured = true while the mouse is uncaptured, so vanilla sleeps 40+ times per scenario
+// load guarding nothing - about two seconds. When captured, this is the vanilla path unchanged.
+void __stdcall _Sleep(DWORD dwMilliseconds)
+{
+	// Do_Blit already tested WWMouse for null at 0x4F4B8A.
+	if (WWMouseClass::Instance->IsCaptured())
+		Imports::Sleep.invoke()(dwMilliseconds);
+}
+DEFINE_FUNCTION_JUMP(CALL6, 0x4F4B90, _Sleep)

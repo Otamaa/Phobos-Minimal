@@ -2,6 +2,13 @@
 
 #include <Ext/Rules/Body.h>
 
+#include <FileFormats/SHP.h>
+
+#include <AnimTypeClass.h>
+#include <WeaponTypeClass.h>
+
+#include <Utilities/SavegameDef.h>
+
 void DroppodProperties::Read(INI_EX& exINI, const char* pSection)
 {
 	this->Droppod_PodImage_Infantry.Read(exINI, pSection, "DropPod.PodImageInfantry");
@@ -44,6 +51,42 @@ void DroppodProperties::Initialize()
 	this->Droppod_Trailer_SpawnDelay = FakeRulesClass::Instance()->DroppodTrailerSpawnDelay;
 }
 
+bool DroppodProperties::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+{
+
+	return Stm
+		.Process(this->Droppod_PodImage_Infantry)
+		.Process(this->Droppod_Puff)
+		.Process(this->Droppod_Angle)
+		.Process(this->Droppod_Speed)
+		.Process(this->Droppod_Height)
+		.Process(this->Droppod_Weapon)
+		.Process(this->Droppod_GroundPodAnim)
+		.Process(this->Droppod_Trailer)
+		.Process(this->Droppod_Trailer_Attached)
+		.Process(this->Droppod_Trailer_SpawnDelay)
+		.Process(this->Droppod_AtmosphereEntry)
+		.Success();
+}
+
+bool DroppodProperties::Save(PhobosStreamWriter& Stm) const
+{
+	return Stm
+		.Process(this->Droppod_PodImage_Infantry)
+		.Process(this->Droppod_Puff)
+		.Process(this->Droppod_Angle)
+		.Process(this->Droppod_Speed)
+		.Process(this->Droppod_Height)
+		.Process(this->Droppod_Weapon)
+		.Process(this->Droppod_GroundPodAnim)
+		.Process(this->Droppod_Trailer)
+		.Process(this->Droppod_Trailer_Attached)
+		.Process(this->Droppod_Trailer_SpawnDelay)
+		.Process(this->Droppod_AtmosphereEntry)
+		.Success();
+}
+
+
 void NullableDroppodProperties::Read(INI_EX& exINI, const char* pSection)
 {
 
@@ -70,4 +113,39 @@ void NullableDroppodProperties::Read(INI_EX& exINI, const char* pSection)
 	this->Droppod_Trailer_Attached.Read(exINI, pSection, "DropPod.Trailer.Attached");
 	this->Droppod_Trailer_SpawnDelay.Read(exINI, pSection, "DropPod.Trailer.SpawnDelay");
 	this->Droppod_AtmosphereEntry.Read(exINI, pSection, "DropPod.AtmosphereEntry");
+}
+
+bool NullableDroppodProperties::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+{
+
+	return Stm
+		.Process(this->Droppod_PodImage_Infantry)
+		.Process(this->Droppod_Puff)
+		.Process(this->Droppod_Angle)
+		.Process(this->Droppod_Speed)
+		.Process(this->Droppod_Height)
+		.Process(this->Droppod_Weapon)
+		.Process(this->Droppod_GroundPodAnim)
+		.Process(this->Droppod_Trailer)
+		.Process(this->Droppod_Trailer_Attached)
+		.Process(this->Droppod_Trailer_SpawnDelay)
+		.Process(this->Droppod_AtmosphereEntry)
+		.Success();
+}
+
+bool NullableDroppodProperties::Save(PhobosStreamWriter& Stm) const
+{
+	return Stm
+		.Process(this->Droppod_PodImage_Infantry)
+		.Process(this->Droppod_Puff)
+		.Process(this->Droppod_Angle)
+		.Process(this->Droppod_Speed)
+		.Process(this->Droppod_Height)
+		.Process(this->Droppod_Weapon)
+		.Process(this->Droppod_GroundPodAnim)
+		.Process(this->Droppod_Trailer)
+		.Process(this->Droppod_Trailer_Attached)
+		.Process(this->Droppod_Trailer_SpawnDelay)
+		.Process(this->Droppod_AtmosphereEntry)
+		.Success();
 }

@@ -32,42 +32,30 @@
 
 #pragma once
 
-#include <Windows.h>
-
 #include "Template.h"
 
 #include "INIParser.h"
 #include "Constructs.h"
-#include "SavegameDef.h"
 #include "TranslucencyLevel.h"
 #include "GeneralUtils.h"
 
-#include <InfantryTypeClass.h>
-#include <AircraftTypeClass.h>
-#include <UnitTypeClass.h>
-#include <BuildingTypeClass.h>
-#include <FootClass.h>
-#include <VocClass.h>
-#include <VoxClass.h>
-#include <VelocityClass.h>
-#include <SWRange.h>
-#include <CoordStruct.h>
-#include <RocketStruct.h>
-
-#include <FileFormats/_Loader.h>
 #include <Helpers/Enumerators.h>
 
-#include <Utilities/TechnoTypeConvertData.h>
-#include <Utilities/CSFText.h>
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/PhobosFixedString.h>
-#include <Utilities/Parser.h>
-
-//#include <New/Type/PaletteManager.h>
 
 #include <array>
 #include <iostream>
 #include <string_view>
+#include <YRMathVector.h>
+#include <VocClass.h>
+#include <VoxClass.h>
+
+struct SWRange;
+struct TechnoTypeConvertData;
+struct SHPCaches;
+class PhobosPCXFile;
+class TechnoTypeClass;
 
 template<typename T>
 struct IndexFinder
@@ -797,55 +785,19 @@ namespace detail
 	}
 
 	template <>
-	OPTIONALINLINE double interpolate<double>(double& first, double& second, double percentage, InterpolationMode mode)
-	{
-		double result = first;
-
-		switch (mode)
-		{
-		case InterpolationMode::Linear:
-			result = first + ((second - first) * percentage);
-			break;
-		default:
-			break;
-		}
-
-		return result;
-	}
+	double interpolate<double>(double& first, double& second, double percentage, InterpolationMode mode);
 
 	template <>
-	OPTIONALINLINE int interpolate<int>(int& first, int& second, double percentage, InterpolationMode mode)
-	{
-		double firstValue = first;
-		double secondValue = second;
-		return (int)interpolate(firstValue, secondValue, percentage, mode);
-	}
+	int interpolate<int>(int& first, int& second, double percentage, InterpolationMode mode);
 
 	template <>
-	OPTIONALINLINE BYTE interpolate<BYTE>(BYTE& first, BYTE& second, double percentage, InterpolationMode mode)
-	{
-		double firstValue = first;
-		double secondValue = second;
-		return (BYTE)interpolate(firstValue, secondValue, percentage, mode);
-	}
+	BYTE interpolate<BYTE>(BYTE& first, BYTE& second, double percentage, InterpolationMode mode);
 
 	template <>
-	OPTIONALINLINE ColorStruct interpolate<ColorStruct>(ColorStruct& first, ColorStruct& second, double percentage, InterpolationMode mode)
-	{
-		BYTE r = interpolate(first.R, second.R, percentage, mode);
-		BYTE g = interpolate(first.G, second.G, percentage, mode);
-		BYTE b = interpolate(first.B, second.B, percentage, mode);
-		return { r, g, b };
-	}
+	ColorStruct interpolate<ColorStruct>(ColorStruct& first, ColorStruct& second, double percentage, InterpolationMode mode);
 
 	template <>
-	OPTIONALINLINE TranslucencyLevel interpolate<TranslucencyLevel>(TranslucencyLevel& first, TranslucencyLevel& second, double percentage, InterpolationMode mode)
-	{
-		double firstValue = first.GetIntValue();
-		double secondValue = second.GetIntValue();
-		int value = (int)interpolate(firstValue, secondValue, percentage, mode);
-		return { value };
-	}
+	TranslucencyLevel interpolate<TranslucencyLevel>(TranslucencyLevel& first, TranslucencyLevel& second, double percentage, InterpolationMode mode);
 
 	template <typename T>
 	OPTIONALINLINE bool getindex(int& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)

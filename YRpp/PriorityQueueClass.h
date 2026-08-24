@@ -1,6 +1,8 @@
 #pragma once
 
-#include <Base/Always.h>
+#include <Base/Macros.h>
+#include <ASMMacros.h>
+
 #include <Memory.h>
 #include <assert.h>
 #include <type_traits>

@@ -3,6 +3,9 @@
 #include <UnitClass.h>
 #include <Utilities/Macro.h>
 
+#include <VocClass.h>
+#include <VoxClass.h>
+
 #include <Ext/BuildingType/Body.h>
 
 #pragma region Otamaa

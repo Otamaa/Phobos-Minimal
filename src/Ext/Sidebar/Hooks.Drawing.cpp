@@ -18,14 +18,16 @@
 #include <Utilities/Patch.h>
 #include <Utilities/Macro.h>
 
+#include <PCX.h>
 #include <TechnoTypeClass.h>
 #include <TextDrawing.h>
 #include <CCToolTip.h>
 #include <EventClass.h>
 #include <GeneralDefinitions.h>
 #include <LoadProgressManager.h>
-#include <EventClass.h>
 #include <FactoryClass.h>
+#include <VoxClass.h>
+#include <VocClass.h>
 
 #include <New/SuperWeaponSidebar/SWSidebarClass.h>
 

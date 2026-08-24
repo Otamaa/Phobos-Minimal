@@ -2,6 +2,11 @@
 
 #include <Utilities/TemplateDefB.h>
 
+#include <YRMathVector.h>
+
+class PhobosStreamReader;
+class PhobosStreamWriter;
+struct SHPCaches;
 struct InsigniaData
 {
 	Promotable<SHPCaches*> Shapes { nullptr };
@@ -10,24 +15,10 @@ struct InsigniaData
 
 public:
 
-	OPTIONALINLINE bool Load(PhobosStreamReader& stm, bool registerForChange)
-	{
-		return this->Serialize(stm);
-	}
-
-	OPTIONALINLINE bool Save(PhobosStreamWriter& stm) const
-	{
-		return const_cast<InsigniaData*>(this)->Serialize(stm);
-	}
+	bool Load(PhobosStreamReader& stm, bool registerForChange);
+	bool Save(PhobosStreamWriter& stm) const;
 
 private:
 	template <typename T>
-	OPTIONALINLINE bool Serialize(T& stm)
-	{
-		return stm
-			.Process(this->Shapes)
-			.Process(this->Frame)
-			.Process(this->Frames)
-			.Success();
-	}
+	bool Serialize(T& stm);
 };

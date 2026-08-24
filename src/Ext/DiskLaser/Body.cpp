@@ -3,6 +3,8 @@
 #include <BuildingClass.h>
 #include <BuildingTypeClass.h>
 #include <ColorStruct.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 #include <Ext/Anim/Body.h>
 #include <Ext/WeaponType/Body.h>

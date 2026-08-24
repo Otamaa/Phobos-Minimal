@@ -7,11 +7,15 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/Cell/Body.h>
 
+#include <New/Type/CrateTypeClass.h>
+
 #include <Utilities/Macro.h>
 #include <Utilities/Patch.h>
 
 #include <UnitClass.h>
 #include <UnitTypeClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 ASMJIT_PATCH(0x73E361, UnitClass_MI_Unload_HarvesterDumpRate, 6)
 {

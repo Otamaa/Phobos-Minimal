@@ -17,6 +17,9 @@
 #include <RadarEventClass.h>
 #include <BitFont.h>
 #include <AlphaShapeClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
+#include <SuperClass.h>
 
 #include <New/Entity/FlyingStrings.h>
 #include <New/PhobosAttachedAffect/Functions.h>
@@ -2893,25 +2896,12 @@ void TechnoExtData::PlantBomb(TechnoClass* pSource, ObjectClass* pTarget, Weapon
 		if (pTechno && !pWHExt->CanDealDamage(pTechno, false, false, false))
 			return;
 
-		BombListClass::Instance->Plant(pSource, pTarget);
+		((FakeBombListClass*)BombListClass::Instance.operator->())->__PlantB(pSource, pTarget, pWeapon);
 
 		// if target has a bomb, planting was successful
 		if (auto pBomb = pTarget->AttachedBomb)
 		{
-			const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-			BombExtContainer::Instance.Find(pBomb)->Weapon = pWeaponExt;
-			pBomb->DetonationFrame = Unsorted::CurrentFrame.get() + pWeaponExt->Ivan_Delay.Get(RulesClass::Instance->IvanTimedDelay);
-			pBomb->TickSound = pWeaponExt->Ivan_TickingSound.Get(RulesClass::Instance->BombTickingSound);
 
-			const auto IsAlly = pSource->Owner && pSource->Owner->IsAlliedWith(pTarget);
-
-			pBomb->Type = BombType((!IsAlly && pWeaponExt->Ivan_DeathBomb) || (IsAlly && pWeaponExt->Ivan_DeathBombOnAllies));
-
-			if (pSource->Owner && pSource->Owner->ControlledByCurrentPlayer())
-			{
-				VocClass::SafeImmedietelyPlayAt(pWeaponExt->Ivan_AttachSound.Get(RulesClass::Instance->BombAttachSound)
-				, &pBomb->Target->Location);
-			}
 		}
 	}
 }

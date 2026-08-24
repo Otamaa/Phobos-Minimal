@@ -1186,13 +1186,29 @@ bool FakeTechnoClass::__EvaluateObjectB(
 	// Insignificant units (e.g. civilian vehicles): same rules apply.
 	// IsForcedEnemy() is re-evaluated because a purely insignificant target
 	// (non-passive house) still needs the check independently.
-	if (pTechnoTarget && pTechnoTarget->GetTechnoType()->Insignificant
-		&& !pTechnoTarget->MindControlledBy
-		&& !pTechnoTarget->MindControlledByAUnit
-		&& (!pBuildingTarget || pBuildingTarget->Owner->Type->MultiplayPassive))
-	{
-		if (!IsForcedEnemy() && !CanInfantryAttackPassiveBuilding())
+	if (pTechnoTarget){ 
+		auto _forceEnemy = [pTechnoTarget, pBuildingTarget]() {
+			bool insignificant = pTechnoTarget->GetTechnoType()->Insignificant;
+
+			if (!FakeRulesClass::Instance->AutoTarget_InsignificantWhenMindControlled
+				&& insignificant
+				&& (!pBuildingTarget || pBuildingTarget->Owner->Type->MultiplayPassive)
+				)
+				return true;
+
+			if (insignificant
+				&& !pTechnoTarget->MindControlledBy
+				&& !pTechnoTarget->MindControlledByAUnit
+				&& (!pBuildingTarget || pBuildingTarget->Owner->Type->MultiplayPassive))
+				return true;
+
 			return false;
+		};
+
+		if(_forceEnemy()) {
+			if (!IsForcedEnemy() && !CanInfantryAttackPassiveBuilding())
+				return false;
+		}
 	}
 
 	// =========================================================================

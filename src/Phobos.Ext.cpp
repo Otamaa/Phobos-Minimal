@@ -318,7 +318,6 @@ unsigned Phobos::GetVersionNumber() {
 	//version += sizeof(TSJumpJetLocomotionClass);
 	version += sizeof(GenericPrerequisite);
 	version += sizeof(Prereqs);
-	version += sizeof(PaletteManager);
 	version += sizeof(HugeBar);
 
 	version += sizeof(BannerClass);
@@ -444,7 +443,6 @@ void Phobos::ClearAll()
 	CLEAR_TYPE_CLASS(Immunity);
 	CLEAR_TYPE_CLASS(Insignia);
 	CLEAR_TYPE_CLASS(LaserTrail);
-	CLEAR_CLASS(PaletteManager);
 	CLEAR_TYPE_CLASS(Rad);
 	CLEAR_TYPE_CLASS(Rocket);
 	CLEAR_TYPE_CLASS(SelectBox);

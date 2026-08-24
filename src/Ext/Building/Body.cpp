@@ -20,6 +20,10 @@
 #include <SpawnManagerClass.h>
 
 #include <Misc/PhobosGlobal.h>
+
+#include <VocClass.h>
+#include <VoxClass.h>
+
 ASMJIT_PATCH(0x45387A, BuildingClass_FireOffset_Replace_MuzzleFix, 0x6) // A
 {
 	GET(FakeBuildingClass*, pThis, ESI);

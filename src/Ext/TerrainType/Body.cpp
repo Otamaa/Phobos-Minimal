@@ -7,10 +7,14 @@
 #include <TerrainClass.h>
 #include <TacticalClass.h>
 #include <ParticleTypeClass.h>
-
+#include <VoxClass.h>
+#include <VocClass.h>
 #include <Helpers/Macro.h>
 
 #include <AnimClass.h>
+
+#include <Ext/Rules/Body.h>
+
 
 void TerrainTypeExtData::Initialize()
 {
@@ -91,8 +95,6 @@ void TerrainTypeExtData::PlayDestroyEffects(CoordStruct coords)
 	if (auto pAnimType = this->DestroyAnim)
 		GameCreate<AnimClass>(pAnimType.Get(), coords);
 }
-
-#include <Ext/Rules/Body.h>
 
 bool TerrainTypeExtData::IsThisPassable()
 {

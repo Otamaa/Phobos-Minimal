@@ -4,6 +4,8 @@
 #include <TerrainClass.h>
 #include <TacticalClass.h>
 #include <EventClass.h>
+#include <VoxClass.h>
+#include <VocClass.h>
 
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Cast.h>

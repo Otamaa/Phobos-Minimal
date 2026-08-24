@@ -35,15 +35,21 @@
 #include "Iterator.h"
 #include "Enum.h"
 
-#include <MouseClass.h>
-#include <FootClass.h>
-
-#include "Savegame.h"
+#include "SavegameDef.h"
 #include "NullableDefaultRegistry.h"
 
-#include <Phobos.CRT.h>
+#include <Utilities/Parser.h>
 
 class INI_EX;
+class TechnoClass;
+
+namespace _dummy
+{
+	Rank GetTechnoVet(TechnoClass* pTechno);
+	Rank GetTechnoCurrentVet(TechnoClass* pTechno);
+	double GetTechnoHealthRatio(TechnoClass* pTechno);
+
+};
 
 /**
  * More fancy templates!
@@ -542,8 +548,7 @@ public:
 	OPTIONALINLINE void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr, bool allocate = false);
 
 	COMPILETIMEEVAL FORCEDINLINE const T* GetEx(TechnoClass* pTechno) const noexcept {
-		const auto rank = pTechno->Veterancy.GetRemainingLevel();
-		return &this->GetValue(rank);
+		return &this->GetValue(_dummy::GetTechnoVet(pTechno));
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE const T& GetFromSpecificRank(Rank rank)const noexcept
@@ -562,7 +567,7 @@ public:
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE const T& Get(TechnoClass* pTechno) const noexcept {
-		auto const rank = pTechno->Veterancy.GetRemainingLevel();
+		auto const rank = _dummy::GetTechnoVet(pTechno);
 		if (rank == Rank::Elite)
 		{
 			return this->Elite;
@@ -575,11 +580,12 @@ public:
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE const T& GetFromCurrentRank(TechnoClass* pTechno) const noexcept {
-		if (pTechno->CurrentRanking == Rank::Elite)
+		auto const rank = _dummy::GetTechnoCurrentVet(pTechno);
+		if (rank == Rank::Elite)
 		{
 			return this->Elite;
 		}
-		if (pTechno->CurrentRanking == Rank::Veteran)
+		if (rank == Rank::Veteran)
 		{
 			return this->Veteran;
 		}
@@ -966,7 +972,7 @@ public:
 
 	COMPILETIMEEVAL const T& Get(TechnoClass* pTechno) const noexcept
 	{
-		return Get(pTechno->GetHealthRatio(), RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed);
+		return Get(_dummy::GetTechnoHealthRatio(pTechno), RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed);
 	}
 
 	COMPILETIMEEVAL const T& Get(double ratio) const noexcept
@@ -1089,7 +1095,7 @@ public:
 
 	COMPILETIMEEVAL const ValueableVector<T>& Get(TechnoClass* pTechno) const noexcept
 	{
-		return Get(pTechno->GetHealthRatio());
+		return Get(_dummy::GetTechnoHealthRatio(pTechno));
 	}
 
 	COMPILETIMEEVAL const ValueableVector<T>* GetEx(double ratio) const noexcept
@@ -1113,75 +1119,6 @@ public:
 
 	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const;
 };
-
-/*
-PromotableVector
-
-Read: use ValueableVector<T>::Read, like promotable
-ReadList: like gattling, remove last char if it is '.'
-
-template <typename T>
-class PromotableVector
-{
-	PromotableVector(const PromotableVector&) = delete;
-	PromotableVector(PromotableVector&&) = delete;
-	PromotableVector& operator=(const PromotableVector& other) = delete;
-public:
-	static T Default;
-
-	ValueableVector<T> Base {};
-	std::unordered_map<int, T> Veteran {};
-	std::unordered_map<int, T> Elite {};
-
-	PromotableVector() noexcept  = default;
-
-	explicit PromotableVector(ValueableVector<T> const& all)
-		noexcept(noexcept(ValueableVector<T> { all }))
-		: Base { all }
-	{
-	}
-
-	~PromotableVector() = default;
-
-	//TODO : untested
-	OPTIONALINLINE void Read(INI_EX& parser, const char* pSection, const char* pBaseFlag, const char* pSingleFlag = nullptr);
-
-	//TODO : untested
-	OPTIONALINLINE void ReadList(INI_EX& parser, const char* pSection, const char* pFlag, bool allocate = false);
-
-	const T& Get(int index, double veterancy) const noexcept
-	{
-		if (2.0 <= veterancy)
-		{
-			if (this->Elite.contains(index))
-				return this->Elite[index];
-		}
-
-		if (1.0 <= veterancy)
-		{
-			if (this->Veteran.count(index))
-				return this->Veteran.at(index);
-		}
-
-		if (index < static_cast<int>(Base.size()))
-			return this->Base.at(index);
-
-		return Default;
-	}
-
-	const T& Get(int index, TechnoClass* pTechno) const noexcept
-	{
-		return this->Get(index, pTechno->Veterancy.Veterancy);
-	}
-
-	OPTIONALINLINE bool Load(PhobosStreamReader& stm, bool registerForChange);
-
-	OPTIONALINLINE bool Save(PhobosStreamWriter& stm) const;
-};
-
-template <typename T>
-T PromotableVector<T>::Default = T();
-*/
 
 // Template to use for timed Warhead-applied values.
 template<typename T>
@@ -1231,7 +1168,6 @@ public:
 	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const;
 };
-
 
 template<typename T>
 class NullablePromotable
@@ -1285,7 +1221,8 @@ public:
 
 	COMPILETIMEEVAL const Nullable<T>* Get(TechnoClass* pTechno) const noexcept
 	{
-		auto const rank = pTechno->Veterancy.GetRemainingLevel();
+		auto const rank = _dummy::GetTechnoVet(pTechno);
+
 		if (rank == Rank::Elite)
 		{
 			return &this->Elite;
@@ -1299,11 +1236,13 @@ public:
 
 	COMPILETIMEEVAL const Nullable<T>* GetFromCurrentRank(TechnoClass* pTechno) const noexcept
 	{
-		if (pTechno->CurrentRanking == Rank::Elite)
+		auto const rank = _dummy::GetTechnoCurrentVet(pTechno);
+
+		if (rank == Rank::Elite)
 		{
 			return &this->Elite;
 		}
-		if (pTechno->CurrentRanking == Rank::Veteran)
+		if (rank == Rank::Veteran)
 		{
 			return &this->Veteran;
 		}
@@ -1317,6 +1256,8 @@ public:
 
 	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const;
+
+private:
 };
 
 // Designates that the type can read it's value from multiple flags.

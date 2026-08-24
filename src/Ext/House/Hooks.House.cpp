@@ -6,9 +6,7 @@
 #include <UnitClass.h>
 #include <Utilities/Macro.h>
 #include <Helpers/Macro.h>
-#include <Base/Always.h>
 
-#include <HouseClass.h>
 #include <Utilities/Debug.h>
 
 #include <Ext/Building/Body.h>
@@ -22,6 +20,7 @@
 #include <Ext/HouseType/Body.h>
 #include <Ext/Side/Body.h>
 #include <Ext/Scenario/Body.h>
+#include <Ext/Super/Body.h>
 
 #include <New/Type/GenericPrerequisite.h>
 
@@ -30,6 +29,9 @@
 #include <InfantryClass.h>
 #include <AircraftClass.h>
 #include <CCToolTip.h>
+#include <VocClass.h>
+#include <VoxClass.h>
+#include <PCX.h>
 
 ASMJIT_PATCH(0x4E3560, Game_GetFlagSurface, 5)
 {

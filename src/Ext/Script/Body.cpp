@@ -15,6 +15,7 @@
 #include <Ext/Scenario/Body.h>
 #include <Ext/ScriptType/Body.h>
 #include <Ext/Team/Body.h>
+#include <Ext/Super/Body.h>
 
 #include <New/Type/GenericPrerequisite.h>
 
@@ -24,7 +25,8 @@
 #include <InfantryClass.h>
 #include <UnitClass.h>
 #include <AircraftClass.h>
-
+#include <VocClass.h>
+#include <VoxClass.h>
 /*
 *	Scripts is a part of `TeamClass` that executed sequentally form `ScriptTypeClass`
 *	Each script contains function that behave as it programmed

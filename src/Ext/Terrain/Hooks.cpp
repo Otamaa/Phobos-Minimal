@@ -1,6 +1,8 @@
 #include "Body.h"
 #include <SpecificStructures.h>
 #include <ScenarioClass.h>
+#include <VoxClass.h>
+#include <VocClass.h>
 
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>

@@ -1,9 +1,15 @@
 #pragma once
 
-#include <Utilities/Constructs.h>
 #include <Utilities/Enum.h>
 #include <Utilities/Template.h>
 
+#include <Point2D.h>
+#include <vector>
+
+class AnimTypeClass;
+class PhobosStreamReader;
+class PhobosStreamWriter;
+class CCINIClass;
 class TiberiumEaterTypeClass
 {
 public:

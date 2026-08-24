@@ -1,7 +1,8 @@
 #pragma once
 
-#include <Utilities/TemplateDefB.h>
+#include <Utilities/Template.h>
 
+class TechnoTypeClass;
 struct BuildSpeedBonus
 {
 	bool Enabled { false };
@@ -11,29 +12,13 @@ struct BuildSpeedBonus
 	double SpeedBonus_Unit { 0.000 };
 	ValueableVector<TechnoTypeClass*> AffectedType { };
 
+public:
+
 	void Read(INI_EX& parser, const char* pSection);
-
-	bool Load(PhobosStreamReader& stm, bool registerForChange) {
-		return Serialize(stm);
-	}
-
-	bool Save(PhobosStreamWriter& stm) const {
-		return const_cast<BuildSpeedBonus*>(this)->Serialize(stm);
-	}
+	bool Load(PhobosStreamReader& stm, bool registerForChange);
+	bool Save(PhobosStreamWriter& stm) const;
 
 private:
 	template <typename T>
-	bool Serialize(T& stm)
-	{
-		return stm
-			.Process(Enabled)
-			.Process(SpeedBonus_Aircraft)
-			.Process(SpeedBonus_Building)
-			.Process(SpeedBonus_Infantry)
-			.Process(SpeedBonus_Unit)
-			.Process(AffectedType)
-			.Success()
-			//&& stm.RegisterChange(this)
-			; // announce this type
-	}
+	bool Serialize(T& stm);
 };

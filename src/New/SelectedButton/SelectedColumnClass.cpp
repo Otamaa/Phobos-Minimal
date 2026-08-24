@@ -3,6 +3,8 @@
 
 #include <GameOptionsClass.h>
 #include <FPSCounter.h>
+#include <PCX.h>
+#include <VocClass.h>
 
 #include <Ext/Side/Body.h>
 #include <Ext/BuildingType/Body.h>

@@ -5,6 +5,7 @@
 
 #include <Utilities/Macro.h>
 #include <Utilities/GeneralUtils.h>
+#include <New/Type/PaletteManager.h>
 
 class AnimTypeClass;
 

@@ -2,6 +2,8 @@
 
 #include <Ext/Techno/Body.h>
 #include <Ext/Rules/Body.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 bool SW_DropPod::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {

@@ -4,6 +4,9 @@
 
 #include <Utilities/Macro.h>
 
+#include <VocClass.h>
+#include <VoxClass.h>
+
 // Rewrite 0x449BC0
 bool CanUndeployOnSell(BuildingClass* pThis)
 {

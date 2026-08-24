@@ -22,6 +22,7 @@
 #include <Ext/Rules/Body.h>
 
 #include <SuperClass.h>
+#include <PCX.h>
 
 template<>
 int  GeneralUtils::GetRandomValue<true>(const Point2D point, int defVal)

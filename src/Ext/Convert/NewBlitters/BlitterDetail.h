@@ -1,5 +1,5 @@
 #pragma once
-#include <Base/Always.h>
+#include <numeric>
 
 struct BlitterDetail
 {

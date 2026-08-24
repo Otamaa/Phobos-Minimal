@@ -8,7 +8,7 @@
 #include <string>
 #include <concepts>
 
-#include <Base/Always.h>
+#include <Base/Macros.h>
 #include <DebugLog.h>
 
 struct IStream;

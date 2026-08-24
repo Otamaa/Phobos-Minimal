@@ -1,16 +1,41 @@
 #pragma once
 #include <SuperWeaponTypeClass.h>
 
+#include <ColorStruct.h>
+
 #include <Ext/AbstractType/Body.h>
+
 #include <Utilities/PhobosPCXFile.h>
 #include <Utilities/PhobosFixedString.h>
 #include <Utilities/RandomWeights.h>
+#include <Utilities/CSFText.h>
+#include <Utilities/TechnoTypeConvertData.h>
 
-#include <New/Type/CursorTypeClass.h>
+#include <New/Type/PaletteManager.h>
 #include <New/Type/DroppodProperties.h>
 
 #include <BitFont.h>
+#include <SWRange.h>
 #include <Misc/Defines.h>
+
+class TechnoTypeClass;
+class AircraftTypeClass;
+class BuildingTypeClass;
+class WarheadTypeClass;
+class WewaponTypeClass;
+class VoxelAnimTypeClass;
+class CursorTypeClass;
+class HouseTypeClass;
+class ColorScheme;
+class SuperClass;
+class SWTypeHandler;
+class VocClass;
+class VoxClass;
+struct TargetResult;
+struct TargetingData;
+struct SHPCaches;
+
+struct DroppodProperties;
 
 struct LightingColor
 {
@@ -29,11 +54,6 @@ public:
 	bool save(PhobosStreamWriter& Stm) const;
 };
 
-struct TargetResult;
-struct TargetingData;
-class SuperClass;
-class SWTypeHandler;
-class ColorScheme;
 class SWTypeExtData final :public AbstractTypeExtData
 {
 public:
@@ -115,17 +135,17 @@ public:
 	NullableVector<AnimTypeClass*> Weather_Clouds {};
 	NullableVector<AnimTypeClass*> Weather_Bolts {};
 	NullableVector<AnimTypeClass*> Weather_Debris {};
-	NullableIdxVector<VocClass> Weather_Sounds {};
+	NullableIdxVector<VocClass*> Weather_Sounds {};
 	ValueableVector<BuildingTypeClass*> Weather_LightningRodTypes {};
 	ValueableVector<TechnoTypeClass*> SW_Deliverables {};
 	ValueableVector<int> SW_DeliverableCounts {};
 	ValueableVector<FacingType> SW_Deliverables_Facing {};
-	ValueableIdxVector<SuperWeaponTypeClass> SW_ResetType {};
+	ValueableIdxVector<SuperWeaponTypeClass*> SW_ResetType {};
 	ValueableVector<int> SW_Require {};
 	ValueableVector<TechnoTypeClass*> Aux_Techno {};
 	ValueableVector<TechnoTypeClass*> Neg_Techno {};
 	ValueableVector<BuildingTypeClass*> SW_Lauchsites {};
-	ValueableIdxVector<SuperWeaponTypeClass> SW_Link {};
+	ValueableIdxVector<SuperWeaponTypeClass*> SW_Link {};
 
 	RandomWeights SW_Link_Randoms {};
 	RandomWeights SW_Next_Randoms {};
@@ -224,29 +244,29 @@ public:
 	// ============================================================
 	// NullableIdx (~8 bytes each)
 	// ============================================================
-	NullableIdx<VocClass> SW_Sound {};
-	NullableIdx<VocClass> SW_ActivationSound {};
-	NullableIdx<VocClass> EVA_LinkedSWAcquired {};
+	NullableIdx<VocClass*> SW_Sound {};
+	NullableIdx<VocClass*> SW_ActivationSound {};
+	NullableIdx<VocClass*> EVA_LinkedSWAcquired {};
 
 	// ============================================================
 	// ValueableIdx (4 bytes each)
 	// ============================================================
-	ValueableIdx<VoxClass> EVA_Activated { -1 };
-	ValueableIdx<VoxClass> EVA_Ready { -1 };
-	ValueableIdx<VoxClass> EVA_Detected { -1 };
-	ValueableIdx<VoxClass> EVA_InsufficientFunds { -1 };
-	ValueableIdx<VoxClass> EVA_InsufficientBattlePoints { -1 };
-	ValueableIdx<VoxClass> EVA_SelectTarget { -1 };
-	ValueableIdx<ColorScheme> Message_ColorScheme { -1 };
+	ValueableIdx<VoxClass*> EVA_Activated { -1 };
+	ValueableIdx<VoxClass*> EVA_Ready { -1 };
+	ValueableIdx<VoxClass*> EVA_Detected { -1 };
+	ValueableIdx<VoxClass*> EVA_InsufficientFunds { -1 };
+	ValueableIdx<VoxClass*> EVA_InsufficientBattlePoints { -1 };
+	ValueableIdx<VoxClass*> EVA_SelectTarget { -1 };
+	ValueableIdx<ColorScheme*> Message_ColorScheme { -1 };
 	ValueableIdx<CursorTypeClass*> CursorType { (int)MouseCursorType::Attack };
 	ValueableIdx<CursorTypeClass*> NoCursorType { (int)MouseCursorType::NoMove };
 
 	Valueable<CSFText> Message_Activated_Owner { };
 	Valueable<CSFText> Message_Activated_Allies { };
 	Valueable<CSFText> Message_Activated_Enemies { };
-	NullableIdx<VoxClass> EVA_Activated_Owner { };
-	NullableIdx<VoxClass> EVA_Activated_Allies { };
-	NullableIdx<VoxClass> EVA_Activated_Enemies { };
+	NullableIdx<VoxClass*> EVA_Activated_Owner { };
+	NullableIdx<VoxClass*> EVA_Activated_Allies { };
+	NullableIdx<VoxClass*> EVA_Activated_Enemies { };
 
 	// ============================================================
 	// Valueable<ColorStruct> (3-4 bytes each)
@@ -435,7 +455,7 @@ public:
 	ValueableVector<int> DropshipLoadout_AllowableUnitMaximums {};
 	Nullable<int> DropshipLoadout_Money {};
 	Nullable<int> DropshipLoadout_Theme {};
-	NullableIdx<VoxClass> DropshipLoadout_StartEVA {};
+	NullableIdx<VoxClass*> DropshipLoadout_StartEVA {};
 	Nullable<int> DropshipLoadout_SizeLimit {};
 	Nullable<PhobosPCXFile> DropshipLoadout_BackgroundPCX {};
 	std::string DropshipLoadout_BackgroundPCXPattern { "" };
@@ -462,11 +482,11 @@ public:
 	ValueableVector<Point2D> DropshipLoadout_DropshipCameosLocations {};
 	ValueableVector<TechnoTypeClass*> DropshipLoadout_FixedUnits {};
 	ValueableVector<TechnoTypeClass*> DropshipLoadout_InitialUnits {};
-	NullableIdx<VoxClass> DropshipLoadout_BuyClickSound {};
-	NullableIdx<VoxClass> DropshipLoadout_SellClickSound {};
-	NullableIdx<VoxClass> DropshipLoadout_ArrowsClickSound {};
-	NullableIdx<VoxClass> DropshipLoadout_StartingDragDropSound {};
-	NullableIdx<VoxClass> DropshipLoadout_EndingDragDropSound {};
+	NullableIdx<VoxClass*> DropshipLoadout_BuyClickSound {};
+	NullableIdx<VoxClass*> DropshipLoadout_SellClickSound {};
+	NullableIdx<VoxClass*> DropshipLoadout_ArrowsClickSound {};
+	NullableIdx<VoxClass*> DropshipLoadout_StartingDragDropSound {};
+	NullableIdx<VoxClass*> DropshipLoadout_EndingDragDropSound {};
 	Nullable<int> DropshipLoadout_VeteranLevel {};
 #pragma endregion
 

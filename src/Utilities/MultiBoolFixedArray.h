@@ -1,7 +1,7 @@
 #pragma once
 
 #include <array>
-#include <Base/Always.h>
+#include <Base/Macros.h>
 
 class PhobosStreamReader;
 class PhobosStreamWriter;

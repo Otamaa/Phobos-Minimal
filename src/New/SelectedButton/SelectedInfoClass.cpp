@@ -5,6 +5,8 @@
 #include <SpawnManagerClass.h>
 #include <SuperClass.h>
 #include <MessageListClass.h>
+#include <PCX.h>
+#include <VocClass.h>
 
 #include <Ext/Side/Body.h>
 #include <Ext/BuildingType/Body.h>

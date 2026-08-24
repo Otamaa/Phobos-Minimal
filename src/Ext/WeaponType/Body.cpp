@@ -215,6 +215,7 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Ivan_WH.Read(exINI, pSection, "IvanBomb.Warhead");
 	this->Ivan_AttachToCenter.Read(exINI, pSection, "IvanBomb.AttachToCenter");
 	this->IvanBomb_Visibility.Read(exINI, pSection, "IvanBomb.Visibility");
+	this->IvanBomb_Detonate.Read(exINI, pSection, "IvanBomb.Detonate");
 	this->Ivan_Image.Read(exINI, pSection, "IvanBomb.Image");
 	this->Ivan_CanDetonateTimeBomb.Read(exINI, pSection, "IvanBomb.CanDetonateTimeBomb");
 	this->Ivan_CanDetonateDeathBomb.Read(exINI, pSection, "IvanBomb.CanDetonateDeathBomb");
@@ -340,13 +341,14 @@ bool WeaponTypeExtData::IsVeterancyInThreshold(TechnoClass* pTarget) const
 int WeaponTypeExtData::GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass* pFirer, std::optional<int> fallback)
 {
 	int range = fallback.has_value() ? fallback.value()  : 0;
+	auto pFirerExt = TechnoExtContainer::Instance.Find(pFirer);
 
 	if (!pThis && !pFirer)
 		return range;
 	else if (pFirer && pFirer->CanOccupyFire())
 		range = (RulesClass::Instance->OccupyWeaponRange + pFirer->GetOccupyRangeBonus()) * Unsorted::LeptonsPerCell;
 	else if (pThis && pFirer){
-		auto pFirerExt = TechnoExtContainer::Instance.Find(pFirer);
+
 		int range_ = pThis->Range;
 
 		if(pFirerExt->AdditionalRange.isset())
@@ -375,6 +377,10 @@ int WeaponTypeExtData::GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass
 			range = pExt->AE.ExtraRange.Get(range, pThis);
 		}
 	}
+
+	if (TechnoExtData::HasAbility(pTechno, PhobosAbilityType::Range))
+		range = GeneralUtils::SafeMultiply(range, MaxImpl(pFirerExt->TypeExtData->VeteranRange.Get(FakeRulesClass::Instance->VeteranRange), 0.0));
+
 	return MaxImpl(range, 0);
 }
 
@@ -586,6 +592,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->Ivan_WH)
 		.Process(this->Ivan_AttachToCenter)
 		.Process(this->IvanBomb_Visibility)
+		.Process(this->IvanBomb_Detonate)
 		.Process(this->Ivan_Image)
 		.Process(this->Ivan_FlickerRate)
 		.Process(this->Ivan_CanDetonateTimeBomb)

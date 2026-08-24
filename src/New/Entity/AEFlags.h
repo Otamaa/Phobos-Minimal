@@ -1,5 +1,4 @@
 #pragma once
-
 #include <Base/Always.h>
 
 class PhobosStreamReader;

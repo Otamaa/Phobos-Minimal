@@ -30,7 +30,7 @@ public:
 
 	// ---- Destruction / damage ----
 	Valueable<AnimTypeClass*> DestroyAnim {};
-	ValueableIdx<VocClass> DestroySound { -1 };
+	ValueableIdx<VocClass*> DestroySound { -1 };
 	Nullable<WarheadTypeClass*> Warhead {};
 	Nullable<int> Damage {};
 	Valueable<bool> AreaDamage {};
@@ -53,7 +53,7 @@ public:
 	ValueableVector<AnimTypeClass*> AttachedAnim {};
 	Valueable<bool> HasDamagedFrames {};
 	Valueable<bool> HasCrumblingFrames {};
-	ValueableIdx<VocClass> CrumblingSound { -1 };
+	ValueableIdx<VocClass*> CrumblingSound { -1 };
 	Nullable<int> AnimationLength {};
 	NullableVector<AnimTypeClass*> TreeFires {};
 #pragma endregion

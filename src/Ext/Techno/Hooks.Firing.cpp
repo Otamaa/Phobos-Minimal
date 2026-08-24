@@ -26,6 +26,8 @@
 #include <Locomotor/Cast.h>
 #include <TerrainTypeClass.h>
 #include <OverlayTypeClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/EnumFunctions.h>

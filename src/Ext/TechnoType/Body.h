@@ -2,36 +2,42 @@
 #include <TechnoTypeClass.h>
 
 #include <Helpers/Macro.h>
+
 #include <Utilities/PhobosPCXFile.h>
 #include <Utilities/OptionalStruct.h>
 #include <Utilities/TemplateDefB.h>
 #include <Utilities/PhobosMap.h>
 #include <Utilities/MultiBoolFixedArray.h>
+#include <Utilities/CSFText.h>
 
+#include <Misc/Defines.h>
+#include <Ext/ObjectType/Body.h>
+
+#include <New/Type/PaletteManager.h>
+#include <New/Type/DroppodProperties.h>
+
+#include <New/Entity/AresAttachEffectTypeClass.h>
+#include <New/Entity/TheaterSpecificSHP.h>
+#include <New/Entity/DropshipLoadoutClass.h>
+#include <New/Entity/BlockTypeClass.h>
+#include <New/Entity/TiberiumEaterTypeClass.h>
+#include <New/Entity/PassengerDeletionTypeClass.h>
 #include <New/Entity/InsigniaData.h>
 #include <New/Entity/LaserTrailDataEntry.h>
 
-#include <New/Type/ShieldTypeClass.h>
-#include <New/Type/LaserTrailTypeClass.h>
-#include <New/Type/HoverTypeClass.h>
-#include <New/Type/CursorTypeClass.h>
-#include <New/Type/ImmunityTypeClass.h>
-#include <New/Type/TheaterTypeClass.h>
-#include <New/Type/DroppodProperties.h>
-#include <New/Type/CrateTypeClass.h>
-
 #include <New/PhobosAttachedAffect/AEAttachInfoTypeClass.h>
 
-#include <New/Entity/PassengerDeletionTypeClass.h>
-#include <New/Entity/TiberiumEaterTypeClass.h>
-#include <New/Entity/BlockTypeClass.h>
-#include <New/Entity/AresAttachEffectTypeClass.h>
-
-#include <Misc/Defines.h>
-
-#include <Ext/ObjectType/Body.h>
-
-#include <FileSystem.h>
+class VoxClass;
+class VocClass;
+class CrateTypeClass;
+class CursorTypeClass;
+class HoverTypeClass;
+class ShieldTypeClass;
+class DigitalDisplayTypeClass;
+class SelectBoxTypeClass;
+class ImmunityTypeClass;
+class Matrix3D;
+struct Leptons;
 
 struct JumpjetTiltVoxelIndexKey
 {
@@ -70,51 +76,13 @@ struct ImageStatusses
 	VoxelStruct Images;
 	bool Loaded;
 
-	~ImageStatusses()
-	{
-		if (Loaded) {
-			GameDelete<true, true>(Images.VXL);
-			GameDelete<true, true>(Images.HVA);
-
-			Images.VXL = nullptr;
-			Images.HVA = nullptr;
-			Loaded = false;
-		}
-	}
+	~ImageStatusses();
 
 	static ImageStatusses ReadVoxel(const char* const nKey);
 
-	void swap(VoxelStruct& from) {
-
-		if (from.VXL != this->Images.VXL) {
-			std::swap(from.VXL, this->Images.VXL);
-		}
-
-		if (from.HVA != this->Images.HVA) {
-			std::swap(from.HVA, this->Images.HVA);
-		}
-
-		this->Loaded = this->Images.VXL || this->Images.HVA;
-	}
-
-	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{
-		if(Loaded){
-			GameDelete<true, true>(Images.VXL);
-			GameDelete<true, true>(Images.HVA);
-
-			Images.VXL = nullptr;
-			Images.HVA = nullptr;
-			Loaded = false;
-		}
-
-		return true;
-	}
-
-	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const
-	{
-		return true;
-	}
+	void swap(VoxelStruct& from);
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	bool Save(PhobosStreamWriter& Stm) const;
 };
 
 struct BurstFLHBundle
@@ -122,30 +90,10 @@ struct BurstFLHBundle
 	std::vector<CoordStruct> Flh {};
 	std::vector<CoordStruct> EFlh {};
 
-	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{
-		// support pointer to this type
-		return Stm
-			.Process(this->Flh, RegisterForChange)
-			.Process(this->EFlh, RegisterForChange)
-			.Success()
-			;
-	}
-
-	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const
-	{
-		// remember this object address
-		return Stm
-			.Process(this->Flh)
-			.Process(this->EFlh)
-			.Success()
-			;
-	}
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+	bool Save(PhobosStreamWriter& Stm) const;
 };
 
-class Matrix3D;
-class DigitalDisplayTypeClass;
-class SelectBoxTypeClass;
 class TechnoTypeExtData : public ObjectTypeExtData
 {
 public:
@@ -190,9 +138,9 @@ public:
 	MultiBoolFixedArray<(int)PhobosAbilityType::count> Phobos_EliteAbilities {};
 	MultiBoolFixedArray<(int)PhobosAbilityType::count> Phobos_VeteranAbilities {};
 
-	ValueableIdxVector<ImmunityTypeClass> E_ImmuneToType {};
-	ValueableIdxVector<ImmunityTypeClass> V_ImmuneToType {};
-	ValueableIdxVector<ImmunityTypeClass> R_ImmuneToType {};
+	ValueableIdxVector<ImmunityTypeClass*> E_ImmuneToType {};
+	ValueableIdxVector<ImmunityTypeClass*> V_ImmuneToType {};
+	ValueableIdxVector<ImmunityTypeClass*> R_ImmuneToType {};
 
 	Valueable<bool> Interceptor { false };
 	Valueable<AffectedHouse> Interceptor_CanTargetHouses { AffectedHouse::Enemies };
@@ -372,8 +320,8 @@ public:
 	Nullable<WarheadTypeClass*> IronCurtain_KillWarhead {};
 	Nullable<IronCurtainFlag> ForceShield_Effect {};
 	Nullable<WarheadTypeClass*> ForceShield_KillWarhead {};
-	ValueableIdx<VoxClass> EVA_Sold { -1 };
-	ValueableIdx<VocClass> SellSound { -1 };
+	ValueableIdx<VoxClass*> EVA_Sold { -1 };
+	ValueableIdx<VocClass*> SellSound { -1 };
 
 	Nullable<bool> Explodes_KillPassengers {};
 
@@ -390,7 +338,7 @@ public:
 	Valueable<bool> FacingRotation_DisableOnDriverKilled { true };
 
 	Valueable<bool> DontShake { true };
-	NullableIdx<VocClass> DiskLaserChargeUp {};
+	NullableIdx<VocClass*> DiskLaserChargeUp {};
 	Valueable<bool> DiskLaserDetonate { false };
 	Nullable<AnimTypeClass*> DrainAnimationType {};
 	Nullable<int> DrainMoneyFrameDelay {};
@@ -408,7 +356,7 @@ public:
 	NullableVector<int> Overload_Count {};
 	NullableVector<int> Overload_Damage {};
 	NullableVector<int> Overload_Frames {};
-	NullableIdx<VocClass> Overload_DeathSound {};
+	NullableIdx<VocClass*> Overload_DeathSound {};
 	Nullable<ParticleSystemTypeClass*> Overload_ParticleSys {};
 	Nullable<int> Overload_ParticleSysCount {};
 	Nullable<WarheadTypeClass*> Overload_Warhead {};
@@ -424,7 +372,7 @@ public:
 	Nullable<float> CrashSpin_Multiplier {};
 
 	Valueable<double> CrashSpinVerticalRate { 1.0 };
-	ValueableIdx<VocClass> ParasiteExit_Sound { -1 };
+	ValueableIdx<VocClass*> ParasiteExit_Sound { -1 };
 
 	Nullable<SHPCaches*> PipShapes01 {};
 	Nullable<SHPCaches*> PipShapes02 {};
@@ -453,13 +401,13 @@ public:
 	Valueable<bool> ROF_Random { true };
 	Nullable<Point2D> Rof_RandomMinMax {};
 
-	ValueableIdx<VoxClass> Eva_Complete { -1 };
-	ValueableIdx<VocClass> VoiceCreate { -1 };
+	ValueableIdx<VoxClass*> Eva_Complete { -1 };
+	ValueableIdx<VocClass*> VoiceCreate { -1 };
 	Valueable<bool> VoiceCreate_Instant { false };
 	Valueable<bool> CreateSound_Enable { true };
 
 	Valueable<bool> SlaveFreeSound_Enable { true };
-	NullableIdx<VocClass> SlaveFreeSound {};
+	NullableIdx<VocClass*> SlaveFreeSound {};
 	Valueable<bool> NoAirportBound_DisableRadioContact { false };
 	Nullable<AnimTypeClass*> SinkAnim {};
 	Nullable<double> Tunnel_Speed {};
@@ -468,7 +416,7 @@ public:
 	Valueable<bool> Gattling_Overload { false };
 	Nullable<int> Gattling_Overload_Damage {};
 	Nullable<int> Gattling_Overload_Frames {};
-	NullableIdx<VocClass> Gattling_Overload_DeathSound {};
+	NullableIdx<VocClass*> Gattling_Overload_DeathSound {};
 	Nullable<ParticleSystemTypeClass*> Gattling_Overload_ParticleSys {};
 	Nullable<int> Gattling_Overload_ParticleSysCount {};
 	Nullable<WarheadTypeClass*> Gattling_Overload_Warhead {};
@@ -546,10 +494,10 @@ public:
 	Valueable<double> AirstrikeExperienceModifier { 1.0 };
 
 	Valueable<bool> Promote_IncludePassengers { false };
-	ValueableIdx<VoxClass> Promote_Elite_Eva { -1 };
-	ValueableIdx<VoxClass> Promote_Vet_Eva { -1 };
-	NullableIdx<VocClass> Promote_Elite_Sound {};
-	NullableIdx<VocClass> Promote_Vet_Sound {};
+	ValueableIdx<VoxClass*> Promote_Elite_Eva { -1 };
+	ValueableIdx<VoxClass*> Promote_Vet_Eva { -1 };
+	NullableIdx<VocClass*> Promote_Elite_Sound {};
+	NullableIdx<VocClass*> Promote_Vet_Sound {};
 	Nullable<int> Promote_Elite_Flash {};
 	Nullable<int> Promote_Vet_Flash {};
 
@@ -637,12 +585,12 @@ public:
 	Valueable<bool> CrushDamagePlayWHAnim { false };
 	NullablePromotable<Leptons> CrushRange {};
 
-	NullableIdx<VocClass> DigInSound {};
-	NullableIdx<VocClass> DigOutSound {};
+	NullableIdx<VocClass*> DigInSound {};
+	NullableIdx<VocClass*> DigOutSound {};
 	Nullable<AnimTypeClass*> DigInAnim {};
 	Nullable<AnimTypeClass*> DigOutAnim {};
 
-	ValueableIdx<VoxClass> EVA_UnitLost { -1 };
+	ValueableIdx<VoxClass*> EVA_UnitLost { -1 };
 
 	//Build stuffs
 	Nullable<double> BuildTime_Speed {};
@@ -661,10 +609,10 @@ public:
 	NullableVector<ParticleSystemTypeClass*> ParticleSystems_DamageSparks {};
 
 	Valueable<bool> GattlingCyclic { false };
-	NullableIdx<VocClass> CloakSound {};
-	NullableIdx<VocClass> DecloakSound {};
+	NullableIdx<VocClass*> CloakSound {};
+	NullableIdx<VocClass*> DecloakSound {};
 
-	ValueableIdx<VocClass> VoiceRepair { -1 };
+	ValueableIdx<VocClass*> VoiceRepair { -1 };
 	Valueable<int> ReloadAmount { 1 };
 	Nullable<int> EmptyReloadAmount {};
 
@@ -732,8 +680,8 @@ public:
 	Valueable<bool> HijackerOneTime { false };
 	Valueable<int> HijackerKillPilots { 0 };
 
-	ValueableIdx<VocClass> HijackerEnterSound { -1 };
-	ValueableIdx<VocClass> HijackerLeaveSound { -1 };
+	ValueableIdx<VocClass*> HijackerEnterSound { -1 };
+	ValueableIdx<VocClass*> HijackerLeaveSound { -1 };
 
 	Valueable<bool> HijackerBreakMindControl { true };
 	Valueable<bool> HijackerAllowed { true };
@@ -791,8 +739,8 @@ public:
 	Nullable<bool> CarryallAllowed {};
 	Nullable<int> CarryallSizeLimit {};
 
-	NullableIdx<VocClass> VoiceAirstrikeAttack {};
-	NullableIdx<VocClass> VoiceAirstrikeAbort {};
+	NullableIdx<VocClass*> VoiceAirstrikeAttack {};
+	NullableIdx<VocClass*> VoiceAirstrikeAbort {};
 
 	// hunter seeker
 	Nullable<int> HunterSeekerDetonateProximity {};
@@ -831,7 +779,7 @@ public:
 	Nullable<bool> Bounty_Display {};
 	Promotable<int> Bounty_Value { 0 };
 	Promotable<float> Bounty_Value_PercentOf { 100.0f };
-	ValueableIdx<VocClass> Bounty_ReceiveSound {};
+	ValueableIdx<VocClass*> Bounty_ReceiveSound {};
 
 	ValueableVector<TechnoTypeClass*> BountyAllow {};
 	ValueableVector<TechnoTypeClass*> BountyDissallow {};
@@ -857,7 +805,7 @@ public:
 	PhobosMap<TechnoTypeClass*, Valueable<float>> SpecificExpFactor {};
 	Valueable<bool> Initial_DriverKilled { false };
 
-	NullableIdx<VocClass> VoiceCantDeploy {};
+	NullableIdx<VocClass*> VoiceCantDeploy {};
 	Valueable<bool> DigitalDisplay_Disable { false };
 	ValueableVector<DigitalDisplayTypeClass*> DigitalDisplayTypes {};
 
@@ -953,7 +901,7 @@ public:
 
 	Nullable<int> LaserTargetColor {};
 
-	ValueableIdxVector<VocClass> VoicePickup {};
+	ValueableIdxVector<VocClass*> VoicePickup {};
 
 	Valueable<double> CrateGoodie_RerollChance { 0.0 };
 	NullableIdx<CrateTypeClass*> Destroyed_CrateType {};
@@ -1020,7 +968,7 @@ public:
 	Nullable<bool> Spawner_AttackImmediately {};
 	Nullable<bool> Spawner_UseTurretFacing {};
 
-	ValueableIdx<VoxClass> EVA_Combat { -1 };
+	ValueableIdx<VoxClass*> EVA_Combat { -1 };
 	Nullable<bool> CombatAlert {};
 	Nullable<bool> CombatAlert_UseFeedbackVoice {};
 	Nullable<bool> CombatAlert_UseAttackVoice {};
@@ -1088,7 +1036,7 @@ public:
 	Nullable<double> ExtraThreatCoefficient_Facing {};
 	Nullable<double> ExtraThreatCoefficient_DistanceToLastTarget {};
 
-	NullableIdx<CrateTypeClass> DropCrate {};
+	NullableIdx<CrateTypeClass*> DropCrate {};
 
 	Promotable<WarheadTypeClass*> WhenCrushed_Warhead {};
 	Promotable<WeaponTypeClass*> WhenCrushed_Weapon {};
@@ -1230,7 +1178,7 @@ public:
 	Valueable<double> PenetratesTransport_FatalRateMultiplier { 1.0 };
 	Valueable<double> PenetratesTransport_DamageMultiplier { 1.0 };
 
-	ValueableIdx<VocClass> VoiceIFVRepair { -1 };
+	ValueableIdx<VocClass*> VoiceIFVRepair { -1 };
 	ValueableVector<int> VoiceWeaponAttacks {};
 	ValueableVector<int> VoiceEliteWeaponAttacks {};
 	Valueable<UnitTypeClass*> DefaultVehicleDisguise {};
@@ -1249,10 +1197,10 @@ public:
 
 	Valueable<PassiveAcquireModes> PassiveAcquireMode { PassiveAcquireModes::Normal };
 	Valueable<bool> PassiveAcquireMode_Togglable { true };
-	ValueableIdx<VocClass> VoiceEnterAggressiveMode { -1 };
-	ValueableIdx<VocClass> VoiceExitAggressiveMode { -1 };
-	ValueableIdx<VocClass> VoiceEnterCeasefireMode { -1 };
-	ValueableIdx<VocClass> VoiceExitCeasefireMode { -1 };
+	ValueableIdx<VocClass*> VoiceEnterAggressiveMode { -1 };
+	ValueableIdx<VocClass*> VoiceExitAggressiveMode { -1 };
+	ValueableIdx<VocClass*> VoiceEnterCeasefireMode { -1 };
+	ValueableIdx<VocClass*> VoiceExitCeasefireMode { -1 };
 
 	Nullable<bool> PlayerGuardModePursuit {};
 	Nullable<Leptons> PlayerGuardModeStray {};
@@ -1330,6 +1278,9 @@ public:
 	Valueable<int> SelectedInfo_CameoIndex {};
 	Nullable<SHPCaches*> SelectedInfo_Button {};
 	Nullable<CSFText> UIDescription_HoveredInfo {};
+
+	Nullable<double> VeteranRange {};
+	Nullable<double> VeteranCritChance {};
 #pragma endregion
 
 public:

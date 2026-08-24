@@ -11,6 +11,8 @@
 #include <AircraftClass.h>
 #include <Kamikaze.h>
 #include <RocketStruct.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 #include <Locomotor/RocketLocomotionClass.h>
 

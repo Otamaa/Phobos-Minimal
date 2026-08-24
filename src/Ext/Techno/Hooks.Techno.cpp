@@ -5,8 +5,6 @@
 #include <Utilities/Macro.h>
 #include <Helpers/Macro.h>
 
-#include <Base/Always.h>
-
 #include <SlaveManagerClass.h>
 
 #include <HouseClass.h>
@@ -32,6 +30,8 @@
 #include <RadarEventClass.h>
 #include <SpawnManagerClass.h>
 #include <AirstrikeClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 
 ASMJIT_PATCH(0x702DD6, TechnoClass_RegisterDestruction_Trigger, 0x6)

@@ -20,8 +20,8 @@ public:
 	Valueable<AnimTypeClass*> Anim {};
 	Valueable<double> Argument {};
 	Valueable<bool> Naval {};
-	ValueableIdx<VocClass> Sound {};
-	ValueableIdx<VoxClass> Eva {};
+	ValueableIdx<VocClass*> Sound {};
+	ValueableIdx<VoxClass*> Eva {};
 	SpeedType Speed { SpeedType::Track };
 
     CrateTypeClass(const char* const pTitle): Enumerable<CrateTypeClass>(pTitle) { }

@@ -9,6 +9,14 @@
 #include <New/Interfaces/TSJumpJetLocomotionClass.h>
 #include <New/Interfaces/ShiftLocomotionClass.h>
 
+#include <New/Type/ColorTypeClass.h>
+
+#include <Utilities/TechnoTypeConvertData.h>
+#include <Utilities/PhobosPCXFile.h>
+
+#include <SWRange.h>
+#include <TechnoClass.h>
+
 #define PARSE(who)\
 if (IS_SAME_STR_(parser.value(), who ##_data.s_name)) { \
 	CLSID who ##_dummy; \
@@ -2758,3 +2766,72 @@ void detail::ParseVector(INI_EX& IniEx, std::vector<std::vector<std::string>>& n
 
 
 #undef PARSE
+
+#pragma region INTERPOLATE
+
+template <>
+double detail::interpolate<double>(double& first, double& second, double percentage, InterpolationMode mode)
+{
+	double result = first;
+
+	switch (mode)
+	{
+	case InterpolationMode::Linear:
+		result = first + ((second - first) * percentage);
+		break;
+	default:
+		break;
+	}
+
+	return result;
+}
+
+template <>
+int detail::interpolate<int>(int& first, int& second, double percentage, InterpolationMode mode)
+{
+	double firstValue = first;
+	double secondValue = second;
+	return (int)interpolate(firstValue, secondValue, percentage, mode);
+}
+
+template <>
+BYTE detail::interpolate<BYTE>(BYTE& first, BYTE& second, double percentage, InterpolationMode mode)
+{
+	double firstValue = first;
+	double secondValue = second;
+	return (BYTE)interpolate(firstValue, secondValue, percentage, mode);
+}
+
+template <>
+ColorStruct detail::interpolate<ColorStruct>(ColorStruct& first, ColorStruct& second, double percentage, InterpolationMode mode)
+{
+	BYTE r = interpolate(first.R, second.R, percentage, mode);
+	BYTE g = interpolate(first.G, second.G, percentage, mode);
+	BYTE b = interpolate(first.B, second.B, percentage, mode);
+	return { r, g, b };
+}
+
+template <>
+TranslucencyLevel detail::interpolate<TranslucencyLevel>(TranslucencyLevel& first, TranslucencyLevel& second, double percentage, InterpolationMode mode)
+{
+	double firstValue = first.GetIntValue();
+	double secondValue = second.GetIntValue();
+	int value = (int)interpolate(firstValue, secondValue, percentage, mode);
+	return { value };
+}
+
+#pragma endregion
+
+Rank _dummy::GetTechnoVet(TechnoClass* pTechno)
+{
+	return pTechno->Veterancy.GetRemainingLevel();
+}
+
+Rank _dummy::GetTechnoCurrentVet(TechnoClass* pTechno)
+{
+	return pTechno->CurrentRanking;
+}
+
+double _dummy::GetTechnoHealthRatio(TechnoClass* pTechno){
+	return pTechno->GetHealthRatio();
+}

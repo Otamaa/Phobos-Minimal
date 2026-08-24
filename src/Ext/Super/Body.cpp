@@ -11,6 +11,9 @@
 #include <Ext/SWType/NewSuperWeaponType/Dominator.h>
 
 #include <Notifications.h>
+#include <VocClass.h>
+#include <VoxClass.h>
+
 void NOINLINE SWChargePool::EnsureAccumulating(SuperClass* pThis)
 {
 	// Accumulation is desired again — re-enable the flag first

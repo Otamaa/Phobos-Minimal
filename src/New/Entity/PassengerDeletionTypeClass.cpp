@@ -2,6 +2,7 @@
 
 #include <Utilities/SavegameDef.h>
 #include <Utilities/TemplateDef.h>
+#include <VocClass.h>
 
 std::pair<bool, bool> PassengerDeletionTypeClass::CanParse(INI_EX exINI, const char* pSection)
 {

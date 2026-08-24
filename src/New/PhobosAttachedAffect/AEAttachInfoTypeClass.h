@@ -28,10 +28,8 @@ public:
 
 	void LoadFromINI(CCINIClass* pINI, const char* pSection);
 
-	bool Load(PhobosStreamReader& stm, bool registerForChange) { return this->Serialize(stm); }
-	bool Save(PhobosStreamWriter& stm) const {
-		return const_cast<AEAttachInfoTypeClass*>(this)->Serialize(stm);
-	}
+	bool Load(PhobosStreamReader& stm, bool registerForChange);
+	bool Save(PhobosStreamWriter& stm) const;
 
 	COMPILETIMEEVAL AEAttachParams GetAttachParams(unsigned int index, bool selfOwned) const
 	{
@@ -59,22 +57,5 @@ public:
 
 private:
 	template <typename T>
-	bool Serialize(T& stm)
-	{
-		return stm
-			.Process(this->AttachTypes)
-			.Process(this->CumulativeRefreshAll)
-			.Process(this->CumulativeRefreshAll_OnAttach)
-			.Process(this->CumulativeRefreshSameSourceOnly)
-			.Process(this->RemoveTypes)
-			.Process(this->RemoveGroups)
-			.Process(this->CumulativeRemoveMinCounts)
-			.Process(this->CumulativeRemoveMaxCounts)
-			.Process(this->CumulativeSourceMaxCount)
-			.Process(this->DurationOverrides)
-			.Process(this->Delays)
-			.Process(this->InitialDelays)
-			.Process(this->RecreationDelays)
-			.Success();
-	}
+	bool Serialize(T& stm);
 };

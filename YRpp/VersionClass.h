@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Helpers/CompileTime.h>
-#include <Base/Always.h>
+#include <Base/Macros.h>
 
 struct VersionProtocolType
 {

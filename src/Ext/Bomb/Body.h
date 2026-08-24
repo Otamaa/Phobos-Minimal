@@ -90,11 +90,17 @@ public:
 };
 static_assert(sizeof(FakeBombClass) == sizeof(BombClass), "Invalid Size !");
 
-class NOVTABLE FakeBombListClass : public BombListClass
+class NOVTABLE FakeBombListClass
 {
 public:
 	void __AI();
-protected: 
-	virtual ~FakeBombListClass() = delete;
-	FakeBombListClass() = delete;
+	void __Plant(TechnoClass* pOwner, ObjectClass* pTarget);
+	void __PlantB(TechnoClass* pOwner, ObjectClass* pTarget, WeaponTypeClass* pWeapon);
+public:
+
+	DynamicVectorClass<BombClass*> Bombs;				//all the BombClass instances on the map
+	DynamicVectorClass<TechnoClass*> Detectors;		//all the BombSight'ed objects currently on the map
+	int UpdateDelay; // defaults to 100, some iterators set it to 1
 };
+
+static_assert(sizeof(FakeBombListClass) == sizeof(BombListClass), "Invalid Size !");

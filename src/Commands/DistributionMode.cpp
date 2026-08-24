@@ -1,11 +1,14 @@
 #include "DistributionMode.h"
 
+#include <Ext/Rules/Body.h>
 #include <Ext/TechnoType/Body.h>
+
 #include <Utilities/Helpers.h>
 #include <Helpers/Macro.h>
 
 #include <HouseClass.h>
 #include <PlanningTokenClass.h>
+#include <VocClass.h>
 
 bool DistributionModeHoldDownCommandClass::Enabled = false;
 bool DistributionModeHoldDownCommandClass::OnMessageShowed = false;

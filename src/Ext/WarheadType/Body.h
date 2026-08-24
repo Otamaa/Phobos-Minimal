@@ -5,6 +5,7 @@
 #include <Ext/AbstractType/Body.h>
 
 #include <Utilities/PhobosMap.h>
+#include <Utilities/TechnoTypeConvertData.h>
 
 #include <New/Entity/AresAttachEffectTypeClass.h>
 #include <New/Entity/BlockTypeClass.h>
@@ -242,7 +243,7 @@ public:
 	std::vector<LauchSWData> Launchs {};
 
 	Valueable<bool> PermaMC { false };
-	ValueableIdx<VocClass> Sound { -1 };
+	ValueableIdx<VocClass*> Sound { -1 };
 
 	std::vector<TechnoTypeConvertData> ConvertsPair {};
 	Valueable<AnimTypeClass*> Convert_SucceededAnim { nullptr };
@@ -302,8 +303,8 @@ public:
 
 	Nullable<bool> IC_Flash {};
 	Nullable<bool> PreventScatter { };
-	NullableIdx<VocClass> DieSound_Override {};
-	NullableIdx<VocClass> VoiceSound_Override {};
+	NullableIdx<VocClass*> DieSound_Override {};
+	NullableIdx<VocClass*> VoiceSound_Override {};
 
 	Valueable<bool> SuppressDeathWeapon_Vehicles { false };
 	Valueable<bool> SuppressDeathWeapon_Infantry { false };
@@ -334,7 +335,7 @@ public:
 	Nullable<int> Rocker_AmplitudeOverride {};
 	Valueable<double> Rocker_AmplitudeMultiplier { 0.01 };
 
-	ValueableIdx<SuperWeaponTypeClass> NukePayload_LinkedSW { -1 };
+	ValueableIdx<SuperWeaponTypeClass*> NukePayload_LinkedSW { -1 };
 	Valueable<int> IC_Duration { 0 };
 	Valueable<int> IC_Cap { -1 };
 
@@ -361,7 +362,7 @@ public:
 	Nullable<bool> CanRemoveParasytes {};
 	Valueable<bool> CanRemoveParasytes_KickOut { false };
 	Valueable<int> CanRemoveParasytes_KickOut_Paralysis { -1 };
-	NullableIdx<VocClass> CanRemoveParasytes_ReportSound {};
+	NullableIdx<VocClass*> CanRemoveParasytes_ReportSound {};
 	Nullable<AnimTypeClass*> CanRemoveParasytes_KickOut_Anim {};
 
 	Valueable<bool> Webby { false };
@@ -465,7 +466,7 @@ public:
 	Valueable<double> PenetratesTransport_FatalRate { 0.0 };
 	Valueable<double> PenetratesTransport_DamageMultiplier { 1.0 };
 	Valueable<bool> PenetratesTransport_DamageAll { false };
-	ValueableIdx<VocClass> PenetratesTransport_CleanSound { -1 };
+	ValueableIdx<VocClass*> PenetratesTransport_CleanSound { -1 };
 
 	Valueable<bool> FakeEngineer_CanRepairBridges { false };
 	Valueable<bool> FakeEngineer_CanDestroyBridges { false };

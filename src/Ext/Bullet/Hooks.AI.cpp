@@ -1126,7 +1126,7 @@ namespace
 		bool crossed_top_descending = false;
 		bool crossed_top_ascending = false;
 
-		if(pExt->Trajectory && pExt->Trajectory->ShouldSkipBridgeCheck()){
+		if(pExt->Trajectory && !pExt->Trajectory->ShouldSkipBridgeCheck()){
 			if (pCellNew->ContainsBridgeHead() || MapClass::Instance->GetCellAt(old_pos)->ContainsBridgeHead()) {
 				if (new_pos.Z < wall_top)
 				{
@@ -1175,7 +1175,8 @@ namespace
 			}
 		}
 
-		if (!blocked && pos_.Z >= static_cast<double>(terrain_z))
+		if (!blocked && pos_.Z >= static_cast<double>(terrain_z)
+			&& !crossed_top_ascending && !crossed_top_descending)
 		{
 			coord.X = static_cast<int>(pos_.X);
 			coord.Y = static_cast<int>(pos_.Y);
@@ -1189,6 +1190,13 @@ namespace
 				pos_.Z = wall_top;
 			else if (crossed_top_descending)
 				pos_.Z = wall_top - 20;
+			else
+			{
+				coord.X = static_cast<int>(pos_.X);
+				coord.Y = static_cast<int>(pos_.Y);
+				coord.Z = static_cast<int>(pos_.Z);
+				return;
+			}
 		}
 		else
 		{
@@ -1198,7 +1206,7 @@ namespace
 				pos_.Z = wall_top - 20;
 			else
 			{
-				int floor_minus = wall_top - 100;
+				int floor_minus = terrain_z - 100;
 				if (floor_minus < pos_.Z)
 					pos_.Z = static_cast<double>(terrain_z);
 			}

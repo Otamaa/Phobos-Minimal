@@ -14,6 +14,8 @@
 #include <TechnoClass.h>
 #include <LaserDrawClass.h>
 
+#include <VocClass.h>
+
 void WeaponTypeExtData::FireRadBeam(TechnoClass* pFirer, WeaponTypeClass* pWeapon, CoordStruct& source, CoordStruct& target)
 {
 	if (auto const supportRadBeam = RadBeam::Allocate(RadBeamType::RadBeam))

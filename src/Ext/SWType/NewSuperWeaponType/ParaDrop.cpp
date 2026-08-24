@@ -4,6 +4,9 @@
 #include <Ext/House/Body.h>
 #include <Ext/Aircraft/Body.h>
 
+#include <VocClass.h>
+#include <VoxClass.h>
+
 bool SW_ParaDrop::Activate(SuperClass* const pThis, const CellStruct& Coords, bool const IsPlayer)
 {
 	if (!pThis->IsCharged)

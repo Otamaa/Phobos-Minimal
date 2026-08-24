@@ -131,6 +131,8 @@ ASMJIT_PATCH(0x62946E, ParasiteClass_DTOR, 0x6)
 #include <Notifications.h>
 #include <ParticleSystemClass.h>
 #include <ParticleSystemTypeClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 static void ResetOwnerMission(FootClass* owner)
 {

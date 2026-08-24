@@ -67,7 +67,7 @@ public:
 
 	Valueable<bool> PassthruNegativeDamage { false };
 	Valueable<bool> CanBeHealed { false };
-	NullableIdx<CursorTypeClass> HealCursorType {};
+	NullableIdx<CursorTypeClass*> HealCursorType {};
 
 	Valueable<bool> HitFlash { false };
 	Nullable<int> HitFlash_FixedSize {};

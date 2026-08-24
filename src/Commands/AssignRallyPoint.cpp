@@ -1,18 +1,19 @@
 #include "AssignRallyPoint.h"
 
-#include "MouseClass.h"
-#include "WWMouseClass.h"
-#include "MapClass.h"
-#include "Surface.h"
-#include "HouseClass.h"
-#include "BuildingClass.h"
-#include "EventClass.h"
-
 #include "Ext/BuildingType/Body.h"
 #include "Ext/Building/Body.h"
 #include "Ext/Event/Body.h"
 
 #include <Utilities/Debug.h>
+
+#include <VoxClass.h>
+#include <MouseClass.h>
+#include <WWMouseClass.h>
+#include <MapClass.h>
+#include <Surface.h>
+#include <HouseClass.h>
+#include <BuildingClass.h>
+#include <EventClass.h>
 
 const char* AssignRallyPointCommandClass::GetName() const
 {

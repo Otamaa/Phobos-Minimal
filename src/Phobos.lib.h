@@ -4,17 +4,11 @@
 #pragma comment(lib, "DbgHelp.lib")
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "ole32.lib")
-#pragma comment(lib, "imm32.lib")
 #pragma comment(lib, "comctl32.lib")
 #pragma comment(lib, "gdi32.lib")
 #pragma comment(lib, "Bcrypt.lib")
-#pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "dxguid.lib")
-#pragma comment(lib, "ShLwApi.lib")
-#pragma comment(lib, "wininet.lib")
 #pragma comment(lib, "WinMM.lib")
-#pragma comment(lib, "WS2_32.lib")
-#pragma comment(lib, "Xinput9_1_0.lib")
 #pragma comment(lib, "kernel32.lib")
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "gdi32.lib")
@@ -27,9 +21,17 @@
 #pragma comment(lib, "odbc32.lib")
 #pragma comment(lib, "odbccp32.lib")
 
+#ifdef _Rehsde
+#pragma comment(lib, "d3dcompiler.lib")
+#pragma comment(lib, "imm32.lib")
+#pragma comment(lib, "Xinput9_1_0.lib")
+#endif
+
 #ifdef _TTT
 #pragma comment(linker, "/NODEFAULTLIB")
-
+#pragma comment(lib, "ShLwApi.lib")
+#pragma comment(lib, "WS2_32.lib")
+#pragma comment(lib, "wininet.lib")
 #pragma comment(lib, "kernel32.lib")
 #pragma comment(lib, "user32.lib")
 //#pragma comment(lib, "winspool.lib")

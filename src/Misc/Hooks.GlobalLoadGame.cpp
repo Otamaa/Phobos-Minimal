@@ -42,6 +42,8 @@
 #include <RadarEventClass.h>
 #include <SpawnManagerClass.h>
 #include <SlaveManagerClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 #include <AircraftTrackerClass.h>
 #include <Kamikaze.h>
@@ -74,6 +76,7 @@
 #include <New/Type/HealthBarTypeClass.h>
 #include <New/Type/RocketTypeClass.h>
 #include <New/Type/ThemeTypeClass.h>
+#include <New/Type/HoverTypeClass.h>
 
 #include <New/Entity/FlyingStrings.h>
 #include <New/Entity/SWFirerClass.h>

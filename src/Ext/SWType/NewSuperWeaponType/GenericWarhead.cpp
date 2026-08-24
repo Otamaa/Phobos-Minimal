@@ -6,6 +6,9 @@
 #include <New/Entity/AresAttachedAffects.h>
 #include <Misc/DamageArea.h>
 
+#include <VocClass.h>
+#include <VoxClass.h>
+
 void SW_GenericWarhead::Initialize(SWTypeExtData* pData)
 {
 	pData->This()->Action = Action(PhobosNewActionType::SuperWeaponAllowed);

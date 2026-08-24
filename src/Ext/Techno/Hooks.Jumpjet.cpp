@@ -16,6 +16,8 @@
 #include <Ext/Unit/Body.h>
 
 #include <SpawnManagerClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 ASMJIT_PATCH(0x4DE839, FootClass_AddSensorsAt_Record, 0x6)
 {

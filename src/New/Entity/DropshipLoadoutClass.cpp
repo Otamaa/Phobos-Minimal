@@ -13,6 +13,8 @@
 
 #include <sstream>
 #include <iomanip>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/TemplateDef.h>

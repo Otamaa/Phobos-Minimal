@@ -30,6 +30,8 @@
 
 #include <FPSCounter.h>
 #include <EventClass.h>
+#include <VoxClass.h>
+#include <VocClass.h>
 
 //TODO :
 // check Fire_SW calls they using types in the dll but in the game mostly using array index 

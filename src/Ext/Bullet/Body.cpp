@@ -22,6 +22,7 @@
 #include <InfantryClass.h>
 #include <AircraftClass.h>
 #include <RadBeam.h>
+#include <VocClass.h>
 
 static bool IsAllowedSplitsTarget(TechnoClass* pSource, HouseClass* pOwner, WeaponTypeClass* pWeapon, TechnoClass* pTarget, bool useverses)
 {

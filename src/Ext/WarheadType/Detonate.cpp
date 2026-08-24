@@ -9,6 +9,8 @@
 #include <AnimClass.h>
 #include <BitFont.h>
 #include <TagTypeClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 #include <AircraftClass.h>
 #include <UnitClass.h>
@@ -674,12 +676,11 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 
 			if (this->Traction) {
 				// Convert to vector for sorting (std::sort requires random access iterators)
-				std::vector<TechnoClass*> sortedItems(pTargetv.begin(), pTargetv.end());
-				std::sort(sortedItems.begin(), sortedItems.end(), [&coords](TechnoClass* a, TechnoClass* b) {
+				std::ranges::sort(pTargetv, [&coords](TechnoClass* a, TechnoClass* b) {
 						return a->GetCoords().DistanceFromSquared(coords) < b->GetCoords().DistanceFromSquared(coords);
 				});
 
-				for (auto const pTarget : sortedItems)
+				for (auto const pTarget : pTargetv)
 					this->DetonateOnOneUnit(pHouse, pTarget, coords, damage, pOwner, pBullet, ThisbulletWasIntercepted);
 			} else {
 				std::ranges::for_each(pTargetv, [&](TechnoClass* pTarget) {

@@ -6,6 +6,9 @@
 
 #include <InfantryClass.h>
 
+#include <VocClass.h>
+#include <VoxClass.h>
+
 bool SW_GeneticMutator::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	if (pThis->IsCharged)

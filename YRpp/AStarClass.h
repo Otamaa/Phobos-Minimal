@@ -1,6 +1,7 @@
 #pragma once
 
-#include <Base/Always.h>
+#include <Base/Macros.h>
+
 #include <CellClass.h>
 #include <PriorityQueueClass.h>
 #include <algorithm>

@@ -3,6 +3,9 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/Building/Body.h>
 
+#include <VocClass.h>
+#include <VoxClass.h>
+
 bool SW_UnitDelivery::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	SuperWeaponTypeClass* pSW = pThis->Type;

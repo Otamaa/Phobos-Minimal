@@ -15,6 +15,8 @@
 #include <GameModeOptionsClass.h>
 #include <ScenarioClass.h>
 #include <GameOptionsClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 UnitExtContainer UnitExtContainer::Instance;
 

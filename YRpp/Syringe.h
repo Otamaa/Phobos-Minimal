@@ -25,6 +25,7 @@
 #pragma once
 
 #include <Base/Always.h>
+
 #include <DebugLog.h>
 #include <type_traits>
 #include <bit>

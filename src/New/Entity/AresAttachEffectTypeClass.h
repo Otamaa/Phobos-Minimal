@@ -3,6 +3,12 @@
 #include <Utilities/Constructs.h>
 #include <Utilities/TemplateDef.h>
 
+class AbstractTypeClass;
+class AnimTypeClass;
+class WeaponTypeClass;
+class WarheadTypeClass;
+class PhobosStreamReader;
+class PhobosStreamWriter;
 class AresAttachEffectTypeClass
 {
 public:
@@ -53,8 +59,9 @@ public:
 	ValueableVector<double> ExtraWarheads_DetonationChances {};
 	ValueableVector<bool> ExtraWarheads_FullDetonation {};
 
-	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
+public:
 
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	bool Save(PhobosStreamWriter& Stm) const;
 
 	AresAttachEffectTypeClass() = default;
@@ -69,42 +76,6 @@ public:
 private:
 
 	template <typename T>
-	bool Serialize(T& Stm)
-	{
-		return Stm
-			.Process(this->Owner)
-			.Process(this->Duration)
-			.Process(this->Cumulative)
-			.Process(this->ForceDecloak)
-			.Process(this->DiscardOnEntry)
-			.Process(this->AnimType)
-			.Process(this->AnimResetOnReapply)
-			.Process(this->TemporalHidesAnim)
-			.Process(this->FirepowerMultiplier)
-			.Process(this->ArmorMultiplier)
-			.Process(this->SpeedMultiplier)
-			.Process(this->ROFMultiplier)
-			.Process(this->ReceiveRelativeDamageMult)
-			.Process(this->Cloakable)
-			.Process(this->Delay)
-			.Process(this->InitialDelay)
-			.Process(this->DisableWeapons)
-			.Process(this->PenetratesIC)
-			.Process(this->DisableSelfHeal)
-			.Process(this->Untrackable)
-			.Process(this->WeaponRange_Multiplier)
-			.Process(this->WeaponRange_ExtraRange)
-			.Process(this->WeaponRange_AllowWeapons)
-			.Process(this->WeaponRange_DisallowWeapons)
-			.Process(this->ROFMultiplier_ApplyOnCurrentTimer)
-			.Process(this->DisableRadar)
-			.Process(this->DisableSpySat)
-			.Process(this->Unkillable)
-			.Process(this->ExtraWarheads)
-			.Process(this->ExtraWarheads_DamageOverrides)
-			.Process(this->ExtraWarheads_DetonationChances)
-			.Process(this->ExtraWarheads_FullDetonation)
-			.Success()
-			&& Stm.RegisterChange(this); // announce this type
-	}
+	bool Serialize(T& Stm);
+
 };

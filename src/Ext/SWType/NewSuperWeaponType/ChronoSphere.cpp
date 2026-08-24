@@ -2,6 +2,8 @@
 
 #include <Ext/SWType/Body.h>
 #include <Ext/Super/Body.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 SuperWeaponFlags SW_ChronoSphere::Flags(const SWTypeExtData* pData) const
 {

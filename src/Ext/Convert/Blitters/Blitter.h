@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Base/Always.h>
-
 #include <Drawing.h>
 #include <AlphaLightingRemapClass.h>
 #include <Utilities/Simd.h>

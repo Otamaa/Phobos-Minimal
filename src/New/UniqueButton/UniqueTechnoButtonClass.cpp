@@ -3,6 +3,7 @@
 
 #include <FactoryClass.h>
 #include <TacticalClass.h>
+#include <PCX.h>
 
 #include <Ext/Scenario/Body.h>
 #include <Ext/Techno/Body.h>

@@ -263,6 +263,7 @@ public:
 	int SelfHealing_RestartInCombatDelay_Warhead {};
 	double Respawn_Warhead {};
 	int Respawn_Rate_Warhead {};
+	int BracketDelta {};
 
 	bool Respawn_RestartInCombat_Warhead {};
 	int Respawn_RestartInCombatDelay_Warhead {};

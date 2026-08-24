@@ -1,20 +1,17 @@
 #pragma once
-
-#include <FileFormats/SHP.h>
+#include <Base/Macros.h>
 
 class PhobosStreamReader;
 class PhobosStreamWriter;
 class INI_EX;
+struct SHPCaches;
 
 class TheaterSpecificSHP
 {
 public:
-	COMPILETIMEEVAL TheaterSpecificSHP() noexcept = default;
-
-	COMPILETIMEEVAL TheaterSpecificSHP(SHPCaches* pSHP)
-		: value { pSHP }
-	{
-	}
+	TheaterSpecificSHP() noexcept = default;
+	TheaterSpecificSHP(SHPCaches* pSHP);
+	~TheaterSpecificSHP();
 
 	COMPILETIMEEVAL operator SHPCaches* ()
 	{
@@ -30,9 +27,8 @@ public:
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	bool Save(PhobosStreamWriter& Stm) const;
 
-	~TheaterSpecificSHP();
 private:
-	SHPCaches* value { nullptr };
+	SHPCaches* value;
 
 protected:
 	TheaterSpecificSHP(const TheaterSpecificSHP& other) = delete;

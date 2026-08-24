@@ -139,8 +139,8 @@ public:
 	// ============================================================
 	// NullableIdx (likely int + bool ≈ 8 bytes)
 	// ============================================================
-	NullableIdx<VocClass> DetachedReport {};
-	NullableIdx<VocClass> AltReport {};
+	NullableIdx<VocClass*> DetachedReport {};
+	NullableIdx<VocClass*> AltReport {};
 
 	// ============================================================
 	// Valueable<int> (4 bytes each)

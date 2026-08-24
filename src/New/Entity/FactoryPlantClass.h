@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Base/Always.h>
 #include <Utilities/SavegameDef.h>
 #include <utility>
 

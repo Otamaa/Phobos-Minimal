@@ -63,6 +63,8 @@
 #include <CommandClass.h>
 #include <VoxelAnimClass.h>
 #include <TriggerClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 #include <New/TextBox/Types/TextBoxTypeClass.h>
 #include <New/TextBox/Entities/Derived/TechnoTextBoxClass.h>

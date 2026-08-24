@@ -1,6 +1,8 @@
 #include "SpyPlane.h"
 
 #include <Ext/Techno/Body.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 bool SW_SpyPlane::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {

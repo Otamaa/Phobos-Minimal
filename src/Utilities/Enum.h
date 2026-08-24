@@ -602,6 +602,8 @@ enum class PhobosAbilityType : int
 	Untrackable = 17,
 	Reload = 18,
 	EmptyReload = 19,
+	Range = 20,
+	CritChance = 21,
 
 	count
 };

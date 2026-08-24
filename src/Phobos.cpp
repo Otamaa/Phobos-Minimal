@@ -13,6 +13,7 @@
 #include <Utilities/CSFText.h>
 #include <Utilities/GameConfig.h>
 #include <Utilities/Parser.h>
+#include <Utilities/Handle.h>
 
 #include <Misc/Patches.h>
 #include <Misc/PhobosGlobal.h>
@@ -882,7 +883,6 @@ void Phobos::ExeTerminate()
 		}
 		Handles::Array.clear();
 		Patch::ModuleDatas.clear();
-		CustomPalette::ClearRegistry();
 	}
 }
 

@@ -5,6 +5,8 @@
 #include <BuildingClass.h>
 #include <UnitClass.h>
 #include <SlaveManagerClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>

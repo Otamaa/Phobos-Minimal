@@ -3,6 +3,12 @@
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 
+#include <VelocityClass.h>
+#include <Leptons.h>
+#include <CoordStruct.h>
+#include <Point2D.h>
+
+class BulletClass;
 enum class TrajectoryFlag : int
 {
 	Invalid = -1,

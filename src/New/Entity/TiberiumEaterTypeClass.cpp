@@ -1,7 +1,7 @@
 #include "TiberiumEaterTypeClass.h"
 
 #include <Utilities/SavegameDef.h>
-#include <Utilities/TemplateDef.h>
+#include <Utilities/INIParser.h>
 
 #include <TiberiumClass.h>
 

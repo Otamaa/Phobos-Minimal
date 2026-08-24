@@ -11,6 +11,7 @@
 #include <Ext/Team/Body.h>
 #include <Ext/InfantryType/Body.h>
 #include <Ext/Scenario/Body.h>
+#include <Ext/Super/Body.h>
 
 #include <Utilities/Cast.h>
 #include <Utilities/Macro.h>
@@ -18,6 +19,8 @@
 
 #include <BeaconClass.h>
 #include <BeaconManagerClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 ASMJIT_PATCH(0x4FD95F, HouseClass_CheckFireSale_LimboID, 0x6)
 {

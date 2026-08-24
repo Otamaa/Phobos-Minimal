@@ -1,13 +1,6 @@
 #pragma once
 
-#include <New/Type/ColorTypeClass.h>
-
-#include <ParticleSystemTypeClass.h>
-#include <VoxelAnimTypeClass.h>
-
 #include "TemplateDef.h"
-
-#include <New/Type/PaletteManager.h>
 
 struct FoundationDef
 {

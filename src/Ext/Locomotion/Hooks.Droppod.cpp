@@ -13,6 +13,8 @@
 #include <Utilities/Macro.h>
 
 #include <InfantryClass.h>
+#include <VoxClass.h>
+#include <VocClass.h>
 
 struct DroppodProperties_
 {

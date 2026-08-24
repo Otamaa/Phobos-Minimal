@@ -10,6 +10,8 @@
 #include <UnitClass.h>
 #include <AircraftClass.h>
 #include <BuildingClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 SuperClass* SW_LightningStorm::CurrentLightningStorm = nullptr;
 

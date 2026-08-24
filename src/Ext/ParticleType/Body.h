@@ -30,7 +30,7 @@ public:
 	// ============================================================
 	// 24-byte aligned: Vector
 	// ============================================================
-	ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types {};
+	ValueableIdxVector<LaserTrailTypeClass*> LaserTrail_Types {};
 
 	// ============================================================
 	// 8-byte aligned: Valueable<pointer>

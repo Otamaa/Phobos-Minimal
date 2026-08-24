@@ -16,6 +16,8 @@
 #include <UnitClass.h>
 #include <AircraftClass.h>
 #include <BuildingClass.h>
+#include <VoxClass.h>
+#include <VocClass.h>
 
 // this is a complete rewrite of LightningStorm::Start.
 ASMJIT_PATCH(0x539EB0, LightningStorm_Start, 5)

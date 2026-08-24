@@ -9,6 +9,7 @@
 #include <Ext/Object/Body.h>
 
 class VoxelAnimTypeExtData;
+class TechnoClass;
 class VoxelAnimExtData final : public ObjectExtData
 {
 public:
@@ -108,13 +109,7 @@ public:
 	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
 
 	void _Detach(AbstractClass* target, bool all);
-	void _RemoveThis()
-	{
-		if (this->Type)
-			VocClass::SafeImmedietelyPlayAt(this->Type->StopSound, &this->Location);
-
-		this->ObjectClass::UnInit();
-	}
+	void _RemoveThis();
 
 	VoxelAnimExtData* _GetExtData() {
 		return *reinterpret_cast<VoxelAnimExtData**>(((DWORD)this) + AbstractExtOffset);

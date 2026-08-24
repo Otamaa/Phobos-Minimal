@@ -20,6 +20,8 @@
 #include <InfantryClass.h>
 #include <RadarEventClass.h>
 #include <StringTable.h>
+#include <VoxClass.h>
+#include <VocClass.h>
 
 #include "NewSuperWeaponType/SWTypeHandler.h"
 #include "NewSuperWeaponType/NuclearMissile.h"
@@ -31,6 +33,7 @@
 #include <New/Entity/DropshipLoadoutClass.h>
 
 #include <New/Type/GenericPrerequisite.h>
+#include <New/Type/CursorTypeClass.h>
 
 #include <DiscreteSelectionClass.h>
 #include <DiscreteDistributionClass.h>

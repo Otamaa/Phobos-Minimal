@@ -5,6 +5,12 @@
 #include <Utilities/SavegameDef.h>
 #include <Utilities/TemplateDef.h>
 
+#include <FileFormats/SHP.h>
+
+TheaterSpecificSHP::TheaterSpecificSHP(SHPCaches* pSHP)
+	: value { pSHP }
+{}
+
 bool TheaterSpecificSHP::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
 	if (parser.ReadString(pSection, pKey))

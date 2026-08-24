@@ -5,6 +5,7 @@
 #include <RadarClass.h>
 #include <RadarEventClass.h>
 #include <VoxClass.h>
+#include <VocClass.h>
 
 #include <Locomotor/Cast.h>
 #include <Locomotor/HoverLocomotionClass.h>

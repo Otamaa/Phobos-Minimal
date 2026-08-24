@@ -10,8 +10,8 @@ public:
 
 public:
 
-	ValueableIdx<CursorTypeClass> Cursor { 21 };
-	ValueableIdx<CursorTypeClass> ShroudedCursor { 22 };
+	ValueableIdx<CursorTypeClass*> Cursor { 21 };
+	ValueableIdx<CursorTypeClass*> ShroudedCursor { 22 };
 	Valueable<bool> AllowShrouded { false };
 
 	ActionTypeClass(const char* pTitle) : Enumerable<ActionTypeClass>(pTitle) {	}

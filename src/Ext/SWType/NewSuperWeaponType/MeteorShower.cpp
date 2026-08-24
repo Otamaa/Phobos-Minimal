@@ -4,6 +4,8 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/SWType/Body.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {

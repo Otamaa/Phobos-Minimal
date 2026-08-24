@@ -4,6 +4,9 @@
 #include <Utilities/Helpers.h>
 #include <Utilities/Macro.h>
 
+#include <FileFormats/SHP.h>
+#include <PCX.h>
+
 SHPCaches* SideExtData::s_GraphicalTextImage = nullptr;
 CustomPalette SideExtData::s_GraphicalTextConvert;
 
@@ -538,6 +541,17 @@ void SideExtData::Serialize(T& Stm)
 		;
 }
 
+SHPCaches* SideExtData::GetGraphicalTextImage()
+{
+	return SideExtData::s_GraphicalTextImage ?
+		SideExtData::s_GraphicalTextImage : FileSystem::GRFXTXT_SHP();
+}
+
+ConvertClass* SideExtData::GetGraphicalTextConvert()
+{
+	return SideExtData::s_GraphicalTextConvert.GetConvert() ?
+		SideExtData::s_GraphicalTextConvert.GetConvert() : FileSystem::GRFXTXT_Convert();
+}
 
 // =============================
 // container

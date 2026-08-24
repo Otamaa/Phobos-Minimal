@@ -7,8 +7,7 @@
 
 #include <Utilities/PhobosFixedString.h>
 #include <Utilities/PhobosPCXFile.h>
-
-#include <New/Entity/EVAVoices.h>
+#include <Utilities/CSFText.h>
 
 class TechnoTypeClass;
 class InfantryTypeClass;
@@ -16,6 +15,8 @@ class AircraftTypeClass;
 class UnitTypeClass;
 class AnimTypeClass;
 class BuildingTypeClass;
+class VoxClass;
+class EVAVoices;
 struct SHPCaches;
 class HouseTypeExtData final : public AbstractTypeExtData
 {
@@ -82,7 +83,7 @@ public:
 	// Nullable<int> (int + bool + padding ≈ 8 bytes)
 	// ============================================================
 	Nullable<int> NewTeamsSelector_MergeUnclassifiedCategoryWith {};
-	NullableIdx<EVAVoices> EVAIndex { };
+	NullableIdx<EVAVoices*> EVAIndex { };
 	// ============================================================
 	// Nullable<bool> (bool + bool ≈ 2-4 bytes)
 	// ============================================================
@@ -93,7 +94,7 @@ public:
 	// Valueable<int> / ValueableIdx (4 bytes each)
 	// ============================================================
 	Valueable<int> SurvivorDivisor { -1 };
-	ValueableIdx<ColorScheme> LoadTextColor { -1 };
+	ValueableIdx<ColorScheme*> LoadTextColor { -1 };
 	Valueable<unsigned int> RandomSelectionWeight { 1 };
 
 	// ============================================================
@@ -119,7 +120,7 @@ public:
 	std::map<int, std::vector<int>> DropshipLoadout_AllowableUnitMaximumsLists {};
 	Nullable<int> DropshipLoadout_Theme {};
 	Nullable<int> DropshipLoadout_Money {};
-	NullableIdx<VoxClass> DropshipLoadout_StartEVA {};
+	NullableIdx<VoxClass*> DropshipLoadout_StartEVA {};
 	ValueableVector<TechnoTypeClass*> DropshipLoadout_Carriers {};
 	ValueableVector<int> DropshipLoadout_Carriers_SizeLimit {};
 	Nullable<bool> DropshipLoadout_AddUnusedMoneyToPlayer {};
@@ -145,11 +146,11 @@ public:
 	ValueableVector<std::vector<Point2D>> DropshipLoadout_DropshipCameoLocations {};
 	std::vector<std::vector<TechnoTypeClass*>> DropshipLoadout_FixedUnits {};
 	std::vector<std::vector<TechnoTypeClass*>> DropshipLoadout_InitialUnits {};
-	NullableIdx<VocClass> DropshipLoadout_BuyClickSound {};
-	NullableIdx<VocClass> DropshipLoadout_SellClickSound {};
-	NullableIdx<VocClass> DropshipLoadout_ArrowsClickSound {};
-	NullableIdx<VocClass> DropshipLoadout_StartingDragDropSound {};
-	NullableIdx<VocClass> DropshipLoadout_EndingDragDropSound {};
+	NullableIdx<VocClass*> DropshipLoadout_BuyClickSound {};
+	NullableIdx<VocClass*> DropshipLoadout_SellClickSound {};
+	NullableIdx<VocClass*> DropshipLoadout_ArrowsClickSound {};
+	NullableIdx<VocClass*> DropshipLoadout_StartingDragDropSound {};
+	NullableIdx<VocClass*> DropshipLoadout_EndingDragDropSound {};
 #pragma endregion
 
 public:

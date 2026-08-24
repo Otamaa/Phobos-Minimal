@@ -174,7 +174,7 @@ public:
 	// ============================================================
 	// 24-byte aligned: Vectors
 	// ============================================================
-	ValueableIdxVector<VocClass> VoiceGarrison {};
+	ValueableIdxVector<VocClass*> VoiceGarrison {};
 	std::vector<int> SquenceRates {};  // typo: should be "SequenceRates"
 
 	// ============================================================

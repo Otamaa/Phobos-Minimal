@@ -3,6 +3,8 @@
 #include <Utilities/Enumerable.h>
 #include <Utilities/TemplateDef.h>
 
+class VocClass;
+class AnimTypeClass;
 class HoverTypeClass final : public Enumerable<HoverTypeClass>
 {
 public:
@@ -12,7 +14,7 @@ public:
 private:
 
 	Nullable<AnimTypeClass*> AboveWaterAnim {};
-	NullableIdx<VocClass> ScoldSound {};
+	NullableIdx<VocClass*> ScoldSound {};
 	Nullable<int> HoverHeight {};
 	Nullable<double> HoverBob {};
 	Nullable<double> HoverDampen {};

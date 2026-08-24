@@ -6,6 +6,8 @@
 
 #include <Utilities/SavegameDef.h>
 
+#include <PCX.h>
+
 BannerManagerClass BannerManagerClass::Instance;
 
 void BannerManagerClass::Clear()

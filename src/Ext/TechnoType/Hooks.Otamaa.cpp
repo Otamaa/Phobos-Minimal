@@ -8,8 +8,9 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/WarheadType/Body.h>
 
-
 #include <SlaveManagerClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 ASMJIT_PATCH(0x6B0C2C, SlaveManagerClass_FreeSlaves_Sound, 0x5) // C
 {

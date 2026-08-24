@@ -1,11 +1,13 @@
 #include "Body.h"
 
-#include <Ext/House/Body.h>
+
 #include <FactoryClass.h>
 #include <FileSystem.h>
-#include <Ext/Side/Body.h>
-#include <Phobos.h>
+#include <VoxClass.h>
+#include <VocClass.h>
 
+#include <Ext/House/Body.h>
+#include <Ext/Side/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/BuildingType/Body.h>

@@ -7,6 +7,9 @@
 #include <Utilities/Helpers.h>
 #include <New/Entity/TargetingData.h>
 
+#include <VocClass.h>
+#include <VoxClass.h>
+
 bool SW_Protect::CanTargetingFireAt(const TargetingData* pTargeting, const CellStruct& cell, bool manual) const
 {
 	auto ret = SWTypeHandler::CanTargetingFireAt(pTargeting, cell, manual);

@@ -3,8 +3,6 @@
 #include <memory>
 #include <vector>
 
-#include <Base/Always.h>
-
 class SWColumnClass;
 class ToggleSWButtonClass;
 class SWButtonClass;

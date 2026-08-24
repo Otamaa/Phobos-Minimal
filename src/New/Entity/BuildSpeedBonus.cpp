@@ -1,5 +1,7 @@
 #include "BuildSpeedBonus.h"
 
+#include <TechnoTypeClass.h>
+
 void BuildSpeedBonus::Read(INI_EX& parser, const char* pSection)
 {
 	Nullable<double> nBuff {};
@@ -40,4 +42,29 @@ void BuildSpeedBonus::Read(INI_EX& parser, const char* pSection)
 
 	if (Enabled)
 		AffectedType.Read(parser, pSection, "BuildSpeedBonus.AffectedTypes");
+}
+
+bool BuildSpeedBonus::Load(PhobosStreamReader& stm, bool registerForChange)
+{
+	return Serialize(stm);
+}
+
+bool BuildSpeedBonus::Save(PhobosStreamWriter& stm) const
+{
+	return const_cast<BuildSpeedBonus*>(this)->Serialize(stm);
+}
+
+template <typename T>
+bool BuildSpeedBonus::Serialize(T& stm)
+{
+	return stm
+		.Process(Enabled)
+		.Process(SpeedBonus_Aircraft)
+		.Process(SpeedBonus_Building)
+		.Process(SpeedBonus_Infantry)
+		.Process(SpeedBonus_Unit)
+		.Process(AffectedType)
+		.Success()
+		//&& stm.RegisterChange(this)
+		; // announce this type
 }

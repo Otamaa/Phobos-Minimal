@@ -5,6 +5,7 @@
 #include <Utilities/Macro.h>
 
 #include <CCToolTip.h>
+#include <PCX.h>
 
 ASMJIT_PATCH(0x534FB1, Sides_MixFileIndex, 5)
 {

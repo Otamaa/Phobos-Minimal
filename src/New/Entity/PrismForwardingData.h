@@ -27,30 +27,8 @@ public:
 	Valueable<int> EliteSupportWeaponIndex {-1};
 
 	//methods
-	COMPILETIMEEVAL signed int GetUnusedWeaponSlot(BuildingTypeClass* pThis, bool elite)
-	{
-		for (auto idxWeapon = 2u; idxWeapon < 13u; ++idxWeapon)
-		{ //13-18 is AlternateFLH0-4
-			auto Weapon = (elite ? pThis->GetEliteWeapon(idxWeapon) : pThis->GetWeapon(idxWeapon))->WeaponType;
-
-			if (!Weapon)
-			{
-				return static_cast<int>(idxWeapon);
-			}
-		}
-		return -1;
-	}
-
-	COMPILETIMEEVAL void Initialize(BuildingTypeClass* pThis)
-	{
-		this->Enabled = EnabledState::No;
-		if (pThis == RulesClass::Instance->PrismType)
-		{
-			this->Enabled = EnabledState::Yes;
-		}
-		this->Targets.push_back(pThis);
-	}
-
+	signed int GetUnusedWeaponSlot(BuildingTypeClass* pThis, bool elite);
+	void Initialize(BuildingTypeClass* pThis);
 	void LoadFromINIFile(BuildingTypeClass* pThis, CCINIClass* pINI);
 
 	COMPILETIMEEVAL int GetMaxFeeds() const

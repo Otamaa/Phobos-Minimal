@@ -4,6 +4,8 @@
 #include <AircraftClass.h>
 #include <UnitClass.h>
 #include <BuildingClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 #include <BombClass.h>
 #include <SlaveManagerClass.h>

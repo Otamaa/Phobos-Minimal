@@ -30,6 +30,8 @@
 
 #include <AircraftClass.h>
 #include <SpawnManagerClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 #include <New/Interfaces/ShiftLocomotionClass.h>
 
@@ -704,7 +706,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		std::string base("SpawnsCrate");
 		std::string base_Num = base + std::to_string(i);
 
-		auto Idx = NullableIdx<CrateTypeClass>()(exINI, pSection, (base_Num + ".Type").c_str());
+		auto Idx = NullableIdx<CrateTypeClass*>()(exINI, pSection, (base_Num + ".Type").c_str());
 
 		if (i == 0 && !Idx.isset())
 			Idx.Read(exINI, pSection, (base + ".Type").c_str());
@@ -2372,6 +2374,9 @@ void WarheadTypeExtData::GetCritChance(TechnoClass* pFirer, double& chances) con
 	}
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pFirer);
+
+	if (TechnoExtData::HasAbility(pFirer, PhobosAbilityType::CritChance))
+		chances = GeneralUtils::SafeMultiply(chances, MaxImpl(pExt->TypeExtData->VeteranCritChance.Get(FakeRulesClass::Instance->VeteranCritChance), 0.0));
 
 	if (pExt->AE.ExtraCrit.Enabled())
 	{

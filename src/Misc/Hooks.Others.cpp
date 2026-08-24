@@ -9,10 +9,11 @@
 #include <SlaveManagerClass.h>
 #include <SpawnManagerClass.h>
 #include <AirstrikeClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 #include <Utilities/Macro.h>
 #include <Helpers/Macro.h>
-#include <Base/Always.h>
 
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
@@ -1351,8 +1352,11 @@ bool __fastcall Init_Secondary_Mixfiles()
 	auto CheckAndAllocateMix = [pKey](const char* mixName, MixFileClass*& mix) {
 		CCFileClass tmp(mixName);
 
-		if (!tmp.IsAvaible(0))
+		if (!tmp.IsAvaible(0)) {
+			Debug::Log("Mix %s is Not avaible!\n", mixName);
 			return false;
+		}
+
 
 		if (mix) {
 			GameDelete<true, false>(mix);
@@ -1435,7 +1439,7 @@ bool __fastcall Init_Secondary_Mixfiles()
 	// THEMEMD.MIX / THEME.MIX (optional — missing ThemeMix is non-fatal)
 	// ------------------------------------------------------------------
 	if (!CheckAndAllocateMix(THEMEMD_MIX, THEME()) && !CheckAndAllocateMix(THEME_MIX, THEME())) {
-		Debug::Log("Successfully finding Theme mix file\n");
+		Debug::Log("Failed finding Theme mix file\n");
 		ThemeClass::ScoresPresent = 1;
 		ThemeClass::Instance->Scan();
 	}

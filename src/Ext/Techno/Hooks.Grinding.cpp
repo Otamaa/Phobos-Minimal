@@ -10,6 +10,8 @@
 #include <InfantryClass.h>
 #include <WWKeyboardClass.h>
 #include <CaptureManagerClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 ASMJIT_PATCH(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 {

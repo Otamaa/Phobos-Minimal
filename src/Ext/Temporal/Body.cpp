@@ -21,7 +21,8 @@
 #include <RadarEventClass.h>
 #include <SpawnManagerClass.h>
 #include <CaptureManagerClass.h>
-
+#include <VoxClass.h>
+#include <VocClass.h>
 
 void FakeTemporalClass::CreateWarpAwayAnimation(WeaponTypeClass* pWeapon)
 {

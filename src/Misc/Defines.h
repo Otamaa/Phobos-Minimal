@@ -1,4 +1,4 @@
 #pragma once
-#include <Base/Always.h>
+#include <Base/Macros.h>
 
 static COMPILETIMEEVAL char MaxHouseCount { 32 };

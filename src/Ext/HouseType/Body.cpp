@@ -6,6 +6,7 @@
 
 #include <Ext/Scenario/Body.h>
 
+#include <New/Entity/EVAVoices.h>
 #include <New/Entity/DropshipLoadoutClass.h>
 
 #include <DiscreteDistributionClass.h>

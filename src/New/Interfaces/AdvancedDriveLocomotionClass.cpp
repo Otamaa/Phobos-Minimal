@@ -7,6 +7,8 @@
 #include <OverlayTypeClass.h>
 #include <SpawnManagerClass.h>
 #include <TubeClass.h>
+#include <VoxClass.h>
+#include <VocClass.h>
 
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>

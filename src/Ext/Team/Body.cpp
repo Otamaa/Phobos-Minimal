@@ -24,6 +24,8 @@
 #include <Utilities/Helpers.h>
 
 #include <TeamTypeClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 bool TeamExtData::IsCloseToCenter(FootClass* pMember, AbstractClass* pCenterCell, int stray)
 {

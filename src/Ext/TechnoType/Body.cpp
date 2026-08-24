@@ -18,12 +18,90 @@
 #include <New/Type/InsigniaTypeClass.h>
 #include <New/Type/TunnelTypeClass.h>
 #include <New/Type/CursorTypeClass.h>
+#include <New/Type/ShieldTypeClass.h>
+#include <New/Type/LaserTrailTypeClass.h>
+#include <New/Type/HoverTypeClass.h>
+#include <New/Type/ImmunityTypeClass.h>
+
+#include <New/Type/CrateTypeClass.h>
+
 
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Cast.h>
 #include <Utilities/EnumFunctions.h>
 
 #include <Utilities/SavegameDef.h>
+
+#include <VocClass.h>
+#include <VoxClass.h>
+
+ImageStatusses::~ImageStatusses()
+{
+	if (Loaded)
+	{
+		GameDelete<true, true>(Images.VXL);
+		GameDelete<true, true>(Images.HVA);
+
+		Images.VXL = nullptr;
+		Images.HVA = nullptr;
+		Loaded = false;
+	}
+}
+
+void ImageStatusses::swap(VoxelStruct& from)
+{
+
+	if (from.VXL != this->Images.VXL)
+	{
+		std::swap(from.VXL, this->Images.VXL);
+	}
+
+	if (from.HVA != this->Images.HVA)
+	{
+		std::swap(from.HVA, this->Images.HVA);
+	}
+
+	this->Loaded = this->Images.VXL || this->Images.HVA;
+}
+
+bool ImageStatusses::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+{
+	if (Loaded)
+	{
+		GameDelete<true, true>(Images.VXL);
+		GameDelete<true, true>(Images.HVA);
+
+		Images.VXL = nullptr;
+		Images.HVA = nullptr;
+		Loaded = false;
+	}
+
+	return true;
+}
+
+bool ImageStatusses::Save(PhobosStreamWriter& Stm) const
+{
+	return true;
+}
+
+bool BurstFLHBundle::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+{
+	// support pointer to this type
+	return Stm
+		.Process(this->Flh, RegisterForChange)
+		.Process(this->EFlh, RegisterForChange)
+		.Success()
+		;
+}
+bool BurstFLHBundle::Save(PhobosStreamWriter& Stm) const
+{
+	// remember this object address
+	return Stm
+		.Process(this->Flh)
+		.Process(this->EFlh)
+		.Success()
+		;
+}
 
 bool TechnoTypeExtData::SelectWeaponMutex = false;
 
@@ -1016,10 +1094,10 @@ void TechnoTypeExtData::ParseVoiceWeaponAttacks(INI_EX& exINI, const char* pSect
 	for (int index = 0; index < WeaponCount; index++)
 	{
 		IMPL_SNPRNINTF(tempBuff, sizeof(tempBuff), "VoiceWeapon%dAttack", index + 1);
-		auto VoiceAttack = NullableIdx<VocClass>()(exINI, pSection, tempBuff);
+		auto VoiceAttack = NullableIdx<VocClass*>()(exINI, pSection, tempBuff);
 
 		IMPL_SNPRNINTF(tempBuff, sizeof(tempBuff), "VoiceEliteWeapon%dAttack", index + 1);
-		auto VoiceEliteAttack = NullableIdx<VocClass>()(exINI, pSection, tempBuff);
+		auto VoiceEliteAttack = NullableIdx<VocClass*>()(exINI, pSection, tempBuff);
 
 		if (int(n.size()) > index) {
 			n[index] = VoiceAttack.Get(n[index]);
@@ -2466,6 +2544,9 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->SelectedInfo_CameoIndex.Read(exINI, pSection, "SelectedInfo.CameoIndex");
 		this->SelectedInfo_Button.Read(exINI, pSection, "SelectedInfo.Button");
 		this->UIDescription_HoveredInfo.Read(exINI, pSection, "UIDescription.HoveredInfo");
+
+		this->VeteranRange.Read(exINI, pSection, "VeteranRange");
+		this->VeteranCritChance.Read(exINI, pSection, "VeteranCritChance");
 	}
 
 	this->TintColorAirstrike = GeneralUtils::GetColorFromColorAdd(this->LaserTargetColor.Get(RulesClass::Instance->LaserTargetColor));
@@ -3958,6 +4039,8 @@ void TechnoTypeExtData::Serialize(T& Stm) {
 		.Process(this->SelectedInfo_CameoIndex)
 		.Process(this->SelectedInfo_Button)
 		.Process(this->UIDescription_HoveredInfo)
+		.Process(this->VeteranRange)
+		.Process(this->VeteranCritChance)
 		;
 }
 

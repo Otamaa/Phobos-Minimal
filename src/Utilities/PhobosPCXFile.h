@@ -1,9 +1,6 @@
 #pragma once
 
-#include <PCX.h>
 #include <Helpers/String.h>
-
-#include <Map>
 
 class BSurface;
 class INIClass;
@@ -16,7 +13,7 @@ class PhobosPCXFile
 
 public:
 
-	explicit PhobosPCXFile() : Surface(nullptr), filename() { }
+	explicit PhobosPCXFile();
 
 	PhobosPCXFile(const char* pFilename);
 
@@ -76,6 +73,6 @@ private:
 
 	PhobosPCXFile& Assign(const char* pFilename);
 
-	BSurface* Surface { nullptr };
+	BSurface* Surface;
 	FixedString<Capacity> filename;
 };

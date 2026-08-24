@@ -4,6 +4,9 @@
 
 #include <Utilities/Macro.h>
 
+#include <VocClass.h>
+#include <VoxClass.h>
+
 void Phobos_DoControls::ReadSequence(DoInfoStruct* pDoInfo, InfantryTypeClass* pInf, CCINIClass* pINI)
 {
 	/*

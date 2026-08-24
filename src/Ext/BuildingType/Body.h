@@ -1,25 +1,15 @@
 #pragma once
 #include <BuildingTypeClass.h>
-#include <SuperClass.h>
-#include <SuperWeaponTypeClass.h>
 
-#include <Helpers/Macro.h>
-
-#include <Utilities/PhobosMap.h>
-#include <Utilities/TemplateDef.h>
+#include <DirStruct.h>
 
 #include <Ext/TechnoType/Body.h>
 
-#include <New/Entity/BuildSpeedBonus.h>
-#include <New/Entity/TheaterSpecificSHP.h>
 #include <New/Entity/PrismForwardingData.h>
+#include <New/Entity/BuildSpeedBonus.h>
 
-#include <Misc/Defines.h>
-
-#include <DirStruct.h>
 class TunnelTypeClass;
 class CursorTypeClass;
-class SuperClass;
 class BuildingTypeExtData final : public TechnoTypeExtData
 {
 public:
@@ -185,16 +175,16 @@ public:
 	// ============================================================
 	// NullableIdx (int + bool ≈ 8 bytes)
 	// ============================================================
-	NullableIdx<VocClass> Grinding_Sound {};
-	NullableIdx<SuperWeaponTypeClass> SpyEffect_VictimSuperWeapon {};
-	NullableIdx<SuperWeaponTypeClass> SpyEffect_InfiltratorSuperWeapon {};
-	NullableIdx<VocClass> GateDownSound {};
-	NullableIdx<VocClass> GateUpSound {};
-	NullableIdx<VocClass> BunkerWallsUpSound {};
-	NullableIdx<VocClass> BunkerWallsDownSound {};
-	NullableIdx<VocClass> SlamSound {};
-	NullableIdx<VocClass> AbandonedSound {};
-	NullableIdx<VocClass> BuildingRepairedSound {};
+	NullableIdx<VocClass*> Grinding_Sound {};
+	NullableIdx<SuperWeaponTypeClass*> SpyEffect_VictimSuperWeapon {};
+	NullableIdx<SuperWeaponTypeClass*> SpyEffect_InfiltratorSuperWeapon {};
+	NullableIdx<VocClass*> GateDownSound {};
+	NullableIdx<VocClass*> GateUpSound {};
+	NullableIdx<VocClass*> BunkerWallsUpSound {};
+	NullableIdx<VocClass*> BunkerWallsDownSound {};
+	NullableIdx<VocClass*> SlamSound {};
+	NullableIdx<VocClass*> AbandonedSound {};
+	NullableIdx<VocClass*> BuildingRepairedSound {};
 
 	// ============================================================
 	// Nullable<bool> (bool + bool ≈ 2-4 bytes)
@@ -264,10 +254,10 @@ public:
 	ValueableIdx<TunnelTypeClass*> TunnelType { -1 };
 	ValueableIdx<CursorTypeClass*> Cursor_Spy { (int)MouseCursorType::Enter };
 	ValueableIdx<CursorTypeClass*> Cursor_Sabotage { 93 };
-	ValueableIdx<VoxClass> LostEvaEvent { -1 };
-	ValueableIdx<VoxClass> EVA_Online { -1 };
-	ValueableIdx<VoxClass> EVA_Offline { -1 };
-	ValueableIdx<VoxClass> NewEvaVoice_InitialMessage { -1 };
+	ValueableIdx<VoxClass*> LostEvaEvent { -1 };
+	ValueableIdx<VoxClass*> EVA_Online { -1 };
+	ValueableIdx<VoxClass*> EVA_Offline { -1 };
+	ValueableIdx<VoxClass*> NewEvaVoice_InitialMessage { -1 };
 
 	// ============================================================
 	// Valueable<enum> (4 bytes each)

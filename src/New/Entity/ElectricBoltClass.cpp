@@ -2,7 +2,6 @@
 
 #ifdef _Enable
 
-#include <Base/Always.h>
 #include <Utilities/TemplateDef.h>
 #include <TacticalClass.h>
 #include <Drawing.h>

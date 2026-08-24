@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Utilities/Constructs.h>
 #include <Utilities/Enum.h>
 #include <Utilities/Template.h>
 
@@ -8,6 +7,7 @@
 
 class TechnoTypeClass;
 class AnimTypeClass;
+class VocClass;
 class PassengerDeletionTypeClass
 {
 public:
@@ -40,7 +40,7 @@ public:
 	Valueable<bool> DisplaySoylent {};
 	Valueable<AffectedHouse> DisplaySoylentToHouses { AffectedHouse::All };
 	Valueable<Point2D> DisplaySoylentOffset {};
-	NullableIdx<VocClass> ReportSound {};
+	NullableIdx<VocClass*> ReportSound {};
 	Nullable<AnimTypeClass*> Anim {};
 	Valueable<bool> UnderEMP {};
 

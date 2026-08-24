@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../Blitters/Blitter.h"
-#include <Base/Always.h>
 
 // ============================================================================
 //  Blitters.h

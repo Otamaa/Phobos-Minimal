@@ -3,6 +3,8 @@
 
 #include <BitFont.h>
 #include <Surface.h>
+#include <VoxClass.h>
+#include <VocClass.h>
 
 #include <Ext/Scenario/Body.h>
 

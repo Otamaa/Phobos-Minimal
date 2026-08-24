@@ -8,7 +8,7 @@ class ObjectClass;
 class TechnoClass;
 class HouseClass;
 
-enum class BombState : int { Planted, Removed };
+enum class BombState : char { Planted, Removed };
 enum class BombType : int { NormalBomb , DeathBomb };
 
 class DECLSPEC_UUID("0679E983-AD9D-11D3-BE16-00104B62A16C")
@@ -76,6 +76,7 @@ public:
 	int TickSound;
 	BOOL ShouldPlayTickingSound; // seems so
 	BombState State; // (mostly) set to 0 on plant, 1 on detonation/removal ?
+	char _pad[3];
 };
 
 static_assert(sizeof(BombClass) == 0x5C, "Invalid size.");

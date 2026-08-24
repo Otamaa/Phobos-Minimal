@@ -1,6 +1,6 @@
 #pragma once
 #include <type_traits>
-#include <Base/Always.h>
+#include <Base/Macros.h>
 
 // IMO under no circumstances should we set the vtable address for a class from vanilla game in general,
 // we do this only for pointers

@@ -1,10 +1,10 @@
 #include "Body.h"
 
 #include <Ext/Building/Body.h>
-#include <Ext/BuildingType/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/Rules/Body.h>
 #include <Ext/SWType/Body.h>
+#include <Ext/Super/Body.h>
 #include <Ext/Scenario/Body.h>
 #include <Ext/Tactical/Body.h>
 
@@ -15,6 +15,8 @@
 
 #include <InfantryClass.h>
 #include <Unsorted.h>
+#include <VoxClass.h>
+#include <VocClass.h>
 
 const DirStruct  BuildingTypeExtData::DefaultJuggerFacing = DirStruct { 0x7FFF };
 const CellStruct BuildingTypeExtData::FoundationEndMarker = { 0x7FFF, 0x7FFF };

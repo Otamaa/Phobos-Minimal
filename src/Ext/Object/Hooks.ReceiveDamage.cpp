@@ -4,7 +4,6 @@
 #include <UnitClass.h>
 #include <Utilities/Macro.h>
 #include <Helpers/Macro.h>
-#include <Base/Always.h>
 
 #include <HouseClass.h>
 #include <RadarEventClass.h>
@@ -13,6 +12,8 @@
 #include <TacticalClass.h>
 #include <SlaveManagerClass.h>
 #include <CaptureManagerClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 #include <Utilities/Debug.h>
 
@@ -35,8 +36,7 @@
 #include <Ext/House/Body.h>
 #include <Ext/Team/Body.h>
 #include <Ext/Unit/Body.h>
-#include <Ext/Infantry/Body.h>
-#include <Ext/Aircraft/Body.h>
+#include <Ext/Super/Body.h>
 
 #include <Ext/SWType/NewSuperWeaponType/Firewall.h>
 
@@ -674,8 +674,22 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 	 }
 
 	 // Disarm bomb
-	 if (pThis->AttachedBomb && pWHExt->FakeEngineer_BombDisarm)
-	 	pThis->AttachedBomb->Disarm();
+	 if (pThis->AttachedBomb)
+	 {
+		 if (pWHExt->FakeEngineer_BombDisarm)
+			 pThis->AttachedBomb->Disarm();
+		 else if (source) {
+			 auto pSourceExt = TechnoExtContainer::Instance.Find(source);
+
+			 if (pSourceExt->LastWeaponType) {
+				 auto pWpnExt = WeaponTypeExtContainer::Instance.Find(pSourceExt->LastWeaponType);
+
+				 if (pWpnExt->IvanBomb_Detonate && pThis->AttachedBomb->Owner == source)
+					 pThis->AttachedBomb->Detonate();				
+			 }
+		 }
+	 }
+
 
 	 args_ReceiveDamage args {}; {
 		args.Damage = damage;

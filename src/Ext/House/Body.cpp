@@ -28,6 +28,8 @@
 #include <TActionClass.h>
 #include <CaptureManagerClass.h>
 #include <RadarEventClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 bool HouseExtData::CheckOwnerBitfieldForCurrentPlayer(TechnoTypeClass* pType)
 {

@@ -5,12 +5,13 @@
 
 #include <Utilities/TemplateDef.h>
 #include <Utilities/RadialFireStruct.h>
-
+#include <Utilities/Handle.h>
 #include <New/Entity/LaserTrailClass.h>
 
 #include "Trajectories/PhobosTrajectory.h"
 
 #include <Ext/Object/Body.h>
+#include <ParticleSystemClass.h>
 
 class TechnoClass;
 class TechnoTypeClass;

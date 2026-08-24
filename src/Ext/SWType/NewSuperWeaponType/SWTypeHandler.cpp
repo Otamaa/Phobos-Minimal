@@ -29,6 +29,8 @@
 #include "LaserStrike.h"
 
 #include <SWRange.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 TypeContainer TypeContainer::Instance;
 

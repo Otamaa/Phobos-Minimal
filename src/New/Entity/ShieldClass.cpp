@@ -19,6 +19,8 @@
 #include <HouseClass.h>
 #include <RadarEventClass.h>
 #include <TacticalClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 HelperedVector<ShieldClass*> ShieldClass::Array;
 
@@ -36,6 +38,7 @@ ShieldClass::ShieldClass() : Techno { nullptr }
 , SelfHealing_Rate_Warhead { -1 }
 , Respawn_Warhead { 0.0 }
 , Respawn_Rate_Warhead { -1 }
+, BracketDelta { }
 , Respawn_RestartInCombat_Warhead {}
 , Respawn_RestartInCombatDelay_Warhead {}
 , Respawn_Anim_Warhead {}
@@ -61,6 +64,7 @@ ShieldClass::ShieldClass(TechnoClass* pTechno, bool isAttached) : Techno { pTech
 , SelfHealing_Rate_Warhead { -1 }
 , Respawn_Warhead { 0.0 }
 , Respawn_Rate_Warhead { -1 }
+, BracketDelta { }
 , Respawn_RestartInCombat_Warhead {}
 , Respawn_RestartInCombatDelay_Warhead {}
 , Respawn_Anim_Warhead {}
@@ -72,6 +76,9 @@ ShieldClass::ShieldClass(TechnoClass* pTechno, bool isAttached) : Techno { pTech
 	this->SetHP(this->Type->InitialStrength.Get(this->Type->Strength));
 	this->CurTechnoType = GET_TECHNOTYPE(pTechno);
 
+	if (pTechno->AbstractFlags & AbstractFlags::Foot)
+		this->BracketDelta = this->CurTechnoType->PixelSelectionBracketDelta + this->Type->BracketDelta - 3;
+	
 	Array.push_back(this);
 }
 
@@ -93,6 +100,7 @@ ShieldClass::ShieldClass(ShieldClass&& other) noexcept
 	, SelfHealing_RestartInCombatDelay_Warhead(other.SelfHealing_RestartInCombatDelay_Warhead)
 	, Respawn_Warhead(other.Respawn_Warhead)
 	, Respawn_Rate_Warhead(other.Respawn_Rate_Warhead)
+	, BracketDelta(other.BracketDelta)
 	, Respawn_RestartInCombat_Warhead(other.Respawn_RestartInCombat_Warhead)
 	, Respawn_RestartInCombatDelay_Warhead(other.Respawn_RestartInCombatDelay_Warhead)
 	, Respawn_Anim_Warhead(std::move(other.Respawn_Anim_Warhead))
@@ -137,6 +145,7 @@ ShieldClass& ShieldClass::operator=(ShieldClass&& other) noexcept
 	this->SelfHealing_RestartInCombatDelay_Warhead = other.SelfHealing_RestartInCombatDelay_Warhead;
 	this->Respawn_Warhead = other.Respawn_Warhead;
 	this->Respawn_Rate_Warhead = other.Respawn_Rate_Warhead;
+	this->BracketDelta = other.BracketDelta;
 	this->Respawn_RestartInCombat_Warhead = other.Respawn_RestartInCombat_Warhead;
 	this->Respawn_RestartInCombatDelay_Warhead = other.Respawn_RestartInCombatDelay_Warhead;
 	this->Respawn_Anim_Warhead = std::move(other.Respawn_Anim_Warhead);
@@ -182,6 +191,7 @@ bool ShieldClass::Serialize(T& Stm)
 		.Process(this->SelfHealing_RestartInCombatDelay_Warhead)
 		.Process(this->Respawn_Warhead)
 		.Process(this->Respawn_Rate_Warhead)
+		.Process(this->BracketDelta)
 		.Process(this->Respawn_RestartInCombat_Warhead)
 		.Process(this->Respawn_RestartInCombatDelay_Warhead)
 		.Process(this->Respawn_Anim_Warhead)
@@ -866,6 +876,8 @@ bool ShieldClass::ConvertCheck()
 	this->CurTechnoType = newID;
 	// Force tint update on shield type conversion.
 	this->UpdateTint(true);
+	// BracketDelta
+	this->BracketDelta = this->CurTechnoType->PixelSelectionBracketDelta + pNewType->BracketDelta - 3;
 
 	return false;
 }
@@ -1264,7 +1276,7 @@ void ShieldClass::DrawShieldBar_Other(int iLength, Point2D* pLocation, Rectangle
 
 	auto position = TechnoExtData::GetFootSelectBracketPosition(Techno, Anchor(HorizontalPosition::Left, VerticalPosition::Top));
 	position.X -= 1;
-	position.Y += GET_TECHNOTYPE(this->Techno)->PixelSelectionBracketDelta + this->Type->BracketDelta - 3;
+	position.Y += this->BracketDelta;
 	int frame = pipBoard->CurrentHeader.Frames > 2 ? 2 : 0;
 
 	if (this->Techno->IsSelected)

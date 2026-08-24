@@ -5,6 +5,8 @@
 
 #include <BuildingClass.h>
 #include <HouseClass.h>
+#include <VoxClass.h>
+#include <VocClass.h>
 
 #include <Ext/Rules/Body.h>
 #include <Ext/Techno/Body.h>

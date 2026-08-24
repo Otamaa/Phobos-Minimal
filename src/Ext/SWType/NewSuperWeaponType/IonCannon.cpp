@@ -4,6 +4,8 @@
 #include <RadarEventClass.h>
 #include <SuperClass.h>
 #include <IonBlastClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 SuperWeaponFlags SW_IonCannon::Flags(const SWTypeExtData* pData) const
 {

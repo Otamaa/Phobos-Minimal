@@ -1,6 +1,8 @@
 #include "CrateTypeClass.h"
 
 #include <AnimClass.h>
+#include <VocClass.h>
+#include <VoxClass.h>
 
 Enumerable<CrateTypeClass>::container_t Enumerable<CrateTypeClass>::Array;
 

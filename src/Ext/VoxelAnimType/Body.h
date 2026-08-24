@@ -18,7 +18,7 @@ public:
 	// Containers / complex structs
 	// =====================================================
 
-	ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types;
+	ValueableIdxVector<LaserTrailTypeClass*> LaserTrail_Types;
 	NullableVector<AnimTypeClass*> SplashList;
 
 	// =====================================================

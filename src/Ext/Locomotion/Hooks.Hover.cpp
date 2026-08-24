@@ -4,6 +4,9 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
 
+#include <VoxClass.h>
+#include <VocClass.h>
+
 #include <Locomotor/HoverLocomotionClass.h>
 
 /*; hover vehicle characteristics

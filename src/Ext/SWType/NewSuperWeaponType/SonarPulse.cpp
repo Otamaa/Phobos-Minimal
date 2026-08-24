@@ -4,6 +4,9 @@
 
 #include <Ext/Techno/Body.h>
 
+#include <VocClass.h>
+#include <VoxClass.h>
+
 SuperWeaponFlags SW_SonarPulse::Flags(const SWTypeExtData* pData) const
 {
 	if (this->GetRange(pData).WidthOrRange > 0)

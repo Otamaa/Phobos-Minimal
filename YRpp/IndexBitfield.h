@@ -1,7 +1,6 @@
 #pragma once
 
-#include <Base/Always.h>
-
+#include <Base/Macros.h>
 // vroom vroom
 // Westwood uses if(((1 << HouseClass::ArrayIndex) & TechnoClass::DisplayProductionToHouses) != 0) and other bitfields like this (esp. in CellClass, omg optimized). helper wrapper just because
 template <typename T>

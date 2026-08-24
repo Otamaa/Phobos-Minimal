@@ -1,4 +1,5 @@
 #include "PhobosPCXFile.h"
+#include <PCX.h>
 
 #include "SavegameDef.h"
 #include "Debug.h"
@@ -11,7 +12,7 @@
 #include <memory>
 #include <mutex>
 
-
+PhobosPCXFile::PhobosPCXFile() : Surface(nullptr), filename() {}
 
 PhobosPCXFile::PhobosPCXFile(const char* pFilename) : PhobosPCXFile()
 {

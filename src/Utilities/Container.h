@@ -10,7 +10,7 @@
 #include <Utilities/ClassInterfaces.h>
 #include <Utilities/Concepts.h>
 
-#include <Base/Always.h>
+#include <Base/Macros.h>
 
 #define FACILITY_PHOBOS 0x069
 

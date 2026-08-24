@@ -4,6 +4,9 @@
 #include <Utilities/Helpers.h>
 #include <Ext/Event/Body.h>
 
+#include <VocClass.h>
+#include <VoxClass.h>
+
 bool SW_Reveal::Activate(SuperClass* const pThis, const CellStruct& Coords, bool const IsPlayer)
 {
 	auto const pSW = pThis->Type;

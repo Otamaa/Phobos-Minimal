@@ -5,6 +5,9 @@
 #include <Ext/House/Body.h>
 #include <Ext/WarheadType/Body.h>
 
+#include <VocClass.h>
+#include <VoxClass.h>
+
 AnimTypeClass* CaptureExtData::GetMindcontrollAnimType(TechnoClass* pController, TechnoClass* pTarget, AnimTypeClass* pFallback)
 {
 	if (!pFallback)

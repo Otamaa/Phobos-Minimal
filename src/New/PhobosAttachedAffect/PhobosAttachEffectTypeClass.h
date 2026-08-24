@@ -148,7 +148,7 @@ public:
 
 	Valueable<WeaponTypeClass*> FeedbackWeapon {};
 
-	ValueableIdx<LaserTrailTypeClass> LaserTrail_Type { -1 };
+	ValueableIdx<LaserTrailTypeClass*> LaserTrail_Type { -1 };
 
 	Valueable<double> Block_ChanceMultiplier { 1.0 };
 	Valueable<double> Block_ExtraChance { 0.0 };

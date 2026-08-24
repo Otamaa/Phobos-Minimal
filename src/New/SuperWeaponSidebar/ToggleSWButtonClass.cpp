@@ -11,6 +11,7 @@
 
 #include <CCToolTip.h>
 #include <GameOptionsClass.h>
+#include <PCX.h>
 
 ToggleSWButtonClass::ToggleSWButtonClass(int x, int y, int width, int height)
 	: GadgetClass(x, y, width, height, (GadgetFlag::LeftPress | GadgetFlag::LeftRelease), true)

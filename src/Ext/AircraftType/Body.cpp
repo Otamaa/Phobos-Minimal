@@ -2,6 +2,8 @@
 #include <Utilities/Macro.h>
 
 #include <AircraftClass.h>
+#include <VoxClass.h>
+#include <VocClass.h>
 
 AircraftTypeExtContainer AircraftTypeExtContainer::Instance;
 

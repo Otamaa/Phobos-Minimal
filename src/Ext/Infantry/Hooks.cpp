@@ -4,8 +4,8 @@
 #include <UnitClass.h>
 #include <Utilities/Macro.h>
 #include <Helpers/Macro.h>
-#include <Base/Always.h>
-
+#include <VocClass.h>
+#include <VoxClass.h>
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 

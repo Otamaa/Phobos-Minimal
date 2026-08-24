@@ -20,3 +20,28 @@ void AEAttachInfoTypeClass::LoadFromINI(CCINIClass* pINI, const char* pSection)
 	this->InitialDelays.Read(exINI, pSection, "AttachEffect.InitialDelays");
 	this->RecreationDelays.Read(exINI, pSection, "AttachEffect.RecreationDelays");
 }
+
+bool AEAttachInfoTypeClass::Load(PhobosStreamReader& stm, bool registerForChange)
+{ return this->Serialize(stm); }
+bool AEAttachInfoTypeClass::Save(PhobosStreamWriter& stm) const
+{ return const_cast<AEAttachInfoTypeClass*>(this)->Serialize(stm); }
+
+template <typename T>
+bool AEAttachInfoTypeClass::Serialize(T& stm)
+{
+	return stm
+		.Process(this->AttachTypes)
+		.Process(this->CumulativeRefreshAll)
+		.Process(this->CumulativeRefreshAll_OnAttach)
+		.Process(this->CumulativeRefreshSameSourceOnly)
+		.Process(this->RemoveTypes)
+		.Process(this->RemoveGroups)
+		.Process(this->CumulativeRemoveMinCounts)
+		.Process(this->CumulativeRemoveMaxCounts)
+		.Process(this->CumulativeSourceMaxCount)
+		.Process(this->DurationOverrides)
+		.Process(this->Delays)
+		.Process(this->InitialDelays)
+		.Process(this->RecreationDelays)
+		.Success();
+}

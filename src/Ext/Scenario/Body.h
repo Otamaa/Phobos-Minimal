@@ -9,6 +9,9 @@
 
 #include <Utilities/PhobosFixedString.h>
 #include <Utilities/VectorSet.h>
+#include <Utilities/PhobosPCXFile.h>
+
+class VoxClass;
 
 class TechnoExtData;
 struct ExtendedVariable
@@ -103,7 +106,7 @@ public:
 
 	int DropshipLoadout_Theme { -1 };
 	long DropshipLoadout_Money { -1 };
-	NullableIdx<VoxClass> DropshipLoadout_StartEVA {};
+	NullableIdx<VoxClass*> DropshipLoadout_StartEVA {};
 	int DropshipLoadout_StartingDropships {};
 	std::vector<TechnoTypeClass*> DropshipLoadout_Carriers {};
 	std::vector<int> DropshipLoadout_Carriers_SizeLimit {};
@@ -137,11 +140,11 @@ public:
 	std::map<int, std::vector<TechnoTypeClass*>> DropshipLoadout_AllowableUnitsLists {};
 	std::map<int, std::vector<int>> DropshipLoadout_AllowableUnitMaximumsLists {};
 	//VocClass DropshipLoadout_SellClickSound;
-	NullableIdx<VocClass> DropshipLoadout_BuyClickSound {};
-	NullableIdx<VocClass> DropshipLoadout_SellClickSound {};
-	NullableIdx<VocClass> DropshipLoadout_ArrowsClickSound {};
-	NullableIdx<VocClass> DropshipLoadout_StartingDragDropSound {};
-	NullableIdx<VocClass> DropshipLoadout_EndingDragDropSound {};
+	NullableIdx<VocClass*> DropshipLoadout_BuyClickSound {};
+	NullableIdx<VocClass*> DropshipLoadout_SellClickSound {};
+	NullableIdx<VocClass*> DropshipLoadout_ArrowsClickSound {};
+	NullableIdx<VocClass*> DropshipLoadout_StartingDragDropSound {};
+	NullableIdx<VocClass*> DropshipLoadout_EndingDragDropSound {};
 	std::vector<int> DropshipLoadout_ActiveTeamSuffixes {};
 
 	std::set<int> Smudges {};

@@ -7,6 +7,8 @@
 #include <Ext/TechnoType/Body.h>
 
 #include <MouseClass.h>
+#include <VoxClass.h>
+#include <VocClass.h>
 
 SelectedButtonClass::SelectedButtonClass(int id, int x, int y)
 	: GadgetClass(x, y, 30, 30, GadgetFlag::LeftPress, false)

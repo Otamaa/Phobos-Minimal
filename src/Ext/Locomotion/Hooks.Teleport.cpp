@@ -61,7 +61,7 @@ ASMJIT_PATCH(0x7193F6, TeleportLocomotionClass_ILocomotion_Process_WarpoutAnim, 
 	if (const auto pWeapon = pExt->WarpOutWeapon.Get(pOwner))
 		WeaponTypeExtData::DetonateAt1(pWeapon, pOwner, pOwner , true , nullptr);
 
-	const int distance = (int)Math::sqrt(pOwner->Location.DistanceFromSquared(pLocomotor->LastCoords));
+	const int distance = (int)pOwner->Location.DistanceFrom(pLocomotor->LastCoords);
 	TechnoExtContainer::Instance.Find(pOwner)->LastWarpDistance = distance;
 
 	if (auto pImage = pType->AlphaImage) {

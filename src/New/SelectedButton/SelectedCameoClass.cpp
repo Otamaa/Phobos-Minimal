@@ -6,6 +6,9 @@
 #include <Phobos.h>
 #include <GScreenClass.h>
 #include <MouseClass.h>
+#include <PCX.h>
+#include <VoxClass.h>
+#include <VocClass.h>
 
 #include <Ext/Rules/Body.h>
 #include <Ext/Techno/Body.h>
