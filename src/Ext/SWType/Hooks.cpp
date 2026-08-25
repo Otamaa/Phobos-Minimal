@@ -9,6 +9,8 @@
 #include <Ext/Sidebar/Body.h>
 #include <Ext/Super/Body.h>
 #include <Ext/Tactical/Body.h>
+#include <Ext/Smudge/Body.h>
+#include <Ext/Team/Body.h>
 
 #include "Body.h"
 
@@ -21,7 +23,9 @@
 #include "NewSuperWeaponType/Dominator.h"
 
 #include <Utilities/Macro.h>
+
 #include <New/Entity/SWFirerClass.h>
+#include <New/Entity/BannerClass.h>
 
 #include <Misc/DamageArea.h>
 #include <Misc/PhobosGlobal.h>
@@ -32,6 +36,8 @@
 #include <EventClass.h>
 #include <VoxClass.h>
 #include <VocClass.h>
+#include <ThemeClass.h>
+#include <Phobos.Lua.h>
 
 //TODO :
 // check Fire_SW calls they using types in the dll but in the game mostly using array index 
@@ -87,9 +93,28 @@ ASMJIT_PATCH(0x6DC1AF, TacticalClass_DrawTargetingLines, 0x5)
 	return 0x6DC3F3;
 }
 
-//ASMJIT_PATCH_AGAIN(0x55B6F8, LogicClass_Update, 0xC) //_End
 std::chrono::high_resolution_clock::time_point lastFrameTime;
-#include <ThemeClass.h>
+
+class FakeLogicClass :public LogicClass
+{
+public:
+	void AI() { JMP_THIS(0x55AFB0); }
+
+	void __AI()
+	{
+		lastFrameTime = std::chrono::high_resolution_clock::now();
+		HarmlessCommandClass::AI();
+		SWFirerManagerClass::Instance.Update();
+		SWStateMachine::UpdateAll();
+		HouseExtData::UpdateAutoDeathObjects();
+		HouseExtData::UpdateTransportReloaders();
+		this->AI();
+		LuaAPI::OnGameFrame();
+		SmudgeExtData::UpdateSmudgeState();
+	}
+};
+DEFINE_FUNCTION_JUMP(CALL, 0x55DC9E, FakeLogicClass::__AI)
+
 
 ASMJIT_PATCH(0x55B68D, LogicClass_Update_House, 0x5) {
 	for (auto pHouse : *HouseClass::Array) {
@@ -103,7 +128,10 @@ ASMJIT_PATCH(0x55B68D, LogicClass_Update_House, 0x5) {
 }
 
 //separate the function
-// ASMJIT_PATCH(0x55B719, LogicClass_Update_late, 0x5)
+//ASMJIT_PATCH(0x55B719, LogicClass_Update_late, 0x5) { 
+//	LuaAPI::OnGameFrame();
+//	return 0;
+//}
 // {
 // //	HarmlessCommandClass::AI();
 // //	SWFirerClass::Update();
@@ -146,32 +174,23 @@ ASMJIT_PATCH(0x55B68D, LogicClass_Update_House, 0x5) {
 // 	return 0x0;
 // }
 
-ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
-{
-	lastFrameTime = std::chrono::high_resolution_clock::now();
+//ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
+//{
+//
+//
+//	//for(auto pSuper : *SuperClass::Array){
+//	//	pSuper->Update();
+//	//}
+//
+//	return 0x0;
+//}//
 
-	HarmlessCommandClass::AI();
-	SWFirerManagerClass::Instance.Update();
-	SWStateMachine::UpdateAll();
-	HouseExtData::UpdateAutoDeathObjects();
-	HouseExtData::UpdateTransportReloaders();
+//ASMJIT_PATCH(0x55B6B3, LogicClass_Update_After, 0x5)
+//{
+//	
+//	return 0x0;
+//}
 
-	//for(auto pSuper : *SuperClass::Array){
-	//	pSuper->Update();
-	//}
-
-	return 0x0;
-}//
-
-#include <Ext/Smudge/Body.h>
-
-ASMJIT_PATCH(0x55B6B3, LogicClass_Update_After, 0x5)
-{
-	SmudgeExtData::UpdateSmudgeState();
-	return 0x0;
-}
-
-#include <New/Entity/BannerClass.h>
 
 void FakeTacticalClass::__DrawAllTacticalText(wchar_t* text)
 {
@@ -394,9 +413,6 @@ ASMJIT_PATCH(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 
 	return 0;
 }
-
-
-#include <Ext/Team/Body.h>
 
 ASMJIT_PATCH(0x6CEF84, SuperWeaponTypeClass_GetAction, 7)
 {

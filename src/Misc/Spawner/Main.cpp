@@ -740,6 +740,7 @@ void SpawnerMain::GameConfigs::Init() {
 
 #include <Utilities/FPStateGuard.h>
 #include <VeinholeMonsterClass.h>
+#include <Ext/Bomb/Body.h>
 
 ASMJIT_PATCH(0x4A4420, SetVideoMode_RepairFPState, 0x9)
 {
@@ -747,12 +748,13 @@ ASMJIT_PATCH(0x4A4420, SetVideoMode_RepairFPState, 0x9)
 	return 0;
 }
 
-ASMJIT_PATCH(0x55B4E1, LogicClass_Update_RepairFPState, 0x5)
+void __fastcall _BombListClass_AI(FakeBombListClass* pThis)
 {
+	pThis->__AI();
 	UpdateAllVeinholes();
 	FPStateGuard::ScopedRepair guard("LogicFrameBegin");
-	return 0;
 }
+DEFINE_FUNCTION_JUMP(CALL, 0x55B4E6, _BombListClass_AI)
 
 bool __fastcall SpawnerMain::GameConfigs::StartGame() {
 

@@ -13,6 +13,8 @@
 
 #include <Misc/PhobosGlobal.h>
 
+#include <HouseClass.h>
+
 // TODO : encryption support
 //		: some custom file name are disabled after new exception
 // Otamaa : change this variable if you want to load desired name lua file
@@ -919,4 +921,110 @@ void LuaData::ApplyCoreHooks()
 	//7DCEFE , GetFileType
 }
 
+bool LuaAPI::g_scriptReady {};
+unique_luastate LuaAPI::g_L {};
+std::once_flag LuaAPI::g_engineOnce {};
 
+void LuaAPI::OnGameFrame()
+{
+	LuaAPI::ProcessObjects(Unsorted::CurrentFrame());
+
+	// Lazily bring up the Lua engine ONCE, on the main game thread.
+	std::call_once(g_engineOnce, []() {
+	 if (!Debug::ApplicationFilePath.empty())  {
+		 g_L.reset(CreateEngine());
+		 if (g_L)
+			 RunInitScript(g_L.get());
+	 }
+	});
+
+	if (!g_L || !g_scriptReady)
+		return;
+
+	lua_getglobal(g_L.get(), "OnUpdate");
+	if (!lua_isfunction(g_L.get(), -1)) {
+		lua_pop(g_L.get(), 1);
+		return;
+	}
+
+	lua_pushinteger(g_L.get(), Unsorted::CurrentFrame());
+
+	if (lua_pcall(g_L.get(), 1, 0, 0) != LUA_OK) {
+		const char* err = lua_tostring(g_L.get(), -1);
+		Debug::LogInfo("OnTick error: {}", err ? err : "unknown error");
+		lua_pop(g_L.get(), 1);
+	}
+}
+
+void LuaAPI::RunInitScript(lua_State* L)
+{
+	std::wstring scriptPath = Debug::ApplicationFilePath + L"\\scripts\\init.lua";
+
+	// Make require() find modules next to init.lua (forward slashes for Lua).
+	std::wstring scriptsDir = Debug::ApplicationFilePath + L"\\Luascripts";
+	std::string _narrowDir = PhobosCRT::WideStringToString(scriptsDir);
+	std::string pkgExpr = "package.path = '" + _narrowDir + "/?.lua;' .. package.path";
+	
+	for (auto& c : pkgExpr)
+		if (c == '\\') c = '/';
+
+	if (luaL_dostring(L, pkgExpr.c_str()) != LUA_OK) {
+		Debug::LogInfo("Failed to extend package.path");
+		lua_pop(L, 1);
+	}
+
+	DWORD attrs = GetFileAttributesW(scriptPath.c_str());
+	if (attrs == INVALID_FILE_ATTRIBUTES || (attrs & FILE_ATTRIBUTE_DIRECTORY)) {
+		Debug::LogInfo("Script not found: {}", _narrowDir);
+		return;
+	}
+
+	if (luaL_dofile(L, (_narrowDir).c_str()) != LUA_OK) {
+		const char* err = lua_tostring(L, -1);
+		Debug::LogInfo("Script error: {}", err ? err : "unknown error");
+		lua_pop(L, 1);
+		return;
+	}
+
+	g_scriptReady = true;
+	Debug::LogInfo("Lua engine initialized on game thread, script executed");
+}
+
+int LuaPrint(lua_State* L)
+{
+	int n = lua_gettop(L);
+	std::string out;
+	for (int i = 1; i <= n; ++i) {
+		if (i > 1) out += '\t';
+		size_t len = 0;
+		const char* s = luaL_tolstring(L, i, &len);
+		out.append(s, len);
+		lua_pop(L, 1);
+	}
+	Debug::LogInfo("[LUA script] {}", out);
+	return 0;
+}
+
+lua_State* LuaAPI::CreateEngine()
+{
+	lua_State* L = luaL_newstate();
+	if (!L) {
+		Debug::LogInfo("luaL_newstate failed");
+		return nullptr;
+	}
+
+	luaL_openlibs(L);
+	lua_register(L, "print", LuaPrint);
+
+	lua_newtable(L);
+
+	lua_pushliteral(L, "0.2.0");
+	lua_setfield(L, -2, "version");
+
+	lua_setglobal(L, "Engine");
+
+	RegisterHouseBindings(L);
+	RegisterTechnoBindings(L);
+
+	return L;
+}

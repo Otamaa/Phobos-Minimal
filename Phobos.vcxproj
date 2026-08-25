@@ -538,6 +538,7 @@
     <ClCompile Include="src\Phobos.Ext.cpp" />
     <ClCompile Include="src\Phobos.Hookers.cpp" />
     <ClCompile Include="src\Phobos.Hooks.cpp" />
+    <ClCompile Include="src\Phobos.Lua.Bindings.cpp" />
     <ClCompile Include="src\Phobos.Lua.cpp" />
     <ClCompile Include="src\Phobos.Math.cpp" />
     <ClCompile Include="src\Phobos.UI.cpp" />

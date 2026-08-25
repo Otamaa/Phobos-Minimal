@@ -1402,13 +1402,14 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			CRTHooks::_set_fp_mode();
 
 			DisableThreadLibraryCalls((HMODULE)hInstance);
+			Debug::PrepareLogFile();
+
 			IsInitialized = true;
 			PhobosHookers::InitMinHook();
 			//if (ReshadeContainer::Attach((HMODULE)hInstance) == FALSE)
 			//	return FALSE;
 
 			CRTHooks::Apply();
-			Debug::PrepareLogFile();
 			ConvertExtData::AllocTLS();
 
 			Patch::Apply_CALL(0x6BC08C, Phobos_Parse_Command_Line);

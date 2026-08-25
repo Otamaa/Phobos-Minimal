@@ -434,6 +434,5 @@ void FakeBombListClass::__Plant(TechnoClass* pOwner, ObjectClass* pTarget)
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x438E70, FakeBombListClass::__Plant)
 
-DEFINE_FUNCTION_JUMP(CALL, 0x55B4E6, FakeBombListClass::__AI)
 DEFINE_FUNCTION_JUMP(LJMP, 0x438BF0, FakeBombListClass::__AI)
 #endif

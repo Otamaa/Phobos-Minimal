@@ -371,6 +371,9 @@ SWTypeExtData::SWTypeExtData(SuperWeaponTypeClass* pObj) : AbstractTypeExtData(p
 	this->Text_Charging = GameStrings::TXT_CHARGING();
 	this->Text_Active = GameStrings::TXT_FIRESTORM_ON();
 	this->Message_CannotFire = "MSG:CannotFire";
+	this->EVA_InsufficientFunds = VoxClass::FindIndexById(GameStrings::EVA_InsufficientFunds);
+	this->EVA_SelectTarget = VoxClass::FindIndexById(GameStrings::EVA_SelectTarget);
+
 }
 
 SWTypeExtData::~SWTypeExtData()
@@ -1347,9 +1350,6 @@ void SWTypeExtData::Deactivate(SuperClass* pSuper, CellStruct const cell, bool c
 	const auto pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
 
 	auto pNewSWType = SWTypeHandler::get_Handler(pData->HandledType);
-
-	pData->EVA_InsufficientFunds = VoxClass::FindIndexById(GameStrings::EVA_InsufficientFunds);
-	pData->EVA_SelectTarget = VoxClass::FindIndexById(GameStrings::EVA_SelectTarget);
 
 	pNewSWType->Deactivate(pSuper, cell, isPlayer);
 
