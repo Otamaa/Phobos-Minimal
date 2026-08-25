@@ -674,18 +674,22 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 	 }
 
 	 // Disarm bomb
-	 if (pThis->AttachedBomb)
-	 {
+	 if (auto pBomb = pThis->AttachedBomb) {
 		 if (pWHExt->FakeEngineer_BombDisarm)
-			 pThis->AttachedBomb->Disarm();
+			 pBomb->Disarm();
 		 else if (source) {
-			 auto pSourceExt = TechnoExtContainer::Instance.Find(source);
+			 if (pWHExt->IvanBomb_Detonate) {
+				 bool CanAffects = pWHExt->IvanBomb_Detonate_AffectsType.Contains(pThis->GetTechnoType())
+					 || pWHExt->IvanBomb_Detonate_AffectsType.empty();
 
-			 if (pSourceExt->LastWeaponType) {
-				 auto pWpnExt = WeaponTypeExtContainer::Instance.Find(pSourceExt->LastWeaponType);
-
-				 if (pWpnExt->IvanBomb_Detonate && pThis->AttachedBomb->Owner == source)
-					 pThis->AttachedBomb->Detonate();				
+				 if (pWHExt->IvanBomb_Detonate_InvokerOnly) {
+					 if (pBomb->Owner == source && CanAffects)
+						 pBomb->Detonate();
+				 }  else  {
+					 if (CanAffects) {
+						 pBomb->Detonate();
+					 }
+				 }
 			 }
 		 }
 	 }

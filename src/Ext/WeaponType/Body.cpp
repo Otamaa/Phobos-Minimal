@@ -215,7 +215,7 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Ivan_WH.Read(exINI, pSection, "IvanBomb.Warhead");
 	this->Ivan_AttachToCenter.Read(exINI, pSection, "IvanBomb.AttachToCenter");
 	this->IvanBomb_Visibility.Read(exINI, pSection, "IvanBomb.Visibility");
-	this->IvanBomb_Detonate.Read(exINI, pSection, "IvanBomb.Detonate");
+
 	this->Ivan_Image.Read(exINI, pSection, "IvanBomb.Image");
 	this->Ivan_CanDetonateTimeBomb.Read(exINI, pSection, "IvanBomb.CanDetonateTimeBomb");
 	this->Ivan_CanDetonateDeathBomb.Read(exINI, pSection, "IvanBomb.CanDetonateDeathBomb");
@@ -592,7 +592,6 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->Ivan_WH)
 		.Process(this->Ivan_AttachToCenter)
 		.Process(this->IvanBomb_Visibility)
-		.Process(this->IvanBomb_Detonate)
 		.Process(this->Ivan_Image)
 		.Process(this->Ivan_FlickerRate)
 		.Process(this->Ivan_CanDetonateTimeBomb)

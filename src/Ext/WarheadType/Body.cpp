@@ -882,6 +882,10 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	this->Ammo.Read(exINI, pSection, "Ammo");
 
+	this->IvanBomb_Detonate.Read(exINI, pSection, "IvanBomb.Detonate");
+	this->IvanBomb_Detonate_InvokerOnly.Read(exINI, pSection, "IvanBomb.Detonate.InvokerOnly");
+	this->IvanBomb_Detonate_AffectsType.Read(exINI, pSection, "IvanBomb.Detonate.AffectsType");
+
 	this->IsCellSpreadWH =
 		this->RadarOutage_Duration != 0||
 		this->PowerOutage_Duration != 0||
@@ -2294,6 +2298,10 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->ActivateWreckage)
 
 		.Process(this->Ammo)
+
+		.Process(this->IvanBomb_Detonate)
+		.Process(this->IvanBomb_Detonate_InvokerOnly)
+		.Process(this->IvanBomb_Detonate_AffectsType)
 		;
 }
 

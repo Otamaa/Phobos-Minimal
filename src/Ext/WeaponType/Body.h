@@ -114,7 +114,7 @@ public:
 	Nullable<WarheadTypeClass*> Ivan_WH {};
 	Nullable<bool> Ivan_AttachToCenter {};
 	Nullable<AffectedHouse> IvanBomb_Visibility {};
-	Valueable<bool> IvanBomb_Detonate {};
+
 	Nullable<SHPCaches*> Ivan_Image {};
 	Nullable<int> Ivan_FlickerRate {};
 	Nullable<bool> Ivan_CanDetonateTimeBomb {};

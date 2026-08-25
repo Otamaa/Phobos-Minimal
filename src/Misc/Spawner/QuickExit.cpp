@@ -120,3 +120,19 @@ ASMJIT_PATCH(0x623125, OwnerDrawLoop_HandleRageQuit, 0x5)
 		? 0x623157
 		: 0;
 }
+
+ASMJIT_PATCH(0x6BE091, WinMain_AfterGameLoop_HandleQuickExit, 0x6)
+{
+	if (SpawnerMain::GetMainConfigs()->QuickExit)
+		ExitProcess(0);
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x686570, DisconnectGracefully_HandleQuickExit, 0x5)
+{
+	if (SpawnerMain::GetMainConfigs()->QuickExit)
+		ExitProcess(0);
+
+	return 0;
+}

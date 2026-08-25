@@ -563,6 +563,10 @@ public:
 	Valueable<bool> ActivateWreckage {};
 
 	Valueable<int> Ammo { 0 };
+
+	Valueable<bool> IvanBomb_Detonate {};
+	Valueable<bool> IvanBomb_Detonate_InvokerOnly {};
+	ValueableVector<TechnoTypeClass*> IvanBomb_Detonate_AffectsType {};
 #pragma endregion
 
 public:

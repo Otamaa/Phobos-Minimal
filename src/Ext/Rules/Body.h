@@ -887,8 +887,8 @@ public:
 	Valueable<double> WreckageInitialHealthPercent { 0.1 };
 	Valueable<bool> AutoTarget_InsignificantWhenMindControlled { true };
 
-	Valueable<bool> VeteranRange { 1.0 };
-	Valueable<bool> VeteranCritChance { 1.0 };
+	Valueable<double> VeteranRange { 1.0 };
+	Valueable<double> VeteranCritChance { 1.0 };
 #pragma endregion
 
 public:
