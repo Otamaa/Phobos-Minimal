@@ -1440,6 +1440,9 @@ bool __fastcall Init_Secondary_Mixfiles()
 	// ------------------------------------------------------------------
 	if (!CheckAndAllocateMix(THEMEMD_MIX, THEME()) && !CheckAndAllocateMix(THEME_MIX, THEME())) {
 		Debug::Log("Failed finding Theme mix file\n");
+	}
+
+	{ //scan the theme regardless the mix statusses
 		ThemeClass::ScoresPresent = 1;
 		ThemeClass::Instance->Scan();
 	}
