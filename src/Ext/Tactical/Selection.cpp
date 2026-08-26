@@ -22,17 +22,11 @@ ASMJIT_PATCH(0x73298D, TypeSelectExecute_UseIFVMode, 0x5) {
 			auto pType = GET_TECHNOTYPE(pTechno);
 			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-			if (!pType->Gunner || (size_t)pTechno->CurrentWeaponNumber >= pTypeExt->WeaponGroupAs.size())
-				continue;
+			const std::string gunnerID = pTypeExt->GetGunnerID(pTechno->CurrentWeaponNumber);
 
-			auto gunnerID = &pTypeExt->WeaponGroupAs[pTechno->CurrentWeaponNumber];
-
-			if (gunnerID->empty() || !GeneralUtils::IsValidString(gunnerID->c_str())){
-				sprintf_s(gunnerID->data(), 0x20, "%d", useIFVMode ? pTechno->CurrentWeaponNumber + 1 : 0);
-			}
-
-			if (std::ranges::none_of(TacticalExtData::IFVGroups, [gunnerID](const char* pID) { return IS_SAME_STR_(pID, gunnerID->c_str()); }))
-				TacticalExtData::IFVGroups.emplace_back(gunnerID->c_str());
+			if (std::ranges::none_of(TacticalExtData::IFVGroups, [gunnerID](const std::string& id) {
+				return !_stricmp(id.c_str(), gunnerID.c_str()); }))			
+				TacticalExtData::IFVGroups.emplace_back(gunnerID);
 		}
 	}
 

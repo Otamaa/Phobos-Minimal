@@ -18,6 +18,8 @@
 #include <Ext/Scenario/Body.h>
 #include <Ext/Observer/ObserverUI.h>
 
+#include <Phobos.Lua.h>
+
 #include <New/MessageHandler/MessageColumnClass.h>
 
 #include <BitFont.h>
@@ -281,6 +283,8 @@ public:
 		}
 
 		MessageColumnClass::Instance.DrawAll();
+		LuaAPI::OnRender();// TODO : hmm, not sure if this is good here 
+							// maybe need to consider other place
 		WWMouseClass::Instance->func_3C(DSurface::Composite, false);
 		pThis->vt_entry_44();
 

@@ -49,8 +49,7 @@ AresAEData* GetAEDAtaFromTechno(TechnoClass* pThis)
 
 void AresAE::UpdateTempoal(AresAEData* ae, TechnoClass* pTechno)
 {
-	if (!ae->NeedToRecreateAnim)
-	{
+	if (!ae->NeedToRecreateAnim) {
 		ae->NeedToRecreateAnim = true;
 		for (auto& ae_ : ae->Data) {
 			if(ae_.Type->TemporalHidesAnim) {
@@ -67,8 +66,7 @@ void AresAE::Update(AresAEData* ae, TechnoClass* pTechno)
 
 	const auto pType = GET_TECHNOTYPE(pTechno);
 
-	if (!ae->Data.empty())
-	{
+	if (!ae->Data.empty()) {
 		const auto state = pTechno->CloakState;
 
 		if (state == CloakState::Cloaked || state == CloakState::Cloaking) {
@@ -79,19 +77,15 @@ void AresAE::Update(AresAEData* ae, TechnoClass* pTechno)
 
 				ae->NeedToRecreateAnim = true;
 			}
-		}
-		else if (ae->NeedToRecreateAnim)
-		{
-			for (auto& ae_ : ae->Data)
-			{
+		} else if (ae->NeedToRecreateAnim) {
+			for (auto& ae_ : ae->Data) {
 				ae_.CreateAnim(pTechno);
 			}
 
 			ae->NeedToRecreateAnim = false;
 		}
 
-		for (auto& ae_ : ae->Data)
-		{
+		for (auto& ae_ : ae->Data) {
 			auto const pEffectType = ae_.Type;
 			auto duration = ae_.Duration;
 
@@ -119,32 +113,28 @@ void AresAE::Update(AresAEData* ae, TechnoClass* pTechno)
 		}
 	}
 
-	if (!ae->Isset)
-	{
+	if (!ae->Isset) {
 		const auto pAETypeType = GetAETypeFromTechnoType(pType);
 		auto dur = pAETypeType->Duration;
 
-		if (dur)
-		{
+		if (dur) {
 			int delay = ae->InitialDelay;
 			if (delay == 0x7FFFFFFF) {
 				delay = pAETypeType->InitialDelay;
 			}
 
-			if (delay)
-			{
-				if (delay > 0)
-					ae->InitialDelay = delay - 1;
-
+			if (!delay) {
+				if (!pTechno->Deactivated) {
+					// only latch it if the effect actually went on. an iron
+					// curtain can refuse it, and then it is retried next frame.
+					if (AresAE::Attach(pAETypeType, pTechno, dur, pTechno->Owner)) {
+						ae->Isset = 1;
+					}
+				}
+			} else if (delay > 0) {
+				ae->InitialDelay = delay - 1;
 			}
-			else if (!pTechno->Deactivated)
-			{
-				if (AresAE::Attach(pAETypeType, pTechno, dur, pTechno->Owner))
-					ae->Isset = true;
-			}
-		}
-		else
-		{
+		} else {
 			ae->Isset = 2;// typo ?
 		}
 	}
@@ -152,8 +142,7 @@ void AresAE::Update(AresAEData* ae, TechnoClass* pTechno)
 
 bool AresAE::Remove(AresAEData* ae)
 {
-	if (!ae->Data.empty())
-	{
+	if (!ae->Data.empty()) {
 		ae->NeedToRecreateAnim = true;
 		if (fast_remove_if(ae->Data,[](auto& Item){
 			Item.ClearAnim();
@@ -189,26 +178,21 @@ bool AresAE::Attach(AresAttachEffectTypeClass* pType, TechnoClass* pTargetTechno
 
 	auto pData = GetAEDAtaFromTechno(pTargetTechno);
 
-	if (!pType->Cumulative)
-	{
+	if (!pType->Cumulative) {
 		auto const it = std::ranges::find_if(pData->Data,
 			[=](auto const& item) { return item.Type == pType; });
 
-		if (it != pData->Data.end())
-		{
-
+		if (it != pData->Data.end()) {
 			it->Duration =it->Type->Duration;
 
 			if (pType->AnimType && pType->AnimResetOnReapply) {
 				it->CreateAnim(pTargetTechno);
 			}
 
-			if (pType->ForceDecloak)
-			{
+			if (pType->ForceDecloak) {
 				auto const state = pTargetTechno->CloakState;
 				if (state == CloakState::Cloaked
-					|| state == CloakState::Cloaking)
-				{
+					|| state == CloakState::Cloaking) {
 					pTargetTechno->Uncloak(true);
 				}
 			}
@@ -224,10 +208,8 @@ bool AresAE::Attach(AresAttachEffectTypeClass* pType, TechnoClass* pTargetTechno
 	crated.CreateAnim(pTargetTechno);
 	AEProperties::Recalculate(pTargetTechno);
 
-	if (pType->ForceDecloak)
-	{
-		if (pTargetTechno->IsInCloakState())
-		{
+	if (pType->ForceDecloak) {
+		if (pTargetTechno->IsInCloakState()) {
 			pTargetTechno->Uncloak(true);
 		}
 	}
@@ -244,8 +226,7 @@ void AresAE::TransferAttachedEffects(TechnoClass* From, TechnoClass* To)
 
 	// while recreation itself isn't the best idea, less hassle and more reliable
 	// list gets intact in the end
-	for (const auto& Item : FromData->Data)
-	{
+	for (const auto& Item : FromData->Data) {
 		AresAE::Attach(Item.Type, To, Item.Duration, Item.Invoker);
 	}
 
@@ -282,10 +263,8 @@ void AresAE::CreateAnim(TechnoClass* pTechno)
 
 	if (state != CloakState::Cloaked
 	&& state != CloakState::Cloaking
-	&& (!pTechno->TemporalTargetingMe || !this->Type->TemporalHidesAnim))
-	{
-		if (auto pType = this->Type->AnimType)
-		{
+	&& (!pTechno->TemporalTargetingMe || !this->Type->TemporalHidesAnim)) {
+		if (auto pType = this->Type->AnimType) {
 			this->ReplaceAnim(pTechno, GameCreate<AnimClass>(pType, pTechno->Location));
 		}
 	}

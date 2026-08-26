@@ -1281,6 +1281,9 @@ public:
 
 	Nullable<double> VeteranRange {};
 	Nullable<double> VeteranCritChance {};
+
+	ValueableVector<int> DefaultToGuardArea_Modes {};
+	ValueableVector<int> DefaultToGuardArea_AIModes {};
 #pragma endregion
 
 public:
@@ -1321,6 +1324,8 @@ public:
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);
 
 	bool IsSecondary(int nWeaponIndex);
+	const std::string GetGunnerID(int idx) const;
+
 	void AdjustCrushProperties();
 	void CalculateSpawnerRange();
 	void ResetSpawnerRange() {

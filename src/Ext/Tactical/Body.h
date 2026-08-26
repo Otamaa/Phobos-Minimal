@@ -143,6 +143,6 @@ public:
 		Allocate(TacticalClass::Instance());
 	}
 
-	static std::vector<const char*> IFVGroups;
+	static std::vector<std::string> IFVGroups;
 };
 

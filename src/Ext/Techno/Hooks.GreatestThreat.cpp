@@ -147,7 +147,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 {
 	++TechnoClass::TargetScanCounter();
 	const auto pType = GET_TECHNOTYPE(pThis);
-	//const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	const auto pOwner = pThis->Owner;
 	const bool isTechnoPlayerControlled = pOwner->IsControlledByHuman();
 	const bool attackFriendlies = TechnoExtData::IsAttackFriendlies(pThis);
@@ -155,7 +155,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 
 	// Early exit for NoAutoFire units under player control
 	const bool _NoAutoFire = !pThis->Owner->IsControlledByHuman() ? 
-		GET_TECHNOTYPEEXT(pThis)->NoAutoFire_AI.Get(pType->NoAutoFire) : pType->NoAutoFire;
+		pTypeExt->NoAutoFire_AI.Get(pType->NoAutoFire) : pType->NoAutoFire;
 
 	if ((_NoAutoFire
 		|| (TechnoExtContainer::Instance.Find(pThis)->GetPassiveAcquireMode()) == PassiveAcquireModes::Ceasefire) 
@@ -387,9 +387,44 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 	}
 
 	// Override for healer units in guard mode
-	if (isEffectivelyHealer && pThis->CurrentMission == Mission::Guard)
-	{
+	if (isEffectivelyHealer && pThis->CurrentMission == Mission::Guard) {
 		threatRange = 512;
+
+		const bool isElite = pThis->Veterancy.IsElite();
+		int count = 2;
+		bool useCurrentWeapon = false;
+
+		if (pTypeExt->MultiWeapon.Get() && !pType->IsGattling && (!pType->HasMultipleTurrets() || !pType->Gunner))
+			count = pType->WeaponCount;
+		else if (pThis->WhatAmI() == AbstractType::Unit && !pType->IsGattling && pType->TurretCount > 0 && (pType->Gunner 
+			|| !pTypeExt->MultiWeapon.Get()))
+			useCurrentWeapon = true; // CombatDamage(-1) only uses the current weapon here.
+
+		auto isHealWeapon = [](WeaponTypeClass* const pWeapon) {
+			return pWeapon && pWeapon->Damage + pWeapon->AmbientDamage < 0;
+		};
+
+		WeaponTypeClass* pHealWeapon = nullptr;
+
+		if (useCurrentWeapon) {
+			pHealWeapon = pThis->GetWeapon(pThis->CurrentWeaponNumber)->WeaponType;
+		} else {
+			for (int i = 0; i < count; i++) {
+				auto pWeapon = (isElite ? pType->GetEliteWeapon(i) : pThis->GetWeapon(i))->WeaponType;
+
+				if (!pWeapon && isElite)
+					pWeapon = pThis->GetWeapon(i)->WeaponType;
+
+				if (isHealWeapon(pWeapon)) {
+					pHealWeapon = pWeapon;
+					break;
+				}
+			}
+		}
+
+		if (isHealWeapon(pHealWeapon))
+			threatRange = pHealWeapon->Range > threatRange ? pHealWeapon->Range : threatRange;
+
 	}
 
 	// Calculate cell range

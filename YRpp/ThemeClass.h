@@ -26,6 +26,8 @@ public:
 	static COMPILETIMEEVAL reference<ThemeClass, 0xA83D10> const Instance {};
 	static COMPILETIMEEVAL reference<bool, 0xA8EC74> const ScoresPresent {};
 
+	~ThemeClass() { JMP_THIS(0x720770); }
+
 	const char* GetID(unsigned int index) const
 		{ JMP_THIS(0x721270) }
 

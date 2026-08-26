@@ -120,6 +120,7 @@
 #include <utility>
 #include <LoadOptionsClass.h>
 #include <BeaconManagerClass.h>
+#include <Phobos.Lua.h>
 
 void Phobos::SaveGameDataAfter()
 {
@@ -155,6 +156,7 @@ void Phobos::LoadGameDataAfter()
 
 void PhobosExt::InvalidatePointers(AbstractClass* const pInvalid, bool const removed, AbstractType  type)
 {
+	LuaAPI::OnInvalidatePointer(pInvalid, removed);
 
 	if(type == AbstractType::Trigger) {
 		TActionExtContainer::Instance.InvalidatePointer(pInvalid, removed);
@@ -380,6 +382,8 @@ unsigned Phobos::GetVersionNumber() {
 
 void Phobos::ClearAll()
 {
+	LuaAPI::OnScenarioClear();
+
 	for (auto& hand : Handles::Array) {
 		hand->detachptr();
 	}

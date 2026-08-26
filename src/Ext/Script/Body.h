@@ -4,6 +4,7 @@
 
 #include <Utilities/Container.h>
 #include <Utilities/PhobosFixedString.h>
+#include <Utilities/VectorHelper.h>
 
 enum class MoveMissionEndModes : int
 {
@@ -25,6 +26,7 @@ enum class BuildingWithProperty : unsigned int
 
 class HouseClass;
 class TeamClass;
+class FootClass;
 enum class PhobosScripts : int
 {
 	////https://github.com/FrozenFog/Phobos/commit/449074b15fc846b8545911447aea57fc2964c377
@@ -32,6 +34,8 @@ enum class PhobosScripts : int
 	DistributedLoading = 115,
 	FollowFriendlyByGroup = 116,
 	RallyUnitWithSameGroup = 117,
+
+	ScatterAttack = 5503,
 
 	// Range 10000-10999 are team (aka ingame) actions
 	// Sub-range 10000-10049 is for "attack" actions
@@ -337,6 +341,9 @@ public:
 	static bool Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bThirdArd);
 
 public:
+	int ScatterAttackSelectionTimer {};
+	std::vector<HelperedVector<FootClass*>> ScatterAttackGroups {};
+
 	ScriptExtData(base_type* pObj) : AbstractExtended(pObj)
 	{
 		this->AbsType = ScriptClass::AbsID;
@@ -347,8 +354,7 @@ public:
 
 	virtual ~ScriptExtData() = default;
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) override
-	{ }
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type) override;
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
@@ -373,6 +379,7 @@ private:
 	static void ModifyCurrentTriggerWeight(TeamClass* pTeam, bool forceJumpLine, double modifier);
 	static bool MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, FootClass* pLeader, int mode);
 	static void ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeamLeader, AbstractClass* pTarget);
+	static void Mission_ScatterAttack(TeamClass* pTeam);
 	static ScriptActionNode GetSpecificAction(ScriptClass* pScript, int nIdx);
 
 private:
@@ -402,6 +409,7 @@ public:
 
 	HRESULT __stdcall __Load(IStream* pStm);
 	HRESULT __stdcall __Save(IStream* pStm, BOOL fClearDirty);
+	void __PointerExpired(AbstractClass* pAbstract, bool bremoved);
 
 };
 

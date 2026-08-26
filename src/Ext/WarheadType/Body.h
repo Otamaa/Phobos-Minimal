@@ -689,6 +689,7 @@ public:
 	void ApplyChangeLightning();
 	void ApplyForceTrack(TechnoClass* pTarget);
 	void ApplyAmmoModifier(TechnoClass* pTarget);
+	void ApplyDetonateBomb(TechnoClass* pTarget, TechnoClass* pOwner);
 
 	COMPILETIMEEVAL FORCEDINLINE VersesData& GetVerses(Armor armor) {
 		return this->Verses[static_cast<int>(armor)];

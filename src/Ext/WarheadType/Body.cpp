@@ -925,6 +925,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		|| this->ChangeOwner
 		|| this->ForceTrack
 		|| this->Ammo
+		|| this->IvanBomb_Detonate
 		;
 
 	this->IsFakeEngineer =

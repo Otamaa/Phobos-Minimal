@@ -432,3 +432,27 @@ ASMJIT_PATCH(0x738703, UnitClass_Explode_ExplodeAnim, 0x5)
 //#pragma optimize("", on)
 //DEFINE_FUNCTION_JUMP(CALL, 0x74103E, FakeUnitClassDebug::__getFireErrrWrapperTT);
 //DEFINE_FUNCTION_JUMP(CALL6, 0x736E3A, FakeUnitClassDebug::__getFireErrrWrapper);
+
+ASMJIT_PATCH(0x738B67, UnitClass_DefaultToGuardAreaModes, 0x6)
+{
+	enum { Continue = 0, GoAreaGuardDecision = 0x738BA4, GoGuard = 0x738C98 };
+
+	GET(TechnoClass* const, pThis, ESI);
+	auto const pType = pThis->GetTechnoType();
+
+	if (pType->Gunner)
+	{
+		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+		
+		bool const hasExplicit = pThis->Owner->IQLevel2 >= RulesClass::Instance->IQData.GuardArea
+			|| pType->DefaultToGuardArea 
+			|| pThis->HasAbility(AbilityType::GuardArea);
+
+		auto const& modes = pThis->Owner->IsControlledByHuman() ? pTypeExt->DefaultToGuardArea_Modes : pTypeExt->DefaultToGuardArea_AIModes;
+
+		if (hasExplicit && !modes.empty() && (modes.size() != 1 || modes[0] != -1))
+			return modes.Contains(pThis->CurrentWeaponNumber) ? GoAreaGuardDecision : GoGuard;
+	}
+
+	return Continue;
+}

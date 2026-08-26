@@ -27,6 +27,8 @@
 #include <VocClass.h>
 #include <VoxClass.h>
 
+#include <Phobos.Lua.h>
+
 bool TeamExtData::IsCloseToCenter(FootClass* pMember, AbstractClass* pCenterCell, int stray)
 {
 	// Vanilla check
@@ -5399,6 +5401,9 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 			return;
 
 		if (ScriptExtData::ProcessScriptActions(pThis, pNode, something))
+			return;
+
+		if (LuaAPI::OnTeamMission(pThis, (int)pNode->Action, pNode->Argument))
 			return;
 
 		break;

@@ -1341,17 +1341,12 @@ bool __fastcall FakeTacticalClass::TypeSelectFilter(TechnoClass* pTechno, Dynami
 	if (std::ranges::none_of(names, [id](const char* pID) { return IS_SAME_STR_(pID, id); }))
 		return false;
 
-	if (pTechnoType->Gunner && !TacticalExtData::IFVGroups.empty() && (size_t)pTechno->CurrentWeaponNumber >= pTypeExt->WeaponGroupAs.size()) {
-		auto gunnerID = &pTypeExt->WeaponGroupAs[pTechno->CurrentWeaponNumber];
+	if (pTechnoType->Gunner && !TacticalExtData::IFVGroups.empty()) {
+		const std::string gunnerID = pTypeExt->GetGunnerID(pTechno->CurrentWeaponNumber);
 
-		if (gunnerID->empty() || !GeneralUtils::IsValidString(gunnerID->c_str())) {
-			sprintf_s(gunnerID->data(), 0x20, "%d", FakeRulesClass::Instance()->TypeSelectUseIFVMode && Phobos::Config::TypeSelectUseIFVMode ? pTechno->CurrentWeaponNumber + 1 : 0);
-		}
-
-		if (std::ranges::none_of(TacticalExtData::IFVGroups, [gunnerID](const char* pID) {
-			return IS_SAME_STR_(pID, gunnerID->c_str());
-		}))
-			return false;
+		if (std::ranges::none_of(TacticalExtData::IFVGroups, [gunnerID](const std::string& id) {
+			return !_stricmp(id.c_str(), gunnerID.c_str()); 
+			})) return false;
 	}
 
 	if (pTechno->CanBeSelectedNow() || ((pTechno->WhatAmI() == BuildingClass::AbsID && (pTechnoType->UndeploysInto || FakeRulesClass::Instance()->BuildingTypeSelectable))))
@@ -1362,7 +1357,7 @@ bool __fastcall FakeTacticalClass::TypeSelectFilter(TechnoClass* pTechno, Dynami
 
 IStream* TacticalExtData::g_pStm = nullptr;
 std::unique_ptr<TacticalExtData> TacticalExtData::Data = nullptr;
-std::vector<const char*> TacticalExtData::IFVGroups;
+std::vector<std::string> TacticalExtData::IFVGroups;
 
 void TacticalExtData::Allocate(TacticalClass* pThis)
 {

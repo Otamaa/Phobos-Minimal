@@ -27,6 +27,8 @@
 #include <AircraftClass.h>
 #include <VocClass.h>
 #include <VoxClass.h>
+#include <TeamClass.h>
+
 /*
 *	Scripts is a part of `TeamClass` that executed sequentally form `ScriptTypeClass`
 *	Each script contains function that behave as it programmed
@@ -154,6 +156,8 @@ static NOINLINE const char* ToStrings(PhobosScripts from)
 		return "FollowFriendlyByGroup";
 	case PhobosScripts::RallyUnitWithSameGroup:
 		return "RallyUnitWithSameGroup";
+	case PhobosScripts::ScatterAttack:
+		return "ScatterAttack";
 	case PhobosScripts::StopForceJumpCountdown:
 		return "StopForceJumpCountdown";
 	case PhobosScripts::NextLineForceJumpCountdown:
@@ -678,7 +682,10 @@ bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam, ScriptActionNode* pTe
 			pTeam->StepCompleted = true;
 			break;
 		}
-
+		case PhobosScripts::ScatterAttack:{
+			ScriptExtData::Mission_ScatterAttack(pTeam);
+			break;
+		}
 		case PhobosScripts::AbortActionAfterSuccessKill:
 		{
 			ScriptExtData::SetAbortActionAfterSuccessKill(pTeam, -1);  //which branch is this again ?
@@ -2081,6 +2088,288 @@ void ScriptExtData::ChronoshiftToEnemyBase(TeamClass* pTeam, int extraDistance)
 	ScriptExtData::ChronoshiftTeamToTarget(pTeam, pLeader, pTargetCell);
 }
 
+void ScriptExtData::Mission_ScatterAttack(TeamClass* pTeam)
+{
+	auto const pExt = ScriptExtContainer::Instance.Find(pTeam->CurrentScript);
+
+	HelperedVector<FootClass*> members;
+	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
+	{
+		if (!pUnit->IsAlive || pUnit->Health <= 0 || pUnit->InLimbo || !pUnit->IsOnMap)
+			continue;
+		if (pUnit->Transporter)
+			continue;
+		members.push_back(pUnit);
+	}
+
+	if (members.empty())
+	{
+		pExt->ScatterAttackGroups.clear();
+		return;
+	}
+
+	if (pExt->ScatterAttackGroups.empty())
+	{
+		int groupCount = pTeam->CurrentScript->Type->ScriptActions[pTeam->CurrentScript->CurrentMission].Argument;
+		if (groupCount < 1) groupCount = 1;
+		if (groupCount > static_cast<int>(members.size()))
+			groupCount = static_cast<int>(members.size());
+
+		double teamCenterX = 0.0;
+		double teamCenterY = 0.0;
+		for (auto pFoot : members)
+		{
+			const CoordStruct c = pFoot->GetCoords();
+			teamCenterX += c.X;
+			teamCenterY += c.Y;
+		}
+		teamCenterX /= members.size();
+		teamCenterY /= members.size();
+
+		std::sort(members.begin(), members.end(), [&](FootClass* a, FootClass* b)
+		{
+			const CoordStruct ca = a->GetCoords();
+			const CoordStruct cb = b->GetCoords();
+			const double ba = std::atan2(static_cast<double>(ca.Y) - teamCenterY, static_cast<double>(ca.X) - teamCenterX);
+			const double bb = std::atan2(static_cast<double>(cb.Y) - teamCenterY, static_cast<double>(cb.X) - teamCenterX);
+			return ba < bb;
+		});
+
+		const int groupBase = static_cast<int>(members.size()) / groupCount;
+		const int groupExtra = static_cast<int>(members.size()) % groupCount;
+
+		int begin = 0;
+		for (int g = 0; g < groupCount; ++g)
+		{
+			const int groupSize = groupBase + (g < groupExtra ? 1 : 0);
+
+			// BUGFIX: HelperedVector has no (first,last) range constructor, so
+			// emplace_back(iter, iter) fails overload resolution in construct_at (C2672).
+			// Default-construct the element, then fill it via assign().
+			pExt->ScatterAttackGroups.emplace_back();
+			pExt->ScatterAttackGroups.back().assign(members.begin() + begin, members.begin() + begin + groupSize);
+
+			begin += groupSize;
+		}
+	}
+
+	// PERF: O(1) membership test instead of std::find over `members` per group element.
+	std::unordered_set<FootClass*> memberSet(members.begin(), members.end());
+
+	for (auto it = pExt->ScatterAttackGroups.begin(); it != pExt->ScatterAttackGroups.end(); )
+	{
+		auto& group = *it;
+		group.erase(std::remove_if(group.begin(), group.end(), [&](FootClass* pFoot)
+			{
+				return memberSet.find(pFoot) == memberSet.end();
+			}), group.end());
+
+		if (group.empty())
+			it = pExt->ScatterAttackGroups.erase(it);
+		else
+			++it;
+	}
+
+	if (pExt->ScatterAttackGroups.empty())
+	{
+		pExt->ScatterAttackGroups.clear();
+		return;
+	}
+
+	// PERF: precompute the set of already-grouped units once instead of
+	// re-scanning every group (nested std::find) for each member.
+	std::unordered_set<FootClass*> grouped;
+	grouped.reserve(members.size());
+	for (auto& group : pExt->ScatterAttackGroups)
+		for (auto pFoot : group)
+			grouped.insert(pFoot);
+
+	for (auto pFoot : members)
+	{
+		if (grouped.find(pFoot) != grouped.end())
+			continue;
+
+		size_t bestIdx = 0;
+		size_t bestSize = pExt->ScatterAttackGroups[0].size();
+		for (size_t gi = 1; gi < pExt->ScatterAttackGroups.size(); ++gi)
+		{
+			if (pExt->ScatterAttackGroups[gi].size() < bestSize)
+			{
+				bestSize = pExt->ScatterAttackGroups[gi].size();
+				bestIdx = gi;
+			}
+		}
+		pExt->ScatterAttackGroups[bestIdx].push_back(pFoot);
+		grouped.insert(pFoot);
+	}
+
+	// PERF-NOTE: this scan walks the *entire* TechnoClass::Array every tick,
+	// even during the 59 throttled ticks below where the result is thrown away.
+	// This is the single biggest cost in the function. Left enabled every-tick
+	// to preserve exact original behavior (immediate clear when last enemy dies).
+	// If a ~60-frame delay on that clear is acceptable, gate this block behind
+	// the `pExt->ScatterAttackSelectionTimer > 0` check instead:
+#if 0
+	if (pExt->ScatterAttackSelectionTimer > 0)
+	{
+		pExt->ScatterAttackSelectionTimer--;
+		pTeam->StepCompleted = false;
+		return;
+	}
+	pExt->ScatterAttackSelectionTimer = 60;
+	// ... build `enemies` here instead, then continue directly into the
+	// per-group target-selection loop below (the second timer check further
+	// down would then be removed).
+#endif
+
+	std::vector<TechnoClass*> enemies;
+	enemies.reserve(members.size() * 2); // VERIFY: rough guess; tune or drop if TechnoClass::Array exposes a count
+	for (auto pTechno : *TechnoClass::Array)
+	{
+		if (!pTechno->IsAlive || pTechno->Health <= 0 || pTechno->InLimbo || !pTechno->IsOnMap)
+			continue;
+		if (pTechno->Transporter)
+			continue;
+		auto const pEnemyOwner = pTechno->Owner;
+		if (!pEnemyOwner || pEnemyOwner == pTeam->OwnerHouse || pEnemyOwner->IsAlliedWith(pTeam->OwnerHouse))
+			continue;
+		enemies.push_back(pTechno);
+	}
+
+	if (enemies.empty())
+	{
+		pExt->ScatterAttackGroups.clear();
+		return;
+	}
+
+	if (pExt->ScatterAttackSelectionTimer > 0)
+	{
+		pExt->ScatterAttackSelectionTimer--;
+		pTeam->StepCompleted = false;
+		return;
+	}
+	pExt->ScatterAttackSelectionTimer = 60;
+
+	// PERF: was std::vector + std::find (O(n) per lookup, inside a nested loop
+	// over every enemy for every group) — now O(1) average via unordered_set.
+	std::unordered_set<TechnoClass*> assignedTargets;
+	assignedTargets.reserve(pExt->ScatterAttackGroups.size());
+
+	bool anyGroupActionable = false;
+
+	for (auto& group : pExt->ScatterAttackGroups)
+	{
+		double groupCenterX = 0.0;
+		double groupCenterY = 0.0;
+		for (auto pFoot : group)
+		{
+			const CoordStruct c = pFoot->GetCoords();
+			groupCenterX += c.X;
+			groupCenterY += c.Y;
+		}
+		groupCenterX /= group.size();
+		groupCenterY /= group.size();
+
+		FootClass* const pPathAgent = group.front();
+
+		TechnoClass* pGroupTarget = nullptr;
+		std::unordered_set<TechnoClass*> unreachableTargets;
+
+		while (!pGroupTarget)
+		{
+			TechnoClass* bestUnassigned = nullptr;
+			double bestUnassignedDist = 0.0;
+			TechnoClass* bestAny = nullptr;
+			double bestAnyDist = 0.0;
+
+			for (auto pEnemy : enemies)
+			{
+				if (!pEnemy->IsAlive
+					|| pEnemy->Health <= 0
+					|| pEnemy->InLimbo
+					|| pEnemy->IsCrashing
+					|| pEnemy->IsSinking)
+					continue;
+				if (unreachableTargets.find(pEnemy) != unreachableTargets.end())
+					continue;
+
+				const CoordStruct e = pEnemy->GetCoords();
+				const double dx = groupCenterX - e.X;
+				const double dy = groupCenterY - e.Y;
+				const double dist = dx * dx + dy * dy;
+
+				if (!bestAny || dist < bestAnyDist)
+				{
+					bestAny = pEnemy;
+					bestAnyDist = dist;
+				}
+
+				if (assignedTargets.find(pEnemy) == assignedTargets.end())
+				{
+					if (!bestUnassigned || dist < bestUnassignedDist)
+					{
+						bestUnassigned = pEnemy;
+						bestUnassignedDist = dist;
+					}
+				}
+			}
+
+			TechnoClass* const candidate = bestUnassigned ? bestUnassigned : bestAny;
+			if (!candidate)
+				break;
+
+			bool alreadyEngaging = false;
+			for (auto pFoot : group)
+			{
+				if (pFoot->Target == candidate)
+				{
+					alreadyEngaging = true;
+					break;
+				}
+			}
+
+			if (alreadyEngaging || !pPathAgent || pPathAgent->UpdatePathfinding(candidate->GetMapCoords(), false, 0))
+			{
+				pGroupTarget = candidate;
+				break;
+			}
+
+			unreachableTargets.insert(candidate);
+		}
+
+		if (!pGroupTarget)
+			continue;
+
+		anyGroupActionable = true;
+
+		for (auto pFoot : group)
+		{
+			if (!pFoot->IsArmed())
+			{
+				if (pFoot->GetCurrentMission() != Mission::Guard)
+					pFoot->QueueMission(Mission::Guard, false);
+				continue;
+			}
+
+			if (pFoot->Target == pGroupTarget)
+				continue;
+
+			pFoot->SetTarget(pGroupTarget);
+			pFoot->QueueMission(Mission::Attack, true);
+		}
+
+		assignedTargets.insert(pGroupTarget);
+	}
+
+	if (!anyGroupActionable)
+	{
+		pExt->ScatterAttackGroups.clear();
+		return;
+	}
+
+	pTeam->StepCompleted = false;
+}
+
 #include <Ext/SWType/Body.h>
 
 void ScriptExtData::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeamLeader, AbstractClass* pTarget)
@@ -2881,3 +3170,20 @@ HRESULT __stdcall FakeScriptClass::__Save(IStream* pStm, BOOL fClearDirty)
 	return hr;
 }
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0F90, FakeScriptClass::__Save)
+
+void ScriptExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved, AbstractType  type)
+{
+	if (bRemoved) {
+		for (auto& pVFoot : ScatterAttackGroups) {
+			pVFoot.remove((FootClass*)ptr);
+		}
+	}
+}
+
+void FakeScriptClass::__PointerExpired(AbstractClass* pAbstract, bool bremoved)
+{
+	ScriptExtContainer::Instance.Find(this)->
+		InvalidatePointer(pAbstract, bremoved, AbstractType::None);
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0FA0, FakeScriptClass::__PointerExpired)

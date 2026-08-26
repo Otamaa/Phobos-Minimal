@@ -4026,8 +4026,10 @@ BuildingClass* TechnoExtData::CreateBuilding(
 			pRet->Health = MinImpl(strength, pNewType->Strength);
 		}
 
-		const auto direction = pBuilding->PrimaryFacing.Current().GetDir();
+		const auto direction = (DirType)pBuilding->PrimaryFacing.Current().GetFacing<256>();
 		++Unsorted::ScenarioInit;
+		// GetFacing<256>, not <8>: Unlimbo wants a 256-direction facing. Shipped
+		// (0x1000F6C1) inlines `((Raw >> 7) + 1) >> 1`, which is GetValue<8>.
 		const bool res = pRet->Unlimbo(pBuilding->Location, direction);
 		--Unsorted::ScenarioInit;
 

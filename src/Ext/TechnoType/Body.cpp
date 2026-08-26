@@ -190,6 +190,19 @@ bool TechnoTypeExtData::IsSecondary(int nWeaponIndex)
 	return nWeaponIndex != 0;
 }
 
+const std::string TechnoTypeExtData::GetGunnerID(int idx) const
+{
+	if (idx < static_cast<int>(this->WeaponGroupAs.size()))
+	{
+		const char* pWeaponGroup = this->WeaponGroupAs[idx];
+
+		if (GeneralUtils::IsValidString(pWeaponGroup))
+			return std::string(pWeaponGroup);
+	}
+
+	return fmt::format("{}", FakeRulesClass::Instance->TypeSelectUseIFVMode && Phobos::Config::TypeSelectUseIFVMode ? idx + 1 : 0);
+}
+
 #include <Ext/WeaponType/Body.h>
 
 int ApplyForceWeaponInRange(TechnoClass* pThis, AbstractClass* pTarget)
@@ -2547,6 +2560,9 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		this->VeteranRange.Read(exINI, pSection, "VeteranRange");
 		this->VeteranCritChance.Read(exINI, pSection, "VeteranCritChance");
+
+		this->DefaultToGuardArea_Modes.Read(exINI, pSection, "DefaultToGuardArea.Modes");
+		this->DefaultToGuardArea_AIModes.Read(exINI, pSection, "DefaultToGuardArea.AIModes");
 	}
 
 	this->TintColorAirstrike = GeneralUtils::GetColorFromColorAdd(this->LaserTargetColor.Get(RulesClass::Instance->LaserTargetColor));
@@ -4041,6 +4057,9 @@ void TechnoTypeExtData::Serialize(T& Stm) {
 		.Process(this->UIDescription_HoveredInfo)
 		.Process(this->VeteranRange)
 		.Process(this->VeteranCritChance)
+
+		.Process(this->DefaultToGuardArea_Modes)
+		.Process(this->DefaultToGuardArea_AIModes)
 		;
 }
 

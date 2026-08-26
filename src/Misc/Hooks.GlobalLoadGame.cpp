@@ -56,6 +56,7 @@
 #include <Utilities/Swizzle.h>
 
 #include <Phobos.Ext.h>
+#include <Phobos.Lua.h>
 
 #include <atlbase.h>
 #include <atlcomcli.h>
@@ -387,7 +388,7 @@ HRESULT ReadBlocksFromStreamStreamC(T& who_, IStream* pStm)
 }
 
 template<typename T>
-HRESULT ReadBlocksFromStreamStreamD(T& who_, IStream* pStm , DWORD canary)
+HRESULT ReadBlocksFromStreamStreamD(T& who_, IStream* pStm, DWORD canary)
 {
 	using Base = std::remove_const_t<std::remove_pointer_t<T>>;
 	const auto typeName = PhobosCRT::GetTypeIDName<Base>();
@@ -660,7 +661,7 @@ HRESULT Phobos::LoadAllLateData(IStream* pStm)
 	//if (!SUCCEEDED(hr)) return hr;
 	hr = ReadBlocksFromStreamStreamB(RadSiteExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	
+
 
 	hr = ReadBlocksFromStream<FakeIonBlastClass>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
@@ -1019,9 +1020,9 @@ bool __fastcall Make_Load_Game(const char* file_name, bool)
 	// -----------------------------------------------------------------
 	{
 		if (SpawnerMain::Configs::Enabled && SavedGames::CreateSubdir()) {
-			wide_file_name =  PhobosCRT::StringToWideString(SavedGames::FormatPath(file_name));
+			wide_file_name = PhobosCRT::StringToWideString(SavedGames::FormatPath(file_name));
 		} else {
-			wide_file_name =  PhobosCRT::StringToWideString(file_name);
+			wide_file_name = PhobosCRT::StringToWideString(file_name);
 		}
 	}
 
@@ -1145,7 +1146,7 @@ bool __fastcall Make_Load_Game(const char* file_name, bool)
 			return RetFlag(false);
 		}
 	}
-	
+
 	// -----------------------------------------------------------------
 	// PHOBOS_DATA_LATE — load dll data (that must be ready
 	// after game objects references )
@@ -1170,6 +1171,41 @@ bool __fastcall Make_Load_Game(const char* file_name, bool)
 		else
 		{
 			Debug::Log("No PHOBOS_DATA_LATE stream — vanilla or legacy save.\n");
+		}
+	}
+
+	// -----------------------------------------------------------------
+	// PHOBOS_LUA_DATA — Lua scripting engine state, own named stream
+	//
+	// Missing stream (old save from before this feature existed) is treated
+	// the same as PHOBOS_DATA_EARLY/LATE above: non-fatal, just nothing to
+	// hand the script. A genuine read/IStream failure on a stream that DOES
+	// exist is fatal, matching every other extension stream's contract.
+	// -----------------------------------------------------------------
+	{
+		CompressedStream<!Save_CompressionEnabled> ext {};
+		hr = ext.Open(storage, L"PHOBOS_LUA_DATA");
+
+		if (SUCCEEDED(hr))
+		{
+			Debug::Log("Loading Phobos Lua data (%s).\n", _IsCompressed.c_str());
+			hr = LuaAPI::OnGlobalGameLoad(ext.Stream);
+			ext.Close();
+
+			if (FAILED(hr))
+			{
+				// NOTE: LuaAPI::OnGlobalGameLoad swallows Lua script errors
+				// internally (logs and returns S_OK) - a FAILED hr reaching
+				// here means a genuine IStream/COM I/O failure, not a broken
+				// script or a script-fingerprint mismatch (that's informational,
+				// handed to the script as a boolean, never surfaced as HRESULT).
+				Debug::FatalError("Failed to load Lua extension data. hr=0x%08X\n", hr);
+				return RetFlag(false);
+			}
+		}
+		else
+		{
+			Debug::Log("No PHOBOS_LUA_DATA stream — vanilla, legacy, or pre-Lua save.\n");
 		}
 	}
 

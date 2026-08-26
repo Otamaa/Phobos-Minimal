@@ -190,25 +190,32 @@ ASMJIT_PATCH(0x477007, INIClass_GetSpeedType, 8)
 ASMJIT_PATCH(0x441F12, BuildingClass_Destroy_RubbleYell, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
-
-	if (pThis->GetCurrentMission() == Mission::Selling)
-		return 0x0;
+	GET_STACK(TechnoClass*, pKiller, 0x6C);
 
 	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 
-	// If this object has a rubble building set, turn
-	if (pTypeExt->RubbleDestroyed || pTypeExt->RubbleDestroyedRemove)
-	{
-		TechnoExtData::CreateBuilding(pThis,
-			pTypeExt->RubbleDestroyedRemove,
-			pTypeExt->RubbleDestroyed,
-			pTypeExt->RubbleDestroyedOwner,
-			pTypeExt->RubbleDestroyedStrength,
-			pTypeExt->RubbleDestroyedAnim
-		);
+	if (pThis->GetCurrentMission() != Mission::Selling){
+
+		// If this object has a rubble building set, turn
+		if (pTypeExt->RubbleDestroyed || pTypeExt->RubbleDestroyedRemove)
+		{
+			TechnoExtData::CreateBuilding(pThis,
+				pTypeExt->RubbleDestroyedRemove,
+				pTypeExt->RubbleDestroyed,
+				pTypeExt->RubbleDestroyedOwner,
+				pTypeExt->RubbleDestroyedStrength,
+				pTypeExt->RubbleDestroyedAnim
+			);
+		}
 	}
 
-	return 0;
+	pThis->DestroyExtrasFunctions(pThis->C4AppliedBy ? pThis->C4AppliedBy : pKiller);
+	pThis->KillCargo(pKiller);
+
+	if (pTypeExt->RubbleDestroyed || pTypeExt->RubbleIntact)
+		TechnoExtData::KickOutOfRubble(pThis);
+
+	return 0x441F2C;
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE , 0x7E42C8 , FakeBuildingClass::_OnFinishRepair)
@@ -1723,18 +1730,6 @@ ASMJIT_PATCH(0x4581CD, BuildingClass_HandleOccupants, 6) //UnloadOccupants_AllOc
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x458729, BuildingClass_HandleOccupants, 6) //KillOccupiers_AllOccupantsKilled
 ASMJIT_PATCH_AGAIN(0x4586CA, BuildingClass_HandleOccupants, 6) //KillOccupiers_EachOccupierKilled
-
-ASMJIT_PATCH(0x441f2c, BuildingClass_Destroy_KickOutOfRubble, 5)
-{
-	GET(BuildingClass*, pThis, ESI);
-
-	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
-
-	if (pTypeExt->RubbleDestroyed || pTypeExt->RubbleIntact)
-		TechnoExtData::KickOutOfRubble(pThis);
-
-	return 0x0;
-}
 
 ASMJIT_PATCH(0x465A48, BuildingTypeClass_GetBuildup_BuildupTime, 5)
 {

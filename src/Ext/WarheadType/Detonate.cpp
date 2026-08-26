@@ -14,7 +14,6 @@
 
 #include <AircraftClass.h>
 #include <UnitClass.h>
-#include <InfantryClass.h>
 
 #include <Locomotor/LocomotionClass.h>
 #include <CaptureManagerClass.h>
@@ -23,10 +22,13 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/Building/Body.h>
+#include <Ext/Bomb/Body.h>
+#include <Ext/Infantry/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
+
 #include <Utilities/EnumFunctions.h>
 #include <New/Entity/FlyingStrings.h>
 
@@ -959,6 +961,10 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 
 	if (this->PermaMC)
 		this->applyPermaMC(pHouse, pTarget);
+
+	if (pTarget->IsAlive) {
+		this->ApplyDetonateBomb(pTarget, pOwner);
+	}
 }
 
 //void WarheadTypeExtData::DetonateOnAllUnits(HouseClass* pHouse, const CoordStruct coords, const float cellSpread, TechnoClass* pOwner)
@@ -1430,4 +1436,26 @@ void WarheadTypeExtData::ApplyAmmoModifier(TechnoClass* pTarget)
 
 	newCurrentAmmo = newCurrentAmmo < 0 ? 0 : newCurrentAmmo;
 	pTarget->Ammo = newCurrentAmmo > maxAmmo ? maxAmmo : newCurrentAmmo;
+}
+
+void WarheadTypeExtData::ApplyDetonateBomb(TechnoClass* pTarget, TechnoClass* pOwner)
+{
+	if(auto pBomb = pTarget->AttachedBomb){
+		if (pTarget) {
+			if (this->IvanBomb_Detonate) {
+
+				bool CanAffects = this->IvanBomb_Detonate_AffectsType.Contains(pTarget->GetTechnoType())
+					|| this->IvanBomb_Detonate_AffectsType.empty();
+
+				if (this->IvanBomb_Detonate_InvokerOnly) {
+					if (pBomb->Owner == pOwner && CanAffects)
+						pBomb->Detonate();
+				} else {
+					if (CanAffects) {
+						pBomb->Detonate();
+					}
+				}
+			}
+		}
+	}
 }

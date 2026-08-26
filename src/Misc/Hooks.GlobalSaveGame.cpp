@@ -57,6 +57,7 @@
 #include <Utilities/Swizzle.h>
 
 #include <Phobos.Ext.h>
+#include <Phobos.Lua.h>
 
 #include <atlbase.h>
 #include <atlcomcli.h>
@@ -408,7 +409,7 @@ HRESULT Phobos::SaveAllEarlyData(IStream* pStm)
 	hr = WriteBlocksToStream<MapChoiceBoxClass, false>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
-	hr = WriteBlocksToStreamD<CellExtContainer,false>(CellExtContainer::Instance, pStm, CellExtData::Canary);
+	hr = WriteBlocksToStreamD<CellExtContainer, false>(CellExtContainer::Instance, pStm, CellExtData::Canary);
 	if (!SUCCEEDED(hr)) return hr;
 
 	hr = WriteBlocksToStreamD(TiberiumExtContainer::Instance, pStm, TiberiumExtData::Canary);
@@ -530,7 +531,7 @@ HRESULT Phobos::SaveAllLateData(IStream* pStm)
 	hr = WriteBlocksToStreamB(TeamExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
 	hr = WriteBlocksToStreamB(ScriptTypeExtContainer::Instance, pStm);
-		if (!SUCCEEDED(hr)) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 	//hr = WriteBlocksToStreamB(ScriptExtContainer::Instance, pStm);
 	//if (!SUCCEEDED(hr)) return hr;
 	hr = WriteBlocksToStreamB(TriggerExtContainer::Instance, pStm);
@@ -591,7 +592,7 @@ HRESULT Phobos::SaveAllLateData(IStream* pStm)
 	//if (!SUCCEEDED(hr)) return hr;
 	hr = WriteBlocksToStreamB(RadSiteExtContainer::Instance, pStm);
 	if (!SUCCEEDED(hr)) return hr;
-	
+
 
 	hr = WriteBlocksToStream<FakeIonBlastClass, false>(pStm);
 	if (!SUCCEEDED(hr)) return hr;
@@ -874,8 +875,7 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 	{
 		if (SpawnerMain::Configs::Enabled && SavedGames::CreateSubdir()) {
 			wide_file_name = PhobosCRT::StringToWideString(SavedGames::FormatPath(file_name));
-		}
-		else {
+		} else {
 			wide_file_name = PhobosCRT::StringToWideString(file_name);
 		}
 	}
@@ -1025,7 +1025,7 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 			return false;
 		}
 	}
-	
+
 	// -----------------------------------------------------------------
 	// PHOBOS_DATA_LATE —  late dll data
 	// -----------------------------------------------------------------
@@ -1047,6 +1047,43 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 		if (FAILED(hr))
 		{
 			Debug::FatalError("Failed to save extension late data. hr=0x%08X\n", hr);
+			storage.Release();
+			return false;
+		}
+	}
+
+	// -----------------------------------------------------------------
+	// PHOBOS_LUA_DATA — Lua scripting engine state, own named stream
+	//
+	// Kept separate from PHOBOS_DATA_EARLY/LATE: those use the block/canary
+	// WriteBlocksToStream<T> layout for fixed C++ extension types, while the
+	// Lua payload is an opaque, self-describing length-prefixed blob that the
+	// script itself owns the format of. Mixing the two would make either side
+	// unreadable without the other's exact layout.
+	// -----------------------------------------------------------------
+	{
+		Debug::Log("Saving Phobos Lua data (%s).\n", _IsCompressed.c_str());
+
+		CompressedStream<!Save_CompressionEnabled> ext {};
+		hr = ext.Create(storage, L"PHOBOS_LUA_DATA");
+		if (FAILED(hr))
+		{
+			Debug::FatalError("Failed to create PHOBOS_LUA_DATA stream. hr=0x%08X\n", hr);
+			storage.Release();
+			return false;
+		}
+
+		hr = LuaAPI::OnGlobalGameSave(ext.Stream);
+		ext.Close();
+
+		if (FAILED(hr))
+		{
+			// NOTE: LuaAPI::OnGlobalGameSave swallows Lua script errors internally
+			// (logs and writes an empty payload) rather than failing - a FAILED
+			// hr reaching here means a genuine IStream/COM I/O failure, not a
+			// broken script, and is treated as fatal like the other extension
+			// streams above.
+			Debug::FatalError("Failed to save Lua extension data. hr=0x%08X\n", hr);
 			storage.Release();
 			return false;
 		}

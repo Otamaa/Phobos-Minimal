@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Utilities/Enum.h>
-#include <Utilities/Template.h>
+#include <Utilities/TemplateDef.h>
 
 #include <Point2D.h>
 #include <vector>
