@@ -1316,16 +1316,6 @@ ASMJIT_PATCH(0x448DF1, BuildingClass_SetOwningHouse_Airstrike, 0x6)
 	return pExt->AirstrikeTargetingMe ? ContinueTintIntensity : NonAirstrike;
 }
 
-ASMJIT_PATCH(0x451ABC, BuildingClass_PlayAnim_Airstrike, 0x6)
-{
-	enum { ContinueTintIntensity = 0x451AEB, NonAirstrike = 0x451AF5 };
-
-	GET(BuildingClass*, pThis, ESI);
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-
-	return pExt->AirstrikeTargetingMe ? ContinueTintIntensity : NonAirstrike;
-}
-
 ASMJIT_PATCH(0x452041, BuildingClass_452000_Airstrike, 0x6)
 {
 	enum { ContinueTintIntensity = 0x452070, NonAirstrike = 0x45207A };

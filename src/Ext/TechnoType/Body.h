@@ -1284,6 +1284,8 @@ public:
 
 	ValueableVector<int> DefaultToGuardArea_Modes {};
 	ValueableVector<int> DefaultToGuardArea_AIModes {};
+
+	Nullable<bool> ExitThroughRoof {};
 #pragma endregion
 
 public:

@@ -13,6 +13,156 @@
 
 #include <Utilities/Patch.h>
 #include <Utilities/Macro.h>
+
+//
+// ProductionAnim related
+// 
+// 
+static bool AllowBuildingProductionAnim(BuildingTypeClass* pType)
+{
+	if (pType->ConstructionYard)
+		return true;
+
+	if (pType->Factory == AbstractType::BuildingType && GeneralUtils::IsValidString(pType->GetBuildingAnim(BuildingAnimSlot::Production).Anim))
+		return true;
+
+	return false;
+}
+
+ASMJIT_PATCH(0x43CC73, BuildingClass_ReceiveMessage_ProductionAnim, 0x6)
+{
+	enum { SkipGameCode = 0x43CC79 };
+
+	GET(BuildingTypeClass*, pType, ECX);
+
+	R->EAX(AllowBuildingProductionAnim(pType));
+
+	return SkipGameCode;
+}
+
+ASMJIT_PATCH(0x44B7AE, BuildingClass_Mission_Repair_ProductionAnim, 0x6)
+{
+	enum { SkipGameCode = 0x44B7B4 };
+
+	GET(BuildingTypeClass*, pType, EAX);
+
+	R->ECX(AllowBuildingProductionAnim(pType));
+
+	return SkipGameCode;
+}
+
+static bool IsRoofExitTechno(TechnoTypeClass* pType)
+{
+	return TechnoTypeExtContainer::Instance.Find(pType)->ExitThroughRoof.Get(pType->JumpJet || pType->BalloonHover);
+}
+
+static bool IsRoofExitBuildingUnit(BuildingClass* pBuilding)
+{
+	auto pUnit = pBuilding->GetNthLink();
+	return pUnit && IsRoofExitTechno(pUnit->GetTechnoType());
+}
+
+static AnimTypeClass* PickRoofProductionAnim(BuildingTypeExtData* pTypeExt, bool isDamaged, bool garrisoned)
+{
+	if (garrisoned && pTypeExt->RoofProductionAnimGarrisoned.Get() != nullptr)
+		return pTypeExt->RoofProductionAnimGarrisoned.Get();
+
+	if (isDamaged && pTypeExt->RoofProductionAnimDamaged.Get() != nullptr)
+		return pTypeExt->RoofProductionAnimDamaged.Get();
+
+	return pTypeExt->RoofProductionAnim.Get();
+}
+
+static void PlayRoofProductionAnim(BuildingClass* pBuilding, BuildingTypeExtData* pTypeExt, bool isDamaged, bool garrisoned)
+{
+	const char* animName = nullptr;
+
+	if (auto pAnimType = PickRoofProductionAnim(pTypeExt, isDamaged, garrisoned)) {
+		animName = pAnimType->get_ID();
+	} else {
+		// Fall back to the plain ProductionAnim only, so the roof line stays independent
+		// of the ProductionAnimDamaged/Garrisoned branches.
+		animName = pBuilding->Type->GetBuildingAnim(BuildingAnimSlot::Production).Anim;
+	}
+
+	if (!GeneralUtils::IsValidString(animName))
+		return;
+
+	// The roof anim needs its own placement and power values without affecting
+	// the plain line, so apply them only for the duration of this PlayAnim
+	// call.
+	auto& prodAnim = pBuilding->Type->GetBuildingAnim(BuildingAnimSlot::Production);
+
+	const Point2D savedPosition = prodAnim.Position;
+	const int savedZAdjust = prodAnim.ZAdjust;
+	const int savedYSort = prodAnim.YSort;
+	const bool savedPowered = prodAnim.Powered;
+	const bool savedPoweredLight = prodAnim.PoweredLight;
+	const bool savedPoweredEffect = prodAnim.PoweredEffect;
+	const bool savedPoweredSpecial = prodAnim.PoweredSpecial;
+
+	prodAnim.Position.X = pTypeExt->RoofProductionAnimX.Get(savedPosition.X);
+	prodAnim.Position.Y = pTypeExt->RoofProductionAnimY.Get(savedPosition.Y);
+	prodAnim.ZAdjust = pTypeExt->RoofProductionAnimZAdjust.Get(savedZAdjust);
+	prodAnim.YSort = pTypeExt->RoofProductionAnimYSort.Get(savedYSort);
+	prodAnim.Powered = pTypeExt->RoofProductionAnimPowered.Get(savedPowered);
+	prodAnim.PoweredLight = pTypeExt->RoofProductionAnimPoweredLight.Get(savedPoweredLight);
+	prodAnim.PoweredEffect = pTypeExt->RoofProductionAnimPoweredEffect.Get(savedPoweredEffect);
+	prodAnim.PoweredSpecial = pTypeExt->RoofProductionAnimPoweredSpecial.Get(savedPoweredSpecial);
+
+	auto pExt = BuildingExtContainer::Instance.Find(pBuilding);
+	pExt->IsPlayingRoofProductionAnim = true;
+	pBuilding->PlayAnim(animName, BuildingAnimSlot::Production, isDamaged, garrisoned, 0);
+	pExt->IsPlayingRoofProductionAnim = false;
+
+	prodAnim.Position = savedPosition;
+	prodAnim.ZAdjust = savedZAdjust;
+	prodAnim.YSort = savedYSort;
+	prodAnim.Powered = savedPowered;
+	prodAnim.PoweredLight = savedPoweredLight;
+	prodAnim.PoweredEffect = savedPoweredEffect;
+	prodAnim.PoweredSpecial = savedPoweredSpecial;
+}
+
+// isRoofExit tells whether the produced unit leaves through the roof hatch;
+// each caller decides it from its own reliable source.
+static bool TryPlayRoofProductionAnim(BuildingClass* pBuilding, bool isDamaged, bool isRoofExit)
+{
+	if (!isRoofExit)
+		return false;
+
+	auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+	const bool garrisoned = pBuilding->GetOccupantCount() > 0;
+
+	const auto& prodAnim = pBuilding->Type->GetBuildingAnim(BuildingAnimSlot::Production);
+	if (BuildingTypeExtData::IsPoweredAnimBlocked(pBuilding,
+		pTypeExt->RoofProductionAnimPowered.Get(prodAnim.Powered),
+		pTypeExt->RoofProductionAnimPoweredLight.Get(prodAnim.PoweredLight),
+		pTypeExt->RoofProductionAnimPoweredEffect.Get(prodAnim.PoweredEffect),
+		pTypeExt->RoofProductionAnimPoweredSpecial.Get(prodAnim.PoweredSpecial)))
+		return true;
+
+	PlayRoofProductionAnim(pBuilding, pTypeExt, isDamaged, garrisoned);
+	return true;
+}
+
+ASMJIT_PATCH(0x44DDF0, BuildingClass_Unload_RoofProductionAnim, 0x6)
+{
+	enum { SkipGameCode = 0x44E267 };
+
+	GET(BuildingClass*, pBuilding, EBP);
+
+	return TryPlayRoofProductionAnim(pBuilding, false, IsRoofExitBuildingUnit(pBuilding)) ? SkipGameCode : 0;
+}
+
+ASMJIT_PATCH(0x44DDDE, BuildingClass_Unload_RoofProductionAnim_Damaged, 0x6)
+{
+	enum { SkipGameCode = 0x44E267 };
+
+	GET(BuildingClass*, pBuilding, EBP);
+
+	return TryPlayRoofProductionAnim(pBuilding, true, IsRoofExitBuildingUnit(pBuilding)) ? SkipGameCode : 0;
+}
 // ============================================================================
 // HELPER ENUMS AND FORWARD DECLARATIONS
 // ============================================================================
@@ -692,30 +842,24 @@ static KickOutResult HandleGenericUnitExit(
 	BuildingTypeClass* pBuildingType = pBuilding->Type;
 
 	// Apply barracks-style exit offsets (same logic, different context)
-	if (pBuildingType->GDIBarracks)
-	{
-		if (exitCell.X == buildingCell.X + 1 && exitCell.Y == buildingCell.Y + 2)
-		{
+	if (pBuildingType->GDIBarracks) {
+		if (exitCell.X == buildingCell.X + 1 && exitCell.Y == buildingCell.Y + 2) {
 			unlimboCoord.X += pBuildingType->ExitCoord.X;
 			unlimboCoord.Y += pBuildingType->ExitCoord.Y;
 			unlimboCoord.Z = pBuildingType->ExitCoord.Z;
 		}
 	}
 
-	if (pBuildingType->NODBarracks)
-	{
-		if (exitCell.X == buildingCell.X + 2 && exitCell.Y == buildingCell.Y + 2)
-		{
+	if (pBuildingType->NODBarracks) {
+		if (exitCell.X == buildingCell.X + 2 && exitCell.Y == buildingCell.Y + 2) {
 			unlimboCoord.X += pBuildingType->ExitCoord.X;
 			unlimboCoord.Y += pBuildingType->ExitCoord.Y;
 			unlimboCoord.Z += pBuildingType->ExitCoord.Z;
 		}
 	}
 
-	if (pBuildingType->YuriBarracks)
-	{
-		if (exitCell.X == buildingCell.X + 2 && exitCell.Y == buildingCell.Y + 1)
-		{
+	if (pBuildingType->YuriBarracks) {
+		if (exitCell.X == buildingCell.X + 2 && exitCell.Y == buildingCell.Y + 1) {
 			unlimboCoord.X += pBuildingType->ExitCoord.X;
 			unlimboCoord.Y += pBuildingType->ExitCoord.Y;
 			unlimboCoord.Z += pBuildingType->ExitCoord.Z;
@@ -724,14 +868,30 @@ static KickOutResult HandleGenericUnitExit(
 
 	++Unsorted::ScenarioInit;
 
-	if (!pObject->Unlimbo(unlimboCoord, static_cast<DirType>(facing)))
-	{
+	if (!pObject->Unlimbo(unlimboCoord, static_cast<DirType>(facing))) {
 		--Unsorted::ScenarioInit;
 		return KickOutResult::Failed;
 	}
 
 	pObject->QueueMission(Mission::Move, 0);
 	pObject->SetDestination(MapClass::Instance->GetCellAt(exitCell), true);
+
+	const bool isDamaged = pBuilding->GetHealthRatio() <= RulesClass::Instance->ConditionYellow;
+
+	if (pObject && IsRoofExitTechno(pObject->GetTechnoType())) {
+		pBuilding->DestroyNthAnim(BuildingAnimSlot::Idle);
+		TryPlayRoofProductionAnim(pBuilding, isDamaged, true);
+	}
+
+	auto anim = pBuildingType->GetBuildingAnim(BuildingAnimSlot::Production).Anim;
+
+	if (isDamaged)
+		anim = pBuildingType->GetBuildingAnim(BuildingAnimSlot::Production).Damaged;
+
+	if (GeneralUtils::IsValidString(anim)) {
+		pBuilding->DestroyNthAnim(BuildingAnimSlot::Idle);
+		pBuilding->PlayAnim(anim, BuildingAnimSlot::Production, isDamaged, false, 0);
+	}
 
 	if (!pBuilding->Owner->IsControlledByHuman())
 	{

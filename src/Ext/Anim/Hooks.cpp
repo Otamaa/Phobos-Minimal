@@ -38,14 +38,6 @@ ASMJIT_PATCH(0x6F6BD6, TechnoClass_Limbo_UpdateAfterHouseCounter, 0xA)
 	return 0x0;
 }
 
- ASMJIT_PATCH(0x4519A2, BuildingClass_UpdateAnim_SetParentBuilding, 0x6)
-{
-	GET(BuildingClass*, pThis, ESI);
-	GET(FakeAnimClass*, pAnim, EBP);
-	pAnim->_GetExtData()->ParentBuilding = pThis;
-	return 0;
-}
-
 ASMJIT_PATCH(0x4232E2, AnimClass_DrawIt_AltPalette, 0x6)
 {
 	enum { SkipGameCode = 0x4232EA  , SetAltPaletteLightConvert = 0x4232F0 };

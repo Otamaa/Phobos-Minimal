@@ -741,30 +741,6 @@ ASMJIT_PATCH(0x4421F2, BuildingClass_Destroyed_PlaceCrate, 0x6)
 	return 0x442226;
 }
 
-ASMJIT_PATCH(0x451932, BuildingClass_AnimLogic_Ownership, 0x5)
-{
-	GET(BuildingClass*, pThis, ESI);
-	GET(int, _X, ECX);
-	GET(int, _Y, EDX);
-	GET(int, _Z, EAX);
-	GET(int, animIdx, EBP);
-	GET_STACK(int, delay, 0x48);
-
-	CoordStruct coord { _X , _Y , _Z };
-	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(AnimTypeClass::Array->Items[animIdx]);
-
-	auto pAnim = GameCreate<AnimClass>(AnimTypeClass::Array->Items[animIdx], coord, delay, 1, AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_1000, 0, 0);
-	if (!pTypeExt->NoOwner)
-	{
-		((FakeAnimClass*)pAnim)->_GetExtData()->Invoker = pThis;
-		pAnim->SetHouse(pThis->Owner);
-	}
-
-	((FakeAnimClass*)pAnim)->_GetExtData()->ParentBuilding = pThis;
-	R->EBP(pAnim);
-	return 0x45197B;
-}
-
 //BuildingClass_ClearFactory
 DEFINE_JUMP(LJMP, 0x4495FF, 0x44961A);
 //BuildingClass_ClearFactory

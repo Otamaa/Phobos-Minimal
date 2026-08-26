@@ -9,15 +9,6 @@
 #include <Ext/BuildingType/Body.h>
 
 #pragma region Otamaa
-ASMJIT_PATCH(0x4518CF, BuildingClass_AnimLogic_check, 0x9)
-{
-	GET(BuildingClass*, pThis, ESI);
-	GET_STACK(const char*, pDecidedName, STACK_OFFS(0x34, -0x4));
-	GET_STACK(BuildingAnimSlot, nSlot, STACK_OFFS(0x34, -0x8));
-	R->EAX(BuildingTypeExtData::GetBuildingAnimTypeIndex(pThis, nSlot, pDecidedName));
-	return 0x4518D8;
-}
-
 ASMJIT_PATCH(0x45234B, BuildingClass_TurnOn_EVA, 0x5)
 {
 	GET(FakeBuildingClass*, pThis, ESI);

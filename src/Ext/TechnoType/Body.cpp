@@ -2563,6 +2563,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		this->DefaultToGuardArea_Modes.Read(exINI, pSection, "DefaultToGuardArea.Modes");
 		this->DefaultToGuardArea_AIModes.Read(exINI, pSection, "DefaultToGuardArea.AIModes");
+		this->ExitThroughRoof.Read(exINI, pSection, "ExitThroughRoof");
 	}
 
 	this->TintColorAirstrike = GeneralUtils::GetColorFromColorAdd(this->LaserTargetColor.Get(RulesClass::Instance->LaserTargetColor));
@@ -4060,6 +4061,8 @@ void TechnoTypeExtData::Serialize(T& Stm) {
 
 		.Process(this->DefaultToGuardArea_Modes)
 		.Process(this->DefaultToGuardArea_AIModes)
+
+		.Process(this->ExitThroughRoof)
 		;
 }
 

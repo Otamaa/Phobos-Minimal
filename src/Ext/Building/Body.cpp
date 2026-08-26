@@ -3506,6 +3506,8 @@ void BuildingExtData::Serialize(T& Stm)
 		.Process(this->FreeUnitDone)
 		.Process(this->SeparateRepair)
 		.Process(this->ConstructionStartFacing)
+		.Process(this->IsFiringNow)
+		.Process(this->IsPlayingRoofProductionAnim)
 		;
 }
 

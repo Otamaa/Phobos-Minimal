@@ -829,16 +829,6 @@ ASMJIT_PATCH(0x451E40, BuildingClass_DestroyNthAnim_Destroy, 0x7)
 	return 0x451E93;
 }
 
-ASMJIT_PATCH(0x451A28, BuildingClass_PlayAnim_Destroy, 0x7)
-{
-	//GET(BuildingClass* const , pThis , ESI);
-
-	GET(AnimClass*, pAnim, ECX);
-	//pAnim->Limbo();
-	pAnim->UnInit();
-	return 0x451A2F;
-}
-
 ASMJIT_PATCH(0x458E1E, BuildingClass_GetOccupyRangeBonus_Demacroize, 0xA)
 {
 	auto v1 = R->EDI<int>();
@@ -1097,13 +1087,6 @@ ASMJIT_PATCH(0x454BF7, BuildingClass_UpdatePowered_NeedsEngineer, 0x6)
 	GET(BuildingClass* const, pThis, ESI);
 	R->CL(pThis->Type->Powered || pThis->Type->NeedsEngineer && !pThis->HasEngineer);
 	return 0x454BFD;
-}
-
-ASMJIT_PATCH(0x451A54, BuildingClass_PlayAnim_NeedsEngineer, 0x6)
-{
-	GET(BuildingClass* const, pThis, ESI);
-	R->CL(pThis->Type->Powered || pThis->Type->NeedsEngineer && !pThis->HasEngineer);
-	return 0x451A5A;
 }
 
 //BuildingClass_Put_DontSpawnSpotlight

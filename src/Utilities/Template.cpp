@@ -2540,6 +2540,16 @@ bool detail::read<PowerStatus>(PowerStatus& value, INI_EX& parser, const char* p
 			}
 		}
 
+		if (PhobosCRT::iequals(parser.value(), "consumer")) {
+			value = PowerStatus::Low;
+			return true;
+		}
+
+		if (PhobosCRT::iequals(parser.value(), "normal")) {
+			value = PowerStatus::Full;
+			return true;
+		}
+
 		Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid PowerStatus");
 	}
 

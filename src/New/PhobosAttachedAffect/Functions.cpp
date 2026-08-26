@@ -286,13 +286,13 @@ void PhobosAEFunctions::UpdateSelfOwnedAttachEffects(TechnoClass* pTechno, Techn
 		PhobosAttachEffectClass::DetonateExpireWeapon(expireWeapons, pTechno->Location);
 	}
 
-	// Add new ones.
-	int count = PhobosAttachEffectClass::Attach(pThis, pThis->Owner, pThis, pThis, &pTypeExt->PhobosAttachEffects);
-
-	if (altered && !count){
+	if (altered){
 		AEProperties::Recalculate(pTechno);
 		markForRedraw = true;
 	}
+
+	// Add new ones.
+	PhobosAttachEffectClass::Attach(pThis, pThis->Owner, pThis, pThis, &pTypeExt->PhobosAttachEffects);
 
 	if (markForRedraw)
 		pThis->MarkForRedraw();

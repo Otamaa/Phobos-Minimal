@@ -102,6 +102,7 @@ public:
 	bool FreeUnitDone {};
 	bool SeparateRepair {};
 	bool IsFiringNow {};
+	bool IsPlayingRoofProductionAnim {};
 	// 11 bools = 11 bytes, pads to 12 for 4-byte alignment
 #pragma endregion
 

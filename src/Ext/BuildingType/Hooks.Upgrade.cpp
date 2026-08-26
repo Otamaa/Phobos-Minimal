@@ -5,7 +5,8 @@
 
 #include <Utilities/EnumFunctions.h>
 #include <Ext/TechnoType/Body.h>
-
+#include <Ext/Anim/Body.h>
+#include <Ext/AnimType/Body.h>
 
 ASMJIT_PATCH(0x452678, BuildingClass_CanUpgrade_UpgradeBuildings, 0x6) //8
 {
@@ -120,7 +121,9 @@ ASMJIT_PATCH(0x440988, BuildingClass_Unlimbo_UpgradeAnims, 0x7)
 	return SkipGameCode;
 }
 
-ASMJIT_PATCH(0x451630, BuildingClass_CreateUpgradeAnims_AnimIndex, 0x7)
+#pragma region AnimLogic
+
+ASMJIT_PATCH(0x451630, BuildingClass_AnimLogic1_CreateUpgradeAnims_AnimIndex, 0x7)
 {
 	enum { SkipGameCode = 0x451638 };
 
@@ -137,7 +140,7 @@ ASMJIT_PATCH(0x451630, BuildingClass_CreateUpgradeAnims_AnimIndex, 0x7)
 }
 
 // Don't allow upgrade anims to be created if building is not upgraded or they require power to be shown and the building isn't powered.
-COMPILETIMEEVAL FORCEDINLINE bool AllowUpgradeAnim(FakeBuildingClass* pBuilding, BuildingAnimSlot anim)
+COMPILETIMEEVAL FORCEDINLINE bool AllowPoweredAnim(FakeBuildingClass* pBuilding, BuildingAnimSlot anim)
 {
 	auto const pType = pBuilding->Type;
 	auto pExt = pBuilding->_GetExtData();
@@ -154,6 +157,10 @@ COMPILETIMEEVAL FORCEDINLINE bool AllowUpgradeAnim(FakeBuildingClass* pBuilding,
 			return false;
 	}
 	else if (anim == BuildingAnimSlot::Production || anim == BuildingAnimSlot::PreProduction) {
+
+		if (anim == BuildingAnimSlot::Production && BuildingExtContainer::Instance.Find(pBuilding)->IsPlayingRoofProductionAnim)
+			return true;
+
 		auto const animData = pType->GetBuildingAnim(anim);
 
 		if (BuildingTypeExtData::IsPoweredAnimBlocked(pBuilding, animData.Powered, animData.PoweredLight, animData.PoweredEffect, animData.PoweredSpecial))
@@ -163,18 +170,96 @@ COMPILETIMEEVAL FORCEDINLINE bool AllowUpgradeAnim(FakeBuildingClass* pBuilding,
 	return true;
 }
 
-ASMJIT_PATCH(0x45189D, BuildingClass_AnimUpdate_Upgrades, 0x6)
+ASMJIT_PATCH(0x45189D, BuildingClass_AnimLogic0_Upgrades, 0x6)
 {
 	enum { SkipAnim = 0x451B2C };
 
 	GET(FakeBuildingClass*, pThis, ESI);
 	GET_STACK(BuildingAnimSlot, anim, STACK_OFFSET(0x34, 0x8));
 
-	if (!AllowUpgradeAnim(pThis, anim))
+	if (!AllowPoweredAnim(pThis, anim))
 		return SkipAnim;
 
 	return 0;
 }
+
+ASMJIT_PATCH(0x451932, BuildingClass_AnimLogic0_Ownership, 0x5)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(int, _X, ECX);
+	GET(int, _Y, EDX);
+	GET(int, _Z, EAX);
+	GET(int, animIdx, EBP);
+	GET_STACK(int, delay, 0x48);
+
+	CoordStruct coord { _X , _Y , _Z };
+	auto const pTypeExt = AnimTypeExtContainer::Instance.Find(AnimTypeClass::Array->Items[animIdx]);
+
+	auto pAnim = GameCreate<AnimClass>(AnimTypeClass::Array->Items[animIdx], coord, delay, 1, AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_1000, 0, 0);
+	if (!pTypeExt->NoOwner)
+	{
+		((FakeAnimClass*)pAnim)->_GetExtData()->Invoker = pThis;
+		pAnim->SetHouse(pThis->Owner);
+	}
+
+	((FakeAnimClass*)pAnim)->_GetExtData()->ParentBuilding = pThis;
+	R->EBP(pAnim);
+	return 0x45197B;
+}
+
+ASMJIT_PATCH(0x4518CF, BuildingClass_AnimLogic0_check, 0x9)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET_STACK(const char*, pDecidedName, STACK_OFFS(0x34, -0x4));
+	GET_STACK(BuildingAnimSlot, nSlot, STACK_OFFS(0x34, -0x8));
+	R->EAX(BuildingTypeExtData::GetBuildingAnimTypeIndex(pThis, nSlot, pDecidedName));
+	return 0x4518D8;
+}
+
+ASMJIT_PATCH(0x4514F9, BuildingClass_AnimLogic1_WallTowers, 0x6)
+{
+	GET(BuildingClass*, pThis, EBP);
+	R->ECX(pThis->Type);
+	const auto& Nvec = FakeRulesClass::Instance()->WallTowers;
+	return Nvec.Contains(pThis->Type) ? 0x45150B : 0x4515E9;
+}
+
+ASMJIT_PATCH(0x451ABC, BuildingClass_AnimLogic0_Airstrike, 0x6)
+{
+	enum { ContinueTintIntensity = 0x451AEB, NonAirstrike = 0x451AF5 };
+
+	GET(BuildingClass*, pThis, ESI);
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	return pExt->AirstrikeTargetingMe ? ContinueTintIntensity : NonAirstrike;
+}
+
+ASMJIT_PATCH(0x451A28, BuildingClass_AnimLogic0_Destroy, 0x7)
+{
+	//GET(BuildingClass* const , pThis , ESI);
+
+	GET(AnimClass*, pAnim, ECX);
+	//pAnim->Limbo();
+	pAnim->UnInit();
+	return 0x451A2F;
+}
+
+ASMJIT_PATCH(0x451A54, BuildingClass_AnimLogic0_NeedsEngineer, 0x6)
+{
+	GET(BuildingClass* const, pThis, ESI);
+	R->CL(pThis->Type->Powered || pThis->Type->NeedsEngineer && !pThis->HasEngineer);
+	return 0x451A5A;
+}
+
+ASMJIT_PATCH(0x4519A2, BuildingClass_AnimLogic0_SetParentBuilding, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(FakeAnimClass*, pAnim, EBP);
+	pAnim->_GetExtData()->ParentBuilding = pThis;
+	return 0;
+}
+
+#pragma endregion
 
 ASMJIT_PATCH(0x4408EB, BuildingClass_Unlimbo_UpgradeBuildings, 0x6) //A
 {

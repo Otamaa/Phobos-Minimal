@@ -28,14 +28,6 @@ ASMJIT_PATCH(0x445ADB, BuildingClass_Limbo_WallTowers, 0x9)
 	return Nvec.Contains(pThis->Type) ? 0x445AED : 0x445B81;
 }
 
-ASMJIT_PATCH(0x4514F9, BuildingClass_AnimLogic_WallTowers, 0x6)
-{
-	GET(BuildingClass*, pThis, EBP);
-	R->ECX(pThis->Type);
-	const auto& Nvec = FakeRulesClass::Instance()->WallTowers;
-	return Nvec.Contains(pThis->Type) ? 0x45150B : 0x4515E9;
-}
-
 #include <Ext/OverlayType/Body.h>
 
 ASMJIT_PATCH(0x45EF11, BuildingClass_FlushForPlacement_WallTowers, 0x6)

@@ -1843,6 +1843,19 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	if (pArtINI->GetSection(pArtSection))
 	{
 		INI_EX exArtINI(pArtINI);
+
+		this->RoofProductionAnim.Read(exArtINI, pArtSection, "RoofProductionAnim");
+		this->RoofProductionAnimDamaged.Read(exArtINI, pArtSection, "RoofProductionAnimDamaged");
+		this->RoofProductionAnimGarrisoned.Read(exArtINI, pArtSection, "RoofProductionAnimGarrisoned");
+		this->RoofProductionAnimX.Read(exArtINI, pArtSection, "RoofProductionAnimX");
+		this->RoofProductionAnimY.Read(exArtINI, pArtSection, "RoofProductionAnimY");
+		this->RoofProductionAnimZAdjust.Read(exArtINI, pArtSection, "RoofProductionAnimZAdjust");
+		this->RoofProductionAnimYSort.Read(exArtINI, pArtSection, "RoofProductionAnimYSort");
+		this->RoofProductionAnimPowered.Read(exArtINI, pArtSection, "RoofProductionAnimPowered");
+		this->RoofProductionAnimPoweredLight.Read(exArtINI, pArtSection, "RoofProductionAnimPoweredLight");
+		this->RoofProductionAnimPoweredEffect.Read(exArtINI, pArtSection, "RoofProductionAnimPoweredEffect");
+		this->RoofProductionAnimPoweredSpecial.Read(exArtINI, pArtSection, "RoofProductionAnimPoweredSpecial");
+
 		this->AircraftDockingDir_DefaultToPoseDir.Read(exArtINI, pArtSection, "AircraftDockingDir.DefaultToPoseDir");
 		this->IsHideDuringSpecialAnim.Read(exArtINI, pArtSection, "HideDuringSpecialAnim");
 		this->Refinery_UseNormalActiveAnim.Read(exArtINI, pArtSection, "Refinery.UseNormalActiveAnim");
@@ -2203,6 +2216,17 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->AIInnerBase)
 		.Process(this->RubblePalette)
 		.Process(this->DockPoseDir)
+		.Process(this->RoofProductionAnim)
+		.Process(this->RoofProductionAnimDamaged)
+		.Process(this->RoofProductionAnimGarrisoned)
+		.Process(this->RoofProductionAnimX)
+		.Process(this->RoofProductionAnimY)
+		.Process(this->RoofProductionAnimZAdjust)
+		.Process(this->RoofProductionAnimYSort)
+		.Process(this->RoofProductionAnimPowered)
+		.Process(this->RoofProductionAnimPoweredLight)
+		.Process(this->RoofProductionAnimPoweredEffect)
+		.Process(this->RoofProductionAnimPoweredSpecial)
 		.Process(this->AircraftDockingDir_DefaultToPoseDir)
 		.Process(this->EngineerRepairable)
 		.Process(this->IsTrench)

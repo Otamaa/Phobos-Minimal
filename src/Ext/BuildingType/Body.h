@@ -386,6 +386,18 @@ public:
 	Nullable<SpeedType> RallyPointSpeedType { };
 	Nullable<MovementZone> RallyPointMovementZone { };
 
+
+	Valueable<AnimTypeClass*> RoofProductionAnim { };
+	Valueable<AnimTypeClass*> RoofProductionAnimDamaged { };
+	Valueable<AnimTypeClass*> RoofProductionAnimGarrisoned { };
+	Nullable<int> RoofProductionAnimX { };
+	Nullable<int> RoofProductionAnimY { };
+	Nullable<int> RoofProductionAnimZAdjust { };
+	Nullable<int> RoofProductionAnimYSort { };
+	Nullable<bool> RoofProductionAnimPowered { };
+	Nullable<bool> RoofProductionAnimPoweredLight { };
+	Nullable<bool> RoofProductionAnimPoweredEffect { };
+	Nullable<bool> RoofProductionAnimPoweredSpecial { };
 #pragma endregion
 
 public:
