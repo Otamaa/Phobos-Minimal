@@ -943,9 +943,7 @@ public:
 	GlobalPassabilityData* LevelAndPassabilityStruct2pointer_70;
 	std::array<int, 3> SubzoneCounts; // was unknown_74 / unknown_78 / unknown_7C
 	std::array <HashTable<DWORD, SubzoneConnectionStruct>*, 3> unknown_80; // somehow connected to the 3 vectors below
-	DynamicVectorClass<SubzoneTrackingStruct> SubzoneTracking1;
-	DynamicVectorClass<SubzoneTrackingStruct> SubzoneTracking2;
-	DynamicVectorClass<SubzoneTrackingStruct> SubzoneTracking3;
+	std::array<DynamicVectorClass<SubzoneTrackingStruct>, 3> SubzoneTrackings;
 	DynamicVectorClass<CellStruct> CellStructs1;
 	RectangleStruct MapRect;
 	RectangleStruct VisibleRect;

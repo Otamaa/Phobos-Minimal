@@ -797,8 +797,8 @@ public:
 	Nullable<bool> AlwayDrawRadialIndicator {};
 	Nullable<double> ReloadRate {};
 
-	Nullable<AnimTypeClass*> CloakAnim {};
-	Nullable<AnimTypeClass*> DecloakAnim {};
+	NullableVector<AnimTypeClass*> CloakAnims {};
+	NullableVector<AnimTypeClass*> DecloakAnims {};
 	Nullable<bool> Cloak_KickOutParasite {};
 
 	ValueableVector<AnimTypeClass*> DeployAnims {};

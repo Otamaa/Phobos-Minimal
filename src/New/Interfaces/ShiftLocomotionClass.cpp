@@ -46,7 +46,7 @@ CoordStruct ShiftLocomotionClass::FindShiftDestination(FootClass* pTechno, Coord
 
 			auto currentMapCrd = pTechno->GetMapCoords();
 			bool reachable = !pathReachable || 
-				FakeAStarPathFinderClass::Instance->AttemptPath(&currentMapCrd, &mapCrd, pTechno, pTechno->OnBridge, pCell->ContainsBridge()) != INT_MAX;
+				AStarClass::Instance->AttemptPath(&currentMapCrd, &mapCrd, pTechno, pTechno->OnBridge, pCell->ContainsBridge(), MovementZone::None) != INT_MAX;
 
 			if (!reachable)
 				return false;
@@ -60,6 +60,7 @@ CoordStruct ShiftLocomotionClass::FindShiftDestination(FootClass* pTechno, Coord
 
 	double bestDistSq = std::numeric_limits<double>::max();
 	std::vector<CellStruct> bestMapCrds;
+	bestMapCrds.reserve(cells.size());
 
 	for (auto cell : cells)
 	{

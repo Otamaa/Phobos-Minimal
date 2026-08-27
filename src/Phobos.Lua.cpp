@@ -1423,7 +1423,8 @@ lua_State* LuaAPI::CreateEngine()
 	lua_register(L, "print", LuaPrint);
 
 	lua_newtable(L);
-	lua_pushliteral(L, "0.2.0");
+	std::string _LVer = std::to_string(lua_version(L));
+	lua_pushstring(L, _LVer.c_str());
 	lua_setfield(L, -2, "version");
 	lua_setglobal(L, "Engine");
 
@@ -1815,6 +1816,24 @@ int Techno_IsIdle(lua_State* L)
 	return 1;
 }
 
+// obj:CreateTalkBubble(argument)
+//
+// wraps TechnoClass::CreateTalkBubble(int). VERIFY: exact
+// parameter meaning (likely a CSF/string-table label id for the bubble
+// text) not confirmed - passed through as-is, matching vanilla
+// _TMission_Talk_bubble's literal FirstUnit->CreateTalkBubble(argument)
+// call verbatim.
+int Techno_CreateTalkBubble(lua_State* L)
+{
+	auto* pTechno = CheckTechno(L, 1);
+	if (!IsValid(pTechno))
+		return 0;
+
+	lua_Integer argument = luaL_checkinteger(L, 2);
+	pTechno->CreateTalkBubble(static_cast<int>(argument));
+	return 0;
+}
+
 const luaL_Reg kTechnoMethods[] = {
 	{ "GetTypeName",   Techno_GetTypeName   },
 	{ "GetHealth",     Techno_GetHealth     },
@@ -1832,6 +1851,7 @@ const luaL_Reg kTechnoMethods[] = {
 	{ "IsIdle",        Techno_IsIdle        },
 	{ "TakeDamage",    Techno_TakeDamage    },
 	{ "Disable",       Techno_Disable       },
+	{ "CreateTalkBubble", Techno_CreateTalkBubble },
 	{ nullptr, nullptr }
 };
 
@@ -2177,6 +2197,30 @@ int House_IsAlliedWith(lua_State* L)
 	return 1;
 }
 
+// house:Win()
+//
+// wraps HouseClass::Win(bool). VERIFY: the bool parameter's
+// meaning is not confirmed (possibly a "show victory message" or
+// "multiplayer" flag) - hardcoded to false here, matching vanilla
+// _TMission_Player_wins' literal HouseClass::CurrentPlayer->Win(false)
+// call verbatim.
+int House_Win(lua_State* L)
+{
+	HouseClass* pHouse = CheckHouse(L, 1);
+	pHouse->Win(false);
+	return 0;
+}
+
+// house:Lose()
+//
+// same VERIFY note as House_Win - see there.
+int House_Lose(lua_State* L)
+{
+	HouseClass* pHouse = CheckHouse(L, 1);
+	pHouse->Lose(false);
+	return 0;
+}
+
 const luaL_Reg kHouseMethods[] = {
 	{ "GetCredits",     House_GetCredits     },
 	{ "SetCredits",     House_SetCredits     },
@@ -2187,6 +2231,8 @@ const luaL_Reg kHouseMethods[] = {
 	{ "GetPtr",         House_GetPtr         },
 	{ "IsHuman",        House_IsHuman        },
 	{ "IsAlliedWith",   House_IsAlliedWith   },
+	{ "Win",            House_Win            },
+	{ "Lose",           House_Lose           },
 	{ nullptr, nullptr }
 };
 
@@ -2684,6 +2730,50 @@ bool LuaAPI::OnTeamMission(TeamClass* pTeam, int action, int argument)
 
 	bool handled = lua_toboolean(L, -1) != 0;
 	return handled;
+}
+
+#pragma endregion
+
+#pragma region Scenario
+
+// Scenario.SetGlobalVar(index, value)
+//
+// EXTENSION: wraps ScenarioClass::GlobalVarChange(int, bool). Matches
+// vanilla TeamMissionType::Set_global/Clear_global's literal calls -
+// `value` true = Set_global, false = Clear_global (vanilla exposes these
+// as two separate mission actions with a hardcoded bool each; merged
+// into one binding with an explicit argument since Lua has no reason to
+// need two separate entry points for what is, on the C++ side, one call
+// with a different literal).
+int Scenario_SetGlobalVar(lua_State* L)
+{
+	lua_Integer index = luaL_checkinteger(L, 1);
+	bool value = lua_toboolean(L, 2) != 0;
+	ScenarioClass::Instance->GlobalVarChange(static_cast<int>(index), value);
+	return 0;
+}
+
+// Scenario.SetLocalVar(index, value)
+//
+// EXTENSION: wraps ScenarioClass::LocalVarChange(int, bool). Same
+// merged-Set/Clear rationale as Scenario_SetGlobalVar above, matching
+// vanilla TeamMissionType::Set_local/Clear_local.
+int Scenario_SetLocalVar(lua_State* L)
+{
+	lua_Integer index = luaL_checkinteger(L, 1);
+	bool value = lua_toboolean(L, 2) != 0;
+	ScenarioClass::Instance->LocalVarChange(static_cast<int>(index), value);
+	return 0;
+}
+
+void LuaAPI::RegisterScenarioBindings(lua_State* L)
+{
+	lua_newtable(L);
+	lua_pushcfunction(L, Scenario_SetGlobalVar);
+	lua_setfield(L, -2, "SetGlobalVar");
+	lua_pushcfunction(L, Scenario_SetLocalVar);
+	lua_setfield(L, -2, "SetLocalVar");
+	lua_setglobal(L, "Scenario");
 }
 
 #pragma endregion

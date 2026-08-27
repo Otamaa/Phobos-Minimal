@@ -22,12 +22,9 @@
 #include <algorithm>
 #include <bit>
 
-#include <array>
 #include <cstdint>
 
-#include <array>
-#include <cstdint>
-
+#ifdef _InitialVersion_Enabled
 // struct TurnTrackType
 // {
 // 	int32_t LeftTrack;
@@ -2660,3 +2657,1538 @@ unsigned int FakeAStarPathFinderClass::Attempt(CellStruct* startPos, CellStruct*
 //DEFINE_FUNCTION_JUMP(LJMP, 0x42CF10, FakeAStarPathFinderClass::Add_Cell_To_Vector)
 //DEFINE_FUNCTION_JUMP(LJMP, 0x42CF80, FakeAStarPathFinderClass::UpdateZoneVector)
 //DEFINE_FUNCTION_JUMP(LJMP, 0x42D490, FakeAStarPathFinderClass::tube_42D490)
+
+#endif
+
+std::vector<CellStruct> AStarClass::LineCells;
+std::vector<unsigned short> AStarClass::StraightSubzones[3];
+std::vector<int> AStarClass::IsStraightFlag[3];
+
+static bool InitStaticAStarContainers()
+{
+	if (AStarClass::EnableRectilinear)
+	{
+		AStarClass::LineCells.reserve(400);
+		AStarClass::LineCells.clear();
+
+		for (int i = 0; i < 3; ++i)
+		{
+			AStarClass::StraightSubzones[i].reserve(100);
+			AStarClass::StraightSubzones[i].clear();
+			AStarClass::IsStraightFlag[i].clear();
+			AStarClass::IsStraightFlag[i].resize((3 - i) * (3 - i) * 100, 0);
+		}
+	}
+
+	return true;
+}
+bool AStarClass::ContainersInit = InitStaticAStarContainers();
+
+static inline int GetMovementPassability(MovementZone movementZone, PassabilityType passType)
+{
+	return MapClass::MovementAdjustArray[static_cast<int>(movementZone)][static_cast<int>(passType)];
+}
+
+static inline GlobalPassabilityData& GetPassabilityStruct(const CellStruct* pCell)
+{
+	return MapClass::Instance->LevelAndPassabilityStruct2pointer_70[MapClass::Instance->GetCellPathIndex(*pCell)];
+}
+
+static inline unsigned short GetCellPassabilityIndex(const CellStruct* pCell, int level)
+{
+	return static_cast<unsigned short>(GetPassabilityStruct(pCell).data[level]);
+}
+
+#pragma region NextPathCell
+
+CellStruct AStarClass::NextPathCell(
+	const CellStruct cell,
+	const int dir
+)
+{
+	if (dir != 8)
+		return cell + CellSpread::AdjacentCell[dir];
+
+	const int tubeIndex = MapClass::Instance->GetCellAt(cell)->TubeIndex;
+	return (tubeIndex == -1) ? CellStruct::Empty : TubeClass::Array->Items[tubeIndex]->ExitCell;
+}
+
+#pragma endregion
+
+#pragma region FindRegularPath
+
+AStarClass::PathFinderData* AStarClass::FindRegularPath(
+	const CellStruct* const pStart,
+	const CellStruct* const pEnd,
+	const FootClass* const pFoot,
+	int* const pDirs,
+	int maxSteps,
+	const bool useHierarchical
+)
+{
+	int step = 0;
+
+	const auto pCellsFromEnd = &MapClass::Instance->Cells.Items[MapClass::GetCellIndex(*pEnd)];
+	const auto pEndCell = *pCellsFromEnd;
+	const auto pCellsFromStart = &MapClass::Instance->Cells.Items[MapClass::GetCellIndex(*pStart)];
+	const auto pStartCell = *pCellsFromStart;
+
+	if (!pStartCell || !pEndCell)
+		return nullptr;
+
+	const auto absType = pFoot->WhatAmI();
+	this->EndLevel = (absType == AbstractType::Aircraft || !pEndCell->ContainsBridge()) ? pEndCell->Level : pEndCell->Level + 4;
+	this->StartLevel = (absType == AbstractType::Aircraft || !pFoot->OnBridge) ? pStartCell->Level : pStartCell->Level + 4;
+	const auto pType = pFoot->GetTechnoType();
+	this->FinderSpeedType = pType->SpeedType;
+	const bool isTrain = pType->IsTrain;
+
+	if (isTrain && pStartCell->ContainsBridge() && Math::abs(pFoot->Location.Z / Unsorted::LevelHeight - this->StartLevel) > 2)
+		this->StartLevel += 4;
+
+	const auto pCount = this->LevelVisitedMarkers[0];
+	this->PathLength = 0;
+	this->CellStructBuffer = *pStart;
+
+	auto pPathNode = this->CreatePathNode(0, pCellsFromStart, pEnd, 0.0f);
+
+	do
+	{
+		if (pStart->X == pEnd->X && pStart->Y == pEnd->Y && this->StartLevel == this->EndLevel)
+			return nullptr;
+
+		if (this->FindMode)
+			this->AStarClass::PostProcessCells(pFoot);
+
+		const int astarStartIndex = pStartCell->MapCoords.X + AStarClass::MapSides() * pStartCell->MapCoords.Y;
+
+		if (this->StartLevel <= pStartCell->Level)
+		{
+			this->VisitCounts[astarStartIndex] = this->SearchID;
+			this->Distances[astarStartIndex] = 0.0f;
+		}
+		else
+		{
+			this->AltVisitCounts[astarStartIndex] = this->SearchID;
+			this->AltDistances[astarStartIndex] = 0.0f;
+		}
+
+		if (isTrain)
+		{
+			int dirOffset = 0;
+
+			for (const auto dirCellOffset : AStarClass::DirCellOffsets)
+			{
+				const int absFace = Math::abs(static_cast<int>(pFoot->PrimaryFacing.Current().GetFacing<8>()) - dirOffset);
+
+				if (absFace > 2 && absFace < 6)
+				{
+					const auto pAdjCell = pCellsFromStart[dirCellOffset];
+					const int astarAdjIndex = pAdjCell->MapCoords.X + AStarClass::MapSides() * pAdjCell->MapCoords.Y;
+
+					if (this->StartLevel <= pAdjCell->Level + 1)
+					{
+						this->VisitCounts[astarAdjIndex] = this->SearchID;
+						this->Distances[astarAdjIndex] = 0.0f;
+					}
+					else
+					{
+						this->AltVisitCounts[astarAdjIndex] = this->SearchID;
+						this->AltDistances[astarAdjIndex] = 0.0f;
+					}
+				}
+
+				++dirOffset;
+			}
+		}
+
+		const bool isPassiveUnit = absType == AbstractType::Unit && static_cast<const UnitClass*>(pFoot)->Type->Passive;
+
+		if (maxSteps < 0)
+			maxSteps = 65527;
+
+		if (pPathNode)
+		{
+			do
+			{
+				if (step >= maxSteps)
+					break;
+
+				const auto pCellsInChecking = pPathNode->NodeData->CellItems;
+
+				if (pCellsInChecking == pCellsFromEnd && pPathNode->NodeData->Level == this->EndLevel)
+					break;
+
+				AStarClass::PathQueueNode* pBestCandidateNode = nullptr;
+				int astarCheckCellIndex = (*pCellsInChecking)->MapCoords.X + AStarClass::MapSides() * (*pCellsInChecking)->MapCoords.Y;
+
+				for (int dir = 0; dir <= 8; ++dir)
+				{
+					const CellClass* const* pCellsPtr = nullptr;
+
+					if (dir == 8)
+					{
+						const int tubeIndex = (*pCellsInChecking)->TubeIndex;
+
+						if (tubeIndex == -1)
+							pCellsPtr = &AStarClass::InvalidCell();
+						else
+							pCellsPtr = &MapClass::Instance->Cells.Items[MapClass::GetCellIndex(TubeClass::Array->Items[tubeIndex]->ExitCell)];
+					}
+					else
+					{
+						pCellsPtr = &pCellsInChecking[AStarClass::DirCellOffsets[dir]];
+					}
+
+					const auto pCell = *pCellsPtr;
+
+					if (!pCell)
+						continue;
+
+					const auto& checkCell = pCell->MapCoords;
+					const int astarCheckNextIndex = (dir == 8) ? (checkCell.X + AStarClass::MapSides() * checkCell.Y) : (astarCheckCellIndex + AStarClass::DirSides[dir]);
+					const bool notAlternate = !pCell->ContainsBridge() || Math::abs(this->StartLevel - pCell->Level) <= 1;
+					const unsigned short cellPassabilityIndex = GetCellPassabilityIndex(&checkCell, 0);
+
+					if (notAlternate
+						? (pCount[cellPassabilityIndex] != this->SearchID && !pCell->BlockedNeighbours && useHierarchical
+							|| this->VisitCounts[astarCheckNextIndex] == this->SearchID && this->Distances[astarCheckNextIndex] < (pPathNode->PathCost + 1.009))
+						: (this->AltVisitCounts[astarCheckNextIndex] == this->SearchID && this->AltDistances[astarCheckNextIndex] < (pPathNode->PathCost + 1.009)))
+					{
+						continue;
+					}
+
+					auto moveType = pFoot->IsCellOccupied(const_cast<CellClass*>(pCell), dir, this->StartLevel, const_cast<CellClass*>(*pCellsInChecking), this->IsAlt);
+
+					if (isTrain && moveType < Move::No)
+						moveType = Move::OK;
+
+					const float cost = static_cast<float>((dir == 8)
+						? MaxImpl(Math::abs((*pCellsInChecking)->MapCoords.X - checkCell.X), Math::abs((*pCellsInChecking)->MapCoords.Y - checkCell.Y))
+						: this->CalculateMoveCost(pCellsInChecking, pCellsPtr, !notAlternate, moveType, pFoot) * this->PathCostFactor + AStarClass::DirPathCosts[dir]);
+
+					if (moveType >= Move::No)
+					{
+						if (pCellsPtr == pCellsFromEnd && !isPassiveUnit && Math::abs(this->StartLevel - this->EndLevel) <= 1)
+							goto BREAK_STEP_LOOP;
+
+						continue;
+					}
+
+					if (notAlternate ? (this->VisitCounts[astarCheckNextIndex] == this->SearchID) : (this->AltVisitCounts[astarCheckNextIndex] == this->SearchID))
+						continue;
+
+					auto pNewPathNode = this->CreatePathNode(pPathNode, pCellsPtr, pEnd, cost);
+
+					do
+					{
+						if (pBestCandidateNode)
+						{
+							const auto pPathQueue = this->PathQueue;
+							const int count = pPathQueue->Count;
+							int newCount = count + 1;
+
+							if (newCount < pPathQueue->Capacity)
+							{
+								if (count == -1)
+								{
+									const auto pQueueNodes = pPathQueue->Nodes;
+									int harfNewCount = newCount >> 1;
+									const float newCost = pNewPathNode->TotalCost;
+
+									for (; newCount > 1; harfNewCount >>= 1)
+									{
+										const auto pParentNode = pQueueNodes[harfNewCount];
+
+										if (pParentNode->TotalCost <= newCost)
+											break;
+
+										pQueueNodes[newCount] = pParentNode;
+										newCount = harfNewCount;
+									}
+
+									pQueueNodes[newCount] = pNewPathNode;
+									++pPathQueue->Count;
+
+									if ((uintptr_t)pNewPathNode > pPathQueue->LMost)
+										pPathQueue->LMost = (uintptr_t)pNewPathNode;
+
+									if ((uintptr_t)pNewPathNode < pPathQueue->RMost)
+										pPathQueue->RMost = (uintptr_t)pNewPathNode;
+
+									break;
+								}
+								else
+								{
+									const auto pQueueNodes = pPathQueue->Nodes;
+									int harfNewCount = newCount >> 1;
+									const float newCost = pBestCandidateNode->TotalCost;
+
+									for (; newCount > 1; harfNewCount >>= 1)
+									{
+										const auto pParentNode = pQueueNodes[harfNewCount];
+
+										if (pParentNode->TotalCost <= newCost)
+											break;
+
+										pQueueNodes[newCount] = pParentNode;
+										newCount = harfNewCount;
+									}
+
+									pQueueNodes[newCount] = pBestCandidateNode;
+									++pPathQueue->Count;
+
+									if ((uintptr_t)pBestCandidateNode > pPathQueue->LMost)
+										pPathQueue->LMost = (uintptr_t)pBestCandidateNode;
+
+									if ((uintptr_t)pBestCandidateNode < pPathQueue->RMost)
+										pPathQueue->RMost = (uintptr_t)pBestCandidateNode;
+								}
+							}
+						}
+
+						pBestCandidateNode = pNewPathNode;
+					}
+					while (false);
+
+					if (notAlternate)
+					{
+						this->VisitCounts[astarCheckNextIndex] = this->SearchID;
+						this->Distances[astarCheckNextIndex] = pNewPathNode->PathCost;
+					}
+					else
+					{
+						this->AltVisitCounts[astarCheckNextIndex] = this->SearchID;
+						this->AltDistances[astarCheckNextIndex] = pNewPathNode->PathCost;
+					}
+
+					const int newPathLength = this->PathLength + 1;
+
+					if (cellPassabilityIndex == static_cast<unsigned short>(this->PassabilityData[0].Indices[newPathLength]))
+					{
+						this->PathLength = newPathLength;
+						this->CellStructBuffer = checkCell;
+					}
+				}
+
+				const auto pPathQueue = this->PathQueue;
+
+				if (!pBestCandidateNode)
+				{
+					if (const int count = pPathQueue->Count)
+					{
+						const auto pQueueNodes = pPathQueue->Nodes;
+						const auto pExtractedNode = pQueueNodes[1];
+						pQueueNodes[1] = pQueueNodes[count];
+						pQueueNodes[count] = nullptr;
+						const int newCount = count - 1;
+						pPathQueue->Count = newCount;
+
+						int heapIndex = 1;
+						int childIndex = (newCount < 2 || pQueueNodes[1]->TotalCost <= pQueueNodes[2]->TotalCost) ? 1 : 2;
+
+						do
+						{
+							if (newCount < 3 || pQueueNodes[childIndex]->TotalCost <= pQueueNodes[3]->TotalCost)
+							{
+								if (childIndex == 1)
+									break;
+							}
+							else
+							{
+								childIndex = 3;
+							}
+
+							do
+							{
+								std::swap(pQueueNodes[heapIndex], pQueueNodes[childIndex]);
+								heapIndex = childIndex;
+								const int leftChildIndex = 2 * childIndex;
+								const int rightChildIndex = leftChildIndex + 1;
+
+								if (leftChildIndex <= newCount && pQueueNodes[childIndex]->TotalCost > pQueueNodes[leftChildIndex]->TotalCost)
+									childIndex = leftChildIndex;
+
+								if (rightChildIndex <= newCount && pQueueNodes[childIndex]->TotalCost > pQueueNodes[rightChildIndex]->TotalCost)
+									childIndex = rightChildIndex;
+							}
+							while (childIndex != heapIndex);
+						}
+						while (false);
+
+						pPathNode = pExtractedNode;
+					}
+					else
+					{
+						pPathNode = nullptr;
+						++step;
+						break;
+					}
+				}
+				else
+				{
+					do
+					{
+						if (const int count = pPathQueue->Count)
+						{
+							const auto pQueueNodes = pPathQueue->Nodes;
+							const auto pExtractedNode = pQueueNodes[1];
+
+							if (pExtractedNode->TotalCost <= pBestCandidateNode->TotalCost)
+							{
+								pQueueNodes[1] = pBestCandidateNode;
+
+								int heapIndex = 1;
+								int childIndex = (count < 2 || pQueueNodes[1]->TotalCost <= pQueueNodes[2]->TotalCost) ? 1 : 2;
+
+								do
+								{
+									if (count < 3 || pQueueNodes[childIndex]->TotalCost <= pQueueNodes[3]->TotalCost)
+									{
+										if (childIndex == 1)
+											break;
+									}
+									else
+									{
+										childIndex = 3;
+									}
+
+									do
+									{
+										std::swap(pQueueNodes[heapIndex], pQueueNodes[childIndex]);
+										heapIndex = childIndex;
+										const int leftChildIndex = 2 * childIndex;
+										const int rightChildIndex = leftChildIndex + 1;
+
+										if (leftChildIndex <= count && pQueueNodes[childIndex]->TotalCost > pQueueNodes[leftChildIndex]->TotalCost)
+											childIndex = leftChildIndex;
+
+										if (rightChildIndex <= count && pQueueNodes[childIndex]->TotalCost > pQueueNodes[rightChildIndex]->TotalCost)
+											childIndex = rightChildIndex;
+									}
+									while (childIndex != heapIndex);
+								}
+								while (false);
+
+								pPathNode = pExtractedNode;
+								break;
+							}
+						}
+
+						pPathNode = pBestCandidateNode;
+					}
+					while (false);
+				}
+
+				if (pPathNode)
+					this->StartLevel = pPathNode->NodeData->Level;
+
+				++step;
+			}
+			while (pPathNode);
+
+		BREAK_STEP_LOOP:
+			if (step != 10000 && pPathNode && step != maxSteps && pPathNode->NodeCount >= 2)
+				break;
+		}
+
+		if (this->FindMode)
+			this->PostProcessCells(pFoot);
+
+		return nullptr;
+	}
+	while (false);
+
+	const auto pData = this->BuildFinalPath(pPathNode, pDirs);
+
+	this->ProcessFinalPath(pData, pFoot);
+	this->OptimizeFinalPath(pData, pFoot);
+
+	if (this->FindMode)
+		this->PostProcessCells(pFoot);
+
+	return pData;
+}
+
+#pragma endregion
+
+#pragma region FindHierarchicalPath
+
+bool AStarClass::FindHierarchicalPath(
+	const CellStruct* const pStart,
+	const CellStruct* const pEnd,
+	const MovementZone movementZone,
+	const FootClass* const pFoot
+)
+{
+	constexpr float RECTILINEAR_DISCOUNT = 0.1f;
+	if (AStarClass::EnableRectilinear)
+	{
+		AStarClass::LineCells.clear();
+		const short x0 = pStart->X;
+		const short y0 = pStart->Y;
+		const short x1 = pEnd->X;
+		const short y1 = pEnd->Y;
+		const short dx = static_cast<short>(Math::abs(x1 - x0));
+		const short sx = x0 < x1 ? 1 : -1;
+		const short dy = static_cast<short>(Math::abs(y1 - y0));
+		const short sy = y0 < y1 ? 1 : -1;
+		short err = dx - dy;
+		short x = x0;
+		short y = y0;
+
+		while (true)
+		{
+			AStarClass::LineCells.emplace_back(x, y);
+
+			if (x == x1 && y == y1)
+				break;
+
+			const int e2 = 2 * err;
+
+			if (e2 > -dy)
+			{
+				err -= dy;
+				x += sx;
+			}
+
+			if (e2 < dx)
+			{
+				err += dx;
+				y += sy;
+			}
+		}
+	}
+
+	auto FindRectilinearPath = [this, pStart, pEnd, movementZone](int level) -> bool
+		{
+			auto& straightSubzones = AStarClass::StraightSubzones[level];
+			auto& straightFlags = AStarClass::IsStraightFlag[level];
+			straightSubzones.clear();
+
+			{
+				int lastIdx = -1;
+				for (auto& _cell : AStarClass::LineCells)
+				{
+					const int idx = GetCellPassabilityIndex(&_cell, level);
+					if (idx != lastIdx)
+					{
+						straightSubzones.emplace_back(static_cast<unsigned short>(idx));
+						lastIdx = idx;
+					}
+				}
+			}
+
+			if (straightSubzones.empty())
+				return false;
+
+			auto AreConnected = [level, movementZone](unsigned int fromIdx, unsigned int toIdx) -> bool
+				{
+					if (fromIdx == toIdx)
+						return true;
+
+					const auto pSubzoneTracking = MapClass::Instance->SubzoneTrackings[level].Items;
+					const auto pFinderSubzoneConnections = &pSubzoneTracking[fromIdx].SubzoneConnections;
+					for (int i = 0; i < pFinderSubzoneConnections->Count; ++i)
+					{
+						if (pFinderSubzoneConnections->Items[i].ConnectionPenaltyFlag == toIdx)
+							return GetMovementPassability(movementZone, static_cast<PassabilityType>(pSubzoneTracking[toIdx].MovementCostType)) == 1;
+					}
+
+					return false;
+				};
+
+			const size_t straightSubzoneCount = straightSubzones.size();
+			for (size_t i = 0; i + 1 < straightSubzoneCount; ++i)
+			{
+				if (!AreConnected(straightSubzones[i], straightSubzones[i + 1]))
+				{
+					const size_t subzoneCount = static_cast<size_t>(MapClass::Instance->SubzoneTrackings[level].Count);
+
+					if (straightFlags.size() < subzoneCount)
+						straightFlags.resize(subzoneCount, 0);
+
+					for (int idx : straightSubzones)
+						straightFlags[idx] = this->SearchID;
+
+					return false;
+				}
+			}
+
+			this->PassabilityCounts[level] = static_cast<int>(straightSubzoneCount);
+
+			auto& data = this->PassabilityData[level];
+			for (size_t i = 0; i < straightSubzoneCount; ++i)
+				data.Indices[i] = straightSubzones[i];
+
+			auto pLevelVisitedMarkers = this->LevelVisitedMarkers[level];
+			for (int idx : straightSubzones)
+				pLevelVisitedMarkers[idx] = this->SearchID;
+
+			return true;
+		};
+
+	double threatAvoidanceCoefficient = 0.0;
+	HouseClass* pOwner = nullptr;
+	bool calculateThreat = false;
+
+	if (pFoot)
+	{
+		threatAvoidanceCoefficient = pFoot->GetThreatAvoidanceCoefficient();
+		pOwner = pFoot->Owner;
+		calculateThreat = threatAvoidanceCoefficient > 0.00001;
+	}
+
+	const auto& sourceStruct = GetPassabilityStruct(pStart);
+	const auto& targetStruct = GetPassabilityStruct(pEnd);
+
+	int level = 2;
+
+	while (true)
+	{
+		do
+		{
+			{
+				const auto pHierarchyQueue = this->HierarchyQueue;
+
+				for (int i = 0; i <= pHierarchyQueue->Count; pHierarchyQueue->Nodes[i - 1] = nullptr)
+					++i;
+
+				pHierarchyQueue->Count = 0;
+			}
+
+			const int sourceSubzoneIndex = static_cast<unsigned short>(sourceStruct.data[level]);
+			const int targetSubzoneIndex = static_cast<unsigned short>(targetStruct.data[level]);
+
+			if (AStarClass::EnableRectilinear && FindRectilinearPath(level))
+				break;
+
+			const bool isMaxLevel = level == 2;
+			const auto pSuperiorLevelVisitedMarkers = isMaxLevel ? nullptr : this->LevelVisitedMarkers[level + 1];
+
+			const auto pLevelVisitedMarkers = this->LevelVisitedMarkers[level];
+			const auto pOpenSetMarkers = this->OpenSetMarkers[level];
+			const auto pGCostArray = this->GCostArray[level];
+
+			pLevelVisitedMarkers[sourceSubzoneIndex] = this->SearchID;
+			pLevelVisitedMarkers[targetSubzoneIndex] = this->SearchID;
+
+			if (sourceSubzoneIndex == targetSubzoneIndex)
+			{
+				if (!level)
+				{
+					const auto pBufferNodes = this->HierarchyBuffer->Nodes;
+					pBufferNodes->Count = 0;
+					pBufferNodes->SubzoneIndex = sourceSubzoneIndex;
+				}
+
+				this->PassabilityData[level].Indices[0] = static_cast<unsigned short>(sourceSubzoneIndex);
+				this->PassabilityCounts[level] = 1;
+			}
+			else
+			{
+				const auto pFirstNode = &this->HierarchyBuffer->Nodes[0];
+				pFirstNode->PreviousNodeIndex = -1;
+				pFirstNode->SubzoneIndex = sourceSubzoneIndex;
+				pFirstNode->Cost = 0.0f;
+				pFirstNode->Count = 0;
+
+				pOpenSetMarkers[sourceSubzoneIndex] = this->SearchID;
+				pGCostArray[sourceSubzoneIndex] = 0.0f;
+				auto pFinderNode = pFirstNode;
+
+				int bufferIndex = 1;
+
+				const auto pZoneIndices = &this->ZoneIndices[level];
+				const bool noZoneIndices = pZoneIndices->Count <= 0;
+
+				while (true)
+				{
+					const int finderSubzoneIndex = pFinderNode->SubzoneIndex;
+
+					if (finderSubzoneIndex == targetSubzoneIndex)
+						break;
+
+					const auto pSubzoneTracking = MapClass::Instance->SubzoneTrackings[level].Items;
+					const auto pFinderSubzoneConnections = &pSubzoneTracking[finderSubzoneIndex].SubzoneConnections;
+					int subzoneTrackingConnectionsCount = pFinderSubzoneConnections->Count;
+
+					if (subzoneTrackingConnectionsCount > 0)
+					{
+						auto pSubzoneTrackingConnectionsItem = pFinderSubzoneConnections->Items;
+
+						do
+						{
+							const int checkSubzoneIndex = static_cast<int>(pSubzoneTrackingConnectionsItem->NeighborSubzoneIndex);
+							const bool isDiagonalConnection = pSubzoneTrackingConnectionsItem->ConnectionPenaltyFlag;
+							const auto pCheckSubzoneTracking = &pSubzoneTracking[checkSubzoneIndex];
+							const int checkSubzoneSuperiorIndex = pCheckSubzoneTracking->ParentZoneIndex;
+							const auto checkSubzonePassability = static_cast<PassabilityType>(pCheckSubzoneTracking->MovementCostType);
+
+							float cost = static_cast<float>(AStarClass::PassabilityCoefficients.operator[](static_cast<int>(checkSubzonePassability))
+								+ pFinderNode->Cost
+								+ (!calculateThreat ? 0 : static_cast<int>(MapClass::Instance->GetThreatPosedEstimates(pOwner, level, finderSubzoneIndex, checkSubzoneIndex) * threatAvoidanceCoefficient))
+								+ (isDiagonalConnection ? 0.001f : 0.0f));
+
+							if (AStarClass::EnableRectilinear)
+							{
+								const auto& straightFlags = AStarClass::IsStraightFlag[level];
+								if (checkSubzoneIndex < static_cast<int>(straightFlags.size()) && straightFlags[checkSubzoneIndex] == this->SearchID)
+									cost *= RECTILINEAR_DISCOUNT;
+							}
+
+							const int searchID = this->SearchID;
+
+							if ((pOpenSetMarkers[checkSubzoneIndex] != searchID
+								|| pGCostArray[checkSubzoneIndex] > cost)
+								&& (isMaxLevel
+									|| pSuperiorLevelVisitedMarkers[checkSubzoneSuperiorIndex] == searchID
+									|| checkSubzonePassability == PassabilityType::Crushable)
+								&& GetMovementPassability(movementZone, checkSubzonePassability) == 1)
+							{
+								do
+								{
+									if (!noZoneIndices)
+									{
+										const unsigned int mixIndex = static_cast<unsigned short>(checkSubzoneIndex) < static_cast<unsigned short>(finderSubzoneIndex)
+											? static_cast<unsigned short>(finderSubzoneIndex) | (static_cast<unsigned short>(checkSubzoneIndex) << 16)
+											: static_cast<unsigned short>(checkSubzoneIndex) | (static_cast<unsigned short>(finderSubzoneIndex) << 16);
+
+										auto ShouldProcessNode = [pZoneIndices, mixIndex]() -> bool
+											{
+												int zoneIndicesNewCount = pZoneIndices->Count - 1;
+												auto pZoneIndex = &pZoneIndices->Items[zoneIndicesNewCount];
+												while (*pZoneIndex != mixIndex)
+												{
+													--zoneIndicesNewCount;
+													--pZoneIndex;
+
+													if (zoneIndicesNewCount < 0)
+														return true;
+												}
+
+												return false;
+											};
+
+										if (!ShouldProcessNode())
+											break;
+									}
+
+									if (bufferIndex >= 10000)
+										return false;
+
+									const auto pHierarchyBuffer = this->HierarchyBuffer;
+									const auto pHierarchicalNode = &pHierarchyBuffer->Nodes[bufferIndex++];
+									pHierarchicalNode->PreviousNodeIndex = pFinderNode - &pHierarchyBuffer->Nodes[0];
+									pHierarchicalNode->SubzoneIndex = checkSubzoneIndex;
+									pHierarchicalNode->Cost = cost;
+									pHierarchicalNode->Count = pFinderNode->Count + 1;
+
+									const auto pHierarchyQueue = this->HierarchyQueue;
+									const auto pQueueNodes = pHierarchyQueue->Nodes;
+									int newCount = pHierarchyQueue->Count + 1;
+									int harfNewCount = newCount >> 1;
+
+									if (newCount < pHierarchyQueue->Capacity)
+									{
+										for (; newCount > 1; harfNewCount >>= 1)
+										{
+											const auto pParentNode = pQueueNodes[harfNewCount];
+
+											if (pParentNode->Cost <= cost)
+												break;
+
+											pQueueNodes[newCount] = pParentNode;
+											newCount = harfNewCount;
+										}
+
+										pQueueNodes[newCount] = pHierarchicalNode;
+										++pHierarchyQueue->Count;
+
+										if ((uintptr_t)pHierarchicalNode > pHierarchyQueue->LMost)
+											pHierarchyQueue->LMost = (uintptr_t)pHierarchicalNode;
+
+										if ((uintptr_t)pHierarchicalNode < pHierarchyQueue->RMost)
+											pHierarchyQueue->RMost = (uintptr_t)pHierarchicalNode;
+									}
+
+									pOpenSetMarkers[checkSubzoneIndex] = this->SearchID;
+									pGCostArray[checkSubzoneIndex] = cost;
+								}
+								while (false);
+							}
+
+							++pSubzoneTrackingConnectionsItem;
+							--subzoneTrackingConnectionsCount;
+						}
+						while (subzoneTrackingConnectionsCount);
+					}
+
+					const auto pHierarchyQueue = this->HierarchyQueue;
+					const int count = pHierarchyQueue->Count;
+
+					if (!count)
+						return false;
+
+					const auto pQueueNodes = pHierarchyQueue->Nodes;
+					const auto pExtractedNode = pQueueNodes[1];
+					pQueueNodes[1] = pQueueNodes[count];
+					pQueueNodes[count] = nullptr;
+					const int newCount = count - 1;
+					pHierarchyQueue->Count = newCount;
+
+					int heapIndex = 1;
+					int childIndex = (newCount < 2 || pQueueNodes[1]->Cost <= pQueueNodes[2]->Cost) ? 1 : 2;
+
+					do
+					{
+						if (newCount < 3 || pQueueNodes[childIndex]->Cost <= pQueueNodes[3]->Cost)
+						{
+							if (childIndex == 1)
+								break;
+						}
+						else
+						{
+							childIndex = 3;
+						}
+
+						do
+						{
+							std::swap(pQueueNodes[heapIndex], pQueueNodes[childIndex]);
+							heapIndex = childIndex;
+							const int leftChildIndex = 2 * childIndex;
+							const int rightChildIndex = leftChildIndex + 1;
+
+							if (leftChildIndex <= newCount && pQueueNodes[childIndex]->Cost > pQueueNodes[leftChildIndex]->Cost)
+								childIndex = leftChildIndex;
+
+							if (rightChildIndex <= newCount && pQueueNodes[childIndex]->Cost > pQueueNodes[rightChildIndex]->Cost)
+								childIndex = rightChildIndex;
+						}
+						while (childIndex != heapIndex);
+					}
+					while (false);
+
+					pFinderNode = pExtractedNode;
+
+					if (!pFinderNode)
+						return false;
+				}
+
+				this->PassabilityCounts[level] = pFinderNode->Count + 1;
+
+				if (pFinderNode->PreviousNodeIndex != -1)
+				{
+					auto pDataIndex = &this->PassabilityData[level].Indices[pFinderNode->Count];
+
+					do
+					{
+						pLevelVisitedMarkers[pFinderNode->SubzoneIndex] = this->SearchID;
+						*pDataIndex-- = static_cast<unsigned short>(pFinderNode->SubzoneIndex);
+						pFinderNode = &this->HierarchyBuffer->Nodes[pFinderNode->PreviousNodeIndex];
+					}
+					while (pFinderNode->PreviousNodeIndex != -1);
+				}
+
+				this->PassabilityData[level].Indices[0] = static_cast<unsigned short>(pFinderNode->SubzoneIndex);
+			}
+		}
+		while (false);
+
+		if (--level >= 0)
+			continue;
+
+		return true;
+	}
+}
+
+#pragma endregion
+
+#pragma region CalculateMoveCost
+
+double AStarClass::CalculateMoveCost(
+	const CellClass* const* const pFromCellPtr,
+	const CellClass* const* const pToCellPtr,
+	const bool isAlternate,
+	const Move moveType,
+	const FootClass* const pFoot
+) const
+{
+	const auto pToCell = *pToCellPtr;
+	const auto pFromCell = *pFromCellPtr;
+	float moveCost = AStarClass::MoveCosts[static_cast<int>(moveType)];
+
+	if (moveType == Move::MovingBlock)
+	{
+		if (const int mode = this->FindMode)
+		{
+			moveCost = (mode == 2) ? 1000.0f : 4.0f;
+		}
+		else
+		{
+			auto pCellObj = isAlternate ? pToCell->AltObject : pToCell->FirstObject;
+
+			for (int step = 0; pCellObj; )
+			{
+				if (const auto pCellFoot = flag_cast_to<FootClass*, true>(pCellObj))
+				{
+					int dir = 0;
+
+					if (pCellFoot->SpeedPercentage == 0.0)
+					{
+						dir = pCellFoot->PathDirections[0];
+
+						if (dir == -1)
+							break;
+					}
+					else
+					{
+						dir = pCellFoot->PrimaryFacing.Current().GetFacing<8>();
+					}
+
+					const auto pAdjCell = MapClass::Instance->GetCellAt(CellSpread::AdjacentCell[dir & 7] + pCellObj->GetMapCoords());
+					pCellObj = (pAdjCell->ContainsBridge() && (pCellObj->OnBridge || (pCellObj->GetCell()->Level - pAdjCell->Level) > 2))
+						? pAdjCell->AltObject
+						: pAdjCell->FirstObject;
+
+					if (++step < 10)
+						continue;
+				}
+
+				moveCost = 4.0f;
+				break;
+			}
+		}
+	}
+
+	const auto flags = pToCell->Flags;
+
+	if (flags & CellFlags::Tube)
+		moveCost *= 4.0f;
+
+	if (!isAlternate || !this->FindBridgeDir)
+		return moveCost;
+
+	const auto deltaCell = pToCell->MapCoords - pFromCell->MapCoords;
+	const int dirOffsetIndex = AStarClass::BridgeDirOffsets[4 + (3 * deltaCell.Y) + deltaCell.X];
+	const auto& [pBridgeCheckCell, pBridgeReverseCheckCell] = (flags & CellFlags::BridgeDir)
+		? std::make_pair(pToCellPtr[AStarClass::BridgeDir1OffsetIndexes[dirOffsetIndex]], pToCellPtr[AStarClass::BridgeDir1OffsetIndexes[(dirOffsetIndex - 4) & 7]])
+		: std::make_pair(pToCellPtr[AStarClass::BridgeDir0OffsetIndexes[dirOffsetIndex]], pToCellPtr[AStarClass::BridgeDir0OffsetIndexes[(dirOffsetIndex - 4) & 7]]);
+
+	if (!pBridgeCheckCell->ContainsBridge())
+		return 10.0f * moveCost;
+
+	return pBridgeReverseCheckCell->ContainsBridge() ? 2.0f * moveCost : moveCost;
+}
+
+#pragma region ProcessFinalPath
+
+#pragma endregion
+
+void AStarClass::ProcessFinalPath(
+	PathFinderData* const pPath,
+	const FootClass* const pFoot
+) const
+{
+	const int pathLength = pPath->PathLength - 1;
+
+	if (pathLength <= 0)
+		return;
+
+	const int* const pLevels = pPath->Levels;
+	int* const pDirs = pPath->Directions;
+
+	int lastDir = -1;
+	int diagonalDir = -1;
+	int step = 0;
+	int segmentLength = 0;
+	bool adjustSegment = false;
+	int adjustIndex = 0;
+	int adjustOffset = 0;
+
+	auto currentCell = pPath->StartCell;
+	auto nextCell = currentCell;
+
+	do
+	{
+		if (adjustSegment)
+		{
+			if (pDirs[adjustOffset + adjustIndex] != lastDir)
+			{
+				step += AStarClass::AdjustFinalPath(pFoot, &pDirs[step], &pLevels[step], segmentLength, adjustOffset, &currentCell);
+
+				segmentLength = 1;
+				adjustSegment = false;
+
+				nextCell = CellSpread::AdjacentCell[pDirs[step] & 7] + currentCell;
+				diagonalDir = pDirs[step];
+			}
+			else
+			{
+				++adjustOffset;
+			}
+		}
+		else
+		{
+			const int currentDir = pDirs[step + segmentLength];
+			const int diffDir = (currentDir - diagonalDir) & 7;
+
+			if (currentDir == diagonalDir)
+			{
+
+				++segmentLength;
+			}
+			else if ((diffDir != 2 && diffDir != 6) 
+				|| diagonalDir == -1
+				|| diagonalDir == 8
+				|| currentDir == 8)
+			{
+				step += segmentLength;
+				segmentLength = 1;
+
+				diagonalDir = (currentDir & 1) ? currentDir : -1;
+				currentCell = nextCell;
+			}
+			else
+			{
+				adjustSegment = true;
+				lastDir = pDirs[step + segmentLength];
+				adjustOffset = 1;
+				adjustIndex = step + segmentLength;
+			}
+
+			nextCell = AStarClass::NextPathCell(nextCell, currentDir);
+		}
+	}
+	while ((step + segmentLength) < pathLength && (adjustOffset + adjustIndex) < pathLength);
+
+	if (adjustSegment)
+		AStarClass::AdjustFinalPath(pFoot, &pDirs[step], &pLevels[step], segmentLength, adjustOffset, &currentCell);
+}
+
+#pragma endregion
+
+#pragma region AdjustFinalPath
+
+int AStarClass::AdjustFinalPath(
+	const FootClass* const pFoot,
+	int* const pDirs,
+	const int* const pLevels,
+	const int steps,
+	int offset,
+	CellStruct* const pCurrent
+) const
+{
+	const int firstDir = pDirs[0];
+	const int lastDir = pDirs[steps];
+
+	int avgDir = (firstDir + lastDir) >> 1;
+	{
+		const int checkDir = avgDir + 1;
+
+		if (checkDir != lastDir && checkDir != firstDir)
+			avgDir = 0;
+	}
+
+	if (firstDir == 8 || lastDir == 8)
+	{
+		const int count = steps + offset;
+
+		if (count > 0)
+		{
+			int i = 0;
+			auto cell = *pCurrent;
+
+			do
+			{
+				cell = AStarClass::NextPathCell(cell, pDirs[i]);
+			}
+			while (++i < count);
+
+			*pCurrent = cell;
+		}
+
+		return count;
+	}
+
+	auto midCell = *pCurrent;
+
+	if (steps < offset)
+	{
+		offset = steps;
+	}
+	else if (offset < steps)
+	{
+		const int count = steps - offset;
+
+		if (count > 0)
+		{
+			int i = 0;
+			auto cell = midCell;
+
+			do
+			{
+				cell = AStarClass::NextPathCell(cell, pDirs[i]);
+			}
+			while (++i < count);
+			midCell = cell;
+		}
+	}
+
+	const double threat = pFoot->GetThreatAvoidanceCoefficient();
+	const auto pOwner = pFoot->Owner;
+
+	if (offset > 0)
+	{
+		const auto& dirOffset = CellSpread::AdjacentCell[avgDir & 7];
+
+		int remainingOffset = 2 * offset;
+
+		do
+		{
+			int currentLevel = pLevels[steps + offset - remainingOffset];
+			auto nextCell = midCell + dirOffset;
+			auto pCell = MapClass::Instance->GetCellAt(nextCell);
+
+			int i = remainingOffset;
+			bool blocked = false;
+
+			do
+			{
+				if (i <= 0)
+				{
+					const int size = 2 * offset;
+					const int count = steps - offset;
+
+					if (size > 0)
+						std::fill_n(pDirs + count, size, avgDir);
+
+					if (count > 0)
+					{
+						int j = 0;
+						auto cell = *pCurrent;
+
+						do
+						{
+							cell = AStarClass::NextPathCell(cell, pDirs[j]);
+						}
+						while (++j < count);
+
+						*pCurrent = cell;
+					}
+
+					return count;
+				}
+
+				blocked = (pFoot->IsCellOccupied(pCell, avgDir, currentLevel, nullptr, true) != Move::OK)
+					|| (pCell->Flags & CellFlags::Tube)
+					|| (MapClass::Instance->GetThreatPosed(midCell, pOwner) * threat > 1.0);
+
+				--i;
+
+				nextCell += dirOffset;
+				pCell = MapClass::Instance->GetCellAt(nextCell);
+
+				const int level = pCell->Level;
+				const int upLevel = level + 4;
+				currentLevel = (currentLevel == upLevel && pCell->ContainsBridge()) ? upLevel : level;
+			}
+			while (!blocked);
+
+			midCell += CellSpread::AdjacentCell[firstDir & 7];
+			remainingOffset -= 2;
+		}
+		while (--offset > 0);
+	}
+
+	if (steps > 0)
+	{
+		int i = 0;
+		auto cell = *pCurrent;
+
+		do
+		{
+			cell = AStarClass::NextPathCell(cell, pDirs[i]);
+		}
+		while (++i < steps);
+
+		*pCurrent = cell;
+	}
+
+	return steps;
+}
+
+#pragma endregion
+
+#pragma region OptimizeFinalPath
+
+void AStarClass::OptimizeFinalPath(
+	AStarClass::PathFinderData* const pPath,
+	const FootClass* const pFoot
+) const
+{
+	int* const pDirs = pPath->Directions;
+	const int pathLength = pPath->PathLength - 1;
+
+	if (pathLength > 0)
+	{
+		auto MaxCellAxisDeviation = [](const CellStruct cell) -> int
+			{
+				return MaxImpl(Math::abs(cell.X), Math::abs(cell.Y));
+			};
+		const int* const pLevels = pPath->Levels;
+		const int* pCurDir = pDirs;
+
+		auto currentPosition = pPath->StartCell;
+		auto lastValidPosition = CellStruct::Empty;
+		auto totalMovementOffset = CellStruct::Empty;
+		auto segmentMovementOffset = CellStruct::Empty;
+		auto maxMovementDeviation = Point2D::Empty;
+		int maxSegmentDiagonal = 0;
+		int processedStepCount = 0;
+		int lastOptimizedIndex = 0;
+		int lastValidOptimizedIndex = 0;
+
+		do
+		{
+			if (processedStepCount >= 20)
+				break;
+
+			const int currentDirection = *pCurDir;
+
+			if (currentDirection == 8)
+			{
+				currentPosition += CellSpread::AdjacentCell[0];
+				++processedStepCount;
+				++pCurDir;
+
+				lastOptimizedIndex = processedStepCount;
+				lastValidOptimizedIndex = processedStepCount;
+				maxMovementDeviation = Point2D::Empty;
+				maxSegmentDiagonal = 0;
+				segmentMovementOffset = CellStruct::Empty;
+				totalMovementOffset = CellStruct::Empty;
+				lastValidPosition = CellStruct::Empty;
+				continue;
+			}
+
+			if (currentDirection == -2)
+			{
+				++processedStepCount;
+				++pCurDir;
+				continue;
+			}
+
+			const auto& dirOffset = CellSpread::AdjacentCell[currentDirection & 7];
+			const auto newSegmentMovementOffset = segmentMovementOffset + dirOffset;
+			const auto newTotalMovementOffset = totalMovementOffset + dirOffset;
+			const auto newMovementDeviation = Point2D { Math::abs(newTotalMovementOffset.X), Math::abs(newTotalMovementOffset.Y) };
+
+			if (newMovementDeviation.X < maxMovementDeviation.X || newMovementDeviation.Y < maxMovementDeviation.Y)
+			{
+				if (lastValidPosition != CellStruct::Empty)
+				{
+					lastOptimizedIndex = lastValidOptimizedIndex;
+					segmentMovementOffset = lastValidPosition - currentPosition;
+					maxSegmentDiagonal = MaxCellAxisDeviation(segmentMovementOffset);
+					maxMovementDeviation = Point2D::Empty;
+					totalMovementOffset = CellStruct::Empty;
+					lastValidPosition = currentPosition;
+					lastValidOptimizedIndex = processedStepCount;
+				}
+				else
+				{
+					maxMovementDeviation = Point2D::Empty;
+					totalMovementOffset = CellStruct::Empty;
+					lastValidPosition = currentPosition;
+					lastValidOptimizedIndex = processedStepCount;
+				}
+			}
+			else
+			{
+				maxMovementDeviation = newMovementDeviation;
+				totalMovementOffset = newTotalMovementOffset;
+
+				const int newDiagonalOffset = MaxCellAxisDeviation(newSegmentMovementOffset);
+				currentPosition += CellSpread::AdjacentCell[currentDirection & 7];
+
+				if (maxSegmentDiagonal >= newDiagonalOffset)
+				{
+					int step = 0;
+					auto cell = currentPosition;
+					AStarClass::Instance->GetFinalStepCell(pDirs, processedStepCount, lastValidOptimizedIndex, &step, &cell);
+
+					const auto vecCell = currentPosition - cell;
+					const int plotLength = processedStepCount - step + 1;
+					AStarClass::PlotStraightPath(&pDirs[step], plotLength, &cell, &vecCell, pFoot, pLevels[step], false);
+				}
+				else
+				{
+					maxSegmentDiagonal = newDiagonalOffset;
+				}
+
+				++processedStepCount;
+				++pCurDir;
+				segmentMovementOffset = newSegmentMovementOffset;
+			}
+		}
+		while (processedStepCount < pathLength);
+
+		if (lastValidPosition != CellStruct::Empty)
+		{
+			const int finalDiagonalOffset = MaxCellAxisDeviation(currentPosition - lastValidPosition);
+			const int endStep = processedStepCount - 1;
+
+			if (endStep - lastValidOptimizedIndex > finalDiagonalOffset)
+			{
+				int step = 0;
+				auto cell = currentPosition;
+				AStarClass::Instance->GetFinalStepCell(pDirs, endStep, lastValidOptimizedIndex, &step, &cell);
+
+				const auto vecCell = currentPosition - cell;
+				const int plotLength = endStep - step + 1;
+				AStarClass::PlotStraightPath(&pDirs[step], plotLength, &cell, &vecCell, pFoot, pLevels[step], true);
+			}
+		}
+	}
+
+	int dir = *pDirs;
+	int validStepCount = 0;
+
+	if (dir != -1)
+	{
+		const int* pSourceDir = pDirs;
+		int* pDestDirs = pDirs;
+		int steps = 0;
+
+		do
+		{
+			if (steps >= pathLength)
+				break;
+
+			if (dir != -2)
+			{
+				++validStepCount;
+				*pDestDirs++ = *pSourceDir;
+			}
+
+			dir = *(++pSourceDir);
+			++steps;
+		}
+		while (dir != -1);
+	}
+
+	int steps = validStepCount;
+	const int totalLength = pPath->PathLength + 1;
+
+	if (validStepCount < totalLength)
+	{
+		int* pDestDirs = &pDirs[validStepCount];
+
+		do
+		{
+			*pDestDirs++ = -1;
+			++steps;
+		}
+		while (steps < totalLength);
+	}
+
+	pPath->PathLength = validStepCount + 1;
+}
+
+#pragma endregion
+
+#pragma region GetFinalStepCell
+
+void AStarClass::GetFinalStepCell(
+	const int* const pDirs,
+	const int segmentEndIdx,
+	const int segmentStartIdx,
+	int* const pOutIdx,
+	CellStruct* const pAdjacent
+) const
+{
+	auto finalCell = *pAdjacent;
+	int currentIndex = segmentStartIdx;
+
+	if (segmentEndIdx >= segmentStartIdx)
+	{
+		auto accumulated = CellStruct::Empty;
+		bool foundBetterPath = false;
+		int maxDeviation = 0;
+
+		for (int searchIndex = segmentEndIdx; searchIndex >= segmentStartIdx; --searchIndex)
+		{
+			const int curDir = pDirs[searchIndex];
+
+			if (curDir != -2)
+			{
+				const int oppDir = (curDir - 4) & 7;
+				const auto& dirOffset = CellSpread::AdjacentCell[oppDir];
+
+				const auto newAccumulated = accumulated + dirOffset;
+				const auto newCell = finalCell + dirOffset;
+				const int currentDeviation = MaxImpl(Math::abs(newAccumulated.X), Math::abs(newAccumulated.Y));
+
+				if (currentDeviation <= maxDeviation)
+				{
+					foundBetterPath = true;
+				}
+				else if (!foundBetterPath)
+				{
+					maxDeviation = currentDeviation;
+				}
+				else
+				{
+					*pOutIdx = searchIndex + 1;
+					*pAdjacent = newCell + CellSpread::AdjacentCell[(oppDir - 4) & 7];
+					return;
+				}
+
+				accumulated = newAccumulated;
+				currentIndex = segmentStartIdx;
+				finalCell = newCell;
+			}
+		}
+	}
+
+	*pOutIdx = currentIndex;
+	*pAdjacent = finalCell;
+}
+
+#pragma endregion
+
+#pragma region PlotStraightPath
+
+bool AStarClass::PlotStraightPath(
+	int* const pDirs,
+	const int maxLength,
+	const CellStruct* const pCurrent,
+	const CellStruct* const pVector,
+	const FootClass* const pFoot,
+	const int curLevel,
+	const bool allowThreats
+) const
+{
+	const int vecX = pVector->X;
+	const int vecY = pVector->Y;
+	const int sumXY = vecY + vecX;
+	int primaryDir = (vecX >= 0) ? (vecY >= 0 ? 3 : 1) : (vecY >= 0 ? 5 : 7);
+	int secondaryDir = (vecX - vecY <= 0) ? (sumXY <= 0 ? 6 : 4) : (sumXY <= 0 ? 0 : 2);
+
+	const int absX = Math::abs(vecX);
+	const int absY = Math::abs(vecY);
+	int minSteps = MinImpl(absX, absY);
+	int diagSteps = MaxImpl(absX, absY) - minSteps;
+
+	const double threat = pFoot->GetThreatAvoidanceCoefficient();
+	const auto pOwner = pFoot->Owner;
+
+	int phase = 0;
+	bool blocked = false;
+
+	while (true)
+	{
+		int firstSteps = minSteps;
+		int secondSteps = diagSteps;
+		int threatCount = 0;
+		auto currentPosition = *pCurrent;
+
+		if (phase > 0)
+		{
+			std::swap(primaryDir, secondaryDir);
+			std::swap(minSteps, diagSteps);
+		}
+
+		if (minSteps)
+		{
+			int currentLevel = curLevel;
+
+			if (minSteps > 0)
+			{
+				do
+				{
+					currentPosition += CellSpread::AdjacentCell[primaryDir & 7];
+					const auto pCell = MapClass::Instance->GetCellAt(currentPosition);
+
+					if (threat > 0.00001 && MapClass::Instance->GetThreatPosed(currentPosition, pOwner) * threat >= 0.01)
+						++threatCount;
+
+					blocked = (pFoot->IsCellOccupied(pCell, primaryDir, currentLevel, nullptr, true) != Move::OK)
+						|| (pCell->Flags & CellFlags::Tube)
+						|| (threatCount > 3)
+						|| (!allowThreats && threatCount > 0);
+
+					--firstSteps;
+
+					const int level = pCell->Level;
+					const int upLevel = level + 4;
+					currentLevel = (currentLevel == upLevel && pCell->ContainsBridge()) ? upLevel : level;
+				}
+				while (firstSteps > 0 && !blocked);
+			}
+
+			if (diagSteps > 0 && !blocked)
+			{
+				do
+				{
+					currentPosition += CellSpread::AdjacentCell[secondaryDir & 7];
+					const auto pCell = MapClass::Instance->GetCellAt(currentPosition);
+
+					if (threat > 0.00001 && MapClass::Instance->GetThreatPosed(currentPosition, pOwner) * threat >= 0.01)
+						++threatCount;
+
+					blocked = (pFoot->IsCellOccupied(pCell, secondaryDir, currentLevel, nullptr, true) != Move::OK)
+						|| (pCell->Flags & CellFlags::Tube)
+						|| (threatCount > 3)
+						|| (!allowThreats && threatCount > 0);
+
+					--secondSteps;
+
+					const int level = pCell->Level;
+					const int upLevel = level + 4;
+					currentLevel = (currentLevel == upLevel && pCell->ContainsBridge()) ? upLevel : level;
+				}
+				while (secondSteps > 0 && !blocked);
+			}
+
+			if (!blocked)
+				break;
+		}
+
+		if (++phase >= 2)
+			return false;
+	}
+
+	if (minSteps > 0)
+		std::fill_n(pDirs, minSteps, primaryDir);
+
+	if (diagSteps > 0)
+		std::fill_n(pDirs + minSteps, diagSteps, secondaryDir);
+
+	const int totalSteps = minSteps + diagSteps;
+	const int remainingSteps = maxLength - totalSteps;
+
+	if (remainingSteps > 0)
+		std::fill_n(pDirs + totalSteps, remainingSteps, -2);
+
+	return true;
+}
+
+DEFINE_FUNCTION_JUMP(CALL, 0x42CC02, AStarClass::FindRegularPath);
+DEFINE_FUNCTION_JUMP(CALL, 0x42CB58, AStarClass::FindHierarchicalPath);
+DEFINE_FUNCTION_JUMP(CALL, 0x42CCB3, AStarClass::FindHierarchicalPath);
+DEFINE_FUNCTION_JUMP(CALL, 0x42D222, AStarClass::FindHierarchicalPath);
+DEFINE_FUNCTION_JUMP(CALL, 0x429F8A, AStarClass::CalculateMoveCost);
+DEFINE_FUNCTION_JUMP(CALL, 0x42A415, AStarClass::ProcessFinalPath);
+DEFINE_FUNCTION_JUMP(CALL, 0x42A41E, AStarClass::OptimizeFinalPath);
+DEFINE_HOOK(0x42A608, AStarClass_CleanUp_ResetSearchID, 0x5)
+{
+	for (int i = 0; i < 3; ++i)
+	{
+		auto& vec = AStarClass::IsStraightFlag[i];
+		std::fill(vec.begin(), vec.end(), 0);
+	}
+
+	return 0;
+}

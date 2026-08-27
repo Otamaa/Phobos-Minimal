@@ -6088,12 +6088,8 @@ void __fastcall FakeTechnoClass::__DoUncloak(TechnoClass* pThis, discard_t, char
 			const int nDefault = FakeRulesClass::Instance()->DecloakSound.Get(RulesClass::Instance->CloakSound);
 			VocClass::ImmedietelyPlayAt(pTypeExt->DecloakSound.Get(nDefault), pThis->Location);
 
-			if (const auto pAnimType = pTypeExt->DecloakAnim.Get(FakeRulesClass::Instance()->DecloakAnim)) {
-				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pThis->GetCoords()),
-					pThis->Owner,
-					nullptr,
-					false
-				);
+			if (const auto decloakAnims = pTypeExt->DecloakAnims.GetElements(FakeRulesClass::Instance()->DecloakAnims)) {
+				AnimExtData::CreateRandomAnim(decloakAnims, pThis->GetCenterCoords(), pThis, pThis->Owner, true);
 			}
 		}
 	}
@@ -6112,12 +6108,8 @@ void __fastcall FakeTechnoClass::__DoCloak(TechnoClass * pThis, discard_t, char 
 		if (!quiet) {
 			VocClass::ImmedietelyPlayAt(pTypeExt->CloakSound.Get(RulesClass::Instance->CloakSound), pThis->Location);
 
-			if (const auto pAnimType = pTypeExt->CloakAnim.Get(FakeRulesClass::Instance()->CloakAnim)) {
-				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pThis->GetCoords()),
-					pThis->Owner,
-					nullptr,
-					false
-				);
+			if (const auto cloakAnims = pTypeExt->CloakAnims.GetElements(FakeRulesClass::Instance()->CloakAnims)) {
+				AnimExtData::CreateRandomAnim(cloakAnims, pThis->GetCenterCoords(), pThis, pThis->Owner, true);
 			}
 		}
 	}

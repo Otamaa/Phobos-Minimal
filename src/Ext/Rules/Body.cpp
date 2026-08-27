@@ -881,8 +881,8 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->ReturnStructures)
 		.Process(this->MessageSilosNeeded)
 
-		.Process(this->CloakAnim)
-		.Process(this->DecloakAnim)
+		.Process(this->CloakAnims)
+		.Process(this->DecloakAnims)
 		.Process(this->Cloak_KickOutParasite)
 
 		.Process(this->DamageAirConsiderBridges)
@@ -3348,8 +3348,17 @@ void FakeRulesClass::_ReadAudioVisual(CCINIClass* pINI)
 	this->FirestormGroundAnim.Read(exINI, section, "FirestormGroundAnim");
 	this->FirestormAirAnim.Read(exINI, section, "FirestormAirAnim");
 	this->Bounty_Display.Read(exINI, section, "BountyDisplay");
-	this->CloakAnim.Read(exINI, section, "CloakAnim");
-	this->DecloakAnim.Read(exINI, section, "DecloakAnim");
+
+	this->CloakAnims.Read(exINI, section, "CloakAnims");
+	this->DecloakAnims.Read(exINI, section, "DecloakAnims");
+
+	Nullable<AnimTypeClass*> _Cloak = Nullable<AnimTypeClass*>()(exINI, section, "CloakAnim", false);
+	if (_Cloak.isset())
+		this->CloakAnims.emplace_back(_Cloak.Fetch());
+
+	Nullable<AnimTypeClass*> _DeCloak = Nullable<AnimTypeClass*>()(exINI, section, "DecloakAnim", false);
+	if (_DeCloak.isset())
+		this->DecloakAnims.emplace_back(_DeCloak.Fetch());
 
 	this->Promote_Vet_Anim.Read(exINI, section, "Promote.VeteranAnim");
 	this->Promote_Elite_Anim.Read(exINI, section, "Promote.EliteAnim");

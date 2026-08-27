@@ -175,6 +175,12 @@ public:
 	// suddenly dissolve/warn as if the action were never recognized.
 	static bool OnTeamMission(TeamClass* pTeam, int action, int argument);
 #pragma endregion
+
+	// global "Scenario" namespace - global/local variable
+	// control matching vanilla TeamMissionType::Set_global/Clear_global/
+	// Set_local/Clear_local. No dedicated userdata type needed - there's
+	// only ever one active ScenarioClass::Instance.
+	static void RegisterScenarioBindings(lua_State* L);
 };
 
 #define make_unique_luastate(to) unique_luastate to {}; to.reset(luaL_newstate())

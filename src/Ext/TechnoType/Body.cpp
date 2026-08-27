@@ -1968,8 +1968,22 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		this->AlwayDrawRadialIndicator.Read(exINI, pSection, "RadialIndicator.AlwaysDraw");
 		this->ReloadRate.Read(exINI, pSection, "ReloadRate");
-		this->CloakAnim.Read(exINI, pSection, "CloakAnim");
-		this->DecloakAnim.Read(exINI, pSection, "DecloakAnim");
+
+		this->CloakAnims.Read(exINI, pSection, "CloakAnims");
+		this->DecloakAnims.Read(exINI, pSection, "DecloakAnims");
+
+		Nullable<AnimTypeClass*> _Cloak = Nullable<AnimTypeClass*>()(exINI, pSection, "CloakAnim", false);
+		if (_Cloak.isset()) {
+			this->CloakAnims.emplace_back(_Cloak.Fetch());
+			this->CloakAnims.SetHasValue(true);
+		}
+
+		Nullable<AnimTypeClass*> _DeCloak = Nullable<AnimTypeClass*>()(exINI, pSection, "DecloakAnim", false);
+		if (_DeCloak.isset()) {
+			this->DecloakAnims.emplace_back(_DeCloak.Fetch());
+			this->DecloakAnims.SetHasValue(true);
+		}
+
 		this->Cloak_KickOutParasite.Read(exINI, pSection, "Cloak.KickOutParasite");
 
 		// killer tags
@@ -3582,8 +3596,8 @@ void TechnoTypeExtData::Serialize(T& Stm) {
 		.Process(this->AlwayDrawRadialIndicator)
 		.Process(this->ReloadRate)
 
-		.Process(this->CloakAnim)
-		.Process(this->DecloakAnim)
+		.Process(this->CloakAnims)
+		.Process(this->DecloakAnims)
 		.Process(this->Cloak_KickOutParasite)
 
 		.Process(this->DeployAnims)

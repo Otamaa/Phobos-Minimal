@@ -177,8 +177,8 @@ public:
 	Valueable<AnimTypeClass*> Aircraft_LandAnim { nullptr };
 	Valueable<AnimTypeClass*> Aircraft_TakeOffAnim { nullptr };
 	Valueable<AircraftTypeClass*> DefaultParaPlane { nullptr };
-	Valueable<AnimTypeClass*> CloakAnim { nullptr };
-	Valueable<AnimTypeClass*> DecloakAnim { nullptr };
+	ValueableVector<AnimTypeClass*> CloakAnims { };
+	ValueableVector<AnimTypeClass*> DecloakAnims { };
 	Valueable<WarheadTypeClass*> Veinhole_Warhead { nullptr };
 	Valueable<AnimTypeClass*> FirestormActiveAnim {};
 	Valueable<AnimTypeClass*> FirestormIdleAnim {};

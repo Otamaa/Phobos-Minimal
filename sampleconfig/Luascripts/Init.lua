@@ -22,6 +22,7 @@ local Dispatcher = require("core.dispatcher")
 require("systems.buff_system")
 require("systems.economy_system")
 require("systems.team_missions_example")
+require("systems.vanilla_ports_example")
 
 function OnUpdate(frame)
 	Dispatcher.broadcastUpdate(frame)
