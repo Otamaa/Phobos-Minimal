@@ -34,6 +34,15 @@
 #include <Helpers\EnumFlags.h>
 #include <GeneralDefinitions.h>
 
+enum class TimerDisplayMode : int
+{
+	Standard = 0,      // Default MM:SS or HH:MM:SS format
+	Percentage = 1,    // Display as percentage (case 1 in original)
+	Digit = 2,          // Display as plain digits (cases 2, 3, 4 in original)
+	LocalVariable = 3,
+	GlobalVariable = 4,
+};
+
 enum class TechnoStatus : int
 {
 	Sleep = 0,

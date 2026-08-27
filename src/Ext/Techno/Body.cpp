@@ -14173,13 +14173,13 @@ TechnoExtData::~TechnoExtData()
 	FakeHouseClass* pOwner = (FakeHouseClass*)pThis->Owner;
 	auto pOwnerExt = pOwner->_GetExtData();
 
-	ScenarioExtData::Instance()->LimboLaunchers.erase(this);
+	ScenarioExtData::Instance()->LimboLaunchers.erase(pThis);
 
 	if (this->UndergroundTracked)
-		ScenarioExtData::Instance()->UndergroundTracker.erase(this);
+		ScenarioExtData::Instance()->UndergroundTracker.erase(pThis);
 
 	if(this->FallingDownTracked)
-		ScenarioExtData::Instance()->FallingDownTracker.erase(this);
+		ScenarioExtData::Instance()->FallingDownTracker.erase(pThis);
 
 	//mimicking the original game stuffs
 	if (!Phobos::Otamaa::ExeTerminated && Game::IsActive())
@@ -14196,7 +14196,7 @@ TechnoExtData::~TechnoExtData()
 				((FakeHouseClass*)pThis->Owner)->_AI_Supers();
 
 			if (this->AbsType == InfantryClass::AbsID && ((InfantryTypeExtData*)pTypeExt)->IsHero) {
-				ScenarioExtData::Instance()->OwnedUniqueTechnos.remove(this);
+				ScenarioExtData::Instance()->OwnedUniqueTechnos.remove(pThis);
 				pThis->Owner->RecheckTechTree = true;
 			}
 

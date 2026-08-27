@@ -306,12 +306,12 @@ ASMJIT_PATCH(0x7015EB, TechnoClass_SetOwningHouse_UpdateTracking, 0x7)
 		{
 			if (!pNewOwner->ControlledByCurrentPlayer())
 			{
-				ScenarioExtData::Instance()->OwnedUniqueTechnos.remove(pExt);
+				ScenarioExtData::Instance()->OwnedUniqueTechnos.remove(pThis);
 			}
 		}
 		else if (pNewOwner->ControlledByCurrentPlayer())
 		{
-			ScenarioExtData::Instance()->OwnedUniqueTechnos.push_back_unique(pExt);
+			ScenarioExtData::Instance()->OwnedUniqueTechnos.push_back_unique(pThis);
 		}
 	}
 

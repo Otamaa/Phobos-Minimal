@@ -4341,11 +4341,15 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 	//	return;
 	//}
 
-	std::string first = GameStrings::NoneStr();
-	if (this->FirstUnit)
-		first = this->FirstUnit->get_ID();
+	//std::string first = GameStrings::NoneStr();
+	//if (this->FirstUnit)
+	//	first = this->FirstUnit->get_ID();
 
 	//Debug::Log("Team [%x - %s] with FirstUnit [%x - %s] , executing [%d arg %d] \n", this, this->Type->ID, this->FirstUnit, first.c_str(), (int)node.Action ,node.Argument);
+
+	//take priority over everything
+	if (LuaAPI::OnTeamMission(this, (int)node.Action, node.Argument))
+		return;
 
 	switch (node.Action)
 	{
@@ -5403,9 +5407,6 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 		if (ScriptExtData::ProcessScriptActions(pThis, pNode, something))
 			return;
 
-		if (LuaAPI::OnTeamMission(pThis, (int)pNode->Action, pNode->Argument))
-			return;
-
 		break;
 	}
 #endif
@@ -5606,6 +5607,8 @@ void TeamExtData::Serialize(T& Stm)
 
 		.Process(this->PreviousScript)
 		.Process(this->BridgeRepairHuts)
+
+		.Process(this->LuaSlots)
 		;
 }
 

@@ -1409,6 +1409,7 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->AutoTarget_InsignificantWhenMindControlled)
 		.Process(this->VeteranRange)
 		.Process(this->VeteranCritChance)
+		.Process(this->AttackTarget_WaitForTurreReset)
 	;
 }
 
@@ -4358,6 +4359,7 @@ void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
 	this->Crush_SelfUncloak.Read(exINI, GameStrings::CombatDamage, "UnitCrush.SelfUncloak");
 	this->UncloakWhenLowHealth.Read(exINI, GameStrings::CombatDamage, "Cloak.UncloakWhenLowHealth");
 	this->AutoTarget_InsignificantWhenMindControlled.Read(exINI, GameStrings::CombatDamage, "AutoTarget.InsignificantWhenMindControlled");
+	this->AttackTarget_WaitForTurreReset.Read(exINI, GameStrings::CombatDamage, "UnitAttackTarget.WaitForTurreReset");
 }
 
 #pragma region WeaponTypeBuffer

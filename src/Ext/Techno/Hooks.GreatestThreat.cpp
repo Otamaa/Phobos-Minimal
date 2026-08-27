@@ -542,10 +542,8 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 		int threatBuffer = 0;
 		auto tempCrd = CoordStruct::Empty;
 
-		for (auto pTracked : ScenarioExtData::Instance()->FallingDownTracker)
+		for (auto pCurrent : ScenarioExtData::Instance()->FallingDownTracker)
 		{
-			auto pCurrent = pTracked->This();
-
 			if ((!pOwner->IsAlliedWith(pCurrent) || targetFriendly)
 				&& (!onlyEnemy || pCurrent->Owner->ArrayIndex == pThis->Owner->EnemyHouseIndex)
 				&& FakeTechnoClass::__EvaluateObjectB(pThis, method, threatBitfield, threatRange, pCurrent, &threatBuffer, ZoneType::None, &tempCrd, AU))
@@ -576,10 +574,8 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 		int threatBuffer = 0;
 		auto tempCrd = CoordStruct::Empty;
 
-		for (auto pTracked : ScenarioExtData::Instance()->UndergroundTracker)
+		for (auto pCurrent : ScenarioExtData::Instance()->UndergroundTracker)
 		{
-			const auto pCurrent = pTracked->This();
-
 			if ((!pOwner->IsAlliedWith(pCurrent) || targetFriendly)
 				&& (!onlyEnemy || pCurrent->Owner->ArrayIndex == pOwner->EnemyHouseIndex)
 				&& FakeTechnoClass::__EvaluateObjectB(pThis, method, threatBitfield, threatRange, pCurrent, &threatBuffer, ZoneType::None, &tempCrd, AU))

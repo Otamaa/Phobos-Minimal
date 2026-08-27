@@ -20,6 +20,7 @@ bool UnitTypeExtData::LoadFromINI(CCINIClass * pINI, bool parseFailAddr)
 	this->HarvesterDumpRate.Read(exINI, pSection, "HarvesterDumpRate");
 	this->TheaterImage.Read(exINI, pSection, "Image.", AbstractType::UnitType);
 	this->Crush_SelfUncloak.Read(exINI, pSection, "Crush.SelfUncloak");
+	this->AttackTarget_WaitForTurreReset.Read(exINI, pSection, "AttackTarget.WaitForTurreReset");
 
 	return true;
 }
@@ -34,6 +35,7 @@ void UnitTypeExtData::Serialize(T& Stm)
 		.Process(this->HarvesterDumpRate)
 		.Process(this->TheaterImage)
 		.Process(this->Crush_SelfUncloak)
+		.Process(this->AttackTarget_WaitForTurreReset)
 		;
 }
 

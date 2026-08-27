@@ -118,7 +118,7 @@ void ShiftLocomotionClass::BeginShift(std::unique_ptr<ShiftSchedule> schedule)
 		this->LinkedTo->FrozenStill = frozenStill;
 
 		AircraftTrackerClass::Instance->Remove(this->LinkedTo);
-		ScenarioExtData::Instance()->UndergroundTracker.erase(TechnoExtContainer::Instance.Find(this->LinkedTo));
+		ScenarioExtData::Instance()->UndergroundTracker.erase(this->LinkedTo);
 		//auto const ext = TechnoExtContainer::Instance.Find(this->LinkedTo);
 		//if (ext) ext->SpecialTracked = true;
 	}
@@ -198,7 +198,7 @@ void ShiftLocomotionClass::FinishShift(bool normal)
 				case TrackerType::Underground:
 				{
 					auto pExt = TechnoExtContainer::Instance.Find(this->LinkedTo);
-					ScenarioExtData::Instance()->UndergroundTracker.erase(pExt);
+					ScenarioExtData::Instance()->UndergroundTracker.erase(this->LinkedTo);
 					pExt->UndergroundTracked = false;
 				}
 					break;
@@ -224,7 +224,7 @@ void ShiftLocomotionClass::FinishShift(bool normal)
 				case TrackerType::Underground:
 				{
 					auto pExt = TechnoExtContainer::Instance.Find(this->LinkedTo);
-					ScenarioExtData::Instance()->UndergroundTracker.emplace(pExt);
+					ScenarioExtData::Instance()->UndergroundTracker.emplace(this->LinkedTo);
 					pExt->UndergroundTracked = true;
 					break;
 				}
@@ -302,7 +302,7 @@ void ShiftLocomotionClass::FinishShift(bool normal)
 			case TrackerType::Underground:
 			{
 				auto pExt = TechnoExtContainer::Instance.Find(this->LinkedTo);
-				ScenarioExtData::Instance()->UndergroundTracker.erase(pExt);
+				ScenarioExtData::Instance()->UndergroundTracker.erase(this->LinkedTo);
 				pExt->UndergroundTracked = false;
 				break;
 			}
@@ -405,7 +405,7 @@ bool ShiftLocomotionClass::Process()
 		case TrackerType::Underground:
 		{
 			auto pExt = TechnoExtContainer::Instance.Find(this->LinkedTo);
-			ScenarioExtData::Instance()->UndergroundTracker.erase(pExt);
+			ScenarioExtData::Instance()->UndergroundTracker.erase(this->LinkedTo);
 			pExt->UndergroundTracked = false;
 			break;
 		}
@@ -429,7 +429,7 @@ bool ShiftLocomotionClass::Process()
 		case TrackerType::Underground:
 		{
 			auto pExt = TechnoExtContainer::Instance.Find(this->LinkedTo);
-			ScenarioExtData::Instance()->UndergroundTracker.emplace(pExt);
+			ScenarioExtData::Instance()->UndergroundTracker.emplace(this->LinkedTo);
 			pExt->UndergroundTracked = true;
 		}
 			break;

@@ -1330,7 +1330,278 @@ void FakeTacticalClass::__DrawTimersSW(SuperClass* pSuper, int value, int interv
 	);
 }
 
-//DEFINE_FUNCTION_JUMP(CALL, 0x6D4B2B, FakeTacticalClass::__DrawAllTacticalText)
+void __fastcall FakeTacticalClass::__DrawTimersD(
+	int value,                          // Line number/index for positioning
+	ColorScheme* color,                 // Color scheme to use
+	int timeValue,                      // Time value in seconds (or digit value)
+	const wchar_t* label,              // Label text to display
+	TimerDisplayMode mode,              // Display mode: Percentage, Digit, or Standard
+	double percentageValue,            // Percentage value (0.0 to 1.0) for percentage mode
+	bool enableBlinking,               // Enable blinking animation at zero
+	LARGE_INTEGER* blinkTimer,         // Timer for blink animation
+	bool* blinkState                   // Current blink state
+)
+{
+	BitFont* pFont = BitFont::BitFontPtr(TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background);
+
+	// Format the timer text based on mode
+	static fmt::basic_memory_buffer<wchar_t> buffer;
+	buffer.clear();
+
+	switch (mode)
+	{
+	case TimerDisplayMode::Percentage:
+	{
+		// Display as percentage with 2 decimal places
+		fmt::format_to(std::back_inserter(buffer), L"{:.2f}%", percentageValue * 100);
+		break;
+	}
+	case TimerDisplayMode::Digit:
+	{
+		// Display as plain digits
+		fmt::format_to(std::back_inserter(buffer), L"{}", timeValue);
+		break;
+	}
+	case TimerDisplayMode::Standard:
+	default:
+	{
+		// Display as MM:SS or HH:MM:SS
+		const int hour = timeValue / 60 / 60;
+		const int minute = timeValue / 60 % 60;
+		const int second = timeValue % 60;
+
+		if (hour)
+		{
+			fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}:{:02}", hour, minute, second);
+		}
+		else
+		{
+			fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}", minute, second);
+		}
+		break;
+	}
+	}
+	buffer.push_back(L'\0');
+
+	// Prepare label buffer
+	static fmt::basic_memory_buffer<wchar_t> label_buffer;
+	label_buffer.clear();
+	fmt::format_to(std::back_inserter(label_buffer), L"{}  ", !label ? L"" : label);
+	label_buffer.push_back(L'\0');
+
+	// Get text dimensions
+	int width = 0;
+	RectangleStruct rect_bound = DSurface::ViewBounds();
+	pFont->GetTextDimension(buffer.data(), &width, nullptr, rect_bound.Width);
+
+	ColorScheme* fore = color;
+
+	// Handle blinking for zero time (only for standard mode)
+	if (enableBlinking && mode == TimerDisplayMode::Standard && timeValue == 0 && blinkTimer && blinkState)
+	{
+		const auto now = Game::AudioGetTime();
+		if (static_cast<uint64_t>(blinkTimer->QuadPart) < static_cast<uint64_t>(now.QuadPart))
+		{
+			blinkTimer->QuadPart = now.QuadPart + 1000;
+			*blinkState = !*blinkState;
+		}
+
+		if (*blinkState)
+		{
+			fore = ColorScheme::Array->Items[FakeRulesClass::Instance()->TimerBlinkColorScheme];
+		}
+	}
+
+	// Calculate position
+	int value_plusone = value + 1;
+	int yOffset = value_plusone * (pFont->field_1C + 2);
+	Point2D point {
+		rect_bound.Width - width - 3,
+		rect_bound.Height - yOffset
+	};
+
+	auto pComposite = DSurface::Composite();
+	auto rect = pComposite->Get_Rect();
+	Point2D _temp {};
+	ColorStruct out = color->BaseColor;
+
+	// Draw label with position adjustment for percentage mode
+	if (mode == TimerDisplayMode::Percentage)
+	{
+		Point2D labelPoint = point;
+		labelPoint.X += 8;
+		TextDrawing::Simple_Text_Print_Wide(
+			&_temp,
+			label_buffer.data(),
+			pComposite,
+			&rect,
+			&labelPoint,
+			(COLORREF)out.ToInit(),
+			(COLORREF)0u,
+			TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background,
+			true
+		);
+	}
+	else
+	{
+		TextDrawing::Simple_Text_Print_Wide(
+			&_temp,
+			label_buffer.data(),
+			pComposite,
+			&rect,
+			&point,
+			(COLORREF)out.ToInit(),
+			(COLORREF)0u,
+			TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background,
+			true
+		);
+	}
+
+	// Draw timer text with position adjustment for digit mode
+	point.X = rect_bound.Width - 3;
+	if (mode == TimerDisplayMode::Digit)
+	{
+		point.X -= 2;
+	}
+
+	point.Y = rect_bound.Height - yOffset;
+	rect = pComposite->Get_Rect();
+
+	TextDrawing::Simple_Text_Print_Wide(
+		&_temp,
+		buffer.data(),
+		pComposite,
+		&rect,
+		&point,
+		(COLORREF)out.ToInit(),
+		(COLORREF)0u,
+		TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background,
+		true
+	);
+}
+
+void FakeTacticalClass::DrawMissionTimer(int lineIndex, ColorScheme* colorScheme)
+{
+	const auto& timer = ScenarioClass::Instance->MissionTimer;
+	const int timerPassed = (timer.CurrentTime - timer.StartTime) / 15;
+	const int timeLeft = (timer.CurrentTime - timer.StartTime) / 15;
+
+	static LARGE_INTEGER blinkTimer = {};
+	static bool blinkState = false;
+
+	// Get the timer type from ScenarioExt
+	TimerDisplayMode timerType = (TimerDisplayMode)ScenarioExtData::Instance()->MissionTimer_Type;
+	bool isReverse = ScenarioExtData::Instance()->MissionTimer_Reverse;
+
+	switch (timerType)
+	{
+	case TimerDisplayMode::Percentage: // Case 1
+	{
+		int totalTime = timerPassed + timeLeft;
+		double percentage = 0.0;
+
+		if (totalTime > 0)
+		{
+			if (isReverse)
+				percentage = static_cast<double>(timeLeft) / totalTime;
+			else
+				percentage = static_cast<double>(totalTime - timeLeft) / totalTime;
+		}
+		else
+		{
+			percentage = 1.0;
+		}
+
+		FakeTacticalClass::__DrawTimersD(
+			lineIndex,                      // Line position
+			colorScheme,                    // Color scheme
+			0,                              // timeValue (not used for percentage)
+			L"Mission",                     // Label text
+			TimerDisplayMode::Percentage,   // Display mode
+			percentage,                     // Percentage value (0.0 to 1.0)
+			false,                          // Enable blinking (disabled for percentage)
+			&blinkTimer,                    // Blink timer
+			&blinkState                     // Blink state
+		);
+		break;
+	}
+	case TimerDisplayMode::Digit: // Case 2
+	{
+		int displayTime = isReverse ? timerPassed : timeLeft;
+
+		FakeTacticalClass::__DrawTimersD(
+			lineIndex,
+			colorScheme,
+			displayTime,                    // Display raw value
+			L"Timer",                       // Label
+			TimerDisplayMode::Digit,        // Digit mode
+			0.0,                            // Percentage not used
+			false,                          // No blinking for digit mode
+			&blinkTimer,
+			&blinkState
+		);
+		break;
+	}
+	case TimerDisplayMode::LocalVariable: // Variable from variables[0]
+	{
+		int timeValue = 0;
+		const auto& variables = ScenarioExtData::Instance()->GetVariables(false);
+		if (const auto& it = variables->tryfind(ScenarioExtData::Instance()->MissionTimer_Variable))
+			timeValue = it->Value;
+
+		FakeTacticalClass::__DrawTimersD(
+			lineIndex,
+			colorScheme,
+			timeValue,                      // Value from variable
+			L"Var Timer",                   // Label
+			TimerDisplayMode::Digit,        // Show as digit
+			0.0,
+			true,                           // Enable blinking for variable timer
+			&blinkTimer,
+			&blinkState
+		);
+		break;
+	}
+	case TimerDisplayMode::GlobalVariable: // Variable from variables[1]
+	{
+		int timeValue = 0;
+
+		const auto& variables = ScenarioExtData::Instance()->GetVariables(true);
+		if (const auto& it = variables->tryfind(ScenarioExtData::Instance()->MissionTimer_Variable))
+			timeValue = it->Value;
+
+		FakeTacticalClass::__DrawTimersD(
+			lineIndex,
+			colorScheme,
+			timeValue,                      // Value from variable
+			L"Var Timer",                   // Label
+			TimerDisplayMode::Digit,        // Show as digit
+			0.0,
+			true,                           // Enable blinking for variable timer
+			&blinkTimer,
+			&blinkState
+		);
+		break;
+	}
+	default: // Case 0 or others - Standard mode
+	{
+		int displayTime = isReverse ? timerPassed : timeLeft;
+
+		FakeTacticalClass::__DrawTimersD(
+			lineIndex,
+			colorScheme,
+			displayTime,                    // Time in seconds
+			L"Time",                        // Label
+			TimerDisplayMode::Standard,     // Standard MM:SS format
+			0.0,                            // Percentage not used
+			true,                           // Enable blinking at zero
+			&blinkTimer,                    // Blink timer
+			&blinkState                     // Blink state
+		);
+		break;
+	}
+	}
+}
 
 bool __fastcall FakeTacticalClass::TypeSelectFilter(TechnoClass* pTechno, DynamicVectorClass<const char*>& names)
 {
@@ -1896,14 +2167,8 @@ void FakeTacticalClass::_Render(DSurface* pSurface, bool flag, TacticalRenderMod
 	int timerSlot = 0;
 
 	// --- Mission countdown ---
-	if (ScenarioClass::Instance->MissionTimer.StartTime != -1)
-	{
-		this->__DrawTimersA(
-			timerSlot++,
-			ColorScheme::Array->Items[HouseClass::CurrentPlayer->ColorSchemeIndex],
-			ScenarioClass::Instance->MissionTimer.GetTimeLeft()/ 15,
-			ScenarioClass::Instance->MissionTimerTextCSF,
-			0, 0);
+	if (ScenarioClass::Instance->MissionTimer.StartTime != -1) {
+		this->DrawMissionTimer(timerSlot++, ColorScheme::Array->Items[HouseClass::CurrentPlayer->ColorSchemeIndex]);
 	}
 
 	// --- Superweapon timers ---

@@ -1107,8 +1107,6 @@ void LuaAPI::OnGameFrame()
 {
 	LuaAPI::ProcessObjects(Unsorted::CurrentFrame());
 
-	EnsureEngine();
-
 	if (!g_L || !g_scriptReady)
 		return;
 
@@ -1123,8 +1121,6 @@ void LuaAPI::OnGameFrame()
 
 void LuaAPI::OnRender()
 {
-	EnsureEngine();
-
 	if (!g_L || !g_scriptReady)
 		return;
 
@@ -1178,8 +1174,6 @@ void LuaAPI::InvalidateTechnoUserdata(lua_State* L, void* ptr)
 
 void LuaAPI::OnInvalidatePointer(void* ptr, bool removed)
 {
-	EnsureEngine();
-
 	if (!g_L || !g_scriptReady)
 		return;
 
@@ -1304,8 +1298,6 @@ HRESULT LuaAPI::OnGlobalGameLoad(IStream* pStm)
 			return FAILED(hr) ? hr : E_FAIL;
 	}
 
-	EnsureEngine();
-
 	if (!g_L || !g_scriptReady)
 		return S_OK; // nothing to hand the payload to; not a load failure
 
@@ -1346,6 +1338,11 @@ HRESULT LuaAPI::OnGlobalGameLoad(IStream* pStm)
 	return S_OK;
 }
 
+void LuaAPI::OnGameRunning()
+{
+	EnsureEngine();
+}
+
 void LuaAPI::RunInitScript(lua_State* L)
 {
 	// previously checked for the existence of ".../scripts/init.lua"
@@ -1356,7 +1353,7 @@ void LuaAPI::RunInitScript(lua_State* L)
 	// ("scripts" for the check, "Luascripts" for everything else, including
 	// package.path and ComputeScriptFingerprint's scan dir) never agreed.
 	std::wstring scriptsDir = Debug::ApplicationFilePath + L"\\Luascripts";
-	std::wstring initScriptPath = scriptsDir + L"\\init.lua";
+	std::wstring initScriptPath = scriptsDir + L"\\Init.lua";
 
 	std::string _narrowDir = PhobosCRT::WideStringToString(scriptsDir);
 	std::string _narrowInitPath = PhobosCRT::WideStringToString(initScriptPath);
@@ -1493,8 +1490,9 @@ void LuaAPI::OnScenarioClear()
 	// VM + init.lua run rather than carrying over any state from this one.
 	g_recorded_entries.clear();
 	g_scriptReady = false;
-	g_L.reset();                                     // closes lua_State via unique_luastate deleter
-	g_engineOnce = std::make_unique<std::once_flag>(); // re-arm EnsureEngine for next scenario
+	g_L.reset();
+	g_engineOnce = std::make_unique<std::once_flag>();
+	EnsureEngine(); //re-arm 
 }
 
 bool IsValid(TechnoClass* pTechno)
@@ -2360,6 +2358,253 @@ int Team_IsMoving(lua_State* L)
 	return 1;
 }
 
+// Shared helper: Check the team AND fetch its ext-data in one call.
+// Returns nullptr if the ext-data isn't available (should be rare/never
+// in practice, but every slot binding below treats it as "no data" rather
+// than crashing).
+TeamExtData* CheckTeamExt(lua_State* L, int idx)
+{
+	auto* pTeam = CheckTeam(L, idx);
+	return static_cast<FakeTeamClass*>(pTeam)->_GetExtData();
+}
+
+bool SlotIndexValid(lua_State* L, int index)
+{
+	if (index < 0 || index >= kPhobosLuaSlotCount)
+	{
+		luaL_error(L, "slot index out of range (0-%d)", kPhobosLuaSlotCount - 1);
+		return false;
+	}
+	return true;
+}
+
+// team:SetInt(slotIndex, value)
+int Team_SetInt(lua_State* L)
+{
+	int index = static_cast<int>(luaL_checkinteger(L, 2));
+	if (!SlotIndexValid(L, index))
+		return 0;
+
+	auto* pExt = CheckTeamExt(L, 1);
+	if (!pExt)
+		return 0;
+
+	auto& slot = pExt->LuaSlots[index];
+	slot.Type = PhobosLuaSlotType::Int;
+	slot.AsInt = static_cast<int32_t>(luaL_checkinteger(L, 3));
+	return 0;
+}
+
+// team:GetInt(slotIndex) -> int | nil (nil if empty or holds a different type)
+int Team_GetInt(lua_State* L)
+{
+	int index = static_cast<int>(luaL_checkinteger(L, 2));
+	if (!SlotIndexValid(L, index))
+		return 0;
+
+	auto* pExt = CheckTeamExt(L, 1);
+	if (!pExt || pExt->LuaSlots[index].Type != PhobosLuaSlotType::Int)
+	{
+		lua_pushnil(L);
+		return 1;
+	}
+
+	lua_pushinteger(L, pExt->LuaSlots[index].AsInt);
+	return 1;
+}
+
+// team:SetFloat(slotIndex, value)
+int Team_SetFloat(lua_State* L)
+{
+	int index = static_cast<int>(luaL_checkinteger(L, 2));
+	if (!SlotIndexValid(L, index))
+		return 0;
+
+	auto* pExt = CheckTeamExt(L, 1);
+	if (!pExt)
+		return 0;
+
+	auto& slot = pExt->LuaSlots[index];
+	slot.Type = PhobosLuaSlotType::Float;
+	slot.AsFloat = luaL_checknumber(L, 3);
+	return 0;
+}
+
+// team:GetFloat(slotIndex) -> number | nil
+int Team_GetFloat(lua_State* L)
+{
+	int index = static_cast<int>(luaL_checkinteger(L, 2));
+	if (!SlotIndexValid(L, index))
+		return 0;
+
+	auto* pExt = CheckTeamExt(L, 1);
+	if (!pExt || pExt->LuaSlots[index].Type != PhobosLuaSlotType::Float)
+	{
+		lua_pushnil(L);
+		return 1;
+	}
+
+	lua_pushnumber(L, pExt->LuaSlots[index].AsFloat);
+	return 1;
+}
+
+// team:SetBool(slotIndex, value)
+int Team_SetBool(lua_State* L)
+{
+	int index = static_cast<int>(luaL_checkinteger(L, 2));
+	if (!SlotIndexValid(L, index))
+		return 0;
+
+	auto* pExt = CheckTeamExt(L, 1);
+	if (!pExt)
+		return 0;
+
+	auto& slot = pExt->LuaSlots[index];
+	slot.Type = PhobosLuaSlotType::Bool;
+	slot.AsBool = lua_toboolean(L, 3) != 0;
+	return 0;
+}
+
+// team:GetBool(slotIndex) -> bool | nil
+int Team_GetBool(lua_State* L)
+{
+	int index = static_cast<int>(luaL_checkinteger(L, 2));
+	if (!SlotIndexValid(L, index))
+		return 0;
+
+	auto* pExt = CheckTeamExt(L, 1);
+	if (!pExt || pExt->LuaSlots[index].Type != PhobosLuaSlotType::Bool)
+	{
+		lua_pushnil(L);
+		return 1;
+	}
+
+	lua_pushboolean(L, pExt->LuaSlots[index].AsBool ? 1 : 0);
+	return 1;
+}
+
+// team:SetCell(slotIndex, x, y)
+int Team_SetCell(lua_State* L)
+{
+	int index = static_cast<int>(luaL_checkinteger(L, 2));
+	if (!SlotIndexValid(L, index))
+		return 0;
+
+	auto* pExt = CheckTeamExt(L, 1);
+	if (!pExt)
+		return 0;
+
+	auto& slot = pExt->LuaSlots[index];
+	slot.Type = PhobosLuaSlotType::Cell;
+	slot.AsCell.X = static_cast<int16_t>(luaL_checkinteger(L, 3));
+	slot.AsCell.Y = static_cast<int16_t>(luaL_checkinteger(L, 4));
+	return 0;
+}
+
+// team:GetCell(slotIndex) -> x, y | nil
+int Team_GetCell(lua_State* L)
+{
+	int index = static_cast<int>(luaL_checkinteger(L, 2));
+	if (!SlotIndexValid(L, index))
+		return 0;
+
+	auto* pExt = CheckTeamExt(L, 1);
+	if (!pExt || pExt->LuaSlots[index].Type != PhobosLuaSlotType::Cell)
+	{
+		lua_pushnil(L);
+		return 1;
+	}
+
+	lua_pushinteger(L, pExt->LuaSlots[index].AsCell.X);
+	lua_pushinteger(L, pExt->LuaSlots[index].AsCell.Y);
+	return 2;
+}
+
+// team:SetObjectId(slotIndex, id)
+//
+// Stores a stable id (as returned by obj:GetId()), NOT a pointer - see
+// Phobos.LuaSlots.h for why. Resolve it back to a live object later via
+// World.GetById(team:GetObjectId(slot)).
+int Team_SetObjectId(lua_State* L)
+{
+	int index = static_cast<int>(luaL_checkinteger(L, 2));
+	if (!SlotIndexValid(L, index))
+		return 0;
+
+	auto* pExt = CheckTeamExt(L, 1);
+	if (!pExt)
+		return 0;
+
+	auto& slot = pExt->LuaSlots[index];
+	slot.Type = PhobosLuaSlotType::ObjectId;
+	slot.AsObjectId = static_cast<int32_t>(luaL_checkinteger(L, 3));
+	return 0;
+}
+
+// team:GetObjectId(slotIndex) -> int | nil
+int Team_GetObjectId(lua_State* L)
+{
+	int index = static_cast<int>(luaL_checkinteger(L, 2));
+	if (!SlotIndexValid(L, index))
+		return 0;
+
+	auto* pExt = CheckTeamExt(L, 1);
+	if (!pExt || pExt->LuaSlots[index].Type != PhobosLuaSlotType::ObjectId)
+	{
+		lua_pushnil(L);
+		return 1;
+	}
+
+	lua_pushinteger(L, pExt->LuaSlots[index].AsObjectId);
+	return 1;
+}
+
+// team:ClearSlot(slotIndex)
+//
+// Resets a slot to Empty. Call this when a system is done with a slot it
+// was using, so a later, unrelated system reusing the same index doesn't
+// see stale data - see Phobos.LuaSlots.h's caveat about slots being
+// per-team global storage, not scoped to any one system.
+int Team_ClearSlot(lua_State* L)
+{
+	int index = static_cast<int>(luaL_checkinteger(L, 2));
+	if (!SlotIndexValid(L, index))
+		return 0;
+
+	auto* pExt = CheckTeamExt(L, 1);
+	if (!pExt)
+		return 0;
+
+	pExt->LuaSlots[index] = PhobosLuaSlot {};
+	return 0;
+}
+
+// team:GetSlotType(slotIndex) -> "empty"|"int"|"float"|"bool"|"cell"|"objectid"
+//
+// Introspection: useful for generic tooling (debug overlays, sync
+// checkers) that wants to know what's in a slot without assuming a
+// specific mission's conventions.
+int Team_GetSlotType(lua_State* L)
+{
+	int index = static_cast<int>(luaL_checkinteger(L, 2));
+	if (!SlotIndexValid(L, index))
+		return 0;
+
+	auto* pExt = CheckTeamExt(L, 1);
+	auto type = pExt ? pExt->LuaSlots[index].Type : PhobosLuaSlotType::Empty;
+
+	switch (type)
+	{
+	case PhobosLuaSlotType::Int:      lua_pushliteral(L, "int");      break;
+	case PhobosLuaSlotType::Float:    lua_pushliteral(L, "float");    break;
+	case PhobosLuaSlotType::Bool:     lua_pushliteral(L, "bool");     break;
+	case PhobosLuaSlotType::Cell:     lua_pushliteral(L, "cell");     break;
+	case PhobosLuaSlotType::ObjectId: lua_pushliteral(L, "objectid"); break;
+	default:                          lua_pushliteral(L, "empty");    break;
+	}
+	return 1;
+}
+
 const luaL_Reg kTeamMethods[] = {
 	{ "Complete",       Team_Complete       },
 	{ "GetPtr",         Team_GetPtr         },
@@ -2368,6 +2613,18 @@ const luaL_Reg kTeamMethods[] = {
 	{ "GetMemberCount", Team_GetMemberCount },
 	{ "GetMembers",     Team_GetMembers     },
 	{ "IsMoving",       Team_IsMoving       },
+	{ "SetInt",         Team_SetInt         },
+	{ "GetInt",         Team_GetInt         },
+	{ "SetFloat",       Team_SetFloat       },
+	{ "GetFloat",       Team_GetFloat       },
+	{ "SetBool",        Team_SetBool        },
+	{ "GetBool",        Team_GetBool        },
+	{ "SetCell",        Team_SetCell        },
+	{ "GetCell",        Team_GetCell        },
+	{ "SetObjectId",    Team_SetObjectId    },
+	{ "GetObjectId",    Team_GetObjectId    },
+	{ "ClearSlot",      Team_ClearSlot      },
+	{ "GetSlotType",    Team_GetSlotType    },
 	{ nullptr, nullptr }
 };
 

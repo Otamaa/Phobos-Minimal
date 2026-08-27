@@ -8,6 +8,8 @@
 
 #include <TeamTypeClass.h>
 
+#include <Phobos.LuaSlots.h>
+
 class TechnoTypeClass;
 class HouseClass;
 class FootClass;
@@ -53,6 +55,8 @@ public:
 	int OnlyTargetHouseEnemyMode { -1 };
 	ScriptTypeClass* PreviousScript { nullptr };
 	std::vector<BuildingClass*> BridgeRepairHuts {};
+
+	PhobosLuaSlots LuaSlots {};
 #pragma endregion
 
 public:

@@ -31,12 +31,12 @@ bool UniqueTechnoButtonClass::Draw(bool forced)
 	if (index >= static_cast<int>(vec.size()))
 		return false;
 
-	const auto pExt = vec[index];
-	const auto pTechno = pExt->This();
-	
+	const auto pTechno = vec[index];
+
 	if (!pTechno->IsAlive)
 		return false;
 
+	const auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 	const auto pTypeExt = pExt->TypeExtData;
 	const auto pType = pTypeExt->This();
 
@@ -336,7 +336,10 @@ bool UniqueTechnoButtonClass::Action(GadgetFlag flags, WWKey* pKey, KeyModifier 
 		return false;
 
 	VocClass::PlayGlobal(FakeRulesClass::Instance->GUIMainButtonSound, Panning::Center, 1.0);
-	auto pSelect = vec[index]->This();
+	auto pSelect = vec[index];
+	
+	if (!pSelect->IsAlive)
+		return false;
 
 	for (auto pTrans = pSelect->Transporter; pTrans; pTrans = pTrans->Transporter)
 		pSelect = pTrans;

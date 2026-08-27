@@ -18,6 +18,29 @@
 #include <Map>
 
 SelectedInfoClass SelectedInfoClass::Instance;
+
+const wchar_t* SelectedInfoClass::Status[35] =
+{
+	L"Sleep", L"Attack", L"Move", L"QueueMove", L"Retreat",
+	L"Guard", L"Sticky", L"Enter", L"Capture", L"Eaten",
+	L"Harvest", L"AreaGuard", L"Return", L"Stop", L"Ambush",
+	L"Hunt", L"Unload", L"Sabotage", L"Construction", L"Selling",
+	L"Repair", L"Rescue", L"Missile", L"Harmless", L"Open",
+	L"Patrol", L"Paradrop", L"AttackMove", L"Wait", L"Produce",
+	L"Deactive", L"Locomotor", L"FollowGuard", L"Unknown", L"None"
+};
+
+const char* SelectedInfoClass::StatusEntry[35] =
+{
+	"Status:Sleep", "Status:Attack", "Status:Move", "Status:QueueMove", "Status:Retreat",
+	"Status:Guard", "Status:Sticky", "Status:Enter", "Status:Capture", "Status:Eaten",
+	"Status:Harvest", "Status:AreaGuard", "Status:Return", "Status:Stop", "Status:Ambush",
+	"Status:Hunt", "Status:Unload", "Status:Sabotage", "Status:Construction", "Status:Selling",
+	"Status:Repair", "Status:Rescue", "Status:Missile", "Status:Harmless", "Status:Open",
+	"Status:Patrol", "Status:Paradrop", "Status:AttackMove", "Status:Wait", "Status:Produce",
+	"Status:Deactive", "Status:Locomotor", "Status:FollowGuard", "Status:Unknown", "Status:None"
+};
+
 BSurface* SelectedInfoClass::MissingCameo;
 
 SHPFile* SelectedInfoClass::SelectedInfo_Main;
@@ -332,7 +355,7 @@ void SelectedInfoClass::UpdateSelected()
 				auto& _add = CurrentSelectBuffer[pType->UniqueID];
 				_add.TypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 				_add.Count = count + 1;
-				this->CurrentSelectTechno.emplace_back(TechnoExtContainer::Instance.Find(static_cast<TechnoClass*>(pCurrent)));
+				this->CurrentSelectTechno.emplace_back((TechnoClass*)pCurrent);
 			}
 		}
 
@@ -344,13 +367,13 @@ void SelectedInfoClass::UpdateSelected()
 	}
 
 	std::sort(this->CurrentSelectTechno.begin(), this->CurrentSelectTechno.end(),
-		[](const TechnoExtData* const pSelectA, const TechnoExtData* const pSelectB)
+		[](const TechnoClass* const pSelectA, const TechnoClass* const pSelectB)
 		{
-			const auto uniqueA = pSelectA->TypeExtData->This()->UniqueID;
-			const auto uniqueB = pSelectB->TypeExtData->This()->UniqueID;
+			const auto uniqueA = pSelectA->UniqueID;
+			const auto uniqueB = pSelectB->UniqueID;
 			if (uniqueA < uniqueB) return true;
 			if (uniqueA > uniqueB) return false;
-			return pSelectA->This()->UniqueID < pSelectB->This()->UniqueID;
+			return pSelectA->UniqueID < pSelectB->UniqueID;
 		});
 
 	const auto size = this->CurrentSelectTechno.size();

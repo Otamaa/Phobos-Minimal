@@ -1487,9 +1487,7 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 		const bool cylinder = pWHExt->CellSpread_Cylinder;
 		const float spread = pWarhead->CellSpread * (float)Unsorted::LeptonsPerCell;
 
-		for (auto pTracked : ScenarioExtData::Instance()->UndergroundTracker) {
-			auto const pTechno = pTracked->This();
-
+		for (auto pTechno : ScenarioExtData::Instance()->UndergroundTracker) {
 			if (pTechno->InWhichLayer() == Layer::Underground // Layer.
 				&& pTechno->IsAlive && !pTechno->IsIronCurtained()
 				&& !pTechno->IsOnMap // Underground is not on map.

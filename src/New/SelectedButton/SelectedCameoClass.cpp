@@ -59,14 +59,14 @@ bool SelectedCameoClass::Action(GadgetFlag flags, WWKey* pKey, KeyModifier modif
 
 	if (seIns.CurrentSelectCameo.size() == 1 || Phobos::Config::SelectedDisplay_Expand)
 	{
-		const auto pSelect = seCST[this->ID + seIns.Current]->This();
+		const auto pSelect = seCST[this->ID + seIns.Current];
 
 		if (flags & GadgetFlag::LeftPress)
 		{
 			for (const auto& pCurrent : seCST)
 			{
-				if (pCurrent->This() != pSelect)
-					pCurrent->This()->Deselect();
+				if (pCurrent != pSelect)
+					pCurrent->Deselect();
 			}
 		}
 		else if (flags & GadgetFlag::RightPress)
@@ -83,10 +83,9 @@ bool SelectedCameoClass::Action(GadgetFlag flags, WWKey* pKey, KeyModifier modif
 		{
 			if (static_cast<int>(modifier) & static_cast<int>(KeyModifier::Shift))
 			{
-				for (const auto& pCurrent : seCST)
-				{
-					if (pCurrent->TypeExtData->GetSelectionGroupID() != groupID)
-						pCurrent->This()->Deselect();
+				for (const auto& pCurrent : seCST) {
+					if (TechnoTypeExtContainer::Instance.Find(pCurrent->GetTechnoType())->GetSelectionGroupID() != groupID)
+						pCurrent->Deselect();
 				}
 			}
 			else
@@ -95,13 +94,13 @@ bool SelectedCameoClass::Action(GadgetFlag flags, WWKey* pKey, KeyModifier modif
 
 				for (const auto& pCurrent : seCST)
 				{
-					if (pCurrent->TypeExtData->GetSelectionGroupID() == groupID)
+					if (TechnoTypeExtContainer::Instance.Find(pCurrent->GetTechnoType())->GetSelectionGroupID() == groupID)
 					{
-						selects.push_back(pCurrent->This());
+						selects.push_back(pCurrent);
 						continue;
 					}
 
-					pCurrent->This()->Deselect();
+					pCurrent->Deselect();
 				}
 
 				const int size = selects.size();
@@ -120,8 +119,8 @@ bool SelectedCameoClass::Action(GadgetFlag flags, WWKey* pKey, KeyModifier modif
 			{
 				for (const auto& pCurrent : seCST)
 				{
-					if (pCurrent->TypeExtData->GetSelectionGroupID() == groupID)
-						pCurrent->This()->Deselect();
+					if (TechnoTypeExtContainer::Instance.Find(pCurrent->GetTechnoType())->GetSelectionGroupID() == groupID)
+						pCurrent->Deselect();
 				}
 			}
 			else
@@ -130,8 +129,8 @@ bool SelectedCameoClass::Action(GadgetFlag flags, WWKey* pKey, KeyModifier modif
 
 				for (const auto& pCurrent : seCST)
 				{
-					if (pCurrent->TypeExtData->GetSelectionGroupID() == groupID)
-						selects.push_back(pCurrent->This());
+					if (TechnoTypeExtContainer::Instance.Find(pCurrent->GetTechnoType())->GetSelectionGroupID() == groupID)
+						selects.push_back(pCurrent);
 				}
 
 				selects[Unsorted::CurrentFrame() % selects.size()]->Deselect();
@@ -184,8 +183,8 @@ void SelectedCameoClass::DrawInfo() const
 
 	if (seIns.CurrentSelectCameo.size() == 1 || Phobos::Config::SelectedDisplay_Expand)
 	{
-		const auto pExt = seIns.CurrentSelectTechno[this->ID + seIns.Current];
-		const auto pTechno = pExt->This();
+		const auto pTechno = seIns.CurrentSelectTechno[this->ID + seIns.Current];
+		const auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 		const auto pType = pTechno->GetTechnoType();
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 

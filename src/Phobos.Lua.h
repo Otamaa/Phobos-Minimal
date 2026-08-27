@@ -68,6 +68,7 @@ struct LuaAPI
 	// OnGlobalGameLoad in the .cpp for the full contract.
 	static uint32_t g_scriptFingerprint;
 
+	static void OnGameRunning();
 	static void RunInitScript(lua_State* L);
 	static void OnGameFrame();
 	static void OnRender();

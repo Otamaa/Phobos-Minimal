@@ -456,3 +456,13 @@ ASMJIT_PATCH(0x738B67, UnitClass_DefaultToGuardAreaModes, 0x6)
 
 	return Continue;
 }
+
+ASMJIT_PATCH(0x7369A5, UnitClass_Rotation_AI_WaitForTurret, 0x6)
+{
+	GET(FakeUnitClass*, pUnit, ESI);
+
+	if (pUnit->_GetTypeExtData()->AttackTarget_WaitForTurreReset.Get(FakeRulesClass::Instance->AttackTarget_WaitForTurreReset))
+		return 0x0;
+
+	return 0x7369B3;
+}

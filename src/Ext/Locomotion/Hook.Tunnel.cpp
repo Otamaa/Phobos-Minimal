@@ -218,7 +218,7 @@ ASMJIT_PATCH(0x728F9A, TunnelLocomotionClass_Process_Track, 0x7)
 
 	const auto pLoco = static_cast<TunnelLocomotionClass*>(pThis);
 	auto pTechno = pLoco->LinkedTo;
-	ScenarioExtData::Instance()->UndergroundTracker.emplace(TechnoExtContainer::Instance.Find(pTechno));
+	ScenarioExtData::Instance()->UndergroundTracker.emplace(pTechno);
 	TechnoExtContainer::Instance.Find(pTechno)->UndergroundTracked = true;
 
 	return 0;
@@ -228,7 +228,7 @@ ASMJIT_PATCH(0x7297F6, TunnelLocomotionClass_ProcessDigging_Track, 0x7)
 {
 	GET(FootClass*, pTechno, ECX);
 
-	ScenarioExtData::Instance()->UndergroundTracker.erase(TechnoExtContainer::Instance.Find(pTechno));
+	ScenarioExtData::Instance()->UndergroundTracker.erase(pTechno);
 	TechnoExtContainer::Instance.Find(pTechno)->UndergroundTracked = false;
 
 	return 0;

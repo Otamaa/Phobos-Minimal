@@ -80,10 +80,10 @@ public:
 	VectorSet<int> SWSidebar_Indices {};
 	std::vector<std::wstring> RecordMessages {};
 
-	VectorSet<TechnoExtData*> LimboLaunchers {};
-	VectorSet<TechnoExtData*> UndergroundTracker {};
-	VectorSet<TechnoExtData*> FallingDownTracker {};
-	HelperedVector<TechnoExtData*> OwnedUniqueTechnos {};
+	VectorSet<TechnoClass*> LimboLaunchers {};
+	VectorSet<TechnoClass*> UndergroundTracker {};
+	VectorSet<TechnoClass*> FallingDownTracker {};
+	HelperedVector<TechnoClass*> OwnedUniqueTechnos {};
 
 	// ============================================================
 	// 4-byte aligned: int
@@ -155,6 +155,9 @@ public:
 	DWORD OwnerBitfield_NavyType { 0 };
 	DWORD OwnerBitfield_AircraftType { 0 };
 
+	int MissionTimer_Type {};
+	int MissionTimer_Variable {};
+	bool MissionTimer_Reverse {};
 #pragma endregion
 
 	void SetVariableToByID(const bool IsGlobal, int nIndex, char bState);
@@ -190,6 +193,10 @@ public:
 	void OPTIONALINLINE InvalidatePointer(AbstractClass* ptr, bool bRemove)
 	{
 		AnnounceInvalidPointer(PrismRelayClaimMaster, ptr, bRemove);
+		LimboLaunchers.InvalidatePointer(ptr, bRemove);
+		UndergroundTracker.InvalidatePointer(ptr, bRemove);
+		FallingDownTracker.InvalidatePointer(ptr, bRemove);
+		AnnounceInvalidPointer<TechnoClass*>(OwnedUniqueTechnos, ptr, bRemove);
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE static ScenarioExtData* Instance()

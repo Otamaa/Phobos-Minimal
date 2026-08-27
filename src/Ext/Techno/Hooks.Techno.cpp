@@ -560,7 +560,7 @@ ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 			TechnoExtContainer::Instance.Find(pThis)->OriginalHouseType = pParentHouseType ? pParentHouseType : pHouseType;
 
 			if (pExt->AbsType == AbstractType::Infantry && ((InfantryTypeExtData*)pTypeExt)->IsHero && pOwner->ControlledByCurrentPlayer())
-				ScenarioExtData::Instance()->OwnedUniqueTechnos.push_back(pExt);
+				ScenarioExtData::Instance()->OwnedUniqueTechnos.push_back(pThis);
 		} else {
 			Debug::LogInfo("Techno[{}] Init Without any ownership!", pType->ID);
 		}

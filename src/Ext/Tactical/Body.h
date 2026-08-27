@@ -34,11 +34,14 @@ public:
 	static bool ObjectClass_IsSelectable(ObjectClass* pThis);
 
 	bool __ClampTacticalPos(Point2D* tacticalPos);
+	void DrawMissionTimer(int lineIndex, ColorScheme* colorScheme);
 
 #ifndef ___test
 	static void __fastcall __DrawTimersA(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1);
 	static void __fastcall __DrawTimersB(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1);
 	static void __fastcall __DrawTimersC(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1);
+	static void __fastcall __DrawTimersD(int value, ColorScheme* color, int timeValue, const wchar_t* label, TimerDisplayMode mode, double percentageValue, bool enableBlinking, LARGE_INTEGER* blinkTimer, bool* blinkState);
+
 #else
 	static void __fastcall __DrawTimers(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1);
 #endif

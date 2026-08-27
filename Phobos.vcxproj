@@ -539,6 +539,7 @@
     <ClCompile Include="src\Phobos.Hookers.cpp" />
     <ClCompile Include="src\Phobos.Hooks.cpp" />
     <ClCompile Include="src\Phobos.Lua.cpp" />
+    <ClCompile Include="src\Phobos.LuaSlots.cpp" />
     <ClCompile Include="src\Phobos.Math.cpp" />
     <ClCompile Include="src\Phobos.UI.cpp" />
     <ClCompile Include="src\PhobosSaveVersionInfo.cpp" />
@@ -755,6 +756,7 @@
     <ClInclude Include="src\New\SelectedButton\SelectedInfoClass.h" />
     <ClInclude Include="src\New\UniqueButton\UniqueTechnoButtonClass.h" />
     <ClInclude Include="src\New\UniqueButton\UniqueTechnoColumnClass.h" />
+    <ClInclude Include="src\Phobos.LuaSlots.h" />
     <ClInclude Include="src\res\DesyncDialog.Resource.h" />
     <ClInclude Include="src\Misc\SyncLogging.h" />
     <ClInclude Include="src\New\ChoiceBox\Entities\Base\MapChoiceBoxClass.h" />

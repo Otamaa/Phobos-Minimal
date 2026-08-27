@@ -196,7 +196,7 @@ static void HandlePostBulletLogic(
 					{
 						TechnoExtContainer::Instance.Find(pThis)->IsSelected
 							= UnlimboDetonateFireTemp::InSelected;
-						ScenarioExtData::Instance()->LimboLaunchers.emplace(TechnoExtContainer::Instance.Find(pThis));
+						ScenarioExtData::Instance()->LimboLaunchers.emplace(pThis);
 					}
 					pBullet->Owner = pThis;
 				}

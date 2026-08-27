@@ -105,6 +105,10 @@ void ScenarioExtData::Serialize(T& Stm)
 		.Process(this->OwnerBitfield_VehicleType)
 		.Process(this->OwnerBitfield_NavyType)
 		.Process(this->OwnerBitfield_AircraftType)
+
+		.Process(this->MissionTimer_Type)
+		.Process(this->MissionTimer_Variable)
+		.Process(this->MissionTimer_Reverse)
 		;
 
 }

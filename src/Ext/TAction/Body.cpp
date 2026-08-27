@@ -1078,7 +1078,9 @@ bool NOINLINE TActionExtData::Occured(TActionClass* pThis, ActionArgs const& arg
 
 		return true;
 	}
-
+	case PhobosTriggerAction::SetMissionTimerType:
+		ret= TActionExtData::SetMissionTimerType(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::RunSuperWeaponAtLocation:
 		ret = TActionExtData::RunSuperWeaponAtLocation(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
@@ -3062,6 +3064,21 @@ bool TActionExtData::SetHouseMoney(TActionClass* pThis, HouseClass* pHouse, Obje
 
 	pOwner->TakeMoney(pOwner->Available_Money());
 	pOwner->GiveMoney(moneyAmount);
+
+	return true;
+}
+
+bool TActionExtData::SetMissionTimerType(TActionClass* const pThis, HouseClass* const pHouse, ObjectClass* const pObject, TriggerClass* const pTrigger, CellStruct* plocation)
+{
+	const int type = pThis->Param3;
+	const int reverse = pThis->Param5;
+	ScenarioExtData::Instance()->MissionTimer_Variable = pThis->Param4;
+
+	if (0 <= type && 4 >= type)
+		ScenarioExtData::Instance()->MissionTimer_Type = type;
+
+	if (0 <= reverse && 1 >= reverse)
+		ScenarioExtData::Instance()->MissionTimer_Reverse = (bool)reverse;
 
 	return true;
 }
@@ -6237,6 +6254,7 @@ static NOINLINE std::string PhobosTriggerAction_ToString(PhobosTriggerAction act
 	case PhobosTriggerAction::SetFollowsIndexForVehicle: return "SetFollowsIndexForVehicle";
 	case PhobosTriggerAction::AttachSoundToObjects: return "AttachSoundToObjects";
 	case PhobosTriggerAction::RemoveSoundFromObjects: return "RemoveSoundFromObjects";
+	case PhobosTriggerAction::SetMissionTimerType: return "SetMissionTimerType";
 	case PhobosTriggerAction::SetWaypointTextBoxByType: return "SetWaypointTextBoxByType";
 	case PhobosTriggerAction::SetWaypointTextBoxByData: return "SetWaypointTextBoxByData";
 	case PhobosTriggerAction::ClearWaypointTextBox: return "ClearWaypointTextBox";

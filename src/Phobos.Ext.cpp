@@ -178,8 +178,8 @@ void PhobosExt::InvalidatePointers(AbstractClass* const pInvalid, bool const rem
 
 	if (removed) {
 		if(pInvalid->AbstractFlags & AbstractFlags::Techno) {
-			ScenarioExtData::Instance()->UndergroundTracker.erase(TechnoExtContainer::Instance.Find((TechnoClass*)pInvalid));
-			ScenarioExtData::Instance()->FallingDownTracker.erase(TechnoExtContainer::Instance.Find((TechnoClass*)pInvalid));
+			ScenarioExtData::Instance()->UndergroundTracker.erase((TechnoClass*)pInvalid);
+			ScenarioExtData::Instance()->FallingDownTracker.erase((TechnoClass*)pInvalid);
 
 			HouseExtContainer::Instance.AutoDeathObjects.erase_all_if([pInvalid](std::pair<TechnoClass*, KillMethod>& item) {
 				return item.first == pInvalid;

@@ -43,15 +43,14 @@ void SelectedColumnClass::DrawInfo() const
 	auto position = Point2D { this->Rect.X, this->Rect.Y };
 	auto surfaceRect = RectangleStruct { 0, 0, this->Rect.X + this->Rect.Width, this->Rect.Y + this->Rect.Height };
 
-	if (const auto pMainSHP = pSideExt->SelectedInfo_Main.Get((SHPCaches*)SelectedInfoClass::SelectedInfo_Main))
-	{
+	if (const auto pMainSHP = pSideExt->SelectedInfo_Main.Get((SHPCaches*)SelectedInfoClass::SelectedInfo_Main)) {
 		DSurface::Composite->DrawSHP(pSideExt->SelectedInfo_Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL),
 			pMainSHP, 0, &position, &surfaceRect, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 	}
 
-	const auto pExt = SelectedInfoClass::Instance.CurrentSelectTechno[0];
+	const auto pThis = SelectedInfoClass::Instance.CurrentSelectTechno[0];
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pTypeExt = pExt->TypeExtData;
-	const auto pThis = pExt->This();
 	const auto pOwner = pThis->Owner;
 
 	auto getDisplayType = [&]() -> ObjectTypeClass*

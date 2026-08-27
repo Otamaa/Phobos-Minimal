@@ -19,6 +19,7 @@ public:
 	Nullable<double> HarvesterDumpRate {};
 	TheaterIamgeClass TheaterImage {};
 	Nullable<bool> Crush_SelfUncloak {};
+	Nullable<bool> AttackTarget_WaitForTurreReset {};
 
 	UnitTypeExtData(UnitTypeClass* pObj) : FootTypeExtData(pObj)
 	{

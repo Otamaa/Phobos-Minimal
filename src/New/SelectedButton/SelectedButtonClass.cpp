@@ -52,8 +52,8 @@ bool SelectedButtonClass::Action(GadgetFlag flags, WWKey* pKey, KeyModifier modi
 	{
 		if (this->ID == 0) // PushButton
 		{
-			const auto pExt = vec[0];
-			const auto pTechno = pExt->This();
+			const auto pExt = TechnoExtContainer::Instance.Find(vec[0]);
+			const auto pTechno = vec[0];
 
 			//TODO
 			if (pTechno->Owner->ControlledByCurrentPlayer() && pTechno->IsAlive && !pTechno->Berzerk)
@@ -66,8 +66,8 @@ bool SelectedButtonClass::Action(GadgetFlag flags, WWKey* pKey, KeyModifier modi
 		}
 		else // AmmoButton
 		{
-			const auto pExt = vec[0];
-			const auto pTechno = pExt->This();
+			const auto pExt = TechnoExtContainer::Instance.Find(vec[0]);
+			const auto pTechno = vec[0];
 
 			//TODO
 			if (pTechno->Owner->ControlledByCurrentPlayer() && pTechno->Ammo > 0 && pTechno->IsAlive && !pTechno->Berzerk)
@@ -189,8 +189,9 @@ void SelectedNotButtonClass::DrawInfo() const
 		return;
 
 	const auto position = Point2D { this->Rect.X, this->Rect.Y };
-	const auto pExt = SelectedInfoClass::Instance.CurrentSelectTechno[0];
-	const auto pTechno = pExt->This();
+	const auto pTechno = SelectedInfoClass::Instance.CurrentSelectTechno[0];
+	const auto pExt = TechnoExtContainer::Instance.Find(pTechno);
+
 	auto getIconFrame = [](const int base, const double mult) -> int
 	{
 		if (mult - 1.0 > 1e-10)

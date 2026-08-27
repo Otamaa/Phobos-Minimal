@@ -490,7 +490,7 @@ ASMJIT_PATCH(0x4AE51E, DisplayClass_GetToolTip_TacticalButton, 0x6)
 		auto& vec = ScenarioExtData::Instance()->OwnedUniqueTechnos;
 
 		if (uniqueIndex < static_cast<int>(vec.size())) {
-			R->EAX(vec[uniqueIndex]->TypeExtData->This()->UIName);
+			R->EAX(vec[uniqueIndex]->GetType()->UIName);
 			return 0x4AE69D;
 		}
 	}
