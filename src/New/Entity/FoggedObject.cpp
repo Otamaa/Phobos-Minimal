@@ -279,6 +279,18 @@ FoggedObject::~FoggedObject()
 			}
 		}
 	}
+	else if(this->CoveredType == FoggedObject::CoveredType::Overlay)
+	{
+		if (TacticalClass::Instance()) {
+			auto pCell = MapClass::Instance->GetCellAt(this->Location);
+
+			RectangleStruct shapeRect = pCell->GetOverlayShapeRect();
+			RectangleStruct containingRect {};
+			pCell->GetContainingRect(&containingRect);
+			Bound = std::move(Drawing::Union(shapeRect, containingRect));
+			TacticalClass::Instance->RegisterDirtyArea(Bound, false);
+		}
+	}
 }
 
 void FoggedObject::SortForRender()
