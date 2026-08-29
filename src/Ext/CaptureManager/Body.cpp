@@ -43,7 +43,7 @@ bool FakeCaptureManagerClass::__FreeUnit(TechnoClass* pTarget, bool bSilent)
 
 				if (!bSilent)
 				{
-				int nSound = GET_TECHNOTYPE(pTarget)->MindClearedSound;
+					int nSound = GET_TECHNOTYPE(pTarget)->MindClearedSound;
 
 					if (nSound == -1)
 						nSound = RulesClass::Instance->MindClearedSound;

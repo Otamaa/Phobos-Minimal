@@ -116,7 +116,25 @@ bool TActionExtData::SetFollowsIndexForVehicle(TActionClass* pThis, HouseClass* 
 		if (!pFoot)
 			continue;
 
-		if (!pFoot->AttachedTag || !pFoot->AttachedTag->ContainsTrigger(pTrigger))
+		const auto pAttachedTag = pTechno->AttachedTag;
+
+		if (!pAttachedTag)
+			continue;
+
+		bool foundTrigger = false;
+		auto pAttachedTrigger = pAttachedTag->FirstTrigger;
+
+		// A tag can link multiple triggers
+		do
+		{
+			if (_stricmp(pAttachedTrigger->Type->ID, pTrigger->Type->ID) == 0)
+				foundTrigger = true;
+
+			pAttachedTrigger = pAttachedTrigger->NextTrigger;
+		}
+		while (pAttachedTrigger && !foundTrigger);
+
+		if (!foundTrigger)
 			continue;
 
 		UnitClass* pLeader = static_cast<UnitClass*>(pFoot);
