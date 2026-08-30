@@ -3018,3 +3018,14 @@ DEFINE_JUMP(LJMP, 0x4148A5, 0x4148B1)
 DEFINE_JUMP(VTABLE, 0x7E8A24, 0x55A8C0)
 
 #pragma endregion
+
+ASMJIT_PATCH(0x4DA90E, FootClass_AI_WalkRateZeroProtect, 0x6)
+{
+	GET(TechnoTypeClass*, pType, ECX);
+
+	if (pType->WalkRate != 0)
+		return 0;
+
+	R->EDX(1);
+	return 0x4DA914;
+}
