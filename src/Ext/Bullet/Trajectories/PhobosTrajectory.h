@@ -114,7 +114,7 @@ public:
         return BounceCheckResult::NotHandled;
     }
 	virtual bool ShouldSkipBridgeCheck() const { return false; }
-
+	virtual bool ShouldSkipRangedCheck() const { return true; } // Whether to skip is declared as the trajectory's own policy.
 
 	double GetTrajectorySpeed() const;
 	void SetInaccurate() const;

@@ -7,6 +7,102 @@
 #include <VocClass.h>
 #include <VoxClass.h>
 
+std::array<DoStruct, std::size(Sequences_ident)> Sequences_Master = { {
+	{1, 0, 0, 0},
+	{1, 0, 0, 0},
+	{1, 0, 0, 6},
+	{1, 1, 1, 3},
+	{1, 0, 0, 1},
+	{0, 1, 0, 1},
+	{1, 1, 1, 1},
+	{0, 0, 0, 1},
+	{1, 0, 0, 1},
+	{1, 0, 0, 3},
+	{1, 0, 0, 3},
+	{0, 0, 0, 1},
+	{0, 0, 0, 1},
+	{0, 0, 0, 1},
+	{0, 0, 0, 1},
+	{0, 0, 0, 1},
+	{1, 0, 0, 3},
+	{1, 1, 1, 1},
+	{1, 0, 0, 3},
+	{1, 0, 0, 3},
+	{0, 0, 0, 1},
+	{0, 0, 0, 1},
+	{1, 0, 0, 1},
+	{1, 1, 0, 2},
+	{1, 1, 0, 1},
+	{1, 1, 0, 1},
+	{1, 1, 0, 1},
+	{0, 0, 0, 1},
+	{1, 0, 0, 1},
+	{1, 0, 0, 1},
+	{1, 0, 0, 1},
+	{0, 0, 0, 1},
+	{0, 0, 0, 3},
+	{1, 0, 0, 1},
+	{0, 0, 0, 3},
+	{0, 0, 0, 1},
+	{0, 0, 0, 3},
+	{1, 1, 1, 4},
+	{1, 0, 0, 6},
+	{1, 1, 1, 3},
+	{1, 0, 0, 1},
+	{1, 0, 0, 1},
+	//{16, 0, 0, 0}, //leftover ?
+	{1, 1, 0, 1}, //SecondaryFireFly
+	{1, 1, 0, 1}, //SecondaryWetAttack
+}
+};
+
+std::array<bool, std::size(Sequences_ident)> Sequences_Normalized = { {
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		true, // <-- true in vanilla
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		true, // <-- true in vanilla
+		true, // <-- true in vanilla
+		false,
+		false,
+		false,
+		true, // <-- true in vanilla
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+	} };
+
 void Phobos_DoControls::ReadSequence(DoInfoStruct* pDoInfo, InfantryTypeClass* pInf, CCINIClass* pINI)
 {
 	/*
@@ -172,7 +268,7 @@ void InfantryTypeExtData::Serialize(T& Stm)
 		.Process(this->VoiceGarrison)
 		.Process(this->OnlyUseLandSequences)
 		.Process(this->SquenceRates)
-
+		.Process(this->CustomSequenceNormalized)
 		.Process(this->WhenInfiltrate_Warhead)
 		.Process(this->WhenInfiltrate_Weapon)
 		.Process(this->WhenInfiltrate_Damage)

@@ -113,27 +113,54 @@ ASMJIT_PATCH(0x521BFC, InfantryClass_ReadyToCommerce_ReplaceMasterControl, 0x7)
 
 #include <GameOptionsClass.h>
 
+int GetCustomRate(FakeInfantryClass* pThis, DoType sequence)
+{
+	const int typeRate = pThis->_GetTypeExtData()->SquenceRates[(int)sequence];
+	const int customRate = typeRate >= 0 ? typeRate : Sequences_Master[(int)sequence].Rate;
+
+	return customRate;
+}
+
+bool IsNormalized(FakeInfantryClass* pThis, DoType sequence)
+{
+	const int typeFlag = pThis->_GetTypeExtData()->CustomSequenceNormalized[(int)sequence];
+	if (typeFlag >= 0)
+		return typeFlag != 0;
+	return Sequences_Normalized[(int)sequence];
+}
+
+int GetFinalRate(FakeInfantryClass* pThis, DoType sequence)
+{
+	const int rate = GetCustomRate(pThis, sequence);
+	return !pThis->_GetTypeExtData()->AllSequnceEqualRates && IsNormalized(pThis, sequence)
+		? GameOptionsClass::Instance->GetAnimSpeed(rate)
+		: rate;
+}
+
 ASMJIT_PATCH(0x51D9CF, InfantryClass_DoType_ReplaceMasterControl_Rates, 0x9)
 {
 	GET(DoType, todo, EDI);
 	GET(FakeInfantryClass*, pThis, ESI);
 
-	const bool normalize =
-		todo == DoType::Idle1
-		|| todo == DoType::Idle2
-		|| todo == DoType::WetIdle1
-		|| todo == DoType::WetIdle2
-		|| todo == DoType::Hover
-		|| todo == DoType::Cheer;
+	//const bool normalize =
+	//	todo == DoType::Idle1
+	//	|| todo == DoType::Idle2
+	//	|| todo == DoType::WetIdle1
+	//	|| todo == DoType::WetIdle2
+	//	|| todo == DoType::Hover
+	//	|| todo == DoType::Cheer;
 
 	const auto pExt = pThis->_GetTypeExtData();
 	pThis->SequenceAnim = todo; //oof;
 
-	if (pExt->AllSequnceEqualRates || !normalize) {
-		pThis->Animation.Start(pExt->SquenceRates[(int)todo]);
-	} else {
-		pThis->Animation.Start(GameOptionsClass::Instance->GetAnimSpeed(pExt->SquenceRates[(int)todo]));
-	}
+
+	pThis->Animation.Start(GetFinalRate(pThis, todo));
+
+	//if (pExt->AllSequnceEqualRates || !normalize) {
+	//	pThis->Animation.Start(pExt->SquenceRates[(int)todo]);
+	//} else {
+	//	pThis->Animation.Start(GameOptionsClass::Instance->GetAnimSpeed(pExt->SquenceRates[(int)todo]));
+	//}
 
 	return 0x51DA4A;
 }
@@ -149,7 +176,8 @@ static void ReadSequence(DoControls* pDoInfo, FakeInfantryTypeClass* pInf, CCINI
 		return; // no Sequence section defined
 
 	// 2. Prepare storage for sequence data (one per known sequence identifier)
-	pInf->_GetExtData()->SquenceRates.resize(std::size(Sequences_ident));
+	pInf->_GetExtData()->SquenceRates.resize(std::size(Sequences_ident), -1);
+	pInf->_GetExtData()->CustomSequenceNormalized.resize(std::size(Sequences_ident), -1);
 
 	// 3. Loop over all known sequence identifiers (e.g., "Ready", "Walk", "Idle1", ...)
 	for (size_t i = 0; i < std::size(Sequences_ident); ++i) {
@@ -166,8 +194,14 @@ static void ReadSequence(DoControls* pDoInfo, FakeInfantryTypeClass* pInf, CCINI
 		// 3b. Read the optional Rate value from a separate key (e.g., "Ready.Rate")
 		pInf->_GetExtData()->SquenceRates[i] = pINI->ReadInteger(
 			section,
-			(basename + ".Rate").c_str(),
-			Sequences_Master[i].Rate  // default from master array
+			(basename + "Rate").c_str(),
+			-1  // default from master array
+		);
+
+		pInf->_GetExtData()->CustomSequenceNormalized[i] = pINI->ReadBool(
+			section,
+			(basename + "Normalized").c_str(),
+			-1  // default from master array
 		);
 
 		// 3c. Parse the main line using sscanf (still safe and clear for fixed format)

@@ -37,6 +37,7 @@
 #include <Ext/House/Body.h>
 #include <Ext/TaskForce/Body.h>
 #include <Ext/ScriptType/Body.h>
+#include <Ext/InfantryType/Body.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/Helpers.h>
@@ -3568,6 +3569,20 @@ void FakeRulesClass::_ReadAudioVisual(CCINIClass* pINI)
 	this->SelectedAircraftMissingPCX.Read(pINI, GameStrings::AudioVisual, "SelectedAircraftMissingPCX");
 	this->SelectedBuildingMissingPCX.Read(pINI, GameStrings::AudioVisual, "SelectedBuildingMissingPCX");
 	this->SelectedIngameTimer.Read(exINI, GameStrings::AudioVisual, "SelectedIngameTimer");
+
+	// Global default per-sequence animation rates for infantry.
+	for (size_t i = 0; i < Sequences_Master.size(); ++i) {
+		char key[64];
+		std::snprintf(key, sizeof(key), "Sequence.%s.DefaultRate", Sequences_ident[i]);
+		int rate = Sequences_Master[i].Rate;
+		if (exINI.ReadInteger(GameStrings::AudioVisual, key, &rate))
+			Sequences_Master[i].Rate = rate;
+
+		bool normalized;
+		std::snprintf(key, sizeof(key), "Sequence.%s.DefaultNormalized", Sequences_ident[i]);
+		if (exINI.ReadBool(GameStrings::AudioVisual, key, &normalized))
+			Sequences_Normalized[i] = normalized;
+	}
 }
 
 void FakeRulesClass::_ReadCrateRules(CCINIClass* pINI)

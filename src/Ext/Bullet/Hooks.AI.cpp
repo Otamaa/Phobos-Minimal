@@ -1562,10 +1562,15 @@ namespace
 		// Hook 0x467C1C — BulletClass_AI_UnknownTimer
 		// -----------------------------------------------------------------------
 		Fuse fuse_result = Fuse::DontIgnite;
-		if (pType->ROT > 0 || pType->Ranged || pType->Inviso)
-		{
-			fuse_result = static_cast<Fuse>(
-				BulletExtData::FuseCheckup(pThis, &coord));
+		if (!pThis->_GetExtData()->Trajectory || !pThis->_GetExtData()->Trajectory->ShouldSkipRangedCheck()) {
+			// Only run the fuse check if the bullet has a reason to have one.
+			// This avoids unnecessary calls to FuseCheckup for bullets that
+			// don't have a fuse (e.g. non-ROT, non-ranged, non-inviso).
+			if (pType->ROT > 0 || pType->Ranged || pType->Inviso)
+			{
+				fuse_result = static_cast<Fuse>(
+					BulletExtData::FuseCheckup(pThis, &coord));
+			}
 		}
 
 		// JumpJet target override

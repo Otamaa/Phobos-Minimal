@@ -50,54 +50,9 @@ static COMPILETIMEEVAL const char* Sequences_ident[] = {
 		"SecondaryWetAttack"
 };
 
-static COMPILETIMEEVAL std::array<DoStruct, std::size(Sequences_ident)> Sequences_Master = { {
-	{1, 0, 0, 0},
-	{1, 0, 0, 0},
-	{1, 0, 0, 6},
-	{1, 1, 1, 3},
-	{1, 0, 0, 1},
-	{0, 1, 0, 1},
-	{1, 1, 1, 1},
-	{0, 0, 0, 1},
-	{1, 0, 0, 1},
-	{1, 0, 0, 3},
-	{1, 0, 0, 3},
-	{0, 0, 0, 1},
-	{0, 0, 0, 1},
-	{0, 0, 0, 1},
-	{0, 0, 0, 1},
-	{0, 0, 0, 1},
-	{1, 0, 0, 3},
-	{1, 1, 1, 1},
-	{1, 0, 0, 3},
-	{1, 0, 0, 3},
-	{0, 0, 0, 1},
-	{0, 0, 0, 1},
-	{1, 0, 0, 1},
-	{1, 1, 0, 2},
-	{1, 1, 0, 1},
-	{1, 1, 0, 1},
-	{1, 1, 0, 1},
-	{0, 0, 0, 1},
-	{1, 0, 0, 1},
-	{1, 0, 0, 1},
-	{1, 0, 0, 1},
-	{0, 0, 0, 1},
-	{0, 0, 0, 3},
-	{1, 0, 0, 1},
-	{0, 0, 0, 3},
-	{0, 0, 0, 1},
-	{0, 0, 0, 3},
-	{1, 1, 1, 4},
-	{1, 0, 0, 6},
-	{1, 1, 1, 3},
-	{1, 0, 0, 1},
-	{1, 0, 0, 1},
-	//{16, 0, 0, 0}, //leftover ?
-	{1, 1, 0, 1}, //SecondaryFireFly
-	{1, 1, 0, 1}, //SecondaryWetAttack
-}
-};
+extern std::array<DoStruct, std::size(Sequences_ident)> Sequences_Master;
+
+extern std::array<bool, std::size(Sequences_ident)> Sequences_Normalized;
 
 struct NewDoType
 {
@@ -176,7 +131,7 @@ public:
 	// ============================================================
 	ValueableIdxVector<VocClass*> VoiceGarrison {};
 	std::vector<int> SquenceRates {};  // typo: should be "SequenceRates"
-
+	std::vector<int> CustomSequenceNormalized {};
 	// ============================================================
 	// Nullable<pointer> (pointer + bool + padding ≈ 16 bytes)
 	// ============================================================

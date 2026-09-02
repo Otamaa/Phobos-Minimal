@@ -891,6 +891,7 @@ public:
 	Valueable<double> VeteranCritChance { 1.0 };
 
 	Valueable<bool> AttackTarget_WaitForTurreReset { true };
+
 #pragma endregion
 
 public:
