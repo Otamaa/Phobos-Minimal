@@ -845,23 +845,30 @@ ASMJIT_PATCH(0x4AE670, DisplayClass_GetToolTip_EnemyUIName, 0x8)
 
 	GET(ObjectClass*, pObject, ECX);
 
-	if (!HouseExtData::IsObserverPlayer())
-	{
-		if (auto pFoot = flag_cast_to<FootClass*, false>(pObject))
-		{
-			if (!pObject->IsDisguised())
-			{
-				if (const auto pOwnerHouse = pFoot->GetOwningHouse())
-				{
-					if (!pOwnerHouse->IsNeutral() && !pOwnerHouse->IsAlliedWith(HouseClass::CurrentPlayer()))
-					{
-						const auto pTechnoTypeExt = GET_TECHNOTYPEEXT(pFoot);
-						{
-							if (!pTechnoTypeExt->EnemyUIName.Get().empty())
-							{
+	if (!HouseExtData::IsObserverPlayer()) {
+		if (auto pFoot = flag_cast_to<FootClass*, false>(pObject)) {
+			if (!pObject->IsDisguised()) {
+				if (const auto pOwnerHouse = pFoot->GetOwningHouse()) {
+					if (!pOwnerHouse->IsNeutral() && !pOwnerHouse->IsAlliedWith(HouseClass::CurrentPlayer())) {
+						const auto pTechnoTypeExt = GET_TECHNOTYPEEXT(pFoot); {
+							if (!pTechnoTypeExt->EnemyUIName.Get().empty()) {
 								R->EAX(pTechnoTypeExt->EnemyUIName.Get().Text);
 								return SetUIName;
 							}
+						}
+					}
+				}
+			} else {
+				const auto& [pDisguised, pDisguiseHouses] = TechnoExtData::GetDisguiseType(pFoot, true, true);
+				if(pDisguised){
+					const auto pOwnerHouse = pFoot->GetOwningHouse();
+					const bool IsAlly = pOwnerHouse->IsAlliedWith(HouseClass::CurrentPlayer()) || (pDisguiseHouses && pDisguiseHouses->IsAlliedWith(HouseClass::CurrentPlayer()));
+					const bool IsCivilian = pDisguiseHouses == HouseExtData::FindFirstCivilianHouse() || (pDisguiseHouses && pDisguiseHouses->IsNeutral());
+					if (!IsAlly && !IsCivilian) {
+						const auto& disguisedName = TechnoTypeExtContainer::Instance.Find(pDisguised)->EnemyUIName;
+						if (!disguisedName->empty()){
+							R->EAX(disguisedName->Text);
+							return SetUIName;
 						}
 					}
 				}
