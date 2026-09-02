@@ -20,6 +20,13 @@ void __fastcall FakeIonBlastClass::DestroySurfaces() {
 	}
 }
 
+constexpr double WaveStartDistance = 0.0;
+constexpr double WaveBandWidth = 57.0;
+constexpr double WaveFrequency = 0.11;
+constexpr double WaveAmplitudeFalloff = 25.0;
+constexpr double WaveRockScale = Math::deg2rad(360);
+constexpr double WaveSpeedScale = 0.0125;
+
 void __fastcall FakeIonBlastClass::InitOneTime()
 {
 	// 0x53D339: test IonBlastClass_inited / 0x53D344: jnz loc_53D545
@@ -27,18 +34,16 @@ void __fastcall FakeIonBlastClass::InitOneTime()
 		return;
 
 	// ── Initialise radial bounds (0x53D34A–0x53D37E) ─────────────────────────
-	double upperBound = 0.0;
-	double lowerBound = -57.0;
+	double min_dist = WaveStartDistance - WaveBandWidth;
+	double max_dist = WaveStartDistance;
 
-	int frameIndex = 0; // var_2C+4  (0x53D36E: mov [var_2C+4], 0)
-
-	for (auto& pSurfaces : IonBlastClass_Surfaces)
+	for (int frame = 0; frame < IonBlastClass_Surfaces.c_size(); frame++)
 	{
 		// ── Allocate BSurface (0x53D384–0x53D3CB) ────────────────────────────
-		pSurfaces = GameCreate<BSurface>(512, 256, 1, 0);
+		IonBlastClass_Surfaces[frame] = GameCreate<BSurface>(512, 256, 1, 0);
 
 		// ── Fill surface to 0xFF  — vtable call [edx+18h] (0x53D3D7) ─────────
-		pSurfaces->Fill(-1); // SUSPECT: confirm vtable slot
+		IonBlastClass_Surfaces[frame]->Fill(-1); // SUSPECT: confirm vtable slot
 
 		// ── Lock surface — vtable call [edx+5Ch] (0x53D3E2) ─────────────────
 		// 0x53D3DC: push 0 / 0x53D3DF: push 0 → Lock(0, 0)
@@ -47,8 +52,7 @@ void __fastcall FakeIonBlastClass::InitOneTime()
 		//   0x10100 bytes = row 128 × 512-byte stride + col 128  (byte-addressed)
 		//   IDA shows +0x8080 because it casts to __int16*; raw byte offset is 0x10100.
 		// VERIFY: vtable offset 0x5C = Lock on XSurface/BSurface in YRpp
-		uint8_t* pLocked = (uint8_t*)pSurfaces->Lock(0, 0);
-		uint8_t* pCentre = pLocked + 0x8080; // centre of surface (row 128, col 128)
+		char* pCentre = (char*)IonBlastClass_Surfaces[frame]->Lock(0, 0) + 0x8080; // centre of surface (row 128, col 128)
 
 		// ── Outer loop: row = 127 down to 0  (EBX) ───────────────────────────
 		for (int row = 127; row >= 0; --row)
@@ -62,86 +66,30 @@ void __fastcall FakeIonBlastClass::InitOneTime()
 				// 0x53D408: imul eax,esi / 0x53D40B: add eax,ebp → col*col + 4*row*row
 				// 0x53D411: fild / 0x53D415: fstp [n] / 0x53D418: call FastMath::Sqrt
 				const double radius = Math::sqrt(static_cast<double>(col * col + cached4RowSq));
-
-				// 0x53D421: fcomp var_8 (lowerBound) / test ah,1 / jnz skip
-				// Skips if radius < lowerBound (FPU C2 set = unordered or less-than)
-				if (radius < lowerBound)
-					continue;
-
-				// 0x53D437: fcomp var_10 (upperBound) / test ah,41h / jz skip
-				// Skips if radius > upperBound
-				if (radius > upperBound)
-					continue;
-
-				// ── Compute pixel brightness (0x53D442–0x53D490) ─────────────
-				//
-				// 0x53D442: fild [frameIndex]
-				// 0x53D44B: fmul dbl_A9FFA8 (7.1125 = kRingStep)
-				// 0x53D451: fsubr [radius]          → radius - frameIndex*kRingStep
-				// 0x53D455: fadd  dbl_7EC0A0 (38.0) → + kSinOffset    VERIFY
-				// 0x53D45B: fmul  dbl_7EC030 (0.11) → * kSinScale     VERIFY
-				// 0x53D464: call  FastMath::Sin
-				// 0x53D469: fmul  dbl_7EC098 (3.5)  → * kSinAmplitude VERIFY
-				// 0x53D472: fadd  dbl_7E3D90 (3.0)  → + kSinBias      VERIFY
-				// 0x53D478: fld   [radius]
-				// 0x53D47C: fdiv  dbl_7EC038 (51.0) → / kRadialDivisor VERIFY
-				// 0x53D482: fadd  float_1_0  (1.0)  → + kDivisorBias   VERIFY
-				// 0x53D488: fdivp st(1),st           → numerator / denominator
-				// 0x53D48A: fadd  dbl0_5     (0.5)  → + kPixelBias     VERIFY
-				// 0x53D490: call  __ftol             → truncate to int (Westwood ftol)
-				//
-				// Note: EBP XOR'd to 0 at 0x53D449 — IonBlastData_53D960 always called with a1=0.
-				const double sinArg = (radius - static_cast<double>(frameIndex) * 7.1125 + 38.0) * 0.11;
-				const double numerator = Math::sin(sinArg) * 3.5 + 3.0;
-				const double denom = radius / 51.0 + 1.0;
-				const double brightness = numerator / denom + 0.5;
-
-				// 0x53D490: __ftol → (int)brightness  (Westwood truncate-toward-zero)
-				const int brightnessInt = static_cast<int>(brightness);
-
-				// 0x53D495: push eax (=brightnessInt) / 0x53D496: push ebp (=0)
-				// 0x53D497: call IonBlastData_53D960(a1=0, a2=brightnessInt)
-				const uint8_t pixel = static_cast<uint8_t>(IonBlastData_53D960(0, brightnessInt));
-
-				// ── Four quadrant pixel writes (0x53D49C–0x53D4BB) ───────────
-				//
-				// 0x53D49E: ecx = row << 9  (row * 512, byte stride)
-				// Q1: pCentre[ row*512 + col]  — 0x53D4A8: mov [edx+edi], al
-				// Q2: pCentre[ row*512 - col]  — 0x53D4AF: mov [edx+edi], al (edx=ecx-esi)
-				// Q3: pCentre[-row*512 + col]  — 0x53D4B6: mov [esi+edx], al (edx=edi-ecx)
-				// Q4: pCentre[-row*512 - col]  — 0x53D4BB: mov [edx], al    (edx=edx-esi)
-				const int rowOffset = row * 512; // ecx = row << 9
-				pCentre[rowOffset + col] = pixel; // Q1
-				pCentre[rowOffset - col] = pixel; // Q2
-				pCentre[-rowOffset + col] = pixel; // Q3
-				pCentre[-rowOffset - col] = pixel; // Q4
+				if (radius >= min_dist && radius <= max_dist)
+				{
+					const double sinArg = (radius - static_cast<double>(frame) * 7.1125 + 38.0) * 0.11;
+					const double numerator = Math::sin(sinArg) * 3.5 + 3.0;
+					const double denom = radius / 51.0 + 1.0;
+					const double brightness = numerator / denom + 0.5;
+					const int brightnessInt = static_cast<int>(brightness);
+					char spiral_index = static_cast<char>(IonBlastData_53D960(0, brightnessInt));
+					int y = row << 8;
+					pCentre[y + col] = spiral_index;  /// Quadrant I
+					pCentre[y - col] = spiral_index;  /// Quadrant II
+					char* mirror = pCentre - y;
+					mirror[col] = spiral_index;        /// Quadrant IV
+					mirror[-col] = spiral_index;       /// Quadrant III
+				}
 			}
 		}
 
-		// ── Per-frame bound updates (0x53D4CB–0x53D51B) ──────────────────────
-		//
-		// Upper bound:
-		//   0x53D4CB: fld num_256 (256.0)
-		//   0x53D4D1: fsub dbl_A9FF80 (7.1125)  →  256.0 - kRingStep
-		//   0x53D4D7: fcomp var_10 (upperBound)
-		//   0x53D4E0: jnz skip  (skip if 256.0-kRingStep <= upperBound)
-		//   0x53D4E2: fld dbl_A9FF80 / fadd var_10 / fstp var_10
-		if ((256.0 - 7.1125) > upperBound)
-			upperBound += 7.1125;
+		if ((256.0 - 7.1125) > max_dist)
+			max_dist += 7.1125;
 
-		// Lower bound:
-		//   0x53D4F0: fld dbl_A9FF80 / fmul dbl_7E5190 (1.2) / fadd var_8 / fst var_8
-		//   0x53D504: fcomp var_10  →  if lowerBound > upperBound → lowerBound = upperBound
-		lowerBound = 7.1125 * 1.2 + lowerBound;
-		if (lowerBound > upperBound)
-			lowerBound = upperBound;
-
-		// ── Advance and check termination (0x53D51F–0x53D538) ────────────────
-		//
-		// 0x53D527: add [var_24], 4 / 0x53D52A: inc esi (frameIndex)
-		// 0x53D52B: cmp [var_24], offset dbl_AA0108 (0xAA0108)
-		// 0x53D538: jl → loc_53D380
-		++frameIndex;
+		min_dist = 7.1125 * 1.2 + min_dist;
+		if (min_dist > max_dist)
+			min_dist = max_dist;
 	}
 
 	// 0x53D53E: mov IonBlastClass_inited, 1
