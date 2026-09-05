@@ -736,11 +736,12 @@ enum class AffectedHouse : BYTE {
 	Owner = 1 << 0,
 	Allies = 1 << 1,
 	Enemies = 1 << 2,
+	Neutral = 1 << 3,
 
 	Team = Owner | Allies,
 	NotAllies = Owner | Enemies,
 	NotOwner = Allies | Enemies,
-	All = Owner | Allies | Enemies,
+	All = Owner | Allies | Enemies | Neutral,
 };
 
 MAKE_ENUM_FLAGS(AffectedHouse);

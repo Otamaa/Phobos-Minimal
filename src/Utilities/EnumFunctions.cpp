@@ -229,6 +229,7 @@ std::array<std::pair<const char*, AffectedHouse>, 11u> EnumFunctions::AffectedHo
 	{"ally" , AffectedHouse::Allies } ,
 	{"enemies" , AffectedHouse::Enemies } ,
 	{"enemy" , AffectedHouse::Enemies } ,
+	{"neutral", AffectedHouse::Neutral},
 	{"team" , AffectedHouse::Team } ,
 	{"others" , AffectedHouse::NotOwner } ,
 	{"all" , AffectedHouse::All } ,
@@ -389,6 +390,9 @@ bool EnumFunctions::CanTargetHouse(AffectedHouse flags, HouseClass* ownerHouse, 
 		if (ownerHouse && targetHouse) {
 
 			if ((flags & AffectedHouse::Owner) && ownerHouse == targetHouse)
+				return true;
+
+			if (targetHouse->IsNeutral() && (flags & AffectedHouse::Neutral) != AffectedHouse::None)
 				return true;
 
 			const auto IsAlly = ownerHouse->IsAlliedWith(targetHouse);
