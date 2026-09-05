@@ -16,6 +16,26 @@
 
 #include <ExtraHeaders/StackVector.h>
 
+bool AEWeaponParams::load(PhobosStreamReader& Stm, bool RegisterForChange)
+{
+	return
+		Stm
+		.Process(Weapon, RegisterForChange)
+		.Process(Invoker, RegisterForChange)
+		.Process(InvokerHouse, RegisterForChange)
+		.Success();
+}
+
+bool AEWeaponParams::save(PhobosStreamWriter& Stm) const
+{
+	return
+		Stm
+		.Process(Weapon)
+		.Process(Invoker)
+		.Process(InvokerHouse)
+		.Success();
+}
+
 HelperedVector<PhobosAttachEffectClass*> PhobosAttachEffectClass::Array;
 
 PhobosAttachEffectClass::PhobosAttachEffectClass()
@@ -35,6 +55,9 @@ PhobosAttachEffectClass::~PhobosAttachEffectClass()
 
 		this->LaserTrail = nullptr;
 	}
+
+	if (this->Animation)
+		this->Animation.release();
 
 	PhobosAttachEffectClass::Array.remove(this);
 }
@@ -290,6 +313,11 @@ void PhobosAttachEffectClass::AI_Temporal()
 	}
 }
 
+void PhobosAttachEffectClass::AddExpireWeaponParams(ExpireWeaponCondition condition, std::vector<AEWeaponParams>& expireWeapons, bool ignoreCumulativeCountCheck = false) const
+{
+
+}
+
 void PhobosAttachEffectClass::FirePeriodicWeapon()
 {
 	auto const pType = this->Type;
@@ -439,6 +467,16 @@ void PhobosAttachEffectClass::FirePeriodicWeapon()
 
 void PhobosAttachEffectClass::AnimCheck()
 {
+	if (!this->Animation && this->CanShowAnim())
+		this->CreateAnim();
+}
+
+// Updates animation drawing logic that depends on state of other AE's on owner.
+// Called from TechnoExt::UpdateAEAnimDrawingLogic() on all AE's on owner if AE's are attached/detached/expire etc.
+// or if their animation state changes. Do not call directly.
+// Take care to to not invoke recursion - should not call any functions that call TechnoExt::UpdateAEAnimDrawingLogic() such as CreateAnim/KillAnim here.
+void PhobosAttachEffectClass::UpdateConditionalAnimDrawingLogic()
+{
 	if (!this->Type->Animation_HideIfAttachedWith.empty())
 	{
 		if (PhobosAEFunctions::HasAttachedEffects(this->Techno, this->Type->Animation_HideIfAttachedWith, false, false, nullptr, nullptr, nullptr, nullptr))
@@ -464,8 +502,18 @@ void PhobosAttachEffectClass::AnimCheck()
 
 	this->IsAnimHidden = false;
 
-	if (!this->Animation && this->CanShowAnim())
-		this->CreateAnim();
+	if (this->Animation && this->Type->Animation_DrawOffsets.size() > 0)
+	{
+		auto const pAnimExt = AnimExtContainer::Instance.Find(this->Animation);
+		auto const pTechnoExt = TechnoExtContainer::Instance.Find(this->Techno);
+		pAnimExt->AEDrawOffset = Point2D::Empty;
+
+		for (auto& drawOffset : this->Type->Animation_DrawOffsets)
+		{
+			if (drawOffset.RequiredTypes.size() < 1 || PhobosAEFunctions::HasAttachedEffects(this->Techno, drawOffset.RequiredTypes, false, false, nullptr, nullptr, nullptr, nullptr, true))
+				pAnimExt->AEDrawOffset += drawOffset.Offset;
+		}
+	}
 }
 
 void PhobosAttachEffectClass::DiscardOnFire()
@@ -614,13 +662,16 @@ void PhobosAttachEffectClass::CreateAnim()
 	if (this->Type->Animation_UseInvokerAsOwner) {
 		pAnimExt->Invoker = Invoker;
 	}
+	PhobosAEFunctions::UpdateAEAnimDrawingLogic(this->Techno);
 }
 
 void PhobosAttachEffectClass::KillAnim()
 {
 	if (this->Animation) {
-		if (!Phobos::Otamaa::ExeTerminated)
+		if (!Phobos::Otamaa::ExeTerminated) {
 			this->Animation.reset();
+			PhobosAEFunctions::UpdateAEAnimDrawingLogic(this->Techno);
+		}
 		else
 			this->Animation.detachptr();
 	}
@@ -1132,6 +1183,7 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(
 	if (!currentTypeCount && cumulative && pType->CumulativeAnimations.size() > 0)
 		pAE->HasCumulativeAnim = true;
 
+	PhobosAEFunctions::UpdateAEAnimDrawingLogic(pTarget);
 	return pAE;
 }
 
@@ -1160,6 +1212,7 @@ int PhobosAttachEffectClass::DetachTypes(TechnoClass* pTarget, AEAttachInfoTypeC
 
 	if (detachedCount > 0) {
 		AEProperties::Recalculate(pTarget);
+		PhobosAEFunctions::UpdateAEAnimDrawingLogic(pTarget);
 	}
 
 	if (markForRedraw)

@@ -237,6 +237,14 @@ public:
 		return this->CumulativeAnimations[index];
 	}
 
+	COMPILETIMEEVAL FORCEDINLINE  bool HasAnim() const
+	{
+		if (this->Cumulative)
+			return this->CumulativeAnimations.size() > 0 || this->Animation != nullptr;
+		else
+			return this->Animation != nullptr;
+	}
+
 	void LoadFromINI(CCINIClass* pINI);
 	void LoadFromStream(PhobosStreamReader& Stm);
 	void SaveToStream(PhobosStreamWriter& Stm);

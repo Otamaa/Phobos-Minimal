@@ -15,6 +15,19 @@ class HouseClass;
 struct AEAttachParams;
 class AEAttachInfoTypeClass;
 class LaserTrailClass;
+class WeaponTypeClass;
+struct AEWeaponParams
+{
+	WeaponTypeClass* Weapon;
+	TechnoClass* Invoker;
+	HouseClass* InvokerHouse;
+
+public:
+
+	bool load(PhobosStreamReader& Stm, bool RegisterForChange);
+	bool save(PhobosStreamWriter& Stm) const;
+};
+
 class PhobosAttachEffectClass
 {
 public:
@@ -29,6 +42,8 @@ public:
 	TechnoClass* pInvoker, AbstractClass* pSource, int durationOverride, int delay, int initialDelay, int recreationDelay);
 	void AI();
 	void AI_Temporal();
+	void UpdateConditionalAnimDrawingLogic();
+
 	void KillAnim();
 	void SetAnimationTunnelState(bool visible);
 
@@ -37,13 +52,11 @@ public:
 	bool CanShowAnim() const;
 
 	void FirePeriodicWeapon();
-	void LaunchPeriodicBullet(TechnoClass* pFirer, HouseClass* pFirerHouse,
-		WeaponTypeClass* pWeapon, TechnoClass* pTarget, CoordStruct firePos);
+	
+	TechnoClass* GetInvoker() const { return this->Invoker; }
+	HouseClass* GetInvokerHouse() const { return this->InvokerHouse; }
 
-	TechnoClass* GetInvoker() const
-	{
-		return this->Invoker;
-	}
+	void AddExpireWeaponParams(ExpireWeaponCondition condition, std::vector<AEWeaponParams>& expireWeapons, bool ignoreCumulativeCountCheck = false) const;
 
 	COMPILETIMEEVAL FORCEDINLINE PhobosAttachEffectTypeClass* GetType() const {
 		return this->Type;
@@ -63,8 +76,8 @@ public:
 
 	bool ShouldBeDiscardedNow();
 
-	COMPILETIMEEVAL FORCEDINLINE bool HasAnim() const{
-		return this->Animation != nullptr;
+	COMPILETIMEEVAL FORCEDINLINE bool HasAnim() const {
+		return this->Animation.get() != nullptr;
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE bool IsActive() const {
@@ -138,8 +151,8 @@ public:
 	bool ShouldBeDiscarded { false };
 	bool HasCumulativeAnim { false };
 	DoType LastSequenceCheck {};
-	int FiringCount;
-	int ReceivedDamageCount;
+	int FiringCount {};
+	int ReceivedDamageCount {};
 };
 
 template <>

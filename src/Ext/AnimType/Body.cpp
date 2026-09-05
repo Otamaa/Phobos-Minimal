@@ -147,6 +147,10 @@ bool AnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	}
 
 	this->XDrawOffset.Read(exINI, pID, "XDrawOffset");
+	this->XDrawOffset_ApplyBracketWidth.Read(exINI, pID, "XDrawOffset.ApplyBracketWidth");
+	this->XDrawOffset_InvertBracketShift.Read(exINI, pID, "XDrawOffset.InvertBracketShift");
+	this->XDrawOffset_BracketAdjust.Read(exINI, pID, "XDrawOffset.BracketAdjust");
+	this->XDrawOffset_BracketAdjust_Buildings.Read(exINI, pID, "XDrawOffset.BracketAdjust.Buildings");
 	this->YDrawOffset_ApplyBracketHeight.Read(exINI, pID, "YDrawOffset.ApplyBracketHeight");
 	this->YDrawOffset_InvertBracketShift.Read(exINI, pID, "YDrawOffset.InvertBracketShift");
 	this->YDrawOffset_BracketAdjust.Read(exINI, pID, "YDrawOffset.BracketAdjust");
@@ -683,6 +687,10 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->Palette)
 		.Process(this->CreateUnitType)
 		.Process(this->XDrawOffset)
+		.Process(this->XDrawOffset_ApplyBracketWidth)
+		.Process(this->XDrawOffset_InvertBracketShift)
+		.Process(this->XDrawOffset_BracketAdjust)
+		.Process(this->XDrawOffset_BracketAdjust_Buildings)
 		.Process(this->YDrawOffset_ApplyBracketHeight)
 		.Process(this->YDrawOffset_InvertBracketShift)
 		.Process(this->YDrawOffset_BracketAdjust)

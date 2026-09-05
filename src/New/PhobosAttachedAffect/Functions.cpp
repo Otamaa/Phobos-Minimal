@@ -12,7 +12,7 @@
 #include <HouseClass.h>
 #include <TechnoTypeClass.h>
 
-int PhobosAEFunctions::GetAttachedEffectCumulativeCount(TechnoClass* pTechno, PhobosAttachEffectTypeClass* pAttachEffectType, bool ignoreSameSource, TechnoClass* pInvoker, AbstractClass* pSource)
+int PhobosAEFunctions::GetAttachedEffectCumulativeCount(TechnoClass* pTechno, PhobosAttachEffectTypeClass* pAttachEffectType, bool ignoreSameSource, TechnoClass* pInvoker, AbstractClass* pSource, bool requireAnims)
 {
 	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 	unsigned int foundCount = 0;
@@ -21,7 +21,7 @@ int PhobosAEFunctions::GetAttachedEffectCumulativeCount(TechnoClass* pTechno, Ph
 		if(!attachEffect)
 			continue;
 
-		if (attachEffect->GetType() == pAttachEffectType && attachEffect->IsActive()) {
+		if (attachEffect->GetType() == pAttachEffectType && attachEffect->IsActive() && (!requireAnims || !attachEffect->GetType()->HasAnim() || attachEffect->HasAnim())) {
 			if (ignoreSameSource && pInvoker && pSource && attachEffect->IsFromSource(pInvoker, pSource))
 				continue;
 
@@ -142,12 +142,21 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 
 	if(altered){
 		AEProperties::Recalculate(pTechno);
+		PhobosAEFunctions::UpdateAEAnimDrawingLogic(pTechno);
 	}
 
 	if (markForRedraw)
 		pThis->MarkForRedraw();
 
 	PhobosAttachEffectClass::DetonateExpireWeapon(expireWeapons, pTechno->Location);
+}
+
+void PhobosAEFunctions::UpdateAEAnimDrawingLogic(TechnoClass* pTechno)
+{
+	for (auto const& attachEffect : TechnoExtContainer::Instance.Find(pTechno)->PhobosAE) {
+		if(attachEffect)
+		attachEffect->UpdateConditionalAnimDrawingLogic();
+	}
 }
 
 bool PhobosAEFunctions::HasAttachedEffects(
@@ -158,7 +167,8 @@ bool PhobosAEFunctions::HasAttachedEffects(
 	 TechnoClass* pInvoker,
 	 AbstractClass* pSource,
 	 std::vector<int> const* minCounts,
-	 std::vector<int> const* maxCounts
+	 std::vector<int> const* maxCounts, 
+	bool requireAnims
 	) {
 
 	const bool checkSource = ignoreSameSource && pInvoker && pSource;
@@ -170,7 +180,7 @@ bool PhobosAEFunctions::HasAttachedEffects(
 	{
 		if (type->Cumulative)
 		{
-			const int cumulativeCount = PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTechno, type, ignoreSameSource, pInvoker, pSource);
+			const int cumulativeCount = PhobosAEFunctions::GetAttachedEffectCumulativeCount(pTechno, type, ignoreSameSource, pInvoker, pSource, requireAnims);
 			bool matched = cumulativeCount > 0;
 			const unsigned int minSize = minCounts ? minCounts->size() : 0;
 			const unsigned int maxSize = maxCounts ? maxCounts->size() : 0;
@@ -199,7 +209,8 @@ bool PhobosAEFunctions::HasAttachedEffects(
 		{
 			for (auto const& attachEffect : pExt->PhobosAE)
 			{
-				if (attachEffect->GetType() == type && attachEffect->IsActive())
+				if (attachEffect->GetType() == type && attachEffect->IsActive() 
+					&& (!requireAnims || !type->HasAnim() || attachEffect->HasAnim()))
 				{
 					if (checkSource && attachEffect->IsFromSource(pInvoker, pSource))
 						continue;
@@ -250,6 +261,7 @@ void PhobosAEFunctions::UpdateSelfOwnedAttachEffects(TechnoClass* pTechno, Techn
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pNewType);
 	bool markForRedraw = false;
 	bool altered = false;
+	int removeCount = 0;
 
 	if (!pExt->PhobosAE.empty()){
 
@@ -259,6 +271,7 @@ void PhobosAEFunctions::UpdateSelfOwnedAttachEffects(TechnoClass* pTechno, Techn
 		pExt->PhobosAE.remove_all_if([&](std::unique_ptr<PhobosAttachEffectClass>& it) {
 
 			if(!it.get()) {
+				removeCount++;
 				altered = true;
 				return true;
 			}
@@ -277,6 +290,7 @@ void PhobosAEFunctions::UpdateSelfOwnedAttachEffects(TechnoClass* pTechno, Techn
 
 				markForRedraw |= pType->HasTint();
 				altered = true;
+				removeCount++;
 				return true;
 			}
 
@@ -286,13 +300,15 @@ void PhobosAEFunctions::UpdateSelfOwnedAttachEffects(TechnoClass* pTechno, Techn
 		PhobosAttachEffectClass::DetonateExpireWeapon(expireWeapons, pTechno->Location);
 	}
 
-	if (altered){
-		AEProperties::Recalculate(pTechno);
+	// Add new ones.
+	const int count = PhobosAttachEffectClass::Attach(pThis, pThis->Owner, pThis, pThis, &pTypeExt->PhobosAttachEffects);
+	if (!count && removeCount > 0) {
+		if (altered)
+			AEProperties::Recalculate(pTechno);
+
+		PhobosAEFunctions::UpdateAEAnimDrawingLogic(pTechno);
 		markForRedraw = true;
 	}
-
-	// Add new ones.
-	PhobosAttachEffectClass::Attach(pThis, pThis->Owner, pThis, pThis, &pTypeExt->PhobosAttachEffects);
 
 	if (markForRedraw)
 		pThis->MarkForRedraw();

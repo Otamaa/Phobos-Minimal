@@ -146,6 +146,11 @@ public:
 	// Valueable<int> (4 bytes each)
 	// ============================================================
 	Valueable<int> XDrawOffset {};
+	Valueable<bool> XDrawOffset_ApplyBracketWidth { };
+	Valueable<bool> XDrawOffset_InvertBracketShift { };
+	Valueable<int> XDrawOffset_BracketAdjust { };
+	Nullable<int> XDrawOffset_BracketAdjust_Buildings { };
+
 	Valueable<int> YDrawOffset_BracketAdjust {};
 	Valueable<int> HideIfNoOre_Threshold {};
 	Valueable<int> Damage_Delay {};

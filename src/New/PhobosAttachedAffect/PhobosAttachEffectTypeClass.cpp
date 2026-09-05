@@ -346,6 +346,7 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->PrismRelay_MasterWeaponIndex)
 		.Process(this->PrismRelay_MasterWeaponUseMultiWeaponSelection)
 		.Process(this->PrismRelay_SupportTimeout)
+
 		;
 }
 

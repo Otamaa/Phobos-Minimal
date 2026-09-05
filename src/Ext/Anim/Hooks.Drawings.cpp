@@ -46,6 +46,76 @@ ASMJIT_PATCH(0x423654, AnimClass_DrawIt_Tiled_Interval, 0x5)
 	return 0x423659;
 }
 
+
+// 0x422CD8 is in an alternate code path only used by anims with ID RING1, unused normally but covering it just because
+
+ASMJIT_PATCH(0x423122, AnimClass_DrawIt_DrawOffset, 0x6)
+{
+	GET(FakeAnimClass* const, pThis, ESI);
+	GET_STACK(Point2D*, pLocation, STACK_OFFSET(0x110, 0x4));
+
+	auto const pTypeExt = pThis->_GetTypeExtData();
+	pLocation->X += pTypeExt->XDrawOffset;
+
+	bool const applyX = pTypeExt->XDrawOffset_ApplyBracketWidth;
+	bool const applyY = pTypeExt->YDrawOffset_ApplyBracketHeight;
+
+	if ((applyX || applyY) && pThis->OwnerObject && pThis->OwnerObject->AbstractFlags & AbstractFlags::Techno)
+	{
+		// Hardcoded in shield healthbar code as well.
+		constexpr int SHIELD_HEALTHBAR_OFFSET = -3;
+		auto const pTechno = static_cast<TechnoClass*>(pThis->OwnerObject);
+		bool const invertX = pTypeExt->XDrawOffset_InvertBracketShift;
+		bool const invertY = pTypeExt->YDrawOffset_InvertBracketShift;
+
+		if (auto const pBuilding = cast_to<BuildingClass*>(pTechno))
+		{
+			auto const pType = pBuilding->Type;
+			auto const pos = TechnoExtData::GetBuildingSelectBracketPosition(pBuilding, BuildingSelectBracketPosition::Top);
+
+			if (applyY && ((pType->Height >= 0 && !invertY) || (pType->Height < 0 && invertY)))
+				pLocation->Y = pos.Y + pTypeExt->YDrawOffset_BracketAdjust_Buildings.Get(pTypeExt->YDrawOffset_BracketAdjust);
+
+			if (applyX)
+			{
+				int const width = pBuilding->Type->GetFoundationWidth();
+				int const shift = static_cast<int>(Unsorted::CellWidthInPixels * (width / 2.0) * (invertX ? -1 : 1));
+				pLocation->X = pos.X + shift + pTypeExt->XDrawOffset_BracketAdjust_Buildings.Get(pTypeExt->XDrawOffset_BracketAdjust);
+			}
+		}
+		else
+		{
+			auto const pType = pTechno->GetTechnoType();
+			auto const horizontalPos = invertX ? HorizontalPosition::Left : HorizontalPosition::Right;
+			auto const pos = TechnoExtData::GetFootSelectBracketPosition(pTechno, Anchor(horizontalPos, VerticalPosition::Top));
+
+			if (applyY && ((pType->PixelSelectionBracketDelta <= 0 && !invertY) || (pType->PixelSelectionBracketDelta > 0 && invertY)))
+				pLocation->Y = pos.Y + pType->PixelSelectionBracketDelta + pTypeExt->YDrawOffset_BracketAdjust;
+
+			if (applyX)
+				pLocation->X = pos.X + pTypeExt->XDrawOffset_BracketAdjust;
+		}
+
+		if (applyY)
+		{
+			if (auto const pShield = TechnoExtContainer::Instance.Find(pTechno)->ShieldEntity.get())
+			{
+				auto const pShieldType = pShield->GetType();
+
+				if (pShield->IsAvailable() && !pShield->IsBrokenAndNonRespawning() && (pShield->GetHealthRatio() > 0.0 || !pShieldType->Pips_HideIfNoStrength))
+				{
+					if ((pShieldType->BracketDelta <= 0 && !invertY) || (pShieldType->BracketDelta > 0 && invertY))
+						pLocation->Y += pShieldType->BracketDelta + SHIELD_HEALTHBAR_OFFSET;
+				}
+			}
+		}
+	}
+
+	*pLocation += pThis->_GetExtData()->AEDrawOffset;
+
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x422CD8, AnimClass_DrawIt_DrawOffset, 0x6)
+
 #ifdef fullbackport 
 void FakeAnimClass::_Draw_It(Point2D* arg_0, RectangleStruct* a6)
 {

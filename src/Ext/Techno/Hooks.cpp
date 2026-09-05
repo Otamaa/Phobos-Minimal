@@ -3234,3 +3234,57 @@ DEFINE_HOOK(0x708455, TechnoClass_BaseIsAttacked_Ignore2, 0x6)
 
 	return pTeam ? SkipDefend : CheckDefend;
 }
+
+static bool __fastcall TechnoClass_Limbo_Wrapper(TechnoClass* pThis)
+{
+	// Do not remove attached effects from undeploying buildings.
+	if (auto const pBuilding = cast_to<BuildingClass*>(pThis)) {
+		if (pBuilding->Type->UndeploysInto && pBuilding->CurrentMission == Mission::Selling && pBuilding->MissionStatus == 2)
+			return pThis->TechnoClass::Limbo();
+	}
+
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+	bool markForRedraw = false;
+	bool requiresRecalc = false;
+	std::vector<std::unique_ptr<PhobosAttachEffectClass>>::iterator it;
+	const auto sz = pExt->PhobosAE.size();
+
+	for (it = pExt->PhobosAE.begin(); it != pExt->PhobosAE.end(); )
+	{
+		auto const attachEffect = it->get();
+		auto const pType = attachEffect->GetType();
+
+		if ((pType->DiscardOn & DiscardCondition::Entry) != DiscardCondition::None)
+		{
+			if (pType->HasTint())
+				markForRedraw = true;
+
+			if (attachEffect->ResetIfRecreatable())
+			{
+				++it;
+				continue;
+			}
+
+			it = pExt->PhobosAE.erase(it);
+		}
+		else
+		{
+			++it;
+		}
+	}
+
+	if (sz != pExt->PhobosAE.size())
+		AEProperties::Recalculate(pThis);
+
+	if (markForRedraw)
+	{
+		pThis->MarkForRedraw();
+		pExt->Tints.Update();
+	}
+
+	return pThis->TechnoClass::Limbo();
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4A34, TechnoClass_Limbo_Wrapper); // TechnoClass
+DEFINE_FUNCTION_JUMP(CALL, 0x4DB3B1, TechnoClass_Limbo_Wrapper);   // FootClass
+DEFINE_FUNCTION_JUMP(CALL, 0x445DDA, TechnoClass_Limbo_Wrapper)    // BuildingClass
