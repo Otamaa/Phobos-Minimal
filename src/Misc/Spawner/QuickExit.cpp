@@ -57,6 +57,20 @@ bool IsFullscreenToggle(const MSG& msg) noexcept
 		&& (msg.lParam & KeyContextCodeFlag) != 0;
 }
 
+void RageQuitGame() 
+	if (SpawnerMain::GetMainConfigs()->QuickExit) {
+		if (Game::IsActive() && HouseClass::CurrentPlayer() && !Game::ScoreStuffLoad()) {
+			RageQuit = true;
+			EventClass e_DESTRUCT { HouseClass::CurrentPlayer->ArrayIndex, EventType::DESTRUCT };
+			EventClass::AddEvent(&e_DESTRUCT);
+			EventClass e_EXIT { HouseClass::CurrentPlayer->ArrayIndex, EventType::EXIT };
+			EventClass::AddEvent(&e_EXIT);
+		} else {
+			ExitProcess(0u);
+		}
+	}
+}
+
 // ---------------------------------------------------------------------------
 // EXTENSION: drop every queued draw list before the toggle reaches the window
 //            procedure, so no stale vertex/index data survives the device reset.
@@ -73,13 +87,8 @@ ASMJIT_PATCH(0x5D4E3B, Windows_Message_Handler_Dispatch, 0x5)
 
 	LEA_STACK(MSG* const, pMsg, 0x10);
 
-	if (IsQuitRequest(*pMsg) && SpawnerMain::GetMainConfigs()->QuickExit) {
-		// DIFF: hard-terminates the process. Skips static destructors, DLL_PROCESS_DETACH,
-		//       and any embedded-ReShade teardown. Preserved from the reference fork, but
-		//       with ReShade living inside Phobos.dll this now leaks D3D9 resources on exit
-		//       and bypasses the unified exception/terminate handlers. Consider routing
-		//       through a proper shutdown path instead.
-		ExitProcess(1u);
+	if(IsQuitRequest(*pMsg)){
+		RageQuitGame();
 	}
 	
 	//resolution change clear the reshade resources
@@ -97,20 +106,7 @@ ASMJIT_PATCH(0x5D4E3B, Windows_Message_Handler_Dispatch, 0x5)
 
 ASMJIT_PATCH(0x77786B, MainWindowProc_HandleRageQuit, 0x5)
 {
-	if (SpawnerMain::GetMainConfigs()->QuickExit) {
-
-		if (Game::IsActive() && HouseClass::CurrentPlayer() && !Game::ScoreStuffLoad()) {
-			RageQuit = true;
-			//ASM_CALL(0x6471A0);
-			EventClass e_DESTRUCT { HouseClass::CurrentPlayer->ArrayIndex, EventType::DESTRUCT };
-			EventClass::AddEvent(&e_DESTRUCT);
-			EventClass e_EXIT { HouseClass::CurrentPlayer->ArrayIndex, EventType::EXIT };
-			EventClass::AddEvent(&e_EXIT);
-		} else {
-			Debug::ExitGame(0u);
-		}
-	}
-
+	RageQuitGame();
 	return 0;
 }
 
@@ -121,18 +117,18 @@ ASMJIT_PATCH(0x623125, OwnerDrawLoop_HandleRageQuit, 0x5)
 		: 0;
 }
 
-ASMJIT_PATCH(0x6BE091, WinMain_AfterGameLoop_HandleQuickExit, 0x6)
-{
-	if (SpawnerMain::GetMainConfigs()->QuickExit)
-		ExitProcess(0);
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x686570, DisconnectGracefully_HandleQuickExit, 0x5)
-{
-	if (SpawnerMain::GetMainConfigs()->QuickExit)
-		ExitProcess(0);
-
-	return 0;
-}
+//ASMJIT_PATCH(0x6BE091, WinMain_AfterGameLoop_HandleQuickExit, 0x6)
+//{
+//	if (SpawnerMain::GetMainConfigs()->QuickExit)
+//		ExitProcess(0);
+//
+//	return 0;
+//}
+//
+//ASMJIT_PATCH(0x686570, DisconnectGracefully_HandleQuickExit, 0x5)
+//{
+//	if (SpawnerMain::GetMainConfigs()->QuickExit)
+//		ExitProcess(0);
+//
+//	return 0;
+//}
