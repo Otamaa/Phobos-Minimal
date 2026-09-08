@@ -206,7 +206,7 @@ static void DrawBuildingHealthBar(TechnoClass* techno, Point2D* position, Rectan
 
 		if (const auto pShieldData = pExt->GetShield())
 		{
-			if (pShieldData->IsAvailable() && !pShieldData->IsBrokenAndNonRespawning())
+			if (!pShieldData->IsBrokenAndNonRespawning())
 				pShieldData->DrawShieldBar_Building(barHeight, position, clipRect);
 		}
 
@@ -322,7 +322,7 @@ static void DrawUnitHealthBar(TechnoClass* techno, AbstractType unitType, Point2
 
 		if (const auto pShieldData = pExt->GetShield())
 		{
-			if (pShieldData->IsAvailable() && !pShieldData->IsBrokenAndNonRespawning())
+			if (!pShieldData->IsBrokenAndNonRespawning())
 				pShieldData->DrawShieldBar_Other(drawState.barLength, position, clipRect);
 		}
 

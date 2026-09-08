@@ -64,6 +64,7 @@ public:
 
 	void KillAnim();
 	void SetRespawnRestartInCombat();
+	void SetSelfHealingRestartInCombat();
 
 	void DrawShieldBar(int iLength, Point2D* pLocation, RectangleStruct* pBound);
 	void DrawShieldBar_Building(int iLength, Point2D* pLocation, RectangleStruct* pBound);
@@ -88,19 +89,14 @@ public:
 	COMPILETIMEEVAL FORCEDINLINE bool IsActive() const
 	{
 		return
-			this->Available &&
 			this->HP > 0 &&
 			this->Online;
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE bool IsAvailable() const
-	{
-		return this->Available;
-	}
 
 	COMPILETIMEEVAL FORCEDINLINE bool IsBrokenAndNonRespawning() const
 	{
-		return this->HP <= 0 && !this->Type->Respawn;
+		return this->HP <= 0 && !(this->Timers.Respawn_Warhead.InProgress() ? this->Respawn_Warhead : this->Type->Respawn);
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE bool HasTint() const {
@@ -198,7 +194,7 @@ private:
 	void CloakCheck();
 	void OnlineCheck();
 	void TemporalCheck();
-	bool ConvertCheck();
+	void ConvertCheck(TechnoTypeClass* pTechnoType, ShieldClass* pOldShield = nullptr);
 	SelfHealingStatus SelfHealEnabledByCheck();
 
 	COMPILETIMEEVAL FORCEDINLINE int DrawShieldBar_PipAmount(int iLength) const
@@ -253,7 +249,6 @@ public:
 	bool Cloak {};
 	bool Online {};
 	bool Temporal {};
-	bool Available {};
 	bool Attached {};
 	bool AreAnimsHidden {};
 

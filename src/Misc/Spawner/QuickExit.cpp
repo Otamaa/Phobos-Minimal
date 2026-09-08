@@ -57,7 +57,7 @@ bool IsFullscreenToggle(const MSG& msg) noexcept
 		&& (msg.lParam & KeyContextCodeFlag) != 0;
 }
 
-void RageQuitGame() 
+void RageQuitGame() {
 	if (SpawnerMain::GetMainConfigs()->QuickExit) {
 		if (Game::IsActive() && HouseClass::CurrentPlayer() && !Game::ScoreStuffLoad()) {
 			RageQuit = true;

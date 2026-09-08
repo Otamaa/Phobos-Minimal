@@ -8279,8 +8279,8 @@ void TechnoExtData::ProcessDigitalDisplays(TechnoClass* pThis)
 
 			position.Y += pType->PixelSelectionBracketDelta;
 
-			if (pDisplayType->InfoType == DisplayInfoType::Shield)
-				position.Y += pExt->CurrentShieldType->BracketDelta;
+			if (pDisplayType->InfoType == DisplayInfoType::Shield && pShield)
+				position.Y += pShield->BracketDelta;
 
 			pDisplayType->Draw(position, length, value, maxValue, isBuilding, isInfantry, pShield);
 		}
@@ -13248,7 +13248,7 @@ void TechnoExtData::UpdateShield()
 	auto const pThis = This();
 
 	if (!this->CurrentShieldType)
-		Debug::FatalErrorAndExit("Techno[%s] Missing CurrentShieldType ! ", pThis->get_ID());
+		return;
 
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(GET_TECHNOTYPE(pThis));
 

@@ -73,7 +73,7 @@ public:
 	static std::array<std::pair<const char*, AffectedVeterancy>, 5u> AffectedVeterancy_ToStrings;
 	static std::array<std::pair<const char*, TextAlign>, 4u> TextAlign_ToStrings;
 	static std::array<std::pair<const char*, AttachedAnimFlag>, 5u> AttachedAnimFlag_ToStrings;
-	static std::array<std::pair<const char*, AffectedHouse>, 11u> AffectedHouse_ToStrings;
+	static std::array<std::pair<const char*, AffectedHouse>, 12u> AffectedHouse_ToStrings;
 	static std::array<std::pair<const char*, AffectedTarget>, 15u> AffectedTarget_ToStrings;
 	static std::array<std::pair<const char*, SpotlightFlags>, 5u> SpotlightFlags_ToStrings;
 	static std::array<std::pair<const char*, ChronoSparkleDisplayPosition>, 5u> ChronoSparkleDisplayPosition_ToStrings;

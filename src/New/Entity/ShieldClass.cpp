@@ -31,7 +31,6 @@ ShieldClass::ShieldClass() : Techno { nullptr }
 , Cloak { false }
 , Online { true }
 , Temporal { false }
-, Available { true }
 , Attached { false }
 , AreAnimsHidden { false }
 , SelfHealing_Warhead { 0.0 }
@@ -57,7 +56,6 @@ ShieldClass::ShieldClass(TechnoClass* pTechno, bool isAttached) : Techno { pTech
 , Cloak { false }
 , Online { true }
 , Temporal { false }
-, Available { true }
 , Attached { isAttached }
 , AreAnimsHidden { false }
 , SelfHealing_Warhead { 0.0 }
@@ -91,7 +89,6 @@ ShieldClass::ShieldClass(ShieldClass&& other) noexcept
 	, Cloak(other.Cloak)
 	, Online(other.Online)
 	, Temporal(other.Temporal)
-	, Available(other.Available)
 	, Attached(other.Attached)
 	, AreAnimsHidden(other.AreAnimsHidden)
 	, SelfHealing_Warhead(other.SelfHealing_Warhead)
@@ -135,7 +132,6 @@ ShieldClass& ShieldClass::operator=(ShieldClass&& other) noexcept
 	this->Cloak = other.Cloak;
 	this->Online = other.Online;
 	this->Temporal = other.Temporal;
-	this->Available = other.Available;
 	this->Attached = other.Attached;
 	this->AreAnimsHidden = other.AreAnimsHidden;
 
@@ -182,7 +178,6 @@ bool ShieldClass::Serialize(T& Stm)
 		.Process(this->Cloak)
 		.Process(this->Online)
 		.Process(this->Temporal)
-		.Process(this->Available)
 		.Process(this->Attached)
 		.Process(this->AreAnimsHidden)
 		.Process(this->SelfHealing_Warhead)
@@ -254,42 +249,23 @@ void ShieldClass::SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo)
 	if (!pToExt || !pFromExt)
 		return;
 
-	auto pForomShield = pFromExt->GetShield();
-
-	if(!pForomShield)
-		return;
-
-	if (pTypeExt->ShieldType && pFromExt->CurrentShieldType != pTypeExt->ShieldType)
+	if (auto pForomShield = pFromExt->GetShield())
 	{
-		if(auto pToShield = pToExt->GetShield()) {
-			const auto nFromPrecentage = int(pForomShield->GetHealthRatio() * pForomShield->Type->Strength);
-			pToShield->SetHP((int)nFromPrecentage);
-
-			if (pToShield->GetHP() == 0){
-					pToShield->SetRespawn(
-					pTypeExt->ShieldType->Respawn_Rate,
-					pTypeExt->ShieldType->Respawn,
-					pTypeExt->ShieldType->Respawn_Rate,
-					pTypeExt->ShieldType->Respawn_RestartInCombat,
-					-1,
-					true,
-					&pTypeExt->ShieldType->Respawn_Anim.AsVector()
-				);
-			}
-		}
-	} else {
 		pToExt->CurrentShieldType = pFromExt->CurrentShieldType;
-		pToExt->ShieldEntity = std::make_unique<ShieldClass>(pTo, true);
+		if(!pToExt->ShieldEntity)
+			pToExt->ShieldEntity = std::make_unique<ShieldClass>(pTo, true);
+		else 
+			pToExt->ShieldEntity->Type = pFromExt->CurrentShieldType;
 
-		if(pToExt->ShieldEntity){
-			pToExt->ShieldEntity->KillAnim();
-			pToExt->ShieldEntity->Techno = pTo;
-			pToExt->ShieldEntity->CreateAnim(pFromExt->CurrentShieldType);
-		}
+		// handle shield conversion and tint
+		pToExt->ShieldEntity->ConvertCheck(pToExt->TypeExtData->This(), pForomShield);
+
+		if (pToExt->ShieldEntity)
+			pToExt->ShieldEntity->UpdateTint();
+
+		if (pFrom->WhatAmI() == AbstractType::Building)
+			pFromExt->ShieldEntity = nullptr;
 	}
-
-	if (pFrom->WhatAmI() == AbstractType::Building && pFromExt->ShieldEntity)
-		pFromExt->ShieldEntity.reset();
 }
 
 void ShieldClass::OnRemove() { KillAnim(); }
@@ -367,12 +343,12 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	}
 
 	int nDamageResult = 0;
-	bool IsShielRequreFeeback = true;
+	bool IsShieldRequireFeedback = true;
 	DamageToShieldAfterMinMax = std::clamp(DamageToShield,
 		GeneralUtils::SafeMultiply(pWHExt->Shield_ReceivedDamage_Minimum.Get(this->Type->ReceivedDamage_Minimum) , pWHExt->Shield_ReceivedDamage_MinMultiplier),
 			GeneralUtils::SafeMultiply(pWHExt->Shield_ReceivedDamage_Maximum.Get(this->Type->ReceivedDamage_Maximum) , pWHExt->Shield_ReceivedDamage_MaxMultiplier));
 
-	if (DamageToShieldAfterMinMax == 0)
+	if (DamageToShieldAfterMinMax == 0) //shield can't take damage, but the damage can be passed to the techno
 	{
 		auto nPassableDamageAnountCopy = PassableDamageAnount;
 		if (bool(Phobos::Debug_DisplayDamageNumbers > DrawDamageMode::disabled) && Phobos::Debug_DisplayDamageNumbers < DrawDamageMode::count && (nPassableDamageAnountCopy) != 0)
@@ -380,26 +356,10 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 
 		nDamageResult = PassableDamageAnount;
 	}
-	else if (DamageToShieldAfterMinMax > 0)
+	else if (DamageToShieldAfterMinMax > 0) //shield can take damage
 	{
-		bool whModifiersApplied = this->Timers.SelfHealing_Warhead.InProgress();
-		bool restart = whModifiersApplied ? this->SelfHealing_RestartInCombat_Warhead : this->Type->SelfHealing_RestartInCombat;
-
-		if (restart)
-		{
-			int delay = whModifiersApplied ? this->SelfHealing_RestartInCombatDelay_Warhead : this->Type->SelfHealing_RestartInCombatDelay;
-
-			if (delay > 0)
-			{
-				this->Timers.SelfHealing_CombatRestart.Start(this->Type->SelfHealing_RestartInCombatDelay);
-				this->Timers.SelfHealing.Stop();
-			}
-			else
-			{
-				const int rate = whModifiersApplied ? this->SelfHealing_Rate_Warhead : this->Type->SelfHealing_Rate;
-				this->Timers.SelfHealing.Start(rate); // when attacked, restart the timer
-			}
-		}
+		this->SetRespawnRestartInCombat();
+		this->SetSelfHealingRestartInCombat();
 
 		if(pWHExt->Malicious && !pWHExt->Nonprovocative)
 			this->ResponseAttack(args->WH);
@@ -474,7 +434,7 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 				 TechnoExtData::GetArmor(this->Techno),
 				 args->DistanceToEpicenter) < 0
 				 )
-				IsShielRequreFeeback = !this->Type->PassthruNegativeDamage;
+				IsShieldRequireFeedback = !this->Type->PassthruNegativeDamage;
 		} else { //otherwise we heal the shield
 			if (this->Type->CanBeHealed) {
 				auto nDamageCopy = DamageToShieldAfterMinMax;
@@ -497,7 +457,7 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 				CellStruct::Empty, false, args->Attacker);//where is this? is this correct?
 	}
 
-	if (IsShielRequreFeeback)
+	if (IsShieldRequireFeedback)
 	{
 		*args->Damage = nDamageResult;
 		TechnoExtContainer::Instance.Find(this->Techno)->SkipLowDamageCheck = true;
@@ -628,10 +588,8 @@ void ShieldClass::OnTemporalUpdate(TemporalClass* pTemporal)
 
 void ShieldClass::OnUpdate()
 {
-	// if (!this->Techno || this->Techno->InLimbo || this->Techno->IsImmobilized || this->Techno->Transporter)
-	// {
-	// 	return;
-	// }
+	//if (!this->Techno || this->Techno->InLimbo || this->Techno->IsImmobilized || this->Techno->Transporter)
+	//	return;
 
 	if (this->Techno->Location == CoordStruct::Empty)
 		return;
@@ -652,16 +610,9 @@ void ShieldClass::OnUpdate()
 		return;
 	}
 
-	if (this->ConvertCheck())
-		return;
-
-	this->UpdateType();
 	this->CloakCheck();
-
-	if (!this->Available)
-		return;
-
 	this->TemporalCheck();
+
 	if (this->Temporal)
 		return;
 
@@ -674,7 +625,9 @@ void ShieldClass::OnUpdate()
 		timer->Pause();
 	}
 	else if(selfHealingCheck == SelfHealingStatus::Online) {
-		timer->Resume();
+		if (timer->StartTime == -1)
+			timer->Resume();
+
 		this->RespawnShield();
 		this->SelfHealing();
 	}
@@ -766,8 +719,6 @@ void ShieldClass::OnlineCheck()
 			this->Online = true;
 		}
 
-		timer->Resume();
-
 		if (this->IdleAnim)
 		{
 			this->IdleAnim->UnderTemporal = false;
@@ -782,9 +733,6 @@ void ShieldClass::TemporalCheck()
 		return;
 
 	this->Temporal = false;
-
-	const auto timer = (this->HP <= 0) ? &this->Timers.Respawn : &this->Timers.SelfHealing;
-	timer->Resume();
 
 	if (this->IdleAnim)
 	{
@@ -802,37 +750,21 @@ void ShieldClass::UpdateTint(bool forceUpdate)
 }
 
 // Is used for DeploysInto/UndeploysInto and DeploysInto/UndeploysInto
-bool ShieldClass::ConvertCheck()
+void ShieldClass::ConvertCheck(TechnoTypeClass* pTechnoType, ShieldClass* pOldShield)
 {
-	const auto newID = GET_TECHNOTYPE(this->Techno);
-	// If there has been no actual TechnoType conversion then we bail out early.
-	if (this->CurTechnoType == newID)
-		return false;
-
 	const auto pTechnoExt = TechnoExtContainer::Instance.Find(this->Techno);
-	const auto pTechnoTypeExt = GET_TECHNOTYPEEXT(this->Techno);
 	const auto pOldType = this->Type;
-	bool allowTransfer = this->Type->AllowTransfer.Get(Attached);
 
-	if (!allowTransfer && !pTechnoTypeExt->ShieldType->Strength)
+	if (!pOldType->AllowTransfer.Get(Attached))
 	{
-		// Case 1: Old shield is not allowed to transfer or there's no eligible new shield type -> delete shield.
-		this->KillAnim();
-		pTechnoExt->CurrentShieldType = ShieldTypeClass::FindOrAllocate(DEFAULT_STR2);
-		pTechnoExt->ShieldEntity.reset();
-		this->UpdateTint();
-
-		return true;
-	}
-	else if (!allowTransfer)
-	{
-		// Case 2: Old shield is not allowed to transfer and the new type is eligible for activation -> use the new shield type.
+		const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 		pTechnoExt->CurrentShieldType = pTechnoTypeExt->ShieldType && pTechnoTypeExt->ShieldType->Strength > 0 ? pTechnoTypeExt->ShieldType : nullptr;
+
 		if (!pTechnoExt->CurrentShieldType) {
 			// Case 1: Old shield is not allowed to transfer or there's no eligible new shield type -> delete shield.
 			this->KillAnim();
 			pTechnoExt->ShieldEntity.reset();
-			return true;
+			return;
 		} else {
 			// Case 2: Old shield is not allowed to transfer and the new type is eligible for activation -> use the new shield type.
 			this->Type = pTechnoTypeExt->ShieldType;
@@ -842,44 +774,125 @@ bool ShieldClass::ConvertCheck()
 	// Our new type is either the old shield or the changed type from the above two scenarios.
 	const auto pNewType = pTechnoExt->CurrentShieldType;
 
-	// Update shield properties. if we still have a shield.
-	if (pNewType && this->Available)
+	// Calculation that's irrelevant to old shield type
+	this->CurTechnoType = pTechnoType;
+	this->BracketDelta = pTechnoType->PixelSelectionBracketDelta + pNewType->BracketDelta - 3;
+
+	// Sync properties of old shield. Just clone everything so Convert and DeploysInto have the same behavior
+	if (pOldShield)
 	{
-		bool isDamaged = this->Techno->GetHealthRatio() <= this->Type->GetConditionYellow();
-		double healthRatio = this->GetHealthRatio();
+		this->HP = pOldShield->HP;
+		this->IdleAnim.reset(pOldShield->IdleAnim.release());
+		this->Online = pOldShield->Online;
+		this->Cloak = pOldShield->Cloak;
+		this->Temporal = pOldShield->Temporal;
+		this->Attached = pOldShield->Attached;
+		this->AreAnimsHidden = pOldShield->AreAnimsHidden;
+		this->LastBreakFrame = pOldShield->LastBreakFrame;
+		this->LastTechnoHealthRatio = pOldShield->LastTechnoHealthRatio;
 
-		if (pOldType->GetIdleAnimType(isDamaged, healthRatio) != pNewType->GetIdleAnimType(isDamaged, healthRatio))
-			this->KillAnim();
+		// Start timer here and further tweak it based on old shield type later
+		// In case it's paused, set TimerLeft manually
+		if (pOldShield->Timers.Respawn.InProgress())
+			this->Timers.Respawn.Start(pOldShield->Timers.Respawn.GetTimeLeft());
+		else if (pOldShield->Timers.Respawn.HasStarted())
+			this->Timers.Respawn.TimeLeft = pOldShield->Timers.Respawn.GetTimeLeft();
 
+		if (pOldShield->Timers.Respawn_Warhead.InProgress())
+		{
+			this->Respawn_Warhead = pOldShield->Respawn_Warhead;
+			this->Respawn_Rate_Warhead = pOldShield->Respawn_Rate_Warhead;
+			this->Respawn_RestartInCombat_Warhead = pOldShield->Respawn_RestartInCombat_Warhead;
+			this->Respawn_RestartInCombatDelay_Warhead = pOldShield->Respawn_RestartInCombatDelay_Warhead;
+			this->Respawn_Anim_Warhead = pOldShield->Respawn_Anim_Warhead;
+			this->Respawn_Weapon_Warhead = pOldShield->Respawn_Weapon_Warhead;
+			this->Timers.Respawn_Warhead.Start(pOldShield->Timers.Respawn_Warhead.GetTimeLeft());
+		}
+
+		if (pOldShield->Timers.Respawn_CombatRestart.InProgress())
+			this->Timers.Respawn_CombatRestart.Start(pOldShield->Timers.Respawn_CombatRestart.GetTimeLeft());
+
+		// Start timer here and further tweak it based on old shield type later
+		// In case it's paused, set TimerLeft manually
+		if (pOldShield->Timers.SelfHealing.InProgress())
+			this->Timers.SelfHealing.Start(pOldShield->Timers.SelfHealing.GetTimeLeft());
+		else if (pOldShield->Timers.SelfHealing.HasStarted())
+			this->Timers.SelfHealing.TimeLeft = pOldShield->Timers.SelfHealing.GetTimeLeft();
+
+		if (pOldShield->Timers.SelfHealing_Warhead.InProgress())
+		{
+			this->SelfHealing_Warhead = pOldShield->SelfHealing_Warhead;
+			this->SelfHealing_Rate_Warhead = pOldShield->SelfHealing_Rate_Warhead;
+			this->SelfHealing_RestartInCombat_Warhead = pOldShield->SelfHealing_RestartInCombat_Warhead;
+			this->SelfHealing_RestartInCombatDelay_Warhead = pOldShield->SelfHealing_RestartInCombatDelay_Warhead;
+			this->Timers.SelfHealing_Warhead.Start(pOldShield->Timers.SelfHealing_Warhead.GetTimeLeft());
+		}
+
+		if (pOldShield->Timers.SelfHealing_CombatRestart.InProgress())
+			this->Timers.SelfHealing_CombatRestart.Start(pOldShield->Timers.SelfHealing_CombatRestart.GetTimeLeft());
+	}
+
+	// Handle Powered
+	if (!pNewType->Powered)
+		this->Online = true;
+
+	// Calculation that's related to old shield type
+	if (pNewType == pOldType)
+		return;
+
+	const bool isDamaged = this->Techno->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
+	const double healthRatio = this->GetHealthRatio();
+
+	if (pOldType->GetIdleAnimType(isDamaged, healthRatio) != pNewType->GetIdleAnimType(isDamaged, healthRatio))
+		this->KillAnim();
+
+	bool respawn = this->HP <= 0;
+
+	if (!respawn)
+	{
 		this->HP = (int)round(
-			(double)this->HP /
-			(double)pOldType->Strength *
-			(double)pNewType->Strength
+			(double)this->HP *
+			pNewType->Strength /
+			pOldType->Strength
 		);
+
+		respawn = this->HP <= 0;
 	}
-	else
+
+	const auto timer = respawn ? &this->Timers.Respawn : &this->Timers.SelfHealing;
+	const auto timerWHModifier = respawn ? &this->Timers.Respawn_Warhead : &this->Timers.SelfHealing_Warhead;
+
+	// Reuse warhead modifier if active, otherwise reset it base on old shield type
+	if (!timerWHModifier->InProgress())
 	{
-		const auto timer = (this->HP <= 0) ? &this->Timers.Respawn : &this->Timers.SelfHealing;
-		if (pNewType  && !this->Available)
-		{ // Resume this shield when became Available
-			timer->Resume();
-			this->Available = true;
+		// Bail out if can't respawn or self heal
+		if (respawn ? pNewType->Respawn == 0.0 : pNewType->SelfHealing == 0.0)
+		{
+			timer->Stop();
+			return;
 		}
-		else if (this->Available)
-		{ // Pause this shield when became unAvailable
-			timer->Pause();
-			this->Available = false;
-			this->KillAnim();
+
+		const int newRate = respawn ? pNewType->Respawn_Rate : pNewType->SelfHealing_Rate;
+
+		if (respawn ? pOldType->Respawn : pOldType->SelfHealing)
+		{
+			const int oldRate = respawn ? pOldType->Respawn_Rate : pOldType->SelfHealing_Rate;
+
+			// Recalculate timer based on both old and new shield types
+			if (oldRate > 0)
+				timer->TimeLeft = static_cast<int>((double)timer->GetTimeLeft() * newRate / oldRate);
+		}
+		// Handle the case where old shield type doesn't have respawn or self heal
+		else
+		{
+			const auto timerCombatRestart = respawn ? &this->Timers.Respawn_CombatRestart : &this->Timers.SelfHealing_CombatRestart;
+
+			// Restart the timer if it's not in combat status
+			if (!timerCombatRestart->InProgress())
+				timer->Start(newRate);
 		}
 	}
 
-	this->CurTechnoType = newID;
-	// Force tint update on shield type conversion.
-	this->UpdateTint(true);
-	// BracketDelta
-	this->BracketDelta = this->CurTechnoType->PixelSelectionBracketDelta + pNewType->BracketDelta - 3;
-
-	return false;
 }
 
 SelfHealingStatus ShieldClass::SelfHealEnabledByCheck()
@@ -967,9 +980,13 @@ void ShieldClass::InvalidateAnimPointer(AnimClass* ptr)
 void ShieldClass::BreakShield(AnimTypeClass* pBreakAnim, WeaponTypeClass* pBreakWeapon)
 {
 	this->HP = 0;
+	auto const pType = this->Type;
+	const bool hasModifier = this->Timers.Respawn_Warhead.InProgress();
 
-	if (this->Type->Respawn)
-		this->Timers.Respawn.Start(this->Timers.Respawn_Warhead.InProgress() ? Respawn_Rate_Warhead : this->Type->Respawn_Rate);
+	// Start the timer here, RestartInCombat will be processed later on
+	// regardless of RestartInCombat here since Resume won't take effect
+	if (hasModifier ? this->Respawn_Warhead : pType->Respawn)
+		this->Timers.Respawn.Start(hasModifier ? Respawn_Rate_Warhead : this->Type->Respawn_Rate);
 
 	this->Timers.SelfHealing.Stop();
 
@@ -1001,42 +1018,59 @@ void ShieldClass::RespawnShield()
 {
 	const auto timerCombatRestart = &this->Timers.Respawn_CombatRestart;
 
+	int& health = this->HP;
+
+	if (health > 0)
+		return;
+
 	if (timerCombatRestart->InProgress())
 		return;
 
 	const auto pType = this->Type;
 	auto timer = &this->Timers.Respawn;
-	auto timerWH = &this->Timers.Respawn_Warhead;
+	auto timerWHModifier = &this->Timers.Respawn_Warhead;
+	const bool hasModifier = timerWHModifier->InProgress();
+	const int rate = hasModifier ? this->Respawn_Rate_Warhead : pType->Respawn_Rate;
 
-	if (timerCombatRestart->Completed())
-	{
-		const int rate = timerWH->InProgress() ? this->Respawn_Rate_Warhead : pType->Respawn_Rate;
+	if (timerCombatRestart->Completed()) {
 		timer->Start(rate);
 		timerCombatRestart->Stop();
 	}
 
-	if (this->HP <= 0 && timer->Completed())
+	if (timerCombatRestart->Completed())
 	{
-		timer->Stop();
-		double amount = timerWH->InProgress() ? Respawn_Warhead : this->Type->Respawn;
-		this->HP = this->GetPercentageAmount(amount);
-		this->UpdateTint();
-
-		const auto pAnimList = timerWH->InProgress() ? this->Respawn_Anim_Warhead : Iterator(pType->Respawn_Anim);
-		const auto pWeapon = timerWH->InProgress() ? this->Respawn_Weapon_Warhead : pType->Respawn_Weapon;
-
-		const auto pTechno = this->Techno;
-
-		AnimExtData::CreateRandomAnim(pAnimList, pTechno->Location, pTechno, pTechno->Owner, true);
-
-		if (pWeapon)
-			TechnoExtData::FireWeaponAtSelf(pTechno, pWeapon);
-
+		timerWHModifier->Stop();
+		if (timer->HasStarted()) {
+			if (pType->Respawn) {
+				const double mult = this->Respawn_Rate_Warhead > 0 ? (double)pType->Respawn_Rate / this->Respawn_Rate_Warhead : 0.0;
+				timer->TimeLeft = static_cast<int>(timer->GetTimeLeft() * mult);
+			} else {
+				timer->Stop();
+				return;
+			}
+		}
 	}
-	else if (timerWH->Completed() && timer->InProgress())
-	{
-		double mult = this->Respawn_Rate_Warhead > 0 ? Type->Respawn_Rate / this->Respawn_Rate_Warhead : 1.0;
-		timer->TimeLeft = static_cast<int>(timer->GetTimeLeft() * mult);
+
+	const int percentageAmount = this->GetPercentageAmount(hasModifier ? this->Respawn_Warhead : pType->Respawn);
+
+	if (percentageAmount > 0) {
+		// failsafe, in case of timer ends in some edged cases
+		if (timer->StartTime == -1)
+			timer->Start(rate);
+
+		if (timer->Completed()) {
+			timer->Stop();
+			health = percentageAmount;
+			this->UpdateTint();
+			const auto pAnimList = hasModifier ? make_iterator(this->Respawn_Anim_Warhead) : make_iterator(pType->Respawn_Anim);
+			const auto pWeapon = hasModifier ? this->Respawn_Weapon_Warhead : pType->Respawn_Weapon;
+			const auto pTechno = this->Techno;
+
+			AnimExtData::CreateRandomAnim(pAnimList, pTechno->Location, pTechno, pTechno->Owner, true);
+
+			if (pWeapon)
+				TechnoExtData::FireWeaponAtSelf(pTechno, pWeapon);
+		}
 	}
 }
 
@@ -1098,27 +1132,57 @@ void ShieldClass::SetRespawnRestartInCombat()
 	}
 }
 
+void ShieldClass::SetSelfHealingRestartInCombat()
+{
+	const auto pType = this->Type;
+	const bool whModifiersApplied = this->Timers.SelfHealing_Warhead.InProgress();
+
+	if (whModifiersApplied ? this->SelfHealing_RestartInCombat_Warhead : pType->SelfHealing_RestartInCombat)
+	{
+		const int delay = whModifiersApplied ? this->SelfHealing_RestartInCombatDelay_Warhead : pType->SelfHealing_RestartInCombatDelay;
+
+		if (delay > 0)
+		{
+			this->Timers.SelfHealing_CombatRestart.Start(delay);
+			this->Timers.SelfHealing.Stop();
+		}
+		else if (this->HP > 0)
+		{
+			if (const int rate = whModifiersApplied ? this->SelfHealing_Rate_Warhead : pType->SelfHealing_Rate)
+				this->Timers.SelfHealing.Start(rate); // when attacked, restart the timer
+		}
+	}
+}
+
 void ShieldClass::SetSelfHealing(int duration, double amount, int rate, bool restartInCombat, int restartInCombatDelay, bool resetTimer)
 {
-	auto timer = &this->Timers.SelfHealing;
-	auto timerWH = &this->Timers.SelfHealing_Warhead;
-	const bool modifierTimerInProgress = timerWH->InProgress();
+	const auto pType = this->Type;
+	const auto timer = &this->Timers.SelfHealing;
+	const auto timerWHModifier = &this->Timers.SelfHealing_Warhead;
+	const auto timerCombatRestart = &this->Timers.SelfHealing_CombatRestart;
+	const int oldRate = this->SelfHealing_Rate_Warhead >= 0 ? this->SelfHealing_Rate_Warhead : pType->SelfHealing_Rate;
 
-	this->SelfHealing_Warhead = amount;
-	this->SelfHealing_Rate_Warhead = rate >= 0 ? rate : Type->SelfHealing_Rate;
-	this->SelfHealing_RestartInCombat_Warhead = restartInCombat;
-	this->SelfHealing_RestartInCombatDelay_Warhead = restartInCombatDelay >= 0 ? restartInCombatDelay : Type->SelfHealing_RestartInCombatDelay;
+	if (duration > 0)
+	{
+		this->SelfHealing_Warhead = amount;
+		this->SelfHealing_Rate_Warhead = rate >= 0 ? rate : pType->SelfHealing_Rate;
+		this->SelfHealing_RestartInCombat_Warhead = restartInCombat;
+		this->SelfHealing_RestartInCombatDelay_Warhead = restartInCombatDelay >= 0 ? restartInCombatDelay : pType->SelfHealing_RestartInCombatDelay;
+		timerWHModifier->Start(duration);
+	}
 
-	timerWH->Start(duration);
+	if (this->HP <= 0)
+		return;
 
 	if (resetTimer)
 	{
-		timer->Start(this->SelfHealing_Rate_Warhead);
+		if (!timerCombatRestart->InProgress())
+			timer->Start(this->SelfHealing_Rate_Warhead >= 0 ? this->SelfHealing_Rate_Warhead : pType->SelfHealing_Rate);
 	}
-	else if (timer->InProgress() && !modifierTimerInProgress && this->SelfHealing_Rate_Warhead != Type->SelfHealing_Rate)
+	else if (duration > 0 && this->SelfHealing_Rate_Warhead != oldRate && timer->HasStarted())
 	{
-		double mult = Type->SelfHealing_Rate > 0 ? ((double)this->SelfHealing_Rate_Warhead / (double)Type->SelfHealing_Rate.Get()) : 1.0;
-		timer->TimeLeft = int(timer->GetTimeLeft() * mult);
+		const double mult = oldRate > 0 ? (double)this->SelfHealing_Rate_Warhead / oldRate : 1.0;
+		timer->TimeLeft = static_cast<int>(timer->GetTimeLeft() * mult);
 	}
 }
 

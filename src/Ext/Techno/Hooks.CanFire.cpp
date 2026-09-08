@@ -86,7 +86,7 @@ bool bIgnoreDisableWeapon)
 		return FireError::ILLEGAL;
 
 	if(!bIgnoreDisableWeapon && TechnoExtData::HasWeaponsDisabled(pThis)){
-			return FireError::REARM;
+		return FireError::REARM;
 	}
 
 	if (pTechnoT)

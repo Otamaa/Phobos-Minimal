@@ -3844,7 +3844,7 @@ void ObserverUIClass::DrawTooltip(DSurface* pSurface, const ObserverCameoItem& i
 
 				// Shield Status Line
 				auto const pExt = TechnoExtContainer::Instance.Find(pBuilding);
-				if (pExt && pExt->ShieldEntity && pExt->ShieldEntity->IsAvailable())
+				if (pExt && pExt->ShieldEntity && !pExt->ShieldEntity->IsBrokenAndNonRespawning())
 				{
 					std::wostringstream shieldOss;
 					shieldOss << L"Shield: " << pExt->ShieldEntity->GetHP() << L"/" << pExt->ShieldEntity->GetType()->Strength.Get();

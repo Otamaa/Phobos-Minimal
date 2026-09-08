@@ -6,53 +6,6 @@
 #include <Ext/TEvent/Body.h>
 #include <Ext/Scenario/Body.h>
 
-#pragma region PlayerAtX
-
-// Handle mapping player slot index for trigger to HouseClass pointer in logic.
-
-ASMJIT_PATCH(0x7265F7, TriggerClass_Logic_PlayerAtX, 0x6)
-{
-	enum { SkipGameCode = 0x726602 };
-
-	GET(TriggerTypeClass*, pType, EDX);
-
-	if (SessionClass::IsCampaign())
-		return 0;
-
-	auto const& triggerOwners = ScenarioExtData::Instance()->TriggerTypePlayerAtXOwners;
-	auto it = triggerOwners.get_key_iterator(pType->ArrayIndex);
-
-	if (it != triggerOwners.end())
-	{
-		if (auto const pHouse = HouseClass::FindByPlayerAt(it->second))
-		{
-			R->EAX(pHouse);
-			return SkipGameCode;
-		}
-	}
-
-	return 0;
-}
-
-// Remove destroyed triggers from the map.
-ASMJIT_PATCH(0x726727, TriggerClass_Destroy_PlayerAtX, 0x5)
-{
-	GET(TriggerClass*, pThis, ESI);
-
-	if (SessionClass::IsCampaign())
-		return 0;
-
-	auto& triggerOwners = ScenarioExtData::Instance()->TriggerTypePlayerAtXOwners;
-	auto it = triggerOwners.get_key_iterator(pThis->Type->ArrayIndex);
-
-	if (it != triggerOwners.end())
-		triggerOwners.erase(it);
-
-	return 0;
-}
-
-#pragma endregion
-
 // TriggerClass::RegisterEvent(...) rewrite
 ASMJIT_PATCH(0x7264C0, TriggerClass_RegisterEvent_ForceSequentialEvents, 0x7)
 {

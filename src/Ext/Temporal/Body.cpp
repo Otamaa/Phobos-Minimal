@@ -101,9 +101,7 @@ void HandleDestruction(TemporalClass* pTemporal , TechnoClass* target , WeaponTy
 	auto const pTargetExt = TechnoExtContainer::Instance.Find(target);
 
 	if (auto pTargetShield = pTargetExt->GetShield()) {
-		if (pTargetShield->IsAvailable()) {
-			pTargetShield->OnTemporalUpdate(pTemporal);
-		}
+		pTargetShield->OnTemporalUpdate(pTemporal);
 	}
 
 	pTargetExt->RadarJammerEntity.reset();

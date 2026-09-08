@@ -313,7 +313,7 @@ void PhobosAttachEffectClass::AI_Temporal()
 	}
 }
 
-void PhobosAttachEffectClass::AddExpireWeaponParams(ExpireWeaponCondition condition, std::vector<AEWeaponParams>& expireWeapons, bool ignoreCumulativeCountCheck = false) const
+void PhobosAttachEffectClass::AddExpireWeaponParams(ExpireWeaponCondition condition, std::vector<AEWeaponParams>& expireWeapons, bool ignoreCumulativeCountCheck) const
 {
 
 }
@@ -1378,15 +1378,33 @@ void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, Tech
 		{
 			if (!cumulative || (type->Cumulative_MaxCount >= 0 && currentTypeCount >= type->Cumulative_MaxCount))
 				match->Duration = MaxImpl(match->Duration, attachEffect->Duration);
-
 		}
 		else
 		{
 			AEAttachParams info {};
 			info.DurationOverride = attachEffect->DurationOverride;
 
-			if (auto const pAE = PhobosAttachEffectClass::CreateAndAttach(type, pTarget, pTargetExt->PhobosAE, attachEffect->InvokerHouse, attachEffect->Invoker, attachEffect->Source, info, false))
+			if (auto const pAE = PhobosAttachEffectClass::CreateAndAttach(type, pTarget, pTargetExt->PhobosAE, attachEffect->InvokerHouse, attachEffect->Invoker, attachEffect->Source, info, false)){ 
 				pAE->Duration = attachEffect->Duration;
+
+				// status
+				pAE->IsAnimHidden = attachEffect->IsAnimHidden;
+				pAE->IsInTunnel = attachEffect->IsInTunnel;
+				pAE->IsUnderTemporal = attachEffect->IsUnderTemporal;
+				pAE->IsOnline = attachEffect->IsOnline;
+				pAE->IsCloaked = attachEffect->IsCloaked;
+
+				// check results
+				pAE->LastDiscardCheckValue = attachEffect->LastDiscardCheckValue;
+				pAE->LastActiveStat = attachEffect->LastActiveStat;
+				pAE->LastSequenceCheck = attachEffect->LastSequenceCheck;
+				pAE->ShouldBeDiscarded = attachEffect->ShouldBeDiscarded;
+
+				// discard count
+				pAE->FiringCount = attachEffect->FiringCount;
+				pAE->ReceivedDamageCount = attachEffect->ReceivedDamageCount;
+
+			}
 		}
 
 		if (type->HasTint())

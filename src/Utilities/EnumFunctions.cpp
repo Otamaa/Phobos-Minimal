@@ -219,7 +219,7 @@ std::array<std::pair<const char*, AttachedAnimFlag>, 5u>  EnumFunctions::Attache
 }
 };
 
-std::array<std::pair<const char*, AffectedHouse>, 11u> EnumFunctions::AffectedHouse_ToStrings
+std::array<std::pair<const char*, AffectedHouse>, 12u> EnumFunctions::AffectedHouse_ToStrings
 {
 {
 	{"none" , AffectedHouse::None} ,
@@ -233,7 +233,7 @@ std::array<std::pair<const char*, AffectedHouse>, 11u> EnumFunctions::AffectedHo
 	{"team" , AffectedHouse::Team } ,
 	{"others" , AffectedHouse::NotOwner } ,
 	{"all" , AffectedHouse::All } ,
-	{"trump" , AffectedHouse::NotAllies }
+	{"trump" , AffectedHouse::NotAllies },
 }
 };
 
