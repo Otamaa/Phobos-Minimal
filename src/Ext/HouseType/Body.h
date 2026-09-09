@@ -50,6 +50,7 @@ public:
 	ValueableVector<int> ParaDropNum {};
 	ValueableVector<BuildingTypeClass*> Powerplants {};
 	ValueableVector<BuildingTypeClass*> VeteranBuildings {};
+	ValueableVector<BuildingTypeClass*> VeteranDefenses {};
 	ValueableVector<std::string> TauntFile {};
 	NullableVector<TechnoTypeClass*> StartInMultiplayer_Types {};
 

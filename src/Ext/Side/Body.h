@@ -162,6 +162,11 @@ public:
 	Nullable<SHPCaches*> SelectedInfo_Toggle { };
 	CustomPalette SelectedInfo_Palette { };
 
+	ValueableVector<BuildingTypeClass*> VeteranBuildings { };
+	ValueableVector<BuildingTypeClass*> VeteranDefenses { };
+	ValueableVector<InfantryTypeClass*> VeteranInfantry { };
+	ValueableVector<UnitTypeClass*> VeteranUnits { };
+	ValueableVector<AircraftTypeClass*> VeteranAircraft { };
 #pragma endregion
 
 public:

@@ -612,20 +612,38 @@ ASMJIT_PATCH(0x74081F, UnitClass_Mission_Guard_KickFrameDelay, 5)
 // 		0x74416C : 0x744129;
 // }
 
-ASMJIT_PATCH(0x74689B, UnitClass_Init_Academy, 6)
+#include <Ext/Side/Body.h>
+
+bool SetInitialVeteran(UnitClass* pThis)
+{
+	if (pType->Trainable && (pType->Naval ? HouseExtContainer::Instance.Find(pThis->Owner)->Is_NavalYardSpied : pThis->Owner->WarFactoryInfiltrated))
+		return true;
+
+	if (const auto pSide = HouseExtData::GetSide(pThis->Owner)) {
+		if (SideExtContainer::Instance.Find(pSide)->VeteranUnits.Contains(pThis->Type)) {
+			return true;
+		}
+	}
+
+	if (pThis->Owner->Type->VeteranUnits.contains(pThis->Type))
+		return true;
+
+	return false;
+}
+
+ASMJIT_PATCH(0x746819, UnitClass_Init_Academy, 6)
 {
 	GET(UnitClass*, pThis, ESI);
 
 	if (!pThis->Owner)
-		return 0x0;
+		return 0x74689B;
 
 	const auto pType = pThis->Type;
 	const auto pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
 
-	if (pType->Trainable && pType->Naval && pHouseExt->Is_NavalYardSpied)
-	{
-		pThis->Veterancy.SetVeteran();
-	}
+
+	if (SetInitialVeteran(pThis))
+		pThis->Veterancy.Veterancy = 1.0f;
 
 	AbstractType type = AbstractType::Unit;
 	if (pType->ConsideredAircraft)
@@ -635,9 +653,15 @@ ASMJIT_PATCH(0x74689B, UnitClass_Init_Academy, 6)
 
 	HouseExtData::ApplyAcademy(pThis->Owner, pThis, type);
 
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x735678, UnitClass_Init_Academy, 6) // inlined in CTOR
+	return 0x74689B;
+}
 
+ASMJIT_PATCH(0x7355EF, UnitClass_CTOR_inlined_Init, 7)
+{
+	GET(UnitClass*, pThis, ESI);
+	pThis->UnitClass::Init();
+	return 0x735691;
+}
 
 // make the space between gunner name segment and ifv
 // name smart. it disappears if one of them is empty,

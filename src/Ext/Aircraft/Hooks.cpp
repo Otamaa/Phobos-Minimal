@@ -60,19 +60,36 @@ ASMJIT_PATCH(0x4DF42A, FootClass_UpdateAttackMove_AircraftHoldAttackMoveTarget2,
 	return (pThis->WhatAmI() == AbstractType::Aircraft && AircraftTypeExtData::ExtendedAircraftMissionsEnabled((AircraftClass*)pThis) ) ? HoldTarget : ContinueCheck;
 }
 
-ASMJIT_PATCH(0x413FD2, AircraftClass_Init_Academy, 6)
+#include <Ext/Side/Body.h>
+bool SetInitialVeteran(AircraftClass* pThis) {
+	
+	if (pThis->Type->Trainable && HouseExtContainer::Instance.Find(pThis->Owner)->Is_AirfieldSpied)
+		return true;
+
+	if (const auto pSide = HouseExtData::GetSide(pThis->Owner)) { 
+		if (SideExtContainer::Instance.Find(pSide)->VeteranAircraft.Contains(pThis->Type)) { 
+			return true;
+		}
+	}
+
+	if (pThis->Owner->Type->VeteranAircraft.contains(pThis->Type))
+		return true;
+
+	return false;
+}
+
+ASMJIT_PATCH(0x413F90, AircraftClass_Init_Academy, 8)
 {
 	GET(AircraftClass*, pThis, ESI);
 
-	if (pThis->Owner)
-	{
-		if (pThis->Type->Trainable && HouseExtContainer::Instance.Find(pThis->Owner)->Is_AirfieldSpied)
+	if (pThis->Owner) {
+		if (SetInitialVeteran(pThis))
 			pThis->Veterancy.Veterancy = 1.0f;
 
 		HouseExtData::ApplyAcademy(pThis->Owner, pThis, AbstractType::Aircraft);
 	}
 
-	return 0;
+	return 0x413FD2;
 }
 
 ASMJIT_PATCH(0x41A5C7, AircraftClass_Mission_Guard_StartAreaGuard, 0x6)

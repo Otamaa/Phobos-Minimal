@@ -2390,6 +2390,34 @@ void FakeBuildingClass::_DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOrigi
 	}
 }
 
+bool SetInitialVeteran(BuildingClass* pThis)
+{
+	bool isDefenses = pThis->Type->BuildCat == BuildCat::Combat;
+
+	if (pThis->Owner->WarFactoryInfiltrated && !pThis->Type->Naval && pThis->Type->Trainable && pThis->Type->UndeploysInto)
+		return true;
+	
+	if (pThis->Type->Trainable && HouseExtContainer::Instance.Find(pThis->Owner)->Is_ConstructionYardSpied)
+		return true;
+
+	if (const auto pSide = HouseExtData::GetSide(pThis->Owner)) {
+		if (SideExtContainer::Instance.Find(pSide)->VeteranDefenses.Contains(pThis->Type)) {
+			return true;
+		} else if(SideExtContainer::Instance.Find(pSide)->VeteranBuildings.Contains(pThis->Type)) {
+			return true;
+		}
+	}
+
+	if (HouseTypeExtContainer::Instance.Find(pThis->Owner->Type)->VeteranDefenses.Contains(pThis->Type)) {
+		return true;
+	}
+	else if (HouseTypeExtContainer::Instance.Find(pThis->Owner->Type)->VeteranBuildings.Contains(pThis->Type)) {
+		return true;
+	}
+
+	return false;
+}
+
 void FakeBuildingClass::_Init()
 {
 	if (!this->Owner && this->Type) {
@@ -2440,26 +2468,13 @@ void FakeBuildingClass::_Init()
 		this->Cloakable = true;
 	}
 
-	if (this->Owner->WarFactoryInfiltrated)
-	{
-		if (!this->Type->Naval && this->Type->Trainable && this->Type->UndeploysInto)
-		{
-			this->Veterancy.Veterancy = 1.0f;
-		}
-	}
 
-	if (HouseTypeExtContainer::Instance.Find(this->Owner->Type)->VeteranBuildings.Contains(this->Type))
-	{
+	if (SetInitialVeteran(this))
 		this->Veterancy.Veterancy = 1.0f;
-	}
-
-	if (this->Type->Trainable && HouseExtContainer::Instance.Find(this->Owner)->Is_ConstructionYardSpied)
-		this->Veterancy.Veterancy = 1.0f;
-
 
 	HouseExtData::ApplyAcademy(this->Owner, this, AbstractType::Building);
-	if (this->Type->SecretLab)
-	{
+
+	if (this->Type->SecretLab) {
 		BuildingClass::Secrets->push_back(this);
 	}
 }

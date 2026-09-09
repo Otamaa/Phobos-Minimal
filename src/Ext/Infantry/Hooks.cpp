@@ -160,16 +160,37 @@ ASMJIT_PATCH(0x51DFFD, InfantryClass_Put, 5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x517D51, InfantryClass_Init_Academy, 6)
+#include <Ext/Side/Body.h>
+
+bool SetInitialVeteran(InfantryClass* pThis)
+{
+	if (pThis->Type->Trainable && pThis->Owner->BarracksInfiltrated)
+		return true;
+
+	if (const auto pSide = HouseExtData::GetSide(pThis->Owner)) {
+		if (SideExtContainer::Instance.Find(pSide)->VeteranInfantry.Contains(pThis->Type)) {
+			return true;
+		}
+	}
+
+	if (pThis->Owner->Type->VeteranInfantry.contains(pThis->Type))
+		return true;
+
+	return false;
+}
+
+ASMJIT_PATCH(0x517CD9, InfantryClass_Init_Academy, 6)
 {
 	GET(InfantryClass*, pThis, ESI);
 
-	if (pThis->Owner)
-	{
+	if (pThis->Owner) {
+		if (SetInitialVeteran(pThis))
+			pThis->Veterancy.Veterancy = 1.0f;
+
 		HouseExtData::ApplyAcademy(pThis->Owner, pThis, AbstractType::Infantry);
 	}
 
-	return 0;
+	return 0x517D51;
 }
 
 ASMJIT_PATCH(0x51E7BF, InfantryClass_GetActionOnObject_CanCapture, 6)

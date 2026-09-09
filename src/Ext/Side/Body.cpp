@@ -397,6 +397,11 @@ bool SideExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->SelectedInfo_Toggle.Read(exINI, pSection, "SelectedInfo.Toggle");
 	this->SelectedInfo_Palette.Read(exINI, pSection, "SelectedInfo.Palette");
 
+	this->VeteranBuildings.Read(exINI, pSection, "VeteranBuildings", true);
+	this->VeteranDefenses.Read(exINI, pSection, "VeteranDefenses", true);
+	this->VeteranInfantry.Read(exINI, pSection, "VeteranInfantry", true);
+	this->VeteranUnits.Read(exINI, pSection, "VeteranUnits", true);
+	this->VeteranAircraft.Read(exINI, pSection, "VeteranAircraft", true);
 	return true;
 }
 
@@ -538,6 +543,12 @@ void SideExtData::Serialize(T& Stm)
 		.Process(this->SelectedInfo_Bottom)
 		.Process(this->SelectedInfo_Toggle)
 		.Process(this->SelectedInfo_Palette)
+
+		.Process(this->VeteranBuildings)
+		.Process(this->VeteranInfantry)
+		.Process(this->VeteranUnits)
+		.Process(this->VeteranAircraft)
+		.Process(this->VeteranDefenses)
 		;
 }
 

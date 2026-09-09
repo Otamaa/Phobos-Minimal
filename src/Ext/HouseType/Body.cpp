@@ -231,6 +231,7 @@ void HouseTypeExtData::InheritSettings(HouseTypeClass* pThis)
 			this->StartInMultiplayer_WithConst = ParentData->StartInMultiplayer_WithConst;
 			this->Powerplants = ParentData->Powerplants;
 			this->VeteranBuildings = ParentData->VeteranBuildings;
+			this->VeteranDefenses = ParentData->VeteranDefenses;
 			this->TauntFileName = ParentData->TauntFileName;
 			this->TauntFile = ParentData->TauntFile;
 			this->Degrades = ParentData->Degrades;
@@ -307,6 +308,7 @@ bool HouseTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->StartInMultiplayer_WithConst.Read(exINI, pSection, "StartInMultiplayer.WithConst");
 	this->Powerplants.Read(exINI, pSection, "AI.PowerPlants", true);
 	this->VeteranBuildings.Read(exINI, pSection, "VeteranBuildings", true);
+	this->VeteranDefenses.Read(exINI, pSection, "VeteranDefenses", true);
 
 	this->Degrades.Read(exINI, pSection, "Degrades");
 	this->Disguise.Read(exINI, pSection, "DefaultDisguise", true);
@@ -551,6 +553,8 @@ void  HouseTypeExtData::Serialize(T& Stm)
 		.Process(this->DropshipLoadout_AllowableUnitMaximumsLists)
 		.Process(this->DropshipLoadout_FixedUnits)
 		.Process(this->DropshipLoadout_InitialUnits)
+
+		.Process(this->VeteranDefenses)
 		;
 }
 
