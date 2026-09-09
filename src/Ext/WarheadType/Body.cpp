@@ -2624,7 +2624,7 @@ void WarheadTypeExtData::ApplyAttachEffects(TechnoClass* pTarget, HouseClass* pI
 		return;
 
 	auto const info = &this->PhobosAttachEffects;
-	PhobosAttachEffectClass::Attach(pTarget, pInvokerHouse, pInvoker, This(), info);
+	PhobosAttachEffectClass::Attach(pTarget, pInvokerHouse, pInvoker, This(), info, false, false);
 	PhobosAttachEffectClass::Detach(pTarget, info);
 	PhobosAttachEffectClass::DetachByGroups(pTarget, info);
 }

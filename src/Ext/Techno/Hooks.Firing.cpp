@@ -408,7 +408,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 				if (pWeaponExt->AttachEffect_Enable) {
 					auto* info = &pWeaponExt->AttachEffects;
 					PhobosAttachEffectClass::Attach(pTargetTechno, pThis->Owner,
-						pThis, pWeapon->Warhead, info);
+						pThis, pWeapon->Warhead, info, false, false);
 					PhobosAttachEffectClass::Detach(pTargetTechno, info);
 					PhobosAttachEffectClass::DetachByGroups(pTargetTechno, info);
 				}

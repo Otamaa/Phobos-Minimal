@@ -40,6 +40,7 @@ void AEProperties::RecalculateSingle(TechnoClass* pTechno, PhobosAttachEffectCla
 	bool reflectsDamage = _AEProp->flags.ReflectDamage;
 	bool hasOnFireDiscardables = _AEProp->flags.HasOnFireDiscardables;
 	bool hasOnDamageDiscardables = _AEProp->flags.HasOnDamageDiscardables;
+	bool hasOwnerChangeDiscardables = _AEProp->flags.HasOwnerChangeDiscardables;
 	auto extraRangeData = &_AEProp->ExtraRange;
 	auto extraCritData = &_AEProp->ExtraCrit;
 	auto armormultData = &_AEProp->ArmorMultData;
@@ -58,6 +59,7 @@ void AEProperties::RecalculateSingle(TechnoClass* pTechno, PhobosAttachEffectCla
 	reflectsDamage |= type->ReflectDamage;
 	hasOnFireDiscardables |= (type->DiscardOn & DiscardCondition::Firing) != DiscardCondition::None;
 	hasOnDamageDiscardables |= (type->DiscardOn & DiscardCondition::ReceivedDamage) != DiscardCondition::None;
+	hasOwnerChangeDiscardables |= (type->DiscardOn & DiscardCondition::OwnerChange) != DiscardCondition::None;
 
 	std::optional<double> cur_timerAE {};
 
@@ -118,7 +120,7 @@ void AEProperties::RecalculateSingle(TechnoClass* pTechno, PhobosAttachEffectCla
 	_AEProp->ROFMultiplier = ROF_Mult;
 	_AEProp->ReceiveRelativeDamageMult = ReceiveRelativeDamageMult;
 	pTechno->Cloakable = Cloak;
-
+	_AEProp->flags.HasOwnerChangeDiscardables = hasOwnerChangeDiscardables;
 	*forceDecloakResult |= _AEProp->flags.ForceDecloak = forceDecloak;
 	_AEProp->flags.DisableWeapons = disableWeapons;
 	_AEProp->flags.DisableSelfHeal = disableSelfHeal;
@@ -192,6 +194,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno)
 	bool reflectsDamage = false;
 	bool hasOnFireDiscardables = false;
 	bool hasOnDamageDiscardables = false;
+	bool hasOwnerChangeDiscardables = false;
 	// #endregion
 
 	// #region Transient data — clear and rebuild
@@ -279,6 +282,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno)
 		reflectsDamage |= type->ReflectDamage;
 		hasOnFireDiscardables |= (type->DiscardOn & DiscardCondition::Firing) != DiscardCondition::None;
 		hasOnDamageDiscardables |= (type->DiscardOn & DiscardCondition::ReceivedDamage) != DiscardCondition::None;
+		hasOwnerChangeDiscardables |= (type->DiscardOn & DiscardCondition::OwnerChange) != DiscardCondition::None;
 		if (type->ROFMultiplier_ApplyOnCurrentTimer)
 		{
 			if (!cur_timerAE.has_value())
@@ -341,7 +345,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno)
 	_AEProp->ROFMultiplier = ROF_Mult;
 	_AEProp->ReceiveRelativeDamageMult = ReceiveRelativeDamageMult;
 	pTechno->Cloakable = Cloak;
-
+	_AEProp->flags.HasOwnerChangeDiscardables = hasOwnerChangeDiscardables;
 	_AEProp->flags.ForceDecloak = forceDecloak;
 	_AEProp->flags.DisableWeapons = disableWeapons;
 	_AEProp->flags.DisableSelfHeal = disableSelfHeal;

@@ -23,7 +23,7 @@ public:
 	ValueableVector<int> Delays {};
 	ValueableVector<int> InitialDelays {};
 	NullableVector<int> RecreationDelays {};
-
+	Nullable<bool> ReplaceLongerDuration {};
 public:
 
 	void LoadFromINI(CCINIClass* pINI, const char* pSection);
@@ -31,29 +31,7 @@ public:
 	bool Load(PhobosStreamReader& stm, bool registerForChange);
 	bool Save(PhobosStreamWriter& stm) const;
 
-	COMPILETIMEEVAL AEAttachParams GetAttachParams(unsigned int index, bool selfOwned) const
-	{
-		AEAttachParams info { };
-		if (!this->DurationOverrides.empty())
-			info.DurationOverride = this->DurationOverrides[this->DurationOverrides.size() > index ? index : this->DurationOverrides.size() - 1];
-		if (selfOwned)
-		{
-			if (!this->Delays.empty())
-				info.Delay = this->Delays[this->Delays.size() > index ? index : this->Delays.size() - 1];
-			if (!this->InitialDelays.empty())
-				info.InitialDelay = this->InitialDelays[this->InitialDelays.size() > index ? index : this->InitialDelays.size() - 1];
-			if (!this->RecreationDelays.empty())
-				info.RecreationDelay = this->RecreationDelays[this->RecreationDelays.size() > index ? index : this->RecreationDelays.size() - 1];
-		}
-		else
-		{
-			info.CumulativeSourceMaxCount = this->CumulativeSourceMaxCount;
-			info.CumulativeRefreshAll = this->CumulativeRefreshAll;
-			info.CumulativeRefreshAll_OnAttach = this->CumulativeRefreshAll_OnAttach;
-			info.CumulativeRefreshSameSourceOnly = this->CumulativeRefreshSameSourceOnly;
-		}
-		return info;
-	}
+	AEAttachParams GetAttachParams(unsigned int index, bool selfOwned) const;
 
 private:
 	template <typename T>

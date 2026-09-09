@@ -70,7 +70,9 @@ public:
 	ValueableVector<DoType> DiscardOn_Sequences {};
 	Nullable<bool>DiscardOn_Sequences_Immediate {};
 	Valueable<LandTypeFlags> DiscardOn_LandTypes { LandTypeFlags::None };
-
+	Valueable<bool> DiscardOn_OwnerChange_HumanToComputer { true };
+	Valueable<bool> DiscardOn_OwnerChange_ComputerToHuman { true };
+	Valueable<bool> DiscardOn_OwnerChange_IgnoreRevertOnExit {};
 	Valueable<bool> PenetratesIronCurtain { false };
 	Nullable<bool> PenetratesForceShield {};
 	Valueable<AnimTypeClass*> Animation {};
@@ -184,6 +186,8 @@ public:
 	Valueable<int> PrismRelay_MasterWeaponIndex { -1 };
 	Valueable<bool> PrismRelay_MasterWeaponUseMultiWeaponSelection { false };
 	Valueable<int> PrismRelay_SupportTimeout { 45 };
+
+	bool RequiresAnimUpdate { false };
 
 	PhobosAttachEffectTypeClass(const char* pTitle) : Enumerable<PhobosAttachEffectTypeClass>(pTitle)	{};
 	virtual ~PhobosAttachEffectTypeClass() = default;

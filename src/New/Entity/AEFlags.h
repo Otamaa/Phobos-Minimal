@@ -21,6 +21,7 @@ struct AEFlags
 			unsigned HasOnDamageDiscardables : 1;
 			unsigned HasExtraWarheads : 1;
 			unsigned HasFeedbackWeapon : 1;
+			unsigned HasOwnerChangeDiscardables : 1;
 
 			unsigned ReflectDamage : 1;
 			unsigned Untrackable : 1;

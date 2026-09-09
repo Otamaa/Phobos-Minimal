@@ -13,7 +13,7 @@ struct AEAttachParams
 	bool CumulativeRefreshAll { false };
 	bool CumulativeRefreshAll_OnAttach { false };
 	bool CumulativeRefreshSameSourceOnly { true };
-
+	bool ReplaceLongerDuration { false };
 public :
 
 	bool Load(PhobosStreamReader& stm, bool registerForChange);

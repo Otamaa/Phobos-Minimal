@@ -695,6 +695,8 @@ public:
 	Valueable<bool> DiscardOn_Sequences_Immediate{ true };
 	Valueable<bool> DiscardOn_ConsiderHarvestingAsStationary { true };
 	Valueable<int> IsDischargedMemberAutocreateRecruitable { -1 };
+	Valueable<bool> AttachEffect_ReplaceLongerDuration {};
+	Valueable<bool> AttachEffects_AttachOnOwnerChange {};
 
 	Valueable<int> LeptonMindControlOffset { 70 };
 	Valueable<int> MindControlRingOffset { 140 };

@@ -616,6 +616,7 @@ ASMJIT_PATCH(0x74081F, UnitClass_Mission_Guard_KickFrameDelay, 5)
 
 bool SetInitialVeteran(UnitClass* pThis)
 {
+	auto pType = pThis->Type;
 	if (pType->Trainable && (pType->Naval ? HouseExtContainer::Instance.Find(pThis->Owner)->Is_NavalYardSpied : pThis->Owner->WarFactoryInfiltrated))
 		return true;
 

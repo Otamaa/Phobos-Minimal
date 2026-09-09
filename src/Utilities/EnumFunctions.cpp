@@ -33,6 +33,7 @@ std::array<std::pair<const char* ,DiscardCondition>, (size_t)DiscardCondition::c
 	{ "mission", DiscardCondition::Mission },
 	{ "sequence", DiscardCondition::Sequence },
 	{ "receiveddamage", DiscardCondition::ReceivedDamage },
+	{ "ownerchange", DiscardCondition::OwnerChange },
  }
 };
 

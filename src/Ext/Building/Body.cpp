@@ -2401,14 +2401,14 @@ bool SetInitialVeteran(BuildingClass* pThis)
 		return true;
 
 	if (const auto pSide = HouseExtData::GetSide(pThis->Owner)) {
-		if (SideExtContainer::Instance.Find(pSide)->VeteranDefenses.Contains(pThis->Type)) {
+		if (isDefenses && SideExtContainer::Instance.Find(pSide)->VeteranDefenses.Contains(pThis->Type)) {
 			return true;
 		} else if(SideExtContainer::Instance.Find(pSide)->VeteranBuildings.Contains(pThis->Type)) {
 			return true;
 		}
 	}
 
-	if (HouseTypeExtContainer::Instance.Find(pThis->Owner->Type)->VeteranDefenses.Contains(pThis->Type)) {
+	if (isDefenses && HouseTypeExtContainer::Instance.Find(pThis->Owner->Type)->VeteranDefenses.Contains(pThis->Type)) {
 		return true;
 	}
 	else if (HouseTypeExtContainer::Instance.Find(pThis->Owner->Type)->VeteranBuildings.Contains(pThis->Type)) {

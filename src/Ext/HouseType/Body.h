@@ -9,6 +9,8 @@
 #include <Utilities/PhobosPCXFile.h>
 #include <Utilities/CSFText.h>
 
+#include <New/PhobosAttachedAffect/AEAttachInfoTypeClass.h>
+
 class TechnoTypeClass;
 class InfantryTypeClass;
 class AircraftTypeClass;
@@ -152,6 +154,9 @@ public:
 	NullableIdx<VocClass*> DropshipLoadout_ArrowsClickSound {};
 	NullableIdx<VocClass*> DropshipLoadout_StartingDragDropSound {};
 	NullableIdx<VocClass*> DropshipLoadout_EndingDragDropSound {};
+
+	AEAttachInfoTypeClass AttachEffects {};
+	Nullable<bool> AttachEffects_AttachOnOwnerChange {};
 #pragma endregion
 
 public:

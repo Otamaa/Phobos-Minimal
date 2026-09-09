@@ -14,7 +14,7 @@ class PhobosAttachEffectClass;
 struct PhobosAEFunctions
 {
 	static int GetAttachedEffectCumulativeCount(TechnoClass* pTechno, PhobosAttachEffectTypeClass* pAttachEffectType, bool ignoreSameSource = false, TechnoClass* pInvoker = nullptr, AbstractClass* pSource = nullptr, bool requireAnims = false);
-	static void UpdateCumulativeAttachEffects(TechnoClass* pTarget, PhobosAttachEffectTypeClass* pAttachEffectType, bool createAnim);
+	static bool UpdateCumulativeAttachEffects(TechnoClass* pTarget, PhobosAttachEffectTypeClass* pAttachEffectType, bool createAnim);
 
 	static void UpdateAttachEffects(TechnoClass* pTechno);
 	static void UpdateAEAnimDrawingLogic(TechnoClass* pTechno);

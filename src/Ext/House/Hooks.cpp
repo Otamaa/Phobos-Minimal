@@ -12,6 +12,7 @@
 #include <Ext/InfantryType/Body.h>
 #include <Ext/Scenario/Body.h>
 #include <Ext/Super/Body.h>
+#include <Ext/HouseType/Body.h>
 
 #include <Utilities/Cast.h>
 #include <Utilities/Macro.h>
@@ -184,20 +185,33 @@ HouseClass* OldOwner = nullptr;
 
 ASMJIT_PATCH(0x70173B , TechnoClass_SetOwningHouse_AfterHouseWasSet, 0x5)
 {
-	GET(TechnoClass* const, pThis, ESI);
+	GET(TechnoClass*, pThis, ESI);
 	auto pNewOwner= pThis->Owner;
 
 	if(OldOwner){
-		if (auto pMe = flag_cast_to<FootClass* , false>(pThis))
+		bool IgnoreRevertOnExit = false;
+		bool I_am_human = false;
+		bool humanAndComputer = false;
+		bool hasTransporter = false;
+		auto pMe = flag_cast_to<FootClass*, false>(pThis);
+
 		{
 			const auto pTypeExt = GET_TECHNOTYPEEXT(pMe);
-			bool I_am_human = OldOwner->IsControlledByHuman();
+			auto pExt = TechnoExtContainer::Instance.Find(pMe);
+
+			if (pTypeExt->Death_Method != KillMethod::None ||
+				pExt->AE.flags.HasOwnerChangeDiscardables || pTypeExt->Convert_HumanToComputer.Get() || pTypeExt->Convert_ComputerToHuman.Get())
+			{
+				IgnoreRevertOnExit = pMe ? FootExtContainer::Instance.Find(pMe)->IsOwnerChangeFromRevertOnExit : false;
+				I_am_human = pThis->Owner->IsControlledByHuman();
+				humanAndComputer = I_am_human != pNewOwner->IsControlledByHuman();
+				hasTransporter = pThis->Transporter;
+			}
 			bool You_are_human = pNewOwner->IsControlledByHuman();
 			TechnoTypeClass* pConvertTo = (I_am_human && !You_are_human) ? pTypeExt->Convert_HumanToComputer.Get() :
 				(!I_am_human && You_are_human) ? pTypeExt->Convert_ComputerToHuman.Get() : nullptr;
 
-			if (!pConvertTo)
-			{
+			if (!pConvertTo) {
 				auto& map = pTypeExt->Convert_ToHouseOrCountry;
 				for(auto it = map.begin(); it != map.end(); ++it) {
 					if(it->first == pNewOwner->Type ||
@@ -246,10 +260,24 @@ ASMJIT_PATCH(0x7015EB, TechnoClass_SetOwningHouse_UpdateTracking, 0x7)
 	auto pNewOwnerExt = HouseExtContainer::Instance.Find(pNewOwner);
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	const auto pFoot = flag_cast_to<FootClass*>(pThis);
+	bool IgnoreRevertOnExit = false;
+	bool I_am_human = false;
+	bool humanAndComputer = false;
+	bool hasTransporter = false;
+
+	if (pTypeExt->Death_Method != KillMethod::None
+		|| pExt->AE.flags.HasOwnerChangeDiscardables
+		|| pTypeExt->Convert_HumanToComputer.Get()
+		|| pTypeExt->Convert_ComputerToHuman.Get()) {
+		IgnoreRevertOnExit = pFoot ? FootExtContainer::Instance.Find(pFoot)->IsOwnerChangeFromRevertOnExit : false;
+		I_am_human = pThis->Owner->IsControlledByHuman();
+		humanAndComputer = I_am_human != pNewOwner->IsControlledByHuman();
+		hasTransporter = pThis->Transporter;
+	}
 
 	if (pTypeExt->Death_Method != KillMethod::None) {
-		const auto pFoot = flag_cast_to<FootClass*>(pThis);
-		const bool IgnoreRevertOnExit = pFoot ? FootExtContainer::Instance.Find(pFoot)->IsOwnerChangeFromRevertOnExit : false;
+
 		const bool humanToComputer = pTypeExt->AutoDeath_OnOwnerChange_HumanToComputer.Get(pTypeExt->AutoDeath_OnOwnerChange);
 		const bool computerToHuman = pTypeExt->AutoDeath_OnOwnerChange_ComputerToHuman.Get(pTypeExt->AutoDeath_OnOwnerChange);
 
@@ -258,7 +286,6 @@ ASMJIT_PATCH(0x7015EB, TechnoClass_SetOwningHouse_UpdateTracking, 0x7)
 		}else if (humanToComputer && computerToHuman) {
 				pExt->ShouldBeDead = true;//kill this next update frame;
 		} else if (humanToComputer || computerToHuman) {
-			const bool I_am_human = pThis->Owner->IsControlledByHuman();
 
 			if (I_am_human != pNewOwner->IsControlledByHuman()) {
 				if ((I_am_human && humanToComputer) || (!I_am_human && computerToHuman)) {
@@ -317,6 +344,47 @@ ASMJIT_PATCH(0x7015EB, TechnoClass_SetOwningHouse_UpdateTracking, 0x7)
 
 	SidebarClass::Instance->OnTechnoDestroyed(pThis);
 	OldOwner = pThis->Owner;
+	if (pExt->AE.flags.HasOwnerChangeDiscardables)
+	{
+		for (const auto& attachEffect : pExt->PhobosAE)
+		{
+			const auto type = attachEffect->GetType();
+
+			if ((type->DiscardOn & DiscardCondition::OwnerChange) != DiscardCondition::None)
+			{
+				const bool humanToComputer = type->DiscardOn_OwnerChange_HumanToComputer;
+				const bool computerToHuman = type->DiscardOn_OwnerChange_ComputerToHuman;
+
+				if (type->DiscardOn_OwnerChange_IgnoreRevertOnExit && IgnoreRevertOnExit)
+				{
+					attachEffect->ShouldBeDiscarded = false;
+				}
+				else if (humanToComputer && computerToHuman)
+				{
+					attachEffect->ShouldBeDiscarded = true;
+				}
+				else if (humanToComputer || computerToHuman)
+				{
+					if (humanAndComputer)
+					{
+						if ((I_am_human && humanToComputer) || (!I_am_human && computerToHuman))
+							attachEffect->ShouldBeDiscarded = true;
+					}
+				}
+
+				if (attachEffect->ShouldBeDiscarded && hasTransporter && !IgnoreRevertOnExit)
+				{
+					attachEffect->ShouldBeDiscarded = false;
+				}
+			}
+		}
+	}
+
+	const auto pNewOwnerTypeExt = HouseTypeExtContainer::Instance.Find(pNewOwner->Type);
+
+	if (pNewOwnerTypeExt->AttachEffects_AttachOnOwnerChange.Get(FakeRulesClass::Instance->AttachEffects_AttachOnOwnerChange))
+		PhobosAttachEffectClass::Attach(pThis, pNewOwner, pThis, pThis, &pNewOwnerTypeExt->AttachEffects, false, true);
+
 	return 0;
 }
 

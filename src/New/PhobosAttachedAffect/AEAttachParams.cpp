@@ -22,6 +22,6 @@ bool AEAttachParams::Serialize(T& stm)
 		.Process(this->CumulativeRefreshAll)
 		.Process(this->CumulativeRefreshAll_OnAttach)
 		.Process(this->CumulativeRefreshSameSourceOnly)
-
+		.Process(this->ReplaceLongerDuration)
 		.Success();
 }

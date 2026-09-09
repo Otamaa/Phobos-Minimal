@@ -3246,8 +3246,10 @@ static bool __fastcall TechnoClass_Limbo_Wrapper(TechnoClass* pThis)
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 	bool markForRedraw = false;
 	bool requiresRecalc = false;
+	bool requiresUpdateAnim = false;
 	std::vector<std::unique_ptr<PhobosAttachEffectClass>>::iterator it;
 	const auto sz = pExt->PhobosAE.size();
+	std::vector<AEWeaponParams> expireWeapons;
 
 	for (it = pExt->PhobosAE.begin(); it != pExt->PhobosAE.end(); )
 	{
@@ -3261,10 +3263,20 @@ static bool __fastcall TechnoClass_Limbo_Wrapper(TechnoClass* pThis)
 
 			if (attachEffect->ResetIfRecreatable())
 			{
+				if (attachEffect->ShouldUpdateAnim)
+				{
+					requiresUpdateAnim = true;
+					attachEffect->ShouldUpdateAnim = false;
+				}
+
 				++it;
 				continue;
 			}
 
+			if (pType->RequiresAnimUpdate)
+				requiresUpdateAnim = true;
+
+			attachEffect->AddExpireWeaponParams(ExpireWeaponCondition::Discard, expireWeapons);
 			it = pExt->PhobosAE.erase(it);
 		}
 		else
@@ -3275,6 +3287,9 @@ static bool __fastcall TechnoClass_Limbo_Wrapper(TechnoClass* pThis)
 
 	if (sz != pExt->PhobosAE.size())
 		AEProperties::Recalculate(pThis);
+
+	if (requiresUpdateAnim)
+		PhobosAEFunctions::UpdateAEAnimDrawingLogic(pThis);
 
 	if (markForRedraw)
 	{

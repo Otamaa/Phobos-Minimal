@@ -48,7 +48,7 @@ public:
 	void SetAnimationTunnelState(bool visible);
 
 	void CreateAnim();
-	void UpdateCumulativeAnim(int count);
+	bool UpdateCumulativeAnim(int count);
 	bool CanShowAnim() const;
 
 	void FirePeriodicWeapon();
@@ -71,7 +71,7 @@ public:
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE bool HasExpired() const {
-		return this->IsSelfOwned() && this->Delay >= 0 ? false : !this->Duration;
+		return this->Delay >= 0 ? false : !this->Duration;
 	}
 
 	bool ShouldBeDiscardedNow();
@@ -81,7 +81,7 @@ public:
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE bool IsActive() const {
-		if (this->IsSelfOwned())
+		if (this->IsSelfOwned() || this->Delay >= 0)
 			return this->InitialDelay <= 0 && this->CurrentDelay == 0 && this->HasInitialized && this->IsOnline && !this->NeedsDurationRefresh;
 		else
 			return this->Duration && this->IsOnline;
@@ -99,7 +99,7 @@ public:
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	bool Save(PhobosStreamWriter& Stm) const;
 
-	static int Attach(TechnoClass* pTarget, HouseClass* pInvokerHouse, TechnoClass* pInvoker, AbstractClass* pSource, AEAttachInfoTypeClass* attachEffectInfo);
+	static int Attach(TechnoClass* pTarget, HouseClass* pInvokerHouse, TechnoClass* pInvoker, AbstractClass* pSource, AEAttachInfoTypeClass* attachEffectInfo, bool selfOwned, bool hasDelay);
 	static int Detach(TechnoClass* pTarget, AEAttachInfoTypeClass* attachEffectInfo);
 	static int DetachByGroups(TechnoClass* pTarget, AEAttachInfoTypeClass* attachEffectInfo);
 	static void HandleEvent(TechnoClass* pTarget);
@@ -111,9 +111,10 @@ public:
 
 	void DiscardOnFire();
 
-	static PhobosAttachEffectClass* CreateAndAttach(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, HelperedVector<std::unique_ptr<PhobosAttachEffectClass>>& targetAEs, HouseClass* pInvokerHouse, TechnoClass* pInvoker, AbstractClass* pSource, AEAttachParams const& attachInfo, bool checkCumulative = true);
+	static PhobosAttachEffectClass* CreateAndAttach(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, HelperedVector<std::unique_ptr<PhobosAttachEffectClass>>& targetAEs,
+		HouseClass* pInvokerHouse, TechnoClass* pInvoker, AbstractClass* pSource, AEAttachParams const& attachInfo, bool selfOwned, bool& updateAnim, bool checkCumulative = true);
 	static int DetachTypes(TechnoClass* pTarget, AEAttachInfoTypeClass* attachEffectInfo, std::vector<PhobosAttachEffectTypeClass*> const& types);
-	static int RemoveAllOfType(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, int minCount, int maxCount);
+	static int RemoveAllOfType(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, int minCount, int maxCount, bool& updateAnim);
 
 	static void CumulateExpireWeapon(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, TechnoClass* pInvoker,	std::vector<std::pair<WeaponTypeClass*, TechnoClass*>>& expireContainer);
 	static void DetonateExpireWeapon(std::vector<std::pair<WeaponTypeClass*, TechnoClass*>>& expireContainer, CoordStruct& designation);
@@ -149,7 +150,9 @@ public:
 	bool LastActiveStat { true };	
 	bool NeedsRecalculateStat { false };
 	bool ShouldBeDiscarded { false };
+	bool ShouldUpdateAnim { false };
 	bool HasCumulativeAnim { false };
+
 	DoType LastSequenceCheck {};
 	int FiringCount {};
 	int ReceivedDamageCount {};

@@ -74,6 +74,10 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->DiscardOn_Sequences.Read(exINI, pSection, "DiscardOn.Sequences");
 	this->DiscardOn_Sequences_Immediate.Read(exINI, pSection, "DiscardOn.Sequences.Immediate");
 
+	this->DiscardOn_OwnerChange_HumanToComputer.Read(exINI, pSection, "DiscardOn.OwnerChange.HumanToComputer");
+	this->DiscardOn_OwnerChange_ComputerToHuman.Read(exINI, pSection, "DiscardOn.OwnerChange.ComputerToHuman");
+	this->DiscardOn_OwnerChange_IgnoreRevertOnExit.Read(exINI, pSection, "DiscardOn.OwnerChange.IgnoreRevertOnExit");
+
 	this->PenetratesIronCurtain.Read(exINI, pSection, "PenetratesIronCurtain");
 	this->PenetratesForceShield.Read(exINI, pSection, "PenetratesForceShield");
 	this->Animation.Read(exINI, pSection, "Animation");
@@ -212,6 +216,12 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 		else
 			this->PrismRelay_SupportTimeout.Read(exINI, pSection, "PrismRelay.SupportTimeout");
 	}
+
+	// RequiresAnimUpdate
+	if (this->Animation_HideIfAttachedWith.size() > 0 || this->Animation_DrawOffsets.size() > 0)
+		this->RequiresAnimUpdate = true;
+	else
+		this->RequiresAnimUpdate = false;
 }
 
 template <typename T>
@@ -241,6 +251,9 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->DiscardOn_LandTypes)
 		.Process(this->DiscardOn_Sequences)
 		.Process(this->DiscardOn_Sequences_Immediate)
+		.Process(this->DiscardOn_OwnerChange_HumanToComputer)
+		.Process(this->DiscardOn_OwnerChange_ComputerToHuman)
+		.Process(this->DiscardOn_OwnerChange_IgnoreRevertOnExit)
 		.Process(this->PenetratesIronCurtain)
 		.Process(this->PenetratesForceShield)
 		.Process(this->Animation)
@@ -346,7 +359,7 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->PrismRelay_MasterWeaponIndex)
 		.Process(this->PrismRelay_MasterWeaponUseMultiWeaponSelection)
 		.Process(this->PrismRelay_SupportTimeout)
-
+		.Process(this->RequiresAnimUpdate)
 		;
 }
 

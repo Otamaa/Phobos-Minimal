@@ -256,6 +256,8 @@ void HouseTypeExtData::InheritSettings(HouseTypeClass* pThis)
 			this->ObserverFlag = ParentData->ObserverFlag;
 			this->ObserverFlagSHP = ParentData->ObserverFlagSHP;
 			this->ObserverFlagYuriPAL = ParentData->ObserverFlagYuriPAL;
+			this->AttachEffects = ParentData->AttachEffects;
+			this->AttachEffects_AttachOnOwnerChange = ParentData->AttachEffects_AttachOnOwnerChange;
 		}
 	}
 
@@ -412,6 +414,9 @@ void HouseTypeExtData::LoadFromRulesFile(CCINIClass* pINI) {
 	this->StatusText.Read(exINI, pSection, "MenuText.Status");
 
 	DropshipLoadoutClass::ParseHouse(exINI, pSection, this);
+
+	this->AttachEffects.LoadFromINI(pINI, pSection);
+	this->AttachEffects_AttachOnOwnerChange.Read(exINI, pSection, "AttachEffect.AttachOnOwnerChange");
 	
 }
 
@@ -555,6 +560,9 @@ void  HouseTypeExtData::Serialize(T& Stm)
 		.Process(this->DropshipLoadout_InitialUnits)
 
 		.Process(this->VeteranDefenses)
+
+		.Process(this->AttachEffects)
+		.Process(this->AttachEffects_AttachOnOwnerChange)
 		;
 }
 

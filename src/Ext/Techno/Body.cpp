@@ -52,6 +52,7 @@
 #include <Ext/Tactical/Body.h>
 #include <Ext/Terrain/Body.h>
 #include <Ext/Tiberium/Body.h>
+#include <Ext/HouseType/Body.h>
 
 #include <Locomotor/Cast.h>
 
@@ -4764,6 +4765,65 @@ void UpdateTypeData_Foot(FootClass* pThis, TechnoTypeClass* pOldType, TechnoType
 				break;
 			default:
 				break;
+			}
+		}
+	}
+	else
+	{
+		const auto pAircraft = static_cast<AircraftClass*>(pThis);
+		const auto pAircraftExt = AircraftExtContainer::Instance.Find(pAircraft);
+
+		if (!pAircraft->Type->AirportBound)
+			pAircraft->DockedTo = nullptr;
+
+		const auto pNewWeapon = pAircraft->GetWeapon(pAircraft->SelectWeapon(pAircraft->Target))->WeaponType;
+		bool isStrafing = false;
+		bool resetMission = false;
+
+		if (pNewWeapon)
+		{
+			const auto pNewWeaponExt = WeaponTypeExtContainer::Instance.Find(pNewWeapon);
+
+			if (pNewWeaponExt->Strafing.isset())
+			{
+				isStrafing = pNewWeaponExt->Strafing.Fetch();
+			}
+			else
+			{
+				const auto pBulletType = pNewWeapon->Projectile;
+
+				if (pBulletType->ROT < 2 && !pBulletType->Inviso && !BulletTypeExtContainer::Instance.Find(pBulletType)->TrajectoryType)
+					isStrafing = true;
+			}
+
+			if (isStrafing)
+			{
+				if (!pNewWeaponExt->Strafing_TargetCell.Get(FakeRulesClass::Instance->Strafing_TargetCell))
+					pAircraftExt->Strafe_TargetCell = nullptr;
+
+				if (pAircraftExt->Strafe_BombsDroppedThisRound >= pNewWeaponExt->Strafing_Shots.Get(5))
+					resetMission = true;
+			}
+		}
+
+		if (!isStrafing)
+		{
+			pAircraftExt->Strafe_BombsDroppedThisRound = 0;
+			pAircraftExt->Strafe_TargetCell = nullptr;
+		}
+
+		if (!isStrafing || resetMission)
+		{
+			pAircraft->IsLocked = false;
+
+			// mission status might still be incorrect here
+			if (pAircraft->MissionStatus >= (int)AirAttackStatus::FireAtTarget2_Strafe
+				&& pAircraft->MissionStatus <= (int)AirAttackStatus::FireAtTarget5_Strafe)
+			{
+				if (pAircraft->Target && pAircraft->Ammo > 0)
+					pAircraft->MissionStatus = (int)AirAttackStatus::ValidateAZ;
+				else
+					pAircraft->MissionStatus = (int)AirAttackStatus::FlyToPosition;
 			}
 		}
 	}
@@ -11579,11 +11639,10 @@ void TechnoExtData::UpdateLaserTrails(TechnoClass* pThis) {
 void TechnoExtData::InitializeAttachEffects(TechnoClass* pThis, TechnoTypeClass* pType)
 {
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	auto const pOwner = pThis->Owner;
 
-	if (pTypeExt->PhobosAttachEffects.AttachTypes.size() < 1)
-		return;
-
-	PhobosAttachEffectClass::Attach(pThis, pThis->Owner, pThis, pThis, &pTypeExt->PhobosAttachEffects);
+	PhobosAttachEffectClass::Attach(pThis, pOwner, pThis, pThis, &pTypeExt->PhobosAttachEffects, true, true);
+	PhobosAttachEffectClass::Attach(pThis, pOwner, pThis, pThis, &HouseTypeExtContainer::Instance.Find(pOwner->Type)->AttachEffects, false, true);
 }
 
 bool TechnoExtData::FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeaponType)
