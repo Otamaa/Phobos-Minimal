@@ -2400,18 +2400,26 @@ bool SetInitialVeteran(BuildingClass* pThis)
 	if (pThis->Type->Trainable && HouseExtContainer::Instance.Find(pThis->Owner)->Is_ConstructionYardSpied)
 		return true;
 
+	//backward compatibility behaviour , if the building are inside VeteranBuildingList it will get initially promoted
+	//this double checking stuffs can be expensive on long list , i suppose we can optimize it later on by using a hashset or something else
 	if (const auto pSide = HouseExtData::GetSide(pThis->Owner)) {
+		//found , yes promote it
 		if (isDefenses && SideExtContainer::Instance.Find(pSide)->VeteranDefenses.Contains(pThis->Type)) {
 			return true;
-		} else if(SideExtContainer::Instance.Find(pSide)->VeteranBuildings.Contains(pThis->Type)) {
+		} 
+		
+		//not a defense , check if the building is inside the veteran list
+		if(SideExtContainer::Instance.Find(pSide)->VeteranBuildings.Contains(pThis->Type)) {
 			return true;
 		}
 	}
 
+	//same as above but for house type , if the building is inside the veteran list it will get promoted
 	if (isDefenses && HouseTypeExtContainer::Instance.Find(pThis->Owner->Type)->VeteranDefenses.Contains(pThis->Type)) {
 		return true;
 	}
-	else if (HouseTypeExtContainer::Instance.Find(pThis->Owner->Type)->VeteranBuildings.Contains(pThis->Type)) {
+	
+	if (HouseTypeExtContainer::Instance.Find(pThis->Owner->Type)->VeteranBuildings.Contains(pThis->Type)) {
 		return true;
 	}
 
