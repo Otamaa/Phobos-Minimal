@@ -15,6 +15,8 @@ public:
 
 	Valueable<bool> AIDefendBase_Ignore { };
 
+	NullableIdx<VocClass> VoiceEnterGrinder {};
+
 	FootTypeExtData(TechnoTypeClass* abs) : TechnoTypeExtData(abs)
 	{ };
 
@@ -47,20 +49,7 @@ public:
 
 private:
 	template <typename T>
-	void Serialize(T& Stm)
-	{
-		Stm
-			.Process(this->FlightClimb)
-			.Process(this->FlightCrash)
-			.Process(this->DigStartROT)
-			.Process(this->DigInSpeed)
-			.Process(this->DigOutSpeed)
-			.Process(this->DigEndROT)
-			.Process(this->AIDefendBase_Ignore)
-			;
-	}
-
-
+	void Serialize(T& Stm);
 };
 
 class FootTypeExtContainer final //: public Container<TechnoTypeExtData>

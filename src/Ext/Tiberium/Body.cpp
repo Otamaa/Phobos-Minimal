@@ -43,6 +43,11 @@ void TiberiumExtData::Spread_AI()
 	if (SpreadQueue.empty() || This()->SpreadPercentage <= 0.00001f)
 		return;
 
+	if ((int)SpreadQueue.size() >= Map_Cell_Count() - 20) {
+		Recalc_Spread();
+		return;
+	}
+
 	int count = std::clamp((int)(SpreadQueue.size() * This()->SpreadPercentage), 5, 300);
 	count = ScenarioClass::Instance->Random.RandomRanged(1, count);
 
@@ -54,7 +59,9 @@ void TiberiumExtData::Spread_AI()
 		CellStruct const cell = node.second;
 		int cellIdx = Map_Cell_Index(cell);
 
-		FakeCellClass* cellptr = (FakeCellClass*)MapClass::Instance->GetCellAt(cell);
+		FakeCellClass* cellptr = (FakeCellClass*)MapClass::Instance->TryGetCellAt(cell);
+		if (!cellptr)
+			continue;
 
 		if (!cellptr->CanTiberiumSpread())
 		{
@@ -79,7 +86,7 @@ void TiberiumExtData::Spread_AI()
 			{
 				// Use local cell instead of cellptr->MapCoords
 				SpreadQueue.emplace(
-					(float)(Unsorted::CurrentFrame() + ScenarioClass::Instance->Random.RandomRanged(0, 49)),
+					(float)(Unsorted::CurrentFrame() + ScenarioClass::Instance->Random.RandomRanged(0, 50)),
 					cell);
 				SetSpreadState(SpreadState, cellIdx, true);
 			}
@@ -151,6 +158,11 @@ void TiberiumExtData::Growth_AI()
 	if (GrowthQueue.empty() || This()->GrowthPercentage <= 0.00001f)
 		return;
 
+	if ((int)GrowthQueue.size() >= Map_Cell_Count() - 20) {
+		Recalc_Growth();
+		return;
+	}
+
 	int count = std::clamp((int)(GrowthQueue.size() * This()->GrowthPercentage), 5, 300);
 	count = ScenarioClass::Instance->Random.RandomRanged(1, count);
 
@@ -166,7 +178,9 @@ void TiberiumExtData::Growth_AI()
 
 		CellStruct const cell = node.second;
 		int cellIdx = Map_Cell_Index(cell);
-		CellClass* cellptr = MapClass::Instance->GetCellAt(cell);
+		CellClass* cellptr = MapClass::Instance->TryGetCellAt(cell);
+		if (!cellptr)
+			continue;
 
 		if (!cellptr->CanTiberiumGrowth())
 		{
@@ -345,6 +359,8 @@ bool TiberiumExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	}
 
 	detail::read<bool>(slopes, exINI, pSection, "UseSlopes");
+	detail::read<bool>(slopes, exINI, pSection, "AllowRamps");
+
 	auto Variety = Nullable<int>()(exINI, pSection, "Variety", false);
 	static constexpr int ImagesCount = 12;
 	static constexpr int ImageSlopes = 8;
@@ -353,6 +369,7 @@ bool TiberiumExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	if (Variety.isset()) {
 		MaxCount = MaxImpl(MaxCount, Variety.Fetch());
+		MaxCount = std::max(1, MaxCount); // at least one overlay, please
 	}
 
 	if (!this->LinkedOverlayType->empty()) {
@@ -393,6 +410,14 @@ bool TiberiumExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		detail::read<int>(pThis->NumFrames, exINI, pSection, "NumFrames");
 		pThis->SlopeFrames = !slopes ? 0 : ImageSlopes;
 		pThis->NumImages = MaxCount;
+
+		// bail if the tiberium has fewer frames than required for slopes
+		// `Variety` can be user customized but the ramp related calculation cant be done that way 
+		// so this safeguard is perform to safe performance from doing hook all over the places
+		// non negoitable , hard crash.
+		if (pThis->SlopeFrames > 0 && pThis->NumFrames < pThis->SlopeFrames) {
+			Debug::FatalErrorAndExit("Tiberium[%s] has fewer frames than required for slopes", pSection);
+		}
 	}
 
 	return true;

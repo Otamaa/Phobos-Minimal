@@ -3303,3 +3303,83 @@ static bool __fastcall TechnoClass_Limbo_Wrapper(TechnoClass* pThis)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4A34, TechnoClass_Limbo_Wrapper); // TechnoClass
 DEFINE_FUNCTION_JUMP(CALL, 0x4DB3B1, TechnoClass_Limbo_Wrapper);   // FootClass
 DEFINE_FUNCTION_JUMP(CALL, 0x445DDA, TechnoClass_Limbo_Wrapper)    // BuildingClass
+
+
+ASMJIT_PATCH(0x6FFCD1, TechnoClass_PlayerAssignMission_Voices, 0x5)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(Mission, nMission, EDI);
+	GET_STACK(ObjectClass* const, pTarget, STACK_OFFSET(0x98, 0xC));
+	auto pType = pThis->GetTechnoType();
+
+	switch (nMission)
+	{
+	case Mission::Harvest:
+		pThis->VoiceHarvest();
+		break;
+	case Mission::Attack:
+		pThis->VoiceAttack(pTarget);
+		break;
+	case Mission::Move:
+	case Mission::AttackMove:
+		pThis->VoiceMove();
+		break;
+	case Mission::Enter:
+		pThis->VoiceEnter();
+		break;
+	case Mission::Capture:
+		pThis->VoiceCapture();
+		break;
+	case Mission::Unload:
+		pThis->VoiceDeploy();
+		break;
+	case Mission::Eaten:
+	{
+		if(auto const pBuilding = cast_to<BuildingClass*>(pTarget)){ 
+			auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+
+			if (pBuilding->Type->Grinding) {
+				auto const pTypeExt = FootTypeExtContainer::Instance.Find(pType);
+
+				if (pTypeExt->VoiceEnterGrinder.isset()) {
+					pThis->QueueVoice(pTypeExt->VoiceEnterGrinder.Fetch());
+					break;
+				}
+			} else if (pBuilding->Type->Passengers > 0 || pBuildingTypeExt->TunnelType >= 0) {
+				const bool noQueueUpToEnter = pBuildingTypeExt->NoQueueUpToEnter
+					.Get(FakeRulesClass::Instance->NoQueueUpToEnter_Buildings
+					.Get(FakeRulesClass::Instance->NoQueueUpToEnter)
+					);
+
+				if (noQueueUpToEnter)
+				{
+					const auto whatIam = pThis->WhatAmI();
+					const bool canEnter = 
+						(whatIam == AbstractType::Infantry  && pBuilding->Type->InfantryAbsorb) || 
+						(whatIam == AbstractType::Unit && pBuilding->Type->UnitAbsorb) ;
+
+					if (canEnter) { pThis->VoiceEnter(); break; }
+				}
+			}
+		}
+
+		auto& specialAttackVoice = pType->VoiceSpecialAttack;
+		if (specialAttackVoice.Count > 0) {
+			pThis->QueueVoice(ScenarioClass::Instance->Random.RandomFromMax(specialAttackVoice.Count));
+		}
+
+		break;
+	}
+	default:
+	{
+		auto& specialAttackVoice = pType->VoiceSpecialAttack;
+		if (specialAttackVoice.Count > 0) {
+			pThis->QueueVoice(ScenarioClass::Instance->Random.RandomFromMax(specialAttackVoice.Count));
+		}
+
+		break;
+	}
+	}
+
+	return 0x6FFDA5;
+}

@@ -168,6 +168,8 @@ public:
 	Valueable<bool> AllowReceiveSpeedBoost {};
 	// 8 Valueable<bool> = 8 bytes, naturally aligned
 
+	Nullable<PartialVector2D<double>> IdleActionFrequency {};
+
 #pragma endregion
 
 public:

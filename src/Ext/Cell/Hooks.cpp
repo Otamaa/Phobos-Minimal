@@ -221,6 +221,44 @@ ASMJIT_PATCH(0x47FADB, CellClass_DrawOverlay_Rubble, 0x5)
 #include <TerrainTypeClass.h>
 #include <TerrainClass.h>
 
+bool HasRampArt(TiberiumClass* pTib)
+{
+	if (!pTib->Image)
+		return false;
+
+	const int rampOverlayIdx = pTib->Image->ArrayIndex + pTib->NumFrames;
+	if (rampOverlayIdx >= OverlayTypeClass::Array->Count)
+		return false;
+
+	const auto pRampOverlay = OverlayTypeClass::Array->Items[rampOverlayIdx];
+	return pRampOverlay && pRampOverlay->Tiberium;
+}
+
+bool FakeCellClass::CanResourceGerminateOnRamp(TiberiumClass* pTib, BYTE slopeIndex)
+{
+	// West=1, North=2, East=3, South=4. Higher indices (corners, steep ramps) lack Tiberium overlay art.
+	constexpr BYTE MaxCardinalRampIndex = 4;
+	constexpr int RequiredRampOverlays = 8;
+
+	if (slopeIndex == 0)
+		return true;
+
+	if (slopeIndex > MaxCardinalRampIndex)
+		return false;
+
+	if (pTib) {
+		const auto pExt = TiberiumExtContainer::Instance.Find(pTib);
+
+		if (pTib->SlopeFrames > 0 && HasRampArt(pTib)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	return false;
+}
+
 bool FakeCellClass::_CanTiberiumGerminate(TiberiumClass* tiberium)
 {
 	if (!MapClass::Instance->IsWithinUsableArea(this->MapCoords, true)) return false;
@@ -240,7 +278,9 @@ bool FakeCellClass::_CanTiberiumGerminate(TiberiumClass* tiberium)
 
 	if (!GroundType::Get(this->LandType)->Build) return false;
 
-	if (this->OverlayTypeIndex != -1 || this->SlopeIndex > 0) return false;
+	if (this->OverlayTypeIndex != -1) return false;
+
+	if(this->SlopeIndex > 0 && (tiberium->SlopeFrames > 0 || !HasRampArt(tiberium))) return false;
 
 	if (this->IsoTileTypeIndex >= 0 && this->IsoTileTypeIndex < IsometricTileTypeClass::Array->Count)
 	{
@@ -335,4 +375,91 @@ ASMJIT_PATCH(0x48724F, CellClass_PlaceTiberiumAt_RandomMax, 0x9)
 	pMemory->OverlayClass::OverlayClass(OverlayTypeClass::Array->Items[pTib->Image->ArrayIndex + random], pThis->MapCoords, -1);
 	R->Stack(0x10, pThis->MapCoords);
 	return 0x487291;
+}
+
+ASMJIT_PATCH(0x47D36E, CellClass_RecalcAttributes_PreserveRampTiberium, 0x18)
+{
+	GET(CellClass*, pThis, ESI);
+	GET(OverlayTypeClass*, pOverlayType, EBP);
+
+	if (pOverlayType && pOverlayType->Tiberium)
+	{
+		const int tibType = OverlayClass::GetTiberiumType(pOverlayType->ArrayIndex);
+		const auto pTib = TiberiumClass::Array->get_or_default(tibType);
+
+		if (!FakeCellClass::CanResourceGerminateOnRamp(pTib, pThis->SlopeIndex))
+		{
+			pThis->OverlayTypeIndex = -1;
+			pThis->OverlayData = 0;
+		}
+	}
+
+	return 0x47D386;
+}
+
+
+ASMJIT_PATCH(0x483650, CellClass_CanTiberiumGrow_RampSupport, 0x6)
+{
+	enum { Disallow = 0x48365A, ContinueChecks = 0x48365E };
+
+	GET(CellClass*, pThis, ESI);
+
+	if (pThis->SlopeIndex != 0)
+	{
+		const int tibType = OverlayClass::GetTiberiumType(pThis->OverlayTypeIndex);
+		const auto pTib = TiberiumClass::Array->get_or_default(tibType);
+
+		if (!FakeCellClass::CanResourceGerminateOnRamp(pTib, pThis->SlopeIndex))
+			return Disallow;
+	}
+
+	return ContinueChecks;
+}
+
+ASMJIT_PATCH(0x4836CF, CellClass_CanTiberiumSpread_RampSupport, 0xA)
+{
+	enum { Disallow = 0x4836D9, ContinueChecks = 0x4836DE };
+
+	GET(CellClass*, pThis, ESI);
+
+	if (pThis->SlopeIndex != 0)
+	{
+		GET(int, tibIndex, EDI);
+		const auto pTib = TiberiumClass::Array->get_or_default(tibIndex);
+
+		if (!FakeCellClass::CanResourceGerminateOnRamp(pTib, pThis->SlopeIndex))
+			return Disallow;
+	}
+
+	return ContinueChecks;
+}
+
+ASMJIT_PATCH(0x483738, CellClass_CanTiberiumGrow_RampCheck, 0xA)
+{
+	enum { Disallow = 0x48377C, ContinueChecks = 0x483742 };
+
+	GET(CellClass*, pThis, ESI);
+	GET(TiberiumClass*, pTib, EAX);
+
+	if (pThis->SlopeIndex != 0 && !FakeCellClass::CanResourceGerminateOnRamp(pTib, pThis->SlopeIndex))
+		return Disallow;
+
+	return ContinueChecks;
+}
+
+
+DEFINE_HOOK(0x4873A7, CellClass_IncreaseTiberium_RampStageSupport, 0x11)
+{
+	enum { Disallow = 0x48761E, ContinueGrowth = 0x4873B8 };
+
+	GET(CellClass*, pThis, ESI);
+	GET(int, tibIndex, EAX);
+
+	const auto pTib = TiberiumClass::Array->get_or_default(tibIndex);
+	R->EAX(pTib);
+
+	if (pThis->SlopeIndex != 0 && !FakeCellClass::CanResourceGerminateOnRamp(pTib, pThis->SlopeIndex))
+		return Disallow;
+
+	return ContinueGrowth;
 }

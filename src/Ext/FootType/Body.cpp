@@ -2,6 +2,21 @@
 
 #include <Utilities/SavegameDef.h>
 
+template <typename T>
+void FootTypeExtData::Serialize(T& Stm)
+{
+	Stm
+		.Process(this->FlightClimb)
+		.Process(this->FlightCrash)
+		.Process(this->DigStartROT)
+		.Process(this->DigInSpeed)
+		.Process(this->DigOutSpeed)
+		.Process(this->DigEndROT)
+		.Process(this->AIDefendBase_Ignore)
+		.Process(this->VoiceEnterGrinder)
+		;
+}
+
 bool FootTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
 	if (!this->TechnoTypeExtData::LoadFromINI(pINI, parseFailAddr))
@@ -20,7 +35,9 @@ bool FootTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->DigOutSpeed.Read(exINI, pSection, "DigOutSpeed");
 	this->DigEndROT.Read(exINI, pSection, "DigEndROT");
 	this->AIDefendBase_Ignore.Read(exINI, pSection, "AIDefendBase.Ignore");
+	this->VoiceEnterGrinder.Read(exINI, pSection, "VoiceEnterGrinder");
 
 	return true;
 }
+
 FootTypeExtContainer FootTypeExtContainer::Instance;

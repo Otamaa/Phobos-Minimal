@@ -151,7 +151,8 @@ public:
 	bool _CanPlaceVeins();
 	int _Reduce_Tiberium(int levels_reducer);
 	int _GetRampLevel(CellStruct* where);
-
+	
+	static bool CanResourceGerminateOnRamp(TiberiumClass* pTib, BYTE slopeIndex);
 	static void __fastcall _ChainReaction(CellStruct* coords);
 
 	FORCEDINLINE CellClass* _AsCell() const

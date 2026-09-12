@@ -187,6 +187,8 @@ bool InfantryTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->DeathBodies_UseDieSequenceAsIndex.Read(exINI, pID, "DeathBodies.UseDieSequenceAsIndex");
 	this->VoiceGarrison.Read(exINI, pID, "VoiceGarrison");
 
+	this->IdleActionFrequency.Read(exINI, pID, "IdleActionFrequency");
+
 	this->OnlyUseLandSequences.Read(exArtINI, pArtSection, "OnlyUseLandSequences");
 
 	this->WhenInfiltrate_Warhead.Read(exINI, pID, "WhenInfiltrate.Warhead.%s");
@@ -278,6 +280,7 @@ void InfantryTypeExtData::Serialize(T& Stm)
 		.Process(this->AllowReceiveSpeedBoost)
 		.Process(this->ProneSpeed)
 		.Process(this->InfantryAutoDeploy)
+		.Process(this->IdleActionFrequency)
 		;
 }
 

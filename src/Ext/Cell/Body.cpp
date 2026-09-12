@@ -169,7 +169,7 @@ bool FakeCellClass::_SpreadTiberium(bool force)
 
 		if (tib_ == -1
 			  || this->OverlayData <= tib_ / 2
-			  || this->SlopeIndex
+			  || !FakeCellClass::CanResourceGerminateOnRamp(TiberiumClass::Array->Items[tib_], this->SlopeIndex)
 			  || TiberiumClass::Array->Items[tib_]->SpreadPercentage < 0.00001
 			  || this->FirstObject)
 		{
@@ -269,7 +269,9 @@ bool FakeCellClass::_SpreadTiberium_2(TerrainClass* pTerrain, bool force)
 			return false;
 		}
 
-		if (tib_ >= (size_t)TiberiumClass::Array->Count || (TiberiumClass::Array->Items[tib_]->SlopeFrames <= 0 && this->SlopeIndex))
+		if (tib_ >= (size_t)TiberiumClass::Array->Count || (TiberiumClass::Array->Items[tib_]->SlopeFrames <= 0 &&
+			 !FakeCellClass::CanResourceGerminateOnRamp(TiberiumClass::Array->Items[tib_], this->SlopeIndex)
+			))
 			return false;
 
 		if (TiberiumClass::Array->Items[tib_]->SpreadPercentage < 0.00001
