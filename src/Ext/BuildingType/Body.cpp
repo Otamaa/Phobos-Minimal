@@ -1834,6 +1834,8 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->RallyPointSpeedType.Read(exINI, pSection, "RallySpeedType");
 		this->RallyPointMovementZone.Read(exINI, pSection, "RallyMovementZone");
 
+		this->DisableProductionDuringBuildup.read(exINI, pSection, "DisableProductionDuringBuildup");
+
 		if (this->DisplayIncome_Delay.isset() && this->DisplayIncome_Delay.Fetch() == 0) {
 			Debug::Log("[Developer warning] [%s] DisplayIncome.Delay is set to 0, forcing to 1.\n", pSection);
 			this->DisplayIncome_Delay = 1;
@@ -2402,6 +2404,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->HaveRallyPoint)
 		.Process(this->RallyPointSpeedType)
 		.Process(this->RallyPointMovementZone)
+		.Process(this->DisableProductionDuringBuildup)
 		;
 }
 #else

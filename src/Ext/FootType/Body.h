@@ -49,7 +49,19 @@ public:
 
 private:
 	template <typename T>
-	void Serialize(T& Stm);
+	void Serialize(T& Stm)
+	{
+		Stm
+			.Process(this->FlightClimb)
+			.Process(this->FlightCrash)
+			.Process(this->DigStartROT)
+			.Process(this->DigInSpeed)
+			.Process(this->DigOutSpeed)
+			.Process(this->DigEndROT)
+			.Process(this->AIDefendBase_Ignore)
+			.Process(this->VoiceEnterGrinder)
+			;
+	}
 };
 
 class FootTypeExtContainer final //: public Container<TechnoTypeExtData>

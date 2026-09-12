@@ -287,6 +287,7 @@ void FakeRulesClass::LoadAfterTypeData(CCINIClass* pINI)
 
 	this->VeteranRange.Read(exINI, GameStrings::General, "VeteranRange");
 	this->VeteranCritChance.Read(exINI, GameStrings::General, "VeteranCritChance");
+	this->DisableProductionDuringBuildup.Read(exINI, GameStrings::General, "DisableProductionDuringBuildup");
 
 }
 
@@ -1415,6 +1416,7 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->VeteranRange)
 		.Process(this->VeteranCritChance)
 		.Process(this->AttackTarget_WaitForTurreReset)
+		.Process(this->DisableProductionDuringBuildup)
 	;
 }
 

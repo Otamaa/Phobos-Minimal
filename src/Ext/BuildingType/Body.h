@@ -398,6 +398,7 @@ public:
 	Nullable<bool> RoofProductionAnimPoweredLight { };
 	Nullable<bool> RoofProductionAnimPoweredEffect { };
 	Nullable<bool> RoofProductionAnimPoweredSpecial { };
+	Nullable<bool> DisableProductionDuringBuildup {};
 #pragma endregion
 
 public:

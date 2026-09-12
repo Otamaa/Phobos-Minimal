@@ -517,7 +517,11 @@ std::pair<NewFactoryState, BuildingClass*> HouseExtData::HasFactory(
 
 		if (TechnoTypeExtData::CanBeBuiltAt(pType, pBType))
 		{
-			if (requirePower && (!pBld->HasPower || pBld->Deactivated))
+			auto pBldTypeExt = BuildingTypeExtContainer::Instance.Find(pBType);
+
+			if (requirePower && (!pBld->HasPower || pBld->Deactivated || 
+				(pBldTypeExt->DisableProductionDuringBuildup.Get(FakeRulesClass::Instance->DisableProductionDuringBuildup)
+				 && pBld->CurrentMission == Mission::Selling || pBld->CurrentMission == Mission::Construction)))
 			{
 				pOfflineBuilding = pBld;
 			}
@@ -616,7 +620,7 @@ CanBuildResult HouseExtData::PrereqValidate(
 			}
 		}
 
-		const auto factoryresult = HouseExtData::HasFactory(pHouse, pItem, true, true, false, true).first;
+		const auto&[factoryresult, pBld] = HouseExtData::HasFactory(pHouse, pItem, true, true, false, true);
 		if (factoryresult == NewFactoryState::NotFound || factoryresult == NewFactoryState::NoFactory)
 			return CanBuildResult::Unbuildable;
 

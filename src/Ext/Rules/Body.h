@@ -893,7 +893,7 @@ public:
 	Valueable<double> VeteranCritChance { 1.0 };
 
 	Valueable<bool> AttackTarget_WaitForTurreReset { true };
-
+	Valueable<bool> DisableProductionDuringBuildup { false };
 #pragma endregion
 
 public:

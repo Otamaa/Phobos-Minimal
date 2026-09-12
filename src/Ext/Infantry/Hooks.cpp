@@ -653,7 +653,7 @@ ASMJIT_PATCH(0x51CDEF, InfantryClass_UpdateIdleAction_IdleActionFrequency, 0x6)
 	auto const pTypeExt = InfantryTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (pTypeExt->IdleActionFrequency.isset()) {
-		auto const pRange = pTypeExt->IdleActionFrequency.GetEx();
+		auto const pRange = &pTypeExt->IdleActionFrequency.Fetch();
 		const bool isUpperBound = R->Origin() == 0x51CDD9;
 		double value;
 
