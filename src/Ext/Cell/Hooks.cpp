@@ -280,7 +280,8 @@ bool FakeCellClass::_CanTiberiumGerminate(TiberiumClass* tiberium)
 
 	if (this->OverlayTypeIndex != -1) return false;
 
-	if(this->SlopeIndex > 0 && (tiberium->SlopeFrames > 0 || !HasRampArt(tiberium))) return false;
+	// dont allow tiberium to grow on ramps if the tiberium has no ramp art or if the tiberium has slope frames
+	if(this->SlopeIndex > 0 && (tiberium->SlopeFrames > 0 && !HasRampArt(tiberium))) return false;
 
 	if (this->IsoTileTypeIndex >= 0 && this->IsoTileTypeIndex < IsometricTileTypeClass::Array->Count)
 	{
