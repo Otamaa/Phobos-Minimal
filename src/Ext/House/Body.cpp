@@ -521,7 +521,7 @@ std::pair<NewFactoryState, BuildingClass*> HouseExtData::HasFactory(
 
 			if (requirePower && (!pBld->HasPower || pBld->Deactivated || 
 				(pBldTypeExt->DisableProductionDuringBuildup.Get(FakeRulesClass::Instance->DisableProductionDuringBuildup)
-				 && pBld->CurrentMission == Mission::Selling || pBld->CurrentMission == Mission::Construction)))
+					&& (pBld->CurrentMission == Mission::Selling || pBld->CurrentMission == Mission::Construction))))
 			{
 				pOfflineBuilding = pBld;
 			}

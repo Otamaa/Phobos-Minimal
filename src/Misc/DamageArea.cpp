@@ -4,6 +4,7 @@
 #include <Ext/Rules/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/Cell/Body.h>
+#include <Ext/Scenario/Body.h>
 
 #include <Utilities/Macro.h>
 
@@ -825,7 +826,7 @@ static bool CanDamageBridge(CellClass* cell, CoordStruct* coord)
 }
 */
 
-//static PhobosMap<BuildingClass*, double> MergedDamage {};
+static PhobosMap<BuildingClass*, double> MergedDamage {};
 static DynamicVectorClass<ObjectClass*> Targets;
 static DynamicVectorClass<DamageGroup*> Handled;
 
@@ -850,10 +851,9 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 		HouseClass* pHouse)
 {
 
-	JMP_FAST(0x489280);
 #ifdef _aaa
-	if (!pWarhead)
-	{
+
+	if (!pWarhead) {
 		return DamageAreaResult::Missed;
 	}
 
@@ -861,11 +861,11 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 		Debug::FatalErrorAndExit("!");
 
 	const auto pWHExt = ((FakeWarheadTypeClass*)pWarhead)->_GetExtData();
+	const bool cylinder = pWHExt->CellSpread_Cylinder;
+
 	CellStruct cell = CellClass::Coord2Cell(*pCoord);
 
-	if (!pWHExt->ShakeIsLocal.Get(FakeRulesClass::Instace->ShakeIsLocal) || TacticalClass::Instance->IsCoordsToClientVisible(*pCoord))
-	{
-
+	if (!pWHExt->ShakeIsLocal.Get(FakeRulesClass::Instance->ShakeIsLocal) || TacticalClass::Instance->IsCoordsToClientVisible(*pCoord)) {
 		if (pWarhead->ShakeXhi || pWarhead->ShakeXlo)
 			GeneralUtils::CalculateShakeVal(
 			GScreenClass::Instance->ScreenShakeX,
@@ -920,6 +920,11 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 	{
 		heightAboveGround -= Unsorted::BridgeHeight;
 	}
+	auto CanAffectTarget = [pWHExt](ObjectClass* pObject)
+		{
+			return ((pWHExt->AffectsInAir && pObject->IsInAir()) ||
+			(pWHExt->AffectsGround && !pObject->IsInAir()));
+		};
 
 	// damage units in air if detonation is above a threshold
 	if (heightAboveGround > pWHExt->DamageAirThreshold)
@@ -930,14 +935,13 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 		{
 			do
 			{
-				if (Ent->IsAlive && Ent->IsOnMap && Ent->Health > 0)
+				if (Ent->IsAlive && Ent->IsOnMap && Ent->Health > 0 && CanAffectTarget(Ent))
 				{
-					const auto len = pCoord->operator-(Ent->Location).Length();
+					const double len = !cylinder ?
+						pCoord->DistanceFrom(Ent->Location) : pCoord->DistanceFromXY(Ent->Location);
 
-					if (len <= spreadLept)
-					{
-						if (spreadLow && (int)len < 85 && Ent->IsIronCurtained() && Ent->ProtectType == ProtectTypes::IronCurtain)
-						{
+					if (len <= spreadLept) {
+						if (spreadLow && (int)len < 85 && Ent->IsIronCurtained() && Ent->ProtectType == ProtectTypes::IronCurtain) {
 							HitICEdTechno = !pWHExt->PenetratesIronCurtain;
 						}
 
@@ -951,32 +955,25 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 		}
 	}
 
-	if (pCell->Tile_Is_DestroyableCliff())
-	{
-		if (ScenarioClass::Instance->Random.PercentChance(RulesClass::Instance->CollapseChance))
-		{
+	if (pCell->Tile_Is_DestroyableCliff()) {
+		if (ScenarioClass::Instance->Random.PercentChance(RulesClass::Instance->CollapseChance)) {
 			MapClass::Instance->DestroyCliff(pCell);
 		}
 	}
 
-	if (cell_ContainsBridge && (pCoord->Z > (Unsorted::BridgeHeight / 2 + coord_Actual)))
-	{
+	if (cell_ContainsBridge && (pCoord->Z > (Unsorted::BridgeHeight / 2 + coord_Actual))) {
 		alt = true;
 	}
 
-	if (int(spread + 0.99) >= 0)
-	{
+	if (int(spread + 0.99) >= 0) {
 		//obtain Object within the spread distance
 		int i = 0;
-		for (CellSpreadEnumerator it(short(spread + 0.99), short(0)); it; ++it)
-		{
+		for (CellSpreadEnumerator it(short(spread + 0.99), short(0)); it; ++it) {
 			auto cellhere = (cell + (*it));
 			const bool IsCenter = i++ == 0;
 
-			if (auto pCurCell = MapClass::Instance->TryGetCellAt(cellhere))
-			{
-				if (MapClass::Instance->CoordinatesLegal(cellhere))
-				{
+			if (auto pCurCell = MapClass::Instance->TryGetCellAt(cellhere)) {
+				if (MapClass::Instance->CoordinatesLegal(cellhere)) {
 
 					auto cur_cellCoord = pCurCell->GetCoords();
 					auto spawn_distance = cellhere.DistanceFrom(cell);
@@ -988,19 +985,20 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 
 					Spawn_Flames_And_Smudges(cellhere, scorch_chance, crater_chance, cellanim_chance, pWHExt->CellAnim);
 
-					for (NextObject next(alt ? pCurCell->AltObject : pCurCell->FirstObject); next; next++)
-					{
+					for (NextObject next(alt ? pCurCell->AltObject : pCurCell->FirstObject); next; next++) {
 						auto pCur = *next;
 
-						if (!pCur->IsAlive || pCur == pSource && !pWHExt->AllowDamageOnSelf.Get(FakeRulesClass::Instance->AllowDamageOnSelf) && !isCrushWarhead)
+						if (!pCur->IsAlive || pCur == pSource && 
+							!pWHExt->AllowDamageOnSelf.Get(FakeRulesClass::Instance->AllowDamageOnSelf) && !isCrushWarhead)
+							continue;
+
+						if (!CanAffectTarget(pCur))
 							continue;
 
 						const auto what = pCur->WhatAmI();
 
-						if (what == UnitClass::AbsID && ((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x800) != 0))
-						{
-							if (RulesClass::Instance->HarvesterUnit.FindItemIndex(((UnitClass*)pSource)->Type) != -1)
-							{
+						if (what == UnitClass::AbsID && ((ScenarioClass::Instance->SpecialFlags.RawFlags & 0x800) != 0)) {
+							if (RulesClass::Instance->HarvesterUnit.find(((UnitClass*)pSource)->Type) != -1) {
 								continue;
 							}
 						}
@@ -1008,21 +1006,27 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 						auto cur_Group = GameCreate<DamageGroup>(pCur, 0);
 						groupvec.push_back(cur_Group);
 
-						if (what == BuildingClass::AbsID)
-						{
+						if (what == BuildingClass::AbsID) {
+							int ZComp = cylinder ? cur_cellCoord.Z - cur_cellCoord.Z : pCoord->Z - cur_cellCoord.Z;
 
-							if (IsCenter && !(pCoord->Z - cur_cellCoord.Z <= Unsorted::CellHeight))
-							{
-								cur_Group->Distance = (int)(cur_cellCoord.operator-(*pCoord).Length()) - Unsorted::CellHeight;
-							}
-							else
-							{
-								cur_Group->Distance = (int)pCoord->operator-(cur_cellCoord).Length();
+							if (IsCenter && !(ZComp <= Unsorted::CellHeight)) {
+								cur_Group->Distance = cylinder ?
+									cur_cellCoord.DistanceFromXY(*pCoord) :
+									cur_cellCoord.DistanceFrom(*pCoord)
+									;
+							} else {
+								cur_Group->Distance = cylinder ?
+									pCoord->DistanceFromXY(cur_cellCoord) :
+									pCoord->DistanceFrom(cur_cellCoord)
+									;
 							}
 						}
 						else
 						{
-							cur_Group->Distance = (int)pCoord->operator-(pCur->GetTargetCoords()).Length();
+							cur_Group->Distance = cylinder ? 
+								pCoord->DistanceFromXY(pCur->GetTargetCoords()) :
+								pCoord->DistanceFrom(pCur->GetTargetCoords())
+								;
 						}
 
 						if (spreadLow && IsCenter)
@@ -1042,36 +1046,30 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 		}
 	}
 
-	if (pWHExt->CellSpread_MaxAffect > 0)
-	{
-		Targets.Clear();
-		Handled.Clear();
+	if (pWHExt->CellSpread_MaxAffect > 0) {
+		Targets.clear();
+		Handled.clear();
 
 		const auto g_end = groupvec.begin() + groupvec.size();
 
-		for (auto g_begin = groupvec.begin(); g_begin != g_end; ++g_begin)
-		{
+		for (auto g_begin = groupvec.begin(); g_begin != g_end; ++g_begin) {
 
 			DamageGroup* group = *g_begin;
 			// group could have been cleared by previous iteration.
 			// only handle if has not been handled already.
-			if (group && Targets.AddUnique(group->Target))
-			{
+			if (group && Targets.insert_unique(group->Target)) {
 
-				Handled.Clear();
+				Handled.clear();
 
 				// collect all slots containing damage groups for this target
-				std::for_each(g_begin, g_end, [group](DamageGroup* item)
- {
-	 if (item && item->Target == group->Target)
-	 {
-		 Handled.AddItem(item);
-	 }
+				std::for_each(g_begin, g_end, [group](DamageGroup* item) {
+					 if (item && item->Target == group->Target) {
+						 Handled.push_back(item);
+					 }
 				});
 
 				// if more than allowed, sort them and remove the ones further away
-				if ((int)Handled.size() > pWHExt->CellSpread_MaxAffect)
-				{
+				if ((int)Handled.size() > pWHExt->CellSpread_MaxAffect) {
 					Helpers::Alex::selectionsort(
 						Handled.begin(), Handled.begin() + pWHExt->CellSpread_MaxAffect, Handled.end(),
 						[](DamageGroup* a, DamageGroup* b)
@@ -1079,25 +1077,22 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 							return a->Distance < b->Distance;
 						});
 
-					std::for_each(Handled.begin() + pWHExt->CellSpread_MaxAffect, Handled.end(), [](DamageGroup* ppItem)
- {
-	 ppItem->Target = nullptr;
+					std::for_each(Handled.begin() + pWHExt->CellSpread_MaxAffect, Handled.end(), [](DamageGroup* ppItem) {
+						ppItem->Target = nullptr;
 					});
 				}
 			}
 		}
 
 		// move all the empty ones to the back, then remove them
-		groupvec.remove_all_if([](DamageGroup* pGroup)
-{
-	if (!pGroup->Target)
-	{
-		GameDelete<false, false>(pGroup);
-		pGroup = nullptr;
-		return true;
-	}
+		groupvec.remove_all_if([](DamageGroup* pGroup) {
+			if (!pGroup->Target) {
+				GameDelete<false, false>(pGroup);
+				pGroup = nullptr;
+				return true;
+			}
 
-	return false;
+		return false;
 		});
 	}
 
@@ -1105,10 +1100,8 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 	const bool merge_bldngDamage = pWHExt->MergeBuildingDamage.Get(FakeRulesClass::Instance()->MergeBuildingDamage);
 	MergedDamage.clear();
 
-	if (merge_bldngDamage)
-	{
-		for (auto it = groupvec.begin(); it != groupvec.end(); ++it)
-		{
+	if (merge_bldngDamage) {
+		for (auto it = groupvec.begin(); it != groupvec.end(); ++it) {
 			auto pGroup = *it;
 			auto curDistance = pGroup->Distance;
 			auto pObj = pGroup->Target;
@@ -1122,7 +1115,6 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 
 	for (size_t i = 0; i < groupvec.size(); ++i)
 	{
-
 		auto pGroup = groupvec[i];
 		if (!pGroup || !pGroup->Target)
 			continue;
@@ -1163,55 +1155,61 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 		}
 	};
 
-	for (auto it = groupvec.begin(); it != groupvec.end(); ++it)
-	{
+	if (!HitICEdTechno && pWHExt->AffectsUnderground) {
+
+		for (auto pTechno : ScenarioExtData::Instance()->UndergroundTracker) {
+			if (pTechno->InWhichLayer() == Layer::Underground // Layer.
+				&& pTechno->IsAlive && !pTechno->IsIronCurtained()
+				&& !pTechno->IsOnMap // Underground is not on map.
+				&& !pTechno->InLimbo) {
+				auto const technoCoords = pTechno->GetCoords();
+				double dist = cylinder ? technoCoords.DistanceFromXY(*pCoord) : technoCoords.DistanceFrom(*pCoord);
+
+				if (dist <= spreadLept) {
+					pTechno->ReceiveDamage(&damage, (int)dist, pWarhead, pSource, false, false, pHouse);
+					AnythingHit = true;
+				}
+			}
+		}
+	}
+
+	for (auto it = groupvec.begin(); it != groupvec.end(); ++it) {
 		GameDelete<false, true>(std::exchange(*it, nullptr));
 	}
 
 	groupvec.clear();
 
-	if (HitICEdTechno)
-	{
+	if (HitICEdTechno) {
 		return DamageAreaResult::Nullified;
 	}
 
-	if (pWarhead->Rocker)
-	{
+	if (pWarhead->Rocker) {
 		const double rockerSpread = MinImpl(pWHExt->Rocker_AmplitudeOverride.Get(damage) * pWHExt->Rocker_AmplitudeMultiplier, 4.0);
 
-		if (rockerSpread > 0.3)
-		{
+		if (rockerSpread > 0.3) {
 			const short cell_radius = 3;
-			for (short x = -cell_radius; x <= cell_radius; x++)
-			{
-				for (short y = -cell_radius; y <= cell_radius; y++)
-				{
+			for (short x = -cell_radius; x <= cell_radius; x++) {
+				for (short y = -cell_radius; y <= cell_radius; y++) {
 					short xpos = cell.X + x;
 					short ypos = cell.Y + y;
 					CellStruct cellhere { xpos, ypos };
 
-					if (auto pCellHere = MapClass::Instance->TryGetCellAt(cellhere))
-					{
+					if (auto pCellHere = MapClass::Instance->TryGetCellAt(cellhere)) {
 						if (!MapClass::Instance->CoordinatesLegal(cellhere))
 							continue;
 
 						auto object = pCellHere->Cell_Occupier(alt);
 
-						while (object)
-						{
-							if (FootClass* techno = flag_cast_to<FootClass*>(object))
-							{
-								if (xpos == cell.X && ypos == cell.Y && pSource)
-								{
+						while (object) {
+							if (FootClass* techno = flag_cast_to<FootClass*>(object)) {
+								if (xpos == cell.X && ypos == cell.Y && pSource) {
 									Coordinate rockercoord = (pSource->GetCoords() - techno->GetCoords());
 									Vector3D<double> rockervec = Vector3D<double>((double)rockercoord.X, (double)rockercoord.Y, (double)rockercoord.Z).Normalized() * 10.0f;
 									CoordStruct rock_((int)rockervec.X, (int)rockervec.Y, (int)rockervec.Z);
 									CoordStruct _result_rock = pCoord->operator+(rock_);
 
 									techno->RockByValue(&_result_rock, (float)rockerSpread);
-								}
-								else if (pWarhead->CellSpread > 0.0f)
-								{
+								} else if (pWarhead->CellSpread > 0.0f) {
 									techno->RockByValue(pCoord, (float)rockerSpread);
 								}
 							}
@@ -1227,8 +1225,7 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 
 	if (pCell->OverlayTypeIndex > -1
 		&& OverlayTypeClass::Array->Items[pCell->OverlayTypeIndex]->Explodes
-		&& damage >= FakeRulesClass::Instance()->OverlayExplodeThreshold)
-	{
+		&& damage >= FakeRulesClass::Instance()->OverlayExplodeThreshold) {
 		pCell->MarkForRedraw();
 		pCell->OverlayTypeIndex = -1;
 		pCell->RecalcAttributes(-1);
@@ -1243,69 +1240,68 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 		//recursive call ..
 		DamageArea::Apply(pCoord, RulesClass::Instance->AmmoCrateDamage, nullptr, RulesClass::Instance->C4Warhead, true, nullptr);
 
-		for (auto brrelDebris : RulesClass::Instance->BarrelDebris)
-		{
-			if (ScenarioClass::Instance->Random.RandomFromMax(99) < 15)
-			{
+		for (auto brrelDebris : RulesClass::Instance->BarrelDebris) {
+			if (ScenarioClass::Instance->Random.RandomFromMax(99) < 15) {
 				GameCreate<VoxelAnimClass>(brrelDebris, pCoord, nullptr);
 				break;
 			}
 		}
 
-		if (auto barrelParticle = RulesClass::Instance->BarrelParticle)
-		{
-			if (ScenarioClass::Instance->Random.RandomFromMax(99) < 25)
-			{
+		if (auto barrelParticle = RulesClass::Instance->BarrelParticle) {
+			if (ScenarioClass::Instance->Random.RandomFromMax(99) < 25) {
 				GameCreate<ParticleSystemClass>(barrelParticle, *pCoord)
 					->SpawnHeldParticle(pCoord, pCoord);
 			}
 		}
 	}
 
-	if (auto pParticle = pWarhead->Particle)
-	{
+	if (auto pParticle = pWarhead->Particle) {
 		GameCreate<ParticleSystemClass>(pParticle, *pCoord)
 			->SpawnHeldParticle(pCoord, pCoord);
 	}
 
 
 	return DamageAreaResult(AnythingHit == 0);
+#else 
+	JMP_FAST(0x489280);
 #endif
 }
 
-//DEFINE_FUNCTION_JUMP(CALL, 0x423EAB, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x424647, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x424ED1, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x425237, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x4387A3, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x469A83, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x481E33, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x481E89, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x48266D, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x482836, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x48A371, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x48A88B, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x4A76AF, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x4B5D28, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x4B5FC7, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x4CD9BB, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x51A6C1, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x51A79E, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x51A7D3, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x53A5D0, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x53B16B, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x53CDB5, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x53CDD4, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x6632C7, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x6CD90C, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x6E04DD, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x6E0545, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x6E05AD, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x6E062F, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x6E0697, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x6E250B, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x71BABF, DamageArea::Apply);
-//DEFINE_FUNCTION_JUMP(CALL, 0x74A1E1, DamageArea::Apply);
+#ifdef _aaa
+DEFINE_FUNCTION_JUMP(CALL, 0x423EAB, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x424647, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x424ED1, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x425237, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x4387A3, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x469A83, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x481E33, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x481E89, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x48266D, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x482836, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x48A371, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x48A88B, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x4A76AF, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x4B5D28, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x4B5FC7, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x4CD9BB, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x51A6C1, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x51A79E, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x51A7D3, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x53A5D0, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x53B16B, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x53CDB5, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x53CDD4, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x6632C7, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x6CD90C, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x6E04DD, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x6E0545, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x6E05AD, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x6E062F, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x6E0697, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x6E250B, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x71BABF, DamageArea::Apply);
+DEFINE_FUNCTION_JUMP(CALL, 0x74A1E1, DamageArea::Apply);
+#endif
 
 #ifndef _ENABLE
 //#pragma optimize("", off )
@@ -2006,7 +2002,7 @@ ASMJIT_PATCH(0x489562, DamageArea_DestroyCliff, 6)
 }
 
 // Cylinder CellSpread
-ASMJIT_PATCH(0x489430, MapClass_DamageArea_Cylinder_1, 0x7)
+ASMJIT_PATCH(0x489430, MapClass_DamageArea_Cylinder_AircraftTracker_1, 0x7)
 {
 	//GET(int, nDetoCrdZ, EDX);
 	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
@@ -2020,7 +2016,7 @@ ASMJIT_PATCH(0x489430, MapClass_DamageArea_Cylinder_1, 0x7)
 	return 0;
 }
 
-ASMJIT_PATCH(0x4894C1, MapClass_DamageArea_Cylinder_2, 0x5)
+ASMJIT_PATCH(0x4894C1, MapClass_DamageArea_Cylinder_AircraftTracker_2, 0x5)
 {
 	//GET(int, nDetoCrdZ, EDX);
 	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
@@ -2036,7 +2032,7 @@ ASMJIT_PATCH(0x4894C1, MapClass_DamageArea_Cylinder_2, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x48979C, MapClass_DamageArea_Cylinder_3, 0x8)
+ASMJIT_PATCH(0x48979C, MapClass_DamageArea_Cylinder_BuildingDamaging_1, 0x8)
 {
 	//GET(int, nDetoCrdZ, ECX);
 	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
@@ -2050,7 +2046,7 @@ ASMJIT_PATCH(0x48979C, MapClass_DamageArea_Cylinder_3, 0x8)
 	return 0;
 }
 
-ASMJIT_PATCH(0x4897C3, MapClass_DamageArea_Cylinder_4, 0x5)
+ASMJIT_PATCH(0x4897C3, MapClass_DamageArea_Cylinder_BuildingDamaging_2, 0x5)
 {
 	//GET(int, nDetoCrdZ, ECX);
 	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
@@ -2064,7 +2060,7 @@ ASMJIT_PATCH(0x4897C3, MapClass_DamageArea_Cylinder_4, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x48985A, MapClass_DamageArea_Cylinder_5, 0x5)
+ASMJIT_PATCH(0x48985A, MapClass_DamageArea_Cylinder_DamageAreaObject1, 0x5)
 {
 	//GET(int, nDetoCrdZ, ECX);
 	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
@@ -2078,7 +2074,7 @@ ASMJIT_PATCH(0x48985A, MapClass_DamageArea_Cylinder_5, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x4898BF, MapClass_DamageArea_Cylinder_6, 0x5)
+ASMJIT_PATCH(0x4898BF, MapClass_DamageArea_Cylinder_DamageAreaObject2, 0x5)
 {
 	//GET(int, nDetoCrdZ, EDX);
 	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
