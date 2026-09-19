@@ -453,8 +453,8 @@ public:
 	Valueable<bool> CanKill { true };
 	Valueable<bool> ElectricAssault_Requireverses { false };
 
-	Valueable<double> DamageSourceHealthMultiplier { 0.0 };
-	Valueable<double> DamageTargetHealthMultiplier { 0.0 };
+	Nullable<double> DamageSourceHealthMultiplier { };
+	Nullable<double> DamageTargetHealthMultiplier { };
 
 	Valueable<double> AffectsBelowPercent { 1.0 };
 	Valueable<double> AffectsAbovePercent { 0.0 };

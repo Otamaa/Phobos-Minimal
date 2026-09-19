@@ -1014,9 +1014,23 @@ void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, TechnoClass* pSou
 			multiplier = this->DamageOwnerMultiplier.Get(!this->AffectsEnemies ? pRulesExt->DamageOwnerMultiplier_NotAffectsEnemies.Get(pRulesExt->DamageOwnerMultiplier) : pRulesExt->DamageOwnerMultiplier);
 	}
 
+	double multiplierB = 1.0;
+
+	if (this->DamageSourceHealthMultiplier.isset() && pSource)
+		multiplierB += this->DamageSourceHealthMultiplier.Fetch() * pSource->GetHealthPercentage();
+
+	if (this->DamageTargetHealthMultiplier.isset() && pVictim)
+		multiplierB += this->DamageTargetHealthMultiplier.Fetch() * pVictim->GetHealthPercentage();
+
 	if (multiplier != 1.0) {
 		const auto sgnDamage = *pDamage > 0 ? 1 : -1;
 		const auto calculateDamage = static_cast<int>(*pDamage * multiplier);
+		*pDamage = calculateDamage ? calculateDamage : sgnDamage;
+	}
+
+	if (multiplierB != 1.0) {
+		const auto sgnDamage = *pDamage > 0 ? 1 : -1;
+		const auto calculateDamage = static_cast<int>(*pDamage * multiplierB);
 		*pDamage = calculateDamage ? calculateDamage : sgnDamage;
 	}
 }
