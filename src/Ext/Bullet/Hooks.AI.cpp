@@ -738,16 +738,21 @@ namespace
 		// ---------- (d) homing turn --------------------------------------------
 		VelocityClass veloc = *pVel;
 		CoordStruct pCoordTarget = CoordStruct::Empty;
-		CoordStruct targetCoord = CoordStruct::Empty;
+	
+		auto GetTargetCoords = [pThis, pTypeExt](AbstractClass* pTarget) {
+			if (pTypeExt->MissileKeepTargetCoord.Get(FakeRulesClass::Instance()->MissileKeepTargetCoord)) {
+				if (!pTarget) {
+					return pThis->TargetCoords;
+				}
+			}
 
-		if (auto pObject = flag_cast_to<ObjectClass*>(pTarget))
-		{
-			pCoordTarget = pObject->GetCenterCoords();
-		}
-		else if (pTarget)
-		{
-			targetCoord = pCoordTarget = pTarget->GetCoords();
-		}
+			if (auto pObject = flag_cast_to<ObjectClass*>(pTarget))
+				return pObject->GetCenterCoords();
+
+			return pTarget ? pTarget->GetCoords() : CoordStruct::Empty;
+		};
+
+		pCoordTarget = GetTargetCoords(pTarget);
 
 		// -----------------------------------------------------------------------
 		// Hook 0x466BAF — MissileROTVar (type-ext override)

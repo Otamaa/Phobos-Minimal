@@ -298,8 +298,10 @@ void PhobosAEFunctions::UpdateSelfOwnedAttachEffects(TechnoClass* pTechno, Techn
 
 			auto const attachEffect = it.get();
 			auto const pType = attachEffect->GetType();
-			bool selfOwned = attachEffect->IsSelfOwned();
-			bool remove = selfOwned && !pTypeExt->PhobosAttachEffects.AttachTypes.Contains(pType);
+			const bool isValid = EnumFunctions::IsTechnoEligible(pThis, pType->AffectTargets, true)
+				&& (pType->AffectTypes.empty() || pType->AffectTypes.Contains(pNewType)) && !pType->IgnoreTypes.Contains(pNewType);
+			const bool allowTransfer = pType->AllowTransfer_Convert.Get(pType->AllowTransfer.Get(!attachEffect->IsSelfOwned()));
+			const bool remove = !isValid || (!allowTransfer && !pTypeExt->PhobosAttachEffects.AttachTypes.Contains(pType));
 
 			if (remove) {
 				if (pType->ExpireWeapon && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Expire) != ExpireWeaponCondition::None) {

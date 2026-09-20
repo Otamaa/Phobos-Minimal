@@ -1581,9 +1581,13 @@ static bool IsHashable(ObjectClass* pObj)
 
 		auto const pAnim = static_cast<AnimClass*>(pObj);
 		auto pType = pAnim->Type;
+		std::vector<AnimTypeClass*> processed {};
 
 		while (pType)
 		{
+			if (std::ranges::find(processed, pType) != processed.cend())
+				break;
+
 			// If animation type has logic that affects game simulation, don't ignore.
 			if (pType->Damage != 0.0 || pType->Bouncer || pType->IsMeteor || pType->IsTiberium || pType->TiberiumChainReaction
 				|| pType->IsAnimatedTiberium || pType->MakeInfantry != -1 || AnimTypeExtContainer::Instance.Find(pType)->CreateUnitType.get())
@@ -1591,6 +1595,7 @@ static bool IsHashable(ObjectClass* pObj)
 				return true;
 			}
 
+			processed.emplace_back(pType);
 			// Check anim's Next type recursively until not present.
 			pType = pType->Next;
 		}

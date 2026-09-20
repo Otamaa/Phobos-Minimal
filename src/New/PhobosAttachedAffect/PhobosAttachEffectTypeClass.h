@@ -73,6 +73,8 @@ public:
 	Valueable<bool> DiscardOn_OwnerChange_HumanToComputer { true };
 	Valueable<bool> DiscardOn_OwnerChange_ComputerToHuman { true };
 	Valueable<bool> DiscardOn_OwnerChange_IgnoreRevertOnExit {};
+	Nullable<bool> AllowTransfer {};
+	Nullable<bool> AllowTransfer_Convert {};
 	Valueable<bool> PenetratesIronCurtain { false };
 	Nullable<bool> PenetratesForceShield {};
 	Valueable<AnimTypeClass*> Animation {};

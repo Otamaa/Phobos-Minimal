@@ -237,6 +237,8 @@ bool BulletTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->BallisticScatter_Max_InMinRange.Read(exINI, pSection, "BallisticScatter.Max.InMinRange");
 		this->BallisticScatter_Max_InMaxRange.Read(exINI, pSection, "BallisticScatter.Max.InMaxRange");
 		this->BallisticScatter_Chance.Read(exINI, pSection, "BallisticScatter.Chance");
+
+		this->MissileKeepTargetCoord.Read(exINI, pSection, "MissileKeepTargetCoord");
 	}
 
 	if (pArtInI && pArtInI->GetSection(pArtSection)){
@@ -352,6 +354,8 @@ void BulletTypeExtData::Serialize(T& Stm)
 		.Process(this->BallisticScatter_Max_InMinRange)
 		.Process(this->BallisticScatter_Max_InMaxRange)
 		.Process(this->BallisticScatter_Chance)
+
+		.Process(this->MissileKeepTargetCoord)
 		;
 
 	PhobosTrajectoryType::ProcessFromStream(Stm, this->TrajectoryType);

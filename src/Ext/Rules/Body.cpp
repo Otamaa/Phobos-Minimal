@@ -642,7 +642,7 @@ void FakeRulesClass::LoadBeforeTypeData(CCINIClass* pINI)
 	this->AreaGuard_TargetingInRange.Read(exINI, GameStrings::General, "AreaGuard.TargetingInRange");
 	this->AreaGuard_StrayIgnoreDestination.Read(exINI, GameStrings::General, "AreaGuard.StrayIgnoreDestination");
 	this->BunkerStateUpdateDelay.Read(exINI, GameStrings::General, "BunkerStateUpdateDelay");
-	
+	this->MissileKeepTargetCoord.Read(exINI, GameStrings::General, "MissileKeepTargetCoord");
 	this->ShiftQueueCount.Read(exINI, GameStrings::General, "ShiftQueueCount");
 
 	if (this->ShiftQueueCount <= 0)
@@ -1417,6 +1417,7 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->VeteranCritChance)
 		.Process(this->AttackTarget_WaitForTurreReset)
 		.Process(this->DisableProductionDuringBuildup)
+		.Process(this->MissileKeepTargetCoord)
 	;
 }
 

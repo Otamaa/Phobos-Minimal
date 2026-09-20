@@ -262,7 +262,9 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->AttachEffect_CheckOnFirer.Read(exINI, pSection, "AttachEffect.CheckOnFirer");
 	this->AttachEffect_IgnoreFromSameSource.Read(exINI, pSection, "AttachEffect.IgnoreFromSameSource");
 
-	this->AttachEffect_Enable = (this->AttachEffects.AttachTypes.size() > 0 || this->AttachEffects.RemoveTypes.size() > 0 || this->AttachEffects.RemoveGroups.size() > 0);
+	this->AttachEffect_Enable = (this->AttachEffects.AttachTypes.size() > 0 
+		|| this->AttachEffects.RemoveTypes.size() > 0 
+		|| this->AttachEffects.RemoveGroups.size() > 0);
 
 	this->FireOnce_ResetSequence.Read(exINI, pSection, "FireOnce.ResetSequence");
 	this->NoRepeatFire.Read(exINI, pSection, "NoRepeatFire");

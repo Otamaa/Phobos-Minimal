@@ -422,8 +422,8 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(
 			}
 		}
 
-		if (isHealWeapon(pHealWeapon))
-			threatRange = pHealWeapon->Range > threatRange ? pHealWeapon->Range : threatRange;
+		if (pHealWeapon && isHealWeapon(pHealWeapon))
+			threatRange = std::max(threatRange, pHealWeapon->Range + Unsorted::LeptonsPerCell);
 
 	}
 

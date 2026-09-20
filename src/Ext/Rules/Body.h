@@ -894,6 +894,8 @@ public:
 
 	Valueable<bool> AttackTarget_WaitForTurreReset { true };
 	Valueable<bool> DisableProductionDuringBuildup { false };
+
+	Valueable<bool> MissileKeepTargetCoord { false };
 #pragma endregion
 
 public:

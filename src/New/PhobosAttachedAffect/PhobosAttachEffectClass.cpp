@@ -1415,7 +1415,9 @@ void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, Tech
 			continue;
 		}
 
-		if (attachEffect->IsSelfOwned())
+		auto const type = attachEffect->GetType();
+
+		if (!type->AllowTransfer.Get(!attachEffect->IsSelfOwned()))
 		{
 			++it;
 			continue;

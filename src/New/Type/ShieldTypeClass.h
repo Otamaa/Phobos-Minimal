@@ -52,6 +52,7 @@ public:
 	Valueable<int> ReceivedDamage_Maximum { INT32_MAX };
 
 	Nullable<bool> AllowTransfer {};
+	Nullable<bool> AllowTransfer_Convert {};
 
 	Valueable<Point3D> Pips { {-1, -1, -1} };
 	Nullable<SHPCaches*> Pips_Background_SHP {};

@@ -170,6 +170,8 @@ public:
 	Nullable<Leptons> BallisticScatter_Max_InMinRange {};
 	Nullable<Leptons> BallisticScatter_Max_InMaxRange {};
 	Nullable<double> BallisticScatter_Chance {};
+
+	Nullable<bool> MissileKeepTargetCoord {};
 #pragma endregion
 
 public:

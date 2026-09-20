@@ -247,8 +247,6 @@ bool FakeCellClass::CanResourceGerminateOnRamp(TiberiumClass* pTib, BYTE slopeIn
 		return false;
 
 	if (pTib) {
-		const auto pExt = TiberiumExtContainer::Instance.Find(pTib);
-
 		if (pTib->SlopeFrames > 0 && HasRampArt(pTib)) {
 			return true;
 		}

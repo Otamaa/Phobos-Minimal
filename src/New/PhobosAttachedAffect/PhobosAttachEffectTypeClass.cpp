@@ -77,7 +77,8 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->DiscardOn_OwnerChange_HumanToComputer.Read(exINI, pSection, "DiscardOn.OwnerChange.HumanToComputer");
 	this->DiscardOn_OwnerChange_ComputerToHuman.Read(exINI, pSection, "DiscardOn.OwnerChange.ComputerToHuman");
 	this->DiscardOn_OwnerChange_IgnoreRevertOnExit.Read(exINI, pSection, "DiscardOn.OwnerChange.IgnoreRevertOnExit");
-
+	this->AllowTransfer.Read(exINI, pSection, "AllowTransfer");
+	this->AllowTransfer_Convert.Read(exINI, pSection, "AllowTransfer.Convert");
 	this->PenetratesIronCurtain.Read(exINI, pSection, "PenetratesIronCurtain");
 	this->PenetratesForceShield.Read(exINI, pSection, "PenetratesForceShield");
 	this->Animation.Read(exINI, pSection, "Animation");
@@ -254,6 +255,8 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->DiscardOn_OwnerChange_HumanToComputer)
 		.Process(this->DiscardOn_OwnerChange_ComputerToHuman)
 		.Process(this->DiscardOn_OwnerChange_IgnoreRevertOnExit)
+		.Process(this->AllowTransfer)
+		.Process(this->AllowTransfer_Convert)
 		.Process(this->PenetratesIronCurtain)
 		.Process(this->PenetratesForceShield)
 		.Process(this->Animation)
