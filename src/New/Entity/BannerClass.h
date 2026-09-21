@@ -36,6 +36,7 @@ public:
 	~BannerClass() = default;
 
 	void Render();
+	void GetRenderPos(Point2D& position, int W, int H);
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	bool Save(PhobosStreamWriter& Stm) const;

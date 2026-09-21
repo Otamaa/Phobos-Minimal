@@ -69,6 +69,37 @@ void BannerClass::Render()
 		this->RenderCSF(this->Position);
 }
 
+void BannerClass::GetRenderPos(Point2D& position, int W , int H)
+{
+	switch (this->Type->Horizontal)
+	{
+	case HorizontalPosition::Center:
+		position.X -= W / 2;
+		break;
+	case HorizontalPosition::Right:
+		position.X -= W;
+		break;
+	default:
+		break;
+	}
+
+	switch (this->Type->Vertical)
+	{
+	case VerticalPosition::Center:
+		position.Y -= H / 2;
+		break;
+	case VerticalPosition::Bottom:
+		position.Y -= H;
+		break;
+	default:
+		break;
+	}
+
+	if (this->Type->ClampToScreen) {
+		BannerClass::Clamp(position, W, H);
+	}
+}
+
 void BannerClass::RenderPCX(Point2D position)
 {
 	BSurface* pcx = this->Type->PCX.GetSurface();
@@ -76,12 +107,7 @@ void BannerClass::RenderPCX(Point2D position)
 	if (!pcx)
 		return;
 
-	position.X -= pcx->Width / 2;
-	position.Y -= pcx->Height / 2;
-
-	if(this->Type->ClampToScreen) {
-		BannerClass::Clamp(position, pcx->Width,pcx->Height);
-	}
+	this->GetRenderPos(position, pcx->Width, pcx->Height);
 
 	RectangleStruct bounds(position.X, position.Y, pcx->Width, pcx->Height);
 	PCXImages::Instance->BlitToSurface(&bounds, DSurface::Composite, pcx);
@@ -94,12 +120,7 @@ void BannerClass::RenderSHP(Point2D position)
 		return;
 
 	ConvertClass* palette = this->Type->Palette.GetOrDefaultConvert(FileSystem::PALETTE_PAL);
-	position.X -= shape->CurrentHeader.Width / 2;
-	position.Y -= shape->CurrentHeader.Height / 2;
-
-	if(this->Type->ClampToScreen) {
-		BannerClass::Clamp(position, shape->CurrentHeader.Width, shape->CurrentHeader.Height);
-	}
+	this->GetRenderPos(position, shape->CurrentHeader.Width, shape->CurrentHeader.Height);
 
 	DSurface::Composite->DrawSHP
 	(
@@ -175,13 +196,8 @@ void BannerClass::RenderCSF(Point2D position)
 			? TextPrintType::LASTPOINT
 			: TextPrintType::Center);
 
-	if(this->Type->ClampToScreen) {
-		RectangleStruct textRect = Drawing::GetTextDimensions(
-		buffer.data(), position, textFlags, 0 , 0);
-		position.X -= textRect.Width / 2;
-		position.Y -= textRect.Height / 2;
-		BannerClass::Clamp(position, textRect.Width, textRect.Height);
-	}
+	RectangleStruct textRect = Drawing::GetTextDimensions(buffer.data(), position, textFlags, 0, 0);
+	this->GetRenderPos(position, textRect.Width, textRect.Height);
 
 	DSurface::Composite->DSurfaceDrawText
 	(

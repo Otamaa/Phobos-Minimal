@@ -21,6 +21,8 @@ void BannerTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->Duration.Read(exINI, section, "Duration");
 	this->Delay.Read(exINI, section, "Delay");
 	this->Shape_RefreshAfterDelay.Read(exINI, section, "SHP.RefreshAfterDelay");
+	this->Horizontal.Read(exINI, section, "Horizontal");
+	this->Vertical.Read(exINI, section, "Vertical");
 	this->ClampToScreen.Read(exINI, section, "ClampToScreen");
 }
 
@@ -38,6 +40,8 @@ void BannerTypeClass::Serialize(T& stm)
 		.Process(this->Duration)
 		.Process(this->Delay)
 		.Process(this->Shape_RefreshAfterDelay)
+		.Process(this->Horizontal)
+		.Process(this->Vertical)
 		.Process(this->ClampToScreen)
 		;
 }

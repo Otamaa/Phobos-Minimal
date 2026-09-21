@@ -14,24 +14,27 @@ public:
 
 public:
 
-	//PCX
+	// PCX
 	PhobosPCXFile PCX {};
 
-	//SHP
+	// SHP
 	Valueable<SHPCaches*> Shape {};
 	CustomPalette Palette {};
 
-	//CSF
+	// CSF
 	Valueable<CSFText> CSF {};
 	Nullable<ColorStruct> CSF_Color {};
 	Valueable<bool> CSF_Background {};
 	Valueable<BannerNumberType> CSF_VariableFormat { BannerNumberType::None };
 
-	//Duration
+	// Duration
 	Valueable<int> Duration { -1 };
 	Valueable<int> Delay { -1 };
 	Valueable<bool> Shape_RefreshAfterDelay {};
 
+	// Position
+	Valueable<HorizontalPosition> Horizontal { HorizontalPosition::Center };
+	Valueable<VerticalPosition> Vertical { VerticalPosition::Center };
 	Valueable<bool> ClampToScreen {};
 
 	BannerTypeClass(const char* const pTitle) : Enumerable<BannerTypeClass>(pTitle)	{ }
