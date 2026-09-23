@@ -33,7 +33,7 @@
 #include <UnitClass.h>
 
 #include <New/Entity/FlyingStrings.h>
-#include <New/Entity/ZoomManagerClass.h>
+#include <New/Entity/ZoomManager.h>
 
 #include <New/ChoiceBox/Entities/Base/MapChoiceBoxClass.h>
 #include <New/ChoiceBox/Types/ChoiceBoxTypeClass.h>

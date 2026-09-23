@@ -25,6 +25,7 @@
 
 #include <Utilities/Patch.h>
 #include <Utilities/Macro.h>
+#include <Utilities/Parser.h>
 
 _GET_FUNCTION_ADDRESS(ConvertClassExt::AllocBlitters, GetConvertClassExtAllocBlittersAddress);
 _GET_FUNCTION_ADDRESS(ConvertClassExt::DeallocBlitters, GetConvertClassExtDeallocBlittersAddress);

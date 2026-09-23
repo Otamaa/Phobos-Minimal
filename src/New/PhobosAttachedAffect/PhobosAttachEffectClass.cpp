@@ -1423,7 +1423,6 @@ void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, Tech
 			continue;
 		}
 
-		auto const type = attachEffect->GetType();
 		auto pTargetType = GET_TECHNOTYPE(pTarget);
 
 		const bool isValid = EnumFunctions::IsTechnoEligible(pTarget, type->AffectTargets, true)
