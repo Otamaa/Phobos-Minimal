@@ -21,6 +21,7 @@
 #include <Phobos.Lua.h>
 
 #include <New/MessageHandler/MessageColumnClass.h>
+#include <New/Entity/ZoomManager.h>
 
 #include <BitFont.h>
 
@@ -231,6 +232,8 @@ public:
 	static //FORCEDINLINE 
 		void _RenderRaw(GScreenClass* pThis)
 	{
+		ZoomManager::Update();
+
 		auto pTempSurface = DSurface::Temp.get();
 		DSurface::Temp = DSurface::Composite();
 
@@ -243,13 +246,19 @@ public:
 		if (!Multithreading::IonStormClass_ChronoScreenEffect_Status.get())
 		{
 			auto pFakeTactical = (FakeTacticalClass*)TacticalClass::Instance();
-			//TacticalClass::Instance->Render(DSurface::Composite(), shouldDraw, TacticalRenderMode::All0);
+
 			pFakeTactical->_Render(DSurface::Composite(), shouldDraw, TacticalRenderMode::All0);
+
+			DSurface* pComposite = DSurface::Composite;
+			DSurface::Temp = DSurface::Alternate;
+
 			pFakeTactical->_Render(DSurface::Composite(), shouldDraw, TacticalRenderMode::Terrain);
-			//TacticalClass::Instance->Render(DSurface::Composite(), shouldDraw, TacticalRenderMode::Terrain);
-			pThis->Draw(complete);
 			pFakeTactical->_Render(DSurface::Composite(), shouldDraw, TacticalRenderMode::Moving_Animating);
-			//TacticalClass::Instance->Render(DSurface::Composite(), shouldDraw, TacticalRenderMode::Moving_Animating);
+
+			DSurface::Temp = pComposite;
+			ZoomManager::ApplyTacticalBlit();
+
+			pThis->Draw(complete);
 		}
 
 		if (Multithreading::BlitMouse.get() && !Unsorted::MAP_DEBUG_MODE.get())

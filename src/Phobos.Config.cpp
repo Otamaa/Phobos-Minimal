@@ -11,6 +11,8 @@
 #include <Misc/PhobosGlobal.h>
 #include <Misc/Spawner/Main.h>
 
+#include <New/Entity/ZoomManager.h>
+
 #include <GameStrings.h>
 #include <GameOptionsClass.h>
 #include <StringTable.h>
@@ -225,6 +227,44 @@ void Phobos::Config::Read_RA2MD()
 	}
 }
 
+template<typename T>
+static void Read2Times(CCINIClass* pINI, const char* section ,const char* key1, const char* key2, T& _ret) {
+
+	if (auto pFirst = pINI->GetKeyValue(section, key1, "")) {
+		if (Parser<T>::TryParse(pFirst, &_ret))
+			return;
+	}
+
+	if (auto pSecond = pINI->GetKeyValue(section, key2, "")) {
+		if (Parser<T>::TryParse(pSecond, &_ret))
+			return;
+	}
+}
+
+auto ReadBool4Times(CCINIClass* pINI, const char* section, const char* key1, const char* key2, const char* key3, const char* key4, bool& _ret) {
+
+	if (auto pFirst = pINI->GetKeyValue(section, key1, "")) {
+		if (Parser<bool>::TryParse(pFirst, &_ret))
+			return;
+	}
+
+	if (auto pSecond = pINI->GetKeyValue(section, key2, "")) {
+		if (Parser<bool>::TryParse(pSecond, &_ret))
+			return;
+	}
+
+	if (auto pThird = pINI->GetKeyValue(section, key3, "")) {
+		if (Parser<bool>::TryParse(pThird, &_ret))
+			return;
+	}
+
+	if (auto pFourth = pINI->GetKeyValue(section, key4, "")) {
+		if (Parser<bool>::TryParse(pFourth, &_ret))
+			return;
+	}
+
+}
+
 void Phobos::Config::Read_UIMD()
 {
 	CCFileClass file(GameStrings::UIMD_INI());
@@ -399,6 +439,35 @@ void Phobos::Config::Read_UIMD()
 
 		if(pINI->ReadString(UISETTINGS_SECTION, "ShowBriefingResumeButtonStatusLabel", "STT:BriefingButtonReturn", Phobos::readBuffer))
 			strcpy_s(Phobos::UI::ShowBriefingResumeButtonStatusLabel, Phobos::readBuffer);
+	}
+
+	// TacticalZoom
+	{
+		const char* const section = pINI->GetSection("TacticalZoom") ? "TacticalZoom" : UISETTINGS_SECTION;
+
+		const bool modderZoomEnabled = pINI->ReadBool(section, "TacticalZoom",
+			pINI->ReadBool(section, "Enabled", false));
+
+
+		ReadBool4Times(pINI, section, "TacticalZoom.Scroll", "Scroll", "TacticalZoom.Wheel", "Wheel", Phobos::Config::TacticalZoom_Wheel);
+		ReadBool4Times(pINI, section, "TacticalZoom.KeyEnabled", "KeyEnabled", "TacticalZoom.Hotkeys", "Hotkeys", Phobos::Config::TacticalZoom_Hotkeys);
+
+		Read2Times(pINI, section,"TacticalZoom.Max", "Max", Phobos::Config::TacticalZoom_Max);
+		Read2Times(pINI, section, "TacticalZoom.Step", "Step", Phobos::Config::TacticalZoom_Step);
+		Read2Times(pINI, section, "TacticalZoom.Smooth", "Smooth", Phobos::Config::TacticalZoom_Smooth);
+
+		// Player preference overrides from RA2MD.INI [Phobos]
+		const bool playerZoomEnabled = CCINIClass::INI_RA2MD->ReadBool("Phobos", "TacticalZoom", true);
+		Phobos::Config::TacticalZoom_Smooth = CCINIClass::INI_RA2MD->ReadBool("Phobos", "TacticalZoom.Smooth", Phobos::Config::TacticalZoom_Smooth);
+
+		Phobos::Config::TacticalZoom = modderZoomEnabled && playerZoomEnabled;
+
+		ZoomManager::Enabled = Phobos::Config::TacticalZoom;
+		ZoomManager::WheelEnabled = Phobos::Config::TacticalZoom_Wheel;
+		ZoomManager::HotkeysEnabled = Phobos::Config::TacticalZoom_Hotkeys;
+		ZoomManager::MaxZoom = std::max(1.0, Phobos::Config::TacticalZoom_Max);
+		ZoomManager::Step = std::max(0.01, Phobos::Config::TacticalZoom_Step);
+		ZoomManager::Smooth = Phobos::Config::TacticalZoom_Smooth;
 	}
 
 	//if (pINI->GetSection(PHOBOS_STR))

@@ -51,10 +51,12 @@ enum class PhobosTriggerAction : unsigned int
 	UndeployToWaypoint = 511,
 
 	SetFollowsIndexForVehicle = 512,
-	AttachSoundToObjects = 513,
-	RemoveSoundFromObjects = 514,
 
-	SetMissionTimerType = 521,
+	SetMissionTimerType = 513,
+	SetTacticalZoom = 514,
+
+	AttachSoundToObjects = 547,
+	RemoveSoundFromObjects = 548,
 
 	SetWaypointTextBoxByType = 549,
 	SetWaypointTextBoxByData = 550,
@@ -278,6 +280,7 @@ public:
 	
 	ACTION_FUNC(SetFollowsIndexForVehicle);
 	ACTION_FUNC(SetMissionTimerType);
+	ACTION_FUNC(SetTacticalZoom);
 	ACTION_FUNC(PrintMessageRemainingTechnos);
 
 	ACTION_FUNC(SetDropCrate);

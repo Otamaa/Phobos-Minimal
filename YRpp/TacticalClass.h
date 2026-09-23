@@ -317,19 +317,16 @@ public:
 	}
 
 	void Render_Layers(bool a2)
-	{
 		JMP_THIS(0x6D8DB0);
-	}
-
+	
 	void Draw_super_lines_circles()
-	{
 		JMP_THIS(0x6DBE20);
-	}
 
 	void Draw_Band_Box()
-	{
 		JMP_THIS(0x6DA180);
-	}
+	
+	void SetTacticalPosition(Point2D* pPoint)
+		JMP_THIS(0x6D6000);
 
 	CellStruct* coordmap_math(CellStruct* arg0, CoordStruct* a2)
 	{ JMP_THIS(0x6D6410); }
@@ -361,7 +358,7 @@ public:
 	float field_DC;
 	int VisibleCellCount;
 	CellClass * VisibleCells [800];
-	Point2D TacticalCoord;          // +0xD64
+	Point2D TacticalCoord;          // +0xD64 TacticalCoord1
 	Point2D LastTacticalCoord;      // +0xD6C
 	Point2D DesiredTacticalCoord;   // +0xD74
 	bool field_D7C;

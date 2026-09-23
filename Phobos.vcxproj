@@ -32,6 +32,7 @@
     <ClCompile Include="src\Commands\ShowObjectCard.cpp" />
     <ClCompile Include="src\Commands\ToggleObserverUI.cpp" />
     <ClCompile Include="src\Commands\ToggleSuperTimers.cpp" />
+    <ClCompile Include="src\Commands\ZoomCommands.cpp" />
     <ClCompile Include="src\Ext\AbstractType\Body.cpp" />
     <ClCompile Include="src\Ext\Abstract\Hooks.cpp" />
     <ClCompile Include="src\Ext\Aircraft\Hooks.Aircraft.cpp" />
@@ -209,6 +210,7 @@
     <ClCompile Include="src\New\Entity\AEProperties.cpp" />
     <ClCompile Include="src\New\Entity\AnimationDrawOffsetClass.cpp" />
     <ClCompile Include="src\New\Entity\BannerClass.cpp" />
+    <ClCompile Include="src\New\Entity\ZoomManager.cpp" />
     <ClCompile Include="src\New\Interfaces\ShiftLocomotionClass.cpp" />
     <ClCompile Include="src\New\MessageHandler\MessageButtonClass.cpp" />
     <ClCompile Include="src\New\MessageHandler\MessageColumnClass.cpp" />
@@ -600,6 +602,7 @@
     <ClInclude Include="src\Commands\ShowObjectCard.h" />
     <ClInclude Include="src\Commands\ToggleObserverUI.h" />
     <ClInclude Include="src\Commands\ToggleSuperTimers.h" />
+    <ClInclude Include="src\Commands\ZoomCommands.h" />
     <ClInclude Include="src\Ext\AStar\Body.h" />
     <ClInclude Include="src\Ext\BitFont\Body.h" />
     <ClInclude Include="src\Ext\BitText\Body.h" />
@@ -749,6 +752,7 @@
     <ClInclude Include="src\Misc\Spawner\FrameGate.h" />
     <ClInclude Include="src\Misc\Spawner\MPStatsFix.h" />
     <ClInclude Include="src\Misc\Spawner\PacketRedundancy.h" />
+    <ClInclude Include="src\New\Entity\ZoomManager.h" />
     <ClInclude Include="src\New\SelectedButton\SelectedButtonClass.h" />
     <ClInclude Include="src\New\SelectedButton\SelectedCameoClass.h" />
     <ClInclude Include="src\New\SelectedButton\SelectedColumnClass.h" />

@@ -222,6 +222,13 @@ int Phobos::Misc::CustomGS_DefaultDelay[7] { 0, 1, 2, 3, 4, 5, 6 };
 bool Phobos::Config::ShowGameTime = false;
 int Phobos::Config::ShowGameTime_BoardOpacity = 40;
 
+bool Phobos::Config::TacticalZoom = false;
+bool Phobos::Config::TacticalZoom_Wheel = true;
+bool Phobos::Config::TacticalZoom_Hotkeys = true;
+double Phobos::Config::TacticalZoom_Max = 2.5;
+double Phobos::Config::TacticalZoom_Step = 0.15;
+bool Phobos::Config::TacticalZoom_Smooth = true;
+
 bool Phobos::Config::SelectCapturedCommand = false;
 
 bool Phobos::Otamaa::DisableCustomRadSite { false };

@@ -301,6 +301,13 @@ public:
 		static bool ShowGameTime;
 		static int ShowGameTime_BoardOpacity;
 		static bool SelectCapturedCommand;
+
+		static bool TacticalZoom;
+		static bool TacticalZoom_Wheel;
+		static bool TacticalZoom_Hotkeys;
+		static double TacticalZoom_Max;
+		static double TacticalZoom_Step;
+		static bool TacticalZoom_Smooth;
 	};
 
 	struct Misc

@@ -47,6 +47,7 @@
 #include <New/MessageHandler/MessageColumnClass.h>
 #include <New/Entity/DropshipLoadoutClass.h>
 #include <New/SelectedButton/SelectedInfoClass.h>
+#include <New/Entity/ZoomManager.h>
 
 #include <Helpers/Macro.h>
 #include <Utilities/Macro.h>
@@ -62,6 +63,8 @@
 #include "AssignRallyPoint.h"
 #include "HerosInfo.h"
 #include "SelectedInfo.h"
+#include "ZoomCommands.h"
+
 
 bool PhobosCommandClass::CheckDebugDeactivated() const
 {
@@ -190,6 +193,13 @@ void __fastcall Game_Init_Commands_Wrapper() {
 	Make<SelectedInfoCommandClass>();
 	Make<SelectedExpandCommandClass>();
 
+	if (ZoomManager::Enabled && ZoomManager::HotkeysEnabled)
+	{
+		Make<ZoomInCommandClass>();
+		Make<ZoomOutCommandClass>();
+		Make<ResetZoomCommandClass>();
+	}
+
 	CommandClass::InitCommand();
 
 	EnableLargeAddressSpace(GetCurrentProcessId());
@@ -209,7 +219,9 @@ ASMJIT_PATCH(0x533F50, Game_ScrollSidebar_Skip, 0x5)
 	{
 		const auto pInput = InputManagerClass::Instance();
 
-		if (pInput->IsForceFireKeyPressed() || pInput->IsForceMoveKeyPressed() || pInput->IsForceSelectKeyPressed())
+		if (pInput->IsForceFireKeyPressed()
+			|| pInput->IsForceMoveKeyPressed() 
+			|| pInput->IsForceSelectKeyPressed())
 			return SkipScrollSidebar;
 	}
 
@@ -220,6 +232,10 @@ ASMJIT_PATCH(0x533F50, Game_ScrollSidebar_Skip, 0x5)
 			return SkipScrollSidebar;
 	}
 
+	if (ZoomManager::CanPlayerZoom()
+		&& ZoomManager::WheelEnabled && (GetAsyncKeyState(VK_CONTROL) & 0x8000))
+		return SkipScrollSidebar;
+
 	if(MessageColumnClass::Instance.IsHovering())
 		return SkipScrollSidebar ;
 
@@ -229,6 +245,17 @@ ASMJIT_PATCH(0x533F50, Game_ScrollSidebar_Skip, 0x5)
 ASMJIT_PATCH(0x777998, Game_WndProc_ScrollMouseWheel, 0x6)
 {
 	GET(WPARAM, WParam, ECX);
+
+	if (ZoomManager::CanPlayerZoom() 
+		&& ZoomManager::WheelEnabled && (GetAsyncKeyState(VK_CONTROL) & 0x8000))
+	{
+		if (WParam & 0x80000000u)
+			ZoomManager::ZoomOut();
+		else
+			ZoomManager::ZoomIn();
+
+		return 0;
+	}
 
 	if (WParam & 0x80000000u) {
 

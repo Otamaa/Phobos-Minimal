@@ -33,6 +33,7 @@
 #include <UnitClass.h>
 
 #include <New/Entity/FlyingStrings.h>
+#include <New/Entity/ZoomManagerClass.h>
 
 #include <New/ChoiceBox/Entities/Base/MapChoiceBoxClass.h>
 #include <New/ChoiceBox/Types/ChoiceBoxTypeClass.h>
@@ -424,6 +425,7 @@ DEFINE_FUNCTION_JUMP(CALL , 0x6D4471 , FakeTacticalClass::_Render_Objects_Near_S
 // Author: Belonit
 static constexpr float paddingTopInCell = 5;
 static constexpr float paddingBottomInCell = 4.5;
+#include <New/Entity/ZoomManager.h>
 
 bool FakeTacticalClass::__ClampTacticalPos(Point2D* tacticalPos) {
 	bool isUpdated = false;
@@ -431,9 +433,13 @@ bool FakeTacticalClass::__ClampTacticalPos(Point2D* tacticalPos) {
 	const auto pMapRect = &MapClass::Instance->MapRect;
 	const auto pMapVisibleRect = &MapClass::Instance->VisibleRect;
 	const auto pSurfaceViewBounds = &DSurface::ViewBounds();
+	const double zoom = ZoomManager::IsZoomed() ? ZoomManager::CurrentZoom : 1.0;
+
+	const int effectiveWidth = static_cast<int>(pSurfaceViewBounds->Width / zoom + 0.5);
+	const int effectiveHeight = static_cast<int>(pSurfaceViewBounds->Height / zoom + 0.5);
 
 	{
-		const int xMin = (pSurfaceViewBounds->Width / 2) + (Unsorted::CellWidthInPixels / 2) * (pMapVisibleRect->X * 2 - pMapRect->Width);
+		const int xMin = (effectiveWidth / 2) + (Unsorted::CellWidthInPixels / 2) * (pMapVisibleRect->X * 2 - pMapRect->Width);
 		if (tacticalPos->X < xMin)
 		{
 			tacticalPos->X = xMin;
@@ -443,7 +449,7 @@ bool FakeTacticalClass::__ClampTacticalPos(Point2D* tacticalPos) {
 		{
 			const int xMax = MaxImpl(
 				xMin,
-				xMin + (Unsorted::CellWidthInPixels * pMapVisibleRect->Width) - pSurfaceViewBounds->Width
+				xMin + (Unsorted::CellWidthInPixels * pMapVisibleRect->Width) - effectiveWidth
 			);
 
 			if (tacticalPos->X > xMax)
@@ -455,7 +461,7 @@ bool FakeTacticalClass::__ClampTacticalPos(Point2D* tacticalPos) {
 	}
 
 	{
-		const int yMin = (pSurfaceViewBounds->Height / 2) + (Unsorted::CellHeightInPixels / 2) * (pMapVisibleRect->Y * 2 + pMapRect->Width - int(paddingTopInCell));
+		const int yMin = (effectiveHeight / 2) + (Unsorted::CellHeightInPixels / 2) * (pMapVisibleRect->Y * 2 + pMapRect->Width - int(paddingTopInCell));
 		if (tacticalPos->Y < yMin)
 		{
 			tacticalPos->Y = yMin;
@@ -465,7 +471,7 @@ bool FakeTacticalClass::__ClampTacticalPos(Point2D* tacticalPos) {
 		{
 			const int yMax = MaxImpl(
 				yMin,
-				yMin + (Unsorted::CellHeightInPixels * pMapVisibleRect->Height) - pSurfaceViewBounds->Height + int(Unsorted::CellHeightInPixels * paddingBottomInCell)
+				yMin + (Unsorted::CellHeightInPixels * pMapVisibleRect->Height) - effectiveHeight + int(Unsorted::CellHeightInPixels * paddingBottomInCell)
 			);
 
 			if (tacticalPos->Y > yMax)
