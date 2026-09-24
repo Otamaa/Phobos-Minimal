@@ -727,7 +727,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 	}
 
 	if (!ignoreDefenses && *damage >= 0) {
-		*damage = (int)TechnoExtData::GetArmorMult(pThis, (double)(*damage), warhead);
+		*damage = (int)TechnoExtData::GetArmorMult(pThis, source ? source->Owner : sourceHouse, (double)(*damage), warhead, true , true);
 
 		if (pExt->SkipLowDamageCheck) {
 			pExt->SkipLowDamageCheck = false;
@@ -1459,7 +1459,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 	if (!args.IgnoreDefenses && *args.Damage >= 0)
 	{
-		*args.Damage = (int)TechnoExtData::GetArmorMult(pThis, (double)(*args.Damage), args.WH);
+		*args.Damage = (int)TechnoExtData::GetArmorMult(pThis, pSourceHouse, (double)(*args.Damage), args.WH, true , true);
 
 		if (pExt->SkipLowDamageCheck)
 		{

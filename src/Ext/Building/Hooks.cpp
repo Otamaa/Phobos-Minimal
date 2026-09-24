@@ -1139,5 +1139,10 @@ ASMJIT_PATCH(0x44FDC5, CreateBuildingFromINIFile_AfterCTOR_AfterUnlimbo, 0xA)
 
 	pBld->_GetExtData()->HasPowerFromMapFile = false;
 
+	GET_STACK(const bool, hasPower, STACK_OFFSET(0xEC, -0xDC));
+
+	if (!hasPower)
+		pBld->GoOffline();
+
 	return 0x44FDD3;
 }

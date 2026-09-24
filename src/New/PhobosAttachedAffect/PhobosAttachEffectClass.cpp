@@ -95,7 +95,23 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 
 	if (pType->Duration_ApplyArmorMultOnTarget && this->Duration > 0) // count its own ArmorMultiplier as well
 	{
-		const int dur = static_cast<int>(TechnoExtData::GetArmorMult(pTechno, this->Duration, nullptr, false));
+
+		//adjust to it own mult
+		if (pType->ArmorMultiplier != 1.0 && (pType->ArmorMultiplier_Chance >= ScenarioClass::Instance->Random.RandomDouble()
+			&& (!pInvokerHouse || EnumFunctions::CanTargetHouse(pType->ArmorMultiplier_AffectsHouse, pTechno->Owner, pInvokerHouse))))
+		{
+			auto& entry = pTechnoExt->AE.ArmorMultData.mults.emplace_back();
+			entry.Mult = pType->ArmorMultiplier;
+			entry.allow = &pType->ArmorMultiplier_AllowWarheads;
+			entry.disallow = &pType->ArmorMultiplier_DisallowWarheads;
+			entry.delay = pType->ArmorMultiplier_Delay;
+
+			if (pType->ArmorMultiplier_Delay > 0)
+				entry.ArmorMultiplierTimer.Start(pType->ArmorMultiplier_Delay);
+		}
+
+		//fetch current mults 
+		int dur = static_cast<int>(TechnoExtData::GetArmorMult(pTechno, pInvokerHouse, this->Duration, nullptr, false, false));
 		this->Duration = MaxImpl(dur, 0);
 	}
 
@@ -742,7 +758,7 @@ void PhobosAttachEffectClass::RefreshDuration(int durationOverride)
 
 	// count its own ArmorMultiplier as well
 	if (this->Type->Duration_ApplyArmorMultOnTarget && this->Duration > 0) {
-		const int dur = static_cast<int>(TechnoExtData::GetArmorMult(this->Techno, this->Duration, nullptr, false));
+		const int dur = static_cast<int>(TechnoExtData::GetArmorMult(this->Techno, nullptr, this->Duration, nullptr, false, false ));
 		this->Duration = MaxImpl(dur, 0);
 	}
 
@@ -1503,6 +1519,9 @@ void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, Tech
 				pAE->FiringCount = attachEffect->FiringCount;
 				pAE->ReceivedDamageCount = attachEffect->ReceivedDamageCount;
 
+				// delay
+				if (type->ReflectDamage_Delay > 0 && attachEffect->ReflectDamageTimer.HasTimeLeft())
+					pAE->ReflectDamageTimer.Start(attachEffect->ReflectDamageTimer.GetTimeLeft());
 			}
 		}
 
@@ -1563,6 +1582,11 @@ bool PhobosAttachEffectClass::Serialize(T& Stm)
 	.Process(HasCumulativeAnim)
 
 	.Process(LastSequenceCheck)
+
+	.Process(FiringCount)
+	.Process(ReceivedDamageCount)
+
+	.Process(ReflectDamageTimer)
 
 	.Success() && Stm.RegisterChange(this)
 		;

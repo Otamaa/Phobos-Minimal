@@ -388,6 +388,9 @@ void PhobosAEFunctions::ApplyReflectDamage(TechnoClass* pThis , int* pDamage , T
 			if (!attachEffect || !attachEffect->IsActive())
 				continue;
 
+			if (attachEffect->ReflectDamageTimer.InProgress())
+				continue;
+
 			auto const pType = attachEffect->GetType();
 
 			if((pExt->AE.flags.ReflectDamage && *pDamage > 0 && pAttacker && pAttacker->IsAlive)){
@@ -404,16 +407,32 @@ void PhobosAEFunctions::ApplyReflectDamage(TechnoClass* pThis , int* pDamage , T
 							if (pType->ReflectDamage_UseInvokerAsOwner) {
 
 								auto const pInvoker = attachEffect->GetInvoker();
-
 								if (pInvoker && EnumFunctions::CanTargetHouse(pType->ReflectDamage_AffectsHouses, pInvoker->Owner, pAttacker_House))
-
 								{
 									pWHExtRef->Reflected = true;
 
 									if (pType->ReflectDamage_Warhead_Detonate)
 										WarheadTypeExtData::DetonateAt(pReflectWH, pAttacker, pInvoker, damage, pInvoker->Owner);
 									else
-										pAttacker->ReceiveDamage(&damage, 0, pWH, pInvoker, false, false, pInvoker->Owner);
+										pAttacker->ReceiveDamage(&damage, 0, pReflectWH, pInvoker, false, false, pInvoker->Owner);
+
+
+									if (pType->ReflectDamage_Delay > 0)
+										attachEffect->ReflectDamageTimer.Start(pType->ReflectDamage_Delay);
+
+									pWHExtRef->Reflected = false;
+								}
+								else if (EnumFunctions::CanTargetHouse(pType->ReflectDamage_AffectsHouses, attachEffect->GetInvokerHouse(), pAttacker_House))
+								{
+									pWHExtRef->Reflected = true;
+
+									if (pType->ReflectDamage_Warhead_Detonate)
+										WarheadTypeExtData::DetonateAt(pReflectWH, pAttacker, nullptr, damage, attachEffect->GetInvokerHouse());
+									else
+										pAttacker->ReceiveDamage(&damage, 0, pReflectWH, nullptr, false, false, attachEffect->GetInvokerHouse());
+
+									if (pType->ReflectDamage_Delay > 0)
+										attachEffect->ReflectDamageTimer.Start(pType->ReflectDamage_Delay);
 
 									pWHExtRef->Reflected = false;
 								}
@@ -427,6 +446,9 @@ void PhobosAEFunctions::ApplyReflectDamage(TechnoClass* pThis , int* pDamage , T
 									WarheadTypeExtData::DetonateAt(pReflectWH, pAttacker, pThis, damage, pThis->Owner);
 								else if (pAttacker && pAttacker->IsAlive)
 									pAttacker->ReceiveDamage(&damage, 0, pReflectWH, pThis, false, false, pThis->Owner);
+
+								if (pType->ReflectDamage_Delay > 0)
+									attachEffect->ReflectDamageTimer.Start(pType->ReflectDamage_Delay);
 
 								pWHExtRef->Reflected = false;
 							}

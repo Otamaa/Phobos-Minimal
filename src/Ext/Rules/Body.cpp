@@ -460,6 +460,7 @@ void FakeRulesClass::LoadBeforeTypeData(CCINIClass* pINI)
 
 	this->OpenTopped_DecloakToFire.Read(exINI, GameStrings::General, "OpenTopped.DecloakToFire");
 	this->OpenTopped_FireWhileMoving.Read(exINI, GameStrings::General, "OpenTopped.FireWhileMoving");
+	this->OpenTopped_FireWhileMoving_BasedOnDestination.Read(exINI, GameStrings::General, "OpenTopped.FireWhileMoving.BasedOnDestination");
 	this->OpenTopped_AllowFiringIfAttackedByLocomotor.Read(exINI, GameStrings::General, "OpenTopped.AllowFiringIfAttackedByLocomotor");
 	this->OpenTransport_FireWhileMoving.Read(exINI, GameStrings::General, "OpenTransport.FireWhileMoving");
 	
@@ -1137,6 +1138,7 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->ShowPowerPlantEnhancerRange)
 		.Process(this->OpenTopped_DecloakToFire)
 		.Process(this->OpenTopped_FireWhileMoving)
+		.Process(this->OpenTopped_FireWhileMoving_BasedOnDestination)
 		.Process(this->OpenTopped_AllowFiringIfAttackedByLocomotor)
 		.Process(this->OpenTransport_FireWhileMoving)
 		.Process(this->Temporal_ConsiderVersus)

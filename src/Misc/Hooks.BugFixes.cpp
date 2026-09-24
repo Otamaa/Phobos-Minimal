@@ -392,9 +392,7 @@ ASMJIT_PATCH(0x44FBBF, CreateBuildingFromINIFile_AfterCTOR_BeforeUnlimbo, 0x8)
 	GET_STACK(bool, hasPower, STACK_OFFSET(0xEC, -0xDC));
 
 	pBld->_GetExtData()->IsCreatedFromMapFile = true;
-
-	if (hasPower)
-		pBld->_GetExtData()->HasPowerFromMapFile = true;
+	pBld->_GetExtData()->HasPowerFromMapFile = true;
 
 	return 0;
 }
@@ -685,24 +683,57 @@ ASMJIT_PATCH(0x53AD85, IonStormClass_AdjustLighting_ColorSchemes, 0x5)
 // 	return 0;
 // }
 
+// Update it only once per frame, should be enough for the command
+namespace DeployPriorityTemp
+{
+	int Frame;
+	int DeployPriority;
+	std::vector<TechnoTypeClass*> SelectType;
+}
+
 ASMJIT_PATCH(0x730D0F, ProcessDeployCommand_LowDeployPriority, 0x6)
 {
 	enum { SkipDeploy = 0x730D24 };
 
 	GET_STACK(const int, selectedObjectCount, STACK_OFFSET(0x18, -0x4));
 
-	if (Phobos::Config::PriorityDeployFiltering && selectedObjectCount > 1) {
-		GET(TechnoClass* const, pTechno, ESI);
+	if (selectedObjectCount > 1) {
+		if (DeployPriorityTemp::Frame != Unsorted::CurrentFrame()) {
+			DeployPriorityTemp::Frame = Unsorted::CurrentFrame();
+			DeployPriorityTemp::DeployPriority = -1;
+			DeployPriorityTemp::SelectType.clear();
 
-		auto const pExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
-
-		if (pExt->LowDeployPriority) {
-			for (const auto pObject : ObjectClass::CurrentObjects.get()) {
+			for (const auto pObject : ObjectClass::CurrentObjects()) {
 				if ((pObject->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None) {
-					if (!TechnoTypeExtContainer::Instance.Find(static_cast<TechnoClass*>(pObject)->GetTechnoType())->LowDeployPriority)
-						return SkipDeploy;
+					const auto pObjTypeExt = TechnoExtContainer::Instance.Find(static_cast<TechnoClass*>(pObject))->TypeExtData;
+					const auto pObjType = (TechnoTypeClass*)pObjTypeExt->AttachedToObject;
+
+					if (std::ranges::find(DeployPriorityTemp::SelectType, pObjType) == DeployPriorityTemp::SelectType.cend())
+						DeployPriorityTemp::SelectType.push_back(pObjType);
+
+					if (pObjTypeExt->HighDeployPriority)
+						DeployPriorityTemp::DeployPriority = 1;
+					else if (DeployPriorityTemp::DeployPriority < 0 && !pObjTypeExt->LowDeployPriority)
+						DeployPriorityTemp::DeployPriority = 0;
 				}
 			}
+		}
+
+		GET(TechnoClass* const, pTechno, ESI);
+
+		const auto pTypeExt = TechnoExtContainer::Instance.Find(pTechno)->TypeExtData;
+
+		for (const auto pForbidType : pTypeExt->DeployForbidTypes) {
+			if (std::ranges::find(DeployPriorityTemp::SelectType, pForbidType) != DeployPriorityTemp::SelectType.cend())
+				return SkipDeploy;
+		}
+
+		if (Phobos::Config::PriorityDeployFiltering) {
+			if (DeployPriorityTemp::DeployPriority > 0 && !pTypeExt->HighDeployPriority)
+				return SkipDeploy;
+
+			if (pTypeExt->LowDeployPriority && DeployPriorityTemp::DeployPriority >= 0)
+				return SkipDeploy;
 		}
 	}
 

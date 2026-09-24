@@ -156,6 +156,8 @@ public:
 	DoType LastSequenceCheck {};
 	int FiringCount {};
 	int ReceivedDamageCount {};
+
+	CDTimerClass ReflectDamageTimer;
 };
 
 template <>

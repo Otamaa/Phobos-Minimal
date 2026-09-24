@@ -3,19 +3,29 @@
 
 #include <Ext/Anim/Body.h>
 
-double AEArmorMults::Get(double initial, WarheadTypeClass* who, TechnoClass* pOwner, bool playHitAnim) const
+double AEArmorMults::Get(double initial, WarheadTypeClass* who, TechnoClass* pOwner, HouseClass* pInvoker, bool playHitAnim, bool isReallyHit)
 {
-	for (const auto& entry : mults)
+	for (auto& entry : mults)
 	{
 		if (entry.Chance < ScenarioClass::Instance->Random.RandomDouble())
 			continue;
 
-		if (!entry.Eligible(who))
+		if (entry.ArmorMultiplierTimer.InProgress())
 			continue;
 
-		if (playHitAnim && entry.HitAnims)
+		if (!entry.Eligible(who))
+			continue;
+		
+		if (pInvoker && !EnumFunctions::CanTargetHouse(entry.allowhouse, pOwner->Owner, pInvoker))
+			continue;
+
+		if (isReallyHit)
 		{
-			AnimExtData::CreateRandomAnim(*entry.HitAnims, pOwner->GetCoords(), pOwner, nullptr, true);
+			if(entry.delay > 0)
+				entry.ArmorMultiplierTimer.Start(entry.delay);
+
+			if(playHitAnim && entry.HitAnims)
+				AnimExtData::CreateRandomAnim(*entry.HitAnims, pOwner->GetCoords(), pOwner, nullptr, true);
 		}
 
 		initial *= entry.Mult;

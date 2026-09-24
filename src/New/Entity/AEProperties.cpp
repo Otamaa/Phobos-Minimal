@@ -93,8 +93,12 @@ void AEProperties::RecalculateSingle(TechnoClass* pTechno, PhobosAttachEffectCla
 	{
 		auto& entry = armormultData->mults.emplace_back();
 		entry.Mult = type->ArmorMultiplier;
+		entry.Chance = type->ArmorMultiplier_Chance;
+		entry.HitAnims = &type->ArmorMultiplier_HitAnim;
 		entry.allow = &type->ArmorMultiplier_AllowWarheads;
 		entry.disallow = &type->ArmorMultiplier_DisallowWarheads;
+		entry.delay = type->ArmorMultiplier_Delay;
+		entry.allowhouse = type->ArmorMultiplier_AffectsHouse;
 	}
 
 	// #region Apply ROF timer adjustment
@@ -317,6 +321,8 @@ void AEProperties::Recalculate(TechnoClass* pTechno)
 			entry.HitAnims = &type->ArmorMultiplier_HitAnim;
 			entry.allow = &type->ArmorMultiplier_AllowWarheads;
 			entry.disallow = &type->ArmorMultiplier_DisallowWarheads;
+			entry.delay = type->ArmorMultiplier_Delay;
+			entry.allowhouse = type->ArmorMultiplier_AffectsHouse;
 		}
 	}
 

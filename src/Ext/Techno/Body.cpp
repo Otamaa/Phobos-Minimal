@@ -6735,7 +6735,7 @@ int __fastcall FakeTechnoClass::__AdjustDamage(TechnoClass* pThis, discard_t,Tec
 	{
 
 		double _damage = TechnoExtData::ApplyDamageMult(pThis, (double)pWeapon->Damage);
-		int _damage_int = (int)TechnoExtData::GetArmorMult(pTarget, _damage, pWeapon->Warhead);
+		int _damage_int = (int)TechnoExtData::GetArmorMult(pTarget, pThis->Owner, _damage, pWeapon->Warhead, false, false);
 		if (_damage_int < 1)
 			_damage_int = 1;
 
@@ -6770,7 +6770,7 @@ int FakeTechnoClass::__AdjustDamageB(TechnoClass* pThis, TechnoClass* pTarget, W
 		}
 
 		//calculate armor multiplier at last phase here
-		damage = (int)TechnoExtData::GetArmorMult(pTarget, dDamage, pWeapon->Warhead);
+		damage = (int)TechnoExtData::GetArmorMult(pTarget, pThis->Owner, dDamage, pWeapon->Warhead, false, false);
 	}
 
 	if (ApplyVerses) {
@@ -10375,32 +10375,13 @@ void TechnoExtData::PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker)
 	}
 }
 
-double TechnoExtData::GetArmorMult(TechnoClass* pSource, double damageIn, WarheadTypeClass* pWarhead, bool playAnim)
+double TechnoExtData::GetArmorMult(TechnoClass* pThis, HouseClass* pInvoker, double damageIn, WarheadTypeClass* pWarhead, bool playAnim, bool isReallyHit)
 {
-	const auto pType = GET_TECHNOTYPE(pSource);
-	double _result = damageIn;
-
-	auto const pExt = TechnoExtContainer::Instance.Find(pSource);
-
-	//Ares AE using techno ArmorMultiplier
-	//PHobos AE using ArmorMultData 
-	if (pExt->AE.ArmorMultData.Enabled()) {
-		_result /= pExt->AE.ArmorMultData.Get(pSource->ArmorMultiplier, pWarhead, pSource , playAnim);
-	} else {
-		_result /= pSource->ArmorMultiplier;
-	}
-
-	if (auto pOwner = pSource->Owner)
-	_result /= pOwner->GetTypeArmorMult(pType);
-
-	if (pSource->HasAbility(AbilityType::Stronger)) {
-		_result /= RulesClass::Instance->VeteranArmor;
-	}
-
-	return _result;
+	const auto pType = GET_TECHNOTYPE(pThis);
+	return damageIn / TechnoExtData::GetCurrentArmorMultiplier(pThis, pType, pInvoker ? pInvoker : nullptr, pWarhead, playAnim, isReallyHit);
 }
 
-double TechnoExtData::GetCurrentArmorMultiplier(TechnoClass* pThis, TechnoTypeClass* pType, HouseClass* pSourceHouse, WarheadTypeClass* pWarhead, bool playAnim)
+double TechnoExtData::GetCurrentArmorMultiplier(TechnoClass* pThis, TechnoTypeClass* pType, HouseClass* pSourceHouse, WarheadTypeClass* pWarhead, bool playAnim, bool isReallyHit)
 {
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 	double _armor;
@@ -10408,7 +10389,7 @@ double TechnoExtData::GetCurrentArmorMultiplier(TechnoClass* pThis, TechnoTypeCl
 	//Ares AE using techno ArmorMultiplier
 	//PHobos AE using ArmorMultData 
 	if (pExt->AE.ArmorMultData.Enabled()) {
-		_armor = pExt->AE.ArmorMultData.Get(pThis->ArmorMultiplier, pWarhead, pThis, playAnim);
+		_armor = pExt->AE.ArmorMultData.Get(pThis->ArmorMultiplier, pWarhead, pThis, pSourceHouse, playAnim, isReallyHit);
 	} else {
 		_armor = pThis->ArmorMultiplier;
 	}

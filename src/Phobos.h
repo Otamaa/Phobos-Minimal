@@ -138,6 +138,12 @@ public:
 		static bool UnlimitedColor;
 		static bool AnchoredToolTips;
 
+		static bool MovieSubtitles_Background;
+		static ColorStruct MovieSubtitles_BackgroundColor;
+		static int MovieSubtitles_BackgroundOpacity;
+		static int MovieSubtitles_BackgroundPaddingX;
+		static int MovieSubtitles_BackgroundPaddingY;
+
 		static bool SuperWeaponSidebar;
 		static int SuperWeaponSidebar_Interval;
 		static int SuperWeaponSidebar_LeftOffset;

@@ -515,8 +515,8 @@ public:
 	static double ApplyAdditionalDamageMult(TechnoClass* pSouce, double damageIn);
 	static double GetDamageMult(TechnoClass* pSource);
 
-	static double GetArmorMult(TechnoClass* pSouce, double damageIn, WarheadTypeClass* pWarhead, bool playAnim  = true);
-	static double GetCurrentArmorMultiplier(TechnoClass* pThis, TechnoTypeClass* pType, HouseClass* pSourceHouse, WarheadTypeClass* pWarhead, bool playAnim);
+	static double GetArmorMult(TechnoClass* pThis, HouseClass* pInvoker, double damageIn, WarheadTypeClass* pWarhead, bool playAnim, bool isReallyHit);
+	static double GetCurrentArmorMultiplier(TechnoClass* pThis, TechnoTypeClass* pType, HouseClass* pSourceHouse, WarheadTypeClass* pWarhead, bool playAnim, bool isReallyHit);
 	static void InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType);
 	static void InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted);
 	static void UpdateLaserTrails(TechnoClass* pThis);

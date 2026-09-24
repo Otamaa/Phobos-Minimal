@@ -114,6 +114,8 @@ public:
 	Valueable<CSFText> UIDescription {};
 	Valueable<bool> LowSelectionPriority { false };
 	Valueable<bool> LowDeployPriority { false };
+	Valueable<bool> HighDeployPriority { false };
+	ValueableVector<TechnoTypeClass*> DeployForbidTypes {};
 	PhobosFixedString<0x20> GroupAs {};
 
 	Valueable<int> RadarJamRadius { 0 };
@@ -237,6 +239,7 @@ public:
 	Nullable<float> OpenTopped_DamageMultiplier {};
 	Nullable<bool> OpenTopped_DecloakToFire {};
 	Nullable<bool> OpenTopped_FireWhileMoving {};
+	Nullable<bool> OpenTopped_FireWhileMoving_BasedOnDestination {};
 	Nullable<bool> OpenTopped_AllowFiringIfAttackedByLocomotor {};
 	Nullable<int> OpenTopped_WarpDistance {};
 	Nullable<bool> OpenTopped_IgnoreRangefinding { };

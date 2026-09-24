@@ -46,6 +46,42 @@ ASMJIT_PATCH(0x6870D7, ReadScenario_LoadingScreens, 0x5)
 	return 0x0;
 }
 
+static bool ScenarioNamesMatch(const char* a, const char* b)
+{
+	if (!a || !b)
+		return false;
+
+	while (*a && *b)
+	{
+		char ca = *a == '\\' ? '/' : *a;
+		char cb = *b == '\\' ? '/' : *b;
+
+		if (tolower(static_cast<unsigned char>(ca)) != tolower(static_cast<unsigned char>(cb)))
+			return false;
+
+		++a;
+		++b;
+	}
+
+	return *a == *b;
+}
+
+ASMJIT_PATCH(0x686D85, ReadScenario_MissionINI_FixCasing, 0x7)
+{
+	LEA_STACK(CCINIClass*, pINI, STACK_OFFSET(0x174, -0x158));
+
+	if (pINI->GetSection(ScenarioClass::Instance->FileName) == nullptr) {
+		for (auto pNode = pINI->Sections.First(); pNode && pNode->IsValid(); pNode = pNode->Next()) {
+			if (pNode->Name && ScenarioNamesMatch(pNode->Name, ScenarioClass::Instance->FileName)) {
+				strcpy_s(ScenarioClass::Instance->FileName, pNode->Name);
+				break;
+			}
+		}
+	}
+
+	return 0;
+}
+
 ASMJIT_PATCH(0x6873AB, INIClass_ReadScenario_EarlyLoadRules, 5)
 {
 

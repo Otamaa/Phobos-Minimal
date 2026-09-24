@@ -325,7 +325,7 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 		if (*args->Damage > 0)
 		{
 			if (this->Type->UseArmorplier.Get(FakeRulesClass::Instance()->ShieldUseArmorplier)) {
-				nDamage = MaxImpl(static_cast<int>(TechnoExtData::GetArmorMult(this->Techno, nDamage, args->WH)), 0);
+				nDamage = MaxImpl(static_cast<int>(TechnoExtData::GetArmorMult(this->Techno, args->Attacker ? args->Attacker->Owner : args->SourceHouse, nDamage, args->WH, false , false)), 0);
 			}
 
 			nDamage = FakeWarheadTypeClass::ModifyDamage(*args->Damage, args->WH, this->Type->Armor, args->DistanceToEpicenter);

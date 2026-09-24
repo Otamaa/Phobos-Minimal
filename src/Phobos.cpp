@@ -76,6 +76,12 @@ bool Phobos::UI::WeedsCounter_Show { false };
 bool Phobos::UI::UnlimitedColor { false };
 bool Phobos::UI::AnchoredToolTips { false };
 
+bool Phobos::UI::MovieSubtitles_Background = false;
+ColorStruct Phobos::UI::MovieSubtitles_BackgroundColor = { 0, 0, 0 };
+int Phobos::UI::MovieSubtitles_BackgroundOpacity = 60;
+int Phobos::UI::MovieSubtitles_BackgroundPaddingX = 6;
+int Phobos::UI::MovieSubtitles_BackgroundPaddingY = 3;
+
 bool Phobos::UI::SuperWeaponSidebar { false };
 int Phobos::UI::SuperWeaponSidebar_Interval { 0 };
 int Phobos::UI::SuperWeaponSidebar_LeftOffset { 0 };

@@ -103,6 +103,8 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->ArmorMultiplier_AllowWarheads.Read(exINI, pSection, "ArmorMultiplier.AllowWarheads");
 	this->ArmorMultiplier_DisallowWarheads.Read(exINI, pSection, "ArmorMultiplier.DisallowWarheads");
 	this->ArmorMultiplier_Chance.Read(exINI, pSection, "ArmorMultiplier.Chance");
+	this->ArmorMultiplier_Delay.Read(exINI, pSection, "ArmorMultiplier.Delay");
+	this->ArmorMultiplier_AffectsHouse.Read(exINI, pSection, "ArmorMultiplier.AffectsHouse");
 	this->ArmorMultiplier_HitAnim.Read(exINI, pSection, "ArmorMultiplier.HitAnim");
 
 	this->SpeedMultiplier.Read(exINI, pSection, "SpeedMultiplier");
@@ -142,6 +144,7 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->ReflectDamage_AffectsHouses.Read(exINI, pSection, "ReflectDamage.AffectsHouses");
 	this->ReflectDamage_AffectsHouses.Read(exINI, pSection, "ReflectDamage.AffectsHouse");
 	this->ReflectDamage_Chance.Read(exINI, pSection, "ReflectDamage.Chance");
+	this->ReflectDamage_Delay.Read(exINI, pSection, "ReflectDamage.Delay");
 	this->ReflectDamage_Override.Read(exINI, pSection, "ReflectDamage.Override");
 
 	this->DiscardOn_AbovePercent.Read(exINI, pSection, "DiscardOn.AbovePercent");
@@ -279,6 +282,8 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->ArmorMultiplier_AllowWarheads)
 		.Process(this->ArmorMultiplier_DisallowWarheads)
 		.Process(this->ArmorMultiplier_Chance)
+		.Process(this->ArmorMultiplier_Delay)
+		.Process(this->ArmorMultiplier_AffectsHouse)
 	  	.Process(this-> ArmorMultiplier_HitAnim)
 		.Process(this->SpeedMultiplier)
 		.Process(this->ROFMultiplier)
@@ -310,6 +315,7 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->ReflectDamage_AffectsHouses)
 
 		.Process(this->ReflectDamage_Chance)
+		.Process(this->ReflectDamage_Delay)
 		.Process(this->ReflectDamage_Override)
 		.Process(this->ReflectDamage_UseInvokerAsOwner)
 		.Process(this->DiscardOn_AbovePercent)

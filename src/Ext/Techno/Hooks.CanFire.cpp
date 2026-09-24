@@ -474,7 +474,13 @@ bool bIgnoreDisableWeapon)
 					|| !pThisTypeExt->OpenTransport_FireWhileMoving.Get(FakeRulesClass::Instance->OpenTransport_FireWhileMoving)
 					|| !pWeapon->FireWhileMoving)
 				{
-					if (pTransTypeExt->This()->BalloonHover) {
+					if (!pTransTypeExt->OpenTopped_FireWhileMoving_BasedOnDestination
+						.Get(FakeRulesClass::Instance->OpenTopped_FireWhileMoving_BasedOnDestination))
+					{
+						if (pTransportFoot->Locomotor->Is_Really_Moving_Now())
+							return FireError::ILLEGAL;
+
+					} else if (((TechnoTypeClass*)pTransTypeExt->AttachedToObject)->BalloonHover) {
 						if (pTransportFoot->Locomotor->Is_Moving_Now())
 							return FireError::ILLEGAL;
 					} else if (pTransportFoot->Destination) {

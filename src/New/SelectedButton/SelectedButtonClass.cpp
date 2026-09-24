@@ -228,7 +228,7 @@ void SelectedNotButtonClass::DrawInfo() const
 	}
 	else if (this->ID == 1) // InfoIconD
 	{
-		const auto mult = TechnoExtData::GetCurrentArmorMultiplier(pTechno, pTechno->GetTechnoType(), pTechno->Owner, nullptr,false);
+		const auto mult = TechnoExtData::GetCurrentArmorMultiplier(pTechno, pTechno->GetTechnoType(), nullptr, nullptr,false, false);
 		const int frame = getIconFrame(5, mult);
 		RectangleStruct rect { 0, 0, this->Rect.X + this->Rect.Width, this->Rect.Y + this->Rect.Height };
 		DSurface::Composite->DrawSHP(pSideExt->SelectedInfo_Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL),

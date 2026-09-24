@@ -126,6 +126,7 @@
     <ClCompile Include="src\Misc\Exception\ExceptionHandler.Dialog.cpp" />
     <ClCompile Include="src\Misc\Exception\ExceptionHandler.Report.cpp" />
     <ClCompile Include="src\Misc\FogOfWar.cpp" />
+    <ClCompile Include="src\Misc\Hooks.MovieSubtitles.cpp" />
     <ClCompile Include="src\Misc\Spawner\DesyncHandler.cpp" />
     <ClCompile Include="src\Misc\Spawner\FastRetransmit.cpp" />
     <ClCompile Include="src\Misc\Spawner\FrameGate.cpp" />

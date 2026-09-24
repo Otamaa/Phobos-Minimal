@@ -1148,6 +1148,8 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->UIDescription.Read(exINI, pSection, "UIDescription");
 		this->LowSelectionPriority.Read(exINI, pSection, "LowSelectionPriority");
 		this->LowDeployPriority.Read(exINI, pSection, "LowDeployPriority");
+		this->HighDeployPriority.Read(exINI, pSection, "HighDeployPriority");
+		this->DeployForbidTypes.Read(exINI, pSection, "DeployForbidTypes");
 		this->MindControlRangeLimit.Read(exINI, pSection, "MindControlRangeLimit");
 		this->MindControl_IgnoreSize.Read(exINI, pSection, "MindControl.IgnoreSize");
 		this->MindControlSize.Read(exINI, pSection, "MindControlSize");
@@ -1317,6 +1319,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->OpenTopped_CheckTransportDisableWeapons.Read(exINI, pSection, "OpenTopped.CheckTransportDisableWeapons");
 		this->OpenTopped_DecloakToFire.Read(exINI, pSection, "OpenTopped.DecloakToFire");
 		this->OpenTopped_FireWhileMoving.Read(exINI, pSection, "OpenTopped.FireWhileMoving");
+		this->OpenTopped_FireWhileMoving_BasedOnDestination.Read(exINI, pSection, "OpenTopped.FireWhileMoving.BasedOnDestination");
 		this->OpenTopped_AllowFiringIfAttackedByLocomotor.Read(exINI, pSection, "OpenTopped.AllowFiringIfAttackedByLocomotor");
 		this->OpenTransport_FireWhileMoving.Read(exINI, pSection, "OpenTransport.FireWhileMoving");
 
@@ -2921,6 +2924,8 @@ void TechnoTypeExtData::Serialize(T& Stm) {
 		.Process(this->UIDescription)
 		.Process(this->LowSelectionPriority)
 		.Process(this->LowDeployPriority)
+		.Process(this->HighDeployPriority)
+		.Process(this->DeployForbidTypes)
 
 		.Process(this->GroupAs)
 
@@ -3043,6 +3048,7 @@ void TechnoTypeExtData::Serialize(T& Stm) {
 		.Process(this->OpenTopped_DamageMultiplier)
 		.Process(this->OpenTopped_DecloakToFire)
 		.Process(this->OpenTopped_FireWhileMoving)
+		.Process(this->OpenTopped_FireWhileMoving_BasedOnDestination)
 		.Process(this->OpenTopped_AllowFiringIfAttackedByLocomotor)
 		.Process(this->OpenTopped_WarpDistance)
 		.Process(this->OpenTopped_IgnoreRangefinding)

@@ -98,6 +98,8 @@ public:
 	ValueableVector<WarheadTypeClass*> ArmorMultiplier_AllowWarheads {};
 	ValueableVector<WarheadTypeClass*> ArmorMultiplier_DisallowWarheads {};
 	Valueable<double> ArmorMultiplier_Chance { 1.0 };
+	Valueable<int> ArmorMultiplier_Delay { 0 };
+	Valueable<AffectedHouse> ArmorMultiplier_AffectsHouse { AffectedHouse::All };
 	ValueableVector<AnimTypeClass*> ArmorMultiplier_HitAnim {};
 
 	Valueable<double> SpeedMultiplier { 1.0 };
@@ -132,6 +134,7 @@ public:
 	Valueable<AffectedHouse> ReflectDamage_AffectsHouses { AffectedHouse::All };
 
 	Nullable<double> ReflectDamage_Chance {};
+	Valueable<int> ReflectDamage_Delay { 0 };
 	Nullable<int> ReflectDamage_Override {};
 	Valueable<bool> ReflectDamage_UseInvokerAsOwner { false };
 
