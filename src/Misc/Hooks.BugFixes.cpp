@@ -3065,3 +3065,20 @@ ASMJIT_PATCH(0x4DA90E, FootClass_AI_WalkRateZeroProtect, 0x6)
 	R->EDX(1);
 	return 0x4DA914;
 }
+
+ASMJIT_PATCH(0x575A6B, MapClass_DestroyBridge_Explosions, 0x5)
+{
+	auto& exp = FakeRulesClass::Instance->BridgeExplosions;
+
+	if (exp.empty())
+		Debug::Log("BridgeExplosions Empty !\n");
+	else {
+		LEA_STACK(CoordStruct*, pCoord, 0x48);
+
+		if(auto pExp = exp[ScenarioClass::Instance->Random.RandomFromMax(exp.Count)]) {
+			GameCreate<AnimClass>(pExp, pCoord, ScenarioClass::Instance->Random.RandomRanged(1, 5), 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 , 0 , 0);
+		}
+	}
+
+	return 0x575AE1;
+}
