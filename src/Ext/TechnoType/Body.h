@@ -114,6 +114,7 @@ public:
 	Valueable<CSFText> UIDescription {};
 	Valueable<bool> LowSelectionPriority { false };
 	Valueable<bool> LowDeployPriority { false };
+	Valueable<int> TypeCyclePriority { 0 };
 	Valueable<bool> HighDeployPriority { false };
 	ValueableVector<TechnoTypeClass*> DeployForbidTypes {};
 	PhobosFixedString<0x20> GroupAs {};

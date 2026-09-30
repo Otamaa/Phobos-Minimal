@@ -1809,7 +1809,7 @@ bool TActionExtData::BinaryOperation(TActionClass* pThis, HouseClass* pHouse, Ob
 		case 5: { nCurrentValue %= nOptValue; break; }
 		case 6: { nCurrentValue <<= nOptValue; break; }
 		case 7: { nCurrentValue >>= nOptValue; break; }
-		case 8: { nCurrentValue = nOptValue; break; }
+		case 8: { nCurrentValue = ~nOptValue; break; }
 		case 9: { nCurrentValue ^= nOptValue; break; }
 		case 10: { nCurrentValue |= nOptValue; break; }
 		case 11: { nCurrentValue &= nOptValue; break; }

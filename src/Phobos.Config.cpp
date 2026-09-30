@@ -635,10 +635,22 @@ void Phobos::Config::Read_RULESMD()
 		if (!Phobos::Otamaa::IsAdmin)
 			Phobos::Config::DevelopmentCommands = pINI->ReadBool(GLOBALCONTROLS_SECTION, "DebugKeysEnabled", Phobos::Config::DevelopmentCommands);
 
+		Phobos::Config::NextIdleHarvesterCommand = pINI->ReadBool("GlobalControls", "NextIdleHarvesterKeyEnabled", Phobos::Config::NextIdleHarvesterCommand);
+		Phobos::Config::QuickSaveCommand = pINI->ReadBool("GlobalControls", "QuickSaveKeyEnabled", Phobos::Config::QuickSaveCommand);
+		Phobos::Config::ToggleDigitalDisplayCommand = pINI->ReadBool("GlobalControls", "ToggleDigitalDisplayKeyEnabled", Phobos::Config::ToggleDigitalDisplayCommand);
+		Phobos::Config::ToggleDesignatorRangeCommand = pINI->ReadBool("GlobalControls", "ToggleDesignatorRangeKeyEnabled", Phobos::Config::ToggleDesignatorRangeCommand);
+		Phobos::Config::ToggleMessageListCommand = pINI->ReadBool("GlobalControls", "ToggleMessageListKeyEnabled", Phobos::Config::ToggleMessageListCommand);
+		Phobos::Config::ToggleSuperWeaponSidebarCommand = pINI->ReadBool("GlobalControls", "ToggleSuperWeaponSidebarKeyEnabled", Phobos::Config::ToggleSuperWeaponSidebarCommand);
+		Phobos::Config::DeselectObjectCommand = pINI->ReadBool("GlobalControls", "DeselectObjectKeysEnabled", Phobos::Config::DeselectObjectCommand);
+		Phobos::Config::CycleSelectionCommand = pINI->ReadBool("GlobalControls", "CycleSelectionKeyEnabled", Phobos::Config::CycleSelectionCommand);
+		Phobos::Config::CycleTypeSelectionCommand = pINI->ReadBool("GlobalControls", "CycleTypeSelectionKeyEnabled", Phobos::Config::CycleTypeSelectionCommand);
+		Phobos::Config::SelectCapturedCommand = pINI->ReadBool("GlobalControls", "SelectCapturedKeyEnabled", Phobos::Config::SelectCapturedCommand);
+
 		Phobos::Config::SuperWeaponSidebarCommands = pINI->ReadBool(GLOBALCONTROLS_SECTION, "SuperWeaponSidebarKeysEnabled", Phobos::Config::SuperWeaponSidebarCommands);
 		Phobos::Config::AllowSwitchNoMoveCommand = pINI->ReadBool(GLOBALCONTROLS_SECTION, "AllowSwitchNoMoveCommand", Phobos::Config::AllowDistributionCommand);
 		Phobos::Config::AllowDistributionCommand = pINI->ReadBool(GLOBALCONTROLS_SECTION, "AllowDistributionCommand", Phobos::Config::AllowDistributionCommand);
-		Phobos::Config::AllowDistributionCommand_SpreadMode = pINI->ReadBool(GLOBALCONTROLS_SECTION, "AllowDistributionCommand.SpreadMode", Phobos::Config::AllowDistributionCommand_SpreadMode);
+
+		Phobos::Config::AllowDistributionCommand_SpreadMode = pINI->ReadBool(GLOBALCONTROLS_SECTION, "AllowDistributionCo mmand.SpreadMode", Phobos::Config::AllowDistributionCommand_SpreadMode);
 		Phobos::Config::AllowDistributionCommand_SpreadModeScroll = pINI->ReadBool(GLOBALCONTROLS_SECTION, "AllowDistributionCommand.SpreadModeScroll", Phobos::Config::AllowDistributionCommand_SpreadModeScroll);
 		Phobos::Config::AllowDistributionCommand_FilterMode = pINI->ReadBool(GLOBALCONTROLS_SECTION, "AllowDistributionCommand.FilterMode", Phobos::Config::AllowDistributionCommand_FilterMode);
 		Phobos::Config::AllowDistributionCommand_AffectsAllies = pINI->ReadBool(GLOBALCONTROLS_SECTION, "AllowDistributionCommand.AffectsAllies", Phobos::Config::AllowDistributionCommand_AffectsAllies);
@@ -683,6 +695,7 @@ void Phobos::Config::Read_RULESMD()
 
 		Phobos::Config::MultiThreadSinglePlayer = pINI->ReadBool(GameStrings::General(), "MultiThreadSinglePlayer", Phobos::Config::MultiThreadSinglePlayer);
 		Phobos::Config::SaveVariablesOnScenarioEnd = pINI->ReadBool(GameStrings::General(), "SaveVariablesOnScenarioEnd", Phobos::Config::SaveVariablesOnScenarioEnd);
+		Phobos::Config::CycleTypeSelectionPrintSummary = pINI->ReadBool("GlobalControls", "CycleTypeSelectionPrintSummary", Phobos::Config::CycleTypeSelectionPrintSummary);
 	}
 
 	if (pINI->GetSection(GameStrings::AudioVisual())) 

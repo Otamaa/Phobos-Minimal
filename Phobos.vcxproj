@@ -25,6 +25,8 @@
     <ClCompile Include="src\Commands\AssignRallyPoint.cpp" />
     <ClCompile Include="src\Commands\BuildLastOfTab.cpp" />
     <ClCompile Include="src\Commands\ClearObserverUICards.cpp" />
+    <ClCompile Include="src\Commands\CycleSelection.cpp" />
+    <ClCompile Include="src\Commands\CycleTypeSelection.cpp" />
     <ClCompile Include="src\Commands\Deselect.cpp" />
     <ClCompile Include="src\Commands\HerosInfo.cpp" />
     <ClCompile Include="src\Commands\RebuildTab3Subtypes.cpp" />
@@ -596,6 +598,8 @@
     <ClInclude Include="src\Commands\AssignRallyPoint.h" />
     <ClInclude Include="src\Commands\BuildLastOfTab.h" />
     <ClInclude Include="src\Commands\ClearObserverUICards.h" />
+    <ClInclude Include="src\Commands\CycleSelection.h" />
+    <ClInclude Include="src\Commands\CycleTypeSelection.h" />
     <ClInclude Include="src\Commands\Deselect.h" />
     <ClInclude Include="src\Commands\HerosInfo.h" />
     <ClInclude Include="src\Commands\RebuildTab3Subtypes.h" />

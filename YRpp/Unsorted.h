@@ -996,6 +996,14 @@ namespace Unsorted
 	// if != 0, EVA_SWxxxActivated is skipped
 	COMPILETIMEEVAL reference<int, 0xA8B538> const MuteSWLaunches {};
 
+	// Selection cycle state, written by Game's SetNavCycleMode (0x731D00) and zeroed by the
+	// game whenever the current selection changes (ObjectClass::Select, DeselectAllObjects,
+	// MapClass::UnselectAll). 0 = no cycle; vanilla's own commands (CombatantSelect,
+	// SelectSameType, HealthNav, VeterancyNav, CycleSelectType) use values 1-5 and compare it
+	// against their own value to tell an ongoing cycle apart from a fresh key press. Values
+	// >= 6 are left for extensions.
+	COMPILETIMEEVAL reference<int, 0xB0FE54> const NavCycleMode {};
+
 	// skip unit selection and move command voices?
 	COMPILETIMEEVAL reference<bool, 0x822CF2> const MoveFeedback {};
 

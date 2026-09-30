@@ -1148,6 +1148,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->UIDescription.Read(exINI, pSection, "UIDescription");
 		this->LowSelectionPriority.Read(exINI, pSection, "LowSelectionPriority");
 		this->LowDeployPriority.Read(exINI, pSection, "LowDeployPriority");
+		this->TypeCyclePriority.Read(exINI, pSection, "TypeCyclePriority");
 		this->HighDeployPriority.Read(exINI, pSection, "HighDeployPriority");
 		this->DeployForbidTypes.Read(exINI, pSection, "DeployForbidTypes");
 		this->MindControlRangeLimit.Read(exINI, pSection, "MindControlRangeLimit");
@@ -2924,6 +2925,7 @@ void TechnoTypeExtData::Serialize(T& Stm) {
 		.Process(this->UIDescription)
 		.Process(this->LowSelectionPriority)
 		.Process(this->LowDeployPriority)
+		.Process(this->TypeCyclePriority)
 		.Process(this->HighDeployPriority)
 		.Process(this->DeployForbidTypes)
 

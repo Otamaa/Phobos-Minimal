@@ -235,7 +235,17 @@ double Phobos::Config::TacticalZoom_Max = 2.5;
 double Phobos::Config::TacticalZoom_Step = 0.15;
 bool Phobos::Config::TacticalZoom_Smooth = true;
 
+bool Phobos::Config::NextIdleHarvesterCommand = true;
+bool Phobos::Config::QuickSaveCommand = true;
+bool Phobos::Config::ToggleDigitalDisplayCommand = true;
+bool Phobos::Config::ToggleDesignatorRangeCommand = true;
+bool Phobos::Config::ToggleMessageListCommand = true;
+bool Phobos::Config::ToggleSuperWeaponSidebarCommand = true;
 bool Phobos::Config::SelectCapturedCommand = false;
+bool Phobos::Config::DeselectObjectCommand = true;
+bool Phobos::Config::CycleSelectionCommand = true;
+bool Phobos::Config::CycleTypeSelectionCommand = true;
+bool Phobos::Config::CycleTypeSelectionPrintSummary = true;
 
 bool Phobos::Otamaa::DisableCustomRadSite { false };
 bool Phobos::Otamaa::IsAdmin { false };

@@ -307,6 +307,16 @@ public:
 		static bool ShowGameTime;
 		static int ShowGameTime_BoardOpacity;
 		static bool SelectCapturedCommand;
+		static bool NextIdleHarvesterCommand;
+		static bool QuickSaveCommand;
+		static bool ToggleDigitalDisplayCommand;
+		static bool ToggleDesignatorRangeCommand;
+		static bool ToggleMessageListCommand;
+		static bool ToggleSuperWeaponSidebarCommand;
+		static bool DeselectObjectCommand;
+		static bool CycleSelectionCommand;
+		static bool CycleTypeSelectionCommand;
+		static bool CycleTypeSelectionPrintSummary;
 
 		static bool TacticalZoom;
 		static bool TacticalZoom_Wheel;

@@ -65,6 +65,8 @@
 #include "SelectedInfo.h"
 #include "ZoomCommands.h"
 
+#include "CycleSelection.h"
+#include "CycleTypeSelection.h"
 
 bool PhobosCommandClass::CheckDebugDeactivated() const
 {
@@ -82,8 +84,11 @@ bool PhobosCommandClass::CheckDebugDeactivated() const
 }
 
 template <typename T>
-FORCEDINLINE T* Make()
+FORCEDINLINE T* Make(bool enabled = true)
 {
+	if (!enabled)
+		return nullptr;
+
 	T* command = GameCreate<T>();
 	CommandClass::Array->push_back(command);
 	return command;
@@ -135,45 +140,42 @@ void __fastcall Game_Init_Commands_Wrapper() {
 	Make<ForceWinCommandClass>();
 #pragma endregion Adminexclusive
 
-	if (Phobos::Config::SelectCapturedCommand)
-	Make<SelectCapturedCommandClass>();
+	Make<CycleSelectionCommandClass>(Phobos::Config::CycleSelectionCommand);
+	Make<CycleTypeSelectionCommandClass>(Phobos::Config::CycleTypeSelectionCommand);
+	Make<SelectCapturedCommandClass>(Phobos::Config::SelectCapturedCommand);
 
 	Make<AggressiveModeClass>();
 	Make<AutoBuildingCommandClass>();
 	Make<CeasefireModeClass>();
 
-	Make<QuickSaveCommandClass>();
+	Make<QuickSaveCommandClass>(Phobos::Config::QuickSaveCommand);
 	Make<SaveVariablesToFileCommandClass>();
 	Make<TogglePowerCommandClass>();
 	Make<ToggleRadialIndicatorDrawModeClass>();
-	Make<ToggleDigitalDisplayCommandClass>();
-	Make<ToggleDesignatorRangeCommandClass>();
-	Make<ToggleMessageListCommandClass>();
-	Make<NextIdleHarvesterCommandClass>();
+	Make<ToggleDigitalDisplayCommandClass>(Phobos::Config::ToggleDigitalDisplayCommand);
+	Make<ToggleDesignatorRangeCommandClass>(Phobos::Config::ToggleDesignatorRangeCommand);
+	Make<ToggleMessageListCommandClass>(Phobos::Config::ToggleMessageListCommand);
+	Make<NextIdleHarvesterCommandClass>(Phobos::Config::NextIdleHarvesterCommand);
 
 	Make<ToggleSuperTimersCommandClass>();
-
-	if (Phobos::Config::AllowSwitchNoMoveCommand)
-		Make<SwitchNoMoveCommandClass>();
+	Make<SwitchNoMoveCommandClass>(Phobos::Config::AllowSwitchNoMoveCommand);
 
 	if (Phobos::Config::AllowDistributionCommand)
 	{
-		if (Phobos::Config::AllowDistributionCommand_SpreadMode)
-			Make<DistributionModeSpreadCommandClass>();
-
-		if (Phobos::Config::AllowDistributionCommand_FilterMode)
-			Make<DistributionModeFilterCommandClass>();
-
+		Make<DistributionModeSpreadCommandClass>(Phobos::Config::AllowDistributionCommand_SpreadMode);
+		Make<DistributionModeFilterCommandClass>(Phobos::Config::AllowDistributionCommand_FilterMode);
 		Make<DistributionModeHoldDownCommandClass>();
 	}
 
 #pragma region SWSidebar
-	Make<ToggleSWSidebar>();
+	Make<ToggleSWSidebar>(Phobos::Config::ToggleSuperWeaponSidebarCommand);
 	FireTacticalSWDispatch::Dispatch();
 #pragma endregion SWSidebar
 
-	Make<DeselectObjectCommandClass>();
-	Make<DeselectObject5CommandClass>();
+	if(Phobos::Config::DeselectObjectCommand){
+		Make<DeselectObjectCommandClass>();
+		Make<DeselectObject5CommandClass>();
+	}
 
 	// PR #2129
 	Make<BuildLastOfTabCommandClass<0>>();

@@ -840,6 +840,9 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 		JMP_THIS(0x6FD800);
 	}
 
+	static bool __fastcall IsPlayerAliveUnitOf(TechnoClass* pTech , const char* pID)
+	{ JMP_STD(0x732770); }
+
 	void Draw_Object(
 		SHPCaches* shapefile,
 		int shapenum,
