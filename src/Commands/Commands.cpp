@@ -273,7 +273,7 @@ ASMJIT_PATCH(0x777998, Game_WndProc_ScrollMouseWheel, 0x6)
 		if (SelectedInfoClass::Instance.IsHovering)
 			SelectedInfoClass::Instance.ScrollRight();
 
-		 if(MessageColumnClass::Instance.IsHovering())
+		 if(MessageColumnClass::Instance.IsHovering() && !ScenarioClass::Instance->UserInputLocked)
 			 MessageColumnClass::Instance.ScrollDown();
 
 	} else {
@@ -287,7 +287,7 @@ ASMJIT_PATCH(0x777998, Game_WndProc_ScrollMouseWheel, 0x6)
 		if (SelectedInfoClass::Instance.IsHovering)
 			SelectedInfoClass::Instance.ScrollLeft();
 
-		if (MessageColumnClass::Instance.IsHovering())
+		if (MessageColumnClass::Instance.IsHovering() && !ScenarioClass::Instance->UserInputLocked)
 			MessageColumnClass::Instance.ScrollUp();
 	}
 
