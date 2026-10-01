@@ -1290,6 +1290,8 @@ public:
 	ValueableVector<int> DefaultToGuardArea_AIModes {};
 
 	Nullable<bool> ExitThroughRoof {};
+
+	ValueableVector<int> NoAmmoWeapons {};
 #pragma endregion
 
 public:

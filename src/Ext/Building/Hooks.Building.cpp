@@ -788,14 +788,20 @@ ASMJIT_PATCH(0x448C3E, BuildingClass_SetOwningHouse_SensorArrayB, 0x6)
 	return 0;
 }
 
-// remove sensor on destruction
-ASMJIT_PATCH(0x4416A2, BuildingClass_Destroy_SensorArray, 0x6)
+
+ASMJIT_PATCH(0x4416A2, BuildingClass_Destroy_DisableStuffs, 0x6)
 {
 	GET(BuildingClass*, pBld, ESI);
 
+	// remove sensor on destruction
 	if (pBld->Type->SensorArray)
 	{
 		pBld->SensorArrayDeactivate();
+	}
+
+	// Deactivate disguise detector on building destruction
+	if (pBld->Type->DetectDisguise){
+		pBld->DisguiseDetectorDeactivate();
 	}
 
 	return 0;
@@ -1900,6 +1906,7 @@ ASMJIT_PATCH(0x43FE69, BuildingClass_Update_SensorArray, 0xA)
 
 	pExt->UpdateLaserTrails(); // Mainly for on turret trails
 	pExt->DisplayIncomeString();
+	pExt->UpdateDetectDisguise();
 	pExt->UpdateAutoSellTimer();
 	pExt->UpdateSpyEffecAnimDisplay();
 

@@ -40,6 +40,9 @@ ASMJIT_PATCH(0x448A78, BuildingClass_SetOwningHouse_RemovePowerPlantEnhancer, 0x
 	// For the Remove hook, we just unregister from old
 	pExt->PowerPlantEnhancer.Unregister();
 
+	if (pThis->Type->DetectDisguise)
+		pThis->DisguiseDetectorDeactivate();
+
 	return 0;
 }
 
@@ -51,6 +54,8 @@ ASMJIT_PATCH(0x449197, BuildingClass_SetOwningHouse_AddPowerPlantEnhancer, 0x6)
 
 	// Re-register (AttachedToObject->Owner should now be pNewOwner)
 	pExt->PowerPlantEnhancer.Register();
+	if (pThis->Type->DetectDisguise)
+		pThis->DisguiseDetectorActivate();
 
 	return 0;
 }
@@ -1146,3 +1151,57 @@ ASMJIT_PATCH(0x44FDC5, CreateBuildingFromINIFile_AfterCTOR_AfterUnlimbo, 0xA)
 
 	return 0x44FDD3;
 }
+
+#pragma region DetectDisguise
+
+// Guard building disguise detector activation against multiple additions and offline states
+ASMJIT_PATCH(0x455A88, BuildingClass_DisguiseDetectorActivate, 0x8)
+{
+	enum { ReturnActivate = 0x455A98, ReturnExit = 0x455B84 };
+
+	GET(FakeBuildingClass*, pBld, ESI);
+
+	const auto pExt = pBld->_GetExtData();
+
+	if (pBld->IsPowerOnline() && !pBld->Deactivated && !pExt->DetectDisguiseActiveCounter++)
+		return ReturnActivate;
+
+	return ReturnExit;
+}
+
+// Guard building disguise detector deactivation against multiple removals and cell counter underflow
+ASMJIT_PATCH(0x455991, BuildingClass_DisguiseDetectorDeactivate, 0x6)
+{
+	enum { ReturnDeactivate = 0, ReturnExit = 0x455A71 };
+
+	GET(FakeBuildingClass*, pBld, ECX);
+
+	const auto pExt = pBld->_GetExtData();
+
+	if (pExt->DetectDisguiseActiveCounter > 0)
+	{
+		pExt->DetectDisguiseActiveCounter = 0;
+		return ReturnDeactivate;
+	}
+
+	return ReturnExit;
+}
+
+// Update disguise detection when building power state changes
+ASMJIT_PATCH(0x4549F8, BuildingClass_UpdatePowered_DetectDisguise, 0x6)
+{
+	GET(FakeBuildingClass*, pBld, ESI);
+	pBld->_GetExtData()->UpdateDetectDisguise();
+
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x454B5F, BuildingClass_UpdatePowered_DetectDisguise, 0x6)
+
+//  disguise detection when building is disabled by EMP or toggled off
+DEFINE_HOOK(0x4524A3, BuildingClass_DisableThings_DetectDisguise, 0x6)
+{
+	GET(FakeBuildingClass*, pBld, EDI);
+	pBld->_GetExtData()->UpdateDetectDisguise();
+
+	return 0;
+}
+#pragma endregion

@@ -2756,6 +2756,10 @@ int FakeBuildingClass::_BuildingClass_GetRangeOfRadial()
 	const auto pExt = this->_GetExtData();
 	auto const pTypeExt = (BuildingTypeExtData*)pExt->TypeExtData;
 
+	if (pType->DetectDisguise && pType->DetectDisguiseRange > 0) {
+		return pType->DetectDisguiseRange;
+	}
+
 	if (pTypeExt->RadialIndicatorRadius.isset())
 		return pTypeExt->RadialIndicatorRadius.Fetch();
 
@@ -3419,6 +3423,23 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x459ED0, FakeBuildingClass::__GetUIName)
 	  //only do operation here later it got bulk updated
   }
 
+  void BuildingExtData::UpdateDetectDisguise()
+  {
+	  auto pBld = (BuildingClass*)this->AttachedToObject;
+
+	  if (pBld->Type->DetectDisguise) {
+		  const bool _isPowered = pBld->IsPowerOnline() && !pBld->Deactivated;
+		  const bool wasActive = (this->DetectDisguiseActiveCounter > 0);
+
+		  if (_isPowered != wasActive) {
+			  if (_isPowered)
+				  pBld->DisguiseDetectorActivate();
+			  else
+				  pBld->DisguiseDetectorDeactivate();
+		  }
+	  }
+  }
+
   int BuildingExtData::GetImageFrameIndex(BuildingClass* pThis)
   {
 	  BuildingTypeExtData* pData = BuildingTypeExtContainer::Instance.Find(pThis->Type);
@@ -3529,6 +3550,7 @@ void BuildingExtData::Serialize(T& Stm)
 		.Process(this->FreeUnitDone)
 		.Process(this->SeparateRepair)
 		.Process(this->ConstructionStartFacing)
+		.Process(this->DetectDisguiseActiveCounter)
 		.Process(this->IsFiringNow)
 		.Process(this->IsPlayingRoofProductionAnim)
 		;

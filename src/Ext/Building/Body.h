@@ -87,6 +87,8 @@ public:
 	int TurretAnimFiringFrame { -1 };
 	int TurretAnimRateTick {};
 	int ConstructionStartFacing {};
+	int DetectDisguiseActiveCounter {};
+
 	// ============================================================
 	// 1-byte aligned: bool (packed together at the end)
 	// ============================================================
@@ -156,6 +158,7 @@ public:
 	//transfer building supers to new owner
 	void TransferSupers(HouseClass* pNewOwner);
 
+	void UpdateDetectDisguise();
 public:
 	static void StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType);
 	static void UpdatePrimaryFactoryAI(BuildingClass* pThis);

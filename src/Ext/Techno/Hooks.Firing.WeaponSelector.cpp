@@ -94,12 +94,29 @@ int __fastcall FakeTechnoClass::__WhatWeaponShouldIUse(TechnoClass* pThis, disca
 	}
 
 	// ===== NoAmmoWeapon (hook 0x6F3410) =====
-	if (pType->Ammo >= 0
+	/*if (pType->Ammo >= 0
 		&& pTypeExt->NoAmmoWeapon >= 0
 		&& pThis->Ammo <= pTypeExt->NoAmmoAmount)
 	{
 		return pTypeExt->NoAmmoWeapon;
+	}*/
+
+	if (pType->Ammo >= 0 && pThis->Ammo <= pTypeExt->NoAmmoAmount) {
+		const auto& noAmmoWeapons = pTypeExt->NoAmmoWeapons;
+
+		for (int weaponIndex : noAmmoWeapons) {
+			if (TechnoExtData::MultiWeaponCanFire(pThis, pTarget, pThis->GetWeapon(weaponIndex)->WeaponType)) {
+				return weaponIndex;
+			}
+		}
+
+		const int noAmmoWeapon = pTypeExt->NoAmmoWeapon;
+
+		if (noAmmoWeapon >= 0) {
+			return noAmmoWeapon;
+		}
 	}
+
 
 	// ===== Resolve target to TechnoClass* (vanilla 0x6F3410 AbstractFlags bit check) =====
 	auto const pTargetTechno = flag_cast_to<TechnoClass*>(pTarget);
