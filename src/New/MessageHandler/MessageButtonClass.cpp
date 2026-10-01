@@ -3,6 +3,7 @@
 
 #include <Surface.h>
 #include <Drawing.h>
+#include <ScenarioClass.h>
 
 MessageButtonClass::MessageButtonClass(int id, int x, int y, int width, int height)
 	: MessageToggleClass(id, x, y, width, height)
@@ -51,7 +52,7 @@ bool MessageButtonClass::Action(GadgetFlag flags, WWKey* pKey, KeyModifier modif
 
 void MessageButtonClass::DrawShape() const
 {
-	if (this->Disabled)
+	if (this->Disabled || ScenarioClass::Instance->UserInputLocked)
 		return;
 
 	constexpr int intervalX = 5;

@@ -111,7 +111,7 @@ void MessageScrollClass::DrawShape() const
 	}
 	else // Scroll_Bar
 	{
-		if (!this->Disabled)
+		if (!this->Disabled && !ScenarioClass::Instance->UserInputLocked)
 		{
 			constexpr int offset = 1;
 			RectangleStruct drawRect { this->Rect.X + offset, this->Rect.Y, this->Rect.Width - (offset * 2), this->Rect.Height };

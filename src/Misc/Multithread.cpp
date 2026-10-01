@@ -174,6 +174,9 @@ ASMJIT_PATCH(0x55DDA0, MainLoop_Additionals, 0x5)
 		EventExt::ProtocolZero::Raise();
 	}
 
+	if (ScenarioClass::Instance->UserInputLocked && MessageColumnClass::Instance.IsExpanded())
+		MessageColumnClass::Instance.PackUp();
+
 	if (!MessageTemp::OnOldMessages)
 		MessageListClass::Instance->Manage();
 

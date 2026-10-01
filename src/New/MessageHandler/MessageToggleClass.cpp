@@ -3,6 +3,7 @@
 
 #include <Surface.h>
 #include <Drawing.h>
+#include <ScenarioClass.h>
 
 MessageToggleClass::MessageToggleClass(int id, int x, int y, int width, int height)
 	: GadgetClass(x, y, width, height, GadgetFlag::LeftPress | GadgetFlag::LeftRelease, false)
@@ -54,7 +55,7 @@ bool MessageToggleClass::Action(GadgetFlag flags, WWKey* pKey, KeyModifier modif
 
 void MessageToggleClass::DrawShape() const
 {
-	if (this->Disabled)
+	if (this->Disabled || ScenarioClass::Instance->UserInputLocked)
 		return;
 
 	RectangleStruct drawRect = this->Rect;
