@@ -1897,7 +1897,7 @@ ASMJIT_PATCH(0x4524A3, BuildingClass_DisableThings, 6)
 }
 
 // check every frame
-ASMJIT_PATCH(0x43FE69, BuildingClass_Update_SensorArray, 0xA)
+ASMJIT_PATCH(0x43FE69, BuildingClass_Update_Additionals, 0xA)
 {
 	GET(FakeBuildingClass*, pThis, ESI);
 	TechnoExtData::UpdateSensorArray(pThis);
