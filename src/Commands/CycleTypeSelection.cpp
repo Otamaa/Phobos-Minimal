@@ -46,11 +46,27 @@ namespace CycleTypeSelection
 		return TechnoTypeExtData::HasSelectionGroupID(pTechno->GetTechnoType(), pID);
 	}
 
-	void CollectFromCurrentSelection()
+	bool HasLivingObject(const TypeGroup& group)
+	{
+		for (const auto pObject : Objects)
+		{
+			if (Matches(pObject, group.ID.c_str()))
+				return true;
+		}
+
+		return false;
+	}
+
+	void Reset()
 	{
 		Objects.clear();
 		Types.clear();
 		Index = -1;
+	}
+
+	void CollectFromCurrentSelection()
+	{
+		Reset();
 
 		for (const auto pObject : ObjectClass::CurrentObjects())
 		{
@@ -194,7 +210,32 @@ void CycleTypeSelectionCommandClass::Execute(WWKey eInput) const
 		return;
 	}
 
-	CycleTypeSelection::Index = (CycleTypeSelection::Index + 1) % count;
+	while (!CycleTypeSelection::Types.empty())
+	{
+		int index = CycleTypeSelection::Index + 1;
+
+		if (index >= static_cast<int>(CycleTypeSelection::Types.size()))
+			index = 0;
+
+		if (CycleTypeSelection::HasLivingObject(CycleTypeSelection::Types[index]))
+		{
+			CycleTypeSelection::Index = index;
+			break;
+		}
+
+		CycleTypeSelection::Types.erase(CycleTypeSelection::Types.begin() + index);
+
+		if (index <= CycleTypeSelection::Index)
+			--CycleTypeSelection::Index;
+	}
+
+	if (CycleTypeSelection::Types.empty())
+	{
+		CycleTypeSelection::Reset();
+		MessageListClass::Instance->PrintMessage(CSFLoader::FetchStringManager(GameStrings::TXT_NOTHING_SELECTED, nullptr, nullptr, -1),
+			RulesClass::Instance->MessageDelay, HouseClass::CurrentPlayer->ColorSchemeIndex, true);
+		return;
+	}
 
 	const auto pID = CycleTypeSelection::Types[CycleTypeSelection::Index].ID.c_str();
 

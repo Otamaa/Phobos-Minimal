@@ -80,6 +80,7 @@ public:
 	Valueable<AnimTypeClass*> Animation {};
 	ValueableVector<AnimTypeClass*> CumulativeAnimations {};
 	Valueable<bool> CumulativeAnimations_RestartOnChange { true };
+	Valueable<int> CumulativeAnimations_CountIncrement { 1 };
 	Valueable<bool> Animation_ResetOnReapply { false };
 	Valueable<AttachedAnimFlag> Animation_OfflineAction { AttachedAnimFlag::Hides };
 	Valueable<AttachedAnimFlag> Animation_TemporalAction { AttachedAnimFlag::None };
@@ -92,6 +93,7 @@ public:
 	Valueable<ColorStruct> Tint_Color {};
 	Valueable<double> Tint_Intensity { 0.0 };
 	Valueable<AffectedHouse> Tint_VisibleToHouses { AffectedHouse::All };
+	Valueable<bool> Tint_Cumulative { true };
 	Valueable<double> FirepowerMultiplier { 1.0 };
 
 	Valueable<double> ArmorMultiplier { 1.0 };
@@ -241,9 +243,10 @@ public:
 		if (cumulativeCount < 0)
 			return nullptr;
 
-		const int index = static_cast<size_t>(cumulativeCount) >= this->CumulativeAnimations.size() ? this->CumulativeAnimations.size() - 1 : cumulativeCount - 1;
+		const int index = this->CumulativeAnimations_CountIncrement > 1 ? cumulativeCount / this->CumulativeAnimations_CountIncrement : cumulativeCount - 1;
+		const int finalIndex = static_cast<size_t>(index) >= this->CumulativeAnimations.size() ? this->CumulativeAnimations.size() - 1 : index;
 
-		return this->CumulativeAnimations[index];
+		return this->CumulativeAnimations[finalIndex];
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE  bool HasAnim() const

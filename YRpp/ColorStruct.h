@@ -238,6 +238,23 @@ struct ColorStruct
 		return 3 * blue + 2 * (red + 2 * green);
 	}
 
+	FORCEDINLINE COMPILETIMEEVAL ColorStruct operator + (ColorStruct const rhs) const
+	{
+		return {
+			(BYTE)MinImpl(255, this->R + rhs.R),
+			(BYTE)MinImpl(255, this->G + rhs.G),
+			(BYTE)MinImpl(255, this->B + rhs.B)
+		};
+	}
+
+	FORCEDINLINE COMPILETIMEEVAL void operator += (ColorStruct const rhs)
+	{
+		this->R = (BYTE)MinImpl(255, this->R + rhs.R);
+		this->G = (BYTE)MinImpl(255, this->G + rhs.G);
+		this->B = (BYTE)MinImpl(255, this->B + rhs.B);
+	}
+
+
 	HSVClass* ConstructHSV(HSVClass* ret) const
 	{ JMP_THIS(0x6613A0); }
 

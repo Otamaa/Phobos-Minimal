@@ -10,6 +10,31 @@ namespace CycleSelection
 	// Not persisted in savegames.
 	std::vector<ObjectClass*> Objects;
 	int Index = -1;
+
+	void Reset()
+	{
+		Objects.clear();
+		Index = -1;
+	}
+
+	// The object the cycle currently sits on if it is still usable, null otherwise.
+	ObjectClass* GetCyclable(int index)
+	{
+		if (index < 0 || index >= static_cast<int>(Objects.size()))
+			return nullptr;
+
+		const auto pObject = flag_cast_to<ObjectClass*>(Objects[index]);
+
+		if (!pObject || pObject->Health <= 0 || !pObject->IsAlive || pObject->InLimbo)
+			return nullptr;
+
+		const auto pOwner = pObject->GetOwningHouse();
+
+		if (!pOwner || !pOwner->ControlledByCurrentPlayer())
+			return nullptr;
+
+		return pObject;
+	}
 }
 
 const char* CycleSelectionCommandClass::GetName() const
@@ -60,25 +85,34 @@ void CycleSelectionCommandClass::Execute(WWKey eInput) const
 	}
 
 	ObjectClass* pTarget = nullptr;
-	int index = CycleSelection::Index;
+	int targetIndex = -1;
 
-	for (int i = 0; i < count; ++i)
+	// Step onto the next object that is still usable
+	while (!CycleSelection::Objects.empty())
 	{
-		index = (index + 1) % count;
+		int index = CycleSelection::Index + 1;
 
-		if (const auto pObject = flag_cast_to<ObjectClass*>(CycleSelection::Objects[index])) // in case of wild pointer
+		if (index >= static_cast<int>(CycleSelection::Objects.size()))
+			index = 0;
+
+		if (const auto pObject = CycleSelection::GetCyclable(index))
 		{
-			if (pObject->Health > 0 && pObject->IsAlive && !pObject->InLimbo)
-			{
-				pTarget = pObject;
-				break;
-			}
+			pTarget = pObject;
+			targetIndex = index;
+			break;
+
+
 		}
+
+		CycleSelection::Objects.erase(CycleSelection::Objects.begin() + index);
+
+		if (index <= CycleSelection::Index)
+			--CycleSelection::Index;
 	}
 
 	if (!pTarget)
 	{
-		CycleSelection::Objects.clear();
+		CycleSelection::Reset();
 		MessageListClass::Instance->PrintMessage(CSFLoader::FetchStringManager(GameStrings::TXT_NOTHING_SELECTED, nullptr, nullptr, -1),
 			RulesClass::Instance->MessageDelay, HouseClass::CurrentPlayer->ColorSchemeIndex, true);
 		return;
@@ -88,7 +122,7 @@ void CycleSelectionCommandClass::Execute(WWKey eInput) const
 
 	if (pTarget->Select())
 	{
-		CycleSelection::Index = index;
+		CycleSelection::Index = targetIndex;
 		MapClass::Instance->MarkNeedsRedraw(1);
 		// UnselectAll and Select sets NavCycleMode to 0
 		Unsorted::NavCycleMode = CycleSelection::NavCycleMode_CycleSelection;

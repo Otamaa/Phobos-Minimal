@@ -188,19 +188,59 @@ void TintColors::GetTints(TechnoClass* pOwner, int* tintColor, int* intensity)
 	if (hasTechnoTint)
 		thetint.Calculate(pTypeExt->Tint_Color, static_cast<int>(pTypeExt->Tint_Intensity * 1000), pTypeExt->Tint_VisibleToHouses);
 
-	if (pOwnerExt->AE.flags.HasTint)
-	{
-		for (auto const& attachEffect : pOwnerExt->PhobosAE)
-		{
+	if (pOwnerExt->AE.flags.HasTint) {
+		struct CumulativeTint {
+			ColorStruct Color;
+			double Intensity;
+		};
+
+		std::map<PhobosAttachEffectTypeClass*, CumulativeTint> cumulativeTints;
+		HelperedVector<PhobosAttachEffectTypeClass*> processedTypes;
+		processedTypes.reserve(pOwnerExt->PhobosAE.size());
+		
+		for (auto const& attachEffect : pOwnerExt->PhobosAE) {
+
 			if (!attachEffect)
 				continue;
 
 			auto const type = attachEffect->GetType();
+			auto const& color = type->Tint_Color.Get();
 
-			if (!attachEffect->IsActive() || !type->HasTint())
+			// Case 1: Non-cumulative AE's.
+			if (!type->Cumulative) {
+				thetint.Calculate(color, static_cast<int>(type->Tint_Intensity * 1000), type->Tint_VisibleToHouses);
 				continue;
+			}
 
-			thetint.Calculate(type->Tint_Color, static_cast<int>(type->Tint_Intensity * 1000), type->Tint_VisibleToHouses);
+			// Case 2: Cumulative AE's without cumulative tint.
+			if (!type->Tint_Cumulative) {
+				if (processedTypes.contains(type))
+					continue;
+
+				processedTypes.push_back(type);
+				thetint.Calculate(color, static_cast<int>(type->Tint_Intensity * 1000), type->Tint_VisibleToHouses);
+				continue;
+			}
+
+			// Case 3: Cumulative AE with cumulative tint but no color tint.
+			if (color == ColorStruct::Empty) {
+				thetint.Calculate(color, static_cast<int>(type->Tint_Intensity * 1000), type->Tint_VisibleToHouses);
+				continue;
+			}
+
+			auto item = cumulativeTints.find(type);
+
+			// Case 4: Cumulative AE with cumulative color tint.
+			if (item == cumulativeTints.end())
+				cumulativeTints.emplace(type, CumulativeTint { color, type->Tint_Intensity });
+			else {
+				item->second.Color += color;
+				item->second.Intensity += type->Tint_Intensity;
+			}
+		}
+
+		for (auto const& tint : cumulativeTints) {
+			thetint.Calculate(tint.second.Color, static_cast<int>(tint.second.Intensity * 1000), tint.first->Tint_VisibleToHouses);
 		}
 	}
 
