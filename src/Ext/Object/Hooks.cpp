@@ -60,13 +60,19 @@ ASMJIT_PATCH(0x5F5A56, ObjectClass_ParachuteAnim, 0x7)
 
 	if (pParach)
 	{
-		bool AllowRemap = !IsBullet;
 		HouseClass* pOwn = pThis->GetOwningHouse();
+
+		if (!pParach->Owner)
+			pParach->Owner = pOwn;
 
 		pParach->SetOwnerObject(pThis);
 
-		if (IsBullet)
-		{
+		if(!pParach->Type->ShouldUseCellDrawer)
+			return 0x5F5B36;
+
+		bool AllowRemap = !IsBullet;
+
+		if (IsBullet) {
 			auto pTypeExt = BulletTypeExtContainer::Instance.Find(((BulletClass*)pThis)->Type);
 			AllowRemap = pTypeExt->Parachuted_Remap;
 
@@ -79,8 +85,7 @@ ASMJIT_PATCH(0x5F5A56, ObjectClass_ParachuteAnim, 0x7)
 
 		const int idx = pOwn ? pOwn->ColorSchemeIndex : FakeRulesClass::Instance()->AnimRemapDefaultColorScheme;
 
-		if (AllowRemap && idx >= 0)
-		{
+		if (AllowRemap && idx >= 0) {
 			pParach->LightConvert = ColorScheme::Array->Items[idx]->LightConvert;
 			pParach->TintColor = pThis->GetCell()->Color1.Red;
 		}
