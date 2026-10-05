@@ -7680,6 +7680,9 @@ bool TechnoExtData::CannotMove(UnitClass* pThis)
 {
 	const auto pType = pThis->Type;
 
+	if (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
+		return true;
+
 	if (pThis->LocomotorSource)
 		return false;
 
