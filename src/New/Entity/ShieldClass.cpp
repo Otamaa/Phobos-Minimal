@@ -743,7 +743,7 @@ void ShieldClass::TemporalCheck()
 
 void ShieldClass::UpdateTint(bool forceUpdate)
 {
-	if (this->Type->Tint_Color.Get() != ColorStruct::Empty  || this->Type->Tint_Intensity != 0.0 || forceUpdate){
+	if (this->Type->Tint.Enabled || forceUpdate){
 		TechnoExtContainer::Instance.Find(this->Techno)->Tints.Update();
 		this->Techno->MarkForRedraw();
 	}

@@ -24,6 +24,7 @@
 #include <New/Entity/PassengerDeletionTypeClass.h>
 #include <New/Entity/InsigniaData.h>
 #include <New/Entity/LaserTrailDataEntry.h>
+#include <New/Entity/TintTypeClass.h>
 
 #include <New/PhobosAttachedAffect/AEAttachInfoTypeClass.h>
 
@@ -951,9 +952,7 @@ public:
 	Valueable<SHPCaches*> Tiberium_PipShapes { nullptr };
 	CustomPalette Tiberium_PipShapes_Palette {};
 
-	Valueable<ColorStruct> Tint_Color {};
-	Valueable<double> Tint_Intensity { 0.0 };
-	Valueable<AffectedHouse> Tint_VisibleToHouses { AffectedHouse::All };
+	TintTypeClass Tint {};
 
 	AEAttachInfoTypeClass PhobosAttachEffects {};
 

@@ -97,9 +97,8 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->HitFlash_Blue.Read(exINI, pSection, "HitFlash.Blue");
 	this->HitFlash_Black.Read(exINI, pSection, "HitFlash.Black");
 
-	this->Tint_Color.Read(exINI, pSection, "Tint.Color");
-	this->Tint_Intensity.Read(exINI, pSection, "Tint.Intensity");
-	this->Tint_VisibleToHouses.Read(exINI, pSection, "Tint.VisibleToHouses");
+	this->Tint.Read(exINI, pSection);
+
 	this->InheritArmor_Allowed.Read(exINI, pSection, "InheritArmor.Allowed");
 	this->InheritArmor_Disallowed.Read(exINI, pSection, "InheritArmor.Disallowed");
 	this->InheritArmorFromTechno.Read(exINI, pSection, "InheritArmorFromTechno");
@@ -161,9 +160,7 @@ void ShieldTypeClass::Serialize(T& Stm)
 		.Process(this->HitFlash_Green)
 		.Process(this->HitFlash_Blue)
 		.Process(this->HitFlash_Black)
-		.Process(this->Tint_Color)
-		.Process(this->Tint_Intensity)
-		.Process(this->Tint_VisibleToHouses)
+		.Process(this->Tint)
 		.Process(this->InheritArmor_Allowed)
 		.Process(this->InheritArmor_Disallowed)
 		.Process(this->InheritArmorFromTechno)

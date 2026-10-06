@@ -55,7 +55,7 @@ void AEProperties::RecalculateSingle(TechnoClass* pTechno, PhobosAttachEffectCla
 	unkillable |= type->Unkillable;
 	hasExtraWH |= !type->ExtraWarheads.empty();
 	hasFeedbackWeapon |= type->FeedbackWeapon != nullptr;
-	hasTint |= type->HasTint();
+	hasTint |= type->Tint.Enabled;
 	reflectsDamage |= type->ReflectDamage;
 	hasOnFireDiscardables |= (type->DiscardOn & DiscardCondition::Firing) != DiscardCondition::None;
 	hasOnDamageDiscardables |= (type->DiscardOn & DiscardCondition::ReceivedDamage) != DiscardCondition::None;
@@ -282,7 +282,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno)
 		unkillable |= type->Unkillable;
 		hasExtraWH |= !type->ExtraWarheads.empty();
 		hasFeedbackWeapon |= type->FeedbackWeapon != nullptr;
-		hasTint |= type->HasTint();
+		hasTint |= type->Tint.Enabled;
 		reflectsDamage |= type->ReflectDamage;
 		hasOnFireDiscardables |= (type->DiscardOn & DiscardCondition::Firing) != DiscardCondition::None;
 		hasOnDamageDiscardables |= (type->DiscardOn & DiscardCondition::ReceivedDamage) != DiscardCondition::None;

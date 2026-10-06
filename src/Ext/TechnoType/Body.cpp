@@ -2129,9 +2129,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->DetectDisguise_Percent.Read(exINI, pSection, "DetectDisguise.Percent");
 		this->PassengerTurret.Read(exINI, pSection, "PassengerTurret");
 
-		this->Tint_Color.Read(exINI, pSection, "Tint.Color");
-		this->Tint_Intensity.Read(exINI, pSection, "Tint.Intensity");
-		this->Tint_VisibleToHouses.Read(exINI, pSection, "Tint.VisibleToHouses");
+		this->Tint.Read(exINI, pSection);
 
 		this->PhobosAttachEffects.LoadFromINI(pINI, pSection);
 
@@ -3752,9 +3750,7 @@ void TechnoTypeExtData::Serialize(T& Stm) {
 		.Process(this->Tiberium_PipShapes)
 		.Process(this->Tiberium_PipShapes_Palette)
 
-		.Process(this->Tint_Color)
-		.Process(this->Tint_Intensity)
-		.Process(this->Tint_VisibleToHouses)
+		.Process(this->Tint)
 
 		.Process(this->PhobosAttachEffects)
 

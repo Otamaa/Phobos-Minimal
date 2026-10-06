@@ -4,6 +4,7 @@
 
 #include <Utilities/Enumerable.h>
 
+#include <New/Entity/TintTypeClass.h>
 #include <New/Type/CursorTypeClass.h>
 
 #include <Point3D.h>
@@ -77,9 +78,7 @@ public:
 	Valueable<bool> HitFlash_Blue { true };
 	Valueable<bool> HitFlash_Black { false };
 
-	Valueable<ColorStruct> Tint_Color {};
-	Valueable<double> Tint_Intensity { 0.0 };
-	Valueable<AffectedHouse> Tint_VisibleToHouses { AffectedHouse::All };
+	TintTypeClass Tint {};
 
 	ValueableVector<TechnoTypeClass*> InheritArmor_Allowed {};
 	ValueableVector<TechnoTypeClass*> InheritArmor_Disallowed {};
@@ -109,10 +108,6 @@ public:
 
 	COMPILETIMEEVAL OPTIONALINLINE double GetConditionRed() {
 		return this->ConditionRed.Get(FakeRulesClass::Instance()->Shield_ConditionRed);
-	}
-
-	COMPILETIMEEVAL OPTIONALINLINE bool HasTint() const {
-		return this->Tint_Color.Get() != ColorStruct::Empty || this->Tint_Intensity != 0.0;
 	}
 
 private:

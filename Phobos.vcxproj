@@ -213,6 +213,7 @@
     <ClCompile Include="src\New\Entity\AEProperties.cpp" />
     <ClCompile Include="src\New\Entity\AnimationDrawOffsetClass.cpp" />
     <ClCompile Include="src\New\Entity\BannerClass.cpp" />
+    <ClCompile Include="src\New\Entity\TintTypeClass.cpp" />
     <ClCompile Include="src\New\Entity\ZoomManager.cpp" />
     <ClCompile Include="src\New\Interfaces\ShiftLocomotionClass.cpp" />
     <ClCompile Include="src\New\MessageHandler\MessageButtonClass.cpp" />
@@ -757,6 +758,7 @@
     <ClInclude Include="src\Misc\Spawner\FrameGate.h" />
     <ClInclude Include="src\Misc\Spawner\MPStatsFix.h" />
     <ClInclude Include="src\Misc\Spawner\PacketRedundancy.h" />
+    <ClInclude Include="src\New\Entity\TintTypeClass.h" />
     <ClInclude Include="src\New\Entity\ZoomManager.h" />
     <ClInclude Include="src\New\SelectedButton\SelectedButtonClass.h" />
     <ClInclude Include="src\New\SelectedButton\SelectedCameoClass.h" />

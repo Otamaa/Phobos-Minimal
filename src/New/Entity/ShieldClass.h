@@ -99,10 +99,6 @@ public:
 		return this->HP <= 0 && !(this->Timers.Respawn_Warhead.InProgress() ? this->Respawn_Warhead : this->Type->Respawn);
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE bool HasTint() const {
-		return this->Type->Tint_Color.Get() != ColorStruct::Empty || this->Type->Tint_Intensity != 0.0;
-	}
-
 	COMPILETIMEEVAL FORCEDINLINE ShieldTypeClass* GetType() const
 	{
 		return this->Type;

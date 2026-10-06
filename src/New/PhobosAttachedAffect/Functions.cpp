@@ -130,7 +130,7 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 			attachEffect->ShouldBeDiscarded = false;
 			requiresUpdateAnim = true;
 
-			if (pType->HasTint() && !pTechno->InLimbo)
+			if (pType->Tint.Enabled && !pTechno->InLimbo)
 				markForRedraw = true;
 
 			if (pType->Cumulative && pType->CumulativeAnimations.size() > 0 && !pTechno->InLimbo)
@@ -313,7 +313,7 @@ void PhobosAEFunctions::UpdateSelfOwnedAttachEffects(TechnoClass* pTechno, Techn
 				if (pType->RequiresAnimUpdate)
 					requiresAnimUpdate = true;
 
-				markForRedraw |= pType->HasTint();
+				markForRedraw |= pType->Tint.Enabled;
 				altered = true;
 				removeCount++;
 				return true;

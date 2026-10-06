@@ -171,12 +171,12 @@ void TintColors::GetTints(TechnoClass* pOwner, int* tintColor, int* intensity)
 	//}
 
 	auto const pTypeExt = GET_TECHNOTYPEEXT(pOwner);
-	const bool hasTechnoTint = pTypeExt->Tint_Color.Get() != ColorStruct::Empty || pTypeExt->Tint_Intensity;
+	const bool hasTechnoTint = pTypeExt->Tint.Enabled;
 	bool hasShieldTint = false;
 	auto pShield = pOwnerExt->GetShield();
 
 	if (pShield) {
-		hasShieldTint = pShield->IsActive() && pShield->GetType()->HasTint();
+		hasShieldTint = pShield->IsActive() && pShield->GetType()->Tint.Enabled;
 	}
 
 	thetint.Reset();
@@ -186,7 +186,7 @@ void TintColors::GetTints(TechnoClass* pOwner, int* tintColor, int* intensity)
 		return;
 
 	if (hasTechnoTint)
-		thetint.Calculate(pTypeExt->Tint_Color, static_cast<int>(pTypeExt->Tint_Intensity * 1000), pTypeExt->Tint_VisibleToHouses);
+		thetint.Calculate(pTypeExt->Tint.Color, static_cast<int>(pTypeExt->Tint.Intensity * 1000), pTypeExt->Tint.VisibleToHouses);
 
 	if (pOwnerExt->AE.flags.HasTint) {
 		struct CumulativeTint {
@@ -194,60 +194,42 @@ void TintColors::GetTints(TechnoClass* pOwner, int* tintColor, int* intensity)
 			double Intensity;
 		};
 
-		std::map<PhobosAttachEffectTypeClass*, CumulativeTint> cumulativeTints;
-		HelperedVector<PhobosAttachEffectTypeClass*> processedTypes;
-		processedTypes.reserve(pOwnerExt->PhobosAE.size());
-		
+		std::map<TintTypeClass*, CumulativeTint> cumulativeTints;
+
 		for (auto const& attachEffect : pOwnerExt->PhobosAE) {
 
 			if (!attachEffect)
 				continue;
 
 			auto const type = attachEffect->GetType();
-			auto const& color = type->Tint_Color.Get();
-
-			// Case 1: Non-cumulative AE's.
-			if (!type->Cumulative) {
-				thetint.Calculate(color, static_cast<int>(type->Tint_Intensity * 1000), type->Tint_VisibleToHouses);
+			if (!type->Tint.Enabled)
 				continue;
-			}
 
-			// Case 2: Cumulative AE's without cumulative tint.
-			if (!type->Tint_Cumulative) {
-				if (processedTypes.contains(type))
-					continue;
+			auto const& color = type->Tint.Color.Get();
 
-				processedTypes.push_back(type);
-				thetint.Calculate(color, static_cast<int>(type->Tint_Intensity * 1000), type->Tint_VisibleToHouses);
-				continue;
-			}
 
-			// Case 3: Cumulative AE with cumulative tint but no color tint.
-			if (color == ColorStruct::Empty) {
-				thetint.Calculate(color, static_cast<int>(type->Tint_Intensity * 1000), type->Tint_VisibleToHouses);
-				continue;
-			}
+			if (type->Cumulative && type->Tint.Cumulative && color != ColorStruct::Empty) {
+				auto item = cumulativeTints.find(&type->Tint);
 
-			auto item = cumulativeTints.find(type);
-
-			// Case 4: Cumulative AE with cumulative color tint.
-			if (item == cumulativeTints.end())
-				cumulativeTints.emplace(type, CumulativeTint { color, type->Tint_Intensity });
-			else {
-				item->second.Color += color;
-				item->second.Intensity += type->Tint_Intensity;
+				if (item == cumulativeTints.end())
+					cumulativeTints.emplace(&type->Tint, CumulativeTint { color, type->Tint.Intensity });
+				else {
+					item->second.Color += color;
+					item->second.Intensity += type->Tint.Intensity;
+				}
+			} else {
+				thetint.Calculate(color, static_cast<int>(type->Tint.Intensity * 1000), type->Tint.VisibleToHouses);
 			}
 		}
 
 		for (auto const& tint : cumulativeTints) {
-			thetint.Calculate(tint.second.Color, static_cast<int>(tint.second.Intensity * 1000), tint.first->Tint_VisibleToHouses);
+			thetint.Calculate(tint.second.Color, static_cast<int>(tint.second.Intensity * 1000), tint.first->VisibleToHouses);
 		}
 	}
 
-	if (hasShieldTint)
-	{
+	if (hasShieldTint) {
 		auto const pShieldType = pShield->GetType();
-		thetint.Calculate(pShieldType->Tint_Color, static_cast<int>(pShieldType->Tint_Intensity * 1000), pShieldType->Tint_VisibleToHouses);
+		thetint.Calculate(pShieldType->Tint.Color, static_cast<int>(pShieldType->Tint.Intensity * 1000), pShieldType->Tint.VisibleToHouses);
 	}
 
 	if (pOwner->Owner == HouseClass::CurrentPlayer.get())
@@ -7719,9 +7701,6 @@ std::tuple<bool, bool, bool> TechnoExtData::CanBeAffectedByFakeEngineer(TechnoCl
 bool TechnoExtData::CannotMove(UnitClass* pThis)
 {
 	const auto pType = pThis->Type;
-
-	if (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
-		return true;
 
 	if (pThis->LocomotorSource)
 		return false;

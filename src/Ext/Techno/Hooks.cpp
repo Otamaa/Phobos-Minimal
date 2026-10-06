@@ -3258,7 +3258,7 @@ static bool __fastcall TechnoClass_Limbo_Wrapper(TechnoClass* pThis)
 
 		if ((pType->DiscardOn & DiscardCondition::Entry) != DiscardCondition::None)
 		{
-			if (pType->HasTint())
+			if (pType->Tint.Enabled)
 				markForRedraw = true;
 
 			if (attachEffect->ResetIfRecreatable())

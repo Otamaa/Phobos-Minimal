@@ -72,9 +72,10 @@ ASMJIT_PATCH(0x728FC6, TunnelLocomotionClass_Process_SubterraneanHeight2, 0x5)
 {
 	enum { Skip = 0x728FCD, Continue = 0x729021 };
 
-	GET(TechnoClass*, pLinkedTo, ECX);
+	GET(ILocomotion*, pThis, ESI);
 	GET(int, height, EAX);
 
+	auto const pLinkedTo = static_cast<TunnelLocomotionClass*>(pThis)->LinkedTo;
 	auto const pTypeExt = GET_TECHNOTYPEEXT(pLinkedTo);
 
 	if (height <= pTypeExt->SubterraneanHeight.Get(FakeRulesClass::Instance()->SubterraneanHeight))

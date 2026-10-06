@@ -10,6 +10,7 @@
 #include <New/Type/LaserTrailTypeClass.h>
 
 #include <New/Entity/AnimationDrawOffsetClass.h>
+#include <New/Entity/TintTypeClass.h>
 
 #include <ColorStruct.h>
 
@@ -90,10 +91,9 @@ public:
 	Valueable<ExpireWeaponCondition> ExpireWeapon_TriggerOn { ExpireWeaponCondition::Expire };
 	Valueable<bool> ExpireWeapon_CumulativeOnlyOnce { false };
 	Valueable<bool> ExpireWeapon_UseInvokerAsOwner { false };
-	Valueable<ColorStruct> Tint_Color {};
-	Valueable<double> Tint_Intensity { 0.0 };
-	Valueable<AffectedHouse> Tint_VisibleToHouses { AffectedHouse::All };
-	Valueable<bool> Tint_Cumulative { true };
+
+	TintTypeClass Tint {};
+
 	Valueable<double> FirepowerMultiplier { 1.0 };
 
 	Valueable<double> ArmorMultiplier { 1.0 };
@@ -204,10 +204,6 @@ public:
 			return this->CumulativeAnimations.size() > 0 || this->Animation != nullptr;
 		else
 			return this->Animation != nullptr;
-	}
-
-	COMPILETIMEEVAL FORCEDINLINE bool HasTint() {
-		return this->Tint_Color.Get() != ColorStruct::Empty  || this->Tint_Intensity != 0.0;
 	}
 
 	COMPILETIMEEVAL bool HasGroup(const char* pGroupID) {

@@ -1296,7 +1296,7 @@ int PhobosAttachEffectClass::DetachTypes(TechnoClass* pTarget, AEAttachInfoTypeC
 
 		int count = PhobosAttachEffectClass::RemoveAllOfType(pType, pTarget, minCount, maxCount, requiresRecalc);
 
-		if (count && pType->HasTint())
+		if (count && pType->Tint.Enabled)
 			markForRedraw = true;
 
 		if (pType->RequiresAnimUpdate)
@@ -1525,7 +1525,7 @@ void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, Tech
 			}
 		}
 
-		if (type->HasTint())
+		if (type->Tint.Enabled)
 			markForRedraw = true;
 
 		transferCount++;
