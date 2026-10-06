@@ -701,6 +701,7 @@ public:
 
 	Valueable<int> LeptonMindControlOffset { 70 };
 	Valueable<int> MindControlRingOffset { 140 };
+	Valueable<bool> Anim_ShouldUseCellDrawer { true };
 
 	Valueable<bool> OpenTopped_IgnoreRangefinding {};
 	Valueable<bool> OpenTopped_AllowFiringIfDeactivated { true };

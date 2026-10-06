@@ -952,6 +952,7 @@ ASMJIT_PATCH(0x422058, AnimClass_CTOR, 0x5)
 	if(!Phobos::Otamaa::DoingLoadGame) {
 		if(pItem->Type){
 
+			pItem->Type->ShouldUseCellDrawer = FakeRulesClass::Instance->Anim_ShouldUseCellDrawer;
 			PhobosGlobal::Instance()->LastAnimName = pItem->Type->ID;
 
 			// Do this here instead of using a duplicate hook in SyncLogger.cpp

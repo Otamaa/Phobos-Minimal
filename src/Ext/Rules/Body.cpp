@@ -1238,7 +1238,7 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->IsDischargedMemberAutocreateRecruitable)
 		.Process(this->LeptonMindControlOffset)
 		.Process(this->MindControlRingOffset)
-
+		.Process(this->Anim_ShouldUseCellDrawer)
 		.Process(this->OpenTopped_IgnoreRangefinding)
 		.Process(this->OpenTopped_AllowFiringIfDeactivated)
 		.Process(this->OpenTopped_ShareTransportTarget)
@@ -3552,12 +3552,13 @@ void FakeRulesClass::_ReadAudioVisual(CCINIClass* pINI)
 	this->DrainMoneyDisplay_OnTarget_UseDisplayIncome.Read(exINI, section, "DrainMoneyDisplay.OnTarget.UseDisplayIncome");
 	this->LeptonMindControlOffset.Read(exINI, section, "LeptonMindControlOffset");
 	this->MindControlRingOffset.Read(exINI, section, "MindControlRingOffset");
+	this->Anim_ShouldUseCellDrawer.Read(exINI, section, "Anim.ShouldUseCellDrawer");
 
 	this->AircraftDockingDir_DefaultToPoseDir.Read(exINI, section, "AircraftDockingDir.DefaultToPoseDir");
 	this->PoseDir_Production.Read(exINI, section, "PoseDir.Production");
 	this->PoseDir_Field.Read(exINI, section, "PoseDir.Field");
 
-	this->DigitalDisplay_Health_FakeAtDisguise.Read(exINI, GameStrings::AudioVisual, "DigitalDisplay.Health.FakeAtDisguise");
+	this->DigitalDisplay_Health_FakeAtDisguise.Read(exINI, section, "DigitalDisplay.Health.FakeAtDisguise");
 	this->NoAlphaImageOnBuildup.Read(exINI, GameStrings::AudioVisual, "NoAlphaImageOnBuildup");
 	this->IvanBomb_Visibility.Read(exINI, GameStrings::AudioVisual, "IvanIconVisibility");
 
