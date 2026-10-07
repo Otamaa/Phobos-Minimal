@@ -98,8 +98,7 @@ public:
 	DWORD unknown_11E4;
 	DWORD unknown_11E8;
 	DWORD unknown_11EC;
-	DWORD unknown_11F0;
-	DWORD unknown_11F4;
+	Point2D RadarOffset;
 	DWORD unknown_11F8;
 	DWORD unknown_11FC;
 	DWORD unknown_1200;

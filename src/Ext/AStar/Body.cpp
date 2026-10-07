@@ -4182,7 +4182,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x42D222, AStarClass::FindHierarchicalPath);
 DEFINE_FUNCTION_JUMP(CALL, 0x429F8A, AStarClass::CalculateMoveCost);
 DEFINE_FUNCTION_JUMP(CALL, 0x42A415, AStarClass::ProcessFinalPath);
 DEFINE_FUNCTION_JUMP(CALL, 0x42A41E, AStarClass::OptimizeFinalPath);
-DEFINE_HOOK(0x42A608, AStarClass_CleanUp_ResetSearchID, 0x5)
+ASMJIT_PATCH(0x42A608, AStarClass_CleanUp_ResetSearchID, 0x5)
 {
 	for (int i = 0; i < 3; ++i)
 	{

@@ -447,7 +447,7 @@ ASMJIT_PATCH(0x483738, CellClass_CanTiberiumGrow_RampCheck, 0xA)
 }
 
 
-DEFINE_HOOK(0x4873A7, CellClass_IncreaseTiberium_RampStageSupport, 0x11)
+ASMJIT_PATCH(0x4873A7, CellClass_IncreaseTiberium_RampStageSupport, 0x11)
 {
 	enum { Disallow = 0x48761E, ContinueGrowth = 0x4873B8 };
 

@@ -3203,7 +3203,7 @@ ASMJIT_PATCH(0x6FBC5B, TechnoClass_Cloaking_AI_UncloakWhenLowHealth, 0x6)
 	return 0x6FBC80;
 }
 
-DEFINE_HOOK(0x70821F, TechnoClass_BaseIsAttacked_Ignore1, 0x6)
+ASMJIT_PATCH(0x70821F, TechnoClass_BaseIsAttacked_Ignore1, 0x6)
 {
 	enum { CheckDefend = 0x70822B, SkipDefend = 0x7083BC };
 	GET(TeamClass*, pTeam, EAX);
@@ -3219,7 +3219,7 @@ DEFINE_HOOK(0x70821F, TechnoClass_BaseIsAttacked_Ignore1, 0x6)
 	return pTeam ? SkipDefend : CheckDefend;
 }
 
-DEFINE_HOOK(0x708455, TechnoClass_BaseIsAttacked_Ignore2, 0x6)
+ASMJIT_PATCH(0x708455, TechnoClass_BaseIsAttacked_Ignore2, 0x6)
 {
 	enum { CheckDefend = 0x708461, SkipDefend = 0x708622 };
 	GET(TeamClass*, pTeam, EAX);

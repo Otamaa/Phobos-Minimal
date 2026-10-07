@@ -1197,7 +1197,7 @@ ASMJIT_PATCH(0x4549F8, BuildingClass_UpdatePowered_DetectDisguise, 0x6)
 }ASMJIT_PATCH_AGAIN(0x454B5F, BuildingClass_UpdatePowered_DetectDisguise, 0x6)
 
 //  disguise detection when building is disabled by EMP or toggled off
-DEFINE_HOOK(0x4524A3, BuildingClass_DisableThings_DetectDisguise, 0x6)
+ASMJIT_PATCH(0x4524A3, BuildingClass_DisableThings_DetectDisguise, 0x6)
 {
 	GET(FakeBuildingClass*, pBld, EDI);
 	pBld->_GetExtData()->UpdateDetectDisguise();

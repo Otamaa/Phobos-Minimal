@@ -9,6 +9,8 @@
 #include <VocClass.h>
 #include <VoxClass.h>
 
+#include <Utilities/Helpers.h>
+
 ASMJIT_PATCH(0x723CA1, TeamMissionClass_FillIn_StringsSupport_and_id_masks, 0xB)
 {
 	enum { SkipCode = 0x723CD2 };
@@ -22,10 +24,42 @@ ASMJIT_PATCH(0x723CA1, TeamMissionClass_FillIn_StringsSupport_and_id_masks, 0xB)
 
 	char buff[256];
 	if (sscanf(scriptActionLine, "%d,%255s", &action, buff) != 2) {
+
 		node->Action = (TeamMissionType)action;
+
+		if (Helpers::Alex::is_any_of(node->Action,
+			TeamMissionType::Attack_enemy_building,
+			TeamMissionType::Moveto_enemy_building,
+			TeamMissionType::Chrono_prep_for_abwp,
+			TeamMissionType::Move_to_own_building))
+		{
+
+			char* scanMode = nullptr;
+			char* targetName = strtok_s(buff, ",", &scanMode);
+			const int idx = BuildingTypeClass::FindIndexById(targetName);
+
+			if (idx != -1)
+			{
+				int offset = 0x20000;
+
+				if (scanMode)
+				{
+					if (!_stricmp(scanMode, "low"))
+						offset = 0;
+					else if (!_stricmp(scanMode, "hight"))
+						offset = 0x10000;
+					else if (!_stricmp(scanMode, "far"))
+						offset = 0x30000;
+				}
+
+				node->Argument = idx + offset;
+				R->ECX(node);
+				return SkipCode;
+			}
+		}
+
 		node->Argument = argument;
 		R->ECX(node);
-
 		return SkipCode;
 	}
 

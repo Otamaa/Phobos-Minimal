@@ -1,6 +1,17 @@
 #include <ScenarioClass.h>
 #include "Body.h"
 
+ASMJIT_PATCH(0x652F4F, RadarClass_InitForHouse_RadarOffset, 0x6)
+{
+	// Vanilla uses 16 as the radar X origin, while the visible aperture in
+	// the sidebar shape starts at 13, causing a 3 pixel horizontal offset.
+	GET(RadarClass*, pThis, ESI);
+	pThis->RadarOffset.X -= 3;
+	R->EDX(pThis->RadarOffset.X);
+
+	return 0x652F55;
+}
+
 ASMJIT_PATCH(0x6A5090, RadarClass_InitForHouse, 0x5)
 {
 	R->EAX(SideExtData::isNODSidebar());

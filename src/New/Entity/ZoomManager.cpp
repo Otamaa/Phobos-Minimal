@@ -270,7 +270,7 @@ void ZoomManager::ApplyTacticalBlit()
 static Point2D radarCenterPixel = { 0, 0 };
 
 // Translate screen click coordinates into tactical space for mouse hover and selection targeting
-DEFINE_HOOK(0x692300, DisplayClass_ProcessClickCoords_TranslateCoordinates, 0x7)
+ASMJIT_PATCH(0x692300, DisplayClass_ProcessClickCoords_TranslateCoordinates, 0x7)
 {
 	if (!ZoomManager::IsZoomed())
 		return 0;
@@ -285,7 +285,7 @@ DEFINE_HOOK(0x692300, DisplayClass_ProcessClickCoords_TranslateCoordinates, 0x7)
 }
 
 // Translate mouse coordinates for the unit selection box (rubberband)
-DEFINE_HOOK(0x4AC380, DisplayClass_UpdateDragBand_TranslateCoordinates, 0x6)
+ASMJIT_PATCH(0x4AC380, DisplayClass_UpdateDragBand_TranslateCoordinates, 0x6)
 {
 	if (!ZoomManager::IsZoomed())
 		return 0;
@@ -300,7 +300,7 @@ DEFINE_HOOK(0x4AC380, DisplayClass_UpdateDragBand_TranslateCoordinates, 0x6)
 }
 
 // Reset tactical zoom to 1.0x on middle mouse button click
-DEFINE_HOOK(0x6930A0, ScrollClass_MessageHandler_MiddleClickReset, 0x5)
+ASMJIT_PATCH(0x6930A0, ScrollClass_MessageHandler_MiddleClickReset, 0x5)
 {
 	GET_STACK(const UINT*, pMessage, 0x8);
 
@@ -311,7 +311,7 @@ DEFINE_HOOK(0x6930A0, ScrollClass_MessageHandler_MiddleClickReset, 0x5)
 }
 
 // Capture the true unclamped camera center on the radar minimap before Westwood clamps it
-DEFINE_HOOK(0x657013, RadarClass_Render_Radar_RecordCenter, 0x6)
+ASMJIT_PATCH(0x657013, RadarClass_Render_Radar_RecordCenter, 0x6)
 {
 	GET(RadarClass*, pRadar, ESI);
 
@@ -322,7 +322,7 @@ DEFINE_HOOK(0x657013, RadarClass_Render_Radar_RecordCenter, 0x6)
 }
 
 // Scale and center the white viewport bounding box on the radar minimap
-DEFINE_HOOK(0x657134, RadarClass_Render_Radar_ScaleViewRect, 0x6)
+ASMJIT_PATCH(0x657134, RadarClass_Render_Radar_ScaleViewRect, 0x6)
 {
 	if (!ZoomManager::IsZoomed())
 		return 0;
@@ -361,7 +361,7 @@ DEFINE_HOOK(0x657134, RadarClass_Render_Radar_ScaleViewRect, 0x6)
 }
 
 // Scale horizontal radar click boundary to match effective zoomed viewport width
-DEFINE_HOOK(0x653D92, RadarClass_RTacticalClass_Action_ClampWidth, 0x6)
+ASMJIT_PATCH(0x653D92, RadarClass_RTacticalClass_Action_ClampWidth, 0x6)
 {
 	if (!ZoomManager::IsZoomed())
 		return 0;
@@ -375,7 +375,7 @@ DEFINE_HOOK(0x653D92, RadarClass_RTacticalClass_Action_ClampWidth, 0x6)
 }
 
 // Scale vertical radar click boundary to match effective zoomed viewport height
-DEFINE_HOOK(0x653DAC, RadarClass_RTacticalClass_Action_ClampHeight, 0x6)
+ASMJIT_PATCH(0x653DAC, RadarClass_RTacticalClass_Action_ClampHeight, 0x6)
 {
 	if (!ZoomManager::IsZoomed())
 		return 0;

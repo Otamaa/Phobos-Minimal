@@ -114,49 +114,49 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7F1020, FakeScriptTypeClass::__Save)
 
 #include <Utilities/Helpers.h>
 
-ASMJIT_PATCH(0x723CA0, ScriptActionNode_Read_Addition, 0x5)
-{
-	enum { SkipGameCode = 0x723CD3 };
-
-	GET_STACK(char*, pBuffer, 0x4);
-
-	if (!pBuffer) {
-		R->EAX(pBuffer);
-		return SkipGameCode;
-	}
-
-	GET(ScriptActionNode*, pThis, ECX);
-	char arg[0x20];
-	sscanf(pBuffer, "%d,%s", &pThis->Action, arg);
-	R->EAX(pThis->Action);
- 
-	if (Helpers::Alex::is_any_of(pThis->Action,
-		TeamMissionType::Attack_enemy_building,
-		TeamMissionType::Moveto_enemy_building, 
-		TeamMissionType::Chrono_prep_for_abwp, 
-		TeamMissionType::Move_to_own_building)) {
-
-		char* scanMode = nullptr;
-		char* targetName = strtok_s(arg, ",", &scanMode);
-		const int idx = BuildingTypeClass::FindIndexById(targetName);
-
-		if (idx != -1) {
-			int offset = 0x20000;
-
-			if (scanMode) {
-				if (!_stricmp(scanMode, "low"))
-					offset = 0;
-				else if (!_stricmp(scanMode, "hight"))
-					offset = 0x10000;
-				else if (!_stricmp(scanMode, "far"))
-					offset = 0x30000;
-			}
-
-			pThis->Argument = idx + offset;
-			return SkipGameCode;
-		}
-	}
-
-	sscanf(arg, "%d", &pThis->Argument);
-	return SkipGameCode;
-}
+//ASMJIT_PATCH(0x723CA0, ScriptActionNode_Read_Addition, 0x5)
+//{
+//	enum { SkipGameCode = 0x723CD3 };
+//
+//	GET_STACK(char*, pBuffer, 0x4);
+//
+//	if (!pBuffer) {
+//		R->EAX(pBuffer);
+//		return SkipGameCode;
+//	}
+//
+//	GET(ScriptActionNode*, pThis, ECX);
+//	char arg[0x20];
+//	sscanf(pBuffer, "%d,%s", &pThis->Action, arg);
+//	R->EAX(pThis->Action);
+// 
+//	if (Helpers::Alex::is_any_of(pThis->Action,
+//		TeamMissionType::Attack_enemy_building,
+//		TeamMissionType::Moveto_enemy_building, 
+//		TeamMissionType::Chrono_prep_for_abwp, 
+//		TeamMissionType::Move_to_own_building)) {
+//
+//		char* scanMode = nullptr;
+//		char* targetName = strtok_s(arg, ",", &scanMode);
+//		const int idx = BuildingTypeClass::FindIndexById(targetName);
+//
+//		if (idx != -1) {
+//			int offset = 0x20000;
+//
+//			if (scanMode) {
+//				if (!_stricmp(scanMode, "low"))
+//					offset = 0;
+//				else if (!_stricmp(scanMode, "hight"))
+//					offset = 0x10000;
+//				else if (!_stricmp(scanMode, "far"))
+//					offset = 0x30000;
+//			}
+//
+//			pThis->Argument = idx + offset;
+//			return SkipGameCode;
+//		}
+//	}
+//
+//	sscanf(arg, "%d", &pThis->Argument);
+//	return SkipGameCode;
+//}

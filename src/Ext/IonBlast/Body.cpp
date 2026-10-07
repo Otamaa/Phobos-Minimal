@@ -148,7 +148,6 @@ void FakeIonBlastClass::_AI()
 			}
 		}
 
-		if (!pData || pData->Ion_Rocking)
 		{
 			int16_t centerX = static_cast<int16_t>(this->Location.X / 256);
 			int16_t centerY = static_cast<int16_t>(this->Location.Y / 256);
@@ -169,67 +168,83 @@ void FakeIonBlastClass::_AI()
 
 							auto unit = (FootClass*)pObj;
 
-							if (unit->IsSinking)
+							if (unit->IsSinking || unit->IsCrashing)
 								continue;
 
 							CoordStruct unitCoord = unit->Location;
 							Point2D unitScreen = TacticalClass::Instance->CoordsToClient(unitCoord);
 
-							int dxPix = unitScreen.X - screenPos.X;
-							int dyPix = unitScreen.Y - screenPos.Y;
-							int dist = static_cast<int>(Math::sqrt(dxPix * dxPix + dyPix * dyPix)) + 8;
+							Point2D diff = unitScreen - screenPos;
+							int dist = diff.Length() + 8;
 
-							if (dist < 256)
-							{
+							if (dist < 256) {
 								Surface* surf = IonBlastClass_Surfaces[this->Lifetime];
 								char* locked = static_cast<char*>(surf->Lock(dist + 0x100, 128));
-								if (*locked > 0)
-								{
-									unit->SetSpeedPercentage(0.0f);
+								if (*locked > 0) {
+
+									/*
+									 * Units talking to a weapons factory (i.e. currently driving
+									 * out of one) are not stopped by the blast wave.
+									 */
+									bool stop = !unit->IsLocked;
+									if (unit->HasAnyLink()) {
+										const auto pContact = unit->GetRadioContact();
+										if (pContact->WhatAmI() == AbstractType::Building) {
+											if (((BuildingClass*)pContact)->Type->WeaponsFactory) {
+												stop = false;
+											}
+										}
+									}
+
+									if(stop)
+										unit->SetSpeedPercentage(0.0f);
+
 									unit->height_subtract_6B4 = 2 * IonBlastData_53D8E0(*locked).Y;
 								}
 
-								auto vox = unit->GetTechnoType()->MainVoxel.VXL;
+								if(pData && pData->Ion_Rocking) {
+									auto vox = unit->GetTechnoType()->MainVoxel.VXL;
 
-								if (vox && !vox->LoadFailed && *locked >= 0)
-								{
-									float deltax = static_cast<float>(this->Location.X - unit->Location.X);
-									float deltay = static_cast<float>(this->Location.Y - unit->Location.Y);
-									float deltaz = static_cast<float>(this->Location.Z - unit->Location.Z);
-									const float len = Math::sqrt(deltax * deltax + deltay * deltay + deltaz * deltaz);
-
-									if (Math::abs(len) > 0.00002f)
+									if (vox && !vox->LoadFailed && *locked >= 0)
 									{
-										deltax /= len;
-										deltay /= len;
-										deltaz /= len;
+										float deltax = static_cast<float>(this->Location.X - unit->Location.X);
+										float deltay = static_cast<float>(this->Location.Y - unit->Location.Y);
+										float deltaz = static_cast<float>(this->Location.Z - unit->Location.Z);
+										const float len = Math::sqrt(deltax * deltax + deltay * deltay + deltaz * deltaz);
 
-										const auto& facing_ = unit->PrimaryFacing;
-										const auto facing_Current = facing_.Current();
-
-										const float facingAngle = (facing_Current.Raw - Math::BINARY_ANGLE_MASK) * -0.0000958767f;
-										const float sinA = Math::sin((double)facingAngle);
-										const float cosA = Math::cos((double)facingAngle);
-
-										const float ux = deltax * cosA + deltay * sinA;
-										const float uz = deltax * sinA - deltay * cosA;
-										const float uy = deltaz;
-
-										float proj = Math::sqrt(ux * ux + uz * uz + uy * uy);
-										const float align = cosA * ux - sinA * proj;
-
-										if (Math::abs(align - deltax) > 0.0002f || Math::abs(cosA * proj + sinA * ux - deltay) > 0.0002f)
+										if (Math::abs(len) > 0.00002f)
 										{
-											proj = -proj;
+											deltax /= len;
+											deltay /= len;
+											deltaz /= len;
+
+											const auto& facing_ = unit->PrimaryFacing;
+											const auto facing_Current = facing_.Current();
+
+											const float facingAngle = (facing_Current.Raw - Math::BINARY_ANGLE_MASK) * -0.0000958767f;
+											const float sinA = Math::sin((double)facingAngle);
+											const float cosA = Math::cos((double)facingAngle);
+
+											const float ux = deltax * cosA + deltay * sinA;
+											const float uz = deltax * sinA - deltay * cosA;
+											const float uy = deltaz;
+
+											float proj = Math::sqrt(ux * ux + uz * uz + uy * uy);
+											const float align = cosA * ux - sinA * proj;
+
+											if (Math::abs(align - deltax) > 0.0002f 
+												|| Math::abs(cosA * proj + sinA * ux - deltay) > 0.0002f) {
+												proj = -proj;
+											}
+
+											const float blastDist = len + 51.0f;
+											const float blastOffset = (Math::sin(double(len - static_cast<float>(this->Lifetime) * 7.1125f + 38.0f) * 0.11f) * 3.5f + 3.0f) * 51.0f;
+											const float blastFactor = Math::cos(double(len - static_cast<float>(this->Lifetime) * 7.1125f + 38.0f) * 0.11f);
+											const float curve = (blastFactor * 0.11f * 51.0f * 3.5f * blastDist - blastOffset) / (blastDist * blastDist);
+
+											unit->AngleRotatedSideways = float(proj * curve * Math::GAME_TWOPI);
+											unit->AngleRotatedForwards = float(-ux * curve * Math::GAME_TWOPI);
 										}
-
-										const float blastDist = len + 51.0f;
-										const float blastOffset = (Math::sin(double(len - static_cast<float>(this->Lifetime) * 7.1125f + 38.0f) * 0.11f) * 3.5f + 3.0f) * 51.0f;
-										const float blastFactor = Math::cos(double(len - static_cast<float>(this->Lifetime) * 7.1125f + 38.0f) * 0.11f);
-										const float curve = (blastFactor * 0.11f * 51.0f * 3.5f * blastDist - blastOffset) / (blastDist * blastDist);
-
-										unit->AngleRotatedSideways = float(proj * curve * Math::GAME_TWOPI);
-										unit->AngleRotatedForwards = float(-ux * curve * Math::GAME_TWOPI);
 									}
 								}
 							}
