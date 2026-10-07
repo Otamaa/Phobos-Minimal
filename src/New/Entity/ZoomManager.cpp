@@ -268,122 +268,122 @@ void ZoomManager::ApplyTacticalBlit()
 //================================================= Hooks =================================================
 
 static Point2D radarCenterPixel = { 0, 0 };
-
-// Translate screen click coordinates into tactical space for mouse hover and selection targeting
-ASMJIT_PATCH(0x692300, DisplayClass_ProcessClickCoords_TranslateCoordinates, 0x7)
-{
-	if (!ZoomManager::IsZoomed())
-		return 0;
-
-	GET_STACK(Point2D*, pPoint, 0x4);
-
-	static Point2D translatedPoint;
-	translatedPoint = ZoomManager::ScreenToTactical(*pPoint);
-	R->Stack<Point2D*>(0x4, &translatedPoint);
-
-	return 0;
-}
-
-// Translate mouse coordinates for the unit selection box (rubberband)
-ASMJIT_PATCH(0x4AC380, DisplayClass_UpdateDragBand_TranslateCoordinates, 0x6)
-{
-	if (!ZoomManager::IsZoomed())
-		return 0;
-
-	GET_STACK(Point2D*, pPoint, 0x4);
-
-	static Point2D dragPoint;
-	dragPoint = ZoomManager::ScreenToTactical(*pPoint);
-	R->Stack<Point2D*>(0x4, &dragPoint);
-
-	return 0;
-}
-
-// Reset tactical zoom to 1.0x on middle mouse button click
-ASMJIT_PATCH(0x6930A0, ScrollClass_MessageHandler_MiddleClickReset, 0x5)
-{
-	GET_STACK(const UINT*, pMessage, 0x8);
-
-	if (ZoomManager::IsZoomed() && ZoomManager::WheelEnabled && pMessage && *pMessage == WM_MBUTTONDOWN)
-		ZoomManager::ResetZoom();
-
-	return 0;
-}
-
-// Capture the true unclamped camera center on the radar minimap before Westwood clamps it
-ASMJIT_PATCH(0x657013, RadarClass_Render_Radar_RecordCenter, 0x6)
-{
-	GET(RadarClass*, pRadar, ESI);
-
-	radarCenterPixel.X = pRadar->unknown_rect_14DC.X;
-	radarCenterPixel.Y = pRadar->unknown_rect_14DC.Y;
-
-	return 0;
-}
-
-// Scale and center the white viewport bounding box on the radar minimap
-ASMJIT_PATCH(0x657134, RadarClass_Render_Radar_ScaleViewRect, 0x6)
-{
-	if (!ZoomManager::IsZoomed())
-		return 0;
-
-	GET(RadarClass*, pRadar, ESI);
-
-	auto& radarViewRect = pRadar->unknown_rect_14DC;
-	const auto& radarRect = pRadar->unknown_rect_149C;
-
-	const double zoom = ZoomManager::CurrentZoom;
-	const int oldW = radarViewRect.Width;
-	const int oldH = radarViewRect.Height;
-
-	const int newW = std::max(2, static_cast<int>(oldW / zoom + 0.5));
-	const int newH = std::max(2, static_cast<int>(oldH / zoom + 0.5));
-
-	int newX = radarCenterPixel.X - newW / 2;
-	int newY = radarCenterPixel.Y - newH / 2;
-
-	if (newX < radarRect.X)
-		newX = radarRect.X;
-	else if (newX + newW >= radarRect.X + radarRect.Width)
-		newX = radarRect.X + radarRect.Width - newW - 1;
-
-	if (newY < radarRect.Y)
-		newY = radarRect.Y;
-	else if (newY + newH >= radarRect.Y + radarRect.Height)
-		newY = radarRect.Y + radarRect.Height - newH - 1;
-
-	radarViewRect.X = newX;
-	radarViewRect.Y = newY;
-	radarViewRect.Width = newW;
-	radarViewRect.Height = newH;
-
-	return 0;
-}
-
-// Scale horizontal radar click boundary to match effective zoomed viewport width
-ASMJIT_PATCH(0x653D92, RadarClass_RTacticalClass_Action_ClampWidth, 0x6)
-{
-	if (!ZoomManager::IsZoomed())
-		return 0;
-
-	const double zoom = ZoomManager::CurrentZoom;
-	const int width = DSurface::ViewBounds->Width;
-	const int effectiveWidth = static_cast<int>(width / zoom + 0.5);
-
-	R->ECX(effectiveWidth);
-	return 0x653D98;
-}
-
-// Scale vertical radar click boundary to match effective zoomed viewport height
-ASMJIT_PATCH(0x653DAC, RadarClass_RTacticalClass_Action_ClampHeight, 0x6)
-{
-	if (!ZoomManager::IsZoomed())
-		return 0;
-
-	const double zoom = ZoomManager::CurrentZoom;
-	const int height = DSurface::ViewBounds->Height;
-	const int effectiveHeight = static_cast<int>(height / zoom + 0.5);
-
-	R->EBX(effectiveHeight);
-	return 0x653DB2;
-}
+//
+//// Translate screen click coordinates into tactical space for mouse hover and selection targeting
+//ASMJIT_PATCH(0x692300, DisplayClass_ProcessClickCoords_TranslateCoordinates, 0x7)
+//{
+//	if (!ZoomManager::IsZoomed())
+//		return 0;
+//
+//	GET_STACK(Point2D*, pPoint, 0x4);
+//
+//	static Point2D translatedPoint;
+//	translatedPoint = ZoomManager::ScreenToTactical(*pPoint);
+//	R->Stack<Point2D*>(0x4, &translatedPoint);
+//
+//	return 0;
+//}
+//
+//// Translate mouse coordinates for the unit selection box (rubberband)
+//ASMJIT_PATCH(0x4AC380, DisplayClass_UpdateDragBand_TranslateCoordinates, 0x6)
+//{
+//	if (!ZoomManager::IsZoomed())
+//		return 0;
+//
+//	GET_STACK(Point2D*, pPoint, 0x4);
+//
+//	static Point2D dragPoint;
+//	dragPoint = ZoomManager::ScreenToTactical(*pPoint);
+//	R->Stack<Point2D*>(0x4, &dragPoint);
+//
+//	return 0;
+//}
+//
+//// Reset tactical zoom to 1.0x on middle mouse button click
+//ASMJIT_PATCH(0x6930A0, ScrollClass_MessageHandler_MiddleClickReset, 0x5)
+//{
+//	GET_STACK(const UINT*, pMessage, 0x8);
+//
+//	if (ZoomManager::IsZoomed() && ZoomManager::WheelEnabled && pMessage && *pMessage == WM_MBUTTONDOWN)
+//		ZoomManager::ResetZoom();
+//
+//	return 0;
+//}
+//
+//// Capture the true unclamped camera center on the radar minimap before Westwood clamps it
+//ASMJIT_PATCH(0x657013, RadarClass_Render_Radar_RecordCenter, 0x6)
+//{
+//	GET(RadarClass*, pRadar, ESI);
+//
+//	radarCenterPixel.X = pRadar->unknown_rect_14DC.X;
+//	radarCenterPixel.Y = pRadar->unknown_rect_14DC.Y;
+//
+//	return 0;
+//}
+//
+//// Scale and center the white viewport bounding box on the radar minimap
+//ASMJIT_PATCH(0x657134, RadarClass_Render_Radar_ScaleViewRect, 0x6)
+//{
+//	if (!ZoomManager::IsZoomed())
+//		return 0;
+//
+//	GET(RadarClass*, pRadar, ESI);
+//
+//	auto& radarViewRect = pRadar->unknown_rect_14DC;
+//	const auto& radarRect = pRadar->unknown_rect_149C;
+//
+//	const double zoom = ZoomManager::CurrentZoom;
+//	const int oldW = radarViewRect.Width;
+//	const int oldH = radarViewRect.Height;
+//
+//	const int newW = std::max(2, static_cast<int>(oldW / zoom + 0.5));
+//	const int newH = std::max(2, static_cast<int>(oldH / zoom + 0.5));
+//
+//	int newX = radarCenterPixel.X - newW / 2;
+//	int newY = radarCenterPixel.Y - newH / 2;
+//
+//	if (newX < radarRect.X)
+//		newX = radarRect.X;
+//	else if (newX + newW >= radarRect.X + radarRect.Width)
+//		newX = radarRect.X + radarRect.Width - newW - 1;
+//
+//	if (newY < radarRect.Y)
+//		newY = radarRect.Y;
+//	else if (newY + newH >= radarRect.Y + radarRect.Height)
+//		newY = radarRect.Y + radarRect.Height - newH - 1;
+//
+//	radarViewRect.X = newX;
+//	radarViewRect.Y = newY;
+//	radarViewRect.Width = newW;
+//	radarViewRect.Height = newH;
+//
+//	return 0;
+//}
+//
+//// Scale horizontal radar click boundary to match effective zoomed viewport width
+//ASMJIT_PATCH(0x653D92, RadarClass_RTacticalClass_Action_ClampWidth, 0x6)
+//{
+//	if (!ZoomManager::IsZoomed())
+//		return 0;
+//
+//	const double zoom = ZoomManager::CurrentZoom;
+//	const int width = DSurface::ViewBounds->Width;
+//	const int effectiveWidth = static_cast<int>(width / zoom + 0.5);
+//
+//	R->ECX(effectiveWidth);
+//	return 0x653D98;
+//}
+//
+//// Scale vertical radar click boundary to match effective zoomed viewport height
+//ASMJIT_PATCH(0x653DAC, RadarClass_RTacticalClass_Action_ClampHeight, 0x6)
+//{
+//	if (!ZoomManager::IsZoomed())
+//		return 0;
+//
+//	const double zoom = ZoomManager::CurrentZoom;
+//	const int height = DSurface::ViewBounds->Height;
+//	const int effectiveHeight = static_cast<int>(height / zoom + 0.5);
+//
+//	R->EBX(effectiveHeight);
+//	return 0x653DB2;
+//}

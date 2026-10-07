@@ -235,7 +235,7 @@ public:
 	static //FORCEDINLINE 
 		void _RenderRaw(GScreenClass* pThis)
 	{
-		ZoomManager::Update();
+		//ZoomManager::Update();
 
 		auto pTempSurface = DSurface::Temp.get();
 		DSurface::Temp = DSurface::Composite();
@@ -252,16 +252,17 @@ public:
 
 			pFakeTactical->_Render(DSurface::Composite(), shouldDraw, TacticalRenderMode::All0);
 
-			DSurface* pComposite = DSurface::Composite;
-			DSurface::Temp = DSurface::Alternate;
+			//DSurface* pComposite = DSurface::Composite;
+			//DSurface::Temp = DSurface::Alternate;
 
 			pFakeTactical->_Render(DSurface::Composite(), shouldDraw, TacticalRenderMode::Terrain);
-			pFakeTactical->_Render(DSurface::Composite(), shouldDraw, TacticalRenderMode::Moving_Animating);
 
-			DSurface::Temp = pComposite;
-			ZoomManager::ApplyTacticalBlit();
+			//DSurface::Temp = pComposite;
+			//ZoomManager::ApplyTacticalBlit();
 
 			pThis->Draw(complete);
+			pFakeTactical->_Render(DSurface::Composite(), shouldDraw, TacticalRenderMode::Moving_Animating);
+
 		}
 
 		if (Multithreading::BlitMouse.get() && !Unsorted::MAP_DEBUG_MODE.get())
