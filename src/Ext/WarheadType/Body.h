@@ -479,7 +479,7 @@ public:
 	Valueable<bool> UnlimboDetonate_KeepTarget { true };
 	Valueable<bool> UnlimboDetonate_KeepSelected { true };
 
-	std::unique_ptr<BlockTypeClass> BlockType {};
+	BlockTypeClass BlockType {};
 	Valueable<bool> Block_BasedOnWarhead { false };
 	Valueable<bool> Block_AllowOverride { true };
 	Valueable<bool> Block_IgnoreChanceModifier { true };

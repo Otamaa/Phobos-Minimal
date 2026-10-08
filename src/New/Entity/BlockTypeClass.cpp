@@ -43,6 +43,8 @@ void BlockTypeClass::LoadFromINI(CCINIClass* pINI, const char* pSection)
 template <class T>
 bool BlockTypeClass::Serialize(T& stm)
 {
+	stm.RegisterChange(this);
+
 	return stm
 		.Process(this->Block_Chances)
 		.Process(this->Block_DamageMultipliers)

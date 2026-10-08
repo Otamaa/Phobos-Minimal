@@ -7149,8 +7149,8 @@ int TechnoExtData::CalculateBlockDamage(TechnoClass* pThis, TechnoClass* pSource
 	if (!pTypeExt->CanBlock)
 		return damage;
 
-	const auto pBlockType = pWHExt->Block_BasedOnWarhead ? pWHExt->BlockType.get() : pTypeExt->BlockType.get();
-	const auto pOtherBlock = !pWHExt->Block_BasedOnWarhead ? pWHExt->BlockType.get() : pTypeExt->BlockType.get();
+	const auto pBlockType = pWHExt->Block_BasedOnWarhead ? &pWHExt->BlockType : &pTypeExt->BlockType;
+	const auto pOtherBlock = !pWHExt->Block_BasedOnWarhead ? &pWHExt->BlockType : &pTypeExt->BlockType;
 	std::vector<double>& blockChances = pBlockType->Block_Chances;
 	std::vector<double>& blockDamageMultipliers = pBlockType->Block_DamageMultipliers;
 

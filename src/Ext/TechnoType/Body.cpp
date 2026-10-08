@@ -2473,11 +2473,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->VoiceExitCeasefireMode.Read(exINI, pSection, "VoiceExitCeasefireMode");
 
 		this->CanBlock.Read(exINI, pSection, "CanBlock");
-
-		if (this->BlockType == nullptr)
-			this->BlockType = std::make_unique<BlockTypeClass>();
-
-		this->BlockType->LoadFromINI(pINI, pSection);
+		this->BlockType.LoadFromINI(pINI, pSection);
 		this->TeamMember_ConsideredAs.Read(exINI, pSection, "TeamMember.ConsideredAs");
 		this->WeaponGroupAs.resize(pThis->WeaponCount);
 		this->CanGoAboveTarget.Read(exINI, pSection, "CanGoAboveTarget");

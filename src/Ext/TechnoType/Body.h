@@ -1192,7 +1192,7 @@ public:
 	Valueable<bool> Unload_SkipHarvester { false };
 	Valueable<bool> Unload_NoTiberiums { false };
 
-	std::unique_ptr<BlockTypeClass> BlockType {};
+	BlockTypeClass BlockType {};
 	Valueable<bool> CanBlock { false };
 
 	Valueable<bool> IsSimpleDeployer_ConsiderPathfinding { false };

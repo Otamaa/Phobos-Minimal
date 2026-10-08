@@ -264,16 +264,16 @@ ASMJIT_PATCH(0x710021, FootClass_ImbueLocomotor_SpawnRate, 0x5)
 }
 
 // Mitigate DeploysInto vehicles getting stuck trying to deploy while using deploy AI script action
-ASMJIT_PATCH(0x6ED6E5, TeamClass_TMission_Deploy_DeploysInto, 0x6)
-{
-	GET(UnitClass*, pThis, ESI);
-
-	// Handle searching for free space in Hunt mission handler
-	pThis->ForceMission(Mission::Hunt);
-	pThis->MissionStatus = 2; // Tells UnitClass::Mission_Hunt to omit certain checks.
-
-	return 0;
-}
+//ASMJIT_PATCH(0x6ED6E5, TeamClass_TMission_Deploy_DeploysInto, 0x6)
+//{
+//	GET(UnitClass*, pThis, ESI);
+//
+//	// Handle searching for free space in Hunt mission handler
+//	pThis->ForceMission(Mission::Hunt);
+//	pThis->MissionStatus = 2; // Tells UnitClass::Mission_Hunt to omit certain checks.
+//
+//	return 0;
+//}
 
 ASMJIT_PATCH(0x73EFD8, UnitClass_Mission_Hunt_DeploysInto, 0x6)
 {
@@ -3095,7 +3095,7 @@ ASMJIT_PATCH(0x70F853, TechnoClass_Guard_OnLocomotorMoving, 0x6)
 
 // Fixed crashes when restarting missions 
 // that use TerrainTypes with cached SHP images (by Krisztiaan)
-ASMJIT_PATCH(0x71E364, TerrainTypeClass_SDDTOR, 0x6)
+ASMJIT_PATCH(0x71E364, TerrainTypeClass_SDDTOR_FixImageCrash, 0x6)
 {
 	GET(TerrainTypeClass*, pItem, ECX);
 
@@ -3104,7 +3104,7 @@ ASMJIT_PATCH(0x71E364, TerrainTypeClass_SDDTOR, 0x6)
 		pItem->Image = nullptr;
 
 	return 0;
-}ASMJIT_PATCH_AGAIN(0x71DC04, TerrainTypeClass_SDDTOR, 0x6)
+}ASMJIT_PATCH_AGAIN(0x71DC04, TerrainTypeClass_SDDTOR_FixImageCrash, 0x6)
 
 
 // After the driver is killed, the vehicle will no longer perform any missions other than `Harmless`.

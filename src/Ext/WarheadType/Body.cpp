@@ -810,11 +810,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->AffectsUnderground.Read(exINI, pSection, "AffectsUnderground");
 	this->PlayAnimUnderground.Read(exINI, pSection, "PlayAnimUnderground");
 	this->PlayAnimAboveSurface.Read(exINI, pSection, "PlayAnimAboveSurface");
-
-	if (!this->BlockType)
-		this->BlockType = std::make_unique<BlockTypeClass>();
-
-	this->BlockType->LoadFromINI(pINI, pSection);
+	this->BlockType.LoadFromINI(pINI, pSection);
 	this->AnimZAdjust.Read(exINI, pSection, "AnimZAdjust");
 	this->ApplyPerTargetEffectsOnDetonate.Read(exINI, pSection, "ApplyPerTargetEffectsOnDetonate");
 	this->Taunt.Read(exINI, pSection, "Taunt");
