@@ -266,6 +266,10 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		|| this->AttachEffects.RemoveTypes.size() > 0 
 		|| this->AttachEffects.RemoveGroups.size() > 0);
 
+	this->Abductor_ChangeOwner_ResetDriverKilled.Read(exINI, pSection, "Abductor.ChangeOwner.ResetDriverKilled");
+	this->Abductor_ChangeOwner_IgnoreDriverKilled.Read(exINI, pSection, "Abductor.ChangeOwner.IgnoreDriverKilled");
+	this->CanTarget_DriverKilled.Read(exINI, pSection, "CanTarget.DriverKilled");
+
 	this->FireOnce_ResetSequence.Read(exINI, pSection, "FireOnce.ResetSequence");
 	this->NoRepeatFire.Read(exINI, pSection, "NoRepeatFire");
 
@@ -327,6 +331,7 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		|| this->AttachEffect_DisallowedGroups.size()
 		|| this->CanTarget_MaxHealth < 1.0 || this->CanTarget_MinHealth > 0.0
 		|| this->CanTargetVeterancy != AffectedVeterancy::All
+		|| this->CanTarget_DriverKilled
 		)
 	{
 		this->SkipWeaponPicking = false;
@@ -641,6 +646,10 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->AttachEffect_CheckOnFirer)
 		.Process(this->AttachEffect_IgnoreFromSameSource)
 
+		.Process(this->Abductor_ChangeOwner_ResetDriverKilled)
+		.Process(this->Abductor_ChangeOwner_IgnoreDriverKilled)
+		.Process(this->CanTarget_DriverKilled)
+
 		.Process(this->FireOnce_ResetSequence)
 
 		.Process(this->AttachEffects)
@@ -881,6 +890,10 @@ void WeaponTypeExtData::Serialize(T& Stm)
 	debugProcess(this->AttachEffect_CheckOnFirer, "AttachEffect_CheckOnFirer");
 	debugProcess(this->AttachEffect_IgnoreFromSameSource, "AttachEffect_IgnoreFromSameSource");
 
+	debugProcess(this->Abductor_ChangeOwner_ResetDriverKilled, "Abductor_ChangeOwner.ResetDriverKilled");
+	debugProcess(this->Abductor_ChangeOwner_IgnoreDriverKilled, "Abductor_ChangeOwner.IgnoreDriverKilled");
+	debugProcess(this->CanTarget_DriverKilled, "CanTarget.DriverKilled");
+
 	// Fire control fields
 	debugProcess(this->FireOnce_ResetSequence, "FireOnce_ResetSequence");
 	debugProcess(this->AttachEffects, "AttachEffects");
@@ -1072,7 +1085,24 @@ bool WeaponTypeExtData::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* 
 
 	//if it's owner meant to be changed, do it here
 	if ((pData->Abductor_ChangeOwner && !TechnoExtData::IsPsionicsImmune(Target)))
-		Target->SetOwningHouse(pDesiredOwner);
+	{
+		// Original Phobos code are replacing SetOwningHouse 
+		// with custom logic to handle driver killed state. 
+		// This is likely to avoid changing ownership of units that are already dead or have their drivers killed.
+		bool changeOwner = true;
+
+		if (TechnoExtContainer::Instance.Find(Target)->Is_DriverKilled) {
+			if (pData->Abductor_ChangeOwner_IgnoreDriverKilled) {
+				changeOwner = false;
+			} else if (pData->Abductor_ChangeOwner_ResetDriverKilled) {
+				TechnoExtContainer::Instance.Find(Target)->Is_DriverKilled = pDesiredOwner->IsNeutral();
+			}
+		}
+
+		if(changeOwner)
+			Target->SetOwningHouse(pDesiredOwner);
+	}
+
 
 	// if we ended up here, the target is of the right type, and the attacker can take it
 	// so we abduct the target...

@@ -176,6 +176,10 @@ public:
 	Valueable<bool> AttachEffect_CheckOnFirer { false };
 	Valueable<bool> AttachEffect_IgnoreFromSameSource { false };
 
+	Valueable<bool> Abductor_ChangeOwner_ResetDriverKilled { true };
+	Valueable<bool> Abductor_ChangeOwner_IgnoreDriverKilled { false };
+	Valueable<bool> CanTarget_DriverKilled { false };
+
 	Valueable<bool> FireOnce_ResetSequence { true };
 
 	AEAttachInfoTypeClass AttachEffects {};

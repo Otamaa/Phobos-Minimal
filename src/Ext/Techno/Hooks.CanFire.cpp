@@ -46,10 +46,12 @@ bool bCheckRange,
 bool bSkipROF,
 bool bIgnoreDisableWeapon)
 {
+	auto const pThisExt = TechnoExtContainer::Instance.Find(pThis);
+
 	// ====================================================================
 // [1] Basic null / enslaved
 // ====================================================================
-	if (!pTarget || pThis->SlaveOwner)
+	if (!pTarget || pThis->SlaveOwner || pThisExt->Is_DriverKilled)
 		return FireError::ILLEGAL;
 
 	// ====================================================================
@@ -65,7 +67,7 @@ bool bIgnoreDisableWeapon)
 	auto const pBuildingT = cast_to<BuildingClass*, false>(pTarget);
 	auto const pCellTarget = cast_to<CellClass*, false>(pTarget);
 
-	auto const pThisExt = TechnoExtContainer::Instance.Find(pThis);
+
 	auto const pThisFoot = flag_cast_to<FootClass*, false>(pThis);
 	auto const pThisType = GET_TECHNOTYPE(pThis);
 	auto const pThisTypeExt = GET_TECHNOTYPEEXT(pThis);

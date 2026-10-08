@@ -926,7 +926,12 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 			return;
 	}
 
-	if (this->Taunt && pOwner->IsAlive) {
+	if (this->Taunt && pOwner->IsAlive 
+		&& !pOwner->IsCrashing
+		&& !pOwner->IsSinking	
+		&& !pTarget->IsCrashing
+		&& !pTarget->IsSinking 
+		&& !TechnoExtContainer::Instance.Find(pTarget)->Is_DriverKilled) {
 		pTarget->Override_Mission(Mission::Attack, pOwner, nullptr);
 
 		if (!pTarget->IsAlive)

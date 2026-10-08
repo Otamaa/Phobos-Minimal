@@ -4281,6 +4281,9 @@ void TechnoExtData::ApplyKillDriver(TechnoClass* pTarget, TechnoClass* pKiller, 
 	pTarget->SetTarget(nullptr);
 	pTarget->SetDestination(nullptr, false);
 
+	if (!pTargetFoot->IsAttackedByLocomotor)
+		pTargetFoot->StopMoving();
+
 	if (auto firstTag = pTarget->AttachedTag)
 		firstTag->SpringEvent((TriggerEvent)AresTriggerEvents::DriverKilled_ByHouse, pTarget, CellStruct::Empty, false, pToOwner);
 
@@ -7705,6 +7708,9 @@ bool TechnoExtData::CannotMove(UnitClass* pThis)
 	if (pThis->LocomotorSource)
 		return false;
 
+	if (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
+		return true;
+
 	if (pType->Speed == 0
 		&& !(pType->Locomotor == CLSIDs::Teleport() && !pType->Teleporter))
 		return true;
@@ -9849,7 +9855,9 @@ bool TechnoExtData::TechnoTargetAllowFiring(TechnoClass* pThis, TechnoClass* pTa
 	if (!EnumFunctions::IsTechnoEligible(pTarget, pWeaponExt->CanTarget, false) ||
 		!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner, pTarget->Owner) ||
 		!pWeaponExt->IsVeterancyInThreshold(pTarget) ||
-		!pWeaponExt->HasRequiredAttachedEffects(pThis, pTarget))
+		!pWeaponExt->HasRequiredAttachedEffects(pThis, pTarget) || 
+		(pWeaponExt->CanTarget_DriverKilled && !TechnoExtContainer::Instance.Find(pTarget)->Is_DriverKilled)
+		)
 	{
 		return false;
 	}
@@ -13656,6 +13664,9 @@ int TechnoExtData::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechn
 {
 	CellClass* pTargetCell = nullptr;
 
+	const bool targetIsDriverKilled =
+		pTargetTechno && TechnoExtContainer::Instance.Find(pTargetTechno)->Is_DriverKilled;
+
 	// Ignore target cell for airborne target technos.
 	if (!pTargetTechno || !pTargetTechno->IsInAir())
 	{
@@ -13695,8 +13706,10 @@ int TechnoExtData::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechn
 						!EnumFunctions::CanTargetHouse(pSecondExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner) ||
 						!TechnoExtData::ObjectHealthAllowFiring(pTargetTechno, pWeaponTwo) ||
 						!pSecondExt->IsVeterancyInThreshold(pTargetTechno) ||
-						!pSecondExt->HasRequiredAttachedEffects(pTargetTechno, pThis)
-					)))
+						!pSecondExt->HasRequiredAttachedEffects(pTargetTechno, pThis) ||
+						(pSecondExt->CanTarget_DriverKilled && !targetIsDriverKilled)
+					)
+					))
 			{
 				return weaponIndexOne;
 			}
@@ -13719,7 +13732,8 @@ int TechnoExtData::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechn
 						!EnumFunctions::CanTargetHouse(pFirstExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner) ||
 						!TechnoExtData::ObjectHealthAllowFiring(pTargetTechno, pWeaponOne) ||
 						!pFirstExt->IsVeterancyInThreshold(pTargetTechno) ||
-						!firstAllowedAE
+						!firstAllowedAE || 
+						(pFirstExt->CanTarget_DriverKilled && !targetIsDriverKilled)
 						)
 					))
 					{

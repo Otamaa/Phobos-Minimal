@@ -3082,3 +3082,64 @@ ASMJIT_PATCH(0x575A6B, MapClass_DestroyBridge_Explosions, 0x5)
 
 	return 0x575AE1;
 }
+
+// Fixed an issue where vehicles affected by warheads with `IsLocomotor=yes` 
+// would have their effects interrupted when deactivated or reactivated (by FlyStar)
+ASMJIT_PATCH(0x70F853, TechnoClass_Guard_OnLocomotorMoving, 0x6)
+{
+	GET(TechnoClass* const, pThis, ESI);
+
+	auto const pFoot = flag_cast_to<FootClass*, false>(pThis);
+	return pFoot && pFoot->IsAttackedByLocomotor ? 0x70F85F : 0;
+}
+
+// Fixed crashes when restarting missions 
+// that use TerrainTypes with cached SHP images (by Krisztiaan)
+ASMJIT_PATCH(0x71E364, TerrainTypeClass_SDDTOR, 0x6)
+{
+	GET(TerrainTypeClass*, pItem, ECX);
+
+	// FileSystem owns cached SHP references; raw theater images are freed below.
+	if (pItem->Image && !pItem->ImageAllocated && pItem->Image->IsReference())
+		pItem->Image = nullptr;
+
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x71DC04, TerrainTypeClass_SDDTOR, 0x6)
+
+
+// After the driver is killed, the vehicle will no longer perform any missions other than `Harmless`.
+ASMJIT_PATCH(0x7081DC, TechnoClass_BeAttacked_DriverKilled, 0x6)			// Infantry
+{
+	GET(FootClass*, pThis, ESI);
+
+	if (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled) {
+		R->AL(false);
+		return R->Origin() + 0x6;
+	}
+
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x708412, TechnoClass_BeAttacked_DriverKilled, 0x6)	// Unit
+
+
+ASMJIT_PATCH(0x70F86B, TechnoClass_ResetTarget_DriverKilled, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	const Mission miss = TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ?
+		Mission::Harmless : Mission::Guard;
+
+	pThis->ForceMission(miss);
+	return 0x70F881;
+}
+
+ASMJIT_PATCH(0x738D14, UnitClass_EnterIdleMode_DriverKilled, 0x5)
+{
+	GET(UnitClass*, pThis, ESI);
+	GET(Mission, miss, EBP);
+
+	if(TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
+		miss = Mission::Harmless;
+
+	pThis->QueueMission(miss , false);
+	return 0x738D21;
+}
