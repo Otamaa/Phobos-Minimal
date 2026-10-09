@@ -2033,20 +2033,18 @@ ASMJIT_PATCH(0x4D5FBD, FootClass_ApproachTarget_BeforeSearching, 0xA)
 
 	GET_STACK(bool, inRange, STACK_OFFSET(0x158, -0x146));
 
-	if (!inRange && pWeapon) {
-		const int distance = (pThis->IsInAir() || pWeapon->Projectile->Arcing || pThis->WhatAmI() == AircraftClass::AbsID)
+	if (!inRange 
+		&& pWeapon 
+		&& !flag_cast_to<FootClass*, true>(pThis->Target)
+		&& pWeapon->Range != -512
+		) {
+		const int distance = (pThis->IsInAir() || pWeapon->Projectile->Arcing || pThis->WhatAmI() == AircraftClass::AbsID || pThis->IsInAir())
 			? pThis->DistanceFrom(pThis->Target)
 			: pThis->DistanceFromSquared(pThis->Target);
-		ApproachTargetTemp::FromMaximumRange = distance >= pWeapon->MinimumRange;
 
-		if (!ApproachTargetTemp::FromMaximumRange) {
-			searchRange = 204;
-
-			// Range=-2 weapons have no max range, so the vanilla SearchRange (a
-			// negative/zero value) would stop the outward search before it reaches past
-			// the MinimumRange - widen it like a normal weapon's max range would.
-			if (pWeapon->Range == -512)
-				ApproachTargetTemp::SearchRange = pWeapon->MinimumRange + Unsorted::LeptonsPerCell;
+		if (distance < pWeapon->MinimumRange) {
+			ApproachTargetTemp::FromMaximumRange = false;
+			searchRange = Unsorted::LeptonsPerCell;
 		}
 	}
 
@@ -2059,17 +2057,15 @@ ASMJIT_PATCH(0x4D6874, FootClass_ApproachTarget_NextRadius, 0xC)
 {
 	enum { ContinueNextRadius = 0x4D5FE0, BreakOut = 0x4D68E7 };
 
-	GET_STACK(int, searchRadius, STACK_OFFSET(0x158, -0xF4));
+	REF_STACK(int, searchRadius, STACK_OFFSET(0x158, -0xF4));
 
 	if (ApproachTargetTemp::FromMaximumRange)
 	{
 		searchRadius -= Unsorted::LeptonsPerCell;
-		R->Stack(STACK_OFFSET(0x158, -0xF4), searchRadius);
-		return searchRadius > 204 ? ContinueNextRadius : BreakOut;
+		return  searchRadius >= 204 ? ContinueNextRadius : BreakOut;
 	}
 
 	searchRadius += Unsorted::LeptonsPerCell;
-	R->Stack(STACK_OFFSET(0x158, -0xF4), searchRadius);
 	return searchRadius <= ApproachTargetTemp::SearchRange ? ContinueNextRadius : BreakOut;
 }
 

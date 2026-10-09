@@ -213,10 +213,23 @@ ASMJIT_PATCH(0x54CB0E, JumpjetLocomotionClass_State5_CrashRotation, 0x7)
 	bool bRotate = FakeRulesClass::Instance()->JumpjetCrash_Rotate;
 
 	if (const auto pOwner = pLoco->LinkedTo ? pLoco->LinkedTo : pLoco->Owner) {
-		bRotate = GET_TECHNOTYPEEXT(pOwner)->JumpjetCrash_Rotate.Get(bRotate);
+		const auto pTypeExt = GET_TECHNOTYPEEXT(pOwner);
+
+		bRotate = pTypeExt->JumpjetCrash_Rotate.Get(bRotate);
+
+		if (bRotate) {
+
+			const int rot = pTypeExt->CrashROT;
+
+			if (rot >= 0)
+				pLoco->Facing.Set_ROT(rot);
+
+			return 0x0;
+		}
+
 	}
 
-	return bRotate ? 0 : 0x54CB3E;
+	return 0x54CB3E;
 
 }
 
@@ -711,12 +724,11 @@ ASMJIT_PATCH(0x7442D6, FootClass_ReadyToNextMission_MovingCheck, 0x6) // Unit
 
 	if (FakeRulesClass::Instance->ReadyToNextMission_MovingCheck 
 		|| pThis->QueuedMission == Mission::Unload
-		|| (!pThis->Owner->IsControlledByHuman()
-			&& (pThis->CurrentMission == Mission::Enter 
-				|| pThis->CurrentMission == Mission::Capture 
-				|| pThis->CurrentMission == Mission::Eaten 
-				|| pThis->CurrentMission == Mission::Sabotage)
-		)) {
+		|| pThis->CurrentMission == Mission::Enter
+		|| pThis->CurrentMission == Mission::Capture 
+		|| pThis->CurrentMission == Mission::Eaten 
+		|| pThis->CurrentMission == Mission::Sabotage
+		) {
 		result = pThis->Locomotor.GetInterfacePtr()->Is_Moving_Now();
 	}
 

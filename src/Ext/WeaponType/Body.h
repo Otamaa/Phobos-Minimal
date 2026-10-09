@@ -178,7 +178,7 @@ public:
 
 	Valueable<bool> Abductor_ChangeOwner_ResetDriverKilled { true };
 	Valueable<bool> Abductor_ChangeOwner_IgnoreDriverKilled { false };
-	Valueable<bool> CanTarget_DriverKilled { false };
+	Valueable<bool> CanTarget_DriverKilled { true };
 
 	Valueable<bool> FireOnce_ResetSequence { true };
 

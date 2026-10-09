@@ -1336,7 +1336,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->JumpjetTurnToTarget.Read(exINI, pSection, "JumpjetTurnToTarget");
 		this->JumpjetCrash_Rotate.Read(exINI, pSection, "JumpjetCrashRotate");
 		this->JumpjetCrash_Rotate.Read(exINI, pSection, "JumpjetRotateOnCrash");
-
+		this->CrashROT.Read(exINI, pSection, "CrashROT");
 		this->DeployingAnims.Read(exINI, pSection, "DeployingAnims");
 		this->DeployingAnim_KeepUnitVisible.Read(exINI, pSection, "DeployingAnim.KeepUnitVisible");
 		this->DeployingAnim_ReverseForUndeploy.Read(exINI, pSection, "DeployingAnim.ReverseForUndeploy");
@@ -3070,7 +3070,7 @@ void TechnoTypeExtData::Serialize(T& Stm) {
 		.Process(this->JumpjetAllowLayerDeviation)
 		.Process(this->JumpjetTurnToTarget)
 		.Process(this->JumpjetCrash_Rotate)
-
+		.Process(this->CrashROT)
 		.Process(this->DeployingAnims)
 		.Process(this->DeployingAnim_KeepUnitVisible)
 		.Process(this->DeployingAnim_ReverseForUndeploy)

@@ -9856,7 +9856,7 @@ bool TechnoExtData::TechnoTargetAllowFiring(TechnoClass* pThis, TechnoClass* pTa
 		!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner, pTarget->Owner) ||
 		!pWeaponExt->IsVeterancyInThreshold(pTarget) ||
 		!pWeaponExt->HasRequiredAttachedEffects(pThis, pTarget) || 
-		(pWeaponExt->CanTarget_DriverKilled && !TechnoExtContainer::Instance.Find(pTarget)->Is_DriverKilled)
+		(pWeaponExt->CanTarget_DriverKilled && TechnoExtContainer::Instance.Find(pTarget)->Is_DriverKilled)
 		)
 	{
 		return false;
@@ -13707,7 +13707,7 @@ int TechnoExtData::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechn
 						!TechnoExtData::ObjectHealthAllowFiring(pTargetTechno, pWeaponTwo) ||
 						!pSecondExt->IsVeterancyInThreshold(pTargetTechno) ||
 						!pSecondExt->HasRequiredAttachedEffects(pTargetTechno, pThis) ||
-						(pSecondExt->CanTarget_DriverKilled && !targetIsDriverKilled)
+						(pSecondExt->CanTarget_DriverKilled && targetIsDriverKilled)
 					)
 					))
 			{
@@ -13733,7 +13733,7 @@ int TechnoExtData::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechn
 						!TechnoExtData::ObjectHealthAllowFiring(pTargetTechno, pWeaponOne) ||
 						!pFirstExt->IsVeterancyInThreshold(pTargetTechno) ||
 						!firstAllowedAE || 
-						(pFirstExt->CanTarget_DriverKilled && !targetIsDriverKilled)
+						(pFirstExt->CanTarget_DriverKilled && targetIsDriverKilled)
 						)
 					))
 					{

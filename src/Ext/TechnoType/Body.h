@@ -266,7 +266,7 @@ public:
 	Nullable<bool> JumpjetAllowLayerDeviation {};
 	Nullable<bool> JumpjetTurnToTarget {};
 	Nullable<bool> JumpjetCrash_Rotate {};
-
+	Valueable<int> CrashROT { -1 };
 	ValueableVector<AnimTypeClass*> DeployingAnims {};
 	Valueable<bool> DeployingAnim_KeepUnitVisible { false };
 	Valueable<bool> DeployingAnim_ReverseForUndeploy { true };
