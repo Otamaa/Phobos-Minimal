@@ -6,6 +6,7 @@ class UDPInterfaceClass : public WinsockInterfaceClass
 public:
 	// Static
 	static COMPILETIMEEVAL reference<UDPInterfaceClass*, 0x887628u> const Instance {};
+	static COMPILETIMEEVAL reference<ushort, 0x841F30u> const UDPListenPort {};
 
 	bool OpenSocket(int port = 0)
 	{ JMP_THIS(0x7B30B0) }
@@ -25,7 +26,7 @@ public:
 	DWORD NextSpareSocket;
 	DWORD Socket;
 	DECLARE_PROPERTY(DynamicVectorClass<void*>, BroadcastAddresses);
-	std::array<int16_t, 256> words3F350;
+	std::array<int16_t, 256> BroadcastPorts;
 	DECLARE_PROPERTY(DynamicVectorClass<void*>, LocalAddresses);
 	DWORD NextAddressPort;
 	std::array<int, 16>Addresses;
