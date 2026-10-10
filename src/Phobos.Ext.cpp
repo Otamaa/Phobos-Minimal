@@ -388,6 +388,8 @@ void Phobos::ClearAll()
 		hand->detachptr();
 	}
 
+	PhobosExt::Global::PathfindFail.clear();
+
 	CLEAR_CONTAIER_CLASS_AND_TYPE(Aircraft);
 	CLEAR_CONTAIER_CLASS_AND_TYPE(Anim);
 	CLEAR_CONTAIER_CLASS_AND_TYPE(Building);

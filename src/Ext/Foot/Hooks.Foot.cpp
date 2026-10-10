@@ -1144,3 +1144,61 @@ void __fastcall FakeFootClass::_AI(FootClass* pThis)
 DEFINE_FUNCTION_JUMP(LJMP, 0x4DA530 , FakeFootClass::_AI)
 //DEFINE_FUNCTION_JUMP(CALL, 0x51BC9F	, FakeFootClass::_AI)
 //DEFINE_FUNCTION_JUMP(CALL, 0x73647B , FakeFootClass::_AI)
+#include <Phobos.Ext.h>
+
+static bool PathFailCooldownActive(FootClass* pThis, int frame) {
+	auto& track = PhobosExt::Global::PathfindFail[pThis];
+
+	if (frame - track.second >= 90)
+		track.first = 0; // cooldown expired, allow retries
+
+	return track.first >= 3 && frame - track.second < 90;
+}
+
+static void PathFailPrune(int frame) {
+	if (PhobosExt::Global::PathfindFail.size() <= 1024)
+		return;
+
+	for (auto it = PhobosExt::Global::PathfindFail.begin(); it != PhobosExt::Global::PathfindFail.end();) {
+		if (frame - it->second.second > 300)
+			it = PhobosExt::Global::PathfindFail.erase(it);
+		else
+			++it;
+	}
+}
+
+ASMJIT_PATCH(0x4D3934, FootClass_FindPath_TimeOut, 0x6)
+{
+	enum { NoPathExit = 0x4D3989 };
+
+	GET(FootClass* const, pThis, ECX);
+
+	// Skip the A* entirely while the unit is in its failure cooldown.
+	PathFailPrune(Unsorted::CurrentFrame());
+
+	if (PathFailCooldownActive(pThis, Unsorted::CurrentFrame())) {
+		R->EBP(reinterpret_cast<uintptr_t>(pThis));
+		R->EAX(0);
+		return NoPathExit;
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x4D3989, FootClass_FindPath_FailureTrack, 0xA)
+{
+	GET(FootClass* const, pThis, EBP);
+
+	auto& track = PhobosExt::Global::PathfindFail[pThis];
+
+	// While already in the cooldown, do not re-stamp the timestamp, otherwise
+	// `frame - track.second < 90` never becomes false and the cooldown would
+	// never expire, leaving the unit permanently unable to pathfind.
+	if (track.first >= 3 && Unsorted::CurrentFrame() - track.second < 90)
+		return 0;
+
+	track.first = track.first < 3 ? track.first + 1 : 3;
+	track.second = Unsorted::CurrentFrame();
+
+	return 0;
+}

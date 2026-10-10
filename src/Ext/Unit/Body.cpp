@@ -418,12 +418,17 @@ DamageState FakeUnitClass::_Take_Damage(int* damage,
 		if (pType->DeathFrames <= 0 && !this->Transporter)
 		{
 			bool ShouldSink = pType->Weight > RulesClass::Instance->ShipSinkingWeight && pType->Naval && !pType->Underwater && !pType->Organic;
+			auto isHeldInAir = [this]() {
+					auto const pLoco = this->Locomotor.GetInterfacePtr();
+					const bool isHover = pLoco && locomotion_cast<HoverLocomotionClass*>(pLoco);
+					return isHover ? this->IsAttackedByLocomotor : this->GetHeight() > 0;
+			};
 
 			if (!pTypeExt->Sinkable.Get(ShouldSink)
 			   || this->GetCell()->LandType != LandType::Water
 			   || this->WarpingOut
 			   || this->OnBridge
-			   || this->GetHeight() > 0)
+			   || isHeldInAir())
 			{
 				this->Destroyed(source);
 

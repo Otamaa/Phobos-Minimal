@@ -363,6 +363,7 @@ public:
 	Valueable<int> SelectBrd_DefaultTranslucentLevel { 0 };
 	Valueable<int> ToolTip_Background_Opacity { 100 };
 	Valueable<int> UnitCrateVehicleCap { 50 };
+	Valueable<bool> HealBaseNoScatter { true };
 	Valueable<int> FreeMCV_CreditsThreshold { 1500 };
 	Valueable<int> NewTeamsSelector_MergeUnclassifiedCategoryWith { -1 };
 	Valueable<int> VeteranFlashTimer { 0 };

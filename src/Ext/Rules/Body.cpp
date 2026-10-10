@@ -968,6 +968,7 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->ConditionYellow_Terrain)
 
 		.Process(this->UnitCrateVehicleCap)
+		.Process(this->HealBaseNoScatter)
 		.Process(this->FreeMCV_CreditsThreshold)
 
 		.Process(this->AirShadowBaseScale_log)
@@ -3642,6 +3643,7 @@ void FakeRulesClass::_ReadCrateRules(CCINIClass* pINI)
 	this->Crate_LandOnly.Read(exINI, section, "Crate.LandOnly");
 	this->UnitCrateVehicleCap.Read(exINI, section, "UnitCrateVehicleCap");
 	this->FreeMCV_CreditsThreshold.Read(exINI, section, "FreeMCV.CreditsThreshold");
+	this->HealBaseNoScatter.Read(exINI, section, "HealBaseNoScatter");
 }
 
 void FakeRulesClass::_ReadRadiation(CCINIClass* pINI)

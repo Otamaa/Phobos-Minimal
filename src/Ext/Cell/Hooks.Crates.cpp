@@ -399,7 +399,13 @@ CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 						{
 							if (pTechno->IsAlive && pTechno->GetOwningHouse() == pCollectorOwner)
 							{
-								int heal = pTechno->Health - GET_TECHNOTYPE(pTechno)->Strength;
+								auto pType = GET_TECHNOTYPE(pTechno);
+
+								int heal = !RulesExt::Global()->HealBaseNoScatter ? 
+									pTechno->Health - pType->Strength :
+									pTechno->Health < pType->Strength ? pType->Strength : pTechno->Health + 1
+									;
+
 								pTechno->ReceiveDamage(&heal, 0, RulesClass::Instance->C4Warhead, 0, 1, 1, nullptr);
 							}
 						}
