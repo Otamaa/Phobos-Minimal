@@ -258,8 +258,8 @@ struct ColorStruct
 	HSVClass* ConstructHSV(HSVClass* ret) const
 	{ JMP_THIS(0x6613A0); }
 
-	byte* asPointer (){
-		return reinterpret_cast<byte*>(this);
+	BYTE* asPointer (){
+		return reinterpret_cast<BYTE*>(this);
 	}
 public:
 

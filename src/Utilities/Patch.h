@@ -120,7 +120,7 @@ public:
 	}
 
 	static FORCEDINLINE void Apply_RAW(uintptr_t offset, std::initializer_list<BYTE> data) {
-		Patch::Apply_RAW(offset, data.size(), PatchType::PATCH_, const_cast<byte*>(data.begin()));
+		Patch::Apply_RAW(offset, data.size(), PatchType::PATCH_, const_cast<BYTE*>(data.begin()));
 	}
 
 	template <size_t Size>

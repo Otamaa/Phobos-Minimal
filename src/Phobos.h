@@ -296,7 +296,7 @@ public:
 		static std::string ModVersion;
 		static int ModIdentifier;
 		static CSFText ModNote;
-		static byte GFX_DX_Force;
+		static BYTE GFX_DX_Force;
 		static int colorCount;
 		static int version;
 

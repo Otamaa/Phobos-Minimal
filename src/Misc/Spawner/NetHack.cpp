@@ -20,8 +20,6 @@
 #include <memory>
 #include <windows.h>
 #include <stdint.h>
-#include <WinSock.h>
-#pragma comment(lib, "wsock32.lib")
 
 ListAddress ListAddress::Array[8] = {};
 

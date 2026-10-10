@@ -3083,14 +3083,31 @@ ASMJIT_PATCH(0x575A6B, MapClass_DestroyBridge_Explosions, 0x5)
 	return 0x575AE1;
 }
 
-// Fixed an issue where vehicles affected by warheads with `IsLocomotor=yes` 
-// would have their effects interrupted when deactivated or reactivated (by FlyStar)
-ASMJIT_PATCH(0x70F853, TechnoClass_Guard_OnLocomotorMoving, 0x6)
+ASMJIT_PATCH(0x70F850, TechnoClass_ResetTarget_OnLocomotorMoving, 0x5)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
-	auto const pFoot = flag_cast_to<FootClass*, false>(pThis);
-	return pFoot && pFoot->IsAttackedByLocomotor ? 0x70F85F : 0;
+	// Fixed an issue where vehicles affected by warheads with `IsLocomotor=yes` 
+	// would have their effects interrupted when deactivated or reactivated (by FlyStar)
+	bool setDest = true;
+
+	if (auto const pFoot = flag_cast_to<FootClass*, false>(pThis)) {
+		if (pFoot->IsAttackedByLocomotor){
+			setDest = false;
+		}	
+	}
+	
+	if (setDest) {
+		pThis->SetDestination(nullptr, true);
+	}
+
+	pThis->SetTarget(nullptr);
+
+	const Mission miss = TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ?
+		Mission::Harmless : Mission::Guard;
+
+	pThis->ForceMission(miss);
+	return 0x70F882;
 }
 
 // Fixed crashes when restarting missions 
@@ -3119,18 +3136,6 @@ ASMJIT_PATCH(0x7081DC, TechnoClass_BeAttacked_DriverKilled, 0x6)			// Infantry
 
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x708412, TechnoClass_BeAttacked_DriverKilled, 0x6)	// Unit
-
-
-ASMJIT_PATCH(0x70F86B, TechnoClass_ResetTarget_DriverKilled, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-
-	const Mission miss = TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ?
-		Mission::Harmless : Mission::Guard;
-
-	pThis->ForceMission(miss);
-	return 0x70F881;
-}
 
 ASMJIT_PATCH(0x738D14, UnitClass_EnterIdleMode_DriverKilled, 0x5)
 {

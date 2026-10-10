@@ -10011,6 +10011,7 @@ void TechnoExtData::SendPlane(AircraftTypeClass* Aircraft, size_t Amount, HouseC
 
 	for (size_t i = 0; i < Amount; ++i)
 	{
+		Debug::Log("Sending plane[%d] %s for %s\n", i, Aircraft->ID, pOwner->Type->ID);
 		++Unsorted::ScenarioInit;
 		auto const pPlane = static_cast<AircraftClass*>(Aircraft->CreateObject(pOwner));
 		--Unsorted::ScenarioInit;

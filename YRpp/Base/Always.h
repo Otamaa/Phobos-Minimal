@@ -4,7 +4,10 @@
 #include "Macros.h"
 #include <inttypes.h>
 
+#include <winsock2.h>
+#include <objidlbase.h>
 #include <windows.h>
+
 #define NAME_MAX FILENAME_MAX
 
 #ifndef PATH_MAX

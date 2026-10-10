@@ -29,6 +29,7 @@
 #include <aclapi.h>
 #include <GameOptionsClass.h>
 #include <LaserDrawClass.h>
+#include <shellapi.h>
 
 #include <Phobos.Lua.h>
 #include <Phobos.UI.h>

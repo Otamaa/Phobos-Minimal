@@ -258,11 +258,11 @@ public:
 		{ ReadPoint3D(value, pSection, pKey, value); }
 
 	//Reads three byte values.
-	byte* Read3Bytes(byte* pBuffer, const char* pSection, const char* pKey, byte* pDefault)
+	BYTE* Read3Bytes(BYTE* pBuffer, const char* pSection, const char* pKey, BYTE* pDefault)
 		{ JMP_THIS(0x474B50); }
 
 	//Writes three byte values.
-	bool Write3Bytes(const char* pSection, const char* pKey, byte* pValues)
+	bool Write3Bytes(const char* pSection, const char* pKey, BYTE* pValues)
 		{ JMP_THIS(0x474C20); }
 
 	//Tests whether the given section and key exists. If key is NULL, only the section will be looked for.
@@ -391,7 +391,7 @@ public:
 		{ JMP_THIS(0x526E80); }
 
 	// 18 bytes
-	byte* ReadAbilities(byte* pBuffer, const char* pSection, const char* pKey, byte* pDefault)
+	BYTE* ReadAbilities(BYTE* pBuffer, const char* pSection, const char* pKey, BYTE* pDefault)
 		{ JMP_THIS(0x477640); }
 
 
@@ -529,6 +529,6 @@ public:
 public:
 
 	bool Digested : 1;
-	byte Digest[20];
+	BYTE Digest[20];
 };
 static_assert(sizeof(CCINIClass) == 0x58, "Invalid size.");//85

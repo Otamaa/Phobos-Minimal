@@ -1173,6 +1173,8 @@ ASMJIT_PATCH(0x4D3934, FootClass_FindPath_TimeOut, 0x6)
 
 	GET(FootClass* const, pThis, ECX);
 
+	R->EBP(R->ECX());
+
 	// Skip the A* entirely while the unit is in its failure cooldown.
 	PathFailPrune(Unsorted::CurrentFrame());
 
@@ -1182,7 +1184,7 @@ ASMJIT_PATCH(0x4D3934, FootClass_FindPath_TimeOut, 0x6)
 		return NoPathExit;
 	}
 
-	return 0;
+	return R->EAX<int>() ? 0x4D3944 : 0x4D393A;
 }
 
 ASMJIT_PATCH(0x4D3989, FootClass_FindPath_FailureTrack, 0xA)

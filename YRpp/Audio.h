@@ -1,11 +1,12 @@
 #pragma once
 
+#include <Base/Always.h>
 #include <CRT.h>
 #include <GeneralDefinitions.h>
 #include <Helpers/CompileTime.h>
 #include <Helpers/String.h>
 
-#include <DSound.h>
+//#include <DSound.h>
 
 class RawFileClass;
 class CCFileClass;
@@ -733,7 +734,7 @@ struct AudioDriverChannelTag
 	int soundframesizetimes4;
 	int buffersize2;
 	AudioFormatTag audioformat;
-	IDirectSoundBuffer* soundriverpointer;
+	void* soundriverpointer;
 	int dwBufferBytes;
 	int soundframesize1;
 	int decompression_func;
@@ -960,8 +961,10 @@ public:
 static_assert(sizeof(AudioStreamerTag) == 0xF8, "Invalid Size!");
 struct YRAudio
 {
-	static COMPILETIMEEVAL reference<IDirectSound*, 0x87E89Cu> const AUD_sound_object {};
-	static COMPILETIMEEVAL reference<IDirectSoundBuffer*, 0x87E8A0u> const AUD_primary_buffer {};
+	//static COMPILETIMEEVAL reference<IDirectSound*, 0x87E89Cu> const AUD_sound_object {};
+	//static COMPILETIMEEVAL reference<IDirectSoundBuffer*, 0x87E8A0u> const AUD_primary_buffer {};
+	static COMPILETIMEEVAL reference<void*, 0x87E89Cu> const AUD_sound_object {};
+	static COMPILETIMEEVAL reference<void*, 0x87E8A0u> const AUD_primary_buffer {};
 
 	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E73Cu> const AudioAttribsunk {};
 	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E740u> const TauntAttribs {};

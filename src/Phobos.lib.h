@@ -20,6 +20,8 @@
 #pragma comment(lib, "uuid.lib")
 #pragma comment(lib, "odbc32.lib")
 #pragma comment(lib, "odbccp32.lib")
+#pragma comment(lib, "WS2_32.lib")
+#pragma comment(lib, "iphlpapi.lib")
 
 #ifdef _Rehsde
 #pragma comment(lib, "d3dcompiler.lib")
@@ -30,7 +32,7 @@
 #ifdef _TTT
 #pragma comment(linker, "/NODEFAULTLIB")
 #pragma comment(lib, "ShLwApi.lib")
-#pragma comment(lib, "WS2_32.lib")
+
 #pragma comment(lib, "wininet.lib")
 #pragma comment(lib, "kernel32.lib")
 #pragma comment(lib, "user32.lib")

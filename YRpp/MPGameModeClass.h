@@ -226,7 +226,7 @@ public:
 		{ JMP_THIS(0x5D6690); }
 
 	virtual CellStruct * AssignStartingPositionsToHouse(CellStruct *result, int idxHouse,
-		DynamicVectorClass<CellStruct> *vecCoords, byte *housesSatisfied)
+		DynamicVectorClass<CellStruct> *vecCoords, BYTE*housesSatisfied)
 		{ JMP_THIS(0x5D6890); }
 
 	virtual bool SpawnBaseUnits(HouseClass *House, int* AmountToSpend)

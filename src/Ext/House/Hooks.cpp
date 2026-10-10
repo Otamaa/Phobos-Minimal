@@ -193,8 +193,8 @@ ASMJIT_PATCH(0x70173B , TechnoClass_SetOwningHouse_AfterHouseWasSet, 0x5)
 		bool I_am_human = false;
 		bool humanAndComputer = false;
 		bool hasTransporter = false;
-		auto pMe = flag_cast_to<FootClass*, false>(pThis);
 
+		if(auto pMe = flag_cast_to<FootClass*, false>(pThis))
 		{
 			const auto pTypeExt = GET_TECHNOTYPEEXT(pMe);
 			auto pExt = TechnoExtContainer::Instance.Find(pMe);

@@ -183,7 +183,7 @@ enum class PlayerColorSlot : int
 	None = -1
 };
 
-enum class ProdFailType : byte
+enum class ProdFailType : BYTE
 {
 	OK = 0x0,
 	Limit = 0x1,

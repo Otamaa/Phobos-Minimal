@@ -1,6 +1,7 @@
 #pragma once
 
 #include <GeneralDefinitions.h>
+#include <unordered_map>
 
 class AbstractClass;
 class FootClass;

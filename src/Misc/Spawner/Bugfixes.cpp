@@ -521,12 +521,7 @@ void __stdcall _Sleep(DWORD dwMilliseconds)
 }
 DEFINE_FUNCTION_JUMP(CALL6, 0x4F4B90, _Sleep)
 
-
-#pragma comment(lib, "iphlpapi.lib")
-#pragma comment(lib, "ws2_32.lib")
-
 #include <UDPInterfaceClass.h>
-#include <winsock2.h>
 #include <iphlpapi.h>
 
 void AddAddress(DynamicVectorClass<void*>& addresses, DWORD address)
@@ -607,7 +602,7 @@ void LocalInterfaces()
 
 // Replace gethostname/gethostbyname and the unchecked hostent traversal.
 // Resume at the remaining listening-socket initialization.
-DEFINE_HOOK(0x7B3493, UDPInterfaceClass_StartListening_LocalInterfaces, 0x9)
+ASMJIT_PATCH(0x7B3493, UDPInterfaceClass_StartListening_LocalInterfaces, 0x9)
 {
 	LocalInterfaces();
 	return 0x7B35E4;

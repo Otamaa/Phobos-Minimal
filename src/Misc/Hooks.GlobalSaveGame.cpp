@@ -61,7 +61,6 @@
 
 #include <atlbase.h>
 #include <atlcomcli.h>
-#include <objidlbase.h>
 
 #include <New/Type/CursorTypeClass.h>
 #include <New/Type/DigitalDisplayTypeClass.h>

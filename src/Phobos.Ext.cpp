@@ -121,6 +121,7 @@
 #include <LoadOptionsClass.h>
 #include <BeaconManagerClass.h>
 #include <Phobos.Lua.h>
+std::unordered_map<FootClass*, std::pair<int, int>> PhobosExt::Global::PathfindFail;
 
 void Phobos::SaveGameDataAfter()
 {
@@ -156,6 +157,7 @@ void Phobos::LoadGameDataAfter()
 
 void PhobosExt::InvalidatePointers(AbstractClass* const pInvalid, bool const removed, AbstractType  type)
 {
+
 	LuaAPI::OnInvalidatePointer(pInvalid, removed);
 
 	if(type == AbstractType::Trigger) {
@@ -165,6 +167,8 @@ void PhobosExt::InvalidatePointers(AbstractClass* const pInvalid, bool const rem
 	if(pInvalid->AbstractFlags & AbstractFlags::Techno) {
 		PhobosGlobal::PointerGotInvalid(pInvalid, removed);
 		HugeBar::InvalidatePointer(pInvalid, removed);
+	} else if (pInvalid->AbstractFlags & AbstractFlags::Foot) {
+		PhobosExt::Global::PathfindFail.erase((FootClass*)pInvalid);
 	}
 
 	SWStateMachine::PointerGotInvalid(pInvalid, removed, type);
