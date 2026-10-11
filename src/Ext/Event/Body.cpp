@@ -41,7 +41,7 @@ void EventExt::ApproachObject::Respond(EventClass* Event)
 
 	pSource->ClearPlanningTokens(nullptr);
 
-	if (!pSource->IsAlive || pSource->Health <= 0 || pSource->InLimbo)
+	if (!pSource->IsAlive || pSource->Health <= 0 || pSource->InLimbo || pSource->IsSinking || pSource->IsCrashing)
 		return;
 
 	if (pSource->IsTethered)

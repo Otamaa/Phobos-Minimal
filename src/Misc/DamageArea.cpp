@@ -1161,7 +1161,9 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 			if (pTechno->InWhichLayer() == Layer::Underground // Layer.
 				&& pTechno->IsAlive && !pTechno->IsIronCurtained()
 				&& !pTechno->IsOnMap // Underground is not on map.
-				&& !pTechno->InLimbo) {
+				&& !pTechno->InLimbo
+				 && !pTechno->IsSinking
+				 && !pTechno->IsCrashing) {
 				auto const technoCoords = pTechno->GetCoords();
 				double dist = cylinder ? technoCoords.DistanceFromXY(*pCoord) : technoCoords.DistanceFrom(*pCoord);
 
@@ -1487,7 +1489,8 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 			if (pTechno->InWhichLayer() == Layer::Underground // Layer.
 				&& pTechno->IsAlive && !pTechno->IsIronCurtained()
 				&& !pTechno->IsOnMap // Underground is not on map.
-				&& !pTechno->InLimbo)
+				&& !pTechno->InLimbo 
+				&& !pTechno->IsSinking && !pTechno->IsCrashing)
 			{
 				double dist = 0.0;
 				auto const technoCoords = pTechno->GetCoords();

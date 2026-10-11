@@ -387,6 +387,8 @@ ASMJIT_PATCH(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 
 		if (!pCurrentTechno->IsAlive
 			|| pCurrentTechno->InLimbo
+			|| pCurrentTechno->IsCrashing
+			|| pCurrentTechno->IsSinking
 			|| (!IsCurrentPlayer && pOwner->IsAlliedWith(HouseClass::CurrentPlayer.get()))                  // Ally objects are never designators or inhibitors
 			|| (IsCurrentPlayer && !pExt->SW_Designators.Contains(pCurrentTechnoType))               // Only owned objects can be designators
 			|| (!pOwner->IsAlliedWith(HouseClass::CurrentPlayer.get()) && !pExt->SW_Inhibitors.Contains(pCurrentTechnoType)))  // Only enemy objects can be inhibitors

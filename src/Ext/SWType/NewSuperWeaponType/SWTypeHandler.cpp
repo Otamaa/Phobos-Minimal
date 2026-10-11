@@ -92,20 +92,14 @@ bool SWTypeHandler::CanTargetingFireAt(const TargetingData* pTargeting, CellStru
 
 bool SWTypeHandler::IsDesignator(const SWTypeExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const
 {
-	if (pTechno->IsAlive
-		&& pTechno->Health
-		&& !pTechno->InLimbo
-		&& !pTechno->Deactivated
-		)
-	{
-		if(!EnumFunctions::CanTargetHouse(pData->SW_Designators_Houses, pOwner, pTechno->Owner))
+	if (!pTechno->IsAlive || pTechno->Health <= 0 || pTechno->InLimbo || pTechno->Deactivated || pTechno->IsSinking || pTechno->IsCrashing)
+		return false;
+
+	if(!EnumFunctions::CanTargetHouse(pData->SW_Designators_Houses, pOwner, pTechno->Owner))
 			return false;
 
-		return pData->SW_AnyDesignator
+	return pData->SW_AnyDesignator
 			|| pData->SW_Designators.Contains(GET_TECHNOTYPE(pTechno));
-	}
-
-	return false;
 }
 
  bool SWTypeHandler::HasDesignator(const SWTypeExtData* pData, HouseClass* pOwner, const CellStruct& Coords) const
@@ -146,24 +140,21 @@ bool SWTypeHandler::IsDesignatorEligible(const SWTypeExtData* pData, HouseClass*
 
 bool SWTypeHandler::IsInhibitor(const SWTypeExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const
 {
-	if (pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo && !pTechno->Deactivated)
-	{
-		if (!EnumFunctions::CanTargetHouse(pData->SW_Inhibitors_Houses, pOwner, pTechno->Owner)) {
-			return false;
-		}
+	if (!pTechno->IsAlive || pTechno->Health <= 0 || pTechno->InLimbo || pTechno->Deactivated || pTechno->IsSinking || pTechno->IsCrashing)
+		return false;
 
-		if (auto pBld = cast_to<BuildingClass*, false>(pTechno)) {
-			if (!pBld->IsPowerOnline()) {
-				return false;
-			}
-		}
-
-		return pData->SW_AnyInhibitor
-				|| pData->SW_Inhibitors.Contains(GET_TECHNOTYPE(pTechno));
-
+	if (!EnumFunctions::CanTargetHouse(pData->SW_Inhibitors_Houses, pOwner, pTechno->Owner)) {
+		return false;
 	}
 
-	return false;
+	if (auto pBld = cast_to<BuildingClass*, false>(pTechno)) {
+		if (!pBld->IsPowerOnline()) {
+			return false;
+		}
+	}
+
+	return pData->SW_AnyInhibitor
+			|| pData->SW_Inhibitors.Contains(GET_TECHNOTYPE(pTechno));
 }
 
  bool SWTypeHandler::HasInhibitor(const SWTypeExtData* pData, HouseClass* pOwner, const CellStruct& Coords) const
@@ -203,13 +194,14 @@ bool SWTypeHandler::IsInhibitorEligible(const SWTypeExtData* pData, HouseClass* 
 
 bool SWTypeHandler::IsAttractor(const SWTypeExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const
 {
-	if (pTechno->Owner != pOwner && pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo)
-	{
-		return pData->SW_AnyAttractor
-			|| pData->SW_Attractors.Contains(GET_TECHNOTYPE(pTechno));
-	}
+	if (!pTechno->IsAlive || pTechno->Health <= 0 || pTechno->InLimbo || pTechno->Deactivated || pTechno->IsSinking || pTechno->IsCrashing)
+		return false;
 
-	return false;
+	if (pTechno->Owner == pOwner)
+		return false;
+
+	return pData->SW_AnyAttractor
+		|| pData->SW_Attractors.Contains(GET_TECHNOTYPE(pTechno));
 }
 
  bool SWTypeHandler::HasAttractor(const SWTypeExtData* pData, HouseClass* pOwner, const CellStruct& Coords) const
@@ -251,22 +243,20 @@ bool SWTypeHandler::IsAttractorEligible(const SWTypeExtData* pData, HouseClass* 
 
 bool SWTypeHandler::IsSuppressor(const SWTypeExtData* pData, HouseClass* pOwner, TechnoClass* pTechno) const
 {
-	if (pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo && !pTechno->Deactivated)
-	{
-		if (pOwner && pOwner->IsAlliedWith(pTechno)) {
-			return false;
-		}
+	if (!pTechno->IsAlive || pTechno->Health <= 0 || pTechno->InLimbo || pTechno->Deactivated || pTechno->IsSinking || pTechno->IsCrashing)
+		return false;
 
-		if (auto pBld = cast_to<BuildingClass*, false>(pTechno)) {
-			if (!pBld->IsPowerOnline())
-			{ return false; }
-		}
-
-		return pData->SW_AnySuppressor
-				|| pData->SW_Suppressors.Contains(GET_TECHNOTYPE(pTechno));
+	if (pOwner && pOwner->IsAlliedWith(pTechno)) {
+		return false;
 	}
 
-	return false;
+	if (auto pBld = cast_to<BuildingClass*, false>(pTechno)) {
+		if (!pBld->IsPowerOnline())
+			{ return false; }
+	}
+
+	return pData->SW_AnySuppressor
+				|| pData->SW_Suppressors.Contains(GET_TECHNOTYPE(pTechno));
 }
 
 bool SWTypeHandler::IsDesignatorSimple(const SWTypeExtData* pData, HouseClass* pSWOwner, HouseClass* pTechnoOwner, TechnoTypeClass* pTechnoType) const
@@ -376,20 +366,21 @@ int SWTypeHandler::GetDamage(const SWTypeExtData* pData) const
 
 bool SWTypeHandler::IsLaunchsiteAlive(BuildingClass* pBuilding) const
 {
-	if (pBuilding->IsAlive && pBuilding->Health && !pBuilding->InLimbo && pBuilding->IsPowerOnline())
-	{
-		//const auto nMission = pBuilding->GetCurrentMission();
+	if (!pBuilding->IsAlive || pBuilding->Health <= 0 || pBuilding->InLimbo || pBuilding->IsSinking || pBuilding->IsCrashing)
+		return false;
 
-		//if (nMission == Mission::Selling || nMission == Mission::Construction)
-		//	return false;
+	if (!pBuilding->IsPowerOnline())
+		return false;
+	
+	//const auto nMission = pBuilding->GetCurrentMission();
 
-		if (pBuilding->TemporalTargetingMe || pBuilding->IsBeingWarpedOut())
-			return false;
+	//if (nMission == Mission::Selling || nMission == Mission::Construction)
+	//	return false;
 
-		return true;
-	}
+	if (pBuilding->TemporalTargetingMe || pBuilding->IsBeingWarpedOut())
+		return false;
 
-	return false;
+	return true;
 }
 
 bool SWTypeHandler::IsSWTypeAttachedToThis(const SWTypeExtData* pData, BuildingClass* pBuilding) const
@@ -471,7 +462,7 @@ std::unique_ptr<TargetingData> SWTypeHandler::GetTargetingData(SWTypeExtData* pD
 
 	 if(pResult->NeedsDesignator || pResult->NeedsAttractors || pResult->NeedsInhibitors || pResult->NeedsSupressors){
 		TechnoClass::Array->for_each([this , pData , &pResult, pOwner](TechnoClass* pTechno) {
-			if(pTechno && pTechno->IsAlive && pTechno->Health > 0 && !pTechno->InLimbo && !pTechno->Deactivated) {
+			if(pTechno && pTechno->IsAlive && pTechno->Health > 0 && !pTechno->InLimbo && !pTechno->Deactivated && !pTechno->IsSinking && !pTechno->IsCrashing) {
 
 				// get the designator's center
 				auto center = pTechno->GetCoords();
@@ -523,7 +514,9 @@ std::unique_ptr<TargetingData> SWTypeHandler::GetTargetingData(SWTypeExtData* pD
 		});
 	 }
 
-#else
+#else //loop for each techno and check if it is a designator, attractor, inhibitor or suppressor
+	// for some reason single pass loop will gave different result than the multi pass loop
+
 	if ((!pData->SW_Designators.empty() || pData->SW_AnyDesignator))
 	{
 		pResult->NeedsDesignator = true;

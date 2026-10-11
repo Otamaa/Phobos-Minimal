@@ -4111,7 +4111,7 @@ bool TechnoExtData::IsDriverKillable(TechnoClass* pThis, double KillBelowPercent
 			return false;
 	}
 
-	if (pThis->BeingWarpedOut || pThis->IsIronCurtained() || TechnoExtData::IsInWarfactory(pThis, false))
+	if (pThis->IsBeingWarpedOut() || pThis->IsIronCurtained() || TechnoExtData::IsInWarfactory(pThis, false))
 		return false;
 
 	const auto pType = GET_TECHNOTYPE(pThis);
@@ -7580,7 +7580,7 @@ bool TechnoExtData::MultiWeaponCanFire(TechnoClass* const pThis, AbstractClass* 
 		if (pTechno->AttachedBomb ? pWH->IvanBomb : pWH->BombDisarm)
 			return false;
 
-		if (!pWH->Temporal && pTechno->BeingWarpedOut)
+		if (!pWH->Temporal && pTechno->IsBeingWarpedOut())
 			return false;
 
 		if (pWH->Parasite
@@ -10121,6 +10121,9 @@ void TechnoExtData::UpdateMCOverloadDamage(TechnoClass* pOwner)
 	if (!pThis || !pThis->InfiniteMindControl || pOwner->InLimbo || !pOwner->IsAlive)
 		return;
 
+	if (pOwner->IsSinking || pOwner->IsCrashing)
+		return;
+
 	const auto pOwnerTypeExt = GET_TECHNOTYPEEXT(pOwner);
 
 	if (pThis->OverloadPipState > 0)
@@ -10159,6 +10162,8 @@ void TechnoExtData::UpdateMCOverloadDamage(TechnoClass* pOwner)
 		{
 			pThis->OverloadPipState = 10;
 			auto const pWarhead = pOwnerTypeExt->Overload_Warhead.Get(RulesClass::Instance->C4Warhead);
+			auto pOwnerCell = pOwner->GetCell();
+
 			pOwner->ReceiveDamage(&nDamage, 0, pWarhead, 0, 0, 0, 0);
 
 			if (!pThis->OverloadDeathSoundPlayed)
@@ -10179,11 +10184,11 @@ void TechnoExtData::UpdateMCOverloadDamage(TechnoClass* pOwner)
 						nLoc.Z += 100;
 
 					CoordStruct nParticleCoord { nLoc.X + nRamdomX, nRandomY + nLoc.Y, nLoc.Z };
-					GameCreate<ParticleSystemClass>(pParticle, nParticleCoord, pOwner->GetCell(), pOwner, CoordStruct::Empty, pOwner->Owner);
+					GameCreate<ParticleSystemClass>(pParticle, nParticleCoord, pOwnerCell, pOwner, CoordStruct::Empty, pOwner->Owner);
 				}
 			}
 
-			if (nCurIdx > 0 && pOwner->IsAlive)
+			if (nCurIdx > 0 && pOwner->IsAlive && !pOwner->IsSinking && !pOwner->IsCrashing)
 			{
 				double const nBase = (nCurIdx != 1) ? Math::flt_2 : Math::flt_1;
 				double const nCopied_base = (ScenarioClass::Instance->Random.RandomFromMax(100) < 50) ? -nBase : nBase;
@@ -11164,7 +11169,7 @@ bool TechnoExtData::IsActive(TechnoClass* pThis, bool bCheckEMP, bool bCheckDeac
 	if (!TechnoExtData::IsAlive(pThis, bIgnoreLimbo, bIgnoreIsOnMap, bIgnoreAbsorb))
 		return false;
 
-	if (pThis->BeingWarpedOut || pThis->TemporalTargetingMe || IsUnderEMP(pThis, !bCheckEMP) || IsDeactivated(pThis, !bCheckDeactivated))
+	if (pThis->IsBeingWarpedOut() || pThis->TemporalTargetingMe || IsUnderEMP(pThis, !bCheckEMP) || IsDeactivated(pThis, !bCheckDeactivated))
 		return false;
 
 	return true;

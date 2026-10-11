@@ -1227,12 +1227,18 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, int d
 
 FullMapDetonateResult WarheadTypeExtData::EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner) const
 {
-	if (!EnumFunctions::IsTechnoEligibleB(pTechno, this->DetonateOnAllMapObjects_AffectTargets))
-		return FullMapDetonateResult::TargetNotEligible;
-
+	//reduce the number of checks by checking the most common cases first
+	if (!pTechno || !pTechno->IsInPlayfield)
+		return FullMapDetonateResult::TargetNotDamageable;
+	//second pass
 	if (!this->CanDealDamage(pTechno, false, !this->DetonateOnAllMapObjects_RequireVerses.Get()))
 		return FullMapDetonateResult::TargetNotDamageable;
 
+	//third pass more specific using vtable call
+	if (!EnumFunctions::IsTechnoEligibleB(pTechno, this->DetonateOnAllMapObjects_AffectTargets))
+		return FullMapDetonateResult::TargetNotEligible;
+
+	//the rest
 	auto const pType = GET_TECHNOTYPE(pTechno);
 
 	if (!EnumFunctions::CanTargetHouse(this->DetonateOnAllMapObjects_AffectHouses, pOwner, pTechno->Owner))

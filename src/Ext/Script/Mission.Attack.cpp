@@ -591,7 +591,7 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 
 		if (!objectType->Immune
 			&& !object->TemporalTargetingMe
-			&& !object->BeingWarpedOut
+			&& !object->IsBeingWarpedOut()
 			&& object->Owner != pTechno->Owner
 			&& (!pTechno->Owner->IsAlliedWith(object) || ScriptExtData::IsUnitMindControlledFriendly(pTechno->Owner, object)))
 		{

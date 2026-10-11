@@ -261,7 +261,7 @@ ASMJIT_PATCH(0x41A96C, AircraftClass_Mission_AreaGuard, 0x6)
 					hoverOverArchive(pThis, coords, pArchive);
 				}
 			}
-			else if (!enterIdleMode() && pThis->IsAlive)
+			else if (!enterIdleMode() && pThis->IsAlive && pThis->Health > 0 && !pThis->IsSinking && !pThis->IsCrashing)
 			{
 				// continue circling
 				hoverOverArchive(pThis, pArchive->GetCoords(), pArchive);

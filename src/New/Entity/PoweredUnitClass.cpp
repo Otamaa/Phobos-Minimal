@@ -17,7 +17,7 @@ bool PoweredUnitClass::IsPoweredBy(HouseClass* const pOwner) const
 	{
 		auto const inArray = PoweredBy.Contains(pBuilding->Type);
 
-		if (inArray && !pBuilding->BeingWarpedOut && !pBuilding->IsUnderEMP())
+		if (inArray && !pBuilding->IsBeingWarpedOut() && !pBuilding->IsUnderEMP())
 		{
 			if (TechnoExtData::IsOperated(pBuilding) && pBuilding->IsPowerOnline())
 			{

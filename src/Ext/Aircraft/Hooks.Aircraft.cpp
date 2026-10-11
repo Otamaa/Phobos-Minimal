@@ -101,7 +101,7 @@ void FakeAircraftClass::_AI()
 
 		FakeFootClass::_AI(this);
 
-		if (this->IsAlive && this->Type->AirportBound && !this->Airstrike && !this->Spawned) {
+		if (this->IsAlive && this->Health > 0 && this->Type->AirportBound && !this->Airstrike && !this->Spawned && !this->IsSinking && !this->IsCrashing) {
 			bool extendedMissions = AircraftTypeExtData::ExtendedAircraftMissionsEnabled(this);
 
 			if (extendedMissions) {

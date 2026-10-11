@@ -1649,7 +1649,7 @@ bool ScriptExtData::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, 
 	{
 		if (ScriptExtData::IsUnitAvailable(pUnit, true)
 			&& !pUnit->TemporalTargetingMe
-			&& !pUnit->BeingWarpedOut)
+			&& !pUnit->IsBeingWarpedOut())
 		{
 			if (mode == 2)
 			{
@@ -2518,7 +2518,7 @@ bool ScriptExtData::IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTranspor
 	if (!pTechno || !pTechno->Owner)
 		return false;
 
-	bool isAvailable = pTechno->IsAlive && pTechno->Health > 0 && !pTechno->InLimbo && pTechno->IsOnMap;
+	bool isAvailable = pTechno->IsAlive && pTechno->Health > 0 && !pTechno->InLimbo && pTechno->IsOnMap && !pTechno->IsSinking && !pTechno->IsCrashing;
 
 	if (checkIfInTransportOrAbsorbed)
 		isAvailable &= !pTechno->Absorbed && !pTechno->Transporter;

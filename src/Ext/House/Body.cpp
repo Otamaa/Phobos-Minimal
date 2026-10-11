@@ -1729,10 +1729,8 @@ int HouseExtData::TotalHarvesterCount(HouseClass* pThis)
 	if (!pThis || !pThis->IsCurrentPlayer() || pThis->Defeated) return 0;
 
 	int result = 0;
-	auto pOwnerExt = HouseExtContainer::Instance.Find(pThis);
-
-	std::ranges::for_each(pOwnerExt->OwnedCountedHarvesters, [&result, pThis](TechnoClass* techno) {
-		result += !techno->InLimbo && techno->IsAlive && techno->Health > 0;
+	std::ranges::for_each(HouseExtContainer::Instance.Find(pThis)->OwnedCountedHarvesters, [&result, pThis](TechnoClass* techno) {
+		result += !techno->InLimbo && techno->IsAlive && techno->Health > 0 && techno->IsInPlayfield && !techno->IsSinking && !techno->IsCrashing;
 	});
 
 	return result;
