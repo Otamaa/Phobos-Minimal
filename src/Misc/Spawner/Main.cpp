@@ -202,7 +202,7 @@ void SpawnerMain::ReadRA2MDConfig()
 {
 	auto pINI = CCINIClass::INI_RA2MD.ptr();
 
-	{
+	if (pINI->GetSection(GameStrings::Options())) {
 		auto pMainConfigs = SpawnerMain::GetMainConfigs();
 		pMainConfigs->MPDebug = pINI->ReadBool(GameStrings::Options(), "MPDEBUG", pMainConfigs->MPDebug);
 		pMainConfigs->SingleProcAffinity = pINI->ReadBool(GameStrings::Options(), "SingleProcAffinity", pMainConfigs->SingleProcAffinity);
@@ -213,15 +213,22 @@ void SpawnerMain::ReadRA2MDConfig()
 		pMainConfigs->SpeedControl = pINI->ReadBool(GameStrings::Options(), "SpeedControl", pMainConfigs->SpeedControl);
 		pMainConfigs->AllowTaunts = pINI->ReadBool(GameStrings::Options(), "AllowTaunts", pMainConfigs->AllowTaunts);
 		pMainConfigs->AllowChat = pINI->ReadBool(GameStrings::Options(), "AllowChat", pMainConfigs->AllowChat);
-
 	}
 
-
-	{
+	if (pINI->GetSection(GameStrings::Video())) {
 		auto pMainConfigs = SpawnerMain::GetMainConfigs();
 		pMainConfigs->WindowedMode = pINI->ReadBool(GameStrings::Video(), "Video.Windowed", pMainConfigs->WindowedMode);
 		pMainConfigs->NoWindowFrame = pINI->ReadBool(GameStrings::Video(), "NoWindowFrame", pMainConfigs->NoWindowFrame);
 		pMainConfigs->DDrawTargetFPS = pINI->ReadInteger(GameStrings::Video(), "DDrawTargetFPS", pMainConfigs->DDrawTargetFPS);
+	}
+
+	const char* pDebugSection = "Debug";
+	if (pINI->GetSection(pDebugSection)) {
+		auto pMainConfigs = SpawnerMain::GetMainConfigs();
+		pMainConfigs->ForceMultiplayer = pINI->ReadBool(pDebugSection, "ForceMultiplayer", pMainConfigs->ForceMultiplayer);
+		pMainConfigs->MPDebug = pINI->ReadBool(pDebugSection, "MPDebug", pMainConfigs->MPDebug);
+		pMainConfigs->MPDebugShow = pINI->ReadBool(pDebugSection, "MPDebug.Show", pMainConfigs->MPDebugShow);
+		pMainConfigs->WriteStatistics = pINI->ReadBool(pDebugSection, "WriteStatistics", pMainConfigs->WriteStatistics);
 	}
 }
 
@@ -232,7 +239,7 @@ void SpawnerMain::ApplyStaticOptions()
 	if (pMainConfigs->MPDebug)
 	{
 		Game::EnableMPDebug = true;
-		Game::DrawMPDebugStats = true;
+		Game::DrawMPDebugStats = pMainConfigs->MPDebugShow;
 		Game::EnableMPSyncDebug = true;
 
 		// Fixes text layout in the MPDebug panel
@@ -914,8 +921,12 @@ bool SpawnerMain::GameConfigs::Reconcile_Players() {
 			}
 		}
 
-		if (!found)
+		if (!found) {
+			Debug::Log("Reconcile_Players: player %d ('%ls') could not be matched to a saved house.\n",
+					i, players.Items[i]->Name);
+
 			return false;
+		}
 	}
 
 	for (house = 0; house < players.Count; house++)
@@ -957,7 +968,13 @@ bool SpawnerMain::GameConfigs::Reconcile_Players() {
 		}
 	}
 
-	return SessionClass::Instance->MPlayerCount == players.Count;
+	if (SessionClass::Instance->MPlayerCount != players.Count) {
+		Debug::Log("Reconcile_Players: player count mismatch (saved houses: %d, connected players: %d).\n",
+			SessionClass::Instance->MPlayerCount, players.Count);
+		return false;
+	}
+
+	return true;
 }
 
 void SpawnerMain::GameConfigs::RespondToSaveGame(EventClass* event) {
@@ -1196,10 +1213,14 @@ bool SpawnerMain::GameConfigs::StartScenario(const char* pScenarioName) {
 		Game::PlayerCount = NodeNameType::Array->Count;
 	}
 
+
+	const bool forceMultiplayer = SpawnerMain::GetMainConfigs()->ForceMultiplayer || SpawnerMain::GameConfigs::m_Ptr.ForceMultiplayer;
+	const bool deferForceMultiplayer = SpawnerMain::GameConfigs::m_Ptr.LoadSaveGame && Game::PlayerCount() <= 1 && forceMultiplayer;
+
 	{ // Set SessionType
 		if (SpawnerMain::GameConfigs::m_Ptr.IsCampaign)
 			pSession->GameMode = GameMode::Campaign;
-		else if (Game::PlayerCount() > 1|| SpawnerMain::GameConfigs::m_Ptr.ForceMultiplayer)
+		else if (Game::PlayerCount() > 1|| (forceMultiplayer && !deferForceMultiplayer))
 			pSession->GameMode = GameMode::Internet; // HACK: will be set to LAN later
 		else
 			pSession->GameMode = GameMode::Skirmish;
@@ -1228,7 +1249,7 @@ bool SpawnerMain::GameConfigs::StartScenario(const char* pScenarioName) {
 
 		return result;
 	}
-	else if (SessionClass::IsSkirmish())
+	else if (SessionClass::IsSkirmish() && !deferForceMultiplayer)
 	{
 		return SpawnerMain::GameConfigs::m_Ptr.LoadSaveGame ? SpawnerMain::GameConfigs::LoadSavedGame(SpawnerMain::GameConfigs::m_Ptr.SaveGameName)
 			: ScenarioClass::StartScenario(pScenarioName, 0, -1);
@@ -1244,14 +1265,24 @@ bool SpawnerMain::GameConfigs::StartScenario(const char* pScenarioName) {
 
 		pSession->GameMode = GameMode::LAN;
 
-		// Until the host announces itself there is no known game master. This
-		// makes our Am_I_Master replacement fall back to the "first human house"
-		// heuristic, and clears any stale value from a previous game (the session
-		// is a reused singleton). Mirrors Vinifera's spawner.
-		pSession->MasterPlayerID() = -1;
-		pSession->MasterPlayerName()[0] = L'\0';
+		if (deferForceMultiplayer)
+		{
+			// A Skirmish save already identifies the local house; player names may differ.
+			if (pSession->StartSpots.Count != 1 || !HouseClass::CurrentPlayer()) {
+				Debug::Log("Cannot apply ForceMultiplayer: expected one player and a loaded local house.\n");
+				return false;
+			}
 
-		if (SpawnerMain::GameConfigs::m_Ptr.LoadSaveGame && !SpawnerMain::GameConfigs::Reconcile_Players())
+			const auto pPlayer = pSession->StartSpots.Items[0];
+			const auto pHouse = HouseClass::CurrentPlayer();
+			pPlayer->HouseIndex = pHouse->ArrayIndex;
+			wcscpy_s(pHouse->UIName, pPlayer->Name);
+
+			// SessionClass stores the host name in a wchar_t[21] buffer.
+			constexpr size_t MasterPlayerNameCapacity = 21;
+			wcscpy_s(pSession->MasterPlayerName(), MasterPlayerNameCapacity, pPlayer->Name);
+		}
+		else if (SpawnerMain::GameConfigs::m_Ptr.LoadSaveGame && !SpawnerMain::GameConfigs::Reconcile_Players())
 			return false;
 
 		if (!pSession->CreateConnections())
@@ -1304,7 +1335,7 @@ void SpawnerMain::GameConfigs::InitNetwork() {
 	Tunnel::Ip = inet_addr(SpawnerMain::GameConfigs::m_Ptr.TunnelIp);
 	Tunnel::Port = htons((u_short)SpawnerMain::GameConfigs::m_Ptr.TunnelPort);
 
-	Game::PlanetWestwoodPortNumber = Tunnel::Port ? u_short() : (u_short)SpawnerMain::GameConfigs::m_Ptr.ListenPort;
+	UDPInterfaceClass::UDPListenPort = Tunnel::Port ? 0 : (u_short)SpawnerMain::GameConfigs::m_Ptr.ListenPort;
 
 	UDPInterfaceClass::Instance = GameCreate<UDPInterfaceClass>();
 	UDPInterfaceClass::Instance->Init();

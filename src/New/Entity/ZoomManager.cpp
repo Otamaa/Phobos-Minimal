@@ -320,46 +320,57 @@ static Point2D radarCenterPixel = { 0, 0 };
 //
 //	return 0;
 //}
-//
+
 //// Scale and center the white viewport bounding box on the radar minimap
-//ASMJIT_PATCH(0x657134, RadarClass_Render_Radar_ScaleViewRect, 0x6)
-//{
-//	if (!ZoomManager::IsZoomed())
-//		return 0;
-//
-//	GET(RadarClass*, pRadar, ESI);
-//
-//	auto& radarViewRect = pRadar->unknown_rect_14DC;
-//	const auto& radarRect = pRadar->unknown_rect_149C;
-//
-//	const double zoom = ZoomManager::CurrentZoom;
-//	const int oldW = radarViewRect.Width;
-//	const int oldH = radarViewRect.Height;
-//
-//	const int newW = std::max(2, static_cast<int>(oldW / zoom + 0.5));
-//	const int newH = std::max(2, static_cast<int>(oldH / zoom + 0.5));
-//
-//	int newX = radarCenterPixel.X - newW / 2;
-//	int newY = radarCenterPixel.Y - newH / 2;
-//
-//	if (newX < radarRect.X)
-//		newX = radarRect.X;
-//	else if (newX + newW >= radarRect.X + radarRect.Width)
-//		newX = radarRect.X + radarRect.Width - newW - 1;
-//
-//	if (newY < radarRect.Y)
-//		newY = radarRect.Y;
-//	else if (newY + newH >= radarRect.Y + radarRect.Height)
-//		newY = radarRect.Y + radarRect.Height - newH - 1;
-//
-//	radarViewRect.X = newX;
-//	radarViewRect.Y = newY;
-//	radarViewRect.Width = newW;
-//	radarViewRect.Height = newH;
-//
-//	return 0;
-//}
-//
+ASMJIT_PATCH(0x657134, RadarClass_Render_Radar_ScaleViewRect, 0x6)
+{
+	GET(RadarClass*, pThis, ESI);
+
+	//if (!ZoomManager::IsZoomed()) {
+	//	GET(RadarClass*, pRadar, ESI);
+
+	//	auto& radarViewRect = pRadar->unknown_rect_14DC;
+	//	const auto& radarRect = pRadar->unknown_rect_149C;
+
+	//	const double zoom = ZoomManager::CurrentZoom;
+	//	const int oldW = radarViewRect.Width;
+	//	const int oldH = radarViewRect.Height;
+
+	//	const int newW = std::max(2, static_cast<int>(oldW / zoom + 0.5));
+	//	const int newH = std::max(2, static_cast<int>(oldH / zoom + 0.5));
+
+	//	int newX = radarCenterPixel.X - newW / 2;
+	//	int newY = radarCenterPixel.Y - newH / 2;
+
+	//	if (newX < radarRect.X)
+	//		newX = radarRect.X;
+	//	else if (newX + newW >= radarRect.X + radarRect.Width)
+	//		newX = radarRect.X + radarRect.Width - newW - 1;
+
+	//	if (newY < radarRect.Y)
+	//		newY = radarRect.Y;
+	//	else if (newY + newH >= radarRect.Y + radarRect.Height)
+	//		newY = radarRect.Y + radarRect.Height - newH - 1;
+
+	//	radarViewRect.X = newX;
+	//	radarViewRect.Y = newY;
+	//	radarViewRect.Width = newW;
+	//	radarViewRect.Height = newH;
+	//}
+	//else
+	{
+		const auto& radarRect = pThis->RadarRect;
+		auto& viewRect = pThis->RadarViewRect;
+		viewRect.Width = std::min(viewRect.Width, radarRect.Width);
+		viewRect.Height = std::min(viewRect.Height, radarRect.Height);
+		viewRect.X = std::clamp(viewRect.X, radarRect.X, radarRect.X + radarRect.Width - viewRect.Width);
+		viewRect.Y = std::clamp(viewRect.Y, radarRect.Y, radarRect.Y + radarRect.Height - viewRect.Height);
+	}
+
+
+	return 0;
+}
+
 //// Scale horizontal radar click boundary to match effective zoomed viewport width
 //ASMJIT_PATCH(0x653D92, RadarClass_RTacticalClass_Action_ClampWidth, 0x6)
 //{

@@ -899,6 +899,8 @@ public:
 	Valueable<bool> DisableProductionDuringBuildup { false };
 
 	Valueable<bool> MissileKeepTargetCoord { false };
+
+	Valueable<AffectedHouse> RevealHouses { AffectedHouse::Team };
 #pragma endregion
 
 public:

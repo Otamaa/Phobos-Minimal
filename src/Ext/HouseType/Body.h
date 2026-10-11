@@ -157,6 +157,9 @@ public:
 
 	AEAttachInfoTypeClass AttachEffects {};
 	Nullable<bool> AttachEffects_AttachOnOwnerChange {};
+
+	Nullable<AffectedHouse> RevealHouses {};
+	Valueable<bool> Academy_AllowCountryFilter {};
 #pragma endregion
 
 public:
@@ -202,6 +205,7 @@ public:
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true;  }
 
+	static bool CanRevealHouse(HouseClass* pTarget,Nullable<AffectedHouse>& first);
 public:
 
 	void LoadFromRulesFile(CCINIClass* pINI);

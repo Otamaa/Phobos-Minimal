@@ -810,7 +810,7 @@ static reference<int, 0x00A8D584u>                  MPlayerWinner {};
 
 void WriteDTALog(std::string& result)
 {
-	if (SpawnerMain::GetGameConfigs()->WriteStatistics && !result.empty()) {
+	if ((SpawnerMain::GetGameConfigs()->WriteStatistics || SpawnerMain::GetMainConfigs()->WriteStatistics) && !result.empty()) {
 		if (!std::filesystem::exists(Debug::LogFilePathName.c_str())) {
 			Debug::FatalError("Uneable to find %ls path !", Debug::LogFilePathName.c_str());
 			return;

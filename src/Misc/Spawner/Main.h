@@ -56,6 +56,10 @@ struct SpawnerMain
 
 		bool AllowTaunts { true };
 		bool AllowChat { true };
+
+		bool ForceMultiplayer { false };
+		bool MPDebugShow { true };
+		bool WriteStatistics { false };
 	public:
 
 		static Configs m_Ptr;

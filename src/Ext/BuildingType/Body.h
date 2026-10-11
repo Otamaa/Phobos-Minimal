@@ -399,6 +399,9 @@ public:
 	Nullable<bool> RoofProductionAnimPoweredEffect { };
 	Nullable<bool> RoofProductionAnimPoweredSpecial { };
 	Nullable<bool> DisableProductionDuringBuildup {};
+
+	HelperedVector<ValueableVector<TechnoTypeClass*>> Academy_Country_Types {};
+	HelperedVector<ValueableVector<TechnoTypeClass*>> Academy_Country_Ignore {};
 #pragma endregion
 
 public:

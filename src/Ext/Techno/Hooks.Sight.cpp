@@ -3,6 +3,7 @@
 #include <Ext/Aircraft/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/BuildingType/Body.h>
+#include <Ext/HouseType/Body.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/Patch.h>
@@ -71,7 +72,9 @@ void __fastcall FakeTechnoClass::__See(
 		HouseClass* pRevealFor = useCustom ? customHouse
 			: pThis->Owner;
 
-		MapClass::Instance->RevealArea2(&coord, sightRange, pRevealFor,
+		const bool canReveal = HouseTypeExtData::CanRevealHouse(pRevealFor, GET_TECHNOTYPEEXT(pThis)->RevealHouses);
+
+		MapClass::Instance->RevealArea2(&coord, sightRange, canReveal ? HouseClass::CurrentPlayer() : nullptr ,
 					   incremental, a6,
 					   /*a7*/ false, /*a8*/ true, /*a9*/ false);
 		return;
@@ -176,10 +179,20 @@ void __fastcall FakeTechnoClass::__Look(TechnoClass* pThis, discard_t, bool incr
 	if (sightRange == 0)
 		return;
 
-	MapClass::Instance->RevealArea1(&coord, sightRange, pThis->Owner,
+	const bool canReveal = HouseTypeExtData::CanRevealHouse(pThis->Owner, GET_TECHNOTYPEEXT(pThis)->RevealHouses);
+
+	MapClass::Instance->RevealArea1(&coord, sightRange, canReveal ? HouseClass::CurrentPlayer() : nullptr,
 					incremental, arg_4,
 					/*a7*/false, /*a8*/true, /*a9*/true);
 }
+
+ASMJIT_PATCH(0x70B1F2, TechnoClass_RevealHouses, 0x6)	// TechnoClass::vt_entry_48C
+{
+	GET(TechnoClass*, pTech, ECX);
+	const bool canReveal = HouseTypeExtData::CanRevealHouse(pTech->Owner, GET_TECHNOTYPEEXT(pTech)->RevealHouses);
+	R->ESI(canReveal ? HouseClass::CurrentPlayer() : nullptr);
+	return 0x0;
+};
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x41ADF0, FakeAircraftClass::__Look)//Aircraft
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E23C4, FakeAircraftClass::__Look)//Aircraft

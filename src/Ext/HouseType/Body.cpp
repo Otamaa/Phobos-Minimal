@@ -5,6 +5,7 @@
 #include <Utilities/Macro.h>
 
 #include <Ext/Scenario/Body.h>
+#include <Ext/Rules/Body.h>
 
 #include <New/Entity/EVAVoices.h>
 #include <New/Entity/DropshipLoadoutClass.h>
@@ -258,6 +259,8 @@ void HouseTypeExtData::InheritSettings(HouseTypeClass* pThis)
 			this->ObserverFlagYuriPAL = ParentData->ObserverFlagYuriPAL;
 			this->AttachEffects = ParentData->AttachEffects;
 			this->AttachEffects_AttachOnOwnerChange = ParentData->AttachEffects_AttachOnOwnerChange;
+			this->Academy_AllowCountryFilter = ParentData->Academy_AllowCountryFilter;
+			this->RevealHouses = ParentData->RevealHouses;
 		}
 	}
 
@@ -320,7 +323,22 @@ bool HouseTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->BattlePoints.Read(exINI, pSection, "BattlePoints");
 	this->BattlePoints_CanUseStandardPoints.Read(exINI, pSection, "BattlePoints.CanUseStandardPoints");
 
+	this->RevealHouses.Read(exINI, pSection, "RevealHouses");
+	this->Academy_AllowCountryFilter.Read(exINI, pSection, "Academy.AllowCountryFilter");
+
 	return true;
+}
+
+bool HouseTypeExtData::CanRevealHouse(HouseClass* pTarget, Nullable<AffectedHouse>& first)
+{
+	if (auto pPlayer = HouseClass::CurrentPlayer()) {
+		auto const pHouseTypeExt = HouseTypeExtContainer::Instance.Find(pTarget->Type);
+
+		const AffectedHouse affectHouses = first.Get(pHouseTypeExt->RevealHouses.Get(FakeRulesClass::Instance->RevealHouses));
+		return EnumFunctions::CanTargetHouse(affectHouses, pTarget, pPlayer);
+	}
+
+	return false;
 }
 
 void HouseTypeExtData::LoadFromRulesFile(CCINIClass* pINI) {
@@ -563,6 +581,9 @@ void  HouseTypeExtData::Serialize(T& Stm)
 
 		.Process(this->AttachEffects)
 		.Process(this->AttachEffects_AttachOnOwnerChange)
+
+		.Process(this->RevealHouses)
+		.Process(this->Academy_AllowCountryFilter)
 		;
 }
 

@@ -976,12 +976,21 @@ void HouseExtData::ApplyAcademy(
 		auto veterancyBonus = 0.0;
 
 		// aggregate the bonuses
-		for (auto const& pBld : this->Academies)
-		{
+		for (auto const& pBld : this->Academies) {
 			if (!pBld)
 				continue;
 
 			auto const pExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
+			const int countryIdx = pTechno->Owner->Type->ArrayIndex;
+
+			const auto& academyWhiteList = pExt->Academy_Country_Types[countryIdx];
+			const auto& academyBlackList = pExt->Academy_Country_Ignore[countryIdx];
+
+			const bool canAffect = (academyWhiteList.empty() || academyWhiteList.Contains(pType))
+				&& !academyBlackList.Contains(pType);
+
+			if (!canAffect)
+				continue;
 
 			auto const isWhitelisted = pExt->AcademyWhitelist.empty()
 				|| pExt->AcademyWhitelist.Contains(pType);
@@ -995,6 +1004,7 @@ void HouseExtData::ApplyAcademy(
 
 		// apply the bonus
 		auto& value = pTechno->Veterancy.Veterancy;
+
 		if (veterancyBonus > value)
 		{
 			value = static_cast<float>(MinImpl(

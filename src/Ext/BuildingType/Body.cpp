@@ -1834,6 +1834,19 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->RallyPointSpeedType.Read(exINI, pSection, "RallySpeedType");
 		this->RallyPointMovementZone.Read(exINI, pSection, "RallyMovementZone");
 
+
+		char tempBuffer[0x20];
+		this->Academy_Country_Types.resize(HouseTypeClass::Array->Count);
+		this->Academy_Country_Ignore.resize(HouseTypeClass::Array->Count);
+
+		for (int idx = 0; idx < HouseTypeClass::Array->Count; ++idx) {
+			_snprintf_s(tempBuffer, sizeof(tempBuffer), "Academy.Country.Types.%d", idx);
+			this->Academy_Country_Types[idx].Read(exINI, pSection, tempBuffer);
+
+			_snprintf_s(tempBuffer, sizeof(tempBuffer), "Academy.Country.Ignore.%d", idx);
+			this->Academy_Country_Ignore[idx].Read(exINI, pSection, tempBuffer);
+		}
+
 		this->DisableProductionDuringBuildup.Read(exINI, pSection, "DisableProductionDuringBuildup");
 
 		if (this->DisplayIncome_Delay.isset() && this->DisplayIncome_Delay.Fetch() == 0) {
@@ -2405,6 +2418,9 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->RallyPointSpeedType)
 		.Process(this->RallyPointMovementZone)
 		.Process(this->DisableProductionDuringBuildup)
+
+		.Process(this->Academy_Country_Types)
+		.Process(this->Academy_Country_Ignore)
 		;
 }
 #else

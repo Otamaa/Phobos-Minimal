@@ -1291,6 +1291,8 @@ public:
 	Nullable<bool> ExitThroughRoof {};
 
 	ValueableVector<int> NoAmmoWeapons {};
+
+	Nullable<AffectedHouse> RevealHouses {};
 #pragma endregion
 
 public:

@@ -1421,6 +1421,8 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->AttackTarget_WaitForTurreReset)
 		.Process(this->DisableProductionDuringBuildup)
 		.Process(this->MissileKeepTargetCoord)
+
+		.Process(this->RevealHouses)
 	;
 }
 
@@ -2329,7 +2331,6 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 				Debug::RegisterParserError();
 			}
 		}
-
 
 		if (isFoot && !pExt->IsDummy)
 		{
@@ -3580,6 +3581,8 @@ void FakeRulesClass::_ReadAudioVisual(CCINIClass* pINI)
 	this->SelectedAircraftMissingPCX.Read(pINI, GameStrings::AudioVisual(), "SelectedAircraftMissingPCX");
 	this->SelectedBuildingMissingPCX.Read(pINI, GameStrings::AudioVisual(), "SelectedBuildingMissingPCX");
 	this->SelectedIngameTimer.Read(exINI, GameStrings::AudioVisual(), "SelectedIngameTimer");
+
+	this->RevealHouses.Read(exINI, GameStrings::AudioVisual(), "RevealHouses");
 
 	// Global default per-sequence animation rates for infantry.
 	for (size_t i = 0; i < Sequences_Master.size(); ++i) {
