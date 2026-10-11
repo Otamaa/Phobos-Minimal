@@ -4932,16 +4932,18 @@ void UpdateTypeData_Foot(FootClass* pThis, TechnoTypeClass* pOldType, TechnoType
 
 				if (isinAir)
 				{
+					const bool inMove = pJJLoco->Is_Really_Moving_Now();
+
 					if (pCurrentType->BalloonHover)
 					{
 						// Makes the jumpjet think it is hovering without actually moving.
 						pJJLoco->NextState = JumpjetLocomotionClass::State::Hovering;
 						pJJLoco->IsMoving = true;
 
-						if (!pJJLoco->Is_Moving_Now())
+						if (!inMove)
 							pJJLoco->HeadToCoord = pThis->GetCoords();
 					}
-					else if (!pJJLoco->Is_Moving_Now())
+					else if (!inMove)
 					{
 						pJJLoco->Move_To(pThis->GetCoords());
 					}

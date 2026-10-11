@@ -243,15 +243,15 @@ void SpawnerMain::ApplyStaticOptions()
 		Game::EnableMPSyncDebug = true;
 
 		// Fixes text layout in the MPDebug panel
-		Patch::Apply_TYPED<DWORD>(0x542A19, { 312 });
-		Patch::Apply_TYPED<DWORD>(0x542AA6, { 322 });
-		Patch::Apply_TYPED<DWORD>(0x542B08, { 332 });
-		Patch::Apply_TYPED<DWORD>(0x542B72, { 342 });
-		Patch::Apply_TYPED<DWORD>(0x542BD4, { 352 });
-		Patch::Apply_TYPED<DWORD>(0x542C94, { 362 });
-		Patch::Apply_TYPED<DWORD>(0x542CF7, { 372 });
-		Patch::Apply_TYPED<DWORD>(0x542D5E, { 382 });
-		Patch::Apply_TYPED<DWORD>(0x542DC2, { 392 });
+		//Patch::Apply_TYPED<DWORD>(0x542A19, { 312 });
+		//Patch::Apply_TYPED<DWORD>(0x542AA6, { 322 });
+		//Patch::Apply_TYPED<DWORD>(0x542B08, { 332 });
+		//Patch::Apply_TYPED<DWORD>(0x542B72, { 342 });
+		//Patch::Apply_TYPED<DWORD>(0x542BD4, { 352 });
+		//Patch::Apply_TYPED<DWORD>(0x542C94, { 362 });
+		//Patch::Apply_TYPED<DWORD>(0x542CF7, { 372 });
+		//Patch::Apply_TYPED<DWORD>(0x542D5E, { 382 });
+		//Patch::Apply_TYPED<DWORD>(0x542DC2, { 392 });
 	}
 
 	if (pMainConfigs->SingleProcAffinity) {

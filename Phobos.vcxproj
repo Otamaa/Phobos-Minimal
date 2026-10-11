@@ -132,8 +132,10 @@
     <ClCompile Include="src\Misc\Spawner\DesyncHandler.cpp" />
     <ClCompile Include="src\Misc\Spawner\FastRetransmit.cpp" />
     <ClCompile Include="src\Misc\Spawner\FrameGate.cpp" />
+    <ClCompile Include="src\Misc\Spawner\MPDebug.cpp" />
     <ClCompile Include="src\Misc\Spawner\MPStatsFix.cpp" />
     <ClCompile Include="src\Misc\Spawner\PacketRedundancy.cpp" />
+    <ClCompile Include="src\Misc\Spawner\SilentCheer.cpp" />
     <ClCompile Include="src\Misc\SyncLogging.cpp" />
     <ClCompile Include="src\New\ChoiceBox\Entities\Base\MapChoiceBoxClass.cpp" />
     <ClCompile Include="src\New\ChoiceBox\Entities\Derived\ScreenChoiceBoxClass.cpp" />
