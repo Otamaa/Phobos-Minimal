@@ -30,8 +30,8 @@ void SW_MeteorShower::Initialize(SWTypeExtData* pData)
 	pData->This()->Action = Action(PhobosNewActionType::SuperWeaponAllowed);
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::LightningStorm;
 	pData->SW_RadarEvent = false;
-	pData->MeteorSmall = AnimTypeClass::Find(GameStrings::METSMALL);
-	pData->MeteorLarge = AnimTypeClass::Find(GameStrings::METLARGE);
+	pData->MeteorSmall = AnimTypeClass::Find(GameStrings::METSMALL());
+	pData->MeteorLarge = AnimTypeClass::Find(GameStrings::METLARGE());
 
 	pData->MeteorImpactSmall = VoxelAnimTypeClass::Find("METEOR02");
 	pData->MeteorImpactLarge = VoxelAnimTypeClass::Find("METEOR01");

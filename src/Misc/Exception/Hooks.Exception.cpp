@@ -607,7 +607,7 @@ static COMPILETIMEEVAL reference<DynamicVectorClass<ObjectClass*>*, 0x87F778u> c
 [[ noreturn ]] static void DoRecon(REGISTERS* R)
 {
 	// mimic an increment because decrement happens in the middle of function cleanup and can't be erased nicely
-	++Unsorted::SystemResponseMessages;
+	++Unsorted::SystemResponseMessages();
 	const auto hwnd = IsWindow(Game::hWnd()) ? Game::hWnd() : nullptr;
 
 	Debug::LogInfo("Reconnection error detected!");

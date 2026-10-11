@@ -419,7 +419,7 @@ struct RelayNetworkResult
 static bool ResolveSameFrameMaster(TechnoClass* pCandidate, WeaponTypeClass* /*pWeapon*/, int weaponIndex)
 {
 	auto const pScenExt = ScenarioExtData::Instance();
-	const int frame = Unsorted::CurrentFrame;
+	const int frame = Unsorted::CurrentFrame();
 
 	if (pScenExt->PrismRelayClaimFrame != frame)
 	{

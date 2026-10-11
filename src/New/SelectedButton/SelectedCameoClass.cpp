@@ -152,20 +152,20 @@ void SelectedCameoClass::DrawInfo() const
 		if (const auto CameoPCX = pTypeExt->CameoPCX.GetSurface())
 		{
 			RectangleStruct drawRect { this->Rect.X, this->Rect.Y, 60, 48 };
-			PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Composite, CameoPCX);
+			PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Composite(), CameoPCX);
 		}
 		else if (const auto pSHP = pTypeExt->This()->GetCameo())
 		{
 			if (const auto MissingCameoPCX = SelectedInfoClass::SearchMissingCameo(pTypeExt->This()->WhatAmI(), pSHP))
 			{
 				RectangleStruct drawRect { this->Rect.X, this->Rect.Y, 60, 48 };
-				PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Composite, MissingCameoPCX);
+				PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Composite(), MissingCameoPCX);
 			}
 			else
 			{
 				Point2D position { this->Rect.X, this->Rect.Y };
 				RectangleStruct rect { 0, 0, this->Rect.X + 60, this->Rect.Y + 48 };
-				DSurface::Composite->DrawSHP(pTypeExt->CameoPal.GetOrDefaultConvert(FileSystem::CAMEO_PAL), pSHP, 0, &position, &rect,
+				DSurface::Composite->DrawSHP(pTypeExt->CameoPal.GetOrDefaultConvert(FileSystem::CAMEO_PAL()), pSHP, 0, &position, &rect,
 					BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 			}
 		}

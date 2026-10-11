@@ -348,9 +348,9 @@ void SWTypeExtData::ApplyDropshipLoadoutLaunch(HouseClass* pHouse, const CellStr
 	startLocation.Z = zCoord;
 	pTransporter->SetLocation(startLocation);
 
-	++Unsorted::ScenarioInit;
+	++Unsorted::ScenarioInit();
 	bool success = pTransporter->Unlimbo(startLocation, DirType::North);
-	--Unsorted::ScenarioInit;
+	--Unsorted::ScenarioInit();
 
 	if (!success)
 	{
@@ -371,8 +371,8 @@ SWTypeExtData::SWTypeExtData(SuperWeaponTypeClass* pObj) : AbstractTypeExtData(p
 	this->Text_Charging = GameStrings::TXT_CHARGING();
 	this->Text_Active = GameStrings::TXT_FIRESTORM_ON();
 	this->Message_CannotFire = "MSG:CannotFire";
-	this->EVA_InsufficientFunds = VoxClass::FindIndexById(GameStrings::EVA_InsufficientFunds);
-	this->EVA_SelectTarget = VoxClass::FindIndexById(GameStrings::EVA_SelectTarget);
+	this->EVA_InsufficientFunds = VoxClass::FindIndexById(GameStrings::EVA_InsufficientFunds());
+	this->EVA_SelectTarget = VoxClass::FindIndexById(GameStrings::EVA_SelectTarget());
 
 }
 
@@ -413,7 +413,7 @@ Action SWTypeExtData::GetAction(SuperWeaponTypeClass* pSuper, CellStruct* pTarge
 	{
 		auto pNewType = SWTypeHandler::get_Handler(pExt->HandledType);
 
-		if (pNewType && !pNewType->CanFireAt(pExt, HouseClass::CurrentPlayer, *pTarget, true))
+		if (pNewType && !pNewType->CanFireAt(pExt, HouseClass::CurrentPlayer(), *pTarget, true))
 		{
 			result = PhobosNewActionType::SuperWeaponDisallowed;
 		}
@@ -1421,7 +1421,7 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	auto pThis = This();
 	const char* pSection = pThis->ID;
 
-	this->EMPulse_PulseBall = AnimTypeClass::Find(GameStrings::PULSBALL);
+	this->EMPulse_PulseBall = AnimTypeClass::Find(GameStrings::PULSBALL());
 
 	if (!this->AbstractTypeExtData::LoadFromINI(pINI, parseFailAddr))
 		return false;

@@ -2211,9 +2211,9 @@ bool AircraftExtData::PlaceReinforcementAircraft(AircraftClass* pThis, CellStruc
 		dir = GeneralUtils::GetDirectionBetweenCoords(coords, pTargetCoords).GetDir();
 	}
 
-	++Unsorted::ScenarioInit;
+	++Unsorted::ScenarioInit();
 	const bool result = pThis->Unlimbo(coords, dir);
-	--Unsorted::ScenarioInit;
+	--Unsorted::ScenarioInit();
 
 	pThis->SetHeight(pTypeExt->SpawnHeight.Get(pThis->Type->GetFlightLevel()));
 

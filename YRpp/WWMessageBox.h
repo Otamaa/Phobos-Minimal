@@ -18,8 +18,8 @@ public:
 
 	Result Process(
 		const wchar_t* pMsg,
-		const wchar_t* pBtn1 = StringTable::FetchString(GameStrings::TXT_OK),
-		const wchar_t* pBtn2 = StringTable::FetchString(GameStrings::TXT_CANCEL),
+		const wchar_t* pBtn1 = StringTable::FetchString(GameStrings::TXT_OK()),
+		const wchar_t* pBtn2 = StringTable::FetchString(GameStrings::TXT_CANCEL()),
 		const wchar_t* pBtn3 = nullptr,
 		bool bUkn = false
 	)

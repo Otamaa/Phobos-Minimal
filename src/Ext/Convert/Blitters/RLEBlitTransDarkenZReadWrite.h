@@ -121,7 +121,7 @@ private:
 		{
 			constexpr int ChunkSize = 8;
 			constexpr uintptr_t ChunkBytes = ChunkSize * sizeof(WORD);
-			ZBuffer* pZBuffer = ZBuffer::Instance;
+			ZBuffer* pZBuffer = ZBuffer::Instance();
 			const uintptr_t zTailAddress = reinterpret_cast<uintptr_t>(pZBuffer->BufferTail);
 			const __m256i zbaseVec32 = _mm256_set1_epi32(zbase);
 			const __m256i blendMask32 = _mm256_set1_epi32(static_cast<int>(mask));
@@ -218,7 +218,7 @@ private:
 		{
 			constexpr int ChunkSize = 8;
 			constexpr uintptr_t ChunkBytes = ChunkSize * sizeof(WORD);
-			ZBuffer* pZBuffer = ZBuffer::Instance;
+			ZBuffer* pZBuffer = ZBuffer::Instance();
 			const uintptr_t zTailAddress = reinterpret_cast<uintptr_t>(pZBuffer->BufferTail);
 			const __m128i zbaseVec16 = _mm_set1_epi16(static_cast<short>(zbase));
 			const __m128i blendMask16 = _mm_set1_epi16(static_cast<short>(mask));

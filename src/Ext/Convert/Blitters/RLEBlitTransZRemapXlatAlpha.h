@@ -219,7 +219,7 @@ private:
 		{
 			constexpr int ChunkSize = 8;
 			constexpr uintptr_t ChunkBytes = ChunkSize * sizeof(WORD);
-			ABuffer* pABuffer = ABuffer::Instance;
+			ABuffer* pABuffer = ABuffer::Instance();
 			const uintptr_t aTailAddress = reinterpret_cast<uintptr_t>(pABuffer->BufferTail);
 			const byte* pRemapTable = *pRemapData;
 

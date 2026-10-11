@@ -2367,7 +2367,7 @@ UnitTypeClass* TechnoExtData::GetUnitTypeImage(UnitClass* const pThis)
 	UnitTypeClass* pType = pThis->Type;
 	bool isDisguised = false;
 
-	if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer))
+	if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer()))
 	{
 		const auto pTargetType = pThis->GetDisguise(true);
 
@@ -4050,11 +4050,11 @@ BuildingClass* TechnoExtData::CreateBuilding(
 		}
 
 		const auto direction = (DirType)pBuilding->PrimaryFacing.Current().GetFacing<256>();
-		++Unsorted::ScenarioInit;
+		++Unsorted::ScenarioInit();
 		// GetFacing<256>, not <8>: Unlimbo wants a 256-direction facing. Shipped
 		// (0x1000F6C1) inlines `((Raw >> 7) + 1) >> 1`, which is GetValue<8>.
 		const bool res = pRet->Unlimbo(pBuilding->Location, direction);
-		--Unsorted::ScenarioInit;
+		--Unsorted::ScenarioInit();
 
 		if (!res)
 		{
@@ -5283,9 +5283,9 @@ void TechnoExtData::SpawnVisceroid(CoordStruct& crd, UnitTypeClass* pType, int c
 		{
 			if (auto pVisc = (UnitClass*)pType->CreateObject(Owner))
 			{
-				++Unsorted::ScenarioInit;
+				++Unsorted::ScenarioInit();
 				created = pVisc->Unlimbo(crd, DirType::North);
-				--Unsorted::ScenarioInit;
+				--Unsorted::ScenarioInit();
 
 				if (!created)
 				{
@@ -6460,16 +6460,16 @@ void __fastcall FakeTechnoClass:: __Activate(TechnoClass* pThis)
 
 		if (auto const wasDeactivated = std::exchange(pThis->Deactivated, false)) {
 			// change: don't play sound when mutex active
-			if (!Unsorted::ScenarioInit.get()) {
+			if (!Unsorted::ScenarioInit()) {
 				VocClass::SafeImmedietelyPlayAt(pType->ActivateSound, &pThis->Location, nullptr);
 			}
 
 			// change: add spotlight
 			auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 			if (pTypeExt->HasSpotlight) {
-				++Unsorted::ScenarioInit;
+				++Unsorted::ScenarioInit();
 				TechnoExtData::SetSpotlight(pThis, GameCreate<BuildingLightClass>(pThis));
-				--Unsorted::ScenarioInit;
+				--Unsorted::ScenarioInit();
 			}
 
 			// change: update factories
@@ -6879,7 +6879,7 @@ void __fastcall FakeTechnoClass::__DrawAirstrikeFlare(TechnoClass* pThis, discar
 	// Draw crosshair at end point if beam goes upward, using custom color instead of red
 	if (endPixel.Y < startPixel.Y)
 	{
-		DrawCustomCrosshair(DSurface::Temp, endPixel, beamColorInt);
+		DrawCustomCrosshair(DSurface::Temp(), endPixel, beamColorInt);
 	}
 
 	// Calculate beam direction vectors
@@ -6901,8 +6901,8 @@ void __fastcall FakeTechnoClass::__DrawAirstrikeFlare(TechnoClass* pThis, discar
 		int nextZ = fixedStartZ + (directionZ * step) / 64;
 
 		// Draw main beam segment using custom color
-		Surface_4BEAC0_Blit(DSurface::Temp,
-			DSurface::ViewBounds,
+		Surface_4BEAC0_Blit(DSurface::Temp(),
+			DSurface::ViewBounds(),
 			currentPos,
 			nextPos,
 			beamColor,
@@ -6916,13 +6916,13 @@ void __fastcall FakeTechnoClass::__DrawAirstrikeFlare(TechnoClass* pThis, discar
 			// Beam is more vertical, add horizontal thickness
 			Point2D thickPos1 = { currentPos.X + 1, currentPos.Y };
 			Point2D thickPos2 = { nextPos.X + 1, nextPos.Y };
-			Surface_4BEAC0_Blit(DSurface::Temp, DSurface::ViewBounds,
+			Surface_4BEAC0_Blit(DSurface::Temp(), DSurface::ViewBounds(),
 				thickPos1, thickPos2, beamColor,
 				intensity, currentZ, nextZ);
 
 			thickPos1 = { currentPos.X - 1, currentPos.Y };
 			thickPos2 = { nextPos.X - 1, nextPos.Y };
-			Surface_4BEAC0_Blit(DSurface::Temp, DSurface::ViewBounds,
+			Surface_4BEAC0_Blit(DSurface::Temp(), DSurface::ViewBounds(),
 				thickPos1, thickPos2, beamColor,
 				intensity, currentZ, nextZ);
 		}
@@ -6931,13 +6931,13 @@ void __fastcall FakeTechnoClass::__DrawAirstrikeFlare(TechnoClass* pThis, discar
 			// Beam is more horizontal, add vertical thickness
 			Point2D thickPos1 = { currentPos.X, currentPos.Y + 1 };
 			Point2D thickPos2 = { nextPos.X, nextPos.Y + 1 };
-			Surface_4BEAC0_Blit(DSurface::Temp, DSurface::ViewBounds,
+			Surface_4BEAC0_Blit(DSurface::Temp(), DSurface::ViewBounds(),
 				thickPos1, thickPos2, beamColor,
 				intensity, currentZ, nextZ);
 
 			thickPos1 = { currentPos.X, currentPos.Y - 1 };
 			thickPos2 = { nextPos.X, nextPos.Y - 1 };
-			Surface_4BEAC0_Blit(DSurface::Temp, DSurface::ViewBounds,
+			Surface_4BEAC0_Blit(DSurface::Temp(), DSurface::ViewBounds(),
 				thickPos1, thickPos2, beamColor,
 				intensity, currentZ, nextZ);
 		}
@@ -10012,9 +10012,9 @@ void TechnoExtData::SendPlane(AircraftTypeClass* Aircraft, size_t Amount, HouseC
 	for (size_t i = 0; i < Amount; ++i)
 	{
 		Debug::Log("Sending plane[%d] %s for %s\n", i, Aircraft->ID, pOwner->Type->ID);
-		++Unsorted::ScenarioInit;
+		++Unsorted::ScenarioInit();
 		auto const pPlane = static_cast<AircraftClass*>(Aircraft->CreateObject(pOwner));
-		--Unsorted::ScenarioInit;
+		--Unsorted::ScenarioInit();
 
 		if (!pPlane)
 			continue ;
@@ -10288,9 +10288,9 @@ void TechnoExtData::PutPassengersInCoords(TechnoClass* pTransporter, const Coord
 	bool Placed = false;
 	if (bForce)
 	{
-		++Unsorted::ScenarioInit;
+		++Unsorted::ScenarioInit();
 		Placed = pPassenger->Unlimbo(nDest, DirType::North);
-		--Unsorted::ScenarioInit;
+		--Unsorted::ScenarioInit();
 	}
 	else
 	{
@@ -10756,7 +10756,8 @@ void TechnoExtData::DrawSelectBox(TechnoClass* pThis,Point2D* pLocation,Rectangl
 	if (!pSelectBox || pSelectBox->DrawAboveTechno == drawBefore)
 		return;
 
-	const bool canSee = HouseClass::IsCurrentPlayerObserver() ? pSelectBox->VisibleToHouses_Observer : EnumFunctions::CanTargetHouse(pSelectBox->VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer);
+	const bool canSee = HouseClass::IsCurrentPlayerObserver() ? pSelectBox->VisibleToHouses_Observer :
+		EnumFunctions::CanTargetHouse(pSelectBox->VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer());
 
 	if (!canSee)
 		return;
@@ -10784,7 +10785,7 @@ void TechnoExtData::DrawSelectBox(TechnoClass* pThis,Point2D* pLocation,Rectangl
 
 		if (visible && pGroundShape)
 		{
-			const auto pPalette = pSelectBox->GroundPalette.GetOrDefaultConvert(FileSystem::PALETTE_PAL);
+			const auto pPalette = pSelectBox->GroundPalette.GetOrDefaultConvert(FileSystem::PALETTE_PAL());
 
 			const Point3D frames = pSelectBox->GroundFrames.Get(defaultFrame);
 			const int frame = healthPercentage > RulesClass::Instance->ConditionYellow ? frames.X : healthPercentage > RulesClass::Instance->ConditionRed ? frames.Y : frames.Z;
@@ -10807,7 +10808,7 @@ void TechnoExtData::DrawSelectBox(TechnoClass* pThis,Point2D* pLocation,Rectangl
 
 	if (const auto pShape = pSelectBox->Shape.Get())
 	{
-		const auto pPalette = pSelectBox->Palette.GetOrDefaultConvert(FileSystem::PALETTE_PAL);
+		const auto pPalette = pSelectBox->Palette.GetOrDefaultConvert(FileSystem::PALETTE_PAL());
 
 		const Point3D frames = pSelectBox->Frames.Get(defaultFrame);
 		const int frame = healthPercentage > RulesClass::Instance->ConditionYellow ? frames.X : healthPercentage > RulesClass::Instance->ConditionRed ? frames.Y : frames.Z;
@@ -10831,7 +10832,7 @@ std::pair<TechnoTypeClass*, HouseClass*> TechnoExtData::GetDisguiseType(TechnoCl
 	if (pTarget->WhatAmI() == BuildingClass::AbsID)
 		return { pTypeOut , pHouseOut };
 
-	const bool bIsVisible = !CheckVisibility ? bVisibleResult : (pTarget->IsClearlyVisibleTo(HouseClass::CurrentPlayer));
+	const bool bIsVisible = !CheckVisibility ? bVisibleResult : (pTarget->IsClearlyVisibleTo(HouseClass::CurrentPlayer()));
 
 	if (pTarget->IsDisguised() && !bIsVisible)
 	{
@@ -10863,7 +10864,7 @@ TechnoTypeClass* TechnoExtData::GetSimpleDisguiseType(TechnoClass* pTarget, bool
 	if (pTarget->WhatAmI() == BuildingClass::AbsID)
 		return pTypeOut;
 
-	const bool bIsVisible = !CheckVisibility ? bVisibleResult : (pTarget->IsClearlyVisibleTo(HouseClass::CurrentPlayer));
+	const bool bIsVisible = !CheckVisibility ? bVisibleResult : (pTarget->IsClearlyVisibleTo(HouseClass::CurrentPlayer()));
 
 	if (pTarget->IsDisguised() && !bIsVisible) {
 		if (pTarget->Disguise != pTypeOut) {
@@ -10879,7 +10880,7 @@ TechnoTypeClass* TechnoExtData::GetSimpleDisguiseType(TechnoClass* pTarget, bool
 static FORCEDINLINE std::pair<SHPCaches*, int> GetInsigniaDatas(TechnoClass* pThis, TechnoTypeExtData* pTypeExt)
 {
 	bool isCustomInsignia = false;
-	SHPCaches* pShapeFile = FileSystem::PIPS_SHP;
+	SHPCaches* pShapeFile = FileSystem::PIPS_SHP();
 	int defaultFrameIndex = -1;
 	const auto nCurRank = pThis->CurrentRanking;
 
@@ -11038,7 +11039,7 @@ void TechnoExtData::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, Rectang
 		GetAdjustedInsigniaOffset(pThis , offset , CoordStruct::Empty);
 		offset.Y += FakeRulesClass::Instance()->DrawInsignia_UsePixelSelectionBracketDelta ? GET_TECHNOTYPE(pThis)->PixelSelectionBracketDelta : 0;
 		DSurface::Temp->DrawSHP(
-			FileSystem::PALETTE_PAL, pShapeFile, frameIndex, &offset, pBounds, BlitterFlags(0xE00), 0, -2, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+			FileSystem::PALETTE_PAL(), pShapeFile, frameIndex, &offset, pBounds, BlitterFlags(0xE00), 0, -2, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 	}
 }
 
@@ -11464,7 +11465,7 @@ void TechnoExtData::UpdateTiberiumEater()
 
 	const auto pOwner = pThis->Owner;
 	bool active = false;
-	const bool displayCash = pEaterType->Display && pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer);
+	const bool displayCash = pEaterType->Display && pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer());
 	int facing = pThis->PrimaryFacing.Current().GetFacing<8>();
 
 	if (facing >= 7)
@@ -12846,7 +12847,7 @@ void TechnoExtData::ApplyDrainMoney(TechnoClass* pThis)
 				FlyingStrings::Instance.AddMoneyString(true, nDrainAmount, pSource, displayTo, pSource->Location, pTypeExt->DrainMoney_Display_Offset, ColorStruct::Empty);
 			}
 
-			if (pTypeExt->DrainMoney_Display_OnTarget.Get(FakeRulesClass::Instance()->DrainMoneyDisplay_OnTarget) && pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer)) {
+			if (pTypeExt->DrainMoney_Display_OnTarget.Get(FakeRulesClass::Instance()->DrainMoneyDisplay_OnTarget) && pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer())) {
 				if (!pTypeExt->DrainMoney_Display_OnTarget_UseDisplayIncome.Get(FakeRulesClass::Instance()->DrainMoneyDisplay_OnTarget_UseDisplayIncome)) {
 					const auto displayTo = pTypeExt->DrainMoney_Display_Houses.Get(FakeRulesClass::Instance()->DrainMoneyDisplay_Houses);
 					// use firer for owner check
@@ -13837,10 +13838,10 @@ bool TechnoExtData::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Sel
 		if (pCell->GetBuilding())
 			return false;
 
-		++Unsorted::ScenarioInit;
+		++Unsorted::ScenarioInit();
 		if (!Survivor->SpawnParachuted(loc))
 		{
-			--Unsorted::ScenarioInit;
+			--Unsorted::ScenarioInit();
 			return false;
 		}
 	}
@@ -13849,14 +13850,14 @@ bool TechnoExtData::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Sel
 		loc.Z = floorZ;
 		//if (!MapClass::Instance->GetCellAt(loc)->IsClearToMove(pType->SpeedType, pType->MovementZone))
 		//	return false;
-		++Unsorted::ScenarioInit;
+		++Unsorted::ScenarioInit();
 		if (!Survivor->Unlimbo(loc, ScenarioClass::Instance->Random.RandomRangedSpecific<DirType>(DirType::North, DirType::NorthWest))) {
-			--Unsorted::ScenarioInit;
+			--Unsorted::ScenarioInit();
 			return false;
 		}
 	}
 
-	--Unsorted::ScenarioInit;
+	--Unsorted::ScenarioInit();
 
 	Survivor->Transporter = nullptr;
 	Survivor->LastMapCoords = pCell->MapCoords;

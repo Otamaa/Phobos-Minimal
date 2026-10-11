@@ -78,18 +78,46 @@ bool SetInitialVeteran(AircraftClass* pThis) {
 	return false;
 }
 
-ASMJIT_PATCH(0x413F90, AircraftClass_Init_Academy, 8)
+ASMJIT_PATCH(0x413F80, AircraftClass_Init_Override, 5)
 {
-	GET(AircraftClass*, pThis, ESI);
+	GET(AircraftClass*, pThis, ECX);
 
-	if (pThis->Owner) {
-		if (SetInitialVeteran(pThis))
-			pThis->Veterancy.Veterancy = 1.0f;
+	pThis->TechnoClass::Init();
+	if (auto pType = pThis->Type) {
+		if (pType->Cloakable) {
+			pThis->Cloakable = true;
+		}
 
-		HouseExtData::ApplyAcademy(pThis->Owner, pThis, AbstractType::Aircraft);
+		if (auto pOwner = pThis->Owner) {
+			if (SetInitialVeteran(pThis))
+				pThis->Veterancy.Veterancy = 1.0f;
+
+			HouseExtData::ApplyAcademy(pOwner, pThis, AbstractType::Aircraft);
+			pOwner->AddTracking(pThis);
+		}
+
+		pThis->PrimaryFacing.Set_ROT(pType->ROT);
+		pThis->SecondaryFacing.Set_ROT(TechnoTypeExtContainer::Instance.Find(pType)->TurretRot.Get(pType->ROT));
+		pThis->SecondaryFacing.Set_Current(pThis->PrimaryFacing.Current());
+		pThis->SetHeight(pType->GetFlightLevel());
+		int ammo = pType->InitialAmmo;
+		if (ammo == -1)
+			ammo = pType->Ammo;
+
+		pThis->Ammo = ammo;
+
+		auto pTypeExt = AircraftTypeExtContainer::Instance.Find(pType);
+
+		if (pTypeExt->Initial_DriverKilled)
+			TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled = true;
+
+		int hp = TechnoTypeExtContainer::Instance.Find(pType)->InitialStrength.Get(pType->Strength);
+
+		pThis->Health = hp;
+		pThis->EstimatedHealth = hp;
 	}
 
-	return 0x413FD2;
+	return 0x414070;
 }
 
 ASMJIT_PATCH(0x41A5C7, AircraftClass_Mission_Guard_StartAreaGuard, 0x6)

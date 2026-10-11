@@ -357,7 +357,7 @@ ASMJIT_PATCH(0x4483FB, BuildingClass_SetOwningHouse_Tech, 6)
 			auto coord = pThis->GetMapCoords();
 			if(RadarEventClass::Create(RadarEventType::BuildingCaptured,coord)){
 				if(pNewOwner->ControlledByCurrentPlayer())
-					VoxClass::Play(GameStrings::EVA_BuildingCaptured);
+					VoxClass::Play(GameStrings::EVA_BuildingCaptured());
 			}
 		}
 	}
@@ -934,9 +934,9 @@ ASMJIT_PATCH(0x449FF8, BuildingClass_Mission_Selling_PutMcv, 7)
 	REF_STACK(CoordStruct const, Crd, STACK_OFFS(0xD0, 0xB8));
 
 	// set the override for putting, not just for creation as WW did
-	++Unsorted::ScenarioInit;
+	++Unsorted::ScenarioInit();
 	const auto ret = pUnit->Unlimbo(Crd, facing);
-	--Unsorted::ScenarioInit;
+	--Unsorted::ScenarioInit();
 
 	// should never happen, but if anything breaks, it's here
 	if (!ret)

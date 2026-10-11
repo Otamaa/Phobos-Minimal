@@ -209,7 +209,7 @@ void SelectedNotButtonClass::DrawInfo() const
 		const double mult = TechnoExtData::ApplyAdditionalDamageMult(pTechno, TechnoExtData::GetDamageMult(pTechno));
 		const int frame = getIconFrame(0, mult);
 		RectangleStruct rect { 0, 0, this->Rect.X + this->Rect.Width, this->Rect.Y + this->Rect.Height };
-		DSurface::Composite->DrawSHP(pSideExt->SelectedInfo_Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL),
+		DSurface::Composite->DrawSHP(pSideExt->SelectedInfo_Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL()),
 			pSHP, frame, &position, &rect, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 
 		if (this->Hovering)
@@ -231,7 +231,7 @@ void SelectedNotButtonClass::DrawInfo() const
 		const auto mult = TechnoExtData::GetCurrentArmorMultiplier(pTechno, pTechno->GetTechnoType(), nullptr, nullptr,false, false);
 		const int frame = getIconFrame(5, mult);
 		RectangleStruct rect { 0, 0, this->Rect.X + this->Rect.Width, this->Rect.Y + this->Rect.Height };
-		DSurface::Composite->DrawSHP(pSideExt->SelectedInfo_Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL),
+		DSurface::Composite->DrawSHP(pSideExt->SelectedInfo_Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL()),
 			pSHP, frame, &position, &rect, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 
 		if (this->Hovering)
@@ -257,7 +257,7 @@ void SelectedNotButtonClass::DrawInfo() const
 
 		const int frame = getIconFrame((pFoot ? 10 : 0), mult);
 		RectangleStruct rect { 0, 0, this->Rect.X + this->Rect.Width, this->Rect.Y + this->Rect.Height };
-		DSurface::Composite->DrawSHP(pSideExt->SelectedInfo_Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL),
+		DSurface::Composite->DrawSHP(pSideExt->SelectedInfo_Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL()),
 			pSHP, frame, &position, &rect, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 
 		if (this->Hovering)
@@ -393,6 +393,6 @@ void SelectedScrollClass::DrawInfo() const
 	const auto position = Point2D { this->Rect.X, this->Rect.Y };
 	auto& seIns = SelectedInfoClass::Instance;
 	const auto frame = this->ID == 0 ? (seIns.CanScrollLeft() ? 4 : 5) : (seIns.CanScrollRight() ? 6 : 7);
-	DSurface::Composite->DrawSHP(pSideExt->SelectedInfo_Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL),
+	DSurface::Composite->DrawSHP(pSideExt->SelectedInfo_Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL()),
 		pSHP, frame, &position, &rect, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 }

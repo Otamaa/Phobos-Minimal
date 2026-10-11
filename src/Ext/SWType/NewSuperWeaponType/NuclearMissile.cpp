@@ -85,12 +85,12 @@ void SW_NuclearMissile::Initialize(SWTypeExtData* pData)
 	pData->This()->Action = Action::Nuke;
 
 	// default values for the original Nuke
-	pData->Nuke_Payload = WeaponTypeClass::FindOrAllocate(GameStrings::NukePayload); //use for nuke pointing down
+	pData->Nuke_Payload = WeaponTypeClass::FindOrAllocate(GameStrings::NukePayload()); //use for nuke pointing down
 	//SW->WeaponType = used for nuke pointing up !
-	pData->Nuke_PsiWarning = AnimTypeClass::Find(GameStrings::PSIWARN);
+	pData->Nuke_PsiWarning = AnimTypeClass::Find(GameStrings::PSIWARN());
 
 	pData->EVA_Detected = VoxClass::FindIndexById(GameStrings::EVA_NuclearSiloDetected());
-	pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_NuclearMissileReady);
+	pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_NuclearMissileReady());
 	pData->EVA_Activated = VoxClass::FindIndexById(GameStrings::EVA_NuclearMissileLaunched());
 
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::Nuke;

@@ -48,7 +48,7 @@ private:
 		{
 			constexpr int ChunkSize = 8;
 			constexpr uintptr_t ChunkBytes = ChunkSize * sizeof(WORD);
-			ZBuffer* pZBuffer = ZBuffer::Instance;
+			ZBuffer* pZBuffer = ZBuffer::Instance();
 			const uintptr_t zTailAddress = reinterpret_cast<uintptr_t>(pZBuffer->BufferTail);
 
 			const __m128i zero16 = _mm_setzero_si128();

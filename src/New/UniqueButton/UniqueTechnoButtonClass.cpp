@@ -45,7 +45,7 @@ bool UniqueTechnoButtonClass::Draw(bool forced)
 
 	if (const auto CameoPCX = pTypeExt->CameoPCX.GetSurface())
 	{
-		PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Composite, CameoPCX);
+		PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Composite(), CameoPCX);
 	}
 	else if (const auto pSHP = pType->GetCameo())
 	{
@@ -55,7 +55,7 @@ bool UniqueTechnoButtonClass::Draw(bool forced)
 			strcpy_s(pFilename, FakeRulesClass::Instance->MissingCameo.data());
 			_strlwr_s(pFilename);
 
-			if (!_stricmp(pSHP->Filename, GameStrings::XXICON_SHP) && strstr(pFilename, ".pcx"))
+			if (!_stricmp(pSHP->Filename, GameStrings::XXICON_SHP()) && strstr(pFilename, ".pcx"))
 			{
 				PCXImages::Instance->LoadFile(pFilename);
 
@@ -68,12 +68,12 @@ bool UniqueTechnoButtonClass::Draw(bool forced)
 
 		if (const auto MissingCameoPCX = getMissingCameo())
 		{
-			PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Composite, MissingCameoPCX);
+			PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Composite(), MissingCameoPCX);
 		}
 		else
 		{
 			RectangleStruct rect { 0, 0, position.X + 60, position.Y + 48 };
-			DSurface::Composite->DrawSHP(pTypeExt->CameoPal.GetOrDefaultConvert(FileSystem::CAMEO_PAL), pSHP, 0, &position, &rect,
+			DSurface::Composite->DrawSHP(pTypeExt->CameoPal.GetOrDefaultConvert(FileSystem::CAMEO_PAL()), pSHP, 0, &position, &rect,
 				BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 		}
 	}

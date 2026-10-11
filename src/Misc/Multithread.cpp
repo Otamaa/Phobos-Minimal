@@ -292,13 +292,13 @@ public:
 		if (isActive || isDevUIOpen)
 		{
 			ObserverUIClass::Instance.Update();
-			ObserverUIClass::Instance.Render(DSurface::Composite);
+			ObserverUIClass::Instance.Render(DSurface::Composite());
 		}
 
 		MessageColumnClass::Instance.DrawAll();
 		LuaAPI::OnRender();// TODO : hmm, not sure if this is good here 
 							// maybe need to consider other place
-		WWMouseClass::Instance->func_3C(DSurface::Composite, false);
+		WWMouseClass::Instance->func_3C(DSurface::Composite(), false);
 		pThis->vt_entry_44();
 
 		DSurface::Temp = pTempSurface;

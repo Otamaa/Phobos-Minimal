@@ -32,18 +32,6 @@ ASMJIT_PATCH(0x7355BA, UnitClass_Init_InitialStrength, 0x6)
 	return 0x7355C0;
 }
 
-ASMJIT_PATCH(0x414051, AircraftClass_Init_InitialStrength, 0x6)
-{
-	GET(AircraftClass*, pThis, ESI);
-	GET(AircraftTypeClass*, pType, EAX);
-
-	if (TechnoTypeExtContainer::Instance.Find(pType)->Initial_DriverKilled)
-		TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled = true;
-
-	R->EAX(TechnoTypeExtContainer::Instance.Find(pType)->InitialStrength.Get(pType->Strength));
-	return 0x414057;
-}
-
 //ASMJIT_PATCH(0x442C40, BuildingClass_Init_Log, 0x8)
 //{
 //	GET(BuildingClass*, pThis, ESI);

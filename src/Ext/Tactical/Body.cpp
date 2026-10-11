@@ -1946,7 +1946,7 @@ void FakeTacticalClass::_Render(DSurface* pSurface, bool flag, TacticalRenderMod
 
 	pSurface->Lock(0, 0);
 
-	DSurface* const prevAnimSurface = DSurface::Temp;
+	DSurface* const prevAnimSurface = DSurface::Temp();
 	DSurface::Temp = pSurface;
 
 	// --- First pass ---

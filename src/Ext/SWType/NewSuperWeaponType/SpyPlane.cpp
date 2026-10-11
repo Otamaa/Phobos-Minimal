@@ -31,7 +31,7 @@ void SW_SpyPlane::Initialize(SWTypeExtData* pData)
 	// Defaults to Spy Plane values
 	pData->SW_RadarEvent = false;
 
-	pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_SpyPlaneReady);
+	pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_SpyPlaneReady());
 
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::ParaDrop;
 	pData->CursorType = (int)MouseCursorType::SpyPlane;

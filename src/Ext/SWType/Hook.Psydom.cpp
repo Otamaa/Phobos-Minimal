@@ -17,8 +17,8 @@ ASMJIT_PATCH(0x53B080, PsyDom_Fire, 5)
 	if (SuperClass* pSuper = SW_PsychicDominator::CurrentPsyDom)
 	{
 		const auto pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
-		HouseClass* pFirer = PsyDom::Owner;
-		CellStruct cell = PsyDom::Coords;
+		HouseClass* pFirer = PsyDom::Owner();
+		CellStruct cell = PsyDom::Coords();
 		auto pNewData = pData->GetNewSWType();
 		CellClass* pTarget = MapClass::Instance->GetCellAt(cell);
 		CoordStruct coords = pTarget->GetCoords();
@@ -43,7 +43,7 @@ ASMJIT_PATCH(0x53B080, PsyDom_Fire, 5)
 			CoordStruct animCoords = coords;
 			animCoords.Z += pData->Dominator_SecondAnimHeight;
 			auto pCreated = GameCreate<AnimClass>(pAnimType, animCoords);
-			pCreated->SetHouse(PsyDom::Owner);
+			pCreated->SetHouse(PsyDom::Owner());
 			PsyDom::Anim = pCreated;
 		}
 

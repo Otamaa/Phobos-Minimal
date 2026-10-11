@@ -44,7 +44,7 @@ void SelectedColumnClass::DrawInfo() const
 	auto surfaceRect = RectangleStruct { 0, 0, this->Rect.X + this->Rect.Width, this->Rect.Y + this->Rect.Height };
 
 	if (const auto pMainSHP = pSideExt->SelectedInfo_Main.Get((SHPCaches*)SelectedInfoClass::SelectedInfo_Main)) {
-		DSurface::Composite->DrawSHP(pSideExt->SelectedInfo_Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL),
+		DSurface::Composite->DrawSHP(pSideExt->SelectedInfo_Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL()),
 			pMainSHP, 0, &position, &surfaceRect, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 	}
 
@@ -365,20 +365,20 @@ void SelectedColumnClass::DrawInfo() const
 	if (const auto pCameoPCX = pDisplayTypeExt ? pDisplayTypeExt->CameoPCX.GetSurface() : nullptr)
 	{
 		auto drawRect = RectangleStruct { pMainCameo->Rect.X, pMainCameo->Rect.Y, pMainCameo->Rect.Width, pMainCameo->Rect.Height };
-		PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Composite, pCameoPCX);
+		PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Composite(), pCameoPCX);
 	}
 	else if (const auto pSHP = pDisplayType->GetCameo())
 	{
 		if (const auto MissingCameoPCX = SelectedInfoClass::SearchMissingCameo(pDisplayType->WhatAmI(), pSHP))
 		{
 			auto drawRect = RectangleStruct { pMainCameo->Rect.X, pMainCameo->Rect.Y, pMainCameo->Rect.Width, pMainCameo->Rect.Height };
-			PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Composite, MissingCameoPCX);
+			PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Composite(), MissingCameoPCX);
 		}
 		else
 		{
 			position = Point2D { pMainCameo->Rect.X, pMainCameo->Rect.Y };
 			const auto cameoRect = RectangleStruct { 0, 0, pMainCameo->Rect.X + pMainCameo->Rect.Width, pMainCameo->Rect.Y + pMainCameo->Rect.Height };
-			const auto pPal = pDisplayTypeExt ? pDisplayTypeExt->CameoPal.GetOrDefaultConvert(FileSystem::CAMEO_PAL) : FileSystem::CAMEO_PAL;
+			const auto pPal = pDisplayTypeExt ? pDisplayTypeExt->CameoPal.GetOrDefaultConvert(FileSystem::CAMEO_PAL()) : FileSystem::CAMEO_PAL();
 			DSurface::Composite->DrawSHP(pPal, pSHP, 0, &position, &cameoRect, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 		}
 	}
@@ -486,7 +486,7 @@ void SelectedBottomClass::DrawInfo() const
 	{
 		const auto position = Point2D { this->Rect.X, this->Rect.Y };
 		const auto frame = Phobos::Config::SelectedDisplay_Enable ? (SelectedInfoClass::Instance.SingleSelect ? 1 : 2) : 0;
-		DSurface::Composite->DrawSHP(pSideExt->SelectedInfo_Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL),
+		DSurface::Composite->DrawSHP(pSideExt->SelectedInfo_Palette.GetOrDefaultConvert(FileSystem::ANIM_PAL()),
 			pSHP, frame, &position, &rect, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 	}
 

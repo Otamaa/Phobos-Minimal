@@ -328,7 +328,7 @@ void ScenarioExtData::DetonateMasterBullet(const CoordStruct& coords, TechnoClas
 void ScenarioExtData::ReadMissionMDINI()
 {
 	const char* _requested = //SpawnerMain::Configs::Active ? "SPAWN.INI" :
-		GameStrings::MISSIONMD_INI;
+		GameStrings::MISSIONMD_INI();
 	CCFileClass file { _requested };
 
 	if (!file.IsAvaible()) {
@@ -374,11 +374,11 @@ void ScenarioExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	 INI_EX exINI(pINI);
 
-	this->ShowBriefing.Read(exINI, GameStrings::Basic, "ShowBriefing");
-	this->BriefingTheme = pINI->ReadTheme(GameStrings::Basic, "BriefingTheme", this->BriefingTheme);
-	this->OriginalFilename.Read(exINI, GameStrings::Basic, "OriginalFilename");
+	this->ShowBriefing.Read(exINI, GameStrings::Basic(), "ShowBriefing");
+	this->BriefingTheme = pINI->ReadTheme(GameStrings::Basic(), "BriefingTheme", this->BriefingTheme);
+	this->OriginalFilename.Read(exINI, GameStrings::Basic(), "OriginalFilename");
 
-	DropshipLoadoutClass::ParseScenario(exINI, GameStrings::Basic, this);
+	DropshipLoadoutClass::ParseScenario(exINI, GameStrings::Basic(), this);
 
 	this->ReadMissionMDINI();
 

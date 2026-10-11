@@ -28,6 +28,6 @@ protected:
 #define CATEGORY_SELECTION StringTable::FetchString(GameStrings::TXT_SELECTION())
 #define CATEGORY_CONTROL StringTable::FetchString(GameStrings::TXT_CONTROL())
 #define CATEGORY_DEBUG GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DEBUG", L"Debug")
-#define CATEGORY_GUIDEBUG StringTable::FetchString(GameStrings::GUI_Debug)
+#define CATEGORY_GUIDEBUG StringTable::FetchString(GameStrings::GUI_Debug())
 #define CATEGORY_DEVELOPMENT GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DEVELOPMENT", L"Development")
 #define CATEGORY_INFORMATION GeneralUtils::LoadStringUnlessMissing("TXT_CATEGORY_INFORMATION", L"Information")

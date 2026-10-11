@@ -304,7 +304,7 @@ void MapTextBoxClass::DrawAt(Point2D centerPos)
 	}
 
 	// ===== 逐行绘制文字 =====
-	RectangleStruct bounds = DSurface::ViewBounds;
+	RectangleStruct bounds = DSurface::ViewBounds();
 	int currentY = topLeft.Y + PADDINGY;
 	for (const std::wstring& line : m_cache.CachedLines)
 	{

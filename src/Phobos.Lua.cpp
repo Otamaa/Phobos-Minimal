@@ -2068,7 +2068,7 @@ int LuaAPI::PushHouse(lua_State* L, HouseClass* pHouse)
 
 int House_GetPlayer(lua_State* L)
 {
-	HouseClass* pHouse = HouseClass::CurrentPlayer;
+	HouseClass* pHouse = HouseClass::CurrentPlayer();
 	if (!pHouse)
 		return 0; // nil
 

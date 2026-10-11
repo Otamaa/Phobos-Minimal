@@ -232,7 +232,7 @@ void HugeBar::ProcessHugeBar()
 				&& !EnumFunctions::CanTargetHouse(
 					configs[i].VisibleToHouses,
 					pTmpTechno->GetOwningHouse(),
-					HouseClass::CurrentPlayer))
+					HouseClass::CurrentPlayer()))
 				continue;
 
 			const auto pTmpTechnoTypeExt = GET_TECHNOTYPEEXT(pTmpTechno);
@@ -278,12 +278,12 @@ void HugeBar::DrawHugeBar(int iCurrent, int iMax)
 		&& this->HugeBar_Pips_Frame.Get(ratio, RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed) >= 0)
 	{
 		SHPCaches* pShp_Bar = this->HugeBar_Shape;
-		ConvertClass* pPal_Bar = FileSystem::PALETTE_PAL;
+		ConvertClass* pPal_Bar = FileSystem::PALETTE_PAL();
 		if (auto pCust = this->HugeBar_Palette.GetConvert())
 			pPal_Bar = pCust;
 
 		SHPCaches* pShp_Pips = this->HugeBar_Pips_Shape;
-		ConvertClass* pPal_Pips = FileSystem::PALETTE_PAL;
+		ConvertClass* pPal_Pips = FileSystem::PALETTE_PAL();
 		if(auto pCust_1 = this->HugeBar_Pips_Palette.GetConvert())
 			pPal_Pips = pCust_1;
 
@@ -483,7 +483,7 @@ void HugeBar::HugeBar_DrawValue(Point2D& posDraw, int iCurrent, int iMax)
 	if (this->Value_Shape != nullptr)
 	{
 		SHPCaches* pShp = this->Value_Shape;
-		ConvertClass* pPal = FileSystem::PALETTE_PAL;
+		ConvertClass* pPal = FileSystem::PALETTE_PAL();
 		if(auto pCust_1 = this->Value_Palette.GetConvert())
 			pPal = pCust_1;
 
@@ -526,7 +526,7 @@ void HugeBar::HugeBar_DrawValue(Point2D& posDraw, int iCurrent, int iMax)
 			iSignBaseFrame,
 			Point2D({ this->Value_Shape_Spacing, 0 })
 		);
-		ShapeTextPrinter::PrintShape(text, printData, &posDraw, &rBound, DSurface::Composite);
+		ShapeTextPrinter::PrintShape(text, printData, &posDraw, &rBound, DSurface::Composite());
 	}
 	else
 	{

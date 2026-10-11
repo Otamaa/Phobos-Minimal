@@ -1292,7 +1292,7 @@ CollectResult Crate_Handle_Reveal(const CrateContext& ctx)
 	Debug::LogInfo("Crate at {},{} contains 'reveal'", ctx.pCell->MapCoords.X, ctx.pCell->MapCoords.Y);
 
 	MapClass::Instance->Reveal(ctx.pCollectorOwner->IsControlledByHuman()
-		? HouseClass::CurrentPlayer
+		? HouseClass::CurrentPlayer()
 		: ctx.pCollectorOwner);
 
 	ctx.pType->PlayAllAffects(ctx.loc, ctx.locSound, ctx.isControlledByPlayer);

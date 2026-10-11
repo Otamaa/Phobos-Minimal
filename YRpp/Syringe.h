@@ -1406,6 +1406,21 @@ struct DebugData
 #define DEFINE_HOOK_AGAIN(hook, funcname, size) \
 	declhook(hook, funcname##_DEBUG_HOOK__LOG_, size)
 
+#define ASMJIT_PATCH(hook, funcname, size) \
+	decl_asmjit_patch_data(hook, funcname##_DEBUG_HOOK__LOG_, size) \
+	EXPORT_DEBUG_DECLARE(funcname##_DEBUG_) \
+	EXPORT_FUNC(funcname##_DEBUG_HOOK__LOG_) \
+	{ \
+		DebugData::Start(R->Origin(), #funcname, size); \
+		DWORD ret = funcname##_DEBUG_(R); \
+		DebugData::End(R->Origin(), #funcname, size); \
+		return ret; \
+	} \
+	EXPORT_DEBUG(funcname##_DEBUG_)
+
+#define ASMJIT_PATCH_AGAIN(hook, funcname, size) \
+	decl_asmjit_patch_data(hook, funcname##_DEBUG_HOOK__LOG_, size)
+
 #endif // DEBUG_HOOK
 
 // ============================================================================

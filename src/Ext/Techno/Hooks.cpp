@@ -666,10 +666,10 @@ void DrawFactoryProgress(TechnoClass* pThis, Point2D* pLocation, RectangleStruct
 		Point2D position = location;
 
 		for (int frameIdx = curLength; frameIdx; --frameIdx, position.X -= 4, position.Y += 2)
-			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP, 3, &position, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL(), FileSystem::PIPS_SHP(), 3, &position, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 
 		for (int frameIdx = maxLength - curLength; frameIdx; --frameIdx, position.X -= 4, position.Y += 2)
-			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP, 0, &position, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL(), FileSystem::PIPS_SHP(), 0, &position, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 	}
 
 	if (haveSecondary)
@@ -678,10 +678,10 @@ void DrawFactoryProgress(TechnoClass* pThis, Point2D* pLocation, RectangleStruct
 		Point2D position = havePrimary ? location + Point2D { 6, 3 } : location;
 
 		for (int frameIdx = curLength; frameIdx; --frameIdx, position.X -= 4, position.Y += 2)
-			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP, 3, &position, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL(), FileSystem::PIPS_SHP(), 3, &position, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 
 		for (int frameIdx = maxLength - curLength; frameIdx; --frameIdx, position.X -= 4, position.Y += 2)
-			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP, 0, &position, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL(), FileSystem::PIPS_SHP(), 0, &position, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 	}
 }
 
@@ -717,10 +717,10 @@ void DrawSuperProgress(TechnoClass* pThis, Point2D* pLocation ,  RectangleStruct
 	Point2D position = TechnoExtData::GetBuildingSelectBracketPosition(pBuilding , BuildingSelectBracketPosition::Top) + Point2D { 5, 3 };
 
 	for (int frameIdx = curLength; frameIdx; --frameIdx, position.X -= 4, position.Y += 2)
-		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP, 5, &position, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL(), FileSystem::PIPS_SHP(), 5, &position, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 
 	for (int frameIdx = maxLength - curLength; frameIdx; --frameIdx, position.X -= 4, position.Y += 2)
-		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP, 0, &position, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL(), FileSystem::PIPS_SHP(), 0, &position, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 }
 
 struct DrawFrameStruct
@@ -745,7 +745,7 @@ void DrawVanillaStyleFootBar(DrawFrameStruct* pDraw)
 	if (pDraw->BrdFrame >= 0)
 	{
 		pLocation->X += 17;
-		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPBRD_SHP, pDraw->BrdFrame, pLocation, pBounds, BlitterFlags(0xE00), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL(), FileSystem::PIPBRD_SHP(), pDraw->BrdFrame, pLocation, pBounds, BlitterFlags(0xE00), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 		pLocation->X -= 15;
 	}
 	else
@@ -764,7 +764,7 @@ void DrawVanillaStyleFootBar(DrawFrameStruct* pDraw)
 	if (pDraw->TopFrame >= 0 && pDraw->TopPipSHP)
 	{
 		for (auto drawIdx = length; drawIdx > 0; --drawIdx, pLocation->X += 2)
-			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, pDraw->TopPipSHP, pDraw->TopFrame, pLocation, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL(), pDraw->TopPipSHP, pDraw->TopFrame, pLocation, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 	}
 
 	length = midLength > maxLength ? maxLength - length : midLength - length;
@@ -772,7 +772,7 @@ void DrawVanillaStyleFootBar(DrawFrameStruct* pDraw)
 	if (pDraw->MidFrame >= 0 && pDraw->MidPipSHP)
 	{
 		for (auto drawIdx = length; drawIdx > 0; --drawIdx, pLocation->X += 2)
-			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, pDraw->MidPipSHP, pDraw->MidFrame, pLocation, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL(), pDraw->MidPipSHP, pDraw->MidFrame, pLocation, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 	}
 }
 
@@ -791,7 +791,7 @@ void DrawVanillaStyleBuildingBar(DrawFrameStruct* pDraw)
 	if (pDraw->TopFrame >= 0 && pDraw->TopPipSHP)
 	{
 		for (auto drawIdx = length; drawIdx > 0; --drawIdx, pLocation->X -= 4, pLocation->Y += 2)
-			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, pDraw->TopPipSHP, pDraw->TopFrame, pLocation, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL(), pDraw->TopPipSHP, pDraw->TopFrame, pLocation, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 	}
 
 	length = midLength > maxLength ? maxLength - length : midLength - length;
@@ -799,7 +799,7 @@ void DrawVanillaStyleBuildingBar(DrawFrameStruct* pDraw)
 	if (pDraw->MidFrame >= 0 && pDraw->MidPipSHP)
 	{
 		for (auto drawIdx = length; drawIdx > 0; --drawIdx, pLocation->X -= 4, pLocation->Y += 2)
-			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, pDraw->MidPipSHP, pDraw->MidFrame, pLocation, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL(), pDraw->MidPipSHP, pDraw->MidFrame, pLocation, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 	}
 
 	length = length >= 0 ? maxLength - midLength : maxLength - topLength;
@@ -807,7 +807,7 @@ void DrawVanillaStyleBuildingBar(DrawFrameStruct* pDraw)
 	if (pDraw->BrdFrame >= 0)
 	{
 		for (auto drawIdx = length; drawIdx > 0; --drawIdx, pLocation->X -= 4, pLocation->Y += 2)
-			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP, pDraw->BrdFrame, pLocation, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL(), FileSystem::PIPS_SHP(), pDraw->BrdFrame, pLocation, pBounds, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 	}
 }
 
@@ -843,11 +843,11 @@ void DrawIronCurtainProgress(TechnoClass* pThis, RectangleStruct* pBounds, Point
 
 		if (offset == Point2D::Empty && (pThis->IsSelected || pThis->IsMouseHovering)) // Layer fix
 		{
-			RulesClass* const pRules = RulesClass::Instance;
+			RulesClass* const pRules = RulesClass::Instance();
 			const auto ratio = pBuilding->GetHealthPercentage();
 			pDraw.MidLength = static_cast<int>(ratio * maxLength);
 			pDraw.MidFrame = (ratio > pRules->ConditionYellow) ? 1 : (ratio > pRules->ConditionRed ? 2 : 4);
-			pDraw.MidPipSHP = FileSystem::PIPS_SHP;
+			pDraw.MidPipSHP = FileSystem::PIPS_SHP();
 			pDraw.BrdFrame = 0;
 		}
 
@@ -908,11 +908,11 @@ void DrawTemporalProgress(TechnoClass* pThis, RectangleStruct* pBounds, Point2D 
 
 		if (offset == Point2D::Empty && (pThis->IsSelected || pThis->IsMouseHovering)) // Layer fix
 		{
-			RulesClass* const pRules = RulesClass::Instance;
+			RulesClass* const pRules = RulesClass::Instance();
 			const auto ratio = pBuilding->GetHealthPercentage();
 			pDraw.MidLength = static_cast<int>(ratio * maxLength);
 			pDraw.MidFrame = (ratio > pRules->ConditionYellow) ? 1 : (ratio > pRules->ConditionRed ? 2 : 4);
-			pDraw.MidPipSHP = FileSystem::PIPS_SHP;
+			pDraw.MidPipSHP = FileSystem::PIPS_SHP();
 			pDraw.BrdFrame = 0;
 		}
 
@@ -1138,7 +1138,8 @@ ASMJIT_PATCH(0x655DDD, RadarClass_ProcessPoint_RadarInvisible, 0x6)
 		{
 			auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-			if (!pTypeExt->RadarInvisibleToHouse.isset() || EnumFunctions::CanTargetHouse(pTypeExt->RadarInvisibleToHouse.Fetch(), pTechno->Owner, HouseClass::CurrentPlayer))
+			if (!pTypeExt->RadarInvisibleToHouse.isset() ||
+				EnumFunctions::CanTargetHouse(pTypeExt->RadarInvisibleToHouse.Fetch(), pTechno->Owner, HouseClass::CurrentPlayer()))
 				return Invisible;
 		}
 	}
@@ -2700,8 +2701,8 @@ ASMJIT_PATCH(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
 
 	const auto pType = GET_TECHNOTYPE(pThis);
 
-	ConvertClass* pDrawer = FileSystem::ANIM_PAL;
-	SHPCaches* pSHP = FileSystem::OREGATH_SHP;
+	ConvertClass* pDrawer = FileSystem::ANIM_PAL();
+	SHPCaches* pSHP = FileSystem::OREGATH_SHP();
 	int idxFrame = -1;
 	auto idxTiberium = ((FakeCellClass*)pThis->GetCell())->_GetTiberiumType();
 

@@ -68,9 +68,9 @@ void SW_ChronoSphere::Initialize(SWTypeExtData* pData)
 	pData->SW_AnimVisibility = AffectedHouse::Team;
 	pData->SW_AnimHeight = 5;
 
-	pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_ChronosphereReady);
-	pData->EVA_Detected = VoxClass::FindIndexById(GameStrings::EVA_ChronosphereDetected);
-	pData->EVA_Activated = VoxClass::FindIndexById(GameStrings::EVA_ChronosphereActivated);
+	pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_ChronosphereReady());
+	pData->EVA_Detected = VoxClass::FindIndexById(GameStrings::EVA_ChronosphereDetected());
+	pData->EVA_Activated = VoxClass::FindIndexById(GameStrings::EVA_ChronosphereActivated());
 
 	pData->SW_AffectsTarget = SuperWeaponTarget::Infantry | SuperWeaponTarget::Unit;
 	pData->CursorType = (int)MouseCursorType::Chronosphere;

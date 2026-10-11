@@ -120,7 +120,7 @@ void FlyingStrings::AddMoneyString(bool Display, int amount, TechnoClass* owner,
 	static fmt::basic_memory_buffer<wchar_t> moneyStr;
 	if (EnumFunctions::CanTargetHouse(displayToHouses, owner->GetOwningHouse(), HouseClass::CurrentPlayer()))
 	{
-		if (!owner->IsClearlyVisibleTo(HouseClass::CurrentPlayer))
+		if (!owner->IsClearlyVisibleTo(HouseClass::CurrentPlayer()))
 			return;
 
 		moneyStr.clear();
@@ -218,7 +218,7 @@ void FlyingStrings::AddNumberString(int amount, HouseClass* owner, AffectedHouse
 {
 
 	if (displayToHouses == AffectedHouse::All ||
-		owner && EnumFunctions::CanTargetHouse(displayToHouses, owner, HouseClass::CurrentPlayer))
+		owner && EnumFunctions::CanTargetHouse(displayToHouses, owner, HouseClass::CurrentPlayer()))
 	{
 		const bool isPositive = amount > 0;
 		const wchar_t* sign_symbol = (sign && amount != 0) ? (isPositive ? L"+" : L"-") : L"";

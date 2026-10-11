@@ -524,7 +524,7 @@ void __fastcall Init_Theaters(TheaterType theater)
     // Hook 0x534A9D: arctic/custom-MD check replaces vanilla THEATER_SNOW check.
     // Vanilla: only allocate TheaterRoot for THEATER_SNOW.
     // Phobos:  also allocate if RootMixMD override is set OR IsArctic flag.
-    DestroyMix(TheaterRoot);
+    DestroyMix(TheaterRoot());
     TheaterRoot = nullptr;
     if (pTheater->RootMixMD || pTheater->IsArctic) {
         TheaterRoot = NewMix(rootMixMD);
@@ -533,25 +533,25 @@ void __fastcall Init_Theaters(TheaterType theater)
 	DEFINE_REFERENCE(MixFileClass*,  dword_884E08, 0x884E08)
 
     // <root>.MIX (unnamed theater data global)
-    DestroyMix(dword_884E08);
+    DestroyMix(dword_884E08());
     dword_884E08 = NewMix(rootMix);
  
 	DEFINE_REFERENCE(MixFileClass*,  MixFile_Theater_TEM, 0x884E10)
 
     // <suffix>.MIX
-    DestroyMix(MixFile_Theater_TEM);
+    DestroyMix(MixFile_Theater_TEM());
     MixFile_Theater_TEM = NewMix(suffixMix);
  
     SessionClass::Instance->Callback(6);
  
 	DEFINE_REFERENCE(MixFileClass*,  MixFile_Theater_ISOTEM, 0x884E20)
     // <expMix>MD.MIX
-    DestroyMix(MixFile_Theater_ISOTEM);
+    DestroyMix(MixFile_Theater_ISOTEM());
     MixFile_Theater_ISOTEM = NewMix(expansionMixMD);
  
 	DEFINE_REFERENCE(MixFileClass*,  MixFile_Theater_ISOTEMP, 0x884E1C)
     // <dataMix>.MIX
-    DestroyMix(MixFile_Theater_ISOTEMP);
+    DestroyMix(MixFile_Theater_ISOTEMP());
     MixFile_Theater_ISOTEMP = NewMix(dataMix);
  
     SessionClass::Instance->Callback(12);

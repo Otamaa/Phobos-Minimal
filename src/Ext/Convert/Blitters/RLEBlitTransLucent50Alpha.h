@@ -149,7 +149,7 @@ private:
 		{
 			constexpr int ChunkSize = 8;
 			constexpr uintptr_t ChunkBytes = ChunkSize * sizeof(WORD);
-			ABuffer* pABuffer = ABuffer::Instance;
+			ABuffer* pABuffer = ABuffer::Instance();
 			const uintptr_t aTailAddress = reinterpret_cast<uintptr_t>(pABuffer->BufferTail);
 			const __m256i blendMask32 = _mm256_set1_epi32(static_cast<int>(mask));
 
@@ -222,7 +222,7 @@ private:
 		{
 			constexpr int ChunkSize = 8;
 			constexpr uintptr_t ChunkBytes = ChunkSize * sizeof(WORD);
-			ABuffer* pABuffer = ABuffer::Instance;
+			ABuffer* pABuffer = ABuffer::Instance();
 			const uintptr_t aTailAddress = reinterpret_cast<uintptr_t>(pABuffer->BufferTail);
 			const __m128i blendMask16 = _mm_set1_epi16(static_cast<short>(mask));
 

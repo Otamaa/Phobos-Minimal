@@ -1432,13 +1432,13 @@ bool __fastcall Init_Secondary_Mixfiles()
 	// ------------------------------------------------------------------
 	// MULTIMD.MIX — required; bail if missing
 	// ------------------------------------------------------------------
-	if(!CheckAndAllocateMix(MULTIMD_MIX, MULTIMD()))
+	if(!CheckAndAllocateMix(MULTIMD_MIX(), MULTIMD()))
 		return false;
 
 	// ------------------------------------------------------------------
 	// THEMEMD.MIX / THEME.MIX (optional — missing ThemeMix is non-fatal)
 	// ------------------------------------------------------------------
-	if (!CheckAndAllocateMix(THEMEMD_MIX, THEME()) && !CheckAndAllocateMix(THEME_MIX, THEME())) {
+	if (!CheckAndAllocateMix(THEMEMD_MIX(), THEME()) && !CheckAndAllocateMix(THEME_MIX(), THEME())) {
 		Debug::Log("Failed finding Theme mix file\n");
 	}
 
@@ -1494,7 +1494,7 @@ bool __fastcall Init_Secondary_Mixfiles()
 					strcpy_s(v73, p.pattern);
 			}
 
-			if (!LoadMixWildcard(v73, MoviesMix, MixFileClass::Movies())) {
+			if (!LoadMixWildcard(v73, MoviesMix(), MixFileClass::Movies())) {
 				MixFileClass::Movies->emplace_back(GameCreate<MixFileClass>(v73, pKey));
 			}
 

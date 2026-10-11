@@ -876,7 +876,7 @@ namespace DropshipLoadoutParse
 		if (pINI->ReadString(pSection, pKey, "", Phobos::readBuffer) <= 0)
 			return false;
 
-		out = FileSystem::LoadPALFile(Phobos::readBuffer, DSurface::Hidden);
+		out = FileSystem::LoadPALFile(Phobos::readBuffer, DSurface::Hidden());
 		return true;
 	}
 
@@ -1034,7 +1034,7 @@ void DropshipLoadoutClass::ParseHouse(INI_EX& exINI, const char* pSection, House
 void DropshipLoadoutClass::ParseScenario(INI_EX& exINI, const char* pSection, ScenarioExtData* pData)
 {
 	auto const pINI = exINI.GetINI();
-	const char* const pBasic = GameStrings::Basic;
+	const char* const pBasic = GameStrings::Basic();
 
 	// SUSPECT: `pSection` is accepted but never used - every read below is
 	// hardcoded to [Basic]. Either honour the parameter or drop it.
@@ -1751,7 +1751,7 @@ void DropshipLoadoutClass::LoadDefaultDGreenList()
 void DropshipLoadoutClass::LoadAssets()
 {
 	auto const pGlobal = ScenarioExtData::Instance();
-	auto const pHouseExt = HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer);
+	auto const pHouseExt = HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer());
 
 	// Used by both branches, so it lives here rather than being duplicated.
 	//
@@ -1776,7 +1776,7 @@ void DropshipLoadoutClass::LoadAssets()
 		// --- Palette --------------------------------------------------------
 		dropshipLoadout_Palette = pSWTypeExt->DropshipLoadout_Palette
 			? pSWTypeExt->DropshipLoadout_Palette
-			: FileSystem::LoadPALFile("DROPSHIP.PAL", DSurface::Hidden);
+			: FileSystem::LoadPALFile("DROPSHIP.PAL", DSurface::Hidden());
 
 		// --- Background -----------------------------------------------------
 		if (pSWTypeExt->DropshipLoadout_BackgroundPCX.isset() && pSWTypeExt->DropshipLoadout_BackgroundPCX.Fetch().Exists())
@@ -1953,7 +1953,7 @@ void DropshipLoadoutClass::LoadAssets()
 		dropshipLoadout_Palette = pGlobal->DropshipLoadout_Palette;
 
 	if (!dropshipLoadout_Palette)
-		dropshipLoadout_Palette = FileSystem::LoadPALFile("DROPSHIP.PAL", DSurface::Hidden);
+		dropshipLoadout_Palette = FileSystem::LoadPALFile("DROPSHIP.PAL", DSurface::Hidden());
 
 	// --- Background ---------------------------------------------------------
 	if (pHouseTypeExt->DropshipLoadout_BackgroundPCX.isset() && pHouseTypeExt->DropshipLoadout_BackgroundPCX.Fetch().Exists())
@@ -2685,7 +2685,7 @@ void DropshipLoadoutClass::CreateControls()
 	dropshipBayFixedUnitsLists.clear();
 	dropshipBayChosenUnitsCount.clear();
 
-	auto const pHouseExt = HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer);
+	auto const pHouseExt = HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer());
 
 	// --- Build one BaySlotSource per carrier --------------------------------
 	// This is the only part that differed between the SW and country branches;
@@ -3103,7 +3103,7 @@ void DropshipLoadoutClass::UpdateDragState(int buttonID)
 
 void DropshipLoadoutClass::Run()
 {
-	DSurface* pSurface = DSurface::Hidden;
+	DSurface* pSurface = DSurface::Hidden();
 
 	if (!pSurface)
 		return;
@@ -3195,7 +3195,7 @@ void DropshipLoadoutClass::Run()
 	hoveredDropshipIdx = -1;
 	hoveredSlotIdx = -1;
 
-	if (HWND const hGameWnd = Game::hWnd)
+	if (HWND const hGameWnd = Game::hWnd())
 	{
 		SetFocus(hGameWnd);
 		SetActiveWindow(hGameWnd);
@@ -4106,7 +4106,7 @@ void DropshipLoadoutClass::DrawTooltip(DSurface* pSurface)
 	// --- Cost ---------------------------------------------------------------
 	if (!isHoveredFixed)
 	{
-		int const cost = pHoveredUnitType->GetActualCost(HouseClass::CurrentPlayer);
+		int const cost = pHoveredUnitType->GetActualCost(HouseClass::CurrentPlayer());
 
 		COLORREF costColor = Drawing::RGB2DWORD(255, 255, 255);
 
@@ -4208,7 +4208,7 @@ void DropshipLoadoutClass::DrawTooltip(DSurface* pSurface)
 			BitFont::Instance->Color = static_cast<WORD>(segment.Color);
 
 			BitText::Instance->DrawText(
-				BitFont::Instance,
+				BitFont::Instance(),
 				pSurface,
 				segment.Text.c_str(),
 				currentX,
@@ -4247,7 +4247,7 @@ int DropshipLoadoutClass::GetCarrierSizeLimit(int carrierIdx)
 		if (pSWTypeExt->DropshipLoadout_Carrier.isset())
 			return static_cast<int>(pSWTypeExt->DropshipLoadout_Carrier.Fetch()->SizeLimit);
 
-		if (auto const pHouseExt = HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer))
+		if (auto const pHouseExt = HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer()))
 		{
 			if (pHouseExt->DropshipLoadout_SWCarrier)
 				return static_cast<int>(pHouseExt->DropshipLoadout_SWCarrier->SizeLimit);
@@ -4350,7 +4350,7 @@ void DropshipLoadoutClass::SaveCargo()
 	if (!HouseClass::CurrentPlayer())
 		return;
 
-	auto const pHouseExt = HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer);
+	auto const pHouseExt = HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer());
 
 	if (!pHouseExt)
 		return;

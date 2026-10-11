@@ -403,7 +403,7 @@ BulletClass* __fastcall FakeTechnoClass::__Fire_At(
 			if (pTargetTechno) {
 				auto* pTargetExt = TechnoExtContainer::Instance.Find(pTargetTechno);
 				if (pWeaponExt->NoRepeatFire > 0)
-					pTargetExt->LastBeLockedFrame = Unsorted::CurrentFrame;
+					pTargetExt->LastBeLockedFrame = Unsorted::CurrentFrame();
 
 				if (pWeaponExt->AttachEffect_Enable) {
 					auto* info = &pWeaponExt->AttachEffects;

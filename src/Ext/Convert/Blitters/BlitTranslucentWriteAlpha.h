@@ -54,12 +54,12 @@ private:
 			const __m512i low8Mask = _mm512_set1_epi32(0xFF);
 			const __m512i max255 = _mm512_set1_epi32(255);
 
-			const __m512i redShiftLeft = _mm512_set1_epi32(RGBClass::RedShiftLeft);
-			const __m512i redShiftRight = _mm512_set1_epi32(RGBClass::RedShiftRight);
-			const __m512i greenShiftLeft = _mm512_set1_epi32(RGBClass::GreenShiftLeft);
-			const __m512i greenShiftRight = _mm512_set1_epi32(RGBClass::GreenShiftRight);
-			const __m512i blueShiftLeft = _mm512_set1_epi32(RGBClass::BlueShiftLeft);
-			const __m512i blueShiftRight = _mm512_set1_epi32(RGBClass::BlueShiftRight);
+			const __m512i redShiftLeft = _mm512_set1_epi32(RGBClass::RedShiftLeft());
+			const __m512i redShiftRight = _mm512_set1_epi32(RGBClass::RedShiftRight());
+			const __m512i greenShiftLeft = _mm512_set1_epi32(RGBClass::GreenShiftLeft());
+			const __m512i greenShiftRight = _mm512_set1_epi32(RGBClass::GreenShiftRight());
+			const __m512i blueShiftLeft = _mm512_set1_epi32(RGBClass::BlueShiftLeft());
+			const __m512i blueShiftRight = _mm512_set1_epi32(RGBClass::BlueShiftRight());
 
 			while (len >= ChunkSize)
 			{
@@ -120,7 +120,7 @@ private:
 		{
 			constexpr int ChunkSize = 8;
 			constexpr uintptr_t ChunkBytes = ChunkSize * sizeof(WORD);
-			ABuffer* pABuffer = ABuffer::Instance;
+			ABuffer* pABuffer = ABuffer::Instance();
 			const uintptr_t aTailAddress = reinterpret_cast<uintptr_t>(pABuffer->BufferTail);
 
 			const __m256i zero32 = _mm256_setzero_si256();
@@ -129,12 +129,12 @@ private:
 			const __m256i max255 = _mm256_set1_epi32(255);
 			const __m256i twoFiftySix = _mm256_set1_epi32(256);
 
-			const __m256i redShiftLeft = _mm256_set1_epi32(RGBClass::RedShiftLeft);
-			const __m256i redShiftRight = _mm256_set1_epi32(RGBClass::RedShiftRight);
-			const __m256i greenShiftLeft = _mm256_set1_epi32(RGBClass::GreenShiftLeft);
-			const __m256i greenShiftRight = _mm256_set1_epi32(RGBClass::GreenShiftRight);
-			const __m256i blueShiftLeft = _mm256_set1_epi32(RGBClass::BlueShiftLeft);
-			const __m256i blueShiftRight = _mm256_set1_epi32(RGBClass::BlueShiftRight);
+			const __m256i redShiftLeft = _mm256_set1_epi32(RGBClass::RedShiftLeft());
+			const __m256i redShiftRight = _mm256_set1_epi32(RGBClass::RedShiftRight());
+			const __m256i greenShiftLeft = _mm256_set1_epi32(RGBClass::GreenShiftLeft());
+			const __m256i greenShiftRight = _mm256_set1_epi32(RGBClass::GreenShiftRight());
+			const __m256i blueShiftLeft = _mm256_set1_epi32(RGBClass::BlueShiftLeft());
+			const __m256i blueShiftRight = _mm256_set1_epi32(RGBClass::BlueShiftRight());
 
 			while (len >= ChunkSize)
 			{

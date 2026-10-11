@@ -471,7 +471,7 @@ ASMJIT_PATCH(0x6D3470, TacticalClass_DrawFoggedObject, 0x8)
 
 	RectangleStruct finalRect { 0,0,0,0 };
 	if (bForceViewBounds && DSurface::ViewBounds->Width > 0 && DSurface::ViewBounds->Height > 0)
-		finalRect = std::move(FoggedObject::Union(finalRect, DSurface::ViewBounds));
+		finalRect = std::move(FoggedObject::Union(finalRect, DSurface::ViewBounds()));
 	else
 	{
 		if (pRect1->Width > 0 && pRect1->Height > 0)

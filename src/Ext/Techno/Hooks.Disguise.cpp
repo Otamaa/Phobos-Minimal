@@ -51,7 +51,7 @@ bool __fastcall IsAlly_Wrapper(HouseClass* pThis, void* _, HouseClass* pOther)
 
 bool __fastcall IsControlledByCurrentPlayer_Wrapper(HouseClass* pThis)
 {
-	HouseClass* pCurrent = HouseClass::CurrentPlayer;
+	HouseClass* pCurrent = HouseClass::CurrentPlayer();
 	AffectedHouse visibilityFlags = FakeRulesClass::Instance()->DisguiseBlinkingVisibility;
 
 	if (SessionClass::IsCampaign() && (pThis->IsHumanPlayer || pThis->IsInPlayerControl))

@@ -632,7 +632,7 @@ static void DrawGroupNumber(TechnoClass* techno, AbstractType unitType, Point2D*
 		DSurface::Temp->Draw_Rect(boxRect, color);
 
 		// Draw text
-		TextDrawing::Simple_Text_Print_Wide(numberText.data(), DSurface::Temp, clipRect, &textPos, color, 0, TextPrintType::FullShadow | TextPrintType::Efnt);
+		TextDrawing::Simple_Text_Print_Wide(numberText.data(), DSurface::Temp(), clipRect, &textPos, color, 0, TextPrintType::FullShadow | TextPrintType::Efnt);
 	}
 }
 

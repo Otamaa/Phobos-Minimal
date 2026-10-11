@@ -459,7 +459,7 @@ bool TActionExtData::CreateDropshipLoadoutTransport(TActionClass* pThis, HouseCl
 	if (!isValidSpawnWP)
 		return true;
 
-	HouseClass* pHouse = HouseClass::CurrentPlayer;
+	HouseClass* pHouse = HouseClass::CurrentPlayer();
 	HouseClass* pDropshipHouse = pTriggerHouse;
 	HouseClass* pCargoHouse = pHouse;
 
@@ -567,9 +567,9 @@ bool TActionExtData::CreateDropshipLoadoutTransport(TActionClass* pThis, HouseCl
 		}
 	}
 
-	++Unsorted::ScenarioInit;
+	++Unsorted::ScenarioInit();
 	bool success = pTransporter->Unlimbo(startLocation, DirType::North);
-	--Unsorted::ScenarioInit;
+	--Unsorted::ScenarioInit();
 
 	if (!success)
 	{
@@ -647,7 +647,7 @@ bool TActionExtData::UndeployToWaypoint(TActionClass* pThis, HouseClass* pHouse,
 	bool allBuilding = false;
 	BuildingTypeClass* pBuildingType = nullptr;
 
-	if (strcmp(pThis->Text, GameStrings::AllStr) == 0) {
+	if (strcmp(pThis->Text, GameStrings::AllStr()) == 0) {
 		allBuilding = true;
 	} else {
 		pBuildingType = BuildingTypeClass::Find(buildingName);
@@ -1689,8 +1689,8 @@ bool TActionExtData::SaveGame(TActionClass* pThis, HouseClass* pHouse, ObjectCla
 		}
 
 		auto pMessage = Status ?
-			StringTable::FetchString(GameStrings::TXT_GAME_WAS_SAVED) :
-			StringTable::FetchString(GameStrings::TXT_ERROR_SAVING_GAME);
+			StringTable::FetchString(GameStrings::TXT_GAME_WAS_SAVED()) :
+			StringTable::FetchString(GameStrings::TXT_ERROR_SAVING_GAME());
 
 		GeneralUtils::PrintMessage(pMessage);
 	}
@@ -1997,7 +1997,7 @@ bool TActionExtData::SetGroup(TActionClass* pAction, HouseClass* pHouse, ObjectC
 //TODO : re-eval
 bool TActionExtData::LauchhNuke(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
 {
-	const auto pFind = WeaponTypeClass::Find(GameStrings::NukePayload);
+	const auto pFind = WeaponTypeClass::Find(GameStrings::NukePayload());
 	if (!pFind)
 		return false;
 
@@ -2034,7 +2034,7 @@ bool TActionExtData::LauchhNuke(TActionClass* pAction, HouseClass* pHouse, Objec
 
 bool TActionExtData::LauchhChemMissile(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
 {
-	const auto pFind = WeaponTypeClass::Find(GameStrings::ChemLauncher);
+	const auto pFind = WeaponTypeClass::Find(GameStrings::ChemLauncher());
 	if (!pFind)
 		return false;
 
@@ -2095,8 +2095,8 @@ bool TActionExtData::MeteorStrike(TActionClass* pAction, HouseClass* pHouse, Obj
 {
 	static COMPILETIMEEVAL reference<int, 0x842AFC, 5u> MeteorAddAmount {};
 
-	const auto pSmall = AnimTypeClass::Find(GameStrings::METSMALL);
-	const auto pBig = AnimTypeClass::Find(GameStrings::METLARGE);
+	const auto pSmall = AnimTypeClass::Find(GameStrings::METSMALL());
+	const auto pBig = AnimTypeClass::Find(GameStrings::METLARGE());
 
 	if (!pSmall && !pBig)
 		return false;
@@ -2521,9 +2521,9 @@ bool TActionExtData::AllAssignMission(TActionClass* pThis, HouseClass* pHouse, O
 bool TActionExtData::MakeEnemyOneWay(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (HouseClass* hptr = (FakeHouseClass*)TEventExtData::ResolveHouseParam(pThis->Value, pTrigger->House)) {
-		Unsorted::ScenarioInit++;
+		++Unsorted::ScenarioInit();
 		pHouse->MakeEnemy(hptr,false);
-		--Unsorted::ScenarioInit;
+		--Unsorted::ScenarioInit();
 	}
 
 	return true;
@@ -2532,9 +2532,9 @@ bool TActionExtData::MakeEnemyOneWay(TActionClass* pThis, HouseClass* pHouse, Ob
 bool TActionExtData::MakeAllyOneWay(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	if (HouseClass* hptr = (FakeHouseClass*)TEventExtData::ResolveHouseParam(pThis->Value, pTrigger->House)) {
-		Unsorted::ScenarioInit++;
+		++Unsorted::ScenarioInit();
 		pHouse->MakeAlly(hptr, false);
-		--Unsorted::ScenarioInit;
+		--Unsorted::ScenarioInit();
 	}
 
 	return true;
@@ -4144,7 +4144,7 @@ static void CopyActionTextW(wchar_t* dest, size_t destSize, const wchar_t* text)
 
 bool TActionExtData::SetOverParTitle(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	ScenarioClass* pScenario = ScenarioClass::Instance;
+	ScenarioClass* pScenario = ScenarioClass::Instance();
 	if (!pScenario)
 		return false;
 
@@ -4154,7 +4154,7 @@ bool TActionExtData::SetOverParTitle(TActionClass* pThis, HouseClass* pHouse, Ob
 
 bool TActionExtData::SetOverParMessage(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	ScenarioClass* pScenario = ScenarioClass::Instance;
+	ScenarioClass* pScenario = ScenarioClass::Instance();
 	if (!pScenario)
 		return false;
 
@@ -4164,7 +4164,7 @@ bool TActionExtData::SetOverParMessage(TActionClass* pThis, HouseClass* pHouse, 
 
 bool TActionExtData::SetUnderParTitle(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	ScenarioClass* pScenario = ScenarioClass::Instance;
+	ScenarioClass* pScenario = ScenarioClass::Instance();
 	if (!pScenario)
 		return false;
 
@@ -4174,7 +4174,7 @@ bool TActionExtData::SetUnderParTitle(TActionClass* pThis, HouseClass* pHouse, O
 
 bool TActionExtData::SetUnderParMessage(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	ScenarioClass* pScenario = ScenarioClass::Instance;
+	ScenarioClass* pScenario = ScenarioClass::Instance();
 	if (!pScenario)
 		return false;
 
@@ -4302,7 +4302,7 @@ bool TActionExtData::UndeployHouseUnits(TActionClass* pThis, HouseClass* pHouse,
 
 bool TActionExtData::SetParTimeEasy(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	ScenarioClass* pScenario = ScenarioClass::Instance;
+	ScenarioClass* pScenario = ScenarioClass::Instance();
 	if (!pScenario)
 		return false;
 
@@ -4316,7 +4316,7 @@ bool TActionExtData::SetParTimeEasy(TActionClass* pThis, HouseClass* pHouse, Obj
 
 bool TActionExtData::SetParTimeMedium(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	ScenarioClass* pScenario = ScenarioClass::Instance;
+	ScenarioClass* pScenario = ScenarioClass::Instance();
 	if (!pScenario)
 		return false;
 
@@ -4330,7 +4330,7 @@ bool TActionExtData::SetParTimeMedium(TActionClass* pThis, HouseClass* pHouse, O
 
 bool TActionExtData::SetParTimeDifficult(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	ScenarioClass* pScenario = ScenarioClass::Instance;
+	ScenarioClass* pScenario = ScenarioClass::Instance();
 	if (!pScenario)
 		return false;
 
@@ -4435,10 +4435,10 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 	
 	case TriggerAction::CreateTeam:
 	{
-		++Unsorted::ScenarioInit;
+		++Unsorted::ScenarioInit();
 		if (auto pTeam = pThis->TeamType)
 			pTeam->CreateTeam(nullptr);
-		--Unsorted::ScenarioInit;
+		--Unsorted::ScenarioInit();
 		ret = true;
 		return true;
 	}
@@ -4928,8 +4928,8 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 			auto coord = CellClass::Cell2Coord(waycell);
 			coord.Z = MapClass::Instance->GetCellFloorHeight(coord);
 			const int radius = RulesClass::Instance->RevealTriggerRadius;
-			MapClass::Instance->RevealArea2(&coord, radius, HouseClass::CurrentPlayer, false, false, false, true, 0);
-			MapClass::Instance->RevealArea2(&coord, radius, HouseClass::CurrentPlayer, false, false, false, true, 1);
+			MapClass::Instance->RevealArea2(&coord, radius, HouseClass::CurrentPlayer(), false, false, false, true, 0);
+			MapClass::Instance->RevealArea2(&coord, radius, HouseClass::CurrentPlayer(), false, false, false, true, 1);
 		}
 
 		ret = true;

@@ -48,7 +48,7 @@ public:
 
 	FORCEDINLINE static void Clear()
 	{
-		Allocate(SidebarClass::Instance);
+		Allocate(SidebarClass::Instance());
 	}
 
 	static void DrawProducingProgress();

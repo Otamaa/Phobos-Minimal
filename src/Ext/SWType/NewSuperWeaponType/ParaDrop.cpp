@@ -38,7 +38,7 @@ void SW_ParaDrop::Initialize(SWTypeExtData* pData)
 
 	pData->SW_RadarEvent = false;
 
-	pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_ReinforcementsReady);
+	pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_ReinforcementsReady());
 
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::ParaDrop;
 	pData->CursorType = int(MouseCursorType::ParaDrop);
@@ -313,9 +313,9 @@ void SW_ParaDrop::SendPDPlane(HouseClass* pOwner
 	}
 
 	// Create the aircraft outside normal game flow (ScenarioInit bypass)
-	++Unsorted::ScenarioInit;
+	++Unsorted::ScenarioInit();
 	auto const pPlane = static_cast<AircraftClass*>(pPlaneType->CreateObject(pOwner));
-	--Unsorted::ScenarioInit;
+	--Unsorted::ScenarioInit();
 
 	if (!pPlane)
 		return;

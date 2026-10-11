@@ -310,8 +310,8 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	this->ChasingExtraRange.Read(exINI, pSection, "ExtraRange.TargetMoving");
 	this->ExtraRange_FirerMoving.Read(exINI, pSection, "ExtraRange.FirerMoving");
-	this->PrefiringExtraRange.Read(exINI, GameStrings::General, "ExtraRange.Prefiring");
-	this->PrefiringExtraRange_IncludeBurst.Read(exINI, GameStrings::General, "ExtraRange.Prefiring.IncludeBurst");
+	this->PrefiringExtraRange.Read(exINI, GameStrings::General(), "ExtraRange.Prefiring");
+	this->PrefiringExtraRange_IncludeBurst.Read(exINI, GameStrings::General(), "ExtraRange.Prefiring.IncludeBurst");
 
 	this->Anim_Update.Read(exINI, pSection, "Anim.Update");
 	this->CanTarget_IronCurtained.Read(exINI, pSection, "CanTarget.IronCurtained");

@@ -272,7 +272,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 
 			// piggyback the original locomotor onto a new teleport locomotor and
 			// use that for the next move order.
-			LocomotionClass::ChangeLocomotorTo(pFoot, CLSIDs::Teleport);
+			LocomotionClass::ChangeLocomotorTo(pFoot, CLSIDs::Teleport());
 
 			// order unit to move to target location
 			pFoot->IsImmobilized = true;
@@ -402,10 +402,10 @@ void ChronoWarpStateMachine::Update()
 			if (!success)
 			{
 				// put it back where it was
-				++Unsorted::ScenarioInit;
+				++Unsorted::ScenarioInit();
 				pBld->Unlimbo(item.origin, DirType::North);
 				pBld->Place(false);
-				--Unsorted::ScenarioInit;
+				--Unsorted::ScenarioInit();
 			}
 
 			// chronoshift ends

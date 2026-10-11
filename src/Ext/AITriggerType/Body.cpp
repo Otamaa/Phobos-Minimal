@@ -1406,10 +1406,10 @@ TechnoTypeClass* ResolveTechType(AITriggerTypeClass* pThis , const char* name)
 bool FakeAITriggerTypeClass::_SaveToINI(CCINIClass* pINI)
 {
 	// --- resolve the four name fields (all default to "<none>") -----------
-	const char* pTeamOne = GameStrings::NoneStr;   // v12
-	const char* pTeamTwo = GameStrings::NoneStr;   // v13
-	const char* pOwnerHouse = GameStrings::NoneStr;   // v3
-	const char* pConditionObject = GameStrings::NoneStr;   // v14
+	const char* pTeamOne = GameStrings::NoneStr();   // v12
+	const char* pTeamTwo = GameStrings::NoneStr();   // v13
+	const char* pOwnerHouse = GameStrings::NoneStr();   // v3
+	const char* pConditionObject = GameStrings::NoneStr();   // v14
 
 	if (this->Team1)
 		pTeamOne = this->Team1->ID;
@@ -1424,7 +1424,7 @@ bool FakeAITriggerTypeClass::_SaveToINI(CCINIClass* pINI)
 	}
 	else if (this->OwnerHouseType == AITriggerHouseType::Any)
 	{
-		pOwnerHouse = GameStrings::AllStr;                                   // "<all>"
+		pOwnerHouse = GameStrings::AllStr();                                   // "<all>"
 	}
 
 	if (this->ConditionObject)
@@ -1619,7 +1619,7 @@ bool FakeAITriggerTypeClass::_LoadFromINI(CCINIClass* pINI)
 		const std::string name = TrimmedField(fields[1], 0x17);
 		this->Team1 = nullptr;
 
-		if (_strcmpi(name.c_str(), GameStrings::NoneStr) != 0)          // != "<none>"
+		if (_strcmpi(name.c_str(), GameStrings::NoneStr()) != 0)          // != "<none>"
 		{
 			this->Team1 = TeamTypeClass::Find(name.c_str());
 
@@ -1641,11 +1641,11 @@ bool FakeAITriggerTypeClass::_LoadFromINI(CCINIClass* pINI)
 		this->OwnerHouseType = AITriggerHouseType::None;
 		this->HouseIndex = -1;
 
-		if (_strcmpi(name.c_str(), GameStrings::AllStr) == 0)           // "<all>"
+		if (_strcmpi(name.c_str(), GameStrings::AllStr()) == 0)           // "<all>"
 		{
 			this->OwnerHouseType = AITriggerHouseType::Any;
 		}
-		else if (_strcmpi(name.c_str(), GameStrings::NoneStr) != 0)     // not "<none>"
+		else if (_strcmpi(name.c_str(), GameStrings::NoneStr()) != 0)     // not "<none>"
 		{
 			this->HouseIndex = HouseTypeClass::FindIndexById(name.c_str());
 
@@ -1693,7 +1693,7 @@ bool FakeAITriggerTypeClass::_LoadFromINI(CCINIClass* pINI)
 		this->ConditionObject = ResolveTechType(this, name.c_str());
 
 		// EXTENSION: "<none>" is a legitimate value in the shipped INI, don't warn on it.
-		if (!this->ConditionObject && _strcmpi(name.c_str(), GameStrings::NoneStr) != 0)
+		if (!this->ConditionObject && _strcmpi(name.c_str(), GameStrings::NoneStr()) != 0)
 			LogFieldFailB(this, 5, name);
 	}
 
@@ -1822,7 +1822,7 @@ bool FakeAITriggerTypeClass::_LoadFromINI(CCINIClass* pINI)
 			const std::string two = TrimmedField(fields[14], 0x17);
 			this->Team2 = nullptr;
 
-			if (_strcmpi(two.c_str(), GameStrings::NoneStr) != 0)       // != "<none>"
+			if (_strcmpi(two.c_str(), GameStrings::NoneStr()) != 0)       // != "<none>"
 			{
 				this->Team2 = TeamTypeClass::Find(two.c_str());
 

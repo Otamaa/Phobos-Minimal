@@ -10,6 +10,7 @@
 #include <Ext/Side/Body.h>
 #include <Ext/Tactical/Body.h>
 #include <Ext/HouseType/Body.h>
+#include <Ext/Super/Body.h>
 
 #include <Ext/Aircraft/Body.h>
 #include <Ext/Infantry/Body.h>
@@ -675,7 +676,7 @@ void BuildingExtData::UpdateSpyEffecAnimDisplay()
 	{
 		if (HouseClass::IsCurrentPlayerObserver() || EnumFunctions::CanTargetHouse(
 			pTypeExt->SpyEffect_Anim_DisplayHouses,
-			SpyEffectAnim->Owner, HouseClass::CurrentPlayer))
+			SpyEffectAnim->Owner, HouseClass::CurrentPlayer()))
 		{
 			SpyEffectAnim->Invisible = false;
 		}
@@ -1479,7 +1480,7 @@ void FakeBuildingClass::UnloadOccupants(bool assignMission, bool killIfStuck)
 	CellClass* unloadCell = MapClass::Instance->GetCellAt(fallbackCell);
 	scatterCoord = unloadCell->GetCoords();
 
-	++Unsorted::ScenarioInit;
+	++Unsorted::ScenarioInit();
 
 	for (int i = this->Occupants.Count - 1; i >= 0; --i)
 	{
@@ -1521,7 +1522,7 @@ void FakeBuildingClass::UnloadOccupants(bool assignMission, bool killIfStuck)
 		}
 	}
 
-	--Unsorted::ScenarioInit;
+	--Unsorted::ScenarioInit();
 
 	// Reset Occupants vector while keeping capacity
 	this->Occupants.reset();
@@ -2151,7 +2152,7 @@ void FakeBuildingClass::_DrawVisible(Point2D* pLocation, RectangleStruct* pBound
 					if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds))
 					{
 						cameoRect = destRect;
-						Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &PhobosGlobal::Instance()->GlobalPcxBlitter, 0, 3, 1000, 0);
+						Buffer_To_Surface_wrapper(DSurface::Temp(), &destRect, pPCX, &DefcameoBounds, &PhobosGlobal::Instance()->GlobalPcxBlitter, 0, 3, 1000, 0);
 
 					}
 				}
@@ -2211,7 +2212,7 @@ void FakeBuildingClass::_DrawVisible(Point2D* pLocation, RectangleStruct* pBound
 						if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds))
 						{
 							cameoRect = destRect;
-							Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &PhobosGlobal::Instance()->GlobalPcxBlitter, 0, 3, 1000, 0);
+							Buffer_To_Surface_wrapper(DSurface::Temp(), &destRect, pPCX, &DefcameoBounds, &PhobosGlobal::Instance()->GlobalPcxBlitter, 0, 3, 1000, 0);
 						}
 
 					}
@@ -3277,9 +3278,9 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x459ED0, FakeBuildingClass::__GetUIName)
 				  {
 					  CoordStruct coordBuffer = CellClass::Cell2Coord(cellToBuildOn);
 
-					  ++Unsorted::ScenarioInit; // put the building there even if normal rules would deny - e.g. under units
+					  ++Unsorted::ScenarioInit(); // put the building there even if normal rules would deny - e.g. under units
 					  bool Put = tempBuilding->Unlimbo(coordBuffer, DirType::North);
-					  --Unsorted::ScenarioInit;
+					  --Unsorted::ScenarioInit();
 
 					  if (Put)
 					  {
@@ -3298,7 +3299,6 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x459ED0, FakeBuildingClass::__GetUIName)
 	  }
   }
 
-#include <Ext/Super/Body.h>
 // Bug(s) :
 // - Building Anim not updated properly 
   void NOINLINE AddSuperToArray(int idx, BuildingClass* pBld) {

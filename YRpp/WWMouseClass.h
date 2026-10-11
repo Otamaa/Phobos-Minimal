@@ -123,8 +123,8 @@ public:
 		WWMouseClass::Instance->HideCursor();
 
 		DSurface::Hidden->Fill(0);
-		GScreenClass::DoBlit(true, DSurface::Hidden);
-		DSurface::Temp = DSurface::Hidden;
+		GScreenClass::DoBlit(true, DSurface::Hidden());
+		DSurface::Temp = DSurface::Hidden();
 
 		WWMouseClass::Instance->ShowCursor();
 

@@ -8,7 +8,7 @@
 
 ASMJIT_PATCH(0x4FCD66, HouseClass_WinLose_Theme, 0x5)
 {
-	const HouseClass* pThis = HouseClass::CurrentPlayer;
+	const HouseClass* pThis = HouseClass::CurrentPlayer();
 
 	if (const auto pSide = SideClass::Array->get_or_default(ScenarioClass::Instance->PlayerSideIndex)) {
 		const auto pData = SideExtContainer::Instance.Find(pSide);

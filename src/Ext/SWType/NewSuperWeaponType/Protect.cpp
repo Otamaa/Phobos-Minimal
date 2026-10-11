@@ -137,7 +137,7 @@ void SW_Protect::Initialize(SWTypeExtData* pData)
 		pData->Protect_IsForceShield = true;
 		pData->SW_RadarEvent = false;
 
-		pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_ForceShieldReady);
+		pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_ForceShieldReady());
 
 		pData->SW_AITargetingMode = SuperWeaponAITargetingMode::ForceShield;
 		pData->SW_AffectsHouse = AffectedHouse::Team;
@@ -153,9 +153,9 @@ void SW_Protect::Initialize(SWTypeExtData* pData)
 	{
 		pData->This()->Action = Action::IronCurtain;
 		// iron curtain and protect
-		pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_IronCurtainReady);
-		pData->EVA_Detected = VoxClass::FindIndexById(GameStrings::EVA_IronCurtainDetected);
-		pData->EVA_Activated = VoxClass::FindIndexById(GameStrings::EVA_IronCurtainActivated);
+		pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_IronCurtainReady());
+		pData->EVA_Detected = VoxClass::FindIndexById(GameStrings::EVA_IronCurtainDetected());
+		pData->EVA_Activated = VoxClass::FindIndexById(GameStrings::EVA_IronCurtainActivated());
 		pData->SW_AITargetingMode = SuperWeaponAITargetingMode::IronCurtain;
 		pData->CursorType = int(MouseCursorType::IronCurtain);
 	}

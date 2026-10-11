@@ -255,9 +255,9 @@ void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * 
 			else
 				pThis->Owner->OnBridge = false;
 
-			++Unsorted::ScenarioInit;
+			++Unsorted::ScenarioInit();
 			success = pThis->Owner->Unlimbo(location, pThis->Owner->PrimaryFacing.Current().GetDir());
-			--Unsorted::ScenarioInit;
+			--Unsorted::ScenarioInit();
 		}
 
 		const auto pTechnoExt = TechnoExtContainer::Instance.Find(pThis->Owner);

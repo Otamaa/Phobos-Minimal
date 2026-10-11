@@ -298,14 +298,14 @@ ASMJIT_PATCH(0x777998, Game_WndProc_ScrollMouseWheel, 0x6)
 void __fastcall ScreenCaptureCommandClass_Process(CommandClass* pThis, discard_t, WWKey eInput)
 {
 	RECT Viewport = {};
-	if (Imports::GetWindowRect.invoke()(Game::hWnd, &Viewport))
+	if (Imports::GetWindowRect.invoke()(Game::hWnd(), &Viewport))
 	{
 		POINT TL = { Viewport.left, Viewport.top }, BR = { Viewport.right, Viewport.bottom };
-		if (Imports::ClientToScreen.invoke()(Game::hWnd, &TL) && Imports::ClientToScreen.invoke()(Game::hWnd, &BR))
+		if (Imports::ClientToScreen.invoke()(Game::hWnd(), &TL) && Imports::ClientToScreen.invoke()(Game::hWnd(), &BR))
 		{
 			RectangleStruct ClipRect = { TL.x, TL.y, Viewport.right + 1, Viewport.bottom + 1 };
 
-			DSurface* Surface = DSurface::Primary;
+			DSurface* Surface = DSurface::Primary();
 
 			int width = Surface->Get_Width();
 			int height = Surface->Get_Height();

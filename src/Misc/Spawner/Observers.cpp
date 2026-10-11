@@ -192,7 +192,7 @@ ASMJIT_PATCH(0x67E720, LoadGame_After, 0x5)
 	if (!SpawnerMain::Configs::Enabled || SessionClass::IsCampaign())
 		return 0;
 
-	HouseClass* pCurrentPlayer = HouseClass::CurrentPlayer;
+	HouseClass* pCurrentPlayer = HouseClass::CurrentPlayer();
 	if (pCurrentPlayer->Defeated)
 	{
 		if (pCurrentPlayer->IsInitiallyObserver())

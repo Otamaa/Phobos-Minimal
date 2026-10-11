@@ -87,7 +87,7 @@ TeamClass* FakeTeamTypeClass::_CreateOneOf(HouseClass* pHouse){
 
 	const auto pTeam = GameCreate<TeamClass>(this, pHouse, false);
 
-	Debug::LogInfo("[{0} - {1}] Creating a new team named [{2} -{3}].",
+	Debug::LogInfo("[{0} - {1}] Creating a new team named [{2} - {3}].",
 		pHouse->get_ID(), (void*)pHouse, this->ID, (void*)pTeam);
 
 	return pTeam;

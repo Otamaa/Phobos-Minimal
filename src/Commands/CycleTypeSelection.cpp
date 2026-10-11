@@ -205,7 +205,7 @@ void CycleTypeSelectionCommandClass::Execute(WWKey eInput) const
 
 	if (count <= 0)
 	{
-		MessageListClass::Instance->PrintMessage(CSFLoader::FetchStringManager(GameStrings::TXT_NOTHING_SELECTED, nullptr, nullptr, -1),
+		MessageListClass::Instance->PrintMessage(CSFLoader::FetchStringManager(GameStrings::TXT_NOTHING_SELECTED(), nullptr, nullptr, -1),
 			RulesClass::Instance->MessageDelay, HouseClass::CurrentPlayer->ColorSchemeIndex, true);
 		return;
 	}
@@ -232,7 +232,7 @@ void CycleTypeSelectionCommandClass::Execute(WWKey eInput) const
 	if (CycleTypeSelection::Types.empty())
 	{
 		CycleTypeSelection::Reset();
-		MessageListClass::Instance->PrintMessage(CSFLoader::FetchStringManager(GameStrings::TXT_NOTHING_SELECTED, nullptr, nullptr, -1),
+		MessageListClass::Instance->PrintMessage(CSFLoader::FetchStringManager(GameStrings::TXT_NOTHING_SELECTED(), nullptr, nullptr, -1),
 			RulesClass::Instance->MessageDelay, HouseClass::CurrentPlayer->ColorSchemeIndex, true);
 		return;
 	}

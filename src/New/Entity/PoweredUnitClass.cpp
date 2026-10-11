@@ -71,7 +71,7 @@ bool PoweredUnitClass::Update()
 	}
 
 	const auto curMission = pTechno->CurrentMission;
-	this->LastScan = Unsorted::CurrentFrame;
+	this->LastScan = Unsorted::CurrentFrame();
 
 	if (curMission == Mission::Selling || curMission == Mission::Construction)
 		return true;

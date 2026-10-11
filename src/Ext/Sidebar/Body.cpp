@@ -68,7 +68,7 @@ void SidebarExtData::DrawProducingProgress()
 
 					if (idxFrame != -1)
 					{
-						DSurface::Sidebar()->DrawSHP(FileSystem::SIDEBAR_PAL, pSHP, idxFrame, &vPos,
+						DSurface::Sidebar()->DrawSHP(FileSystem::SIDEBAR_PAL(), pSHP, idxFrame, &vPos,
 							&sidebarRect, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 					}
 				}

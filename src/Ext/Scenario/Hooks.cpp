@@ -86,9 +86,9 @@ ASMJIT_PATCH(0x6873AB, INIClass_ReadScenario_EarlyLoadRules, 5)
 {
 
 	if (SessionClass::Instance->GameMode == GameMode::Campaign) {
-		RulesClass::Instance()->Read_Sides(CCINIClass::INI_Rules);
+		RulesClass::Instance()->Read_Sides(CCINIClass::INI_Rules());
 		for (auto pSide : *SideClass::Array)
-			SideExtContainer::Instance.LoadFromINI(pSide, CCINIClass::INI_Rules, false);
+			SideExtContainer::Instance.LoadFromINI(pSide, CCINIClass::INI_Rules(), false);
 	}
 
 	R->EAX(0x1180);

@@ -53,7 +53,7 @@ bool SWButtonClass::Draw(bool forced)
 		strcpy_s(pFilename, FakeRulesClass::Instance()->MissingCameo.data());
 		_strlwr_s(pFilename);
 
-		if (!_stricmp(pCameoRef->Filename, GameStrings::XXICON_SHP) && strstr(pFilename, ".pcx"))
+		if (!_stricmp(pCameoRef->Filename, GameStrings::XXICON_SHP()) && strstr(pFilename, ".pcx"))
 		{
 			PCXImages::Instance->LoadFile(pFilename);
 
@@ -62,7 +62,7 @@ bool SWButtonClass::Draw(bool forced)
 		}
 		else
 		{
-			const auto pConvert = pSWExt->SidebarPalette.GetConvert() ? pSWExt->SidebarPalette.GetConvert() : FileSystem::CAMEO_PAL;
+			const auto pConvert = pSWExt->SidebarPalette.GetConvert() ? pSWExt->SidebarPalette.GetConvert() : FileSystem::CAMEO_PAL();
 			pSurface->DrawSHP(pConvert, pCameo, 0, &location, &bounds, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
 		}
 	}
@@ -77,7 +77,7 @@ bool SWButtonClass::Draw(bool forced)
 	if (SWTypeExtData::DrawDarken(pSuper))
 	{
 		RectangleStruct darkenBounds { 0, 0, location.X + this->Rect.Width, location.Y + this->Rect.Height };
-		pSurface->DrawSHP(FileSystem::SIDEBAR_PAL, FileSystem::DARKEN_SHP, 0, &location, &darkenBounds, BlitterFlags::bf_400 | BlitterFlags::Darken, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+		pSurface->DrawSHP(FileSystem::SIDEBAR_PAL(), FileSystem::DARKEN_SHP(), 0, &location, &darkenBounds, BlitterFlags::bf_400 | BlitterFlags::Darken, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
 	}
 
 	const bool ready = !pSuper->IsOnHold && (pSuper->Type->UseChargeDrain ? pSuper->ChargeDrainState == ChargeDrainState::Ready : pSuper->IsCharged);

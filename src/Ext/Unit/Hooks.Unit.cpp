@@ -952,7 +952,7 @@ ASMJIT_PATCH(0x73C725, UnitClass_DrawSHP_DrawShadowEarlier, 6)
 			return 0x73CE0D;
 	}
 
-	DWORD retAddr = (U->IsClearlyVisibleTo(HouseClass::CurrentPlayer))
+	DWORD retAddr = (U->IsClearlyVisibleTo(HouseClass::CurrentPlayer()))
 		? 0
 		: 0x73CE0D
 		;
@@ -995,7 +995,7 @@ ASMJIT_PATCH(0x73C725, UnitClass_DrawSHP_DrawShadowEarlier, 6)
 
 		FrameToDraw += Image->CurrentHeader.Frames / 2;
 
-		DSurface::Hidden_2->DrawSHP(FileSystem::THEATER_PAL, Image, FrameToDraw, &coords, BoundingRect, BlitterFlags(0x2E01),
+		DSurface::Hidden_2->DrawSHP(FileSystem::THEATER_PAL(), Image, FrameToDraw, &coords, BoundingRect, BlitterFlags(0x2E01),
 				0, ZAdjust, 0, 1000, 0, 0, 0, 0, 0);
 
 		ShadowAlreadyDrawn = true;
@@ -1285,13 +1285,6 @@ ASMJIT_PATCH(0x735584, UnitClass_CTOR_TurretROT, 6)
 	GET(UnitTypeClass*, pType, ECX);
 	R->EDX(TechnoTypeExtContainer::Instance.Find(pType)->TurretRot.Get(pType->ROT));
 	return 0x73558A;
-}
-
-ASMJIT_PATCH(0x413ffa, AircraftClass_Init_TurretROT, 6)
-{
-	GET(AircraftTypeClass*, pType, EDX);
-	R->EAX(TechnoTypeExtContainer::Instance.Find(pType)->TurretRot.Get(pType->ROT));
-	return 0x414000;
 }
 
 // select the most appropriate firing voice and also account

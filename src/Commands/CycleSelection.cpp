@@ -113,7 +113,7 @@ void CycleSelectionCommandClass::Execute(WWKey eInput) const
 	if (!pTarget)
 	{
 		CycleSelection::Reset();
-		MessageListClass::Instance->PrintMessage(CSFLoader::FetchStringManager(GameStrings::TXT_NOTHING_SELECTED, nullptr, nullptr, -1),
+		MessageListClass::Instance->PrintMessage(CSFLoader::FetchStringManager(GameStrings::TXT_NOTHING_SELECTED(), nullptr, nullptr, -1),
 			RulesClass::Instance->MessageDelay, HouseClass::CurrentPlayer->ColorSchemeIndex, true);
 		return;
 	}

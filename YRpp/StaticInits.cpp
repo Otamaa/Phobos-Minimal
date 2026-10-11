@@ -1792,12 +1792,12 @@ bool SuperClass::IsDisabledFromShell() const
 
 const char* TeamClass::get_ID() const
 {
-	return Type ? Type->get_ID() : GameStrings::NoneStr;
+	return Type ? Type->get_ID() : GameStrings::NoneStr();
 }
 
 const char* ScriptClass::get_ID() const
 {
-	return Type ? Type->get_ID() : GameStrings::NoneStr;
+	return Type ? Type->get_ID() : GameStrings::NoneStr();
 }
 
 DEFINE_IMPLEMENTATION(void TechnoClass::Draw_Object(SHPCaches*,

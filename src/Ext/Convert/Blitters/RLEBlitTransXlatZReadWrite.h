@@ -122,7 +122,7 @@ private:
 			constexpr uintptr_t ChunkBytes = ChunkSize * sizeof(WORD);
 			alignas(32) unsigned int paletteLut32[256];
 			Avx2_BuildByteLut32(pPaletteData, paletteLut32);
-			ZBuffer* pZBuffer = ZBuffer::Instance;
+			ZBuffer* pZBuffer = ZBuffer::Instance();
 			const uintptr_t zTailAddress = reinterpret_cast<uintptr_t>(pZBuffer->BufferTail);
 			const __m256i zbaseVec = _mm256_set1_epi32(zbase);
 
@@ -210,7 +210,7 @@ private:
 		{
 			constexpr int ChunkSize = 8;
 			constexpr uintptr_t ChunkBytes = ChunkSize * sizeof(WORD);
-			ZBuffer* pZBuffer = ZBuffer::Instance;
+			ZBuffer* pZBuffer = ZBuffer::Instance();
 			const uintptr_t zTailAddress = reinterpret_cast<uintptr_t>(pZBuffer->BufferTail);
 			const __m128i zbaseVec = _mm_set1_epi16(static_cast<short>(zbase));
 
@@ -389,7 +389,7 @@ private:
 		{
 			constexpr int ChunkSize = 8;
 			constexpr uintptr_t ChunkBytes = ChunkSize * sizeof(WORD);
-			ZBuffer* pZBuffer = ZBuffer::Instance;
+			ZBuffer* pZBuffer = ZBuffer::Instance();
 			const uintptr_t zTailAddress = reinterpret_cast<uintptr_t>(pZBuffer->BufferTail);
 			const __m256i zbaseVec32 = _mm256_set1_epi32(zbase);
 			const __m256i low16Mask32 = _mm256_set1_epi32(0xFFFF);
@@ -488,7 +488,7 @@ private:
 			{
 				constexpr int ChunkSize = 8;
 				constexpr uintptr_t ChunkBytes = ChunkSize * sizeof(WORD);
-				ZBuffer* pZBuffer = ZBuffer::Instance;
+				ZBuffer* pZBuffer = ZBuffer::Instance();
 				const uintptr_t zTailAddress = reinterpret_cast<uintptr_t>(pZBuffer->BufferTail);
 				const __m128i zbaseVec16 = _mm_set1_epi16(static_cast<short>(zbase));
 

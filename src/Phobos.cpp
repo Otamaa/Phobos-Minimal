@@ -469,13 +469,13 @@ void Phobos::CheckProcessorFeatures()
 
 void Phobos::PassiveSaveGame()
 {
-	GeneralUtils::PrintMessage(StringTable::FetchString(GameStrings::TXT_SAVING_GAME));
+	GeneralUtils::PrintMessage(StringTable::FetchString(GameStrings::TXT_SAVING_GAME()));
 	const auto name = "Map." + Debug::GetCurTimeA() + ".sav";
 
 	if (ScenarioClass::SaveGame(name.c_str(), Phobos::CustomGameSaveDescription.c_str()))
-		GeneralUtils::PrintMessage(StringTable::FetchString(GameStrings::TXT_GAME_WAS_SAVED));
+		GeneralUtils::PrintMessage(StringTable::FetchString(GameStrings::TXT_GAME_WAS_SAVED()));
 	else
-		GeneralUtils::PrintMessage(StringTable::FetchString(GameStrings::TXT_ERROR_SAVING_GAME));
+		GeneralUtils::PrintMessage(StringTable::FetchString(GameStrings::TXT_ERROR_SAVING_GAME()));
 }
 
 
@@ -585,7 +585,7 @@ void Phobos::ThrowUsageWarning(CCINIClass* pINI)
 	//just add your mod name or remove these code if you dont like it
 	if (!Phobos::Otamaa::IsAdmin)
 	{
-		if (pINI->ReadString(GameStrings::General(), GameStrings::Name, "", Phobos::readBuffer) <= 0)
+		if (pINI->ReadString(GameStrings::General(), GameStrings::Name(), "", Phobos::readBuffer) <= 0)
 			return;
 
 		const std::string ModNameTemp = Phobos::readBuffer;

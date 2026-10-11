@@ -60,7 +60,7 @@ ASMJIT_PATCH(0x55EF38, MainLoop_AfterRender__DisableChat, 0x6)
 	static int LastDisableChatFeedbackFrame = -1000;
 
 	if (IsDisableChatEnabled()) {
-		const int currentFrame = Unsorted::CurrentFrame;
+		const int currentFrame = Unsorted::CurrentFrame();
 
 		if (currentFrame < LastDisableChatFeedbackFrame)
 			LastDisableChatFeedbackFrame = -1000; // new match started
@@ -156,7 +156,7 @@ ASMJIT_PATCH(0x48D95B, NetworkCallBack_NetMessage_SetColor, 0x6)
 
 ASMJIT_PATCH(0x55EDD2, MessageInput_Write, 0x5)
 {
-	HouseClass* pHouse = HouseClass::CurrentPlayer;
+	HouseClass* pHouse = HouseClass::CurrentPlayer();
 	wcscpy_s(GlobalPacket_NetMessage::Instance->PlayerName, pHouse->UIName);
 	GlobalPacket_NetMessage::Instance->HouseIndex = (byte)pHouse->ArrayIndex;
 

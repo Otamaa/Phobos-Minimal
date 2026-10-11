@@ -32,7 +32,7 @@ void MemoryDumperCommandClass::Execute(WWKey dwUnk) const
 	Debug::TakeMouse();
 
 	HCURSOR loadCursor = LoadCursor(nullptr, IDC_WAIT);
-	SetClassLong(Game::hWnd, GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
+	SetClassLong(Game::hWnd(), GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
 	SetCursor(loadCursor);
 
 	MessageListClass::Instance->PrintMessage(L"Dumping process memory...");
@@ -46,7 +46,7 @@ void MemoryDumperCommandClass::Execute(WWKey dwUnk) const
 	MessageListClass::Instance->PrintMessage(filename.c_str());
 
 	loadCursor = LoadCursor(nullptr, IDC_ARROW);
-	SetClassLong(Game::hWnd, GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
+	SetClassLong(Game::hWnd(), GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
 	SetCursor(loadCursor);
 
 	Debug::ReturnMouse();

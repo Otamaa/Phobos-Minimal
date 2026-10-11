@@ -48,7 +48,7 @@ bool DigitalDisplayTypeClass::CanShow(TechnoClass* pThis)
 	{
 		return false;
 	}
-	else if (!EnumFunctions::CanTargetHouse(this->VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer))
+	else if (!EnumFunctions::CanTargetHouse(this->VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer()))
 	{
 		return false;
 	}
@@ -246,7 +246,7 @@ void DigitalDisplayTypeClass::DisplayShape(Point2D& position, int length, int va
 	}
 
 	const auto ExtraFrame = GeneralUtils::GetItemByHealthRatio<FrameData>(static_cast<double>(value) / maxValue, { 0, 30 }, { 10 , 32 }, { 20 , 34 });
-	ConvertClass* pPal = Palette.GetConvert() ? Palette.GetConvert() : FileSystem::PALETTE_PAL;
+	ConvertClass* pPal = Palette.GetConvert() ? Palette.GetConvert() : FileSystem::PALETTE_PAL();
 
 	ShapeTextPrintData shapeTextPrintData
 	(
@@ -270,7 +270,7 @@ void DigitalDisplayTypeClass::DisplayShape(Point2D& position, int length, int va
 	}
 	else
 	{
-		ShapeTextPrinter::PrintShape(valueString.c_str(), shapeTextPrintData, &position, &rect, DSurface::Composite);
+		ShapeTextPrinter::PrintShape(valueString.c_str(), shapeTextPrintData, &position, &rect, DSurface::Composite());
 	}
 }
 

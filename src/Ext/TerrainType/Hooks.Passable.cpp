@@ -591,7 +591,7 @@ ASMJIT_PATCH(0x47EEBC, CellClass_DrawPlaceGrid_RecordCell, 0x6)
 		}
 		else if (BuildingTypeClass* const pType = type_cast<BuildingTypeClass*>(DisplayClass::Instance->CurrentBuildingTypeCopy))
 		{
-			R->Stack<bool>(STACK_OFFSET(0x30, -0x1D), pCell->CanThisExistHere(pType->SpeedType, pType, HouseClass::CurrentPlayer));
+			R->Stack<bool>(STACK_OFFSET(0x30, -0x1D), pCell->CanThisExistHere(pType->SpeedType, pType, HouseClass::CurrentPlayer()));
 			R->EDX<BlitterFlags>(flags | BlitterFlags::TransLucent75);
 			return DontDrawAlt;
 		}
@@ -1090,7 +1090,7 @@ ASMJIT_PATCH(0x4F8DB1, HouseClass_Update_CheckHangUpBuilding, 0x6)
 			BuildingExtData::ClearPlacingBuildingData(pType->BuildCat != BuildCat::Combat ? &pHouseExt->Common : &pHouseExt->Combat);
 
 			if (pHouse == HouseClass::CurrentPlayer.get())
-				VoxClass::Play(GameStrings::EVA_CannotDeployHere);
+				VoxClass::Play(GameStrings::EVA_CannotDeployHere());
 		}
 		else if (pHouse == HouseClass::CurrentPlayer.get()) // Prevent unexpected wrong event
 		{

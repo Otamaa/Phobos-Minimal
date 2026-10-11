@@ -74,7 +74,7 @@ ASMJIT_PATCH(0x539EB0, LightningStorm_Start, 5)
 			// start the mayhem. not setting this will create an
 			// infinite loop. not tested what happens after that.
 			LightningStorm::Duration = duration;
-			LightningStorm::StartTime = Unsorted::CurrentFrame;
+			LightningStorm::StartTime = Unsorted::CurrentFrame();
 			LightningStorm::IsActive = true;
 
 			// blackout
@@ -155,7 +155,7 @@ ASMJIT_PATCH(0x53A6CF, LightningStorm_Update, 7)
 			if (NukeFlash::IsFadingIn())
 			{
 				NukeFlash::Status = NukeFlashStatus::FadeOut;
-				NukeFlash::StartTime = Unsorted::CurrentFrame;
+				NukeFlash::StartTime = Unsorted::CurrentFrame();
 				NukeFlash::Duration = 15;
 				ScenarioClass::Instance->UpdateLighting();
 				MapClass::Instance->RedrawSidebar(1);
@@ -276,7 +276,7 @@ ASMJIT_PATCH(0x53A6CF, LightningStorm_Update, 7)
 			{
 				// launch the storm
 				LightningStorm::Start(
-					LightningStorm::Duration, 0, coords, LightningStorm::Owner);
+					LightningStorm::Duration(), 0, coords, LightningStorm::Owner());
 			}
 		}
 

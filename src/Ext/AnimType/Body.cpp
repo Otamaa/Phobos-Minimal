@@ -456,9 +456,9 @@ static TechnoClass* CreateFoot(
 			parachuted = true;
 			success = pTechno->SpawnParachuted(location);
 		} else if (!pCell->GetBuilding() || !checkPathfinding) {
-			++Unsorted::ScenarioInit;
+			++Unsorted::ScenarioInit();
 			success = pTechno->Unlimbo(location, facing);
-			--Unsorted::ScenarioInit;
+			--Unsorted::ScenarioInit();
 		} else {
 			success = pTechno->Unlimbo(location, facing);
 		}

@@ -196,7 +196,7 @@ ASMJIT_PATCH(0x446816, BuildingClass_Place_RevealToAll_UpdateSight, 0x5)
 
 	GET(FakeBuildingClass*, pThis, EBP);
 	const int radius = pThis->_GetTypeExtData()->RevealToAll_Radius.Get(pThis->LastSightRange + 3);
-	pThis->UpdateSight(false, false, true, HouseClass::CurrentPlayer, radius);
+	pThis->UpdateSight(false, false, true, HouseClass::CurrentPlayer(), radius);
 	return SkipGameCode;
 }
 

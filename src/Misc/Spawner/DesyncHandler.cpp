@@ -207,7 +207,7 @@ void Update_Master_After_Player_Removal()
 static bool __fastcall SessionClass_Am_I_Master(SessionClass * pThis, void*, HouseClass * who)
 {
 	if (who == nullptr)
-		who = HouseClass::CurrentPlayer;
+		who = HouseClass::CurrentPlayer();
 
 	if ((pThis->GameMode == GameMode::Internet || pThis->GameMode == GameMode::LAN) && who != nullptr)
 	{

@@ -243,9 +243,9 @@ void TechnoExtData::SpawnWreckage(WarheadTypeClass* pWH, HouseClass* pAttackerHo
 						pWreckageFoot->Locomotor->Stop_Moving();
 					}
 
-					++Unsorted::ScenarioInit;
+					++Unsorted::ScenarioInit();
 					pWreckage->Unlimbo((pWreckage->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None ? pThis->GetCoords() : pThis->Location, DirType::North);
-					--Unsorted::ScenarioInit;
+					--Unsorted::ScenarioInit();
 					pWreckage->PrimaryFacing.Set_Current(pThis->PrimaryFacing.Current());
 					pWreckage->SecondaryFacing.Set_Current(pThis->SecondaryFacing.Current());
 

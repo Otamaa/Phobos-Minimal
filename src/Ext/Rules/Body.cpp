@@ -176,20 +176,20 @@ void FakeRulesClass::LoadAfterTypeData(CCINIClass* pINI)
 	ScriptManipulator::CaptureFromINI(pINI);
 	TaskForceManipulator::CaptureFromINI(pINI);
 
-	this->BattlePoints.Read(exINI, GameStrings::General, "BattlePoints");
-	this->BattlePoints_DefaultValue.Read(exINI, GameStrings::General, "BattlePoints.DefaultValue");
-	this->BattlePoints_DefaultFriendlyValue.Read(exINI, GameStrings::General, "BattlePoints.DefaultFriendlyValue");
+	this->BattlePoints.Read(exINI, GameStrings::General(), "BattlePoints");
+	this->BattlePoints_DefaultValue.Read(exINI, GameStrings::General(), "BattlePoints.DefaultValue");
+	this->BattlePoints_DefaultFriendlyValue.Read(exINI, GameStrings::General(), "BattlePoints.DefaultFriendlyValue");
 
-	this->DamagedSpeed.Read(exINI, GameStrings::General, "DamagedSpeed");
+	this->DamagedSpeed.Read(exINI, GameStrings::General(), "DamagedSpeed");
 
-	this->InfantrySpeedData.Crawls.Read(exINI, GameStrings::General, "ProneSpeed.Crawls");
-	this->InfantrySpeedData.NoCrawls.Read(exINI, GameStrings::General, "ProneSpeed.NoCrawls");
+	this->InfantrySpeedData.Crawls.Read(exINI, GameStrings::General(), "ProneSpeed.Crawls");
+	this->InfantrySpeedData.NoCrawls.Read(exINI, GameStrings::General(), "ProneSpeed.NoCrawls");
 
-	this->BuildingGuardRetryDelay.Read(exINI, GameStrings::General, "BuildingGuardRetryDelay");
-	this->DiscardOn_ConsiderHoverAsMoving.Read(exINI, GameStrings::General, "DiscardOn.MoveBasedOnDestination");
+	this->BuildingGuardRetryDelay.Read(exINI, GameStrings::General(), "BuildingGuardRetryDelay");
+	this->DiscardOn_ConsiderHoverAsMoving.Read(exINI, GameStrings::General(), "DiscardOn.MoveBasedOnDestination");
 
-	this->EnableWreckageSpawn.Read(exINI, GameStrings::General, "EnableWreckageSpawn");
-	this->WreckageInitialHealthPercent.Read(exINI, GameStrings::General, "WreckageInitialHealthPercent");
+	this->EnableWreckageSpawn.Read(exINI, GameStrings::General(), "EnableWreckageSpawn");
+	this->WreckageInitialHealthPercent.Read(exINI, GameStrings::General(), "WreckageInitialHealthPercent");
 
 	//got invalidated early , so parse it again
 	detail::ParseVector(exINI, this->AITargetTypesLists, "AITargetTypes");
@@ -199,10 +199,10 @@ void FakeRulesClass::LoadAfterTypeData(CCINIClass* pINI)
 	detail::ParseVector(exINI, this->AIConditionsLists, "AIConditionsList", true, false, "/");
 	detail::ParseVector<AITriggerTypeClass*, true>(exINI, this->AITriggersLists, "AITriggersList");
 
-	this->AIChronoSphereSW.Read(exINI, GameStrings::General, "AIChronoSphereSW");
-	this->AIChronoWarpSW.Read(exINI, GameStrings::General, "AIChronoWarpSW");
-	this->AutoRemoveEarliestBeacon.Read(exINI, GameStrings::General, "AutoRemoveEarliestBeacon");
-	this->AllowChatBoxInSinglePlayer.Read(exINI, GameStrings::General, "AllowChatBoxInSinglePlayer");
+	this->AIChronoSphereSW.Read(exINI, GameStrings::General(), "AIChronoSphereSW");
+	this->AIChronoWarpSW.Read(exINI, GameStrings::General(), "AIChronoWarpSW");
+	this->AutoRemoveEarliestBeacon.Read(exINI, GameStrings::General(), "AutoRemoveEarliestBeacon");
+	this->AllowChatBoxInSinglePlayer.Read(exINI, GameStrings::General(), "AllowChatBoxInSinglePlayer");
 
 	this->DefaultAircraftDamagedSmoke = AnimTypeClass::Find(GameStrings::SGRYSMK1());
 
@@ -214,80 +214,80 @@ void FakeRulesClass::LoadAfterTypeData(CCINIClass* pINI)
 	if (this->WallTower && !this->WallTowers.Contains(this->WallTower))
 		this->WallTowers.push_back(this->WallTower);
 
-	this->Terrain_IsPassable.Read(exINI, GameStrings::General, "Terrain.IsPassable");
-	this->Tibtree_IsPassable.Read(exINI, GameStrings::General, "Tibtree.IsPassable");
-	this->Terrain_CanBeBuiltOn.Read(exINI, GameStrings::General, "Terrain.CanBeBuiltOn");
-	this->Tibtree_CanBeBuiltOn.Read(exINI, GameStrings::General, "Tibtree.CanBeBuiltOn");
+	this->Terrain_IsPassable.Read(exINI, GameStrings::General(), "Terrain.IsPassable");
+	this->Tibtree_IsPassable.Read(exINI, GameStrings::General(), "Tibtree.IsPassable");
+	this->Terrain_CanBeBuiltOn.Read(exINI, GameStrings::General(), "Terrain.CanBeBuiltOn");
+	this->Tibtree_CanBeBuiltOn.Read(exINI, GameStrings::General(), "Tibtree.CanBeBuiltOn");
 
-	this->DecloakDamagedTargets.Read(exINI, GameStrings::General, "DecloakDamagedTargets");
-	this->SubterraneanHeight.Read(exINI, GameStrings::General, "SubterraneanHeight");
-	this->SetTabBySelectingFactory.Read(exINI, GameStrings::General, "SetTabBySelectingFactory");
-	this->Strafing_SimulateBurst.Read(exINI, GameStrings::General, "Strafing.SimulateBurst");
-	this->Strafing_UseAmmoPerShot.Read(exINI, GameStrings::General, "Strafing.UseAmmoPerShot");
-	this->Strafing_TargetCell.Read(exINI, GameStrings::General, "Strafing.TargetCell");
-	this->Vertical_AircraftFix.Read(exINI, GameStrings::General, "Vertical.AircraftFix");
-	this->AircraftWeapon_KickOutPassengers.Read(exINI, GameStrings::General, "AircraftWeapon.KickOutPassengers");
-	this->AircraftSpawnFromEdge.Read(exINI, GameStrings::General, "AircraftSpawnFromEdge");
-	this->AircraftRetreatToEdge.Read(exINI, GameStrings::General, "AircraftRetreatToEdge");
-	this->Debris_Conventional.Read(exINI, GameStrings::General, "Debris.Conventional");
-	this->MindControl_IgnoreSize.Read(exINI, GameStrings::General, "MindControl.IgnoreSize");
-	this->MultiMindControl_ReleaseVictim.Read(exINI, GameStrings::General, "MultiMindControl.ReleaseVictim");
-	this->MindControlLink_VisibleToHouse.Read(exINI, GameStrings::General, "MindControlLink.VisibleToHouse");
-	this->NotHuman_RandomDeathSequence.Read(exINI, GameStrings::General, "NotHuman.RandomDeathSequence");
-	this->OnlyUseLandSequences.Read(exINI, GameStrings::General, "OnlyUseLandSequences");
-	this->ReloadInTransport.Read(exINI, GameStrings::General, "ReloadInTransport");
-	this->HoverDrownable.Read(exINI, GameStrings::General, "HoverDrownable");
-	this->Explodes_KillPassengers.Read(exINI, GameStrings::General, "Explodes.KillPassengers");
-	this->Explodes_DuringBuildup.Read(exINI, GameStrings::General, "Explodes.DuringBuildup");
-	this->AllowDamageOnSelf.Read(exINI, GameStrings::General, "AllowDamageOnSelf");
-	this->AlternateFLH_OnTurret.Read(exINI, GameStrings::General, "AlternateFLH.OnTurret");
-	this->AlternateFLH_ApplyVehicle.Read(exINI, GameStrings::General, "AlternateFLH.ApplyVehicle");
-	this->Convert_ResetMindControl.Read(exINI, GameStrings::General, "Convert.ResetMindControl");
-	this->Passengers_SyncOwner.Read(exINI, GameStrings::General, "Passengers.SyncOwner");
-	this->Passengers_SyncOwner_RevertOnExit.Read(exINI, GameStrings::General, "Passengers.SyncOwner.RevertOnExit");
-	this->OmniFire_TurnToTarget.Read(exINI, GameStrings::General, "OmniFire.TurnToTarget");
-	this->AmbientDamage_IgnoreTarget.Read(exINI, GameStrings::General, "AmbientDamage.IgnoreTarget");
-	this->Spawner_AttackImmediately.Read(exINI, GameStrings::General, "Spawner.AttackImmediately");
-	this->Spawner_UseTurretFacing.Read(exINI, GameStrings::General, "Spawner.UseTurretFacing");
-	this->Spawner_RecycleRange.Read(exINI, GameStrings::General, "Spawner.RecycleRange");
-	this->Spawner_RecycleOnTurret.Read(exINI, GameStrings::General, "Spawner.RecycleOnTurret");
-	this->Promote_IncludeSpawns.Read(exINI, GameStrings::General, "Promote.IncludeSpawns");
-	this->UseDisguiseMovementSpeed.Read(exINI, GameStrings::General, "UseDisguiseMovementSpeed");
-	this->CrushSlowdownMultiplier.Read(exINI, GameStrings::General, "CrushSlowdownMultiplier");
-	this->SkipCrushSlowdown.Read(exINI, GameStrings::General, "SkipCrushSlowdown");
-	this->ShakeIsLocal.Read(exINI, GameStrings::General, "ShakeIsLocal");
-	this->RadarJamHouses.Read(exINI, GameStrings::General, "RadarJamHouses");
-	this->RadarJamDelay.Read(exINI, GameStrings::General, "RadarJamDelay");
-	this->ApplyModifiersOnNegativeDamage.Read(exINI, GameStrings::General, "ApplyModifiersOnNegativeDamage");
-	this->CreateAnimsOnZeroDamage.Read(exINI, GameStrings::General, "CreateAnimsOnZeroDamage");
-	this->BuildLimitGroup_ContentIfAnyMatch.Read(exINI, GameStrings::General, "BuildLimitGroup.ContentIfAnyMatch");
-	this->BuildLimitGroup_NotBuildableIfQueueMatch.Read(exINI, GameStrings::General, "BuildLimitGroup.NotBuildableIfQueueMatch");
-	this->Sinkable.Read(exINI, GameStrings::General, "Sinkable");
-	this->Sinkable_SquidGrab.Read(exINI, GameStrings::General, "Sinkable.SquidGrab");
-	this->SinkSpeed.Read(exINI, GameStrings::General, "SinkSpeed");
+	this->DecloakDamagedTargets.Read(exINI, GameStrings::General(), "DecloakDamagedTargets");
+	this->SubterraneanHeight.Read(exINI, GameStrings::General(), "SubterraneanHeight");
+	this->SetTabBySelectingFactory.Read(exINI, GameStrings::General(), "SetTabBySelectingFactory");
+	this->Strafing_SimulateBurst.Read(exINI, GameStrings::General(), "Strafing.SimulateBurst");
+	this->Strafing_UseAmmoPerShot.Read(exINI, GameStrings::General(), "Strafing.UseAmmoPerShot");
+	this->Strafing_TargetCell.Read(exINI, GameStrings::General(), "Strafing.TargetCell");
+	this->Vertical_AircraftFix.Read(exINI, GameStrings::General(), "Vertical.AircraftFix");
+	this->AircraftWeapon_KickOutPassengers.Read(exINI, GameStrings::General(), "AircraftWeapon.KickOutPassengers");
+	this->AircraftSpawnFromEdge.Read(exINI, GameStrings::General(), "AircraftSpawnFromEdge");
+	this->AircraftRetreatToEdge.Read(exINI, GameStrings::General(), "AircraftRetreatToEdge");
+	this->Debris_Conventional.Read(exINI, GameStrings::General(), "Debris.Conventional");
+	this->MindControl_IgnoreSize.Read(exINI, GameStrings::General(), "MindControl.IgnoreSize");
+	this->MultiMindControl_ReleaseVictim.Read(exINI, GameStrings::General(), "MultiMindControl.ReleaseVictim");
+	this->MindControlLink_VisibleToHouse.Read(exINI, GameStrings::General(), "MindControlLink.VisibleToHouse");
+	this->NotHuman_RandomDeathSequence.Read(exINI, GameStrings::General(), "NotHuman.RandomDeathSequence");
+	this->OnlyUseLandSequences.Read(exINI, GameStrings::General(), "OnlyUseLandSequences");
+	this->ReloadInTransport.Read(exINI, GameStrings::General(), "ReloadInTransport");
+	this->HoverDrownable.Read(exINI, GameStrings::General(), "HoverDrownable");
+	this->Explodes_KillPassengers.Read(exINI, GameStrings::General(), "Explodes.KillPassengers");
+	this->Explodes_DuringBuildup.Read(exINI, GameStrings::General(), "Explodes.DuringBuildup");
+	this->AllowDamageOnSelf.Read(exINI, GameStrings::General(), "AllowDamageOnSelf");
+	this->AlternateFLH_OnTurret.Read(exINI, GameStrings::General(), "AlternateFLH.OnTurret");
+	this->AlternateFLH_ApplyVehicle.Read(exINI, GameStrings::General(), "AlternateFLH.ApplyVehicle");
+	this->Convert_ResetMindControl.Read(exINI, GameStrings::General(), "Convert.ResetMindControl");
+	this->Passengers_SyncOwner.Read(exINI, GameStrings::General(), "Passengers.SyncOwner");
+	this->Passengers_SyncOwner_RevertOnExit.Read(exINI, GameStrings::General(), "Passengers.SyncOwner.RevertOnExit");
+	this->OmniFire_TurnToTarget.Read(exINI, GameStrings::General(), "OmniFire.TurnToTarget");
+	this->AmbientDamage_IgnoreTarget.Read(exINI, GameStrings::General(), "AmbientDamage.IgnoreTarget");
+	this->Spawner_AttackImmediately.Read(exINI, GameStrings::General(), "Spawner.AttackImmediately");
+	this->Spawner_UseTurretFacing.Read(exINI, GameStrings::General(), "Spawner.UseTurretFacing");
+	this->Spawner_RecycleRange.Read(exINI, GameStrings::General(), "Spawner.RecycleRange");
+	this->Spawner_RecycleOnTurret.Read(exINI, GameStrings::General(), "Spawner.RecycleOnTurret");
+	this->Promote_IncludeSpawns.Read(exINI, GameStrings::General(), "Promote.IncludeSpawns");
+	this->UseDisguiseMovementSpeed.Read(exINI, GameStrings::General(), "UseDisguiseMovementSpeed");
+	this->CrushSlowdownMultiplier.Read(exINI, GameStrings::General(), "CrushSlowdownMultiplier");
+	this->SkipCrushSlowdown.Read(exINI, GameStrings::General(), "SkipCrushSlowdown");
+	this->ShakeIsLocal.Read(exINI, GameStrings::General(), "ShakeIsLocal");
+	this->RadarJamHouses.Read(exINI, GameStrings::General(), "RadarJamHouses");
+	this->RadarJamDelay.Read(exINI, GameStrings::General(), "RadarJamDelay");
+	this->ApplyModifiersOnNegativeDamage.Read(exINI, GameStrings::General(), "ApplyModifiersOnNegativeDamage");
+	this->CreateAnimsOnZeroDamage.Read(exINI, GameStrings::General(), "CreateAnimsOnZeroDamage");
+	this->BuildLimitGroup_ContentIfAnyMatch.Read(exINI, GameStrings::General(), "BuildLimitGroup.ContentIfAnyMatch");
+	this->BuildLimitGroup_NotBuildableIfQueueMatch.Read(exINI, GameStrings::General(), "BuildLimitGroup.NotBuildableIfQueueMatch");
+	this->Sinkable.Read(exINI, GameStrings::General(), "Sinkable");
+	this->Sinkable_SquidGrab.Read(exINI, GameStrings::General(), "Sinkable.SquidGrab");
+	this->SinkSpeed.Read(exINI, GameStrings::General(), "SinkSpeed");
 
-	this->ForceWeapon_InRange_TechnoOnly.Read(exINI, GameStrings::General, "ForceWeapon.InRange.TechnoOnly");
-	this->ForceWeapon_InRange_ApplyRangeModifiers.Read(exINI, GameStrings::General, "ForceWeapon.InRange.ApplyRangeModifiers");
-	this->ForceAAWeapon_InRange_ApplyRangeModifiers.Read(exINI, GameStrings::General, "ForceAAWeapon.InRange.ApplyRangeModifiers");
+	this->ForceWeapon_InRange_TechnoOnly.Read(exINI, GameStrings::General(), "ForceWeapon.InRange.TechnoOnly");
+	this->ForceWeapon_InRange_ApplyRangeModifiers.Read(exINI, GameStrings::General(), "ForceWeapon.InRange.ApplyRangeModifiers");
+	this->ForceAAWeapon_InRange_ApplyRangeModifiers.Read(exINI, GameStrings::General(), "ForceAAWeapon.InRange.ApplyRangeModifiers");
 	
-	this->KeepRange_AllowAI.Read(exINI, GameStrings::General, "KeepRange.AllowAI");
-	this->KeepRange_AllowPlayer.Read(exINI, GameStrings::General, "KeepRange.AllowPlayer");
-	this->KeepRange_EarlyStopFrame.Read(exINI, GameStrings::General, "KeepRange.EarlyStopFrame");
-	this->DestroyAnim_Random.Read(exINI, GameStrings::General, "DestroyAnim.Random");
-	this->RadarGracePeriod.Read(exINI, GameStrings::General, "RadarGracePeriod");
+	this->KeepRange_AllowAI.Read(exINI, GameStrings::General(), "KeepRange.AllowAI");
+	this->KeepRange_AllowPlayer.Read(exINI, GameStrings::General(), "KeepRange.AllowPlayer");
+	this->KeepRange_EarlyStopFrame.Read(exINI, GameStrings::General(), "KeepRange.EarlyStopFrame");
+	this->DestroyAnim_Random.Read(exINI, GameStrings::General(), "DestroyAnim.Random");
+	this->RadarGracePeriod.Read(exINI, GameStrings::General(), "RadarGracePeriod");
 
-	this->ShowTextBoxInShroud_Waypoint.Read(exINI, GameStrings::General, "ShowTextBoxInShroud.Waypoint");
-	this->ShowTextBoxInShroud_Techno.Read(exINI, GameStrings::General, "ShowTextBoxInShroud.Techno");
-	this->ReadyToNextMission_MovingCheck.Read(exINI, GameStrings::General, "ReadyToNextMission.MovingCheck");
+	this->ShowTextBoxInShroud_Waypoint.Read(exINI, GameStrings::General(), "ShowTextBoxInShroud.Waypoint");
+	this->ShowTextBoxInShroud_Techno.Read(exINI, GameStrings::General(), "ShowTextBoxInShroud.Techno");
+	this->ReadyToNextMission_MovingCheck.Read(exINI, GameStrings::General(), "ReadyToNextMission.MovingCheck");
 
-	this->KeepAlive_SupportInfantrys.Read(exINI, GameStrings::General, "KeepAlive.SupportInfantrys");
-	this->KeepAlive_SupportVehicles.Read(exINI, GameStrings::General, "KeepAlive.SupportVehicles");
-	this->KeepAlive_SupportAircrafts.Read(exINI, GameStrings::General, "KeepAlive.SupportAircrafts");
-	this->KeepAlive_SupportBuildings.Read(exINI, GameStrings::General, "KeepAlive.SupportBuildings");
+	this->KeepAlive_SupportInfantrys.Read(exINI, GameStrings::General(), "KeepAlive.SupportInfantrys");
+	this->KeepAlive_SupportVehicles.Read(exINI, GameStrings::General(), "KeepAlive.SupportVehicles");
+	this->KeepAlive_SupportAircrafts.Read(exINI, GameStrings::General(), "KeepAlive.SupportAircrafts");
+	this->KeepAlive_SupportBuildings.Read(exINI, GameStrings::General(), "KeepAlive.SupportBuildings");
 
-	this->VeteranRange.Read(exINI, GameStrings::General, "VeteranRange");
-	this->VeteranCritChance.Read(exINI, GameStrings::General, "VeteranCritChance");
-	this->DisableProductionDuringBuildup.Read(exINI, GameStrings::General, "DisableProductionDuringBuildup");
+	this->VeteranRange.Read(exINI, GameStrings::General(), "VeteranRange");
+	this->VeteranCritChance.Read(exINI, GameStrings::General(), "VeteranCritChance");
+	this->DisableProductionDuringBuildup.Read(exINI, GameStrings::General(), "DisableProductionDuringBuildup");
 
 }
 
@@ -414,7 +414,7 @@ void FakeRulesClass::LoadBeforeTypeData(CCINIClass* pINI)
 		this->CarryAll_LandAnim = AnimTypeClass::FindOrAllocate(GameStrings::CARYLAND());
 		this->DropShip_LandAnim = AnimTypeClass::FindOrAllocate(GameStrings::DROPLAND());
 		this->DropPodTrailer = AnimTypeClass::FindOrAllocate(GameStrings::SMOKEY());
-		this->Droppod_ImageInfantry = FileSystem::LoadSHPFile(GameStrings::POD_SHP);
+		this->Droppod_ImageInfantry = FileSystem::LoadSHPFile(GameStrings::POD_SHP());
 		this->FirestormActiveAnim = AnimTypeClass::FindOrAllocate("GAFSDF_A");
 		this->FirestormIdleAnim = AnimTypeClass::FindOrAllocate("FSIDLE");
 		this->FirestormGroundAnim = AnimTypeClass::FindOrAllocate("FSGRND");
@@ -427,122 +427,122 @@ void FakeRulesClass::LoadBeforeTypeData(CCINIClass* pINI)
 	INI_EX exINI(pINI);
 
 	#pragma region General
-	this->TeamDelays_DynamicType.Read(exINI, GameStrings::General, "TeamDelays.DynamicType");
+	this->TeamDelays_DynamicType.Read(exINI, GameStrings::General(), "TeamDelays.DynamicType");
 	std::string _teamDelay_tag = "TeamDelays.Count";
 	
 	for (size_t i = 0; i < 8; i++) {
-		this->MultipleTeamDelays[i].Read(exINI, GameStrings::General, (_teamDelay_tag + std::to_string(i + 1)).c_str());
+		this->MultipleTeamDelays[i].Read(exINI, GameStrings::General(), (_teamDelay_tag + std::to_string(i + 1)).c_str());
 	}
 
-	this->StartFacing.Read(exINI, GameStrings::General, "BuildingStartFacing");
-	this->StartFacing_Random.Read(exINI, GameStrings::General, "BuildingStartFacing.Random");
+	this->StartFacing.Read(exINI, GameStrings::General(), "BuildingStartFacing");
+	this->StartFacing_Random.Read(exINI, GameStrings::General(), "BuildingStartFacing.Random");
 
-	this->OpenTopped_IgnoreRangefinding.Read(exINI, GameStrings::General, "OpenTopped.IgnoreRangefinding");
-	this->OpenTopped_AllowFiringIfDeactivated.Read(exINI, GameStrings::General, "OpenTopped.AllowFiringIfDeactivated");
-	this->OpenTopped_ShareTransportTarget.Read(exINI, GameStrings::General, "OpenTopped.ShareTransportTarget");
-	this->OpenTopped_UseTransportRangeModifiers.Read(exINI, GameStrings::General, "OpenTopped.UseTransportRangeModifiers");
-	this->OpenTopped_CheckTransportDisableWeapons.Read(exINI, GameStrings::General, "OpenTopped.CheckTransportDisableWeapons");
+	this->OpenTopped_IgnoreRangefinding.Read(exINI, GameStrings::General(), "OpenTopped.IgnoreRangefinding");
+	this->OpenTopped_AllowFiringIfDeactivated.Read(exINI, GameStrings::General(), "OpenTopped.AllowFiringIfDeactivated");
+	this->OpenTopped_ShareTransportTarget.Read(exINI, GameStrings::General(), "OpenTopped.ShareTransportTarget");
+	this->OpenTopped_UseTransportRangeModifiers.Read(exINI, GameStrings::General(), "OpenTopped.UseTransportRangeModifiers");
+	this->OpenTopped_CheckTransportDisableWeapons.Read(exINI, GameStrings::General(), "OpenTopped.CheckTransportDisableWeapons");
 
-	this->ParadropDelay.Read(exINI, GameStrings::General, "ParadropDelay");
-	this->ParadropEndDelay.Read(exINI, GameStrings::General, "ParadropEndDelay");
-	this->IsDischargedMemberAutocreateRecruitable.Read(exINI, GameStrings::General, "IsDischargedMemberAutocreateRecruitable");
-	this->DiscardOn_Sequences_Immediate.Read(exINI, GameStrings::General, "DiscardOn.Sequences.Immediate");
-	this->DiscardOn_ConsiderHarvestingAsStationary.Read(exINI, GameStrings::General, "DiscardOn.ConsiderHarvestingAsStationary");
-	this->AttachEffect_ReplaceLongerDuration.Read(exINI, GameStrings::General, "AttachEffect.ReplaceLongerDuration");
-	this->AttachEffects_AttachOnOwnerChange.Read(exINI, GameStrings::General, "AttachEffects.AttachOnOwnerChange");
-	this->PrismRelay_SupportTimeout.Read(exINI, GameStrings::General, "PrismRelay.SupportTimeout");
-	exINI.Read3Bool(GameStrings::General, "CampaignAllowHarvesterScanUnderShroud", this->CampaignAllowHarvesterScanUnderShroud);
-	this->AttackMove_IgnoreWeaponCheck.Read(exINI, GameStrings::General, "AttackMove.IgnoreWeaponCheck");
-	//this->AttackMove_StopWhenTargetAcquired.Read(exINI, GameStrings::General, "AttackMove.StopWhenTargetAcquired");
+	this->ParadropDelay.Read(exINI, GameStrings::General(), "ParadropDelay");
+	this->ParadropEndDelay.Read(exINI, GameStrings::General(), "ParadropEndDelay");
+	this->IsDischargedMemberAutocreateRecruitable.Read(exINI, GameStrings::General(), "IsDischargedMemberAutocreateRecruitable");
+	this->DiscardOn_Sequences_Immediate.Read(exINI, GameStrings::General(), "DiscardOn.Sequences.Immediate");
+	this->DiscardOn_ConsiderHarvestingAsStationary.Read(exINI, GameStrings::General(), "DiscardOn.ConsiderHarvestingAsStationary");
+	this->AttachEffect_ReplaceLongerDuration.Read(exINI, GameStrings::General(), "AttachEffect.ReplaceLongerDuration");
+	this->AttachEffects_AttachOnOwnerChange.Read(exINI, GameStrings::General(), "AttachEffects.AttachOnOwnerChange");
+	this->PrismRelay_SupportTimeout.Read(exINI, GameStrings::General(), "PrismRelay.SupportTimeout");
+	exINI.Read3Bool(GameStrings::General(), "CampaignAllowHarvesterScanUnderShroud", this->CampaignAllowHarvesterScanUnderShroud);
+	this->AttackMove_IgnoreWeaponCheck.Read(exINI, GameStrings::General(), "AttackMove.IgnoreWeaponCheck");
+	//this->AttackMove_StopWhenTargetAcquired.Read(exINI, GameStrings::General(), "AttackMove.StopWhenTargetAcquired");
 
-	this->ApproachTarget_StopWhenInRange.Read(exINI, GameStrings::General, "AttackMove.StopWhenTargetAcquired");
-	this->ApproachTarget_StopWhenInRange.Read(exINI, GameStrings::General, "ApproachTarget.StopWhenInRange");
+	this->ApproachTarget_StopWhenInRange.Read(exINI, GameStrings::General(), "AttackMove.StopWhenTargetAcquired");
+	this->ApproachTarget_StopWhenInRange.Read(exINI, GameStrings::General(), "ApproachTarget.StopWhenInRange");
 
-	this->OpenTopped_DecloakToFire.Read(exINI, GameStrings::General, "OpenTopped.DecloakToFire");
-	this->OpenTopped_FireWhileMoving.Read(exINI, GameStrings::General, "OpenTopped.FireWhileMoving");
-	this->OpenTopped_FireWhileMoving_BasedOnDestination.Read(exINI, GameStrings::General, "OpenTopped.FireWhileMoving.BasedOnDestination");
-	this->OpenTopped_AllowFiringIfAttackedByLocomotor.Read(exINI, GameStrings::General, "OpenTopped.AllowFiringIfAttackedByLocomotor");
-	this->OpenTransport_FireWhileMoving.Read(exINI, GameStrings::General, "OpenTransport.FireWhileMoving");
+	this->OpenTopped_DecloakToFire.Read(exINI, GameStrings::General(), "OpenTopped.DecloakToFire");
+	this->OpenTopped_FireWhileMoving.Read(exINI, GameStrings::General(), "OpenTopped.FireWhileMoving");
+	this->OpenTopped_FireWhileMoving_BasedOnDestination.Read(exINI, GameStrings::General(), "OpenTopped.FireWhileMoving.BasedOnDestination");
+	this->OpenTopped_AllowFiringIfAttackedByLocomotor.Read(exINI, GameStrings::General(), "OpenTopped.AllowFiringIfAttackedByLocomotor");
+	this->OpenTransport_FireWhileMoving.Read(exINI, GameStrings::General(), "OpenTransport.FireWhileMoving");
 	
-	this->AISellCapturedBuilding.Read(exINI, GameStrings::General, "AISellCapturedBuilding");
-	this->InfantryAutoDeploy.Read(exINI, GameStrings::General, "InfantryAutoDeploy");
-	this->EnablePassiveAcquireMode.Read(exINI, GameStrings::General, "EnablePassiveAcquireMode");
-	this->PlayerGuardModePursuit.Read(exINI, GameStrings::General, "PlayerGuardModePursuit");
-	this->PlayerGuardModeGuardRangeMultiplier.Read(exINI, GameStrings::General, "PlayerGuardModeGuardRangeMultiplier");
-	this->PlayerGuardModeGuardRangeAddend.Read(exINI, GameStrings::General, "PlayerGuardModeGuardRangeAddend");
-	this->PlayerGuardModeGuardRangeMax.Read(exINI, GameStrings::General, "PlayerGuardModeGuardRangeMax");
-	this->PlayerGuardStationaryStray.Read(exINI, GameStrings::General, "PlayerGuardStationaryStray");
-	this->AIGuardModePursuit.Read(exINI, GameStrings::General, "AIGuardModePursuit");
-	this->AIGuardModeGuardRangeMultiplier.Read(exINI, GameStrings::General, "AIGuardModeGuardRangeMultiplier");
-	this->AIGuardModeGuardRangeAddend.Read(exINI, GameStrings::General, "AIGuardModeGuardRangeAddend");
-	this->AIGuardModeGuardRangeMax.Read(exINI, GameStrings::General, "AIGuardModeGuardRangeMax");
-	this->AIGuardStationaryStray.Read(exINI, GameStrings::General, "AIGuardStationaryStray");
-	this->IgnoreCenterMinorRadarEvent.Read(exINI, GameStrings::General, "IgnoreCenterMinorRadarEvent");
-	this->FallingDownTargetingFix.Read(exINI, GameStrings::General, "FallingDownTargetingFix");
-	this->AIAirTargetingFix.Read(exINI, GameStrings::General, "AIAirTargetingFix");
-	this->SortCameoByName.Read(exINI, GameStrings::General, "SortCameoByName");
-	this->AllowDeployControlledMCV.Read(exINI, GameStrings::General, "AllowDeployControlledMCV");
-	this->AllowBeaconHotKeyInSinglePlayer.Read(exINI, GameStrings::General, "AllowBeaconHotKeyInSinglePlayer");
-	this->TypeSelectUseIFVMode.Read(exINI, GameStrings::General, "TypeSelectUseIFVMode");
-	this->BuildingRadioLink_SyncOwner.Read(exINI, GameStrings::General, "BuildingRadioLink.SyncOwner");
-	this->Parasite_AllowWaterExit.Read(exINI, GameStrings::General, "Parasite.AllowWaterExit");
+	this->AISellCapturedBuilding.Read(exINI, GameStrings::General(), "AISellCapturedBuilding");
+	this->InfantryAutoDeploy.Read(exINI, GameStrings::General(), "InfantryAutoDeploy");
+	this->EnablePassiveAcquireMode.Read(exINI, GameStrings::General(), "EnablePassiveAcquireMode");
+	this->PlayerGuardModePursuit.Read(exINI, GameStrings::General(), "PlayerGuardModePursuit");
+	this->PlayerGuardModeGuardRangeMultiplier.Read(exINI, GameStrings::General(), "PlayerGuardModeGuardRangeMultiplier");
+	this->PlayerGuardModeGuardRangeAddend.Read(exINI, GameStrings::General(), "PlayerGuardModeGuardRangeAddend");
+	this->PlayerGuardModeGuardRangeMax.Read(exINI, GameStrings::General(), "PlayerGuardModeGuardRangeMax");
+	this->PlayerGuardStationaryStray.Read(exINI, GameStrings::General(), "PlayerGuardStationaryStray");
+	this->AIGuardModePursuit.Read(exINI, GameStrings::General(), "AIGuardModePursuit");
+	this->AIGuardModeGuardRangeMultiplier.Read(exINI, GameStrings::General(), "AIGuardModeGuardRangeMultiplier");
+	this->AIGuardModeGuardRangeAddend.Read(exINI, GameStrings::General(), "AIGuardModeGuardRangeAddend");
+	this->AIGuardModeGuardRangeMax.Read(exINI, GameStrings::General(), "AIGuardModeGuardRangeMax");
+	this->AIGuardStationaryStray.Read(exINI, GameStrings::General(), "AIGuardStationaryStray");
+	this->IgnoreCenterMinorRadarEvent.Read(exINI, GameStrings::General(), "IgnoreCenterMinorRadarEvent");
+	this->FallingDownTargetingFix.Read(exINI, GameStrings::General(), "FallingDownTargetingFix");
+	this->AIAirTargetingFix.Read(exINI, GameStrings::General(), "AIAirTargetingFix");
+	this->SortCameoByName.Read(exINI, GameStrings::General(), "SortCameoByName");
+	this->AllowDeployControlledMCV.Read(exINI, GameStrings::General(), "AllowDeployControlledMCV");
+	this->AllowBeaconHotKeyInSinglePlayer.Read(exINI, GameStrings::General(), "AllowBeaconHotKeyInSinglePlayer");
+	this->TypeSelectUseIFVMode.Read(exINI, GameStrings::General(), "TypeSelectUseIFVMode");
+	this->BuildingRadioLink_SyncOwner.Read(exINI, GameStrings::General(), "BuildingRadioLink.SyncOwner");
+	this->Parasite_AllowWaterExit.Read(exINI, GameStrings::General(), "Parasite.AllowWaterExit");
 
-	this->ChasingExtraRange.Read(exINI, GameStrings::General, "ChasingExtraRange");
-	this->ChasingExtraRange_CloseRangeOnly.Read(exINI, GameStrings::General, "ChasingExtraRange.CloseRangeOnly");
-	this->PrefiringExtraRange.Read(exINI, GameStrings::General, "PrefiringExtraRange");
-	this->PrefiringExtraRange_IncludeBurst.Read(exINI, GameStrings::General, "PrefiringExtraRange.IncludeBurst");
-	this->ExtraRange_FirerMoving.Read(exINI, GameStrings::General, "ExtraRange.FirerMoving");
+	this->ChasingExtraRange.Read(exINI, GameStrings::General(), "ChasingExtraRange");
+	this->ChasingExtraRange_CloseRangeOnly.Read(exINI, GameStrings::General(), "ChasingExtraRange.CloseRangeOnly");
+	this->PrefiringExtraRange.Read(exINI, GameStrings::General(), "PrefiringExtraRange");
+	this->PrefiringExtraRange_IncludeBurst.Read(exINI, GameStrings::General(), "PrefiringExtraRange.IncludeBurst");
+	this->ExtraRange_FirerMoving.Read(exINI, GameStrings::General(), "ExtraRange.FirerMoving");
 
-	this->ChasingExtraRange.Read(exINI, GameStrings::General, "ExtraRange.TargetMoving");
-	this->ChasingExtraRange_CloseRangeOnly.Read(exINI, GameStrings::General, "ExtraRange.TargetMoving.CloseRangeOnly");
-	this->ExtraRange_FirerMoving.Read(exINI, GameStrings::General, "ExtraRange.FirerMoving");
-	this->PrefiringExtraRange.Read(exINI, GameStrings::General, "ExtraRange.Prefiring");
-	this->PrefiringExtraRange_IncludeBurst.Read(exINI, GameStrings::General, "ExtraRange.Prefiring.IncludeBurst");
+	this->ChasingExtraRange.Read(exINI, GameStrings::General(), "ExtraRange.TargetMoving");
+	this->ChasingExtraRange_CloseRangeOnly.Read(exINI, GameStrings::General(), "ExtraRange.TargetMoving.CloseRangeOnly");
+	this->ExtraRange_FirerMoving.Read(exINI, GameStrings::General(), "ExtraRange.FirerMoving");
+	this->PrefiringExtraRange.Read(exINI, GameStrings::General(), "ExtraRange.Prefiring");
+	this->PrefiringExtraRange_IncludeBurst.Read(exINI, GameStrings::General(), "ExtraRange.Prefiring.IncludeBurst");
 
-	this->SecondaryFireSequenceLandOnly.Read(exINI, GameStrings::General, "SecondaryFireSequenceLandOnly");
+	this->SecondaryFireSequenceLandOnly.Read(exINI, GameStrings::General(), "SecondaryFireSequenceLandOnly");
 
-	this->ExtendedPlayerRepair.Read(exINI, GameStrings::General, "ExtendedPlayerRepair");
-	this->UpdateInvisoImmediately.Read(exINI, GameStrings::General, "UpdateInvisoImmediately");
-	this->AutoTarget_NoThreatBuildings.Read(exINI, GameStrings::General, "AutoTarget.NoThreatBuildings");
-	this->AutoTargetAI_NoThreatBuildings.Read(exINI, GameStrings::General, "AutoTargetAI.NoThreatBuildings");
-	this->HarvesterDumpAmount.Read(exINI, GameStrings::General, "HarvesterDumpAmount");
-	this->AttackMove_Aggressive.Read(exINI, GameStrings::General, "AttackMove.Aggressive");
-	this->AttackMove_UpdateTarget.Read(exINI, GameStrings::General, "AttackMove.UpdateTarget");
-	this->HarvesterScanAfterUnload.Read(exINI, GameStrings::General, "HarvesterScanAfterUnload");
-	this->GiveMoneyIfStorageFull.Read(exINI, GameStrings::General, "Storage.GiveMoneyIfFull");
-	this->AutoBuilding.Read(exINI, GameStrings::General, "AutoBuilding");
-	this->AIAngerOnAlly.Read(exINI, GameStrings::General, "AIAngerOnAlly");
-	this->BuildingTypeSelectable.Read(exINI, GameStrings::General, "BuildingTypeSelectable");
-	this->BuildingWaypoint.Read(exINI, GameStrings::General, "BuildingWaypoint");
-	this->NoTurret_TrackTarget.Read(exINI, GameStrings::General, "NoTurret.TrackTarget");
-	this->RecountBurst.Read(exINI, GameStrings::General, "RecountBurst");
-	this->AmphibiousEnter.Read(exINI, GameStrings::General, "AmphibiousEnter");
-	this->AmphibiousUnload.Read(exINI, GameStrings::General, "AmphibiousUnload");
-	this->ExpandAircraftMission.Read(exINI, GameStrings::General, "ExtendedAircraftMissions");
-	this->ExtendedAircraftMissions_UnlandDamage.Read(exINI, GameStrings::General, "ExtendedAircraftMissions.UnlandDamage");
-	this->AssignUnitMissionAfterParadropped.Read(exINI, GameStrings::General, "AssignUnitMissionAfterParadropped");
-	this->NoQueueUpToEnter.Read(exINI, GameStrings::General, "NoQueueUpToEnter");
-	this->NoQueueUpToUnload.Read(exINI, GameStrings::General, "NoQueueUpToUnload");
-	this->NoQueueUpToEnter_BoardDistance.Read(exINI, GameStrings::General, "NoQueueUpToEnter.BoardDistance");
-	this->NoQueueUpToEnter_Buildings.Read(exINI, GameStrings::General, "NoQueueUpToEnter.Buildings");
-	this->NoQueueUpToUnload_Buildings.Read(exINI, GameStrings::General, "NoQueueUpToUnload.Buildings");
-	this->NoRearm_UnderEMP.Read(exINI, GameStrings::General, "NoRearm.UnderEMP");
-	this->NoRearm_Temporal.Read(exINI, GameStrings::General, "NoRearm.Temporal");
-	this->NoReload_UnderEMP.Read(exINI, GameStrings::General, "NoReload.UnderEMP");
-	this->NoReload_Temporal.Read(exINI, GameStrings::General, "NoReload.Temporal");
-	this->AttackMindControlledDelay.Read(exINI, GameStrings::General, "AttackMindControlledDelay");
-	this->ExpandBuildingQueue.Read(exINI, GameStrings::General, "BuildingProductionQueue");
-	exINI.ReadSpeed(GameStrings::General, "SubterraneanSpeed", &this->SubterraneanSpeed);
-	this->CheckUnitBaseNormal.Read(exINI, GameStrings::General, "CheckUnitBaseNormal");
+	this->ExtendedPlayerRepair.Read(exINI, GameStrings::General(), "ExtendedPlayerRepair");
+	this->UpdateInvisoImmediately.Read(exINI, GameStrings::General(), "UpdateInvisoImmediately");
+	this->AutoTarget_NoThreatBuildings.Read(exINI, GameStrings::General(), "AutoTarget.NoThreatBuildings");
+	this->AutoTargetAI_NoThreatBuildings.Read(exINI, GameStrings::General(), "AutoTargetAI.NoThreatBuildings");
+	this->HarvesterDumpAmount.Read(exINI, GameStrings::General(), "HarvesterDumpAmount");
+	this->AttackMove_Aggressive.Read(exINI, GameStrings::General(), "AttackMove.Aggressive");
+	this->AttackMove_UpdateTarget.Read(exINI, GameStrings::General(), "AttackMove.UpdateTarget");
+	this->HarvesterScanAfterUnload.Read(exINI, GameStrings::General(), "HarvesterScanAfterUnload");
+	this->GiveMoneyIfStorageFull.Read(exINI, GameStrings::General(), "Storage.GiveMoneyIfFull");
+	this->AutoBuilding.Read(exINI, GameStrings::General(), "AutoBuilding");
+	this->AIAngerOnAlly.Read(exINI, GameStrings::General(), "AIAngerOnAlly");
+	this->BuildingTypeSelectable.Read(exINI, GameStrings::General(), "BuildingTypeSelectable");
+	this->BuildingWaypoint.Read(exINI, GameStrings::General(), "BuildingWaypoint");
+	this->NoTurret_TrackTarget.Read(exINI, GameStrings::General(), "NoTurret.TrackTarget");
+	this->RecountBurst.Read(exINI, GameStrings::General(), "RecountBurst");
+	this->AmphibiousEnter.Read(exINI, GameStrings::General(), "AmphibiousEnter");
+	this->AmphibiousUnload.Read(exINI, GameStrings::General(), "AmphibiousUnload");
+	this->ExpandAircraftMission.Read(exINI, GameStrings::General(), "ExtendedAircraftMissions");
+	this->ExtendedAircraftMissions_UnlandDamage.Read(exINI, GameStrings::General(), "ExtendedAircraftMissions.UnlandDamage");
+	this->AssignUnitMissionAfterParadropped.Read(exINI, GameStrings::General(), "AssignUnitMissionAfterParadropped");
+	this->NoQueueUpToEnter.Read(exINI, GameStrings::General(), "NoQueueUpToEnter");
+	this->NoQueueUpToUnload.Read(exINI, GameStrings::General(), "NoQueueUpToUnload");
+	this->NoQueueUpToEnter_BoardDistance.Read(exINI, GameStrings::General(), "NoQueueUpToEnter.BoardDistance");
+	this->NoQueueUpToEnter_Buildings.Read(exINI, GameStrings::General(), "NoQueueUpToEnter.Buildings");
+	this->NoQueueUpToUnload_Buildings.Read(exINI, GameStrings::General(), "NoQueueUpToUnload.Buildings");
+	this->NoRearm_UnderEMP.Read(exINI, GameStrings::General(), "NoRearm.UnderEMP");
+	this->NoRearm_Temporal.Read(exINI, GameStrings::General(), "NoRearm.Temporal");
+	this->NoReload_UnderEMP.Read(exINI, GameStrings::General(), "NoReload.UnderEMP");
+	this->NoReload_Temporal.Read(exINI, GameStrings::General(), "NoReload.Temporal");
+	this->AttackMindControlledDelay.Read(exINI, GameStrings::General(), "AttackMindControlledDelay");
+	this->ExpandBuildingQueue.Read(exINI, GameStrings::General(), "BuildingProductionQueue");
+	exINI.ReadSpeed(GameStrings::General(), "SubterraneanSpeed", &this->SubterraneanSpeed);
+	this->CheckUnitBaseNormal.Read(exINI, GameStrings::General(), "CheckUnitBaseNormal");
 
-	this->VeteranReload.Read(exINI, GameStrings::General, "VeteranReload");
-	this->VeteranEmptyReload.Read(exINI, GameStrings::General, "VeteranEmptyReload");
+	this->VeteranReload.Read(exINI, GameStrings::General(), "VeteranReload");
+	this->VeteranEmptyReload.Read(exINI, GameStrings::General(), "VeteranEmptyReload");
 
 	const auto validateReloadMultiplier = [](const char* pKey, Valueable<double>& value)
 		{
 			if (!std::isfinite(value.Get()) || value.Get() <= 0.0)
 			{
-				Debug::INIParseFailed(GameStrings::General, pKey, "<invalid>", "Expected a finite value greater than 0.0");
+				Debug::INIParseFailed(GameStrings::General(), pKey, "<invalid>", "Expected a finite value greater than 0.0");
 				value = 1.0;
 			}
 		};
@@ -551,19 +551,19 @@ void FakeRulesClass::LoadBeforeTypeData(CCINIClass* pINI)
 	validateReloadMultiplier("VeteranEmptyReload", this->VeteranEmptyReload);
 
 	//TODO : fuck this break AI
-	this->ExtendedBuildingPlacing.Read(exINI, GameStrings::General, "ExtendedBuildingPlacing");
+	this->ExtendedBuildingPlacing.Read(exINI, GameStrings::General(), "ExtendedBuildingPlacing");
 
-	this->AISuperWeaponDelay.Read(exINI, GameStrings::General, "AISuperWeaponDelay");
-	this->ChronoSpherePreDelay.Read(exINI, GameStrings::General, "ChronoSpherePreDelay");
-	this->ChronoSphereDelay.Read(exINI, GameStrings::General, "ChronoSphereDelay");
-	this->AINormalTargetingDelay.Read(exINI, GameStrings::General, "AINormalTargetingDelay");
-	this->PlayerNormalTargetingDelay.Read(exINI, GameStrings::General, "PlayerNormalTargetingDelay");
-	this->AIGuardAreaTargetingDelay.Read(exINI, GameStrings::General, "AIGuardAreaTargetingDelay");
-	this->PlayerGuardAreaTargetingDelay.Read(exINI, GameStrings::General, "PlayerGuardAreaTargetingDelay");
-	this->AIAttackMoveTargetingDelay.Read(exINI, GameStrings::General, "AIAttackMoveTargetingDelay");
-	this->PlayerAttackMoveTargetingDelay.Read(exINI, GameStrings::General, "PlayerAttackMoveTargetingDelay");
-	this->DistributeTargetingFrame.Read(exINI, GameStrings::General, "DistributeTargetingFrame");
-	this->DistributeTargetingFrame_AIOnly.Read(exINI, GameStrings::General, "DistributeTargetingFrame.AIOnly");
+	this->AISuperWeaponDelay.Read(exINI, GameStrings::General(), "AISuperWeaponDelay");
+	this->ChronoSpherePreDelay.Read(exINI, GameStrings::General(), "ChronoSpherePreDelay");
+	this->ChronoSphereDelay.Read(exINI, GameStrings::General(), "ChronoSphereDelay");
+	this->AINormalTargetingDelay.Read(exINI, GameStrings::General(), "AINormalTargetingDelay");
+	this->PlayerNormalTargetingDelay.Read(exINI, GameStrings::General(), "PlayerNormalTargetingDelay");
+	this->AIGuardAreaTargetingDelay.Read(exINI, GameStrings::General(), "AIGuardAreaTargetingDelay");
+	this->PlayerGuardAreaTargetingDelay.Read(exINI, GameStrings::General(), "PlayerGuardAreaTargetingDelay");
+	this->AIAttackMoveTargetingDelay.Read(exINI, GameStrings::General(), "AIAttackMoveTargetingDelay");
+	this->PlayerAttackMoveTargetingDelay.Read(exINI, GameStrings::General(), "PlayerAttackMoveTargetingDelay");
+	this->DistributeTargetingFrame.Read(exINI, GameStrings::General(), "DistributeTargetingFrame");
+	this->DistributeTargetingFrame_AIOnly.Read(exINI, GameStrings::General(), "DistributeTargetingFrame.AIOnly");
 	this->StartInMultiplayerUnitCost.Read(exINI, GameStrings::General(), "StartInMultiplayerUnitCost");
 	this->TypeSelectUseDeploy.Read(exINI, GameStrings::General(), "TypeSelectUseDeploy");
 	this->AIDetectDisguise_Percent.Read(exINI, GameStrings::General(), "AIDisguiseDetectionPercent");
@@ -571,8 +571,8 @@ void FakeRulesClass::LoadBeforeTypeData(CCINIClass* pINI)
 	this->TogglePowerAllowed.Read(exINI, GameStrings::General(), "TogglePowerAllowed");
 	this->TogglePowerDelay.Read(exINI, GameStrings::General(), "TogglePowerDelay");
 	this->GainSelfHealAllowMultiplayPassive.Read(exINI, GameStrings::General(), "GainSelfHealAllowMultiplayPassive");
-	this->GainSelfHealFromPlayerControl.Read(exINI, GameStrings::General, "GainSelfHealFromPlayerControl");
-	this->GainSelfHealFromAllies.Read(exINI, GameStrings::General, "GainSelfHealFromAllies");
+	this->GainSelfHealFromPlayerControl.Read(exINI, GameStrings::General(), "GainSelfHealFromPlayerControl");
+	this->GainSelfHealFromAllies.Read(exINI, GameStrings::General(), "GainSelfHealFromAllies");
 	this->VeinsDamagingWeightTreshold.Read(exINI, GameStrings::General(), "VeinsDamagingWeightTreshold");
 	this->VeinholePal.Read(exINI, GameStrings::General(), "VeinholePalette");
 	this->DegradeEnabled.Read(exINI, GameStrings::General(), "Degrade.Enabled");
@@ -619,32 +619,32 @@ void FakeRulesClass::LoadBeforeTypeData(CCINIClass* pINI)
 	this->OverlayExplodeThreshold.Read(exINI, GameStrings::General(), "OverlayExplodeThreshold");
 	this->InfantryGainSelfHealCap.Read(exINI, GameStrings::General(), "InfantryGainSelfHealCap");
 	this->UnitsGainSelfHealCap.Read(exINI, GameStrings::General(), "UnitsGainSelfHealCap");
-	this->JumpjetClimbPredictHeight.Read(exINI, GameStrings::General, "JumpjetClimbPredictHeight");
-	this->JumpjetClimbWithoutCutOut.Read(exINI, GameStrings::General, "JumpjetClimbWithoutCutOut");
-	this->JumpjetClimbIgnoreBuilding.Read(exINI, GameStrings::General, "JumpjetClimbIgnoreBuilding");
-	this->RegroupWhenMCVDeploy.Read(exINI, GameStrings::General, "GatherWhenMCVDeploy");
-	this->AISellAllOnLastLegs.Read(exINI, GameStrings::General, "AIFireSale");
-	this->AISellAllDelay.Read(exINI, GameStrings::General, "AIFireSaleDelay");
-	this->AIAllInOnLastLegs.Read(exINI, GameStrings::General, "AIAllToHunt");
-	this->RepairBaseNodes.Read(exINI, GameStrings::General, "RepairBaseNodes");
-	this->MCVRedeploysInCampaign.Read(exINI, GameStrings::General, "MCVRedeploysInCampaign");
-	this->UnitsUnsellable.Read(exINI, GameStrings::General, "UnitsUnsellable");
-	this->ParadropMission.Read(exINI, GameStrings::General, "ParadropMission");
-	this->AIParadropMission.Read(exINI, GameStrings::General, "AIParadropMission");
-	this->CylinderRangefinding.Read(exINI, GameStrings::General, "CylinderRangefinding");
-	this->DefaultToGuardArea.Read(exINI, GameStrings::General, "DefaultToGuardArea");
-	this->ExtraThreat_IsThreat.Read(exINI, GameStrings::General, "ExtraThreat.IsThreat");
-	this->ExtraThreat_InRange.Read(exINI, GameStrings::General, "ExtraThreat.InRange");
-	this->ExtraThreatCoefficient_InRangeDistance.Read(exINI, GameStrings::General, "ExtraThreatCoefficient.InRangeDistance");
-	this->ExtraThreatCoefficient_Facing.Read(exINI, GameStrings::General, "ExtraThreatCoefficient.Facing");
-	this->ExtraThreatCoefficient_DistanceToLastTarget.Read(exINI, GameStrings::General, "ExtraThreatCoefficient.DistanceToLastTarget");
-	this->DisableOveroptimizationInTargeting.Read(exINI, GameStrings::General, "DisableOveroptimizationInTargeting");
-	this->AreaGuard_UseSelfAsCenter.Read(exINI, GameStrings::General, "AreaGuard.UseSelfAsCenter");
-	this->AreaGuard_TargetingInRange.Read(exINI, GameStrings::General, "AreaGuard.TargetingInRange");
-	this->AreaGuard_StrayIgnoreDestination.Read(exINI, GameStrings::General, "AreaGuard.StrayIgnoreDestination");
-	this->BunkerStateUpdateDelay.Read(exINI, GameStrings::General, "BunkerStateUpdateDelay");
-	this->MissileKeepTargetCoord.Read(exINI, GameStrings::General, "MissileKeepTargetCoord");
-	this->ShiftQueueCount.Read(exINI, GameStrings::General, "ShiftQueueCount");
+	this->JumpjetClimbPredictHeight.Read(exINI, GameStrings::General(), "JumpjetClimbPredictHeight");
+	this->JumpjetClimbWithoutCutOut.Read(exINI, GameStrings::General(), "JumpjetClimbWithoutCutOut");
+	this->JumpjetClimbIgnoreBuilding.Read(exINI, GameStrings::General(), "JumpjetClimbIgnoreBuilding");
+	this->RegroupWhenMCVDeploy.Read(exINI, GameStrings::General(), "GatherWhenMCVDeploy");
+	this->AISellAllOnLastLegs.Read(exINI, GameStrings::General(), "AIFireSale");
+	this->AISellAllDelay.Read(exINI, GameStrings::General(), "AIFireSaleDelay");
+	this->AIAllInOnLastLegs.Read(exINI, GameStrings::General(), "AIAllToHunt");
+	this->RepairBaseNodes.Read(exINI, GameStrings::General(), "RepairBaseNodes");
+	this->MCVRedeploysInCampaign.Read(exINI, GameStrings::General(), "MCVRedeploysInCampaign");
+	this->UnitsUnsellable.Read(exINI, GameStrings::General(), "UnitsUnsellable");
+	this->ParadropMission.Read(exINI, GameStrings::General(), "ParadropMission");
+	this->AIParadropMission.Read(exINI, GameStrings::General(), "AIParadropMission");
+	this->CylinderRangefinding.Read(exINI, GameStrings::General(), "CylinderRangefinding");
+	this->DefaultToGuardArea.Read(exINI, GameStrings::General(), "DefaultToGuardArea");
+	this->ExtraThreat_IsThreat.Read(exINI, GameStrings::General(), "ExtraThreat.IsThreat");
+	this->ExtraThreat_InRange.Read(exINI, GameStrings::General(), "ExtraThreat.InRange");
+	this->ExtraThreatCoefficient_InRangeDistance.Read(exINI, GameStrings::General(), "ExtraThreatCoefficient.InRangeDistance");
+	this->ExtraThreatCoefficient_Facing.Read(exINI, GameStrings::General(), "ExtraThreatCoefficient.Facing");
+	this->ExtraThreatCoefficient_DistanceToLastTarget.Read(exINI, GameStrings::General(), "ExtraThreatCoefficient.DistanceToLastTarget");
+	this->DisableOveroptimizationInTargeting.Read(exINI, GameStrings::General(), "DisableOveroptimizationInTargeting");
+	this->AreaGuard_UseSelfAsCenter.Read(exINI, GameStrings::General(), "AreaGuard.UseSelfAsCenter");
+	this->AreaGuard_TargetingInRange.Read(exINI, GameStrings::General(), "AreaGuard.TargetingInRange");
+	this->AreaGuard_StrayIgnoreDestination.Read(exINI, GameStrings::General(), "AreaGuard.StrayIgnoreDestination");
+	this->BunkerStateUpdateDelay.Read(exINI, GameStrings::General(), "BunkerStateUpdateDelay");
+	this->MissileKeepTargetCoord.Read(exINI, GameStrings::General(), "MissileKeepTargetCoord");
+	this->ShiftQueueCount.Read(exINI, GameStrings::General(), "ShiftQueueCount");
 
 	if (this->ShiftQueueCount <= 0)
 		this->ShiftQueueCount = 1;
@@ -2059,7 +2059,7 @@ void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 		this->DropPodAngle = std::clamp(angle, kDropPodAngleMin, kDropPodAngleMax);
 	}
 
-	if (pINI->ReadString(section, GameStrings::WallTower, nullptr, Phobos::readBuffer) > 0) {
+	if (pINI->ReadString(section, GameStrings::WallTower(), nullptr, Phobos::readBuffer) > 0) {
 		if (const auto pBuilding = BuildingTypeClass::FindOrAllocate(Phobos::readBuffer)) {
 			this->WallTower = pBuilding;
 		} else {
@@ -2929,7 +2929,7 @@ ASMJIT_PATCH(0x475260, CCINIClass_ReadAlly_Buffers, 0xA)
 
 void FakeRulesClass::_ReadSpecialWeapons(CCINIClass* pINI)
 {
-	const char* section = GameStrings::SpecialWeapons;
+	const char* section = GameStrings::SpecialWeapons();
 
 	if (!pINI->GetSection(section))
 		return;
@@ -3081,7 +3081,7 @@ void FakeRulesClass::_ReadDifficulty(CCINIClass* pINI)
 
 void FakeRulesClass::_ReadAudioVisual(CCINIClass* pINI)
 {
-	const char* section = GameStrings::AudioVisual;
+	const char* section = GameStrings::AudioVisual();
 
 	if (!pINI->GetSection(section))
 		return;
@@ -3396,7 +3396,7 @@ void FakeRulesClass::_ReadAudioVisual(CCINIClass* pINI)
 	this->ShowPowerPlantEnhancerRange.Read(exINI, section, "ShowPowerPlantEnhancerRange");
 
 	if (!this->DefaultExplodeFireAnim)
-		this->DefaultExplodeFireAnim = AnimTypeClass::Find(GameStrings::Anim_FIRE3);
+		this->DefaultExplodeFireAnim = AnimTypeClass::Find(GameStrings::Anim_FIRE3());
 
 	this->FlyNoWobbles.Read(exINI, section, "FlyNoWobbles");
 
@@ -3428,11 +3428,11 @@ void FakeRulesClass::_ReadAudioVisual(CCINIClass* pINI)
 	this->VisualScatter_Min.Read(exINI, section, "VisualScatter.Min");
 	this->VisualScatter_Max.Read(exINI, section, "VisualScatter.Max");
 
-	this->JumpjetTilt.Read(exINI, GameStrings::AudioVisual, "JumpjetTilt");
-	this->JumpjetTilt_ForwardAccelFactor.Read(exINI, GameStrings::AudioVisual, "JumpjetTilt.ForwardAccelFactor");
-	this->JumpjetTilt_ForwardSpeedFactor.Read(exINI, GameStrings::AudioVisual, "JumpjetTilt.ForwardSpeedFactor");
-	this->JumpjetTilt_SidewaysRotationFactor.Read(exINI, GameStrings::AudioVisual, "JumpjetTilt.SidewaysRotationFactor");
-	this->JumpjetTilt_SidewaysSpeedFactor.Read(exINI, GameStrings::AudioVisual, "JumpjetTilt.SidewaysSpeedFactor");
+	this->JumpjetTilt.Read(exINI, GameStrings::AudioVisual(), "JumpjetTilt");
+	this->JumpjetTilt_ForwardAccelFactor.Read(exINI, GameStrings::AudioVisual(), "JumpjetTilt.ForwardAccelFactor");
+	this->JumpjetTilt_ForwardSpeedFactor.Read(exINI, GameStrings::AudioVisual(), "JumpjetTilt.ForwardSpeedFactor");
+	this->JumpjetTilt_SidewaysRotationFactor.Read(exINI, GameStrings::AudioVisual(), "JumpjetTilt.SidewaysRotationFactor");
+	this->JumpjetTilt_SidewaysSpeedFactor.Read(exINI, GameStrings::AudioVisual(), "JumpjetTilt.SidewaysSpeedFactor");
 
 
 	this->AirstrikeLineColor.Read(exINI, section, "AirstrikeLineColor");
@@ -3560,38 +3560,38 @@ void FakeRulesClass::_ReadAudioVisual(CCINIClass* pINI)
 	this->PoseDir_Field.Read(exINI, section, "PoseDir.Field");
 
 	this->DigitalDisplay_Health_FakeAtDisguise.Read(exINI, section, "DigitalDisplay.Health.FakeAtDisguise");
-	this->NoAlphaImageOnBuildup.Read(exINI, GameStrings::AudioVisual, "NoAlphaImageOnBuildup");
-	this->IvanBomb_Visibility.Read(exINI, GameStrings::AudioVisual, "IvanIconVisibility");
+	this->NoAlphaImageOnBuildup.Read(exINI, GameStrings::AudioVisual(), "NoAlphaImageOnBuildup");
+	this->IvanBomb_Visibility.Read(exINI, GameStrings::AudioVisual(), "IvanIconVisibility");
 
-	this->SmudgeUpdateTime.Read(exINI, GameStrings::AudioVisual, "SmudgeUpdateTime");
+	this->SmudgeUpdateTime.Read(exINI, GameStrings::AudioVisual(), "SmudgeUpdateTime");
 
-	this->InvulnerableDisplay_Others_Offset.Read(exINI, GameStrings::AudioVisual, "InvulnerableDisplay.Others.Offset");
-	this->InvulnerableDisplay_Buildings_Offset.Read(exINI, GameStrings::AudioVisual, "InvulnerableDisplay.Buildings.Offset");
-	this->TemporalLifeDisplay_Others_Offset.Read(exINI, GameStrings::AudioVisual, "TemporalLifeDisplay.Others.Offset");
-	this->TemporalLifeDisplay_Buildings_Offset.Read(exINI, GameStrings::AudioVisual, "TemporalLifeDisplay.Buildings.Offset");
-	this->InvulnerableDisplay_Others_Pips.Read(exINI, GameStrings::AudioVisual, "InvulnerableDisplay.Others.Pips");
-	this->InvulnerableDisplay_Buildings_Pips.Read(exINI, GameStrings::AudioVisual, "InvulnerableDisplay.Buildings.Pips");
-	this->TemporalLifeDisplay_Others_Pips.Read(exINI, GameStrings::AudioVisual, "TemporalLifeDisplay.Others.Pips");
-	this->TemporalLifeDisplay_Buildings_Pips.Read(exINI, GameStrings::AudioVisual, "TemporalLifeDisplay.Buildings.Pips");
-	this->ProgressDisplay_Others_PipsShape.Read(exINI, GameStrings::AudioVisual, "ProgressDisplay.Others.PipsShape");
-	this->ProgressDisplay_Buildings_PipsShape.Read(exINI, GameStrings::AudioVisual, "ProgressDisplay.Buildings.PipsShape");
-	this->SelectedInfantryMissingPCX.Read(pINI, GameStrings::AudioVisual, "SelectedInfantryMissingPCX");
-	this->SelectedVehicleMissingPCX.Read(pINI, GameStrings::AudioVisual, "SelectedVehicleMissingPCX");
-	this->SelectedAircraftMissingPCX.Read(pINI, GameStrings::AudioVisual, "SelectedAircraftMissingPCX");
-	this->SelectedBuildingMissingPCX.Read(pINI, GameStrings::AudioVisual, "SelectedBuildingMissingPCX");
-	this->SelectedIngameTimer.Read(exINI, GameStrings::AudioVisual, "SelectedIngameTimer");
+	this->InvulnerableDisplay_Others_Offset.Read(exINI, GameStrings::AudioVisual(), "InvulnerableDisplay.Others.Offset");
+	this->InvulnerableDisplay_Buildings_Offset.Read(exINI, GameStrings::AudioVisual(), "InvulnerableDisplay.Buildings.Offset");
+	this->TemporalLifeDisplay_Others_Offset.Read(exINI, GameStrings::AudioVisual(), "TemporalLifeDisplay.Others.Offset");
+	this->TemporalLifeDisplay_Buildings_Offset.Read(exINI, GameStrings::AudioVisual(), "TemporalLifeDisplay.Buildings.Offset");
+	this->InvulnerableDisplay_Others_Pips.Read(exINI, GameStrings::AudioVisual(), "InvulnerableDisplay.Others.Pips");
+	this->InvulnerableDisplay_Buildings_Pips.Read(exINI, GameStrings::AudioVisual(), "InvulnerableDisplay.Buildings.Pips");
+	this->TemporalLifeDisplay_Others_Pips.Read(exINI, GameStrings::AudioVisual(), "TemporalLifeDisplay.Others.Pips");
+	this->TemporalLifeDisplay_Buildings_Pips.Read(exINI, GameStrings::AudioVisual(), "TemporalLifeDisplay.Buildings.Pips");
+	this->ProgressDisplay_Others_PipsShape.Read(exINI, GameStrings::AudioVisual(), "ProgressDisplay.Others.PipsShape");
+	this->ProgressDisplay_Buildings_PipsShape.Read(exINI, GameStrings::AudioVisual(), "ProgressDisplay.Buildings.PipsShape");
+	this->SelectedInfantryMissingPCX.Read(pINI, GameStrings::AudioVisual(), "SelectedInfantryMissingPCX");
+	this->SelectedVehicleMissingPCX.Read(pINI, GameStrings::AudioVisual(), "SelectedVehicleMissingPCX");
+	this->SelectedAircraftMissingPCX.Read(pINI, GameStrings::AudioVisual(), "SelectedAircraftMissingPCX");
+	this->SelectedBuildingMissingPCX.Read(pINI, GameStrings::AudioVisual(), "SelectedBuildingMissingPCX");
+	this->SelectedIngameTimer.Read(exINI, GameStrings::AudioVisual(), "SelectedIngameTimer");
 
 	// Global default per-sequence animation rates for infantry.
 	for (size_t i = 0; i < Sequences_Master.size(); ++i) {
 		char key[64];
 		std::snprintf(key, sizeof(key), "Sequence.%s.DefaultRate", Sequences_ident[i]);
 		int rate = Sequences_Master[i].Rate;
-		if (exINI.ReadInteger(GameStrings::AudioVisual, key, &rate))
+		if (exINI.ReadInteger(GameStrings::AudioVisual(), key, &rate))
 			Sequences_Master[i].Rate = rate;
 
 		bool normalized;
 		std::snprintf(key, sizeof(key), "Sequence.%s.DefaultNormalized", Sequences_ident[i]);
-		if (exINI.ReadBool(GameStrings::AudioVisual, key, &normalized))
+		if (exINI.ReadBool(GameStrings::AudioVisual(), key, &normalized))
 			Sequences_Normalized[i] = normalized;
 	}
 }
@@ -3729,7 +3729,7 @@ void FakeRulesClass::_ReadMPlayer(CCINIClass* pINI)
 
 void FakeRulesClass::_ReadJumpjetControls(CCINIClass* pINI)
 {
-	const char* section = GameStrings::JumpjetControls;
+	const char* section = GameStrings::JumpjetControls();
 
 	if (!pINI->GetSection(section))
 		return;
@@ -3748,9 +3748,9 @@ void FakeRulesClass::_ReadJumpjetControls(CCINIClass* pINI)
 	detail::read(this->WobblesPerSecond, exINI, section, "WobblesPerSecond");
 
 	// Ext
-	this->JumpjetCrash.Read(exINI, GameStrings::JumpjetControls, "Crash");
-	this->JumpjetNoWobbles.Read(exINI, GameStrings::JumpjetControls, "NoWobbles");
-	this->JumpjetCrash_Rotate.Read(exINI, GameStrings::JumpjetControls, "RotateOnCrash");
+	this->JumpjetCrash.Read(exINI, GameStrings::JumpjetControls(), "Crash");
+	this->JumpjetNoWobbles.Read(exINI, GameStrings::JumpjetControls(), "NoWobbles");
+	this->JumpjetCrash_Rotate.Read(exINI, GameStrings::JumpjetControls(), "RotateOnCrash");
 }
 
 template<typename T>
@@ -3894,10 +3894,10 @@ void FakeRulesClass::_Process(CCINIClass* pINI)
 
 void FakeRulesClass::_ReadColorAdd(CCINIClass* pINI)
 {
-	if (!pINI->GetSection(GameStrings::ColorAdd))
+	if (!pINI->GetSection(GameStrings::ColorAdd()))
 		return;
 
-	const int count = pINI->GetKeyCount(GameStrings::ColorAdd);
+	const int count = pINI->GetKeyCount(GameStrings::ColorAdd());
 
 	if (count > 0)
 	{
@@ -3923,8 +3923,8 @@ void FakeRulesClass::_ReadColorAdd(CCINIClass* pINI)
 		for (int i = 0; i < count; ++i)
 		{
 			pINI->Read3Bytes(this->ColorAdds[i].asPointer()
-				, GameStrings::ColorAdd
-				, pINI->GetKeyName(GameStrings::ColorAdd, i)
+				, GameStrings::ColorAdd()
+				, pINI->GetKeyName(GameStrings::ColorAdd(), i)
 				, this->ColorAdds[i].asPointer());
 		}
 
@@ -3948,7 +3948,7 @@ void FakeRulesClass::_ReadColorAdd(CCINIClass* pINI)
 
 void FakeRulesClass::_ReadColors(CCINIClass* pINI)
 {
-	const char* section = GameStrings::Colors;
+	const char* section = GameStrings::Colors();
 
 	if (!pINI->GetSection(section))
 		return;
@@ -3992,7 +3992,7 @@ void FakeRulesClass::_ReadMovies(CCINIClass* pINI)
 
 void FakeRulesClass::_ReadAI(CCINIClass* pINI)
 {
-	const char* section = GameStrings::AI;
+	const char* section = GameStrings::AI();
 
 	if (!pINI->GetSection(section))
 		return;
@@ -4043,27 +4043,27 @@ void FakeRulesClass::_ReadAI(CCINIClass* pINI)
 	};
 
 
-	ParseBTypeVector(this->BuildConst, exINI, section, GameStrings::BuildConst, "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildPower, exINI, section, GameStrings::BuildPower, "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildRefinery, exINI, section, GameStrings::BuildRefinery, "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildBarracks, exINI, section, GameStrings::BuildBarracks, "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildTech, exINI, section, GameStrings::BuildTech, "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildWeapons, exINI, section, GameStrings::BuildWeapons, "Expect valid BuildingType");
-	ParseBTypeVector(this->AlliedBaseDefenses, exINI, section, GameStrings::AlliedBaseDefenses, "Expect valid BuildingType");
-	ParseBTypeVector(this->SovietBaseDefenses, exINI, section, GameStrings::SovietBaseDefenses, "Expect valid BuildingType");
-	ParseBTypeVector(this->ThirdBaseDefenses, exINI, section, GameStrings::ThirdBaseDefenses, "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildDefense, exINI, section, GameStrings::BuildDefense, "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildPDefense, exINI, section, GameStrings::BuildPDefense, "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildAA, exINI, section, GameStrings::BuildAA, "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildHelipad, exINI, section, GameStrings::BuildHelipad, "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildRadar, exINI, section, GameStrings::BuildRadar, "Expect valid BuildingType");
-	ParseBTypeVector(this->ConcreteWalls, exINI, section, GameStrings::ConcreteWalls, "Expect valid BuildingType");
-	ParseBTypeVector(this->NSGates, exINI, section, GameStrings::NSGates, "Expect valid BuildingType");
-	ParseBTypeVector(this->EWGates, exINI, section, GameStrings::EWGates, "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildNavalYard, exINI, section, GameStrings::BuildNavalYard, "Expect valid BuildingType");
-	ParseBTypeVector(this->BuildDummy, exINI, section, GameStrings::BuildDummy, "Expect valid BuildingType");
-	ParseBTypeVector(this->NeutralTechBuildings, exINI, section, GameStrings::NeutralTechBuildings, "Expect valid BuildingType");
-	detail::ParseVector(this->AIForcePredictionFudge, exINI, section, GameStrings::AIForcePredictionFudge, "Expect valid number");
+	ParseBTypeVector(this->BuildConst, exINI, section, GameStrings::BuildConst(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildPower, exINI, section, GameStrings::BuildPower(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildRefinery, exINI, section, GameStrings::BuildRefinery(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildBarracks, exINI, section, GameStrings::BuildBarracks(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildTech, exINI, section, GameStrings::BuildTech(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildWeapons, exINI, section, GameStrings::BuildWeapons(), "Expect valid BuildingType");
+	ParseBTypeVector(this->AlliedBaseDefenses, exINI, section, GameStrings::AlliedBaseDefenses(), "Expect valid BuildingType");
+	ParseBTypeVector(this->SovietBaseDefenses, exINI, section, GameStrings::SovietBaseDefenses(), "Expect valid BuildingType");
+	ParseBTypeVector(this->ThirdBaseDefenses, exINI, section, GameStrings::ThirdBaseDefenses(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildDefense, exINI, section, GameStrings::BuildDefense(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildPDefense, exINI, section, GameStrings::BuildPDefense(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildAA, exINI, section, GameStrings::BuildAA(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildHelipad, exINI, section, GameStrings::BuildHelipad(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildRadar, exINI, section, GameStrings::BuildRadar(), "Expect valid BuildingType");
+	ParseBTypeVector(this->ConcreteWalls, exINI, section, GameStrings::ConcreteWalls(), "Expect valid BuildingType");
+	ParseBTypeVector(this->NSGates, exINI, section, GameStrings::NSGates(), "Expect valid BuildingType");
+	ParseBTypeVector(this->EWGates, exINI, section, GameStrings::EWGates(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildNavalYard, exINI, section, GameStrings::BuildNavalYard(), "Expect valid BuildingType");
+	ParseBTypeVector(this->BuildDummy, exINI, section, GameStrings::BuildDummy(), "Expect valid BuildingType");
+	ParseBTypeVector(this->NeutralTechBuildings, exINI, section, GameStrings::NeutralTechBuildings(), "Expect valid BuildingType");
+	detail::ParseVector(this->AIForcePredictionFudge, exINI, section, GameStrings::AIForcePredictionFudge(), "Expect valid number");
 
 	detail::read<double>(this->AttackInterval, exINI, section, "AttackInterval");
 	detail::read<double>(this->AttackDelay, exINI, section, "AttackDelay");
@@ -4120,17 +4120,17 @@ void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
 {
 	INI_EX exINI(pINI);
 
-	const char* section = GameStrings::CombatDamage;
+	const char* section = GameStrings::CombatDamage();
 
 	if (!pINI->GetSection(section))
 		return;
 
-	detail::ParseVector<SmudgeTypeClass*>(this->Scorches, exINI, section, GameStrings::Scorches, "Expect valid SmudgeType");
-	detail::ParseVector<SmudgeTypeClass*>(this->Scorches1, exINI, section, GameStrings::Scorches1, "Expect valid SmudgeType");
-	detail::ParseVector<SmudgeTypeClass*>(this->Scorches2, exINI, section, GameStrings::Scorches2, "Expect valid SmudgeType");
-	detail::ParseVector<SmudgeTypeClass*>(this->Scorches3, exINI, section, GameStrings::Scorches3, "Expect valid SmudgeType");
-	detail::ParseVector<SmudgeTypeClass*>(this->Scorches4, exINI, section, GameStrings::Scorches4, "Expect valid SmudgeType");
-	detail::ParseVector<AnimTypeClass*>(this->SplashList, exINI, section, GameStrings::SplashList, "Expect valid AnimType");
+	detail::ParseVector<SmudgeTypeClass*>(this->Scorches, exINI, section, GameStrings::Scorches(), "Expect valid SmudgeType");
+	detail::ParseVector<SmudgeTypeClass*>(this->Scorches1, exINI, section, GameStrings::Scorches1(), "Expect valid SmudgeType");
+	detail::ParseVector<SmudgeTypeClass*>(this->Scorches2, exINI, section, GameStrings::Scorches2(), "Expect valid SmudgeType");
+	detail::ParseVector<SmudgeTypeClass*>(this->Scorches3, exINI, section, GameStrings::Scorches3(), "Expect valid SmudgeType");
+	detail::ParseVector<SmudgeTypeClass*>(this->Scorches4, exINI, section, GameStrings::Scorches4(), "Expect valid SmudgeType");
+	detail::ParseVector<AnimTypeClass*>(this->SplashList, exINI, section, GameStrings::SplashList()	, "Expect valid AnimType");
 
 	detail::read<int>(this->AmmoCrateDamage, exINI, section, "AmmoCrateDamage");
 	detail::read<int>(this->IonCannonDamage, exINI, section, "IonCannonDamage");
@@ -4351,51 +4351,51 @@ void FakeRulesClass::_ReadCombatDamage(CCINIClass* pINI)
 	this->AutoDeath_AllowLimboed.Read(exINI, section, "AutoDeath.AllowLimboed");
 	this->AutoDeath_OnOwnerChange_IgnoreRevertOnExit.Read(exINI, section, "AutoDeath.OnOwnerChange.IgnoreRevertOnExit");
 	
-	this->Arcing_AllowElevationInaccuracy.Read(exINI, GameStrings::CombatDamage, "Arcing.AllowElevationInaccuracy");
+	this->Arcing_AllowElevationInaccuracy.Read(exINI, GameStrings::CombatDamage(), "Arcing.AllowElevationInaccuracy");
 	
-	this->Airburst_UseCluster.Read(exINI, GameStrings::CombatDamage, "Airburst.UseCluster");
-	this->Airburst_TargetAsSource_SkipHeight.Read(exINI, GameStrings::CombatDamage, "Airburst.TargetAsSource.SkipHeight");
-	this->AirburstWeapon_ApplyFirepowerMult.Read(exINI, GameStrings::CombatDamage, "AirburstWeapon.ApplyFirepowerMult");
-	this->AirburstWeapon_UseFiringEffects.Read(exINI, GameStrings::CombatDamage, "AirburstWeapon.UseFiringEffects");
-	this->AirburstWeapon_HeadToTarget.Read(exINI, GameStrings::CombatDamage, "AirburstWeapon.HeadToTarget");
+	this->Airburst_UseCluster.Read(exINI, GameStrings::CombatDamage(), "Airburst.UseCluster");
+	this->Airburst_TargetAsSource_SkipHeight.Read(exINI, GameStrings::CombatDamage(), "Airburst.TargetAsSource.SkipHeight");
+	this->AirburstWeapon_ApplyFirepowerMult.Read(exINI, GameStrings::CombatDamage(), "AirburstWeapon.ApplyFirepowerMult");
+	this->AirburstWeapon_UseFiringEffects.Read(exINI, GameStrings::CombatDamage(), "AirburstWeapon.UseFiringEffects");
+	this->AirburstWeapon_HeadToTarget.Read(exINI, GameStrings::CombatDamage(), "AirburstWeapon.HeadToTarget");
 
-	this->Splits_TargetingDistance_Cylindrical.Read(exINI, GameStrings::CombatDamage, "Splits.TargetingDistance.Cylindrical");
-	this->Splits_AllowRepeatTargets.Read(exINI, GameStrings::CombatDamage, "Splits.AllowRepeatTargets");
-	this->Splits_UseWeaponTargeting.Read(exINI, GameStrings::CombatDamage, "Splits.UseWeaponTargeting");
+	this->Splits_TargetingDistance_Cylindrical.Read(exINI, GameStrings::CombatDamage(), "Splits.TargetingDistance.Cylindrical");
+	this->Splits_AllowRepeatTargets.Read(exINI, GameStrings::CombatDamage(), "Splits.AllowRepeatTargets");
+	this->Splits_UseWeaponTargeting.Read(exINI, GameStrings::CombatDamage(), "Splits.UseWeaponTargeting");
 
-	this->Shrapnel_AffectsGround.Read(exINI, GameStrings::CombatDamage, "Shrapnel.AffectsGround");
-	this->Shrapnel_AffectsBuildings.Read(exINI, GameStrings::CombatDamage, "Shrapnel.AffectsBuildings");
-	this->Shrapnel_UseWeaponTargeting.Read(exINI, GameStrings::CombatDamage, "Shrapnel.UseWeaponTargeting");
-	this->Interceptable.Read(exINI, GameStrings::CombatDamage, "ProjectileInterceptable");
-	this->Interceptor_GuardRange_IsCylindrical.Read(exINI, GameStrings::CombatDamage, "Interceptor.GuardRange.IsCylindrical");
-	this->Interceptor_ApplyFirepowerMult.Read(exINI, GameStrings::CombatDamage, "Interceptor.ApplyFirepowerMult");
+	this->Shrapnel_AffectsGround.Read(exINI, GameStrings::CombatDamage(), "Shrapnel.AffectsGround");
+	this->Shrapnel_AffectsBuildings.Read(exINI, GameStrings::CombatDamage(), "Shrapnel.AffectsBuildings");
+	this->Shrapnel_UseWeaponTargeting.Read(exINI, GameStrings::CombatDamage(), "Shrapnel.UseWeaponTargeting");
+	this->Interceptable.Read(exINI, GameStrings::CombatDamage(), "ProjectileInterceptable");
+	this->Interceptor_GuardRange_IsCylindrical.Read(exINI, GameStrings::CombatDamage(), "Interceptor.GuardRange.IsCylindrical");
+	this->Interceptor_ApplyFirepowerMult.Read(exINI, GameStrings::CombatDamage(), "Interceptor.ApplyFirepowerMult");
 
-	this->Crit_ApplyChancePerTarget.Read(exINI, GameStrings::CombatDamage, "Crit.ApplyChancePerTarget");
-	this->Crit_ExtraDamage_ApplyFirepowerMult.Read(exINI, GameStrings::CombatDamage, "Crit.ExtraDamage.ApplyFirepowerMult");
-	this->Crit_AnimOnAffectedTargets.Read(exINI, GameStrings::CombatDamage, "Crit.AnimOnAffectedTargets");
-	this->Crit_SuppressWhenIntercepted.Read(exINI, GameStrings::CombatDamage, "Crit.SuppressWhenIntercepted");
-	this->FallingDownDamage.Read(exINI, GameStrings::CombatDamage, "FallingDownDamage");
-	this->FallingDownDamage_AllowEMP.Read(exINI, GameStrings::CombatDamage, "FallingDownDamage.AllowEMP");
-	this->DriverKilled_KeptPassengers.Read(exINI, GameStrings::CombatDamage, "DriverKilled.KeptPassengers");
-	this->DriverKilled_KillPassengers.Read(exINI, GameStrings::CombatDamage, "DriverKilled.KillPassengers");
+	this->Crit_ApplyChancePerTarget.Read(exINI, GameStrings::CombatDamage(), "Crit.ApplyChancePerTarget");
+	this->Crit_ExtraDamage_ApplyFirepowerMult.Read(exINI, GameStrings::CombatDamage(), "Crit.ExtraDamage.ApplyFirepowerMult");
+	this->Crit_AnimOnAffectedTargets.Read(exINI, GameStrings::CombatDamage(), "Crit.AnimOnAffectedTargets");
+	this->Crit_SuppressWhenIntercepted.Read(exINI, GameStrings::CombatDamage(), "Crit.SuppressWhenIntercepted");
+	this->FallingDownDamage.Read(exINI, GameStrings::CombatDamage(), "FallingDownDamage");
+	this->FallingDownDamage_AllowEMP.Read(exINI, GameStrings::CombatDamage(), "FallingDownDamage.AllowEMP");
+	this->DriverKilled_KeptPassengers.Read(exINI, GameStrings::CombatDamage(), "DriverKilled.KeptPassengers");
+	this->DriverKilled_KillPassengers.Read(exINI, GameStrings::CombatDamage(), "DriverKilled.KillPassengers");
 	
-	this->AutoDeath_Nonexist_AllowLimboed.Read(exINI, GameStrings::CombatDamage, "AutoDeath.TechnosDontExist.AllowLimboed");
-	this->AutoDeath_Exist_AllowLimboed.Read(exINI, GameStrings::CombatDamage, "AutoDeath.TechnosExist.AllowLimboed");
-	this->Overload_ParticleSysCount.Read(exINI, GameStrings::CombatDamage, "Overload.ParticleSysCount");
-	this->ReturnWarhead_ApplyChancePerTarget.Read(exINI, GameStrings::CombatDamage, "ReturnWarhead.ApplyChancePerTarget");
-	this->ReturnWeapon_ApplyFirepowerMult.Read(exINI, GameStrings::CombatDamage, "ReturnWeapon.ApplyFirepowerMult");
-	this->AnimDamage_DealtByInvoker.Read(exINI, GameStrings::CombatDamage, "AnimDamage.DealtByInvoker");
-	this->Parasite_DisableParticleSystem.Read(exINI, GameStrings::CombatDamage, "Parasite.DisableParticleSystem");
+	this->AutoDeath_Nonexist_AllowLimboed.Read(exINI, GameStrings::CombatDamage(), "AutoDeath.TechnosDontExist.AllowLimboed");
+	this->AutoDeath_Exist_AllowLimboed.Read(exINI, GameStrings::CombatDamage(), "AutoDeath.TechnosExist.AllowLimboed");
+	this->Overload_ParticleSysCount.Read(exINI, GameStrings::CombatDamage(), "Overload.ParticleSysCount");
+	this->ReturnWarhead_ApplyChancePerTarget.Read(exINI, GameStrings::CombatDamage(), "ReturnWarhead.ApplyChancePerTarget");
+	this->ReturnWeapon_ApplyFirepowerMult.Read(exINI, GameStrings::CombatDamage(), "ReturnWeapon.ApplyFirepowerMult");
+	this->AnimDamage_DealtByInvoker.Read(exINI, GameStrings::CombatDamage(), "AnimDamage.DealtByInvoker");
+	this->Parasite_DisableParticleSystem.Read(exINI, GameStrings::CombatDamage(), "Parasite.DisableParticleSystem");
 
-	this->MissileSpawnAttackCell.Read(exINI, GameStrings::CombatDamage, "MissileSpawnAttackCell");
-	this->Warhead_PreventScatter.Read(exINI, GameStrings::CombatDamage, "Warhead.PreventScatter");
+	this->MissileSpawnAttackCell.Read(exINI, GameStrings::CombatDamage(), "MissileSpawnAttackCell");
+	this->Warhead_PreventScatter.Read(exINI, GameStrings::CombatDamage(), "Warhead.PreventScatter");
 
-	this->ProjectileRange_ApplyModifiers.Read(exINI, GameStrings::CombatDamage, "ProjectileRange.ApplyModifiers");
+	this->ProjectileRange_ApplyModifiers.Read(exINI, GameStrings::CombatDamage(), "ProjectileRange.ApplyModifiers");
 
-	this->Crush_SelfUncloak.Read(exINI, GameStrings::CombatDamage, "UnitCrush.SelfUncloak");
-	this->UncloakWhenLowHealth.Read(exINI, GameStrings::CombatDamage, "Cloak.UncloakWhenLowHealth");
-	this->AutoTarget_InsignificantWhenMindControlled.Read(exINI, GameStrings::CombatDamage, "AutoTarget.InsignificantWhenMindControlled");
-	this->AttackTarget_WaitForTurreReset.Read(exINI, GameStrings::CombatDamage, "UnitAttackTarget.WaitForTurreReset");
+	this->Crush_SelfUncloak.Read(exINI, GameStrings::CombatDamage(), "UnitCrush.SelfUncloak");
+	this->UncloakWhenLowHealth.Read(exINI, GameStrings::CombatDamage(), "Cloak.UncloakWhenLowHealth");
+	this->AutoTarget_InsignificantWhenMindControlled.Read(exINI, GameStrings::CombatDamage(), "AutoTarget.InsignificantWhenMindControlled");
+	this->AttackTarget_WaitForTurreReset.Read(exINI, GameStrings::CombatDamage(), "UnitAttackTarget.WaitForTurreReset");
 }
 
 #pragma region WeaponTypeBuffer
@@ -4423,9 +4423,9 @@ ASMJIT_PATCH(0x75D660, WarheadTypeClass_LoadFromINI_ListLength, 9)
 	GET(CCINIClass*, pINI, EDI);
 
 	INI_EX exINI(pINI);
-	detail::ParseVector<AnimTypeClass*>(pThis->AnimList, exINI, pSection, GameStrings::AnimList, "Expect valid AnimType");
-	detail::ParseVector(pThis->DebrisMaximums, exINI, pSection, GameStrings::DebrisMaximums, "Expect valid number");
-	detail::ParseVector<VoxelAnimTypeClass*>(pThis->DebrisTypes, exINI, pSection, GameStrings::DebrisTypes, "Expect valid VoxelAnimType");
+	detail::ParseVector<AnimTypeClass*>(pThis->AnimList, exINI, pSection, GameStrings::AnimList(), "Expect valid AnimType");
+	detail::ParseVector(pThis->DebrisMaximums, exINI, pSection, GameStrings::DebrisMaximums(), "Expect valid number");
+	detail::ParseVector<VoxelAnimTypeClass*>(pThis->DebrisTypes, exINI, pSection, GameStrings::DebrisTypes(), "Expect valid VoxelAnimType");
 
 	return 0x75D75D;
 }
@@ -4462,14 +4462,14 @@ ASMJIT_PATCH(0x7125DF, TechnoTypeClass_LoadFromINI_ListLength, 7)
 
 	INI_EX exINI(pINI);
 
-	detail::ParseVector<ParticleSystemTypeClass*>(pThis->DamageParticleSystems, exINI, pSection, GameStrings::DamageParticleSystems, "Expect valid ParticleSystemType");
-	detail::ParseVector<ParticleSystemTypeClass*>(pThis->DestroyParticleSystems, exINI, pSection, GameStrings::DestroyParticleSystems, "Expect valid ParticleSystemType");
+	detail::ParseVector<ParticleSystemTypeClass*>(pThis->DamageParticleSystems, exINI, pSection, GameStrings::DamageParticleSystems(), "Expect valid ParticleSystemType");
+	detail::ParseVector<ParticleSystemTypeClass*>(pThis->DestroyParticleSystems, exINI, pSection, GameStrings::DestroyParticleSystems(), "Expect valid ParticleSystemType");
 
-	detail::ParseVector<BuildingTypeClass*>(pThis->Dock, exINI, pSection, GameStrings::Dock, "Expect valid BuildingType");
+	detail::ParseVector<BuildingTypeClass*>(pThis->Dock, exINI, pSection, GameStrings::Dock(), "Expect valid BuildingType");
 
-	detail::ParseVector(pThis->DebrisMaximums, exINI, pSection, GameStrings::DebrisMaximums, "Expect valid number");
-	detail::ParseVector<VoxelAnimTypeClass*>(pThis->DebrisTypes, exINI, pSection, GameStrings::DebrisTypes, "Expect valid VoxelAnimType");
-	detail::ParseVector<AnimTypeClass*>(pThis->DebrisAnims, exINI, pSection, GameStrings::DebrisAnims, "Expect valid AnimType");
+	detail::ParseVector(pThis->DebrisMaximums, exINI, pSection, GameStrings::DebrisMaximums(), "Expect valid number");
+	detail::ParseVector<VoxelAnimTypeClass*>(pThis->DebrisTypes, exINI, pSection, GameStrings::DebrisTypes(), "Expect valid VoxelAnimType");
+	detail::ParseVector<AnimTypeClass*>(pThis->DebrisAnims, exINI, pSection, GameStrings::DebrisAnims(), "Expect valid AnimType");
 
 	return 0x712830;
 }
@@ -4484,9 +4484,9 @@ ASMJIT_PATCH(0x511D16, HouseTypeClass_LoadFromINI_Buffer_CountryVeteran, 9)
 	GET(CCINIClass*, pINI, ESI);
 
 	INI_EX exINI(pINI);
-	detail::ParseVector<InfantryTypeClass*>(pHouseType->VeteranInfantry, exINI, pHouseType->ID, GameStrings::VeteranInfantry, "Expect valid InfantryType");
-	detail::ParseVector<UnitTypeClass*>(pHouseType->VeteranUnits, exINI, pHouseType->ID, GameStrings::VeteranUnits, "Expect valid UnitType");
-	detail::ParseVector<AircraftTypeClass*>(pHouseType->VeteranAircraft, exINI, pHouseType->ID, GameStrings::VeteranAircraft, "Expect valid AircraftType");
+	detail::ParseVector<InfantryTypeClass*>(pHouseType->VeteranInfantry, exINI, pHouseType->ID, GameStrings::VeteranInfantry(), "Expect valid InfantryType");
+	detail::ParseVector<UnitTypeClass*>(pHouseType->VeteranUnits, exINI, pHouseType->ID, GameStrings::VeteranUnits(), "Expect valid UnitType");
+	detail::ParseVector<AircraftTypeClass*>(pHouseType->VeteranAircraft, exINI, pHouseType->ID, GameStrings::VeteranAircraft(), "Expect valid AircraftType");
 
 	return 0x51208C;
 }

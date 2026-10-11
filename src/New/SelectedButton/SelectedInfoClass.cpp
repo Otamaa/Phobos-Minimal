@@ -467,7 +467,7 @@ BSurface* SelectedInfoClass::SearchMissingCameo(AbstractType absType, SHPCaches*
 	strcpy_s(pFilename, pRulesExt->MissingCameo.data());
 	_strlwr_s(pFilename);
 
-	if (!_stricmp(pSHP->Filename, GameStrings::XXICON_SHP))
+	if (!_stricmp(pSHP->Filename, GameStrings::XXICON_SHP()))
 	{
 		if (absType == AbstractType::InfantryType)
 		{

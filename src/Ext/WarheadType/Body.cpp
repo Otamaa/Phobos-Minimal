@@ -2809,7 +2809,7 @@ void WarheadTypeExtData::announceAttack(TechnoClass* Techno)
 	{
 	case AttackEvents::Harvester:
 		if (RadarEventClass::Create(RadarEventType::HarvesterAttacked, Techno->GetMapCoords()))
-			VoxClass::Play(GameStrings::EVA_OreMinerUnderAttack);
+			VoxClass::Play(GameStrings::EVA_OreMinerUnderAttack());
 		break;
 	case AttackEvents::Base:
 		((FakeHouseClass*)HouseClass::CurrentPlayer())->_Attacked(cast_to<BuildingClass*, false>(Techno), nullptr);

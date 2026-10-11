@@ -338,17 +338,6 @@ ASMJIT_PATCH(0x416C94, AircraftClass_Carryall_Unload_UpdateCargo, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x413FA3, AircraftClass_Init_Cloakable, 0x5)
-{
-	GET(AircraftClass*, Item, ESI);
-
-	if (Item->Type->Cloakable) {
-		Item->Cloakable = true;
-	}
-
-	return 0;
-}
-
 ASMJIT_PATCH(0x415533, AircraftClass_Mi_Unload_Blocked, 0x5)
 {
 	GET(AircraftClass*, pThis, ESI);

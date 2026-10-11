@@ -38,7 +38,7 @@ ASMJIT_PATCH(0x692686, DisplayClass_WhatAction_Cloak, 0x6)
 	if (pTechno->IsOwnedByCurrentPlayer || HouseClass::IsCurrentPlayerObserver())
 		return ShouldNotCheck;
 
-	if (HouseExtData::IsMutualAllies(pTechno->Owner, HouseClass::CurrentPlayer))
+	if (HouseExtData::IsMutualAllies(pTechno->Owner, HouseClass::CurrentPlayer()))
 		return ShouldNotCheck;
 
 	return ProceedCloakCheck;
@@ -85,7 +85,7 @@ ASMJIT_PATCH(0x692540, ScrollClass_Coordthing_TechnoClass_Cloak, 0x5)
 	GET(TechnoClass*, pTechno, ESI);
 	const auto pTechnoOwner = pTechno->Owner;
 
-	if (pTechnoOwner && HouseExtData::IsMutualAllies(pTechnoOwner , HouseClass::CurrentPlayer))
+	if (pTechnoOwner && HouseExtData::IsMutualAllies(pTechnoOwner , HouseClass::CurrentPlayer()))
 		return AllowCoordthing;
 
 	return CheckSensedByHouses;
@@ -102,7 +102,7 @@ ASMJIT_PATCH(0x6925AA, ScrollClass_Coordthing_BuildingClass_Cloak, 0x6)
 	GET(TechnoClass*, pTechno, ESI);
 	const auto pTechnoOwner = pTechno->Owner;
 
-	if (pTechnoOwner && HouseExtData::IsMutualAllies(pTechnoOwner ,HouseClass::CurrentPlayer))
+	if (pTechnoOwner && HouseExtData::IsMutualAllies(pTechnoOwner ,HouseClass::CurrentPlayer()))
 		return AllowCoordthing;
 
 	return CheckSensedByHouses;
@@ -118,7 +118,7 @@ ASMJIT_PATCH(0x6DA412, Tactical_SelectAt_Cloak, 0x6)
 	GET(TechnoClass*, pTechno, EAX);
 	const auto pTechnoOwner = pTechno->Owner;
 
-	if (pTechnoOwner && HouseExtData::IsMutualAllies(pTechnoOwner ,HouseClass::CurrentPlayer))
+	if (pTechnoOwner && HouseExtData::IsMutualAllies(pTechnoOwner ,HouseClass::CurrentPlayer()))
 		return AllowSelect;
 
 	return CheckSensedByHouses;
@@ -135,7 +135,7 @@ ASMJIT_PATCH(0x6F4F19, TechnoClass_6F4EB0_Cloak, 0x6)
 	GET(TechnoClass*, pTechno, ESI);
 	const auto pTechnoOwner = pTechno->Owner;
 
-	if (pTechnoOwner && HouseExtData::IsMutualAllies(pTechnoOwner ,HouseClass::CurrentPlayer))
+	if (pTechnoOwner && HouseExtData::IsMutualAllies(pTechnoOwner ,HouseClass::CurrentPlayer()))
 		return DontUnselect;
 
 	return CheckSensedByHouses;
@@ -152,7 +152,7 @@ ASMJIT_PATCH(0x4ABE3C, DisplayClass_MouseLeftRelease_Cloak, 0xA)
 	GET(TechnoClass*, pTechno, ESI);
 	const auto pTechnoOwner = pTechno->Owner;
 
-	if (pTechnoOwner && HouseExtData::IsMutualAllies(pTechnoOwner ,HouseClass::CurrentPlayer))
+	if (pTechnoOwner && HouseExtData::IsMutualAllies(pTechnoOwner ,HouseClass::CurrentPlayer()))
 		return AllowSelect;
 
 	if (pTechno->IsSensorVisibleToPlayer())
@@ -172,7 +172,7 @@ ASMJIT_PATCH(0x70D386, TechnoClass_Radar_Cloak, 0xA)
 	GET(TechnoClass*, pTechno, ESI);
 	const auto pTechnoOwner = pTechno->Owner;
 
-	if (pTechnoOwner && HouseExtData::IsMutualAllies(pTechnoOwner ,HouseClass::CurrentPlayer))
+	if (pTechnoOwner && HouseExtData::IsMutualAllies(pTechnoOwner ,HouseClass::CurrentPlayer()))
 		return Show;
 
 	if (pTechno->IsSensorVisibleToPlayer())
@@ -192,7 +192,7 @@ ASMJIT_PATCH(0x4AE62B, DisplayClass_HelpText_Cloak, 0x5)
 	GET(TechnoClass*, pTechno, ECX);
 	const auto pTechnoOwner = pTechno->Owner;
 
-	if (pTechnoOwner && HouseExtData::IsMutualAllies(pTechnoOwner ,HouseClass::CurrentPlayer))
+	if (pTechnoOwner && HouseExtData::IsMutualAllies(pTechnoOwner ,HouseClass::CurrentPlayer()))
 		return CheckIsInvisible;
 
 	if (pTechno->IsSensorVisibleToPlayer())

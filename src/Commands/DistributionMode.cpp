@@ -268,7 +268,7 @@ ASMJIT_PATCH(0x4AE7B3, DisplayClass_ActiveClickWith_Iterate, 0x0)
 
 				for (const auto& pItem : pItems)
 				{
-					if (pItem->IsDisguisedAs(HouseClass::CurrentPlayer))
+					if (pItem->IsDisguisedAs(HouseClass::CurrentPlayer()))
 						continue;
 
 					if (pItem->CloakState == CloakState::Cloaked && !pItem->GetCell()->Sensors_InclHouse(HouseClass::CurrentPlayer->ArrayIndex))

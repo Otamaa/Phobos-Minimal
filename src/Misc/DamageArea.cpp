@@ -156,14 +156,14 @@ static void NOINLINE DestroyBridge(CoordStruct* pCoord, const FakeWarheadTypeCla
 							const auto point = TacticalClass::Instance->CoordsToScreen(pCoord);
 							TacticalClass::Instance->RegisterDirtyArea({ point.X - 128 , point.Y - 128 , 256, 256 }, false);
 						}
-						v67 = BridgeMiddle1;
-						v68 = BridgeMiddle2;
+						v67 = BridgeMiddle1();
+						v68 = BridgeMiddle2();
 					}
 				}
 				goto LABEL_167;
 			}
 		}
-		v68 = BridgeMiddle2;
+		v68 = BridgeMiddle2();
 		goto LABEL_152;
 	}
 }

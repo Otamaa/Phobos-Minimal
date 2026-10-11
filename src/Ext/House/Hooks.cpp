@@ -449,7 +449,7 @@ ASMJIT_PATCH(0x6A7AE1, SidebarClass_Update_RepairButton, 0x6)
 	if(!FakeRulesClass::Instance()->ExtendedPlayerRepair)
 		return !pThis->RepairMode && pButton->IsOn ? TurnOffButton : Continue;
 
-	return !HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer)->PlayerAutoRepair && pButton->IsOn ? TurnOffButton : Continue;
+	return !HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer())->PlayerAutoRepair && pButton->IsOn ? TurnOffButton : Continue;
 }
 
 //======================================================================================================================================
@@ -581,10 +581,10 @@ ASMJIT_PATCH(0x4FB7CA, HouseClass_RegisterJustBuild_CreateSound_PlayerOnly, 0x6)
 		if (!pTechnoTypeExt->CreateSound_Enable.Get())
 			return ReturnNoVoiceCreate;
 
-		if (!EnumFunctions::IsPlayerTypeEligible((AffectPlayerType::Observer | AffectPlayerType::Player), HouseClass::CurrentPlayer))
+		if (!EnumFunctions::IsPlayerTypeEligible((AffectPlayerType::Observer | AffectPlayerType::Player), HouseClass::CurrentPlayer()))
 			return ReturnNoVoiceCreate;
 
-		if (!EnumFunctions::CanTargetHouse(pTechnoTypeExt->CreateSound_afect.Get(FakeRulesClass::Instance()->CreateSound_PlayerOnly), pThis, HouseClass::CurrentPlayer))
+		if (!EnumFunctions::CanTargetHouse(pTechnoTypeExt->CreateSound_afect.Get(FakeRulesClass::Instance()->CreateSound_PlayerOnly), pThis, HouseClass::CurrentPlayer()))
 			return ReturnNoVoiceCreate;
 	}
 

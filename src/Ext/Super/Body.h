@@ -7,7 +7,7 @@
 
 struct LauchData
 {
-	int LastFrame { Unsorted::CurrentFrame };
+	int LastFrame { Unsorted::CurrentFrame() };
 	int Count { 0 };
 
 	COMPILETIMEEVAL FORCEDINLINE void Update()

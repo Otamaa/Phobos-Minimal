@@ -230,13 +230,13 @@ void Debug::FreeMouse()
 			}
 		};
 
-	BlackSurface(DSurface::Alternate);
-	BlackSurface(DSurface::Composite);
-	BlackSurface(DSurface::Hidden);
-	BlackSurface(DSurface::Temp);
-	BlackSurface(DSurface::Primary);
-	BlackSurface(DSurface::Sidebar);
-	BlackSurface(DSurface::Tile);
+	BlackSurface(DSurface::Alternate());
+	BlackSurface(DSurface::Composite());
+	BlackSurface(DSurface::Hidden());
+	BlackSurface(DSurface::Temp());
+	BlackSurface(DSurface::Primary());
+	BlackSurface(DSurface::Sidebar());
+	BlackSurface(DSurface::Tile());
 
 	ShowCursor(TRUE);
 }
@@ -275,14 +275,14 @@ void Debug::FatalErrorCore(bool Dump, const std::string& msg)
 			fprintf_s(Debug::LogFile, "Fatal Error: %ls\n", DefaultFEMessage.c_str());
 
 		Debug::FreeMouse();
-		MessageBoxW(Game::hWnd, DefaultFEMessage.c_str(), L"Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
+		MessageBoxW(Game::hWnd(), DefaultFEMessage.c_str(), L"Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
 	} else {
 
 		if (log)
 			fprintf_s(Debug::LogFile, "Fatal Error: %s\n", msg.c_str());
 
 		Debug::FreeMouse();
-		MessageBoxA(Game::hWnd, msg.c_str(), "Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
+		MessageBoxA(Game::hWnd(), msg.c_str(), "Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
 	}
 
 	if (Dump) {

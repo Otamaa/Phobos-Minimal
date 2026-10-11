@@ -206,7 +206,7 @@ public:
 
 	FORCEDINLINE static void Clear()
 	{
-		Allocate(ScenarioClass::Instance);
+		Allocate(ScenarioClass::Instance());
 	}
 
 	static void SaveVariablesToFile(bool isGlobal);

@@ -99,7 +99,7 @@ private:
 		{
 			constexpr int ChunkSize = 8;
 			constexpr uintptr_t ChunkBytes = ChunkSize * sizeof(WORD);
-			ABuffer* pABuffer = ABuffer::Instance;
+			ABuffer* pABuffer = ABuffer::Instance();
 			const uintptr_t aTailAddress = reinterpret_cast<uintptr_t>(pABuffer->BufferTail);
 
 			const __m256i zero32 = _mm256_setzero_si256();
@@ -146,7 +146,7 @@ private:
 		{
 			constexpr int ChunkSize = 8;
 			constexpr uintptr_t ChunkBytes = ChunkSize * sizeof(WORD);
-			ABuffer* pABuffer = ABuffer::Instance;
+			ABuffer* pABuffer = ABuffer::Instance();
 			const uintptr_t aTailAddress = reinterpret_cast<uintptr_t>(pABuffer->BufferTail);
 
 			const __m128i zero16 = _mm_setzero_si128();

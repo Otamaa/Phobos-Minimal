@@ -244,7 +244,7 @@ void ZoomManager::ApplyTacticalBlit()
 	if (!IsZoomed() || !DSurface::Alternate() || !DSurface::Composite())
 		return;
 
-	const RectangleStruct& vb = DSurface::ViewBounds;
+	const RectangleStruct& vb = DSurface::ViewBounds();
 	const double zoom = CurrentZoom;
 
 	const double zoomedWidth = static_cast<double>(vb.Width) / zoom;

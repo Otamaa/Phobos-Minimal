@@ -35,7 +35,7 @@ void SW_Reveal::Initialize(SWTypeExtData* pData)
 	pData->This()->Action = Action::PsychicReveal;
 	pData->SW_RadarEvent = false;
 
-	pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_PsychicRevealReady);
+	pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_PsychicRevealReady());
 
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::ParaDrop;
 	pData->CursorType = int(MouseCursorType::PsychicReveal);

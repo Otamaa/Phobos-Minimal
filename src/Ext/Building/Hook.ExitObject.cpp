@@ -203,13 +203,13 @@ static KickOutResult HandleAircraftExit(
 	if (inRadioContact || (ionStormActive && !pAircraft->Type->AirportBound))
 	{
 		pAircraft->MarkDownSetZ(0);
-		++Unsorted::ScenarioInit;
+		++Unsorted::ScenarioInit();
 
 		const KickOutResult result = ionStormActive ?
 			  HandleAircraftIonStormExit(pBuilding, pAircraft, facing)
 			: HandleAircraftDockedExit(pBuilding, pAircraft, facing);
 
-		--Unsorted::ScenarioInit;
+		--Unsorted::ScenarioInit();
 		return result;
 	}
 
@@ -324,11 +324,11 @@ static KickOutResult HandleAircraftMapEdgeSpawn(
 
 	CoordStruct spawnCoord = CellClass::Cell2Coord(spawnCell);
 
-	++Unsorted::ScenarioInit;
+	++Unsorted::ScenarioInit();
 
 	if (!pAircraft->Unlimbo(spawnCoord, DirType::North))
 	{
-		--Unsorted::ScenarioInit;
+		--Unsorted::ScenarioInit();
 		return KickOutResult::Failed;
 	}
 
@@ -352,7 +352,7 @@ static KickOutResult HandleAircraftMapEdgeSpawn(
 		pAircraft->QueueMission(Mission::Move, 0);
 	}
 
-	--Unsorted::ScenarioInit;
+	--Unsorted::ScenarioInit();
 	return KickOutResult::Succeeded;
 }
 
@@ -539,7 +539,7 @@ static KickOutResult HandleRefineryExit(FakeBuildingClass* pBuilding, TechnoClas
 	CoordStruct centerCoord = pBuilding->Location;
 	CellStruct exitCell4 = CellClass::Coord2Cell(centerCoord) + CellSpread::AdjacentCell[5];
 
-	++Unsorted::ScenarioInit;
+	++Unsorted::ScenarioInit();
 
 	CoordStruct unlimboCoord = CellClass::Cell2Coord(exitCell4 + CellSpread::AdjacentCell[4]);
 	DirType dir = DirType((int)BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->WeaponsFactory_Dir.Get() << 5);
@@ -552,7 +552,7 @@ static KickOutResult HandleRefineryExit(FakeBuildingClass* pBuilding, TechnoClas
 		pObject->QueueMission(Mission::Harvest, 0);
 	}
 
-	--Unsorted::ScenarioInit;
+	--Unsorted::ScenarioInit();
 	return KickOutResult::Failed;
 }
 
@@ -668,14 +668,14 @@ static KickOutResult HandleLandVehicleFactoryExit(
 	if (CanDeferToAnotherFactory(pBuilding, pObject))
 		return TryDeferToAnotherFactory(pBuilding, pObject);
 
-	++Unsorted::ScenarioInit;
+	++Unsorted::ScenarioInit();
 
 	CoordStruct exitCoord;
 	pBuilding->GetExitCoords(&exitCoord, 0);
 
 	if (!pObject->Unlimbo(exitCoord, DirType::East))
 	{
-		--Unsorted::ScenarioInit;
+		--Unsorted::ScenarioInit();
 		return KickOutResult::Failed;
 	}
 
@@ -699,7 +699,7 @@ static KickOutResult HandleLandVehicleFactoryExit(
 	pBuilding->SendCommand(RadioCommand::RequestTether, pObject);
 	pBuilding->QueueMission(Mission::Unload, 0);
 
-	--Unsorted::ScenarioInit;
+	--Unsorted::ScenarioInit();
 	TechnoExtData::KickOutClones(pBuilding, pObject);
 	return KickOutResult::Succeeded;
 }
@@ -745,13 +745,13 @@ static KickOutResult HandleBarracksExit(
 	int facing = CalculateFacingToCell(centerCoord, exitCell);
 	//Debug::Log("6. Facing: %d\n", facing);
 
-	++Unsorted::ScenarioInit;
+	++Unsorted::ScenarioInit();
 
 	const bool unlimboSuccess = pObject->Unlimbo(unlimboCoord, static_cast<DirType>(facing));
 	//Debug::Log("7. Unlimbo result: %s\n", unlimboSuccess ? "SUCCESS" : "FAILED");
 
 	if (!unlimboSuccess) {
-		--Unsorted::ScenarioInit;
+		--Unsorted::ScenarioInit();
 		return KickOutResult::Failed;
 	}
 
@@ -809,7 +809,7 @@ static KickOutResult HandleBarracksExit(
 			pObject->Scatter(CoordStruct::Empty, true, false);
 	}
 
-	--Unsorted::ScenarioInit;
+	--Unsorted::ScenarioInit();
 	TechnoExtData::KickOutClones(pBuilding, pObject);
 
 	return KickOutResult::Succeeded;
@@ -866,10 +866,10 @@ static KickOutResult HandleGenericUnitExit(
 		}
 	}
 
-	++Unsorted::ScenarioInit;
+	++Unsorted::ScenarioInit();
 
 	if (!pObject->Unlimbo(unlimboCoord, static_cast<DirType>(facing))) {
-		--Unsorted::ScenarioInit;
+		--Unsorted::ScenarioInit();
 		return KickOutResult::Failed;
 	}
 
@@ -906,7 +906,7 @@ static KickOutResult HandleGenericUnitExit(
 			pObject->SetArchiveTarget(MapClass::Instance->GetCellAt(whereToGo));
 	}
 
-	--Unsorted::ScenarioInit;
+	--Unsorted::ScenarioInit();
 	return KickOutResult::Succeeded;
 }
 

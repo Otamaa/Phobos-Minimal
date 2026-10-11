@@ -724,7 +724,7 @@ void BuildingTypeExtData::CreateLimboBuilding(BuildingClass* pBuilding, Building
 		// Because of the unique nature of LimboDelivered buildings, this has been adjusted to always reveal to the current player in singleplayer
 		// and to the owner of the building regardless, removing the shroud check from the equation since they don't physically exist - Starkku
 		if (SessionClass::IsCampaign())
-			pBuilding->DiscoveredBy(HouseClass::CurrentPlayer);
+			pBuilding->DiscoveredBy(HouseClass::CurrentPlayer());
 
 		pBuilding->DiscoveredBy(pOwner);
 
@@ -2086,7 +2086,7 @@ CanBuildResult BuildingTypeExtData::CheckAlwaysExistCameo(HouseClass* pHouse, Te
 	{
 		pTypeExt->Cameo_AlwaysExistForCurrentPlayerActive = false;
 		pTypeExt->Cameo_AlwaysExistIsGreyCameoAbandonedProduct = false;
-		VoxClass::Play(GameStrings::EVA_NewConstructionOptions);
+		VoxClass::Play(GameStrings::EVA_NewConstructionOptions());
 		SidebarClass::Instance->SidebarNeedsRepaint();
 	}
 

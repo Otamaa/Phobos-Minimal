@@ -620,7 +620,7 @@ void MapChoiceBoxClass::DrawAt(Point2D centerPos)
 		DSurface::Composite->Draw_Line(p1, p2, colorInt);
 	}
 
-	RectangleStruct bounds = DSurface::ViewBounds;
+	RectangleStruct bounds = DSurface::ViewBounds();
 
 	// ===== 绘制标题（支持多行，可选居中） =====
 	int currentY = topLeft.Y + PADDINGY;

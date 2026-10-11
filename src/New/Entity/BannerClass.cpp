@@ -110,7 +110,7 @@ void BannerClass::RenderPCX(Point2D position)
 	this->GetRenderPos(position, pcx->Width, pcx->Height);
 
 	RectangleStruct bounds(position.X, position.Y, pcx->Width, pcx->Height);
-	PCXImages::Instance->BlitToSurface(&bounds, DSurface::Composite, pcx);
+	PCXImages::Instance->BlitToSurface(&bounds, DSurface::Composite(), pcx);
 }
 
 void BannerClass::RenderSHP(Point2D position)
@@ -119,7 +119,7 @@ void BannerClass::RenderSHP(Point2D position)
 	if (!shape)
 		return;
 
-	ConvertClass* palette = this->Type->Palette.GetOrDefaultConvert(FileSystem::PALETTE_PAL);
+	ConvertClass* palette = this->Type->Palette.GetOrDefaultConvert(FileSystem::PALETTE_PAL());
 	this->GetRenderPos(position, shape->CurrentHeader.Width, shape->CurrentHeader.Height);
 
 	DSurface::Composite->DrawSHP
@@ -204,7 +204,7 @@ void BannerClass::RenderCSF(Point2D position)
 		buffer.data(),
 		&DSurface::ViewBounds(),
 		&position,
-		this->Type->CSF_Color.Get(Drawing::TooltipColor).ToInit(),
+		this->Type->CSF_Color.Get(Drawing::TooltipColor()).ToInit(),
 		0,
 		textFlags
 	);

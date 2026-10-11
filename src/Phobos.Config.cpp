@@ -341,27 +341,27 @@ void Phobos::Config::Read_UIMD()
 					"Slot13", "Slot14", "Slot15", "Slot16"
 				};
 
-				ReadColor("Observer", Phobos::UI::Colors[0], DefaultColors[8], GameStrings::STT_PlayerColorObserver, GameStrings::LightGrey);
-				ReadColor(Slot_tags[0], Phobos::UI::Colors[1], DefaultColors[0], GameStrings::STT_PlayerColorGold, GameStrings::LightGold);
-				ReadColor(Slot_tags[1], Phobos::UI::Colors[2], DefaultColors[1], GameStrings::STT_PlayerColorRed, GameStrings::DarkRed);
-				ReadColor(Slot_tags[2], Phobos::UI::Colors[3], DefaultColors[2], GameStrings::STT_PlayerColorBlue, "DarkBlue");
-				ReadColor(Slot_tags[3], Phobos::UI::Colors[4], DefaultColors[3], GameStrings::STT_PlayerColorGreen, "DarkGreen");
-				ReadColor(Slot_tags[4], Phobos::UI::Colors[5], DefaultColors[4], GameStrings::STT_PlayerColorOrange, "Orange");
-				ReadColor(Slot_tags[5], Phobos::UI::Colors[6], DefaultColors[5], GameStrings::STT_PlayerColorSkyBlue, "DarkSky");
-				ReadColor(Slot_tags[6], Phobos::UI::Colors[7], DefaultColors[6], GameStrings::STT_PlayerColorPurple, "Purple");
-				ReadColor(Slot_tags[7], Phobos::UI::Colors[8], DefaultColors[7], GameStrings::STT_PlayerColorPink, "Magenta");
+				ReadColor("Observer", Phobos::UI::Colors[0], DefaultColors[8], GameStrings::STT_PlayerColorObserver(), GameStrings::LightGrey());
+				ReadColor(Slot_tags[0], Phobos::UI::Colors[1], DefaultColors[0], GameStrings::STT_PlayerColorGold(), GameStrings::LightGold());
+				ReadColor(Slot_tags[1], Phobos::UI::Colors[2], DefaultColors[1], GameStrings::STT_PlayerColorRed(), GameStrings::DarkRed());
+				ReadColor(Slot_tags[2], Phobos::UI::Colors[3], DefaultColors[2], GameStrings::STT_PlayerColorBlue(), "DarkBlue");
+				ReadColor(Slot_tags[3], Phobos::UI::Colors[4], DefaultColors[3], GameStrings::STT_PlayerColorGreen(), "DarkGreen");
+				ReadColor(Slot_tags[4], Phobos::UI::Colors[5], DefaultColors[4], GameStrings::STT_PlayerColorOrange(), "Orange");
+				ReadColor(Slot_tags[5], Phobos::UI::Colors[6], DefaultColors[5], GameStrings::STT_PlayerColorSkyBlue(), "DarkSky");
+				ReadColor(Slot_tags[6], Phobos::UI::Colors[7], DefaultColors[6], GameStrings::STT_PlayerColorPurple(), "Purple");
+				ReadColor(Slot_tags[7], Phobos::UI::Colors[8], DefaultColors[7], GameStrings::STT_PlayerColorPink(), "Magenta");
 
 				// additional color schemes so just increasing Count will produce nice colors
 				ReadColor(Slot_tags[8], Phobos::UI::Colors[9], 0xEF5D94, "STT:PlayerColorLilac", "NeonBlue");
 				ReadColor(Slot_tags[9], Phobos::UI::Colors[10], 0xE7FF73, "STT:PlayerColorLightBlue", "LightBlue");
-				ReadColor(Slot_tags[10], Phobos::UI::Colors[11], 0x63EFFF, "STT:PlayerColorLime", GameStrings::Yellow);
-				ReadColor(Slot_tags[11], Phobos::UI::Colors[12], 0x5AC308, "STT:PlayerColorTeal", GameStrings::Green);
-				ReadColor(Slot_tags[12], Phobos::UI::Colors[13], 0x0055BD, "STT:PlayerColorBrown", GameStrings::Red);
-				ReadColor(Slot_tags[13], Phobos::UI::Colors[14], 0x808080, "STT:PlayerColorCharcoal", GameStrings::Grey);
+				ReadColor(Slot_tags[10], Phobos::UI::Colors[11], 0x63EFFF, "STT:PlayerColorLime", GameStrings::Yellow());
+				ReadColor(Slot_tags[11], Phobos::UI::Colors[12], 0x5AC308, "STT:PlayerColorTeal", GameStrings::Green());
+				ReadColor(Slot_tags[12], Phobos::UI::Colors[13], 0x0055BD, "STT:PlayerColorBrown", GameStrings::Red());
+				ReadColor(Slot_tags[13], Phobos::UI::Colors[14], 0x808080, "STT:PlayerColorCharcoal", GameStrings::Grey());
 
 				// blunt stuff
-				ReadColor(Slot_tags[14], Phobos::UI::Colors[15], DefaultColors[8], "NOSTR:LightGrey", GameStrings::LightGrey);
-				ReadColor(Slot_tags[15], Phobos::UI::Colors[16], DefaultColors[8], "NOSTR:LightGrey", GameStrings::LightGrey);
+				ReadColor(Slot_tags[14], Phobos::UI::Colors[15], DefaultColors[8], "NOSTR:LightGrey", GameStrings::LightGrey());
+				ReadColor(Slot_tags[15], Phobos::UI::Colors[16], DefaultColors[8], "NOSTR:LightGrey", GameStrings::LightGrey());
 			}
 
 			auto const section = "UISettings";
@@ -404,7 +404,7 @@ void Phobos::Config::Read_UIMD()
 			{
 
 				// read the mod's version info
-				if (pINI->ReadString(sectionVersionInfo, GameStrings::Name, Phobos::readDefval, Phobos::readBuffer, std::size(ModName))) {
+				if (pINI->ReadString(sectionVersionInfo, GameStrings::Name(), Phobos::readDefval, Phobos::readBuffer, std::size(ModName))) {
 					ModName = Phobos::readBuffer;
 				}
 

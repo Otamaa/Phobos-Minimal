@@ -58,7 +58,7 @@ void RadSiteExtData::CreateInstance(CellClass* pCell , int spread, int amount, W
 		pRadExt->TechOwner = pTech;
 	}
 
-	pRadExt->CreationFrame = Unsorted::CurrentFrame;
+	pRadExt->CreationFrame = Unsorted::CurrentFrame();
 	CellExtContainer::Instance.Find(pCell)->RadSites.push_back(pRadExt->This());
 	pRadExt->This()->BaseCell = pCell->MapCoords;
 	pRadExt->This()->SetSpread(spread);
@@ -131,7 +131,7 @@ void RadSiteExtData::Add(int amount)
 	pThis->RadDuration = nInput_2;
 	pThis->RadTimeLeft = nInput_2;
 	this->CreateLight();
-	this->CreationFrame = Unsorted::CurrentFrame;
+	this->CreationFrame = Unsorted::CurrentFrame();
 }
 
 void RadSiteExtData::SetRadLevel(int amount)

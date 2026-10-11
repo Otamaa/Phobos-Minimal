@@ -43,7 +43,7 @@ ASMJIT_PATCH(0x686C48, ReadNextScenarioINI_RandomMap, 0x8)
 	if (SpawnerMain::Configs::Enabled && !ScenarioClass::Instance->IsRandom)
 	{
 		GET(CCINIClass*, pINI, EBP);
-		ScenarioClass::Instance->IsRandom = pINI->ReadBool(GameStrings::Basic, GameStrings::RandomMap, ScenarioClass::Instance->IsRandom);
+		ScenarioClass::Instance->IsRandom = pINI->ReadBool(GameStrings::Basic(), GameStrings::RandomMap(), ScenarioClass::Instance->IsRandom);
 
 		if (ScenarioClass::Instance->IsRandom)
 			return 0x687917;

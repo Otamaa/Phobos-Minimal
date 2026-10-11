@@ -68,7 +68,7 @@ void AssignRallyPointCommandClass::Execute(WWKey eInput) const
 	if (const auto pPointed = pObj ? static_cast<AbstractClass*>(pObj) : 
 					(MapClass::Instance->IsWithinUsableArea(cell, false) ? MapClass::Instance->TryGetCellAt(cell) : nullptr))
 	{
-		VoxClass::Play(GameStrings::EVA_NewRallyPointEstablished);
+		VoxClass::Play(GameStrings::EVA_NewRallyPointEstablished());
 
 		for (const auto& pBuilding : buildings){
 			EventClass::CreateEvent(pBuilding->GetOwningHouseIndex(), EventType::ARCHIVE, TargetClass(pBuilding), TargetClass(pPointed));

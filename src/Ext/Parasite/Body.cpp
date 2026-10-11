@@ -643,14 +643,14 @@ void FakeParasiteClass::__Detach(AbstractClass* detachingObject, bool permanent)
 
 		bool canPlace = false;
 
-		++Unsorted::ScenarioInit; // Prevent certain global updates during placement
+		++Unsorted::ScenarioInit(); // Prevent certain global updates during placement
 
 		// Check if placement is valid
 		if (detachCoord.IsValid()) {
 			canPlace = this->Owner->Unlimbo(detachCoord, ownerDirection);
 		}
 
-		--Unsorted::ScenarioInit;
+		--Unsorted::ScenarioInit();
 
 		if (!canPlace) {
 			// Failed to place - destroy owner

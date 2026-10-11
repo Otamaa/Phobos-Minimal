@@ -540,7 +540,7 @@ int FakeBuildingClass::_Mission_Repair()
 
 			if (pThis->IsOwnedByCurrentPlayer)
 			{
-				VoxClass::Play(GameStrings::EVA_Repairing);
+				VoxClass::Play(GameStrings::EVA_Repairing());
 			}
 
 			pThis->MissionStatus = 2;
@@ -644,7 +644,7 @@ int FakeBuildingClass::_Mission_Repair()
 		{
 			if (pThis->IsOwnedByCurrentPlayer && !pThis->Owner->Available_Money())
 			{
-				VoxClass::Play(GameStrings::EVA_InsufficientFunds);
+				VoxClass::Play(GameStrings::EVA_InsufficientFunds());
 			}
 			pThis->DestroyNthAnim(BuildingAnimSlot::Production);
 			pThis->DestroyNthAnim(BuildingAnimSlot::SpecialTwo);
@@ -660,7 +660,7 @@ int FakeBuildingClass::_Mission_Repair()
 			auto const cell = pThis->GetCell()->MapCoords;
 			if (RadarEventClass::Create(RadarEventType::UnitRepaired, cell))
 			{
-				VoxClass::Play(GameStrings::EVA_UnitRepaired);
+				VoxClass::Play(GameStrings::EVA_UnitRepaired());
 			}
 		}
 

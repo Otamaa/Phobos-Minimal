@@ -178,7 +178,7 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 			Debug::FatalError("[%s] change Min result from [%d] to [%d]!", pType->ID, data->m_min, nMin);
 	}
 #endif
-	const int cost = pType->GetActualCost(HouseClass::CurrentPlayer);
+	const int cost = pType->GetActualCost(HouseClass::CurrentPlayer());
 	//const auto pHouseExt = HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer());
 
 #ifndef _useFMT

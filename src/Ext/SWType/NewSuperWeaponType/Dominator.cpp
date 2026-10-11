@@ -50,9 +50,9 @@ void SW_PsychicDominator::Initialize(SWTypeExtData* pData)
 	pData->Dominator_CaptureImmuneToPsionics = false;
 	pData->Dominator_PermanentCapture = true;
 
-	pData->EVA_Detected = VoxClass::FindIndexById(GameStrings::EVA_PsychicDominatorDetected);
-	pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_PsychicDominatorReady);
-	pData->EVA_Activated = VoxClass::FindIndexById(GameStrings::EVA_PsychicDominatorActivated);
+	pData->EVA_Detected = VoxClass::FindIndexById(GameStrings::EVA_PsychicDominatorDetected());
+	pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_PsychicDominatorReady());
+	pData->EVA_Activated = VoxClass::FindIndexById(GameStrings::EVA_PsychicDominatorActivated());
 
 	pData->Message_Abort = GameStrings::DominatorActive_msg();
 

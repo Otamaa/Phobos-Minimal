@@ -526,26 +526,26 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 	{
 
 		{ // Game Mode Options
-			MPModeIndex = pINI->ReadInteger(GameStrings::Settings(), GameStrings::GameMode, MPModeIndex);
-			Bases = pINI->ReadBool(GameStrings::Settings(), GameStrings::Bases, Bases);
-			Credits = pINI->ReadInteger(GameStrings::Settings(), GameStrings::Credits, Credits);
+			MPModeIndex = pINI->ReadInteger(GameStrings::Settings(), GameStrings::GameMode(), MPModeIndex);
+			Bases = pINI->ReadBool(GameStrings::Settings(), GameStrings::Bases(), Bases);
+			Credits = pINI->ReadInteger(GameStrings::Settings(), GameStrings::Credits(), Credits);
 			BridgeDestroy = pINI->ReadBool(GameStrings::Settings(), "BridgeDestroy", BridgeDestroy);
-			Crates = pINI->ReadBool(GameStrings::Settings(), GameStrings::Crates, Crates);
-			ShortGame = pINI->ReadBool(GameStrings::Settings(), GameStrings::ShortGame, ShortGame);
+			Crates = pINI->ReadBool(GameStrings::Settings(), GameStrings::Crates(), Crates);
+			ShortGame = pINI->ReadBool(GameStrings::Settings(), GameStrings::ShortGame(), ShortGame);
 			// cncnet/spawner using `Superweapons` is this typo or intention ? , idk
 			// please report if there is a problem @Otamaa
-			SuperWeapons = pINI->ReadBool(GameStrings::Settings(), GameStrings::SuperWeapons, SuperWeapons);
+			SuperWeapons = pINI->ReadBool(GameStrings::Settings(), GameStrings::SuperWeapons(), SuperWeapons);
 			SuperWeapons = pINI->ReadBool(GameStrings::Settings(), "Superweapons", SuperWeapons);
-			BuildOffAlly = pINI->ReadBool(GameStrings::Settings(), GameStrings::BuildOffAlly, BuildOffAlly);
-			GameSpeed = pINI->ReadInteger(GameStrings::Settings(), GameStrings::GameSpeed, GameSpeed);
-			MultiEngineer = pINI->ReadBool(GameStrings::Settings(), GameStrings::MultiEngineer, MultiEngineer);
-			UnitCount = pINI->ReadInteger(GameStrings::Settings(), GameStrings::UnitCount, UnitCount);
-			AIPlayers = pINI->ReadInteger(GameStrings::Settings(), GameStrings::AIPlayers, AIPlayers);
-			AIDifficulty = pINI->ReadInteger(GameStrings::Settings(), GameStrings::AIDifficulty, AIDifficulty);
-			AlliesAllowed = pINI->ReadBool(GameStrings::Settings(), GameStrings::AlliesAllowed, AlliesAllowed);
-			HarvesterTruce = pINI->ReadBool(GameStrings::Settings(), GameStrings::HarvesterTruce, HarvesterTruce);
-			FogOfWar = pINI->ReadBool(GameStrings::Settings(), GameStrings::FogOfWar, FogOfWar);
-			MCVRedeploy = pINI->ReadBool(GameStrings::Settings(), GameStrings::MCVRedeploy, MCVRedeploy);
+			BuildOffAlly = pINI->ReadBool(GameStrings::Settings(), GameStrings::BuildOffAlly(), BuildOffAlly);
+			GameSpeed = pINI->ReadInteger(GameStrings::Settings(), GameStrings::GameSpeed(), GameSpeed);
+			MultiEngineer = pINI->ReadBool(GameStrings::Settings(), GameStrings::MultiEngineer(), MultiEngineer);
+			UnitCount = pINI->ReadInteger(GameStrings::Settings(), GameStrings::UnitCount(), UnitCount);
+			AIPlayers = pINI->ReadInteger(GameStrings::Settings(), GameStrings::AIPlayers(), AIPlayers);
+			AIDifficulty = pINI->ReadInteger(GameStrings::Settings(), GameStrings::AIDifficulty(), AIDifficulty);
+			AlliesAllowed = pINI->ReadBool(GameStrings::Settings(), GameStrings::AlliesAllowed(), AlliesAllowed);
+			HarvesterTruce = pINI->ReadBool(GameStrings::Settings(), GameStrings::HarvesterTruce(), HarvesterTruce);
+			FogOfWar = pINI->ReadBool(GameStrings::Settings(), GameStrings::FogOfWar(), FogOfWar);
+			MCVRedeploy = pINI->ReadBool(GameStrings::Settings(), GameStrings::MCVRedeploy(), MCVRedeploy);
 
 			if (((FakeCCINIClass*)pINI)->GetStringOld(GameStrings::Settings(), "UIGameMode", Phobos::readDefval, Phobos::readBuffer, Phobos::readLength) > 0)
 				PhobosCRT::StringToWideString(this->UIGameMode, sizeof(this->UIGameMode) / sizeof(wchar_t) , Phobos::readBuffer);
@@ -566,12 +566,12 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 
 		{ // Scenario Options
 			Seed = pINI->ReadInteger(GameStrings::Settings(), "Seed", Seed);
-			TechLevel = pINI->ReadInteger(GameStrings::Settings(), GameStrings::TechLevel, TechLevel);
+			TechLevel = pINI->ReadInteger(GameStrings::Settings(), GameStrings::TechLevel(), TechLevel);
 			IsCampaign = pINI->ReadBool(GameStrings::Settings(), "IsSinglePlayer", IsCampaign);
 			Tournament = pINI->ReadInteger(GameStrings::Settings(), "Tournament", Tournament);
 			WOLGameID = pINI->ReadInteger(GameStrings::Settings(), "GameID", WOLGameID);
 			/* ScenarioName*/
-			pINI->ReadString(GameStrings::Settings(), GameStrings::Scenario, ScenarioName, ScenarioName, sizeof(ScenarioName));
+			pINI->ReadString(GameStrings::Settings(), GameStrings::Scenario(), ScenarioName, ScenarioName, sizeof(ScenarioName));
 			/* MapHash*/
 			pINI->ReadString(GameStrings::Settings(), "MapHash", MapHash, MapHash, sizeof(MapHash));
 			ReadMissionSection = pINI->ReadBool(GameStrings::Settings(), "ReadMissionSection", ReadMissionSection);
@@ -827,15 +827,15 @@ void SpawnerMain::GameConfigs::AssignHouses() {
 			switch (pAIConfig->Difficulty)
 			{
 			case 0:
-				wcscpy_s(pHouse->UIName, StringTable::FetchString(GameStrings::GUI_AIHard));
+				wcscpy_s(pHouse->UIName, StringTable::FetchString(GameStrings::GUI_AIHard()));
 				break;
 
 			case 1:
-				wcscpy_s(pHouse->UIName, StringTable::FetchString(GameStrings::GUI_AINormal));
+				wcscpy_s(pHouse->UIName, StringTable::FetchString(GameStrings::GUI_AINormal()));
 				break;
 
 			case 2:
-				wcscpy_s(pHouse->UIName, StringTable::FetchString(GameStrings::GUI_AIEasy));
+				wcscpy_s(pHouse->UIName, StringTable::FetchString(GameStrings::GUI_AIEasy()));
 				break;
 			default:
 				break;
@@ -854,7 +854,7 @@ void SpawnerMain::GameConfigs::AssignHouses() {
 				TabClass::Instance->ThumbActive = false;
 
 			{ // Remove SpawnLocations for Observer
-				ScenarioClass* pScenarioClass = ScenarioClass::Instance;
+				ScenarioClass* pScenarioClass = ScenarioClass::Instance();
 				for (char i = 0; i < (char)std::size(pScenarioClass->HouseIndices); ++i)
 				{
 					if (pHouse->ArrayIndex == pScenarioClass->HouseIndices[i])
@@ -1008,13 +1008,13 @@ void SpawnerMain::GameConfigs::After_Main_Loop() {
 		auto SaveGame = [PrintMessage](const char* fName, const wchar_t* description)
 		{
 			if (ScenarioClass::SaveGame(fName, description))
-				PrintMessage(StringTable::FetchString(GameStrings::TXT_GAME_WAS_SAVED));
+				PrintMessage(StringTable::FetchString(GameStrings::TXT_GAME_WAS_SAVED()));
 			else
-				PrintMessage(StringTable::FetchString(GameStrings::TXT_ERROR_SAVING_GAME));
+				PrintMessage(StringTable::FetchString(GameStrings::TXT_ERROR_SAVING_GAME()));
 		};
 
 		// Send the message.
-		PrintMessage(StringTable::FetchString(GameStrings::TXT_SAVING_GAME));
+		PrintMessage(StringTable::FetchString(GameStrings::TXT_SAVING_GAME()));
 		std::wstring saveGameDescription;
 		if (SessionClass::IsCampaign())
 			saveGameDescription = ScenarioClass::Instance->UINameLoaded;
@@ -1069,8 +1069,8 @@ void SpawnerMain::GameConfigs::After_Main_Loop() {
 			// over to it's own directory. The description isn't read now, but we write it
 			// regardless as it shouldn't impact anything. The suffix for it is unavailable
 			// though as it would require a custom event (seems overkill for such).
-			saveGameDescription += StringTable::FetchString(GameStrings::TXT_MULTIPLAYER_GAME);
-			SaveGame(GameStrings::SAVEGAME_NET, saveGameDescription.c_str());
+			saveGameDescription += StringTable::FetchString(GameStrings::TXT_MULTIPLAYER_GAME());
+			SaveGame(GameStrings::SAVEGAME_NET(), saveGameDescription.c_str());
 
 			SpawnerMain::Configs::NextAutoSaveFrame = Unsorted::CurrentFrame() + pConfig->AutoSaveInterval;
 		}
@@ -1085,8 +1085,8 @@ bool SpawnerMain::GameConfigs::StartScenario(const char* pScenarioName) {
 		Debug::LogInfo("[Spawner] Failed Read Scenario [{}]", pScenarioName);
 
 		WWMessageBox::Instance->Process(
-			StringTable::FetchString(GameStrings::TXT_UNABLE_READ_SCENARIO),
-			StringTable::FetchString(GameStrings::TXT_OK),
+			StringTable::FetchString(GameStrings::TXT_UNABLE_READ_SCENARIO()),
+			StringTable::FetchString(GameStrings::TXT_OK()),
 			0);
 
 		return false;
@@ -1289,8 +1289,8 @@ bool SpawnerMain::GameConfigs::LoadSavedGame(const char* saveGameName) {
 		Debug::LogInfo("[Spawner] Failed Load Game [{}]", saveGameName);
 
 		WWMessageBox::Instance->Process(
-			StringTable::FetchString(GameStrings::TXT_ERROR_LOADING_GAME),
-			StringTable::FetchString(GameStrings::TXT_OK),
+			StringTable::FetchString(GameStrings::TXT_ERROR_LOADING_GAME()),
+			StringTable::FetchString(GameStrings::TXT_OK()),
 			0);
 
 		return false;
@@ -1366,8 +1366,8 @@ void SpawnerMain::GameConfigs::InitNetwork() {
 
 void SpawnerMain::GameConfigs::LoadSidesStuff()
 {
-	RulesClass* pRules = RulesClass::Instance;
-	CCINIClass* pINI = CCINIClass::INI_Rules;
+	RulesClass* pRules = RulesClass::Instance();
+	CCINIClass* pINI = CCINIClass::INI_Rules();
 
 	//read early
 	pRules->Read_Countries(pINI);
@@ -1543,7 +1543,7 @@ ASMJIT_PATCH(0x686B20, INIClass_ReadScenario_AutoSave, 0x6)
 	/**
 	 *  Schedule the next autosave.
 	 */
-	SpawnerMain::Configs::NextAutoSaveFrame = Unsorted::CurrentFrame;
+	SpawnerMain::Configs::NextAutoSaveFrame = Unsorted::CurrentFrame();
 	SpawnerMain::Configs::NextAutoSaveFrame += SpawnerMain::GameConfigs::m_Ptr.AutoSaveInterval;
 	return 0;
 }

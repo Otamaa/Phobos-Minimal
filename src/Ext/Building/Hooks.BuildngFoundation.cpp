@@ -120,7 +120,7 @@ void DrawTheMarker(
 		// 西
 		CellStruct wCell { static_cast<short>(cellX - adjust), static_cast<short>(cellY + adjust + height - 1) };
 		// 可视范围
-		DSurface* pSurface = DSurface::Temp;
+		DSurface* pSurface = DSurface::Temp();
 		RectangleStruct rect = pSurface->Get_Rect();
 		rect.Height -= 34;
 		int color = col.ToInit();
@@ -200,7 +200,7 @@ void DrawTheMarker(
 		// 西
 		CellStruct wCell { static_cast<short>(cellX - adjust), static_cast<short>(cellY + adjust + height - 1) };
 		// 可视范围
-		DSurface* pSurface = DSurface::Temp;
+		DSurface* pSurface = DSurface::Temp();
 		RectangleStruct rect = pSurface->Get_Rect();
 		rect.Height -= 34;
 		int color = col.ToInit();
@@ -293,7 +293,7 @@ void DrawTheMarker(
 		// 西
 		CellStruct wCell { static_cast<short>(cellX - adjust), static_cast<short>(cellY + adjust + height - 1) };
 		// 可视范围
-		DSurface* pSurface = DSurface::Temp;
+		DSurface* pSurface = DSurface::Temp();
 		RectangleStruct rect = pSurface->Get_Rect();
 		rect.Height -= 34;
 
@@ -328,7 +328,7 @@ void DrawTheMarker(
 			}
 		}
 
-		ConvertClass* pPalette = FileSystem::PALETTE_PAL;
+		ConvertClass* pPalette = FileSystem::PALETTE_PAL();
 		for (CellClass* pCell : cells) {
 			// WWSB
 			CellStruct cell = pCell->MapCoords;
@@ -352,7 +352,7 @@ ASMJIT_PATCH(0x6D5116, TacticalClass_Draw_Placement_Recheck, 0x5)
 	ObjectTypeClass* pBuildingType = DisplayClass::Instance->CurrentBuildingType;
 
 	if (pBuildingType->WhatAmI() == AbstractType::BuildingType) {	
-		DrawTheMarker((BuildingTypeClass*)pBuildingType, BuildingRangeMode::LINE, ColorStruct::White, true, nullptr, 0);
+		DrawTheMarker((BuildingTypeClass*)pBuildingType, BuildingRangeMode::LINE, ColorStruct::White(), true, nullptr, 0);
 		Unsorted::Display_PassedProximityCheck = DisplayClass::Instance->PassesProximityCheck();
 	}
 

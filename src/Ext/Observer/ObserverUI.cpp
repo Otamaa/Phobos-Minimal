@@ -939,7 +939,7 @@ void ObserverUIHelpers::DrawCenteredText(DSurface* pSurface, RectangleStruct rec
 	BitFont::Instance->Color = static_cast<WORD>(color);
 
 	BitText::Instance->DrawText(
-		BitFont::Instance,
+		BitFont::Instance(),
 		pSurface,
 		text,
 		rect.X + (rect.Width - textWidth) / 2,
@@ -1005,7 +1005,7 @@ void ObserverUIHelpers::DrawCameoOverlayText(DSurface* pSurface, const Rectangle
 	BitFont::Instance->Color = static_cast<WORD>(color);
 
 	BitText::Instance->DrawText(
-		BitFont::Instance,
+		BitFont::Instance(),
 		pSurface,
 		text.c_str(),
 		textPoint.X,
@@ -1056,9 +1056,9 @@ bool ObserverUIHelpers::DrawCameoImage(
 
 	if (pFileSHP)
 	{
-		ConvertClass* pUsedPalette = pPalette ? pPalette : FileSystem::CAMEO_PAL;
+		ConvertClass* pUsedPalette = pPalette ? pPalette : FileSystem::CAMEO_PAL();
 		if (!pUsedPalette)
-			pUsedPalette = FileSystem::UNITx_PAL;
+			pUsedPalette = FileSystem::UNITx_PAL();
 
 		Point2D location { destinationRect.X, destinationRect.Y };
 		pSurface->DrawSHP(pUsedPalette, pFileSHP, frameIndex, &location, DSurface::ViewBounds.operator->(),
@@ -1130,7 +1130,7 @@ void ObserverTextBlock::Render(DSurface* pSurface, const RectangleStruct& clipRe
 			// OPTIMIZATION: width/height were measured in AddSegments, no re-measure here.
 			BitFont::Instance->Color = static_cast<WORD>(segment.Color);
 			BitText::Instance->DrawText(
-				BitFont::Instance,
+				BitFont::Instance(),
 				pSurface,
 				segment.Text.c_str(),
 				currentX,
@@ -3729,7 +3729,7 @@ void ObserverUIClass::DrawCameoItem(DSurface* pSurface, const ObserverCameoItem&
 	if (!pFileSHP && !pPCXSurface)
 		pFileSHP = ObserverUIHelpers::LoadPlaceholderCameo();
 
-	bool const painted = ObserverUIHelpers::DrawCameoImage(pSurface, drawRect, pPCXSurface, pFileSHP, FileSystem::CAMEO_PAL);
+	bool const painted = ObserverUIHelpers::DrawCameoImage(pSurface, drawRect, pPCXSurface, pFileSHP, FileSystem::CAMEO_PAL());
 
 	if (!painted)
 	{
@@ -3828,7 +3828,7 @@ void ObserverUIClass::DrawTooltip(DSurface* pSurface, const ObserverCameoItem& i
 		if (item.IsProduction)
 		{
 			std::wostringstream costOss;
-			costOss << L"Cost: $" << item.pType->GetActualCost(item.pOwner ? item.pOwner : HouseClass::CurrentPlayer);
+			costOss << L"Cost: $" << item.pType->GetActualCost(item.pOwner ? item.pOwner : HouseClass::CurrentPlayer());
 			block.Add(costOss.str(), Colors::Label());
 		}
 		else if (!item.Buildings.empty())

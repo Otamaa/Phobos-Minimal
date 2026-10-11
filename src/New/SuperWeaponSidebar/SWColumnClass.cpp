@@ -34,7 +34,7 @@ bool SWColumnClass::Draw(bool forced)
 		for (const auto &button : this->Buttons)
 		{
 			RectangleStruct drawRect { this->Rect.X, button->Rect.Y - cameoHarfInterval, cameoBackgroundWidth, Phobos::UI::SuperWeaponSidebar_CameoHeight };
-			PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Composite, pCenterPCX);
+			PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Composite(), pCenterPCX);
 		}
 	}
 
@@ -42,14 +42,14 @@ bool SWColumnClass::Draw(bool forced)
 	{
 		const int height = pTopPCX->Get_Height();
 		RectangleStruct drawRect { this->Rect.X, this->Rect.Y, cameoBackgroundWidth, height };
-		PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Composite, pTopPCX);
+		PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Composite(), pTopPCX);
 	}
 
 	if (const auto pBottomPCX = pSideExt->SuperWeaponSidebar_BottomPCX.GetSurface())
 	{
 		const int height = pBottomPCX->Get_Height();
 		RectangleStruct drawRect { this->Rect.X, this->Rect.Y + this->Rect.Height - height, cameoBackgroundWidth, height };
-		PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Composite, pBottomPCX);
+		PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Composite(), pBottomPCX);
 	}
 
 	for (const auto& button : this->Buttons)

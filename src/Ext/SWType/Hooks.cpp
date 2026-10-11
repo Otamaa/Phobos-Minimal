@@ -293,7 +293,7 @@ ASMJIT_PATCH(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
 
 	const auto pSection = pThis->ID;
 
-	if (exINI.ReadString(pSection, GameStrings::Action) > 0)
+	if (exINI.ReadString(pSection, GameStrings::Action()) > 0)
 	{
 		bool found = false;
 

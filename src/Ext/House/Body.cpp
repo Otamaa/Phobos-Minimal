@@ -1213,7 +1213,7 @@ AircraftTypeClass* HouseExtData::GetSpyPlane(HouseClass* pHouse)
 	}
 
 	if (!pRest)
-		pRest = AircraftTypeClass::Find(GameStrings::SPYP);
+		pRest = AircraftTypeClass::Find(GameStrings::SPYP());
 
 	if (pRest && pRest->Strength == 0)
 		Debug::FatalError("Invalid Spy Plane[%s]", pRest->ID);
@@ -1768,7 +1768,7 @@ HouseClass* HouseExtData::FindFirstCivilianHouse()
 {
 	if (!HouseExtContainer::Instance.Civilian) {
 
-		auto idx = SideClass::FindIndexById(GameStrings::Civilian);
+		auto idx = SideClass::FindIndexById(GameStrings::Civilian());
 
 		if (FakeRulesClass::Instance()->CivilianSideIndex == -1 || FakeRulesClass::Instance()->CivilianSideIndex != idx)
 			FakeRulesClass::Instance()->CivilianSideIndex = idx;
@@ -1796,7 +1796,7 @@ HouseClass* HouseExtData::FindSpecial()
 {
 	if (!HouseExtContainer::Instance.Special) {
 
-		auto idx = HouseTypeClass::FindIndexByIdAndName(GameStrings::Special);
+		auto idx = HouseTypeClass::FindIndexByIdAndName(GameStrings::Special());
 
 		if (FakeRulesClass::Instance()->SpecialCountryIndex == -1 || FakeRulesClass::Instance()->SpecialCountryIndex != idx)
 			FakeRulesClass::Instance()->SpecialCountryIndex = idx;
@@ -1822,7 +1822,7 @@ HouseClass* HouseExtData::FindSpecial()
 HouseClass* HouseExtData::FindNeutral()
 {
 	if(!HouseExtContainer::Instance.Neutral){
-		auto idx = HouseTypeClass::FindIndexByIdAndName(GameStrings::Neutral);
+		auto idx = HouseTypeClass::FindIndexByIdAndName(GameStrings::Neutral());
 
 		if (FakeRulesClass::Instance()->NeutralCountryIndex == -1 || FakeRulesClass::Instance()->NeutralCountryIndex != idx)
 			FakeRulesClass::Instance()->NeutralCountryIndex = idx;

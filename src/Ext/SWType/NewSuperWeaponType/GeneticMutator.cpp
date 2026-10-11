@@ -44,9 +44,9 @@ void SW_GeneticMutator::Initialize(SWTypeExtData* pData)
 	pData->Mutate_IgnoreCyborg = false;
 	pData->Mutate_IgnoreNotHuman = false;
 
-	pData->EVA_Detected = VoxClass::FindIndexById(GameStrings::EVA_GeneticMutatorDetected);
-	pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_GeneticMutatorReady);
-	pData->EVA_Activated = VoxClass::FindIndexById(GameStrings::EVA_GeneticMutatorActivated);
+	pData->EVA_Detected = VoxClass::FindIndexById(GameStrings::EVA_GeneticMutatorDetected());
+	pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_GeneticMutatorReady());
+	pData->EVA_Activated = VoxClass::FindIndexById(GameStrings::EVA_GeneticMutatorActivated());
 
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::GeneticMutator;
 	pData->CursorType = int(MouseCursorType::GeneticMutator);

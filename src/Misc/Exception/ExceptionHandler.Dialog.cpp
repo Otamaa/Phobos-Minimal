@@ -182,7 +182,7 @@ INT_PTR ExceptionHandler::ShowDialog(HWND parent, int recursionCount)
 		break;
 	}
 
-	SetWindowTextA(Game::hWnd, "Fatal Error - Yuri's Revenge");
+	SetWindowTextA(Game::hWnd(), "Fatal Error - Yuri's Revenge");
 
 	HMODULE hModule = static_cast<HMODULE>(Phobos::hInstance);
 	INT_PTR result = -1;

@@ -1006,7 +1006,7 @@ void ShieldClass::BreakShield(AnimTypeClass* pBreakAnim, WeaponTypeClass* pBreak
 		}
 	}
 
-	this->LastBreakFrame = Unsorted::CurrentFrame;
+	this->LastBreakFrame = Unsorted::CurrentFrame();
 	this->UpdateTint();
 
 	if (const auto pWeaponType = pBreakWeapon ? pBreakWeapon : this->Type->BreakWeapon)
@@ -1304,7 +1304,7 @@ void ShieldClass::DrawShieldBar_Building(int iLength, Point2D* pLocation, Rectan
 			position.X -= deltaX + 6;
 			position.Y -= deltaY + 3;
 
-			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP,
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL(), FileSystem::PIPS_SHP(),
 				frame, &position, pBound, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 		}
 	}
@@ -1323,7 +1323,7 @@ void ShieldClass::DrawShieldBar_Building(int iLength, Point2D* pLocation, Rectan
 			position.Y -= deltaY + 3;
 
 
-			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP,
+			DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL(), FileSystem::PIPS_SHP(),
 				emptyFrame, &position, pBound, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 		}
 	}
@@ -1356,7 +1356,7 @@ void ShieldClass::DrawShieldBar_Other(int iLength, Point2D* pLocation, Rectangle
 		}
 
 		position.X += offset;
-		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, pipBoard,
+		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL(), pipBoard,
 			frame, &position, pBound, BlitterFlags(0xE00), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 		position.X -= offset;
 	}
@@ -1367,7 +1367,7 @@ void ShieldClass::DrawShieldBar_Other(int iLength, Point2D* pLocation, Rectangle
 	for (int i = 0; i < DrawShieldBar_PipAmount(iLength); ++i)
 	{
 		position.X += 2;
-		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP,
+		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL(), FileSystem::PIPS_SHP(),
 			frame, &position, pBound, BlitterFlags(0x600), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 	}
 }

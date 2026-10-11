@@ -863,13 +863,13 @@ const wchar_t* FakeStripClass::__Help_Text(int index)
 			// account for no-name SWs
 			if (CCToolTip::HideName() || !wcslen(pSW->UIName))
 			{
-				const wchar_t* pFormat = StringTable::FetchString(GameStrings::TXT_MONEY_FORMAT_1);
+				const wchar_t* pFormat = StringTable::FetchString(GameStrings::TXT_MONEY_FORMAT_1());
 				_snwprintf_s(SidebarClass::TooltipBuffer(), SidebarClass::TooltipLength - 1, pFormat, -pData->Money_Amount);
 			}
 			else
 			{
 				// then, this must be brand SWs
-				const wchar_t* pFormat = StringTable::FetchString(GameStrings::TXT_MONEY_FORMAT_2);
+				const wchar_t* pFormat = StringTable::FetchString(GameStrings::TXT_MONEY_FORMAT_2());
 				_snwprintf_s(SidebarClass::TooltipBuffer(), SidebarClass::TooltipLength - 1, pFormat, pSW->UIName, -pData->Money_Amount);
 			}
 		}
@@ -882,17 +882,17 @@ const wchar_t* FakeStripClass::__Help_Text(int index)
 	{
 		PhobosToolTip::Instance.IsCameo = true;
 
-		const int Cost = pTechnoType->GetActualCost(HouseClass::CurrentPlayer);
+		const int Cost = pTechnoType->GetActualCost(HouseClass::CurrentPlayer());
 
 		if (CCToolTip::HideName.get() || !wcslen(pTechnoType->UIName))
 		{
-			const wchar_t* Format = StringTable::FetchString(GameStrings::TXT_MONEY_FORMAT_1);
+			const wchar_t* Format = StringTable::FetchString(GameStrings::TXT_MONEY_FORMAT_1());
 			_snwprintf_s(SidebarClass::TooltipBuffer.get(), SidebarClass::TooltipLength, SidebarClass::TooltipLength - 1, Format, Cost);
 		}
 		else
 		{
 			const wchar_t* UIName = pTechnoType->UIName;
-			const wchar_t* Format = StringTable::FetchString(GameStrings::TXT_MONEY_FORMAT_2);
+			const wchar_t* Format = StringTable::FetchString(GameStrings::TXT_MONEY_FORMAT_2());
 			_snwprintf_s(SidebarClass::TooltipBuffer.get(), SidebarClass::TooltipLength, SidebarClass::TooltipLength - 1, Format, UIName, Cost);
 		}
 	}
@@ -1563,7 +1563,7 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 				if (CameoPCXSurface)
 				{
 					RectangleStruct bounds { screenX, screenY, 60, 48 };
-					PCXImages::Instance->BlitToSurface(&bounds, DSurface::Sidebar, CameoPCXSurface, (WORD)Drawing::DefaultColors[6].ToInit());
+					PCXImages::Instance->BlitToSurface(&bounds, DSurface::Sidebar(), CameoPCXSurface, (WORD)Drawing::DefaultColors[6].ToInit());
 					CameoPCXSurface = nullptr;
 				}
 				else
@@ -1593,7 +1593,7 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 							if (pCXSurf)
 							{
 								RectangleStruct bounds { screenX, screenY, 60, 48 };
-								PCXImages::Instance->BlitToSurface(&bounds, DSurface::Sidebar, pCXSurf);
+								PCXImages::Instance->BlitToSurface(&bounds, DSurface::Sidebar(), pCXSurf);
 
 								drawSHP = false;
 							}
@@ -1651,7 +1651,7 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 							if (pTypeExt->Cameo_AlwaysExistForCurrentPlayerActive) {
 								if (const auto CameoPCX = pTypeExt->GreyCameoPCX.GetSurface()) {
 									auto drawRect = RectangleStruct { screenX, screenY, 60, 48 };
-									PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Sidebar, CameoPCX);
+									PCXImages::Instance->BlitToSurface(&drawRect, DSurface::Sidebar(), CameoPCX);
 								}
 
 								frame = frames.Z;
@@ -1659,7 +1659,7 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 
 							if (frame >= 0)
 							{
-								ConvertClass* pConvert = FileSystem::PALETTE_PAL;
+								ConvertClass* pConvert = FileSystem::PALETTE_PAL();
 								if (pRulesExt->Cameo_OverlayPalette.GetConvert())
 									pConvert = pRulesExt->Cameo_OverlayPalette.GetConvert();
 
@@ -1689,7 +1689,7 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 							{
 								if (frames.X >= 0)
 								{
-									ConvertClass* pConvert = FileSystem::PALETTE_PAL;
+									ConvertClass* pConvert = FileSystem::PALETTE_PAL();
 									if (pRulesExt->Cameo_OverlayPalette.GetConvert())
 										pConvert = pRulesExt->Cameo_OverlayPalette.GetConvert();
 
@@ -1901,7 +1901,7 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 			if (houseIndex >= Sidebar_884CF8.get())
 				break;
 
-			HouseClass* pObservedHouse = Sidebar_Houses_[houseIndex];
+			HouseClass* pObservedHouse = Sidebar_Houses_()[houseIndex];
 
 			if (!pObservedHouse)
 				break;
@@ -1913,13 +1913,13 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 				switch (pObservedHouse->AIDifficulty)
 				{
 				case AIDifficulty::Hard:
-					diff = CSFLoader::FetchStringManager(GameStrings::TXT_HARD, NULL, NULL, 0);
+					diff = CSFLoader::FetchStringManager(GameStrings::TXT_HARD(), NULL, NULL, 0);
 					break;
 				case AIDifficulty::Easy:
-					diff = CSFLoader::FetchStringManager(GameStrings::TXT_EASY, NULL, NULL, 0);
+					diff = CSFLoader::FetchStringManager(GameStrings::TXT_EASY(), NULL, NULL, 0);
 					break;
 				case AIDifficulty::Normal:
-					diff = CSFLoader::FetchStringManager(GameStrings::TXT_NORMAL, NULL, NULL, 0);
+					diff = CSFLoader::FetchStringManager(GameStrings::TXT_NORMAL(), NULL, NULL, 0);
 					break;
 				default:
 					break;
@@ -1946,7 +1946,7 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 				else if (auto PCXSurface = pData->ObserverBackground.GetSurface())
 				{
 					RectangleStruct bounds = { panelX, panelY, ObserverBackgroundWidth, ObserverBackgroundHeight };
-					PCXImages::Instance->BlitToSurface(&bounds, DSurface::Sidebar, PCXSurface, (WORD)Drawing::DefaultColors[6].ToInit());
+					PCXImages::Instance->BlitToSurface(&bounds, DSurface::Sidebar(), PCXSurface, (WORD)Drawing::DefaultColors[6].ToInit());
 				}
 			}
 
@@ -1962,11 +1962,11 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 				//special cases
 				if (idx == -2)
 				{
-					pCountryShape = FileSystem::RandomSideShape_SHP;
+					pCountryShape = FileSystem::RandomSideShape_SHP();
 				}
 				else if (idx == -3)
 				{
-					pCountryShape = FileSystem::ObserverSideShape_SHP;
+					pCountryShape = FileSystem::ObserverSideShape_SHP();
 				}
 				else
 				{
@@ -1984,7 +1984,7 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 								ObserverFlagPCXWidth, ObserverFlagPCXHeight
 						};
 
-						PCXImages::Instance->BlitToSurface(&bounds, DSurface::Sidebar, PCXSurface, (WORD)Drawing::DefaultColors[6].ToInit());
+						PCXImages::Instance->BlitToSurface(&bounds, DSurface::Sidebar(), PCXSurface, (WORD)Drawing::DefaultColors[6].ToInit());
 					}
 				}
 
@@ -2015,7 +2015,7 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 			// --------------------------------------------------------------------
 			constexpr int TextPadding = 17;
 
-			ColorScheme* pColorScheme = Sidebar_Converts_[houseIndex];
+			ColorScheme* pColorScheme = Sidebar_Converts_()[houseIndex];
 
 			// Adjust for scrolling
 			int adjustedPanelY = panelY;
@@ -2035,17 +2035,17 @@ void FakeStripClass::__Draw_It(bool forceRedraw)
 			wchar_t textBuffer[64];
 			wchar_t rankStr[16], killsStr[16], unitsStr[16], creditsStr[16];
 
-			_itow(Sidebar_Kills_[houseIndex], killsStr, 10);
-			_itow(Sidebar_Units_[houseIndex], unitsStr, 10);
-			_itow(Sidebar_Credits_[houseIndex], creditsStr, 10);
+			_itow(Sidebar_Kills_()[houseIndex], killsStr, 10);
+			_itow(Sidebar_Units_()[houseIndex], unitsStr, 10);
+			_itow(Sidebar_Credits_()[houseIndex], creditsStr, 10);
 
 			// Draw rank (internet only)
 			if (SessionClass::Instance->GameMode == GameMode::Internet)
 			{
 				textPos.Y += TextPadding;
-				_itow(Sidebar_Rank_[houseIndex], rankStr, 10);
+				_itow(Sidebar_Rank_()[houseIndex], rankStr, 10);
 
-				if (Sidebar_Rank_[houseIndex] >= 1)
+				if (Sidebar_Rank_()[houseIndex] >= 1)
 				{
 					_swprintf(textBuffer, CSFLoader::FetchStringManager("GUI:ObsRank", NULL, NULL, 0), rankStr);
 				}

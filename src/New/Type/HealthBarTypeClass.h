@@ -17,7 +17,7 @@ public:
 	Valueable<Point2D> PipsInterval { {2, 0} };
 	Valueable<Point2D> PipsInterval_Building { {-4, 2} };
 	Nullable<int> PipsLength {};
-	Valueable<SHPCaches*> PipsShape { FileSystem::PIPS_SHP };
+	Valueable<SHPCaches*> PipsShape { FileSystem::PIPS_SHP() };
 	CustomPalette PipsPalette {};
 
 	Nullable<int> PipBrd {};

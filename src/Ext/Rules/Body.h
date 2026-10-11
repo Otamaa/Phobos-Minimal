@@ -190,7 +190,7 @@ public:
 	Valueable<AnimTypeClass*> Promote_Elite_Anim { nullptr };
 	Valueable<SHPCaches*> SHP_SelectBrdSHP_INF { nullptr };
 	Valueable<SHPCaches*> SHP_SelectBrdSHP_UNIT { nullptr };
-	Valueable<SHPCaches*> Cameo_OverlayShapes { FileSystem::PIPS_SHP };
+	Valueable<SHPCaches*> Cameo_OverlayShapes { FileSystem::PIPS_SHP() };
 	Valueable<SelectBoxTypeClass*> DefaultInfantrySelectBox {};
 	Valueable<SelectBoxTypeClass*> DefaultUnitSelectBox {};
 
@@ -876,8 +876,8 @@ public:
 	Valueable<Point2D> InvulnerableDisplay_Buildings_Pips { { 5, 4 } };
 	Valueable<int>  TemporalLifeDisplay_Others_Pips { 17 };
 	Valueable<int>  TemporalLifeDisplay_Buildings_Pips { 5 };
-	Valueable<SHPCaches*> ProgressDisplay_Others_PipsShape { FileSystem::PIPS_SHP };
-	Valueable<SHPCaches*> ProgressDisplay_Buildings_PipsShape { FileSystem::PIPS_SHP };
+	Valueable<SHPCaches*> ProgressDisplay_Others_PipsShape { FileSystem::PIPS_SHP() };
+	Valueable<SHPCaches*> ProgressDisplay_Buildings_PipsShape { FileSystem::PIPS_SHP() };
 
 	Valueable<bool> Crush_SelfUncloak { true };
 	Valueable<bool> UncloakWhenLowHealth { true };

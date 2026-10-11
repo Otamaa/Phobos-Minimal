@@ -78,9 +78,9 @@ void SW_LightningStorm::Initialize(SWTypeExtData* pData)
 	pData->Weather_RadarOutageAffects = AffectedHouse::Enemies;
 	pData->Weather_UseSeparateState = false;
 
-	pData->EVA_Detected = VoxClass::FindIndexById(GameStrings::EVA_WeatherDeviceReady);
-	pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_LightningStormReady);
-	pData->EVA_Activated = VoxClass::FindIndexById(GameStrings::EVA_LightningStormCreated);
+	pData->EVA_Detected = VoxClass::FindIndexById(GameStrings::EVA_WeatherDeviceReady());
+	pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_LightningStormReady());
+	pData->EVA_Activated = VoxClass::FindIndexById(GameStrings::EVA_LightningStormCreated());
 
 	pData->Message_Launch = GameStrings::TXT_LIGHTNING_STORM_APPROACHING();
 	pData->Message_Activate = GameStrings::TXT_LIGHTNING_STORM();
@@ -670,7 +670,7 @@ bool CloneableLighningStormStateMachine::Start(CellStruct& cell, int nDuration, 
 	{
 		// --- Immediate activation ---
 		ActualDuration = nDuration;
-		StartTime = Unsorted::CurrentFrame;
+		StartTime = Unsorted::CurrentFrame();
 		IsActive = true;
 
 		// --- Radar outage ---
