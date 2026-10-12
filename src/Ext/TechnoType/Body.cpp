@@ -15,7 +15,6 @@
 #include <New/Type/DigitalDisplayTypeClass.h>
 #include <New/Type/ArmorTypeClass.h>
 #include <New/Type/SelectBoxTypeClass.h>
-#include <New/Type/InsigniaTypeClass.h>
 #include <New/Type/TunnelTypeClass.h>
 #include <New/Type/CursorTypeClass.h>
 #include <New/Type/ShieldTypeClass.h>
@@ -700,7 +699,6 @@ void TechnoTypeExtData::LoadTurrets(TechnoTypeClass* pType, CCINIClass* pINI)
 
 	pExt->AdditionalTurrentWeapon.resize(addamount, -1);
 	pExt->WeaponUINameX.resize(weaponCount);
-	pExt->Insignia_Weapon.resize(weaponCount);
 
 	//char buffer[0x100u];
 	//read default
@@ -718,14 +716,12 @@ void TechnoTypeExtData::LoadTurrets(TechnoTypeClass* pType, CCINIClass* pINI)
 	}
 
 	CSFText* CSF_ = pExt->WeaponUINameX.data();
-	InsigniaData* Data_ = pExt->Insignia_Weapon.data();
 
 	for (size_t i = 0;
 		i < (size_t)weaponCount;
 
 		++i,
-		++CSF_,
-		++Data_
+		++CSF_
 	)
 	{
 		std::string _number = std::to_string(i + 1);
@@ -747,9 +743,6 @@ void TechnoTypeExtData::LoadTurrets(TechnoTypeClass* pType, CCINIClass* pINI)
 
 		if (iniEx.ReadString(pSection, (std::string("WeaponUIName") + _number).c_str()) > 0)
 			*CSF_ = iniEx.c_str();
-		(*Data_).Shapes.Read(iniEx, pSection, (std::string("Insignia.Weapon") + _number + ".%s").c_str());
-		(*Data_).Frame.Read(iniEx, pSection, (std::string("InsigniaFrame.Weapon") + _number + ".%s").c_str());
-		(*Data_).Frames.Read(iniEx, pSection, (std::string("InsigniaFrames.Weapon") + _number).c_str());
 	}
 }
 
@@ -815,7 +808,6 @@ void TechnoTypeExtData::ReadWeaponStructDatas(TechnoTypeClass* pType, CCINIClass
 	pExt->AdditionalEliteWeaponDatas.resize(additionalamount);
 	pExt->WeaponUINameX.resize(pType->WeaponCount);
 	pExt->AdditionalTurrentWeapon.resize(additionalamount);
-	pExt->Insignia_Weapon.resize(pType->WeaponCount);
 
 	//Debug::LogInfo("After Resize Additional Weapon [%s] [%d- E %d]", pSection, pExt->AdditionalWeaponDatas.size() , pExt->AdditionalEliteWeaponDatas.size());
 
@@ -1386,23 +1378,6 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		this->UseDisguiseMovementSpeed.Read(exINI, pSection, "UseDisguiseMovementSpeed");
 
-		// insignia type
-		auto InsigniaType = Nullable<InsigniaTypeClass*>()(exINI, pSection, "InsigniaType", false);
-
-		if (InsigniaType.isset() && InsigniaType.Fetch())
-		{
-			this->Insignia = InsigniaType.Fetch()->Insignia;
-			this->InsigniaFrame = InsigniaType.Fetch()->InsigniaFrame;
-			this->InsigniaFrames = Vector3D<int>(-1, -1, -1); // override it so only InsigniaFrame will be used
-		}
-		else
-		{
-			this->Insignia.Read(exINI, pSection, "Insignia.%s");
-			this->InsigniaFrames.Read(exINI, pSection, "InsigniaFrames");
-			this->InsigniaFrame.Read(exINI, pSection, "InsigniaFrame.%s");
-		}
-
-		this->Insignia_ShowEnemy.Read(exINI, pSection, "Insignia.ShowEnemy");
 
 		this->InitialStrength_Cloning.Read(exINI, pSection, "InitialStrength.Cloning");
 
@@ -2365,44 +2340,6 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 				this->TiberiumEaterType->LoadFromINI(pINI, pSection);
 		}
 
-		if (This()->Passengers > 0)
-		{
-			size_t passengers = This()->Passengers + 1;
-
-			if (this->Insignia_Passengers.empty() || this->Insignia_Passengers.size() != passengers)
-			{
-				this->Insignia_Passengers.resize(passengers);
-				this->InsigniaFrame_Passengers.resize(passengers, Promotable<int>(-1));
-				Valueable<Vector3D<int>> frames;
-				frames = Vector3D<int>(-1, -1, -1);
-				this->InsigniaFrames_Passengers.resize(passengers, frames);
-			}
-
-			for (size_t i = 0; i < passengers; i++)
-			{
-				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "InsigniaType.Passengers%d", i);
-				auto InsigniaType_Passengers = Nullable<InsigniaTypeClass*>()(exINI, pSection, tempBuffer, false);
-
-				if (InsigniaType_Passengers.isset())
-				{
-					this->Insignia_Passengers[i] = InsigniaType_Passengers.Fetch()->Insignia;
-					this->InsigniaFrame_Passengers[i] = InsigniaType_Passengers.Fetch()->InsigniaFrame;
-					this->InsigniaFrames_Passengers[i] = Vector3D<int>(-1, -1, -1); // override it so only InsigniaFrame will be used
-				}
-				else
-				{
-					IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Insignia.Passengers%d.%s", i, "%s");
-					this->Insignia_Passengers[i].Read(exINI, pSection, tempBuffer);
-
-					IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "InsigniaFrame.Passengers%d.%s", i, "%s");
-					this->InsigniaFrame_Passengers[i].Read(exINI, pSection, tempBuffer);
-
-					IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "InsigniaFrames.Passengers%d", i);
-					this->InsigniaFrames_Passengers[i].Read(exINI, pSection, tempBuffer);
-				}
-			}
-		}
-
 		this->BattlePoints.Read(exINI, pSection, "BattlePoints");
 		this->DefaultVehicleDisguise.Read(exINI, pSection, "DefaultVehicleDisguise");
 		this->TurretResponse.Read(exINI, pSection, "TurretResponse");
@@ -2578,6 +2515,16 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->ExitThroughRoof.Read(exINI, pSection, "ExitThroughRoof");
 		this->NoAmmoWeapons.Read(exINI, pSection, "NoAmmoWeapons");
 		this->RevealHouses.Read(exINI, pSection, "RevealHouses");
+
+		InsigniaDataEntry::Read(exINI, pSection, 
+			This()->Gunner, 
+			This()->Passengers,
+			This()->WeaponCount,
+			this->InsigniaData, 
+			this->Insignia_WeaponData, 
+			this->Insignia_PassengersData
+		);
+		this->Insignia_ShowEnemy.Read(exINI, pSection, "Insignia.ShowEnemy");
 	}
 
 	this->TintColorAirstrike = GeneralUtils::GetColorFromColorAdd(this->LaserTargetColor.Get(RulesClass::Instance->LaserTargetColor));
@@ -3095,14 +3042,10 @@ void TechnoTypeExtData::Serialize(T& Stm) {
 		.Process(this->EnemyUIName)
 		.Process(this->UseDisguiseMovementSpeed)
 
-		.Process(this->Insignia)
-		.Process(this->InsigniaFrames)
-		.Process(this->InsigniaFrame)
+		.Process(this->InsigniaData)
+		.Process(this->Insignia_WeaponData)
+		.Process(this->Insignia_PassengersData)
 		.Process(this->Insignia_ShowEnemy)
-		.Process(this->Insignia_Weapon)
-		.Process(this->Insignia_Passengers)
-		.Process(this->InsigniaFrame_Passengers)
-		.Process(this->InsigniaFrames_Passengers)
 
 		.Process(this->InitialStrength_Cloning)
 

@@ -1335,6 +1335,10 @@ void SpawnerMain::GameConfigs::InitNetwork() {
 	Tunnel::Ip = inet_addr(SpawnerMain::GameConfigs::m_Ptr.TunnelIp);
 	Tunnel::Port = htons((u_short)SpawnerMain::GameConfigs::m_Ptr.TunnelPort);
 
+	// Tunnel packets identify players by their tunnel IDs in the port field.
+	if (Tunnel::Port)
+		NetHack::RequirePortMatch = true;
+
 	UDPInterfaceClass::UDPListenPort = Tunnel::Port ? 0 : (u_short)SpawnerMain::GameConfigs::m_Ptr.ListenPort;
 
 	UDPInterfaceClass::Instance = GameCreate<UDPInterfaceClass>();

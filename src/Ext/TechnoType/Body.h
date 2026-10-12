@@ -15,6 +15,7 @@
 
 #include <New/Type/PaletteManager.h>
 #include <New/Type/DroppodProperties.h>
+#include <New/Type/InsigniaTypeClass.h>
 
 #include <New/Entity/AresAttachEffectTypeClass.h>
 #include <New/Entity/TheaterSpecificSHP.h>
@@ -22,7 +23,6 @@
 #include <New/Entity/BlockTypeClass.h>
 #include <New/Entity/TiberiumEaterTypeClass.h>
 #include <New/Entity/PassengerDeletionTypeClass.h>
-#include <New/Entity/InsigniaData.h>
 #include <New/Entity/LaserTrailDataEntry.h>
 #include <New/Entity/TintTypeClass.h>
 
@@ -290,14 +290,10 @@ public:
 	Valueable<CSFText> EnemyUIName {};
 	Nullable<bool> UseDisguiseMovementSpeed { };
 
-	Promotable<SHPCaches*> Insignia {};
-	Valueable<Vector3D<int>> InsigniaFrames { { -1, -1, -1 } };
-	Promotable<int> InsigniaFrame { -1 };
+	InsigniaDataEntry InsigniaData;
+	std::vector<InsigniaDataEntry> Insignia_WeaponData;
+	std::vector<InsigniaDataEntry> Insignia_PassengersData;
 	Nullable<bool> Insignia_ShowEnemy {};
-	std::vector<InsigniaData> Insignia_Weapon {};
-	std::vector<Promotable<SHPCaches*>> Insignia_Passengers {};
-	std::vector<Promotable<int>> InsigniaFrame_Passengers {};
-	std::vector<Valueable<Vector3D<int>>> InsigniaFrames_Passengers {};
 
 	Nullable<PartialVector2D<double>> InitialStrength_Cloning {};
 

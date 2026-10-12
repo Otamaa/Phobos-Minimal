@@ -201,7 +201,6 @@
     <ClCompile Include="src\New\Entity\CreateUnitTypeClass.cpp" />
     <ClCompile Include="src\New\Entity\EVAVoices.cpp" />
     <ClCompile Include="src\New\Entity\FoggedObject.cpp" />
-    <ClCompile Include="src\New\Entity\InsigniaData.cpp" />
     <ClCompile Include="src\New\Entity\LaserTrailDataEntry.cpp" />
     <ClCompile Include="src\New\Entity\PowerPlantEnhancerClass.cpp" />
     <ClCompile Include="src\New\Entity\PrismRelay.cpp" />
@@ -1001,7 +1000,6 @@
     <ClInclude Include="src\New\Entity\LauchSWData.h" />
     <ClInclude Include="src\New\Entity\MultipleFactoryCaps.h" />
     <ClInclude Include="src\New\Entity\ShieldClass.h" />
-    <ClInclude Include="src\New\Entity\InsigniaData.h" />
     <ClInclude Include="src\New\Interfaces\Base.h" />
     <ClInclude Include="src\New\Entity\LaserTrailDataEntry.h" />
     <ClInclude Include="src\New\Type\CrateTypeClass.h" />

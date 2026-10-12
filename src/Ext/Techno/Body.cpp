@@ -10884,75 +10884,82 @@ TechnoTypeClass* TechnoExtData::GetSimpleDisguiseType(TechnoClass* pTarget, bool
 	return pTypeOut;
 }
 
-static FORCEDINLINE std::pair<SHPCaches*, int> GetInsigniaDatas(TechnoClass* pThis, TechnoTypeExtData* pTypeExt)
+static FORCEDINLINE std::tuple<SHPCaches*, ConvertClass* , int> GetInsigniaDatas(TechnoClass* pThis, TechnoTypeExtData* pTypeExt)
 {
 	bool isCustomInsignia = false;
 	SHPCaches* pShapeFile = FileSystem::PIPS_SHP();
+	ConvertClass* pPalette = FileSystem::PALETTE_PAL();
 	int defaultFrameIndex = -1;
 	const auto nCurRank = pThis->CurrentRanking;
+	const auto& insigniaData = pTypeExt->InsigniaData;
 
-	if (SHPCaches* pCustomShapeFile = pTypeExt->Insignia.GetFromSpecificRank(nCurRank))
+	if (SHPCaches* pCustomShapeFile = insigniaData.GetShape(nCurRank))
 	{
 		pShapeFile = pCustomShapeFile;
 		defaultFrameIndex = 0;
 		isCustomInsignia = true;
 	}
 
-	Vector3D<int> insigniaFrames = pTypeExt->InsigniaFrames.Get();
-	int insigniaFrame = insigniaFrames.X;
-	int frameIndex = pTypeExt->InsigniaFrame.GetFromSpecificRank(nCurRank);
+	if (const auto pPal = insigniaData.GetPalette(nCurRank))
+		pPalette = pPal;
 
-	if (pTypeExt->This()->Passengers > 0)
-	{
-		int passengersIndex = pTypeExt->Passengers_BySize ?
-			 pThis->Passengers.GetTotalSize() : pThis->Passengers.NumPassengers;
-		passengersIndex = MinImpl(passengersIndex, pTypeExt->This()->Passengers);
+	Vector3D<int> insigniaFrames = insigniaData.GetFrames();
+	int frameIndex = insigniaData.GetFrame(nCurRank);
 
-		if(!pTypeExt->Insignia_Passengers.empty() && (size_t)passengersIndex < pTypeExt->Insignia_Passengers.size()){
-			if (auto const pCustomShapeFile = pTypeExt->Insignia_Passengers[passengersIndex].GetFromSpecificRank(nCurRank)) {
-				pShapeFile = pCustomShapeFile;
-				defaultFrameIndex = 0;
-				isCustomInsignia = true;
-			}
-		}
+	if (pTypeExt->This()->Passengers > 0 && pTypeExt->Insignia_PassengersData.size() > 0) {
+		const int passengersIndex = MinImpl(pTypeExt->Passengers_BySize
+			? pThis->Passengers.GetTotalSize()
+			: pThis->Passengers.NumPassengers, pTypeExt->This()->Passengers);
+		const auto& passengersInsigniaData = pTypeExt->Insignia_PassengersData[passengersIndex];
 
-		if(!pTypeExt->InsigniaFrame_Passengers.empty() && (size_t)passengersIndex < pTypeExt->InsigniaFrame_Passengers.size()){
-			int frame = pTypeExt->InsigniaFrame_Passengers[passengersIndex].GetFromSpecificRank(nCurRank);
-
-			if (frame != -1)
-				frameIndex = frame;
-		}
-
-		if(!pTypeExt->InsigniaFrames_Passengers.empty() && (size_t)passengersIndex < pTypeExt->InsigniaFrames_Passengers.size()){
-			auto const& frames = pTypeExt->InsigniaFrames_Passengers[passengersIndex];
-
-			if (!frames->operator==(Vector3D<int>(-1, -1, -1)))
-				insigniaFrames = frames.Get();
-		}
-	}
-
-	if (pTypeExt->This()->Gunner)
-	{
-		int weaponIndex = pThis->CurrentWeaponNumber;
-		auto weaponInsignia = pTypeExt->Insignia_Weapon.data();
-
-		if (auto const pCustomShapeFile = weaponInsignia[weaponIndex].Shapes.GetFromSpecificRank(nCurRank))
+		if (const auto pCustomShapeFile = passengersInsigniaData.GetShape(nCurRank))
 		{
 			pShapeFile = pCustomShapeFile;
 			defaultFrameIndex = 0;
 			isCustomInsignia = true;
 		}
 
-		int frame = weaponInsignia[weaponIndex].Frame.GetFromSpecificRank(nCurRank);
+		if (const auto pPal = passengersInsigniaData.GetPalette(nCurRank))
+			pPalette = pPal;
+
+		const int frame = passengersInsigniaData.GetFrame(nCurRank);
 
 		if (frame != -1)
 			frameIndex = frame;
 
-		auto const& frames = weaponInsignia[weaponIndex].Frames;
+		const auto& frames = passengersInsigniaData.GetFrames();
 
-		if (!frames->operator==(Vector3D<int>(-1, -1, -1)))
-			insigniaFrames = frames.Get();
+		if (frames != Vector3D<int>(-1, -1, -1))
+			insigniaFrames = frames;
 	}
+
+	if (pTypeExt->This()->Gunner && pTypeExt->Insignia_WeaponData.size() > 0)
+	{
+		const int weaponIndex = pThis->CurrentWeaponNumber;
+		const auto& weaponInsigniaData = pTypeExt->Insignia_WeaponData[weaponIndex];
+
+		if (const auto pCustomShapeFile = weaponInsigniaData.GetShape(nCurRank))
+		{
+			pShapeFile = pCustomShapeFile;
+			defaultFrameIndex = 0;
+			isCustomInsignia = true;
+		}
+
+		if (const auto pPal = weaponInsigniaData.GetPalette(nCurRank))
+			pPalette = pPal;
+
+		const int frame = weaponInsigniaData.GetFrame(nCurRank);
+
+		if (frame != -1)
+			frameIndex = frame;
+
+		const auto& frames = weaponInsigniaData.GetFrames();
+
+		if (frames != Vector3D<int>(-1, -1, -1))
+			insigniaFrames = frames;
+	}
+
+	int insigniaFrame = insigniaFrames.X;
 
 	switch (nCurRank)
 	{
@@ -10960,20 +10967,19 @@ static FORCEDINLINE std::pair<SHPCaches*, int> GetInsigniaDatas(TechnoClass* pTh
 		defaultFrameIndex = !isCustomInsignia ? 15 : defaultFrameIndex;
 		insigniaFrame = insigniaFrames.Z;
 		break;
+
 	case Rank::Veteran:
 		defaultFrameIndex = !isCustomInsignia ? 14 : defaultFrameIndex;
 		insigniaFrame = insigniaFrames.Y;
 		break;
+
 	default:
 		break;
 	}
 
 	frameIndex = frameIndex == -1 ? insigniaFrame : frameIndex;
 
-	if (frameIndex == -1)
-		frameIndex = defaultFrameIndex;
-
-	return { pShapeFile  , frameIndex };
+	return { pShapeFile  , pPalette , frameIndex };
 }
 
 static FORCEDINLINE void GetAdjustedInsigniaOffset(TechnoClass* pThis , Point2D& offset , const CoordStruct& a_) {
@@ -11039,14 +11045,13 @@ void TechnoExtData::DrawInsignia(TechnoClass* pThis, Point2D* pLocation, Rectang
 	if (!isVisibleToPlayer)
 		return;
 
-	const auto& [pShapeFile, frameIndex] = GetInsigniaDatas(pThis, pTypeExt);
+	const auto& [pShapeFile, pPalette, frameIndex] = GetInsigniaDatas(pThis, pTypeExt);
 
-	if (frameIndex != -1 && pShapeFile)
-	{
+	if (frameIndex != -1 && pShapeFile) {
 		GetAdjustedInsigniaOffset(pThis , offset , CoordStruct::Empty);
 		offset.Y += FakeRulesClass::Instance()->DrawInsignia_UsePixelSelectionBracketDelta ? GET_TECHNOTYPE(pThis)->PixelSelectionBracketDelta : 0;
 		DSurface::Temp->DrawSHP(
-			FileSystem::PALETTE_PAL(), pShapeFile, frameIndex, &offset, pBounds, BlitterFlags(0xE00), 0, -2, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+			pPalette, pShapeFile, frameIndex, &offset, pBounds, BlitterFlags(0xE00), 0, -2, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 	}
 }
 

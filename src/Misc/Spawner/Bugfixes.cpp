@@ -607,3 +607,29 @@ ASMJIT_PATCH(0x7B3493, UDPInterfaceClass_StartListening_LocalInterfaces, 0x9)
 	LocalInterfaces();
 	return 0x7B35E4;
 }
+
+DEFINE_JUMP(LJMP, 0x4896B2, 0x4896BF) // No need this shit
+
+ASMJIT_PATCH(0x480EF6, CellClass_DamageWall_BecomUntargetable, 0x6)
+{
+	GET(CellClass*, pThis, EDI);
+
+	TechnoClass::ClearWhoTargetingThis(pThis);
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x4808A9, Sub_480630_BecomUntargetable, 0xA)
+{
+	GET(CellClass*, pCell, ESI);
+
+	TechnoClass::ClearWhoTargetingThis(pCell);
+
+	if (R->Origin() == 0x4808A9)
+		pCell->WallOwnerIndex = -1;
+
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x480952, Sub_480630_BecomUntargetable, 0xA)
+ASMJIT_PATCH_AGAIN(0x48092B, Sub_480630_BecomUntargetable, 0xA)
+ASMJIT_PATCH_AGAIN(0x4808FF, Sub_480630_BecomUntargetable, 0xA)
+ASMJIT_PATCH_AGAIN(0x4808D8, Sub_480630_BecomUntargetable, 0xA)
