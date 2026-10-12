@@ -909,6 +909,7 @@ void HouseExtData::ApplyAcademyWithoutMutexCheck(
 		}
 
 		auto veterancyBonus = 0.0;
+		const bool countryFilter = HouseTypeExtContainer::Instance.Find(pTechno->Owner->Type)->Academy_AllowCountryFilter;
 
 		// aggregate the bonuses
 		for (auto const& pBld : this->Academies)
@@ -917,6 +918,19 @@ void HouseExtData::ApplyAcademyWithoutMutexCheck(
 				continue;
 
 			auto const pExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
+			if (countryFilter) {
+				const int countryIdx = pTechno->Owner->Type->ArrayIndex;
+
+
+				const auto& academyWhiteList = pExt->Academy_Country_Types[countryIdx];
+				const auto& academyBlackList = pExt->Academy_Country_Ignore[countryIdx];
+
+				const bool canAffect = (academyWhiteList.empty() || academyWhiteList.Contains(pType))
+					&& !academyBlackList.Contains(pType);
+
+				if (!canAffect)
+					continue;
+			}
 
 			auto const isWhitelisted = pExt->AcademyWhitelist.empty()
 				|| pExt->AcademyWhitelist.Contains(pType);
@@ -974,6 +988,7 @@ void HouseExtData::ApplyAcademy(
 		}
 
 		auto veterancyBonus = 0.0;
+		const bool countryFilter = HouseTypeExtContainer::Instance.Find(pTechno->Owner->Type)->Academy_AllowCountryFilter;
 
 		// aggregate the bonuses
 		for (auto const& pBld : this->Academies) {
@@ -981,16 +996,20 @@ void HouseExtData::ApplyAcademy(
 				continue;
 
 			auto const pExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
-			const int countryIdx = pTechno->Owner->Type->ArrayIndex;
 
-			const auto& academyWhiteList = pExt->Academy_Country_Types[countryIdx];
-			const auto& academyBlackList = pExt->Academy_Country_Ignore[countryIdx];
+			if(countryFilter) {
+				const int countryIdx = pTechno->Owner->Type->ArrayIndex;
 
-			const bool canAffect = (academyWhiteList.empty() || academyWhiteList.Contains(pType))
-				&& !academyBlackList.Contains(pType);
+			
+				const auto& academyWhiteList = pExt->Academy_Country_Types[countryIdx];
+				const auto& academyBlackList = pExt->Academy_Country_Ignore[countryIdx];
 
-			if (!canAffect)
-				continue;
+				const bool canAffect = (academyWhiteList.empty() || academyWhiteList.Contains(pType))
+					&& !academyBlackList.Contains(pType);
+
+				if (!canAffect)
+					continue;
+			}
 
 			auto const isWhitelisted = pExt->AcademyWhitelist.empty()
 				|| pExt->AcademyWhitelist.Contains(pType);
