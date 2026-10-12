@@ -867,6 +867,14 @@ ASMJIT_PATCH(0x4D5A34, FootClass_ApproachTarget_StopWhenInRange, 0x6)
 		auto const pType = GET_TECHNOTYPE(pThis);
 		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
+		// Process OpenTopped.IgnoreRangefinding in its own logic
+		// TODO: find a better solution instead of disabling it altogether
+		if (pType->OpenTopped && pThis->Passengers.NumPassengers > 0
+			&& !pTypeExt->OpenTopped_IgnoreRangefinding.Get(FakeRulesClass::Instance->OpenTopped_IgnoreRangefinding))
+		{
+			return 0;
+		}
+
 		// Per-type setting takes priority, falls back to the global one.
 		if (pTypeExt->ApproachTarget_StopWhenInRange.Get(FakeRulesClass::Instance->ApproachTarget_StopWhenInRange)) {
 			// these codes are for preventing jumpjets from moving around when executing ApproachTarget.StopWhenInRange

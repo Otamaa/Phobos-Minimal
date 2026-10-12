@@ -675,3 +675,34 @@ ASMJIT_PATCH(0x51CDEF, InfantryClass_UpdateIdleAction_IdleActionFrequency, 0x6)
 
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x51CDD9, InfantryClass_UpdateIdleAction_IdleActionFrequency, 0x6)
+
+
+// Allow a Deployer=true infantry that has no Deploy sequence (Sequences[Deploy].CountFrames == 0)
+// but is configured with Convert.Deploy to convert directly on the deploy command,
+// instead of relying on the vanilla PlayAnim(Deploy) -> UpdateSequenceAnim case Sequence_Deploy path,
+// which is unreachable when the Deploy sequence is empty (PlayAnim returns early on CountFrames == 0).
+ASMJIT_PATCH(0x51F738, InfantryClass_Mission_Unload_ConvertDeploy_NoSequence, 0x5)
+{
+	enum { FinishMission = 0x51F7C9 };
+
+	GET(InfantryClass*, pThis, ESI);
+	auto const pExt = InfantryExtContainer::Instance.Find(pThis);
+	auto const pTypeExt = pExt->TypeExtData;
+
+	if (pTypeExt->Convert_Deploy && pThis->Type->Sequence->Data[static_cast<int>(DoType::Deploy)].CountFrames == 0)
+	{
+		// Unlike the two DoAction hooks below, this one keeps no HasDeployConverted /
+		// HasUndeployConverted bookkeeping. Measured 2026-10-12: the Undeploy hook is reached from
+		// the UpdateSequenceAnim jump-table case for Sequence::Undeploy, but that case calls
+		// PlayAnim(0, 1, 0) first, so SequenceAnim is already 0 by the time control gets there and
+		// ResetFlags clears both flags in the very same frame - nothing can be left stale for this
+		// path to clear. Re-entry within one tick is covered by the FinishMission jump below
+		// instead: it forces Mission_Guard, so Mission_Unload cannot run a second time for one
+		// deploy command. A build with the guard and both assignments removed behaved identically.
+
+		TechnoExtData::ConvertToType(pThis, pTypeExt->Convert_Deploy);
+		return FinishMission;
+	}
+
+	return 0;
+}
