@@ -744,6 +744,9 @@ void SpawnerMain::GameConfigs::Init() {
 	// Leaves bottom bar closed for losing players during last game frames
 	Patch::Apply_LJMP(0x6D1639, 0x6D1640); // TabClass_6D1610
 
+	// Allow surrendering to observe even when only one human is still playing
+	Patch::Apply_LJMP(0x4F1993, 0x4F19C4); // AbortMissionDialog_Init_SkipHumanCount
+
 	// Skip load *.PKT, *.YRO and *.YRM map files
 	//Patch::Apply_LJMP(0x699AE0, 0x69A1B2); // SessionClass::Read_Scenario_Descriptions
 }
