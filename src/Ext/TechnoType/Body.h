@@ -1289,6 +1289,8 @@ public:
 	ValueableVector<int> NoAmmoWeapons {};
 
 	Nullable<AffectedHouse> RevealHouses {};
+
+	Nullable<AffectedSurvivor> Survivors_ReplaceTagTo {};
 #pragma endregion
 
 public:

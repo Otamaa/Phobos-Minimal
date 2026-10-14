@@ -645,6 +645,7 @@ void FakeRulesClass::LoadBeforeTypeData(CCINIClass* pINI)
 	this->BunkerStateUpdateDelay.Read(exINI, GameStrings::General(), "BunkerStateUpdateDelay");
 	this->MissileKeepTargetCoord.Read(exINI, GameStrings::General(), "MissileKeepTargetCoord");
 	this->ShiftQueueCount.Read(exINI, GameStrings::General(), "ShiftQueueCount");
+	this->Survivors_ReplaceTagTo.Read(exINI, GameStrings::General(), "Survivors.ReplaceTagTo");
 
 	if (this->ShiftQueueCount <= 0)
 		this->ShiftQueueCount = 1;
@@ -1423,6 +1424,7 @@ void FakeRulesClass::Serialize(T& Stm)
 		.Process(this->MissileKeepTargetCoord)
 
 		.Process(this->RevealHouses)
+		.Process(this->Survivors_ReplaceTagTo)
 	;
 }
 

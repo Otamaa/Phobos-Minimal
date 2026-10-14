@@ -461,33 +461,33 @@ void Phobos::Config::Read_UIMD()
 	}
 
 	// TacticalZoom
-	{
-		const char* const section = pINI->GetSection("TacticalZoom") ? "TacticalZoom" : UISETTINGS_SECTION;
-		const bool modderZoomEnabled = pINI->ReadBool(section, "TacticalZoom", pINI->ReadBool(section, "Enabled", false));
-		const bool playerZoomEnabled = CCINIClass::INI_RA2MD->ReadBool("Phobos", "TacticalZoom", true);
+	//{
+	//	const char* const section = pINI->GetSection("TacticalZoom") ? "TacticalZoom" : UISETTINGS_SECTION;
+	//	const bool modderZoomEnabled = pINI->ReadBool(section, "TacticalZoom", pINI->ReadBool(section, "Enabled", false));
+	//	const bool playerZoomEnabled = CCINIClass::INI_RA2MD->ReadBool("Phobos", "TacticalZoom", true);
 
-		Phobos::Config::TacticalZoom = modderZoomEnabled && playerZoomEnabled;
+	//	Phobos::Config::TacticalZoom = modderZoomEnabled && playerZoomEnabled;
 
-		if(Phobos::Config::TacticalZoom) {
+	//	if(Phobos::Config::TacticalZoom) {
 
-			ReadBool4Times(pINI, section, "TacticalZoom.Scroll", "Scroll", "TacticalZoom.Wheel", "Wheel", Phobos::Config::TacticalZoom_Wheel);
-			ReadBool4Times(pINI, section, "TacticalZoom.KeyEnabled", "KeyEnabled", "TacticalZoom.Hotkeys", "Hotkeys", Phobos::Config::TacticalZoom_Hotkeys);
+	//		ReadBool4Times(pINI, section, "TacticalZoom.Scroll", "Scroll", "TacticalZoom.Wheel", "Wheel", Phobos::Config::TacticalZoom_Wheel);
+	//		ReadBool4Times(pINI, section, "TacticalZoom.KeyEnabled", "KeyEnabled", "TacticalZoom.Hotkeys", "Hotkeys", Phobos::Config::TacticalZoom_Hotkeys);
 
-			Read2Times(pINI, section,"TacticalZoom.Max", "Max", Phobos::Config::TacticalZoom_Max);
-			Read2Times(pINI, section, "TacticalZoom.Step", "Step", Phobos::Config::TacticalZoom_Step);
-			Read2Times(pINI, section, "TacticalZoom.Smooth", "Smooth", Phobos::Config::TacticalZoom_Smooth);
+	//		Read2Times(pINI, section,"TacticalZoom.Max", "Max", Phobos::Config::TacticalZoom_Max);
+	//		Read2Times(pINI, section, "TacticalZoom.Step", "Step", Phobos::Config::TacticalZoom_Step);
+	//		Read2Times(pINI, section, "TacticalZoom.Smooth", "Smooth", Phobos::Config::TacticalZoom_Smooth);
 
-			// Player preference overrides from RA2MD.INI [Phobos]
-			Phobos::Config::TacticalZoom_Smooth = CCINIClass::INI_RA2MD->ReadBool("Phobos", "TacticalZoom.Smooth", Phobos::Config::TacticalZoom_Smooth);
+	//		// Player preference overrides from RA2MD.INI [Phobos]
+	//		Phobos::Config::TacticalZoom_Smooth = CCINIClass::INI_RA2MD->ReadBool("Phobos", "TacticalZoom.Smooth", Phobos::Config::TacticalZoom_Smooth);
 
-			ZoomManager::Enabled = Phobos::Config::TacticalZoom;
-			ZoomManager::WheelEnabled = Phobos::Config::TacticalZoom_Wheel;
-			ZoomManager::HotkeysEnabled = Phobos::Config::TacticalZoom_Hotkeys;
-			ZoomManager::MaxZoom = std::max(1.0, Phobos::Config::TacticalZoom_Max);
-			ZoomManager::Step = std::max(0.01, Phobos::Config::TacticalZoom_Step);
-			ZoomManager::Smooth = Phobos::Config::TacticalZoom_Smooth;
-		}
-	}
+	//		ZoomManager::Enabled = Phobos::Config::TacticalZoom;
+	//		ZoomManager::WheelEnabled = Phobos::Config::TacticalZoom_Wheel;
+	//		ZoomManager::HotkeysEnabled = Phobos::Config::TacticalZoom_Hotkeys;
+	//		ZoomManager::MaxZoom = std::max(1.0, Phobos::Config::TacticalZoom_Max);
+	//		ZoomManager::Step = std::max(0.01, Phobos::Config::TacticalZoom_Step);
+	//		ZoomManager::Smooth = Phobos::Config::TacticalZoom_Smooth;
+	//	}
+	//}
 
 	//if (pINI->GetSection(PHOBOS_STR))
 	{

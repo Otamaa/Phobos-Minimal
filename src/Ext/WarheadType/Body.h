@@ -95,7 +95,8 @@ public:
 	Valueable<double> Crit_AffectAbovePercent { 0.0 };
 	Nullable<bool> Crit_SuppressWhenIntercepted { };
 
-	bool CritActive { false };
+	bool CritActive { false };// persumably safeguard for animation creation
+	bool CanCrit { false };
 	double CritRandomBuffer { 0.0 };
 	double CritCurrentChance { 0.0 };
 	double ReturnWarhead_RandomBuffer { 0.0 };

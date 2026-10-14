@@ -901,6 +901,8 @@ public:
 	Valueable<bool> MissileKeepTargetCoord { false };
 
 	Valueable<AffectedHouse> RevealHouses { AffectedHouse::Team };
+
+	Valueable<AffectedSurvivor> Survivors_ReplaceTagTo { AffectedSurvivor::Crew };
 #pragma endregion
 
 public:

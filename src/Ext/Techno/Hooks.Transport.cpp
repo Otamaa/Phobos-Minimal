@@ -150,6 +150,8 @@ static FORCEDINLINE bool CanEnterNow(UnitClass* pTransport, FootClass* pPassenge
 	return predictSize <= maxSize;
 }
 
+#include <PlanningTokenClass.h>
+
 // Rewrite from 0x51A21B/0x73A6D1
 static FORCEDINLINE void DoEnterNow(UnitClass* pTransport, FootClass* pPassenger)
 {
@@ -166,6 +168,11 @@ static FORCEDINLINE void DoEnterNow(UnitClass* pTransport, FootClass* pPassenger
 	pPassenger->Limbo(); // Don't swap order casually
 	pPassenger->OnBridge = false; // Don't swap order casually, important
 	pPassenger->NextObject = nullptr; // Don't swap order casually, very important
+
+	const auto pPlanningToken = pPassenger->PlanningToken;
+
+	if (pPlanningToken && pPlanningToken->PlanningNodes.Count > 0)
+		pPassenger->SetDestination(nullptr, true); // Added, to prevent passengers from return to board position when survive
 
 	//pPassenger->SetDestination(nullptr, true); // Added, to prevent passengers from return to board position when survive
 	pPassenger->QueueUpToEnter = nullptr; // Added, to prevent passengers from wanting to get on after getting off

@@ -143,6 +143,7 @@ struct SpawnerMain
 		int AutoSaveCount;
 		int AutoSaveInterval;
 		int NextAutoSaveNumber;
+		bool ShowMPSaveGameButton;
 
 		// Scenario Options
 		int  Seed;

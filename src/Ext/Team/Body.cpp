@@ -1220,16 +1220,32 @@ void FakeTeamClass::_Coordinate_Attack() {
 
 	// Check if team leader can fire at target (every 8 frames, on frame 4)
 	if (Unsorted::CurrentFrame() % 8 == 4) {
-		const int weaponIndex = teamLeader->SelectWeapon(this->ArchiveTarget);
+		auto IsTargetingAllowed = [this, teamLeader]() {
+			if (auto const pInfantry = cast_to<InfantryClass*, true>(teamLeader)) {
+				auto const pTarget = this->ArchiveTarget;
+				auto const pInfantryType = pInfantry->Type;
 
-		if (teamLeader->GetFireError(this->ArchiveTarget, weaponIndex, true) == FireError::ILLEGAL) {
+				if ((pInfantryType->Engineer || (pInfantryType->Agent && pInfantryType->Infiltrate))
+					&& pInfantry->GetCurrentMission() == Mission::Capture
+					&& pInfantry->Target == pTarget && pInfantry->Destination == pTarget) {
+					return false;
+				}
+			}
+
+			return true;
+		};
+
+
+
+		if (IsTargetingAllowed() &&
+			teamLeader->GetFireError(this->ArchiveTarget, teamLeader->SelectWeapon(this->ArchiveTarget), true) 
+			== FireError::ILLEGAL) {
 			this->TargetNotAssigned = 1;
 		}
 	}
 
 	// Early exit if no target
-	if (!this->ArchiveTarget)
-	{
+	if (!this->ArchiveTarget) {
 		this->StepCompleted = 1;
 		return;
 	}
@@ -1239,8 +1255,7 @@ void FakeTeamClass::_Coordinate_Attack() {
 	FootClass* unitToProcess = this->FirstUnit;
 	bool hasValidUnits = false;
 
-	if (!unitToProcess)
-	{
+	if (!unitToProcess) {
 		this->StepCompleted = 1;
 		return;
 	}
@@ -1313,9 +1328,28 @@ void FakeTeamClass::_Coordinate_Attack() {
 
 			// Update unit's target if it doesn't have one or has wrong target
 
-			if (unitToProcess->Target != this->ArchiveTarget && !unitToProcess->Target)
-			{
+			if (unitToProcess->Target != this->ArchiveTarget && !unitToProcess->Target) {
 				unitToProcess->SetTarget(this->ArchiveTarget);
+
+				if (auto const pInfantry = cast_to<InfantryClass*, false>(unitToProcess)) {
+					if (!pInfantry->Destination) {
+						if (auto const pTargetBuilding = cast_to<BuildingClass*>(unitToProcess->Target)) {
+							auto const pHouse = pInfantry->Owner;
+
+							if (!pHouse->IsAlliedWith(pTargetBuilding->Owner)) {
+								auto const pInfantryType = pInfantry->Type;
+								auto const pTargetBuildingType = pTargetBuilding->Type;
+
+								if ((pInfantryType->Engineer && pTargetBuildingType->Capturable)
+									|| (pInfantryType->Agent && pInfantryType->Infiltrate && pTargetBuildingType->Spyable)) {
+									pInfantry->SetDestination(pTargetBuilding, true);
+									pInfantry->QueueMission(Mission::Capture, false);
+									pInfantry->NextMission();
+								}
+							}
+						}
+					}
+				}
 			}
 
 			// Check if unit is ready to attack (not aircraft, or has weapon and ammo)

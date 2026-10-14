@@ -373,20 +373,20 @@ enum VanillaDialogs : uint16_t
 };
 */
 // For now this can only contain copies of the original dialogs with same IDs
-enum SpawnerCustomDialogs : uint16_t
-{
-	MultiplayerGameOptionsDialog = 3002, // added a save button
-
-	First = 3002,
-	Last = 3002
-};
-
-
-class Dialogs
-{
-public:
-
-};
+//enum SpawnerCustomDialogs : uint16_t
+//{
+//	MultiplayerGameOptionsDialog = 3002, // added a save button
+//
+//	First = 3002,
+//	Last = 3002
+//};
+//
+//
+//class Dialogs
+//{
+//public:
+//
+//};
 
 /*
 	So here's a first example on how to modify the game's dialogs! :3
@@ -417,32 +417,32 @@ public:
 */
 
 //4A3B4B, 9 - NOTE: This overrides a call, but it's absolute, so don't worry.
-ASMJIT_PATCH(0x4A3B4B, FetchResource, 0x9)
-{
-	HMODULE hModule = static_cast<HMODULE>(Phobos::hInstance); //hModule and hInstance are technically the same...
-	GET(LPCTSTR, lpName, ECX);
-	GET(LPCTSTR, lpType, EDX);
+//ASMJIT_PATCH(0x4A3B4B, FetchResource, 0x9)
+//{
+//	HMODULE hModule = static_cast<HMODULE>(Phobos::hInstance); //hModule and hInstance are technically the same...
+//	GET(LPCTSTR, lpName, ECX);
+//	GET(LPCTSTR, lpType, EDX);
+//
+//	if (HRSRC hResInfo = FindResource(hModule, lpName, lpType))
+//	{
+//		if (HGLOBAL hResData = LoadResource(hModule, hResInfo))
+//		{
+//			LockResource(hResData);
+//			R->EAX(hResData);
+//
+//			return 0x4A3B73; //Resource locked and loaded (omg what a pun), return!
+//		}
+//	}
+//	return 0; //Nothing was found, try the game's own resources.
+//}
 
-	if (HRSRC hResInfo = FindResource(hModule, lpName, lpType))
-	{
-		if (HGLOBAL hResData = LoadResource(hModule, hResInfo))
-		{
-			LockResource(hResData);
-			R->EAX(hResData);
-
-			return 0x4A3B73; //Resource locked and loaded (omg what a pun), return!
-		}
-	}
-	return 0; //Nothing was found, try the game's own resources.
-}
-
-ASMJIT_PATCH(0x609299, UI_IsStaticAndOrOwnerDraw_MultiplayerGameOptionsDialog, 0x5)
-{
-	enum { RetFalse = 0x609664, RetTrue = 0x609693 };
-
-	GET(int, dlgCtrlID, EAX);
-	return (dlgCtrlID == 1314 || dlgCtrlID == 1313 || dlgCtrlID == 1311) ? RetTrue : RetFalse;
-}
+//ASMJIT_PATCH(0x609299, UI_IsStaticAndOrOwnerDraw_MultiplayerGameOptionsDialog, 0x5)
+//{
+//	enum { RetFalse = 0x609664, RetTrue = 0x609693 };
+//
+//	GET(int, dlgCtrlID, EAX);
+//	return (dlgCtrlID == 1314 || dlgCtrlID == 1313 || dlgCtrlID == 1311) ? RetTrue : RetFalse;
+//}
 
 #pragma region Colors
 
@@ -808,4 +808,81 @@ ASMJIT_PATCH(0x61DA6B, TrackbarMsgProc_GetSlideRange, 7)
 		cval = R->EAX<int>();
 	}
 	return 0x0;
+}
+
+
+enum GameOptionsControlID
+{
+	SaveGameButton = 1311,
+	GameControlsButton = 1313,
+	AbortMissionButton = 1314
+};
+
+// Create the button before StandardWndProc registers and formats the controls.
+ASMJIT_PATCH(0x4F11D6, MultiplayerGameOptionsDialog_AddSaveButton, 0x6)
+{
+	enum { MultiplayerGameOptionsDialog = 3002 };
+
+	if (!SpawnerMain::Configs::Enabled || !SpawnerMain::GetGameConfigs()->ShowMPSaveGameButton)
+		return 0;
+
+	GET(UINT, message, EBX);
+	GET(HWND, hDialog, ESI);
+	GET(const WORD*, initData, EBP);
+
+	if (message != WM_INITDIALOG || !initData || *initData != MultiplayerGameOptionsDialog)
+		return 0;
+
+	const auto hExistingSave = Imports::GetDlgItem.invoke()(hDialog, SaveGameButton);
+	if (hExistingSave)
+		return 0;
+
+	const auto hControls = Imports::GetDlgItem.invoke()(hDialog, GameControlsButton);
+	const auto hAbort = Imports::GetDlgItem.invoke()(hDialog, AbortMissionButton);
+	if (!hControls || !hAbort)
+		return 0;
+
+	RECT controlsRect;
+	RECT abortRect;
+	const auto hasControlsRect = Imports::GetWindowRect.invoke()(hControls, &controlsRect);
+	const auto hasAbortRect = Imports::GetWindowRect.invoke()(hAbort, &abortRect);
+	if (!hasControlsRect || !hasAbortRect)
+		return 0;
+
+	const int buttonStepY = abortRect.top - controlsRect.top;
+	MapWindowPoints(nullptr, hDialog, reinterpret_cast<POINT*>(&abortRect), 2);
+	const int width = abortRect.right - abortRect.left;
+	const int height = abortRect.bottom - abortRect.top;
+	const auto hInstance = reinterpret_cast<HINSTANCE>(Imports::GetWindowLongA.invoke()(hDialog, GWL_HINSTANCE));
+	const auto hSave = Imports::CreateWindowExA.invoke()(0, "BUTTON", "GUI:SaveGame",
+		WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
+		abortRect.left, abortRect.top, width, height, hDialog,
+		reinterpret_cast<HMENU>(SaveGameButton), hInstance, nullptr);
+
+	if (!hSave)
+		return 0;
+
+	const auto font = Imports::SendMessageA.invoke()(hAbort, WM_GETFONT, 0, 0);
+	Imports::SendMessageA.invoke()(hSave, WM_SETFONT, font, FALSE);
+
+	// Place the save button after game controls in the child window order.
+	Imports::SetWindowPos.invoke()(hSave, hControls, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+	Imports::SetWindowPos.invoke()(hAbort, nullptr, abortRect.left, abortRect.top + buttonStepY,
+		0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x609299, UI_IsStaticAndOrOwnerDraw_MultiplayerGameOptionsDialog, 0x5)
+{
+	if (!SpawnerMain::Configs::Enabled)
+		return 0;
+
+	enum { RetTrue = 0x609693 };
+	GET(int, dlgCtrlID, EAX);
+
+	if (dlgCtrlID == SaveGameButton)
+		return RetTrue;
+
+	return 0;
 }

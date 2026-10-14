@@ -12,6 +12,8 @@
 #include <algorithm>
 #include <cmath>
 
+#ifdef _RECHECKIFMERGED
+
 bool ZoomManager::Enabled = false;
 bool ZoomManager::WheelEnabled = true;
 bool ZoomManager::HotkeysEnabled = true;
@@ -398,3 +400,5 @@ ASMJIT_PATCH(0x657134, RadarClass_Render_Radar_ScaleViewRect, 0x6)
 //	R->EBX(effectiveHeight);
 //	return 0x653DB2;
 //}
+
+#endif // _RECHECKIFMERGED

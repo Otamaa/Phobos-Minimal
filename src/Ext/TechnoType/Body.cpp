@@ -2515,6 +2515,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->ExitThroughRoof.Read(exINI, pSection, "ExitThroughRoof");
 		this->NoAmmoWeapons.Read(exINI, pSection, "NoAmmoWeapons");
 		this->RevealHouses.Read(exINI, pSection, "RevealHouses");
+		this->Survivors_ReplaceTagTo.Read(exINI, pSection, "Survivors.ReplaceTagTo");
 
 		InsigniaDataEntry::Read(exINI, pSection, 
 			This()->Gunner, 
@@ -4024,6 +4025,7 @@ void TechnoTypeExtData::Serialize(T& Stm) {
 		.Process(this->ExitThroughRoof)
 
 		.Process(this->RevealHouses)
+		.Process(this->Survivors_ReplaceTagTo)
 		;
 }
 

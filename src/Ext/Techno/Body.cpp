@@ -2100,6 +2100,8 @@ void TechnoExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* const pK
 		return;
 	}
 
+	const auto replaceTagTo = pTypeExt->Survivors_ReplaceTagTo.Get(FakeRulesClass::Instance->Survivors_ReplaceTagTo);
+
 	if(PreventCrewEscape)
 		TechnoExtContainer::Instance.Find(pThis)->PreventCrew = true;
 
@@ -2122,6 +2124,13 @@ void TechnoExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* const pK
 			}
 			else
 			{
+				if (replaceTagTo & AffectedSurvivor::VehicleThief) {
+					const auto pTag = pThis->AttachedTag;
+
+					if (pTag && pTag->ShouldReplace())
+						pHijacker->ReplaceTag(pTag);
+				}
+
 				// the hijacker will now be controlled instead of the unit
 				if (auto const pController = (FakeCaptureManagerClass*)pThis->MindControlledBy)
 				{
@@ -2166,11 +2175,14 @@ void TechnoExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* const pK
 								//Debug::LogInfo(__FUNCTION__" Pilot Called ");
 								TechnoExtData::HandleRemove(pPilot, pKiller, false, false);
 							}
-							else if (auto const pTag = pThis->AttachedTag)
+							else 
 							{
-								if (pTag->ShouldReplace())
+								if (replaceTagTo & AffectedSurvivor::Crew)
 								{
-									pPilot->ReplaceTag(pTag);
+									const auto pTag = pThis->AttachedTag;
+
+									if (pTag && pTag->ShouldReplace())
+										pPilot->ReplaceTag(pTag);
 								}
 							}
 						}
@@ -2209,6 +2221,14 @@ void TechnoExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* const pK
 
 			if (trySpawn && TechnoExtData::EjectRandomly(pPassenger, pThis->Location, 128, Select))
 			{
+				if (replaceTagTo & AffectedSurvivor::Passengers)
+				{
+					const auto pTag = pThis->AttachedTag;
+
+					if (pTag && pTag->ShouldReplace())
+						pPassenger->ReplaceTag(pTag);
+				}
+
 				continue;
 			}
 

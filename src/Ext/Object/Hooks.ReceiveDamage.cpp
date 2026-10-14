@@ -693,6 +693,8 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 	 	// Apply warhead effects
 	if (damage && !pWHExt->ApplyPerTargetEffectsOnDetonate.Get(FakeRulesClass::Instance()->ApplyPerTargetEffectsOnDetonate)){
 			auto pOldInvoker = std::exchange(pWHExt->DamageAreaInvoker, source);
+			pWHExt->CritActive = false;
+			pWHExt->GetCritChance(pThis, pWHExt->CritCurrentChance);
 			pWHExt->DetonateOnOneUnit(pSourceHouse, pThis, pThis->Location, *damage, source);
 			pWHExt->DamageAreaInvoker = pOldInvoker;
 		}

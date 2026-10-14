@@ -284,6 +284,11 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Crit_AffectAbovePercent.Read(exINI, pSection, "Crit.AffectsAbovePercent");
 	this->Crit_SuppressWhenIntercepted.Read(exINI, pSection, "Crit.SuppressWhenIntercepted");
 
+	if (this->Crit_ExtraDamage > 0 || this->Crit_Warhead || this->Crit_ActiveChanceAnims.size() > 0)
+		this->CanCrit = true;
+	else
+		this->CanCrit = false;
+
 	this->MindControl_Anim.Read(exINI, pSection, "MindControl.Anim");
 
 	// Ares tags
@@ -1893,6 +1898,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->Crit_AffectAbovePercent)
 		.Process(this->Crit_SuppressWhenIntercepted)
 		.Process(this->CritActive)
+		.Process(this->CanCrit)
 		.Process(this->CritRandomBuffer)
 		.Process(this->CritCurrentChance)
 		.Process(this->ReturnWarhead_RandomBuffer)
@@ -2391,6 +2397,11 @@ void WarheadTypeExtData::DetonateAtBridgeRepairHut(AbstractClass* pTarget, Techn
 
 void WarheadTypeExtData::GetCritChance(TechnoClass* pFirer, double& chances) const
 {
+	if (!this->CanCrit) {
+		chances = 0.0;
+		return;
+	}
+
 	chances = this->Crit_Chance;
 
 	if (!pFirer)

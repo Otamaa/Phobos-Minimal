@@ -132,6 +132,7 @@
     <ClCompile Include="src\Misc\Spawner\DesyncHandler.cpp" />
     <ClCompile Include="src\Misc\Spawner\FastRetransmit.cpp" />
     <ClCompile Include="src\Misc\Spawner\FrameGate.cpp" />
+    <ClCompile Include="src\Misc\Spawner\GameSpeed.cpp" />
     <ClCompile Include="src\Misc\Spawner\MPDebug.cpp" />
     <ClCompile Include="src\Misc\Spawner\MPStatsFix.cpp" />
     <ClCompile Include="src\Misc\Spawner\PacketRedundancy.cpp" />
@@ -1118,7 +1119,6 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\res\ExceptionHandler.rc" />
-    <ResourceCompile Include="src\Misc\MultiplayerGameOptionsDialog.rc" />
     <ResourceCompile Include="src\res\DesyncDialog.rc" />
     <ResourceCompile Include="src\res\Phobos.rc" />
     <ResourceCompile Include="src\res\Reshade.rc" />

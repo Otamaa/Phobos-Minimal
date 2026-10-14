@@ -3113,7 +3113,7 @@ bool TActionExtData::SetTacticalZoom(TActionClass* const pThis, HouseClass* cons
 	const int minWidth = pThis->Param4;
 	const int minHeight = pThis->Param5;
 
-	ZoomManager::SetScriptZoom(targetZoom, transitionRate, minWidth, minHeight);
+	/*ZoomManager::SetScriptZoom(targetZoom, transitionRate, minWidth, minHeight);*/
 	return true;
 }
 

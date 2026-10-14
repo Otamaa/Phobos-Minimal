@@ -25,10 +25,10 @@ const wchar_t* ZoomInCommandClass::GetUIDescription() const
 
 void ZoomInCommandClass::Execute(WWKey eInput) const
 {
-	if (!ZoomManager::HotkeysEnabled || !ZoomManager::CanPlayerZoom())
-		return;
+	//if (!ZoomManager::HotkeysEnabled || !ZoomManager::CanPlayerZoom())
+	//	return;
 
-	ZoomManager::ZoomIn();
+	//ZoomManager::ZoomIn();
 }
 
 const char* ZoomOutCommandClass::GetName() const
@@ -53,10 +53,10 @@ const wchar_t* ZoomOutCommandClass::GetUIDescription() const
 
 void ZoomOutCommandClass::Execute(WWKey eInput) const
 {
-	if (!ZoomManager::HotkeysEnabled || !ZoomManager::CanPlayerZoom())
-		return;
+	//if (!ZoomManager::HotkeysEnabled || !ZoomManager::CanPlayerZoom())
+	//	return;
 
-	ZoomManager::ZoomOut();
+	//ZoomManager::ZoomOut();
 }
 
 const char* ResetZoomCommandClass::GetName() const
@@ -81,8 +81,8 @@ const wchar_t* ResetZoomCommandClass::GetUIDescription() const
 
 void ResetZoomCommandClass::Execute(WWKey eInput) const
 {
-	if (!ZoomManager::HotkeysEnabled || !ZoomManager::CanPlayerZoom())
-		return;
+	//if (!ZoomManager::HotkeysEnabled || !ZoomManager::CanPlayerZoom())
+	//	return;
 
-	ZoomManager::ResetZoom();
+	//ZoomManager::ResetZoom();
 }

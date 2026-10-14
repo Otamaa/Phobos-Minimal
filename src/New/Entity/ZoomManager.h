@@ -2,6 +2,8 @@
 
 #include <Point2D.h>
 
+#ifdef _RECHECKIFMERGED
+
 class ZoomManager
 {
 public:
@@ -45,3 +47,5 @@ public:
 	// Transforms tactical coordinates back to screen coordinates
 	static Point2D TacticalToScreen(const Point2D& virtualPoint);
 };
+
+#endif

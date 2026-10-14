@@ -2617,6 +2617,62 @@ bool detail::read<MovementZone>(MovementZone& value, INI_EX& parser, const char*
 }
 
 template <>
+bool detail::read<AffectedSurvivor>(AffectedSurvivor& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+{
+	if (parser.ReadString(pSection, pKey))
+	{
+		char* context = nullptr;
+		AffectedSurvivor resultData = AffectedSurvivor::None;
+
+		for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
+			cur;
+			cur = strtok_s(nullptr, Phobos::readDelims, &context))
+		{
+
+			AffectedSurvivor result = AffectedSurvivor::None;
+			bool found = false;
+			for (const auto& [val, str] : EnumFunctions::AffectedSurvivor_ToStrings)
+			{
+				if (PhobosCRT::iequals(cur, str))
+				{
+					found = true;
+					result = val;
+					break;
+				}
+			}
+
+			//one invalid will break all
+			if (!found)
+			{
+				Debug::INIParseFailed(pSection, pKey, cur, "Expected a AffectedSurvivor	");
+				return false;
+			}
+			else
+			{
+
+				switch (result)
+				{
+					//add to result
+				case AffectedSurvivor::None: resultData |= AffectedSurvivor::None; break;
+				case AffectedSurvivor::VehicleThief: resultData |= AffectedSurvivor::VehicleThief; break;
+				case AffectedSurvivor::Crew: resultData |= AffectedSurvivor::Crew; break;
+				case AffectedSurvivor::Passengers: resultData |= AffectedSurvivor::Passengers; break;
+					//it is affecting all just bail and return true
+				case AffectedSurvivor::All: value = AffectedSurvivor::All; return true;
+					break;//switch break
+					break;//loop break
+				}
+			}
+		}
+
+		value = resultData;
+		return true;
+	}
+
+	return false;
+}
+
+template <>
 void detail::parse_values<LandType>(std::vector<LandType>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 {
 	vector.clear();

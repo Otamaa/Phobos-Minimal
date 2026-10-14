@@ -195,12 +195,12 @@ void __fastcall Game_Init_Commands_Wrapper() {
 	Make<SelectedInfoCommandClass>();
 	Make<SelectedExpandCommandClass>();
 
-	if (ZoomManager::Enabled && ZoomManager::HotkeysEnabled)
-	{
-		Make<ZoomInCommandClass>();
-		Make<ZoomOutCommandClass>();
-		Make<ResetZoomCommandClass>();
-	}
+	//if (ZoomManager::Enabled && ZoomManager::HotkeysEnabled)
+	//{
+	//	Make<ZoomInCommandClass>();
+	//	Make<ZoomOutCommandClass>();
+	//	Make<ResetZoomCommandClass>();
+	//}
 
 	CommandClass::InitCommand();
 
@@ -234,9 +234,9 @@ ASMJIT_PATCH(0x533F50, Game_ScrollSidebar_Skip, 0x5)
 			return SkipScrollSidebar;
 	}
 
-	if (ZoomManager::CanPlayerZoom()
-		&& ZoomManager::WheelEnabled && (GetAsyncKeyState(VK_CONTROL) & 0x8000))
-		return SkipScrollSidebar;
+	//if (ZoomManager::CanPlayerZoom()
+	//	&& ZoomManager::WheelEnabled && (GetAsyncKeyState(VK_CONTROL) & 0x8000))
+	//	return SkipScrollSidebar;
 
 	if(MessageColumnClass::Instance.IsHovering())
 		return SkipScrollSidebar ;
@@ -248,16 +248,16 @@ ASMJIT_PATCH(0x777998, Game_WndProc_ScrollMouseWheel, 0x6)
 {
 	GET(WPARAM, WParam, ECX);
 
-	if (ZoomManager::CanPlayerZoom() 
-		&& ZoomManager::WheelEnabled && (GetAsyncKeyState(VK_CONTROL) & 0x8000))
-	{
-		if (WParam & 0x80000000u)
-			ZoomManager::ZoomOut();
-		else
-			ZoomManager::ZoomIn();
-
-		return 0;
-	}
+	//if (ZoomManager::CanPlayerZoom() 
+	//	&& ZoomManager::WheelEnabled && (GetAsyncKeyState(VK_CONTROL) & 0x8000))
+	//{
+	//	if (WParam & 0x80000000u)
+	//		ZoomManager::ZoomOut();
+	//	else
+	//		ZoomManager::ZoomIn();
+	//
+	//	return 0;
+	//}
 
 	if (WParam & 0x80000000u) {
 

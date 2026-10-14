@@ -137,11 +137,22 @@ enum class FPSCounterMode : BYTE
 	disabled, Full, FPSOnly, FPSandAVG, FPSandLat, Lat, count
 };
 
+enum class AffectedSurvivor : BYTE
+{
+	None = 0,
+	VehicleThief = 1 << 0,
+	Crew = 1 << 1,
+	Passengers = 1 << 2,
+
+	All = VehicleThief | Crew | Passengers
+};
+MAKE_ENUM_FLAGS(AffectedSurvivor);
+
 enum class PositionFollow : BYTE
 {
 	None = 0,
-	Firer = 1 << 0 ,
-	Target = 2 << 1 ,
+	Firer = 1 << 1 ,
+	Target = 1 << 2 ,
 
 	All = Firer | Target
 };

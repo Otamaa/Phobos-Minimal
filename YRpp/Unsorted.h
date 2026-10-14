@@ -896,6 +896,7 @@ struct Imports
 
 	//typedef HRESULT(WINAPI* FP_DirectDrawCreate)(GUID* lpGUID, LPDIRECTDRAW* lplpDD, IUnknown* pUnkOuter);
 	//static COMPILETIMEEVAL referencefunc<FP_DirectDrawCreate, 0x7E1048> const DirectDrawCreate {};
+
 };
 
 //DeleterType is required to identify

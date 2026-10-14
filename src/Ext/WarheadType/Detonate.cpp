@@ -639,18 +639,23 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 		this->applyTransactMoney(pOwner, pHouse, pBullet, coords);
 	}
 
+	 this->CritActive = false; 
+
+	 if (!this->ApplyPerTargetEffectsOnDetonate.Get(FakeRulesClass::Instance->ApplyPerTargetEffectsOnDetonate))
+		 return;
+
 	 this->GetCritChance(pOwner, this->CritCurrentChance);
-
-	 if (!this->Crit_ApplyChancePerTarget.Get(FakeRulesClass::Instance->Crit_ApplyChancePerTarget))
-		this->CritRandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
-
-	if (!this->ReturnWarhead_ApplyChancePerTarget.Get(FakeRulesClass::Instance->ReturnWarhead_ApplyChancePerTarget))
-			this->ReturnWarhead_RandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
 
 	//const bool ISPermaMC = this->PermaMC && !pBullet;
 
-	if ((this->IsCellSpreadWH || this->CritCurrentChance > 0.0) && this->ApplyPerTargetEffectsOnDetonate.Get(FakeRulesClass::Instance()->ApplyPerTargetEffectsOnDetonate))
+	if ((this->IsCellSpreadWH || this->CritCurrentChance > 0.0))
 	{
+		if (!this->Crit_ApplyChancePerTarget.Get(FakeRulesClass::Instance->Crit_ApplyChancePerTarget))
+			this->CritRandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
+
+		if (!this->ReturnWarhead_ApplyChancePerTarget.Get(FakeRulesClass::Instance->ReturnWarhead_ApplyChancePerTarget))
+			this->ReturnWarhead_RandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
+
 		if (this->Crit_ActiveChanceAnims.size() > 0 && this->CritCurrentChance > 0.0)
 		{
 			int idx = ScenarioClass::Instance->Random.RandomRanged(0, this->Crit_ActiveChanceAnims.size() - 1);
@@ -912,7 +917,10 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 			return;
 	}
 
-	if (this->CritCurrentChance > 0.0 && (!this->Crit_SuppressWhenIntercepted.Get(FakeRulesClass::Instance->Crit_SuppressWhenIntercepted)  || !bulletWasIntercepted)) {
+	if (this->CritCurrentChance > 0.0 &&
+		(!this->Crit_SuppressWhenIntercepted.Get(FakeRulesClass::Instance->Crit_SuppressWhenIntercepted)  
+			|| !this->ApplyPerTargetEffectsOnDetonate.Get(FakeRulesClass::Instance->ApplyPerTargetEffectsOnDetonate)  
+			|| !bulletWasIntercepted)) {
 		this->ApplyCrit(pHouse, pTarget, pOwner);
 
 		if (!pTarget->IsAlive)
@@ -983,7 +991,8 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 void WarheadTypeExtData::ApplyReturnWarhead(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* pOwner)
 {
 	const double dice = this->ReturnWarhead_ApplyChancePerTarget.Get(FakeRulesClass::Instance->ReturnWarhead_ApplyChancePerTarget)
-	 || !this->ApplyPerTargetEffectsOnDetonate.Get(FakeRulesClass::Instance()->ApplyPerTargetEffectsOnDetonate) ? ScenarioClass::Instance->Random.RandomDouble() : this->ReturnWarhead_RandomBuffer;
+	 || !this->ApplyPerTargetEffectsOnDetonate.Get(FakeRulesClass::Instance()->ApplyPerTargetEffectsOnDetonate) ? 
+		ScenarioClass::Instance->Random.RandomDouble() : this->ReturnWarhead_RandomBuffer;
 
 	if (this->ReturnWarhead_Chance < dice)
 		return;
@@ -1165,7 +1174,8 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 
 	double dice;
 
-	if (this->Crit_ApplyChancePerTarget.Get(FakeRulesClass::Instance->Crit_ApplyChancePerTarget)|| !this->ApplyPerTargetEffectsOnDetonate.Get(FakeRulesClass::Instance()->ApplyPerTargetEffectsOnDetonate))
+	if (this->Crit_ApplyChancePerTarget.Get(FakeRulesClass::Instance->Crit_ApplyChancePerTarget)
+		|| !this->ApplyPerTargetEffectsOnDetonate.Get(FakeRulesClass::Instance()->ApplyPerTargetEffectsOnDetonate))
 		dice = ScenarioClass::Instance->Random.RandomDouble();
 	else
 		dice = this->CritRandomBuffer;

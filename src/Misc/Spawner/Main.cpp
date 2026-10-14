@@ -86,6 +86,7 @@ SpawnerMain::GameConfigs::GameConfigs()
 	, AutoSaveCount { -1 }
 	, AutoSaveInterval { 7200 }
 	, NextAutoSaveNumber { 0 }
+	, ShowMPSaveGameButton { true }
 
 	// Scenario Options
 	, Seed { 0 }
@@ -558,18 +559,20 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 				PhobosCRT::StringToWideString(this->UIGameMode, sizeof(this->UIGameMode) / sizeof(wchar_t) , Phobos::readBuffer);
 			}
 
-		// SaveGame Options
-		LoadSaveGame = pINI->ReadBool(GameStrings::Settings(), "LoadSaveGame", LoadSaveGame);
-		/* SavedGameDir */
-		pINI->ReadString(GameStrings::Settings(), "SavedGameDir", SavedGameDir, SavedGameDir, sizeof(SavedGameDir));
-		/* SaveGameName */
-		pINI->ReadString(GameStrings::Settings(), "SaveGameName", SaveGameName, SaveGameName, sizeof(SaveGameName));
+		{ // SaveGame Options
+			LoadSaveGame = pINI->ReadBool(GameStrings::Settings(), "LoadSaveGame", LoadSaveGame);
+			/* SavedGameDir */
+			pINI->ReadString(GameStrings::Settings(), "SavedGameDir", SavedGameDir, SavedGameDir, sizeof(SavedGameDir));
+			/* SaveGameName */
+			pINI->ReadString(GameStrings::Settings(), "SaveGameName", SaveGameName, SaveGameName, sizeof(SaveGameName));
 
-		AutoSaveCount = pINI->ReadInteger(GameStrings::Settings(), "AutoSaveCount", AutoSaveCount);
-		AutoSaveInterval = pINI->ReadInteger(GameStrings::Settings(), "AutoSaveInterval", AutoSaveInterval);
-		NextAutoSaveNumber = pINI->ReadInteger(GameStrings::Settings(), "NextAutoSaveNumber", NextAutoSaveNumber);
+			AutoSaveCount = pINI->ReadInteger(GameStrings::Settings(), "AutoSaveCount", AutoSaveCount);
+			AutoSaveInterval = pINI->ReadInteger(GameStrings::Settings(), "AutoSaveInterval", AutoSaveInterval);
+			NextAutoSaveNumber = pINI->ReadInteger(GameStrings::Settings(), "NextAutoSaveNumber", NextAutoSaveNumber);
 
-		CustomMissionID = pINI->ReadInteger(GameStrings::Settings(), "CampaignID", CustomMissionID);
+			CustomMissionID = pINI->ReadInteger(GameStrings::Settings(), "CampaignID", CustomMissionID);
+			ShowMPSaveGameButton = pINI->ReadBool(GameStrings::Settings(), "ShowMPSaveGameButton", ShowMPSaveGameButton);
+		}
 
 		{ // Scenario Options
 			Seed = pINI->ReadInteger(GameStrings::Settings(), "Seed", Seed);
@@ -1632,34 +1635,6 @@ ASMJIT_PATCH(0x686A9E, ReadScenario_InitSomeThings_SpecialHouseIsAlly, 0x6)
 {
 	return !SpawnerMain::GetGameConfigs()->SpecialHouseIsAlly ?
 		0x686AC6 : 0u;
-}
-
-// Hide the GameSpeed (FPS) slider group only when feature disabled.
-// Skirmish observers must always retain the slider regardless of config.
-ASMJIT_PATCH(0x4E20BA, GameControlsClass__SomeDialog_GameSpeedSlider, 0x5)
-{
-	if(Game::ObserverMode() || (SessionClass::IsSkirmish() && HouseClass::CurrentPlayer() && HouseClass::CurrentPlayer->IsObserver())) {
-		return 0x4E211A;
-	}
-
-	if (SpawnerMain::GameConfigs::m_Ptr.DisableGameSpeed) {
-		using GetCtrlById_t = void* (__stdcall*)(void* hDlg, int id);
-		using ShowWindow_t = void(__stdcall*)(void* hWnd, int nCmdShow);
-
-		GET(GetCtrlById_t, getCtrl, EDI);
-		GET(ShowWindow_t, showWnd, EBP);
-		GET(void*, hDlg, ESI);
-
-		if (getCtrl && showWnd) {
-			if (auto ctrl = getCtrl(hDlg, 0x529)) { showWnd(ctrl, 0); }
-			if (auto ctrl = getCtrl(hDlg, 0x714)) { showWnd(ctrl, 0); }
-			if (auto ctrl = getCtrl(hDlg, 0x671)) { showWnd(ctrl, 0); }
-		}
-
-		return 0x4E211A;
-	}
-
-	return 0;
 }
 
 // Set cncnet.fnt instead of game.fnt
