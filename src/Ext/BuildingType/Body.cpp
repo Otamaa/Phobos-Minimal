@@ -1958,7 +1958,7 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	return true;
 }
 
-bool BuildingTypeExtData::IsPoweredAnimBlocked(BuildingClass* pBuilding, bool powered, bool poweredLight, bool poweredEffect, bool poweredSpecial)
+bool BuildingTypeExtData::IsPoweredAnimBlocked(BuildingClass* pBuilding, bool powered, bool poweredLight, bool poweredEffect, bool poweredSpecial, bool upgrade)
 {
 	auto const pType = pBuilding->Type;
 
@@ -1968,7 +1968,7 @@ bool BuildingTypeExtData::IsPoweredAnimBlocked(BuildingClass* pBuilding, bool po
 
 	return pBuilding->CurrentMission != Mission::Construction
 		&& pBuilding->CurrentMission != Mission::Selling
-		&& !pBuilding->IsPowerOnline()
+		&& !(isUpgrade || pBuilding->IsPowerOnline())
 		&& !BuildingExtContainer::Instance.Find(pBuilding)->HasPowerFromMapFile
 		;
 }

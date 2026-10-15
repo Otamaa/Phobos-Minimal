@@ -153,7 +153,7 @@ COMPILETIMEEVAL FORCEDINLINE bool AllowPoweredAnim(FakeBuildingClass* pBuilding,
 
 		auto const animData = pType->GetBuildingAnim(anim);
 
-		if (BuildingTypeExtData::IsPoweredAnimBlocked(pBuilding, animData.Powered, animData.PoweredLight, animData.PoweredEffect, animData.PoweredSpecial))
+		if (BuildingTypeExtData::IsPoweredAnimBlocked(pBuilding, animData.Powered, animData.PoweredLight, animData.PoweredEffect, animData.PoweredSpecial, true))
 			return false;
 	}
 	else if (anim == BuildingAnimSlot::Production || anim == BuildingAnimSlot::PreProduction) {
@@ -163,7 +163,7 @@ COMPILETIMEEVAL FORCEDINLINE bool AllowPoweredAnim(FakeBuildingClass* pBuilding,
 
 		auto const animData = pType->GetBuildingAnim(anim);
 
-		if (BuildingTypeExtData::IsPoweredAnimBlocked(pBuilding, animData.Powered, animData.PoweredLight, animData.PoweredEffect, animData.PoweredSpecial))
+		if (BuildingTypeExtData::IsPoweredAnimBlocked(pBuilding, animData.Powered, animData.PoweredLight, animData.PoweredEffect, animData.PoweredSpecial, false))
 			return false;
 	}
 

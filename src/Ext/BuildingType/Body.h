@@ -523,7 +523,7 @@ public:
 	static DWORD FoundationLength(CellStruct const* const pFoundation);
 	static const std::vector<CellStruct>* GetCoveredCells(BuildingClass* const pThis, CellStruct const mainCoords, int const shadowHeight);
 	static void GetDisplayRect(RectangleStruct* out, CellStruct* cells);
-	static bool IsPoweredAnimBlocked(BuildingClass* pBuilding, bool powered, bool poweredLight, bool poweredEffect, bool poweredSpecial);
+	static bool IsPoweredAnimBlocked(BuildingClass* pBuilding, bool powered, bool poweredLight, bool poweredEffect, bool poweredSpecial, bool upgrade);
 
 private:
 
