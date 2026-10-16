@@ -66,7 +66,7 @@ void InsigniaDataEntry::Read(INI_EX exINI, const char* pSection, bool gunner,
 	entry.Frame.Read(exINI, pSection, "InsigniaFrame.%s");
 	entry.Frames.Read(exINI, pSection, "InsigniaFrames");
 
-	char tempBuffer[0x20];
+	char tempBuffer[Phobos::readLength];
 
 	if (gunner) {
 		weaponsData.resize(weaponCount);
