@@ -139,7 +139,7 @@ static bool TryPlayRoofProductionAnim(BuildingClass* pBuilding, bool isDamaged, 
 		pTypeExt->RoofProductionAnimPowered.Get(prodAnim.Powered),
 		pTypeExt->RoofProductionAnimPoweredLight.Get(prodAnim.PoweredLight),
 		pTypeExt->RoofProductionAnimPoweredEffect.Get(prodAnim.PoweredEffect),
-		pTypeExt->RoofProductionAnimPoweredSpecial.Get(prodAnim.PoweredSpecial)))
+		pTypeExt->RoofProductionAnimPoweredSpecial.Get(prodAnim.PoweredSpecial), false))
 		return true;
 
 	PlayRoofProductionAnim(pBuilding, pTypeExt, isDamaged, garrisoned);

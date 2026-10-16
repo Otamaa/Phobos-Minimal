@@ -1958,7 +1958,7 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	return true;
 }
 
-bool BuildingTypeExtData::IsPoweredAnimBlocked(BuildingClass* pBuilding, bool powered, bool poweredLight, bool poweredEffect, bool poweredSpecial, bool upgrade)
+bool BuildingTypeExtData::IsPoweredAnimBlocked(BuildingClass* pBuilding, bool powered, bool poweredLight, bool poweredEffect, bool poweredSpecial, bool isUpgrade)
 {
 	auto const pType = pBuilding->Type;
 
